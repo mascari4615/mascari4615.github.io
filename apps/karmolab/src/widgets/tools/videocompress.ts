@@ -14,6 +14,8 @@ import { fileSize as size, mmss } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
 import { pickRecordType } from './shared/video';
 
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   // captureStream 은 브라우저마다 있고 없고가 갈려 표준 타입에 없다 — 있는지 보고 쓴다.
   type Capturable = HTMLCanvasElement & { captureStream?: (fps?: number) => MediaStream };
@@ -22,20 +24,36 @@ import { pickRecordType } from './shared/video';
     id: 'videocompress',
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['video/*'],
-    title: '영상 용량 줄이기',
+    title: t('widgets.videocompress.title', undefined, '영상 용량 줄이기'),
     category: 'tool',
-    desc: '영상 용량을 줄입니다. 해상도와 화질을 고르고, 영상이 브라우저를 벗어나지 않습니다',
+    desc: t(
+      'widgets-desc.videocompress.desc',
+      undefined,
+      '영상 용량을 줄입니다. 해상도와 화질을 고르고, 영상이 브라우저를 벗어나지 않습니다'
+    ),
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 12h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M10.5 9.5 8 12l2.5 2.5M13.5 9.5 16 12l-2.5 2.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '용량 줄이기',
+        label: t('videocompress.tab', undefined, '용량 줄이기'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('videocompress').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="vcDrop">
               <input type="file" id="vcFile" accept="video/*" hidden>
-              영상을 끌어다 놓거나 눌러서 고르세요
+              ${esc(t('videocompress.drop'))}
             </div>
 
             <div id="vcEditor" style="display:none; margin-top:var(--space-lg);">
@@ -44,34 +62,34 @@ import { pickRecordType } from './shared/video';
               <div class="field-group" style="margin-top:var(--space-lg);">
                 <div class="tool-grid-2">
                   <div>
-                    <div class="tool-sublabel">화면 크기 <span id="vcScaleVal" class="range-value">절반</span></div>
+                    <div class="tool-sublabel">${esc(t('videocompress.label.scale'))} <span id="vcScaleVal" class="range-value">절반</span></div>
                     <input type="range" id="vcScale" aria-label="화면 크기" min="1" max="4" step="1" value="2">
                   </div>
                   <div>
-                    <div class="tool-sublabel">화질 <span id="vcRateVal" class="range-value">보통</span></div>
+                    <div class="tool-sublabel">${esc(t('videocompress.label.rate'))} <span id="vcRateVal" class="range-value">보통</span></div>
                     <input type="range" id="vcRate" aria-label="화질" min="1" max="4" step="1" value="2">
                   </div>
                 </div>
                 <div class="tool-chips" style="margin-top:10px;">
-                  <label class="tool-chip"><input type="checkbox" id="vcAudio" checked> 소리도 함께</label>
+                  <label class="tool-chip"><input type="checkbox" id="vcAudio" checked> ${esc(t('videocompress.opt.audio'))}</label>
                 </div>
               </div>
 
               <div class="cc-stats" id="vcStats"></div>
 
               <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-                <button class="btn btn-primary" id="vcRun">용량 줄이기</button>
-                <button class="btn btn-ghost" id="vcStop" style="display:none;">중단</button>
-                <button class="btn btn-ghost" id="vcSave" disabled>내려받기</button>
+                <button class="btn btn-primary" id="vcRun">${esc(t('videocompress.btn.run'))}</button>
+                <button class="btn btn-ghost" id="vcStop" style="display:none;">${esc(t('videocompress.btn.stop'))}</button>
+                <button class="btn btn-ghost" id="vcSave" disabled>${esc(t('videocompress.btn.save'))}</button>
               </div>
 
               <div id="vcResult" style="display:none;">
-                <div class="tool-sublabel">줄인 영상 — 확인하고 받으세요</div>
+                <div class="tool-sublabel">${esc(t('videocompress.label.result'))}</div>
                 <video id="vcPreview" controls playsinline style="width:100%; max-height:280px; background:#000; border-radius:8px;"></video>
               </div>
             </div>
 
-            <div class="tool-status" id="vcStatus">영상은 브라우저 안에서만 열립니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="vcStatus">${esc(t('videocompress.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -89,17 +107,17 @@ import { pickRecordType } from './shared/video';
           const preview = $<HTMLVideoElement>('#vcPreview');
 
           const SCALES: Array<[number, string]> = [
-            [0.35, '아주 작게'],
-            [0.5, '절반'],
-            [0.7, '조금 작게'],
-            [1, '그대로']
+            [0.35, t('videocompress.scale.tiny')],
+            [0.5, t('videocompress.scale.half')],
+            [0.7, t('videocompress.scale.bitSmall')],
+            [1, t('videocompress.scale.same')]
           ];
           // 초당 비트 수 = 용량을 좌우하는 값. 화면이 작으면 적은 값으로도 깨끗하다.
           const RATES: Array<[number, string]> = [
-            [0.06, '작게'],
-            [0.1, '보통'],
-            [0.16, '좋게'],
-            [0.25, '아주 좋게']
+            [0.06, t('videocompress.rate.low')],
+            [0.1, t('videocompress.rate.normal')],
+            [0.16, t('videocompress.rate.good')],
+            [0.25, t('videocompress.rate.best')]
           ];
 
           let fileName = '';
@@ -135,11 +153,11 @@ import { pickRecordType } from './shared/video';
             const { w, h } = outSize();
             const guess = (bitsPerSecond() / 8) * duration;
             stats.innerHTML =
-              stat('원래 용량', size(sourceSize), true) +
-              stat('만들 크기', `${w}×${h}`) +
-              stat('예상 용량', '약 ' + size(guess)) +
+              stat(t('videocompress.stat.srcSize'), size(sourceSize), true) +
+              stat(t('videocompress.stat.outDim'), `${w}×${h}`) +
+              stat(t('videocompress.stat.guess'), t('videocompress.value.about', { v: size(guess) })) +
               // 실시간으로 다시 담기 때문에 영상 길이만큼 걸린다. 미리 알려야 「멈춘 건가」 오해가 없다.
-              stat('걸리는 시간', `약 ${mmss(duration)}`);
+              stat(t('videocompress.stat.time'), t('videocompress.value.about', { v: mmss(duration) }));
           }
 
           function load(f: File): void {
@@ -153,9 +171,17 @@ import { pickRecordType } from './shared/video';
               duration = video.duration;
               editor.style.display = '';
               refresh();
-              say(`${f.name} · ${size(f.size)} · ${video.videoWidth}×${video.videoHeight} — 설정을 고르고 줄이세요.`, 'ok');
+              say(
+                t('videocompress.say.loaded', {
+                  name: f.name,
+                  size: size(f.size),
+                  w: video.videoWidth,
+                  h: video.videoHeight
+                }),
+                'ok'
+              );
             };
-            video.onerror = () => say('이 영상은 브라우저가 열지 못했어요. mp4·webm 은 대체로 됩니다.', 'error');
+            video.onerror = () => say(t('videocompress.err.open'), 'error');
           }
 
           async function run(): Promise<void> {
@@ -165,7 +191,7 @@ import { pickRecordType } from './shared/video';
             canvas.height = h;
             const ctx = canvas.getContext('2d');
             if (!ctx || !canvas.captureStream) {
-              say('이 브라우저는 영상 담기를 지원하지 않아요. 크롬·엣지에서 열어 보세요.', 'error');
+              say(t('videocompress.err.unsupported'), 'error');
               return;
             }
 
@@ -225,7 +251,7 @@ import { pickRecordType } from './shared/video';
 
             const watch = window.setInterval(() => {
               const left = Math.max(0, duration - video.currentTime);
-              say(`다시 담는 중… ${mmss(left)} 남음 — 이 탭을 보이는 채로 두세요`);
+              say(t('videocompress.say.progress', { left: mmss(left) }));
             }, 300);
 
             made = await finished;
@@ -237,7 +263,7 @@ import { pickRecordType } from './shared/video';
             recorder = null;
 
             if (!made || made.size < 100) {
-              say('담긴 내용이 없어요.', 'error');
+              say(t('videocompress.err.empty'), 'error');
               return;
             }
             preview.src = URL.createObjectURL(made);
@@ -246,17 +272,20 @@ import { pickRecordType } from './shared/video';
 
             const pct = Math.round(Math.abs(1 - made.size / sourceSize) * 100);
             stats.innerHTML =
-              stat('원래 용량', size(sourceSize)) +
-              stat('줄인 용량', size(made.size), true) +
-              stat('변화', made.size < sourceSize ? `${pct}% 줄어듦` : `${pct}% 늘어남`) +
-              stat('크기', `${w}×${h}`);
+              stat(t('videocompress.stat.srcSize'), size(sourceSize)) +
+              stat(t('videocompress.stat.newSize'), size(made.size), true) +
+              stat(
+                t('videocompress.stat.change'),
+                t(made.size < sourceSize ? 'videocompress.value.smaller' : 'videocompress.value.bigger', { pct })
+              ) +
+              stat(t('videocompress.stat.dim'), `${w}×${h}`);
             // 이미 잘 눌린 영상은 다시 담으면 커진다 — 그때 줄었다고 말하면 거짓이 된다
             if (leftTab) {
-              say('처리 중에 다른 탭에 다녀오셨네요 — 그동안 화면이 멈춘 채로 담겼을 수 있습니다. 결과를 꼭 확인하고, 이상하면 이 탭을 보이는 채로 다시 해 주세요.', 'error');
+              say(t('videocompress.err.hidden'), 'error');
             } else if (made.size >= sourceSize) {
-              say(`줄지 않았어요 (${size(sourceSize)} → ${size(made.size)}). 이미 잘 압축된 영상입니다. 화면 크기나 화질을 낮추면 줄지만 흐려집니다.`, 'error');
+              say(t('videocompress.say.noGain', { from: size(sourceSize), to: size(made.size) }), 'error');
             } else {
-              say(`${size(sourceSize)} → ${size(made.size)} (${pct}% 줄었어요). 확인하고 받으세요.`, 'ok');
+              say(t('videocompress.say.done', { from: size(sourceSize), to: size(made.size), pct }), 'ok');
             }
             Toolbox.trackUse?.('compress');
           }
@@ -287,21 +316,18 @@ import { pickRecordType } from './shared/video';
           [scaleEl, rateEl].forEach((el) => el.addEventListener('input', refresh));
 
           runBtn.onclick = () => {
-            void run().catch((err: Error) => say('줄이는 중 문제가 생겼어요: ' + err.message, 'error'));
+            void run().catch((err: Error) => say(t('videocompress.err.running', { msg: err.message }), 'error'));
           };
           saveBtn.onclick = () => {
             if (!made) return;
             const a = document.createElement('a');
             a.href = URL.createObjectURL(made);
-            a.download = fileName.replace(/\.[^.]+$/, '') + '-작게.webm';
+            a.download = fileName.replace(/\.[^.]+$/, '') + t('videocompress.file.suffix') + '.webm';
             a.click();
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: made, name: a.download, from: 'videocompress' });
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say('내려받았어요.', 'ok');
+            say(t('videocompress.say.saved'), 'ok');
           };
-        }
-      }
-    ]
-  });
+  }
 })();

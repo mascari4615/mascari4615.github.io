@@ -94,5 +94,10 @@
   "howto.audiolevel.1": "そろえ方と目標の大きさを選ぶ",
   "howto.audiolevel.2": "「音量をそろえる」を押す",
   "howto.audiolevel.3": "波形と音で前後を比べる",
-  "howto.audiolevel.4": "WAV でダウンロード"
+  "howto.audiolevel.4": "WAV でダウンロード",
+  "howto.videocompress.0": "動画ファイルを入れる",
+  "howto.videocompress.1": "画面サイズと画質を選ぶ",
+  "howto.videocompress.2": "予想容量を確認",
+  "howto.videocompress.3": "「容量を減らす」を押して待つ",
+  "howto.videocompress.4": "結果を見てダウンロード"
 }

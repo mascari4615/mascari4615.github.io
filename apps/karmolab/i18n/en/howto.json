@@ -94,5 +94,10 @@
   "howto.audiolevel.1": "Pick how even it should be, and the target level",
   "howto.audiolevel.2": "Hit Normalize",
   "howto.audiolevel.3": "Compare before and after by waveform and by ear",
-  "howto.audiolevel.4": "Download it as WAV"
+  "howto.audiolevel.4": "Download it as WAV",
+  "howto.videocompress.0": "Add a video file",
+  "howto.videocompress.1": "Pick the frame size and quality",
+  "howto.videocompress.2": "Check the estimated size",
+  "howto.videocompress.3": "Hit Compress and wait",
+  "howto.videocompress.4": "Watch the result, then download"
 }
