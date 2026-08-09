@@ -1,0 +1,22 @@
+{
+  "urlparse.label.in": "URL or text",
+  "urlparse.ph.in": "https://example.com/search?q=hello&utm_source=news",
+  "urlparse.btn.decode": "Decode (%EC → letters)",
+  "urlparse.btn.encode": "Encode (letters → %EC)",
+  "urlparse.btn.strip": "Remove tracking parameters",
+  "urlparse.btn.copy": "Copy",
+  "urlparse.status.idle": "Paste a URL and it gets laid out piece by piece.",
+  "urlparse.warn.notUrl": "That is not a complete URL (it has to start with http:// to be split up). Encoding still works.",
+  "urlparse.row.protocol": "Protocol",
+  "urlparse.row.host": "Host",
+  "urlparse.row.port": "Port",
+  "urlparse.row.path": "Path",
+  "urlparse.row.hash": "Fragment",
+  "urlparse.tag.tracking": " (tracking)",
+  "urlparse.value.empty": "(empty)",
+  "urlparse.err.decode": "There is a % sequence in here that cannot be decoded.",
+  "urlparse.say.nothingToDrop": "There were no tracking parameters to remove.",
+  "urlparse.err.cannotStrip": "Not a complete URL, so parameters cannot be removed.",
+  "urlparse.copy.done": "URL copied",
+  "urlparse.say.dropped": "Removed {n}: {list}"
+}

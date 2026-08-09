@@ -1,0 +1,21 @@
+{
+  "tableconv.label.in": "表を貼り付け — 表計算からコピーしたものもそのまま",
+  "tableconv.ph.in": "表計算ソフトから表をコピーしてここに貼り付けてください。CSV やマークダウンの表も受け付けます。",
+  "tableconv.label.to": "変換先の形式",
+  "tableconv.opt.md": "マークダウン表 — GitHub・Notion",
+  "tableconv.opt.csv": "CSV — Excel・Google スプレッドシート",
+  "tableconv.opt.tsv": "タブ区切り — 表計算にそのまま貼れる",
+  "tableconv.opt.json": "JSON — 1行目を項目名にする",
+  "tableconv.opt.align": "縦線をそろえる",
+  "tableconv.label.out": "変換した結果",
+  "tableconv.btn.copy": "コピー",
+  "tableconv.status.idle": "表計算から表をコピーして、そのまま貼り付けてみてください。",
+  "tableconv.stat.kind": "判別した形式",
+  "tableconv.stat.rows": "行",
+  "tableconv.stat.cols": "列",
+  "tableconv.warn.ragged": "行ごとに列数が違います。貼り付けが切れていないか確かめてください — 空のセルで埋めて作りました。",
+  "tableconv.copy.done": "変換した表をコピーしました",
+  "tableconv.value.rows": "{n}行",
+  "tableconv.value.cols": "{n}列",
+  "tableconv.say.detected": "{kind} として読みました。コピーして使ってください。"
+}

@@ -9,39 +9,45 @@
  */
 import { parse, spec, toCsv, toJson, toMarkdown, toTsv, type Rows } from '../../core/tableconv';
 import { readInvocation } from '../../lib/tool-url';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'tableconv',
-    title: '표 바꾸기',
+    title: t('widgets.tableconv.title', undefined, "표 바꾸기"),
     category: 'tool',
-    desc: '엑셀에서 복사한 표를 마크다운·CSV·JSON 으로 바꿉니다. 붙여넣기만 하면 됩니다',
+    desc: t('widgets-desc.tableconv.desc', undefined, "엑셀에서 복사한 표를 마크다운·CSV·JSON 으로 바꿉니다. 붙여넣기만 하면 됩니다"),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18M3 14.5h18M9 4v16M15 4v16" stroke="currentColor" stroke-width="1.3" opacity="0.8"/>',
     tabs: [
       {
         id: 'app',
-        label: '표 바꾸기',
+        label: t('tableconv.t01', undefined, undefined),
         build: function (container: HTMLElement): void {
+          void loadNamespace('tableconv').then(function () {
+
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label" for="tcIn">표 붙여넣기 — 엑셀에서 복사한 것도 그대로 됩니다</label>
-              <textarea id="tcIn" rows="8" spellcheck="false" style="width:100%;" placeholder="엑셀에서 표를 복사해 여기에 붙여 넣으세요. CSV 나 마크다운 표도 받습니다."></textarea>
+              <label class="field-label" for="tcIn">${esc(t('tableconv.label.in'))}</label>
+              <textarea id="tcIn" rows="8" spellcheck="false" style="width:100%;" placeholder="${esc(t('tableconv.ph.in'))}"></textarea>
             </div>
 
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">바꿀 형식</div>
-                  <select id="tcTo" aria-label="바꿀 형식">
-                    <option value="md">마크다운 표 — 깃허브·노션</option>
-                    <option value="csv">CSV — 엑셀·구글시트</option>
-                    <option value="tsv">탭 구분 — 엑셀에 바로 붙이기</option>
-                    <option value="json">JSON — 첫 줄을 이름으로</option>
+                  <div class="tool-sublabel">${esc(t('tableconv.label.to'))}</div>
+                  <select id="tcTo" aria-label="${esc(t('tableconv.label.to'))}">
+                    <option value="md">${esc(t('tableconv.opt.md'))}</option>
+                    <option value="csv">${esc(t('tableconv.opt.csv'))}</option>
+                    <option value="tsv">${esc(t('tableconv.opt.tsv'))}</option>
+                    <option value="json">${esc(t('tableconv.opt.json'))}</option>
                   </select>
                 </div>
                 <div class="tool-chips" style="align-content:end;">
-                  <label class="tool-chip"><input type="checkbox" id="tcAlign" checked> 세로줄 맞추기</label>
+                  <label class="tool-chip"><input type="checkbox" id="tcAlign" checked> ${esc(t('tableconv.opt.align'))}</label>
                 </div>
               </div>
             </div>
@@ -49,12 +55,12 @@ import { readInvocation } from '../../lib/tool-url';
             <div class="cc-stats" id="tcStats"></div>
 
             <div class="field-group">
-              <label class="field-label" for="tcOut">바뀐 결과</label>
+              <label class="field-label" for="tcOut">${esc(t('tableconv.label.out'))}</label>
               <textarea id="tcOut" rows="10" spellcheck="false" style="width:100%;" readonly></textarea>
-              <button class="btn btn-ghost btn-sm" id="tcCopy" style="margin-top:8px;">복사</button>
+              <button class="btn btn-ghost btn-sm" id="tcCopy" style="margin-top:8px;">${esc(t('tableconv.btn.copy'))}</button>
             </div>
 
-            <div class="tool-status" id="tcStatus">엑셀에서 표를 복사해 그대로 붙여 넣어 보세요.</div>
+            <div class="tool-status" id="tcStatus">${esc(t('tableconv.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -75,7 +81,7 @@ import { readInvocation } from '../../lib/tool-url';
             if (!rows.length) {
               out.value = '';
               stats.innerHTML = '';
-              say('엑셀에서 표를 복사해 그대로 붙여 넣어 보세요.');
+              say(t('tableconv.status.idle'));
               return;
             }
             const to = $<HTMLSelectElement>('#tcTo').value;
@@ -88,10 +94,10 @@ import { readInvocation } from '../../lib/tool-url';
             const cols = Math.max(...rows.map((r) => r.length));
             const ragged = rows.some((r) => r.length !== cols);
             stats.innerHTML =
-              stat('알아본 형식', kind, true) + stat('줄', `${rows.length}줄`) + stat('칸', `${cols}칸`);
+              stat(t('tableconv.stat.kind'), kind, true) + stat(t('tableconv.stat.rows'), t('tableconv.value.rows', { n: rows.length })) + stat(t('tableconv.stat.cols'), t('tableconv.value.cols', { n: cols }));
             // 줄마다 칸 수가 다르면 대개 붙여넣기가 잘린 것이다 — 결과는 나오지만 내용이 어긋난다
-            if (ragged) say('줄마다 칸 수가 다릅니다. 붙여넣기가 잘렸는지 확인해 주세요 — 빈 칸으로 채워 만들었습니다.', 'error');
-            else say(`${kind} 로 알아봤어요. 복사해서 쓰세요.`, 'ok');
+            if (ragged) say(t('tableconv.warn.ragged'), 'error');
+            else say(t('tableconv.say.detected', { kind }), 'ok');
             Toolbox.trackUse?.('convert');
           }
 
@@ -99,7 +105,7 @@ import { readInvocation } from '../../lib/tool-url';
           $<HTMLSelectElement>('#tcTo').addEventListener('change', refresh);
           $<HTMLInputElement>('#tcAlign').addEventListener('change', refresh);
           $<HTMLButtonElement>('#tcCopy').onclick = () => {
-            void Toolbox.copyText?.(out.value, { message: '바뀐 표를 복사했어요' });
+            void Toolbox.copyText?.(out.value, { message: t('tableconv.copy.done') });
           };
 
           // 주소로 부른 경우 (`?op=convert&table=…&to=markdown`) (TASK-KL-205).
@@ -110,6 +116,7 @@ import { readInvocation } from '../../lib/tool-url';
             if (call.args.align === false) $<HTMLInputElement>('#tcAlign').checked = false;
           }
           refresh();
+                  });
         }
       }
     ]

@@ -1,0 +1,19 @@
+{
+  "hangulkey.tab": "ハングル打ち直し",
+  "hangulkey.mdd": "ハングルに切り替えずに打ちましたね？ 戻しますよ。",
+  "hangulkey.label.input": "入力（英字 → ハングル / ハングル → 英字を自動判別）",
+  "hangulkey.ph.input": "例) dkssudgktpdy  または  안녕하세요",
+  "hangulkey.aria.out": "変換した結果",
+  "hangulkey.btn.auto": "自動で変換",
+  "hangulkey.btn.e2k": "英字 → ハングル",
+  "hangulkey.btn.k2e": "ハングル → 英字",
+  "hangulkey.btn.swap": "結果を入力にする",
+  "hangulkey.btn.clear": "消す",
+  "hangulkey.label.out": "結果",
+  "hangulkey.btn.copy": "コピー",
+  "hangulkey.note": "韓国の2ボル式キーボードが基準です。数字・記号はそのままにします。",
+  "hangulkey.say.k2e": "ハングル → 英字に変換しました。",
+  "hangulkey.say.e2k": "英字 → ハングルに変換しました。",
+  "hangulkey.say.none": "戻す文字がありません（数字・記号はそのままです）。",
+  "hangulkey.copy.done": "結果をコピーしました"
+}

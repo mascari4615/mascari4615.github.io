@@ -1,0 +1,22 @@
+{
+  "urlparse.label.in": "アドレスまたはテキスト",
+  "urlparse.ph.in": "https://example.com/検索?q=こんにちは&utm_source=news",
+  "urlparse.btn.decode": "デコード（%EC → 文字）",
+  "urlparse.btn.encode": "エンコード（文字 → %EC）",
+  "urlparse.btn.strip": "追跡パラメータを消す",
+  "urlparse.btn.copy": "コピー",
+  "urlparse.status.idle": "アドレスを入れると、部品に分けて見せます。",
+  "urlparse.warn.notUrl": "完全なアドレスではありません（http:// で始まらないと分解できません）。エンコード変換はそのままできます。",
+  "urlparse.row.protocol": "プロトコル",
+  "urlparse.row.host": "ホスト",
+  "urlparse.row.port": "ポート",
+  "urlparse.row.path": "パス",
+  "urlparse.row.hash": "ハッシュ",
+  "urlparse.tag.tracking": "（追跡）",
+  "urlparse.value.empty": "（空）",
+  "urlparse.err.decode": "デコードできない % 表記が混ざっています。",
+  "urlparse.say.nothingToDrop": "消す追跡パラメータはありませんでした。",
+  "urlparse.err.cannotStrip": "完全なアドレスではないのでパラメータを消せません。",
+  "urlparse.copy.done": "アドレスをコピーしました",
+  "urlparse.say.dropped": "{n}個消しました: {list}"
+}
