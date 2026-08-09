@@ -1251,6 +1251,8 @@ import {
             <span class="km-group-count">${humanBytes(it.bytes)}</span>
           </div>`).join('')}
         </div>
+        <button class="btn btn-ghost" data-km="st-prev">방금 것 되살리기 (직전 판)</button>
+        <div class="km-hint">새로고침 뒤에도 <b>바로 앞 판 하나</b>는 남겨 둡니다. 실수로 지웠을 때 쓰세요.</div>
         <button class="btn btn-primary" data-km="st-backup">모든 맵 한 파일로 내보내기</button>
         <button class="btn btn-ghost" data-km="st-restore">백업 파일 되돌리기</button>
         <div class="km-hint">되돌리면 지금 맵들을 <b>지우지 않고 옆에 더합니다</b>. 이름이 겹치면 「(복원)」이 붙습니다.</div>
@@ -1261,6 +1263,21 @@ import {
         renderSide();
       };
       (sideEl.querySelector('[data-km="st-restore"]') as HTMLButtonElement).onclick = () => restoreFileEl.click();
+      (sideEl.querySelector('[data-km="st-prev"]') as HTMLButtonElement).onclick = () => {
+        const prev = store.loadPrev();
+        if (!prev) {
+          Toolbox.showToast?.('되살릴 직전 판이 없습니다', undefined, undefined);
+          return;
+        }
+        if (!confirm(`직전 판(노드 ${prev.nodes.length}개)으로 되돌릴까요? 지금 것은 다시 직전 판이 됩니다.`)) return;
+        spec = prev;
+        applySpec();
+        persistStructure();
+        canvas?.fitView();
+        sideMode = 'node';
+        renderSide();
+        Toolbox.showToast?.('직전 판으로 되돌렸습니다', undefined, undefined);
+      };
       (sideEl.querySelector('[data-km="st-backup"]') as HTMLButtonElement).onclick = () => {
         // 맵 하나씩 내보내게 하면 사람은 결국 몇 개를 빠뜨린다 — 통째로 한 파일에 담는다.
         const all = library.maps.map((m) => {
