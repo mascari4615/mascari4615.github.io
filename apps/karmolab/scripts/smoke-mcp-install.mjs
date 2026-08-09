@@ -110,6 +110,20 @@ try {
     'LICENSE 가 Chirpy 테마 것이다 — 루트 LICENSE 를 잘못 담았다'
   );
 
+  /*
+   * ⓐ-2 **`npx karmolab-mcp` 가 실제로 되는가.**
+   * README 의 첫 설치 줄이 그것인데, 여기서는 여태 `node .../src/server.mjs` 를 직접 띄워
+   * 보고 있었다 — 즉 **README 가 시키는 길은 한 번도 안 재 봤다.** 실제로 npm 이
+   * 「bin 항목이 잘못돼 지웠다」고 경고한 적이 있다(경로 앞의 `./`). 그러면 설치는 되는데
+   * 명령어만 안 생긴다.
+   */
+  const binDir = path.join(work, 'node_modules', '.bin');
+  const binNames = fs.existsSync(binDir) ? fs.readdirSync(binDir) : [];
+  check(
+    binNames.some((f) => f.startsWith('karmolab-mcp')),
+    `설치본에 karmolab-mcp 명령이 안 생겼다 — package.json 의 bin 을 보라 (지금: ${binNames.join(' ') || '없음'})`
+  );
+
   // ⓑ README — npm 페이지에 뜨는 그 글이다. 없으면 빈 페이지로 발행된다.
   check(fs.existsSync(inPkg('README.md')), '설치본에 README.md 가 없다 — npm 페이지가 비어서 나간다');
 
