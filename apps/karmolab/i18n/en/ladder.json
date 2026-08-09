@@ -1,0 +1,19 @@
+{
+  "ladder.mdd": "Ask the ladder, not me.",
+  "ladder.label.names": "Players — one per line",
+  "ladder.label.prizes": "Outcomes — one per line (empty means win/lose)",
+  "ladder.ph.names": "Ann\nBen\nCara\nDan",
+  "ladder.ph.prizes": "Coffee\nnope\nnope\nnope",
+  "ladder.sample.names": "Ann\nBen\nCara\nDan",
+  "ladder.sample.prizes": "Coffee\nnope\nnope\nnope",
+  "ladder.btn.new": "Build a new ladder",
+  "ladder.btn.all": "Show every outcome",
+  "ladder.btn.copy": "Copy the outcome",
+  "ladder.status.idle": "Put in the names, build the ladder, then click a name at the top.",
+  "ladder.err.tooFew": "Write at least two players.",
+  "ladder.prize.win": "Win",
+  "ladder.prize.lose": "Nope",
+  "ladder.copy.done": "Outcome copied",
+  "ladder.say.ready": "{n} players · click a name at the top to follow its path.",
+  "ladder.name": "Ladder"
+}

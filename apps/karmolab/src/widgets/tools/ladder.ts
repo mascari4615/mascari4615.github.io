@@ -5,7 +5,12 @@
  * 누른 사람의 경로를 실제로 따라 내려가게 만든다 — 눈으로 검증되는 무작위.
  * 가로줄은 같은 높이에서 겹치지 않게 놓는다 (겹치면 경로가 정의되지 않는다).
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const COLORS = ['#e8635a', '#f0a33c', '#e8cf4a', '#5fc27e', '#4aa8e8', '#7b7ae8', '#d06ad0', '#4fc7c7', '#9aa04a', '#e88fa8'];
 
   interface Ladder {
@@ -58,40 +63,42 @@
 
   Toolbox.register({
     id: 'ladder',
-    title: '사다리타기',
+    title: t('widgets.ladder.title', undefined, "사다리타기"),
     category: 'tool',
-    desc: '이름과 결과를 넣으면 사다리를 그리고, 누른 사람의 경로를 따라 내려가며 짝을 정합니다',
+    desc: t('widgets-desc.ladder.desc', undefined, "이름과 결과를 넣으면 사다리를 그리고, 누른 사람의 경로를 따라 내려가며 짝을 정합니다"),
     layout: 'wide',
     icon: '<path d="M7 3v18M17 3v18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 8h10M7 13h10M7 18h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '사다리',
+        label: t('ladder.name', undefined, "사다리"),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '결과는 사다리한테 물어보세요.' });
+          void loadNamespace('ladder').then(function () {
+
+          Mdd.linePreset('tool_run', { msg: t('ladder.mdd') });
           container.innerHTML = `
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">참가자 — 한 줄에 한 명</div>
-                  <textarea id="ldNames" rows="6" spellcheck="false" placeholder="가나\n다라\n마바\n사아"></textarea>
+                  <div class="tool-sublabel">${esc(t('ladder.label.names'))}</div>
+                  <textarea id="ldNames" rows="6" spellcheck="false" placeholder="${esc(t('ladder.ph.names'))}"></textarea>
                 </div>
                 <div>
-                  <div class="tool-sublabel">결과 — 한 줄에 하나 (비우면 당첨/꽝)</div>
-                  <textarea id="ldPrizes" rows="6" spellcheck="false" placeholder="커피\n꽝\n꽝\n꽝"></textarea>
+                  <div class="tool-sublabel">${esc(t('ladder.label.prizes'))}</div>
+                  <textarea id="ldPrizes" rows="6" spellcheck="false" placeholder="${esc(t('ladder.ph.prizes'))}"></textarea>
                 </div>
               </div>
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-primary" id="ldNew">사다리 새로 만들기</button>
-              <button class="btn btn-ghost" id="ldAll">전체 결과 보기</button>
-              <button class="btn btn-ghost" id="ldCopy">결과 복사</button>
+              <button class="btn btn-primary" id="ldNew">${esc(t('ladder.btn.new'))}</button>
+              <button class="btn btn-ghost" id="ldAll">${esc(t('ladder.btn.all'))}</button>
+              <button class="btn btn-ghost" id="ldCopy">${esc(t('ladder.btn.copy'))}</button>
             </div>
 
-            <div class="ld-stage"><svg id="ldSvg" role="img" aria-label="사다리"></svg></div>
+            <div class="ld-stage"><svg id="ldSvg" role="img" aria-label="${esc(t('ladder.name'))}"></svg></div>
             <div class="tool-list" id="ldResult"></div>
-            <div class="tool-status" id="ldStatus">이름을 넣고 사다리를 만든 뒤, 위쪽 이름을 누르세요.</div>
+            <div class="tool-status" id="ldStatus">${esc(t('ladder.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -106,7 +113,6 @@
           let prizes: string[] = [];
           let revealed: number[] = [];
 
-          const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
           function readLines(el: HTMLTextAreaElement): string[] {
             return el.value.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
@@ -115,7 +121,7 @@
           function build(): void {
             names = readLines(namesEl);
             if (names.length < 2) {
-              status.textContent = '참가자를 두 명 이상 적어 주세요.';
+              status.textContent = t('ladder.err.tooFew');
               status.className = 'tool-status error';
               svg.innerHTML = '';
               return;
@@ -123,12 +129,12 @@
             if (names.length > 10) names = names.slice(0, 10);
             prizes = readLines(prizesEl);
             // 결과를 안 적었거나 모자라면 첫 줄만 당첨인 기본 판을 만든다.
-            while (prizes.length < names.length) prizes.push(prizes.length === 0 ? '당첨' : '꽝');
+            while (prizes.length < names.length) prizes.push(prizes.length === 0 ? t('ladder.prize.win') : t('ladder.prize.lose'));
             prizes = prizes.slice(0, names.length);
             ladder = makeLadder(names.length);
             revealed = [];
             draw();
-            status.textContent = `${names.length}명 · 위쪽 이름을 누르면 경로를 따라갑니다.`;
+            status.textContent = t('ladder.say.ready', { n: names.length });
             status.className = 'tool-status ok';
             Toolbox.trackUse?.('new');
           }
@@ -211,12 +217,13 @@
             const text = revealed
               .map((c) => `${names[c]} → ${prizes[trace(ladder!, c).end] || ''}`)
               .join('\n');
-            await Toolbox.copyText?.(text, { message: '결과를 복사했어요' });
+            await Toolbox.copyText?.(text, { message: t('ladder.copy.done') });
           };
 
-          namesEl.value = '가나\n다라\n마바\n사아';
-          prizesEl.value = '커피\n꽝\n꽝\n꽝';
+          namesEl.value = t('ladder.sample.names');
+          prizesEl.value = t('ladder.sample.prizes');
           build();
+                  });
         }
       }
     ]

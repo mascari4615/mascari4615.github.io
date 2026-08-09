@@ -1,0 +1,22 @@
+{
+  "pdf2img.label.scale": "배율",
+  "pdf2img.label.format": "형식",
+  "pdf2img.drop": "PDF 를 끌어다 놓거나 눌러서 고르세요",
+  "pdf2img.value.scale": "2배",
+  "pdf2img.format.png": "PNG — 글자가 또렷함",
+  "pdf2img.format.jpg": "JPG — 용량이 작음",
+  "pdf2img.label.range": "페이지 — 1-3,5 (비우면 전체)",
+  "pdf2img.btn.run": "이미지로 바꾸기",
+  "pdf2img.status.idle": "파일은 브라우저 안에서만 다뤄집니다. 그림을 누르면 내려받습니다.",
+  "pdf2img.tab": "PDF → 이미지",
+  "pdf2img.say.loadingLib": "PDF 처리기를 불러오는 중…",
+  "pdf2img.err.lib": "PDF 처리기를 불러오지 못했습니다",
+  "pdf2img.err.noFile": "PDF 를 먼저 넣어 주세요.",
+  "pdf2img.err.run": "처리 중 문제가 생겼어요: ",
+  "pdf2img.unit.scale": "배",
+  "pdf2img.say.drawing": "{n}쪽을 그리는 중…",
+  "pdf2img.value.page": "{n}쪽",
+  "pdf2img.value.pageSize": "{n}쪽 · {w}×{h}",
+  "pdf2img.say.done": "{n}쪽을 바꿨어요. 그림을 누르면 내려받습니다.",
+  "pdf2img.say.loaded": "{name} · {mb}MB — 배율을 정하고 바꾸기를 누르세요."
+}

@@ -1,0 +1,16 @@
+{
+  "slug.tab": "Slug",
+  "slug.label.in": "Title — one slug per line",
+  "slug.ph.in": "KarmoLab tool box",
+  "slug.label.sep": "Joining character",
+  "slug.sep.hyphen": "Hyphen (-)",
+  "slug.sep.underscore": "Underscore (_)",
+  "slug.label.opts": "Handling",
+  "slug.opt.roman": "Romanise Hangul",
+  "slug.opt.lower": "Lower case",
+  "slug.aria.out": "The slug that came out",
+  "slug.btn.copy": "Copy",
+  "slug.status.idle": "Non-Latin letters put straight into a URL swell into %EC sequences and get cut off when shared.",
+  "slug.copy.done": "Slug copied",
+  "slug.say.longest": "Longest slug: {n} characters · usable in a URL as is."
+}

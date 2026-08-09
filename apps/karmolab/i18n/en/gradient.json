@@ -1,0 +1,17 @@
+{
+  "gradient.tab": "Gradient",
+  "gradient.label.from": "Start colour",
+  "gradient.label.to": "End colour",
+  "gradient.label.angle": "Direction",
+  "gradient.label.kind": "Shape",
+  "gradient.kind.linear": "Linear",
+  "gradient.kind.radial": "Radial",
+  "gradient.opt.perceptual": "Keep the middle from going dead",
+  "gradient.opt.smooth": "Smooth it with more stops",
+  "gradient.label.compare": "Compare — plain blend on top, eye-corrected blend below",
+  "gradient.btn.copy": "Copy the CSS",
+  "gradient.status.idle": "Type the colours and turn the direction.",
+  "gradient.say.same": "The middle colour is the same — the two colours are close enough that it barely shows.",
+  "gradient.copy.done": "CSS copied",
+  "gradient.say.diff": "The middle shifts from {mid} to {midP}. A plain blend goes that much muddier."
+}

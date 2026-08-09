@@ -445,7 +445,10 @@ function aliasLine(id, pageText) {
   const raw = ALIASES[id];
   if (!raw) return '';
   const has = pageText.toLowerCase();
-  const words = raw.split(/\s+/).filter((w) => w && !has.includes(w.toLowerCase()));
+  /* 한 줄 글월로도, 낱말 배열로도 적힌다. **한 항목의 모양이 다르다고 129장이 통째로 안 찍히면
+     안 된다** — 실제로 `chain` 이 배열로 들어와 생성기가 죽었고, 그 순간 배포가 막혔다. */
+  const list = Array.isArray(raw) ? raw : String(raw).split(/\s+/);
+  const words = list.filter((w) => w && !has.includes(String(w).toLowerCase()));
   if (!words.length) return '';
   return `\n        <p class="tool-seo-alias">이렇게도 부른다 — ${esc(words.join(' · '))}</p>`;
 }

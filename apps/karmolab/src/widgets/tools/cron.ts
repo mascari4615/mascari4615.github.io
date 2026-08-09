@@ -69,7 +69,16 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     return { values: [...folded].sort((a, b) => a - b), ok: true };
   }
 
-  const DOW = [t('cron.day.sun'), t('cron.day.mon'), t('cron.day.tue'), t('cron.day.wed'), t('cron.day.thu'), t('cron.day.fri'), t('cron.day.sat')];
+  /* 요일 이름은 **쓸 때** 가져온다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
+  const dow = (): string[] => [
+    t('cron.day.sun'),
+    t('cron.day.mon'),
+    t('cron.day.tue'),
+    t('cron.day.wed'),
+    t('cron.day.thu'),
+    t('cron.day.fri'),
+    t('cron.day.sat')
+  ];
 
   /** 사람 문장으로 옮긴다 — 값이 전부면 「매」, 몇 개면 나열. */
   function describe(f: Field, total: number, unit: string, fmt?: (n: number) => string): string {
@@ -149,7 +158,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
 
             const bits = [
               describe(mo, 12, t('cron.day.mon'), (n) => `${n}`),
-              describe(dw, 7, t('cron.unit.weekday'), (n) => DOW[n]),
+              describe(dw, 7, t('cron.unit.weekday'), (n) => dow()[n]),
               describe(da, 31, t('cron.day.sun')),
               describe(ho, 24, t('cron.unit.hour')),
               describe(mi, 60, t('cron.unit.minute'))

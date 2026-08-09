@@ -1,0 +1,22 @@
+{
+  "pdf2img.tab": "PDF → images",
+  "pdf2img.drop": "Drop a PDF here or click to choose one",
+  "pdf2img.label.scale": "Scale",
+  "pdf2img.value.scale": "2×",
+  "pdf2img.unit.scale": "×",
+  "pdf2img.label.format": "Format",
+  "pdf2img.format.png": "PNG — crisp text",
+  "pdf2img.format.jpg": "JPG — smaller files",
+  "pdf2img.label.range": "Pages — 1-3,5 (empty means all)",
+  "pdf2img.btn.run": "Turn into images",
+  "pdf2img.status.idle": "The file stays in your browser. Click an image to download it.",
+  "pdf2img.say.loadingLib": "Loading the PDF engine…",
+  "pdf2img.err.lib": "Could not load the PDF engine",
+  "pdf2img.err.noFile": "Add a PDF first.",
+  "pdf2img.err.run": "Something went wrong: ",
+  "pdf2img.say.drawing": "Rendering {n} pages…",
+  "pdf2img.value.page": "page {n}",
+  "pdf2img.value.pageSize": "page {n} · {w}×{h}",
+  "pdf2img.say.done": "Converted {n} pages. Click an image to download it.",
+  "pdf2img.say.loaded": "{name} · {mb}MB — set the scale, then hit convert."
+}

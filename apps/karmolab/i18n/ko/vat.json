@@ -1,0 +1,22 @@
+{
+  "vat.label.supply": "공급가액",
+  "vat.label.rate": "세율 (%)",
+  "vat.mode.add": "공급가 → 합계 (부가세 더하기)",
+  "vat.mode.sub": "합계 → 공급가 (부가세 빼내기)",
+  "vat.btn.copy": "세 줄 복사",
+  "vat.label.rounding": "1원 미만 처리",
+  "vat.round.floor": "절사 (실무 기본)",
+  "vat.round.half": "반올림",
+  "vat.status.idle": "총액에서 뺄 때는 1.1 로 나눕니다 — 10%를 빼는 것과 다릅니다.",
+  "vat.stat.tax": "부가세",
+  "vat.stat.total": "합계 (받을 돈)",
+  "vat.row.rate": "세율",
+  "vat.row.tax": "부가세액",
+  "vat.row.total": "합계 금액",
+  "vat.row.note": "참고",
+  "vat.label.totalIn": "합계 금액 (부가세 포함)",
+  "vat.copy.done": "세 줄을 복사했어요",
+  "vat.note.sub": "총액 ÷ {factor} 로 계산",
+  "vat.note.add": "공급가 × {factor}",
+  "vat.copy.lines": "공급가액 {supply}\n부가세액 {tax}\n합계금액 {total}"
+}
