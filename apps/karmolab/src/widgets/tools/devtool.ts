@@ -13,16 +13,16 @@ import { t, loadNamespace } from '../../lib/i18n';
   const parts = (): Array<[string, string]> => [
     ['jsonfmt', 'JSON'],
     ['jwt', 'JWT'],
-    ['regextest', t('devtool.part.regextest')],
-    ['hashgen', t('devtool.part.hashgen')],
+    ['regextest', t('devtool.part.regextest', undefined, '정규식')],
+    ['hashgen', t('devtool.part.hashgen', undefined, '해시')],
     ['uuidgen', 'UUID'],
-    ['cron', t('devtool.part.cron')],
+    ['cron', t('devtool.part.cron', undefined, '크론')],
     ['urlparse', 'URL'],
-    ['crypto', t('devtool.part.crypto')],
+    ['crypto', t('devtool.part.crypto', undefined, '암호화')],
     ['base64', 'Base64'],
     ['csvjson', 'CSV ↔ JSON'],
-    ['tableconv', t('devtool.part.tableconv')],
-    ['json2ts', t('devtool.part.json2ts')]
+    ['tableconv', t('devtool.part.tableconv', undefined, '표 바꾸기')],
+    ['json2ts', t('devtool.part.json2ts', undefined, 'JSON → 타입')]
   ];
 
   Toolbox.register({

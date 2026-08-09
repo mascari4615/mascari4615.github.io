@@ -1,0 +1,7 @@
+{
+  "charmap.part.specialchar": "Symbols",
+  "charmap.part.emoji": "Emoji",
+  "charmap.part.htmlentity": "HTML entities",
+  "charmap.part.ascii": "ASCII codes",
+  "charmap.loadFail": "The table could not be loaded."
+}

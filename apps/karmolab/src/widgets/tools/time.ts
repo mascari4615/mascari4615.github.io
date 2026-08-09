@@ -10,14 +10,14 @@ import { t, loadNamespace } from '../../lib/i18n';
 (function (): void {
   /* 부품 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const parts = (): Array<[string, string]> => [
-    ['datecalc', t('time.part.datecalc')],
-    ['timer', t('time.part.timer')],
-    ['worldclock', t('time.part.worldclock')],
-    ['epoch', t('time.part.epoch')],
-    ['birth', t('time.part.birth')],
-    ['workdays', t('time.part.workdays')],
-    ['timecalc', t('time.part.timecalc')],
-    ['pace', t('time.part.pace')]
+    ['datecalc', t('time.part.datecalc', undefined, '날짜 · D-Day')],
+    ['timer', t('time.part.timer', undefined, '타이머')],
+    ['worldclock', t('time.part.worldclock', undefined, '세계 시차')],
+    ['epoch', t('time.part.epoch', undefined, '타임스탬프')],
+    ['birth', t('time.part.birth', undefined, '생일')],
+    ['workdays', t('time.part.workdays', undefined, '영업일')],
+    ['timecalc', t('time.part.timecalc', undefined, '시간 더하기')],
+    ['pace', t('time.part.pace', undefined, '러닝 페이스')]
   ];
 
   Toolbox.register({

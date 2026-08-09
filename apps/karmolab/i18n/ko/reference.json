@@ -1,0 +1,9 @@
+{
+  "reference.part.gitcmd": "git 명령어",
+  "reference.part.markdown": "마크다운",
+  "reference.part.httpstatus": "HTTP 상태",
+  "reference.part.shortcut": "단축키",
+  "reference.part.filetype": "파일 확장자",
+  "reference.part.keycode": "키 코드",
+  "reference.part.regexref": "정규식"
+}

@@ -2,34 +2,41 @@
  * 키보드 이벤트 코드 (TASK-KL-088)
  * 표를 외워 적는 대신 **실제로 눌러서 확인**하게 한다 — 브라우저마다 값이 다를 수 있어 이게 정확하다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'keycode',
-    title: '키보드 이벤트 코드',
+    title: t('widgets.keycode.title', undefined, "키보드 이벤트 코드"),
     category: 'ref',
-    desc: '키를 누르면 event.key · event.code · keyCode 값을 그 자리에서 보여줍니다',
+    desc: t('widgets-desc.keycode.desc', undefined, "키를 누르면 event.key · event.code · keyCode 값을 그 자리에서 보여줍니다"),
     layout: 'form',
     icon: '<rect x="2" y="6" width="20" height="13" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '키 코드',
+        label: t('keycode.t05', undefined, "키 코드"),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '아무 키나 눌러보세요!' });
+          void loadNamespace('keycode').then(function () {
+
+          Mdd.linePreset('tool_run', { msg: t('keycode.t06') });
           container.innerHTML = `
             <div class="kc-stage" id="kcStage" tabindex="0">
-              <div class="kc-hint" id="kcHint">아무 키나 눌러보세요</div>
+              <div class="kc-hint" id="kcHint">${esc(t('keycode.label.kcHint'))}</div>
               <div class="kc-key" id="kcKey"></div>
             </div>
             <div class="cc-stats" id="kcStats"></div>
             <div class="field-group">
               <div class="field-row" style="margin-bottom:8px;">
-                <label class="field-label" style="margin:0;">누른 기록</label>
-                <button class="btn btn-ghost" id="kcClear">지우기</button>
+                <label class="field-label" style="margin:0;">${esc(t('keycode.t01'))}</label>
+                <button class="btn btn-ghost" id="kcClear">${esc(t('keycode.btn.kcClear'))}</button>
               </div>
               <div id="kcLog" class="tool-list"></div>
             </div>
-            <div class="tool-status">event.key = 입력된 글자(레이아웃 영향 O) · event.code = 물리 키 위치(레이아웃 영향 X) · keyCode 는 폐기된 값입니다.</div>
+            <div class="tool-status">${esc(t('keycode.t02'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -52,7 +59,7 @@
               ['keyCode', String(e.keyCode)],
               ['location', String(e.location)],
               ['repeat', e.repeat ? 'true' : 'false'],
-              ['수식키', [e.ctrlKey && 'Ctrl', e.shiftKey && 'Shift', e.altKey && 'Alt', e.metaKey && 'Meta'].filter(Boolean).join(' + ') || '없음']
+              [t('keycode.t07'), [e.ctrlKey && 'Ctrl', e.shiftKey && 'Shift', e.altKey && 'Alt', e.metaKey && 'Meta'].filter(Boolean).join(' + ') || t('keycode.t08')]
             ];
             stats.innerHTML = rows
               .map(
@@ -86,6 +93,7 @@
             history.length = 0;
             log.innerHTML = '';
           };
+                  });
         }
       }
     ]

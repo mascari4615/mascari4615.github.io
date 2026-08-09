@@ -1,0 +1,10 @@
+{
+  "keycode.label.kcHint": "Press any key",
+  "keycode.t01": "Press history",
+  "keycode.btn.kcClear": "Clear",
+  "keycode.t02": "event.key = the character produced (depends on layout) · event.code = the physical key position (layout-independent) · keyCode is deprecated.",
+  "keycode.t05": "Key code",
+  "keycode.t06": "Press any key!",
+  "keycode.t07": "Modifiers",
+  "keycode.t08": "none"
+}

@@ -31,7 +31,30 @@ if (!id || id.startsWith('--')) {
   process.exit(2);
 }
 
-const file = path.join(ROOT, 'src/widgets/tools', `${id}.ts`);
+/* 도구 위젯이 `src/widgets/tools/` 밖에 있는 경우가 있다 — 찾아보기표(ref/…)·이미지 편집 등
+ * **19개가 그렇다.** 장(en/ja)은 다 찍히는데 위젯 화면만 한국어로 남아 있었고, 여기서
+ * `tools/` 만 보느라 「남은 것 없음」으로 세어졌다. id 로 못 찾으면 **src 전체에서 찾는다.** */
+function findWidget(id) {
+  const direct = path.join(ROOT, 'src/widgets/tools', `${id}.ts`);
+  if (fs.existsSync(direct)) return direct;
+  const hit = [];
+  (function walk(dir) {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const f = path.join(dir, e.name);
+      if (e.isDirectory()) walk(f);
+      else if (e.name.endsWith('.ts') && fs.readFileSync(f, 'utf8').includes(`id: '${id}'`)) hit.push(f);
+    }
+  })(path.join(ROOT, 'src/widgets'));
+  if (hit.length === 1) return hit[0];
+  if (hit.length > 1) {
+    console.error(`id '${id}' 를 여러 곳에서 찾았다 — 경로를 직접 줘라:`);
+    for (const f of hit) console.error('  ' + path.relative(ROOT, f).split(path.sep).join('/'));
+    process.exit(2);
+  }
+  return direct;
+}
+
+const file = id.endsWith('.ts') ? path.resolve(ROOT, id) : findWidget(id);
 if (!fs.existsSync(file)) {
   console.error(`그런 위젯이 없다: ${path.relative(ROOT, file)}`);
   process.exit(2);
@@ -310,8 +333,16 @@ if (!/const esc = /.test(src) && src.includes('esc(t(')) {
     `(function (): void {\n  const esc = (v: string): string =>\n    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');\n`
   );
 }
-if (!src.includes("from '../../lib/i18n'")) {
-  const line = "import { t, loadNamespace } from '../../lib/i18n';";
+/* 위젯이 `tools/` 밖에 있으면 깊이가 다르다 — `../../lib/i18n` 을 박으면 그 파일만 컴파일이 깨진다. */
+const i18nSpec = (() => {
+  const rel = path
+    .relative(path.dirname(file), path.join(ROOT, 'src/lib/i18n'))
+    .split(path.sep)
+    .join('/');
+  return rel.startsWith('.') ? rel : `./${rel}`;
+})();
+if (!src.includes(`from '${i18nSpec}'`)) {
+  const line = `import { t, loadNamespace } from '${i18nSpec}';`;
   const lastImport = src.lastIndexOf('\nimport ');
   if (lastImport >= 0) {
     const eol = src.indexOf('\n', lastImport + 1);

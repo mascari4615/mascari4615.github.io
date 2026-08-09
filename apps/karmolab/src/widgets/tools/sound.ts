@@ -9,12 +9,12 @@ import { t, loadNamespace } from '../../lib/i18n';
 (function (): void {
   /* 부품 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const parts = (): Array<[string, string]> => [
-    ['voicerec', t('sound.part.voicerec')],
-    ['audiocut', t('sound.part.audiocut')],
-    ['audiolevel', t('sound.part.audiolevel')],
-    ['audiospeed', t('sound.part.audiospeed')],
-    ['audiofade', t('sound.part.audiofade')],
-    ['audiojoin', t('sound.part.audiojoin')]
+    ['voicerec', t('sound.part.voicerec', undefined, '녹음')],
+    ['audiocut', t('sound.part.audiocut', undefined, '자르기')],
+    ['audiolevel', t('sound.part.audiolevel', undefined, '크기 맞추기')],
+    ['audiospeed', t('sound.part.audiospeed', undefined, '속도')],
+    ['audiofade', t('sound.part.audiofade', undefined, '페이드')],
+    ['audiojoin', t('sound.part.audiojoin', undefined, '잇기')]
   ];
 
   Toolbox.register({

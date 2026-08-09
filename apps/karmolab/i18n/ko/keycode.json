@@ -1,0 +1,10 @@
+{
+  "keycode.label.kcHint": "아무 키나 눌러보세요",
+  "keycode.t01": "누른 기록",
+  "keycode.btn.kcClear": "지우기",
+  "keycode.t02": "event.key = 입력된 글자(레이아웃 영향 O) · event.code = 물리 키 위치(레이아웃 영향 X) · keyCode 는 폐기된 값입니다.",
+  "keycode.t05": "키 코드",
+  "keycode.t06": "아무 키나 눌러보세요!",
+  "keycode.t07": "수식키",
+  "keycode.t08": "없음"
+}

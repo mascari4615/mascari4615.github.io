@@ -1,0 +1,7 @@
+{
+  "charmap.part.specialchar": "특수문자",
+  "charmap.part.emoji": "이모지",
+  "charmap.part.htmlentity": "HTML 엔티티",
+  "charmap.part.ascii": "ASCII 코드",
+  "charmap.loadFail": "표를 불러오지 못했어요."
+}

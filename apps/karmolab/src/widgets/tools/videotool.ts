@@ -9,13 +9,13 @@ import { t, loadNamespace } from '../../lib/i18n';
 (function (): void {
   /* 부품 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const parts = (): Array<[string, string]> => [
-    ['video2gif', t('videotool.part.video2gif')],
-    ['videotrim', t('videotool.part.videotrim')],
-    ['videorotate', t('videotool.part.videorotate')],
-    ['videocompress', t('videotool.part.videocompress')],
-    ['video2img', t('videotool.part.video2img')],
-    ['video2audio', t('videotool.part.video2audio')],
-    ['screenrec', t('videotool.part.screenrec')]
+    ['video2gif', t('videotool.part.video2gif', undefined, 'GIF 만들기')],
+    ['videotrim', t('videotool.part.videotrim', undefined, '구간 자르기')],
+    ['videorotate', t('videotool.part.videorotate', undefined, '돌리기')],
+    ['videocompress', t('videotool.part.videocompress', undefined, '용량 줄이기')],
+    ['video2img', t('videotool.part.video2img', undefined, '사진 뽑기')],
+    ['video2audio', t('videotool.part.video2audio', undefined, '소리 추출')],
+    ['screenrec', t('videotool.part.screenrec', undefined, '화면 녹화')]
   ];
 
   Toolbox.register({

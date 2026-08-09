@@ -14,13 +14,13 @@ import { t, loadNamespace } from '../../lib/i18n';
    */
   /* 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const parts = (): Array<[string, string]> => [
-    ['imgbatch', t('filetool.part.imgbatch')],
-    ['imgmerge', t('filetool.part.imgmerge')],
-    ['favicon', t('filetool.part.favicon')],
-    ['exifclean', t('filetool.part.exifclean')],
-    ['ziptool', t('filetool.part.ziptool')],
-    ['filesplit', t('filetool.part.filesplit')],
-    ['filehash', t('filetool.part.filehash')]
+    ['imgbatch', t('filetool.part.imgbatch', undefined, '이미지 일괄 변환')],
+    ['imgmerge', t('filetool.part.imgmerge', undefined, '사진 이어 붙이기')],
+    ['favicon', t('filetool.part.favicon', undefined, '파비콘 만들기')],
+    ['exifclean', t('filetool.part.exifclean', undefined, '사진 정보 지우기')],
+    ['ziptool', t('filetool.part.ziptool', undefined, 'ZIP 묶기·풀기')],
+    ['filesplit', t('filetool.part.filesplit', undefined, '큰 파일 나누기')],
+    ['filehash', t('filetool.part.filehash', undefined, '파일 검사값')]
   ];
 
   Toolbox.register({
