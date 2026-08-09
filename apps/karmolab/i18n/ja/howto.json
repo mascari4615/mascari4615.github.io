@@ -478,5 +478,9 @@
   "howto.dailycho.0": "頭子音と文字数を見て単語を書く",
   "howto.dailycho.1": "Enter で次の枠へ、最後の枠で Enter を押すと採点",
   "howto.dailycho.2": "当たった枠はどのツールかを教えてくれます",
-  "howto.dailycho.3": "結果をコピー — 答えは入らず、格子だけが入ります"
+  "howto.dailycho.3": "結果をコピー — 答えは入らず、格子だけが入ります",
+  "howto.charconv.0": "変換する向きを選ぶ",
+  "howto.charconv.1": "文を貼り付けるとすぐ変換されます",
+  "howto.charconv.2": "全角が混ざっていると上に知らせが出ます",
+  "howto.charconv.3": "コピーするか、「結果を入力へ」で続けて変換"
 }

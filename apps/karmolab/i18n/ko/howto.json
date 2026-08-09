@@ -478,5 +478,9 @@
   "howto.dailycho.0": "초성과 글자 수를 보고 낱말 적기",
   "howto.dailycho.1": "엔터로 다음 칸, 마지막 칸에서 엔터면 채점",
   "howto.dailycho.2": "맞힌 칸은 어떤 도구인지 알려 줍니다",
-  "howto.dailycho.3": "결과 복사 — 정답은 안 담기고 격자만 담깁니다"
+  "howto.dailycho.3": "결과 복사 — 정답은 안 담기고 격자만 담깁니다",
+  "howto.charconv.0": "바꿀 방향 고르기",
+  "howto.charconv.1": "글을 붙여 넣으면 바로 바뀝니다",
+  "howto.charconv.2": "전각이 섞여 있으면 위에 알림이 뜹니다",
+  "howto.charconv.3": "복사하거나 「결과를 입력으로」로 이어서 바꾸기"
 }

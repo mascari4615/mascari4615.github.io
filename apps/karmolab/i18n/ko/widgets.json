@@ -19,6 +19,7 @@
   "widgets.randomgen.title": "랜덤 생성기",
   "widgets.passgen.title": "비밀번호 만들기·확인",
   "widgets.devtool.title": "개발 도구",
+  "widgets.charconv.title": "문자 변환",
   "widgets.dailycho.title": "오늘의 초성 맞히기",
   "widgets.dailytype.title": "오늘의 한글 타자",
   "widgets.chain.title": "도구 묶어 쓰기",

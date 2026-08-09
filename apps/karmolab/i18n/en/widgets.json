@@ -194,5 +194,6 @@
   "widgets.chain.title": "Chain tools",
   "widgets.garden.title": "Garden",
   "widgets.dailytype.title": "Today’s Hangul typing",
-  "widgets.dailycho.title": "Today’s consonant quiz"
+  "widgets.dailycho.title": "Today’s consonant quiz",
+  "widgets.charconv.title": "Character conversion"
 }

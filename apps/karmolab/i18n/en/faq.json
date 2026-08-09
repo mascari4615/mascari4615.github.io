@@ -948,5 +948,13 @@
   "faq.dailycho.2.q": "When does the day change?",
   "faq.dailycho.2.a": "Midnight in Korean time. It is fixed regardless of your device’s time zone, so wherever you open it the same day gives the same puzzle.",
   "faq.dailycho.3.q": "Does sharing the result leak the answers?",
-  "faq.dailycho.3.a": "No. Only the coloured grid and how many you got. None of the answer letters go in."
+  "faq.dailycho.3.a": "No. Only the coloured grid and how many you got. None of the answer letters go in.",
+  "faq.charconv.0.q": "What are full-width and half-width?",
+  "faq.charconv.0.a": "ＡＢ and AB only look different in width on screen, but to a computer they are different characters. That is why a pasted value finds 0 results, a login fails, or a spreadsheet lookup misses. It is the hardest kind of cause to spot by eye.",
+  "faq.charconv.1.q": "The romanisation differs from the official rules?",
+  "faq.charconv.1.a": "It applies the character mapping only, without sound changes. 신라 comes out as sinra while the official form is Silla. Doing it properly needs morpheme boundaries, which needs a dictionary. So rather than presenting a wrong value as right, it tells you where a sound would change.",
+  "faq.charconv.2.q": "Why is there no simplified/traditional Chinese?",
+  "faq.charconv.2.a": "That needs a table, not a rule. A hand-written table goes stale and leaks, so it goes in when a proper data source can be brought in.",
+  "faq.charconv.3.q": "What is splitting into jamo good for?",
+  "faq.charconv.3.a": "Building an initial-consonant search index, or looking at why text got mangled. What you split can be joined back too."
 }
