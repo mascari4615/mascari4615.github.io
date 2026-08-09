@@ -1,0 +1,11 @@
+# 산출물·서드파티 — 커밋 X
+viewer/vendor/
+viewer/*.glb
+*.glb
+out/
+out2/
+out3/
+out5/
+ai/
+*.png
+!docs/*.png

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>티메토 로우폴리 — 라이브</title>
+<style>
+  :root { --bg-top:#96cdff; --bg-bot:#fc96cd; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; font-family: ui-sans-serif, system-ui, sans-serif; }
+  body { display:grid; place-items:center; background:#1a1726; color:#e9e4f5; }
+  #wrap { display:grid; gap:14px; place-items:center; }
+  #stage {
+    width: min(70vmin, 560px); aspect-ratio: 1;
+    border-radius: 10px; overflow:hidden;
+    box-shadow: 0 12px 40px #0008; cursor: grab;
+  }
+  #stage:active { cursor: grabbing; }
+  canvas { width:100%; height:100%; display:block; }
+  .row { display:flex; gap:14px; align-items:center; flex-wrap:wrap; justify-content:center; font-size:13px; }
+  label { display:flex; gap:6px; align-items:center; opacity:.85; }
+  input[type=range] { width:120px; }
+  code { background:#2a2438; padding:2px 6px; border-radius:4px; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="stage"></div>
+  <div class="row">
+    <label>해상도 <input id="res" type="range" min="128" max="1024" step="32" value="512"><span id="resv">512</span>px</label>
+    <label>회전 <input id="spin" type="range" min="0" max="100" value="35"></label>
+    <label><input id="grid" type="checkbox" checked> 무대</label>
+  </div>
+  <div class="row"><span>드래그 = 돌리기 · 휠 = 확대</span></div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+    "three": "./vendor/three.module.min.js",
+    "three/webgpu": "./vendor/three.module.min.js",
+    "three/tsl": "./vendor/three.module.min.js",
+    "three/addons/": "./vendor/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from './vendor/examples/jsm/loaders/GLTFLoader.js';
+
+const stage = document.getElementById('stage');
+let RES = 512;   // 화면은 풀 해상도 — 픽셀감은 텍스처가 낸다
+
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+renderer.setPixelRatio(window.devicePixelRatio || 1);
+renderer.setSize(RES, RES, false);
+stage.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+
+// ── 무대: 마름모 그라디언트 배경 (캔버스 텍스처, 같은 픽셀 격자)
+function stageTexture(n = 90) {
+  const c = document.createElement('canvas'); c.width = c.height = n;
+  const g = c.getContext('2d');
+  const grad = g.createLinearGradient(0, 0, 0, n);
+  grad.addColorStop(0, '#96cdff'); grad.addColorStop(1, '#fc96cd');
+  g.fillStyle = grad; g.fillRect(0, 0, n, n);
+  const cell = Math.max(8, Math.round(n / 5));
+  g.fillStyle = 'rgba(255,255,255,0.14)';
+  for (let gy = -1; gy < n / cell + 2; gy++)
+    for (let gx = -1; gx < n / cell + 2; gx++) {
+      if ((gx + gy) % 2) continue;
+      const cx = gx * cell + cell / 2, cy = gy * cell + cell / 2, r = cell * 0.62;
+      g.beginPath(); g.moveTo(cx, cy - r); g.lineTo(cx + r, cy);
+      g.lineTo(cx, cy + r); g.lineTo(cx - r, cy); g.closePath(); g.fill();
+    }
+  const t = new THREE.CanvasTexture(c);
+  t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter;
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+let bgTex = stageTexture(180);
+scene.background = bgTex;
+
+// ── 카메라: 직교 (레퍼런스와 같은 납작한 원근)
+const VIEW = 3.6;
+const camera = new THREE.OrthographicCamera(-VIEW/2, VIEW/2, VIEW/2, -VIEW/2, 0.1, 40);
+const target = new THREE.Vector3(0, 1.20, 0);
+
+// ── 조명: 면 구분용으로만 약하게 (색은 텍스처가 냄)
+scene.add(new THREE.AmbientLight(0xdcdcf2, 2.0));
+const key = new THREE.DirectionalLight(0xffffff, 1.5);
+key.position.set(-2.2, 3.2, 3.0); scene.add(key);
+const rim = new THREE.DirectionalLight(0xffe6f4, 0.8);
+rim.position.set(2.0, 1.4, -3.0); scene.add(rim);
+
+// ── 바닥 발광 원판
+const disc = new THREE.Mesh(
+  new THREE.CircleGeometry(0.62, 12),
+  new THREE.MeshBasicMaterial({ color: 0xffbee1, transparent:true, opacity:0.5, depthWrite:false })
+);
+disc.rotation.x = -Math.PI / 2; disc.position.y = 0.005; scene.add(disc);
+
+// ── 꽃잎
+const petals = new THREE.Group(); scene.add(petals);
+const petalMat = new THREE.MeshBasicMaterial({ color: 0xffc0d0 });
+for (let i = 0; i < 14; i++) {
+  const p = new THREE.Mesh(new THREE.PlaneGeometry(0.055, 0.045), petalMat);
+  p.userData = { sp: 0.12 + Math.random() * 0.18, sw: Math.random() * 6.28 };
+  p.position.set((Math.random() - 0.5) * 2.6, Math.random() * 2.6, (Math.random() - 0.5) * 1.2);
+  petals.add(p);
+}
+
+// ── 모델
+let model = null;
+new GLTFLoader().load('./timeto.glb', (gltf) => {
+  model = gltf.scene;
+  model.traverse((o) => {
+    if (o.isMesh && o.material && o.material.map) {
+      o.material.map.magFilter = THREE.NearestFilter;
+      o.material.map.minFilter = THREE.NearestFilter;
+      o.material.map.generateMipmaps = false;
+      o.material.needsUpdate = true;
+    }
+  });
+  scene.add(model);
+}, undefined, (e) => {
+  document.title = '로드 실패';
+  console.error(e);
+});
+
+// ── 조작
+let yaw = 0, pitch = 0.10, dist = 6, dragging = false, lastX = 0, lastY = 0, spin = 0.35;
+stage.addEventListener('pointerdown', (e) => { dragging = true; lastX = e.clientX; lastY = e.clientY; stage.setPointerCapture(e.pointerId); });
+stage.addEventListener('pointerup', (e) => { dragging = false; });
+stage.addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  yaw -= (e.clientX - lastX) * 0.012;
+  pitch = Math.max(-0.5, Math.min(0.9, pitch + (e.clientY - lastY) * 0.006));
+  lastX = e.clientX; lastY = e.clientY;
+});
+stage.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const v = camera.right * 2 * (1 + Math.sign(e.deltaY) * 0.08);
+  const s = Math.max(1.6, Math.min(7, v)) / 2;
+  camera.left = -s; camera.right = s; camera.top = s; camera.bottom = -s;
+  camera.updateProjectionMatrix();
+}, { passive: false });
+
+document.getElementById('res').addEventListener('input', (e) => {
+  RES = +e.target.value;
+  document.getElementById('resv').textContent = RES;
+  renderer.setSize(RES, RES, false);
+  bgTex.dispose(); bgTex = stageTexture(180);
+  if (document.getElementById('grid').checked) scene.background = bgTex;
+});
+document.getElementById('spin').addEventListener('input', (e) => { spin = +e.target.value / 100; });
+document.getElementById('grid').addEventListener('change', (e) => {
+  scene.background = e.target.checked ? bgTex : null;
+  disc.visible = e.target.checked; petals.visible = e.target.checked;
+});
+
+const clock = new THREE.Clock();
+function frame() {
+  const dt = clock.getDelta(), t = clock.elapsedTime;
+  if (!dragging) yaw += spin * dt;
+  camera.position.set(
+    target.x + Math.sin(yaw) * Math.cos(pitch) * dist,
+    target.y + Math.sin(pitch) * dist,
+    target.z + Math.cos(yaw) * Math.cos(pitch) * dist,
+  );
+  camera.lookAt(target);
+  if (model) model.position.y = Math.sin(t * 1.6) * 0.02;   // 숨쉬기
+  petals.children.forEach((p) => {
+    p.position.y -= p.userData.sp * dt;
+    p.position.x += Math.sin(t * 1.2 + p.userData.sw) * 0.004;
+    p.lookAt(camera.position);
+    if (p.position.y < -0.1) p.position.y = 2.7;
+  });
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+frame();
+</script>
+</body>
+</html>
