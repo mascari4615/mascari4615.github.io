@@ -43,6 +43,7 @@ async function loadModules() {
     export * as cmath from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-math.ts'))};
     export * as press from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-press.ts'))};
     export * as release from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-release.ts'))};
+    export * as edgedrag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-edgedrag.ts'))};
     export * as sna from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/sna.ts'))};
   `);
   const out = path.join(os.tmpdir(), `km-core-${Date.now()}.mjs`);
@@ -439,6 +440,24 @@ const M = await loadModules();
   check(isDropOnNode('n1', 'n2', 40) === true, '카드를 다른 카드 위에 떨어뜨리면 잇는다');
   check(isDropOnNode('n1', 'n1', 40) === false, '자기 자신 위는 아니다');
   check(isDropOnNode('n1', 'n2', 2) === false, '누른 것뿐이면 떨어뜨린 게 아니다');
+}
+
+// ---- 선 휘기 · 이름표 옮기기 (canvas-edgedrag)
+{
+  const { curveFromPointer, labelPosFromPointer, CURVE_LIMIT } = M.edgedrag;
+  const a = { x: 0, y: 0 }, b = { x: 100, y: 0 };
+  check(curveFromPointer(a, b, { x: 50, y: 0 }) === undefined, '한가운데 = 곧은 선(0 을 저장하지 않는다)');
+  check(curveFromPointer(a, b, { x: 50, y: 0.5 }) === undefined, '손이 조금 떨린 정도는 곧은 선으로 되돌린다');
+  const up = curveFromPointer(a, b, { x: 50, y: 20 });
+  const down = curveFromPointer(a, b, { x: 50, y: -20 });
+  check(up > 0 && down < 0 && Math.abs(up + down) < 1e-9, '위로 끌면 위로, 아래로 끌면 아래로 같은 크기');
+  check(Math.abs(curveFromPointer(a, b, { x: 50, y: 9999 })) <= CURVE_LIMIT, '아무리 끌어도 한계에서 멈춘다');
+  // 선 길이가 달라도 손을 「같은 비율」로 움직이면 같은 만큼 휜다 — 안 그러면 짧은 선이 미쳐 날뛴다.
+  const long = curveFromPointer({ x: 0, y: 0 }, { x: 400, y: 0 }, { x: 200, y: 80 });
+  check(Math.abs(long - curveFromPointer(a, b, { x: 50, y: 20 })) < 1e-9, '선 길이가 달라도 휘는 비율은 같다');
+  check(labelPosFromPointer(a, b, { x: 50, y: 30 }) === 0.5, '가운데로 끌면 이름표도 가운데');
+  check(labelPosFromPointer(a, b, { x: -500, y: 0 }) === 0.05, '끝을 넘어가도 카드 뒤로 숨지 않는다');
+  check(labelPosFromPointer(a, b, { x: 900, y: 0 }) === 0.95, '반대쪽 끝도 마찬가지');
 }
 
 // 되돌아가지 않게: **캔버스 크기 자물쇠**.
