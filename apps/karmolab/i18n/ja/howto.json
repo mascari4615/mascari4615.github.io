@@ -89,5 +89,10 @@
   "howto.textclean.0": "左にテキストを貼り付ける",
   "howto.textclean.1": "適用する処理を選ぶ",
   "howto.textclean.2": "並べ替え・大文字小文字・接頭辞を指定",
-  "howto.textclean.3": "結果をコピー"
+  "howto.textclean.3": "結果をコピー",
+  "howto.audiolevel.0": "音声や動画を入れる",
+  "howto.audiolevel.1": "そろえ方と目標の大きさを選ぶ",
+  "howto.audiolevel.2": "「音量をそろえる」を押す",
+  "howto.audiolevel.3": "波形と音で前後を比べる",
+  "howto.audiolevel.4": "WAV でダウンロード"
 }
