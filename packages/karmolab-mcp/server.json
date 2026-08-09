@@ -1,0 +1,24 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "name": "io.github.Mascari4615/karmolab-mcp",
+  "title": "KarmoLab",
+  "description": "MCP server for the things LLMs get wrong: exact hashes, real randomness, and Korean rules (three different ages, business registration checksums, substitute holidays, Hangul). No dependencies, fully local.",
+  "version": "0.1.0",
+  "websiteUrl": "https://blog.mascari4615.com/karmolab/",
+  "repository": {
+    "url": "https://github.com/Mascari4615/Mascari4615.github.io",
+    "source": "github",
+    "subfolder": "packages/karmolab-mcp"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "karmolab-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
