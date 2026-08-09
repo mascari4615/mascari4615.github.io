@@ -33,5 +33,7 @@
   "bluemarble.line.pastSun": "At this hour that day, the sun stood above {lat}°, {lon}°.",
   "bluemarble.layer.sats": "Things in orbit",
   "bluemarble.line.sats": "{n} objects are circling above you right now. Almost all of them were put there by people.",
-  "bluemarble.layer.sound": "Sound"
+  "bluemarble.layer.sound": "Sound",
+  "bluemarble.layer.sun": "Sun",
+  "bluemarble.line.wind": "The solar wind is blowing at {speed} km/s. It reaches here in {min} minutes."
 }

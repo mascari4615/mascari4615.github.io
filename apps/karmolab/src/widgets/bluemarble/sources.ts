@@ -19,7 +19,8 @@ const TTL = {
   kp: 10 * 60 * 1000,
   launches: 60 * 60 * 1000,
   iss: 5 * 1000,
-  omm: 6 * 60 * 60 * 1000
+  omm: 6 * 60 * 60 * 1000,
+  wind: 10 * 60 * 1000
 };
 
 interface CacheEntry {
@@ -328,4 +329,28 @@ function expand(r: CachedCatalog['rows'][number]): import('./orbit').Omm {
     ARG_OF_PERICENTER: r[7],
     MEAN_ANOMALY: r[8]
   };
+}
+
+/* ── 태양 ──────────────────────────────────────────────────────────────── */
+
+/**
+ * 지금 부는 태양풍의 속도 (km/s). 재는 자리는 L1 — 지구에서 태양 쪽으로 150만 km 앞이다.
+ * 그래서 이 바람이 **여기 닿기까지** 남은 시간을 셀 수 있다. 그게 이 값의 쓸모다.
+ */
+export async function solarWind(): Promise<{ speed: number; at: number } | null> {
+  const rows = await fetchJson<Array<{ proton_speed: number; time_tag: string }>>(
+    'wind',
+    'https://services.swpc.noaa.gov/products/summary/solar-wind-speed.json',
+    TTL.wind
+  );
+  if (!rows || !rows.length) return null;
+  const r = rows[0];
+  const speed = Number(r.proton_speed);
+  if (!Number.isFinite(speed) || speed <= 0) return null;
+  return { speed, at: Date.parse(r.time_tag + (r.time_tag.endsWith('Z') ? '' : 'Z')) };
+}
+
+/** L1 에서 지구까지 남은 시간 (분). */
+export function windEta(speedKmS: number): number {
+  return Math.round(1500000 / speedKmS / 60);
 }

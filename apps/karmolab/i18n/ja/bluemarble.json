@@ -33,5 +33,7 @@
   "bluemarble.line.pastSun": "その日のこの時刻、太陽は緯度 {lat}° 経度 {lon}° の上にありました。",
   "bluemarble.layer.sats": "軌道上のもの",
   "bluemarble.line.sats": "いま頭上を {n} 個が回っています。ほとんどが人が打ち上げたものです。",
-  "bluemarble.layer.sound": "音"
+  "bluemarble.layer.sound": "音",
+  "bluemarble.layer.sun": "太陽",
+  "bluemarble.line.wind": "いま太陽から秒速 {speed}km で風が吹いています。ここに届くまであと {min} 分です。"
 }

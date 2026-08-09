@@ -33,5 +33,7 @@
   "bluemarble.line.pastSun": "그날 이 시각, 해는 북위 {lat}° 동경 {lon}° 위에 있었습니다.",
   "bluemarble.layer.sats": "궤도 위의 것",
   "bluemarble.line.sats": "지금 머리 위에서 {n} 개가 지구를 돌고 있습니다. 대부분은 사람이 올려 보낸 것입니다.",
-  "bluemarble.layer.sound": "소리"
+  "bluemarble.layer.sound": "소리",
+  "bluemarble.layer.sun": "해",
+  "bluemarble.line.wind": "지금 태양에서 초속 {speed}km 로 바람이 붑니다. 그 바람이 여기 닿기까지 {min}분 남았습니다."
 }

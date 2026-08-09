@@ -18,7 +18,7 @@
 import { t, loadNamespace, fmtRelative } from '../../lib/i18n';
 import { CITIES } from './cities';
 import { subsolar, toVec, distanceKm } from './sky';
-import { quakes, quakesOn, aurora, kpIndex, iss, launches, issOmm, catalog, type Quake, type AuroraPoint, type IssFix, type Launch } from './sources';
+import { quakes, quakesOn, aurora, kpIndex, iss, launches, issOmm, catalog, solarWind, windEta, type Quake, type AuroraPoint, type IssFix, type Launch } from './sources';
 import { paintSurface, type Tex, type Region, type View as SurfaceView } from './surface';
 import { loadTex, loadClouds, loadCloudsOn } from './textures';
 import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
@@ -40,11 +40,12 @@ import { EarthSound } from './sound';
     return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/data/' + name;
   }
 
-  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound';
+  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'sun';
   const LAYERS: Array<{ id: LayerId; glyph: string }> = [
     { id: 'me', glyph: '◉' },
     { id: 'sats', glyph: '⁘' },
     { id: 'sound', glyph: '♪' },
+    { id: 'sun', glyph: '☀' },
     { id: 'zoom', glyph: '⊕' },
     { id: 'cloud', glyph: '☁' },
     { id: 'city', glyph: '✦' },
@@ -60,7 +61,7 @@ import { EarthSound } from './sound';
     spin: boolean;
   }
   function loadPrefs(): Prefs {
-    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false }, spin: true };
+    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, sun: true }, spin: true };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return base;
@@ -99,6 +100,14 @@ import { EarthSound } from './sound';
   transition:opacity 1.2s ease;}
 .bm-wrap.bm-ambient .bm-sub{opacity:0;transition:opacity 1.2s ease;}
 .bm-wrap.bm-ambient{border-radius:0;}
+/* 해 — 지구를 보는 창 옆에 붙은 **두 번째 창**. SDO 가 30초마다 새로 찍는 실사다.
+   픽셀을 읽지 않으므로 교차 출처 허가가 필요 없다(그냥 그림으로 붙인다). */
+.bm-sun{position:absolute;right:14px;bottom:96px;width:96px;height:96px;border-radius:50%;z-index:3;
+  object-fit:cover;box-shadow:0 0 38px rgba(255,170,60,.42),0 0 0 1px rgba(255,200,120,.28) inset;
+  opacity:.94;transition:opacity .6s ease;}
+.bm-sun[hidden]{display:none;}
+.bm-wrap.bm-ambient .bm-sun{opacity:.8;}
+@media (max-width:520px){.bm-sun{width:64px;height:64px;bottom:88px}}
 .bm-fs{position:absolute;top:10px;right:10px;z-index:4;appearance:none;border:1px solid rgba(255,255,255,.16);
   background:rgba(8,12,22,.55);color:rgba(255,255,255,.6);font-size:13px;line-height:1;padding:7px 9px;
   border-radius:999px;cursor:pointer;backdrop-filter:blur(6px);}
@@ -163,11 +172,17 @@ import { EarthSound } from './sound';
           nowBtn.className = 'bm-now';
           nowBtn.hidden = true;
           timeBar.append(slider, dateLabel, nowBtn);
+          const sunImg = document.createElement('img');
+          sunImg.className = 'bm-sun';
+          sunImg.alt = '';
+          sunImg.decoding = 'async';
+          sunImg.hidden = true;
+
           const fsBtn = document.createElement('button');
           fsBtn.type = 'button';
           fsBtn.className = 'bm-fs';
           fsBtn.textContent = '⛶';
-          wrap.append(canvas, chips, fsBtn, timeBar, ticker);
+          wrap.append(canvas, chips, sunImg, fsBtn, timeBar, ticker);
           container.appendChild(wrap);
 
           const ctx = canvas.getContext('2d');
@@ -209,6 +224,7 @@ import { EarthSound } from './sound';
           let satXyz: Float32Array | null = null;
           let satAt = 0;
           let satLoading = false;
+          let wind: { speed: number; at: number } | null = null;
           const sound = new EarthSound();
           let raf: number | undefined;
           let alive = true;
@@ -775,6 +791,10 @@ import { EarthSound } from './sound';
               }
             }
 
+            if (wind) {
+              out.push(t('bluemarble.line.wind', { speed: Math.round(wind.speed), min: windEta(wind.speed) }));
+            }
+
             if (satEls.length && prefs.on.sats) out.push(t('bluemarble.line.sats', { n: satEls.length.toLocaleString() }));
 
             if (kp != null) out.push(kp >= 5 ? t('bluemarble.line.kpStorm', { kp: kp.toFixed(0) }) : t('bluemarble.line.kpCalm'));
@@ -851,7 +871,20 @@ import { EarthSound } from './sound';
             if (a) au = a;
             if (l) ls = l;
             if (omm) issEl = elementsFrom(omm);
+            const w2 = await solarWind();
+            if (w2) wind = w2;
+            refreshSun();
             recomputePass();
+          }
+
+          /** SDO 는 몇 분마다 새 그림을 올린다. 주소가 같아서 시각을 붙여 캐시를 피한다. */
+          function refreshSun(): void {
+            if (!prefs.on.sun || isPast()) {
+              sunImg.hidden = true;
+              return;
+            }
+            sunImg.hidden = false;
+            sunImg.src = `https://sdo.gsfc.nasa.gov/assets/img/latest/latest_512_0193.jpg?t=${Math.floor(Date.now() / 300000)}`;
           }
 
           /** 목록은 6.9MB 다 — 켤 때만 받는다. 받은 뒤 담아 두므로 다음부터는 즉시 뜬다. */
@@ -929,6 +962,7 @@ import { EarthSound } from './sound';
                 save();
                 if (l.id === 'aurora' && prefs.on.aurora && !au.length) void refreshSlow();
                 if (l.id === 'sats' && turningOn) void loadSats();
+                if (l.id === 'sun') refreshSun();
                 if (l.id === 'sound') {
                   // **이 클릭 안에서** 시작해야 한다 — 브라우저가 제스처 밖의 소리를 막는다
                   if (turningOn) sound.start();
@@ -976,6 +1010,7 @@ import { EarthSound } from './sound';
           /** 되감은 날의 지구를 불러온다. 못 받아오면 그날 구름 없이 지형만 보인다. */
           async function applyTime(): Promise<void> {
             renderDate();
+            refreshSun();
             if (!isPast()) {
               cloudTex = liveCloud;
               qs = liveQuakes;
