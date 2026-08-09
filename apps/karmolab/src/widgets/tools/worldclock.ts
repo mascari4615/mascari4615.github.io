@@ -90,7 +90,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
        큰제목만 한국어로 남았다). 등록 순간이라 기다릴 수 없어 원본을 기본값으로 함께 준다. */
     title: t('widgets.worldclock.title', undefined, '세계 시간 · 시차'),
     category: 'tool',
-    desc: '도시별 현재 시각과 서울과의 시차를 봅니다. 서머타임 자동 반영',
+    /* 도구 큰제목 아래 한 줄도 이 값을 쓴다 — 등록 순간이라 원본을 기본값으로 함께 준다. */
+    desc: t('widgets-desc.worldclock.desc', undefined, '도시별 현재 시각과 서울과의 시차를 봅니다. 서머타임 자동 반영'),
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18" stroke="currentColor" stroke-width="1.4" fill="none"/>',
     tabs: [

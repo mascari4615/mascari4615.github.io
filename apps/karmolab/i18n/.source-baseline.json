@@ -1,5 +1,5 @@
 {
-  "total": 8222,
+  "total": 8159,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -97,7 +97,7 @@
     "src/widgets/imagegen/presets.ts": 71,
     "src/widgets/imagegen/styles.ts": 1,
     "src/widgets/imagelib.ts": 22,
-    "src/widgets/karmomap/karmomap.ts": 79,
+    "src/widgets/karmomap/karmomap.ts": 83,
     "src/widgets/karmomap/library.ts": 9,
     "src/widgets/karmomap/local-storage-adapter.ts": 4,
     "src/widgets/karmomap/packs.ts": 92,
@@ -262,7 +262,7 @@
     "src/widgets/tools/timecalc.ts": 19,
     "src/widgets/tools/timecapsule.ts": 22,
     "src/widgets/tools/timer.ts": 23,
-    "src/widgets/tools/unitconv.ts": 76,
+    "src/widgets/tools/unitconv.ts": 9,
     "src/widgets/tools/urlparse.ts": 18,
     "src/widgets/tools/uuidgen.ts": 7,
     "src/widgets/tools/vat.ts": 19,
