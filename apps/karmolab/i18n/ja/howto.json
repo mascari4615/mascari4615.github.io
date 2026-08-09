@@ -153,5 +153,9 @@
   "howto.text2img.0": "文章を書く",
   "howto.text2img.1": "サイズと色を選ぶ",
   "howto.text2img.2": "プレビューを確認",
-  "howto.text2img.3": "PNG でダウンロード"
+  "howto.text2img.3": "PNG でダウンロード",
+  "howto.duel.0": "「対決リンクを作る」でリンクをコピーして相手に送る",
+  "howto.duel.1": "友達がいなければ「だれかと」— 待っている人とマッチする",
+  "howto.duel.2": "一言の指示を見て、四つの中から選ぶ",
+  "howto.duel.3": "5回終わったら「もう一回」"
 }

@@ -153,5 +153,9 @@
   "howto.text2img.0": "Write your text",
   "howto.text2img.1": "Pick the size and color",
   "howto.text2img.2": "Check the preview",
-  "howto.text2img.3": "Download as PNG"
+  "howto.text2img.3": "Download as PNG",
+  "howto.duel.0": "Hit \"Make a duel link\", copy it and send it to your rival",
+  "howto.duel.1": "No friend around? Hit \"Anyone\" and you get matched with whoever is waiting",
+  "howto.duel.2": "Read the one-word order and pick one of the four",
+  "howto.duel.3": "After five rounds, hit \"One more\""
 }
