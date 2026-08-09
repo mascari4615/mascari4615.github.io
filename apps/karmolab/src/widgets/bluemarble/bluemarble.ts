@@ -21,6 +21,7 @@ import { subsolar, subsolarBody, toVec, distanceKm } from './sky';
 import { quakes, quakesOn, aurora, kpIndex, iss, launches, issOmm, catalog, solarWind, windEta, apod, type Apod, type Quake, type AuroraPoint, type IssFix, type Launch } from './sources';
 import { paintSurface, type Tex, type Region, type View as SurfaceView } from './surface';
 import { loadTex, loadClouds, loadCloudsOn } from './textures';
+import { paleoTex } from './paleo';
 import { loadRegion, levelFor, fitLevel, regionKey, type BBox } from './tiles';
 import { elementsFrom, propagate, propagateAll, nextPass, EARTH_RADIUS_KM, type Elements, type Pass } from './orbit';
 import { fromTimezone, askPrecise, type Me } from './me';
@@ -40,7 +41,7 @@ import { EarthSound } from './sound';
     return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/data/' + name;
   }
 
-  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'sun' | 'clock' | 'apod' | 'tour' | 'dusk';
+  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'sun' | 'clock' | 'apod' | 'tour' | 'dusk' | 'deep';
   /** `earthOnly` = 지구에서만 뜻이 있는 겹. 달·화성에선 단추 자체를 감춘다 —
       눌러도 아무 일이 없는 단추가 남아 있으면 그건 고장으로 보인다. */
   const LAYERS: Array<{ id: LayerId; glyph: string; earthOnly?: boolean }> = [
@@ -52,6 +53,7 @@ import { EarthSound } from './sound';
     { id: 'apod', glyph: '✧' },
     { id: 'tour', earthOnly: true, glyph: '▶' },
     { id: 'dusk', earthOnly: true, glyph: '◐' },
+    { id: 'deep', earthOnly: true, glyph: '⛰' },
     { id: 'zoom', earthOnly: true, glyph: '⊕' },
     { id: 'cloud', earthOnly: true, glyph: '☁' },
     { id: 'city', earthOnly: true, glyph: '✦' },
@@ -69,7 +71,7 @@ import { EarthSound } from './sound';
     panel: boolean;
   }
   function loadPrefs(): Prefs {
-    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, sun: true, clock: true, apod: true, tour: false, dusk: false }, spin: true, panel: false };
+    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, sun: true, clock: true, apod: true, tour: false, dusk: false, deep: false }, spin: true, panel: false };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return base;
@@ -291,6 +293,11 @@ import { EarthSound } from './sound';
              빨리 돌리는 대신(그건 거짓말이 된다) **우리가 그 선을 따라 오르내린다**. */
           let duskAt = 0;
           let duskSaid = 0;
+
+          /* 아주 먼 과거 — 사진이 없는 시간. 대륙 배치만 아는 만큼 그린다. */
+          const DEEP_AGES = [0, 60, 120, 180, 240, 300];
+          let deepIdx = 0;
+          let deepTex: Tex | null = null;
           /* 어느 곳을 보고 있나. 그리기 장치는 그대로고 **그림만 갈아 끼운다**. */
           type Body = 'earth' | 'moon' | 'mars';
           let body: Body = 'earth';
@@ -617,12 +624,14 @@ import { EarthSound } from './sound';
             surfDirty = false;
             if (needSurface && surfImg && surfView) {
               const onEarth = body === 'earth';
+              const deep = onEarth && prefs.on.deep && deepTex;
               paintSurface(surfImg, surfView, {
-                day: onEarth ? dayTex : bodyTex[body],
-                region: onEarth && prefs.on.zoom ? region : null,
+                day: deep ? deepTex : onEarth ? dayTex : bodyTex[body],
+                region: onEarth && !deep && prefs.on.zoom ? region : null,
                 regionNight,
-                night: onEarth && prefs.on.city ? nightTex : null,
-                cloud: onEarth && prefs.on.cloud ? cloudTex : null,
+                // 그 시대에는 도시도 오늘의 구름도 없었다
+                night: onEarth && !deep && prefs.on.city ? nightTex : null,
+                cloud: onEarth && !deep && prefs.on.cloud ? cloudTex : null,
                 ex,
                 ey,
                 ez,
@@ -640,16 +649,19 @@ import { EarthSound } from './sound';
               c.drawImage(surfCv, surfView.x0, surfView.y0, surfView.w * surfView.step, surfView.h * surfView.step);
             }
 
-            if (body === 'earth' && prefs.on.aurora && !isPast()) drawAurora(S);
-            if (body === 'earth' && prefs.on.quake) drawQuakes(now);
-            if (body === 'earth' && prefs.on.launch && !isPast()) drawLaunches();
-            if (body === 'earth' && prefs.on.me) drawMe(now);
+            /* 아주 먼 과거에는 **오늘의 것**을 얹지 않는다. 3억 년 전 지구 위에 오늘 지진을
+               찍으면 그건 그림이 아니라 거짓말이다. 시간대 링도 마찬가지 — 그때의 도시가 아니다. */
+            const live = body === 'earth' && !prefs.on.deep;
+            if (live && prefs.on.aurora && !isPast()) drawAurora(S);
+            if (live && prefs.on.quake) drawQuakes(now);
+            if (live && prefs.on.launch && !isPast()) drawLaunches();
+            if (live && prefs.on.me) drawMe(now);
             c.restore();
 
             /* ISS 는 지구 밖(궤도 위)이라 자르기 밖에서 그린다 */
-            if (body === 'earth' && prefs.on.iss && !isPast()) drawIss();
-            if (body === 'earth' && prefs.on.sats && !isPast()) drawSats(now);
-            if (body === 'earth' && prefs.on.clock) drawClockRing(sun);
+            if (live && prefs.on.iss && !isPast()) drawIss();
+            if (live && prefs.on.sats && !isPast()) drawSats(now);
+            if (live && prefs.on.clock) drawClockRing(sun);
 
             /* 해가 바로 위인 자리에 옅은 빛무리 */
             const sp = project(sun.lat, sun.lon);
@@ -954,6 +966,13 @@ import { EarthSound } from './sound';
           function sentences(): string[] {
             const out: string[] = [];
 
+            if (prefs.on.deep && body === 'earth') {
+              const ma = DEEP_AGES[deepIdx];
+              out.push(ma === 0 ? t('bluemarble.deep.lineNow') : t('bluemarble.deep.line', { ma }));
+              out.push(t('bluemarble.deep.how'));
+              return out;
+            }
+
             if (body !== 'earth') {
               out.push(t('bluemarble.line.' + body));
               out.push(t('bluemarble.line.' + body + '2'));
@@ -1104,6 +1123,20 @@ import { EarthSound } from './sound';
               line.textContent = lines[lineIdx];
               line.classList.add('bm-show');
             }, 420);
+          }
+
+          /* ── 아주 먼 과거 ─────────────────────────────────────────────── */
+
+          async function loadDeep(idx: number): Promise<void> {
+            deepIdx = Math.max(0, Math.min(DEEP_AGES.length - 1, idx));
+            const ma = DEEP_AGES[deepIdx];
+            const tex = await paleoTex(ma, dataUrl(`paleo/${ma}.json`));
+            if (!alive) return;
+            deepTex = tex;
+            renderDate();
+            lines = sentences();
+            lineIdx = 0;
+            say(lines[0] || '');
           }
 
           /* ── 지금 보고 있는 자리의 소리 ───────────────────────────────── */
@@ -1449,6 +1482,21 @@ import { EarthSound } from './sound';
                 if (l.id === 'sats' && turningOn) void loadSats();
                 if (l.id === 'sun') refreshSun();
                 if (l.id === 'apod') renderApod();
+                if (l.id === 'deep') {
+                  if (turningOn) {
+                    prefs.on.tour = false;
+                    prefs.on.dusk = false;
+                    atTime = null;
+                    zoom = 1;
+                    slider.value = slider.max; // 오른쪽 끝 = 지금
+                    void loadDeep(0);
+                  } else {
+                    deepTex = null;
+                    renderDate();
+                    slider.value = slider.max;
+                    lines = sentences();
+                  }
+                }
                 if (l.id === 'dusk') {
                   duskSaid = 0;
                   if (!turningOn) zoom = 1;
@@ -1494,6 +1542,12 @@ import { EarthSound } from './sound';
           const FLOOR = Date.parse('2000-02-24T00:00:00Z');
 
           function renderDate(): void {
+            if (prefs.on.deep) {
+              const ma = DEEP_AGES[deepIdx];
+              dateLabel.textContent = ma === 0 ? t('bluemarble.deep.now') : t('bluemarble.deep.ma', { ma });
+              nowBtn.hidden = ma === 0;
+              return;
+            }
             const ms = clockMs();
             dateLabel.textContent = new Date(ms).toLocaleDateString(undefined, {
               year: 'numeric',
@@ -1529,6 +1583,15 @@ import { EarthSound } from './sound';
           slider.min = String(Math.floor(FLOOR / DAY));
           slider.step = '1';
           slider.oninput = () => {
+            if (prefs.on.deep) {
+              // 먼 과거 모드에서는 손잡이가 **시대**를 고른다
+              const n = DEEP_AGES.length - 1;
+              /* 왼쪽이 과거다 — 손잡이 값이 클수록 지금에 가깝다(시간 손잡이와 같은 방향). */
+              const ratio = (Number(slider.value) - Number(slider.min)) / (Number(slider.max) - Number(slider.min));
+              const idx = Math.round((1 - ratio) * n);
+              if (idx !== deepIdx) void loadDeep(idx);
+              return;
+            }
             const dayIdx = Number(slider.value);
             const todayIdx = Math.floor(Date.now() / DAY);
             atTime = dayIdx >= todayIdx ? null : dayIdx * DAY + 12 * 3600000;

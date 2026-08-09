@@ -52,5 +52,11 @@
   "bluemarble.layer.tour": "Earth news",
   "bluemarble.layer.dusk": "Follow the sunset",
   "bluemarble.line.dusk": "Along this line the sun is setting right now. On the other side it is rising.",
-  "bluemarble.line.duskCity": "The sun is setting around {city} right now."
+  "bluemarble.line.duskCity": "The sun is setting around {city} right now.",
+  "bluemarble.layer.deep": "Deep time",
+  "bluemarble.deep.now": "today",
+  "bluemarble.deep.ma": "{ma} Ma",
+  "bluemarble.deep.lineNow": "The continents as they are now. Drag left and the plates run backwards.",
+  "bluemarble.deep.line": "Earth {ma} million years ago — before the continents reached where they are now.",
+  "bluemarble.deep.how": "There are no photographs of this time. This is plate motion run backwards; all we know is where water met land, so nothing else is coloured in."
 }
