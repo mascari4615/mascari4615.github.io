@@ -1,0 +1,38 @@
+"use strict";(()=>{var m={id:"tableconv",ops:{convert:{desc:"\uD45C\uB97C \uB2E4\uB978 \uAF34\uB85C \uBC14\uAFBC\uB2E4. \uB4E4\uC5B4\uC628 \uAC83\uC774 \uC5D1\uC140 \uBD99\uC5EC\uB123\uAE30(\uD0ED)\xB7CSV\xB7\uB9C8\uD06C\uB2E4\uC6B4 \uD45C \uC911 \uBB34\uC5C7\uC778\uC9C0 \uC2A4\uC2A4\uB85C \uC54C\uC544\uBCF8\uB2E4. to = markdown(\uAE30\uBCF8) \xB7 csv \xB7 tsv \xB7 json. align \uC744 \uB044\uBA74 \uB9C8\uD06C\uB2E4\uC6B4 \uC138\uB85C\uC904\uC744 \uC548 \uB9DE\uCD98\uB2E4.",in:{table:"string",to:"string?",align:"boolean?"},out:"string"}}};function v(e){let t=e.replace(/\r/g,"").split(`
+`).filter(n=>n.trim()!=="");return t.length?t.length>1&&/^\s*\|?[\s:|-]+\|[\s:|-]+$/.test(t[1])&&t[0].includes("|")?{rows:t.filter((i,l)=>l!==1).map(i=>i.replace(/^\s*\|/,"").replace(/\|\s*$/,"").split("|").map(l=>l.trim())),kind:"\uB9C8\uD06C\uB2E4\uC6B4 \uD45C"}:t[0].includes("	")?{rows:t.map(n=>n.split("	")),kind:"\uC5D1\uC140 \uBD99\uC5EC\uB123\uAE30"}:{rows:t.map(n=>{let i=[],l="",p=!1;for(let r=0;r<n.length;r++){let s=n[r];p?s==='"'&&n[r+1]==='"'?(l+='"',r++):s==='"'?p=!1:l+=s:s==='"'?p=!0:s===","?(i.push(l),l=""):l+=s}return i.push(l),i.map(r=>r.trim())}),kind:"CSV"}:{rows:[],kind:""}}function b(e){let t=0;for(let o of e)t+=/[ᄀ-ᅟ⺀-꓏가-힣豈-﫿︰-﹯＀-｠￠-￦]/.test(o)?2:1;return t}var M=(e,t)=>e+" ".repeat(Math.max(0,t-b(e)));function h(e,t){if(!e.length)return"";let o=Math.max(...e.map(r=>r.length)),n=e.map(r=>Array.from({length:o},(s,a)=>r[a]??""));if(!t){let r=`| ${n[0].join(" | ")} |`,s=`| ${n[0].map(()=>"---").join(" | ")} |`;return[r,s,...n.slice(1).map(a=>`| ${a.join(" | ")} |`)].join(`
+`)}let i=Array.from({length:o},(r,s)=>Math.max(3,...n.map(a=>b(a[s])))),l=r=>`| ${r.map((s,a)=>M(s,i[a])).join(" | ")} |`,p=`| ${i.map(r=>"-".repeat(r)).join(" | ")} |`;return[l(n[0]),p,...n.slice(1).map(l)].join(`
+`)}var T=e=>e.map(t=>t.map(o=>/[",\n]/.test(o)?'"'+o.replace(/"/g,'""')+'"':o).join(",")).join(`
+`),w=e=>e.map(t=>t.join("	")).join(`
+`);function y(e){if(e.length<2)return"[]";let t=e[0];return JSON.stringify(e.slice(1).map(o=>Object.fromEntries(t.map((n,i)=>[n||`\uC5F4${i+1}`,o[i]??""]))),null,2)}function x(e){return e.endsWith("?")?e.slice(0,-1):e}function $(e){return e.endsWith("?")}function E(e,t,o){switch(x(t)){case"number":{let n=Number(o);if(Number.isNaN(n))throw new Error(`${e} \uC740 \uC22B\uC790\uC5EC\uC57C \uD558\uB294\uB370 \u300C${o}\u300D \uAC00 \uC654\uC2B5\uB2C8\uB2E4`);return n}case"boolean":if(o===""||o==="1"||o==="true")return!0;if(o==="0"||o==="false")return!1;throw new Error(`${e} \uC740 true/false \uC5EC\uC57C \uD558\uB294\uB370 \u300C${o}\u300D \uAC00 \uC654\uC2B5\uB2C8\uB2E4`);default:return o}}function S(e,t){let o=new URLSearchParams(t??(typeof location>"u"?"":location.search)),n=o.get("op");if(n===null)return null;let i=o.get("out")==="raw",l=e.ops[n];if(l===void 0){let r=Object.keys(e.ops).join(" \xB7 ");return{op:n,args:{},raw:i,error:`\uC774 \uB3C4\uAD6C\uC5D0 \u300C${n}\u300D \uB294 \uC5C6\uC2B5\uB2C8\uB2E4. \uC788\uB294 \uAC83: ${r}`}}let p={};for(let[r,s]of Object.entries(l.in)){let a=o.get(r);if(a===null){if($(s)===!1)return{op:n,args:p,raw:i,error:`\u300C${r}\u300D \uAC12\uC774 \uBE60\uC84C\uC2B5\uB2C8\uB2E4`};continue}try{p[r]=E(r,s,a)}catch(c){return{op:n,args:p,raw:i,error:c.message}}}return{op:n,args:p,raw:i}}(function(){Toolbox.register({id:"tableconv",title:"\uD45C \uBC14\uAFB8\uAE30",category:"tool",desc:"\uC5D1\uC140\uC5D0\uC11C \uBCF5\uC0AC\uD55C \uD45C\uB97C \uB9C8\uD06C\uB2E4\uC6B4\xB7CSV\xB7JSON \uC73C\uB85C \uBC14\uAFC9\uB2C8\uB2E4. \uBD99\uC5EC\uB123\uAE30\uB9CC \uD558\uBA74 \uB429\uB2C8\uB2E4",layout:"wide",icon:'<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18M3 14.5h18M9 4v16M15 4v16" stroke="currentColor" stroke-width="1.3" opacity="0.8"/>',tabs:[{id:"app",label:"\uD45C \uBC14\uAFB8\uAE30",build:function(e){e.innerHTML=`
+            <div class="field-group">
+              <label class="field-label" for="tcIn">\uD45C \uBD99\uC5EC\uB123\uAE30 \u2014 \uC5D1\uC140\uC5D0\uC11C \uBCF5\uC0AC\uD55C \uAC83\uB3C4 \uADF8\uB300\uB85C \uB429\uB2C8\uB2E4</label>
+              <textarea id="tcIn" rows="8" spellcheck="false" style="width:100%;" placeholder="\uC5D1\uC140\uC5D0\uC11C \uD45C\uB97C \uBCF5\uC0AC\uD574 \uC5EC\uAE30\uC5D0 \uBD99\uC5EC \uB123\uC73C\uC138\uC694. CSV \uB098 \uB9C8\uD06C\uB2E4\uC6B4 \uD45C\uB3C4 \uBC1B\uC2B5\uB2C8\uB2E4."></textarea>
+            </div>
+
+            <div class="field-group">
+              <div class="tool-grid-2">
+                <div>
+                  <div class="tool-sublabel">\uBC14\uAFC0 \uD615\uC2DD</div>
+                  <select id="tcTo" aria-label="\uBC14\uAFC0 \uD615\uC2DD">
+                    <option value="md">\uB9C8\uD06C\uB2E4\uC6B4 \uD45C \u2014 \uAE43\uD5C8\uBE0C\xB7\uB178\uC158</option>
+                    <option value="csv">CSV \u2014 \uC5D1\uC140\xB7\uAD6C\uAE00\uC2DC\uD2B8</option>
+                    <option value="tsv">\uD0ED \uAD6C\uBD84 \u2014 \uC5D1\uC140\uC5D0 \uBC14\uB85C \uBD99\uC774\uAE30</option>
+                    <option value="json">JSON \u2014 \uCCAB \uC904\uC744 \uC774\uB984\uC73C\uB85C</option>
+                  </select>
+                </div>
+                <div class="tool-chips" style="align-content:end;">
+                  <label class="tool-chip"><input type="checkbox" id="tcAlign" checked> \uC138\uB85C\uC904 \uB9DE\uCD94\uAE30</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="cc-stats" id="tcStats"></div>
+
+            <div class="field-group">
+              <label class="field-label" for="tcOut">\uBC14\uB010 \uACB0\uACFC</label>
+              <textarea id="tcOut" rows="10" spellcheck="false" style="width:100%;" readonly></textarea>
+              <button class="btn btn-ghost btn-sm" id="tcCopy" style="margin-top:8px;">\uBCF5\uC0AC</button>
+            </div>
+
+            <div class="tool-status" id="tcStatus">\uC5D1\uC140\uC5D0\uC11C \uD45C\uB97C \uBCF5\uC0AC\uD574 \uADF8\uB300\uB85C \uBD99\uC5EC \uB123\uC5B4 \uBCF4\uC138\uC694.</div>
+          `;let t=c=>e.querySelector(c),o=t("#tcIn"),n=t("#tcOut"),i=t("#tcStats"),l=t("#tcStatus"),p=(c,u="")=>{l.textContent=c,l.className="tool-status"+(u?" "+u:"")},r=(c,u,d=!1)=>`<div class="cc-stat${d?" cc-stat-primary":""}"><div class="cc-stat-label">${c}</div><div class="cc-stat-value">${u}</div></div>`;function s(){let{rows:c,kind:u}=v(o.value);if(!c.length){n.value="",i.innerHTML="",p("\uC5D1\uC140\uC5D0\uC11C \uD45C\uB97C \uBCF5\uC0AC\uD574 \uADF8\uB300\uB85C \uBD99\uC5EC \uB123\uC5B4 \uBCF4\uC138\uC694.");return}let d=t("#tcTo").value;n.value=d==="md"?h(c,t("#tcAlign").checked):d==="csv"?T(c):d==="tsv"?w(c):y(c);let f=Math.max(...c.map(g=>g.length)),k=c.some(g=>g.length!==f);i.innerHTML=r("\uC54C\uC544\uBCF8 \uD615\uC2DD",u,!0)+r("\uC904",`${c.length}\uC904`)+r("\uCE78",`${f}\uCE78`),k?p("\uC904\uB9C8\uB2E4 \uCE78 \uC218\uAC00 \uB2E4\uB985\uB2C8\uB2E4. \uBD99\uC5EC\uB123\uAE30\uAC00 \uC798\uB838\uB294\uC9C0 \uD655\uC778\uD574 \uC8FC\uC138\uC694 \u2014 \uBE48 \uCE78\uC73C\uB85C \uCC44\uC6CC \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4.","error"):p(`${u} \uB85C \uC54C\uC544\uBD24\uC5B4\uC694. \uBCF5\uC0AC\uD574\uC11C \uC4F0\uC138\uC694.`,"ok"),Toolbox.trackUse?.("convert")}o.addEventListener("input",s),t("#tcTo").addEventListener("change",s),t("#tcAlign").addEventListener("change",s),t("#tcCopy").onclick=()=>{Toolbox.copyText?.(n.value,{message:"\uBC14\uB010 \uD45C\uB97C \uBCF5\uC0AC\uD588\uC5B4\uC694"})};let a=S(m);a!==null&&a.error===void 0&&a.op==="convert"&&(o.value=String(a.args.table??o.value),a.args.to!==void 0&&(t("#tcTo").value=String(a.args.to)),a.args.align===!1&&(t("#tcAlign").checked=!1)),s()}}]})})();})();
