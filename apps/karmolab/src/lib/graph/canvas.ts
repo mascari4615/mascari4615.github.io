@@ -263,7 +263,8 @@ export class GraphCanvas {
    * 데이터로 꾸미기 (TASK-KL-202 격차 S). 손으로 하나씩 키우는 대신 **규칙 한 줄**로
    * 「많이 이어진 것이 크다」를 만든다 — 자료가 늘어도 규칙이 알아서 따라간다(Kumu 의 decoration).
    */
-  private decorate: { sizeByDegree: boolean; colorByTag: boolean } = { sizeByDegree: false, colorByTag: false };
+  private decorate: { sizeByDegree: boolean; colorByTag: boolean; colorByField: string } =
+    { sizeByDegree: false, colorByTag: false, colorByField: '' };
   /** 이번 렌더에서 쓸 노드별 연결 수. render 시작 때 한 번만 센다. */
   private degreeCache: Map<string, number> = new Map();
 
@@ -2511,10 +2512,11 @@ export class GraphCanvas {
   }
 
   /** 꾸미기 규칙. 지금은 「연결 수만큼 크게」 하나. */
-  setDecorate(next: { sizeByDegree?: boolean; colorByTag?: boolean }): void {
+  setDecorate(next: { sizeByDegree?: boolean; colorByTag?: boolean; colorByField?: string }): void {
     this.decorate = {
       sizeByDegree: next.sizeByDegree ?? false,
       colorByTag: next.colorByTag ?? false,
+      colorByField: next.colorByField ?? '',
     };
     this.render();
   }
@@ -2525,6 +2527,11 @@ export class GraphCanvas {
    * 뽑아 쓴다(같은 말이면 언제나 같은 색, 맵을 바꿔도 같다).
    */
   private nodeColor(node: GraphNode): string {
+    // 칸 값으로 물들이기가 먼저다 — 사람이 **방금 고른** 기준이라 꼬리표보다 뜻이 세다.
+    if (this.decorate.colorByField) {
+      const v = (node.fields ?? {})[this.decorate.colorByField];
+      if (v && String(v).trim()) return colorForTag(String(v).trim());
+    }
     if (this.decorate.colorByTag) {
       const tag = (node.tags ?? [])[0];
       if (tag) return colorForTag(tag);

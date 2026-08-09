@@ -55,6 +55,8 @@ export interface PanelCtx {
     /** 칸으로 좁히기 — 이름만 있으면 「그 칸을 가진 것」, 값까지 있으면 「그 값인 것」. */
     fieldName: string;
     fieldValue: string;
+    /** 이 칸의 값마다 다른 색으로 물들인다(비면 안 씀). */
+    colorByField: string;
   };
   /** 거르기 값을 캔버스에 반영. */
   applyFilter: () => void;
