@@ -51,6 +51,7 @@ import { canRewireTo, isDropOnNode, releaseIntent } from './canvas-release';
 import { curveFromPointer, labelPosFromPointer } from './canvas-edgedrag';
 import { groupDelta, resizedBox, snappedPoint, worldDelta } from './canvas-drag';
 import { minimapRects, minimapWorthIt, paintMinimap } from './canvas-minimap';
+import { buildLinkHandle, buildPhotoCard, buildSizeHandle } from './canvas-photo';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
@@ -1081,53 +1082,10 @@ export class GraphCanvas {
     }
 
     if (shape === 'photo' && node.avatar?.kind === 'image') {
-      // 사진이 주인공인 카드. 이름은 아래 반투명 띠에 얹어 그림을 안 가린다
-      // (관계도에서 얼굴이 가장 빨리 읽히는 표지다).
-      const clipId = `ck-photo-${this.uid}-${node.id}`;
-      const defs = document.createElementNS(SVG_NS, 'defs');
-      const clip = document.createElementNS(SVG_NS, 'clipPath');
-      clip.setAttribute('id', clipId);
-      const r = document.createElementNS(SVG_NS, 'rect');
-      r.setAttribute('width', String(node.w));
-      r.setAttribute('height', String(effH));
-      r.setAttribute('rx', '6');
-      clip.appendChild(r);
-      defs.appendChild(clip);
-      g.appendChild(defs);
-
-      const img = document.createElementNS(SVG_NS, 'image');
-      img.setAttribute('x', '0');
-      img.setAttribute('y', '0');
-      img.setAttribute('width', String(node.w));
-      img.setAttribute('height', String(effH));
-      img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-      img.setAttribute('clip-path', `url(#${clipId})`);
-      img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', node.avatar.value);
-      img.setAttribute('href', node.avatar.value);
-      img.setAttribute('pointer-events', 'none');
-      g.appendChild(img);
-
-      const band = document.createElementNS(SVG_NS, 'rect');
-      band.setAttribute('x', '0');
-      band.setAttribute('y', String(effH - 26));
-      band.setAttribute('width', String(node.w));
-      band.setAttribute('height', '26');
-      band.setAttribute('fill', 'rgba(0,0,0,0.62)');
-      band.setAttribute('clip-path', `url(#${clipId})`);
-      band.setAttribute('pointer-events', 'none');
-      g.appendChild(band);
-
-      const nameEl = document.createElementNS(SVG_NS, 'text');
-      nameEl.setAttribute('x', String(node.w / 2));
-      nameEl.setAttribute('y', String(effH - 9));
-      nameEl.setAttribute('text-anchor', 'middle');
-      nameEl.setAttribute('fill', '#fff');
-      nameEl.setAttribute('font-size', '11');
-      nameEl.setAttribute('font-weight', '600');
-      nameEl.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
-      nameEl.setAttribute('pointer-events', 'none');
-      nameEl.textContent = node.label;
-      g.appendChild(nameEl);
+      // 사진이 주인공인 카드 — 그리는 규칙은 canvas-photo 가 안다.
+      for (const el of buildPhotoCard({
+        id: node.id, label: node.label, w: node.w, effH, src: node.avatar.value, uid: this.uid,
+      })) g.appendChild(el);
     } else if (shape === 'note' && this.spec && displayDoc(this.spec, node).trim()) {
       // 쪽지에 **글이 안 보이면** 그냥 이름표다 — 접는 규칙은 canvas-shape 이 안다.
       for (const el of buildNoteCardBody(node.label, displayDoc(this.spec, node).trim(), node.w, this.theme)) {
@@ -1153,32 +1111,10 @@ export class GraphCanvas {
     // (Miro·FigJam 의 파란 점. 「연결 시작」 버튼을 누르고 다시 클릭하던 2단계를 없앤다).
     // 크기 손잡이 — **고른 카드에만**. 늘 보이면 카드가 지저분해지고 잘못 잡는다.
     if (this.editable && this.selectedIds.size === 1 && this.selectedIds.has(node.id)) {
-      const grip = document.createElementNS(SVG_NS, 'rect');
-      grip.setAttribute('class', 'ck-size-handle');
-      grip.dataset.sizeFor = node.id;
-      grip.setAttribute('x', String(node.w - 7));
-      grip.setAttribute('y', String(effH - 7));
-      grip.setAttribute('width', '10');
-      grip.setAttribute('height', '10');
-      grip.setAttribute('rx', '2');
-      grip.setAttribute('fill', this.theme.nodeFill);
-      grip.setAttribute('stroke', kindColor);
-      grip.setAttribute('stroke-width', '1.5');
-      grip.setAttribute('cursor', 'nwse-resize');
-      g.appendChild(grip);
+      g.appendChild(buildSizeHandle(node.id, node.w, effH, this.theme.nodeFill, kindColor));
     }
-
     if (this.onConnect && this.editable) {
-      const handle = document.createElementNS(SVG_NS, 'circle');
-      handle.setAttribute('class', 'ck-link-handle');
-      handle.dataset.linkFrom = node.id;
-      handle.setAttribute('cx', String(node.w));
-      handle.setAttribute('cy', String(effH / 2));
-      handle.setAttribute('r', '5');
-      handle.setAttribute('fill', kindColor);
-      handle.setAttribute('stroke', this.theme.nodeFill);
-      handle.setAttribute('stroke-width', '1.5');
-      g.appendChild(handle);
+      g.appendChild(buildLinkHandle(node.id, node.w, effH, kindColor, this.theme.nodeFill));
     }
 
     return g;
