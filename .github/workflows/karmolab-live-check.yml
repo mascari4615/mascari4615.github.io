@@ -87,8 +87,12 @@ jobs:
       #   그래서 이 점검은 매 판 빌드 단계에서 죽었고(최근 25판 중 초록 0), 뒤 검사들은
       #   `if: always()` 때문에 **없는 기준과 대조하며 헛것을 쟀다**. 두 워크플로가 같은 전제를
       #   따로 들고 있으면 반드시 갈라진다 — 한쪽만 고친 값이 이 사고다.
+      # ★ working-directory 를 반드시 적는다 — 이 job 의 defaults 가 `apps/karmolab` 라서
+      #   `cd packages/badapple` 는 `apps/karmolab/packages/badapple` 을 찾다가 죽는다.
+      #   (바로 위 karmolab-ai 단계가 같은 이유로 자기 자리를 적어 뒀다.)
       - name: badapple 도 먼저 짓기 (apps/karmolab 이 타입을 물고 있다)
-        run: cd packages/badapple && npm ci --no-audit --no-fund && npm run build
+        working-directory: packages/badapple
+        run: npm ci --no-audit --no-fund && npm run build
 
       - name: 대조 기준 만들기 (빌드 산출물)
         run: npm run build
