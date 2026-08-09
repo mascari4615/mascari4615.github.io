@@ -152,7 +152,11 @@ import {
     /** 연결 모드일 때 출발 노드 id. null 이면 평소 모드. */
     let linkingFrom: string | null = null;
     /** 오른쪽 패널이 무엇을 보여주는가 — 고른 노드냐, 묶음 목록이냐. */
-    let sideMode: 'node' | 'groups' | 'terms' = 'node';
+    let sideMode: 'node' | 'groups' | 'terms' | 'filter' = 'node';
+    /** 화면에서 뺀 종류들 — 자료는 그대로 두고 보기만 줄인다(격차 M-3). */
+    const hiddenNodeKinds = new Set<string>();
+    const hiddenEdgeKinds = new Set<string>();
+    let hideOrphans = false;
     /** 지금 끼워진 어휘 팩. `spec._meta.pack` 에 함께 저장된다. */
     let pack: CanvasPack = packById(DEFAULT_PACK_ID);
     /** 사용자가 직접 만든 종류. 맵이 아니라 **사람**에게 붙는다(격차 A-2). */
@@ -224,6 +228,7 @@ import {
           </select>
           <button class="btn btn-ghost" data-km="groups" title="묶음 관리">🫧</button>
           <button class="btn btn-ghost" data-km="terms" title="내 용어 — 팩에 없는 종류 만들기">🏷</button>
+          <button class="btn btn-ghost" data-km="filter" title="거르기 — 종류별로 화면에서 빼기">🔍</button>
           <button class="btn btn-ghost" data-km="undo" title="되돌리기 (Ctrl+Z)" disabled>↶</button>
           <button class="btn btn-ghost" data-km="redo" title="다시 하기 (Ctrl+Y)" disabled>↷</button>
           <button class="btn btn-ghost" data-km="fit" title="화면 맞춤">⤢</button>
@@ -262,6 +267,7 @@ import {
                 <button class="btn btn-ghost" data-km="stage-prev">◀</button>
                 <span data-km="stage-count"></span>
                 <button class="btn btn-ghost" data-km="stage-next">▶</button>
+                <button class="btn btn-ghost" data-km="stage-auto" title="6초마다 다음 장으로">⏱ 자동</button>
                 <button class="btn btn-ghost" data-km="stage-add">+ 지금 화면을 한 장으로</button>
                 <button class="btn btn-ghost" data-km="stage-del">이 장 지우기</button>
                 <button class="btn btn-ghost" data-km="stage-exit">나가기</button>
@@ -711,6 +717,95 @@ import {
       });
     }
 
+    /** 거르기 패널 — 종류 체크를 끄면 그 종류가 화면에서 빠진다(자료는 그대로). */
+    function applyFilter(): void {
+      canvas?.setFilter({ nodeKinds: hiddenNodeKinds, edgeKinds: hiddenEdgeKinds, hideOrphans });
+      canvas?.setSelectedNode(selectedId);
+    }
+
+    function renderFilterPanel(): void {
+      sideEl.classList.remove('hidden');
+      canvas?.setSelectedNode(null);
+      const nodeCount = (id: string): number => spec.nodes.filter((n) => n.kind === id).length;
+      const edgeCount = (id: string): number => spec.edges.filter((e) => e.kind === id).length;
+      // ★ 목록 = 지금 팩의 종류 + **이 맵에 실제로 쓰인 종류**. 팩을 바꾼 뒤에는 화면에 보이는
+      //   종류가 팩 목록에 없을 수 있는데, 그러면 「보이는데 끌 수가 없는」 종류가 생긴다.
+      const usedNodeKinds = [...new Set(spec.nodes.map((n) => n.kind))];
+      const usedEdgeKinds = [...new Set(spec.edges.map((e) => e.kind))];
+      const nodeRows = [
+        ...nodeKindsNow(),
+        ...usedNodeKinds
+          .filter((id) => !nodeKindsNow().some((k) => k.id === id))
+          .map((id) => ({ id, label: kindLabel(id), icon: kindIcon(id), color: '#94a3b8' })),
+      ];
+      const edgeRows = [
+        ...edgeKindsNow(),
+        ...usedEdgeKinds
+          .filter((id) => !edgeKindsNow().some((k) => k.id === id))
+          .map((id) => ({ id, label: edgeLabel(id), color: '#94a3b8', style: 'solid' as const, arrow: true })),
+      ];
+      sideEl.innerHTML = `
+        <h4>🔍 거르기</h4>
+        <div class="km-hint">체크를 끄면 그 종류가 <b>화면에서만</b> 빠집니다. 지우는 게 아닙니다.</div>
+        <div class="km-field">
+          <label>노드 종류</label>
+          ${nodeRows
+            .map(
+              (k) => `<label class="km-check"><input type="checkbox" data-km="f-node" value="${escapeAttr(k.id)}"${
+                hiddenNodeKinds.has(k.id) ? '' : ' checked'
+              } /> ${k.icon} ${escapeHtml(k.label)} <span class="km-group-count">${nodeCount(k.id)}</span></label>`
+            )
+            .join('')}
+        </div>
+        <div class="km-field">
+          <label>관계 종류</label>
+          ${edgeRows
+            .map(
+              (k) => `<label class="km-check"><input type="checkbox" data-km="f-edge" value="${escapeAttr(k.id)}"${
+                hiddenEdgeKinds.has(k.id) ? '' : ' checked'
+              } /> ${escapeHtml(k.label)} <span class="km-group-count">${edgeCount(k.id)}</span></label>`
+            )
+            .join('')}
+        </div>
+        <div class="km-field">
+          <label class="km-check"><input type="checkbox" data-km="f-orphan"${hideOrphans ? ' checked' : ''} /> 선이 하나도 안 닿은 노드 숨기기</label>
+        </div>
+        <button class="btn btn-ghost" data-km="f-reset">전부 다시 보이기</button>
+        <button class="btn btn-ghost" data-km="f-close">닫기</button>`;
+
+      sideEl.querySelectorAll('[data-km="f-node"]').forEach((el) => {
+        (el as HTMLInputElement).onchange = (ev) => {
+          const box = ev.target as HTMLInputElement;
+          if (box.checked) hiddenNodeKinds.delete(box.value);
+          else hiddenNodeKinds.add(box.value);
+          applyFilter();
+        };
+      });
+      sideEl.querySelectorAll('[data-km="f-edge"]').forEach((el) => {
+        (el as HTMLInputElement).onchange = (ev) => {
+          const box = ev.target as HTMLInputElement;
+          if (box.checked) hiddenEdgeKinds.delete(box.value);
+          else hiddenEdgeKinds.add(box.value);
+          applyFilter();
+        };
+      });
+      (sideEl.querySelector('[data-km="f-orphan"]') as HTMLInputElement).onchange = (ev) => {
+        hideOrphans = (ev.target as HTMLInputElement).checked;
+        applyFilter();
+      };
+      (sideEl.querySelector('[data-km="f-reset"]') as HTMLButtonElement).onclick = () => {
+        hiddenNodeKinds.clear();
+        hiddenEdgeKinds.clear();
+        hideOrphans = false;
+        applyFilter();
+        renderSide();
+      };
+      (sideEl.querySelector('[data-km="f-close"]') as HTMLButtonElement).onclick = () => {
+        sideMode = 'node';
+        renderSide();
+      };
+    }
+
     // ── 선택 패널 ───────────────────────────────────────────────────────────
     function renderSide(): void {
       if (sideMode === 'groups') {
@@ -719,6 +814,10 @@ import {
       }
       if (sideMode === 'terms') {
         renderTermsPanel();
+        return;
+      }
+      if (sideMode === 'filter') {
+        renderFilterPanel();
         return;
       }
       const node = spec.nodes.find((n) => n.id === selectedId);
@@ -1202,10 +1301,32 @@ import {
         stepIndex = Math.min(stepIndex, Math.max(0, steps().length - 1));
         showStep();
       } else {
+        stopAuto();
         canvas?.setFocus(null);
         syncFocus();
       }
     }
+
+    // 자동 넘김 — 손을 못 쓰는 자리(전시·배경 재생)에서 쓴다. 마지막 장에서 처음으로 돈다.
+    let autoTimer: ReturnType<typeof setInterval> | null = null;
+    function stopAuto(): void {
+      if (autoTimer) clearInterval(autoTimer);
+      autoTimer = null;
+      const btn = root.querySelector('[data-km="stage-auto"]');
+      if (btn) btn.textContent = '⏱ 자동';
+    }
+    Toolbox.onDispose?.(stopAuto);
+
+    q<HTMLButtonElement>('stage-auto').onclick = (ev) => {
+      if (autoTimer) { stopAuto(); return; }
+      (ev.currentTarget as HTMLButtonElement).textContent = '⏸ 멈춤';
+      autoTimer = setInterval(() => {
+        const list = steps();
+        if (list.length === 0 || !presenting) { stopAuto(); return; }
+        stepIndex = (stepIndex + 1) % list.length;
+        showStep();
+      }, 6000);
+    };
 
     q<HTMLButtonElement>('story').onclick = () => setPresenting(!presenting);
     q<HTMLButtonElement>('stage-exit').onclick = () => setPresenting(false);
@@ -1270,6 +1391,11 @@ import {
       if (persist) persistStructure();
     }
     packEl.onchange = () => applyPack(packEl.value, true);
+
+    q<HTMLButtonElement>('filter').onclick = () => {
+      sideMode = sideMode === 'filter' ? 'node' : 'filter';
+      renderSide();
+    };
 
     q<HTMLButtonElement>('terms').onclick = () => {
       sideMode = sideMode === 'terms' ? 'node' : 'terms';

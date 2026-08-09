@@ -214,6 +214,13 @@ export class GraphCanvas {
   private hintEl: SVGGElement | null = null;
   /** 포커스 대상 id — null 이면 포커스 없음. */
   private focusIds: Set<string> | null = null;
+  /**
+   * 거르기 (TASK-KL-202 M-3). 포커스가 「잠깐 흐리기」라면 이쪽은 **아예 안 그리기**다 —
+   * Kumu 도 focus(근접 기반)와 filter(조건 선별)를 다른 도구로 둔다.
+   */
+  private filter: { nodeKinds: Set<string>; edgeKinds: Set<string>; hideOrphans: boolean } = {
+    nodeKinds: new Set(), edgeKinds: new Set(), hideOrphans: false,
+  };
   /** 손잡이에서 끌고 있는 중. 임시 선은 edgeLayer 에 그렸다가 놓을 때 지운다. */
   private linking: { fromId: string; temp: SVGPathElement } | null = null;
 
@@ -814,7 +821,7 @@ export class GraphCanvas {
 
     this.renderGroups();
     this.renderAnchors();
-    this.renderNodes(this.spec.nodes);
+    this.renderNodes(this.visibleNodes());
     this.redrawEdges();
     this.renderLeaders();
     this.redrawMinimap();
@@ -1424,7 +1431,12 @@ export class GraphCanvas {
     if (!this.spec) return;
     this.edgeLayer.innerHTML = '';
 
+    const shown = this.visibleNodeIds();
     for (const edge of this.spec.edges) {
+      // 종류가 걸러졌거나, 양끝 중 하나가 화면에 없으면 선도 안 그린다 —
+      // 한쪽만 남은 선은 허공으로 뻗은 것처럼 보인다.
+      if (this.filter.edgeKinds.has(edge.kind)) continue;
+      if (!shown.has(this.parseNodeRef(edge.from)) || !shown.has(this.parseNodeRef(edge.to))) continue;
       const parts = this.buildEdgeElements(edge);
       if (parts) parts.forEach((el) => this.edgeLayer.appendChild(el));
     }
@@ -1671,9 +1683,11 @@ export class GraphCanvas {
    */
   private renderLeaders(): void {
     if (!this.spec) return;
+    const shownForLeaders = this.visibleNodeIds();
     for (const n of this.spec.nodes) {
       const targetId = n.attachedTo;
       if (!targetId) continue;
+      if (!shownForLeaders.has(n.id)) continue;
       const from = this.getNodeBox(n.id);
       if (!from) continue;
 
@@ -2084,6 +2098,37 @@ export class GraphCanvas {
     this.edgeLayer.querySelectorAll('.ck-leader').forEach((el) => {
       (el as SVGElement).classList.toggle('is-dimmed', !!ids);
     });
+  }
+
+  /** 거르기 설정. 넘긴 종류는 화면에서 빠진다(자료는 그대로). */
+  setFilter(next: { nodeKinds?: Iterable<string>; edgeKinds?: Iterable<string>; hideOrphans?: boolean }): void {
+    this.filter = {
+      nodeKinds: new Set(next.nodeKinds ?? []),
+      edgeKinds: new Set(next.edgeKinds ?? []),
+      hideOrphans: next.hideOrphans ?? false,
+    };
+    this.render();
+  }
+
+  /** 지금 화면에 남아 있는 노드 id — 거르기까지 반영한 것. */
+  visibleNodeIds(): Set<string> {
+    return new Set(this.visibleNodes().map((n) => n.id));
+  }
+
+  /** 거르기를 통과한 노드들. 렌더·선 그리기가 모두 이걸 기준으로 삼는다. */
+  private visibleNodes(): GraphNode[] {
+    const nodes = (this.spec?.nodes ?? []).filter((n) => !this.filter.nodeKinds.has(n.kind));
+    if (!this.filter.hideOrphans) return nodes;
+    // 「외톨이 숨기기」 — 선이 하나도 안 닿은 노드를 뺀다(Kumu 의 ignore-orphans).
+    const live = new Set(nodes.map((n) => n.id));
+    const touched = new Set<string>();
+    for (const e of this.spec?.edges ?? []) {
+      if (this.filter.edgeKinds.has(e.kind)) continue;
+      const a = this.parseNodeRef(e.from);
+      const b = this.parseNodeRef(e.to);
+      if (live.has(a) && live.has(b)) { touched.add(a); touched.add(b); }
+    }
+    return nodes.filter((n) => touched.has(n.id));
   }
 
   /** 선택 표시 — 편집 UI 가 어떤 노드를 다루는지 캔버스에 반영. */
