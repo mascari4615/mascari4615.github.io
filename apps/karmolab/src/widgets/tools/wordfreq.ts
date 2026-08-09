@@ -8,26 +8,10 @@
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
 
+import { spec, STOP, stripParticle } from '../../core/wordfreq';
+import { readInvocation } from '../../lib/tool-url';
+
 (function (): void {
-  /** 자주 붙는 조사·어미 — 길이 긴 것부터 떼야 「에서는」 이 「에서」+「는」 으로 안 갈린다 */
-  const PARTICLES = [
-    '으로부터', '에게서', '이라고', '라고는', '에서는', '에게는', '으로는', '까지는',
-    '부터는', '이라는', '에서도', '으로도', '이나마', '조차도',
-    '에서', '에게', '으로', '까지', '부터', '이나', '라도', '마저', '조차', '처럼', '보다', '만큼',
-    '이란', '이든', '든지', '한테', '더러', '와의', '과의',
-    '은', '는', '이', '가', '을', '를', '의', '에', '와', '과', '도', '만', '로', '나', '야', '여'
-  ];
-
-  const STOP = new Set(['그리고', '그러나', '하지만', '그래서', '또한', '즉', '및', '등', '수', '것', '때', '이것', '저것', '그것', 'the', 'a', 'an', 'and', 'or', 'of', 'to', 'in', 'is', 'it', 'for', 'on', 'that', 'this', 'with']);
-
-  function stripParticle(word: string): string {
-    if (word.length < 3) return word;
-    for (const p of PARTICLES) {
-      if (word.length > p.length + 1 && word.endsWith(p)) return word.slice(0, -p.length);
-    }
-    return word;
-  }
-
   Toolbox.register({
     id: 'wordfreq',
     title: t('widgets.wordfreq.title', undefined, '단어 빈도 분석'),
@@ -167,6 +151,13 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
 
           input.addEventListener('input', run);
           container.querySelectorAll('input[type="checkbox"]').forEach((el) => el.addEventListener('change', run));
+
+          // 주소로 부른 경우 (`?op=count&text=…`) (TASK-KL-205).
+          const call = readInvocation(spec);
+          if (call !== null && call.error === undefined && call.op === 'count') {
+            input.value = String(call.args.text ?? '');
+            run();
+          }
           $<HTMLButtonElement>('#wfCopy').onclick = () => {
             if (!rows.length) return;
             void Toolbox.copyText?.(rows.map(([w, c]) => `${w}\t${c}`).join('\n'), { message: t('wordfreq.copy.done') });
