@@ -90,7 +90,12 @@ const err = (id, code, message) => send({ jsonrpc: '2.0', id, error: { code, mes
 function callTool(name, args) {
   const t = registry.get(name);
   if (t === undefined) throw new Error(`모르는 도구입니다: ${name}`);
-  const value = t.mod.run(t.op, args ?? {}, { hash: hashBackend });
+  /*
+   * `call` = 도구가 다른 도구를 부르는 손 (chain 이 쓴다). 여기서만 줄 수 있다 —
+   * 알맹이끼리 서로 import 하면 목록을 손으로 관리하게 되고, 화면 번들도 통째로 무거워진다.
+   * 깊이는 chain 쪽에서 막는다(chain 은 chain 을 못 부른다).
+   */
+  const value = t.mod.run(t.op, args ?? {}, { hash: hashBackend, call: (toolId, op, a) => callTool(`${toolId}_${op}`, a) });
   return String(value);
 }
 

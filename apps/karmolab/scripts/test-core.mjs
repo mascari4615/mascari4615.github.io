@@ -1269,6 +1269,111 @@ const pgOut = pg.run('strength', { password: 'Password1!' });
 check(pgOut.includes('약'), 'run 이 판정을 글로 낸다');
 check(pgOut.includes('흔한 단어'), 'run 이 왜 깎였는지 말한다');
 
+// ── ②-28 chain 알맹이 (중간값이 모델을 안 거치게) ──────────────────────────
+const ch = await load('src/core/chain.ts');
+eq(ch.spec.id, 'chain', 'chain spec.id');
+
+/* 가짜 손 하나로 판을 만든다 — 부르는 손을 밖에서 받는 설계라 시험이 쉽다. */
+const calls = [];
+const fakeCall = (tool, op, args) => {
+  calls.push(`${tool}_${op}`);
+  if (tool === 'upper') return String(args.text).toUpperCase();
+  if (tool === 'wrap') return `[${args.text}]`;
+  if (tool === 'boom') throw new Error('일부러 터짐');
+  return `${tool}:${op}:${JSON.stringify(args)}`;
+};
+
+/* 이 도구가 있는 이유 자체 — 앞 결과가 뒤 인자로 들어간다. */
+const two = ch.runChain(
+  ch.parseSteps('[{"tool":"upper","op":"go","args":{"text":"ab"}},{"tool":"wrap","op":"go","args":{"text":"$1"}}]'),
+  fakeCall
+);
+eq(two.length, 2, '두 단계가 다 돈다');
+eq(two[1].output, '[AB]', '1번 결과가 2번 인자로 들어간다');
+
+// 긴 글 안에 끼우기.
+const inline = ch.runChain(
+  ch.parseSteps('[{"tool":"upper","op":"go","args":{"text":"hi"}},{"tool":"wrap","op":"go","args":{"text":"a{{1}}b"}}]'),
+  fakeCall
+);
+eq(inline[1].output, '[aHIb]', '{{1}} 은 글 안에 끼운다');
+
+// 문자열이 아닌 인자는 그대로 둔다 (숫자를 글자로 바꾸면 뒤 도구가 다르게 읽는다).
+eq(ch.resolve(42, ['x'], 2), 42, '숫자는 손대지 않는다');
+eq(ch.resolve('$1', ['x'], 2), 'x', '$1 은 통째로 바뀐다');
+
+/* 아직 안 나온 결과를 가리키면 **던져야 한다** — 안 그러면 「$5」 가 그대로 도구에 들어간다. */
+for (const [bad, why] of [
+  ['[{"tool":"upper","op":"go","args":{"text":"$1"}}]', '자기 자신'],
+  ['[{"tool":"upper","op":"go","args":{"text":"a"}},{"tool":"wrap","op":"go","args":{"text":"$5"}}]', '뒤 단계']
+]) {
+  let threw = false;
+  try {
+    ch.runChain(ch.parseSteps(bad), fakeCall);
+  } catch {
+    threw = true;
+  }
+  check(threw, `${why} 를 가리키면 던진다`);
+}
+
+// 목록이 잘못됐을 때 — 셋 다 「무엇이 잘못됐는지」 말하고 멈춰야 한다.
+for (const [bad, why] of [
+  ['그냥글자', 'JSON 이 아님'],
+  ['[]', '단계 0개'],
+  ['[{"op":"go"}]', 'tool 없음'],
+  ['[{"tool":"chain","op":"run","args":{}}]', 'chain 이 chain 을 부름']
+]) {
+  let threw = false;
+  try {
+    ch.parseSteps(bad);
+  } catch {
+    threw = true;
+  }
+  check(threw, `${why} → 던진다`);
+}
+
+// 상한 — 끝없이 이어 붙이지 못하게.
+const many = JSON.stringify(Array.from({ length: ch.MAX_STEPS + 1 }, () => ({ tool: 'upper', op: 'go', args: {} })));
+let overflowed = false;
+try {
+  ch.parseSteps(many);
+} catch {
+  overflowed = true;
+}
+check(overflowed, `${ch.MAX_STEPS}단계를 넘으면 던진다`);
+
+/* 중간에 터지면 **몇 번째에서** 터졌는지 말해야 한다. 8단계짜리에서 그게 없으면 못 고친다. */
+let where = '';
+try {
+  ch.runChain(
+    ch.parseSteps('[{"tool":"upper","op":"go","args":{"text":"a"}},{"tool":"boom","op":"go","args":{}}]'),
+    fakeCall
+  );
+} catch (e) {
+  where = e.message;
+}
+check(where.includes('2번째'), `몇 번째에서 멈췄는지 말한다 (지금: ${where})`);
+check(where.includes('일부러 터짐'), '원래 오류도 같이 말한다');
+
+// 손이 없으면 조용히 넘어가지 않는다.
+let noHand = false;
+try {
+  ch.run('run', { steps: '[]' }, {});
+} catch {
+  noHand = true;
+}
+check(noHand, 'deps.call 이 없으면 던진다');
+
+// 글로 낼 때 **모든 단계**가 보여야 한다 (마지막만 주면 되짚을 수 없다).
+const text = ch.run(
+  'run',
+  { steps: '[{"tool":"upper","op":"go","args":{"text":"ab"}},{"tool":"wrap","op":"go","args":{"text":"$1"}}]' },
+  { call: fakeCall }
+);
+check(text.includes('1. upper_go'), '1번 단계가 보인다');
+check(text.includes('2. wrap_go'), '2번 단계가 보인다');
+check(text.trim().endsWith('[AB]'), '마지막 줄이 결과');
+
 // ── ②-27 배선 — 알맹이가 있는데 화면이 안 쓰면 두 답이 갈린다 ─────────────────
 /*
  * 2026-08-09 실제로 났던 일: `passgen` 알맹이를 만들었는데 화면 위젯에는 **옛 계산이 그대로**
