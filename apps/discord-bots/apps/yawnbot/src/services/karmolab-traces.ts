@@ -246,6 +246,33 @@ interface VisitTrace {
   kindDays: Record<string, Partial<Record<VisitorKind, number>>>;
 }
 
+/**
+ * 성능 분포 (TASK-KL-201).
+ *
+ * 왜 개별 기록을 안 남기나: 누가 언제 얼마나 느렸는지는 **사람을 따라다니는 자료**가 된다.
+ * 우리가 알고 싶은 것은 「요즘 사람들에게 얼마나 걸리나」뿐이라, 날짜별로 **칸에 세기만** 한다.
+ * 칸(버킷)에 세면 나중에 중앙값·나쁜 쪽을 뽑을 수 있고, 되돌려서 한 사람을 찾을 수는 없다.
+ */
+interface PerfTrace {
+  /** `YYYY-MM-DD`(KST) → 지표 → 칸 index → 개수. */
+  days: Record<string, Record<string, number[]>>;
+}
+
+/** 칸 경계 (ms). 마지막 칸은 「그보다 느림」. */
+const PERF_BUCKETS: Record<string, number[]> = {
+  ready: [100, 250, 500, 1000, 2000, 4000],
+  fcp: [500, 1000, 1800, 3000, 5000],
+  lcp: [1000, 2500, 4000, 6000, 10000],
+  inp: [50, 100, 200, 500, 1000],
+  ttfb: [100, 300, 800, 1800],
+  /** 밀림은 1000 배해서 넣는다(0.1 → 100) — 정수 칸으로 다루려고. */
+  cls: [10, 25, 50, 100, 250],
+};
+
+function emptyPerf(prev?: Partial<PerfTrace>): PerfTrace {
+  return { days: prev?.days ?? {} };
+}
+
 interface TracesState {
   version: 1;
   tools: Record<string, ToolTrace>;
@@ -253,6 +280,8 @@ interface TracesState {
   galleries: Gallery[];
   reports: Report[];
   visits: VisitTrace;
+  /** 사람들 기기에서 잰 성능 — **개별 기록은 안 남긴다**, 날짜별 칸만 (TASK-KL-201). */
+  perf: PerfTrace;
   /**
    * 갤러리별로 **마지막까지 준 번호**. 지금 남아 있는 글에서 최댓값을 구하면 안 된다 —
    * 3번 글을 지우는 순간 다음 글이 다시 3번을 받고, 어제 남긴 「#3 참고」가 다른 글을 가리킨다.
@@ -485,6 +514,7 @@ export class KarmolabTraceStore {
           galleries: withSeeds(parsed.galleries ?? []),
           reports: parsed.reports ?? [],
           visits: emptyVisits(parsed.visits),
+          perf: emptyPerf(parsed.perf),
           seqByBoard: parsed.seqByBoard ?? {},
         };
       }
@@ -498,6 +528,7 @@ export class KarmolabTraceStore {
       galleries: withSeeds([]),
       reports: [],
       visits: emptyVisits(),
+      perf: emptyPerf(),
       seqByBoard: {},
     };
   }
@@ -641,6 +672,70 @@ export class KarmolabTraceStore {
   }
 
   /** 방문 집계 — 블로그의 Total / Today 와 같은 것. 아래 수는 전부 **사람만**이다. */
+  /**
+   * 한 사람의 한 판을 **칸에 하나 더한다** (TASK-KL-201).
+   *
+   * 값이 없거나 말이 안 되면 그 지표만 건너뛴다 — 0 으로 채우면 「아주 빠른 판」이 하나
+   * 생기고, 그건 없느니만 못하다. 하루에 몇 판이든 다 세지만 누구인지는 안 남는다.
+   */
+  recordPerf(sample: Record<string, unknown>, now: Date = new Date()): number {
+    const day = kstDay(now);
+    const perf = this.state.perf ?? (this.state.perf = emptyPerf());
+    const forDay = perf.days[day] ?? (perf.days[day] = {});
+    let counted = 0;
+    for (const [key, edges] of Object.entries(PERF_BUCKETS)) {
+      const raw = sample[key];
+      if (typeof raw !== 'number' || !Number.isFinite(raw) || raw < 0) continue;
+      const value = key === 'cls' ? Math.round(raw * 1000) : Math.round(raw);
+      // 말이 안 되게 큰 값은 버린다(시계가 튄 판·백그라운드 탭 등).
+      if (value > 600000) continue;
+      let index = edges.findIndex((edge) => value <= edge);
+      if (index < 0) index = edges.length;
+      const row = forDay[key] ?? (forDay[key] = new Array(edges.length + 1).fill(0));
+      row[index] = (row[index] ?? 0) + 1;
+      counted += 1;
+    }
+    if (counted) this.flush();
+    return counted;
+  }
+
+  /**
+   * 요즘 사람들에게 얼마나 걸리나 — 최근 N일 칸을 합쳐 중앙값·나쁜 쪽(p75)을 낸다.
+   *
+   * 칸으로 세었으므로 정확한 값이 아니라 **칸의 위 경계**다. 그걸 숨기지 않고 그대로 준다
+   * (「1000ms 이하」처럼). 표본이 적으면 수를 같이 준다 — 적은 표본의 중앙값은 숫자놀음이다.
+   */
+  perfStats(days = 14, now: Date = new Date()): {
+    samples: number;
+    metrics: Record<string, { p50: number | null; p75: number | null; n: number; edges: number[]; counts: number[] }>;
+  } {
+    const perf = this.state.perf ?? emptyPerf();
+    const metrics: Record<string, { p50: number | null; p75: number | null; n: number; edges: number[]; counts: number[] }> = {};
+    let samples = 0;
+    for (const [key, edges] of Object.entries(PERF_BUCKETS)) {
+      const counts = new Array(edges.length + 1).fill(0);
+      for (let i = 0; i < days; i += 1) {
+        const day = kstDay(new Date(now.getTime() - i * 24 * 60 * 60 * 1000));
+        const row = perf.days[day]?.[key];
+        if (!row) continue;
+        for (let j = 0; j < counts.length; j += 1) counts[j] += row[j] ?? 0;
+      }
+      const n = counts.reduce((sum, c) => sum + c, 0);
+      const at = (ratio: number): number | null => {
+        if (!n) return null;
+        let seen = 0;
+        for (let j = 0; j < counts.length; j += 1) {
+          seen += counts[j];
+          if (seen >= n * ratio) return edges[j] ?? edges[edges.length - 1];
+        }
+        return edges[edges.length - 1];
+      };
+      metrics[key] = { p50: at(0.5), p75: at(0.75), n, edges, counts };
+      samples = Math.max(samples, n);
+    }
+    return { samples, metrics };
+  }
+
   visitStats(now: Date = new Date()): {
     total: number;
     today: number;

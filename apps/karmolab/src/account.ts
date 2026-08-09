@@ -412,7 +412,75 @@ function currentToolId(): string | null {
  * 서버도 30분에 한 번만 세지만, 안 보내는 편이 낫다.
  */
 function traceVisit(): void {
-    void call('/kl/trace/visit', { method: 'POST' });
+    /* 다녀갔다고 알리는 김에 **이 기기에서 잰 숫자**를 같이 보낸다 (TASK-KL-201 후속).
+     *
+     * 왜: 지금까지 성능은 전부 **만든 사람 기계**에서만 쟀다. 진짜 사람이 자기 폰으로 열 때
+     * 몇 초인지는 아무도 모른다 — 추측으로 고쳐 왔다. 계기판이 이미 재 둔 값이 있으니,
+     * 이미 보내는 이 한 번에 얹으면 **새 요청 0**으로 현실을 알 수 있다.
+     *
+     * 무엇을 안 보내나: 누구인지·무엇을 봤는지·글자 한 자도 안 보낸다. 시간과 크기, 그리고
+     * 기기 성격(코어 수·화면 폭·회선 종류)뿐이다. 못 잰 값은 **0 이 아니라 빠진 채**로 간다.
+     * 못 믿을 판(안 보이는 탭에서 열림 등)은 아예 안 보낸다 — 섞이면 분포가 거짓이 된다.
+     *
+     * 계측기가 없거나(옛 판) 아직 준비 전이면 그냥 지금까지처럼 빈 몸으로 간다. */
+    let body: string | undefined;
+    try {
+        const perf = window.KLPerf;
+        const snap = perf?.snapshot() as
+            | { trust?: { ok?: boolean }; nav?: Record<string, number | null>; paint?: { fcp: number | null; lcp: number | null }; cls?: number | null; inp?: number | null; marks?: Array<{ name: string; at: number }>; device?: Record<string, unknown> }
+            | undefined;
+        if (snap?.trust?.ok) {
+            const round = (v: unknown): number | undefined =>
+                typeof v === 'number' && isFinite(v) ? Math.round(v) : undefined;
+            const device = snap.device || {};
+            body = JSON.stringify({
+                perf: {
+                    ready: round(snap.marks?.find((m) => m.name === 'shell:ready')?.at),
+                    ttfb: round(snap.nav?.ttfb),
+                    fcp: round(snap.paint?.fcp),
+                    lcp: round(snap.paint?.lcp),
+                    inp: round(snap.inp),
+                    cls: typeof snap.cls === 'number' ? Math.round(snap.cls * 1000) / 1000 : undefined,
+                    cores: round(device.cores),
+                    width: round(window.innerWidth),
+                    net: typeof device.net === 'string' ? device.net : undefined,
+                },
+            });
+        }
+    } catch {
+        /* 숫자를 못 만들어도 **방문 알림은 그대로 간다** — 곁다리가 본래 일을 막으면 안 된다. */
+    }
+    void call('/kl/trace/visit', {
+        method: 'POST',
+        ...(body ? { body, headers: { 'Content-Type': 'application/json' } } : {}),
+    });
+}
+
+/**
+ * 숫자를 **한 박자 뒤에** 보낸다 (TASK-KL-201 후속).
+ *
+ * 방문 알림은 화면이 뜨자마자 나간다. 그런데 그 시점엔 「제일 큰 그림」도 「제일 굼뜬 조작」도
+ * 아직 안 정해져 있다 — 그대로 보내면 그 두 칸이 영원히 빈 분포가 쌓인다.
+ * 그래서 방문 세는 일은 지금 그대로 두고, **숫자만** 한가해진 뒤에 한 번 더 얹어 보낸다.
+ * 사람이 그새 창을 닫으면 그 판은 안 온다 — 그건 정상이다(억지로 붙잡지 않는다).
+ */
+function traceVisitPerfLater(): void {
+    const send = (): void => {
+        try {
+            const perf = window.KLPerf;
+            if (!perf) return;
+            traceVisit();
+        } catch {
+            /* 곁다리가 본래 일을 막지 않는다. */
+        }
+    };
+    const idle = (window as unknown as { requestIdleCallback?: (fn: () => void, o?: { timeout: number }) => void })
+        .requestIdleCallback;
+    const run = (): void => {
+        setTimeout(send, 4000);
+    };
+    if (idle) idle(run, { timeout: 6000 });
+    else run();
 }
 
 /** 「지금 보고 있어요」를 얼마나 자주 알릴지. 서버는 5분 창으로 센다. */
@@ -843,6 +911,7 @@ function start(): void {
     mountBell();
     void refresh();
     traceVisit();
+    traceVisitPerfLater();
     startPresence();
     traceCurrentTool();
 }
