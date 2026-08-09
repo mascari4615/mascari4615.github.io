@@ -95,6 +95,19 @@ const M = await loadModules();
   check(notes.expandNoteText(spec, '{{note:없음}}').includes('(없는 글)'), '없는 글은 그렇게 적힌다');
 }
 
+// ── 글의 **한 대목만** 참조 (Obsidian 블록) ─────────────────────────────────
+{
+  const { notes } = M;
+  const spec = specOf({ nodes: [nodeOf('a')] });
+  spec.notes = [{ id: 'rule', title: '규칙', text: ['대가를 치른다 ^대가', '', '이름을 잃는다 ^이름'].join(String.fromCharCode(10) + String.fromCharCode(10)) }];
+  const blocks = notes.noteBlocks(spec.notes[0].text);
+  eq(blocks.length, 2, '표식이 붙은 덩이만 잡힌다');
+  eq(blocks[0].id, '대가', '표식 이름이 곧 덩이 id');
+  eq(notes.expandNoteText(spec, '{{note:rule#이름}}'), '이름을 잃는다', '그 대목만 실린다');
+  check(notes.expandNoteText(spec, '{{note:rule#없음}}').includes('(없는 대목)'), '없는 대목은 그렇게 적힌다');
+  check(!notes.expandNoteText(spec, '{{note:rule}}').includes('^'), '글 전체를 실을 땐 표식을 걷어 낸다');
+}
+
 // ── 배치 ────────────────────────────────────────────────────────────────────
 {
   const { tidy } = M;
