@@ -1773,7 +1773,24 @@ export function registerKarmolabApi(
       const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
       if (account) store.noteFootprint(account.id, {});
     }
-    res.json({ counted, kind });
+    /* 다녀갔다는 알림에 **그 기기에서 잰 숫자**가 실려 올 수 있다 (TASK-KL-201).
+     *
+     * 여태 성능은 만든 사람 기계에서만 쟀다 — 진짜 사람이 자기 폰으로 열 때 몇 초인지 몰랐다.
+     * 사람이 보낸 판만 센다(검색봇의 시간은 사람 체감이 아니다). 개별 기록은 안 남기고 날짜별
+     * 칸에 하나 더할 뿐이라, 되돌려서 한 사람을 찾을 수 없다. 숫자가 없거나 이상하면 그냥 넘긴다 —
+     * 이 곁다리 때문에 방문 세기가 실패하면 안 된다. */
+    let perfCounted = 0;
+    if (kind === 'human') {
+      const sample = (req.body as { perf?: Record<string, unknown> } | undefined)?.perf;
+      if (sample && typeof sample === 'object') {
+        try {
+          perfCounted = traces.recordPerf(sample);
+        } catch (error) {
+          console.error('[karmolab] 성능 숫자를 못 셌다 (방문 세기는 그대로):', error);
+        }
+      }
+    }
+    res.json({ counted, kind, perfCounted });
   });
 
   /**
@@ -1804,7 +1821,9 @@ export function registerKarmolabApi(
 
   /** 공개 집계 — 어느 도구가 실제로 쓰이는가. 한 번도 안 열린 도구는 아예 안 나온다. */
   app.get('/kl/tools/stats', (_req: Request, res: Response) => {
-    res.json({ tools: traces.toolStats(), pulse: traces.pulse(), visits: traces.visitStats() });
+    /* 성능 분포도 같이 준다 (TASK-KL-201) — 계기판이 「내 기계」 옆에 「진짜 사람들」을 놓는다.
+       칸으로 센 값이라 정확한 ms 가 아니라 칸의 위 경계다. 그 사실을 숨기지 않고 그대로 보낸다. */
+    res.json({ tools: traces.toolStats(), pulse: traces.pulse(), visits: traces.visitStats(), perf: traces.perfStats() });
   });
 
   // ── 놀이 기록 (TASK-KL-148) ────────────────────────────────────────────────

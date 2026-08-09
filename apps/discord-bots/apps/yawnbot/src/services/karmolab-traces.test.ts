@@ -100,6 +100,33 @@ describe('도구 열림 세기', () => {
   });
 });
 
+describe('사람들 기기의 성능 분포 (TASK-KL-201)', () => {
+  it('칸에 세고, 되돌려서 한 사람을 못 찾는다 — 개별 기록은 안 남긴다', () => {
+    store.recordPerf({ ready: 120, lcp: 900, cls: 0.02 });
+    store.recordPerf({ ready: 3000, lcp: 5000, cls: 0.2 });
+    const stats = store.perfStats();
+    expect(stats.metrics.ready.n).toBe(2);
+    // 칸으로 세므로 정확한 ms 가 아니라 「칸의 위 경계」다 — 그 성질을 그대로 지킨다.
+    expect(stats.metrics.ready.p50).toBeLessThanOrEqual(250);
+    expect(stats.metrics.ready.p75).toBeGreaterThanOrEqual(2000);
+  });
+
+  it('값이 없거나 말이 안 되면 그 지표만 건너뛴다 — 0 으로 채우면 아주 빠른 판이 하나 생긴다', () => {
+    store.recordPerf({ ready: -1, lcp: Number.NaN, inp: 'x' as unknown as number, cls: 0.01 });
+    const stats = store.perfStats();
+    expect(stats.metrics.ready.n).toBe(0);
+    expect(stats.metrics.lcp.n).toBe(0);
+    expect(stats.metrics.inp.n).toBe(0);
+    expect(stats.metrics.cls.n).toBe(1);
+  });
+
+  it('아무도 안 보냈으면 0 이 아니라 「표본 없음」으로 읽히게 — 중앙값이 null 이다', () => {
+    const stats = store.perfStats();
+    expect(stats.samples).toBe(0);
+    expect(stats.metrics.lcp.p50).toBeNull();
+  });
+});
+
 describe('방문 세기 (Total / Today)', () => {
   it('같은 사람이 화면을 옮겨 다녀도 한 번만 센다 — 안 그러면 수가 「내가 링크를 잘 걸었다」만 말한다', () => {
     expect(store.recordVisit('visitor-a')).toBe(true);
