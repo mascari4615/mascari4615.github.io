@@ -1693,6 +1693,81 @@ const makeGate = (fetchImpl) => {
   check(again === false, 'retry 를 불러도 안 한다');
 }
 
+// ── ②-33 로컬 전사 이음새 (16kHz 단일채널로 안 맞추면 빈 글자가 나온다) ─────
+const tr = await load('src/lib/ai-transcribe.ts');
+
+eq(tr.TARGET_HZ, 16000, 'Whisper 계열은 16kHz 고정');
+
+/* 여러 채널은 평균 낸다 — 한쪽만 쓰면 반대쪽에만 담긴 말이 통째로 사라진다. */
+const stereo = {
+  sampleRate: 16000,
+  numberOfChannels: 2,
+  getChannelData: (i) => (i === 0 ? new Float32Array([1, 1, 1, 1]) : new Float32Array([0, 0, 0, 0]))
+};
+const trMixed = await tr.toModelAudio(new ArrayBuffer(0), async () => stereo);
+eq(trMixed.length, 4, '길이는 그대로');
+eq(trMixed[0], 0.5, '두 채널을 평균 낸다 (한쪽만 쓰지 않는다)');
+
+/* 표본율이 다르면 다시 샘플링한다. 안 하면 모델이 돌긴 하는데 결과가 빈 글자다. */
+const at48k = {
+  sampleRate: 48000,
+  numberOfChannels: 1,
+  getChannelData: () => new Float32Array(48000)
+};
+const trDown = await tr.toModelAudio(new ArrayBuffer(0), async () => at48k);
+eq(trDown.length, 16000, '48kHz 1초 → 16kHz 16000개');
+
+const trSame = tr.resampleTo16k(new Float32Array([1, 2, 3]), 16000);
+eq(trSame.length, 3, '이미 16kHz 면 손대지 않는다');
+eq(tr.resampleTo16k(new Float32Array(32000), 32000).length, 16000, '32kHz 는 절반으로');
+
+/* 모델이 준 것을 그대로 믿지 않는다 — 판마다 모양이 다르고, 없는 것을 지어내면 자막이 겹친다. */
+eq(tr.normalize({ text: '  안녕  ' }).text, '안녕', '앞뒤 공백을 턴다');
+eq(tr.normalize({}).text, '', '없으면 빈 글자 (undefined 를 흘리지 않는다)');
+eq(tr.normalize({ text: 'x' }).chunks.length, 0, '토막이 없으면 빈 배열');
+const trGood = tr.normalize({
+  text: '안녕 반가워',
+  chunks: [
+    { timestamp: [0, 1.5], text: ' 안녕 ' },
+    { timestamp: [1.5, null], text: '반가워' },
+    { timestamp: [2, 3], text: '   ' }
+  ]
+});
+eq(trGood.chunks.length, 1, '시각을 모르거나 빈 토막은 버린다 (0 으로 채우면 전부 첫 줄에 겹친다)');
+eq(trGood.chunks[0].text, '안녕', '토막 글자도 턴다');
+
+/* 자막으로 넘기는 모양 — 해자① 묶어 쓰기와 붙는 자리. */
+const trSrt = tr.toSrt(trGood);
+check(trSrt.startsWith('1' + String.fromCharCode(10) + '00:00:00,000 --> 00:00:01,500'), `SRT 시각 표기: ${trSrt.split(String.fromCharCode(10))[1]}`);
+eq(tr.toSrt({ text: 'x', chunks: [] }), '', '토막이 없으면 자막도 없다 (빈 파일을 만들지 않는다)');
+
+/* 전사 — 엔진을 가짜로 넣어 규칙만 잰다 (모델 없이도 여기까지는 잴 수 있다). */
+let askedModel = null;
+let askedOpts = null;
+const fakeEngine = {
+  pipeline: async (task, model) => {
+    askedModel = { task, model };
+    return async (audio, options) => {
+      askedOpts = options;
+      return { text: '테스트', chunks: [{ timestamp: [0, 1], text: '테스트' }] };
+    };
+  }
+};
+const trOut = await tr.transcribe(fakeEngine, new Float32Array(16000), { language: 'korean' });
+eq(askedModel.task, 'automatic-speech-recognition', '전사 작업으로 부른다');
+eq(askedModel.model, tr.TRANSCRIBE_MODEL, '판 박은 모델을 쓴다');
+eq(askedOpts.language, 'korean', '언어를 알려 주면 넘긴다 (짧은 녹음에서 추정이 자주 틀린다)');
+check(askedOpts.return_timestamps === true, '자막을 만들려면 시각이 필요하다');
+eq(trOut.text, '테스트', '결과를 우리 모양으로 정리한다');
+
+let emptyAudio = false;
+try {
+  await tr.transcribe(fakeEngine, new Float32Array(0));
+} catch {
+  emptyAudio = true;
+}
+check(emptyAudio, '빈 소리는 모델을 부르지 않고 던진다');
+
 // ── 마무리 ──────────────────────────────────────────────────────────────────
 fs.rmSync(outDir, { recursive: true, force: true });
 process.stdout.write('\n');
