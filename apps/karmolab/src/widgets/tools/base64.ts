@@ -1,26 +1,14 @@
 /**
- * Base64 인코딩 · 디코딩 (TASK-KL-088)
+ * Base64 인코딩 · 디코딩 — 화면 (TASK-KL-088)
  *
- * 브라우저 기본 함수(btoa/atob)는 **바이트 단위**라 한글을 넣으면 그냥 터진다.
- * 그래서 UTF-8 로 바꿔 넣고 되돌릴 때 다시 UTF-8 로 읽는다 — 한글이 깨지지 않는 이유.
- * URL-safe 표기(+/ → -_)도 함께 다룬다. 주소나 토큰에 실린 값은 대개 그쪽이다.
+ * 계산은 `src/core/base64.ts` 가 한다. 여기는 그리는 일만 한다 (`src/core/README.md`).
+ * 주소로 부른 경우(`?op=encode&text=…`)도 여기서 받아 칸을 채운다 — 규약은 `lib/tool-url.ts`.
  */
-(function (): void {
-  function encode(text: string, urlSafe: boolean): string {
-    const bytes = new TextEncoder().encode(text);
-    let bin = '';
-    bytes.forEach((b) => (bin += String.fromCharCode(b)));
-    const b64 = btoa(bin);
-    return urlSafe ? b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '') : b64;
-  }
+import { byteLength, decode, encode, spec } from '../../core/base64';
+import { buildToolUrl, readInvocation } from '../../lib/tool-url';
 
-  function decode(code: string): string {
-    const norm = code.trim().replace(/-/g, '+').replace(/_/g, '/').replace(/\s+/g, '');
-    const padded = norm.padEnd(Math.ceil(norm.length / 4) * 4, '=');
-    const bin = atob(padded);
-    const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
-    return new TextDecoder().decode(bytes);
-  }
+(function (): void {
+  const IDLE = '어느 칸에 적어도 반대쪽이 따라 바뀝니다.';
 
   Toolbox.register({
     id: 'base64',
@@ -51,9 +39,10 @@
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
               <button class="btn btn-ghost" id="b6CopyCode">Base64 복사</button>
               <button class="btn btn-ghost" id="b6CopyText">텍스트 복사</button>
+              <button class="btn btn-ghost" id="b6CopyLink">이 상태 링크 복사</button>
               <button class="btn btn-ghost" id="b6Clear">지우기</button>
             </div>
-            <div class="tool-status" id="b6Status">어느 칸에 적어도 반대쪽이 따라 바뀝니다.</div>
+            <div class="tool-status" id="b6Status">${IDLE}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -73,24 +62,26 @@
             syncing = true;
             code.value = text.value ? encode(text.value, urlSafe.checked) : '';
             syncing = false;
-            say(text.value ? `${new TextEncoder().encode(text.value).length} 바이트 → ${code.value.length} 글자` : '어느 칸에 적어도 반대쪽이 따라 바뀝니다.', 'ok');
+            say(text.value ? `${byteLength(text.value)} 바이트 → ${code.value.length} 글자` : IDLE, 'ok');
             Toolbox.trackUse?.('encode');
           }
 
-          text.addEventListener('input', fromText);
-          urlSafe.addEventListener('change', fromText);
-          code.addEventListener('input', () => {
+          function fromCode(): void {
             if (syncing) return;
             syncing = true;
             try {
               text.value = code.value.trim() ? decode(code.value) : '';
-              say(code.value.trim() ? '읽었습니다.' : '어느 칸에 적어도 반대쪽이 따라 바뀝니다.', 'ok');
+              say(code.value.trim() ? '읽었습니다.' : IDLE, 'ok');
             } catch {
               say('Base64 로 읽을 수 없는 글자가 섞여 있어요.', 'error');
             }
             syncing = false;
             Toolbox.trackUse?.('decode');
-          });
+          }
+
+          text.addEventListener('input', fromText);
+          urlSafe.addEventListener('change', fromText);
+          code.addEventListener('input', fromCode);
 
           $<HTMLButtonElement>('#b6CopyCode').onclick = () => {
             if (code.value) void Toolbox.copyText?.(code.value, { message: 'Base64 를 복사했어요' });
@@ -98,14 +89,43 @@
           $<HTMLButtonElement>('#b6CopyText').onclick = () => {
             if (text.value) void Toolbox.copyText?.(text.value, { message: '텍스트를 복사했어요' });
           };
+          $<HTMLButtonElement>('#b6CopyLink').onclick = () => {
+            if (text.value === '') {
+              say('먼저 텍스트를 적어 주세요 — 그 상태를 링크로 만듭니다.');
+              return;
+            }
+            // 열어 보면 지금 화면 그대로 나오는 주소. 받는 사람은 붙여넣기 없이 결과를 본다.
+            const path = buildToolUrl(spec, 'encode', { text: text.value, urlSafe: urlSafe.checked });
+            const full = location.origin + path;
+            void Toolbox.copyText?.(full, { message: '이 상태로 열리는 링크를 복사했어요' });
+          };
           $<HTMLButtonElement>('#b6Clear').onclick = () => {
             text.value = '';
             code.value = '';
-            say('어느 칸에 적어도 반대쪽이 따라 바뀝니다.');
+            say(IDLE);
           };
 
-          text.value = '안녕하세요';
-          fromText();
+          // 주소로 부른 경우. 없으면(=평소) 예시로 시작한다.
+          const call = readInvocation(spec);
+          if (call === null) {
+            text.value = '안녕하세요';
+            fromText();
+            return;
+          }
+          if (call.error !== undefined) {
+            text.value = '안녕하세요';
+            fromText();
+            say(call.error, 'error');
+            return;
+          }
+          if (call.op === 'encode') {
+            text.value = String(call.args.text ?? '');
+            urlSafe.checked = call.args.urlSafe === true;
+            fromText();
+          } else {
+            code.value = String(call.args.code ?? '');
+            fromCode();
+          }
         }
       }
     ]
