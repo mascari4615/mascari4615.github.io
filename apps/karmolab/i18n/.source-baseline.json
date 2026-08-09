@@ -1,5 +1,5 @@
 {
-  "total": 8005,
+  "total": 8122,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -8,7 +8,7 @@
     "src/badapple/studio.ts": 9,
     "src/brag-card.ts": 10,
     "src/core/base64.ts": 3,
-    "src/core/birth.ts": 59,
+    "src/core/birth.ts": 57,
     "src/core/bizno.ts": 20,
     "src/core/epoch.ts": 35,
     "src/core/hashgen.ts": 7,
@@ -287,6 +287,13 @@
     "src/widgets-lazy-meta.ts": 372,
     "src/workshop-hang.ts": 1,
     "src/world/load-adventures-from-wiki.ts": 4,
-    "src/world/load-characters-from-wiki.ts": 8
+    "src/world/load-characters-from-wiki.ts": 8,
+    "src/core/grade.ts": 17,
+    "src/core/hangulkey.ts": 4,
+    "src/core/interest.ts": 31,
+    "src/core/jamo.ts": 9,
+    "src/core/loan.ts": 28,
+    "src/core/timecalc.ts": 16,
+    "src/core/vat.ts": 14
   }
 }
