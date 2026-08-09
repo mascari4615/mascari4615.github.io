@@ -1,0 +1,16 @@
+{
+  "jamo.tab": "ハングル",
+  "jamo.ph.in": "ハングルを字母に分解",
+  "jamo.label.cho": "初声だけ",
+  "jamo.label.all": "字母を並べる",
+  "jamo.label.jamo": "字母",
+  "jamo.btn.copyCho": "初声をコピー",
+  "jamo.btn.copyAll": "字母をコピー",
+  "jamo.btn.join": "字母を文字に戻す",
+  "jamo.status.idle": "韓国語の初声検索や並べ替えを作るときに使う形です。",
+  "jamo.value.none": "なし",
+  "jamo.say.joined": "字母を文字に戻しました。",
+  "jamo.copy.cho": "初声をコピーしました",
+  "jamo.copy.all": "字母をコピーしました",
+  "jamo.say.split": "{n}文字を分解しました。"
+}

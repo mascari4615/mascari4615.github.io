@@ -5,49 +5,65 @@
  * 근무시간 합계(7:45 + 8:20 + …)도 마찬가지 — 계산기에 넣으면 7.45 로 읽혀 엉뚱한 값이 나온다.
  * 시각 더하기와 시간 합계를 나눠 두 가지 실수 모두 막는다.
  */
-import { clock, dayShift as shiftOf, fmt, spec, sumTimes, toMinutes } from '../../core/timecalc';
+import { clock, dayShift as shiftOf, spec, sumTimes, toMinutes } from '../../core/timecalc';
 import { readInvocation } from '../../lib/tool-url';
+import { t, loadNamespace, locale } from '../../lib/i18n';
 
 (function (): void {
+  /* 「1시간 25분」의 단위는 **Intl 이 그 언어로 적어 준다** — 시간/분을 언어마다 적을 필요가 없다.
+   * core 의 `fmt` 는 MCP 글자 출력이 그대로 쓰므로 안 건드리고 화면에서만 갈아 끼운다. */
+  const unit = (n: number, u: 'hour' | 'minute'): string =>
+    new Intl.NumberFormat(locale(), { style: 'unit', unit: u, unitDisplay: 'long' }).format(n);
+  const fmt = (min: number): string => {
+    const neg = min < 0 ? '-' : '';
+    const a = Math.abs(min);
+    return `${neg}${unit(Math.floor(a / 60), 'hour')} ${unit(a % 60, 'minute')}`;
+  };
+
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'timecalc',
-    title: '시간 더하기·빼기',
+    title: t('widgets.timecalc.title', undefined, "시간 더하기·빼기"),
     category: 'tool',
-    desc: '시각에 시간을 더하거나 근무시간을 합산합니다. 60진법 실수를 막습니다',
+    desc: t('widgets-desc.timecalc.desc', undefined, "시각에 시간을 더하거나 근무시간을 합산합니다. 60진법 실수를 막습니다"),
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M16 4h5M18.5 1.5v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '시간 계산',
+        label: t('timecalc.tab', undefined, "시간 계산"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('timecalc').then(function () {
+
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">시각 더하기·빼기</label>
+              <label class="field-label">${esc(t('timecalc.label.start'))}</label>
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">시작 시각</div>
-                  <input type="time" id="tcStart" aria-label="시작 시각" value="09:40">
+                  <div class="tool-sublabel">${esc(t('timecalc.aria.start'))}</div>
+                  <input type="time" id="tcStart" aria-label="${esc(t('timecalc.aria.start'))}" value="09:40">
                 </div>
                 <div>
-                  <div class="tool-sublabel">걸리는 시간 — 1:25 / 85m / 1.5h</div>
-                  <input type="text" id="tcDur" aria-label="걸리는 시간" value="1:25" spellcheck="false">
+                  <div class="tool-sublabel">${esc(t('timecalc.label.dur'))}</div>
+                  <input type="text" id="tcDur" aria-label="${esc(t('timecalc.aria.dur'))}" value="1:25" spellcheck="false">
                 </div>
               </div>
               <div class="tool-chips" style="margin-top:10px;">
-                <button type="button" class="tool-chip active" data-op="add">더하기</button>
-                <button type="button" class="tool-chip" data-op="sub">빼기</button>
+                <button type="button" class="tool-chip active" data-op="add">${esc(t('timecalc.mode.add'))}</button>
+                <button type="button" class="tool-chip" data-op="sub">${esc(t('timecalc.mode.sub'))}</button>
               </div>
             </div>
             <div class="tool-display" id="tcResult">—</div>
             <div class="tool-list" id="tcOut"></div>
 
             <div class="field-group" style="margin-top:var(--space-xl);">
-              <label class="field-label">시간 합계 — 한 줄에 하나 (7:45, 8h, 90m)</label>
+              <label class="field-label">${esc(t('timecalc.label.lines'))}</label>
               <textarea id="tcList" rows="5" spellcheck="false" placeholder="7:45&#10;8:20&#10;6:50"></textarea>
             </div>
             <div class="cc-stats" id="tcSum"></div>
-            <div class="tool-status" id="tcStatus">시각은 24시간을 넘으면 다음 날로 넘어갑니다.</div>
+            <div class="tool-status" id="tcStatus">${esc(t('timecalc.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -72,7 +88,7 @@ import { readInvocation } from '../../lib/tool-url';
             if (delta === null) {
               result.textContent = '—';
               out.innerHTML = '';
-              status.textContent = '걸리는 시간을 1:25 / 85m / 1.5h 처럼 적어 주세요.';
+              status.textContent = t('timecalc.err.dur');
               status.className = 'tool-status error';
               return;
             }
@@ -80,11 +96,17 @@ import { readInvocation } from '../../lib/tool-url';
             result.textContent = clock(total);
             const dayShift = shiftOf(total);
             out.innerHTML =
-              row('걸리는 시간', fmt(delta)) +
-              row('결과', `${clock(total)}${dayShift > 0 ? ` (${dayShift}일 뒤)` : dayShift < 0 ? ` (${-dayShift}일 전)` : ''}`) +
-              row('분으로', `${delta}분`) +
-              row('소수 시간', `${(delta / 60).toFixed(2)}시간`);
-            status.textContent = '시각은 24시간을 넘으면 다음 날로 넘어갑니다.';
+              row(t('timecalc.aria.dur'), fmt(delta)) +
+              row(t('timecalc.row.result'), `${clock(total)}${
+                  dayShift > 0
+                    ? t('timecalc.value.dayAfter', { n: dayShift })
+                    : dayShift < 0
+                      ? t('timecalc.value.dayBefore', { n: -dayShift })
+                      : ''
+                }`) +
+              row(t('timecalc.row.minutes'), t('timecalc.value.min', { n: delta })) +
+              row(t('timecalc.row.decimal'), t('timecalc.value.hour', { n: (delta / 60).toFixed(2) }));
+            status.textContent = t('timecalc.status.idle');
             status.className = 'tool-status ok';
             Toolbox.trackUse?.('add');
           }
@@ -98,10 +120,10 @@ import { readInvocation } from '../../lib/tool-url';
               return;
             }
             sum.innerHTML =
-              stat('합계', fmt(r.total), true) +
-              stat('소수 시간', `${(r.total / 60).toFixed(2)}시간`) +
-              stat('평균', fmt(Math.round(r.total / Math.max(1, r.counted)))) +
-              (r.bad ? stat('못 읽은 줄', `${r.bad}줄`) : '');
+              stat(t('timecalc.stat.sum'), fmt(r.total), true) +
+              stat(t('timecalc.row.decimal'), t('timecalc.value.hour', { n: (r.total / 60).toFixed(2) })) +
+              stat(t('timecalc.stat.avg'), fmt(Math.round(r.total / Math.max(1, r.counted)))) +
+              (r.bad ? stat(t('timecalc.stat.unreadable'), t('timecalc.value.lines', { n: r.bad })) : '');
           }
 
           [start, dur].forEach((el) => el.addEventListener('input', render));
@@ -137,6 +159,7 @@ import { readInvocation } from '../../lib/tool-url';
             status.textContent = call.error;
             status.className = 'tool-status error';
           }
+                  });
         }
       }
     ]

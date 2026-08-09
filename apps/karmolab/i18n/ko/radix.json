@@ -1,0 +1,23 @@
+{
+  "radix.aria.base": "임의 진법의 밑",
+  "radix.aria.customValue": "임의 진법의 값",
+  "radix.label.dec": "10진수 (DEC)",
+  "radix.label.hex": "16진수 (HEX)",
+  "radix.label.oct": "8진수 (OCT)",
+  "radix.label.bin": "2진수 (BIN)",
+  "radix.label.custom": "임의 진법",
+  "radix.label.base": "밑",
+  "radix.label.value": "값",
+  "radix.btn.clear": "지우기",
+  "radix.status.idle": "아무 칸에나 입력하면 나머지가 함께 바뀝니다.",
+  "radix.tab": "변환",
+  "radix.row.bits": "비트 수",
+  "radix.row.bytes": "바이트",
+  "radix.row.ones": "1의 개수",
+  "radix.row.int8": "부호 있는 8bit 범위",
+  "radix.verdict.fits": "들어감",
+  "radix.verdict.overflow": "넘침",
+  "radix.row.uint32": "부호 없는 32bit 범위",
+  "radix.say.done": "변환됨 · 칸을 눌러 그대로 복사하세요.",
+  "radix.err.digit": "{base}진수에 없는 글자가 섞여 있어요."
+}

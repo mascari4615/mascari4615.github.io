@@ -1,0 +1,23 @@
+{
+  "timecalc.aria.start": "시작 시각",
+  "timecalc.aria.dur": "걸리는 시간",
+  "timecalc.label.start": "시각 더하기·빼기",
+  "timecalc.label.dur": "걸리는 시간 — 1:25 / 85m / 1.5h",
+  "timecalc.mode.add": "더하기",
+  "timecalc.mode.sub": "빼기",
+  "timecalc.label.lines": "시간 합계 — 한 줄에 하나 (7:45, 8h, 90m)",
+  "timecalc.status.idle": "시각은 24시간을 넘으면 다음 날로 넘어갑니다.",
+  "timecalc.tab": "시간 계산",
+  "timecalc.err.dur": "걸리는 시간을 1:25 / 85m / 1.5h 처럼 적어 주세요.",
+  "timecalc.row.result": "결과",
+  "timecalc.row.minutes": "분으로",
+  "timecalc.row.decimal": "소수 시간",
+  "timecalc.stat.sum": "합계",
+  "timecalc.stat.avg": "평균",
+  "timecalc.stat.unreadable": "못 읽은 줄",
+  "timecalc.value.dayAfter": " ({n}일 뒤)",
+  "timecalc.value.dayBefore": " ({n}일 전)",
+  "timecalc.value.min": "{n}분",
+  "timecalc.value.hour": "{n}시간",
+  "timecalc.value.lines": "{n}줄"
+}

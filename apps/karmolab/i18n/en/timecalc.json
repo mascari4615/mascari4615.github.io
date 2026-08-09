@@ -1,0 +1,23 @@
+{
+  "timecalc.tab": "Time maths",
+  "timecalc.label.start": "Start time",
+  "timecalc.aria.start": "Start time",
+  "timecalc.label.dur": "Duration — 1:25 / 85m / 1.5h",
+  "timecalc.aria.dur": "Duration",
+  "timecalc.mode.add": "Add",
+  "timecalc.mode.sub": "Subtract",
+  "timecalc.label.lines": "Add up durations — one per line (7:45, 8h, 90m)",
+  "timecalc.status.idle": "Past 24 hours it rolls over into the next day.",
+  "timecalc.err.dur": "Write the duration like 1:25 / 85m / 1.5h.",
+  "timecalc.row.result": "Result",
+  "timecalc.row.minutes": "In minutes",
+  "timecalc.row.decimal": "Decimal hours",
+  "timecalc.stat.sum": "Total",
+  "timecalc.stat.avg": "Average",
+  "timecalc.stat.unreadable": "Lines not understood",
+  "timecalc.value.dayAfter": " ({n} days later)",
+  "timecalc.value.dayBefore": " ({n} days earlier)",
+  "timecalc.value.min": "{n} min",
+  "timecalc.value.hour": "{n} h",
+  "timecalc.value.lines": "{n}"
+}

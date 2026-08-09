@@ -7,44 +7,50 @@
  */
 import { compose, decompose, initials, spec, split } from '../../core/jamo';
 import { readInvocation } from '../../lib/tool-url';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'jamo',
-    title: '한글 자모 분해',
+    title: t('widgets.jamo.title', undefined, "한글 자모 분해"),
     category: 'tool',
-    desc: '글자를 초성·중성·종성으로 쪼개고 자모를 글자로 되돌립니다. 초성 추출 포함',
+    desc: t('widgets-desc.jamo.desc', undefined, "글자를 초성·중성·종성으로 쪼개고 자모를 글자로 되돌립니다. 초성 추출 포함"),
     layout: 'wide',
     icon: '<path d="M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 13h6v6h-6z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
     tabs: [
       {
         id: 'app',
-        label: '자모',
+        label: t('jamo.label.jamo', undefined, "자모"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('jamo').then(function () {
+
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">한글</label>
-              <textarea id="jaIn" rows="4" spellcheck="false" placeholder="한글 자모 분해"></textarea>
+              <label class="field-label">${esc(t('jamo.tab'))}</label>
+              <textarea id="jaIn" rows="4" spellcheck="false" placeholder="${esc(t('jamo.ph.in'))}"></textarea>
             </div>
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">초성만</div>
-                  <input type="text" id="jaCho" aria-label="초성만" readonly spellcheck="false">
+                  <div class="tool-sublabel">${esc(t('jamo.label.cho'))}</div>
+                  <input type="text" id="jaCho" aria-label="${esc(t('jamo.label.cho'))}" readonly spellcheck="false">
                 </div>
                 <div>
-                  <div class="tool-sublabel">자모 나열</div>
-                  <input type="text" id="jaAll" aria-label="자모 나열" readonly spellcheck="false">
+                  <div class="tool-sublabel">${esc(t('jamo.label.all'))}</div>
+                  <input type="text" id="jaAll" aria-label="${esc(t('jamo.label.all'))}" readonly spellcheck="false">
                 </div>
               </div>
             </div>
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-ghost" id="jaCopyCho">초성 복사</button>
-              <button class="btn btn-ghost" id="jaCopyAll">자모 복사</button>
-              <button class="btn btn-ghost" id="jaJoin">자모 → 글자로 되돌리기</button>
+              <button class="btn btn-ghost" id="jaCopyCho">${esc(t('jamo.btn.copyCho'))}</button>
+              <button class="btn btn-ghost" id="jaCopyAll">${esc(t('jamo.btn.copyAll'))}</button>
+              <button class="btn btn-ghost" id="jaJoin">${esc(t('jamo.btn.join'))}</button>
             </div>
             <div class="tool-list" id="jaOut"></div>
-            <div class="tool-status" id="jaStatus">초성 검색이나 정렬을 만들 때 쓰는 형태입니다.</div>
+            <div class="tool-status" id="jaStatus">${esc(t('jamo.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -53,7 +59,6 @@ import { readInvocation } from '../../lib/tool-url';
           const all = $<HTMLInputElement>('#jaAll');
           const out = $<HTMLElement>('#jaOut');
           const status = $<HTMLElement>('#jaStatus');
-          const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
           function run(): void {
             /* 쪼개는 계산은 `src/core/jamo.ts` 가 한다 — 겹받침·「종성이냐 다음 초성이냐」 판단이
@@ -64,13 +69,13 @@ import { readInvocation } from '../../lib/tool-url';
               const parts = split(ch);
               if (parts === null || rows.length >= 40) continue;
               rows.push(
-                `<div class="tool-list-row"><span class="tool-list-key">${esc(ch)}</span><span class="tool-list-val">초성 ${parts[0]} · 중성 ${parts[1]} · 종성 ${parts[2] || '없음'}</span></div>`
+                `<div class="tool-list-row"><span class="tool-list-key">${esc(ch)}</span><span class="tool-list-val">초성 ${parts[0]} · 중성 ${parts[1]} · 종성 ${parts[2] || t('jamo.value.none')}</span></div>`
               );
             }
             cho.value = initials(text);
             all.value = decompose(text);
             out.innerHTML = rows.join('');
-            status.textContent = text ? `${[...text].length}글자를 쪼갰습니다.` : '초성 검색이나 정렬을 만들 때 쓰는 형태입니다.';
+            status.textContent = text ? t('jamo.say.split', { n: [...text].length }) : t('jamo.status.idle');
             status.className = 'tool-status' + (text ? ' ok' : '');
             Toolbox.trackUse?.('split');
           }
@@ -79,17 +84,17 @@ import { readInvocation } from '../../lib/tool-url';
           function join(): void {
             input.value = compose(input.value);
             run();
-            status.textContent = '자모를 글자로 되돌렸습니다.';
+            status.textContent = t('jamo.say.joined');
             status.className = 'tool-status ok';
             Toolbox.trackUse?.('join');
           }
 
           input.addEventListener('input', run);
           $<HTMLButtonElement>('#jaCopyCho').onclick = () => {
-            if (cho.value) void Toolbox.copyText?.(cho.value, { message: '초성을 복사했어요' });
+            if (cho.value) void Toolbox.copyText?.(cho.value, { message: t('jamo.copy.cho') });
           };
           $<HTMLButtonElement>('#jaCopyAll').onclick = () => {
-            if (all.value) void Toolbox.copyText?.(all.value, { message: '자모를 복사했어요' });
+            if (all.value) void Toolbox.copyText?.(all.value, { message: t('jamo.copy.all') });
           };
           $<HTMLButtonElement>('#jaJoin').onclick = join;
 
@@ -100,13 +105,14 @@ import { readInvocation } from '../../lib/tool-url';
             if (call.op === 'join') join();
             else run();
           } else {
-            input.value = '한글 자모 분해';
+            input.value = t('jamo.ph.in');
             run();
             if (call?.error !== undefined) {
               status.textContent = call.error;
               status.className = 'tool-status error';
             }
           }
+                  });
         }
       }
     ]

@@ -1,0 +1,17 @@
+{
+  "base64.ph.text": "안녕하세요",
+  "base64.label.text": "텍스트",
+  "base64.opt.urlSafe": "URL-safe 표기 (+ / 대신 - _)",
+  "base64.btn.copyCode": "Base64 복사",
+  "base64.btn.copyText": "텍스트 복사",
+  "base64.btn.copyLink": "이 상태 링크 복사",
+  "base64.btn.clear": "지우기",
+  "base64.status.idle": "어느 칸에 적어도 반대쪽이 따라 바뀝니다.",
+  "base64.say.decoded": "읽었습니다.",
+  "base64.err.decode": "Base64 로 읽을 수 없는 글자가 섞여 있어요.",
+  "base64.copy.code": "Base64 를 복사했어요",
+  "base64.copy.text": "텍스트를 복사했어요",
+  "base64.err.noText": "먼저 텍스트를 적어 주세요 — 그 상태를 링크로 만듭니다.",
+  "base64.copy.link": "이 상태로 열리는 링크를 복사했어요",
+  "base64.say.size": "{bytes} 바이트 → {chars} 글자"
+}

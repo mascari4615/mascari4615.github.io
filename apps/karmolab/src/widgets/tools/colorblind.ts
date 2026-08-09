@@ -5,7 +5,12 @@
  * 같은 색으로 보인다. 남성 약 8%가 해당하므로 드문 경우가 아니다.
  * 색을 바꿔 보여주는 데 그치지 않고, **어떤 유형에서 두 색이 구분되지 않는지** 판정한다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   type RGB = [number, number, number];
 
   /** 유형별 변환 행렬 (Brettel/Viénot 계열의 널리 쓰이는 근사값) */
@@ -15,13 +20,14 @@
     tritanopia: [[0.95, 0.05, 0], [0, 0.433, 0.567], [0, 0.475, 0.525]],
     achromatopsia: [[0.299, 0.587, 0.114], [0.299, 0.587, 0.114], [0.299, 0.587, 0.114]]
   };
-  const LABEL: Record<string, string> = {
-    normal: '일반',
-    protanopia: '적색맹 (1형)',
-    deuteranopia: '녹색맹 (2형) — 가장 흔함',
-    tritanopia: '청색맹 (3형)',
-    achromatopsia: '전색맹'
-  };
+  /* 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
+  const labels = (): Record<string, string> => ({
+    normal: t('colorblind.kind.normal'),
+    protanopia: t('colorblind.kind.protanopia'),
+    deuteranopia: t('colorblind.kind.deuteranopia'),
+    tritanopia: t('colorblind.kind.tritanopia'),
+    achromatopsia: t('colorblind.kind.achromatopsia')
+  });
 
   function parse(s: string): RGB | null {
     const hex = s.trim().replace('#', '').toLowerCase();
@@ -48,31 +54,33 @@
 
   Toolbox.register({
     id: 'colorblind',
-    title: '색각 시뮬레이터',
+    title: t('widgets.colorblind.title', undefined, "색각 시뮬레이터"),
     category: 'tool',
-    desc: '두 색이 색각 이상에서 어떻게 보이는지 확인하고 구분 가능한지 판정합니다',
+    desc: t('widgets-desc.colorblind.desc', undefined, "두 색이 색각 이상에서 어떻게 보이는지 확인하고 구분 가능한지 판정합니다"),
     layout: 'wide',
     icon: '<circle cx="9" cy="12" r="5.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="15" cy="12" r="5.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7.5a5.5 5.5 0 0 0 0 9" stroke="currentColor" stroke-width="1.3"/>',
     tabs: [
       {
         id: 'app',
-        label: '색각',
+        label: t('colorblind.tab', undefined, "색각"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('colorblind').then(function () {
+
           container.innerHTML = `
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">색 1</div>
-                  <input type="text" id="cbA" aria-label="색 1" value="#e05252" spellcheck="false">
+                  <div class="tool-sublabel">${esc(t('colorblind.label.a'))}</div>
+                  <input type="text" id="cbA" aria-label="${esc(t('colorblind.label.a'))}" value="#e05252" spellcheck="false">
                 </div>
                 <div>
-                  <div class="tool-sublabel">색 2</div>
-                  <input type="text" id="cbB" aria-label="색 2" value="#4caf50" spellcheck="false">
+                  <div class="tool-sublabel">${esc(t('colorblind.label.b'))}</div>
+                  <input type="text" id="cbB" aria-label="${esc(t('colorblind.label.b'))}" value="#4caf50" spellcheck="false">
                 </div>
               </div>
             </div>
             <div class="cb-grid" id="cbOut"></div>
-            <div class="tool-status" id="cbStatus">색만으로 뜻을 나누지 말고 모양·글자를 함께 쓰세요.</div>
+            <div class="tool-status" id="cbStatus">${esc(t('colorblind.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -85,12 +93,12 @@
             const a = parse(aEl.value);
             const b = parse(bEl.value);
             if (!a || !b) {
-              status.textContent = '색을 읽지 못했어요. #RRGGBB 로 적어 주세요.';
+              status.textContent = t('colorblind.err.color');
               status.className = 'tool-status error';
               return;
             }
             let hardCount = 0;
-            out.innerHTML = Object.keys(LABEL)
+            out.innerHTML = Object.keys(labels())
               .map((type) => {
                 const sa = simulate(a, type);
                 const sb = simulate(b, type);
@@ -103,20 +111,26 @@
                             <span style="background:${hex(sa)}"></span>
                             <span style="background:${hex(sb)}"></span>
                           </div>
-                          <div class="cb-label">${LABEL[type]}</div>
-                          <div class="cb-verdict ${hard ? 'bad' : 'good'}">${hard ? '구분 어려움' : '구분 가능'} · 차이 ${Math.round(d)}</div>
+                          <div class="cb-label">${labels()[type]}</div>
+                          <div class="cb-verdict ${hard ? 'bad' : 'good'}">${esc(
+                            t('colorblind.value.verdict', {
+                              verdict: hard ? t('colorblind.verdict.hard') : t('colorblind.verdict.ok'),
+                              d: Math.round(d)
+                            })
+                          )}</div>
                         </div>`;
               })
               .join('');
             status.textContent = hardCount
-              ? `${hardCount}개 유형에서 두 색이 거의 같아 보입니다 — 색만으로 뜻을 나누지 말고 모양·글자를 함께 쓰세요.`
-              : '모든 유형에서 두 색이 구분됩니다.';
+              ? t('colorblind.say.hard', { n: hardCount })
+              : t('colorblind.say.allFine');
             status.className = 'tool-status' + (hardCount ? ' error' : ' ok');
             Toolbox.trackUse?.('simulate');
           }
 
           [aEl, bEl].forEach((el) => el.addEventListener('input', run));
           run();
+                  });
         }
       }
     ]

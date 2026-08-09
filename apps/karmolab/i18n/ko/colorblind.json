@@ -1,0 +1,17 @@
+{
+  "colorblind.label.a": "색 1",
+  "colorblind.label.b": "색 2",
+  "colorblind.status.idle": "색만으로 뜻을 나누지 말고 모양·글자를 함께 쓰세요.",
+  "colorblind.kind.normal": "일반",
+  "colorblind.kind.protanopia": "적색맹 (1형)",
+  "colorblind.kind.deuteranopia": "녹색맹 (2형) — 가장 흔함",
+  "colorblind.kind.tritanopia": "청색맹 (3형)",
+  "colorblind.kind.achromatopsia": "전색맹",
+  "colorblind.tab": "색각",
+  "colorblind.err.color": "색을 읽지 못했어요. #RRGGBB 로 적어 주세요.",
+  "colorblind.verdict.hard": "구분 어려움",
+  "colorblind.verdict.ok": "구분 가능",
+  "colorblind.say.allFine": "모든 유형에서 두 색이 구분됩니다.",
+  "colorblind.say.hard": "{n}개 유형에서 두 색이 거의 같아 보입니다 — 색만으로 뜻을 나누지 말고 모양·글자를 함께 쓰세요.",
+  "colorblind.value.verdict": "{verdict} · 차이 {d}"
+}
