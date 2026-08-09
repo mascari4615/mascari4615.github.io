@@ -21,6 +21,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { stripJekyll } from './lib/serve-static.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
@@ -44,7 +45,8 @@ const server = http.createServer((req, res) => {
   }
   let body = fs.readFileSync(file);
   const ext = path.extname(file);
-  if (ext === '.html') body = Buffer.from(String(body).replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, ''), 'utf8');
+  // Liquid 태그까지 걷는다 — 앞머리만 걷으면 조건문이 글자로 뜬다 (TASK-KL-201).
+  if (ext === '.html') body = Buffer.from(stripJekyll(String(body)), 'utf8');
   res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' }).end(body);
 });
 /* 이 검사는 **도구 상세 페이지가 이미 만들어져 있어야** 말이 된다 (`npm run gen:tool-pages`).
