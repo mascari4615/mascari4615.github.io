@@ -32,8 +32,19 @@ permalink: /karmolab/
     <!-- KAR-115 PWA + KL-088 갱신 안내 — 등록·업데이트 배너는 js/pwa-update.js 가 담당 -->
     <script defer fetchpriority="low" src="/apps/karmolab/js/pwa-update.js"></script>
     <!-- 언어 단추·안내 띠 (TASK-KL-203). 첫 그림에는 필요 없다 — 단추 자체는 HTML 에 이미 있고
-         글자도 찍을 때 박히므로, 이 파일은 누를 때와 안내를 띄울 때만 쓰인다. -->
-    <script defer fetchpriority="low" src="/apps/karmolab/js/lang-switch.js"></script>
+         글자도 찍을 때 박히므로, 이 파일은 누를 때와 안내를 띄울 때만 쓰인다.
+         **그런데 첫 그림 앞에 있었다**(3.6KB gz) — 부팅 예산 천장을 함께 넘기고 있었다.
+         주석이 이미 「필요 없다」고 말하고 있었으므로 그 말대로 뒤로 옮긴다 (TASK-KL-201).
+         늦게 와도 단추가 늦게 살아날 뿐이고, 그 사이 눌러도 주소는 그대로 동작한다. -->
+    <script>
+      addEventListener('load', function () {
+        (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(function () {
+          var s = document.createElement('script');
+          s.src = '/apps/karmolab/js/lang-switch.js';
+          document.head.appendChild(s);
+        });
+      });
+    </script>
     <title>KarmoLab</title>
     <!-- TASK-KL-064: 알람 발화 모드. Rust 스케줄러가 띄우는 label "alarm"
          WebviewWindow 가 #alarm-fire 로 이 페이지를 연다. 대시보드 부트 대신
@@ -401,7 +412,17 @@ permalink: /karmolab/
     <script defer fetchpriority="low" src="/apps/karmolab/js/account.js"></script>
     <!-- 같이 쓰기 (TASK-KL-180) — 같은 화면을 열고 있는 사람들의 커서가 서로 보인다.
          급하지 않다: 도구가 먼저 뜨고 그 다음에 사람이 보이는 순서가 맞다. -->
-    <script defer fetchpriority="low" src="/apps/karmolab/js/copresence.js"></script>
+    <!-- 같이 쓰기도 첫 그림 뒤로 (TASK-KL-201). 위 주석이 이미 「급하지 않다: 도구가 먼저 뜨고
+         그 다음에 사람이 보이는 순서가 맞다」고 말한다 — 그 말대로 옮긴다. 3.0KB gz. -->
+    <script>
+      addEventListener('load', function () {
+        (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(function () {
+          var s = document.createElement('script');
+          s.src = '/apps/karmolab/js/copresence.js';
+          document.head.appendChild(s);
+        });
+      });
+    </script>
     <!-- 명령 팔레트 (TASK-KL-099) — 첫 화면의 본체이자 ⌘K 로 뜨는 그것.
          toolbox 가 첫 화면을 그릴 때 window.KarmoPalette 를 찾으므로 그보다 먼저 둔다.
          defer 는 문서 순서대로 실행되므로 이 줄의 위치가 곧 순서다.
