@@ -21,10 +21,14 @@
 // KL-071: 레거시 IIFE 의 `: any` 어노테이션 제거 + 인터페이스화 완료 →
 // `@ts-nocheck` 제거. 이 파일은 이제 `tsc --noEmit` (strict) 로 실검증됨.
 import { isDesktop, invoke, listen } from '../../tauri-bridge';
+import { t, loadNamespace } from '../../lib/i18n';
 
 const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   // ── DATA — memo 정본 view ─────────────────────────────────────────────
   // hardcoded QUEST_DATA 폐기. Rust 명령 `get_quest_tree` 가 6 도메인 walk
   // → 위젯이 invoke 후 옛 트리 구조 (projects/children/leaf + sealed[]) 로 변환.
@@ -62,9 +66,9 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     wm: 'WitchMendokusai',
     karmolab: 'KarmoLab',
     yawnbot: 'YawnBot',
-    life: '인생',
-    hobby: '취미',
-    learning: '학습',
+    life: t('quest-log.t20'),
+    hobby: t('quest-log.t21'),
+    learning: t('quest-log.t22'),
   };
   const DOMAIN_ICON: Record<string, string> = {
     wm: '🔮',
@@ -75,12 +79,12 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     learning: '📚',
   };
   const DOMAIN_SUBTITLE: Record<string, string> = {
-    wm: '메인 프로젝트 · 주황머리 마녀와 인형들',
-    karmolab: 'Tauri 데스크톱 + 웹 위젯 + AI',
-    yawnbot: 'Discord 봇 · 캐릭터 호스트',
-    life: '인생 일반 — 건강·금융·집·관계',
-    hobby: '취미 — 음악·독서·게임·여행',
-    learning: '학습 — 책·강의·언어·기술',
+    wm: t('quest-log.t23'),
+    karmolab: t('quest-log.t24'),
+    yawnbot: t('quest-log.t25'),
+    life: t('quest-log.t26'),
+    hobby: t('quest-log.t27'),
+    learning: t('quest-log.t28'),
   };
 
   // 이전 위젯 (a344ee85) 의 자기 소멸 코드는 옛 인터랙션 살리려 제거 (localStorage 다시 사용).
@@ -93,7 +97,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     try {
       return (await invoke('get_quest_tree')) as MemoQuestTree;
     } catch (err) {
-      console.error('get_quest_tree 실패', err);
+      console.error(t('quest-log.t29'), err);
       return null;
     }
   }
@@ -271,7 +275,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
           return {
             id: t.id,
             title: t.title,
-            note: `${t.id} · sub-phase ${subs.length}개`,
+            note: `${t.id} \u00b7 sub-phase ${subs.length}`,
             children: allLeaves,
           };
         }
@@ -440,7 +444,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       ...Array.from(commitDomainMap.keys()).filter((d) => !commitDomainOrder.includes(d)),
     ].map((domain) => ({
       domain,
-      label: domain === 'meta' ? '메타' : (DOMAIN_LABEL[domain] ?? domain),
+      label: domain === 'meta' ? t('quest-log.t30') : (DOMAIN_LABEL[domain] ?? domain),
       icon: domain === 'meta' ? '🗂️' : (DOMAIN_ICON[domain] ?? '📦'),
       count: commitDomainMap.get(domain)!.count,
       recent: commitDomainMap.get(domain)!.recent,
@@ -503,7 +507,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     `).join('');
 
     const topNextHtml = ov.topNext.length === 0
-      ? `<li class="overview-next-empty"><div class="overview-loading">— priority=high · status=ready/active 인 TASK 없음 —</div></li>`
+      ? `<li class="overview-next-empty"><div class="overview-loading">${esc(t('quest-log.t04'))}</div></li>`
       : ov.topNext.map((t) => `
         <li class="overview-next-item" data-status="${escOverview(t.status)}">
           <div class="icon">${escOverview(t.domainIcon)}</div>
@@ -513,7 +517,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       `).join('');
 
     const commitsHtml = ov.commitsByDomain.length === 0
-      ? `<div class="overview-loading">— 7일 내 commit 없음 (또는 hub 데이터 미로드) —</div>`
+      ? `<div class="overview-loading">${esc(t('quest-log.t05'))}</div>`
       : `<div class="overview-commits-grid">${ov.commitsByDomain.map((b) => `
         <div class="overview-commit-bucket">
           <div class="overview-commit-bucket-head">
@@ -537,19 +541,19 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
           <div class="meta">생성 ${escOverview(dt)} · 폴링 10s · 7d commits ${ov.commitsLast7dTotal} · hold ${ov.holdsTotal}</div>
         </div>
         <div class="overview-section">
-          <h2>도메인 진척 <small>${ov.domainStats.length}개 · DONE / 작업집합(FIRE+READY+HOLD+DONE)</small></h2>
+          <h2>${esc(t('quest-log.t06'))} <small>${ov.domainStats.length}개 · DONE / 작업집합(FIRE+READY+HOLD+DONE)</small></h2>
           <div class="overview-domains">${domainsHtml}</div>
         </div>
         <div class="overview-section">
-          <h2>다음 할 것 <small>priority=high · ready/active</small></h2>
+          <h2>${esc(t('quest-log.t07'))} <small>priority=high · ready/active</small></h2>
           <ul class="overview-next-list">${topNextHtml}</ul>
         </div>
         <div class="overview-section">
-          <h2>최근 7일 활동 <small>commit ${ov.commitsLast7dTotal}건 · 도메인 묶음</small></h2>
+          <h2>${esc(t('quest-log.t08'))} <small>commit ${ov.commitsLast7dTotal}건 · 도메인 묶음</small></h2>
           ${commitsHtml}
         </div>
         <div class="overview-section">
-          <h2>막힌 것 <small>status=hold · 합산 ${ov.holdsTotal}</small></h2>
+          <h2>${esc(t('quest-log.t09'))} <small>status=hold · 합산 ${ov.holdsTotal}</small></h2>
           ${holdHtml}
         </div>
       </section>
@@ -562,7 +566,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     const [tree, hubState] = await Promise.all([fetchMemoTree(), fetchHubState()]);
     if (!tree) {
       // 트리 못 받으면 placeholder 비움. (App 영역이 자체 에러 메시지 보여줌.)
-      overviewWrap.innerHTML = `<div class="overview-loading">메모 트리 로딩 실패 — 다음 폴링 대기</div>`;
+      overviewWrap.innerHTML = `<div class="overview-loading">${esc(t('quest-log.t10'))}</div>`;
       return;
     }
     const overview = buildProjectOverview(tree, hubState);
@@ -1336,9 +1340,12 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         id: 'app',
         label: 'Quest Log',
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '관측 시작이에요. 별 잘 보이나요?' });
+          void loadNamespace('quest-log').then(function () {
+
+          Mdd.linePreset('tool_run', { msg: t('quest-log.t31') });
           injectStyles();
           renderQuestLog(container);
+                  });
         }
       }
     ]
@@ -1347,14 +1354,14 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   // ── renderQuestLog: HTML scaffold + memo 정본 fetch + runQuestLog ───────
   function renderQuestLog(container: HTMLElement): void {
     if (!isDesktop()) {
-      container.innerHTML = `<div class="kl-quest-log"><div style="padding:48px 24px; text-align:center; color:#888;">Quest Log 는 KarmoLab 데스크톱 앱 (Tauri) 에서만 동작합니다.<br/>memo TASK 파일을 런타임에 읽어 트리로 표시합니다.</div></div>`;
+      container.innerHTML = `<div class="kl-quest-log"><div style="padding:48px 24px; text-align:center; color:#888;">${esc(t('quest-log.t11'))}<br/>${esc(t('quest-log.t12'))}</div></div>`;
       return;
     }
 
     // KL-024 — 이전 마운트의 file-watcher unlisten 이 있으면 정리.
     const prevUnlisten = _questUnlisten.get(container);
     if (typeof prevUnlisten === 'function') {
-      try { prevUnlisten(); } catch (e) { console.error('previous unlisten 실패', e); }
+      try { prevUnlisten(); } catch (e) { console.error(t('quest-log.t32'), e); }
       _questUnlisten.delete(container);
     }
 
@@ -1417,7 +1424,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         const tree = await fetchMemoTree();
         if (!tree) {
           // 에러 표시는 appWrap 만 wipe. overview 영역 유지 (자체 폴링).
-          appWrap.innerHTML = `<div style="padding:48px 24px; text-align:center; color:#c08080;">데이터 로딩 실패. F12 콘솔에 get_quest_tree 에러 확인.</div>`;
+          appWrap.innerHTML = `<div style="padding:48px 24px; text-align:center; color:#c08080;">${esc(t('quest-log.t13'))}</div>`;
           return;
         }
         const src = transformMemoToOld(tree);
@@ -1443,7 +1450,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
           });
           _questUnlisten.set(container, unlisten);
         } catch (err) {
-          console.error('quest-tree-changed listen 실패', err);
+          console.error(t('quest-log.t33'), err);
         }
       })();
     }
@@ -1747,25 +1754,25 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       el.innerHTML = `
         <div class="ql-controls">
           <div class="ql-control-row">
-            <span class="ql-control-label">상태</span>
+            <span class="ql-control-label">${esc(t('quest-log.t14'))}</span>
             ${STATUS_CHIPS.map((c) => `
               <button class="ql-chip ${isStatusOff(c.id) ? '' : 'on'}" data-status-toggle="${c.id}" type="button">${esc(c.label)}</button>
             `).join('')}
           </div>
           <div class="ql-control-row">
-            <span class="ql-control-label">도메인</span>
+            <span class="ql-control-label">${esc(t('quest-log.t15'))}</span>
             ${DOMAIN_CHIPS.map((c) => `
               <button class="ql-chip ${isDomainOff(c.id) ? '' : 'on'}" data-domain-toggle="${c.id}" type="button">${esc(c.label)}</button>
             `).join('')}
           </div>
           <div class="ql-control-row">
-            <span class="ql-control-label">정렬</span>
+            <span class="ql-control-label">${esc(t('quest-log.t16'))}</span>
             ${(() => {
               const sortLabels: Record<SortKey, string> = {
-                'status': '상태 (FIRE→READY→SEED→SLEEP)',
+                'status': t('quest-log.t34'),
                 'priority': 'priority (high→normal→low)',
-                'id-desc': 'ID 최신↓',
-                'id-asc': 'ID 오래된↑',
+                'id-desc': t('quest-log.t35'),
+                'id-asc': t('quest-log.t36'),
               };
               return SORT_VALUES.map((key) => {
                 const idx = state.prefs.sortKeys.indexOf(key);
@@ -1774,10 +1781,10 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
                 return `<button class="ql-chip ${on ? 'on' : ''}" data-sort="${key}" type="button">${num}${esc(sortLabels[key])}</button>`;
               }).join('');
             })()}
-            <span class="ql-chip-hint">클릭 = 추가 / 다시 = 제거 · 순서 = 우선순위</span>
+            <span class="ql-chip-hint">${esc(t('quest-log.t17'))}</span>
           </div>
           <div class="ql-control-row">
-            <span class="ql-control-label">밀도</span>
+            <span class="ql-control-label">${esc(t('quest-log.t18'))}</span>
             <button class="ql-chip ${dense === 'full' ? 'on' : ''}" data-density="full" type="button">FULL</button>
             <button class="ql-chip ${dense === 'compact' ? 'on' : ''}" data-density="compact" type="button">COMPACT</button>
           </div>
@@ -1980,8 +1987,8 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
               </div>
             </div>
             <div class="f-right">
-              <div class="log-head"><span>TASK LOG</span><span><b>${wmAll.length}</b> TASKS${wmAll.length !== wmAllRaw.length ? ` <small style="color:var(--ink-3);font-weight:400;">(${wmAllRaw.length} 중 필터)</small>` : ''}</span></div>
-              ${wmAll.length ? groupedObsRows(wmAll, 'wm') : '<div class="empty" style="flex: 0 0 100%;">필터로 0</div>'}
+              <div class="log-head"><span>TASK LOG</span><span><b>${wmAll.length}</b> TASKS${wmAll.length !== wmAllRaw.length ? ` <small style="color:var(--ink-3);font-weight:400;">${t('quest-log.filteredOf', { n: wmAllRaw.length })}</small>` : ''}</span></div>
+              ${wmAll.length ? groupedObsRows(wmAll, 'wm') : t('quest-log.t37')}
             </div>
           </div>
         `;
@@ -2012,13 +2019,13 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
               <div class="sub">${esc(cst.name)} · <span style="font-style:italic;text-transform:none;letter-spacing:0.05em;">${esc(cst.sub)}</span></div>
               <div class="bar-line"><div class="fill" style="width:${totalP}%"></div></div>
               <div class="bar-meta">
-                <b>${all.length} TASKS${all.length !== allRaw.length ? ` <small style="color:var(--ink-3);font-weight:400;">(${allRaw.length} 중)</small>` : ''}</b>
+                <b>${all.length} TASKS${all.length !== allRaw.length ? ` <small style="color:var(--ink-3);font-weight:400;">${t('quest-log.outOf', { n: allRaw.length })}</small>` : ''}</b>
                 <span>${fireCount} FIRE · ${totalP}% COVERAGE · MAG ${cst.mag}</span>
               </div>
             </div>
             ${skyHTML(idx, true)}
             <div class="log">
-              ${all.length ? groupedObsRows(all, p.id) : '<div class="empty">필터로 0</div>'}
+              ${all.length ? groupedObsRows(all, p.id) : t('quest-log.t38')}
             </div>
           </div>
         `;
@@ -2062,7 +2069,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         <div class="col" style="grid-column: 1 / -1;">
           <div class="col-head">
             <h3 class="serif"><span class="idx">◆</span>TROPHY ROOM</h3>
-            <div class="sub">SEALED · <span style="font-style:italic;text-transform:none;letter-spacing:0.05em;">봉인된 것들</span></div>
+            <div class="sub">SEALED · <span style="font-style:italic;text-transform:none;letter-spacing:0.05em;">${esc(t('quest-log.t19'))}</span></div>
             <div class="bar-line"><div class="fill" style="width:100%;background:var(--accent);"></div></div>
             <div class="bar-meta"><b>${DATA.sealed.length} ENTRIES</b><span>ARCHIVED</span></div>
           </div>
@@ -2145,13 +2152,13 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
                   <input type="checkbox" ${c.done ? 'checked' : ''} style="display:none;">
                   <span class="check-box"></span>
                   <span class="check-label">${esc(c.t)}</span>
-                  <button class="check-edit" data-check-edit="${i}" title="편집">✎</button>
-                  <button class="check-delete" data-check-del="${i}" title="삭제">×</button>
+                  <button class="check-edit" data-check-edit="${i}" title="${esc(t('quest-log.t01'))}">✎</button>
+                  <button class="check-delete" data-check-del="${i}" title="${esc(t('quest-log.t02'))}">×</button>
                 </label>
               `).join('')}
             </div>
             <div class="add-check" style="display:flex; gap:1px; margin-top:12px; background:var(--line-2); border:1px solid var(--line-2);">
-              <input type="text" placeholder="+ 새 항목…" />
+              <input type="text" placeholder="${esc(t('quest-log.t03'))}" />
               <button>ADD</button>
             </div>
           </div>
@@ -2203,15 +2210,15 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
               }) as boolean;
               check.done = newDone;
             } catch (err) {
-              console.error('toggle_quest_check 실패', err);
-              alert(`체크박스 쓰기 실패: ${err}\n\n파일이 외부에서 변경됐을 수 있습니다. 위젯을 재실행해 주세요.`);
+              console.error(t('quest-log.t39'), err);
+              alert(t('quest-log.failWrite', { err: String(err) }));
               return;
             }
           } else {
             check.done = !check.done;
           }
 
-          if (check.done) Mdd.linePreset('success', { msg: '하나 끝!' });
+          if (check.done) Mdd.linePreset('success', { msg: t('quest-log.t40') });
           save();
           openDrawer(id);
           renderColumns();
@@ -2225,7 +2232,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
           e.stopPropagation();
           const i = Number(el.dataset.checkDel);
           const check = node.checks![i];  // 핸들러는 isLeaf 렌더 시에만 부착 — checks 보장
-          if (!confirm(`정말 삭제할까요?\n\n"${check.t}"`)) return;
+          if (!confirm(t('quest-log.confirmDelete', { text: check.t }))) return;
 
           // TASK-KL-062 slice3c: 로컬 invoke 캡처 폐기 → seam invoke.
           if (node.filePath && check.lineNumber && isDesktop()) {
@@ -2236,8 +2243,8 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
                 expectedText: check.t,
               });
             } catch (err) {
-              console.error('delete_quest_check 실패', err);
-              alert(`체크박스 삭제 실패: ${err}\n\n파일이 외부에서 변경됐을 수 있습니다. 위젯을 재실행해 주세요.`);
+              console.error(t('quest-log.t41'), err);
+              alert(t('quest-log.failDelete', { err: String(err) }));
               return;
             }
           }
@@ -2304,8 +2311,8 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
                   newText,
                 });
               } catch (err) {
-                console.error('rename_quest_check 실패', err);
-                alert(`체크박스 텍스트 수정 실패: ${err}\n\n파일이 외부에서 변경됐을 수 있습니다. 위젯을 재실행해 주세요.`);
+                console.error(t('quest-log.t42'), err);
+                alert(t('quest-log.failEdit', { err: String(err) }));
                 restoreLabel(check.t);
                 return;
               }
@@ -2356,15 +2363,15 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
               node.memoStatus = written;
               node.status = mapMemoStatus(written);
             } catch (err) {
-              console.error('set_quest_status 실패', err);
-              alert(`상태 쓰기 실패: ${err}\n\n파일이 외부에서 변경됐을 수 있습니다. 위젯을 재실행해 주세요.`);
+              console.error(t('quest-log.t43'), err);
+              alert(t('quest-log.failStatus', { err: String(err) }));
               return;
             }
           } else {
             node.status = newWidgetStatus;
           }
 
-          if (node.status === 'fire') Mdd.linePreset('tool_run', { msg: '불 붙었어요 🔥' });
+          if (node.status === 'fire') Mdd.linePreset('tool_run', { msg: t('quest-log.t44') });
           save();
           openDrawer(id);
           renderColumns();
@@ -2388,7 +2395,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
               }) as string;
               node.memoPriority = written;
             } catch (err) {
-              console.error('set_quest_priority 실패', err);
+              console.error(t('quest-log.t45'), err);
               alert(`우선순위 쓰기 실패: ${err}\n\n파일이 외부에서 변경됐을 수 있습니다. 위젯을 재실행해 주세요.`);
               return;
             }
@@ -2407,8 +2414,8 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       const btn = root.querySelector('.add-check button') as HTMLButtonElement | null;
       if (input && btn) {
         const add = async () => {
-          const t = input.value.trim();
-          if (!t) return;
+          const text = input.value.trim();
+          if (!text) return;
 
           // memo 정본 write-back (TASK-KL-019). filePath 가 있는 경우만.
           // TASK-KL-062 slice3c: 로컬 invoke 캡처 폐기 → seam invoke.
@@ -2416,16 +2423,16 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
             try {
               const newLineNumber = await invoke('add_quest_check', {
                 filePath: node.filePath,
-                text: t,
+                text: text,
               }) as number;
-              node.checks!.push({ t, done: false, lineNumber: newLineNumber });
+              node.checks!.push({ t: text, done: false, lineNumber: newLineNumber });
             } catch (err) {
-              console.error('add_quest_check 실패', err);
-              alert(`체크박스 추가 실패: ${err}`);
+              console.error(t('quest-log.t46'), err);
+              alert(t('quest-log.failAdd', { err: String(err) }));
               return;
             }
           } else {
-            node.checks!.push({ t, done: false });
+            node.checks!.push({ t: text, done: false });
           }
 
           input.value = '';
@@ -2453,7 +2460,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
             sealedNote: '',
           });
           node.status = 'sealed';
-          Mdd.linePreset('achievement', { msg: '봉인 완료. 트로피로 들어갔어요.' });
+          Mdd.linePreset('achievement', { msg: t('quest-log.t47') });
           save();
           closeDrawer();
           state.view = 'trophy';
