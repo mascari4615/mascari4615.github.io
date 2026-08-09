@@ -496,6 +496,12 @@ import {
       persistStructure();
     }
 
+    /** 화살표 상태 글자 — 없음 / 한쪽 / 양쪽. */
+    function arrowGlyph(e: { arrow: boolean; arrowStart?: boolean }): string {
+      if (e.arrow && e.arrowStart) return '↔';
+      return e.arrow ? '→' : '—';
+    }
+
     function renderTermsPanel(): void {
       sideEl.classList.remove('hidden');
       canvas?.setSelectedNode(null);
@@ -530,7 +536,7 @@ import {
                 <select data-km="t-style">
                   ${EDGE_STYLES.map((s) => `<option value="${s.id}"${s.id === e.style ? ' selected' : ''}>${s.label}</option>`).join('')}
                 </select>
-                <button class="btn btn-ghost" data-km="t-arrow" title="화살표">${e.arrow ? '→' : '—'}</button>
+                <button class="btn btn-ghost" data-km="t-arrow" title="화살표 — 없음 / 한쪽 / 양쪽">${arrowGlyph(e)}</button>
                 <button class="btn btn-ghost" data-km="t-del" title="지우기">×</button>
               </div>`
             )
@@ -608,8 +614,11 @@ import {
         };
         (row.querySelector('[data-km="t-arrow"]') as HTMLButtonElement).onclick = (ev) => {
           const e = find(); if (!e) return;
-          e.arrow = !e.arrow;
-          (ev.currentTarget as HTMLButtonElement).textContent = e.arrow ? '→' : '—';
+          // 없음 → 한쪽 → 양쪽 → 없음. 세 상태를 버튼 하나로 돈다.
+          if (!e.arrow && !e.arrowStart) { e.arrow = true; }
+          else if (e.arrow && !e.arrowStart) { e.arrowStart = true; }
+          else { e.arrow = false; e.arrowStart = false; }
+          (ev.currentTarget as HTMLButtonElement).textContent = arrowGlyph(e);
           applyTerms();
           canvas?.render();
         };
@@ -713,6 +722,7 @@ import {
                     return `<div class="km-edge-row" data-edge="${escapeAttr(e.id)}">
                       <span class="km-edge-peer" title="${escapeAttr(labelOf(peer))}">${outgoing ? '→' : '←'} ${escapeHtml(labelOf(peer))}</span>
                       <select data-km="edge-kind">${edgeKindOptions(e.kind)}</select>
+                      <button class="btn btn-ghost" data-km="edge-both" title="양쪽 화살표로">${e.arrowStart ? '↔' : '→'}</button>
                       <button class="btn btn-ghost" data-km="edge-del" title="연결 삭제">×</button>
                       <input type="text" data-km="edge-label" class="km-edge-label" value="${escapeAttr(e.label ?? '')}" placeholder="선 위에 쓸 말 (비우면 안 보임)" />
                     </div>`;
@@ -854,6 +864,15 @@ import {
           const edge = spec.edges.find((x) => x.id === edgeId);
           if (!edge) return;
           edge.label = (ev.target as HTMLInputElement).value;
+          canvas?.render();
+          canvas?.setSelectedNode(node.id);
+          persistStructure();
+        };
+        (row.querySelector('[data-km="edge-both"]') as HTMLButtonElement).onclick = (ev) => {
+          const edge = spec.edges.find((x) => x.id === edgeId);
+          if (!edge) return;
+          edge.arrowStart = edge.arrowStart ? undefined : true;
+          (ev.currentTarget as HTMLButtonElement).textContent = edge.arrowStart ? '↔' : '→';
           canvas?.render();
           canvas?.setSelectedNode(node.id);
           persistStructure();

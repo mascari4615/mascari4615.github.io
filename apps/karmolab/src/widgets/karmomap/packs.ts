@@ -27,6 +27,8 @@ export interface EdgeKindPreset {
   color: string;
   style: EdgeStyle;
   arrow: boolean;
+  /** 출발 쪽에도 화살표 — 서로 오가는 관계(↔). */
+  arrowStart?: boolean;
   /** 선 굵기(px). 없으면 1.5 — 굵을수록 「센 관계」로 읽힌다. */
   width?: number;
 }
@@ -90,10 +92,10 @@ const RELATION: CanvasPack = {
   edgeKinds: [
     { id: 'rel-like',    label: '♡ 좋아함',   color: '#fb7185', style: 'solid',  arrow: true, width: 2.2 },
     { id: 'rel-hate',    label: '✕ 싫어함',   color: '#64748b', style: 'dotted', arrow: true },
-    { id: 'rel-rival',   label: '⚡ 라이벌',   color: '#f59e0b', style: 'solid',  arrow: false },
+    { id: 'rel-rival',   label: '⚡ 라이벌',   color: '#f59e0b', style: 'solid',  arrow: true, arrowStart: true },
     { id: 'rel-trust',   label: '★ 신뢰',     color: '#38bdf8', style: 'solid',  arrow: true },
     { id: 'rel-curious', label: '? 신경쓰임', color: '#a78bfa', style: 'wavy',   arrow: true },
-    { id: 'rel-family',  label: '🏠 가족',    color: '#34d399', style: 'solid',  arrow: false },
+    { id: 'rel-family',  label: '🏠 가족',    color: '#34d399', style: 'solid',  arrow: true, arrowStart: true },
     { id: 'rel-broken',  label: '💔 금이 감', color: '#ef4444', style: 'crack',  arrow: false },
   ],
   groupPresets: [
@@ -203,7 +205,7 @@ const ORG: CanvasPack = {
   edgeKinds: [
     { id: 'og-reports', label: '보고',   color: '#60a5fa', style: 'solid',  arrow: true },
     { id: 'og-owns',    label: '담당',   color: '#a78bfa', style: 'solid',  arrow: true },
-    { id: 'og-works',   label: '협업',   color: '#94a3b8', style: 'dashed', arrow: false },
+    { id: 'og-works',   label: '협업',   color: '#94a3b8', style: 'dashed', arrow: true, arrowStart: true },
     { id: 'og-makes',   label: '만듦',   color: '#34d399', style: 'solid',  arrow: true },
   ],
   groupPresets: [
@@ -243,7 +245,8 @@ export const ALL_KIND_LABELS: Record<string, string> = Object.fromEntries(
 export const ALL_EDGE_KIND_DEFS: Record<string, EdgeKindDef> = Object.fromEntries(
   PACKS.flatMap((p) =>
     p.edgeKinds.map(
-      (e) => [e.id, { color: e.color, style: e.style, arrow: e.arrow, width: e.width } as EdgeKindDef] as const
+      (e) =>
+        [e.id, { color: e.color, style: e.style, arrow: e.arrow, arrowStart: e.arrowStart, width: e.width } as EdgeKindDef] as const
     )
   )
 );

@@ -281,6 +281,11 @@ export class GraphCanvas {
       <marker id="ck-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
         <path d="M0,0 L0,6 L6,3 z" fill="${this.theme.edgeDefaultColor}"/>
       </marker>
+      <!-- 출발 쪽 화살표. SVG2 의 orient="auto-start-reverse" 로 마커 하나를 돌려 쓸 수도 있지만,
+           그 값을 안 받는 렌더러에선 화살표가 뒤집힌 채 조용히 나온다. 마커 하나 더가 싸다. -->
+      <marker id="ck-arrow-start" markerWidth="6" markerHeight="6" refX="1" refY="3" orient="auto">
+        <path d="M6,0 L6,6 L0,3 z" fill="${this.theme.edgeDefaultColor}"/>
+      </marker>
       <filter id="ck-glow" x="-30%" y="-30%" width="160%" height="160%">
         <feGaussianBlur stdDeviation="3" result="blur"/>
         <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
@@ -1446,6 +1451,7 @@ export class GraphCanvas {
     else if (style === 'dotted') path.setAttribute('stroke-dasharray', '2 3');
 
     if (kind.arrow) path.setAttribute('marker-end', 'url(#ck-arrow)');
+    if (edge.arrowStart ?? kind.arrowStart) path.setAttribute('marker-start', 'url(#ck-arrow-start)');
 
     return path;
   }
