@@ -135,6 +135,12 @@ import { EarthSound } from './sound';
 @media (max-width:520px){.bm-sun{width:64px;height:64px;bottom:88px}}
 .bm-body{position:absolute;top:10px;right:52px;z-index:4;}
 .bm-link{position:absolute;top:10px;right:126px;z-index:4;}
+.bm-card{position:absolute;top:10px;right:214px;z-index:4;}
+.bm-day{position:absolute;top:44px;right:214px;z-index:4;background:rgba(8,12,22,.85);color:#eaf2ff;
+  border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:5px 8px;font-size:11px;
+  font-family:var(--font-mono,ui-monospace,monospace);display:none;}
+.bm-day.bm-show{display:block;}
+.bm-wrap.bm-ambient .bm-card,.bm-wrap.bm-ambient .bm-day{opacity:0;pointer-events:none;}
 .bm-wrap.bm-ambient .bm-link{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
 .bm-wrap.bm-ambient .bm-body{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
 /* 오늘의 우주 사진 — 지구 창 곁에 붙은 작은 액자. 누르면 원본으로 간다. */
@@ -220,6 +226,15 @@ import { EarthSound } from './sound';
           apodImg.decoding = 'async';
           apodImg.hidden = true;
 
+          const dayInput = document.createElement('input');
+          dayInput.type = 'date';
+          dayInput.className = 'bm-day';
+          dayInput.min = '2000-02-24';
+
+          const cardBtn = document.createElement('button');
+          cardBtn.type = 'button';
+          cardBtn.className = 'bm-chip bm-card';
+
           const linkBtn = document.createElement('button');
           linkBtn.type = 'button';
           linkBtn.className = 'bm-chip bm-link';
@@ -238,7 +253,7 @@ import { EarthSound } from './sound';
           fsBtn.type = 'button';
           fsBtn.className = 'bm-fs';
           fsBtn.textContent = '⛶';
-          wrap.append(canvas, menuBtn, chips, linkBtn, bodyBtn, sunImg, apodImg, fsBtn, timeBar, ticker);
+          wrap.append(canvas, menuBtn, chips, cardBtn, dayInput, linkBtn, bodyBtn, sunImg, apodImg, fsBtn, timeBar, ticker);
           container.appendChild(wrap);
 
           const ctx = canvas.getContext('2d');
@@ -1146,6 +1161,76 @@ import { EarthSound } from './sound';
             }, 420);
           }
 
+          /* ── 그날의 지구 카드 ─────────────────────────────────────────── */
+
+          /**
+           * 날짜를 하나 받아 그날의 지구로 가고, **그 화면을 카드로 굽는다.**
+           *
+           * 위성이 지구를 찍기 시작한 건 2000-02-24 다. 그 앞의 날은 사진이 없다 — 지어내지 않고
+           * 고를 수 없게 막는다(`min`). 있는 것만 보여 주는 편이 없는 것을 그럴듯하게 그리는 것보다 낫다.
+           */
+          async function bakeCard(): Promise<void> {
+            const W2 = 1200;
+            const H2 = 675;
+            const cv = document.createElement('canvas');
+            cv.width = W2;
+            cv.height = H2;
+            const c = cv.getContext('2d');
+            if (!c) return;
+
+            c.fillStyle = '#04060d';
+            c.fillRect(0, 0, W2, H2);
+            // 지금 화면을 가운데 맞춰 담는다 (비율은 안 깬다)
+            const sc = Math.max(W2 / canvas.width, H2 / canvas.height);
+            const dw = canvas.width * sc;
+            const dh = canvas.height * sc;
+            c.drawImage(canvas, (W2 - dw) / 2, (H2 - dh) / 2, dw, dh);
+
+            const band = c.createLinearGradient(0, H2 - 190, 0, H2);
+            band.addColorStop(0, 'rgba(2,4,10,0)');
+            band.addColorStop(1, 'rgba(2,4,10,.92)');
+            c.fillStyle = band;
+            c.fillRect(0, H2 - 190, W2, 190);
+
+            const when = new Date(clockMs()).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            });
+            c.fillStyle = '#eef3ff';
+            c.font = '600 34px system-ui, sans-serif';
+            c.fillText(t('bluemarble.card.title', { date: when }), 44, H2 - 108);
+            c.fillStyle = 'rgba(210,222,255,.8)';
+            c.font = '20px system-ui, sans-serif';
+            const say1 = (lines[lineIdx] || lines[0] || '').slice(0, 90);
+            c.fillText(say1, 44, H2 - 68);
+            c.fillStyle = 'rgba(180,195,230,.45)';
+            c.font = '15px ui-monospace, monospace';
+            c.fillText(t('bluemarble.card.credit'), 44, H2 - 34);
+
+            const blob = await new Promise<Blob | null>((res) => cv.toBlob(res, 'image/png'));
+            if (!blob) return;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `earth-${new Date(clockMs()).toISOString().slice(0, 10)}.png`;
+            a.click();
+            window.setTimeout(() => URL.revokeObjectURL(url), 4000);
+            say(t('bluemarble.card.saved'));
+          }
+
+          /** 그날로 간다 — 시간 손잡이와 같은 길을 쓴다(딴 길을 내면 둘이 갈라진다). */
+          async function goToDay(day: string): Promise<void> {
+            const ms = Date.parse(day + 'T12:00:00Z');
+            if (!Number.isFinite(ms)) return;
+            prefs.on.deep = false;
+            atTime = ms;
+            slider.value = String(Math.floor(ms / 86400000));
+            await applyTime();
+            /* 카드에 지구가 통째로 담기게 배율을 낮춘다 — 확대된 채로 구우면 잘린 조각이 남는다(실측). */
+            if (me) flyTo(me.lat, me.lon, 2200, 1.15);
+          }
+
           /* ── 자리 링크 ────────────────────────────────────────────────── */
 
           /**
@@ -1791,6 +1876,18 @@ import { EarthSound } from './sound';
             save();
           };
 
+          cardBtn.onclick = () => {
+            if (!dayInput.classList.contains('bm-show')) {
+              dayInput.classList.add('bm-show');
+              dayInput.showPicker?.();
+              return;
+            }
+            void bakeCard();
+          };
+          dayInput.onchange = () => {
+            if (dayInput.value) void goToDay(dayInput.value);
+          };
+
           linkBtn.onclick = () => void copyLink();
 
           fsBtn.onclick = () => {
@@ -1878,6 +1975,8 @@ import { EarthSound } from './sound';
             slider.value = slider.max;
             nowBtn.textContent = t('bluemarble.now');
             linkBtn.textContent = t('bluemarble.link.button');
+            cardBtn.textContent = t('bluemarble.card.button');
+            dayInput.max = new Date().toISOString().slice(0, 10);
             renderDate();
 
             /* 링크로 들어왔으면 그 자리가 이긴다 — 남이 가리킨 자리를 시간대로 덮으면 안 된다. */

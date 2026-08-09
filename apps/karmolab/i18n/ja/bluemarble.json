@@ -62,5 +62,9 @@
   "bluemarble.layer.together": "一緒に見る",
   "bluemarble.link.button": "ここへのリンク",
   "bluemarble.link.copied": "この場所のリンクをコピーしました。開いた人は同じ場所から地球を見ます。",
-  "bluemarble.link.here": "この場所のリンク: {url}"
+  "bluemarble.link.here": "この場所のリンク: {url}",
+  "bluemarble.card.button": "その日の地球",
+  "bluemarble.card.title": "{date} の地球",
+  "bluemarble.card.credit": "NASA Blue Marble · GIBS · USGS · NOAA — KarmoLab ブルーマーブル",
+  "bluemarble.card.saved": "カードを保存しました。"
 }
