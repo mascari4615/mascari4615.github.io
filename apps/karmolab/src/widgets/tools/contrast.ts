@@ -6,7 +6,12 @@
  * 본문 4.5:1, 큰 글씨 3:1 이 최소선이다.
  * 통과하는 가장 가까운 색까지 제안해서, 실패했을 때 무엇을 고칠지 바로 알 수 있게 한다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   type RGB = [number, number, number];
 
   function parse(input: string): RGB | null {
@@ -55,33 +60,35 @@
 
   Toolbox.register({
     id: 'contrast',
-    title: '색 대비 검사',
+    title: t('widgets.contrast.title', undefined, "색 대비 검사"),
     category: 'tool',
-    desc: '글자색과 배경색의 대비비를 재고 접근성 기준 통과 여부를 알려줍니다',
+    desc: t('widgets-desc.contrast.desc', undefined, "글자색과 배경색의 대비비를 재고 접근성 기준 통과 여부를 알려줍니다"),
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>',
     tabs: [
       {
         id: 'app',
-        label: '대비',
+        label: t('contrast.tab', undefined, "대비"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('contrast').then(function () {
+
           container.innerHTML = `
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">글자색</div>
-                  <input type="text" id="coFg" aria-label="글자색" value="#767676" spellcheck="false">
+                  <div class="tool-sublabel">${esc(t('contrast.label.fg'))}</div>
+                  <input type="text" id="coFg" aria-label="${esc(t('contrast.label.fg'))}" value="#767676" spellcheck="false">
                 </div>
                 <div>
-                  <div class="tool-sublabel">배경색</div>
-                  <input type="text" id="coBg" aria-label="배경색" value="#ffffff" spellcheck="false">
+                  <div class="tool-sublabel">${esc(t('contrast.label.bg'))}</div>
+                  <input type="text" id="coBg" aria-label="${esc(t('contrast.label.bg'))}" value="#ffffff" spellcheck="false">
                 </div>
               </div>
             </div>
 
             <div id="coPreview" class="co-preview">
-              <div class="co-sample-lg">큰 글씨는 이렇게 보입니다</div>
-              <div class="co-sample-sm">본문 글씨는 이렇게 보입니다. 읽어 보고 눈이 편한지 확인하세요.</div>
+              <div class="co-sample-lg">${esc(t('contrast.sample.large'))}</div>
+              <div class="co-sample-sm">${esc(t('contrast.sample.body'))}</div>
             </div>
 
             <div class="cc-stats" id="coStats"></div>
@@ -106,7 +113,7 @@
             const fg = parse(fgEl.value);
             const bg = parse(bgEl.value);
             if (!fg || !bg) {
-              status.textContent = '색을 읽지 못했어요. #RRGGBB 또는 R,G,B 로 적어 주세요.';
+              status.textContent = t('contrast.err.color');
               status.className = 'tool-status error';
               return;
             }
@@ -114,32 +121,33 @@
             preview.style.color = hex(fg);
 
             const r = ratio(fg, bg);
-            const mark = (ok: boolean): string => (ok ? '통과' : '실패');
+            const mark = (ok: boolean): string => (ok ? t('contrast.verdict.pass') : t('contrast.verdict.fail'));
             stats.innerHTML =
-              stat('대비비', `${r.toFixed(2)} : 1`, true) +
-              stat('본문 (4.5:1)', mark(r >= 4.5)) +
-              stat('큰 글씨 (3:1)', mark(r >= 3));
+              stat(t('contrast.row.ratio'), `${r.toFixed(2)} : 1`, true) +
+              stat(t('contrast.stat.body'), mark(r >= 4.5)) +
+              stat(t('contrast.stat.large'), mark(r >= 3));
 
             const rows = [
-              row('AA 본문', `${mark(r >= 4.5)} — 최소 기준`),
-              row('AA 큰 글씨', `${mark(r >= 3)} — 18pt 이상 또는 굵은 14pt`),
-              row('AAA 본문', `${mark(r >= 7)} — 더 엄격한 기준`),
-              row('아이콘·테두리', `${mark(r >= 3)} — 글자가 아닌 요소 기준`)
+              row(t('contrast.row.aaBody'), t('contrast.note.aaBody', { mark: mark(r >= 4.5) })),
+              row(t('contrast.row.aaLarge'), t('contrast.note.aaLarge', { mark: mark(r >= 3) })),
+              row(t('contrast.row.aaaBody'), t('contrast.note.aaaBody', { mark: mark(r >= 7) })),
+              row(t('contrast.row.nonText'), t('contrast.note.nonText', { mark: mark(r >= 3) }))
             ];
             if (r < 4.5) {
               const fix = nearestPassing(fg, bg, 4.5);
-              if (fix) rows.push(row('본문 통과하려면', `글자색을 ${hex(fix)} 로 (대비 ${ratio(fix, bg).toFixed(2)})`));
+              if (fix) rows.push(row(t('contrast.row.toPass'), t('contrast.value.suggest', { hex: hex(fix), ratio: ratio(fix, bg).toFixed(2) })));
             }
             out.innerHTML = rows.join('');
 
             status.textContent =
-              r >= 7 ? '어떤 크기에서도 편하게 읽힙니다.' : r >= 4.5 ? '본문에 쓸 수 있습니다.' : r >= 3 ? '큰 글씨에만 쓸 수 있습니다.' : '읽기 어렵습니다. 색을 더 벌리세요.';
+              r >= 7 ? t('contrast.say.great') : r >= 4.5 ? t('contrast.say.ok') : r >= 3 ? t('contrast.say.largeOnly') : t('contrast.say.bad');
             status.className = 'tool-status' + (r >= 4.5 ? ' ok' : r >= 3 ? '' : ' error');
             Toolbox.trackUse?.('check');
           }
 
           [fgEl, bgEl].forEach((el) => el.addEventListener('input', render));
           render();
+                  });
         }
       }
     ]

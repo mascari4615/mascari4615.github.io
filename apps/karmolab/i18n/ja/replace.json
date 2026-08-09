@@ -1,0 +1,22 @@
+{
+  "replace.label.in": "元の文章",
+  "replace.ph.in": "変えたい文章を貼り付けてください",
+  "replace.label.find": "探す言葉",
+  "replace.ph.find": "探す内容",
+  "replace.label.to": "変える言葉 — 空なら削除",
+  "replace.ph.to": "変える内容",
+  "replace.opt.case": "大文字小文字を区別",
+  "replace.opt.word": "単語単位",
+  "replace.opt.regex": "正規表現として",
+  "replace.label.preview": "プレビュー — 当たった場所が表示されます",
+  "replace.btn.apply": "置き換える",
+  "replace.btn.copy": "結果をコピー",
+  "replace.btn.undo": "元に戻す",
+  "replace.status.idle": "探す言葉を入れると、当たった場所を先に見せます。",
+  "replace.err.regex": "正規表現を読めませんでした。",
+  "replace.say.noHit": "当たる場所がありません。",
+  "replace.say.applied": "置き換えました。「元に戻す」で直前の状態に戻せます。",
+  "replace.copy.done": "結果をコピーしました",
+  "replace.say.hits": "{n}か所が当たります。置き換えを押すと適用されます。",
+  "replace.tab": "探して置き換える"
+}

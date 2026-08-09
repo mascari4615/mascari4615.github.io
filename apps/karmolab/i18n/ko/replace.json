@@ -1,0 +1,22 @@
+{
+  "replace.ph.in": "바꿀 텍스트를 붙여 넣으세요",
+  "replace.ph.find": "찾을 내용",
+  "replace.ph.to": "바꿀 내용",
+  "replace.label.in": "원본",
+  "replace.label.find": "찾을 말",
+  "replace.label.to": "바꿀 말 — 비우면 삭제",
+  "replace.opt.case": "대소문자 구분",
+  "replace.opt.word": "낱말 단위",
+  "replace.opt.regex": "정규식으로",
+  "replace.label.preview": "미리보기 — 걸린 곳이 표시됩니다",
+  "replace.btn.apply": "바꾸기",
+  "replace.btn.copy": "결과 복사",
+  "replace.btn.undo": "되돌리기",
+  "replace.status.idle": "찾을 말을 넣으면 걸린 곳을 먼저 보여줍니다.",
+  "replace.err.regex": "정규식을 읽지 못했어요.",
+  "replace.say.noHit": "걸리는 곳이 없어요.",
+  "replace.say.applied": "바꿨습니다. 되돌리기로 직전 상태로 돌아갈 수 있어요.",
+  "replace.copy.done": "결과를 복사했어요",
+  "replace.say.hits": "{n}군데가 걸립니다. 바꾸기를 누르면 적용됩니다.",
+  "replace.tab": "찾아 바꾸기"
+}

@@ -7,8 +7,12 @@
  * 한글은 PDF 기본 글꼴에 없어 그대로 그리면 오류가 난다. 글자를 그림으로 그려 얹는 방식을 쓴다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   interface PDFLib {
     PDFDocument: {
       load: (b: ArrayBuffer, o?: { ignoreEncryption?: boolean }) => Promise<{
@@ -27,7 +31,7 @@ import { acceptPastedFiles } from './shared/paste';
   function textToPng(text: string, color: string, fontSize: number): Promise<Uint8Array> {
     const pad = 24;
     const probe = document.createElement('canvas').getContext('2d');
-    if (!probe) return Promise.reject(new Error('canvas 없음'));
+    if (!probe) return Promise.reject(new Error(t('pdfwatermark.err.canvas')));
     probe.font = `700 ${fontSize}px sans-serif`;
     const w = Math.ceil(probe.measureText(text).width) + pad * 2;
     const h = fontSize + pad * 2;
@@ -35,14 +39,14 @@ import { acceptPastedFiles } from './shared/paste';
     cv.width = w;
     cv.height = h;
     const ctx = cv.getContext('2d');
-    if (!ctx) return Promise.reject(new Error('canvas 없음'));
+    if (!ctx) return Promise.reject(new Error(t('pdfwatermark.err.canvas')));
     ctx.font = `700 ${fontSize}px sans-serif`;
     ctx.fillStyle = color;
     ctx.textBaseline = 'middle';
     ctx.fillText(text, pad, h / 2);
     return new Promise((resolve, reject) => {
       cv.toBlob((b) => {
-        if (!b) return reject(new Error('그리기 실패'));
+        if (!b) return reject(new Error(t('pdfwatermark.err.draw')));
         b.arrayBuffer().then((ab) => resolve(new Uint8Array(ab)));
       }, 'image/png');
     });
@@ -52,58 +56,60 @@ import { acceptPastedFiles } from './shared/paste';
     id: 'pdfwatermark',
     // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
     accepts: ['application/pdf'],
-    title: 'PDF 워터마크',
+    title: t('widgets.pdfwatermark.title', undefined, "PDF 워터마크"),
     category: 'tool',
-    desc: 'PDF 전 페이지에 문구를 얹습니다. 한글도 됩니다',
+    desc: t('widgets-desc.pdfwatermark.desc', undefined, "PDF 전 페이지에 문구를 얹습니다. 한글도 됩니다"),
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 17 16 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>',
     tabs: [
       {
         id: 'app',
-        label: '워터마크',
+        label: t('pdfwatermark.tab', undefined, "워터마크"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('pdfwatermark').then(function () {
+
           container.innerHTML = `
             <div class="tool-drop" id="pwDrop">
               <input type="file" id="pwFile" accept="application/pdf" hidden>
-              PDF 를 끌어다 놓거나 눌러서 고르세요
+              ${esc(t('pdfwatermark.drop'))}
             </div>
 
             <div class="field-group" style="margin-top:var(--space-lg);">
-              <label class="field-label">문구</label>
-              <input type="text" id="pwText" aria-label="넣을 문구" value="사본 · 제출용" spellcheck="false">
+              <label class="field-label">${esc(t('pdfwatermark.label.text'))}</label>
+              <input type="text" id="pwText" aria-label="${esc(t('pdfwatermark.aria.text'))}" value="${esc(t('pdfwatermark.sample'))}" spellcheck="false">
             </div>
 
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">진하기 <span id="pwOpacityVal" class="range-value">15%</span></div>
-                  <input type="range" id="pwOpacity" aria-label="진하기" min="5" max="60" value="15">
+                  <div class="tool-sublabel">${esc(t('pdfwatermark.label.opacity'))} <span id="pwOpacityVal" class="range-value">15%</span></div>
+                  <input type="range" id="pwOpacity" aria-label="${esc(t('pdfwatermark.label.opacity'))}" min="5" max="60" value="15">
                 </div>
                 <div>
-                  <div class="tool-sublabel">크기 <span id="pwSizeVal" class="range-value">60%</span></div>
-                  <input type="range" id="pwSize" aria-label="크기" min="20" max="95" value="60">
+                  <div class="tool-sublabel">${esc(t('pdfwatermark.label.size'))} <span id="pwSizeVal" class="range-value">60%</span></div>
+                  <input type="range" id="pwSize" aria-label="${esc(t('pdfwatermark.label.size'))}" min="20" max="95" value="60">
                 </div>
               </div>
               <div class="tool-grid-2" style="margin-top:10px;">
                 <div>
-                  <div class="tool-sublabel">기울기</div>
-                  <select id="pwAngle" aria-label="기울기">
-                    <option value="45">대각선 (45°)</option>
-                    <option value="0">가로</option>
-                    <option value="90">세로</option>
+                  <div class="tool-sublabel">${esc(t('pdfwatermark.label.angle'))}</div>
+                  <select id="pwAngle" aria-label="${esc(t('pdfwatermark.label.angle'))}">
+                    <option value="45">${esc(t('pdfwatermark.angle.diagonal'))}</option>
+                    <option value="0">${esc(t('pdfwatermark.angle.flat'))}</option>
+                    <option value="90">${esc(t('pdfwatermark.angle.upright'))}</option>
                   </select>
                 </div>
                 <div>
-                  <div class="tool-sublabel">색</div>
-                  <input type="text" id="pwColor" aria-label="색" value="#e02020" spellcheck="false">
+                  <div class="tool-sublabel">${esc(t('pdfwatermark.label.color'))}</div>
+                  <input type="text" id="pwColor" aria-label="${esc(t('pdfwatermark.label.color'))}" value="#e02020" spellcheck="false">
                 </div>
               </div>
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-primary" id="pwRun">워터마크 넣고 내려받기</button>
+              <button class="btn btn-primary" id="pwRun">${esc(t('pdfwatermark.btn.run'))}</button>
             </div>
-            <div class="tool-status" id="pwStatus">파일은 브라우저 안에서만 다뤄집니다 — 문서를 올리지 않습니다.</div>
+            <div class="tool-status" id="pwStatus">${esc(t('pdfwatermark.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -120,22 +126,22 @@ import { acceptPastedFiles } from './shared/paste';
 
           async function loadLib(): Promise<PDFLib> {
             if (lib) return lib;
-            say('PDF 처리기를 불러오는 중…');
+            say(t('pdfwatermark.say.loadingLib'));
             await Toolbox.ensureScript?.('vendor/pdf-lib.min');
             lib = (window as unknown as { PDFLib: PDFLib }).PDFLib;
-            if (!lib) throw new Error('PDF 처리기를 불러오지 못했습니다');
+            if (!lib) throw new Error(t('pdfwatermark.err.lib'));
             return lib;
           }
 
           async function run(): Promise<void> {
             if (!file) {
-              say('PDF 를 먼저 넣어 주세요.', 'error');
+              say(t('pdfwatermark.err.noFile'), 'error');
               return;
             }
             const L = await loadLib();
             const text = $<HTMLInputElement>('#pwText').value.trim();
             if (!text) {
-              say('넣을 문구를 적어 주세요.', 'error');
+              say(t('pdfwatermark.err.noText'), 'error');
               return;
             }
             try {
@@ -165,21 +171,21 @@ import { acceptPastedFiles } from './shared/paste';
               const blob = new Blob([(await doc.save()) as unknown as BlobPart], { type: 'application/pdf' });
               const a = document.createElement('a');
               a.href = URL.createObjectURL(blob);
-              a.download = file.name.replace(/\.pdf$/i, '') + '-워터마크.pdf';
+              a.download = file.name.replace(/\.pdf$/i, '') + t('pdfwatermark.file.suffix');
               a.click();
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-              say('전 페이지에 문구를 얹어 내려받았어요.', 'ok');
+              say(t('pdfwatermark.say.done'), 'ok');
               // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
               Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'pdfwatermark' });
               Toolbox.trackUse?.('watermark');
             } catch (e) {
-              say('처리 중 문제가 생겼어요: ' + (e as Error).message, 'error');
+              say(t('pdfwatermark.err.run') + (e as Error).message, 'error');
             }
           }
 
           function pick(f: File): void {
             file = f;
-            say(`${f.name} — 문구를 적고 넣기를 누르세요.`, 'ok');
+            say(t('pdfwatermark.say.loaded', { name: f.name }), 'ok');
           }
 
           drop.onclick = () => fileInput.click();
@@ -212,6 +218,7 @@ import { acceptPastedFiles } from './shared/paste';
             $<HTMLElement>('#pwSizeVal').textContent = (e.target as HTMLInputElement).value + '%';
           });
           $<HTMLButtonElement>('#pwRun').onclick = () => void run();
+                  });
         }
       }
     ]

@@ -1,0 +1,18 @@
+{
+  "palette.label.count": "뽑을 색 개수",
+  "palette.alt.preview": "선택한 이미지",
+  "palette.drop": "이미지를 끌어다 놓거나 눌러서 선택하세요",
+  "palette.value.count": "8색",
+  "palette.btn.hex": "HEX 전부 복사",
+  "palette.btn.css": "CSS 변수로 복사",
+  "palette.status.idle": "이미지는 브라우저 안에서만 처리되고 어디로도 전송되지 않습니다.",
+  "palette.tab": "추출",
+  "palette.err.allTransparent": "색을 읽을 수 있는 픽셀이 없어요 (전부 투명한 이미지).",
+  "palette.err.notImage": "이미지 파일만 열 수 있어요.",
+  "palette.err.open": "이미지를 열지 못했어요.",
+  "palette.copy.hex": "HEX 를 복사했어요",
+  "palette.copy.css": "CSS 변수를 복사했어요",
+  "palette.say.done": "{n}색 추출 · 색을 누르면 HEX 가 복사됩니다.",
+  "palette.copy.one": "복사: {v}",
+  "palette.value.colors": "{n}색"
+}

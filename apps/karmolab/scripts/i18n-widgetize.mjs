@@ -229,11 +229,9 @@ for (const field of ['title', 'desc', 'label']) {
     const ko = catalog[key];
     const named =
       field === 'title' ? `widgets.${id}.title` : field === 'desc' ? `widgets-desc.${id}.desc` : key;
-    if (field !== 'label') {
-      delete catalog[key];
-      used.delete(key);
-      byText.delete(ko);
-    }
+    /* ★ 지우지 않는다. 같은 글이 탭 이름으로도 쓰이면(같은 글 = 같은 열쇠) 여기서 지운 순간
+     *   그쪽이 「없는 열쇠」가 되고, 기본값 자리에 `undefined` 가 박힌다 — 실제로 그렇게 깨졌다
+     *   (replace.t05 · tableconv.t01). 안 쓰이게 된 열쇠는 맨 끝에서 한꺼번에 턴다. */
     return `${head}t('${named}', undefined, ${JSON.stringify(ko)})`;
   });
 }
@@ -302,6 +300,11 @@ for (const m of src.matchAll(/`[^`]*[가-힣][^`]*`/g)) {
  * (표를 함수로 바꾸는 건 사람 판단), **있다는 사실은 반드시 알려야 한다.** */
 const regAt = src.indexOf('Toolbox.register(');
 const early = regAt > 0 ? (src.slice(0, regAt).match(/t\(/g) || []).length : 0;
+
+/* 아무 데서도 안 부르게 된 열쇠는 턴다 (④ 에서 이름이 바뀐 것들). */
+for (const key of Object.keys(catalog)) {
+  if (!src.includes(`'${key}'`)) delete catalog[key];
+}
 
 const rel = path.relative(ROOT, file).replace(/\\/g, '/');
 console.log(`[widgetize] ${rel} · build ${wrapped}곳 감쌈 · 열쇠 ${Object.keys(catalog).length}개`);
