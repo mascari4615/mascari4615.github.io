@@ -1,5 +1,5 @@
 {
-  "total": 8005,
+  "total": 7902,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -93,7 +93,7 @@
     "src/widgets/companion.ts": 41,
     "src/widgets/conch.ts": 19,
     "src/widgets/countdown.ts": 6,
-    "src/widgets/crypto.ts": 62,
+    "src/widgets/crypto.ts": 2,
     "src/widgets/darkroom.ts": 5,
     "src/widgets/dashboard.ts": 5,
     "src/widgets/devtools.ts": 33,
@@ -174,7 +174,7 @@
     "src/widgets/randomgen/randomgen-time.ts": 5,
     "src/widgets/randomgen/randomgen.ts": 58,
     "src/widgets/reaction.ts": 24,
-    "src/widgets/ref/ascii.ts": 45,
+    "src/widgets/ref/ascii.ts": 2,
     "src/widgets/ref/charmap.ts": 6,
     "src/widgets/ref/colorname.ts": 151,
     "src/widgets/ref/emoji.ts": 407,
