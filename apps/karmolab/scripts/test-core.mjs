@@ -1484,6 +1484,53 @@ for (const file of coreFiles) {
 }
 check(wired >= 20, `배선을 확인한 도구가 ${wired}개뿐 — 찾는 경로가 틀렸을 수 있다`);
 
+// ── ②-30 AI 경로 고르기 (로컬 AI 는 「추가」이지 「전제」가 아니다) ─────────────
+const ai = await load('src/lib/ai-route.ts');
+
+/*
+ * 철칙부터 잠근다 — **아무 것도 안 갖춘 사람에게도 도구는 열려야 한다.**
+ * 이게 깨지면 「AI 때문에 도구가 안 열린다」가 되고, 그건 기능 추가가 아니라 기능 삭제다.
+ */
+const bare = ai.chooseRoute({ hasKey: false, webgpu: false, modelCached: false });
+eq(bare.route, 'off', '아무 것도 없으면 도구만 (고장 아님)');
+check(bare.why.includes('그대로'), `왜 그런지 사람 말로: ${bare.why}`);
+
+eq(ai.chooseRoute({ hasKey: true, webgpu: false, modelCached: false }).route, 'remote', '키 있으면 원격');
+eq(ai.chooseRoute({ hasKey: false, webgpu: true, modelCached: true }).route, 'local', '키 없어도 모델 있으면 로컬');
+eq(ai.chooseRoute({ hasKey: false, webgpu: true, modelCached: false }).route, 'gate', '모델 없으면 물어본다');
+
+/* 키가 있어도 「내보내기 싫다」를 골랐으면 그 뜻을 뒤집지 않는다. */
+eq(ai.chooseRoute({ hasKey: true, webgpu: true, modelCached: true, preferLocal: true }).route, 'local', '로컬 선호가 키보다 먼저');
+eq(ai.chooseRoute({ hasKey: true, webgpu: true, modelCached: false, preferLocal: true }).route, 'gate', '로컬 선호인데 모델 없으면 게이트');
+/* 다만 로컬이 불가능하면 뜻을 지키다 아무 것도 못 하게 두지 않는다. */
+eq(ai.chooseRoute({ hasKey: true, webgpu: false, modelCached: false, preferLocal: true }).route, 'remote', '로컬 불가면 원격으로');
+
+/* 작은 기기는 시도조차 안 한다 — 시도해서 죽는 것보다 안 하는 편이 낫다. */
+eq(ai.chooseRoute({ hasKey: false, webgpu: true, modelCached: true, tooSmall: true }).route, 'off', '버거운 기기는 끈다');
+
+/*
+ * ★ 실패는 **단계**로 가른다. 적재 실패에 「작게 해서 다시」를 권하면 안 된다 —
+ * 모델이 아예 안 올라간 것이라 입력 크기와 무관하고, 그 권유는 사람을 헛돌게 한다.
+ */
+const loadFail = ai.explainFailure('load', 'ALLOC');
+check(loadFail.say.includes('비어 있는'), '적재 실패는 「지금 비어 있는」 메모리를 짚는다');
+check(/줄여|작게|해상도/.test(loadFail.say) === false, `적재 실패에 「줄여 보라」를 권하지 않는다: ${loadFail.say}`);
+check(loadFail.retryable === true && loadFail.suggestRemote === true, '적재 실패는 재시도·원격 둘 다 권한다');
+
+const run = ai.explainFailure('run');
+check(/줄여/.test(run.say), '실행 중 실패는 입력을 줄이라고 한다 (여기서는 맞는 말)');
+check(run.suggestRemote === false, '실행 실패는 원격을 권하지 않는다 (같은 입력이면 거기서도 무겁다)');
+
+const unsupported = ai.explainFailure('support');
+check(unsupported.retryable === false, '지원 안 하는 브라우저는 다시 해도 같다 — 버튼을 안 준다');
+check(unsupported.say.includes('그대로'), '그래도 도구는 쓸 수 있다고 말한다');
+
+/* 받기 전에 숫자를 먼저 말한다. 「잠시만 기다려 주세요」로는 아무도 못 고른다. */
+const notice = ai.downloadNotice(120, 20);
+check(notice.includes('120MB'), `크기를 말한다: ${notice}`);
+check(/초|분/.test(notice), '걸리는 시간을 말한다');
+check(notice.includes('다음부터'), '두 번째부터는 빠르다는 것도 말한다');
+
 // ── 마무리 ──────────────────────────────────────────────────────────────────
 fs.rmSync(outDir, { recursive: true, force: true });
 process.stdout.write('\n');
