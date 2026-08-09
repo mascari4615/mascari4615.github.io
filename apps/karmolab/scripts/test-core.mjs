@@ -959,6 +959,64 @@ for (const bad of [['shift', { date: '2026-08-09' }], ['shift', { date: '엉뚱'
 }
 eq(dcThrew, 4, '더할 값 없음·잘못된 날짜·끝날 없음·없는 날짜는 전부 던진다');
 
+// ── ②-21 charcount 알맹이 (「몇 글자?」의 답이 기준마다 다르다) ───────────────
+const cc = await load('src/core/charcount.ts');
+
+eq(cc.spec.id, 'charcount', 'charcount spec.id');
+
+// 이모지는 사람이 보는 대로 한 글자여야 한다 — text.length 는 2로 센다.
+eq('🦴'.length, 2, '(자바스크립트 기본은 2로 센다)');
+eq(cc.chars('🦴').length, 1, '이모지는 한 글자');
+eq(cc.count('🦴 뼈').withSpace, 3, '이모지+공백+한글 = 3자');
+
+const c = cc.count('안녕 하세요');
+eq(c.withSpace, 6, '공백 포함 6자');
+eq(c.withoutSpace, 5, '공백 제외 5자 — 이 둘이 다른 게 요점');
+eq(c.words, 2, '단어 2');
+eq(c.hangul, 5, '한글 5');
+eq(c.space, 1, '공백 1');
+
+// 바이트 — 옛 시스템은 여기서 자른다. 한글은 UTF-8 3바이트, EUC-KR 2바이트.
+eq(cc.byteLength('가', 'utf8'), 3, '한글 UTF-8 = 3바이트');
+eq(cc.byteLength('가', 'euckr'), 2, '한글 EUC-KR = 2바이트');
+eq(cc.byteLength('a', 'utf8'), 1, '영문 1바이트');
+check(cc.byteLength('가나다', 'utf8') !== cc.byteLength('가나다', 'euckr'), '두 인코딩이 다르다 (같으면 이 칸이 무의미)');
+eq(cc.euckrUnsafe('🦴 뼈').length, 1, 'EUC-KR 에 못 담는 글자를 집어낸다');
+eq(cc.euckrUnsafe('안녕').length, 0, '한글은 담긴다');
+
+// 문장 — 마지막에 마침표가 없어도 문장이다 (자소서 마지막 줄).
+eq(cc.sentenceCount('하나. 둘. 셋.'), 3, '마침표 3개');
+eq(cc.sentenceCount('하나. 둘. 셋'), 3, '마지막에 마침표가 없어도 3');
+eq(cc.sentenceCount(''), 0, '빈 글은 0');
+eq(cc.sentenceCount('물음표는요? 느낌표도!'), 2, '? ! 도 문장 끝');
+
+// 원고지는 칸이라 줄이 바뀌면 남은 칸을 버린다.
+eq(cc.manuscriptSheets(''), 0, '빈 글은 0장');
+eq(cc.manuscriptSheets('가'.repeat(200)), 1, '200칸 = 1장');
+eq(cc.manuscriptSheets('가'.repeat(201)), 2, '201칸 = 2장');
+eq(cc.manuscriptSheets('가\n나'), 1, '줄이 바뀌면 남은 칸을 버린다 (2칸이 아니라 40칸 취급)');
+
+eq(cc.count('').withSpace, 0, '빈 글');
+eq(cc.count('').lines, 0, '빈 글은 0줄');
+eq(cc.count('한 줄').lines, 1, '한 줄');
+eq(cc.count('가\n\n나').paragraphs, 2, '빈 줄로 문단이 갈린다');
+
+check(cc.run('count', { text: '안녕 하세요' }).includes('공백 포함 6자'), 'run count');
+check(cc.run('count', { text: '안녕 하세요' }).includes('어느 기준인지'), '기준이 갈린다는 것을 말해 준다');
+check(cc.run('count', { text: '🦴' }).includes('EUC-KR 로는 못 담는'), '못 담는 글자를 경고한다');
+check(cc.run('fits', { text: '가'.repeat(10), limit: 20 }).includes('10 남음'), 'run fits 통과');
+check(cc.run('fits', { text: '가'.repeat(30), limit: 20 }).includes('10 초과'), 'run fits 초과');
+check(cc.run('fits', { text: '가'.repeat(10), limit: 20, basis: 'utf8' }).includes('UTF-8 바이트 30'), 'run fits 바이트 기준');
+let ccThrew = 0;
+for (const bad of [['fits', { text: 'a', limit: 0 }], ['fits', { text: 'a', limit: 10, basis: '엉뚱' }]]) {
+  try {
+    cc.run(bad[0], bad[1]);
+  } catch {
+    ccThrew++;
+  }
+}
+eq(ccThrew, 2, '0 한도·모르는 기준은 던진다');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 
