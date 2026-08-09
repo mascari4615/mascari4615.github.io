@@ -981,7 +981,18 @@ import {
             if (!s1) return;
             // 갈래를 골라도 **팩을 갈아치우지는 않는다**. 종류 목록은 어차피 모든 갈래가 함께 보이고,
             // 팩을 바꾸면 이미 놓인 것들의 기본 종류까지 흔들려 「모든 주제가 공존」이 깨진다.
-            buildFromOutline(s1.outline, packById(packId).nodeKinds[0].id);
+            const before = spec.nodes.length;
+            const kind0 = packById(packId).nodeKinds[0];
+            buildFromOutline(s1.outline, kind0.id);
+            // 견본만 깔면 「이제 뭘 적지?」가 남는다 — 그 갈래가 흔히 갖는 **칸 이름까지 비워서** 깔아 준다.
+            // 값은 안 채운다(빈 칸이 곧 「여기에 적어라」는 표시다).
+            for (const n of spec.nodes.slice(before)) {
+              const tpl = nodeKindsNow().find((k) => k.id === n.kind)?.fields ?? [];
+              if (tpl.length === 0) continue;
+              n.fields = { ...Object.fromEntries(tpl.map((name) => [name, ''])), ...(n.fields ?? {}) };
+            }
+            applySpec();
+            persistStructure();
             Toolbox.showToast?.('시작할 판을 깔았습니다 — 마음껏 고치세요', undefined, undefined);
           };
         });
