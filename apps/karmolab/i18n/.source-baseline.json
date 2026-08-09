@@ -1,5 +1,5 @@
 {
-  "total": 6896,
+  "total": 6748,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -35,7 +35,6 @@
     "src/home-page.ts": 3,
     "src/home-prefs.ts": 13,
     "src/lang-switch.ts": 5,
-    "src/lib/graph/canvas.ts": 1,
     "src/lib/graph/styles.ts": 1,
     "src/lib/i18n-registry.ts": 1,
     "src/lib/i18n.ts": 2,
@@ -176,7 +175,7 @@
     "src/widgets/reaction.ts": 24,
     "src/widgets/ref/ascii.ts": 2,
     "src/widgets/ref/charmap.ts": 6,
-    "src/widgets/ref/colorname.ts": 151,
+    "src/widgets/ref/colorname.ts": 3,
     "src/widgets/ref/emoji.ts": 407,
     "src/widgets/ref/filetype.ts": 3,
     "src/widgets/ref/gitcmd.ts": 3,
@@ -345,6 +344,7 @@
     "src/widgets/karmomap/panels/notes-panel.ts": 5,
     "src/widgets/karmomap/panels/stamps-panel.ts": 3,
     "src/widgets/karmomap/presentation-svg.ts": 1,
-    "src/widgets/karmomap/stamps.ts": 1
+    "src/widgets/karmomap/stamps.ts": 1,
+    "src/lib/graph/canvas-dom.ts": 1
   }
 }
