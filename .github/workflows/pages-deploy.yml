@@ -126,8 +126,14 @@ jobs:
 
       - name: Build KarmoLab JavaScript (TypeScript)
         working-directory: apps/karmolab
+        # `npm run build` 안에는 **화면을 실제로 열어 보는 검사**가 여럿 있다(글판 마크다운·성능
+        # 예산·커버리지·뒷정리 …). `npm ci` 는 playwright 꾸러미만 깔고 **브라우저는 안 깐다** —
+        # 그래서 배포 잡에서 「Executable doesn't exist」로 통째로 섰다(2026-08-09 실측).
+        # 검사 쪽에도 관문을 뒀지만(없으면 「못 돌림」으로 빠진다) 관문 없는 남의 검사가 더 많고,
+        # 무엇보다 **여기서는 실제로 재는 편이 맞다** — 배포 직전이 마지막 그물이다.
         run: |
           npm ci
+          npx playwright install --with-deps chromium
           npm run build
 
       - name: Prepare KarmoLab Jekyll page
@@ -195,9 +201,8 @@ jobs:
       # `browserType.launch: Executable doesn't exist` 로 죽었는데 `|| true` 가 그걸 삼켰다.
       # 그래서 로컬에는 129장이 다 박혀 있는데 실제 사이트는 0장이었다 — 배포는 내내 초록.
       # 이제 브라우저를 명시적으로 받고, 실패는 배포를 세운다(조용히 넘어가는 길 없음).
-      - name: Install browser for prerender
-        working-directory: apps/karmolab
-        run: npx playwright install --with-deps chromium
+      # (브라우저는 위 「Build KarmoLab JavaScript」 단계에서 이미 받았다 — 그 단계의 검사들도
+      #  브라우저가 있어야 돌기 때문이다. 여기서 또 받을 필요 없다.)
 
       - name: Prerender KarmoLab tool pages
         working-directory: apps/karmolab
