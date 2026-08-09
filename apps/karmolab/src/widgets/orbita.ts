@@ -15,7 +15,12 @@
  * 시간은 **오디오 시계**로 잡는다 (setInterval 로 소리를 내면 흔들린다).
  * 25ms 마다 깨어나 100ms 앞을 미리 예약하는 lookahead 스케줄러다.
  */
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   /* ── Web MIDI — lib.dom 의 타입을 쓴다. `requestMIDIAccess` 는 없는 브라우저가 있어
    *    Navigator 에서 optional 로 받아 존재를 먼저 확인한다. ───────────────── */
   type MidiPortLike = MIDIOutput;
@@ -26,16 +31,16 @@
 
   /* ── 음계 ────────────────────────────────────────────────────────────────── */
   const SCALES: Array<{ id: string; label: string; steps: number[] }> = [
-    { id: 'major', label: '메이저', steps: [0, 2, 4, 5, 7, 9, 11] },
-    { id: 'minor', label: '내추럴 마이너', steps: [0, 2, 3, 5, 7, 8, 10] },
-    { id: 'dorian', label: '도리안', steps: [0, 2, 3, 5, 7, 9, 10] },
-    { id: 'penta', label: '펜타토닉', steps: [0, 3, 5, 7, 10] },
-    { id: 'hexa', label: '온음 (whole tone)', steps: [0, 2, 4, 6, 8, 10] },
-    { id: 'hirajoshi', label: '히라조시 (和)', steps: [0, 2, 3, 7, 8] }
+    { id: 'major', label: t('orbita.t02'), steps: [0, 2, 4, 5, 7, 9, 11] },
+    { id: 'minor', label: t('orbita.t03'), steps: [0, 2, 3, 5, 7, 8, 10] },
+    { id: 'dorian', label: t('orbita.t04'), steps: [0, 2, 3, 5, 7, 9, 10] },
+    { id: 'penta', label: t('orbita.t05'), steps: [0, 3, 5, 7, 10] },
+    { id: 'hexa', label: t('orbita.t06'), steps: [0, 2, 4, 6, 8, 10] },
+    { id: 'hirajoshi', label: t('orbita.t07'), steps: [0, 2, 3, 7, 8] }
   ];
   const ROOTS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const WAVES: OscillatorType[] = ['triangle', 'sine', 'square', 'sawtooth'];
-  const WAVE_LABEL: Record<string, string> = { triangle: '삼각', sine: '사인', square: '사각', sawtooth: '톱니' };
+  const WAVE_LABEL: Record<string, string> = { triangle: t('orbita.t08'), sine: t('orbita.t09'), square: t('orbita.t10'), sawtooth: t('orbita.t11') };
 
   /* ── 모델 ────────────────────────────────────────────────────────────────── */
   interface Slot {
@@ -162,7 +167,7 @@
     id: 'orbita',
     title: 'ORBITA',
     category: 'lab',
-    desc: '궤도에 색을 찍어 만드는 폴리리듬 시퀀서 — 브라우저 신스 + MIDI 출력',
+    desc: t('widgets-desc.orbita.desc', undefined, "궤도에 색을 찍어 만드는 폴리리듬 시퀀서 — 브라우저 신스 + MIDI 출력"),
     /* `full` 이 아니라 `form` 이다. `full` 은 패널을 화면 높이에 가두고(`flex:1`) 내부에서
        스스로 스크롤하는 위젯(cockpit 등)용이다. 이건 위에서 아래로 흐르는 계기판이라
        가두면 아래 절반이 패널 밖으로 삐져나와 「여기도 있어요」와 겹친다(실측 1018 > 688). */
@@ -173,6 +178,8 @@
         id: 'app',
         label: 'ORBITA',
         build: function (container: HTMLElement): void {
+          void loadNamespace('orbita').then(function () {
+
           /* ── 상태 ───────────────────────────────────────────────────────── */
           let song: Song = defaultSong();
           try {
@@ -218,35 +225,35 @@
             <div class="orbita">
               <div class="orbita-stage">
                 <canvas id="orbitaCanvas"></canvas>
-                <div class="orbita-hint">클릭 = 찍기 · 위아래 드래그 = 음 바꾸기 · 휠 = 세기 · Shift+클릭 = 지우기</div>
+                <div class="orbita-hint">${esc(t('orbita.t01'))}</div>
               </div>
 
               <div class="orbita-panel">
                 <button type="button" class="orbita-btn orbita-transport" id="orbitaPlay">▶ PLAY</button>
                 <label for="orbitaBpm">BPM</label>
-                <input type="range" id="orbitaBpm" min="40" max="200" step="1" aria-label="템포 (BPM)">
+                <input type="range" id="orbitaBpm" min="40" max="200" step="1" aria-label="${esc(t('orbita.aria.bpm'))}">
                 <span class="orbita-readout" id="orbitaBpmOut"></span>
                 <label for="orbitaRoot">ROOT</label>
-                <select id="orbitaRoot" aria-label="으뜸음"></select>
+                <select id="orbitaRoot" aria-label="${esc(t('orbita.aria.root'))}"></select>
                 <label for="orbitaScale">SCALE</label>
-                <select id="orbitaScale" aria-label="음계"></select>
-                <button type="button" class="orbita-btn" id="orbitaRandom">✦ 흩뿌리기</button>
-                <button type="button" class="orbita-btn" id="orbitaClear">비우기</button>
+                <select id="orbitaScale" aria-label="${esc(t('orbita.aria.scale'))}"></select>
+                <button type="button" class="orbita-btn" id="orbitaRandom">${esc(t('orbita.btn.random'))}</button>
+                <button type="button" class="orbita-btn" id="orbitaClear">${esc(t('orbita.btn.clear'))}</button>
               </div>
 
               <div class="orbita-panel">
                 <label>COLOR = PITCH</label>
                 <div class="orbita-swatches" id="orbitaSwatches"></div>
-                <label for="orbitaVel">세기</label>
-                <input type="range" id="orbitaVel" min="15" max="100" step="5" aria-label="찍을 음의 세기">
+                <label for="orbitaVel">${esc(t('orbita.label.vel'))}</label>
+                <input type="range" id="orbitaVel" min="15" max="100" step="5" aria-label="${esc(t('orbita.aria.vel'))}">
               </div>
 
               <div class="orbita-rings" id="orbitaRings"></div>
 
               <div class="orbita-panel">
                 <label for="orbitaMidi">MIDI OUT</label>
-                <select id="orbitaMidi" aria-label="MIDI 출력 장치"></select>
-                <span class="orbita-midi" id="orbitaMidiNote">브라우저 신스로 소리가 납니다. 장비를 고르면 그쪽으로도 보냅니다.</span>
+                <select id="orbitaMidi" aria-label="${esc(t('orbita.aria.midi'))}"></select>
+                <span class="orbita-midi" id="orbitaMidiNote">${esc(t('orbita.label.midiNote'))}</span>
               </div>
             </div>
           `;
@@ -295,19 +302,19 @@
                 return `<div class="orbita-ring-row">
                   <span class="orbita-ring-dot" style="background:hsl(${(i * 47) % 360} 20% 70%)"></span>
                   <span class="orbita-ring-name">궤도 ${i + 1}</span>
-                  <label for="orbitaSteps${i}">칸</label>
+                  <label for="orbitaSteps${i}">${esc(t('orbita.label.stepsi'))}</label>
                   <select id="orbitaSteps${i}" data-ring="${i}" data-k="steps" aria-label="궤도 ${i + 1} 칸 수">
                     ${opt([3, 4, 5, 6, 7, 8, 9, 12, 16, 24], r.steps, (v) => `${v}`)}
                   </select>
-                  <label for="orbitaRate${i}">속도</label>
+                  <label for="orbitaRate${i}">${esc(t('orbita.label.ratei'))}</label>
                   <select id="orbitaRate${i}" data-ring="${i}" data-k="rate" aria-label="궤도 ${i + 1} 회전 속도">
                     ${opt([0.25, 0.5, 1, 1.5, 2, 3], r.rate, (v) => `×${v}`)}
                   </select>
-                  <label for="orbitaOct${i}">옥타브</label>
+                  <label for="orbitaOct${i}">${esc(t('orbita.label.octi'))}</label>
                   <select id="orbitaOct${i}" data-ring="${i}" data-k="octave" aria-label="궤도 ${i + 1} 옥타브">
                     ${opt([1, 2, 3, 4, 5, 6, 7], r.octave, (v) => `${v}`)}
                   </select>
-                  <label for="orbitaWave${i}">음색</label>
+                  <label for="orbitaWave${i}">${esc(t('orbita.label.wavei'))}</label>
                   <select id="orbitaWave${i}" data-ring="${i}" data-k="wave" aria-label="궤도 ${i + 1} 음색">
                     ${opt(WAVES as unknown as string[], r.wave, (v) => WAVE_LABEL[String(v)] || String(v))}
                   </select>
@@ -315,8 +322,8 @@
                   <select id="orbitaCh${i}" data-ring="${i}" data-k="channel" aria-label="궤도 ${i + 1} MIDI 채널">
                     ${opt(Array.from({ length: 16 }, (_, k) => k + 1), r.channel, (v) => `${v}`)}
                   </select>
-                  <button type="button" class="orbita-btn${r.muted ? '' : ' is-on'}" data-ring="${i}" data-act="mute">${r.muted ? '음소거' : '소리남'}</button>
-                  <button type="button" class="orbita-btn" data-ring="${i}" data-act="wipe">비우기</button>
+                  <button type="button" class="orbita-btn${r.muted ? '' : ' is-on'}" data-ring="${i}" data-act="mute">${r.muted ? t('orbita.t13') : t('orbita.t14')}</button>
+                  <button type="button" class="orbita-btn" data-ring="${i}" data-act="wipe">${esc(t('orbita.btn.clear'))}</button>
                 </div>`;
               })
               .join('');
@@ -384,7 +391,7 @@
           function fillMidiDevices(): void {
             const outs = midiAccess ? Array.from(midiAccess.outputs.values()) : [];
             midiEl.innerHTML =
-              '<option value="">(브라우저 신스만)</option>' +
+              t('orbita.t15') +
               outs.map((o) => `<option value="${o.id}">${o.name || o.id}</option>`).join('');
             if (midiOut && outs.some((o) => o.id === midiOut?.id)) midiEl.value = midiOut.id;
             else midiOut = null;
@@ -400,13 +407,13 @@
                 fillMidiDevices();
               })
               .catch(() => {
-                midiEl.innerHTML = '<option value="">(MIDI 권한 없음)</option>';
-                midiNoteEl.textContent = 'MIDI 접근이 거부됐습니다 — 브라우저 신스로만 납니다.';
+                midiEl.innerHTML = t('orbita.t16');
+                midiNoteEl.textContent = t('orbita.t17');
               });
           } else {
-            midiEl.innerHTML = '<option value="">(이 브라우저는 MIDI 미지원)</option>';
+            midiEl.innerHTML = t('orbita.t18');
             midiEl.disabled = true;
-            midiNoteEl.textContent = 'Web MIDI 를 지원하지 않는 브라우저입니다 — 브라우저 신스로만 납니다.';
+            midiNoteEl.textContent = t('orbita.t19');
           }
 
           /**
@@ -481,7 +488,7 @@
             schedule();
             playBtn.textContent = '■ STOP';
             playBtn.classList.add('is-on');
-            Mdd.linePreset('tool_run', { mood: 'happy', msg: '궤도가 돌기 시작했어요' });
+            Mdd.linePreset('tool_run', { mood: 'happy', msg: t('orbita.t20') });
           }
 
           function stop(): void {
@@ -807,8 +814,8 @@
             const id = midiEl.value;
             midiOut = id && midiAccess ? midiAccess.outputs.get(id) || null : null;
             midiNoteEl.textContent = midiOut
-              ? `${midiOut.name || midiOut.id} 로 보냅니다 — 궤도 번호 = MIDI 채널.`
-              : '브라우저 신스로 소리가 납니다. 장비를 고르면 그쪽으로도 보냅니다.';
+              ? t('orbita.midiTo', { name: midiOut.name || midiOut.id })
+              : t('orbita.label.midiNote');
           };
 
           $<HTMLButtonElement>('#orbitaClear').onclick = () => {
@@ -829,7 +836,7 @@
               }
             });
             save();
-            Mdd.linePreset('idle_wake', { msg: '별을 뿌렸어요' });
+            Mdd.linePreset('idle_wake', { msg: t('orbita.t21') });
             Mdd.bounce();
           };
 
@@ -864,7 +871,8 @@
             master = null;
           });
 
-          Mdd.linePreset('tool_run', { mood: 'idle', msg: '궤도에 색을 찍어 보세요' });
+          Mdd.linePreset('tool_run', { mood: 'idle', msg: t('orbita.t22') });
+                  });
         }
       }
     ]
