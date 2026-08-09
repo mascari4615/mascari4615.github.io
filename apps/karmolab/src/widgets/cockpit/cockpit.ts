@@ -1,3 +1,4 @@
+import { loadNamespace } from '../../lib/i18n';
 /**
  * cockpit.ts — Cockpit 위젯 엔트리 (TASK-KL-082 단위 J).
  *
@@ -221,7 +222,8 @@ import { buildCardsTab } from './cards-tab';
         id: 'cockpit-main',
         label: 'Cockpit',
         build(container: HTMLElement) {
-          render(container);
+          /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+          void loadNamespace('cockpit').then(() => render(container));
         },
       },
     ],
