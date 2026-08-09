@@ -102,6 +102,8 @@ export interface GraphCanvasOptions {
    */
   onNodeClick?: (nodeId: string, ev: MouseEvent) => void;
   onNodeResized?: (nodeId: string) => void;
+  /** 카드를 다른 카드 위에 떨어뜨렸을 때. 주면 「겹쳐 놓으면 잇기」가 켜진다. */
+  onNodeDropped?: (draggedId: string, overId: string) => void;
   /** 빈 배경 클릭 — 선택 해제용. */
   onBackgroundClick?: () => void;
   /** 빈 배경 더블클릭 — 그 자리에 새 노드를 만드는 위젯용 (world 좌표). */
@@ -234,6 +236,7 @@ export class GraphCanvas {
   private onNodeClick?: (nodeId: string, ev: MouseEvent) => void;
   /** 카드 크기를 손으로 바꾼 뒤 — 저장은 위젯이 한다(캔버스는 저장소를 모른다). */
   private onNodeResized?: (nodeId: string) => void;
+  private onNodeDropped?: (draggedId: string, overId: string) => void;
   private onBackgroundClick?: () => void;
   private onBackgroundDoubleClick?: (world: { x: number; y: number }) => void;
   private onConnect?: (fromId: string, toId: string) => void;
@@ -295,6 +298,7 @@ export class GraphCanvas {
     this.theme = { ...DEFAULT_THEME, ...(options.theme ?? {}) };
     this.onNodeClick = options.onNodeClick;
     this.onNodeResized = options.onNodeResized;
+    this.onNodeDropped = options.onNodeDropped;
     this.onBackgroundClick = options.onBackgroundClick;
     this.onBackgroundDoubleClick = options.onBackgroundDoubleClick;
     this.onConnect = options.onConnect;
@@ -831,6 +835,17 @@ export class GraphCanvas {
       if (this.sizing) {
         this.onNodeResized?.(this.sizing.nodeId);
         this.sizing = null;
+      }
+      // 카드를 **다른 카드 위에 떨어뜨리면** 잇는다 (Scapple 계보 — 선 도구를 따로 찾지 않게).
+      // 판정은 「놓은 자리 아래에 다른 카드가 있나」 하나뿐이고, 되돌리기 한 걸음으로 남는다.
+      if (this.dragging && this.onNodeDropped) {
+        const dragged = this.dragging.nodeId;
+        const moved = Math.hypot(e.clientX - this.dragging.startMouseX, e.clientY - this.dragging.startMouseY);
+        if (moved >= CLICK_SLOP) {
+          const under = document.elementFromPoint(e.clientX, e.clientY);
+          const overId = (under?.closest?.('.ck-node') as SVGGElement | null)?.dataset.id ?? '';
+          if (overId && overId !== dragged) this.onNodeDropped(dragged, overId);
+        }
       }
       this.dragging = null;
       this.draggingGroup = null;

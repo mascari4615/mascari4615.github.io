@@ -1521,6 +1521,20 @@ import {
       },
       onBackgroundDoubleClick: (world) => spawnNodeAt(world.x, world.y, ''),
       onNodeResized: () => { persistStructure(); },
+      // 겹쳐 놓으면 잇기 — 선 도구를 따로 찾지 않게(Scapple). 이미 이어진 쌍은 건너뛰고,
+      // 이었으면 말해 준다(모르고 생긴 선이 제일 나쁘다). ⌫ 로 되돌아간다.
+      onNodeDropped: (draggedId, overId) => {
+        const dup = spec.edges.some(
+          (e) => (e.from === draggedId && e.to === overId) || (e.from === overId && e.to === draggedId),
+        );
+        if (dup) return;
+        const taken = new Set(spec.edges.map((e) => e.id));
+        const kind = edgeKindsNow()[0].id;
+        spec.edges.push({ id: nextId('edge', taken), from: draggedId, to: overId, kind, label: edgeLabel(kind) });
+        applySpec();
+        persistStructure();
+        Toolbox.showToast?.('겹쳐 놓아 이었습니다 — ⌫ 로 되돌립니다', undefined, undefined);
+      },
       // 선을 휘거나 이름표를 옮긴 뒤 — 캔버스가 spec 을 고쳤으니 저장만 하면 된다.
       onEdgeChanged: () => persistStructure(),
       onEdgeClick: (edgeId) => {
