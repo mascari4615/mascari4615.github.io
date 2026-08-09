@@ -154,6 +154,20 @@ await step('설명을 적으면 카드에 📄 가 붙는다', async () => {
     { timeout: 4000 }
   );
 });
+await step('설명 속 [[이름]] 이 다른 노드로 이어진다', async () => {
+  const nodes = page.locator('.ck-node');
+  const second = await nodes.nth(1).getAttribute('data-id');
+  await nodes.nth(1).click({ position: { x: 12, y: 10 } });
+  const otherName = await page.inputValue('[data-km="edit-label"]');
+  await nodes.first().click({ position: { x: 12, y: 10 } });
+  await page.fill('[data-km="edit-doc"]', '이 인물은 [[' + otherName + ']] 와 얽혀 있다.');
+  await page.waitForSelector('[data-km="go-link"]', { timeout: 4000 });
+  await page.click('[data-km="go-link"]');
+  await page.waitForFunction((id) => {
+    const el = document.querySelector('.ck-node.is-selected');
+    return el && el.getAttribute('data-id') === id;
+  }, second, { timeout: 4000 });
+});
 await step('글로 여러 노드를 한 번에 만든다', async () => {
   const before = await page.locator('.ck-node').count();
   await page.click('[data-km="more"]');
