@@ -1942,6 +1942,18 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['bluemarble/bluemarble']
   },
 
+  /* 정원 (TASK-KL-211) — 손대지 않는 것을 켜 두고 구경한다. 9칸이 읽는 규칙 하나로
+     도시가 자라고 길이 뚫린다. 무슨 일이 일어났는지는 문장으로 말해 준다. */
+  {
+    id: 'garden',
+    title: '정원',
+    category: 'lab',
+    desc: '오늘의 규칙 하나로 스스로 자라는 격자 — 손대지 않고 지켜봅니다',
+    layout: 'full',
+    icon: '<rect x="3" y="3" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/><rect x="15" y="3" width="6" height="6" rx="1" fill="currentColor" opacity=".35"/><rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/><rect x="3" y="15" width="6" height="6" rx="1" fill="currentColor" opacity=".35"/><rect x="15" y="15" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/>',
+    lazyScriptPaths: ['garden/garden']
+  },
+
   /* 도감 (TASK-KL-196) — 써 본 도구에 도장이 찍힌다. 새로 만드는 것 없이 160개를 채울 것으로. */
   {
     id: 'collection',
