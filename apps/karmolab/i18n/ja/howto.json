@@ -173,5 +173,9 @@
   "howto.filesplit.0": "「分ける」でファイルを入れて1つあたりの大きさを選ぶ",
   "howto.filesplit.1": "分かれた断片を1つずつ送る",
   "howto.filesplit.2": "受け取った側は「つなげる」で断片を全部入れる",
-  "howto.filesplit.3": "つなげてダウンロードし、検査値が同じか確かめる"
+  "howto.filesplit.3": "つなげてダウンロードし、検査値が同じか確かめる",
+  "howto.pdf2text.0": "PDF を入れる",
+  "howto.pdf2text.1": "必要ならページ範囲を書く",
+  "howto.pdf2text.2": "「文字を抜き出す」を押す",
+  "howto.pdf2text.3": "結果を確かめてコピーするか txt で保存する"
 }

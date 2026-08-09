@@ -9,6 +9,7 @@
  * 그게 이 도구에서 가장 흔한 헛걸음이다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { t, loadNamespace, locale } from '../../lib/i18n';
 
 (function (): void {
   interface TextItem {
@@ -78,44 +79,60 @@ import { acceptPastedFiles } from './shared/paste';
     id: 'pdf2text',
     // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
     accepts: ['application/pdf'],
-    title: 'PDF 에서 글자 뽑기',
+    title: t('widgets.pdf2text.title', undefined, 'PDF 에서 글자 뽑기'),
     category: 'tool',
-    desc: 'PDF 의 글자를 줄·문단을 살려 뽑아냅니다. 파일이 브라우저를 벗어나지 않습니다',
+    desc: t(
+      'widgets-desc.pdf2text.desc',
+      undefined,
+      'PDF 의 글자를 줄·문단을 살려 뽑아냅니다. 파일이 브라우저를 벗어나지 않습니다'
+    ),
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8.5 12h7M8.5 15h7M8.5 18h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '글자 뽑기',
+        label: t('pdf2text.tab', undefined, '글자 뽑기'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('pdf2text').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="ptDrop">
               <input type="file" id="ptFile" accept="application/pdf" hidden>
-              PDF 를 끌어다 놓거나 눌러서 고르세요
+              ${esc(t('pdf2text.drop'))}
             </div>
 
             <div id="ptEditor" style="display:none; margin-top:var(--space-lg);">
               <div class="field-group">
-                <label class="field-label" for="ptRange">쪽 범위 — 비우면 전체 (예: 1-3, 5)</label>
-                <input type="text" id="ptRange" placeholder="전체" spellcheck="false">
+                <label class="field-label" for="ptRange">${esc(t('pdf2text.label.range'))}</label>
+                <input type="text" id="ptRange" placeholder="${esc(t('pdf2text.ph.range'))}" spellcheck="false">
               </div>
 
               <div class="tool-chips" style="margin-bottom:var(--space-lg);">
-                <label class="tool-chip"><input type="checkbox" id="ptMark" checked> 쪽 구분 표시 넣기</label>
+                <label class="tool-chip"><input type="checkbox" id="ptMark" checked> ${esc(t('pdf2text.opt.mark'))}</label>
               </div>
 
               <div class="cc-stats" id="ptStats"></div>
 
               <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-                <button class="btn btn-primary" id="ptRun">글자 뽑기</button>
-                <button class="btn btn-ghost" id="ptCopy" disabled>복사</button>
-                <button class="btn btn-ghost" id="ptSave" disabled>txt 로 받기</button>
+                <button class="btn btn-primary" id="ptRun">${esc(t('pdf2text.btn.run'))}</button>
+                <button class="btn btn-ghost" id="ptCopy" disabled>${esc(t('pdf2text.btn.copy'))}</button>
+                <button class="btn btn-ghost" id="ptSave" disabled>${esc(t('pdf2text.btn.save'))}</button>
               </div>
 
-              <textarea id="ptOut" rows="16" spellcheck="false" style="width:100%;" placeholder="뽑은 글자가 여기에 나옵니다"></textarea>
+              <textarea id="ptOut" rows="16" spellcheck="false" style="width:100%;" placeholder="${esc(t('pdf2text.ph.out'))}"></textarea>
             </div>
 
-            <div class="tool-status" id="ptStatus">파일은 브라우저 안에서만 다뤄집니다 — 문서를 올리지 않습니다.</div>
+            <div class="tool-status" id="ptStatus">${esc(t('pdf2text.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -160,10 +177,10 @@ import { acceptPastedFiles } from './shared/paste';
 
           async function loadLib(): Promise<PdfJs> {
             if (pdfjs) return pdfjs;
-            say('PDF 처리기를 불러오는 중…');
+            say(t('pdf2text.say.loadingLib'));
             await Toolbox.ensureScript?.('vendor/pdfjs.min');
             const g = (window as unknown as { pdfjsLib: PdfJs }).pdfjsLib;
-            if (!g) throw new Error('PDF 처리기를 불러오지 못했습니다');
+            if (!g) throw new Error(t('pdf2text.err.lib'));
             g.GlobalWorkerOptions.workerSrc = '/apps/karmolab/js/vendor/pdfjs.worker.min.js';
             pdfjs = g;
             return g;
@@ -174,38 +191,38 @@ import { acceptPastedFiles } from './shared/paste';
             out.value = '';
             copyBtn.disabled = true;
             saveBtn.disabled = true;
-            say(`${f.name} 을 여는 중…`);
+            say(t('pdf2text.say.opening', { name: f.name }));
             try {
               const lib = await loadLib();
               doc = await lib.getDocument({ data: await f.arrayBuffer() }).promise;
               editor.style.display = '';
-              stats.innerHTML = stat('쪽 수', `${doc.numPages}쪽`, true);
-              say('쪽 범위를 정하고 글자 뽑기를 누르세요.', 'ok');
+              stats.innerHTML = stat(t('pdf2text.stat.pages'), t('pdf2text.value.pages', { n: doc.numPages }), true);
+              say(t('pdf2text.say.opened'), 'ok');
             } catch (e) {
-              say('이 PDF 를 열지 못했어요: ' + (e as Error).message, 'error');
+              say(t('pdf2text.err.open', { msg: (e as Error).message }), 'error');
             }
           }
 
           async function run(): Promise<void> {
             if (!doc) {
-              say('PDF 를 먼저 넣어 주세요.', 'error');
+              say(t('pdf2text.err.noFile'), 'error');
               return;
             }
             const spec = $<HTMLInputElement>('#ptRange').value.trim();
             const pages = spec ? parseRange(spec, doc.numPages) : Array.from({ length: doc.numPages }, (_, i) => i + 1);
             if (!pages.length) {
-              say(`그 범위에 해당하는 쪽이 없어요. 이 PDF 는 ${doc.numPages}쪽이니 그 안에서 적어 주세요 (예: 1-3, 5).`, 'error');
+              say(t('pdf2text.err.range', { n: doc.numPages }), 'error');
               return;
             }
             const mark = $<HTMLInputElement>('#ptMark').checked;
             const chunks: string[] = [];
             let empty = 0;
             for (const n of pages) {
-              say(`${n}쪽에서 글자를 찾는 중…`);
+              say(t('pdf2text.say.scanning', { n }));
               const page = await doc.getPage(n);
               const text = rebuild((await page.getTextContent()).items);
               if (!text.trim()) empty++;
-              if (mark) chunks.push(`— ${n}쪽 —`);
+              if (mark) chunks.push(t('pdf2text.mark.page', { n }));
               chunks.push(text);
               chunks.push('');
             }
@@ -216,17 +233,17 @@ import { acceptPastedFiles } from './shared/paste';
 
             const chars = joined.replace(/\s/g, '').length;
             stats.innerHTML =
-              stat('뽑은 쪽', `${pages.length}쪽`, true) +
-              stat('글자 수', `${chars.toLocaleString()}자`) +
-              stat('빈 쪽', `${empty}쪽`);
+              stat(t('pdf2text.stat.taken'), t('pdf2text.value.pages', { n: pages.length }), true) +
+              stat(t('pdf2text.stat.chars'), t('pdf2text.value.chars', { n: chars.toLocaleString(locale()) })) +
+              stat(t('pdf2text.stat.empty'), t('pdf2text.value.pages', { n: empty }));
 
             // 스캔 문서는 글자가 아예 없다. 빈 결과를 성공처럼 내놓으면 사용자는 한참 뒤에야 안다.
             if (!chars) {
-              say('이 PDF 에는 글자가 없습니다 — 종이를 찍은 스캔 문서로 보입니다. 이 도구는 글자를 그림에서 읽어 내지는 못합니다.', 'error');
+              say(t('pdf2text.err.scanned'), 'error');
             } else if (empty) {
-              say(`${chars.toLocaleString()}자를 뽑았어요. 다만 ${empty}쪽은 글자가 없었습니다 (그림이나 스캔일 수 있어요).`);
+              say(t('pdf2text.say.someEmpty', { chars: chars.toLocaleString(locale()), empty }));
             } else {
-              say(`${chars.toLocaleString()}자를 뽑았어요.`, 'ok');
+              say(t('pdf2text.say.done', { chars: chars.toLocaleString(locale()) }), 'ok');
             }
             Toolbox.trackUse?.('extract');
           }
@@ -256,10 +273,10 @@ import { acceptPastedFiles } from './shared/paste';
           acceptPastedFiles(container, (files) => { void load(files[0]); }, (f: File) => f.type === 'application/pdf');
 
           $<HTMLButtonElement>('#ptRun').onclick = () => {
-            void run().catch((err: Error) => say('뽑는 중 문제가 생겼어요: ' + err.message, 'error'));
+            void run().catch((err: Error) => say(t('pdf2text.err.run', { msg: err.message }), 'error'));
           };
           copyBtn.onclick = () => {
-            void Toolbox.copyText?.(out.value, { message: '뽑은 글자를 복사했어요' });
+            void Toolbox.copyText?.(out.value, { message: t('pdf2text.copy.done') });
           };
           saveBtn.onclick = () => {
             const blob = new Blob([out.value], { type: 'text/plain;charset=utf-8' });
@@ -268,10 +285,7 @@ import { acceptPastedFiles } from './shared/paste';
             a.download = fileName.replace(/\.pdf$/i, '') + '.txt';
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say('내려받았어요.', 'ok');
+            say(t('pdf2text.say.saved'), 'ok');
           };
-        }
-      }
-    ]
-  });
+  }
 })();

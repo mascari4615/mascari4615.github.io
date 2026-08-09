@@ -173,5 +173,9 @@
   "howto.filesplit.0": "In Split, add the file and pick the piece size",
   "howto.filesplit.1": "Send the pieces one by one",
   "howto.filesplit.2": "On the other side, switch to Join and add every piece",
-  "howto.filesplit.3": "Download the joined file and check the checksum matches"
+  "howto.filesplit.3": "Download the joined file and check the checksum matches",
+  "howto.pdf2text.0": "Add a PDF",
+  "howto.pdf2text.1": "Write a page range if you need one",
+  "howto.pdf2text.2": "Hit extract",
+  "howto.pdf2text.3": "Check the result, then copy it or save it as txt"
 }
