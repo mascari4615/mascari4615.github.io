@@ -587,6 +587,15 @@ await step('공용 글 — 승격하면 목록에 뜨고, 둘째 자리에 붙�
     null,
     { timeout: 4000 }
   );
+  // 노드 패널 안에서 **바로** 쓰는 자리들이 펼쳐져야 한다 — 목록 패널까지 가야 하면 아무도 안 간다.
+  await page.click('[data-km="tab"][data-key="node"]');
+  await page.waitForSelector('[data-km="edit-doc-users"]', { timeout: 4000 });
+  await page.locator('[data-km="edit-doc-users"] summary').click();
+  const userRows = await page.locator('[data-km="edit-doc-users"] .km-link-row').count();
+  if (userRows < 2) throw new Error('쓰는 자리 목록이 2줄 미만: ' + userRows);
+  await page.click('[data-km="tab"][data-key="notes"]');
+  await page.waitForSelector('[data-km="note-title"]', { timeout: 4000 });
+
   // 쓰는 자리를 한 화면에 모아 준다(둘 이상일 때만 눌린다).
   await page.locator('[data-km="note-show"]:not([disabled])').first().click();
   // 「모아 보기」의 증거 = **나머지가 흐려진다**. 노드 수만 세면 아무것도 안 해도 통과한다.
