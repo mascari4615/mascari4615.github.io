@@ -5,6 +5,7 @@
  * 종류·선 위에 쓸 말·긴 이야기·꼬리표·화살표 방향을 여기서 고친다.
  */
 import type { PanelCtx } from './context';
+import { docFieldHtml, bindDocField, EDGE_DOC_SKIN } from './doc-section';
 
 /**
  * 선 패널 — 관계 자체에 붙는 이야기 (격차 Z).
@@ -30,10 +31,7 @@ export function renderEdgePanel(ctx: PanelCtx): void {
       <label>선 위에 쓸 말</label>
       <input type="text" data-km="ed-label" value="${esc(edge.label ?? '')}" placeholder="비우면 안 보임" />
     </div>
-    <div class="km-field">
-      <label>이 관계의 이야기</label>
-      <textarea data-km="ed-doc" class="km-textarea" rows="5" placeholder="언제부터, 왜 이런 사이가 됐는지">${esc(edge.doc ?? '')}</textarea>
-    </div>
+    ${docFieldHtml(ctx, edge, EDGE_DOC_SKIN)}
     <div class="km-field">
       <label>꼬리표 <span class="km-hint">쉼표로 여러 개</span></label>
       <input type="text" data-km="ed-tags" value="${esc((edge.tags ?? []).join(', '))}" />
@@ -57,10 +55,11 @@ export function renderEdgePanel(ctx: PanelCtx): void {
     edge.label = (ev.target as HTMLInputElement).value;
     save();
   };
-  (side.querySelector('[data-km="ed-doc"]') as HTMLTextAreaElement).oninput = (ev) => {
-    edge.doc = (ev.target as HTMLTextAreaElement).value.trim() || undefined;
+  // 글의 집이 둘(제자리·공용)이라 노드 패널과 **같은 조각**을 쓴다 — 규칙이 갈리면 한쪽만 고쳐진다.
+  bindDocField(ctx, edge, (redrawSide) => {
     ctx.persist();
-  };
+    if (redrawSide) ctx.refresh();
+  }, () => {}, EDGE_DOC_SKIN);
   (side.querySelector('[data-km="ed-tags"]') as HTMLInputElement).onchange = (ev) => {
     const list = (ev.target as HTMLInputElement).value.split(',').map((x) => x.trim()).filter(Boolean);
     edge.tags = list.length > 0 ? [...new Set(list)] : undefined;

@@ -6,6 +6,7 @@
  */
 import type { GraphNode } from '../../../lib/graph/spec';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from '../links';
+import { resolveDoc, setDocText } from '../notes';
 import type { PanelCtx } from './context';
 
 /**
@@ -13,10 +14,16 @@ import type { PanelCtx } from './context';
  * 마지막 것이 이 도구의 값이다: 사람이 링크 문법을 몰라도 그물이 자란다.
  */
 export function renderLinkSections(ctx: PanelCtx, node: GraphNode): string {
-  const all = ctx.spec().nodes;
-  const out = outgoingLinks(node, all);
-  const back = backlinks(node, all);
-  const loose = unlinkedMentions(node, all);
+  // 글이 공용 글(`docRef`)에 살면 `node.doc` 은 비어 있다 — **보이는 글**로 훑지 않으면
+  // 공용 글 안의 [[이름]] 은 영영 안 보인다. 그래서 훑기 전에 한 번 풀어 둔다.
+  const spec = ctx.spec();
+  const view = (n: GraphNode): { id: string; label: string; doc: string } =>
+    ({ id: n.id, label: n.label, doc: resolveDoc(spec, n) });
+  const all = spec.nodes.map(view);
+  const me = view(node);
+  const out = outgoingLinks(me, all);
+  const back = backlinks(me, all);
+  const loose = unlinkedMentions(me, all);
   if (out.length === 0 && back.length === 0 && loose.length === 0) return '';
   const row = (label: string, action: string, key: string, extra = ''): string =>
     `<div class="km-link-row"><span class="km-link-name">${ctx.esc(label)}</span>
@@ -56,7 +63,8 @@ export function bindLinkSections(ctx: PanelCtx, selectedId: string | null): void
       const other = ctx.spec().nodes.find((n) => n.id === id);
       const me = ctx.spec().nodes.find((n) => n.id === selectedId);
       if (!other || !me) return;
-      other.doc = linkFirstMention(other.doc ?? '', me.label);
+      // 공용 글이면 공용 글에 써야 한다 — `other.doc` 에 쓰면 아무도 안 보는 자리에 남는다.
+      setDocText(ctx.spec(), other, linkFirstMention(resolveDoc(ctx.spec(), other), me.label));
       ctx.canvas()?.render();
       ctx.canvas()?.setSelectedNode(me.id);
       ctx.persist();
