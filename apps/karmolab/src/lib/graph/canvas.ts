@@ -32,6 +32,7 @@ import type { GraphPersistAdapter } from './adapter';
 import { NULL_PERSIST_ADAPTER } from './adapter';
 import { injectGraphCanvasStyles, GRAPH_CANVAS_CSS } from './styles';
 import { resolveDoc, displayDoc } from './notes';
+import { exportSvgString } from './canvas-export';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
   fitProjection, projectPoint, viewportRectOnMap } from './canvas-math';
 
@@ -2344,43 +2345,9 @@ export class GraphCanvas {
    * 여기선 그럴 필요가 없다. CSS 를 문자열째 끼워 넣어야 클래스로 준 모양이 살아남는다.
    */
   exportSVGString(opts: { padding?: number; background?: string } = {}): string {
-    const pad = opts.padding ?? 32;
-    const bounds = this.worldBounds();
-    const w = Math.max(1, bounds.w + pad * 2);
-    const h = Math.max(1, bounds.h + pad * 2);
-
-    const clone = this.svg.cloneNode(true) as SVGSVGElement;
-    clone.removeAttribute('style');
-    clone.setAttribute('xmlns', SVG_NS);
-    clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
-    clone.setAttribute('width', String(Math.round(w)));
-    clone.setAttribute('height', String(Math.round(h)));
-    clone.setAttribute('viewBox', `${bounds.minX - pad} ${bounds.minY - pad} ${w} ${h}`);
-
-    // 화면용 변환(pan/zoom)은 viewBox 가 대신한다 — 남겨 두면 두 번 적용된다.
-    clone.querySelector('.ck-world')?.removeAttribute('transform');
-    // 배경 무늬는 화면 좌표에 깔려 있어 viewBox 를 바꾸면 어긋난다 — 그림에선 뺀다
-    // (배경색은 opts.background 가 채운다).
-    clone.querySelector('.ck-bg')?.remove();
-    // 화면에서만 쓰는 손잡이·선택 표시는 그림에 남지 않는다.
-    clone.querySelectorAll('.ck-link-handle, .ck-link-temp').forEach((el) => el.remove());
-    clone.querySelectorAll('.is-selected').forEach((el) => el.classList.remove('is-selected'));
-
-    const style = document.createElementNS(SVG_NS, 'style');
-    style.textContent = GRAPH_CANVAS_CSS;
-    clone.insertBefore(style, clone.firstChild);
-
-    if (opts.background) {
-      const bg = document.createElementNS(SVG_NS, 'rect');
-      bg.setAttribute('x', String(bounds.minX - pad));
-      bg.setAttribute('y', String(bounds.minY - pad));
-      bg.setAttribute('width', String(w));
-      bg.setAttribute('height', String(h));
-      bg.setAttribute('fill', opts.background);
-      clone.insertBefore(bg, style.nextSibling);
-    }
-
-    return new XMLSerializer().serializeToString(clone);
+    // 「무엇을 걷어 내는가」는 canvas-export 가 안다 — 화면 장식이 늘 때마다 여기 조건이 붙으면
+    // 언젠가 그림에 손잡이가 찍혀 나간다.
+    return exportSvgString(this.svg, this.worldBounds(), { ...opts, css: GRAPH_CANVAS_CSS });
   }
 
   /**

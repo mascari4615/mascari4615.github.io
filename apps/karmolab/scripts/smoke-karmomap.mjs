@@ -861,6 +861,13 @@ await step('SVG 로 저장하면 글자가 글자로 남는다', async () => {
   const text = await readFile(await dl.path(), 'utf8');
   if (!text.includes('<svg')) throw new Error('SVG 가 아니다');
   if (!/<text[\s>]/.test(text)) throw new Error('글자가 <text> 로 안 남았다');
+  // 화면에만 있던 자국이 그림에 찍혀 나가면 안 된다. **낱말로 찾으면 안 된다** — 인라인 CSS 규칙에
+  // 같은 이름이 적혀 있어 늘 걸린다(제품이 아니라 검사가 틀린 것). 진짜로 볼 것은 **요소의 class 값**.
+  for (const junk of ['ck-link-handle', 'ck-size-handle', 'ck-edge-hit', 'ck-edge-grip', 'is-selected']) {
+    if (new RegExp(`class="[^"]*\b${junk}\b`).test(text)) {
+      throw new Error(`화면용 자국이 그림에 남았다: ${junk}`);
+    }
+  }
 });
 await step('둥글게 놓기 — 자리가 실제로 바뀌고 아무도 안 사라진다', async () => {
   // 배치는 「눌렀더니 아무 일도 안 남」이 흔한 자리다. 자리가 **바뀌었는지**와 **개수가 그대로인지** 둘 다 본다.
