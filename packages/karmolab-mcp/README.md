@@ -3,7 +3,7 @@
 **The MCP server for things LLMs quietly get wrong** — exact hashes, real randomness, and Korean rules
 (three different "ages", business-registration checksums, substitute holidays, Hangul keyboard mapping).
 
-**Zero dependencies.** 47 tools. Everything runs locally; nothing is sent anywhere.
+**Zero dependencies.** 49 tools. Everything runs locally; nothing is sent anywhere.
 
 ```bash
 claude mcp add karmolab -- npx -y karmolab-mcp
@@ -27,14 +27,14 @@ An LLM will happily answer these — and be wrong in a way you cannot see:
 
 These are not edge cases. They are the everyday questions where a confident wrong answer costs something.
 
-## Tools (47)
+## Tools (49)
 
 Every tool description is English-first with the Korean original appended, and says *why* the tool
 exists — the failure it prevents — not just what it does.
 
 | Group | Tools | What it's for |
 | --- | --- | --- |
-| **Korean rules** | `bizno_check` · `birth_info` · `workdays_after` · `workdays_between` · `hangulkey_toKorean` · `hangulkey_toEnglish` · `hangulkey_auto` · `jamo_split` · `jamo_join` · `jamo_initials` | business/corporate registration checksums · three Korean ages · substitute holidays (KR/JP/US) · 2-bul keyboard round-trip · Hangul jamo decomposition |
+| **Korean rules** | `hangultype_count` · `hangultype_speed` · `bizno_check` · `birth_info` · `workdays_after` · `workdays_between` · `hangulkey_toKorean` · `hangulkey_toEnglish` · `hangulkey_auto` · `jamo_split` · `jamo_join` · `jamo_initials` | Korean keystroke count (타수 — one syllable is 2–4 presses, so "words × 5" understates it by half) · business/corporate registration checksums · three Korean ages · substitute holidays (KR/JP/US) · 2-bul keyboard round-trip · Hangul jamo decomposition |
 | **Exactness** | `hashgen_text` · `filehash_verify` · `uuidgen_generate` · `passgen_strength` | MD5·SHA-1·SHA-256·SHA-512·**SHA3-512 (FIPS-202)**·**Keccak-512**·RIPEMD-160 · checksum comparison that tolerates `sha256:` prefixes and case · UUID v4/v7, ULID, NanoID, passwords · password strength scored by guessing cost, not character classes |
 | **Money** | `vat_add` · `vat_extract` · `interest_deposit` · `interest_saving` · `interest_loan` · `loan_schedule` · `loan_compare` | Korean VAT with proper rounding · deposit/installment savings with 15.4% interest tax · three loan repayment methods side by side |
 | **Time** | `epoch_toDate` · `epoch_toStamp` · `datecalc_shift` · `datecalc_between` · `datecalc_dday` · `timecalc_shift` · `timecalc_sum` · `worldclock_convert` · `worldclock_offset` | s/ms/µs/ns auto-detected by digit count · month arithmetic that clamps (Jan 31 + 1mo = Feb 28) · 60-base time sums · DST-aware conversion |
@@ -101,7 +101,7 @@ what a user gets.
 
 ## 한국어
 
-**LLM 이 조용히 틀리는 것들을 대신 계산하는 MCP 서버.** 의존성 0개, 도구 47개, 전부 로컬에서 돈다.
+**LLM 이 조용히 틀리는 것들을 대신 계산하는 MCP 서버.** 의존성 0개, 도구 49개, 전부 로컬에서 돈다.
 
 값이 가장 큰 자리는 **한국 규칙**이다 — 나이 세 가지, 사업자등록번호 검증숫자, 대체공휴일,
 한영타·자모, 평·근·돈. 이건 지역 지식이라 모델이 외워서 답하다 어긋난다.
