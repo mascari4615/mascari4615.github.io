@@ -115,5 +115,10 @@
   "howto.pdfdiff.0": "Add the original (A) and the revised (B) PDF",
   "howto.pdfdiff.1": "Choose what to compare — text+image / text only / image only",
   "howto.pdfdiff.2": "Hit Compare",
-  "howto.pdfdiff.3": "Check the boxed spots on each page, and the added and removed lines"
+  "howto.pdfdiff.3": "Check the boxed spots on each page, and the added and removed lines",
+  "howto.video2gif.0": "Add a video file",
+  "howto.video2gif.1": "Play it and mark the start and end",
+  "howto.video2gif.2": "Set the width and frames per second",
+  "howto.video2gif.3": "Make the GIF and watch the preview",
+  "howto.video2gif.4": "Download it if you like it"
 }

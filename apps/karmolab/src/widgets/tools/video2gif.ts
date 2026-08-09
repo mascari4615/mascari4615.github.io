@@ -11,6 +11,8 @@ import { seekTo } from './shared/video';
 
 import { acceptPastedFiles } from './shared/paste';
 
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   interface GifApi {
     encodeAsync: (o: {
@@ -35,54 +37,72 @@ import { acceptPastedFiles } from './shared/paste';
     id: 'video2gif',
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['video/*'],
-    title: '영상 → GIF',
+    title: t('widgets.video2gif.title', undefined, '영상 → GIF'),
     category: 'tool',
-    desc: '영상의 원하는 구간을 GIF 로 만듭니다. 구간·화질을 보면서 고르고, 받기 전에 결과를 먼저 봅니다',
+    desc: t(
+      'widgets-desc.video2gif.desc',
+      undefined,
+      '영상의 원하는 구간을 GIF 로 만듭니다. 구간·화질을 보면서 고르고, 받기 전에 결과를 먼저 봅니다'
+    ),
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/>',
     tabs: [
       {
         id: 'app',
-        label: 'GIF 만들기',
+        label: t('video2gif.tab', undefined, 'GIF 만들기'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('video2gif').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="vgDrop">
               <input type="file" id="vgFile" accept="video/*" hidden>
-              영상을 끌어다 놓거나 눌러서 고르세요
+              ${esc(t('video2gif.drop'))}
             </div>
 
             <div id="vgEditor" style="display:none; margin-top:var(--space-lg);">
               <video id="vgVideo" playsinline muted style="width:100%; max-height:340px; background:#000; border-radius:8px;"></video>
 
               <div class="field-group" style="margin-top:var(--space-lg);">
-                <div class="tool-sublabel">구간 — <span id="vgRangeLabel" class="range-value">0:00.0 ~ 0:00.0 (0.0초)</span></div>
+                <div class="tool-sublabel">${esc(t('video2gif.label.range'))} — <span id="vgRangeLabel" class="range-value">${esc(
+                  t('video2gif.range.value', { from: '0:00.0', to: '0:00.0', sec: '0.0' })
+                )}</span></div>
                 <input type="range" id="vgStart" aria-label="구간 시작" min="0" max="1000" value="0" step="1">
                 <input type="range" id="vgEnd" aria-label="구간 끝" min="0" max="1000" value="1000" step="1" style="margin-top:6px;">
                 <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
-                  <button class="btn btn-ghost btn-sm" id="vgHere">지금 위치를 시작점으로</button>
-                  <button class="btn btn-ghost btn-sm" id="vgHereEnd">지금 위치를 끝점으로</button>
-                  <button class="btn btn-ghost btn-sm" id="vgPlayRange">구간만 재생</button>
+                  <button class="btn btn-ghost btn-sm" id="vgHere">${esc(t('video2gif.btn.here'))}</button>
+                  <button class="btn btn-ghost btn-sm" id="vgHereEnd">${esc(t('video2gif.btn.hereEnd'))}</button>
+                  <button class="btn btn-ghost btn-sm" id="vgPlayRange">${esc(t('video2gif.btn.playRange'))}</button>
                 </div>
               </div>
 
               <div class="field-group">
                 <div class="tool-grid-2">
                   <div>
-                    <div class="tool-sublabel">가로 크기 <span id="vgWidthVal" class="range-value">480px</span></div>
+                    <div class="tool-sublabel">${esc(t('video2gif.label.width'))} <span id="vgWidthVal" class="range-value">480px</span></div>
                     <input type="range" id="vgWidth" aria-label="가로 크기" min="120" max="960" step="20" value="480">
                   </div>
                   <div>
-                    <div class="tool-sublabel">초당 장수 <span id="vgFpsVal" class="range-value">12</span></div>
+                    <div class="tool-sublabel">${esc(t('video2gif.label.fps'))} <span id="vgFpsVal" class="range-value">12</span></div>
                     <input type="range" id="vgFps" aria-label="초당 장수" min="4" max="24" step="1" value="12">
                   </div>
                 </div>
                 <div class="tool-grid-2" style="margin-top:10px;">
                   <div>
-                    <div class="tool-sublabel">색 수 <span id="vgColorsVal" class="range-value">128</span></div>
+                    <div class="tool-sublabel">${esc(t('video2gif.label.colors'))} <span id="vgColorsVal" class="range-value">128</span></div>
                     <input type="range" id="vgColors" aria-label="색 수" min="16" max="255" step="1" value="128">
                   </div>
                   <div class="tool-chips" style="align-content:end;">
-                    <label class="tool-chip"><input type="checkbox" id="vgDither" checked> 색 뿌리기 (얼룩 줄임)</label>
+                    <label class="tool-chip"><input type="checkbox" id="vgDither" checked> ${esc(t('video2gif.opt.dither'))}</label>
                   </div>
                 </div>
               </div>
@@ -90,17 +110,17 @@ import { acceptPastedFiles } from './shared/paste';
               <div class="cc-stats" id="vgStats"></div>
 
               <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-                <button class="btn btn-primary" id="vgRun">GIF 만들기</button>
-                <button class="btn btn-ghost" id="vgSave" disabled>내려받기</button>
+                <button class="btn btn-primary" id="vgRun">${esc(t('video2gif.btn.run'))}</button>
+                <button class="btn btn-ghost" id="vgSave" disabled>${esc(t('video2gif.btn.save'))}</button>
               </div>
 
               <div id="vgResult" style="display:none;">
-                <div class="tool-sublabel">결과 미리보기 — 마음에 들면 내려받으세요</div>
+                <div class="tool-sublabel">${esc(t('video2gif.label.preview'))}</div>
                 <img id="vgPreview" alt="만들어진 GIF" style="max-width:100%; border-radius:8px; background:#111;">
               </div>
             </div>
 
-            <div class="tool-status" id="vgStatus">영상은 브라우저 안에서만 열립니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="vgStatus">${esc(t('video2gif.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -149,7 +169,11 @@ import { acceptPastedFiles } from './shared/paste';
             }
             const s = startSec(), e = endSec();
             const span = Math.max(0, e - s);
-            $<HTMLElement>('#vgRangeLabel').textContent = `${mmss(s)} ~ ${mmss(e)} (${span.toFixed(1)}초)`;
+            $<HTMLElement>('#vgRangeLabel').textContent = t('video2gif.range.value', {
+              from: mmss(s),
+              to: mmss(e),
+              sec: span.toFixed(1)
+            });
             $<HTMLElement>('#vgWidthVal').textContent = widthEl.value + 'px';
             $<HTMLElement>('#vgFpsVal').textContent = fpsEl.value;
             $<HTMLElement>('#vgColorsVal').textContent = colorsEl.value;
@@ -160,9 +184,9 @@ import { acceptPastedFiles } from './shared/paste';
             // 실측 기준 대략치다. 정확한 값은 만들어 봐야 알지만, 「만들고 나서 너무 크네」를 막는 게 목적이다.
             const guess = w * h * count * 0.13 * (parseInt(colorsEl.value, 10) / 128);
             stats.innerHTML =
-              stat('만들 크기', `${w}×${h}`, true) +
-              stat('장수', `${count}장`) +
-              stat('예상 용량', '약 ' + size(guess));
+              stat(t('video2gif.stat.size'), `${w}×${h}`, true) +
+              stat(t('video2gif.stat.frames'), t('video2gif.value.frames', { n: count })) +
+              stat(t('video2gif.stat.guess'), t('video2gif.value.about', { v: size(guess) }));
           }
 
           function load(f: File): void {
@@ -179,9 +203,9 @@ import { acceptPastedFiles } from './shared/paste';
               endEl.value = String(Math.min(1000, Math.round((Math.min(3, duration) / duration) * 1000)));
               video.currentTime = 0;
               refresh();
-              say(`${f.name} · ${mmss(duration)} — 구간을 고르고 만들기를 누르세요.`, 'ok');
+              say(t('video2gif.say.loaded', { name: f.name, len: mmss(duration) }), 'ok');
             };
-            video.onerror = () => say('이 영상은 브라우저가 열지 못했어요. mp4·webm 은 대체로 됩니다.', 'error');
+            video.onerror = () => say(t('video2gif.err.open'), 'error');
           }
 
           /** 지정 시각의 화면 한 장을 가져온다. 옮겨지기 전에 그리면 엉뚱한 장면이 담긴다. */
@@ -196,19 +220,19 @@ import { acceptPastedFiles } from './shared/paste';
           async function run(): Promise<void> {
             const gif = (window as unknown as { KarmoGif?: GifApi }).KarmoGif;
             if (!gif) {
-              say('GIF 만드는 부분을 불러오지 못했어요.', 'error');
+              say(t('video2gif.err.engine'), 'error');
               return;
             }
             const s = startSec(), e = endSec();
             const span = e - s;
             if (span <= 0) {
-              say('구간을 먼저 잡아 주세요.', 'error');
+              say(t('video2gif.err.noRange'), 'error');
               return;
             }
             const fps = parseInt(fpsEl.value, 10);
             const count = Math.max(1, Math.round(span * fps));
             if (count > 600) {
-              say('장수가 너무 많아요. 구간을 줄이거나 초당 장수를 낮춰 주세요.', 'error');
+              say(t('video2gif.err.tooMany'), 'error');
               return;
             }
 
@@ -220,12 +244,12 @@ import { acceptPastedFiles } from './shared/paste';
 
             const frames: Array<{ data: Uint8ClampedArray; delayMs: number }> = [];
             for (let i = 0; i < count; i++) {
-              say(`화면을 모으는 중… ${i + 1}/${count}`);
+              say(t('video2gif.say.grabbing', { i: i + 1, total: count }));
               const img = await grab(s + (i / fps), canvas);
               frames.push({ data: img.data, delayMs: Math.round(1000 / fps) });
             }
 
-            say('GIF 로 엮는 중…');
+            say(t('video2gif.say.encoding'));
             // 브라우저가 화면을 한 번 갱신할 틈을 준다 (안 그러면 위 문구가 안 보인 채 멈춘 듯 보인다)
             await new Promise((r) => setTimeout(r, 30));
             made = await gif.encodeAsync({
@@ -234,13 +258,13 @@ import { acceptPastedFiles } from './shared/paste';
               frames,
               maxColors: parseInt(colorsEl.value, 10),
               dither: ditherEl.checked,
-              onProgress: (r) => say(`GIF 로 엮는 중… ${Math.round(r * 100)}%`)
+              onProgress: (r) => say(t('video2gif.say.encodingPct', { pct: Math.round(r * 100) }))
             });
 
             preview.src = URL.createObjectURL(made);
             $<HTMLElement>('#vgResult').style.display = '';
             saveBtn.disabled = false;
-            say(`${count}장 · ${w}×${h} · ${size(made.size)} 로 만들었어요. 미리보기를 확인하고 받으세요.`, 'ok');
+            say(t('video2gif.say.done', { n: count, w, h, size: size(made.size) }), 'ok');
             Toolbox.trackUse?.('gif');
           }
 
@@ -292,7 +316,7 @@ import { acceptPastedFiles } from './shared/paste';
             rangePlayTimer = window.setTimeout(() => video.pause(), Math.max(100, (endSec() - startSec()) * 1000));
           };
           $<HTMLButtonElement>('#vgRun').onclick = () => {
-            void run().catch((err: Error) => say('만드는 중 문제가 생겼어요: ' + err.message, 'error'));
+            void run().catch((err: Error) => say(t('video2gif.err.running', { msg: err.message }), 'error'));
           };
           saveBtn.onclick = () => {
             if (!made) return;
@@ -303,10 +327,7 @@ import { acceptPastedFiles } from './shared/paste';
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: made, name: a.download, from: 'video2gif' });
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say('내려받았어요.', 'ok');
+            say(t('video2gif.say.saved'), 'ok');
           };
-        }
-      }
-    ]
-  });
+  }
 })();
