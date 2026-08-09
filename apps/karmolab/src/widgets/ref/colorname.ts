@@ -2,40 +2,43 @@
  * CSS 색상 이름표 (TASK-KL-088) — 148개 표준 색상 이름 ↔ HEX.
  * 이름 목록만 두고 HEX 는 브라우저에게 물어본다 (캔버스가 CSS 색을 파싱하므로 표를 손으로 안 적어도 된다).
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
-  const NAMES: Array<[string, string]> = [
-    ['red', '빨강'], ['crimson', '진홍'], ['darkred', '어두운 빨강'], ['firebrick', '벽돌'], ['indianred', '연한 벽돌'],
-    ['lightcoral', '연산호'], ['salmon', '연어'], ['darksalmon', '진연어'], ['lightsalmon', '밝은 연어'], ['tomato', '토마토'],
-    ['orangered', '주홍'], ['orange', '주황'], ['darkorange', '진주황'], ['coral', '산호'], ['gold', '금'],
-    ['yellow', '노랑'], ['lightyellow', '연노랑'], ['lemonchiffon', '레몬'], ['khaki', '카키'], ['darkkhaki', '진카키'],
-    ['moccasin', '모카신'], ['peachpuff', '복숭아'], ['papayawhip', '파파야'], ['cornsilk', '옥수수'], ['ivory', '아이보리'],
-    ['beige', '베이지'], ['wheat', '밀'], ['tan', '황갈'], ['burlywood', '나무'], ['sandybrown', '모래'],
-    ['peru', '페루'], ['chocolate', '초콜릿'], ['sienna', '시에나'], ['saddlebrown', '안장 갈색'], ['brown', '갈색'],
-    ['maroon', '적갈'], ['rosybrown', '장미갈색'],
-    ['green', '초록'], ['darkgreen', '진초록'], ['forestgreen', '숲'], ['seagreen', '바다초록'], ['mediumseagreen', '중간 바다초록'],
-    ['limegreen', '라임초록'], ['lime', '라임'], ['lawngreen', '잔디'], ['chartreuse', '샤르트뢰즈'], ['greenyellow', '연두'],
-    ['springgreen', '봄초록'], ['mediumspringgreen', '중간 봄초록'], ['lightgreen', '연초록'], ['palegreen', '창백한 초록'],
-    ['darkseagreen', '진바다초록'], ['olive', '올리브'], ['olivedrab', '올리브 드랩'], ['darkolivegreen', '진올리브'],
-    ['yellowgreen', '황록'], ['teal', '청록'], ['darkcyan', '진청록'], ['lightseagreen', '밝은 바다초록'],
-    ['cyan', '시안'], ['aqua', '아쿠아'], ['aquamarine', '아쿠아마린'], ['turquoise', '터콰이즈'], ['mediumturquoise', '중간 터콰이즈'],
-    ['darkturquoise', '진터콰이즈'], ['paleturquoise', '연터콰이즈'], ['lightcyan', '연시안'], ['cadetblue', '사관 파랑'],
-    ['powderblue', '파우더블루'], ['lightblue', '연파랑'], ['skyblue', '하늘'], ['lightskyblue', '연하늘'],
-    ['deepskyblue', '진하늘'], ['dodgerblue', '다저블루'], ['cornflowerblue', '수레국화'], ['steelblue', '강철파랑'],
-    ['royalblue', '로열블루'], ['blue', '파랑'], ['mediumblue', '중간 파랑'], ['darkblue', '진파랑'], ['navy', '남색'],
-    ['midnightblue', '자정 파랑'], ['slateblue', '슬레이트 파랑'], ['darkslateblue', '진슬레이트 파랑'],
-    ['mediumslateblue', '중간 슬레이트 파랑'], ['blueviolet', '청보라'], ['indigo', '인디고'], ['darkviolet', '진보라'],
-    ['darkorchid', '진난초'], ['darkmagenta', '진자홍'], ['purple', '보라'], ['rebeccapurple', '레베카 퍼플'],
-    ['magenta', '자홍'], ['fuchsia', '푸크시아'], ['orchid', '난초'], ['mediumorchid', '중간 난초'], ['mediumpurple', '중간 보라'],
-    ['violet', '바이올렛'], ['plum', '자두'], ['thistle', '엉겅퀴'], ['lavender', '라벤더'], ['pink', '분홍'],
-    ['lightpink', '연분홍'], ['hotpink', '핫핑크'], ['deeppink', '진분홍'], ['palevioletred', '창백한 보라빨강'],
-    ['mediumvioletred', '중간 보라빨강'],
-    ['white', '흰색'], ['snow', '눈'], ['honeydew', '허니듀'], ['mintcream', '민트크림'], ['azure', '하늘빛'],
-    ['aliceblue', '앨리스블루'], ['ghostwhite', '고스트화이트'], ['whitesmoke', '연기 흰색'], ['seashell', '조개'],
-    ['oldlace', '올드레이스'], ['floralwhite', '꽃 흰색'], ['linen', '리넨'], ['antiquewhite', '앤티크화이트'],
-    ['blanchedalmond', '아몬드'], ['bisque', '비스크'], ['navajowhite', '나바호'], ['mistyrose', '미스티로즈'],
-    ['lavenderblush', '라벤더블러시'], ['gainsboro', '게인즈버러'], ['lightgray', '연회색'], ['silver', '은색'],
-    ['darkgray', '진회색'], ['gray', '회색'], ['dimgray', '어두운 회색'], ['lightslategray', '연슬레이트 회색'],
-    ['slategray', '슬레이트 회색'], ['darkslategray', '진슬레이트 회색'], ['black', '검정']
+  /* 이름은 **쓸 때** 정한다 — 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
+  const names = (): Array<[string, string]> => [
+    ['red', t('colorname.t01')], ['crimson', t('colorname.t02')], ['darkred', t('colorname.t03')], ['firebrick', t('colorname.t04')], ['indianred', t('colorname.t05')],
+    ['lightcoral', t('colorname.t06')], ['salmon', t('colorname.t07')], ['darksalmon', t('colorname.t08')], ['lightsalmon', t('colorname.t09')], ['tomato', t('colorname.t10')],
+    ['orangered', t('colorname.t11')], ['orange', t('colorname.t12')], ['darkorange', t('colorname.t13')], ['coral', t('colorname.t14')], ['gold', t('colorname.t15')],
+    ['yellow', t('colorname.t16')], ['lightyellow', t('colorname.t17')], ['lemonchiffon', t('colorname.t18')], ['khaki', t('colorname.t19')], ['darkkhaki', t('colorname.t20')],
+    ['moccasin', t('colorname.t21')], ['peachpuff', t('colorname.t22')], ['papayawhip', t('colorname.t23')], ['cornsilk', t('colorname.t24')], ['ivory', t('colorname.t25')],
+    ['beige', t('colorname.t26')], ['wheat', t('colorname.t27')], ['tan', t('colorname.t28')], ['burlywood', t('colorname.t29')], ['sandybrown', t('colorname.t30')],
+    ['peru', t('colorname.t31')], ['chocolate', t('colorname.t32')], ['sienna', t('colorname.t33')], ['saddlebrown', t('colorname.t34')], ['brown', t('colorname.t35')],
+    ['maroon', t('colorname.t36')], ['rosybrown', t('colorname.t37')],
+    ['green', t('colorname.t38')], ['darkgreen', t('colorname.t39')], ['forestgreen', t('colorname.t40')], ['seagreen', t('colorname.t41')], ['mediumseagreen', t('colorname.t42')],
+    ['limegreen', t('colorname.t43')], ['lime', t('colorname.t44')], ['lawngreen', t('colorname.t45')], ['chartreuse', t('colorname.t46')], ['greenyellow', t('colorname.t47')],
+    ['springgreen', t('colorname.t48')], ['mediumspringgreen', t('colorname.t49')], ['lightgreen', t('colorname.t50')], ['palegreen', t('colorname.t51')],
+    ['darkseagreen', t('colorname.t52')], ['olive', t('colorname.t53')], ['olivedrab', t('colorname.t54')], ['darkolivegreen', t('colorname.t55')],
+    ['yellowgreen', t('colorname.t56')], ['teal', t('colorname.t57')], ['darkcyan', t('colorname.t58')], ['lightseagreen', t('colorname.t59')],
+    ['cyan', t('colorname.t60')], ['aqua', t('colorname.t61')], ['aquamarine', t('colorname.t62')], ['turquoise', t('colorname.t63')], ['mediumturquoise', t('colorname.t64')],
+    ['darkturquoise', t('colorname.t65')], ['paleturquoise', t('colorname.t66')], ['lightcyan', t('colorname.t67')], ['cadetblue', t('colorname.t68')],
+    ['powderblue', t('colorname.t69')], ['lightblue', t('colorname.t70')], ['skyblue', t('colorname.t71')], ['lightskyblue', t('colorname.t72')],
+    ['deepskyblue', t('colorname.t73')], ['dodgerblue', t('colorname.t74')], ['cornflowerblue', t('colorname.t75')], ['steelblue', t('colorname.t76')],
+    ['royalblue', t('colorname.t77')], ['blue', t('colorname.t78')], ['mediumblue', t('colorname.t79')], ['darkblue', t('colorname.t80')], ['navy', t('colorname.t81')],
+    ['midnightblue', t('colorname.t82')], ['slateblue', t('colorname.t83')], ['darkslateblue', t('colorname.t84')],
+    ['mediumslateblue', t('colorname.t85')], ['blueviolet', t('colorname.t86')], ['indigo', t('colorname.t87')], ['darkviolet', t('colorname.t88')],
+    ['darkorchid', t('colorname.t89')], ['darkmagenta', t('colorname.t90')], ['purple', t('colorname.t91')], ['rebeccapurple', t('colorname.t92')],
+    ['magenta', t('colorname.t93')], ['fuchsia', t('colorname.t94')], ['orchid', t('colorname.t95')], ['mediumorchid', t('colorname.t96')], ['mediumpurple', t('colorname.t97')],
+    ['violet', t('colorname.t98')], ['plum', t('colorname.t99')], ['thistle', t('colorname.t100')], ['lavender', t('colorname.t101')], ['pink', t('colorname.t102')],
+    ['lightpink', t('colorname.t103')], ['hotpink', t('colorname.t104')], ['deeppink', t('colorname.t105')], ['palevioletred', t('colorname.t106')],
+    ['mediumvioletred', t('colorname.t107')],
+    ['white', t('colorname.t108')], ['snow', t('colorname.t109')], ['honeydew', t('colorname.t110')], ['mintcream', t('colorname.t111')], ['azure', t('colorname.t112')],
+    ['aliceblue', t('colorname.t113')], ['ghostwhite', t('colorname.t114')], ['whitesmoke', t('colorname.t115')], ['seashell', t('colorname.t116')],
+    ['oldlace', t('colorname.t117')], ['floralwhite', t('colorname.t118')], ['linen', t('colorname.t119')], ['antiquewhite', t('colorname.t120')],
+    ['blanchedalmond', t('colorname.t121')], ['bisque', t('colorname.t122')], ['navajowhite', t('colorname.t123')], ['mistyrose', t('colorname.t124')],
+    ['lavenderblush', t('colorname.t125')], ['gainsboro', t('colorname.t126')], ['lightgray', t('colorname.t127')], ['silver', t('colorname.t128')],
+    ['darkgray', t('colorname.t129')], ['gray', t('colorname.t130')], ['dimgray', t('colorname.t131')], ['lightslategray', t('colorname.t132')],
+    ['slategray', t('colorname.t133')], ['darkslategray', t('colorname.t134')], ['black', t('colorname.t135')]
   ];
 
   function hexOf(name: string): string {
@@ -51,32 +54,34 @@
   }
 
   function groupOf(name: string): string {
-    if (/red|crimson|firebrick|tomato|salmon|coral|maroon/.test(name)) return '빨강 계열';
-    if (/orange|gold|peru|chocolate|sienna|brown|tan|wheat|sandy|burly/.test(name)) return '주황·갈색';
-    if (/yellow|khaki|lemon|corn|ivory|beige|moccasin|papaya|peach/.test(name)) return '노랑 계열';
-    if (/green|lime|olive|chartreuse|spring/.test(name)) return '초록 계열';
-    if (/cyan|aqua|turquoise|teal|cadet/.test(name)) return '청록 계열';
-    if (/blue|navy|azure|sky|steel|slate(?!gray)|indigo|cornflower|dodger|royal|midnight/.test(name)) return '파랑 계열';
-    if (/purple|violet|orchid|magenta|fuchsia|plum|thistle|lavender(?!blush)/.test(name)) return '보라 계열';
-    if (/pink|rose/.test(name)) return '분홍 계열';
-    return '무채색';
+    if (/red|crimson|firebrick|tomato|salmon|coral|maroon/.test(name)) return t('colorname.t136');
+    if (/orange|gold|peru|chocolate|sienna|brown|tan|wheat|sandy|burly/.test(name)) return t('colorname.t137');
+    if (/yellow|khaki|lemon|corn|ivory|beige|moccasin|papaya|peach/.test(name)) return t('colorname.t138');
+    if (/green|lime|olive|chartreuse|spring/.test(name)) return t('colorname.t139');
+    if (/cyan|aqua|turquoise|teal|cadet/.test(name)) return t('colorname.t140');
+    if (/blue|navy|azure|sky|steel|slate(?!gray)|indigo|cornflower|dodger|royal|midnight/.test(name)) return t('colorname.t141');
+    if (/purple|violet|orchid|magenta|fuchsia|plum|thistle|lavender(?!blush)/.test(name)) return t('colorname.t142');
+    if (/pink|rose/.test(name)) return t('colorname.t143');
+    return t('colorname.t144');
   }
 
   Toolbox.register({
     id: 'colorname',
-    title: 'CSS 색상 이름표',
+    title: t('widgets.colorname.title', undefined, "CSS 색상 이름표"),
     category: 'ref',
-    desc: 'CSS 표준 색상 이름 148개와 HEX 값을 눈으로 비교하고 눌러서 복사합니다',
+    desc: t('widgets-desc.colorname.desc', undefined, "CSS 표준 색상 이름 148개와 HEX 값을 눈으로 비교하고 눌러서 복사합니다"),
     layout: 'wide',
     icon: '<path d="M12 3a9 9 0 1 0 0 18h2a3 3 0 0 0 0-6h-1a2 2 0 0 1 0-4h2a5 5 0 0 0-3-8z" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="8" cy="10" r="1.2" fill="currentColor"/><circle cx="12" cy="7" r="1.2" fill="currentColor"/>',
     tabs: [
       {
         id: 'app',
-        label: '색상 이름',
+        label: t('colorname.t147', undefined, "색상 이름"),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '이름만 적어도 되는 색들이에요.' });
+          void loadNamespace('colorname').then(function () {
+
+          Mdd.linePreset('tool_run', { msg: t('colorname.t148') });
           window.RefTable?.build(container, {
-            items: NAMES.map(([name, ko]) => {
+            items: names().map(([name, ko]) => {
               const hex = hexOf(name);
               return {
                 copy: name,
@@ -88,11 +93,12 @@
                 color: name
               };
             }),
-            placeholder: '영문 이름·한글·HEX 로 찾기 (예: sky, 하늘, #87CEEB)',
-            copyNoun: '색상 이름',
+            placeholder: t('colorname.t149'),
+            copyNoun: t('colorname.t147'),
             layout: 'grid',
-            note: '누르면 CSS 색상 이름이 복사됩니다.'
+            note: t('colorname.t150')
           });
+                  });
         }
       }
     ]
