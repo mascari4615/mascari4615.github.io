@@ -356,6 +356,14 @@ await step('고른 무리는 함께 움직인다 (깨끗한 맵)', async () => {
     throw new Error('무리가 함께 안 움직였다');
   }
 });
+await step('빈 캔버스에서 예시를 넣으면 그림이 생긴다', async () => {
+  await page.click('[data-km="map-new"]');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
+  await page.waitForSelector('[data-km="sample"]', { timeout: 4000 });
+  await page.click('[data-km="sample"]');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 5, null, { timeout: 5000 });
+  if (await page.locator('.ck-edge').count() === 0) throw new Error('선이 하나도 안 생겼다');
+});
 await step('맵 새로 만들기 → 빈 캔버스', async () => {
   await page.click('[data-km="map-new"]');
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
