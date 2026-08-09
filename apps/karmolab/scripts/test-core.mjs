@@ -556,6 +556,54 @@ try {
 }
 check(tcThrew, '읽을 줄이 없으면 던진다');
 
+// ── ②-13 uuidgen 알맹이 (LLM 의 「랜덤」은 랜덤이 아니다 — A등급) ──────────────
+const uu = await load('src/core/uuidgen.ts');
+
+eq(uu.spec.id, 'uuidgen', 'uuidgen spec.id');
+
+// 모양 — RFC 자리·판 숫자.
+const v4 = uu.uuidV4();
+check(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(v4), `v4 모양이 아니다: ${v4}`);
+const v7 = uu.uuidV7(1750000000000);
+check(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(v7), `v7 모양이 아니다: ${v7}`);
+
+// v7·ulid 의 존재 이유 = **시간순 정렬**. 늦게 만든 것이 문자열 비교에서도 뒤여야 한다.
+const early = uu.uuidV7(1700000000000);
+const later = uu.uuidV7(1800000000000);
+check(early < later, `v7 은 시간순으로 정렬돼야 한다: ${early} < ${later}`);
+check(uu.ulid(1700000000000) < uu.ulid(1800000000000), 'ulid 도 시간순 정렬');
+eq(uu.ulid(1750000000000).length, 26, 'ULID 는 26자');
+
+eq(uu.nanoId(21).length, 21, 'nanoid 길이');
+eq(uu.nanoId(8).length, 8, 'nanoid 짧게');
+eq(uu.password(16).length, 16, 'password 길이');
+check(/^[a-zA-Z0-9]+$/.test(uu.password(40)), '기호 없이면 영숫자만');
+check(/[!@#$%^&*()\-_=+[\]{}]/.test([...Array(20)].map(() => uu.password(40, true)).join('')), '기호를 켜면 기호가 나온다');
+// 헷갈리는 글자를 뺐다 — 손으로 옮겨 적을 때 사고가 난다.
+check(/[0O1lI]/.test(uu.password(200)) === false, 'password 에 0·O·1·l·I 가 없어야 한다');
+
+/* 이 도구의 값 자체 — **정말 겹치지 않는가.** LLM 이 지어낸 값은 같은 것이 반복된다.
+   1000개를 뽑아 하나라도 겹치면 난수원이 잘못된 것이다. */
+for (const [label, gen] of [['uuid4', () => uu.uuidV4()], ['nanoid', () => uu.nanoId(21)], ['password', () => uu.password(16)]]) {
+  const seen = new Set();
+  for (let i = 0; i < 1000; i++) seen.add(gen());
+  eq(seen.size, 1000, `${label} 1000개 중 겹친 것이 있다`);
+}
+// 같은 밀리초에 만들어도 뒤쪽 난수가 달라 안 겹친다.
+const sameMs = new Set([...Array(200)].map(() => uu.uuidV7(1750000000000)));
+eq(sameMs.size, 200, '같은 시각의 v7 도 서로 달라야 한다');
+
+eq(uu.run('generate', { count: 5 }).split('\n').length, 5, 'run 이 개수만큼');
+check(uu.run('generate', { kind: 'password', length: 24 }).length === 24, 'run password 길이');
+eq(uu.run('generate', { count: 1000 }).split('\n').length, 100, '개수는 100개로 자른다');
+let uuThrew = false;
+try {
+  uu.run('generate', { kind: '엉뚱' });
+} catch {
+  uuThrew = true;
+}
+check(uuThrew, '모르는 종류는 던진다');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 

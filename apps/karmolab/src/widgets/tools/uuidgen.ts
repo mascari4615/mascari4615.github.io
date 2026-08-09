@@ -2,61 +2,10 @@
  * UUID / 랜덤 ID 생성기 (TASK-KL-088)
  * 난수는 crypto.getRandomValues 만 쓴다 (Math.random 은 예측 가능해 ID 용도로 부적격).
  */
+import { nanoId, password, spec, ulid, uuidV4, uuidV7 } from '../../core/uuidgen';
+import { readInvocation } from '../../lib/tool-url';
+
 (function (): void {
-  function randomBytes(n: number): Uint8Array {
-    const arr = new Uint8Array(n);
-    crypto.getRandomValues(arr);
-    return arr;
-  }
-
-  function uuidV4(): string {
-    if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
-    const b = randomBytes(16);
-    b[6] = (b[6] & 0x0f) | 0x40;
-    b[8] = (b[8] & 0x3f) | 0x80;
-    const hex = [...b].map((x) => x.toString(16).padStart(2, '0')).join('');
-    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
-  }
-
-  /** UUID v7 — 앞 48bit 가 밀리초 타임스탬프라 정렬하면 생성 순서가 된다 (DB PK 에 유리) */
-  function uuidV7(): string {
-    const ts = Date.now();
-    const b = randomBytes(16);
-    b[0] = (ts / 2 ** 40) & 0xff;
-    b[1] = (ts / 2 ** 32) & 0xff;
-    b[2] = (ts / 2 ** 24) & 0xff;
-    b[3] = (ts / 2 ** 16) & 0xff;
-    b[4] = (ts / 2 ** 8) & 0xff;
-    b[5] = ts & 0xff;
-    b[6] = (b[6] & 0x0f) | 0x70;
-    b[8] = (b[8] & 0x3f) | 0x80;
-    const hex = [...b].map((x) => x.toString(16).padStart(2, '0')).join('');
-    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
-  }
-
-  function nanoId(len: number): string {
-    const alphabet = 'useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict';
-    return [...randomBytes(len)].map((x) => alphabet[x % alphabet.length]).join('');
-  }
-
-  const ULID_CHARS = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
-  function ulid(): string {
-    let ts = Date.now();
-    let time = '';
-    for (let i = 0; i < 10; i++) {
-      time = ULID_CHARS[ts % 32] + time;
-      ts = Math.floor(ts / 32);
-    }
-    const rand = [...randomBytes(16)].map((x) => ULID_CHARS[x % 32]).join('').slice(0, 16);
-    return time + rand;
-  }
-
-  function password(len: number, symbols: boolean): string {
-    const base = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    const pool = base + (symbols ? '!@#$%^&*()-_=+[]{}' : '');
-    return [...randomBytes(len)].map((x) => pool[x % pool.length]).join('');
-  }
-
   Toolbox.register({
     id: 'uuidgen',
     title: 'UUID 생성기',
@@ -157,6 +106,14 @@
           });
           container.querySelectorAll('input[type="checkbox"]').forEach((el) => el.addEventListener('change', render));
           $<HTMLButtonElement>('#uuGen').onclick = render;
+
+          // 주소로 부른 경우 (`?op=generate&kind=password&count=5`) (TASK-KL-205).
+          const call = readInvocation(spec);
+          if (call !== null && call.error === undefined && call.op === 'generate') {
+            if (call.args.kind !== undefined) kind.value = String(call.args.kind);
+            if (call.args.count !== undefined) count.value = String(call.args.count);
+            if (call.args.length !== undefined) len.value = String(call.args.length);
+          }
           $<HTMLButtonElement>('#uuCopy').onclick = async () => {
             if (!out.value) return;
             await Toolbox.copyText?.(out.value, { message: `${out.value.split('\n').length}개를 복사했어요` });
