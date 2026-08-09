@@ -337,14 +337,9 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     container.appendChild(root);
   }
 
+  /* 메타는 `widgets-lazy-meta.ts` 한 곳에 산다. */
   Toolbox.register({
-    id: 'devtools',
-    title: '디버그',
-    category: 'tool',
-    desktopOnly: true,
-    desc: '데스크톱 앱·연동 점검용 테스트 모음 (알림 등)',
-    layout: 'form',
-    icon: '<rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 9l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="11" y1="15" x2="18" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    ...Toolbox.getLazyWidgetPublicMeta('devtools'),
     tabs: [{ id: 'devtools-main', label: '패널', build }]
   });
 })();

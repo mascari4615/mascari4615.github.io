@@ -126,6 +126,19 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['linktree/linktree']
   },
   {
+    /* 디버그 창도 부팅에서 뺐다 (TASK-KL-204). 데스크톱 앱에서만 쓰는 것을 **웹으로 오는
+       사람까지 받고 있었다**(첫 화면에서 12KB, 한 번도 안 그린다).
+       `desktopOnly` 지연 위젯 선례 = 서버 모니터. */
+    id: 'devtools',
+    title: '디버그',
+    category: 'tool',
+    desktopOnly: true,
+    desc: '데스크톱 앱·연동 점검용 테스트 모음 (알림 등)',
+    layout: 'form',
+    icon: '<rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 9l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="11" y1="15" x2="18" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    lazyScriptPaths: ['devtools']
+  },
+  {
     id: 'servermonitor',
     title: '서버 모니터',
     category: 'tool',
