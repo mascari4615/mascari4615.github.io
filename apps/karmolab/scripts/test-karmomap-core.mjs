@@ -264,6 +264,22 @@ const M = await loadModules();
     edges: [{ id: 'e1', from: 'a', to: 'b', kind: 'r' }, { id: 'e2', from: 'b', to: 'c', kind: 'r' }],
   });
   const top = sna.topBy(r.betweenness, 1)[0];
+
+  // 「이어질 법한데 안 이어진 자리」 — 공통 이웃이 둘 이상인데 서로는 안 이어진 쌍.
+  const gaps = sna.structuralGaps({
+    nodes: [nodeOf('a'), nodeOf('b'), nodeOf('c'), nodeOf('d')],
+    edges: [
+      { from: 'a', to: 'c' }, { from: 'b', to: 'c' },
+      { from: 'a', to: 'd' }, { from: 'b', to: 'd' },
+    ],
+  });
+  // a-b 도 c-d 도 서로 안 이어졌고 겹치는 이웃이 둘씩이다 — **둘 다** 자리다(한쪽만 세면 놓친다).
+  eq(gaps.length, 2, '안 이어진 쌍 둘 다 잡힌다');
+  eq(gaps[0].shared, 2, '겹치는 사이 수를 센다');
+  const pairs = gaps.map((g0) => [g0.a, g0.b].sort().join('')).sort().join('/');
+  eq(pairs, 'ab/cd', '잡힌 쌍이 맞다');
+  eq(sna.structuralGaps({ nodes: [nodeOf('a'), nodeOf('b')], edges: [{ from: 'a', to: 'b' }] }).length, 0,
+    '이미 이어진 쌍은 자리가 아니다');
   eq(top.id, 'b', '가운데 낀 쪽이 다리 역할 1위');
 }
 
