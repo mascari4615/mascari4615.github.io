@@ -1813,6 +1813,54 @@ const out = ht.run('count', { text: '값' });
 check(out.includes('타수: 4'), `run count: ${out.split(String.fromCharCode(10))[0]}`);
 check(ht.run('speed', { text: '안녕', seconds: 2, typed: '안녕' }).includes('정확도: 100%'), 'run speed 가 정확도를 낸다');
 
+// ── ②-35 한글 타자 데일리 (전원 같은 문장 · 문장은 안 새게) ────────────────
+const dt = await load('src/core/dailytype.ts');
+eq(dt.spec.id, 'dailytype', 'dailytype spec.id');
+
+/* 데일리의 전부 — 같은 날이면 누가 열어도 같다. */
+const q1 = dt.puzzleFor('2026-08-11');
+const q1b = dt.puzzleFor('2026-08-11');
+eq(q1.lines.join('|'), q1b.lines.join('|'), '같은 날 같은 문제');
+check(dt.puzzleFor('2026-08-12').lines.join('|') !== q1.lines.join('|'), '다른 날 다른 문제');
+eq(q1.lines.length, dt.LINES_PER_DAY, '한 판에 정해진 줄 수');
+eq(new Set(q1.lines).size, q1.lines.length, '같은 문장이 두 번 안 나온다 (뽑기 X, 섞기 O)');
+check(q1.strokes > 0, '총 타수를 알려 준다');
+eq(q1.day, 2, '2026-08-11 은 2일째');
+
+/* 문장은 우리 글에서 온다 — 손으로 적은 표가 아니다. */
+const dtPool = (await load('src/core/type-pool.generated.ts')).TYPE_POOL;
+check(dtPool.length >= 100, `문장 뭉치 ${dtPool.length}개`);
+check(q1.lines.every((l) => dtPool.includes(l)), '문제는 뭉치 안에서만 나온다');
+
+/* 채점 — 다 맞으면 🟩, 거의 맞으면 🟨, 아니면 ⬛. 셋이 아니면 「나아졌다」가 안 보인다. */
+const dtPerfect = dt.grade(q1, { seconds: 30, typed: [...q1.lines] });
+eq(dtPerfect.accuracy, 100, '그대로 치면 100%');
+check(dtPerfect.marks.every((m) => m === 'hit'), '전부 맞음');
+check(dtPerfect.perMinute > 0, '속도가 나온다');
+
+const dtOneOff = [...q1.lines];
+dtOneOff[0] = q1.lines[0].slice(0, -1) + '뷁'; // 한 글자만 다르게
+const dtNear = dt.grade(q1, { seconds: 30, typed: dtOneOff });
+eq(dtNear.marks[0], 'near', '한 글자 틀림은 「거의」 (실패와 같은 칸에 넣지 않는다)');
+eq(dtNear.marks[1], 'hit', '나머지 줄은 그대로');
+
+const dtBad = dt.grade(q1, { seconds: 30, typed: ['아무 말', '', ''] });
+eq(dtBad.marks[1], 'miss', '안 친 줄은 틀림');
+
+/* ★ 공유 글에 **문장이 새면 안 된다** — 그날 이 놀이는 끝난다. */
+check(/[가-힣]{4,}/.test(dtPerfect.share.split(String.fromCharCode(10)).slice(1).join('')) === false,
+  `격자 줄에 문장이 없다: ${dtPerfect.share.replace(new RegExp(String.fromCharCode(10), 'g'), ' / ')}`);
+check(dtPerfect.share.startsWith('한글타자 #'), '머리줄에 번호');
+check(dtPerfect.share.includes('타/분'), '속도는 자랑거리라 넣는다');
+check(q1.lines.some((l) => dtPerfect.share.includes(l)) === false, '문제 문장이 통째로 안 들어간다');
+
+/* 이름으로 부르는 창구. */
+const dtOut = dt.run('today', { at: '2026-08-11T02:00:00Z' });
+check(dtOut.includes('한글타자 #2'), 'run 이 오늘 문제를 낸다');
+check(dtOut.includes('총 타수'), '총 타수도');
+const dtScored = dt.run('today', { at: '2026-08-11T02:00:00Z', seconds: 30, typed: q1.lines.join(String.fromCharCode(10)) });
+check(dtScored.includes('정확도: 100%'), '친 글을 주면 채점까지');
+
 // ── 마무리 ──────────────────────────────────────────────────────────────────
 fs.rmSync(outDir, { recursive: true, force: true });
 process.stdout.write('\n');
