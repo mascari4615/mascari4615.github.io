@@ -6,7 +6,7 @@
  */
 import type { GraphNode } from '../../../lib/graph/spec';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from '../links';
-import { resolveDoc, setDocText } from '../notes';
+import { resolveDoc, setDocText } from '../../../lib/graph/notes';
 import type { PanelCtx } from './context';
 
 /**

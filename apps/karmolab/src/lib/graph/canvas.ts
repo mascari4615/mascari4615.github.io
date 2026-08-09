@@ -31,6 +31,7 @@ import type {
 import type { GraphPersistAdapter } from './adapter';
 import { NULL_PERSIST_ADAPTER } from './adapter';
 import { injectGraphCanvasStyles, GRAPH_CANVAS_CSS } from './styles';
+import { resolveDoc } from './notes';
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -138,6 +139,9 @@ const BG_CELL = 32;          // 배경 무늬 한 칸 (= 스냅 4칸)
 const BG_MIN_SCALE = 0.4;
 const GROUP_HEADER_H = 20;   // 그룹 프레임 헤더 높이
 const NODE_HEADER_H = 30;    // children 있는 노드의 헤더 영역 높이
+/** 쪽지 본문 줄 간격·최대 줄 수 — 카드가 소설이 되면 그림이 안 읽힌다. */
+const NOTE_BODY_LINE_H = 12;
+const NOTE_BODY_MAX_LINES = 6;
 const NODE_CHILD_ROW_H = 18; // 자식 항목 한 줄 높이
 const NODE_CHILD_PAD = 6;    // 자식 영역 상하 패딩
 
@@ -1366,6 +1370,45 @@ export class GraphCanvas {
       nameEl.setAttribute('pointer-events', 'none');
       nameEl.textContent = node.label;
       g.appendChild(nameEl);
+    } else if (shape === 'note' && this.spec && resolveDoc(this.spec, node).trim()) {
+      // 쪽지에 **글이 안 보이면** 그냥 이름표다. 종이쪽지의 쓸모는 붙여 둔 글을 그대로 읽는 것이라
+      // 본문을 카드 안에 접어 넣는다 (넘치면 … — 전문은 옆 패널에서 읽는다).
+      const body = resolveDoc(this.spec, node).trim();
+      const perLine = Math.max(6, Math.floor((node.w - 20) / 5.6));
+      const lines: string[] = [];
+      for (const para of body.split(/\r?\n/)) {
+        if (lines.length >= NOTE_BODY_MAX_LINES) break;
+        let rest = para.trim();
+        if (!rest) continue;
+        while (rest.length > 0 && lines.length < NOTE_BODY_MAX_LINES) {
+          lines.push(rest.slice(0, perLine));
+          rest = rest.slice(perLine);
+        }
+      }
+      if (body.length > lines.join('').length) lines[lines.length - 1] = lines[lines.length - 1].slice(0, -1) + '…';
+
+      const title = document.createElementNS(SVG_NS, 'text');
+      title.setAttribute('x', '10');
+      title.setAttribute('y', '16');
+      title.setAttribute('fill', this.theme.nodeText);
+      title.setAttribute('font-size', '10.5');
+      title.setAttribute('font-weight', '600');
+      title.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
+      title.setAttribute('pointer-events', 'none');
+      title.textContent = node.label;
+      g.appendChild(title);
+
+      lines.forEach((ln, i) => {
+        const row = document.createElementNS(SVG_NS, 'text');
+        row.setAttribute('x', '10');
+        row.setAttribute('y', String(30 + i * NOTE_BODY_LINE_H));
+        row.setAttribute('fill', this.theme.childText);
+        row.setAttribute('font-size', '9.5');
+        row.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
+        row.setAttribute('pointer-events', 'none');
+        row.textContent = ln;
+        g.appendChild(row);
+      });
     } else if (children.length === 0) {
       const centered = shape === 'circle';
       const avatarEl = this.buildNodeAvatar(node, effH, kindColor, centered);

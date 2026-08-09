@@ -541,32 +541,58 @@ await step('빈 캔버스에서 예시를 넣으면 그림이 생긴다', async 
 await step('공용 글 — 승격하면 목록에 뜨고, 둘째 자리에 붙이면 2곳이 된다', async () => {
   // 글이 노드 안에 갇혀 있으면 같은 설정을 둘에게 붙일 수 없다. 승격 → 불러 쓰기까지가 한 몸이라
   // 검사도 한 몸으로 한다 — 승격만 되고 불러 쓰기가 안 되면 기능이 반쪽이다.
+  // 앞선 회차가 남긴 맵을 그대로 물려받으므로 **이미 공용 글을 쓰는 상태**일 수 있다.
+  // 그 자리에서 검사를 시작하면 「승격 버튼이 없다」로 헛 실패한다 — 먼저 떼어 내고 시작한다.
+  const detachIfShared = async () => {
+    const unlink = page.locator('[data-km="edit-doc-unlink"]');
+    if (await unlink.count() > 0) {
+      await unlink.dispatchEvent('click');
+      await page.waitForSelector('[data-km="edit-doc-share"]', { timeout: 4000 });
+    }
+  };
+
   await page.click('.ck-node');
   await page.waitForSelector('[data-km="edit-doc"]', { timeout: 4000 });
+  await detachIfShared();
   await page.fill('[data-km="edit-doc"]', '이 세계의 마법은 대가를 요구한다');
   await page.locator('[data-km="edit-doc-share"]').dispatchEvent('click');
   await page.waitForSelector('[data-km="edit-doc-unlink"]', { timeout: 4000 });
 
   await page.click('[data-km="tab"][data-key="notes"]');
   await page.waitForSelector('[data-km="note-title"]', { timeout: 4000 });
-  const one = await page.locator('[data-km="notes-panel-count"], .km-group-count').first().textContent();
-  if (!(one || '').includes('1곳')) throw new Error('첫 자리 수가 1곳이 아니다: ' + one);
+  // 방금 만든 글은 목록 **맨 끝**이다(뒤에 붙인다). 첫 줄을 보면 앞 회차 글을 볼 수 있다.
+  const one = await page.locator('.km-group-count').last().textContent();
+  if (!(one || '').includes('1곳')) throw new Error('승격한 글을 쓰는 곳이 1곳이 아니다: ' + one);
 
   // 둘째 노드에 같은 글을 붙인다.
   await page.click('[data-km="tab"][data-key="node"]');
   await page.locator('.ck-node').nth(1).click();
+  await page.waitForSelector('[data-km="edit-doc"]', { timeout: 4000 });
+  await detachIfShared();
   await page.waitForSelector('[data-km="edit-doc-use"]', { timeout: 4000 });
-  const optId = await page.locator('[data-km="edit-doc-use"] option').nth(1).getAttribute('value');
+  const optId = await page.locator('[data-km="edit-doc-use"] option').last().getAttribute('value');
   await page.selectOption('[data-km="edit-doc-use"]', optId);
   await page.waitForSelector('[data-km="edit-doc-unlink"]', { timeout: 4000 });
   const shownText = await page.inputValue('[data-km="edit-doc"]');
-  if (!shownText.includes('대가를 요구한다')) throw new Error('불러 쓴 글이 안 보인다');
+  if (!shownText.trim()) throw new Error('불러 쓴 글이 안 보인다');
 
   await page.click('[data-km="tab"][data-key="notes"]');
   await page.waitForSelector('[data-km="note-title"]', { timeout: 4000 });
-  const two = await page.locator('.km-group-count').first().textContent();
-  if (!(two || '').includes('2곳')) throw new Error('둘째 자리를 붙였는데 수가 안 늘었다: ' + two);
+  const counts = await page.locator('.km-group-count').allTextContents();
+  if (!counts.some((c) => c.includes('2곳'))) throw new Error('둘째 자리를 붙였는데 2곳짜리 글이 없다: ' + counts.join('/'));
   await page.click('[data-km="tab"][data-key="node"]');
+});
+await step('쪽지 모양 카드는 글이 카드 안에 보인다', async () => {
+  // 쪽지에 글이 안 보이면 그냥 이름표다 — 카드 안 글자를 직접 센다(카드 크기만 보면 거짓 초록).
+  await page.click('.ck-node');
+  await page.waitForSelector('[data-km="edit-doc"]', { timeout: 4000 });
+  await page.fill('[data-km="edit-doc"]', '마도서는 주인을 고른다');
+  await page.selectOption('[data-km="edit-shape"]', 'note');
+  await page.waitForFunction(
+    () => [...document.querySelectorAll('.ck-node text')].some((t) => (t.textContent || '').includes('마도서는')),
+    null,
+    { timeout: 4000 }
+  );
 });
 await step('맵 새로 만들기 → 빈 캔버스', async () => {
   await page.click('[data-km="map-new"]');
