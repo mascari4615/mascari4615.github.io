@@ -217,6 +217,9 @@ import {
     .km-root.is-readonly .km-viewbadge { position:absolute; left:12px; top:12px; z-index:16;
       display:flex; gap:8px; align-items:center; padding:6px 10px; border-radius:999px;
       background:var(--bg-secondary); border:1px solid var(--border); font-size:12px; }
+    /* 저장 표시 — 조용히 왔다 사라진다. 늘 떠 있으면 그것대로 잔소리가 된다. */
+    .km-saved { font-size:11px; color:var(--text-tertiary); padding:0 4px; opacity:.9; }
+    .km-saved.hidden { display:none; }
     .km-linking { outline:2px dashed var(--accent); outline-offset:-2px; }
     /* 발표 모드 — 그림을 가리지 않게 아래에만 얹는다. */
     .km-stage { position:absolute; left:0; right:0; bottom:0; padding:14px 16px;
@@ -372,6 +375,7 @@ import {
         <div class="km-toolbar">
           <select data-km="maps" title="맵 고르기"></select>
           <button class="btn btn-ghost hidden" data-km="map-up" title="이 판을 담은 카드로 (⤴)">⤴</button>
+          <span class="km-saved hidden" data-km="saved" title="이 브라우저에 자동 저장됩니다">저장됨</span>
           <button class="btn btn-ghost" data-km="map-new" title="새 맵">+</button>
           <select data-km="new-kind" title="새로 만들 노드 종류">${nodeKindOptions()}</select>
           <span class="km-sep"></span>
@@ -634,8 +638,24 @@ import {
       return library.maps.find((m) => m.id === library.activeId)?.name ?? '맵';
     }
 
+    /**
+     * 저장 표시 — 이 도구는 **자동 저장**인데 그 말을 아무 데서도 안 했다. 처음 쓰는 사람은
+     * 「저장 버튼이 어디 있지?」로 불안해하다가 창을 안 닫는다. 저장할 때마다 잠깐 「저장됨」을 켠다.
+     */
+    let savedTimer: ReturnType<typeof setTimeout> | null = null;
+    function flashSaved(): void {
+      const el = root.querySelector('[data-km="saved"]') as HTMLElement | null;
+      if (!el) return;
+      el.textContent = '저장됨';
+      el.classList.remove('hidden');
+      if (savedTimer) clearTimeout(savedTimer);
+      savedTimer = setTimeout(() => el.classList.add('hidden'), 1400);
+    }
+    Toolbox.onDispose?.(() => { if (savedTimer) clearTimeout(savedTimer); });
+
     function persistStructure(): void {
       store.saveSpec(canvas?.getSpec() ?? spec);
+      flashSaved();
       // 공용 글은 맵보다 오래 산다 — 저장할 때마다 사람 창고에도 같이 적어 둔다.
       mirrorToLibrary(spec, activeMapName());
       library = touchMap(library, library.activeId);

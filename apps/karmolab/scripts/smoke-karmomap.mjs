@@ -81,6 +81,12 @@ await step('빈 곳 더블클릭 → 노드 생김', async () => {
   await page.mouse.dblclick(box.x + box.width * 0.3, box.y + box.height * 0.35);
   await page.waitForSelector('.ck-node', { timeout: 4000 });
 });
+await step('저장되면 「저장됨」이 잠깐 뜬다', async () => {
+  // 이 도구는 자동 저장인데 그 말을 아무 데서도 안 했다 — 처음 쓰는 사람은 「저장 버튼이 어디 있지?」로 불안해한다.
+  await page.waitForSelector('[data-km="saved"]:not(.hidden)', { timeout: 4000 });
+  // 늘 떠 있으면 잔소리가 된다 — 잠시 뒤 사라져야 한다.
+  await page.waitForSelector('[data-km="saved"].hidden', { state: 'attached', timeout: 4000 });
+});
 await step('이름 입력이 노드에 반영', async () => {
   await page.fill('[data-km="edit-label"]', '욘');
   await page.waitForFunction(() => document.querySelector('.ck-node text')?.textContent === '욘', null, { timeout: 4000 });
