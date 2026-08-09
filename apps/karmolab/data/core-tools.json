@@ -1,0 +1,148 @@
+{
+  "base64": {
+    "ops": [
+      "encode",
+      "decode"
+    ]
+  },
+  "birth": {
+    "ops": [
+      "info"
+    ]
+  },
+  "bizno": {
+    "ops": [
+      "check"
+    ]
+  },
+  "chain": {
+    "ops": [
+      "run"
+    ]
+  },
+  "charcount": {
+    "ops": [
+      "count",
+      "fits"
+    ]
+  },
+  "csvjson": {
+    "ops": [
+      "toJson",
+      "toCsv"
+    ]
+  },
+  "datecalc": {
+    "ops": [
+      "shift",
+      "between",
+      "dday"
+    ]
+  },
+  "epoch": {
+    "ops": [
+      "toDate",
+      "toStamp"
+    ]
+  },
+  "filehash": {
+    "ops": [
+      "verify"
+    ]
+  },
+  "grade": {
+    "ops": [
+      "gpa",
+      "needed"
+    ]
+  },
+  "hangulkey": {
+    "ops": [
+      "toKorean",
+      "toEnglish",
+      "auto"
+    ]
+  },
+  "hashgen": {
+    "ops": [
+      "text"
+    ]
+  },
+  "interest": {
+    "ops": [
+      "deposit",
+      "saving",
+      "loan"
+    ]
+  },
+  "jamo": {
+    "ops": [
+      "split",
+      "join",
+      "initials"
+    ]
+  },
+  "loan": {
+    "ops": [
+      "schedule",
+      "compare"
+    ]
+  },
+  "passgen": {
+    "ops": [
+      "strength"
+    ]
+  },
+  "qrgen": {
+    "ops": [
+      "svg",
+      "wifi",
+      "contact"
+    ]
+  },
+  "tableconv": {
+    "ops": [
+      "convert"
+    ]
+  },
+  "timecalc": {
+    "ops": [
+      "shift",
+      "sum"
+    ]
+  },
+  "unitconv": {
+    "ops": [
+      "convert",
+      "list"
+    ]
+  },
+  "uuidgen": {
+    "ops": [
+      "generate"
+    ]
+  },
+  "vat": {
+    "ops": [
+      "add",
+      "extract"
+    ]
+  },
+  "wordfreq": {
+    "ops": [
+      "count"
+    ]
+  },
+  "workdays": {
+    "ops": [
+      "after",
+      "between"
+    ]
+  },
+  "worldclock": {
+    "ops": [
+      "convert",
+      "offset"
+    ]
+  }
+}
