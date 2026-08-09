@@ -5,93 +5,10 @@
  * **원금과 이자가 달마다 어떻게 갈리는지**, 중도상환하면 얼마나 줄어드는지.
  * 초반 상환액이 거의 이자라는 사실은 표를 봐야 실감이 나므로 상환표를 편다.
  */
+import { bullet, equalPayment, equalPrincipal, spec, withExtra, withGrace, won, type Row } from '../../core/loan';
+import { readInvocation } from '../../lib/tool-url';
+
 (function (): void {
-  const won = (n: number): string => Math.round(n).toLocaleString('ko-KR') + '원';
-
-  interface Row {
-    n: number;
-    pay: number;
-    interest: number;
-    principal: number;
-    left: number;
-  }
-
-  /** 원리금균등: 매달 갚는 금액이 같다. 초반엔 이자 비중이 크다. */
-  function equalPayment(P: number, rate: number, months: number): Row[] {
-    const r = rate / 100 / 12;
-    const pay = r === 0 ? P / months : (P * r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1);
-    const rows: Row[] = [];
-    let left = P;
-    for (let n = 1; n <= months; n++) {
-      const interest = left * r;
-      const principal = pay - interest;
-      left = Math.max(0, left - principal);
-      rows.push({ n, pay, interest, principal, left });
-    }
-    return rows;
-  }
-
-  /** 원금균등: 원금을 똑같이 나눠 갚아 상환액이 점점 줄어든다. 총이자는 더 적다. */
-  function equalPrincipal(P: number, rate: number, months: number): Row[] {
-    const r = rate / 100 / 12;
-    const principal = P / months;
-    const rows: Row[] = [];
-    let left = P;
-    for (let n = 1; n <= months; n++) {
-      const interest = left * r;
-      left = Math.max(0, left - principal);
-      rows.push({ n, pay: principal + interest, interest, principal, left });
-    }
-    return rows;
-  }
-
-  /** 만기일시: 이자만 내다 마지막에 원금을 한 번에. */
-  function bullet(P: number, rate: number, months: number): Row[] {
-    const r = rate / 100 / 12;
-    const rows: Row[] = [];
-    for (let n = 1; n <= months; n++) {
-      const last = n === months;
-      rows.push({ n, pay: P * r + (last ? P : 0), interest: P * r, principal: last ? P : 0, left: last ? 0 : P });
-    }
-    return rows;
-  }
-
-  /**
-   * 거치기간 — 그동안은 **이자만** 낸다 (2026-08-08, 남들 기준 맞추기).
-   *
-   * 국내 계산기(핀다·부동산계산기·은행 금융계산기)는 전부 거치기간을 받는다. 주담대에서
-   * 흔한 조건인데 우리 도구에는 아예 없어서, 실제 조건을 넣어 볼 수가 없었다.
-   */
-  function withGrace(P: number, rate: number, grace: number, rows: Row[]): Row[] {
-    if (grace <= 0) return rows;
-    const r = rate / 100 / 12;
-    const 앞 = [];
-    for (let n = 1; n <= grace; n++) 앞.push({ n, pay: P * r, interest: P * r, principal: 0, left: P });
-    return 앞.concat(rows.map((row) => ({ ...row, n: row.n + grace })));
-  }
-
-  /**
-   * 매달 조금씩 더 갚으면 얼마나 줄어드나 (남들이 표로만 보여 주고 안 재 주는 자리).
-   *
-   * 「중도상환하면 얼마나 줄어드는지」는 이 도구를 만든 이유로 적혀 있었는데 정작 없었다.
-   * 수수료는 대출마다 달라 넣지 않는다 — 대신 **기간이 얼마나 짧아지고 이자가 얼마나 주는지**
-   * 두 숫자를 준다. 그게 사람이 결정할 때 보는 값이다.
-   */
-  function withExtra(rows: Row[], rate: number, extra: number): Row[] {
-    if (extra <= 0) return rows;
-    const r = rate / 100 / 12;
-    const out: Row[] = [];
-    let left = rows[0] ? rows[0].left + rows[0].principal : 0;
-    for (const base of rows) {
-      if (left <= 0) break;
-      const interest = left * r;
-      const 예정원금 = Math.min(base.principal + extra, left);
-      left = Math.max(0, left - 예정원금);
-      out.push({ n: base.n, pay: interest + 예정원금, interest, principal: 예정원금, left });
-    }
-    return out;
-  }
-
   Toolbox.register({
     id: 'loan',
     title: '대출 상환표',
@@ -260,6 +177,18 @@
             el.addEventListener('input', run);
             el.addEventListener('change', run);
           });
+
+          // 주소로 부른 경우 (`?op=schedule&amount=…&rate=…&months=…&method=principal`) (TASK-KL-205).
+          const call = readInvocation(spec);
+          if (call !== null && call.error === undefined) {
+            $<HTMLInputElement>('#loP').value = String(call.args.amount ?? $<HTMLInputElement>('#loP').value);
+            $<HTMLInputElement>('#loR').value = String(call.args.rate ?? $<HTMLInputElement>('#loR').value);
+            $<HTMLInputElement>('#loM').value = String(call.args.months ?? $<HTMLInputElement>('#loM').value);
+            if (call.args.grace !== undefined) $<HTMLInputElement>('#loG').value = String(call.args.grace);
+            if (call.args.extra !== undefined) $<HTMLInputElement>('#loX').value = String(call.args.extra);
+            const m = String(call.args.method ?? 'equal');
+            $<HTMLSelectElement>('#loType').value = m === 'principal' ? 'pp' : m === 'bullet' ? 'bu' : 'ep';
+          }
           run();
         }
       }
