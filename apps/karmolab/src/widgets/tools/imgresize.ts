@@ -12,6 +12,8 @@
  */
 import { fileSize as size } from './shared/media';
 
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   /**
    * 여러 번 나눠 줄인다. 한 번에 1/4 로 보내면 글자·선이 부서지는데,
@@ -54,31 +56,47 @@ import { fileSize as size } from './shared/media';
     id: 'imgresize',
     // 다른 도구가 만든 그림을 그대로 받는다 (TASK-KL-133)
     accepts: ['image/*'],
-    title: '사진 크기 맞추기',
+    title: t('widgets.imgresize.title', undefined, '사진 크기 맞추기'),
     category: 'tool',
-    desc: '가로 몇 px, 몇 MB 이하 같은 기준에 맞춰 줄입니다. 용량은 알아서 찾아 줍니다',
+    desc: t(
+      'widgets-desc.imgresize.desc',
+      undefined,
+      '가로 몇 px, 몇 MB 이하 같은 기준에 맞춰 줄입니다. 용량은 알아서 찾아 줍니다'
+    ),
     layout: 'wide',
     icon: '<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 16l3-3 2 2 3-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 7h3v3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '크기 맞추기',
+        label: t('imgresize.tab', undefined, '크기 맞추기'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('imgresize').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="irDrop">
               <input type="file" id="irFile" accept="image/*" hidden>
-              <span>사진을 끌어다 놓거나 눌러서 고르세요</span>
+              <span>${esc(t('imgresize.drop'))}</span>
             </div>
 
             <div class="field-group" id="irControls" style="display:none; margin-top:var(--space-lg);">
               <div class="tool-chips" id="irMode">
-                <button type="button" class="tool-chip active" data-mode="side">긴 변 맞추기</button>
-                <button type="button" class="tool-chip" data-mode="percent">비율로 줄이기</button>
-                <button type="button" class="tool-chip" data-mode="bytes">용량 맞추기</button>
+                <button type="button" class="tool-chip active" data-mode="side">${esc(t('imgresize.mode.side'))}</button>
+                <button type="button" class="tool-chip" data-mode="percent">${esc(t('imgresize.mode.percent'))}</button>
+                <button type="button" class="tool-chip" data-mode="bytes">${esc(t('imgresize.mode.bytes'))}</button>
               </div>
 
               <div id="irSideWrap" style="margin-top:10px;">
-                <div class="tool-sublabel">긴 변 <span id="irSideVal" class="range-value">1024px</span></div>
+                <div class="tool-sublabel">${esc(t('imgresize.label.side'))} <span id="irSideVal" class="range-value">1024px</span></div>
                 <input type="range" id="irSide" aria-label="긴 변 크기" min="200" max="4000" step="20" value="1024">
                 <div class="tool-chips" style="margin-top:8px;">
                   <button type="button" class="tool-chip" data-side="640">640</button>
@@ -90,7 +108,7 @@ import { fileSize as size } from './shared/media';
               <!-- iLoveIMG 등 상위 도구는 「픽셀 또는 백분율」 둘 다 받는다. 원본 크기를 모르고
                    「반으로만 줄이고 싶다」는 사람에게는 픽셀 칸이 오히려 걸림돌이다. -->
               <div id="irPercentWrap" style="display:none; margin-top:10px;">
-                <div class="tool-sublabel">원본의 <span id="irPercentVal" class="range-value">50%</span></div>
+                <div class="tool-sublabel">${esc(t('imgresize.label.percent'))} <span id="irPercentVal" class="range-value">50%</span></div>
                 <input type="range" id="irPercent" aria-label="원본 대비 비율 (%)" min="5" max="200" step="5" value="50">
                 <div class="tool-chips" style="margin-top:8px;">
                   <button type="button" class="tool-chip" data-pct="25">25%</button>
@@ -100,22 +118,22 @@ import { fileSize as size } from './shared/media';
               </div>
 
               <div id="irBytesWrap" style="display:none; margin-top:10px;">
-                <div class="tool-sublabel">이 크기 아래로 <span id="irBytesVal" class="range-value">1MB</span></div>
+                <div class="tool-sublabel">${esc(t('imgresize.label.bytes'))} <span id="irBytesVal" class="range-value">1MB</span></div>
                 <input type="range" id="irBytes" aria-label="목표 용량" min="1" max="20" value="4">
-                <div class="tool-status" style="margin-top:8px;">품질을 스스로 낮춰 가며 기준 아래로 떨어뜨립니다. 그래도 안 되면 크기까지 줄입니다.</div>
+                <div class="tool-status" style="margin-top:8px;">${esc(t('imgresize.hint.bytes'))}</div>
               </div>
 
               <div class="tool-grid-2" style="margin-top:10px;">
                 <div>
-                  <div class="tool-sublabel">저장 형식</div>
+                  <div class="tool-sublabel">${esc(t('imgresize.label.format'))}</div>
                   <select id="irType" aria-label="저장 형식">
-                    <option value="image/jpeg">JPEG — 사진에 알맞음</option>
-                    <option value="image/webp">WebP — 더 작음</option>
-                    <option value="image/png">PNG — 글자·그림에 알맞음</option>
+                    <option value="image/jpeg">${esc(t('imgresize.format.jpeg'))}</option>
+                    <option value="image/webp">${esc(t('imgresize.format.webp'))}</option>
+                    <option value="image/png">${esc(t('imgresize.format.png'))}</option>
                   </select>
                 </div>
                 <div class="tool-chips" style="align-content:end;">
-                  <label class="tool-chip"><input type="checkbox" id="irNoUp" checked> 원본보다 키우지 않기</label>
+                  <label class="tool-chip"><input type="checkbox" id="irNoUp" checked> ${esc(t('imgresize.opt.noUp'))}</label>
                 </div>
               </div>
             </div>
@@ -124,11 +142,11 @@ import { fileSize as size } from './shared/media';
             <img id="irPreview" alt="바뀐 사진 미리보기" style="max-width:100%; border-radius:10px; display:none; margin-bottom:var(--space-lg);">
 
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="irRun" disabled>맞추기</button>
-              <button class="btn btn-ghost" id="irSave" disabled>내려받기</button>
+              <button class="btn btn-primary" id="irRun" disabled>${esc(t('imgresize.btn.run'))}</button>
+              <button class="btn btn-ghost" id="irSave" disabled>${esc(t('imgresize.btn.save'))}</button>
             </div>
 
-            <div class="tool-status" id="irStatus">사진은 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="irStatus">${esc(t('imgresize.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -140,7 +158,7 @@ import { fileSize as size } from './shared/media';
 
           let img: HTMLImageElement | null = null;
           let originalSize = 0;
-          let baseName = '사진';
+          let baseName = t('imgresize.default.name');
           let made: Blob | null = null;
           let mode: 'side' | 'percent' | 'bytes' = 'side';
 
@@ -157,19 +175,20 @@ import { fileSize as size } from './shared/media';
             im.onload = () => {
               img = im;
               originalSize = file.size;
-              baseName = (file.name || '사진').replace(/\.[^.]+$/, '');
+              baseName = (file.name || t('imgresize.default.name')).replace(/\.[^.]+$/, '');
               made = null;
               saveBtn.disabled = true;
               preview.style.display = 'none';
               $<HTMLElement>('#irControls').style.display = '';
               runBtn.disabled = false;
               stats.innerHTML =
-                stat('원본 크기', `${im.naturalWidth}×${im.naturalHeight}`, true) + stat('원본 용량', size(file.size));
-              say('기준을 고르고 맞추기를 누르세요.', 'ok');
+                stat(t('imgresize.stat.srcSize'), `${im.naturalWidth}×${im.naturalHeight}`, true) +
+                stat(t('imgresize.stat.srcBytes'), size(file.size));
+              say(t('imgresize.say.ready'), 'ok');
               URL.revokeObjectURL(url);
             };
             im.onerror = () => {
-              say('사진을 열지 못했어요. 다른 파일로 해 보세요.', 'error');
+              say(t('imgresize.err.open'), 'error');
               URL.revokeObjectURL(url);
             };
             im.src = url;
@@ -233,7 +252,7 @@ import { fileSize as size } from './shared/media';
                 }
               }
 
-              if (!blob) throw new Error('사진을 바꾸지 못했습니다');
+              if (!blob) throw new Error(t('imgresize.err.convert'));
               made = blob;
               preview.src = URL.createObjectURL(blob);
               preview.style.display = '';
@@ -241,21 +260,26 @@ import { fileSize as size } from './shared/media';
 
               const pct = Math.round(Math.abs(1 - blob.size / originalSize) * 100);
               // 커졌으면 커졌다고 적는다 — 「-3% 줄었어요」는 숫자도 말도 틀린다
-              const verdict = blob.size < originalSize ? `${pct}% 줄었어요` : blob.size > originalSize ? `${pct}% 커졌어요` : '그대로예요';
+              const verdict =
+                blob.size < originalSize
+                  ? t('imgresize.verdict.smaller', { pct })
+                  : blob.size > originalSize
+                    ? t('imgresize.verdict.bigger', { pct })
+                    : t('imgresize.verdict.same');
               stats.innerHTML =
-                stat('바뀐 크기', `${dims.w}×${dims.h}`, true) +
-                stat('바뀐 용량', size(blob.size)) +
-                stat('원본 대비', verdict);
+                stat(t('imgresize.stat.outSize'), `${dims.w}×${dims.h}`, true) +
+                stat(t('imgresize.stat.outBytes'), size(blob.size)) +
+                stat(t('imgresize.stat.vsSrc'), verdict);
               const limit = parseInt($<HTMLInputElement>('#irBytes').value, 10) * 1024 * 1024;
               say(
                 mode === 'bytes' && blob.size > limit
-                  ? '기준까지는 못 내렸어요. 형식을 WebP 로 바꾸거나 긴 변을 더 줄여 보세요.'
-                  : `${size(originalSize)} → ${size(blob.size)} (${verdict})`,
+                  ? t('imgresize.say.overLimit')
+                  : t('imgresize.say.done', { from: size(originalSize), to: size(blob.size), verdict }),
                 mode === 'bytes' && blob.size > limit ? 'error' : 'ok'
               );
               Toolbox.trackUse?.('resize');
             } catch (e) {
-              say((e as Error).message || '맞추지 못했어요.', 'error');
+              say((e as Error).message || t('imgresize.err.generic'), 'error');
             } finally {
               runBtn.disabled = false;
             }
@@ -325,12 +349,9 @@ import { fileSize as size } from './shared/media';
             a.download = `${baseName}-맞춤.${ext}`;
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say(`${size(made.size)} 로 받았어요.`, 'ok');
+            say(t('imgresize.say.saved', { size: size(made.size) }), 'ok');
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: made, name: a.download, from: 'imgresize' });
           };
-        }
-      }
-    ]
-  });
+  }
 })();

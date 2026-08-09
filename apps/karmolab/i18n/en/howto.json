@@ -71,5 +71,9 @@
   "howto.icsmake.0": "Enter the event name and times",
   "howto.icsmake.1": "Set the place, repeat and notes",
   "howto.icsmake.2": "Check the times it wrote",
-  "howto.icsmake.3": "Hit \"Download .ics\""
+  "howto.icsmake.3": "Hit \"Download .ics\"",
+  "howto.imgresize.0": "Choose a photo",
+  "howto.imgresize.1": "Pick a long-side or file-size target",
+  "howto.imgresize.2": "Hit Resize",
+  "howto.imgresize.3": "Download it"
 }

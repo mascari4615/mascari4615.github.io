@@ -71,5 +71,9 @@
   "howto.icsmake.0": "予定の名前と時刻を入れる",
   "howto.icsmake.1": "場所・繰り返し・メモを決める",
   "howto.icsmake.2": "書かれた時刻を確認",
-  "howto.icsmake.3": "「.ics でダウンロード」"
+  "howto.icsmake.3": "「.ics でダウンロード」",
+  "howto.imgresize.0": "写真を選ぶ",
+  "howto.imgresize.1": "長辺または容量の基準を選ぶ",
+  "howto.imgresize.2": "「調整する」を押す",
+  "howto.imgresize.3": "ダウンロード"
 }
