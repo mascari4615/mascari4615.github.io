@@ -37,6 +37,7 @@ async function loadModules() {
     export * as fromText from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/from-text.ts'))};
     export * as jsonCanvas from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/json-canvas.ts'))};
     export * as mermaid from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/mermaid.ts'))};
+    export * as cmath from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-math.ts'))};
     export * as sna from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/sna.ts'))};
   `);
   const out = path.join(os.tmpdir(), `km-core-${Date.now()}.mjs`);
@@ -162,6 +163,33 @@ const M = await loadModules();
   check(mm.startsWith('flowchart'), 'Mermaid 는 flowchart 로 시작');
   check(mm.includes('-->'), '선이 적힌다');
   check(mm.includes('"부하"'), '선 이름표가 적힌다');
+}
+
+// ── 캔버스 셈법 (해체 1조각) ────────────────────────────────────────────────
+{
+  const { cmath } = M;
+  eq(cmath.colorForTag('주인공'), cmath.colorForTag('주인공'), '같은 말이면 늘 같은 색');
+  check(cmath.TAG_COLORS.includes(cmath.colorForTag('아무거나')), '팔레트 안에서 고른다');
+  eq(cmath.snapTo(13, 8), 16, '격자에 당긴다');
+  eq(cmath.snapTo(13, 0), 13, '격자가 0 이면 그대로');
+
+  const g = { p1: { x: 0, y: 0 }, c1: { x: 0, y: 0 }, c2: { x: 10, y: 0 }, p2: { x: 10, y: 0 } };
+  eq(cmath.pointOnCubic(g, 0).x, 0, 't=0 은 시작점');
+  eq(cmath.pointOnCubic(g, 1).x, 10, 't=1 은 끝점');
+  check(Math.abs(cmath.pointOnCubic(g, 0.5).x - 5) < 0.001, '가운데는 절반');
+
+  const sq = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }, { x: 5, y: 5 }];
+  eq(cmath.convexHull(sq).length, 4, '안쪽 점은 껍질에서 빠진다');
+  eq(cmath.convexHull([{ x: 0, y: 0 }, { x: 1, y: 1 }]).length, 0, '점이 둘이면 껍질이 없다');
+  check((cmath.roundedHullPath(cmath.convexHull(sq)) ?? '').endsWith('Z'), '껍질 경로는 닫힌다');
+  eq(cmath.roundedHullPath([{ x: 0, y: 0 }]), null, '점 하나로는 경로가 없다');
+  eq(cmath.boxCorners({ x: 0, y: 0, w: 10, h: 10 }, 2).length, 4, '모서리는 넷');
+  check(cmath.boxCorners({ x: 0, y: 0, w: 10, h: 10 }, 2)[0].x === -2, '부풀림이 먹는다');
+
+  const wav = cmath.wobblePath(g, 'wavy', { steps: 8 });
+  check(wav.startsWith('M ') && wav.split(' L ').length === 9, '물결선은 steps 등분 = 점 steps+1 개');
+  const first = wav.slice(2).split(' L ')[0].split(',').map(Number);
+  check(Math.abs(first[1]) < 0.001, '시작점은 안 흔들린다(노드에 딱 붙어야 한다)');
 }
 
 // ── 관계망 셈법 ─────────────────────────────────────────────────────────────
