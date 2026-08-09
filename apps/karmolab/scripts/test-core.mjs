@@ -856,6 +856,55 @@ for (const bad of [['after', { start: '엉뚱', days: 3 }], ['after', { start: '
 }
 eq(wdThrew, 4, '잘못된 날짜·0일·끝날 없음·모르는 나라는 전부 던진다');
 
+// ── ②-19 worldclock 알맹이 (서머타임 — 외운 시차는 1년에 두 번 틀린다) ────────
+const wc = await load('src/core/worldclock.ts');
+
+eq(wc.spec.id, 'worldclock', 'worldclock spec.id');
+
+// 서머타임 없는 곳은 언제나 같다.
+eq(wc.offsetMinutes('Asia/Seoul', new Date(Date.UTC(2026, 0, 15))), 540, '서울은 겨울에도 +9');
+eq(wc.offsetMinutes('Asia/Seoul', new Date(Date.UTC(2026, 6, 15))), 540, '서울은 여름에도 +9');
+eq(wc.offsetMinutes('UTC', new Date()), 0, 'UTC 는 0');
+eq(wc.usesDst('Asia/Seoul', 2026), false, '한국은 서머타임 안 씀');
+
+/* 이 도구가 있는 이유 자체 — 뉴욕은 계절마다 다르다.
+   겨울 UTC-5 · 여름 UTC-4. 서울과의 시차가 14시간 ↔ 13시간으로 바뀐다. */
+eq(wc.offsetMinutes('America/New_York', new Date(Date.UTC(2026, 0, 15))), -300, '뉴욕 1월 = UTC-5');
+eq(wc.offsetMinutes('America/New_York', new Date(Date.UTC(2026, 6, 15))), -240, '뉴욕 7월 = UTC-4 (서머타임)');
+eq(wc.usesDst('America/New_York', 2026), true, '뉴욕은 서머타임 씀');
+const winterGap = (wc.offsetMinutes('America/New_York', new Date(Date.UTC(2026, 0, 15))) - 540) / 60;
+const summerGap = (wc.offsetMinutes('America/New_York', new Date(Date.UTC(2026, 6, 15))) - 540) / 60;
+eq(winterGap, -14, '서울→뉴욕 겨울 14시간');
+eq(summerGap, -13, '서울→뉴욕 여름 13시간 — 외운 숫자를 쓰면 한 시간 어긋난다');
+check(winterGap !== summerGap, '두 값이 같으면 이 도구가 필요 없다');
+
+eq(wc.usesDst('Europe/London', 2026), true, '런던도 서머타임');
+eq(wc.usesDst('Asia/Tokyo', 2026), false, '일본은 안 씀');
+
+// 없는 시간대를 조용히 0 으로 처리하면 안 된다.
+eq(wc.isZone('Asia/Seoul'), true, '있는 시간대');
+eq(wc.isZone('Asia/없는곳'), false, '없는 시간대');
+
+// 벽시계 ↔ 순간 왕복.
+const inst = wc.wallToInstant('2026-08-09T14:00', 'Asia/Seoul');
+eq(wc.wallOf(inst, 'Asia/Seoul'), '2026-08-09 14:00', '서울 벽시계 왕복');
+eq(wc.wallOf(inst, 'UTC'), '2026-08-09 05:00', '같은 순간의 UTC');
+
+check(wc.run('convert', { time: '2026-08-09 14:00', from: 'Asia/Seoul', to: 'America/New_York' }).includes('2026-08-09 01:00'), 'run convert (여름 = 13시간 차)');
+check(wc.run('convert', { time: '2026-01-09 14:00', from: 'Asia/Seoul', to: 'America/New_York' }).includes('2026-01-09 00:00'), 'run convert (겨울 = 14시간 차)');
+check(wc.run('convert', { time: '2026-08-09 14:00', from: 'Asia/Seoul', to: 'America/New_York' }).includes('서머타임'), '서머타임 경고를 붙인다');
+check(wc.run('convert', { time: '2026-08-09 14:00', from: 'Asia/Seoul', to: 'Asia/Tokyo' }).includes('서머타임') === false, '둘 다 안 쓰면 경고 없음');
+check(wc.run('offset', { from: 'Asia/Seoul', to: 'Europe/London', date: '2026-07-01' }).includes('1월'), 'offset 이 계절 차이를 보여 준다');
+let wcThrew = 0;
+for (const bad of [['convert', { time: '엉뚱', from: 'Asia/Seoul', to: 'UTC' }], ['convert', { time: '2026-08-09 14:00', from: 'Asia/없음', to: 'UTC' }], ['offset', { from: 'Asia/Seoul', to: 'UTC', date: '엉뚱' }]]) {
+  try {
+    wc.run(bad[0], bad[1]);
+  } catch {
+    wcThrew++;
+  }
+}
+eq(wcThrew, 3, '잘못된 시각·없는 시간대·잘못된 날짜는 전부 던진다');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 
