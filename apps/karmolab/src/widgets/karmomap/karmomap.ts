@@ -27,6 +27,7 @@ import { HELP } from './help';
 import type { PanelCtx } from './panels/context';
 import { renderHelpPanel } from './panels/help-panel';
 import { renderSnaPanel } from './panels/sna-panel';
+import { renderStoragePanel } from './panels/storage-panel';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -1188,79 +1189,6 @@ import {
     }
 
     /**
-     * 저장 상태 — 언제 터질지 **미리** 말해 준다 (격차 Y).
-     * 넘친 뒤에 아는 것이 이 도구에서 가장 나쁜 실패다(한참 그린 뒤에 알게 된다).
-     */
-    function renderStoragePanel(): void {
-      sideEl.classList.remove('hidden');
-      canvas?.setSelectedNode(null);
-      const rep = measureStorage();
-      const nameOfKey = (key: string): string => {
-        const id = key.replace('karmomap.map.', '');
-        const m = library.maps.find((x) => x.id === id);
-        return m ? m.name : key.replace('karmomap.', '');
-      };
-      sideEl.innerHTML = `
-        <h4>💾 저장 상태</h4>
-        <div class="km-hint">그림은 이 브라우저 안에만 있습니다. 칸이 차면 저장이 실패합니다.</div>
-        <div class="km-field">
-          <label>${humanBytes(rep.used)} / 약 ${humanBytes(rep.budget)} (${Math.round(rep.ratio * 100)}%)</label>
-          <div class="km-meter"><div class="km-meter-fill" style="width:${Math.min(100, Math.round(rep.ratio * 100))}%;
-            background:${rep.warn ? '#f87171' : '#34d399'}"></div></div>
-          ${rep.warn
-            ? '<div class="km-hint" style="color:#fca5a5">칸이 거의 찼습니다. 안 쓰는 맵을 지우거나 <b>JSON 내보내기</b>로 옮겨 두세요. 사진 붙인 노드가 특히 큽니다.</div>'
-            : ''}
-        </div>
-        <div class="km-field">
-          <label>무거운 순</label>
-          ${rep.items.slice(0, 8).map((it) => `<div class="km-link-row">
-            <span class="km-link-name">${escapeHtml(nameOfKey(it.key))}</span>
-            <span class="km-group-count">${humanBytes(it.bytes)}</span>
-          </div>`).join('')}
-        </div>
-        <button class="btn btn-ghost" data-km="st-prev">방금 것 되살리기 (직전 판)</button>
-        <div class="km-hint">새로고침 뒤에도 <b>바로 앞 판 하나</b>는 남겨 둡니다. 실수로 지웠을 때 쓰세요.</div>
-        <button class="btn btn-primary" data-km="st-backup">모든 맵 한 파일로 내보내기</button>
-        <button class="btn btn-ghost" data-km="st-restore">백업 파일 되돌리기</button>
-        <div class="km-hint">되돌리면 지금 맵들을 <b>지우지 않고 옆에 더합니다</b>. 이름이 겹치면 「(복원)」이 붙습니다.</div>
-        <button class="btn btn-ghost" data-km="st-close">닫기</button>`;
-
-      (sideEl.querySelector('[data-km="st-close"]') as HTMLButtonElement).onclick = () => {
-        sideMode = 'node';
-        renderSide();
-      };
-      (sideEl.querySelector('[data-km="st-restore"]') as HTMLButtonElement).onclick = () => restoreFileEl.click();
-      (sideEl.querySelector('[data-km="st-prev"]') as HTMLButtonElement).onclick = () => {
-        const prev = store.loadPrev();
-        if (!prev) {
-          Toolbox.showToast?.('되살릴 직전 판이 없습니다', undefined, undefined);
-          return;
-        }
-        if (!confirm(`직전 판(노드 ${prev.nodes.length}개)으로 되돌릴까요? 지금 것은 다시 직전 판이 됩니다.`)) return;
-        spec = prev;
-        applySpec();
-        persistStructure();
-        canvas?.fitView();
-        sideMode = 'node';
-        renderSide();
-        Toolbox.showToast?.('직전 판으로 되돌렸습니다', undefined, undefined);
-      };
-      (sideEl.querySelector('[data-km="st-backup"]') as HTMLButtonElement).onclick = () => {
-        // 맵 하나씩 내보내게 하면 사람은 결국 몇 개를 빠뜨린다 — 통째로 한 파일에 담는다.
-        const all = library.maps.map((m) => {
-          let data: unknown = null;
-          try { data = JSON.parse(localStorage.getItem(mapKey(m.id)) ?? 'null'); } catch { data = null; }
-          return { id: m.id, name: m.name, updatedAt: m.updatedAt, spec: data };
-        });
-        downloadBlob(
-          new Blob([JSON.stringify({ kind: 'karmomap-backup', v: 1, maps: all }, null, 2)], { type: 'application/json' }),
-          'karmomap-backup.json'
-        );
-        Toolbox.showToast?.(`맵 ${all.length}개를 한 파일로 담았습니다`, undefined, undefined);
-      };
-    }
-
-    /**
      * 선 패널 — 관계 자체에 붙는 이야기 (격차 Z).
      * 「언제부터 라이벌인가」는 어느 한쪽 인물의 설명이 아니다. 노드에만 적을 곳을 두면 갈 데가 없다.
      */
@@ -1357,6 +1285,39 @@ import {
       persist: () => persistStructure(),
       refresh: () => renderSide(),
       esc: (s0) => escapeHtml(s0),
+      mapNameOfKey: (key) => {
+        const id = key.replace('karmomap.map.', '');
+        return library.maps.find((x) => x.id === id)?.name ?? key.replace('karmomap.', '');
+      },
+      openRestore: () => restoreFileEl.click(),
+      backupAllMaps: () => {
+        // 맵 하나씩 내보내게 하면 사람은 결국 몇 개를 빠뜨린다 — 통째로 한 파일에 담는다.
+        const all = library.maps.map((m) => {
+          let data: unknown = null;
+          try { data = JSON.parse(localStorage.getItem(mapKey(m.id)) ?? 'null'); } catch { data = null; }
+          return { id: m.id, name: m.name, updatedAt: m.updatedAt, spec: data };
+        });
+        downloadBlob(
+          new Blob([JSON.stringify({ kind: 'karmomap-backup', v: 1, maps: all }, null, 2)], { type: 'application/json' }),
+          'karmomap-backup.json'
+        );
+        Toolbox.showToast?.(`맵 ${all.length}개를 한 파일로 담았습니다`, undefined, undefined);
+      },
+      restorePrevRevision: () => {
+        const prev = store.loadPrev();
+        if (!prev) {
+          Toolbox.showToast?.('되살릴 직전 판이 없습니다', undefined, undefined);
+          return;
+        }
+        if (!confirm(`직전 판(노드 ${prev.nodes.length}개)으로 되돌릴까요? 지금 것은 다시 직전 판이 됩니다.`)) return;
+        spec = prev;
+        applySpec();
+        persistStructure();
+        canvas?.fitView();
+        sideMode = 'node';
+        renderSide();
+        Toolbox.showToast?.('직전 판으로 되돌렸습니다', undefined, undefined);
+      },
     };
 
     /**
@@ -1429,7 +1390,7 @@ import {
         return;
       }
       if (sideMode === 'storage') {
-        renderStoragePanel();
+        renderStoragePanel(panelCtx);
         return;
       }
       if (sideMode === 'edge') {
