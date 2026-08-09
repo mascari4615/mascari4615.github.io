@@ -6,6 +6,28 @@
  */
 import type { GroupDef } from './spec';
 
+/**
+ * 묶음 상자 = **저장된 네모 + 멤버들을 다 덮은 자리**(여백 12).
+ * 저장된 네모만 쓰면 멤버를 밖으로 끌어냈을 때 상자가 안 따라와 「소속인데 밖에 있는」 그림이 된다.
+ */
+export function computeGroupBox(
+  group: GroupDef,
+  memberBoxes: { x: number; y: number; w: number; h: number }[],
+  pad = 12,
+): { x: number; y: number; w: number; h: number } {
+  let minX = group.bbox.x;
+  let minY = group.bbox.y;
+  let maxX = group.bbox.x + group.bbox.w;
+  let maxY = group.bbox.y + group.bbox.h;
+  for (const b of memberBoxes) {
+    minX = Math.min(minX, b.x - pad);
+    minY = Math.min(minY, b.y - pad);
+    maxX = Math.max(maxX, b.x + b.w + pad);
+    maxY = Math.max(maxY, b.y + b.h + pad);
+  }
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const GROUP_HEADER_H = 20;
 
