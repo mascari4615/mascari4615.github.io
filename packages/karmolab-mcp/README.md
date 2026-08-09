@@ -53,6 +53,18 @@ npx -y karmolab-mcp
 
 Requires Node 20+. Speaks MCP over stdio (newline-delimited JSON-RPC 2.0).
 
+### From a clone (no npm needed)
+
+```bash
+git clone https://github.com/Mascari4615/Mascari4615.github.io
+cd Mascari4615.github.io/packages/karmolab-mcp
+node build.mjs                       # writes dist/ — needs esbuild from apps/karmolab
+claude mcp add --scope local karmolab -- node "$PWD/src/server.mjs"
+```
+
+The build step exists because the tools live as TypeScript in the website's source and are
+compiled into `dist/`. Nothing is downloaded at runtime.
+
 ## Design
 
 - **No dependencies.** MCP's stdio transport is line-delimited JSON-RPC, so no SDK is needed.
