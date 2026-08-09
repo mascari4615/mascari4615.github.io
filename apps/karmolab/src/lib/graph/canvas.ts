@@ -832,7 +832,15 @@ export class GraphCanvas {
     const g = document.createElementNS(SVG_NS, 'g') as SVGGElement;
     g.setAttribute('class', 'ck-node');
     g.dataset.id = node.id;
-    g.setAttribute('transform', `translate(${coords.x},${coords.y})`);
+    // 기울기는 상자 한가운데를 축으로 — 모서리를 축으로 돌리면 위치가 같이 밀려서
+    // 「돌렸을 뿐인데 딴 데로 갔다」가 된다.
+    const rot = node.rotate ?? 0;
+    g.setAttribute(
+      'transform',
+      rot
+        ? `translate(${coords.x},${coords.y}) rotate(${rot} ${node.w / 2} ${effH / 2})`
+        : `translate(${coords.x},${coords.y})`
+    );
     g.style.cursor = 'grab';
 
     const kindColor = this.colorForKind(node.kind);
@@ -845,7 +853,7 @@ export class GraphCanvas {
     bg.setAttribute('class', 'ck-node-bg');
     g.appendChild(bg);
 
-    // 좌측 색띠 — 카드 모양일 때만 (동그라미·말풍선에선 띠가 어색하다)
+    // 좌측 색띠 — 카드 모양일 때만 (동그라미·말풍선·메모에선 띠가 어색하다)
     if (shape === 'rect') {
       const bar = document.createElementNS(SVG_NS, 'rect');
       bar.setAttribute('x', '0');
@@ -989,6 +997,19 @@ export class GraphCanvas {
       el.setAttribute('fill', fill);
       el.setAttribute('stroke', stroke);
       el.setAttribute('stroke-width', '1.5');
+      return el;
+    }
+
+    if (shape === 'note') {
+      // 메모 = 종이쪽지. 테두리 대신 아주 옅은 바탕 + 왼쪽 짧은 색 자국만 남긴다.
+      const el = document.createElementNS(SVG_NS, 'rect');
+      el.setAttribute('width', String(node.w));
+      el.setAttribute('height', String(effH));
+      el.setAttribute('rx', '3');
+      el.setAttribute('fill', kindColor + '14');
+      el.setAttribute('stroke', kindColor + '20');
+      el.setAttribute('stroke-width', '1');
+      el.setAttribute('stroke-dasharray', '3 3');
       return el;
     }
 

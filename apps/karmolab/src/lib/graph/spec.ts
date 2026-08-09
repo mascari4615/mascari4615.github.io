@@ -32,8 +32,11 @@ export type NodeAvatar =
   | { kind: 'color'; value: string }
   | { kind: 'image'; value: string };
 
-/** 노드 겉모양. rect = 기본 카드, circle = 동그라미, bubble = 말풍선. */
-export type NodeShape = 'rect' | 'circle' | 'bubble';
+/**
+ * 노드 겉모양. rect = 기본 카드, circle = 동그라미, bubble = 말풍선,
+ * note = **메모** (테두리 없는 종이쪽지 — 손으로 갈겨 둔 한마디. 레퍼런스의 「書き込み」 자리).
+ */
+export type NodeShape = 'rect' | 'circle' | 'bubble' | 'note';
 
 export interface GraphNode {
   id: string;
@@ -51,6 +54,8 @@ export interface GraphNode {
   shape?: NodeShape;    // 없으면 'rect'
   avatar?: NodeAvatar;
   note?: string;        // 이름 밑 한 줄 — 「한마디」
+  /** 기울기(도). 메모를 삐딱하게 붙여 두면 「정리된 것」과 「갈겨 둔 것」이 눈으로 갈린다. */
+  rotate?: number;
 }
 
 /**
