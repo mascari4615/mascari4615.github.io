@@ -1,5 +1,5 @@
 {
-  "total": 9279,
+  "total": 9295,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -333,6 +333,7 @@
     "src/core/passgen.ts": 32,
     "src/core/chain.ts": 16,
     "src/widgets/tools/chain.ts": 12,
-    "src/core/daily.ts": 13
+    "src/core/daily.ts": 13,
+    "src/lib/ai-route.ts": 16
   }
 }
