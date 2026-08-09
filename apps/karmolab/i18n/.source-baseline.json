@@ -1,5 +1,5 @@
 {
-  "total": 7953,
+  "total": 7954,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -165,7 +165,7 @@
     "src/widgets/tools/audiolevel.ts": 27,
     "src/widgets/tools/audiospeed.ts": 23,
     "src/widgets/tools/barcode.ts": 17,
-    "src/widgets/tools/base64.ts": 12,
+    "src/widgets/tools/base64.ts": 13,
     "src/widgets/tools/birth.ts": 69,
     "src/widgets/tools/bizno.ts": 35,
     "src/widgets/tools/bmi.ts": 29,
