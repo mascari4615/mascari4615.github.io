@@ -11,6 +11,7 @@
  * 무엇이 공개되는지는 memo/wm/design/web-policy.json 이 정한다(여기서는 못 정한다).
  */
 import { renderMarkdown, escapeHtml } from '../community-markdown';
+import { t, loadNamespace } from '../../lib/i18n';
 
 interface WorldDoc {
   id: string;
@@ -47,19 +48,22 @@ interface WorldBook {
 }
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const DATA_URL = '/apps/karmolab/data/worldbook.json';
   const DEVLOG_URL = '/apps/karmolab/data/devlog.json';
   const TASKS_URL = '/apps/karmolab/data/wm-tasks.json';
 
   /** 머리말 키 → 사람이 읽는 이름. 여기 없는 키도 **그대로** 보여 준다(모르는 칸도 그린다). */
   const FIELD_LABEL: Record<string, string> = {
-    status: '상태',
-    updated: '고친 날',
-    tags: '꼬리표',
-    aliases: '다른 이름',
-    owner: '담당',
-    depends: '기대는 것',
-    parent: '윗 문서',
+    status: t('wm.t38'),
+    updated: t('wm.t39'),
+    tags: t('wm.t40'),
+    aliases: t('wm.t41'),
+    owner: t('wm.t42'),
+    depends: t('wm.t43'),
+    parent: t('wm.t44'),
   };
 
   let book: WorldBook | null = null;
@@ -111,7 +115,7 @@ interface WorldBook {
               )
               .join('')}</ul>
             ${d.more > 0 || d.quiet > 0
-              ? `<p class="wm-news-quiet">그 밖에 ${d.more > 0 ? `변화 ${d.more}건 · ` : ''}손질 ${d.quiet}건</p>`
+              ? `<p class="wm-news-quiet">그 밖에 ${d.more > 0 ? `변화 ${d.more}건 · ` : ''}${t('wm.quietFixes', { n: d.quiet })}</p>`
               : ''}
           </section>`
         )
@@ -157,8 +161,8 @@ interface WorldBook {
             <h3 class="wm-board-status">${escapeHtml(g.label)} <span class="wb-chip">${g.count}</span></h3>
             <ul class="wm-board-list">${g.items
               .map(
-                (t) => `<li><span class="wm-board-id">${escapeHtml(t.id)}</span>
-                  <span class="wm-board-title">${escapeHtml(t.title)}</span></li>`
+                (task) => `<li><span class="wm-board-id">${escapeHtml(task.id)}</span>
+                  <span class="wm-board-title">${escapeHtml(task.title)}</span></li>`
               )
               .join('')}</ul>
           </section>`
@@ -198,7 +202,7 @@ interface WorldBook {
 
     if (table.rows.length === 0) {
       return `<p class="wb-empty">공간 표를 읽지 못했습니다. ${
-        spaces ? `<a href="/karmolab/?wb=${encodeURIComponent(spaces.id)}#wm">원문 보기</a>` : '원문도 아직 없습니다.'
+        spaces ? `<a href="/karmolab/?wb=${encodeURIComponent(spaces.id)}#wm">${esc(t('wm.t01'))}</a>` : t('wm.t45')
       }</p>`;
     }
 
@@ -219,16 +223,16 @@ interface WorldBook {
       .join('');
 
     return `
-      <p class="wb-lead">이 세계에 있는 곳들입니다. 표가 늘어나면 여기도 늘어납니다.</p>
+      <p class="wb-lead">${esc(t('wm.t02'))}</p>
       <div class="wm-places">${cards}</div>
       ${rooms
         ? `<section class="wm-in-block">
-             <h3>욘의 집 안</h3>
+             <h3>${esc(t('wm.t03'))}</h3>
              <ul class="wm-rooms">${rooms}</ul>
-             ${home ? `<p class="wb-source"><a href="/karmolab/?wb=${encodeURIComponent(home.id)}#wm">집 구조 원문 →</a></p>` : ''}
+             ${home ? `<p class="wb-source"><a href="/karmolab/?wb=${encodeURIComponent(home.id)}#wm">${esc(t('wm.t04'))}</a></p>` : ''}
            </section>`
         : ''}
-      ${spaces ? `<p class="wb-source"><a href="/karmolab/?wb=${encodeURIComponent(spaces.id)}#wm">공간 원문 →</a></p>` : ''}`;
+      ${spaces ? `<p class="wb-source"><a href="/karmolab/?wb=${encodeURIComponent(spaces.id)}#wm">${esc(t('wm.t05'))}</a></p>` : ''}`;
   }
 
   /* -- 하루 체험 (TASK-KL-163 첫 조각) ------------------------------------------------
@@ -316,14 +320,14 @@ interface WorldBook {
     const left = st.slots - st.used.length;
 
     return `
-      <p class="wb-lead">설치 없이 이 게임의 결을 잠깐. 규칙도 문장도 개발 노트에서 그대로 옵니다.</p>
+      <p class="wb-lead">${esc(t('wm.t06'))}</p>
       <section class="wm-day">
         <header class="wm-day-head">
           <span class="wm-day-n">${st.day}일째</span>
           ${seasonName ? `<span class="wb-chip">${escapeHtml(seasonName)}</span>` : ''}
           ${season && season.cells[1] ? `<span class="wm-day-mood">${escapeHtml(season.cells[1])}</span>` : ''}
         </header>
-        <p class="wm-day-cond">오늘 욘: <b>${escapeHtml(st.condition)}</b></p>
+        <p class="wm-day-cond">${esc(t('wm.t07'))} <b>${escapeHtml(st.condition)}</b></p>
         <p class="wm-day-slots">지시할 수 있는 것 ${left} / ${st.slots}</p>
         <div class="wm-day-acts">${actions
           .map(
@@ -332,12 +336,12 @@ interface WorldBook {
           .join('')}</div>
         ${st.log.length > 0 ? `<ul class="wm-day-log">${st.log.map((l) => `<li>${escapeHtml(l)}</li>`).join('')}</ul>` : ''}
         ${left <= 0
-          ? `<div class="wm-day-end">${event ? `<p class="wm-day-event">${escapeHtml(event.desc)}</p>` : ''}<button type="button" class="btn btn-primary" data-day="next">다음 날</button></div>`
+          ? `<div class="wm-day-end">${event ? `<p class="wm-day-event">${escapeHtml(event.desc)}</p>` : ''}<button type="button" class="btn btn-primary" data-day="next">${esc(t('wm.t08'))}</button></div>`
           : ''}
         <p class="wb-source">
-          <a href="/karmolab/?wb=gameplay%2Fcondition#wm">컨디션 원문</a> ·
-          <a href="/karmolab/?wb=gameplay%2Ftime-seasons#wm">시간·계절 원문</a> ·
-          <button type="button" class="wm-day-reset" data-day="reset">처음부터</button>
+          <a href="/karmolab/?wb=gameplay%2Fcondition#wm">${esc(t('wm.t09'))}</a> ·
+          <a href="/karmolab/?wb=gameplay%2Ftime-seasons#wm">${esc(t('wm.t10'))}</a> ·
+          <button type="button" class="wm-day-reset" data-day="reset">${esc(t('wm.t11'))}</button>
         </p>
       </section>`;
   }
@@ -358,13 +362,13 @@ interface WorldBook {
   }
 
   function whenText(iso: string): string {
-    const t = Date.parse(iso);
-    if (Number.isNaN(t)) return '';
-    const min = Math.floor((Date.now() - t) / 60000);
-    if (min < 1) return '방금';
-    if (min < 60) return min + '분 전';
-    if (min < 60 * 24) return Math.floor(min / 60) + '시간 전';
-    return Math.floor(min / 1440) + '일 전';
+    const ms = Date.parse(iso);
+    if (Number.isNaN(ms)) return '';
+    const min = Math.floor((Date.now() - ms) / 60000);
+    if (min < 1) return t('wm.t46');
+    if (min < 60) return min + t('wm.t47');
+    if (min < 60 * 24) return Math.floor(min / 60) + t('wm.t48');
+    return Math.floor(min / 1440) + t('wm.t49');
   }
 
   /** 갤러리가 가진 꼬리표 — 서버가 알려 주는 대로 쓴다(우리가 목록을 박지 않는다). */
@@ -386,30 +390,30 @@ interface WorldBook {
 
   function talkHtml(posts: TalkPost[] | null): string {
     if (posts === null) {
-      return `<p class="wb-empty">이야기판을 지금은 못 불러왔습니다. 잠시 뒤 다시 열어 주세요.
-        <a href="/karmolab/#community">커뮤니티로 가기</a></p>`;
+      return `<p class="wb-empty">${esc(t('wm.t12'))}
+        <a href="/karmolab/#community">${esc(t('wm.t13'))}</a></p>`;
     }
     const tabs = talkTags.length > 0
       ? `<div class="wb-kinds wm-talk-tags">
-          <button type="button" class="wb-kind${talkTag === '' ? ' is-on' : ''}" data-talktag="">전체</button>
+          <button type="button" class="wb-kind${talkTag === '' ? ' is-on' : ''}" data-talktag="">${esc(t('wm.t14'))}</button>
           ${talkTags
-            .map((t) => `<button type="button" class="wb-kind${talkTag === t ? ' is-on' : ''}" data-talktag="${escapeHtml(t)}">${escapeHtml(t)}</button>`)
+            .map((tag) => `<button type="button" class="wb-kind${talkTag === tag ? ' is-on' : ''}" data-talktag="${escapeHtml(tag)}">${escapeHtml(tag)}</button>`)
             .join('')}
         </div>`
       : '';
     const write = `${tabs}<p class="wm-talk-write">
-        <a class="btn btn-primary" href="/karmolab/#community">커뮤니티에서 쓰기</a>
-        <span class="wb-source">쓰기·답글·좋아요는 커뮤니티 화면이 맡습니다</span>
+        <a class="btn btn-primary" href="/karmolab/#community">${esc(t('wm.t15'))}</a>
+        <span class="wb-source">${esc(t('wm.t16'))}</span>
       </p>`;
     if (posts.length === 0) {
-      return `${write}<p class="wb-empty">아직 첫 글이 없습니다. 첫 사람이 되어 주세요.</p>`;
+      return `${write}<p class="wb-empty">${esc(t('wm.t17'))}</p>`;
     }
     return `${write}<ul class="wm-talk">${posts
       .map(
-        (t) => `<li class="wm-talk-row">
-          <a class="wm-talk-title" href="/karmolab/?p=${encodeURIComponent(t.id)}#community">${escapeHtml(t.title || '(제목 없음)')}</a>
-          <span class="wm-talk-meta">${escapeHtml(t.handle || '익명')} · ${escapeHtml(whenText(t.createdAt))}
-            ${t.replyCount > 0 ? ` · 답글 ${t.replyCount}` : ''}${t.likes > 0 ? ` · 좋아요 ${t.likes}` : ''}</span>
+        (talk) => `<li class="wm-talk-row">
+          <a class="wm-talk-title" href="/karmolab/?p=${encodeURIComponent(talk.id)}#community">${escapeHtml(talk.title || '(제목 없음)')}</a>
+          <span class="wm-talk-meta">${escapeHtml(talk.handle || '익명')} · ${escapeHtml(whenText(talk.createdAt))}
+            ${talk.replyCount > 0 ? ` · ${t('wm.replies', { n: talk.replyCount })}` : ''}${talk.likes > 0 ? ` · ${t('wm.likes', { n: talk.likes })}` : ''}</span>
         </li>`
       )
       .join('')}</ul>`;
@@ -425,22 +429,7 @@ interface WorldBook {
     return escapeHtml(value);
   }
 
-  /** 이 문서와 이웃한 것들 — 같은 꼬리표가 먼저, 없으면 같은 종류. 정본에 있는 것만 쓴다. */
-  function relatedOf(doc: WorldDoc, all: WorldDoc[], limit = 6): WorldDoc[] {
-    const score = (d: WorldDoc): number => {
-      if (d.id === doc.id) return -1;
-      const shared = d.tags.filter((t) => doc.tags.includes(t)).length;
-      return shared * 10 + (d.kind === doc.kind ? 1 : 0);
-    };
-    return all
-      .map((d) => ({ d, n: score(d) }))
-      .filter((x) => x.n > 0)
-      .sort((a, b) => b.n - a.n || a.d.title.localeCompare(b.d.title, 'ko'))
-      .slice(0, limit)
-      .map((x) => x.d);
-  }
-
-  function detailHtml(doc: WorldDoc, all: WorldDoc[] = []): string {
+  function detailHtml(doc: WorldDoc): string {
     const fields = Object.entries(doc.fields).filter(([, v]) => v !== '' && v != null);
     const rows = fields
       .map(
@@ -452,24 +441,16 @@ interface WorldBook {
     const body = doc.body ? doc.body.replace(/^#\s+.+\n+/, '') : '';
     const bodyHtml = body
       ? renderMarkdown(body)
-      : `<p class="wb-locked">이 문서는 <b>제목과 한 줄</b>만 공개돼 있습니다. (아직 다듬는 중이거나, 이야기를 미리 알려 주지 않으려는 것)</p>`;
+      : `<p class="wb-locked">${esc(t('wm.t18'))} <b>${esc(t('wm.t19'))}</b>${esc(t('wm.t20'))}</p>`;
     return `
       <article class="wb-detail">
-        <button type="button" class="btn btn-ghost wb-back">← 목록</button>
+        <button type="button" class="btn btn-ghost wb-back">${esc(t('wm.t21'))}</button>
         <p class="wb-detail-kind">${escapeHtml(doc.kindLabel)}</p>
         <h2 class="wb-detail-title">${escapeHtml(doc.title)}</h2>
         ${doc.summary ? `<p class="wb-detail-lead">${escapeHtml(doc.summary)}</p>` : ''}
         ${rows ? `<dl class="wb-fields">${rows}</dl>` : ''}
         <div class="wb-body">${bodyHtml}</div>
-        ${(() => {
-          const near = relatedOf(doc, all);
-          if (near.length === 0) return '';
-          return `<section class="wm-in-block">
-            <h3>비슷한 것</h3>
-            <div class="wb-list">${near.map(cardHtml).join('')}</div>
-          </section>`;
-        })()}
-        <p class="wb-source">출처: <code>${escapeHtml(doc.source)}</code></p>
+        <p class="wb-source">${esc(t('wm.t22'))} <code>${escapeHtml(doc.source)}</code></p>
       </article>`;
   }
 
@@ -479,7 +460,7 @@ interface WorldBook {
         <span class="wb-card-kind">${escapeHtml(doc.kindLabel)}</span>
         <span class="wb-card-title">${escapeHtml(doc.title)}</span>
         ${doc.summary ? `<span class="wb-card-sum">${escapeHtml(doc.summary)}</span>` : ''}
-        ${doc.tags.length > 0 ? `<span class="wb-card-tags">${doc.tags.slice(0, 4).map((t) => `<span class="wb-chip">${escapeHtml(t)}</span>`).join('')}</span>` : ''}
+        ${doc.tags.length > 0 ? `<span class="wb-card-tags">${doc.tags.slice(0, 4).map((tag) => `<span class="wb-chip">${escapeHtml(tag)}</span>`).join('')}</span>` : ''}
       </button>`;
   }
 
@@ -517,18 +498,18 @@ interface WorldBook {
     return `
       <section class="wm-in-hero">
         <p class="wm-in-kicker">Witch-Mendokusai</p>
-        <h2 class="wm-in-title">귀찮은 마녀</h2>
+        <h2 class="wm-in-title">${esc(t('wm.t23'))}</h2>
         ${tagline ? `<p class="wm-in-tagline">${escapeHtml(tagline)}</p>` : ''}
         ${theme ? `<blockquote class="wm-in-theme">${escapeHtml(theme)}</blockquote>` : ''}
         <div class="wm-in-cta">
-          <button type="button" class="btn btn-primary" data-go="all">세계 도감 열기</button>
-          <button type="button" class="btn btn-ghost" data-go="news">개발 소식</button>
-          <a class="btn btn-ghost" href="/karmolab/wm/">소개 페이지</a>
-          <a class="btn btn-ghost" href="https://github.com/Mascari4615/Witch-Mendokusai" rel="noopener">개발 저장소</a>
+          <button type="button" class="btn btn-primary" data-go="all">${esc(t('wm.t24'))}</button>
+          <button type="button" class="btn btn-ghost" data-go="news">${esc(t('wm.t25'))}</button>
+          <a class="btn btn-ghost" href="/karmolab/wm/">${esc(t('wm.t26'))}</a>
+          <a class="btn btn-ghost" href="https://github.com/Mascari4615/Witch-Mendokusai" rel="noopener">${esc(t('wm.t27'))}</a>
         </div>
       </section>
       <section class="wm-in-block">
-        <h3>사는 사람들</h3>
+        <h3>${esc(t('wm.t28'))}</h3>
         <div class="wb-list">${cast
           .map(
             (d) => `<button type="button" class="wb-card wm-jump" data-id="${escapeHtml(d.id)}">
@@ -539,7 +520,7 @@ interface WorldBook {
           )
           .join('')}</div>
       </section>
-      <p class="wb-source">문서 ${loaded.counts.docs}건 · 개발 노트(<code>memo/wm/design</code>)에서 자동으로 옵니다</p>`;
+      <p class="wb-source">문서 ${loaded.counts.docs}건 · 개발 노트(<code>memo/wm/design</code>${esc(t('wm.t29'))}</p>`;
   }
 
   /* ── 이 페이지 자체 ───────────────────────────────────────────────────────────────────
@@ -573,22 +554,22 @@ interface WorldBook {
     const here = route === '' ? '' : known.includes(route) ? route : 'book';
     const on = (r: string): string => (r === here ? ' is-on' : '');
     return `<nav class="wm-nav">
-        <button type="button" class="wm-nav-btn${on('')}" data-go="">소개</button>
-        <button type="button" class="wm-nav-btn${on('book')}" data-go="all">세계 도감</button>
-        <button type="button" class="wm-nav-btn${on('day')}" data-go="day">하루 체험</button>
-        <button type="button" class="wm-nav-btn${on('map')}" data-go="map">공간</button>
-        <button type="button" class="wm-nav-btn${on('talk')}" data-go="talk">이야기</button>
-        <button type="button" class="wm-nav-btn${on('news')}" data-go="news">소식</button>
-        <button type="button" class="wm-nav-btn${on('board')}" data-go="board">만드는 중</button>
-        <a class="wm-nav-link" href="/karmolab/wm/">바깥 소개 페이지</a>
-        <a class="wm-nav-link" href="https://github.com/Mascari4615/Witch-Mendokusai" rel="noopener">개발 저장소</a>
+        <button type="button" class="wm-nav-btn${on('')}" data-go="">${esc(t('wm.t30'))}</button>
+        <button type="button" class="wm-nav-btn${on('book')}" data-go="all">${esc(t('wm.t31'))}</button>
+        <button type="button" class="wm-nav-btn${on('day')}" data-go="day">${esc(t('wm.t32'))}</button>
+        <button type="button" class="wm-nav-btn${on('map')}" data-go="map">${esc(t('wm.t33'))}</button>
+        <button type="button" class="wm-nav-btn${on('talk')}" data-go="talk">${esc(t('wm.t34'))}</button>
+        <button type="button" class="wm-nav-btn${on('news')}" data-go="news">${esc(t('wm.t35'))}</button>
+        <button type="button" class="wm-nav-btn${on('board')}" data-go="board">${esc(t('wm.t36'))}</button>
+        <a class="wm-nav-link" href="/karmolab/wm/">${esc(t('wm.t37'))}</a>
+        <a class="wm-nav-link" href="https://github.com/Mascari4615/Witch-Mendokusai" rel="noopener">${esc(t('wm.t27'))}</a>
       </nav>`;
   }
 
   function bookHtml(loaded: WorldBook): string {
     return `
       <div class="wb-toolbar">
-        <input type="search" id="wbSearch" placeholder="이름·꼬리표로 찾기" autocomplete="off">
+        <input type="search" id="wbSearch" placeholder="${esc(t('wm.ph.wbSearch'))}" autocomplete="off">
         <div class="wb-kinds" id="wbKinds"></div>
       </div>
       <p class="tool-status" id="wbStatus" aria-live="polite"></p>
@@ -608,14 +589,14 @@ interface WorldBook {
       const shown = loaded.docs.filter((d) => (kind === 'all' || d.kind === kind) && matches(d, q));
       list!.innerHTML = shown.length > 0
         ? shown.map(cardHtml).join('')
-        : '<p class="wb-empty">찾는 것이 없습니다. 다른 낱말로 찾아보세요.</p>';
+        : t('wm.t50');
       status!.textContent =
-        `${shown.length}건 / 전체 ${loaded.counts.docs}건 · 종류 ${loaded.counts.kinds}개` +
-        (loaded.counts.privateSkipped > 0 ? ` · 비공개 ${loaded.counts.privateSkipped}건 제외` : '');
+        t('wm.counts', { shown: shown.length, docs: loaded.counts.docs, kinds: loaded.counts.kinds }) +
+        (loaded.counts.privateSkipped > 0 ? ` · ${t('wm.privateSkipped', { n: loaded.counts.privateSkipped })}` : '');
     }
 
     kindsBox.innerHTML =
-      `<button type="button" class="wb-kind is-on" data-kind="all">전체 ${loaded.counts.docs}</button>` +
+      `<button type="button" class="wb-kind is-on" data-kind="all">${t('wm.allCount', { n: loaded.counts.docs })}</button>` +
       loaded.kinds
         .map((k) => `<button type="button" class="wb-kind" data-kind="${escapeHtml(k.id)}">${escapeHtml(k.label)} ${k.count}</button>`)
         .join('');
@@ -635,11 +616,11 @@ interface WorldBook {
     const route = currentRoute();
     const loaded = book;
     if (!loaded) {
-      host.innerHTML = `<p class="tool-status">${loadError ? `못 불러왔습니다 (${escapeHtml(loadError)})` : '불러오는 중…'}</p>`;
+      host.innerHTML = `<p class="tool-status">${loadError ? t('wm.loadFailed', { why: escapeHtml(loadError) }) : t('wm.t51')}</p>`;
       return;
     }
     if (route === 'talk') {
-      host.innerHTML = navHtml(route) + '<div class="wm-body"><p class="tool-status">불러오는 중…</p></div>';
+      host.innerHTML = navHtml(route) + t('wm.t52');
       void fetchTalk().then((posts) => {
         const body = host?.querySelector<HTMLElement>('.wm-body');
         if (!body || currentRoute() !== 'talk') return;
@@ -648,7 +629,7 @@ interface WorldBook {
       return;
     }
     if (route === 'board') {
-      host.innerHTML = navHtml(route) + '<div class="wm-body"><p class="tool-status">불러오는 중…</p></div>';
+      host.innerHTML = navHtml(route) + t('wm.t52');
       void ensureBoard().then((b) => {
         const body = host?.querySelector<HTMLElement>('.wm-body');
         if (!body || currentRoute() !== 'board') return;
@@ -659,7 +640,7 @@ interface WorldBook {
       return;
     }
     if (route === 'news') {
-      host.innerHTML = navHtml(route) + '<div class="wm-body"><p class="tool-status">불러오는 중…</p></div>';
+      host.innerHTML = navHtml(route) + t('wm.t52');
       void ensureDevlog().then((log) => {
         const body = host?.querySelector<HTMLElement>('.wm-body');
         if (!body || currentRoute() !== 'news') return;
@@ -674,14 +655,14 @@ interface WorldBook {
       if (!st) st = rollDay(loaded, 0);
       const dayMain = st
         ? dayHtml(loaded, st)
-        : '<p class="wb-empty">컨디션 표를 읽지 못했습니다. <a href="/karmolab/?wb=gameplay%2Fcondition#wm">원문 보기</a></p>';
+        : t('wm.t53');
       if (st) saveDay(st);
       host.innerHTML = navHtml(route) + `<div class="wm-body">${dayMain}</div>`;
       return;
     }
     const doc = route && route !== 'all' && route !== 'map' ? loaded.docs.find((d) => d.id === route) : undefined;
     const main = doc
-      ? detailHtml(doc, loaded.docs)
+      ? detailHtml(doc)
       : route === 'all'
         ? bookHtml(loaded)
         : route === 'map'
@@ -691,14 +672,14 @@ interface WorldBook {
     const body = host.querySelector<HTMLElement>('.wm-body');
     if (route === 'all' && body) wireBook(body, loaded);
     if (route !== '' && route !== 'all' && route !== 'map' && !doc && body) {
-      body.innerHTML = '<p class="wb-empty">그런 항목이 없습니다. 도감에서 찾아보세요.</p>';
+      body.innerHTML = t('wm.t54');
     }
   }
 
   function build(container: HTMLElement): void {
     host = container;
     container.classList.add('wm-page');
-    container.innerHTML = '<p class="tool-status">불러오는 중…</p>';
+    container.innerHTML = t('wm.t55');
 
     container.addEventListener('click', (ev) => {
       const target = ev.target as HTMLElement;
@@ -710,7 +691,7 @@ interface WorldBook {
         const name = act.dataset.act || '';
         if (st && name !== '' && !st.used.includes(name)) {
           st.used.push(name);
-          st.log.push(name + ' - 시켰다.');
+          st.log.push(name + t('wm.t56'));
           saveDay(st);
           render();
         }
@@ -748,13 +729,24 @@ interface WorldBook {
     id: 'wm',
     title: 'Witch-Mendokusai',
     category: 'tool',
-    desc: '만들고 있는 게임 — 소개 · 세계 도감(인물 · 세계 · 규칙). 개발 노트에서 바로 옵니다',
+    desc: t('widgets-desc.wm.desc', undefined, "만들고 있는 게임 — 소개 · 세계 도감(인물 · 세계 · 규칙). 개발 노트에서 바로 옵니다"),
     // 커뮤니티와 같은 자리다 — 「위젯이 아닐 뿐」. 넓게 쓰고 위젯 제목 카드·탭 줄을 안 그린다.
     // 화면 구조는 이 페이지가 제 것으로 갖는다(아래 nav · 섹션 · 주소).
     layout: 'wide',
     noHero: true,
     icon:
       '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 7.5h6M9 11h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
-    tabs: [{ id: 'wm-main', label: 'WM', build }],
+    tabs: [
+      {
+        id: 'wm-main',
+        label: 'WM',
+        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        build: function (container: HTMLElement): void {
+          void loadNamespace('wm').then(function () {
+            build(container);
+          });
+        },
+      },
+    ],
   });
 })();
