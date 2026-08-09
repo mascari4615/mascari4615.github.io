@@ -32,6 +32,11 @@
       "toCsv"
     ]
   },
+  "daily": {
+    "ops": [
+      "today"
+    ]
+  },
   "datecalc": {
     "ops": [
       "shift",

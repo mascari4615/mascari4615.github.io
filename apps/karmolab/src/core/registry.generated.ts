@@ -7,6 +7,7 @@ import { run as biznoRun, spec as biznoSpec } from './bizno';
 import { run as chainRun, spec as chainSpec } from './chain';
 import { run as charcountRun, spec as charcountSpec } from './charcount';
 import { run as csvjsonRun, spec as csvjsonSpec } from './csvjson';
+import { run as dailyRun, spec as dailySpec } from './daily';
 import { run as datecalcRun, spec as datecalcSpec } from './datecalc';
 import { run as epochRun, spec as epochSpec } from './epoch';
 import { run as filehashRun, spec as filehashSpec } from './filehash';
@@ -39,6 +40,7 @@ export const CORES: Record<string, CoreEntry> = {
   chain: { run: chainRun, ops: Object.keys(chainSpec.ops) },
   charcount: { run: charcountRun, ops: Object.keys(charcountSpec.ops) },
   csvjson: { run: csvjsonRun, ops: Object.keys(csvjsonSpec.ops) },
+  daily: { run: dailyRun, ops: Object.keys(dailySpec.ops) },
   datecalc: { run: datecalcRun, ops: Object.keys(datecalcSpec.ops) },
   epoch: { run: epochRun, ops: Object.keys(epochSpec.ops) },
   filehash: { run: filehashRun, ops: Object.keys(filehashSpec.ops) },

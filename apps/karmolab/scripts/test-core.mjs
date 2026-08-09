@@ -1269,6 +1269,85 @@ const pgOut = pg.run('strength', { password: 'Password1!' });
 check(pgOut.includes('약'), 'run 이 판정을 글로 낸다');
 check(pgOut.includes('흔한 단어'), 'run 이 왜 깎였는지 말한다');
 
+// ── ②-29 daily 알맹이 (하루 경계·같은 시드·정답 안 새기) ──────────────────
+const dl = await load('src/core/daily.ts');
+eq(dl.spec.id, 'daily', 'daily spec.id');
+
+/*
+ * 이 substrate 의 유일한 함정 — **시간대**. 기기 시계로 「오늘」을 잡으면 하와이와 서울이
+ * 다른 문제를 풀고, 그러면 공유 격자를 서로 견줄 수 없다. 그래서 KST 로 못을 박았고,
+ * 여기서 그 못이 진짜 박혔는지 본다. (아래 시각들은 전부 같은 순간을 다르게 적은 것이다.)
+ */
+eq(dl.dateKST(new Date('2026-08-09T14:59:00Z')), '2026-08-09', 'UTC 14:59 = KST 23:59 → 아직 9일');
+eq(dl.dateKST(new Date('2026-08-09T15:00:00Z')), '2026-08-10', 'UTC 15:00 = KST 자정 → 10일');
+eq(dl.dateKST(new Date('2026-08-10T02:30:00Z')), '2026-08-10', '한국 낮');
+// 로스앤젤레스 사람이 8월 9일 저녁에 열어도 한국은 이미 10일이다 — 같은 문제를 받아야 한다.
+eq(dl.dateKST(new Date('2026-08-09T23:00:00-07:00')), '2026-08-10', '기기 시간대와 무관');
+
+eq(dl.startOfDayKST('2026-08-10').toISOString(), '2026-08-09T15:00:00.000Z', 'KST 자정 = 전날 15시 UTC');
+check(dl.msUntilNextKST(new Date('2026-08-09T15:00:00Z')) === 24 * 3600 * 1000, '자정 직후엔 하루가 남는다');
+eq(dl.humanLeft(3 * 3600000 + 12 * 60000), '3시간 12분', '남은 시간 표기');
+eq(dl.humanLeft(45 * 60000), '45분', '한 시간 미만');
+
+/* 같은 날 같은 게임이면 누가 열어도 같은 수. 하루가 바뀌면 달라져야 한다. */
+eq(dl.seedFor('a', '2026-08-10'), dl.seedFor('a', '2026-08-10'), '같은 입력 같은 시드');
+check(dl.seedFor('a', '2026-08-10') !== dl.seedFor('a', '2026-08-11'), '날짜가 다르면 시드가 다르다');
+check(dl.seedFor('a', '2026-08-10') !== dl.seedFor('b', '2026-08-10'), '게임이 다르면 시드가 다르다');
+
+/* 시드가 같으면 뽑기·섞기도 같아야 한다 — 새로고침마다 문제가 바뀌면 데일리가 아니다. */
+const items = ['가', '나', '다', '라', '마', '바', '사'];
+const seed = dl.seedFor('x', '2026-08-10');
+eq(dl.pickWith(dl.rngFrom(seed), items), dl.pickWith(dl.rngFrom(seed), items), '같은 시드 같은 뽑기');
+eq(dl.shuffleWith(dl.rngFrom(seed), items).join(''), dl.shuffleWith(dl.rngFrom(seed), items).join(''), '같은 시드 같은 섞기');
+check(dl.shuffleWith(dl.rngFrom(seed), items).join('') !== items.join(''), '섞이긴 한다');
+eq(dl.shuffleWith(dl.rngFrom(seed), items).slice().sort().join(''), items.slice().sort().join(''), '섞어도 알맹이는 그대로');
+eq(items.join(''), '가나다라마바사', '원본은 안 건드린다');
+
+let emptyThrew = false;
+try {
+  dl.pickWith(dl.rngFrom(1), []);
+} catch {
+  emptyThrew = true;
+}
+check(emptyThrew, '고를 것이 없으면 던진다 (undefined 를 흘리지 않는다)');
+
+/* 며칠째 — 공유 글의 번호. 사람들이 이걸로 같은 판인지 안다. */
+eq(dl.dayNumber('2026-08-10'), 1, '첫날은 1일째');
+eq(dl.dayNumber('2026-08-11'), 2, '다음 날은 2일째');
+
+/*
+ * ★ 공유 글에 **정답이 새면 안 된다.** 이 함수는 애초에 정답을 인자로 안 받는다 —
+ * 받아 놓고 안 쓰면 언젠가 누가 편의로 끼워 넣는다. 그래서 「안 넣었나」가 아니라
+ * 「넣을 수가 없나」를 확인한다.
+ */
+const M = (s2) => s2.split('').map((c) => (c === 'H' ? 'hit' : c === 'N' ? 'near' : 'miss'));
+const shared = dl.shareText({
+  title: '한글타자',
+  date: '2026-08-11',
+  rows: [M('MNMH'), M('HHHH')],
+  tries: 2,
+  maxTries: 6,
+  url: 'https://blog.mascari4615.com/karmolab/t/chain/'
+});
+check(shared.startsWith('한글타자 #2 2/6'), `머리줄: ${shared.split('\n')[0]}`);
+check(shared.includes('⬛🟨⬛🟩'), '격자 첫 줄');
+check(/[가-힣]/.test(shared.split('\n').slice(1, 3).join('')) === false, '격자 줄에는 글자가 없다');
+check(Object.keys(dl.MARK_CHAR).length === 3, '표시는 세 가지뿐');
+const shareArgs = dl.shareText.length;
+check(shareArgs === 1, '공유는 인자 하나(정답 자리 없음)');
+
+// 못 맞힌 판은 X 로.
+check(dl.shareText({ title: 'T', date: '2026-08-10', rows: [M('MMM')], tries: null, maxTries: 3 }).startsWith('T #1 X/3'), '실패는 X');
+
+// 저장 열쇠에 게임·날짜가 둘 다 들어간다 (섞이면 어제 기록이 오늘로 보인다).
+check(dl.playKey('g', '2026-08-10') !== dl.playKey('g', '2026-08-11'), '날짜가 열쇠에 들어간다');
+check(dl.playKey('g', '2026-08-10') !== dl.playKey('h', '2026-08-10'), '게임이 열쇠에 들어간다');
+
+// 이름으로 부르는 창구.
+const dlOut = dl.run('today', { game: 'hangul-type', at: '2026-08-10T02:00:00Z' });
+check(dlOut.includes('2026-08-10'), 'run 이 오늘 날짜를 낸다');
+check(dlOut.includes('KST'), 'run 이 기준을 밝힌다');
+
 // ── ②-28 chain 알맹이 (중간값이 모델을 안 거치게) ──────────────────────────
 const ch = await load('src/core/chain.ts');
 eq(ch.spec.id, 'chain', 'chain spec.id');
