@@ -299,8 +299,8 @@ import {
       const el = (existing as HTMLElement | null) ?? document.createElement('div');
       el.className = 'km-empty';
       el.innerHTML =
-        `${escapeHtml(pack.hint)}<br>위에 이름을 적고 <b>+ 추가</b> 를 누르면 첫 노드가 생깁니다.<br>` +
-        '노드를 끌어서 배치하고, 클릭하면 오른쪽에서 고칠 수 있어요.';
+        `${escapeHtml(pack.hint)}<br><b>빈 곳을 두 번 클릭</b>하면 그 자리에 노드가 생깁니다.<br>` +
+        '노드 오른쪽의 <b>점을 끌어다</b> 다른 노드에 놓으면 선이 이어져요.';
       if (!existing) canvasEl.appendChild(el);
     }
 
@@ -494,28 +494,32 @@ import {
       syncEmptyHint();
     }
 
+    // ── 선 만들기 — 「연결 시작」 버튼과 손잡이 드래그가 같은 길을 쓴다 ──────
+    function createEdge(from: string, to: string): void {
+      const kindSel = sideEl.querySelector('[data-km="link-kind"]') as HTMLSelectElement | null;
+      const kind = kindSel?.value || pack.edgeKinds[0].id;
+      const dup = spec.edges.some(
+        (e) => (e.from === from && e.to === to) || (e.from === to && e.to === from)
+      );
+      if (dup) {
+        Toolbox.showToast?.('두 노드는 이미 연결돼 있습니다', undefined, undefined);
+        return;
+      }
+      const taken = new Set(spec.edges.map((e) => e.id));
+      // 선을 놓으면 그 자리에서 무슨 관계인지 읽혀야 한다 — 프리셋 이름을 라벨로 얹는다.
+      const edge: GraphEdge = {
+        id: nextId('edge', taken), from, to, kind,
+        label: ALL_EDGE_LABELS[kind] ?? '',
+      };
+      spec.edges.push(edge);
+      applySpec();
+      persistStructure();
+    }
+
     // ── 노드 클릭: 선택 또는 연결 ────────────────────────────────────────────
     function handleNodeClick(nodeId: string): void {
       if (linkingFrom && linkingFrom !== nodeId) {
-        const from = linkingFrom;
-        const kindSel = sideEl.querySelector('[data-km="link-kind"]') as HTMLSelectElement | null;
-        const kind = kindSel?.value || pack.edgeKinds[0].id;
-        const dup = spec.edges.some(
-          (e) => (e.from === from && e.to === nodeId) || (e.from === nodeId && e.to === from)
-        );
-        if (dup) {
-          Toolbox.showToast?.('두 노드는 이미 연결돼 있습니다', undefined, undefined);
-        } else {
-          const taken = new Set(spec.edges.map((e) => e.id));
-          // 선을 놓으면 그 자리에서 무슨 관계인지 읽혀야 한다 — 프리셋 이름을 라벨로 얹는다.
-          const edge: GraphEdge = {
-            id: nextId('edge', taken), from, to: nodeId, kind,
-            label: ALL_EDGE_LABELS[kind] ?? '',
-          };
-          spec.edges.push(edge);
-          applySpec();
-          persistStructure();
-        }
+        createEdge(linkingFrom, nodeId);
         linkingFrom = null;
         canvasEl.classList.remove('km-linking');
       }
@@ -543,11 +547,48 @@ import {
         canvasEl.classList.remove('km-linking');
         renderSide();
       },
+      onBackgroundDoubleClick: (world) => spawnNodeAt(world.x, world.y, ''),
+      onConnect: (fromId, toId) => {
+        selectedId = fromId;
+        createEdge(fromId, toId);
+        renderSide();
+      },
     });
 
     // ── 툴바 ────────────────────────────────────────────────────────────────
     const newLabelEl = q<HTMLInputElement>('new-label');
     const newKindEl = q<HTMLSelectElement>('new-kind');
+
+    /**
+     * 그 자리에 노드를 놓는다. 이름이 비면 빈 이름으로 만들고 오른쪽 이름 칸에 커서를 준다 —
+     * 빈 곳을 두 번 눌러 바로 타이핑하는 흐름(Scapple·FigJam)이 이 길로 온다.
+     */
+    function spawnNodeAt(worldX: number, worldY: number, label: string): void {
+      const kind = newKindEl.value || pack.nodeKinds[0].id;
+      const taken = new Set(spec.nodes.map((n) => n.id));
+      const w = widthFor(label);
+      const node: GraphNode = {
+        id: nextId('node', taken),
+        kind,
+        label,
+        group: '',
+        x: Math.round(worldX - w / 2),
+        y: Math.round(worldY - NODE_H / 2),
+        w,
+        h: NODE_H,
+        ports: [],
+      };
+      resize(node);
+      spec.nodes.push(node);
+      applySpec();
+      persistStructure();
+      selectedId = node.id;
+      renderSide();
+      if (!label) {
+        const input = sideEl.querySelector('[data-km="edit-label"]') as HTMLInputElement | null;
+        input?.focus();
+      }
+    }
 
     function addNode(): void {
       const label = newLabelEl.value.trim();
@@ -555,29 +596,11 @@ import {
         newLabelEl.focus();
         return;
       }
-      const kind = newKindEl.value || pack.nodeKinds[0].id;
-      const taken = new Set(spec.nodes.map((n) => n.id));
       const center = canvas?.viewCenterWorld() ?? { x: 0, y: 0 };
       // 겹쳐 쌓이지 않게 노드 수만큼 살짝 계단식으로 밀어 놓는다.
       const step = (spec.nodes.length % 8) * 24;
-      const node: GraphNode = {
-        id: nextId('node', taken),
-        kind,
-        label,
-        group: '',
-        x: Math.round(center.x - widthFor(label) / 2 + step),
-        y: Math.round(center.y - NODE_H / 2 + step),
-        w: widthFor(label),
-        h: NODE_H,
-        ports: [],
-      };
-      resize(node);
-      spec.nodes.push(node);
+      spawnNodeAt(center.x + step, center.y + step, label);
       newLabelEl.value = '';
-      applySpec();
-      persistStructure();
-      selectedId = node.id;
-      renderSide();
     }
 
     q<HTMLButtonElement>('add').onclick = addNode;

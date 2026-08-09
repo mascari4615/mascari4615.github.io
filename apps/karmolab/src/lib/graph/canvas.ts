@@ -87,6 +87,13 @@ export interface GraphCanvasOptions {
   onNodeClick?: (nodeId: string, ev: MouseEvent) => void;
   /** 빈 배경 클릭 — 선택 해제용. */
   onBackgroundClick?: () => void;
+  /** 빈 배경 더블클릭 — 그 자리에 새 노드를 만드는 위젯용 (world 좌표). */
+  onBackgroundDoubleClick?: (world: { x: number; y: number }) => void;
+  /**
+   * 노드 손잡이에서 끌어다 다른 노드에 놓았을 때. 이 콜백을 주면 손잡이가 그려진다 —
+   * 안 주면 읽기 전용 뷰(cockpit)처럼 손잡이 자체가 없다.
+   */
+  onConnect?: (fromId: string, toId: string) => void;
 }
 
 /** 클릭과 드래그를 가르는 이동 거리 (px). */
@@ -177,6 +184,10 @@ export class GraphCanvas {
   private uid: string;
   private onNodeClick?: (nodeId: string, ev: MouseEvent) => void;
   private onBackgroundClick?: () => void;
+  private onBackgroundDoubleClick?: (world: { x: number; y: number }) => void;
+  private onConnect?: (fromId: string, toId: string) => void;
+  /** 손잡이에서 끌고 있는 중. 임시 선은 edgeLayer 에 그렸다가 놓을 때 지운다. */
+  private linking: { fromId: string; temp: SVGPathElement } | null = null;
 
   /** mousedown 지점 — mouseup 때 이동량으로 클릭/드래그를 가른다. */
   private pressOrigin: { x: number; y: number; nodeId: string | null } | null = null;
@@ -190,6 +201,8 @@ export class GraphCanvas {
     this.theme = { ...DEFAULT_THEME, ...(options.theme ?? {}) };
     this.onNodeClick = options.onNodeClick;
     this.onBackgroundClick = options.onBackgroundClick;
+    this.onBackgroundDoubleClick = options.onBackgroundDoubleClick;
+    this.onConnect = options.onConnect;
     instanceSeq += 1;
     this.uid = `g${instanceSeq}`;
     injectGraphCanvasStyles();
@@ -301,8 +314,28 @@ export class GraphCanvas {
     // Pan (mousedown on svg background) / drag (mousedown on node)
     this.svg.addEventListener('mousedown', (e) => {
       const target = e.target as Element;
+      const handleEl = target.closest('.ck-link-handle') as SVGCircleElement | null;
       const nodeEl = target.closest('.ck-node') as SVGGElement | null;
       const groupEl = target.closest('.ck-group') as SVGRectElement | null;
+
+      // 손잡이가 먼저다 — 안 그러면 노드 드래그로 먹혀 선을 못 뽑는다.
+      if (handleEl && this.onConnect) {
+        const fromId = handleEl.dataset.linkFrom ?? nodeEl?.dataset.id ?? '';
+        if (fromId) {
+          e.stopPropagation();
+          e.preventDefault();
+          const temp = document.createElementNS(SVG_NS, 'path');
+          temp.setAttribute('class', 'ck-edge ck-link-temp');
+          temp.setAttribute('fill', 'none');
+          temp.setAttribute('stroke', this.theme.edgeDefaultColor);
+          temp.setAttribute('stroke-width', '2');
+          this.edgeLayer.appendChild(temp);
+          this.linking = { fromId, temp };
+          this.pressOrigin = null;
+          return;
+        }
+      }
+
       this.pressOrigin = { x: e.clientX, y: e.clientY, nodeId: nodeEl?.dataset.id ?? null };
       if (nodeEl) {
         const nodeId = nodeEl.dataset.id ?? '';
@@ -367,6 +400,16 @@ export class GraphCanvas {
     });
 
     window.addEventListener('mousemove', (e) => {
+      if (this.linking) {
+        const from = this.getNodeBox(this.linking.fromId);
+        if (from) {
+          const p = this.screenToWorld(e.clientX, e.clientY);
+          const sx = from.x + from.w;
+          const sy = from.y + from.h / 2;
+          this.linking.temp.setAttribute('d', `M ${sx},${sy} L ${p.x},${p.y}`);
+        }
+        return;
+      }
       if (this.dragging) {
         const dx = (e.clientX - this.dragging.startMouseX) / this.state.scale;
         const dy = (e.clientY - this.dragging.startMouseY) / this.state.scale;
@@ -435,6 +478,18 @@ export class GraphCanvas {
     });
 
     window.addEventListener('mouseup', (e) => {
+      if (this.linking) {
+        const { fromId, temp } = this.linking;
+        this.linking = null;
+        temp.remove();
+        // 놓은 자리 아래에 있는 노드를 찾는다. 임시 선은 이미 지웠으니 가로막지 않는다.
+        const under = document.elementFromPoint(e.clientX, e.clientY);
+        const toEl = under?.closest?.('.ck-node') as SVGGElement | null;
+        const toId = toEl?.dataset.id ?? '';
+        if (toId && toId !== fromId) this.onConnect?.(fromId, toId);
+        this.svg.style.cursor = 'grab';
+        return;
+      }
       // 드래그 상태를 지우기 *전에* 클릭 판정 — 이동이 slop 미만이면 클릭.
       const origin = this.pressOrigin;
       this.pressOrigin = null;
@@ -449,6 +504,15 @@ export class GraphCanvas {
       this.draggingGroup = null;
       this.panning = null;
       this.svg.style.cursor = 'grab';
+    });
+
+    // 빈 배경 더블클릭 → 그 자리에 새 노드 (Scapple·FigJam 의 「그냥 두 번 눌러라」).
+    this.svg.addEventListener('dblclick', (e) => {
+      if (!this.onBackgroundDoubleClick) return;
+      const target = e.target as Element;
+      if (target.closest('.ck-node') || target.closest('.ck-group')) return;
+      e.preventDefault();
+      this.onBackgroundDoubleClick(this.screenToWorld(e.clientX, e.clientY));
     });
 
     // 미니맵 클릭 → viewport 점프
@@ -707,8 +771,12 @@ export class GraphCanvas {
     const kindColor = this.colorForKind(node.kind);
     const shape: NodeShape = node.shape ?? 'rect';
 
-    // 배경 — 모양에 따라 카드 / 동그라미 / 말풍선
-    g.appendChild(this.buildNodeBackground(node, effH, kindColor, shape));
+    // 배경 — 모양에 따라 카드 / 동그라미 / 말풍선.
+    // 클래스를 박아 두는 이유: 선택·활성 표시가 `rect:first-of-type` 를 집던 시절엔
+    // 동그라미·말풍선(rect 가 아님)에서 표시가 통째로 사라졌다.
+    const bg = this.buildNodeBackground(node, effH, kindColor, shape);
+    bg.setAttribute('class', 'ck-node-bg');
+    g.appendChild(bg);
 
     // 좌측 색띠 — 카드 모양일 때만 (동그라미·말풍선에선 띠가 어색하다)
     if (shape === 'rect') {
@@ -820,6 +888,21 @@ export class GraphCanvas {
         row.textContent = child.length > maxChars ? child.slice(0, maxChars - 1) + '…' : child;
         g.appendChild(row);
       });
+    }
+
+    // 연결 손잡이 — 노드 오른쪽 가장자리. 여기서 끌어다 다른 노드에 놓으면 선이 생긴다
+    // (Miro·FigJam 의 파란 점. 「연결 시작」 버튼을 누르고 다시 클릭하던 2단계를 없앤다).
+    if (this.onConnect) {
+      const handle = document.createElementNS(SVG_NS, 'circle');
+      handle.setAttribute('class', 'ck-link-handle');
+      handle.dataset.linkFrom = node.id;
+      handle.setAttribute('cx', String(node.w));
+      handle.setAttribute('cy', String(effH / 2));
+      handle.setAttribute('r', '5');
+      handle.setAttribute('fill', kindColor);
+      handle.setAttribute('stroke', this.theme.nodeFill);
+      handle.setAttribute('stroke-width', '1.5');
+      g.appendChild(handle);
     }
 
     return g;
@@ -1420,6 +1503,15 @@ export class GraphCanvas {
   }
 
   // ── 공개 헬퍼 ───────────────────────────────────────────────────────────────
+
+  /** 화면 좌표(clientX/Y) → world 좌표. 더블클릭 자리·끌고 있는 선 끝을 잡는 데 쓴다. */
+  screenToWorld(clientX: number, clientY: number): { x: number; y: number } {
+    const { left, top } = this.svg.getBoundingClientRect();
+    return {
+      x: (clientX - left - this.state.tx) / this.state.scale,
+      y: (clientY - top - this.state.ty) / this.state.scale,
+    };
+  }
 
   /** 현재 화면 중앙에 해당하는 world 좌표 — 새 노드를 "보이는 곳" 에 놓을 때. */
   viewCenterWorld(): { x: number; y: number } {
