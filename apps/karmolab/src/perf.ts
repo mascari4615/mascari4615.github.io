@@ -306,6 +306,26 @@
   }
 
   /**
+   * 이 환경의 **표시 하한** (TASK-KL-201 ④-b — 실측으로 나온 규율).
+   *
+   * 실험: 핸들러가 **하나도 없는** 빈 곳을 눌러도 표시까지 24~48ms 가 걸렸고, 그 시각 근처에
+   * 늦은 프레임(LoAF)은 0건이었다. 즉 그만큼은 주 스레드가 아니라 **화면에 내보내는
+   * 파이프라인**이 쓰는 시간이다 — 기기·창·브라우저마다 다르다.
+   *
+   * 그래서 「표시 40ms = 느리다」는 판정은 틀렸다. 같은 환경의 하한과 비교해야 한다.
+   * 하한은 **처리 시간이 거의 0 인 조작들의 중앙값**으로 잡는다 — 그건 「아무 일도 안 한
+   * 클릭」이고, 그 값이 곧 이 환경의 바닥이다. 자료가 적으면 `null` (섣불리 정하지 않는다).
+   */
+  function presentationFloorMs(): number | null {
+    const idle = Array.from(interactions.values())
+      .filter((entry) => entry.processingMs < 1)
+      .map((entry) => entry.presentationMs)
+      .sort((a, b) => a - b);
+    if (idle.length < 3) return null;
+    return idle[Math.floor(idle.length / 2)];
+  }
+
+  /**
    * 이 측정판을 **믿어도 되나** (TASK-KL-201 ②, 레퍼런스: RUM 관행).
    *
    * 안 보이는 탭에서는 브라우저가 그리기를 멈추고 타이머를 늦춘다 — 그 판의 부팅 시간과
@@ -372,6 +392,19 @@
     bytes: number | null;
     /** 실제로 회선을 탄 양. 0 = 캐시에서 나왔다. */
     transferred: number | null;
+    /* 「받는 데 200ms」가 회선이 느려서인지, 서버가 늦게 답해서인지, 이름 찾기에서 샌 건지
+       — 총량만으로는 못 가른다. 단계로 쪼개야 고칠 곳이 정해진다 (TASK-KL-201 ⑤).
+       크로스오리진은 `Timing-Allow-Origin` 이 없으면 **전부 0** 으로 온다 → 그건 「캐시」가
+       아니라 「안 알려 줌」이다. null 로 둔다. */
+    dnsMs: number | null;
+    connectMs: number | null;
+    waitMs: number | null;
+    downloadMs: number | null;
+    /** 이 파일이 첫 그림을 막았나 (`blocking` / `non-blocking`). */
+    blocking: string;
+    /** 어디서 왔나 — `cache` / `navigational-prefetch` / (빈 값 = 네트워크). */
+    delivery: string;
+    from: string;
   }
 
   function kindOf(url: string): string {
@@ -386,14 +419,48 @@
 
   function resources(): ResourceRow[] {
     const list = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
-    return list.map((item) => ({
-      url: item.name,
-      kind: kindOf(item.name),
-      ms: item.duration,
-      /* 서비스 워커가 답한 응답은 크기가 0 으로 온다 — 진짜 0바이트와 구분이 안 되므로 모름으로 둔다. */
-      bytes: item.encodedBodySize > 0 ? item.encodedBodySize : null,
-      transferred: typeof item.transferSize === 'number' ? item.transferSize : null,
-    }));
+    return list.map((item) => {
+      const extra = item as PerformanceResourceTiming & { renderBlockingStatus?: string; deliveryType?: string };
+      /* 단계값이 통째로 0 이면 「빨랐다」가 아니라 「안 알려 줬다」다 (크로스오리진 + TAO 없음).
+         0 으로 그리면 남의 CDN 이 늘 제일 빠른 것으로 보인다. */
+      const told = item.responseStart > 0 || item.domainLookupEnd > 0;
+      let host = '';
+      try {
+        host = new URL(item.name).host;
+      } catch {
+        /* 주소 모양이 이상하면 빈 칸 — 도메인 요약에서 「(모름)」으로 묶인다. */
+      }
+      return {
+        url: item.name,
+        kind: kindOf(item.name),
+        ms: item.duration,
+        /* 서비스 워커가 답한 응답은 크기가 0 으로 온다 — 진짜 0바이트와 구분이 안 되므로 모름으로 둔다. */
+        bytes: item.encodedBodySize > 0 ? item.encodedBodySize : null,
+        transferred: typeof item.transferSize === 'number' ? item.transferSize : null,
+        dnsMs: told ? item.domainLookupEnd - item.domainLookupStart : null,
+        connectMs: told ? item.connectEnd - item.connectStart : null,
+        /* 서버가 생각한 시간 — 이게 크면 회선이 아니라 서버 탓이다. */
+        waitMs: told && item.requestStart ? item.responseStart - item.requestStart : null,
+        downloadMs: told && item.responseStart ? item.responseEnd - item.responseStart : null,
+        blocking: extra.renderBlockingStatus || '',
+        delivery: extra.deliveryType || '',
+        from: host,
+      };
+    });
+  }
+
+  /** 도메인별 합계 (TASK-KL-201 ⑤ — Lighthouse 의 「서드파티 요약」에 해당). */
+  function hostSummary(): Array<{ host: string; count: number; bytes: number | null; ms: number; ours: boolean }> {
+    const sum = new Map<string, { host: string; count: number; bytes: number | null; ms: number; ours: boolean }>();
+    for (const row of resources()) {
+      const host = row.from || '(모름)';
+      const acc = sum.get(host) || { host, count: 0, bytes: null, ms: 0, ours: host === location.host };
+      acc.count += 1;
+      acc.ms += row.ms;
+      if (row.bytes != null) acc.bytes = (acc.bytes || 0) + row.bytes;
+      sum.set(host, acc);
+    }
+    return Array.from(sum.values()).sort((a, b) => (b.bytes || 0) - (a.bytes || 0));
   }
 
   function memory(): { usedMb: number; limitMb: number } | null {
@@ -570,6 +637,9 @@
       memory: memory(),
       trust: trust(),
       inp: inpMs(),
+      presentationFloorMs: presentationFloorMs(),
+      /* 도메인별로 묶은 요약 — 「남의 것이 우리 것보다 무겁나」는 파일 하나씩 봐서는 안 보인다. */
+      hosts: hostSummary(),
       slowFrames: loafSupported ? slowFrames.slice().sort((a, b) => b.ms - a.ms) : null,
       /* 「누가 제일 많이 잡았나」 — 프레임을 하나씩 보면 안 보이고, 합쳐야 보인다.
          한 번 40ms 보다 매 프레임 8ms 가 대개 더 나쁘다. */

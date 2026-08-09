@@ -70,7 +70,13 @@
       id: string; loadMs: number | null; firstBuildMs: number | null; lastBuildMs: number | null;
       builds: number; scripts: string[]; bytes: number | null; scriptMs: number | null;
     }>;
-    resources: Array<{ url: string; kind: string; ms: number; bytes: number | null; transferred: number | null }>;
+    presentationFloorMs: number | null;
+    hosts: Array<{ host: string; count: number; bytes: number | null; ms: number; ours: boolean }>;
+    resources: Array<{
+      url: string; kind: string; ms: number; bytes: number | null; transferred: number | null;
+      dnsMs: number | null; connectMs: number | null; waitMs: number | null; downloadMs: number | null;
+      blocking: string; delivery: string; from: string;
+    }>;
     longTasks: Array<{ at: number; ms: number; from: string }> | null;
     slowFrames: Array<{
       at: number; ms: number; blockingMs: number; renderMs: number;
@@ -298,8 +304,9 @@
               .slice(0, 15);
             const cached = snap.resources.filter((r) => r.transferred === 0).length;
             if (!rows.length) return '<div class="pf-none">받은 것의 크기를 못 읽었습니다.</div>';
+            const blockers = snap.resources.filter((r) => r.blocking === 'blocking').length;
             return `<div class="pf-scroll"><table class="pf-table">
-              <thead><tr><th>파일</th><th>종류</th><th>크기</th><th>받는 데</th><th>회선</th></tr></thead>
+              <thead><tr><th>파일</th><th>종류</th><th>크기</th><th>합계</th><th>이름찾기</th><th>연결</th><th>서버 기다림</th><th>내려받기</th><th>첫그림 막음</th></tr></thead>
               <tbody>${rows
                 .map(
                   (row) => `<tr>
@@ -307,11 +314,16 @@
                     <td>${esc(row.kind)}</td>
                     <td${tone(row.bytes, 60000, 150000)}>${kb(row.bytes)}</td>
                     <td>${ms(row.ms)}</td>
-                    <td>${row.transferred === 0 ? '캐시' : kb(row.transferred)}</td>
+                    <td>${ms(row.dnsMs)}</td>
+                    <td>${ms(row.connectMs)}</td>
+                    <td${tone(row.waitMs, 100, 300)}>${ms(row.waitMs)}</td>
+                    <td>${ms(row.downloadMs)}</td>
+                    <td>${row.blocking === 'blocking' ? '⚠ 막음' : row.transferred === 0 ? '캐시' : ''}</td>
                   </tr>`
                 )
                 .join('')}</tbody></table></div>
-              <p class="pf-sec-note">받은 것 ${snap.resources.length}개 중 ${cached}개는 회선을 안 탔습니다(캐시·서비스 워커).</p>`;
+              <p class="pf-sec-note">받은 것 ${snap.resources.length}개 중 ${cached}개는 회선을 안 탔습니다(캐시·서비스 워커) · 첫 그림을 막은 것 ${blockers}개.
+                단계 칸이 전부 「—」면 <b>빠른 게 아니라 안 알려 준 것</b>입니다(남의 도메인 + <code>Timing-Allow-Origin</code> 없음).</p>`;
           }
 
           /**
@@ -326,6 +338,10 @@
               return '<div class="pf-none">아직 만진 것이 없습니다 — 도구를 눌러 보고 <b>다시 재기</b>를 누르세요. (한 프레임(16ms)을 넘긴 조작만 셉니다.)</div>';
             }
             const rows = snap.interactions.slice(0, 12);
+            /* 「표시 40ms = 느리다」는 틀린 판정이다 — 핸들러가 하나도 없는 빈 클릭도 이 환경에선
+               24~48ms 가 걸렸다(실측, LoAF 0건). 그래서 **하한을 넘은 만큼**만 빨갛게 칠한다. */
+            const floor = snap.presentationFloorMs;
+            const overFloor = (value: number): number | null => (floor == null ? value : Math.max(0, value - floor));
             return `<div class="pf-scroll"><table class="pf-table">
               <thead><tr><th>무엇을 눌렀나</th><th>종류</th><th>언제</th><th>총</th><th>대기</th><th>처리</th><th>표시</th></tr></thead>
               <tbody>${rows
@@ -337,10 +353,15 @@
                     <td${tone(row.ms, 200, 500)}>${ms(row.ms)}</td>
                     <td${tone(row.inputDelayMs, 50, 150)}>${ms(row.inputDelayMs)}</td>
                     <td${tone(row.processingMs, 50, 150)}>${ms(row.processingMs)}</td>
-                    <td${tone(row.presentationMs, 50, 150)}>${ms(row.presentationMs)}</td>
+                    <td${tone(overFloor(row.presentationMs), 50, 150)}>${ms(row.presentationMs)}</td>
                   </tr>`
                 )
-                .join('')}</tbody></table></div>`;
+                .join('')}</tbody></table></div>
+              <p class="pf-sec-note">${
+                floor == null
+                  ? '이 환경의 <b>표시 하한</b>은 아직 모릅니다 — 아무 일도 안 하는 곳을 몇 번 더 눌러야 정해집니다.'
+                  : `이 환경의 <b>표시 하한 ${ms(floor)}</b> (아무 일도 안 하는 클릭의 중앙값). 표시 칸은 <b>이 하한을 넘은 만큼</b>으로 색을 칠합니다 — 하한 자체는 우리 코드가 아니라 기기·브라우저가 쓰는 시간입니다.`
+              }</p>`;
           }
 
           /**
@@ -378,6 +399,24 @@
                        <b>강제 레이아웃</b>이 붙은 줄은 읽고-쓰기를 번갈아 해서 브라우저에 계산을 두 번 시킨 코드입니다.</p>`
                   : ''
               }`;
+          }
+
+          /** 도메인별 — 「남의 것이 우리 것보다 무겁나」 (TASK-KL-201 ⑤). */
+          function hostTable(snap: Snap): string {
+            if (!snap.hosts.length) return '<div class="pf-none">받은 것이 없습니다.</div>';
+            return `<div class="pf-scroll"><table class="pf-table">
+              <thead><tr><th>어디서</th><th>파일 수</th><th>크기</th><th>받는 데 합계</th></tr></thead>
+              <tbody>${snap.hosts
+                .slice(0, 10)
+                .map(
+                  (row) => `<tr>
+                    <td>${esc(row.host)}${row.ours ? '' : ' <span style="opacity:.6">(남)</span>'}</td>
+                    <td>${row.count}</td>
+                    <td${tone(row.bytes, 300000, 800000)}>${kb(row.bytes)}</td>
+                    <td>${ms(row.ms)}</td>
+                  </tr>`
+                )
+                .join('')}</tbody></table></div>`;
           }
 
           function longTasks(snap: Snap): string {
@@ -492,6 +531,11 @@
               key: 'files', title: '받은 것 — 무거운 15개',
               note: '서비스 워커가 답한 것은 브라우저가 크기를 안 알려 줍니다 — 그 줄은 「—」입니다.',
               html: heavyFiles,
+            },
+            {
+              key: 'hosts', title: '어디서 받았나 — 도메인별',
+              note: '남의 도메인이 우리 것보다 무거우면 파일 하나씩 봐서는 안 보입니다. 합쳐서 봅니다.',
+              html: hostTable,
             },
             {
               key: 'longtask', title: '긴 작업 — 손가락이 막힌 구간',
