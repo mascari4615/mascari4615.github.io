@@ -41,6 +41,7 @@ async function loadModules() {
     export * as filter from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-filter.ts'))};
     export * as decor from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-decor.ts'))};
     export * as cmath from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-math.ts'))};
+    export * as press from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-press.ts'))};
     export * as sna from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/sna.ts'))};
   `);
   const out = path.join(os.tmpdir(), `km-core-${Date.now()}.mjs`);
@@ -390,6 +391,32 @@ const M = await loadModules();
   const items = (help.match(/what:/g) ?? []).length;
   check(items >= 40, `도움말 항목이 ${items}개 — 40개 밑으로 줄었다(기능은 느는데 도움말이 낡는 중)`);
 }
+// ---- 누르면 무슨 뜻인가 (canvas-press) — 우선순위가 곧 규칙이라 여기서 잠근다
+{
+  const { pressIntent } = M.press;
+  const all = { canRewire: true, canMoveGroup: true, canEditEdge: true, canLink: true, canSelectMany: true };
+  check(pressIntent({}, all).kind === 'pan', '배경을 그냥 누르면 화면 밀기');
+  check(pressIntent({}, all, { shiftKey: true }).kind === 'marquee', 'Shift+배경 = 범위 고르기');
+  check(pressIntent({}, { ...all, canSelectMany: false }, { shiftKey: true }).kind === 'pan',
+    '범위 고르기를 안 받는 캔버스면 Shift 를 쥐어도 밀기');
+  check(pressIntent({ node: 'n1' }, all).kind === 'node-drag', '카드를 누르면 카드 끌기');
+  // 이 한 줄이 이 파일의 존재 이유다 — 손잡이가 카드보다 먼저 이겨야 선을 뽑을 수 있다.
+  check(pressIntent({ node: 'n1', linkHandle: 'n1' }, all).kind === 'link',
+    '손잡이가 카드보다 먼저다(뒤집히면 선을 영영 못 뽑는다)');
+  check(pressIntent({ node: 'n1', linkHandle: 'n1' }, { ...all, canLink: false }).kind === 'node-drag',
+    '선 잇기를 안 받는 캔버스면 손잡이는 없는 셈');
+  check(pressIntent({ node: 'n1', sizeHandle: 'n1' }, all).kind === 'resize', '크기 손잡이가 카드보다 먼저');
+  check(pressIntent({ group: 'g1', node: 'n1' }, all).kind === 'node-drag', '묶음 위 카드는 카드가 먼저');
+  check(pressIntent({ group: 'g1' }, all).kind === 'group-drag', '묶음 바탕을 누르면 묶음 끌기');
+  const locked = pressIntent({ group: 'g1' }, { ...all, groupLocked: true }, { shiftKey: true });
+  check(locked.kind === 'marquee', '잠긴 묶음은 아예 안 잡히고 배경 동작으로 떨어진다');
+  check(pressIntent({ edgeGrip: 'e1' }, all).mode === 'curve', '선 가운데 손잡이 = 휘기');
+  check(pressIntent({ edgeLabel: 'e1' }, all).mode === 'label', '선 이름표 = 이름표 옮기기');
+  check(pressIntent({ edgeGrip: 'e1', edgeEnd: { edgeId: 'e1', end: 'to' } }, all).kind === 'rewire',
+    '선 끝이 가운데 손잡이보다 먼저(끝을 잡으면 다시 잇기)');
+  check(pressIntent({ groupLabel: 'g1', group: 'g1' }, all).kind === 'label-drag', '묶음 이름표가 묶음보다 먼저');
+}
+
 // 되돌아가지 않게: **캔버스 크기 자물쇠**.
 // 2865 줄짜리 한 덩이를 조각내는 중이다. 자물쇠가 없으면 기능 두어 개면 도로 부푼다 —
 // 지금 크기 + 조금을 상한으로 박아 두고, 줄어들면 상한도 같이 내린다(비율 아니라 실측).

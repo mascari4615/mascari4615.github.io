@@ -46,6 +46,7 @@ import { applyFocusClasses } from './canvas-focus';
 import { nodeColor, nodeScale } from './canvas-decor';
 import { visibleNodes, degreeMap } from './canvas-filter';
 import { drainSaves, queueSave } from './canvas-save';
+import { pressIntent, readPressHits } from './canvas-press';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
@@ -358,6 +359,17 @@ export class GraphCanvas {
 
   // ── 이벤트 ──────────────────────────────────────────────────────────────────
 
+  /** 끌고 다니는 **임시 선** — 선 뽑기와 선 끝 다시 잇기가 같은 모양을 쓴다(다르면 다른 기능처럼 보인다). */
+  private spawnTempEdge(): SVGPathElement {
+    const temp = document.createElementNS(SVG_NS, 'path');
+    temp.setAttribute('class', 'ck-edge ck-link-temp');
+    temp.setAttribute('fill', 'none');
+    temp.setAttribute('stroke', this.theme.edgeDefaultColor);
+    temp.setAttribute('stroke-width', '2');
+    this.edgeLayer.appendChild(temp);
+    return temp;
+  }
+
   private bindEvents(): void {
     // Zoom (wheel)
     this.svg.addEventListener('wheel', (e) => {
@@ -394,89 +406,68 @@ export class GraphCanvas {
       }
       if (this.activePointers.size > 2) return;
       const target = e.target as Element;
-      const endEl = target.closest('.ck-edge-end') as SVGCircleElement | null;
-      if (endEl && this.onEdgeChanged) {
-        const edgeId = endEl.dataset.edgeId ?? '';
-        const end = (endEl.dataset.end ?? 'to') as 'from' | 'to';
-        if (edgeId) {
-          e.stopPropagation();
-          e.preventDefault();
-          const temp = document.createElementNS(SVG_NS, 'path');
-          temp.setAttribute('class', 'ck-edge ck-link-temp');
-          temp.setAttribute('fill', 'none');
-          temp.setAttribute('stroke', this.theme.edgeDefaultColor);
-          temp.setAttribute('stroke-width', '2');
-          this.edgeLayer.appendChild(temp);
-          this.rewiring = { edgeId, end, temp };
-          this.pressOrigin = null;
-          return;
-        }
+      // **무엇을 눌렀나 → 무슨 뜻인가** 는 canvas-press 가 안다(우선순위가 곧 규칙이라 따로 시험한다).
+      const hits = readPressHits(target);
+      const lockedGroup = hits.group
+        ? this.spec?.groups.find((g) => g.id === hits.group)?.locked === true
+        : false;
+      const intent = pressIntent(hits, {
+        canRewire: !!this.onEdgeChanged,
+        canMoveGroup: !!this.onGroupChanged,
+        canEditEdge: !!this.onEdgeChanged,
+        canLink: !!this.onConnect,
+        canSelectMany: !!this.onSelectMany,
+        groupLocked: lockedGroup,
+      }, { shiftKey: e.shiftKey });
+
+      if (intent.kind === 'rewire') {
+        e.stopPropagation();
+        e.preventDefault();
+        this.rewiring = { edgeId: intent.edgeId, end: intent.end, temp: this.spawnTempEdge() };
+        this.pressOrigin = null;
+        return;
       }
-      const labelDragEl = target.closest('.ck-group-label') as SVGTextElement | null;
-      if (labelDragEl && this.onGroupChanged) {
-        const gid = labelDragEl.dataset.groupId ?? '';
-        const grp = this.spec?.groups.find((x) => x.id === gid);
+      if (intent.kind === 'label-drag') {
+        const grp = this.spec?.groups.find((x) => x.id === intent.groupId);
         if (grp) {
           e.stopPropagation();
           e.preventDefault();
           const w = this.screenToWorld(e.clientX, e.clientY);
-          this.labelDrag = { groupId: gid, x0: w.x, y0: w.y, dx0: grp.labelDx ?? 0, dy0: grp.labelDy ?? 0 };
+          this.labelDrag = { groupId: intent.groupId, x0: w.x, y0: w.y, dx0: grp.labelDx ?? 0, dy0: grp.labelDy ?? 0 };
           this.pressOrigin = null;
           return;
         }
       }
-      const gripEl = target.closest('.ck-edge-grip') as SVGCircleElement | null;
-      const labelEl = target.closest('.ck-edge-label') as SVGGElement | null;
-      if ((gripEl || labelEl) && this.onEdgeChanged) {
-        const edgeId = (gripEl ?? labelEl)?.dataset.edgeId ?? '';
-        if (edgeId) {
-          e.stopPropagation();
-          e.preventDefault();
-          this.edgeDrag = { edgeId, mode: gripEl ? 'curve' : 'label', moved: false };
-          this.pressOrigin = null;
-          return;
-        }
+      if (intent.kind === 'edge-drag') {
+        e.stopPropagation();
+        e.preventDefault();
+        this.edgeDrag = { edgeId: intent.edgeId, mode: intent.mode, moved: false };
+        this.pressOrigin = null;
+        return;
       }
-      const sizeEl = target.closest('.ck-size-handle') as SVGRectElement | null;
-      if (sizeEl) {
-        const id = sizeEl.dataset.sizeFor ?? '';
-        const n = this.spec?.nodes.find((x) => x.id === id);
+      if (intent.kind === 'resize') {
+        const n = this.spec?.nodes.find((x) => x.id === intent.nodeId);
         if (n) {
           e.stopPropagation();
           e.preventDefault();
-          this.sizing = { nodeId: id, startX: e.clientX, startY: e.clientY, startW: n.w, startH: n.h };
+          this.sizing = { nodeId: intent.nodeId, startX: e.clientX, startY: e.clientY, startW: n.w, startH: n.h };
           this.pressOrigin = null;
           return;
         }
       }
-      const handleEl = target.closest('.ck-link-handle') as SVGCircleElement | null;
-      const nodeEl = target.closest('.ck-node') as SVGGElement | null;
-      const groupEl = target.closest('.ck-group') as SVGRectElement | null;
-
-      // 손잡이가 먼저다 — 안 그러면 노드 드래그로 먹혀 선을 못 뽑는다.
-      if (handleEl && this.onConnect) {
-        const fromId = handleEl.dataset.linkFrom ?? nodeEl?.dataset.id ?? '';
-        if (fromId) {
-          e.stopPropagation();
-          e.preventDefault();
-          const temp = document.createElementNS(SVG_NS, 'path');
-          temp.setAttribute('class', 'ck-edge ck-link-temp');
-          temp.setAttribute('fill', 'none');
-          temp.setAttribute('stroke', this.theme.edgeDefaultColor);
-          temp.setAttribute('stroke-width', '2');
-          this.edgeLayer.appendChild(temp);
-          this.linking = { fromId, temp };
-          this.pressOrigin = null;
-          return;
-        }
+      if (intent.kind === 'link') {
+        e.stopPropagation();
+        e.preventDefault();
+        this.linking = { fromId: intent.fromId, temp: this.spawnTempEdge() };
+        this.pressOrigin = null;
+        return;
       }
 
       const hitEl = target.closest('.ck-edge-hit') as SVGPathElement | null;
       this.pressEdgeId = hitEl?.dataset.edgeId ?? null;
-      this.pressOrigin = { x: e.clientX, y: e.clientY, nodeId: nodeEl?.dataset.id ?? null };
-      if (nodeEl) {
-        const nodeId = nodeEl.dataset.id ?? '';
-        if (!nodeId) return;
+      this.pressOrigin = { x: e.clientX, y: e.clientY, nodeId: hits.node ?? null };
+      if (intent.kind === 'node-drag') {
+        const nodeId = intent.nodeId;
         const coords = this.nodeCoords.get(nodeId);
         if (!coords) return;
         e.stopPropagation();
@@ -498,13 +489,11 @@ export class GraphCanvas {
           this.multiDrag = null;
         }
         this.svg.style.cursor = 'grabbing';
-      } else if (groupEl) {
+      } else if (intent.kind === 'group-drag') {
         // 그룹 드래그 — 멤버 노드 + anchor 같이 이동
-        const groupId = groupEl.dataset.groupId ?? '';
+        const groupId = intent.groupId;
         const grp = this.spec?.groups.find((g) => g.id === groupId);
         if (!grp || !this.spec) return;
-        // 잠긴 묶음은 아예 안 잡힌다 — 「잡히는데 안 움직이는」 것보다 안 잡히는 게 덜 헷갈린다.
-        if (grp.locked) return;
         e.stopPropagation();
         const startNodeCoords = new Map<string, { x: number; y: number }>();
         for (const n of this.spec.nodes) {
@@ -536,9 +525,7 @@ export class GraphCanvas {
           startGroupY: grp.bbox.y,
         };
         this.svg.style.cursor = 'grabbing';
-      } else if (e.shiftKey && this.onSelectMany) {
-        // Shift+배경 드래그 = 범위 고르기(rubber band). 그냥 드래그는 화면 밀기 그대로 —
-        // 두 뜻을 같은 몸짓에 주면 「밀려다 골라지는」 사고가 난다.
+      } else if (intent.kind === 'marquee') {
         const w = this.screenToWorld(e.clientX, e.clientY);
         const rect = document.createElementNS(SVG_NS, 'rect');
         rect.setAttribute('class', 'ck-marquee');
