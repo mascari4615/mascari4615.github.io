@@ -16,5 +16,12 @@
   "garden.event.drift": "{gen}世代 — 何かが片側へ流れています。",
   "garden.event.steady": "{gen}世代目、まだ誰も死んでいません。",
   "garden.event.noise": "{gen}世代 — 形がすっかり散りました。ここから先はただの雑音です。",
-  "garden.event.crowded": "{gen}世代 — 盤を埋め尽くしました。もう育つ場所がありません。"
+  "garden.event.crowded": "{gen}世代 — 盤を埋め尽くしました。もう育つ場所がありません。",
+  "garden.dex.button": "図鑑",
+  "garden.dex.title": "見つけたもの {n}種",
+  "garden.dex.namePlaceholder": "名前をつけてください",
+  "garden.dex.still": "{n}マス · じっとしています",
+  "garden.dex.osc": "{n}マス · {p}世代ごとに元の姿へ",
+  "garden.dex.ship": "{n}マス · {p}世代ごとに {d}マスずつ流れます",
+  "garden.line.found": "{gen}世代 — 初めて見るものを見つけました。{what}"
 }

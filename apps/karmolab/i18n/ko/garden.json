@@ -16,5 +16,12 @@
   "garden.event.drift": "{gen}세대 — 무언가 한쪽으로 흘러가고 있습니다.",
   "garden.event.steady": "{gen}세대째, 아무도 죽지 않았습니다.",
   "garden.event.noise": "{gen}세대 — 형태가 다 흩어졌습니다. 여기서부터는 잡음입니다.",
-  "garden.event.crowded": "{gen}세대 — 판을 가득 채웠습니다. 더 자랄 자리가 없습니다."
+  "garden.event.crowded": "{gen}세대 — 판을 가득 채웠습니다. 더 자랄 자리가 없습니다.",
+  "garden.dex.button": "도감",
+  "garden.dex.title": "찾은 것 {n}종",
+  "garden.dex.namePlaceholder": "이름을 붙여 주세요",
+  "garden.dex.still": "{n}칸 · 가만히 있습니다",
+  "garden.dex.osc": "{n}칸 · {p}세대마다 제 모습으로",
+  "garden.dex.ship": "{n}칸 · {p}세대마다 {d}칸씩 흘러갑니다",
+  "garden.line.found": "{gen}세대 — 처음 보는 것을 찾았습니다. {what}"
 }

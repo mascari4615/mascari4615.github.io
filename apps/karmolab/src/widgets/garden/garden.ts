@@ -16,6 +16,7 @@
 import { t, loadNamespace } from '../../lib/i18n';
 import { ruleForDay, ruleTable, rng, type Rule } from './rules';
 import { Life, Watcher, quality, type Stats, type Event } from './life';
+import { findObjects, type Found, type Kind } from './dex';
 
 (function (): void {
   if (typeof Toolbox === 'undefined') return;
@@ -49,6 +50,21 @@ import { Life, Watcher, quality, type Stats, type Event } from './life';
   color:rgba(255,255,255,.6);font-size:11px;line-height:1;padding:6px 9px;border-radius:999px;cursor:pointer;
   backdrop-filter:blur(6px);font-family:var(--font-mono,ui-monospace,monospace);}
 .gd-btn[aria-pressed="true"]{color:#eae6ff;border-color:rgba(170,150,255,.55);background:rgba(48,36,96,.55);}
+/* 도감 — 찾아낸 것을 모아 두는 서랍. 이름은 사람이 붙인다. */
+.gd-dex{position:absolute;inset:auto 12px 64px 12px;max-height:56%;overflow:auto;z-index:4;
+  background:rgba(8,8,16,.92);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 14px;
+  backdrop-filter:blur(8px);display:none;}
+.gd-dex.gd-open{display:block;}
+.gd-dex h4{margin:0 0 10px;font-size:12px;color:rgba(220,215,255,.7);font-weight:600;}
+.gd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px;}
+.gd-card{display:flex;gap:9px;align-items:center;background:rgba(255,255,255,.04);border-radius:9px;padding:8px;}
+.gd-card canvas{width:44px;height:44px;image-rendering:pixelated;border-radius:5px;background:#0a0b12;flex:none;}
+.gd-card .gd-meta{min-width:0;}
+.gd-name{display:block;width:100%;background:transparent;border:0;border-bottom:1px dashed rgba(255,255,255,.18);
+  color:#e9e4ff;font-size:12px;padding:1px 0;outline:none;}
+.gd-name:focus{border-bottom-color:rgba(170,150,255,.7);}
+.gd-what{display:block;margin-top:3px;color:rgba(200,195,235,.45);font-size:10px;
+  font-family:var(--font-mono,ui-monospace,monospace);}
 @media (prefers-reduced-motion:reduce){.gd-line{transition:none}}
 `;
     document.head.appendChild(el);
@@ -89,7 +105,17 @@ import { Life, Watcher, quality, type Stats, type Event } from './life';
           const pauseBtn = document.createElement('button');
           pauseBtn.type = 'button';
           pauseBtn.className = 'gd-btn';
-          btns.append(seedBtn, pauseBtn);
+          const dexBtn = document.createElement('button');
+          dexBtn.type = 'button';
+          dexBtn.className = 'gd-btn';
+          btns.append(dexBtn, seedBtn, pauseBtn);
+          const dexPanel = document.createElement('div');
+          dexPanel.className = 'gd-dex';
+          const dexTitle = document.createElement('h4');
+          const dexGrid = document.createElement('div');
+          dexGrid.className = 'gd-grid';
+          dexPanel.append(dexTitle, dexGrid);
+
           const log = document.createElement('div');
           log.className = 'gd-log';
           const line = document.createElement('span');
@@ -97,7 +123,7 @@ import { Life, Watcher, quality, type Stats, type Event } from './life';
           const sub = document.createElement('span');
           sub.className = 'gd-sub';
           log.append(line, sub);
-          wrap.append(canvas, top, btns, log);
+          wrap.append(canvas, top, btns, dexPanel, log);
           container.appendChild(wrap);
 
           const ctx = canvas.getContext('2d');
@@ -118,6 +144,40 @@ import { Life, Watcher, quality, type Stats, type Event } from './life';
           /* 죽은 자리에 남는 잔상. 켜고 끄는 두 색만 쓰면 화면이 잡음으로 보인다 —
              방금까지 살아 있던 자리가 천천히 식으면, 같은 격자가 「무늬」로 읽힌다. */
           let heat: Uint8Array = new Uint8Array(0);
+
+          /* 도감 — 찾아낸 개체를 지문으로 모은다. 이름은 사람이 붙이고, 그 이름이 남는다. */
+          interface DexEntry {
+            fp: string;
+            kind: Kind;
+            period: number;
+            dx: number;
+            dy: number;
+            size: number;
+            w: number;
+            h: number;
+            cells: number[];
+            /** 사람이 붙인 이름 (없으면 빈 문자열) */
+            name: string;
+            /** 처음 본 날 · 그때의 규칙 */
+            day: string;
+            rule: string;
+            seen: number;
+          }
+          const DEX_KEY = 'karmolab_garden_dex_v1';
+          let dex: Record<string, DexEntry> = {};
+          try {
+            const raw = localStorage.getItem(DEX_KEY);
+            if (raw) dex = JSON.parse(raw) as Record<string, DexEntry>;
+          } catch (_) {
+            dex = {};
+          }
+          function saveDex(): void {
+            try {
+              localStorage.setItem(DEX_KEY, JSON.stringify(dex));
+            } catch (_) {
+              /* 못 적어도 정원은 돈다 */
+            }
+          }
 
           /* 셀 한 칸을 화면 몇 px 로 볼 것인가. 너무 작으면 무늬가 안 보이고, 너무 크면
              격자가 좁아 아무 일도 안 일어난다 — 사이를 본다. */
@@ -183,6 +243,101 @@ import { Life, Watcher, quality, type Stats, type Event } from './life';
             ctx!.putImageData(img, 0, 0);
           }
 
+          /* ── 도감 ─────────────────────────────────────────────────────── */
+
+          function whatText(e: DexEntry): string {
+            if (e.kind === 'still') return t('garden.dex.still', { n: e.size });
+            if (e.kind === 'oscillator') return t('garden.dex.osc', { n: e.size, p: e.period });
+            return t('garden.dex.ship', { n: e.size, p: e.period, d: Math.max(Math.abs(e.dx), Math.abs(e.dy)) });
+          }
+
+          /** 개체 하나를 작은 판에 그린다 — 도감은 글자만으로는 안 된다. */
+          function drawThumb(cv: HTMLCanvasElement, e: DexEntry): void {
+            cv.width = e.w;
+            cv.height = e.h;
+            const c2 = cv.getContext('2d');
+            if (!c2) return;
+            const im = c2.createImageData(e.w, e.h);
+            for (let i = 0, k = 0; i < e.w * e.h; i++, k += 4) {
+              im.data[k] = 10;
+              im.data[k + 1] = 11;
+              im.data[k + 2] = 18;
+              im.data[k + 3] = 255;
+            }
+            for (const idx of e.cells) {
+              const k = idx * 4;
+              im.data[k] = 150;
+              im.data[k + 1] = 220;
+              im.data[k + 2] = 255;
+            }
+            c2.putImageData(im, 0, 0);
+          }
+
+          function renderDex(): void {
+            const rows = Object.values(dex).sort((a, b) => b.seen - a.seen);
+            dexTitle.textContent = t('garden.dex.title', { n: rows.length });
+            dexGrid.textContent = '';
+            for (const e of rows) {
+              const card = document.createElement('div');
+              card.className = 'gd-card';
+              const cv = document.createElement('canvas');
+              drawThumb(cv, e);
+              const meta = document.createElement('div');
+              meta.className = 'gd-meta';
+              const name = document.createElement('input');
+              name.className = 'gd-name';
+              name.value = e.name;
+              name.placeholder = t('garden.dex.namePlaceholder');
+              name.onchange = () => {
+                e.name = name.value.trim().slice(0, 24);
+                saveDex();
+              };
+              const what = document.createElement('span');
+              what.className = 'gd-what';
+              what.textContent = whatText(e);
+              meta.append(name, what);
+              card.append(cv, meta);
+              dexGrid.appendChild(card);
+            }
+          }
+
+          /** 판을 훑어 개체를 찾고, 처음 보는 것이면 도감에 넣는다. */
+          function scanDex(gen: number): void {
+            const found: Found[] = findObjects(life, table.born, table.stay, 8);
+            let fresh: DexEntry | null = null;
+            for (const f of found) {
+              const cur = dex[f.fp];
+              if (cur) {
+                cur.seen++;
+                continue;
+              }
+              const e: DexEntry = {
+                fp: f.fp,
+                kind: f.kind,
+                period: f.period,
+                dx: f.dx,
+                dy: f.dy,
+                size: f.size,
+                w: f.w,
+                h: f.h,
+                cells: f.cells,
+                name: '',
+                day,
+                rule: rule.name || rule.code,
+                seen: 1
+              };
+              dex[f.fp] = e;
+              if (!fresh) fresh = e;
+            }
+            if (fresh) {
+              saveDex();
+              renderDex();
+              say(t('garden.line.found', { gen, what: whatText(fresh) }));
+            } else if (found.length) {
+              saveDex();
+            }
+          }
+
           /* ── 관찰 일지 ────────────────────────────────────────────────── */
           function say(text: string): void {
             line.classList.remove('gd-show');
@@ -213,6 +368,9 @@ import { Life, Watcher, quality, type Stats, type Event } from './life';
             /* 오래 굴리면 어떤 규칙이든 판을 다 채우고 그때부터는 잡음이다.
                언제 그렇게 되는지는 규칙마다 다르므로 **화면을 직접 재서** 판단한다
                (30세대에 한 번, `quality()`). 그래도 안 걸리는 경우를 위해 상한도 둔다. */
+            /* 개체 찾기는 판 전체를 훑고 후보마다 따로 굴려 보므로 싸지 않다 —
+               25세대에 한 번이면 놓치는 것도 거의 없고 프레임도 안 튄다. */
+            if (last && last.gen % 25 === 0 && last.gen > 30) scanDex(last.gen);
             if (last && last.gen % 30 === 0 && last.gen > 60) {
               const ev = watcher.judge(quality(life), last.gen);
               if (ev) {
@@ -256,6 +414,11 @@ import { Life, Watcher, quality, type Stats, type Event } from './life';
 
           /* ── 단추 ─────────────────────────────────────────────────────── */
           seedBtn.onclick = () => reseed();
+          dexBtn.onclick = () => {
+            const open = dexPanel.classList.toggle('gd-open');
+            dexBtn.setAttribute('aria-pressed', String(open));
+            if (open) renderDex();
+          };
           pauseBtn.onclick = () => {
             paused = !paused;
             pauseBtn.setAttribute('aria-pressed', String(paused));
@@ -268,6 +431,7 @@ import { Life, Watcher, quality, type Stats, type Event } from './life';
             ruleEl.textContent = rule.name || t('garden.rule.wild');
             codeEl.textContent = rule.code;
             seedBtn.textContent = t('garden.reseed');
+            dexBtn.textContent = t('garden.dex.button');
             pauseBtn.textContent = t('garden.pause');
             sub.textContent = t('garden.hint.' + (rule.id === 'wild' ? 'wild' : 'named'));
             build();
