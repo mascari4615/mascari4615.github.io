@@ -11,6 +11,7 @@
  * 옮기고 크기를 조절하며, 화면에서 본 그대로 들어간다(화면 배율을 실제 쪽 크기로 되돌려 얹는다).
  */
 import { acceptPastedFiles } from './shared/paste';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
   interface PdfPage {
@@ -42,57 +43,73 @@ import { acceptPastedFiles } from './shared/paste';
     id: 'pdfsign',
     // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
     accepts: ['application/pdf'],
-    title: 'PDF 에 서명 넣기',
+    title: t('widgets.pdfsign.title', undefined, 'PDF 에 서명 넣기'),
     category: 'tool',
-    desc: '계약서에 손으로 그린 서명을 얹습니다. 인쇄·스캔 없이, 문서가 브라우저를 벗어나지 않습니다',
+    desc: t(
+      'widgets-desc.pdfsign.desc',
+      undefined,
+      '계약서에 손으로 그린 서명을 얹습니다. 인쇄·스캔 없이, 문서가 브라우저를 벗어나지 않습니다'
+    ),
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 16c1.5-3 2.5 1 4-1s2 .5 3-1" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '서명 넣기',
+        label: t('pdfsign.tab', undefined, '서명 넣기'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('pdfsign').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="psDrop">
               <input type="file" id="psFile" accept="application/pdf" hidden>
-              계약서(PDF)를 끌어다 놓거나 눌러서 고르세요
+              ${esc(t('pdfsign.drop'))}
             </div>
 
             <div id="psEditor" style="display:none; margin-top:var(--space-lg);">
-              <div class="tool-sublabel">서명을 그리세요 — 마우스나 손가락으로</div>
+              <div class="tool-sublabel">${esc(t('pdfsign.label.pad'))}</div>
               <canvas id="psPad" height="150" style="width:100%; height:150px; background:#fff; border-radius:8px; touch-action:none; display:block; cursor:crosshair;"></canvas>
               <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
-                <button class="btn btn-ghost btn-sm" id="psClearPad">다시 그리기</button>
+                <button class="btn btn-ghost btn-sm" id="psClearPad">${esc(t('pdfsign.btn.clearPad'))}</button>
                 <label class="btn btn-ghost btn-sm" style="cursor:pointer;">
-                  그림 파일로 넣기<input type="file" id="psImg" accept="image/*" hidden>
+                  ${esc(t('pdfsign.btn.image'))}<input type="file" id="psImg" accept="image/*" hidden>
                 </label>
               </div>
 
               <div class="field-group" style="margin-top:var(--space-lg);">
                 <div class="tool-grid-2">
                   <div>
-                    <div class="tool-sublabel">쪽 <span id="psPageVal" class="range-value">1 / 1</span></div>
-                    <input type="range" id="psPage" aria-label="쪽" min="1" max="1" value="1">
+                    <div class="tool-sublabel">${esc(t('pdfsign.label.page'))} <span id="psPageVal" class="range-value">1 / 1</span></div>
+                    <input type="range" id="psPage" aria-label="${esc(t('pdfsign.label.page'))}" min="1" max="1" value="1">
                   </div>
                   <div>
-                    <div class="tool-sublabel">서명 크기 <span id="psSizeVal" class="range-value">30%</span></div>
-                    <input type="range" id="psSize" aria-label="서명 크기" min="8" max="70" value="30">
+                    <div class="tool-sublabel">${esc(t('pdfsign.label.size'))} <span id="psSizeVal" class="range-value">30%</span></div>
+                    <input type="range" id="psSize" aria-label="${esc(t('pdfsign.label.size'))}" min="8" max="70" value="30">
                   </div>
                 </div>
               </div>
 
-              <div class="tool-sublabel">미리보기 — 서명을 놓을 자리를 누르세요</div>
+              <div class="tool-sublabel">${esc(t('pdfsign.label.preview'))}</div>
               <div id="psStage" style="position:relative; display:inline-block; max-width:100%;">
                 <canvas id="psView" style="max-width:100%; border-radius:8px; background:#fff; display:block; cursor:crosshair;"></canvas>
                 <img id="psGhost" alt="" style="position:absolute; display:none; pointer-events:none; opacity:0.85;">
               </div>
 
               <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-                <button class="btn btn-primary" id="psRun">서명 넣고 내려받기</button>
+                <button class="btn btn-primary" id="psRun">${esc(t('pdfsign.btn.run'))}</button>
               </div>
             </div>
 
-            <div class="tool-status" id="psStatus">문서는 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="psStatus">${esc(t('pdfsign.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -160,7 +177,7 @@ import { acceptPastedFiles } from './shared/paste';
             if (drew) {
               signature = trimmed();
               updateGhost();
-              say('서명을 그렸어요. 미리보기에서 놓을 자리를 누르세요.', 'ok');
+              say(t('pdfsign.say.drawn'), 'ok');
             }
           };
           pad.addEventListener('pointerup', endStroke);
@@ -195,10 +212,10 @@ import { acceptPastedFiles } from './shared/paste';
           /* ---- PDF ---- */
           async function loadLib(): Promise<PdfJs> {
             if (pdfjs) return pdfjs;
-            say('PDF 처리기를 불러오는 중…');
+            say(t('pdfsign.say.loadingLib'));
             await Toolbox.ensureScript?.('vendor/pdfjs.min');
             const g = (window as unknown as { pdfjsLib: PdfJs }).pdfjsLib;
-            if (!g) throw new Error('PDF 처리기를 불러오지 못했습니다');
+            if (!g) throw new Error(t('pdfsign.err.lib'));
             g.GlobalWorkerOptions.workerSrc = '/apps/karmolab/js/vendor/pdfjs.worker.min.js';
             pdfjs = g;
             return g;
@@ -239,14 +256,14 @@ import { acceptPastedFiles } from './shared/paste';
             const r = view.getBoundingClientRect();
             spot = { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height };
             updateGhost();
-            if (!signature) say('먼저 위에서 서명을 그려 주세요.', 'error');
-            else say('자리를 잡았어요. 넣고 내려받으세요.', 'ok');
+            if (!signature) say(t('pdfsign.err.needSign'), 'error');
+            else say(t('pdfsign.say.spot'), 'ok');
           });
 
           async function load(f: File): Promise<void> {
             file = f;
             spot = null;
-            say(`${f.name} 을 여는 중…`);
+            say(t('pdfsign.say.opening', { name: f.name }));
             try {
               const lib = await loadLib();
               doc = await lib.getDocument({ data: await f.arrayBuffer() }).promise;
@@ -256,28 +273,28 @@ import { acceptPastedFiles } from './shared/paste';
               pageEl.value = '1';
               $<HTMLElement>('#psPageVal').textContent = `1 / ${doc.numPages}`;
               await drawPage(1);
-              say('서명을 그리고, 미리보기에서 놓을 자리를 누르세요.', 'ok');
+              say(t('pdfsign.say.opened'), 'ok');
             } catch (e) {
-              say('이 PDF 를 열지 못했어요: ' + (e as Error).message, 'error');
+              say(t('pdfsign.err.open', { msg: (e as Error).message }), 'error');
             }
           }
 
           async function run(): Promise<void> {
             if (!file || !doc) {
-              say('PDF 를 먼저 넣어 주세요.', 'error');
+              say(t('pdfsign.err.noFile'), 'error');
               return;
             }
             if (!signature) {
-              say('서명을 먼저 그려 주세요.', 'error');
+              say(t('pdfsign.err.noSign'), 'error');
               return;
             }
             if (!spot) {
-              say('미리보기에서 놓을 자리를 눌러 주세요.', 'error');
+              say(t('pdfsign.err.noSpot'), 'error');
               return;
             }
             await Toolbox.ensureScript?.('vendor/pdf-lib.min');
             const lib = (window as unknown as { PDFLib: PdfLib }).PDFLib;
-            if (!lib) throw new Error('PDF 만드는 부분을 불러오지 못했습니다');
+            if (!lib) throw new Error(t('pdfsign.err.libWrite'));
 
             const out = await lib.PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
             const pageNo = parseInt(pageEl.value, 10);
@@ -299,10 +316,10 @@ import { acceptPastedFiles } from './shared/paste';
             const blob = new Blob([(await out.save()) as unknown as BlobPart], { type: 'application/pdf' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = file.name.replace(/\.pdf$/i, '') + '-서명.pdf';
+            a.download = file.name.replace(/\.pdf$/i, '') + t('pdfsign.file.suffix') + '.pdf';
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say(`${pageNo}쪽에 서명을 넣어 받았어요.`, 'ok');
+            say(t('pdfsign.say.done', { n: pageNo }), 'ok');
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'pdfsign' });
             Toolbox.trackUse?.('sign');
@@ -334,7 +351,7 @@ import { acceptPastedFiles } from './shared/paste';
 
           $<HTMLButtonElement>('#psClearPad').onclick = () => {
             resetPad();
-            say('다시 그려 주세요.');
+            say(t('pdfsign.say.redraw'));
           };
           $<HTMLInputElement>('#psImg').onchange = (e) => {
             const f = (e.target as HTMLInputElement).files?.[0];
@@ -343,7 +360,7 @@ import { acceptPastedFiles } from './shared/paste';
             reader.onload = () => {
               signature = String(reader.result);
               updateGhost();
-              say('그림을 서명으로 넣었어요. 미리보기에서 자리를 누르세요.', 'ok');
+              say(t('pdfsign.say.imageUsed'), 'ok');
             };
             reader.readAsDataURL(f);
           };
@@ -356,12 +373,9 @@ import { acceptPastedFiles } from './shared/paste';
             updateGhost();
           });
           $<HTMLButtonElement>('#psRun').onclick = () => {
-            void run().catch((err: Error) => say('넣는 중 문제가 생겼어요: ' + err.message, 'error'));
+            void run().catch((err: Error) => say(t('pdfsign.err.run', { msg: err.message }), 'error'));
           };
 
           resetPad();
-        }
-      }
-    ]
-  });
+  }
 })();
