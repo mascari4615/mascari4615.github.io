@@ -188,5 +188,9 @@
   "howto.textredact.0": "ログや文書を貼り付ける",
   "howto.textredact.1": "消す種類を選ぶ",
   "howto.textredact.2": "見つかった一覧を確かめる",
-  "howto.textredact.3": "結果をコピーする"
+  "howto.textredact.3": "結果をコピーする",
+  "howto.pdftool.0": "PDF をドラッグする（複数でも大丈夫）",
+  "howto.pdftool.1": "やりたいことを選ぶ",
+  "howto.pdftool.2": "ページ範囲を書く（1-3,5 の形）",
+  "howto.pdftool.3": "実行してダウンロードする"
 }

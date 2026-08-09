@@ -188,5 +188,9 @@
   "howto.textredact.0": "Paste the log or document",
   "howto.textredact.1": "Pick what to remove",
   "howto.textredact.2": "Check the list of what was found",
-  "howto.textredact.3": "Copy the result"
+  "howto.textredact.3": "Copy the result",
+  "howto.pdftool.0": "Drop in PDFs (several at once is fine)",
+  "howto.pdftool.1": "Pick what you want to do",
+  "howto.pdftool.2": "Type a page range (like 1-3,5)",
+  "howto.pdftool.3": "Run it and download the result"
 }

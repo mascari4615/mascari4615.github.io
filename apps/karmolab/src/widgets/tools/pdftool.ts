@@ -6,6 +6,7 @@
  * 여기서는 파일이 브라우저 밖으로 나가지 않는다. 무거운 라이브러리는 이 탭을 처음 열 때만 받는다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
   interface PDFLib {
@@ -63,53 +64,69 @@ import { acceptPastedFiles } from './shared/paste';
 
   Toolbox.register({
     id: 'pdftool',
-    title: 'PDF 편집',
+    title: t('widgets.pdftool.title', undefined, 'PDF 편집'),
     category: 'tool',
-    desc: 'PDF 를 합치고 페이지를 빼내고 돌립니다. 파일이 브라우저를 벗어나지 않습니다',
+    desc: t(
+      'widgets-desc.pdftool.desc',
+      undefined,
+      'PDF 를 합치고 페이지를 빼내고 돌립니다. 파일이 브라우저를 벗어나지 않습니다'
+    ),
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M8 14h8M8 17h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: 'PDF',
+        label: t('pdftool.tab', undefined, 'PDF'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('pdftool').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="pdDrop">
               <input type="file" id="pdFile" accept="application/pdf" multiple hidden>
-              PDF 를 끌어다 놓거나 눌러서 고르세요 (여러 개 가능)
+              ${esc(t('pdftool.drop'))}
             </div>
 
             <div class="tool-list" id="pdFiles" style="margin-top:var(--space-lg);"></div>
 
             <div class="field-group" style="margin-top:var(--space-lg);">
               <div class="tool-chips" id="pdMode">
-                <button type="button" class="tool-chip active" data-mode="merge">합치기</button>
-                <button type="button" class="tool-chip" data-mode="extract">페이지 빼내기</button>
-                <button type="button" class="tool-chip" data-mode="remove">페이지 지우기</button>
-                <button type="button" class="tool-chip" data-mode="rotate">돌리기</button>
+                <button type="button" class="tool-chip active" data-mode="merge">${esc(t('pdftool.mode.merge'))}</button>
+                <button type="button" class="tool-chip" data-mode="extract">${esc(t('pdftool.mode.extract'))}</button>
+                <button type="button" class="tool-chip" data-mode="remove">${esc(t('pdftool.mode.remove'))}</button>
+                <button type="button" class="tool-chip" data-mode="rotate">${esc(t('pdftool.mode.rotate'))}</button>
               </div>
             </div>
 
             <div class="field-group" id="pdRangeWrap" style="display:none;">
-              <div class="tool-sublabel">페이지 — 1-3,5,8- 처럼 적습니다 (비우면 전체)</div>
-              <input type="text" id="pdRange" placeholder="1-3,5" spellcheck="false">
+              <div class="tool-sublabel">${esc(t('pdftool.label.range'))}</div>
+              <input type="text" id="pdRange" placeholder="${esc(t('pdftool.ph.range'))}" spellcheck="false">
             </div>
 
             <div class="field-group" id="pdAngleWrap" style="display:none;">
-              <div class="tool-sublabel">돌릴 각도</div>
-              <select id="pdAngle" aria-label="돌릴 각도">
-                <option value="90">오른쪽 90°</option>
-                <option value="180">180°</option>
-                <option value="270">왼쪽 90°</option>
+              <div class="tool-sublabel">${esc(t('pdftool.label.angle'))}</div>
+              <select id="pdAngle" aria-label="${esc(t('pdftool.label.angle'))}">
+                <option value="90">${esc(t('pdftool.angle.90'))}</option>
+                <option value="180">${esc(t('pdftool.angle.180'))}</option>
+                <option value="270">${esc(t('pdftool.angle.270'))}</option>
               </select>
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-primary" id="pdRun">실행하고 내려받기</button>
-              <button class="btn btn-ghost" id="pdClear">비우기</button>
+              <button class="btn btn-primary" id="pdRun">${esc(t('pdftool.btn.run'))}</button>
+              <button class="btn btn-ghost" id="pdClear">${esc(t('pdftool.btn.clear'))}</button>
             </div>
 
-            <div class="tool-status" id="pdStatus">파일은 브라우저 안에서만 다뤄지고 어디로도 올라가지 않습니다.</div>
+            <div class="tool-status" id="pdStatus">${esc(t('pdftool.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -121,7 +138,6 @@ import { acceptPastedFiles } from './shared/paste';
           let mode = 'merge';
           let lib: PDFLib | null = null;
 
-          const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
           function say(msg: string, kind = ''): void {
             status.textContent = msg;
             status.className = 'tool-status' + (kind ? ' ' + kind : '');
@@ -130,10 +146,10 @@ import { acceptPastedFiles } from './shared/paste';
           /** 무거운 라이브러리는 실제로 쓸 때 받는다 — 탭만 열어 본 사람에게 500KB 를 물리지 않는다. */
           async function loadLib(): Promise<PDFLib> {
             if (lib) return lib;
-            say('PDF 처리기를 불러오는 중…');
+            say(t('pdftool.say.loadingLib'));
             await Toolbox.ensureScript?.('vendor/pdf-lib.min');
             lib = (window as unknown as { PDFLib: PDFLib }).PDFLib;
-            if (!lib) throw new Error('PDF 처리기를 불러오지 못했습니다');
+            if (!lib) throw new Error(t('pdftool.err.lib'));
             return lib;
           }
 
@@ -141,7 +157,14 @@ import { acceptPastedFiles } from './shared/paste';
             filesEl.innerHTML = files
               .map(
                 (f, i) =>
-                  `<div class="tool-list-row"><span class="tool-list-key">${i + 1}번째</span><span class="tool-list-val">${esc(f.file.name)} <span class="tool-list-dim">${f.pages}쪽 · ${(f.file.size / 1024 / 1024).toFixed(2)}MB</span></span></div>`
+                  `<div class="tool-list-row"><span class="tool-list-key">${esc(
+                    t('pdftool.list.nth', { n: i + 1 })
+                  )}</span><span class="tool-list-val">${esc(f.file.name)} <span class="tool-list-dim">${esc(
+                    t('pdftool.list.meta', {
+                      pages: f.pages,
+                      mb: (f.file.size / 1024 / 1024).toFixed(2)
+                    })
+                  )}</span></span></div>`
               )
               .join('');
           }
@@ -154,16 +177,23 @@ import { acceptPastedFiles } from './shared/paste';
                 const doc = await L.PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
                 files.push({ file, pages: doc.getPageCount() });
               } catch {
-                say(`${file.name} 을 열지 못했어요 (암호가 걸려 있을 수 있습니다).`, 'error');
+                say(t('pdftool.err.openOne', { name: file.name }), 'error');
               }
             }
             renderFiles();
-            if (files.length) say(`${files.length}개 파일 · 총 ${files.reduce((a, f) => a + f.pages, 0)}쪽`, 'ok');
+            if (files.length)
+              say(
+                t('pdftool.say.loaded', {
+                  files: files.length,
+                  pages: files.reduce((a, f) => a + f.pages, 0)
+                }),
+                'ok'
+              );
           }
 
           async function run(): Promise<void> {
             if (!files.length) {
-              say('PDF 를 먼저 넣어 주세요.', 'error');
+              say(t('pdftool.err.noFile'), 'error');
               return;
             }
             const L = await loadLib();
@@ -177,44 +207,44 @@ import { acceptPastedFiles } from './shared/paste';
                   const copied = await outDoc.copyPages(src, idx);
                   copied.forEach((p) => outDoc.addPage(p));
                 }
-                download(await outDoc.save(), '합친-PDF.pdf', status);
-                say(`${files.length}개 파일을 합쳐 내려받았어요.`, 'ok');
+                download(await outDoc.save(), t('pdftool.file.merged'), status);
+                say(t('pdftool.say.merged', { n: files.length }), 'ok');
               } else {
                 const src = await L.PDFDocument.load(await files[0].file.arrayBuffer(), { ignoreEncryption: true });
                 const total = src.getPageCount();
                 const picked = rangeSpec.trim() ? parseRange(rangeSpec, total) : src.getPages().map((_, i) => i);
                 if (!picked.length) {
-                  say('고른 페이지가 없어요. 1-3,5 처럼 적어 주세요.', 'error');
+                  say(t('pdftool.err.noPages'), 'error');
                   return;
                 }
                 if (mode === 'extract') {
                   const outDoc = await L.PDFDocument.create();
                   const copied = await outDoc.copyPages(src, picked);
                   copied.forEach((p) => outDoc.addPage(p));
-                  download(await outDoc.save(), '빼낸-페이지.pdf', status);
-                  say(`${picked.length}쪽을 빼내 내려받았어요.`, 'ok');
+                  download(await outDoc.save(), t('pdftool.file.extracted'), status);
+                  say(t('pdftool.say.extracted', { n: picked.length }), 'ok');
                 } else if (mode === 'remove') {
                   const keep = Array.from({ length: total }, (_, i) => i).filter((i) => !picked.includes(i));
                   if (!keep.length) {
-                    say('전부 지우면 남는 게 없어요.', 'error');
+                    say(t('pdftool.err.removeAll'), 'error');
                     return;
                   }
                   const outDoc = await L.PDFDocument.create();
                   const copied = await outDoc.copyPages(src, keep);
                   copied.forEach((p) => outDoc.addPage(p));
-                  download(await outDoc.save(), '페이지-지운-PDF.pdf', status);
-                  say(`${picked.length}쪽을 지우고 ${keep.length}쪽을 남겼어요.`, 'ok');
+                  download(await outDoc.save(), t('pdftool.file.removed'), status);
+                  say(t('pdftool.say.removed', { n: picked.length, keep: keep.length }), 'ok');
                 } else {
                   const angle = parseInt($<HTMLSelectElement>('#pdAngle').value, 10);
                   const pages = src.getPages();
                   picked.forEach((i) => pages[i].setRotation(L.degrees((pages[i].getRotation().angle + angle) % 360)));
-                  download(await src.save(), '돌린-PDF.pdf', status);
-                  say(`${picked.length}쪽을 ${angle}° 돌려 내려받았어요.`, 'ok');
+                  download(await src.save(), t('pdftool.file.rotated'), status);
+                  say(t('pdftool.say.rotated', { n: picked.length, angle }), 'ok');
                 }
               }
               Toolbox.trackUse?.(mode);
             } catch (e) {
-              say('처리 중 문제가 생겼어요: ' + (e as Error).message, 'error');
+              say(t('pdftool.err.run', { msg: (e as Error).message }), 'error');
             }
           }
 
@@ -242,17 +272,14 @@ import { acceptPastedFiles } from './shared/paste';
               mode = (chip as HTMLElement).dataset.mode || 'merge';
               $<HTMLElement>('#pdRangeWrap').style.display = mode === 'merge' ? 'none' : '';
               $<HTMLElement>('#pdAngleWrap').style.display = mode === 'rotate' ? '' : 'none';
-              say(mode === 'merge' ? '넣은 순서대로 합칩니다.' : '첫 번째 파일을 대상으로 합니다.');
+              say(mode === 'merge' ? t('pdftool.say.mergeHint') : t('pdftool.say.firstOnly'));
             };
           });
           $<HTMLButtonElement>('#pdRun').onclick = () => void run();
           $<HTMLButtonElement>('#pdClear').onclick = () => {
             files = [];
             renderFiles();
-            say('비웠어요.');
+            say(t('pdftool.say.cleared'));
           };
-        }
-      }
-    ]
-  });
+  }
 })();
