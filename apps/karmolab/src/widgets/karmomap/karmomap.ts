@@ -1276,7 +1276,6 @@ import {
         if (ev.key === 'Escape') { ev.preventDefault(); setPresenting(false); return; }
       }
       if (!(ev.ctrlKey || ev.metaKey)) return;
-      if (!root.isConnected) return;
       const t = ev.target as HTMLElement | null;
       const tag = t?.tagName ?? '';
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || t?.isContentEditable) return;
