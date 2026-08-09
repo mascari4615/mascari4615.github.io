@@ -3,7 +3,7 @@
  * 온도만 비선형이라 factor 대신 to/from 함수 쌍으로 둔다 — 나머지는 기준단위 배수 하나로 끝난다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
-import { inRegion } from '../../lib/region';
+import { inRegion, region } from '../../lib/region';
 
 (function (): void {
   interface Unit {
@@ -28,12 +28,38 @@ import { inRegion } from '../../lib/region';
    * 이름 자리에 열쇠가 그대로 굳는다 — 나중에 말이 와도 표는 이미 만들어진 뒤다.
    * 그래서 함수로 두고 그릴 때 부른다.
    */
+  /**
+   * 어느 단위에서 어느 단위로 **처음 놓아 둘까** — 사는 곳이 정한다 (TASK-KL-203 S14-b).
+   *
+   * 미터법 나라 사람은 「cm 를 인치로」가 궁금하고, 미국 사람은 정확히 그 **반대**가 궁금하다.
+   * 어느 쪽이든 두 칸을 바꿔 넣으면 되지만, 처음 놓인 자리가 틀리면 매번 손이 한 번 더 간다 —
+   * 그리고 그 한 번이 「이 도구는 내 것이 아니구나」를 만든다.
+   *
+   * 넓이는 나라마다 **쓰는 단위 자체가 다르다**: 한국 평 · 일본 坪(같은 크기) · 미국 제곱피트.
+   */
+  const REGION_DEFAULTS: Record<string, Record<string, [string, string]>> = {
+    US: {
+      length: ['inch', 'cm'],
+      weight: ['lb', 'kg'],
+      area: ['ft2', 'm2'],
+      volume: ['gal', 'l'],
+      temp: ['f', 'c'],
+      speed: ['mph', 'kmh']
+    },
+    JP: { area: ['pyeong', 'm2'] },
+    XX: { area: ['m2', 'ft2'] }
+  };
+
+  /** 그 나라의 기본 짝. 안 정해 둔 갈래는 표에 적힌 기본값 그대로. */
+  const defaultsFor = (id: string, from: string, to: string): [string, string] =>
+    REGION_DEFAULTS[region()]?.[id] || [from, to];
+
   const buildCategories = (): Category[] => [
     {
       id: 'length',
       label: t('unitconv.cat.length'),
-      defaultFrom: 'cm',
-      defaultTo: 'inch',
+      defaultFrom: defaultsFor('length', 'cm', 'inch')[0],
+      defaultTo: defaultsFor('length', 'cm', 'inch')[1],
       units: [
         { id: 'mm', label: t('unitconv.mm'), factor: 0.001 },
         { id: 'cm', label: t('unitconv.cm'), factor: 0.01 },
@@ -50,8 +76,8 @@ import { inRegion } from '../../lib/region';
     {
       id: 'weight',
       label: t('unitconv.cat.weight'),
-      defaultFrom: 'kg',
-      defaultTo: 'lb',
+      defaultFrom: defaultsFor('weight', 'kg', 'lb')[0],
+      defaultTo: defaultsFor('weight', 'kg', 'lb')[1],
       units: [
         { id: 'mg', label: t('unitconv.mg'), factor: 0.000001 },
         { id: 'g', label: t('unitconv.g'), factor: 0.001 },
@@ -67,8 +93,8 @@ import { inRegion } from '../../lib/region';
     {
       id: 'area',
       label: t('unitconv.cat.area'),
-      defaultFrom: 'pyeong',
-      defaultTo: 'm2',
+      defaultFrom: defaultsFor('area', 'pyeong', 'm2')[0],
+      defaultTo: defaultsFor('area', 'pyeong', 'm2')[1],
       units: [
         { id: 'cm2', label: t('unitconv.cm2'), factor: 0.0001 },
         { id: 'm2', label: t('unitconv.m2'), factor: 1 },
@@ -82,8 +108,8 @@ import { inRegion } from '../../lib/region';
     {
       id: 'volume',
       label: t('unitconv.cat.volume'),
-      defaultFrom: 'l',
-      defaultTo: 'ml',
+      defaultFrom: defaultsFor('volume', 'l', 'ml')[0],
+      defaultTo: defaultsFor('volume', 'l', 'ml')[1],
       units: [
         { id: 'ml', label: t('unitconv.ml'), factor: 0.001 },
         { id: 'l', label: t('unitconv.l'), factor: 1 },
@@ -98,8 +124,8 @@ import { inRegion } from '../../lib/region';
     {
       id: 'temp',
       label: t('unitconv.cat.temp'),
-      defaultFrom: 'c',
-      defaultTo: 'f',
+      defaultFrom: defaultsFor('temp', 'c', 'f')[0],
+      defaultTo: defaultsFor('temp', 'c', 'f')[1],
       units: [
         { id: 'c', label: t('unitconv.c'), to: (v) => v, from: (v) => v },
         { id: 'f', label: t('unitconv.f'), to: (v) => ((v - 32) * 5) / 9, from: (v) => (v * 9) / 5 + 32 },
@@ -109,8 +135,8 @@ import { inRegion } from '../../lib/region';
     {
       id: 'data',
       label: t('unitconv.cat.data'),
-      defaultFrom: 'mb',
-      defaultTo: 'gb',
+      defaultFrom: defaultsFor('data', 'mb', 'gb')[0],
+      defaultTo: defaultsFor('data', 'mb', 'gb')[1],
       units: [
         { id: 'b', label: t('unitconv.B'), factor: 1 },
         { id: 'kb', label: t('unitconv.KB'), factor: 1024 },
@@ -124,8 +150,8 @@ import { inRegion } from '../../lib/region';
     {
       id: 'speed',
       label: t('unitconv.cat.speed'),
-      defaultFrom: 'kmh',
-      defaultTo: 'ms',
+      defaultFrom: defaultsFor('speed', 'kmh', 'ms')[0],
+      defaultTo: defaultsFor('speed', 'kmh', 'ms')[1],
       units: [
         { id: 'ms', label: t('unitconv.ms_'), factor: 1 },
         { id: 'kmh', label: t('unitconv.kmh'), factor: 0.2777777778 },
@@ -137,8 +163,8 @@ import { inRegion } from '../../lib/region';
     {
       id: 'time',
       label: t('unitconv.cat.time'),
-      defaultFrom: 'min',
-      defaultTo: 'sec',
+      defaultFrom: defaultsFor('time', 'min', 'sec')[0],
+      defaultTo: defaultsFor('time', 'min', 'sec')[1],
       units: [
         { id: 'ms', label: t('unitconv.msec'), factor: 0.001 },
         { id: 'sec', label: t('unitconv.sec'), factor: 1 },

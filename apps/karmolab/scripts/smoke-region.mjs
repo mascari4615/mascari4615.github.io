@@ -217,6 +217,44 @@ if (fs.existsSync(path.join(repoRoot, bmiPage))) {
   }
 }
 
+/* ── 단위 변환의 **처음 놓인 짝** (S14-b) ─────────────
+ * 미터법 나라는 「cm → 인치」, 미국은 그 반대가 궁금하다. 처음 놓인 자리가 틀리면 매번 손이
+ * 한 번 더 가고, 그 한 번이 「이 도구는 내 것이 아니구나」를 만든다. */
+const ucPage = 'apps/blog/en/karmolab/t/unitconv/index.html';
+if (fs.existsSync(path.join(repoRoot, ucPage))) {
+  for (const c of [
+    { region: 'US', from: 'inch', to: 'cm' },
+    { region: 'KR', from: 'cm', to: 'inch' }
+  ]) {
+    const ctx = await browser.newContext();
+    await ctx.addInitScript((r) => {
+      try {
+        localStorage.setItem('karmolab_region', r);
+      } catch {
+        /* 저장을 막아 둔 환경 */
+      }
+    }, c.region);
+    const tab = await ctx.newPage();
+    await tab.goto(`http://127.0.0.1:${PORT}/${ucPage}`, { waitUntil: 'domcontentloaded' });
+    const picked = await tab
+      .waitForFunction(
+        () => {
+          const from = document.querySelector('#ucFrom');
+          const to = document.querySelector('#ucTo');
+          return from && to && from.value ? { from: from.value, to: to.value } : false;
+        },
+        { timeout: 8000 }
+      )
+      .then((h) => h.jsonValue())
+      .catch(() => null);
+    if (!picked) fail.push(`${c.region}: 단위 변환 도구가 안 그려졌다 — 검사가 못 돈다`);
+    else if (picked.from !== c.from || picked.to !== c.to) {
+      fail.push(`${c.region}: 처음 놓인 단위가 그 나라 것이 아니다 — ${picked.from}→${picked.to} (기대 ${c.from}→${c.to})`);
+    }
+    await ctx.close();
+  }
+}
+
 await browser.close();
 server.close();
 
