@@ -59,6 +59,12 @@
     nav: Record<string, number | null>;
     paint: { fcp: number | null; lcp: number | null };
     memory: { usedMb: number; limitMb: number } | null;
+    trust: { ok: boolean; why: string };
+    inp: number | null;
+    interactions: Array<{
+      name: string; at: number; ms: number; inputDelayMs: number;
+      processingMs: number; presentationMs: number; target: string;
+    }> | null;
     marks: Array<{ name: string; at: number }>;
     widgets: Array<{
       id: string; loadMs: number | null; firstBuildMs: number | null; lastBuildMs: number | null;
@@ -192,6 +198,15 @@
                 longSum == null ? '이 브라우저는 안 알려 줌' : `${snap.longTasks!.length}건 · 50ms 넘긴 것`,
               ],
               [
+                /* 「만질 때 굼뜨나」 — 개발용 계기판에서 부팅만큼 중요한데 여태 없던 축.
+                   200ms 를 넘으면 사람이 「눌렀는데 안 먹었나?」 하고 한 번 더 누른다. */
+                '제일 굼뜬 조작 (INP)',
+                snap.inp == null ? (snap.interactions == null ? '못 잼' : '조작 없음') : ms(snap.inp),
+                snap.interactions == null
+                  ? '이 브라우저는 안 알려 줌'
+                  : `${snap.interactions.length}번 만짐 · 200ms 넘으면 답답함`,
+              ],
+              [
                 '자바스크립트 메모리',
                 snap.memory ? `${snap.memory.usedMb.toFixed(0)}MB` : '못 잼',
                 snap.memory ? `한도 ${snap.memory.limitMb.toFixed(0)}MB` : '크로미움에서만 알려 줌',
@@ -294,6 +309,35 @@
               <p class="pf-sec-note">받은 것 ${snap.resources.length}개 중 ${cached}개는 회선을 안 탔습니다(캐시·서비스 워커).</p>`;
           }
 
+          /**
+           * 조작 하나가 왜 굼떴나 — 셋 중 누구 탓인가 (TASK-KL-201 ②).
+           * 대기가 크면 **다른 코드**가, 처리가 크면 **내 핸들러**가, 표시가 크면 **그리는 비용**이 범인.
+           */
+          function interactionTable(snap: Snap): string {
+            if (snap.interactions == null) {
+              return '<div class="pf-none">이 브라우저는 조작 지연을 안 알려 줍니다. <b>0 이 아니라 못 잰 것</b>입니다.</div>';
+            }
+            if (!snap.interactions.length) {
+              return '<div class="pf-none">아직 만진 것이 없습니다 — 도구를 눌러 보고 <b>다시 재기</b>를 누르세요. (한 프레임(16ms)을 넘긴 조작만 셉니다.)</div>';
+            }
+            const rows = snap.interactions.slice(0, 12);
+            return `<div class="pf-scroll"><table class="pf-table">
+              <thead><tr><th>무엇을 눌렀나</th><th>종류</th><th>언제</th><th>총</th><th>대기</th><th>처리</th><th>표시</th></tr></thead>
+              <tbody>${rows
+                .map(
+                  (row) => `<tr>
+                    <td>${esc(row.target || '모름')}</td>
+                    <td>${esc(row.name)}</td>
+                    <td>${ms(row.at)}</td>
+                    <td${tone(row.ms, 200, 500)}>${ms(row.ms)}</td>
+                    <td${tone(row.inputDelayMs, 50, 150)}>${ms(row.inputDelayMs)}</td>
+                    <td${tone(row.processingMs, 50, 150)}>${ms(row.processingMs)}</td>
+                    <td${tone(row.presentationMs, 50, 150)}>${ms(row.presentationMs)}</td>
+                  </tr>`
+                )
+                .join('')}</tbody></table></div>`;
+          }
+
           function longTasks(snap: Snap): string {
             if (snap.longTasks == null) {
               return '<div class="pf-none">이 브라우저는 긴 작업을 안 알려 줍니다(사파리). <b>0건이 아니라 못 잰 것</b>입니다.</div>';
@@ -331,8 +375,11 @@
                   const when = isNaN(at.getTime())
                     ? '—'
                     : `${pad(at.getMonth() + 1)}-${pad(at.getDate())} ${pad(at.getHours())}:${pad(at.getMinutes())}`;
-                  return `<tr>
-                    <td>${esc(when)}</td>
+                  /* 못 믿을 줄에 표를 단다 — 지우지는 않는다. 사라지면 「왜 이 판만 기록이
+                     없지」가 되고, 그 자체가 또 다른 오해가 된다. */
+                  const flag = row.trusted === false ? ` ⚠` : '';
+                  return `<tr title="${esc(row.untrustedWhy || '')}">
+                    <td>${esc(when)}${flag}</td>
                     <td>${esc(String(row.build || '—').slice(0, 8))}</td>
                     <td>${esc(row.commit || '—')}</td>
                     <td>${ms(row.ttfb)}</td>
@@ -351,9 +398,23 @@
               snap.sinceOpenMs / 1000
             ).toFixed(1)}s`;
             const dev = snap.device;
+            /* 이 판을 믿어도 되는지부터 말한다 — 안 보이는 탭·되살아난 판의 숫자를 그냥 두면
+               「이번 배포가 두 배 느려졌다」 같은 거짓 회귀가 난다. */
+            const distrust = snap.trust.ok
+              ? ''
+              : `<div class="pf-none" style="border-style:solid;border-color:#b45309;">
+                   <strong>이 판의 숫자는 비교에 쓰면 안 됩니다.</strong> ${esc(snap.trust.why)}.
+                   판별 부팅 표에서도 이런 줄은 <b>⚠</b> 로 표시됩니다.
+                 </div>`;
             body.innerHTML = `
+              ${distrust}
               ${summary(snap)}
               ${frameLine}
+              <div>
+                <h3 class="pf-sec-title">만질 때 — 굼뜬 조작 순</h3>
+                <p class="pf-sec-note">굼뜸은 셋 중 하나입니다. <b>대기</b>가 크면 다른 코드가 주 스레드를 잡고 있던 것이고, <b>처리</b>가 크면 그 핸들러가, <b>표시</b>가 크면 그리는 비용이 범인입니다. 총 200ms 를 넘으면 사람이 「안 먹었나?」 하고 다시 누릅니다.</p>
+                ${interactionTable(snap)}
+              </div>
               <div>
                 <h3 class="pf-sec-title">부팅 — 어디서 시간이 갔나</h3>
                 <p class="pf-sec-note">페이지가 열린 순간부터의 시각. 막대는 「그때까지 걸린 시간」이라 오른쪽으로 갈수록 늦은 일입니다.</p>
