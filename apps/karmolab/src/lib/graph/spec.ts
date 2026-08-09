@@ -53,12 +53,22 @@ export interface GraphNode {
   note?: string;        // 이름 밑 한 줄 — 「한마디」
 }
 
+/**
+ * 선 모양. `wavy`(물결) 와 `crack`(금 간 선) 은 관계도에서 「애매함」·「깨진 사이」를
+ * 점선만으로는 못 나타내서 넣었다 (TASK-KL-202 격차 C, 레퍼런스 三角関係ジェネレーター).
+ */
+export type EdgeStyle = 'solid' | 'dashed' | 'dotted' | 'wavy' | 'crack';
+
 export interface GraphEdge {
   id: string;
   from: string;   // "nodeId" 또는 "nodeId:portId" (포트 suffix 는 렌더 시 무시)
   to: string;
   kind: string;
   label?: string;
+  /** 이 선만 따로 — 없으면 kind 정의를 따른다. */
+  color?: string;
+  width?: number;
+  style?: EdgeStyle;
 }
 
 export interface GroupDef {
@@ -97,8 +107,10 @@ export interface CoordUpdate {
 
 export interface EdgeKindDef {
   color: string;
-  style: 'solid' | 'dashed' | 'dotted';
+  style: EdgeStyle;
   arrow: boolean;
+  /** 선 굵기(px). 없으면 1.5. */
+  width?: number;
   animated_on_active?: boolean;
 }
 
