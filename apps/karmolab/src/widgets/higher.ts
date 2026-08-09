@@ -16,8 +16,12 @@ import { variantFor } from '../lib/shared-packs';
 import { ensureLocal, localChoices, sharedChoices } from '../lib/pack-choices';
 import { absorbFromUrl, getPack, loadPacks, packToCode, type Pack } from './pack-store';
 import { onPageActive, takePick } from './pack-pick';
+import { t, loadNamespace } from '../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   interface Item {
     n: string;
     i: string;
@@ -36,17 +40,17 @@ import { onPageActive, takePick } from './pack-pick';
   }
 
   const BOARDS: Array<{ id: string; title: string; emoji: string }> = [
-    { id: 'pokemon', title: '포켓몬', emoji: '🔴' },
-    { id: 'lol', title: '롤 챔피언', emoji: '⚔️' },
-    { id: 'genshin', title: '원신 캐릭터', emoji: '🌠' }
+    { id: 'pokemon', title: t('higher.t04'), emoji: '🔴' },
+    { id: 'lol', title: t('higher.t05'), emoji: '⚔️' },
+    { id: 'genshin', title: t('higher.t06'), emoji: '🌠' }
   ];
   const BEST_KEY = 'karmolab_higher_best';
 
   Toolbox.register({
     id: 'higher',
-    title: '높은 쪽 고르기',
+    title: t('widgets.higher.title', undefined, "높은 쪽 고르기"),
     category: 'tool',
-    desc: '둘 중 어느 쪽이 더 큰지만 고르는 연승 놀이. 포켓몬·롤·원신 표로 겨룹니다',
+    desc: t('widgets-desc.higher.desc', undefined, "둘 중 어느 쪽이 더 큰지만 고르는 연승 놀이. 포켓몬·롤·원신 표로 겨룹니다"),
     // 커뮤니티와 같은 틀 — 넓게 쓰고 도구 제목 카드는 안 그린다 (TASK-KL-089).
     // 놀이는 앱의 일원이되 화면은 놀이 제 구조다. 도구 상세 페이지도 만들지 않는다.
     layout: 'wide',
@@ -56,27 +60,29 @@ import { onPageActive, takePick } from './pack-pick';
     tabs: [
       {
         id: 'app',
-        label: '놀기',
+        label: t('higher.t09', undefined, "놀기"),
         build: function (container: HTMLElement): void {
-          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: '한 번 틀리면 끝이에요. 조심조심.' });
+          void loadNamespace('higher').then(function () {
+
+          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: t('higher.t10') });
           container.innerHTML = `
             <div class="field-group">
-              <div class="tool-sublabel">무엇으로 겨룰까요</div>
-              <div id="hiBoards" class="hi-chips" role="group" aria-label="판 고르기"></div>
+              <div class="tool-sublabel">${esc(t('higher.t01'))}</div>
+              <div id="hiBoards" class="hi-chips" role="group" aria-label="${esc(t('higher.aria.hiBoards'))}"></div>
             </div>
-            <p class="hi-ask" id="hiAsk">불러오는 중…</p>
+            <p class="hi-ask" id="hiAsk">${esc(t('higher.label.hiAsk'))}</p>
             <div class="hi-pair">
               <button class="hi-side" id="hiA" type="button"></button>
               <button class="hi-side" id="hiB" type="button"></button>
             </div>
-            <p class="hi-score"><span>연승 <b id="hiStreak">0</b></span><span>최고 <b id="hiBest">0</b></span></p>
+            <p class="hi-score"><span>${esc(t('higher.t02'))} <b id="hiStreak">0</b></span><span>${esc(t('higher.t03'))} <b id="hiBest">0</b></span></p>
             <p class="tool-status" id="hiMsg" aria-live="polite"></p>
             <p class="pc-line" id="hiCourse" hidden></p>
             <p id="hiRecord" hidden></p>
             <div id="hiBoard" hidden></div>
             <div id="hiAgain" style="display:none; gap:6px; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="hiRetry">다시</button>
-              <button class="btn btn-ghost" id="hiShare">결과 복사</button>
+              <button class="btn btn-primary" id="hiRetry">${esc(t('higher.btn.hiRetry'))}</button>
+              <button class="btn btn-ghost" id="hiShare">${esc(t('higher.btn.hiShare'))}</button>
             </div>
           `;
 
@@ -120,7 +126,7 @@ import { onPageActive, takePick } from './pack-pick';
              * 순위판에 서서 각자 혼자 1등이 된다. */
             variant: id.indexOf('pack:') === 0 ? variantFor(getPack(id.slice(5)) ?? { id: id.slice(5) }) : id,
             better: 'high',
-            unit: '연승',
+            unit: t('higher.t02'),
             decimals: 0,
           });
 
@@ -209,7 +215,7 @@ import { onPageActive, takePick } from './pack-pick';
               tries++;
             } while ((right === left || right.v[field.key] === left.v[field.key]) && tries < 50);
             $('hiAsk').innerHTML =
-              `<b>${field.label}</b> — 어느 쪽이 더 클까요?` +
+              t('higher.ask', { field: field.label }) +
               '<span class="hi-keys">← →</span>';
             paintSide($('hiA'), left, true);
             paintSide($('hiB'), right!, false);
@@ -236,7 +242,7 @@ import { onPageActive, takePick } from './pack-pick';
               /* 최고 기록은 **오를 때마다** 남긴다. 예전에는 지는 순간에만 적어서, 이기고 있는
                * 중에 판을 바꾸거나 창을 닫으면 그 연승이 통째로 사라졌다(실측: 2연승 → 최고 0). */
               $('hiBest').textContent = String(bestOf(boardId, streak));
-              $('hiMsg').textContent = '맞았습니다';
+              $('hiMsg').textContent = t('higher.t11');
               setTimeout(() => {
                 left = right!.v[field!.key] > left!.v[field!.key] ? right : left;
                 nextRound(true);
@@ -244,8 +250,8 @@ import { onPageActive, takePick } from './pack-pick';
             } else {
               // 첫 판에 지면 「0연승에서 끝났습니다」가 된다 — 아깝지도 않은데 아깝다고 말한다.
               $('hiMsg').textContent = streak
-                ? `아깝습니다 — ${streak}연승에서 끝났습니다`
-                : '아쉽네요. 한 번 더 해 보세요.';
+                ? t('higher.lostAt', { n: streak })
+                : t('higher.t12');
               $('hiBest').textContent = String(bestOf(boardId, streak));
               $('hiAgain').style.display = 'flex';
               markToday(streak);
@@ -286,7 +292,7 @@ import { onPageActive, takePick } from './pack-pick';
               // 판을 바꿔 끝난 연승도 기록이다 — **떠나는 표**의 순위판에 남긴다.
               sendRun(boardId, streak);
               // 새 판을 다 그린 **뒤에** 말해야 한다 — 먼저 적으면 새 판이 그리면서 지운다(실측).
-              note = `판을 바꿔 ${streak}연승은 여기서 끝냅니다 — 최고 기록에는 남겼어요.`;
+              note = t('higher.switchedBoard', { n: streak });
             }
             boardId = id;
             /* 판마다 그림의 결이 다르다 — 포켓몬은 96px 도트라 키우면 뭉개진다. 도트는 도트답게
@@ -321,8 +327,8 @@ import { onPageActive, takePick } from './pack-pick';
                 if (mySeq !== loadSeq) return;
                 $('hiAsk').textContent =
                   err && err.message === 'no-number'
-                    ? '이 표에는 견줄 숫자 칸이 없습니다 — 「내 표 만들기」에서 나이·키 같은 숫자 칸을 넣어 주세요.'
-                    : '표를 못 불러왔습니다. 잠시 뒤 다시 열어 주세요.';
+                    ? t('higher.t13')
+                    : t('higher.t14');
               });
           }
 
@@ -343,10 +349,10 @@ import { onPageActive, takePick } from './pack-pick';
                 /* 남의 표는 고른 **그때** 받아 들인다 (TASK-KL-150 ②) — 목록을 그릴 때 전부
                    받으면 안 고를 표까지 수백 KB 씩 받게 된다. */
                 if (b.id.indexOf('shared:') === 0) {
-                  $('hiAsk').textContent = '표를 받아오는 중…';
+                  $('hiAsk').textContent = t('higher.t15');
                   void ensureLocal(b.id).then((got) => {
                     if (!got) {
-                      $('hiAsk').textContent = '그 표를 못 받았습니다. 잠시 뒤 다시 눌러 주세요.';
+                      $('hiAsk').textContent = t('higher.t16');
                       return;
                     }
                     b.id = got; // 이제 이 브라우저 표다 — 다시 안 받는다
@@ -366,7 +372,7 @@ import { onPageActive, takePick } from './pack-pick';
             drawChips(active);
             void sharedChoices('number').then((rows) => {
               if (!container.isConnected || !rows.length) return;
-              boards = boards.concat(rows.map((c) => ({ id: c.id, title: `${c.title} · ${c.owner ?? '남의 표'}`, emoji: c.emoji })));
+              boards = boards.concat(rows.map((c) => ({ id: c.id, title: `${c.title} · ${c.owner ?? t('higher.t17')}`, emoji: c.emoji })));
               drawChips(active);
             });
           }
@@ -398,8 +404,8 @@ import { onPageActive, takePick } from './pack-pick';
              * 탭 속살에도 같은 표시가 있어서, 딴 화면에서 누른 화살표가 이 놀이를 움직였다(실측). */
             const page = container.closest('.tool-page');
             if (!container.isConnected || !page || !page.classList.contains('active')) return;
-            const t = e.target as HTMLElement | null;
-            if (t && /^(INPUT|TEXTAREA)$/.test(t.tagName)) return;
+            const target = e.target as HTMLElement | null;
+            if (target && /^(INPUT|TEXTAREA)$/.test(target.tagName)) return;
             if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
               if (locked || !left || !right) return;
               e.preventDefault();
@@ -426,16 +432,20 @@ import { onPageActive, takePick } from './pack-pick';
             const url = mine
               ? `blog.mascari4615.com/karmolab/?pack=${packToCode(mine)}#higher`
               : 'blog.mascari4615.com/karmolab/#higher';
-            const text = `KarmoLab 높은 쪽 고르기 — ${b ? b.title : ''}\n${streak}연승 (최고 ${bestOf(
-              boardId
-            )})\n${url}`;
+            const text = t('higher.shareText', {
+              board: b ? b.title : '',
+              n: streak,
+              best: bestOf(boardId),
+              url,
+            });
             void navigator.clipboard.writeText(text).then(() => {
-              $('hiShare').textContent = '복사했습니다';
+              $('hiShare').textContent = t('higher.t18');
             });
           });
 
           onPageActive(container, () => useHandoff(boardId || BOARDS[0].id));
           useHandoff(BOARDS[0].id);
+                  });
         }
       }
     ]

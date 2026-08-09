@@ -1,5 +1,5 @@
 {
-  "total": 5078,
+  "total": 5088,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -104,7 +104,7 @@
     "src/widgets/folder.ts": 6,
     "src/widgets/font.ts": 18,
     "src/widgets/hacker.ts": 9,
-    "src/widgets/higher.ts": 22,
+    "src/widgets/higher.ts": 3,
     "src/widgets/hourglass.ts": 5,
     "src/widgets/imageconvert/batch-pipeline.ts": 3,
     "src/widgets/imageconvert/core.ts": 3,
@@ -358,6 +358,8 @@
     "src/widgets/tools/dailycho.ts": 11,
     "src/core/charconv.ts": 14,
     "src/widgets/tools/charconv.ts": 11,
-    "src/widgets/tools/comparepic.ts": 11
+    "src/widgets/tools/comparepic.ts": 11,
+    "src/core/livecount.ts": 19,
+    "src/widgets/tools/livecount.ts": 10
   }
 }
