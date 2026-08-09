@@ -1059,6 +1059,24 @@ await step('첫 화면이 「무엇을 만들 건가요」 세 갈래를 크게 
   const names = await page.locator('[data-km="fld-name"]').evaluateAll((els) => els.map((e) => e.value));
   if (names.length === 0) throw new Error('갈래를 골랐는데 칸 틀이 안 깔렸다');
 });
+await step('코멘트는 여러 개 쌓이고 카드에 개수가 뜬다', async () => {
+  // 설명은 「무엇인가」, 코멘트는 「보다가 든 생각」 — 한 칸에 몰면 설명이 잡담으로 더러워진다.
+  const cbox = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.dblclick(cbox.x + cbox.width * 0.15, cbox.y + cbox.height * 0.8);
+  await page.waitForSelector('[data-km="cmt-new"]', { timeout: 4000 });
+  await page.fill('[data-km="cmt-new"]', '여기 이름이 어색해요');
+  await page.locator('[data-km="cmt-add"]').dispatchEvent('click');
+  await page.waitForSelector('[data-km="cmt-del"]', { timeout: 4000 });
+  await page.fill('[data-km="cmt-new"]', '두 번째 생각');
+  await page.locator('[data-km="cmt-add"]').dispatchEvent('click');
+  await page.waitForFunction(() => document.querySelectorAll('[data-km="cmt-del"]').length === 2, null, { timeout: 4000 });
+  // 카드만 보고도 말이 오갔음을 알아야 한다.
+  await page.waitForFunction(
+    () => [...document.querySelectorAll('.ck-node text')].some((t) => (t.textContent || '').startsWith('💬2')),
+    null,
+    { timeout: 4000 }
+  );
+});
 await step('보기 전용 링크 — 손잡이가 사라지고, 「내 것으로 복제」로 풀린다', async () => {
   // 남에게 보여 줄 때 대부분은 읽히기만 하면 된다. 편집 손잡이가 남아 있으면 받는 쪽이
   // 「고쳐도 되나」부터 헷갈리고, 고쳐 놓고 원본이 바뀐 줄 안다(사실은 자기 브라우저에만 남는다).

@@ -1550,6 +1550,21 @@ export class GraphCanvas {
       g.appendChild(mark);
     }
 
+    // 코멘트가 달렸으면 개수를 뱃지로 — 카드만 보고 「여기 이야기가 오갔다」를 알 수 있어야
+    // 남과 함께 보는 판에서 말이 묻히지 않는다.
+    const cmtCount = (this.spec?.comments ?? []).filter((c) => c.on === node.id).length;
+    if (cmtCount > 0) {
+      const chat = document.createElementNS(SVG_NS, 'text');
+      chat.setAttribute('x', String(node.w - 12));
+      chat.setAttribute('y', String(effH - 6));
+      chat.setAttribute('text-anchor', 'middle');
+      chat.setAttribute('font-size', '9');
+      chat.setAttribute('opacity', '0.8');
+      chat.setAttribute('pointer-events', 'none');
+      chat.textContent = `💬${cmtCount}`;
+      g.appendChild(chat);
+    }
+
     // 연결 손잡이 — 노드 오른쪽 가장자리. 여기서 끌어다 다른 노드에 놓으면 선이 생긴다
     // (Miro·FigJam 의 파란 점. 「연결 시작」 버튼을 누르고 다시 클릭하던 2단계를 없앤다).
     // 크기 손잡이 — **고른 카드에만**. 늘 보이면 카드가 지저분해지고 잘못 잡는다.
