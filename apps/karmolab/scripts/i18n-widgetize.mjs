@@ -47,7 +47,7 @@ function findWidget(id) {
         /* 등록하는 이름은 두 가지 꼴로 적힌다 — 직접 적거나(`id: 'moon'`), 미리 박아 둔 것을
          * 꺼내 쓰거나(`getLazyWidgetPublicMeta?.('memo')`). 뒤엣것을 못 알아보면 파일을 못 찾고,
          * 그러면 `tools/` 로 넘어가 엉뚱한 곳을 만진다. */
-        if (body.includes(`id: '${id}'`) || body.includes(`getLazyWidgetPublicMeta?.('${id}')`)) hit.push(f);
+        if (body.includes(`id: '${id}'`) || body.includes(`getLazyWidgetPublicMeta('${id}')`) || body.includes(`getLazyWidgetPublicMeta!('${id}')`) || body.includes(`getLazyWidgetPublicMeta?.('${id}')`)) hit.push(f);
       }
     }
   })(path.join(ROOT, 'src/widgets'));
@@ -276,7 +276,12 @@ src = src.replace(/'([^'\\\n]*[가-힣][^'\\\n]*)'/g, (whole, text, offset) => {
   /* 여는 따옴표가 **이스케이프된 따옴표**(') 면 그건 글월의 시작이 아니라 글월 *안*이다.
    * 그 자리에서 시작하면 남은 절반만 잘라 먹어 코드가 깨진다 — imageedit 1044줄이 그랬다. */
   if (src[offset - 1] === String.fromCharCode(92)) return whole;
+  /* **타입 자리는 글이 아니다.** `몸: '3D' | '2D' | null` 처럼 글월이 타입으로 쓰이는 곳이 있는데,
+   * 거기를 t() 로 바꾸면 그 파일 문법이 깨진다(companion 실측). 앞뒤에 `|` 가 붙어 있으면 건드리지 않는다. */
   const before = src.slice(Math.max(0, offset - 40), offset);
+  const beforeTrim = before.replace(/\s+$/, '');
+  const afterTrim = src.slice(offset + whole.length, offset + whole.length + 8).replace(/^\s+/, '');
+  if (beforeTrim.endsWith('|') || afterTrim.startsWith('|')) return whole;
   const hint = /\bsay\($/.test(before)
     ? `say.${String(++seq).padStart(2, '0')}`
     : /new Error\($/.test(before)
