@@ -79,6 +79,33 @@ export function unlinkNote(spec: GraphSpec, h: DocHolder): void {
   h.doc = text.trim() || undefined;
 }
 
+/**
+ * 글 안에 **다른 공용 글을 끼워 넣는다** — `{{note:<id>}}` (TiddlyWiki 의 transclusion).
+ *
+ * 「이 세계의 마법 규칙」을 세 인물 설명 안에 각각 *실어* 두고 싶을 때, 복붙하면 갈라진다.
+ * 끼운 자리는 사본이 아니라 **창**이라 원본을 고치면 실린 곳이 전부 바뀐다.
+ *
+ * 끼운 글이 또 다른 글을 끼울 수 있으므로 **자기 자신으로 돌아오는 고리**를 막아야 한다
+ * (안 막으면 화면이 멈춘다). 이미 편 글은 두 번 펴지 않고 「(고리)」로 남긴다.
+ */
+const EMBED_RE = /\{\{note:([^}]+)\}\}/g;
+
+export function expandNoteText(spec: GraphSpec, text: string, seen: Set<string> = new Set()): string {
+  return text.replace(EMBED_RE, (_m, rawId: string) => {
+    const id = rawId.trim();
+    if (seen.has(id)) return '(고리)';
+    const note = notesOf(spec).find((n) => n.id === id);
+    if (!note) return '(없는 글)';
+    return expandNoteText(spec, note.text, new Set([...seen, id]));
+  });
+}
+
+/** 화면에 보일 글 — 참조를 풀고, 그 안에 끼워 넣은 글까지 편다. */
+export function displayDoc(spec: GraphSpec, h: DocHolder): string {
+  const own = h.docRef ? new Set([h.docRef]) : new Set<string>();
+  return expandNoteText(spec, resolveDoc(spec, h), own);
+}
+
 /** 이 공용 글을 몇 자리가 가리키나 (노드 + 선). */
 export function noteUsers(spec: GraphSpec, noteId: string): number {
   const n = spec.nodes.filter((x) => x.docRef === noteId).length;

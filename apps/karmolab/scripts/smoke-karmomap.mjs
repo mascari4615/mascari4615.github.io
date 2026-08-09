@@ -633,6 +633,35 @@ await step('공용 글을 캔버스에 쪽지로 놓으면 글이 그대로 보�
   if (!counts.some((c) => c.includes('3곳'))) throw new Error('쪽지를 놓았는데 쓰는 곳이 안 늘었다: ' + counts.join('/'));
   await page.click('[data-km="tab"][data-key="node"]');
 });
+await step('글 안에 다른 공용 글 끼워 넣기 — 쪽지에 원본 글자가 실린다', async () => {
+  // 끼운 자리는 사본이 아니라 창이다. 표(`{{note:…}}`)가 그대로 보이면 실패 — 풀린 글자가 보여야 한다.
+  await page.click('[data-km="tab"][data-key="node"]');
+  // 앞 검사에서 공용 글을 **쓰고 있는** 노드를 고르면 끼울 후보가 자기 자신뿐이라 목록이 빈다
+  // (자기를 자기 안에 끼우는 것은 고리다). 앞 검사들이 어느 노드에 무엇을 붙였는지에 기대지 말고
+  // **빈 곳에 새 노드를 하나 만들어** 거기서 끼운다 — 자료 의존이 없으면 헛 실패도 없다.
+  const ebox = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.dblclick(ebox.x + ebox.width * 0.25, ebox.y + ebox.height * 0.75);
+  await page.waitForSelector('[data-km="edit-doc"]', { timeout: 4000 });
+  await page.fill('[data-km="edit-doc"]', '이 인물은 규칙을 따른다: ');
+  const embed = page.locator('[data-km="edit-doc-embed"]');
+  if (await embed.count() === 0) throw new Error('끼워 넣을 공용 글이 없다');
+  const noteId = await embed.locator('option').nth(1).getAttribute('value');
+  await page.selectOption('[data-km="edit-doc-embed"]', noteId);
+  await page.waitForFunction(
+    () => (document.querySelector('[data-km="edit-doc"]')?.value || '').includes('{{note:'),
+    null,
+    { timeout: 4000 }
+  );
+  await page.selectOption('[data-km="edit-shape"]', 'note');
+  await page.waitForFunction(
+    () => {
+      const texts = [...document.querySelectorAll('.ck-node text')].map((t) => t.textContent || '').join(' ');
+      return texts.includes('대가를') && !texts.includes('{{note:');
+    },
+    null,
+    { timeout: 4000 }
+  );
+});
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
   await page.click('[data-km="tab"][data-key="notes"]');
