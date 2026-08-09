@@ -46,10 +46,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # ★ `registry-url` 을 주지 **않는다.**
+      #
+      # 그 옵션을 주면 setup-node 가 `.npmrc` 에 `_authToken=${NODE_AUTH_TOKEN}` 를 박는다.
+      # 토큰이 비어 있어도 npm 은 「인증 방법이 지정돼 있다」고 보고 **OIDC 를 시도조차 안 한다** —
+      # 그래서 ENEEDAUTH 로 죽었다(2026-08-10 실측, 네 번째 튕김).
+      # Trusted Publishing 을 쓰려면 이 자리를 비워 두는 게 맞다.
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: https://registry.npmjs.org
 
       # Trusted Publishing(OIDC)은 **npm 11.5.1+** 에만 있다. Node 20 이 데려오는 npm 10 으로는
       # 조용히 토큰 방식으로 떨어진다. 그래서 npm 만 올린다.
@@ -80,14 +85,15 @@ jobs:
       - name: Publish
         working-directory: packages/karmolab-mcp
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          if [ -z "$NODE_AUTH_TOKEN" ]; then
-            echo "토큰 없음 — Trusted Publishing(OIDC)으로 시도한다. 이게 바라던 길이다."
-            echo "안 되면 둘 중 하나다: ① 아직 이 워크플로가 npm 에 신뢰 등록되지 않았다"
-            echo "  (npmjs.com → karmolab-mcp → Settings → Trusted Publisher 에 저장소와 이 파일 이름을 등록)"
-            echo "  — 단 그 화면은 패키지가 이미 있어야 나온다. 첫 판은 사람이 터미널에서 한 번 올려야 한다."
-            echo "② 급하면 Secrets 에 NPM_TOKEN(granular, bypass 2FA)을 넣어 임시로 우회한다."
+          if [ -n "$NPM_TOKEN" ]; then
+            # 토큰이 있으면 그걸 쓴다(임시 우회). 없으면 아무 것도 안 적고 OIDC 에 맡긴다 —
+            # 빈 값으로라도 `.npmrc` 를 적으면 npm 이 OIDC 를 건너뛴다.
+            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+            echo "NPM_TOKEN 으로 발행한다 (임시 우회)."
+          else
+            echo "토큰 없음 — Trusted Publishing(OIDC)으로 발행한다. 이게 바라던 길이다."
           fi
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             echo "흉내만 낸다 (dry_run=true). 진짜로 올리려면 다시 돌리며 체크를 끄면 된다."
