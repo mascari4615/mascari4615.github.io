@@ -220,6 +220,18 @@ await step('저장 상태가 크기를 보여 주고 백업 파일을 만든다'
   await page.waitForSelector('[data-km="st-close"]', { timeout: 4000 });
   await page.click('[data-km="st-close"]');
 });
+await step('선을 눌러 관계 자체에 이야기를 적는다', async () => {
+  await page.locator('.ck-edge-hit').first().click({ force: true });
+  await page.waitForSelector('[data-km="ed-doc"]', { timeout: 4000 });
+  await page.fill('[data-km="ed-doc"]', '어릴 때 같은 스승 밑에 있었다.');
+  await page.fill('[data-km="ed-label"]', '옛 동문');
+  await page.waitForFunction(
+    () => [...document.querySelectorAll('.ck-edge-label text')].some((t) => t.textContent === '옛 동문'),
+    null,
+    { timeout: 4000 }
+  );
+  await page.click('[data-km="ed-close"]');
+});
 await step('키보드로 고르고 옮긴다', async () => {
   await page.locator('.ck-node').first().click({ position: { x: 12, y: 10 } });
   await page.locator('.km-canvas').click({ position: { x: 4, y: 4 } });
