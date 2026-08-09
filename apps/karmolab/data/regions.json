@@ -1,0 +1,55 @@
+{
+  "_comment": "KarmoLab 지역 등록부 (TASK-KL-203 S10) — 나라를 늘리는 자리는 여기 하나다. 언어(locales.json)와 **다른 축**: 언어는 화면에 쓰는 말, 지역은 사는 곳(단위·공휴일·서류 규격·번호 체계). 한국 사는 영어 사용자 = 언어 en + 지역 KR.",
+  "default": "KR",
+  "regions": [
+    {
+      "code": "KR",
+      "endonym": "대한민국",
+      "flag": "🇰🇷",
+      "timeZones": ["Asia/Seoul"],
+      "measure": "metric",
+      "currency": "KRW",
+      "weekStart": 0,
+      "hour12": false
+    },
+    {
+      "code": "JP",
+      "endonym": "日本",
+      "flag": "🇯🇵",
+      "timeZones": ["Asia/Tokyo"],
+      "measure": "metric",
+      "currency": "JPY",
+      "weekStart": 0,
+      "hour12": false
+    },
+    {
+      "code": "US",
+      "endonym": "United States",
+      "flag": "🇺🇸",
+      "timeZones": [
+        "America/New_York",
+        "America/Chicago",
+        "America/Denver",
+        "America/Los_Angeles",
+        "America/Phoenix",
+        "America/Anchorage",
+        "Pacific/Honolulu",
+        "America/Detroit"
+      ],
+      "measure": "us",
+      "currency": "USD",
+      "weekStart": 0,
+      "hour12": true
+    },
+    {
+      "code": "XX",
+      "endonym": "그 밖의 나라",
+      "flag": "🌍",
+      "timeZones": [],
+      "measure": "metric",
+      "currency": "USD",
+      "weekStart": 1,
+      "hour12": false
+    }
+  ]
+}
