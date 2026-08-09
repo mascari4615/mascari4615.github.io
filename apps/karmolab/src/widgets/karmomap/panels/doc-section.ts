@@ -5,7 +5,7 @@
  * 참조 중이면 「타자 = 공용 글 수정」이라 다른 자리도 함께 바뀐다 — 그 사실을 칸 위에
  * 눈에 띄게 적어 둔다. 모르고 고치면 남의 카드가 바뀌는 것이 가장 나쁜 놀람이다.
  */
-import { notesOf, resolveDoc, setDocText, shareDoc, useNote, unlinkNote, noteUsers } from '../../../lib/graph/notes';
+import { notesOf, resolveDoc, setDocText, shareDoc, useNote, unlinkNote, noteUsers, noteBlocks } from '../../../lib/graph/notes';
 import type { DocHolder } from '../../../lib/graph/notes';
 import type { PanelCtx } from './context';
 
@@ -74,7 +74,7 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
   const foreign = ctx.foreignNotes();
   // 이 글이 **실어 나르고 있는** 공용 글들 — 실은 자리에서 그대로 고치게 한다(Logseq 임베드).
   const embedded = [...resolveDoc(spec, node).matchAll(/\{\{note:([^}]+)\}\}/g)]
-    .map((m) => notesOf(spec).find((n) => n.id === m[1].trim()))
+    .map((m) => notesOf(spec).find((n) => n.id === m[1].trim().split('#')[0]))
     .filter((n): n is NonNullable<typeof n> => Boolean(n));
 
   return `
@@ -100,7 +100,13 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
       </div>`}
       ${others.length === 0 ? '' : `<select data-km="${skin.key}-embed">
         <option value="">— 이 글 안에 다른 공용 글 끼워 넣기 —</option>
-        ${others.map((n) => `<option value="${esc(n.id)}">${esc(n.title || '메모')}</option>`).join('')}
+        ${others.map((n) => {
+          // 글에 `^표식`이 달려 있으면 **그 대목만** 고를 수 있게 함께 편다 — 열 줄짜리 규칙에서
+          // 한 줄만 싣고 싶은 일이 훨씬 잦다 (Obsidian 블록 참조 계보).
+          const blocks = noteBlocks(n.text);
+          return `<option value="${esc(n.id)}">${esc(n.title || '메모')} (전체)</option>`
+            + blocks.map((b) => `<option value="${esc(n.id)}#${esc(b.id)}">${esc(n.title || '메모')} › ${esc(b.id)}</option>`).join('');
+        }).join('')}
       </select>`}
       ${others.length === 0 && foreign.length === 0 ? '' : `<select data-km="${skin.key}-use">
         <option value="">— 있는 공용 글 불러 쓰기 —</option>

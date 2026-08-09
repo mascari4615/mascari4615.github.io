@@ -90,13 +90,54 @@ export function unlinkNote(spec: GraphSpec, h: DocHolder): void {
  */
 const EMBED_RE = /\{\{note:([^}]+)\}\}/g;
 
+/**
+ * 글 안의 **덩이 표식** — 줄 끝에 `^이름` (Obsidian 블록 참조와 같은 문법).
+ * 「이 글 전체」가 아니라 「이 글의 그 대목」만 실어야 할 때가 많다 — 세계관 규칙 열 줄 중 한 줄처럼.
+ */
+const BLOCK_MARK = /\s*\^([\w가-힣-]+)\s*$/;
+
+export interface NoteBlock {
+  id: string;
+  text: string;
+}
+
+/** 글을 덩이로 쪼갠다(빈 줄 기준). 표식이 붙은 덩이만 돌려준다 — 표식 없는 덩이는 가리킬 이름이 없다. */
+export function noteBlocks(text: string): NoteBlock[] {
+  const out: NoteBlock[] = [];
+  const NL_SPLIT = new RegExp(String.fromCharCode(92) + 'n{2,}');
+  const LINE_SPLIT = new RegExp(String.fromCharCode(92) + 'r?' + String.fromCharCode(92) + 'n');
+  for (const para of text.split(NL_SPLIT)) {
+    const lines = para.split(LINE_SPLIT);
+    const last = lines[lines.length - 1] ?? '';
+    const m = BLOCK_MARK.exec(last);
+    if (!m) continue;
+    lines[lines.length - 1] = last.replace(BLOCK_MARK, '');
+    out.push({ id: m[1], text: lines.join(String.fromCharCode(10)).trim() });
+  }
+  return out;
+}
+
+/** 글에서 표식을 걷어 낸 모습 — 읽는 사람에게 `^규칙1` 같은 표식까지 보일 이유는 없다. */
+export function stripBlockMarks(text: string): string {
+  const LINE_SPLIT = new RegExp(String.fromCharCode(92) + 'r?' + String.fromCharCode(92) + 'n');
+  return text.split(LINE_SPLIT).map((line) => line.replace(BLOCK_MARK, '')).join(String.fromCharCode(10));
+}
+
 export function expandNoteText(spec: GraphSpec, text: string, seen: Set<string> = new Set()): string {
-  return text.replace(EMBED_RE, (_m, rawId: string) => {
+  return text.replace(EMBED_RE, (_m, rawRef: string) => {
+    // `{{note:<글id>#<덩이>}}` — `#` 뒤가 있으면 **그 대목만** 싣는다.
+    const [rawId, block] = rawRef.trim().split('#');
     const id = rawId.trim();
-    if (seen.has(id)) return '(고리)';
+    const key = block ? `${id}#${block}` : id;
+    if (seen.has(key) || seen.has(id)) return '(고리)';
     const note = notesOf(spec).find((n) => n.id === id);
     if (!note) return '(없는 글)';
-    return expandNoteText(spec, note.text, new Set([...seen, id]));
+    if (block) {
+      const hit = noteBlocks(note.text).find((b) => b.id === block.trim());
+      if (!hit) return '(없는 대목)';
+      return expandNoteText(spec, hit.text, new Set([...seen, key]));
+    }
+    return stripBlockMarks(expandNoteText(spec, note.text, new Set([...seen, id])));
   });
 }
 
