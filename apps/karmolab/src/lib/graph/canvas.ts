@@ -39,6 +39,7 @@ import { chooseAnchors, edgeCurve } from './canvas-math';
 import { buildEdgePath, buildEdgeLabel, buildLeaderLine } from './canvas-edge';
 import { renderGroups } from './canvas-group';
 import { nodeBadges } from './canvas-badges';
+import { renderAnchors } from './canvas-anchors';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
   fitProjection, projectPoint, viewportRectOnMap } from './canvas-math';
@@ -1083,31 +1084,7 @@ export class GraphCanvas {
 
   private renderAnchors(): void {
     if (!this.spec) return;
-    const layout = this.computeAnchorLayout();
-    for (const a of this.spec.ephemeral_anchors ?? []) {
-      const eff = layout.get(a.id);
-      if (!eff) continue;
-      const rect = document.createElementNS(SVG_NS, 'rect');
-      rect.setAttribute('x', String(eff.x));
-      rect.setAttribute('y', String(eff.y));
-      rect.setAttribute('width', String(eff.w));
-      rect.setAttribute('height', String(eff.h));
-      rect.setAttribute('rx', '4');
-      rect.setAttribute('fill', this.theme.anchorFill);
-      rect.setAttribute('stroke', this.theme.anchorStroke);
-      rect.setAttribute('stroke-width', '1');
-      rect.setAttribute('stroke-dasharray', '4 3');
-      this.groupLayer.appendChild(rect);
-
-      const text = document.createElementNS(SVG_NS, 'text');
-      text.setAttribute('x', String(eff.x + 8));
-      text.setAttribute('y', String(eff.y + 14));
-      text.setAttribute('fill', this.theme.anchorText);
-      text.setAttribute('font-size', '10');
-      text.setAttribute('font-family', 'var(--font-mono, ui-monospace, monospace)');
-      text.textContent = '⚡ ' + a.label;
-      this.groupLayer.appendChild(text);
-    }
+    renderAnchors(this.spec.ephemeral_anchors, this.computeAnchorLayout(), this.groupLayer, this.theme);
   }
 
   /**
