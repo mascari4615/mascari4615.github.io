@@ -81,3 +81,17 @@ export const SAMPLES: Record<string, { title: string; outline: string }> = {
 export function sampleFor(packId: string): { title: string; outline: string } | null {
   return SAMPLES[packId] ?? null;
 }
+
+
+/**
+ * 첫 화면의 **들어오는 문** (TASK-KL-202 방향②).
+ *
+ * 빈 판 + 기능 60개는 「무엇이든 된다」가 아니라 「무엇부터 할지 모르겠다」로 읽힌다.
+ * 그래서 이 도구가 실제로 쓰이는 세 자리를 먼저 묻는다 — 고르면 그 갈래의 **견본 + 종류 + 칸 틀**이
+ * 한꺼번에 깔린다(갈래는 고정이 아니다. 언제든 다른 종류를 섞어 쓸 수 있다).
+ */
+export const INTENTS: { packId: string; icon: string; title: string; sub: string }[] = [
+  { packId: 'relation', icon: '🫂', title: '작품 관계도', sub: '좋아하는 인물들의 사이를 그린다' },
+  { packId: 'worldview', icon: '🌍', title: '내 세계관', sub: '인물·장소·사건을 한 판에 펼친다' },
+  { packId: 'concept', icon: '💭', title: '개념 설명', sub: '아이디어·구조를 남에게 보여 준다' },
+];
