@@ -251,6 +251,41 @@ eq(bi.birthInfo('1990/05/05', TODAY), null, '형식이 다르면 null');
 check(bi.run('info', { date: '1990-05-05' }, { now: TODAY }).includes('만 나이: 36세'), 'run 이 세 나이를 함께 낸다');
 check(bi.run('info', { date: '1990-05-05' }, { now: TODAY }).includes('세는 나이: 37세'), '세는 나이도 함께');
 
+// ── ②-6 jamo 알맹이 (한글 — 우리 말고 아무도 안 하는 것) ─────────────────────
+const jm = await load('src/core/jamo.ts');
+
+eq(jm.spec.id, 'jamo', 'jamo spec.id');
+eq(jm.split('강').join('/'), 'ㄱ/ㅏ/ㅇ', '받침 있는 글자');
+eq(jm.split('가').join('/'), 'ㄱ/ㅏ/', '받침 없으면 종성은 빈 값');
+eq(jm.split('A'), null, '한글이 아니면 null');
+eq(jm.split(' '), null, '띄어쓰기도 null');
+
+// 겹받침 — LLM 이 특히 자주 틀리는 자리 (ㄳ 을 ㄱ+ㅅ 두 개로 쪼개 버린다).
+eq(jm.split('넋')[2], 'ㄳ', '겹받침 ㄳ 은 한 덩어리');
+eq(jm.split('닭')[2], 'ㄺ', '겹받침 ㄺ');
+eq(jm.split('값')[2], 'ㅄ', '겹받침 ㅄ');
+eq(jm.split('가')[2], '', '종성 없음');
+// 유니코드 한글 블록의 양 끝
+eq(jm.split('가').join(''), 'ㄱㅏ', '블록 첫 글자');
+eq(jm.split('힣').join('/'), 'ㅎ/ㅣ/ㅎ', '블록 마지막 글자');
+
+eq(jm.initials('한글 자모'), 'ㅎㄱ ㅈㅁ', '초성만 (한글 아닌 글자는 그대로)');
+eq(jm.decompose('강'), 'ㄱㅏㅇ', '자모 나열');
+eq(jm.decompose('a강!'), 'aㄱㅏㅇ!', '섞여 있어도 한글만 쪼갠다');
+
+// 되돌리기 — 「종성이냐 다음 글자의 초성이냐」가 이 도구의 진짜 어려운 자리다.
+eq(jm.compose('ㄱㅏㅇ'), '강', '종성으로 붙는다');
+eq(jm.compose('ㄱㅏㅁㅏ'), '가마', 'ㅁ 뒤에 모음이 오면 다음 글자의 초성이다');
+eq(jm.compose('ㄱㅏㅁ'), '감', '뒤에 모음이 없으면 종성');
+eq(jm.compose('ㄴㅓㄳ'), '넋', '겹받침도 되돌린다');
+eq(jm.compose('ㅎㅏㄴㄱㅡㄹ'), '한글', '여러 글자');
+eq(jm.compose('abc'), 'abc', '한글이 없으면 그대로');
+eq(jm.compose(jm.decompose('닭갈비')), '닭갈비', '쪼갰다 되돌리면 원래대로');
+eq(jm.compose(jm.decompose('값어치')), '값어치', '겹받침 + 다음 글자가 ㅇ 인 경우');
+check(jm.run('split', { text: '강' }).includes('종성 ㅇ'), 'run split 이 사람 말로 답한다');
+eq(jm.run('initials', { text: '한글' }), 'ㅎㄱ', 'run initials');
+eq(jm.run('join', { text: 'ㄱㅏㅇ' }), '강', 'run join');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 
