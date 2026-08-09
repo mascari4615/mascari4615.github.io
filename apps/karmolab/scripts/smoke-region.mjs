@@ -182,6 +182,41 @@ if (fs.existsSync(path.join(repoRoot, wdPage))) {
   console.log('[region] 영업일 도구 장이 아직 없다 — 공휴일 확인은 건너뜀');
 }
 
+/* ── 도량형 (S14) — 미국은 피트·파운드로 넣는다 ────────
+ * 「kg 을 넣으세요」는 미국 사람에게 못 쓰는 도구다. 단위 칸이 지역을 따르는지 화면에서 본다. */
+const bmiPage = 'apps/blog/en/karmolab/t/bmi/index.html';
+if (fs.existsSync(path.join(repoRoot, bmiPage))) {
+  for (const c of [
+    { region: 'US', want: 'lb', notWant: 'kg' },
+    { region: 'KR', want: 'kg', notWant: 'lb' }
+  ]) {
+    const ctx = await browser.newContext();
+    await ctx.addInitScript((r) => {
+      try {
+        localStorage.setItem('karmolab_region', r);
+      } catch {
+        /* 저장을 막아 둔 환경 */
+      }
+    }, c.region);
+    const tab = await ctx.newPage();
+    await tab.goto(`http://127.0.0.1:${PORT}/${bmiPage}`, { waitUntil: 'domcontentloaded' });
+    const label = await tab
+      .waitForFunction(() => {
+        const el = document.querySelector('#tool-pages .tool-sublabel');
+        return el && el.textContent ? el.textContent : false;
+      }, { timeout: 8000 })
+      .then((h) => h.jsonValue())
+      .catch(() => '');
+    const all = await tab.evaluate(
+      () => [...document.querySelectorAll('#tool-pages .tool-sublabel')].map((e) => e.textContent).join(' | ')
+    );
+    if (!all.includes(c.want) || all.includes(c.notWant)) {
+      fail.push(`${c.region}: 재는 단위가 그 나라 것이 아니다 — 「${c.want}」 를 기대했는데 「${all}」 (첫 칸 ${label})`);
+    }
+    await ctx.close();
+  }
+}
+
 await browser.close();
 server.close();
 
