@@ -1,5 +1,5 @@
 {
-  "total": 4852,
+  "total": 4843,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -67,7 +67,7 @@
     "src/widgets/adventure/storage.ts": 9,
     "src/widgets/adventure/summary.ts": 5,
     "src/widgets/adventure/turn-loop.ts": 1,
-    "src/widgets/agent-team/agent-team.ts": 36,
+    "src/widgets/agent-team/agent-team.ts": 11,
     "src/widgets/alarm.ts": 52,
     "src/widgets/bluemarble/bluemarble.ts": 1,
     "src/widgets/bounce.ts": 6,
@@ -348,6 +348,7 @@
     "src/lib/graph/canvas-dom.ts": 1,
     "src/lib/ai-engine.ts": 1,
     "src/lib/ai-gate.ts": 4,
-    "src/lib/ai-transcribe.ts": 2
+    "src/lib/ai-transcribe.ts": 2,
+    "src/core/hangultype.ts": 16
   }
 }
