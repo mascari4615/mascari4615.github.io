@@ -1,0 +1,18 @@
+{
+  "laptop.label.lapText": "Checking…",
+  "laptop.btn.lapAgain": "Check again",
+  "laptop.t01": "The password is not here — the laptop screen asks for it itself. Put it in once and it stays on that device.",
+  "laptop.t02": "A red light means the laptop is off or the internet is cut. The files do not disappear.",
+  "laptop.t03": "File sharing",
+  "laptop.t04": "Look at the laptop’s shared folder and take from it. You can put things in from a phone too",
+  "laptop.t05": "Build status",
+  "laptop.t06": "Whether something is baking now, and what the last build left behind. You can also start one from here",
+  "laptop.t07": "Front page",
+  "laptop.t08": "The place you reach by typing the address alone",
+  "laptop.t09": "Laptop",
+  "laptop.t11": "The laptop is awake",
+  "laptop.t12": "not reachable right now",
+  "laptop.t13": "no answer (it may be asleep)",
+  "laptop.pingResult": "{ms}ms · {version}",
+  "laptop.unknownVersion": "version unknown"
+}

@@ -1,0 +1,18 @@
+{
+  "laptop.label.lapText": "확인하는 중…",
+  "laptop.btn.lapAgain": "다시 확인",
+  "laptop.t01": "비밀번호는 여기 없다 — 노트북 화면이 직접 묻는다. 한 번 넣으면 그 기기에 저장된다.",
+  "laptop.t02": "빨간불이면 노트북이 꺼졌거나 인터넷이 끊긴 것이다. 파일은 사라지지 않는다.",
+  "laptop.t03": "파일 공유",
+  "laptop.t04": "노트북 공유 폴더를 보고 받는다. 폰에서 올릴 수도 있다",
+  "laptop.t05": "빌드 현황",
+  "laptop.t06": "지금 굽는 중인지, 지난 빌드는 뭐가 남았는지. 여기서 새로 걸 수도 있다",
+  "laptop.t07": "첫 화면",
+  "laptop.t08": "주소만 치고 들어가는 자리",
+  "laptop.t09": "노트북",
+  "laptop.t11": "노트북이 깨어 있다",
+  "laptop.t12": "지금은 안 잡힌다",
+  "laptop.t13": "답이 없다 (자는 중일 수 있다)",
+  "laptop.pingResult": "{ms}ms · {version}",
+  "laptop.unknownVersion": "버전 모름"
+}
