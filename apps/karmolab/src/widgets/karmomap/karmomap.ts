@@ -58,6 +58,7 @@ import {
     { id: 'circle', label: '동그라미', icon: '◯' },
     { id: 'bubble', label: '말풍선', icon: '💬' },
     { id: 'note', label: '메모', icon: '📝' },
+    { id: 'photo', label: '사진 카드', icon: '🖼' },
   ];
 
   Mdd.injectCSS(
@@ -511,6 +512,8 @@ import {
       }
       // 메모는 글이 주인공이라 여유를 더 준다.
       if (shape === 'note') w += 16;
+      // 사진 카드는 그림이 주인공 — 세로로 긴 초상 비율로 고정한다.
+      if (shape === 'photo') { w = 140; h = 176; }
       node.w = Math.round(w);
       node.h = Math.round(h);
     }

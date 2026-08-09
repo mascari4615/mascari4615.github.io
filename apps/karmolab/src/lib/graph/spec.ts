@@ -34,9 +34,10 @@ export type NodeAvatar =
 
 /**
  * 노드 겉모양. rect = 기본 카드, circle = 동그라미, bubble = 말풍선,
- * note = **메모** (테두리 없는 종이쪽지 — 손으로 갈겨 둔 한마디. 레퍼런스의 「書き込み」 자리).
+ * note = **메모** (테두리 없는 종이쪽지 — 손으로 갈겨 둔 한마디. 레퍼런스의 「書き込み」 자리),
+ * photo = **사진 카드** (그림이 카드를 채우고 이름은 아래 띠에 — 팬 관계도가 실제로 생긴 모습).
  */
-export type NodeShape = 'rect' | 'circle' | 'bubble' | 'note';
+export type NodeShape = 'rect' | 'circle' | 'bubble' | 'note' | 'photo';
 
 export interface GraphNode {
   id: string;

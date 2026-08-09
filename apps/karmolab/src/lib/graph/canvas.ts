@@ -1313,7 +1313,55 @@ export class GraphCanvas {
       g.appendChild(bar);
     }
 
-    if (children.length === 0) {
+    if (shape === 'photo' && node.avatar?.kind === 'image') {
+      // 사진이 주인공인 카드. 이름은 아래 반투명 띠에 얹어 그림을 안 가린다
+      // (관계도에서 얼굴이 가장 빨리 읽히는 표지다).
+      const clipId = `ck-photo-${this.uid}-${node.id}`;
+      const defs = document.createElementNS(SVG_NS, 'defs');
+      const clip = document.createElementNS(SVG_NS, 'clipPath');
+      clip.setAttribute('id', clipId);
+      const r = document.createElementNS(SVG_NS, 'rect');
+      r.setAttribute('width', String(node.w));
+      r.setAttribute('height', String(effH));
+      r.setAttribute('rx', '6');
+      clip.appendChild(r);
+      defs.appendChild(clip);
+      g.appendChild(defs);
+
+      const img = document.createElementNS(SVG_NS, 'image');
+      img.setAttribute('x', '0');
+      img.setAttribute('y', '0');
+      img.setAttribute('width', String(node.w));
+      img.setAttribute('height', String(effH));
+      img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+      img.setAttribute('clip-path', `url(#${clipId})`);
+      img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', node.avatar.value);
+      img.setAttribute('href', node.avatar.value);
+      img.setAttribute('pointer-events', 'none');
+      g.appendChild(img);
+
+      const band = document.createElementNS(SVG_NS, 'rect');
+      band.setAttribute('x', '0');
+      band.setAttribute('y', String(effH - 26));
+      band.setAttribute('width', String(node.w));
+      band.setAttribute('height', '26');
+      band.setAttribute('fill', 'rgba(0,0,0,0.62)');
+      band.setAttribute('clip-path', `url(#${clipId})`);
+      band.setAttribute('pointer-events', 'none');
+      g.appendChild(band);
+
+      const nameEl = document.createElementNS(SVG_NS, 'text');
+      nameEl.setAttribute('x', String(node.w / 2));
+      nameEl.setAttribute('y', String(effH - 9));
+      nameEl.setAttribute('text-anchor', 'middle');
+      nameEl.setAttribute('fill', '#fff');
+      nameEl.setAttribute('font-size', '11');
+      nameEl.setAttribute('font-weight', '600');
+      nameEl.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
+      nameEl.setAttribute('pointer-events', 'none');
+      nameEl.textContent = node.label;
+      g.appendChild(nameEl);
+    } else if (children.length === 0) {
       const centered = shape === 'circle';
       const avatarEl = node.avatar ? this.buildNodeAvatar(node, effH, kindColor, centered) : null;
       if (avatarEl) g.appendChild(avatarEl);
@@ -1458,6 +1506,18 @@ export class GraphCanvas {
       el.setAttribute('fill', fill);
       el.setAttribute('stroke', stroke);
       el.setAttribute('stroke-width', '1.5');
+      return el;
+    }
+
+    if (shape === 'photo') {
+      // 사진이 그 위를 덮으므로 배경은 테두리 역할만 한다.
+      const el = document.createElementNS(SVG_NS, 'rect');
+      el.setAttribute('width', String(node.w));
+      el.setAttribute('height', String(effH));
+      el.setAttribute('rx', '6');
+      el.setAttribute('fill', fill);
+      el.setAttribute('stroke', kindColor + '90');
+      el.setAttribute('stroke-width', '2');
       return el;
     }
 
