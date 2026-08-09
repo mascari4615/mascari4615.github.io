@@ -1,5 +1,5 @@
 {
-  "total": 7963,
+  "total": 7962,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -9,7 +9,7 @@
     "src/brag-card.ts": 10,
     "src/core/base64.ts": 2,
     "src/core/epoch.ts": 31,
-    "src/core/hashgen.ts": 2,
+    "src/core/hashgen.ts": 3,
     "src/desktop-chrome.ts": 25,
     "src/gemini.ts": 73,
     "src/home-page.ts": 4,
@@ -95,7 +95,7 @@
     "src/widgets/imagegen/presets.ts": 71,
     "src/widgets/imagegen/styles.ts": 1,
     "src/widgets/imagelib.ts": 22,
-    "src/widgets/karmomap/karmomap.ts": 68,
+    "src/widgets/karmomap/karmomap.ts": 66,
     "src/widgets/karmomap/library.ts": 9,
     "src/widgets/karmomap/local-storage-adapter.ts": 4,
     "src/widgets/karmomap/packs.ts": 92,

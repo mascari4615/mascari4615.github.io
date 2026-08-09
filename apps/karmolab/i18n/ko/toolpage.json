@@ -26,5 +26,9 @@
   "toolpage.hub.ogAlt": "KarmoLab 도구 목록",
   "toolpage.hub.listName": "KarmoLab 도구",
   "toolpage.sponsor.label": "후원",
-  "toolpage.note.privacy": "입력한 내용은 브라우저 안에서만 처리되며 어디에도 저장·전송되지 않습니다."
+  "toolpage.note.privacy": "입력한 내용은 브라우저 안에서만 처리되며 어디에도 저장·전송되지 않습니다.",
+  "toolpage.hub.h1": "도구 {n}가지",
+  "toolpage.hub.empty": "찾는 도구가 없습니다. 다른 말로 찾아보거나, 아래에서 전체 목록을 훑어보세요.",
+  "toolpage.hub.mineTitle": "내가 쓰는 것",
+  "toolpage.hub.note": "각 도구의 계산은 브라우저 안에서만 이뤄지며 입력한 내용은 저장·전송되지 않습니다."
 }

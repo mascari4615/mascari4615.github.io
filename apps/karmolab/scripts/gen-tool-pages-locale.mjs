@@ -30,6 +30,7 @@ import {
   hreflangTags
 } from './lib/locales.mjs';
 import { toLocalePage } from './lib/locale-page.mjs';
+import { toLocaleHub } from './lib/locale-hub.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = 'https://blog.mascari4615.com';
@@ -79,7 +80,8 @@ const targets = codes.filter((c) => c !== DEFAULT_LOCALE);
  * 시작하면 아래 목록에 한 줄 늘고 링크도 저절로 따라온다.
  */
 function makeLocalizer(ids) {
-  const localized = new Set(['/karmolab/', ...ids.map((id) => `/karmolab/t/${id}/`)]);
+  /* 목록(허브)도 이 실행에서 같이 찍으므로 처음부터 목록에 넣는다. */
+  const localized = new Set(['/karmolab/', '/karmolab/t/', ...ids.map((id) => `/karmolab/t/${id}/`)]);
   return {
     has: (bare) => localized.has(bare),
     /** 그 언어 판이 있으면 앞머리를 붙인 주소, 없으면 원래 주소. */
@@ -224,6 +226,28 @@ function localizeToolPage(source, id, code) {
 
 const made = [];
 const missing = [];
+
+/* 목록(허브) — 도구 장 전부가 이 한 장을 가리킨다. 도구 장보다 **먼저** 찍는다. */
+const hubSrc = path.join(srcDir, 'index.html');
+for (const code of targets) {
+  if (!fs.existsSync(hubSrc)) break;
+  const source = fs.readFileSync(hubSrc, 'utf8').split('\r\n').join('\n');
+  const out = toLocaleHub(source, code, {
+    site: SITE,
+    codes,
+    count: ids.length,
+    href: (b, c) => L.href(b, c)
+  });
+  const dest = path.join(outRoot, localizedPath('/karmolab/t/', code).replace(/^\//, ''), 'index.html');
+  if (CHECK) {
+    if (!fs.existsSync(dest)) missing.push(`${code} 목록`);
+  } else {
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.writeFileSync(dest, out, 'utf8');
+  }
+  made.push(dest);
+}
+
 for (const code of targets) {
   for (const id of ids) {
     const source = fs.readFileSync(path.join(srcDir, id, 'index.html'), 'utf8').split('\r\n').join('\n');
@@ -255,15 +279,17 @@ for (const code of targets) {
  * 것이라 도구 장에 남으면 129장이 남의 주소를 제 짝이라고 우기기 때문이다. 여기서는 그 자리에
  * **이 도구의** 짝 표시를 박는다. 지운 뒤에 제 것을 넣는 순서라 서로 어긋나지 않는다. */
 if (targets.length) {
-  for (const id of ids) {
-    const file = path.join(srcDir, id, 'index.html');
+  for (const rel of ['', ...ids]) {
+    const file = rel ? path.join(srcDir, rel, 'index.html') : hubSrc;
+    if (!fs.existsSync(file)) continue;
+    const id = rel;
     const html = fs.readFileSync(file, 'utf8');
-    const block = hreflangTags(`/karmolab/t/${id}/`, SITE, codes);
+    const block = hreflangTags(id ? `/karmolab/t/${id}/` : '/karmolab/t/', SITE, codes);
     const stripped = html.replace(/\n\s*<link rel="alternate" hreflang="[^"]*" href="[^"]*">/g, '');
     const next = stripped.replace('</head>', block + '\n</head>');
     if (next === html) continue;
     if (CHECK) {
-      missing.push(`${id} (원본 장에 짝 표시 없음)`);
+      missing.push(`${id || '목록'} (원본 장에 짝 표시 없음)`);
       continue;
     }
     fs.writeFileSync(file, next, 'utf8');

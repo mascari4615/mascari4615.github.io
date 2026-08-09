@@ -26,5 +26,9 @@
   "toolpage.hub.ogAlt": "KarmoLab tool list",
   "toolpage.hub.listName": "KarmoLab tools",
   "toolpage.sponsor.label": "Sponsor",
-  "toolpage.note.privacy": "What you type is handled inside your browser only — nothing is stored or sent anywhere."
+  "toolpage.note.privacy": "What you type is handled inside your browser only — nothing is stored or sent anywhere.",
+  "toolpage.hub.h1": "{n} tools",
+  "toolpage.hub.empty": "No tool matches. Try other words, or browse the full list below.",
+  "toolpage.hub.mineTitle": "What I use",
+  "toolpage.hub.note": "Every tool computes inside your browser; what you type is never stored or sent."
 }

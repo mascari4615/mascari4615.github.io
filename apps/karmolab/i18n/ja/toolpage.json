@@ -26,5 +26,9 @@
   "toolpage.hub.ogAlt": "KarmoLab 道具一覧",
   "toolpage.hub.listName": "KarmoLab の道具",
   "toolpage.sponsor.label": "スポンサー",
-  "toolpage.note.privacy": "入力した内容はブラウザの中だけで処理され、どこにも保存・送信されません。"
+  "toolpage.note.privacy": "入力した内容はブラウザの中だけで処理され、どこにも保存・送信されません。",
+  "toolpage.hub.h1": "道具 {n} 種",
+  "toolpage.hub.empty": "見つかりませんでした。別の言葉でさがすか、下の一覧を見てください。",
+  "toolpage.hub.mineTitle": "よく使うもの",
+  "toolpage.hub.note": "どの道具もブラウザの中だけで計算し、入力した内容は保存も送信もされません。"
 }
