@@ -1056,6 +1056,23 @@ import {
                   <span class="km-intent-s">${escapeHtml(it.sub)}</span>
                 </button>`).join('')}</div>
             </div>`);
+        // 갈래를 고른 **뒤**가 진짜 막히는 자리다 — 견본은 깔렸는데 「이제 뭘 하지?」.
+        // 다음 걸음 셋만 짧게 보여 주고, 한 번 닫으면 다시 안 뜬다(맵마다 기억한다).
+        if (spec.nodes.length > 0 && spec._meta?.tips !== 'off') {
+          const tips = document.createElement('div');
+          tips.className = 'km-field';
+          tips.innerHTML = '<label>다음 걸음</label>'
+            + '<div class="km-hint">① 빈 곳을 <b>두 번 클릭</b>해 인물을 더 놓기<br>'
+            + '② 카드 오른쪽 <b>점을 끌어</b> 다른 카드에 놓아 관계 잇기<br>'
+            + '③ 카드를 골라 <b>칸</b>(출신·첫 등장)을 채우기 — 나중에 그 칸으로 거르고 색을 입힙니다</div>'
+            + '<button class="btn btn-ghost" data-km="tips-off">알겠어요</button>';
+          sideEl.appendChild(tips);
+          (tips.querySelector('[data-km="tips-off"]') as HTMLButtonElement).onclick = () => {
+            spec._meta = { ...spec._meta, tips: 'off' };
+            persistStructure();
+            renderSide();
+          };
+        }
         sideEl.querySelectorAll('[data-km="intent"]').forEach((btn) => {
           (btn as HTMLButtonElement).onclick = () => {
             const packId = (btn as HTMLElement).dataset.key ?? DEFAULT_PACK_ID;
