@@ -5,19 +5,10 @@
  * 반대로 자모만 남은 문자열을 글자로 되돌려야 할 때도 있다 — 맥에서 만든 파일 이름이
  * 윈도우에서 「ㄱ ㅏ ㅁ」 처럼 풀려 보이는 게 대표적이다(자모가 따로 저장된 표기).
  */
+import { compose, decompose, initials, spec, split } from '../../core/jamo';
+import { readInvocation } from '../../lib/tool-url';
+
 (function (): void {
-  const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
-  const JUNG = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
-  const JONG = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
-
-  const isSyllable = (ch: string): boolean => ch >= '가' && ch <= '힣';
-
-  function split(ch: string): [string, string, string] | null {
-    if (!isSyllable(ch)) return null;
-    const code = ch.charCodeAt(0) - 0xac00;
-    return [CHO[Math.floor(code / 588)], JUNG[Math.floor((code % 588) / 28)], JONG[code % 28]];
-  }
-
   Toolbox.register({
     id: 'jamo',
     title: '한글 자모 분해',
@@ -65,52 +56,28 @@
           const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
           function run(): void {
+            /* 쪼개는 계산은 `src/core/jamo.ts` 가 한다 — 겹받침·「종성이냐 다음 초성이냐」 판단이
+               거기 있고 시험도 거기에 붙어 있다 (TASK-KL-205). */
             const text = input.value;
-            const choArr: string[] = [];
-            const allArr: string[] = [];
             const rows: string[] = [];
             for (const ch of text) {
               const parts = split(ch);
-              if (!parts) {
-                choArr.push(ch);
-                allArr.push(ch);
-                continue;
-              }
-              choArr.push(parts[0]);
-              allArr.push(parts[0] + parts[1] + parts[2]);
-              if (rows.length < 40) {
-                rows.push(
-                  `<div class="tool-list-row"><span class="tool-list-key">${esc(ch)}</span><span class="tool-list-val">초성 ${parts[0]} · 중성 ${parts[1]} · 종성 ${parts[2] || '없음'}</span></div>`
-                );
-              }
+              if (parts === null || rows.length >= 40) continue;
+              rows.push(
+                `<div class="tool-list-row"><span class="tool-list-key">${esc(ch)}</span><span class="tool-list-val">초성 ${parts[0]} · 중성 ${parts[1]} · 종성 ${parts[2] || '없음'}</span></div>`
+              );
             }
-            cho.value = choArr.join('');
-            all.value = allArr.join('');
+            cho.value = initials(text);
+            all.value = decompose(text);
             out.innerHTML = rows.join('');
             status.textContent = text ? `${[...text].length}글자를 쪼갰습니다.` : '초성 검색이나 정렬을 만들 때 쓰는 형태입니다.';
             status.className = 'tool-status' + (text ? ' ok' : '');
             Toolbox.trackUse?.('split');
           }
 
-          /** 자모 나열을 다시 글자로 — 초성+중성(+종성) 순서를 그대로 읽는다. */
+          /** 자모 나열을 다시 글자로. 판단은 알맹이(`core/jamo.ts` 의 compose)가 한다. */
           function join(): void {
-            const src = [...input.value];
-            const outChars: string[] = [];
-            for (let i = 0; i < src.length; i++) {
-              const c = CHO.indexOf(src[i]);
-              const v = JUNG.indexOf(src[i + 1]);
-              if (c >= 0 && v >= 0) {
-                // 다음 자모가 종성이 될 수 있고, 그다음이 모음이 아니어야 종성으로 붙는다
-                const t = JONG.indexOf(src[i + 2] ?? '');
-                const nextIsVowel = JUNG.indexOf(src[i + 3] ?? '') >= 0;
-                const useJong = t > 0 && !nextIsVowel;
-                outChars.push(String.fromCharCode(0xac00 + c * 588 + v * 28 + (useJong ? t : 0)));
-                i += useJong ? 2 : 1;
-              } else {
-                outChars.push(src[i]);
-              }
-            }
-            input.value = outChars.join('');
+            input.value = compose(input.value);
             run();
             status.textContent = '자모를 글자로 되돌렸습니다.';
             status.className = 'tool-status ok';
@@ -126,8 +93,20 @@
           };
           $<HTMLButtonElement>('#jaJoin').onclick = join;
 
-          input.value = '한글 자모 분해';
-          run();
+          // 주소로 부른 경우 (`?op=split&text=…` / `?op=join&text=…`) — 아니면 예시 (TASK-KL-205).
+          const call = readInvocation(spec);
+          if (call !== null && call.error === undefined) {
+            input.value = String(call.args.text ?? '');
+            if (call.op === 'join') join();
+            else run();
+          } else {
+            input.value = '한글 자모 분해';
+            run();
+            if (call?.error !== undefined) {
+              status.textContent = call.error;
+              status.className = 'tool-status error';
+            }
+          }
         }
       }
     ]
