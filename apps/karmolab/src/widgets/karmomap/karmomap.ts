@@ -90,6 +90,15 @@ import {
       color:var(--text-tertiary); font-size:var(--font-size-sm); text-align:center; pointer-events:none;
       padding:24px; line-height:1.7; }
     .km-linking { outline:2px dashed var(--accent); outline-offset:-2px; }
+    /* 좁은 화면 — 옆에 붙던 편집 패널을 아래로 내린다. 레퍼런스들은 여기서 기능을 지웠지만
+       여기선 배치만 바꾼다(묶음·선 편집 전부 그대로 쓴다). */
+    @media (max-width: 720px) {
+      .km-body { flex-direction:column; }
+      .km-side { width:auto; max-height:45%; border-left:none; border-top:1px solid var(--border); }
+      .km-toolbar { gap:6px; padding:8px; }
+      .km-toolbar input[type=text] { min-width:120px; flex:1; }
+      .km-toolbar .btn { padding:6px 10px; }
+    }
     `
   );
 
