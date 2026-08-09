@@ -1304,7 +1304,20 @@ const Toolbox = (() => {
            원래도 안 불렸는데 코드만 따라왔다. `index.html` 이 부르는 `home-page.js` 가 그것이다. */
         if (!staticBody) {
             const home = window.KarmoHomePage?.build();
-            if (home) toolPages.appendChild(home);
+            if (home) {
+                /* **미리 그려 둔 첫 화면이 있으면 그 자리에 갈아 끼운다** (TASK-KL-201, 2026-08-10).
+                 *
+                 * 빌드 때 첫 화면을 HTML 에 박아 두므로(`scripts/prerender-home.mjs`) 여기서 그냥
+                 * 붙이면 **같은 id 가 두 장** 생긴다 — `#page-home` 이 둘이면 「보이는 것 하나만
+                 * 잡는다」는 코드가 엉뚱한 쪽을 잡고, 화면에는 첫 화면이 두 번 쌓인다.
+                 * 도구 미리 그리기에서 이미 한 번 난 사고다(TASK-KL-135).
+                 *
+                 * 지우고 붙이는 대신 **한 번에 바꿔치기**한다 — 지웠다 붙이면 그 사이 한 프레임이
+                 * 비어 화면이 튄다. 크기가 같은 것으로 갈아 끼우면 아무것도 안 움직인다. */
+                const baked = toolPages.querySelector('#page-home');
+                if (baked) baked.replaceWith(home);
+                else toolPages.appendChild(home);
+            }
         }
 
         // Build tool pages (가나다순)
