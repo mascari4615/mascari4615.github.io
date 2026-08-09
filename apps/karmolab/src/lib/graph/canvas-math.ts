@@ -195,3 +195,42 @@ export function viewportRectOnMap(
     h: Math.max(0, Math.min(size.h - y, b.y - a.y)),
   };
 }
+
+
+/** 상자의 어느 면에서 선이 나가나. */
+export type Side = 'top' | 'right' | 'bottom' | 'left';
+
+/**
+ * 두 박스 중심 상대 위치 → 가장 가까운 면 쌍 선택.
+ * 반환 = {p1, p2, side1, side2}, side ∈ 'top'|'right'|'bottom'|'left'.
+ * 면의 중점이 anchor. 베지어 control 은 면에 수직으로 밀어냄.
+ */
+export function chooseAnchors(
+b1: { x: number; y: number; w: number; h: number },
+b2: { x: number; y: number; w: number; h: number },
+): { p1: Pt; p2: Pt; side1: Side; side2: Side } {
+  const c1 = { x: b1.x + b1.w / 2, y: b1.y + b1.h / 2 };
+  const c2 = { x: b2.x + b2.w / 2, y: b2.y + b2.h / 2 };
+  const dx = c2.x - c1.x;
+  const dy = c2.y - c1.y;
+  const horizontal = Math.abs(dx) >= Math.abs(dy);
+  let side1: 'top' | 'right' | 'bottom' | 'left';
+  let side2: 'top' | 'right' | 'bottom' | 'left';
+  if (horizontal) {
+    side1 = dx >= 0 ? 'right' : 'left';
+    side2 = dx >= 0 ? 'left' : 'right';
+  } else {
+    side1 = dy >= 0 ? 'bottom' : 'top';
+    side2 = dy >= 0 ? 'top' : 'bottom';
+  }
+  const sidePoint = (b: { x: number; y: number; w: number; h: number }, side: string) => {
+    switch (side) {
+      case 'top':    return { x: b.x + b.w / 2, y: b.y };
+      case 'bottom': return { x: b.x + b.w / 2, y: b.y + b.h };
+      case 'left':   return { x: b.x,           y: b.y + b.h / 2 };
+      case 'right':  return { x: b.x + b.w,     y: b.y + b.h / 2 };
+      default:       return { x: b.x + b.w / 2, y: b.y + b.h / 2 };
+    }
+  };
+  return { p1: sidePoint(b1, side1), p2: sidePoint(b2, side2), side1, side2 };
+}

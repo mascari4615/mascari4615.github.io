@@ -205,6 +205,21 @@ const M = await loadModules();
   check(Math.abs(first[1]) < 0.001, '시작점은 안 흔들린다(노드에 딱 붙어야 한다)');
 }
 
+// ── 선이 어느 면에서 나가나 ─────────────────────────────────────────────────
+{
+  const { cmath } = M;
+  const left = { x: 0, y: 0, w: 100, h: 40 };
+  const right = { x: 400, y: 0, w: 100, h: 40 };
+  const a1 = cmath.chooseAnchors(left, right);
+  eq(a1.side1, 'right', '오른쪽에 있는 상대에게는 오른 면에서 나간다');
+  eq(a1.side2, 'left', '상대는 왼 면으로 받는다');
+  eq(a1.p1.x, 100, '나가는 점은 면 한가운데');
+  const below = { x: 0, y: 400, w: 100, h: 40 };
+  const a2 = cmath.chooseAnchors(left, below);
+  eq(a2.side1, 'bottom', '아래에 있으면 아래 면');
+  eq(a2.side2, 'top', '상대는 윗 면으로 받는다');
+}
+
 // ── 미니맵 투영 ─────────────────────────────────────────────────────────────
 {
   const { cmath } = M;
