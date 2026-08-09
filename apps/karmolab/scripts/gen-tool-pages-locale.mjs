@@ -129,6 +129,31 @@ function toolSeoSection(id, code, sourceHtml) {
     )
     .join('\n          ');
 
+  /* 「쓰는 법」은 **그 도구의 단계가 그 언어에 다 있을 때만** 낸다 (TASK-KL-203 S8-e).
+     반쯤 옮긴 목록을 내면 한 줄만 원본 언어로 남아 더 나쁘다 — 절 단위로 있거나 없거나. */
+  const steps = [];
+  for (let i = 0; ; i++) {
+    const key = `howto.${id}.${i}`;
+    const ko = tr(SOURCE_LOCALE, key);
+    if (!ko || ko === key) break;
+    const mine = tr(code, key);
+    if (!mine || mine === key || mine === ko) {
+      steps.length = 0;
+      break;
+    }
+    steps.push(mine);
+  }
+  const howto = steps.length
+    ? `
+        <h2>${esc(tr(code, 'toolpage.section.howto'))}</h2>
+        <ol>
+          ` +
+      steps.map((v) => `<li>${esc(v)}</li>`).join('\n          ') +
+      `
+        </ol>
+`
+    : '';
+
   return `<section class="tool-seo">
         <nav class="tool-seo-crumb" aria-label="${esc(tr(code, 'toolpage.crumb.aria'))}">
           <a href="${home}">KarmoLab</a> / <a href="${hub}">${esc(
@@ -136,7 +161,7 @@ function toolSeoSection(id, code, sourceHtml) {
   )}</a> / ${esc(title)}
         </nav>
         <p>${esc(desc)}</p>
-
+${howto}
         <h2>${esc(tr(code, 'toolpage.section.related'))}</h2>
         <div class="tool-seo-related">
           ${related}
