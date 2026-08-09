@@ -289,6 +289,7 @@ import {
           </div>
           <input type="file" accept="application/json,.json" data-km="file" hidden />
           <input type="file" accept="image/*" data-km="img" hidden />
+          <input type="file" accept="application/json,.json" data-km="restore-file" hidden />
         </div>
         <div class="km-body">
           <div class="km-canvas" data-km="canvas">
@@ -317,6 +318,7 @@ import {
     const sideEl = q<HTMLElement>('side');
     const fileEl = q<HTMLInputElement>('file');
     const imgEl = q<HTMLInputElement>('img');
+    const restoreFileEl = q<HTMLInputElement>('restore-file');
     const undoEl = q<HTMLButtonElement>('undo');
     const redoEl = q<HTMLButtonElement>('redo');
     /** 사진 고르는 창이 뜬 사이 선택이 바뀔 수 있어, 어느 노드에 붙일지 기억해 둔다. */
@@ -346,6 +348,46 @@ import {
         im.src = url;
       });
     }
+
+    /**
+     * 백업 되돌리기 — **덮어쓰지 않고 더한다** (격차 Y-2).
+     * 덮어쓰기는 되돌릴 수 없고, 사람은 「지금 것도 살아 있겠지」라고 믿는다. 이름이 겹치면 표시만 붙인다.
+     */
+    restoreFileEl.onchange = () => {
+      const file = restoreFileEl.files?.[0];
+      restoreFileEl.value = '';
+      if (!file) return;
+      void file.text().then((text) => {
+        type Backup = { kind?: string; maps?: { name?: string; spec?: unknown }[] };
+        let parsed: Backup | null = null;
+        try { parsed = JSON.parse(text) as Backup; } catch { parsed = null; }
+        if (!parsed || parsed.kind !== 'karmomap-backup' || !Array.isArray(parsed.maps)) {
+          alert([
+            'KarmoMap 백업 파일이 아닙니다.',
+            '(「모든 맵 한 파일로 내보내기」로 만든 파일을 골라 주세요)',
+          ].join(String.fromCharCode(10)));
+          return;
+        }
+        const used = new Set(library.maps.map((m) => m.name));
+        let added = 0;
+        for (const m of parsed.maps) {
+          const spec0 = m.spec as Partial<GraphSpec> | null;
+          if (!spec0 || !Array.isArray(spec0.nodes)) continue;
+          const base = (m.name ?? '맵').trim() || '맵';
+          const name = used.has(base) ? `${base} (복원)` : base;
+          used.add(name);
+          const res = addMap(library, name, JSON.stringify(spec0));
+          library = res.index;
+          added += 1;
+        }
+        renderMapList();
+        openActiveMap();
+        Toolbox.showToast?.(
+          added === 0 ? '되돌릴 맵이 없었습니다' : `맵 ${added}개를 되돌렸습니다`,
+          undefined, undefined
+        );
+      });
+    };
 
     imgEl.onchange = () => {
       const file = imgEl.files?.[0];
@@ -1204,12 +1246,15 @@ import {
           </div>`).join('')}
         </div>
         <button class="btn btn-primary" data-km="st-backup">모든 맵 한 파일로 내보내기</button>
+        <button class="btn btn-ghost" data-km="st-restore">백업 파일 되돌리기</button>
+        <div class="km-hint">되돌리면 지금 맵들을 <b>지우지 않고 옆에 더합니다</b>. 이름이 겹치면 「(복원)」이 붙습니다.</div>
         <button class="btn btn-ghost" data-km="st-close">닫기</button>`;
 
       (sideEl.querySelector('[data-km="st-close"]') as HTMLButtonElement).onclick = () => {
         sideMode = 'node';
         renderSide();
       };
+      (sideEl.querySelector('[data-km="st-restore"]') as HTMLButtonElement).onclick = () => restoreFileEl.click();
       (sideEl.querySelector('[data-km="st-backup"]') as HTMLButtonElement).onclick = () => {
         // 맵 하나씩 내보내게 하면 사람은 결국 몇 개를 빠뜨린다 — 통째로 한 파일에 담는다.
         const all = library.maps.map((m) => {

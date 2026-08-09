@@ -206,6 +206,18 @@ await step('저장 상태가 크기를 보여 주고 백업 파일을 만든다'
     page.click('[data-km="st-backup"]'),
   ]);
   if (!dl.suggestedFilename().includes('backup')) throw new Error('백업 파일이 아니다');
+  // 되돌리기까지 해 봐야 백업이 진짜다 — 만들기만 되는 백업은 반쪽이다.
+  const saved = await dl.path();
+  const mapsBefore = await page.locator('[data-km="maps"] option').count();
+  await page.setInputFiles('[data-km="restore-file"]', saved);
+  await page.waitForFunction(
+    (c) => document.querySelectorAll('[data-km="maps"] option').length > c,
+    mapsBefore,
+    { timeout: 6000 }
+  );
+  await page.click('[data-km="more"]');
+  await page.locator('[data-km="storage"]').dispatchEvent('click');
+  await page.waitForSelector('[data-km="st-close"]', { timeout: 4000 });
   await page.click('[data-km="st-close"]');
 });
 await step('키보드로 고르고 옮긴다', async () => {
