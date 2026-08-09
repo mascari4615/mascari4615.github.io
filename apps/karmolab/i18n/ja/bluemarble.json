@@ -52,5 +52,11 @@
   "bluemarble.layer.tour": "地球ニュース",
   "bluemarble.layer.dusk": "夕暮れを追う",
   "bluemarble.line.dusk": "いまこの線の上で日が沈んでいます。反対側では昇っています。",
-  "bluemarble.line.duskCity": "いま {city} のあたりで日が沈んでいます。"
+  "bluemarble.line.duskCity": "いま {city} のあたりで日が沈んでいます。",
+  "bluemarble.layer.deep": "遠い過去",
+  "bluemarble.deep.now": "いま",
+  "bluemarble.deep.ma": "{ma}百万年前",
+  "bluemarble.deep.lineNow": "いまの大陸配置です。つまみを左へ動かすとプレートが巻き戻ります。",
+  "bluemarble.deep.line": "{ma}百万年前の地球です。大陸が今の場所へ来る前です。",
+  "bluemarble.deep.how": "写真のない時間です — プレートの動きを巻き戻して描いたものです。分かるのは水と陸の境だけなので、色は塗っていません。"
 }
