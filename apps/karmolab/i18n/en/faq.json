@@ -972,5 +972,13 @@
   "faq.livecount.2.q": "What if I put in a future date?",
   "faq.livecount.2.a": "It counts the time remaining. It does not show a negative number.",
   "faq.livecount.3.q": "Does it keep running when I close the tab?",
-  "faq.livecount.3.a": "No. The timer stops when you leave the screen. Otherwise a tool you closed would keep ticking once a second and eat your battery."
+  "faq.livecount.3.a": "No. The timer stops when you leave the screen. Otherwise a tool you closed would keep ticking once a second and eat your battery.",
+  "faq.mesh3d.0.q": "Does the file go up to a server?",
+  "faq.mesh3d.0.a": "No. Reading it and drawing it both finish inside the browser. It opens with the internet cut off.",
+  "faq.mesh3d.1.q": "Is the size in mm?",
+  "faq.mesh3d.1.a": "STL and OBJ carry numbers without a unit, so the numbers are shown without one. Software on the 3D-printing side usually reads them as mm.",
+  "faq.mesh3d.2.q": "What about glTF, FBX and 3MF?",
+  "faq.mesh3d.2.a": "Not yet. STL and OBJ are simple formats that hold only the shape, so they can be read without a library; glTF and FBX also carry materials and animation and are a different thing altogether.",
+  "faq.mesh3d.3.q": "The model does not show the colours in the file?",
+  "faq.mesh3d.3.a": "STL has no colour at all, and an OBJ’s colours live in a separate file (.mtl). For now only the shape is drawn, in a single colour."
 }

@@ -1,3 +1,5 @@
+import { t, loadNamespace } from '../../lib/i18n';
+
 interface TlIndexPublishedItem {
     id?: string;
     title?: string;
@@ -70,26 +72,35 @@ interface TlIndexNamespace {
         tabs: [
             {
                 id: 'tl-edit',
-                label: '편집',
+                label: t('tierlist.tab.edit', undefined, '편집'),
+                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
                 build(container: HTMLElement) {
-                    T.render.setContainers({ editor: container });
-                    T.render.renderEditor();
+                    void loadNamespace('tierlist').then(() => {
+                        T.render.setContainers({ editor: container });
+                        T.render.renderEditor();
+                    });
                 }
             },
             {
                 id: 'tl-list',
-                label: '목록',
+                label: t('tierlist.tab.list', undefined, '목록'),
+                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
                 build(container: HTMLElement) {
-                    T.render.setContainers({ list: container });
-                    T.render.renderListTab();
+                    void loadNamespace('tierlist').then(() => {
+                        T.render.setContainers({ list: container });
+                        T.render.renderListTab();
+                    });
                 }
             },
             {
                 id: 'tl-stats',
-                label: '통계',
+                label: t('tierlist.tab.stats', undefined, '통계'),
+                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
                 build(container: HTMLElement) {
-                    T.render.setContainers({ stats: container });
-                    T.render.renderStats();
+                    void loadNamespace('tierlist').then(() => {
+                        T.render.setContainers({ stats: container });
+                        T.render.renderStats();
+                    });
                 }
             },
         ]

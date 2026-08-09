@@ -490,5 +490,9 @@
   "howto.livecount.0": "Choose the reference moment (an anniversary, the day you quit smoking, a release date…)",
   "howto.livecount.1": "The number climbs once a second",
   "howto.livecount.2": "Give a “times a day” and it estimates how many times so far",
-  "howto.livecount.3": "Put in a future date and it counts the time left"
+  "howto.livecount.3": "Put in a future date and it counts the time left",
+  "howto.mesh3d.0": "Choose an STL or OBJ file (both text and binary STL work)",
+  "howto.mesh3d.1": "Drag to turn it, wheel or two fingers to zoom",
+  "howto.mesh3d.2": "Check the triangle count and the size below",
+  "howto.mesh3d.3": "If you need it, save the current angle as a PNG"
 }
