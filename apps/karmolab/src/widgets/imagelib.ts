@@ -1,3 +1,9 @@
+import { t, loadNamespace } from '../lib/i18n';
+
+/** 화면에 그대로 박는 글은 태그로 읽히면 안 된다. */
+const esc = (v: unknown): string =>
+    String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 (function () {
     /* ===== 유틸 ===== */
     function getModelDisplayName(modelId: string): string {
@@ -25,8 +31,8 @@
             lb.innerHTML = `
                 <img id="ilLightboxImg" src="" alt="Full Size">
                 <div class="il-lightbox-actions">
-                    <button class="btn btn-accent" id="ilLightboxDl">⬇️ 다운로드</button>
-                    <button class="btn btn-ghost" id="ilLightboxClose">닫기</button>
+                    <button class="btn btn-accent" id="ilLightboxDl">${esc(t('imagelib.btn.ilLightboxDl'))}</button>
+                    <button class="btn btn-ghost" id="ilLightboxClose">${esc(t('imagelib.btn.ilLightboxClose'))}</button>
                 </div>`;
             lb.onclick = (e) => { if (e.target === lb) lb!.classList.remove('open'); };
             document.body.appendChild(lb);
@@ -46,17 +52,17 @@
         a.href = url;
         a.download = `ai-image-${Date.now()}.png`;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        showToast('다운로드 시작');
+        showToast(t('imagelib.t04'));
     }
 
     function copyToClipboard(text: string): void {
         if (navigator.clipboard?.writeText) {
-            navigator.clipboard.writeText(text).then(() => showToast('클립보드에 복사됨'));
+            navigator.clipboard.writeText(text).then(() => showToast(t('imagelib.t05')));
         } else {
             const ta = document.createElement('textarea');
             ta.value = text; document.body.appendChild(ta); ta.select();
             document.execCommand('copy'); document.body.removeChild(ta);
-            showToast('클립보드에 복사됨');
+            showToast(t('imagelib.t05'));
         }
     }
 
@@ -177,20 +183,20 @@
             <div id="ilGridView">
                 <div class="il-lib-header">
                     <span class="il-lib-count" id="ilCount"></span>
-                    <button class="btn btn-danger" id="ilClearBtn">🗑️ 전체 삭제</button>
+                    <button class="btn btn-danger" id="ilClearBtn">${esc(t('imagelib.btn.ilClearBtn'))}</button>
                 </div>
                 <div class="il-search-bar">
-                    <input type="text" id="ilSearchInput" placeholder="프롬프트, 모델명으로 검색...">
+                    <input type="text" id="ilSearchInput" placeholder="${esc(t('imagelib.ph.ilSearchInput'))}">
                 </div>
                 <div class="il-lib-grid" id="ilGridContent"></div>
                 <div class="il-lib-empty" id="ilEmpty" style="display:none">
                     <div class="il-lib-empty-icon">🖼️</div>
-                    <div class="il-lib-empty-text">아직 생성된 이미지가 없습니다</div>
-                    <div class="il-lib-empty-sub">이미지 생성에서 이미지를 만들어보세요</div>
+                    <div class="il-lib-empty-text">${esc(t('imagelib.t01'))}</div>
+                    <div class="il-lib-empty-sub">${esc(t('imagelib.t02'))}</div>
                 </div>
             </div>
             <div id="ilDetailView" style="display:none">
-                <button class="btn btn-ghost" id="ilBackBtn" style="margin-bottom:16px;">← 돌아가기</button>
+                <button class="btn btn-ghost" id="ilBackBtn" style="margin-bottom:16px;">${esc(t('imagelib.btn.ilBackBtn'))}</button>
                 <div class="il-detail">
                     <div class="il-detail-image">
                         <img id="ilDetailImg" src="" alt="">
@@ -199,7 +205,7 @@
                         <div class="il-detail-model-badge" id="ilDetailModel"></div>
                         <div class="il-detail-date" id="ilDetailDate"></div>
                         <div>
-                            <div class="il-detail-section-label">📝 프롬프트</div>
+                            <div class="il-detail-section-label">${esc(t('imagelib.t03'))}</div>
                             <div class="il-detail-prompt" id="ilDetailPrompt"></div>
                         </div>
                         <div class="il-detail-stats" id="ilDetailStats"></div>
@@ -212,13 +218,13 @@
             const clearBtn = document.getElementById('ilClearBtn');
             if (clearBtn) {
                 clearBtn.onclick = async () => {
-                    if (!confirm('모든 이미지를 삭제하시겠습니까?')) return;
+                    if (!confirm(t('imagelib.t06'))) return;
                     try {
                         await ImageDB!.clear();
                         loadGrid();
-                        showToast('라이브러리를 비웠습니다.');
+                        showToast(t('imagelib.t07'));
                     } catch (e) {
-                        showToast('삭제 실패', 'error');
+                        showToast(t('imagelib.t08'), 'error');
                     }
                 };
             }
@@ -271,12 +277,12 @@
         const emptyEl = document.getElementById('ilEmpty');
         const clearBtn = document.getElementById('ilClearBtn');
 
-        if (countEl) countEl.textContent = query ? `${items.length} / ${_allItems.length}장` : `${items.length}장의 이미지`;
+        if (countEl) countEl.textContent = query ? t('imagelib.countOf', { n: items.length, all: _allItems.length }) : t('imagelib.countImages', { n: items.length });
         if (clearBtn) clearBtn.style.display = _allItems.length > 0 ? '' : 'none';
 
         if (items.length === 0) {
             if (gridEl) gridEl.style.display = 'none';
-            if (emptyEl) { emptyEl.style.display = ''; const et = emptyEl.querySelector('.il-lib-empty-text'); if (et) et.textContent = query ? '검색 결과가 없습니다' : '아직 생성된 이미지가 없습니다'; }
+            if (emptyEl) { emptyEl.style.display = ''; const et = emptyEl.querySelector('.il-lib-empty-text'); if (et) et.textContent = query ? t('imagelib.t09') : t('imagelib.t01'); }
             return;
         }
 
@@ -330,34 +336,34 @@
 
         const actions: Array<{ label: string; cls: string; fn: () => void | Promise<void> }> = [
             {
-                label: '🔄 프롬프트 재사용', cls: 'btn-accent',
+                label: t('imagelib.t10', undefined, "🔄 프롬프트 재사용"), cls: 'btn-accent',
                 fn: () => {
                     const igPromptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | HTMLInputElement | null;
                     if (igPromptEl) igPromptEl.value = item.prompt || '';
                     Toolbox.switchPage?.('imagegen');
-                    showToast('프롬프트를 불러왔습니다.');
+                    showToast(t('imagelib.t11'));
                 }
             },
             {
-                label: '📋 프롬프트 복사', cls: '',
+                label: t('imagelib.t12', undefined, "📋 프롬프트 복사"), cls: '',
                 fn: () => copyToClipboard(item.prompt || '')
             },
             {
-                label: '⬇️ 다운로드', cls: '',
+                label: t('imagelib.btn.ilLightboxDl', undefined, "⬇️ 다운로드"), cls: '',
                 fn: () => downloadImage(item.url)
             },
             {
-                label: '🗑️ 삭제', cls: 'btn-danger',
+                label: t('imagelib.t13', undefined, "🗑️ 삭제"), cls: 'btn-danger',
                 fn: async () => {
-                    if (!confirm('이 이미지를 삭제하시겠습니까?')) return;
+                    if (!confirm(t('imagelib.t14'))) return;
                     try {
                         await ImageDB!.remove(item.id);
                         if (gridView) gridView.style.display = '';
                         if (detailView) detailView.style.display = 'none';
                         loadGrid();
-                        showToast('삭제되었습니다.');
+                        showToast(t('imagelib.t15'));
                     } catch (e) {
-                        showToast('삭제 실패', 'error');
+                        showToast(t('imagelib.t08'), 'error');
                     }
                 }
             }
@@ -376,7 +382,16 @@
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta('imagelib'),
         tabs: [
-            { id: 'imagelib-main', label: '라이브러리', build: buildMain }
+            {
+                id: 'imagelib-main',
+                label: t('imagelib.tab.main', undefined, '라이브러리'),
+                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('imagelib').then(function () {
+                        buildMain(container);
+                    });
+                }
+            }
         ]
     });
 })();

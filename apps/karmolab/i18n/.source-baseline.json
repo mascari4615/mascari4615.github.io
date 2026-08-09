@@ -1,5 +1,5 @@
 {
-  "total": 4978,
+  "total": 5127,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -115,7 +115,7 @@
     "src/widgets/imagegen/imagegen.ts": 5,
     "src/widgets/imagegen/presets.ts": 71,
     "src/widgets/imagegen/styles.ts": 1,
-    "src/widgets/imagelib.ts": 22,
+    "src/widgets/imagelib.ts": 6,
     "src/widgets/karmomap/help.ts": 59,
     "src/widgets/karmomap/karmomap.ts": 86,
     "src/widgets/karmomap/library.ts": 9,
@@ -352,6 +352,7 @@
     "src/core/hangultype.ts": 16,
     "src/core/dailytype.ts": 10,
     "src/core/type-pool.generated.ts": 223,
-    "src/widgets/tools/dailytype.ts": 11
+    "src/widgets/tools/dailytype.ts": 11,
+    "src/core/word-pool.generated.ts": 165
   }
 }
