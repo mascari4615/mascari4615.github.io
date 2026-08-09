@@ -44,6 +44,7 @@ import { buildCardText } from './canvas-card';
 import { buildCanvasDom } from './canvas-dom';
 import { applyFocusClasses } from './canvas-focus';
 import { nodeColor, nodeScale } from './canvas-decor';
+import { visibleNodes } from './canvas-filter';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
@@ -1861,39 +1862,8 @@ export class GraphCanvas {
 
   /** 거르기를 통과한 노드들. 렌더·선 그리기가 모두 이걸 기준으로 삼는다. */
   private visibleNodes(): GraphNode[] {
-    const nodes = (this.spec?.nodes ?? []).filter(
-      (n) => !this.filter.nodeKinds.has(n.kind)
-        // 꺼 둔 꼬리표가 하나라도 붙어 있으면 뺀다 — 「이건 지금 안 볼 것」이 여러 개일 수 있다.
-        && !(n.tags ?? []).some((tag) => this.filter.tags.has(tag))
-        // 칸으로 좁히기 — 값까지 적었으면 그 값인 것만, 이름만 적었으면 **그 칸을 가진 것만**
-        // (「출신을 안 정한 인물이 누구인가」를 보려면 이 반쪽이 필요하다).
-        && (!this.filter.fieldName || (() => {
-          const v = (n.fields ?? {})[this.filter.fieldName];
-          if (v === undefined) return false;
-          return !this.filter.fieldValue || String(v).trim() === this.filter.fieldValue;
-        })())
-    );
-    const min = Math.max(this.filter.minDegree, this.filter.hideOrphans ? 1 : 0);
-    if (min <= 0) return nodes;
-    // 「연결 수 하한」 — 선이 min 개 미만인 노드를 뺀다. **빠질 게 없을 때까지 되풀이**한다:
-    // 이웃이 빠지면 남은 노드의 연결 수도 줄어드는데, 한 번만 걸러내면 조건을 못 채운 노드가 남는다
-    // (network 쪽에서 k-core 라 부르는 것과 같은 셈법).
-    let live = new Set(nodes.map((n) => n.id));
-    for (let round = 0; round < 40; round += 1) {
-      const deg = new Map<string, number>();
-      for (const e of this.spec?.edges ?? []) {
-        if (this.filter.edgeKinds.has(e.kind)) continue;
-        const a = this.parseNodeRef(e.from);
-        const b = this.parseNodeRef(e.to);
-        if (!live.has(a) || !live.has(b)) continue;
-        deg.set(a, (deg.get(a) ?? 0) + 1);
-        deg.set(b, (deg.get(b) ?? 0) + 1);
-      }
-      const next = new Set([...live].filter((id) => (deg.get(id) ?? 0) >= min));
-      if (next.size === live.size) break;
-      live = next;
-    }
-    return nodes.filter((n) => live.has(n.id));
+    // 무엇이 남나(종류·꼬리표·칸·연결 수 하한)는 canvas-filter 가 안다.
+    return visibleNodes(this.spec?.nodes ?? [], this.spec?.edges ?? [], this.filter, (ref) => this.parseNodeRef(ref));
   }
 
   /** 선택 표시 — 편집 UI 가 어떤 노드를 다루는지 캔버스에 반영. */
