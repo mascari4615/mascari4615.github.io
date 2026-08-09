@@ -6,27 +6,38 @@
  * 되려면 5만 배가 더 필요하고, 그건 담아 둘 수 있는 크기가 아니다.
  *
  * 그래서 **보고 있는 곳만** 받아 온다. NASA GIBS 가 위성 사진을 타일로 잘라 두었고
- * (EPSG:4326, 512px, 최대 250m/px), 열쇠도 등록도 필요 없다.
+ * (EPSG:4326, 512px, 낮 최대 250m/px), 열쇠도 등록도 필요 없다.
  *
  * 받은 타일은 화면에 바로 그리지 않는다 — 우리 표면은 픽셀마다 위경도를 되짚어 색을 읽으므로,
  * **등장방형 한 장**으로 이어 붙여 두고 거기서 읽는다. 그래야 지구본이 돌아도, 타일 경계가
  * 화면 어디에 걸리든 상관이 없다.
  *
- * 한 번에 받는 타일 수를 묶어 둔다(기본 24장). 확대할수록 타일이 잘게 쪼개지므로 안 막으면
- * 한 번 당길 때 수백 장이 나간다 — 자취방 회선으로.
+ * 세 가지를 지킨다:
+ *   ① **한 번에 받는 장수 상한**(12장). 확대할수록 타일이 잘게 쪼개지므로 안 막으면 한 번 당길 때
+ *      수백 장이 나간다 — 자취방 회선으로. 넘치면 `null` 이 아니라 **한 층 내려간다**
+ *      (예전엔 null 이라 확대해도 아무 일이 없었고 이유도 안 보였다 — 실측으로 요청 0이었다).
+ *   ② **오늘 먼저, 없으면 어제.** 위성이 아직 안 지나간 자리는 검게 온다. 받아 놓고 얼마나
+ *      찼는지 세어 보고, 덜 찼으면 어제로 물러난다.
+ *   ③ **밤이면 밤의 눈으로.** 참색 사진은 밤에 아무것도 안 보인다. 그 자리가 밤이면
+ *      주야간 밴드(도시 불빛이 그대로 찍히는 채널)로 바꿔 받는다.
  */
 import type { Region } from './surface';
 
 const HOST = 'https://gibs.earthdata.nasa.gov/wmts/epsg4326/best';
-/** 시간을 되감으면 위성도 되감는다 (`textures.ts` 와 같은 규칙). */
-function layerFor(day: string): string {
+
+/** 낮 = 참색. 시간을 되감으면 위성도 되감는다 — NOAA-20 은 2018년에 올라갔다. */
+function dayLayer(day: string): string {
   return day >= '2018-01-01'
     ? 'VIIRS_NOAA20_CorrectedReflectance_TrueColor'
     : 'MODIS_Terra_CorrectedReflectance_TrueColor';
 }
-const MATRIX = '250m';
-const TILE = 512;
 
+/** 밤 = 주야간 밴드. 낮보다 한 단계 성긴 격자(500m)에 png 로 온다. */
+const NIGHT_LAYER = 'VIIRS_NOAA20_DayNightBand_At_Sensor_Radiance';
+/** 밤 그림은 L7 까지만 있다 (낮은 L8). */
+const NIGHT_MAX_Z = 7;
+
+const TILE = 512;
 /** 층마다 가로로 몇 장인가 (GIBS 가 스스로 말하는 값 — 2의 거듭제곱이 아니다). */
 const COLS = [2, 3, 5, 10, 20, 40, 80, 160, 320];
 const MAX_TILES = 12;
@@ -51,10 +62,6 @@ function ymdUTC(offsetDays: number): string {
   return new Date(Date.now() - offsetDays * 86400000).toISOString().slice(0, 10);
 }
 
-function tileUrl(z: number, row: number, col: number, day: string): string {
-  return `${HOST}/${layerFor(day)}/default/${day}/${MATRIX}/${z}/${row}/${col}.jpg`;
-}
-
 function loadTile(url: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
     const img = new Image();
@@ -73,37 +80,39 @@ export interface BBox {
 }
 
 /** 같은 자리를 두 번 받지 않게 하는 이름표. */
-export function regionKey(b: BBox, z: number, day: string): string {
+export function regionKey(b: BBox, z: number, day: string, night = false): string {
   const s = span(z);
   const c0 = Math.floor((b.west + 180) / s);
   const c1 = Math.floor((b.east + 180) / s);
   const r0 = Math.floor((90 - b.north) / s);
   const r1 = Math.floor((90 - b.south) / s);
-  return `${day}/${z}/${r0}-${r1}/${c0}-${c1}`;
+  return `${day}/${night ? 'n' : 'd'}/${z}/${r0}-${r1}/${c0}-${c1}`;
 }
 
-/**
- * 보이는 자리를 덮는 타일을 받아 등장방형 한 장으로 잇는다.
- * 어제 것을 받는다 — 오늘 판은 위성이 아직 안 지나간 곳이 검다(구름 그림에서 겪은 것과 같은 이유).
- */
-/**
- * 그 층에서 이 상자를 덮는 데 타일이 몇 장 드나. 상한을 넘으면 **한 층 내려간다** —
- * 예전엔 넘으면 그냥 `null` 을 돌려줬는데, 그러면 확대해도 아무 일이 안 일어나고
- * (요청이 0 이라 화면만 뭉갠 채였다) 이유도 안 보였다. 조금 덜 촘촘한 그림이 아무것도 없는 것보다 낫다.
- */
-export function fitLevel(b: BBox, z: number): number {
-  for (let k = z; k >= 0; k--) {
-    const s = span(k);
-    const cols = Math.floor((b.east + 180) / s) - Math.floor((b.west + 180) / s) + 1;
-    const rows = Math.floor((90 - b.south) / s) - Math.floor((90 - b.north) / s) + 1;
-    if (cols > 0 && rows > 0 && cols * rows <= MAX_TILES) return k;
+function tileCount(b: BBox, z: number): number {
+  const s = span(z);
+  const cols = Math.floor((b.east + 180) / s) - Math.floor((b.west + 180) / s) + 1;
+  const rows = Math.floor((90 - b.south) / s) - Math.floor((90 - b.north) / s) + 1;
+  return cols > 0 && rows > 0 ? cols * rows : Number.MAX_SAFE_INTEGER;
+}
+
+/** 장수 상한에 맞을 때까지 한 층씩 내린다. 밤 그림은 있는 층까지만. */
+export function fitLevel(b: BBox, z: number, night = false): number {
+  const top = night ? Math.min(z, NIGHT_MAX_Z) : z;
+  for (let k = top; k >= 0; k--) {
+    if (tileCount(b, k) <= MAX_TILES) return k;
   }
   return 0;
 }
 
-export async function loadRegion(b: BBox, z: number, dayStr?: string): Promise<Region | null> {
+interface Assembled {
+  region: Region;
+  /** 실제로 그림이 들어찬 비율 (0~1). 위성이 안 지나간 자리는 검게 온다. */
+  coverage: number;
+}
+
+async function assemble(b: BBox, z: number, day: string, night: boolean): Promise<Assembled | null> {
   const s = span(z);
-  const day = dayStr || ymdUTC(1);
   const c0 = Math.floor((b.west + 180) / s);
   const c1 = Math.floor((b.east + 180) / s);
   const r0 = Math.max(0, Math.floor((90 - b.north) / s));
@@ -119,12 +128,17 @@ export async function loadRegion(b: BBox, z: number, dayStr?: string): Promise<R
   if (!ctx) return null;
   ctx.clearRect(0, 0, cv.width, cv.height);
 
+  const layer = night ? NIGHT_LAYER : dayLayer(day);
+  const matrix = night ? '500m' : '250m';
+  const ext = night ? 'png' : 'jpg';
+
   const jobs: Array<Promise<void>> = [];
   for (let r = r0; r <= r1; r++) {
     for (let c = c0; c <= c1; c++) {
       const col = ((c % COLS[z]) + COLS[z]) % COLS[z]; // 날짜변경선을 넘어가도 이어진다
+      const url = `${HOST}/${layer}/default/${day}/${matrix}/${z}/${r}/${col}.${ext}`;
       jobs.push(
-        loadTile(tileUrl(z, r, col, day)).then((img) => {
+        loadTile(url).then((img) => {
           if (img) ctx.drawImage(img, (c - c0) * TILE, (r - r0) * TILE, TILE, TILE);
         })
       );
@@ -138,12 +152,44 @@ export async function loadRegion(b: BBox, z: number, dayStr?: string): Promise<R
   } catch (_) {
     return null;
   }
+
+  let filled = 0;
+  let seen = 0;
+  for (let k = 0; k < px.data.length; k += 4 * 97) {
+    seen++;
+    if (px.data[k] + px.data[k + 1] + px.data[k + 2] > 24) filled++;
+  }
+
   return {
-    lon0: -180 + c0 * s,
-    lat0: 90 - r0 * s,
-    dpp: degPerPx(z),
-    w: cv.width,
-    h: cv.height,
-    d: px.data
+    coverage: seen ? filled / seen : 0,
+    region: {
+      lon0: -180 + c0 * s,
+      lat0: 90 - r0 * s,
+      dpp: degPerPx(z),
+      w: cv.width,
+      h: cv.height,
+      d: px.data
+    }
   };
+}
+
+/**
+ * 보고 있는 자리를 덮는 타일을 받아 등장방형 한 장으로 잇는다.
+ *
+ * 날짜는 **오늘 먼저** 보고, 덜 찼으면 어제로 물러난다. `dayStr` 를 주면 시간을 되감은 것이므로
+ * 그날만 본다. `night` 면 주야간 밴드로 받는다.
+ */
+export async function loadRegion(b: BBox, z: number, dayStr?: string, night = false): Promise<Region | null> {
+  if (dayStr) {
+    const only = await assemble(b, z, dayStr, night);
+    return only ? only.region : null;
+  }
+
+  const fresh = await assemble(b, z, ymdUTC(0), night);
+  if (fresh && fresh.coverage > 0.6) return fresh.region;
+
+  const older = await assemble(b, z, ymdUTC(1), night);
+  if (!older) return fresh ? fresh.region : null;
+  if (!fresh) return older.region;
+  return older.coverage >= fresh.coverage ? older.region : fresh.region;
 }

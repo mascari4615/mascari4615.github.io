@@ -229,6 +229,7 @@ import { EarthSound } from './sound';
           let regionAt = '';        // 지금 들고 있는 조각의 이름표
           let regionWanted = '';    // 받아 오는 중인 조각
           let regionTimer: number | undefined;
+          let regionNight = false;
           let qs: Quake[] = [];
           let au: AuroraPoint[] = [];
           let kp: number | null = null;
@@ -445,7 +446,7 @@ import { EarthSound } from './sound';
             // 손을 놀리는 동안엔 안 받는다 — 끌 때마다 받으면 회선이 타일로 가득 찬다
             regionTimer = window.setTimeout(() => {
               regionTimer = undefined;
-              if (!alive || !prefs.on.zoom) return;
+              if (!alive || !prefs.on.zoom || body !== 'earth') return;
               // 담아 둔 그림(2048px = 0.176°/px)보다 화면이 촘촘할 때부터 의미가 있다
               if (degPerScreenPx() > 0.16) {
                 if (region) {
@@ -456,18 +457,39 @@ import { EarthSound } from './sound';
               }
               const box = visibleBox();
               if (!box) return;
-              // 화면 촘촘함이 원하는 층 → 타일 수 상한에 맞게 한 층씩 낮춘다
-              const z = fitLevel(box, levelFor(degPerScreenPx()));
-              const key = regionKey(box, z, isPast() ? pastDay : '');
+
+              /* 이 자리가 밤이면 참색 사진은 새까맣다 — 밤의 눈(주야간 밴드)으로 바꿔 받는다. */
+              const sun = subsolar(new Date(clockMs()));
+              const midLat = (box.north + box.south) / 2;
+              const midLon = (box.east + box.west) / 2;
+              const night = dot(toVec(midLat, midLon), toVec(sun.lat, sun.lon)) < -0.02;
+
+              const dayKey = isPast() ? pastDay : '';
+              const wantZ = fitLevel(box, levelFor(degPerScreenPx()), night);
+              const key = regionKey(box, wantZ, dayKey, night);
               if (key === regionAt || key === regionWanted) return;
               regionWanted = key;
-              void loadRegion(box, z, isPast() ? pastDay : undefined).then((got) => {
+
+              void (async () => {
+                /* 계단식 — 아직 아무 조각도 없으면 **성긴 층을 먼저** 깐다.
+                   타일이 적어 금방 오고, 그 위에 촘촘한 층이 도착하면 갈아 낀다.
+                   이게 없으면 확대한 순간부터 도착할 때까지 뭉갠 그림만 보인다. */
+                if (!region && wantZ >= 3) {
+                  const coarse = await loadRegion(box, fitLevel(box, wantZ - 2, night), dayKey || undefined, night);
+                  if (!alive || regionWanted !== key) return;
+                  if (coarse && !region) {
+                  region = coarse;
+                  regionNight = night;
+                }
+                }
+                const got = await loadRegion(box, wantZ, dayKey || undefined, night);
                 if (!alive || regionWanted !== key) return;
                 regionWanted = '';
                 if (!got) return;
                 region = got;
+                regionNight = night;
                 regionAt = key;
-              });
+              })();
             }, 320);
           }
 
@@ -525,6 +547,7 @@ import { EarthSound } from './sound';
               paintSurface(surfImg, surfView, {
                 day: onEarth ? dayTex : bodyTex[body],
                 region: onEarth && prefs.on.zoom ? region : null,
+                regionNight,
                 night: onEarth && prefs.on.city ? nightTex : null,
                 cloud: onEarth && prefs.on.cloud ? cloudTex : null,
                 ex,
