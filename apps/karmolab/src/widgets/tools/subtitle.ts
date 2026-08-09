@@ -11,6 +11,8 @@
  *    영상을 틀어 보는 것뿐이라, 숫자로라도 맞는지 보여야 한다.
  *  - SRT 와 VTT 를 오간다. 웹 플레이어는 VTT 만 받고, 대부분의 자막은 SRT 로 돌아다닌다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   interface Cue { start: number; end: number; text: string }
 
@@ -57,37 +59,55 @@
 
   Toolbox.register({
     id: 'subtitle',
-    title: '자막 시간 맞추기',
+    title: t('widgets.subtitle.title', undefined, '자막 시간 맞추기'),
     category: 'tool',
-    desc: '어긋난 자막을 밀거나 늘려 맞춥니다. SRT·VTT 를 서로 바꿉니다',
+    desc: t(
+      'widgets-desc.subtitle.desc',
+      undefined,
+      '어긋난 자막을 밀거나 늘려 맞춥니다. SRT·VTT 를 서로 바꿉니다'
+    ),
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 14h5M13 14h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '자막',
+        label: t('subtitle.tab', undefined, '자막'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('subtitle').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="sbDrop">
               <input type="file" id="sbFile" accept=".srt,.vtt,text/plain" hidden>
-              <span>자막 파일(.srt·.vtt)을 끌어다 놓거나, 아래에 그대로 붙여 넣으세요</span>
+              <span>${esc(t('subtitle.drop'))}</span>
             </div>
 
             <div class="field-group" style="margin-top:var(--space-lg);">
-              <label class="field-label" for="sbIn">자막 원본</label>
-              <textarea id="sbIn" rows="7" spellcheck="false" style="width:100%;" placeholder="1&#10;00:00:01,000 --> 00:00:03,000&#10;첫 대사"></textarea>
+              <label class="field-label" for="sbIn">${esc(t('subtitle.label.in'))}</label>
+              <textarea id="sbIn" rows="7" spellcheck="false" style="width:100%;" placeholder="${esc(t('subtitle.ph.in')).replace(/\n/g, '&#10;')}"></textarea>
             </div>
 
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">시간 밀기 <span id="sbShiftVal" class="range-value">0초</span></div>
-                  <input type="range" id="sbShift" aria-label="시간 밀기" min="-100" max="100" value="0">
+                  <div class="tool-sublabel">${esc(t('subtitle.label.shift'))} <span id="sbShiftVal" class="range-value">${esc(
+                    t('subtitle.value.sec', { n: '0' })
+                  )}</span></div>
+                  <input type="range" id="sbShift" aria-label="${esc(t('subtitle.label.shift'))}" min="-100" max="100" value="0">
                 </div>
                 <div>
-                  <div class="tool-sublabel">점점 벌어질 때</div>
-                  <select id="sbRate" aria-label="프레임 수 바꾸기">
-                    <option value="1">그대로</option>
+                  <div class="tool-sublabel">${esc(t('subtitle.label.rate'))}</div>
+                  <select id="sbRate" aria-label="${esc(t('subtitle.aria.rate'))}">
+                    <option value="1">${esc(t('subtitle.rate.none'))}</option>
                     <option value="1.0427">23.976 → 25 (빨라짐)</option>
                     <option value="0.959">25 → 23.976 (느려짐)</option>
                     <option value="1.0010">23.976 → 24</option>
@@ -96,8 +116,8 @@
                 </div>
               </div>
               <div class="tool-chips" style="margin-top:10px;">
-                <button type="button" class="tool-chip active" data-out="srt">SRT 로</button>
-                <button type="button" class="tool-chip" data-out="vtt">VTT 로 (웹 플레이어)</button>
+                <button type="button" class="tool-chip active" data-out="srt">${esc(t('subtitle.out.srt'))}</button>
+                <button type="button" class="tool-chip" data-out="vtt">${esc(t('subtitle.out.vtt'))}</button>
               </div>
             </div>
 
@@ -105,15 +125,15 @@
             <div class="tool-list" id="sbCompare"></div>
 
             <div class="field-group">
-              <label class="field-label" for="sbOut">맞춘 자막</label>
+              <label class="field-label" for="sbOut">${esc(t('subtitle.label.out'))}</label>
               <textarea id="sbOut" rows="8" spellcheck="false" style="width:100%;" readonly></textarea>
               <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
-                <button class="btn btn-ghost btn-sm" id="sbCopy">복사</button>
-                <button class="btn btn-primary btn-sm" id="sbSave">파일로 받기</button>
+                <button class="btn btn-ghost btn-sm" id="sbCopy">${esc(t('subtitle.btn.copy'))}</button>
+                <button class="btn btn-primary btn-sm" id="sbSave">${esc(t('subtitle.btn.save'))}</button>
               </div>
             </div>
 
-            <div class="tool-status" id="sbStatus">자막은 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="sbStatus">${esc(t('subtitle.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -123,7 +143,7 @@
           const compare = $<HTMLElement>('#sbCompare');
           const status = $<HTMLElement>('#sbStatus');
           let outFmt: 'srt' | 'vtt' = 'srt';
-          let baseName = '자막';
+          let baseName = t('subtitle.file.base');
 
           const say = (m: string, kind = ''): void => {
             status.textContent = m;
@@ -138,7 +158,10 @@
               out.value = '';
               stats.innerHTML = '';
               compare.innerHTML = '';
-              say(input.value.trim() ? '자막 시간 줄(-->)을 못 찾았어요. SRT 나 VTT 인지 확인해 주세요.' : '자막을 붙여 넣거나 파일을 올려 보세요.', input.value.trim() ? 'error' : '');
+              say(
+                t(input.value.trim() ? 'subtitle.err.noCues' : 'subtitle.say.paste'),
+                input.value.trim() ? 'error' : ''
+              );
               return;
             }
             const shift = parseInt($<HTMLInputElement>('#sbShift').value, 10) / 10;
@@ -148,26 +171,29 @@
 
             const clipped = moved.filter((c) => c.start < 0).length;
             stats.innerHTML =
-              stat('자막 줄', `${cues.length}줄`, true) +
-              stat('민 시간', `${shift >= 0 ? '+' : ''}${shift.toFixed(1)}초`) +
-              stat('내보낼 형식', outFmt.toUpperCase());
+              stat(t('subtitle.stat.lines'), t('subtitle.value.lines', { n: cues.length }), true) +
+              stat(
+                t('subtitle.stat.shift'),
+                (shift >= 0 ? '+' : '') + t('subtitle.value.sec', { n: shift.toFixed(1) })
+              ) +
+              stat(t('subtitle.stat.format'), outFmt.toUpperCase());
 
             // 자막은 영상을 틀어 봐야 확인되는데, 숫자로라도 맞는지 보여 준다
             const row = (k: string, a: number, b: number): string =>
               `<div class="tool-list-row"><span class="tool-list-key">${k}</span><span class="tool-list-val">${fmt(a, false)} → ${fmt(b, false)}</span></div>`;
             compare.innerHTML =
-              row('첫 줄', cues[0].start, moved[0].start) +
-              row('끝 줄', cues[cues.length - 1].start, moved[moved.length - 1].start);
+              row(t('subtitle.row.first'), cues[0].start, moved[0].start) +
+              row(t('subtitle.row.last'), cues[cues.length - 1].start, moved[moved.length - 1].start);
 
-            if (clipped) say(`${clipped}줄이 0초보다 앞으로 밀려 0초에 붙였어요. 너무 많이 당겼는지 보세요.`, 'error');
-            else say(`${cues.length}줄을 맞췄어요. 위 첫 줄·끝 줄 시각이 맞는지 봐 주세요.`, 'ok');
+            if (clipped) say(t('subtitle.say.clipped', { n: clipped }), 'error');
+            else say(t('subtitle.say.done', { n: cues.length }), 'ok');
             Toolbox.trackUse?.('subtitle');
           }
 
           const drop = $<HTMLElement>('#sbDrop');
           const fileInput = $<HTMLInputElement>('#sbFile');
           const readFile = (f: File): void => {
-            baseName = (f.name || '자막').replace(/\.[^.]+$/, '');
+            baseName = (f.name || t('subtitle.file.base')).replace(/\.[^.]+$/, '');
             f.text().then((t) => {
               input.value = t;
               // 받은 것이 VTT 면 대개 그대로 VTT 로 쓰고 싶어 한다
@@ -196,7 +222,9 @@
 
           input.addEventListener('input', run);
           $<HTMLInputElement>('#sbShift').addEventListener('input', () => {
-            $<HTMLElement>('#sbShiftVal').textContent = (parseInt($<HTMLInputElement>('#sbShift').value, 10) / 10).toFixed(1) + '초';
+            $<HTMLElement>('#sbShiftVal').textContent = t('subtitle.value.sec', {
+              n: (parseInt($<HTMLInputElement>('#sbShift').value, 10) / 10).toFixed(1)
+            });
             run();
           });
           $<HTMLSelectElement>('#sbRate').addEventListener('change', run);
@@ -209,11 +237,11 @@
             };
           });
           $<HTMLButtonElement>('#sbCopy').onclick = () => {
-            void Toolbox.copyText?.(out.value, { message: '맞춘 자막을 복사했어요' });
+            void Toolbox.copyText?.(out.value, { message: t('subtitle.copy.done') });
           };
           $<HTMLButtonElement>('#sbSave').onclick = () => {
             if (!out.value) {
-              say('먼저 자막을 넣어 주세요.', 'error');
+              say(t('subtitle.err.empty'), 'error');
               return;
             }
             const blob = new Blob([out.value], { type: 'text/plain;charset=utf-8' });
@@ -222,11 +250,8 @@
             a.download = `${baseName}.${outFmt}`;
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say(`${baseName}.${outFmt} 로 받았어요.`, 'ok');
+            say(t('subtitle.say.saved', { name: `${baseName}.${outFmt}` }), 'ok');
           };
           run();
-        }
-      }
-    ]
-  });
+  }
 })();

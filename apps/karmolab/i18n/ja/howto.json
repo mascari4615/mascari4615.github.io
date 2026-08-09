@@ -140,5 +140,9 @@
   "howto.videorotate.0": "動画を選ぶ",
   "howto.videorotate.1": "回す角度を選ぶ",
   "howto.videorotate.2": "プレビューを確認",
-  "howto.videorotate.3": "回して書き出し、ダウンロード"
+  "howto.videorotate.3": "回して書き出し、ダウンロード",
+  "howto.subtitle.0": "字幕ファイルを入れるか貼り付ける",
+  "howto.subtitle.1": "ずらす時間を決める",
+  "howto.subtitle.2": "最初と最後の時刻を確認",
+  "howto.subtitle.3": "ファイルでダウンロード"
 }
