@@ -37,7 +37,7 @@ import { buildNodeAvatar } from './canvas-avatar';
 import { buildNodeBackground } from './canvas-shape';
 import { chooseAnchors, edgeCurve, boundsOf } from './canvas-math';
 import { buildEdgePath, buildEdgeLabel, buildLeaderLine } from './canvas-edge';
-import { renderGroups } from './canvas-group';
+import { renderGroups, computeGroupBox } from './canvas-group';
 import { nodeBadges } from './canvas-badges';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
@@ -1074,32 +1074,22 @@ export class GraphCanvas {
   }
 
   private computeGroupBox(group: GroupDef): { x: number; y: number; w: number; h: number } {
-    let minX = group.bbox.x;
-    let minY = group.bbox.y;
-    let maxX = group.bbox.x + group.bbox.w;
-    let maxY = group.bbox.y + group.bbox.h;
-    const pad = 12;
-    // persistent 노드 (드래그 좌표 반영)
-    for (const n of this.spec?.nodes ?? []) {
-      if (!this.isMember(n, group.id)) continue;
-      const c = this.nodeCoords.get(n.id) ?? { x: n.x, y: n.y };
-      minX = Math.min(minX, c.x - pad);
-      minY = Math.min(minY, c.y - pad);
-      maxX = Math.max(maxX, c.x + this.effW(n) + pad);
-      maxY = Math.max(maxY, c.y + this.getNodeEffectiveH(n) + pad);
-    }
-    // ephemeral anchors (effective bbox)
+    // 멤버가 **지금 어디 있나**(끌어 옮긴 좌표)와 임시 자리의 쌓인 자리를 모아 넘긴다.
     const layout = this.computeAnchorLayout();
-    for (const a of this.spec?.ephemeral_anchors ?? []) {
-      if (a.group !== group.id) continue;
-      const eff = layout.get(a.id);
-      if (!eff) continue;
-      minX = Math.min(minX, eff.x - pad);
-      minY = Math.min(minY, eff.y - pad);
-      maxX = Math.max(maxX, eff.x + eff.w + pad);
-      maxY = Math.max(maxY, eff.y + eff.h + pad);
-    }
-    return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+    const boxes = [
+      ...(this.spec?.nodes ?? [])
+        .filter((n) => this.isMember(n, group.id))
+        .map((n) => {
+          const c = this.nodeCoords.get(n.id) ?? { x: n.x, y: n.y };
+          return { x: c.x, y: c.y, w: this.effW(n), h: this.getNodeEffectiveH(n) };
+        }),
+      ...(this.spec?.ephemeral_anchors ?? [])
+        .filter((a) => a.group === group.id)
+        .map((a) => layout.get(a.id))
+        .filter((b): b is NonNullable<typeof b> => Boolean(b))
+        .map((b) => ({ x: b.x, y: b.y, w: b.w, h: b.h })),
+    ];
+    return computeGroupBox(group, boxes);
   }
 
   /**
