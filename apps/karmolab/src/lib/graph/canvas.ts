@@ -32,6 +32,7 @@ import type { GraphPersistAdapter } from './adapter';
 import { NULL_PERSIST_ADAPTER } from './adapter';
 import { injectGraphCanvasStyles, GRAPH_CANVAS_CSS } from './styles';
 import { resolveDoc, displayDoc } from './notes';
+import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath } from './canvas-math';
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -108,22 +109,6 @@ export interface GraphCanvasOptions {
   onSelectMany?: (nodeIds: string[]) => void;
   /** 묶음을 손으로 고쳤을 때(이름표 자리). 주면 이름표를 끌 수 있게 된다. */
   onGroupChanged?: (groupId: string) => void;
-}
-
-/**
- * 꼬리표 색 — 어두운 판에서도 서로 구별되는 열 가지. 이름을 해시해 고르므로 **같은 말이면 늘 같은 색**이다
- * (색을 손으로 정하게 하면 꼬리표를 만들 때마다 결정이 하나 늘어난다).
- * 열 개 남짓으로 묶는 것은 범주형 팔레트의 통설 — 그 이상은 사람이 못 가른다.
- */
-const TAG_COLORS = [
-  '#f472b6', '#60a5fa', '#34d399', '#fbbf24', '#a78bfa',
-  '#fb7185', '#38bdf8', '#4ade80', '#f59e0b', '#c084fc',
-];
-
-function colorForTag(tag: string): string {
-  let h = 0;
-  for (let i = 0; i < tag.length; i += 1) h = (h * 31 + tag.charCodeAt(i)) >>> 0;
-  return TAG_COLORS[h % TAG_COLORS.length];
 }
 
 /** 클릭과 드래그를 가르는 이동 거리 (px). */
@@ -1170,55 +1155,13 @@ export class GraphCanvas {
     for (const n of this.spec.nodes) {
       if (!this.isMember(n, g.id)) continue;
       const c0 = this.nodeCoords.get(n.id) ?? { x: n.x, y: n.y };
-      const h = this.getNodeEffectiveH(n);
-      const w = this.effW(n);
-      pts.push(
-        { x: c0.x - pad, y: c0.y - pad },
-        { x: c0.x + w + pad, y: c0.y - pad },
-        { x: c0.x + w + pad, y: c0.y + h + pad },
-        { x: c0.x - pad, y: c0.y + h + pad }
-      );
+      pts.push(...boxCorners(
+        { x: c0.x, y: c0.y, w: this.effW(n), h: this.getNodeEffectiveH(n) },
+        pad,
+      ));
     }
-    if (pts.length < 12) return null;   // 멤버 2 이하 — 네모가 낫다
-
-    // Andrew monotone chain
-    pts.sort((a, b) => (a.x - b.x) || (a.y - b.y));
-    const cross = (o: typeof pts[0], a: typeof pts[0], b: typeof pts[0]) =>
-      (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
-    const lower: typeof pts = [];
-    for (const p of pts) {
-      while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) lower.pop();
-      lower.push(p);
-    }
-    const upper: typeof pts = [];
-    for (let i = pts.length - 1; i >= 0; i -= 1) {
-      const p = pts[i];
-      while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop();
-      upper.push(p);
-    }
-    const hull = lower.slice(0, -1).concat(upper.slice(0, -1));
-    if (hull.length < 3) return null;
-
-    // 모서리 둥글리기 — 각 꼭짓점에서 이웃 방향으로 r 만큼 물러난 두 점을 이차 곡선으로 잇는다.
-    const r = 14;
-    const at = (i: number) => hull[(i + hull.length) % hull.length];
-    const lerp = (a: { x: number; y: number }, b: { x: number; y: number }, t: number) => ({
-      x: a.x + (b.x - a.x) * t,
-      y: a.y + (b.y - a.y) * t,
-    });
-    let d = '';
-    for (let i = 0; i < hull.length; i += 1) {
-      const prev = at(i - 1);
-      const cur = at(i);
-      const next = at(i + 1);
-      const dPrev = Math.hypot(cur.x - prev.x, cur.y - prev.y) || 1;
-      const dNext = Math.hypot(next.x - cur.x, next.y - cur.y) || 1;
-      const a = lerp(cur, prev, Math.min(0.5, r / dPrev));
-      const b = lerp(cur, next, Math.min(0.5, r / dNext));
-      d += i === 0 ? `M ${a.x.toFixed(1)},${a.y.toFixed(1)}` : ` L ${a.x.toFixed(1)},${a.y.toFixed(1)}`;
-      d += ` Q ${cur.x.toFixed(1)},${cur.y.toFixed(1)} ${b.x.toFixed(1)},${b.y.toFixed(1)}`;
-    }
-    return d + ' Z';
+    if (pts.length < 12) return null;   // 멤버 2 이하 — 껍질이 선이 된다. 네모가 낫다
+    return roundedHullPath(convexHull(pts));
   }
 
   private renderGroups(): void {
@@ -2040,11 +1983,7 @@ export class GraphCanvas {
 
   /** 베지어 위 한 점 (t=0~1). 이름표·손잡이 자리를 잡는 데 쓴다. */
   private pointOnEdge(g: { p1: { x: number; y: number }; c1: { x: number; y: number }; c2: { x: number; y: number }; p2: { x: number; y: number } }, t: number): { x: number; y: number } {
-    const u = 1 - t;
-    return {
-      x: u * u * u * g.p1.x + 3 * u * u * t * g.c1.x + 3 * u * t * t * g.c2.x + t * t * t * g.p2.x,
-      y: u * u * u * g.p1.y + 3 * u * u * t * g.c1.y + 3 * u * t * t * g.c2.y + t * t * t * g.p2.y,
-    };
+    return pointOnCubic(g, t);
   }
 
   private buildEdgePath(edge: GraphEdge): SVGPathElement | null {
@@ -2092,32 +2031,10 @@ export class GraphCanvas {
     c2: { x: number; y: number }, p2: { x: number; y: number },
     style: 'wavy' | 'crack'
   ): string {
+    // 흔들림의 잘기는 **선 길이**에 맞춘다 — 짧은 선을 촘촘히 흔들면 뭉개진다.
     const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
     const steps = Math.max(12, Math.min(120, Math.round(dist / (style === 'wavy' ? 6 : 12))));
-    const amp = style === 'wavy' ? 3.5 : 5;
-    const at = (t: number) => {
-      const u = 1 - t;
-      return {
-        x: u * u * u * p1.x + 3 * u * u * t * c1.x + 3 * u * t * t * c2.x + t * t * t * p2.x,
-        y: u * u * u * p1.y + 3 * u * u * t * c1.y + 3 * u * t * t * c2.y + t * t * t * p2.y,
-      };
-    };
-    const pts: string[] = [];
-    for (let i = 0; i <= steps; i += 1) {
-      const t = i / steps;
-      const p = at(t);
-      const q = at(Math.min(1, t + 0.001));
-      const dx = q.x - p.x;
-      const dy = q.y - p.y;
-      const len = Math.hypot(dx, dy) || 1;
-      // 법선 = 진행 방향을 90° 돌린 것. 끝에서는 흔들림을 0 으로 죽여 노드에 딱 붙게 한다.
-      const taper = Math.sin(Math.PI * t);
-      const off = style === 'wavy'
-        ? Math.sin(t * Math.PI * (steps / 3)) * amp * taper
-        : (i % 2 === 0 ? amp : -amp) * taper;
-      pts.push(`${(p.x - (dy / len) * off).toFixed(2)},${(p.y + (dx / len) * off).toFixed(2)}`);
-    }
-    return `M ${pts.join(' L ')}`;
+    return wobblePath({ p1, c1, c2, p2 }, style, { steps, amp: style === 'wavy' ? 3.5 : 5 });
   }
 
   /**
@@ -2391,7 +2308,7 @@ export class GraphCanvas {
   // ── 그리드 스냅 ─────────────────────────────────────────────────────────────
 
   private snap(v: number): number {
-    return Math.round(v / GRID_SIZE) * GRID_SIZE;
+    return snapTo(v, GRID_SIZE);
   }
 
   // ── 저장 디바운스 ────────────────────────────────────────────────────────────
