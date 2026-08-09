@@ -1,5 +1,5 @@
 {
-  "total": 9250,
+  "total": 9266,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -326,11 +326,12 @@
     "src/widgets/wm/wm.ts": 50,
     "src/widgets/worldcup.ts": 49,
     "src/widgets/youtubedl.ts": 18,
-    "src/widgets-lazy-meta.ts": 380,
+    "src/widgets-lazy-meta.ts": 384,
     "src/workshop-hang.ts": 1,
     "src/world/load-adventures-from-wiki.ts": 4,
     "src/world/load-characters-from-wiki.ts": 8,
     "src/core/passgen.ts": 32,
-    "src/core/chain.ts": 16
+    "src/core/chain.ts": 16,
+    "src/widgets/tools/chain.ts": 12
   }
 }

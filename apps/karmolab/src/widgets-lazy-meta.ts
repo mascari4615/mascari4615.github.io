@@ -221,6 +221,16 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/devtool']
   },
   {
+    id: 'chain',
+    title: '도구 묶어 쓰기',
+    category: 'tool',
+    desc: '도구 여러 개를 이어서 한 번에 — 앞 결과가 다음 도구의 입력이 됩니다',
+    layout: 'wide',
+    icon: '<path d="M9 12a3 3 0 0 1 3-3h2a3 3 0 0 1 0 6h-1M15 12a3 3 0 0 1-3 3h-2a3 3 0 0 1 0-6h1" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>',
+    // CryptoJS 를 같이 싣는다 — 묶음에 해시가 끼면 그때 계산기가 있어야 한다.
+    lazyScriptPaths: ['vendor/crypto-js.min', 'tools/chain']
+  },
+  {
     id: 'base64',
     hidden: true, // 「devtool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
