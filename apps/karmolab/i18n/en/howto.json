@@ -120,5 +120,9 @@
   "howto.video2gif.1": "Play it and mark the start and end",
   "howto.video2gif.2": "Set the width and frames per second",
   "howto.video2gif.3": "Make the GIF and watch the preview",
-  "howto.video2gif.4": "Download it if you like it"
+  "howto.video2gif.4": "Download it if you like it",
+  "howto.pdfredact.0": "Choose a PDF",
+  "howto.pdfredact.1": "Drag over what to hide (move between pages as you go)",
+  "howto.pdfredact.2": "Pick the sharpness",
+  "howto.pdfredact.3": "Download the redacted PDF"
 }

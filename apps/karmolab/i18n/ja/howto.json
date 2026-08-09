@@ -120,5 +120,9 @@
   "howto.video2gif.1": "再生しながら開始点と終了点を決める",
   "howto.video2gif.2": "横幅と1秒あたりの枚数を決める",
   "howto.video2gif.3": "GIF を作ってプレビューを確認",
-  "howto.video2gif.4": "良ければダウンロード"
+  "howto.video2gif.4": "良ければダウンロード",
+  "howto.pdfredact.0": "PDF を選ぶ",
+  "howto.pdfredact.1": "隠す場所をドラッグ（ページを移動しながらでも可）",
+  "howto.pdfredact.2": "鮮明さを選ぶ",
+  "howto.pdfredact.3": "隠した PDF をダウンロード"
 }
