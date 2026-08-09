@@ -20,6 +20,13 @@
       "run"
     ]
   },
+  "charconv": {
+    "ops": [
+      "width",
+      "roman",
+      "jamo"
+    ]
+  },
   "charcount": {
     "ops": [
       "count",

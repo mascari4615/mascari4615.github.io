@@ -1906,6 +1906,52 @@ check(cq.questions.every((q) => choQ0.includes(q.answer) === false), '답을 안
 const choScored = cho.run('today', { at: '2026-08-11T02:00:00Z', answers: cq.questions.map((q) => q.answer).join(',') });
 check(choScored.includes('5/5 맞힘'), 'run 이 채점한다');
 
+// ── ②-37 문자 변환 허브 (눈으로 구분이 안 되는 글자들) ─────────────────────
+const conv = await load('src/core/charconv.ts');
+eq(conv.spec.id, 'charconv', 'charconv spec.id');
+
+/* 전각·반각 — 화면에서는 폭만 다른데 다른 글자다. 검색이 0건 나오는 이유가 대개 이것. */
+eq(conv.toHalfWidth('ＡＢ１２'), 'AB12', '전각 영숫자 → 반각');
+eq(conv.toFullWidth('AB12'), 'ＡＢ１２', '반각 → 전각');
+eq(conv.toHalfWidth('가나'), '가나', '한글은 안 건드린다');
+eq(conv.toHalfWidth('　'), ' ', '전각 공백(U+3000)도 되돌린다');
+eq(conv.toFullWidth(' '), '　', '반대도');
+eq(conv.toHalfWidth(conv.toFullWidth('Hello, World! 123')), 'Hello, World! 123', '갔다 오면 그대로');
+check(conv.hasFullWidth('ABＣ'), '섞인 것을 찾아낸다');
+check(conv.hasFullWidth('ABC') === false, '없으면 없다고');
+
+/* 로마자 — 글자 대응표. 음운 변화는 안 한다는 것을 **답에 적는지**까지 본다. */
+eq(conv.romanize('한글'), 'hangeul', '한글 → hangeul');
+eq(conv.romanize('서울'), 'seoul', '서울');
+eq(conv.romanize('부산'), 'busan', '부산');
+eq(conv.romanize('제주'), 'jeju', '제주');
+eq(conv.romanize('가a나'), 'gaana', '한글 아닌 글자는 그대로 둔다');
+eq(conv.romanize('a1'), 'a1', '영숫자는 그대로');
+
+/* ★ 틀린 값을 맞다고 내놓지 않는다 — 「신라」는 규정상 Silla 인데 우리는 sinla 를 낸다.
+ * 그 사실을 답에 적는 것이 이 도구가 믿을 만해지는 유일한 길이다. */
+eq(conv.romanize('신라'), 'sinra', '음운 변화를 적용하지 않는다 (표대로 ㄹ=r → sinra)');
+check(conv.needsSoundChange('신라'), '소리가 바뀔 자리를 알아본다');
+check(conv.needsSoundChange('바다') === false, '받침이 없으면 걱정 없다');
+check(conv.needsSoundChange('강아지') === false, '뒤가 ㅇ 이면 연음이라 표기가 안 바뀐다');
+const convRoman = conv.run('roman', { text: '신라' });
+check(convRoman.includes('Silla'), `규정 표기를 알려 준다: ${convRoman.split(String.fromCharCode(10)).pop()}`);
+
+/* 자모 — 이미 있는 알맹이를 부른다(두 벌로 만들지 않는다). */
+eq(conv.run('jamo', { text: '한' }), (await load('src/core/jamo.ts')).decompose('한'), 'jamo 알맹이와 같은 답');
+
+const convWidth = conv.run('width', { text: 'ＡＢ' });
+check(convWidth.startsWith('AB'), 'run width');
+check(convWidth.includes('전각 글자가 섞여'), '왜 안 되던 건지 알려 준다');
+
+let convThrew = false;
+try {
+  conv.run('width', { text: '' });
+} catch {
+  convThrew = true;
+}
+check(convThrew, '빈 글은 던진다');
+
 // ── 마무리 ──────────────────────────────────────────────────────────────────
 fs.rmSync(outDir, { recursive: true, force: true });
 process.stdout.write('\n');

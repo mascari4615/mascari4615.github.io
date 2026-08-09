@@ -3,7 +3,7 @@
 **The MCP server for things LLMs quietly get wrong** — exact hashes, real randomness, and Korean rules
 (three different "ages", business-registration checksums, substitute holidays, Hangul keyboard mapping).
 
-**Zero dependencies.** 51 tools. Everything runs locally; nothing is sent anywhere.
+**Zero dependencies.** 54 tools. Everything runs locally; nothing is sent anywhere.
 
 ```bash
 claude mcp add karmolab -- npx -y karmolab-mcp
@@ -27,7 +27,7 @@ An LLM will happily answer these — and be wrong in a way you cannot see:
 
 These are not edge cases. They are the everyday questions where a confident wrong answer costs something.
 
-## Tools (51)
+## Tools (54)
 
 Every tool description is English-first with the Korean original appended, and says *why* the tool
 exists — the failure it prevents — not just what it does.
@@ -41,6 +41,7 @@ exists — the failure it prevents — not just what it does.
 | **Text & data** | `base64_encode` · `base64_decode` · `csvjson_toJson` · `csvjson_toCsv` · `tableconv_convert` · `charcount_count` · `charcount_fits` · `wordfreq_count` | UTF-8-safe Base64 · RFC 4180 CSV (quoted commas survive) · Excel/CSV/Markdown table conversion · character counts by every basis people actually use · word frequency with Korean particle stripping |
 | **Daily games** | `daily_today` · `dailytype_today` · `dailycho_today` | Puzzle date and seed for a daily game, fixed to KST — device timezone cannot split players onto different puzzles · today's Korean typing challenge, scored in 타/분 with the sentences drawn from this site's own tool descriptions · today's 초성 quiz, answers drawn from this site's own tool names |
 | **Chaining** | `chain_run` | Run several tools in order, feeding each result into the next — intermediate values never round-trip through the model (where a single wrong character silently poisons everything after it) |
+| **Character conversion** | `charconv_width` · `charconv_roman` · `charconv_jamo` | Full-width ↔ half-width (ＡＢ vs AB look almost identical but are different code points — the usual reason a search or login silently fails) · Hangul romanization that states it skips sound changes instead of pretending · Hangul ↔ jamo |
 | **Other** | `qrgen_svg` · `qrgen_wifi` · `qrgen_contact` · `grade_gpa` · `grade_needed` · `unitconv_convert` · `unitconv_list` | QR as SVG (WiFi/vCard escaping done right) · Korean GPA (4.5 and 4.3 scales) · units including 평·근·돈·되·말 |
 
 ## Install
@@ -101,7 +102,7 @@ what a user gets.
 
 ## 한국어
 
-**LLM 이 조용히 틀리는 것들을 대신 계산하는 MCP 서버.** 의존성 0개, 도구 51개, 전부 로컬에서 돈다.
+**LLM 이 조용히 틀리는 것들을 대신 계산하는 MCP 서버.** 의존성 0개, 도구 54개, 전부 로컬에서 돈다.
 
 값이 가장 큰 자리는 **한국 규칙**이다 — 나이 세 가지, 사업자등록번호 검증숫자, 대체공휴일,
 한영타·자모, 평·근·돈. 이건 지역 지식이라 모델이 외워서 답하다 어긋난다.
