@@ -580,6 +580,25 @@ await step('공용 글 — 승격하면 목록에 뜨고, 둘째 자리에 붙�
   await page.waitForSelector('[data-km="note-title"]', { timeout: 4000 });
   const counts = await page.locator('.km-group-count').allTextContents();
   if (!counts.some((c) => c.includes('2곳'))) throw new Error('둘째 자리를 붙였는데 2곳짜리 글이 없다: ' + counts.join('/'));
+
+  // 카드만 보고도 「나눠 쓰는 글」임을 알아야 한다 — 모르고 고치면 남의 카드가 바뀐다.
+  await page.waitForFunction(
+    () => [...document.querySelectorAll('.ck-node text')].some((t) => (t.textContent || '').startsWith('🔗2')),
+    null,
+    { timeout: 4000 }
+  );
+  // 쓰는 자리를 한 화면에 모아 준다(둘 이상일 때만 눌린다).
+  await page.locator('[data-km="note-show"]:not([disabled])').first().click();
+  // 「모아 보기」의 증거 = **나머지가 흐려진다**. 노드 수만 세면 아무것도 안 해도 통과한다.
+  await page.waitForFunction(
+    () => {
+      const all = [...document.querySelectorAll('.ck-node')];
+      const dim = all.filter((g) => g.classList.contains('is-dimmed'));
+      return dim.length > 0 && dim.length < all.length;
+    },
+    null,
+    { timeout: 4000 }
+  );
   await page.click('[data-km="tab"][data-key="node"]');
 });
 await step('쪽지 모양 카드는 글이 카드 안에 보인다', async () => {
