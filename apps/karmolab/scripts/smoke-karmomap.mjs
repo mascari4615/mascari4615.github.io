@@ -39,9 +39,13 @@ await step('툴바 버튼 전부 있다', async () => {
     if (await page.locator(`[data-km="${k}"]`).count() === 0) throw new Error(`없음: ${k}`);
   }
 });
+await step('캔버스가 쓸 만한 크기다', async () => {
+  const box = await page.locator('.km-canvas').boundingBox();
+  if (box.height < 320) throw new Error(`캔버스 높이가 ${Math.round(box.height)}px 뿐이다 (툴바가 다 먹었다)`);
+});
 await step('빈 곳 더블클릭 → 노드 생김', async () => {
   const box = await page.locator('.km-canvas').boundingBox();
-  await page.mouse.dblclick(box.x + 400, box.y + 300);
+  await page.mouse.dblclick(box.x + box.width * 0.3, box.y + box.height * 0.35);
   await page.waitForSelector('.ck-node', { timeout: 4000 });
 });
 await step('이름 입력이 노드에 반영', async () => {
@@ -50,7 +54,7 @@ await step('이름 입력이 노드에 반영', async () => {
 });
 await step('두 번째 노드 + 손잡이 드래그로 선 잇기', async () => {
   const box = await page.locator('.km-canvas').boundingBox();
-  await page.mouse.dblclick(box.x + 800, box.y + 500);
+  await page.mouse.dblclick(box.x + box.width * 0.7, box.y + box.height * 0.7);
   await page.fill('[data-km="edit-label"]', '링');
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 2, null, { timeout: 4000 });
   const first = page.locator('.ck-node').first();
@@ -71,9 +75,13 @@ await step('되돌리기 버튼이 살아난다', async () => {
   if (disabled) throw new Error('undo 가 여전히 꺼져 있다');
 });
 await step('배경 무늬 전환', async () => {
+  await page.click('[data-km="more"]');
   await page.selectOption('[data-km="bg"]', 'grid');
   const fill = await page.locator('.ck-bg').getAttribute('fill');
   if (!fill?.includes('grid')) throw new Error(`배경이 안 바뀜: ${fill}`);
+  // 서랍은 열어 두면 아래 단계의 클릭을 가로챈다 — 같은 버튼으로 닫고 넘어간다.
+  await page.click('[data-km="more"]');
+  await page.waitForSelector('[data-km="drawer"].hidden', { timeout: 4000 });
 });
 await step('어휘 팩 전환 (관계도)', async () => {
   await page.selectOption('[data-km="pack"]', 'relation');
@@ -93,9 +101,12 @@ await step('내 용어 패널에서 관계 종류 추가', async () => {
   await page.click('[data-km="t-close"]');
 });
 await step('찾기 → 포커스가 걸린다', async () => {
+  // 노드 둘이 서로 이어져 있으므로 「1다리」로 보면 둘 다 포함된다 — 「고른 것만」으로 본다.
+  await page.selectOption('[data-km="degree"]', '0');
   await page.fill('[data-km="find"]', '욘');
   await page.waitForFunction(() => document.querySelectorAll('.ck-node.is-dimmed').length > 0, null, { timeout: 4000 });
   await page.fill('[data-km="find"]', '');
+  await page.selectOption('[data-km="degree"]', '');
 });
 await step('발표 모드 진입 / 나가기', async () => {
   await page.click('[data-km="story"]');
@@ -112,6 +123,8 @@ await step('PNG 내보내기가 파일을 만든다', async () => {
   const ids = await page.locator('[data-km="maps"] option').evaluateAll((os) => os.map((o) => o.value));
   await page.selectOption('[data-km="maps"]', ids[0]);
   await page.waitForSelector('.ck-node', { timeout: 4000 });
+  await page.click('[data-km="more"]');
+  await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { timeout: 4000 });
   const [download] = await Promise.all([
     page.waitForEvent('download', { timeout: 8000 }),
     page.click('[data-km="png"]'),

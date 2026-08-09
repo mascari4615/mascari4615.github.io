@@ -55,8 +55,8 @@ import {
   Mdd.injectCSS(
     'karmomap',
     `
-    .km-root { display:flex; flex-direction:column; height:100%; width:100%; min-height:520px; overflow:hidden; }
-    .km-toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:10px 12px;
+    .km-root { display:flex; flex-direction:column; height:100%; width:100%; min-height:680px; overflow:hidden; }
+    .km-toolbar { display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:8px 12px;
       border-bottom:1px solid var(--border); background:var(--bg-secondary); flex-shrink:0; }
     .km-toolbar input[type=text], .km-toolbar select, .km-side select, .km-side input[type=text] {
       background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-primary);
@@ -65,7 +65,9 @@ import {
     .km-toolbar input[data-km="find"] { min-width:130px; }
     .km-spacer { flex:1; }
     .km-body { flex:1; display:flex; min-height:0; }
-    .km-canvas { flex:1; position:relative; min-width:0; background:var(--bg-tertiary); }
+        /* ★ 캔버스 최소 높이 — 툴바가 줄바꿈으로 커지면 flex 가 캔버스부터 깎는다.
+       실측 2026-08-09: 툴바가 커지며 캔버스가 156px 로 눌려 더블클릭이 화면 밖으로 나갔다. */
+    .km-canvas { flex:1; position:relative; min-width:0; min-height:420px; background:var(--bg-tertiary); }
     .km-side { width:264px; flex-shrink:0; border-left:1px solid var(--border); background:var(--bg-secondary);
       padding:12px; overflow-y:auto; font-size:var(--font-size-xs); }
     .km-side.hidden { display:none; }
@@ -90,6 +92,13 @@ import {
       border-radius:var(--radius-sm); background:var(--bg-tertiary); cursor:pointer; }
     .km-avatar-row .btn { padding:4px 8px; }
     .km-tilt-val { color:var(--text-tertiary); }
+    .km-more { position:relative; }
+    .km-drawer { position:absolute; right:0; top:calc(100% + 6px); z-index:20; min-width:190px;
+      display:flex; flex-direction:column; gap:4px; padding:8px; border:1px solid var(--border);
+      border-radius:var(--radius-sm); background:var(--bg-secondary); box-shadow:0 8px 24px rgba(0,0,0,.35); }
+    .km-drawer.hidden { display:none; }
+    .km-drawer label { display:flex; flex-direction:column; gap:4px; font-size:11px; color:var(--text-secondary); }
+    .km-drawer hr { border:none; border-top:1px solid var(--border); margin:4px 0; }
     .km-check { display:flex; align-items:center; gap:6px; padding:2px 0; color:var(--text-primary); cursor:pointer; }
     .km-check input { width:auto; }
     .km-swatch { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
@@ -190,9 +199,6 @@ import {
         <div class="km-toolbar">
           <select data-km="maps" title="맵 고르기"></select>
           <button class="btn btn-ghost" data-km="map-new" title="새 맵">+</button>
-          <button class="btn btn-ghost" data-km="map-copy" title="이 맵 복제">⧉</button>
-          <button class="btn btn-ghost" data-km="map-rename" title="이름 바꾸기">✎</button>
-          <button class="btn btn-ghost" data-km="map-del" title="이 맵 삭제">🗑</button>
           <select data-km="pack" title="어휘 팩 — 같은 캔버스, 다른 말">
             ${PACKS.map((p) => `<option value="${p.id}"${p.id === pack.id ? ' selected' : ''}>${p.icon} ${p.label}</option>`).join('')}
           </select>
@@ -207,22 +213,34 @@ import {
             <option value="1">1다리</option>
             <option value="2">2다리</option>
           </select>
-          <button class="btn btn-ghost" data-km="groups" title="묶음 관리">🫧 묶음</button>
-          <button class="btn btn-ghost" data-km="terms" title="내 용어 — 팩에 없는 종류 만들기">🏷 용어</button>
+          <button class="btn btn-ghost" data-km="groups" title="묶음 관리">🫧</button>
+          <button class="btn btn-ghost" data-km="terms" title="내 용어 — 팩에 없는 종류 만들기">🏷</button>
           <button class="btn btn-ghost" data-km="undo" title="되돌리기 (Ctrl+Z)" disabled>↶</button>
           <button class="btn btn-ghost" data-km="redo" title="다시 하기 (Ctrl+Y)" disabled>↷</button>
-          <select data-km="bg" title="배경 무늬">
-            <option value="dots">· 점</option>
-            <option value="grid">▦ 모눈</option>
-            <option value="cross">✛ 십자</option>
-            <option value="none">□ 없음</option>
-          </select>
-          <button class="btn btn-ghost" data-km="fit">화면 맞춤</button>
-          <button class="btn btn-ghost" data-km="story" title="발표 모드 — 볼 것을 몇 장으로 나눠 차례로">▶ 발표</button>
-          <button class="btn btn-ghost" data-km="png" title="보이는 그대로 PNG 로 (2배 해상도)">🖼 그림</button>
-          <button class="btn btn-ghost" data-km="export">내보내기</button>
-          <button class="btn btn-ghost" data-km="import">가져오기</button>
-          <button class="btn btn-danger" data-km="clear">전체 삭제</button>
+          <button class="btn btn-ghost" data-km="fit" title="화면 맞춤">⤢</button>
+          <button class="btn btn-ghost" data-km="story" title="발표 모드 — 볼 것을 몇 장으로 나눠 차례로">▶</button>
+          <div class="km-more">
+            <button class="btn btn-ghost" data-km="more" title="더 보기">⋯</button>
+            <div class="km-drawer hidden" data-km="drawer">
+              <label>배경 무늬
+                <select data-km="bg">
+                  <option value="dots">· 점</option>
+                  <option value="grid">▦ 모눈</option>
+                  <option value="cross">✛ 십자</option>
+                  <option value="none">□ 없음</option>
+                </select>
+              </label>
+              <button class="btn btn-ghost" data-km="png">🖼 그림으로 저장</button>
+              <button class="btn btn-ghost" data-km="export">JSON 내보내기</button>
+              <button class="btn btn-ghost" data-km="import">JSON 가져오기</button>
+              <hr />
+              <button class="btn btn-ghost" data-km="map-copy">⧉ 이 맵 복제</button>
+              <button class="btn btn-ghost" data-km="map-rename">✎ 맵 이름 바꾸기</button>
+              <button class="btn btn-ghost" data-km="map-del">🗑 이 맵 삭제</button>
+              <hr />
+              <button class="btn btn-danger" data-km="clear">전체 삭제</button>
+            </div>
+          </div>
           <input type="file" accept="application/json,.json" data-km="file" hidden />
           <input type="file" accept="image/*" data-km="img" hidden />
         </div>
@@ -1255,6 +1273,22 @@ import {
       sideMode = sideMode === 'terms' ? 'node' : 'terms';
       renderSide();
     };
+
+    // 「⋯ 더 보기」 서랍 — 자주 안 쓰는 것은 여기로 넣어 툴바가 캔버스를 잡아먹지 않게 한다.
+    const drawerEl = q<HTMLElement>('drawer');
+    q<HTMLButtonElement>('more').onclick = (ev) => {
+      ev.stopPropagation();
+      drawerEl.classList.toggle('hidden');
+    };
+    // 서랍 안의 **버튼**을 누르면 할 일이 끝난 것이니 닫는다. 배경 무늬 같은 고르기(select)는
+    // 연달아 바꿔 보게 열어 둔다.
+    drawerEl.onclick = (ev) => {
+      ev.stopPropagation();
+      if ((ev.target as HTMLElement).closest('button')) drawerEl.classList.add('hidden');
+    };
+    function closeDrawer(): void { drawerEl.classList.add('hidden'); }
+    document.addEventListener('click', closeDrawer);
+    Toolbox.onDispose?.(() => document.removeEventListener('click', closeDrawer));
 
     q<HTMLButtonElement>('groups').onclick = () => {
       sideMode = sideMode === 'groups' ? 'node' : 'groups';

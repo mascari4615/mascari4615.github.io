@@ -277,7 +277,11 @@ export class GraphCanvas {
     // touch-action:none — 안 주면 브라우저가 손가락 끌기를 「페이지 스크롤」로 먼저 먹어서
     // 터치 기기에서 노드가 안 끌린다(마우스로만 되니 개발 중엔 안 보인다).
     // color — 배경 무늬가 currentColor 를 쓴다. 테마 글자색을 따라가야 밝은/어두운 판 둘 다 산다.
-    this.svg.style.cssText = 'width:100%;height:100%;cursor:grab;touch-action:none;color:var(--text-primary,#cbd5e1);';
+    // ★ absolute inset:0 — `height:100%` 는 부모가 **높이를 지정했을 때만** 먹는다.
+    //   부모가 flex 나 min-height 로 커진 경우엔 % 기준이 없어 svg 가 내용 높이(작게)로 남고,
+    //   아랫부분을 눌러도 클릭이 svg 에 안 닿는다 — 화면은 멀쩡해 보이는데 아래쪽만 죽는다
+    //   (실측 2026-08-09: 캔버스 420px 인데 svg 는 그보다 짧아 하단 더블클릭이 무시됐다).
+    this.svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none;color:var(--text-primary,#cbd5e1);';
     this.svg.setAttribute('xmlns', SVG_NS);
 
     // defs (마커·필터) — id 는 전역 고정. 캔버스가 여러 개여도 정의가 동일하므로
