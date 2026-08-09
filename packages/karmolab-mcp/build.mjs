@@ -123,6 +123,15 @@ if (fs.existsSync(serverJsonPath)) {
     if (entry.version !== pkgVersion) mismatches.push(`packages[].version ${entry.version} ≠ ${pkgVersion}`);
     if (entry.identifier !== pkgName) mismatches.push(`packages[].identifier ${entry.identifier} ≠ ${pkgName}`);
   }
+  /*
+   * 레지스트리는 설명문을 **100자까지만** 받는다 (2026-08-10, 등재가 여기서 422 로 튕겼다).
+   * npm 쪽 설명문은 더 길어도 되므로 둘은 같을 수 없다 — 그래서 여기서 길이를 지킨다.
+   * 발행 워크플로 끝까지 갔다가 마지막 한 줄로 튕기는 것보다, 빌드에서 미리 멈추는 게 싸다.
+   */
+  if ((reg.description ?? '').length > 100) {
+    mismatches.push(`description 이 ${reg.description.length}자 — 레지스트리 상한은 100자`);
+  }
+
   if (mismatches.length > 0) {
     console.error(`[karmolab-mcp] server.json 이 package.json 과 갈렸다: ${mismatches.join(' · ')}`);
     process.exit(1);
