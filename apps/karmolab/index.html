@@ -139,6 +139,20 @@ permalink: /karmolab/
     <link rel="stylesheet" href="/apps/karmolab/css/shell-critical.css">
     <link rel="stylesheet" href="/apps/karmolab/css/shell-deferred.css" media="print" onload="this.media=&#39;all&#39;">
     <noscript><link rel="stylesheet" href="/apps/karmolab/css/shell-deferred.css"></noscript>
+    <!-- 화면이 바뀔 때 **흰 화면이 깜빡이지 않게** (TASK-KL-208).
+         도구 상세는 131장이 각자 별개 페이지라, 목록에서 하나를 누르면 문서를 통째로 갈아
+         끼우는 동안 흰 판이 한 번 번쩍인다 — 앱처럼 생긴 사이트에서 그 순간만 「웹페이지」로
+         돌아간다. 아래 두 줄이면 브라우저가 두 페이지 사이를 이어 그린다. 자바스크립트 0.
+         모르는 브라우저(파이어폭스, 진행 중)는 이 덩어리를 그냥 무시한다 — 지금과 똑같이 동작.
+         머리띠에 이름을 주면 그 자리는 **넘어가는 동안 그대로 남는다**(같이 사라졌다 나타나지
+         않는다) — 이름은 문서에 하나뿐이어야 하므로 머리띠 하나에만 준다.
+         인라인으로 둔 이유: 이 몇 줄이 늦게 오면 첫 이동에서만 전환이 빠진다. 200바이트다. -->
+    <style>
+      @view-transition { navigation: auto; }
+      /* 움직임을 줄여 달라고 한 사람에게는 전환을 걸지 않는다. */
+      @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
+      #headerBar { view-transition-name: kl-header; }
+    </style>
     <!-- 도구 화면용 스타일은 **첫 화면에서 한 줄도 안 쓰인다** (실측 0%) — 그런데 통째로
          화면 그리기를 막고 있었다 (TASK-KL-128 ④-c). 첫 화면은 앱 셸이고, 이 둘은 그 안에서
          도구를 열었을 때부터 필요하다. 그리기를 막지 않게 걸어 두고 바로 이어서 켠다 —
