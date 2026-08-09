@@ -4,52 +4,20 @@
  * 봇 아트 씬(Botwiki 가 「art bot = 봇이기 위한 봇」이라 부르는 갈래)을 다섯 갈래로 갈라
  * 한 갈래에 하나씩 세웠다. 갈래를 채우는 게 목적이라 서로 안 닮게 골랐다:
  *
- *   박동형 — 고정 주기로 무의미한 신호            → 세 글자 · 종(소리)
+ *   글자형 — 뜻 없는 글자가 흐르다 **가끔 진짜 낱말**  → `letters.ts` (이 도구의 중심)
+ *   박동형 — 고정 주기로 무의미한 신호            → 종(소리)
  *   눈금형 — 세상이 얼마나 지나갔는지 계속 알려줌   → 눈금
  *   소진형 — 유한한 목록을 끝까지 다 뱉고 **끝남**  → 낱말(넉 달) · 음절(7년 8개월)
  *   말뭉치형 — 재료 + 규칙 = 무한 변주             → 한 줄
  *   주술형 — 보는 사람이 제 의미를 갖다 붙임        → 점 (+ 세 글자의 「나만의 것」)
- *   그림형 — 그리지 않으면 흉내가 안 나는 것        → `art.ts` (별밭·어항·뜰·나방·섬)
+ *   그림형 — 그리지 않으면 흉내가 안 나는 것        → `art.ts` (별밭 하나만 남음)
  *
  * 전부 `beat(tick)` 하나로 끝난다 — 저장도, 통신도, 서버도 없다.
  */
 import type { Beat, Channel } from './core';
 import { ART_CHANNELS, bellPaint, gaugePaint } from './art';
+import { LETTER_CHANNELS } from './letters';
 import { DAY, HOUR, MINUTE, dateOf, pick, rngFor, tickOf, tickStart } from './core';
-
-const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const LOWER = 'abcdefghijklmnopqrstuvwxyz';
-
-/* ── 박동형 ①: 세 글자 ─────────────────────────────────────────
-   원본 `@3letter_` 의 몸통은 「Tvh」「Pat」처럼 첫 자만 대문자다. 그 모양을 지킨다.
-   가끔 진짜 단어가 튀어나오는데(Pat, Sun), 그 우연이 이 봇의 전부다. */
-
-function threeLetters(rand: () => number): string {
-  return (
-    UPPER[Math.floor(rand() * 26)] +
-    LOWER[Math.floor(rand() * 26)] +
-    LOWER[Math.floor(rand() * 26)]
-  );
-}
-
-const letters: Channel = {
-  id: 'letters',
-  name: '세 글자',
-  glyph: '🔤',
-  period: 10 * MINUTE,
-  tile: 'unit',
-  blurb: '10분마다 세 글자. 뜻은 없다.',
-  lineage: '@3letter_ — 「3 random letters every 10 mins」',
-  beat(tick) {
-    return { line: threeLetters(rngFor('letters', tick)), sub: '지금 이걸 보고 있는 모두가 같은 세 글자를 본다' };
-  },
-  personal(seed) {
-    return {
-      line: threeLetters(rngFor('letters/personal', seed)),
-      sub: `${seed} 의 세 글자 — 이건 안 바뀐다`
-    };
-  }
-};
 
 /* ── 박동형 ②: 종 ──────────────────────────────────────────────
    `@big_ben_clock` 은 2009년부터 정각마다 BONG 을 시각 수만큼 쳤다. 48만 명이 그걸 본다.
@@ -597,18 +565,14 @@ const spot: Channel = {
 /* 순서 = 벤토에 놓이는 순서. 그림과 신호를 번갈아 둔다 — 그림끼리 몰아 두면
    한쪽은 화보가 되고 반대쪽은 계기판이 된다. */
 export const CHANNELS: readonly Channel[] = [
-  ART_CHANNELS[0], // 별밭
-  letters,
+  ...LETTER_CHANNELS, // 세 글자(영)·세 글자(한)·네 글자(영)·네 글자(한)·기호 — 이 도구의 중심
   bell,
-  ART_CHANNELS[1], // 어항
   gauge,
   syllable,
-  ART_CHANNELS[2], // 뜰
   word,
-  ART_CHANNELS[3], // 나방
   sentence,
-  ART_CHANNELS[4], // 섬
-  spot
+  spot,
+  ...ART_CHANNELS // 별밭 하나 — 글자 사이에서 숨 돌리는 자리
 ];
 
 export type { Beat, Channel };
