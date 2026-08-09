@@ -204,9 +204,18 @@ scan();
 const reblank = () => scan();
 
 const catalog = {};
-const used = new Set();
+/* **이미 있는 말 묶음에 얹을 때는 번호를 이어서 매긴다.**
+ * 한 묶음을 파일 여러 개가 나눠 쓰는 판이 있다(`chatbot.ts` + `chatbot/characters.ts`).
+ * 그때 `t01` 부터 다시 매기면 **앞 파일의 열쇠를 덮어쓴다** — ko 만 바뀌고 en/ja 는 옛 뜻이라
+ * 세 언어가 서로 다른 말을 하게 된다(실제로 그렇게 깨졌다). 그래서 기존 최대 번호 다음부터. */
+const usedFile = path.join(ROOT, 'i18n/ko', `${ns}.json`);
+const existing = fs.existsSync(usedFile) ? JSON.parse(fs.readFileSync(usedFile, 'utf8')) : {};
+const used = new Set(Object.keys(existing));
 const leftovers = [];
-let seq = 0;
+let seq = Object.keys(existing).reduce((max, k) => {
+  const m = /\.t(\d+)$/.exec(k);
+  return m ? Math.max(max, Number(m[1])) : max;
+}, 0);
 
 /** 같은 글은 같은 열쇠를 쓴다 — 안 그러면 번역을 두 번 쓰게 된다. */
 const byText = new Map();

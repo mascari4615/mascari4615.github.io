@@ -1,3 +1,5 @@
+import { t } from '../../lib/i18n';
+
 /** 캐릭터 저장소·폼·모달 (chatbot.js에서 세션·전송과 연동) */
 (function () {
     type Char = ChatbotCharacter & {
@@ -30,8 +32,8 @@
     function defaultCharacterSeed(): Char {
         return {
             id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
-            name: '새 캐릭터',
-            userName: '사용자',
+            name: t('chatbot.t71'),
+            userName: t('chatbot.t72'),
             userNote: '',
             visualDescription: '',
             description: '',
@@ -44,7 +46,7 @@
 
     /** SillyTavern Character Card V2/V3 `data` 또는 이 위젯 내보내기 JSON → 내부 캐릭터 객체 (항상 새 id) */
     function mapImportedJsonToCharacter(obj: Record<string, unknown> | null | undefined): Char {
-        if (!obj || typeof obj !== 'object') throw new Error('JSON이 아닙니다.');
+        if (!obj || typeof obj !== 'object') throw new Error(t('chatbot.err.73'));
         const str = (x: unknown): string => (x == null ? '' : String(x)).trim();
         if (obj.spec === 'karmochat_character_v1' && obj.data && typeof obj.data === 'object') {
             const d = obj.data as Record<string, unknown>;
@@ -67,7 +69,7 @@
         if (!d || typeof d !== 'object') {
             if (obj.name != null || obj.description != null || obj.personality != null) d = obj as Record<string, unknown>;
         }
-        if (!d || typeof d !== 'object') throw new Error('캐릭터 data 블록을 찾을 수 없습니다. (SillyTavern V2 JSON인지 확인)');
+        if (!d || typeof d !== 'object') throw new Error(t('chatbot.err.74'));
         const name = str(d.name) || '가져온 캐릭터';
         let description = str(d.description);
         const sp = str(d.system_prompt);
@@ -88,7 +90,7 @@
         return {
             id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
             name,
-            userName: '사용자',
+            userName: t('chatbot.t72'),
             userNote: notes,
             visualDescription,
             description,
@@ -102,7 +104,7 @@
     function exportCurrentCharacterToJsonFile(): void {
         const ch = readCharacterFromForm();
         if (!ch) {
-            Toolbox.showToast!('내보낼 캐릭터가 없습니다.', 'error');
+            Toolbox.showToast!(t('chatbot.t75'), 'error');
             return;
         }
         const exportObj = {
@@ -127,11 +129,11 @@
         a.download = `karmochat-${safe}-${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
         URL.revokeObjectURL(a.href);
-        Toolbox.showToast!('캐릭터 JSON을 내보냈습니다.');
+        Toolbox.showToast!(t('chatbot.t76'));
     }
 
     async function zlibInflateZtxChunk(compressed: Uint8Array): Promise<Uint8Array> {
-        if (typeof DecompressionStream === 'undefined') throw new Error('이 브라우저는 PNG zTXt 압축 해제를 지원하지 않습니다.');
+        if (typeof DecompressionStream === 'undefined') throw new Error(t('chatbot.err.77'));
         const ds = new DecompressionStream('deflate');
         const buf = await new Response(new Blob([compressed as BlobPart]).stream().pipeThrough(ds)).arrayBuffer();
         return new Uint8Array(buf);
@@ -190,7 +192,7 @@
         if (u8.length >= 8 && u8[0] === 0x89 && u8[1] === 0x50 && u8[2] === 0x4E && u8[3] === 0x47) {
             const obj = await extractCharaObjectFromPngBuffer(buffer);
             if (obj) return obj;
-            throw new Error('PNG에 chara 메타데이터가 없습니다. (SillyTavern에서 내보낸 카드 PNG인지 확인)');
+            throw new Error(t('chatbot.err.78'));
         }
         const text = new TextDecoder('utf-8').decode(buffer);
         return JSON.parse(text) as Record<string, unknown>;
@@ -211,7 +213,7 @@
             localStorage.setItem(CHARACTERS_KEY, JSON.stringify(list));
         } catch (e) {
             console.warn('saveCharacterList', e);
-            Toolbox.showToast!('캐릭터 저장 실패(용량 초과 등). 참조 이미지를 줄여 보세요.', 'error');
+            Toolbox.showToast!(t('chatbot.t79'), 'error');
         }
     }
 
@@ -238,38 +240,38 @@
         return [
             {
                 id: 'c_mascot_yon',
-                name: '욘 (Yawn)',
-                userName: '조수님',
-                userNote: '이미지 생성 캐릭터 프리셋「마녀 욘」과 같은 설정.',
+                name: t('chatbot.t80'),
+                userName: t('chatbot.t81'),
+                userNote: t('chatbot.t82'),
                 visualDescription: 'Young adult witch Yawn, very slender petite, messy orange hair, half-lidded sleepy eyes, short thick eyebrows (maro-mayu), round glasses, slight blush, drooping nightcap, large fluffy sleeping earmuffs with orange spiral pattern, oversized loose witch robe, introverted cute atmosphere, soft colors, anime style',
-                description: '나무 마법 저택에 사는 잠 많은 마녀. 알리사·링과 같은 저택 세계관.',
-                personality: '늘어지고 하품이 많지만 속은 따뜻하다. 귀찮은 듯 말하지만 챙겨 준다. 한국어로 말한다.',
-                scenario: '따뜻한 마법 저택 거실이나 실험실에서 조수와 이야기 중.',
-                firstMes: '…응, 조수님. 나 아직 살아 있어. 오늘은 뭐 할 거야? 나는… 일단 소파.',
+                description: t('chatbot.t83'),
+                personality: t('chatbot.t84'),
+                scenario: t('chatbot.t85'),
+                firstMes: t('chatbot.t86'),
                 referenceImageDataUrl: ''
             },
             {
                 id: 'c_mascot_alisa',
-                name: '알리사',
-                userName: '조수님',
-                userNote: '이미지 생성 캐릭터 프리셋「메이드 알리사」와 같은 설정.',
+                name: t('chatbot.t87'),
+                userName: t('chatbot.t81'),
+                userNote: t('chatbot.t88'),
                 visualDescription: 'Cute maid Alisa, sharp intellectual eyes, stylish glasses (megane), stoic cool beauty expression, black ponytail, classic black and white maid outfit, large magical broomstick, dynamic posing, anime style, detailed',
-                description: '저택을 돌보는 메이드. 냉정하고 똑똑해 보이지만 직무에는 성실하다.',
-                personality: '차분하고 간결한 말투. 감정 표현은 적지만 툭툭 챙겨 준다. 한국어로 말한다.',
-                scenario: '마법 저택에서 청소·정리·조수의 실험 보조를 맡고 있다.',
-                firstMes: '조수님, 오늘 할 일 목록입니다. …빵 부스러기는 치울 테니 책상은 비워 주세요.',
+                description: t('chatbot.t89'),
+                personality: t('chatbot.t90'),
+                scenario: t('chatbot.t91'),
+                firstMes: t('chatbot.t92'),
                 referenceImageDataUrl: ''
             },
             {
                 id: 'c_mascot_ling',
-                name: '링 (Ling)',
-                userName: '조수님',
-                userNote: '이미지 생성 캐릭터 프리셋「강시 링」과 같은 설정.',
+                name: t('chatbot.t93'),
+                userName: t('chatbot.t81'),
+                userNote: t('chatbot.t94'),
                 visualDescription: 'Beautiful Jiangshi Chinese vampire maid girl Ling, innocent baby face, mischievous smile, glamorous curvy body, dark brown hair in cute twin buns, black Qipao-Maid fusion dress form-fitting with frills, yellow paper talisman on forehead, floating pose, anime style, white background friendly',
-                description: '강시(殭屍) 혈통의 메이드. 이마 부적과 장난기 많은 성격이 특징.',
-                personality: '애교와 장난이 많고, 가끔 수줍은 척한다. 한국어로 말한다.',
-                scenario: '저택에서 알리사와 함께 일하며 조수를 골탕 먹이기도 한다.',
-                firstMes: '조수님 왔어요~? 오늘 저랑 놀아줄 거죠? …농담이에요. 아마도.',
+                description: t('chatbot.t95'),
+                personality: t('chatbot.t96'),
+                scenario: t('chatbot.t97'),
+                firstMes: t('chatbot.t98'),
                 referenceImageDataUrl: ''
             }
         ];
@@ -304,20 +306,20 @@
         const user = char.userName || '사용자';
         const charName = char.name || '캐릭터';
         const parts = [
-            '[역할]',
-            `당신은 아래 캐릭터 "${charName}"으로 롤플레이합니다. 대사와 서술에 몰입하되, 사용자의 실제 질문·업무 요청에는 정확히 대답합니다.`,
+            t('chatbot.t99'),
+            t('chatbot.rp.intro', { name: charName }),
             '',
-            '[플레이어 / {{user}}]',
-            `이름: ${user}`,
-            char.userNote ? `설명: ${char.userNote}` : '',
+            t('chatbot.t100'),
+            t('chatbot.rp.name', { value: user }),
+            char.userNote ? t('chatbot.rp.note', { value: char.userNote }) : '',
             '',
-            `[캐릭터 / {{char}} — ${charName}]`,
-            char.description ? `설정: ${char.description}` : '',
-            char.personality ? `성격: ${char.personality}` : '',
-            char.scenario ? `상황: ${char.scenario}` : '',
-            char.visualDescription ? `외형(이미지·일관성용, 대사에 그대로 읊지 말 것): ${char.visualDescription}` : '',
+            t('chatbot.rp.charHead', { name: charName }),
+            char.description ? t('chatbot.rp.desc', { value: char.description }) : '',
+            char.personality ? t('chatbot.rp.personality', { value: char.personality }) : '',
+            char.scenario ? t('chatbot.rp.scenario', { value: char.scenario }) : '',
+            char.visualDescription ? t('chatbot.rp.visual', { value: char.visualDescription }) : '',
             '',
-            '캐릭터의 말투를 유지하세요. 한국어를 기본으로 사용합니다.'
+            t('chatbot.t101')
         ];
         return parts.filter(Boolean).join('\n');
     }
@@ -428,7 +430,7 @@
         populateCharacterSelectOptions();
         const selAfter = byId<HTMLSelectElement>('cbCharacterSelect');
         if (selAfter) selAfter.value = ch.id;
-        Toolbox.showToast!('캐릭터 저장됨');
+        Toolbox.showToast!(t('chatbot.t102'));
         updateChatHeaderTitle();
         updateCharProfilePreview();
     }
@@ -438,7 +440,7 @@
         const charSel = byId<HTMLSelectElement>('cbCharacterSelect');
         if (!el || !charSel) return;
         const ch = getCharacterById(charSel.value);
-        el.textContent = ch ? `💬 ${ch.name}` : '💬 챗봇';
+        el.textContent = ch ? t('chatbot.charBadge', { name: ch.name ?? '' }) : t('chatbot.t103');
     }
 
     function openCharEditModal(): void {
@@ -524,14 +526,14 @@
             if (charSel) charSel.value = n.id;
             applyCharacterFormFromSelection();
             updateChatHeaderTitle();
-            Toolbox.showToast!('새 캐릭터 — 내용을 채운 뒤 저장하세요');
+            Toolbox.showToast!(t('chatbot.t104'));
         });
         byId<HTMLButtonElement>('cbCharDel')?.addEventListener('click', () => {
             if (!charSel?.value) return;
-            if (!confirm('이 캐릭터를 삭제할까요?')) return;
+            if (!confirm(t('chatbot.t105'))) return;
             const list = loadCharacterList().filter(c => c.id !== charSel.value);
             if (!list.length) {
-                Toolbox.showToast!('마지막 캐릭터는 삭제할 수 없습니다.', 'error');
+                Toolbox.showToast!(t('chatbot.t106'), 'error');
                 return;
             }
             saveCharacterList(list);
@@ -562,8 +564,8 @@
         byId<HTMLButtonElement>('cbCharFirstBtn')?.addEventListener('click', () => {
             const ch = getCharacterById(charSel?.value ?? '');
             const fm = ch?.firstMes?.trim();
-            if (!fm) { Toolbox.showToast!('첫 인사가 비어 있습니다.', 'error'); return; }
-            if (getChatHistoryLength && getChatHistoryLength() > 0) { Toolbox.showToast!('대화가 이미 있을 때는 넣지 않습니다.', 'error'); return; }
+            if (!fm) { Toolbox.showToast!(t('chatbot.t107'), 'error'); return; }
+            if (getChatHistoryLength && getChatHistoryLength() > 0) { Toolbox.showToast!(t('chatbot.t108'), 'error'); return; }
             if (appendBotFirstMes) appendBotFirstMes(fm);
         });
 
@@ -586,7 +588,7 @@
             reader.onload = async () => {
                 try {
                     const buffer = reader.result;
-                    if (!buffer || !(buffer instanceof ArrayBuffer)) throw new Error('파일을 읽지 못했습니다.');
+                    if (!buffer || !(buffer instanceof ArrayBuffer)) throw new Error(t('chatbot.err.109'));
                     const obj = await parseCharacterImportFile(buffer);
                     let ch = mapImportedJsonToCharacter(obj);
                     const overwrite = byId<HTMLInputElement>('cbCharImportOverwrite')?.checked;
@@ -598,7 +600,7 @@
                         if (idx >= 0) list[idx] = ch;
                         else list.push(ch);
                         saveCharacterList(list);
-                        Toolbox.showToast!(`캐릭터를 덮어썼습니다: ${ch.name}`);
+                        Toolbox.showToast!(t('chatbot.charOverwritten', { name: ch.name ?? '' }));
                     } else {
                         list.push(ch);
                         saveCharacterList(list);
@@ -612,10 +614,10 @@
                     updateCharProfilePreview();
                 } catch (err) {
                     const msg = (err && typeof err === 'object' && 'message' in err) ? String((err as { message: unknown }).message) : String(err);
-                    Toolbox.showToast!('가져오기 실패: ' + msg, 'error');
+                    Toolbox.showToast!(t('chatbot.t110') + msg, 'error');
                 }
             };
-            reader.onerror = () => Toolbox.showToast!('파일을 읽지 못했습니다.', 'error');
+            reader.onerror = () => Toolbox.showToast!(t('chatbot.err.109'), 'error');
             reader.readAsArrayBuffer(f);
         });
         byId<HTMLButtonElement>('cbCharExportBtn')?.addEventListener('click', () => exportCurrentCharacterToJsonFile());

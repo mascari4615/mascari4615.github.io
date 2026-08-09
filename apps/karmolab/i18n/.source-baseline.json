@@ -1,5 +1,5 @@
 {
-  "total": 4898,
+  "total": 4845,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -73,7 +73,7 @@
     "src/widgets/bounce.ts": 6,
     "src/widgets/bubble.ts": 8,
     "src/widgets/chat.ts": 34,
-    "src/widgets/chatbot/characters.ts": 64,
+    "src/widgets/chatbot/characters.ts": 11,
     "src/widgets/chatbot/chatbot.ts": 5,
     "src/widgets/chatbot/karmo-image.ts": 10,
     "src/widgets/chatbot/markdown.ts": 1,
