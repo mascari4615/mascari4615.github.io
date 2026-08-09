@@ -196,5 +196,9 @@
   "howto.pdfsign.0": "Add the contract (PDF)",
   "howto.pdfsign.1": "Draw your signature with a mouse or a finger",
   "howto.pdfsign.2": "Pick the page and click the spot in the preview",
-  "howto.pdfsign.3": "Set the size, then sign and download"
+  "howto.pdfsign.3": "Set the size, then sign and download",
+  "howto.hashgen.0": "Text tab — type a string, six hashes at once",
+  "howto.hashgen.1": "Copy any row",
+  "howto.hashgen.2": "File tab — drop a file in",
+  "howto.hashgen.3": "Paste the expected checksum to confirm a match"
 }
