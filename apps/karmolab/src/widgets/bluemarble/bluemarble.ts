@@ -18,11 +18,11 @@
 import { t, loadNamespace, fmtRelative } from '../../lib/i18n';
 import { CITIES } from './cities';
 import { subsolar, toVec, distanceKm } from './sky';
-import { quakes, quakesOn, aurora, kpIndex, iss, launches, issOmm, type Quake, type AuroraPoint, type IssFix, type Launch } from './sources';
+import { quakes, quakesOn, aurora, kpIndex, iss, launches, issOmm, catalog, type Quake, type AuroraPoint, type IssFix, type Launch } from './sources';
 import { paintSurface, type Tex, type Region, type View as SurfaceView } from './surface';
 import { loadTex, loadClouds, loadCloudsOn } from './textures';
 import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
-import { elementsFrom, propagate, nextPass, type Elements, type Pass } from './orbit';
+import { elementsFrom, propagate, propagateAll, nextPass, EARTH_RADIUS_KM, type Elements, type Pass } from './orbit';
 import { fromTimezone, askPrecise, type Me } from './me';
 
 (function (): void {
@@ -39,9 +39,10 @@ import { fromTimezone, askPrecise, type Me } from './me';
     return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/data/' + name;
   }
 
-  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me';
+  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats';
   const LAYERS: Array<{ id: LayerId; glyph: string }> = [
     { id: 'me', glyph: '◉' },
+    { id: 'sats', glyph: '⁘' },
     { id: 'zoom', glyph: '⊕' },
     { id: 'cloud', glyph: '☁' },
     { id: 'city', glyph: '✦' },
@@ -57,7 +58,7 @@ import { fromTimezone, askPrecise, type Me } from './me';
     spin: boolean;
   }
   function loadPrefs(): Prefs {
-    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true }, spin: true };
+    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false }, spin: true };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return base;
@@ -187,6 +188,11 @@ import { fromTimezone, askPrecise, type Me } from './me';
           let liveCloud: { w: number; h: number; a: Uint8ClampedArray } | null = null;
           let liveQuakes: Quake[] = [];
           let pastDay = '';
+          /* 궤도 위의 것 전부 — 요소 목록과, 그것을 굴려 담아 두는 한 덩어리 배열 */
+          let satEls: Elements[] = [];
+          let satXyz: Float32Array | null = null;
+          let satAt = 0;
+          let satLoading = false;
           let raf: number | undefined;
           let alive = true;
 
@@ -459,6 +465,7 @@ import { fromTimezone, askPrecise, type Me } from './me';
 
             /* ISS 는 지구 밖(궤도 위)이라 자르기 밖에서 그린다 */
             if (prefs.on.iss && !isPast()) drawIss();
+            if (prefs.on.sats && !isPast()) drawSats(now);
 
             /* 해가 바로 위인 자리에 옅은 빛무리 */
             const sp = project(sun.lat, sun.lon);
@@ -536,6 +543,45 @@ import { fromTimezone, askPrecise, type Me } from './me';
               c.arc(p.x, p.y, base * 0.55, 0, Math.PI * 2);
               c.fill();
             }
+          }
+
+          /**
+           * 궤도 위의 것 전부. 지금 지구를 도는 물체가 만 개가 넘는다 —
+           * 한 점씩 찍으면 그게 곧 「머리 위가 이렇게 붐빈다」는 그림이 된다.
+           *
+           * 매 프레임 다시 굴리지 않는다(만 번의 케플러 계산이다). 0.4초에 한 번만 굴리고
+           * 그 사이에는 같은 자리를 그린다 — 초속 7.6km 라도 0.4초면 지구본에서 0.2px 다.
+           */
+          function drawSats(now: number): void {
+            if (!satEls.length || !satXyz) return;
+            const t = clockMs();
+            if (now - satAt > 400) {
+              propagateAll(satEls, t, satXyz);
+              satAt = now;
+            }
+            const c = ctx!;
+            const k = R / EARTH_RADIUS_KM;
+            c.save();
+            c.globalCompositeOperation = 'lighter';
+            for (let i = 0; i < satEls.length; i++) {
+              const i3 = i * 3;
+              const x = satXyz[i3];
+              const y = satXyz[i3 + 1];
+              const z = satXyz[i3 + 2];
+              const px = x * ex[0] + y * ex[1] + z * ex[2];
+              const py = x * ey[0] + y * ey[1] + z * ey[2];
+              const pz = x * ez[0] + y * ez[1] + z * ez[2];
+              const sx = cx + px * k;
+              const sy = cy - py * k;
+              // 지구 뒤로 넘어가 **가려진** 것은 안 그린다 (원판 안쪽이면서 뒤쪽)
+              if (pz < 0 && Math.hypot(sx - cx, sy - cy) < R) continue;
+              if (sx < -20 || sy < -20 || sx > W + 20 || sy > H + 20) continue;
+              const alt = Math.hypot(x, y, z) - EARTH_RADIUS_KM;
+              c.fillStyle =
+                alt < 2000 ? 'rgba(190,225,255,.55)' : alt < 30000 ? 'rgba(150,190,255,.5)' : 'rgba(255,215,150,.6)';
+              c.fillRect(sx - 0.6, sy - 0.6, 1.2, 1.2);
+            }
+            c.restore();
           }
 
           /** 내 자리 — 숨 쉬듯 커졌다 작아지는 고리 하나. 이름표는 안 붙인다(문장이 말한다). */
@@ -712,6 +758,8 @@ import { fromTimezone, askPrecise, type Me } from './me';
               }
             }
 
+            if (satEls.length && prefs.on.sats) out.push(t('bluemarble.line.sats', { n: satEls.length.toLocaleString() }));
+
             if (kp != null) out.push(kp >= 5 ? t('bluemarble.line.kpStorm', { kp: kp.toFixed(0) }) : t('bluemarble.line.kpCalm'));
             if (au.length) out.push(t('bluemarble.line.aurora'));
 
@@ -783,6 +831,19 @@ import { fromTimezone, askPrecise, type Me } from './me';
             recomputePass();
           }
 
+          /** 목록은 6.9MB 다 — 켤 때만 받는다. 받은 뒤 담아 두므로 다음부터는 즉시 뜬다. */
+          async function loadSats(): Promise<void> {
+            if (satLoading || satEls.length) return;
+            satLoading = true;
+            const rows = await catalog();
+            satLoading = false;
+            if (!alive || !rows) return;
+            satEls = rows.map(elementsFrom).filter((el) => Number.isFinite(el.a) && Number.isFinite(el.epoch));
+            satXyz = new Float32Array(satEls.length * 3);
+            satAt = 0;
+            lines = sentences();
+          }
+
           /** 다음 통과는 24시간을 30초 간격으로 훑는다(2,880번) — 몇 ms 라 매번 새로 내도 된다. */
           function recomputePass(): void {
             if (!issEl || !me) {
@@ -844,6 +905,7 @@ import { fromTimezone, askPrecise, type Me } from './me';
                 b.setAttribute('aria-pressed', String(prefs.on[l.id]));
                 save();
                 if (l.id === 'aurora' && prefs.on.aurora && !au.length) void refreshSlow();
+                if (l.id === 'sats' && turningOn) void loadSats();
                 if (l.id === 'me' && turningOn && me && !me.precise) {
                   void askPrecise().then((got) => {
                     if (!alive || !got) return;

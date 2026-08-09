@@ -188,3 +188,52 @@ export function nextPass(el: Elements, lat: number, lon: number, from = Date.now
   }
   return null;
 }
+
+/* ── 무리 (17,000개) ───────────────────────────────────────────────────── */
+
+/**
+ * 궤도 위의 것 전부를 한 번에 굴린다.
+ *
+ * 한 개짜리 `propagate()` 를 만 번 부르면 객체가 만 개 생긴다 — 그것만으로 프레임이 튄다.
+ * 그래서 결과를 **한 덩어리 배열**(km, 지구고정계)에 바로 쓴다. 케플러 반복도 3번으로 줄인다:
+ * 이 목록의 거의 전부가 원에 가까운 궤도(e < 0.01)라 두 번이면 이미 수렴한다.
+ */
+export function propagateAll(els: Elements[], at: number, out: Float32Array): void {
+  const th = gmstPublic(at);
+  const cth = Math.cos(th);
+  const sth = Math.sin(th);
+  for (let k = 0; k < els.length; k++) {
+    const el = els[k];
+    const dt = (at - el.epoch) / 1000;
+    const m = el.m0 + el.mDot * dt;
+    let E = m;
+    for (let it = 0; it < 3; it++) {
+      E -= (E - el.e * Math.sin(E) - m) / (1 - el.e * Math.cos(E));
+    }
+    const cosE = Math.cos(E);
+    const sinE = Math.sin(E);
+    const r = el.a * (1 - el.e * cosE);
+    const nu = Math.atan2(Math.sqrt(1 - el.e * el.e) * sinE, cosE - el.e);
+    const u = el.argp0 + el.argpDot * dt + nu;
+    const raan = el.raan0 + el.raanDot * dt;
+    const cu = Math.cos(u);
+    const su = Math.sin(u);
+    const cr = Math.cos(raan);
+    const sr = Math.sin(raan);
+    const ci = Math.cos(el.i);
+    const x = r * (cr * cu - sr * su * ci);
+    const y = r * (sr * cu + cr * su * ci);
+    const z = r * (su * Math.sin(el.i));
+    const i3 = k * 3;
+    out[i3] = x * cth + y * sth;
+    out[i3 + 1] = -x * sth + y * cth;
+    out[i3 + 2] = z;
+  }
+}
+
+/** 위 함수가 쓰려고 밖으로 뺀 항성시. */
+function gmstPublic(at: number): number {
+  return gmst(at);
+}
+
+export const EARTH_RADIUS_KM = RE;

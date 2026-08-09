@@ -30,5 +30,7 @@
   "bluemarble.line.pastDay": "This is Earth on {date}. That day’s clouds, where they were.",
   "bluemarble.line.pastQuake": "The Earth shook {n} times that day. The largest was magnitude {mag}, near {where}.",
   "bluemarble.line.pastQuiet": "Nothing above magnitude 4.5 shook anywhere that day.",
-  "bluemarble.line.pastSun": "At this hour that day, the sun stood above {lat}°, {lon}°."
+  "bluemarble.line.pastSun": "At this hour that day, the sun stood above {lat}°, {lon}°.",
+  "bluemarble.layer.sats": "Things in orbit",
+  "bluemarble.line.sats": "{n} objects are circling above you right now. Almost all of them were put there by people."
 }
