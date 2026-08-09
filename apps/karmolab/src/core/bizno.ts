@@ -15,8 +15,10 @@ export const spec: ToolSpec = {
   ops: {
     check: {
       desc:
-        '한국 사업자등록번호(10자리) 또는 법인등록번호(13자리)가 검증 숫자 규칙에 맞는지 계산한다.' +
-        ' 형식 유효성만 본다 — 실제 등록 여부는 국세청 조회가 필요하다.',
+        'Validate a Korean business registration number (10 digits) or corporate registration number' +
+        ' (13 digits) against its check-digit rule. Format only — it cannot tell you whether the number is' +
+        ' actually registered (that needs the NTS lookup).' +
+        ' / 한국 사업자등록번호·법인등록번호가 검증 숫자 규칙에 맞는지 계산한다. 형식만 본다.',
       in: { number: 'string' },
       out: 'string'
     }

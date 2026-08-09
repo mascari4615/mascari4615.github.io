@@ -23,13 +23,18 @@ export const spec: ToolSpec = {
   ops: {
     after: {
       desc:
-        '시작일로부터 영업일 N일 뒤가 며칠인지 계산한다 (주말 + 공휴일 + 대체공휴일 제외).' +
-        ' 「영업일 7일 이내」 같은 기한 계산. region 기본 KR, saturday 를 켜면 토요일도 영업일.',
+        'N business days after a start date — excluding weekends, public holidays AND substitute holidays.' +
+        ' Substitute holidays are a table, not a rule (2025-01-27 was a one-off). Years not in the table are' +
+        ' reported as unknown instead of guessed. region defaults to KR (JP/US also available).' +
+        ' / 영업일 N일 뒤. 주말 + 공휴일 + 대체공휴일 제외.',
       in: { start: 'string', days: 'number', region: 'string?', saturday: 'boolean?' },
       out: 'string'
     },
     between: {
-      desc: '두 날짜 사이의 영업일 수를 센다. 어떤 날을 뺐는지도 함께 알려 준다.',
+      desc:
+        'Count business days between two dates, and list which days were skipped and why' +
+        ' (a bare number cannot be checked).' +
+        ' / 두 날짜 사이 영업일 수. 어떤 날을 뺐는지도 함께.',
       in: { start: 'string', end: 'string', region: 'string?', saturday: 'boolean?' },
       out: 'string'
     }
