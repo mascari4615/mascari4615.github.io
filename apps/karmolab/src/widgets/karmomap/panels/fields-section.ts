@@ -23,7 +23,11 @@ function kindFieldNames(ctx: PanelCtx, node: GraphNode): string[] {
 export function fieldsSectionHtml(ctx: PanelCtx, node: GraphNode): string {
   const esc = ctx.esc;
   const rows = Object.entries(node.fields ?? {});
-  const suggest = kindFieldNames(ctx, node).filter((n) => !(node.fields ?? {})[n]);
+  const has = (name: string): boolean => Object.prototype.hasOwnProperty.call(node.fields ?? {}, name);
+  const suggest = kindFieldNames(ctx, node).filter((n) => !has(n));
+  // 이 맵에 아직 아무도 안 쓴 종류라면 **팩이 들고 있는 틀**을 시작값으로 권한다 —
+  // 빈 칸에서 시작하면 무엇을 적을지 몰라 아무것도 안 적는다 (World Anvil 의 template 계보).
+  const template = (ctx.nodeKinds().find((k) => k.id === node.kind)?.fields ?? []).filter((n) => !has(n));
   // 칸에 「소속: 마왕성」이라고 적었는데 마왕성이 이 맵의 노드라면, 그건 **관계**다.
   // 글로만 남으면 그림에 안 나온다 — 선으로 올릴지 물어본다 (Airtable 의 「다른 표 연결」 계보).
   const linked = new Set(
@@ -55,6 +59,7 @@ export function fieldsSectionHtml(ctx: PanelCtx, node: GraphNode): string {
         <button class="btn btn-ghost" data-km="fld-add">추가</button>
       </div>
       ${suggest.length === 0 ? '' : `<div class="km-hint">같은 종류가 쓰는 칸: ${suggest.slice(0, 6).map((n) => esc(n)).join(' · ')}</div>`}
+      ${template.length === 0 ? '' : `<button class="btn btn-ghost" data-km="fld-template">틀 한 벌 넣기: ${template.map((n) => esc(n)).join(' · ')}</button>`}
     </div>`;
 }
 
@@ -105,6 +110,14 @@ export function bindFieldsSection(ctx: PanelCtx, node: GraphNode, touch: (redraw
       touch(true);
     };
   });
+  const tpl = side.querySelector('[data-km="fld-template"]') as HTMLButtonElement | null;
+  if (tpl) {
+    tpl.onclick = () => {
+      const kind = ctx.nodeKinds().find((k) => k.id === node.kind);
+      for (const name of kind?.fields ?? []) fields()[name] = fields()[name] ?? '';
+      touch(true);
+    };
+  }
   const add = (): void => {
     const box = side.querySelector('[data-km="fld-new"]') as HTMLInputElement | null;
     const name = (box?.value ?? '').trim();

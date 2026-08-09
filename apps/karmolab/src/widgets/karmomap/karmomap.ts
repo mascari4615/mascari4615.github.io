@@ -861,7 +861,7 @@ import {
         });
         canvas?.setSelectedNode(selectedId);
       },
-      nodeKinds: () => nodeKindsNow().map((k) => ({ id: k.id, label: k.label, icon: k.icon })),
+      nodeKinds: () => nodeKindsNow().map((k) => ({ id: k.id, label: k.label, icon: k.icon, fields: k.fields })),
       edgeKinds: () => edgeKindsNow().map((k) => ({ id: k.id, label: k.label })),
       kindLabel: (id) => kindLabel(id),
       kindIcon: (id) => kindIcon(id),

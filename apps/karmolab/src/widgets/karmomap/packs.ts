@@ -19,6 +19,12 @@ export interface NodeKindDef {
   label: string;
   icon: string;
   color: string;
+  /**
+   * 이 종류가 흔히 갖는 **칸 이름들** (TASK-KL-202, World Anvil 의 template 계보).
+   * 스키마를 강요하지는 않는다 — 빈 칸에서 시작하면 사람이 무엇을 적을지 몰라 아무것도 안 적기에,
+   * 「한 벌 채우기」 버튼의 **시작값**으로만 쓴다. 지우거나 다른 이름을 적어도 된다.
+   */
+  fields?: string[];
 }
 
 export interface EdgeKindPreset {
@@ -57,10 +63,10 @@ const WORLDVIEW: CanvasPack = {
   icon: '🌍',
   hint: '인물·장소·사건을 놓고 관계로 이어서 세계관을 펼쳐 보세요.',
   nodeKinds: [
-    { id: 'character', label: '인물', icon: '👤', color: '#f472b6' },
-    { id: 'place',     label: '장소', icon: '🗺', color: '#34d399' },
-    { id: 'item',      label: '물건', icon: '🔮', color: '#fbbf24' },
-    { id: 'event',     label: '사건', icon: '⚡', color: '#60a5fa' },
+    { id: 'character', label: '인물', icon: '👤', color: '#f472b6', fields: ['출신', '소속', '첫 등장'] },
+    { id: 'place',     label: '장소', icon: '🗺', color: '#34d399', fields: ['어디', '누가 다스리나'] },
+    { id: 'item',      label: '물건', icon: '🔮', color: '#fbbf24', fields: ['주인', '능력'] },
+    { id: 'event',     label: '사건', icon: '⚡', color: '#60a5fa', fields: ['언제', '어디서', '결과'] },
     { id: 'concept',   label: '개념', icon: '💭', color: '#a78bfa' },
   ],
   edgeKinds: [
@@ -84,7 +90,7 @@ const RELATION: CanvasPack = {
   icon: '💞',
   hint: '인물을 놓고 ♡좋아함 · ✕싫어함 · ⚡라이벌 로 이어 보세요.',
   nodeKinds: [
-    { id: 'rel-person', label: '인물',   icon: '👤', color: '#f472b6' },
+    { id: 'rel-person', label: '인물',   icon: '👤', color: '#f472b6', fields: ['한 줄 소개', '첫 등장'] },
     { id: 'rel-group',  label: '집단',   icon: '👥', color: '#f59e0b' },
     { id: 'rel-stage',  label: '무대',   icon: '🏙', color: '#34d399' },
     { id: 'rel-note',   label: '한마디', icon: '💬', color: '#94a3b8' },
