@@ -1590,7 +1590,7 @@ import {
       onBackgroundDoubleClick: (world) => spawnNodeAt(world.x, world.y, ''),
       onNodeResized: () => { persistStructure(); },
       // 겹쳐 놓으면 잇기 — 선 도구를 따로 찾지 않게(Scapple). 이미 이어진 쌍은 건너뛰고,
-      // 이었으면 말해 준다(모르고 생긴 선이 제일 나쁘다). ⌫ 로 되돌아간다.
+      // 이었으면 말해 준다(모르고 생긴 선이 제일 나쁘다). Ctrl+Z 로 되돌아간다.
       onNodeDropped: (draggedId, overId) => {
         const dup = spec.edges.some(
           (e) => (e.from === draggedId && e.to === overId) || (e.from === overId && e.to === draggedId),
@@ -1601,7 +1601,7 @@ import {
         spec.edges.push({ id: nextId('edge', taken), from: draggedId, to: overId, kind, label: edgeLabel(kind) });
         applySpec();
         persistStructure();
-        Toolbox.showToast?.('겹쳐 놓아 이었습니다 — ⌫ 로 되돌립니다', undefined, undefined);
+        Toolbox.showToast?.('겹쳐 놓아 이었습니다 — Ctrl+Z 로 되돌립니다', undefined, undefined);
       },
       // 선을 휘거나 이름표를 옮긴 뒤 — 캔버스가 spec 을 고쳤으니 저장만 하면 된다.
       onEdgeChanged: () => persistStructure(),
@@ -1951,7 +1951,7 @@ import {
 
     /**
      * 구조를 살리는 배치 — 「가지런히」는 있던 자리를 존중하지만, 이미 엉킨 그림은 그것으로 안 풀린다.
-     * 되돌리기 한 걸음으로 남으므로 마음 놓고 눌러 보고 아니면 ⌫ 로 되돌린다.
+     * 되돌리기 한 걸음으로 남으므로 마음 놓고 눌러 보고 아니면 Ctrl+Z 로 되돌린다.
      */
     function relayout(kind: 'circle' | 'tree'): void {
       const live = canvas?.getSpec() ?? spec;
@@ -1978,7 +1978,7 @@ import {
       applySpec();
       persistStructure();
       canvas?.fitView();
-      Toolbox.showToast?.(`${placed.size}개를 ${kind === 'circle' ? '둥글게' : '흐름대로'} 놓았습니다 — ⌫ 로 되돌립니다`, undefined, undefined);
+      Toolbox.showToast?.(`${placed.size}개를 ${kind === 'circle' ? '둥글게' : '흐름대로'} 놓았습니다 — Ctrl+Z 로 되돌립니다`, undefined, undefined);
     }
     // 연표 — 「언제」가 적힌 칸을 시간축으로 삼는다. 어느 칸인지는 **숫자가 가장 많이 든 칸**으로 고른다
     // (사람에게 「날짜 칸을 먼저 정하라」고 시키면 아무도 안 쓴다).
@@ -2004,7 +2004,7 @@ import {
       applySpec();
       persistStructure();
       canvas?.fitView();
-      Toolbox.showToast?.(`「${field}」 순서로 ${placed.size}개를 늘어놓았습니다 — ⌫ 로 되돌립니다`, undefined, undefined);
+      Toolbox.showToast?.(`「${field}」 순서로 ${placed.size}개를 늘어놓았습니다 — Ctrl+Z 로 되돌립니다`, undefined, undefined);
     };
     q<HTMLButtonElement>('lay-circle').onclick = () => relayout('circle');
     q<HTMLButtonElement>('lay-tree').onclick = () => relayout('tree');
