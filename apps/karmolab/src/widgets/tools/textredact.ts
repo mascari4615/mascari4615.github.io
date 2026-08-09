@@ -10,10 +10,11 @@
  *  - 주민번호는 날짜·생년월일 꼴과 헷갈리기 쉬워, 뒷자리 첫 글자가 성별 자리인지까지 본다.
  *  - **자동 탐지는 놓칠 수 있다**고 분명히 말한다. 「도구가 다 지워 줬겠지」가 가장 위험하다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   interface Rule {
     id: string;
-    label: string;
     re: RegExp;
     /** 진짜인지 한 번 더 보는 자리 — 숫자 뭉치를 무턱대고 지우지 않기 위해 */
     accept?: (m: string) => boolean;
@@ -40,7 +41,6 @@
   const RULES: Rule[] = [
     {
       id: 'rrn',
-      label: '주민등록번호',
       re: /\b(\d{6})[-\s]?([1-4]\d{6})\b/g,
       // 뒷자리 첫 글자는 성별 자리(1~4)다. 앞 6자리도 날짜여야 한다 — 아니면 그냥 숫자다
       accept: (m) => {
@@ -50,52 +50,74 @@
         return mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31;
       }
     },
-    { id: 'phone', label: '전화번호', re: /\b01[016789][-\s.]?\d{3,4}[-\s.]?\d{4}\b/g },
-    { id: 'card', label: '카드번호', re: /\b(?:\d[ -]?){12,18}\d\b/g, accept: luhn },
-    { id: 'email', label: '이메일', re: /\b[\w.+-]+@[\w-]+\.[\w.-]{2,}\b/g },
-    { id: 'account', label: '계좌번호', re: /\b\d{2,3}-\d{2,6}-\d{2,6}(?:-\d{1,3})?\b/g },
-    { id: 'ip', label: 'IP 주소', re: /\b(?:\d{1,3}\.){3}\d{1,3}\b/g, accept: (m) => m.split('.').every((p) => Number(p) <= 255) },
-    { id: 'token', label: '열쇠·토큰', re: /\b(?:sk|pk|ghp|gho|xox[bp])[-_][A-Za-z0-9_-]{16,}\b/g },
-    { id: 'jwt', label: 'JWT', re: /\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/g }
+    { id: 'phone', re: /\b01[016789][-\s.]?\d{3,4}[-\s.]?\d{4}\b/g },
+    { id: 'card', re: /\b(?:\d[ -]?){12,18}\d\b/g, accept: luhn },
+    { id: 'email', re: /\b[\w.+-]+@[\w-]+\.[\w.-]{2,}\b/g },
+    { id: 'account', re: /\b\d{2,3}-\d{2,6}-\d{2,6}(?:-\d{1,3})?\b/g },
+    { id: 'ip', re: /\b(?:\d{1,3}\.){3}\d{1,3}\b/g, accept: (m) => m.split('.').every((p) => Number(p) <= 255) },
+    { id: 'token', re: /\b(?:sk|pk|ghp|gho|xox[bp])[-_][A-Za-z0-9_-]{16,}\b/g },
+    { id: 'jwt', re: /\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/g }
   ];
 
   Toolbox.register({
     id: 'textredact',
-    title: '글자 가리개',
+    title: t('widgets.textredact.title', undefined, '글자 가리개'),
     category: 'tool',
-    desc: '로그·문서에서 주민번호·전화·카드번호를 찾아 지웁니다. 무엇을 찾았는지 보여 줍니다',
+    desc: t(
+      'widgets-desc.textredact.desc',
+      undefined,
+      '로그·문서에서 주민번호·전화·카드번호를 찾아 지웁니다. 무엇을 찾았는지 보여 줍니다'
+    ),
     layout: 'wide',
     icon: '<path d="M4 5h16M4 9h16M4 13h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="14" y="15" width="7" height="4" rx="1" fill="currentColor"/>',
     tabs: [
       {
         id: 'app',
-        label: '글자 가리기',
+        label: t('textredact.tab', undefined, '글자 가리기'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('textredact').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /* 이름표는 **쓸 때** 붙인다 — 규칙 표에 박아 두면 말 묶음이 오기 전에 한국어로 굳는다.
+   * 찾는 꼴 자체가 한국 것(주민번호·010)이라 다른 언어 이름표에는 *어느 나라 것인지*를 적었다. */
+  const kindName = (r: Rule): string => t(`textredact.kind.${r.id}`);
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label" for="txIn">붙여넣을 글 — 로그·문서 그대로 넣으세요</label>
-              <textarea id="txIn" rows="8" spellcheck="false" style="width:100%;" placeholder="오류 로그나 문서를 그대로 붙여 넣으면, 개인정보로 보이는 것을 찾아 표시합니다."></textarea>
+              <label class="field-label" for="txIn">${esc(t('textredact.label.in'))}</label>
+              <textarea id="txIn" rows="8" spellcheck="false" style="width:100%;" placeholder="${esc(t('textredact.ph.in'))}"></textarea>
             </div>
 
             <div class="field-group">
-              <div class="tool-sublabel">지울 종류 — 찾은 개수가 옆에 나옵니다</div>
+              <div class="tool-sublabel">${esc(t('textredact.label.kinds'))}</div>
               <div class="tool-chips" id="txKinds">
                 ${RULES.map(
                   (r) =>
-                    `<label class="tool-chip"><input type="checkbox" data-kind="${r.id}" checked> ${r.label} <span class="tool-list-dim" id="txN-${r.id}">0</span></label>`
+                    `<label class="tool-chip"><input type="checkbox" data-kind="${r.id}" checked> ${esc(
+                      kindName(r)
+                    )} <span class="tool-list-dim" id="txN-${r.id}">0</span></label>`
                 ).join('')}
               </div>
               <div class="tool-grid-2" style="margin-top:10px;">
                 <div>
-                  <div class="tool-sublabel">지우는 방법</div>
-                  <select id="txStyle" aria-label="지우는 방법">
-                    <option value="kind">종류로 바꾸기 — [전화번호]</option>
-                    <option value="mask">별표로 가리기 — 010-****-****</option>
-                    <option value="drop">통째로 지우기</option>
+                  <div class="tool-sublabel">${esc(t('textredact.label.style'))}</div>
+                  <select id="txStyle" aria-label="${esc(t('textredact.label.style'))}">
+                    <option value="kind">${esc(t('textredact.style.kind'))}</option>
+                    <option value="mask">${esc(t('textredact.style.mask'))}</option>
+                    <option value="drop">${esc(t('textredact.style.drop'))}</option>
                   </select>
                 </div>
                 <div class="tool-chips" style="align-content:end;">
-                  <label class="tool-chip"><input type="checkbox" id="txSame" checked> 같은 값은 같은 번호로</label>
+                  <label class="tool-chip"><input type="checkbox" id="txSame" checked> ${esc(t('textredact.opt.same'))}</label>
                 </div>
               </div>
             </div>
@@ -103,14 +125,14 @@
             <div class="cc-stats" id="txStats"></div>
 
             <div class="field-group">
-              <label class="field-label" for="txOut">지운 결과</label>
+              <label class="field-label" for="txOut">${esc(t('textredact.label.out'))}</label>
               <textarea id="txOut" rows="10" spellcheck="false" style="width:100%;" readonly></textarea>
-              <button class="btn btn-ghost btn-sm" id="txCopy" style="margin-top:8px;">복사</button>
+              <button class="btn btn-ghost btn-sm" id="txCopy" style="margin-top:8px;">${esc(t('textredact.btn.copy'))}</button>
             </div>
 
             <div class="tool-list" id="txFound"></div>
 
-            <div class="tool-status" id="txStatus">글은 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="txStatus">${esc(t('textredact.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -126,7 +148,6 @@
           };
           const stat = (l: string, v: string, primary = false): string =>
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
-          const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
           /** 숫자·글자는 별표로, 구분선(-)은 남긴다 — 어떤 꼴이었는지는 보이는 편이 낫다 */
           const maskOf = (m: string): string => m.replace(/[^\s\-.@]/g, '*');
@@ -138,7 +159,7 @@
               stats.innerHTML = '';
               foundEl.innerHTML = '';
               RULES.forEach((r) => ($<HTMLElement>('#txN-' + r.id).textContent = '0'));
-              say('로그나 문서를 그대로 붙여 넣어 보세요.');
+              say(t('textredact.say.paste'));
               return;
             }
 
@@ -183,7 +204,7 @@
               result +=
                 style === 'drop' ? '' :
                 style === 'mask' ? maskOf(h.text) :
-                sameNum ? `[${h.rule.label}${n}]` : `[${h.rule.label}]`;
+                sameNum ? `[${kindName(h.rule)}${n}]` : `[${kindName(h.rule)}]`;
               at = h.end;
             }
             result += text.slice(at);
@@ -191,24 +212,32 @@
 
             const total = hits.length;
             stats.innerHTML =
-              stat('지운 것', `${total}개`, true) +
-              stat('서로 다른 값', `${seen.size}개`) +
-              stat('찾았지만 끈 것', `${Object.values(counts).reduce((a, b) => a + b, 0) - total}개`);
+              stat(t('textredact.stat.removed'), t('textredact.value.count', { n: total }), true) +
+              stat(t('textredact.stat.distinct'), t('textredact.value.count', { n: seen.size })) +
+              stat(
+                t('textredact.stat.skipped'),
+                t('textredact.value.count', {
+                  n: Object.values(counts).reduce((a, b) => a + b, 0) - total
+                })
+              );
 
             // 무엇을 지웠는지 보여 준다 — 조용히 바꿔 버리면 맞게 지웠는지 확인할 길이 없다
             foundEl.innerHTML = seen.size
               ? [...seen.entries()]
                   .map(([v, n]) => {
-                    const kind = hits.find((h) => h.text === v)?.rule.label || '';
+                    const found = hits.find((h) => h.text === v);
+                    const kind = found ? kindName(found.rule) : '';
                     const shown = v.length > 6 ? v.slice(0, 3) + '…' + v.slice(-2) : v;
                     return `<div class="tool-list-row"><span class="tool-list-key">${kind}${n}</span><span class="tool-list-val">${esc(shown)}</span></div>`;
                   })
                   .join('')
-              : '<div class="tool-list-row"><span class="tool-list-val">지운 것이 없습니다.</span></div>';
+              : `<div class="tool-list-row"><span class="tool-list-val">${esc(
+                  t('textredact.found.none')
+                )}</span></div>`;
 
             // 「도구가 다 지워 줬겠지」가 가장 위험하다
-            if (total) say(`${total}개를 지웠어요. 자동 탐지는 놓치는 것이 있으니 결과를 한 번 훑어 주세요.`, 'ok');
-            else say('지울 것을 못 찾았어요. 그렇다고 없다는 뜻은 아니니 직접 확인해 주세요.', 'error');
+            if (total) say(t('textredact.say.done', { n: total }), 'ok');
+            else say(t('textredact.say.nothing'), 'error');
             Toolbox.trackUse?.('redact');
           }
 
@@ -217,11 +246,8 @@
           $<HTMLInputElement>('#txSame').addEventListener('change', run);
           container.querySelectorAll('#txKinds input[data-kind]').forEach((el) => el.addEventListener('change', run));
           $<HTMLButtonElement>('#txCopy').onclick = () => {
-            void Toolbox.copyText?.(out.value, { message: '지운 글을 복사했어요' });
+            void Toolbox.copyText?.(out.value, { message: t('textredact.copy.done') });
           };
           run();
-        }
-      }
-    ]
-  });
+  }
 })();

@@ -184,5 +184,9 @@
   "howto.pdfcrop.0": "PDF を選ぶ",
   "howto.pdfcrop.1": "プレビューで赤い線を確かめる",
   "howto.pdfcrop.2": "残す余白を調節する",
-  "howto.pdfcrop.3": "切ってダウンロードする"
+  "howto.pdfcrop.3": "切ってダウンロードする",
+  "howto.textredact.0": "ログや文書を貼り付ける",
+  "howto.textredact.1": "消す種類を選ぶ",
+  "howto.textredact.2": "見つかった一覧を確かめる",
+  "howto.textredact.3": "結果をコピーする"
 }
