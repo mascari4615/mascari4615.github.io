@@ -44,6 +44,7 @@ async function loadModules() {
     export * as press from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-press.ts'))};
     export * as release from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-release.ts'))};
     export * as edgedrag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-edgedrag.ts'))};
+    export * as drag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-drag.ts'))};
     export * as sna from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/sna.ts'))};
   `);
   const out = path.join(os.tmpdir(), `km-core-${Date.now()}.mjs`);
@@ -458,6 +459,31 @@ const M = await loadModules();
   check(labelPosFromPointer(a, b, { x: 50, y: 30 }) === 0.5, '가운데로 끌면 이름표도 가운데');
   check(labelPosFromPointer(a, b, { x: -500, y: 0 }) === 0.05, '끝을 넘어가도 카드 뒤로 숨지 않는다');
   check(labelPosFromPointer(a, b, { x: 900, y: 0 }) === 0.95, '반대쪽 끝도 마찬가지');
+}
+
+// ---- 끌면 어디로 가나 (canvas-drag)
+{
+  const { worldDelta, snappedPoint, groupDelta, resizedBox, MIN_NODE_W, MIN_NODE_H } = M.drag;
+  const snap = (v) => Math.round(v / 10) * 10;
+  const d1 = worldDelta({ x: 0, y: 0 }, { x: 100, y: 50 }, 1);
+  check(d1.dx === 100 && d1.dy === 50, '배율 1 이면 화면 거리 그대로');
+  const d2 = worldDelta({ x: 0, y: 0 }, { x: 100, y: 50 }, 2);
+  check(d2.dx === 50 && d2.dy === 25, '두 배로 확대돼 있으면 판 위에서는 절반만 움직인다');
+  const p1 = snappedPoint(3, 7, { dx: 4, dy: 1 }, snap);
+  check(p1.x === 10 && p1.y === 10, '카드 하나는 새 자리를 격자에 붙인다');
+  // 이 파일의 핵심: 묶음은 **기준점만** 붙이고 그 이동량을 멤버 전원에게 얹는다.
+  const g = groupDelta(0, 0, { dx: 13, dy: 27 }, snap);
+  check(g.origin.x === 10 && g.origin.y === 30, '묶음 기준점이 격자에 붙는다');
+  check(g.d.dx === 10 && g.d.dy === 30, '멤버에게 얹을 이동량 = 붙은 기준점과의 차이');
+  const members = [{ x: 0, y: 0 }, { x: 7, y: 3 }, { x: 21, y: 44 }];
+  const moved = members.map((m) => ({ x: m.x + g.d.dx, y: m.y + g.d.dy }));
+  const gapBefore = members[2].x - members[1].x;
+  const gapAfter = moved[2].x - moved[1].x;
+  check(gapBefore === gapAfter, '끄는 내내 멤버끼리 간격이 한 픽셀도 안 변한다(모양이 안 뭉개진다)');
+  const r = resizedBox(200, 100, { dx: -500, dy: -500 });
+  check(r.w === MIN_NODE_W && r.h === MIN_NODE_H, '아무리 줄여도 최소 크기에서 멈춘다(지운 것처럼 보이지 않게)');
+  const r2 = resizedBox(200, 100, { dx: 33.4, dy: 10.6 });
+  check(r2.w === 233 && r2.h === 111, '크기는 정수로 떨어진다');
 }
 
 // 되돌아가지 않게: **캔버스 크기 자물쇠**.

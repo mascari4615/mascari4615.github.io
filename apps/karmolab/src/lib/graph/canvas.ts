@@ -49,6 +49,7 @@ import { drainSaves, queueSave } from './canvas-save';
 import { pressIntent, readPressHits } from './canvas-press';
 import { canRewireTo, isDropOnNode, releaseIntent } from './canvas-release';
 import { curveFromPointer, labelPosFromPointer } from './canvas-edgedrag';
+import { groupDelta, resizedBox, snappedPoint, worldDelta } from './canvas-drag';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
@@ -590,11 +591,11 @@ export class GraphCanvas {
       }
       if (this.multiDrag && this.dragging) {
         // 고른 것들이 함께 움직인다 — 끌고 있는 노드의 이동량을 그대로 얹는다.
-        const dx = (e.clientX - this.dragging.startMouseX) / this.state.scale;
-        const dy = (e.clientY - this.dragging.startMouseY) / this.state.scale;
+        const d = worldDelta(
+          { x: this.dragging.startMouseX, y: this.dragging.startMouseY },
+          { x: e.clientX, y: e.clientY }, this.state.scale);
         for (const [id, start] of this.multiDrag) {
-          const nx = this.snap(start.x + dx);
-          const ny = this.snap(start.y + dy);
+          const { x: nx, y: ny } = snappedPoint(start.x, start.y, d, (v) => this.snap(v));
           this.nodeCoords.set(id, { x: nx, y: ny });
           this.updateNodeTransform(id, nx, ny);
           this.scheduleSave(id);
@@ -651,20 +652,21 @@ export class GraphCanvas {
       if (this.sizing) {
         const n = this.spec?.nodes.find((x) => x.id === this.sizing?.nodeId);
         if (n) {
-          const dw = (e.clientX - this.sizing.startX) / this.state.scale;
-          const dh = (e.clientY - this.sizing.startY) / this.state.scale;
-          n.w = Math.max(60, Math.round(this.sizing.startW + dw));
-          n.h = Math.max(32, Math.round(this.sizing.startH + dh));
+          const d = worldDelta({ x: this.sizing.startX, y: this.sizing.startY },
+            { x: e.clientX, y: e.clientY }, this.state.scale);
+          const box = resizedBox(this.sizing.startW, this.sizing.startH, d);
+          n.w = box.w;
+          n.h = box.h;
           n.sized = true;   // 이제부터 이 카드는 **사람 것**이다 — 자동 맞춤이 손대지 않는다.
           this.render();
         }
         return;
       }
       if (this.dragging) {
-        const dx = (e.clientX - this.dragging.startMouseX) / this.state.scale;
-        const dy = (e.clientY - this.dragging.startMouseY) / this.state.scale;
-        const newX = this.snap(this.dragging.startNodeX + dx);
-        const newY = this.snap(this.dragging.startNodeY + dy);
+        const d = worldDelta({ x: this.dragging.startMouseX, y: this.dragging.startMouseY },
+          { x: e.clientX, y: e.clientY }, this.state.scale);
+        const { x: newX, y: newY } = snappedPoint(
+          this.dragging.startNodeX, this.dragging.startNodeY, d, (v) => this.snap(v));
         this.nodeCoords.set(this.dragging.nodeId, { x: newX, y: newY });
         this.updateNodeTransform(this.dragging.nodeId, newX, newY);
         this.groupLayer.innerHTML = '';
@@ -675,13 +677,13 @@ export class GraphCanvas {
         this.scheduleSave(this.dragging.nodeId);
       } else if (this.draggingGroup) {
         const dg = this.draggingGroup;
-        const rawDx = (e.clientX - dg.startMouseX) / this.state.scale;
-        const rawDy = (e.clientY - dg.startMouseY) / this.state.scale;
-        // 그룹 기준점(startGroupX/Y)을 snap한 뒤 실제 delta 계산
-        const snappedGX = this.snap(dg.startGroupX + rawDx);
-        const snappedGY = this.snap(dg.startGroupY + rawDy);
-        const dx = snappedGX - dg.startGroupX;
-        const dy = snappedGY - dg.startGroupY;
+        const raw = worldDelta({ x: dg.startMouseX, y: dg.startMouseY },
+          { x: e.clientX, y: e.clientY }, this.state.scale);
+        // 기준점만 격자에 붙이고 그 이동량을 멤버 전원에게 얹는다 — 셈법은 canvas-drag 가 안다.
+        const g = groupDelta(dg.startGroupX, dg.startGroupY, raw, (v) => this.snap(v));
+        const { dx, dy } = g.d;
+        const snappedGX = g.origin.x;
+        const snappedGY = g.origin.y;
         // 멤버 노드 좌표 이동 + transform 갱신 + save 큐잉
         for (const [nodeId, start] of dg.startNodeCoords) {
           const nx = start.x + dx;
