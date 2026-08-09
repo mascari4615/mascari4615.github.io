@@ -12,7 +12,12 @@
  * 서버에 못 닿는 것 자체가 답이다. 그때는 자리를 숨기지 않고 **못 닿았다고 적는다** —
  * 여기는 「지금 어떤가」를 보러 오는 자리라, 여기서까지 조용하면 볼 곳이 없다.
  */
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
     interface Health {
         ok?: boolean;
         login?: string;
@@ -34,13 +39,6 @@
     /** 여기서 오래 기다리면 「상태 보는 화면」 자체가 멈춘 것처럼 보인다. */
     const TIMEOUT_MS = 6000;
 
-    function esc(value: unknown): string {
-        return String(value ?? '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
-    }
 
     function num(value: unknown): string {
         return Number(value || 0).toLocaleString('ko-KR');
@@ -48,21 +46,21 @@
 
     /** 언제였나 — 「2026-08-08 00:12」 보다 「3시간 전」이 사람에게 먼저 읽힌다. */
     function ago(iso: string | null): string {
-        if (!iso) return '없음';
+        if (!iso) return t('status.t18');
         const then = new Date(iso).getTime();
-        if (Number.isNaN(then)) return '알 수 없음';
+        if (Number.isNaN(then)) return t('status.t19');
         const minutes = Math.floor((Date.now() - then) / 60000);
-        if (minutes < 1) return '방금';
-        if (minutes < 60) return `${minutes}분 전`;
+        if (minutes < 1) return t('status.t20');
+        if (minutes < 60) return t('status.ago.min', { n: minutes });
         const hours = Math.floor(minutes / 60);
-        if (hours < 24) return `${hours}시간 전`;
-        return `${Math.floor(hours / 24)}일 전`;
+        if (hours < 24) return t('status.ago.hour', { n: hours });
+        return t('status.ago.day', { n: Math.floor(hours / 24) });
     }
 
     function dayLabel(day: string): string {
         const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day);
         if (!parts) return day;
-        return `${Number(parts[2])}월 ${Number(parts[3])}일`;
+        return t('status.monthDay', { m: Number(parts[2]), d: Number(parts[3]) });
     }
 
     Mdd.injectCSS('status-page', `
@@ -126,9 +124,8 @@
         if (!health) {
             slot.innerHTML = `
                 <div class="st-fail">
-                    <strong>지금 기록 서버에 못 닿았습니다.</strong><br>
-                    도구는 전부 브라우저 안에서 돌기 때문에 <b>평소처럼 쓸 수 있습니다</b>.
-                    계정·커뮤니티·기록 저장만 잠시 쉽니다. 서버는 집 노트북 한 대라 가끔 이럴 수 있습니다.
+                    <strong>${esc(t('status.t01'))}</strong><br>
+                    ${esc(t('status.t02'))} <b>${esc(t('status.t03'))}</b>${esc(t('status.t04'))}
                 </div>`;
             return;
         }
@@ -139,17 +136,17 @@
         slot.innerHTML = `
             <div class="st-cards">
                 <div class="st-card">
-                    <div class="st-card-name">기록 서버</div>
-                    <div class="st-card-value st-live"><span class="st-dot" data-up="1"></span>돌고 있음</div>
-                    <div class="st-card-note">계정 · 커뮤니티 · 기록 저장</div>
+                    <div class="st-card-name">${esc(t('status.t05'))}</div>
+                    <div class="st-card-value st-live"><span class="st-dot" data-up="1"></span>${esc(t('status.t06'))}</div>
+                    <div class="st-card-note">${esc(t('status.t07'))}</div>
                 </div>
                 <div class="st-card">
-                    <div class="st-card-name">로그인</div>
-                    <div class="st-card-value st-live"><span class="st-dot" data-up="${health.login === 'discord' ? '1' : '0'}"></span>${health.login === 'discord' ? '됨' : '쉬는 중'}</div>
-                    <div class="st-card-note">디스코드로 시작하기</div>
+                    <div class="st-card-name">${esc(t('status.t08'))}</div>
+                    <div class="st-card-value st-live"><span class="st-dot" data-up="${health.login === 'discord' ? '1' : '0'}"></span>${health.login === 'discord' ? t('status.t21') : t('status.t22')}</div>
+                    <div class="st-card-note">${esc(t('status.t09'))}</div>
                 </div>
                 <div class="st-card">
-                    <div class="st-card-name">마지막 백업</div>
+                    <div class="st-card-name">${esc(t('status.t10'))}</div>
                     <div class="st-card-value">${esc(ago(backup.lastAt))}</div>
                     <div class="st-card-note">보관 중인 사본 ${num(backup.count)}벌</div>
                 </div>
@@ -158,9 +155,9 @@
                     // 「오늘 방문 0」은 사실이 아니라 「못 물어봤다」이고, 둘은 다르다.
                     health.visits
                         ? `<div class="st-card">
-                               <div class="st-card-name">오늘 방문</div>
+                               <div class="st-card-name">${esc(t('status.t11'))}</div>
                                <div class="st-card-value">${num(visits.today)}</div>
-                               <div class="st-card-note"><button type="button" class="st-link" id="stToPlaza">전체 통계는 광장에서 →</button></div>
+                               <div class="st-card-note"><button type="button" class="st-link" id="stToPlaza">${esc(t('status.btn.stToPlaza'))}</button></div>
                            </div>`
                         : ''
                 }
@@ -172,7 +169,7 @@
     function renderChanges(slot: Element | null, entries: ChangeEntry[] | null): void {
         if (!slot) return;
         if (!entries || entries.length === 0) {
-            slot.innerHTML = '<div class="st-fail">변경 기록을 아직 못 불러왔습니다.</div>';
+            slot.innerHTML = t('status.t23');
             return;
         }
         // 날짜별로 묶는다 — 같은 날 고친 것 여섯 개가 날짜 여섯 줄로 뜨면 읽히지 않는다.
@@ -203,22 +200,19 @@
     async function build(container: HTMLElement): Promise<void> {
         container.innerHTML = `
             <div class="st-wrap">
-                <p class="st-lead">지금 잘 돌고 있는지와, 최근에 무엇이 바뀌었는지입니다.
-                    아래 숫자는 전부 실제로 일어난 일이고 손으로 적은 값은 하나도 없습니다.</p>
+                <p class="st-lead">${esc(t('status.t12'))}</p>
                 <div id="stLive"></div>
                 <div>
                     <div class="st-sec-head">
-                        <h3 class="st-sec-title">변경 기록</h3>
-                        <span class="st-sec-note">새 기능 · 고침 · 빨라짐만 ·
-                            <a class="st-feed" href="/karmolab/changes.xml">구독 (RSS)</a></span>
+                        <h3 class="st-sec-title">${esc(t('status.t13'))}</h3>
+                        <span class="st-sec-note">${esc(t('status.t14'))}
+                            <a class="st-feed" href="/karmolab/changes.xml">${esc(t('status.t15'))}</a></span>
                     </div>
                     <div id="stChanges"></div>
                 </div>
                 <p class="st-note">
-                    도구 자체는 전부 브라우저 안에서 돕니다 — 서버가 쉬어도 도구는 그대로 쓸 수 있고,
-                    입력한 내용이 서버로 올라가지 않습니다. 서버가 맡는 것은 계정 · 커뮤니티 ·
-                    기기 사이 기록 옮기기뿐입니다.<br>
-                    안 되는 것을 찾으면 커뮤니티에 남겨 주세요. 여기 적힌 변경은 전부 그렇게 시작했습니다.
+                    ${esc(t('status.t16'))}<br>
+                    ${esc(t('status.t17'))}
                 </p>
             </div>`;
 
@@ -254,6 +248,17 @@
 
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta!('status'),
-        tabs: [{ id: 'status-main', label: '상태', build }],
+        tabs: [
+            {
+                id: 'status-main',
+                label: t('status.tab.main', undefined, '상태'),
+                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('status').then(function () {
+                        build(container);
+                    });
+                },
+            },
+        ],
     });
 })();
