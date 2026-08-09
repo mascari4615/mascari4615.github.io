@@ -27,7 +27,7 @@
     "seal:i18n": "node scripts/build-i18n.mjs --seal",
     "gen:locale-pages": "node scripts/gen-locale-pages.mjs",
     "test:i18n:pages": "node scripts/audit-i18n-pages.mjs",
-    "build": "npm run build:i18n && npm run typecheck && npm run test:i18n && npm run gen:locale-pages && npm run test:i18n:pages && npm run test:i18n:source && npm run gen:changelog && npm run gen:feeds && npm run build:wiki && npm run build:worldbook && npm run build:wm-tasks && npm run test:core && node build.mjs && npm run test:md && npm run test:tools && npm run test:tool-url && npm run test:bundles && npm run audit:script-paths && npm run audit:vendor-globals && npm run test:names && npm run audit:cache && npm run audit:fonts && npm run audit:bg-themes && npm run audit:boot && npm run test:cotext && npm run test:apicache && npm run test:contract && npm run test:lang && npm run test:perf && npm run test:perf:budget && npm run audit:bundles && npm run audit:coverage && npm run test:leak",
+    "build": "npm run build:i18n && npm run typecheck && npm run test:i18n && npm run gen:locale-pages && npm run gen:tool-pages-locale && npm run test:i18n:pages && npm run test:i18n:source && npm run gen:changelog && npm run gen:feeds && npm run build:wiki && npm run build:worldbook && npm run build:wm-tasks && npm run test:core && node build.mjs && npm run test:md && npm run test:tools && npm run test:tool-url && npm run test:bundles && npm run audit:script-paths && npm run audit:vendor-globals && npm run test:names && npm run audit:cache && npm run audit:fonts && npm run audit:bg-themes && npm run audit:boot && npm run test:cotext && npm run test:apicache && npm run test:contract && npm run test:lang && npm run test:perf && npm run test:perf:budget && npm run audit:bundles && npm run audit:coverage && npm run test:leak",
     "gen:fonts": "python scripts/gen-fonts.py",
     "audit:fonts": "node scripts/audit-fonts.mjs",
     "audit:bg-themes": "node scripts/audit-bg-themes.mjs",
@@ -84,7 +84,7 @@
     "test:hydration": "node scripts/smoke-hydration.mjs",
     "gen:icons": "node scripts/gen-app-icons.mjs",
     "test:pwa": "node scripts/smoke-pwa.mjs",
-    "sync:tools": "npm run gen:og && npm run gen:tool-pages && npm run measure:heights && npm run gen:tool-pages && npm run audit:heights && node scripts/after-sync-note.mjs",
+    "sync:tools": "npm run gen:og && npm run gen:tool-pages && npm run measure:heights && npm run gen:tool-pages && npm run gen:tool-pages-locale && npm run audit:heights && node scripts/after-sync-note.mjs",
     "serve:gzip": "node scripts/serve-gzip.mjs",
     "measure:heights": "node scripts/measure-tool-heights.mjs",
     "audit:heights": "node scripts/measure-tool-heights.mjs --check",
@@ -158,7 +158,8 @@
     "test:orbita": "node scripts/smoke-orbita.mjs",
     "test:lang": "node scripts/smoke-lang-switch.mjs",
     "test:i18n:source": "node scripts/audit-i18n-source.mjs",
-    "baseline:i18n:source": "node scripts/audit-i18n-source.mjs --baseline"
+    "baseline:i18n:source": "node scripts/audit-i18n-source.mjs --baseline",
+    "gen:tool-pages-locale": "node scripts/gen-tool-pages-locale.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
