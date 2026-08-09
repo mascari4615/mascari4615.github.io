@@ -193,5 +193,6 @@
   "widgets-desc.localai.desc": "Translate and summarise inside this device, with no server — the text never leaves (recent Chromium browsers)",
   "widgets-desc.chain.desc": "Run several tools back to back — each result becomes the next tool’s input",
   "widgets-desc.garden.desc": "A grid that grows itself from one rule a day — you just watch",
-  "widgets-desc.dailytype.desc": "Three sentences a day · the same for everyone · speed and accuracy"
+  "widgets-desc.dailytype.desc": "Three sentences a day · the same for everyone · speed and accuracy",
+  "widgets-desc.dailycho.desc": "Five words from their initial consonants alone — the answers are tool names on this site"
 }
