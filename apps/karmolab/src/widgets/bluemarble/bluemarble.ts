@@ -17,7 +17,7 @@
  */
 import { t, loadNamespace, fmtRelative } from '../../lib/i18n';
 import { CITIES } from './cities';
-import { subsolar, toVec, distanceKm } from './sky';
+import { subsolar, subsolarBody, toVec, distanceKm } from './sky';
 import { quakes, quakesOn, aurora, kpIndex, iss, launches, issOmm, catalog, solarWind, windEta, type Quake, type AuroraPoint, type IssFix, type Launch } from './sources';
 import { paintSurface, type Tex, type Region, type View as SurfaceView } from './surface';
 import { loadTex, loadClouds, loadCloudsOn } from './textures';
@@ -41,18 +41,20 @@ import { EarthSound } from './sound';
   }
 
   type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'sun';
-  const LAYERS: Array<{ id: LayerId; glyph: string }> = [
-    { id: 'me', glyph: '◉' },
-    { id: 'sats', glyph: '⁘' },
+  /** `earthOnly` = 지구에서만 뜻이 있는 겹. 달·화성에선 단추 자체를 감춘다 —
+      눌러도 아무 일이 없는 단추가 남아 있으면 그건 고장으로 보인다. */
+  const LAYERS: Array<{ id: LayerId; glyph: string; earthOnly?: boolean }> = [
+    { id: 'me', earthOnly: true, glyph: '◉' },
+    { id: 'sats', earthOnly: true, glyph: '⁘' },
     { id: 'sound', glyph: '♪' },
     { id: 'sun', glyph: '☀' },
-    { id: 'zoom', glyph: '⊕' },
-    { id: 'cloud', glyph: '☁' },
-    { id: 'city', glyph: '✦' },
-    { id: 'quake', glyph: '◎' },
-    { id: 'aurora', glyph: '≈' },
-    { id: 'iss', glyph: '✧' },
-    { id: 'launch', glyph: '▲' }
+    { id: 'zoom', earthOnly: true, glyph: '⊕' },
+    { id: 'cloud', earthOnly: true, glyph: '☁' },
+    { id: 'city', earthOnly: true, glyph: '✦' },
+    { id: 'quake', earthOnly: true, glyph: '◎' },
+    { id: 'aurora', earthOnly: true, glyph: '≈' },
+    { id: 'iss', earthOnly: true, glyph: '✧' },
+    { id: 'launch', earthOnly: true, glyph: '▲' }
   ];
   const STORE_KEY = 'karmolab_bluemarble_v1';
 
@@ -108,6 +110,8 @@ import { EarthSound } from './sound';
 .bm-sun[hidden]{display:none;}
 .bm-wrap.bm-ambient .bm-sun{opacity:.8;}
 @media (max-width:520px){.bm-sun{width:64px;height:64px;bottom:88px}}
+.bm-body{position:absolute;top:10px;right:52px;z-index:4;}
+.bm-wrap.bm-ambient .bm-body{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
 .bm-fs{position:absolute;top:10px;right:10px;z-index:4;appearance:none;border:1px solid rgba(255,255,255,.16);
   background:rgba(8,12,22,.55);color:rgba(255,255,255,.6);font-size:13px;line-height:1;padding:7px 9px;
   border-radius:999px;cursor:pointer;backdrop-filter:blur(6px);}
@@ -172,6 +176,10 @@ import { EarthSound } from './sound';
           nowBtn.className = 'bm-now';
           nowBtn.hidden = true;
           timeBar.append(slider, dateLabel, nowBtn);
+          const bodyBtn = document.createElement('button');
+          bodyBtn.type = 'button';
+          bodyBtn.className = 'bm-chip bm-body';
+
           const sunImg = document.createElement('img');
           sunImg.className = 'bm-sun';
           sunImg.alt = '';
@@ -182,7 +190,7 @@ import { EarthSound } from './sound';
           fsBtn.type = 'button';
           fsBtn.className = 'bm-fs';
           fsBtn.textContent = '⛶';
-          wrap.append(canvas, chips, sunImg, fsBtn, timeBar, ticker);
+          wrap.append(canvas, chips, bodyBtn, sunImg, fsBtn, timeBar, ticker);
           container.appendChild(wrap);
 
           const ctx = canvas.getContext('2d');
@@ -225,6 +233,10 @@ import { EarthSound } from './sound';
           let satAt = 0;
           let satLoading = false;
           let wind: { speed: number; at: number } | null = null;
+          /* 어느 곳을 보고 있나. 그리기 장치는 그대로고 **그림만 갈아 끼운다**. */
+          type Body = 'earth' | 'moon' | 'mars';
+          let body: Body = 'earth';
+          const bodyTex: Record<Body, Tex | null> = { earth: null, moon: null, mars: null };
           const sound = new EarthSound();
           let raf: number | undefined;
           let alive = true;
@@ -450,15 +462,25 @@ import { EarthSound } from './sound';
             }
 
             setCamera();
-            const sun = subsolar(new Date(clockMs()));
+            const sun = body === 'earth' ? subsolar(new Date(clockMs())) : subsolarBody(body, new Date(clockMs()));
             const sv = toVec(sun.lat, sun.lon);
             const S: [number, number, number] = [dot(sv, ex), dot(sv, ey), dot(sv, ez)];
 
-            /* 대기 — 지구 바깥으로 새어 나오는 파란 테. 이게 없으면 종이에 오린 원처럼 보인다. */
+            /* 대기 — 지구 바깥으로 새어 나오는 파란 테. 이게 없으면 종이에 오린 원처럼 보인다.
+               달은 대기가 없어 테가 없고(그래서 가장자리가 칼같다), 화성은 얇고 붉다. */
             const halo = c.createRadialGradient(cx, cy, R * 0.94, cx, cy, R * 1.16);
-            halo.addColorStop(0, 'rgba(90,150,255,.34)');
-            halo.addColorStop(0.5, 'rgba(70,130,240,.12)');
-            halo.addColorStop(1, 'rgba(60,120,230,0)');
+            if (body === 'moon') {
+              halo.addColorStop(0, 'rgba(190,190,200,.07)');
+              halo.addColorStop(1, 'rgba(190,190,200,0)');
+            } else if (body === 'mars') {
+              halo.addColorStop(0, 'rgba(255,150,90,.2)');
+              halo.addColorStop(0.5, 'rgba(230,120,70,.07)');
+              halo.addColorStop(1, 'rgba(220,110,60,0)');
+            } else {
+              halo.addColorStop(0, 'rgba(90,150,255,.34)');
+              halo.addColorStop(0.5, 'rgba(70,130,240,.12)');
+              halo.addColorStop(1, 'rgba(60,120,230,0)');
+            }
             c.fillStyle = halo;
             c.beginPath();
             c.arc(cx, cy, R * 1.16, 0, Math.PI * 2);
@@ -468,11 +490,12 @@ import { EarthSound } from './sound';
                (자를 것이 없으므로 「돌리면 땅이 화면을 덮는」 사고가 원리적으로 안 생긴다) */
             ensureSurface();
             if (surfImg && surfView) {
+              const onEarth = body === 'earth';
               paintSurface(surfImg, surfView, {
-                day: dayTex,
-                region: prefs.on.zoom ? region : null,
-                night: prefs.on.city ? nightTex : null,
-                cloud: prefs.on.cloud ? cloudTex : null,
+                day: onEarth ? dayTex : bodyTex[body],
+                region: onEarth && prefs.on.zoom ? region : null,
+                night: onEarth && prefs.on.city ? nightTex : null,
+                cloud: onEarth && prefs.on.cloud ? cloudTex : null,
                 ex,
                 ey,
                 ez,
@@ -490,15 +513,15 @@ import { EarthSound } from './sound';
               c.drawImage(surfCv, surfView.x0, surfView.y0, surfView.w * surfView.step, surfView.h * surfView.step);
             }
 
-            if (prefs.on.aurora && !isPast()) drawAurora(S);
-            if (prefs.on.quake) drawQuakes(now);
-            if (prefs.on.launch && !isPast()) drawLaunches();
-            if (prefs.on.me) drawMe(now);
+            if (body === 'earth' && prefs.on.aurora && !isPast()) drawAurora(S);
+            if (body === 'earth' && prefs.on.quake) drawQuakes(now);
+            if (body === 'earth' && prefs.on.launch && !isPast()) drawLaunches();
+            if (body === 'earth' && prefs.on.me) drawMe(now);
             c.restore();
 
             /* ISS 는 지구 밖(궤도 위)이라 자르기 밖에서 그린다 */
-            if (prefs.on.iss && !isPast()) drawIss();
-            if (prefs.on.sats && !isPast()) drawSats(now);
+            if (body === 'earth' && prefs.on.iss && !isPast()) drawIss();
+            if (body === 'earth' && prefs.on.sats && !isPast()) drawSats(now);
 
             /* 해가 바로 위인 자리에 옅은 빛무리 */
             const sp = project(sun.lat, sun.lon);
@@ -711,6 +734,13 @@ import { EarthSound } from './sound';
 
           function sentences(): string[] {
             const out: string[] = [];
+
+            if (body !== 'earth') {
+              out.push(t('bluemarble.line.' + body));
+              out.push(t('bluemarble.line.' + body + '2'));
+              if (body === 'mars') out.push(t('bluemarble.credit.mars'));
+              return out;
+            }
             const sun = subsolar(new Date(clockMs()));
 
             if (isPast()) {
@@ -948,6 +978,7 @@ import { EarthSound } from './sound';
           function renderChips(): void {
             chips.textContent = '';
             for (const l of LAYERS) {
+              if (l.earthOnly && body !== 'earth') continue;
               const b = document.createElement('button');
               b.type = 'button';
               b.className = 'bm-chip';
@@ -1044,6 +1075,35 @@ import { EarthSound } from './sound';
             atTime = null;
             slider.value = String(Math.floor(Date.now() / DAY));
             void applyTime();
+          };
+
+          /* ── 이웃으로 건너가기 ───────────────────────────────────────── */
+
+          const BODIES: Body[] = ['earth', 'moon', 'mars'];
+
+          function renderBodyBtn(): void {
+            bodyBtn.textContent = t('bluemarble.body.' + body);
+            bodyBtn.setAttribute('aria-pressed', String(body !== 'earth'));
+          }
+
+          async function setBody(next: Body): Promise<void> {
+            body = next;
+            renderBodyBtn();
+            renderChips();
+            /* 대기 테는 지구의 것이다 — 달·화성엔 없다. 그리기 쪽에서 본다. */
+            if (next !== 'earth' && !bodyTex[next]) {
+              const tex = await loadTex(dataUrl(`earth/${next}.webp`), next === 'mars' ? 2048 : 1024, next === 'mars' ? 1024 : 512);
+              if (!alive) return;
+              bodyTex[next] = tex;
+            }
+            lines = sentences();
+            lineIdx = 0;
+            line.textContent = lines[0] || '';
+          }
+
+          bodyBtn.onclick = () => {
+            const i = BODIES.indexOf(body);
+            void setBody(BODIES[(i + 1) % BODIES.length]);
           };
 
           /* ── 상시 모드 (전체화면) ────────────────────────────────────── */
@@ -1153,6 +1213,7 @@ import { EarthSound } from './sound';
             await loadNamespace(NS);
             if (!alive) return;
             renderChips();
+            renderBodyBtn();
             sub.textContent = t('bluemarble.hint');
             /* 아무것도 안 물어보고 알 수 있는 만큼은 바로 안다 (시간대 → 도시).
                정확한 자리는 사용자가 「내 자리」를 눌렀을 때만 묻는다. */

@@ -35,5 +35,13 @@
   "bluemarble.line.sats": "지금 머리 위에서 {n} 개가 지구를 돌고 있습니다. 대부분은 사람이 올려 보낸 것입니다.",
   "bluemarble.layer.sound": "소리",
   "bluemarble.layer.sun": "해",
-  "bluemarble.line.wind": "지금 태양에서 초속 {speed}km 로 바람이 붑니다. 그 바람이 여기 닿기까지 {min}분 남았습니다."
+  "bluemarble.line.wind": "지금 태양에서 초속 {speed}km 로 바람이 붑니다. 그 바람이 여기 닿기까지 {min}분 남았습니다.",
+  "bluemarble.body.earth": "지구",
+  "bluemarble.body.moon": "달",
+  "bluemarble.body.mars": "화성",
+  "bluemarble.line.moon": "달입니다. 공기가 없어 가장자리가 칼처럼 잘려 있습니다.",
+  "bluemarble.line.moon2": "여기서는 낮이 두 주 동안 이어지고, 밤도 그만큼 깁니다.",
+  "bluemarble.line.mars": "화성입니다. 하루가 24시간 37분이라, 지구보다 조금 느리게 밝아집니다.",
+  "bluemarble.line.mars2": "지금 이 순간에도 저 위에는 우리가 보낸 것들이 몇 대 굴러다니고 있습니다.",
+  "bluemarble.credit.mars": "화성 지도: Solar System Scope (CC BY 4.0)"
 }

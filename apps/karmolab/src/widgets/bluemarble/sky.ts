@@ -61,3 +61,26 @@ export function distanceKm(aLat: number, aLon: number, bLat: number, bLon: numbe
     Math.cos(aLat * RAD) * Math.cos(bLat * RAD) * Math.sin(dLon / 2) ** 2;
   return 6371 * 2 * Math.asin(Math.min(1, Math.sqrt(s)));
 }
+
+/* ── 이웃 두 곳 ────────────────────────────────────────────────────────── */
+
+/**
+ * 달·화성에서 「해가 지금 어디 바로 위인가」.
+ *
+ * 지구만큼 정밀하게 안 푼다 — 여기서 필요한 것은 **낮과 밤의 경계가 제 속도로 기어가는 것**
+ * 이지 달력이 아니다. 그래서 두 가지만 지킨다: ① 자전(공전) 주기 ② 계절에 따른 위도 흔들림.
+ *   달  = 삭망월 29.53일에 한 바퀴. 자전축이 거의 안 누워 있어 위도는 사실상 0 이다.
+ *   화성 = 하루 24시간 37분. 자전축 기울기 25.2°, 한 해 687일.
+ * 기준 시각(J2000)에서의 위상은 임의로 잡았다 — 「지금 정확히 어느 면이 낮인가」까지 맞추려면
+ * 천체력이 필요하고, 그건 이 창문이 하려는 일이 아니다. (그렇다고 적어 둔다.)
+ */
+export function subsolarBody(body: 'moon' | 'mars', at: Date = new Date()): Sun {
+  const days = at.getTime() / 86400000 - 10957.5; // J2000 이후 일수
+  if (body === 'moon') {
+    const lon = (((-days / 29.530589) * 360) % 360 + 540) % 360 - 180;
+    return { lat: 1.54 * Math.sin((days / 27.212) * 2 * Math.PI), lon };
+  }
+  const solDays = days / (24.6229 / 24); // 화성의 하루로 센 날수
+  const lon = ((-solDays * 360) % 360 + 540) % 360 - 180;
+  return { lat: 25.19 * Math.sin((days / 686.98) * 2 * Math.PI), lon };
+}
