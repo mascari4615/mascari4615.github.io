@@ -94,6 +94,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['community']
   },
   {
+    /* 광장도 부팅에서 뺐다 (TASK-KL-204, 근거 = KL-201 계기판) — 첫 화면에서 23KB 를 받고
+       한 번도 안 그렸다. 들어오는 길은 전부 `switchPage('plaza')` 라 지연 등록으로 그대로 열린다. */
+    id: 'plaza',
+    title: '광장',
+    category: 'tool',
+    desc: '이 사이트의 숫자를 전부 공개하는 자리 — 방문 · 도구 · 커뮤니티, 전부 실측',
+    layout: 'form',
+    icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3.5 12h17M12 3.2c2.4 2.6 2.4 14 0 17.6M12 3.2c-2.4 2.6-2.4 14 0 17.6" stroke="currentColor" stroke-width="1.2" fill="none"/>',
+    lazyScriptPaths: ['plaza']
+  },
+  {
     id: 'servermonitor',
     title: '서버 모니터',
     category: 'tool',

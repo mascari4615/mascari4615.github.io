@@ -636,13 +636,9 @@
         if (hasTools) renderTools(container, stats.tools);
     }
 
+    /* 메타는 `widgets-lazy-meta.ts` 한 곳에 산다 — 두 곳에 적으면 목록 이름과 화면 이름이 갈라진다. */
     Toolbox.register({
-        id: 'plaza',
-        title: '광장',
-        category: 'tool',
-        desc: '이 사이트의 숫자를 전부 공개하는 자리 — 방문 · 도구 · 커뮤니티, 전부 실측',
-        layout: 'form',
-        icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3.5 12h17M12 3.2c2.4 2.6 2.4 14 0 17.6M12 3.2c-2.4 2.6-2.4 14 0 17.6" stroke="currentColor" stroke-width="1.2" fill="none"/>',
+        ...Toolbox.getLazyWidgetPublicMeta('plaza'),
         // 글판은 여기 두지 않는다 — 커뮤니티(`/karmolab/c/`)가 제 페이지로 갖는다.
         // 같은 것을 두 곳에 두면 한쪽은 반드시 낡고, 어느 쪽이 진짜인지 아무도 모르게 된다.
         tabs: [{ id: 'plaza-main', label: '통계', build: buildOverview }],
