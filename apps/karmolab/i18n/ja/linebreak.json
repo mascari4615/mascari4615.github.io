@@ -1,0 +1,19 @@
+{
+  "linebreak.tab": "改行整理",
+  "linebreak.label.in": "元の文章",
+  "linebreak.label.out": "結果",
+  "linebreak.ph.in": "PDF やウェブからコピーした文章を貼り付けてください",
+  "linebreak.aria.out": "整理した結果",
+  "linebreak.mode.join": "切れた行をつなぐ",
+  "linebreak.mode.wrap": "長さに合わせて分ける",
+  "linebreak.mode.single": "全部1行に",
+  "linebreak.label.width": "1行の長さ",
+  "linebreak.value.width": "60文字",
+  "linebreak.unit.chars": "文字",
+  "linebreak.btn.copy": "結果をコピー",
+  "linebreak.btn.swap": "結果を元の文章にする",
+  "linebreak.status.idle": "段落のあいだの空行はそのままで、段落の中の行だけつなぎます。",
+  "linebreak.copy.done": "結果をコピーしました",
+  "linebreak.say.done": "{before}行 → {after}行 · 段落のあいだの空行はそのままにします。",
+  "linebreak.sample": "この文は画面の幅に\n合わせて切られています。そのまま\n貼ると不自然です。\n\n2つめの段落です。段落の\nあいだの空行は残るべきです。"
+}

@@ -5,7 +5,18 @@
  * 그래서 뜻풀이만 주지 않고 **다음 실행 시각 5개를 실제로 계산해** 보여준다 —
  * 사람의 해석이 아니라 기계의 답으로 확인되는 형태.
  */
+import { t, loadNamespace, locale } from '../../lib/i18n';
+
 (function (): void {
+  /** 남은 시간의 단위는 **Intl 이 그 언어로 적어 준다** — 분/시간/일을 언어마다 적을 필요가 없다. */
+  function humanGap(mins: number): string {
+    const [n, unit]: [number, Intl.NumberFormatOptions['unit']] =
+      mins < 60 ? [mins, 'minute'] : mins < 1440 ? [Math.round(mins / 60), 'hour'] : [Math.round(mins / 1440), 'day'];
+    return new Intl.NumberFormat(locale(), { style: 'unit', unit, unitDisplay: 'long' }).format(n);
+  }
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   interface Field {
     /** 허용 값 목록 */
     values: number[];
@@ -58,49 +69,51 @@
     return { values: [...folded].sort((a, b) => a - b), ok: true };
   }
 
-  const DOW = ['일', '월', '화', '수', '목', '금', '토'];
+  const DOW = [t('cron.day.sun'), t('cron.day.mon'), t('cron.day.tue'), t('cron.day.wed'), t('cron.day.thu'), t('cron.day.fri'), t('cron.day.sat')];
 
   /** 사람 문장으로 옮긴다 — 값이 전부면 「매」, 몇 개면 나열. */
   function describe(f: Field, total: number, unit: string, fmt?: (n: number) => string): string {
     const show = (n: number): string => (fmt ? fmt(n) : String(n));
     if (f.values.length === total) return '';
     if (f.values.length === 1) return `${show(f.values[0])}${unit}`;
-    if (f.values.length > 8) return `${f.values.length}개 ${unit}`;
+    if (f.values.length > 8) return t('cron.value.count', { n: f.values.length, unit });
     return f.values.map(show).join(',') + unit;
   }
 
   Toolbox.register({
     id: 'cron',
-    title: '크론 표현식 읽기',
+    title: t('widgets.cron.title', undefined, "크론 표현식 읽기"),
     category: 'tool',
-    desc: '크론 표현식을 우리말로 풀고 다음 실행 시각을 실제로 계산해 보여줍니다',
+    desc: t('widgets-desc.cron.desc', undefined, "크론 표현식을 우리말로 풀고 다음 실행 시각을 실제로 계산해 보여줍니다"),
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M3 4l2 2M21 4l-2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '읽기',
+        label: t('cron.tab', undefined, "읽기"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('cron').then(function () {
+
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">크론 표현식 — 분 시 일 월 요일</label>
+              <label class="field-label">${esc(t('cron.label.expr'))}</label>
               <input type="text" id="crIn" spellcheck="false" value="0 9 * * 1-5" placeholder="0 9 * * 1-5">
             </div>
 
             <div class="field-group">
               <div class="tool-chips" id="crPresets">
-                <button type="button" class="tool-chip" data-v="* * * * *">1분마다</button>
-                <button type="button" class="tool-chip" data-v="*/10 * * * *">10분마다</button>
-                <button type="button" class="tool-chip" data-v="0 * * * *">매시 정각</button>
-                <button type="button" class="tool-chip" data-v="0 9 * * 1-5">평일 아침 9시</button>
-                <button type="button" class="tool-chip" data-v="0 0 1 * *">매월 1일 자정</button>
-                <button type="button" class="tool-chip" data-v="30 3 * * 0">일요일 새벽 3시 반</button>
+                <button type="button" class="tool-chip" data-v="* * * * *">${esc(t('cron.ex.everyMinute'))}</button>
+                <button type="button" class="tool-chip" data-v="*/10 * * * *">${esc(t('cron.ex.every10'))}</button>
+                <button type="button" class="tool-chip" data-v="0 * * * *">${esc(t('cron.ex.hourly'))}</button>
+                <button type="button" class="tool-chip" data-v="0 9 * * 1-5">${esc(t('cron.ex.weekday9'))}</button>
+                <button type="button" class="tool-chip" data-v="0 0 1 * *">${esc(t('cron.ex.monthly'))}</button>
+                <button type="button" class="tool-chip" data-v="30 3 * * 0">${esc(t('cron.ex.sunday330'))}</button>
               </div>
             </div>
 
             <div class="tool-display" id="crText">—</div>
             <div class="tool-list" id="crNext"></div>
-            <div class="tool-status" id="crStatus">표준 5칸 크론 기준입니다. 시각은 이 기기의 시간대로 계산합니다.</div>
+            <div class="tool-status" id="crStatus">${esc(t('cron.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -115,7 +128,7 @@
             if (parts.length !== 5) {
               text.textContent = '—';
               next.innerHTML = '';
-              status.textContent = '칸이 5개여야 합니다 — 분 시 일 월 요일. (@daily·@hourly 같은 별칭도 됩니다)';
+              status.textContent = t('cron.err.fields');
               status.className = 'tool-status error';
               return;
             }
@@ -129,19 +142,19 @@
             if (![mi, ho, da, mo, dw].every((f) => f.ok)) {
               text.textContent = '—';
               next.innerHTML = '';
-              status.textContent = '읽을 수 없는 칸이 있어요. 숫자·*·범위(1-5)·간격(*/10)·목록(1,3)·이름(MON·JAN)만 됩니다.';
+              status.textContent = t('cron.err.parse');
               status.className = 'tool-status error';
               return;
             }
 
             const bits = [
-              describe(mo, 12, '월', (n) => `${n}`),
-              describe(dw, 7, '요일', (n) => DOW[n]),
-              describe(da, 31, '일'),
-              describe(ho, 24, '시'),
-              describe(mi, 60, '분')
+              describe(mo, 12, t('cron.day.mon'), (n) => `${n}`),
+              describe(dw, 7, t('cron.unit.weekday'), (n) => DOW[n]),
+              describe(da, 31, t('cron.day.sun')),
+              describe(ho, 24, t('cron.unit.hour')),
+              describe(mi, 60, t('cron.unit.minute'))
             ].filter(Boolean);
-            text.textContent = bits.length ? bits.join(' ') + ' 에 실행' : '1분마다 실행';
+            text.textContent = bits.length ? bits.join(' ') + t('cron.phrase.runAt') : t('cron.phrase.everyMinute');
 
             // 표현식을 직접 돌려 다음 시각을 찾는다. 최대 2년치까지만 훑고 없으면 「없음」.
             const found: Date[] = [];
@@ -180,13 +193,13 @@
                     const diff = d.getTime() - Date.now();
                     const mins = Math.round(diff / 60000);
                     const human =
-                      mins < 60 ? `${mins}분 후` : mins < 1440 ? `${Math.round(mins / 60)}시간 후` : `${Math.round(mins / 1440)}일 후`;
-                    return `<div class="tool-list-row"><span class="tool-list-key">${i + 1}번째</span><span class="tool-list-val">${d.toLocaleString('ko-KR')} <span class="tool-list-dim">${human}</span></span></div>`;
+                      t('cron.phrase.after', { d: humanGap(mins) });
+                    return `<div class="tool-list-row"><span class="tool-list-key">${esc(t('cron.value.nth', { n: i + 1 }))}</span><span class="tool-list-val">${d.toLocaleString(locale())} <span class="tool-list-dim">${human}</span></span></div>`;
                   })
                   .join('')
-              : '<div class="tool-list-row"><span class="tool-list-val">앞으로 2년 안에는 실행되지 않습니다 (예: 2월 30일).</span></div>';
+              : t('cron.list.never');
 
-            status.textContent = '표준 5칸 크론 기준입니다. 시각은 이 기기의 시간대로 계산합니다.';
+            status.textContent = t('cron.status.idle');
             status.className = 'tool-status ok';
             Toolbox.trackUse?.('parse');
           }
@@ -199,6 +212,7 @@
             };
           });
           run();
+                  });
         }
       }
     ]

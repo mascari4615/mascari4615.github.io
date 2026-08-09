@@ -1,0 +1,20 @@
+{
+  "lorem.label.unit": "단위",
+  "lorem.label.count": "개수",
+  "lorem.aria.out": "만들어진 글",
+  "lorem.kind.ko": "한글",
+  "lorem.kind.lorem": "로렘 입숨",
+  "lorem.opt.para": "문단",
+  "lorem.opt.sent": "문장",
+  "lorem.opt.word": "단어",
+  "lorem.value.count": "3개",
+  "lorem.btn.loGen": "새로 만들기",
+  "lorem.btn.loCopy": "복사",
+  "lorem.note.ko": "한글 화면은 한글 더미로 확인해야 줄바꿈이 맞습니다.",
+  "lorem.words.ko": "가을 바람 소리 물결 그림자 하늘 언덕 시간 자리 마음 이야기 걸음 골목 여름 저녁 노래 창문 나무 기억 사이 구름 빛깔 새벽 방향 무늬 온기 계단 목소리 파도 조각 숨결 거리 문장 표정 열쇠 바다 안개 손끝 지도 오후",
+  "lorem.tab": "더미 텍스트",
+  "lorem.unit.count": "개",
+  "lorem.note.latin": "영문 시안용입니다.",
+  "lorem.copy.done": "더미 텍스트를 복사했어요",
+  "lorem.status.count": "{n}자 · {note}"
+}

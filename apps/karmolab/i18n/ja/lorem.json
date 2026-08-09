@@ -1,0 +1,20 @@
+{
+  "lorem.tab": "ダミーテキスト",
+  "lorem.kind.ko": "ハングル",
+  "lorem.kind.lorem": "Lorem ipsum",
+  "lorem.label.unit": "単位",
+  "lorem.label.count": "個数",
+  "lorem.opt.para": "段落",
+  "lorem.opt.sent": "文",
+  "lorem.opt.word": "単語",
+  "lorem.value.count": "3個",
+  "lorem.unit.count": "個",
+  "lorem.btn.loGen": "作り直す",
+  "lorem.btn.loCopy": "コピー",
+  "lorem.aria.out": "作られた文章",
+  "lorem.note.ko": "ハングルの画面はハングルのダミーで確かめないと改行が合いません。",
+  "lorem.note.latin": "欧文モックアップ用です。",
+  "lorem.words.ko": "가을 바람 소리 물결 그림자 하늘 언덕 시간 자리 마음 이야기 걸음 골목 여름 저녁 노래 창문 나무 기억 사이 구름 빛깔 새벽 방향 무늬 온기 계단 목소리 파도 조각 숨결 거리 문장 표정 열쇠 바다 안개 손끝 지도 오후",
+  "lorem.copy.done": "ダミーテキストをコピーしました",
+  "lorem.status.count": "{n}文字 · {note}"
+}

@@ -7,13 +7,17 @@
  */
 import { coerce, parseCsv, spec, toCsv } from '../../core/csvjson';
 import { readInvocation } from '../../lib/tool-url';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'csvjson',
-    title: 'CSV ↔ JSON 변환',
+    title: t('widgets.csvjson.title', undefined, "CSV ↔ JSON 변환"),
     category: 'tool',
-    desc: '표(CSV)와 JSON 을 서로 바꿉니다. 따옴표 안 쉼표·줄바꿈도 안 깨집니다',
+    desc: t('widgets-desc.csvjson.desc', undefined, "표(CSV)와 JSON 을 서로 바꿉니다. 따옴표 안 쉼표·줄바꿈도 안 깨집니다"),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="8" height="16" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h8M3 14h8" stroke="currentColor" stroke-width="1.3"/><path d="M15 6h1a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2 2 2 0 0 0-2 2v2a2 2 0 0 1-2 2h-1" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     tabs: [
@@ -21,40 +25,42 @@ import { readInvocation } from '../../lib/tool-url';
         id: 'app',
         label: 'CSV ↔ JSON',
         build: function (container: HTMLElement): void {
+          void loadNamespace('csvjson').then(function () {
+
           container.innerHTML = `
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">구분자</div>
-                  <select id="cjDelim" aria-label="구분자">
-                    <option value=",">쉼표 (,)</option>
-                    <option value="&#9;">탭</option>
-                    <option value=";">세미콜론 (;)</option>
-                    <option value="|">파이프 (|)</option>
+                  <div class="tool-sublabel">${esc(t('csvjson.label.delim'))}</div>
+                  <select id="cjDelim" aria-label="${esc(t('csvjson.label.delim'))}">
+                    <option value=",">${esc(t('csvjson.delim.comma'))}</option>
+                    <option value="&#9;">${esc(t('csvjson.delim.tab'))}</option>
+                    <option value=";">${esc(t('csvjson.delim.semicolon'))}</option>
+                    <option value="|">${esc(t('csvjson.delim.pipe'))}</option>
                   </select>
                 </div>
                 <div>
-                  <div class="tool-sublabel">숫자·참거짓 자동 인식</div>
+                  <div class="tool-sublabel">${esc(t('csvjson.label.coerce'))}</div>
                   <label class="tool-chip" style="display:inline-flex; align-items:center; height:38px;">
-                    <input type="checkbox" id="cjCoerce" checked> 켜기
+                    <input type="checkbox" id="cjCoerce" checked> ${esc(t('csvjson.opt.on'))}
                   </label>
                 </div>
               </div>
             </div>
             <div class="field-group">
-              <label class="field-label">CSV — 첫 줄이 열 이름</label>
-              <textarea id="cjCsv" rows="7" spellcheck="false" placeholder="이름,나이&#10;홍길동,30"></textarea>
+              <label class="field-label">${esc(t('csvjson.label.csv'))}</label>
+              <textarea id="cjCsv" rows="7" spellcheck="false" placeholder="${esc(t('csvjson.ph.csv'))}"></textarea>
             </div>
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
               <!-- 방향 단추를 없앴다. **고친 쪽이 곧 방향**이다 — CSV 를 고치면 JSON 이,
                    JSON 을 고치면 CSV 가 따라온다 (TASK-KL-133). -->
-              <button class="btn btn-ghost" id="cjCopy">JSON 복사</button>
+              <button class="btn btn-ghost" id="cjCopy">${esc(t('csvjson.btn.copy'))}</button>
             </div>
             <div class="field-group">
-              <label class="field-label">JSON — 객체 배열</label>
-              <textarea id="cjJson" aria-label="JSON 입력" rows="9" spellcheck="false" placeholder='[{"이름":"홍길동","나이":30}]'></textarea>
+              <label class="field-label">${esc(t('csvjson.label.json'))}</label>
+              <textarea id="cjJson" aria-label="${esc(t('csvjson.aria.json'))}" rows="9" spellcheck="false" placeholder="${esc(t('csvjson.ph.json'))}"></textarea>
             </div>
-            <div class="tool-status" id="cjStatus">따옴표 안의 쉼표와 줄바꿈도 그대로 살립니다.</div>
+            <div class="tool-status" id="cjStatus">${esc(t('csvjson.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -71,18 +77,18 @@ import { readInvocation } from '../../lib/tool-url';
           function toJson(): void {
             const rows = parseCsv(csv.value.trim(), delim());
             if (rows.length < 2) {
-              say('열 이름 줄과 자료 줄이 최소 한 줄씩 필요해요.', 'error');
+              say(t('csvjson.err.tooShort'), 'error');
               return;
             }
             const head = rows[0];
             const useCoerce = $<HTMLInputElement>('#cjCoerce').checked;
             const out = rows.slice(1).map((r) => {
               const o: Record<string, unknown> = {};
-              head.forEach((h, i) => (o[h || `열${i + 1}`] = useCoerce ? coerce(r[i] ?? '') : (r[i] ?? '')));
+              head.forEach((h, i) => (o[h || t('csvjson.value.col', { n: i + 1 })] = useCoerce ? coerce(r[i] ?? '') : (r[i] ?? '')));
               return o;
             });
             json.value = JSON.stringify(out, null, 2);
-            say(`${out.length}행 · ${head.length}열 을 JSON 으로 바꿨어요.`, 'ok');
+            say(t('csvjson.say.toJson', { rows: out.length, cols: head.length }), 'ok');
             Toolbox.trackUse?.('to-json');
           }
 
@@ -91,20 +97,20 @@ import { readInvocation } from '../../lib/tool-url';
             try {
               data = JSON.parse(json.value);
             } catch (e) {
-              say('JSON 을 읽지 못했어요: ' + (e as Error).message, 'error');
+              say(t('csvjson.err.json') + (e as Error).message, 'error');
               return;
             }
             if (!Array.isArray(data) || !data.length || typeof data[0] !== 'object') {
-              say('객체가 든 배열이어야 해요. 예) [{"이름":"홍길동"}]', 'error');
+              say(t('csvjson.err.notArray'), 'error');
               return;
             }
             csv.value = toCsv(data as Array<Record<string, unknown>>, delim());
-            say(`${(data as unknown[]).length}행을 CSV 로 바꿨어요.`, 'ok');
+            say(t('csvjson.say.toCsv', { rows: (data as unknown[]).length }), 'ok');
             Toolbox.trackUse?.('to-csv');
           }
 
           $<HTMLButtonElement>('#cjCopy').onclick = () => {
-            if (json.value) void Toolbox.copyText?.(json.value, { message: 'JSON 을 복사했어요' });
+            if (json.value) void Toolbox.copyText?.(json.value, { message: t('csvjson.copy.done') });
           };
 
           /* 프로그램이 값을 넣을 때는 input 이 안 울리므로 두 쪽이 서로를 되받아 도는 일은 없다.
@@ -128,9 +134,10 @@ import { readInvocation } from '../../lib/tool-url';
             csv.value =
               call !== null && call.error === undefined && call.op === 'toJson'
                 ? String(call.args.csv ?? '')
-                : '이름,나이,메모\n홍길동,30,"쉼표, 들어간 값"\n김철수,25,보통';
+                : t('csvjson.sample.csv');
             toJson();
           }
+                  });
         }
       }
     ]
