@@ -578,6 +578,7 @@ import {
      * 안 그러면 글자가 테두리를 넘고, 동그라미 안에서 이름이 잘린다.
      */
     function resize(node: GraphNode): void {
+      if (node.sized) return;   // 사람이 모서리를 끌어 정한 크기 — 자동 맞춤이 도로 물리면 안 된다.
       const shape = node.shape ?? 'rect';
       const hasNote = Boolean(node.note && node.note.trim());
       let w = widthFor(node.label);
@@ -1328,6 +1329,7 @@ import {
         syncFocus();
       },
       onBackgroundDoubleClick: (world) => spawnNodeAt(world.x, world.y, ''),
+      onNodeResized: () => { persistStructure(); },
       // 선을 휘거나 이름표를 옮긴 뒤 — 캔버스가 spec 을 고쳤으니 저장만 하면 된다.
       onEdgeChanged: () => persistStructure(),
       onEdgeClick: (edgeId) => {

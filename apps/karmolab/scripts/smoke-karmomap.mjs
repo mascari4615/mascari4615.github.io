@@ -747,6 +747,27 @@ await step('고른 노드 옆 작은 도구 줄에서 쪽지를 바로 붙인다
   // 쪽지는 그 노드를 **가리켜야** 한다(지시선이 하나 늘어난다).
   if (await page.locator('.ck-leader').count() === 0) throw new Error('쪽지가 아무것도 안 가리킨다');
 });
+await step('카드 모서리를 끌면 크기가 바뀌고, 이름을 고쳐도 되돌아가지 않는다', async () => {
+  // 손으로 맞춘 판이 타자 한 번에 도로 튀는 것이 가장 짜증나는 일이다 — 그 되돌아감까지 검사한다.
+  const rbox = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.dblclick(rbox.x + rbox.width * 0.45, rbox.y + rbox.height * 0.8);
+  await page.waitForSelector('.ck-size-handle', { timeout: 4000 });
+  const grip = await page.locator('.ck-size-handle').first().boundingBox();
+  const widthOf = () => page.evaluate(
+    () => Number(document.querySelector('.ck-node.is-selected .ck-node-bg')?.getAttribute('width') || 0)
+  );
+  const before = await widthOf();
+  await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(grip.x + 90, grip.y + 30, { steps: 6 });
+  await page.mouse.up();
+  const after = await widthOf();
+  if (!(after > before + 40)) throw new Error(`폭이 안 늘었다: ${before} → ${after}`);
+  await page.fill('[data-km="edit-label"]', '길게길게길게이름');
+  await page.waitForTimeout(300);
+  const kept = await widthOf();
+  if (Math.abs(kept - after) > 2) throw new Error(`손으로 정한 크기가 튀었다: ${after} → ${kept}`);
+});
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
   await page.click('[data-km="tab"][data-key="notes"]');
