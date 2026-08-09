@@ -156,6 +156,19 @@ await step('묶음에 노드를 넣으면 감싸는 윤곽이 그려진다', asy
     { timeout: 5000 }
   );
 });
+await step('묶음을 잠그면 끌어도 안 움직인다', async () => {
+  await page.click('[data-km="tab"][data-key="groups"]');
+  const lock = page.locator('[data-km="group-lock"]').first();
+  await lock.waitFor({ timeout: 4000 });
+  await lock.click();
+  await page.waitForFunction(
+    () => [...document.querySelectorAll('.ck-group-label')].some((t) => (t.textContent || '').startsWith('🔒')),
+    null,
+    { timeout: 4000 }
+  );
+  await lock.click();
+  await page.click('[data-km="tab"][data-key="node"]');
+});
 await step('내 용어 패널에서 관계 종류 추가', async () => {
   await page.click('[data-km="tab"][data-key="terms"]');
   await page.click('[data-km="t-add-edge"]');

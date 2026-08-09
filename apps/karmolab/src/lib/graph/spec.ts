@@ -120,6 +120,11 @@ export interface GroupDef {
    * Bubble Sets 계열이 말하는 문제이고, 볼록 껍질은 그 중 가장 싼 해법이다.
    */
   shape?: 'box' | 'hull';
+  /**
+   * 잠금 — 끌어도 안 움직인다 (TASK-KL-202 D-6). 「배경처럼 깔아 둔 묶음」을 실수로
+   * 통째 옮기는 사고를 막는다. 안에 든 노드는 따로 움직일 수 있다(자리만 잠근다).
+   */
+  locked?: boolean;
   /** 이름표를 기본 자리에서 얼마나 옮겼나 (TASK-KL-202 D-5). */
   labelDx?: number;
   labelDy?: number;

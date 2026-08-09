@@ -26,6 +26,7 @@ export function renderGroupsPanel(ctx: PanelCtx): void {
                   <input type="text" data-km="group-label" value="${esc(g.label)}" />
                   <span class="km-group-count">${count}</span>
                   <button class="btn btn-ghost" data-km="group-shape" title="테두리 모양 — 윤곽/네모">${(g.shape ?? 'box') === 'hull' ? '⬡' : '▭'}</button>
+                  <button class="btn btn-ghost" data-km="group-lock" title="잠그면 끌어도 안 움직입니다">${g.locked ? '🔒' : '🔓'}</button>
                   <button class="btn btn-ghost" data-km="group-eye" title="상자 보이기/숨기기">${g.hidden ? '🚫' : '👁'}</button>
                   <button class="btn btn-ghost" data-km="group-del" title="묶음 삭제">×</button>
                 </div>`;
@@ -69,6 +70,15 @@ export function renderGroupsPanel(ctx: PanelCtx): void {
       if (!g) return;
       g.shape = (g.shape ?? 'box') === 'hull' ? 'box' : 'hull';
       (ev.currentTarget as HTMLButtonElement).textContent = g.shape === 'hull' ? '⬡' : '▭';
+      ctx.canvas()?.render();
+      ctx.persist();
+    };
+    (row.querySelector('[data-km="group-lock"]') as HTMLButtonElement).onclick = (ev) => {
+      const g0 = find();
+      if (!g0) return;
+      // 잠긴 묶음은 아예 안 잡힌다 — 자물쇠는 이름표 앞에도 붙어 눈으로 보인다.
+      g0.locked = g0.locked ? undefined : true;
+      (ev.currentTarget as HTMLButtonElement).textContent = g0.locked ? '🔒' : '🔓';
       ctx.canvas()?.render();
       ctx.persist();
     };
