@@ -50,6 +50,8 @@ import {
   ALL_KIND_LABELS,
   ALL_EDGE_KIND_DEFS,
   ALL_EDGE_LABELS,
+  allNodeKindGroups,
+  allEdgeKindGroups,
   type CanvasPack,
 } from './packs';
 
@@ -150,7 +152,7 @@ import {
     .km-check input { width:auto; }
     .km-swatch { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
     .km-side input[type=range] { width:100%; }
-    .km-empty [data-km="sample"] { pointer-events:auto; }
+    .km-empty [data-km="sample"] { pointer-events:auto; margin:3px; }
     .km-empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
       color:var(--text-tertiary); font-size:var(--font-size-sm); text-align:center; pointer-events:none;
       padding:24px; line-height:1.7; }
@@ -206,6 +208,8 @@ import {
     };
     /** 지금 끼워진 어휘 팩. `spec._meta.pack` 에 함께 저장된다. */
     let pack: CanvasPack = packById(DEFAULT_PACK_ID);
+    /** 마지막에 쓴 노드 종류 — 팩을 없앤 뒤로 「기본값」은 이것이다. */
+    let lastNodeKind = packById(DEFAULT_PACK_ID).nodeKinds[0].id;
     /** 사용자가 직접 만든 종류. 맵이 아니라 **사람**에게 붙는다(격차 A-2). */
     let terms: MyTerms = loadTerms();
 
@@ -232,28 +236,44 @@ import {
 
     /** 노드 종류 <option> — 팩에 없는 종류(다른 팩에서 넘어온 노드)도 잃지 않게 뒤에 붙인다. */
     function nodeKindOptions(selected?: string): string {
-      const list = nodeKindsNow();
-      const ids = list.map((k) => k.id);
-      const extra = selected && !ids.includes(selected) ? [selected] : [];
-      return [
-        ...list.map(
-          (k) => `<option value="${k.id}"${k.id === selected ? ' selected' : ''}>${k.icon} ${k.label}</option>`
-        ),
-        ...extra.map((id) => `<option value="${id}" selected>${kindIcon(id)} ${kindLabel(id)}</option>`),
-      ].join('');
+      // ★ 전부 보여 준다. 팩은 고르는 칸이 아니라 **소제목**일 뿐 — 한 맵에 인물도 카드도 개념도 산다.
+      const groups = allNodeKindGroups();
+      const known = new Set(groups.flatMap((g) => g.kinds.map((k) => k.id)));
+      const mine = terms.nodeKinds;
+      const opt = (k: { id: string; icon: string; label: string }): string =>
+        `<option value="${k.id}"${k.id === selected ? ' selected' : ''}>${k.icon} ${k.label}</option>`;
+      const parts = groups.map(
+        (g) => `<optgroup label="${g.title}">${g.kinds.map(opt).join('')}</optgroup>`
+      );
+      if (mine.length > 0) {
+        parts.push(`<optgroup label="🏷 내 용어">${mine.map(opt).join('')}</optgroup>`);
+        mine.forEach((k) => known.add(k.id));
+      }
+      // 어느 묶음에도 없는 종류(옛 저장본 등)는 잃지 않게 뒤에 붙인다.
+      if (selected && !known.has(selected)) {
+        parts.push(`<optgroup label="그 밖"><option value="${selected}" selected>${kindIcon(selected)} ${kindLabel(selected)}</option></optgroup>`);
+      }
+      return parts.join('');
     }
 
     /** 선 종류 <option> — 같은 이유로 팩 밖 종류를 보존한다. */
     function edgeKindOptions(selected?: string): string {
-      const list = edgeKindsNow();
-      const ids = list.map((k) => k.id);
-      const extra = selected && !ids.includes(selected) ? [selected] : [];
-      return [
-        ...list.map(
-          (k) => `<option value="${k.id}"${k.id === selected ? ' selected' : ''}>${k.label}</option>`
-        ),
-        ...extra.map((id) => `<option value="${id}" selected>${edgeLabel(id)}</option>`),
-      ].join('');
+      const groups = allEdgeKindGroups();
+      const known = new Set(groups.flatMap((g) => g.kinds.map((k) => k.id)));
+      const mine = terms.edgeKinds;
+      const opt = (k: { id: string; label: string }): string =>
+        `<option value="${k.id}"${k.id === selected ? ' selected' : ''}>${k.label}</option>`;
+      const parts = groups.map(
+        (g) => `<optgroup label="${g.title}">${g.kinds.map(opt).join('')}</optgroup>`
+      );
+      if (mine.length > 0) {
+        parts.push(`<optgroup label="🏷 내 용어">${mine.map(opt).join('')}</optgroup>`);
+        mine.forEach((k) => known.add(k.id));
+      }
+      if (selected && !known.has(selected)) {
+        parts.push(`<optgroup label="그 밖"><option value="${selected}" selected>${edgeLabel(selected)}</option></optgroup>`);
+      }
+      return parts.join('');
     }
 
     container.innerHTML = `
@@ -261,9 +281,6 @@ import {
         <div class="km-toolbar">
           <select data-km="maps" title="맵 고르기"></select>
           <button class="btn btn-ghost" data-km="map-new" title="새 맵">+</button>
-          <select data-km="pack" title="어휘 팩 — 같은 캔버스, 다른 말">
-            ${PACKS.map((p) => `<option value="${p.id}"${p.id === pack.id ? ' selected' : ''}>${p.icon} ${p.label}</option>`).join('')}
-          </select>
           <select data-km="new-kind" title="새로 만들 노드 종류">${nodeKindOptions()}</select>
           <span class="km-sep"></span>
           <input type="text" data-km="find" placeholder="🔎 이름으로 찾기" />
@@ -542,21 +559,28 @@ import {
       // 팩을 바꾸면 안내 문구도 바뀌어야 하므로 매번 다시 쓴다.
       const el = (existing as HTMLElement | null) ?? document.createElement('div');
       el.className = 'km-empty';
-      const sample = sampleFor(pack.id);
+      const samples = PACKS.map((pk) => ({ pk, s: sampleFor(pk.id) })).filter((x) => x.s);
       el.innerHTML =
         `${escapeHtml(pack.hint)}<br><b>빈 곳을 두 번 클릭</b>하면 그 자리에 노드가 생깁니다.<br>` +
         '노드 오른쪽의 <b>점을 끌어다</b> 다른 노드에 놓으면 선이 이어져요.<br>' +
         '<span style="opacity:.75">키보드: <b>Tab</b> 다음 노드 · <b>방향키</b> 옮기기 · <b>Enter</b> 이름 · <b>?</b> 전체 도움말</span>' +
-        (sample
-          ? `<br><br><button class="btn btn-primary" data-km="sample">「${escapeHtml(sample.title)}」 예시 넣어 보기</button>`
-          : '');
+        (samples.length === 0
+          ? ''
+          : '<br><br><span style="opacity:.75">예시로 시작하기</span><br>' +
+            samples
+              .map((x) => `<button class="btn btn-ghost km-sample" data-km="sample" data-key="${x.pk.id}">${x.pk.icon} ${escapeHtml(x.s?.title ?? '')}</button>`)
+              .join(' '));
       // 안내는 클릭을 통과시키지만(pointer-events:none) 버튼만은 눌려야 한다.
-      el.querySelector('[data-km="sample"]')?.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        const s0 = sampleFor(pack.id);
-        if (!s0) return;
-        buildFromOutline(s0.outline, nodeKindsNow()[0].id);
-        Toolbox.showToast?.('예시를 넣었습니다 — 마음껏 고치세요', undefined, undefined);
+      el.querySelectorAll('[data-km="sample"]').forEach((btn) => {
+        btn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          const packId = (btn as HTMLElement).dataset.key ?? DEFAULT_PACK_ID;
+          const s0 = sampleFor(packId);
+          if (!s0) return;
+          // 견본을 넣어도 **갈래가 고정되지 않는다** — 그 견본의 종류로 만들 뿐이다.
+          buildFromOutline(s0.outline, packById(packId).nodeKinds[0].id);
+          Toolbox.showToast?.('예시를 넣었습니다 — 마음껏 고치세요', undefined, undefined);
+        });
       });
       if (!existing) canvasEl.appendChild(el);
     }
@@ -1422,7 +1446,7 @@ import {
      * 빈 곳을 두 번 눌러 바로 타이핑하는 흐름(Scapple·FigJam)이 이 길로 온다.
      */
     function spawnNodeAt(worldX: number, worldY: number, label: string): void {
-      const kind = newKindEl.value || nodeKindsNow()[0].id;
+      const kind = newKindEl.value || lastNodeKind;
       const taken = new Set(spec.nodes.map((n) => n.id));
       const w = widthFor(label);
       const node: GraphNode = {
@@ -1437,6 +1461,7 @@ import {
         ports: [],
       };
       resize(node);
+      lastNodeKind = kind;
       spec.nodes.push(node);
       applySpec();
       persistStructure();
@@ -1610,17 +1635,17 @@ import {
     // ── 어휘 팩 전환 ────────────────────────────────────────────────────────
     // 이미 놓아둔 노드는 건드리지 않는다. 팩은 *앞으로 쓸 말*을 바꿀 뿐이고,
     // 색·아이콘은 전 팩 합본(ALL_*)이 받쳐 주므로 섞여 있어도 죽지 않는다.
-    const packEl = q<HTMLSelectElement>('pack');
+    const packEl = root.querySelector('[data-km="pack"]') as HTMLSelectElement | null;
     function applyPack(id: string, persist: boolean): void {
       pack = packById(id);
-      packEl.value = pack.id;
+      if (packEl) packEl.value = pack.id;
       newKindEl.innerHTML = nodeKindOptions();
       spec._meta = { ...spec._meta, pack: pack.id };
       syncEmptyHint();
       renderSide();
       if (persist) persistStructure();
     }
-    packEl.onchange = () => applyPack(packEl.value, true);
+    if (packEl) packEl.onchange = () => applyPack(packEl.value, true);
 
     /**
      * 가지런히 — 겹친 것만 밀고 격자에 맞춘다. 고른 것이 있으면 **그것만**.

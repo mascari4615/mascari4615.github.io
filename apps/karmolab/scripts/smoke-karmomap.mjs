@@ -54,7 +54,7 @@ await step('위젯이 뜬다', async () => {
   await page.waitForSelector('.km-root', { timeout: 15000 });
 });
 await step('툴바 버튼 전부 있다', async () => {
-  for (const k of ['maps', 'pack', 'new-kind', 'groups', 'terms', 'undo', 'redo', 'bg', 'fit', 'story', 'png', 'export', 'import', 'clear']) {
+  for (const k of ['maps', 'new-kind', 'groups', 'terms', 'undo', 'redo', 'bg', 'fit', 'story', 'png', 'export', 'import', 'clear']) {
     if (await page.locator(`[data-km="${k}"]`).count() === 0) throw new Error(`없음: ${k}`);
   }
 });
@@ -106,10 +106,12 @@ await step('배경 무늬 전환', async () => {
   // 고르고 나면 서랍은 스스로 닫힌다 — 안 닫히면 그 아래 버튼이 통째로 죽으므로 여기서 못 박는다.
   await page.waitForSelector('[data-km="drawer"].hidden', { state: 'attached', timeout: 4000 });
 });
-await step('어휘 팩 전환 (관계도)', async () => {
-  await page.selectOption('[data-km="pack"]', 'relation');
-  const opts = await page.locator('[data-km="new-kind"] option').allTextContents();
-  if (!opts.join(' ').includes('인물')) throw new Error(`팩이 안 바뀜: ${opts.join('/')}`);
+await step('종류 목록에 모든 갈래가 함께 보인다', async () => {
+  await page.locator('.ck-node').first().click({ position: { x: 12, y: 10 } });
+  const groups = await page.locator('[data-km="edit-kind"] optgroup').count();
+  if (groups < 5) throw new Error('갈래 묶음이 ' + groups + '개뿐이다 — 전부 안 보인다');
+  const opts = await page.locator('[data-km="edit-kind"] option').count();
+  if (opts < 20) throw new Error('종류가 ' + opts + '개뿐이다');
 });
 await step('묶음 패널이 열리고 묶음이 생긴다', async () => {
   await page.click('[data-km="groups"]');

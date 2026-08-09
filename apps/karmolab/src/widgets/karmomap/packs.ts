@@ -218,6 +218,21 @@ export const PACKS: CanvasPack[] = [WORLDVIEW, RELATION, CARDGAME, CONCEPT, IDEA
 
 export const DEFAULT_PACK_ID = WORLDVIEW.id;
 
+/**
+ * ★ 종류는 **고르는 게 아니라 분류되는 것** (사용자 지시 2026-08-09).
+ *
+ * 팩을 먼저 고르게 하면 「이 맵은 세계관용」처럼 칸이 나뉘는데, 실제 세계관에는 인물도 장소도
+ * 카드도 개념도 **같이 있다**. 그래서 종류 목록은 언제나 **전부** 내주고, 팩은 그저 **묶음 이름**
+ * 으로만 남는다(고르기 창에서 「세계관 / 인물 관계도 / 카드 전개 …」 소제목).
+ */
+export function allNodeKindGroups(): { title: string; kinds: NodeKindDef[] }[] {
+  return PACKS.map((pk) => ({ title: `${pk.icon} ${pk.label}`, kinds: pk.nodeKinds }));
+}
+
+export function allEdgeKindGroups(): { title: string; kinds: EdgeKindPreset[] }[] {
+  return PACKS.map((pk) => ({ title: `${pk.icon} ${pk.label}`, kinds: pk.edgeKinds }));
+}
+
 export function packById(id: string): CanvasPack {
   return PACKS.find((p) => p.id === id) ?? WORLDVIEW;
 }
