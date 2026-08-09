@@ -175,6 +175,10 @@ import {
       background:linear-gradient(to top, rgba(0,0,0,.72), rgba(0,0,0,0));
       display:flex; flex-direction:column; gap:6px; pointer-events:none; }
     .km-stage.hidden { display:none; }
+    .km-stage-strip { display:flex; flex-wrap:wrap; gap:4px; pointer-events:auto; margin-bottom:2px; }
+    .km-chip { padding:2px 8px; font-size:11px; border-radius:999px; color:rgba(255,255,255,.8);
+      background:rgba(255,255,255,.08); }
+    .km-chip.is-on { background:rgba(255,255,255,.28); color:#fff; }
     .km-stage-title { font-size:var(--font-size-lg); font-weight:700; color:#fff; }
     .km-stage-note { font-size:var(--font-size-sm); color:rgba(255,255,255,.82); }
     .km-stage-bar { display:flex; gap:6px; align-items:center; margin-top:4px; pointer-events:auto; }
@@ -343,6 +347,7 @@ import {
         <div class="km-body">
           <div class="km-canvas" data-km="canvas">
             <div class="km-stage hidden" data-km="stage">
+              <div class="km-stage-strip" data-km="stage-strip"></div>
               <div class="km-stage-title" data-km="stage-title"></div>
               <div class="km-stage-note" data-km="stage-note"></div>
               <div class="km-stage-bar">
@@ -351,6 +356,9 @@ import {
                 <button class="btn btn-ghost" data-km="stage-next">▶</button>
                 <button class="btn btn-ghost" data-km="stage-auto" title="6초마다 다음 장으로">⏱ 자동</button>
                 <button class="btn btn-ghost" data-km="stage-add">+ 지금 화면을 한 장으로</button>
+                <button class="btn btn-ghost" data-km="stage-back" title="이 장을 앞으로">↤</button>
+                <button class="btn btn-ghost" data-km="stage-fwd" title="이 장을 뒤로">↦</button>
+                <button class="btn btn-ghost" data-km="stage-rename" title="이 장 제목 고치기">✎</button>
                 <button class="btn btn-ghost" data-km="stage-del">이 장 지우기</button>
                 <button class="btn btn-ghost" data-km="stage-exit">나가기</button>
               </div>
@@ -1356,6 +1364,18 @@ import {
       (q<HTMLElement>('stage-note')).textContent =
         step?.note ?? '찾기·다리수로 볼 것을 고른 뒤 「+ 지금 화면을 한 장으로」 를 누르세요.';
       (q<HTMLElement>('stage-count')).textContent = list.length ? `${stepIndex + 1} / ${list.length}` : '0 / 0';
+      // 장 목록 — 어디쯤 와 있는지 보이고, 눌러서 바로 건너뛴다(슬라이드 정렬 보기 자리).
+      const strip = q<HTMLElement>('stage-strip');
+      strip.innerHTML = list
+        .map((s0, i) => `<button class="btn btn-ghost km-chip${i === stepIndex ? ' is-on' : ''}"
+          data-km="stage-go" data-key="${i}">${i + 1}. ${escapeHtml(s0.title)}</button>`)
+        .join('');
+      strip.querySelectorAll('[data-km="stage-go"]').forEach((el) => {
+        (el as HTMLButtonElement).onclick = () => {
+          stepIndex = Number((el as HTMLElement).dataset.key ?? 0);
+          showStep();
+        };
+      });
       if (!step) {
         canvas?.setFocus(null);
         return;
@@ -1425,6 +1445,29 @@ import {
       persistStructure();
       showStep();
     };
+    /** 이 장을 한 칸 옮긴다. 끌어 옮기기는 아직 — 버튼이 작고 확실하다. */
+    function moveStep(delta: -1 | 1): void {
+      const list = steps();
+      const to = stepIndex + delta;
+      if (to < 0 || to >= list.length) return;
+      const [it] = list.splice(stepIndex, 1);
+      list.splice(to, 0, it);
+      stepIndex = to;
+      persistStructure();
+      showStep();
+    }
+    q<HTMLButtonElement>('stage-back').onclick = () => moveStep(-1);
+    q<HTMLButtonElement>('stage-fwd').onclick = () => moveStep(1);
+    q<HTMLButtonElement>('stage-rename').onclick = () => {
+      const step = steps()[stepIndex];
+      if (!step) return;
+      const title = prompt('이 장의 제목', step.title)?.trim();
+      if (!title) return;
+      step.title = title;
+      persistStructure();
+      showStep();
+    };
+
     q<HTMLButtonElement>('stage-del').onclick = () => {
       const list = steps();
       if (list.length === 0) return;
