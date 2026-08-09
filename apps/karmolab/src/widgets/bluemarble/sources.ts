@@ -244,3 +244,88 @@ export async function quakesOn(day: string): Promise<Quake[] | null> {
     }))
     .sort((a, b) => a.time - b.time);
 }
+
+/* ── 궤도 위의 것 전부 ─────────────────────────────────────────────────── */
+
+const CATALOG_KEY = 'karmolab_bluemarble_catalog_v1';
+/** CelesTrak 은 두 시간에 한 번 갱신하고, **그 사이 다시 받으면 403 을 준다**(실측).
+ *  그래서 받은 것을 담아 두고 그동안은 안 묻는다 — 예의이기도 하고, 안 그러면 그냥 안 된다. */
+const CATALOG_TTL = 2.5 * 3600 * 1000;
+
+interface CachedCatalog {
+  at: number;
+  rows: Array<[string, number, string, number, number, number, number, number, number]>;
+}
+
+/**
+ * 활동 중인 물체 전부(1만 개 남짓). 원본 JSON 이 6.9MB 라 **받자마자 줄여서** 담는다
+ * (이름 + 요소 8개 = 1MB 남짓). 매번 6.9MB 를 다시 받게 두면 자취방 회선이 그걸로 찬다.
+ */
+export async function catalog(): Promise<import('./orbit').Omm[] | null> {
+  try {
+    const raw = localStorage.getItem(CATALOG_KEY);
+    if (raw) {
+      const c = JSON.parse(raw) as CachedCatalog;
+      if (Date.now() - c.at < CATALOG_TTL && Array.isArray(c.rows)) return c.rows.map(expand);
+    }
+  } catch (_) {
+    /* 담아 둔 것이 깨졌으면 새로 받는다 */
+  }
+
+  /* CelesTrak 은 **두 시간 안에 같은 목록을 또 받으면 403** 을 준다 (실측 — 문서가 아니라
+     응답으로 확인했다). 담아 둔 것이 없는 첫 방문자가 하필 그 창에 걸리면 아무것도 못 본다.
+     그래서 무리(active)가 막히면 **밝은 것들(visual)** 로 내려간다 — 목록마다 셈이 따로다.
+     만 개가 아니라 백여 개지만, 「머리 위가 비어 있지 않다」는 것은 그것으로도 보인다. */
+  const GROUPS = ['active', 'visual'];
+  let rows: import('./orbit').Omm[] | null = null;
+  for (const g of GROUPS) {
+    try {
+      const res = await fetch(`https://celestrak.org/NORAD/elements/gp.php?GROUP=${g}&FORMAT=json`);
+      if (!res.ok) continue;
+      const got = (await res.json()) as import('./orbit').Omm[];
+      if (Array.isArray(got) && got.length) {
+        rows = got;
+        break;
+      }
+    } catch (_) {
+      /* 다음 목록으로 */
+    }
+  }
+
+  try {
+    if (!rows) return null;
+    const small: CachedCatalog['rows'] = rows.map((o) => [
+      o.OBJECT_NAME,
+      o.NORAD_CAT_ID,
+      o.EPOCH,
+      o.MEAN_MOTION,
+      o.ECCENTRICITY,
+      o.INCLINATION,
+      o.RA_OF_ASC_NODE,
+      o.ARG_OF_PERICENTER,
+      o.MEAN_ANOMALY
+    ]);
+    try {
+      localStorage.setItem(CATALOG_KEY, JSON.stringify({ at: Date.now(), rows: small }));
+    } catch (_) {
+      /* 자리가 모자라면 그냥 이번만 쓰고 만다 */
+    }
+    return rows;
+  } catch (_) {
+    return null;
+  }
+}
+
+function expand(r: CachedCatalog['rows'][number]): import('./orbit').Omm {
+  return {
+    OBJECT_NAME: r[0],
+    NORAD_CAT_ID: r[1],
+    EPOCH: r[2],
+    MEAN_MOTION: r[3],
+    ECCENTRICITY: r[4],
+    INCLINATION: r[5],
+    RA_OF_ASC_NODE: r[6],
+    ARG_OF_PERICENTER: r[7],
+    MEAN_ANOMALY: r[8]
+  };
+}

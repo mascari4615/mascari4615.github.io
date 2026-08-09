@@ -30,5 +30,7 @@
   "bluemarble.line.pastDay": "{date} の地球です。その日の雲が、その日の場所にあります。",
   "bluemarble.line.pastQuake": "その日、地球は {n} 回揺れました。最大は {where} 近くのマグニチュード {mag} です。",
   "bluemarble.line.pastQuiet": "その日はマグニチュード4.5以上の揺れがどこにもありませんでした。",
-  "bluemarble.line.pastSun": "その日のこの時刻、太陽は緯度 {lat}° 経度 {lon}° の上にありました。"
+  "bluemarble.line.pastSun": "その日のこの時刻、太陽は緯度 {lat}° 経度 {lon}° の上にありました。",
+  "bluemarble.layer.sats": "軌道上のもの",
+  "bluemarble.line.sats": "いま頭上を {n} 個が回っています。ほとんどが人が打ち上げたものです。"
 }
