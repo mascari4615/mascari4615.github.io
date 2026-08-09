@@ -50,7 +50,7 @@ import { fieldsSectionHtml, bindFieldsSection } from './panels/fields-section';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap, layoutCircle, layoutHierarchy, layoutTimeline, bestTimeField } from './tidy';
 import { computeSna, topBy } from './sna';
-import { encodeShare, decodeShare, shareCodeFromLocation, buildShareUrl, SHARE_URL_LIMIT } from './share';
+import { encodeShare, decodeShare, shareCodeFromLocation, buildShareUrl, isReadOnlyLink, SHARE_URL_LIMIT } from './share';
 import {
   loadLibrary, setActive, renameMap, touchMap, addMap, removeMap, mapKey,
   type LibraryIndex,
@@ -200,6 +200,19 @@ import {
     .km-empty-more { pointer-events:auto; }
     .km-empty-in { max-width:560px; color:var(--text-tertiary); font-size:var(--font-size-sm);
       text-align:center; line-height:1.7; }
+    /* 👁 보기 전용 — 편집 손잡이를 **아예 없앤다**. 「고쳐도 원본은 안 바뀝니다」를 글로 설명하는 것보다
+       손잡이가 안 보이는 편이 헷갈림이 적다. 보는 일(끌기·확대·발표·내보내기)은 그대로 된다. */
+    .km-root.is-readonly [data-km="add"],
+    .km-root.is-readonly [data-km="undo"],
+    .km-root.is-readonly [data-km="redo"],
+    .km-root.is-readonly [data-km="new-kind"],
+    .km-root.is-readonly [data-km="map-new"],
+    .km-root.is-readonly .km-mini { display:none !important; }
+    /* 옆 패널은 **남긴다** — 통째로 숨기면 탭까지 사라져 「저장·발표·관계망 읽기」 같은
+       보는 일까지 못 하게 된다. 손잡이는 CSS 가 아니라 캔버스가 아예 안 만든다. */
+    .km-root.is-readonly .km-viewbadge { position:absolute; left:12px; top:12px; z-index:16;
+      display:flex; gap:8px; align-items:center; padding:6px 10px; border-radius:999px;
+      background:var(--bg-secondary); border:1px solid var(--border); font-size:12px; }
     .km-linking { outline:2px dashed var(--accent); outline-offset:-2px; }
     /* 발표 모드 — 그림을 가리지 않게 아래에만 얹는다. */
     .km-stage { position:absolute; left:0; right:0; bottom:0; padding:14px 16px;
@@ -244,6 +257,8 @@ import {
     /** Shift+드래그로 한 번에 고른 노드들. */
     let selectedMany: string[] = [];
     /** 지금 고른 선. 선에도 이야기가 붙는다(격차 Z). */
+    /** 되돌리기 스택 이름이 `history` 라 브라우저 것과 겹친다 — 별칭으로 갈라 둔다. */
+    const history0 = window.history;
     let selectedEdgeId: string | null = null;
     /** 화면에서 뺀 종류들 — 자료는 그대로 두고 보기만 줄인다(격차 M-3). */
     const filterState = {
@@ -361,6 +376,7 @@ import {
               </label>
               <button class="btn btn-ghost" data-km="storage">💾 저장 상태</button>
               <button class="btn btn-ghost" data-km="share">🔗 링크 만들기</button>
+              <button class="btn btn-ghost" data-km="share-view">👁 보기 전용 링크</button>
               <button class="btn btn-ghost" data-km="tidy">🧹 가지런히</button>
               <button class="btn btn-ghost" data-km="lay-circle">◯ 둥글게 놓기</button>
               <button class="btn btn-ghost" data-km="lay-tree">⌂ 흐름대로 놓기</button>
@@ -1723,10 +1739,10 @@ import {
       renderSide();
     };
 
-    q<HTMLButtonElement>('share').onclick = () => {
+    function makeShareLink(readOnly: boolean): void {
       const live = canvas?.getSpec() ?? spec;
       void encodeShare(live).then(async (code) => {
-        const url = buildShareUrl(new URL(location.href), code);
+        const url = buildShareUrl(new URL(location.href), code, readOnly);
         if (url.length > SHARE_URL_LIMIT) {
           alert(
             `그림이 커서 링크로는 못 보냅니다 (${Math.round(url.length / 1000)}k자).
@@ -1743,7 +1759,11 @@ import {
           prompt('이 링크를 복사해 보내세요', url);
         }
       });
-    };
+    }
+    q<HTMLButtonElement>('share').onclick = () => makeShareLink(false);
+    // 보여 주기만 할 때 쓰는 링크 — 받는 쪽에서 편집 손잡이가 사라진다(고쳐도 원본은 안 바뀐다는
+    // 사실을 말로 설명하는 것보다, 애초에 못 고치게 하는 편이 헷갈림이 적다).
+    q<HTMLButtonElement>('share-view').onclick = () => makeShareLink(true);
 
     /**
      * 구조를 살리는 배치 — 「가지런히」는 있던 자리를 존중하지만, 이미 엉킨 그림은 그것으로 안 풀린다.
@@ -2109,6 +2129,35 @@ import {
     }
 
     /** 지금 열린 맵을 화면에 올린다. 맵을 바꿀 때마다 되돌리기 이력도 갈아 끼운다. */
+    /**
+     * 👁 보기 전용으로 들어간다. 되돌아가는 길(**내 것으로 복제**)을 반드시 함께 준다 —
+     * 남의 관계도를 보다가 「여기서부터 내 걸로 이어 그리고 싶다」가 이 도구의 가장 자연스러운 다음 걸음이다.
+     */
+    let readOnly = false;
+    function enterReadOnly(): void {
+      if (readOnly) return;
+      readOnly = true;
+      root.classList.add('is-readonly');
+      canvas?.setEditable(false);   // 숨기는 게 아니라 **안 만든다**
+      canvasEl.style.cursor = 'grab';
+      const badge = document.createElement('div');
+      badge.className = 'km-viewbadge';
+      badge.innerHTML = '👁 보기 전용 <button class="btn btn-ghost" data-km="fork">내 것으로 복제</button>';
+      canvasEl.appendChild(badge);
+      (badge.querySelector('[data-km="fork"]') as HTMLButtonElement).onclick = () => {
+        readOnly = false;
+        root.classList.remove('is-readonly');
+        canvas?.setEditable(true);
+        badge.remove();
+        // 주소에서 보기 전용 표시를 지운다 — 새로고침해도 다시 잠기면 「복제했는데 또 잠긴다」가 된다.
+        const url = new URL(location.href);
+        url.searchParams.delete('kmv');
+        history0.replaceState(null, '', url.toString());
+        Toolbox.showToast?.('이제 고칠 수 있습니다 — 이 브라우저에만 저장됩니다', undefined, undefined);
+        renderSide();
+      };
+    }
+
     function openActiveMap(): void {
       store = new KarmoMapLocalStorageAdapter(mapKey(library.activeId));
       history.length = 0;
@@ -2203,6 +2252,7 @@ import {
         applyPack(spec._meta?.pack ?? DEFAULT_PACK_ID, false);
         applySpec();
         canvas?.fitView();
+        if (isReadOnlyLink(location.search)) enterReadOnly();
         renderSide();
         snapshot();
         syncHistoryButtons();

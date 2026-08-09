@@ -1059,6 +1059,28 @@ await step('첫 화면이 「무엇을 만들 건가요」 세 갈래를 크게 
   const names = await page.locator('[data-km="fld-name"]').evaluateAll((els) => els.map((e) => e.value));
   if (names.length === 0) throw new Error('갈래를 골랐는데 칸 틀이 안 깔렸다');
 });
+await step('보기 전용 링크 — 손잡이가 사라지고, 「내 것으로 복제」로 풀린다', async () => {
+  // 남에게 보여 줄 때 대부분은 읽히기만 하면 된다. 편집 손잡이가 남아 있으면 받는 쪽이
+  // 「고쳐도 되나」부터 헷갈리고, 고쳐 놓고 원본이 바뀐 줄 안다(사실은 자기 브라우저에만 남는다).
+  await page.click('[data-km="more"]');
+  await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
+  let link = '';
+  page.once('dialog', (d) => { link = d.message() || ''; d.accept(); });
+  await page.locator('[data-km="share-view"]').dispatchEvent('click');
+  await page.waitForTimeout(900);
+  if (!link) link = await page.evaluate(() => navigator.clipboard?.readText?.() ?? '').catch(() => '');
+  if (!link || !link.includes('kmv=1')) throw new Error('보기 전용 표시가 링크에 없다: ' + String(link).slice(0, 80));
+
+  await page.goto(link.replace(/#.*$/, '') + '#karmomap', { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('.km-root.is-readonly', { timeout: 8000 });
+  if (await page.locator('.ck-link-handle').count() > 0) {
+    const visible = await page.locator('.ck-link-handle').first().isVisible();
+    if (visible) throw new Error('보기 전용인데 선 뽑는 손잡이가 보인다');
+  }
+  // 되돌아가는 길이 반드시 있어야 한다 — 없으면 남의 그림을 이어 그릴 방법이 사라진다.
+  await page.locator('[data-km="fork"]').click();
+  await page.waitForSelector('.km-root:not(.is-readonly)', { timeout: 4000 });
+});
 await step('맵 새로 만들기 → 빈 캔버스', async () => {
   await page.click('[data-km="map-new"]');
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
