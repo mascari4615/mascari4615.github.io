@@ -53,5 +53,9 @@
   "birth.gem.9": "サファイア",
   "birth.gem.10": "オパール",
   "birth.gem.11": "トパーズ",
-  "birth.gem.12": "トルコ石"
+  "birth.gem.12": "トルコ石",
+  "birth.row.school": "小学校入学",
+  "birth.value.school": "{year}年3月",
+  "birth.note.early": "早生まれなら{year}年",
+  "birth.note.estimate": "推定"
 }

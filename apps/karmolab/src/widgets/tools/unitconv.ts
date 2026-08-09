@@ -3,6 +3,7 @@
  * 온도만 비선형이라 factor 대신 to/from 함수 쌍으로 둔다 — 나머지는 기준단위 배수 하나로 끝난다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { inRegion } from '../../lib/region';
 
 (function (): void {
   interface Unit {
@@ -267,7 +268,9 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                습관도 한국 것이다. 이걸 영어·일본어로 옮기면 말은 되지만 아무도 안 쓰는 칸이
                하나 늘 뿐이다 — 옮기는 것보다 **안 보이는 게 맞다**. 그 언어에 맞는 계산이
                따로 생기면 그때 그 언어에 맞게 넣는다. */
-            const forKorea = locale() === 'ko';
+            /* 「평당 얼마」로 집을 비교하는 습관은 한국 것이다 — 한국어를 읽느냐가 아니라
+               **한국에서 집을 보느냐**가 기준이라 지역으로 가른다(영어로 읽는 한국 거주자도 쓴다). */
+            const forKorea = inRegion('KR');
             wrap.style.display = forKorea && cat.id === 'area' ? '' : 'none';
             if (!forKorea || cat.id !== 'area') return;
             const out = $<HTMLElement>('#ucPriceOut');

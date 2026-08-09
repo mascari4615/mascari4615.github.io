@@ -53,5 +53,9 @@
   "birth.gem.9": "Sapphire",
   "birth.gem.10": "Opal",
   "birth.gem.11": "Topaz",
-  "birth.gem.12": "Turquoise"
+  "birth.gem.12": "Turquoise",
+  "birth.row.school": "Starts primary school",
+  "birth.value.school": "March {year}",
+  "birth.note.early": "{year} under the old early-entry rule",
+  "birth.note.estimate": "estimate"
 }

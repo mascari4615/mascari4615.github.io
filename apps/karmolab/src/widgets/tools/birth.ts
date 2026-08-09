@@ -11,6 +11,7 @@
 import { birthInfo, spec } from '../../core/birth';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace, locale, fmtDate } from '../../lib/i18n';
+import { inRegion } from '../../lib/region';
 
 (function (): void {
   Toolbox.register({
@@ -89,12 +90,18 @@ import { t, loadNamespace, locale, fmtDate } from '../../lib/i18n';
                   : t('birth.value.untilNext', { n: info.untilNext, date: fmtDate(info.nextBirthday) })
               ) +
               row(t('birth.row.gem'), esc(t(`birth.gem.${info.month}`))) +
-              /* 초등학교 입학(만 7세 3월)은 **한국 학제**다 — 옮기면 말은 되지만 아무도 안 쓰는
-                 줄이 하나 늘 뿐이라 한국어에서만 낸다(평당 가격·원고지와 같은 판단). */
-              (locale() === 'ko'
+              /* 초등학교 입학(만 7세 3월)은 **한국 학제**라 한국에 사는 사람에게만 낸다.
+                 다만 「한국에 사는 사람」 ≠ 「한국어를 읽는 사람」 이므로, 보여 줄 때는
+                 그 사람의 말로 보여 준다 — 지역이 낼지 말지를, 언어가 어떻게 적을지를 정한다. */
+              (inRegion('KR')
                 ? row(
-                    '초등학교 입학',
-                    `${info.schoolYear}년 3월 <span class="tool-list-dim">${info.earlyEntry ? '빠른년생이면 ' + (info.schoolYear - 1) + '년' : '추정'}</span>`
+                    t('birth.row.school'),
+                    esc(t('birth.value.school', { year: info.schoolYear })) +
+                      dim(
+                        info.earlyEntry
+                          ? t('birth.note.early', { year: info.schoolYear - 1 })
+                          : t('birth.note.estimate')
+                      )
                   )
                 : '') +
               row(t('birth.row.tenThousandth'), esc(fmtDate(info.tenThousandth)));

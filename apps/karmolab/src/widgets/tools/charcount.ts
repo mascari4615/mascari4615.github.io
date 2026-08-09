@@ -8,6 +8,7 @@
  * 날아가는 것**(임시 보관)과 **바이트가 진짜 맞는 것**(옛 인코딩에 못 담기는 글자 경고)을 더한다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { inRegion } from '../../lib/region';
 
 (function (): void {
   /**
@@ -19,7 +20,9 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
    */
   const limitPresets = (): Array<{ label: string; value: number }> => [
     { label: t('charcount.preset.none'), value: 0 },
-    ...(locale() === 'ko'
+    /* 자소서 한도는 **한국 채용 관행**이다 — 한국어를 읽든 영어를 읽든, 한국에서 서류를
+       내는 사람에게만 뜻이 있다. 그래서 언어가 아니라 **지역**으로 가른다. */
+    ...(inRegion('KR')
       ? [
           { label: '자소서 500자', value: 500 },
           { label: '자소서 1000자', value: 1000 },
@@ -31,7 +34,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
   ];
 
   const platforms = (): Array<{ label: string; limit: number }> => [
-    ...(locale() === 'ko'
+    ...(inRegion('KR')
       ? [
           { label: '자소서 500자', limit: 500 },
           { label: '자소서 1000자', limit: 1000 },
@@ -228,7 +231,10 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             }
 
             const n = (v: number): string => v.toLocaleString(locale());
-            const forKorea = locale() === 'ko';
+            /* 원고지는 한국만의 것이 아니다 — 일본의 原稿用紙가 같은 것이라 일본에서도 쓴다.
+               EUC-KR 은 옛 한글 인코딩이라 한국만. 언어가 아니라 지역으로 가른다. */
+            const squarePaper = inRegion('KR', 'JP');
+            const forKorea = inRegion('KR');
             /* 원고지와 EUC-KR 은 **한국에서만 뜻이 있는 칸**이다 — 원고지는 한국·일본 글쓰기의
                세는 단위이고, EUC-KR 은 옛 한글 인코딩이다. 다른 언어 화면에서는 아무 의미 없는
                숫자가 두 줄 느는 것이라 안 보여 준다(평당 가격과 같은 판단). */
@@ -239,7 +245,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
               [t('charcount.stat.lines'), t('charcount.unit.lines', { n: n(lines) })],
               [t('charcount.stat.sentences'), t('charcount.unit.count', { n: n(sentences) })],
               [t('charcount.stat.paragraphs'), t('charcount.unit.count', { n: n(paragraphs) })],
-              ...(forKorea
+              ...(squarePaper
                 ? ([[t('charcount.stat.manuscript'), t('charcount.unit.sheets', { n: n(manuscript) })]] as Array<
                     [string, string, string?]
                   >)

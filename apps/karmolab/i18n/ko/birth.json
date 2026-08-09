@@ -53,5 +53,9 @@
   "birth.gem.9": "사파이어",
   "birth.gem.10": "오팔",
   "birth.gem.11": "토파즈",
-  "birth.gem.12": "터키석"
+  "birth.gem.12": "터키석",
+  "birth.row.school": "초등학교 입학",
+  "birth.value.school": "{year}년 3월",
+  "birth.note.early": "빠른년생이면 {year}년",
+  "birth.note.estimate": "추정"
 }

@@ -1,0 +1,124 @@
+/**
+ * 지역이 언어와 **따로 논다**는 것을 실제로 열어서 본다 (TASK-KL-203 S10)
+ *
+ * 이 검사가 없으면 되돌아가기 쉬운 자리다 — 「한국 것」을 `언어 == 한국어` 로 판정하는 코드는
+ * 한국어 화면에서 멀쩡히 동작하고, 깨진 건 **영어로 읽는 한국 거주자**뿐이라 아무도 안 본다.
+ *
+ * 세 가지를 본다:
+ *   ① 언어 en + 지역 KR  → 한국 항목이 **보이고**, 그 항목이 **영어로** 적혀 있다
+ *   ② 언어 en + 지역 US  → 한국 항목이 **안 보인다**
+ *   ③ 언어 ko + 지역 US  → 한국어를 읽어도 한국에 안 살면 안 보인다 (언어로 판정하면 여기서 샌다)
+ *
+ * 사용: node scripts/smoke-region.mjs
+ */
+import { chromium } from 'playwright';
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { catalog } from './lib/locales.mjs';
+
+const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const repoRoot = path.dirname(path.dirname(appRoot));
+const PORT = 8834;
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
+
+/** 지역이 정하는 항목 한 개를 골라 그것만 본다 — 「보인다/안 보인다」가 뚜렷한 줄. */
+const CASES = [
+  { locale: 'en', region: 'KR', page: 'apps/blog/en/karmolab/t/birth/index.html', expect: true },
+  { locale: 'en', region: 'US', page: 'apps/blog/en/karmolab/t/birth/index.html', expect: false },
+  { locale: 'ko', region: 'US', page: 'apps/blog/karmolab/t/birth/index.html', expect: false },
+  { locale: 'ko', region: 'KR', page: 'apps/blog/karmolab/t/birth/index.html', expect: true }
+];
+
+const missing = CASES.filter((c) => !fs.existsSync(path.join(repoRoot, c.page)));
+if (missing.length) {
+  /* 장이 아직 안 찍혔다 = 이 검사의 **대상이 없다**. 「못 돈다」와 「실패」는 다르다. */
+  console.log(`[region] 도구 장이 아직 없다 (${missing[0].page}) — 건너뜀`);
+  process.exit(0);
+}
+
+const server = http.createServer((req, res) => {
+  const url = decodeURIComponent(req.url.split('?')[0]);
+  let file = path.join(repoRoot, url);
+  if (url.endsWith('/')) file = path.join(file, 'index.html');
+  if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+    res.writeHead(404).end('no');
+    return;
+  }
+  res.writeHead(200, { 'content-type': TYPES[path.extname(file)] || 'application/octet-stream' });
+  fs.createReadStream(file).pipe(res);
+});
+await new Promise((r) => server.listen(PORT, r));
+
+const browser = await chromium.launch();
+const fail = [];
+
+for (const c of CASES) {
+  const ctx = await browser.newContext();
+  /* 지역은 브라우저에 저장하는 취향값이라, 장을 열기 **전에** 심어야 첫 그림부터 반영된다. */
+  await ctx.addInitScript((r) => {
+    try {
+      localStorage.setItem('karmolab_region', r);
+    } catch {
+      /* 저장을 막아 둔 환경 — 이 검사에서는 안 일어난다. */
+    }
+  }, c.region);
+
+  const tab = await ctx.newPage();
+  await tab.goto(`http://127.0.0.1:${PORT}/${c.page}`, { waitUntil: 'domcontentloaded' });
+
+  const label = catalog(c.locale, 'birth')['birth.row.school'];
+
+  /* **그려진 자리 안**에서만 본다. 장에는 말 묶음 전체가 글자로 박혀 있어서(그래야 기다림 없이
+     그린다), `body.innerHTML` 로 재면 그 묶음에 든 낱말이 늘 잡힌다 — 처음에 그래서 네 경우가
+     모두 「보인다」로 나왔다. 도구는 멀쩡했고 검사가 틀린 것이었다. */
+  const shown = async () =>
+    await tab.evaluate(() => {
+      const host = document.querySelector('#tool-pages');
+      if (!host) return '';
+      const copy = host.cloneNode(true);
+      copy.querySelectorAll('script,style').forEach((n) => n.remove());
+      return copy.textContent || '';
+    });
+
+  const seen = await tab
+    .waitForFunction(
+      (needle) => {
+        const host = document.querySelector('#tool-pages');
+        if (!host) return false;
+        const copy = host.cloneNode(true);
+        copy.querySelectorAll('script,style').forEach((n) => n.remove());
+        return (copy.textContent || '').includes(needle);
+      },
+      label,
+      { timeout: 6000 }
+    )
+    .then(() => true)
+    .catch(async () => {
+      /* 못 봤다면 **도구가 그려지긴 했는지** 확인한다 — 아무것도 안 그려졌는데 「안 보인다」로
+         통과하면, 이 검사는 도구가 죽어도 초록이다. */
+      const body = await shown();
+      if (!body.trim()) fail.push(`${c.locale}/${c.region}: 도구가 아예 안 그려졌다 — 검사 자체가 못 돈다`);
+      return false;
+    });
+
+  const where = `${c.locale}/${c.region}`;
+  if (seen !== c.expect) {
+    fail.push(
+      c.expect
+        ? `${where}: 그 지역 항목이 안 보인다 (${label}) — 지역이 아니라 언어로 가르고 있을 수 있다`
+        : `${where}: 그 지역이 아닌데 한국 항목이 보인다 (${label})`
+    );
+  }
+  await ctx.close();
+}
+
+await browser.close();
+server.close();
+
+if (fail.length) {
+  for (const f of fail) console.error('[region] ' + f);
+  process.exit(1);
+}
+console.log(`[region] 지역·언어 따로 놀기 ${CASES.length}건 정상 — ${CASES.map((c) => `${c.locale}/${c.region}`).join(', ')}`);
