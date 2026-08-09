@@ -10,6 +10,9 @@
  *  - 저장은 WAV. 다른 도구(오디오 자르기·잇기)에 바로 물릴 수 있고 품질 손실이 없다.
  */
 import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
+import { AiGate } from '../../lib/ai-gate';
+import { loadEngine, webgpuAvailable } from '../../lib/ai-engine';
+import { MODEL_SIZE_MB, toModelAudio, toSrt, transcribe } from '../../lib/ai-transcribe';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -58,6 +61,14 @@ import { t, loadNamespace } from '../../lib/i18n';
             <div class="cc-stats" id="vrStats"></div>
 
             <div id="vrResult" style="display:none; margin-top:var(--space-lg);">
+              <div id="vrAiPanel" style="display:none; margin-top:var(--space-md);">
+                <button class="btn btn-ghost" id="vrAiBtn" type="button"></button>
+                <div class="tool-status" id="vrAiSay"></div>
+                <textarea id="vrAiText" class="tool-input" rows="5" readonly
+                  style="display:none; margin-top:var(--space-sm);"></textarea>
+                <button class="btn btn-ghost" id="vrAiSrt" type="button"
+                  style="display:none; margin-top:var(--space-xs);">자막(SRT)으로 복사</button>
+              </div>
               <div class="tool-sublabel">${esc(t('voicerec.label.result'))}</div>
               <audio id="vrPreview" controls style="width:100%;"></audio>
             </div>
@@ -78,6 +89,59 @@ import { t, loadNamespace } from '../../lib/i18n';
           let recorder: MediaRecorder | null = null;
           let stream: MediaStream | null = null;
           let wav: Blob | null = null;
+
+          /*
+           * 로컬 전사 (해자④ 파일럿). **키 없이, 소리를 밖으로 안 내보내고** 글자를 얻는다.
+           *
+           * 철칙은 하나 — 이 자리가 없어도 녹음기는 그대로 돌아야 한다. 그래서 WebGPU 가 없으면
+           * 자리 자체를 안 보여 준다(오류 X). 모델은 「AI 켜기」를 누른 뒤에만 받는다.
+           */
+          let gate: AiGate | null = null;
+
+          const aiSay = (msg: string, tone = ''): void => {
+            const el = container.querySelector('#vrAiSay') as HTMLElement | null;
+            if (el === null) return;
+            el.textContent = msg;
+            el.className = `tool-status${tone === '' ? '' : ' ' + tone}`;
+          };
+
+          function showAi(): void {
+            const panel = container.querySelector('#vrAiPanel') as HTMLElement | null;
+            if (panel === null) return;
+            if (webgpuAvailable() === false) return; // 못 하는 자리에서는 아예 안 보여 준다
+            panel.style.display = '';
+            const btn = container.querySelector('#vrAiBtn') as HTMLButtonElement;
+            btn.textContent = '음성을 글자로 (AI 켜기)';
+            aiSay(`${MODEL_SIZE_MB}MB 를 한 번 받으면 그다음부터는 바로 됩니다. 소리는 기기 밖으로 안 나갑니다.`);
+          }
+
+          async function runTranscribe(): Promise<void> {
+            if (recorded === null) return;
+            const btn = container.querySelector('#vrAiBtn') as HTMLButtonElement;
+            const out = container.querySelector('#vrAiText') as HTMLTextAreaElement;
+            const srtBtn = container.querySelector('#vrAiSrt') as HTMLButtonElement;
+            btn.disabled = true;
+
+            gate ??= new AiGate({
+              sizeMb: MODEL_SIZE_MB,
+              fetch: async (onProgress) => {
+                const engine = await loadEngine();
+                /* 이미 디코드된 소리라 다시 풀 필요가 없다 — 그대로 16kHz 단일채널로만 맞춘다. */
+                const audio = await toModelAudio(new ArrayBuffer(0), async () => recorded as AudioBuffer);
+                const result = await transcribe(engine, audio, { language: 'korean', onProgress });
+                out.value = result.text === '' ? '(말소리를 못 알아들었습니다)' : result.text;
+                out.style.display = '';
+                const srt = toSrt(result);
+                srtBtn.style.display = srt === '' ? 'none' : '';
+                srtBtn.onclick = () => void Toolbox.copyText?.(srt, { message: '자막을 복사했어요 — 자막 도구에 붙여 넣으세요' });
+              },
+              onChange: (v) => aiSay(v.say, v.state === 'failed' ? 'error' : '')
+            });
+
+            const ok = await gate.accept();
+            btn.disabled = false;
+            btn.textContent = ok ? '다시 글자로' : '음성을 글자로 (AI 켜기)';
+          }
           // 저장 형식을 나중에 고르므로 소리 자체를 들고 있어야 한다 (WAV 로만 갖고 있으면 MP3 를 못 만든다)
           let recorded: AudioBuffer | null = null;
           let raf = 0;
@@ -193,6 +257,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             wav = toWav(buffer); // 미리 듣기는 손실 없는 쪽으로 들려준다
             preview.src = URL.createObjectURL(wav);
             $<HTMLElement>('#vrResult').style.display = '';
+            showAi();
             saveBtn.disabled = false;
             clock.textContent = mmss(buffer.duration);
             stats.innerHTML =
@@ -211,6 +276,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             Toolbox.trackUse?.('record');
           }
 
+          (container.querySelector('#vrAiBtn') as HTMLButtonElement).onclick = () => void runTranscribe();
           startBtn.onclick = () => {
             void start().catch((err: Error) => {
               cleanup();

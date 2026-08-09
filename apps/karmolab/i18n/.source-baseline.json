@@ -1,5 +1,5 @@
 {
-  "total": 4943,
+  "total": 4942,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -314,7 +314,7 @@
     "src/widgets/tools/videorotate.ts": 3,
     "src/widgets/tools/videotool.ts": 9,
     "src/widgets/tools/videotrim.ts": 3,
-    "src/widgets/tools/voicerec.ts": 3,
+    "src/widgets/tools/voicerec.ts": 10,
     "src/widgets/tools/wordfreq.ts": 3,
     "src/widgets/tools/workdays.ts": 3,
     "src/widgets/tools/worldclock.ts": 3,
@@ -331,7 +331,7 @@
     "src/world/load-characters-from-wiki.ts": 8,
     "src/core/passgen.ts": 32,
     "src/core/chain.ts": 16,
-    "src/widgets/tools/chain.ts": 12,
+    "src/widgets/tools/chain.ts": 4,
     "src/core/daily.ts": 13,
     "src/lib/ai-route.ts": 16,
     "src/lib/graph/notes.ts": 4,
