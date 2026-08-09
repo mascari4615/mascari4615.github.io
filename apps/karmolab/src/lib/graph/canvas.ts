@@ -260,8 +260,11 @@ export class GraphCanvas {
   /** 이번 렌더에서 쓸 노드별 연결 수. render 시작 때 한 번만 센다. */
   private degreeCache: Map<string, number> = new Map();
 
-  private filter: { nodeKinds: Set<string>; edgeKinds: Set<string>; tags: Set<string>; hideOrphans: boolean } = {
-    nodeKinds: new Set(), edgeKinds: new Set(), tags: new Set(), hideOrphans: false,
+  private filter: {
+    nodeKinds: Set<string>; edgeKinds: Set<string>; tags: Set<string>;
+    hideOrphans: boolean; minDegree: number;
+  } = {
+    nodeKinds: new Set(), edgeKinds: new Set(), tags: new Set(), hideOrphans: false, minDegree: 0,
   };
   /** 손잡이에서 끌고 있는 중. 임시 선은 edgeLayer 에 그렸다가 놓을 때 지운다. */
   private linking: { fromId: string; temp: SVGPathElement } | null = null;
@@ -2373,13 +2376,14 @@ export class GraphCanvas {
   /** 거르기 설정. 넘긴 종류는 화면에서 빠진다(자료는 그대로). */
   setFilter(next: {
     nodeKinds?: Iterable<string>; edgeKinds?: Iterable<string>;
-    tags?: Iterable<string>; hideOrphans?: boolean;
+    tags?: Iterable<string>; hideOrphans?: boolean; minDegree?: number;
   }): void {
     this.filter = {
       nodeKinds: new Set(next.nodeKinds ?? []),
       edgeKinds: new Set(next.edgeKinds ?? []),
       tags: new Set(next.tags ?? []),
       hideOrphans: next.hideOrphans ?? false,
+      minDegree: next.minDegree ?? 0,
     };
     this.render();
   }
@@ -2430,17 +2434,27 @@ export class GraphCanvas {
         // 꺼 둔 꼬리표가 하나라도 붙어 있으면 뺀다 — 「이건 지금 안 볼 것」이 여러 개일 수 있다.
         && !(n.tags ?? []).some((tag) => this.filter.tags.has(tag))
     );
-    if (!this.filter.hideOrphans) return nodes;
-    // 「외톨이 숨기기」 — 선이 하나도 안 닿은 노드를 뺀다(Kumu 의 ignore-orphans).
-    const live = new Set(nodes.map((n) => n.id));
-    const touched = new Set<string>();
-    for (const e of this.spec?.edges ?? []) {
-      if (this.filter.edgeKinds.has(e.kind)) continue;
-      const a = this.parseNodeRef(e.from);
-      const b = this.parseNodeRef(e.to);
-      if (live.has(a) && live.has(b)) { touched.add(a); touched.add(b); }
+    const min = Math.max(this.filter.minDegree, this.filter.hideOrphans ? 1 : 0);
+    if (min <= 0) return nodes;
+    // 「연결 수 하한」 — 선이 min 개 미만인 노드를 뺀다. **빠질 게 없을 때까지 되풀이**한다:
+    // 이웃이 빠지면 남은 노드의 연결 수도 줄어드는데, 한 번만 걸러내면 조건을 못 채운 노드가 남는다
+    // (network 쪽에서 k-core 라 부르는 것과 같은 셈법).
+    let live = new Set(nodes.map((n) => n.id));
+    for (let round = 0; round < 40; round += 1) {
+      const deg = new Map<string, number>();
+      for (const e of this.spec?.edges ?? []) {
+        if (this.filter.edgeKinds.has(e.kind)) continue;
+        const a = this.parseNodeRef(e.from);
+        const b = this.parseNodeRef(e.to);
+        if (!live.has(a) || !live.has(b)) continue;
+        deg.set(a, (deg.get(a) ?? 0) + 1);
+        deg.set(b, (deg.get(b) ?? 0) + 1);
+      }
+      const next = new Set([...live].filter((id) => (deg.get(id) ?? 0) >= min));
+      if (next.size === live.size) break;
+      live = next;
     }
-    return nodes.filter((n) => touched.has(n.id));
+    return nodes.filter((n) => live.has(n.id));
   }
 
   /** 선택 표시 — 편집 UI 가 어떤 노드를 다루는지 캔버스에 반영. */

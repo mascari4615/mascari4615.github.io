@@ -48,6 +48,8 @@ export interface PanelCtx {
     edgeKinds: Set<string>;
     tags: Set<string>;
     hideOrphans: boolean;
+    /** 이 수보다 적게 이어진 노드는 숨긴다(0 = 안 씀). */
+    minDegree: number;
     sizeByDegree: boolean;
     colorByTag: boolean;
   };
