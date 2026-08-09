@@ -107,6 +107,9 @@ export interface GroupDef {
    * Bubble Sets 계열이 말하는 문제이고, 볼록 껍질은 그 중 가장 싼 해법이다.
    */
   shape?: 'box' | 'hull';
+  /** 이름표를 기본 자리에서 얼마나 옮겼나 (TASK-KL-202 D-5). */
+  labelDx?: number;
+  labelDy?: number;
 }
 
 export interface EphemeralAnchor {
