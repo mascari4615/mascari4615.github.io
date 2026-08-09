@@ -20,6 +20,14 @@ import type {
 export {};
 
 declare global {
+  /**
+   * 이 판(배포) 표식 — `build.mjs` 가 esbuild define 으로 치환한다.
+   * 선언은 **여기 한 곳**이다: 파일마다 `declare const` 를 두면 두 벌이 되어
+   * 「같은 이름을 두 번 선언했다」로 typecheck 이 선다 (`sw.ts` 와 `perf.ts` 가 실제로 부딪혔다).
+   */
+  const __KARMOLAB_BUILD__: string;
+  const __KARMOLAB_COMMIT__: string;
+
   interface Window {
     KarmoLabImageConvert?: KarmoLabImageConvertAPI;
     KarmoLabImageBatch?: KarmoLabImageBatchAPI;
@@ -34,6 +42,27 @@ declare global {
     KARMOLAB_LAZY_META_BY_ID?: Record<string, KarmoLabLazyWidgetStub>;
     KARMOLAB_WIDGETS_BOOT?: string[];
     KARMOLAB_LAZY_META?: KarmoLabLazyWidgetStub[];
+
+    /**
+     * 성능 계측 이음매 — `src/perf.ts` (TASK-KL-201). 셸이 받아 적고 계기판 위젯이 읽는다.
+     * 계측기가 아직 안 실렸어도 셸은 그대로 돌아야 하므로 전부 optional 이다.
+     */
+    KLPerf?: {
+      /** 부팅 마일스톤 한 점. */
+      mark: (name: string) => void;
+      /** 스크립트 하나를 받아 실행하기까지 (ms). */
+      script: (url: string, ms: number) => void;
+      /** 위젯 하나를 그리는 데 걸린 시간 (ms). 여러 번 불린다. */
+      build: (id: string, ms: number) => void;
+      /** 지연 위젯 하나가 눌러서 준비되기까지 (ms) + 그때 받은 스크립트 주소. */
+      widget: (id: string, urls: string[], ms: number) => void;
+      snapshot: () => Record<string, unknown>;
+      /** 값비싸다 — 계기판이 「지금 재기」를 누를 때만. */
+      frameProbe: (durationMs: number) => Promise<{
+        windowMs: number; frames: number; fps: number; fpsLow: number; janks: number; worstMs: number;
+      }>;
+      clearBoots: () => void;
+    };
 
     /** 도구 상세 페이지(/karmolab/t/&lt;id&gt;/)가 심는 진입 위젯 id — toolbox.init 이 첫 페이지로 연다 (TASK-KL-088) */
     KARMOLAB_ENTRY_TOOL?: string;

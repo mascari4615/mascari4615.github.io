@@ -344,6 +344,10 @@ permalink: /karmolab/
       document.head.appendChild(s);
     });
     </script>
+    <!-- 성능 계측 (TASK-KL-201) — 셸이 눈금을 여기에 적는다(`window.KLPerf`). 셸(toolbox)보다
+         **먼저** 실려야 부팅 마일스톤이 안 빈다. defer 는 문서 순서대로 실행되므로 이 줄의
+         위치가 곧 순서다. 계측기가 없어도 셸은 그대로 돈다(전부 `?.` 로 부른다). -->
+    <script defer fetchpriority="low" src="/apps/karmolab/js/perf.js"></script>
     <script defer fetchpriority="low" src="/apps/karmolab/js/analytics.js"></script>
     <!-- 계정 (TASK-KL-098) — 도전과제·연속기록이 이 브라우저 밖에도 남게 하고, 헤더의 로그인
          자리를 채운다. 서버(yawnbot)가 죽어 있으면 아무 일도 안 하고 지금까지와 똑같이 동작한다. -->

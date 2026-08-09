@@ -69,6 +69,18 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['status']
   },
   {
+    /* 성능 계기판 (TASK-KL-201) — 개발용. 목록에는 안 내놓는다(hidden): 이건 만드는 사람이
+       「어디가 느린가」를 볼 때 여는 자리다. ⌘K·주소로는 그대로 열린다. */
+    id: 'perf',
+    title: '성능 계기판',
+    category: 'tool',
+    hidden: true,
+    desc: 'KarmoLab 자기 성능 실측 — 부팅 · 위젯별 무게 · 긴 작업 · 프레임 · 판별 부팅 비교 (개발용)',
+    layout: 'form',
+    icon: '<path d="M12 20a8 8 0 1 1 8-8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 12l5-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/>',
+    lazyScriptPaths: ['perf/perf']
+  },
+  {
     id: 'servermonitor',
     title: '서버 모니터',
     category: 'tool',

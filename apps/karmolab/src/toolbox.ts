@@ -496,10 +496,16 @@ const Toolbox = (() => {
 
     /** 위젯 그리기는 **전부 이걸 거친다** — 그래야 onDispose 가 누구 것인지 안다.
      *  한 군데라도 빼먹으면 그 위젯만 뒷정리가 안 되고, 그건 눈에 안 보인다. */
+    /* 눈금은 여기 하나에만 붙인다 (TASK-KL-201) — 모든 위젯의 그리기가 이 문을 지난다.
+       위젯마다 따로 재면 그날부터 「그린 시간」의 뜻이 갈라진다. */
     function runBuild(toolId, fn) {
         const prev = buildingTool;
         buildingTool = toolId;
-        try { return fn(); } finally { buildingTool = prev; }
+        const startedAt = performance.now();
+        try { return fn(); } finally {
+            buildingTool = prev;
+            window.KLPerf?.build(toolId, performance.now() - startedAt);
+        }
     }
 
     function disposeTool(id) {
@@ -799,6 +805,7 @@ const Toolbox = (() => {
     function loadScriptOnce(src) {
         if (widgetScriptsLoaded.has(src)) return Promise.resolve();
         if (widgetScriptsLoading.has(src)) return widgetScriptsLoading.get(src);
+        const startedAt = performance.now();
         const p = new Promise((resolve, reject) => {
             const s = document.createElement('script');
             s.src = src;
@@ -806,6 +813,8 @@ const Toolbox = (() => {
             s.onload = () => {
                 widgetScriptsLoaded.add(src);
                 widgetScriptsLoading.delete(src);
+                // 받아서 실행이 끝나기까지 (TASK-KL-201). 캐시에서 나오면 짧다.
+                window.KLPerf?.script(src, performance.now() - startedAt);
                 resolve();
             };
             s.onerror = () => {
@@ -828,10 +837,16 @@ const Toolbox = (() => {
             return Promise.resolve();
         }
 
+        /* 「눌러서 뜰 때까지」는 스크립트 한 장이 아니라 **이 묶음 전체**다 (TASK-KL-201) —
+           뒤에 딸린 대기(KARMOLAB_WIDGET_LOADER_WAIT)까지 끝나야 그 위젯이 준비된 것이다.
+           스크립트 한 장만 재면 여러 장짜리 위젯이 실제보다 빨라 보인다. */
+        const startedAt = performance.now();
+        const urls = [];
         const p = (async () => {
             let waitIdx = (window.KARMOLAB_WIDGET_LOADER_WAIT || []).length;
             for (let i = 0; i < paths.length; i++) {
                 const url = resolveScriptPath(paths[i]);
+                urls.push(url);
                 await loadScriptOnce(url);
                 const w = window.KARMOLAB_WIDGET_LOADER_WAIT || [];
                 if (w.length > waitIdx) {
@@ -839,6 +854,7 @@ const Toolbox = (() => {
                     waitIdx = w.length;
                 }
             }
+            window.KLPerf?.widget(pageId, urls, performance.now() - startedAt);
         })()
             .finally(() => {
                 lazyLoadPromises.delete(pageId);
