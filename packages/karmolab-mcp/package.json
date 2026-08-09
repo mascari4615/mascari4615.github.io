@@ -1,6 +1,6 @@
 {
   "name": "karmolab-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "MCP server for the things LLMs get wrong: exact hashes, real randomness, and Korean rules (ages, business registration numbers, substitute holidays, Hangul). No dependencies.",
   "keywords": [
@@ -42,5 +42,6 @@
     "build": "node build.mjs",
     "test": "node ../../apps/karmolab/scripts/smoke-mcp.mjs",
     "prepublishOnly": "node build.mjs && node ../../apps/karmolab/scripts/smoke-mcp.mjs"
-  }
+  },
+  "mcpName": "io.github.mascari4615/karmolab-mcp"
 }

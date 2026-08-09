@@ -133,6 +133,15 @@ if (fs.existsSync(serverJsonPath)) {
    * 「You have permission to publish: io.github.mascari4615/*」 인데 우리는 대문자 M 으로 적었다).
    * 깃허브 계정 이름은 대소문자를 보존해서 보여 주므로, 그대로 옮겨 적으면 이 함정에 빠진다.
    */
+  /*
+   * 레지스트리는 **npm 쪽에도 같은 이름이 적혀 있는지** 확인한다 — package.json 의 `mcpName`.
+   * 없으면 400 으로 튕긴다(2026-08-10, 세 번째 튕김). 이건 발행된 npm 판을 보고 확인하므로,
+   * 여기서 고쳐도 **새 버전을 npm 에 올려야** 반영된다.
+   */
+  if (pkg.mcpName !== reg.name) {
+    mismatches.push(`package.json 의 mcpName(${pkg.mcpName ?? '없음'}) ≠ server.json 의 name(${reg.name})`);
+  }
+
   if (reg.name !== reg.name.toLowerCase()) {
     mismatches.push(`name 에 대문자가 있다 (${reg.name}) — 레지스트리 네임스페이스는 소문자만`);
   }

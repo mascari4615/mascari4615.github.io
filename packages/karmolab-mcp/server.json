@@ -3,7 +3,7 @@
   "name": "io.github.mascari4615/karmolab-mcp",
   "title": "KarmoLab",
   "description": "MCP server for what LLMs get wrong: exact hashes, real randomness, and Korean rules.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "websiteUrl": "https://blog.mascari4615.com/karmolab/",
   "repository": {
     "url": "https://github.com/Mascari4615/Mascari4615.github.io",
@@ -15,7 +15,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "karmolab-mcp",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "transport": {
         "type": "stdio"
       }
