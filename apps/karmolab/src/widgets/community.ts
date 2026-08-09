@@ -19,6 +19,7 @@
  * 뒤로 가기로 목록↔글을 오간다.
  */
 import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './community-markdown';
+import { t, loadNamespace } from '../lib/i18n';
 
 (function (): void {
     interface Board {
@@ -125,16 +126,16 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
      * 값은 같고 부르는 말만 다르다 — 저장은 한 벌이다.
      */
     const STATUS_LABEL_REQUEST: Record<Post['status'], string> = {
-        open: '받는 중',
-        planned: '만들 예정',
-        done: '만들었음',
-        declined: '안 만듦',
+        open: t('community.t68'),
+        planned: t('community.t69'),
+        done: t('community.t70'),
+        declined: t('community.t71'),
     };
     const STATUS_LABEL_ISSUE: Record<Post['status'], string> = {
-        open: '열림',
-        planned: '할 예정',
-        done: '됐음',
-        declined: '안 함',
+        open: t('community.t72'),
+        planned: t('community.t73'),
+        done: t('community.t74'),
+        declined: t('community.t75'),
     };
     function statusLabels(gallery: { voteStyle: boolean }): Record<Post['status'], string> {
         return gallery.voteStyle ? STATUS_LABEL_REQUEST : STATUS_LABEL_ISSUE;
@@ -448,12 +449,12 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         const then = new Date(iso).getTime();
         if (Number.isNaN(then)) return '';
         const minutes = Math.floor((Date.now() - then) / 60000);
-        if (minutes < 1) return '방금';
-        if (minutes < 60) return `${minutes}분 전`;
+        if (minutes < 1) return t('community.t76');
+        if (minutes < 60) return t('community.ago.min', { n: minutes });
         const hours = Math.floor(minutes / 60);
-        if (hours < 24) return `${hours}시간 전`;
+        if (hours < 24) return t('community.ago.hour', { n: hours });
         const days = Math.floor(hours / 24);
-        if (days < 30) return `${days}일 전`;
+        if (days < 30) return t('community.ago.day', { n: days });
         return new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium', timeZone: 'Asia/Seoul' }).format(new Date(then));
     }
 
@@ -553,39 +554,39 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
     /** 무엇이 · 왜 · 이제 무엇을. 종류마다 다르게 말한다 — 「안 돼요」 하나로 뭉치지 않는다. */
     const FAILURE_TEXT: Record<Failure['kind'], { title: string; why: string; todo: string }> = {
         offline: {
-            title: '인터넷이 끊겨 있어요',
-            why: '이 컴퓨터가 지금 네트워크에 연결돼 있지 않습니다.',
-            todo: '연결을 확인한 뒤 다시 시도해 주세요.',
+            title: t('widgets.community-main.title', undefined, "인터넷이 끊겨 있어요"),
+            why: t('community.t78'),
+            todo: t('community.t79'),
         },
         unreachable: {
-            title: '커뮤니티 서버에 못 닿았어요',
-            why: '커뮤니티는 집에 있는 작은 서버가 돌립니다. 그 서버가 꺼져 있거나 재시작 중일 수 있어요.',
-            todo: '잠시 뒤에 다시 시도해 주세요. 도구는 서버 없이도 그대로 씁니다.',
+            title: t('widgets.community-main.title', undefined, "커뮤니티 서버에 못 닿았어요"),
+            why: t('community.t81'),
+            todo: t('community.t82'),
         },
         server: {
-            title: '서버가 이 요청을 처리하다 넘어졌어요',
-            why: '서버 쪽 문제입니다. 잘못 누른 것이 아닙니다.',
-            todo: '다시 시도해 보고, 계속 그러면 아래 요청 번호를 알려 주세요.',
+            title: t('widgets.community-main.title', undefined, "서버가 이 요청을 처리하다 넘어졌어요"),
+            why: t('community.t84'),
+            todo: t('community.t85'),
         },
         auth: {
-            title: '이 일을 할 권한이 없어요',
-            why: '로그인이 풀렸거나, 주인만 할 수 있는 일입니다.',
-            todo: '오른쪽 위에서 다시 로그인한 뒤 시도해 주세요.',
+            title: t('widgets.community-main.title', undefined, "이 일을 할 권한이 없어요"),
+            why: t('community.t87'),
+            todo: t('community.t88'),
         },
         notfound: {
-            title: '그건 여기 없어요',
-            why: '지워졌거나 주소가 바뀐 것 같습니다.',
-            todo: '갤러리 목록에서 다시 찾아 주세요.',
+            title: t('widgets.community-main.title', undefined, "그건 여기 없어요"),
+            why: t('community.t90'),
+            todo: t('community.t91'),
         },
         ratelimit: {
-            title: '오늘 올릴 수 있는 만큼 다 썼어요',
-            why: '도배를 막으려고 하루에 올릴 수 있는 개수를 정해 뒀습니다.',
-            todo: '내일 다시 올리거나, 이미 올린 글에 이어서 써 주세요.',
+            title: t('widgets.community-main.title', undefined, "오늘 올릴 수 있는 만큼 다 썼어요"),
+            why: t('community.t93'),
+            todo: t('community.t94'),
         },
         bad: {
-            title: '요청이 받아들여지지 않았어요',
-            why: '보낸 내용이 서버가 받는 모양과 맞지 않습니다.',
-            todo: '내용을 조금 고쳐서 다시 시도해 주세요.',
+            title: t('widgets.community-main.title', undefined, "요청이 받아들여지지 않았어요"),
+            why: t('community.t96'),
+            todo: t('community.t97'),
         },
     };
 
@@ -605,19 +606,19 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             dateStyle: 'short',
             timeStyle: 'medium',
         }).format(new Date(failure.at));
-        const detail = `${failure.code} · HTTP ${failure.status || '연결 실패'} · 요청 ${failure.requestId} · ${failure.path} · ${stamp} (KST)`;
+        const detail = `${failure.code} · HTTP ${failure.status || t('community.t98')} · ${t('community.fail.request', { id: failure.requestId })} · ${failure.path} · ${stamp} (KST)`;
 
         return `<div class="c-empty">
             <h3>${esc(text.title || fallbackTitle)}</h3>
             <p>${esc(text.why)}</p>
             <p>${esc(text.todo)}</p>
             <div class="c-err-actions">
-                <button type="button" class="c-newbtn" data-retry>다시 시도</button>
+                <button type="button" class="c-newbtn" data-retry>${esc(t('community.t24'))}</button>
             </div>
             <details class="c-err-detail">
-                <summary>자세히 (알려 주실 때 이 줄을 복사해 주세요)</summary>
+                <summary>${esc(t('community.t25'))}</summary>
                 <code data-errline>${esc(detail)}</code>
-                <button type="button" class="c-linkbtn" data-copy-err>복사</button>
+                <button type="button" class="c-linkbtn" data-copy-err>${esc(t('community.t26'))}</button>
             </details>
         </div>`;
     }
@@ -628,8 +629,8 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         host?.querySelector('[data-copy-err]')?.addEventListener('click', () => {
             const line = host?.querySelector('[data-errline]')?.textContent ?? '';
             void navigator.clipboard?.writeText(line).then(
-                () => Toolbox.showToast?.('복사했어요'),
-                () => Toolbox.showToast?.('복사가 안 되네요 — 글자를 직접 긁어 주세요'),
+                () => Toolbox.showToast?.(t('community.t99')),
+                () => Toolbox.showToast?.(t('community.t100')),
             );
         });
     }
@@ -637,13 +638,13 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
     /** 커뮤니티를 못 여는 화면. 서버가 죽은 것과 「아무 글도 없다」는 다르다 — 섞어서 말하지 않는다. */
     function offline(): void {
         if (!host) return;
-        host.innerHTML = `<div class="c-wrap">${failureHtml('지금은 커뮤니티를 못 여네요')}</div>`;
+        host.innerHTML = `<div class="c-wrap">${failureHtml(t('community.t101'))}</div>`;
         wireFailure();
     }
 
     /** 짧은 알림에도 까닭을 한 마디 붙인다 — 「안 돼요」만으로는 다시 눌러야 할지도 모른다. */
     function toastFor(prefix: string): string {
-        if (!lastFailure) return `${prefix}. 잠시 뒤에 다시 시도해 주세요.`;
+        if (!lastFailure) return t('community.fail.retry', { prefix });
         const text = FAILURE_TEXT[lastFailure.kind];
         return `${prefix} — ${text.todo} (${lastFailure.code}·${lastFailure.requestId})`;
     }
@@ -698,12 +699,12 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         /* 들어오는 길이 디스코드 하나뿐이면, 그 계정을 잃은 사람은 **영영 못 들어온다**.
            복구 코드·기기 코드로 들어오는 길을 같은 자리에 둔다 (TASK-KL-098). */
         return `<div class="c-signin"><p>${text}</p>
-            <button type="button" class="btn btn-primary" data-signin>디스코드로 시작하기</button>
-            <button type="button" class="c-linkbtn" data-code-open>코드로 들어오기</button>
+            <button type="button" class="btn btn-primary" data-signin>${esc(t('community.t27'))}</button>
+            <button type="button" class="c-linkbtn" data-code-open>${esc(t('community.t28'))}</button>
             <form class="c-codeform" data-code-form hidden>
                 <input type="text" data-code-input maxlength="12" autocomplete="one-time-code"
-                    placeholder="복구 코드 또는 기기 코드" aria-label="로그인 코드">
-                <button type="submit" class="btn btn-primary">들어가기</button>
+                    placeholder="${esc(t('community.t01'))}" aria-label="${esc(t('community.t02'))}">
+                <button type="submit" class="btn btn-primary">${esc(t('community.t29'))}</button>
             </form></div>`;
     }
 
@@ -744,7 +745,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                         /* 다음 것을 대 본다 */
                     }
                 }
-                Toolbox.showToast?.(toastFor('그 코드로는 못 들어가요'));
+                Toolbox.showToast?.(toastFor(t('community.t102')));
             }),
         );
     }
@@ -808,33 +809,33 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 (b) => `<div class="c-gal-wrap">
                     <button type="button" class="c-gal" data-gal="${esc(b.id)}">
                         <span class="c-gal-name"><b>${esc(b.label)}</b><em>${b.count}</em>${
-                            b.builtin ? '' : '<span class="c-tag">사용자</span>'
+                            b.builtin ? '' : t('community.t103')
                         }</span>
-                        <span class="c-gal-desc">${esc(b.desc || (b.createdByHandle ? `@${b.createdByHandle} 가 만듦` : ''))}</span>
+                        <span class="c-gal-desc">${esc(b.desc || (b.createdByHandle ? t('community.board.madeBy', { handle: b.createdByHandle }) : ''))}</span>
                         <span class="c-gal-last ${b.lastTitle ? '' : 'c-gal-quiet'}">${
-                            b.lastTitle ? `${esc(plainPreview(b.lastTitle, 28))} · ${relativeTime(b.lastAt ?? '')}` : '아직 글이 없습니다'
+                            b.lastTitle ? `${esc(plainPreview(b.lastTitle, 28))} · ${relativeTime(b.lastAt ?? '')}` : t('community.t104')
                         }</span>
                     </button>
-                    ${b.canDelete ? `<button type="button" class="c-gal-del" data-gal-del="${esc(b.id)}" title="빈 갤러리 지우기">×</button>` : ''}
+                    ${b.canDelete ? `<button type="button" class="c-gal-del" data-gal-del="${esc(b.id)}" title="${esc(t('community.t03'))}">×</button>` : ''}
                 </div>`,
             )
             .join('');
 
         const maker = !boardsMeta.signedIn
-            ? signInBlock('로그인하면 갤러리를 만들 수 있습니다.')
+            ? signInBlock(t('community.t105'))
             : galleryFormOpen
               ? `<form class="c-write" data-gal-form>
                      <input type="text" name="galLabel" data-gal-label maxlength="${boardsMeta.labelMaxLength}"
-                         placeholder="갤러리 이름 (예: 도구 이야기)" aria-label="갤러리 이름" required>
+                         placeholder="${esc(t('community.t04'))}" aria-label="${esc(t('community.t05'))}" required>
                      <input type="text" name="galDesc" data-gal-desc maxlength="${boardsMeta.descMaxLength}"
-                         placeholder="한 줄 설명 (없어도 됩니다)" aria-label="갤러리 설명">
+                         placeholder="${esc(t('community.t06'))}" aria-label="${esc(t('community.t07'))}">
                      <input type="text" name="galId" data-gal-id maxlength="21"
-                         placeholder="주소 (영소문자·숫자·붙임표. 비우면 이름에서 만듭니다)" aria-label="갤러리 주소">
+                         placeholder="${esc(t('community.t08'))}" aria-label="${esc(t('community.t09'))}">
                      <div class="c-write-foot">
-                         <span class="c-write-hint">만들면 누구나 글을 쓸 수 있습니다 · 빈 갤러리는 다시 지울 수 있어요</span>
+                         <span class="c-write-hint">${esc(t('community.t30'))}</span>
                          <span>
-                             <button type="button" class="c-act" data-gal-cancel>접기</button>
-                             <button type="submit" class="btn btn-primary">만들기</button>
+                             <button type="button" class="c-act" data-gal-cancel>${esc(t('community.t31'))}</button>
+                             <button type="submit" class="btn btn-primary">${esc(t('community.t32'))}</button>
                          </span>
                      </div>
                  </form>`
@@ -850,7 +851,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 .map(
                     (r) => `<li class="c-report">
                         <div class="c-report-head">
-                            <span class="c-tag">${r.kind === 'chat' ? '채팅' : '글'}</span>
+                            <span class="c-tag">${r.kind === 'chat' ? t('community.t106') : t('community.t107')}</span>
                             <span class="c-dot">${relativeTime(r.createdAt)}</span>
                             <span class="c-report-reason">${esc(r.reason)}</span>
                         </div>
@@ -861,12 +862,12 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                                    예전에는 「확인함」과 「글 보기」뿐이라, 지우려면 그 글로 건너가서
                                    다시 찾아야 했다. 처리하는 데 두 화면이 필요하면 안 처리한다. */
                                 r.kind === 'post'
-                                    ? `<button type="button" class="c-linkbtn" data-report-open="${esc(r.postId)}">글 보기</button>` +
-                                      `<button type="button" class="c-linkbtn" data-report-del="${esc(r.id)}" data-post="${esc(r.postId)}">지우기</button>`
-                                    : `<button type="button" class="c-linkbtn" data-report-chatdel="${esc(r.id)}" data-msg="${esc(r.postId)}">줄 지우기</button>` +
-                                      `<button type="button" class="c-linkbtn" data-report-mute="${esc(r.id)}" data-msg="${esc(r.postId)}">30분 재갈</button>`
+                                    ? `<button type="button" class="c-linkbtn" data-report-open="${esc(r.postId)}">${esc(t('community.t33'))}</button>` +
+                                      `<button type="button" class="c-linkbtn" data-report-del="${esc(r.id)}" data-post="${esc(r.postId)}">${esc(t('community.t34'))}</button>`
+                                    : `<button type="button" class="c-linkbtn" data-report-chatdel="${esc(r.id)}" data-msg="${esc(r.postId)}">${esc(t('community.t35'))}</button>` +
+                                      `<button type="button" class="c-linkbtn" data-report-mute="${esc(r.id)}" data-msg="${esc(r.postId)}">${esc(t('community.t36'))}</button>`
                             }
-                            <button type="button" class="c-linkbtn" data-report-done="${esc(r.id)}">확인함</button>
+                            <button type="button" class="c-linkbtn" data-report-done="${esc(r.id)}">${esc(t('community.t37'))}</button>
                         </div>
                     </li>`,
                 )
@@ -895,33 +896,33 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 : `<p class="c-feed-empty">${esc(empty)}</p>`;
 
         host.innerHTML = `<div class="c-wrap">
-            <div class="c-head"><h2>커뮤니티</h2><span>도구를 쓰는 사람들이 모이는 자리</span></div>
+            <div class="c-head"><h2>${esc(t('community.t38'))}</h2><span>${esc(t('community.t39'))}</span></div>
             <form class="c-search c-search-all" data-search-all>
-                <input type="text" name="cSearchAll" data-q-all placeholder="갤러리 전체에서 찾기 (제목·본문·답글)"
-                    aria-label="커뮤니티 전체 검색" value="${esc(param('q') ?? '')}">
-                <button type="submit" class="c-page">찾기</button>
+                <input type="text" name="cSearchAll" data-q-all placeholder="${esc(t('community.t10'))}"
+                    aria-label="${esc(t('community.t11'))}" value="${esc(param('q') ?? '')}">
+                <button type="submit" class="c-page">${esc(t('community.t40'))}</button>
             </form>
             ${
                 param('q')
                     ? `<section class="c-feed"><h3>「${esc(param('q') ?? '')}」 찾은 글 ${searchHits.length}</h3>
-                        <div class="c-feed-rows">${feedRows(searchHits, '찾은 글이 없습니다.')}</div></section>`
+                        <div class="c-feed-rows">${feedRows(searchHits, t('community.t108'))}</div></section>`
                     : ''
             }
             <div class="c-feeds">
                 <section class="c-feed">
-                    <h3>베스트</h3>
-                    <div class="c-feed-rows">${feedRows(bestFeed, '아직 반응이 모인 글이 없습니다.')}</div>
+                    <h3>${esc(t('community.t41'))}</h3>
+                    <div class="c-feed-rows">${feedRows(bestFeed, t('community.t109'))}</div>
                 </section>
                 <section class="c-feed">
-                    <h3>새 글</h3>
-                    <div class="c-feed-rows">${feedRows(recentFeed, '아직 글이 없습니다.')}</div>
+                    <h3>${esc(t('community.t42'))}</h3>
+                    <div class="c-feed-rows">${feedRows(recentFeed, t('community.t110'))}</div>
                 </section>
             </div>
             ${renderReportBox()}
             <div class="c-bar"><h3 class="c-gal-title">갤러리 ${live.length}${
-                empty.length ? ` <button type="button" class="c-linkbtn" data-empty-toggle>· 아직 빈 판 ${empty.length}${emptyBoardsOpen ? ' 접기' : ' 펼치기'}</button>` : ''
+                empty.length ? ` <button type="button" class="c-linkbtn" data-empty-toggle>· ${t('community.emptyBoards', { n: empty.length })}${emptyBoardsOpen ? t('community.t111') : t('community.t112')}</button>` : ''
             }</h3>${
-                boardsMeta.signedIn && !galleryFormOpen ? '<button type="button" class="c-newbtn" data-gal-new>갤러리 만들기</button>' : '<span></span>'
+                boardsMeta.signedIn && !galleryFormOpen ? t('community.t113') : '<span></span>'
             }</div>
             ${maker}
             <div class="c-galleries">${cards}</div>
@@ -956,7 +957,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             const ok = await run();
             if (!ok) {
                 button.disabled = false;
-                Toolbox.showToast?.(toastFor('처리하지 못했어요'));
+                Toolbox.showToast?.(toastFor(t('community.t114')));
                 return;
             }
             const id = button.dataset.reportDel ?? button.dataset.reportChatdel ?? button.dataset.reportMute ?? '';
@@ -967,7 +968,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
 
         host.querySelectorAll<HTMLButtonElement>('[data-report-del]').forEach((b) =>
             b.addEventListener('click', () => {
-                if (!confirm('이 글을 지웁니다. 계속할까요?')) return;
+                if (!confirm(t('community.t115'))) return;
                 void resolveAfter(b, () => api(`/kl/posts/${encodeURIComponent(b.dataset.post ?? '')}`, { method: 'DELETE' }));
             }),
         );
@@ -994,7 +995,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 const ok = await api(`/kl/reports/${encodeURIComponent(b.dataset.reportDone ?? '')}/resolve`, { method: 'POST' });
                 if (!ok) {
                     b.disabled = false;
-                    Toolbox.showToast?.(toastFor('처리하지 못했어요'));
+                    Toolbox.showToast?.(toastFor(t('community.t114')));
                     return;
                 }
                 reports = reports.filter((r) => r.id !== b.dataset.reportDone);
@@ -1017,10 +1018,10 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
 
         host.querySelectorAll<HTMLButtonElement>('[data-gal-del]').forEach((b) =>
             b.addEventListener('click', async () => {
-                if (!confirm('이 갤러리를 지웁니다. 계속할까요?')) return;
+                if (!confirm(t('community.t116'))) return;
                 const ok = await api(`/kl/boards/${encodeURIComponent(b.dataset.galDel ?? '')}`, { method: 'DELETE' });
                 if (!ok) {
-                    Toolbox.showToast?.(toastFor('갤러리를 못 지웠어요'));
+                    Toolbox.showToast?.(toastFor(t('community.t117')));
                     return;
                 }
                 boards = [];
@@ -1045,8 +1046,8 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             if (button) button.disabled = false;
             if (!created?.id) {
                 // 한글 이름이면 주소를 못 만든다 — 그 경우를 콕 집어 말해 준다.
-                const why = lastFailure?.code === 'bad_id' ? '주소를 직접 적어 주세요 (영소문자·숫자·붙임표)' : null;
-                Toolbox.showToast?.(why ?? toastFor('갤러리를 못 만들었어요'));
+                const why = lastFailure?.code === 'bad_id' ? t('community.t118') : null;
+                Toolbox.showToast?.(why ?? toastFor(t('community.t119')));
                 return;
             }
             galleryFormOpen = false;
@@ -1058,7 +1059,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
 
     function renderBoards(active: string): string {
         // 무엇을 고르는 줄인지 안 적으면 말머리 줄과 헷갈린다 — 둘 다 동그란 칩이라 똑같아 보인다.
-        return `<div class="c-picker"><span class="c-picker-label">갤러리</span><div class="c-boards">${boards
+        return `<div class="c-picker"><span class="c-picker-label">${esc(t('community.t43'))}</span><div class="c-boards">${boards
             .map(
                 (b) => `<button type="button" class="c-board" data-board="${esc(b.id)}" data-on="${b.id === active ? '1' : '0'}"
                     title="${esc(b.desc)}">${esc(b.label)}<span class="c-board-count">${b.count}</span></button>`,
@@ -1098,13 +1099,13 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
 
     /** 서식 단추 — [이름, 앞에 붙일 것, 뒤에 붙일 것, 도움말, 단축키] */
     const FORMAT_BUTTONS: Array<[string, string, string, string, string]> = [
-        ['굵게', '**', '**', '굵게 (Ctrl+B)', 'b'],
-        ['기울임', '*', '*', '기울임 (Ctrl+I)', 'i'],
-        ['코드', '`', '`', '코드', ''],
-        ['링크', '[', '](주소)', '링크 (Ctrl+K)', 'k'],
-        ['인용', '> ', '', '인용', ''],
-        ['목록', '- ', '', '목록', ''],
-        ['제목', '## ', '', '제목', ''],
+        [t('community.t120'), '**', '**', t('community.t121'), 'b'],
+        [t('community.t122'), '*', '*', t('community.t123'), 'i'],
+        [t('community.t124'), '`', '`', t('community.t124'), ''],
+        [t('community.t125'), '[', t('community.t126'), t('community.t127'), 'k'],
+        [t('community.t128'), '> ', '', t('community.t128'), ''],
+        [t('community.t129'), '- ', '', t('community.t129'), ''],
+        [t('community.t13'), '## ', '', t('community.t13'), ''],
     ];
 
     function composerHtml(data: ListResponse, isRequest: boolean): string {
@@ -1117,26 +1118,26 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         return `<form class="c-write" data-write>
             ${
                 data.gallery.tags.length
-                    ? `<select name="cTag" data-tagpick aria-label="말머리">
-                           <option value="">말머리 없음</option>
+                    ? `<select name="cTag" data-tagpick aria-label="${esc(t('community.t12'))}">
+                           <option value="">${esc(t('community.t44'))}</option>
                            ${data.gallery.tags.map((t) => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
                        </select>`
                     : ''
             }
-            ${isRequest ? '' : `<input type="text" name="cTitle" data-title maxlength="${data.titleMaxLength}" placeholder="제목" aria-label="글 제목" value="${esc(draft.title)}" required>`}
+            ${isRequest ? '' : `<input type="text" name="cTitle" data-title maxlength="${data.titleMaxLength}" placeholder="${esc(t('community.t13'))}" aria-label="${esc(t('community.t14'))}" value="${esc(draft.title)}" required>`}
             <div class="c-compose-bar">
                 <div class="c-fmts">${isRequest ? '' : tools}</div>
                 <div class="c-modes">
-                    <button type="button" class="c-mode" data-mode="write" data-on="1">쓰기</button>
-                    <button type="button" class="c-mode" data-mode="preview" data-on="0">미리보기</button>
+                    <button type="button" class="c-mode" data-mode="write" data-on="1">${esc(t('community.t45'))}</button>
+                    <button type="button" class="c-mode" data-mode="preview" data-on="0">${esc(t('community.t46'))}</button>
                 </div>
             </div>
-            <textarea name="cText" data-text maxlength="${data.maxLength}" aria-label="${isRequest ? '도구 요청' : '글 본문'}"
-                placeholder="${isRequest ? '어떤 도구가 있었으면 하나요?' : '무슨 이야기든. **굵게** *기울임* `코드` > 인용 - 목록'}" required>${esc(draft.text)}</textarea>
+            <textarea name="cText" data-text maxlength="${data.maxLength}" aria-label="${isRequest ? t('community.t130') : t('community.t131')}"
+                placeholder="${isRequest ? t('community.t132') : t('community.t133')}" required>${esc(draft.text)}</textarea>
             <div class="c-preview md" data-preview hidden></div>
             <div class="c-imgbar">
-                <button type="button" class="c-fmt" data-img-pick>그림 넣기</button>
-                <span class="c-write-hint">붙여넣기(Ctrl+V)·끌어놓기도 됩니다</span>
+                <button type="button" class="c-fmt" data-img-pick>${esc(t('community.t47'))}</button>
+                <span class="c-write-hint">${esc(t('community.t48'))}</span>
                 <input type="file" accept="image/*" data-img-input hidden>
             </div>
             <div class="c-write-foot">
@@ -1147,11 +1148,11 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                     <!-- 어디에 쓰는 것이 얼마나 남는지 (TASK-KL-161).
                          채팅은 하루 뒤 사라지고 글은 남는다 — 그 경계를 아무 데서도 안 알려 줘서,
                          남기고 싶은 말을 채팅에 쓰고 잃는 일이 생긴다. -->
-                    · <b>여기 쓴 글은 계속 남는다</b> (채팅은 하루 뒤 사라진다)
+                    · <b>${esc(t('community.t49'))}</b> ${esc(t('community.t50'))}
                 </span>
                 <span>
-                    <button type="button" class="c-act" data-cancel>접기</button>
-                    <button type="submit" class="btn btn-primary">올리기</button>
+                    <button type="button" class="c-act" data-cancel>${esc(t('community.t31'))}</button>
+                    <button type="submit" class="btn btn-primary">${esc(t('community.t51'))}</button>
                 </span>
             </div>
         </form>`;
@@ -1166,10 +1167,10 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
     function nameLine(data: { myHandle: string | null; myAnon: AnonFace | null }): string {
         const anonLabel = data.myAnon
             ? `<span class="c-anon" style="color:${esc(data.myAnon.color)}">${esc(data.myAnon.name)}</span>`
-            : '오늘의 이름표';
-        if (!data.myHandle) return `· ${anonLabel} 로 올라갑니다 (자정에 바뀝니다)`;
-        return `· <label class="c-anonpick"><input type="checkbox" data-anon> 익명으로</label>
-                <span data-asname data-mine="@${esc(data.myHandle)}">@${esc(data.myHandle)}</span> 로 올라갑니다
+            : t('community.t134');
+        if (!data.myHandle) return t('community.anonNotice', { name: anonLabel });
+        return `· <label class="c-anonpick"><input type="checkbox" data-anon> ${esc(t('community.t52'))}</label>
+                <span data-asname data-mine="@${esc(data.myHandle)}">@${esc(data.myHandle)}</span> ${esc(t('community.t53'))}
                 <template data-anonname>${anonLabel}</template>`;
     }
 
@@ -1245,7 +1246,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 if (previewBox) {
                     previewBox.innerHTML = text.value.trim()
                         ? renderMarkdown(text.value)
-                        : '<p class="c-write-hint">아직 쓴 글이 없습니다.</p>';
+                        : t('community.t135');
                     previewBox.hidden = !wantPreview;
                 }
                 text.hidden = wantPreview;
@@ -1278,10 +1279,10 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             const base = window.KarmoAccount?.apiBase ?? '';
             text.value = text.value.replace(
                 mark,
-                saved?.url ? `\n![그림](${base}${saved.url})\n` : '\n',
+                saved?.url ? `\n![${t('community.imageAlt')}](${base}${saved.url})\n` : '\n',
             );
             sync();
-            if (!saved?.url) Toolbox.showToast?.(toastFor('그림을 못 올렸어요'));
+            if (!saved?.url) Toolbox.showToast?.(toastFor(t('community.t136')));
         };
 
         const picker = form.querySelector<HTMLInputElement>('[data-img-input]');
@@ -1333,20 +1334,20 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
      */
     function emptyInvite(data: ListResponse, isRequest: boolean): string {
         const examples = isRequest
-            ? ['이미지 여러 장을 한 번에 줄여 주는 도구', '영수증 사진에서 글자만 뽑기', '한글 파일을 PDF 로']
+            ? [t('community.t137'), t('community.t138'), t('community.t139')]
             : data.board === 'qna'
-              ? ['이 도구에서 이게 안 되는데 원래 그런가요?', '로그인하면 뭐가 달라지나요?']
+              ? [t('community.t140'), t('community.t141')]
               : data.board === 'show'
-                ? ['이 도구로 만든 것 자랑', '쓰다가 찾은 요령']
-                : ['요즘 쓰는 도구 이야기', '이 사이트에 있었으면 하는 것'];
+                ? [t('community.t142'), t('community.t143')]
+                : [t('community.t144'), t('community.t145')];
         const head = isRequest
-            ? '아직 올라온 요청이 없습니다. 첫 번째로 남겨 보세요.'
-            : '아직 이 갤러리에 글이 없습니다. 첫 글이 되어 주세요.';
+            ? t('community.t146')
+            : t('community.t147');
         return `<div class="c-invite">
                     <p class="c-invite-head">${head}</p>
-                    <p class="c-invite-sub">이런 걸 쓰면 돼요</p>
+                    <p class="c-invite-sub">${esc(t('community.t54'))}</p>
                     <ul class="c-invite-list">${examples.map((e) => `<li>${esc(e)}</li>`).join('')}</ul>
-                    ${data.canWrite ? '<button type="button" class="c-newbtn" data-new>글쓰기</button>' : ''}
+                    ${data.canWrite ? t('community.t148') : ''}
                 </div>`;
     }
 
@@ -1365,18 +1366,18 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         const canEditTags = data.isAdmin || (data.myHandle !== null && data.myHandle === data.gallery.createdByHandle);
 
         const sorts = isRequest
-            ? '<span class="c-write-hint">표 많은 순</span>'
+            ? t('community.t149')
             : `<div class="c-sorts">
-                   <button type="button" class="c-sort" data-sort="recent" data-on="${data.sort === 'recent' ? '1' : '0'}">최신</button>
-                   <button type="button" class="c-sort" data-sort="top" data-on="${data.sort === 'top' ? '1' : '0'}">인기</button>
+                   <button type="button" class="c-sort" data-sort="recent" data-on="${data.sort === 'recent' ? '1' : '0'}">${esc(t('community.t55'))}</button>
+                   <button type="button" class="c-sort" data-sort="top" data-on="${data.sort === 'top' ? '1' : '0'}">${esc(t('community.t56'))}</button>
                </div>`;
 
         /* 로그인은 이제 **글쓰기의 조건이 아니다** (KL-157) — 익명으로 쓸 수 있다.
            로그인은 「내 글로 남기기·좋아요·알림」을 위한 것이고, 그건 권유지 문턱이 아니다. */
         let writer = '';
-        if (!data.canWrite) writer = '<p class="c-empty-row">이 판은 주인만 씁니다.</p>';
+        if (!data.canWrite) writer = t('community.t150');
         else if (writerOpen) writer = composerHtml(data, isRequest);
-        else if (!data.signedIn) writer = signInBlock('로그인하면 좋아요·알림이 붙고, 쓴 글이 내 것으로 남습니다.');
+        else if (!data.signedIn) writer = signInBlock(t('community.t151'));
 
         // 검색·페이지는 주소에 남는다 — 뒤로 가기로 보던 자리에 돌아온다.
         // 이 갤러리 안에서만 거른다. 갤러리를 가리지 않는 검색은 홈의 검색칸이 맡는다.
@@ -1409,7 +1410,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         const statusFilters = (['open', 'planned', 'done', 'declined', 'all'] as const)
             .map((key) => ({
                 key,
-                label: key === 'all' ? '전부' : key === 'open' ? labels.open : labels[key as Post['status']],
+                label: key === 'all' ? t('community.t152') : key === 'open' ? labels.open : labels[key as Post['status']],
                 count: countOf(key),
                 on: stateParam === key,
             }))
@@ -1448,9 +1449,9 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         const body = shown.length
             ? shown
                   .map((p, index) => {
-                      const heading = isRequest ? preview(p.text, 60) : (p.title ?? '(제목 없음)');
+                      const heading = isRequest ? preview(p.text, 60) : (p.title ?? t('community.t153'));
                       const number = p.pinned
-                          ? '공지'
+                          ? t('community.t154')
                           : isIssue && p.seq
                             ? `#${p.seq}`
                             : String(visible.length - ((page - 1) * PER_PAGE + index));
@@ -1474,9 +1475,9 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                   .join('')
             : `<tr><td class="c-empty-row" colspan="6">${
                   query
-                      ? '찾는 글이 없습니다.'
+                      ? t('community.t155')
                       : isIssue && !showClosed && closedCount > 0
-                        ? '열린 것이 없습니다 — 전부 끝났어요.'
+                        ? t('community.t156')
                         : emptyInvite(data, isRequest)
               }</td></tr>`;
 
@@ -1495,30 +1496,30 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         const gallery = data.gallery;
         host.innerHTML = `<div class="c-wrap">
             <div class="c-gal-head">
-                <button type="button" class="c-linkbtn" data-board-home>← 갤러리 목록</button>
+                <button type="button" class="c-linkbtn" data-board-home>${esc(t('community.t57'))}</button>
                 <h2>${esc(gallery.label)}</h2>
                 <p>${esc(gallery.desc)}${
-                    gallery.createdByHandle ? ` · @${esc(gallery.createdByHandle)} 가 만든 갤러리` : ''
+                    gallery.createdByHandle ? ` · ${t('community.gallery.madeBy', { handle: esc(gallery.createdByHandle) })}` : ''
                 } · 글 ${gallery.count ?? data.posts.length}</p>
             </div>
             ${renderBoards(data.board)}
             ${
                 data.gallery.tags.length || canEditTags
                     ? `<div class="c-picker">
-                        <span class="c-picker-label">말머리</span>
+                        <span class="c-picker-label">${esc(t('community.t12'))}</span>
                         <div class="c-tags">
                             ${
                                 data.gallery.tags.length
-                                    ? `<button type="button" class="c-tagchip" data-tag="" data-on="${data.tag ? '0' : '1'}">전체</button>` +
+                                    ? `<button type="button" class="c-tagchip" data-tag="" data-on="${data.tag ? '0' : '1'}">${esc(t('community.t58'))}</button>` +
                                       data.gallery.tags
                                           .map(
                                               (t) =>
                                                   `<button type="button" class="c-tagchip" data-tag="${esc(t)}" data-on="${data.tag === t ? '1' : '0'}">${esc(t)}</button>`,
                                           )
                                           .join('')
-                                    : '<span class="c-write-hint">아직 말머리가 없습니다</span>'
+                                    : t('community.t157')
                             }
-                            ${canEditTags ? '<button type="button" class="c-tagchip" data-tag-edit>말머리 고치기</button>' : ''}
+                            ${canEditTags ? t('community.t158') : ''}
                         </div>
                        </div>`
                     : ''
@@ -1527,13 +1528,13 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 tagEditOpen
                     ? `<form class="c-write" data-tag-form>
                            <input type="text" name="galTags" data-tag-input maxlength="120"
-                               placeholder="쉼표로 나눠 적으세요 (예: 잡담, 질문, 정보)" aria-label="말머리 목록"
+                               placeholder="${esc(t('community.t15'))}" aria-label="${esc(t('community.t16'))}"
                                value="${esc(data.gallery.tags.join(', '))}">
                            <div class="c-write-foot">
-                               <span class="c-write-hint">이 갤러리에서만 쓰입니다 · 최대 8개 · 지워도 이미 쓴 글은 그대로 남습니다</span>
+                               <span class="c-write-hint">${esc(t('community.t59'))}</span>
                                <span>
-                                   <button type="button" class="c-act" data-tag-cancel>접기</button>
-                                   <button type="submit" class="btn btn-primary">저장</button>
+                                   <button type="button" class="c-act" data-tag-cancel>${esc(t('community.t31'))}</button>
+                                   <button type="submit" class="btn btn-primary">${esc(t('community.t60'))}</button>
                                </span>
                            </div>
                        </form>`
@@ -1544,7 +1545,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 // 「이 갤러리가 밀려 있나」를 한눈에 안다. 닫힌 글이 없으면 고를 것도 없다.
                 isIssue && closedCount > 0
                     ? `<div class="c-picker">
-                           <span class="c-picker-label">상태</span>
+                           <span class="c-picker-label">${esc(t('community.t21'))}</span>
                            <div class="c-tags">
                                ${statusFilters
                                    .map(
@@ -1561,35 +1562,35 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 // 요청판처럼 원래 이슈로 사는 갤러리는 끌 수 없다 — 그 갤러리의 뜻 자체가 그것이다.
                 canEditTags && !data.gallery.voteStyle
                     ? `<div class="c-picker">
-                           <span class="c-picker-label">갤러리 성격</span>
+                           <span class="c-picker-label">${esc(t('community.t61'))}</span>
                            <div class="c-tags">
                                <button type="button" class="c-tagchip" data-issue="${isIssue ? '0' : '1'}">
-                                   ${isIssue ? '이슈식 끄기' : '이슈식으로 쓰기'}
+                                   ${isIssue ? t('community.t159') : t('community.t160')}
                                </button>
-                               <span class="c-write-hint">글마다 번호와 상태가 생깁니다 (깃허브 이슈처럼) · 껐다 켜도 글은 안 다칩니다</span>
+                               <span class="c-write-hint">${esc(t('community.t62'))}</span>
                            </div>
                        </div>`
                     : ''
             }
             <div class="c-bar">${sorts}${
-                data.canWrite && !writerOpen ? '<button type="button" class="c-newbtn" data-new>글쓰기</button>' : '<span></span>'
+                data.canWrite && !writerOpen ? t('community.t148') : '<span></span>'
             }</div>
             ${writer}
             <table class="c-table">
                 <thead><tr>
-                    <th class="c-num">번호</th>
-                    <th class="c-th-title">제목</th>
-                    <th class="c-who">글쓴이</th>
-                    <th class="c-when">날짜</th>
-                    <th class="c-cnt">조회</th>
-                    <th class="c-cnt">${isRequest ? '표' : '추천'}</th>
+                    <th class="c-num">${esc(t('community.t63'))}</th>
+                    <th class="c-th-title">${esc(t('community.t13'))}</th>
+                    <th class="c-who">${esc(t('community.t64'))}</th>
+                    <th class="c-when">${esc(t('community.t65'))}</th>
+                    <th class="c-cnt">${esc(t('community.t66'))}</th>
+                    <th class="c-cnt">${isRequest ? t('community.t161') : t('community.t162')}</th>
                 </tr></thead>
                 <tbody>${body}</tbody>
             </table>
             <div class="c-foot">
                 <form class="c-search" data-search>
-                    <input type="text" name="cSearch" data-q placeholder="제목·글쓴이" aria-label="글 찾기" value="${esc(param('q') ?? '')}">
-                    <button type="submit" class="c-page">찾기</button>
+                    <input type="text" name="cSearch" data-q placeholder="${esc(t('community.t17'))}" aria-label="${esc(t('community.t18'))}" value="${esc(param('q') ?? '')}">
+                    <button type="submit" class="c-page">${esc(t('community.t40'))}</button>
                 </form>
                 <div class="c-pages">${pages.join('')}</div>
             </div>
@@ -1628,7 +1629,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 body: JSON.stringify({ issueStyle: want }),
             });
             if (!ok) {
-                Toolbox.showToast?.(toastFor('갤러리 성격을 못 바꿨어요'));
+                Toolbox.showToast?.(toastFor(t('community.t163')));
                 return;
             }
             boards = [];
@@ -1655,7 +1656,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 body: JSON.stringify({ tags }),
             });
             if (!ok) {
-                Toolbox.showToast?.(toastFor('말머리를 못 바꿨어요'));
+                Toolbox.showToast?.(toastFor(t('community.t164')));
                 return;
             }
             tagEditOpen = false;
@@ -1687,7 +1688,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 const title = writeForm.querySelector<HTMLInputElement>('[data-title]')?.value ?? '';
                 const text = writeForm.querySelector<HTMLTextAreaElement>('[data-text]')?.value ?? '';
                 if (!text.trim()) {
-                    Toolbox.showToast?.('내용을 적어 주세요.');
+                    Toolbox.showToast?.(t('community.t165'));
                     return;
                 }
                 const button = writeForm.querySelector('button[type="submit"]') as HTMLButtonElement | null;
@@ -1706,7 +1707,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 if (button) button.disabled = false;
                 if (!created?.id) {
                     // 하루 상한에 걸린 경우도 여기로 온다 — 왜 막혔는지 사람 말로 알린다.
-                    Toolbox.showToast?.(toastFor('못 올렸어요'));
+                    Toolbox.showToast?.(toastFor(t('community.t166')));
                     return;
                 }
                 // 올라갔으니 초안은 지운다. 안 지우면 다음에 열 때 이미 올린 글이 또 들어 있다.
@@ -1732,13 +1733,13 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             data.isAdmin || (reply.anon === null && data.myHandle !== null && data.myHandle === reply.authorHandle);
         return `<li class="c-reply" data-child="${reply.parentId ? '1' : '0'}" data-owner="${reply.byOwner ? '1' : '0'}">
             <div class="c-reply-head">${who(reply)}
-                ${reply.byOwner ? '<span class="c-tag">주인</span>' : ''}<span class="c-dot">${relativeTime(reply.createdAt)}</span></div>
+                ${reply.byOwner ? t('community.t167') : ''}<span class="c-dot">${relativeTime(reply.createdAt)}</span></div>
             <div class="c-reply-body md">${renderMarkdown(reply.text)}</div>
             <div class="c-reply-foot">
                 <button type="button" class="c-linkbtn" data-reply-like="${esc(reply.id)}" data-on="${reply.likedByMe ? '1' : '0'}"
                     ${data.signedIn ? '' : 'disabled'}>좋아요${reply.likes ? ` ${reply.likes}` : ''}</button>
-                ${data.signedIn && !reply.parentId ? `<button type="button" class="c-linkbtn" data-reply-to="${esc(reply.id)}">답글</button>` : ''}
-                ${canDelete ? `<button type="button" class="c-linkbtn" data-reply-del="${esc(reply.id)}">지우기</button>` : ''}
+                ${data.signedIn && !reply.parentId ? `<button type="button" class="c-linkbtn" data-reply-to="${esc(reply.id)}">${esc(t('community.t20'))}</button>` : ''}
+                ${canDelete ? `<button type="button" class="c-linkbtn" data-reply-del="${esc(reply.id)}">${esc(t('community.t34'))}</button>` : ''}
             </div>
         </li>`;
     }
@@ -1773,37 +1774,37 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             ? orderReplies(post.replies)
                   .map((r) => renderReply(r, data))
                   .join('')
-            : '<li class="c-empty-row">아직 답글이 없습니다.</li>';
+            : t('community.t168');
 
         /* 답글도 익명으로 단다 (KL-157). 예전엔 로그인해야만 이 칸이 떴다 — 채팅에서 넘어온
            사람이 대화에 못 끼는 자리가 바로 여기였다. */
         const replyForm = `<form class="c-write" data-reply-form>
-                   <textarea name="cReply" data-reply-text maxlength="${data.replyMaxLength}" placeholder="답글 달기" aria-label="답글" required></textarea>
+                   <textarea name="cReply" data-reply-text maxlength="${data.replyMaxLength}" placeholder="${esc(t('community.t19'))}" aria-label="${esc(t('community.t20'))}" required></textarea>
                    <div class="c-write-foot">
                        <span class="c-write-hint" data-reply-target></span>
                        <span class="c-write-hint">${nameLine(data)}</span>
-                       <button type="submit" class="btn btn-primary">답글</button></div>
+                       <button type="submit" class="btn btn-primary">${esc(t('community.t20'))}</button></div>
                </form>`;
 
         host.innerHTML = `<div class="c-wrap">
-            <div class="c-crumb"><button type="button" class="c-linkbtn" data-back>← ${esc(board?.label ?? '목록')}</button></div>
+            <div class="c-crumb"><button type="button" class="c-linkbtn" data-back>← ${esc(board?.label ?? t('community.t129'))}</button></div>
             <article class="c-post">
                 <h2 class="c-post-title">${detailIsIssue && post.seq ? `<span class="c-seq">#${post.seq}</span> ` : ''}${post.tag ? `<span class="c-headword">[${esc(post.tag)}]</span> ` : ''}${esc(post.title ?? preview(post.text, 60))}
                     ${detailIsIssue && post.status !== 'open' ? `<span class="c-tag" data-status="${esc(post.status)}">${detailLabels[post.status]}</span>` : ''}
-                    ${post.pinned ? '<span class="c-tag">고정</span>' : ''}</h2>
+                    ${post.pinned ? t('community.t169') : ''}</h2>
                 <div class="c-post-meta">${who(post)}
                     <span class="c-dot">${relativeTime(post.createdAt)}</span>
                     <span class="c-dot">조회 ${post.views}</span></div>
                 ${post.title ? `<div class="c-post-body md">${renderMarkdown(post.text)}</div>` : `<div class="c-post-body md">${renderMarkdown(post.text)}</div>`}
                 <div class="c-actions">
                     <button type="button" class="c-act" data-like data-on="${post.likedByMe ? '1' : '0'}"
-                        ${data.signedIn ? '' : 'disabled title="좋아요는 로그인해야 눌러요 — 익명은 같은 사람이 여러 번 누른 것을 가릴 수 없어서예요"'}>
+                        ${data.signedIn ? '' : t('community.t170')}>
                         좋아요 ${post.likes}</button>
-                    ${isRequest ? `<button type="button" class="c-act" data-vote data-on="${post.votedByMe ? '1' : '0'}" ${data.signedIn ? '' : 'disabled title="표는 로그인해야 줄 수 있어요 — 익명은 같은 사람이 여러 번 준 것을 가릴 수 없어서예요"'}>표 ${post.votes}</button>` : ''}
-                    ${canDelete ? '<button type="button" class="c-act" data-delete>지우기</button>' : ''}
-                    ${data.signedIn ? '' : '<span class="c-write-hint">글·답글은 익명으로 쓸 수 있어요 · 좋아요와 표만 로그인이 필요해요 (같은 사람이 여러 번 누른 것을 가릴 수 없어서)</span>'}
-                    ${data.signedIn && !post.mine ? '<button type="button" class="c-act" data-report>신고</button>' : ''}
-                    ${data.isAdmin ? `<button type="button" class="c-act" data-pin>${post.pinned ? '고정 풀기' : '고정'}</button>` : ''}
+                    ${isRequest ? `<button type="button" class="c-act" data-vote data-on="${post.votedByMe ? '1' : '0'}" ${data.signedIn ? '' : t('community.t171')}>${t('community.unit.votes', { n: post.votes })}</button>` : ''}
+                    ${canDelete ? t('community.t172') : ''}
+                    ${data.signedIn ? '' : t('community.t173')}
+                    ${data.signedIn && !post.mine ? t('community.t174') : ''}
+                    ${data.isAdmin ? `<button type="button" class="c-act" data-pin>${post.pinned ? t('community.t175') : t('community.t176')}</button>` : ''}
                 </div>
                 ${
                     // 닫힌 글은 「언제·누가·왜」가 같이 보여야 한다. 그게 없으면 그냥 사라진 글로 읽힌다.
@@ -1818,15 +1819,15 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 ${
                     canClose
                         ? `<form class="c-statusbar" data-status-form>
-                               <select data-status-pick aria-label="상태">
+                               <select data-status-pick aria-label="${esc(t('community.t21'))}">
                                    ${(['open', 'planned', 'done', 'declined'] as Post['status'][])
                                        .map((k) => `<option value="${k}"${post.status === k ? ' selected' : ''}>${detailLabels[k]}</option>`)
                                        .join('')}
                                </select>
                                <input type="text" data-status-note maxlength="120"
-                                   placeholder="한 줄 남기기 (선택) — 예: 만들었어요, 도구 목록에 있습니다"
-                                   aria-label="상태 메모" value="${esc(post.statusNote ?? '')}">
-                               <button type="submit" class="c-act">바꾸기</button>
+                                   placeholder="${esc(t('community.t22'))}"
+                                   aria-label="${esc(t('community.t23'))}" value="${esc(post.statusNote ?? '')}">
+                               <button type="submit" class="c-act">${esc(t('community.t67'))}</button>
                            </form>`
                         : ''
                 }
@@ -1860,13 +1861,13 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             if (ok) return;
             button.dataset.on = wasOn ? '1' : '0';
             button.textContent = label(shown);
-            Toolbox.showToast?.(toastFor('지금은 안 되네요'));
+            Toolbox.showToast?.(toastFor(t('community.t177')));
         };
 
         const act = async (path: string, method = 'POST'): Promise<void> => {
             const ok = await api(path, { method });
             if (!ok) {
-                Toolbox.showToast?.(toastFor('지금은 안 되네요'));
+                Toolbox.showToast?.(toastFor(t('community.t177')));
                 return;
             }
             reload();
@@ -1877,11 +1878,11 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         );
         const likeBtn = host.querySelector<HTMLElement>('[data-like]');
         likeBtn?.addEventListener('click', () =>
-            void optimisticToggle(likeBtn, `/kl/posts/${encodeURIComponent(post.id)}/like`, (n) => `좋아요 ${n}`),
+            void optimisticToggle(likeBtn, `/kl/posts/${encodeURIComponent(post.id)}/like`, (n) => t('community.unit.likes', { n })),
         );
         const voteBtn = host.querySelector<HTMLElement>('[data-vote]');
         voteBtn?.addEventListener('click', () =>
-            void optimisticToggle(voteBtn, `/kl/posts/${encodeURIComponent(post.id)}/vote`, (n) => `표 ${n}`),
+            void optimisticToggle(voteBtn, `/kl/posts/${encodeURIComponent(post.id)}/vote`, (n) => t('community.unit.votes', { n })),
         );
         host.querySelector('[data-pin]')?.addEventListener('click', async () => {
             const ok = await api(`/kl/posts/${encodeURIComponent(post.id)}`, {
@@ -1889,7 +1890,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pinned: !post.pinned }),
             });
-            if (!ok) Toolbox.showToast?.(toastFor('못 바꿨어요'));
+            if (!ok) Toolbox.showToast?.(toastFor(t('community.t178')));
             else reload();
         });
         host.querySelector<HTMLFormElement>('[data-status-form]')?.addEventListener('submit', async (event) => {
@@ -1902,27 +1903,27 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status, statusNote }),
             });
-            if (!ok) Toolbox.showToast?.(toastFor('못 바꿨어요'));
+            if (!ok) Toolbox.showToast?.(toastFor(t('community.t178')));
             else reload();
         });
 
         host.querySelector('[data-report]')?.addEventListener('click', async () => {
             // 신고해도 글은 안 사라진다. 그 사실을 먼저 말해 준다 — 안 그러면 「지우기」로 오해한다.
-            const reason = prompt('무엇이 문제인가요? (주인에게만 전해집니다. 글은 바로 사라지지 않습니다)');
+            const reason = prompt(t('community.t179'));
             if (reason === null) return;
             const ok = await api('/kl/reports', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ postId: post.id, reason }),
             });
-            Toolbox.showToast?.(ok ? '전했어요. 주인이 확인합니다.' : toastFor('신고를 못 보냈어요'));
+            Toolbox.showToast?.(ok ? t('community.t180') : toastFor(t('community.t181')));
         });
 
         host.querySelector('[data-delete]')?.addEventListener('click', async () => {
-            if (!confirm('이 글을 지웁니다. 계속할까요?')) return;
+            if (!confirm(t('community.t115'))) return;
             const ok = await api(`/kl/posts/${encodeURIComponent(post.id)}`, { method: 'DELETE' });
             if (!ok) {
-                Toolbox.showToast?.(toastFor('못 지웠어요'));
+                Toolbox.showToast?.(toastFor(t('community.t182')));
                 return;
             }
             go({ p: null, board: post.board === 'free' ? null : post.board });
@@ -1933,13 +1934,13 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 void optimisticToggle(
                     b,
                     `/kl/posts/${encodeURIComponent(post.id)}/replies/${encodeURIComponent(b.dataset.replyLike ?? '')}/like`,
-                    (n) => (n > 0 ? `좋아요 ${n}` : '좋아요'),
+                    (n) => (n > 0 ? t('community.unit.likes', { n }) : t('community.t183')),
                 ),
             ),
         );
         host.querySelectorAll<HTMLButtonElement>('[data-reply-del]').forEach((b) =>
             b.addEventListener('click', async () => {
-                if (!confirm('이 답글을 지웁니다. 계속할까요?')) return;
+                if (!confirm(t('community.t184'))) return;
                 await act(`/kl/posts/${encodeURIComponent(post.id)}/replies/${encodeURIComponent(b.dataset.replyDel ?? '')}`, 'DELETE');
             }),
         );
@@ -1951,7 +1952,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         host.querySelectorAll<HTMLButtonElement>('[data-reply-to]').forEach((b) =>
             b.addEventListener('click', () => {
                 replyTo = b.dataset.replyTo ?? null;
-                if (target) target.textContent = '답글에 답글을 답니다 · 취소하려면 다시 누르세요';
+                if (target) target.textContent = t('community.t185');
                 textarea?.focus();
             }),
         );
@@ -1983,7 +1984,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             });
             if (button) button.disabled = false;
             if (!ok) {
-                Toolbox.showToast?.(toastFor('답글을 못 달았어요'));
+                Toolbox.showToast?.(toastFor(t('community.t186')));
                 return;
             }
             reload();
@@ -2001,7 +2002,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
     async function render(): Promise<void> {
         if (!host) return;
         takeWriterHandoff();
-        if (host.childElementCount === 0) host.innerHTML = '<p class="c-empty-row">불러오는 중…</p>';
+        if (host.childElementCount === 0) host.innerHTML = t('community.t187');
 
         if (boards.length === 0) {
             const raw = (await api('/kl/boards')) as BoardsResponse | null;
@@ -2017,7 +2018,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         if (postId) {
             const raw = await api(`/kl/posts/${encodeURIComponent(postId)}`);
             if (!raw) {
-                host.innerHTML = `<div class="c-wrap">${failureHtml('그 글을 못 찾았어요')}</div>`;
+                host.innerHTML = `<div class="c-wrap">${failureHtml(t('community.t188'))}</div>`;
                 wireFailure();
                 return;
             }
@@ -2085,6 +2086,17 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
        목록에 뜨는 이름과 열었을 때 이름이 갈라진다. 넓게 쓰고 제목 카드는 안 그린다(noHero). */
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta('community'),
-        tabs: [{ id: 'community-main', label: '커뮤니티', build }],
+        tabs: [
+            {
+                id: 'community-main',
+                label: t('community.tab.main', undefined, '커뮤니티'),
+                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('community').then(function () {
+                        build(container);
+                    });
+                },
+            },
+        ],
     });
 })();
