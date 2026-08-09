@@ -1053,6 +1053,18 @@ await step('첫 화면이 「무엇을 만들 건가요」 세 갈래를 크게 
   await cards.first().click();
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 3, null, { timeout: 5000 });
   if (await page.locator('.ck-edge').count() === 0) throw new Error('견본에 선이 하나도 없다');
+
+  // 갈래를 고른 **뒤**가 진짜 막히는 자리 — 다음 걸음 안내가 떠야 하고, 한 번 닫으면 안 떠야 한다.
+  await page.locator('.ck-node').first().click();
+  await page.click('[data-km="tab"][data-key="node"]');
+  await page.locator('.km-canvas').click({ position: { x: 8, y: 8 } });
+  await page.waitForTimeout(400);
+  const tips = page.locator('[data-km="tips-off"]');
+  if (await tips.count() === 0) throw new Error('견본을 깔았는데 다음 걸음 안내가 없다');
+  await tips.first().dispatchEvent('click');
+  await page.waitForTimeout(400);
+  if (await page.locator('[data-km="tips-off"]').count() > 0) throw new Error('닫았는데 안내가 또 뜬다');
+
   // 견본만 깔면 「이제 뭘 적지?」가 남는다 — 그 갈래의 **칸 이름까지 비워서** 깔려 있어야 한다.
   await page.locator('.ck-node').first().click();
   await page.waitForSelector('[data-km="fld-name"]', { timeout: 4000 });
