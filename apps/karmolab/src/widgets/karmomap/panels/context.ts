@@ -100,6 +100,10 @@ export interface PanelCtx {
   removeEdge: (id: string) => void;
 
   // ── 설명 속 링크가 빌리는 것 ──────────────────────────────────────────
+  /** 다른 맵에서 쓰던 공용 글 목록(이 맵에 아직 없는 것). */
+  foreignNotes: () => { id: string; title?: string; text: string; from?: string }[];
+  /** 그 글을 이 맵으로 데려온다(같은 id 를 유지해 **같은 글**로 남는다). */
+  adoptNote: (noteId: string) => void;
   /** 공용 글을 화면 한가운데에 **쪽지 카드**로 놓는다(사본이 아니라 창). */
   spawnNoteCard: (noteId: string) => void;
   /** 그 자리에 노드를 놓는다(이름이 비면 이름 칸에 커서). */

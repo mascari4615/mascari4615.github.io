@@ -28,6 +28,7 @@ import type { PanelCtx } from './panels/context';
 import { renderHelpPanel } from './panels/help-panel';
 import { renderSnaPanel } from './panels/sna-panel';
 import { resolveDoc, notesOf } from '../../lib/graph/notes';
+import { mirrorToLibrary, refreshFromLibrary, foreignNotes, adoptNote } from './notes-library';
 import { renderNotesPanel } from './panels/notes-panel';
 import { renderStoragePanel } from './panels/storage-panel';
 import { renderFilterPanel } from './panels/filter-panel';
@@ -528,8 +529,15 @@ import {
       root.querySelector('.km-toolbar')?.insertAdjacentElement('afterend', bar);
     }
 
+    /** 지금 맵 이름 — 라이브러리 목록에서 「어느 맵에서 온 글인가」를 보여 주는 데 쓴다. */
+    function activeMapName(): string {
+      return library.maps.find((m) => m.id === library.activeId)?.name ?? '맵';
+    }
+
     function persistStructure(): void {
       store.saveSpec(canvas?.getSpec() ?? spec);
+      // 공용 글은 맵보다 오래 산다 — 저장할 때마다 사람 창고에도 같이 적어 둔다.
+      mirrorToLibrary(spec, activeMapName());
       library = touchMap(library, library.activeId);
       snapshot();
       warnStorageIfTight();
@@ -768,6 +776,8 @@ import {
       selectedEdge: () => spec.edges.find((e) => e.id === selectedEdgeId),
       spawnNodeAt: (x, y, label) => spawnNodeAt(x, y, label),
       spawnNoteCard: (noteId) => spawnNoteCard(noteId),
+      foreignNotes: () => foreignNotes(spec),
+      adoptNote: (noteId) => { adoptNote(spec, noteId); },
       resizeNode: (node) => resize(node),
       openAvatarPicker: (nodeId) => { avatarTargetId = nodeId; imgEl.click(); },
       removeEdge: (id) => {
@@ -1817,6 +1827,8 @@ import {
         spec = loaded ?? emptyGraphSpec();
         // 관계 종류 정의는 항상 최신 셋으로 (저장본이 옛 정의를 갖고 있어도 색이 맞게).
         spec._edge_kinds = { ...edgeDefsNow(), ...(spec._edge_kinds ?? {}) };
+        // 다른 맵에서 고친 공용 글을 여기서 한 번 받아 온다 — 라이브러리가 정본이다.
+        refreshFromLibrary(spec);
         applyPack(spec._meta?.pack ?? DEFAULT_PACK_ID, false);
         const bg = (spec._meta?.bg ?? 'dots') as BackgroundKind;
         bgEl.value = bg;
