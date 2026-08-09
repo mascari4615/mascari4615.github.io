@@ -16,6 +16,7 @@
  *   Notification = 권한 요청 / 60s idle 등 사용자 행동 필요 시 — 강조 (Exclamation 기본)
  */
 import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
+import { t, loadNamespace } from '../lib/i18n';
 
 (function (): void {
   'use strict';
@@ -140,7 +141,7 @@ import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
     const sysPlay = document.createElement('button');
     sysPlay.type = 'button';
     sysPlay.className = 'claude-env-play';
-    sysPlay.title = 'system 사운드 미리듣기';
+    sysPlay.title = t('claude-env.t01');
     sysPlay.textContent = '▶';
     sysControl.appendChild(sysPlay);
     sysRow.appendChild(sysControl);
@@ -162,7 +163,7 @@ import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
     const beepPlay = document.createElement('button');
     beepPlay.type = 'button';
     beepPlay.className = 'claude-env-play';
-    beepPlay.title = 'beep 미리듣기';
+    beepPlay.title = t('claude-env.t02');
     beepPlay.textContent = '▶';
     beepControl.appendChild(beepPlay);
     beepRow.appendChild(beepControl);
@@ -186,13 +187,13 @@ import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
     const wavBrowse = document.createElement('button');
     wavBrowse.type = 'button';
     wavBrowse.className = 'claude-env-browse';
-    wavBrowse.title = '.wav / .mp3 파일 선택';
-    wavBrowse.textContent = '찾아보기';
+    wavBrowse.title = t('claude-env.t03');
+    wavBrowse.textContent = t('claude-env.t04');
     wavControl.appendChild(wavBrowse);
     const wavPlay = document.createElement('button');
     wavPlay.type = 'button';
     wavPlay.className = 'claude-env-play';
-    wavPlay.title = 'sound 파일 미리듣기';
+    wavPlay.title = t('claude-env.t05');
     wavPlay.textContent = '▶';
     wavControl.appendChild(wavPlay);
     wavRow.appendChild(wavControl);
@@ -246,8 +247,8 @@ import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
       };
       void tauriInvoke('claude_env_preview_sound', args).catch((e: unknown) => {
         const msg = e instanceof Error ? e.message : String(e);
-        setLog(`${name} ${mode} 미리듣기 실패: ${msg}`, true);
-        Toolbox.showToast?.('Claude 환경 미리듣기 실패', 'error', e);
+        setLog(t('claude-env.previewFailed', { name, mode, why: msg }), true);
+        Toolbox.showToast?.(t('claude-env.t06'), 'error', e);
       });
     }
     sysPlay.addEventListener('click', () => preview('system'));
@@ -263,13 +264,13 @@ import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
           ? (dialog.open as (opts: unknown) => Promise<unknown>)
           : null;
       if (!openFn) {
-        setLog(`${name} 파일 선택 불가 — Tauri dialog 없음 (데스크톱 앱 전용).`, true);
+        setLog(t('claude-env.noDialog', { name }), true);
         return;
       }
       void openFn({
         multiple: false,
         directory: false,
-        filters: [{ name: '사운드 (wav/mp3)', extensions: ['wav', 'mp3'] }]
+        filters: [{ name: t('claude-env.t07'), extensions: ['wav', 'mp3'] }]
       })
         .then(function (selected) {
           if (typeof selected !== 'string' || selected.length === 0) {
@@ -279,8 +280,8 @@ import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
         })
         .catch(function (e: unknown) {
           const msg = e instanceof Error ? e.message : String(e);
-          setLog(`${name} 파일 선택 실패: ${msg}`, true);
-          Toolbox.showToast?.('Claude 환경 파일 선택 실패', 'error', e);
+          setLog(t('claude-env.pickFailed', { name, why: msg }), true);
+          Toolbox.showToast?.(t('claude-env.t08'), 'error', e);
         });
     });
 
@@ -328,13 +329,13 @@ import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
     const intro = document.createElement('p');
     intro.className = 'claude-env-intro';
     intro.textContent =
-      'Claude Code 의 Stop / Notification hook 사운드 알림. ' +
-      '저장하면 memo/dotfiles/claude-hooks/notify-*.ps1 정본을 편집한 뒤 sync-claude-hooks.ps1 가 ~/.claude/hooks/ 로 배포합니다.';
+      t('claude-env.t09') +
+      t('claude-env.t10');
     root.appendChild(intro);
 
     const canonical = document.createElement('p');
     canonical.className = 'claude-env-canonical';
-    canonical.textContent = '정본 위치: (loading…)';
+    canonical.textContent = t('claude-env.t11');
     root.appendChild(canonical);
 
     const log = document.createElement('div');
@@ -345,10 +346,10 @@ import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
       log.textContent = text;
     }
 
-    const stopBuild = buildHookCard('stop', 'Stop hook (응답 끝)', setLog);
+    const stopBuild = buildHookCard('stop', t('claude-env.t12'), setLog);
     const notifBuild = buildHookCard(
       'notification',
-      'Notification hook (권한 요청 / idle)',
+      t('claude-env.t13'),
       setLog
     );
     root.appendChild(stopBuild.el);
@@ -359,7 +360,7 @@ import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
     const saveBtn = document.createElement('button');
     saveBtn.type = 'button';
     saveBtn.className = 'claude-env-save';
-    saveBtn.textContent = '저장 + sync 실행';
+    saveBtn.textContent = t('claude-env.t14');
     actions.appendChild(saveBtn);
     root.appendChild(actions);
     root.appendChild(log);
@@ -368,7 +369,7 @@ import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
 
     const isApp = typeof Toolbox.isDesktopApp === 'function' && Toolbox.isDesktopApp();
     if (!isApp) {
-      setLog('웹 브라우저에서는 사용할 수 없습니다. KarmoLab Tauri 앱으로 열어 주세요.', true);
+      setLog(t('claude-env.t15'), true);
       canonical.textContent = '';
       saveBtn.disabled = true;
       return;
@@ -396,7 +397,7 @@ import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
       const ratio = window.devicePixelRatio || 1;
       const el = document.elementFromPoint(pos.x / ratio, pos.y / ratio);
       const sec = el ? el.closest('.claude-env-section') : null;
-      return dropTargets.find((t) => t.sec === sec) ?? null;
+      return dropTargets.find((target) => target.sec === sec) ?? null;
     }
     const dragSubs: Array<Promise<() => void>> = [
       tauriListen('tauri://drag-over', (e: { payload: unknown }) => {
@@ -415,8 +416,8 @@ import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
         const hit = cardAt(pl?.position);
         if (!hit) return; // 카드 밖 드롭 — 무시
         if (!hasSoundExt(path)) {
-          setLog(`${hit.form.name} 드롭 무시 — .wav/.mp3 만 허용: ${path}`, true);
-          Toolbox.showToast?.('Claude 환경 — .wav/.mp3 파일만 가능', 'error', undefined);
+          setLog(t('claude-env.dropIgnored', { name: hit.form.name, path }), true);
+          Toolbox.showToast?.(t('claude-env.t16'), 'error', undefined);
           return;
         }
         hit.form.acceptDroppedSound(path);
@@ -437,30 +438,30 @@ import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
 
     function loadConfig(): void {
       saveBtn.disabled = true;
-      saveBtn.textContent = '읽는 중…';
+      saveBtn.textContent = t('claude-env.t17');
       setLog('loading…', false);
       void tauriInvoke('claude_env_read_notify_config')
         .then(function (res) {
           const config = res as NotifyConfigDto;
-          canonical.textContent = '정본 위치: ' + config.canonical_root;
+          canonical.textContent = t('claude-env.t18') + config.canonical_root;
           stopBuild.form.populate(config.stop);
           notifBuild.form.populate(config.notification);
-          setLog('read OK — 편집 후 [저장 + sync 실행] 으로 정본 반영. 미리듣기는 ▶.', false);
-          saveBtn.textContent = '저장 + sync 실행';
+          setLog(t('claude-env.t19'), false);
+          saveBtn.textContent = t('claude-env.t14');
           saveBtn.disabled = false;
         })
         .catch(function (e: unknown) {
           const errMsg = e instanceof Error ? e.message : String(e);
-          setLog('read 실패: ' + errMsg, true);
-          Toolbox.showToast?.('Claude 환경 read 실패', 'error', e);
-          saveBtn.textContent = '저장 + sync 실행';
+          setLog(t('claude-env.t20') + errMsg, true);
+          Toolbox.showToast?.(t('claude-env.t21'), 'error', e);
+          saveBtn.textContent = t('claude-env.t14');
         });
     }
 
     saveBtn.addEventListener('click', function () {
       saveBtn.disabled = true;
-      saveBtn.textContent = '저장 + sync 실행 중…';
-      setLog('write + sync 중…', false);
+      saveBtn.textContent = t('claude-env.t22');
+      setLog(t('claude-env.t23'), false);
       const payload = {
         config: {
           stop: stopBuild.form.snapshot(),
@@ -479,17 +480,17 @@ import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
           if (result.sync_stderr.trim().length > 0) {
             lines.push('', '— sync stderr —', result.sync_stderr.trim());
           }
-          lines.push('', '* 새 세션부터 효과 (Claude Code hook reload 정책).');
+          lines.push('', t('claude-env.t24'));
           setLog(lines.join('\n'), false);
-          Toolbox.showToast?.('Claude 환경 저장 + sync 완료', 'success', undefined);
-          saveBtn.textContent = '저장 + sync 실행';
+          Toolbox.showToast?.(t('claude-env.t25'), 'success', undefined);
+          saveBtn.textContent = t('claude-env.t14');
           saveBtn.disabled = false;
         })
         .catch(function (e: unknown) {
           const errMsg = e instanceof Error ? e.message : String(e);
-          setLog('write/sync 실패: ' + errMsg, true);
-          Toolbox.showToast?.('Claude 환경 저장 실패', 'error', e);
-          saveBtn.textContent = '저장 + sync 실행';
+          setLog(t('claude-env.t26') + errMsg, true);
+          Toolbox.showToast?.(t('claude-env.t27'), 'error', e);
+          saveBtn.textContent = t('claude-env.t14');
           saveBtn.disabled = false;
         });
     });
@@ -499,12 +500,23 @@ import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
 
   Toolbox.register({
     id: 'claude-env',
-    title: 'Claude 환경',
+    title: t('widgets.claude-env.title', undefined, "Claude 환경"),
     category: 'tool',
     desktopOnly: true,
-    desc: 'Claude Code Stop/Notification hook 사운드 알림 GUI (memo/dotfiles 정본 편집 + sync; v1 Step 2/3)',
+    desc: t('widgets-desc.claude-env.desc', undefined, "Claude Code Stop/Notification hook 사운드 알림 GUI (memo/dotfiles 정본 편집 + sync; v1 Step 2/3)"),
     layout: 'form',
     icon: '<path d="M3 11l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 8v8a3 3 0 003 3h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="19" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/>',
-    tabs: [{ id: 'claude-env-main', label: '패널', build }]
+    tabs: [
+      {
+        id: 'claude-env-main',
+        label: t('claude-env.tab.panel', undefined, '패널5'),
+        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        build: function (container: HTMLElement): void {
+          void loadNamespace('claude-env').then(function () {
+            build(container);
+          });
+        }
+      }
+    ]
   });
 })();

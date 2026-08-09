@@ -1,5 +1,5 @@
 {
-  "total": 5107,
+  "total": 5086,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -79,7 +79,7 @@
     "src/widgets/chatbot/markdown.ts": 1,
     "src/widgets/chatbot/prompt.ts": 9,
     "src/widgets/chatbot/styles.ts": 1,
-    "src/widgets/claude-env.ts": 39,
+    "src/widgets/claude-env.ts": 4,
     "src/widgets/cockpit/activity-collector.ts": 1,
     "src/widgets/cockpit/cards-tab.ts": 7,
     "src/widgets/cockpit/cockpit.ts": 14,
@@ -355,6 +355,7 @@
     "src/widgets/tools/dailytype.ts": 11,
     "src/core/word-pool.generated.ts": 165,
     "src/core/dailycho.ts": 13,
-    "src/widgets/tools/dailycho.ts": 11
+    "src/widgets/tools/dailycho.ts": 11,
+    "src/core/charconv.ts": 14
   }
 }
