@@ -16,6 +16,7 @@
  * P2P 라 마음먹으면 속일 수 있다. 캐주얼 놀이라 감수한다(순위표가 없으니 속일 값도 없다).
  */
 import { joinRoom, selfId } from 'trystero/nostr';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
   const ROUNDS = 5;
@@ -33,22 +34,24 @@ import { joinRoom, selfId } from 'trystero/nostr';
     tint?: string[]; // 색깔 게임에서 보기마다 칠할 색
   }
 
-  /* [초성, 정답, 미끼 셋] — 미끼는 **첫 글자만 같고 뒤가 다르다.** 눈으로 훑어야 걸러지도록.
-   * 미끼의 초성이 정답과 겹치면 답이 둘이 되므로, 넣을 때 반드시 확인할 것. */
-  const 초성판: Array<[string, string, string[]]> = [
-    ['ㄱㅇㅇ', '고양이', ['개나리', '기와집', '구운몽']],
-    ['ㅂㄷㅂㄷ', '부들부들', ['부글부글', '보슬보슬', '비틀비틀']],
-    ['ㅅㄱㅊ', '시금치', ['소고기', '사거리', '세계관']],
-    ['ㄴㅁㅇㅋ', '나무위키', ['나무의자', '노란우산', '눈물바다']],
-    ['ㅈㄷㅊ', '자동차', ['지하철도', '자전거길', '주차장문']],
-    ['ㅁㅇㅋ', '마이크', ['만화책', '물안경', '모래성']]
-  ];
-  const 색이름: Array<[string, string]> = [
-    ['빨강', '#e0483c'],
-    ['파랑', '#3b74d8'],
-    ['초록', '#33a06a'],
-    ['노랑', '#d8a72a'],
-    ['보라', '#8a5cd0']
+  /* 문제는 **말 묶음이 들고 있다.** 초성 놀이는 한글에만 있는 놀이라, 말만 갈아끼우면
+   * 다른 언어에선 놀이가 성립하지 않는다. 그래서 언어마다 *같은 규칙의 그 나라 놀이*를
+   * 적어 둔다 — en = 모음 뺀 글자, ja = ローマ字の子音. 미끼는 첫 글자만 같고 실마리로
+   * 되돌리면 달라지게 골라 둔다(겹치면 답이 둘이 된다).
+   * 표를 미리 굳히지 않고 **쓸 때 만든다** — 굳히면 그 시점엔 말 묶음이 아직 안 왔다. */
+  const QUIZ_COUNT = 6;
+  const 문제판 = (): Array<[string, string, string[]]> =>
+    Array.from({ length: QUIZ_COUNT }, (_, i) => [
+      t(`duel.quiz.${i}.clue`),
+      t(`duel.quiz.${i}.a`),
+      t(`duel.quiz.${i}.d`).split(',')
+    ]);
+  const 색이름 = (): Array<[string, string]> => [
+    [t('duel.color.red'), '#e0483c'],
+    [t('duel.color.blue'), '#3b74d8'],
+    [t('duel.color.green'), '#33a06a'],
+    [t('duel.color.yellow'), '#d8a72a'],
+    [t('duel.color.purple'), '#8a5cd0']
   ];
 
   const pick = <T>(a: T[]): T => a[Math.floor(Math.random() * a.length)];
@@ -68,7 +71,7 @@ import { joinRoom, selfId } from 'trystero/nostr';
     const 갈래: Kind[] = ['chosung', 'bigger', 'color', 'sum', 'same', 'reverse'];
     const kind: Kind = 갈래[Math.floor(Math.random() * 갈래.length)];
     if (kind === 'chosung') {
-      const [초성, 정답, 미끼] = pick(초성판);
+      const [초성, 정답, 미끼] = pick(문제판());
       const choices = shuffle([정답, ...미끼]);
       return { kind, order: 초성, choices, answer: choices.indexOf(정답), limitMs };
     }
@@ -77,7 +80,7 @@ import { joinRoom, selfId } from 'trystero/nostr';
       while (nums.size < 4) nums.add(Math.floor(Math.random() * 900) + 100);
       const choices = [...nums].map(String);
       const max = Math.max(...[...nums]);
-      return { kind, order: '큰 쪽!', choices, answer: choices.indexOf(String(max)), limitMs };
+      return { kind, order: t('duel.order.bigger'), choices, answer: choices.indexOf(String(max)), limitMs };
     }
     if (kind === 'sum') {
       // 셈: 두 수를 더한 값 고르기. 미끼는 정답 언저리라 대충 보면 걸린다.
@@ -87,14 +90,21 @@ import { joinRoom, selfId } from 'trystero/nostr';
       const 후보 = new Set<number>([정답]);
       while (후보.size < 4) 후보.add(정답 + (Math.floor(Math.random() * 11) - 5) || 정답 + 6);
       const choices = shuffle([...후보]).map(String);
-      return { kind, order: `${a}+${b}!`, choices, answer: choices.indexOf(String(정답)), limitMs };
+      return {
+        kind,
+        order: t('duel.order.sum', { a, b }),
+        choices,
+        answer: choices.indexOf(String(정답)),
+        limitMs
+      };
     }
     if (kind === 'same') {
       // 같은 것: 명령에 뜬 글자와 똑같은 칸 고르기. 미끼는 한 글자만 다르다.
-      const 씨앗 = pick(초성판)[1];
+      const 씨앗 = pick(문제판())[1];
+      const 글자통 = t('duel.letters');
       const 흔들기 = (w: string): string => {
         const i = Math.floor(Math.random() * w.length);
-        const 대체 = '가나다라마바사아자차'[Math.floor(Math.random() * 10)];
+        const 대체 = 글자통[Math.floor(Math.random() * 글자통.length)];
         return w.slice(0, i) + 대체 + w.slice(i + 1);
       };
       const 미끼 = new Set<string>();
@@ -104,11 +114,11 @@ import { joinRoom, selfId } from 'trystero/nostr';
         if (w !== 씨앗) 미끼.add(w);
       }
       const choices = shuffle([씨앗, ...미끼]);
-      return { kind, order: `${씨앗} 찾기!`, choices, answer: choices.indexOf(씨앗), limitMs };
+      return { kind, order: t('duel.order.same', { w: 씨앗 }), choices, answer: choices.indexOf(씨앗), limitMs };
     }
     if (kind === 'reverse') {
       // 거꾸로: 명령에 뜬 글자를 뒤집은 것 고르기.
-      const 씨앗 = pick(초성판)[1];
+      const 씨앗 = pick(문제판())[1];
       const 정답 = [...씨앗].reverse().join('');
       const 미끼 = new Set<string>();
       let 헛돌이 = 0;
@@ -117,12 +127,19 @@ import { joinRoom, selfId } from 'trystero/nostr';
         if (w !== 정답) 미끼.add(w);
       }
       const choices = shuffle([정답, ...미끼]);
-      return { kind, order: `${씨앗} 거꾸로!`, choices, answer: choices.indexOf(정답), limitMs };
+      return {
+        kind,
+        order: t('duel.order.reverse', { w: 씨앗 }),
+        choices,
+        answer: choices.indexOf(정답),
+        limitMs
+      };
     }
     /* 색깔(스트룹): 「글자 말고 **칠해진 색**」을 고른다. 정답 칸만 부른 색으로 칠하고,
      * 글자는 일부러 다른 색 이름을 적는다 — 글자를 읽으면 오히려 틀린다. */
-    const 고를색 = pick(색이름);
-    const 나머지 = 색이름.filter((c) => c[0] !== 고를색[0]);
+    const 팔레트 = 색이름();
+    const 고를색 = pick(팔레트);
+    const 나머지 = 팔레트.filter((c) => c[0] !== 고를색[0]);
     const 정답자리 = Math.floor(Math.random() * 4);
     const 글자 = shuffle(나머지);
     const choices: string[] = [];
@@ -131,7 +148,14 @@ import { joinRoom, selfId } from 'trystero/nostr';
       choices.push(글자[k % 글자.length][0]);
       tint.push(k === 정답자리 ? 고를색[1] : pick(나머지)[1]);
     }
-    return { kind: 'color', order: `${고를색[0]} 색!`, choices, answer: 정답자리, limitMs, tint };
+    return {
+      kind: 'color',
+      order: t('duel.order.color', { c: 고를색[0] }),
+      choices,
+      answer: 정답자리,
+      limitMs,
+      tint
+    };
   }
 
   function esc(s: string): string {
@@ -140,48 +164,64 @@ import { joinRoom, selfId } from 'trystero/nostr';
 
   Toolbox.register({
     id: 'duel',
-    title: '번개 대결',
+    title: t('widgets.duel.title', undefined, '번개 대결'),
     category: 'tool',
-    desc: '몇 초짜리 미니게임으로 둘이 붙습니다. 링크 하나면 바로 시작하고, 방을 우리 서버에 두지 않습니다',
+    desc: t(
+      'widgets-desc.duel.desc',
+      undefined,
+      '몇 초짜리 미니게임으로 둘이 붙습니다. 링크 하나면 바로 시작하고, 방을 우리 서버에 두지 않습니다'
+    ),
     layout: 'wide',
     noHero: true,
     icon: '<path d="M13 2L5 13h6l-1 9 9-12h-6l1-8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '대결',
+        label: t('duel.tab', undefined, '대결'),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '손가락만 믿을게요. 생각하면 늦어요.' });
+          void loadNamespace('duel').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에 — 문제도 화면도 전부 말 묶음에서 나온다. */
+  function draw(container: HTMLElement): void {
+          Mdd.linePreset('tool_run', { msg: t('duel.mdd') });
 
           container.innerHTML = `
             <div class="du-stage" id="duStage">
-              <div class="du-order" id="duOrder">번개 대결</div>
+              <div class="du-order" id="duOrder">${esc(t('duel.title.idle'))}</div>
               <div class="du-choices" id="duChoices"></div>
               <div class="du-timerbar"><div class="du-timerfill" id="duTimer"></div></div>
             </div>
 
             <div class="du-scores">
-              <div class="du-score"><span class="du-who">나</span><b id="duMeScore">0</b></div>
+              <div class="du-score"><span class="du-who">${esc(t('duel.who.me'))}</span><b id="duMeScore">0</b></div>
               <div class="du-round" id="duRound">— </div>
-              <div class="du-score"><span class="du-who" id="duFoeName">상대</span><b id="duFoeScore">0</b></div>
+              <div class="du-score"><span class="du-who" id="duFoeName">${esc(t('duel.who.foe'))}</span><b id="duFoeScore">0</b></div>
             </div>
 
             <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:var(--space-lg) 0;">
-              <button class="btn btn-primary" id="duMake">대결 링크 만들기</button>
-              <button class="btn btn-ghost" id="duMatch">아무나랑</button>
-              <button class="btn btn-ghost" id="duGhost">유령과</button>
-              <button class="btn btn-ghost" id="duAgain" style="display:none;">한 판 더</button>
+              <button class="btn btn-primary" id="duMake">${esc(t('duel.btn.make'))}</button>
+              <button class="btn btn-ghost" id="duMatch">${esc(t('duel.btn.match'))}</button>
+              <button class="btn btn-ghost" id="duGhost">${esc(t('duel.btn.ghost'))}</button>
+              <button class="btn btn-ghost" id="duAgain" style="display:none;">${esc(t('duel.btn.again'))}</button>
               <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
-                이름 <input type="text" id="duName" maxlength="10" placeholder="누군가" style="width:100px;" aria-label="대결에 쓸 이름">
+                ${esc(t('duel.label.name'))} <input type="text" id="duName" maxlength="10" placeholder="${esc(
+                  t('duel.name.default')
+                )}" style="width:100px;" aria-label="${esc(t('duel.aria.name'))}">
               </label>
             </div>
 
             <div class="du-share" id="duShare" style="display:none;">
-              <input type="text" id="duUrl" readonly aria-label="대결 링크">
-              <button class="btn btn-primary" id="duCopy">링크 복사</button>
+              <input type="text" id="duUrl" readonly aria-label="${esc(t('duel.aria.url'))}">
+              <button class="btn btn-primary" id="duCopy">${esc(t('duel.btn.copy'))}</button>
             </div>
 
-            <div class="tool-status" id="duStatus">링크를 만들어 상대에게 보내세요. 상대가 열면 바로 시작합니다.</div>
+            <div class="tool-status" id="duStatus">${esc(t('duel.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -221,9 +261,9 @@ import { joinRoom, selfId } from 'trystero/nostr';
             const typed = nameInput.value.trim();
             if (typed) return typed;
             try {
-              return (localStorage.getItem('karmolab.duel.name') || '').trim() || '누군가';
+              return (localStorage.getItem('karmolab.duel.name') || '').trim() || t('duel.name.default');
             } catch {
-              return '누군가';
+              return t('duel.name.default');
             }
           }
 
@@ -287,7 +327,7 @@ import { joinRoom, selfId } from 'trystero/nostr';
               if (k === current?.answer) b.classList.add('du-right');
               else if (k === i) b.classList.add('du-wrong');
             });
-            orderEl.textContent = ok ? '맞다!' : '땡';
+            orderEl.textContent = ok ? t('duel.ok') : t('duel.no');
             orderEl.className = 'du-order ' + (ok ? 'du-ok' : 'du-no');
             const mine = { ok, ms };
             myResult = mine;
@@ -325,10 +365,11 @@ import { joinRoom, selfId } from 'trystero/nostr';
 
           function finish(): void {
             orderEl.className = 'du-order';
-            orderEl.textContent = myScore > foeScore ? '이겼다!' : myScore < foeScore ? '졌다' : '비겼다';
+            orderEl.textContent =
+              myScore > foeScore ? t('duel.win') : myScore < foeScore ? t('duel.lose') : t('duel.draw');
             choicesEl.innerHTML = '';
             timerEl.style.width = '0%';
-            say(`${myScore} : ${foeScore} — 방은 그대로 열려 있어요. 「한 판 더」를 누르면 바로 시작합니다.`, 'ok');
+            say(t('duel.status.finish', { me: myScore, foe: foeScore }), 'ok');
             $<HTMLElement>('#duAgain').style.display = host ? '' : 'none';
             Toolbox.trackUse?.('finish');
           }
@@ -340,13 +381,13 @@ import { joinRoom, selfId } from 'trystero/nostr';
             } catch {
               /* 못 적어도 그만 */
             }
-            say(asHost ? '상대를 기다리는 중… 링크를 보내세요.' : '방에 붙는 중…');
+            say(asHost ? t('duel.status.waiting') : t('duel.status.joining'));
             const r0 = joinRoom({ appId: APP_ID }, roomId);
             room = r0;
             // 받는 자리를 만들 때 같이 건다 (트리스테로 0.25 부터 이 모양이다).
             sendHello = r0.makeAction('hello', {
               onMessage: (data) => {
-                foe = String((data as { name?: string }).name || '상대').slice(0, 10);
+                foe = String((data as { name?: string }).name || t('duel.who.foe')).slice(0, 10);
                 $<HTMLElement>('#duFoeName').textContent = foe;
               }
             }).send as Send;
@@ -380,10 +421,10 @@ import { joinRoom, selfId } from 'trystero/nostr';
             r0.onPeerJoin = (): void => {
               sendHello?.({ name: 내이름() });
               if (!asHost) {
-                say('붙었다! 곧 시작합니다.');
+                say(t('duel.status.metGuest'));
                 return;
               }
-              say('붙었다! 3초 뒤 시작합니다.');
+              say(t('duel.status.metHost'));
               $<HTMLElement>('#duShare').style.display = 'none';
               roundIndex = -1;
               myScore = 0;
@@ -391,7 +432,7 @@ import { joinRoom, selfId } from 'trystero/nostr';
               window.setTimeout(nextRound, 3000);
             };
             r0.onPeerLeave = (): void => {
-              say('상대가 나갔어요. 링크를 다시 보내면 이어서 할 수 있습니다.');
+              say(t('duel.status.left'));
               clearTimeout(timer);
               cancelAnimationFrame(raf);
             };
@@ -399,7 +440,7 @@ import { joinRoom, selfId } from 'trystero/nostr';
             // 공개망을 거쳐 붙는다 — 통신망에 따라 아예 안 붙는 자리가 있다. 조용히 기다리게 두지 않는다.
             window.setTimeout(() => {
               if (!foe && roundIndex < 0) {
-                say('아직 아무도 안 왔어요. 상대가 링크를 열었는데도 이 상태라면, 서로의 통신망이 직접 연결을 막고 있는 것입니다.');
+                say(t('duel.status.blocked'));
               }
             }, 30000);
           }
@@ -435,7 +476,7 @@ import { joinRoom, selfId } from 'trystero/nostr';
           function 아무나랑(): void {
             $<HTMLElement>('#duMake').style.display = 'none';
             $<HTMLElement>('#duMatch').style.display = 'none';
-            say('상대를 찾는 중… 누가 들어오면 바로 시작합니다.');
+            say(t('duel.status.searching'));
             const lobby = joinRoom({ appId: APP_ID }, 'lobby');
             lobby.onPeerJoin = (peerId: string): void => {
               if (짝지음) return;
@@ -446,7 +487,7 @@ import { joinRoom, selfId } from 'trystero/nostr';
             };
             // 아무도 없으면 계속 기다린다. 얼마나 기다렸는지는 말해 준다.
             window.setTimeout(() => {
-              if (!짝지음) say('아직 아무도 안 왔어요. 「유령과」를 누르면 혼자서도 바로 놀 수 있습니다.');
+              if (!짝지음) say(t('duel.status.lonely'));
             }, 45000);
           }
 
@@ -454,13 +495,13 @@ import { joinRoom, selfId } from 'trystero/nostr';
           function 유령과(): void {
             유령 = true;
             host = true;
-            foe = '유령';
-            $<HTMLElement>('#duFoeName').textContent = '유령';
+            foe = t('duel.who.ghost');
+            $<HTMLElement>('#duFoeName').textContent = foe;
             $<HTMLElement>('#duMake').style.display = 'none';
             $<HTMLElement>('#duMatch').style.display = 'none';
             $<HTMLElement>('#duGhost').style.display = 'none';
             $<HTMLElement>('#duShare').style.display = 'none';
-            say('유령과 겨룹니다. 사람이 오면 링크를 만들어 부르세요.');
+            say(t('duel.status.ghost'));
             roundIndex = -1;
             myScore = 0;
             foeScore = 0;
@@ -478,11 +519,11 @@ import { joinRoom, selfId } from 'trystero/nostr';
             $<HTMLElement>('#duMake').style.display = 'none';
             $<HTMLElement>('#duMatch').style.display = 'none';
             connect(roomId, true);
-            void Toolbox.copyText?.(url, { message: '링크를 복사했어요 — 보내면 바로 붙습니다' });
+            void Toolbox.copyText?.(url, { message: t('duel.copy.shared') });
             Toolbox.trackUse?.('share');
           };
           $<HTMLButtonElement>('#duCopy').onclick = () => {
-            void Toolbox.copyText?.($<HTMLInputElement>('#duUrl').value, { message: '링크를 복사했어요' });
+            void Toolbox.copyText?.($<HTMLInputElement>('#duUrl').value, { message: t('duel.copy.done') });
           };
           $<HTMLButtonElement>('#duAgain').onclick = () => {
             myScore = 0;
@@ -497,8 +538,5 @@ import { joinRoom, selfId } from 'trystero/nostr';
             cancelAnimationFrame(raf);
             room?.leave();
           });
-        }
-      }
-    ]
-  });
+  }
 })();
