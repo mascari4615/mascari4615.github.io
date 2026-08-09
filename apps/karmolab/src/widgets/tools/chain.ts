@@ -67,8 +67,13 @@ import { readInvocation } from '../../lib/tool-url';
     title: '도구 묶어 쓰기',
     category: 'tool',
     desc: '도구 여러 개를 이어서 한 번에. 앞 결과가 다음 도구의 입력이 됩니다',
+    // 껍데기(widgets-lazy-meta)와 **같은 값이어야** 한다 — 다르면 test:tools 가 막는다.
+    // 여기가 비어 있어서(undefined) 메타의 'wide' 와 어긋났고, verify 19개 중 이 하나가 빨갰다.
+    layout: 'wide',
     tabs: [
       {
+        // 탭에도 id 가 있어야 한다 — 주소(#chain/묶어쓰기)와 검사가 이걸로 탭을 집는다.
+        id: 'chain',
         label: '묶어 쓰기',
         build: function (container: HTMLElement): void {
           container.innerHTML = `
