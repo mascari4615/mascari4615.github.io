@@ -36,6 +36,41 @@ const q = (v) => (isWin ? `"${v}"` : v);
 const runNpm = (args, cwd) => execFileSync(npm, args, { cwd, encoding: 'utf8', stdio: 'pipe', windowsHide: true, shell: isWin });
 let child;
 
+/**
+ * 이 검사는 **배포 길목**에 있다 (build 사슬). 그래서 「못 돌았다」와 「제품이 틀렸다」를
+ * 반드시 갈라야 한다 — 못 돈 것을 실패로 세면 남의 배포가 통째로 선다.
+ *
+ * ★ 가르는 방법을 **글자로 하지 않는다.**
+ *
+ * 처음엔 오류 문구에서 `ENOENT`·`not recognized` 같은 낱말을 찾아 「환경 문제」로 분류했다.
+ * 실제로 시험해 보니 **안 걸렸다** — 윈도우가 그 오류를 한국어(「배치 파일이 아닙니다」)로,
+ * 그것도 cp949 로 내놓기 때문이다. 손으로 적은 낱말표는 언어·판올림마다 샌다.
+ *
+ * 그래서 **구조로** 가른다: 시작하기 전에 `npm --version` 한 번 불러 본다. 그게 안 되면
+ * 「못 돌렸다」고 말하고 통과. 그 다음부터 나오는 실패는 전부 제품 문제다.
+ * 설치도 `--offline` 로 한다 — 우리 tarball 은 손안에 있고 의존성이 0개라 레지스트리가 필요 없다.
+ * 그러면 「망이 안 됐다」라는 실패 자리 자체가 사라진다.
+ */
+const npmUsable = (() => {
+  try {
+    runNpm(['--version'], root);
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
+if (npmUsable === false) {
+  fs.rmSync(work, { recursive: true, force: true });
+  console.log(
+    [
+      '[smoke-mcp-install] CANNOT-RUN — 이 자리에서 npm 을 부를 수 없습니다.',
+      '  「검사가 못 돌았다」이지 「꾸러미가 틀렸다」가 아닙니다. 배포를 세우지 않습니다.'
+    ].join('\n')
+  );
+  process.exit(0);
+}
+
 try {
   // ① 담기 — prepublishOnly 를 태우지 않는다(그건 발행 때 도는 것이고, 여기선 지금 상태를 본다).
   runNpm(['run', 'build'], pkgDir);
@@ -45,7 +80,8 @@ try {
 
   // ② 빈 폴더에 설치 — 저장소 밖이라 우리 파일에 기댈 수 없다.
   fs.writeFileSync(path.join(work, 'package.json'), JSON.stringify({ name: 'install-test', private: true }) + '\n');
-  runNpm(['install', q('./' + tgz)], work);
+  /* --offline: 우리 tarball 은 손안에 있고 의존성이 0개다. 레지스트리를 안 거치면 망 문제로 빨개질 일이 없다. */
+  runNpm(['install', q('./' + tgz), '--offline', '--no-audit', '--no-fund'], work);
   const installed = path.join(work, 'node_modules', 'karmolab-mcp', 'src', 'server.mjs');
   check(fs.existsSync(installed), '설치본에 server.mjs 가 없다');
   const distDir = path.join(work, 'node_modules', 'karmolab-mcp', 'dist');
