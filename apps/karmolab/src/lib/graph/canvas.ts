@@ -35,7 +35,7 @@ import { resolveDoc, displayDoc } from './notes';
 import { exportSvgString } from './canvas-export';
 import { buildNodeAvatar } from './canvas-avatar';
 import { buildNodeBackground } from './canvas-shape';
-import { chooseAnchors, edgeCurve } from './canvas-math';
+import { chooseAnchors, edgeCurve, boundsOf } from './canvas-math';
 import { buildEdgePath, buildEdgeLabel, buildLeaderLine } from './canvas-edge';
 import { renderGroups } from './canvas-group';
 import { nodeBadges } from './canvas-badges';
@@ -1772,22 +1772,15 @@ export class GraphCanvas {
 
   private worldBounds(): { minX: number; minY: number; w: number; h: number } {
     if (!this.spec) return { minX: 0, minY: 0, w: 1200, h: 1100 };
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    for (const node of this.spec.nodes) {
-      const c = this.nodeCoords.get(node.id) ?? { x: node.x, y: node.y };
-      minX = Math.min(minX, c.x);
-      minY = Math.min(minY, c.y);
-      maxX = Math.max(maxX, c.x + node.w);
-      maxY = Math.max(maxY, c.y + node.h);
-    }
-    for (const anchor of this.spec.ephemeral_anchors ?? []) {
-      minX = Math.min(minX, anchor.x);
-      minY = Math.min(minY, anchor.y);
-      maxX = Math.max(maxX, anchor.x + anchor.w);
-      maxY = Math.max(maxY, anchor.y + anchor.h);
-    }
-    if (minX === Infinity) return { minX: 0, minY: 0, w: 1200, h: 1100 };
-    return { minX, minY, w: maxX - minX, h: maxY - minY };
+    // 좌표는 끌어 옮긴 값(nodeCoords)이 우선 — 저장본 좌표만 보면 방금 옮긴 것이 화면 밖에 남는다.
+    const boxes = [
+      ...this.spec.nodes.map((n) => {
+        const c = this.nodeCoords.get(n.id) ?? { x: n.x, y: n.y };
+        return { x: c.x, y: c.y, w: n.w, h: n.h };
+      }),
+      ...(this.spec.ephemeral_anchors ?? []).map((a) => ({ x: a.x, y: a.y, w: a.w, h: a.h })),
+    ];
+    return boundsOf(boxes);
   }
 
   private redrawMinimap(): void {
