@@ -8,112 +8,125 @@
  * 조각은 대부분 역슬래시를 품는다. 보통 따옴표에 넣으면 자바스크립트가 역슬래시를 먹어
  * 화면에 \d 대신 d 가 나온다 (실제로 그렇게 배포된 적이 있다) → String.raw 로 적는다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   /** [조각, 하는 일, 설명] */
-  const R: Record<string, Array<[string, string, string]>> = {
-    '한 글자 맞추기': [
-      ['.', '아무 글자 하나', '줄바꿈만 빼고 무엇이든 · s 플래그를 켜면 줄바꿈도'],
-      [String.raw`\d`, '숫자 하나', '0-9 와 같다'],
-      [String.raw`\D`, '숫자 아닌 것', ''],
-      [String.raw`\w`, '글자·숫자·밑줄', '영문 기준 · 한글은 안 걸린다'],
-      [String.raw`\W`, '글자·숫자·밑줄이 아닌 것', ''],
-      [String.raw`\s`, '공백류', '스페이스·탭·줄바꿈'],
-      [String.raw`\S`, '공백 아닌 것', ''],
-      ['[abc]', '이 중 하나', '대괄호 안의 글자 하나'],
-      ['[^abc]', '이것들 빼고', '^ 가 대괄호 안 맨 앞이면 부정'],
-      ['[a-z]', '범위', 'a 부터 z 까지'],
-      ['[가-힣]', '한글 한 글자', '완성형 한글 범위'],
-      ['[ㄱ-ㅎㅏ-ㅣ]', '자음·모음 낱자', 'ㅋㅋ, ㅠㅠ 같은 것']
+  /* 표는 **쓸 때** 짓는다 — 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
+  const rx = (): Record<string, Array<[string, string, string]>> => ({
+    [t('regexref.t01')]: [
+      ['.', t('regexref.t02'), t('regexref.t03')],
+      [String.raw`\d`, t('regexref.t04'), t('regexref.t05')],
+      [String.raw`\D`, t('regexref.t06'), ''],
+      [String.raw`\w`, t('regexref.t07'), t('regexref.t08')],
+      [String.raw`\W`, t('regexref.t09'), ''],
+      [String.raw`\s`, t('regexref.t10'), t('regexref.t11')],
+      [String.raw`\S`, t('regexref.t12'), ''],
+      ['[abc]', t('regexref.t13'), t('regexref.t14')],
+      ['[^abc]', t('regexref.t15'), t('regexref.t16')],
+      ['[a-z]', t('regexref.t17'), t('regexref.t18')],
+      [t('regexref.t19'), t('regexref.t20'), t('regexref.t21')],
+      ['[ㄱ-ㅎㅏ-ㅣ]', t('regexref.t22'), t('regexref.t23')]
     ],
-    '개수 정하기': [
-      ['*', '0번 이상', '없어도 된다'],
-      ['+', '1번 이상', '최소 한 번'],
-      ['?', '0번 또는 1번', '있어도 없어도'],
-      ['{3}', '정확히 3번', ''],
-      ['{2,}', '2번 이상', ''],
-      ['{2,5}', '2~5번', ''],
-      ['+?', '최소로 먹기', '기본은 최대한 많이 먹는다 — ? 를 붙이면 최소로'],
-      ['.*?', '중간을 최소로', '태그 안 내용 뽑을 때 자주 쓴다']
+    [t('regexref.t24')]: [
+      ['*', t('regexref.t25'), t('regexref.t26')],
+      ['+', t('regexref.t27'), t('regexref.t28')],
+      ['?', t('regexref.t29'), t('regexref.t30')],
+      ['{3}', t('regexref.t31'), ''],
+      ['{2,}', t('regexref.t32'), ''],
+      ['{2,5}', t('regexref.t33'), ''],
+      ['+?', t('regexref.t34'), t('regexref.t35')],
+      ['.*?', t('regexref.t36'), t('regexref.t37')]
     ],
-    '위치 지정': [
-      ['^', '줄 처음', 'm 플래그를 켜면 줄마다'],
-      ['$', '줄 끝', ''],
-      [String.raw`\b`, '낱말 경계', String.raw`\bcat\b 는 concat 에 안 걸린다`],
-      [String.raw`\B`, '낱말 경계 아님', ''],
-      ['(?=abc)', '뒤에 이게 오면', '그 부분은 결과에 안 들어간다 (전방 탐색)'],
-      ['(?!abc)', '뒤에 이게 안 오면', ''],
-      ['(?<=abc)', '앞에 이게 있으면', '후방 탐색'],
-      ['(?<!abc)', '앞에 이게 없으면', '']
+    [t('regexref.t38')]: [
+      ['^', t('regexref.t39'), t('regexref.t40')],
+      ['$', t('regexref.t41'), ''],
+      [String.raw`\b`, t('regexref.t42'), String.raw`\bcat\b 는 concat 에 안 걸린다`],
+      [String.raw`\B`, t('regexref.t43'), ''],
+      ['(?=abc)', t('regexref.t44'), t('regexref.t45')],
+      ['(?!abc)', t('regexref.t46'), ''],
+      ['(?<=abc)', t('regexref.t47'), t('regexref.t48')],
+      ['(?<!abc)', t('regexref.t49'), '']
     ],
-    '묶기·뽑기': [
-      ['(abc)', '묶고 기억하기', '치환에서 $1 로 꺼낸다'],
-      ['(?:abc)', '묶기만', '기억하지 않아 번호가 안 밀린다'],
-      ['(?<name>abc)', '이름 붙여 기억', '$<name> 으로 꺼낸다'],
-      ['a|b', '둘 중 하나', '묶어서 (a|b) 로 쓰는 게 안전'],
-      [String.raw`\1`, '앞서 기억한 것 재사용', String.raw`(\w)\1 은 같은 글자가 겹친 곳`],
-      ['$1', '치환에서 꺼내기', '치환 문자열 쪽 표기']
+    [t('regexref.t50')]: [
+      ['(abc)', t('regexref.t51'), t('regexref.t52')],
+      ['(?:abc)', t('regexref.t53'), t('regexref.t54')],
+      ['(?<name>abc)', t('regexref.t55'), t('regexref.t56')],
+      ['a|b', t('regexref.t57'), t('regexref.t58')],
+      [String.raw`\1`, t('regexref.t59'), String.raw`(\w)\1 은 같은 글자가 겹친 곳`],
+      ['$1', t('regexref.t60'), t('regexref.t61')]
     ],
     플래그: [
-      ['g', '전부 찾기', '없으면 첫 하나만'],
-      ['i', '대소문자 무시', ''],
-      ['m', '여러 줄', '^ $ 가 줄마다 걸린다'],
-      ['s', '점이 줄바꿈도', ''],
-      ['u', '유니코드', '이모지·특수 문자 다룰 때']
+      ['g', t('regexref.t62'), t('regexref.t63')],
+      ['i', t('regexref.t64'), ''],
+      ['m', t('regexref.t65'), t('regexref.t66')],
+      ['s', t('regexref.t67'), ''],
+      ['u', t('regexref.t68'), t('regexref.t69')]
     ],
-    '자주 쓰는 패턴': [
-      [String.raw`^[\w.+-]+@[\w-]+\.[\w.-]+$`, '이메일', '완벽한 검증은 불가능 — 실전에서는 이 정도로 충분'],
-      [String.raw`^01[016-9]-?\d{3,4}-?\d{4}$`, '휴대폰 번호', '하이픈 있어도 없어도'],
-      [String.raw`^\d{5}$`, '우편번호', '2015년 이후 5자리'],
-      [String.raw`^\d{4}-\d{2}-\d{2}$`, '날짜 YYYY-MM-DD', ''],
+    [t('regexref.t70')]: [
+      [String.raw`^[\w.+-]+@[\w-]+\.[\w.-]+$`, t('regexref.t71'), t('regexref.t72')],
+      [String.raw`^01[016-9]-?\d{3,4}-?\d{4}$`, t('regexref.t73'), t('regexref.t74')],
+      [String.raw`^\d{5}$`, t('regexref.t75'), t('regexref.t76')],
+      [String.raw`^\d{4}-\d{2}-\d{2}$`, t('regexref.t77'), ''],
       [String.raw`^https?://[^\s]+$`, 'URL', ''],
-      ['^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$', 'HEX 색상', ''],
-      [String.raw`\s{2,}`, '연속 공백', '하나로 줄일 때 찾는 대상'],
-      [String.raw`^\s+|\s+$`, '양끝 공백', '지울 때'],
-      ['<[^>]+>', 'HTML 태그', '지울 때 · 파싱 용도로는 쓰지 말 것'],
-      [String.raw`(\d)(?=(\d{3})+$)`, '세 자리 콤마 자리', '$1, 로 치환하면 1,234,567']
+      ['^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$', t('regexref.t78'), ''],
+      [String.raw`\s{2,}`, t('regexref.t79'), t('regexref.t80')],
+      [String.raw`^\s+|\s+$`, t('regexref.t81'), t('regexref.t82')],
+      ['<[^>]+>', t('regexref.t83'), t('regexref.t84')],
+      [String.raw`(\d)(?=(\d{3})+$)`, t('regexref.t85'), t('regexref.t86')]
     ],
-    '자주 막히는 것': [
-      [String.raw`\.`, '점 자체', '역슬래시로 기호의 뜻을 끈다'],
-      [String.raw`\\`, '역슬래시 자체', ''],
-      [String.raw`\[ \] \( \) \{ \}`, '괄호 자체', '전부 앞에 역슬래시'],
-      ['[.]', '대괄호 안에서는 그대로', '대괄호 안의 점은 그냥 점이다'],
-      ['[가-힣]', '한글 낱글자 잡기', '한글은 글자·숫자·밑줄 표기에 안 걸린다 — 이 범위나 u 플래그를 쓴다']
+    [t('regexref.t87')]: [
+      [String.raw`\.`, t('regexref.t88'), t('regexref.t89')],
+      [String.raw`\\`, t('regexref.t90'), ''],
+      [String.raw`\[ \] \( \) \{ \}`, t('regexref.t91'), t('regexref.t92')],
+      ['[.]', t('regexref.t93'), t('regexref.t94')],
+      [t('regexref.t19'), t('regexref.t95'), t('regexref.t96')]
     ]
-  };
-
-  const items = Object.keys(R).flatMap((group) =>
-    R[group].map(([code, label, desc]) => ({
-      copy: code,
-      glyph: code,
-      label,
-      sub: desc,
-      keywords: `${code} ${label} ${desc}`,
-      group
-    }))
-  );
-
-  window.RefTable?.define('regexref', {
-    items,
-    placeholder: '하려는 일로 찾기 (예: 이메일, 숫자, 줄 처음, 공백)',
-    copyNoun: '조각',
-    layout: 'list',
-    note: '누르면 정규식 조각이 복사됩니다. 시험은 정규식 테스터에서.'
   });
+
+  let defined = false;
+  function defineTable(): void {
+    if (defined) return;
+    defined = true;
+    const table = rx();
+    const items = Object.keys(table).flatMap((group) =>
+      table[group].map(([code, label, desc]) => ({
+        copy: code,
+        glyph: code,
+        label,
+        sub: desc,
+        keywords: `${code} ${label} ${desc}`,
+        group
+      }))
+    );
+
+    window.RefTable?.define('regexref', {
+      items,
+      placeholder: t('regexref.t97'),
+      copyNoun: t('regexref.t98'),
+      layout: 'list',
+      note: t('regexref.t99')
+    });
+  }
 
   Toolbox.register({
     id: 'regexref',
-    title: '정규식 치트시트',
+    title: t('widgets.regexref.title', undefined, "정규식 치트시트"),
     category: 'ref',
-    desc: '정규식 기호와 자주 쓰는 패턴을 하려는 일로 찾아 복사합니다',
+    desc: t('widgets-desc.regexref.desc', undefined, "정규식 기호와 자주 쓰는 패턴을 하려는 일로 찾아 복사합니다"),
     layout: 'wide',
     icon: '<path d="M12 4v16M6 8l12 8M18 8 6 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '치트시트',
+        label: t('regexref.t102', undefined, "치트시트"),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '정규식은 매번 새로 짜면 위험해요.' });
+          void loadNamespace('regexref').then(function () {
+
+          Mdd.linePreset('tool_run', { msg: t('regexref.t103') });
+          defineTable();
           window.RefTable?.build(container, window.RefTable.get('regexref')!);
+                  });
         }
       }
     ]
