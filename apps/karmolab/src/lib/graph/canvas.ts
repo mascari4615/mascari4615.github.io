@@ -35,7 +35,7 @@ import { resolveDoc, displayDoc } from './notes';
 import { exportSvgString } from './canvas-export';
 import { buildNodeAvatar } from './canvas-avatar';
 import { buildNodeBackground, buildNoteCardBody } from './canvas-shape';
-import { chooseAnchors, edgeCurve, boundsOf } from './canvas-math';
+import { chooseAnchors, edgeCurve, boundsOf, zoomAt } from './canvas-math';
 import { buildEdgePath, buildEdgeLabel, buildLeaderLine } from './canvas-edge';
 import { renderGroups, computeGroupBox } from './canvas-group';
 import { nodeBadges } from './canvas-badges';
@@ -357,12 +357,8 @@ export class GraphCanvas {
       const { left, top } = this.svg.getBoundingClientRect();
       const mx = e.clientX - left;
       const my = e.clientY - top;
-      const delta = e.deltaY > 0 ? 0.9 : 1.1;
-      const newScale = Math.max(0.1, Math.min(5, this.state.scale * delta));
-      // 마우스 위치 기준 줌 보정
-      this.state.tx = mx - (mx - this.state.tx) * (newScale / this.state.scale);
-      this.state.ty = my - (my - this.state.ty) * (newScale / this.state.scale);
-      this.state.scale = newScale;
+      // 가리킨 자리를 붙잡은 채 확대·축소 — 셈법은 canvas-math 가 안다.
+      Object.assign(this.state, zoomAt(this.state, e.deltaY > 0 ? 0.9 : 1.1, { x: mx, y: my }));
       this.applyTransform();
     }, { passive: false });
 

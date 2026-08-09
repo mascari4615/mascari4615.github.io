@@ -235,6 +235,21 @@ const M = await loadModules();
   check((bent.c1.y - g.c1.y) * (back.c1.y - g.c1.y) < 0, '부호를 바꾸면 반대쪽으로 휜다');
 }
 
+// ── 가리킨 자리를 붙잡은 확대 ───────────────────────────────────────────────
+{
+  const { cmath } = M;
+  const v = { tx: 0, ty: 0, scale: 1 };
+  const at = { x: 100, y: 50 };
+  const z = cmath.zoomAt(v, 2, at);
+  eq(z.scale, 2, '배율이 곱해진다');
+  // 그 자리의 **세계 좌표**가 확대 전후로 같아야 한다 — 아니면 보던 것이 옆으로 흐른다.
+  const before = (at.x - v.tx) / v.scale;
+  const after = (at.x - z.tx) / z.scale;
+  check(Math.abs(before - after) < 0.001, '가리킨 자리는 제자리에 남는다');
+  eq(cmath.zoomAt({ tx: 0, ty: 0, scale: 0.1 }, 0.5, at).scale, 0.1, '더 못 줄인다(점만 남는 것 방지)');
+  eq(cmath.zoomAt({ tx: 0, ty: 0, scale: 5 }, 2, at).scale, 5, '더 못 키운다(한 카드가 화면을 덮는 것 방지)');
+}
+
 // ── 세계 범위 ──────────────────────────────────────────────────────────────
 {
   const { cmath } = M;

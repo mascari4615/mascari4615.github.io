@@ -295,3 +295,33 @@ export function boundsOf(
   if (minX === Infinity) return fallback;
   return { minX, minY, w: maxX - minX, h: maxY - minY };
 }
+
+
+/** 화면 이동·배율 상태. */
+export interface ViewState {
+  tx: number;
+  ty: number;
+  scale: number;
+}
+
+/**
+ * **가리킨 자리를 붙잡은 채** 확대·축소한다. 화면 한가운데를 기준으로 잡으면
+ * 확대할 때마다 보고 있던 것이 옆으로 흘러 「따라가며 다시 찾는」 일이 생긴다.
+ *
+ * `min`·`max` 는 배율 한계 — 너무 줄이면 점만 남고, 너무 키우면 한 카드가 화면을 덮는다.
+ */
+export function zoomAt(
+  view: ViewState,
+  factor: number,
+  at: { x: number; y: number },
+  min = 0.1,
+  max = 5,
+): ViewState {
+  const scale = Math.max(min, Math.min(max, view.scale * factor));
+  const k = scale / view.scale;
+  return {
+    scale,
+    tx: at.x - (at.x - view.tx) * k,
+    ty: at.y - (at.y - view.ty) * k,
+  };
+}
