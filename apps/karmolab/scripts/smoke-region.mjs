@@ -255,6 +255,37 @@ if (fs.existsSync(path.join(repoRoot, ucPage))) {
   }
 }
 
+/* 러닝 페이스 — 미국은 「1마일에 몇 분」으로 말한다 (S14-b). */
+const pacePage = 'apps/blog/en/karmolab/t/pace/index.html';
+if (fs.existsSync(path.join(repoRoot, pacePage))) {
+  for (const c of [
+    { region: 'US', want: 'mile' },
+    { region: 'KR', want: 'km' }
+  ]) {
+    const ctx = await browser.newContext();
+    await ctx.addInitScript((r) => {
+      try {
+        localStorage.setItem('karmolab_region', r);
+      } catch {
+        /* 저장을 막아 둔 환경 */
+      }
+    }, c.region);
+    const tab = await ctx.newPage();
+    await tab.goto(`http://127.0.0.1:${PORT}/${pacePage}`, { waitUntil: 'domcontentloaded' });
+    const label = await tab
+      .waitForFunction(() => {
+        const el = document.querySelector('#tool-pages .tool-sublabel');
+        return el && el.textContent && el.textContent.includes('/') ? el.textContent : false;
+      }, { timeout: 8000 })
+      .then((h) => h.jsonValue())
+      .catch(() => '');
+    if (!String(label).includes(c.want)) {
+      fail.push(`${c.region}: 페이스 단위가 그 나라 것이 아니다 — 「${c.want}」 를 기대했는데 「${label}」`);
+    }
+    await ctx.close();
+  }
+}
+
 await browser.close();
 server.close();
 
