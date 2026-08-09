@@ -7,26 +7,44 @@
  * 플랫폼 한도표까지 간다. 우리는 그 위를 목표로 한다 — 세는 것은 다 세고, 거기에 **글이 안
  * 날아가는 것**(임시 보관)과 **바이트가 진짜 맞는 것**(옛 인코딩에 못 담기는 글자 경고)을 더한다.
  */
+import { t, loadNamespace, locale } from '../../lib/i18n';
+
 (function (): void {
-  const LIMIT_PRESETS: Array<{ label: string; value: number }> = [
-    { label: '제한 없음', value: 0 },
-    { label: '자소서 500자', value: 500 },
-    { label: '자소서 1000자', value: 1000 },
-    { label: '자소서 1500자', value: 1500 },
-    { label: '트위터 280자', value: 280 },
-    { label: '메타 description 155자', value: 155 }
+  /**
+   * 한도 목록은 **그릴 때** 만든다 (TASK-KL-203) — 파일 실릴 때 만들면 이름 자리에 열쇠가 굳는다.
+   *
+   * 「자소서 500/1000/1500자」는 **한국 채용 서류의 관행**이다. 영어·일본어 화면에 옮겨 두면
+   * 뜻은 통하지만 아무도 안 고르는 줄이 셋 는다 — 그래서 한국어에서만 넣는다.
+   * 트위터·메타 설명·인스타·유튜브는 어디서나 같은 한도라 그대로 둔다.
+   */
+  const limitPresets = (): Array<{ label: string; value: number }> => [
+    { label: t('charcount.preset.none'), value: 0 },
+    ...(locale() === 'ko'
+      ? [
+          { label: '자소서 500자', value: 500 },
+          { label: '자소서 1000자', value: 1000 },
+          { label: '자소서 1500자', value: 1500 }
+        ]
+      : []),
+    { label: t('charcount.preset.twitter'), value: 280 },
+    { label: t('charcount.preset.meta'), value: 155 }
   ];
 
-  /** 자주 쓰는 글자수 한도 — 지금 글이 어디에 들어가고 어디서 잘리는지 한눈에 본다. */
-  const PLATFORMS: Array<{ label: string; limit: number; 기준: '공백포함' }> = [
-    { label: '자소서 500자', limit: 500, 기준: '공백포함' },
-    { label: '자소서 1000자', limit: 1000, 기준: '공백포함' },
-    { label: '자소서 1500자', limit: 1500, 기준: '공백포함' },
-    { label: '메타 description', limit: 155, 기준: '공백포함' },
-    { label: '트위터(X)', limit: 280, 기준: '공백포함' },
-    { label: '인스타 캡션', limit: 2200, 기준: '공백포함' },
-    { label: '유튜브 제목', limit: 100, 기준: '공백포함' }
+  const platforms = (): Array<{ label: string; limit: number }> => [
+    ...(locale() === 'ko'
+      ? [
+          { label: '자소서 500자', limit: 500 },
+          { label: '자소서 1000자', limit: 1000 },
+          { label: '자소서 1500자', limit: 1500 }
+        ]
+      : []),
+    { label: t('charcount.platform.meta'), limit: 155 },
+    { label: t('charcount.platform.twitter'), limit: 280 },
+    { label: t('charcount.platform.instagram'), limit: 2200 },
+    { label: t('charcount.platform.youtube'), limit: 100 }
   ];
+
+
 
   /** 한국어 묵독·발표 속도 (분당 글자). 방송 원고에서 쓰는 어림값이다. */
   const 읽기_분당 = 500;
@@ -65,27 +83,58 @@
     return Math.ceil((칸 * 20) / 200);
   }
 
+  /**
+   * 「몇 분 몇 초」 — 단위 이름은 브라우저가 안다 (TASK-KL-203).
+   * 손으로 「분」·「초」를 적으면 언어마다 또 옮겨야 하고 복수형이 갈리는 언어에서 틀린다.
+   */
   function 시간말(초: number): string {
-    if (초 <= 0) return '0초';
+    if (초 <= 0) return t('charcount.time.zero');
+    const unit = (n: number, u: string): string => {
+      try {
+        return new Intl.NumberFormat(locale(), {
+          style: 'unit',
+          unit: u,
+          unitDisplay: 'short',
+          maximumFractionDigits: 0
+        } as Intl.NumberFormatOptions).format(n);
+      } catch {
+        return `${n}${u === 'minute' ? 'm' : 's'}`;
+      }
+    };
     const m = Math.floor(초 / 60);
-    const s = Math.round(초 % 60);
-    if (!m) return `${s}초`;
-    return s ? `${m}분 ${s}초` : `${m}분`;
+    const sec = Math.round(초 % 60);
+    if (!m) return unit(sec, 'second');
+    return sec ? `${unit(m, 'minute')} ${unit(sec, 'second')}` : unit(m, 'minute');
   }
 
   Toolbox.register({
     id: 'charcount',
-    title: '글자수 세기',
+    /* 도구 큰제목 — 등록 순간이라 원본을 기본값으로 함께 준다. */
+    title: t('widgets.charcount.title', undefined, '글자수 세기'),
     category: 'tool',
-    desc: '공백 포함·제외 글자수, 바이트, 단어·문장·원고지 매수를 실시간으로 셉니다',
+    desc: t('widgets-desc.charcount.desc', undefined, '공백 포함·제외 글자수, 바이트, 단어·문장·원고지 매수를 실시간으로 셉니다'),
     layout: 'form',
     icon: '<path d="M4 7V5h16v2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M12 5v14M9 19h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '글자수',
+        label: t('charcount.tab', undefined, '글자수'),
+        /* 말을 받아온 뒤에 그린다 — 안 기다리면 화면에 열쇠 이름이 뜬다. */
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '한 글자도 안 놓치고 세어 드릴게요.' });
+          void loadNamespace('charcount').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  function draw(container: HTMLElement): void {
+    /* 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
+    const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const PRESETS = limitPresets();
+    const PLATS = platforms();
+          Mdd.linePreset('tool_run', { msg: t('charcount.mdd') });
           container.innerHTML = `
             <div class="field-group">
               <div class="field-row" style="margin-bottom:8px;">
@@ -95,17 +144,17 @@
                   <button class="btn btn-ghost" id="ccClear">지우기</button>
                 </div>
               </div>
-              <textarea id="ccInput" placeholder="여기에 글을 붙여넣으세요. 입력하는 즉시 계산됩니다." style="min-height:200px;"></textarea>
+              <textarea id="ccInput" placeholder="${esc(t('charcount.placeholder'))}" style="min-height:200px;"></textarea>
               <div id="ccKeep" class="cc-note" style="display:none;"></div>
             </div>
 
             <div class="field-group">
-              <label class="field-label">글자수 제한</label>
+              <label class="field-label">${esc(t('charcount.limit.label'))}</label>
               <div style="display:flex; gap:8px; align-items:center;">
-                <select id="ccLimitPreset" aria-label="글자수 제한" style="flex:1;">
-                  ${LIMIT_PRESETS.map((p, i) => `<option value="${p.value}"${i === 0 ? ' selected' : ''}>${p.label}</option>`).join('')}
+                <select id="ccLimitPreset" aria-label="${esc(t('charcount.limit.label'))}" style="flex:1;">
+                  ${PRESETS.map((p, i) => `<option value="${p.value}"${i === 0 ? ' selected' : ''}>${p.label}</option>`).join('')}
                 </select>
-                <input type="text" id="ccLimitCustom" inputmode="numeric" placeholder="직접 입력" style="width:120px;">
+                <input type="text" id="ccLimitCustom" inputmode="numeric" placeholder="${esc(t('charcount.limit.custom'))}" style="width:120px;">
               </div>
               <div id="ccGaugeWrap" style="margin-top:12px; display:none;">
                 <div style="height:8px; background:var(--bg-secondary); border:1px solid var(--border); overflow:hidden;">
@@ -119,7 +168,7 @@
             <div id="ccUnsafe" class="cc-note cc-note-warn" style="display:none;"></div>
 
             <div class="field-group">
-              <label class="field-label">어디에 들어가나</label>
+              <label class="field-label">${esc(t('charcount.fit.label'))}</label>
               <div class="cc-fit" id="ccFit"></div>
             </div>
           `;
@@ -142,7 +191,7 @@
             const saved = localStorage.getItem(KEEP_KEY);
             if (saved) {
               input.value = saved;
-              keep.textContent = '이 기기에만 남겨 둔 글을 되살렸어요. 「지우기」를 누르면 지워집니다.';
+              keep.textContent = t('charcount.restored');
               keep.style.display = '';
             }
           } catch (_) { /* 저장을 막아 둔 브라우저도 있다 */ }
@@ -178,23 +227,32 @@
               else etc++;
             }
 
+            const n = (v: number): string => v.toLocaleString(locale());
+            const forKorea = locale() === 'ko';
+            /* 원고지와 EUC-KR 은 **한국에서만 뜻이 있는 칸**이다 — 원고지는 한국·일본 글쓰기의
+               세는 단위이고, EUC-KR 은 옛 한글 인코딩이다. 다른 언어 화면에서는 아무 의미 없는
+               숫자가 두 줄 느는 것이라 안 보여 준다(평당 가격과 같은 판단). */
             const cells: Array<[string, string, string?]> = [
-              ['공백 포함', withSpace.toLocaleString('ko-KR') + '자', 'primary'],
-              ['공백 제외', withoutSpace.toLocaleString('ko-KR') + '자', 'primary'],
-              ['단어', words.toLocaleString('ko-KR') + '개'],
-              ['줄', lines.toLocaleString('ko-KR') + '줄'],
-              ['문장', sentences.toLocaleString('ko-KR') + '개'],
-              ['문단', paragraphs.toLocaleString('ko-KR') + '개'],
-              ['원고지', manuscript.toLocaleString('ko-KR') + '매'],
-              ['UTF-8', utf8.toLocaleString('ko-KR') + ' byte'],
-              ['EUC-KR', euckr.toLocaleString('ko-KR') + ' byte'],
-              ['한글', ko.toLocaleString('ko-KR') + '자'],
-              ['영문', en.toLocaleString('ko-KR') + '자'],
-              ['숫자', num.toLocaleString('ko-KR') + '자'],
-              ['공백', space.toLocaleString('ko-KR') + '자'],
-              ['기호·기타', etc.toLocaleString('ko-KR') + '자'],
-              ['눈으로 읽기', 시간말((withSpace / 읽기_분당) * 60)],
-              ['소리 내 말하기', 시간말((withSpace / 말하기_분당) * 60)]
+              [t('charcount.stat.withSpace'), t('charcount.unit.chars', { n: n(withSpace) }), 'primary'],
+              [t('charcount.stat.withoutSpace'), t('charcount.unit.chars', { n: n(withoutSpace) }), 'primary'],
+              [t('charcount.stat.words'), t('charcount.unit.count', { n: n(words) })],
+              [t('charcount.stat.lines'), t('charcount.unit.lines', { n: n(lines) })],
+              [t('charcount.stat.sentences'), t('charcount.unit.count', { n: n(sentences) })],
+              [t('charcount.stat.paragraphs'), t('charcount.unit.count', { n: n(paragraphs) })],
+              ...(forKorea
+                ? ([[t('charcount.stat.manuscript'), t('charcount.unit.sheets', { n: n(manuscript) })]] as Array<
+                    [string, string, string?]
+                  >)
+                : []),
+              ['UTF-8', n(utf8) + ' byte'],
+              ...(forKorea ? ([['EUC-KR', n(euckr) + ' byte']] as Array<[string, string, string?]>) : []),
+              [t('charcount.stat.hangul'), t('charcount.unit.chars', { n: n(ko) })],
+              [t('charcount.stat.latin'), t('charcount.unit.chars', { n: n(en) })],
+              [t('charcount.stat.digits'), t('charcount.unit.chars', { n: n(num) })],
+              [t('charcount.stat.spaces'), t('charcount.unit.chars', { n: n(space) })],
+              [t('charcount.stat.other'), t('charcount.unit.chars', { n: n(etc) })],
+              [t('charcount.stat.readTime'), 시간말((withSpace / 읽기_분당) * 60)],
+              [t('charcount.stat.speakTime'), 시간말((withSpace / 말하기_분당) * 60)]
             ];
             stats.innerHTML = cells
               .map(
@@ -218,7 +276,7 @@
               unsafe.style.display = 'none';
             }
 
-            fit.innerHTML = PLATFORMS.map((p) => {
+            fit.innerHTML = PLATS.map((p) => {
               const 남음 = p.limit - withSpace;
               const ok = 남음 >= 0;
               return `<div class="cc-fit-row${ok ? '' : ' cc-fit-over'}">
@@ -269,13 +327,10 @@
               input.value = t;
               render();
             } catch {
-              Toolbox.showToast?.('클립보드 읽기 권한이 없어요. Ctrl+V 로 붙여넣어 주세요.', 'warning', undefined);
+              Toolbox.showToast?.(t('charcount.clipboardDenied'), 'warning', undefined);
             }
           };
 
           render();
-        }
-      }
-    ]
-  });
+  }
 })();
