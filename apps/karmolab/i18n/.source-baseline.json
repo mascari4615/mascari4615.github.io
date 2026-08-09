@@ -1,5 +1,5 @@
 {
-  "total": 8159,
+  "total": 8085,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -97,7 +97,7 @@
     "src/widgets/imagegen/presets.ts": 71,
     "src/widgets/imagegen/styles.ts": 1,
     "src/widgets/imagelib.ts": 22,
-    "src/widgets/karmomap/karmomap.ts": 83,
+    "src/widgets/karmomap/karmomap.ts": 84,
     "src/widgets/karmomap/library.ts": 9,
     "src/widgets/karmomap/local-storage-adapter.ts": 4,
     "src/widgets/karmomap/packs.ts": 92,
@@ -275,7 +275,7 @@
     "src/widgets/tools/videotrim.ts": 20,
     "src/widgets/tools/voicerec.ts": 20,
     "src/widgets/tools/wordfreq.ts": 75,
-    "src/widgets/tools/workdays.ts": 79,
+    "src/widgets/tools/workdays.ts": 4,
     "src/widgets/tools/worldclock.ts": 5,
     "src/widgets/tools/ziptool.ts": 24,
     "src/widgets/twenty.ts": 13,
