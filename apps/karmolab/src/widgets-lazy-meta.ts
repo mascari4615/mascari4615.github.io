@@ -221,6 +221,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/devtool']
   },
   {
+    id: 'dailycho',
+    title: '오늘의 초성 맞히기',
+    category: 'tool',
+    desc: '초성만 보고 낱말 다섯 개 — 답은 이 사이트의 도구 이름',
+    layout: 'wide',
+    icon: '<path d="M7 8v8M12 8v8M17 8v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4 12h1M20 12h-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/dailycho']
+  },
+  {
     id: 'dailytype',
     title: '오늘의 한글 타자',
     category: 'tool',

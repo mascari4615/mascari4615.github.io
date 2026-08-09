@@ -30,12 +30,6 @@ export const spec: ToolSpec = {
   }
 };
 
-/**
- * ★ 아직 화면이 없다 — 다음 회차. 지금 tools-seo 에 올리면 **열리지 않는 주소**가 생긴다.
- * (하루 전 chain 은 그 반대 실수였다: 화면만 있고 문이 없었다.)
- */
-export const SCREENLESS = true;
-
 export const GAME_ID = 'cho-quiz';
 
 /** 한 판 다섯 낱말. 1~2분 — 「내일 또」가 되는 길이. */
