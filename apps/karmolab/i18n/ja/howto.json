@@ -161,5 +161,9 @@
   "howto.ghosttype.0": "見えている文章をそのまま打つ — 最初の一文字ですぐ始まる",
   "howto.ghosttype.1": "走っている間、上の2本のレーンで自分と幽霊の位置を見比べる",
   "howto.ghosttype.2": "終わったら出てきたリンクをコピーして送る",
-  "howto.ghosttype.3": "受け取った人は同じ文章で自分の幽霊と走る"
+  "howto.ghosttype.3": "受け取った人は同じ文章で自分の幽霊と走る",
+  "howto.redact.0": "スクリーンショットを貼り付ける（Ctrl+V）かファイルを選ぶ",
+  "howto.redact.1": "隠したいところをドラッグする",
+  "howto.redact.2": "黒塗りかモザイクを選ぶ",
+  "howto.redact.3": "PNG でダウンロードする"
 }
