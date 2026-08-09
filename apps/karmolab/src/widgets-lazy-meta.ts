@@ -221,6 +221,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/devtool']
   },
   {
+    id: 'comparepic',
+    title: '비교 슬라이더',
+    category: 'tool',
+    desc: '사진 두 장을 겹쳐 밀어 보며 비교 — 파일은 기기 밖으로 나가지 않는다',
+    layout: 'wide',
+    icon: '<path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 4v16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9 12l-2-2 2-2M15 12l2-2-2-2" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/comparepic']
+  },
+  {
     id: 'charconv',
     title: '문자 변환',
     category: 'tool',
