@@ -711,6 +711,19 @@ await step('노드에 칸을 만들면 같은 종류의 다른 노드가 그 칸
   await promote.first().dispatchEvent('click');
   await page.waitForFunction((n) => document.querySelectorAll('.ck-edge').length > n, edgesBefore, { timeout: 4000 });
 });
+await step('칸으로 좁히면 그 칸을 적은 것만 남는다', async () => {
+  // 앞 검사가 「출신: 마계」를 적어 뒀다. 좁히면 **적지 않은 노드들이 화면에서 빠져야** 한다.
+  await page.click('[data-km="tab"][data-key="filter"]');
+  await page.waitForSelector('[data-km="f-field"]', { timeout: 4000 });
+  const before = await page.locator('.ck-node').count();
+  await page.selectOption('[data-km="f-field"]', '출신');
+  await page.waitForFunction((n) => document.querySelectorAll('.ck-node').length < n, before, { timeout: 4000 });
+  const narrowed = await page.locator('.ck-node').count();
+  if (narrowed === 0) throw new Error('칸을 적은 노드까지 사라졌다');
+  await page.locator('[data-km="f-reset"]').dispatchEvent('click');
+  await page.waitForFunction((n) => document.querySelectorAll('.ck-node').length === n, before, { timeout: 4000 });
+  await page.click('[data-km="tab"][data-key="node"]');
+});
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
   await page.click('[data-km="tab"][data-key="notes"]');
