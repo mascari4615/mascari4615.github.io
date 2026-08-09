@@ -106,4 +106,27 @@ if (wrong.length > 0) {
   process.exit(1);
 }
 
+/*
+ * 공식 레지스트리(registry.modelcontextprotocol.io)에 올릴 `server.json` 은 버전을 **또 적는다**
+ * (세 곳: 최상위 `version` · `packages[0].version` · npm 이름). 손으로 적는 곳이 늘면 갈린다 —
+ * 레지스트리가 「0.1.0 을 받아라」라고 말하는데 npm 에는 0.2.0 만 있으면, 설치가 조용히 실패한다.
+ */
+const serverJsonPath = path.join(here, 'server.json');
+if (fs.existsSync(serverJsonPath)) {
+  const reg = JSON.parse(fs.readFileSync(serverJsonPath, 'utf8'));
+  const pkg = JSON.parse(fs.readFileSync(path.join(here, 'package.json'), 'utf8'));
+  const pkgVersion = pkg.version;
+  const pkgName = pkg.name;
+  const mismatches = [];
+  if (reg.version !== pkgVersion) mismatches.push(`version ${reg.version} ≠ ${pkgVersion}`);
+  for (const entry of reg.packages ?? []) {
+    if (entry.version !== pkgVersion) mismatches.push(`packages[].version ${entry.version} ≠ ${pkgVersion}`);
+    if (entry.identifier !== pkgName) mismatches.push(`packages[].identifier ${entry.identifier} ≠ ${pkgName}`);
+  }
+  if (mismatches.length > 0) {
+    console.error(`[karmolab-mcp] server.json 이 package.json 과 갈렸다: ${mismatches.join(' · ')}`);
+    process.exit(1);
+  }
+}
+
 console.log(`[karmolab-mcp] 알맹이 ${manifest.length}개 · 도구 ${opCount}개 찍음: ${manifest.join(' · ')}`);
