@@ -9,7 +9,7 @@
  * 무엇이 깨졌는지 알 수 없고, 화면 검사(35항목)가 있어도 되돌릴 지점이 없어진다.
  */
 import type { GraphCanvas } from '../../../lib/graph/canvas';
-import type { GraphSpec, GraphNode, GroupDef } from '../../../lib/graph/spec';
+import type { GraphSpec, GraphNode, GraphEdge, GroupDef } from '../../../lib/graph/spec';
 import type { MyTerms } from '../terms';
 
 export interface PanelCtx {
@@ -89,4 +89,11 @@ export interface PanelCtx {
   nodeKindOptionsHtml: () => string;
   /** 들여쓴 글 → 노드·선. 만든 개수를 돌려준다. */
   buildFromOutline: (src: string, kind: string) => number;
+
+  // ── 선 패널이 빌리는 것들 ──────────────────────────────────────────────
+  edgeKindOptionsHtml: (selected?: string) => string;
+  /** 지금 고른 선 (없으면 undefined). */
+  selectedEdge: () => GraphEdge | undefined;
+  /** 선 하나와 그것을 가리키던 지시선을 지운다. */
+  removeEdge: (id: string) => void;
 }
