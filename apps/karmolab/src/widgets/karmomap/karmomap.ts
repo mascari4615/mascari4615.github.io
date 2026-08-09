@@ -31,6 +31,7 @@ import { resolveDoc, notesOf } from '../../lib/graph/notes';
 import { mirrorToLibrary, refreshFromLibrary, foreignNotes, adoptNote } from './notes-library';
 import { toJsonCanvas, fromJsonCanvas } from './json-canvas';
 import { toMermaidBlock } from './mermaid';
+import { withPresentation } from './presentation-svg';
 import { renderNotesPanel } from './panels/notes-panel';
 import { renderStoragePanel } from './panels/storage-panel';
 import { renderFilterPanel } from './panels/filter-panel';
@@ -385,6 +386,7 @@ import {
               <button class="btn btn-ghost" data-km="from-text">📝 글로 만들기</button>
               <button class="btn btn-ghost" data-km="png">🖼 그림으로 저장</button>
               <button class="btn btn-ghost" data-km="svg">✒ SVG 로 저장 (글자 살아 있음)</button>
+              <button class="btn btn-ghost" data-km="svg-story">🎞 발표를 SVG 한 장으로</button>
               <button class="btn btn-ghost" data-km="export">JSON 내보내기</button>
               <button class="btn btn-ghost" data-km="import">JSON 가져오기</button>
               <button class="btn btn-ghost" data-km="canvas-out">🗂 JSON Canvas 로 내보내기</button>
@@ -2076,6 +2078,38 @@ import {
         () => Toolbox.showToast?.('파일로 받았고 클립보드에도 담았습니다', undefined, undefined),
         () => {},   // 클립보드는 못 쓸 수 있다(권한·문맥) — 파일이 이미 나갔으니 조용히 넘긴다
       );
+    };
+
+    // 발표는 대개 **남의 기계**에서 열린다 — 결과물이 브라우저만 있으면 도는 한 장이어야 한다.
+    q<HTMLButtonElement>('svg-story').onclick = () => {
+      const live = canvas?.getSpec() ?? spec;
+      const story = live.story ?? [];
+      if (story.length === 0) {
+        Toolbox.showToast?.('먼저 발표 모드에서 장을 담아 주세요 (▶ → + 지금 화면을 한 장으로)', undefined, undefined);
+        return;
+      }
+      const svgText = canvas?.exportSVGString({ background: canvasBackground() });
+      if (!svgText) return;
+      const scenes = story.map((st) => {
+        const ids = st.rect ? (canvas?.nodesInWorldRect(st.rect) ?? []) : st.nodeIds;
+        const boxes = ids.map((id) => live.nodes.find((n) => n.id === id)).filter(Boolean) as GraphNode[];
+        // 틀로 담은 장은 그 틀을, 노드로 담은 장은 그 노드들을 감싼 자리를 쓴다(여백 조금).
+        const rect = st.rect ?? (boxes.length > 0
+          ? (() => {
+              const minX = Math.min(...boxes.map((n) => n.x)) - 60;
+              const minY = Math.min(...boxes.map((n) => n.y)) - 60;
+              const maxX = Math.max(...boxes.map((n) => n.x + n.w)) + 60;
+              const maxY = Math.max(...boxes.map((n) => n.y + n.h)) + 60;
+              return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+            })()
+          : { x: 0, y: 0, w: 1000, h: 700 });
+        return { title: st.title, note: st.note, rect };
+      });
+      downloadBlob(
+        new Blob([withPresentation(svgText, scenes)], { type: 'image/svg+xml;charset=utf-8' }),
+        'karmomap-presentation.svg',
+      );
+      Toolbox.showToast?.(`${scenes.length}장짜리 발표를 한 장으로 받았습니다 — 브라우저로 열고 ←→`, undefined, undefined);
     };
 
     q<HTMLButtonElement>('canvas-out').onclick = () => {

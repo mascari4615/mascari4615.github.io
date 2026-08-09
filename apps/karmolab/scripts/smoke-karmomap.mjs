@@ -1077,6 +1077,33 @@ await step('코멘트는 여러 개 쌓이고 카드에 개수가 뜬다', async
     { timeout: 4000 }
   );
 });
+await step('발표를 SVG 한 장으로 — 브라우저만 있으면 도는 파일이 나온다', async () => {
+  // 발표는 대개 남의 기계에서 열린다. 파일 이름이 아니라 **속**을 본다: 장면 목록·조작 스크립트.
+  let n = 0;
+  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '한 장 ' + n : ''); };
+  page.on('dialog', onDlg);
+  await page.locator('[data-km="story"]').dispatchEvent('click');
+  await page.waitForSelector('.km-root.is-presenting', { timeout: 4000 });
+  await page.locator('[data-km="stage-add"]').dispatchEvent('click');
+  await page.waitForFunction(() => document.querySelectorAll('[data-km="stage-go"]').length >= 1, null, { timeout: 5000 });
+  await page.locator('[data-km="stage-exit"]').dispatchEvent('click');
+  await page.waitForSelector('.km-root:not(.is-presenting)', { timeout: 4000 });
+  page.off('dialog', onDlg);
+
+  await page.click('[data-km="more"]');
+  await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
+  const [dl] = await Promise.all([
+    page.waitForEvent('download', { timeout: 8000 }),
+    page.locator('[data-km="svg-story"]').dispatchEvent('click'),
+  ]);
+  if (!dl.suggestedFilename().includes('presentation')) throw new Error('발표 파일 이름이 아니다');
+  const text = await readFile(await dl.path(), 'utf8');
+  if (!text.includes('km-stage')) throw new Error('장면 안내가 안 들어갔다');
+  if (!text.includes('ArrowRight')) throw new Error('장을 넘길 길이 없다');
+  if (!/"rect":\s*\{/.test(text)) throw new Error('장면 자리가 안 실렸다');
+  await page.keyboard.press('Escape');
+  await page.waitForSelector('[data-km="drawer"].hidden', { state: 'attached', timeout: 4000 });
+});
 await step('보기 전용 링크 — 손잡이가 사라지고, 「내 것으로 복제」로 풀린다', async () => {
   // 남에게 보여 줄 때 대부분은 읽히기만 하면 된다. 편집 손잡이가 남아 있으면 받는 쪽이
   // 「고쳐도 되나」부터 헷갈리고, 고쳐 놓고 원본이 바뀐 줄 안다(사실은 자기 브라우저에만 남는다).
