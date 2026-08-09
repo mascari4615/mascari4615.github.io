@@ -281,7 +281,13 @@ src = src.replace(/'([^'\\\n]*[가-힣][^'\\\n]*)'/g, (whole, text, offset) => {
       : /\btitle:\s*$/.test(before)
         ? null // 등록 title 은 아래에서 따로 (기본값 딸린 t)
         : null;
-  return `t('${keyFor(text, hint)}')`;
+  /* 객체의 **열쇠 자리**면 계산된 열쇠로 감싼다 — `t(x): [` 는 문법 오류라 그 파일만 컴파일이
+   * 깨진다(markdown 문법표의 묶음 이름 8개가 그랬다). 삼항(`x ? '가' : '나'`)도 뒤에 `:` 가
+   * 오므로, **앞이 `{` 나 `,` 일 때만** 열쇠 자리로 본다. */
+  const after = src.slice(offset + whole.length, offset + whole.length + 3);
+  const call = `t('${keyFor(text, hint)}')`;
+  const prev = before.replace(/\s+$/, '').slice(-1);
+  return /^\s*:/.test(after) && (prev === '{' || prev === ',') ? `[${call}]` : call;
 });
 
 /* ── ④ 등록 title/desc/label 은 **기본값 딸린 t()** 로 (묶음이 늦게 와도 이름이 빈칸이 안 되게) ── */

@@ -1,5 +1,5 @@
 {
-  "total": 7723,
+  "total": 7617,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -179,7 +179,7 @@
     "src/widgets/ref/colorname.ts": 151,
     "src/widgets/ref/emoji.ts": 407,
     "src/widgets/ref/filetype.ts": 110,
-    "src/widgets/ref/gitcmd.ts": 109,
+    "src/widgets/ref/gitcmd.ts": 3,
     "src/widgets/ref/htmlentity.ts": 183,
     "src/widgets/ref/httpstatus.ts": 3,
     "src/widgets/ref/keycode.ts": 3,
