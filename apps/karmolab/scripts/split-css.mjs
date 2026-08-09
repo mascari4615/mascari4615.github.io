@@ -75,6 +75,45 @@ const head = (what) =>
   `/* 이 파일은 \`scripts/split-css.mjs\` 가 \`css/toolbox.css\` 에서 뽑아 만든다 — 손으로 고치지 마라.\n` +
   `   고칠 곳은 \`css/toolbox.css\` 다 (TASK-KL-128). 이 벌: ${what} */\n`;
 
+/**
+ * **설명은 소스에, 사람에게. 브라우저에는 규칙만.**
+ *
+ * 이 저장소의 CSS 는 설명이 두껍다 — 그게 좋아서 그렇게 쓴다. 그런데 그 설명이 **첫 그림을
+ * 막는 파일에 그대로 실려** 모든 방문자가 매번 받고 있었다. 실측(2026-08-09):
+ *
+ *     막는 CSS gzip  28.97KB  →  주석만 빼면  13.46KB      (절반 이상이 설명)
+ *
+ * 정본(`css/toolbox.css`)의 설명은 **한 줄도 안 지운다** — 고치는 사람은 거기를 본다.
+ * 여기서 뽑아 내보낼 때만 뺀다.
+ *
+ * 문자열 안의 `/*` 는 CSS 에서 사실상 안 쓰이지만(`url()` 도 따옴표 밖), 그래도 따옴표 안은
+ * 건드리지 않게 훑는다 — 조용히 규칙 하나가 깨지면 화면이 어긋난 채로 나간다.
+ */
+function stripComments(css) {
+  let out = '';
+  let quote = null;
+  for (let i = 0; i < css.length; i++) {
+    const c = css[i];
+    if (quote) {
+      out += c;
+      if (c === '\\') { out += css[++i] ?? ''; continue; }
+      if (c === quote) quote = null;
+      continue;
+    }
+    if (c === '"' || c === "'") { quote = c; out += c; continue; }
+    if (c === '/' && css[i + 1] === '*') {
+      const end = css.indexOf('*/', i + 2);
+      if (end < 0) break; // 안 닫힌 주석 — 나머지는 통째 설명이다
+      i = end + 1;
+      continue;
+    }
+    out += c;
+  }
+  /* 설명이 있던 자리에 남는 빈 줄을 접는다 — 안 하면 뺀 만큼 줄바꿈이 남는다. */
+  const NL = String.fromCharCode(10);
+  return out.split(NL).map((l) => l.replace(/[ 	]+$/, '')).filter((l, k, arr) => l.trim() !== '' || (arr[k - 1] || '').trim() !== '').join(NL);
+}
+
 const outputs = {
   [NAMES.critical]:
     head('첫 그림에 필요한 것 — 화면 그리기를 막고 기다린다') +
@@ -85,7 +124,9 @@ const outputs = {
 };
 
 const changed = [];
-for (const [rel, body] of Object.entries(outputs)) {
+for (const [rel, raw] of Object.entries(outputs)) {
+  /* 내보내는 벌에서만 설명을 뺀다 (머리말 한 줄은 남긴다 — 이 파일을 손으로 고치려는 사람을 막아야 한다). */
+  const body = raw.slice(0, raw.indexOf('*/') + 3) + stripComments(raw.slice(raw.indexOf('*/') + 3));
   const p = path.join(root, rel);
   const old = fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : null;
   if (old !== body) changed.push(rel);
