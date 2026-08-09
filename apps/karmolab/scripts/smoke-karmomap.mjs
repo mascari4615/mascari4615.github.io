@@ -1186,6 +1186,37 @@ await step('꾸미기 규칙 — 「이 칸이 이 값이면 이 색」이 실�
   await page.waitForTimeout(400);
   await page.click('[data-km="tab"][data-key="node"]');
 });
+await step('카드를 다른 카드 위에 떨어뜨리면 이어진다', async () => {
+  // 선 도구를 따로 찾게 하면 처음 쓰는 사람은 관계를 못 만든다 — 겹쳐 놓기만 해도 이어져야 한다.
+  // ★ **새 맵에서** 한다. 앞 검사들이 깔아 둔 판에서는 두 번 클릭이 기존 카드 위에 떨어져
+  //   「새 카드」가 아니라 남의 카드 이름을 바꾸고, 그 둘이 이미 이어져 있으면 헛 실패한다.
+  await page.click('[data-km="map-new"]');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
+  const dbox = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.dblclick(dbox.x + dbox.width * 0.3, dbox.y + dbox.height * 0.15);
+  await page.waitForSelector('[data-km="edit-label"]', { timeout: 4000 });
+  await page.fill('[data-km="edit-label"]', '겹갑');
+  await page.mouse.dblclick(dbox.x + dbox.width * 0.62, dbox.y + dbox.height * 0.15);
+  await page.waitForSelector('[data-km="edit-label"]', { timeout: 4000 });
+  await page.fill('[data-km="edit-label"]', '겹을');
+  await page.waitForTimeout(300);
+
+  const boxOf = (name) => page.evaluate((n) => {
+    const g = [...document.querySelectorAll('.ck-node')].find((el) => (el.textContent || '').includes(n));
+    const r = g?.getBoundingClientRect();
+    return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2 } : null;
+  }, name);
+  const from = await boxOf('겹갑');
+  const to = await boxOf('겹을');
+  if (!from || !to) throw new Error('겹칠 카드를 못 찾았다');
+
+  const edgesBefore = await page.locator('.ck-edge').count();
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(to.x, to.y, { steps: 10 });
+  await page.mouse.up();
+  await page.waitForFunction((n) => document.querySelectorAll('.ck-edge').length > n, edgesBefore, { timeout: 4000 });
+});
 await step('본 — 한 벌을 떠서 다른 맵에 찍는다', async () => {
   // 같은 덩어리를 판마다 다시 그리면 모양도 이름도 조금씩 갈린다. 본은 **맵을 건너**야 값이 있다.
   const sbox = await page.locator('.km-canvas').boundingBox();
