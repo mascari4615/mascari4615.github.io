@@ -29,7 +29,8 @@
     "seal:i18n": "node scripts/build-i18n.mjs --seal",
     "gen:locale-pages": "node scripts/gen-locale-pages.mjs",
     "test:i18n:pages": "node scripts/audit-i18n-pages.mjs",
-    "build": "npm run build:i18n && npm run typecheck && npm run test:i18n && npm run gen:locale-pages && npm run test:i18n:pages && npm run test:i18n:source && npm run gen:changelog && npm run gen:feeds && npm run gen:llms && npm run gen:tool-md && npm run build:wiki && npm run build:worldbook && npm run build:wm-tasks && npm run test:core && node build.mjs && npm run test:md && npm run test:tools && npm run test:pulse && npm run test:tool-url && npm run test:parity && npm run test:mcp && npm run test:bundles && npm run audit:script-paths && npm run audit:vendor-globals && npm run test:names && npm run audit:cache && npm run audit:fonts && npm run audit:bg-themes && npm run audit:footer && npm run test:cotext && npm run test:apicache && npm run test:contract && npm run test:lang && npm run audit:aliases",
+    "build": "npm run build:i18n && npm run typecheck && npm run test:i18n && npm run gen:locale-pages && npm run test:i18n:pages && npm run test:i18n:source && npm run gen:changelog && npm run gen:feeds && npm run gen:llms && npm run gen:tool-md && npm run build:wiki && npm run build:worldbook && npm run build:wm-tasks && npm run test:core && node build.mjs && npm run gates",
+    "gates": "node scripts/run-gates.mjs test:md test:tools test:pulse test:tool-url test:parity test:mcp test:bundles audit:script-paths audit:vendor-globals test:names audit:cache audit:fonts audit:bg-themes audit:footer test:cotext test:apicache test:contract test:lang audit:aliases",
     "gen:fonts": "python scripts/gen-fonts.py",
     "audit:fonts": "node scripts/audit-fonts.mjs",
     "audit:bg-themes": "node scripts/audit-bg-themes.mjs",
@@ -171,7 +172,7 @@
     "test:widget-i18n": "node scripts/smoke-widget-i18n.mjs",
     "smoke:karmomap": "node scripts/smoke-karmomap.mjs",
     "test:region": "node scripts/smoke-region.mjs",
-    "verify:quality": "npm run audit:boot && npm run test:perf && npm run test:perf:budget && npm run test:leak"
+    "verify:quality": "node scripts/run-gates.mjs audit:boot test:perf test:perf:budget test:leak"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
