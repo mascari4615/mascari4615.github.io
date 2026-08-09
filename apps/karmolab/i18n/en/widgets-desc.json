@@ -195,5 +195,6 @@
   "widgets-desc.garden.desc": "A grid that grows itself from one rule a day — you just watch",
   "widgets-desc.dailytype.desc": "Three sentences a day · the same for everyone · speed and accuracy",
   "widgets-desc.dailycho.desc": "Five words from their initial consonants alone — the answers are tool names on this site",
-  "widgets-desc.charconv.desc": "Full-width ⟷ half-width, Hangul ⟷ Roman letters, Hangul ⟷ jamo in one place — mixed characters are flagged first"
+  "widgets-desc.charconv.desc": "Full-width ⟷ half-width, Hangul ⟷ Roman letters, Hangul ⟷ jamo in one place — mixed characters are flagged first",
+  "widgets-desc.comparepic.desc": "Stack two photos and slide between them — the files never leave your device"
 }

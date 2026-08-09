@@ -264,5 +264,7 @@
   "tools.dailycho.description": "You guess five words from their initial consonants alone. It changes daily, everyone gets the same puzzle, and every answer is the name of a tool on this site.",
   "tools.dailycho.lead": "Five puzzles a day · the same for everyone · the answers are tool names",
   "tools.charconv.description": "Convert between full-width and half-width, Hangul and Roman letters, and Hangul and jamo on one screen. The moment you paste, any full-width characters mixed in are pointed out.",
-  "tools.charconv.lead": "Full/half-width · Roman letters · jamo · a warning for mixed characters"
+  "tools.charconv.lead": "Full/half-width · Roman letters · jamo · a warning for mixed characters",
+  "tools.comparepic.description": "Stack two photos and drag the handle in the middle to compare before and after. You can save exactly what you see as a PNG, and the files never leave your device.",
+  "tools.comparepic.lead": "Slide between before and after · different sizes are fine · save as PNG"
 }

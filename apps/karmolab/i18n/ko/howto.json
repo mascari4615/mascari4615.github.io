@@ -482,5 +482,9 @@
   "howto.charconv.0": "바꿀 방향 고르기",
   "howto.charconv.1": "글을 붙여 넣으면 바로 바뀝니다",
   "howto.charconv.2": "전각이 섞여 있으면 위에 알림이 뜹니다",
-  "howto.charconv.3": "복사하거나 「결과를 입력으로」로 이어서 바꾸기"
+  "howto.charconv.3": "복사하거나 「결과를 입력으로」로 이어서 바꾸기",
+  "howto.comparepic.0": "왼쪽(전)과 오른쪽(후) 사진 고르기",
+  "howto.comparepic.1": "손잡이를 밀어 경계 옮기기 (화살표 키도 됩니다)",
+  "howto.comparepic.2": "크기가 다르면 큰 쪽에 맞춰 겹칩니다",
+  "howto.comparepic.3": "PNG 로 저장하면 지금 보이는 그대로 나옵니다"
 }

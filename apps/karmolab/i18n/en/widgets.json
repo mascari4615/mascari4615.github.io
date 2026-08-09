@@ -195,5 +195,6 @@
   "widgets.garden.title": "Garden",
   "widgets.dailytype.title": "Today’s Hangul typing",
   "widgets.dailycho.title": "Today’s consonant quiz",
-  "widgets.charconv.title": "Character conversion"
+  "widgets.charconv.title": "Character conversion",
+  "widgets.comparepic.title": "Comparison slider"
 }

@@ -7,6 +7,7 @@
  * - 기본 목록: favorites-defaults.ts
  */
 import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem } from './favorites-defaults';
+import { t, loadNamespace } from '../lib/i18n';
 
 (function (): void {
     const STORAGE_KEY = 'toolbox_favorites';
@@ -51,7 +52,7 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
     function getToolboxToolGroups(picked: Set<string>): FavoriteGroup[] {
         if (!picked.size) return [];
         const tools = (typeof Toolbox !== 'undefined' && Toolbox.getTools ? Toolbox.getTools() : [])
-            .filter((t) => picked.has(t.id));
+            .filter((tool) => picked.has(tool.id));
         const meta = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID) || {};
         /* 묶음 소속은 **지연 메타**에서 직접 읽는다. Toolbox.findBundleFor 는 그 묶음이 이미
          * 로드됐을 때만 답하는데, 즐겨찾기는 첫 화면이라 대부분 아직 안 로드돼 있다 —
@@ -66,38 +67,38 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
         const cats = Toolbox.getCategories?.() || [];
         const catLabel = new Map<string, string>(cats.map((c) => [c.id, c.label] as [string, string]));
         const catOrder = cats.map((c) => c.id);
-        const ETC = '그 밖에';
+        const ETC = t('favorites.t08');
 
         type Bucket = { title: string; fromBundle: boolean; catRank: number; items: FavoriteItem[] };
         const buckets = new Map<string, Bucket>();
 
         tools
-            .filter((t) => {
+            .filter((tool) => {
                 // 묶음의 탭으로 들어간 도구는 사이드바에선 숨겼지만 검색에서는 찾을 수 있어야 한다
                 // (부르면 묶음의 그 탭이 열린다).
-                if (t.hidden && !bundleOf(t.id)) return false;
+                if (tool.hidden && !bundleOf(tool.id)) return false;
                 // 데스크톱 전용 (desktopOnly 또는 legacy category=desktop) = 브라우저 hide
-                if ((t.desktopOnly === true || t.category === 'desktop') && !Toolbox.isDesktopApp?.()) return false;
-                if (isBundleParent.has(t.id)) return false;
+                if ((tool.desktopOnly === true || tool.category === 'desktop') && !Toolbox.isDesktopApp?.()) return false;
+                if (isBundleParent.has(tool.id)) return false;
                 return true;
             })
-            .forEach((t) => {
-                const b = bundleOf(t.id);
-                const key = b ? `b:${b}` : `c:${t.category || ''}`;
+            .forEach((tool) => {
+                const b = bundleOf(tool.id);
+                const key = b ? `b:${b}` : `c:${tool.category || ''}`;
                 let bucket = buckets.get(key);
                 if (!bucket) {
                     const title = b
                         ? meta[b]?.title || tools.find((x) => x.id === b)?.title || b
-                        : catLabel.get(t.category || '') || ETC;
+                        : catLabel.get(tool.category || '') || ETC;
                     bucket = {
                         title,
                         fromBundle: !!b,
-                        catRank: b ? -1 : catOrder.indexOf(t.category || ''),
+                        catRank: b ? -1 : catOrder.indexOf(tool.category || ''),
                         items: []
                     };
                     buckets.set(key, bucket);
                 }
-                bucket.items.push({ type: 'tool' as const, toolId: t.id, label: t.title || t.id, icon: t.icon || '' });
+                bucket.items.push({ type: 'tool' as const, toolId: tool.id, label: tool.title || tool.id, icon: tool.icon || '' });
             });
 
         // 순서: 주제 묶음이 먼저(큰 것부터 — 목록 페이지와 같은 규칙), 그다음 갈래, 「그 밖에」는 맨 끝.
@@ -130,23 +131,23 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
         const cats = Toolbox.getCategories?.() || [];
         const catLabel = new Map<string, string>(cats.map((c) => [c.id, c.label] as [string, string]));
         return tools
-            .filter((t) => {
-                if (t.id === 'favorites') return false;
-                if (t.hidden && !bundleOf(t.id)) return false;
-                if ((t.desktopOnly === true || t.category === 'desktop') && !Toolbox.isDesktopApp?.()) return false;
-                if (isBundleParent.has(t.id)) return false;
+            .filter((tool) => {
+                if (tool.id === 'favorites') return false;
+                if (tool.hidden && !bundleOf(tool.id)) return false;
+                if ((tool.desktopOnly === true || tool.category === 'desktop') && !Toolbox.isDesktopApp?.()) return false;
+                if (isBundleParent.has(tool.id)) return false;
                 return true;
             })
-            .map((t) => {
-                const b = bundleOf(t.id);
+            .map((tool) => {
+                const b = bundleOf(tool.id);
                 return {
-                    id: t.id,
-                    title: t.title || t.id,
-                    icon: t.icon || '',
-                    desc: String(Toolbox.getToolMeta?.(t.id)?.desc || ''),
+                    id: tool.id,
+                    title: tool.title || tool.id,
+                    icon: tool.icon || '',
+                    desc: String(Toolbox.getToolMeta?.(tool.id)?.desc || ''),
                     group: b
                         ? meta[b]?.title || b
-                        : catLabel.get(t.category || '') || '그 밖에'
+                        : catLabel.get(tool.category || '') || '그 밖에'
                 };
             })
             .sort((a, b) => a.group.localeCompare(b.group, 'ko') || a.title.localeCompare(b.title, 'ko'));
@@ -303,7 +304,7 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
     `);
 
     function buildFavorites(container: HTMLElement): void {
-        Mdd.linePreset('home_hub', { msg: '자주 가는 곳을 모아뒀어요~ 클릭해서 가봐요!' });
+        Mdd.linePreset('home_hub', { msg: t('favorites.t09') });
 
         /* 도구를 담고 빼면 화면을 통째로 다시 그린다 — 그리면 열려 있던 창이 같이 사라지므로,
          * 「어느 갈래를 보고 있었나 · 뭘 치고 있었나」를 여기 적어 뒀다가 그린 뒤 되돌린다. */
@@ -314,18 +315,18 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
             const picked = loadPickedTools();
             const q = query.trim().toLowerCase();
             const rows = listPickableTools().filter(
-                (t) => !q || (t.title + ' ' + t.group + ' ' + t.desc + ' ' + t.id).toLowerCase().includes(q)
+                (tool) => !q || (tool.title + ' ' + tool.group + ' ' + tool.desc + ' ' + tool.id).toLowerCase().includes(q)
             );
-            if (!rows.length) return `<div class="fav-tool-empty">찾는 도구가 없어요</div>`;
+            if (!rows.length) return `<div class="fav-tool-empty">${esc(t('favorites.t04'))}</div>`;
             return rows
-                .map((t) => {
-                    const on = picked.has(t.id);
+                .map((tool) => {
+                    const on = picked.has(tool.id);
                     return `
-                    <button type="button" class="fav-tool-row ${on ? 'on' : ''}" data-pick="${esc(t.id)}">
-                        <span class="fav-tool-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${t.icon}</svg></span>
+                    <button type="button" class="fav-tool-row ${on ? 'on' : ''}" data-pick="${esc(tool.id)}">
+                        <span class="fav-tool-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${tool.icon}</svg></span>
                         <span class="fav-tool-text">
-                            <span class="fav-tool-name">${esc(t.title)}</span>
-                            <span class="fav-tool-group">${esc(t.group)}</span>
+                            <span class="fav-tool-name">${esc(tool.title)}</span>
+                            <span class="fav-tool-group">${esc(tool.group)}</span>
                         </span>
                         <span class="fav-tool-mark">${on ? '✓' : '+'}</span>
                     </button>`;
@@ -349,13 +350,13 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                     <div class="fav-top-row">
                         <div class="landing-search-wrap">
                             <svg class="landing-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                            <input type="text" class="landing-search" placeholder="도구·사이트 검색..." id="favSearch" autocomplete="off">
+                            <input type="text" class="landing-search" placeholder="${esc(t('favorites.t01'))}" id="favSearch" autocomplete="off">
                         </div>
                         <div class="fav-view-toggle-wrap">
-                            <button type="button" class="fav-add-btn" id="fav-add-open" title="추가하기">
+                            <button type="button" class="fav-add-btn" id="fav-add-open" title="${esc(t('favorites.title.favaddopen'))}">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                             </button>
-                            <button type="button" class="fav-view-toggle-btn ${isCard ? 'active' : ''}" data-view="${isCard ? 'card' : 'icon'}" title="${isCard ? '작게 보기' : '크게 보기'}">
+                            <button type="button" class="fav-view-toggle-btn ${isCard ? 'active' : ''}" data-view="${isCard ? 'card' : 'icon'}" title="${isCard ? t('favorites.t10') : t('favorites.t11')}">
                                 <svg class="fav-view-icon fav-view-icon-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
                                 <svg class="fav-view-icon fav-view-icon-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="7" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/></svg>
                             </button>
@@ -370,9 +371,9 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                                     const metaDesc = (it.toolId && Toolbox.getToolMeta?.(it.toolId)?.desc) || '';
                                     const searchable = [it.label, g.group, it.url || '', it.toolId || '', metaDesc].join(' ').toLowerCase();
                                     const removeBtn = isTool
-                                        ? `<button type="button" class="fav-remove" data-tool="${esc(it.toolId || '')}" title="빼기">×</button>`
+                                        ? `<button type="button" class="fav-remove" data-tool="${esc(it.toolId || '')}" title="${esc(t('favorites.t02'))}">×</button>`
                                         : it.isCustom && it.url
-                                        ? `<button type="button" class="fav-remove" data-group="${esc(g.group)}" data-url="${esc(it.url)}" title="삭제">×</button>`
+                                        ? `<button type="button" class="fav-remove" data-group="${esc(g.group)}" data-url="${esc(it.url)}" title="${esc(t('favorites.t03'))}">×</button>`
                                         : '';
                                     const iconHtml = isTool
                                         ? `<div class="fav-icon fav-icon-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${it.icon || ''}</svg></div>`
@@ -399,13 +400,13 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
 
                 <div class="fav-add-modal-backdrop" id="fav-add-modal">
                     <div class="fav-add-modal" onclick="event.stopPropagation()">
-                        <h3>즐겨찾기 추가</h3>
+                        <h3>${esc(t('favorites.t05'))}</h3>
                         <div class="fav-add-kind">
-                            <button type="button" class="fav-kind-btn ${openKind === 'site' ? 'active' : ''}" data-kind="site">사이트</button>
-                            <button type="button" class="fav-kind-btn ${openKind === 'tool' ? 'active' : ''}" data-kind="tool">도구</button>
+                            <button type="button" class="fav-kind-btn ${openKind === 'site' ? 'active' : ''}" data-kind="site">${esc(t('favorites.t06'))}</button>
+                            <button type="button" class="fav-kind-btn ${openKind === 'tool' ? 'active' : ''}" data-kind="tool">${esc(t('favorites.t07'))}</button>
                         </div>
                         <div class="fav-add-pane" data-pane="tool" ${openKind === 'tool' ? '' : 'hidden'}>
-                            <input type="text" class="input fav-tool-search" id="fav-tool-search" placeholder="도구 이름 검색..." autocomplete="off" value="${esc(openQuery)}">
+                            <input type="text" class="input fav-tool-search" id="fav-tool-search" placeholder="${esc(t('favorites.ph.favtoolsearch'))}" autocomplete="off" value="${esc(openQuery)}">
                             <div class="fav-tool-list" id="fav-tool-list">${renderToolPicker(openQuery)}</div>
                         </div>
                         <div class="fav-add-form" data-pane="site" ${openKind === 'site' ? '' : 'hidden'}>
@@ -414,29 +415,29 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                                 <input type="url" id="fav-url" placeholder="https://example.com" class="input">
                             </div>
                             <div class="form-group">
-                                <label for="fav-label">이름 (선택)</label>
-                                <input type="text" id="fav-label" placeholder="사이트 이름" class="input">
+                                <label for="fav-label">${esc(t('favorites.label.favlabel'))}</label>
+                                <input type="text" id="fav-label" placeholder="${esc(t('favorites.ph.favlabel'))}" class="input">
                             </div>
                             <div class="form-group">
-                                <label for="fav-icon">아이콘 URL (선택)</label>
+                                <label for="fav-icon">${esc(t('favorites.label.favicon'))}</label>
                                 <input type="url" id="fav-icon" placeholder="https://example.com/favicon.ico" class="input">
                             </div>
                             <div class="form-group">
-                                <label for="fav-group">그룹</label>
+                                <label for="fav-group">${esc(t('favorites.label.favgroup'))}</label>
                                 <select id="fav-group" class="input">
-                                    <option value="개발">개발</option>
-                                    <option value="채용·커리어">채용·커리어</option>
-                                    <option value="메이플">메이플</option>
-                                    <option value="검색·AI">검색·AI</option>
-                                    <option value="AI 아트">AI 아트</option>
-                                    <option value="소셜·미디어">소셜·미디어</option>
-                                    <option value="서로이웃">서로이웃</option>
-                                    <option value="짝이웃">짝이웃</option>
-                                    <option value="도구">도구</option>
-                                    <option value="기타">기타</option>
+                                    <option value="개발">${esc(t('favorites.opt.null'))}</option>
+                                    <option value="채용·커리어">${esc(t('favorites.opt.null2'))}</option>
+                                    <option value="메이플">${esc(t('favorites.opt.null3'))}</option>
+                                    <option value="검색·AI">${esc(t('favorites.opt.aI'))}</option>
+                                    <option value="AI 아트">${esc(t('favorites.opt.aI2'))}</option>
+                                    <option value="소셜·미디어">${esc(t('favorites.opt.null4'))}</option>
+                                    <option value="서로이웃">${esc(t('favorites.opt.null5'))}</option>
+                                    <option value="짝이웃">${esc(t('favorites.opt.null6'))}</option>
+                                    <option value="도구">${esc(t('favorites.t07'))}</option>
+                                    <option value="기타">${esc(t('favorites.opt.null7'))}</option>
                                 </select>
                             </div>
-                            <button type="button" class="btn btn-primary" id="fav-add-btn">추가</button>
+                            <button type="button" class="btn btn-primary" id="fav-add-btn">${esc(t('favorites.btn.favaddbtn'))}</button>
                         </div>
                     </div>
                 </div>`;
@@ -474,7 +475,7 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                         if (picked.has(id)) picked.delete(id);
                         else picked.add(id);
                         savePickedTools(picked);
-                        Toolbox.showToast?.(picked.has(id) ? '담았어요' : '뺐어요');
+                        Toolbox.showToast?.(picked.has(id) ? t('favorites.t12') : t('favorites.t13'));
                         pendingOpen = { kind: 'tool', q: toolSearch?.value ?? '' };
                         render();
                     };
@@ -505,7 +506,7 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                 if (!urlInput || !labelInput || !groupSelect) return;
                 const url = (urlInput.value || '').trim();
                 if (!url) {
-                    Toolbox.showToast?.('URL을 입력해주세요', 'error');
+                    Toolbox.showToast?.(t('favorites.t14'), 'error');
                     return;
                 }
                 let label = (labelInput.value || '').trim();
@@ -530,7 +531,7 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                 labelInput.value = '';
                 if (iconInput) iconInput.value = '';
                 modal?.classList.remove('open');
-                Toolbox.showToast?.('추가되었습니다');
+                Toolbox.showToast?.(t('favorites.t15'));
                 render();
             };
 
@@ -543,7 +544,7 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                         const picked = loadPickedTools();
                         picked.delete(toolId);
                         savePickedTools(picked);
-                        Toolbox.showToast?.('뺐어요');
+                        Toolbox.showToast?.(t('favorites.t13'));
                         render();
                         return;
                     }
@@ -555,7 +556,7 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                         g.items = g.items.filter((it) => it.url !== url);
                         if (!g.items.length) data.splice(data.indexOf(g), 1);
                         saveFavorites(data);
-                        Toolbox.showToast?.('삭제되었습니다');
+                        Toolbox.showToast?.(t('favorites.t16'));
                         render();
                     }
                 };
@@ -592,7 +593,7 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                     const next: 'icon' | 'card' = current === 'card' ? 'icon' : 'card';
                     setViewMode(next);
                     viewToggleBtn.dataset.view = next;
-                    viewToggleBtn.title = next === 'card' ? '작게 보기' : '크게 보기';
+                    viewToggleBtn.title = next === 'card' ? t('favorites.t10') : t('favorites.t11');
                     viewToggleBtn.classList.toggle('active', next === 'card');
                     container.querySelectorAll<HTMLElement>('.fav-grid').forEach((grid) => {
                         grid.classList.toggle('fav-grid-card', next === 'card');
@@ -607,6 +608,17 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
     /* 메타는 `widgets-lazy-meta.ts` 한 곳에 산다 — 두 곳에 적으면 목록 이름과 화면 이름이 갈라진다. */
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta('favorites'),
-        tabs: [{ id: 'fav-main', label: '즐겨찾기', build: buildFavorites }]
+        tabs: [
+            {
+                id: 'fav-main',
+                label: t('favorites.tab.main', undefined, '즐겨찾기'),
+                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('favorites').then(function () {
+                        buildFavorites(container);
+                    });
+                }
+            }
+        ]
     });
 })();

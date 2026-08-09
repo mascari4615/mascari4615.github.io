@@ -264,5 +264,7 @@
   "tools.dailycho.description": "頭子音だけを見て単語5つを当てます。毎日変わり、全員が同じ問題を受け取り、答えはすべてこのサイトにあるツールの名前です。",
   "tools.dailycho.lead": "毎日5問 · 全員同じ問題 · 答えはツール名",
   "tools.charconv.description": "全角と半角、ハングルとローマ字、ハングルと字母を一画面で変換します。貼り付けた瞬間に全角が混ざっていれば先に知らせます。",
-  "tools.charconv.lead": "全角・半角 · ローマ字 · 字母 · 混在の警告"
+  "tools.charconv.lead": "全角・半角 · ローマ字 · 字母 · 混在の警告",
+  "tools.comparepic.description": "写真2枚を重ねて、真ん中のつまみを動かして前後を比べます。見えているそのままを PNG で保存でき、ファイルは端末の外へ出ません。",
+  "tools.comparepic.lead": "前後を重ねて動かす · サイズが違っても可 · PNG 保存"
 }

@@ -482,5 +482,9 @@
   "howto.charconv.0": "変換する向きを選ぶ",
   "howto.charconv.1": "文を貼り付けるとすぐ変換されます",
   "howto.charconv.2": "全角が混ざっていると上に知らせが出ます",
-  "howto.charconv.3": "コピーするか、「結果を入力へ」で続けて変換"
+  "howto.charconv.3": "コピーするか、「結果を入力へ」で続けて変換",
+  "howto.comparepic.0": "左(前)と右(後)の写真を選ぶ",
+  "howto.comparepic.1": "つまみを動かして境目を移す (矢印キーでも動きます)",
+  "howto.comparepic.2": "サイズが違うときは大きい方に合わせて重ねます",
+  "howto.comparepic.3": "PNG で保存すると、いま見えているそのままが出ます"
 }

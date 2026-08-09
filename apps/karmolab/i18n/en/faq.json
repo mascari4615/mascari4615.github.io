@@ -956,5 +956,13 @@
   "faq.charconv.2.q": "Why is there no simplified/traditional Chinese?",
   "faq.charconv.2.a": "That needs a table, not a rule. A hand-written table goes stale and leaks, so it goes in when a proper data source can be brought in.",
   "faq.charconv.3.q": "What is splitting into jamo good for?",
-  "faq.charconv.3.a": "Building an initial-consonant search index, or looking at why text got mangled. What you split can be joined back too."
+  "faq.charconv.3.a": "Building an initial-consonant search index, or looking at why text got mangled. What you split can be joined back too.",
+  "faq.comparepic.0.q": "Do the photos go up to a server?",
+  "faq.comparepic.0.a": "No. They are drawn in the browser and saved from here as well. You can cut the internet off.",
+  "faq.comparepic.1.q": "What if the two are different sizes?",
+  "faq.comparepic.1.a": "They are stacked to fit the larger one. Stretching the smaller one blurs it, but cropping to match would remove the very part you wanted to compare — which is exactly the case when you look at an upscale before and after.",
+  "faq.comparepic.2.q": "Does it work on a phone?",
+  "faq.comparepic.2.a": "Yes. You can drag with a finger, and with a keyboard the arrow keys move it too.",
+  "faq.comparepic.3.q": "What is it for?",
+  "faq.comparepic.3.a": "For showing how much changed — retouching before and after, an upscale before and after, a background removed and not."
 }
