@@ -474,5 +474,9 @@
   "howto.dailytype.0": "文を見て、下の欄にそのまま打つ",
   "howto.dailytype.1": "最初の文字を打った瞬間から時間が動きます",
   "howto.dailytype.2": "「打ち終えました」を押すと打鍵/分と正確さが出ます",
-  "howto.dailytype.3": "結果をコピー — 文は入らず、格子だけが入ります"
+  "howto.dailytype.3": "結果をコピー — 文は入らず、格子だけが入ります",
+  "howto.dailycho.0": "頭子音と文字数を見て単語を書く",
+  "howto.dailycho.1": "Enter で次の枠へ、最後の枠で Enter を押すと採点",
+  "howto.dailycho.2": "当たった枠はどのツールかを教えてくれます",
+  "howto.dailycho.3": "結果をコピー — 答えは入らず、格子だけが入ります"
 }

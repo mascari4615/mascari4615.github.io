@@ -940,5 +940,13 @@
   "faq.dailytype.2.q": "Where do the sentences come from?",
   "faq.dailytype.2.a": "They are taken from this site’s own tool descriptions. They are not hand-written samples, so they never go stale — and while typing you also learn what tools exist here.",
   "faq.dailytype.3.q": "Is it only once a day?",
-  "faq.dailytype.3.a": "No. Today’s record is kept, but practice stays open. Blocking it would remove the reason to come back as well."
+  "faq.dailytype.3.a": "No. Today’s record is kept, but practice stays open. Blocking it would remove the reason to come back as well.",
+  "faq.dailycho.0.q": "Why are the answers tool names?",
+  "faq.dailycho.0.a": "Bundling a dictionary makes it heavy, and hand-written word lists go stale. These come from the tool aliases this site already has, so the puzzles grow as the tools do — and while guessing you learn what is here.",
+  "faq.dailycho.1.q": "What if only one letter is wrong?",
+  "faq.dailycho.1.a": "It shows as a yellow box. In a consonant quiz you often land on a different word with the same consonants, and painting all of those the same colour as a plain miss hides the fact that you are getting better.",
+  "faq.dailycho.2.q": "When does the day change?",
+  "faq.dailycho.2.a": "Midnight in Korean time. It is fixed regardless of your device’s time zone, so wherever you open it the same day gives the same puzzle.",
+  "faq.dailycho.3.q": "Does sharing the result leak the answers?",
+  "faq.dailycho.3.a": "No. Only the coloured grid and how many you got. None of the answer letters go in."
 }

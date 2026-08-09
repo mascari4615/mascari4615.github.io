@@ -474,5 +474,9 @@
   "howto.dailytype.0": "문장을 보고 아래 칸에 그대로 치기",
   "howto.dailytype.1": "첫 글자를 치는 순간부터 시간이 갑니다",
   "howto.dailytype.2": "「다 쳤어요」를 누르면 타/분과 정확도가 나옵니다",
-  "howto.dailytype.3": "결과 복사 — 문장은 안 담기고 격자만 담깁니다"
+  "howto.dailytype.3": "결과 복사 — 문장은 안 담기고 격자만 담깁니다",
+  "howto.dailycho.0": "초성과 글자 수를 보고 낱말 적기",
+  "howto.dailycho.1": "엔터로 다음 칸, 마지막 칸에서 엔터면 채점",
+  "howto.dailycho.2": "맞힌 칸은 어떤 도구인지 알려 줍니다",
+  "howto.dailycho.3": "결과 복사 — 정답은 안 담기고 격자만 담깁니다"
 }

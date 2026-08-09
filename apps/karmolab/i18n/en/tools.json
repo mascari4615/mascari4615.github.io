@@ -260,5 +260,7 @@
   "tools.chain.description": "Runs several tools one after another. Each step’s result becomes the next step’s input, so there is no copying intermediate values by hand.",
   "tools.chain.lead": "Each result feeds the next · every step visible · up to 8 steps",
   "tools.dailytype.description": "You type three Korean sentences that change every day. Everyone gets the same ones, and the result is shared as a grid that carries none of the text.",
-  "tools.dailytype.lead": "Three sentences a day · the same for everyone · keystrokes and accuracy"
+  "tools.dailytype.lead": "Three sentences a day · the same for everyone · keystrokes and accuracy",
+  "tools.dailycho.description": "You guess five words from their initial consonants alone. It changes daily, everyone gets the same puzzle, and every answer is the name of a tool on this site.",
+  "tools.dailycho.lead": "Five puzzles a day · the same for everyone · the answers are tool names"
 }
