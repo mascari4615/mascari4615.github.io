@@ -22,6 +22,7 @@ import { quakes, quakesOn, aurora, kpIndex, iss, launches, issOmm, catalog, sola
 import { paintSurface, type Tex, type Region, type View as SurfaceView } from './surface';
 import { loadTex, loadClouds, loadCloudsOn } from './textures';
 import { paleoTex } from './paleo';
+import { sendRoomOp, onRoomOp } from '../../copresence';
 import { loadRegion, levelFor, fitLevel, regionKey, type BBox } from './tiles';
 import { elementsFrom, propagate, propagateAll, nextPass, EARTH_RADIUS_KM, type Elements, type Pass } from './orbit';
 import { fromTimezone, askPrecise, type Me } from './me';
@@ -41,7 +42,7 @@ import { EarthSound } from './sound';
     return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/data/' + name;
   }
 
-  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'sun' | 'clock' | 'apod' | 'tour' | 'dusk' | 'deep';
+  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'sun' | 'clock' | 'apod' | 'tour' | 'dusk' | 'deep' | 'together';
   /** `earthOnly` = 지구에서만 뜻이 있는 겹. 달·화성에선 단추 자체를 감춘다 —
       눌러도 아무 일이 없는 단추가 남아 있으면 그건 고장으로 보인다. */
   const LAYERS: Array<{ id: LayerId; glyph: string; earthOnly?: boolean }> = [
@@ -54,6 +55,7 @@ import { EarthSound } from './sound';
     { id: 'tour', earthOnly: true, glyph: '▶' },
     { id: 'dusk', earthOnly: true, glyph: '◐' },
     { id: 'deep', earthOnly: true, glyph: '⛰' },
+    { id: 'together', earthOnly: true, glyph: '◎' },
     { id: 'zoom', earthOnly: true, glyph: '⊕' },
     { id: 'cloud', earthOnly: true, glyph: '☁' },
     { id: 'city', earthOnly: true, glyph: '✦' },
@@ -71,7 +73,7 @@ import { EarthSound } from './sound';
     panel: boolean;
   }
   function loadPrefs(): Prefs {
-    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, sun: true, clock: true, apod: true, tour: false, dusk: false, deep: false }, spin: true, panel: false };
+    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, sun: true, clock: true, apod: true, tour: false, dusk: false, deep: false, together: true }, spin: true, panel: false };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return base;
@@ -298,6 +300,18 @@ import { EarthSound } from './sound';
           const DEEP_AGES = [0, 60, 120, 180, 240, 300];
           let deepIdx = 0;
           let deepTex: Tex | null = null;
+
+          /* 같이 보는 사람들 — 지금 이 화면을 열어 둔 다른 사람이 지구 **어디를** 보고 있나.
+             좌표만 흐르고 아무것도 남지 않는다(서버는 흘려보내기만 한다). */
+          interface Watcher2 {
+            lat: number;
+            lon: number;
+            zoom: number;
+            at: number;
+          }
+          const others = new Map<string, Watcher2>();
+          let sentAt = 0;
+          let offRoomOp: (() => void) | null = null;
           /* 어느 곳을 보고 있나. 그리기 장치는 그대로고 **그림만 갈아 끼운다**. */
           type Body = 'earth' | 'moon' | 'mars';
           let body: Body = 'earth';
@@ -661,6 +675,7 @@ import { EarthSound } from './sound';
             /* ISS 는 지구 밖(궤도 위)이라 자르기 밖에서 그린다 */
             if (live && prefs.on.iss && !isPast()) drawIss();
             if (live && prefs.on.sats && !isPast()) drawSats(now);
+            if (live) drawOthers(now);
             if (live && prefs.on.clock) drawClockRing(sun);
 
             /* 해가 바로 위인 자리에 옅은 빛무리 */
@@ -1123,6 +1138,43 @@ import { EarthSound } from './sound';
               line.textContent = lines[lineIdx];
               line.classList.add('bm-show');
             }, 420);
+          }
+
+          /* ── 같이 보기 ────────────────────────────────────────────────── */
+
+          /** 내가 보고 있는 자리를 알린다. 2초에 한 번이면 충분하다 — 지구는 천천히 돈다. */
+          function shareView(now: number): void {
+            if (!prefs.on.together || body !== 'earth' || now - sentAt < 2000) return;
+            sentAt = now;
+            sendRoomOp({ k: 'bm', lat: +camLat.toFixed(2), lon: +camLon.toFixed(2), z: +zoom.toFixed(2) });
+          }
+
+          /** 남이 보고 있는 자리 — 옅은 고리로. 4초 넘게 소식이 없으면 지운다(나간 것이다). */
+          function drawOthers(now: number): void {
+            if (!prefs.on.together || !others.size) return;
+            const c = ctx!;
+            c.save();
+            for (const [id, w] of others) {
+              if (now - w.at > 8000) {
+                others.delete(id);
+                continue;
+              }
+              const v = toVec(w.lat, w.lon);
+              if (dot(v, ez) <= 0.02) continue;
+              const p = project(w.lat, w.lon);
+              const fade = Math.max(0, 1 - (now - w.at) / 8000);
+              const r = 7 * markerScale();
+              c.strokeStyle = `rgba(190,255,220,${0.25 + fade * 0.35})`;
+              c.lineWidth = 1.2;
+              c.beginPath();
+              c.arc(p.x, p.y, r, 0, Math.PI * 2);
+              c.stroke();
+              c.beginPath();
+              c.arc(p.x, p.y, r * 0.35, 0, Math.PI * 2);
+              c.fillStyle = `rgba(210,255,235,${0.3 + fade * 0.4})`;
+              c.fill();
+            }
+            c.restore();
           }
 
           /* ── 아주 먼 과거 ─────────────────────────────────────────────── */
@@ -1718,6 +1770,7 @@ import { EarthSound } from './sound';
             stepFly(now);
             stepTour(now);
             stepDusk(now);
+            shareView(now);
             if (!fly && !prefs.on.tour && !prefs.on.dusk && spin && !drag && zoom < 2.2 && now - idleAt > 4000) {
               camLon += dt * 0.0035;
             }
@@ -1806,6 +1859,12 @@ import { EarthSound } from './sound';
             line.classList.add('bm-show');
           })();
 
+          offRoomOp = onRoomOp((op, from) => {
+            const o = op as { k?: string; lat?: number; lon?: number; z?: number } | null;
+            if (!o || o.k !== 'bm' || typeof o.lat !== 'number' || typeof o.lon !== 'number') return;
+            others.set(from || 'anon', { lat: o.lat, lon: o.lon, zoom: o.z ?? 1, at: performance.now() });
+          });
+
           const ro = new ResizeObserver(() => resize());
           ro.observe(wrap);
 
@@ -1822,6 +1881,7 @@ import { EarthSound } from './sound';
 
           Toolbox.onDispose?.(() => {
             alive = false;
+            offRoomOp?.();
             sound.stop();
             document.removeEventListener('fullscreenchange', onFsChange);
             exitAmbient();
