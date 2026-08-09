@@ -889,6 +889,11 @@ eq(wc.isZone('Asia/없는곳'), false, '없는 시간대');
 const inst = wc.wallToInstant('2026-08-09T14:00', 'Asia/Seoul');
 eq(wc.wallOf(inst, 'Asia/Seoul'), '2026-08-09 14:00', '서울 벽시계 왕복');
 eq(wc.wallOf(inst, 'UTC'), '2026-08-09 05:00', '같은 순간의 UTC');
+/* 자정은 **00:00** 이어야 한다. `hour12:false` 만 주면 24:00 을 내는 ICU 판이 있어
+   CI(리눅스)에서만 「2026-01-09 24:00」이 나와 빨개졌다 — 로컬에선 재현이 안 됐다.
+   hourCycle 을 못 박았고, 여기서 잠근다. */
+eq(wc.wallOf(new Date(Date.UTC(2026, 0, 9, 5, 0)), 'America/New_York'), '2026-01-09 00:00', '자정은 00:00 (24:00 아님)');
+eq(wc.wallOf(new Date(Date.UTC(2026, 0, 8, 15, 0)), 'Asia/Seoul'), '2026-01-09 00:00', '서울 자정도 00:00');
 
 /* 이 셋은 **실패해도 이유를 안 말했다** — CI 에서만 「run convert (겨울 = 14시간 차)」 한 줄이
    뜨고, 로컬에서는 KST·UTC 어느 쪽으로도 재현이 안 됐다(2026-08-09). 그래서 며칠 동안
