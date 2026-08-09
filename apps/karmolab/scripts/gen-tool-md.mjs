@@ -38,7 +38,10 @@ const ids = Object.keys(seo);
 /**
  * 도구 이름의 단일 정본 = 위젯 매니페스트의 `title` (`gen-tool-pages.mjs` 와 같은 자리를 본다).
  * 여기서 따로 이름을 지으면 HTML 쪽 제목과 갈라진다.
- * 빌드 산출물이라 없을 수도 있다 — 그때는 id 로 두고 넘어간다(찍는 것 자체가 막히면 더 나쁘다).
+ * ★ 이건 **빌드 산출물**이라 순서가 틀리면 통째로 비어 있다 (2026-08-09 라이브에서 발각).
+ * 그때는 129장 제목이 전부 \`# vat\` 처럼 **도구 id 로** 나간다 — 로그는 「129장 생성」 성공이고,
+ * 내 컴퓨터에는 지난 빌드의 파일이 남아 있어 제대로 보인다. 새 체크아웃(CI)에서만 틀린다.
+ * 그래서 ①빌드 사슬에서 \`node build.mjs\` **뒤로** 옮겼고 ②없으면 아래에서 **소리 내어 센다.**
  */
 const titleById = (() => {
   const p = path.join(root, 'js/widgets-lazy-meta.js');
@@ -66,6 +69,12 @@ if (fs.existsSync(coreDir)) {
 }
 
 fs.mkdirSync(outDir, { recursive: true });
+
+if (Object.keys(titleById).length === 0) {
+  console.error('[gen-tool-md] 위젯 매니페스트(js/widgets-lazy-meta.js)가 없다 — 제목이 전부 도구 id 로 나간다.');
+  console.error('  `node build.mjs` 를 먼저 돌려라 (빌드 사슬에서는 그 순서다).');
+  process.exit(1);
+}
 
 let n = 0;
 for (const id of ids) {
