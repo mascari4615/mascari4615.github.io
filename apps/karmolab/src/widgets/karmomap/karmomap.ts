@@ -21,6 +21,7 @@ import { emptyGraphSpec } from '../../lib/graph/spec';
 import { KarmoMapLocalStorageAdapter } from './local-storage-adapter';
 import { loadTerms, saveTerms, newTermId, type MyTerms } from './terms';
 import { parseOutline, layoutTree } from './from-text';
+import { sampleFor } from './samples';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -128,6 +129,7 @@ import {
     .km-check input { width:auto; }
     .km-swatch { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
     .km-side input[type=range] { width:100%; }
+    .km-empty [data-km="sample"] { pointer-events:auto; }
     .km-empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
       color:var(--text-tertiary); font-size:var(--font-size-sm); text-align:center; pointer-events:none;
       padding:24px; line-height:1.7; }
@@ -458,9 +460,21 @@ import {
       // 팩을 바꾸면 안내 문구도 바뀌어야 하므로 매번 다시 쓴다.
       const el = (existing as HTMLElement | null) ?? document.createElement('div');
       el.className = 'km-empty';
+      const sample = sampleFor(pack.id);
       el.innerHTML =
         `${escapeHtml(pack.hint)}<br><b>빈 곳을 두 번 클릭</b>하면 그 자리에 노드가 생깁니다.<br>` +
-        '노드 오른쪽의 <b>점을 끌어다</b> 다른 노드에 놓으면 선이 이어져요.';
+        '노드 오른쪽의 <b>점을 끌어다</b> 다른 노드에 놓으면 선이 이어져요.' +
+        (sample
+          ? `<br><br><button class="btn btn-primary" data-km="sample">「${escapeHtml(sample.title)}」 예시 넣어 보기</button>`
+          : '');
+      // 안내는 클릭을 통과시키지만(pointer-events:none) 버튼만은 눌려야 한다.
+      el.querySelector('[data-km="sample"]')?.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const s0 = sampleFor(pack.id);
+        if (!s0) return;
+        buildFromOutline(s0.outline, nodeKindsNow()[0].id);
+        Toolbox.showToast?.('예시를 넣었습니다 — 마음껏 고치세요', undefined, undefined);
+      });
       if (!existing) canvasEl.appendChild(el);
     }
 
@@ -980,50 +994,14 @@ import {
       (sideEl.querySelector('[data-km="text-go"]') as HTMLButtonElement).onclick = () => {
         const src = (sideEl.querySelector('[data-km="text-src"]') as HTMLTextAreaElement).value;
         const kind = (sideEl.querySelector('[data-km="text-kind"]') as HTMLSelectElement).value || nodeKindsNow()[0].id;
-        const parsed = parseOutline(src);
-        if (parsed.length === 0) {
+        const made = buildFromOutline(src, kind);
+        if (made === 0) {
           Toolbox.showToast?.('읽을 줄이 없습니다', undefined, undefined);
           return;
         }
-        const center = canvas?.viewCenterWorld() ?? { x: 0, y: 0 };
-        const pos = layoutTree(parsed, {
-          colW: 240, rowH: 70,
-          originX: Math.round(center.x - 240),
-          originY: Math.round(center.y - (parsed.length * 70) / 4),
-        });
-
-        const takenN = new Set(spec.nodes.map((n) => n.id));
-        const idMap = new Map<string, string>();
-        for (const p of parsed) {
-          const id = nextId('node', takenN);
-          takenN.add(id);
-          idMap.set(p.id, id);
-          const at = pos.get(p.id) ?? { x: center.x, y: center.y };
-          const node: GraphNode = {
-            id, kind, label: p.label, group: '',
-            x: Math.round(at.x), y: Math.round(at.y),
-            w: widthFor(p.label), h: NODE_H, ports: [],
-          };
-          resize(node);
-          spec.nodes.push(node);
-        }
-        const takenE = new Set(spec.edges.map((e) => e.id));
-        const edgeKind = edgeKindsNow()[0].id;
-        for (const p of parsed) {
-          if (!p.parent) continue;
-          const from = idMap.get(p.parent);
-          const to = idMap.get(p.id);
-          if (!from || !to) continue;
-          const id = nextId('edge', takenE);
-          takenE.add(id);
-          spec.edges.push({ id, from, to, kind: edgeKind, label: p.edgeLabel ?? edgeLabel(edgeKind) });
-        }
-        applySpec();
-        persistStructure();
-        canvas?.fitView();
         sideMode = 'node';
         renderSide();
-        Toolbox.showToast?.(`${parsed.length}개를 만들었습니다`, undefined, undefined);
+        Toolbox.showToast?.(`${made}개를 만들었습니다`, undefined, undefined);
       };
     }
 
@@ -1129,6 +1107,51 @@ import {
         canvas?.setFocus(new Set(top));
         canvas?.fitToNodes(top, 160);
       };
+    }
+
+    /**
+     * 글 한 덩이 → 노드·선. 「글로 만들기」와 「예시 넣어 보기」가 같은 길을 쓴다 —
+     * 견본을 코드로 따로 만들면 문법이 갈라져 둘 중 하나가 곧 낡는다.
+     */
+    function buildFromOutline(src: string, kind: string): number {
+      const parsed = parseOutline(src);
+      if (parsed.length === 0) return 0;
+      const center = canvas?.viewCenterWorld() ?? { x: 0, y: 0 };
+      const pos = layoutTree(parsed, {
+        colW: 240, rowH: 70,
+        originX: Math.round(center.x - 240),
+        originY: Math.round(center.y - (parsed.length * 70) / 4),
+      });
+      const takenN = new Set(spec.nodes.map((n) => n.id));
+      const idMap = new Map<string, string>();
+      for (const p of parsed) {
+        const id = nextId('node', takenN);
+        takenN.add(id);
+        idMap.set(p.id, id);
+        const at = pos.get(p.id) ?? { x: center.x, y: center.y };
+        const node: GraphNode = {
+          id, kind, label: p.label, group: '',
+          x: Math.round(at.x), y: Math.round(at.y),
+          w: widthFor(p.label), h: NODE_H, ports: [],
+        };
+        resize(node);
+        spec.nodes.push(node);
+      }
+      const takenE = new Set(spec.edges.map((e) => e.id));
+      const edgeKind = edgeKindsNow()[0].id;
+      for (const p of parsed) {
+        if (!p.parent) continue;
+        const from = idMap.get(p.parent);
+        const to = idMap.get(p.id);
+        if (!from || !to) continue;
+        const id = nextId('edge', takenE);
+        takenE.add(id);
+        spec.edges.push({ id, from, to, kind: edgeKind, label: p.edgeLabel ?? edgeLabel(edgeKind) });
+      }
+      applySpec();
+      persistStructure();
+      canvas?.fitView();
+      return parsed.length;
     }
 
     // ── 선택 패널 ───────────────────────────────────────────────────────────
