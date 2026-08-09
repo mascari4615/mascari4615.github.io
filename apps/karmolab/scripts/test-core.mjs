@@ -1083,6 +1083,61 @@ eq(uc.convert(1, 'ms', 'sec'), 0.001, 'ms 는 모호하지만 sec 로 time 을 �
 // 환율은 **일부러 없다** — 실시간 값이라 알맹이가 가질 수 없다.
 check('currency' in uc.FACTORS === false, '환율을 고정값으로 들고 있으면 안 된다');
 
+// ── ②-23 wordfreq 알맹이 (조사를 안 떼면 상위가 같은 말로 채워진다) ───────────
+const wf = await load('src/core/wordfreq.ts');
+
+eq(wf.spec.id, 'wordfreq', 'wordfreq spec.id');
+
+/* 이 도구가 있는 이유 자체 — 조사를 안 떼면 「도구를·도구가·도구는」이 다 다른 낱말이다. */
+const sample = '도구를 만들고 도구가 좋으면 도구는 남는다';
+const withP = wf.analyze(sample, { stopwords: false });
+const noP = wf.analyze(sample, { particles: false, stopwords: false });
+eq(withP.rows[0].word, '도구', '조사를 떼면 「도구」 하나로 묶인다');
+eq(withP.rows[0].count, 3, '3회');
+check(noP.rows.some((r) => r.word === '도구를'), '안 떼면 「도구를」이 따로 남는다');
+check(noP.unique > withP.unique, `안 떼면 서로 다른 낱말이 더 많다 (${noP.unique} > ${withP.unique})`);
+
+// 긴 조사부터 떼야 한다 — 「에서는」이 「에서」+「는」으로 갈리면 안 된다.
+eq(wf.stripParticle('학교에서는'), '학교', '에서는 을 한 번에');
+eq(wf.stripParticle('학교에서'), '학교', '에서');
+eq(wf.stripParticle('사람으로부터'), '사람', '으로부터');
+// 너무 짧은 말은 안 건드린다 — 「나의」에서 「의」를 떼면 뜻이 달라진다.
+eq(wf.stripParticle('나의'), '나의', '두 글자는 그대로');
+eq(wf.stripParticle('바다'), '바다', '조사가 아닌 끝소리는 안 뗀다');
+eq(wf.stripParticle('가나다'), '가나다', '뗀 뒤 두 글자가 안 남으면 그대로');
+
+// 뜻 없는 말 거르기.
+const stopped = wf.analyze('그리고 그리고 바다 바다 바다');
+check(stopped.rows.some((r) => r.word === '그리고') === false, '「그리고」는 걸러진다');
+eq(stopped.rows[0].word, '바다', '남은 것 중 첫째');
+check(wf.analyze('그리고 그리고 바다', { stopwords: false }).rows.some((r) => r.word === '그리고'), '끄면 안 거른다');
+
+// 한 글자는 안 센다 (조사 떼고 남은 한 글자가 상위로 올라오면 쓸모없다).
+check(wf.analyze('a b c 가 나 다').rows.length === 0, '한 글자는 안 센다');
+eq(wf.analyze('').rows.length, 0, '빈 글');
+
+// 붙어 나오는 두 낱말 — 반복하는 표현은 여기서 더 잘 보인다.
+const ph = wf.analyze('좋은 하루 좋은 하루 나쁜 하루', { stopwords: false });
+check(ph.phrases.some((p) => p.word === '좋은 하루' && p.count === 2), `「좋은 하루」가 2회로 잡혀야 한다: ${JSON.stringify(ph.phrases)}`);
+check(ph.phrases.every((p) => p.count >= 2), '한 번만 나온 짝은 안 낸다');
+
+// 영문은 기본이 소문자 통합.
+eq(wf.analyze('Tool tool TOOL', { stopwords: false }).rows[0].count, 3, '대소문자를 묶는다');
+eq(wf.analyze('Tool tool TOOL', { stopwords: false, caseSensitive: true }).rows[0].count, 1, '켜면 따로 센다');
+
+check(wf.run('count', { text: sample }).includes('도구 — 3회'), 'run count');
+check(wf.run('count', { text: sample }).includes('형태소 분석 아님'), '어림이라는 한계를 적어 둔다');
+check(wf.run('count', { text: sample, top: 1 }).split('\n').filter((l) => /^\d+\./.test(l)).length === 1, 'top 개수를 지킨다');
+let wfThrew = 0;
+for (const bad of [{ text: '' }, { text: '가 나 다' }]) {
+  try {
+    wf.run('count', bad);
+  } catch {
+    wfThrew++;
+  }
+}
+eq(wfThrew, 2, '빈 글·셀 낱말 없음은 던진다');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 
