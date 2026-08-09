@@ -67,6 +67,13 @@ import { readInvocation } from '../../lib/tool-url';
           const amountLabel = $<HTMLElement>('#itAmountLabel');
           let mode = 'saving';
 
+          /* 라벨 문구는 **한 곳에서만** 적는다. 두 군데(칩 누를 때·주소로 열 때)에 같은 글을
+             복사해 두면 다국어로 뺄 때 하나가 남는다 — 검사가 그걸 잡는다(KL-203). */
+          function applyMode(): void {
+            amountLabel.textContent =
+              mode === 'saving' ? '매달 넣는 금액' : mode === 'deposit' ? '맡기는 금액' : '빌리는 금액';
+          }
+
           const stat = (label: string, value: string, primary = false): string =>
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${label}</div><div class="cc-stat-value">${value}</div></div>`;
           const row = (k: string, v: string): string =>
@@ -120,8 +127,7 @@ import { readInvocation } from '../../lib/tool-url';
               container.querySelectorAll('#itMode .tool-chip').forEach((c) => c.classList.remove('active'));
               chip.classList.add('active');
               mode = (chip as HTMLElement).dataset.mode || 'saving';
-              amountLabel.textContent =
-                mode === 'saving' ? '매달 넣는 금액' : mode === 'deposit' ? '맡기는 금액' : '빌리는 금액';
+              applyMode();
               amount.value = mode === 'saving' ? '500000' : mode === 'deposit' ? '10000000' : '30000000';
               months.value = mode === 'loan' ? '60' : '12';
               run();
@@ -133,8 +139,7 @@ import { readInvocation } from '../../lib/tool-url';
           const call = readInvocation(spec);
           if (call !== null && call.error === undefined) {
             mode = call.op;
-            amountLabel.textContent =
-              mode === 'saving' ? '매달 넣는 금액' : mode === 'deposit' ? '맡기는 금액' : '빌리는 금액';
+            applyMode();
             container.querySelectorAll('#itMode .tool-chip').forEach((c) => {
               c.classList.toggle('active', (c as HTMLElement).dataset.mode === mode);
             });
