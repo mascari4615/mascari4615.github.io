@@ -43,6 +43,6 @@ export const LOCALES: LocaleMeta[] = [
     "ogLocale": "ja_JP",
     "endonym": "日本語",
     "source": false,
-    "enabled": false
+    "enabled": true
   }
 ];

@@ -55,6 +55,12 @@ const base = `http://127.0.0.1:${PORT}/apps/karmolab/index.html`;
 await page.goto(base, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!document.getElementById('langBtn'), { timeout: 5000 });
 
+/* 이 장이 가진 언어 = 짝 표시. 생성기·검사와 같은 규칙이다. */
+const tags = await page.$$eval('link[rel="alternate"][hreflang]', (els) =>
+  els.map((e) => e.getAttribute('hreflang'))
+);
+const expected = ENABLED_LOCALES.filter((l) => tags.includes(l.htmlLang));
+
 /* ① */
 const code = (await page.locator('#langBtn .lang-btn-code').textContent())?.trim();
 if (code !== 'KO') fail.push(`단추 글자가 KO 가 아니다: ${code}`);
@@ -65,13 +71,19 @@ const menu = page.locator('.lang-menu');
 if (!(await menu.count())) fail.push('눌러도 목록이 안 열린다');
 else {
   const text = await menu.innerText();
-  for (const l of ENABLED_LOCALES) {
+  /* 기대값 = **이 장이 실제로 가진 언어** (짝 표시 기준). 켠 언어 전부로 재면 안 된다 —
+     번역이 덜 찬 언어는 장이 안 찍히고 목록에도 안 올라오는 게 맞는 동작이다. */
+  for (const l of expected) {
     if (!text.includes(l.endonym)) fail.push(`목록에 ${l.endonym} 이 없다`);
+  }
+  for (const l of ENABLED_LOCALES) {
+    if (!expected.includes(l) && text.includes(l.endonym))
+      fail.push(`장이 없는 ${l.endonym} 이 목록에 있다 — 고르면 404 가 난다`);
   }
 }
 
 /* ③ — 기본 언어가 아닌 첫 언어를 고른다. */
-const target = ENABLED_LOCALES.find((l) => l.prefix);
+const target = expected.find((l) => l.prefix);
 if (target && (await menu.count())) {
   await page.getByRole('option').filter({ hasText: target.endonym }).click();
   await page.waitForTimeout(300);
@@ -129,4 +141,4 @@ if (fail.length) {
   for (const f of fail) console.error('[lang-switch] ' + f);
   process.exit(1);
 }
-console.log(`[lang-switch] 단추 정상 — 글자 ${code} · 목록 ${ENABLED_LOCALES.length}개 · 고르면 주소 이동`);
+console.log(`[lang-switch] 단추 정상 — 글자 ${code} · 목록 ${expected.length}개(켠 언어 ${ENABLED_LOCALES.length}) · 고르면 주소 이동`);

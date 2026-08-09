@@ -30,7 +30,7 @@
       "endonym": "日本語",
       "english": "Japanese",
       "source": false,
-      "enabled": false
+      "enabled": true
     }
   ]
 }

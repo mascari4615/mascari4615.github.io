@@ -1,5 +1,5 @@
 {
-  "total": 7939,
+  "total": 7953,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -7,6 +7,7 @@
     "src/badapple/load-demo.ts": 4,
     "src/badapple/studio.ts": 9,
     "src/brag-card.ts": 10,
+    "src/core/base64.ts": 2,
     "src/desktop-chrome.ts": 25,
     "src/gemini.ts": 73,
     "src/home-page.ts": 4,
@@ -18,6 +19,7 @@
     "src/lib/plays.ts": 7,
     "src/lib/result-card.ts": 3,
     "src/lib/shared-packs.ts": 9,
+    "src/lib/tool-url.ts": 6,
     "src/live.ts": 5,
     "src/mdd.ts": 48,
     "src/palette.ts": 12,
@@ -91,7 +93,7 @@
     "src/widgets/imagegen/presets.ts": 71,
     "src/widgets/imagegen/styles.ts": 1,
     "src/widgets/imagelib.ts": 22,
-    "src/widgets/karmomap/karmomap.ts": 60,
+    "src/widgets/karmomap/karmomap.ts": 66,
     "src/widgets/karmomap/library.ts": 9,
     "src/widgets/karmomap/local-storage-adapter.ts": 4,
     "src/widgets/karmomap/packs.ts": 92,

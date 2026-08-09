@@ -17,6 +17,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LOCALES, DEFAULT_LOCALE, localizedPath, translated } from './lib/locales.mjs';
+import { LOCALE_PAGES } from './lib/locale-page.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = 'https://blog.mascari4615.com';
@@ -31,7 +32,8 @@ const links = (html) =>
 
 /* ① 원본 장 ────────────────────────────────────────── */
 const src = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const codes = LOCALES.filter((l) => translated(l.code, 'site')).map((l) => l.code);
+const NS = LOCALE_PAGES.find((p) => p.bare === BARE).namespaces;
+const codes = LOCALES.filter((l) => NS.every((ns) => translated(l.code, ns))).map((l) => l.code);
 const want = codes.map((c) => ({ lang: LOCALES.find((l) => l.code === c).htmlLang, href: SITE + localizedPath(BARE, c) }));
 want.push({ lang: 'x-default', href: SITE + localizedPath(BARE, DEFAULT_LOCALE) });
 
