@@ -108,7 +108,10 @@ import { findObjects, type Found, type Kind } from './dex';
           const dexBtn = document.createElement('button');
           dexBtn.type = 'button';
           dexBtn.className = 'gd-btn';
-          btns.append(dexBtn, seedBtn, pauseBtn);
+          const followBtn = document.createElement('button');
+          followBtn.type = 'button';
+          followBtn.className = 'gd-btn';
+          btns.append(followBtn, dexBtn, seedBtn, pauseBtn);
           const dexPanel = document.createElement('div');
           dexPanel.className = 'gd-dex';
           const dexTitle = document.createElement('h4');
@@ -144,6 +147,16 @@ import { findObjects, type Found, type Kind } from './dex';
           /* 죽은 자리에 남는 잔상. 켜고 끄는 두 색만 쓰면 화면이 잡음으로 보인다 —
              방금까지 살아 있던 자리가 천천히 식으면, 같은 격자가 「무늬」로 읽힌다. */
           let heat: Uint8Array = new Uint8Array(0);
+
+          /* 카메라 — 격자 전체를 늘려 보여 주면 개체 하나하나는 점이 된다. 하나를 골라
+             따라가며 크게 보면, 같은 판이 「무늬」에서 「살고 있는 것」으로 바뀐다.
+             `scale` = 격자 한 칸이 화면 몇 px 인가. `x,y` = 화면 한가운데가 보는 격자 좌표. */
+          const cam = { x: 0, y: 0, scale: 0, want: { x: 0, y: 0, scale: 0 } };
+          let follow = false;
+          /** 지금 따라가는 개체 — 지문·자리·예상 속도 */
+          let target: { fp: string; x: number; y: number; vx: number; vy: number; lostAt: number } | null = null;
+          const gridCv = document.createElement('canvas');
+          const gridCtx = gridCv.getContext('2d');
 
           /* 도감 — 찾아낸 개체를 지문으로 모은다. 이름은 사람이 붙이고, 그 이름이 남는다. */
           interface DexEntry {
@@ -187,13 +200,20 @@ import { findObjects, type Found, type Kind } from './dex';
             const r = wrap.getBoundingClientRect();
             const w = Math.max(40, Math.floor(r.width / CELL));
             const h = Math.max(30, Math.floor((r.height || 420) / CELL));
-            canvas.width = w;
-            canvas.height = h;
+            canvas.width = Math.max(1, Math.round(r.width));
+            canvas.height = Math.max(1, Math.round(r.height || 420));
             canvas.style.width = '100%';
             canvas.style.height = '100%';
+            gridCv.width = w;
+            gridCv.height = h;
             life = new Life(w, h);
             heat = new Uint8Array(w * h);
-            img = ctx!.createImageData(w, h);
+            img = gridCtx!.createImageData(w, h);
+            // 카메라 기본 자리 = 판 전체
+            cam.scale = canvas.width / w;
+            cam.x = w / 2;
+            cam.y = h / 2;
+            cam.want = { x: cam.x, y: cam.y, scale: cam.scale };
             reseed();
           }
 
@@ -240,7 +260,20 @@ import { findObjects, type Found, type Kind } from './dex';
               d[k + 2] = 255 - old * 190;
               d[k + 3] = 255;
             }
-            ctx!.putImageData(img, 0, 0);
+            gridCtx!.putImageData(img, 0, 0);
+
+            /* 카메라를 부드럽게 따라가게 한다 — 순간이동하면 어디서 어디로 갔는지 안 보인다. */
+            cam.x += (cam.want.x - cam.x) * 0.06;
+            cam.y += (cam.want.y - cam.y) * 0.06;
+            cam.scale += (cam.want.scale - cam.scale) * 0.05;
+
+            const c = ctx!;
+            const sw = canvas.width / cam.scale;
+            const sh = canvas.height / cam.scale;
+            c.imageSmoothingEnabled = false;
+            c.fillStyle = '#07080c';
+            c.fillRect(0, 0, canvas.width, canvas.height);
+            c.drawImage(gridCv, cam.x - sw / 2, cam.y - sh / 2, sw, sh, 0, 0, canvas.width, canvas.height);
           }
 
           /* ── 도감 ─────────────────────────────────────────────────────── */
@@ -303,7 +336,9 @@ import { findObjects, type Found, type Kind } from './dex';
 
           /** 판을 훑어 개체를 찾고, 처음 보는 것이면 도감에 넣는다. */
           function scanDex(gen: number): void {
-            const found: Found[] = findObjects(life, table.born, table.stay, 8);
+            // 자리는 매번 새로 적는다 — 지난번 자리를 남겨 두면 이미 사라진 것을 따라가게 된다
+            lastSeenAt.clear();
+            const found: Found[] = findObjects(life, table.born, table.stay, 8, lastSeenAt);
             let fresh: DexEntry | null = null;
             for (const f of found) {
               const cur = dex[f.fp];
@@ -336,6 +371,67 @@ import { findObjects, type Found, type Kind } from './dex';
             } else if (found.length) {
               saveDex();
             }
+            // 따라가던 것을 다시 찾았으면 자리를 바로잡고, 없으면 새로 고른다
+            if (follow) {
+              const at = target && lastSeenAt.get(target.fp);
+              if (at && target) {
+                target.x = at.x;
+                target.y = at.y;
+                target.lostAt = gen;
+              } else {
+                target = null;
+                pickTarget(found, gen);
+              }
+            }
+          }
+
+          /* ── 따라가기 ─────────────────────────────────────────────────── */
+
+          /**
+           * 볼만한 것을 하나 고른다. **움직이는 것**이 제일 볼만하고(우주선), 없으면 진동자,
+           * 그것도 없으면 안 고른다 — 가만히 있는 것을 확대해 봐야 정지 화면이다.
+           */
+          function pickTarget(found: Found[], gen: number): void {
+            const ship = found.find((f) => f.kind === 'ship');
+            const osc = found.find((f) => f.kind === 'oscillator');
+            const pick = ship || osc;
+            if (!pick) return;
+            const at = lastSeenAt.get(pick.fp);
+            if (!at) return;
+            target = {
+              fp: pick.fp,
+              x: at.x,
+              y: at.y,
+              // 한 주기에 (dx,dy) 만큼 가므로, 세대당 속도는 그걸 주기로 나눈 값
+              vx: pick.kind === 'ship' ? pick.dx / pick.period : 0,
+              vy: pick.kind === 'ship' ? pick.dy / pick.period : 0,
+              lostAt: gen
+            };
+          }
+
+          /** 개체가 마지막으로 있던 자리 (fp → 격자 좌표) — 찾을 때 같이 적어 둔다. */
+          const lastSeenAt = new Map<string, { x: number; y: number }>();
+
+          function stepFollow(gen: number): void {
+            if (!follow) {
+              cam.want = { x: life.w / 2, y: life.h / 2, scale: canvas.width / life.w };
+              return;
+            }
+            if (!target) {
+              cam.want = { x: life.w / 2, y: life.h / 2, scale: canvas.width / life.w };
+              return;
+            }
+            // 예측으로 따라간다 — 매 세대 판 전체를 훑는 것은 너무 비싸다
+            target.x += target.vx;
+            target.y += target.vy;
+            // 가장자리를 넘어가면 이어 붙인 판이므로 좌표도 감는다
+            target.x = ((target.x % life.w) + life.w) % life.w;
+            target.y = ((target.y % life.h) + life.h) % life.h;
+            /* 예측만으로 오래 끌지 않는다 — 개체는 부딪히면 그냥 사라진다.
+               60세대(=다시 훑는 25세대의 두 번 이상) 안에 못 찾으면 놓아 주고 다른 것을 고른다.
+               안 그러면 카메라가 빈 자리를 확대한 채 멎어 있다(실측: 화면이 한 색이 됐다). */
+            if (gen - target.lostAt > 60) target = null;
+            else cam.want = { x: target.x, y: target.y, scale: Math.min(18, Math.max(6, canvas.width / 90)) };
           }
 
           /* ── 관찰 일지 ────────────────────────────────────────────────── */
@@ -395,6 +491,7 @@ import { findObjects, type Found, type Kind } from './dex';
                 else if (ev.kind === 'frozen') window.setTimeout(() => alive && reseed(), 6000);
               }
             }
+            stepFollow(last ? last.gen : 0);
             if (steps) {
               draw();
               genEl.textContent = t('garden.gen', { gen: last!.gen, pop: last!.pop });
@@ -414,6 +511,11 @@ import { findObjects, type Found, type Kind } from './dex';
 
           /* ── 단추 ─────────────────────────────────────────────────────── */
           seedBtn.onclick = () => reseed();
+          followBtn.onclick = () => {
+            follow = !follow;
+            followBtn.setAttribute('aria-pressed', String(follow));
+            if (!follow) target = null;
+          };
           dexBtn.onclick = () => {
             const open = dexPanel.classList.toggle('gd-open');
             dexBtn.setAttribute('aria-pressed', String(open));
@@ -432,6 +534,7 @@ import { findObjects, type Found, type Kind } from './dex';
             codeEl.textContent = rule.code;
             seedBtn.textContent = t('garden.reseed');
             dexBtn.textContent = t('garden.dex.button');
+            followBtn.textContent = t('garden.follow');
             pauseBtn.textContent = t('garden.pause');
             sub.textContent = t('garden.hint.' + (rule.id === 'wild' ? 'wild' : 'named'));
             build();

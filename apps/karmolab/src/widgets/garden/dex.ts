@@ -198,14 +198,32 @@ function classify(
   return null;
 }
 
-/** 지금 판에서 이름 붙일 수 있는 것들. */
-export function findObjects(life: Life, born: Uint8Array, stay: Uint8Array, limit = 6): Found[] {
+/**
+ * 지금 판에서 이름 붙일 수 있는 것들.
+ * `where` 를 주면 **그 개체가 지금 어디 있는지**도 적어 준다 — 카메라가 따라가려면 자리가 필요하다.
+ */
+export function findObjects(
+  life: Life,
+  born: Uint8Array,
+  stay: Uint8Array,
+  limit = 6,
+  where?: Map<string, { x: number; y: number }>
+): Found[] {
   const out: Found[] = [];
   for (const group of components(life)) {
     if (out.length >= limit) break;
     if (!isolated(life, group)) continue;
     const what = classify(group, born, stay);
     if (!what) continue;
+    if (where) {
+      let sx = 0;
+      let sy = 0;
+      for (const [x, y] of group) {
+        sx += x;
+        sy += y;
+      }
+      where.set(what.fp, { x: sx / group.length, y: sy / group.length });
+    }
     out.push({
       fp: what.fp,
       kind: what.kind,
