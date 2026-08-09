@@ -16,8 +16,8 @@
 
 const ctx = self as unknown as ServiceWorkerGlobalScope;
 
-/** build.mjs 가 빌드 시각으로 치환 (esbuild define) */
-declare const __KARMOLAB_BUILD__: string;
+/* 판 표식 `__KARMOLAB_BUILD__` 선언은 `types/global.d.ts` 한 곳 (build.mjs 가 esbuild define
+   으로 치환한다). 여기서 또 `declare` 하면 같은 이름이 두 벌이 되어 typecheck 이 선다. */
 const BUILD = typeof __KARMOLAB_BUILD__ === 'string' ? __KARMOLAB_BUILD__ : 'dev';
 const CACHE_NAME = `karmolab-${BUILD}`;
 
