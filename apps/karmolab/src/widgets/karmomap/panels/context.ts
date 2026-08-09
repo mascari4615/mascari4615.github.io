@@ -88,6 +88,12 @@ export interface PanelCtx {
   // ── 여럿 고름 패널이 빌리는 것들 ──────────────────────────────────────
   selectedMany: () => string[];
   clearMany: () => void;
+  /** 고른 한 벌을 「본」으로 떠 사람 창고에 둔다. */
+  saveStamp: (name: string) => void;
+  /** 떠 둔 본을 지금 화면 한가운데에 찍는다. */
+  putStamp: (stampId: string) => void;
+  /** 본을 창고에서 지운다(이미 찍어 놓은 그림은 그대로). */
+  removeStamp: (stampId: string) => void;
   /** 노드들과 거기 붙은 선·지시선을 함께 지운다. */
   removeNodes: (ids: string[]) => void;
 

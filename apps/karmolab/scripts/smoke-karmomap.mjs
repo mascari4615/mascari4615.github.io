@@ -1135,6 +1135,39 @@ await step('보기 전용 링크 — 손잡이가 사라지고, 「내 것으로
   await page.locator('[data-km="fork"]').click();
   await page.waitForSelector('.km-root:not(.is-readonly)', { timeout: 4000 });
 });
+await step('본 — 한 벌을 떠서 다른 맵에 찍는다', async () => {
+  // 같은 덩어리를 판마다 다시 그리면 모양도 이름도 조금씩 갈린다. 본은 **맵을 건너**야 값이 있다.
+  const sbox = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.dblclick(sbox.x + sbox.width * 0.2, sbox.y + sbox.height * 0.7);
+  await page.waitForSelector('[data-km="edit-label"]', { timeout: 4000 });
+  await page.fill('[data-km="edit-label"]', '본갑');
+  await page.mouse.dblclick(sbox.x + sbox.width * 0.42, sbox.y + sbox.height * 0.7);
+  await page.waitForSelector('[data-km="edit-label"]', { timeout: 4000 });
+  await page.fill('[data-km="edit-label"]', '본을');
+
+  // Shift+드래그로 둘을 고른다.
+  await page.keyboard.down('Shift');
+  await page.mouse.move(sbox.x + sbox.width * 0.12, sbox.y + sbox.height * 0.6);
+  await page.mouse.down();
+  await page.mouse.move(sbox.x + sbox.width * 0.62, sbox.y + sbox.height * 0.85, { steps: 8 });
+  await page.mouse.up();
+  await page.keyboard.up('Shift');
+  await page.waitForSelector('[data-km="stamp-save"]', { timeout: 4000 });
+  await page.fill('[data-km="stamp-name"]', '검사용 한 벌');
+  await page.locator('[data-km="stamp-save"]').dispatchEvent('click');
+
+  // 새 맵에서 찍는다 — 창고에 남아 있어야 한다.
+  await page.click('[data-km="map-new"]');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
+  await page.click('[data-km="more"]');
+  await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
+  await page.locator('[data-km="stamps"]').dispatchEvent('click');
+  await page.waitForSelector('[data-km="stamp-put"]', { timeout: 4000 });
+  await page.locator('[data-km="stamp-put"]').first().dispatchEvent('click');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 2, null, { timeout: 4000 });
+  const names = await page.evaluate(() => [...document.querySelectorAll('.ck-node text')].map((t) => t.textContent).join('|'));
+  if (!names.includes('본갑') || !names.includes('본을')) throw new Error('찍은 본에 이름이 안 따라왔다: ' + names);
+});
 await step('맵 새로 만들기 → 빈 캔버스', async () => {
   await page.click('[data-km="map-new"]');
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });

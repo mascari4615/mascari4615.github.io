@@ -32,7 +32,9 @@ import { mirrorToLibrary, refreshFromLibrary, foreignNotes, adoptNote } from './
 import { toJsonCanvas, fromJsonCanvas } from './json-canvas';
 import { toMermaidBlock } from './mermaid';
 import { withPresentation } from './presentation-svg';
+import { loadStamps, captureStamp, applyStamp, deleteStamp } from './stamps';
 import { renderNotesPanel } from './panels/notes-panel';
+import { renderStampsPanel } from './panels/stamps-panel';
 import { renderStoragePanel } from './panels/storage-panel';
 import { renderFilterPanel } from './panels/filter-panel';
 import { renderTermsPanel } from './panels/terms-panel';
@@ -272,7 +274,7 @@ import {
     /** 연결 모드일 때 출발 노드 id. null 이면 평소 모드. */
     let linkingFrom: string | null = null;
     /** 오른쪽 패널이 무엇을 보여주는가 — 고른 노드냐, 묶음 목록이냐. */
-    type SideMode = 'node' | 'groups' | 'terms' | 'filter' | 'many' | 'text' | 'sna' | 'storage' | 'notes' | 'edge' | 'help';
+    type SideMode = 'node' | 'groups' | 'terms' | 'filter' | 'many' | 'text' | 'sna' | 'storage' | 'notes' | 'stamps' | 'edge' | 'help';
     let sideMode: SideMode = 'node';
     /** Shift+드래그로 한 번에 고른 노드들. */
     let selectedMany: string[] = [];
@@ -402,6 +404,7 @@ import {
               <button class="btn btn-ghost" data-km="lay-tree">⌂ 흐름대로 놓기</button>
               <button class="btn btn-ghost" data-km="lay-time">🕰 연표로 놓기</button>
               <button class="btn btn-ghost" data-km="from-text">📝 글로 만들기</button>
+              <button class="btn btn-ghost" data-km="stamps">🖈 본 찍기</button>
               <button class="btn btn-ghost" data-km="png">🖼 그림으로 저장</button>
               <button class="btn btn-ghost" data-km="svg">✒ SVG 로 저장 (글자 살아 있음)</button>
               <button class="btn btn-ghost" data-km="svg-story">🎞 발표를 SVG 한 장으로</button>
@@ -893,6 +896,29 @@ import {
       selectedEdge: () => spec.edges.find((e) => e.id === selectedEdgeId),
       spawnNodeAt: (x, y, label) => spawnNodeAt(x, y, label),
       spawnNoteCard: (noteId) => spawnNoteCard(noteId),
+      putStamp: (stampId) => {
+        const st = loadStamps().find((x) => x.id === stampId);
+        if (!st) return;
+        const center = canvas?.viewCenterWorld() ?? { x: 0, y: 0 };
+        const ids = applyStamp(spec, st, { x: center.x - 120, y: center.y - 80 }, (prefix, taken) => nextId(prefix, taken));
+        applySpec();
+        persistStructure();
+        canvas?.setSelectedNodes(ids);
+        selectedMany = ids;
+        sideMode = 'many';
+        renderSide();
+        Toolbox.showToast?.(`「${st.name}」 을 찍었습니다 (${ids.length}개)`, undefined, undefined);
+      },
+      removeStamp: (stampId) => {
+        deleteStamp(stampId);
+        renderSide();
+      },
+      saveStamp: (name) => {
+        const st = captureStamp(spec, selectedMany, name);
+        if (!st) return;
+        Toolbox.showToast?.(`「${st.name}」 본을 떴습니다 — 서랍에서 다른 맵에도 찍습니다`, undefined, undefined);
+        renderSide();
+      },
       linkWithLabel: (from, to, label) => {
         const dup = spec.edges.some((e) => (e.from === from && e.to === to) || (e.from === to && e.to === from));
         if (dup) return;
@@ -1096,6 +1122,10 @@ import {
       }
       if (sideMode === 'notes') {
         renderNotesPanel(panelCtx);
+        return;
+      }
+      if (sideMode === 'stamps') {
+        renderStampsPanel(panelCtx);
         return;
       }
       if (sideMode === 'storage') {
@@ -2149,6 +2179,18 @@ import {
         'karmomap-presentation.svg',
       );
       Toolbox.showToast?.(`${scenes.length}장짜리 발표를 한 장으로 받았습니다 — 브라우저로 열고 ←→`, undefined, undefined);
+    };
+
+    // 본 찍기 — 창고에 뜬 한 벌을 지금 화면 한가운데에 놓는다. id 는 새로 뽑으므로 같은 본을
+    // 두 번 찍어도 서로 다른 인물이 된다(노트와 정반대: 노트는 같은 글, 본은 같은 모양).
+    q<HTMLButtonElement>('stamps').onclick = () => {
+      const list = loadStamps();
+      if (list.length === 0) {
+        Toolbox.showToast?.('아직 뜬 본이 없습니다 — 여럿 고른 뒤 「본으로 저장」', undefined, undefined);
+        return;
+      }
+      sideMode = 'stamps';
+      renderSide();
     };
 
     q<HTMLButtonElement>('canvas-out').onclick = () => {
