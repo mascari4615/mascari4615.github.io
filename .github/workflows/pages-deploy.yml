@@ -225,6 +225,17 @@ jobs:
           npm run prerender
           kill %1 || true
 
+      # 도구 장의 **언어 판** (TASK-KL-203). 반드시 이 자리다:
+      #  - `gen:tool-pages` 와 `prerender` **뒤** — 한국어 장을 입력으로 받아 옮기므로,
+      #    앞에서 돌면 볼 것이 없어 조용히 0장을 찍는다(로컬엔 지난 산출물이 남아 초록으로 보인다).
+      #  - `stamp` **앞** — 파일 이름에 지문을 박는 단계가 언어 장까지 함께 손봐야 한다.
+      # 검사도 여기서 같이 돈다 — `npm run build` 안의 같은 검사는 장이 생기기 전이라 건너뛴다.
+      - name: Generate KarmoLab tool pages (other languages)
+        working-directory: apps/karmolab
+        run: |
+          npm run gen:tool-pages-locale
+          npm run test:i18n:pages
+
       # TASK-KL-128 ②③: 화면을 옮기는 길이 실제로 빠른가 (미리 실행·이어 붙이기·뒤로 가기).
       #
       # 2026-08-08: 이 검사가 `npm run build` 안에 있어서 **도구 페이지가 만들어지기도 전에**
