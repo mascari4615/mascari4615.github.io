@@ -11,6 +11,8 @@
  *
  * 화풍 = 자랑 카드와 같은 포스터(밝은 바탕 + 큰 세리프). 남의 피드에서 튀어야 하는 것은 같다.
  */
+import { t } from './lib/i18n';
+
 const WIDTH = 1200;
 const HEIGHT = 630;
 
@@ -189,7 +191,7 @@ export function attach(page: HTMLElement, toolTitle: string, toolId: string): vo
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'tool-card-btn';
-        button.textContent = '🖼 그림으로 저장';
+        button.textContent = '🖼 ' + t('shell.card.save', undefined, '그림으로 저장');
         button.addEventListener('click', async () => {
             button.disabled = true;
             try {

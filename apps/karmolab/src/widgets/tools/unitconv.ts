@@ -5,7 +5,8 @@
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { inRegion, region } from '../../lib/region';
 
-import { FACTORS as F } from '../../core/unitconv';
+import { FACTORS as F, spec } from '../../core/unitconv';
+import { readInvocation } from '../../lib/tool-url';
 
 (function (): void {
   interface Unit {
@@ -217,11 +218,14 @@ import { FACTORS as F } from '../../core/unitconv';
   });
 
   function draw(container: HTMLElement): void {
+    /* 번역 글에 꺾쇠·따옴표가 들어와도 화면이 안 깨지게. */
+    const esc = (v: string): string =>
+      v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     const CATS = buildCategories();
           Mdd.linePreset('tool_run', { msg: t('unitconv.mdd') });
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">분류</label>
+              <label class="field-label">${esc(t('unitconv.label.category'))}</label>
               <div class="tool-chips" id="ucCats">
                 ${CATS.map((c, i) => `<button type="button" class="tool-chip${i === 0 ? ' active' : ''}" data-cat="${c.id}">${c.label}</button>`).join('')}
               </div>
@@ -229,19 +233,19 @@ import { FACTORS as F } from '../../core/unitconv';
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">입력</div>
-                  <input type="text" id="ucValue" aria-label=t('unitconv.label.value') inputmode="decimal" value="1">
-                  <select id="ucFrom" aria-label=t('unitconv.label.from') style="margin-top:8px;"></select>
+                  <div class="tool-sublabel">${esc(t('unitconv.label.value'))}</div>
+                  <input type="text" id="ucValue" aria-label="${esc(t('unitconv.label.value'))}" inputmode="decimal" value="1">
+                  <select id="ucFrom" aria-label="${esc(t('unitconv.label.from'))}" style="margin-top:8px;"></select>
                 </div>
                 <div>
-                  <div class="tool-sublabel">결과</div>
-                  <input type="text" id="ucResult" aria-label=t('unitconv.label.result') readonly>
-                  <select id="ucTo" aria-label=t('unitconv.label.to') style="margin-top:8px;"></select>
+                  <div class="tool-sublabel">${esc(t('unitconv.label.result'))}</div>
+                  <input type="text" id="ucResult" aria-label="${esc(t('unitconv.label.result'))}" readonly>
+                  <select id="ucTo" aria-label="${esc(t('unitconv.label.to'))}" style="margin-top:8px;"></select>
                 </div>
               </div>
               <div style="display:flex; gap:6px; margin-top:10px;">
-                <button class="btn btn-ghost" id="ucSwap">↕ 단위 뒤집기</button>
-                <button class="btn btn-ghost" id="ucCopy">결과 복사</button>
+                <button class="btn btn-ghost" id="ucSwap">↕ ${esc(t('unitconv.btn.swap'))}</button>
+                <button class="btn btn-ghost" id="ucCopy">${esc(t('unitconv.btn.copy'))}</button>
               </div>
             </div>
             <div class="field-group" id="ucPriceWrap" style="display:none;">
@@ -259,7 +263,7 @@ import { FACTORS as F } from '../../core/unitconv';
             </div>
 
             <div class="field-group">
-              <label class="field-label">전체 단위 환산</label>
+              <label class="field-label">${esc(t('unitconv.label.all'))}</label>
               <div id="ucAll" class="tool-list"></div>
             </div>
           `;
@@ -362,6 +366,19 @@ import { FACTORS as F } from '../../core/unitconv';
           };
 
           fillUnits();
+
+          // 주소로 부른 경우 (`?op=convert&value=30&from=pyeong&to=m2`) (TASK-KL-205).
+          const call = readInvocation(spec);
+          if (call !== null && call.error === undefined && call.op === 'convert') {
+            const cat = String(call.args.category ?? '');
+            if (cat !== '' && cats.some((c) => c.id === cat)) {
+              current = cat;
+              fillUnits();
+            }
+            if (call.args.value !== undefined) valueInput.value = String(call.args.value);
+            if (call.args.from !== undefined) fromSel.value = String(call.args.from);
+            if (call.args.to !== undefined) toSel.value = String(call.args.to);
+          }
           render();
   }
 })();

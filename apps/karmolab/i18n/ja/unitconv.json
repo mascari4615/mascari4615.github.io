@@ -70,5 +70,9 @@
   "unitconv.label.from": "変換元の単位",
   "unitconv.label.result": "変換後の値",
   "unitconv.label.to": "変換先の単位",
-  "unitconv.copied": "結果をコピーしました"
+  "unitconv.copied": "結果をコピーしました",
+  "unitconv.label.category": "分類",
+  "unitconv.btn.swap": "単位を入れ替え",
+  "unitconv.btn.copy": "結果をコピー",
+  "unitconv.label.all": "すべての単位で換算"
 }

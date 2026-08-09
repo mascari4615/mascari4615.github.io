@@ -70,5 +70,9 @@
   "unitconv.label.from": "From",
   "unitconv.label.result": "Result",
   "unitconv.label.to": "To",
-  "unitconv.copied": "Result copied"
+  "unitconv.copied": "Result copied",
+  "unitconv.label.category": "Category",
+  "unitconv.btn.swap": "Swap units",
+  "unitconv.btn.copy": "Copy result",
+  "unitconv.label.all": "All units at once"
 }

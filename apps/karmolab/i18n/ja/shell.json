@@ -35,5 +35,6 @@
   "shell.lang.section": "言語",
   "shell.region.note": "単位・祝日・書類の規格・道具の並び順がこの国の基準に変わります。",
   "shell.region.aria": "言語と地域",
-  "shell.region.other": "その他の国"
+  "shell.region.other": "その他の国",
+  "shell.card.save": "画像として保存"
 }
