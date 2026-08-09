@@ -1,16 +1,16 @@
 {
   "source": "memo/wm/tasks",
   "counts": {
-    "docs": 60,
-    "groups": 5,
-    "shown": 60,
+    "docs": 66,
+    "groups": 6,
+    "shown": 66,
     "hidden": 0
   },
   "groups": [
     {
       "status": "in_progress",
       "label": "하는 중",
-      "count": 23,
+      "count": 26,
       "items": [
         {
           "id": "TASK-WM-027",
@@ -194,6 +194,30 @@
           "status": "in_progress",
           "statusLabel": "하는 중",
           "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-216",
+          "title": "같은 게임을 도는 서버와 웹 창",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-217",
+          "title": "싱글멀티를 없애고 하나의 세계로",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-218",
+          "title": "신원 다시 들어와도 나",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
           "updated": ""
         }
       ]
@@ -445,9 +469,32 @@
       ]
     },
     {
+      "status": "done",
+      "label": "끝남",
+      "count": 2,
+      "items": [
+        {
+          "id": "TASK-WM-215",
+          "title": "전투 아이템 건축 격상 완주",
+          "status": "done",
+          "statusLabel": "끝남",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-214",
+          "title": "판정을 엔진 밖으로 순수빌드 게이트",
+          "status": "done",
+          "statusLabel": "끝남",
+          "priority": "high",
+          "updated": ""
+        }
+      ]
+    },
+    {
       "status": "unit_verified",
       "label": "unit_verified",
-      "count": 5,
+      "count": 6,
       "items": [
         {
           "id": "TASK-WM-029-B",
@@ -479,6 +526,14 @@
           "status": "unit_verified",
           "statusLabel": "unit_verified",
           "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-211",
+          "title": "초기화순서 게이트가 눈을 뜨게 한다",
+          "status": "unit_verified",
+          "statusLabel": "unit_verified",
+          "priority": "high",
           "updated": ""
         },
         {
