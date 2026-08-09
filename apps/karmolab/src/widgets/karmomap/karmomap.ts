@@ -37,6 +37,7 @@ import { renderEdgePanel } from './panels/edge-panel';
 import { renderLinkSections, bindLinkSections } from './panels/links-section';
 import { avatarFieldHtml, bindAvatarField } from './panels/avatar-section';
 import { tagsFieldHtml, bindTagsField } from './panels/tags-section';
+import { membershipFieldHtml, bindMembershipField } from './panels/membership-section';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -924,21 +925,7 @@ import {
           <div class="km-hint">적어 두면 카드 모서리에 📄 가 붙습니다. 그림에는 안 나옵니다. <b>[[이름]]</b> 으로 다른 노드를 가리킬 수 있어요.</div>
         </div>
         <div data-km="link-sections">${renderLinkSections(panelCtx, node)}</div>
-        <div class="km-field">
-          <label>묶음 (여러 개 가능)</label>
-          ${
-            spec.groups.length === 0
-              ? '<div class="km-hint">아직 묶음이 없습니다.</div>'
-              : spec.groups
-                  .map(
-                    (g) => `<label class="km-check"><input type="checkbox" data-km="in-group" value="${escapeAttr(g.id)}"${
-                      memberOf(node).includes(g.id) ? ' checked' : ''
-                    } /> <span class="km-swatch" style="background:${escapeAttr(g.color)}"></span>${escapeHtml(g.label)}</label>`
-                  )
-                  .join('')
-          }
-          <button class="btn btn-ghost" data-km="group-new-here">+ 새 묶음에 넣기</button>
-        </div>
+        ${membershipFieldHtml(panelCtx, node)}
         <div class="km-field">
           <label>모양</label>
           <select data-km="edit-shape">
@@ -1040,24 +1027,7 @@ import {
         touch(false);
       };
 
-      sideEl.querySelectorAll('[data-km="in-group"]').forEach((el) => {
-        (el as HTMLInputElement).onchange = (ev) => {
-          const box = ev.target as HTMLInputElement;
-          const cur = new Set(memberOf(node));
-          if (box.checked) cur.add(box.value);
-          else cur.delete(box.value);
-          setMembership(node, [...cur]);
-          applySpec();
-          persistStructure();
-        };
-      });
-
-      (sideEl.querySelector('[data-km="group-new-here"]') as HTMLButtonElement).onclick = () => {
-        setMembership(node, [...memberOf(node), createGroup().id]);
-        applySpec();
-        persistStructure();
-        renderSide();
-      };
+      bindMembershipField(panelCtx, node);
 
       (sideEl.querySelector('[data-km="edit-attach"]') as HTMLSelectElement).onchange = (ev) => {
         const v = (ev.target as HTMLSelectElement).value;
