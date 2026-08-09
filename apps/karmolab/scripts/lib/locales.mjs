@@ -37,6 +37,46 @@ export function alternates(bare) {
   return LOCALES.map((l) => ({ code: l.code, hreflang: l.htmlLang, path: localizedPath(bare, l.code) }));
 }
 
+/* ── 글 꺼내기 (생성기용) ────────────────────────────
+ *
+ * 브라우저 쪽(`src/lib/i18n.ts`)과 **같은 규칙**이다: 없으면 원본 언어로 떨어지고,
+ * 그것도 없으면 열쇠를 그대로 돌려준다. 두 쪽 규칙이 갈리면 사람이 보는 화면과
+ * 검색엔진이 읽는 머리말이 갈라진다.
+ */
+
+const catalogs = new Map();
+
+export function catalog(code, ns) {
+  const key = code + '/' + ns;
+  if (!catalogs.has(key)) {
+    const file = path.join(APP_ROOT, 'i18n', code, ns + '.json');
+    catalogs.set(key, fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {});
+  }
+  return catalogs.get(key);
+}
+
+export function tr(code, key, vars) {
+  const ns = key.split('.')[0];
+  const raw = catalog(code, ns)[key] ?? catalog(SOURCE_LOCALE, ns)[key] ?? key;
+  if (!vars) return raw;
+  return raw.replace(/\{(\w+)\}/g, (whole, name) => (name in vars ? String(vars[name]) : whole));
+}
+
+/**
+ * 이 언어에서 그 묶음이 **제 말로** 다 차 있는가 (원본 폴백이 아니라).
+ *
+ * 왜 필요한가: 번역이 덜 된 채로 `/en/…` 을 찍으면, 영어라고 표시된 주소에 한국어가 실린 장이
+ * 검색엔진에 올라간다. 그건 안 만든 것보다 나쁘다(잘못된 언어 표시는 순위에 직접 해가 된다).
+ * 그래서 **다 찬 언어의 장만 찍는다** — 번역이 늘면 그 다음 배포에 저절로 늘어난다.
+ */
+export function translated(code, ns) {
+  if (code === SOURCE_LOCALE) return true;
+  const src = catalog(SOURCE_LOCALE, ns);
+  const mine = catalog(code, ns);
+  const keys = Object.keys(src);
+  return keys.length > 0 && keys.every((k) => mine[k] != null);
+}
+
 /**
  * head 에 넣을 hreflang 줄들.
  *
@@ -44,10 +84,12 @@ export function alternates(bare) {
  * 줄이고, 이게 빠지면 검색엔진이 임의로 고른다. 그리고 **모든 언어 판이 서로를 다 가리켜야**
  * 한다(왕복 표시). 한쪽만 가리키면 통째로 무시된다 — 다국어 사이트가 제일 흔하게 틀리는 곳이다.
  */
-export function hreflangTags(bare, site) {
-  const rows = alternates(bare).map(
-    (a) => `    <link rel="alternate" hreflang="${a.hreflang}" href="${site}${a.path}">`
-  );
+export function hreflangTags(bare, site, codes) {
+  /* **실제로 찍은 장만** 적는다. 없는 주소를 가리키는 hreflang 은 그 페이지의 표시 전체를
+     무효로 만든다 — 번역이 덜 된 언어를 미리 적어 두면 다 적은 것보다 나쁘다. */
+  const rows = alternates(bare)
+    .filter((a) => !codes || codes.includes(a.code))
+    .map((a) => `    <link rel="alternate" hreflang="${a.hreflang}" href="${site}${a.path}">`);
   rows.push(`    <link rel="alternate" hreflang="x-default" href="${site}${localizedPath(bare, DEFAULT_LOCALE)}">`);
   return rows.join('\n');
 }
