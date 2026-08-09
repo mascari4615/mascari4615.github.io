@@ -1,0 +1,11 @@
+import { chromium } from 'playwright';
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 700, height: 800 }, deviceScaleFactor: 1 });
+const errs = [];
+p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
+p.on('pageerror', e => errs.push(String(e)));
+await p.goto('http://localhost:8777/', { waitUntil: 'networkidle' });
+await p.waitForTimeout(2500);
+await p.locator('#stage').screenshot({ path: 'C:/Users/masca/work/timeto-3d/out3/live.png' });
+console.log('errors:', errs.slice(0, 5));
+await b.close();
