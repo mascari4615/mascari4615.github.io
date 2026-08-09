@@ -10,6 +10,7 @@
  *     링 : 부하            ← 들여쓰면 위 줄에 이어진다. 콜론 뒤는 그 선에 붙는 말
  *     알리사 : 부하
  *   마을                   ← 다시 뿌리
+ *   욘 -> 마을 : 지킨다    ← 화살표 줄 = **옆으로 난 관계**(트리로는 못 적는 것)
  *
  * 목록 기호(-, *, •)와 마크다운 제목(#)은 벗겨 낸다.
  *
@@ -40,8 +41,34 @@ function stripBullet(s: string): string {
  * 글 → 노드 목록. 부모는 **자기보다 들여쓰기가 적은 가장 가까운 윗줄**이다.
  * 빈 줄은 흐름을 끊지 않는다(사람이 문단을 나누는 방식을 막지 않으려고).
  */
-export function parseOutline(text: string): TextNode[] {
+export interface TextLink {
+  /** 이름으로 가리킨다 — 글에서는 사람이 id 를 모른다. */
+  from: string;
+  to: string;
+  label?: string;
+}
+
+export interface OutlineDoc {
+  nodes: TextNode[];
+  /** 트리 밖 관계 — `욘 -> 링 : 라이벌` 처럼 **옆으로 난** 선 (Graphviz dot 계보). */
+  links: TextLink[];
+}
+
+/** `A -> B : 라벨` / `A → B` — 화살표 줄인가? 아니면 null. */
+function parseArrowLine(body: string): TextLink | null {
+  const m = /^(.+?)\s*(?:->|→|=>)\s*(.+)$/.exec(body);
+  if (!m) return null;
+  const from = m[1].trim();
+  const rest = m[2];
+  const [toRaw, ...labelRest] = rest.split(':');
+  const to = toRaw.trim();
+  if (!from || !to) return null;
+  return { from, to, label: labelRest.join(':').trim() || undefined };
+}
+
+export function parseOutline(text: string): OutlineDoc {
   const out: TextNode[] = [];
+  const links: TextLink[] = [];
   const stack: { indent: number; id: string }[] = [];
   let n = 0;
   for (const raw of text.split('\n')) {
@@ -50,6 +77,9 @@ export function parseOutline(text: string): TextNode[] {
     const indent = indentOf(line);
     const body = stripBullet(line);
     if (!body) continue;
+    // 화살표 줄은 **계층이 아니라 관계**다 — 들여쓰기 트리로는 옆으로 난 선을 못 적는다.
+    const arrow = parseArrowLine(body);
+    if (arrow) { links.push(arrow); continue; }
     const [labelRaw, ...rest] = body.split(':');
     const label = labelRaw.trim();
     if (!label) continue;
@@ -62,7 +92,7 @@ export function parseOutline(text: string): TextNode[] {
     out.push({ id, label, depth: stack.length, parent, edgeLabel });
     stack.push({ indent, id });
   }
-  return out;
+  return { nodes: out, links };
 }
 
 /**

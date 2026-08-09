@@ -16,7 +16,8 @@ export function renderTextPanel(ctx: PanelCtx): void {
   ctx.canvas()?.setSelectedNode(null);
   side.innerHTML = `
     <h4>📝 글로 만들기</h4>
-    <div class="km-hint">들여쓰면 위 줄에 이어집니다. 콜론(:) 뒤는 그 선에 붙는 말입니다.</div>
+    <div class="km-hint">들여쓰면 위 줄에 이어집니다. 콜론(:) 뒤는 그 선에 붙는 말입니다.
+      <b>욘 -&gt; 마을 : 지킨다</b> 처럼 적으면 <b>옆으로 난 관계</b>도 그려집니다(이미 그린 인물도 이름으로 잇습니다).</div>
     <textarea data-km="text-src" class="km-textarea" rows="12" placeholder="욘&#10;  링 : 부하&#10;  알리사 : 부하&#10;마을&#10;  대장간"></textarea>
     <div class="km-field">
       <label>새로 만들 노드 종류</label>
