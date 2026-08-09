@@ -37,6 +37,7 @@ async function loadModules() {
     export * as fromText from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/from-text.ts'))};
     export * as jsonCanvas from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/json-canvas.ts'))};
     export * as mermaid from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/mermaid.ts'))};
+    export * as filter from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-filter.ts'))};
     export * as decor from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-decor.ts'))};
     export * as cmath from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-math.ts'))};
     export * as sna from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/sna.ts'))};
@@ -340,6 +341,23 @@ const M = await loadModules();
   const both = decor.nodeScale(node, [{ id: 's', on: 'tag', value: '주인공', scale: 2 }], { ...flags, sizeByDegree: true }, 5);
   check(both > 2, '둘 다 켜면 곱해진다');
   check(decor.nodeScale(nodeOf('c'), [], { ...flags, sizeByDegree: true }, 100) <= 1.6, '연결수 배율은 1.6 에서 멈춘다');
+}
+// ── 거르기: 무엇이 남나 ────────────────────────────────────────────────────
+{
+  const { filter } = M;
+  const base = { nodeKinds: new Set(), edgeKinds: new Set(), tags: new Set(), hideOrphans: false, minDegree: 0, fieldName: '', fieldValue: '' };
+  const nodes = [nodeOf('a', { tags: ['주인공'] }), nodeOf('b', { fields: { 출신: '마계' } }), nodeOf('c')];
+  const edges = [{ id: 'e1', from: 'a', to: 'b', kind: 'r' }];
+  const refOf = (r) => r.split(':')[0];
+  eq(filter.visibleNodes(nodes, edges, base, refOf).length, 3, '아무것도 안 끄면 다 남는다');
+  eq(filter.visibleNodes(nodes, edges, { ...base, tags: new Set(['주인공']) }, refOf).length, 2, '꺼 둔 꼬리표는 빠진다');
+  eq(filter.visibleNodes(nodes, edges, { ...base, fieldName: '출신' }, refOf).length, 1, '그 칸이 있는 것만');
+  eq(filter.visibleNodes(nodes, edges, { ...base, fieldName: '출신', fieldValue: '천계' }, refOf).length, 0, '값까지 맞아야');
+  eq(filter.visibleNodes(nodes, edges, { ...base, hideOrphans: true }, refOf).length, 2, '아무 선도 안 닿은 것은 빠진다');
+  // 되풀이 확인: a-b-c 사슬에서 「선 2개 이상」이면 **전부** 빠진다(한 번만 걸러내면 b 가 남는다).
+  const chain = [nodeOf('a'), nodeOf('b'), nodeOf('c')];
+  const chainEdges = [{ id: 'e1', from: 'a', to: 'b', kind: 'r' }, { id: 'e2', from: 'b', to: 'c', kind: 'r' }];
+  eq(filter.visibleNodes(chain, chainEdges, { ...base, minDegree: 2 }, refOf).length, 0, '이웃이 빠지면 그 여파로 또 빠진다');
 }
 // 되돌아가지 않게: **캔버스 크기 자물쇠**.
 // 2865 줄짜리 한 덩이를 조각내는 중이다. 자물쇠가 없으면 기능 두어 개면 도로 부푼다 —
