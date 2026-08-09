@@ -1,0 +1,22 @@
+{
+  "listdiff.tab": "リスト比較",
+  "listdiff.label.a": "リスト A",
+  "listdiff.label.b": "リスト B",
+  "listdiff.ph.list": "1行に1つ",
+  "listdiff.opt.trim": "前後の空白を無視",
+  "listdiff.opt.case": "大文字小文字を区別",
+  "listdiff.tab.both": "両方にある（積集合）",
+  "listdiff.tab.onlyA": "A だけ",
+  "listdiff.tab.onlyB": "B だけ",
+  "listdiff.tab.all": "全部（和集合）",
+  "listdiff.aria.out": "比較の結果",
+  "listdiff.btn.copy": "結果をコピー",
+  "listdiff.status.idle": "順番に関係なく重なる項目を探します。",
+  "listdiff.stat.both": "両方",
+  "listdiff.stat.all": "全部",
+  "listdiff.copy.done": "結果をコピーしました",
+  "listdiff.value.count": "{n}個",
+  "listdiff.say.counts": "A {a}行 · B {b}行 — 重複は1つとして数えます。",
+  "listdiff.sample.a": "りんご\nバナナ\nぶどう\nいちご",
+  "listdiff.sample.b": "バナナ\nいちご\nすいか"
+}

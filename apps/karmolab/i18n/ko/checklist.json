@@ -1,0 +1,15 @@
+{
+  "checklist.ph.title": "목록 이름 (예: 여행 준비물)",
+  "checklist.ph.items": "여권&#10;충전기&#10;상비약",
+  "checklist.label.items": "항목 — 한 줄에 하나",
+  "checklist.btn.share": "공유 주소 복사",
+  "checklist.btn.reset": "체크 전부 풀기",
+  "checklist.status.idle": "내용이 주소에 담깁니다 — 서버에 저장되지 않고, 링크를 잃으면 사라집니다.",
+  "checklist.stat.left": "남은 항목",
+  "checklist.stat.done": "끝낸 항목",
+  "checklist.stat.progress": "진행",
+  "checklist.tab": "체크리스트",
+  "checklist.copy.done": "공유 주소를 복사했어요",
+  "checklist.sample": "여권\n충전기\n상비약",
+  "checklist.value.count": "{n}개"
+}

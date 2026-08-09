@@ -7,7 +7,12 @@
  *
  * 표는 「오늘의 하나 맞히기」가 모아 둔 것을 쓴다(data/higher-<주제>.json 으로 추려 둔 것).
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   interface Item {
     n: string;
     i: string;
@@ -25,42 +30,45 @@
     items: Item[];
   }
 
-  const BOARDS: Array<{ id: string; title: string; emoji: string }> = [
-    { id: 'pokemon', title: '포켓몬', emoji: '🔴' },
-    { id: 'lol', title: '롤 챔피언', emoji: '⚔️' },
-    { id: 'genshin', title: '원신 캐릭터', emoji: '🌠' }
+  /* 판 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
+  const boards = (): Array<{ id: string; title: string; emoji: string }> => [
+    { id: 'pokemon', title: t('higher.board.pokemon'), emoji: '🔴' },
+    { id: 'lol', title: t('higher.board.lol'), emoji: '⚔️' },
+    { id: 'genshin', title: t('higher.board.genshin'), emoji: '🌠' }
   ];
   const BEST_KEY = 'karmolab_higher_best';
 
   Toolbox.register({
     id: 'higher',
-    title: '높은 쪽 고르기',
+    title: t('widgets.higher.title', undefined, "높은 쪽 고르기"),
     category: 'tool',
-    desc: '둘 중 어느 쪽이 더 큰지만 고르는 연승 놀이. 포켓몬·롤·원신 표로 겨룹니다',
+    desc: t('widgets-desc.higher.desc', undefined, "둘 중 어느 쪽이 더 큰지만 고르는 연승 놀이. 포켓몬·롤·원신 표로 겨룹니다"),
     layout: 'wide',
     icon:
       '<path d="M4 18l5-6 4 3 7-9" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6h5v5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '놀기',
+        label: t('higher.tab', undefined, "놀기"),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset?.('tool_run', { msg: '한 번 틀리면 끝이에요. 조심조심.' });
+          void loadNamespace('higher').then(function () {
+
+          Mdd.linePreset?.('tool_run', { msg: t('higher.mdd') });
           container.innerHTML = `
             <div class="field-group">
-              <div class="tool-sublabel">무엇으로 겨룰까요</div>
-              <div id="hiBoards" class="hi-chips" role="group" aria-label="판 고르기"></div>
+              <div class="tool-sublabel">${esc(t('higher.label.pickBoard'))}</div>
+              <div id="hiBoards" class="hi-chips" role="group" aria-label="${esc(t('higher.aria.boards'))}"></div>
             </div>
-            <p class="hi-ask" id="hiAsk">불러오는 중…</p>
+            <p class="hi-ask" id="hiAsk">${esc(t('higher.say.loading'))}</p>
             <div class="hi-pair">
               <button class="hi-side" id="hiA" type="button"></button>
               <button class="hi-side" id="hiB" type="button"></button>
             </div>
-            <p class="hi-score"><span>연승 <b id="hiStreak">0</b></span><span>최고 <b id="hiBest">0</b></span></p>
+            <p class="hi-score"><span>${esc(t('higher.stat.streak'))} <b id="hiStreak">0</b></span><span>${esc(t('higher.stat.best'))} <b id="hiBest">0</b></span></p>
             <p class="tool-status" id="hiMsg" aria-live="polite"></p>
             <div id="hiAgain" style="display:none; gap:6px; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="hiRetry">다시</button>
-              <button class="btn btn-ghost" id="hiShare">결과 복사</button>
+              <button class="btn btn-primary" id="hiRetry">${esc(t('higher.btn.retry'))}</button>
+              <button class="btn btn-ghost" id="hiShare">${esc(t('higher.btn.share'))}</button>
             </div>
           `;
 
@@ -133,7 +141,7 @@
               right = pick(pool);
               tries++;
             } while ((right === left || right.v[field.key] === left.v[field.key]) && tries < 50);
-            $('hiAsk').innerHTML = `<b>${field.label}</b> — 어느 쪽이 더 클까요?`;
+            $('hiAsk').innerHTML = t('higher.ask', { field: `<b>${esc(field.label)}</b>` });
             paintSide($('hiA'), left, true);
             paintSide($('hiB'), right!, false);
             $('hiMsg').textContent = '';
@@ -150,13 +158,13 @@
             if (win) {
               streak++;
               $('hiStreak').textContent = String(streak);
-              $('hiMsg').textContent = '맞았습니다';
+              $('hiMsg').textContent = t('higher.say.right');
               setTimeout(() => {
                 left = right!.v[field!.key] > left!.v[field!.key] ? right : left;
                 nextRound(true);
               }, 1100);
             } else {
-              $('hiMsg').textContent = `아깝습니다 — ${streak}연승에서 끝났습니다`;
+              $('hiMsg').textContent = t('higher.say.lost', { n: streak });
               $('hiBest').textContent = String(bestOf(boardId, streak));
               $('hiAgain').style.display = 'flex';
             }
@@ -176,11 +184,11 @@
                 nextRound(false);
               })
               .catch(() => {
-                $('hiAsk').textContent = '표를 못 불러왔습니다. 잠시 뒤 다시 열어 주세요.';
+                $('hiAsk').textContent = t('higher.err.board');
               });
           }
 
-          BOARDS.forEach((b, i) => {
+          boards().forEach((b, i) => {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.textContent = `${b.emoji} ${b.title}`;
@@ -202,16 +210,17 @@
             nextRound(false);
           });
           $('hiShare').addEventListener('click', () => {
-            const b = BOARDS.filter((x) => x.id === boardId)[0];
-            const text = `KarmoLab 높은 쪽 고르기 — ${b ? b.title : ''} / ${field ? field.label : ''}\n${streak}연승 (최고 ${bestOf(
+            const b = boards().filter((x) => x.id === boardId)[0];
+            const text = `${t('higher.share.head', { board: b ? b.title : '', field: field ? field.label : '' })}\n${streak}연승 (최고 ${bestOf(
               boardId
             )})\nblog.mascari4615.com/karmolab/t/higher/`;
             void navigator.clipboard.writeText(text).then(() => {
-              $('hiShare').textContent = '복사했습니다';
+              $('hiShare').textContent = t('higher.copy.done');
             });
           });
 
-          load(BOARDS[0].id);
+          load(boards()[0].id);
+                  });
         }
       }
     ]

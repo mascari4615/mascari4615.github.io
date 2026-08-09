@@ -1,0 +1,15 @@
+{
+  "checklist.tab": "Checklist",
+  "checklist.ph.title": "List name (e.g. packing for a trip)",
+  "checklist.label.items": "Items — one per line",
+  "checklist.ph.items": "passport&#10;charger&#10;medicine",
+  "checklist.sample": "passport\ncharger\nmedicine",
+  "checklist.btn.share": "Copy the sharing link",
+  "checklist.btn.reset": "Clear every check",
+  "checklist.status.idle": "The contents live in the URL — nothing is stored on a server, and losing the link loses the list.",
+  "checklist.stat.left": "Left",
+  "checklist.stat.done": "Done",
+  "checklist.stat.progress": "Progress",
+  "checklist.copy.done": "Sharing link copied",
+  "checklist.value.count": "{n}"
+}

@@ -1,0 +1,15 @@
+{
+  "caseconv.label.in": "이름 — 여러 줄이면 줄마다 변환합니다",
+  "caseconv.status.idle": "어떤 표기법으로 써도 알아서 낱말로 쪼갭니다.",
+  "caseconv.tab": "변환",
+  "caseconv.copy.done": "복사했어요",
+  "caseconv.note.camel": "자바스크립트 변수·함수",
+  "caseconv.note.pascal": "클래스·타입·컴포넌트",
+  "caseconv.note.snake": "파이썬·DB 컬럼",
+  "caseconv.note.screaming": "상수·환경 변수",
+  "caseconv.note.kebab": "URL·CSS 클래스·파일명",
+  "caseconv.note.dot": "설정 키·네임스페이스",
+  "caseconv.note.title": "제목·라벨",
+  "caseconv.note.lower": "문장",
+  "caseconv.say.lines": "{n}줄 · 줄을 눌러 복사하세요."
+}

@@ -1,0 +1,15 @@
+{
+  "checklist.tab": "チェックリスト",
+  "checklist.ph.title": "リスト名（例: 旅行の持ち物）",
+  "checklist.label.items": "項目 — 1行に1つ",
+  "checklist.ph.items": "パスポート&#10;充電器&#10;常備薬",
+  "checklist.sample": "パスポート\n充電器\n常備薬",
+  "checklist.btn.share": "共有リンクをコピー",
+  "checklist.btn.reset": "チェックを全部外す",
+  "checklist.status.idle": "内容はアドレスの中に入ります — サーバーには保存されず、リンクをなくすと消えます。",
+  "checklist.stat.left": "残り",
+  "checklist.stat.done": "終わった項目",
+  "checklist.stat.progress": "進み具合",
+  "checklist.copy.done": "共有リンクをコピーしました",
+  "checklist.value.count": "{n}個"
+}

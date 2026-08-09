@@ -1,0 +1,20 @@
+{
+  "higher.aria.boards": "판 고르기",
+  "higher.label.pickBoard": "무엇으로 겨룰까요",
+  "higher.say.loading": "불러오는 중…",
+  "higher.stat.streak": "연승",
+  "higher.stat.best": "최고",
+  "higher.btn.retry": "다시",
+  "higher.btn.share": "결과 복사",
+  "higher.board.pokemon": "포켓몬",
+  "higher.board.lol": "롤 챔피언",
+  "higher.board.genshin": "원신 캐릭터",
+  "higher.tab": "놀기",
+  "higher.mdd": "한 번 틀리면 끝이에요. 조심조심.",
+  "higher.say.right": "맞았습니다",
+  "higher.err.board": "표를 못 불러왔습니다. 잠시 뒤 다시 열어 주세요.",
+  "higher.copy.done": "복사했습니다",
+  "higher.ask": "{field} — 어느 쪽이 더 클까요?",
+  "higher.say.lost": "아깝습니다 — {n}연승에서 끝났습니다",
+  "higher.share.head": "KarmoLab 높은 쪽 고르기 — {board} / {field}"
+}

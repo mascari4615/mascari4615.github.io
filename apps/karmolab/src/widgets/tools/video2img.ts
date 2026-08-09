@@ -13,8 +13,12 @@ import { fileSize as size, mmss } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
 
 import { seekTo } from './shared/video';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   interface Shot {
     time: number;
     blob: Blob;
@@ -25,20 +29,22 @@ import { seekTo } from './shared/video';
     id: 'video2img',
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['video/*'],
-    title: '영상에서 사진 뽑기',
+    title: t('widgets.video2img.title', undefined, "영상에서 사진 뽑기"),
     category: 'tool',
-    desc: '영상의 한 장면이나 일정 간격 장면을 원본 화질로 뽑습니다. 영상이 브라우저를 벗어나지 않습니다',
+    desc: t('widgets-desc.video2img.desc', undefined, "영상의 한 장면이나 일정 간격 장면을 원본 화질로 뽑습니다. 영상이 브라우저를 벗어나지 않습니다"),
     layout: 'wide',
     icon: '<rect x="3" y="5" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M15 9l6-3v9l-6-3z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><rect x="7" y="12" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="var(--bg, #111)"/><path d="M7 18l3-3 2 2 2.5-2.5L19 18" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '사진 뽑기',
+        label: t('video2img.tab', undefined, "사진 뽑기"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('video2img').then(function () {
+
           container.innerHTML = `
             <div class="tool-drop" id="viDrop">
               <input type="file" id="viFile" accept="video/*" hidden>
-              영상을 끌어다 놓거나 눌러서 고르세요
+              ${esc(t('video2img.drop'))}
             </div>
 
             <div id="viEditor" style="display:none; margin-top:var(--space-lg);">
@@ -47,32 +53,32 @@ import { seekTo } from './shared/video';
               <div class="field-group" style="margin-top:var(--space-lg);">
                 <div class="tool-grid-2">
                   <div>
-                    <div class="tool-sublabel">형식</div>
-                    <select id="viFormat" aria-label="저장 형식">
-                      <option value="image/png">PNG — 글자·도형이 또렷함</option>
-                      <option value="image/jpeg">JPG — 사진에 작음</option>
-                      <option value="image/webp">WebP — 가장 작음</option>
+                    <div class="tool-sublabel">${esc(t('video2img.label.format'))}</div>
+                    <select id="viFormat" aria-label="${esc(t('video2img.aria.format'))}">
+                      <option value="image/png">${esc(t('video2img.format.png'))}</option>
+                      <option value="image/jpeg">${esc(t('video2img.format.jpg'))}</option>
+                      <option value="image/webp">${esc(t('video2img.format.webp'))}</option>
                     </select>
                   </div>
                   <div>
-                    <div class="tool-sublabel">몇 초마다 <span id="viEveryVal" class="range-value">2.0초</span></div>
-                    <input type="range" id="viEvery" aria-label="몇 초마다" min="5" max="300" step="5" value="20">
+                    <div class="tool-sublabel">${esc(t('video2img.label.every'))} <span id="viEveryVal" class="range-value">${esc(t('video2img.value.every'))}</span></div>
+                    <input type="range" id="viEvery" aria-label="${esc(t('video2img.label.every'))}" min="5" max="300" step="5" value="20">
                   </div>
                 </div>
               </div>
 
               <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-                <button class="btn btn-primary" id="viNow">지금 이 장면 뽑기</button>
-                <button class="btn btn-ghost" id="viEvery2">일정 간격으로 뽑기</button>
-                <button class="btn btn-ghost" id="viZip" disabled>ZIP 으로 받기</button>
-                <button class="btn btn-ghost" id="viClear" disabled>비우기</button>
+                <button class="btn btn-primary" id="viNow">${esc(t('video2img.btn.now'))}</button>
+                <button class="btn btn-ghost" id="viEvery2">${esc(t('video2img.btn.every'))}</button>
+                <button class="btn btn-ghost" id="viZip" disabled>${esc(t('video2img.btn.zip'))}</button>
+                <button class="btn btn-ghost" id="viClear" disabled>${esc(t('video2img.btn.clear'))}</button>
               </div>
 
               <div class="cc-stats" id="viStats"></div>
               <div id="viGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; margin-top:var(--space-lg);"></div>
             </div>
 
-            <div class="tool-status" id="viStatus">영상은 브라우저 안에서만 열립니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="viStatus">${esc(t('video2img.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -107,8 +113,8 @@ import { seekTo } from './shared/video';
             grid.innerHTML = shots
               .map(
                 (s, i) =>
-                  `<figure style="margin:0; cursor:pointer;" data-i="${i}" title="눌러서 받기">
-                     <img src="${s.url}" alt="${mmss(s.time)} 장면" style="width:100%; border-radius:6px; display:block; background:#000;">
+                  `<figure style="margin:0; cursor:pointer;" data-i="${i}" title="${esc(t('video2img.row.download'))}">
+                     <img src="${s.url}" alt="${esc(t('video2img.alt.shot', { at: mmss(s.time) }))}" style="width:100%; border-radius:6px; display:block; background:#000;">
                      <figcaption class="tool-list-dim" style="text-align:center; padding-top:4px;">${mmss(s.time)} · ${size(s.blob.size)}</figcaption>
                    </figure>`
               )
@@ -126,7 +132,7 @@ import { seekTo } from './shared/video';
             clearBtn.disabled = shots.length === 0;
             if (shots.length) {
               const total = shots.reduce((a, s) => a + s.blob.size, 0);
-              stats.innerHTML = stat('뽑은 장', `${shots.length}장`, true) + stat('합계 용량', size(total)) + stat('영상 길이', mmss(duration));
+              stats.innerHTML = stat(t('video2img.stat.count'), t('video2img.value.shots', { n: shots.length }), true) + stat(t('video2img.stat.size'), size(total)) + stat(t('video2img.stat.duration'), mmss(duration));
             } else {
               stats.innerHTML = '';
             }
@@ -138,12 +144,12 @@ import { seekTo } from './shared/video';
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
-            if (!ctx) throw new Error('canvas 없음');
+            if (!ctx) throw new Error(t('video2img.err.canvas'));
             await seekTo(video, time);
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const blob = await new Promise<Blob>((resolve, reject) => {
               canvas.toBlob(
-                (b) => (b ? resolve(b) : reject(new Error('사진으로 못 바꿨어요'))),
+                (b) => (b ? resolve(b) : reject(new Error(t('video2img.err.shot')))),
                 $<HTMLSelectElement>('#viFormat').value,
                 0.92
               );
@@ -161,27 +167,33 @@ import { seekTo } from './shared/video';
               duration = video.duration;
               editor.style.display = '';
               render();
-              say(`${f.name} · ${mmss(duration)} · ${video.videoWidth}×${video.videoHeight} — 장면을 고르고 뽑으세요.`, 'ok');
+              say(
+              t('video2img.say.loaded', {
+                name: f.name,
+                len: mmss(duration),
+                w: video.videoWidth,
+                h: video.videoHeight
+              }), 'ok');
             };
-            video.onerror = () => say('이 영상은 브라우저가 열지 못했어요. mp4·webm 은 대체로 됩니다.', 'error');
+            video.onerror = () => say(t('video2img.err.open'), 'error');
           }
 
           async function grabEvery(): Promise<void> {
             const every = parseInt(everyEl.value, 10) / 10;
             const count = Math.floor(duration / every) + 1;
             if (count > 200) {
-              say('장수가 너무 많아요. 간격을 넓혀 주세요.', 'error');
+              say(t('video2img.err.tooMany'), 'error');
               return;
             }
             video.pause();
             shots.forEach((s) => URL.revokeObjectURL(s.url));
             shots = [];
             for (let i = 0; i < count; i++) {
-              say(`뽑는 중… ${i + 1}/${count}`);
+              say(t('video2img.say.working', { i: i + 1, n: count }));
               shots.push(await grab(i * every));
             }
             render();
-            say(`${shots.length}장 뽑았어요. 눌러서 하나씩 받거나 ZIP 으로 받으세요.`, 'ok');
+            say(t('video2img.say.done', { n: shots.length }), 'ok');
             Toolbox.trackUse?.('frames');
           }
 
@@ -209,7 +221,7 @@ import { seekTo } from './shared/video';
           // 파일을 바로 붙여넣는 것이 잦다
           acceptPastedFiles(container, (files) => { load(files[0]); }, (f: File) => f.type.startsWith('video/'));
           everyEl.addEventListener('input', () => {
-            $<HTMLElement>('#viEveryVal').textContent = (parseInt(everyEl.value, 10) / 10).toFixed(1) + '초';
+            $<HTMLElement>('#viEveryVal').textContent = (parseInt(everyEl.value, 10) / 10).toFixed(1) + t('video2img.unit.sec');
           });
 
           $<HTMLButtonElement>('#viNow').onclick = () => {
@@ -218,13 +230,13 @@ import { seekTo } from './shared/video';
               .then((s) => {
                 shots.push(s);
                 render();
-                say(`${mmss(s.time)} 장면을 뽑았어요. 눌러서 받으세요.`, 'ok');
+                say(t('video2img.say.one', { at: mmss(s.time) }), 'ok');
                 Toolbox.trackUse?.('frame');
               })
-              .catch((err: Error) => say('뽑는 중 문제가 생겼어요: ' + err.message, 'error'));
+              .catch((err: Error) => say(t('video2img.err.run') + err.message, 'error'));
           };
           $<HTMLButtonElement>('#viEvery2').onclick = () => {
-            void grabEvery().catch((err: Error) => say('뽑는 중 문제가 생겼어요: ' + err.message, 'error'));
+            void grabEvery().catch((err: Error) => say(t('video2img.err.run') + err.message, 'error'));
           };
           zipBtn.onclick = () => {
             void (async () => {
@@ -236,18 +248,19 @@ import { seekTo } from './shared/video';
               const blob = await z.generateAsync({ type: 'blob' });
               const a = document.createElement('a');
               a.href = URL.createObjectURL(blob);
-              a.download = fileName.replace(/\.[^.]+$/, '') + '-사진.zip';
+              a.download = fileName.replace(/\.[^.]+$/, '') + t('video2img.file.zip');
               a.click();
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-              say(`${shots.length}장을 ZIP 으로 받았어요.`, 'ok');
-            })().catch((err: Error) => say('ZIP 으로 묶는 중 문제가 생겼어요: ' + err.message, 'error'));
+              say(t('video2img.say.zipped', { n: shots.length }), 'ok');
+            })().catch((err: Error) => say(t('video2img.err.zip') + err.message, 'error'));
           };
           clearBtn.onclick = () => {
             shots.forEach((s) => URL.revokeObjectURL(s.url));
             shots = [];
             render();
-            say('비웠어요.');
+            say(t('video2img.say.cleared'));
           };
+                  });
         }
       }
     ]

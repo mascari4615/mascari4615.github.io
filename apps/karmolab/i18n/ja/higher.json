@@ -1,0 +1,20 @@
+{
+  "higher.tab": "遊ぶ",
+  "higher.mdd": "一度間違えたら終わりです。慎重に。",
+  "higher.label.pickBoard": "何で勝負しますか",
+  "higher.aria.boards": "盤を選ぶ",
+  "higher.board.pokemon": "ポケモン",
+  "higher.board.lol": "LoL チャンピオン",
+  "higher.board.genshin": "原神キャラクター",
+  "higher.say.loading": "読み込み中…",
+  "higher.stat.streak": "連勝",
+  "higher.stat.best": "最高",
+  "higher.btn.retry": "もう一度",
+  "higher.btn.share": "結果をコピー",
+  "higher.say.right": "正解",
+  "higher.err.board": "盤を読み込めませんでした。少ししてから開いてください。",
+  "higher.copy.done": "コピーしました",
+  "higher.ask": "{field} — どちらが大きい？",
+  "higher.say.lost": "惜しい — {n}連勝で終わりました",
+  "higher.share.head": "KarmoLab 大きい方あて — {board} / {field}"
+}

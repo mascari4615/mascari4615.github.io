@@ -3,7 +3,12 @@
  * HEX/RGB/HSL 상호 변환 + 대비비(WCAG) 계산 + 조화 팔레트.
  * 내부 정본은 HSL 하나로 두고 표기만 바꾼다 (표기별 상태를 따로 들면 반올림 왕복에서 색이 흐른다).
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   interface RGB {
     r: number;
     g: number;
@@ -84,45 +89,47 @@
 
   Toolbox.register({
     id: 'colorconv',
-    title: '색상 변환',
+    title: t('widgets.colorconv.title', undefined, "색상 변환"),
     category: 'tool',
-    desc: 'HEX·RGB·HSL·CMYK 를 서로 변환하고, 대비비(가독성)와 조화 팔레트를 함께 봅니다',
+    desc: t('widgets-desc.colorconv.desc', undefined, "HEX·RGB·HSL·CMYK 를 서로 변환하고, 대비비(가독성)와 조화 팔레트를 함께 봅니다"),
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 3a9 9 0 0 1 0 18 4.5 4.5 0 0 1 0-9 4.5 4.5 0 0 0 0-9z" fill="currentColor" opacity="0.5"/>',
     tabs: [
       {
         id: 'app',
-        label: '색상',
+        label: t('colorconv.tab', undefined, "색상"),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '색은 숫자로도 예뻐요.' });
+          void loadNamespace('colorconv').then(function () {
+
+          Mdd.linePreset('tool_run', { msg: t('colorconv.mdd') });
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">색 선택</label>
+              <label class="field-label">${esc(t('colorconv.aria.picker'))}</label>
               <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                <input type="color" id="ccColor" aria-label="색 선택" value="#5865f2" style="width:64px; height:44px; padding:2px; background:var(--bg-secondary); border:1px solid var(--border);">
-                <input type="text" id="ccHex" aria-label="색 코드 (HEX)" class="mono-input" value="#5865F2" style="flex:1; min-width:140px;">
-                <button class="btn btn-ghost" id="ccPick" style="display:none;">화면에서 집기</button>
-                <button class="btn btn-ghost" id="ccRandom">랜덤</button>
+                <input type="color" id="ccColor" aria-label="${esc(t('colorconv.aria.picker'))}" value="#5865f2" style="width:64px; height:44px; padding:2px; background:var(--bg-secondary); border:1px solid var(--border);">
+                <input type="text" id="ccHex" aria-label="${esc(t('colorconv.aria.hex'))}" class="mono-input" value="#5865F2" style="flex:1; min-width:140px;">
+                <button class="btn btn-ghost" id="ccPick" style="display:none;">${esc(t('colorconv.btn.pick'))}</button>
+                <button class="btn btn-ghost" id="ccRandom">${esc(t('colorconv.btn.random'))}</button>
               </div>
             </div>
 
             <div class="field-group">
-              <label class="field-label">표기</label>
+              <label class="field-label">${esc(t('colorconv.label.formats'))}</label>
               <div id="ccFormats" class="tool-list"></div>
             </div>
 
             <div class="field-group">
-              <label class="field-label">가독성 (WCAG 대비비)</label>
+              <label class="field-label">${esc(t('colorconv.label.contrast'))}</label>
               <div id="ccContrast" class="tool-grid-2"></div>
             </div>
 
             <div class="field-group">
-              <label class="field-label">조화 팔레트 — 클릭하면 그 색으로 이동</label>
+              <label class="field-label">${esc(t('colorconv.label.harmony'))}</label>
               <div id="ccPalette"></div>
             </div>
 
             <div class="field-group">
-              <label class="field-label">밝기 단계</label>
+              <label class="field-label">${esc(t('colorconv.label.shades'))}</label>
               <div id="ccShades" class="cc-swatch-row"></div>
             </div>
           `;
@@ -165,18 +172,18 @@
               ['RGB', `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`],
               ['HSL', `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`],
               ['CMYK', rgbToCmyk(rgb)],
-              ['CSS 변수', `--color: ${norm};`],
+              [t('colorconv.label.cssVar'), `--color: ${norm};`],
               ['Android', `0xFF${norm.slice(1).toUpperCase()}`]
             ];
             formats.innerHTML = rows
               .map(
                 ([k, v]) =>
-                  `<div class="tool-list-row cc-copy-row" data-copy="${v}"><span class="tool-list-key">${k}</span><span class="tool-list-val">${v}</span><span class="tool-list-dim">복사</span></div>`
+                  `<div class="tool-list-row cc-copy-row" data-copy="${v}"><span class="tool-list-key">${k}</span><span class="tool-list-val">${v}</span><span class="tool-list-dim">${esc(t('colorconv.btn.copy'))}</span></div>`
               )
               .join('');
             container.querySelectorAll('.cc-copy-row').forEach((row) => {
               (row as HTMLElement).onclick = async () => {
-                await Toolbox.copyText?.((row as HTMLElement).dataset.copy || '', { message: '복사했어요' });
+                await Toolbox.copyText?.((row as HTMLElement).dataset.copy || '', { message: t('colorconv.copy.done') });
               };
             });
 
@@ -185,26 +192,26 @@
             const cw = contrast(rgb, white);
             const cb = contrast(rgb, black);
             const verdict = (v: number): string =>
-              v >= 7 ? 'AAA (본문 OK)' : v >= 4.5 ? 'AA (본문 OK)' : v >= 3 ? 'AA 큰 글자만' : '기준 미달';
+              v >= 7 ? t('colorconv.grade.aaa') : v >= 4.5 ? t('colorconv.grade.aa') : v >= 3 ? t('colorconv.grade.aaLarge') : t('colorconv.grade.fail');
             contrastEl.innerHTML = `
               <div class="cc-contrast" style="background:${norm}; color:#fff;">
-                <div style="font-weight:700;">흰 글자 ${cw.toFixed(2)} : 1</div>
+                <div style="font-weight:700;">${esc(t('colorconv.value.onWhite', { r: cw.toFixed(2) }))}</div>
                 <div style="font-size:var(--font-size-xs); opacity:0.85;">${verdict(cw)}</div>
               </div>
               <div class="cc-contrast" style="background:${norm}; color:#000;">
-                <div style="font-weight:700;">검은 글자 ${cb.toFixed(2)} : 1</div>
+                <div style="font-weight:700;">${esc(t('colorconv.value.onBlack', { r: cb.toFixed(2) }))}</div>
                 <div style="font-size:var(--font-size-xs); opacity:0.85;">${verdict(cb)}</div>
               </div>`;
 
             const rot = (deg: number): string => toHex(hslToRgb(hsl.h + deg, hsl.s, hsl.l));
             paletteEl.innerHTML = `
               <div class="cc-swatch-row">${swatches([
-                { hex: norm, label: '기준' },
-                { hex: rot(180), label: '보색' },
-                { hex: rot(120), label: '삼색 1' },
-                { hex: rot(240), label: '삼색 2' },
-                { hex: rot(30), label: '유사 +30°' },
-                { hex: rot(-30), label: '유사 -30°' }
+                { hex: norm, label: t('colorconv.label.grade') },
+                { hex: rot(180), label: t('colorconv.harmony.complement') },
+                { hex: rot(120), label: t('colorconv.harmony.triad1') },
+                { hex: rot(240), label: t('colorconv.harmony.triad2') },
+                { hex: rot(30), label: t('colorconv.harmony.analog30') },
+                { hex: rot(-30), label: t('colorconv.harmony.analogm30') }
               ])}</div>`;
 
             shadesEl.innerHTML = swatches(
@@ -253,6 +260,7 @@
           };
 
           render('#5865f2');
+                  });
         }
       }
     ]

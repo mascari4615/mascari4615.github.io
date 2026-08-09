@@ -1,0 +1,22 @@
+{
+  "listdiff.tab": "Compare lists",
+  "listdiff.label.a": "List A",
+  "listdiff.label.b": "List B",
+  "listdiff.ph.list": "one per line",
+  "listdiff.opt.trim": "Ignore surrounding spaces",
+  "listdiff.opt.case": "Match case",
+  "listdiff.tab.both": "In both (intersection)",
+  "listdiff.tab.onlyA": "Only in A",
+  "listdiff.tab.onlyB": "Only in B",
+  "listdiff.tab.all": "Everything (union)",
+  "listdiff.aria.out": "Comparison result",
+  "listdiff.btn.copy": "Copy the result",
+  "listdiff.status.idle": "Finds the overlap regardless of order.",
+  "listdiff.stat.both": "In both",
+  "listdiff.stat.all": "Everything",
+  "listdiff.copy.done": "Result copied",
+  "listdiff.value.count": "{n}",
+  "listdiff.say.counts": "A {a} lines · B {b} lines — duplicates count once.",
+  "listdiff.sample.a": "apple\nbanana\ngrape\nstrawberry",
+  "listdiff.sample.b": "banana\nstrawberry\nwatermelon"
+}
