@@ -75,6 +75,13 @@ jobs:
       - name: Install karmolab-ai deps
         run: cd packages/karmolab-ai && npm ci
 
+      # `apps/karmolab` 이 `file:../../packages/badapple` 로 물고 있다. 그 패키지는 **타입을
+      # 빌드해야 생긴다** — CI 는 새 체크아웃이라 `dist` 가 없고, 그러면 typecheck 이
+      # 「모듈을 못 찾겠다」로 선다. 로컬에는 예전 `dist` 가 남아 있어 이 사고가 안 보였다
+      # (전형적인 「내 기계에선 초록」). karmolab-ai 와 같은 대우를 해 준다.
+      - name: Build badapple (apps/karmolab 이 타입을 물고 있다)
+        run: cd packages/badapple && npm ci && npm run build
+
       - name: Install blog deps
         run: cd apps/blog && npm ci
 
@@ -111,6 +118,13 @@ jobs:
 
       - name: Install karmolab-ai deps
         run: cd packages/karmolab-ai && npm ci
+
+      # `apps/karmolab` 이 `file:../../packages/badapple` 로 물고 있다. 그 패키지는 **타입을
+      # 빌드해야 생긴다** — CI 는 새 체크아웃이라 `dist` 가 없고, 그러면 typecheck 이
+      # 「모듈을 못 찾겠다」로 선다. 로컬에는 예전 `dist` 가 남아 있어 이 사고가 안 보였다
+      # (전형적인 「내 기계에선 초록」). karmolab-ai 와 같은 대우를 해 준다.
+      - name: Build badapple (apps/karmolab 이 타입을 물고 있다)
+        run: cd packages/badapple && npm ci && npm run build
 
       - name: Build karmolab-ai (karmolab build 가 이 dist 를 불러온다)
         run: cd packages/karmolab-ai && npm run build
