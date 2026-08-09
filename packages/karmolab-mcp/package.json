@@ -3,13 +3,44 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "KarmoLab tools as an MCP server — the calculations our site does, callable by an AI agent. Zero dependencies.",
+  "description": "MCP server for the things LLMs get wrong: exact hashes, real randomness, and Korean rules (ages, business registration numbers, substitute holidays, Hangul). No dependencies.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "korea",
+    "korean",
+    "hash",
+    "uuid",
+    "holidays",
+    "hangul",
+    "converter",
+    "tools"
+  ],
+  "license": "MIT",
+  "author": "Mascari4615",
+  "homepage": "https://blog.mascari4615.com/karmolab/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mascari4615/Mascari4615.github.io.git",
+    "directory": "packages/karmolab-mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/Mascari4615/Mascari4615.github.io/issues"
+  },
   "bin": {
     "karmolab-mcp": "./src/server.mjs"
   },
-  "files": ["src", "dist", "README.md"],
+  "files": [
+    "src",
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "node build.mjs",
-    "test": "node ../../apps/karmolab/scripts/smoke-mcp.mjs"
+    "test": "node ../../apps/karmolab/scripts/smoke-mcp.mjs",
+    "prepublishOnly": "node build.mjs && node ../../apps/karmolab/scripts/smoke-mcp.mjs"
   }
 }
