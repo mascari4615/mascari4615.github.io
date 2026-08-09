@@ -68,6 +68,14 @@ await step('캔버스가 쓸 만한 크기다', async () => {
     { timeout: 8000 }
   );
 });
+await step('빈 화면 안내가 가로로 읽힌다 (세로로 쪼개지지 않는다)', async () => {
+  // 실서비스 첫 화면이 **한 글자씩 세로로** 쪼개져 있었다(안내 조각들이 flex 아이템이 됐다).
+  // 글 상자가 카드 한 장보다 넓은지로 잡는다 — 눈으로만 보면 다음에 또 놓친다.
+  const box = await page.locator('.km-empty-in').boundingBox();
+  if (!box) throw new Error('빈 화면 안내가 없다');
+  if (box.width < 240) throw new Error(`안내 글 상자가 너무 좁다(${Math.round(box.width)}px) — 세로로 쪼개진 것`);
+  if (box.height > 400) throw new Error(`안내 글 상자가 너무 높다(${Math.round(box.height)}px) — 세로로 쪼개진 것`);
+});
 await step('빈 곳 더블클릭 → 노드 생김', async () => {
   const box = await page.locator('.km-canvas').boundingBox();
   await page.mouse.dblclick(box.x + box.width * 0.3, box.y + box.height * 0.35);

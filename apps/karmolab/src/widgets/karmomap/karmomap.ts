@@ -181,9 +181,12 @@ import {
     .km-swatch { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
     .km-side input[type=range] { width:100%; }
     .km-empty [data-km="sample"] { pointer-events:auto; margin:3px; }
+    /* ★ 안내 글은 **반드시 블록 하나로 감싼다**. flex 컨테이너에 글·<b>·<br>·버튼을 그대로 두면
+       조각 하나하나가 flex 아이템이 되어 세로로 한 글자씩 쪼개진다 — 실서비스 첫 화면이 그랬다. */
     .km-empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-      color:var(--text-tertiary); font-size:var(--font-size-sm); text-align:center; pointer-events:none;
-      padding:24px; line-height:1.7; }
+      pointer-events:none; padding:24px; }
+    .km-empty-in { max-width:520px; color:var(--text-tertiary); font-size:var(--font-size-sm);
+      text-align:center; line-height:1.7; }
     .km-linking { outline:2px dashed var(--accent); outline-offset:-2px; }
     /* 발표 모드 — 그림을 가리지 않게 아래에만 얹는다. */
     .km-stage { position:absolute; left:0; right:0; bottom:0; padding:14px 16px;
@@ -633,7 +636,7 @@ import {
       const el = (existing as HTMLElement | null) ?? document.createElement('div');
       el.className = 'km-empty';
       const samples = PACKS.map((pk) => ({ pk, s: sampleFor(pk.id) })).filter((x) => x.s);
-      el.innerHTML =
+      el.innerHTML = '<div class="km-empty-in">' +
         '인물·장소·사건·카드·개념 — <b>무엇이든 한 판에</b> 놓을 수 있어요.<br><b>빈 곳을 두 번 클릭</b>하면 그 자리에 노드가 생깁니다.<br>' +
         '노드 오른쪽의 <b>점을 끌어다</b> 다른 노드에 놓으면 선이 이어져요.<br>' +
         '<span style="opacity:.75">키보드: <b>Tab</b> 다음 노드 · <b>방향키</b> 옮기기 · <b>Enter</b> 이름 · <b>?</b> 전체 도움말</span>' +
@@ -642,7 +645,8 @@ import {
           : '<br><br><span style="opacity:.75">예시로 시작하기</span><br>' +
             samples
               .map((x) => `<button class="btn btn-ghost km-sample" data-km="sample" data-key="${x.pk.id}">${x.pk.icon} ${escapeHtml(x.s?.title ?? '')}</button>`)
-              .join(' '));
+              .join(' ')) +
+        '</div>';
       // 안내는 클릭을 통과시키지만(pointer-events:none) 버튼만은 눌려야 한다.
       el.querySelectorAll('[data-km="sample"]').forEach((btn) => {
         btn.addEventListener('click', (ev) => {
