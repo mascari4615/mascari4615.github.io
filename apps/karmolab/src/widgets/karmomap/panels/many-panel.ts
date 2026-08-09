@@ -28,6 +28,14 @@ export function renderManyPanel(ctx: PanelCtx): void {
       </select>
     </div>
     <div class="km-field">
+      <label>이 한 벌을 「본」으로</label>
+      <div class="km-hint">자주 쓰는 덩어리(세력 한 벌·삼각관계)를 떠 두면 <b>다른 맵에도 찍을 수</b> 있습니다.</div>
+      <div class="km-link-row">
+        <input type="text" data-km="stamp-name" placeholder="본 이름 (예: 세력 한 벌)" />
+        <button class="btn btn-ghost" data-km="stamp-save">본으로 저장</button>
+      </div>
+    </div>
+    <div class="km-field">
       <label>고른 것</label>
       <div class="km-table">
         ${ctx.selectedMany().map((id) => {
@@ -98,6 +106,10 @@ export function renderManyPanel(ctx: PanelCtx): void {
     ctx.goNode();
   };
 
+  (side.querySelector('[data-km="stamp-save"]') as HTMLButtonElement).onclick = () => {
+    const nameEl = side.querySelector('[data-km="stamp-name"]') as HTMLInputElement | null;
+    ctx.saveStamp(nameEl?.value ?? '');
+  };
   (side.querySelector('[data-km="many-close"]') as HTMLButtonElement).onclick = () => {
     ctx.clearMany();
     ctx.canvas()?.setSelectedNodes([]);
