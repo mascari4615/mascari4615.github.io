@@ -1,3 +1,8 @@
+import { t, loadNamespace } from '../../lib/i18n';
+
+/** 화면에 그대로 박는 글은 태그로 읽히면 안 된다. */
+const esc = (v: unknown): string =>
+    String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 import {
     CB_API_SURFACE_PREF_KEY,
     ChatbotApiSurfaceUi,
@@ -29,7 +34,7 @@ import {
     function createNewSession(name?: any) {
         const id = generateSessionId();
         const index = getSessionsIndex();
-        index.push({ id, name: name || `대화 ${index.length + 1}`, createdAt: Date.now() });
+        index.push({ id, name: name || t('chatbot.chatN', { n: index.length + 1 }), createdAt: Date.now() });
         if (index.length > MAX_SESSIONS) {
             const removed = index.shift();
             sessionStorage.removeItem(CHATBOT_SESSION_PREFIX + removed.id);
@@ -62,7 +67,7 @@ import {
     }
 
     function addPendingImage(imgData: any) {
-        if (pendingImages.length >= 5) { Toolbox.showToast('최대 5장까지 첨부 가능', 'error'); return; }
+        if (pendingImages.length >= 5) { Toolbox.showToast(t('chatbot.t41'), 'error'); return; }
         pendingImages.push(imgData);
         renderAttachThumbs();
     }
@@ -144,7 +149,7 @@ import {
                 if (text) appendMsg(role, text, false);
             });
         } else {
-            appendMsg('bot', '안녕하세요! 무엇을 도와드릴까요? 😊');
+            appendMsg('bot', t('chatbot.t42'));
         }
         if (msgs) msgs.scrollTop = msgs.scrollHeight;
         renderSessionTabs();
@@ -210,9 +215,9 @@ import {
         const addBtn = document.createElement('button');
         addBtn.className = 'cb-session-tab cb-session-add';
         addBtn.textContent = '+';
-        addBtn.title = '새 대화';
+        addBtn.title = t('chatbot.t43');
         addBtn.onclick = () => {
-            if (getSessionsIndex().length >= MAX_SESSIONS) { Toolbox.showToast('최대 세션 수에 도달', 'error'); return; }
+            if (getSessionsIndex().length >= MAX_SESSIONS) { Toolbox.showToast(t('chatbot.t44'), 'error'); return; }
             saveSession();
             const nid = createNewSession();
             switchSession(nid);
@@ -222,41 +227,41 @@ import {
 
     /* ===== 빌드 ===== */
     function buildChat(container: any) {
-        Mdd.linePreset('tool_run', { msg: '대화 상대가 필요해요?' });
+        Mdd.linePreset('tool_run', { msg: t('chatbot.t45') });
 
         container.innerHTML = `
             <div class="cb-outer">
             <div class="cb-layout">
-                <aside class="cb-sidebar cb-sidebar-left" aria-label="연결 및 옵션">
+                <aside class="cb-sidebar cb-sidebar-left" aria-label="${esc(t('chatbot.t01'))}">
                     <div class="cb-sidebar-header">
-                        <p class="cb-panel-heading">연결 · 모델</p>
+                        <p class="cb-panel-heading">${esc(t('chatbot.t03'))}</p>
                         <div class="field-group">
-                            <label class="field-label">🔑 API 키</label>
+                            <label class="field-label">${esc(t('chatbot.t04'))}</label>
                             <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;">
                             <div style="font-size:var(--font-size-xs);color:var(--text-tertiary);">
-                                    프로필: <strong id="cbActiveProfileName" style="color:var(--text-secondary);">${typeof Gemini !== 'undefined' ? ((Gemini as any).getActiveProfileName() || '기본') : '-'}</strong>
+                                    ${esc(t('chatbot.t05'))} <strong id="cbActiveProfileName" style="color:var(--text-secondary);">${typeof Gemini !== 'undefined' ? ((Gemini as any).getActiveProfileName() || '기본') : '-'}</strong>
                                 </div>
-                                <button class="btn btn-ghost" type="button" onclick="Toolbox.switchPage('user'); Toolbox.switchTab('user-settings');">설정</button>
+                                <button class="btn btn-ghost" type="button" onclick="Toolbox.switchPage('user'); Toolbox.switchTab('user-settings');">${esc(t('chatbot.t06'))}</button>
                             </div>
                         </div>
-                        <label class="cb-model-label">모델</label>
+                        <label class="cb-model-label">${esc(t('chatbot.t07'))}</label>
                         <select id="cbModelSelect" style="font-size:var(--font-size-xs);padding:6px 8px;width:100%;"></select>
                         <label class="cb-model-label" style="margin-top:8px;">API</label>
                         <select id="cbApiSurfaceSelect" style="font-size:var(--font-size-xs);padding:6px 8px;width:100%;">
-                            <option value="studio">Google AI Studio (프로필 API 키)</option>
-                            <option value="vertex">Vertex AI (Cloud 키 + GCP 프로젝트)</option>
+                            <option value="studio">${esc(t('chatbot.opt.studio'))}</option>
+                            <option value="vertex">${esc(t('chatbot.opt.vertex'))}</option>
                         </select>
-                        <p class="cb-mini" style="font-size:var(--font-size-2xs);color:var(--text-tertiary);margin:6px 0 0;line-height:1.45;">Vertex는 사용자 설정의 Vertex 키·프로젝트 ID·리전(<code style="font-size:1em;">ig_vertex_*</code>)을 씁니다. 웹 검색은 Studio 전용입니다.</p>
+                        <p class="cb-mini" style="font-size:var(--font-size-2xs);color:var(--text-tertiary);margin:6px 0 0;line-height:1.45;">${esc(t('chatbot.t08'))}<code style="font-size:1em;">ig_vertex_*</code>${esc(t('chatbot.t09'))}</p>
                     </div>
 
                     <div class="cb-options">
-                        <p class="cb-panel-heading" style="margin-bottom:8px;">대화 옵션</p>
+                        <p class="cb-panel-heading" style="margin-bottom:8px;">${esc(t('chatbot.t10'))}</p>
                         <div class="cb-option-row">
-                            <label>웹 검색</label>
+                            <label>${esc(t('chatbot.t11'))}</label>
                             <label class="cb-toggle"><input type="checkbox" id="cbWebSearch"><span class="cb-toggle-slider"></span></label>
                         </div>
                         <div class="cb-option-row">
-                            <label>메모리</label>
+                            <label>${esc(t('chatbot.t12'))}</label>
                             <label class="cb-toggle"><input type="checkbox" id="cbMemory" checked><span class="cb-toggle-slider"></span></label>
                         </div>
                         <div class="cb-option-row cb-temperature-row">
@@ -265,7 +270,7 @@ import {
                         <div class="cb-option-row" style="margin-top:2px;">
                             <input type="range" id="cbTemperature" min="0" max="2" step="0.1" value="0.8" style="width:100%;">
                         </div>
-                        <label class="cb-model-label" style="margin-top:8px;">안전 필터</label>
+                        <label class="cb-model-label" style="margin-top:8px;">${esc(t('chatbot.t13'))}</label>
                         <select id="cbSafetyThreshold" style="font-size:var(--font-size-xs);padding:6px 8px;width:100%;"></select>
                     </div>
                 </aside>
@@ -274,69 +279,69 @@ import {
                 <div class="cb-chat" style="position:relative;">
                     <div class="cb-shortcuts-overlay" id="cbShortcutsOverlay">
                         <div class="cb-shortcuts-panel">
-                            <h3>⌨️ 키보드 단축키</h3>
-                            <div class="cb-shortcut-row"><span>메시지 전송</span><span class="cb-shortcut-key">Enter</span></div>
-                            <div class="cb-shortcut-row"><span>줄바꿈</span><span class="cb-shortcut-key">Shift + Enter</span></div>
-                            <div class="cb-shortcut-row"><span>대화 검색</span><span class="cb-shortcut-key">Ctrl + F</span></div>
-                            <div class="cb-shortcut-row"><span>새 세션</span><span class="cb-shortcut-key">Ctrl + N</span></div>
-                            <div class="cb-shortcut-row"><span>단축키 안내</span><span class="cb-shortcut-key">Ctrl + /</span></div>
+                            <h3>${esc(t('chatbot.t14'))}</h3>
+                            <div class="cb-shortcut-row"><span>${esc(t('chatbot.aria.cbSendBtn'))}</span><span class="cb-shortcut-key">Enter</span></div>
+                            <div class="cb-shortcut-row"><span>${esc(t('chatbot.t15'))}</span><span class="cb-shortcut-key">Shift + Enter</span></div>
+                            <div class="cb-shortcut-row"><span>${esc(t('chatbot.t16'))}</span><span class="cb-shortcut-key">Ctrl + F</span></div>
+                            <div class="cb-shortcut-row"><span>${esc(t('chatbot.t17'))}</span><span class="cb-shortcut-key">Ctrl + N</span></div>
+                            <div class="cb-shortcut-row"><span>${esc(t('chatbot.t18'))}</span><span class="cb-shortcut-key">Ctrl + /</span></div>
                             <div style="margin-top:12px;text-align:center;">
-                                <button class="btn btn-ghost" onclick="document.getElementById('cbShortcutsOverlay').classList.remove('open')">닫기</button>
+                                <button class="btn btn-ghost" onclick="document.getElementById('cbShortcutsOverlay').classList.remove('open')">${esc(t('chatbot.title.cbSearchClose'))}</button>
                             </div>
                         </div>
                     </div>
                     <div class="cb-chat-header">
-                        <span class="cb-chat-header-title" id="cbChatTitle">💬 챗봇</span>
+                        <span class="cb-chat-header-title" id="cbChatTitle">${esc(t('chatbot.label.cbChatTitle'))}</span>
                         <div class="cb-chat-header-actions">
-                            <button class="btn btn-ghost" id="cbShortcutsBtn" title="키보드 단축키 (Ctrl+/)">⌨️</button>
-                            <button class="btn btn-ghost" id="cbSearchToggle" title="대화 검색 (Ctrl+F)">🔍</button>
-                            <button class="btn btn-ghost" onclick="window._cb.importChat()">가져오기</button>
+                            <button class="btn btn-ghost" id="cbShortcutsBtn" title="${esc(t('chatbot.title.cbShortcutsBtn'))}">⌨️</button>
+                            <button class="btn btn-ghost" id="cbSearchToggle" title="${esc(t('chatbot.title.cbSearchToggle'))}">🔍</button>
+                            <button class="btn btn-ghost" onclick="window._cb.importChat()">${esc(t('chatbot.t19'))}</button>
                             <button class="btn btn-ghost" onclick="window._cb.exportChat('txt')">TXT</button>
                             <button class="btn btn-ghost" onclick="window._cb.exportChat('json')">JSON</button>
-                            <button class="btn btn-ghost" onclick="window._cb.clearChat()">초기화</button>
+                            <button class="btn btn-ghost" onclick="window._cb.clearChat()">${esc(t('chatbot.t20'))}</button>
                         </div>
                     </div>
                     <div class="cb-session-bar" id="cbSessionTabs"></div>
                     <div class="cb-search-bar" id="cbSearchBar">
-                        <input type="text" id="cbSearchInput" placeholder="대화 내용 검색...">
+                        <input type="text" id="cbSearchInput" placeholder="${esc(t('chatbot.ph.cbSearchInput'))}">
                         <span class="cb-search-nav" id="cbSearchNav"></span>
-                        <button class="btn btn-ghost" id="cbSearchPrev" title="이전">▲</button>
-                        <button class="btn btn-ghost" id="cbSearchNext" title="다음">▼</button>
-                        <button class="btn btn-ghost" id="cbSearchClose" title="닫기">✕</button>
+                        <button class="btn btn-ghost" id="cbSearchPrev" title="${esc(t('chatbot.title.cbSearchPrev'))}">▲</button>
+                        <button class="btn btn-ghost" id="cbSearchNext" title="${esc(t('chatbot.title.cbSearchNext'))}">▼</button>
+                        <button class="btn btn-ghost" id="cbSearchClose" title="${esc(t('chatbot.title.cbSearchClose'))}">✕</button>
                     </div>
-                    <div class="cb-messages" id="cbMessages" role="log" aria-live="polite" aria-label="대화 내용"></div>
+                    <div class="cb-messages" id="cbMessages" role="log" aria-live="polite" aria-label="${esc(t('chatbot.aria.cbMessages'))}"></div>
                     <div class="cb-input-area" id="cbInputArea">
                         <div class="cb-attach-area" id="cbAttachArea">
-                            <button class="cb-attach-btn" id="cbAttachBtn" title="이미지 첨부">📎</button>
+                            <button class="cb-attach-btn" id="cbAttachBtn" title="${esc(t('chatbot.title.cbAttachBtn'))}">📎</button>
                             <input type="file" id="cbFileInput" accept="image/*" multiple style="display:none">
                         </div>
                         <div class="cb-input-row">
-                            <textarea id="cbInput" placeholder="메시지를 입력하세요... (이미지를 드래그하거나 붙여넣기 가능)"></textarea>
-                            <button class="cb-mic-btn" id="cbMicBtn" title="음성 입력" aria-label="음성 입력">🎤</button>
-                            <button class="cb-send-btn" id="cbSendBtn" onclick="window._cb.send()" aria-label="메시지 전송">➤</button>
-                            <button class="cb-stop-btn" id="cbStopBtn" style="display:none" onclick="window._cb.stopStream()" aria-label="응답 중지">■ 중지</button>
+                            <textarea id="cbInput" placeholder="${esc(t('chatbot.ph.cbInput'))}"></textarea>
+                            <button class="cb-mic-btn" id="cbMicBtn" title="${esc(t('chatbot.title.cbMicBtn'))}" aria-label="${esc(t('chatbot.title.cbMicBtn'))}">🎤</button>
+                            <button class="cb-send-btn" id="cbSendBtn" onclick="window._cb.send()" aria-label="${esc(t('chatbot.aria.cbSendBtn'))}">➤</button>
+                            <button class="cb-stop-btn" id="cbStopBtn" style="display:none" onclick="window._cb.stopStream()" aria-label="${esc(t('chatbot.aria.cbStopBtn'))}">${esc(t('chatbot.btn.cbStopBtn'))}</button>
                         </div>
                         <div class="cb-token-bar">
                             <span id="cbTokenDisplay">Tokens: 0</span>
-                            <span>AI의 응답은 정확하지 않을 수 있습니다.</span>
+                            <span>${esc(t('chatbot.t21'))}</span>
                         </div>
                     </div>
                 </div>
                 </div>
 
-                <aside class="cb-sidebar cb-sidebar-right" aria-label="캐릭터 및 시스템 프롬프트">
+                <aside class="cb-sidebar cb-sidebar-right" aria-label="${esc(t('chatbot.t02'))}">
                     <div class="cb-character-block" id="cbCharacterBlock">
-                        <p class="cb-panel-heading" style="margin-bottom:8px;">캐릭터 (RP)</p>
+                        <p class="cb-panel-heading" style="margin-bottom:8px;">${esc(t('chatbot.t22'))}</p>
                         <div class="cb-option-row" style="margin-bottom:6px;">
-                            <label>캐릭터 반영</label>
+                            <label>${esc(t('chatbot.t23'))}</label>
                             <label class="cb-toggle"><input type="checkbox" id="cbCharUse" checked><span class="cb-toggle-slider"></span></label>
                         </div>
                         <div class="cb-option-row" style="margin-bottom:6px;">
-                            <label>이미지 자동</label>
+                            <label>${esc(t('chatbot.t24'))}</label>
                             <label class="cb-toggle"><input type="checkbox" id="cbCharAutoImage"><span class="cb-toggle-slider"></span></label>
                         </div>
                         <div class="cb-char-profile-wrap">
-                            <button type="button" class="cb-char-profile-btn" id="cbCharProfileOpen" title="캐릭터 편집" aria-label="캐릭터 편집 열기">
+                            <button type="button" class="cb-char-profile-btn" id="cbCharProfileOpen" title="${esc(t('chatbot.title.cbCharProfileOpen'))}" aria-label="${esc(t('chatbot.aria.cbCharProfileOpen'))}">
                                 <img id="cbCharProfileAvatar" class="cb-char-profile-avatar" alt="" width="72" height="72" decoding="async" style="display:none">
                                 <span id="cbCharProfilePlaceholder" class="cb-char-profile-placeholder">👤</span>
                             </button>
@@ -344,20 +349,20 @@ import {
                         </div>
                     </div>
                     <div class="cb-sysprompt">
-                        <p class="cb-panel-heading" style="margin-bottom:8px;">추가 지시</p>
-                        <label class="cb-mini" style="margin-top:0;">프리셋</label>
+                        <p class="cb-panel-heading" style="margin-bottom:8px;">${esc(t('chatbot.t25'))}</p>
+                        <label class="cb-mini" style="margin-top:0;">${esc(t('chatbot.t26'))}</label>
                         <select id="cbSystemPreset" style="font-size:var(--font-size-xs);padding:6px 8px;margin-bottom:8px;width:100%;">
-                            <option value="">직접 입력 (아래 텍스트)</option>
-                            <option value="__none__">사용 안 함</option>
-                            <option value="default">기본 (친절한 어시스턴트)</option>
-                            <option value="writer">작가 (소설/시나리오)</option>
-                            <option value="translator">번역가</option>
-                            <option value="codereview">코드 리뷰</option>
-                            <option value="summarizer">요약봇</option>
-                            <option value="tutor">과외 선생님</option>
-                            <option value="hodulgap">호들갑 (띄어쓰기 없이)</option>
+                            <option value="">${esc(t('chatbot.t27'))}</option>
+                            <option value="__none__">${esc(t('chatbot.opt.none'))}</option>
+                            <option value="default">${esc(t('chatbot.opt.default'))}</option>
+                            <option value="writer">${esc(t('chatbot.opt.writer'))}</option>
+                            <option value="translator">${esc(t('chatbot.opt.translator'))}</option>
+                            <option value="codereview">${esc(t('chatbot.opt.codereview'))}</option>
+                            <option value="summarizer">${esc(t('chatbot.opt.summarizer'))}</option>
+                            <option value="tutor">${esc(t('chatbot.opt.tutor'))}</option>
+                            <option value="hodulgap">${esc(t('chatbot.opt.hodulgap'))}</option>
                         </select>
-                        <textarea id="cbSystemPrompt" placeholder="AI의 역할, 성격, 답변 스타일 등을 지정하세요...">당신은 친절하고 유용한 AI 어시스턴트입니다. 한국어로 답변해주세요.</textarea>
+                        <textarea id="cbSystemPrompt" placeholder="${esc(t('chatbot.ph.cbSystemPrompt'))}">${esc(t('chatbot.label.cbSystemPrompt'))}</textarea>
                     </div>
                 </aside>
             </div>
@@ -366,53 +371,53 @@ import {
                     <div class="cb-modal-backdrop" id="cbCharEditBackdrop" tabindex="-1"></div>
                     <div class="cb-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="cbCharEditTitle">
                         <div class="cb-modal-header">
-                            <h2 class="cb-modal-title" id="cbCharEditTitle">캐릭터 편집</h2>
-                            <button type="button" class="cb-modal-close" id="cbCharEditClose" aria-label="닫기">×</button>
+                            <h2 class="cb-modal-title" id="cbCharEditTitle">${esc(t('chatbot.title.cbCharProfileOpen'))}</h2>
+                            <button type="button" class="cb-modal-close" id="cbCharEditClose" aria-label="${esc(t('chatbot.title.cbSearchClose'))}">×</button>
                         </div>
                         <div class="cb-modal-body cb-char-modal-body">
-                            <label class="cb-mini" style="margin-top:0;">캐릭터 선택</label>
+                            <label class="cb-mini" style="margin-top:0;">${esc(t('chatbot.t28'))}</label>
                             <select id="cbCharacterSelect" style="font-size:var(--font-size-xs);padding:6px 8px;width:100%;margin-top:4px;"></select>
-                            <label class="cb-mini">이미지 모델</label>
+                            <label class="cb-mini">${esc(t('chatbot.t29'))}</label>
                             <select id="cbCharImageModel" style="font-size:var(--font-size-xs);padding:6px 8px;width:100%;margin-top:4px;"></select>
-                            <label class="cb-mini">이름</label>
+                            <label class="cb-mini">${esc(t('chatbot.t30'))}</label>
                             <input type="text" id="cbCharName" maxlength="80">
                             <label class="cb-mini">플레이어 ({{user}})</label>
                             <input type="text" id="cbCharUserName" maxlength="80">
-                            <label class="cb-mini">플레이어 메모</label>
+                            <label class="cb-mini">${esc(t('chatbot.t31'))}</label>
                             <textarea id="cbCharUserNote" rows="2"></textarea>
-                            <label class="cb-mini">외형 (영어 키워드 권장)</label>
+                            <label class="cb-mini">${esc(t('chatbot.t32'))}</label>
                             <textarea id="cbCharVisual" rows="2"></textarea>
-                            <label class="cb-mini">설정</label>
+                            <label class="cb-mini">${esc(t('chatbot.t06'))}</label>
                             <textarea id="cbCharDesc" rows="2"></textarea>
-                            <label class="cb-mini">성격</label>
+                            <label class="cb-mini">${esc(t('chatbot.t33'))}</label>
                             <textarea id="cbCharPersonality" rows="2"></textarea>
-                            <label class="cb-mini">상황</label>
+                            <label class="cb-mini">${esc(t('chatbot.t34'))}</label>
                             <textarea id="cbCharScenario" rows="2"></textarea>
-                            <label class="cb-mini">첫 인사 (봇)</label>
+                            <label class="cb-mini">${esc(t('chatbot.t35'))}</label>
                             <textarea id="cbCharFirstMes" rows="2"></textarea>
-                            <label class="cb-mini">참조 이미지</label>
+                            <label class="cb-mini">${esc(t('chatbot.t36'))}</label>
                             <div class="cb-char-row">
                                 <input type="file" id="cbCharRefFile" accept="image/*" style="font-size:var(--font-size-2xs);max-width:160px;">
-                                <button type="button" class="btn btn-ghost" id="cbCharRefClear" style="font-size:var(--font-size-2xs);padding:4px 8px;">비우기</button>
+                                <button type="button" class="btn btn-ghost" id="cbCharRefClear" style="font-size:var(--font-size-2xs);padding:4px 8px;">${esc(t('chatbot.btn.cbCharRefClear'))}</button>
                                 <img id="cbCharRefThumb" class="cb-char-ref-thumb" alt="" style="display:none;">
                             </div>
                             <div class="cb-char-row">
-                                <button type="button" class="btn btn-ghost" id="cbCharSave" style="font-size:var(--font-size-xs);padding:4px 10px;">저장</button>
-                                <button type="button" class="btn btn-ghost" id="cbCharNew" style="font-size:var(--font-size-xs);padding:4px 10px;">새 캐릭터</button>
-                                <button type="button" class="btn btn-ghost" id="cbCharDel" style="font-size:var(--font-size-xs);padding:4px 10px;color:var(--error);">삭제</button>
-                                <button type="button" class="btn btn-ghost" id="cbCharFirstBtn" style="font-size:var(--font-size-xs);padding:4px 10px;">첫 인사</button>
+                                <button type="button" class="btn btn-ghost" id="cbCharSave" style="font-size:var(--font-size-xs);padding:4px 10px;">${esc(t('chatbot.btn.cbCharSave'))}</button>
+                                <button type="button" class="btn btn-ghost" id="cbCharNew" style="font-size:var(--font-size-xs);padding:4px 10px;">${esc(t('chatbot.btn.cbCharNew'))}</button>
+                                <button type="button" class="btn btn-ghost" id="cbCharDel" style="font-size:var(--font-size-xs);padding:4px 10px;color:var(--error);">${esc(t('chatbot.btn.cbCharDel'))}</button>
+                                <button type="button" class="btn btn-ghost" id="cbCharFirstBtn" style="font-size:var(--font-size-xs);padding:4px 10px;">${esc(t('chatbot.btn.cbCharFirstBtn'))}</button>
                             </div>
-                            <label class="cb-mini">캐릭터 카드 (JSON / PNG)</label>
+                            <label class="cb-mini">${esc(t('chatbot.t37'))}</label>
                             <label class="cb-char-import-overwrite" style="display:flex;align-items:center;gap:8px;margin-top:6px;font-size:var(--font-size-xs);color:var(--text-secondary);cursor:pointer;">
                                 <input type="checkbox" id="cbCharImportOverwrite" style="width:auto;margin:0;">
-                                <span>현재 선택 캐릭터에 덮어쓰기 (끄면 항상 새 캐릭터로 추가)</span>
+                                <span>${esc(t('chatbot.t38'))}</span>
                             </label>
                             <div class="cb-char-row" style="margin-top:8px;">
                                 <input type="file" id="cbCharImportFile" accept=".json,application/json,.png,image/png" style="display:none">
-                                <button type="button" class="btn btn-ghost" id="cbCharImportBtn" style="font-size:var(--font-size-xs);padding:4px 10px;">가져오기</button>
-                                <button type="button" class="btn btn-ghost" id="cbCharExportBtn" style="font-size:var(--font-size-xs);padding:4px 10px;">내보내기</button>
+                                <button type="button" class="btn btn-ghost" id="cbCharImportBtn" style="font-size:var(--font-size-xs);padding:4px 10px;">${esc(t('chatbot.t19'))}</button>
+                                <button type="button" class="btn btn-ghost" id="cbCharExportBtn" style="font-size:var(--font-size-xs);padding:4px 10px;">${esc(t('chatbot.btn.cbCharExportBtn'))}</button>
                             </div>
-                            <p style="font-size:var(--font-size-2xs);color:var(--text-tertiary);margin:6px 0 0;line-height:1.45;">SillyTavern Character Card JSON·PNG(V2 등) · 이 페이지 <code style="font-size:1em;">karmochat_character_v1</code> JSON 재가져오기 가능</p>
+                            <p style="font-size:var(--font-size-2xs);color:var(--text-tertiary);margin:6px 0 0;line-height:1.45;">${esc(t('chatbot.t39'))} <code style="font-size:1em;">karmochat_character_v1</code> ${esc(t('chatbot.t40'))}</p>
                         </div>
                     </div>
                 </div>
@@ -474,10 +479,10 @@ import {
                 if (v === '__none__') {
                     sysPromptTa.value = '';
                     sysPromptTa.readOnly = true;
-                    sysPromptTa.placeholder = '「사용 안 함」일 때는 API에 추가 지시가 붙지 않습니다.';
+                    sysPromptTa.placeholder = t('chatbot.t46');
                 } else {
                     sysPromptTa.readOnly = false;
-                    sysPromptTa.placeholder = 'AI의 역할, 성격, 답변 스타일 등을 지정하세요...';
+                    sysPromptTa.placeholder = t('chatbot.ph.cbSystemPrompt');
                     if (window.ChatbotPrompt?.SYSTEM_PROMPT_PRESETS[v]) sysPromptTa.value = window.ChatbotPrompt?.SYSTEM_PROMPT_PRESETS[v];
                 }
             }
@@ -583,12 +588,12 @@ import {
                     recognition.onstart = () => {
                         isRecording = true;
                         micBtn.classList.add('recording');
-                        micBtn.title = '녹음 중... 클릭하여 중지';
+                        micBtn.title = t('chatbot.t47');
                     };
                     recognition.onend = () => {
                         isRecording = false;
                         micBtn.classList.remove('recording');
-                        micBtn.title = '음성 입력';
+                        micBtn.title = t('chatbot.title.cbMicBtn');
                         if (finalTranscript && chatInput) {
                             chatInput.value += (chatInput.value ? ' ' : '') + finalTranscript;
                             chatInput.focus();
@@ -602,7 +607,7 @@ import {
                         }
                     };
                     recognition.onerror = (e: any) => {
-                        if (e.error !== 'aborted') Toolbox.showToast('음성 인식 오류: ' + e.error, 'error');
+                        if (e.error !== 'aborted') Toolbox.showToast(t('chatbot.t48') + e.error, 'error');
                     };
                 } else {
                     micBtn.style.display = 'none';
@@ -612,7 +617,7 @@ import {
             // 다중 세션 초기화
             const index = getSessionsIndex();
             if (index.length === 0) {
-                currentSessionId = createNewSession('대화 1');
+                currentSessionId = createNewSession(t('chatbot.t49'));
             } else {
                 currentSessionId = index[index.length - 1].id;
             }
@@ -639,7 +644,7 @@ import {
                         if (text) appendMsg(role, text, false);
                     });
                 } else {
-                    appendMsg('bot', '안녕하세요! 무엇을 도와드릴까요? 😊');
+                    appendMsg('bot', t('chatbot.t42'));
                 }
                 syncCharacterSelectAfterSessionLoad();
                 msgs.scrollTop = msgs.scrollHeight;
@@ -712,7 +717,7 @@ import {
                 }
 
                 function updateSearchNav() {
-                    if (searchResults.length === 0) { searchNav.textContent = '결과 없음'; return; }
+                    if (searchResults.length === 0) { searchNav.textContent = t('chatbot.t50'); return; }
                     searchNav.textContent = `${searchIdx + 1} / ${searchResults.length}`;
                     searchResults.forEach((el: any, i: number) => el.classList.toggle('current', i === searchIdx));
                     searchResults[searchIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -767,8 +772,8 @@ import {
                 if (e.ctrlKey && e.key === 'n') {
                     e.preventDefault();
                     const idx = getSessionsIndex();
-                    if (idx.length >= 10) { Toolbox.showToast('최대 10개 세션까지 생성 가능합니다.', 'error'); return; }
-                    const nid = createNewSession(`대화 ${idx.length + 1}`);
+                    if (idx.length >= 10) { Toolbox.showToast(t('chatbot.t51'), 'error'); return; }
+                    const nid = createNewSession(t('chatbot.chatN', { n: idx.length + 1 }));
                     switchSession(nid);
                 }
                 if (e.key === 'Escape') {
@@ -795,9 +800,9 @@ import {
                                     applySystemPresetUi();
                                 }
                                 if (input) {
-                                    input.value = '다음 키워드를 포함해서 짧은 이야기를 써줘: ' + keywords.join(', ');
+                                    input.value = t('chatbot.t52') + keywords.join(', ');
                                     input.focus();
-                                    Toolbox.showToast('키워드가 입력되었습니다. 전송 버튼을 누르세요.');
+                                    Toolbox.showToast(t('chatbot.t53'));
                                 }
                             }
                         }
@@ -814,16 +819,16 @@ import {
 
     /** 메모리 요약 블록 제거 후 KARMO_IMAGE 파싱 (스트리밍 send / regenerate 공통) */
     function parseStreamResponseText(fullText: any, useMemory: any) {
-        let t = fullText;
+        let body = fullText;
         let newSummary;
         if (useMemory) {
-            const m = t.match(/\{\{\{(.*?)\}\}\}/s);
+            const m = body.match(/\{\{\{(.*?)\}\}\}/s);
             if (m) {
                 newSummary = m[1].trim();
-                t = t.replace(/\{\{\{.*?\}\}\}/s, '').trim();
+                body = body.replace(/\{\{\{.*?\}\}\}/s, '').trim();
             }
         }
-        const imgParsed = extractKarmoImage(t);
+        const imgParsed = extractKarmoImage(body);
         return { responseText: imgParsed.cleanText, imgParsed, newSummary };
     }
 
@@ -845,16 +850,16 @@ import {
         const copyBtn = document.createElement('button');
         copyBtn.className = 'btn btn-ghost cb-msg-copy';
         copyBtn.type = 'button';
-        copyBtn.textContent = '복사';
+        copyBtn.textContent = t('chatbot.t54');
         copyBtn.onclick = () => {
-            navigator.clipboard.writeText(text).then(() => Toolbox.showToast('복사됨')).catch(() => {});
+            navigator.clipboard.writeText(text).then(() => Toolbox.showToast(t('chatbot.t55'))).catch(() => {});
         };
         wrap.appendChild(div);
         wrap.appendChild(copyBtn);
         if (role === 'bot' && !isError && chatHistory.length > 0) {
             const regen = document.createElement('button');
             regen.className = 'btn btn-ghost';
-            regen.textContent = '🔄 재생성';
+            regen.textContent = t('chatbot.t56');
             regen.onclick = () => (window as any)._cb.regenerate();
             wrap.appendChild(regen);
         }
@@ -887,7 +892,7 @@ import {
         const copyBtn = document.createElement('button');
         copyBtn.className = 'btn btn-ghost cb-msg-copy';
         copyBtn.type = 'button';
-        copyBtn.textContent = '복사';
+        copyBtn.textContent = t('chatbot.t54');
         wrap.appendChild(div);
         wrap.appendChild(copyBtn);
         msgs.appendChild(wrap);
@@ -902,11 +907,11 @@ import {
             el.div.querySelectorAll('pre code[class*="language-"]').forEach((c: any) => Prism!.highlightElement(c));
         }
         el.copyBtn.onclick = () => {
-            navigator.clipboard.writeText(fullText).then(() => Toolbox.showToast('복사됨')).catch(() => {});
+            navigator.clipboard.writeText(fullText).then(() => Toolbox.showToast(t('chatbot.t55'))).catch(() => {});
         };
         const regen = document.createElement('button');
         regen.className = 'btn btn-ghost';
-        regen.textContent = '🔄 재생성';
+        regen.textContent = t('chatbot.t56');
         regen.onclick = () => (window as any)._cb.regenerate();
         el.wrap.appendChild(regen);
     }
@@ -924,14 +929,14 @@ import {
             if (chatbotUiSurfaceToPackage(apiSurface) === 'vertex') {
                 if (!(Gemini as any).requireVertexApiKey()) return;
                 if (!(Toolbox.getPref('ig_vertex_project_id', '') || '').trim()) {
-                    Toolbox.showToast('Vertex 채팅: 사용자 설정에 GCP 프로젝트 ID를 입력하세요.', 'error');
+                    Toolbox.showToast(t('chatbot.t57'), 'error');
                     return;
                 }
             } else if (!(Gemini as any).requireApiKey()) {
                 return;
             }
 
-            appendMsg('user', text + (pendingImages.length ? ` [📎 이미지 ${pendingImages.length}장]` : ''));
+            appendMsg('user', text + (pendingImages.length ? ` ${t('chatbot.pendingImages', { n: pendingImages.length })}` : ''));
             input.value = '';
 
             const parts: any[] = [{ text }];
@@ -1007,7 +1012,7 @@ import {
                 chatHistory.push({ role: 'model', parts: [{ text: responseText }] });
                 saveSession();
                 Toolbox.recordUsage('chat', lastUsage?.totalTokenCount || 0);
-                Mdd.linePreset('success', { mood: 'happy', msg: '대답 완료해요!' });
+                Mdd.linePreset('success', { mood: 'happy', msg: t('chatbot.t58') });
 
                 if (autoImgOn && imgParsed.spec?.show && charForImg) {
                     void appendCharacterImageAfterMessage(streamEl.wrap, charForImg, imgParsed.spec);
@@ -1015,10 +1020,10 @@ import {
 
             } catch (e: any) {
                 if (streamEl.wrap.parentNode) streamEl.wrap.remove();
-                if (e.message !== '요청이 취소되었습니다.') {
-                    appendMsg('bot', `오류: ${e.message}`, true);
+                if (e.message !== t('chatbot.t59')) {
+                    appendMsg('bot', t('chatbot.error', { why: e.message }), true);
                     Toolbox.showToast(e.message || '오류', 'error', e);
-                    Mdd.linePreset('error', { msg: '에러예요...' });
+                    Mdd.linePreset('error', { msg: t('chatbot.t60') });
                 }
                 console.error('Chat Error:', e);
             } finally {
@@ -1031,7 +1036,7 @@ import {
         stopStream() {
             if (currentStreamAbort) {
                 currentStreamAbort.abort();
-                Toolbox.showToast('스트리밍 중지');
+                Toolbox.showToast(t('chatbot.t61'));
             }
         },
 
@@ -1056,7 +1061,7 @@ import {
             if (chatbotUiSurfaceToPackage(apiSurface) === 'vertex') {
                 if (!(Gemini as any).requireVertexApiKey()) return;
                 if (!(Toolbox.getPref('ig_vertex_project_id', '') || '').trim()) {
-                    Toolbox.showToast('Vertex 채팅: 사용자 설정에 GCP 프로젝트 ID를 입력하세요.', 'error');
+                    Toolbox.showToast(t('chatbot.t57'), 'error');
                     return;
                 }
             } else if (!(Gemini as any).requireApiKey()) {
@@ -1124,14 +1129,14 @@ import {
                 chatHistory.push({ role: 'model', parts: [{ text: responseText }] });
                 saveSession();
                 Toolbox.recordUsage('chat', lastUsage?.totalTokenCount || 0);
-                Mdd.linePreset('success', { mood: 'happy', msg: '다시 대답했어요!' });
+                Mdd.linePreset('success', { mood: 'happy', msg: t('chatbot.t62') });
                 if (autoImgR && imgParsedR.spec?.show && charForImgR) {
                     void appendCharacterImageAfterMessage(streamEl.wrap, charForImgR, imgParsedR.spec);
                 }
             } catch (e: any) {
                 if (streamEl.wrap.parentNode) streamEl.wrap.remove();
-                if (e.message !== '요청이 취소되었습니다.') {
-                    appendMsg('bot', `오류: ${e.message}`, true);
+                if (e.message !== t('chatbot.t59')) {
+                    appendMsg('bot', t('chatbot.error', { why: e.message }), true);
                     Toolbox.showToast(e.message || '오류', 'error', e);
                 }
             } finally {
@@ -1152,10 +1157,10 @@ import {
             const msgs = (document.getElementById('cbMessages') as any);
             if (msgs) {
                 msgs.innerHTML = '';
-                appendMsg('bot', '대화가 초기화되었습니다. 무엇을 도와드릴까요?');
+                appendMsg('bot', t('chatbot.t63'));
             }
-            Toolbox.showToast('대화 초기화 완료');
-            Mdd.linePreset('tool_run', { mood: 'idle', msg: '새로 시작이에요!' });
+            Toolbox.showToast(t('chatbot.t64'));
+            Mdd.linePreset('tool_run', { mood: 'idle', msg: t('chatbot.t65') });
         },
 
         importChat() {
@@ -1171,7 +1176,7 @@ import {
                     if (file.name.endsWith('.json')) {
                         const data = JSON.parse(text);
                         if (Array.isArray(data)) imported = data;
-                        else throw new Error('잘못된 JSON 형식');
+                        else throw new Error(t('chatbot.err.66'));
                     } else {
                         const blocks = text.split(/\n\n/).filter(b => b.trim());
                         for (const block of blocks) {
@@ -1184,7 +1189,7 @@ import {
                             }
                         }
                     }
-                    if (imported.length === 0) { Toolbox.showToast('가져올 대화를 찾을 수 없습니다.', 'error'); return; }
+                    if (imported.length === 0) { Toolbox.showToast(t('chatbot.t67'), 'error'); return; }
                     const sessionName = file.name.replace(/\.[^.]+$/, '');
                     const newId = createNewSession(sessionName);
                     currentSessionId = newId;
@@ -1196,14 +1201,14 @@ import {
                         msgs.innerHTML = '';
                         chatHistory.forEach(msg => {
                             const role = msg.role === 'user' ? 'user' : 'bot';
-                            const t = msg.parts?.[0]?.text || '';
-                            if (t) appendMsg(role, t, false);
+                            const text = msg.parts?.[0]?.text || '';
+                            if (text) appendMsg(role, text, false);
                         });
                         msgs.scrollTop = msgs.scrollHeight;
                     }
-                    Toolbox.showToast(`${imported.length}개 메시지를 가져왔습니다.`);
+                    Toolbox.showToast(t('chatbot.imported', { n: imported.length }));
                 } catch (e: any) {
-                    Toolbox.showToast('가져오기 실패: ' + e.message, 'error');
+                    Toolbox.showToast(t('chatbot.t68') + e.message, 'error');
                 }
             };
             input.click();
@@ -1211,7 +1216,7 @@ import {
 
         exportChat(format = 'txt') {
             if (chatHistory.length === 0) {
-                Toolbox.showToast('내보낼 대화가 없습니다.', 'error');
+                Toolbox.showToast(t('chatbot.t69'), 'error');
                 return;
             }
             const date = new Date().toISOString().slice(0, 10);
@@ -1233,13 +1238,24 @@ import {
             a.download = filename;
             a.click();
             URL.revokeObjectURL(a.href);
-            Toolbox.showToast(`대화 내보내기 완료 (${format.toUpperCase()})`);
+            Toolbox.showToast(t('chatbot.exported', { format: format.toUpperCase() }));
         }
     };
 
     /* ===== 위젯 등록 ===== */
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta('chatbot'),
-        tabs: [{ id: 'chatbot-main', label: '채팅', build: buildChat }]
+        tabs: [
+            {
+                id: 'chatbot-main',
+                label: t('chatbot.tab.main', undefined, '채팅'),
+                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('chatbot').then(function () {
+                        buildChat(container);
+                    });
+                }
+            }
+        ]
     });
 })();
