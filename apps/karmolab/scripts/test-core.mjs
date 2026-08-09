@@ -658,6 +658,54 @@ for (const bad of [{ op: 'toJson', args: { csv: 'a,b' } }, { op: 'toCsv', args: 
 }
 eq(cjThrew, 3, '자료 없는 CSV·깨진 JSON·배열 아닌 JSON 은 전부 던진다');
 
+// ── ②-15 tableconv 알맹이 (한글은 두 칸이라 세로줄이 어긋난다 — A등급) ────────
+const tv = await load('src/core/tableconv.ts');
+
+eq(tv.spec.id, 'tableconv', 'tableconv spec.id');
+
+// 들어온 꼴을 스스로 알아본다 — 셋 다 자주 온다.
+eq(tv.parse('a\tb\n1\t2').kind, '엑셀 붙여넣기', '탭이 있으면 엑셀에서 복사한 것');
+eq(tv.parse('a,b\n1,2').kind, 'CSV', '쉼표면 CSV');
+eq(tv.parse('| a | b |\n| --- | --- |\n| 1 | 2 |').kind, '마크다운 표', '두 번째 줄이 구분선이면 마크다운');
+eq(tv.parse('| a | b |\n| --- | --- |\n| 1 | 2 |').rows.length, 2, '마크다운 구분선은 줄로 안 센다');
+eq(tv.parse('').rows.length, 0, '빈 글자는 빈 표');
+eq(tv.parse('a,"쉼표, 값"').rows[0][1], '쉼표, 값', 'CSV 따옴표 안 쉼표');
+
+/* 이 도구가 있는 이유 — **한글은 글자 하나가 두 칸**이다.
+   그걸 안 세면 「맞춰 준다」고 해 놓고 어긋난 표가 나온다. */
+eq(tv.width('가'), 2, '한글은 두 칸');
+eq(tv.width('a'), 1, '영문은 한 칸');
+eq(tv.width('가a'), 3, '섞이면 더한다');
+eq(tv.pad('가', 4), '가  ', '두 칸을 세고 남은 만큼만 채운다');
+eq(tv.pad('ab', 4), 'ab  ', '영문');
+
+// 정렬한 마크다운은 **모든 줄의 길이가 같아야** 세로줄이 맞는다.
+const md = tv.toMarkdown(tv.parse('이름\t값\n홍길동\t1\nA\t22').rows, true);
+const lens = md.split('\n').map((l) => [...l].reduce((a, c) => a + tv.width(c), 0));
+eq(new Set(lens).size, 1, `정렬했는데 줄 폭이 다르다: ${lens.join(',')}`);
+check(md.includes('| 이름'), '머리글이 들어간다');
+// 안 맞춰도 표로는 읽혀야 한다.
+check(tv.toMarkdown(tv.parse('a\tb\n1\t2').rows, false).split('\n').length === 3, '정렬 끄면 3줄');
+
+eq(tv.toCsv([['a', '쉼표, 값']]), 'a,"쉼표, 값"', 'CSV 로 낼 때 감싼다');
+eq(tv.toTsv([['a', 'b']]), 'a\tb', 'TSV');
+eq(JSON.parse(tv.toJson(tv.parse('a,b\n1,2').rows))[0].a, '1', 'JSON 은 머리글을 열쇠로');
+eq(tv.toJson([['a']]), '[]', '머리글만 있으면 빈 배열');
+// 열 수가 다른 줄이 있어도 표가 깨지면 안 된다.
+eq(tv.toMarkdown([['a', 'b'], ['1']], false).split('\n')[2], '| 1 |  |', '모자란 칸은 빈 칸으로 채운다');
+
+check(tv.run('convert', { table: 'a\tb\n1\t2' }).includes('엑셀 붙여넣기'), 'run 이 읽은 꼴을 말한다');
+check(tv.run('convert', { table: 'a\tb\n1\t2', to: 'csv' }).includes('a,b'), 'run to=csv');
+let tvThrew = 0;
+for (const bad of [{ table: '' }, { table: 'a\tb', to: '엉뚱' }]) {
+  try {
+    tv.run('convert', bad);
+  } catch {
+    tvThrew++;
+  }
+}
+eq(tvThrew, 2, '빈 표·모르는 꼴은 던진다');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 
