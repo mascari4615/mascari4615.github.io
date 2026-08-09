@@ -26,5 +26,9 @@
   "shell.sidebar.status": "상태 · 변경 기록",
   "shell.sidebar.statusTitle": "지금 상태 · 최근 변경 기록",
   "shell.lang.title": "언어 바꾸기",
-  "shell.lang.aria": "언어 바꾸기"
+  "shell.lang.aria": "언어 바꾸기",
+  "shell.lang.code": "KO",
+  "shell.lang.hint": "{lang} 판이 있습니다",
+  "shell.lang.hintGo": "보러 가기",
+  "shell.lang.hintClose": "닫기"
 }
