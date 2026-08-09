@@ -18,6 +18,8 @@ export function renderNotesPanel(ctx: PanelCtx): void {
   const spec = ctx.spec();
   const notes = notesOf(spec);
   const orphans = notes.filter((n) => noteUsers(spec, n.id) === 0).length;
+  // 이 맵에 아직 없는 창고 글 — 여기서 데려오면 쪽지로 놓거나 카드에 붙일 수 있다.
+  const foreign = ctx.foreignNotes();
 
   side.innerHTML = `
     <h4>🔗 공용 글</h4>
@@ -42,6 +44,15 @@ export function renderNotesPanel(ctx: PanelCtx): void {
             </div>
           </div>`;
         }).join('')}
+    ${foreign.length === 0 ? '' : `<div class="km-field">
+      <label>다른 맵에서 쓰던 글</label>
+      <div class="km-hint">글은 <b>맵보다 오래 삽니다</b>. 가져오면 <b>같은 글</b>이 되어, 어느 맵에서 고쳐도 함께 바뀝니다.</div>
+      ${foreign.slice(0, 12).map((n) => `<div class="km-link-row">
+        <span class="km-link-name">${esc(n.title || (n.text.split(/\r?\n/)[0] ?? '').slice(0, 40) || '(빈 글)')}</span>
+        <span class="km-group-count">${esc(n.from ?? '다른 맵')}</span>
+        <button class="btn btn-ghost" data-km="note-adopt" data-key="${esc(n.id)}">가져오기</button>
+      </div>`).join('')}
+    </div>`}
     ${orphans === 0 ? '' : `<button class="btn btn-danger" data-km="note-prune">아무도 안 쓰는 글 ${orphans}개 치우기</button>`}
     <button class="btn btn-ghost" data-km="note-close">닫기</button>`;
 
@@ -87,6 +98,15 @@ export function renderNotesPanel(ctx: PanelCtx): void {
     (el as HTMLButtonElement).onclick = () => {
       const id = (el as HTMLElement).dataset.key ?? '';
       if (id) ctx.spawnNoteCard(id);
+    };
+  });
+  side.querySelectorAll('[data-km="note-adopt"]').forEach((el) => {
+    (el as HTMLButtonElement).onclick = () => {
+      const id = (el as HTMLElement).dataset.key ?? '';
+      if (!id) return;
+      ctx.adoptNote(id);
+      // 데려오기만 하면 아무도 안 쓰는 글이라 「치우기」 대상이 된다 — 바로 쪽지로 놓아 자리를 준다.
+      ctx.spawnNoteCard(id);
     };
   });
   const prune = side.querySelector('[data-km="note-prune"]') as HTMLButtonElement | null;

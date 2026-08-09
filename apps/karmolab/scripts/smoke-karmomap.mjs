@@ -367,7 +367,13 @@ await step('꼬리표를 타이핑하면 제안이 좁아지고 Enter 로 붙는
   const chips = page.locator('[data-km="tag-add"]:not([hidden])');
   const all = await chips.count();
   if (all === 0) throw new Error('제안 칩이 없다');
-  await page.locator('[data-km="edit-tags"]').type('중');
+  // 「중」처럼 **글자를 손으로 박으면** 그 글자를 품은 제안이 이 맵에 있어야만 통과한다 —
+  // 앞 검사들이 고른 노드·꼬리표가 조금만 달라져도 헛 실패한다. 그래서 **지금 떠 있는 제안에서
+  // 글자를 뽑아** 친다: 제안이 좁아지는지만 보면 되는 검사에 자료 의존을 섞지 않는다.
+  const seed = await chips.first().textContent();
+  const typed = (seed || '').trim().replace(/^[#+\s]*/, '').slice(0, 1);
+  if (!typed) throw new Error('제안 칩에 글자가 없다');
+  await page.locator('[data-km="edit-tags"]').type(typed);
   await page.waitForFunction((a) => {
     const vis = [...document.querySelectorAll('[data-km="tag-add"]')].filter((b) => !b.hidden).length;
     return vis > 0 && vis <= a;
