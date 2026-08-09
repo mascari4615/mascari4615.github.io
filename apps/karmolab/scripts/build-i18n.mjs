@@ -74,6 +74,40 @@ const registryOld = fs.existsSync(registryPath) ? fs.readFileSync(registryPath, 
 const registryDrift = registryOld.split('\r\n').join('\n') !== registryTs;
 if (registryDrift && !CHECK) fs.writeFileSync(registryPath, registryTs, 'utf8');
 
+/* ── ①-b 지역 등록부도 같은 방식으로 ──────────────────
+ *
+ * 지역은 언어와 **다른 축**이다(언어=쓰는 말, 지역=사는 곳). 나라를 늘리는 자리도 파일 하나
+ * (`data/regions.json`) 로 묶어 둔다 — 언어에서 배운 것 그대로다. */
+
+const regionsJson = JSON.parse(fs.readFileSync(path.join(APP_ROOT, 'data/regions.json'), 'utf8'));
+const regionTs = `/**
+ * ⚠ 자동 생성 — 손으로 고치지 말 것 (TASK-KL-203 S10).
+ * 정본은 \`data/regions.json\` 이고, \`node scripts/build-i18n.mjs\` 가 여기에 찍는다.
+ */
+export interface RegionMeta {
+  code: string;
+  /** 그 나라 사람이 부르는 이름 — 지역 단추에 보여 준다. */
+  endonym: string;
+  flag: string;
+  /** 이 나라로 짚어 주는 시간대들. 브라우저는 나라를 안 알려 주지만 시간대는 알려 준다. */
+  timeZones: string[];
+  measure: 'metric' | 'us';
+  currency: string;
+  /** 한 주의 첫 요일 (0=일요일). */
+  weekStart: number;
+  hour12: boolean;
+}
+
+export const DEFAULT_REGION = ${JSON.stringify(regionsJson.default)};
+
+export const REGIONS: RegionMeta[] = ${JSON.stringify(regionsJson.regions, null, 2)};
+`;
+
+const regionPath = path.join(APP_ROOT, 'src/lib/region-registry.ts');
+const regionOld = fs.existsSync(regionPath) ? fs.readFileSync(regionPath, 'utf8') : '';
+const regionDrift = regionOld.split('\r\n').join('\n') !== regionTs;
+if (regionDrift && !CHECK) fs.writeFileSync(regionPath, regionTs, 'utf8');
+
 /* ── ①-b 도구 글은 이미 있는 파일에서 뽑는다 ───────────
  *
  * 도구 129장의 설명은 `data/tools-seo.json` 에 있고, 그게 **정본이다**. 같은 글을
@@ -258,6 +292,10 @@ for (const r of report) {
 
 if (CHECK && registryDrift) {
   console.error('[i18n] src/lib/i18n-registry.ts 가 data/locales.json 과 어긋남 — `npm run build:i18n` 후 커밋');
+  process.exit(1);
+}
+if (CHECK && regionDrift) {
+  console.error('[i18n] src/lib/region-registry.ts 가 data/regions.json 과 어긋남 — `npm run build:i18n` 후 커밋');
   process.exit(1);
 }
 if (bad) {
