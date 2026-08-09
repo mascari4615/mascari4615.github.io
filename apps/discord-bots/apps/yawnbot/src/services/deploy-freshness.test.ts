@@ -3,6 +3,7 @@ import {
   evaluateFreshness,
   decideAlert,
   runFreshnessTick,
+  nextDelayMin,
   type AlertMemory,
 } from './deploy-freshness';
 
@@ -160,5 +161,18 @@ describe('runFreshnessTick — 실제 물어보기', () => {
       { last: null, lastAlertAt: null },
     );
     expect(v.state).toBe('unreachable');
+  });
+});
+
+describe('nextDelayMin — 판이 갈린 동안만 촘촘히 (Datadog adaptive polling)', () => {
+  it('사이트 = master 끝이면 느슨하게', () => {
+    expect(nextDelayMin({ state: 'fresh', reason: '사이트 = master 끝 abc', ageMin: 5 }, 10, 3)).toBe(10);
+  });
+  it('올라가는 중이면 촘촘히 — 초록 전환을 10분 늦게 알 이유가 없다', () => {
+    expect(nextDelayMin({ state: 'fresh', reason: '올라가는 중 — …', ageMin: 5 }, 10, 3)).toBe(3);
+  });
+  it('낡음·못 받음도 촘촘히', () => {
+    expect(nextDelayMin({ state: 'stale', reason: 'x', ageMin: 500 }, 10, 3)).toBe(3);
+    expect(nextDelayMin({ state: 'unreachable', reason: 'x', ageMin: null }, 10, 3)).toBe(3);
   });
 });
