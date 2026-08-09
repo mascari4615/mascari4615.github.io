@@ -23,7 +23,8 @@ export function renderStampsPanel(ctx: PanelCtx): void {
           <span class="km-group-count">${st.nodes.length}개</span>
           <button class="btn btn-ghost" data-km="stamp-put" data-key="${esc(st.id)}">찍기</button>
           <button class="btn btn-ghost" data-km="stamp-del" data-key="${esc(st.id)}" title="본 지우기">×</button>
-        </div>`).join('')}
+        </div>
+        <div class="km-hint" style="margin:-4px 0 8px">${esc(st.nodes.slice(0, 5).map((n) => n.label || '(이름 없음)').join(' · '))}${st.nodes.length > 5 ? ` 외 ${st.nodes.length - 5}` : ''}</div>`).join('')}
     <button class="btn btn-ghost" data-km="stamp-close">닫기</button>`;
 
   side.querySelectorAll('[data-km="stamp-put"]').forEach((el) => {
