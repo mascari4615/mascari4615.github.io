@@ -13,7 +13,12 @@
  * http 로컬 주소를 막으므로(mixed content) **앱이나 로컬 dev 에서만** 붙는다 —
  * 못 붙을 때 「고장」처럼 보이지 않게 화면이 그 이유를 직접 말한다.
  */
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const BASE = 'http://127.0.0.1:4620';
   const 안붙는곳 = location.protocol === 'https:' && location.hostname.endsWith('github.io');
 
@@ -77,43 +82,40 @@
     document.head.appendChild(style);
   }
 
-  function esc(s: string): string {
-    const d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
-  }
 
   Toolbox.register({
     ...Toolbox.getLazyWidgetPublicMeta('companion'),
     tabs: [
       {
         id: 'main',
-        label: '동반자',
+        label: t('companion.t09', undefined, "동반자"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('companion').then(function () {
+
           injectStyles();
           container.innerHTML = `
             <div class="cmp-state">
               <span class="cmp-dot" id="cmpDot"></span>
               <div>
-                <div class="cmp-state-text" id="cmpText">확인하는 중…</div>
+                <div class="cmp-state-text" id="cmpText">${esc(t('companion.label.cmpText'))}</div>
                 <div class="cmp-state-sub" id="cmpSub"></div>
               </div>
               <div class="cmp-open">
-                <a class="cmp-btn" href="${BASE}/" target="_blank" rel="noopener noreferrer">창 열기</a>
-                <button class="cmp-btn" id="cmpAgain" type="button">다시 확인</button>
+                <a class="cmp-btn" href="${BASE}/" target="_blank" rel="noopener noreferrer">${esc(t('companion.t01'))}</a>
+                <button class="cmp-btn" id="cmpAgain" type="button">${esc(t('companion.btn.cmpAgain'))}</button>
               </div>
             </div>
             <div class="cmp-bits" id="cmpBits"></div>
             <div class="cmp-say">
-              <input id="cmpInput" type="text" placeholder="한 줄 던지기 — 답은 저쪽 창과 목소리로 나간다" autocomplete="off">
-              <button class="cmp-btn" id="cmpSend" type="button">말 걸기</button>
+              <input id="cmpInput" type="text" placeholder="${esc(t('companion.ph.cmpInput'))}" autocomplete="off">
+              <button class="cmp-btn" id="cmpSend" type="button">${esc(t('companion.btn.cmpSend'))}</button>
             </div>
-            <p class="cmp-h">오간 말</p>
-            <div class="cmp-log" id="cmpLog"><span class="cmp-empty">아직 못 읽었다.</span></div>
-            <p class="cmp-h" style="margin-top:18px">나를 뭘 안다고 생각하나</p>
-            <div class="cmp-known" id="cmpKnown">아직 못 읽었다.</div>
-            <p class="cmp-note">얼굴·목소리는 봇이 띄우는 창이 정본이다 — 여기는 곁에 있는지 보고 한 줄 던지는 자리.<br>
-            안 떠 있으면 <b>서버 모니터 → 「동반자 (말하는 봇)」</b> 카드로 켠다.</p>`;
+            <p class="cmp-h">${esc(t('companion.t02'))}</p>
+            <div class="cmp-log" id="cmpLog"><span class="cmp-empty">${esc(t('companion.t03'))}</span></div>
+            <p class="cmp-h" style="margin-top:18px">${esc(t('companion.t04'))}</p>
+            <div class="cmp-known" id="cmpKnown">${esc(t('companion.t03'))}</div>
+            <p class="cmp-note">${esc(t('companion.t05'))}<br>
+            ${esc(t('companion.t06'))} <b>${esc(t('companion.t07'))}</b> ${esc(t('companion.t08'))}</p>`;
 
           const dot = container.querySelector('#cmpDot') as HTMLElement;
           const text = container.querySelector('#cmpText') as HTMLElement;
@@ -127,7 +129,7 @@
 
           function 못붙음(why: string): void {
             dot.className = 'cmp-dot off';
-            text.textContent = '지금은 안 잡힌다';
+            text.textContent = t('companion.t10');
             sub.textContent = why;
             input.disabled = true;
             send.disabled = true;
@@ -145,21 +147,21 @@
               return;
             }
             const 칸: { 이름: string; 값: string; 경고?: boolean }[] = [
-              { 이름: '창', 값: st.창붙음 > 0 ? `${st.창붙음}개 붙음` : '안 떠 있음', 경고: st.창붙음 === 0 },
+              { 이름: t('companion.t11'), 값: st.창붙음 > 0 ? t('companion.attached', { n: st.창붙음 }) : t('companion.t12'), 경고: st.창붙음 === 0 },
               // 큐브 = 3D 몸을 못 세운 것. 그냥 두면 「원래 저런가 보다」가 된다.
-              { 이름: '몸', 값: st.몸 ?? '모름', 경고: st.몸 === '큐브' },
-              { 이름: '인격', 값: st.인격 ?? '없음' },
-              { 이름: '머리', 값: st.머리 ?? '모름' },
+              { 이름: t('companion.t13'), 값: st.몸 ?? t('companion.t14'), 경고: st.몸 === t('companion.t15') },
+              { 이름: t('companion.t16'), 값: st.인격 ?? t('companion.t17') },
+              { 이름: t('companion.t18'), 값: st.머리 ?? t('companion.t14') },
             ];
             if (Array.isArray(st.목소리들)) {
-              const 흉내있나 = st.목소리들.includes('흉내');
+              const 흉내있나 = st.목소리들.includes(t('companion.t19'));
               const 값 =
                 흉내있나 === false
                   ? st.목소리들.join(' + ') || '없음'
                   : st.흉내준비 === true
-                    ? `흉내(준비됨) + ${st.목소리들.filter((v) => v !== '흉내').join(' + ')}`
-                    : `흉내(${st.흉내자동 === false ? '자동 꺼둠' : '켜는 중'}) + ${st.목소리들.filter((v) => v !== '흉내').join(' + ')}`;
-              칸.push({ 이름: '목소리', 값, 경고: 흉내있나 === false });
+                    ? `${t('companion.mimicReady')} + ${st.목소리들.filter((v) => v !== t('companion.t19')).join(' + ')}`
+                    : `${t('companion.mimicState', { state: st.흉내자동 === false ? t('companion.t20') : t('companion.t21') })} + ${st.목소리들.filter((v) => v !== t('companion.t19')).join(' + ')}`;
+              칸.push({ 이름: t('companion.t22'), 값, 경고: 흉내있나 === false });
             }
             bits.innerHTML = 칸
               .map((c) => `<span class="cmp-bit${c.경고 === true ? ' warn' : ''}"><b>${c.이름}</b>${esc(c.값)}</span>`)
@@ -176,13 +178,13 @@
           function 대화그리기(entries: readonly Entry[]): void {
             const 최근 = entries.slice(-40);
             if (최근.length === 0) {
-              log.innerHTML = '<span class="cmp-empty">아직 나눈 말이 없다.</span>';
+              log.innerHTML = t('companion.t23');
               return;
             }
             log.innerHTML = 최근
               .map((e) => {
                 const 나 = e.role === 'sensed';
-                return `<div class="cmp-line${나 ? ' me' : ''}"><span class="cmp-who">${나 ? '나' : '얘'}</span>${esc(e.text)}</div>`;
+                return `<div class="cmp-line${나 ? ' me' : ''}"><span class="cmp-who">${나 ? t('companion.me') : t('companion.t24')}</span>${esc(e.text)}</div>`;
               })
               .join('');
             log.scrollTop = log.scrollHeight;
@@ -190,17 +192,17 @@
 
           async function 확인(): Promise<void> {
             if (안붙는곳) {
-              못붙음('배포된 페이지에서는 로컬 봇에 못 붙는다 — 앱이나 로컬 dev 에서 열어라');
+              못붙음(t('companion.t25'));
               return;
             }
             dot.className = 'cmp-dot';
-            text.textContent = '확인하는 중…';
+            text.textContent = t('companion.label.cmpText');
             sub.textContent = '';
             const 시작 = Date.now();
             try {
               await 읽기<{ offline: boolean }>('/ears');
               dot.className = 'cmp-dot on';
-              text.textContent = '곁에 있다';
+              text.textContent = t('companion.t26');
               input.disabled = false;
               send.disabled = false;
               const [stats, hist, kn, st] = await Promise.all([
@@ -212,8 +214,8 @@
               상태그리기(st);
               const 첫소리 =
                 stats === null || stats.첫소리중앙값ms === null
-                  ? '첫 소리 아직 안 쟀다'
-                  : `첫 소리 중앙값 ${(stats.첫소리중앙값ms / 1000).toFixed(1)}초 (${stats.샘플수}번)`;
+                  ? t('companion.t27')
+                  : t('companion.firstSound', { sec: (stats.첫소리중앙값ms / 1000).toFixed(1), n: stats.샘플수 });
               sub.textContent = `${Date.now() - 시작}ms · ${첫소리}`;
               if (hist !== null) 대화그리기(hist);
               known.textContent = kn?.known?.trim() || '아직 아는 게 없다.';
@@ -222,8 +224,8 @@
               // 둘 다 말한다. 하나로 단정하면 엉뚱한 데를 뒤지게 된다(실제로 그랬다).
               못붙음(
                 (e as Error).name === 'TimeoutError'
-                  ? '답이 없다 (안 켜져 있을 수 있다)'
-                  : '안 켜졌거나, 봇이 이 창에 문을 안 열어 준다'
+                  ? t('companion.t28')
+                  : t('companion.t29')
               );
             }
           }
@@ -242,7 +244,7 @@
               // 400 = 깨진 글이라 안 받은 것. 조용히 지나가면 「보냈는데 반응이 없다」가 된다.
               if (res.status === 400) {
                 const 이유 = (await res.json().catch(() => ({}))) as { 안받은이유?: string };
-                Toolbox.showToast?.(`안 받았다 — ${이유.안받은이유 ?? '깨진 글'}`, 'error', undefined);
+                Toolbox.showToast?.(`안 받았다 — ${이유.안받은이유 ?? t('companion.t30')}`, 'error', undefined);
                 return;
               }
               if (!res.ok && res.status !== 204) throw new Error(`HTTP ${res.status}`);
@@ -262,6 +264,7 @@
             if (e.key === 'Enter') void 말걸기();
           });
           void 확인();
+                  });
         },
       },
     ],

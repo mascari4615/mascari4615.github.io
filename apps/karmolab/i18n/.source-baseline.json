@@ -1,5 +1,5 @@
 {
-  "total": 5409,
+  "total": 5380,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -89,7 +89,7 @@
     "src/widgets/cockpit/team-tab.ts": 22,
     "src/widgets/collection.ts": 9,
     "src/widgets/community.ts": 18,
-    "src/widgets/companion.ts": 41,
+    "src/widgets/companion.ts": 12,
     "src/widgets/conch.ts": 19,
     "src/widgets/countdown.ts": 6,
     "src/widgets/crypto.ts": 2,
