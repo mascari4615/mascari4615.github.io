@@ -11,12 +11,22 @@
  *
  * (해시 자체를 AI 가 대신 답하면 그럴듯한 거짓말이 나온다 — 그래서 이 도구는 MCP A등급이다.)
  */
+import { keccak, sha3 } from './sha3';
 import type { ToolSpec } from './types';
 
-export type Algo = 'MD5' | 'SHA1' | 'SHA256' | 'SHA512' | 'KECCAK512' | 'RIPEMD160';
+export type Algo = 'MD5' | 'SHA1' | 'SHA256' | 'SHA512' | 'SHA3_512' | 'KECCAK512' | 'RIPEMD160';
 
 /** 화면에 나가는 순서이기도 하다. 흔히 쓰는 것부터. */
-export const ALGOS: readonly Algo[] = ['MD5', 'SHA1', 'SHA256', 'SHA512', 'KECCAK512', 'RIPEMD160'];
+export const ALGOS: readonly Algo[] = ['MD5', 'SHA1', 'SHA256', 'SHA512', 'SHA3_512', 'KECCAK512', 'RIPEMD160'];
+
+/**
+ * 이 둘은 **계산기를 안 빌린다** — `core/sha3.ts` 가 직접 계산한다.
+ * 그래서 브라우저와 Node 가 *같은 코드 한 벌*을 쓴다. 값이 갈릴 자리가 아예 없다.
+ */
+const SELF_COMPUTED: Partial<Record<Algo, (text: string) => string>> = {
+  SHA3_512: (t) => sha3(t, 512),
+  KECCAK512: (t) => keccak(t, 512)
+};
 
 /**
  * ★ `KECCAK512` 를 「SHA-3」 이라 부르지 않는다 (2026-08-09, TASK-KL-205 에서 실측으로 발각).
@@ -29,22 +39,23 @@ export const ALGOS: readonly Algo[] = ['MD5', 'SHA1', 'SHA256', 'SHA512', 'KECCA
  * 그동안 화면에 「SHA-3 (512)」 라고 적혀 나갔다. 이 도구를 쓰는 이유가 **값을 맞춰 보는 것**인데,
  * 이름이 틀리면 사람은 멀쩡한 파일을 「손상됐다」고 판단한다. 그래서 이름을 사실대로 고쳤다.
  *
- * 진짜 SHA-3 은 아직 못 준다 — CryptoJS 에 없고 WebCrypto 도 SHA-3 을 안 한다. 넣으려면 새
- * 라이브러리를 들여야 해서 사용자 판단을 기다린다 (`scripts/smoke-core-parity.mjs` 가 이 차이를
- * 잠가 둔다 — 어느 한쪽이 조용히 바뀌면 거기서 빨개진다).
+ * 진짜 SHA-3 은 이제 우리가 직접 계산한다 (`core/sha3.ts`) — 남의 라이브러리를 안 들였다.
+ * 둘 다 내놓으므로 옛 값이 필요한 사람도, 표준 값이 필요한 사람도 헷갈리지 않는다.
  */
 export const LABEL: Record<Algo, string> = {
   MD5: 'MD5',
   SHA1: 'SHA-1',
   SHA256: 'SHA-256',
   SHA512: 'SHA-512',
+  SHA3_512: 'SHA3-512',
   KECCAK512: 'Keccak-512',
   RIPEMD160: 'RIPEMD-160'
 };
 
 /** 이름만으로는 오해가 남는 것에 붙이는 한 줄. 화면이 그대로 보여 준다. */
 export const CAVEAT: Partial<Record<Algo, string>> = {
-  KECCAK512: '표준 SHA-3 이전 판입니다. sha3sum · openssl -sha3-512 값과 다릅니다.'
+  SHA3_512: '표준(FIPS-202)입니다. sha3sum · openssl dgst -sha3-512 와 같은 값입니다.',
+  KECCAK512: '표준 SHA-3 이전 판입니다. sha3sum 값과 다릅니다 — 옛 도구와 맞출 때만 쓰세요.'
 };
 
 /** 파일 체크섬 쪽이 쓰는 세 개 (WebCrypto 가 해 주는 것만). */
@@ -78,7 +89,8 @@ export interface HashRow {
 /** 빈 글자면 빈 값으로 돌려준다 — 화면이 「-」 를 그리기 위해서다(계산 안 함이 아니라 값 없음). */
 export function hashAll(text: string, backend: HashBackend, upper = false): HashRow[] {
   return ALGOS.map((algo) => {
-    const hex = text === '' ? '' : backend(algo, text);
+    const self = SELF_COMPUTED[algo];
+    const hex = text === '' ? '' : self ? self(text) : backend(algo, text);
     return { algo, label: LABEL[algo], hex: upper ? hex.toUpperCase() : hex, caveat: CAVEAT[algo] };
   });
 }

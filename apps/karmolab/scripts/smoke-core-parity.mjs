@@ -71,17 +71,26 @@ const LABEL_TO_ALGO = {
   'SHA-1': 'SHA1',
   'SHA-256': 'SHA256',
   'SHA-512': 'SHA512',
+  'SHA3-512': 'SHA3_512',
   'Keccak-512': 'KECCAK512',
   'RIPEMD-160': 'RIPEMD160'
 };
 
 for (const sample of SAMPLES) {
   const rows = browserHashes[sample] ?? [];
-  check(rows.length === 6, `「${sample || '(빈 글자)'}」 에서 6줄이 나와야 하는데 ${rows.length}줄`);
+  check(rows.length === 7, `「${sample || '(빈 글자)'}」 에서 7줄이 나와야 하는데 ${rows.length}줄`);
   for (const [label, browserHex] of rows) {
     const algo = LABEL_TO_ALGO[label];
     check(algo !== undefined, `모르는 이름이 나왔다: ${label} — 이름을 바꿨으면 이 표도 같이 고쳐라`);
     if (algo === undefined) continue;
+
+    // SHA3-512 는 우리가 직접 쓴 코드가 낸다(`core/sha3.ts`). 브라우저에 제대로 실려 나갔는지
+    // 여기서 OpenSSL 과 맞춰 본다 — 알맹이만 맞고 번들에 안 실리는 경우를 잡는 자리다.
+    if (algo === 'SHA3_512') {
+      const nodeSha3 = sample === '' ? '' : crypto.createHash('sha3-512').update(sample, 'utf8').digest('hex');
+      check(browserHex === nodeSha3, `「${sample || '(빈 글자)'}」 SHA3-512 — 브라우저 ${browserHex || '(없음)'} ≠ OpenSSL ${nodeSha3 || '(없음)'}`);
+      continue;
+    }
 
     // Keccak-512 는 Node 에 없다(OpenSSL 이 안 내준다). 그래서 값을 못 맞춰 본다 —
     // 대신 **SHA-3 과 달라야 한다**는 사실을 잠근다. 어느 날 한쪽이 조용히 표준으로 바뀌면
@@ -116,5 +125,5 @@ if (failures.length > 0) {
   process.exit(1);
 }
 console.log(
-  `[smoke-core-parity] ${SAMPLES.length}표본 — 공용 5종은 브라우저↔Node 값이 같고, Keccak-512 는 표준 SHA-3 과 다름을 확인`
+  `[smoke-core-parity] ${SAMPLES.length}표본 — 공용 5종 + 우리가 직접 쓴 SHA3-512 가 브라우저↔OpenSSL 일치, Keccak-512 는 SHA-3 과 다름을 확인`
 );

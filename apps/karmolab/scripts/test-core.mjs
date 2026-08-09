@@ -107,15 +107,53 @@ eq(b64.byteLength(''), 0, '빈 글자 바이트 수');
 const crypto = await import('node:crypto');
 const hg = await load('src/core/hashgen.ts');
 
-// KECCAK512 는 Node(OpenSSL)에 없다. 여기서는 자리를 채우려고 sha3-512 를 대신 물린다 —
-// **이 줄의 값이 맞는지는 여기서 주장하지 않는다.** 여기서 보는 것은 구조(6줄·이름·대문자 표기)뿐이고,
-// 실제 값 대조는 브라우저와 맞대 보는 `smoke-core-parity.mjs` 가 한다.
-const NODE_ALGO = { MD5: 'md5', SHA1: 'sha1', SHA256: 'sha256', SHA512: 'sha512', KECCAK512: 'sha3-512', RIPEMD160: 'ripemd160' };
-const nodeBackend = (algo, text) => crypto.createHash(NODE_ALGO[algo]).update(text, 'utf8').digest('hex');
+// SHA3_512·KECCAK512 는 알맹이가 직접 계산하므로 이 계산기로 안 온다 (오면 던져서 알려 준다).
+const NODE_ALGO = { MD5: 'md5', SHA1: 'sha1', SHA256: 'sha256', SHA512: 'sha512', RIPEMD160: 'ripemd160' };
+const nodeBackend = (algo, text) => {
+  const name = NODE_ALGO[algo];
+  if (name === undefined) throw new Error(`계산기에 오면 안 되는 알고리즘이 왔다: ${algo}`);
+  return crypto.createHash(name).update(text, 'utf8').digest('hex');
+};
+
+// ── ②-1 SHA-3 을 우리가 직접 쓴 것 — 정답지(OpenSSL)와 대조 ────────────────────
+// 「암호를 직접 짜지 마라」의 예외로 삼은 근거가 이 블록이다. 눈으로 「맞겠지」 하는 자리를 없앤다.
+const s3 = await load('src/core/sha3.ts');
+
+for (const bits of [224, 256, 384, 512]) {
+  for (const sample of ['', 'a', 'KarmoLab', '안녕하세요', '🦴 뼈', 'x'.repeat(200)]) {
+    eq(s3.sha3(sample, bits), crypto.createHash(`sha3-${bits}`).update(sample, 'utf8').digest('hex'), `SHA3-${bits} 「${sample.slice(0, 12)}」`);
+  }
+}
+
+// 흡수 구간 경계(rate)에서 채움이 틀리기 쉽다 — 길이를 1바이트씩 밀며 전부 대 본다.
+let fuzzBad = 0;
+for (let len = 0; len < 400; len++) {
+  const sample = 'z'.repeat(len);
+  if (s3.sha3(sample, 512) !== crypto.createHash('sha3-512').update(sample).digest('hex')) fuzzBad++;
+}
+check(fuzzBad === 0, `길이 0~399 중 ${fuzzBad}개가 OpenSSL 과 다르다 (채움·경계 문제)`);
+
+// 무작위 바이트로도. 여기까지 맞으면 「우연히 맞았다」가 아니다.
+let randBad = 0;
+for (let i = 0; i < 300; i++) {
+  const buf = crypto.randomBytes(1 + Math.floor(Math.random() * 300));
+  const hex = s3.keccakHex(new Uint8Array(buf), 512, 0x06);
+  if (hex !== crypto.createHash('sha3-512').update(buf).digest('hex')) randBad++;
+}
+check(randBad === 0, `무작위 300건 중 ${randBad}건이 OpenSSL 과 다르다`);
+
+// Keccak(표준화 이전)은 OpenSSL 에 없다. 널리 알려진 값으로 못 박는다.
+eq(
+  s3.keccak('', 512),
+  '0eab42de4c3ceb9235fc91acffe746b29c29a8c366b7c60e4e67c466f36a4304c00fa9caf9d87976ba469bcbe06713b435f091ef2769fb160cdab33d3670680e',
+  'Keccak-512 빈 글자 (알려진 값)'
+);
+check(s3.keccak('a', 512) !== s3.sha3('a', 512), 'Keccak 과 SHA-3 은 달라야 한다 (채움 한 바이트 차이)');
 
 eq(hg.spec.id, 'hashgen', 'hashgen spec.id');
+eq(hg.hashAll('KarmoLab', nodeBackend).find((r) => r.algo === 'SHA3_512').hex, crypto.createHash('sha3-512').update('KarmoLab').digest('hex'), '알맹이가 직접 낸 SHA3-512 가 OpenSSL 과 같다');
 const rows = hg.hashAll('KarmoLab', nodeBackend);
-eq(rows.length, 6, '알고리즘 6종이 나온다');
+eq(rows.length, 7, '알고리즘 7종이 나온다');
 eq(rows[0].algo, 'MD5', '흔한 것부터 보여 준다');
 eq(rows.find((r) => r.algo === 'SHA256').hex, crypto.createHash('sha256').update('KarmoLab').digest('hex'), 'SHA-256 값');
 eq(hg.hashAll('', nodeBackend)[0].hex, '', '빈 글자는 빈 값 (0 을 해시하지 않는다)');
