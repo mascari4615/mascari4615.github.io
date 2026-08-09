@@ -110,7 +110,13 @@ import {
     .km-toolbar input[type=text], .km-toolbar select, .km-side select, .km-side input[type=text] {
       background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-primary);
       border-radius:var(--radius-sm); padding:5px 8px; font-size:var(--font-size-xs); }
-    .km-toolbar input[type=text] { min-width:180px; }
+    /* ★ 셸 CSS 가 폼 요소를 통짜 너비로 깔아 두는 바람에, 툴바 항목이 **한 줄에 하나씩** 쌓여
+       세로로 네 줄을 먹고 있었다(실측 2026-08-10, 실서비스 화면). 툴바 안에서는 제 폭만 쓰게 못 박는다. */
+    .km-toolbar > * { flex:0 0 auto; width:auto; max-width:100%; }
+    /* 폭을 못 박아 한 줄에 더 많이 들어가게 — 툴바가 세로로 자랄수록 그림이 밀린다. */
+    .km-toolbar select[data-km="maps"] { max-width:150px; }
+    .km-toolbar select[data-km="new-kind"], .km-toolbar select[data-km="degree"] { max-width:110px; }
+    .km-toolbar input[type=text] { min-width:150px; max-width:190px; }
     .km-toolbar input[data-km="find"] { min-width:130px; }
     .km-sep { width:1px; align-self:stretch; background:var(--border); margin:0 2px; }
     .km-body { flex:1; display:flex; min-height:0; }

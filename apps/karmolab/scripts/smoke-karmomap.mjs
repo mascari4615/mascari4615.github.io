@@ -59,6 +59,13 @@ await step('툴바 버튼 전부 있다', async () => {
     if (await page.locator(`[data-km="${k}"]`).count() === 0) throw new Error(`없음: ${k}`);
   }
 });
+await step('툴바가 한두 줄에 들어간다 (캔버스를 밀지 않는다)', async () => {
+  // 셸 CSS 가 폼 요소를 통짜 너비로 깔면 항목이 한 줄에 하나씩 쌓여 세로 네 줄을 먹는다
+  // (실서비스 화면에서 실제로 그랬다). 그만큼 그림이 밀린다.
+  const bar = await page.locator('.km-toolbar').boundingBox();
+  if (!bar) throw new Error('툴바가 없다');
+  if (bar.height > 120) throw new Error(`툴바가 ${Math.round(bar.height)}px — 여러 줄로 쌓였다`);
+});
 await step('캔버스가 쓸 만한 크기다', async () => {
   // ★ 자리가 잡힐 때까지 기다린다 — `.km-root` 가 나타난 **직후**에 재면 아직 배치 전이라
   //   117px 같은 값이 나온다(실측 2026-08-09: 같은 코드로 117 과 832 가 번갈아 나왔다).
@@ -1155,6 +1162,10 @@ await step('보기 전용 링크 — 손잡이가 사라지고, 「내 것으로
 });
 await step('꾸미기 규칙 — 「이 칸이 이 값이면 이 색」이 실제로 먹는다', async () => {
   // 규칙을 적어 놓기만 하고 색이 안 바뀌면 그건 메모지 규칙이 아니다.
+  // 새 맵에서 — 앞 검사가 깔아 둔 판 위에 찍으면 새 카드가 아니라 남의 카드를 고치게 된다
+  // (툴바 높이가 바뀌면 같은 비율이 딴 자리를 가리키기도 한다).
+  await page.click('[data-km="map-new"]');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
   await page.click('[data-km="tab"][data-key="node"]');
   const rbox = await page.locator('.km-canvas').boundingBox();
   await page.mouse.dblclick(rbox.x + rbox.width * 0.75, rbox.y + rbox.height * 0.35);
