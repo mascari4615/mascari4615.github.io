@@ -11,15 +11,28 @@
  *  - 규칙에 걸리는 글자(쉼표·세미콜론·줄바꿈)를 자동으로 처리한다. 안 하면 달력 앱이
  *    파일을 통째로 거부하는데, 그때 나오는 오류 메시지가 아무 도움이 안 된다.
  */
+import { t, loadNamespace, locale } from '../../lib/i18n';
+
 (function (): void {
   /** .ics 규칙: 쉼표·세미콜론·역슬래시는 이스케이프, 줄바꿈은 \n 글자로 */
   const esc = (s: string): string =>
     s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
 
   /** 한국 시간 문자열 → UTC 기준 `YYYYMMDDTHHMMSSZ` */
+  /** 이 브라우저가 있는 시간대 이름 (Asia/Seoul · America/New_York …). */
+  function myZone(): string {
+    try {
+      return new Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    } catch {
+      return 'UTC';
+    }
+  }
+
   function toUtcStamp(local: string): string {
-    // input[type=datetime-local] 은 시간대가 없다. 한국 시간으로 읽겠다고 못 박는다
-    const d = new Date(local + ':00+09:00');
+    /* `input[type=datetime-local]` 에는 시간대가 없다 — **그 사람의 시계**로 읽는다.
+       예전에는 `+09:00` 을 못 박고 있었다. 한국에서는 맞지만, 뉴욕 사람이 14:00 을 넣으면
+       14:00 KST = 그곳 00:00 로 적혀 **일정 시각 자체가 어긋난다**. 번역보다 먼저 고칠 일이었다. */
+    const d = new Date(local);
     if (isNaN(d.getTime())) return '';
     const p = (n: number): string => String(n).padStart(2, '0');
     return (
@@ -45,16 +58,35 @@
 
   Toolbox.register({
     id: 'icsmake',
-    title: '일정 파일 만들기',
+    title: t('widgets.icsmake.title', undefined, '일정 파일 만들기'),
     category: 'tool',
-    desc: '모임·공지를 달력에 넣을 수 있는 .ics 파일로 만듭니다. 시간대를 맞춰 적습니다',
+    desc: t(
+      'widgets-desc.icsmake.desc',
+      undefined,
+      '모임·공지를 달력에 넣을 수 있는 .ics 파일로 만듭니다. 시간대를 맞춰 적습니다'
+    ),
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 13v5M9.5 15.5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '일정 만들기',
+        label: t('icsmake.tab', undefined, '일정 만들기'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('icsmake').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+          /* 시간대는 **그 사람의 것**을 그대로 보여 준다 — 「한국 시간」이라고 적어 두면
+             다른 나라 사람은 자기가 넣은 값이 어떻게 읽히는지 알 수 없다. */
+          const zone = myZone();
           const now = new Date(Date.now() + 24 * 3600 * 1000);
           const p = (n: number): string => String(n).padStart(2, '0');
           const startDefault = `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}T19:00`;
@@ -62,60 +94,60 @@
 
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label" for="icTitle">일정 이름</label>
-              <input type="text" id="icTitle" aria-label="일정 이름" placeholder="예: 스터디 3회차" value="모임">
+              <label class="field-label" for="icTitle">${esc(t('icsmake.label.title'))}</label>
+              <input type="text" id="icTitle" aria-label="${esc(t('icsmake.label.title'))}" placeholder="${esc(t('icsmake.ph.title'))}" value="${esc(t('icsmake.default.title'))}">
             </div>
 
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">시작 (한국 시간)</div>
+                  <div class="tool-sublabel">${esc(t('icsmake.label.start', { tz: zone }))}</div>
                   <input type="datetime-local" id="icStart" aria-label="시작 시각" value="${startDefault}">
                 </div>
                 <div>
-                  <div class="tool-sublabel">끝 (한국 시간)</div>
+                  <div class="tool-sublabel">${esc(t('icsmake.label.end', { tz: zone }))}</div>
                   <input type="datetime-local" id="icEnd" aria-label="끝 시각" value="${endDefault}">
                 </div>
               </div>
               <div class="tool-chips" style="margin-top:10px;">
-                <label class="tool-chip"><input type="checkbox" id="icAllDay"> 종일 일정</label>
-                <label class="tool-chip"><input type="checkbox" id="icAlarm" checked> 30분 전 알림</label>
+                <label class="tool-chip"><input type="checkbox" id="icAllDay"> ${esc(t('icsmake.opt.allDay'))}</label>
+                <label class="tool-chip"><input type="checkbox" id="icAlarm" checked> ${esc(t('icsmake.opt.alarm'))}</label>
               </div>
             </div>
 
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">장소 (없어도 됨)</div>
-                  <input type="text" id="icPlace" aria-label="장소" placeholder="예: 강남역 3번 출구">
+                  <div class="tool-sublabel">${esc(t('icsmake.label.place'))}</div>
+                  <input type="text" id="icPlace" aria-label="${esc(t('icsmake.aria.place'))}" placeholder="${esc(t('icsmake.ph.place'))}">
                 </div>
                 <div>
-                  <div class="tool-sublabel">반복</div>
+                  <div class="tool-sublabel">${esc(t('icsmake.label.repeat'))}</div>
                   <select id="icRepeat" aria-label="반복">
-                    <option value="">반복 없음</option>
-                    <option value="FREQ=WEEKLY">매주</option>
-                    <option value="FREQ=WEEKLY;INTERVAL=2">격주</option>
-                    <option value="FREQ=MONTHLY">매달</option>
+                    <option value="">${esc(t('icsmake.repeat.none'))}</option>
+                    <option value="FREQ=WEEKLY">${esc(t('icsmake.repeat.weekly'))}</option>
+                    <option value="FREQ=WEEKLY;INTERVAL=2">${esc(t('icsmake.repeat.biweekly'))}</option>
+                    <option value="FREQ=MONTHLY">${esc(t('icsmake.repeat.monthly'))}</option>
                   </select>
                 </div>
               </div>
-              <label class="field-label" for="icNote" style="margin-top:10px;">메모 (없어도 됨)</label>
-              <textarea id="icNote" rows="3" style="width:100%;" placeholder="준비물, 링크 등"></textarea>
+              <label class="field-label" for="icNote" style="margin-top:10px;">${esc(t('icsmake.label.note'))}</label>
+              <textarea id="icNote" rows="3" style="width:100%;" placeholder="${esc(t('icsmake.ph.note'))}"></textarea>
             </div>
 
             <div class="cc-stats" id="icStats"></div>
             <div class="tool-list" id="icCheck"></div>
 
             <div class="field-group">
-              <label class="field-label" for="icOut">만들어진 파일 내용</label>
+              <label class="field-label" for="icOut">${esc(t('icsmake.label.out'))}</label>
               <textarea id="icOut" rows="9" spellcheck="false" style="width:100%;" readonly></textarea>
               <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
-                <button class="btn btn-primary btn-sm" id="icSave">.ics 로 받기</button>
-                <button class="btn btn-ghost btn-sm" id="icCopy">복사</button>
+                <button class="btn btn-primary btn-sm" id="icSave">${esc(t('icsmake.btn.save'))}</button>
+                <button class="btn btn-ghost btn-sm" id="icCopy">${esc(t('icsmake.btn.copy'))}</button>
               </div>
             </div>
 
-            <div class="tool-status" id="icStatus">일정은 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="icStatus">${esc(t('icsmake.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -135,27 +167,27 @@
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
           function run(): void {
-            const title = $<HTMLInputElement>('#icTitle').value.trim() || '일정';
+            const title = $<HTMLInputElement>('#icTitle').value.trim() || t('icsmake.fallback.title');
             const start = $<HTMLInputElement>('#icStart').value;
             const end = $<HTMLInputElement>('#icEnd').value;
             const allDay = $<HTMLInputElement>('#icAllDay').checked;
             if (!start || !end) {
               built = '';
               out.value = '';
-              say('시작·끝 시각을 넣어 주세요.', 'error');
+              say(t('icsmake.err.needTime'), 'error');
               return;
             }
             if (new Date(end) <= new Date(start) && !allDay) {
               built = '';
               out.value = '';
-              say('끝 시각이 시작보다 빠르거나 같아요.', 'error');
+              say(t('icsmake.err.order'), 'error');
               return;
             }
 
             const lines: string[] = [
               'BEGIN:VCALENDAR',
               'VERSION:2.0',
-              'PRODID:-//KarmoLab//일정 파일 만들기//KO',
+              'PRODID:-//KarmoLab//icsmake//EN',
               'CALSCALE:GREGORIAN',
               'BEGIN:VEVENT',
               // 같은 일정을 두 번 받아도 달력이 하나로 알아보게 고정된 값에서 뽑는다
@@ -185,22 +217,50 @@
             out.value = built;
 
             stats.innerHTML =
-              stat('일정', title, true) +
-              stat('길이', allDay ? '종일' : lengthOf(start, end)) +
-              stat('반복', rep ? ($<HTMLSelectElement>('#icRepeat').selectedOptions[0]?.text || '있음') : '없음');
+              stat(t('icsmake.stat.event'), title, true) +
+              stat(t('icsmake.stat.length'), allDay ? t('icsmake.value.allDay') : lengthOf(start, end)) +
+              stat(
+                t('icsmake.stat.repeat'),
+                rep
+                  ? $<HTMLSelectElement>('#icRepeat').selectedOptions[0]?.text || t('icsmake.value.has')
+                  : t('icsmake.value.none')
+              );
 
             // 시간대는 사고가 나도 눈에 안 보이므로, 무엇이 어떻게 적혔는지 드러낸다
             check.innerHTML = allDay
-              ? `<div class="tool-list-row"><span class="tool-list-key">날짜</span><span class="tool-list-val">${start.slice(0, 10)} (종일)</span></div>`
-              : `<div class="tool-list-row"><span class="tool-list-key">한국 시간</span><span class="tool-list-val">${start.replace('T', ' ')}</span></div>` +
-                `<div class="tool-list-row"><span class="tool-list-key">파일에 적힌 값</span><span class="tool-list-val">${toUtcStamp(start)} — 세계 표준시라 어느 나라에서 열어도 같은 시각입니다</span></div>`;
-            say('받아서 달력에 넣거나, 공지에 파일로 올리세요.', 'ok');
+              ? `<div class="tool-list-row"><span class="tool-list-key">${esc(t('icsmake.row.date'))}</span><span class="tool-list-val">${esc(
+                  t('icsmake.row.dateAllDay', { date: start.slice(0, 10) })
+                )}</span></div>`
+              : `<div class="tool-list-row"><span class="tool-list-key">${esc(
+                  t('icsmake.row.localTime', { tz: zone })
+                )}</span><span class="tool-list-val">${esc(start.replace('T', ' '))}</span></div>` +
+                `<div class="tool-list-row"><span class="tool-list-key">${esc(
+                  t('icsmake.row.inFile')
+                )}</span><span class="tool-list-val">${esc(
+                  t('icsmake.row.inFileNote', { stamp: toUtcStamp(start) })
+                )}</span></div>`;
+            say(t('icsmake.status.ready'), 'ok');
             Toolbox.trackUse?.('ics');
           }
 
           function lengthOf(a: string, b: string): string {
             const m = Math.round((new Date(b).getTime() - new Date(a).getTime()) / 60000);
-            return m >= 60 ? `${Math.floor(m / 60)}시간 ${m % 60 ? (m % 60) + '분' : ''}`.trim() : `${m}분`;
+            /* 「몇 시간 몇 분」은 손으로 안 적는다 — `Intl` 이 모든 언어의 단위 이름을 안다
+               (복수형이 갈리는 언어도 공짜: 1 hour / 2 hours). */
+            const unit = (n: number, u: 'hour' | 'minute'): string => {
+              try {
+                return new Intl.NumberFormat(locale(), {
+                  style: 'unit',
+                  unit: u,
+                  unitDisplay: 'short'
+                } as Intl.NumberFormatOptions).format(n);
+              } catch {
+                return String(n) + (u === 'hour' ? 'h' : 'm');
+              }
+            };
+            if (m < 60) return unit(m, 'minute');
+            const rest = m % 60;
+            return rest ? unit(Math.floor(m / 60), 'hour') + ' ' + unit(rest, 'minute') : unit(Math.floor(m / 60), 'hour');
           }
           function hash(s: string): number {
             let h = 0;
@@ -226,11 +286,8 @@
             a.download = ($<HTMLInputElement>('#icTitle').value.trim() || '일정') + '.ics';
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say('받았어요. 눌러서 달력에 넣거나, 공지에 그대로 올리세요.', 'ok');
+            say(t('icsmake.status.saved'), 'ok');
           };
           run();
-        }
-      }
-    ]
-  });
+  }
 })();

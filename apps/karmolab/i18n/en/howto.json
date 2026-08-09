@@ -67,5 +67,9 @@
   "howto.loan.1": "If there is a grace period, enter its months (interest only during it)",
   "howto.loan.2": "Put an amount in \"Extra payment\" to see the months and interest it saves",
   "howto.loan.3": "Use the three-way comparison to trade total interest against the first payment",
-  "howto.loan.4": "\"Show all\" for every month, \"Download the table\" to open it in a spreadsheet"
+  "howto.loan.4": "\"Show all\" for every month, \"Download the table\" to open it in a spreadsheet",
+  "howto.icsmake.0": "Enter the event name and times",
+  "howto.icsmake.1": "Set the place, repeat and notes",
+  "howto.icsmake.2": "Check the times it wrote",
+  "howto.icsmake.3": "Hit \"Download .ics\""
 }
