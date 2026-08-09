@@ -242,7 +242,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'charconv',
     title: '문자 변환',
     category: 'tool',
-    desc: '전각·반각, 한글·로마자, 한글·자모를 한 곳에서 — 섞인 글자를 먼저 알려 준다',
+    desc: '전각·반각, 한글·로마자, 한글·자모, 간체·번체를 한 곳에서 — 섞인 글자를 먼저 알려 준다',
     layout: 'wide',
     icon: '<path d="M5 8h6M8 8v8M14 16l4-8 4 8M15.5 13h5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     lazyScriptPaths: ['tools/charconv']

@@ -24,6 +24,7 @@
     "ops": [
       "width",
       "roman",
+      "han",
       "jamo"
     ]
   },

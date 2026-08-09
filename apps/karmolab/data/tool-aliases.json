@@ -189,7 +189,7 @@
       "korean typing"
     ],
     "dailycho": "초성 초성퀴즈 초성맞히기 낱말 퀴즈 cho quiz wordle",
-    "charconv": "전각 반각 로마자 자모 문자변환 fullwidth halfwidth romanize 全角 半角",
+    "charconv": "전각 반각 로마자 자모 문자변환 간체 번체 fullwidth halfwidth romanize 全角 半角 简体 繁體 simplified traditional 简繁转换",
     "comparepic": "비교 전후 슬라이더 before after compare slider 비교슬라이더",
     "mesh3d": "3D STL OBJ 뷰어 메시 모델 프린터 stl obj viewer mesh model 3d뷰어",
     "livecount": "카운터 경과 기념일 금연 디데이 counter elapsed since 흐른시간"

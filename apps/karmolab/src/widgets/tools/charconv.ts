@@ -3,11 +3,11 @@
  *
  * 골격만이다. 계산은 전부 `core/charconv.ts` — 여기서 다시 짜면 화면과 MCP 가 갈린다.
  *
- * 세 갈래를 한 화면에 둔 이유: 이 변환들은 **따로 찾아 들어가는 것 자체가 마찰**이다.
+ * 네 갈래를 한 화면에 둔 이유: 이 변환들은 **따로 찾아 들어가는 것 자체가 마찰**이다.
  * 「전각인가?」를 의심할 정도면 이미 한참 헤맨 뒤다. 그래서 붙여 놓고, 붙여 넣는 순간
  * **섞여 있으면 먼저 알려 준다** — 물어보기 전에 답이 보이는 편이 낫다.
  */
-import { hasFullWidth, romanize, toFullWidth, toHalfWidth } from '../../core/charconv';
+import { ambiguousChars, hasFullWidth, romanize, toFullWidth, toHalfWidth, toSimplified, toTraditional } from '../../core/charconv';
 import { compose, decompose } from '../../core/jamo';
 import { readInvocation } from '../../lib/tool-url';
 import { spec } from '../../core/charconv';
@@ -15,14 +15,16 @@ import { spec } from '../../core/charconv';
 (function (): void {
   const esc = (s: string): string => s.replace(/[<&]/g, (c) => (c === '<' ? '&lt;' : '&amp;'));
 
-  type Mode = 'half' | 'full' | 'roman' | 'split' | 'join';
+  type Mode = 'half' | 'full' | 'roman' | 'split' | 'join' | 'simp' | 'trad';
 
   const MODES: Array<{ id: Mode; label: string }> = [
     { id: 'half', label: '전각 → 반각' },
     { id: 'full', label: '반각 → 전각' },
     { id: 'roman', label: '한글 → 로마자' },
     { id: 'split', label: '한글 → 자모' },
-    { id: 'join', label: '자모 → 한글' }
+    { id: 'join', label: '자모 → 한글' },
+    { id: 'simp', label: '번체 → 간체' },
+    { id: 'trad', label: '간체 → 번체' }
   ];
 
   const convert = (mode: Mode, text: string): string => {
@@ -37,6 +39,10 @@ import { spec } from '../../core/charconv';
         return decompose(text);
       case 'join':
         return compose(text);
+      case 'simp':
+        return toSimplified(text);
+      case 'trad':
+        return toTraditional(text);
     }
   };
 
@@ -84,7 +90,18 @@ import { spec } from '../../core/charconv';
             output.value = input.value === '' ? '' : convert(mode, input.value);
             /* 묻기 전에 알려 준다 — 「왜 검색이 안 되지」의 답이 대개 이것이다. */
             const warn = $('#ccWarn');
-            if (mode !== 'full' && hasFullWidth(input.value)) {
+
+            /*
+             * 뜻을 봐야 정해지는 글자는 **바꾼 다음에** 말해 줘야 한다. 조용히 하나 골라 두면
+             * 사람은 맞는 줄 알고 그대로 쓴다 — 发 를 髮 로 써야 할 자리에 發 이 들어간다.
+             */
+            const amb = mode === 'simp' || mode === 'trad' ? ambiguousChars(input.value, mode === 'trad') : [];
+            if (amb.length > 0) {
+              warn.textContent =
+                '뜻을 봐야 정해지는 글자가 있습니다 (첫 후보로 바꿨습니다): ' +
+                amb.map((a) => `${a.ch} → ${a.candidates.join(' 또는 ')}`).join(' · ');
+              warn.className = 'tool-note error';
+            } else if (mode !== 'full' && hasFullWidth(input.value)) {
               warn.textContent = '전각 글자가 섞여 있습니다 — 검색·로그인·조회가 안 되던 이유가 대개 이것입니다.';
               warn.className = 'tool-note error';
             } else {
@@ -118,6 +135,7 @@ import { spec } from '../../core/charconv';
           }
           input.value = String(call.args.text ?? '');
           if (call.op === 'roman') mode = 'roman';
+          else if (call.op === 'han') mode = call.args.mode === 'trad' ? 'trad' : 'simp';
           else if (call.op === 'jamo') mode = call.args.mode === 'join' ? 'join' : 'split';
           else mode = call.args.mode === 'full' ? 'full' : 'half';
           paint();

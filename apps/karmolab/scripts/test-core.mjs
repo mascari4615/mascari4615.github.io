@@ -1906,6 +1906,8 @@ check(cq.questions.every((q) => choQ0.includes(q.answer) === false), '답을 안
 const choScored = cho.run('today', { at: '2026-08-11T02:00:00Z', answers: cq.questions.map((q) => q.answer).join(',') });
 check(choScored.includes('5/5 맞힘'), 'run 이 채점한다');
 
+const NL_ = String.fromCharCode(10);
+
 // ── ②-37 문자 변환 허브 (눈으로 구분이 안 되는 글자들) ─────────────────────
 const conv = await load('src/core/charconv.ts');
 eq(conv.spec.id, 'charconv', 'charconv spec.id');
@@ -1943,6 +1945,26 @@ eq(conv.run('jamo', { text: '한' }), (await load('src/core/jamo.ts')).decompose
 const convWidth = conv.run('width', { text: 'ＡＢ' });
 check(convWidth.startsWith('AB'), 'run width');
 check(convWidth.includes('전각 글자가 섞여'), '왜 안 되던 건지 알려 준다');
+
+/* 간체 ⟷ 번체 — 규칙이 아니라 표다(유니코드 Unihan 에서 찍었다). 표가 실제로 실렸는지부터. */
+eq(conv.toSimplified('漢字變換'), '汉字变换', '번체 → 간체');
+eq(conv.toTraditional('汉字变换'), '漢字變換', '간체 → 번체');
+eq(conv.toSimplified('汉字'), '汉字', '이미 간체면 그대로');
+eq(conv.toSimplified('가나 abc'), '가나 abc', '한글·영문은 안 건드린다');
+eq(conv.toSimplified('這是漢字'), '这是汉字', '문장째로');
+
+/* ★ 조용히 틀리지 않는 자리 — 发 는 「보내다(發)」와 「머리카락(髮)」이 합쳐진 글자다.
+ * 하나를 고르되 갈렸다는 사실을 반드시 말해야 한다. 이걸 안 하면 틀린 글이 그냥 나간다. */
+const convAmb = conv.ambiguousChars('发', true);
+eq(convAmb.length, 1, '갈리는 글자를 골라낸다');
+check(convAmb[0].candidates.length > 1, `发 의 후보가 여럿: ${convAmb[0].candidates.join('')}`);
+eq(conv.ambiguousChars('汉字', true).length, 0, '안 갈리는 글자는 조용히');
+
+const convHan = conv.run('han', { text: '漢字' });
+check(convHan.startsWith('汉字'), `run han: ${convHan.split(NL_)[0]}`);
+const convHanAmb = conv.run('han', { text: '发', mode: 'trad' });
+check(convHanAmb.includes('뜻을 봐야'), '갈리는 글자는 답에 함께 적는다');
+check(convHanAmb.includes('發') && convHanAmb.includes('髮'), `후보를 다 보여 준다: ${convHanAmb.split(NL_).pop()}`);
 
 let convThrew = false;
 try {
