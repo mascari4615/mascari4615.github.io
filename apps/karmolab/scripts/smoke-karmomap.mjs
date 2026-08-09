@@ -35,7 +35,7 @@ await step('위젯이 뜬다', async () => {
   await page.waitForSelector('.km-root', { timeout: 15000 });
 });
 await step('툴바 버튼 전부 있다', async () => {
-  for (const k of ['maps', 'pack', 'add', 'groups', 'terms', 'undo', 'redo', 'bg', 'fit', 'story', 'png', 'export', 'import', 'clear']) {
+  for (const k of ['maps', 'pack', 'new-kind', 'groups', 'terms', 'undo', 'redo', 'bg', 'fit', 'story', 'png', 'export', 'import', 'clear']) {
     if (await page.locator(`[data-km="${k}"]`).count() === 0) throw new Error(`없음: ${k}`);
   }
 });
