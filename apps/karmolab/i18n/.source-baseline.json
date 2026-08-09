@@ -1,5 +1,5 @@
 {
-  "total": 4889,
+  "total": 4852,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -319,7 +319,7 @@
     "src/widgets/tools/workdays.ts": 3,
     "src/widgets/tools/worldclock.ts": 3,
     "src/widgets/tools/ziptool.ts": 2,
-    "src/widgets/twenty.ts": 42,
+    "src/widgets/twenty.ts": 5,
     "src/widgets/user.ts": 17,
     "src/widgets/usertool.ts": 7,
     "src/widgets/wm/wm.ts": 11,
