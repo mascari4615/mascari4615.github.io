@@ -2,98 +2,110 @@
  * 특수문자 모음 (TASK-KL-088) — 눌러서 복사.
  * 한글 자판으로 못 치는 기호를 분류별로 늘어놓는다. 데이터가 곧 이 위젯의 전부라 표만 채운다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
-  const RAW: Array<[string, string, string]> = [
+  /* 표는 **쓸 때** 짓는다 — 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
+  const raw = (): Array<[string, string, string]> => [
     // [문자, 이름, 분류]
-    ['←', '왼쪽 화살표', '화살표'], ['→', '오른쪽 화살표', '화살표'], ['↑', '위 화살표', '화살표'], ['↓', '아래 화살표', '화살표'],
-    ['↔', '좌우 화살표', '화살표'], ['↕', '상하 화살표', '화살표'], ['↖', '왼쪽 위', '화살표'], ['↗', '오른쪽 위', '화살표'],
-    ['↘', '오른쪽 아래', '화살표'], ['↙', '왼쪽 아래', '화살표'], ['⇒', '이중 오른쪽', '화살표'], ['⇔', '이중 좌우', '화살표'],
-    ['⇐', '이중 왼쪽', '화살표'], ['⇑', '이중 위', '화살표'], ['⇓', '이중 아래', '화살표'], ['➜', '굵은 화살표', '화살표'],
-    ['▶', '재생', '화살표'], ['◀', '되감기', '화살표'], ['▲', '위 삼각', '화살표'], ['▼', '아래 삼각', '화살표'],
+    ['←', t('specialchar.t01'), t('specialchar.t02')], ['→', t('specialchar.t03'), t('specialchar.t02')], ['↑', t('specialchar.t04'), t('specialchar.t02')], ['↓', t('specialchar.t05'), t('specialchar.t02')],
+    ['↔', t('specialchar.t06'), t('specialchar.t02')], ['↕', t('specialchar.t07'), t('specialchar.t02')], ['↖', t('specialchar.t08'), t('specialchar.t02')], ['↗', t('specialchar.t09'), t('specialchar.t02')],
+    ['↘', t('specialchar.t10'), t('specialchar.t02')], ['↙', t('specialchar.t11'), t('specialchar.t02')], ['⇒', t('specialchar.t12'), t('specialchar.t02')], ['⇔', t('specialchar.t13'), t('specialchar.t02')],
+    ['⇐', t('specialchar.t14'), t('specialchar.t02')], ['⇑', t('specialchar.t15'), t('specialchar.t02')], ['⇓', t('specialchar.t16'), t('specialchar.t02')], ['➜', t('specialchar.t17'), t('specialchar.t02')],
+    ['▶', t('specialchar.t18'), t('specialchar.t02')], ['◀', t('specialchar.t19'), t('specialchar.t02')], ['▲', t('specialchar.t20'), t('specialchar.t02')], ['▼', t('specialchar.t21'), t('specialchar.t02')],
 
-    ['★', '검은 별', '별·하트'], ['☆', '흰 별', '별·하트'], ['✦', '작은 별', '별·하트'], ['✧', '빈 작은 별', '별·하트'],
-    ['❤', '하트', '별·하트'], ['♥', '검은 하트', '별·하트'], ['♡', '흰 하트', '별·하트'], ['✿', '꽃', '별·하트'],
-    ['❀', '꽃 2', '별·하트'], ['✽', '별꽃', '별·하트'], ['✼', '별꽃 2', '별·하트'], ['❁', '꽃 3', '별·하트'],
+    ['★', t('specialchar.t22'), t('specialchar.t23')], ['☆', t('specialchar.t24'), t('specialchar.t23')], ['✦', t('specialchar.t25'), t('specialchar.t23')], ['✧', t('specialchar.t26'), t('specialchar.t23')],
+    ['❤', t('specialchar.t27'), t('specialchar.t23')], ['♥', t('specialchar.t28'), t('specialchar.t23')], ['♡', t('specialchar.t29'), t('specialchar.t23')], ['✿', t('specialchar.t30'), t('specialchar.t23')],
+    ['❀', t('specialchar.t31'), t('specialchar.t23')], ['✽', t('specialchar.t32'), t('specialchar.t23')], ['✼', t('specialchar.t33'), t('specialchar.t23')], ['❁', t('specialchar.t34'), t('specialchar.t23')],
 
-    ['●', '검은 원', '도형'], ['○', '흰 원', '도형'], ['◎', '겹원', '도형'], ['◉', '과녁', '도형'],
-    ['■', '검은 사각', '도형'], ['□', '흰 사각', '도형'], ['▣', '겹사각', '도형'], ['▦', '격자 사각', '도형'],
-    ['◆', '검은 마름모', '도형'], ['◇', '흰 마름모', '도형'], ['▩', '빗금 사각', '도형'], ['▧', '빗금 사각 2', '도형'],
-    ['◐', '반원 왼쪽', '도형'], ['◑', '반원 오른쪽', '도형'], ['▪', '작은 검은 사각', '도형'], ['▫', '작은 흰 사각', '도형'],
+    ['●', t('specialchar.t35'), t('specialchar.t36')], ['○', t('specialchar.t37'), t('specialchar.t36')], ['◎', t('specialchar.t38'), t('specialchar.t36')], ['◉', t('specialchar.t39'), t('specialchar.t36')],
+    ['■', t('specialchar.t40'), t('specialchar.t36')], ['□', t('specialchar.t41'), t('specialchar.t36')], ['▣', t('specialchar.t42'), t('specialchar.t36')], ['▦', t('specialchar.t43'), t('specialchar.t36')],
+    ['◆', t('specialchar.t44'), t('specialchar.t36')], ['◇', t('specialchar.t45'), t('specialchar.t36')], ['▩', t('specialchar.t46'), t('specialchar.t36')], ['▧', t('specialchar.t47'), t('specialchar.t36')],
+    ['◐', t('specialchar.t48'), t('specialchar.t36')], ['◑', t('specialchar.t49'), t('specialchar.t36')], ['▪', t('specialchar.t50'), t('specialchar.t36')], ['▫', t('specialchar.t51'), t('specialchar.t36')],
 
-    ['※', '참고표', '문장부호'], ['·', '가운뎃점', '문장부호'], ['…', '말줄임표', '문장부호'], ['—', '줄표', '문장부호'],
-    ['–', '반각 줄표', '문장부호'], ['~', '물결', '문장부호'], ['∼', '물결 기호', '문장부호'], ['‥', '두 점', '문장부호'],
-    ['「', '홑낫표 열기', '괄호'], ['」', '홑낫표 닫기', '괄호'], ['『', '겹낫표 열기', '괄호'], ['』', '겹낫표 닫기', '괄호'],
-    ['〈', '홑화살괄호 열기', '괄호'], ['〉', '홑화살괄호 닫기', '괄호'], ['《', '겹화살괄호 열기', '괄호'], ['》', '겹화살괄호 닫기', '괄호'],
-    ['【', '검은 대괄호 열기', '괄호'], ['】', '검은 대괄호 닫기', '괄호'], ['〔', '거북 괄호 열기', '괄호'], ['〕', '거북 괄호 닫기', '괄호'],
-    ['‘', '홑따옴표 열기', '괄호'], ['’', '홑따옴표 닫기', '괄호'], ['“', '큰따옴표 열기', '괄호'], ['”', '큰따옴표 닫기', '괄호'],
+    ['※', t('specialchar.t52'), t('specialchar.t53')], ['·', t('specialchar.t54'), t('specialchar.t53')], ['…', t('specialchar.t55'), t('specialchar.t53')], ['—', t('specialchar.t56'), t('specialchar.t53')],
+    ['–', t('specialchar.t57'), t('specialchar.t53')], ['~', t('specialchar.t58'), t('specialchar.t53')], ['∼', t('specialchar.t59'), t('specialchar.t53')], ['‥', t('specialchar.t60'), t('specialchar.t53')],
+    ['「', t('specialchar.t61'), t('specialchar.t62')], ['」', t('specialchar.t63'), t('specialchar.t62')], ['『', t('specialchar.t64'), t('specialchar.t62')], ['』', t('specialchar.t65'), t('specialchar.t62')],
+    ['〈', t('specialchar.t66'), t('specialchar.t62')], ['〉', t('specialchar.t67'), t('specialchar.t62')], ['《', t('specialchar.t68'), t('specialchar.t62')], ['》', t('specialchar.t69'), t('specialchar.t62')],
+    ['【', t('specialchar.t70'), t('specialchar.t62')], ['】', t('specialchar.t71'), t('specialchar.t62')], ['〔', t('specialchar.t72'), t('specialchar.t62')], ['〕', t('specialchar.t73'), t('specialchar.t62')],
+    ['‘', t('specialchar.t74'), t('specialchar.t62')], ['’', t('specialchar.t75'), t('specialchar.t62')], ['“', t('specialchar.t76'), t('specialchar.t62')], ['”', t('specialchar.t77'), t('specialchar.t62')],
 
-    ['✓', '체크', '체크·표시'], ['✔', '굵은 체크', '체크·표시'], ['✗', '엑스', '체크·표시'], ['✘', '굵은 엑스', '체크·표시'],
-    ['☑', '체크 박스', '체크·표시'], ['☐', '빈 박스', '체크·표시'], ['☒', '엑스 박스', '체크·표시'], ['√', '루트(체크 대용)', '체크·표시'],
-    ['♠', '스페이드', '카드'], ['♣', '클로버', '카드'], ['♦', '다이아', '카드'], ['♧', '흰 클로버', '카드'],
-    ['♤', '흰 스페이드', '카드'], ['♢', '흰 다이아', '카드'],
+    ['✓', t('specialchar.t78'), t('specialchar.t79')], ['✔', t('specialchar.t80'), t('specialchar.t79')], ['✗', t('specialchar.t81'), t('specialchar.t79')], ['✘', t('specialchar.t82'), t('specialchar.t79')],
+    ['☑', t('specialchar.t83'), t('specialchar.t79')], ['☐', t('specialchar.t84'), t('specialchar.t79')], ['☒', t('specialchar.t85'), t('specialchar.t79')], ['√', t('specialchar.t86'), t('specialchar.t79')],
+    ['♠', t('specialchar.t87'), t('specialchar.t88')], ['♣', t('specialchar.t89'), t('specialchar.t88')], ['♦', t('specialchar.t90'), t('specialchar.t88')], ['♧', t('specialchar.t91'), t('specialchar.t88')],
+    ['♤', t('specialchar.t92'), t('specialchar.t88')], ['♢', t('specialchar.t93'), t('specialchar.t88')],
 
-    ['±', '플러스마이너스', '수학'], ['×', '곱하기', '수학'], ['÷', '나누기', '수학'], ['≠', '같지 않음', '수학'],
-    ['≤', '작거나 같음', '수학'], ['≥', '크거나 같음', '수학'], ['≒', '거의 같음', '수학'], ['∞', '무한대', '수학'],
-    ['√', '제곱근', '수학'], ['∑', '시그마', '수학'], ['∏', '파이 곱', '수학'], ['∫', '적분', '수학'],
-    ['∂', '편미분', '수학'], ['∇', '나블라', '수학'], ['∈', '원소', '수학'], ['∉', '원소 아님', '수학'],
-    ['⊂', '부분집합', '수학'], ['∪', '합집합', '수학'], ['∩', '교집합', '수학'], ['∴', '그러므로', '수학'],
-    ['∵', '왜냐하면', '수학'], ['∝', '비례', '수학'], ['⊥', '수직', '수학'], ['∠', '각', '수학'],
-    ['°', '도', '수학'], ['′', '분(각)', '수학'], ['″', '초(각)', '수학'], ['㎜', '밀리미터', '단위'],
-    ['㎝', '센티미터', '단위'], ['㎞', '킬로미터', '단위'], ['㎡', '제곱미터', '단위'], ['㎥', '세제곱미터', '단위'],
-    ['㎏', '킬로그램', '단위'], ['㎖', '밀리리터', '단위'], ['ℓ', '리터', '단위'], ['℃', '섭씨', '단위'],
-    ['℉', '화씨', '단위'], ['㎧', '초속', '단위'], ['㏈', '데시벨', '단위'], ['㎃', '밀리암페어', '단위'],
+    ['±', t('specialchar.t94'), t('specialchar.t95')], ['×', t('specialchar.t96'), t('specialchar.t95')], ['÷', t('specialchar.t97'), t('specialchar.t95')], ['≠', t('specialchar.t98'), t('specialchar.t95')],
+    ['≤', t('specialchar.t99'), t('specialchar.t95')], ['≥', t('specialchar.t100'), t('specialchar.t95')], ['≒', t('specialchar.t101'), t('specialchar.t95')], ['∞', t('specialchar.t102'), t('specialchar.t95')],
+    ['√', t('specialchar.t103'), t('specialchar.t95')], ['∑', t('specialchar.t104'), t('specialchar.t95')], ['∏', t('specialchar.t105'), t('specialchar.t95')], ['∫', t('specialchar.t106'), t('specialchar.t95')],
+    ['∂', t('specialchar.t107'), t('specialchar.t95')], ['∇', t('specialchar.t108'), t('specialchar.t95')], ['∈', t('specialchar.t109'), t('specialchar.t95')], ['∉', t('specialchar.t110'), t('specialchar.t95')],
+    ['⊂', t('specialchar.t111'), t('specialchar.t95')], ['∪', t('specialchar.t112'), t('specialchar.t95')], ['∩', t('specialchar.t113'), t('specialchar.t95')], ['∴', t('specialchar.t114'), t('specialchar.t95')],
+    ['∵', t('specialchar.t115'), t('specialchar.t95')], ['∝', t('specialchar.t116'), t('specialchar.t95')], ['⊥', t('specialchar.t117'), t('specialchar.t95')], ['∠', t('specialchar.t118'), t('specialchar.t95')],
+    ['°', t('specialchar.t119'), t('specialchar.t95')], ['′', t('specialchar.t120'), t('specialchar.t95')], ['″', t('specialchar.t121'), t('specialchar.t95')], ['㎜', t('specialchar.t122'), t('specialchar.t123')],
+    ['㎝', t('specialchar.t124'), t('specialchar.t123')], ['㎞', t('specialchar.t125'), t('specialchar.t123')], ['㎡', t('specialchar.t126'), t('specialchar.t123')], ['㎥', t('specialchar.t127'), t('specialchar.t123')],
+    ['㎏', t('specialchar.t128'), t('specialchar.t123')], ['㎖', t('specialchar.t129'), t('specialchar.t123')], ['ℓ', t('specialchar.t130'), t('specialchar.t123')], ['℃', t('specialchar.t131'), t('specialchar.t123')],
+    ['℉', t('specialchar.t132'), t('specialchar.t123')], ['㎧', t('specialchar.t133'), t('specialchar.t123')], ['㏈', t('specialchar.t134'), t('specialchar.t123')], ['㎃', t('specialchar.t135'), t('specialchar.t123')],
 
-    ['₩', '원', '통화'], ['$', '달러', '통화'], ['€', '유로', '통화'], ['¥', '엔·위안', '통화'],
-    ['£', '파운드', '통화'], ['¢', '센트', '통화'], ['₿', '비트코인', '통화'], ['₽', '루블', '통화'],
+    ['₩', t('specialchar.t136'), t('specialchar.t137')], ['$', t('specialchar.t138'), t('specialchar.t137')], ['€', t('specialchar.t139'), t('specialchar.t137')], ['¥', t('specialchar.t140'), t('specialchar.t137')],
+    ['£', t('specialchar.t141'), t('specialchar.t137')], ['¢', t('specialchar.t142'), t('specialchar.t137')], ['₿', t('specialchar.t143'), t('specialchar.t137')], ['₽', t('specialchar.t144'), t('specialchar.t137')],
 
-    ['①', '동그라미 1', '번호'], ['②', '동그라미 2', '번호'], ['③', '동그라미 3', '번호'], ['④', '동그라미 4', '번호'],
-    ['⑤', '동그라미 5', '번호'], ['⑥', '동그라미 6', '번호'], ['⑦', '동그라미 7', '번호'], ['⑧', '동그라미 8', '번호'],
-    ['⑨', '동그라미 9', '번호'], ['⑩', '동그라미 10', '번호'], ['㉠', '동그라미 ㄱ', '번호'], ['㉡', '동그라미 ㄴ', '번호'],
-    ['㉢', '동그라미 ㄷ', '번호'], ['㉣', '동그라미 ㄹ', '번호'], ['⑴', '괄호 1', '번호'], ['⑵', '괄호 2', '번호'],
-    ['⑶', '괄호 3', '번호'], ['Ⅰ', '로마 1', '번호'], ['Ⅱ', '로마 2', '번호'], ['Ⅲ', '로마 3', '번호'],
-    ['Ⅳ', '로마 4', '번호'], ['Ⅴ', '로마 5', '번호'], ['Ⅵ', '로마 6', '번호'], ['Ⅹ', '로마 10', '번호'],
+    ['①', t('specialchar.t145'), t('specialchar.t146')], ['②', t('specialchar.t147'), t('specialchar.t146')], ['③', t('specialchar.t148'), t('specialchar.t146')], ['④', t('specialchar.t149'), t('specialchar.t146')],
+    ['⑤', t('specialchar.t150'), t('specialchar.t146')], ['⑥', t('specialchar.t151'), t('specialchar.t146')], ['⑦', t('specialchar.t152'), t('specialchar.t146')], ['⑧', t('specialchar.t153'), t('specialchar.t146')],
+    ['⑨', t('specialchar.t154'), t('specialchar.t146')], ['⑩', t('specialchar.t155'), t('specialchar.t146')], ['㉠', t('specialchar.t156'), t('specialchar.t146')], ['㉡', t('specialchar.t157'), t('specialchar.t146')],
+    ['㉢', t('specialchar.t158'), t('specialchar.t146')], ['㉣', t('specialchar.t159'), t('specialchar.t146')], ['⑴', t('specialchar.t160'), t('specialchar.t146')], ['⑵', t('specialchar.t161'), t('specialchar.t146')],
+    ['⑶', t('specialchar.t162'), t('specialchar.t146')], ['Ⅰ', t('specialchar.t163'), t('specialchar.t146')], ['Ⅱ', t('specialchar.t164'), t('specialchar.t146')], ['Ⅲ', t('specialchar.t165'), t('specialchar.t146')],
+    ['Ⅳ', t('specialchar.t166'), t('specialchar.t146')], ['Ⅴ', t('specialchar.t167'), t('specialchar.t146')], ['Ⅵ', t('specialchar.t168'), t('specialchar.t146')], ['Ⅹ', t('specialchar.t169'), t('specialchar.t146')],
 
-    ['α', '알파', '그리스'], ['β', '베타', '그리스'], ['γ', '감마', '그리스'], ['δ', '델타', '그리스'],
-    ['ε', '엡실론', '그리스'], ['θ', '세타', '그리스'], ['λ', '람다', '그리스'], ['μ', '뮤', '그리스'],
-    ['π', '파이', '그리스'], ['σ', '시그마', '그리스'], ['τ', '타우', '그리스'], ['φ', '피', '그리스'],
-    ['ω', '오메가', '그리스'], ['Δ', '대문자 델타', '그리스'], ['Ω', '대문자 오메가', '그리스'], ['Σ', '대문자 시그마', '그리스'],
+    ['α', t('specialchar.t170'), t('specialchar.t171')], ['β', t('specialchar.t172'), t('specialchar.t171')], ['γ', t('specialchar.t173'), t('specialchar.t171')], ['δ', t('specialchar.t174'), t('specialchar.t171')],
+    ['ε', t('specialchar.t175'), t('specialchar.t171')], ['θ', t('specialchar.t176'), t('specialchar.t171')], ['λ', t('specialchar.t177'), t('specialchar.t171')], ['μ', t('specialchar.t178'), t('specialchar.t171')],
+    ['π', t('specialchar.t179'), t('specialchar.t171')], ['σ', t('specialchar.t104'), t('specialchar.t171')], ['τ', t('specialchar.t180'), t('specialchar.t171')], ['φ', t('specialchar.t181'), t('specialchar.t171')],
+    ['ω', t('specialchar.t182'), t('specialchar.t171')], ['Δ', t('specialchar.t183'), t('specialchar.t171')], ['Ω', t('specialchar.t184'), t('specialchar.t171')], ['Σ', t('specialchar.t185'), t('specialchar.t171')],
 
-    ['♨', '온천', '기타'], ['☎', '전화', '기타'], ['✉', '편지', '기타'], ['✂', '가위', '기타'],
-    ['✈', '비행기', '기타'], ['☂', '우산', '기타'], ['☀', '해', '기타'], ['☁', '구름', '기타'],
-    ['☃', '눈사람', '기타'], ['♪', '음표', '기타'], ['♬', '두 음표', '기타'], ['♩', '4분음표', '기타'],
-    ['☞', '오른쪽 손가락', '기타'], ['☜', '왼쪽 손가락', '기타'], ['♂', '남성', '기타'], ['♀', '여성', '기타'],
-    ['©', '저작권', '기타'], ['®', '등록상표', '기타'], ['™', '상표', '기타'], ['§', '섹션', '기타'],
-    ['¶', '문단', '기타'], ['†', '단검표', '기타'], ['‡', '겹단검표', '기타'], ['№', '넘버', '기타']
+    ['♨', t('specialchar.t186'), t('specialchar.t187')], ['☎', t('specialchar.t188'), t('specialchar.t187')], ['✉', t('specialchar.t189'), t('specialchar.t187')], ['✂', t('specialchar.t190'), t('specialchar.t187')],
+    ['✈', t('specialchar.t191'), t('specialchar.t187')], ['☂', t('specialchar.t192'), t('specialchar.t187')], ['☀', t('specialchar.t193'), t('specialchar.t187')], ['☁', t('specialchar.t194'), t('specialchar.t187')],
+    ['☃', t('specialchar.t195'), t('specialchar.t187')], ['♪', t('specialchar.t196'), t('specialchar.t187')], ['♬', t('specialchar.t197'), t('specialchar.t187')], ['♩', t('specialchar.t198'), t('specialchar.t187')],
+    ['☞', t('specialchar.t199'), t('specialchar.t187')], ['☜', t('specialchar.t200'), t('specialchar.t187')], ['♂', t('specialchar.t201'), t('specialchar.t187')], ['♀', t('specialchar.t202'), t('specialchar.t187')],
+    ['©', t('specialchar.t203'), t('specialchar.t187')], ['®', t('specialchar.t204'), t('specialchar.t187')], ['™', t('specialchar.t205'), t('specialchar.t187')], ['§', t('specialchar.t206'), t('specialchar.t187')],
+    ['¶', t('specialchar.t207'), t('specialchar.t187')], ['†', t('specialchar.t208'), t('specialchar.t187')], ['‡', t('specialchar.t209'), t('specialchar.t187')], ['№', t('specialchar.t210'), t('specialchar.t187')]
   ];
 
-  window.RefTable?.define('specialchar', {
-    items: RAW.map(([glyph, label, group]) => ({
-      copy: glyph,
-      glyph,
-      label,
-      sub: 'U+' + glyph.codePointAt(0)!.toString(16).toUpperCase().padStart(4, '0'),
-      group
-    })),
-    placeholder: '이름이나 기호로 찾기 (예: 화살표, 하트, ㎡)',
-    copyNoun: '특수문자',
-    layout: 'grid',
-    note: '누르면 클립보드로 복사됩니다.'
-  });
+  let defined = false;
+  function defineTable(): void {
+    if (defined) return;
+    defined = true;
+    window.RefTable?.define('specialchar', {
+      items: raw().map(([glyph, label, group]) => ({
+        copy: glyph,
+        glyph,
+        label,
+        sub: 'U+' + glyph.codePointAt(0)!.toString(16).toUpperCase().padStart(4, '0'),
+        group
+      })),
+      placeholder: t('specialchar.t211'),
+      copyNoun: t('specialchar.t212'),
+      layout: 'grid',
+      note: t('specialchar.t213')
+    });
+  }
 
   Toolbox.register({
     id: 'specialchar',
-    title: '특수문자 모음',
+    title: t('widgets.specialchar.title', undefined, "특수문자 모음"),
     category: 'ref',
-    desc: '화살표·별·도형·수학기호 등 자판에 없는 특수문자를 눌러서 복사합니다',
+    desc: t('widgets-desc.specialchar.desc', undefined, "화살표·별·도형·수학기호 등 자판에 없는 특수문자를 눌러서 복사합니다"),
     layout: 'wide',
     icon: '<path d="M5 7h6M8 4v6M15 5l4 4M19 5l-4 4M7 15h4M9 13v4M15 15h4M15 18h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '특수문자',
+        label: t('specialchar.t212', undefined, "특수문자"),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '자판에 없는 글자, 여기 다 모아뒀어요.' });
+          void loadNamespace('specialchar').then(function () {
+
+          Mdd.linePreset('tool_run', { msg: t('specialchar.t216') });
+          defineTable();
           window.RefTable?.build(container, window.RefTable.get('specialchar')!);
+                  });
         }
       }
     ]
