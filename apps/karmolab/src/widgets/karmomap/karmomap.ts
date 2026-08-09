@@ -89,6 +89,9 @@ import {
       border-radius:var(--radius-sm); background:var(--bg-tertiary); cursor:pointer; }
     .km-avatar-row .btn { padding:4px 8px; }
     .km-tilt-val { color:var(--text-tertiary); }
+    .km-check { display:flex; align-items:center; gap:6px; padding:2px 0; color:var(--text-primary); cursor:pointer; }
+    .km-check input { width:auto; }
+    .km-swatch { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
     .km-side input[type=range] { width:100%; }
     .km-empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
       color:var(--text-tertiary); font-size:var(--font-size-sm); text-align:center; pointer-events:none;
@@ -373,6 +376,18 @@ import {
     // ── 묶음 (TASK-KL-202 격차 D) ────────────────────────────────────────────
     // 캔버스는 이미 묶음을 그리고 끌 줄 안다(멤버를 감싸 자동으로 커진다). 없던 건
     // *만들고 넣는 손잡이* 뿐이었다.
+    /** 이 노드가 든 묶음들. 옛 저장본은 `group` 한 칸만 갖고 있다. */
+    function memberOf(node: GraphNode): string[] {
+      if (node.groups && node.groups.length > 0) return node.groups;
+      return node.group ? [node.group] : [];
+    }
+
+    /** 소속을 통째로 다시 쓴다. `group` 은 첫 소속을 비춰 둔다 — 캔버스 밖(cockpit)이 그 이름으로 읽는다. */
+    function setMembership(node: GraphNode, ids: string[]): void {
+      node.groups = ids.length > 0 ? ids : undefined;
+      node.group = ids[0] ?? '';
+    }
+
     function nextGroupId(): string {
       const taken = new Set(spec.groups.map((g) => g.id));
       let n = 1;
@@ -410,7 +425,7 @@ import {
               ? '<div class="km-hint">아직 묶음이 없습니다.</div>'
               : spec.groups
                   .map((g) => {
-                    const count = spec.nodes.filter((n) => n.group === g.id).length;
+                    const count = spec.nodes.filter((n) => memberOf(n).includes(g.id)).length;
                     return `<div class="km-group-row" data-group="${escapeAttr(g.id)}">
                       <input type="color" data-km="group-color" value="${escapeAttr(g.color)}" title="색" />
                       <input type="text" data-km="group-label" value="${escapeAttr(g.label)}" />
@@ -456,7 +471,10 @@ import {
         (row.querySelector('[data-km="group-del"]') as HTMLButtonElement).onclick = () => {
           // 묶음만 없앤다 — 안에 든 노드는 그 자리에 남는다.
           spec.groups = spec.groups.filter((g) => g.id !== gid);
-          for (const n of spec.nodes) if (n.group === gid) n.group = '';
+          for (const n of spec.nodes) {
+            const rest = memberOf(n).filter((x) => x !== gid);
+            if (rest.length !== memberOf(n).length) setMembership(n, rest);
+          }
           applySpec();
           persistStructure();
           renderSide();
@@ -641,14 +659,19 @@ import {
           <input type="text" data-km="edit-note" value="${escapeAttr(node.note ?? '')}" placeholder="이름 밑에 한 줄" />
         </div>
         <div class="km-field">
-          <label>묶음</label>
-          <select data-km="edit-group">
-            <option value="">— 없음 —</option>
-            ${spec.groups
-              .map((g) => `<option value="${escapeAttr(g.id)}"${g.id === node.group ? ' selected' : ''}>${escapeHtml(g.label)}</option>`)
-              .join('')}
-            <option value="__new">+ 새 묶음에 넣기</option>
-          </select>
+          <label>묶음 (여러 개 가능)</label>
+          ${
+            spec.groups.length === 0
+              ? '<div class="km-hint">아직 묶음이 없습니다.</div>'
+              : spec.groups
+                  .map(
+                    (g) => `<label class="km-check"><input type="checkbox" data-km="in-group" value="${escapeAttr(g.id)}"${
+                      memberOf(node).includes(g.id) ? ' checked' : ''
+                    } /> <span class="km-swatch" style="background:${escapeAttr(g.color)}"></span>${escapeHtml(g.label)}</label>`
+                  )
+                  .join('')
+          }
+          <button class="btn btn-ghost" data-km="group-new-here">+ 새 묶음에 넣기</button>
         </div>
         <div class="km-field">
           <label>모양</label>
@@ -725,9 +748,20 @@ import {
         touch(false);
       };
 
-      (sideEl.querySelector('[data-km="edit-group"]') as HTMLSelectElement).onchange = (ev) => {
-        const v = (ev.target as HTMLSelectElement).value;
-        node.group = v === '__new' ? createGroup().id : v;
+      sideEl.querySelectorAll('[data-km="in-group"]').forEach((el) => {
+        (el as HTMLInputElement).onchange = (ev) => {
+          const box = ev.target as HTMLInputElement;
+          const cur = new Set(memberOf(node));
+          if (box.checked) cur.add(box.value);
+          else cur.delete(box.value);
+          setMembership(node, [...cur]);
+          applySpec();
+          persistStructure();
+        };
+      });
+
+      (sideEl.querySelector('[data-km="group-new-here"]') as HTMLButtonElement).onclick = () => {
+        setMembership(node, [...memberOf(node), createGroup().id]);
         applySpec();
         persistStructure();
         renderSide();
