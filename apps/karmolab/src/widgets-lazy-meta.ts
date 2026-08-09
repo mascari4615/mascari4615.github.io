@@ -1876,6 +1876,18 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['orbita']
   },
 
+  /* 블루마블 (TASK-KL-206) — 계기판이 아니라 창문이다. 자취방에 켜 두면 지구가 돌고,
+     밤이 된 쪽에 도시가 켜지고, 방금 어딘가가 흔들리면 그 자리에 파문이 인다. */
+  {
+    id: 'bluemarble',
+    title: '블루마블',
+    category: 'lab',
+    desc: '지금 이 순간의 지구 — 낮과 밤, 도시 불빛, 방금 난 지진, 머리 위의 ISS',
+    layout: 'full',
+    icon: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3.5 10h17M4.2 15h15.6" stroke="currentColor" stroke-width="1.1" opacity=".5" fill="none"/><path d="M12 3c3 3.6 3 13.4 0 18M12 3C9 6.6 9 16.4 12 21" stroke="currentColor" stroke-width="1.1" opacity=".5" fill="none"/>',
+    lazyScriptPaths: ['bluemarble/bluemarble']
+  },
+
   /* 도감 (TASK-KL-196) — 써 본 도구에 도장이 찍힌다. 새로 만드는 것 없이 160개를 채울 것으로. */
   {
     id: 'collection',
