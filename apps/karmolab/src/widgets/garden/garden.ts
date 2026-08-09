@@ -30,7 +30,11 @@ import { GardenSound } from './gsound';
     const el = document.createElement('style');
     el.id = 'gd-style';
     el.textContent = `
-.gd-wrap{position:relative;width:100%;height:100%;min-height:420px;display:flex;flex-direction:column;
+/* 높이를 **부모에게 안 묻는다**. 폰에서 부모가 높이를 안 정해 주면 height 100% 가
+   내용 높이로 풀려, 캔버스가 87,000px 짜리로 자랐다(실측 — 프레임 1166ms). 화면 기준으로
+   스스로 정한다: 작은 화면에서도 420px 는 되고, 커도 900px 를 안 넘는다. */
+.gd-wrap{position:relative;width:100%;height:clamp(420px,78svh,900px);max-height:900px;
+  display:flex;flex-direction:column;
   border-radius:var(--radius-md,12px);overflow:hidden;background:#07080c;}
 .gd-canvas{flex:1;display:block;width:100%;height:100%;image-rendering:pixelated;}
 .gd-top{position:absolute;top:0;left:0;right:0;padding:12px 14px 22px;display:flex;align-items:baseline;gap:10px;
