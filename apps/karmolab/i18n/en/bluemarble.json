@@ -62,5 +62,9 @@
   "bluemarble.layer.together": "Together",
   "bluemarble.link.button": "Link to here",
   "bluemarble.link.copied": "Copied the link to this spot. Anyone who opens it sees the Earth from here.",
-  "bluemarble.link.here": "Link to this spot: {url}"
+  "bluemarble.link.here": "Link to this spot: {url}",
+  "bluemarble.card.button": "Earth that day",
+  "bluemarble.card.title": "Earth on {date}",
+  "bluemarble.card.credit": "NASA Blue Marble · GIBS · USGS · NOAA — KarmoLab Blue Marble",
+  "bluemarble.card.saved": "Card saved."
 }

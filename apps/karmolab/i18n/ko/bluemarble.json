@@ -62,5 +62,9 @@
   "bluemarble.layer.together": "같이 보기",
   "bluemarble.link.button": "이 자리 링크",
   "bluemarble.link.copied": "이 자리 주소를 복사했습니다. 붙여 넣으면 누구든 같은 자리에서 지구를 봅니다.",
-  "bluemarble.link.here": "이 자리 주소: {url}"
+  "bluemarble.link.here": "이 자리 주소: {url}",
+  "bluemarble.card.button": "그날의 지구",
+  "bluemarble.card.title": "{date}의 지구",
+  "bluemarble.card.credit": "NASA Blue Marble · GIBS · USGS · NOAA — KarmoLab 블루마블",
+  "bluemarble.card.saved": "카드를 저장했습니다."
 }
