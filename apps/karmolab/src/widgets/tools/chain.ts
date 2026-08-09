@@ -57,7 +57,9 @@ import { t, loadNamespace } from '../../lib/i18n';
     return String(entry.run(op, args, deps));
   }
 
-  const EXAMPLE = JSON.stringify(
+  /* 예시는 **쓸 때** 만든다 — 실려 오는 순간 만들면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
+  const example = (): string =>
+    JSON.stringify(
     [
       { tool: 'base64', op: 'encode', args: { text: t('chain.t03') } },
       { tool: 'hashgen', op: 'text', args: { text: '$1', algo: 'SHA256' } }
@@ -140,19 +142,19 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           $<HTMLButtonElement>('#chRun').onclick = () => go();
           $<HTMLButtonElement>('#chExample').onclick = () => {
-            steps.value = EXAMPLE;
+            steps.value = example();
             say(t('chain.say.07'));
           };
 
           // 주소로 부른 경우 (`/karmolab/t/chain/?op=run&steps=…`). 없으면 예시로 시작한다.
           const call = readInvocation(chainSpec);
           if (call === null) {
-            steps.value = EXAMPLE;
+            steps.value = example();
             say(t('chain.say.08'));
             return;
           }
           if (call.error !== undefined) {
-            steps.value = EXAMPLE;
+            steps.value = example();
             say(call.error, 'error');
             return;
           }
