@@ -735,8 +735,9 @@ import {
      * 견본을 코드로 따로 만들면 문법이 갈라져 둘 중 하나가 곧 낡는다.
      */
     function buildFromOutline(src: string, kind: string): number {
-      const parsed = parseOutline(src);
-      if (parsed.length === 0) return 0;
+      const doc = parseOutline(src);
+      const parsed = doc.nodes;
+      if (parsed.length === 0 && doc.links.length === 0) return 0;
       const center = canvas?.viewCenterWorld() ?? { x: 0, y: 0 };
       const pos = layoutTree(parsed, {
         colW: 240, rowH: 70,
@@ -768,6 +769,20 @@ import {
         const id = nextId('edge', takenE);
         takenE.add(id);
         spec.edges.push({ id, from, to, kind: edgeKind, label: p.edgeLabel ?? edgeLabel(edgeKind) });
+      }
+      // 화살표 줄 — **이름으로** 잇는다. 방금 만든 것뿐 아니라 이미 맵에 있던 인물도 대상이다
+      // (글에는 「욘 -> 마을」이라고만 적히지, 그 둘이 어디서 왔는지는 안 적힌다).
+      const byLabel = (name: string): string | undefined =>
+        idMap.get(parsed.find((x) => x.label === name)?.id ?? '')
+        ?? spec.nodes.find((x) => x.label === name)?.id;
+      for (const link of doc.links) {
+        const from = byLabel(link.from);
+        const to = byLabel(link.to);
+        if (!from || !to || from === to) continue;
+        if (spec.edges.some((e) => (e.from === from && e.to === to) || (e.from === to && e.to === from))) continue;
+        const id = nextId('edge', takenE);
+        takenE.add(id);
+        spec.edges.push({ id, from, to, kind: edgeKind, label: link.label ?? edgeLabel(edgeKind) });
       }
       applySpec();
       persistStructure();

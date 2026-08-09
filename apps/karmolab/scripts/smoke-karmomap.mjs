@@ -872,6 +872,19 @@ await step('둥글게 놓기 — 자리가 실제로 바뀌고 아무도 안 사
   // `.hidden` 은 display:none 이라 **보이기**를 기다리면 영영 안 온다 — 붙어 있음(attached)으로 본다.
   await page.waitForSelector('[data-km="drawer"].hidden', { state: 'attached', timeout: 4000 });
 });
+await step('글로 만들기에서 화살표 줄이 옆으로 난 관계를 만든다', async () => {
+  // 들여쓰기 트리로는 「A 가 B 를 지킨다」 같은 옆줄을 못 적는다 — 화살표 줄이 그 자리를 메운다.
+  await page.click('[data-km="more"]');
+  await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
+  await page.locator('[data-km="from-text"]').dispatchEvent('click');
+  await page.waitForSelector('[data-km="text-src"]', { timeout: 4000 });
+  const edgesBefore = await page.locator('.ck-edge').count();
+  await page.fill('[data-km="text-src"]', ['화살표갑', '화살표을', '화살표갑 -> 화살표을 : 지킨다'].join(String.fromCharCode(10)));
+  await page.locator('[data-km="text-go"]').dispatchEvent('click');
+  await page.waitForFunction((n) => document.querySelectorAll('.ck-edge').length > n, edgesBefore, { timeout: 5000 });
+  const labels = await page.evaluate(() => [...document.querySelectorAll('.ck-edge-label text')].map((t) => t.textContent).join('|'));
+  if (!labels.includes('지킨다')) throw new Error('화살표 줄의 이름표가 안 붙었다: ' + labels);
+});
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
   await page.click('[data-km="tab"][data-key="notes"]');
