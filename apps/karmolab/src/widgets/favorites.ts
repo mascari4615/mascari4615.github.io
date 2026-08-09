@@ -604,13 +604,9 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
         render();
     }
 
+    /* 메타는 `widgets-lazy-meta.ts` 한 곳에 산다 — 두 곳에 적으면 목록 이름과 화면 이름이 갈라진다. */
     Toolbox.register({
-        id: 'favorites',
-        title: '즐겨찾기',
-        category: undefined,  // 기타
-        desc: '자주 가는 사이트와 도구를 모아 빠르게 접속합니다',
-        layout: 'wide',
-        icon: '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
+        ...Toolbox.getLazyWidgetPublicMeta('favorites'),
         tabs: [{ id: 'fav-main', label: '즐겨찾기', build: buildFavorites }]
     });
 })();
