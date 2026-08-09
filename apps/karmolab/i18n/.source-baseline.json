@@ -1,5 +1,5 @@
 {
-  "total": 8291,
+  "total": 8335,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -114,7 +114,7 @@
     "src/widgets/packwell.ts": 37,
     "src/widgets/particle.ts": 6,
     "src/widgets/password.ts": 19,
-    "src/widgets/perf/perf.ts": 60,
+    "src/widgets/perf/perf.ts": 66,
     "src/widgets/pet.ts": 13,
     "src/widgets/planner/planner.ts": 3,
     "src/widgets/play-course.ts": 4,
@@ -284,7 +284,7 @@
     "src/widgets/wm/wm.ts": 53,
     "src/widgets/worldcup.ts": 28,
     "src/widgets/youtubedl.ts": 18,
-    "src/widgets-lazy-meta.ts": 372,
+    "src/widgets-lazy-meta.ts": 380,
     "src/workshop-hang.ts": 1,
     "src/world/load-adventures-from-wiki.ts": 4,
     "src/world/load-characters-from-wiki.ts": 8,
@@ -304,6 +304,7 @@
     "src/core/worldclock.ts": 13,
     "src/core/datecalc.ts": 29,
     "src/core/charcount.ts": 19,
-    "src/core/unitconv.ts": 14
+    "src/core/unitconv.ts": 14,
+    "src/widgets/localai/localai.ts": 30
   }
 }
