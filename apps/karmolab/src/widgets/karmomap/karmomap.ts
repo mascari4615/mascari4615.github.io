@@ -112,6 +112,12 @@ import {
         /* ★ 캔버스 최소 높이 — 툴바가 줄바꿈으로 커지면 flex 가 캔버스부터 깎는다.
        실측 2026-08-09: 툴바가 커지며 캔버스가 156px 로 눌려 더블클릭이 화면 밖으로 나갔다. */
     .km-canvas { flex:1; position:relative; min-width:0; min-height:420px; background:var(--bg-tertiary); }
+    /* 고른 것 옆에 뜨는 작은 도구 줄 — 자주 쓰는 네 가지를 옆 패널까지 안 가고 누르게 (Whimsical 계보). */
+    .km-mini { position:absolute; z-index:15; display:flex; gap:2px; padding:2px;
+      background:var(--bg-secondary); border:1px solid var(--border); border-radius:8px;
+      box-shadow:0 4px 14px rgba(0,0,0,0.28); }
+    .km-mini.hidden { display:none; }
+    .km-mini .btn { padding:2px 6px; font-size:12px; line-height:1.2; }
     .km-side { width:264px; flex-shrink:0; border-left:1px solid var(--border); background:var(--bg-secondary);
       padding:12px; overflow-y:auto; font-size:var(--font-size-xs); }
     .km-tabs { display:flex; gap:2px; margin:-4px -4px 10px; padding-bottom:8px;
@@ -358,6 +364,12 @@ import {
         </div>
         <div class="km-body">
           <div class="km-canvas" data-km="canvas">
+            <div class="km-mini hidden" data-km="mini">
+              <button class="btn btn-ghost" data-km="mini-link" title="여기서 선 잇기">↝</button>
+              <button class="btn btn-ghost" data-km="mini-note" title="이 노드에 붙는 쪽지">🗒</button>
+              <button class="btn btn-ghost" data-km="mini-copy" title="복제">⧉</button>
+              <button class="btn btn-ghost" data-km="mini-del" title="지우기">🗑</button>
+            </div>
             <div class="km-stage hidden" data-km="stage">
               <div class="km-stage-strip" data-km="stage-strip"></div>
               <div class="km-stage-title" data-km="stage-title"></div>
@@ -903,6 +915,8 @@ import {
 
     // ── 선택 패널 ───────────────────────────────────────────────────────────
     function renderSide(): void {
+      // 패널을 다시 그릴 때마다 고른 것이 바뀌었을 수 있다 — 작은 도구 줄도 따라 움직인다.
+      queueMicrotask(placeMini);
       renderSideBody();
       // 패널이 비어 있어도(고른 것 없음) 탭은 남긴다 — 탭이 사라지면 갈 곳이 안 보인다.
       if (sideEl.classList.contains('hidden')) {
@@ -1203,6 +1217,80 @@ import {
       applySpec();
       persistStructure();
     }
+
+    // ── 고른 것 옆 작은 도구 줄 (Whimsical 의 맥락 툴바) ──────────────────────
+    // 자주 쓰는 넷(잇기·쪽지·복제·지우기)은 **손이 있는 자리**에 있어야 한다. 옆 패널까지 가는
+    // 왕복이 관계도를 그리는 리듬을 끊는다.
+    const miniEl = q<HTMLElement>('mini');
+    let miniRaf = 0;
+
+    function placeMini(): void {
+      miniRaf = 0;
+      if (!selectedId) { miniEl.classList.add('hidden'); return; }
+      const rect = canvas?.nodeScreenRect(selectedId);
+      if (!rect) { miniEl.classList.add('hidden'); return; }
+      miniEl.classList.remove('hidden');
+      // 카드 위쪽에 띄우되, 화면 위로 넘치면 아래로 내린다(안 그러면 도구가 잘려 안 눌린다).
+      const above = rect.y - 34;
+      miniEl.style.left = `${Math.max(4, Math.round(rect.x))}px`;
+      miniEl.style.top = `${Math.round(above > 4 ? above : rect.y + rect.h + 6)}px`;
+      followMini();
+    }
+
+    /** 캔버스를 끌거나 확대하면 자리가 어긋난다 — 고른 것이 있는 동안만 매 프레임 따라간다. */
+    function followMini(): void {
+      if (!selectedId || miniRaf) return;
+      miniRaf = requestAnimationFrame(placeMini);
+    }
+    Toolbox.onDispose?.(() => { if (miniRaf) cancelAnimationFrame(miniRaf); });
+
+    q<HTMLButtonElement>('mini-link').onclick = () => {
+      if (!selectedId) return;
+      linkingFrom = selectedId;
+      canvasEl.classList.add('km-linking');
+    };
+    q<HTMLButtonElement>('mini-copy').onclick = () => {
+      const node = spec.nodes.find((n) => n.id === selectedId);
+      if (!node) return;
+      const taken = new Set(spec.nodes.map((n) => n.id));
+      const copy: GraphNode = {
+        ...JSON.parse(JSON.stringify(node)) as GraphNode,
+        id: nextId('node', taken), x: node.x + 24, y: node.y + 24,
+      };
+      spec.nodes.push(copy);
+      selectedId = copy.id;
+      applySpec();
+      persistStructure();
+      renderSide();
+    };
+    q<HTMLButtonElement>('mini-note').onclick = () => {
+      const node = spec.nodes.find((n) => n.id === selectedId);
+      if (!node) return;
+      const taken = new Set(spec.nodes.map((n) => n.id));
+      const memo: GraphNode = {
+        id: nextId('node', taken), kind: node.kind, label: '메모', group: '',
+        x: node.x + node.w + 40, y: node.y - 20, w: 160, h: NODE_H, ports: [],
+        shape: 'note', rotate: -3, attachedTo: node.id,
+      };
+      spec.nodes.push(memo);
+      selectedId = memo.id;
+      applySpec();
+      persistStructure();
+      renderSide();
+      (sideEl.querySelector('[data-km="edit-doc"]') as HTMLTextAreaElement | null)?.focus();
+    };
+    q<HTMLButtonElement>('mini-del').onclick = () => {
+      const node = spec.nodes.find((n) => n.id === selectedId);
+      if (!node) return;
+      if (!confirm(`"${node.label}" 노드와 연결된 선을 모두 삭제할까요?`)) return;
+      spec.nodes = spec.nodes.filter((n) => n.id !== node.id);
+      spec.edges = spec.edges.filter((e) => e.from !== node.id && e.to !== node.id);
+      for (const n of spec.nodes) if (n.attachedTo === node.id) n.attachedTo = undefined;
+      selectedId = null;
+      applySpec();
+      persistStructure();
+      renderSide();
+    };
 
     // ── 노드 클릭: 선택 또는 연결 ────────────────────────────────────────────
     function handleNodeClick(nodeId: string): void {

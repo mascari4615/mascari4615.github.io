@@ -736,6 +736,17 @@ await step('칸으로 좁히면 그 칸을 적은 것만 남는다', async () =>
   await page.waitForFunction((n) => document.querySelectorAll('.ck-node').length === n, before, { timeout: 4000 });
   await page.click('[data-km="tab"][data-key="node"]');
 });
+await step('고른 노드 옆 작은 도구 줄에서 쪽지를 바로 붙인다', async () => {
+  // 옆 패널까지 가는 왕복이 리듬을 끊는다 — 고른 것 옆에서 바로 눌리는지, 그리고 **실제로 늘어나는지** 본다.
+  const tbox = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.dblclick(tbox.x + tbox.width * 0.7, tbox.y + tbox.height * 0.3);
+  await page.waitForSelector('[data-km="mini"]:not(.hidden)', { timeout: 4000 });
+  const before = await page.locator('.ck-node').count();
+  await page.locator('[data-km="mini-note"]').dispatchEvent('click');
+  await page.waitForFunction((n) => document.querySelectorAll('.ck-node').length === n + 1, before, { timeout: 4000 });
+  // 쪽지는 그 노드를 **가리켜야** 한다(지시선이 하나 늘어난다).
+  if (await page.locator('.ck-leader').count() === 0) throw new Error('쪽지가 아무것도 안 가리킨다');
+});
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
   await page.click('[data-km="tab"][data-key="notes"]');
