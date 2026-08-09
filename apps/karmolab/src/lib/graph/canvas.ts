@@ -48,6 +48,7 @@ import { visibleNodes, degreeMap } from './canvas-filter';
 import { drainSaves, queueSave } from './canvas-save';
 import { pressIntent, readPressHits } from './canvas-press';
 import { canRewireTo, isDropOnNode, releaseIntent } from './canvas-release';
+import { curveFromPointer, labelPosFromPointer } from './canvas-edgedrag';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
@@ -630,21 +631,9 @@ export class GraphCanvas {
         if (!b1 || !b2) return;
         const { p1, p2 } = this.chooseAnchors(b1, b2);
         const w = this.screenToWorld(e.clientX, e.clientY);
-        const dx = p2.x - p1.x;
-        const dy = p2.y - p1.y;
-        const len = Math.hypot(dx, dy) || 1;
-        if (this.edgeDrag.mode === 'curve') {
-          // 두 끝점을 잇는 직선에서 얼마나 벗어났는지(법선 성분)를 그대로 휘는 값으로.
-          const nx = -dy / len;
-          const ny = dx / len;
-          const off = (w.x - (p1.x + p2.x) / 2) * nx + (w.y - (p1.y + p2.y) / 2) * ny;
-          const curve = Math.max(-0.8, Math.min(0.8, (off / len) * 1.35));
-          edge.curve = Math.abs(curve) < 0.02 ? undefined : Number(curve.toFixed(3));
-        } else {
-          // 이름표는 두 끝점 사이 어디쯤인지(접선 성분)로 자리를 잡는다.
-          const t = ((w.x - p1.x) * dx + (w.y - p1.y) * dy) / (len * len);
-          edge.labelPos = Number(Math.min(0.95, Math.max(0.05, t)).toFixed(3));
-        }
+        // 휘는 양·이름표 자리 셈법은 canvas-edgedrag 가 안다(숫자로 잠근 규칙이다).
+        if (this.edgeDrag.mode === 'curve') edge.curve = curveFromPointer(p1, p2, w);
+        else edge.labelPos = labelPosFromPointer(p1, p2, w);
         this.redrawEdges();
         return;
       }
