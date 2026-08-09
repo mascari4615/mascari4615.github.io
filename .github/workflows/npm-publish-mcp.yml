@@ -94,6 +94,12 @@ jobs:
             echo "NPM_TOKEN 으로 발행한다 (임시 우회)."
           else
             echo "토큰 없음 — Trusted Publishing(OIDC)으로 발행한다. 이게 바라던 길이다."
+            # 안 붙을 때 **어디가 빈지** 보이게 한다. 값은 안 찍고 있는지만 찍는다.
+            echo "  OIDC 요청 주소 있음? : $([ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ] && echo yes || echo NO)"
+            echo "  OIDC 토큰 있음?     : $([ -n "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ] && echo yes || echo NO)"
+            echo "  ~/.npmrc 존재?      : $([ -f ~/.npmrc ] && echo yes || echo no)"
+            echo "  프로젝트 .npmrc?    : $([ -f .npmrc ] && echo yes || echo no)"
+            echo "  npm 판              : $(npm --version)"
           fi
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             echo "흉내만 낸다 (dry_run=true). 진짜로 올리려면 다시 돌리며 체크를 끄면 된다."
