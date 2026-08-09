@@ -21,6 +21,12 @@ export class EarthSound {
   private droneGain: GainNode | null = null;
   private murmurGain: GainNode | null = null;
   private padGain: GainNode | null = null;
+  /* 자리에 따라 바뀌는 세 겹. 지구본을 어디로 옮기느냐에 따라 이 셋의 크기만 달라진다 —
+     소리를 새로 만들지 않고 **섞는 비율**로 장소를 말한다. */
+  private waveGain: GainNode | null = null;
+  private windGain: GainNode | null = null;
+  private rainGain: GainNode | null = null;
+  private waveLfo: OscillatorNode | null = null;
   private nodes: AudioNode[] = [];
 
   get running(): boolean {
@@ -98,15 +104,84 @@ export class EarthSound {
       this.nodes.push(o);
     }
     this.padGain = pad;
+
+    /* ── 자리의 소리 ─────────────────────────────────────────────
+     * 파도 = 아주 낮게 거른 잡음이 8초에 한 번 밀려왔다 나간다.
+     * 바람 = 중역만 남긴 잡음(마른 땅 위에서 나는 소리).
+     * 비   = 고역 잡음(구름이 두꺼울수록 커진다).
+     * 셋 다 늘 돌고 있고 **크기만** 바뀐다 — 켜고 끄면 이음매가 들린다. */
+    const mkNoise = (): AudioBufferSourceNode => {
+      const b = ctx.createBuffer(1, ctx.sampleRate * 4, ctx.sampleRate);
+      const d2 = b.getChannelData(0);
+      for (let i = 0; i < d2.length; i++) d2[i] = (Math.random() * 2 - 1) * 0.5;
+      const n = ctx.createBufferSource();
+      n.buffer = b;
+      n.loop = true;
+      n.start();
+      this.nodes.push(n);
+      return n;
+    };
+
+    const wave = ctx.createGain();
+    wave.gain.value = 0;
+    const waveLp = ctx.createBiquadFilter();
+    waveLp.type = 'lowpass';
+    waveLp.frequency.value = 420;
+    const waveSwell = ctx.createGain();
+    waveSwell.gain.value = 0.5;
+    mkNoise().connect(waveLp).connect(waveSwell).connect(wave).connect(master);
+    // 밀려왔다 나가는 숨 — 8초에 한 번
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 0.125;
+    const lfoAmt = ctx.createGain();
+    lfoAmt.gain.value = 0.42;
+    lfo.connect(lfoAmt).connect(waveSwell.gain);
+    lfo.start();
+    this.waveLfo = lfo;
+    this.waveGain = wave;
+
+    const wind = ctx.createGain();
+    wind.gain.value = 0;
+    const windBp = ctx.createBiquadFilter();
+    windBp.type = 'bandpass';
+    windBp.frequency.value = 900;
+    windBp.Q.value = 0.5;
+    mkNoise().connect(windBp).connect(wind).connect(master);
+    this.windGain = wind;
+
+    const rain = ctx.createGain();
+    rain.gain.value = 0;
+    const rainHp = ctx.createBiquadFilter();
+    rainHp.type = 'highpass';
+    rainHp.frequency.value = 3200;
+    mkNoise().connect(rainHp).connect(rain).connect(master);
+    this.rainGain = rain;
   }
 
-  /** 화면 상태를 소리에 반영한다 (매 프레임 아니라 몇 초에 한 번이면 충분하다). */
-  update(nightCityRatio: number, auroraStrength: number): void {
+  /**
+   * 지금 보고 있는 자리의 소리.
+   * `ocean` 바다인 정도 · `dry` 마른 땅인 정도 · `cloud` 구름 두께 · `city` 도시 불빛 · `night` 밤인 정도.
+   * 값은 전부 0~1 이고, **크기만** 바꾼다.
+   */
+  place(ocean: number, dry: number, cloud: number, city: number, night: number): void {
     const ctx = this.ctx;
-    if (!ctx || !this.murmurGain || !this.padGain) return;
+    if (!ctx || !this.waveGain || !this.windGain || !this.rainGain || !this.murmurGain) return;
     const t = ctx.currentTime;
-    this.murmurGain.gain.setTargetAtTime(Math.min(0.05, nightCityRatio * 0.06), t, 2);
-    this.padGain.gain.setTargetAtTime(Math.min(0.045, auroraStrength * 0.05), t, 3);
+    this.waveGain.gain.setTargetAtTime(ocean * 0.05, t, 1.6);
+    this.windGain.gain.setTargetAtTime(dry * 0.03, t, 1.6);
+    this.rainGain.gain.setTargetAtTime(Math.max(0, cloud - 0.35) * 0.05, t, 1.6);
+    // 도시 웅성거림은 밤에 더 또렷하다 — 낮에는 다른 소리에 묻힌다
+    this.murmurGain.gain.setTargetAtTime(city * (0.4 + night * 0.6) * 0.05, t, 1.6);
+  }
+
+  /**
+   * 화면 전체 상태(오로라 세기). 웅성거림은 **자리**가 정하므로 여기서 안 건드린다 —
+   * 두 곳에서 같은 손잡이를 잡으면 서로 밀어내며 소리가 흔들린다.
+   */
+  update(_nightCityRatio: number, auroraStrength: number): void {
+    const ctx = this.ctx;
+    if (!ctx || !this.padGain) return;
+    this.padGain.gain.setTargetAtTime(Math.min(0.045, auroraStrength * 0.05), ctx.currentTime, 3);
   }
 
   /** 지진 — 한 번 낮게 운다. 규모가 클수록 낮고 길다. */
@@ -144,6 +219,10 @@ export class EarthSound {
     this.droneGain = null;
     this.murmurGain = null;
     this.padGain = null;
+    this.waveGain = null;
+    this.windGain = null;
+    this.rainGain = null;
+    this.waveLfo = null;
     this.nodes = [];
   }
 }

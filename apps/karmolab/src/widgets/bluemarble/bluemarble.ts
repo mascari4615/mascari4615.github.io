@@ -1091,6 +1091,7 @@ import { EarthSound } from './sound';
             if ((prefs.on.tour || prefs.on.dusk) && body === 'earth' && !isPast()) return;
             lines = sentences();
             if (sound.running) {
+              updatePlaceSound();
               const sunv = toVec(subsolar(new Date(clockMs())).lat, subsolar(new Date(clockMs())).lon);
               const nightCities = CITIES.filter((c2) => dot(toVec(c2.lat, c2.lon), sunv) < 0.05).length;
               sound.update(nightCities / CITIES.length, Math.min(1, au.length / 900));
@@ -1103,6 +1104,52 @@ import { EarthSound } from './sound';
               line.textContent = lines[lineIdx];
               line.classList.add('bm-show');
             }, 420);
+          }
+
+          /* ── 지금 보고 있는 자리의 소리 ───────────────────────────────── */
+
+          /** 등장방형 그림에서 한 점을 읽는다. */
+          function sampleTex(tex: Tex | null, lat: number, lon: number): [number, number, number] | null {
+            if (!tex) return null;
+            const u = (lon + 180) / 360;
+            const v = (90 - lat) / 180;
+            const x = Math.min(tex.w - 1, Math.max(0, (u * tex.w) | 0));
+            const y = Math.min(tex.h - 1, Math.max(0, (v * tex.h) | 0));
+            const i = (y * tex.w + x) * 4;
+            return [tex.d[i], tex.d[i + 1], tex.d[i + 2]];
+          }
+
+          /**
+           * 화면 한가운데가 보고 있는 자리를 **그림에서 직접 읽어** 소리로 넘긴다.
+           * 바다인지 사막인지를 목록으로 들고 있지 않는다 — 표면 그림이 이미 알고 있다.
+           */
+          function updatePlaceSound(): void {
+            if (!sound.running || body !== 'earth') return;
+            const lat = camLat;
+            const lon = camLon;
+            const day = sampleTex(dayTex, lat, lon);
+            const night = sampleTex(nightTex, lat, lon);
+            let ocean = 0;
+            let dry = 0;
+            if (day) {
+              const [r, g, b] = day;
+              const max = Math.max(r, g, b);
+              const min = Math.min(r, g, b);
+              // 바다 = 파랑이 가장 세고 어둡다 · 마른 땅 = 밝고 붉은 기가 도는 곳
+              ocean = b === max && max < 140 ? Math.min(1, (b - min + 20) / 70) : 0;
+              dry = r >= g && g > b && max > 110 ? Math.min(1, (max - b) / 70) : 0;
+            }
+            let cloud = 0;
+            if (cloudTex) {
+              const cx2 = Math.min(cloudTex.w - 1, Math.max(0, (((lon + 180) / 360) * cloudTex.w) | 0));
+              const cy2 = Math.min(cloudTex.h - 1, Math.max(0, (((90 - lat) / 180) * cloudTex.h) | 0));
+              cloud = cloudTex.a[cy2 * cloudTex.w + cx2] / 255;
+            }
+            const city = night ? Math.min(1, (night[0] * 0.6 + night[1] * 0.3 + night[2] * 0.1) / 90) : 0;
+            const sun = subsolar(new Date(clockMs()));
+            const lam = dot(toVec(lat, lon), toVec(sun.lat, sun.lon));
+            const nightness = Math.max(0, Math.min(1, (0.15 - lam) / 0.4));
+            sound.place(ocean, dry, cloud, city, nightness);
           }
 
           /* ── 노을 따라가기 ────────────────────────────────────────────── */
