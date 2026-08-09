@@ -4,8 +4,10 @@
  * 사용자: "KarmoMap 프로그램 만들고 싶어. 마인드맵, 그래프, 관계도 같은 건데.
  * 세계관 설명에 특히 특화된 것."
  *
- * 일반 마인드맵과의 차이는 `kinds.ts` 에 있다 — 노드는 인물/장소/물건/사건/개념,
- * 연결은 관련/상위/포함/대립/선후. 세계관을 설명할 때 실제로 쓰는 말이다.
+ * 일반 마인드맵과의 차이는 `packs.ts` 의 **어휘 팩**에 있다 (TASK-KL-202) — 노드는
+ * 그냥 박스가 아니라 인물/카드/개념 중 하나고, 선은 그냥 줄이 아니라 ♡좋아함/
+ * ☆소환/뒷받침 중 하나다. 팩을 갈아끼우면 같은 캔버스가 세계관 정리 도구도,
+ * 팬 관계도 도구도, 카드 전개 정리 도구도, 개념 설명 도구도 된다.
  *
  * 캔버스는 `lib/graph/canvas.ts` (cockpit 에서 추출, 단위 0). 저장은
  * localStorage — 백엔드 0, 웹에서도 동작, 내용은 사적.
@@ -18,17 +20,16 @@ import type { GraphSpec, GraphNode, GraphEdge } from '../../lib/graph/spec';
 import { emptyGraphSpec } from '../../lib/graph/spec';
 import { KarmoMapLocalStorageAdapter } from './local-storage-adapter';
 import {
-  NODE_KINDS,
-  NODE_KIND_LABELS,
-  NODE_KIND_COLORS,
-  NODE_KIND_ICONS,
-  EDGE_KINDS,
-  EDGE_KIND_LABELS,
-  EDGE_KIND_DEFS,
-  isNodeKind,
-  type NodeKind,
-  type EdgeKind,
-} from './kinds';
+  PACKS,
+  DEFAULT_PACK_ID,
+  packById,
+  ALL_KIND_COLORS,
+  ALL_KIND_ICONS,
+  ALL_KIND_LABELS,
+  ALL_EDGE_KIND_DEFS,
+  ALL_EDGE_LABELS,
+  type CanvasPack,
+} from './packs';
 
 (function (): void {
   if (typeof Toolbox === 'undefined') return;
@@ -77,14 +78,43 @@ import {
     let selectedId: string | null = null;
     /** 연결 모드일 때 출발 노드 id. null 이면 평소 모드. */
     let linkingFrom: string | null = null;
+    /** 지금 끼워진 어휘 팩. `spec._meta.pack` 에 함께 저장된다. */
+    let pack: CanvasPack = packById(DEFAULT_PACK_ID);
+
+    /** 노드 종류 <option> — 팩에 없는 종류(다른 팩에서 넘어온 노드)도 잃지 않게 뒤에 붙인다. */
+    function nodeKindOptions(selected?: string): string {
+      const ids = pack.nodeKinds.map((k) => k.id);
+      const extra = selected && !ids.includes(selected) ? [selected] : [];
+      return [
+        ...pack.nodeKinds.map(
+          (k) => `<option value="${k.id}"${k.id === selected ? ' selected' : ''}>${k.icon} ${k.label}</option>`
+        ),
+        ...extra.map(
+          (id) => `<option value="${id}" selected>${ALL_KIND_ICONS[id] ?? '·'} ${ALL_KIND_LABELS[id] ?? id}</option>`
+        ),
+      ].join('');
+    }
+
+    /** 선 종류 <option> — 같은 이유로 팩 밖 종류를 보존한다. */
+    function edgeKindOptions(selected?: string): string {
+      const ids = pack.edgeKinds.map((k) => k.id);
+      const extra = selected && !ids.includes(selected) ? [selected] : [];
+      return [
+        ...pack.edgeKinds.map(
+          (k) => `<option value="${k.id}"${k.id === selected ? ' selected' : ''}>${k.label}</option>`
+        ),
+        ...extra.map((id) => `<option value="${id}" selected>${ALL_EDGE_LABELS[id] ?? id}</option>`),
+      ].join('');
+    }
 
     container.innerHTML = `
       <div class="km-root">
         <div class="km-toolbar">
-          <input type="text" data-km="new-label" placeholder="새 노드 이름" />
-          <select data-km="new-kind">
-            ${NODE_KINDS.map((k) => `<option value="${k}">${NODE_KIND_ICONS[k]} ${NODE_KIND_LABELS[k]}</option>`).join('')}
+          <select data-km="pack" title="어휘 팩 — 같은 캔버스, 다른 말">
+            ${PACKS.map((p) => `<option value="${p.id}"${p.id === pack.id ? ' selected' : ''}>${p.icon} ${p.label}</option>`).join('')}
           </select>
+          <input type="text" data-km="new-label" placeholder="새 노드 이름" />
+          <select data-km="new-kind">${nodeKindOptions()}</select>
           <button class="btn btn-primary" data-km="add">+ 추가</button>
           <span class="km-spacer"></span>
           <button class="btn btn-ghost" data-km="fit">화면 맞춤</button>
@@ -127,18 +157,17 @@ import {
     // ── 빈 상태 안내 ────────────────────────────────────────────────────────
     function syncEmptyHint(): void {
       const existing = canvasEl.querySelector('.km-empty');
-      if (spec.nodes.length === 0) {
-        if (!existing) {
-          const el = document.createElement('div');
-          el.className = 'km-empty';
-          el.innerHTML =
-            '아직 비어 있어요.<br>위에 이름을 적고 <b>+ 추가</b> 를 누르면 첫 노드가 생깁니다.<br>' +
-            '노드를 끌어서 배치하고, 클릭하면 오른쪽에서 고칠 수 있어요.';
-          canvasEl.appendChild(el);
-        }
-      } else if (existing) {
-        existing.remove();
+      if (spec.nodes.length > 0) {
+        existing?.remove();
+        return;
       }
+      // 팩을 바꾸면 안내 문구도 바뀌어야 하므로 매번 다시 쓴다.
+      const el = (existing as HTMLElement | null) ?? document.createElement('div');
+      el.className = 'km-empty';
+      el.innerHTML =
+        `${escapeHtml(pack.hint)}<br>위에 이름을 적고 <b>+ 추가</b> 를 누르면 첫 노드가 생깁니다.<br>` +
+        '노드를 끌어서 배치하고, 클릭하면 오른쪽에서 고칠 수 있어요.';
+      if (!existing) canvasEl.appendChild(el);
     }
 
     // ── 선택 패널 ───────────────────────────────────────────────────────────
@@ -157,24 +186,18 @@ import {
       const labelOf = (id: string): string => spec.nodes.find((n) => n.id === id)?.label ?? id;
 
       sideEl.innerHTML = `
-        <h4>${NODE_KIND_ICONS[node.kind as NodeKind] ?? '·'} 노드</h4>
+        <h4>${ALL_KIND_ICONS[node.kind] ?? '·'} 노드</h4>
         <div class="km-field">
           <label>이름</label>
           <input type="text" data-km="edit-label" value="${escapeAttr(node.label)}" />
         </div>
         <div class="km-field">
           <label>종류</label>
-          <select data-km="edit-kind">
-            ${NODE_KINDS.map(
-              (k) => `<option value="${k}"${k === node.kind ? ' selected' : ''}>${NODE_KIND_ICONS[k]} ${NODE_KIND_LABELS[k]}</option>`
-            ).join('')}
-          </select>
+          <select data-km="edit-kind">${nodeKindOptions(node.kind)}</select>
         </div>
         <div class="km-field">
           <label>이 노드에서 연결 만들기</label>
-          <select data-km="link-kind">
-            ${EDGE_KINDS.map((k) => `<option value="${k}">${EDGE_KIND_LABELS[k]}</option>`).join('')}
-          </select>
+          <select data-km="link-kind">${edgeKindOptions()}</select>
           <button class="btn btn-ghost" data-km="link-start">${linkingFrom === node.id ? '연결 취소' : '연결 시작'}</button>
           ${linkingFrom === node.id ? '<div class="km-hint">이어붙일 다른 노드를 클릭하세요. 배경을 클릭하면 취소됩니다.</div>' : ''}
         </div>
@@ -189,9 +212,7 @@ import {
                     const peer = outgoing ? e.to : e.from;
                     return `<div class="km-edge-row" data-edge="${escapeAttr(e.id)}">
                       <span class="km-edge-peer" title="${escapeAttr(labelOf(peer))}">${outgoing ? '→' : '←'} ${escapeHtml(labelOf(peer))}</span>
-                      <select data-km="edge-kind">
-                        ${EDGE_KINDS.map((k) => `<option value="${k}"${k === e.kind ? ' selected' : ''}>${EDGE_KIND_LABELS[k]}</option>`).join('')}
-                      </select>
+                      <select data-km="edge-kind">${edgeKindOptions(e.kind)}</select>
                       <button class="btn btn-ghost" data-km="edge-del" title="연결 삭제">×</button>
                     </div>`;
                   })
@@ -211,9 +232,7 @@ import {
       };
 
       (sideEl.querySelector('[data-km="edit-kind"]') as HTMLSelectElement).onchange = (ev) => {
-        const v = (ev.target as HTMLSelectElement).value;
-        if (!isNodeKind(v)) return;
-        node.kind = v;
+        node.kind = (ev.target as HTMLSelectElement).value;
         canvas?.render();
         canvas?.setSelectedNode(node.id);
         persistStructure();
@@ -269,7 +288,7 @@ import {
       if (linkingFrom && linkingFrom !== nodeId) {
         const from = linkingFrom;
         const kindSel = sideEl.querySelector('[data-km="link-kind"]') as HTMLSelectElement | null;
-        const kind: EdgeKind = (kindSel?.value as EdgeKind) ?? 'relates';
+        const kind = kindSel?.value || pack.edgeKinds[0].id;
         const dup = spec.edges.some(
           (e) => (e.from === from && e.to === nodeId) || (e.from === nodeId && e.to === from)
         );
@@ -292,8 +311,8 @@ import {
     // ── 캔버스 생성 ─────────────────────────────────────────────────────────
     canvas = new GraphCanvas(canvasEl, {
       persistAdapter: store,
-      kindColors: NODE_KIND_COLORS,
-      edgeKinds: EDGE_KIND_DEFS,
+      kindColors: ALL_KIND_COLORS,
+      edgeKinds: ALL_EDGE_KIND_DEFS,
       onNodeClick: (id) => handleNodeClick(id),
       onBackgroundClick: () => {
         selectedId = null;
@@ -313,8 +332,7 @@ import {
         newLabelEl.focus();
         return;
       }
-      const kindRaw = newKindEl.value;
-      const kind: NodeKind = isNodeKind(kindRaw) ? kindRaw : 'concept';
+      const kind = newKindEl.value || pack.nodeKinds[0].id;
       const taken = new Set(spec.nodes.map((n) => n.id));
       const center = canvas?.viewCenterWorld() ?? { x: 0, y: 0 };
       // 겹쳐 쌓이지 않게 노드 수만큼 살짝 계단식으로 밀어 놓는다.
@@ -342,6 +360,21 @@ import {
     newLabelEl.onkeydown = (e) => {
       if (e.key === 'Enter') addNode();
     };
+
+    // ── 어휘 팩 전환 ────────────────────────────────────────────────────────
+    // 이미 놓아둔 노드는 건드리지 않는다. 팩은 *앞으로 쓸 말*을 바꿀 뿐이고,
+    // 색·아이콘은 전 팩 합본(ALL_*)이 받쳐 주므로 섞여 있어도 죽지 않는다.
+    const packEl = q<HTMLSelectElement>('pack');
+    function applyPack(id: string, persist: boolean): void {
+      pack = packById(id);
+      packEl.value = pack.id;
+      newKindEl.innerHTML = nodeKindOptions();
+      spec._meta = { ...spec._meta, pack: pack.id };
+      syncEmptyHint();
+      renderSide();
+      if (persist) persistStructure();
+    }
+    packEl.onchange = () => applyPack(packEl.value, true);
 
     q<HTMLButtonElement>('fit').onclick = () => canvas?.fitView();
 
@@ -371,6 +404,7 @@ import {
             nodes: parsed.nodes.map((n) => ({ ...n, ports: n.ports ?? [] })),
           } as GraphSpec;
           selectedId = null;
+          applyPack(spec._meta?.pack ?? pack.id, false);
           applySpec();
           canvas?.fitView();
           persistStructure();
@@ -389,7 +423,8 @@ import {
     q<HTMLButtonElement>('clear').onclick = () => {
       if (!confirm('KarmoMap 의 모든 노드와 연결을 삭제할까요? 되돌릴 수 없습니다.')) return;
       spec = emptyGraphSpec();
-      spec._edge_kinds = { ...EDGE_KIND_DEFS };
+      spec._edge_kinds = { ...ALL_EDGE_KIND_DEFS };
+      spec._meta = { pack: pack.id };
       selectedId = null;
       linkingFrom = null;
       canvasEl.classList.remove('km-linking');
@@ -402,7 +437,8 @@ import {
     void store.load().then((loaded) => {
       spec = loaded ?? emptyGraphSpec();
       // 관계 종류 정의는 항상 최신 셋으로 (저장본이 옛 정의를 갖고 있어도 색이 맞게).
-      spec._edge_kinds = { ...EDGE_KIND_DEFS, ...(spec._edge_kinds ?? {}) };
+      spec._edge_kinds = { ...ALL_EDGE_KIND_DEFS, ...(spec._edge_kinds ?? {}) };
+      applyPack(spec._meta?.pack ?? DEFAULT_PACK_ID, false);
       applySpec();
       if (spec.nodes.length > 0) canvas?.fitView();
       renderSide();
@@ -410,7 +446,7 @@ import {
 
     Mdd.linePreset('tool_run', {
       mood: 'idle',
-      msg: '세계관을 펼쳐볼까요? 인물·장소·사건을 놓고 관계로 이어보세요.',
+      msg: '뭘 그려볼까요? 위에서 어휘 팩을 고르면 캔버스가 그 말로 바뀝니다.',
     });
   }
 
