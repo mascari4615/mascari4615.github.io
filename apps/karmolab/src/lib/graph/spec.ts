@@ -56,6 +56,11 @@ export interface GraphNode {
   h: number;
   ports: Port[];
   doc?: string;
+  /**
+   * 이 자리가 가리키는 **공용 글**(`spec.notes`)의 id. 있으면 `doc` 대신 그쪽이 보인다 —
+   * 같은 설정을 여러 인물에게 붙여 두고 한 번만 고치기 위한 것 (TASK-KL-202 노트 1급 객체).
+   */
+  docRef?: string;
   live?: LiveSpec;
   children?: string[];  // 노드 카드 안에 표시할 서브항목 레이블
   shape?: NodeShape;    // 없으면 'rect'
@@ -104,6 +109,8 @@ export interface GraphEdge {
    * 어느 한쪽 인물의 설명이 아니라 **그 선의 이야기**다 — 노드에만 적을 곳을 두면 갈 데가 없다.
    */
   doc?: string;
+  /** 공용 글 참조 — 노드와 같은 규칙(있으면 `doc` 대신 이쪽). */
+  docRef?: string;
   tags?: string[];
 }
 
@@ -188,6 +195,17 @@ export interface StoryStep {
   note?: string;
 }
 
+/**
+ * 여러 자리가 함께 가리키는 **공용 글** (TASK-KL-202). 노드 안에 갇힌 글은 복붙하는 순간
+ * 갈라지지만, 이건 집이 하나라 고치면 가리키는 모든 자리가 함께 바뀐다.
+ */
+export interface GraphNote {
+  id: string;
+  /** 목록에서 고를 때 쓰는 이름. 비면 본문 첫 줄. */
+  title?: string;
+  text: string;
+}
+
 export interface GraphSpec {
   version: number;
   _meta: Record<string, string>;
@@ -196,6 +214,8 @@ export interface GraphSpec {
   edges: GraphEdge[];
   ephemeral_anchors: EphemeralAnchor[];
   _edge_kinds: Record<string, EdgeKindDef>;
+  /** 여러 자리가 나눠 쓰는 글들. 없으면 공용 글을 아직 안 만든 맵. */
+  notes?: GraphNote[];
   /** 발표 순서. 없으면 발표 모드 버튼이 「첫 장 담기」로 시작한다. */
   story?: StoryStep[];
 }
