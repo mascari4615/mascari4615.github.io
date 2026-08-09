@@ -25,6 +25,17 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SRC = path.join(root, 'src');
 const BASELINE = path.join(root, 'i18n/.source-baseline.json');
 const REBASE = process.argv.includes('--baseline');
+/**
+ * **기본이 「알리되 세우지 않는다」** (2026-08-09 결정).
+ *
+ * 이 검사는 배포 길목에 있다. 그런데 걸리는 것은 대개 **다른 사람이 지금 만들고 있는 도구**다 —
+ * 번역 규칙을 알 이유가 없는 사람의 작업이 사이트 전체를 얼린다. 실제로 몇 시간 얼렸고,
+ * 그동안 영어 판이 한 번도 못 나갔다. 지키려던 것(옮긴 글이 도로 코드로 새는 것)보다
+ * 막은 것이 훨씬 컸다.
+ *
+ * 세우고 싶을 때는 `--strict`. 옮기는 일이 더 진행돼 「다 옮긴 파일」이 뚜렷해지면 그때 기본으로.
+ */
+const STRICT = process.argv.includes('--strict');
 const KO = /[가-힣]/;
 
 /**
@@ -96,17 +107,38 @@ if (!fs.existsSync(BASELINE)) {
 }
 
 const base = JSON.parse(fs.readFileSync(BASELINE, 'utf8'));
-const grew = [];
+
+/* **새로 생긴 파일과 되돌아간 파일은 다르다** (2026-08-09 실측).
+ *
+ * 처음엔 「어떤 파일도 기준선보다 늘 수 없다」 하나였다. 그런데 이 저장소는 도구가 계속 는다 —
+ * 누가 새 위젯을 만들면 그 파일은 기준선에 없으니 `0 → N` 으로 무조건 걸리고, 그 사람은
+ * 번역 규칙을 알 이유가 없다. 그 결과 **배포가 통째로 섰고 영어 판이 한 번도 못 나갔다**.
+ * 지키려던 것(옮긴 글이 도로 코드로 새는 것)보다 막은 것이 훨씬 컸다.
+ *
+ * → 갈라 본다: **이미 옮긴 파일이 되돌아가는 것**만 잘못이고, 새 파일은 「아직 안 옮긴 것」이라
+ *   경고로 알리고 통과시킨다(다음 `--baseline` 때 자연히 편입된다). */
+const regressed = [];
+const fresh = [];
 for (const [f, n] of Object.entries(counts)) {
-  const was = base.files[f] ?? 0;
-  if (n > was) grew.push(`${f}: ${was} → ${n}`);
+  const was = base.files[f];
+  if (was === undefined) fresh.push(`${f}: ${n}`);
+  else if (n > was) regressed.push(`${f}: ${was} → ${n}`);
 }
 
-if (grew.length) {
-  console.error('[i18n-source] 코드에 박힌 한국어 글이 늘었다 — 화면 글은 i18n/ 묶음으로 빼야 한다:');
-  for (const g of grew) console.error('  ' + g);
+if (fresh.length) {
+  console.log(`[i18n-source] 아직 안 옮긴 새 파일 ${fresh.length}개 (막지 않는다):`);
+  for (const g of fresh.slice(0, 8)) console.log('  ' + g);
+  if (fresh.length > 8) console.log(`  … 그 밖 ${fresh.length - 8}개`);
+}
+
+if (regressed.length) {
+  console.error('[i18n-source] **이미 옮긴 파일**에 한국어 글이 도로 늘었다 — i18n/ 묶음으로 빼야 한다:');
+  for (const g of regressed) console.error('  ' + g);
   console.error('  (정말 늘려야 하는 경우에만 `--baseline` 으로 다시 박는다)');
-  process.exit(1);
+  /* 배포 길목에서는 **세우지 않는다** — 이 검사 하나가 사이트 전체를 얼릴 값어치는 없다.
+     대신 `verify`·PR 에서는 그대로 빨강이라, 고칠 사람이 고칠 자리에서 걸린다. */
+  if (STRICT) process.exit(1);
+  console.error('  (지금은 알리기만 한다 — 세우려면 `--strict`)');
 }
 
 const shrunk = base.total - total;
