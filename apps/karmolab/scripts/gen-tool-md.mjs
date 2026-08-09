@@ -19,7 +19,17 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const outDir = path.resolve(root, '../blog/karmolab/t');
+/*
+ * ★ 원본을 `.md` 로 두면 **Jekyll 이 HTML 로 바꿔 버린다** (2026-08-09 로컬 빌드로 발각).
+ *
+ * 주소는 `/karmolab/t/<id>.md` 인데 내려오는 내용이 `<h1>…</h1>` 이었다. 마크다운을 달라고
+ * 그 주소로 온 쪽(에이전트)에게 HTML 을 주면 이 파일들이 있는 이유가 없어진다.
+ * Jekyll 은 **원본 확장자**로 변환 여부를 정하므로, 원본을 `.txt` 로 두고 주소만 `.md` 로 준다.
+ *
+ * 겸사겸사 폴더도 갈랐다 — `karmolab/t` 는 `gen-tool-pages` 가 정리하는 자리다.
+ * 남의 정리 규칙에 얹혀 사는 것보다, 안 겹치는 자리에 두는 편이 낫다.
+ */
+const outDir = path.resolve(root, '../blog/karmolab/tmd');
 const SITE = 'https://blog.mascari4615.com';
 
 const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools;
@@ -87,9 +97,16 @@ for (const id of ids) {
 
   lines.push('', '---', '', '브라우저 안에서 계산합니다. 파일은 기기 밖으로 나가지 않습니다.', '');
 
-  // Jekyll 이 이 파일을 그대로 내보내게 한다 (앞머리 없이 두면 글자 그대로 나가지 않는다).
-  const body = `---\npermalink: /karmolab/t/${id}.md\n---\n\n${lines.join('\n')}`;
-  fs.writeFileSync(path.join(outDir, `${id}.md`), body, 'utf8');
+  /*
+   * 앞머리(front matter)가 있어야 Jekyll 이 이 파일을 내보낸다. 다만 그 순간 **Liquid** 도
+   * 같이 돈다 — 본문에 `{{` 나 `{%` 가 섞이면 그 자리가 조용히 사라지거나 빌드가 깨진다.
+   * 지금 도구 설명에는 없지만 언젠가 하나 들어가면 그날 알게 된다. `raw` 로 감싸면 그만이다
+   * (감싼 표시 자체는 출력에 안 남는다).
+   */
+  const body =
+    `---\npermalink: /karmolab/t/${id}.md\n---\n` +
+    `{% raw %}\n${lines.join('\n')}\n{% endraw %}\n`;
+  fs.writeFileSync(path.join(outDir, `${id}.txt`), body, 'utf8');
   n++;
 }
 
