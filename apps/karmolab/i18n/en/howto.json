@@ -482,5 +482,9 @@
   "howto.charconv.0": "Choose which way to convert",
   "howto.charconv.1": "Paste the text and it converts straight away",
   "howto.charconv.2": "If full-width characters are mixed in, a notice appears above",
-  "howto.charconv.3": "Copy it, or press “Result to input” and keep converting"
+  "howto.charconv.3": "Copy it, or press “Result to input” and keep converting",
+  "howto.comparepic.0": "Choose the left (before) and right (after) photos",
+  "howto.comparepic.1": "Drag the handle to move the seam (arrow keys work too)",
+  "howto.comparepic.2": "If the sizes differ, they are stacked to fit the larger one",
+  "howto.comparepic.3": "Saving as PNG gives you exactly what is on screen"
 }

@@ -1,5 +1,5 @@
 {
-  "total": 5080,
+  "total": 5078,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -99,7 +99,7 @@
     "src/widgets/docs/docs.ts": 3,
     "src/widgets/eyes.ts": 4,
     "src/widgets/favorites-defaults.ts": 40,
-    "src/widgets/favorites.ts": 19,
+    "src/widgets/favorites.ts": 6,
     "src/widgets/flow.ts": 4,
     "src/widgets/folder.ts": 6,
     "src/widgets/font.ts": 18,
@@ -357,6 +357,7 @@
     "src/core/dailycho.ts": 13,
     "src/widgets/tools/dailycho.ts": 11,
     "src/core/charconv.ts": 14,
-    "src/widgets/tools/charconv.ts": 11
+    "src/widgets/tools/charconv.ts": 11,
+    "src/widgets/tools/comparepic.ts": 11
   }
 }
