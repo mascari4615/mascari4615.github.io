@@ -75,6 +75,11 @@ await step('캔버스가 쓸 만한 크기다', async () => {
     { timeout: 8000 }
   );
 });
+await step('빈 판에서는 미니맵이 안 뜬다 (검은 상자로 보인다)', async () => {
+  // 카드가 두엇뿐이면 미니맵은 길잡이가 아니라 화면 구석의 검은 상자다.
+  const mini = page.locator('.km-canvas > svg').nth(1);
+  if (await mini.count() > 0 && await mini.isVisible()) throw new Error('빈 판인데 미니맵이 떠 있다');
+});
 await step('빈 화면 안내가 가로로 읽힌다 (세로로 쪼개지지 않는다)', async () => {
   // 실서비스 첫 화면이 **한 글자씩 세로로** 쪼개져 있었다(안내 조각들이 flex 아이템이 됐다).
   // 글 상자가 카드 한 장보다 넓은지로 잡는다 — 눈으로만 보면 다음에 또 놓친다.

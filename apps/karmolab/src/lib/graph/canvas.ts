@@ -1520,6 +1520,11 @@ export class GraphCanvas {
 
   private redrawMinimap(): void {
     if (!this.spec) return;
+    // 카드가 두엇뿐이면 미니맵은 **길잡이가 아니라 검은 상자**다(빈 판에서 특히 그렇게 보인다).
+    // 길을 잃을 만큼 커졌을 때만 띄운다.
+    const worthIt = this.spec.nodes.length >= 4;
+    this.minimapSvg.style.display = worthIt ? '' : 'none';
+    if (!worthIt) return;
 
     // 기존 노드 rect 제거 (viewport rect 는 유지)
     Array.from(this.minimapSvg.children)
