@@ -24,6 +24,9 @@ import urllib.request
 from PIL import Image, ImageEnhance
 
 BASE = "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/"
+# 화성은 three.js 예제에 없다. Solar System Scope 판(CC BY 4.0)을 쓴다 —
+# 출처 표기 의무가 있어 위젯의 문장 줄에 그대로 적는다.
+MARS = "https://www.solarsystemscope.com/textures/download/2k_mars.jpg"
 OUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "earth")
 
 # (원본 파일, 내보낼 이름, 크기, 화질, 채도 배수)
@@ -33,15 +36,18 @@ OUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 # 거의 검게 보여 「블루마블」이 파랗지 않았다(실측). 사실을 왜곡하지 않는 선에서 한 번만 올려
 # 굽는다 — 매 프레임 색을 만지면 그만큼 팬이 돈다.
 JOBS = [
-    ("earth_atmos_2048.jpg", "day.webp", (2048, 1024), 74, 1.35),
-    ("earth_lights_2048.png", "night.webp", (1024, 512), 68, 1.0),
+    (BASE + "earth_atmos_2048.jpg", "day.webp", (2048, 1024), 74, 1.35),
+    (BASE + "earth_lights_2048.png", "night.webp", (1024, 512), 68, 1.0),
+    # 이웃 두 곳 — 같은 그리기 장치에 그림만 갈아 끼우면 그대로 돈다
+    (BASE + "moon_1024.jpg", "moon.webp", (1024, 512), 72, 1.0),
+    (MARS, "mars.webp", (2048, 1024), 72, 1.12),
 ]
 
 
 def main() -> None:
     os.makedirs(OUT_DIR, exist_ok=True)
     for src, out, size, quality, sat in JOBS:
-        with urllib.request.urlopen(BASE + src, timeout=120) as res:
+        with urllib.request.urlopen(src, timeout=120) as res:
             raw = res.read()
         im = Image.open(io.BytesIO(raw)).convert("RGB")
         if im.size != size:
@@ -50,7 +56,7 @@ def main() -> None:
             im = ImageEnhance.Color(im).enhance(sat)
         path = os.path.join(OUT_DIR, out)
         im.save(path, "WEBP", quality=quality, method=6)
-        print(f"[earth-tex] {src} {len(raw) / 1024:.0f}KB → {out} {size[0]}x{size[1]} "
+        print(f"[earth-tex] {src.rsplit('/', 1)[-1]} {len(raw) / 1024:.0f}KB → {out} {size[0]}x{size[1]} "
               f"{os.path.getsize(path) / 1024:.0f}KB")
 
 

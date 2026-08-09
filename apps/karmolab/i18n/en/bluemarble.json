@@ -35,5 +35,13 @@
   "bluemarble.line.sats": "{n} objects are circling above you right now. Almost all of them were put there by people.",
   "bluemarble.layer.sound": "Sound",
   "bluemarble.layer.sun": "Sun",
-  "bluemarble.line.wind": "The solar wind is blowing at {speed} km/s. It reaches here in {min} minutes."
+  "bluemarble.line.wind": "The solar wind is blowing at {speed} km/s. It reaches here in {min} minutes.",
+  "bluemarble.body.earth": "Earth",
+  "bluemarble.body.moon": "Moon",
+  "bluemarble.body.mars": "Mars",
+  "bluemarble.line.moon": "This is the Moon. No air, so the edge is cut like a blade.",
+  "bluemarble.line.moon2": "Here a day lasts two weeks, and so does the night.",
+  "bluemarble.line.mars": "This is Mars. A day is 24 hours 37 minutes — it brightens a little slower than home.",
+  "bluemarble.line.mars2": "Even right now, a few things we sent are still driving around up there.",
+  "bluemarble.credit.mars": "Mars map: Solar System Scope (CC BY 4.0)"
 }

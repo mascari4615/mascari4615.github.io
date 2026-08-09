@@ -35,5 +35,13 @@
   "bluemarble.line.sats": "いま頭上を {n} 個が回っています。ほとんどが人が打ち上げたものです。",
   "bluemarble.layer.sound": "音",
   "bluemarble.layer.sun": "太陽",
-  "bluemarble.line.wind": "いま太陽から秒速 {speed}km で風が吹いています。ここに届くまであと {min} 分です。"
+  "bluemarble.line.wind": "いま太陽から秒速 {speed}km で風が吹いています。ここに届くまであと {min} 分です。",
+  "bluemarble.body.earth": "地球",
+  "bluemarble.body.moon": "月",
+  "bluemarble.body.mars": "火星",
+  "bluemarble.line.moon": "月です。空気がないので、縁が刃物のように切れています。",
+  "bluemarble.line.moon2": "ここでは昼が二週間続き、夜も同じだけ続きます。",
+  "bluemarble.line.mars": "火星です。一日が24時間37分、地球より少しゆっくり明るくなります。",
+  "bluemarble.line.mars2": "いまこの瞬間も、私たちが送ったものが何台か走り回っています。",
+  "bluemarble.credit.mars": "火星地図: Solar System Scope (CC BY 4.0)"
 }
