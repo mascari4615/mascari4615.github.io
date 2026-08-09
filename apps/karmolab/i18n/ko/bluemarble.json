@@ -59,5 +59,8 @@
   "bluemarble.deep.lineNow": "지금의 대륙 배치입니다. 손잡이를 왼쪽으로 밀면 판이 되감깁니다.",
   "bluemarble.deep.line": "{ma}백만 년 전의 지구입니다. 대륙이 지금 자리에 있기 전입니다.",
   "bluemarble.deep.how": "사진이 없는 시간입니다 — 판이 어떻게 움직였는지를 되감아 그린 것입니다. 아는 것은 물과 뭍의 경계뿐이라, 색은 칠하지 않았습니다.",
-  "bluemarble.layer.together": "같이 보기"
+  "bluemarble.layer.together": "같이 보기",
+  "bluemarble.link.button": "이 자리 링크",
+  "bluemarble.link.copied": "이 자리 주소를 복사했습니다. 붙여 넣으면 누구든 같은 자리에서 지구를 봅니다.",
+  "bluemarble.link.here": "이 자리 주소: {url}"
 }

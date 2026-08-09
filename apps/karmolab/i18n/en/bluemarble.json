@@ -59,5 +59,8 @@
   "bluemarble.deep.lineNow": "The continents as they are now. Drag left and the plates run backwards.",
   "bluemarble.deep.line": "Earth {ma} million years ago — before the continents reached where they are now.",
   "bluemarble.deep.how": "There are no photographs of this time. This is plate motion run backwards; all we know is where water met land, so nothing else is coloured in.",
-  "bluemarble.layer.together": "Together"
+  "bluemarble.layer.together": "Together",
+  "bluemarble.link.button": "Link to here",
+  "bluemarble.link.copied": "Copied the link to this spot. Anyone who opens it sees the Earth from here.",
+  "bluemarble.link.here": "Link to this spot: {url}"
 }

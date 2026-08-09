@@ -134,6 +134,8 @@ import { EarthSound } from './sound';
 .bm-wrap.bm-ambient .bm-sun{opacity:.8;}
 @media (max-width:520px){.bm-sun{width:64px;height:64px;bottom:88px}}
 .bm-body{position:absolute;top:10px;right:52px;z-index:4;}
+.bm-link{position:absolute;top:10px;right:126px;z-index:4;}
+.bm-wrap.bm-ambient .bm-link{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
 .bm-wrap.bm-ambient .bm-body{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
 /* 오늘의 우주 사진 — 지구 창 곁에 붙은 작은 액자. 누르면 원본으로 간다. */
 .bm-apod{position:absolute;left:14px;bottom:96px;width:132px;border-radius:10px;z-index:3;cursor:pointer;
@@ -218,6 +220,10 @@ import { EarthSound } from './sound';
           apodImg.decoding = 'async';
           apodImg.hidden = true;
 
+          const linkBtn = document.createElement('button');
+          linkBtn.type = 'button';
+          linkBtn.className = 'bm-chip bm-link';
+
           const bodyBtn = document.createElement('button');
           bodyBtn.type = 'button';
           bodyBtn.className = 'bm-chip bm-body';
@@ -232,7 +238,7 @@ import { EarthSound } from './sound';
           fsBtn.type = 'button';
           fsBtn.className = 'bm-fs';
           fsBtn.textContent = '⛶';
-          wrap.append(canvas, menuBtn, chips, bodyBtn, sunImg, apodImg, fsBtn, timeBar, ticker);
+          wrap.append(canvas, menuBtn, chips, linkBtn, bodyBtn, sunImg, apodImg, fsBtn, timeBar, ticker);
           container.appendChild(wrap);
 
           const ctx = canvas.getContext('2d');
@@ -1140,6 +1146,54 @@ import { EarthSound } from './sound';
             }, 420);
           }
 
+          /* ── 자리 링크 ────────────────────────────────────────────────── */
+
+          /**
+           * **주소 하나가 곧 그 자리다.** `?bm=위도,경도,배율` 을 달아 두면 그 자리에서 열린다 —
+           * 블로그 글이든 메모든 남에게 보내는 말이든, 「여기」를 가리킬 수 있게 된다.
+           *
+           * 셸은 주소에서 `shared` 만 지우고 나머지는 그대로 둔다(toolbox.ts) — 그래서 쿼리에 실었다.
+           * 해시는 이미 어느 도구를 열지를 가리키고 있어 자리까지 실을 수 없다.
+           */
+          function readLink(): boolean {
+            try {
+              const raw = new URLSearchParams(location.search).get('bm');
+              if (!raw) return false;
+              const [a, b, c] = raw.split(',').map(Number);
+              if (!Number.isFinite(a) || !Number.isFinite(b)) return false;
+              camLat = Math.max(-85, Math.min(85, a));
+              camLon = ((((b + 180) % 360) + 360) % 360) - 180;
+              zoom = Number.isFinite(c) ? Math.max(0.75, Math.min(420, c)) : 2.4;
+              return true;
+            } catch (_) {
+              return false;
+            }
+          }
+
+          function linkHere(): string {
+            const q = new URLSearchParams(location.search);
+            q.set('bm', `${camLat.toFixed(2)},${camLon.toFixed(2)},${zoom.toFixed(2)}`);
+            return `${location.origin}${location.pathname}?${q.toString()}#bluemarble`;
+          }
+
+          async function copyLink(): Promise<void> {
+            const url = linkHere();
+            // 주소창도 같이 바꾼다 — 새로고침해도 같은 자리가 되어야 링크가 진짜다
+            try {
+              history.replaceState({}, '', url.slice(location.origin.length));
+            } catch (_) {
+              /* 못 바꿔도 복사는 된다 */
+            }
+            let ok = false;
+            try {
+              await navigator.clipboard.writeText(url);
+              ok = true;
+            } catch (_) {
+              ok = false;
+            }
+            say(ok ? t('bluemarble.link.copied') : t('bluemarble.link.here', { url }));
+          }
+
           /* ── 같이 보기 ────────────────────────────────────────────────── */
 
           /** 내가 보고 있는 자리를 알린다. 2초에 한 번이면 충분하다 — 지구는 천천히 돈다. */
@@ -1737,6 +1791,8 @@ import { EarthSound } from './sound';
             save();
           };
 
+          linkBtn.onclick = () => void copyLink();
+
           fsBtn.onclick = () => {
             if (document.fullscreenElement === wrap) void document.exitFullscreen();
             else void enterAmbient();
@@ -1821,10 +1877,13 @@ import { EarthSound } from './sound';
             slider.max = String(Math.floor(Date.now() / DAY0));
             slider.value = slider.max;
             nowBtn.textContent = t('bluemarble.now');
+            linkBtn.textContent = t('bluemarble.link.button');
             renderDate();
 
+            /* 링크로 들어왔으면 그 자리가 이긴다 — 남이 가리킨 자리를 시간대로 덮으면 안 된다. */
+            const fromLink = readLink();
             me = fromTimezone();
-            if (me) {
+            if (!fromLink && me) {
               camLon = me.lon;
               camLat = Math.max(-60, Math.min(60, me.lat));
             }
