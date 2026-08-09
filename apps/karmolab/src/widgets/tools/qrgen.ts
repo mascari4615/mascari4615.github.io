@@ -6,6 +6,8 @@ import qrcode from 'qrcode-generator';
 import { escapeWifi, type Level, makeGrid, spec, toSvg } from '../../core/qrgen';
 import { readInvocation } from '../../lib/tool-url';
 
+import { t, loadNamespace, locale } from '../../lib/i18n';
+
 (function (): void {
 
   /* WiFi·vCard 문법 이스케이프와 SVG 만들기는 `src/core/qrgen.ts` 가 소유한다 —
@@ -13,9 +15,13 @@ import { readInvocation } from '../../lib/tool-url';
 
   Toolbox.register({
     id: 'qrgen',
-    title: 'QR 코드 생성',
+    title: t('widgets.qrgen.title', undefined, 'QR 코드 생성'),
     category: 'tool',
-    desc: 'URL·텍스트·WiFi·연락처를 QR 코드로 만들고 PNG/SVG 로 저장합니다. 서버 전송 없이 브라우저에서 생성',
+    desc: t(
+      'widgets-desc.qrgen.desc',
+      undefined,
+      'URL·텍스트·WiFi·연락처를 QR 코드로 만들고 PNG/SVG 로 저장합니다. 서버 전송 없이 브라우저에서 생성'
+    ),
     layout: 'form',
     icon: '<rect x="3" y="3" width="7" height="7" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="14" y="3" width="7" height="7" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="14" width="7" height="7" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z" stroke="currentColor" stroke-width="1.6" fill="none"/>',
     tabs: [
@@ -23,93 +29,105 @@ import { readInvocation } from '../../lib/tool-url';
         id: 'app',
         label: 'QR',
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '네모네모 도장 찍어 드릴게요!' });
+          void loadNamespace('qrgen').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+          Mdd.linePreset('tool_run', { msg: t('qrgen.mdd') });
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">종류</label>
+              <label class="field-label">${esc(t('qrgen.label.kind'))}</label>
               <select id="qrKind" aria-label="만들 종류">
-                <option value="text">텍스트 / URL</option>
-                <option value="wifi">WiFi 접속 정보</option>
-                <option value="contact">연락처 (vCard)</option>
-                <option value="sms">문자 메시지</option>
+                <option value="text">${esc(t('qrgen.kind.text'))}</option>
+                <option value="wifi">${esc(t('qrgen.kind.wifi'))}</option>
+                <option value="contact">${esc(t('qrgen.kind.contact'))}</option>
+                <option value="sms">${esc(t('qrgen.kind.sms'))}</option>
               </select>
             </div>
 
             <div class="field-group" id="qrPanelText">
-              <label class="field-label">내용</label>
+              <label class="field-label">${esc(t('qrgen.label.content'))}</label>
               <textarea id="qrText" placeholder="https://blog.mascari4615.com/karmolab/" style="min-height:90px;"></textarea>
             </div>
 
             <div class="field-group" id="qrPanelWifi" style="display:none;">
-              <label class="field-label">WiFi</label>
+              <label class="field-label">${esc(t('qrgen.label.wifi'))}</label>
               <div class="tool-grid-2">
-                <input type="text" id="qrWifiSsid" placeholder="네트워크 이름 (SSID)">
-                <input type="text" id="qrWifiPass" placeholder="비밀번호">
+                <input type="text" id="qrWifiSsid" placeholder="${esc(t('qrgen.ph.ssid'))}">
+                <input type="text" id="qrWifiPass" placeholder="${esc(t('qrgen.ph.pass'))}">
               </div>
               <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
-                <select id="qrWifiEnc" style="flex:1;" aria-label="보안 방식">
+                <select id="qrWifiEnc" style="flex:1;" aria-label="${esc(t('qrgen.label.security'))}">
                   <option value="WPA">WPA / WPA2</option>
                   <option value="WEP">WEP</option>
-                  <option value="nopass">비밀번호 없음</option>
+                  <option value="nopass">${esc(t('qrgen.enc.nopass'))}</option>
                 </select>
                 <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary); white-space:nowrap;">
-                  <input type="checkbox" id="qrWifiHidden" style="width:auto;"> 숨김 네트워크
+                  <input type="checkbox" id="qrWifiHidden" style="width:auto;"> ${esc(t('qrgen.opt.hidden'))}
                 </label>
               </div>
             </div>
 
             <div class="field-group" id="qrPanelContact" style="display:none;">
-              <label class="field-label">연락처</label>
+              <label class="field-label">${esc(t('qrgen.label.contact'))}</label>
               <div class="tool-grid-2">
-                <input type="text" id="qrCName" placeholder="이름">
-                <input type="text" id="qrCTel" placeholder="전화번호">
-                <input type="text" id="qrCEmail" placeholder="이메일">
-                <input type="text" id="qrCOrg" placeholder="소속 / 회사">
+                <input type="text" id="qrCName" placeholder="${esc(t('qrgen.ph.name'))}">
+                <input type="text" id="qrCTel" placeholder="${esc(t('qrgen.ph.tel'))}">
+                <input type="text" id="qrCEmail" placeholder="${esc(t('qrgen.ph.email'))}">
+                <input type="text" id="qrCOrg" placeholder="${esc(t('qrgen.ph.org'))}">
               </div>
             </div>
 
             <div class="field-group" id="qrPanelSms" style="display:none;">
-              <label class="field-label">문자</label>
+              <label class="field-label">${esc(t('qrgen.label.sms'))}</label>
               <div class="tool-grid-2">
-                <input type="text" id="qrSmsTel" placeholder="받는 번호">
-                <input type="text" id="qrSmsBody" placeholder="메시지 내용">
+                <input type="text" id="qrSmsTel" placeholder="${esc(t('qrgen.ph.smsTo'))}">
+                <input type="text" id="qrSmsBody" placeholder="${esc(t('qrgen.ph.smsBody'))}">
               </div>
             </div>
 
             <div class="field-group">
-              <label class="field-label">모양</label>
+              <label class="field-label">${esc(t('qrgen.label.look'))}</label>
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">오류 정정 수준</div>
+                  <div class="tool-sublabel">${esc(t('qrgen.label.level'))}</div>
                   <select id="qrLevel" aria-label="오류 정정 수준">
-                    <option value="L">L — 7% (가장 단순)</option>
-                    <option value="M" selected>M — 15% (권장)</option>
-                    <option value="Q">Q — 25%</option>
-                    <option value="H">H — 30% (로고 얹을 때)</option>
+                    <option value="L">${esc(t('qrgen.level.L'))}</option>
+                    <option value="M" selected>${esc(t('qrgen.level.M'))}</option>
+                    <option value="Q">${esc(t('qrgen.level.Q'))}</option>
+                    <option value="H">${esc(t('qrgen.level.H'))}</option>
                   </select>
                 </div>
                 <div>
-                  <div class="tool-sublabel">크기 <span id="qrSizeVal" class="range-value">320px</span></div>
+                  <div class="tool-sublabel">${esc(t('qrgen.label.size'))} <span id="qrSizeVal" class="range-value">320px</span></div>
                   <input type="range" id="qrSize" aria-label="크기 (픽셀)" min="128" max="1024" step="32" value="320">
                 </div>
               </div>
               <div class="tool-grid-2" style="margin-top:10px;">
                 <div>
-                  <div class="tool-sublabel">전경색</div>
+                  <div class="tool-sublabel">${esc(t('qrgen.label.fg'))}</div>
                   <input type="color" id="qrFg" aria-label="전경색" value="#000000" style="width:100%; height:38px; padding:2px; background:var(--bg-secondary); border:1px solid var(--border);">
                 </div>
                 <div>
-                  <div class="tool-sublabel">배경색</div>
+                  <div class="tool-sublabel">${esc(t('qrgen.label.bg'))}</div>
                   <input type="color" id="qrBg" aria-label="배경색" value="#ffffff" style="width:100%; height:38px; padding:2px; background:var(--bg-secondary); border:1px solid var(--border);">
                 </div>
               </div>
               <div class="tool-grid-2" style="margin-top:10px;">
                 <div>
-                  <div class="tool-sublabel">가운데 로고 (선택)</div>
+                  <div class="tool-sublabel">${esc(t('qrgen.label.logo'))}</div>
                   <input type="file" id="qrLogo" accept="image/*" aria-label="가운데 로고 이미지">
                 </div>
                 <div>
-                  <div class="tool-sublabel">로고 크기 <span id="qrLogoVal" class="range-value">20%</span></div>
+                  <div class="tool-sublabel">${esc(t('qrgen.label.logoSize'))} <span id="qrLogoVal" class="range-value">20%</span></div>
                   <input type="range" id="qrLogoSize" aria-label="로고 크기 (%)" min="10" max="35" step="1" value="20">
                 </div>
               </div>
@@ -118,12 +136,12 @@ import { readInvocation } from '../../lib/tool-url';
             <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
               <div id="qrPreview" style="display:flex; align-items:center; justify-content:center; min-height:180px; padding:16px; background:var(--bg-tertiary); border:1px solid var(--border); width:100%; box-sizing:border-box;"></div>
               <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center;">
-                <button class="btn btn-primary" id="qrPng">PNG 저장</button>
-                <button class="btn btn-secondary" id="qrSvg">SVG 저장</button>
-                <button class="btn btn-ghost" id="qrCopy">이미지 복사</button>
+                <button class="btn btn-primary" id="qrPng">${esc(t('qrgen.btn.png'))}</button>
+                <button class="btn btn-secondary" id="qrSvg">${esc(t('qrgen.btn.svg'))}</button>
+                <button class="btn btn-ghost" id="qrCopy">${esc(t('qrgen.btn.copy'))}</button>
               </div>
-              <div class="tool-status" id="qrStatus">내용을 입력하면 바로 QR 이 만들어집니다.</div>
-              <div class="tool-status" id="qrScan">만든 QR 을 실제로 읽어 확인합니다.</div>
+              <div class="tool-status" id="qrStatus">${esc(t('qrgen.status.idle'))}</div>
+              <div class="tool-status" id="qrScan">${esc(t('qrgen.status.scan'))}</div>
             </div>
           `;
 
@@ -184,8 +202,9 @@ import { readInvocation } from '../../lib/tool-url';
             const data = payload();
             lastCanvas = null;
             if (!data) {
-              preview.innerHTML = '<span style="color:var(--text-tertiary); font-size:var(--font-size-sm);">내용을 입력하세요</span>';
-              status.textContent = '내용을 입력하면 바로 QR 이 만들어집니다.';
+              preview.innerHTML =
+                `<span style="color:var(--text-tertiary); font-size:var(--font-size-sm);">${esc(t('qrgen.status.empty'))}</span>`;
+              status.textContent = t('qrgen.status.idle');
               status.className = 'tool-status';
               return;
             }
@@ -234,12 +253,16 @@ import { readInvocation } from '../../lib/tool-url';
                 ctx.drawImage(logoImg, x, x, w, w);
               }
               lastCanvas = canvas;
-              status.textContent = `${data.length.toLocaleString('ko-KR')}자 · ${count}×${count} 모듈 · 오류정정 ${$<HTMLSelectElement>('#qrLevel').value}`;
+              status.textContent = t('qrgen.status.made', {
+                n: data.length.toLocaleString(locale()),
+                size: count,
+                level: $<HTMLSelectElement>('#qrLevel').value
+              });
               status.className = 'tool-status ok';
               void verify(canvas, data);
             } catch (e) {
               preview.innerHTML = '';
-              status.textContent = '내용이 너무 길어요. 오류 정정 수준을 낮추거나 내용을 줄여 주세요.';
+              status.textContent = t('qrgen.status.tooLong');
               status.className = 'tool-status error';
               void e;
             }
@@ -269,16 +292,16 @@ import { readInvocation } from '../../lib/tool-url';
               } else {
                 await Toolbox.ensureScript?.('vendor/jsqr.min');
                 const jsQR = (window as unknown as { jsQR?: (d: Uint8ClampedArray, w: number, h: number) => { data: string } | null }).jsQR;
-                if (!jsQR) { say('이 브라우저에서는 확인을 못 했어요 (QR 자체는 만들어졌습니다).', ''); return; }
+                if (!jsQR) { say(t('qrgen.scan.unsupported'), ''); return; }
                 const c2 = canvas.getContext('2d', { willReadFrequently: true });
                 if (!c2) return;
                 const img = c2.getImageData(0, 0, canvas.width, canvas.height);
                 const hit = jsQR(img.data, canvas.width, canvas.height);
                 read = hit ? hit.data : null;
               }
-              if (read === expected) say('직접 읽어 봤어요 — 잘 읽힙니다.', 'ok');
-              else if (read) say('읽히긴 하는데 내용이 달라요. 로고를 줄이거나 오류정정을 H 로 올려 보세요.', 'error');
-              else say('만든 QR 이 안 읽혀요 — 로고를 줄이거나, 오류정정을 H 로, 색 대비를 높여 보세요.', 'error');
+              if (read === expected) say(t('qrgen.scan.ok'), 'ok');
+              else if (read) say(t('qrgen.scan.mismatch'), 'error');
+              else say(t('qrgen.scan.fail'), 'error');
             } catch (_) {
               say('이 브라우저에서는 확인을 못 했어요 (QR 자체는 만들어졌습니다).', '');
             }
@@ -349,9 +372,9 @@ import { readInvocation } from '../../lib/tool-url';
               try {
                 await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
                 Toolbox.trackUse?.('copy-image');
-                Toolbox.showToast?.('QR 이미지를 복사했어요', 'success', undefined);
+                Toolbox.showToast?.(t('qrgen.copy.done'), 'success', undefined);
               } catch {
-                Toolbox.showToast?.('이 브라우저는 이미지 복사를 지원하지 않아요. PNG 로 저장해 주세요.', 'warning', undefined);
+                Toolbox.showToast?.(t('qrgen.copy.unsupported'), 'warning', undefined);
               }
             });
           };
@@ -377,8 +400,5 @@ import { readInvocation } from '../../lib/tool-url';
             kind.dispatchEvent(new Event('change'));
           }
           render();
-        }
-      }
-    ]
-  });
+  }
 })();

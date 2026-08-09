@@ -49,5 +49,9 @@
   "howto.workdays.0": "Pick the start date",
   "howto.workdays.1": "Set a number of business days, or pick an end date",
   "howto.workdays.2": "Say whether Saturdays are working days",
-  "howto.workdays.3": "Check the result against the list of days it skipped"
+  "howto.workdays.3": "Check the result against the list of days it skipped",
+  "howto.qrgen.0": "Pick a type (URL, Wi-Fi, contact, message)",
+  "howto.qrgen.1": "Enter the content — the preview updates as you type",
+  "howto.qrgen.2": "Adjust error correction, size and colors",
+  "howto.qrgen.3": "Save as PNG or SVG (use SVG for print)"
 }
