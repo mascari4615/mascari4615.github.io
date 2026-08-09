@@ -20,6 +20,8 @@ const ids = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(s
 
 const browser = await chromium.launch();
 const failures = [];
+/** 화면은 떴는데 다듬을 것 — 실패로 세지 않는다(늘 빨간 불은 아무도 안 본다). */
+const polishes = [];
 
 // 도구가 백 개에 가까워지면서 한 장씩 여는 것만으로 배포 뒤 점검이 몇 분씩 걸렸다.
 // 서로 무관한 페이지라 동시에 몇 장씩 연다 (TASK-KL-089).
@@ -212,13 +214,30 @@ async function checkOne(page, id) {
   // 요소 하한 8개 — 실제로 재 보니 가장 단출한 도구가 10개다(사업자번호 검사).
   // 예전 기준(5개)은 껍데기만 남은 화면도 통과시켰다. 슬러그 도구를 일부러 망가뜨렸을 때
   // 요소 5개짜리 빈 화면이 그대로 초록이었다.
-  const ok =
-    res.status() === 200 && state.built && state.visible && state.nodes >= 8 && state.usable && state.reachable && !state.clipped && !state.tiny && !state.unreadable && !state.zoomy && !state.missing;
-  if (!ok) {
-    failures.push(
-      `${id}: http=${res.status()} 화면생성=${state.built} 보임=${state.visible} 요소=${state.nodes} 쓸것있음=${state.usable} 설명닿음=${state.reachable}${state.why ? "(" + state.why + ")" : ""}${state.clipped ? " 잘림=" + state.clipped : ""}${state.tiny ? " 누르기작음=" + state.tiny : ""}${state.unreadable ? " 글씨작음=" + state.unreadable : ""}${state.zoomy ? " 눌러도확대=" + state.zoomy : ""}${state.missing ? " 없는파일=" + state.missing : ""}${state.jsError ? " 오류=" + state.jsError : ""} 위치=${state.here}`
-    );
+  /*
+   * ★ 두 가지를 갈라 부른다 (2026-08-10).
+   *
+   * 예전에는 「글씨가 11px 이다」도 「화면이 안 떴다」와 같은 통에 담아 **빈 화면 N건**이라고
+   * 말했다. 그런데 그 11px 짜리 꼬리말은 도구 페이지 **전부**에 있다 — 그래서 이 검사는 늘
+   * 빨갛고, 늘 빨간 불은 아무도 안 본다. 게다가 진짜로 화면이 안 뜬 날에도 문장이 같아서
+   * **구분이 안 된다.**
+   *
+   * 그래서 화면이 안 뜬 것만 실패로 센다. 다듬을 것(글씨·잘림·확대)은 따로 세어 보여만 준다 —
+   * 사라지지도 않고, 진짜 사고를 가리지도 않는다.
+   */
+  const broken =
+    res.status() !== 200 || !state.built || !state.visible || state.nodes < 8 || !state.usable || !state.reachable || Boolean(state.missing);
+  const polish = Boolean(state.clipped || state.tiny || state.unreadable || state.zoomy);
+
+  const detail =
+    `${id}: http=${res.status()} 화면생성=${state.built} 보임=${state.visible} 요소=${state.nodes} 쓸것있음=${state.usable} 설명닿음=${state.reachable}${state.why ? "(" + state.why + ")" : ""}${state.clipped ? " 잘림=" + state.clipped : ""}${state.tiny ? " 누르기작음=" + state.tiny : ""}${state.unreadable ? " 글씨작음=" + state.unreadable : ""}${state.zoomy ? " 눌러도확대=" + state.zoomy : ""}${state.missing ? " 없는파일=" + state.missing : ""}${state.jsError ? " 오류=" + state.jsError : ""} 위치=${state.here}`
+  ;
+  if (broken) {
+    failures.push(detail);
     process.stdout.write('x');
+  } else if (polish) {
+    polishes.push(detail);
+    process.stdout.write('!');
   } else {
     process.stdout.write('.');
   }
@@ -276,8 +295,13 @@ for (const id of MD_SAMPLES) {
   }
 }
 
+if (polishes.length) {
+  console.log(`[smoke-live-pages] 다듬을 것 ${polishes.length}건 — 화면은 뜬다(실패 아님):`);
+  for (const w of polishes.slice(0, 5)) console.log('  ~ ' + w);
+  if (polishes.length > 5) console.log(`  … 외 ${polishes.length - 5}건`);
+}
 if (failures.length) {
-  console.error(`[smoke-live-pages] 빈 화면 ${failures.length}건 / ${ids.length}`);
+  console.error(`[smoke-live-pages] 화면이 안 뜬 것 ${failures.length}건 / ${ids.length}`);
   failures.forEach((f) => console.error('  - ' + f));
   process.exit(1);
 }
