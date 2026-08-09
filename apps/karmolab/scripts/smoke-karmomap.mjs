@@ -174,6 +174,35 @@ await step('「많이 이어진 것을 크게」가 실제로 크게 만든다',
   await page.locator('[data-km="f-degree"]').uncheck();
   await page.click('[data-km="f-close"]');
 });
+await step('겹쳐 놓아도 「가지런히」 가 밀어 놓는다', async () => {
+  // 두 노드를 일부러 같은 자리에 포갠다.
+  const ids = await page.evaluate(() => {
+    const raw = localStorage.getItem(localStorage.getItem('karmomap.index')
+      ? JSON.parse(localStorage.getItem('karmomap.index')).maps
+        .find((m) => m.id === JSON.parse(localStorage.getItem('karmomap.index')).activeId)
+        ? 'karmomap.map.' + JSON.parse(localStorage.getItem('karmomap.index')).activeId
+        : ''
+      : '');
+    return raw ? JSON.parse(raw).nodes.slice(0, 2).map((n) => n.id) : [];
+  });
+  if (ids.length < 2) throw new Error('노드가 둘은 있어야 한다');
+  const boxA = await page.locator('.ck-node').first().boundingBox();
+  const boxB = await page.locator('.ck-node').nth(1).boundingBox();
+  // 두 번째를 첫 번째 위로 끌어다 포갠다.
+  await page.mouse.move(boxB.x + 12, boxB.y + 10);
+  await page.mouse.down();
+  await page.mouse.move(boxA.x + 14, boxA.y + 12, { steps: 12 });
+  await page.mouse.up();
+  await page.click('[data-km="more"]');
+  await page.click('[data-km="tidy"]');
+  await page.waitForFunction(() => {
+    const els = [...document.querySelectorAll('.ck-node')].slice(0, 2);
+    if (els.length < 2) return false;
+    const [a, b] = els.map((e) => e.getBoundingClientRect());
+    // 겹치지 않으면 통과.
+    return a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top;
+  }, null, { timeout: 5000 });
+});
 await step('꼬리표를 붙이고 그 꼬리표로 거른다', async () => {
   await page.locator('.ck-node').first().click({ position: { x: 12, y: 10 } });
   await page.fill('[data-km="edit-tags"]', '중요, 나중에');

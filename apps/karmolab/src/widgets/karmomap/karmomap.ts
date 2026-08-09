@@ -22,6 +22,7 @@ import { KarmoMapLocalStorageAdapter } from './local-storage-adapter';
 import { loadTerms, saveTerms, newTermId, type MyTerms } from './terms';
 import { parseOutline, layoutTree } from './from-text';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
+import { snapToGrid, unoverlap } from './tidy';
 import {
   loadLibrary, setActive, renameMap, touchMap, addMap, removeMap, mapKey,
   type LibraryIndex,
@@ -260,6 +261,7 @@ import {
                   <option value="none">□ 없음</option>
                 </select>
               </label>
+              <button class="btn btn-ghost" data-km="tidy">🧹 가지런히</button>
               <button class="btn btn-ghost" data-km="from-text">📝 글로 만들기</button>
               <button class="btn btn-ghost" data-km="png">🖼 그림으로 저장</button>
               <button class="btn btn-ghost" data-km="export">JSON 내보내기</button>
@@ -1720,6 +1722,41 @@ import {
       if (persist) persistStructure();
     }
     packEl.onchange = () => applyPack(packEl.value, true);
+
+    /**
+     * 가지런히 — 겹친 것만 밀고 격자에 맞춘다. 고른 것이 있으면 **그것만**.
+     * 통째로 흩는 자동 배치는 안 한다: 사람이 잡아 둔 자리의 뜻이 날아간다.
+     */
+    q<HTMLButtonElement>('tidy').onclick = () => {
+      const live = canvas?.getSpec() ?? spec;
+      const target = selectedMany.length > 1
+        ? live.nodes.filter((n) => selectedMany.includes(n.id))
+        : live.nodes;
+      if (target.length === 0) return;
+      const boxes = target.map((n) => ({ id: n.id, x: n.x, y: n.y, w: n.w, h: n.h }));
+
+      const pushed = unoverlap(boxes, 24);
+      for (const [id, p] of pushed) {
+        const n = live.nodes.find((x) => x.id === id);
+        if (n) { n.x = p.x; n.y = p.y; }
+      }
+      const snapped = snapToGrid(
+        target.map((n) => ({ id: n.id, x: n.x, y: n.y, w: n.w, h: n.h })),
+        8
+      );
+      for (const [id, p] of snapped) {
+        const n = live.nodes.find((x) => x.id === id);
+        if (n) { n.x = p.x; n.y = p.y; }
+      }
+      spec = live;
+      applySpec();
+      persistStructure();
+      const n = pushed.size;
+      Toolbox.showToast?.(
+        n === 0 ? '이미 가지런합니다' : `겹친 ${n}개를 밀었습니다`,
+        undefined, undefined
+      );
+    };
 
     q<HTMLButtonElement>('from-text').onclick = () => {
       sideMode = 'text';
