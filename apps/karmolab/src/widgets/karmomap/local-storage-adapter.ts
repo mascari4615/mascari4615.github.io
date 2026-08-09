@@ -60,15 +60,44 @@ export class KarmoMapLocalStorageAdapter implements GraphPersistAdapter {
 
   clear(): void {
     try {
+      // 지우기 직전 판도 남긴다 — 「전체 삭제」야말로 되살리고 싶은 자리다.
+      const before = localStorage.getItem(this.key);
       localStorage.removeItem(this.key);
+      if (before) { try { localStorage.setItem(this.prevKey(), before); } catch { /* 칸이 좁으면 포기 */ } }
     } catch (e) {
       console.error('[karmomap] 저장본 삭제 실패', e);
     }
   }
 
+  /**
+   * 직전 판 열쇠. 되돌리기 이력은 새로고침에 사라지므로, **한 판만** 따로 남긴다
+   * (TASK-KL-202 격차 AB) — 「방금 뭘 잘못했는데 새로고침해 버린」 자리를 위해서.
+   * 여러 판을 쌓으면 5MB 칸을 금세 먹는다. 한 판이 값의 대부분을 준다.
+   */
+  private prevKey(): string {
+    return this.key.replace('karmomap.map.', 'karmomap.prev.');
+  }
+
+  /** 직전 판 읽기 — 없으면 null. */
+  loadPrev(): GraphSpec | null {
+    try {
+      const raw = localStorage.getItem(this.prevKey());
+      return raw ? (this.normalize(JSON.parse(raw) as Partial<GraphSpec>)) : null;
+    } catch {
+      return null;
+    }
+  }
+
   private write(spec: GraphSpec): void {
     try {
+      // ★ 본판을 **먼저** 쓴다. 직전 판은 「있으면 좋은 것」이라, 그것 때문에 본판 저장이
+      //   밀려나면 본말전도다(실측 2026-08-09: 직전 판까지 쓰다 칸이 차서 저장이 통째로 실패했다).
+      const before = localStorage.getItem(this.key);
       localStorage.setItem(this.key, JSON.stringify(spec));
+      // 직전 판은 작을 때만, 실패해도 조용히 넘어간다.
+      if (before && before.length < 400_000) {
+        try { localStorage.setItem(this.prevKey(), before); } catch { /* 칸이 좁으면 포기 */ }
+      }
     } catch (e) {
       // 용량 초과(QuotaExceeded)가 대표 케이스 — 조용히 삼키면 사용자가
       // 저장된 줄 알고 작업을 계속하다 통째로 잃는다. 그래서 알린다.

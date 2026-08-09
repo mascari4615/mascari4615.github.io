@@ -206,6 +206,18 @@ await step('저장 상태가 크기를 보여 주고 백업 파일을 만든다'
     page.click('[data-km="st-backup"]'),
   ]);
   if (!dl.suggestedFilename().includes('backup')) throw new Error('백업 파일이 아니다');
+  // 직전 판이 실제로 남는지 — 새로고침 뒤에도 한 판은 있어야 한다.
+  // ★ 지금 맵에 **덮어쓰기를 한 번 일으킨 뒤** 본다. 갓 만든 맵은 덮어쓴 적이 없어 직전 판도 없다
+  //   (검사는 사건을 기다리지 말고 일으켜야 한다).
+  await page.locator(`.ck-node`).first().click({ position: { x: 12, y: 10 } });
+  await page.fill(`[data-km="edit-label"]`, `직전판 확인`);
+  await page.waitForTimeout(400);
+  const hasPrev = await page.evaluate(() => {
+    const idx = JSON.parse(localStorage.getItem('karmomap.index') || 'null');
+    if (!idx) return false;
+    return Boolean(localStorage.getItem('karmomap.prev.' + idx.activeId));
+  });
+  if (!hasPrev) throw new Error('직전 판이 안 남았다');
   // 되돌리기까지 해 봐야 백업이 진짜다 — 만들기만 되는 백업은 반쪽이다.
   const saved = await dl.path();
   const mapsBefore = await page.locator('[data-km="maps"] option').count();
