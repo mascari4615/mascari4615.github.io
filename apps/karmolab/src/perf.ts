@@ -65,6 +65,29 @@
     from: string;
   }
 
+  /**
+   * 한 번의 조작 (TASK-KL-201 ②).
+   *
+   * 「굼뜨다」는 **셋 중 하나**다. 이 셋을 안 가르면 고칠 곳을 못 찾는다:
+   *   ① 대기(input delay)  — 눌렀는데 주 스레드가 딴 일 중이라 핸들러가 못 뜬 시간
+   *   ② 처리(processing)   — 핸들러가 도는 시간
+   *   ③ 표시(presentation) — 다 하고도 화면에 나오기까지 (스타일·레이아웃·페인트)
+   * ①이면 다른 코드가 범인이고, ②면 내 핸들러가, ③이면 그리는 비용이 범인이다.
+   */
+  interface InteractionEntry {
+    /** 같은 조작(pointerdown·pointerup·click)을 하나로 묶는 열쇠. */
+    interactionId: number;
+    name: string;
+    at: number;
+    /** 눌린 순간부터 화면에 나오기까지 (브라우저가 8ms 단위로 반올림해 준다). */
+    ms: number;
+    inputDelayMs: number;
+    processingMs: number;
+    presentationMs: number;
+    /** 무엇을 눌렀나. **콜백 안에서 즉시** 글자로 굳힌다 — 노드는 곧 사라진다. */
+    target: string;
+  }
+
   const marks: MarkEntry[] = [];
   const scripts = new Map<string, ScriptEntry>();
   const widgets = new Map<string, WidgetEntry>();
@@ -72,6 +95,9 @@
   /** 긴 작업 관찰자가 아예 없는 브라우저(사파리)와 「하나도 없었다」를 가른다. */
   let longTaskSupported = false;
   let lcpMs: number | null = null;
+  /** `interactionId` → 그 조작의 **제일 나쁜** 조각. 한 번 누름이 여러 엔트리로 쪼개져 온다. */
+  const interactions = new Map<number, InteractionEntry>();
+  let eventTimingSupported = false;
 
   function now(): number {
     return performance.now();
@@ -131,6 +157,49 @@
     /* 사파리엔 없다 — 「0건」이 아니라 「못 잼」이다 (아래 snapshot 이 그렇게 적는다). */
   }
 
+  /** 무엇을 눌렀는지 사람이 알아볼 만큼만. 노드가 사라지기 전에 굳힌다. */
+  function describe(node: unknown): string {
+    const el = node as Element | null;
+    if (!el || !el.tagName) return '';
+    const id = el.id ? `#${el.id}` : '';
+    const cls = typeof el.className === 'string' && el.className ? `.${el.className.trim().split(/\s+/)[0]}` : '';
+    const text = (el.textContent || '').trim().slice(0, 18);
+    return `${el.tagName.toLowerCase()}${id}${cls}${text ? ` "${text}"` : ''}`;
+  }
+
+  try {
+    const eventObserver = new PerformanceObserver((list) => {
+      for (const item of list.getEntries()) {
+        const event = item as PerformanceEventTiming & { interactionId?: number };
+        /* `interactionId` 가 0 인 것은 **사용자 조작이 아니다**(스크롤 등). 그것까지 세면
+           「제일 굼뜬 조작」이 사람이 만진 적 없는 것으로 채워진다. */
+        const key = event.interactionId || 0;
+        if (!key) continue;
+        const inputDelay = event.processingStart - event.startTime;
+        const processing = event.processingEnd - event.processingStart;
+        const entry: InteractionEntry = {
+          interactionId: key,
+          name: event.name,
+          at: event.startTime,
+          ms: event.duration,
+          inputDelayMs: inputDelay,
+          processingMs: processing,
+          presentationMs: Math.max(0, event.duration - (event.processingEnd - event.startTime)),
+          target: describe(event.target),
+        };
+        /* 한 번 누름이 pointerdown·pointerup·click 세 엔트리로 온다 — 더하면 세 배가 된다.
+           **제일 나쁜 조각**이 그 조작의 값이다 (web-vitals 와 같은 규약). */
+        const prev = interactions.get(key);
+        if (!prev || entry.ms > prev.ms) interactions.set(key, entry);
+      }
+    });
+    /* 16ms = 한 프레임. 기본값(104ms)은 「좀 굼뜬」 것을 통째로 놓치고, 더 낮추면 엔트리가 폭증한다. */
+    eventObserver.observe({ type: 'event', durationThreshold: 16, buffered: true } as PerformanceObserverInit);
+    eventTimingSupported = true;
+  } catch {
+    /* 안 되면 「0건」이 아니라 「못 잼」 — snapshot 이 그렇게 적는다. */
+  }
+
   try {
     const lcpObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
@@ -140,6 +209,46 @@
     lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
   } catch {
     /* 없으면 null 로 남는다. */
+  }
+
+  /**
+   * INP — 「이 세션에서 조작이 얼마나 굼떴나」 한 숫자 (TASK-KL-201 ②).
+   *
+   * 평균이 아니라 **거의 최악**을 쓴다: 스무 번 중 한 번 1초씩 걸리는 화면은 평균으로는
+   * 멀쩡해 보이지만 사람은 그 한 번을 기억한다. 조작이 적을 땐 최댓값, 50회를 넘기면
+   * 50회당 하나씩 최악을 버린다 (web-vitals 와 같은 규약 — 오작동 한 번에 안 흔들리게).
+   */
+  function inpMs(): number | null {
+    if (!eventTimingSupported || interactions.size === 0) return null;
+    const sorted = Array.from(interactions.values()).sort((a, b) => b.ms - a.ms);
+    return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length / 50))].ms;
+  }
+
+  /**
+   * 이 측정판을 **믿어도 되나** (TASK-KL-201 ②, 레퍼런스: RUM 관행).
+   *
+   * 안 보이는 탭에서는 브라우저가 그리기를 멈추고 타이머를 늦춘다 — 그 판의 부팅 시간과
+   * fps 는 코드와 아무 상관이 없다. 뒤로가기로 되살아난 판(bfcache)과 미리 그려 둔 판
+   * (prerender)도 시계의 0 이 달라 다른 줄과 비교하면 안 된다. 그런 줄을 조용히 섞으면
+   * 「이번 배포가 두 배 느려졌다」 같은 **거짓 회귀**가 난다.
+   */
+  let hiddenDuringBoot = document.visibilityState === 'hidden';
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && !bootLogged) hiddenDuringBoot = true;
+  });
+  let restoredFromCache = false;
+  window.addEventListener('pageshow', (event) => {
+    if ((event as PageTransitionEvent).persisted) restoredFromCache = true;
+  });
+
+  function trust(): { ok: boolean; why: string } {
+    const nav = performance.getEntriesByType('navigation')[0] as
+      | (PerformanceNavigationTiming & { activationStart?: number })
+      | undefined;
+    if (hiddenDuringBoot) return { ok: false, why: '안 보이는 탭에서 열렸다 — 그리기가 멈춘 판이다' };
+    if (restoredFromCache) return { ok: false, why: '뒤로가기로 되살아난 판이다 (다시 안 그렸다)' };
+    if (nav?.activationStart) return { ok: false, why: '미리 그려 둔 판이다 (시계의 0 이 다르다)' };
+    return { ok: true, why: '' };
   }
 
   function navTiming(): Record<string, number | null> {
@@ -268,6 +377,9 @@
     /** 셸이 도구 목록까지 다 세운 시점. */
     ready: number | null;
     longTaskMs: number | null;
+    /** 이 줄을 다른 줄과 비교해도 되나. false 면 회귀 판정에서 빼야 한다. */
+    trusted?: boolean;
+    untrustedWhy?: string;
   }
 
   function readBoots(): BootRow[] {
@@ -297,6 +409,7 @@
     bootLogged = true;
     const paint = paintTiming();
     const nav = navTiming();
+    const judged = trust();
     const row: BootRow = {
       at: new Date().toISOString(),
       build: BUILD_TAG,
@@ -307,6 +420,8 @@
       lcp: paint.lcp,
       ready: markOf('shell:ready'),
       longTaskMs: longTaskSupported ? longTasks.reduce((sum, t) => sum + t.ms, 0) : null,
+      trusted: judged.ok,
+      untrustedWhy: judged.why,
     };
     try {
       const rows = readBoots();
@@ -356,6 +471,12 @@
       nav: navTiming(),
       paint: paintTiming(),
       memory: memory(),
+      trust: trust(),
+      inp: inpMs(),
+      /* 굼뜬 순. 못 재는 브라우저(사파리 등)는 `null` — 「조작이 다 빨랐다」와 다르다. */
+      interactions: eventTimingSupported
+        ? Array.from(interactions.values()).sort((a, b) => b.ms - a.ms)
+        : null,
       marks: marks.slice(),
       widgets: widgetRows,
       scripts: Array.from(scripts.values()),
