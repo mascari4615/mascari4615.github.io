@@ -768,6 +768,36 @@ await step('카드 모서리를 끌면 크기가 바뀌고, 이름을 고쳐도 
   const kept = await widthOf();
   if (Math.abs(kept - after) > 2) throw new Error(`손으로 정한 크기가 튀었다: ${after} → ${kept}`);
 });
+await step('틀로 담은 장은 나중에 놓은 인물도 함께 데려간다', async () => {
+  // 장면을 노드 목록으로 굳히면 새 인물이 영영 안 낀다 — 그래서 **담은 뒤에** 하나 더 놓고 센다.
+  let n = 0;
+  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '틀 장' : ''); };
+  page.on('dialog', onDlg);
+  await page.locator('[data-km="story"]').dispatchEvent('click');
+  await page.waitForSelector('.km-root.is-presenting', { timeout: 4000 });
+  await page.locator('[data-km="stage-add"]').dispatchEvent('click');
+  await page.waitForFunction(() => document.querySelectorAll('[data-km="stage-go"]').length >= 1, null, { timeout: 5000 });
+  const dimmedBefore = await page.locator('.ck-node.is-dimmed').count();
+  await page.locator('[data-km="stage-exit"]').dispatchEvent('click');
+  await page.waitForSelector('.km-root:not(.is-presenting)', { timeout: 4000 });
+
+  // 화면 한가운데(= 그 틀 안)에 새 인물을 놓는다.
+  const sbox = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.dblclick(sbox.x + sbox.width * 0.5, sbox.y + sbox.height * 0.5);
+  await page.waitForSelector('[data-km="edit-label"]', { timeout: 4000 });
+  await page.fill('[data-km="edit-label"]', '나중에온사람');
+
+  await page.locator('[data-km="story"]').dispatchEvent('click');
+  await page.waitForSelector('.km-root.is-presenting', { timeout: 4000 });
+  // 새 인물이 장에 꼈으면 **흐려진 것 중에 없어야** 한다.
+  const stillDim = await page.evaluate(() => [...document.querySelectorAll('.ck-node.is-dimmed')]
+    .some((g) => (g.textContent || '').includes('나중에온사람')));
+  if (stillDim) throw new Error('나중에 놓은 인물이 그 장에 안 꼈다');
+  await page.locator('[data-km="stage-exit"]').dispatchEvent('click');
+  await page.waitForSelector('.km-root:not(.is-presenting)', { timeout: 4000 });
+  page.off('dialog', onDlg);
+  if (dimmedBefore < 0) throw new Error('불가능');
+});
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
   await page.click('[data-km="tab"][data-key="notes"]');

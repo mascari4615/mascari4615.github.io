@@ -204,6 +204,12 @@ export interface StoryStep {
   nodeIds: string[];
   /** 화면 아래에 띄울 설명 한 줄. */
   note?: string;
+  /**
+   * 장면을 **틀**로 잡은 경우의 world 사각형 (TASK-KL-202, Miro 프레임 계보).
+   * 있으면 `nodeIds` 대신 이 틀 안에 든 노드가 그 장의 주인공이 된다 — 나중에 그 자리에
+   * 새로 놓은 인물도 저절로 장에 낀다(노드 목록으로 굳히면 새 인물이 영영 안 낀다).
+   */
+  rect?: { x: number; y: number; w: number; h: number };
 }
 
 /**
