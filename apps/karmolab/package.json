@@ -30,7 +30,7 @@
     "gen:locale-pages": "node scripts/gen-locale-pages.mjs",
     "test:i18n:pages": "node scripts/audit-i18n-pages.mjs",
     "build": "npm run build:i18n && npm run typecheck && npm run test:i18n && npm run gen:locale-pages && npm run test:i18n:pages && npm run test:i18n:source && npm run gen:changelog && npm run gen:feeds && npm run gen:llms && npm run build:wiki && npm run build:worldbook && npm run build:wm-tasks && npm run test:core && npm run test:mcp && npm run test:mcp:install && node build.mjs && npm run gen:tool-md && npm run test:parity && npm run gates",
-    "gates": "node scripts/run-gates.mjs test:md test:tools test:pulse test:tool-url test:parity test:mcp test:bundles audit:script-paths audit:vendor-globals test:names audit:cache audit:fonts audit:bg-themes audit:footer test:cotext test:apicache test:contract test:lang",
+    "gates": "node scripts/run-gates.mjs test:karmomap test:md test:tools test:pulse test:tool-url test:parity test:mcp test:bundles audit:script-paths audit:vendor-globals test:names audit:cache audit:fonts audit:bg-themes audit:footer test:cotext test:apicache test:contract test:lang",
     "gen:fonts": "python scripts/gen-fonts.py",
     "audit:fonts": "node scripts/audit-fonts.mjs",
     "audit:bg-themes": "node scripts/audit-bg-themes.mjs",
@@ -174,6 +174,7 @@
     "gen:tool-pages-locale": "node scripts/gen-tool-pages-locale.mjs",
     "test:widget-i18n": "node scripts/smoke-widget-i18n.mjs",
     "smoke:karmomap": "node scripts/smoke-karmomap.mjs",
+    "test:karmomap": "node scripts/test-karmomap-core.mjs",
     "test:region": "node scripts/smoke-region.mjs",
     "verify:quality": "node scripts/run-gates.mjs audit:boot test:perf test:perf:budget test:leak",
     "test:mcp:install": "node scripts/smoke-mcp-install.mjs"
