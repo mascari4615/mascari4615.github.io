@@ -1,0 +1,7 @@
+{
+  "charmap.part.specialchar": "特殊文字",
+  "charmap.part.emoji": "絵文字",
+  "charmap.part.htmlentity": "HTML エンティティ",
+  "charmap.part.ascii": "ASCII コード",
+  "charmap.loadFail": "表を読み込めませんでした。"
+}

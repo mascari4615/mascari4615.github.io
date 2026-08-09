@@ -7,32 +7,38 @@
  *
  * 표 정의는 각 데이터 모듈이 RefTable.define 으로 등록해 둔 것을 꺼내 쓴다 (복제 X).
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
-  const TABS: Array<[string, string]> = [
-    ['specialchar', '특수문자'],
-    ['emoji', '이모지'],
-    ['htmlentity', 'HTML 엔티티'],
-    ['ascii', 'ASCII 코드']
+  /* 탭 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
+  const tabs = (): Array<[string, string]> => [
+    ['specialchar', t('charmap.part.specialchar', undefined, '특수문자')],
+    ['emoji', t('charmap.part.emoji', undefined, '이모지')],
+    ['htmlentity', t('charmap.part.htmlentity', undefined, 'HTML 엔티티')],
+    ['ascii', t('charmap.part.ascii', undefined, 'ASCII 코드')]
   ];
 
   Toolbox.register({
     id: 'charmap',
-    title: '문자표',
+    title: t('widgets.charmap.title', undefined, "문자표"),
     category: 'ref',
-    desc: '특수문자·이모지·HTML 엔티티·ASCII 를 한 곳에서 찾아 눌러 복사합니다',
+    desc: t('widgets-desc.charmap.desc', undefined, "특수문자·이모지·HTML 엔티티·ASCII 를 한 곳에서 찾아 눌러 복사합니다"),
     layout: 'wide',
     lazyTabs: true, // 안 본 탭은 만들지 않는다
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 9h2M7 13h4M13 9h4M15 13h2M7 17h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
-    tabs: TABS.map(([id, label]) => ({
+    tabs: tabs().map(([id, label]) => ({
       id,
       label,
       build: function (container: HTMLElement): void {
+        void loadNamespace('charmap').then(function () {
+
         const spec = window.RefTable?.get(id);
         if (!spec) {
-          container.innerHTML = '<div class="tool-status error">표를 불러오지 못했어요.</div>';
+          container.innerHTML = `<div class="tool-status error">${t('charmap.loadFail')}</div>`;
           return;
         }
         window.RefTable?.build(container, spec);
+              });
       }
     }))
   });

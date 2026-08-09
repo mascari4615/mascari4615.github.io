@@ -1,0 +1,9 @@
+{
+  "reference.part.gitcmd": "git コマンド",
+  "reference.part.markdown": "Markdown",
+  "reference.part.httpstatus": "HTTP ステータス",
+  "reference.part.shortcut": "ショートカット",
+  "reference.part.filetype": "ファイル拡張子",
+  "reference.part.keycode": "キーコード",
+  "reference.part.regexref": "正規表現"
+}

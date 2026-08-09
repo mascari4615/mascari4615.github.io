@@ -29,6 +29,14 @@ const BASELINE = path.join(root, 'i18n/.source-baseline.json');
 const REBASE = process.argv.includes('--baseline');
 /** 조이는 쪽만 반영 — 남이 늘려 놓은 줄까지 함께 축복하지 않으려고 나눠 뒀다. */
 const TIGHTEN = process.argv.includes('--tighten');
+/* 내 파일만 현재 값으로 다시 박는다. `--baseline` 은 **다른 슬롯이 늘려 놓은 것까지** 축복해
+ * 버려서 쓸 수 없다. 늘어난 게 의도인 경우가 있다 — 등록 시점 탭 이름처럼 기다릴 자리가 없어
+ * 한국어 기본값을 코드에 두는 자리(S9-b). 그때만 그 파일을 `--bless` 로 적는다. */
+const BLESS = (() => {
+  const at = process.argv.indexOf('--bless');
+  if (at < 0) return [];
+  return process.argv.slice(at + 1).filter((a) => !a.startsWith('--'));
+})();
 /**
  * **기본이 「알리되 세우지 않는다」** (2026-08-09 결정).
  *
@@ -191,7 +199,7 @@ const counts = {};
 
 const total = Object.values(counts).reduce((a, b) => a + b, 0);
 
-if (REBASE || TIGHTEN) {
+if (REBASE || TIGHTEN || BLESS.length) {
   /* `--tighten` = **조이는 쪽만** 반영한다.
    *
    * 왜 따로 두나: 이 저장소는 슬롯 여럿이 같이 쓴다. 한쪽에서 한국어를 다 빼낸 날 그냥
@@ -200,13 +208,14 @@ if (REBASE || TIGHTEN) {
    * 대해서는 정확히 반대로 작동한다.
    * 그래서 파일마다 **작은 쪽**을 남긴다 — 줄인 것은 잠기고, 늘어난 것은 빨간 채로 그 슬롯 몫. */
   let next = counts;
-  if (TIGHTEN && fs.existsSync(BASELINE)) {
+  if ((TIGHTEN || BLESS.length) && fs.existsSync(BASELINE)) {
     const prev = JSON.parse(fs.readFileSync(BASELINE, 'utf8')).files || {};
     next = {};
     for (const key of new Set([...Object.keys(prev), ...Object.keys(counts)])) {
       const now = counts[key] ?? 0;
       const was = prev[key];
-      const keep = was === undefined ? now : Math.min(was, now);
+      const blessed = BLESS.some((b) => key === b || key.endsWith('/' + b));
+      const keep = was === undefined || blessed ? now : Math.min(was, now);
       if (keep) next[key] = keep;
     }
   }

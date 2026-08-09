@@ -1,0 +1,16 @@
+{
+  "moon.label.desc": "계산 중...",
+  "moon.t01": "달의 공전과 자전 주기는 약 27.3일로 같아 항상 같은 면만 보입니다.",
+  "moon.t02": "지구에서 달까지의 거리는 약 384,400km로 빛의 속도로 1.28초가 걸리며,",
+  "moon.t03": "매년 지구에서 3.82cm씩 조금씩 조용히 멀어지고 있습니다.",
+  "moon.t06": "문페이즈",
+  "moon.t07": "달을 바라보고 있어요...",
+  "moon.t08": "🌑 신월 (New Moon)",
+  "moon.t09": "🌒 초승달 (Waxing Crescent)",
+  "moon.t10": "🌓 상현달 (First Quarter)",
+  "moon.t11": "🌔 차오르는 달 (Waxing Gibbous)",
+  "moon.t12": "🌕 보름달 (Full Moon)",
+  "moon.t13": "🌖 이지러지는 달 (Waning Gibbous)",
+  "moon.t14": "🌗 하현달 (Last Quarter)",
+  "moon.t15": "🌘 그믐달 (Waning Crescent)"
+}

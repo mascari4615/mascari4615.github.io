@@ -10,19 +10,19 @@ import { t, loadNamespace } from '../../lib/i18n';
 (function (): void {
   /* 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const parts = (): Array<[string, string]> => [
-    ['charcount', t('text.part.charcount')],
-    ['textclean', t('text.part.textclean')],
-    ['textdiff', t('text.part.textdiff')],
-    ['caseconv', t('text.part.caseconv')],
-    ['hangulkey', t('text.part.hangulkey')],
-    ['lorem', t('text.part.lorem')],
-    ['replace', t('text.part.replace')],
-    ['slug', t('text.part.slug')],
-    ['listdiff', t('text.part.listdiff')],
-    ['jamo', t('text.part.jamo')],
-    ['wordfreq', t('text.part.wordfreq')],
-    ['linebreak', t('text.part.linebreak')],
-    ['checklist', t('text.part.checklist')]
+    ['charcount', t('text.part.charcount', undefined, '글자수')],
+    ['textclean', t('text.part.textclean', undefined, '정리')],
+    ['textdiff', t('text.part.textdiff', undefined, '비교')],
+    ['caseconv', t('text.part.caseconv', undefined, '표기법')],
+    ['hangulkey', t('text.part.hangulkey', undefined, '한영타')],
+    ['lorem', t('text.part.lorem', undefined, '더미 텍스트')],
+    ['replace', t('text.part.replace', undefined, '찾아 바꾸기')],
+    ['slug', t('text.part.slug', undefined, '슬러그')],
+    ['listdiff', t('text.part.listdiff', undefined, '목록 비교')],
+    ['jamo', t('text.part.jamo', undefined, '자모 분해')],
+    ['wordfreq', t('text.part.wordfreq', undefined, '단어 빈도')],
+    ['linebreak', t('text.part.linebreak', undefined, '줄바꿈')],
+    ['checklist', t('text.part.checklist', undefined, '체크리스트')]
   ];
 
   Toolbox.register({

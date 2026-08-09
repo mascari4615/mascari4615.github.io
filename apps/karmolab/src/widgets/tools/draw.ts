@@ -10,9 +10,9 @@ import { t, loadNamespace } from '../../lib/i18n';
 (function (): void {
   /* 부품 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const parts = (): Array<[string, string]> => [
-    ['lotto', t('draw.part.lotto')],
-    ['ladder', t('draw.part.ladder')],
-    ['pick', t('draw.part.pick')]
+    ['lotto', t('draw.part.lotto', undefined, '로또')],
+    ['ladder', t('draw.part.ladder', undefined, '사다리타기')],
+    ['pick', t('draw.part.pick', undefined, '추첨 · 팀')]
   ];
 
   Toolbox.register({

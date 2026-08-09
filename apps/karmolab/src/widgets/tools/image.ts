@@ -10,14 +10,14 @@ import { t, loadNamespace } from '../../lib/i18n';
 (function (): void {
   /* 부품 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const parts = (): Array<[string, string]> => [
-    ['imageedit', t('image.part.imgbatch')],
+    ['imageedit', t('image.part.imgbatch', undefined, '편집 · 변환')],
 
-    ['text2img', t('image.part.text2img')],
-    ['imgresize', t('image.part.imgresize')],
-    ['redact', t('image.part.redact')],
-    ['asciiart', t('image.part.asciiart')],
-    ['imagegen', t('image.part.aigen')],
-    ['imagelib', t('image.part.store')]
+    ['text2img', t('image.part.text2img', undefined, '글자 카드')],
+    ['imgresize', t('image.part.imgresize', undefined, '크기 맞추기')],
+    ['redact', t('image.part.redact', undefined, '가리개')],
+    ['asciiart', t('image.part.asciiart', undefined, '아스키 아트')],
+    ['imagegen', t('image.part.aigen', undefined, 'AI 생성')],
+    ['imagelib', t('image.part.store', undefined, '보관함')]
   ];
 
   Toolbox.register({

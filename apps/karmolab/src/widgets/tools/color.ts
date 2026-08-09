@@ -10,12 +10,12 @@ import { t, loadNamespace } from '../../lib/i18n';
 (function (): void {
   /* 부품 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const parts = (): Array<[string, string]> => [
-    ['colorconv', t('color.part.colorconv')],
-    ['palette', t('color.part.palette')],
-    ['colorname', t('color.part.cssnames')],
-    ['gradient', t('color.part.gradient')],
-    ['contrast', t('color.part.contrast')],
-    ['colorblind', t('color.part.colorblind')]
+    ['colorconv', t('color.part.colorconv', undefined, '변환')],
+    ['palette', t('color.part.palette', undefined, '이미지에서 추출')],
+    ['colorname', t('color.part.cssnames', undefined, 'CSS 색 이름')],
+    ['gradient', t('color.part.gradient', undefined, '그라데이션')],
+    ['contrast', t('color.part.contrast', undefined, '대비 검사')],
+    ['colorblind', t('color.part.colorblind', undefined, '색각')]
   ];
 
   Toolbox.register({

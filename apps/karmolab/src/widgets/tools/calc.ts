@@ -10,19 +10,19 @@ import { t, loadNamespace } from '../../lib/i18n';
 (function (): void {
   /* 부품 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const parts = (): Array<[string, string]> => [
-    ['percent', t('calc.part.percent')],
-    ['interest', t('calc.part.interest')],
+    ['percent', t('calc.part.percent', undefined, '퍼센트')],
+    ['interest', t('calc.part.interest', undefined, '이자')],
     ['bmi', 'BMI'],
-    ['unitconv', t('calc.part.unitconv')],
-    ['radix', t('calc.part.radix')],
-    ['numword', t('calc.part.numword')],
-    ['aspect', t('calc.part.aspect')],
-    ['grade', t('calc.part.grade')],
-    ['vat', t('calc.part.vat')],
-    ['bytesize', t('calc.part.bytesize')],
-    ['bizno', t('calc.part.bizno')],
-    ['loan', t('calc.part.loan')],
-    ['cssunit', t('calc.part.cssunit')]
+    ['unitconv', t('calc.part.unitconv', undefined, '단위')],
+    ['radix', t('calc.part.radix', undefined, '진법')],
+    ['numword', t('calc.part.numword', undefined, '숫자 ↔ 한글')],
+    ['aspect', t('calc.part.aspect', undefined, '비율')],
+    ['grade', t('calc.part.grade', undefined, '학점')],
+    ['vat', t('calc.part.vat', undefined, '부가세')],
+    ['bytesize', t('calc.part.bytesize', undefined, '용량')],
+    ['bizno', t('calc.part.bizno', undefined, '사업자번호')],
+    ['loan', t('calc.part.loan', undefined, '대출 상환')],
+    ['cssunit', t('calc.part.cssunit', undefined, 'CSS 단위')]
   ];
 
   Toolbox.register({

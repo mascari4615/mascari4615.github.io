@@ -9,8 +9,8 @@ import { t, loadNamespace } from '../../lib/i18n';
 (function (): void {
   /* 부품 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const parts = (): Array<[string, string]> => [
-    ['qrgen', t('qr.part.qrgen')],
-    ['qrread', t('qr.part.qrread')]
+    ['qrgen', t('qr.part.qrgen', undefined, 'QR 만들기')],
+    ['qrread', t('qr.part.qrread', undefined, 'QR 읽기')]
   ];
 
   Toolbox.register({

@@ -1,0 +1,10 @@
+{
+  "keycode.label.kcHint": "どれかキーを押してください",
+  "keycode.t01": "押した履歴",
+  "keycode.btn.kcClear": "消去",
+  "keycode.t02": "event.key = 入力された文字(レイアウトの影響あり) · event.code = 物理キーの位置(レイアウトの影響なし) · keyCode は廃止された値です。",
+  "keycode.t05": "キーコード",
+  "keycode.t06": "どれかキーを押してください!",
+  "keycode.t07": "修飾キー",
+  "keycode.t08": "なし"
+}

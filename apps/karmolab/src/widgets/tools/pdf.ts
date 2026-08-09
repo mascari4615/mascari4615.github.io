@@ -11,17 +11,17 @@ import { t, loadNamespace } from '../../lib/i18n';
 (function (): void {
   /* 부품 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const parts = (): Array<[string, string]> => [
-    ['pdftool', t('pdf.part.pdftool')],
-    ['pdfcompress', t('pdf.part.pdfcompress')],
-    ['pdfsign', t('pdf.part.pdfsign')],
-    ['pdfcrop', t('pdf.part.pdfcrop')],
-    ['pdfpagenum', t('pdf.part.pdfpagenum')],
-    ['pdfredact', t('pdf.part.pdfredact')],
-    ['pdfwatermark', t('pdf.part.pdfwatermark')],
-    ['pdf2text', t('pdf.part.pdf2text')],
-    ['text2pdf', t('pdf.part.text2pdf')],
-    ['pdf2img', t('pdf.part.pdf2img')],
-    ['img2pdf', t('pdf.part.img2pdf')]
+    ['pdftool', t('pdf.part.pdftool', undefined, '합치기·나누기')],
+    ['pdfcompress', t('pdf.part.pdfcompress', undefined, '용량 줄이기')],
+    ['pdfsign', t('pdf.part.pdfsign', undefined, '서명 넣기')],
+    ['pdfcrop', t('pdf.part.pdfcrop', undefined, '여백 자르기')],
+    ['pdfpagenum', t('pdf.part.pdfpagenum', undefined, '쪽 번호')],
+    ['pdfredact', t('pdf.part.pdfredact', undefined, 'PDF 가리개')],
+    ['pdfwatermark', t('pdf.part.pdfwatermark', undefined, '워터마크')],
+    ['pdf2text', t('pdf.part.pdf2text', undefined, 'PDF → 글자')],
+    ['text2pdf', t('pdf.part.text2pdf', undefined, '글 → PDF')],
+    ['pdf2img', t('pdf.part.pdf2img', undefined, 'PDF → 이미지')],
+    ['img2pdf', t('pdf.part.img2pdf', undefined, '이미지 → PDF')]
   ];
 
   Toolbox.register({
