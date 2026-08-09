@@ -59,5 +59,8 @@
   "bluemarble.deep.lineNow": "いまの大陸配置です。つまみを左へ動かすとプレートが巻き戻ります。",
   "bluemarble.deep.line": "{ma}百万年前の地球です。大陸が今の場所へ来る前です。",
   "bluemarble.deep.how": "写真のない時間です — プレートの動きを巻き戻して描いたものです。分かるのは水と陸の境だけなので、色は塗っていません。",
-  "bluemarble.layer.together": "一緒に見る"
+  "bluemarble.layer.together": "一緒に見る",
+  "bluemarble.link.button": "ここへのリンク",
+  "bluemarble.link.copied": "この場所のリンクをコピーしました。開いた人は同じ場所から地球を見ます。",
+  "bluemarble.link.here": "この場所のリンク: {url}"
 }
