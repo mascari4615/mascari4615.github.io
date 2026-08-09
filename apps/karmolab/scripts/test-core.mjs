@@ -905,6 +905,60 @@ for (const bad of [['convert', { time: '엉뚱', from: 'Asia/Seoul', to: 'UTC' }
 }
 eq(wcThrew, 3, '잘못된 시각·없는 시간대·잘못된 날짜는 전부 던진다');
 
+// ── ②-20 datecalc 알맹이 (「1월 31일 + 1개월」이 3월 3일이 되는 버그) ─────────
+const dc = await load('src/core/datecalc.ts');
+
+eq(dc.spec.id, 'datecalc', 'datecalc spec.id');
+
+/* 이 도구가 있는 이유 자체 — 그냥 setMonth 하면 2월 31일이 3월 3일로 넘어간다.
+   기한·구독일 계산에서 매번 나오는 버그다. */
+eq(dc.toInput(dc.addMonths(new Date(2026, 0, 31), 1)), '2026-02-28', '1/31 + 1개월 = 2/28');
+eq(dc.toInput(dc.addMonths(new Date(2024, 0, 31), 1)), '2024-02-29', '윤년이면 2/29');
+eq(dc.toInput(dc.addMonths(new Date(2026, 0, 31), 3)), '2026-04-30', '1/31 + 3개월 = 4/30');
+eq(dc.toInput(dc.addMonths(new Date(2026, 0, 15), 1)), '2026-02-15', '넘치지 않으면 그대로');
+eq(dc.toInput(dc.addMonths(new Date(2026, 0, 31), -1)), '2025-12-31', '거꾸로도');
+eq(dc.toInput(dc.addMonths(new Date(2026, 2, 31), -1)), '2026-02-28', '3/31 − 1개월 = 2/28');
+
+eq(dc.isLeap(2024), true, '2024 윤년');
+eq(dc.isLeap(2026), false, '2026 평년');
+eq(dc.isLeap(2100), false, '100 으로 나뉘면 평년');
+eq(dc.isLeap(2000), true, '400 으로 나뉘면 윤년');
+eq(dc.daysInMonth(2024, 1), 29, '윤년 2월은 29일');
+eq(dc.daysInMonth(2026, 1), 28, '평년 2월은 28일');
+
+eq(dc.toInput(dc.shift(new Date(2026, 7, 9), { days: 10 })), '2026-08-19', '일 더하기');
+eq(dc.toInput(dc.shift(new Date(2026, 7, 9), { weeks: 2 })), '2026-08-23', '주 더하기');
+eq(dc.toInput(dc.shift(new Date(2024, 1, 29), { years: 1 })), '2025-02-28', '윤년 2/29 + 1년 = 2/28');
+
+// 「며칠간」이 하루 갈리는 자리 — 둘 다 낸다.
+const b = dc.between(new Date(2026, 7, 1), new Date(2026, 7, 10));
+eq(b.days, 9, '끝날 안 세면 9일');
+eq(b.inclusive, 10, '끝날까지 세면 10일');
+eq(b.weeks, 1, '1주 + 2일');
+eq(dc.weekdaysBetween(new Date(2026, 7, 3), new Date(2026, 7, 7)), 5, '월~금 = 평일 5일');
+eq(dc.weekdaysBetween(new Date(2026, 7, 8), new Date(2026, 7, 9)), 0, '토·일만이면 0');
+
+// D-Day 도 하루 갈린다 — 관례(시작일 1일째)와 단순 차이를 함께.
+eq(dc.dday(new Date(2026, 7, 19), new Date(2026, 7, 9)).tag, 'D-10', '10일 남음');
+eq(dc.dday(new Date(2026, 7, 9), new Date(2026, 7, 9)).tag, 'D-DAY', '오늘');
+eq(dc.dday(new Date(2026, 7, 1), new Date(2026, 7, 9)).tag, 'D+8', '지난 날짜');
+eq(dc.dday(new Date(2026, 7, 1), new Date(2026, 7, 9)).nth, 9, '시작일을 1일째로 세면 오늘이 9일째');
+
+eq(dc.parseDate('2026-02-30'), null, '없는 날짜는 null');
+eq(dc.parseDate('2026/08/09'), null, '형식이 다르면 null');
+check(dc.run('shift', { date: '2026-01-31', months: 1 }).includes('마지막 날'), 'run 이 날짜를 맞췄다고 알려 준다');
+check(dc.run('between', { start: '2026-08-01', end: '2026-08-10' }).includes('10일 (끝날까지 셈)'), 'run between 이 둘 다 낸다');
+check(dc.run('dday', { date: '2026-08-19', today: '2026-08-09' }).includes('D-10'), 'run dday');
+let dcThrew = 0;
+for (const bad of [['shift', { date: '2026-08-09' }], ['shift', { date: '엉뚱', days: 1 }], ['between', { start: '2026-08-01' }], ['dday', { date: '2026-02-30' }]]) {
+  try {
+    dc.run(bad[0], bad[1]);
+  } catch {
+    dcThrew++;
+  }
+}
+eq(dcThrew, 4, '더할 값 없음·잘못된 날짜·끝날 없음·없는 날짜는 전부 던진다');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 
