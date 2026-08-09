@@ -470,5 +470,9 @@
   "howto.chain.0": "Write the steps as a JSON array (tool · op · args)",
   "howto.chain.1": "Use \"$1\" for the whole previous result, or \"a{{1}}b\" to slot it inside text",
   "howto.chain.2": "Hit run and each step reports its result on its own line",
-  "howto.chain.3": "It works from a URL too: /karmolab/t/chain/?op=run&steps=…"
+  "howto.chain.3": "It works from a URL too: /karmolab/t/chain/?op=run&steps=…",
+  "howto.dailytype.0": "Read the sentence and type it into the box below",
+  "howto.dailytype.1": "The clock starts the moment you type the first character",
+  "howto.dailytype.2": "Press “Done” and you get keystrokes per minute and accuracy",
+  "howto.dailytype.3": "Copy the result — the sentences are left out, only the grid goes"
 }

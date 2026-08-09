@@ -1,28 +1,35 @@
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'password',
-    title: '비번',
-    desc: '4자리 비밀번호를 힌트 보며 맞히는 놀이',
+    title: t('widgets.password.title', undefined, "비번"),
+    desc: t('widgets-desc.password.desc', undefined, "4자리 비밀번호를 힌트 보며 맞히는 놀이"),
     layout: 'form',
     icon: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="12" cy="16" r="1" fill="currentColor"/>',
     tabs: [
       {
         id: 'app',
-        label: '비번',
+        label: t('password.t06', undefined, "비번"),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('meme_done', { msg: '비밀번호 맞춰볼래요?' });
+          void loadNamespace('password').then(function () {
+
+          Mdd.linePreset('meme_done', { msg: t('password.t08') });
           container.innerHTML = `
                     <div style="display:flex; flex-direction:column; padding:20px; height:100%; box-sizing:border-box;">
-                        <div style="font-size:18px; font-weight:bold; color:var(--text-primary); margin-bottom:8px;">비밀번호 야구 ⚾</div>
+                        <div style="font-size:18px; font-weight:bold; color:var(--text-primary); margin-bottom:8px;">${esc(t('password.t01'))}</div>
                         <div style="font-size:var(--font-size-sm); color:var(--text-secondary); margin-bottom:20px;">
-                            알파벳(대/소문자) + 숫자 + 일부 기호(!@#$%^&*)가 섞인 <b>4자리</b> 비밀번호를 맞춰보세요!<br>
-                            결과와 함께 살살 긁는 힌트가 제공됩니다.
+                            알파벳(대/소문자) + 숫자 + 일부 기호(!@#$%^&*)가 섞인 <b>${esc(t('password.t02'))}</b> ${esc(t('password.t03'))}<br>
+                            ${esc(t('password.t04'))}
                         </div>
                     
                         <div style="display:flex; gap:10px; margin-bottom:20px;">
-                            <input type="text" id="pwInput" class="input" style="flex:1; font-family:monospace; font-size:16px; letter-spacing:2px; text-align:center;" maxlength="4" placeholder="4자리 입력">
-                            <button class="btn btn-primary" id="pwSubmit">해킹 시도</button>
-                            <button class="btn btn-ghost" id="pwReset">포기(새 게임)</button>
+                            <input type="text" id="pwInput" class="input" style="flex:1; font-family:monospace; font-size:16px; letter-spacing:2px; text-align:center;" maxlength="4" placeholder="${esc(t('password.ph.pwInput'))}">
+                            <button class="btn btn-primary" id="pwSubmit">${esc(t('password.btn.pwSubmit'))}</button>
+                            <button class="btn btn-ghost" id="pwReset">${esc(t('password.btn.pwReset'))}</button>
                         </div>
 
                         <div id="pwLogs" style="flex:1; background:var(--bg-primary); border:1px solid var(--border); border-radius:8px; padding:15px; overflow-y:auto; font-size:var(--font-size-sm); font-family:monospace; display:flex; flex-direction:column; gap:8px;">
@@ -49,7 +56,7 @@
               answer += chars.charAt(Math.floor(Math.random() * chars.length));
             }
             logs.innerHTML =
-              '<div style="color:var(--text-tertiary); text-align:center;">--- 시스템 포트 활성화: 대상의 4자리 비밀번호가 설정됨 ---</div>';
+              t('password.t09');
             input.value = '';
             input.focus();
           }
@@ -68,22 +75,22 @@
               else hasSym = true;
             }
 
-            if (hasLower) hints.push('혹시 정답 어딘가에 귀여운 소문자가 숨어있지 않을까요?');
-            if (hasUpper) hints.push('정답에 크고 우람한 대문자가 포함되어 있는 것 같아요...');
-            if (hasNum) hints.push('숫자가 하나쯤은 섞여야 제맛이죠.');
-            if (hasSym) hints.push('특수기호(!@#$ 등)를 안 쓴 보안 허접은 아니죠!');
+            if (hasLower) hints.push(t('password.t10'));
+            if (hasUpper) hints.push(t('password.t11'));
+            if (hasNum) hints.push(t('password.t12'));
+            if (hasSym) hints.push(t('password.t13'));
 
             const randPos = Math.floor(Math.random() * 4);
             const tgt = answer[randPos];
             let typeStr = '';
-            if (/[a-z]/.test(tgt)) typeStr = '소문자';
-            else if (/[A-Z]/.test(tgt)) typeStr = '대문자';
-            else if (/[0-9]/.test(tgt)) typeStr = '숫자';
-            else typeStr = '특수기호';
+            if (/[a-z]/.test(tgt)) typeStr = t('password.t14');
+            else if (/[A-Z]/.test(tgt)) typeStr = t('password.t15');
+            else if (/[0-9]/.test(tgt)) typeStr = t('password.t16');
+            else typeStr = t('password.t17');
 
-            hints.push(`이건 비밀인데... ${randPos + 1}번째 글자는 바로 [${typeStr}] 래요!`);
-            hints.push('그딴 비밀번호로는 내 지갑을 못 터요~');
-            hints.push('인생의 진리는 삽질에 있어요. 다시 해보세요.');
+            hints.push(t('password.hintChar', { n: randPos + 1, type: typeStr }));
+            hints.push(t('password.t18'));
+            hints.push(t('password.t19'));
 
             return hints[Math.floor(Math.random() * hints.length)];
           }
@@ -91,7 +98,7 @@
           function checkGuess(): void {
             const guess = input.value;
             if (guess.length !== 4) {
-              Toolbox.showToast?.('4자리를 정확히 입력하세요!', 'warning', undefined);
+              Toolbox.showToast?.(t('password.t20'), 'warning', undefined);
               return;
             }
 
@@ -136,7 +143,7 @@
             if (strike === 4) {
               logEntry.innerHTML = `
                             <div style="display:flex; gap:6px; margin-bottom:8px; justify-content:center;">${tilesHtml}</div>
-                            <div style="text-align:center; color:var(--success); font-weight:bold;">[해킹 성공] 완벽히 일치해요! 🎉</div>
+                            <div style="text-align:center; color:var(--success); font-weight:bold;">${esc(t('password.t05'))}</div>
                         `;
               setTimeout(generateAnswer, 3000);
             } else {
@@ -162,6 +169,7 @@
           btnReset.onclick = generateAnswer;
 
           generateAnswer();
+                  });
         }
       }
     ]

@@ -258,5 +258,7 @@
   "tools.timecapsule.description": "A time capsule letter — write one nobody can open before the day you set. No server holds it — the locked letter itself is the address, and the key only comes together from what a public randomness beacon publishes on that day. Not the sender, not the recipient, not this site can open it early, and changing your computer's clock does nothing.",
   "tools.timecapsule.lead": "Nobody opens it before the day · no server holding it · changing the clock does not help",
   "tools.chain.description": "Runs several tools one after another. Each step’s result becomes the next step’s input, so there is no copying intermediate values by hand.",
-  "tools.chain.lead": "Each result feeds the next · every step visible · up to 8 steps"
+  "tools.chain.lead": "Each result feeds the next · every step visible · up to 8 steps",
+  "tools.dailytype.description": "You type three Korean sentences that change every day. Everyone gets the same ones, and the result is shared as a grid that carries none of the text.",
+  "tools.dailytype.lead": "Three sentences a day · the same for everyone · keystrokes and accuracy"
 }

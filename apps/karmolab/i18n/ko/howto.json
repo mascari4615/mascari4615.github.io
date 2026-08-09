@@ -466,5 +466,13 @@
   "howto.timecapsule.0": "편지 쓰기",
   "howto.timecapsule.1": "열리는 때 고르기 (내일 · 한 달 · 1년 · 10년)",
   "howto.timecapsule.2": "「잠그기」를 눌러 나온 주소 보관하거나 보내기",
-  "howto.timecapsule.3": "그날 그 주소를 열면 편지가 나온다"
+  "howto.timecapsule.3": "그날 그 주소를 열면 편지가 나온다",
+  "howto.chain.0": "단계를 JSON 배열로 적기 (tool · op · args)",
+  "howto.chain.1": "앞 결과는 \"$1\" 로 통째로, \"a{{1}}b\" 로 글 안에 끼워 쓰기",
+  "howto.chain.2": "실행을 누르면 단계마다 결과가 한 줄씩 나옵니다",
+  "howto.chain.3": "주소로도 부를 수 있습니다: /karmolab/t/chain/?op=run&steps=…",
+  "howto.dailytype.0": "문장을 보고 아래 칸에 그대로 치기",
+  "howto.dailytype.1": "첫 글자를 치는 순간부터 시간이 갑니다",
+  "howto.dailytype.2": "「다 쳤어요」를 누르면 타/분과 정확도가 나옵니다",
+  "howto.dailytype.3": "결과 복사 — 문장은 안 담기고 격자만 담깁니다"
 }

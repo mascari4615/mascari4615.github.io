@@ -19,6 +19,8 @@
   "widgets.randomgen.title": "랜덤 생성기",
   "widgets.passgen.title": "비밀번호 만들기·확인",
   "widgets.devtool.title": "개발 도구",
+  "widgets.dailytype.title": "오늘의 한글 타자",
+  "widgets.chain.title": "도구 묶어 쓰기",
   "widgets.base64.title": "Base64 인코딩 · 디코딩",
   "widgets.crypto.title": "암호화 / 복호화",
   "widgets.memo.title": "메모장",
@@ -189,6 +191,7 @@
   "widgets.laptop.title": "노트북",
   "widgets.orbita.title": "ORBITA",
   "widgets.bluemarble.title": "블루마블",
+  "widgets.garden.title": "정원",
   "widgets.collection.title": "도감",
   "widgets.karmomap.title": "KarmoMap"
 }

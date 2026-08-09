@@ -470,5 +470,9 @@
   "howto.chain.0": "手順を JSON の配列で書く（tool · op · args）",
   "howto.chain.1": "前の結果は \"$1\" でまるごと、\"a{{1}}b\" で文章の中に差し込む",
   "howto.chain.2": "実行を押すと手順ごとに結果が1行ずつ出ます",
-  "howto.chain.3": "アドレスからも呼べます: /karmolab/t/chain/?op=run&steps=…"
+  "howto.chain.3": "アドレスからも呼べます: /karmolab/t/chain/?op=run&steps=…",
+  "howto.dailytype.0": "文を見て、下の欄にそのまま打つ",
+  "howto.dailytype.1": "最初の文字を打った瞬間から時間が動きます",
+  "howto.dailytype.2": "「打ち終えました」を押すと打鍵/分と正確さが出ます",
+  "howto.dailytype.3": "結果をコピー — 文は入らず、格子だけが入ります"
 }

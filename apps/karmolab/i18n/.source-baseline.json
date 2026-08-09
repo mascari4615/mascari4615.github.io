@@ -1,5 +1,5 @@
 {
-  "total": 4982,
+  "total": 4978,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -151,7 +151,7 @@
     "src/widgets/packs.ts": 53,
     "src/widgets/packwell.ts": 59,
     "src/widgets/particle.ts": 6,
-    "src/widgets/password.ts": 19,
+    "src/widgets/password.ts": 4,
     "src/widgets/perf/perf.ts": 140,
     "src/widgets/pet.ts": 13,
     "src/widgets/planner/planner.ts": 3,
@@ -351,6 +351,7 @@
     "src/lib/ai-transcribe.ts": 2,
     "src/core/hangultype.ts": 16,
     "src/core/dailytype.ts": 10,
-    "src/core/type-pool.generated.ts": 223
+    "src/core/type-pool.generated.ts": 223,
+    "src/widgets/tools/dailytype.ts": 11
   }
 }
