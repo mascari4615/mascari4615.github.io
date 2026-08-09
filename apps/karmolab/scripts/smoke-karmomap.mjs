@@ -12,7 +12,8 @@ import { chromium } from 'playwright';
 const URL = `${process.env.URL || 'http://127.0.0.1:8813/apps/karmolab/index.html'}#karmomap`;
 const errors = [];
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
+const context0 = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+ const page = await context0.newPage();
 // 서비스 워커 404 는 이 검사의 대상이 아니다(개발 서버에는 sw 가 없다).
 page.on('console', (m) => {
   if (m.type() !== 'error') return;
@@ -173,6 +174,26 @@ await step('「많이 이어진 것을 크게」가 실제로 크게 만든다',
   );
   await page.locator('[data-km="f-degree"]').uncheck();
   await page.click('[data-km="f-close"]');
+});
+await step('링크로 내보내고 그 링크로 다시 받는다', async () => {
+  await context0.grantPermissions(['clipboard-read', 'clipboard-write']).catch(() => {});
+  const nodesBefore = await page.locator('.ck-node').count();
+  // 클립보드가 막히면 제품이 prompt 로 보여 준다 — 그 글에서 주소를 건진다.
+  let fromDialog = '';
+  const onDialog = (d) => { fromDialog = d.defaultValue() || d.message(); d.dismiss().catch(() => {}); };
+  page.on('dialog', onDialog);
+  await page.click('[data-km="more"]');
+  // 이 버튼은 눌리면 서랍을 닫는다 — 보통 click 은 「대상이 사라졌다」로 30초를 기다린다.
+  await page.locator('[data-km="share"]').dispatchEvent('click');
+  await page.waitForTimeout(1200);
+  const url = fromDialog || (await page.evaluate(() => navigator.clipboard.readText().catch(() => '')));
+  page.off('dialog', onDialog);
+  if (!url || !String(url).includes('km=')) throw new Error('링크가 안 만들어졌다: ' + String(url).slice(0, 60));
+  const p2 = await context0.newPage();
+  await p2.goto(url, { waitUntil: 'domcontentloaded' });
+  await p2.waitForSelector('.km-root', { timeout: 15000 });
+  await p2.waitForFunction((c) => document.querySelectorAll('.ck-node').length === c, nodesBefore, { timeout: 8000 });
+  await p2.close();
 });
 await step('관계망 읽기가 순위를 낸다', async () => {
   await page.click('[data-km="sna"]');
