@@ -83,4 +83,10 @@ export interface PanelCtx {
   clearMany: () => void;
   /** 노드들과 거기 붙은 선·지시선을 함께 지운다. */
   removeNodes: (ids: string[]) => void;
+
+  // ── 글로 만들기 패널이 빌리는 것들 ────────────────────────────────────
+  /** 노드 종류 <option> 묶음 HTML. */
+  nodeKindOptionsHtml: () => string;
+  /** 들여쓴 글 → 노드·선. 만든 개수를 돌려준다. */
+  buildFromOutline: (src: string, kind: string) => number;
 }
