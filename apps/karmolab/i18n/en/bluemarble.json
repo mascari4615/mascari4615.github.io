@@ -19,5 +19,11 @@
   "bluemarble.line.kpStorm": "A magnetic storm is coming (Kp {kp}). The aurora reaches further south than usual.",
   "bluemarble.line.aurora": "Somewhere near the poles, the sky is shaking green right now.",
   "bluemarble.line.launch": "{when}, {name} leaves the Earth.",
-  "bluemarble.word.openSea": "open water"
+  "bluemarble.word.openSea": "open water",
+  "bluemarble.layer.me": "My place",
+  "bluemarble.word.here": "here",
+  "bluemarble.line.meNight": "It's {time} in {place} right now. Night.",
+  "bluemarble.line.meDay": "It's {time} in {place} right now. Day.",
+  "bluemarble.line.issPass": "{when} — at {clock}, people pass {el}° above your head. Look up and you can see them.",
+  "bluemarble.line.issPassNone": "The ISS does not pass over this place in the next 24 hours."
 }

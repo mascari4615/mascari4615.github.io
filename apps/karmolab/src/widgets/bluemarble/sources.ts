@@ -18,7 +18,8 @@ const TTL = {
   aurora: 15 * 60 * 1000,
   kp: 10 * 60 * 1000,
   launches: 60 * 60 * 1000,
-  iss: 5 * 1000
+  iss: 5 * 1000,
+  omm: 6 * 60 * 60 * 1000
 };
 
 interface CacheEntry {
@@ -197,4 +198,19 @@ export async function launches(): Promise<Launch[] | null> {
     });
   }
   return out;
+}
+
+/* ── 궤도 요소 ─────────────────────────────────────────────────────────── */
+
+/**
+ * ISS 의 궤도 요소. **지금 자리**가 아니라 **앞으로의 자리**를 계산하기 위한 것이다
+ * (`orbit.ts`). 하루쯤 지나도 쓸 만해서 여섯 시간에 한 번이면 충분하다.
+ */
+export async function issOmm(): Promise<import('./orbit').Omm | null> {
+  const rows = await fetchJson<import('./orbit').Omm[]>(
+    'omm-iss',
+    'https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=json',
+    TTL.omm
+  );
+  return rows && rows.length ? rows[0] : null;
 }

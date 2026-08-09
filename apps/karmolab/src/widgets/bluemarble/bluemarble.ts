@@ -18,10 +18,12 @@
 import { t, loadNamespace, fmtRelative } from '../../lib/i18n';
 import { CITIES } from './cities';
 import { subsolar, toVec, distanceKm } from './sky';
-import { quakes, aurora, kpIndex, iss, launches, type Quake, type AuroraPoint, type IssFix, type Launch } from './sources';
+import { quakes, aurora, kpIndex, iss, launches, issOmm, type Quake, type AuroraPoint, type IssFix, type Launch } from './sources';
 import { paintSurface, type Tex, type Region, type View as SurfaceView } from './surface';
 import { loadTex, loadClouds } from './textures';
 import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
+import { elementsFrom, propagate, nextPass, type Elements, type Pass } from './orbit';
+import { fromTimezone, askPrecise, type Me } from './me';
 
 (function (): void {
   if (typeof Toolbox === 'undefined') return;
@@ -37,8 +39,9 @@ import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
     return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/data/' + name;
   }
 
-  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom';
+  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me';
   const LAYERS: Array<{ id: LayerId; glyph: string }> = [
+    { id: 'me', glyph: '◉' },
     { id: 'zoom', glyph: '⊕' },
     { id: 'cloud', glyph: '☁' },
     { id: 'city', glyph: '✦' },
@@ -54,7 +57,7 @@ import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
     spin: boolean;
   }
   function loadPrefs(): Prefs {
-    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true }, spin: true };
+    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true }, spin: true };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return base;
@@ -154,6 +157,10 @@ import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
           let issFix: IssFix | null = null;
           let issTrail: Array<[number, number]> = [];
           let ls: Launch[] = [];
+          let me: Me | null = null;
+          let issEl: Elements | null = null;
+          let issPass: Pass | null = null;
+          let seenQuakes: Set<string> | null = null; // null = 첫 판(전부 「새 것」이 아니다)
           let raf: number | undefined;
           let alive = true;
 
@@ -253,6 +260,33 @@ import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
           function project(lat: number, lon: number): { x: number; y: number; z: number } {
             const v = toVec(lat, lon);
             return { x: cx + R * dot(v, ex), y: cy - R * dot(v, ey), z: dot(v, ez) };
+          }
+
+          /* ── 반응하는 카메라 ──────────────────────────────────────────── */
+
+          /* 사건이 들어오면 지구가 **천천히 그쪽으로 돈다**. 순간이동시키면 사람이 방향을
+             잃는다 — 어디서 어디로 갔는지가 안 보이면 그건 새 화면이지 같은 지구가 아니다.
+             그래서 각도로 보간하고(짧은 쪽으로), 다 돌면 다시 제 속도로 자전한다. */
+          let fly: { lon: number; lat: number; from: number; ms: number; startLon: number; startLat: number } | null = null;
+
+          function flyTo(lat: number, lon: number, ms = 2600): void {
+            let d = lon - camLon;
+            while (d > 180) d -= 360;
+            while (d < -180) d += 360;
+            fly = { lon: camLon + d, lat: Math.max(-70, Math.min(70, lat)), from: performance.now(), ms, startLon: camLon, startLat: camLat };
+            idleAt = performance.now() + ms; // 도착할 때까진 자전이 끼어들지 않는다
+          }
+
+          function stepFly(now: number): void {
+            if (!fly) return;
+            const p = Math.min(1, (now - fly.from) / fly.ms);
+            const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; // ease-in-out
+            camLon = fly.startLon + (fly.lon - fly.startLon) * e;
+            camLat = fly.startLat + (fly.lat - fly.startLat) * e;
+            if (p >= 1) {
+              fly = null;
+              scheduleRegion();
+            }
           }
 
           /* ── 확대하면 실사로 갈아타기 ─────────────────────────────────── */
@@ -389,6 +423,7 @@ import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
             if (prefs.on.aurora) drawAurora(S);
             if (prefs.on.quake) drawQuakes(now);
             if (prefs.on.launch) drawLaunches();
+            if (prefs.on.me) drawMe(now);
             c.restore();
 
             /* ISS 는 지구 밖(궤도 위)이라 자르기 밖에서 그린다 */
@@ -470,6 +505,26 @@ import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
               c.arc(p.x, p.y, base * 0.55, 0, Math.PI * 2);
               c.fill();
             }
+          }
+
+          /** 내 자리 — 숨 쉬듯 커졌다 작아지는 고리 하나. 이름표는 안 붙인다(문장이 말한다). */
+          function drawMe(now: number): void {
+            if (!me) return;
+            const v = toVec(me.lat, me.lon);
+            if (dot(v, ez) <= 0.02) return;
+            const p = project(me.lat, me.lon);
+            const c = ctx!;
+            const pulse = 0.5 + 0.5 * Math.sin(now / 1100);
+            const base = 3.4 * Math.max(0.7, R / 300);
+            c.strokeStyle = `rgba(180,225,255,${0.28 + pulse * 0.34})`;
+            c.lineWidth = 1.4;
+            c.beginPath();
+            c.arc(p.x, p.y, base * (1.4 + pulse * 1.5), 0, Math.PI * 2);
+            c.stroke();
+            c.fillStyle = 'rgba(225,245,255,.95)';
+            c.beginPath();
+            c.arc(p.x, p.y, base * 0.5, 0, Math.PI * 2);
+            c.fill();
           }
 
           function drawLaunches(): void {
@@ -583,6 +638,28 @@ import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
               );
             }
 
+            /* 나 — 이 지구본의 주제는 「나는 여기 혼자인데 지구는 살아있다」다.
+               그래서 내 자리 이야기가 문장 목록의 한가운데 있어야 한다. */
+            if (me) {
+              const sv2 = toVec(sun.lat, sun.lon);
+              const night = dot(toVec(me.lat, me.lon), sv2) < 0.05;
+              const clock = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+              const place = me.label || t('bluemarble.word.here');
+              out.push(t(night ? 'bluemarble.line.meNight' : 'bluemarble.line.meDay', { place, time: clock }));
+
+              if (issPass) {
+                out.push(
+                  t('bluemarble.line.issPass', {
+                    when: fmtRelative(issPass.peak),
+                    clock: new Date(issPass.peak).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+                    el: Math.round(issPass.maxEl)
+                  })
+                );
+              } else if (issEl) {
+                out.push(t('bluemarble.line.issPassNone'));
+              }
+            }
+
             if (kp != null) out.push(kp >= 5 ? t('bluemarble.line.kpStorm', { kp: kp.toFixed(0) }) : t('bluemarble.line.kpCalm'));
             if (au.length) out.push(t('bluemarble.line.aurora'));
 
@@ -614,7 +691,20 @@ import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
             if (!alive) return;
             const [q, k, i] = await Promise.all([quakes(), kpIndex(), iss()]);
             if (!alive) return;
-            if (q) qs = q;
+            if (q) {
+              /* 첫 판은 「전부 새 것」이 아니다 — 열자마자 24시간 치 지진으로 카메라가
+                 튀면 그건 사건이 아니라 소음이다. 두 번째 판부터가 진짜 새 소식이다. */
+              if (seenQuakes) {
+                const fresh = q.filter((x) => !seenQuakes!.has(x.id) && Date.now() - x.time < 3600000);
+                const biggest = fresh.sort((a, b) => b.mag - a.mag)[0];
+                if (biggest && !drag && zoom < 2.2) {
+                  flyTo(biggest.lat, biggest.lon);
+                  lineIdx = -1; // 다음 문장이 그 지진이 되게
+                }
+              }
+              seenQuakes = new Set(q.map((x) => x.id));
+              qs = q;
+            }
             if (k != null) kp = k;
             if (i) {
               issFix = i;
@@ -628,10 +718,25 @@ import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
 
           async function refreshSlow(): Promise<void> {
             if (!alive) return;
-            const [a, l] = await Promise.all([prefs.on.aurora ? aurora() : Promise.resolve(null), launches()]);
+            const [a, l, omm] = await Promise.all([
+              prefs.on.aurora ? aurora() : Promise.resolve(null),
+              launches(),
+              issOmm()
+            ]);
             if (!alive) return;
             if (a) au = a;
             if (l) ls = l;
+            if (omm) issEl = elementsFrom(omm);
+            recomputePass();
+          }
+
+          /** 다음 통과는 24시간을 30초 간격으로 훑는다(2,880번) — 몇 ms 라 매번 새로 내도 된다. */
+          function recomputePass(): void {
+            if (!issEl || !me) {
+              issPass = null;
+              return;
+            }
+            issPass = nextPass(issEl, me.lat, me.lon);
           }
 
           /* ── 조작 ─────────────────────────────────────────────────────── */
@@ -679,10 +784,21 @@ import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
               b.setAttribute('aria-pressed', String(prefs.on[l.id]));
               b.textContent = `${l.glyph} ${t('bluemarble.layer.' + l.id)}`;
               b.onclick = () => {
-                prefs.on[l.id] = !prefs.on[l.id];
+                /* 「내 자리」를 켤 때만 정확한 위치를 묻는다 — 열자마자 권한 창을 띄우지 않는다.
+                   이미 켜져 있는데 또 누르면 끄는 것이므로 묻지 않는다. */
+                const turningOn = !prefs.on[l.id];
+                prefs.on[l.id] = turningOn;
                 b.setAttribute('aria-pressed', String(prefs.on[l.id]));
                 save();
                 if (l.id === 'aurora' && prefs.on.aurora && !au.length) void refreshSlow();
+                if (l.id === 'me' && turningOn && me && !me.precise) {
+                  void askPrecise().then((got) => {
+                    if (!alive || !got) return;
+                    me = got;
+                    recomputePass();
+                    flyTo(me.lat, me.lon, 1800);
+                  });
+                }
               };
               chips.appendChild(b);
             }
@@ -715,7 +831,8 @@ import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
             // 손을 뗀 뒤 4초쯤 지나면 다시 스스로 돈다 — 만지던 자리에서 이어서 돈다
             /* 확대해 들어갔으면 자전을 멈춘다 — 들여다보는 중에 화면이 흘러가면 못 본다.
                (그리고 자전 중 실사 조각을 계속 새로 받는 것은 회선 낭비였다 — 실측으로 멎었다) */
-            if (spin && !drag && zoom < 2.2 && now - idleAt > 4000) camLon += dt * 0.0035;
+            stepFly(now);
+            if (!fly && spin && !drag && zoom < 2.2 && now - idleAt > 4000) camLon += dt * 0.0035;
             if (camLon > 180) camLon -= 360;
             if (camLon < -180) camLon += 360;
             drawGlobe(now);
@@ -751,6 +868,13 @@ import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
             if (!alive) return;
             renderChips();
             sub.textContent = t('bluemarble.hint');
+            /* 아무것도 안 물어보고 알 수 있는 만큼은 바로 안다 (시간대 → 도시).
+               정확한 자리는 사용자가 「내 자리」를 눌렀을 때만 묻는다. */
+            me = fromTimezone();
+            if (me) {
+              camLon = me.lon;
+              camLat = Math.max(-60, Math.min(60, me.lat));
+            }
             resize();
 
             /* 표면 그림 — 담아 둔 것이라 빠르다. 못 읽어도 멈추지 않는다(맨 파란 구슬이 된다). */
