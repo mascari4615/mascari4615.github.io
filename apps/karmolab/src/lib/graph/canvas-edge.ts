@@ -7,7 +7,7 @@
  * 이 갈라놓기가 값을 하는 자리: 새 선 모양(물결·금 간 선 …)을 더할 때 고칠 곳이 한 군데다.
  */
 import type { EdgeStyle } from './spec';
-import { wobblePath } from './canvas-math';
+import { wobblePath, pointOnCubic } from './canvas-math';
 import type { Pt } from './canvas-math';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -50,4 +50,50 @@ export function buildEdgePath(
   if (look.arrowEnd) path.setAttribute('marker-end', 'url(#ck-arrow)');
   if (look.arrowStart) path.setAttribute('marker-start', 'url(#ck-arrow-start)');
   return path;
+}
+
+
+/**
+ * 선 위 **이름표**. 자리(`labelPos`)는 선 위 비율 — 0 = 출발, 1 = 도착(draw.io 의 라벨 위치와 같은 개념).
+ * 끌 수 있어야 한다: 선 위 어디에 둘지는 그림마다 다르고, 가운데 고정은 곧 겹친다.
+ */
+export function buildEdgeLabel(
+  edgeId: string,
+  text: string,
+  g: { p1: Pt; c1: Pt; c2: Pt; p2: Pt },
+  opts: { at?: number; color: string; plateFill: string; textColor: string; draggable: boolean },
+): SVGGElement | null {
+  const label = text.trim();
+  if (!label) return null;
+  const at = pointOnCubic(g, Math.min(1, Math.max(0, opts.at ?? 0.5)));
+  const w = label.length * 7 + 12;
+  const h = 16;
+
+  const wrap = document.createElementNS(SVG_NS, 'g') as SVGGElement;
+  wrap.setAttribute('class', 'ck-edge-label');
+  wrap.dataset.edgeId = edgeId;
+  if (opts.draggable) wrap.style.cursor = 'grab';
+  else wrap.setAttribute('pointer-events', 'none');
+
+  const plate = document.createElementNS(SVG_NS, 'rect');
+  plate.setAttribute('x', String(at.x - w / 2));
+  plate.setAttribute('y', String(at.y - h / 2));
+  plate.setAttribute('width', String(w));
+  plate.setAttribute('height', String(h));
+  plate.setAttribute('rx', '8');
+  plate.setAttribute('fill', opts.plateFill);
+  plate.setAttribute('stroke', `${opts.color}80`);
+  plate.setAttribute('stroke-width', '1');
+  wrap.appendChild(plate);
+
+  const t = document.createElementNS(SVG_NS, 'text');
+  t.setAttribute('x', String(at.x));
+  t.setAttribute('y', String(at.y + 3.5));
+  t.setAttribute('text-anchor', 'middle');
+  t.setAttribute('fill', opts.textColor);
+  t.setAttribute('font-size', '9.5');
+  t.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
+  t.textContent = label;
+  wrap.appendChild(t);
+  return wrap;
 }
