@@ -686,6 +686,12 @@ await step('노드에 칸을 만들면 같은 종류의 다른 노드가 그 칸
 
   await page.mouse.dblclick(fbox.x + fbox.width * 0.35, fbox.y + fbox.height * 0.25);
   await page.waitForSelector('[data-km="fld-new"]', { timeout: 4000 });
+  // 칸은 **카드에서 읽혀야** 값이 있다 — 패널을 열어야만 보이면 아무도 안 적는다.
+  await page.waitForFunction(
+    () => [...document.querySelectorAll('.ck-node text')].some((t) => (t.textContent || '').startsWith('출신:')),
+    null,
+    { timeout: 4000 }
+  );
   const opts = await page.locator('#km-fld-suggest option').evaluateAll((os) => os.map((o) => o.value));
   if (!opts.includes('출신')) throw new Error('같은 종류가 쓰는 칸이 후보로 안 뜬다: ' + opts.join('/'));
 

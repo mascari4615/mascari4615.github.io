@@ -140,6 +140,9 @@ const BG_MIN_SCALE = 0.4;
 const GROUP_HEADER_H = 20;   // 그룹 프레임 헤더 높이
 const NODE_HEADER_H = 30;    // children 있는 노드의 헤더 영역 높이
 /** 쪽지 본문 줄 간격·최대 줄 수 — 카드가 소설이 되면 그림이 안 읽힌다. */
+/** 카드에 접어 넣는 칸 줄 — 표가 되면 그림이 안 읽힌다. */
+const NODE_FIELD_ROW_H = 11;
+const NODE_FIELD_MAX_ROWS = 3;
 const NOTE_BODY_LINE_H = 12;
 const NOTE_BODY_MAX_LINES = 6;
 const NODE_CHILD_ROW_H = 18; // 자식 항목 한 줄 높이
@@ -1430,6 +1433,38 @@ export class GraphCanvas {
       text.setAttribute('pointer-events', 'none');
       text.textContent = node.label;
       g.appendChild(text);
+
+      // 칸(출신·첫 등장…)은 **카드에서 읽혀야** 값이 있다 — 패널을 열어야만 보이면 안 적게 된다.
+      // 다만 카드가 표가 되면 그림이 안 읽히므로 세 줄까지만, 나머지는 「+N」으로 접는다.
+      const fieldRows = Object.entries(node.fields ?? {}).filter(([, v]) => String(v).trim());
+      if (fieldRows.length > 0 && !centered) {
+        const shown = fieldRows.slice(0, NODE_FIELD_MAX_ROWS);
+        const room = node.w - textX - 10;
+        const maxChars = Math.max(6, Math.floor(room / 5.2));
+        shown.forEach(([name, value], i) => {
+          const row = document.createElementNS(SVG_NS, 'text');
+          row.setAttribute('x', String(textX));
+          row.setAttribute('y', String(labelY + (hasNote ? 26 : 15) + i * NODE_FIELD_ROW_H));
+          row.setAttribute('fill', this.theme.childText);
+          row.setAttribute('font-size', '9');
+          row.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
+          row.setAttribute('pointer-events', 'none');
+          const raw = `${name}: ${value}`;
+          row.textContent = raw.length > maxChars ? `${raw.slice(0, maxChars - 1)}…` : raw;
+          g.appendChild(row);
+        });
+        if (fieldRows.length > shown.length) {
+          const more = document.createElementNS(SVG_NS, 'text');
+          more.setAttribute('x', String(textX));
+          more.setAttribute('y', String(labelY + (hasNote ? 26 : 15) + shown.length * NODE_FIELD_ROW_H));
+          more.setAttribute('fill', this.theme.childText);
+          more.setAttribute('font-size', '9');
+          more.setAttribute('opacity', '0.7');
+          more.setAttribute('pointer-events', 'none');
+          more.textContent = `+${fieldRows.length - shown.length}`;
+          g.appendChild(more);
+        }
+      }
 
       if (hasNote) {
         const note = document.createElementNS(SVG_NS, 'text');
