@@ -866,7 +866,7 @@
     { key: 'inp', label: '제일 굼뜬 조작 (INP)', limit: 200, unit: 'ms', get: inpMs },
     { key: 'cls', label: '화면 밀림 (CLS)', limit: 0.1, unit: '', get: clsValue },
     {
-      key: 'js', label: '받은 자바스크립트', limit: 500 * 1024, unit: 'B',
+      key: 'js', label: '받은 자바스크립트', limit: 420 * 1024, unit: 'B',
       get: () => {
         const rows = resources().filter((r) => r.kind === 'widget' || r.kind === 'shell' || r.kind === 'vendor');
         const known = rows.filter((r) => r.bytes != null);
@@ -877,11 +877,11 @@
     },
     {
       /* **줄인 만큼 조인다.** 177KB 로 시작해 커뮤니티·광장을 지연 로드로 옮겨 56KB 가 됐다
-         (TASK-KL-204). 예산을 안 조이면 되돌아가도 아무도 모른다 — 애써 줄인 것이 조용히
-         원래대로 돌아가는 것이 이 일에서 제일 흔한 결말이다. 남은 여유는 한 위젯 몫(24KB)만.
-         0 으로 잡지 않는 이유는 그대로다: 남은 셋(favorites·linktree·dashboard)은 목록 위치와
-         데스크톱 전용 사정이 얽혀 있어 아직 못 옮겼다. */
-      key: 'bootwaste', label: '부팅에 받고 안 쓴 코드', limit: 80 * 1024, unit: 'B',
+         (TASK-KL-204). 177KB 로 시작해 여섯을 다 지연 로드로 옮겨 **0 이 됐다**.
+         그래도 0 으로 잡지 않는다 — 위젯 하나가 새로 부팅에 붙는 것은 정당한 선택일 수 있고,
+         그때마다 CI 가 서면 사람이 이 검사를 미워하게 된다. 한 위젯 몫(16KB)만 여유로 둔다.
+         애써 줄인 것이 조용히 원래대로 돌아가는 것이 이 일에서 제일 흔한 결말이다. */
+      key: 'bootwaste', label: '부팅에 받고 안 쓴 코드', limit: 16 * 1024, unit: 'B',
       get: () => bootWasteBytes,
     },
     {
