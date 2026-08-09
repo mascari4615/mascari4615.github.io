@@ -60,6 +60,10 @@ function findWidget(id) {
   return direct;
 }
 
+/* 같은 이름의 위젯이 두 곳에 있는 판이 있다 — `tools/higher.ts`(놀이판)와 `higher.ts`(고르기).
+ * 그때는 **경로 + `--ns <말묶음이름>`** 으로 부른다. 이름만으로는 어느 쪽인지 정할 수 없다. */
+const nsAt = process.argv.indexOf('--ns');
+const ns = nsAt > 0 ? process.argv[nsAt + 1] : id;
 const file = id.endsWith('.ts') ? path.resolve(ROOT, id) : findWidget(id);
 if (!fs.existsSync(file)) {
   console.error(`그런 위젯이 없다: ${path.relative(ROOT, file)}`);
@@ -208,7 +212,7 @@ let seq = 0;
 const byText = new Map();
 function keyFor(text, hint) {
   if (byText.has(text)) return byText.get(text);
-  let base = hint ? `${id}.${hint}` : `${id}.t${String(++seq).padStart(2, '0')}`;
+  let base = hint ? `${ns}.${hint}` : `${ns}.t${String(++seq).padStart(2, '0')}`;
   let key = base;
   for (let n = 2; used.has(key); n++) key = `${base}${n}`;
   used.add(key);
@@ -219,7 +223,7 @@ function keyFor(text, hint) {
 
 const slug = (v) =>
   String(v)
-    .replace(new RegExp(`^${id}`, 'i'), '')
+    .replace(new RegExp(`^${ns}`, 'i'), '')
     .replace(/[^A-Za-z0-9]/g, '')
     .replace(/^./, (c) => c.toLowerCase()) || null;
 
@@ -304,7 +308,7 @@ for (const field of ['title', 'desc', 'label']) {
   src = src.replace(re, (whole, head, key) => {
     const ko = catalog[key];
     const named =
-      field === 'title' ? `widgets.${id}.title` : field === 'desc' ? `widgets-desc.${id}.desc` : key;
+      field === 'title' ? `widgets.${ns}.title` : field === 'desc' ? `widgets-desc.${ns}.desc` : key;
     /* ★ 지우지 않는다. 같은 글이 탭 이름으로도 쓰이면(같은 글 = 같은 열쇠) 여기서 지운 순간
      *   그쪽이 「없는 열쇠」가 되고, 기본값 자리에 `undefined` 가 박힌다 — 실제로 그렇게 깨졌다
      *   (replace.t05 · tableconv.t01). 안 쓰이게 된 열쇠는 맨 끝에서 한꺼번에 턴다. */
@@ -334,7 +338,7 @@ for (let at = src.indexOf(BUILD); at >= 0; at = src.indexOf(BUILD, at + 1)) {
   }
   if (end < 0) break;
   const indent = ' '.repeat(at - src.lastIndexOf('\n', at) - 1);
-  const head = `${BUILD}\n${indent}  void loadNamespace('${id}').then(function () {\n`;
+  const head = `${BUILD}\n${indent}  void loadNamespace('${ns}').then(function () {\n`;
   src = src.slice(0, at) + head + src.slice(open + 1, end) + `${indent}  });\n${indent}` + src.slice(end);
   wrapped++;
   at = src.indexOf('});', end); // 감싼 만큼 뒤로 밀렸다
@@ -442,12 +446,12 @@ if (!WRITE) {
 
 /* **위젯만 고치고 말 묶음을 안 쓰면 화면에 열쇠가 그대로 나간다.** 경로로 부르면 `id` 가
  * 경로 문자열이라 `i18n/ko/src/widgets/memo.ts.json` 같은 데를 가리킨다 — 그 전에 세운다. */
-if (/[/\\]/.test(id) || id.endsWith('.ts')) {
+if ((/[/\\]/.test(id) || id.endsWith('.ts')) && ns === id) {
   console.error(`경로로 부를 땐 이름을 못 정한다 — 등록 이름으로 불러라 (예: 그 파일의 Toolbox.register id).`);
   process.exit(2);
 }
 fs.writeFileSync(file, src);
-const koPath = path.join(ROOT, 'i18n/ko', `${id}.json`);
+const koPath = path.join(ROOT, 'i18n/ko', `${ns}.json`);
 const merged = fs.existsSync(koPath) ? JSON.parse(fs.readFileSync(koPath, 'utf8')) : {};
 fs.writeFileSync(koPath, JSON.stringify({ ...merged, ...catalog }, null, 2) + '\n');
-console.log(`[widgetize] 썼다 → ${rel} · i18n/ko/${id}.json`);
+console.log(`[widgetize] 썼다 → ${rel} · i18n/ko/${ns}.json`);
