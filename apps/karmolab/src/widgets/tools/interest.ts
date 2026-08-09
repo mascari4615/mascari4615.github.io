@@ -5,28 +5,14 @@
  * ① 적금은 매달 넣은 돈이 각각 다른 기간만 굴러간다 ② 이자소득세 15.4% 가 떼인다.
  * 그래서 세전·세후를 나란히 보여주고, 대출은 원리금균등 상환표까지 펼친다.
  */
+import { annuityPayment, depositInterest, savingInterest, spec, TAX_RATE, won } from '../../core/interest';
+import { readInvocation } from '../../lib/tool-url';
+
 (function (): void {
-  const TAX = 0.154; // 이자소득세 15.4% (소득세 14% + 지방소득세 1.4%)
-  const won = (n: number): string => Math.round(n).toLocaleString('ko-KR') + '원';
-
-  /** 예금 — 목돈을 맡기고 만기에 원금+이자. 단리 기준. */
-  function deposit(principal: number, rate: number, months: number): number {
-    return principal * (rate / 100) * (months / 12);
-  }
-
-  /** 적금 — n 번째 납입금은 (months - n + 1) 개월만 굴러간다. */
-  function saving(monthly: number, rate: number, months: number): number {
-    let interest = 0;
-    for (let n = 1; n <= months; n++) interest += monthly * (rate / 100) * ((months - n + 1) / 12);
-    return interest;
-  }
-
-  /** 원리금균등 — 매달 갚는 금액이 같도록 맞춘 상환액. */
-  function annuity(principal: number, rate: number, months: number): number {
-    const r = rate / 100 / 12;
-    if (r === 0) return principal / months;
-    return (principal * r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1);
-  }
+  const TAX = TAX_RATE;
+  const deposit = depositInterest;
+  const saving = savingInterest;
+  const annuity = annuityPayment;
 
   Toolbox.register({
     id: 'interest',
@@ -143,7 +129,24 @@
           });
           [amount, rate, months].forEach((el) => el.addEventListener('input', run));
 
+          // 주소로 부른 경우 (`?op=saving&monthly=500000&rate=4&months=12`) (TASK-KL-205).
+          const call = readInvocation(spec);
+          if (call !== null && call.error === undefined) {
+            mode = call.op;
+            amountLabel.textContent =
+              mode === 'saving' ? '매달 넣는 금액' : mode === 'deposit' ? '맡기는 금액' : '빌리는 금액';
+            container.querySelectorAll('#itMode .tool-chip').forEach((c) => {
+              c.classList.toggle('active', (c as HTMLElement).dataset.mode === mode);
+            });
+            amount.value = String(call.args.monthly ?? call.args.amount ?? amount.value);
+            rate.value = String(call.args.rate ?? rate.value);
+            months.value = String(call.args.months ?? months.value);
+          }
           run();
+          if (call?.error !== undefined) {
+            status.textContent = call.error;
+            status.className = 'tool-status error';
+          }
         }
       }
     ]

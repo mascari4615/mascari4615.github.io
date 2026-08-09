@@ -329,6 +329,48 @@ try {
 }
 check(vatThrew, '숫자가 아니면 던진다');
 
+// ── ②-8 interest 알맹이 (적금을 「총액 × 연이율」로 답하는 자리) ──────────────
+const it = await load('src/core/interest.ts');
+
+eq(it.spec.id, 'interest', 'interest spec.id');
+
+// 예금 = 단리. 1000만원 · 연 4% · 12개월 → 40만원.
+eq(it.depositInterest(10000000, 4, 12), 400000, '예금 단리 1년');
+eq(it.depositInterest(10000000, 4, 6), 200000, '예금 6개월은 절반');
+eq(it.depositInterest(10000000, 0, 12), 0, '이율 0 이면 이자 0');
+
+/* 이 도구가 있는 이유 자체 — 월 50만 × 12개월 · 연 4%.
+   흔한 오답: 600만 × 4% = 240,000원.
+   실제: 먼저 넣은 돈만 오래 굴러서 (12+11+…+1)/12 개월치 = 130,000원. */
+const savingGross = it.savingInterest(500000, 4, 12);
+eq(Math.round(savingGross), 130000, '적금 12개월 세전 이자');
+check(Math.round(savingGross) !== 240000, '「원금합계 × 연이율」(240,000)이면 틀린 것');
+eq(Math.round(it.savingInterest(500000, 4, 1)), 1667, '1개월이면 한 번만 굴러간다 (한 달치 이자)');
+
+// 세금 — 15.4% 는 소득세 14% + 지방소득세 1.4%.
+const at = it.afterTax(6000000, 130000);
+eq(Math.round(at.tax), 20020, '이자소득세 15.4%');
+eq(Math.round(at.net), 109980, '세후 이자');
+eq(Math.round(at.payout), 6109980, '세후 수령액 = 원금 + 세후이자');
+
+// 대출 원리금균등 — 3천만원 · 연 5% · 60개월.
+const pay = it.annuityPayment(30000000, 5, 60);
+check(pay > 566000 && pay < 567000, `월 상환액이 566,xxx 여야 한다: ${Math.round(pay)}`);
+check(pay * 60 > 30000000, '총 상환액은 원금보다 크다');
+eq(it.annuityPayment(1200000, 0, 12), 100000, '무이자면 그냥 나눈다');
+
+check(it.run('saving', { monthly: 500000, rate: 4, months: 12 }).includes('130,000원'), 'run saving 세전 이자');
+check(it.run('saving', { monthly: 500000, rate: 4, months: 12 }).includes('그건 틀립니다'), '흔한 오답을 짚어 준다');
+check(it.run('deposit', { amount: 10000000, rate: 4, months: 12 }).includes('이자소득세'), 'run deposit 세금 표기');
+check(it.run('loan', { amount: 30000000, rate: 5, months: 60 }).includes('월 상환액'), 'run loan');
+let itThrew = false;
+try {
+  it.run('deposit', { amount: -1, rate: 4, months: 12 });
+} catch {
+  itThrew = true;
+}
+check(itThrew, '음수 금액은 던진다');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 
