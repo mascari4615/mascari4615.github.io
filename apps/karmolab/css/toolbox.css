@@ -1236,6 +1236,15 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
 
 .landing-live { max-width: 620px; margin: var(--space-md) auto 0; position: relative; z-index: 1; }
 .landing-live:empty { display: none; }
+/* 「같이 보는 중」도 **데려오는 동안 자리를 잡아 둔다** (TASK-KL-201, 2026-08-10).
+   실사이트 실측: 이 칸이 0 → 129px 로 생기면서 아래가 통째로 내려갔다(밀림 0.038).
+   폭마다 줄 수가 달라 값이 셋이다 — 직접 재서 경계까지 확인:
+       ~479px 129px · 480~899px 92px · 900px~ 56px
+   못 데려오거나 아무도 없으면 JS 가 표를 떼고 `:empty` 가 다시 이겨 자리가 없어진다
+   (「지금 0명」은 북적임이 아니라 죽은 화면이라 그 설계는 그대로 지킨다). */
+.landing-live[data-reserving] { display: block; min-height: 129px; }
+@media (min-width: 480px) { .landing-live[data-reserving] { min-height: 92px; } }
+@media (min-width: 900px) { .landing-live[data-reserving] { min-height: 56px; } }
 .lv-line { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;
     font-size: var(--font-size-xs); color: var(--text-tertiary); }
 .lv-now { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-weight: 700; }
@@ -1250,6 +1259,11 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
 
 /* 나만의 첫 화면 (TASK-KL-196 H) */
 .landing-hi { margin-top: 6px; font-size: var(--font-size-sm); color: var(--accent); }
+/* 꾸미기 단추가 들어올 **자리**를 첫 그림부터 잡아 둔다 (TASK-KL-201, 2026-08-10).
+   이 단추는 꾸미기 조각이 온 뒤에 붙는다 — 그때 31px 가 생기며 아래가 내려갔다.
+   자리를 먼저 만들어 두고 그 안에 넣으면 아무것도 안 움직인다. 위 여백까지 함께 잡는다
+   (단추가 제 여백을 갖고 있어서, 키만 잡으면 그 여백만큼 또 밀린다). */
+.hp-slot { min-height: calc(31px + var(--space-lg)); }
 .hp-open { display: block; margin: var(--space-lg) auto 0; padding: 4px 10px; font: inherit;
     font-size: var(--font-size-2xs); color: var(--text-tertiary); background: none;
     border: 1px solid transparent; border-radius: var(--radius-sm); cursor: pointer; }

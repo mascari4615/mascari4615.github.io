@@ -144,9 +144,15 @@
         live.dataset.block = 'live';
         landing.appendChild(live);
         if (Toolbox.ensureScript) {
+            /* 데려오는 동안 자리를 잡아 둔다 — 안 그러면 도착하는 순간 129px 가 생기며 아래가
+               통째로 내려간다(실사이트 실측 0.038). 값은 CSS 가 폭을 보고 정한다. */
+            live.dataset.reserving = '1';
             Toolbox.ensureScript('root/live')
-                .then(() => window.KarmoLive && window.KarmoLive.mount(live))
-                .catch(() => {});
+                .then(() => {
+                    if (window.KarmoLive) window.KarmoLive.mount(live);
+                    else delete live.dataset.reserving;
+                })
+                .catch(() => { delete live.dataset.reserving; });
         }
 
         const pulse = document.createElement('div');
@@ -160,6 +166,11 @@
          * 첫 화면에서 「너 이거 안 써 봤지」라고 미는 자리였다 — 발견을 돕는다기보다 재촉으로
          * 읽힌다. 도구를 찾는 길은 이미 둘(도구 전체·검색) 있다. 서버의 `/kl/suggest` 도
          * 이 자리 때문에 첫 화면마다 두드리고 있었으므로 그 요청도 같이 없어진다. */
+
+        /* 꾸미기 단추가 들어올 자리 — 조각이 오기 전에 만들어 둔다(자리는 CSS `.hp-slot`). */
+        const prefSlot = document.createElement('div');
+        prefSlot.className = 'hp-slot';
+        landing.appendChild(prefSlot);
 
         /* 나만의 첫 화면 (TASK-KL-196 H) — 블록에 이름표(`data-block`)를 달아 두면
          * 꾸미기 조각이 순서를 바꾸고 감출 수 있다. 이 파일은 **기본 차림**만 만든다.
