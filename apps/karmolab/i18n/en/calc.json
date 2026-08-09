@@ -1,0 +1,14 @@
+{
+  "calc.part.percent": "Percent",
+  "calc.part.interest": "Interest",
+  "calc.part.unitconv": "Units",
+  "calc.part.radix": "Number bases",
+  "calc.part.numword": "Numbers ↔ Hangul",
+  "calc.part.aspect": "Ratio",
+  "calc.part.grade": "GPA",
+  "calc.part.vat": "VAT",
+  "calc.part.bytesize": "Data size",
+  "calc.part.bizno": "Korean business no.",
+  "calc.part.loan": "Loan repayment",
+  "calc.part.cssunit": "CSS units"
+}

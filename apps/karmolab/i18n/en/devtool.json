@@ -1,0 +1,8 @@
+{
+  "devtool.part.regextest": "Regex",
+  "devtool.part.hashgen": "Hash",
+  "devtool.part.cron": "Cron",
+  "devtool.part.crypto": "Encrypt",
+  "devtool.part.tableconv": "Convert a table",
+  "devtool.part.json2ts": "JSON → types"
+}

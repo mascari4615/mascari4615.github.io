@@ -6,8 +6,12 @@
  * 가운데 맞춰 넣고, 원본 크기를 그대로 쓰고 싶으면 그 선택지도 둔다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   interface PDFLib {
     PDFDocument: {
       create: () => Promise<{
@@ -32,20 +36,22 @@ import { acceptPastedFiles } from './shared/paste';
     id: 'img2pdf',
     // 다른 도구가 만든 그림을 그대로 받는다 (TASK-KL-133)
     accepts: ['image/*'],
-    title: '이미지 → PDF',
+    title: t('widgets.img2pdf.title', undefined, "이미지 → PDF"),
     category: 'tool',
-    desc: '사진 여러 장을 한 PDF 로 묶습니다. 비율을 지킨 채 종이에 맞춥니다',
+    desc: t('widgets-desc.img2pdf.desc', undefined, "사진 여러 장을 한 PDF 로 묶습니다. 비율을 지킨 채 종이에 맞춥니다"),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="10" height="9" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 11l3-3 2 2 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M17 8h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '이미지 → PDF',
+        label: t('img2pdf.tab', undefined, "이미지 → PDF"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('img2pdf').then(function () {
+
           container.innerHTML = `
             <div class="tool-drop" id="i2Drop">
               <input type="file" id="i2File" accept="image/png,image/jpeg" multiple hidden>
-              사진을 끌어다 놓거나 눌러서 고르세요 (여러 장 · PNG·JPG)
+              ${esc(t('img2pdf.drop'))}
             </div>
 
             <div class="p2-grid" id="i2Preview" style="margin-top:var(--space-lg);"></div>
@@ -53,34 +59,34 @@ import { acceptPastedFiles } from './shared/paste';
             <div class="field-group" style="margin-top:var(--space-lg);">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">종이</div>
-                  <select id="i2Paper" aria-label="종이">
+                  <div class="tool-sublabel">${esc(t('img2pdf.label.paper'))}</div>
+                  <select id="i2Paper" aria-label="${esc(t('img2pdf.label.paper'))}">
                     <option value="a4">A4</option>
-                    <option value="letter">레터</option>
+                    <option value="letter">${esc(t('img2pdf.paper.letter'))}</option>
                     <option value="b5">B5</option>
-                    <option value="fit">사진 크기 그대로</option>
+                    <option value="fit">${esc(t('img2pdf.paper.fit'))}</option>
                   </select>
                 </div>
                 <div>
-                  <div class="tool-sublabel">방향</div>
-                  <select id="i2Orient" aria-label="방향">
-                    <option value="auto">사진에 맞춰 자동</option>
-                    <option value="portrait">세로</option>
-                    <option value="landscape">가로</option>
+                  <div class="tool-sublabel">${esc(t('img2pdf.label.orient'))}</div>
+                  <select id="i2Orient" aria-label="${esc(t('img2pdf.label.orient'))}">
+                    <option value="auto">${esc(t('img2pdf.orient.auto'))}</option>
+                    <option value="portrait">${esc(t('img2pdf.orient.portrait'))}</option>
+                    <option value="landscape">${esc(t('img2pdf.orient.landscape'))}</option>
                   </select>
                 </div>
               </div>
               <div style="margin-top:10px;">
-                <div class="tool-sublabel">여백 <span id="i2MarginVal" class="range-value">20pt</span></div>
-                <input type="range" id="i2Margin" aria-label="여백" min="0" max="72" value="20">
+                <div class="tool-sublabel">${esc(t('img2pdf.label.margin'))} <span id="i2MarginVal" class="range-value">20pt</span></div>
+                <input type="range" id="i2Margin" aria-label="${esc(t('img2pdf.label.margin'))}" min="0" max="72" value="20">
               </div>
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-primary" id="i2Run">PDF 로 묶기</button>
-              <button class="btn btn-ghost" id="i2Clear">비우기</button>
+              <button class="btn btn-primary" id="i2Run">${esc(t('img2pdf.btn.run'))}</button>
+              <button class="btn btn-ghost" id="i2Clear">${esc(t('img2pdf.btn.clear'))}</button>
             </div>
-            <div class="tool-status" id="i2Status">비율을 지킨 채 가운데 맞춰 넣습니다 — 찌그러지지 않습니다.</div>
+            <div class="tool-status" id="i2Status">${esc(t('img2pdf.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -99,22 +105,22 @@ import { acceptPastedFiles } from './shared/paste';
 
           async function loadLib(): Promise<PDFLib> {
             if (lib) return lib;
-            say('PDF 처리기를 불러오는 중…');
+            say(t('img2pdf.say.loadingLib'));
             await Toolbox.ensureScript?.('vendor/pdf-lib.min');
             lib = (window as unknown as { PDFLib: PDFLib }).PDFLib;
-            if (!lib) throw new Error('PDF 처리기를 불러오지 못했습니다');
+            if (!lib) throw new Error(t('img2pdf.err.lib'));
             return lib;
           }
 
           function renderPreview(): void {
             preview.innerHTML = files
-              .map((f, i) => `<div class="p2-cell"><img src="${URL.createObjectURL(f)}" alt=""><span>${i + 1}번째</span></div>`)
+              .map((f, i) => `<div class="p2-cell"><img src="${URL.createObjectURL(f)}" alt=""><span>${esc(t('img2pdf.value.nth', { n: i + 1 }))}</span></div>`)
               .join('');
           }
 
           async function run(): Promise<void> {
             if (!files.length) {
-              say('사진을 먼저 넣어 주세요.', 'error');
+              say(t('img2pdf.err.noFile'), 'error');
               return;
             }
             const L = await loadLib();
@@ -149,15 +155,15 @@ import { acceptPastedFiles } from './shared/paste';
               const blob = new Blob([(await doc.save()) as unknown as BlobPart], { type: 'application/pdf' });
               const a = document.createElement('a');
               a.href = URL.createObjectURL(blob);
-              a.download = '사진-묶음.pdf';
+              a.download = t('img2pdf.file.name');
               a.click();
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-              say(`${files.length}장을 PDF 로 묶어 내려받았어요.`, 'ok');
+              say(t('img2pdf.say.done', { n: files.length }), 'ok');
               // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
               Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'img2pdf' });
               Toolbox.trackUse?.('convert');
             } catch (e) {
-              say('처리 중 문제가 생겼어요: ' + (e as Error).message, 'error');
+              say(t('img2pdf.err.run') + (e as Error).message, 'error');
             }
           }
 
@@ -166,7 +172,7 @@ import { acceptPastedFiles } from './shared/paste';
               if (f.type === 'image/png' || f.type === 'image/jpeg') files.push(f);
             }
             renderPreview();
-            say(`${files.length}장 · 넣은 순서대로 묶습니다.`, 'ok');
+            say(t('img2pdf.say.picked', { n: files.length }), 'ok');
           }
 
           drop.onclick = () => fileInput.click();
@@ -198,8 +204,9 @@ import { acceptPastedFiles } from './shared/paste';
           $<HTMLButtonElement>('#i2Clear').onclick = () => {
             files = [];
             renderPreview();
-            say('비웠어요.');
+            say(t('img2pdf.say.cleared'));
           };
+                  });
         }
       }
     ]

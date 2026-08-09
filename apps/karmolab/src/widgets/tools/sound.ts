@@ -4,29 +4,35 @@
  * 녹음 → 자르기 → 크기 맞추기 → 잇기 는 대개 이어서 하는 일이다. 흩어져 있으면
  * 그때마다 다른 자리를 찾아야 한다. 저장은 MP3 와 WAV 중 고를 수 있다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
-  const PARTS: Array<[string, string]> = [
-    ['voicerec', '녹음'],
-    ['audiocut', '자르기'],
-    ['audiolevel', '크기 맞추기'],
-    ['audiospeed', '속도'],
-    ['audiofade', '페이드'],
-    ['audiojoin', '잇기']
+  /* 부품 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
+  const parts = (): Array<[string, string]> => [
+    ['voicerec', t('sound.part.voicerec')],
+    ['audiocut', t('sound.part.audiocut')],
+    ['audiolevel', t('sound.part.audiolevel')],
+    ['audiospeed', t('sound.part.audiospeed')],
+    ['audiofade', t('sound.part.audiofade')],
+    ['audiojoin', t('sound.part.audiojoin')]
   ];
 
   Toolbox.register({
     id: 'sound',
-    title: '소리 도구',
+    title: t('widgets.sound.title', undefined, "소리 도구"),
     category: 'tool',
-    desc: '녹음하고 자르고 크기를 맞추고 잇습니다. MP3·WAV 로 저장하며 파일이 브라우저를 벗어나지 않습니다',
+    desc: t('widgets-desc.sound.desc', undefined, "녹음하고 자르고 크기를 맞추고 잇습니다. MP3·WAV 로 저장하며 파일이 브라우저를 벗어나지 않습니다"),
     layout: 'wide',
     lazyTabs: true,
     icon: '<path d="M4 12h2l2-5 3 12 3-16 3 14 2-5h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    tabs: PARTS.map(([id, label]) => ({
+    tabs: parts().map(([id, label]) => ({
       id,
       label,
       build: function (container: HTMLElement): void {
+        void loadNamespace('sound').then(function () {
+
         Toolbox.mountTool(id, container);
+              });
       }
     }))
   });

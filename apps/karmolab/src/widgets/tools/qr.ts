@@ -4,25 +4,31 @@
  * 만든 QR 이 제대로 읽히는지 바로 확인하고 싶은 게 사람 마음이다. 두 기능이 떨어져 있으면
  * 그걸 하려고 다른 사이트를 찾게 된다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
-  const PARTS: Array<[string, string]> = [
-    ['qrgen', 'QR 만들기'],
-    ['qrread', 'QR 읽기']
+  /* 부품 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
+  const parts = (): Array<[string, string]> => [
+    ['qrgen', t('qr.part.qrgen')],
+    ['qrread', t('qr.part.qrread')]
   ];
 
   Toolbox.register({
     id: 'qr',
-    title: 'QR 도구',
+    title: t('widgets.qr.title', undefined, "QR 도구"),
     category: 'tool',
-    desc: 'QR 코드를 만들고 읽습니다. 읽은 내용이 무엇인지도 알려 줍니다',
+    desc: t('widgets-desc.qr.desc', undefined, "QR 코드를 만들고 읽습니다. 읽은 내용이 무엇인지도 알려 줍니다"),
     layout: 'wide',
     lazyTabs: true,
     icon: '<rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z" fill="currentColor"/>',
-    tabs: PARTS.map(([id, label]) => ({
+    tabs: parts().map(([id, label]) => ({
       id,
       label,
       build: function (container: HTMLElement): void {
+        void loadNamespace('qr').then(function () {
+
         Toolbox.mountTool(id, container);
+              });
       }
     }))
   });

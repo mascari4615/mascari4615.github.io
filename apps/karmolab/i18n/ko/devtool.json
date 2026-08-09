@@ -1,0 +1,8 @@
+{
+  "devtool.part.regextest": "정규식",
+  "devtool.part.hashgen": "해시",
+  "devtool.part.cron": "크론",
+  "devtool.part.crypto": "암호화",
+  "devtool.part.tableconv": "표 바꾸기",
+  "devtool.part.json2ts": "JSON → 타입"
+}

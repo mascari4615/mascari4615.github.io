@@ -1,0 +1,9 @@
+{
+  "videotool.part.video2gif": "Make a GIF",
+  "videotool.part.videotrim": "Trim",
+  "videotool.part.videorotate": "Rotate",
+  "videotool.part.videocompress": "Shrink",
+  "videotool.part.video2img": "Grab frames",
+  "videotool.part.video2audio": "Extract audio",
+  "videotool.part.screenrec": "Record the screen"
+}

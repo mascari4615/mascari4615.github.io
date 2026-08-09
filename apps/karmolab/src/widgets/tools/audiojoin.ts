@@ -7,45 +7,51 @@
  */
 import { encodeAudio, fileSize as size, mmss } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'audiojoin',
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['audio/*'],
-    title: '오디오 이어붙이기',
+    title: t('widgets.audiojoin.title', undefined, "오디오 이어붙이기"),
     category: 'tool',
-    desc: '여러 음원을 하나로 잇습니다. 표본율이 달라도 맞춰서 이어 줍니다',
+    desc: t('widgets-desc.audiojoin.desc', undefined, "여러 음원을 하나로 잇습니다. 표본율이 달라도 맞춰서 이어 줍니다"),
     layout: 'wide',
     icon: '<path d="M4 12h3l2-4 2 8 2-6 2 4h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 4v3M12 17v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>',
     tabs: [
       {
         id: 'app',
-        label: '이어붙이기',
+        label: t('audiojoin.tab', undefined, "이어붙이기"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('audiojoin').then(function () {
+
           container.innerHTML = `
             <div class="tool-drop" id="ajDrop">
               <input type="file" id="ajFile" accept="audio/*" multiple hidden>
-              음원 파일을 끌어다 놓거나 눌러서 고르세요 (여러 개 · 넣은 순서대로 이어집니다)
+              ${esc(t('audiojoin.drop'))}
             </div>
 
             <div class="tool-list" id="ajList" style="margin-top:var(--space-lg);"></div>
 
             <div class="field-group" style="margin-top:var(--space-lg);">
-              <div class="tool-sublabel">사이 무음 <span id="ajGapVal" class="range-value">0.0초</span></div>
-              <input type="range" id="ajGap" aria-label="사이 무음" min="0" max="30" value="0">
+              <div class="tool-sublabel">${esc(t('audiojoin.label.gap'))} <span id="ajGapVal" class="range-value">${esc(t('audiojoin.value.gap'))}</span></div>
+              <input type="range" id="ajGap" aria-label="${esc(t('audiojoin.label.gap'))}" min="0" max="30" value="0">
               <div class="tool-chips" style="margin-top:10px;">
-                <label class="tool-chip"><input type="checkbox" id="ajFade" checked> 이음매 페이드 (딸깍 소리 방지)</label>
+                <label class="tool-chip"><input type="checkbox" id="ajFade" checked> ${esc(t('audiojoin.opt.fade'))}</label>
               </div>
             </div>
 
             <div class="cc-stats" id="ajStats"></div>
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="ajRun">이어붙여 내려받기</button>
-              <select id="ajFormat" aria-label="저장 형식"><option value="mp3">MP3 — 작음</option><option value="wav">WAV — 손실 없음</option></select>
-              <button class="btn btn-ghost" id="ajClear">비우기</button>
+              <button class="btn btn-primary" id="ajRun">${esc(t('audiojoin.btn.run'))}</button>
+              <select id="ajFormat" aria-label="${esc(t('audiojoin.label.format'))}"><option value="mp3">${esc(t('audiojoin.format.mp3'))}</option><option value="wav">${esc(t('audiojoin.format.wav'))}</option></select>
+              <button class="btn btn-ghost" id="ajClear">${esc(t('audiojoin.btn.clear'))}</button>
             </div>
-            <div class="tool-status" id="ajStatus">표본율이 다르면 가장 높은 쪽에 맞춰 이어 줍니다.</div>
+            <div class="tool-status" id="ajStatus">${esc(t('audiojoin.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -57,7 +63,6 @@ import { acceptPastedFiles } from './shared/paste';
           const gap = $<HTMLInputElement>('#ajGap');
           let items: Array<{ name: string; buffer: AudioBuffer }> = [];
 
-          const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
           const say = (m: string, kind = ''): void => {
             status.textContent = m;
             status.className = 'tool-status' + (kind ? ' ' + kind : '');
@@ -69,7 +74,7 @@ import { acceptPastedFiles } from './shared/paste';
             listEl.innerHTML = items
               .map(
                 (it, i) =>
-                  `<div class="tool-list-row"><span class="tool-list-key">${i + 1}번째</span><span class="tool-list-val">${esc(it.name)} <span class="tool-list-dim">${mmss(it.buffer.duration)} · ${(it.buffer.sampleRate / 1000).toFixed(1)}kHz · ${it.buffer.numberOfChannels === 1 ? '모노' : '스테레오'}</span></span></div>`
+                  `<div class="tool-list-row"><span class="tool-list-key">${esc(t('audiojoin.value.nth', { n: i + 1 }))}</span><span class="tool-list-val">${esc(it.name)} <span class="tool-list-dim">${mmss(it.buffer.duration)} · ${(it.buffer.sampleRate / 1000).toFixed(1)}kHz · ${it.buffer.numberOfChannels === 1 ? t('audiojoin.value.mono') : t('audiojoin.value.stereo')}</span></span></div>`
               )
               .join('');
             if (!items.length) {
@@ -80,9 +85,17 @@ import { acceptPastedFiles } from './shared/paste';
             const total = items.reduce((a, i) => a + i.buffer.duration, 0) + gapSec * Math.max(0, items.length - 1);
             const rates = [...new Set(items.map((i) => i.buffer.sampleRate))];
             stats.innerHTML =
-              stat('이어진 길이', mmss(total), true) +
-              stat('파일 수', `${items.length}개`) +
-              stat('표본율', rates.length > 1 ? `${rates.length}종 → ${Math.max(...rates) / 1000}kHz 로 맞춤` : `${rates[0] / 1000}kHz`);
+              stat(t('audiojoin.stat.length'), mmss(total), true) +
+              stat(t('audiojoin.stat.count'), t('audiojoin.value.count', { n: items.length })) +
+              stat(
+                t('audiojoin.stat.rate'),
+                rates.length > 1
+                  ? t('audiojoin.value.matched', {
+                      kinds: t('audiojoin.value.kinds', { n: rates.length }),
+                      khz: Math.max(...rates) / 1000
+                    })
+                  : `${rates[0] / 1000}kHz`
+              );
           }
 
           async function add(list: FileList | File[]): Promise<void> {
@@ -93,12 +106,12 @@ import { acceptPastedFiles } from './shared/paste';
               try {
                 items.push({ name: f.name, buffer: await ctx.decodeAudioData(await f.arrayBuffer()) });
               } catch {
-                say(`${f.name} 은 브라우저가 열지 못했어요.`, 'error');
+                say(t('audiojoin.err.one', { name: f.name }), 'error');
               }
             }
             void ctx.close();
             render();
-            if (items.length) say(`${items.length}개 · 넣은 순서대로 이어집니다.`, 'ok');
+            if (items.length) say(t('audiojoin.say.picked', { n: items.length }), 'ok');
             Toolbox.trackUse?.('add');
           }
 
@@ -136,7 +149,7 @@ import { acceptPastedFiles } from './shared/paste';
             const ctx = new AC();
             const parts: AudioBuffer[] = [];
             for (let i = 0; i < items.length; i++) {
-              say(`맞추는 중… ${i + 1}/${items.length}`);
+              say(t('audiojoin.say.matching', { i: i + 1, n: items.length }));
               await new Promise((r) => setTimeout(r, 0));
               parts.push(resample(items[i].buffer, rate, ch, ctx));
             }
@@ -146,7 +159,7 @@ import { acceptPastedFiles } from './shared/paste';
             let off = 0;
             for (let pi = 0; pi < parts.length; pi++) {
               const part = parts[pi];
-              say(`잇는 중… ${pi + 1}/${parts.length}`);
+              say(t('audiojoin.say.joining', { i: pi + 1, n: parts.length }));
               await new Promise((r) => setTimeout(r, 0));
               for (let c = 0; c < ch; c++) {
                 const from = part.getChannelData(c);
@@ -189,38 +202,39 @@ import { acceptPastedFiles } from './shared/paste';
           // 파일을 바로 붙여넣는 것이 잦다
           acceptPastedFiles(container, (files) => { void add(files); }, (f: File) => f.type.startsWith('audio/'));
           gap.addEventListener('input', () => {
-            $<HTMLElement>('#ajGapVal').textContent = (parseInt(gap.value, 10) / 10).toFixed(1) + '초';
+            $<HTMLElement>('#ajGapVal').textContent = (parseInt(gap.value, 10) / 10).toFixed(1) + t('audiojoin.unit.sec');
             render();
           });
           $<HTMLButtonElement>('#ajRun').onclick = () => {
             void (async () => {
             const out = await join();
             if (!out) {
-              say('음원을 먼저 넣어 주세요.', 'error');
+              say(t('audiojoin.err.noFile'), 'error');
               return;
             }
             const format = $<HTMLSelectElement>('#ajFormat').value as 'wav' | 'mp3';
-            say(format === 'mp3' ? 'MP3 로 만드는 중…' : '내려받는 중…');
+            say(format === 'mp3' ? t('audiojoin.say.encoding') : t('audiojoin.say.saving'));
             void encodeAudio(out, format)
               .then((blob) => {
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = '이어붙인-음원.' + format;
+                a.download = t('audiojoin.file.name') + format;
                 a.click();
                 // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
                 Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'audiojoin' });
                 setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-                say(`${mmss(out.duration)} · ${size(blob.size)} 로 이어 내려받았어요.`, 'ok');
+                say(t('audiojoin.say.done', { len: mmss(out.duration), size: size(blob.size) }), 'ok');
                 Toolbox.trackUse?.('join');
               })
-              .catch((err: Error) => say('만드는 중 문제가 생겼어요: ' + err.message, 'error'));
-            })().catch((err: Error) => say('잇는 중 문제가 생겼어요: ' + err.message, 'error'));
+              .catch((err: Error) => say(t('audiojoin.err.make') + err.message, 'error'));
+            })().catch((err: Error) => say(t('audiojoin.err.join') + err.message, 'error'));
           };
           $<HTMLButtonElement>('#ajClear').onclick = () => {
             items = [];
             render();
-            say('비웠어요.');
+            say(t('audiojoin.say.cleared'));
           };
+                  });
         }
       }
     ]

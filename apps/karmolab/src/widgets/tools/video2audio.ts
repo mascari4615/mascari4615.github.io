@@ -9,42 +9,48 @@
  */
 import { encodeAudio, fileSize as size, mmss } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'video2audio',
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['video/*'],
-    title: '영상에서 소리 추출',
+    title: t('widgets.video2audio.title', undefined, "영상에서 소리 추출"),
     category: 'tool',
-    desc: '영상 파일의 소리만 뽑아 음원으로 받습니다. 파일이 브라우저를 벗어나지 않습니다',
+    desc: t('widgets-desc.video2audio.desc', undefined, "영상 파일의 소리만 뽑아 음원으로 받습니다. 파일이 브라우저를 벗어나지 않습니다"),
     layout: 'wide',
     icon: '<rect x="3" y="5" width="13" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M16 10l5-3v10l-5-3z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M7 14c0-2 1.5-3 2.5-3s2.5 1 2.5 3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '소리 추출',
+        label: t('video2audio.tab', undefined, "소리 추출"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('video2audio').then(function () {
+
           container.innerHTML = `
             <div class="tool-drop" id="vaDrop">
               <input type="file" id="vaFile" accept="video/*" hidden>
-              영상을 끌어다 놓거나 눌러서 고르세요
+              ${esc(t('video2audio.drop'))}
             </div>
 
             <div class="cc-stats" id="vaStats"></div>
 
             <div class="field-group" style="margin-top:var(--space-lg);">
-              <label class="field-label" for="vaFormat">저장 형식</label>
+              <label class="field-label" for="vaFormat">${esc(t('video2audio.label.format'))}</label>
               <select id="vaFormat">
-                <option value="mp3">MP3 — 작아서 보내기 좋음</option>
-                <option value="wav">WAV — 품질 손실 없음, 용량 큼</option>
+                <option value="mp3">${esc(t('video2audio.format.mp3'))}</option>
+                <option value="wav">${esc(t('video2audio.format.wav'))}</option>
               </select>
             </div>
 
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="vaRun">소리만 뽑아 받기</button>
+              <button class="btn btn-primary" id="vaRun">${esc(t('video2audio.btn.run'))}</button>
             </div>
-            <div class="tool-status" id="vaStatus">영상은 브라우저 안에서만 열립니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="vaStatus">${esc(t('video2audio.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -66,23 +72,23 @@ import { acceptPastedFiles } from './shared/paste';
             file = f;
             buffer = null;
             stats.innerHTML = '';
-            say(`${f.name} · ${size(f.size)} 에서 소리를 찾는 중…`);
+            say(t('video2audio.say.looking', { name: f.name, size: size(f.size) }));
             const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
             const ctx = new AC();
             try {
               buffer = await ctx.decodeAudioData(await f.arrayBuffer());
             } catch {
               // 코덱을 브라우저가 모르면 여기로 온다. 무엇이 되는지 알려 줘야 다음 행동이 생긴다.
-              say('이 영상의 소리는 브라우저가 해독하지 못했어요. mp4·webm·mov 는 대체로 됩니다.', 'error');
+              say(t('video2audio.err.decode'), 'error');
               void ctx.close();
               return;
             }
             void ctx.close();
             stats.innerHTML =
-              stat('길이', mmss(buffer.duration), true) +
-              stat('표본율', `${(buffer.sampleRate / 1000).toFixed(1)}kHz`) +
-              stat('채널', buffer.numberOfChannels === 1 ? '모노' : '스테레오');
-            say(`소리를 찾았어요 — 뽑기를 누르면 음원으로 받습니다.`, 'ok');
+              stat(t('video2audio.stat.length'), mmss(buffer.duration), true) +
+              stat(t('video2audio.stat.rate'), `${(buffer.sampleRate / 1000).toFixed(1)}kHz`) +
+              stat(t('video2audio.stat.channels'), buffer.numberOfChannels === 1 ? t('video2audio.value.mono') : t('video2audio.value.stereo'));
+            say(t('video2audio.say.found'), 'ok');
           }
 
           drop.onclick = () => fileInput.click();
@@ -111,13 +117,13 @@ import { acceptPastedFiles } from './shared/paste';
 
           $<HTMLButtonElement>('#vaRun').onclick = () => {
             if (!buffer || !file) {
-              say('영상을 먼저 넣어 주세요.', 'error');
+              say(t('video2audio.err.noFile'), 'error');
               return;
             }
             const format = $<HTMLSelectElement>('#vaFormat').value as 'wav' | 'mp3';
             const held = buffer;
             const name = file.name;
-            say(format === 'mp3' ? 'MP3 로 만드는 중…' : '음원으로 만드는 중…');
+            say(format === 'mp3' ? t('video2audio.say.encoding') : t('video2audio.say.making'));
             void encodeAudio(held, format)
               .then((blob) => {
                 const a = document.createElement('a');
@@ -127,11 +133,12 @@ import { acceptPastedFiles } from './shared/paste';
                 // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
                 Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'video2audio' });
                 setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-                say(`${mmss(held.duration)} · ${size(blob.size)} 로 받았어요.`, 'ok');
+                say(t('video2audio.say.done', { len: mmss(held.duration), size: size(blob.size) }), 'ok');
                 Toolbox.trackUse?.('extract');
               })
-              .catch((err: Error) => say('만드는 중 문제가 생겼어요: ' + err.message, 'error'));
+              .catch((err: Error) => say(t('video2audio.err.run') + err.message, 'error'));
           };
+                  });
         }
       }
     ]

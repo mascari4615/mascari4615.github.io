@@ -1,0 +1,8 @@
+{
+  "color.part.colorconv": "변환",
+  "color.part.palette": "이미지에서 추출",
+  "color.part.cssnames": "CSS 색 이름",
+  "color.part.gradient": "그라데이션",
+  "color.part.contrast": "대비 검사",
+  "color.part.colorblind": "색각"
+}

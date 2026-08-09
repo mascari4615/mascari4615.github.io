@@ -1,0 +1,22 @@
+{
+  "video2audio.tab": "音を取り出す",
+  "video2audio.drop": "動画をドラッグするか、押して選んでください",
+  "video2audio.label.format": "保存形式",
+  "video2audio.format.mp3": "MP3 — 小さくて送りやすい",
+  "video2audio.format.wav": "WAV — 劣化なし、容量が大きい",
+  "video2audio.btn.run": "音だけ取り出す",
+  "video2audio.status.idle": "動画はブラウザの中だけで開きます — どこにも送りません。",
+  "video2audio.err.decode": "この動画の音はブラウザで解読できませんでした。mp4・webm・mov ならたいてい大丈夫です。",
+  "video2audio.stat.length": "長さ",
+  "video2audio.stat.rate": "サンプリング周波数",
+  "video2audio.stat.channels": "チャンネル",
+  "video2audio.value.mono": "モノラル",
+  "video2audio.value.stereo": "ステレオ",
+  "video2audio.err.noFile": "先に動画を入れてください。",
+  "video2audio.say.encoding": "MP3 を作っています…",
+  "video2audio.say.making": "音源を作っています…",
+  "video2audio.err.run": "作成中に問題が起きました: ",
+  "video2audio.say.looking": "{name} · {size} から音を探しています…",
+  "video2audio.say.found": "音が見つかりました — 取り出すを押すと音源で受け取れます。",
+  "video2audio.say.done": "{len} · {size} でダウンロードしました。"
+}

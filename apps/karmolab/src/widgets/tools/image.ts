@@ -5,31 +5,37 @@
  * 이 묶음은 무거운 화면(AI 생성·보관함)을 포함하므로 lazyTabs 로 둔다 — 안 연 탭은 만들지 않는다.
  * 화면은 각 부분 위젯이 그대로 그리고 (Toolbox.mountTool), 부분의 개별 주소는 살아 있다.
  */
-(function (): void {
-  const PARTS: Array<[string, string]> = [
-    ['imageedit', '편집 · 변환'],
+import { t, loadNamespace } from '../../lib/i18n';
 
-    ['text2img', '글자 카드'],
-    ['imgresize', '크기 맞추기'],
-    ['redact', '가리개'],
-    ['asciiart', '아스키 아트'],
-    ['imagegen', 'AI 생성'],
-    ['imagelib', '보관함']
+(function (): void {
+  /* 부품 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
+  const parts = (): Array<[string, string]> => [
+    ['imageedit', t('image.part.imgbatch')],
+
+    ['text2img', t('image.part.text2img')],
+    ['imgresize', t('image.part.imgresize')],
+    ['redact', t('image.part.redact')],
+    ['asciiart', t('image.part.asciiart')],
+    ['imagegen', t('image.part.aigen')],
+    ['imagelib', t('image.part.store')]
   ];
 
   Toolbox.register({
     id: 'image',
-    title: '이미지',
+    title: t('widgets.image.title', undefined, "이미지"),
     category: 'tool',
-    desc: '편집·형식 변환, 아스키 아트, AI 생성과 보관함을 한 곳에서',
+    desc: t('widgets-desc.image.desc', undefined, "편집·형식 변환, 아스키 아트, AI 생성과 보관함을 한 곳에서"),
     layout: 'full',
     lazyTabs: true, // AI 생성·보관함이 무겁다 — 연 탭만 만든다
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="8.5" cy="9" r="1.6" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M4 17l4.5-4.5 3 3L15 12l5 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    tabs: PARTS.map(([id, label]) => ({
+    tabs: parts().map(([id, label]) => ({
       id,
       label,
       build: function (container: HTMLElement): void {
+        void loadNamespace('image').then(function () {
+
         Toolbox.mountTool(id, container);
+              });
       }
     }))
   });

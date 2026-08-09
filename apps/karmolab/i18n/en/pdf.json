@@ -1,0 +1,13 @@
+{
+  "pdf.part.pdftool": "Merge · split",
+  "pdf.part.pdfcompress": "Shrink",
+  "pdf.part.pdfsign": "Sign",
+  "pdf.part.pdfcrop": "Crop margins",
+  "pdf.part.pdfpagenum": "Page numbers",
+  "pdf.part.pdfredact": "Redact",
+  "pdf.part.pdfwatermark": "Watermark",
+  "pdf.part.pdf2text": "PDF → text",
+  "pdf.part.text2pdf": "Text → PDF",
+  "pdf.part.pdf2img": "PDF → images",
+  "pdf.part.img2pdf": "Images → PDF"
+}
