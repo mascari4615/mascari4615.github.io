@@ -1,5 +1,5 @@
 {
-  "total": 8155,
+  "total": 8216,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -299,6 +299,7 @@
     "src/core/csvjson.ts": 5,
     "src/core/tableconv.ts": 5,
     "src/core/qrgen.ts": 7,
-    "src/core/filehash.ts": 11
+    "src/core/filehash.ts": 11,
+    "src/core/workdays.ts": 61
   }
 }
