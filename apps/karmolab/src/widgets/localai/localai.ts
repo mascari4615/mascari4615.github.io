@@ -43,6 +43,14 @@
       monitor?: (m: DownloadMonitor) => void;
     }) => Promise<SummarizerLike>;
   }
+  interface PromptLike {
+    prompt: (text: string) => Promise<string>;
+    destroy?: () => void;
+  }
+  interface PromptApi {
+    availability: () => Promise<string>;
+    create: (opts?: { monitor?: (m: DownloadMonitor) => void; initialPrompts?: Array<{ role: string; content: string }> }) => Promise<PromptLike>;
+  }
   interface DetectorApi {
     availability: () => Promise<string>;
     create: (opts?: { monitor?: (m: DownloadMonitor) => void }) => Promise<{
@@ -53,6 +61,7 @@
   const g = globalThis as unknown as {
     Translator?: TranslatorApi;
     Summarizer?: SummarizerApi;
+    LanguageModel?: PromptApi;
     LanguageDetector?: DetectorApi;
   };
 
@@ -316,11 +325,76 @@
     };
   }
 
+  /**
+   * 짧은 생성 — 「똑똑한 자동완성」 급이라 **그렇게 쓴다** (TASK-KL-209 ③).
+   *
+   * 무거운 것(긴 글·사실 확인·캐릭터 대화)은 서버 몫이다. 여기서는 다듬기·이름 짓기처럼
+   * 짧고 틀려도 되는 일만 시킨다 — 그게 이 모델이 잘하는 자리다.
+   */
+  function buildPrompt(container: HTMLElement): void {
+    if (!g.LanguageModel) {
+      container.innerHTML = unsupported('브라우저 안 짧은 생성');
+      return;
+    }
+    container.innerHTML = `
+      <div class="lai-wrap">
+        <div class="lai-note">
+          짧은 글을 <b>이 기기 안에서</b> 만듭니다. 서버로 안 보냅니다.
+          <span class="lai-dim">가벼운 모델입니다 — 다듬기·이름 짓기처럼 짧고 틀려도 되는 일에 씁니다.
+          긴 글·사실 확인은 다른 AI 도구(서버 쪽)를 쓰세요.</span>
+        </div>
+        <textarea id="laiPIn" class="lai-ta" placeholder="예: 이 문장을 더 짧고 분명하게 고쳐 줘 — ..."></textarea>
+        <div class="lai-row"><button type="button" class="btn" id="laiPRun">만들기</button></div>
+        <div class="lai-bar"><span></span></div>
+        <div class="lai-state" id="laiPState"></div>
+        <div class="lai-out" id="laiPOut"></div>
+      </div>`;
+    const input = container.querySelector('#laiPIn') as HTMLTextAreaElement;
+    const out = container.querySelector('#laiPOut') as HTMLElement;
+    const state = container.querySelector('#laiPState') as HTMLElement;
+    const bar = container.querySelector('.lai-bar') as HTMLElement;
+    const btn = container.querySelector('#laiPRun') as HTMLButtonElement;
+
+    btn.onclick = async (): Promise<void> => {
+      const text = input.value.trim();
+      if (!text) {
+        state.textContent = '시킬 일을 적어 주세요.';
+        return;
+      }
+      btn.disabled = true;
+      out.textContent = '';
+      state.textContent = '준비 중…';
+      try {
+        const can = await withLimit(g.LanguageModel!.availability(), 15, '준비 확인');
+        state.textContent = sayAvailability(can);
+        if (can === 'unavailable') {
+          btn.disabled = false;
+          return;
+        }
+        const session = await withLimit(
+          g.LanguageModel!.create({ monitor: progressWatcher(bar, state) }),
+          can === 'available' ? 20 : 180,
+          '모델'
+        );
+        state.textContent = '만드는 중…';
+        out.textContent = await withLimit(session.prompt(text), 90, '생성');
+        state.textContent = '끝. 이 글은 기기 밖으로 안 나갔습니다.';
+        session.destroy?.();
+        Toolbox.trackUse?.('localai-prompt');
+      } catch (err) {
+        state.textContent = `실패 — ${String(err).split(String.fromCharCode(10))[0].slice(0, 110)}`;
+      } finally {
+        btn.disabled = false;
+      }
+    };
+  }
+
   Toolbox.register({
     ...Toolbox.getLazyWidgetPublicMeta(ID),
     tabs: [
       { id: 'localai-translate', label: '번역', build: buildTranslate },
       { id: 'localai-summarize', label: '요약', build: buildSummarize },
+      { id: 'localai-prompt', label: '짧은 생성', build: buildPrompt },
     ],
   });
 })();
