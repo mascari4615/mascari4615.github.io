@@ -417,6 +417,19 @@ if (early) {
   console.log(`[widgetize] ⚠ 등록보다 먼저 t() 를 ${early}곳에서 부른다 — 그 표는 말 묶음이 오기 전에 굳는다.`);
   console.log('   쓸 때 만드는 함수로 바꿔야 한다 (사람 판단).');
 }
+/* **`t` 라는 이름의 지역 변수**가 있으면 그 안에서는 말 묶음 함수를 못 부른다 — 그 파일만
+ * 컴파일이 깨지거나(호출 불가), 더 나쁘게는 엉뚱한 값이 화면에 나간다.
+ * percent · pick · worldcup · quest-log 에서 **네 번** 밟았다. 이제 먼저 말한다. */
+const shadows = [...src.matchAll(/(?:const|let|var)\s+t\s*=|\(\s*t\s*(?:,|:)|\(\s*t\s*\)\s*=>/g)].filter(
+  (m) => mark[m.index] === 'J' // 글월·주석 속에 든 것은 이름이 아니다
+);
+if (shadows.length) {
+  const lines = shadows.map(
+    (m) => `${src.slice(0, m.index).split('\n').length}:${m[0].replace(/\s+/g, ' ')}`
+  );
+  console.log(`[widgetize] ⚠ \`t\` 를 지역 이름으로 쓰는 곳 ${shadows.length}개 (줄 ${lines.slice(0, 6).join(', ')}…)`);
+  console.log('   그 안에서는 말 묶음 t() 를 못 부른다 — 이름을 바꾸고 다시 돌려라 (사람 판단).');
+}
 if (leftovers.length) {
   console.log(`[widgetize] 손이 필요한 곳 ${leftovers.length}개 (자리표시가 낀 글) —`);
   for (const l of leftovers.slice(0, 12)) console.log('   ' + l);
