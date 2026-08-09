@@ -108,8 +108,15 @@ await page.addInitScript(() => {
      1초 동안 몇 번 예약되는지로 「도는 루프가 몇 개인가」를 가늠한다. */
   const realRaf = window.requestAnimationFrame;
   let rafCalls = 0;
+  /* **누가** 예약했는지도 같이 센다. 숫자만 주는 게이트는 「어딘가 루프가 있다」까지만 말해서
+     다음 사람이 또 처음부터 판다. 실측으로 이 한 줄이 범인을 바로 짚었다 (mdd.js frame). */
+  box.rafBy = {};
   window.requestAnimationFrame = function (cb) {
     rafCalls += 1;
+    const at = (new Error().stack || '').split(String.fromCharCode(10)).slice(1, 4)
+      .map((l) => l.trim().replace(/^at\s+/, ''))
+      .filter((l) => l.indexOf('requestAnimationFrame') < 0)[0] || '(모름)';
+    box.rafBy[at] = (box.rafBy[at] || 0) + 1;
     return realRaf.call(window, cb);
   };
   realSetInterval(() => {
@@ -139,7 +146,7 @@ async function idleCounts() {
      아직 흐르고 있어서, 바로 재면 「가만히 둔 화면」이 아니라 「방금 닫은 직후」를 재게 된다.
      실측으로 그 차이가 113 ↔ 177 이었다 — 상한을 그 위에 잡으면 애먼 빨간불이 난다. */
   await page.waitForTimeout(3000);
-  await page.evaluate(() => { window.__leak.rafLoops = 0; });
+  await page.evaluate(() => { window.__leak.rafLoops = 0; window.__leak.rafBy = {}; });
   await page.waitForTimeout(1600); // 카운터가 한 바퀴 돌 시간
   return page.evaluate(() => ({ ...window.__leak }));
 }
@@ -177,6 +184,10 @@ console.log(`[leak] 2→3바퀴 증가: 타이머 ${growth} · 프레임 루프 
 if (idleRaf > IDLE_RAF_CAP) {
   console.error(`[leak] FAIL — 가만히 둔 화면이 초당 ${idleRaf}번 그리기를 예약한다 (상한 ${IDLE_RAF_CAP}).`);
   console.error('  새로 생긴 상시 루프가 있는지 보라 — 손 안 댄 화면은 쉬어야 한다(배터리·발열).');
+  const by = rounds[rounds.length - 1].rafBy || {};
+  for (const [where, n] of Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 4)) {
+    console.error(`    ${String(n).padStart(5)}회  ${where}`);
+  }
   process.exit(1);
 }
 if (growth > 0 || rafGrowth > 20) {
