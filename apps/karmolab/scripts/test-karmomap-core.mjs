@@ -37,6 +37,7 @@ async function loadModules() {
     export * as fromText from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/from-text.ts'))};
     export * as jsonCanvas from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/json-canvas.ts'))};
     export * as mermaid from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/mermaid.ts'))};
+    export * as save from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-save.ts'))};
     export * as filter from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-filter.ts'))};
     export * as decor from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-decor.ts'))};
     export * as cmath from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-math.ts'))};
@@ -361,6 +362,19 @@ const M = await loadModules();
   const deg = filter.degreeMap(chainEdges, refOf);
   eq(deg.get('b'), 2, '가운데는 둘과 이어져 있다');
   eq(deg.get('a'), 1, '끝은 하나');
+}
+// ── 좌표 저장 미루기 ───────────────────────────────────────────────────────
+{
+  const { save } = M;
+  const pending = new Map();
+  save.queueSave(pending, 'n1', 10, 20, 'node');
+  save.queueSave(pending, 'n1', 30, 40, 'node');   // 끄는 동안 여러 번
+  save.queueSave(pending, 'g1', 5, 5, 'group');
+  const out = save.drainSaves(pending);
+  eq(out.length, 2, '같은 대상은 하나로 모인다');
+  const n1 = out.find((u) => u.id === 'n1');
+  eq(n1.x, 30, '마지막 좌표만 남는다(중간 자리를 다 보내면 지나간 자리를 다시 그린다)');
+  eq(pending.size, 0, '보낸 뒤 대기열은 빈다');
 }
 // 되돌아가지 않게: **캔버스 크기 자물쇠**.
 // 2865 줄짜리 한 덩이를 조각내는 중이다. 자물쇠가 없으면 기능 두어 개면 도로 부푼다 —
