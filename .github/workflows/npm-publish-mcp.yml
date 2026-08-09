@@ -1,0 +1,72 @@
+name: "karmolab-mcp 발행"
+
+# 왜 워크플로로 두는가 (TASK-KL-205)
+#
+# `npm publish` 를 사람 터미널에서 치면 2FA 때문에 **브라우저 승인**이 끼어든다. 그런데 우리가
+# 명령을 돌리는 자리(에이전트 셸·CI)는 TTY 가 아니라서, npm 이 승인 URL 만 찍고 그대로 죽는다
+# (2026-08-10 에 세 번 그랬다). 즉 발행이 **사람이 창 앞에 앉아 있는지**에 달려 있었다.
+#
+# 여기서는 그 의존을 끊는다. 저장소 비밀 `NPM_TOKEN`(granular access token, bypass 2FA)만
+# 있으면 버튼 한 번으로 나간다. 토큰 만들기는 npmjs.com 웹에서 하는 일이라 TTY 가 필요 없다.
+#
+# 손으로만 돌린다(`workflow_dispatch`) — 태그·push 에 매달지 않는다. 발행은 되돌리기 어려우니
+# **사람이 누르는 순간**이 있어야 한다.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "진짜로 올리지 말고 흉내만 (기본: 흉내)"
+        type: boolean
+        default: true
+
+concurrency:
+  group: npm-publish-mcp
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      # 알맹이는 화면 쪽 저장소에 있고, 빌드에 그쪽 esbuild 를 빌려 쓴다.
+      - name: Install karmolab deps
+        working-directory: apps/karmolab
+        run: npm ci
+
+      # 발행 전에 **남이 설치해서 쓸 수 있는지**까지 확인한다. 여기가 빨가면 올리지 않는다.
+      # (이 검사는 npm 을 못 부르는 자리에서는 스스로 CANNOT-RUN 을 말하고 비켜선다.)
+      - name: Verify package
+        working-directory: apps/karmolab
+        run: |
+          node ../../packages/karmolab-mcp/build.mjs
+          node scripts/smoke-mcp.mjs
+          node scripts/smoke-mcp-install.mjs
+
+      - name: Publish
+        working-directory: packages/karmolab-mcp
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::error::NPM_TOKEN 비밀이 없다. npmjs.com → Access Tokens → Granular(=publish 권한, bypass 2FA) 로 만들어 저장소 Secrets 에 NPM_TOKEN 으로 넣어라."
+            exit 1
+          fi
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "흉내만 낸다 (dry_run=true). 진짜로 올리려면 다시 돌리며 체크를 끄면 된다."
+            npm publish --access public --dry-run
+          else
+            npm publish --access public
+          fi
+
+      - name: What landed
+        if: ${{ inputs.dry_run == false }}
+        run: |
+          sleep 10
+          npm view karmolab-mcp version dist.tarball
