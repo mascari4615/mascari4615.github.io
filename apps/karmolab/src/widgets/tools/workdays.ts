@@ -8,43 +8,22 @@
  * 맞는지 확인할 방법이 없다. 음력 명절은 해마다 날짜가 달라 표로 담는다(계산으로는 못 낸다).
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { region } from '../../lib/region';
+import { holidayKeys, knowsYear, hasCalendar } from '../../lib/holidays';
 
 (function (): void {
-  /** 양력 고정 공휴일 (월-일) */
-  const FIXED: Array<[number, number, () => string]> = [
-    [1, 1, () => t('workdays.holiday.h00')],
-    [3, 1, () => t('workdays.holiday.h01')],
-    [5, 5, () => t('workdays.holiday.h02')],
-    [6, 6, () => t('workdays.holiday.h03')],
-    [8, 15, () => t('workdays.holiday.h04')],
-    [10, 3, () => t('workdays.holiday.h05')],
-    [10, 9, () => t('workdays.holiday.h06')],
-    [12, 25, () => t('workdays.holiday.h07')]
-  ];
-
-  /**
-   * 음력 명절과 부처님오신날은 해마다 양력 날짜가 달라 계산으로 못 낸다 — 표로 담는다.
-   * 담지 않은 해는 「모른다」고 말한다. 조용히 틀린 날짜를 내놓는 것보다 낫다.
-   */
-  const LUNAR: Record<number, Array<[number, number, () => string]>> = {
-    2024: [[2, 9, () => t('workdays.holiday.h08')], [2, 10, () => t('workdays.holiday.h09')], [2, 11, () => t('workdays.holiday.h08')], [2, 12, () => t('workdays.holiday.h10')], [4, 10, () => t('workdays.holiday.h11')], [5, 15, () => t('workdays.holiday.h12')], [9, 16, () => t('workdays.holiday.h13')], [9, 17, () => t('workdays.holiday.h14')], [9, 18, () => t('workdays.holiday.h13')]],
-    /* 2025-01-27 은 정부가 내수 진작을 위해 지정한 **임시공휴일**이다. 규칙으로는 안 나오고
-       그해에만 있는 날이라, 표에 없으면 그해 영업일이 하루씩 틀어진다(실제로 빠져 있었다). */
-    2025: [[1, 27, () => t('workdays.holiday.h15')], [1, 28, () => t('workdays.holiday.h08')], [1, 29, () => t('workdays.holiday.h09')], [1, 30, () => t('workdays.holiday.h08')], [3, 3, () => t('workdays.holiday.h10')], [5, 5, () => t('workdays.holiday.h12')], [5, 6, () => t('workdays.holiday.h10')], [10, 5, () => t('workdays.holiday.h13')], [10, 6, () => t('workdays.holiday.h14')], [10, 7, () => t('workdays.holiday.h13')], [10, 8, () => t('workdays.holiday.h10')]],
-    2026: [[2, 16, () => t('workdays.holiday.h08')], [2, 17, () => t('workdays.holiday.h09')], [2, 18, () => t('workdays.holiday.h08')], [3, 2, () => t('workdays.holiday.h10')], [5, 24, () => t('workdays.holiday.h12')], [5, 25, () => t('workdays.holiday.h10')], [8, 17, () => t('workdays.holiday.h10')], [9, 24, () => t('workdays.holiday.h13')], [9, 25, () => t('workdays.holiday.h14')], [9, 26, () => t('workdays.holiday.h13')], [10, 5, () => t('workdays.holiday.h10')]],
-    2027: [[2, 6, () => t('workdays.holiday.h08')], [2, 7, () => t('workdays.holiday.h09')], [2, 8, () => t('workdays.holiday.h08')], [2, 9, () => t('workdays.holiday.h10')], [5, 13, () => t('workdays.holiday.h12')], [9, 14, () => t('workdays.holiday.h13')], [9, 15, () => t('workdays.holiday.h14')], [9, 16, () => t('workdays.holiday.h13')]]
-  };
-
-  const KNOWN_YEARS = Object.keys(LUNAR).map(Number);
+  /* 쉬는 날 표는 **나라별로** `src/lib/holidays.ts` 에 있다 (TASK-KL-203 S13).
+     여기 두면 「한국에서만 쓰는 도구」가 되고, 그건 이 도구가 하는 일(영업일 세기)의 잘못이
+     아니라 우리가 한 나라만 담았기 때문이다. */
   const key = (d: Date): string => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 
+  /** 그 해 쉬는 날 → 이름. 이름은 **찾을 때** 정한다(표를 만들 때 정하면 열쇠가 굳는다). */
   function holidaysOf(year: number): Map<string, string> {
-    const map = new Map<string, string>();
-    /* 이름은 **찾을 때** 정한다. 표를 만들 때 정하면 그 시점엔 말 묶음이 아직 안 와서
-       열쇠가 그대로 굳는다(단위 변환에서 겪은 것과 같다). */
-    for (const [m, d, name] of FIXED) map.set(`${year}-${m}-${d}`, name());
-    for (const [m, d, name] of LUNAR[year] || []) map.set(`${year}-${m}-${d}`, name());
-    return map;
+    const named = new Map<string, string>();
+    for (const [at, nameKey] of holidayKeys(region(), year)) {
+      named.set(at, t(`workdays.holiday.${nameKey}`));
+    }
+    return named;
   }
 
   Toolbox.register({
@@ -140,12 +119,15 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           }
 
           function warnUnknown(years: number[]): void {
-            const unknown = [...new Set(years)].filter((y) => !KNOWN_YEARS.includes(y));
+            /* 두 가지를 말해 준다 — ① 그 나라 달력이 아예 없다 ② 있는데 그 해를 모른다.
+               둘을 뭉뚱그리면 「왜 공휴일이 안 빠지지」를 알 수 없다. 모르면 **모른다고 말한다**. */
+            if (!hasCalendar(region())) {
+              say(t('workdays.warn.noCalendar'), 'error');
+              return;
+            }
+            const unknown = [...new Set(years)].filter((y) => !knowsYear(region(), y));
             if (unknown.length) {
-              say(
-                t('workdays.warn.lunar', { years: unknown.join('·') }),
-                'error'
-              );
+              say(t('workdays.warn.lunar', { years: unknown.join('·') }), 'error');
             }
           }
 
