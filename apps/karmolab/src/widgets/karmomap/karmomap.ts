@@ -247,8 +247,15 @@ import {
       .km-sheet-grip { position:absolute; left:0; right:0; top:0; height:20px; display:flex;
         align-items:center; justify-content:center; cursor:grab; }
       .km-sheet-grip::before { content:''; width:44px; height:4px; border-radius:999px; background:var(--border); }
-      .km-toolbar { gap:6px; padding:8px; }
-      .km-toolbar input[type=text] { min-width:120px; flex:1; }
+      /* 폰에서 툴바가 **줄바꿈으로 부풀면** 그림이 그만큼 밀려난다(실측: 화면 절반을 먹었다).
+         한 줄로 눕히고 옆으로 밀어 쓰게 한다 — 세로 공간이 폰에서 가장 비싼 자원이다. */
+      .km-toolbar { gap:6px; padding:8px; flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden;
+        scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+      .km-toolbar::-webkit-scrollbar { display:none; }
+      .km-toolbar > * { flex:0 0 auto; }
+      .km-toolbar input[type=text] { min-width:110px; }
+      /* 손가락으로 누를 것들은 44px 규격에 가깝게 — 아이콘 버튼이 작으면 폰에서 오조작이 는다. */
+      .km-toolbar .btn { min-height:34px; }
       .km-toolbar .btn { padding:6px 10px; }
     }
     `

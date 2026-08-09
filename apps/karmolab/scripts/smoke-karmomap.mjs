@@ -1171,10 +1171,39 @@ await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널
   if (!down) throw new Error('옆 패널이 폰에서 접혀 있지 않다');
 
   // 손잡이로 올라온다 — 폰에서 시트를 여는 유일한 자리.
+  // 툴바가 여러 줄로 부풀면 그림이 그만큼 밀린다 — **한 줄**이어야 한다(높이로 잡는다).
+  const bar = await m.locator('.km-toolbar').boundingBox();
+  if (bar.height > 130) throw new Error(`폰에서 툴바가 ${Math.round(bar.height)}px — 여러 줄로 부풀었다`);
+
+  // 손가락으로 눌러 고를 수 있어야 한다(마우스 클릭만 되는 도구는 폰에서 죽은 도구다).
+  // 새 컨텍스트라 판이 비어 있다 — **먼저 하나 만든다**(빈 판에서 「고르기」를 재면 늘 통과한다).
+  // 폰에서 노드를 만드는 길은 **빈 곳 두 번 두드리기**다(툴바에 만들기 버튼은 없다).
+  const cx = canvas.x + canvas.width * 0.5;
+  const cy = canvas.y + canvas.height * 0.45;
+  await m.touchscreen.tap(cx, cy);
+  await m.touchscreen.tap(cx, cy);
+  await m.waitForTimeout(500);
+  if (await m.locator('.ck-node').count() === 0) {
+    // 두드리기로 안 생기면 손가락만 쓰는 사람은 **노드를 못 만든다** — 그 자체가 결함이다.
+    throw new Error('폰에서 빈 곳을 두 번 두드려도 노드가 안 생긴다');
+  }
+  const first = await m.locator('.ck-node').first().boundingBox();
+  if (first) {
+    await m.touchscreen.tap(first.x + first.width / 2, first.y + first.height / 2);
+    await m.waitForTimeout(400);
+    if (await m.locator('.ck-node.is-selected').count() === 0) throw new Error('손가락으로 눌렀는데 안 골라진다');
+  }
+
+  // 노드를 고르면 시트가 **저절로** 올라온다(그게 설계다) — 그러니 먼저 내려놓고 손잡이를 잰다.
+  if (await m.evaluate(() => document.querySelector('.km-root')?.classList.contains('is-sheet-up') === true)) {
+    await m.locator('[data-km="sheet-grip"]').click();
+    await m.waitForTimeout(300);
+  }
+  const down2 = await m.locator('.km-side').boundingBox();
   await m.locator('[data-km="sheet-grip"]').click();
-  await m.waitForTimeout(300);
+  await m.waitForTimeout(320);
   const up = await m.locator('.km-side').boundingBox();
-  if (!(up.y < side.y - 40)) throw new Error('손잡이를 눌러도 시트가 안 올라온다');
+  if (!(up.y < down2.y - 40)) throw new Error('손잡이를 눌러도 시트가 안 올라온다');
   await phone.close();
 });
 
