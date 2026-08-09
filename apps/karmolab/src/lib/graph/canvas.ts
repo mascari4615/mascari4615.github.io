@@ -38,6 +38,7 @@ import { buildNodeBackground } from './canvas-shape';
 import { chooseAnchors, edgeCurve } from './canvas-math';
 import { buildEdgePath, buildEdgeLabel, buildLeaderLine } from './canvas-edge';
 import { renderGroups } from './canvas-group';
+import { nodeBadges } from './canvas-badges';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
   fitProjection, projectPoint, viewportRectOnMap } from './canvas-math';
@@ -1456,39 +1457,8 @@ export class GraphCanvas {
       });
     }
 
-    // 설명이 붙어 있으면 카드 모서리에 작은 표식을 둔다 — 안 그러면 「어디에 써 뒀더라」가 된다.
-    // 남과 **나눠 쓰는 글**이면 표식을 달리한다(🔗+쓰는 곳 수): 여기서 고치면 저기도 바뀐다는
-    // 사실을 카드만 보고 알 수 있어야, 모르고 고쳐 남의 카드가 바뀌는 사고가 안 난다.
-    const sharedUsers = node.docRef && this.spec
-      ? this.spec.nodes.filter((x) => x.docRef === node.docRef).length
-        + this.spec.edges.filter((x) => x.docRef === node.docRef).length
-      : 0;
-    if ((node.doc ?? '').trim() || node.docRef) {
-      const mark = document.createElementNS(SVG_NS, 'text');
-      mark.setAttribute('x', String(node.w - (sharedUsers > 1 ? 14 : 9)));
-      mark.setAttribute('y', '12');
-      mark.setAttribute('text-anchor', 'middle');
-      mark.setAttribute('font-size', '9');
-      mark.setAttribute('opacity', '0.75');
-      mark.setAttribute('pointer-events', 'none');
-      mark.textContent = sharedUsers > 1 ? `🔗${sharedUsers}` : node.docRef ? '🔗' : '📄';
-      g.appendChild(mark);
-    }
-
-    // 코멘트가 달렸으면 개수를 뱃지로 — 카드만 보고 「여기 이야기가 오갔다」를 알 수 있어야
-    // 남과 함께 보는 판에서 말이 묻히지 않는다.
-    const cmtCount = (this.spec?.comments ?? []).filter((c) => c.on === node.id).length;
-    if (cmtCount > 0) {
-      const chat = document.createElementNS(SVG_NS, 'text');
-      chat.setAttribute('x', String(node.w - 12));
-      chat.setAttribute('y', String(effH - 6));
-      chat.setAttribute('text-anchor', 'middle');
-      chat.setAttribute('font-size', '9');
-      chat.setAttribute('opacity', '0.8');
-      chat.setAttribute('pointer-events', 'none');
-      chat.textContent = `💬${cmtCount}`;
-      g.appendChild(chat);
-    }
+    // 카드 모서리 표식(📄 · 🔗N · 💬N)은 canvas-badges 가 안다.
+    for (const b of nodeBadges(this.spec, node, effH)) g.appendChild(b);
 
     // 연결 손잡이 — 노드 오른쪽 가장자리. 여기서 끌어다 다른 노드에 놓으면 선이 생긴다
     // (Miro·FigJam 의 파란 점. 「연결 시작」 버튼을 누르고 다시 클릭하던 2단계를 없앤다).
