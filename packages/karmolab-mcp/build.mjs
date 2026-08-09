@@ -138,6 +138,17 @@ if (fs.existsSync(serverJsonPath)) {
    * 없으면 400 으로 튕긴다(2026-08-10, 세 번째 튕김). 이건 발행된 npm 판을 보고 확인하므로,
    * 여기서 고쳐도 **새 버전을 npm 에 올려야** 반영된다.
    */
+  /*
+   * 깃허브 정본 표기는 **전부 소문자**다(`gh api repos/... --jq .full_name`). provenance 서명에는
+   * 그 소문자 이름이 박히고, npm 은 package.json 의 `repository.url` 과 **글자 단위로** 대조한다.
+   * 대문자로 적어 두면 서명까지 다 해 놓고 마지막 PUT 에서 422 로 튕긴다(2026-08-10, 여섯 번째).
+   * 같은 함정을 오늘 세 번 밟았다 — 레지스트리 네임스페이스 · npm Trusted Publisher 화면 · 여기.
+   */
+  const repoUrl = pkg.repository?.url ?? '';
+  if (repoUrl !== repoUrl.toLowerCase()) {
+    mismatches.push(`repository.url 에 대문자가 있다 (${repoUrl}) — provenance 는 소문자 정본과 대조한다`);
+  }
+
   if (pkg.mcpName !== reg.name) {
     mismatches.push(`package.json 의 mcpName(${pkg.mcpName ?? '없음'}) ≠ server.json 의 name(${reg.name})`);
   }
