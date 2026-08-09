@@ -890,8 +890,28 @@ const inst = wc.wallToInstant('2026-08-09T14:00', 'Asia/Seoul');
 eq(wc.wallOf(inst, 'Asia/Seoul'), '2026-08-09 14:00', '서울 벽시계 왕복');
 eq(wc.wallOf(inst, 'UTC'), '2026-08-09 05:00', '같은 순간의 UTC');
 
-check(wc.run('convert', { time: '2026-08-09 14:00', from: 'Asia/Seoul', to: 'America/New_York' }).includes('2026-08-09 01:00'), 'run convert (여름 = 13시간 차)');
-check(wc.run('convert', { time: '2026-01-09 14:00', from: 'Asia/Seoul', to: 'America/New_York' }).includes('2026-01-09 00:00'), 'run convert (겨울 = 14시간 차)');
+/* 이 셋은 **실패해도 이유를 안 말했다** — CI 에서만 「run convert (겨울 = 14시간 차)」 한 줄이
+   뜨고, 로컬에서는 KST·UTC 어느 쪽으로도 재현이 안 됐다(2026-08-09). 그래서 며칠 동안
+   「무엇이 나왔는지」를 아무도 몰랐고, 그 사이 배포가 통째로 막혀 있었다.
+   기대와 실제를 같이 찍는다 — 다음 실패 한 번이면 원인이 보인다. 시간대·서머타임은
+   기계의 tz 자료 판본에 따라 갈리므로 그 판본도 같이 남긴다. */
+const tzShow = (label, got, want) =>
+  check(
+    got.includes(want),
+    `${label}: 「${got.replace(/\s+/g, ' ').slice(0, 90)}」 가 나왔다 (기대 「${want}」 포함) · ` +
+      `tz=${Intl.DateTimeFormat().resolvedOptions().timeZone} · node=${process.version}`
+  );
+
+tzShow(
+  'run convert (여름 = 13시간 차)',
+  wc.run('convert', { time: '2026-08-09 14:00', from: 'Asia/Seoul', to: 'America/New_York' }),
+  '2026-08-09 01:00'
+);
+tzShow(
+  'run convert (겨울 = 14시간 차)',
+  wc.run('convert', { time: '2026-01-09 14:00', from: 'Asia/Seoul', to: 'America/New_York' }),
+  '2026-01-09 00:00'
+);
 check(wc.run('convert', { time: '2026-08-09 14:00', from: 'Asia/Seoul', to: 'America/New_York' }).includes('서머타임'), '서머타임 경고를 붙인다');
 check(wc.run('convert', { time: '2026-08-09 14:00', from: 'Asia/Seoul', to: 'Asia/Tokyo' }).includes('서머타임') === false, '둘 다 안 쓰면 경고 없음');
 check(wc.run('offset', { from: 'Asia/Seoul', to: 'Europe/London', date: '2026-07-01' }).includes('1월'), 'offset 이 계절 차이를 보여 준다');
