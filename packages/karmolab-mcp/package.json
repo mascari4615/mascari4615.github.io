@@ -27,7 +27,7 @@
     "url": "https://github.com/Mascari4615/Mascari4615.github.io/issues"
   },
   "bin": {
-    "karmolab-mcp": "./src/server.mjs"
+    "karmolab-mcp": "src/server.mjs"
   },
   "files": [
     "src",
