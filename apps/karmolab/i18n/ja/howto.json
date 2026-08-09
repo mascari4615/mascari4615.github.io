@@ -169,5 +169,9 @@
   "howto.voicerec.0": "録音を始めるを押してマイクを許可する",
   "howto.voicerec.1": "バーが動くのを見ながら話す",
   "howto.voicerec.2": "止めて聞き返す",
-  "howto.voicerec.3": "MP3 か WAV でダウンロードする"
+  "howto.voicerec.3": "MP3 か WAV でダウンロードする",
+  "howto.filesplit.0": "「分ける」でファイルを入れて1つあたりの大きさを選ぶ",
+  "howto.filesplit.1": "分かれた断片を1つずつ送る",
+  "howto.filesplit.2": "受け取った側は「つなげる」で断片を全部入れる",
+  "howto.filesplit.3": "つなげてダウンロードし、検査値が同じか確かめる"
 }

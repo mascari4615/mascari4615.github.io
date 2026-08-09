@@ -169,5 +169,9 @@
   "howto.voicerec.0": "Hit start and allow the microphone",
   "howto.voicerec.1": "Speak while watching the bars move",
   "howto.voicerec.2": "Stop and listen back",
-  "howto.voicerec.3": "Download it as MP3 or WAV"
+  "howto.voicerec.3": "Download it as MP3 or WAV",
+  "howto.filesplit.0": "In Split, add the file and pick the piece size",
+  "howto.filesplit.1": "Send the pieces one by one",
+  "howto.filesplit.2": "On the other side, switch to Join and add every piece",
+  "howto.filesplit.3": "Download the joined file and check the checksum matches"
 }

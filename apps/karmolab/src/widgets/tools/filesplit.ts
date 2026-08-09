@@ -9,6 +9,7 @@
  * 그래서 합친 결과는 원본과 완전히 같다(검사값으로 확인시켜 준다).
  */
 import { fileSize as size } from './shared/media';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
   const hex = (buf: ArrayBuffer): string =>
@@ -18,33 +19,49 @@ import { fileSize as size } from './shared/media';
 
   Toolbox.register({
     id: 'filesplit',
-    title: '큰 파일 나누기·합치기',
+    title: t('widgets.filesplit.title', undefined, '큰 파일 나누기·합치기'),
     category: 'tool',
-    desc: '큰 파일을 여러 조각으로 나누고 다시 합칩니다. 압축하지 않아 원본과 완전히 같습니다',
+    desc: t(
+      'widgets-desc.filesplit.desc',
+      undefined,
+      '큰 파일을 여러 조각으로 나누고 다시 합칩니다. 압축하지 않아 원본과 완전히 같습니다'
+    ),
     layout: 'wide',
     icon: '<path d="M4 12h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="3 3"/><rect x="4" y="3" width="16" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="4" y="15" width="7" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="13" y="15" width="7" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
     tabs: [
       {
         id: 'app',
-        label: '나누기·합치기',
+        label: t('filesplit.tab', undefined, '나누기·합치기'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('filesplit').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-chips" style="margin-bottom:var(--space-lg);">
-              <button type="button" class="tool-chip active" id="fsModeSplit">나누기</button>
-              <button type="button" class="tool-chip" id="fsModeJoin">합치기</button>
+              <button type="button" class="tool-chip active" id="fsModeSplit">${esc(t('filesplit.mode.split'))}</button>
+              <button type="button" class="tool-chip" id="fsModeJoin">${esc(t('filesplit.mode.join'))}</button>
             </div>
 
             <div class="tool-drop" id="fsDrop">
               <input type="file" id="fsFile" hidden>
-              <span id="fsDropLabel">나눌 파일을 끌어다 놓거나 눌러서 고르세요</span>
+              <span id="fsDropLabel">${esc(t('filesplit.drop.split'))}</span>
             </div>
 
             <div id="fsSplitOpts" style="margin-top:var(--space-lg);">
               <div class="field-group">
-                <label class="field-label" for="fsSize">한 조각 크기</label>
+                <label class="field-label" for="fsSize">${esc(t('filesplit.label.size'))}</label>
                 <select id="fsSize">
-                  <option value="5">5MB — 메신저</option>
-                  <option value="20" selected>20MB — 메일 첨부</option>
+                  <option value="5">${esc(t('filesplit.size.5'))}</option>
+                  <option value="20" selected>${esc(t('filesplit.size.20'))}</option>
                   <option value="50">50MB</option>
                   <option value="100">100MB</option>
                 </select>
@@ -55,11 +72,11 @@ import { fileSize as size } from './shared/media';
             <div class="tool-list" id="fsList"></div>
 
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="fsRun">나누기</button>
-              <button class="btn btn-ghost" id="fsClear">비우기</button>
+              <button class="btn btn-primary" id="fsRun">${esc(t('filesplit.mode.split'))}</button>
+              <button class="btn btn-ghost" id="fsClear">${esc(t('filesplit.btn.clear'))}</button>
             </div>
 
-            <div class="tool-status" id="fsStatus">파일은 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="fsStatus">${esc(t('filesplit.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -80,7 +97,6 @@ import { fileSize as size } from './shared/media';
           };
           const stat = (l: string, v: string, primary = false): string =>
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
-          const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
           function setMode(next: 'split' | 'join'): void {
             mode = next;
@@ -92,15 +108,15 @@ import { fileSize as size } from './shared/media';
             $<HTMLElement>('#fsModeJoin').classList.toggle('active', next === 'join');
             $<HTMLElement>('#fsSplitOpts').style.display = next === 'split' ? '' : 'none';
             fileInput.multiple = next === 'join';
-            runBtn.textContent = next === 'split' ? '나누기' : '합치기';
+            runBtn.textContent = next === 'split' ? t('filesplit.mode.split') : t('filesplit.mode.join');
             $<HTMLElement>('#fsDropLabel').textContent =
               next === 'split'
-                ? '나눌 파일을 끌어다 놓거나 눌러서 고르세요'
-                : '조각 파일을 모두 끌어다 놓거나 눌러서 고르세요 (순서는 알아서 맞춥니다)';
+                ? t('filesplit.drop.split')
+                : t('filesplit.drop.join');
             say(
               next === 'split'
-                ? '파일을 넣고 조각 크기를 고르세요.'
-                : '조각을 모두 넣으세요 — 이름 끝의 번호로 순서를 맞춥니다.'
+                ? t('filesplit.say.splitReady')
+                : t('filesplit.say.joinReady')
             );
           }
 
@@ -132,7 +148,9 @@ import { fileSize as size } from './shared/media';
               const chunk = chunkBytes();
               const count = Math.ceil(one.size / chunk);
               stats.innerHTML =
-                stat('파일 크기', size(one.size), true) + stat('조각 수', `${count}개`) + stat('마지막 조각', size(one.size - chunk * (count - 1)));
+                stat(t('filesplit.stat.fileSize'), size(one.size), true) +
+                stat(t('filesplit.stat.count'), t('filesplit.value.pieces', { n: count })) +
+                stat(t('filesplit.stat.last'), size(one.size - chunk * (count - 1)));
               listEl.innerHTML = `<div class="tool-list-row"><span class="tool-list-key">${esc(one.name)}</span><span class="tool-list-val">${size(one.size)}</span></div>`;
               return;
             }
@@ -147,29 +165,36 @@ import { fileSize as size } from './shared/media';
             listEl.innerHTML = sorted
               .map(
                 (f) =>
-                  `<div class="tool-list-row"><span class="tool-list-key">${partIndex(f.name) > 0 ? partIndex(f.name) + '번' : '?'}</span><span class="tool-list-val">${esc(f.name)} <span class="tool-list-dim">${size(f.size)}</span></span></div>`
+                  `<div class="tool-list-row"><span class="tool-list-key">${esc(
+                    partIndex(f.name) > 0
+                      ? t('filesplit.value.part', { n: partIndex(f.name) })
+                      : t('filesplit.value.unknown')
+                  )}</span><span class="tool-list-val">${esc(f.name)} <span class="tool-list-dim">${size(f.size)}</span></span></div>`
               )
               .join('');
             const total = sorted.reduce((a, f) => a + f.size, 0);
-            stats.innerHTML = stat('조각 수', `${sorted.length}개`, true) + stat('합친 크기', size(total));
+            stats.innerHTML =
+              stat(t('filesplit.stat.count'), t('filesplit.value.pieces', { n: sorted.length }), true) +
+              stat(t('filesplit.stat.joined'), size(total));
             // 조각이 빠진 채 합치면 열리지 않는 파일이 나온다 — 그 전에 말해 준다
-            if (missing.length) say(`조각이 빠졌거나 순서가 맞지 않습니다 (${missing.slice(0, 3).join(', ')}번 자리). 모두 넣었는지 확인해 주세요.`, 'error');
-            else if (sorted.length) say(`${sorted.length}조각이 순서대로 준비됐습니다.`, 'ok');
+            if (missing.length)
+              say(t('filesplit.err.missing', { list: missing.slice(0, 3).join(', ') }), 'error');
+            else if (sorted.length) say(t('filesplit.say.ordered', { n: sorted.length }), 'ok');
           }
 
           async function split(): Promise<void> {
             if (!one) {
-              say('파일을 먼저 넣어 주세요.', 'error');
+              say(t('filesplit.err.noFile'), 'error');
               return;
             }
             const chunk = chunkBytes();
             const count = Math.ceil(one.size / chunk);
             if (count < 2) {
-              say('이 파일은 조각 크기보다 작아 나눌 필요가 없어요.', 'error');
+              say(t('filesplit.err.tooSmall'), 'error');
               return;
             }
             for (let i = 0; i < count; i++) {
-              say(`나누는 중… ${i + 1}/${count}`);
+              say(t('filesplit.say.splitting', { i: i + 1, n: count }));
               const piece = one.slice(i * chunk, Math.min((i + 1) * chunk, one.size));
               const a = document.createElement('a');
               a.href = URL.createObjectURL(piece);
@@ -180,18 +205,18 @@ import { fileSize as size } from './shared/media';
               await new Promise((r) => setTimeout(r, 250));
             }
             const digest = await crypto.subtle.digest('SHA-256', await one.arrayBuffer());
-            say(`${count}조각으로 나눴어요. 합친 뒤 이 값과 같으면 원본과 완전히 같습니다 — ${hex(digest).slice(0, 16)}…`, 'ok');
+            say(t('filesplit.say.splitDone', { n: count, digest: hex(digest).slice(0, 16) }), 'ok');
             Toolbox.trackUse?.('split');
           }
 
           async function join(): Promise<void> {
             if (many.length < 2) {
-              say('조각을 두 개 이상 넣어 주세요.', 'error');
+              say(t('filesplit.err.needTwo'), 'error');
               return;
             }
             const sorted = many.slice().sort((a, b) => partIndex(a.name) - partIndex(b.name));
             const blob = new Blob(sorted, { type: 'application/octet-stream' });
-            const name = sorted[0].name.replace(/\.\d+(of\d+)?\.part$/i, '') || '합친파일';
+            const name = sorted[0].name.replace(/\.\d+(of\d+)?\.part$/i, '') || t('filesplit.file.joined');
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = name;
@@ -199,7 +224,14 @@ import { fileSize as size } from './shared/media';
             setTimeout(() => URL.revokeObjectURL(a.href), 4000);
             // 합친 것이 원본과 같은지 스스로 확인할 수 있게 검사값을 준다
             const digest = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
-            say(`${sorted.length}조각을 합쳐 ${size(blob.size)} 로 받았어요. 검사값 ${hex(digest).slice(0, 16)}… — 나눌 때 나온 값과 같으면 원본과 완전히 같습니다.`, 'ok');
+            say(
+              t('filesplit.say.joinDone', {
+                n: sorted.length,
+                size: size(blob.size),
+                digest: hex(digest).slice(0, 16)
+              }),
+              'ok'
+            );
             Toolbox.trackUse?.('join');
           }
 
@@ -228,13 +260,12 @@ import { fileSize as size } from './shared/media';
           $<HTMLElement>('#fsModeJoin').onclick = () => setMode('join');
           $<HTMLSelectElement>('#fsSize').addEventListener('change', render);
           runBtn.onclick = () => {
-            void (mode === 'split' ? split() : join()).catch((err: Error) => say('처리 중 문제가 생겼어요: ' + err.message, 'error'));
+            void (mode === 'split' ? split() : join()).catch((err: Error) =>
+              say(t('filesplit.err.run', { msg: err.message }), 'error')
+            );
           };
           $<HTMLButtonElement>('#fsClear').onclick = () => setMode(mode);
 
           setMode('split');
-        }
-      }
-    ]
-  });
+  }
 })();
