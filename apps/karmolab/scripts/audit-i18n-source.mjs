@@ -16,6 +16,8 @@
  * 사용:
  *   node scripts/audit-i18n-source.mjs            검사 (기준선 초과면 실패)
  *   node scripts/audit-i18n-source.mjs --baseline 지금 상태를 새 기준선으로 (줄인 뒤에만)
+ *   node scripts/audit-i18n-source.mjs --tighten  **줄어든 파일만** 기준선을 내린다
+ *                                                 (남이 늘려 놓은 파일은 빨간 채로 둔다)
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -25,6 +27,8 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SRC = path.join(root, 'src');
 const BASELINE = path.join(root, 'i18n/.source-baseline.json');
 const REBASE = process.argv.includes('--baseline');
+/** 조이는 쪽만 반영 — 남이 늘려 놓은 줄까지 함께 축복하지 않으려고 나눠 뒀다. */
+const TIGHTEN = process.argv.includes('--tighten');
 /**
  * **기본이 「알리되 세우지 않는다」** (2026-08-09 결정).
  *
@@ -187,9 +191,31 @@ const counts = {};
 
 const total = Object.values(counts).reduce((a, b) => a + b, 0);
 
-if (REBASE) {
-  fs.writeFileSync(BASELINE, JSON.stringify({ total, files: counts }, null, 2) + '\n', 'utf8');
-  console.log(`[i18n-source] 기준선 새로 박음 — 파일 ${Object.keys(counts).length}개 · 한국어 글자열 ${total}개`);
+if (REBASE || TIGHTEN) {
+  /* `--tighten` = **조이는 쪽만** 반영한다.
+   *
+   * 왜 따로 두나: 이 저장소는 슬롯 여럿이 같이 쓴다. 한쪽에서 한국어를 다 빼낸 날 그냥
+   * `--baseline` 을 박으면, 그 순간 **다른 슬롯이 늘려 놓은 줄까지 함께 축복**된다
+   * (실제로 `karmomap` 이 86→113 으로 늘어 있었다). 잠금을 조이려던 행동이 그 파일에
+   * 대해서는 정확히 반대로 작동한다.
+   * 그래서 파일마다 **작은 쪽**을 남긴다 — 줄인 것은 잠기고, 늘어난 것은 빨간 채로 그 슬롯 몫. */
+  let next = counts;
+  if (TIGHTEN && fs.existsSync(BASELINE)) {
+    const prev = JSON.parse(fs.readFileSync(BASELINE, 'utf8')).files || {};
+    next = {};
+    for (const key of new Set([...Object.keys(prev), ...Object.keys(counts)])) {
+      const now = counts[key] ?? 0;
+      const was = prev[key];
+      const keep = was === undefined ? now : Math.min(was, now);
+      if (keep) next[key] = keep;
+    }
+  }
+  const nextTotal = Object.values(next).reduce((a, b) => a + b, 0);
+  fs.writeFileSync(BASELINE, JSON.stringify({ total: nextTotal, files: next }, null, 2) + '\n', 'utf8');
+  console.log(
+    `[i18n-source] 기준선 ${TIGHTEN ? '조임' : '새로 박음'} — 파일 ${Object.keys(next).length}개 · ` +
+      `한국어 글자열 ${nextTotal}개`
+  );
   process.exit(0);
 }
 
