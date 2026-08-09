@@ -37,6 +37,11 @@
       "today"
     ]
   },
+  "dailytype": {
+    "ops": [
+      "today"
+    ]
+  },
   "datecalc": {
     "ops": [
       "shift",
