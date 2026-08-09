@@ -212,6 +212,8 @@ export class GraphCanvas {
   private rewiring: { edgeId: string; end: 'from' | 'to'; temp: SVGPathElement } | null = null;
   /** 지금 「여기 놓으면 붙는다」로 밝혀 둔 노드. */
   private hintEl: SVGGElement | null = null;
+  /** 포커스 대상 id — null 이면 포커스 없음. */
+  private focusIds: Set<string> | null = null;
   /** 손잡이에서 끌고 있는 중. 임시 선은 edgeLayer 에 그렸다가 놓을 때 지운다. */
   private linking: { fromId: string; temp: SVGPathElement } | null = null;
 
@@ -812,6 +814,7 @@ export class GraphCanvas {
     this.redrawEdges();
     this.renderLeaders();
     this.redrawMinimap();
+    this.applyFocus();
   }
 
   /**
@@ -1349,6 +1352,8 @@ export class GraphCanvas {
     }
     // highlight 재적용
     this.applyEdgeHighlights();
+    // 선을 다시 그리면 흐림 표시도 함께 날아간다 — 여기서 되살린다.
+    if (this.focusIds) this.applyFocus();
   }
 
   /** edge = path + 2 커넥터 도트 (시작·끝 면) */
@@ -1966,6 +1971,41 @@ export class GraphCanvas {
       x: (svgW / 2 - this.state.tx) / this.state.scale,
       y: (svgH / 2 - this.state.ty) / this.state.scale,
     };
+  }
+
+  /**
+   * 포커스 — 준 id 들만 또렷하게 두고 나머지는 흐린다 (TASK-KL-202 격차 M).
+   * Kumu 의 focus 처럼 **지우지 않고 잠깐 가린다**: 노드가 수십 개를 넘으면 그리기보다
+   * 「지금 볼 것만 보기」가 문제가 된다. `null` 이면 전부 또렷.
+   *
+   * 선은 **양끝이 모두 포커스 안일 때만** 살린다 — 한쪽만 걸린 선을 남기면 흐린 노드로
+   * 향하는 선이 허공에 뜬 것처럼 보인다.
+   */
+  setFocus(ids: Set<string> | null): void {
+    this.focusIds = ids;
+    this.applyFocus();
+  }
+
+  private applyFocus(): void {
+    const ids = this.focusIds;
+    this.nodeLayer.querySelectorAll('.ck-node').forEach((el) => {
+      const g = el as SVGGElement;
+      g.classList.toggle('is-dimmed', !!ids && !ids.has(g.dataset.id ?? ''));
+    });
+    const edgeOn = (edgeId: string): boolean => {
+      if (!ids) return true;
+      const e = this.spec?.edges.find((x) => x.id === edgeId);
+      if (!e) return true;
+      return ids.has(this.parseNodeRef(e.from)) && ids.has(this.parseNodeRef(e.to));
+    };
+    this.edgeLayer.querySelectorAll('.ck-edge, .ck-edge-label, .ck-edge-grip, .ck-edge-end').forEach((el) => {
+      const node = el as SVGElement;
+      const id = (node as SVGElement & { dataset: DOMStringMap }).dataset.edgeId ?? '';
+      node.classList.toggle('is-dimmed', !!ids && !edgeOn(id));
+    });
+    this.edgeLayer.querySelectorAll('.ck-leader').forEach((el) => {
+      (el as SVGElement).classList.toggle('is-dimmed', !!ids);
+    });
   }
 
   /** 선택 표시 — 편집 UI 가 어떤 노드를 다루는지 캔버스에 반영. */
