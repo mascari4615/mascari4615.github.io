@@ -97,3 +97,22 @@ export function buildEdgeLabel(
   wrap.appendChild(t);
   return wrap;
 }
+
+
+/**
+ * 메모 **지시선** — 메모에서 그것이 가리키는 것(노드 또는 선)까지 잇는 옅은 점선.
+ * 관계선이 아니다: 관계는 세계관의 사실이고, 지시선은 「이 메모가 저것에 대한 말」이라는 표시라
+ * 종류·화살표·이름표가 없다. 그래서 **선 층 맨 뒤**에 깔린다(관계선을 가리면 안 된다).
+ */
+export function buildLeaderLine(from: Pt, to: Pt, color: string): SVGPathElement {
+  const line = document.createElementNS(SVG_NS, 'path');
+  line.setAttribute('class', 'ck-leader');
+  line.setAttribute('d', `M ${from.x},${from.y} L ${to.x},${to.y}`);
+  line.setAttribute('fill', 'none');
+  line.setAttribute('stroke', color);
+  line.setAttribute('stroke-width', '1');
+  line.setAttribute('stroke-dasharray', '2 4');
+  line.setAttribute('stroke-opacity', '0.55');
+  line.setAttribute('pointer-events', 'none');
+  return line;
+}

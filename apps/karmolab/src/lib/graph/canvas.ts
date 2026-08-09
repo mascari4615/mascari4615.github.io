@@ -36,7 +36,7 @@ import { exportSvgString } from './canvas-export';
 import { buildNodeAvatar } from './canvas-avatar';
 import { buildNodeBackground } from './canvas-shape';
 import { chooseAnchors, edgeCurve } from './canvas-math';
-import { buildEdgePath, buildEdgeLabel } from './canvas-edge';
+import { buildEdgePath, buildEdgeLabel, buildLeaderLine } from './canvas-edge';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
   fitProjection, projectPoint, viewportRectOnMap } from './canvas-math';
@@ -1848,17 +1848,11 @@ export class GraphCanvas {
         ty = mid.y;
       }
 
-      const line = document.createElementNS(SVG_NS, 'path');
-      line.setAttribute('class', 'ck-leader');
-      line.setAttribute('d', `M ${from.x + from.w / 2},${from.y + from.h / 2} L ${tx},${ty}`);
-      line.setAttribute('fill', 'none');
-      line.setAttribute('stroke', this.colorForKind(
-        this.spec.nodes.find((x) => x.id === n.id)?.kind ?? ''
-      ));
-      line.setAttribute('stroke-width', '1');
-      line.setAttribute('stroke-dasharray', '2 4');
-      line.setAttribute('stroke-opacity', '0.55');
-      line.setAttribute('pointer-events', 'none');
+      const line = buildLeaderLine(
+        { x: from.x + from.w / 2, y: from.y + from.h / 2 },
+        { x: tx, y: ty },
+        this.colorForKind(n.kind),
+      );
       this.edgeLayer.insertBefore(line, this.edgeLayer.firstChild);
     }
   }
