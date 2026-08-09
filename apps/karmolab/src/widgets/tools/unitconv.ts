@@ -370,9 +370,13 @@ import { readInvocation } from '../../lib/tool-url';
           // 주소로 부른 경우 (`?op=convert&value=30&from=pyeong&to=m2`) (TASK-KL-205).
           const call = readInvocation(spec);
           if (call !== null && call.error === undefined && call.op === 'convert') {
-            const cat = String(call.args.category ?? '');
-            if (cat !== '' && cats.some((c) => c.id === cat)) {
-              current = cat;
+            const wanted = String(call.args.category ?? '');
+            const found = wanted === '' ? undefined : CATS.find((c) => c.id === wanted);
+            if (found !== undefined) {
+              cat = found;
+              container.querySelectorAll('.tool-chip').forEach((c) => {
+                c.classList.toggle('active', (c as HTMLElement).dataset.cat === wanted);
+              });
               fillUnits();
             }
             if (call.args.value !== undefined) valueInput.value = String(call.args.value);
