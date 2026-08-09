@@ -49,6 +49,12 @@ export const GRAPH_CANVAS_CSS = `
 }
 .ck-node:hover .ck-link-handle,
 .ck-node.is-selected .ck-link-handle { opacity: 1; }
+.ck-edge-grip {
+  opacity: 0;
+  cursor: ns-resize;
+  transition: opacity .12s ease;
+}
+.ck-edges:hover .ck-edge-grip { opacity: 0.9; }
 .ck-link-temp {
   pointer-events: none;
   stroke-dasharray: 5 4;
