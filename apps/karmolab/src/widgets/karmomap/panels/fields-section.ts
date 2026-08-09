@@ -24,6 +24,18 @@ export function fieldsSectionHtml(ctx: PanelCtx, node: GraphNode): string {
   const esc = ctx.esc;
   const rows = Object.entries(node.fields ?? {});
   const suggest = kindFieldNames(ctx, node).filter((n) => !(node.fields ?? {})[n]);
+  // 칸에 「소속: 마왕성」이라고 적었는데 마왕성이 이 맵의 노드라면, 그건 **관계**다.
+  // 글로만 남으면 그림에 안 나온다 — 선으로 올릴지 물어본다 (Airtable 의 「다른 표 연결」 계보).
+  const linked = new Set(
+    ctx.spec().edges.filter((e) => e.from === node.id || e.to === node.id)
+      .map((e) => (e.from === node.id ? e.to : e.from)),
+  );
+  const promotable = Object.entries(node.fields ?? {})
+    .map(([field, value]) => {
+      const hit = ctx.spec().nodes.find((n) => n.id !== node.id && n.label && n.label === value.trim());
+      return hit && !linked.has(hit.id) ? { field, id: hit.id, label: hit.label } : null;
+    })
+    .filter((x): x is { field: string; id: string; label: string } => Boolean(x));
   return `
     <div class="km-field">
       <label>칸 <span class="km-hint">이 ${esc(ctx.kindLabel(node.kind))}에 대해 적어 두는 것</span></label>
@@ -32,6 +44,11 @@ export function fieldsSectionHtml(ctx: PanelCtx, node: GraphNode): string {
         <input type="text" data-km="fld-value" data-key="${esc(name)}" value="${esc(value)}" placeholder="내용" />
         <button class="btn btn-ghost" data-km="fld-del" data-key="${esc(name)}" title="이 칸 지우기">×</button>
       </div>${i === rows.length - 1 ? '' : ''}`).join('')}
+      ${promotable.length === 0 ? '' : `<div class="km-hint">칸에 적은 이름이 이 맵에 <b>있는 노드</b>입니다 — 글로만 적어 두면 그림에는 안 나옵니다.</div>
+      ${promotable.map((p) => `<div class="km-link-row">
+        <span class="km-link-name">${esc(p.field)}: ${esc(p.label)}</span>
+        <button class="btn btn-ghost" data-km="fld-link" data-key="${esc(p.field)}" data-to="${esc(p.id)}">선으로 잇기</button>
+      </div>`).join('')}`}
       <div class="km-link-row">
         <input type="text" data-km="fld-new" list="km-fld-suggest" placeholder="새 칸 이름 (예: 출신)" />
         <datalist id="km-fld-suggest">${suggest.map((n) => `<option value="${esc(n)}"></option>`).join('')}</datalist>
@@ -49,7 +66,14 @@ export function bindFieldsSection(ctx: PanelCtx, node: GraphNode, touch: (redraw
     const input = el as HTMLInputElement;
     input.oninput = () => {
       fields()[input.dataset.key ?? ''] = input.value;
-      touch(false);
+      touch(false);   // 타자 중에는 패널을 다시 그리지 않는다 — 커서가 날아간다.
+    };
+    // 다 치고 손을 뗄 때만 다시 그린다. 그래야 「이 값이 이 맵의 노드다 → 선으로 잇겠나」가
+    // 그 자리에서 뜬다(타자 한 글자마다 다시 그리면 아무것도 못 친다).
+    input.onchange = () => {
+      const value = input.value.trim();
+      const hit = ctx.spec().nodes.some((n) => n.id !== node.id && n.label && n.label === value);
+      if (hit) touch(true);
     };
   });
   // 칸 **이름**을 고치는 것은 자리 옮기기다 — 순서를 지키려 새로 담는다(그냥 지웠다 넣으면 맨 뒤로 간다).
@@ -69,6 +93,15 @@ export function bindFieldsSection(ctx: PanelCtx, node: GraphNode, touch: (redraw
     (el as HTMLButtonElement).onclick = () => {
       delete fields()[(el as HTMLElement).dataset.key ?? ''];
       if (Object.keys(fields()).length === 0) node.fields = undefined;
+      touch(true);
+    };
+  });
+  side.querySelectorAll('[data-km="fld-link"]').forEach((el) => {
+    (el as HTMLButtonElement).onclick = () => {
+      const to = (el as HTMLElement).dataset.to ?? '';
+      const label = (el as HTMLElement).dataset.key ?? '';
+      if (!to) return;
+      ctx.linkWithLabel(node.id, to, label);
       touch(true);
     };
   });

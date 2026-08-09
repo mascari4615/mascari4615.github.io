@@ -677,6 +677,7 @@ await step('노드에 칸을 만들면 같은 종류의 다른 노드가 그 칸
   const fbox = await page.locator('.km-canvas').boundingBox();
   await page.mouse.dblclick(fbox.x + fbox.width * 0.2, fbox.y + fbox.height * 0.25);
   await page.waitForSelector('[data-km="fld-new"]', { timeout: 4000 });
+  await page.fill('[data-km="edit-label"]', '칸주인');
   await page.fill('[data-km="fld-new"]', '출신');
   await page.locator('[data-km="fld-add"]').dispatchEvent('click');
   await page.waitForSelector('[data-km="fld-value"]', { timeout: 4000 });
@@ -686,6 +687,22 @@ await step('노드에 칸을 만들면 같은 종류의 다른 노드가 그 칸
   await page.waitForSelector('[data-km="fld-new"]', { timeout: 4000 });
   const opts = await page.locator('#km-fld-suggest option').evaluateAll((os) => os.map((o) => o.value));
   if (!opts.includes('출신')) throw new Error('같은 종류가 쓰는 칸이 후보로 안 뜬다: ' + opts.join('/'));
+
+  // 칸에 적은 이름이 이 맵의 노드면 **선으로 올릴 수 있어야** 한다 — 글로만 남으면 그림에 안 나온다.
+  // 노드를 다시 골라 오가면 어느 노드가 골렸는지에 기대게 된다 — **지금 고른 노드에서** 끝낸다.
+  await page.fill('[data-km="edit-label"]', '마왕성');
+  await page.fill('[data-km="fld-new"]', '소속');
+  await page.locator('[data-km="fld-add"]').dispatchEvent('click');
+  await page.waitForSelector('[data-km="fld-value"]', { timeout: 4000 });
+  await page.locator('[data-km="fld-value"]').first().fill('칸주인');
+  // 값은 **손을 뗄 때** 확정된다(타자 한 글자마다 패널을 다시 그리면 커서가 날아간다) —
+  // 검사도 사람처럼 칸을 벗어나 준다.
+  await page.locator('[data-km="fld-value"]').first().blur();
+  const promote = page.locator('[data-km="fld-link"]');
+  await promote.first().waitFor({ timeout: 4000 });
+  const edgesBefore = await page.locator('.ck-edge').count();
+  await promote.first().dispatchEvent('click');
+  await page.waitForFunction((n) => document.querySelectorAll('.ck-edge').length > n, edgesBefore, { timeout: 4000 });
 });
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
