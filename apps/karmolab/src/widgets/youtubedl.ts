@@ -1,4 +1,9 @@
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   'use strict';
 
   type VideoInfoOk = { videoId: string; title: string; thumbnail: string; url: string };
@@ -21,7 +26,7 @@
 
   async function fetchVideoInfo(url: string): Promise<VideoInfo> {
     const videoId = getVideoId(url);
-    if (!videoId) return { error: '유효한 YouTube URL을 입력해주세요.' };
+    if (!videoId) return { error: t('youtubedl.t11') };
 
     const thumbnail = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
     let title = '';
@@ -34,7 +39,7 @@
         title = data.title ?? '';
       }
     } catch {
-      title = '(제목을 가져올 수 없음)';
+      title = t('youtubedl.t12');
     }
 
     return { videoId, title: title || '(제목 없음)', thumbnail, url: url.trim() };
@@ -63,7 +68,7 @@
     btnRow.style.marginTop = '8px';
     const btnFetch = document.createElement('button');
     btnFetch.className = 'btn btn-primary';
-    btnFetch.textContent = '영상 정보 가져오기';
+    btnFetch.textContent = t('youtubedl.t05');
     btnRow.appendChild(btnFetch);
     container.appendChild(btnRow);
 
@@ -77,8 +82,8 @@
                 <div class="ytdl-meta">
                     <h3 id="ytdlTitle" class="ytdl-title"></h3>
                     <div class="ytdl-actions">
-                        <button type="button" class="btn btn-primary" id="ytdlMp3">MP3 다운로드</button>
-                        <button type="button" class="btn btn-primary" id="ytdlMp4">MP4 다운로드</button>
+                        <button type="button" class="btn btn-primary" id="ytdlMp3">${esc(t('youtubedl.btn.ytdlMp3'))}</button>
+                        <button type="button" class="btn btn-primary" id="ytdlMp4">${esc(t('youtubedl.btn.ytdlMp4'))}</button>
                     </div>
                     <p id="ytdlStatus" class="ytdl-status"></p>
                 </div>
@@ -90,7 +95,7 @@
     apiGroup.className = 'field-group';
     apiGroup.style.marginTop = '12px';
     apiGroup.innerHTML = `
-            <label class="field-label" for="ytdlApiBase">yt-api 서버 URL (필수)</label>
+            <label class="field-label" for="ytdlApiBase">${esc(t('youtubedl.label.ytdlApiBase'))}</label>
             <input type="url" id="ytdlApiBase" class="mono-input" placeholder="http://141.164.45.135:5000">
         `;
     container.appendChild(apiGroup);
@@ -123,11 +128,11 @@
     const docEl = document.createElement('div');
     docEl.className = 'ytdl-doc';
     docEl.innerHTML = `
-            <h4>사용 방법</h4>
-            <p>1. <strong>yt-api 서버 URL</strong> 입력 (예: http://141.164.45.135:5000)</p>
-            <p>2. YouTube URL 입력 후 <strong>영상 정보 가져오기</strong> 클릭</p>
-            <p>3. <strong>MP3</strong> 또는 <strong>MP4</strong> 다운로드 클릭 → 우리 서버 경유로 다운로드</p>
-            <p><strong>참고</strong> 다운로드는 서버 트래픽을 사용합니다. yt-api가 배포된 서버에서 실행 중이어야 합니다.</p>
+            <h4>${esc(t('youtubedl.t01'))}</h4>
+            <p>1. <strong>${esc(t('youtubedl.t02'))}</strong> ${esc(t('youtubedl.t03'))}</p>
+            <p>${esc(t('youtubedl.t04'))} <strong>${esc(t('youtubedl.t05'))}</strong> ${esc(t('youtubedl.t06'))}</p>
+            <p>3. <strong>MP3</strong> ${esc(t('youtubedl.t07'))} <strong>MP4</strong> ${esc(t('youtubedl.t08'))}</p>
+            <p><strong>${esc(t('youtubedl.t09'))}</strong> ${esc(t('youtubedl.t10'))}</p>
         `;
     container.appendChild(docEl);
 
@@ -146,11 +151,11 @@
     btnFetch.onclick = async function (): Promise<void> {
       const url = urlInput?.value?.trim();
       if (!url) {
-        Toolbox.showToast?.('URL을 입력해주세요.', 'error', undefined);
+        Toolbox.showToast?.(t('youtubedl.t13'), 'error', undefined);
         return;
       }
       if (!getVideoId(url)) {
-        Toolbox.showToast?.('올바른 YouTube URL이 아닙니다.', 'error', undefined);
+        Toolbox.showToast?.(t('youtubedl.t14'), 'error', undefined);
         return;
       }
       btnFetch.disabled = true;
@@ -168,9 +173,9 @@
         }
         if (titleEl) titleEl.textContent = info.title;
         if (statusEl) statusEl.textContent = '';
-        Toolbox.showToast?.('영상 정보를 불러왔습니다.', undefined, undefined);
+        Toolbox.showToast?.(t('youtubedl.t15'), undefined, undefined);
       } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : '정보 조회 실패';
+        const msg = e instanceof Error ? e.message : t('youtubedl.t16');
         Toolbox.showToast?.(msg, 'error', undefined);
       } finally {
         btnFetch.disabled = false;
@@ -181,17 +186,17 @@
       if (!currentInfo?.url) return;
       const base = getApiBase();
       if (!base) {
-        Toolbox.showToast?.('yt-api 서버 URL을 입력해주세요.', 'error', undefined);
+        Toolbox.showToast?.(t('youtubedl.t17'), 'error', undefined);
         return;
       }
       const streamUrl =
         base.replace(/\/$/, '') + '/api/yt/stream?url=' + encodeURIComponent(currentInfo.url) + '&format=' + fmt;
       const btn = fmt === 'mp3' ? btnMp3 : btnMp4;
       if (btn) btn.disabled = true;
-      if (statusEl) statusEl.textContent = '다운로드 요청 중... (서버에서 처리 중이면 시간이 걸릴 수 있습니다)';
+      if (statusEl) statusEl.textContent = t('youtubedl.t18');
       window.open(streamUrl, '_blank');
-      if (statusEl) statusEl.textContent = '다운로드 요청을 보냈습니다. 새 탭을 확인하세요.';
-      Toolbox.showToast?.(`${fmt.toUpperCase()} 다운로드 요청`, undefined, undefined);
+      if (statusEl) statusEl.textContent = t('youtubedl.t19');
+      Toolbox.showToast?.(t('youtubedl.requested', { fmt: fmt.toUpperCase() }), undefined, undefined);
       if (btn) btn.disabled = false;
     }
 
@@ -201,10 +206,21 @@
 
   Toolbox.register({
     id: 'ytdownloader',
-    title: '유튜브 다운로드',
-    desc: '유튜브 영상을 다운로드합니다',
+    title: t('widgets.ytdownloader.title', undefined, "유튜브 다운로드"),
+    desc: t('widgets-desc.ytdownloader.desc', undefined, "유튜브 영상을 다운로드합니다"),
     layout: 'form',
     icon: '<path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>',
-    tabs: [{ id: 'main', label: '다운로드', build }]
+    tabs: [
+      {
+        id: 'main',
+        label: t('youtubedl.tab.main', undefined, '다운로드'),
+        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        build: function (container: HTMLElement): void {
+          void loadNamespace('youtubedl').then(function () {
+            build(container);
+          });
+        }
+      }
+    ]
   });
 })();
