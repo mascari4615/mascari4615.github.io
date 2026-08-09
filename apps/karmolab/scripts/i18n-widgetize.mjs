@@ -368,7 +368,16 @@ if (!src.includes(`from '${i18nSpec}'`)) {
 }
 
 /* ── ⑦ 남은 것: 자리표시가 낀 한국어. 손이 필요하다고 적어 낸다. ── */
+/* **자를 다시 댄다.** 앞 단계들이 글자를 바꿔 놓아 자리가 밀려 있다. 안 대면 백틱 짝이
+ * 엉뚱하게 맞아 **주석 덩어리가 「남은 글」로 나온다** — community.ts 에서 보고 54개 중
+ * 대부분이 주석이었다. 못 믿을 보고는 없느니만 못하다(사람이 그 파일을 통째로 미룬다). */
+reblank();
 for (const m of src.matchAll(/`[^`]*[가-힣][^`]*`/g)) {
+  /* 진짜 템플릿 글월인지 본다. 통째로 'H' 를 요구하면 안 된다 — `${…}` 안은 다시 코드(J)라
+   * 자리표시가 낀 글이 전부 걸러진다(그게 바로 적어 내야 할 것들이다). 양 끝이 템플릿이고
+   * **주석이 안 섞였으면** 진짜다. 백틱 *사이*(코드 자리)는 주석을 물고 있어 여기서 걸린다. */
+  const span = mark.slice(m.index, m.index + m[0].length);
+  if (span[0] !== 'H' || span[span.length - 1] !== 'H' || span.includes('C')) continue;
   if (m[0].includes('${esc(t(') && !HANGUL.test(m[0].replace(/\$\{[^}]*\}/g, ''))) continue;
   if (HANGUL.test(m[0].replace(/\$\{[^}]*\}/g, ''))) leftovers.push(m[0].replace(/\s+/g, ' ').slice(0, 90));
 }
