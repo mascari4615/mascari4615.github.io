@@ -7,6 +7,8 @@
  * 강도를 색깔로만 알려 주면 아무 도움이 안 된다. 「얼마나 버티나」를 시간으로 말해 주고,
  * 왜 약한지(자판 순서·반복·연도·흔한 낱말)를 짚어 준다. 사람은 이유를 알아야 고친다.
  */
+import { t, loadNamespace, locale } from '../../lib/i18n';
+
 (function (): void {
   const LOWER = 'abcdefghijkmnopqrstuvwxyz'; // l 제외
   const UPPER = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // I, O 제외
@@ -57,16 +59,49 @@
     return out;
   }
 
+  /**
+   * 「몇 초 버틴다」를 사람 말로 (TASK-KL-203).
+   *
+   * 초·분·시간·일·달·년을 손으로 적지 않는다 — `Intl` 이 **모든 언어의 단위 이름**을 안다.
+   * 손으로 적으면 언어를 늘릴 때마다 여섯 개를 또 옮겨야 하고, 복수형이 갈리는 언어에서 틀린다
+   * (1 hour / 2 hours). 브라우저에 맡기면 그 규칙이 공짜로 따라온다.
+   */
+  function humanDuration(seconds: number): string {
+    const steps: Array<[string, number]> = [
+      ['year', 31536000],
+      ['month', 2592000],
+      ['day', 86400],
+      ['hour', 3600],
+      ['minute', 60],
+      ['second', 1]
+    ];
+    for (const [unit, size] of steps) {
+      if (seconds < size && unit !== 'second') continue;
+      const n = Math.round(seconds / size);
+      try {
+        return new Intl.NumberFormat(locale(), {
+          style: 'unit',
+          unit,
+          unitDisplay: 'long',
+          maximumFractionDigits: 0
+        } as Intl.NumberFormatOptions).format(n);
+      } catch {
+        return `${n} ${unit}`;
+      }
+    }
+    return '';
+  }
+
   /** 사람이 알아볼 만한 약점을 찾는다. */
   function weaknesses(pw: string): string[] {
     const found: string[] = [];
     const low = pw.toLowerCase();
-    if (/(.)\1{2,}/.test(pw)) found.push('같은 글자가 세 번 이상 이어집니다');
-    if (/(012|123|234|345|456|567|678|789|890)/.test(pw)) found.push('숫자가 순서대로 이어집니다');
-    if (/(qwer|asdf|zxcv|wasd|1qaz|qaz|wsx)/i.test(pw)) found.push('자판에서 나란한 글자를 씁니다');
-    if (/(19|20)\d{2}/.test(pw)) found.push('연도처럼 보이는 숫자가 있습니다 — 생일·졸업연도는 가장 먼저 시도됩니다');
-    for (const c of COMMON) if (low.includes(c)) found.push(`흔한 낱말 「${c}」 이 들어 있습니다`);
-    if (/^[a-z]+\d{1,4}!?$/i.test(pw)) found.push('「낱말 + 숫자」 꼴은 가장 흔한 모양입니다');
+    if (/(.)\1{2,}/.test(pw)) found.push(t('passgen.weak.repeat'));
+    if (/(012|123|234|345|456|567|678|789|890)/.test(pw)) found.push(t('passgen.weak.sequence'));
+    if (/(qwer|asdf|zxcv|wasd|1qaz|qaz|wsx)/i.test(pw)) found.push(t('passgen.weak.keyboard'));
+    if (/(19|20)\d{2}/.test(pw)) found.push(t('passgen.weak.year'));
+    for (const c of COMMON) if (low.includes(c)) found.push(t('passgen.weak.common', { word: c }));
+    if (/^[a-z]+\d{1,4}!?$/i.test(pw)) found.push(t('passgen.weak.wordDigit'));
     return found;
   }
 
@@ -85,16 +120,20 @@
     // 초당 100억 번 시도(요즘 그래픽카드 여러 대) 기준
     const seconds = Math.pow(2, real - 1) / 1e10;
     const time =
-      seconds < 1 ? '1초 안에' :
-      seconds < 60 ? `${Math.round(seconds)}초` :
-      seconds < 3600 ? `${Math.round(seconds / 60)}분` :
-      seconds < 86400 ? `${Math.round(seconds / 3600)}시간` :
-      seconds < 2592000 ? `${Math.round(seconds / 86400)}일` :
-      seconds < 31536000 ? `${Math.round(seconds / 2592000)}달` :
-      seconds < 31536000000 ? `${Math.round(seconds / 31536000)}년` :
-      '수백 년 넘게';
+      seconds < 1
+        ? t('passgen.time.instant')
+        : seconds >= 31536000000
+          ? t('passgen.time.centuries')
+          : humanDuration(seconds);
 
-    const label = real < 40 ? '약함' : real < 60 ? '보통' : real < 80 ? '강함' : '아주 강함';
+    const label =
+      real < 40
+        ? t('passgen.level.weak')
+        : real < 60
+          ? t('passgen.level.fair')
+          : real < 80
+            ? t('passgen.level.strong')
+            : t('passgen.level.veryStrong');
     const tone = real < 40 ? 'error' : real < 60 ? '' : 'ok';
     return { bits: Math.round(real), label, time, tone };
   }
@@ -109,27 +148,48 @@
     tabs: [
       {
         id: 'make',
-        label: '만들기',
+        /* 등록 순간에 쓰인다 — 원본을 기본값으로 함께 준다. */
+        label: t('passgen.tab', undefined, '만들기'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('passgen').then(function () {
+            drawMake(container);
+          });
+        }
+      },
+      {
+        id: 'check',
+        label: t('passgen.check.tab', undefined, '확인하기'),
+        build: function (container: HTMLElement): void {
+          void loadNamespace('passgen').then(function () {
+            drawCheck(container);
+          });
+        }
+      }
+    ]
+  });
+
+  function drawMake(container: HTMLElement): void {
+    /* 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
+    const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-display" id="pgOut" style="word-break:break-all; user-select:all;">—</div>
 
             <div class="field-group" style="margin-top:var(--space-lg);">
-              <div class="tool-sublabel">길이 <span id="pgLenVal" class="range-value">20자</span></div>
-              <input type="range" id="pgLen" aria-label="길이" min="8" max="64" value="20">
+              <div class="tool-sublabel">${esc(t('passgen.label.length'))} <span id="pgLenVal" class="range-value">${esc(t('passgen.label.lengthValue', { n: 20 }))}</span></div>
+              <input type="range" id="pgLen" aria-label="${esc(t('passgen.label.length'))}" min="8" max="64" value="20">
               <div class="tool-chips" id="pgMode" style="margin-bottom:10px;">
-                <button type="button" class="tool-chip active" data-mode="random">무작위</button>
-                <button type="button" class="tool-chip" data-mode="words">외우기 쉽게 (소리 나는 조각)</button>
+                <button type="button" class="tool-chip active" data-mode="random">${esc(t('passgen.mode.random'))}</button>
+                <button type="button" class="tool-chip" data-mode="words">${esc(t('passgen.mode.words'))}</button>
               </div>
               <div class="tool-chips" id="pgRandomOpts" style="margin-top:10px;">
-                <label class="tool-chip"><input type="checkbox" id="pgUpper" checked> 대문자</label>
-                <label class="tool-chip"><input type="checkbox" id="pgDigit" checked> 숫자</label>
-                <label class="tool-chip"><input type="checkbox" id="pgSym" checked> 기호</label>
-                <label class="tool-chip"><input type="checkbox" id="pgAmbig" checked> 헷갈리는 글자 빼기 (l, I, O, 0, 1)</label>
+                <label class="tool-chip"><input type="checkbox" id="pgUpper" checked> ${esc(t('passgen.opt.upper'))}</label>
+                <label class="tool-chip"><input type="checkbox" id="pgDigit" checked> ${esc(t('passgen.opt.digit'))}</label>
+                <label class="tool-chip"><input type="checkbox" id="pgSym" checked> ${esc(t('passgen.opt.symbol'))}</label>
+                <label class="tool-chip"><input type="checkbox" id="pgAmbig" checked> ${esc(t('passgen.opt.ambiguous'))}</label>
               </div>
               <div id="pgWordOpts" style="display:none; margin-top:10px;">
-                <div class="tool-sublabel">조각 수 <span id="pgWordsVal" class="range-value">4개</span></div>
-                <input type="range" id="pgWords" aria-label="조각 수" min="3" max="8" value="5">
+                <div class="tool-sublabel">${esc(t('passgen.label.chunks'))} <span id="pgWordsVal" class="range-value">${esc(t('passgen.label.chunksValue', { n: 4 }))}</span></div>
+                <input type="range" id="pgWords" aria-label="${esc(t('passgen.label.chunks'))}" min="3" max="8" value="5">
                 <div class="tool-status" style="margin-top:8px;">조각 사이는 - 로 잇고 끝에 숫자 두 자를 붙입니다. 소리 내어 읽히므로 외워집니다.</div>
               </div>
             </div>
@@ -137,11 +197,11 @@
             <div class="cc-stats" id="pgStats"></div>
 
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="pgMake">새로 만들기</button>
-              <button class="btn btn-ghost" id="pgCopy">복사</button>
+              <button class="btn btn-primary" id="pgMake">${esc(t('passgen.btn.make'))}</button>
+              <button class="btn btn-ghost" id="pgCopy">${esc(t('passgen.btn.copy'))}</button>
             </div>
 
-            <div class="tool-status" id="pgStatus">이 비밀번호는 이 브라우저 안에서 만들어지고 어디에도 보내지지 않습니다.</div>
+            <div class="tool-status" id="pgStatus">${esc(t('passgen.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -174,13 +234,16 @@
             const bits = Math.log2(Math.pow(SYLLABLE_SPACE, n) * 100);
             const 초 = Math.pow(2, bits - 1) / 1e10;
             const 년 = 초 / 3.15e7;
-            const 시간말 = 년 > 1e6 ? `${(년 / 1e8).toExponential(1)}억년` : 년 > 1 ? `${Math.round(년).toLocaleString('ko-KR')}년` : 초 > 86400 ? `${Math.round(초 / 86400)}일` : `${Math.round(초)}초`;
+            const 시간말 =
+              년 > 1e6
+                ? t('passgen.time.eons', { n: (년 / 1e8).toExponential(1) })
+                : humanDuration(초);
             stats.innerHTML =
-              stat('세기', bits >= 80 ? '아주 셈' : bits >= 60 ? '셈' : bits >= 45 ? '보통' : '약함', true) +
-              stat('버티는 시간', 시간말) +
-              stat('가짓수', `${SYLLABLE_SPACE.toLocaleString('ko-KR')}^${n} × 100`);
-            $<HTMLElement>('#pgWordsVal').textContent = n + '개';
-            say('소리 나는 조각을 이어 만들었어요. 외우기 쉬우면서도 셉니다 — 어디에도 보내지지 않습니다.', 'ok');
+              stat(t('passgen.stat.strength'), bits >= 80 ? t('passgen.level.veryStrong2') : bits >= 60 ? t('passgen.level.strong2') : bits >= 45 ? t('passgen.level.fair') : t('passgen.level.weak'), true) +
+              stat(t('passgen.stat.holdsFor'), 시간말) +
+              stat(t('passgen.stat.space'), `${SYLLABLE_SPACE.toLocaleString(locale())}^${n} × 100`);
+            $<HTMLElement>('#pgWordsVal').textContent = t('passgen.label.chunksValue', { n });
+            say(t('passgen.status.madeWords'), 'ok');
             Toolbox.trackUse?.('words');
           }
 
@@ -196,9 +259,9 @@
             out.textContent = pw;
             const s = strength(pw);
             stats.innerHTML =
-              stat('세기', s.label, true) + stat('버티는 시간', s.time) + stat('쓰는 글자 종류', `${pool.length}가지`);
-            $<HTMLElement>('#pgLenVal').textContent = len + '자';
-            say('만들었어요. 눌러서 복사하세요 — 이 값은 어디에도 보내지지 않습니다.', 'ok');
+              stat(t('passgen.stat.strength'), s.label, true) + stat(t('passgen.stat.holdsFor'), s.time) + stat(t('passgen.stat.charKinds'), t('passgen.stat.charKindsValue', { n: pool.length }));
+            $<HTMLElement>('#pgLenVal').textContent = t('passgen.label.lengthValue', { n: len });
+            say(t('passgen.status.made'), 'ok');
             Toolbox.trackUse?.('make');
           }
 
@@ -221,22 +284,21 @@
             void Toolbox.copyText?.(out.textContent || '', { message: '비밀번호를 복사했어요' });
           };
           make();
-        }
-      },
-      {
-        id: 'check',
-        label: '확인하기',
-        build: function (container: HTMLElement): void {
+  }
+
+  function drawCheck(container: HTMLElement): void {
+    /* 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
+    const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label" for="pcIn">확인할 비밀번호</label>
-              <input type="text" id="pcIn" spellcheck="false" autocomplete="off" placeholder="여기에 적어 보세요 — 어디에도 보내지 않습니다">
+              <label class="field-label" for="pcIn">${esc(t('passgen.check.label'))}</label>
+              <input type="text" id="pcIn" spellcheck="false" autocomplete="off" placeholder="${esc(t('passgen.check.placeholder'))}">
             </div>
 
             <div class="cc-stats" id="pcStats"></div>
             <div class="tool-list" id="pcWhy"></div>
 
-            <div class="tool-status" id="pcStatus">적은 값은 이 브라우저 밖으로 나가지 않습니다 — 통신이 일어나지 않습니다.</div>
+            <div class="tool-status" id="pcStatus">${esc(t('passgen.check.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -247,39 +309,35 @@
 
           const stat = (l: string, v: string, primary = false): string =>
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
-          const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
           function refresh(): void {
             const pw = input.value;
             if (!pw) {
               stats.innerHTML = '';
               whyEl.innerHTML = '';
-              status.textContent = '적은 값은 이 브라우저 밖으로 나가지 않습니다 — 통신이 일어나지 않습니다.';
+              status.textContent = t('passgen.check.idle');
               status.className = 'tool-status';
               return;
             }
             const s = strength(pw);
-            stats.innerHTML = stat('세기', s.label, true) + stat('버티는 시간', s.time) + stat('길이', `${pw.length}자`);
+            stats.innerHTML = stat(t('passgen.stat.strength'), s.label, true) + stat(t('passgen.stat.holdsFor'), s.time) + stat(t('passgen.check.length'), t('passgen.check.lengthValue', { n: pw.length }));
             const found = weaknesses(pw);
             whyEl.innerHTML = found.length
               ? found
-                  .map((w) => `<div class="tool-list-row"><span class="tool-list-key">약점</span><span class="tool-list-val">${esc(w)}</span></div>`)
+                  .map((w) => `<div class="tool-list-row"><span class="tool-list-key">${esc(t('passgen.check.weakness'))}</span><span class="tool-list-val">${esc(w)}</span></div>`)
                   .join('')
-              : '<div class="tool-list-row"><span class="tool-list-val">눈에 띄는 약점은 없습니다.</span></div>';
+              : `<div class="tool-list-row"><span class="tool-list-val">${esc(t('passgen.check.noWeakness'))}</span></div>`;
             status.textContent =
               s.tone === 'error'
-                ? '지금 쓰는 곳이 있다면 바꾸는 것이 좋습니다. 길이를 늘리는 것이 가장 크게 듣습니다.'
+                ? t('passgen.check.adviceWeak')
                 : s.tone === 'ok'
-                  ? '충분히 튼튼합니다. 다만 같은 것을 여러 곳에 쓰지는 마세요.'
-                  : '나쁘지 않지만 길이를 조금 더 늘리면 훨씬 좋아집니다.';
+                  ? t('passgen.check.adviceStrong')
+                  : t('passgen.check.adviceFair');
             status.className = 'tool-status' + (s.tone ? ' ' + s.tone : '');
             Toolbox.trackUse?.('check');
           }
 
           input.addEventListener('input', refresh);
           refresh();
-        }
-      }
-    ]
-  });
+  }
 })();

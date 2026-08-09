@@ -28,7 +28,9 @@ const FIRST_SCREEN = [
   'btn.run',
   'btn.preview',
   'search',
-  'baseCity'
+  'baseCity',
+  'mode.random',
+  'btn.make'
 ];
 
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
