@@ -136,6 +136,9 @@ export interface NodeCoord {
   kind?: 'node' | 'anchor' | 'group';
 }
 
+/** 캔버스 배경 무늬 (TASK-KL-202 격차 I). 점이 기본 — 축소했을 때 눈에 덜 걸린다. */
+export type BackgroundKind = 'dots' | 'grid' | 'cross' | 'none';
+
 /** 빈 스펙 — 새 캔버스 시작점. */
 export function emptyGraphSpec(): GraphSpec {
   return {

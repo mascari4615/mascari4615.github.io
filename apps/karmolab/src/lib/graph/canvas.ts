@@ -26,6 +26,7 @@ import type {
   EdgeKindDef,
   NodeShape,
   EdgeStyle,
+  BackgroundKind,
 } from './spec';
 import type { GraphPersistAdapter } from './adapter';
 import { NULL_PERSIST_ADAPTER } from './adapter';
@@ -105,6 +106,9 @@ const MINIMAP_W = 200;
 const MINIMAP_H = 150;
 const SAVE_DEBOUNCE_MS = 400;
 const GRID_SIZE = 8;         // 그리드 스냅 단위 (px)
+const BG_CELL = 32;          // 배경 무늬 한 칸 (= 스냅 4칸)
+/** 이 배율보다 작아지면 배경 무늬를 끈다 — 촘촘한 무늬는 축소하면 모아레(먼지)가 된다. */
+const BG_MIN_SCALE = 0.4;
 const GROUP_HEADER_H = 20;   // 그룹 프레임 헤더 높이
 const NODE_HEADER_H = 30;    // children 있는 노드의 헤더 영역 높이
 const NODE_CHILD_ROW_H = 18; // 자식 항목 한 줄 높이
@@ -143,6 +147,8 @@ export class GraphCanvas {
   private nodeLayer!: SVGGElement;
   private groupLayer!: SVGGElement;
   private minimapSvg!: SVGSVGElement;
+  private bgRect!: SVGRectElement;
+  private background: BackgroundKind = 'dots';
   private minimapViewport!: SVGRectElement;
 
   private spec: GraphSpec | null = null;
@@ -249,7 +255,8 @@ export class GraphCanvas {
     this.svg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
     // touch-action:none — 안 주면 브라우저가 손가락 끌기를 「페이지 스크롤」로 먼저 먹어서
     // 터치 기기에서 노드가 안 끌린다(마우스로만 되니 개발 중엔 안 보인다).
-    this.svg.style.cssText = 'width:100%;height:100%;cursor:grab;touch-action:none;';
+    // color — 배경 무늬가 currentColor 를 쓴다. 테마 글자색을 따라가야 밝은/어두운 판 둘 다 산다.
+    this.svg.style.cssText = 'width:100%;height:100%;cursor:grab;touch-action:none;color:var(--text-primary,#cbd5e1);';
     this.svg.setAttribute('xmlns', SVG_NS);
 
     // defs (마커·필터) — id 는 전역 고정. 캔버스가 여러 개여도 정의가 동일하므로
@@ -264,7 +271,32 @@ export class GraphCanvas {
         <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
       </filter>
     `;
+    // 배경 무늬 (TASK-KL-202 격차 I) — world 안이 아니라 화면에 깔고 patternTransform 으로
+    // 같이 움직인다. world 안에 두면 무한 캔버스를 덮을 만큼 큰 사각형이 필요해진다.
+    const pat = document.createElementNS(SVG_NS, 'g');
+    pat.innerHTML = `
+      <pattern id="ck-bg-dots-${this.uid}" width="${BG_CELL}" height="${BG_CELL}" patternUnits="userSpaceOnUse">
+        <circle cx="1" cy="1" r="1" fill="currentColor" opacity="0.30"/>
+      </pattern>
+      <pattern id="ck-bg-grid-${this.uid}" width="${BG_CELL}" height="${BG_CELL}" patternUnits="userSpaceOnUse">
+        <path d="M ${BG_CELL} 0 L 0 0 0 ${BG_CELL}" fill="none" stroke="currentColor" stroke-width="1" opacity="0.16"/>
+      </pattern>
+      <pattern id="ck-bg-cross-${this.uid}" width="${BG_CELL}" height="${BG_CELL}" patternUnits="userSpaceOnUse">
+        <path d="M ${BG_CELL / 2} ${BG_CELL / 2 - 3} v6 M ${BG_CELL / 2 - 3} ${BG_CELL / 2} h6" fill="none" stroke="currentColor" stroke-width="1" opacity="0.22"/>
+      </pattern>
+    `;
+    while (pat.firstChild) defs.appendChild(pat.firstChild);
     this.svg.appendChild(defs);
+
+    this.bgRect = document.createElementNS(SVG_NS, 'rect') as SVGRectElement;
+    this.bgRect.setAttribute('class', 'ck-bg');
+    this.bgRect.setAttribute('x', '0');
+    this.bgRect.setAttribute('y', '0');
+    this.bgRect.setAttribute('width', '100%');
+    this.bgRect.setAttribute('height', '100%');
+    this.bgRect.setAttribute('pointer-events', 'none');
+    this.bgRect.setAttribute('fill', `url(#ck-bg-dots-${this.uid})`);
+    this.svg.appendChild(this.bgRect);
 
     // world group (pan/zoom matrix)
     this.world = document.createElementNS(SVG_NS, 'g') as SVGGElement;
@@ -1537,7 +1569,30 @@ export class GraphCanvas {
   private applyTransform(): void {
     const { scale: s, tx, ty } = this.state;
     this.world.setAttribute('transform', `matrix(${s} 0 0 ${s} ${tx} ${ty})`);
+    this.syncBackground();
     this.redrawMinimap();
+  }
+
+  /** 배경 무늬를 화면 이동·배율에 맞춘다. 너무 축소하면 아예 끈다(모아레 방지). */
+  private syncBackground(): void {
+    if (!this.bgRect) return;
+    const { scale: s, tx, ty } = this.state;
+    const off = this.background === 'none' || s < BG_MIN_SCALE;
+    this.bgRect.setAttribute('fill', off ? 'none' : `url(#ck-bg-${this.background}-${this.uid})`);
+    if (off) return;
+    // 패턴 자체를 world 와 같은 행렬로 밀어야 노드와 무늬가 같이 움직인다.
+    const p = this.svg.querySelector(`#ck-bg-${this.background}-${this.uid}`);
+    p?.setAttribute('patternTransform', `matrix(${s} 0 0 ${s} ${tx} ${ty})`);
+  }
+
+  /** 배경 무늬 고르기 — 점 / 모눈 / 십자 / 없음. */
+  setBackground(kind: BackgroundKind): void {
+    this.background = kind;
+    this.syncBackground();
+  }
+
+  getBackground(): BackgroundKind {
+    return this.background;
   }
 
   private updateNodeTransform(nodeId: string, x: number, y: number): void {
@@ -1615,6 +1670,9 @@ export class GraphCanvas {
 
     // 화면용 변환(pan/zoom)은 viewBox 가 대신한다 — 남겨 두면 두 번 적용된다.
     clone.querySelector('.ck-world')?.removeAttribute('transform');
+    // 배경 무늬는 화면 좌표에 깔려 있어 viewBox 를 바꾸면 어긋난다 — 그림에선 뺀다
+    // (배경색은 opts.background 가 채운다).
+    clone.querySelector('.ck-bg')?.remove();
     // 화면에서만 쓰는 손잡이·선택 표시는 그림에 남지 않는다.
     clone.querySelectorAll('.ck-link-handle, .ck-link-temp').forEach((el) => el.remove());
     clone.querySelectorAll('.is-selected').forEach((el) => el.classList.remove('is-selected'));
