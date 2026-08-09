@@ -1,3 +1,5 @@
+import { t, loadNamespace } from '../lib/i18n';
+
 ;(function (): void {
   Mdd.injectCSS(
     'memo',
@@ -62,7 +64,7 @@
     function createMemo(): void {
       const newMemo: StoredMemo = {
         id: Date.now().toString(),
-        title: '새 메모',
+        title: t('widgets.memo.title', undefined, "새 메모"),
         body: '',
         updatedAt: Date.now()
       }
@@ -70,17 +72,17 @@
       saveMemos()
       currentId = newMemo.id
       render()
-      Mdd.linePreset('success', { mood: 'happy', msg: '새 메모 생성이에요!' })
+      Mdd.linePreset('success', { mood: 'happy', msg: t('memo.t03') })
     }
 
     function deleteMemo(id: string): void {
-      if (!confirm('이 메모를 삭제하시겠습니까?')) return
+      if (!confirm(t('memo.t04'))) return
       memos = memos.filter((m) => m.id !== id)
       if (currentId === id) currentId = memos.length > 0 ? memos[0].id : null
       saveMemos()
       render()
-      Toolbox.showToast?.('삭제되었습니다.', 'info', undefined)
-      Mdd.linePreset('idle_wake', { msg: '지워버렸어요... 안녕...' })
+      Toolbox.showToast?.(t('memo.t05'), 'info', undefined)
+      Mdd.linePreset('idle_wake', { msg: t('memo.t06') })
     }
 
     function updateMemo(updates: Partial<Pick<StoredMemo, 'title' | 'body'>>): void {
@@ -91,14 +93,14 @@
       saveMemos()
       renderList()
       const status = document.getElementById('memoStatus')
-      if (status) status.textContent = '저장됨 (' + new Date().toLocaleTimeString() + ')'
+      if (status) status.textContent = t('memo.t07') + new Date().toLocaleTimeString() + ')'
     }
 
     let saveTimeout: number | undefined
 
     function handleInput(): void {
       const status = document.getElementById('memoStatus')
-      if (status) status.textContent = '저장 중...'
+      if (status) status.textContent = t('memo.t08')
       if (saveTimeout !== undefined) {
         window.clearTimeout(saveTimeout)
       }
@@ -107,10 +109,10 @@
         const bodyInput = document.getElementById('memoBodyInput') as HTMLTextAreaElement | null
         if (!titleInput || !bodyInput) return
         updateMemo({
-          title: titleInput.value.trim() || '제목 없음',
+          title: titleInput.value.trim() || t('memo.t09'),
           body: bodyInput.value
         })
-        Mdd.linePreset('success', { mood: 'happy', msg: '기억해둘게요!' })
+        Mdd.linePreset('success', { mood: 'happy', msg: t('memo.t10') })
       }, 500)
     }
 
@@ -119,7 +121,7 @@
       if (!list) return
       if (memos.length === 0) {
         list.innerHTML =
-          '<div class="memo-empty-state">메모가 없습니다.<br>새 메모를 추가해보세요.</div>'
+          `<div class="memo-empty-state">${esc(t('memo.empty.list'))}<br>${esc(t('memo.empty.listHint'))}</div>`
         return
       }
       list.innerHTML = ''
@@ -145,19 +147,19 @@
       if (!editor) return
       if (!currentId || memos.length === 0) {
         editor.innerHTML =
-          '<div style="margin:auto; color:var(--text-tertiary); font-size:var(--font-size-sm);">리스트에서 메모를 선택하거나 새 메모를 만드세요.</div>'
+          `<div style="margin:auto; color:var(--text-tertiary); font-size:var(--font-size-sm);">${esc(t('memo.empty.pick'))}</div>`
         return
       }
       const m = memos.find((x) => x.id === currentId)
       if (!m) return
       editor.innerHTML = `
                 <div class="memo-editor-header">
-                    <input type="text" id="memoTitleInput" class="memo-title-input" placeholder="메모 제목" value="${esc(m.title)}">
-                    <button class="btn btn-danger" id="memoDeleteBtn">삭제</button>
+                    <input type="text" id="memoTitleInput" class="memo-title-input" placeholder="${esc(t('memo.ph.titleInput'))}" value="${esc(m.title)}">
+                    <button class="btn btn-danger" id="memoDeleteBtn">${esc(t('memo.btn.deleteBtn'))}</button>
                 </div>
-                <textarea id="memoBodyInput" class="memo-body-input" placeholder="여기에 내용을 입력하세요...">${esc(m.body)}</textarea>
-                <div class="memo-status-indicator" id="memoStatus">자동 저장 대기 중</div>
-                <div class="memo-status-indicator">같이 보고 있는 사람이 있으면 글자가 서로에게 흘러갑니다 · 함께 친 내용은 이 창을 닫으면 사라집니다(저장은 내 브라우저에만)</div>
+                <textarea id="memoBodyInput" class="memo-body-input" placeholder="${esc(t('memo.ph.bodyInput'))}">${esc(m.body)}</textarea>
+                <div class="memo-status-indicator" id="memoStatus">${esc(t('memo.label.status'))}</div>
+                <div class="memo-status-indicator">${esc(t('memo.t01'))}</div>
             `
       const titleInput = document.getElementById('memoTitleInput') as HTMLInputElement | null
       const bodyInput = document.getElementById('memoBodyInput') as HTMLTextAreaElement | null
@@ -181,7 +183,7 @@
 
     function exportMemos(): void {
       if (memos.length === 0) {
-        Toolbox.showToast?.('내보낼 메모가 없습니다.', 'error', undefined)
+        Toolbox.showToast?.(t('memo.t13'), 'error', undefined)
         return
       }
       const a = document.createElement('a')
@@ -191,7 +193,7 @@
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
-      Toolbox.showToast?.('메모를 내보냈습니다.', 'success', undefined)
+      Toolbox.showToast?.(t('memo.t14'), 'success', undefined)
     }
 
     function importMemos(): void {
@@ -210,17 +212,17 @@
             if (!Array.isArray(imported)) throw new Error('Invalid format')
             if (
               confirm(
-                `기존 메모에 덮어씌워집니다. 진행하시겠습니까? (불러올 메모 수: ${imported.length}개)`
+                t('memo.confirm.import', { n: String(imported.length) })
               )
             ) {
               memos = imported as StoredMemo[]
               saveMemos()
               currentId = memos.length > 0 ? memos[0].id : null
               render()
-              Toolbox.showToast?.('메모를 불러왔습니다.', 'success', undefined)
+              Toolbox.showToast?.(t('memo.t15'), 'success', undefined)
             }
           } catch {
-            Toolbox.showToast?.('올바르지 않은 백업 파일입니다.', 'error', undefined)
+            Toolbox.showToast?.(t('memo.t16'), 'error', undefined)
           }
         }
         reader.readAsText(file)
@@ -236,11 +238,11 @@
                     <div class="memo-container">
                         <div class="memo-sidebar">
                             <div class="memo-sidebar-header">
-                                <span class="memo-sidebar-title">전체 메모</span>
+                                <span class="memo-sidebar-title">${esc(t('memo.t02'))}</span>
                                 <div style="display:flex; gap:4px;">
-                                    <button class="btn btn-ghost memo-add-btn" id="memoImportBtn" title="불러오기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-                                    <button class="btn btn-ghost memo-add-btn" id="memoExportBtn" title="저장하기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
-                                    <button class="btn btn-ghost memo-add-btn" id="memoAddBtn" title="새 메모"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+                                    <button class="btn btn-ghost memo-add-btn" id="memoImportBtn" title="${esc(t('memo.title.importBtn'))}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+                                    <button class="btn btn-ghost memo-add-btn" id="memoExportBtn" title="${esc(t('memo.title.exportBtn'))}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
+                                    <button class="btn btn-ghost memo-add-btn" id="memoAddBtn" title="${esc(t('memo.title.addBtn'))}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
                                 </div>
                             </div>
                             <div class="memo-list" id="memoList"></div>
@@ -248,7 +250,7 @@
                         <div class="memo-editor" id="memoEditor"></div>
                     </div>
                 `
-        Mdd.linePreset('tool_run', { mood: 'idle', msg: '메모할 거 있어요?' })
+        Mdd.linePreset('tool_run', { mood: 'idle', msg: t('memo.t17') })
         requestAnimationFrame(() => {
           const addBtn = document.getElementById('memoAddBtn') as HTMLButtonElement | null
           if (addBtn) addBtn.onclick = createMemo
@@ -264,6 +266,17 @@
 
   Toolbox.register({
     ...Toolbox.getLazyWidgetPublicMeta?.('memo'),
-    tabs: [{ id: 'editor', label: '에디터', build: MemoApp.build }]
+    tabs: [
+      {
+        id: 'editor',
+        label: t('memo.label.tab', undefined, '에디터'),
+        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        build: function (container: HTMLElement): void {
+          void loadNamespace('memo').then(function () {
+            MemoApp.build(container)
+          })
+        }
+      }
+    ]
   })
 })()

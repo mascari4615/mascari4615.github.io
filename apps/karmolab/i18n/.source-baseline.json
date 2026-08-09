@@ -1,5 +1,5 @@
 {
-  "total": 7902,
+  "total": 7842,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -144,7 +144,7 @@
     "src/widgets/life/life.ts": 17,
     "src/widgets/linktree/linktree.ts": 23,
     "src/widgets/localai/localai.ts": 54,
-    "src/widgets/memo.ts": 20,
+    "src/widgets/memo.ts": 2,
     "src/widgets/moon.ts": 3,
     "src/widgets/news.ts": 6,
     "src/widgets/orbita.ts": 27,
@@ -181,7 +181,7 @@
     "src/widgets/ref/filetype.ts": 110,
     "src/widgets/ref/gitcmd.ts": 109,
     "src/widgets/ref/htmlentity.ts": 183,
-    "src/widgets/ref/httpstatus.ts": 45,
+    "src/widgets/ref/httpstatus.ts": 3,
     "src/widgets/ref/keycode.ts": 3,
     "src/widgets/ref/markdown.ts": 122,
     "src/widgets/ref/reference.ts": 9,
