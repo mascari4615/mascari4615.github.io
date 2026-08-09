@@ -45,6 +45,7 @@ import { buildCanvasDom } from './canvas-dom';
 import { applyFocusClasses } from './canvas-focus';
 import { nodeColor, nodeScale } from './canvas-decor';
 import { visibleNodes, degreeMap } from './canvas-filter';
+import { drainSaves, queueSave } from './canvas-save';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
@@ -1657,22 +1658,15 @@ export class GraphCanvas {
   // ── 저장 디바운스 ────────────────────────────────────────────────────────────
 
   private flushSaves(): void {
-    const updates = Array.from(this.pendingSaves.entries()).map(([key, v]) => ({
-      id: key.split(':').slice(1).join(':'),
-      x: v.x,
-      y: v.y,
-      kind: v.kind,
-    }));
-    this.pendingSaves.clear();
     this.saveTimer = null;
-    void this.persist.save(updates);
+    void this.persist.save(drainSaves(this.pendingSaves));
   }
 
   private scheduleSave(id: string, kind: 'node' | 'anchor' | 'group' = 'node'): void {
     // 노드면 현재 nodeCoords 에서 최신 좌표 끌어옴 — 같은 노드 N회 호출 시 마지막 좌표 우선.
     if (kind === 'node') {
       const c = this.nodeCoords.get(id);
-      if (c) this.pendingSaves.set(`node:${id}`, { x: c.x, y: c.y, kind });
+      if (c) queueSave(this.pendingSaves, id, c.x, c.y, kind);
     }
     if (this.saveTimer !== null) clearTimeout(this.saveTimer);
     this.saveTimer = setTimeout(() => this.flushSaves(), SAVE_DEBOUNCE_MS);
@@ -1680,7 +1674,7 @@ export class GraphCanvas {
 
   /** 그룹 드래그 시 anchor/group 좌표 patch 큐잉 (kind 명시). */
   private scheduleSaveRaw(id: string, x: number, y: number, kind: 'anchor' | 'group'): void {
-    this.pendingSaves.set(`${kind}:${id}`, { x, y, kind });
+    queueSave(this.pendingSaves, id, x, y, kind);
     if (this.saveTimer !== null) clearTimeout(this.saveTimer);
     this.saveTimer = setTimeout(() => this.flushSaves(), SAVE_DEBOUNCE_MS);
   }
