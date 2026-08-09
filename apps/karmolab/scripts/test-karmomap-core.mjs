@@ -47,6 +47,7 @@ async function loadModules() {
     export * as drag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-drag.ts'))};
     export * as minimap from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-minimap.ts'))};
     export * as pick from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-pick.ts'))};
+    export * as eph from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-ephemeral.ts'))};
     export * as sna from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/sna.ts'))};
   `);
   const out = path.join(os.tmpdir(), `km-core-${Date.now()}.mjs`);
@@ -524,11 +525,21 @@ const M = await loadModules();
   check(nextOverlapping(['e1'], 'e1') === 'e1', '한 개뿐이면 그대로');
 }
 
+// ---- 흘러가는 카드의 이름 접기 (canvas-ephemeral)
+{
+  const { foldEphemeralLabel } = M.eph;
+  check(foldEphemeralLabel('짧음', 200) === '짧음', '들어가면 그대로 둔다');
+  const cut = foldEphemeralLabel('가나다라마바사아자차카타파하', 60);
+  check(cut.endsWith('…'), '넘치면 잘리고 …가 붙는다(안 붙이면 이름이 저게 전부인 줄 안다)');
+  check(cut.length < '가나다라마바사아자차카타파하'.length, '잘린 이름이 원래보다 짧다');
+  check(foldEphemeralLabel('가나다라마바사', 0).length >= 4, '상자가 아무리 좁아도 네 글자는 남긴다');
+}
+
 // 되돌아가지 않게: **캔버스 크기 자물쇠**.
 // 2865 줄짜리 한 덩이를 조각내는 중이다. 자물쇠가 없으면 기능 두어 개면 도로 부푼다 —
 // 지금 크기 + 조금을 상한으로 박아 두고, 줄어들면 상한도 같이 내린다(비율 아니라 실측).
 {
-  const CAP = 1950;
+  const CAP = 1900;
   const file = path.join(root, 'src/lib/graph/canvas.ts');
   const lines = fs.readFileSync(file, 'utf8').split(String.fromCharCode(10)).length;
   check(lines <= CAP, `canvas.ts 가 ${lines}줄 — 상한 ${CAP}줄을 넘었다(새 기능은 조각 파일로 빼라)`);

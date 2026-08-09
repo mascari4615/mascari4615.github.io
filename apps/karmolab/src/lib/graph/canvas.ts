@@ -52,6 +52,7 @@ import { curveFromPointer, labelPosFromPointer } from './canvas-edgedrag';
 import { groupDelta, resizedBox, snappedPoint, worldDelta } from './canvas-drag';
 import { minimapRects, minimapWorthIt, paintMinimap } from './canvas-minimap';
 import { nextOverlapping } from './canvas-pick';
+import { buildEphemeralNode } from './canvas-ephemeral';
 import { buildLinkHandle, buildPhotoCard, buildSizeHandle } from './canvas-photo';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
@@ -1153,46 +1154,12 @@ export class GraphCanvas {
   }
 
   private renderEphemeralLayer(): void {
-    // 기존 ephemeral 요소 제거
     this.nodeLayer.querySelectorAll('.ck-node-ephemeral').forEach((el) => el.remove());
-
     const layout = this.computeAnchorLayout();
     for (const en of this.ephemeralNodes) {
-      const offY = layout.get(en.anchorId)?.offsetY ?? 0;
-      const effY = en.y + offY;
-      const g = document.createElementNS(SVG_NS, 'g') as SVGGElement;
-      g.setAttribute('class', 'ck-node ck-node-ephemeral');
-      g.dataset.id = en.id;
-      g.setAttribute('transform', `translate(${en.x},${effY})`);
-      g.style.opacity = '0.85';
-
-      const rect = document.createElementNS(SVG_NS, 'rect');
-      rect.setAttribute('width', String(en.w));
-      rect.setAttribute('height', String(en.h));
-      rect.setAttribute('rx', '4');
-      rect.setAttribute('fill', this.theme.ephemeralFill);
-      rect.setAttribute('stroke', this.theme.ephemeralStroke);
-      rect.setAttribute('stroke-width', '1');
-      rect.setAttribute('stroke-dasharray', '4 2');
-      g.appendChild(rect);
-
-      const text = document.createElementNS(SVG_NS, 'text');
-      text.setAttribute('x', '8');
-      text.setAttribute('y', String(en.h / 2 + 4));
-      text.setAttribute('fill', this.theme.ephemeralText);
-      text.setAttribute('font-size', '10');
-      text.setAttribute('font-family', 'var(--font-mono, ui-monospace, monospace)');
-      text.setAttribute('pointer-events', 'none');
-      // 라벨 ellipsis — 1자 ≈ 6.2px (mono 10px 기준), 패딩 16px 빼고 자름.
-      const maxChars = Math.max(4, Math.floor((en.w - 16) / 6.2));
-      text.textContent = en.label.length > maxChars ? en.label.slice(0, maxChars - 1) + '…' : en.label;
-      // 호버 시 풀 라벨 표시
-      const title = document.createElementNS(SVG_NS, 'title');
-      title.textContent = en.label;
-      g.appendChild(title);
-      g.appendChild(text);
-
-      this.nodeLayer.appendChild(g);
+      // 생김새·이름 접기는 canvas-ephemeral 이 안다. 여기서는 어느 높이에 쌓을지만 정한다.
+      this.nodeLayer.appendChild(
+        buildEphemeralNode(en, layout.get(en.anchorId)?.offsetY ?? 0, this.theme));
     }
   }
 
