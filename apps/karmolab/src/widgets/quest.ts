@@ -7,14 +7,18 @@
  */
 import { mountCourseNext } from './play-course';
 import { mountPlayBoard, renderPlayResult, submitPlay, type PlaySpec } from '../lib/plays';
+import { t, loadNamespace } from '../lib/i18n';
 
 /**
  * 오늘의 문제 순위 (TASK-KL-148 ②) — **적게 시도할수록** 위다.
  * 표가 갈리지 않는다: 문제는 하루에 하나뿐이라 모두가 같은 것을 푼다.
  */
-const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: '번', decimals: 0 };
+const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: t('quest.t03'), decimals: 0 };
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   interface Puzzle {
     id: string;
     q: string;
@@ -98,14 +102,14 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: '번', decima
     const last = digit ? '0123456789'.indexOf(word[word.length - 1]) : -1;
     // 숫자는 읽는 소리로 받침을 판단한다 (0 영·1 일·3 삼·6 육·7 칠·8 팔 = 받침 있음)
     const hasBatchim = digit ? [true, true, false, true, false, false, true, true, true, false][last] : true;
-    return word + (hasBatchim ? '을' : '를');
+    return word + (hasBatchim ? t('quest.t04') : t('quest.t05'));
   }
 
   /** 받침을 보고 은/는을 고른다 — 「56킬로그램는」은 사람이 쓰는 말이 아니다. */
   function neun(word: string): string {
     const last = word.charCodeAt(word.length - 1);
     const hangul = last >= 0xac00 && last <= 0xd7a3;
-    return word + (hangul && (last - 0xac00) % 28 !== 0 ? '은' : '는');
+    return word + (hangul && (last - 0xac00) % 28 !== 0 ? t('quest.t06') : t('quest.t07'));
   }
 
   function madeToday(day: number): Puzzle {
@@ -120,27 +124,27 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: '번', decima
       const base = pickOf([2, 8, 16]);
       return {
         id: `g${day}`,
-        q: `${eul(String(n))} ${base}진법으로 쓰면?`,
+        q: t('quest.q.radix', { subject: eul(String(n)), n: String(n), base: String(base) }),
         tool: 'radix',
-        hint: `진법 변환기에 ${eul(String(n))} 넣고 ${base}진법 칸을 보세요`,
+        hint: t('quest.hint.radix', { subject: eul(String(n)), n: String(n), base: String(base) }),
         ok: (v) => norm2(v).replace(/^0[bxo]/, '') === n.toString(base)
       };
     }
     if (kind === 1) {
       const n = 1 + Math.floor(rnd() * 60);
       const [from, to, f] = pickOf<[string, string, (x: number) => number]>([
-        ['킬로미터', '마일', (x) => x / 1.609344],
-        ['킬로그램', '파운드', (x) => x * 2.2046226],
-        ['섭씨', '화씨', (x) => (x * 9) / 5 + 32],
-        ['인치', '센티미터', (x) => x * 2.54]
+        [t('quest.t08'), t('quest.t09'), (x) => x / 1.609344],
+        [t('quest.t10'), t('quest.t11'), (x) => x * 2.2046226],
+        [t('quest.t12'), t('quest.t13'), (x) => (x * 9) / 5 + 32],
+        [t('quest.t14'), t('quest.t15'), (x) => x * 2.54]
       ]);
       const want = f(n);
       return {
         id: `g${day}`,
         // 「46 킬로미터 는」처럼 띄어 놓으면 사람이 쓰는 말이 아니다 — 붙여 적는다.
-        q: `${from === '섭씨' ? `섭씨 ${n}도는` : `${n}${neun(from)}`} 몇 ${to}인가요? (소수 첫째 자리까지)`,
+        q: t('quest.q.unit', { subject: from === t('quest.t12') ? t('quest.celsius', { n: String(n) }) : `${n}${neun(from)}`, n: String(n), from, to }),
         tool: 'unitconv',
-        hint: `단위 변환에서 ${from} → ${to} 로 ${n} 을 넣어 보세요`,
+        hint: t('quest.hint.unit', { from, to, n: String(n) }),
         // 반올림 자리를 하나 어긋나게 적어도 맞다고 본다 — 도구가 보여 주는 자릿수가 제각각이다.
         ok: (v) => Math.abs(parseFloat(norm2(v)) - want) < 0.15
       };
@@ -149,9 +153,9 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: '번', decima
       const mb = pickOf([2, 4, 8, 16, 32, 64, 128]);
       return {
         id: `g${day}`,
-        q: `${mb} MB 는 몇 KB 인가요? (1 MB = 1024 KB)`,
+        q: t('quest.q.bytes', { mb: String(mb) }),
         tool: 'bytesize',
-        hint: `용량 변환에 ${mb} MB 를 넣고 KB 를 보세요`,
+        hint: t('quest.hint.bytes', { mb: String(mb) }),
         ok: (v) => parseFloat(norm2(v).replace(/kb$/, '')) === mb * 1024
       };
     }
@@ -160,18 +164,18 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: '번', decima
     const total = h * 60 + m;
     return {
       id: `g${day}`,
-      q: `${h}시간 ${m}분은 모두 몇 분인가요?`,
+      q: t('quest.q.time', { h: String(h), m: String(m) }),
       tool: 'timecalc',
-      hint: `시간 계산기로 ${h}시간 ${m}분을 분으로 바꿔 보세요`,
+      hint: t('quest.hint.time', { h: String(h), m: String(m) }),
       ok: (v) => parseFloat(norm2(v).replace(/분$/, '')) === total
     };
   }
 
   Toolbox.register({
     id: 'quest',
-    title: '오늘의 문제',
+    title: t('widgets.quest.title', undefined, "오늘의 문제"),
     category: 'tool',
-    desc: '도구를 열어야 풀리는 하루 한 문제 — 진법·모스·해시·단위',
+    desc: t('widgets-desc.quest.desc', undefined, "도구를 열어야 풀리는 하루 한 문제 — 진법·모스·해시·단위"),
     // 커뮤니티와 같은 틀 — 넓게 쓰고 도구 제목 카드는 안 그린다.
     layout: 'wide',
     noHero: true,
@@ -180,27 +184,29 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: '번', decima
     tabs: [
       {
         id: 'app',
-        label: '오늘의 문제',
+        label: t('quest.t16', undefined, "오늘의 문제"),
         build: function (container: HTMLElement): void {
-          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: '도구를 열어서 푸는 거예요. 머리 안 써도 돼요.' });
+          void loadNamespace('quest').then(function () {
+
+          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: t('quest.t18') });
           container.innerHTML = `
-            <p class="qs-lead">하루에 하나. 머리로 짜내지 말고 도구를 열어서 푸세요.</p>
+            <p class="qs-lead">${esc(t('quest.t01'))}</p>
             <!-- 오늘 성적은 **연습을 하든 말든** 이 자리에 남는다 (TASK-KL-089).
                  예전에는 연습을 시작하면 오늘 결과도 「결과 복사」도 화면에서 통째로 사라져,
                  연습을 그만두면 오늘 것을 자랑할 길이 없었다. -->
             <div class="qs-today" id="qsToday" hidden>
               <span id="qsTodayText"></span>
-              <button type="button" class="btn btn-ghost" id="qsShare">결과 복사</button>
+              <button type="button" class="btn btn-ghost" id="qsShare">${esc(t('quest.btn.qsShare'))}</button>
             </div>
             <section class="qs-card">
               <div class="qs-day" id="qsDay"></div>
-              <p class="qs-q" id="qsQ">문제를 불러오는 중…</p>
+              <p class="qs-q" id="qsQ">${esc(t('quest.label.qsQ'))}</p>
               <form class="qs-row" id="qsForm" autocomplete="off">
-                <input type="text" id="qsAns" aria-label="답" placeholder="답을 적으세요">
-                <button type="submit" class="btn btn-primary">맞히기</button>
-                <button type="button" class="btn btn-ghost" id="qsHintBtn">힌트</button>
+                <input type="text" id="qsAns" aria-label="${esc(t('quest.aria.qsAns'))}" placeholder="${esc(t('quest.ph.qsAns'))}">
+                <button type="submit" class="btn btn-primary">${esc(t('quest.t02'))}</button>
+                <button type="button" class="btn btn-ghost" id="qsHintBtn">${esc(t('quest.btn.qsHintBtn'))}</button>
               </form>
-              <button type="button" class="qs-tool" id="qsTool">이 문제에 쓰는 도구 열기</button>
+              <button type="button" class="qs-tool" id="qsTool">${esc(t('quest.btn.qsTool'))}</button>
               <div class="qs-slot" id="qsSlot" hidden></div>
               <p class="qs-hint" id="qsHint" hidden></p>
               <p class="tool-status" id="qsMsg" aria-live="polite"></p>
@@ -209,7 +215,7 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: '번', decima
               <p id="qsRecord" hidden></p>
               <div id="qsBoard" hidden></div>
               <div class="qs-after" id="qsAfter" style="display:none; gap:6px; flex-wrap:wrap;">
-                <button type="button" class="btn btn-primary" id="qsMore">다른 문제 하나 더</button>
+                <button type="button" class="btn btn-primary" id="qsMore">${esc(t('quest.btn.qsMore'))}</button>
               </div>
             </section>
           `;
@@ -248,11 +254,11 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: '번', decima
             if (!slot.hidden) {
               slot.hidden = true;
               slot.innerHTML = '';
-              btn.textContent = '이 문제에 쓰는 도구 열기';
+              btn.textContent = t('quest.btn.qsTool');
               return;
             }
             btn.disabled = true;
-            btn.textContent = '도구 여는 중…';
+            btn.textContent = t('quest.t19');
             void Promise.resolve(Toolbox.kickLazyLoad?.(id))
               .catch(() => undefined)
               .then(() => {
@@ -265,19 +271,19 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: '번', decima
                   return;
                 }
                 slot.hidden = false;
-                btn.textContent = '도구 접기';
+                btn.textContent = t('quest.t20');
               });
           }
 
           function paint(p: Puzzle): void {
-            $('qsDay').textContent = practice ? '연습' : `#${dayNo() + 1} · ${dayLabel()}`;
+            $('qsDay').textContent = practice ? t('quest.t21') : `#${dayNo() + 1} · ${dayLabel()}`;
             $('qsQ').textContent = p.q;
             $('qsHint').textContent = p.hint;
             // 문제가 바뀌면 펴 둔 도구도 그 문제의 것으로 — 남겨 두면 딴 문제의 도구가 붙어 있다.
             const slot = $('qsSlot');
             slot.hidden = true;
             slot.innerHTML = '';
-            ($('qsTool') as HTMLButtonElement).textContent = '이 문제에 쓰는 도구 열기';
+            ($('qsTool') as HTMLButtonElement).textContent = t('quest.btn.qsTool');
           }
 
           /** 오늘 성적 줄 — 기록이 있으면 켜 두고, 연습을 하든 말든 안 끈다. */
@@ -289,8 +295,8 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: '번', decima
             }
             $('qsToday').hidden = false;
             $('qsTodayText').textContent = st.win
-              ? `오늘 #${dayNo() + 1} — 🟩 ${st.tries}번 만에 맞혔습니다`
-              : `오늘 #${dayNo() + 1} — 🟥 다섯 번을 다 썼습니다`;
+              ? t('quest.share.win', { day: String(dayNo() + 1), n: String(st.tries) })
+              : t('quest.share.lose', { day: String(dayNo() + 1) });
           }
 
           function finish(win: boolean): void {
@@ -343,7 +349,7 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: '번', decima
             $('qsAfter').style.display = 'none';
             $('qsHint').hidden = true;
             $('qsTries').textContent = '';
-            $('qsMsg').textContent = '연습 문제입니다 — 오늘 기록에는 안 들어갑니다.';
+            $('qsMsg').textContent = t('quest.t22');
             paint(current);
           }
 
@@ -360,7 +366,7 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: '번', decima
                 const st = load()[dayLabel()];
                 if (st) {
                   tries = st.tries;
-                  $('qsMsg').textContent = st.win ? '오늘 문제는 맞혔습니다.' : '오늘은 여기까지.';
+                  $('qsMsg').textContent = st.win ? t('quest.t23') : t('quest.t24');
                   $('qsTries').textContent = st.win ? '🟩' : '🟥';
                   finish(st.win);
                 } else {
@@ -370,15 +376,15 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: '번', decima
               })
               .catch(() => {
                 // 잠깐 끊긴 것뿐인데 새로고침을 시키지 않는다 — 그 자리에서 다시 받는다.
-                $('qsQ').textContent = '문제를 못 불러왔습니다.';
-                $('qsMsg').textContent = '인터넷이 잠깐 끊겼을 수 있어요.';
+                $('qsQ').textContent = t('quest.t25');
+                $('qsMsg').textContent = t('quest.t26');
                 const again = document.createElement('button');
                 again.type = 'button';
                 again.className = 'btn btn-primary';
-                again.textContent = '다시 받기';
+                again.textContent = t('quest.t27');
                 again.addEventListener('click', () => {
                   again.remove();
-                  $('qsQ').textContent = '문제를 불러오는 중…';
+                  $('qsQ').textContent = t('quest.label.qsQ');
                   $('qsMsg').textContent = '';
                   start();
                 });
@@ -394,15 +400,15 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: '번', decima
             tries++;
             const hit = current.ok ? current.ok(v) : (current.a || []).indexOf(await fingerprint(v)) !== -1;
             if (hit) {
-              $('qsMsg').textContent = `맞았습니다 — ${tries}번 만에.`;
+              $('qsMsg').textContent = t('quest.correct', { n: String(tries) });
               $('qsTries').textContent = '🟩';
               finish(true);
             } else if (tries >= 5) {
-              $('qsMsg').textContent = '다섯 번을 다 썼습니다. 내일 또 하나 나옵니다.';
+              $('qsMsg').textContent = t('quest.t28');
               $('qsTries').textContent = '🟥';
               finish(false);
             } else {
-              $('qsMsg').textContent = `아닙니다 (${tries}/5) — 도구를 열어서 확인해 보세요.`;
+              $('qsMsg').textContent = t('quest.wrong', { n: String(tries) });
               ans().select();
             }
           });
@@ -421,11 +427,12 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: '번', decima
               (st.win ? `🟩 ${st.tries}/5` : '🟥 5/5') +
               '\nblog.mascari4615.com/karmolab/#quest';
             void navigator.clipboard.writeText(text).then(() => {
-              $('qsShare').textContent = '복사했습니다';
+              $('qsShare').textContent = t('quest.t29');
             });
           });
 
           start();
+                  });
         }
       }
     ]
