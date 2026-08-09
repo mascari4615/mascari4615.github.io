@@ -1135,6 +1135,45 @@ await step('보기 전용 링크 — 손잡이가 사라지고, 「내 것으로
   await page.locator('[data-km="fork"]').click();
   await page.waitForSelector('.km-root:not(.is-readonly)', { timeout: 4000 });
 });
+await step('꾸미기 규칙 — 「이 칸이 이 값이면 이 색」이 실제로 먹는다', async () => {
+  // 규칙을 적어 놓기만 하고 색이 안 바뀌면 그건 메모지 규칙이 아니다.
+  await page.click('[data-km="tab"][data-key="node"]');
+  const rbox = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.dblclick(rbox.x + rbox.width * 0.75, rbox.y + rbox.height * 0.35);
+  await page.waitForSelector('[data-km="fld-new"]', { timeout: 4000 });
+  await page.fill('[data-km="edit-label"]', '규칙대상');
+  await page.fill('[data-km="fld-new"]', '진영');
+  await page.locator('[data-km="fld-add"]').dispatchEvent('click');
+  await page.waitForSelector('[data-km="fld-value"]', { timeout: 4000 });
+  await page.locator('[data-km="fld-value"]').first().fill('마왕성');
+  await page.locator('[data-km="fld-value"]').first().blur();
+
+  const strokeOf = () => page.evaluate(() => {
+    const g = [...document.querySelectorAll('.ck-node')].find((el) => (el.textContent || '').includes('규칙대상'));
+    return g?.querySelector('.ck-node-bg')?.getAttribute('stroke') || '';
+  });
+  const before = await strokeOf();
+
+  await page.click('[data-km="tab"][data-key="filter"]');
+  await page.waitForSelector('[data-km="rule-add"]', { timeout: 4000 });
+  await page.selectOption('[data-km="rule-on"]', 'field');
+  await page.fill('[data-km="rule-key"]', '진영');
+  await page.fill('[data-km="rule-value"]', '마왕성');
+  await page.locator('[data-km="rule-color"]').evaluate((el) => {
+    el.value = '#ff0000';
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await page.locator('[data-km="rule-add"]').dispatchEvent('click');
+  await page.waitForFunction((b) => {
+    const g = [...document.querySelectorAll('.ck-node')].find((el) => (el.textContent || '').includes('규칙대상'));
+    const now = g?.querySelector('.ck-node-bg')?.getAttribute('stroke') || '';
+    return now !== b && now !== '';
+  }, before, { timeout: 4000 });
+  // 규칙을 지우면 원래대로 — 못 지우는 규칙은 사람이 안 만든다.
+  await page.locator('[data-km="rule-del"]').first().dispatchEvent('click');
+  await page.waitForTimeout(400);
+  await page.click('[data-km="tab"][data-key="node"]');
+});
 await step('본 — 한 벌을 떠서 다른 맵에 찍는다', async () => {
   // 같은 덩어리를 판마다 다시 그리면 모양도 이름도 조금씩 갈린다. 본은 **맵을 건너**야 값이 있다.
   const sbox = await page.locator('.km-canvas').boundingBox();
