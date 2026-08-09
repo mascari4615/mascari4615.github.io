@@ -1,9 +1,9 @@
 {
  "note": "첫 화면에서 안 쓰인 바이트. audit-coverage.mjs --update 로만 갱신한다.",
- "at": "2026-08-09T05:41:55.505Z",
+ "at": "2026-08-09T12:36:18.179Z",
  "totals": {
-  "cssUnused": 160340,
-  "cssTotal": 184829,
+  "cssUnused": 160998,
+  "cssTotal": 185833,
   "jsUnused": null,
   "jsTotal": null
  },
@@ -11,8 +11,8 @@
   {
    "file": "css/shell-critical.css",
    "kind": "css",
-   "total": 98701,
-   "unused": 76010
+   "total": 99468,
+   "unused": 76478
   },
   {
    "file": "css/tools.css",
@@ -43,6 +43,12 @@
    "kind": "css",
    "total": 1187,
    "unused": 1187
+  },
+  {
+   "file": "index.html",
+   "kind": "css",
+   "total": 237,
+   "unused": 190
   }
  ],
  "sections": [
@@ -51,9 +57,9 @@
    "total": 26242,
    "per": {
     "데스크톱 1280": 25956,
-    "폰 390": 23578
+    "폰 390": 23517
    },
-   "bothUnused": 23578
+   "bothUnused": 23517
   },
   {
    "title": "KarmoLab — Observatory",
@@ -66,7 +72,7 @@
   },
   {
    "title": "LANDING PAGE",
-   "total": 12831,
+   "total": 13130,
    "per": {
     "데스크톱 1280": 7710,
     "폰 390": 7710
@@ -75,12 +81,12 @@
   },
   {
    "title": "TOOL PAGES",
-   "total": 7167,
+   "total": 7635,
    "per": {
-    "데스크톱 1280": 7167,
-    "폰 390": 7167
+    "데스크톱 1280": 7635,
+    "폰 390": 7635
    },
-   "bothUnused": 7167
+   "bothUnused": 7635
   },
   {
    "title": "HEADER BAR (글래스 배경, 좌측 로고·우측 액션)",
