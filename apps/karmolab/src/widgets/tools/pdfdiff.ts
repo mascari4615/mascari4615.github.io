@@ -9,6 +9,8 @@
  *   글자층: 무엇이 사라지고 무엇이 들어왔는지 *읽을 수 있게* 말해 준다. 스캔본에는 아예 없다.
  *   그림  : 글자가 없어도(스캔·도장·표 이동) 잡힌다. 대신 「무엇이」는 못 말한다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   const MAX_PAGES = 30; // 이보다 길면 브라우저가 오래 잡힌다 — 자르고 그 사실을 말한다
   const BLOCK = 8; // 픽셀을 이 크기 칸으로 묶어 본다 (글자 한 획 단위 잡음을 걸러낸다)
@@ -165,55 +167,69 @@
 
   Toolbox.register({
     id: 'pdfdiff',
-    title: 'PDF 판본 대조',
+    title: t('widgets.pdfdiff.title', undefined, 'PDF 판본 대조'),
     category: 'tool',
-    desc: '문서 두 판본에서 바뀐 자리만 형광으로 짚어 줍니다. 글자와 그림을 함께 보아 표·도장이 밀린 것도 잡습니다',
+    desc: t(
+      'widgets-desc.pdfdiff.desc',
+      undefined,
+      '문서 두 판본에서 바뀐 자리만 형광으로 짚어 줍니다. 글자와 그림을 함께 보아 표·도장이 밀린 것도 잡습니다'
+    ),
     layout: 'wide',
     icon: '<path d="M9 3H5a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M15 3h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M7 8h3M7 12h2M14 8h3M14 12h3M14 16h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '판본 대조',
+        label: t('pdfdiff.tab', undefined, '판본 대조'),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '어디가 슬쩍 바뀌었는지 찾아 드릴게요.' });
+          void loadNamespace('pdfdiff').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          Mdd.linePreset('tool_run', { msg: t('pdfdiff.mdd') });
           container.innerHTML = `
             <div class="tool-grid-2">
               <div class="tool-drop" id="pdDropA">
                 <input type="file" id="pdFileA" accept="application/pdf" hidden>
-                <b>원본 (A)</b><br>PDF 를 끌어다 놓거나 눌러서 고르세요
+                <b>${esc(t('pdfdiff.side.a'))}</b><br>${esc(t('pdfdiff.drop.a'))}
               </div>
               <div class="tool-drop" id="pdDropB">
                 <input type="file" id="pdFileB" accept="application/pdf" hidden>
-                <b>변경본 (B)</b><br>비교할 PDF 를 넣으세요
+                <b>${esc(t('pdfdiff.side.b'))}</b><br>${esc(t('pdfdiff.drop.b'))}
               </div>
             </div>
 
             <div class="field-group" style="margin-top:var(--space-lg);">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">보는 눈 <span id="pdSensVal" class="range-value">보통</span></div>
+                  <div class="tool-sublabel">${esc(t('pdfdiff.label.sens'))} <span id="pdSensVal" class="range-value">${esc(t('pdfdiff.sens.mid'))}</span></div>
                   <input type="range" id="pdSens" aria-label="민감도" min="1" max="3" step="1" value="2">
                 </div>
                 <div>
-                  <div class="tool-sublabel">무엇을 볼까</div>
+                  <div class="tool-sublabel">${esc(t('pdfdiff.label.mode'))}</div>
                   <select id="pdMode" aria-label="비교 방식">
-                    <option value="both">글자 + 그림 — 권장</option>
-                    <option value="text">글자만 — 빠름</option>
-                    <option value="pixel">그림만 — 스캔본</option>
+                    <option value="both">${esc(t('pdfdiff.mode.both'))}</option>
+                    <option value="text">${esc(t('pdfdiff.mode.text'))}</option>
+                    <option value="pixel">${esc(t('pdfdiff.mode.pixel'))}</option>
                   </select>
                 </div>
               </div>
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-primary" id="pdRun">대조하기</button>
+              <button class="btn btn-primary" id="pdRun">${esc(t('pdfdiff.btn.run'))}</button>
               <button class="btn btn-ghost" id="pdSwap">A ↔ B</button>
               <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
-                <input type="checkbox" id="pdOnlyChanged" style="width:auto;" checked> 바뀐 페이지만 보기
+                <input type="checkbox" id="pdOnlyChanged" style="width:auto;" checked> ${esc(t('pdfdiff.opt.onlyChanged'))}
               </label>
             </div>
 
-            <div class="tool-status" id="pdStatus">두 판본을 넣고 대조를 누르세요. 파일은 브라우저 밖으로 나가지 않습니다.</div>
+            <div class="tool-status" id="pdStatus">${esc(t('pdfdiff.status.idle'))}</div>
             <div id="pdOut" class="pd-out"></div>
           `;
 
@@ -235,7 +251,7 @@
             const take = (f: File | null | undefined): void => {
               if (!f) return;
               files[side] = f;
-              drop.innerHTML = `<b>${side === 'A' ? '원본 (A)' : '변경본 (B)'}</b><br>${esc(f.name)}`;
+              drop.innerHTML = `<b>${esc(t(side === 'A' ? 'pdfdiff.side.a' : 'pdfdiff.side.b'))}</b><br>${esc(f.name)}`;
             };
             drop.onclick = () => input.click();
             input.onchange = () => take(input.files?.[0]);
@@ -255,10 +271,10 @@
 
           async function loadLib(): Promise<PdfJs> {
             if (pdfjs) return pdfjs;
-            say('PDF 처리기를 불러오는 중…');
+            say(t('pdfdiff.say.engine'));
             await Toolbox.ensureScript?.('vendor/pdfjs.min');
             const g = (window as unknown as { pdfjsLib: PdfJs }).pdfjsLib;
-            if (!g) throw new Error('PDF 처리기를 불러오지 못했습니다');
+            if (!g) throw new Error(t('pdfdiff.err.engine'));
             // 워커도 같은 자리에서 받아야 한다 (CDN 을 따로 두면 버전이 어긋난다)
             g.GlobalWorkerOptions.workerSrc = '/apps/karmolab/js/vendor/pdfjs.worker.min.js';
             pdfjs = g;
@@ -296,7 +312,7 @@
 
           async function run(): Promise<void> {
             if (!files.A || !files.B) {
-              say('두 판본을 모두 넣어 주세요.', 'error');
+              say(t('pdfdiff.err.needBoth'), 'error');
               return;
             }
             const mode = $<HTMLSelectElement>('#pdMode').value;
@@ -307,7 +323,7 @@
             out.innerHTML = '';
             try {
               const lib = await loadLib();
-              say('문서를 여는 중…');
+              say(t('pdfdiff.say.opening'));
               const [docA, docB] = await Promise.all([
                 lib.getDocument({ data: await files.A.arrayBuffer() }).promise,
                 lib.getDocument({ data: await files.B.arrayBuffer() }).promise
@@ -318,7 +334,7 @@
               let textless = 0;
 
               for (let n = 1; n <= limit; n++) {
-                say(`${n} / ${limit} 쪽을 보는 중…`);
+                say(t('pdfdiff.say.progress', { n, total: limit }));
                 const hasA = n <= docA.numPages;
                 const hasB = n <= docB.numPages;
                 const card = document.createElement('div');
@@ -326,7 +342,11 @@
 
                 if (!hasA || !hasB) {
                   changedPages++;
-                  card.innerHTML = `<div class="pd-head"><b>${n}쪽</b> <span class="pd-badge pd-${hasB ? 'add' : 'del'}">${hasB ? 'B 에만 있는 쪽' : 'A 에만 있던 쪽'}</span></div>`;
+                  card.innerHTML =
+                    `<div class="pd-head"><b>${esc(t('pdfdiff.page', { n }))}</b> ` +
+                    `<span class="pd-badge pd-${hasB ? 'add' : 'del'}">${esc(
+                      t(hasB ? 'pdfdiff.badge.onlyB' : 'pdfdiff.badge.onlyA')
+                    )}</span></div>`;
                   out.appendChild(card);
                   continue;
                 }
@@ -376,10 +396,12 @@
 
                 const bits: string[] = [];
                 bits.push(
-                  `<div class="pd-head"><b>${n}쪽</b> ` +
+                  `<div class="pd-head"><b>${esc(t('pdfdiff.page', { n }))}</b> ` +
                     (changed
-                      ? `<span class="pd-badge pd-chg">달라진 자리 ${Math.max(boxesB.length, added.length + removed.length)}곳</span>`
-                      : '<span class="pd-badge pd-same">같음</span>') +
+                      ? `<span class="pd-badge pd-chg">${esc(
+                          t('pdfdiff.badge.changed', { n: Math.max(boxesB.length, added.length + removed.length) })
+                        )}</span>`
+                      : `<span class="pd-badge pd-same">${esc(t('pdfdiff.badge.same'))}</span>`) +
                     '</div>'
                 );
                 if (canvasA && canvasB) {
@@ -390,7 +412,9 @@
                     '<div class="pd-lines">' +
                       removed.slice(0, 12).map((t) => `<div class="pd-line pd-del">− ${esc(t)}</div>`).join('') +
                       added.slice(0, 12).map((t) => `<div class="pd-line pd-add">+ ${esc(t)}</div>`).join('') +
-                      (removed.length + added.length > 24 ? `<div class="pd-more">…그 밖에 ${removed.length + added.length - 24}줄</div>` : '') +
+                      (removed.length + added.length > 24
+                        ? `<div class="pd-more">${esc(t('pdfdiff.more', { n: removed.length + added.length - 24 }))}</div>`
+                        : '') +
                       '</div>'
                   );
                 }
@@ -404,17 +428,18 @@
               }
 
               const notes: string[] = [];
-              if (total > limit) notes.push(`${limit}쪽까지만 봤어요 (전체 ${total}쪽)`);
-              if (textless > 0) notes.push(`${textless}쪽은 글자층이 없어 그림으로만 봤어요 (스캔본)`);
+              if (total > limit) notes.push(t('pdfdiff.note.limit', { limit, total }));
+              if (textless > 0) notes.push(t('pdfdiff.note.textless', { n: textless }));
               if (changedPages === 0) {
-                say('두 판본이 같습니다.' + (notes.length > 0 ? ' · ' + notes.join(' · ') : ''), 'ok');
-                if (out.children.length === 0) out.innerHTML = '<div class="tool-status ok">달라진 쪽이 없습니다.</div>';
+                say(t('pdfdiff.say.same') + (notes.length > 0 ? ' · ' + notes.join(' · ') : ''), 'ok');
+                if (out.children.length === 0)
+                  out.innerHTML = `<div class="tool-status ok">${esc(t('pdfdiff.say.noChangedPages'))}</div>`;
               } else {
-                say(`${changedPages}쪽이 달라졌습니다.` + (notes.length > 0 ? ' · ' + notes.join(' · ') : ''));
+                say(t('pdfdiff.say.changed', { n: changedPages }) + (notes.length > 0 ? ' · ' + notes.join(' · ') : ''));
               }
               Toolbox.trackUse?.('compare');
             } catch (e) {
-              say('대조하지 못했어요: ' + (e instanceof Error ? e.message : String(e)), 'error');
+              say(t('pdfdiff.err.compare', { msg: e instanceof Error ? e.message : String(e) }), 'error');
             }
           }
 
@@ -448,10 +473,9 @@
             if (files.A && files.B) void run();
           };
           sens.oninput = () => {
-            $<HTMLElement>('#pdSensVal').textContent = ['둔하게', '보통', '예민하게'][parseInt(sens.value, 10) - 1];
+            $<HTMLElement>('#pdSensVal').textContent = t(
+              ['pdfdiff.sens.low', 'pdfdiff.sens.mid', 'pdfdiff.sens.high'][parseInt(sens.value, 10) - 1]
+            );
           };
-        }
-      }
-    ]
-  });
+  }
 })();

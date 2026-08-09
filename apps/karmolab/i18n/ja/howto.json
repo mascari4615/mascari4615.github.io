@@ -111,5 +111,9 @@
   "howto.pdfpagenum.0": "PDF を選ぶ",
   "howto.pdfpagenum.1": "形式と位置を選ぶ",
   "howto.pdfpagenum.2": "飛ばす表紙のページ数を決める",
-  "howto.pdfpagenum.3": "番号を入れる"
+  "howto.pdfpagenum.3": "番号を入れる",
+  "howto.pdfdiff.0": "元 (A) と変更後 (B) の PDF を入れる",
+  "howto.pdfdiff.1": "何を比べるか選ぶ — 文字+画像 / 文字だけ / 画像だけ",
+  "howto.pdfdiff.2": "「照合する」を押す",
+  "howto.pdfdiff.3": "ページごとに囲まれた箇所と、増えた行・減った行を確認"
 }
