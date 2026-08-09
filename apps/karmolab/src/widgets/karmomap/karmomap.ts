@@ -28,6 +28,7 @@ import type { PanelCtx } from './panels/context';
 import { renderHelpPanel } from './panels/help-panel';
 import { renderSnaPanel } from './panels/sna-panel';
 import { renderStoragePanel } from './panels/storage-panel';
+import { renderFilterPanel } from './panels/filter-panel';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -191,14 +192,14 @@ import {
     /** 지금 고른 선. 선에도 이야기가 붙는다(격차 Z). */
     let selectedEdgeId: string | null = null;
     /** 화면에서 뺀 종류들 — 자료는 그대로 두고 보기만 줄인다(격차 M-3). */
-    const hiddenNodeKinds = new Set<string>();
-    const hiddenEdgeKinds = new Set<string>();
-    const hiddenTags = new Set<string>();
-    let hideOrphans = false;
-    /** 「많이 이어진 것이 크다」 규칙 (격차 S). 저장본은 안 건드린다 — 끄면 원래 크기로 돌아온다. */
-    let sizeByDegree = false;
-    /** 꼬리표 색 입히기 — 같은 꼬리표면 늘 같은 색이 나온다. */
-    let colorByTag = false;
+    const filterState = {
+      nodeKinds: new Set<string>(),
+      edgeKinds: new Set<string>(),
+      tags: new Set<string>(),
+      hideOrphans: false,
+      sizeByDegree: false,
+      colorByTag: false,
+    };
     /** 지금 끼워진 어휘 팩. `spec._meta.pack` 에 함께 저장된다. */
     let pack: CanvasPack = packById(DEFAULT_PACK_ID);
     /** 사용자가 직접 만든 종류. 맵이 아니라 **사람**에게 붙는다(격차 A-2). */
@@ -841,128 +842,13 @@ import {
 
     /** 거르기 패널 — 종류 체크를 끄면 그 종류가 화면에서 빠진다(자료는 그대로). */
     function applyFilter(): void {
-      canvas?.setFilter({ nodeKinds: hiddenNodeKinds, edgeKinds: hiddenEdgeKinds, tags: hiddenTags, hideOrphans });
+      canvas?.setFilter({
+        nodeKinds: filterState.nodeKinds,
+        edgeKinds: filterState.edgeKinds,
+        tags: filterState.tags,
+        hideOrphans: filterState.hideOrphans,
+      });
       canvas?.setSelectedNode(selectedId);
-    }
-
-    function renderFilterPanel(): void {
-      sideEl.classList.remove('hidden');
-      canvas?.setSelectedNode(null);
-      const nodeCount = (id: string): number => spec.nodes.filter((n) => n.kind === id).length;
-      const edgeCount = (id: string): number => spec.edges.filter((e) => e.kind === id).length;
-      // ★ 목록 = 지금 팩의 종류 + **이 맵에 실제로 쓰인 종류**. 팩을 바꾼 뒤에는 화면에 보이는
-      //   종류가 팩 목록에 없을 수 있는데, 그러면 「보이는데 끌 수가 없는」 종류가 생긴다.
-      const usedNodeKinds = [...new Set(spec.nodes.map((n) => n.kind))];
-      const usedEdgeKinds = [...new Set(spec.edges.map((e) => e.kind))];
-      const nodeRows = [
-        ...nodeKindsNow(),
-        ...usedNodeKinds
-          .filter((id) => !nodeKindsNow().some((k) => k.id === id))
-          .map((id) => ({ id, label: kindLabel(id), icon: kindIcon(id), color: '#94a3b8' })),
-      ];
-      const edgeRows = [
-        ...edgeKindsNow(),
-        ...usedEdgeKinds
-          .filter((id) => !edgeKindsNow().some((k) => k.id === id))
-          .map((id) => ({ id, label: edgeLabel(id), color: '#94a3b8', style: 'solid' as const, arrow: true })),
-      ];
-      sideEl.innerHTML = `
-        <h4>🔍 거르기</h4>
-        <div class="km-hint">체크를 끄면 그 종류가 <b>화면에서만</b> 빠집니다. 지우는 게 아닙니다.</div>
-        <div class="km-field">
-          <label>노드 종류</label>
-          ${nodeRows
-            .map(
-              (k) => `<label class="km-check"><input type="checkbox" data-km="f-node" value="${escapeAttr(k.id)}"${
-                hiddenNodeKinds.has(k.id) ? '' : ' checked'
-              } /> ${k.icon} ${escapeHtml(k.label)} <span class="km-group-count">${nodeCount(k.id)}</span></label>`
-            )
-            .join('')}
-        </div>
-        <div class="km-field">
-          <label>관계 종류</label>
-          ${edgeRows
-            .map(
-              (k) => `<label class="km-check"><input type="checkbox" data-km="f-edge" value="${escapeAttr(k.id)}"${
-                hiddenEdgeKinds.has(k.id) ? '' : ' checked'
-              } /> ${escapeHtml(k.label)} <span class="km-group-count">${edgeCount(k.id)}</span></label>`
-            )
-            .join('')}
-        </div>
-        ${allTags().length === 0 ? '' : `<div class="km-field">
-          <label>꼬리표</label>
-          ${allTags()
-            .map(
-              (tg) => `<label class="km-check"><input type="checkbox" data-km="f-tag" value="${escapeAttr(tg)}"${
-                hiddenTags.has(tg) ? '' : ' checked'
-              } /> ${escapeHtml(tg)} <span class="km-group-count">${spec.nodes.filter((n) => (n.tags ?? []).includes(tg)).length}</span></label>`
-            )
-            .join('')}
-        </div>`}
-        <div class="km-field">
-          <label class="km-check"><input type="checkbox" data-km="f-degree"${sizeByDegree ? ' checked' : ''} /> 많이 이어진 것을 크게</label>
-          <label class="km-check"><input type="checkbox" data-km="f-colortag"${colorByTag ? ' checked' : ''} /> 꼬리표로 색 입히기</label>
-          <div class="km-hint">손으로 키우지 않아도 중심 인물이 눈에 띕니다. 저장본은 그대로예요.</div>
-        </div>
-        <div class="km-field">
-          <label class="km-check"><input type="checkbox" data-km="f-orphan"${hideOrphans ? ' checked' : ''} /> 선이 하나도 안 닿은 노드 숨기기</label>
-        </div>
-        <button class="btn btn-ghost" data-km="f-reset">전부 다시 보이기</button>
-        <button class="btn btn-ghost" data-km="f-close">닫기</button>`;
-
-      sideEl.querySelectorAll('[data-km="f-node"]').forEach((el) => {
-        (el as HTMLInputElement).onchange = (ev) => {
-          const box = ev.target as HTMLInputElement;
-          if (box.checked) hiddenNodeKinds.delete(box.value);
-          else hiddenNodeKinds.add(box.value);
-          applyFilter();
-        };
-      });
-      sideEl.querySelectorAll('[data-km="f-edge"]').forEach((el) => {
-        (el as HTMLInputElement).onchange = (ev) => {
-          const box = ev.target as HTMLInputElement;
-          if (box.checked) hiddenEdgeKinds.delete(box.value);
-          else hiddenEdgeKinds.add(box.value);
-          applyFilter();
-        };
-      });
-      sideEl.querySelectorAll('[data-km="f-tag"]').forEach((el) => {
-        (el as HTMLInputElement).onchange = (ev) => {
-          const box = ev.target as HTMLInputElement;
-          if (box.checked) hiddenTags.delete(box.value);
-          else hiddenTags.add(box.value);
-          applyFilter();
-        };
-      });
-      (sideEl.querySelector('[data-km="f-degree"]') as HTMLInputElement).onchange = (ev) => {
-        sizeByDegree = (ev.target as HTMLInputElement).checked;
-        canvas?.setDecorate({ sizeByDegree, colorByTag });
-        canvas?.setSelectedNode(selectedId);
-      };
-      (sideEl.querySelector('[data-km="f-colortag"]') as HTMLInputElement).onchange = (ev) => {
-        colorByTag = (ev.target as HTMLInputElement).checked;
-        canvas?.setDecorate({ sizeByDegree, colorByTag });
-        canvas?.setSelectedNode(selectedId);
-      };
-      (sideEl.querySelector('[data-km="f-orphan"]') as HTMLInputElement).onchange = (ev) => {
-        hideOrphans = (ev.target as HTMLInputElement).checked;
-        applyFilter();
-      };
-      (sideEl.querySelector('[data-km="f-reset"]') as HTMLButtonElement).onclick = () => {
-        hiddenNodeKinds.clear();
-        hiddenEdgeKinds.clear();
-        hiddenTags.clear();
-        hideOrphans = false;
-        sizeByDegree = false;
-        colorByTag = false;
-        canvas?.setDecorate({ sizeByDegree: false, colorByTag: false });
-        applyFilter();
-        renderSide();
-      };
-      (sideEl.querySelector('[data-km="f-close"]') as HTMLButtonElement).onclick = () => {
-        sideMode = 'node';
-        renderSide();
-      };
     }
 
     /**
@@ -1285,6 +1171,17 @@ import {
       persist: () => persistStructure(),
       refresh: () => renderSide(),
       esc: (s0) => escapeHtml(s0),
+      filterState,
+      applyFilter: () => applyFilter(),
+      applyDecorate: () => {
+        canvas?.setDecorate({ sizeByDegree: filterState.sizeByDegree, colorByTag: filterState.colorByTag });
+        canvas?.setSelectedNode(selectedId);
+      },
+      nodeKinds: () => nodeKindsNow().map((k) => ({ id: k.id, label: k.label, icon: k.icon })),
+      edgeKinds: () => edgeKindsNow().map((k) => ({ id: k.id, label: k.label })),
+      kindLabel: (id) => kindLabel(id),
+      kindIcon: (id) => kindIcon(id),
+      edgeLabel: (id) => edgeLabel(id),
       mapNameOfKey: (key) => {
         const id = key.replace('karmomap.map.', '');
         return library.maps.find((x) => x.id === id)?.name ?? key.replace('karmomap.', '');
@@ -1374,7 +1271,7 @@ import {
         return;
       }
       if (sideMode === 'filter') {
-        renderFilterPanel();
+        renderFilterPanel(panelCtx);
         return;
       }
       if (sideMode === 'many') {
