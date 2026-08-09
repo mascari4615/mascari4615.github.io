@@ -16,7 +16,7 @@
  * KarmoMap 은 그릇이고 렌즈지, 작가가 아니다.
  */
 import { GraphCanvas } from '../../lib/graph/canvas';
-import type { GraphSpec, GraphNode, GraphEdge, GroupDef, NodeShape } from '../../lib/graph/spec';
+import type { GraphSpec, GraphNode, GraphEdge, GroupDef, NodeShape, BackgroundKind } from '../../lib/graph/spec';
 import { emptyGraphSpec } from '../../lib/graph/spec';
 import { KarmoMapLocalStorageAdapter } from './local-storage-adapter';
 import {
@@ -164,6 +164,12 @@ import {
           <button class="btn btn-ghost" data-km="groups" title="묶음 관리">🫧 묶음</button>
           <button class="btn btn-ghost" data-km="undo" title="되돌리기 (Ctrl+Z)" disabled>↶</button>
           <button class="btn btn-ghost" data-km="redo" title="다시 하기 (Ctrl+Y)" disabled>↷</button>
+          <select data-km="bg" title="배경 무늬">
+            <option value="dots">· 점</option>
+            <option value="grid">▦ 모눈</option>
+            <option value="cross">✛ 십자</option>
+            <option value="none">□ 없음</option>
+          </select>
           <button class="btn btn-ghost" data-km="fit">화면 맞춤</button>
           <button class="btn btn-ghost" data-km="png" title="보이는 그대로 PNG 로 (2배 해상도)">🖼 그림</button>
           <button class="btn btn-ghost" data-km="export">내보내기</button>
@@ -830,6 +836,14 @@ import {
     document.addEventListener('keydown', onKeyDown);
     Toolbox.onDispose?.(() => document.removeEventListener('keydown', onKeyDown));
 
+    // 배경 무늬 — 맵마다 따로 기억한다(`_meta.bg`).
+    const bgEl = q<HTMLSelectElement>('bg');
+    bgEl.onchange = () => {
+      canvas?.setBackground(bgEl.value as BackgroundKind);
+      spec._meta = { ...spec._meta, bg: bgEl.value };
+      persistStructure();
+    };
+
     q<HTMLButtonElement>('fit').onclick = () => canvas?.fitView();
 
     // ── 그림으로 내보내기 (격차 G) ──────────────────────────────────────────
@@ -955,6 +969,9 @@ import {
         // 관계 종류 정의는 항상 최신 셋으로 (저장본이 옛 정의를 갖고 있어도 색이 맞게).
         spec._edge_kinds = { ...ALL_EDGE_KIND_DEFS, ...(spec._edge_kinds ?? {}) };
         applyPack(spec._meta?.pack ?? DEFAULT_PACK_ID, false);
+        const bg = (spec._meta?.bg ?? 'dots') as BackgroundKind;
+        bgEl.value = bg;
+        canvas?.setBackground(bg);
         applySpec();
         if (spec.nodes.length > 0) canvas?.fitView();
         renderSide();
