@@ -180,7 +180,11 @@ export function install(landing: HTMLElement): void {
     open.className = 'hp-open';
     open.textContent = '꾸미기';
     open.setAttribute('aria-expanded', 'false');
-    landing.appendChild(open);
+    /* 미리 만들어 둔 자리에 넣는다 — 그냥 맨 뒤에 붙이면 그 순간 31px 가 생기며 아래가 밀린다
+       (실사이트 실측). 자리가 없으면(옛 판) 예전처럼 맨 뒤에. */
+    const slot = landing.querySelector('.hp-slot');
+    if (slot) slot.appendChild(open);
+    else landing.appendChild(open);
 
     let box: HTMLElement | null = null;
     open.addEventListener('click', () => {
