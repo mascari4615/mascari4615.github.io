@@ -272,3 +272,26 @@ export function edgeCurve(
   }
   return { p1, c1, c2, p2 };
 }
+
+
+/**
+ * 상자들을 다 덮는 **세계 범위**. 아무것도 없으면 기본 크기를 돌려준다 —
+ * 0×0 을 돌려주면 「맞춤 보기」가 배율을 무한대로 잡아 화면이 하얗게 날아간다.
+ */
+export function boundsOf(
+  boxes: { x: number; y: number; w: number; h: number }[],
+  fallback: WorldBounds = { minX: 0, minY: 0, w: 1200, h: 1100 },
+): WorldBounds {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const b of boxes) {
+    minX = Math.min(minX, b.x);
+    minY = Math.min(minY, b.y);
+    maxX = Math.max(maxX, b.x + b.w);
+    maxY = Math.max(maxY, b.y + b.h);
+  }
+  if (minX === Infinity) return fallback;
+  return { minX, minY, w: maxX - minX, h: maxY - minY };
+}
