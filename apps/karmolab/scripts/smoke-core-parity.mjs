@@ -71,16 +71,34 @@ await page.evaluate(() => {
 await page.addScriptTag({ content: read('js/vendor/crypto-js.min.js') });
 await page.addScriptTag({ content: read('js/widgets/tools/hashgen.js') });
 
-const browserHashes = await page.evaluate((samples) => {
+// ★ `build()` 는 **더 이상 동기가 아니다** (2026-08-10). i18n 갈래(loadNamespace)가 들어오면서
+//   말 묶음을 받아 온 **뒤에** 그린다. 이 검사는 그리자마자 `#hgInput` 을 찾았고, 그래서
+//   `Cannot set properties of null` 로 5판 연속 빨갰다 — 제품이 깨진 게 아니라 **검사의 전제**가 낡았다.
+//   고치는 방법은 sleep 이 아니라 **그려질 때까지 기다리기**다(느린 러너에서 또 깨지지 않게).
+//   안 나타나면 조용히 멈추지 않고 그 사실을 말하고 죽는다.
+const browserHashes = await page.evaluate(async (samples) => {
   const tool = window.__reg['hashgen'];
   if (!tool) return { missing: true };
+  const waitFor = async (host, sel, ms = 5000) => {
+    const until = Date.now() + ms;
+    for (;;) {
+      const el = host.querySelector(sel);
+      if (el) return el;
+      if (Date.now() > until) return null;
+      await new Promise((r) => setTimeout(r, 25));
+    }
+  };
   const out = {};
   for (const sample of samples) {
     const host = document.createElement('div');
     document.body.appendChild(host);
     tool.tabs[0].build(host);
-    host.querySelector('#hgInput').value = sample;
-    host.querySelector('#hgInput').dispatchEvent(new Event('input'));
+    const input = await waitFor(host, '#hgInput');
+    if (!input) return { timedOut: true, sample };
+    input.value = sample;
+    input.dispatchEvent(new Event('input'));
+    // 그리기가 입력 이벤트에 이어 붙는 경우도 있어 한 줄이 생길 때까지 기다린다.
+    await waitFor(host, '.hg-row');
     out[sample] = [...host.querySelectorAll('.hg-row')].map((r) => [
       r.querySelector('.tool-list-key').textContent,
       r.dataset.hash
@@ -91,6 +109,8 @@ const browserHashes = await page.evaluate((samples) => {
 }, SAMPLES);
 
 check(browserHashes.missing !== true, 'hashgen 위젯이 등록되지 않았다');
+check(browserHashes.timedOut !== true,
+  `hashgen 이 5초 안에 안 그려졌다 (표본 ${browserHashes.sample}) — build() 가 기다리는 것(i18n 말 묶음)이 안 온다`);
 
 const LABEL_TO_ALGO = {
   MD5: 'MD5',
