@@ -21,7 +21,7 @@ import { subsolar, subsolarBody, toVec, distanceKm } from './sky';
 import { quakes, quakesOn, aurora, kpIndex, iss, launches, issOmm, catalog, solarWind, windEta, apod, type Apod, type Quake, type AuroraPoint, type IssFix, type Launch } from './sources';
 import { paintSurface, type Tex, type Region, type View as SurfaceView } from './surface';
 import { loadTex, loadClouds, loadCloudsOn } from './textures';
-import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
+import { loadRegion, levelFor, fitLevel, regionKey, type BBox } from './tiles';
 import { elementsFrom, propagate, propagateAll, nextPass, EARTH_RADIUS_KM, type Elements, type Pass } from './orbit';
 import { fromTimezone, askPrecise, type Me } from './me';
 import { EarthSound } from './sound';
@@ -456,7 +456,8 @@ import { EarthSound } from './sound';
               }
               const box = visibleBox();
               if (!box) return;
-              const z = levelFor(degPerScreenPx());
+              // 화면 촘촘함이 원하는 층 → 타일 수 상한에 맞게 한 층씩 낮춘다
+              const z = fitLevel(box, levelFor(degPerScreenPx()));
               const key = regionKey(box, z, isPast() ? pastDay : '');
               if (key === regionAt || key === regionWanted) return;
               regionWanted = key;
@@ -469,6 +470,18 @@ import { EarthSound } from './sound';
               });
             }, 320);
           }
+
+          /* ── 겹쳐 그리는 것들의 크기·수명 ─────────────────────────────
+           *
+           * 표식은 **지리가 아니라 주석**이다. 그런데 크기를 지구 반지름에 비례시켜 두었더니
+           * 확대할수록 같이 부풀어, 도시 하나를 들여다보는데 지진 파문 하나가 화면을 덮었다.
+           * 그래서 두 가지를 나눈다:
+           *   markerScale() — 점·고리의 크기. 조금만 자라고 **거기서 멈춘다**.
+           *   globeFade()   — 「지구 전체를 볼 때만 뜻이 있는 것」(시간대 링·궤도 무리·발사대)의
+           *                   투명도. 표면을 들여다보는 배율이 되면 조용히 사라진다.
+           */
+          const markerScale = (): number => Math.max(0.6, Math.min(2, R / 280));
+          const globeFade = (): number => Math.max(0, Math.min(1, (3.2 - zoom) / 1.4));
 
           /* ── 그리기 ───────────────────────────────────────────────────── */
           function drawGlobe(now: number): void {
@@ -578,7 +591,7 @@ import { EarthSound } from './sound';
               if (lumAt(v, S) > 0.04) continue;
               const p = project(pt.lat, pt.lon);
               const a = Math.min(0.34, pt.v / 260) * Math.min(1, (face - 0.16) * 4);
-              const r = 2.1 * Math.max(0.6, R / 300);
+              const r = 2.1 * markerScale();
               const g = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 2.6);
               g.addColorStop(0, pt.v > 45 ? `rgba(200,255,205,${a})` : `rgba(105,235,160,${a})`);
               g.addColorStop(1, 'rgba(80,220,150,0)');
@@ -601,13 +614,14 @@ import { EarthSound } from './sound';
               if (ageH > 24) continue;
               const fresh = Math.max(0.12, 1 - ageH / 24);
               const p = project(q.lat, q.lon);
-              const base = (2 + Math.max(0, q.mag - 2.5) * 2.6) * Math.max(0.6, R / 280);
+              const base = (2 + Math.max(0, q.mag - 2.5) * 2.6) * markerScale();
 
               // 파문 — 규모가 클수록 크게, 최근일수록 진하게. 계속 반복해 「지금도 살아있음」을 만든다
               const period = 2600;
               const phase = ((now + q.time) % period) / period;
               const rr = base * (1 + phase * 4.2);
-              c.strokeStyle = `rgba(255,150,120,${(1 - phase) * fresh * 0.65})`;
+              const ripAlpha = (1 - phase) * fresh * 0.65 * Math.max(0.18, globeFade());
+              c.strokeStyle = `rgba(255,150,120,${ripAlpha})`;
               c.lineWidth = 1.3;
               c.beginPath();
               c.arc(p.x, p.y, rr, 0, Math.PI * 2);
@@ -629,6 +643,8 @@ import { EarthSound } from './sound';
            */
           function drawSats(now: number): void {
             if (!satEls.length || !satXyz) return;
+            const fade = globeFade();
+            if (fade <= 0.01) return;
             const t = clockMs();
             if (now - satAt > 400) {
               propagateAll(satEls, t, satXyz);
@@ -637,6 +653,7 @@ import { EarthSound } from './sound';
             const c = ctx!;
             const k = R / EARTH_RADIUS_KM;
             c.save();
+            c.globalAlpha = fade;
             c.globalCompositeOperation = 'lighter';
             for (let i = 0; i < satEls.length; i++) {
               const i3 = i * 3;
@@ -673,12 +690,15 @@ import { EarthSound } from './sound';
            * 맨 위가 자정, 아래가 정오다.
            */
           function drawClockRing(sun: { lat: number; lon: number }): void {
+            const fade = globeFade();
+            if (fade <= 0.01) return;
             const c = ctx!;
             const rr = Math.min(Math.min(W, H) / 2 - 8, R * 1.22);
             if (rr < 60) return;
             const ang = (hour: number): number => (hour / 24) * Math.PI * 2 - Math.PI / 2;
 
             c.save();
+            c.globalAlpha = fade;
             c.lineWidth = Math.max(3, rr * 0.026);
             for (let i = 0; i < 96; i++) {
               const h0 = (i / 96) * 24;
@@ -746,7 +766,7 @@ import { EarthSound } from './sound';
             const p = project(me.lat, me.lon);
             const c = ctx!;
             const pulse = 0.5 + 0.5 * Math.sin(now / 1100);
-            const base = 3.4 * Math.max(0.7, R / 300);
+            const base = 3.4 * markerScale();
             c.strokeStyle = `rgba(180,225,255,${0.28 + pulse * 0.34})`;
             c.lineWidth = 1.4;
             c.beginPath();
@@ -760,12 +780,16 @@ import { EarthSound } from './sound';
 
           function drawLaunches(): void {
             if (!ls.length) return;
+            const fade = globeFade();
+            if (fade <= 0.01) return;
             const c = ctx!;
+            c.save();
+            c.globalAlpha = fade;
             for (const l of ls) {
               const v = toVec(l.lat, l.lon);
               if (dot(v, ez) <= 0.04) continue;
               const p = project(l.lat, l.lon);
-              const s = 3.4 * Math.max(0.6, R / 300);
+              const s = 3.4 * markerScale();
               c.fillStyle = 'rgba(255,255,255,.8)';
               c.beginPath();
               c.moveTo(p.x, p.y - s * 1.6);
@@ -774,6 +798,7 @@ import { EarthSound } from './sound';
               c.closePath();
               c.fill();
             }
+            c.restore();
           }
 
           function drawIss(): void {
