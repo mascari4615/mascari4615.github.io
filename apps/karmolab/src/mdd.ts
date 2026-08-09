@@ -446,6 +446,29 @@ const Mdd = (() => {
            (부르는 쪽이 만들어서 나중에 붙인다) 「붙은 적 있다」를 기억해 두고 판단한다. */
         let wasConnected = false;
 
+        /* 아직 안 붙은 아바타를 **싸게** 기다린다.
+         *
+         * 부르는 쪽이 만들고 나중에 붙이는 경우가 있어서(첫 몇 프레임은 떠 있다) 곧장 포기하면
+         * 마스코트가 안 움직인다. 그렇다고 rAF 로 기다리면 기다리는 것 자체가 초당 60번이다.
+         * 0.5초에 한 번만 들여다보고, 한동안 안 붙으면 **버려진 것**으로 보고 손을 뗀다
+         * (아무도 안 잡고 있으면 그대로 치워진다). */
+        let mountWatch: ReturnType<typeof setTimeout> | null = null;
+        let waitedMs = 0;
+        const GIVE_UP_MS = 10_000;
+        function watchForMount(): void {
+            if (mountWatch || (wasConnected && !el.isConnected)) return; // 붙었다 떨어진 것은 끝난 것
+            mountWatch = setTimeout(() => {
+                mountWatch = null;
+                waitedMs += 500;
+                if (el.isConnected) {
+                    t0 = performance.now();
+                    if (!raf) raf = requestAnimationFrame(frame);
+                    return;
+                }
+                if (waitedMs < GIVE_UP_MS) watchForMount();
+            }, 500);
+        }
+
         function frame(now: number): void {
             /* **떨어졌으면 스스로 멈춘다** (TASK-KL-201).
              *
@@ -457,11 +480,17 @@ const Mdd = (() => {
              * `mountAvatar` 는 같은 사고를 이미 겪고 「새로 붙이기 전에 앞의 것을 끊는」 방식으로
              * 고쳤다(KL-128 ㉔). 그건 부르는 쪽이 기억해야 하는 방식이라 새 사용처가 생기면 또
              * 샌다. 그래서 여기서, 아바타 자신이 판단한다. 부르는 쪽은 아무것도 안 해도 된다. */
-            if (wasConnected && !el.isConnected) {
+            if (!el.isConnected) {
+                /* 예전에는 「**붙었던 적이 있고** 지금 떨어졌으면」만 멈췄다. 그래서 만들어 놓고
+                   화면에 **한 번도 안 붙인** 아바타는 조건에 영영 안 걸려 계속 돌았다.
+                   실측(2026-08-09): 화면엔 아바타가 **하나**뿐인데 이 루프가 일곱 벌 돌고 있었다 —
+                   나머지 여섯은 아무 데도 안 붙은 채 배터리만 먹는 유령이었다.
+                   붙어 있지 않으면 그릴 곳이 없다. 붙은 적이 있든 없든 잔다. */
                 raf = 0;
+                watchForMount();
                 return;
             }
-            if (el.isConnected) wasConnected = true;
+            wasConnected = true;
 
             /* ⚠ **여기서 「안 보이면 쉰다」를 시도했다가 되돌렸다** (TASK-KL-201, 2026-08-09).
              *
@@ -600,7 +629,44 @@ const Mdd = (() => {
 
             raf = requestAnimationFrame(frame);
         }
-        raf = requestAnimationFrame(frame);
+
+        /* **안 보이는 화면의 마스코트는 잔다** (TASK-KL-201, 2026-08-09 2차).
+         *
+         * 셸은 화면을 지우지 않고 **숨긴 채 남긴다** — `isConnected` 는 계속 참이라 위 자기중단은
+         * 안 걸린다. 그래서 위젯을 훑고 홈으로 오면 이 루프가 여러 벌 겹쳐 돈다.
+         * 실측: 위젯 13개를 훑고 홈 = 초당 303회(=60fps 다섯 벌). 손 안 댄 화면이 배터리를 먹는다.
+         *
+         * 앞서 `checkVisibility()` 로 재우려다 되돌렸다 — 마스코트가 **크기 0 컨테이너** 안에 살아
+         * 홈에서도 잠들어 버렸다. 요소의 크기로 「보이나」를 물으면 안 된다는 뜻이었다.
+         *
+         * 그래서 묻는 대상을 바꿨다: **자기가 올라탄 도구 화면이 지금 켜져 있나**. 셸이 이미
+         * `.tool-page.active` 로 그 사실을 적고 있으니, 그 한 칸만 지켜본다. 도구 화면 밖에 사는
+         * 마스코트(홈·머리띠)는 `closest` 가 아무것도 못 찾으므로 **영향이 없다** — 앞 사고의
+         * 재발 지점이 구조적으로 닫힌다.
+         *
+         * 멈출 때 `raf` 를 비우고, 켜질 때 다시 건다. 중복 기동을 막으려고 `raf` 가 0 일 때만 건다.
+         */
+        const ownerPage = el.closest('.tool-page');
+        const pageAwake = () => !ownerPage || ownerPage.classList.contains('active');
+
+        function wake(): void {
+            if (raf) return;
+            t0 = performance.now();
+            raf = requestAnimationFrame(frame);
+        }
+        function sleep(): void {
+            if (!raf) return;
+            cancelAnimationFrame(raf);
+            raf = 0;
+        }
+
+        let pageWatch: MutationObserver | null = null;
+        if (ownerPage && typeof MutationObserver === 'function') {
+            pageWatch = new MutationObserver(() => (pageAwake() ? wake() : sleep()));
+            pageWatch.observe(ownerPage, { attributes: true, attributeFilter: ['class'] });
+        }
+
+        if (pageAwake()) raf = requestAnimationFrame(frame);
 
         return {
             el,
@@ -612,7 +678,7 @@ const Mdd = (() => {
             },
             setMotion(m: Partial<MotionFlags>): void { Object.assign(motion, m); },
             lookAt,
-            destroy() { cancelAnimationFrame(raf); ro?.disconnect(); el.remove(); },
+            destroy() { cancelAnimationFrame(raf); raf = 0; if (mountWatch) clearTimeout(mountWatch); ro?.disconnect(); pageWatch?.disconnect(); el.remove(); },
         };
     }
 
