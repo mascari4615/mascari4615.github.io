@@ -777,6 +777,14 @@ import {
       selectedEdge: () => spec.edges.find((e) => e.id === selectedEdgeId),
       spawnNodeAt: (x, y, label) => spawnNodeAt(x, y, label),
       spawnNoteCard: (noteId) => spawnNoteCard(noteId),
+      linkWithLabel: (from, to, label) => {
+        const dup = spec.edges.some((e) => (e.from === from && e.to === to) || (e.from === to && e.to === from));
+        if (dup) return;
+        const taken = new Set(spec.edges.map((e) => e.id));
+        spec.edges.push({ id: nextId('edge', taken), from, to, kind: edgeKindsNow()[0].id, label });
+        applySpec();
+        persistStructure();
+      },
       foreignNotes: () => foreignNotes(spec),
       adoptNote: (noteId) => { adoptNote(spec, noteId); },
       resizeNode: (node) => resize(node),
