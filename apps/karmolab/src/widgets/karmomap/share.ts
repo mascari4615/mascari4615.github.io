@@ -85,6 +85,21 @@ export function buildShareUrl(base: URL, code: string, readOnly = false): string
   return url.toString();
 }
 
+/**
+ * **그 인물로 바로 가는 주소** (Craft 의 딥링크 계보). 링크를 받은 사람이 큰 그림에서
+ * 「어디를 보라는 건지」 찾아 헤매지 않게, 열자마자 그 카드를 고르고 화면을 맞춘다.
+ */
+export function withNodeAnchor(url: string, nodeId: string): string {
+  const u = new URL(url);
+  u.searchParams.set('kmnode', nodeId);
+  return u.toString();
+}
+
+/** 주소가 가리키는 노드 id(없으면 빈 문자열). */
+export function nodeAnchorFromLocation(search: string): string {
+  return new URLSearchParams(search).get('kmnode') ?? '';
+}
+
 /** 이 주소가 보기 전용인가. */
 export function isReadOnlyLink(search: string): boolean {
   return new URLSearchParams(search).get('kmv') === '1';

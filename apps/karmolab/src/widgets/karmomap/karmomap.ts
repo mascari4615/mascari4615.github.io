@@ -54,7 +54,7 @@ import { commentsSectionHtml, bindCommentsSection } from './panels/comments-sect
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap, layoutCircle, layoutHierarchy, layoutTimeline, bestTimeField } from './tidy';
 import { computeSna, topBy } from './sna';
-import { encodeShare, decodeShare, shareCodeFromLocation, buildShareUrl, isReadOnlyLink, SHARE_URL_LIMIT } from './share';
+import { encodeShare, decodeShare, shareCodeFromLocation, buildShareUrl, isReadOnlyLink, withNodeAnchor, nodeAnchorFromLocation, SHARE_URL_LIMIT } from './share';
 import {
   loadLibrary, setActive, renameMap, touchMap, addMap, removeMap, mapKey,
   type LibraryIndex,
@@ -1223,6 +1223,7 @@ import {
           }
         </div>
         <button class="btn btn-ghost" data-km="node-copy">⧉ 이 노드 복제</button>
+        <button class="btn btn-ghost" data-km="node-link">🔗 이 카드로 오는 링크</button>
         <button class="btn btn-danger" data-km="node-del">노드 삭제</button>`;
 
       // 이름 편집 — 입력할 때마다 반영 (폭도 같이 조정)
@@ -1266,6 +1267,24 @@ import {
       bindMembershipField(panelCtx, node);
 
       bindAttachField(panelCtx, node, touch);
+
+      // 이 카드로 바로 오는 주소 — 큰 그림을 보낼 때 「어디를 보라는 건지」를 말로 설명하지 않게.
+      (sideEl.querySelector('[data-km="node-link"]') as HTMLButtonElement).onclick = () => {
+        const live = canvas?.getSpec() ?? spec;
+        void encodeShare(live).then(async (code) => {
+          const url = withNodeAnchor(buildShareUrl(new URL(location.href), code, true), node.id);
+          if (url.length > SHARE_URL_LIMIT) {
+            alert('그림이 커서 링크로는 못 보냅니다 — 「JSON 내보내기」로 파일을 보내 주세요.');
+            return;
+          }
+          try {
+            await navigator.clipboard.writeText(url);
+            Toolbox.showToast?.('이 카드로 오는 링크를 복사했습니다 (보기 전용)', undefined, undefined);
+          } catch {
+            prompt('이 링크를 복사해 보내세요', url);
+          }
+        });
+      };
 
       // 복제 — 같은 설정 그대로 옆에 하나 더 (레퍼런스의 「カード複製」).
       (sideEl.querySelector('[data-km="node-copy"]') as HTMLButtonElement).onclick = () => {
@@ -2413,6 +2432,16 @@ import {
         applySpec();
         canvas?.fitView();
         if (isReadOnlyLink(location.search)) enterReadOnly();
+        // 주소가 카드를 가리키면 열자마자 그 카드를 고르고 화면을 맞춘다 — 안 그러면 받은 사람이
+        // 큰 그림에서 「어디를 보라는 건지」 찾아 헤맨다.
+        const anchor = nodeAnchorFromLocation(location.search);
+        if (anchor && spec.nodes.some((n) => n.id === anchor)) {
+          selectedId = anchor;
+          sideMode = 'node';
+          renderSide();
+          canvas?.setSelectedNode(anchor);
+          canvas?.fitToNodes([anchor], 220);
+        }
         renderSide();
         snapshot();
         syncHistoryButtons();
