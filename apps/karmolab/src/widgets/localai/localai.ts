@@ -14,7 +14,12 @@
  * 모델은 처음 쓸 때 내려받는다(무료, 수십 MB). 그동안 화면이 멈춘 것처럼 보이는 것이 이
  * 기능의 유일한 사용자 함정이라, 진행률을 그대로 보여 준다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const ID = 'localai';
 
   interface DownloadMonitor {
@@ -66,31 +71,23 @@
   };
 
   const LANGS: Array<[string, string]> = [
-    ['ko', '한국어'],
-    ['en', '영어'],
-    ['ja', '일본어'],
-    ['zh', '중국어(간체)'],
-    ['es', '스페인어'],
-    ['fr', '프랑스어'],
-    ['de', '독일어'],
-    ['vi', '베트남어'],
+    ['ko', t('localai.t12')],
+    ['en', t('localai.t13')],
+    ['ja', t('localai.t14')],
+    ['zh', t('localai.t15')],
+    ['es', t('localai.t16')],
+    ['fr', t('localai.t17')],
+    ['de', t('localai.t18')],
+    ['vi', t('localai.t19')],
   ];
 
-  function esc(value: unknown): string {
-    return String(value ?? '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
 
   /** 안 되는 브라우저에 놓는 안내 — 빈 화면 대신 **왜 안 되는지**를 적는다. */
   function unsupported(what: string): string {
     return `<div class="lai-note">
         <strong>이 브라우저에서는 ${esc(what)}을 아직 못 씁니다.</strong><br>
-        브라우저 안에 든 모델을 쓰는 기능이라, 크롬 계열의 최근 판이 필요합니다
-        (다른 AI 도구들은 그대로 씁니다 — 그건 서버가 합니다).<br>
-        <span class="lai-dim">여기서 도는 것은 전부 이 기기 안에서 끝납니다. 글이 밖으로 안 나갑니다.</span>
+        ${esc(t('localai.t01'))}<br>
+        <span class="lai-dim">${esc(t('localai.t02'))}</span>
       </div>`;
   }
 
@@ -127,17 +124,17 @@
     return Promise.race([
       work,
       new Promise<T>((_, reject) =>
-        setTimeout(() => reject(new Error(`${what}이(가) ${seconds}초 안에 준비되지 않았습니다`)), seconds * 1000)
+        setTimeout(() => reject(new Error(t('localai.notReady', { what, seconds }))), seconds * 1000)
       ),
     ]);
   }
 
   /** 가용성 값을 사람 말로. 「downloadable」 같은 낱말을 그대로 보여 주지 않는다. */
   function sayAvailability(state: string): string {
-    if (state === 'available') return '모델이 이미 있습니다.';
-    if (state === 'downloadable') return '모델을 처음 받습니다 (무료, 한 번만).';
-    if (state === 'downloading') return '모델을 받는 중입니다.';
-    return '이 조합은 이 기기에서 안 됩니다.';
+    if (state === 'available') return t('localai.t20');
+    if (state === 'downloadable') return t('localai.t21');
+    if (state === 'downloading') return t('localai.t22');
+    return t('localai.t23');
   }
 
   /** 모델 내려받기 진행률을 그대로 보여 준다 — 안 보여 주면 「멈췄다」로 읽힌다. */
@@ -146,34 +143,34 @@
       m.addEventListener('downloadprogress', (e) => {
         const pct = Math.round((e.loaded || 0) * 100);
         (bar.firstElementChild as HTMLElement).style.width = `${pct}%`;
-        state.textContent = `모델 받는 중 ${pct}% — 처음 한 번만 받습니다(무료). 다 받으면 오프라인에서도 됩니다.`;
+        state.textContent = t('localai.downloading', { pct });
       });
     };
   }
 
   function buildTranslate(container: HTMLElement): void {
     if (!g.Translator) {
-      container.innerHTML = unsupported('브라우저 안 번역');
+      container.innerHTML = unsupported(t('localai.t24'));
       return;
     }
     container.innerHTML = `
       <div class="lai-wrap">
         <div class="lai-note">
-          번역이 <b>이 기기 안에서</b> 됩니다 — 서버로 글을 보내지 않고, 다 받고 나면 인터넷이 없어도 됩니다.
+          ${esc(t('localai.t03'))} <b>${esc(t('localai.t04'))}</b> ${esc(t('localai.t05'))}
         </div>
         <div class="lai-row">
-          <label class="lai-state" for="laiFrom">원문</label>
+          <label class="lai-state" for="laiFrom">${esc(t('localai.label.laiFrom'))}</label>
           <select id="laiFrom">
-            <option value="auto">자동 감지</option>
+            <option value="auto">${esc(t('localai.opt.auto'))}</option>
             ${LANGS.map(([code, name]) => `<option value="${code}">${esc(name)}</option>`).join('')}
           </select>
           <span class="lai-state">→</span>
           <select id="laiTo">
             ${LANGS.map(([code, name]) => `<option value="${code}"${code === 'en' ? ' selected' : ''}>${esc(name)}</option>`).join('')}
           </select>
-          <button type="button" class="btn" id="laiRun">번역</button>
+          <button type="button" class="btn" id="laiRun">${esc(t('localai.btn.laiRun'))}</button>
         </div>
-        <textarea id="laiIn" class="lai-ta" placeholder="번역할 글을 붙여 넣으세요"></textarea>
+        <textarea id="laiIn" class="lai-ta" placeholder="${esc(t('localai.ph.laiIn'))}"></textarea>
         <div class="lai-bar"><span></span></div>
         <div class="lai-state" id="laiState"></div>
         <div class="lai-out" id="laiOut"></div>
@@ -190,8 +187,8 @@
     async function detect(text: string): Promise<string | null> {
       if (!g.LanguageDetector) return null;
       try {
-        const detector = await withLimit(g.LanguageDetector.create(), 20, '말 알아보기');
-        const guesses = await withLimit(detector.detect(text.slice(0, 400)), 15, '말 알아보기');
+        const detector = await withLimit(g.LanguageDetector.create(), 20, t('localai.t25'));
+        const guesses = await withLimit(detector.detect(text.slice(0, 400)), 15, t('localai.t25'));
         return guesses?.[0]?.detectedLanguage || null;
       } catch {
         return null; // 감지가 안 되면 사람에게 고르라고 한다 — 틀린 언어로 번역하는 것보다 낫다
@@ -201,33 +198,33 @@
     run.onclick = async (): Promise<void> => {
       const text = input.value.trim();
       if (!text) {
-        state.textContent = '번역할 글을 넣어 주세요.';
+        state.textContent = t('localai.t26');
         return;
       }
       run.disabled = true;
       out.textContent = '';
-      state.textContent = '준비 중…';
+      state.textContent = t('localai.t27');
       try {
         let source = from.value;
         if (source === 'auto') {
           const guessed = await detect(text);
           if (!guessed) {
-            state.textContent = '어느 말인지 못 알아봤습니다 — 원문 언어를 직접 골라 주세요.';
+            state.textContent = t('localai.t28');
             run.disabled = false;
             return;
           }
           source = guessed;
-          state.textContent = `원문을 ${esc(LANGS.find((l) => l[0] === guessed)?.[1] || guessed)}로 봤습니다.`;
+          state.textContent = t('localai.guessed', { lang: esc(LANGS.find((l) => l[0] === guessed)?.[1] || guessed) });
         }
         if (source === to.value) {
-          state.textContent = '원문과 옮길 말이 같습니다.';
+          state.textContent = t('localai.t29');
           run.disabled = false;
           return;
         }
         const pair = { sourceLanguage: source, targetLanguage: to.value };
         /* 물어보는 것조차 안 돌아오는 환경이 있다(실측: 헤드리스에서 여기서 멈췄다).
            그래서 **첫 단계부터** 시간을 잰다 — 안 그러면 「준비 중…」에서 영영 멈춘다. */
-        const can = await withLimit(g.Translator!.availability(pair), 15, '번역 준비 확인');
+        const can = await withLimit(g.Translator!.availability(pair), 15, t('localai.t30'));
         state.textContent = sayAvailability(can);
         if (can === 'unavailable') {
           run.disabled = false;
@@ -236,15 +233,15 @@
         const translator = await withLimit(
           g.Translator!.create({ ...pair, monitor: progressWatcher(bar, state) }),
           can === 'available' ? 20 : 120,
-          '번역 모델'
+          t('localai.t31')
         );
-        state.textContent = '번역 중…';
-        out.textContent = await withLimit(translator.translate(text), 60, '번역');
-        state.textContent = '끝. 이 글은 기기 밖으로 안 나갔습니다.';
+        state.textContent = t('localai.t32');
+        out.textContent = await withLimit(translator.translate(text), 60, t('localai.btn.laiRun'));
+        state.textContent = t('localai.t33');
         Toolbox.trackUse?.('localai-translate');
       } catch (err) {
         /* 실패해도 **왜인지** 적는다 — 빈 화면은 고장으로 읽힌다. */
-        state.textContent = `번역 실패 — ${String(err).split('\n')[0].slice(0, 110)}`;
+        state.textContent = t('localai.failTranslate', { why: String(err).split('\n')[0].slice(0, 110) });
       } finally {
         run.disabled = false;
       }
@@ -253,29 +250,29 @@
 
   function buildSummarize(container: HTMLElement): void {
     if (!g.Summarizer) {
-      container.innerHTML = unsupported('브라우저 안 요약');
+      container.innerHTML = unsupported(t('localai.t34'));
       return;
     }
     container.innerHTML = `
       <div class="lai-wrap">
         <div class="lai-note">
-          긴 글을 <b>이 기기 안에서</b> 줄입니다. 서버로 안 보냅니다.
-          <span class="lai-dim">내장 모델은 가볍습니다 — 사실 확인이 필요한 글은 원문을 보세요.</span>
+          ${esc(t('localai.t06'))} <b>${esc(t('localai.t04'))}</b> ${esc(t('localai.t07'))}
+          <span class="lai-dim">${esc(t('localai.t08'))}</span>
         </div>
         <div class="lai-row">
           <select id="laiLen">
-            <option value="short">짧게</option>
-            <option value="medium" selected>보통</option>
-            <option value="long">길게</option>
+            <option value="short">${esc(t('localai.opt.short'))}</option>
+            <option value="medium" selected>${esc(t('localai.opt.medium'))}</option>
+            <option value="long">${esc(t('localai.opt.long'))}</option>
           </select>
           <select id="laiType">
-            <option value="tldr" selected>한 마디로</option>
-            <option value="key-points">요점만</option>
-            <option value="teaser">맛보기</option>
+            <option value="tldr" selected>${esc(t('localai.opt.tldr'))}</option>
+            <option value="key-points">${esc(t('localai.opt.keypoints'))}</option>
+            <option value="teaser">${esc(t('localai.opt.teaser'))}</option>
           </select>
-          <button type="button" class="btn" id="laiSum">요약</button>
+          <button type="button" class="btn" id="laiSum">${esc(t('localai.btn.laiSum'))}</button>
         </div>
-        <textarea id="laiSumIn" class="lai-ta" placeholder="줄이고 싶은 글을 붙여 넣으세요"></textarea>
+        <textarea id="laiSumIn" class="lai-ta" placeholder="${esc(t('localai.ph.laiSumIn'))}"></textarea>
         <div class="lai-bar"><span></span></div>
         <div class="lai-state" id="laiSumState"></div>
         <div class="lai-out" id="laiSumOut"></div>
@@ -290,14 +287,14 @@
     btn.onclick = async (): Promise<void> => {
       const text = input.value.trim();
       if (!text) {
-        state.textContent = '줄일 글을 넣어 주세요.';
+        state.textContent = t('localai.t35');
         return;
       }
       btn.disabled = true;
       out.textContent = '';
-      state.textContent = '준비 중…';
+      state.textContent = t('localai.t27');
       try {
-        const can = await withLimit(g.Summarizer!.availability(), 15, '요약 준비 확인');
+        const can = await withLimit(g.Summarizer!.availability(), 15, t('localai.t36'));
         state.textContent = sayAvailability(can);
         if (can === 'unavailable') {
           btn.disabled = false;
@@ -311,14 +308,14 @@
             monitor: progressWatcher(bar, state),
           }),
           can === 'available' ? 20 : 120,
-          '요약 모델'
+          t('localai.t37')
         );
-        state.textContent = '줄이는 중…';
-        out.textContent = await withLimit(summarizer.summarize(text), 90, '요약');
-        state.textContent = '끝. 이 글은 기기 밖으로 안 나갔습니다.';
+        state.textContent = t('localai.t38');
+        out.textContent = await withLimit(summarizer.summarize(text), 90, t('localai.btn.laiSum'));
+        state.textContent = t('localai.t33');
         Toolbox.trackUse?.('localai-summarize');
       } catch (err) {
-        state.textContent = `요약 실패 — ${String(err).split('\n')[0].slice(0, 110)}`;
+        state.textContent = t('localai.failSummarize', { why: String(err).split('\n')[0].slice(0, 110) });
       } finally {
         btn.disabled = false;
       }
@@ -333,18 +330,17 @@
    */
   function buildPrompt(container: HTMLElement): void {
     if (!g.LanguageModel) {
-      container.innerHTML = unsupported('브라우저 안 짧은 생성');
+      container.innerHTML = unsupported(t('localai.t39'));
       return;
     }
     container.innerHTML = `
       <div class="lai-wrap">
         <div class="lai-note">
-          짧은 글을 <b>이 기기 안에서</b> 만듭니다. 서버로 안 보냅니다.
-          <span class="lai-dim">가벼운 모델입니다 — 다듬기·이름 짓기처럼 짧고 틀려도 되는 일에 씁니다.
-          긴 글·사실 확인은 다른 AI 도구(서버 쪽)를 쓰세요.</span>
+          ${esc(t('localai.t09'))} <b>${esc(t('localai.t04'))}</b> ${esc(t('localai.t10'))}
+          <span class="lai-dim">${esc(t('localai.t11'))}</span>
         </div>
-        <textarea id="laiPIn" class="lai-ta" placeholder="예: 이 문장을 더 짧고 분명하게 고쳐 줘 — ..."></textarea>
-        <div class="lai-row"><button type="button" class="btn" id="laiPRun">만들기</button></div>
+        <textarea id="laiPIn" class="lai-ta" placeholder="${esc(t('localai.ph.laiPIn'))}"></textarea>
+        <div class="lai-row"><button type="button" class="btn" id="laiPRun">${esc(t('localai.btn.laiPRun'))}</button></div>
         <div class="lai-bar"><span></span></div>
         <div class="lai-state" id="laiPState"></div>
         <div class="lai-out" id="laiPOut"></div>
@@ -358,14 +354,14 @@
     btn.onclick = async (): Promise<void> => {
       const text = input.value.trim();
       if (!text) {
-        state.textContent = '시킬 일을 적어 주세요.';
+        state.textContent = t('localai.t40');
         return;
       }
       btn.disabled = true;
       out.textContent = '';
-      state.textContent = '준비 중…';
+      state.textContent = t('localai.t27');
       try {
-        const can = await withLimit(g.LanguageModel!.availability(), 15, '준비 확인');
+        const can = await withLimit(g.LanguageModel!.availability(), 15, t('localai.t41'));
         state.textContent = sayAvailability(can);
         if (can === 'unavailable') {
           btn.disabled = false;
@@ -374,15 +370,15 @@
         const session = await withLimit(
           g.LanguageModel!.create({ monitor: progressWatcher(bar, state) }),
           can === 'available' ? 20 : 180,
-          '모델'
+          t('localai.t42')
         );
-        state.textContent = '만드는 중…';
-        out.textContent = await withLimit(session.prompt(text), 90, '생성');
-        state.textContent = '끝. 이 글은 기기 밖으로 안 나갔습니다.';
+        state.textContent = t('localai.t43');
+        out.textContent = await withLimit(session.prompt(text), 90, t('localai.t44'));
+        state.textContent = t('localai.t33');
         session.destroy?.();
         Toolbox.trackUse?.('localai-prompt');
       } catch (err) {
-        state.textContent = `실패 — ${String(err).split(String.fromCharCode(10))[0].slice(0, 110)}`;
+        state.textContent = t('localai.fail', { why: String(err).split(String.fromCharCode(10))[0].slice(0, 110) });
       } finally {
         btn.disabled = false;
       }
@@ -392,9 +388,36 @@
   Toolbox.register({
     ...Toolbox.getLazyWidgetPublicMeta(ID),
     tabs: [
-      { id: 'localai-translate', label: '번역', build: buildTranslate },
-      { id: 'localai-summarize', label: '요약', build: buildSummarize },
-      { id: 'localai-prompt', label: '짧은 생성', build: buildPrompt },
+      {
+        id: 'localai-translate',
+        label: t('localai.tab.translate', undefined, '번역'),
+        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 그 안에서 만들어진다. */
+        build: function (container: HTMLElement): void {
+          void loadNamespace('localai').then(function () {
+            buildTranslate(container);
+          });
+        },
+      },
+      {
+        id: 'localai-summarize',
+        label: t('localai.tab.summarize', undefined, '요약'),
+        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 그 안에서 만들어진다. */
+        build: function (container: HTMLElement): void {
+          void loadNamespace('localai').then(function () {
+            buildSummarize(container);
+          });
+        },
+      },
+      {
+        id: 'localai-prompt',
+        label: t('localai.tab.prompt', undefined, '짧은 생성'),
+        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 그 안에서 만들어진다. */
+        build: function (container: HTMLElement): void {
+          void loadNamespace('localai').then(function () {
+            buildPrompt(container);
+          });
+        },
+      },
     ],
   });
 })();
