@@ -87,6 +87,19 @@ const send = (msg) => process.stdout.write(JSON.stringify(msg) + '\n');
 const ok = (id, result) => send({ jsonrpc: '2.0', id, result });
 const err = (id, code, message) => send({ jsonrpc: '2.0', id, error: { code, message } });
 
+/*
+ * 소리 표는 2만 자짜리다. 서버가 켜질 때마다 읽으면 안 쓰는 사람에게도 부담이라,
+ * **처음 필요할 때 한 번만** 읽고 그 뒤로는 들고 있는다.
+ */
+let hanPinyinCache;
+const hanPinyin = () => {
+  if (hanPinyinCache === undefined) {
+    const at = path.join(distDir, 'han-pinyin.json');
+    hanPinyinCache = fs.existsSync(at) ? JSON.parse(fs.readFileSync(at, 'utf8')) : null;
+  }
+  return hanPinyinCache ?? undefined;
+};
+
 function callTool(name, args) {
   const t = registry.get(name);
   if (t === undefined) throw new Error(`모르는 도구입니다: ${name}`);
@@ -95,7 +108,11 @@ function callTool(name, args) {
    * 알맹이끼리 서로 import 하면 목록을 손으로 관리하게 되고, 화면 번들도 통째로 무거워진다.
    * 깊이는 chain 쪽에서 막는다(chain 은 chain 을 못 부른다).
    */
-  const value = t.mod.run(t.op, args ?? {}, { hash: hashBackend, call: (toolId, op, a) => callTool(`${toolId}_${op}`, a) });
+  const value = t.mod.run(t.op, args ?? {}, {
+    hash: hashBackend,
+    call: (toolId, op, a) => callTool(`${toolId}_${op}`, a),
+    hanPinyin: hanPinyin()
+  });
   return String(value);
 }
 
