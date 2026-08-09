@@ -292,6 +292,26 @@ jobs:
           mkdir -p apps/blog/_site/apps/karmolab-react-src
           rsync -a --exclude 'node_modules' apps/karmolab-react-src/ apps/blog/_site/apps/karmolab-react-src/
 
+      # **나갈 파일에 실제로 남아 있나** (TASK-KL-201, 2026-08-10).
+      #
+      # 미리 그린 첫 화면은 `apps/blog/karmolab/index.html` 에 박히는데, 그 파일은 앞뒤로 여러
+      # 단계가 만지고 복사한다. 실제로 오늘 로컬에서 **뒤에 온 복사 한 줄이 박아 둔 것을 통째로
+      # 덮었다** — 아무 오류도 안 났고, 화면도 멀쩡했고, 그냥 밀림만 도로 나빠졌을 뿐이다.
+      # 그런 건 아무도 안 본다. 그래서 나가기 직전에 한 번 묻는다.
+      #
+      # 없다고 배포를 세우지는 않는다(사이트는 그것 없이도 멀쩡하다) — 대신 **빨간 글씨로 남긴다**.
+      - name: 미리 그린 첫 화면이 나갈 파일에 남아 있나
+        run: |
+          F=apps/blog/_site/karmolab/index.html
+          if [ ! -f "$F" ]; then
+            echo "::warning::첫 화면 파일이 없다 ($F) — 경로가 바뀌었는지 봐라"
+          elif grep -q "KARMOLAB_HOME_PRERENDERED" "$F"; then
+            echo "미리 그린 첫 화면 있음"
+          else
+            echo "::warning::미리 그린 첫 화면이 사라졌다 — 뒤 단계의 복사가 덮었는지 봐라 (밀림이 도로 나빠진다)"
+            echo "미리 그린 첫 화면이 최종 산출물에 없다" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Test site
         working-directory: apps/blog
         run: |
