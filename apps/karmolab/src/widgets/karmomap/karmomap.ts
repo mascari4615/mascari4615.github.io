@@ -430,6 +430,7 @@ import {
                       <input type="color" data-km="group-color" value="${escapeAttr(g.color)}" title="색" />
                       <input type="text" data-km="group-label" value="${escapeAttr(g.label)}" />
                       <span class="km-group-count">${count}</span>
+                      <button class="btn btn-ghost" data-km="group-eye" title="상자 보이기/숨기기">${g.hidden ? '🚫' : '👁'}</button>
                       <button class="btn btn-ghost" data-km="group-del" title="묶음 삭제">×</button>
                     </div>`;
                   })
@@ -465,6 +466,15 @@ import {
           const g = find();
           if (!g) return;
           g.color = (ev.target as HTMLInputElement).value;
+          canvas?.render();
+          persistStructure();
+        };
+        (row.querySelector('[data-km="group-eye"]') as HTMLButtonElement).onclick = (ev) => {
+          const g = find();
+          if (!g) return;
+          // 상자만 감춘다 — 소속은 그대로라 다시 켜면 그대로 나온다.
+          g.hidden = g.hidden ? undefined : true;
+          (ev.currentTarget as HTMLButtonElement).textContent = g.hidden ? '🚫' : '👁';
           canvas?.render();
           persistStructure();
         };

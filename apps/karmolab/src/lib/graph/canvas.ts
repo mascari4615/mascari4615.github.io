@@ -923,8 +923,18 @@ export class GraphCanvas {
 
   private renderGroups(): void {
     if (!this.spec) return;
-    for (const g of this.spec.groups) {
-      const box = this.computeGroupBox(g);
+    // ★ 큰 묶음부터 그린다. SVG 는 먼저 그린 것이 아래에 깔리므로, 큰 것을 먼저 깔아야
+    //   작은 묶음이 큰 묶음 안에 얹힌 것처럼 보인다 — 반대로 하면 작은 묶음이 통째로 가려져
+    //   「분명 만들었는데 안 보인다」가 된다(노드가 여러 묶음에 들면 겹침은 흔한 일이다).
+    const boxes = this.spec.groups
+      .filter((g) => !g.hidden)
+      .map((g) => ({ g, box: this.computeGroupBox(g) }))
+      .sort((a, b) => b.box.w * b.box.h - a.box.w * a.box.h);
+
+    // 이름표가 서로 겹치면 아래로 한 칸씩 내린다 — 겹친 묶음들의 머리는 같은 높이에 몰린다.
+    const labelRows: { x1: number; x2: number; y: number }[] = [];
+
+    for (const { g, box } of boxes) {
 
       // ── 바디 (전체 프레임) ────────────────────────────────────────────────
       const bodyRect = document.createElementNS(SVG_NS, 'rect');
@@ -972,8 +982,13 @@ export class GraphCanvas {
       const text = document.createElementNS(SVG_NS, 'text');
       text.setAttribute('class', 'ck-group-label');
       text.dataset.groupId = g.id;
+      let labelY = box.y + GROUP_HEADER_H - 6;
+      while (labelRows.some((r) => Math.abs(r.y - labelY) < 12 && r.x1 < box.x + box.w && box.x < r.x2)) {
+        labelY += 14;
+      }
+      labelRows.push({ x1: box.x, x2: box.x + box.w, y: labelY });
       text.setAttribute('x', String(box.x + 8));
-      text.setAttribute('y', String(box.y + GROUP_HEADER_H - 6));
+      text.setAttribute('y', String(labelY));
       text.setAttribute('fill', g.color + 'cc');
       text.setAttribute('font-size', '11');
       text.setAttribute('font-weight', '600');
