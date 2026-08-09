@@ -87,6 +87,7 @@ export interface GraphCanvasOptions {
    * 편집 UI 를 붙이는 위젯용 seam. cockpit 은 안 쓴다(읽기 전용 뷰).
    */
   onNodeClick?: (nodeId: string, ev: MouseEvent) => void;
+  onNodeResized?: (nodeId: string) => void;
   /** 빈 배경 클릭 — 선택 해제용. */
   onBackgroundClick?: () => void;
   /** 빈 배경 더블클릭 — 그 자리에 새 노드를 만드는 위젯용 (world 좌표). */
@@ -195,6 +196,8 @@ export class GraphCanvas {
   private state: CanvasState = { scale: 1, tx: 0, ty: 0 };
 
   // 드래그 상태
+  /** 카드 크기 바꾸기 — 모서리를 끌면 사람이 정한 크기가 되고, 그 뒤로 자동 맞춤이 손대지 않는다. */
+  private sizing: { nodeId: string; startX: number; startY: number; startW: number; startH: number } | null = null;
   private dragging: { nodeId: string; startMouseX: number; startMouseY: number; startNodeX: number; startNodeY: number } | null = null;
 
   // 그룹 드래그 상태 — 멤버 node 좌표 + anchor x/y + ephemeral x/y + group bbox 모두 이동.
@@ -231,6 +234,8 @@ export class GraphCanvas {
   private theme: Required<GraphCanvasTheme>;
   private uid: string;
   private onNodeClick?: (nodeId: string, ev: MouseEvent) => void;
+  /** 카드 크기를 손으로 바꾼 뒤 — 저장은 위젯이 한다(캔버스는 저장소를 모른다). */
+  private onNodeResized?: (nodeId: string) => void;
   private onBackgroundClick?: () => void;
   private onBackgroundDoubleClick?: (world: { x: number; y: number }) => void;
   private onConnect?: (fromId: string, toId: string) => void;
@@ -291,6 +296,7 @@ export class GraphCanvas {
     this.edgeKindFallback = options.edgeKinds ?? {};
     this.theme = { ...DEFAULT_THEME, ...(options.theme ?? {}) };
     this.onNodeClick = options.onNodeClick;
+    this.onNodeResized = options.onNodeResized;
     this.onBackgroundClick = options.onBackgroundClick;
     this.onBackgroundDoubleClick = options.onBackgroundDoubleClick;
     this.onConnect = options.onConnect;
@@ -510,6 +516,18 @@ export class GraphCanvas {
           e.stopPropagation();
           e.preventDefault();
           this.edgeDrag = { edgeId, mode: gripEl ? 'curve' : 'label', moved: false };
+          this.pressOrigin = null;
+          return;
+        }
+      }
+      const sizeEl = target.closest('.ck-size-handle') as SVGRectElement | null;
+      if (sizeEl) {
+        const id = sizeEl.dataset.sizeFor ?? '';
+        const n = this.spec?.nodes.find((x) => x.id === id);
+        if (n) {
+          e.stopPropagation();
+          e.preventDefault();
+          this.sizing = { nodeId: id, startX: e.clientX, startY: e.clientY, startW: n.w, startH: n.h };
           this.pressOrigin = null;
           return;
         }
@@ -739,6 +757,18 @@ export class GraphCanvas {
         }
         return;
       }
+      if (this.sizing) {
+        const n = this.spec?.nodes.find((x) => x.id === this.sizing?.nodeId);
+        if (n) {
+          const dw = (e.clientX - this.sizing.startX) / this.state.scale;
+          const dh = (e.clientY - this.sizing.startY) / this.state.scale;
+          n.w = Math.max(60, Math.round(this.sizing.startW + dw));
+          n.h = Math.max(32, Math.round(this.sizing.startH + dh));
+          n.sized = true;   // 이제부터 이 카드는 **사람 것**이다 — 자동 맞춤이 손대지 않는다.
+          this.render();
+        }
+        return;
+      }
       if (this.dragging) {
         const dx = (e.clientX - this.dragging.startMouseX) / this.state.scale;
         const dy = (e.clientY - this.dragging.startMouseY) / this.state.scale;
@@ -891,6 +921,10 @@ export class GraphCanvas {
           else if (this.panning) this.onBackgroundClick?.();
         }
         this.pressEdgeId = null;
+      }
+      if (this.sizing) {
+        this.onNodeResized?.(this.sizing.nodeId);
+        this.sizing = null;
       }
       this.dragging = null;
       this.draggingGroup = null;
@@ -1569,6 +1603,23 @@ export class GraphCanvas {
 
     // 연결 손잡이 — 노드 오른쪽 가장자리. 여기서 끌어다 다른 노드에 놓으면 선이 생긴다
     // (Miro·FigJam 의 파란 점. 「연결 시작」 버튼을 누르고 다시 클릭하던 2단계를 없앤다).
+    // 크기 손잡이 — **고른 카드에만**. 늘 보이면 카드가 지저분해지고 잘못 잡는다.
+    if (this.selectedIds.size === 1 && this.selectedIds.has(node.id)) {
+      const grip = document.createElementNS(SVG_NS, 'rect');
+      grip.setAttribute('class', 'ck-size-handle');
+      grip.dataset.sizeFor = node.id;
+      grip.setAttribute('x', String(node.w - 7));
+      grip.setAttribute('y', String(effH - 7));
+      grip.setAttribute('width', '10');
+      grip.setAttribute('height', '10');
+      grip.setAttribute('rx', '2');
+      grip.setAttribute('fill', this.theme.nodeFill);
+      grip.setAttribute('stroke', kindColor);
+      grip.setAttribute('stroke-width', '1.5');
+      grip.setAttribute('cursor', 'nwse-resize');
+      g.appendChild(grip);
+    }
+
     if (this.onConnect) {
       const handle = document.createElementNS(SVG_NS, 'circle');
       handle.setAttribute('class', 'ck-link-handle');
@@ -2686,9 +2737,34 @@ export class GraphCanvas {
   }
 
   private paintSelection(): void {
+    const only = this.selectedIds.size === 1 ? [...this.selectedIds][0] : null;
     this.nodeLayer.querySelectorAll('.ck-node').forEach((el) => {
       const g = el as SVGGElement;
-      g.classList.toggle('is-selected', this.selectedIds.has(g.dataset.id ?? ''));
+      const id = g.dataset.id ?? '';
+      g.classList.toggle('is-selected', this.selectedIds.has(id));
+      // 크기 손잡이는 **고른 카드 하나에만** 붙는다. 통째 다시 그리면 타자 중에 화면이 튄다 —
+      // 그래서 그 카드에만 넣고 뺀다.
+      const has = g.querySelector('.ck-size-handle');
+      if (id === only && !has) {
+        const n = this.spec?.nodes.find((x) => x.id === id);
+        if (n) {
+          const grip = document.createElementNS(SVG_NS, 'rect');
+          grip.setAttribute('class', 'ck-size-handle');
+          grip.dataset.sizeFor = id;
+          grip.setAttribute('x', String(n.w - 7));
+          grip.setAttribute('y', String(this.getNodeEffectiveH(n) - 7));
+          grip.setAttribute('width', '10');
+          grip.setAttribute('height', '10');
+          grip.setAttribute('rx', '2');
+          grip.setAttribute('fill', this.theme.nodeFill);
+          grip.setAttribute('stroke', this.colorForKind(n.kind));
+          grip.setAttribute('stroke-width', '1.5');
+          grip.setAttribute('cursor', 'nwse-resize');
+          g.appendChild(grip);
+        }
+      } else if (id !== only && has) {
+        has.remove();
+      }
     });
   }
 
