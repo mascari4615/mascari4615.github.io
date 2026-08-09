@@ -1,0 +1,19 @@
+{
+  "linebreak.tab": "Line breaks",
+  "linebreak.label.in": "Original",
+  "linebreak.label.out": "Result",
+  "linebreak.ph.in": "Paste text copied from a PDF or a web page",
+  "linebreak.aria.out": "Cleaned-up result",
+  "linebreak.mode.join": "Join broken lines",
+  "linebreak.mode.wrap": "Re-wrap to a width",
+  "linebreak.mode.single": "All on one line",
+  "linebreak.label.width": "Line width",
+  "linebreak.value.width": "60 characters",
+  "linebreak.unit.chars": " characters",
+  "linebreak.btn.copy": "Copy the result",
+  "linebreak.btn.swap": "Result becomes the original",
+  "linebreak.status.idle": "Blank lines between paragraphs stay; only lines inside a paragraph get joined.",
+  "linebreak.copy.done": "Result copied",
+  "linebreak.say.done": "{before} lines → {after} lines · blank lines between paragraphs are left alone.",
+  "linebreak.sample": "This sentence was cut to fit\nthe screen width. Pasted as is,\nit reads awkwardly.\n\nThis is the second paragraph. The blank\nline between paragraphs must survive."
+}

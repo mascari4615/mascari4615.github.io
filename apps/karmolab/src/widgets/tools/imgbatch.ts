@@ -6,8 +6,12 @@
  * 원본보다 커지는 경우가 있어(작은 PNG 를 JPG 로 바꿀 때) 전후 용량을 나란히 보여준다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   interface Result {
     name: string;
     blob: Blob;
@@ -21,51 +25,53 @@ import { acceptPastedFiles } from './shared/paste';
 
   Toolbox.register({
     id: 'imgbatch',
-    title: '이미지 일괄 변환',
+    title: t('widgets.imgbatch.title', undefined, "이미지 일괄 변환"),
     category: 'tool',
-    desc: '사진 여러 장의 크기와 형식을 한 번에 바꿔 ZIP 으로 받습니다',
+    desc: t('widgets-desc.imgbatch.desc', undefined, "사진 여러 장의 크기와 형식을 한 번에 바꿔 ZIP 으로 받습니다"),
     layout: 'wide',
     icon: '<rect x="3" y="6" width="13" height="11" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 14l3.5-3.5 2.5 2.5 3-3 4 4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M7 3h11a2 2 0 0 1 2 2v11" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.6"/>',
     tabs: [
       {
         id: 'app',
-        label: '일괄 변환',
+        label: t('imgbatch.tab', undefined, "일괄 변환"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('imgbatch').then(function () {
+
           container.innerHTML = `
             <div class="tool-drop" id="ibDrop">
               <input type="file" id="ibFile" accept="image/*" multiple hidden>
-              사진을 끌어다 놓거나 눌러서 고르세요 (여러 장)
+              ${esc(t('imgbatch.drop'))}
             </div>
 
             <div class="field-group" style="margin-top:var(--space-lg);">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">형식</div>
-                  <select id="ibFormat" aria-label="형식">
+                  <div class="tool-sublabel">${esc(t('imgbatch.label.format'))}</div>
+                  <select id="ibFormat" aria-label="${esc(t('imgbatch.label.format'))}">
                     <option value="image/jpeg">JPG</option>
                     <option value="image/png">PNG</option>
-                    <option value="image/webp">WebP — 같은 화질에 가장 작음</option>
+                    <option value="image/webp">${esc(t('imgbatch.format.webp'))}</option>
                   </select>
                 </div>
                 <div>
-                  <div class="tool-sublabel">긴 변 최대 <span id="ibMaxVal" class="range-value">1600px</span></div>
-                  <input type="range" id="ibMax" aria-label="긴 변 최대" min="200" max="4000" step="100" value="1600">
+                  <div class="tool-sublabel">${esc(t('imgbatch.label.max'))} <span id="ibMaxVal" class="range-value">1600px</span></div>
+                  <input type="range" id="ibMax" aria-label="${esc(t('imgbatch.label.max'))}" min="200" max="4000" step="100" value="1600">
                 </div>
               </div>
               <div style="margin-top:10px;">
-                <div class="tool-sublabel">화질 <span id="ibQualityVal" class="range-value">85</span></div>
-                <input type="range" id="ibQuality" aria-label="화질" min="40" max="100" value="85">
+                <div class="tool-sublabel">${esc(t('imgbatch.label.quality'))} <span id="ibQualityVal" class="range-value">85</span></div>
+                <input type="range" id="ibQuality" aria-label="${esc(t('imgbatch.label.quality'))}" min="40" max="100" value="85">
               </div>
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-primary" id="ibRun">한 번에 바꾸기</button>
-              <button class="btn btn-ghost" id="ibZip">ZIP 으로 받기</button>
-              <button class="btn btn-ghost" id="ibClear">비우기</button>
+              <button class="btn btn-primary" id="ibRun">${esc(t('imgbatch.btn.run'))}</button>
+              <button class="btn btn-ghost" id="ibZip">${esc(t('imgbatch.btn.zip'))}</button>
+              <button class="btn btn-ghost" id="ibClear">${esc(t('imgbatch.btn.clear'))}</button>
             </div>
 
             <div class="tool-list" id="ibList"></div>
-            <div class="tool-status" id="ibStatus">사진은 브라우저 안에서만 다뤄집니다.</div>
+            <div class="tool-status" id="ibStatus">${esc(t('imgbatch.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -78,7 +84,6 @@ import { acceptPastedFiles } from './shared/paste';
           let files: File[] = [];
           let results: Result[] = [];
 
-          const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
           const say = (m: string, kind = ''): void => {
             status.textContent = m;
             status.className = 'tool-status' + (kind ? ' ' + kind : '');
@@ -89,7 +94,19 @@ import { acceptPastedFiles } from './shared/paste';
               listEl.innerHTML = results
                 .map(
                   (r) =>
-                    `<div class="tool-list-row cc-copy-row" data-name="${esc(r.name)}"><span class="tool-list-key">${size(r.blob.size)}</span><span class="tool-list-val">${esc(r.name)} <span class="tool-list-dim">${r.w}×${r.h} · ${size(r.before)}에서 ${r.blob.size < r.before ? `${Math.round((1 - r.blob.size / r.before) * 100)}% 줄어듦` : '커짐'} · 눌러서 받기</span></span></div>`
+                    `<div class="tool-list-row cc-copy-row" data-name="${esc(r.name)}"><span class="tool-list-key">${size(r.blob.size)}</span><span class="tool-list-val">${esc(r.name)} <span class="tool-list-dim">${esc(
+                      t('imgbatch.row.meta', {
+                        w: r.w,
+                        h: r.h,
+                        from: size(r.before),
+                        verdict:
+                          r.blob.size < r.before
+                            ? t('imgbatch.verdict.smaller', {
+                                pct: Math.round((1 - r.blob.size / r.before) * 100)
+                              })
+                            : t('imgbatch.verdict.bigger')
+                      })
+                    )}</span></span></div>`
                 )
                 .join('');
               listEl.querySelectorAll('[data-name]').forEach((el, i) => {
@@ -122,7 +139,7 @@ import { acceptPastedFiles } from './shared/paste';
                 cv.width = w;
                 cv.height = h;
                 const ctx = cv.getContext('2d');
-                if (!ctx) return reject(new Error('canvas 없음'));
+                if (!ctx) return reject(new Error(t('imgbatch.err.canvas')));
                 const format = $<HTMLSelectElement>('#ibFormat').value;
                 if (format !== 'image/png') {
                   // 투명한 부분이 검게 나오는 걸 막는다
@@ -134,7 +151,7 @@ import { acceptPastedFiles } from './shared/paste';
                 cv.toBlob(
                   (blob) => {
                     URL.revokeObjectURL(url);
-                    if (!blob) return reject(new Error('변환 실패'));
+                    if (!blob) return reject(new Error(t('imgbatch.err.convert')));
                     const ext = format === 'image/png' ? 'png' : format === 'image/webp' ? 'webp' : 'jpg';
                     resolve({ name: file.name.replace(/\.[^.]+$/, '') + '.' + ext, blob, before: file.size, w, h });
                   },
@@ -144,7 +161,7 @@ import { acceptPastedFiles } from './shared/paste';
               };
               img.onerror = () => {
                 URL.revokeObjectURL(url);
-                reject(new Error('이미지를 열지 못함'));
+                reject(new Error(t('imgbatch.err.open')));
               };
               img.src = url;
             });
@@ -152,16 +169,16 @@ import { acceptPastedFiles } from './shared/paste';
 
           async function run(): Promise<void> {
             if (!files.length) {
-              say('사진을 먼저 넣어 주세요.', 'error');
+              say(t('imgbatch.err.noFile'), 'error');
               return;
             }
             results = [];
-            say(`${files.length}장을 바꾸는 중…`);
+            say(t('imgbatch.say.working', { n: files.length }));
             for (const f of files) {
               try {
                 results.push(await convert(f));
               } catch {
-                say(`${f.name} 을 바꾸지 못했어요.`, 'error');
+                say(t('imgbatch.err.one', { name: f.name }), 'error');
               }
             }
             render();
@@ -169,14 +186,27 @@ import { acceptPastedFiles } from './shared/paste';
             const after = results.reduce((a, r) => a + r.blob.size, 0);
             // 작은 PNG 를 JPG 로 바꾸면 오히려 커진다 — 「-559% 줄었어요」 같은 말이 나오면 안 된다
             const pct = Math.round(Math.abs(1 - after / before) * 100);
-            const verdict = after < before ? `${pct}% 줄었어요` : after > before ? `${pct}% 커졌어요` : '그대로예요';
-            say(`${results.length}장 · ${size(before)} → ${size(after)} (${verdict}). 줄을 누르면 그 장만 받습니다.`, 'ok');
+            const verdict =
+              after < before
+                ? t('imgbatch.verdict.smaller', { pct })
+                : after > before
+                  ? t('imgbatch.verdict.biggerBy', { pct })
+                  : t('imgbatch.verdict.same');
+            say(
+              t('imgbatch.say.done', {
+                n: results.length,
+                before: size(before),
+                after: size(after),
+                verdict
+              }),
+              'ok'
+            );
             Toolbox.trackUse?.('convert');
           }
 
           async function zip(): Promise<void> {
             if (!results.length) {
-              say('먼저 바꾸기를 눌러 주세요.', 'error');
+              say(t('imgbatch.err.runFirst'), 'error');
               return;
             }
             await Toolbox.ensureScript?.('vendor/jszip.min');
@@ -186,10 +216,10 @@ import { acceptPastedFiles } from './shared/paste';
             const blob = await z.generateAsync({ type: 'blob' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = '바꾼-사진.zip';
+            a.download = t('imgbatch.file.zip');
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say(`${results.length}장을 ZIP 으로 내려받았어요.`, 'ok');
+            say(t('imgbatch.say.zipped', { n: results.length }), 'ok');
             Toolbox.trackUse?.('zip');
           }
 
@@ -197,7 +227,13 @@ import { acceptPastedFiles } from './shared/paste';
             results = [];
             for (const f of Array.from(list)) if (f.type.startsWith('image/')) files.push(f);
             render();
-            say(`${files.length}장 · 총 ${size(files.reduce((a, f) => a + f.size, 0))}`, 'ok');
+            say(
+                t('imgbatch.say.picked', {
+                  n: files.length,
+                  total: size(files.reduce((a, f) => a + f.size, 0))
+                }),
+                'ok'
+              );
           }
 
           drop.onclick = () => fileInput.click();
@@ -228,8 +264,9 @@ import { acceptPastedFiles } from './shared/paste';
             files = [];
             results = [];
             render();
-            say('비웠어요.');
+            say(t('imgbatch.say.cleared'));
           };
+                  });
         }
       }
     ]

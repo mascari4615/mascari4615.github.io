@@ -5,7 +5,12 @@
  * 문장 한가운데서 줄이 끊긴다. 그런데 **문단 사이의 빈 줄까지 없애면 안 되므로**
  * 「문단은 남기고 문단 안의 줄만 잇는」 처리가 필요하다 — 그게 이 도구의 핵심이다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   /** 문단(빈 줄로 나뉜 덩이)은 유지하고 그 안의 줄바꿈만 공백으로 잇는다. */
   function unwrap(text: string): string {
     return text
@@ -51,48 +56,50 @@
 
   Toolbox.register({
     id: 'linebreak',
-    title: '줄바꿈 정리',
+    title: t('widgets.linebreak.title', undefined, "줄바꿈 정리"),
     category: 'tool',
-    desc: 'PDF·웹에서 복사한 글의 끊긴 줄을 잇거나 원하는 길이로 다시 나눕니다',
+    desc: t('widgets-desc.linebreak.desc', undefined, "PDF·웹에서 복사한 글의 끊긴 줄을 잇거나 원하는 길이로 다시 나눕니다"),
     layout: 'wide',
     icon: '<path d="M4 6h16M4 12h10a3 3 0 0 1 0 6h-3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M13 15l-2 3 2 3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 18h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '줄바꿈',
+        label: t('linebreak.tab', undefined, "줄바꿈"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('linebreak').then(function () {
+
           container.innerHTML = `
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <label class="field-label">원본</label>
-                  <textarea id="lbIn" rows="10" spellcheck="false" placeholder="PDF 나 웹에서 복사한 글을 붙여 넣으세요"></textarea>
+                  <label class="field-label">${esc(t('linebreak.label.in'))}</label>
+                  <textarea id="lbIn" rows="10" spellcheck="false" placeholder="${esc(t('linebreak.ph.in'))}"></textarea>
                 </div>
                 <div>
-                  <label class="field-label">결과</label>
-                  <textarea id="lbOut" aria-label="정리된 결과" rows="10" spellcheck="false" readonly></textarea>
+                  <label class="field-label">${esc(t('linebreak.label.out'))}</label>
+                  <textarea id="lbOut" aria-label="${esc(t('linebreak.aria.out'))}" rows="10" spellcheck="false" readonly></textarea>
                 </div>
               </div>
             </div>
 
             <div class="field-group">
               <div class="tool-chips" id="lbMode">
-                <button type="button" class="tool-chip active" data-mode="unwrap">끊긴 줄 잇기</button>
-                <button type="button" class="tool-chip" data-mode="wrap">길이 맞춰 나누기</button>
-                <button type="button" class="tool-chip" data-mode="single">전부 한 줄로</button>
+                <button type="button" class="tool-chip active" data-mode="unwrap">${esc(t('linebreak.mode.join'))}</button>
+                <button type="button" class="tool-chip" data-mode="wrap">${esc(t('linebreak.mode.wrap'))}</button>
+                <button type="button" class="tool-chip" data-mode="single">${esc(t('linebreak.mode.single'))}</button>
               </div>
             </div>
 
             <div class="field-group" id="lbWidthWrap" style="display:none;">
-              <div class="tool-sublabel">한 줄 길이 <span id="lbWidthVal" class="range-value">60자</span></div>
-              <input type="range" id="lbWidth" aria-label="한 줄 길이" min="20" max="120" value="60">
+              <div class="tool-sublabel">${esc(t('linebreak.label.width'))} <span id="lbWidthVal" class="range-value">${esc(t('linebreak.value.width'))}</span></div>
+              <input type="range" id="lbWidth" aria-label="${esc(t('linebreak.label.width'))}" min="20" max="120" value="60">
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-ghost" id="lbCopy">결과 복사</button>
-              <button class="btn btn-ghost" id="lbSwap">결과를 원본으로</button>
+              <button class="btn btn-ghost" id="lbCopy">${esc(t('linebreak.btn.copy'))}</button>
+              <button class="btn btn-ghost" id="lbSwap">${esc(t('linebreak.btn.swap'))}</button>
             </div>
-            <div class="tool-status" id="lbStatus">문단 사이 빈 줄은 그대로 두고 문단 안의 줄만 잇습니다.</div>
+            <div class="tool-status" id="lbStatus">${esc(t('linebreak.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -109,13 +116,13 @@
             else out.value = src.replace(/\s+/g, ' ').trim();
 
             $<HTMLElement>('#lbWidthWrap').style.display = mode === 'wrap' ? '' : 'none';
-            $<HTMLElement>('#lbWidthVal').textContent = width.value + '자';
+            $<HTMLElement>('#lbWidthVal').textContent = width.value + t('linebreak.unit.chars');
 
             const before = src ? src.split(/\r?\n/).length : 0;
             const after = out.value ? out.value.split(/\r?\n/).length : 0;
             status.textContent = src
-              ? `${before}줄 → ${after}줄 · 문단 사이 빈 줄은 그대로 둡니다.`
-              : '문단 사이 빈 줄은 그대로 두고 문단 안의 줄만 잇습니다.';
+              ? t('linebreak.say.done', { before, after })
+              : t('linebreak.status.idle');
             status.className = 'tool-status' + (src ? ' ok' : '');
             Toolbox.trackUse?.(mode);
           }
@@ -131,15 +138,16 @@
             };
           });
           $<HTMLButtonElement>('#lbCopy').onclick = () => {
-            if (out.value) void Toolbox.copyText?.(out.value, { message: '결과를 복사했어요' });
+            if (out.value) void Toolbox.copyText?.(out.value, { message: t('linebreak.copy.done') });
           };
           $<HTMLButtonElement>('#lbSwap').onclick = () => {
             input.value = out.value;
             run();
           };
 
-          input.value = '이 문장은 화면 너비에\n맞춰 잘려 있습니다. 그대로\n붙여 넣으면 어색합니다.\n\n두 번째 문단입니다. 문단\n사이 빈 줄은 남아야 합니다.';
+          input.value = t('linebreak.sample');
           run();
+                  });
         }
       }
     ]

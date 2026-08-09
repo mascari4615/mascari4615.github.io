@@ -1,0 +1,19 @@
+{
+  "linebreak.ph.in": "PDF 나 웹에서 복사한 글을 붙여 넣으세요",
+  "linebreak.aria.out": "정리된 결과",
+  "linebreak.label.width": "한 줄 길이",
+  "linebreak.label.in": "원본",
+  "linebreak.label.out": "결과",
+  "linebreak.mode.join": "끊긴 줄 잇기",
+  "linebreak.mode.wrap": "길이 맞춰 나누기",
+  "linebreak.mode.single": "전부 한 줄로",
+  "linebreak.value.width": "60자",
+  "linebreak.btn.copy": "결과 복사",
+  "linebreak.btn.swap": "결과를 원본으로",
+  "linebreak.status.idle": "문단 사이 빈 줄은 그대로 두고 문단 안의 줄만 잇습니다.",
+  "linebreak.tab": "줄바꿈",
+  "linebreak.unit.chars": "자",
+  "linebreak.copy.done": "결과를 복사했어요",
+  "linebreak.say.done": "{before}줄 → {after}줄 · 문단 사이 빈 줄은 그대로 둡니다.",
+  "linebreak.sample": "이 문장은 화면 너비에\n맞춰 잘려 있습니다. 그대로\n붙여 넣으면 어색합니다.\n\n두 번째 문단입니다. 문단\n사이 빈 줄은 남아야 합니다."
+}

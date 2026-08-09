@@ -1,0 +1,20 @@
+{
+  "lorem.tab": "Dummy text",
+  "lorem.kind.ko": "Korean",
+  "lorem.kind.lorem": "Lorem ipsum",
+  "lorem.label.unit": "Unit",
+  "lorem.label.count": "How many",
+  "lorem.opt.para": "paragraphs",
+  "lorem.opt.sent": "sentences",
+  "lorem.opt.word": "words",
+  "lorem.value.count": "3",
+  "lorem.unit.count": "",
+  "lorem.btn.loGen": "Generate again",
+  "lorem.btn.loCopy": "Copy",
+  "lorem.aria.out": "Generated text",
+  "lorem.note.ko": "Korean layouts need Korean dummy text to break lines correctly.",
+  "lorem.note.latin": "For Latin-script mockups.",
+  "lorem.words.ko": "가을 바람 소리 물결 그림자 하늘 언덕 시간 자리 마음 이야기 걸음 골목 여름 저녁 노래 창문 나무 기억 사이 구름 빛깔 새벽 방향 무늬 온기 계단 목소리 파도 조각 숨결 거리 문장 표정 열쇠 바다 안개 손끝 지도 오후",
+  "lorem.copy.done": "Dummy text copied",
+  "lorem.status.count": "{n} characters · {note}"
+}
