@@ -15,8 +15,10 @@ export const spec: ToolSpec = {
   ops: {
     convert: {
       desc:
-        '표를 다른 꼴로 바꾼다. 들어온 것이 엑셀 붙여넣기(탭)·CSV·마크다운 표 중 무엇인지 스스로 알아본다.'
-        + ' to = markdown(기본) · csv · tsv · json. align 을 끄면 마크다운 세로줄을 안 맞춘다.',
+        'Convert a table between formats, detecting the input (Excel paste / CSV / Markdown) on its own.' +
+        ' Column widths count CJK characters as two cells, so aligned Markdown actually lines up.' +
+        ' to = markdown (default), csv, tsv, json.' +
+        ' / 표 꼴 변환. 들어온 꼴은 스스로 알아본다.',
       in: { table: 'string', to: 'string?', align: 'boolean?' },
       out: 'string'
     }

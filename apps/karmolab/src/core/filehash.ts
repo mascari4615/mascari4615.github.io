@@ -21,8 +21,9 @@ export const spec: ToolSpec = {
   ops: {
     verify: {
       desc:
-        '체크섬 문자열 두 개가 같은 값인지 맞춰 본다. 대문자·`sha256:` 머리말·줄바꿈이 섞여 있어도' +
-        ' 정리해서 비교한다 (그대로 비교하면 같은 파일인데 다르다고 나온다).',
+        'Compare two checksum strings. Publishers hand out values in mixed case, with a `sha256:` prefix,' +
+        ' or wrapped across lines — comparing those literally reports "different" for identical files.' +
+        ' / 체크섬 두 개를 맞춰 본다. 대문자·머리말·줄바꿈을 정리해서.',
       in: { actual: 'string', expected: 'string' },
       out: 'string'
     }

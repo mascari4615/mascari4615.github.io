@@ -72,8 +72,11 @@ export const spec: ToolSpec = {
   ops: {
     text: {
       desc:
-        '문자열의 해시를 16진수로 계산한다. algo 를 주면 그것만, 안 주면 7종 전부' +
-        ' (MD5 · SHA-1 · SHA-256 · SHA-512 · SHA3-512(FIPS-202) · Keccak-512(표준 이전) · RIPEMD-160).',
+        'Hash a string to hex — the value an LLM will otherwise invent. Give algo for one, omit for all 7' +
+        ' (MD5, SHA-1, SHA-256, SHA-512, SHA3-512 (FIPS-202), Keccak-512 (pre-standard), RIPEMD-160).' +
+        ' SHA3-512 and Keccak-512 are listed separately on purpose: most libraries call Keccak "SHA-3"' +
+        ' and the values differ.' +
+        ' / 문자열 해시를 16진수로. algo 를 주면 그것만, 안 주면 7종 전부.',
       in: { text: 'string', algo: 'string?', upper: 'boolean?' },
       out: 'string'
     }

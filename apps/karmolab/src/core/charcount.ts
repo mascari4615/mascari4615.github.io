@@ -18,13 +18,18 @@ export const spec: ToolSpec = {
   ops: {
     count: {
       desc:
-        '글자수를 여러 기준으로 한 번에 센다 — 공백 포함/제외 · 단어 · 문장 · 줄 · 문단 ·' +
-        ' UTF-8/EUC-KR 바이트 · 원고지 매수 · 종류별(한글·영문·숫자). 이모지는 사람이 보는 대로 한 글자.',
+        'Count text every way at once — with/without spaces, words, sentences, lines, paragraphs,' +
+        ' UTF-8 and EUC-KR bytes, Korean manuscript pages, and a breakdown by script.' +
+        ' Emoji count as one character as a person sees them (naive .length says 2–7 for one emoji).' +
+        ' / 글자수를 여러 기준으로 한 번에. 이모지는 보이는 대로 한 글자.',
       in: { text: 'string' },
       out: 'string'
     },
     fits: {
-      desc: '정해진 한도에 들어가는지 본다. 기준(공백 포함/제외/바이트)을 골라서.',
+      desc:
+        'Check whether text fits a limit, choosing the basis (with/without spaces, or bytes) —' +
+        ' forms disagree on which one they mean.' +
+        ' / 한도에 들어가는지. 기준을 골라서.',
       in: { text: 'string', limit: 'number', basis: 'string?' },
       out: 'string'
     }

@@ -15,14 +15,17 @@ export const spec: ToolSpec = {
   ops: {
     convert: {
       desc:
-        '한 도시의 시각이 다른 도시로 몇 시인지 바꾼다. 서머타임이 그 날짜에 걸려 있으면 반영한다.' +
-        ' 시간대는 IANA 이름(Asia/Seoul · America/New_York).',
+        'Convert a time from one zone to another, applying DST as it stood on that date' +
+        ' (not as it stands today). Zones are IANA names: Asia/Seoul, America/New_York.' +
+        ' / 도시 간 시각 변환. 그 날짜의 서머타임 반영.',
       in: { time: 'string', from: 'string', to: 'string' },
       out: 'string'
     },
     offset: {
       desc:
-        '두 시간대의 시차를 그 날짜 기준으로 낸다. 외운 숫자와 다를 수 있다 — 서머타임이 1년에 두 번 바꾼다.',
+        'Offset between two zones for a given date. It will disagree with the number you memorised:' +
+        ' DST moves it twice a year, and the two hemispheres do not move together.' +
+        ' / 두 시간대 시차. 그 날짜 기준 — 외운 숫자와 다를 수 있다.',
       in: { from: 'string', to: 'string', date: 'string?' },
       out: 'string'
     }

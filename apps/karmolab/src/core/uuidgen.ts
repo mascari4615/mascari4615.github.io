@@ -16,9 +16,11 @@ export const spec: ToolSpec = {
   ops: {
     generate: {
       desc:
-        '암호학적으로 안전한 난수로 ID 를 만든다 (LLM 이 지어낸 값은 무작위가 아니다).' +
-        ' kind = uuid4(기본) · uuid7(시간순 정렬됨) · ulid · nanoid · password.' +
-        ' count 는 개수, length 는 nanoid·password 의 길이, symbols 는 password 에 기호 포함.',
+        'Generate IDs from a cryptographic RNG. An LLM asked for a "random" value returns something from' +
+        ' its training data — using that as a token or password is a hole.' +
+        ' kind = uuid4 (default), uuid7 (sortable by time), ulid, nanoid, password.' +
+        ' count, length (nanoid/password), symbols (password).' +
+        ' / 암호학적으로 안전한 난수로 ID 생성.',
       in: { kind: 'string?', count: 'number?', length: 'number?', symbols: 'boolean?' },
       out: 'string'
     }

@@ -15,13 +15,17 @@ export const spec: ToolSpec = {
   ops: {
     shift: {
       desc:
-        '시각에 시간을 더하거나 뺀다. 24시를 넘으면 다음 날로 넘어간다.' +
-        ' duration 은 "1:25" · "85m" · "1.5h" 아무 모양이나.',
+        'Add or subtract a duration from a time, rolling into the next day past 24:00.' +
+        ' duration accepts "1:25", "85m" or "1.5h".' +
+        ' / 시각에 시간 더하기·빼기. 자정 넘김 처리.',
       in: { start: 'string', duration: 'string', minus: 'boolean?' },
       out: 'string'
     },
     sum: {
-      desc: '여러 시간을 더한다(근무시간 합계 등). 한 줄에 하나 — "7:45" "8h" "90m" 섞여도 된다.',
+      desc:
+        'Sum durations (timesheets). One per line; "7:45", "8h" and "90m" can be mixed —' +
+        ' base-60 addition is where hand-tallied hours go wrong.' +
+        ' / 시간 합계. 한 줄에 하나, 표기 섞여도 됨.',
       in: { times: 'string' },
       out: 'string'
     }

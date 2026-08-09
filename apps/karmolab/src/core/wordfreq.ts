@@ -18,8 +18,10 @@ export const spec: ToolSpec = {
   ops: {
     count: {
       desc:
-        '글에서 자주 쓴 낱말을 센다. 한국어 조사(을/를/에서는…)를 떼어 같은 말로 묶는다 —' +
-        ' 안 떼면 「도구를·도구가·도구는」이 다 다른 낱말로 세진다. 자주 나오는 두 낱말 짝도 함께.',
+        'Word frequency, with Korean particles (을/를/에서는…) stripped so inflected forms collapse.' +
+        ' Without that, 도구를 / 도구가 / 도구는 count as three different words and the top list is useless.' +
+        ' Also returns repeated two-word phrases.' +
+        ' / 낱말 빈도. 한국어 조사를 떼어 같은 말로 묶는다.',
       in: { text: 'string', top: 'number?', particles: 'boolean?', stopwords: 'boolean?' },
       out: 'string'
     }

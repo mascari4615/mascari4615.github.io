@@ -15,15 +15,17 @@ export const spec: ToolSpec = {
   ops: {
     gpa: {
       desc:
-        '과목별 「학점수 성적」 줄들로 평점(학점 가중 평균)을 낸다. 예: "3 A+\\n3 B0\\n2 A-".' +
-        ' scale 은 45(기본) 또는 43.',
+        'Korean university GPA from "credits grade" lines, e.g. "3 A+\\n3 B0\\n2 A-" — credit-weighted,' +
+        ' not a plain average. scale = 4.5 (default, the Korean norm) or 4.3.' +
+        ' / 학점 가중 평점. scale 45(기본)·43.',
       in: { courses: 'string', scale: 'string?' },
       out: 'string'
     },
     needed: {
       desc:
-        '목표 평점을 맞추려면 남은 학점에서 평균 얼마가 필요한지 계산한다.' +
-        ' 만점으로도 불가능하면 그렇다고 말한다.',
+        'What average the remaining credits must earn to reach a target GPA —' +
+        ' and it says so plainly when even straight A+ cannot get there.' +
+        ' / 목표 평점에 필요한 남은 평균. 불가능하면 불가능하다고.',
       in: { courses: 'string', target: 'number', future: 'number', scale: 'string?' },
       out: 'string'
     }

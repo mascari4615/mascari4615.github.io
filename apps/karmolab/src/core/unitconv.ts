@@ -25,7 +25,7 @@ export const spec: ToolSpec = {
       out: 'string'
     },
     list: {
-      desc: '쓸 수 있는 단위 목록을 갈래별로 낸다.',
+      desc: 'List available units by category. / 쓸 수 있는 단위 목록.',
       in: { category: 'string?' },
       out: 'string'
     }

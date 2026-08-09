@@ -14,7 +14,10 @@ export const spec: ToolSpec = {
   id: 'vat',
   ops: {
     add: {
-      desc: '공급가액에 부가세를 더해 합계를 낸다 (공급가 × (1+세율)). 세율 기본 10%.',
+      desc:
+        'Add Korean VAT to a net amount (net × 1.1). Rounds so that net + VAT equals the total exactly —' +
+        ' rounding the three lines separately makes them disagree by a won.' +
+        ' / 공급가에 부가세를 더한다. 세 줄이 서로 맞게 반올림.',
       in: { amount: 'number', rate: 'number?', rounding: 'string?' },
       out: 'string'
     },
