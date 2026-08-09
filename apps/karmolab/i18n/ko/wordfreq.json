@@ -1,0 +1,21 @@
+{
+  "wordfreq.tab": "빈도",
+  "wordfreq.label.text": "글",
+  "wordfreq.placeholder": "분석할 글을 붙여 넣으세요",
+  "wordfreq.opt.particle": "조사 떼기",
+  "wordfreq.opt.stop": "흔한 말 빼기",
+  "wordfreq.opt.case": "대소문자 구분",
+  "wordfreq.label.phrases": "되풀이한 구 — 두 번 이상",
+  "wordfreq.btn.copy": "표 복사",
+  "wordfreq.status.idle": "같은 말을 얼마나 반복하는지 보면 글이 줄어듭니다.",
+  "wordfreq.status.done": "상위 {n}개를 보여줍니다. 같은 말을 얼마나 반복하는지 보면 글이 줄어듭니다.",
+  "wordfreq.stat.top": "가장 많이 쓴 말",
+  "wordfreq.stat.words": "낱말 수",
+  "wordfreq.stat.unique": "서로 다른 말",
+  "wordfreq.stat.diversity": "어휘 다양도",
+  "wordfreq.value.topWord": "{w} ({n}회)",
+  "wordfreq.value.items": "{n}개",
+  "wordfreq.value.times": "{n}회",
+  "wordfreq.phrases.none": "두 번 이상 되풀이한 구가 없어요.",
+  "wordfreq.copy.done": "빈도표를 복사했어요"
+}

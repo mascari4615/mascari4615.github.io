@@ -1,0 +1,21 @@
+{
+  "wordfreq.tab": "Frequency",
+  "wordfreq.label.text": "Text",
+  "wordfreq.placeholder": "Paste the text you want to analyze",
+  "wordfreq.opt.particle": "Strip Korean particles",
+  "wordfreq.opt.stop": "Drop common words",
+  "wordfreq.opt.case": "Case sensitive",
+  "wordfreq.label.phrases": "Repeated phrases — twice or more",
+  "wordfreq.btn.copy": "Copy table",
+  "wordfreq.status.idle": "Seeing how often you repeat yourself is the fastest way to cut a draft down.",
+  "wordfreq.status.done": "Showing the top {n}. Seeing how often you repeat yourself is the fastest way to cut a draft down.",
+  "wordfreq.stat.top": "Most used word",
+  "wordfreq.stat.words": "Total words",
+  "wordfreq.stat.unique": "Unique words",
+  "wordfreq.stat.diversity": "Lexical diversity",
+  "wordfreq.value.topWord": "{w} ({n}×)",
+  "wordfreq.value.items": "{n}",
+  "wordfreq.value.times": "{n}×",
+  "wordfreq.phrases.none": "No phrase appears twice or more.",
+  "wordfreq.copy.done": "Frequency table copied"
+}
