@@ -1690,6 +1690,17 @@ a.landing-cta-card:hover { color: inherit; }
 .tool-page-next-link b { font-size: var(--font-size-sm); color: var(--text-primary); }
 .tool-page-next-link span { font-size: 11px; color: var(--text-tertiary); }
 
+/* `layout-full` 은 도구가 화면 끝까지 쓰라고 바깥 여백을 0 으로 만든다(`.content-body` padding 0).
+   그런데 그 아래 붙는 이 안내까지 여백을 잃어 **화면 가장자리에 딱 붙었다** — 도구 몸통과
+   엉겨 잘린 것처럼 보인다. 재 보니 `full` 도구 10개가 전부 왼·오른 0 이었다
+   (`npm run audit:footer`, 2026-08-09). 패널은 그대로 두고 이 안내에만 여백을 돌려준다.
+   `flex: 0 0 auto` 도 함께 — 안 그러면 짧은 창에서 눌려 글자가 서로 포갠다. */
+.tool-page.layout-full > .tool-page-next {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: var(--space-md) var(--space-xl) var(--space-lg);
+}
+
 /* 도구 이름 밑의 「지금까지 N번 열렸어요」 (TASK-KL-098).
    아직 아무도 안 연 도구에는 글자가 안 들어가므로, 그때는 자리도 없어야 한다. */
 .tool-page-hero-count { margin: 6px 0 0; font-size: 11px; color: var(--text-tertiary); }
