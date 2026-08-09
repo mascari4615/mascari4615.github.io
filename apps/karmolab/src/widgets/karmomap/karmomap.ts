@@ -66,7 +66,8 @@ import {
     .km-field { margin-bottom:10px; display:flex; flex-direction:column; gap:4px; }
     .km-field label { color:var(--text-secondary); font-size:11px; }
     .km-field input, .km-field select { width:100%; }
-    .km-edge-row { display:flex; gap:4px; align-items:center; margin-bottom:6px; }
+    .km-edge-row { display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin-bottom:8px; }
+    .km-edge-row .km-edge-label { flex-basis:100%; font-size:11px; }
     .km-edge-row .km-edge-peer { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
       color:var(--text-primary); }
     .km-edge-row select { width:74px; }
@@ -323,6 +324,7 @@ import {
                       <span class="km-edge-peer" title="${escapeAttr(labelOf(peer))}">${outgoing ? '→' : '←'} ${escapeHtml(labelOf(peer))}</span>
                       <select data-km="edge-kind">${edgeKindOptions(e.kind)}</select>
                       <button class="btn btn-ghost" data-km="edge-del" title="연결 삭제">×</button>
+                      <input type="text" data-km="edge-label" class="km-edge-label" value="${escapeAttr(e.label ?? '')}" placeholder="선 위에 쓸 말 (비우면 안 보임)" />
                     </div>`;
                   })
                   .join('')
@@ -402,7 +404,19 @@ import {
         (row.querySelector('[data-km="edge-kind"]') as HTMLSelectElement).onchange = (ev) => {
           const edge = spec.edges.find((x) => x.id === edgeId);
           if (!edge) return;
+          const oldPreset = ALL_EDGE_LABELS[edge.kind];
           edge.kind = (ev.target as HTMLSelectElement).value;
+          // 손으로 고쳐 쓴 말은 지키고, 프리셋 그대로였으면 새 프리셋으로 따라간다.
+          if (!edge.label || edge.label === oldPreset) edge.label = ALL_EDGE_LABELS[edge.kind] ?? '';
+          canvas?.render();
+          canvas?.setSelectedNode(node.id);
+          persistStructure();
+          renderSide();
+        };
+        (row.querySelector('[data-km="edge-label"]') as HTMLInputElement).oninput = (ev) => {
+          const edge = spec.edges.find((x) => x.id === edgeId);
+          if (!edge) return;
+          edge.label = (ev.target as HTMLInputElement).value;
           canvas?.render();
           canvas?.setSelectedNode(node.id);
           persistStructure();
@@ -447,7 +461,11 @@ import {
           Toolbox.showToast?.('두 노드는 이미 연결돼 있습니다', undefined, undefined);
         } else {
           const taken = new Set(spec.edges.map((e) => e.id));
-          const edge: GraphEdge = { id: nextId('edge', taken), from, to: nodeId, kind };
+          // 선을 놓으면 그 자리에서 무슨 관계인지 읽혀야 한다 — 프리셋 이름을 라벨로 얹는다.
+          const edge: GraphEdge = {
+            id: nextId('edge', taken), from, to: nodeId, kind,
+            label: ALL_EDGE_LABELS[kind] ?? '',
+          };
           spec.edges.push(edge);
           applySpec();
           persistStructure();

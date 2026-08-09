@@ -12,7 +12,7 @@
  * 노드 종류 id 는 팩마다 겹치지 않게 prefix 를 둔다 — 팩을 바꿔도 이미 놓아둔
  * 노드가 색을 잃지 않도록 `ALL_KIND_COLORS` 가 전 팩을 합쳐 캔버스에 넘어간다.
  */
-import type { EdgeKindDef } from '../../lib/graph/spec';
+import type { EdgeKindDef, EdgeStyle } from '../../lib/graph/spec';
 
 export interface NodeKindDef {
   id: string;
@@ -25,8 +25,10 @@ export interface EdgeKindPreset {
   id: string;
   label: string;
   color: string;
-  style: 'solid' | 'dashed' | 'dotted';
+  style: EdgeStyle;
   arrow: boolean;
+  /** 선 굵기(px). 없으면 1.5 — 굵을수록 「센 관계」로 읽힌다. */
+  width?: number;
 }
 
 export interface GroupPreset {
@@ -86,13 +88,13 @@ const RELATION: CanvasPack = {
     { id: 'rel-note',   label: '한마디', icon: '💬', color: '#94a3b8' },
   ],
   edgeKinds: [
-    { id: 'rel-like',    label: '♡ 좋아함',   color: '#fb7185', style: 'solid',  arrow: true },
+    { id: 'rel-like',    label: '♡ 좋아함',   color: '#fb7185', style: 'solid',  arrow: true, width: 2.2 },
     { id: 'rel-hate',    label: '✕ 싫어함',   color: '#64748b', style: 'dotted', arrow: true },
     { id: 'rel-rival',   label: '⚡ 라이벌',   color: '#f59e0b', style: 'solid',  arrow: false },
     { id: 'rel-trust',   label: '★ 신뢰',     color: '#38bdf8', style: 'solid',  arrow: true },
-    { id: 'rel-curious', label: '? 신경쓰임', color: '#a78bfa', style: 'dashed', arrow: true },
+    { id: 'rel-curious', label: '? 신경쓰임', color: '#a78bfa', style: 'wavy',   arrow: true },
     { id: 'rel-family',  label: '🏠 가족',    color: '#34d399', style: 'solid',  arrow: false },
-    { id: 'rel-broken',  label: '💔 금이 감', color: '#ef4444', style: 'dashed', arrow: false },
+    { id: 'rel-broken',  label: '💔 금이 감', color: '#ef4444', style: 'crack',  arrow: false },
   ],
   groupPresets: [
     { label: '가족',  color: '#fbcfe8' },
@@ -121,7 +123,7 @@ const CARDGAME: CanvasPack = {
     { id: 'cg-search',  label: '➲ 서치/드로우', color: '#34d399', style: 'dashed', arrow: true },
     { id: 'cg-revive',  label: '✺ 소생/회수', color: '#f472b6', style: 'dashed', arrow: true },
     { id: 'cg-attack',  label: '⚔ 공격',     color: '#ef4444', style: 'solid',  arrow: true },
-    { id: 'cg-destroy', label: '✕ 파괴/묘지', color: '#64748b', style: 'dotted', arrow: true },
+    { id: 'cg-destroy', label: '✕ 파괴/묘지', color: '#64748b', style: 'crack',  arrow: true },
     { id: 'cg-cost',    label: '◆ 코스트',   color: '#f59e0b', style: 'dotted', arrow: true },
   ],
   groupPresets: [
@@ -149,7 +151,7 @@ const CONCEPT: CanvasPack = {
   edgeKinds: [
     { id: 'cn-leads',    label: '이끎',   color: '#60a5fa', style: 'solid',  arrow: true },
     { id: 'cn-supports', label: '뒷받침', color: '#34d399', style: 'solid',  arrow: true },
-    { id: 'cn-contrast', label: '대조',   color: '#f59e0b', style: 'dashed', arrow: false },
+    { id: 'cn-contrast', label: '대조',   color: '#f59e0b', style: 'wavy',   arrow: false },
     { id: 'cn-refutes',  label: '반박',   color: '#f87171', style: 'dotted', arrow: true },
     { id: 'cn-partof',   label: '부분',   color: '#94a3b8', style: 'dashed', arrow: true },
   ],
@@ -176,7 +178,7 @@ const IDEA: CanvasPack = {
   edgeKinds: [
     { id: 'id-derives', label: '파생',   color: '#fbbf24', style: 'solid',  arrow: true },
     { id: 'id-relates', label: '관련',   color: '#94a3b8', style: 'solid',  arrow: false },
-    { id: 'id-blocks',  label: '막힘',   color: '#f87171', style: 'dotted', arrow: true },
+    { id: 'id-blocks',  label: '막힘',   color: '#f87171', style: 'crack',  arrow: true },
     { id: 'id-then',    label: '이어짐', color: '#60a5fa', style: 'dashed', arrow: true },
   ],
   groupPresets: [
@@ -240,7 +242,9 @@ export const ALL_KIND_LABELS: Record<string, string> = Object.fromEntries(
 /** 전 팩의 선 정의 합본 — 캔버스가 `_edge_kinds` 로 받는다. */
 export const ALL_EDGE_KIND_DEFS: Record<string, EdgeKindDef> = Object.fromEntries(
   PACKS.flatMap((p) =>
-    p.edgeKinds.map((e) => [e.id, { color: e.color, style: e.style, arrow: e.arrow } as EdgeKindDef] as const)
+    p.edgeKinds.map(
+      (e) => [e.id, { color: e.color, style: e.style, arrow: e.arrow, width: e.width } as EdgeKindDef] as const
+    )
   )
 );
 

@@ -25,6 +25,7 @@ import type {
   EphemeralAnchor,
   EdgeKindDef,
   NodeShape,
+  EdgeStyle,
 } from './spec';
 import type { GraphPersistAdapter } from './adapter';
 import { NULL_PERSIST_ADAPTER } from './adapter';
@@ -1007,7 +1008,7 @@ export class GraphCanvas {
     const b2 = this.getNodeBox(id2);
     if (!b1 || !b2) return [path];
     const { p1, p2 } = this.chooseAnchors(b1, b2);
-    const color = this.edgeKindFor(edge.kind).color ?? this.theme.edgeDefaultColor;
+    const color = edge.color ?? this.edgeKindFor(edge.kind).color ?? this.theme.edgeDefaultColor;
     const mkDot = (x: number, y: number) => {
       const c = document.createElementNS(SVG_NS, 'circle');
       c.setAttribute('cx', String(x));
@@ -1019,7 +1020,10 @@ export class GraphCanvas {
       c.setAttribute('pointer-events', 'none');
       return c;
     };
-    return [path, mkDot(p1.x, p1.y), mkDot(p2.x, p2.y)];
+    const out: SVGElement[] = [path, mkDot(p1.x, p1.y), mkDot(p2.x, p2.y)];
+    const label = this.buildEdgeLabel(edge);
+    if (label) out.push(label);
+    return out;
   }
 
   private parseNodeRef(ref: string): string {
@@ -1100,22 +1104,130 @@ export class GraphCanvas {
     const c2 = offset(side2, p2);
 
     const kind = this.edgeKindFor(edge.kind);
+    // 선 하나만 따로 고친 값이 있으면 그게 이긴다 (edge > kind > 테마).
+    const style: EdgeStyle = edge.style ?? kind.style;
+    const color = edge.color ?? kind.color ?? this.theme.edgeDefaultColor;
+    const width = edge.width ?? kind.width ?? 1.5;
 
     const path = document.createElementNS(SVG_NS, 'path');
     path.setAttribute('class', 'ck-edge');
     path.dataset.edgeId = edge.id;
-    path.setAttribute('d', `M ${p1.x},${p1.y} C ${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`);
+    path.setAttribute(
+      'd',
+      style === 'wavy' || style === 'crack'
+        ? this.buildWaveD(p1, c1, c2, p2, style)
+        : `M ${p1.x},${p1.y} C ${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`
+    );
     path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', kind.color ?? this.theme.edgeDefaultColor);
-    path.setAttribute('stroke-width', '1.5');
+    path.setAttribute('stroke', color);
+    path.setAttribute('stroke-width', String(width));
     path.setAttribute('stroke-opacity', '0.7');
+    if (style === 'crack') path.setAttribute('stroke-linejoin', 'miter');
 
-    if (kind.style === 'dashed') path.setAttribute('stroke-dasharray', '6 3');
-    else if (kind.style === 'dotted') path.setAttribute('stroke-dasharray', '2 3');
+    if (style === 'dashed') path.setAttribute('stroke-dasharray', '6 3');
+    else if (style === 'dotted') path.setAttribute('stroke-dasharray', '2 3');
 
     if (kind.arrow) path.setAttribute('marker-end', 'url(#ck-arrow)');
 
     return path;
+  }
+
+  /**
+   * 물결·금 간 선. 베지어를 직접 표본으로 떠서 법선 방향으로 흔든다 —
+   * `getPointAtLength` 로 재려면 DOM 에 붙어 있어야 해서(브라우저마다 다르다),
+   * 수식으로 뜨는 쪽이 확실하고 빠르다.
+   */
+  private buildWaveD(
+    p1: { x: number; y: number }, c1: { x: number; y: number },
+    c2: { x: number; y: number }, p2: { x: number; y: number },
+    style: 'wavy' | 'crack'
+  ): string {
+    const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+    const steps = Math.max(12, Math.min(120, Math.round(dist / (style === 'wavy' ? 6 : 12))));
+    const amp = style === 'wavy' ? 3.5 : 5;
+    const at = (t: number) => {
+      const u = 1 - t;
+      return {
+        x: u * u * u * p1.x + 3 * u * u * t * c1.x + 3 * u * t * t * c2.x + t * t * t * p2.x,
+        y: u * u * u * p1.y + 3 * u * u * t * c1.y + 3 * u * t * t * c2.y + t * t * t * p2.y,
+      };
+    };
+    const pts: string[] = [];
+    for (let i = 0; i <= steps; i += 1) {
+      const t = i / steps;
+      const p = at(t);
+      const q = at(Math.min(1, t + 0.001));
+      const dx = q.x - p.x;
+      const dy = q.y - p.y;
+      const len = Math.hypot(dx, dy) || 1;
+      // 법선 = 진행 방향을 90° 돌린 것. 끝에서는 흔들림을 0 으로 죽여 노드에 딱 붙게 한다.
+      const taper = Math.sin(Math.PI * t);
+      const off = style === 'wavy'
+        ? Math.sin(t * Math.PI * (steps / 3)) * amp * taper
+        : (i % 2 === 0 ? amp : -amp) * taper;
+      pts.push(`${(p.x - (dy / len) * off).toFixed(2)},${(p.y + (dx / len) * off).toFixed(2)}`);
+    }
+    return `M ${pts.join(' L ')}`;
+  }
+
+  /** 선 위 라벨 — 베지어 중앙(t=0.5)에 판을 깔고 글자를 얹는다. */
+  private buildEdgeLabel(edge: GraphEdge): SVGGElement | null {
+    const text = (edge.label ?? '').trim();
+    if (!text) return null;
+    const id1 = this.parseNodeRef(edge.from);
+    const id2 = this.parseNodeRef(edge.to);
+    const b1 = this.getNodeBox(id1);
+    const b2 = this.getNodeBox(id2);
+    if (!b1 || !b2) return null;
+    const { p1, p2, side1, side2 } = this.chooseAnchors(b1, b2);
+    const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+    const push = Math.max(40, dist * 0.4);
+    const off = (side: string, p: { x: number; y: number }) => {
+      switch (side) {
+        case 'top':    return { x: p.x, y: p.y - push };
+        case 'bottom': return { x: p.x, y: p.y + push };
+        case 'left':   return { x: p.x - push, y: p.y };
+        case 'right':  return { x: p.x + push, y: p.y };
+        default:       return p;
+      }
+    };
+    const q1 = off(side1, p1);
+    const q2 = off(side2, p2);
+    // t=0.5 의 3차 베지어 값 = (p1 + 3c1 + 3c2 + p2) / 8
+    const mx = (p1.x + 3 * q1.x + 3 * q2.x + p2.x) / 8;
+    const my = (p1.y + 3 * q1.y + 3 * q2.y + p2.y) / 8;
+
+    const kind = this.edgeKindFor(edge.kind);
+    const color = edge.color ?? kind.color ?? this.theme.edgeDefaultColor;
+    const w = text.length * 7 + 12;
+    const h = 16;
+
+    const g = document.createElementNS(SVG_NS, 'g') as SVGGElement;
+    g.setAttribute('class', 'ck-edge-label');
+    g.dataset.edgeId = edge.id;
+    g.setAttribute('pointer-events', 'none');
+
+    const plate = document.createElementNS(SVG_NS, 'rect');
+    plate.setAttribute('x', String(mx - w / 2));
+    plate.setAttribute('y', String(my - h / 2));
+    plate.setAttribute('width', String(w));
+    plate.setAttribute('height', String(h));
+    plate.setAttribute('rx', '8');
+    plate.setAttribute('fill', this.theme.nodeFill);
+    plate.setAttribute('stroke', color + '80');
+    plate.setAttribute('stroke-width', '1');
+    g.appendChild(plate);
+
+    const t = document.createElementNS(SVG_NS, 'text');
+    t.setAttribute('x', String(mx));
+    t.setAttribute('y', String(my + 3.5));
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('fill', this.theme.nodeText);
+    t.setAttribute('font-size', '9.5');
+    t.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
+    t.textContent = text;
+    g.appendChild(t);
+    return g;
   }
 
   // ── 하이라이트 ───────────────────────────────────────────────────────────────
