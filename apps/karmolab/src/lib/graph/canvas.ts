@@ -2448,6 +2448,22 @@ export class GraphCanvas {
     };
   }
 
+  /**
+   * 노드가 지금 **화면 어디에 있는지**(캔버스 안 좌표, px). 고른 것 옆에 작은 도구 줄을 띄우려면
+   * 이것이 필요하다 — 없으면 도구가 늘 옆 패널에 갇힌다. 안 보이는 노드면 null.
+   */
+  nodeScreenRect(nodeId: string): { x: number; y: number; w: number; h: number } | null {
+    const box = this.getNodeBox(nodeId);
+    if (!box) return null;
+    const { scale, tx, ty } = this.state;
+    return {
+      x: box.x * scale + tx,
+      y: box.y * scale + ty,
+      w: box.w * scale,
+      h: box.h * scale,
+    };
+  }
+
   /** 현재 화면 중앙에 해당하는 world 좌표 — 새 노드를 "보이는 곳" 에 놓을 때. */
   viewCenterWorld(): { x: number; y: number } {
     const svgW = this.svg.clientWidth || 800;
