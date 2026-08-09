@@ -541,7 +541,8 @@ import {
       const hasNote = Boolean(node.note && node.note.trim());
       let w = widthFor(node.label);
       let h = NODE_H;
-      if (node.avatar && shape !== 'circle') w += 28;
+      // 모든 노드가 얼굴을 갖게 됐으므로(빈 얼굴 = 첫 글자) 폭 여유도 늘 준다.
+      if (shape !== 'circle') w += 28;
       if (hasNote) {
         h += 14;
         w = Math.max(w, widthFor(node.note ?? '') );
