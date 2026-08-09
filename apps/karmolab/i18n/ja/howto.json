@@ -75,5 +75,9 @@
   "howto.imgresize.0": "写真を選ぶ",
   "howto.imgresize.1": "長辺または容量の基準を選ぶ",
   "howto.imgresize.2": "「調整する」を押す",
-  "howto.imgresize.3": "ダウンロード"
+  "howto.imgresize.3": "ダウンロード",
+  "howto.favicon.0": "ロゴや画像を入れる",
+  "howto.favicon.1": "余白・背景・角の丸みを調整",
+  "howto.favicon.2": "実寸のプレビューを確認",
+  "howto.favicon.3": "ZIP をダウンロードしてコードを貼る"
 }

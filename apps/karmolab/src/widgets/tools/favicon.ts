@@ -12,16 +12,14 @@
 import { fileSize as size } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
 
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   // 왜 이 크기들인지: 탭·북마크(16·32), 윈도우 타일(48), 애플 홈 화면(180), 안드로이드(192·512)
-  const SIZES: Array<[number, string]> = [
-    [16, '탭'],
-    [32, '탭·북마크'],
-    [48, '윈도우'],
-    [180, '아이폰 홈 화면'],
-    [192, '안드로이드'],
-    [512, '안드로이드 큰 아이콘']
-  ];
+  /* 쓰임 이름은 **찾을 때** 정한다 — 표를 만들 때 정하면 그 시점엔 말 묶음이 아직 안 와서
+     열쇠가 그대로 굳는다. */
+  const SIZE_PX = [16, 32, 48, 180, 192, 512];
+  const sizes = (): Array<[number, string]> => SIZE_PX.map((px) => [px, t(`favicon.use.${px}`)]);
 
   /** PNG 몇 장을 .ico 한 파일로 담는다 — ico 는 사실 PNG 를 품을 수 있는 껍데기다. */
   function buildIco(pngs: Array<{ size: number; bytes: Uint8Array }>): Blob {
@@ -56,59 +54,75 @@ import { acceptPastedFiles } from './shared/paste';
 
   Toolbox.register({
     id: 'favicon',
-    title: '파비콘 만들기',
+    title: t('widgets.favicon.title', undefined, '파비콘 만들기'),
     category: 'tool',
-    desc: '그림 한 장으로 사이트 아이콘 여러 크기와 ico 를 만듭니다. 붙일 코드까지 줍니다',
+    desc: t(
+      'widgets-desc.favicon.desc',
+      undefined,
+      '그림 한 장으로 사이트 아이콘 여러 크기와 ico 를 만듭니다. 붙일 코드까지 줍니다'
+    ),
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.3" opacity="0.6"/><circle cx="6" cy="7" r="0.9" fill="currentColor"/><path d="M9 15l2-2.5L13 15l2-3 2.5 3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '파비콘',
+        label: t('favicon.tab', undefined, '파비콘'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('favicon').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="fvDrop">
               <input type="file" id="fvFile" accept="image/*" hidden>
-              로고나 그림을 끌어다 놓거나 눌러서 고르세요 (정사각형에 가까울수록 좋습니다)
+              ${esc(t('favicon.drop'))}
             </div>
 
             <div id="fvEditor" style="display:none; margin-top:var(--space-lg);">
               <div class="field-group">
                 <div class="tool-grid-2">
                   <div>
-                    <div class="tool-sublabel">여백 <span id="fvPadVal" class="range-value">0%</span></div>
+                    <div class="tool-sublabel">${esc(t('favicon.label.pad'))} <span id="fvPadVal" class="range-value">0%</span></div>
                     <input type="range" id="fvPad" aria-label="여백" min="0" max="30" value="0">
                   </div>
                   <div>
-                    <div class="tool-sublabel">배경</div>
+                    <div class="tool-sublabel">${esc(t('favicon.label.bg'))}</div>
                     <select id="fvBg" aria-label="배경">
-                      <option value="">투명하게</option>
-                      <option value="#ffffff">흰색</option>
-                      <option value="#000000">검은색</option>
+                      <option value="">${esc(t('favicon.bg.none'))}</option>
+                      <option value="#ffffff">${esc(t('favicon.bg.white'))}</option>
+                      <option value="#000000">${esc(t('favicon.bg.black'))}</option>
                     </select>
                   </div>
                 </div>
                 <div class="tool-chips" style="margin-top:10px;">
-                  <label class="tool-chip"><input type="checkbox" id="fvRound"> 모서리 둥글게</label>
+                  <label class="tool-chip"><input type="checkbox" id="fvRound"> ${esc(t('favicon.opt.round'))}</label>
                 </div>
               </div>
 
-              <div class="tool-sublabel">미리보기 — 실제 크기입니다</div>
+              <div class="tool-sublabel">${esc(t('favicon.label.preview'))}</div>
               <div id="fvPreview" style="display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; background:var(--surface-2, #1a1a1a); padding:14px; border-radius:8px;"></div>
 
               <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-                <button class="btn btn-primary" id="fvRun">ZIP 으로 받기</button>
-                <button class="btn btn-ghost" id="fvIco">ico 만 받기</button>
+                <button class="btn btn-primary" id="fvRun">${esc(t('favicon.btn.zip'))}</button>
+                <button class="btn btn-ghost" id="fvIco">${esc(t('favicon.btn.ico'))}</button>
               </div>
 
               <div class="field-group">
-                <label class="field-label" for="fvCode">붙일 코드 — head 안에 넣으세요</label>
+                <label class="field-label" for="fvCode">${esc(t('favicon.label.code'))}</label>
                 <textarea id="fvCode" rows="6" spellcheck="false" style="width:100%;" readonly></textarea>
-                <button class="btn btn-ghost btn-sm" id="fvCopy" style="margin-top:8px;">코드 복사</button>
+                <button class="btn btn-ghost btn-sm" id="fvCopy" style="margin-top:8px;">${esc(t('favicon.btn.copy'))}</button>
               </div>
             </div>
 
-            <div class="tool-status" id="fvStatus">그림은 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="fvStatus">${esc(t('favicon.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -167,7 +181,7 @@ import { acceptPastedFiles } from './shared/paste';
             $<HTMLElement>('#fvPadVal').textContent = padEl.value + '%';
             if (!source) return;
             previewEl.innerHTML = '';
-            for (const [px, why] of SIZES) {
+            for (const [px, why] of sizes()) {
               if (px > 192) continue; // 실제 크기로 보여 주므로 큰 것은 뺀다
               const cv = render(px);
               cv.style.imageRendering = px <= 48 ? 'pixelated' : 'auto';
@@ -191,7 +205,7 @@ import { acceptPastedFiles } from './shared/paste';
           }
 
           const toBlob = (cv: HTMLCanvasElement): Promise<Blob> =>
-            new Promise((res, rej) => cv.toBlob((b) => (b ? res(b) : rej(new Error('그림으로 못 바꿨어요'))), 'image/png'));
+            new Promise((res, rej) => cv.toBlob((b) => (b ? res(b) : rej(new Error(t('favicon.err.toBlob')))), 'image/png'));
 
           function load(f: File): void {
             const img = new Image();
@@ -207,7 +221,7 @@ import { acceptPastedFiles } from './shared/paste';
                 square ? 'ok' : ''
               );
             };
-            img.onerror = () => say('이 그림은 열지 못했어요.', 'error');
+            img.onerror = () => say(t('favicon.err.open'), 'error');
             img.src = URL.createObjectURL(f);
           }
 
@@ -247,21 +261,21 @@ import { acceptPastedFiles } from './shared/paste';
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
               say(`favicon.ico 를 받았어요 (16·32·48 세 크기가 한 파일에 들어 있습니다, ${size(blob.size)}).`, 'ok');
               Toolbox.trackUse?.('ico');
-            })().catch((err: Error) => say('만드는 중 문제가 생겼어요: ' + err.message, 'error'));
+            })().catch((err: Error) => say(t('favicon.err.making', { msg: err.message }), 'error'));
           };
 
           $<HTMLButtonElement>('#fvRun').onclick = () => {
             void (async () => {
               if (!source) {
-                say('그림을 먼저 넣어 주세요.', 'error');
+                say(t('favicon.err.noImage'), 'error');
                 return;
               }
-              say('만드는 중…');
+              say(t('favicon.status.working'));
               await Toolbox.ensureScript?.('vendor/jszip.min');
               const Z = (window as unknown as { JSZip: new () => { file: (n: string, b: Blob | string) => void; generateAsync: (o: { type: string }) => Promise<Blob> } }).JSZip;
               const zip = new Z();
               const icoParts = [];
-              for (const [px] of SIZES) {
+              for (const [px] of sizes()) {
                 const blob = await toBlob(render(px));
                 const name =
                   px === 180 ? 'apple-touch-icon.png' : px === 192 || px === 512 ? `android-chrome-${px}x${px}.png` : `favicon-${px}.png`;
@@ -269,7 +283,7 @@ import { acceptPastedFiles } from './shared/paste';
                 if (px <= 48) icoParts.push({ size: px, bytes: new Uint8Array(await blob.arrayBuffer()) });
               }
               zip.file('favicon.ico', buildIco(icoParts));
-              zip.file('붙일-코드.txt', $<HTMLTextAreaElement>('#fvCode').value);
+              zip.file(t('favicon.file.code'), $<HTMLTextAreaElement>('#fvCode').value);
               zip.file(
                 'site.webmanifest',
                 JSON.stringify(
@@ -286,19 +300,16 @@ import { acceptPastedFiles } from './shared/paste';
               const out = await zip.generateAsync({ type: 'blob' });
               const a = document.createElement('a');
               a.href = URL.createObjectURL(out);
-              a.download = '파비콘.zip';
+              a.download = t('favicon.file.zip');
               a.click();
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-              say(`${SIZES.length}개 크기와 ico·설정 파일을 ZIP 으로 받았어요 (${size(out.size)}).`, 'ok');
+              say(t('favicon.say.zipDone', { n: sizes().length, size: size(out.size) }), 'ok');
               Toolbox.trackUse?.('zip');
-            })().catch((err: Error) => say('만드는 중 문제가 생겼어요: ' + err.message, 'error'));
+            })().catch((err: Error) => say(t('favicon.err.making', { msg: err.message }), 'error'));
           };
 
           $<HTMLButtonElement>('#fvCopy').onclick = () => {
-            void Toolbox.copyText?.($<HTMLTextAreaElement>('#fvCode').value, { message: '붙일 코드를 복사했어요' });
+            void Toolbox.copyText?.($<HTMLTextAreaElement>('#fvCode').value, { message: t('favicon.copy.done') });
           };
-        }
-      }
-    ]
-  });
+  }
 })();
