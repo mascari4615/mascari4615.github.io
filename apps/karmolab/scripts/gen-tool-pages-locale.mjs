@@ -106,6 +106,23 @@ function makeLocalizer(ids) {
   };
 }
 
+/** 그 도구의 질문·답이 **그 언어에 다 있으면** 쌍 목록을, 하나라도 없으면 빈 목록을 준다. */
+function faqPairs(id, code) {
+  const out = [];
+  for (let i = 0; ; i++) {
+    const kq = `faq.${id}.${i}.q`;
+    const ka = `faq.${id}.${i}.a`;
+    const koQ = tr(SOURCE_LOCALE, kq);
+    if (!koQ || koQ === kq) break;
+    const koA = tr(SOURCE_LOCALE, ka);
+    const q = tr(code, kq);
+    const a = tr(code, ka);
+    if (!q || q === kq || q === koQ || !a || a === ka || a === koA) return [];
+    out.push({ q, a });
+  }
+  return out;
+}
+
 function toolSeoSection(id, code, sourceHtml) {
   const title = tr(code, `widgets.${id}.title`);
   const desc = tr(code, `tools.${id}.description`);
@@ -154,6 +171,20 @@ function toolSeoSection(id, code, sourceHtml) {
 `
     : '';
 
+  /* 「자주 묻는 질문」도 같은 규칙 — **질문과 답이 다 그 언어에 있을 때만** 낸다.
+     한 쌍이 반만 옮겨지면 질문은 영어인데 답이 한국어인 줄이 나온다. 그건 없느니만 못하다. */
+  const pairs = faqPairs(id, code);
+  const faq = pairs.length
+    ? `
+        <h2>${esc(tr(code, 'toolpage.section.faq'))}</h2>
+        <dl class="tool-seo-faq">
+          ` +
+      pairs.map((p) => `<dt>${esc(p.q)}</dt>\n          <dd>${esc(p.a)}</dd>`).join('\n          ') +
+      `
+        </dl>
+`
+    : '';
+
   return `<section class="tool-seo">
         <nav class="tool-seo-crumb" aria-label="${esc(tr(code, 'toolpage.crumb.aria'))}">
           <a href="${home}">KarmoLab</a> / <a href="${hub}">${esc(
@@ -161,7 +192,7 @@ function toolSeoSection(id, code, sourceHtml) {
   )}</a> / ${esc(title)}
         </nav>
         <p>${esc(desc)}</p>
-${howto}
+${howto}${faq}
         <h2>${esc(tr(code, 'toolpage.section.related'))}</h2>
         <div class="tool-seo-related">
           ${related}
@@ -247,13 +278,29 @@ function localizeToolPage(source, id, code) {
   const end = html.indexOf('</section>', start) + '</section>'.length;
   html = html.slice(0, start) + toolSeoSection(id, code, html.slice(start, end)) + html.slice(end);
 
-  /* 구조 설명(JSON-LD)에서 FAQ 를 뺀다 — 없는 절을 있다고 알리면 검색엔진에 거짓을 말하는 것이다. */
+  /* 구조 설명(JSON-LD)의 FAQ — **장에 실제로 낸 것과 같아야 한다.**
+     그 언어로 다 옮겼으면 옮긴 질문으로 바꿔 넣고, 아니면 뺀다. 없는 절을 있다고 알리는 것도,
+     한국어 질문을 영어 장의 구조 설명에 싣는 것도 똑같이 검색엔진에 거짓을 말하는 것이다. */
+  const ldPairs = faqPairs(id, code);
   html = html.replace(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g, (whole, body) => {
     if (!body.includes('FAQPage')) return whole;
     try {
       const data = JSON.parse(body);
       const graph = Array.isArray(data['@graph']) ? data['@graph'] : [data];
-      const kept = graph.filter((n) => n['@type'] !== 'FAQPage');
+      const kept = graph
+        .map((n) =>
+          n['@type'] === 'FAQPage' && ldPairs.length
+            ? {
+                ...n,
+                mainEntity: ldPairs.map((p) => ({
+                  '@type': 'Question',
+                  name: p.q,
+                  acceptedAnswer: { '@type': 'Answer', text: p.a }
+                }))
+              }
+            : n
+        )
+        .filter((n) => n['@type'] !== 'FAQPage' || ldPairs.length);
       if (!kept.length) return '';
       return `<script type="application/ld+json">\n${JSON.stringify(
         Array.isArray(data['@graph']) ? { ...data, '@graph': kept } : kept[0]

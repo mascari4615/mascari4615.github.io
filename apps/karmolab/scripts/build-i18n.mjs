@@ -166,6 +166,34 @@ if (fs.existsSync(seoPath)) {
   }
 }
 
+/* ── ①-b-2 자주 묻는 질문도 같은 길로 ──────────────────
+ *
+ * `howto` 와 **따로 둔 이유**가 그대로 여기 적용된다: faq 는 훨씬 크고(47,288자 · 질문 467개)
+ * 도구마다 3~5개씩 붙어 있다. 한 묶음에 넣으면 「덜 찼다」가 영원히 안 풀린다.
+ * 열쇠는 `faq.<도구>.<번호>.q` / `.a` — 질문과 답을 나눠 둬야 **한 쌍이 반만 옮겨진 채**
+ * 나가는 일이 없다(장에서는 쌍이 다 있을 때만 그 절을 낸다).
+ */
+const derivedFaq = {};
+if (fs.existsSync(seoPath)) {
+  const tools = JSON.parse(fs.readFileSync(seoPath, 'utf8')).tools;
+  for (const [id, body] of Object.entries(tools)) {
+    if (!Array.isArray(body.faq)) continue;
+    body.faq.forEach((pair, i) => {
+      if (!pair || typeof pair.q !== 'string' || typeof pair.a !== 'string') return;
+      derivedFaq[`faq.${id}.${i}.q`] = pair.q;
+      derivedFaq[`faq.${id}.${i}.a`] = pair.a;
+    });
+  }
+  const koFaqPath = path.join(I18N_DIR, SOURCE_LOCALE, 'faq.json');
+  const next = JSON.stringify(derivedFaq, null, 2) + '\n';
+  const prev = fs.existsSync(koFaqPath) ? fs.readFileSync(koFaqPath, 'utf8').split('\r\n').join('\n') : '';
+  if (prev !== next && !CHECK) fs.writeFileSync(koFaqPath, next, 'utf8');
+  if (prev !== next && CHECK) {
+    console.error('[i18n] i18n/ko/faq.json 이 data/tools-seo.json 과 어긋남 — `npm run build:i18n` 후 커밋');
+    process.exit(1);
+  }
+}
+
 /* ── ①-c 위젯 이름·설명도 등록 파일에서 뽑는다 ─────────
  *
  * 옆줄·목록·⌘K 에 뜨는 도구 **이름**이다. 여기가 한국어면 영어 화면에서 이름만 한국어로 남아
