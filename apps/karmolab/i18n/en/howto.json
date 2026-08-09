@@ -157,5 +157,9 @@
   "howto.duel.0": "Hit \"Make a duel link\", copy it and send it to your rival",
   "howto.duel.1": "No friend around? Hit \"Anyone\" and you get matched with whoever is waiting",
   "howto.duel.2": "Read the one-word order and pick one of the four",
-  "howto.duel.3": "After five rounds, hit \"One more\""
+  "howto.duel.3": "After five rounds, hit \"One more\"",
+  "howto.ghosttype.0": "Type the text you see — the first keystroke starts the race",
+  "howto.ghosttype.1": "While you run, the two lanes on top compare you against the ghost",
+  "howto.ghosttype.2": "When you finish, copy the link that appears and send it",
+  "howto.ghosttype.3": "Whoever opens it races your ghost on the same text"
 }
