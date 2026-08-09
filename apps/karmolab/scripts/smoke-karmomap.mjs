@@ -538,6 +538,36 @@ await step('빈 캔버스에서 예시를 넣으면 그림이 생긴다', async 
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 5, null, { timeout: 5000 });
   if (await page.locator('.ck-edge').count() === 0) throw new Error('선이 하나도 안 생겼다');
 });
+await step('공용 글 — 승격하면 목록에 뜨고, 둘째 자리에 붙이면 2곳이 된다', async () => {
+  // 글이 노드 안에 갇혀 있으면 같은 설정을 둘에게 붙일 수 없다. 승격 → 불러 쓰기까지가 한 몸이라
+  // 검사도 한 몸으로 한다 — 승격만 되고 불러 쓰기가 안 되면 기능이 반쪽이다.
+  await page.click('.ck-node');
+  await page.waitForSelector('[data-km="edit-doc"]', { timeout: 4000 });
+  await page.fill('[data-km="edit-doc"]', '이 세계의 마법은 대가를 요구한다');
+  await page.locator('[data-km="edit-doc-share"]').dispatchEvent('click');
+  await page.waitForSelector('[data-km="edit-doc-unlink"]', { timeout: 4000 });
+
+  await page.click('[data-km="tab"][data-key="notes"]');
+  await page.waitForSelector('[data-km="note-title"]', { timeout: 4000 });
+  const one = await page.locator('[data-km="notes-panel-count"], .km-group-count').first().textContent();
+  if (!(one || '').includes('1곳')) throw new Error('첫 자리 수가 1곳이 아니다: ' + one);
+
+  // 둘째 노드에 같은 글을 붙인다.
+  await page.click('[data-km="tab"][data-key="node"]');
+  await page.locator('.ck-node').nth(1).click();
+  await page.waitForSelector('[data-km="edit-doc-use"]', { timeout: 4000 });
+  const optId = await page.locator('[data-km="edit-doc-use"] option').nth(1).getAttribute('value');
+  await page.selectOption('[data-km="edit-doc-use"]', optId);
+  await page.waitForSelector('[data-km="edit-doc-unlink"]', { timeout: 4000 });
+  const shownText = await page.inputValue('[data-km="edit-doc"]');
+  if (!shownText.includes('대가를 요구한다')) throw new Error('불러 쓴 글이 안 보인다');
+
+  await page.click('[data-km="tab"][data-key="notes"]');
+  await page.waitForSelector('[data-km="note-title"]', { timeout: 4000 });
+  const two = await page.locator('.km-group-count').first().textContent();
+  if (!(two || '').includes('2곳')) throw new Error('둘째 자리를 붙였는데 수가 안 늘었다: ' + two);
+  await page.click('[data-km="tab"][data-key="node"]');
+});
 await step('맵 새로 만들기 → 빈 캔버스', async () => {
   await page.click('[data-km="map-new"]');
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
