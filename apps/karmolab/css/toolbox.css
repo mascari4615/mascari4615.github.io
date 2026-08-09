@@ -1196,6 +1196,15 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
 .landing-today { max-width: 620px; margin: var(--space-md) auto 0; position: relative; z-index: 1;
     display: flex; flex-direction: column; gap: var(--space-sm); }
 .landing-today:empty { display: none; }
+/* 오늘의 판이 **도착하기 전에 자리를 잡아 둔다** (TASK-KL-201, 2026-08-09).
+   안 잡아 두면 조각이 붙는 순간 아래 카드 줄이 통째로 내려간다 — 실측 ↓73px, 밀림 0.016.
+   높이는 폭마다 다르다(머리줄이 좁을수록 여러 줄로 접힌다). 실측한 경계 그대로 적는다:
+       ~415px 138px · 416~663px 97px · 664px~ 65px
+   `[data-reserving]` 이 붙어 있는 동안만 = 데려오는 중에만. 못 데려오면 JS 가 떼고, 그러면
+   `:empty` 가 다시 이겨 자리 자체가 없어진다(그게 원래 설계다). */
+.landing-today[data-reserving] { display: block; min-height: 138px; }
+@media (min-width: 416px) { .landing-today[data-reserving] { min-height: 97px; } }
+@media (min-width: 664px) { .landing-today[data-reserving] { min-height: 65px; } }
 .lt-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
     gap: var(--space-sm); font-size: var(--font-size-xs); color: var(--text-tertiary); }
 .lt-tag { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em;

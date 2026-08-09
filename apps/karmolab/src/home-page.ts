@@ -81,11 +81,15 @@
             /* ⚠ 높이만 잡아 두면 안 된다 — `.landing-today:empty { display:none }` 이 이겨서
                자리 자체가 안 생긴다(실측: 예약을 넣었는데도 81px 밀림이 그대로였다).
                보이게 만들어야 예약이 뜻을 갖는다. */
-            board.style.minHeight = '65px';
-            board.style.display = 'block';
+            /* 높이를 여기 박지 않는다 — 폭마다 다르다(실측: ~415px 138 · ~663px 97 · 그 위 65).
+               예전엔 65px 한 값만 잡아 두어서, 폰에서는 조각이 붙는 순간 **73px 이 남아** 아래가
+               그대로 내려갔다. 자리 값은 CSS 가 폭을 보고 정한다(`.landing-today[data-reserving]`). */
+            /* 붙은 **뒤에도 예약을 안 뗀다**. 떼 봤더니 밀림이 0.000 → 0.09 로 되레 나빠졌다
+               (실측: 내용 146px ↔ 예약 138px, 그 8px 차이와 flex 로 되돌아가는 순간이 그대로 튄다).
+               예약은 「도착 전에만 쓰는 임시 값」이 아니라 **이 자리의 최소 크기**로 둔다. */
+            board.dataset.reserving = '1';
             const release = (): void => {
-                board.style.minHeight = '';
-                board.style.display = '';
+                delete board.dataset.reserving;
             };
             Toolbox.ensureScript('root/today')
                 .then(() => {
