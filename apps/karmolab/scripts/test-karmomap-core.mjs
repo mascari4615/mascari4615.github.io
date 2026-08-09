@@ -192,6 +192,27 @@ const M = await loadModules();
   check(Math.abs(first[1]) < 0.001, '시작점은 안 흔들린다(노드에 딱 붙어야 한다)');
 }
 
+// ── 미니맵 투영 ─────────────────────────────────────────────────────────────
+{
+  const { cmath } = M;
+  const bounds = { minX: 0, minY: 0, w: 1000, h: 500 };
+  const size = { w: 200, h: 150 };
+  const proj = cmath.fitProjection(bounds, size);
+  check(proj.scale > 0 && proj.scale <= 0.2, '넓은 세계는 줄여 담는다');
+  const tl = cmath.projectPoint(bounds, proj, 0, 0);
+  const br = cmath.projectPoint(bounds, proj, 1000, 500);
+  check(tl.x >= 0 && br.x <= size.w + 0.001, '가로가 판 안에 들어온다');
+  check(tl.y >= 0 && br.y <= size.h + 0.001, '세로가 판 안에 들어온다');
+  check(Math.abs((tl.x + br.x) / 2 - size.w / 2) < 0.001, '가운데 맞춰진다');
+  eq(cmath.fitProjection({ minX: 0, minY: 0, w: 0, h: 0 }, size).scale, 0, '빈 세계는 배율 0');
+
+  // 「지금 보는 곳」 상자는 판 밖으로 안 나간다.
+  const vp = cmath.viewportRectOnMap(bounds, proj,
+    { tx: 400, ty: 300, scale: 0.5, w: 4000, h: 3000 }, size);
+  check(vp.x >= 0 && vp.y >= 0, '판 왼쪽·위로 안 삐져나간다');
+  check(vp.x + vp.w <= size.w + 0.001 && vp.y + vp.h <= size.h + 0.001, '판 오른쪽·아래로도 안 나간다');
+}
+
 // ── 관계망 셈법 ─────────────────────────────────────────────────────────────
 {
   const { sna } = M;
