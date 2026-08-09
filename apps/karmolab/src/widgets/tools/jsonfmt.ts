@@ -2,6 +2,8 @@
  * JSON 포맷터 / 검증기 — 정렬·압축·키 정렬 + 파싱 에러의 줄·칸 위치를 짚어준다.
  * 라이브러리 없이 JSON.parse 의 message 에서 위치를 역산 (브라우저별 문구 차이 흡수).
  */
+import { t, loadNamespace, locale } from '../../lib/i18n';
+
 (function (): void {
   function errorPosition(msg: string, src: string): { line: number; col: number; pos: number } | null {
     // V8: "... at position 123 (line 4 column 5)" / Firefox: "at line 4 column 5"
@@ -93,7 +95,7 @@
     const entries = arr
       ? (value as unknown[]).map((v, i) => [String(i), v] as const)
       : Object.entries(value as Record<string, unknown>);
-    const 요약 = arr ? `배열 ${entries.length}개` : `객체 ${entries.length}개`;
+    const 요약 = t(arr ? 'jsonfmt.tree.array' : 'jsonfmt.tree.object', { n: entries.length });
     const 자식 = entries
       .map(([k, v]) => treeHtml(v, arr ? `[${k}]` : k, arr ? `${path}[${k}]` : `${path}.${k}`, depth + 1))
       .join('');
@@ -118,14 +120,22 @@
         Object.keys(o).forEach((k) => walk(o[k], d + 1));
       }
     })(v, 1);
-    return `키 ${keys.toLocaleString('ko-KR')}개 · 배열 ${arrays.toLocaleString('ko-KR')}개 · 최대 깊이 ${depth}`;
+    return t('jsonfmt.shape', {
+      keys: keys.toLocaleString(locale()),
+      arrays: arrays.toLocaleString(locale()),
+      depth
+    });
   }
 
   Toolbox.register({
     id: 'jsonfmt',
-    title: 'JSON 포맷터',
+    title: t('widgets.jsonfmt.title', undefined, 'JSON 포맷터'),
     category: 'tool',
-    desc: 'JSON 을 보기 좋게 정렬하거나 한 줄로 압축하고, 문법 오류의 줄·칸 위치를 찾아줍니다',
+    desc: t(
+      'widgets-desc.jsonfmt.desc',
+      undefined,
+      'JSON 을 보기 좋게 정렬하거나 한 줄로 압축하고, 문법 오류의 줄·칸 위치를 찾아줍니다'
+    ),
     layout: 'wide',
     icon: '<path d="M9 4H7a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h2M15 4h2a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2 2 2 0 0 0-2 2v3a2 2 0 0 1-2 2h-2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     tabs: [
@@ -133,48 +143,58 @@
         id: 'app',
         label: 'JSON',
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '중괄호 하나 빠진 것도 찾아낼게요.' });
+          void loadNamespace('jsonfmt').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          Mdd.linePreset('tool_run', { msg: t('jsonfmt.mdd') });
           container.innerHTML = `
             <div class="tool-split">
               <div class="tool-split-pane">
                 <div class="field-row" style="margin-bottom:8px;">
-                  <label class="field-label" style="margin:0;">입력</label>
+                  <label class="field-label" style="margin:0;">${esc(t('jsonfmt.label.input'))}</label>
                   <div style="display:flex; gap:6px;">
                     <select id="jfIndent" aria-label="들여쓰기" style="width:auto; padding:4px 24px 4px 8px; font-size:var(--font-size-xs);">
-                      <option value="2">들여쓰기 2칸</option>
-                      <option value="4">들여쓰기 4칸</option>
-                      <option value="tab">탭</option>
+                      <option value="2">${esc(t('jsonfmt.indent.2'))}</option>
+                      <option value="4">${esc(t('jsonfmt.indent.4'))}</option>
+                      <option value="tab">${esc(t('jsonfmt.indent.tab'))}</option>
                     </select>
-                    <button class="btn btn-ghost" id="jfSample">샘플</button>
+                    <button class="btn btn-ghost" id="jfSample">${esc(t('jsonfmt.btn.sample'))}</button>
                   </div>
                 </div>
-                <textarea id="jfInput" aria-label="JSON 입력" class="mono-input" placeholder='{"name":"KarmoLab","tools":["글자수","JSON"],"ok":true}' style="min-height:340px;"></textarea>
+                <textarea id="jfInput" aria-label="${esc(t('jsonfmt.aria.input'))}" class="mono-input" placeholder='{"name":"KarmoLab","tools":["글자수","JSON"],"ok":true}' style="min-height:340px;"></textarea>
                 <!-- 「눌러야 나오는」 도구가 아니라 **모드를 고르면 즉시 나오는** 도구다 (TASK-KL-133).
                      붙여넣고 한 번 더 눌러야 결과가 나오면 그 한 번이 매번 쌓인다. -->
                 <div class="tool-chips" id="jfModes" style="margin-top:10px;">
-                  <button type="button" class="tool-chip active" data-mode="format">정렬</button>
-                  <button type="button" class="tool-chip" data-mode="tree">트리</button>
-                  <button type="button" class="tool-chip" data-mode="minify">압축</button>
-                  <button type="button" class="tool-chip" data-mode="sort">키 정렬</button>
-                  <button type="button" class="tool-chip" data-mode="escape">문자열 이스케이프</button>
-                  <button type="button" class="btn btn-ghost" id="jfClear" style="margin-left:auto;">지우기</button>
+                  <button type="button" class="tool-chip active" data-mode="format">${esc(t('jsonfmt.mode.format'))}</button>
+                  <button type="button" class="tool-chip" data-mode="tree">${esc(t('jsonfmt.mode.tree'))}</button>
+                  <button type="button" class="tool-chip" data-mode="minify">${esc(t('jsonfmt.mode.minify'))}</button>
+                  <button type="button" class="tool-chip" data-mode="sort">${esc(t('jsonfmt.mode.sort'))}</button>
+                  <button type="button" class="tool-chip" data-mode="escape">${esc(t('jsonfmt.mode.escape'))}</button>
+                  <button type="button" class="btn btn-ghost" id="jfClear" style="margin-left:auto;">${esc(t('jsonfmt.btn.clear'))}</button>
                 </div>
               </div>
               <div class="tool-split-pane">
                 <div class="field-row" style="margin-bottom:8px;">
-                  <label class="field-label" style="margin:0;">결과</label>
-                  <button class="btn btn-ghost" id="jfCopy">복사</button>
+                  <label class="field-label" style="margin:0;">${esc(t('jsonfmt.label.output'))}</label>
+                  <button class="btn btn-ghost" id="jfCopy">${esc(t('jsonfmt.btn.copy'))}</button>
                 </div>
                 <textarea id="jfOutput" aria-label="정리된 결과" class="mono-input" readonly style="min-height:340px;"></textarea>
                 <div id="jfTreeWrap" style="display:none;">
                   <div class="field-row" style="margin-bottom:6px; gap:6px;">
-                    <input type="text" id="jfFind" placeholder="키·값 찾기" aria-label="키·값 찾기" style="flex:1;">
-                    <button class="btn btn-ghost" id="jfExpand">모두 펼치기</button>
-                    <button class="btn btn-ghost" id="jfCollapse">모두 접기</button>
+                    <input type="text" id="jfFind" placeholder="${esc(t('jsonfmt.ph.find'))}" aria-label="${esc(t('jsonfmt.ph.find'))}" style="flex:1;">
+                    <button class="btn btn-ghost" id="jfExpand">${esc(t('jsonfmt.btn.expand'))}</button>
+                    <button class="btn btn-ghost" id="jfCollapse">${esc(t('jsonfmt.btn.collapse'))}</button>
                   </div>
                   <div id="jfTree" class="jt-tree" aria-label="JSON 트리"></div>
                 </div>
-                <div id="jfStatus" class="tool-status" style="margin-top:10px;">JSON 을 붙여넣으면 바로 정리됩니다.</div>
+                <div id="jfStatus" class="tool-status" style="margin-top:10px;">${esc(t('jsonfmt.status.idle'))}</div>
                 <div id="jfRepair" class="jf-repair" style="display:none;"></div>
               </div>
             </div>
@@ -202,7 +222,7 @@
           function parse(): unknown | undefined {
             const raw = input.value.trim();
             if (!raw) {
-              setStatus('입력이 비어 있어요.', 'idle');
+              setStatus(t('jsonfmt.status.empty'), 'idle');
               return undefined;
             }
             try {
@@ -213,8 +233,8 @@
               const 고친판 = repairCandidate(raw);
               if (고친판) {
                 repair.innerHTML =
-                  '<span>꼬리 쉼표·홑따옴표·주석 같은 흔한 실수로 보여요. 고친 판은 통과합니다.</span>' +
-                  '<button class="btn btn-ghost" id="jfFix">이대로 고치기</button>';
+                  `<span>${esc(t('jsonfmt.repair.hint'))}</span>` +
+                  `<button class="btn btn-ghost" id="jfFix">${esc(t('jsonfmt.repair.apply'))}</button>`;
                 repair.style.display = '';
                 (repair.querySelector('#jfFix') as HTMLButtonElement).onclick = () => {
                   input.value = 고친판;
@@ -228,11 +248,16 @@
               const pos = errorPosition(msg, raw);
               if (pos) {
                 const line = raw.split('\n')[pos.line - 1] || '';
-                setStatus(`문법 오류 — ${pos.line}번째 줄 ${pos.col}칸\n${line.trim().slice(0, 120)}\n${msg}`, 'error');
+                setStatus(
+                  `${t('jsonfmt.status.syntaxAt', { line: pos.line, col: pos.col })}\n${line
+                    .trim()
+                    .slice(0, 120)}\n${msg}`,
+                  'error'
+                );
                 input.focus();
                 input.setSelectionRange(pos.pos, Math.min(pos.pos + 1, raw.length));
               } else {
-                setStatus('문법 오류 — ' + msg, 'error');
+                setStatus(t('jsonfmt.status.syntax', { msg }), 'error');
               }
               return undefined;
             }
@@ -240,7 +265,14 @@
 
           function emit(value: unknown, text: string, note: string): void {
             output.value = text;
-            setStatus(`유효한 JSON · ${describe(value)} · ${note} · ${text.length.toLocaleString('ko-KR')}자`, 'ok');
+            setStatus(
+              t('jsonfmt.status.valid', {
+                shape: describe(value),
+                note,
+                n: text.length.toLocaleString(locale())
+              }),
+              'ok'
+            );
           }
 
           /* 지금 무엇으로 보여 줄지. 고르면 그 자리에서 다시 그린다. */
@@ -273,9 +305,9 @@
             output.style.display = mode === 'tree' ? 'none' : '';
             if (mode === 'escape') {
               const raw = input.value;
-              if (!raw) { output.value = ''; setStatus('입력이 비어 있어요.', 'idle'); return; }
+              if (!raw) { output.value = ''; setStatus(t('jsonfmt.status.empty'), 'idle'); return; }
               output.value = JSON.stringify(raw);
-              setStatus('문자열 리터럴로 이스케이프했어요 (JSON 값 안에 통째로 넣을 때 사용).', 'ok');
+              setStatus(t('jsonfmt.status.escaped'), 'ok');
               return;
             }
             const v = parse();
@@ -289,12 +321,19 @@
             if (mode === 'minify') {
               const before = input.value.length;
               const text = JSON.stringify(v);
-              emit(v, text, `압축 (${before.toLocaleString('ko-KR')} → ${text.length.toLocaleString('ko-KR')}자)`);
+              emit(
+                v,
+                text,
+                t('jsonfmt.note.minify', {
+                  before: before.toLocaleString(locale()),
+                  after: text.length.toLocaleString(locale())
+                })
+              );
             } else if (mode === 'sort') {
               const sorted = sortKeysDeep(v);
-              emit(sorted, JSON.stringify(sorted, null, indent()), '키 사전순 정렬');
+              emit(sorted, JSON.stringify(sorted, null, indent()), t('jsonfmt.note.sort'));
             } else {
-              emit(v, JSON.stringify(v, null, indent()), '정렬');
+              emit(v, JSON.stringify(v, null, indent()), t('jsonfmt.note.format'));
             }
           }
 
@@ -338,14 +377,11 @@
           (container.querySelector('#jfClear') as HTMLButtonElement).onclick = () => {
             input.value = '';
             output.value = '';
-            setStatus('입력이 비어 있어요.', 'idle');
+            setStatus(t('jsonfmt.status.empty'), 'idle');
           };
           (container.querySelector('#jfCopy') as HTMLButtonElement).onclick = async () => {
             if (!output.value) return;
-            await Toolbox.copyText?.(output.value, { message: '결과를 복사했어요' });
+            await Toolbox.copyText?.(output.value, { message: t('jsonfmt.copy.done') });
           };
-        }
-      }
-    ]
-  });
+  }
 })();
