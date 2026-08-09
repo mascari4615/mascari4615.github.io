@@ -461,6 +461,26 @@ await step('찾기 → 포커스가 걸린다', async () => {
   await page.fill('[data-km="find"]', '');
   await page.selectOption('[data-km="degree"]', '');
 });
+await step('발표 장을 담고 순서를 바꾼다', async () => {
+  // prompt 가 두 번 뜬다(제목·설명) — 상시 핸들러로 받아 넘긴다. once 로 걸면 클릭이 대화상자에 물려 멈춘다.
+  let n = 0;
+  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '장 ' + n : ''); };
+  page.on('dialog', onDlg);
+  await page.locator('[data-km="story"]').dispatchEvent('click');
+  await page.waitForSelector('.km-root.is-presenting', { timeout: 4000 });
+  await page.locator('[data-km="stage-add"]').dispatchEvent('click');
+  await page.locator('[data-km="stage-add"]').dispatchEvent('click');
+  await page.waitForFunction(() => document.querySelectorAll('[data-km="stage-go"]').length >= 2, null, { timeout: 5000 });
+  const firstBefore = await page.locator('[data-km="stage-go"]').first().textContent();
+  await page.locator('[data-km="stage-back"]').dispatchEvent('click');
+  await page.waitForFunction((bb) => {
+    const el = document.querySelector('[data-km="stage-go"]');
+    return el && el.textContent !== bb;
+  }, firstBefore, { timeout: 4000 });
+  await page.locator('[data-km="stage-exit"]').dispatchEvent('click');
+  await page.waitForSelector('.km-root:not(.is-presenting)', { timeout: 4000 });
+  page.off('dialog', onDlg);
+});
 await step('발표 모드 진입 / 나가기', async () => {
   // 이 버튼은 눌리는 순간 툴바를 통째로 숨긴다 — 보통 click 은 「대상이 사라졌다」로 보고
   // 30초를 기다린다(제품이 아니라 검사 쪽 함정). 이벤트만 던진다.
