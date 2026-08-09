@@ -293,11 +293,6 @@ import {
             <option value="1">1다리</option>
             <option value="2">2다리</option>
           </select>
-          <button class="btn btn-ghost" data-km="groups" title="묶음 관리">🫧</button>
-          <button class="btn btn-ghost" data-km="terms" title="내 용어 — 팩에 없는 종류 만들기">🏷</button>
-          <button class="btn btn-ghost" data-km="filter" title="거르기 — 종류별로 화면에서 빼기">🔍</button>
-          <button class="btn btn-ghost" data-km="sna" title="누가 중심인가 · 누가 다리인가">📊</button>
-          <button class="btn btn-ghost" data-km="help" title="무엇을 할 수 있나 (?)">?</button>
           <button class="btn btn-ghost" data-km="undo" title="되돌리기 (Ctrl+Z)" disabled>↶</button>
           <button class="btn btn-ghost" data-km="redo" title="다시 하기 (Ctrl+Y)" disabled>↷</button>
           <button class="btn btn-ghost" data-km="fit" title="화면 맞춤">⤢</button>
@@ -1742,26 +1737,6 @@ import {
       renderSide();
     };
 
-    q<HTMLButtonElement>('help').onclick = () => {
-      sideMode = sideMode === 'help' ? 'node' : 'help';
-      renderSide();
-    };
-
-    q<HTMLButtonElement>('sna').onclick = () => {
-      sideMode = sideMode === 'sna' ? 'node' : 'sna';
-      renderSide();
-    };
-
-    q<HTMLButtonElement>('filter').onclick = () => {
-      sideMode = sideMode === 'filter' ? 'node' : 'filter';
-      renderSide();
-    };
-
-    q<HTMLButtonElement>('terms').onclick = () => {
-      sideMode = sideMode === 'terms' ? 'node' : 'terms';
-      renderSide();
-    };
-
     // 「⋯ 더 보기」 서랍 — 자주 안 쓰는 것은 여기로 넣어 툴바가 캔버스를 잡아먹지 않게 한다.
     const drawerEl = q<HTMLElement>('drawer');
     q<HTMLButtonElement>('more').onclick = (ev) => {
@@ -1777,11 +1752,6 @@ import {
     function closeDrawer(): void { drawerEl.classList.add('hidden'); }
     document.addEventListener('click', closeDrawer);
     Toolbox.onDispose?.(() => document.removeEventListener('click', closeDrawer));
-
-    q<HTMLButtonElement>('groups').onclick = () => {
-      sideMode = sideMode === 'groups' ? 'node' : 'groups';
-      renderSide();
-    };
 
     undoEl.onclick = () => restoreTo(histIndex - 1);
     redoEl.onclick = () => restoreTo(histIndex + 1);
