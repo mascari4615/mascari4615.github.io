@@ -183,5 +183,6 @@
   "widgets.speed.title": "速度測定",
   "widgets.stone.title": "石",
   "widgets.toast.title": "トースト",
-  "widgets.ytdownloader.title": "YouTube ダウンロード"
+  "widgets.ytdownloader.title": "YouTube ダウンロード",
+  "widgets.karmomap.title": "KarmoMap"
 }

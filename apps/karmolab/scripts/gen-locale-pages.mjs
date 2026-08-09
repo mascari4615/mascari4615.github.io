@@ -13,7 +13,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { LOCALES, DEFAULT_LOCALE, translated, localizedPath, hreflangTags } from './lib/locales.mjs';
+import { LOCALES, DEFAULT_LOCALE, pageAvailable, coverage, localizedPath, hreflangTags } from './lib/locales.mjs';
 import { toLocalePage, LOCALE_PAGES } from './lib/locale-page.mjs';
 import { loadShell } from './lib/shell-page.mjs';
 
@@ -31,11 +31,17 @@ const made = [];
 
 for (const page of PAGES) {
   /* 이 장이 존재할 언어 = 그 장이 쓰는 묶음이 **다 찬** 언어. 원본은 언제나 있다. */
-  const codes = LOCALES.filter((l) => page.namespaces.every((ns) => translated(l.code, ns))).map((l) => l.code);
+  const codes = LOCALES.filter((l) => pageAvailable(l.code, page)).map((l) => l.code);
 
   for (const code of codes) {
     if (code === DEFAULT_LOCALE) continue; // 원본은 Jekyll 이 index.html 을 그대로 낸다
-    const html = toLocalePage(shell, { code, bare: page.bare, site: SITE, codes, namespaces: page.namespaces });
+    const html = toLocalePage(shell, {
+      code,
+      bare: page.bare,
+      site: SITE,
+      codes,
+      namespaces: [...page.namespaces, ...(page.itemNamespaces || [])]
+    });
     const rel = path.join(localizedPath(page.bare, code).replace(/^\//, ''), 'index.html');
     const dest = path.join(outRoot, rel);
     if (!CHECK) {

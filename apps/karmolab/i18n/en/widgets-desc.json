@@ -183,5 +183,6 @@
   "widgets-desc.stash.desc": "Unsorted experiments, alive in one box",
   "widgets-desc.laptop.desc": "The laptop running 24/7 at home — the door to file sharing and build status",
   "widgets-desc.orbita.desc": "A polyrhythm sequencer you build by dotting colors onto orbits — browser synth plus MIDI out",
-  "widgets-desc.collection.desc": "Every tool you have used gets a stamp — how many squares have you filled"
+  "widgets-desc.collection.desc": "Every tool you have used gets a stamp — how many squares have you filled",
+  "widgets-desc.karmomap.desc": "A canvas for drawing relationship maps, world settings and card layouts — swap the vocabulary pack and it becomes a different tool"
 }
