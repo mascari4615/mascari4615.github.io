@@ -103,5 +103,9 @@
   "howto.morse.0": "英数字かハングルを選ぶ",
   "howto.morse.1": "文字欄か符号欄のどちらに入れてもよい",
   "howto.morse.2": "もう一方が追従するのを確認",
-  "howto.morse.3": "音で聞く"
+  "howto.morse.3": "音で聞く",
+  "howto.timecapsule.0": "手紙を書く",
+  "howto.timecapsule.1": "開く日時を選ぶ（明日・1か月・1年・10年）",
+  "howto.timecapsule.2": "「鍵をかける」を押して出たリンクを保管するか送る",
+  "howto.timecapsule.3": "その日にそのリンクを開くと手紙が出てくる"
 }

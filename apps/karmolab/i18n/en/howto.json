@@ -103,5 +103,9 @@
   "howto.morse.0": "Choose Latin or Hangul",
   "howto.morse.1": "Type in either the text box or the code box",
   "howto.morse.2": "Watch the other side follow",
-  "howto.morse.3": "Play it as sound"
+  "howto.morse.3": "Play it as sound",
+  "howto.timecapsule.0": "Write the letter",
+  "howto.timecapsule.1": "Pick when it opens (tomorrow · a month · a year · ten years)",
+  "howto.timecapsule.2": "Hit Lock it, then keep or send the link you get",
+  "howto.timecapsule.3": "Open that link on the day and the letter is there"
 }
