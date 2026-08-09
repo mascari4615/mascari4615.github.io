@@ -55,6 +55,10 @@ function paint(slot: HTMLElement, data: LiveData | null): void {
     const rows = (data?.recent ?? []).map((row) => ({ ...row, title: titleOf(row.toolId) })).filter((row) => row.title);
     if (!data || (!data.online && !rows.length)) {
         slot.innerHTML = '';
+        /* **아무도 없으면 자리도 없앤다** (TASK-KL-201, 2026-08-10).
+           데려오는 동안은 자리를 잡아 두지만(`data-reserving`), 보여 줄 것이 없으면 그 표를 뗀다 —
+           안 그러면 빈 상자가 129px 떠 있는다. 「지금 0명」은 북적임이 아니라 죽은 화면이다. */
+        delete slot.dataset.reserving;
         return;
     }
     const head = data.online > 0 ? `<span class="lv-now"><i></i>지금 ${data.online}명</span>` : '';
