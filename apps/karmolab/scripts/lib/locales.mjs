@@ -70,11 +70,41 @@ export function tr(code, key, vars) {
  * 그래서 **다 찬 언어의 장만 찍는다** — 번역이 늘면 그 다음 배포에 저절로 늘어난다.
  */
 export function translated(code, ns) {
-  if (code === SOURCE_LOCALE) return true;
+  return coverage(code, ns) >= 1;
+}
+
+/** 그 언어가 이 묶음을 얼마나 덮었나 (0~1). 원본 언어는 언제나 1. */
+export function coverage(code, ns) {
+  if (code === SOURCE_LOCALE) return 1;
   const src = catalog(SOURCE_LOCALE, ns);
   const mine = catalog(code, ns);
   const keys = Object.keys(src);
-  return keys.length > 0 && keys.every((k) => mine[k] != null);
+  if (!keys.length) return 0;
+  return keys.filter((k) => mine[k] != null).length / keys.length;
+}
+
+/**
+ * 이 장을 그 언어로 낼 수 있나 — **절벽을 없앤 판정** (TASK-KL-203 S8-b).
+ *
+ * 처음에는 「쓰는 묶음이 전부 100%」였다. 그런데 다른 사람이 위젯을 **하나** 등록하자마자
+ * 영어 장이 통째로 사라졌다(실측 676개 중 2개 부족). 도구가 계속 느는 저장소에서 그 규칙은
+ * 「누군가 뭔가 만들면 영어 사이트가 내려간다」와 같은 말이다 — 그건 지킬 수 없는 규칙이고,
+ * 지킬 수 없는 규칙은 결국 꺼진다.
+ *
+ * 그래서 둘로 나눈다:
+ *  - **틀(chrome)** = 머리띠·옆줄·머리말처럼 **장마다 똑같이 나오는 글**. 여기 구멍이 나면
+ *    화면 전체가 반쯤 다른 말로 보인다 → **100% 아니면 안 낸다.** 개수가 적어 지킬 수 있다.
+ *  - **항목(item)** = 도구 이름·설명처럼 **줄마다 따로인 글**. 하나 빠지면 그 줄만 원본 언어로
+ *    보인다(옆줄 하나가 한국어). 나머지 수백 줄을 못 보게 만들 이유가 없다 → **거의 다 차면 낸다.**
+ *
+ * 「거의」의 값(95%)은 임의가 아니라 **새 도구 하나가 못 넘어뜨리는 선**이다: 항목 186개에서
+ * 하나 빠짐 = 99.5%. 반대로 언어를 새로 켠 직후(0%)는 당연히 못 넘는다.
+ */
+export const ITEM_COVERAGE_MIN = 0.95;
+
+export function pageAvailable(code, { namespaces = [], itemNamespaces = [] }) {
+  if (!namespaces.every((ns) => coverage(code, ns) >= 1)) return false;
+  return itemNamespaces.every((ns) => coverage(code, ns) >= ITEM_COVERAGE_MIN);
 }
 
 /**
