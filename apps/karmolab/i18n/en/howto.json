@@ -184,5 +184,9 @@
   "howto.pdfcrop.0": "Choose a PDF",
   "howto.pdfcrop.1": "Check the red line in the preview",
   "howto.pdfcrop.2": "Adjust how much margin to keep",
-  "howto.pdfcrop.3": "Crop and download"
+  "howto.pdfcrop.3": "Crop and download",
+  "howto.textredact.0": "Paste the log or document",
+  "howto.textredact.1": "Pick what to remove",
+  "howto.textredact.2": "Check the list of what was found",
+  "howto.textredact.3": "Copy the result"
 }
