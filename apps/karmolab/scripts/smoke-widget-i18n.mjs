@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { LOCALES, SOURCE_LOCALE, catalog, localizedPath } from './lib/locales.mjs';
 
 /** 첫 화면에 바로 그려지는 글만 고른다 — 눌러야 나오는 글로 재면 늘 「안 보인다」가 된다. */
-const FIRST_SCREEN = ['btn.camera', 'drop', 'status.idle', 'out.label'];
+const FIRST_SCREEN = ['btn.camera', 'drop', 'status.idle', 'out.label', 'btn.run', 'btn.preview'];
 
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(appRoot));

@@ -10,6 +10,8 @@
  */
 import { acceptPastedFiles } from './shared/paste';
 
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   interface TextContent {
     items: Array<{ str?: string }>;
@@ -53,11 +55,24 @@ import { acceptPastedFiles } from './shared/paste';
       {
         id: 'app',
         label: '용량 줄이기',
+        /* 도구의 *자기 화면*은 스크립트가 그린다 — 말을 받아온 **뒤에** 그린다.
+           안 기다리고 그리면 화면에 열쇠 이름이 그대로 뜬다 (qrread 에서 확인한 것과 같다). */
         build: function (container: HTMLElement): void {
+          void loadNamespace('pdfcompress').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  function draw(container: HTMLElement): void {
+    /* 화면에 넣는 말은 그대로 붙이지 않는다 — 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
+    const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="pcDrop">
               <input type="file" id="pcFile" accept="application/pdf" hidden>
-              PDF 를 끌어다 놓거나 눌러서 고르세요
+              ${esc(t('pdfcompress.drop'))}
             </div>
 
             <div id="pcEditor" style="display:none;">
@@ -67,29 +82,29 @@ import { acceptPastedFiles } from './shared/paste';
               <div class="field-group" style="margin-top:var(--space-lg);">
                 <div class="tool-grid-2">
                   <div>
-                    <div class="tool-sublabel">화질 <span id="pcQualityVal" class="range-value">70</span></div>
-                    <input type="range" id="pcQuality" aria-label="화질" min="30" max="95" value="70">
+                    <div class="tool-sublabel">${esc(t('pdfcompress.label.quality'))} <span id="pcQualityVal" class="range-value">70</span></div>
+                    <input type="range" id="pcQuality" aria-label="${esc(t('pdfcompress.label.quality'))}" min="30" max="95" value="70">
                   </div>
                   <div>
-                    <div class="tool-sublabel">해상도 <span id="pcScaleVal" class="range-value">보통</span></div>
-                    <input type="range" id="pcScale" aria-label="해상도" min="1" max="4" step="1" value="2">
+                    <div class="tool-sublabel">${esc(t('pdfcompress.label.resolution'))} <span id="pcScaleVal" class="range-value">${esc(t('pdfcompress.scale.mid'))}</span></div>
+                    <input type="range" id="pcScale" aria-label="${esc(t('pdfcompress.label.resolution'))}" min="1" max="4" step="1" value="2">
                   </div>
                 </div>
               </div>
 
               <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-                <button class="btn btn-ghost" id="pcPreview">첫 쪽으로 미리 보기</button>
-                <button class="btn btn-primary" id="pcRun">용량 줄이기</button>
-                <button class="btn btn-ghost" id="pcSave" disabled>내려받기</button>
+                <button class="btn btn-ghost" id="pcPreview">${esc(t('pdfcompress.btn.preview'))}</button>
+                <button class="btn btn-primary" id="pcRun">${esc(t('pdfcompress.btn.run'))}</button>
+                <button class="btn btn-ghost" id="pcSave" disabled>${esc(t('pdfcompress.btn.save'))}</button>
               </div>
 
               <div id="pcShot" style="display:none;">
-                <div class="tool-sublabel">첫 쪽 미리보기 — 이 화질로 전체가 만들어집니다</div>
-                <img id="pcShotImg" alt="첫 쪽 미리보기" style="max-width:100%; border-radius:8px; background:#fff;">
+                <div class="tool-sublabel">${esc(t('pdfcompress.shot.caption'))}</div>
+                <img id="pcShotImg" alt="${esc(t('pdfcompress.shot.alt'))}" style="max-width:100%; border-radius:8px; background:#fff;">
               </div>
             </div>
 
-            <div class="tool-status" id="pcStatus">파일은 브라우저 안에서만 다뤄집니다 — 문서를 올리지 않습니다.</div>
+            <div class="tool-status" id="pcStatus">${esc(t('pdfcompress.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -104,10 +119,10 @@ import { acceptPastedFiles } from './shared/paste';
           const saveBtn = $<HTMLButtonElement>('#pcSave');
 
           const SCALES: Array<[number, string]> = [
-            [1, '낮음 (화면용)'],
-            [1.5, '보통'],
-            [2, '높음 (인쇄용)'],
-            [3, '아주 높음']
+            [1, t('pdfcompress.scale.low')],
+            [1.5, t('pdfcompress.scale.mid')],
+            [2, t('pdfcompress.scale.high')],
+            [3, t('pdfcompress.scale.max')]
           ];
 
           let file: File | null = null;
@@ -126,10 +141,10 @@ import { acceptPastedFiles } from './shared/paste';
 
           async function loadPdfjs(): Promise<PdfJs> {
             if (pdfjs) return pdfjs;
-            say('PDF 처리기를 불러오는 중…');
+            say(t('pdfcompress.status.loadingReader'));
             await Toolbox.ensureScript?.('vendor/pdfjs.min');
             const g = (window as unknown as { pdfjsLib: PdfJs }).pdfjsLib;
-            if (!g) throw new Error('PDF 처리기를 불러오지 못했습니다');
+            if (!g) throw new Error(t('pdfcompress.error.readerFailed'));
             g.GlobalWorkerOptions.workerSrc = '/apps/karmolab/js/vendor/pdfjs.worker.min.js';
             pdfjs = g;
             return g;
@@ -139,7 +154,7 @@ import { acceptPastedFiles } from './shared/paste';
             if (pdflib) return pdflib;
             await Toolbox.ensureScript?.('vendor/pdf-lib.min');
             const g = (window as unknown as { PDFLib: PdfLib }).PDFLib;
-            if (!g) throw new Error('PDF 만드는 부분을 불러오지 못했습니다');
+            if (!g) throw new Error(t('pdfcompress.error.writerFailed'));
             pdflib = g;
             return g;
           }
@@ -164,7 +179,7 @@ import { acceptPastedFiles } from './shared/paste';
             canvas.width = Math.round(viewport.width);
             canvas.height = Math.round(viewport.height);
             const ctx = canvas.getContext('2d');
-            if (!ctx) throw new Error('canvas 없음');
+            if (!ctx) throw new Error(t('pdfcompress.error.noCanvas'));
             // 투명 배경을 그냥 두면 JPEG 에서 검게 나온다
             ctx.fillStyle = '#fff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -175,7 +190,7 @@ import { acceptPastedFiles } from './shared/paste';
           const toJpeg = (canvas: HTMLCanvasElement): Promise<Blob> =>
             new Promise((resolve, reject) => {
               canvas.toBlob(
-                (b) => (b ? resolve(b) : reject(new Error('그림으로 못 바꿨어요'))),
+                (b) => (b ? resolve(b) : reject(new Error(t('pdfcompress.error.rasterFailed')))),
                 'image/jpeg',
                 parseInt(qualityEl.value, 10) / 100
               );
@@ -188,7 +203,7 @@ import { acceptPastedFiles } from './shared/paste';
             saveBtn.disabled = true;
             $<HTMLElement>('#pcShot').style.display = 'none';
             editor.style.display = '';
-            say(`${f.name} 을 살펴보는 중…`);
+            say(t('pdfcompress.status.inspecting', { name: f.name }));
             try {
               const lib = await loadPdfjs();
               doc = await lib.getDocument({ data: await f.arrayBuffer() }).promise;
@@ -197,43 +212,43 @@ import { acceptPastedFiles } from './shared/paste';
               const text = await first.getTextContent();
               hasText = text.items.map((i) => i.str || '').join('').trim().length > 40;
               stats.innerHTML =
-                stat('원래 용량', size(f.size), true) +
-                stat('쪽 수', `${doc.numPages}쪽`) +
-                stat('종류', hasText ? '글자 있는 문서' : '스캔·그림 문서');
+                stat(t('pdfcompress.stat.originalSize'), size(f.size), true) +
+                stat(t('pdfcompress.stat.pages'), t('pdfcompress.stat.pagesValue', { n: doc.numPages })) +
+                stat(t('pdfcompress.stat.kind'), hasText ? t('pdfcompress.kind.text') : t('pdfcompress.kind.scan'));
               if (hasText) {
                 warn.style.display = '';
                 warn.className = 'tool-status error';
-                warn.textContent = '이 PDF 에는 글자가 들어 있습니다. 용량을 줄이면 글자가 그림이 되어 선택·검색이 안 됩니다. 스캔 문서라면 문제없지만, 계약서처럼 글자를 살려야 하면 쓰지 마세요.';
+                warn.textContent = t('pdfcompress.warn.textLoss');
               } else {
                 warn.style.display = 'none';
               }
-              say('화질을 고르고 미리 보기로 확인한 뒤 줄이세요.', 'ok');
+              say(t('pdfcompress.status.pickQuality'), 'ok');
             } catch (e) {
-              say('이 PDF 를 열지 못했어요: ' + (e as Error).message, 'error');
+              say(t('pdfcompress.error.open', { message: (e as Error).message }), 'error');
             }
           }
 
           async function preview(): Promise<void> {
             if (!file) return;
-            say('첫 쪽을 그리는 중…');
+            say(t('pdfcompress.status.drawingFirst'));
             const { canvas } = await renderPage(1);
             const blob = await toJpeg(canvas);
             $<HTMLImageElement>('#pcShotImg').src = URL.createObjectURL(blob);
             $<HTMLElement>('#pcShot').style.display = '';
             // 첫 쪽 크기 × 쪽 수 = 전체 어림. 다 만들고 나서 실망하는 걸 막는다.
             const guess = blob.size * (doc?.numPages || 1);
-            say(`이 화질이면 대략 ${size(guess)} 안팎이 됩니다 (원래 ${size(file.size)}).`, 'ok');
+            say(t('pdfcompress.status.estimate', { guess: size(guess), original: size(file.size) }), 'ok');
           }
 
           async function run(): Promise<void> {
             if (!file || !doc) {
-              say('PDF 를 먼저 넣어 주세요.', 'error');
+              say(t('pdfcompress.status.needFile'), 'error');
               return;
             }
             const maker = await loadPdfLib();
             const outDoc = await maker.PDFDocument.create();
             for (let n = 1; n <= doc.numPages; n++) {
-              say(`${n}/${doc.numPages}쪽 처리 중…`);
+              say(t('pdfcompress.status.working', { n, total: doc.numPages }));
               const { canvas, w, h } = await renderPage(n);
               const jpeg = await toJpeg(canvas);
               const img = await outDoc.embedJpg(await jpeg.arrayBuffer());
@@ -248,14 +263,14 @@ import { acceptPastedFiles } from './shared/paste';
             const after = made.size;
             const pct = Math.round(Math.abs(1 - after / before) * 100);
             stats.innerHTML =
-              stat('원래 용량', size(before)) +
-              stat('줄인 용량', size(after), true) +
-              stat('변화', after < before ? `${pct}% 줄어듦` : after > before ? `${pct}% 늘어남` : '그대로');
+              stat(t('pdfcompress.stat.originalSize'), size(before)) +
+              stat(t('pdfcompress.stat.newSize'), size(after), true) +
+              stat(t('pdfcompress.stat.change'), after < before ? t('pdfcompress.change.smaller', { pct }) : after > before ? t('pdfcompress.change.bigger', { pct }) : t('pdfcompress.change.same'));
             // 이미 잘 압축된 PDF 는 오히려 커진다 — 성공이라 우기면 안 된다
             if (after >= before) {
-              say(`줄지 않았어요 (${size(before)} → ${size(after)}). 이미 잘 압축된 파일입니다. 화질이나 해상도를 낮추면 줄지만 흐려집니다.`, 'error');
+              say(t('pdfcompress.status.noGain', { before: size(before), after: size(after) }), 'error');
             } else {
-              say(`${size(before)} → ${size(after)} (${pct}% 줄었어요). 확인하고 받으세요.`, 'ok');
+              say(t('pdfcompress.status.done', { before: size(before), after: size(after), pct }), 'ok');
             }
             Toolbox.trackUse?.('compress');
           }
@@ -286,24 +301,21 @@ import { acceptPastedFiles } from './shared/paste';
           refreshLabels();
 
           $<HTMLButtonElement>('#pcPreview').onclick = () => {
-            void preview().catch((err: Error) => say('미리 보는 중 문제가 생겼어요: ' + err.message, 'error'));
+            void preview().catch((err: Error) => say(t('pdfcompress.error.preview', { message: err.message }), 'error'));
           };
           $<HTMLButtonElement>('#pcRun').onclick = () => {
-            void run().catch((err: Error) => say('줄이는 중 문제가 생겼어요: ' + err.message, 'error'));
+            void run().catch((err: Error) => say(t('pdfcompress.error.run', { message: err.message }), 'error'));
           };
           saveBtn.onclick = () => {
             if (!made || !file) return;
             const a = document.createElement('a');
             a.href = URL.createObjectURL(made);
-            a.download = file.name.replace(/\.pdf$/i, '') + '-작게.pdf';
+            a.download = file.name.replace(/\.pdf$/i, '') + t('pdfcompress.file.suffix');
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say('내려받았어요.', 'ok');
+            say(t('pdfcompress.status.saved'), 'ok');
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: made, name: a.download, from: 'pdfcompress' });
           };
-        }
-      }
-    ]
-  });
+  }
 })();

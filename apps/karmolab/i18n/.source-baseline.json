@@ -1,5 +1,5 @@
 {
-  "total": 8417,
+  "total": 8339,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -121,7 +121,7 @@
     "src/widgets/play.ts": 21,
     "src/widgets/plaza.ts": 55,
     "src/widgets/postgraph.ts": 3,
-    "src/widgets/pulse/channels.ts": 390,
+    "src/widgets/pulse/channels.ts": 392,
     "src/widgets/pulse/core.ts": 4,
     "src/widgets/pulse/pulse.ts": 11,
     "src/widgets/quest-log/quest-log.ts": 51,
@@ -173,7 +173,7 @@
     "src/widgets/tools/audiospeed.ts": 23,
     "src/widgets/tools/barcode.ts": 17,
     "src/widgets/tools/base64.ts": 13,
-    "src/widgets/tools/birth.ts": 69,
+    "src/widgets/tools/birth.ts": 24,
     "src/widgets/tools/bizno.ts": 29,
     "src/widgets/tools/bmi.ts": 29,
     "src/widgets/tools/bytesize.ts": 10,
@@ -229,7 +229,7 @@
     "src/widgets/tools/pdf.ts": 13,
     "src/widgets/tools/pdf2img.ts": 13,
     "src/widgets/tools/pdf2text.ts": 27,
-    "src/widgets/tools/pdfcompress.ts": 39,
+    "src/widgets/tools/pdfcompress.ts": 4,
     "src/widgets/tools/pdfcrop.ts": 27,
     "src/widgets/tools/pdfdiff.ts": 26,
     "src/widgets/tools/pdfpagenum.ts": 29,
