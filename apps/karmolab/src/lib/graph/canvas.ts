@@ -1366,7 +1366,7 @@ export class GraphCanvas {
       g.appendChild(nameEl);
     } else if (children.length === 0) {
       const centered = shape === 'circle';
-      const avatarEl = node.avatar ? this.buildNodeAvatar(node, effH, kindColor, centered) : null;
+      const avatarEl = this.buildNodeAvatar(node, effH, kindColor, centered);
       if (avatarEl) g.appendChild(avatarEl);
 
       const hasNote = Boolean(node.note && node.note.trim());
@@ -1571,7 +1571,37 @@ export class GraphCanvas {
    */
   private buildNodeAvatar(node: GraphNode, effH: number, kindColor: string, centered: boolean): SVGGElement | null {
     const avatar = node.avatar;
-    if (!avatar) return null;
+    // 얼굴을 안 정했으면 **이름 첫 글자**를 옅은 원에 넣는다. 아무것도 없는 자리보다
+    // 「누구인지」가 훨씬 빨리 읽힌다(빈 상태도 설계 대상이다).
+    if (!avatar) {
+      const initial = (node.label ?? '').trim().slice(0, 1);
+      if (!initial) return null;
+      const r0 = 11;
+      const cx0 = centered ? node.w / 2 : 21;
+      const cy0 = centered ? Math.max(r0 + 6, effH / 2 - 12) : effH / 2;
+      const g0 = document.createElementNS(SVG_NS, 'g') as SVGGElement;
+      g0.setAttribute('pointer-events', 'none');
+      const disc0 = document.createElementNS(SVG_NS, 'circle');
+      disc0.setAttribute('cx', String(cx0));
+      disc0.setAttribute('cy', String(cy0));
+      disc0.setAttribute('r', String(r0));
+      disc0.setAttribute('fill', kindColor + '22');
+      disc0.setAttribute('stroke', kindColor + '55');
+      disc0.setAttribute('stroke-width', '1');
+      g0.appendChild(disc0);
+      const t0 = document.createElementNS(SVG_NS, 'text');
+      t0.setAttribute('x', String(cx0));
+      t0.setAttribute('y', String(cy0 + 4));
+      t0.setAttribute('text-anchor', 'middle');
+      t0.setAttribute('font-size', '11');
+      t0.setAttribute('font-weight', '600');
+      // 글자는 종류 색을 그대로 쓴다 — 옅은 바탕 위라 대비가 충분하고, 색이 곧 종류 표시가 된다.
+      t0.setAttribute('fill', kindColor);
+      t0.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
+      t0.textContent = initial;
+      g0.appendChild(t0);
+      return g0;
+    }
     const r = 12;
     const cx = centered ? node.w / 2 : 22;
     const cy = centered ? Math.max(r + 6, effH / 2 - 12) : effH / 2;
