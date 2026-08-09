@@ -18,7 +18,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { LOCALES as ENABLED_LOCALES } from './lib/locales.mjs';
+import { LOCALES as ENABLED_LOCALES, catalog } from './lib/locales.mjs';
 
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(appRoot));
@@ -60,6 +60,7 @@ const tags = await page.$$eval('link[rel="alternate"][hreflang]', (els) =>
   els.map((e) => e.getAttribute('hreflang'))
 );
 const expected = ENABLED_LOCALES.filter((l) => tags.includes(l.htmlLang));
+const names = Object.fromEntries(expected.map((l) => [l.code, catalog(l.code, 'widgets')]));
 
 /* ① */
 const code = (await page.locator('#langBtn .lang-btn-code').textContent())?.trim();
@@ -105,33 +106,36 @@ const real = errors.filter(
 );
 if (real.length) fail.push('콘솔 오류: ' + real.slice(0, 3).join(' | '));
 
-/* ⑤ 영어 장에서 **도구 이름이 영어로** 나오는가 (TASK-KL-203 S5-b).
-   이름은 목록이 만들어지는 자리에서 한 번에 갈아 끼운다 — 그 한 줄이 빠지면 화면은 멀쩡한데
-   옆줄·목록·⌘K 의 이름만 한국어로 남는다. 한국어를 읽는 사람 눈에는 안 보이는 종류의 고장이라
-   여기서 직접 열어 본다. */
-{
-  const en = page.context ? await browser.newPage() : null;
-  if (en) {
-    await en.goto(`http://127.0.0.1:${PORT}/apps/blog/en/karmolab/index.html`, { waitUntil: 'domcontentloaded' });
-    const swapped = await en
-      .waitForFunction(
-        () => {
-          const list = window.KARMOLAB_LAZY_META;
-          if (!Array.isArray(list) || !list.length) return false;
-          const hit = list.find((w) => w.id === 'charcount');
-          return hit ? hit.title : false;
-        },
-        { timeout: 5000 }
-      )
-      .then((h) => h.jsonValue())
-      .catch(() => null);
-    if (swapped !== 'Character count') fail.push(`영어 장의 도구 이름이 안 바뀌었다: ${swapped}`);
-    const korean = await en.evaluate(
-      () => (window.KARMOLAB_LAZY_META || []).filter((w) => /[가-힣]/.test(w.title || '')).length
-    );
-    if (korean) fail.push(`영어 장에 한국어 이름이 ${korean}개 남았다`);
-    await en.close();
-  }
+/* ⑤ 언어 장마다 **도구 이름이 그 언어로** 나오는가 (TASK-KL-203 S5-b·S7).
+   이름은 목록이 대입되는 자리에서 갈아 끼운다 — 그 고리가 빠지면 화면은 멀쩡한데 옆줄·목록·⌘K 의
+   이름만 한국어로 남는다. 한국어를 읽는 사람 눈에는 안 보이는 종류라 여기서 직접 열어 본다.
+   **켠 언어를 전부 돈다** — 언어가 늘 때 이 검사도 저절로 는다(한 언어만 박아 두면 새 언어는
+   아무도 안 본 채로 나간다). */
+for (const l of expected) {
+  if (!l.prefix) continue;
+  const tab = await browser.newPage();
+  await tab.goto(`http://127.0.0.1:${PORT}/apps/blog${l.prefix}/karmolab/index.html`, {
+    waitUntil: 'domcontentloaded'
+  });
+  const shown = await tab
+    .waitForFunction(
+      () => {
+        const list = window.KARMOLAB_LAZY_META;
+        if (!Array.isArray(list) || !list.length) return false;
+        const hit = list.find((w) => w.id === 'charcount');
+        return hit ? hit.title : false;
+      },
+      { timeout: 5000 }
+    )
+    .then((h) => h.jsonValue())
+    .catch(() => null);
+  const want = names[l.code]['widgets.charcount.title'];
+  if (shown !== want) fail.push(`${l.code} 장의 도구 이름이 안 바뀌었다: ${shown} (기대 ${want})`);
+  const korean = await tab.evaluate(
+    () => (window.KARMOLAB_LAZY_META || []).filter((w) => /[가-힣]/.test(w.title || '')).length
+  );
+  if (korean) fail.push(`${l.code} 장에 한국어 이름이 ${korean}개 남았다`);
+  await tab.close();
 }
 
 await browser.close();
