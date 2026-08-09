@@ -48,13 +48,19 @@ export const GEMS = ['가넷', '자수정', '아쿠아마린', '다이아몬드'
 
 export const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
 
-export function signOf(month: number, day: number): string {
-  let found = '염소자리'; // 12/22 ~ 1/19
-  for (const [sm, sd, name] of SIGNS) {
-    if (month > sm || (month === sm && day >= sd)) found = name;
+/** 몇 번째 별자리인가 (`SIGNS` 의 자리, 0=물병자리 … 11=염소자리). */
+export function signIndexOf(month: number, day: number): number {
+  let found = 11; // 염소자리 — 12/22 ~ 1/19
+  for (let i = 0; i < SIGNS.length; i++) {
+    const [sm, sd] = SIGNS[i];
+    if (month > sm || (month === sm && day >= sd)) found = i;
   }
-  if (month === 1 && day < 20) found = '염소자리';
+  if (month === 1 && day < 20) found = 11;
   return found;
+}
+
+export function signOf(month: number, day: number): string {
+  return SIGNS[signIndexOf(month, day)][2];
 }
 
 export interface BirthInfo {
@@ -68,6 +74,18 @@ export interface BirthInfo {
   sign: string;
   weekday: string;
   gem: string;
+  /**
+   * 위 넷의 **자리 번호**. 이름은 읽는 쪽이 정한다 (TASK-KL-203).
+   *
+   * 알맹이가 「쥐」·「물병자리」로 못을 박으면 그 이름은 한국어 하나뿐이고, 화면을 다른 말로
+   * 옮기려면 되짚어 맞춰야 한다(그러다 하나 어긋나면 그 줄만 조용히 한국어로 남는다).
+   * 번호로 주면 화면은 자기 말로 이름을 붙이고, 글로 답하는 쪽(MCP)은 위 이름을 그대로 쓴다.
+   */
+  zodiacIndex: number;
+  signIndex: number;
+  weekdayIndex: number;
+  /** 태어난 달 (1-12) = 탄생석 자리이기도 하다. */
+  month: number;
   /** 태어난 날부터 오늘까지 며칠째. */
   lived: number;
   /** 다음 생일까지 남은 날. 0 이면 오늘. */
@@ -114,6 +132,10 @@ export function birthInfo(birth: string, now: Date = new Date()): BirthInfo | nu
     sign: signOf(m, d),
     weekday: WEEKDAYS[born.getDay()],
     gem: GEMS[m - 1],
+    zodiacIndex: y % 12,
+    signIndex: signIndexOf(m, d),
+    weekdayIndex: born.getDay(),
+    month: m,
     lived: Math.floor((today.getTime() - born.getTime()) / 86400000),
     untilNext: Math.round((next.getTime() - today.getTime()) / 86400000),
     nextBirthday: next,
