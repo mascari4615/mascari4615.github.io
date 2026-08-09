@@ -50,10 +50,11 @@ import { pressIntent, readPressHits } from './canvas-press';
 import { canRewireTo, isDropOnNode, releaseIntent } from './canvas-release';
 import { curveFromPointer, labelPosFromPointer } from './canvas-edgedrag';
 import { groupDelta, resizedBox, snappedPoint, worldDelta } from './canvas-drag';
+import { minimapRects, minimapWorthIt, paintMinimap } from './canvas-minimap';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
-  fitProjection, projectPoint, viewportRectOnMap } from './canvas-math';
+  fitProjection, viewportRectOnMap } from './canvas-math';
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -1497,68 +1498,23 @@ export class GraphCanvas {
   private redrawMinimap(): void {
     if (!this.spec) return;
     // 카드가 두엇뿐이면 미니맵은 **길잡이가 아니라 검은 상자**다(빈 판에서 특히 그렇게 보인다).
-    // 길을 잃을 만큼 커졌을 때만 띄운다.
-    const worthIt = this.spec.nodes.length >= 4;
+    const worthIt = minimapWorthIt(this.spec.nodes.length);
     this.minimapSvg.style.display = worthIt ? '' : 'none';
     if (!worthIt) return;
 
-    // 기존 노드 rect 제거 (viewport rect 는 유지)
-    Array.from(this.minimapSvg.children)
-      .filter((c) => c !== this.minimapViewport)
-      .forEach((c) => c.remove());
-
     const bounds = this.worldBounds();
     if (bounds.w <= 0 || bounds.h <= 0) return;
-
     const proj = fitProjection(bounds, { w: MINIMAP_W, h: MINIMAP_H });
     if (proj.scale <= 0) return;
-    const ms = proj.scale;
-    const toMm = (x: number, y: number) => {
-      const p = projectPoint(bounds, proj, x, y);
-      return { mx: p.x, my: p.y };
-    };
 
-    // 그룹 배경
-    for (const g of this.spec.groups) {
-      const { mx, my } = toMm(g.bbox.x, g.bbox.y);
-      const rect = document.createElementNS(SVG_NS, 'rect');
-      rect.setAttribute('x', String(mx));
-      rect.setAttribute('y', String(my));
-      rect.setAttribute('width', String(g.bbox.w * ms));
-      rect.setAttribute('height', String(g.bbox.h * ms));
-      rect.setAttribute('fill', g.color + '10');
-      rect.setAttribute('stroke', g.color + '30');
-      rect.setAttribute('stroke-width', '0.5');
-      this.minimapSvg.insertBefore(rect, this.minimapViewport);
-    }
-
-    // 노드 rect
-    for (const node of this.spec.nodes) {
-      const c = this.nodeCoords.get(node.id) ?? { x: node.x, y: node.y };
-      const { mx, my } = toMm(c.x, c.y);
-      const kindColor = this.colorForKind(node.kind);
-      const rect = document.createElementNS(SVG_NS, 'rect');
-      rect.setAttribute('x', String(mx));
-      rect.setAttribute('y', String(my));
-      rect.setAttribute('width', String(Math.max(2, node.w * ms)));
-      rect.setAttribute('height', String(Math.max(2, this.getNodeEffectiveH(node) * ms)));
-      rect.setAttribute('rx', '1');
-      rect.setAttribute('fill', kindColor + '60');
-      this.minimapSvg.insertBefore(rect, this.minimapViewport);
-    }
-
-    // ephemeral 노드
-    for (const en of this.ephemeralNodes) {
-      const { mx, my } = toMm(en.x, en.y);
-      const rect = document.createElementNS(SVG_NS, 'rect');
-      rect.setAttribute('x', String(mx));
-      rect.setAttribute('y', String(my));
-      rect.setAttribute('width', String(Math.max(2, en.w * ms)));
-      rect.setAttribute('height', String(Math.max(2, en.h * ms)));
-      rect.setAttribute('rx', '1');
-      rect.setAttribute('fill', '#22d3ee40');
-      this.minimapSvg.insertBefore(rect, this.minimapViewport);
-    }
+    paintMinimap(this.minimapSvg, this.minimapViewport, minimapRects({
+      groups: this.spec.groups.map((g) => ({ bbox: g.bbox, color: g.color })),
+      nodes: this.spec.nodes.map((n) => {
+        const c = this.nodeCoords.get(n.id) ?? { x: n.x, y: n.y };
+        return { x: c.x, y: c.y, w: n.w, h: this.getNodeEffectiveH(n), color: this.colorForKind(n.kind) };
+      }),
+      ephemeral: this.ephemeralNodes.map((en) => ({ x: en.x, y: en.y, w: en.w, h: en.h })),
+    }, bounds, proj));
 
     // 「지금 보는 곳」 상자 — 판 밖으로 삐져나간 만큼은 셈법 쪽에서 잘라 준다.
     const vp = viewportRectOnMap(bounds, proj, {

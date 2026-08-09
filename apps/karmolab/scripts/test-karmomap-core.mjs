@@ -45,6 +45,7 @@ async function loadModules() {
     export * as release from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-release.ts'))};
     export * as edgedrag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-edgedrag.ts'))};
     export * as drag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-drag.ts'))};
+    export * as minimap from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-minimap.ts'))};
     export * as sna from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/sna.ts'))};
   `);
   const out = path.join(os.tmpdir(), `km-core-${Date.now()}.mjs`);
@@ -484,6 +485,29 @@ const M = await loadModules();
   check(r.w === MIN_NODE_W && r.h === MIN_NODE_H, '아무리 줄여도 최소 크기에서 멈춘다(지운 것처럼 보이지 않게)');
   const r2 = resizedBox(200, 100, { dx: 33.4, dy: 10.6 });
   check(r2.w === 233 && r2.h === 111, '크기는 정수로 떨어진다');
+}
+
+// ---- 손바닥만 한 판 (canvas-minimap)
+{
+  const { minimapWorthIt, minimapRects, MINIMAP_MIN_PX, EPHEMERAL_FILL } = M.minimap;
+  const { fitProjection } = M.cmath;
+  check(minimapWorthIt(0) === false && minimapWorthIt(3) === false, '카드가 서넛뿐이면 미니맵은 안 띄운다(검은 상자로 보인다)');
+  check(minimapWorthIt(4) === true, '길을 잃을 만큼 커지면 띄운다');
+  const bounds = { minX: 0, minY: 0, w: 4000, h: 3000 };
+  const proj = fitProjection(bounds, { w: 160, h: 100 });
+  const rects = minimapRects({
+    groups: [{ bbox: { x: 0, y: 0, w: 1000, h: 800 }, color: '#ff0000' }],
+    nodes: [{ x: 0, y: 0, w: 180, h: 60, color: '#00ff00' }, { x: 3800, y: 2900, w: 180, h: 60, color: '#00ff00' }],
+    ephemeral: [{ x: 100, y: 100, w: 120, h: 40 }],
+  }, bounds, proj);
+  check(rects.length === 4, '묶음·카드·임시 카드가 모두 그려진다');
+  check(rects[0].stroke === '#ff000030', '묶음이 맨 밑에 깔린다(그리는 순서 = 겹치는 순서)');
+  check(rects[3].fill === EPHEMERAL_FILL, '흘러가는 카드는 늘 같은 물색');
+  // 4000px 판을 160px 로 줄이면 카드는 7px 이 된다 — 더 큰 판에서도 점이 사라지면 안 된다.
+  const tiny = minimapRects({ groups: [], nodes: [{ x: 0, y: 0, w: 4, h: 4, color: '#000000' }], ephemeral: [] }, bounds, proj);
+  check(tiny[0].w >= MINIMAP_MIN_PX && tiny[0].h >= MINIMAP_MIN_PX, '아무리 줄여도 안 보일 만큼 작아지지 않는다');
+  const far = rects[2];
+  check(far.x > rects[1].x && far.y > rects[1].y, '판 반대편 카드는 미니맵에서도 반대편에 있다');
 }
 
 // 되돌아가지 않게: **캔버스 크기 자물쇠**.
