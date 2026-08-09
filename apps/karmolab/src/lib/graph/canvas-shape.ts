@@ -85,3 +85,67 @@ fill: string,
   rect.setAttribute('stroke-width', '1.5');
   return rect;
 }
+
+
+/** 쪽지 본문 줄 간격·최대 줄 수 — 카드가 소설이 되면 그림이 안 읽힌다. */
+export const NOTE_BODY_LINE_H = 12;
+export const NOTE_BODY_MAX_LINES = 6;
+
+/**
+ * 글을 카드 폭에 맞춰 **접는다**. 넘치면 마지막 줄 끝을 `…` 로 바꾼다 —
+ * 잘린 줄을 그대로 두면 「글이 저기까지인 줄」 알고 옆 패널을 안 연다.
+ */
+export function foldNoteBody(text: string, width: number): string[] {
+  const perLine = Math.max(6, Math.floor((width - 20) / 5.6));
+  const lines: string[] = [];
+  const LINE_SPLIT = new RegExp(String.fromCharCode(92) + 'r?' + String.fromCharCode(92) + 'n');
+  for (const para of text.split(LINE_SPLIT)) {
+    if (lines.length >= NOTE_BODY_MAX_LINES) break;
+    let rest = para.trim();
+    if (!rest) continue;
+    while (rest.length > 0 && lines.length < NOTE_BODY_MAX_LINES) {
+      lines.push(rest.slice(0, perLine));
+      rest = rest.slice(perLine);
+    }
+  }
+  if (lines.length > 0 && text.replace(/\s/g, '').length > lines.join('').replace(/\s/g, '').length) {
+    lines[lines.length - 1] = `${lines[lines.length - 1].slice(0, -1)}…`;
+  }
+  return lines;
+}
+
+/** 쪽지 카드의 속(제목 + 접은 본문). 붙일 게 없으면 빈 배열. */
+export function buildNoteCardBody(
+  label: string,
+  body: string,
+  width: number,
+  theme: { nodeText: string; childText: string },
+): SVGTextElement[] {
+  const lines = foldNoteBody(body, width);
+  if (lines.length === 0) return [];
+  const out: SVGTextElement[] = [];
+
+  const title = document.createElementNS(SVG_NS, 'text');
+  title.setAttribute('x', '10');
+  title.setAttribute('y', '16');
+  title.setAttribute('fill', theme.nodeText);
+  title.setAttribute('font-size', '10.5');
+  title.setAttribute('font-weight', '600');
+  title.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
+  title.setAttribute('pointer-events', 'none');
+  title.textContent = label;
+  out.push(title);
+
+  lines.forEach((ln, i) => {
+    const row = document.createElementNS(SVG_NS, 'text');
+    row.setAttribute('x', '10');
+    row.setAttribute('y', String(30 + i * NOTE_BODY_LINE_H));
+    row.setAttribute('fill', theme.childText);
+    row.setAttribute('font-size', '9.5');
+    row.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
+    row.setAttribute('pointer-events', 'none');
+    row.textContent = ln;
+    out.push(row);
+  });
+  return out;
+}
