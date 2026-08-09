@@ -231,6 +231,14 @@ export class GraphCanvas {
    * 거르기 (TASK-KL-202 M-3). 포커스가 「잠깐 흐리기」라면 이쪽은 **아예 안 그리기**다 —
    * Kumu 도 focus(근접 기반)와 filter(조건 선별)를 다른 도구로 둔다.
    */
+  /**
+   * 데이터로 꾸미기 (TASK-KL-202 격차 S). 손으로 하나씩 키우는 대신 **규칙 한 줄**로
+   * 「많이 이어진 것이 크다」를 만든다 — 자료가 늘어도 규칙이 알아서 따라간다(Kumu 의 decoration).
+   */
+  private decorate: { sizeByDegree: boolean } = { sizeByDegree: false };
+  /** 이번 렌더에서 쓸 노드별 연결 수. render 시작 때 한 번만 센다. */
+  private degreeCache: Map<string, number> = new Map();
+
   private filter: { nodeKinds: Set<string>; edgeKinds: Set<string>; tags: Set<string>; hideOrphans: boolean } = {
     nodeKinds: new Set(), edgeKinds: new Set(), tags: new Set(), hideOrphans: false,
   };
@@ -937,6 +945,17 @@ export class GraphCanvas {
     this.edgeLayer.innerHTML = '';
     this.nodeLayer.innerHTML = '';
 
+    // 연결 수는 한 번만 센다 — 노드마다 세면 그림이 커질수록 제곱으로 느려진다.
+    this.degreeCache = new Map();
+    if (this.decorate.sizeByDegree) {
+      for (const e of this.spec.edges) {
+        for (const ref of [e.from, e.to]) {
+          const id = this.parseNodeRef(ref);
+          this.degreeCache.set(id, (this.degreeCache.get(id) ?? 0) + 1);
+        }
+      }
+    }
+
     this.renderGroups();
     this.renderAnchors();
     this.renderNodes(this.visibleNodes());
@@ -1039,7 +1058,7 @@ export class GraphCanvas {
       const c = this.nodeCoords.get(n.id) ?? { x: n.x, y: n.y };
       minX = Math.min(minX, c.x - pad);
       minY = Math.min(minY, c.y - pad);
-      maxX = Math.max(maxX, c.x + n.w + pad);
+      maxX = Math.max(maxX, c.x + this.effW(n) + pad);
       maxY = Math.max(maxY, c.y + this.getNodeEffectiveH(n) + pad);
     }
     // ephemeral anchors (effective bbox)
@@ -1071,10 +1090,11 @@ export class GraphCanvas {
       if (!this.isMember(n, g.id)) continue;
       const c0 = this.nodeCoords.get(n.id) ?? { x: n.x, y: n.y };
       const h = this.getNodeEffectiveH(n);
+      const w = this.effW(n);
       pts.push(
         { x: c0.x - pad, y: c0.y - pad },
-        { x: c0.x + n.w + pad, y: c0.y - pad },
-        { x: c0.x + n.w + pad, y: c0.y + h + pad },
+        { x: c0.x + w + pad, y: c0.y - pad },
+        { x: c0.x + w + pad, y: c0.y + h + pad },
         { x: c0.x - pad, y: c0.y + h + pad }
       );
     }
@@ -1221,6 +1241,12 @@ export class GraphCanvas {
     const coords = this.nodeCoords.get(node.id) ?? { x: node.x, y: node.y };
     const children = node.children ?? [];
     const effH = this.getNodeEffectiveH(node);
+    // 그리는 동안은 「배율 먹인 폭」이 곧 그 노드의 폭이다. 원본 node.w 는 그대로 둔다
+    // (저장본을 건드리면 규칙을 껐을 때 크기가 안 돌아온다).
+    const baseW = node.w;
+    node = new Proxy(node, {
+      get: (t, k) => (k === 'w' ? baseW * this.sizeScale(t.id) : (t as unknown as Record<string, unknown>)[k as string]),
+    }) as GraphNode;
 
     const g = document.createElementNS(SVG_NS, 'g') as SVGGElement;
     g.setAttribute('class', 'ck-node');
@@ -1644,7 +1670,7 @@ export class GraphCanvas {
     const persistent = this.spec?.nodes.find((n) => n.id === nodeId);
     if (persistent) {
       const coords = this.nodeCoords.get(nodeId) ?? { x: persistent.x, y: persistent.y };
-      return { x: coords.x, y: coords.y, w: persistent.w, h: this.getNodeEffectiveH(persistent) };
+      return { x: coords.x, y: coords.y, w: this.effW(persistent), h: this.getNodeEffectiveH(persistent) };
     }
     const eph = this.ephemeralNodes.find((n) => n.id === nodeId);
     if (eph) {
@@ -2074,8 +2100,10 @@ export class GraphCanvas {
 
   private getNodeEffectiveH(node: GraphNode): number {
     const ch = node.children ?? [];
-    if (ch.length === 0) return node.h;
-    return NODE_HEADER_H + 1 + NODE_CHILD_PAD + ch.length * NODE_CHILD_ROW_H + NODE_CHILD_PAD;
+    const base = ch.length === 0
+      ? node.h
+      : NODE_HEADER_H + 1 + NODE_CHILD_PAD + ch.length * NODE_CHILD_ROW_H + NODE_CHILD_PAD;
+    return base * this.sizeScale(node.id);
   }
 
   // ── 그리드 스냅 ─────────────────────────────────────────────────────────────
@@ -2248,6 +2276,24 @@ export class GraphCanvas {
       hideOrphans: next.hideOrphans ?? false,
     };
     this.render();
+  }
+
+  /** 꾸미기 규칙. 지금은 「연결 수만큼 크게」 하나. */
+  setDecorate(next: { sizeByDegree?: boolean }): void {
+    this.decorate = { sizeByDegree: next.sizeByDegree ?? false };
+    this.render();
+  }
+
+  /** 노드 크기 배율 — 연결이 많을수록 큼(최대 1.6배). 규칙이 꺼져 있으면 항상 1. */
+  private sizeScale(nodeId: string): number {
+    if (!this.decorate.sizeByDegree) return 1;
+    const d = this.degreeCache.get(nodeId) ?? 0;
+    return Math.min(1.6, 1 + d * 0.12);
+  }
+
+  /** 화면에 그려지는 실제 폭 — 배율 반영. 선 앵커·묶음 상자도 이 값을 봐야 어긋나지 않는다. */
+  private effW(node: GraphNode): number {
+    return node.w * this.sizeScale(node.id);
   }
 
   /** 지금 화면에 남아 있는 노드 id — 거르기까지 반영한 것. */
