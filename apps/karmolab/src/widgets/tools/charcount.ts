@@ -10,6 +10,9 @@
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { inRegion } from '../../lib/region';
 
+import { byteLength, euckrUnsafe, manuscriptSheets, sentenceCount, spec } from '../../core/charcount';
+import { readInvocation } from '../../lib/tool-url';
+
 (function (): void {
   /**
    * 한도 목록은 **그릴 때** 만든다 (TASK-KL-203) — 파일 실릴 때 만들면 이름 자리에 열쇠가 굳는다.
@@ -56,35 +59,6 @@ import { inRegion } from '../../lib/region';
   const 한글 = /[ㄱ-ㆎ가-힣]/u;
   const 영문 = /[A-Za-z]/;
   const 숫자 = /[0-9]/;
-
-  function byteLength(s: string, encoding: 'utf8' | 'euckr'): number {
-    if (encoding === 'utf8') return new TextEncoder().encode(s).length;
-    /* EUC-KR 근사: 한글·한자·전각 = 2 byte, ASCII = 1 byte.
-       이모지처럼 **애초에 못 담는 글자**는 여기서 2 로 세지 말고 따로 알린다 (아래 euckrUnsafe). */
-    let n = 0;
-    for (const ch of [...s]) {
-      const code = ch.codePointAt(0) || 0;
-      n += code > 127 ? 2 : 1;
-    }
-    return n;
-  }
-
-  /** 옛 인코딩(EUC-KR)에 못 담기는 글자 — 이모지·일부 특수문자. 붙여넣는 곳에서 깨진다. */
-  function euckrUnsafe(s: string): string[] {
-    const out: string[] = [];
-    for (const ch of [...s]) {
-      const code = ch.codePointAt(0) || 0;
-      if (code > 0xffff && !out.includes(ch)) out.push(ch);
-    }
-    return out;
-  }
-
-  /** 원고지는 칸이다 — 줄이 바뀌면 남은 칸은 버린다. 한 줄 20칸·한 장 200칸. */
-  function manuscriptSheets(text: string): number {
-    if (!text.trim()) return 0;
-    const 칸 = text.split(/\n/).reduce((sum, line) => sum + Math.ceil([...line].length / 20 || 0), 0);
-    return Math.ceil((칸 * 20) / 200);
-  }
 
   /**
    * 「몇 분 몇 초」 — 단위 이름은 브라우저가 안다 (TASK-KL-203).
@@ -213,9 +187,8 @@ import { inRegion } from '../../lib/region';
             const words = text.trim() ? text.trim().split(/\s+/).length : 0;
             const lines = text ? text.split(/\n/).length : 0;
             /* 마지막 문장에 마침표가 없어도 문장이다 — 자소서 마지막 줄이 늘 그렇다. */
-            const 끝맺은문장 = (text.match(/[^.!?。？！\n]+[.!?。？！]+/g) || []).length;
-            const 꼬리 = text.replace(/[\s\S]*[.!?。？！]/, '').trim();
-            const sentences = 끝맺은문장 + (꼬리 ? 1 : 0);
+            /* 마지막에 마침표가 없어도 문장이다 — 판단은 알맹이가 한다 (TASK-KL-205). */
+            const sentences = sentenceCount(text);
             const paragraphs = text.trim() ? text.trim().split(/\n\s*\n/).length : 0;
             const manuscript = manuscriptSheets(text);
             const utf8 = byteLength(text, 'utf8');

@@ -7,6 +7,9 @@
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
 
+import { offsetMinutes, spec, wallToInstant as wallToInstantCore } from '../../core/worldclock';
+import { readInvocation } from '../../lib/tool-url';
+
 (function (): void {
   /**
    * `[IANA 시간대, 도시 열쇠, 지역]`.
@@ -75,15 +78,6 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     }
   }
 
-  /** 그 시간대의 UTC 오프셋(분). Intl 이 서머타임까지 반영해 준다. */
-  function offsetMinutes(zone: string, at: Date): number {
-    const s = new Intl.DateTimeFormat('en-US', { timeZone: zone, timeZoneName: 'longOffset' }).format(at);
-    const m = s.match(/GMT([+-])(\d{1,2}):?(\d{2})?/);
-    if (!m) return 0;
-    const sign = m[1] === '-' ? -1 : 1;
-    return sign * (parseInt(m[2], 10) * 60 + parseInt(m[3] || '0', 10));
-  }
-
   Toolbox.register({
     id: 'worldclock',
     /* 도구 큰제목이 이 값을 쓴다 — 목록의 이름 표는 여기까지 못 미친다(실측: 영어 장의
@@ -146,12 +140,9 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           baseSel.value = 'Asia/Seoul';
 
           /** 적힌 벽시계 시각(YYYY-MM-DDTHH:mm)을 그 도시 기준으로 읽어 실제 순간을 낸다. */
-          function wallToInstant(wall: string, zone: string): Date {
-            const asUtc = Date.parse(wall.length === 16 ? wall + ':00Z' : wall + 'Z');
-            let ts = asUtc;
-            for (let i = 0; i < 2; i++) ts = asUtc - offsetMinutes(zone, new Date(ts)) * 60000;
-            return new Date(ts);
-          }
+          /* 벽시계 ↔ 순간 변환도 알맹이가 한다 — 서머타임 경계에서 한 번만 접근하면 어긋난다
+             (`core/worldclock.ts`, TASK-KL-205). */
+          const wallToInstant = wallToInstantCore;
 
           function render(): void {
             /* 적어 넣은 시각은 **기준 도시의 벽시계 시각**이다. 예전에는 `new Date(값)` 으로 읽어
