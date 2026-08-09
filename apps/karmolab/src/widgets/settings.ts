@@ -5,7 +5,12 @@
  * 한 위젯 안에 있으면 로그인한 사람의 신원 옆에 코드 하이라이트 고르는 칸이 붙는다 —
  * 어느 쪽도 자기 자리처럼 보이지 않는다. 이 화면은 로그인과 무관하고, 서버가 죽어도 멀쩡하다.
  */
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
     type StorageItemStat = { key: string; bytes: number; valLen: number };
 
     Mdd.injectCSS('settings-page', `
@@ -47,7 +52,7 @@
     /* ===== 표시 · API ===== */
 
     function buildDisplay(container: HTMLElement): void {
-        Mdd.linePreset('tool_run', { msg: '설정 바꿀 거야?' });
+        Mdd.linePreset('tool_run', { msg: t('settings.t21') });
         void renderDisplay(container);
     }
 
@@ -71,33 +76,33 @@
         container.innerHTML = `
             <div class="settings-layout">
                 <div class="settings-section">
-                    <h3>🎨 표시</h3>
+                    <h3>${esc(t('settings.t01'))}</h3>
                     <div class="settings-row">
-                        <label for="setNavLayout">네비게이션</label>
+                        <label for="setNavLayout">${esc(t('settings.label.setNavLayout'))}</label>
                         <select id="setNavLayout" class="settings-control">
-                            <option value="header" ${navLayout === 'header' ? 'selected' : ''}>상단 메뉴</option>
-                            <option value="sidebar" ${navLayout === 'sidebar' ? 'selected' : ''}>사이드바</option>
+                            <option value="header" ${navLayout === 'header' ? 'selected' : ''}>${esc(t('settings.opt.header'))}</option>
+                            <option value="sidebar" ${navLayout === 'sidebar' ? 'selected' : ''}>${esc(t('settings.opt.sidebar'))}</option>
                         </select>
                     </div>
                     <div class="settings-row">
-                        <label for="setTheme">테마</label>
+                        <label for="setTheme">${esc(t('settings.label.setTheme'))}</label>
                         <select id="setTheme" class="settings-control">
-                            <option value="dark" ${theme === 'dark' ? 'selected' : ''}>다크</option>
-                            <option value="light" ${theme === 'light' ? 'selected' : ''}>라이트</option>
+                            <option value="dark" ${theme === 'dark' ? 'selected' : ''}>${esc(t('settings.opt.dark'))}</option>
+                            <option value="light" ${theme === 'light' ? 'selected' : ''}>${esc(t('settings.opt.light'))}</option>
                         </select>
                     </div>
                     <div class="settings-row">
-                        <label for="setPrism">코드 하이라이트</label>
+                        <label for="setPrism">${esc(t('settings.label.setPrism'))}</label>
                         <select id="setPrism" class="settings-control">
                             ${prismThemes.map((t) => `<option value="${t.id}" ${t.id === prismTheme ? 'selected' : ''}>${t.label}</option>`).join('')}
                         </select>
                     </div>
                     <div class="settings-row settings-row-stack">
-                        <label>배경 테마</label>
+                        <label>${esc(t('settings.aria.setBgTheme'))}</label>
                         <!-- 이름만 늘어놓으면 무엇을 고르는지 알 수 없다. 견본은 진짜 배경과
                              **같은 스타일 규칙**을 물려받아 그려진다 — 테마를 손보면 견본도 같이
                              바뀐다 (값을 두 벌 적지 않는다). -->
-                        <div class="settings-bg-picker" id="setBgTheme" role="group" aria-label="배경 테마">
+                        <div class="settings-bg-picker" id="setBgTheme" role="group" aria-label="${esc(t('settings.aria.setBgTheme'))}">
                             ${bgThemes.map((t) => `
                                 <button type="button" class="bg-swatch" data-bg="${t.id}"
                                         aria-pressed="${t.id === bgTheme}" title="${t.label}">
@@ -113,17 +118,16 @@
                     </div>
                 </div>
                 <div class="settings-section">
-                    <h3>👥 같이 쓰기</h3>
+                    <h3>${esc(t('settings.t02'))}</h3>
                     <div class="settings-row">
-                        <label for="setCopresence">남의 커서 보기</label>
+                        <label for="setCopresence">${esc(t('settings.label.setCopresence'))}</label>
                         <select id="setCopresence" class="settings-control">
-                            <option value="on">켬</option>
-                            <option value="off">끔</option>
+                            <option value="on">${esc(t('settings.opt.on'))}</option>
+                            <option value="off">${esc(t('settings.opt.off'))}</option>
                         </select>
                     </div>
                     <p style="font-size:var(--font-size-xs); color:var(--text-tertiary); margin:0 0 8px;">
-                        같은 화면을 열고 있는 사람들의 커서가 서로 보입니다. 끄면 내 커서도 안 보내고 남의 것도 안 그립니다.
-                        좌표는 저장되지 않습니다 — 지나간 커서는 아무 데도 안 남습니다.
+                        ${esc(t('settings.t03'))}
                     </p>
                 </div>
                 <div class="settings-section">
@@ -136,15 +140,15 @@
             const target = e.target as HTMLSelectElement | null;
             if (!target) return;
             Toolbox.setNavLayout?.(target.value);
-            const label = target.value === 'sidebar' ? '사이드바' : '상단 메뉴';
-            Toolbox.showToast?.('네비게이션: ' + label);
+            const label = target.value === 'sidebar' ? t('settings.opt.sidebar') : t('settings.opt.header');
+            Toolbox.showToast?.(t('settings.t22') + label);
         });
 
         container.querySelector<HTMLSelectElement>('#setTheme')?.addEventListener('change', (e: Event) => {
             const target = e.target as HTMLSelectElement | null;
             if (!target) return;
             Toolbox.setTheme?.(target.value);
-            Toolbox.showToast?.('테마: ' + (target.value === 'dark' ? '다크' : '라이트'));
+            Toolbox.showToast?.(t('settings.t23') + (target.value === 'dark' ? t('settings.opt.dark') : t('settings.opt.light')));
         });
 
         container.querySelector<HTMLSelectElement>('#setPrism')?.addEventListener('change', (e: Event) => {
@@ -162,7 +166,7 @@
             bgPicker.querySelectorAll<HTMLElement>('.bg-swatch').forEach((el) => {
                 el.setAttribute('aria-pressed', String(el === btn));
             });
-            Toolbox.showToast?.('배경: ' + (bgThemes.find((t) => t.id === id)?.label || id));
+            Toolbox.showToast?.(t('settings.t24') + (bgThemes.find((t) => t.id === id)?.label || id));
         });
 
         const copresence = container.querySelector<HTMLSelectElement>('#setCopresence');
@@ -170,7 +174,7 @@
             copresence.value = window.KarmoCopresence?.isOn() === false ? 'off' : 'on';
             copresence.addEventListener('change', () => {
                 window.KarmoCopresence?.set(copresence.value === 'on');
-                Toolbox.showToast?.(copresence.value === 'on' ? '같이 쓰기: 켬' : '같이 쓰기: 끔');
+                Toolbox.showToast?.(copresence.value === 'on' ? t('settings.t25') : t('settings.t26'));
             });
         }
 
@@ -186,25 +190,25 @@
 
     /** 키별 용도 설명 (Toolbox 관련) */
     const STORAGE_DESC: Record<string, string> = {
-        'toolbox_theme': '테마 (라이트/다크)',
-        'toolbox_nav_layout': '네비게이션 레이아웃 (상단/사이드바)',
-        'toolbox_sidebar_groups': '사이드바 그룹 접힘 상태',
-        'toolbox_prism_theme': '코드 하이라이트 테마',
-        'toolbox_last_page': '마지막 접속 페이지',
-        'toolbox_widget_prefs': '위젯별 설정 (모델, 프리셋 등)',
-        'toolbox_usage_stats': 'AI 사용량 통계 (채팅/이미지)',
-        'toolbox_user_data': '유저 데이터 (도전과제, 뱃지, 진행도)',
-        'toolbox_gemini_api_key': 'Gemini API 키 (구버전)',
-        'toolbox_gemini_api_keys_v2': 'Gemini API 키 목록 (AI Studio)',
-        'toolbox_vertex_api_key': 'Vertex AI (Google Cloud) API 키',
-        'toolbox_memos': '메모 위젯',
-        'toolbox_tierlists': '티어리스트',
-        'toolbox_imagegen_custom_presets': '이미지 생성 커스텀 프리셋',
-        'toolbox_ig_prompt_history': '이미지 생성 프롬프트 기록',
-        'toolbox_chatbot_sessions_index': '챗봇 세션 인덱스',
-        'karmolab_chatbot_characters_v1': '챗봇 캐릭터 카드 목록 (JSON 배열; karmochat_character_v1 내보내기와 별개로 localStorage에 저장)',
-        'mdd_affection': '마스코트 호감도',
-        'mdd_story_progress': '마스코트 스토리 진행',
+        'toolbox_theme': t('settings.t27'),
+        'toolbox_nav_layout': t('settings.t28'),
+        'toolbox_sidebar_groups': t('settings.t29'),
+        'toolbox_prism_theme': t('settings.t30'),
+        'toolbox_last_page': t('settings.t31'),
+        'toolbox_widget_prefs': t('settings.t32'),
+        'toolbox_usage_stats': t('settings.t33'),
+        'toolbox_user_data': t('settings.t34'),
+        'toolbox_gemini_api_key': t('settings.t35'),
+        'toolbox_gemini_api_keys_v2': t('settings.t36'),
+        'toolbox_vertex_api_key': t('settings.t37'),
+        'toolbox_memos': t('settings.t38'),
+        'toolbox_tierlists': t('settings.t39'),
+        'toolbox_imagegen_custom_presets': t('settings.t40'),
+        'toolbox_ig_prompt_history': t('settings.t41'),
+        'toolbox_chatbot_sessions_index': t('settings.t42'),
+        'karmolab_chatbot_characters_v1': t('settings.t43'),
+        'mdd_affection': t('settings.t44'),
+        'mdd_story_progress': t('settings.t45'),
     };
 
     function getStorageStats(storage: Storage): { totalBytes: number; items: StorageItemStat[] } {
@@ -231,7 +235,7 @@
     }
 
     function buildData(container: HTMLElement): void {
-        Mdd.linePreset('tool_run', { msg: '저장소 상태 보여줄게요~' });
+        Mdd.linePreset('tool_run', { msg: t('settings.t46') });
         renderData(container);
     }
 
@@ -242,9 +246,9 @@
 
         function getDesc(key: string): string {
             if (STORAGE_DESC[key]) return STORAGE_DESC[key] ?? '';
-            if (key.startsWith('toolbox_chatbot_session')) return '챗봇 대화 내용';
+            if (key.startsWith('toolbox_chatbot_session')) return t('settings.t47');
             if (key.startsWith('toolbox_')) return 'KarmoLab';
-            if (key.startsWith('mdd_')) return '마스코트';
+            if (key.startsWith('mdd_')) return t('settings.t48');
             return '';
         }
         const rowsOf = (items: StorageItemStat[]): string => items.map(({ key, bytes }) =>
@@ -256,26 +260,26 @@
                 <div class="storage-summary">
                     <div class="storage-card">
                         <div class="storage-card-value">${formatBytes(totalBytes)}</div>
-                        <div class="storage-card-label">총 저장 용량</div>
+                        <div class="storage-card-label">${esc(t('settings.t04'))}</div>
                     </div>
                     <div class="storage-card">
                         <div class="storage-card-value">${formatBytes(ls.totalBytes)}</div>
-                        <div class="storage-card-label">localStorage (영구)</div>
+                        <div class="storage-card-label">${esc(t('settings.t05'))}</div>
                     </div>
                     <div class="storage-card">
                         <div class="storage-card-value">${formatBytes(ss.totalBytes)}</div>
-                        <div class="storage-card-label">sessionStorage (탭 종료 시 삭제)</div>
+                        <div class="storage-card-label">${esc(t('settings.t06'))}</div>
                     </div>
                 </div>
                 <p style="font-size:var(--font-size-xs); color:var(--text-tertiary); margin-bottom:16px;">
-                    브라우저별 localStorage 한도는 보통 5~10MB입니다. UTF-16 기준으로 키+값 길이×2 바이트로 계산합니다.
+                    ${esc(t('settings.t07'))}
                 </p>
                 <div class="settings-section">
                     <h3>localStorage (${ls.items.length}개)</h3>
                     <div style="overflow-x:auto;">
                         <table class="storage-table">
-                            <thead><tr><th>키</th><th>용도</th><th>크기</th></tr></thead>
-                            <tbody>${rowsOf(ls.items) || '<tr><td colspan="3" style="color:var(--text-tertiary);">비어 있음</td></tr>'}</tbody>
+                            <thead><tr><th>${esc(t('settings.t08'))}</th><th>${esc(t('settings.t09'))}</th><th>${esc(t('settings.t10'))}</th></tr></thead>
+                            <tbody>${rowsOf(ls.items) || t('settings.t49')}</tbody>
                         </table>
                     </div>
                 </div>
@@ -283,40 +287,40 @@
                     <h3>sessionStorage (${ss.items.length}개)</h3>
                     <div style="overflow-x:auto;">
                         <table class="storage-table">
-                            <thead><tr><th>키</th><th>용도</th><th>크기</th></tr></thead>
-                            <tbody>${rowsOf(ss.items) || '<tr><td colspan="3" style="color:var(--text-tertiary);">비어 있음</td></tr>'}</tbody>
+                            <thead><tr><th>${esc(t('settings.t08'))}</th><th>${esc(t('settings.t09'))}</th><th>${esc(t('settings.t10'))}</th></tr></thead>
+                            <tbody>${rowsOf(ss.items) || t('settings.t49')}</tbody>
                         </table>
                     </div>
                 </div>
                 <div class="settings-section">
-                    <h3>⚠️ 위험 구역</h3>
+                    <h3>${esc(t('settings.t11'))}</h3>
                     <div class="settings-row settings-danger">
-                        <label>유저 데이터 초기화</label>
-                        <button type="button" class="btn btn-danger" id="setResetUser">🗑️ 초기화</button>
+                        <label>${esc(t('settings.t12'))}</label>
+                        <button type="button" class="btn btn-danger" id="setResetUser">${esc(t('settings.btn.setResetUser'))}</button>
                     </div>
                     <div class="settings-row settings-danger">
-                        <label>사용량 기록 초기화</label>
-                        <button type="button" class="btn btn-danger" id="setResetUsage">🗑️ 초기화</button>
+                        <label>${esc(t('settings.t13'))}</label>
+                        <button type="button" class="btn btn-danger" id="setResetUsage">${esc(t('settings.btn.setResetUser'))}</button>
                     </div>
                 </div>
                 <div style="display:flex; justify-content:flex-end;">
-                    <button type="button" class="btn-ghost" id="storageRefresh">🔄 새로고침</button>
+                    <button type="button" class="btn-ghost" id="storageRefresh">${esc(t('settings.btn.storageRefresh'))}</button>
                 </div>
             </div>`;
 
         container.querySelector<HTMLButtonElement>('#storageRefresh')?.addEventListener('click', () => renderData(container));
 
         container.querySelector<HTMLButtonElement>('#setResetUser')?.addEventListener('click', () => {
-            if (!confirm('모든 도전과제, 뱃지, 진행도를 초기화합니다. 계속할까요?')) return;
+            if (!confirm(t('settings.t50'))) return;
             localStorage.removeItem('toolbox_user_data');
-            Toolbox.showToast?.('유저 데이터 초기화 완료');
+            Toolbox.showToast?.(t('settings.t51'));
             renderData(container);
         });
 
         container.querySelector<HTMLButtonElement>('#setResetUsage')?.addEventListener('click', () => {
-            if (!confirm('모든 사용량 기록을 삭제합니다. 계속할까요?')) return;
+            if (!confirm(t('settings.t52'))) return;
             localStorage.removeItem('toolbox_usage_stats');
-            Toolbox.showToast?.('사용량 기록 초기화 완료');
+            Toolbox.showToast?.(t('settings.t53'));
             renderData(container);
         });
     }
@@ -328,7 +332,7 @@
      * 보여 주고 바꾸기만 한다(두 벌로 적지 않는다). */
 
     function buildMascot(container: HTMLElement): void {
-        Mdd.linePreset('tool_run', { msg: '저를 어떻게 해 주실 건가요?' });
+        Mdd.linePreset('tool_run', { msg: t('settings.t54') });
         renderMascot(container);
     }
 
@@ -352,126 +356,126 @@
         container.innerHTML = `
             <div class="settings-layout">
                 <div class="settings-section">
-                    <h3>🧪 표시</h3>
+                    <h3>${esc(t('settings.t14'))}</h3>
                     <div class="settings-row">
-                        <label for="mdEnabled">마스코트 보이기</label>
+                        <label for="mdEnabled">${esc(t('settings.label.mdEnabled'))}</label>
                         <select id="mdEnabled" class="settings-control">
-                            <option value="1" ${sel(p.enabled)}>켜기</option>
-                            <option value="0" ${sel(!p.enabled)}>끄기</option>
+                            <option value="1" ${sel(p.enabled)}>${esc(t('settings.opt.1'))}</option>
+                            <option value="0" ${sel(!p.enabled)}>${esc(t('settings.opt.0'))}</option>
                         </select>
                     </div>
                     <div class="settings-row">
-                        <label for="mdWidth">크기 <span id="mdWidthVal">${p.width}px</span></label>
+                        <label for="mdWidth">${esc(t('settings.t10'))} <span id="mdWidthVal">${p.width}px</span></label>
                         <input type="range" id="mdWidth" class="settings-control"
                                min="${Mdd.WIDTH_MIN ?? 48}" max="${maxW}" step="2" value="${Math.min(p.width, maxW)}">
                     </div>
                     <div class="settings-row">
-                        <label for="mdFraming">보이는 범위</label>
+                        <label for="mdFraming">${esc(t('settings.label.mdFraming'))}</label>
                         <select id="mdFraming" class="settings-control">
-                            <option value="bust" ${sel(p.framing === 'bust')}>얼굴 (흉상)</option>
-                            <option value="full" ${sel(p.framing === 'full')}>전신</option>
+                            <option value="bust" ${sel(p.framing === 'bust')}>${esc(t('settings.opt.bust'))}</option>
+                            <option value="full" ${sel(p.framing === 'full')}>${esc(t('settings.opt.full'))}</option>
                         </select>
                     </div>
                     <div class="settings-row">
-                        <label for="mdMobile">폰에서도 보이기</label>
+                        <label for="mdMobile">${esc(t('settings.label.mdMobile'))}</label>
                         <select id="mdMobile" class="settings-control">
-                            <option value="0" ${sel(!p.showOnMobile)}>숨기기 (기본)</option>
-                            <option value="1" ${sel(p.showOnMobile)}>보이기</option>
+                            <option value="0" ${sel(!p.showOnMobile)}>${esc(t('settings.opt.02'))}</option>
+                            <option value="1" ${sel(p.showOnMobile)}>${esc(t('settings.opt.12'))}</option>
                         </select>
                     </div>
                     <div class="settings-row">
-                        <label for="mdHolo">홀로그램</label>
+                        <label for="mdHolo">${esc(t('settings.label.mdHolo'))}</label>
                         <select id="mdHolo" class="settings-control">
-                            <option value="1" ${sel(p.hologram)}>켜기 (SF 통신)</option>
-                            <option value="0" ${sel(!p.hologram)}>끄기 (그림 그대로)</option>
+                            <option value="1" ${sel(p.hologram)}>${esc(t('settings.opt.13'))}</option>
+                            <option value="0" ${sel(!p.hologram)}>${esc(t('settings.opt.03'))}</option>
                         </select>
                     </div>
                     <div class="settings-row">
-                        <label for="mdOpacity">투명도 <span id="mdOpacityVal">${Math.round(p.opacity * 100)}%</span></label>
+                        <label for="mdOpacity">${esc(t('settings.label.mdOpacity'))} <span id="mdOpacityVal">${Math.round(p.opacity * 100)}%</span></label>
                         <input type="range" id="mdOpacity" class="settings-control" min="30" max="100" step="5" value="${Math.round(p.opacity * 100)}">
                     </div>
                     <div class="settings-row">
-                        <label>자리 되돌리기</label>
-                        <button type="button" class="btn-ghost" id="mdResetPos">↩️ 우하단으로</button>
+                        <label>${esc(t('settings.t15'))}</label>
+                        <button type="button" class="btn-ghost" id="mdResetPos">${esc(t('settings.btn.mdResetPos'))}</button>
                     </div>
                 </div>
 
                 <div class="settings-section">
-                    <h3>🌬 움직임</h3>
+                    <h3>${esc(t('settings.t16'))}</h3>
                     <div class="settings-row">
-                        <label for="mdMotion">움직임 전체</label>
+                        <label for="mdMotion">${esc(t('settings.label.mdMotion'))}</label>
                         <select id="mdMotion" class="settings-control">
-                            <option value="1" ${sel(p.motion)}>켜기</option>
-                            <option value="0" ${sel(!p.motion)}>전부 끄기</option>
+                            <option value="1" ${sel(p.motion)}>${esc(t('settings.opt.1'))}</option>
+                            <option value="0" ${sel(!p.motion)}>${esc(t('settings.opt.04'))}</option>
                         </select>
                     </div>
                     <div class="settings-row">
-                        <label for="mdBlink">눈 깜빡임</label>
+                        <label for="mdBlink">${esc(t('settings.label.mdBlink'))}</label>
                         <select id="mdBlink" class="settings-control" ${p.motion ? '' : 'disabled'}>
-                            <option value="1" ${sel(p.blink)}>켜기</option>
-                            <option value="0" ${sel(!p.blink)}>끄기</option>
+                            <option value="1" ${sel(p.blink)}>${esc(t('settings.opt.1'))}</option>
+                            <option value="0" ${sel(!p.blink)}>${esc(t('settings.opt.0'))}</option>
                         </select>
                     </div>
                     <div class="settings-row">
-                        <label for="mdGaze">커서 따라보기</label>
+                        <label for="mdGaze">${esc(t('settings.label.mdGaze'))}</label>
                         <select id="mdGaze" class="settings-control" ${p.motion ? '' : 'disabled'}>
-                            <option value="1" ${sel(p.gaze)}>켜기</option>
-                            <option value="0" ${sel(!p.gaze)}>끄기</option>
+                            <option value="1" ${sel(p.gaze)}>${esc(t('settings.opt.1'))}</option>
+                            <option value="0" ${sel(!p.gaze)}>${esc(t('settings.opt.0'))}</option>
                         </select>
                     </div>
                     <div class="settings-row">
-                        <label for="mdBreathe">숨쉬기·흔들림</label>
+                        <label for="mdBreathe">${esc(t('settings.label.mdBreathe'))}</label>
                         <select id="mdBreathe" class="settings-control" ${p.motion ? '' : 'disabled'}>
-                            <option value="1" ${sel(p.breathe)}>켜기</option>
-                            <option value="0" ${sel(!p.breathe)}>끄기</option>
+                            <option value="1" ${sel(p.breathe)}>${esc(t('settings.opt.1'))}</option>
+                            <option value="0" ${sel(!p.breathe)}>${esc(t('settings.opt.0'))}</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="settings-section">
-                    <h3>💬 말</h3>
+                    <h3>${esc(t('settings.t17'))}</h3>
                     <div class="settings-row">
-                        <label for="mdBubble">말풍선</label>
+                        <label for="mdBubble">${esc(t('settings.label.mdBubble'))}</label>
                         <select id="mdBubble" class="settings-control">
-                            <option value="1" ${sel(p.bubble)}>켜기</option>
-                            <option value="0" ${sel(!p.bubble)}>끄기</option>
+                            <option value="1" ${sel(p.bubble)}>${esc(t('settings.opt.1'))}</option>
+                            <option value="0" ${sel(!p.bubble)}>${esc(t('settings.opt.0'))}</option>
                         </select>
                     </div>
                     <div class="settings-row">
-                        <label for="mdBubbleMs">말풍선 표시 시간</label>
+                        <label for="mdBubbleMs">${esc(t('settings.label.mdBubbleMs'))}</label>
                         <select id="mdBubbleMs" class="settings-control">
-                            <option value="2000" ${sel(p.bubbleMs === 2000)}>2초</option>
-                            <option value="3000" ${sel(p.bubbleMs === 3000)}>3초 (기본)</option>
-                            <option value="5000" ${sel(p.bubbleMs === 5000)}>5초</option>
+                            <option value="2000" ${sel(p.bubbleMs === 2000)}>${esc(t('settings.opt.2000'))}</option>
+                            <option value="3000" ${sel(p.bubbleMs === 3000)}>${esc(t('settings.opt.3000'))}</option>
+                            <option value="5000" ${sel(p.bubbleMs === 5000)}>${esc(t('settings.opt.5000'))}</option>
                         </select>
                     </div>
                     <div class="settings-row">
-                        <label for="mdIdleMs">잠들기까지</label>
+                        <label for="mdIdleMs">${esc(t('settings.label.mdIdleMs'))}</label>
                         <select id="mdIdleMs" class="settings-control">
-                            <option value="15000" ${sel(p.idleMs === 15000)}>15초</option>
-                            <option value="30000" ${sel(p.idleMs === 30000)}>30초 (기본)</option>
-                            <option value="120000" ${sel(p.idleMs === 120000)}>2분</option>
-                            <option value="0" ${sel(p.idleMs === 0)}>안 잠들기</option>
+                            <option value="15000" ${sel(p.idleMs === 15000)}>${esc(t('settings.opt.15000'))}</option>
+                            <option value="30000" ${sel(p.idleMs === 30000)}>${esc(t('settings.opt.30000'))}</option>
+                            <option value="120000" ${sel(p.idleMs === 120000)}>${esc(t('settings.opt.120000'))}</option>
+                            <option value="0" ${sel(p.idleMs === 0)}>${esc(t('settings.opt.05'))}</option>
                         </select>
                     </div>
                     <div class="settings-row">
-                        <label for="mdTap">누르면 반응하기</label>
+                        <label for="mdTap">${esc(t('settings.label.mdTap'))}</label>
                         <select id="mdTap" class="settings-control">
-                            <option value="1" ${sel(p.tapReact)}>켜기</option>
-                            <option value="0" ${sel(!p.tapReact)}>끄기</option>
+                            <option value="1" ${sel(p.tapReact)}>${esc(t('settings.opt.1'))}</option>
+                            <option value="0" ${sel(!p.tapReact)}>${esc(t('settings.opt.0'))}</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="settings-section">
-                    <h3>⚠️ 초기화</h3>
+                    <h3>${esc(t('settings.t18'))}</h3>
                     <div class="settings-row">
-                        <label>설정만 기본값으로</label>
-                        <button type="button" class="btn-ghost" id="mdResetPrefs">↩️ 되돌리기</button>
+                        <label>${esc(t('settings.t19'))}</label>
+                        <button type="button" class="btn-ghost" id="mdResetPrefs">${esc(t('settings.btn.mdResetPrefs'))}</button>
                     </div>
                     <div class="settings-row settings-danger">
-                        <label>호감도·스토리 기록 지우기</label>
-                        <button type="button" class="btn btn-danger" id="mdResetStory">🗑️ 초기화</button>
+                        <label>${esc(t('settings.t20'))}</label>
+                        <button type="button" class="btn btn-danger" id="mdResetStory">${esc(t('settings.btn.setResetUser'))}</button>
                     </div>
                 </div>
             </div>`;
@@ -521,27 +525,53 @@
 
         container.querySelector<HTMLButtonElement>('#mdResetPos')?.addEventListener('click', () => {
             Mdd.resetPosition();
-            Toolbox.showToast?.('마스코트를 우하단으로 되돌렸어요');
+            Toolbox.showToast?.(t('settings.t55'));
         });
         container.querySelector<HTMLButtonElement>('#mdResetPrefs')?.addEventListener('click', () => {
             Mdd.resetPrefs();
             renderMascot(container);
-            Toolbox.showToast?.('마스코트 설정을 기본값으로 되돌렸어요');
+            Toolbox.showToast?.(t('settings.t56'));
         });
         container.querySelector<HTMLButtonElement>('#mdResetStory')?.addEventListener('click', () => {
-            if (!confirm('호감도와 스토리 기록을 지웁니다. 계속할까요?')) return;
+            if (!confirm(t('settings.t57'))) return;
             ['mdd_affection', 'mdd_story_progress', 'mdd_story_log', 'mdd_guide_seen']
                 .forEach((k) => { try { localStorage.removeItem(k); } catch (_) {} });
-            Toolbox.showToast?.('마스코트 기록 초기화 완료');
+            Toolbox.showToast?.(t('settings.t58'));
         });
     }
 
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta!('settings'),
         tabs: [
-            { id: 'settings-display', label: '표시 · API', build: buildDisplay },
-            { id: 'settings-mascot', label: '마스코트', build: buildMascot },
-            { id: 'settings-data', label: '이 브라우저에 저장된 것', build: buildData },
+            /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 그 안에서 만들어진다.
+             * 탭 이름만은 **등록하는 순간** 쓰이므로 기본값을 함께 준다 (S9-b). */
+            {
+                id: 'settings-display',
+                label: t('settings.tab.display', undefined, '표시 · API'),
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('settings').then(function () {
+                        buildDisplay(container);
+                    });
+                },
+            },
+            {
+                id: 'settings-mascot',
+                label: t('settings.tab.mascot', undefined, '마스코트'),
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('settings').then(function () {
+                        buildMascot(container);
+                    });
+                },
+            },
+            {
+                id: 'settings-data',
+                label: t('settings.tab.data', undefined, '이 브라우저에 저장된 것'),
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('settings').then(function () {
+                        buildData(container);
+                    });
+                },
+            },
         ],
     });
 })();
