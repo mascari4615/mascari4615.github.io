@@ -917,5 +917,17 @@
   }
 
   window.KLPerf = { mark, script, build, widget, snapshot, frameProbe, clearBoots };
+
+  /* 셸이 나보다 **먼저** 찍은 눈금을 받아 온다 (TASK-KL-201).
+     계측기는 첫 그림 뒤에 와야 해서(부팅 예산 천장) 그 전 눈금을 놓친다 — 그래서 셸은 작은
+     통(`window.__klMark`)에 담아 두고, 여기서 흡수한다. 없으면 그냥 빈 통이다. */
+  const queued = (window as unknown as { __klMarks?: Array<[string, number]> }).__klMarks;
+  if (Array.isArray(queued)) {
+    for (const [name, at] of queued) marks.push({ name, at });
+    marks.sort((a, b) => a.at - b.at);
+    queued.length = 0;
+  }
+  (window as unknown as { __klMark?: (n: string) => void }).__klMark = mark;
+
   mark('perf:ready');
 })();
