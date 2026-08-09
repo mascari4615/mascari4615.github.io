@@ -44,7 +44,9 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   Toolbox.register({
     id: 'pdfcompress',
-    title: 'PDF 용량 줄이기',
+    /* 도구 큰제목이 이 값을 쓴다 — 목록의 이름 표는 여기까지 못 미친다(실측: 영어 장의
+       큰제목만 한국어로 남았다). 등록 순간이라 기다릴 수 없어 원본을 기본값으로 함께 준다. */
+    title: t('widgets.pdfcompress.title', undefined, 'PDF 용량 줄이기'),
     category: 'tool',
     // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133) — 「이어서」 줄이 이 표시를 보고 고른다.
     accepts: ['application/pdf'],
