@@ -12,7 +12,12 @@
  *  ③ `srcdoc` 으로 넣는다 — 우리 주소로 뜨지 않으므로 우리 화면을 흉내 낼 수 없다.
  *  ④ 실행은 **누른 뒤에만**. 목록을 여는 것만으로 남의 코드가 도는 일은 없다.
  */
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
     type UserTool = {
         id: string;
         title: string;
@@ -79,10 +84,10 @@
     function summaryHtml(summary?: ToolSummary): string {
         if (!summary) return '';
         const parts: string[] = [];
-        if (summary.does.length) parts.push(`<b>하는 일</b> ${summary.does.map(escapeHtml).join(' · ')}`);
-        if (summary.blocked.length) parts.push(`<b>막힌 것</b> ${summary.blocked.map(escapeHtml).join(' · ')}`);
-        if (summary.unreadable) parts.push('<b>사람이 읽기 어려운 글자 뭉치입니다</b> — 무엇을 하는지 요약하지 못했습니다');
-        if (!parts.length) parts.push('부르는 것이 거의 없습니다 — 글 한 장에 가깝습니다');
+        if (summary.does.length) parts.push(`<b>${esc(t('usertool.t03'))}</b> ${summary.does.map(escapeHtml).join(' · ')}`);
+        if (summary.blocked.length) parts.push(`<b>${esc(t('usertool.t04'))}</b> ${summary.blocked.map(escapeHtml).join(' · ')}`);
+        if (summary.unreadable) parts.push(t('usertool.t20'));
+        if (!parts.length) parts.push(t('usertool.t21'));
         return `<div class="ut-summary">${parts.join('<br>')}</div>`;
     }
 
@@ -92,9 +97,9 @@
             <div class="ut-stage">
                 <div class="ut-stage-head">
                     <span>${escapeHtml(tool.title)} · @${escapeHtml(tool.ownerHandle)}</span>
-                    <span class="ut-meta">이 상자 안에서만 돕니다 — 바깥과 연결되지 않고, 계정·저장소에 못 닿습니다</span>
-                    <button type="button" class="ut-btn" data-report="${escapeHtml(tool.id)}">🚩 신고</button>
-                    <button type="button" class="ut-btn" data-stop>닫기</button>
+                    <span class="ut-meta">${esc(t('usertool.t05'))}</span>
+                    <button type="button" class="ut-btn" data-report="${escapeHtml(tool.id)}">${esc(t('usertool.t06'))}</button>
+                    <button type="button" class="ut-btn" data-stop>${esc(t('usertool.t07'))}</button>
                 </div>
                 ${summaryHtml(summary)}
                 <iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="${escapeHtml(tool.title)}"></iframe>
@@ -118,7 +123,7 @@
          * 순간에 누를 자리가 없고, 창을 닫고 나면 대개 안 돌아온다. */
         host.querySelector<HTMLButtonElement>('[data-report]')?.addEventListener('click', async (event) => {
             const button = event.currentTarget as HTMLButtonElement;
-            if (!confirm('이 도구를 신고할까요? 여러 사람이 신고하면 자동으로 멈춥니다.')) return;
+            if (!confirm(t('usertool.t22'))) return;
             const apiBase = api();
             if (!apiBase) return;
             button.disabled = true;
@@ -128,15 +133,15 @@
                     credentials: 'include',
                 });
                 if (res.status === 401) {
-                    Toolbox.showToast?.('신고하려면 로그인이 필요해요');
+                    Toolbox.showToast?.(t('usertool.t23'));
                     return;
                 }
                 if (!res.ok) throw new Error(String(res.status));
                 const data = (await res.json()) as { reports: number; stopped: boolean };
-                Toolbox.showToast?.(data.stopped ? '신고가 쌓여 이 도구가 멈췄어요' : `신고했어요 (${data.reports}건)`);
+                Toolbox.showToast?.(data.stopped ? t('usertool.t24') : t('usertool.reported', { n: data.reports }));
                 if (data.stopped) host.innerHTML = '';
             } catch {
-                Toolbox.showToast?.('신고하지 못했어요');
+                Toolbox.showToast?.(t('usertool.t25'));
             } finally {
                 button.disabled = false;
             }
@@ -161,30 +166,29 @@
         return `
             <div class="ut-card">
                 <h4>${escapeHtml(tool.title)}</h4>
-                <span class="ut-meta">@${escapeHtml(tool.ownerHandle)} · ${tool.runs}번 돌았음${mine && !tool.listed ? ' · 목록에 안 올림' : ''}${
-                    tool.stopped ? ` · <span class="ut-stopped">멈춤 (${escapeHtml(tool.stoppedReason ?? '세워짐')})</span>` : ''
+                <span class="ut-meta">@${escapeHtml(tool.ownerHandle)} · ${tool.runs}번 돌았음${mine && !tool.listed ? t('usertool.t26') : ''}${
+                    tool.stopped ? ` · <span class="ut-stopped">${t('usertool.stopped', { why: escapeHtml(tool.stoppedReason ?? t('usertool.t27')) })}</span>` : ''
                 }</span>
-                <button type="button" class="ut-btn ut-btn-go" data-run="${escapeHtml(tool.id)}">열기</button>
+                <button type="button" class="ut-btn ut-btn-go" data-run="${escapeHtml(tool.id)}">${esc(t('usertool.t08'))}</button>
                 ${mine
-                    ? `<button type="button" class="ut-btn" data-list="${escapeHtml(tool.id)}" data-on="${tool.listed ? '0' : '1'}">${tool.listed ? '목록에서 내리기' : '목록에 올리기'}</button>
+                    ? `<button type="button" class="ut-btn" data-list="${escapeHtml(tool.id)}" data-on="${tool.listed ? '0' : '1'}">${tool.listed ? t('usertool.t28') : t('usertool.t29')}</button>
                        ${/* 주인이 스스로 세우고 다시 연다. 신고로 선 것은 여기서 못 되돌린다(서버가 막는다) */ ''}
-                       <button type="button" class="ut-btn" data-stopped="${escapeHtml(tool.id)}" data-want="${tool.stopped ? '0' : '1'}">${tool.stopped ? '다시 열기' : '세우기'}</button>
-                       <button type="button" class="ut-btn" data-del="${escapeHtml(tool.id)}">지우기</button>`
+                       <button type="button" class="ut-btn" data-stopped="${escapeHtml(tool.id)}" data-want="${tool.stopped ? '0' : '1'}">${tool.stopped ? t('usertool.t30') : t('usertool.t31')}</button>
+                       <button type="button" class="ut-btn" data-del="${escapeHtml(tool.id)}">${esc(t('usertool.t09'))}</button>`
                     : ''}
             </div>`;
     }
 
     async function build(container: HTMLElement): Promise<void> {
-        container.innerHTML = '<div class="ut-wrap"><p class="ut-lead">불러오는 중…</p></div>';
+        container.innerHTML = t('usertool.t32');
         const { listed, mine } = await loadAll();
         if (!container.isConnected) return;
         const signedIn = !!window.KarmoAccount?.state.account;
 
         container.innerHTML = `
             <div class="ut-wrap">
-                <p class="ut-lead">여기 도구는 <b>사람들이 만들어 올린 것</b>입니다. 우리가 만든 것이 아닙니다.</p>
-                <p class="ut-warn">열면 <b>상자 안에서만</b> 돕니다: 바깥으로 아무것도 못 보내고, 로그인·저장소에 못 닿습니다.
-                    그래도 <b>내용은 만든 사람의 것</b>이니 모르는 도구는 눈으로 한 번 보고 여세요.</p>
+                <p class="ut-lead">${esc(t('usertool.t10'))} <b>${esc(t('usertool.t11'))}</b>${esc(t('usertool.t12'))}</p>
+                <p class="ut-warn">${esc(t('usertool.t13'))} <b>${esc(t('usertool.t14'))}</b> ${esc(t('usertool.t15'))} <b>${esc(t('usertool.t16'))}</b>${esc(t('usertool.t17'))}</p>
 
                 <div class="user-section">
                     <h3>🧑‍🔧 사람들이 올린 것 (${listed.length})</h3>
@@ -198,12 +202,12 @@
                     ${signedIn
                         ? `<div class="ut-list">${mine.map((tool) => cardHtml(tool, true)).join('') || '<p class="ut-meta">아직 없어요.</p>'}</div>
                            <div class="ut-make">
-                               <input type="text" data-title placeholder="이름 (예: 주사위)" maxlength="32">
-                               <textarea data-source placeholder="&lt;p&gt;안녕&lt;/p&gt;&lt;script&gt;…&lt;/script&gt; — 화면 한 장을 그대로 적으세요"></textarea>
-                               <div><button type="button" class="ut-btn ut-btn-go" data-save>올리기</button>
-                                   <span class="ut-meta">2만 자까지 · 한 사람 10개까지 · 올린 것은 기본이 비공개입니다</span></div>
+                               <input type="text" data-title placeholder="${esc(t('usertool.t01'))}" maxlength="32">
+                               <textarea data-source placeholder="${esc(t('usertool.t02'))}"></textarea>
+                               <div><button type="button" class="ut-btn ut-btn-go" data-save>${esc(t('usertool.t18'))}</button>
+                                   <span class="ut-meta">${esc(t('usertool.t19'))}</span></div>
                            </div>`
-                        : '<p class="ut-meta">만들려면 로그인이 필요합니다. 남이 올린 것을 여는 것은 지금도 됩니다.</p>'}
+                        : t('usertool.t33')}
                 </div>
             </div>`;
 
@@ -221,8 +225,8 @@
                     if (res.status === 451) {
                         const why = (await res.json()) as { reason?: string };
                         stage.innerHTML =
-                            `<p class="ut-warn">이 도구는 멈춰 있습니다 — ${escapeHtml(why.reason ?? '세워짐')}. ` +
-                            '만든 사람이 고치면 다시 열립니다.</p>';
+                            `<p class="ut-warn">${t('usertool.stoppedNote', { why: escapeHtml(why.reason ?? t('usertool.t27')) })} ` +
+                            t('usertool.t34');
                         return;
                     }
                     if (!res.ok) throw new Error(String(res.status));
@@ -230,7 +234,7 @@
                     runInSandbox(stage, data.tool, data.summary);
                     stage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 } catch {
-                    Toolbox.showToast?.('지금은 못 열었어요');
+                    Toolbox.showToast?.(t('usertool.t35'));
                 }
             });
         });
@@ -244,7 +248,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ listed: button.dataset.on === '1' }),
                 }).catch(() => {});
-                void build(container);
+                void loadNamespace('usertool').then(() => build(container));
             });
         });
         container.querySelectorAll<HTMLButtonElement>('[data-stopped]').forEach((button) => {
@@ -259,22 +263,22 @@
                 }).catch(() => null);
                 if (res && !res.ok) {
                     // 신고로 선 것은 주인 혼자 못 되돌린다 — 왜 안 되는지 말한다.
-                    Toolbox.showToast?.('신고로 멈춘 도구는 혼자 다시 열 수 없어요');
+                    Toolbox.showToast?.(t('usertool.t36'));
                     return;
                 }
-                void build(container);
+                void loadNamespace('usertool').then(() => build(container));
             });
         });
         container.querySelectorAll<HTMLButtonElement>('[data-del]').forEach((button) => {
             button.addEventListener('click', async () => {
-                if (!confirm('이 도구를 지울까요?')) return;
+                if (!confirm(t('usertool.t37'))) return;
                 const base = api();
                 if (!base) return;
                 await fetch(`${base}/kl/tools/user/${encodeURIComponent(button.dataset.del ?? '')}`, {
                     method: 'DELETE',
                     credentials: 'include',
                 }).catch(() => {});
-                void build(container);
+                void loadNamespace('usertool').then(() => build(container));
             });
         });
         container.querySelector('[data-save]')?.addEventListener('click', async () => {
@@ -283,7 +287,7 @@
             const source = container.querySelector<HTMLTextAreaElement>('[data-source]')?.value ?? '';
             if (!base) return;
             if (!title.trim() || !source.trim()) {
-                Toolbox.showToast?.('이름과 내용이 있어야 해요');
+                Toolbox.showToast?.(t('usertool.t38'));
                 return;
             }
             try {
@@ -293,10 +297,10 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ title, source }),
                 });
-                Toolbox.showToast?.(res.ok ? '올렸어요 (기본은 비공개)' : '올리지 못했어요');
-                if (res.ok) void build(container);
+                Toolbox.showToast?.(res.ok ? t('usertool.t39') : t('usertool.t40'));
+                if (res.ok) void loadNamespace('usertool').then(() => build(container));
             } catch {
-                Toolbox.showToast?.('올리지 못했어요');
+                Toolbox.showToast?.(t('usertool.t40'));
             }
         });
     }
@@ -306,13 +310,13 @@
         tabs: [
             {
                 id: 'usertool-main',
-                label: '만든 도구',
+                label: t('usertool.t41', undefined, "만든 도구"),
                 build: (container: HTMLElement) => {
                     // 로그인 상태는 늦게 온다 — 정해질 때 다시 그린다(흐름과 같은 규칙).
                     let drawnFor: string | null | undefined;
                     const account = window.KarmoAccount;
                     if (!account) {
-                        void build(container);
+                        void loadNamespace('usertool').then(() => build(container));
                         return;
                     }
                     const off = account.subscribe((state) => {
@@ -320,7 +324,7 @@
                         const key = state.account?.handle ?? null;
                         if (drawnFor === key) return;
                         drawnFor = key;
-                        void build(container);
+                        void loadNamespace('usertool').then(() => build(container));
                     });
                     Toolbox.onDispose?.(off);
                 },
