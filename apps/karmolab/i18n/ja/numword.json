@@ -1,0 +1,21 @@
+{
+  "numword.tab": "変換",
+  "numword.label.num": "数字",
+  "numword.label.kor": "ハングル表記",
+  "numword.opt.formal": "金額表記（일십・일백まで書く）",
+  "numword.btn.copyKor": "ハングルをコピー",
+  "numword.btn.copyMoney": "金額文をコピー",
+  "numword.btn.clear": "消去",
+  "numword.status.idle": "どちらの欄に入力しても、もう一方が追従します。",
+  "numword.status.toKor": "数字をハングルで読みました。",
+  "numword.status.toNum": "ハングルの数を数字に戻しました。",
+  "numword.status.bad": "ハングルの数として読めない文字があります。",
+  "numword.row.comma": "3桁区切り",
+  "numword.row.kor": "ハングル",
+  "numword.row.money": "金額文",
+  "numword.row.digits": "桁数",
+  "numword.value.digits": "{n}桁",
+  "numword.copy.kor": "ハングルをコピーしました",
+  "numword.copy.money": "金額文をコピーしました",
+  "numword.err.tooBig": "大きすぎます（경＝10^16 まで対応）"
+}

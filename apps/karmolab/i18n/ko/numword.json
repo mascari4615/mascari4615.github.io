@@ -1,0 +1,21 @@
+{
+  "numword.tab": "변환",
+  "numword.label.num": "숫자",
+  "numword.label.kor": "한글",
+  "numword.opt.formal": "금액 표기 (일십·일백까지 붙여 적기)",
+  "numword.btn.copyKor": "한글 복사",
+  "numword.btn.copyMoney": "금액 문구 복사",
+  "numword.btn.clear": "지우기",
+  "numword.status.idle": "어느 칸에 적어도 반대쪽이 따라 바뀝니다.",
+  "numword.status.toKor": "숫자를 한글로 읽었습니다.",
+  "numword.status.toNum": "한글 수를 숫자로 되돌렸습니다.",
+  "numword.status.bad": "한글 수로 읽을 수 없는 글자가 있어요.",
+  "numword.row.comma": "세 자리 콤마",
+  "numword.row.kor": "한글",
+  "numword.row.money": "금액 문구",
+  "numword.row.digits": "자릿수",
+  "numword.value.digits": "{n}자리",
+  "numword.copy.kor": "한글로 복사했어요",
+  "numword.copy.money": "금액 문구를 복사했어요",
+  "numword.err.tooBig": "너무 큰 수예요 (경 단위까지 지원)"
+}
