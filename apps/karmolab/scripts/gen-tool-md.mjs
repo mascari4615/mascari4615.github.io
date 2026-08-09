@@ -114,7 +114,7 @@ for (const id of ids) {
    */
   const body =
     `---\npermalink: /karmolab/t/${id}.md\n---\n` +
-    `{% raw %}\n${lines.join('\n')}\n{% endraw %}\n`;
+    `{% raw %}${lines.join('\n')}\n{% endraw %}\n`;
   fs.writeFileSync(path.join(outDir, `${id}.txt`), body, 'utf8');
   n++;
 }
