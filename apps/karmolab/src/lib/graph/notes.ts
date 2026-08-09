@@ -86,6 +86,21 @@ export function noteUsers(spec: GraphSpec, noteId: string): number {
   return n + e;
 }
 
+/**
+ * 공용 글을 없앤다. **쓰던 자리를 빈칸으로 만들면 안 된다** — 글이 통째로 증발한 것처럼 보이고,
+ * 그게 이런 도구에서 가장 무서운 사고다. 그래서 기본은 「자리마다 사본으로 남기고」 없애는 것이고,
+ * 글 자체를 지우려는 경우(`keepCopies = false`)만 빈칸이 된다.
+ */
+export function deleteNote(spec: GraphSpec, noteId: string, keepCopies = true): void {
+  const text = (notesOf(spec).find((n) => n.id === noteId)?.text ?? '').trim();
+  for (const h of [...spec.nodes, ...spec.edges] as DocHolder[]) {
+    if (h.docRef !== noteId) continue;
+    h.docRef = undefined;
+    h.doc = keepCopies ? text || undefined : undefined;
+  }
+  spec.notes = notesOf(spec).filter((n) => n.id !== noteId);
+}
+
 /** 아무도 안 가리키는 공용 글을 치운다. 지운 개수를 돌려준다. */
 export function pruneNotes(spec: GraphSpec): number {
   const keep = notesOf(spec).filter((n) => noteUsers(spec, n.id) > 0);

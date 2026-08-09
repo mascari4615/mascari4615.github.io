@@ -610,6 +610,25 @@ await step('공용 글 — 승격하면 목록에 뜨고, 둘째 자리에 붙�
   );
   await page.click('[data-km="tab"][data-key="node"]');
 });
+await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
+  // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
+  await page.click('[data-km="tab"][data-key="notes"]');
+  await page.waitForSelector('[data-km="note-split"]', { timeout: 4000 });
+  const before = await page.locator('[data-km="note-title"]').count();
+  await page.locator('[data-km="note-split"]').last().dispatchEvent('click');
+  await page.waitForFunction(
+    (n) => document.querySelectorAll('[data-km="note-title"]').length === n - 1,
+    before,
+    { timeout: 4000 }
+  );
+  await page.click('[data-km="tab"][data-key="node"]');
+  await page.locator('.ck-node').nth(1).click();
+  await page.waitForSelector('[data-km="edit-doc"]', { timeout: 4000 });
+  const kept = await page.inputValue('[data-km="edit-doc"]');
+  if (!kept.trim()) throw new Error('흩었더니 글이 빈칸이 됐다');
+  // 공용이 아니게 됐으므로 「같이 쓰기」 버튼이 돌아와 있어야 한다.
+  await page.waitForSelector('[data-km="edit-doc-share"]', { timeout: 4000 });
+});
 await step('쪽지 모양 카드는 글이 카드 안에 보인다', async () => {
   // 쪽지에 글이 안 보이면 그냥 이름표다 — 카드 안 글자를 직접 센다(카드 크기만 보면 거짓 초록).
   await page.click('.ck-node');
