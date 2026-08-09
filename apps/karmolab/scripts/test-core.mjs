@@ -706,6 +706,59 @@ for (const bad of [{ table: '' }, { table: 'a\tb', to: '엉뚱' }]) {
 }
 eq(tvThrew, 2, '빈 표·모르는 꼴은 던진다');
 
+// ── ②-16 qrgen 알맹이 (LLM 은 QR 을 못 만든다 — A등급) ───────────────────────
+const qg = await load('src/core/qrgen.ts');
+
+eq(qg.spec.id, 'qrgen', 'qrgen spec.id');
+
+// 문법 있는 문자열 — 여기가 조용히 깨지는 자리다.
+eq(qg.escapeWifi('a;b'), 'a\\;b', '세미콜론을 감싼다');
+eq(qg.escapeWifi('a:b,c"d\\e'), 'a\\:b\\,c\\"d\\\\e', '뜻 있는 글자 전부');
+eq(qg.escapeWifi('보통비번'), '보통비번', '평범하면 그대로');
+const wifi = qg.wifiPayload('우리집', 'pass;word');
+check(wifi.includes('P:pass\\;word;'), `비밀번호의 ; 가 감싸져야 한다: ${wifi}`);
+check(wifi.startsWith('WIFI:T:WPA;S:우리집;'), 'WiFi 문법 앞부분');
+check(qg.wifiPayload('a', '', 'nopass').includes('P:') === false, 'nopass 면 비밀번호 칸이 없다');
+check(qg.wifiPayload('a', 'p', 'WPA', true).includes('H:true;'), '숨긴 네트워크 표시');
+eq(qg.wifiPayload('a', 'p', '엉뚱').includes('T:WPA;'), true, '모르는 암호화는 WPA 로');
+
+const vc = qg.vcardPayload('홍길동', '카르모랩', '010-0000-0000');
+check(vc.startsWith('BEGIN:VCARD') && vc.endsWith('END:VCARD'), 'vCard 봉투');
+check(vc.includes('ORG:카르모랩') && vc.includes('TEL:010-0000-0000'), '채운 칸만 들어간다');
+check(qg.vcardPayload('홍길동').includes('EMAIL:') === false, '안 준 칸은 빠진다');
+
+// 격자 — 같은 내용이면 같은 크기, 긴 내용이면 더 커진다.
+const g1 = qg.makeGrid('hello');
+check(g1.count >= 21 && g1.count % 4 === 1, `QR 격자 크기가 규격을 벗어났다: ${g1.count}`);
+check(qg.makeGrid('x'.repeat(300)).count > g1.count, '내용이 길면 격자가 커진다');
+check(qg.makeGrid('안녕하세요').count >= 21, '한글도 담긴다 (UTF-8)');
+// 오류복원 수준을 올리면 같은 내용이라도 더 커진다.
+check(qg.makeGrid('hello', 'H').count >= qg.makeGrid('hello', 'L').count, 'H 가 L 보다 크거나 같다');
+// 세 모서리의 찾기 무늬 — 이게 없으면 스캔이 안 된다.
+for (const [r, c, label] of [[0, 0, '좌상'], [0, g1.count - 7, '우상'], [g1.count - 7, 0, '좌하']]) {
+  check(g1.isDark(r, c) && g1.isDark(r + 6, c + 6), `${label} 찾기 무늬가 없다`);
+}
+
+const svg = qg.toSvg(qg.makeGrid('hello'), 256);
+check(svg.startsWith('<svg') && svg.endsWith('</svg>'), 'SVG 봉투');
+check(svg.includes('width="256"'), '크기가 들어간다');
+// 여백 4칸(조용한 구역)이 없으면 스캔이 안 된다 — viewBox 가 격자보다 8 커야 한다.
+check(svg.includes(`viewBox="0 0 ${g1.count + 8} ${g1.count + 8}"`), `여백 4칸이 빠졌다: ${svg.slice(0, 120)}`);
+check(svg.includes('<path d="M'), '검은 칸이 실제로 그려진다');
+
+check(qg.run('svg', { text: 'https://blog.mascari4615.com' }).startsWith('<svg'), 'run svg');
+check(qg.run('wifi', { ssid: 'a', password: 'b' }).startsWith('<svg'), 'run wifi');
+check(qg.run('contact', { name: '홍길동' }).startsWith('<svg'), 'run contact');
+let qgThrew = 0;
+for (const bad of [['svg', {}], ['wifi', { ssid: '  ' }], ['contact', { name: '' }]]) {
+  try {
+    qg.run(bad[0], bad[1]);
+  } catch {
+    qgThrew++;
+  }
+}
+eq(qgThrew, 3, '빈 내용·빈 SSID·빈 이름은 전부 던진다');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 
