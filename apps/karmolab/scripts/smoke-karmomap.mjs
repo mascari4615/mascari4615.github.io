@@ -548,8 +548,10 @@ await step('고른 무리는 함께 움직인다 (깨끗한 맵)', async () => {
 await step('빈 캔버스에서 예시를 넣으면 그림이 생긴다', async () => {
   await page.click('[data-km="map-new"]');
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
-  await page.waitForSelector('[data-km="sample"]', { timeout: 4000 });
-  await page.click('[data-km="sample"]');
+  // 견본은 이제 **옆 패널의 갈래 카드**로 깐다 — 캔버스 위 큰 버튼은 「빈 곳 두 번 클릭」을 잡아먹는다.
+  await page.click('[data-km="tab"][data-key="node"]');
+  await page.waitForSelector('[data-km="intent"]', { timeout: 4000 });
+  await page.locator('[data-km="intent"]').first().click();
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 5, null, { timeout: 5000 });
   if (await page.locator('.ck-edge').count() === 0) throw new Error('선이 하나도 안 생겼다');
 });
@@ -1026,6 +1028,20 @@ await step('JSON Canvas 로 내보내면 남의 도구가 읽을 모양이 나�
     throw new Error('JSON Canvas 모양이 아니다');
   }
   if (!data.nodes.some((n) => (n.text || '').includes('#'))) throw new Error('이름이 글로 안 접혔다');
+});
+await step('첫 화면이 「무엇을 만들 건가요」 세 갈래를 크게 묻는다', async () => {
+  // 기능 60개를 평평히 늘어놓으면 처음 여는 사람은 아무것도 못 고른다 — 문 세 개를 먼저 연다.
+  // 카드는 **옆 패널**에 있다(캔버스에 얹으면 두 번 클릭 제스처와 싸운다). 판을 채우므로 맨 뒤에서 한다.
+  await page.click('[data-km="map-new"]');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
+  await page.click('[data-km="tab"][data-key="node"]');
+  const cards = page.locator('[data-km="intent"]');
+  if (await cards.count() < 3) throw new Error('갈래 카드가 셋보다 적다');
+  const box = await cards.first().boundingBox();
+  if (!box || box.width < 90 || box.height < 60) throw new Error('갈래 카드가 너무 작다 — 눌릴 자리가 아니다');
+  await cards.first().click();
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 3, null, { timeout: 5000 });
+  if (await page.locator('.ck-edge').count() === 0) throw new Error('견본에 선이 하나도 없다');
 });
 await step('맵 새로 만들기 → 빈 캔버스', async () => {
   await page.click('[data-km="map-new"]');

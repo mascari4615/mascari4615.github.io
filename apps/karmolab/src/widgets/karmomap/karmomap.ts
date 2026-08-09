@@ -21,7 +21,7 @@ import { emptyGraphSpec } from '../../lib/graph/spec';
 import { KarmoMapLocalStorageAdapter } from './local-storage-adapter';
 import { loadTerms, saveTerms, newTermId, type MyTerms } from './terms';
 import { parseOutline, layoutTree } from './from-text';
-import { sampleFor } from './samples';
+import { sampleFor, INTENTS } from './samples';
 import { measureStorage, humanBytes, WARN_RATIO } from './storage-health';
 import { HELP } from './help';
 import type { PanelCtx } from './panels/context';
@@ -183,9 +183,22 @@ import {
     .km-empty [data-km="sample"] { pointer-events:auto; margin:3px; }
     /* ★ 안내 글은 **반드시 블록 하나로 감싼다**. flex 컨테이너에 글·<b>·<br>·버튼을 그대로 두면
        조각 하나하나가 flex 아이템이 되어 세로로 한 글자씩 쪼개진다 — 실서비스 첫 화면이 그랬다. */
-    .km-empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-      pointer-events:none; padding:24px; }
-    .km-empty-in { max-width:520px; color:var(--text-tertiary); font-size:var(--font-size-sm);
+    /* 안내는 **위쪽에** 앉힌다. 한가운데 두면 「빈 곳 두 번 클릭」이 카드에 먹혀
+       처음 여는 사람이 첫 동작부터 막힌다(검사가 실제로 그렇게 걸렸다). */
+    .km-empty { position:absolute; inset:0; display:flex; align-items:flex-start; justify-content:center;
+      pointer-events:none; padding:20px 24px 24px; }
+    /* 첫 30초 — 「무엇을 만들 건가요」 세 갈래. 기능 60개를 평평하게 늘어놓는 대신
+       *들어오는 문 세 개*를 크게 연다. 고르면 그 갈래의 견본·종류·칸 틀이 한꺼번에 깔린다. */
+    .km-intent { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:14px 0 6px; }
+    .km-intent button { pointer-events:auto; flex:1 1 120px; min-width:110px; padding:10px 8px; border-radius:12px;
+      border:1px solid var(--border); background:var(--bg-secondary); color:var(--text-primary);
+      display:flex; flex-direction:column; gap:4px; align-items:center; cursor:pointer; text-align:center; }
+    .km-intent button:hover { border-color:var(--accent); transform:translateY(-2px); }
+    .km-intent .km-intent-ico { font-size:26px; line-height:1.1; }
+    .km-intent .km-intent-t { font-weight:600; font-size:13px; }
+    .km-intent .km-intent-s { font-size:11px; color:var(--text-tertiary); line-height:1.4; }
+    .km-empty-more { pointer-events:auto; }
+    .km-empty-in { max-width:560px; color:var(--text-tertiary); font-size:var(--font-size-sm);
       text-align:center; line-height:1.7; }
     .km-linking { outline:2px dashed var(--accent); outline-offset:-2px; }
     /* 발표 모드 — 그림을 가리지 않게 아래에만 얹는다. */
@@ -636,17 +649,16 @@ import {
       const el = (existing as HTMLElement | null) ?? document.createElement('div');
       el.className = 'km-empty';
       const samples = PACKS.map((pk) => ({ pk, s: sampleFor(pk.id) })).filter((x) => x.s);
+      // 처음 여는 사람에게 필요한 것은 기능 목록이 아니라 **들어오는 문**이다.
+      // 세 갈래를 크게 보여 주고, 고르면 그 갈래의 견본 + 종류 + 칸 틀이 한꺼번에 깔린다.
+      // 캔버스 위에는 **글자만** 둔다. 큰 버튼을 캔버스에 얹으면 「빈 곳 두 번 클릭」을 잡아먹어
+      // 처음 여는 사람이 첫 동작부터 막힌다(실제로 검사가 그렇게 걸렸다). 고르는 자리는 옆 패널이다.
       el.innerHTML = '<div class="km-empty-in">' +
-        '인물·장소·사건·카드·개념 — <b>무엇이든 한 판에</b> 놓을 수 있어요.<br><b>빈 곳을 두 번 클릭</b>하면 그 자리에 노드가 생깁니다.<br>' +
-        '노드 오른쪽의 <b>점을 끌어다</b> 다른 노드에 놓으면 선이 이어져요.<br>' +
-        '<span style="opacity:.75">키보드: <b>Tab</b> 다음 노드 · <b>방향키</b> 옮기기 · <b>Enter</b> 이름 · <b>?</b> 전체 도움말</span>' +
-        (samples.length === 0
-          ? ''
-          : '<br><br><span style="opacity:.75">예시로 시작하기</span><br>' +
-            samples
-              .map((x) => `<button class="btn btn-ghost km-sample" data-km="sample" data-key="${x.pk.id}">${x.pk.icon} ${escapeHtml(x.s?.title ?? '')}</button>`)
-              .join(' ')) +
+        '<b>무엇이든 한 판에</b> — 인물·장소·사건·개념을 함께 놓고 선으로 잇습니다.<br>' +
+        '<b>빈 곳을 두 번 클릭</b>하면 그 자리에 노드가 생기고, 노드 오른쪽 <b>점을 끌면</b> 선이 이어집니다.<br>' +
+        '<span style="opacity:.75">옆 패널에서 <b>시작할 판</b>을 고를 수 있어요 · <b>?</b> 전체 도움말</span>' +
         '</div>';
+
       // 안내는 클릭을 통과시키지만(pointer-events:none) 버튼만은 눌려야 한다.
       el.querySelectorAll('[data-km="sample"]').forEach((btn) => {
         btn.addEventListener('click', (ev) => {
@@ -947,7 +959,32 @@ import {
       // 패널이 비어 있어도(고른 것 없음) 탭은 남긴다 — 탭이 사라지면 갈 곳이 안 보인다.
       if (sideEl.classList.contains('hidden')) {
         sideEl.classList.remove('hidden');
-        sideEl.innerHTML = '<div class="km-hint">노드나 선을 고르면 여기서 고칩니다.</div>';
+        // 아무것도 안 골랐을 때의 옆 패널은 지금까지 **죽은 자리**였다. 처음 여는 사람에게
+        // 가장 필요한 것(무엇을 만들 건가요)을 여기 둔다 — 캔버스 제스처와 안 싸우는 유일한 자리다.
+        const intents = INTENTS.filter((it) => sampleFor(it.packId));
+        sideEl.innerHTML = '<div class="km-hint">노드나 선을 고르면 여기서 고칩니다.</div>' +
+          (spec.nodes.length > 0 || intents.length === 0 ? '' : `
+            <div class="km-field">
+              <label>무엇을 만들 건가요?</label>
+              <div class="km-hint">고르면 그 갈래의 <b>견본 · 종류 · 칸 틀</b>이 한꺼번에 깔립니다. 나중에 다른 갈래를 섞어도 됩니다.</div>
+              <div class="km-intent">${intents.map((it) => `
+                <button data-km="intent" data-key="${it.packId}">
+                  <span class="km-intent-ico">${it.icon}</span>
+                  <span class="km-intent-t">${escapeHtml(it.title)}</span>
+                  <span class="km-intent-s">${escapeHtml(it.sub)}</span>
+                </button>`).join('')}</div>
+            </div>`);
+        sideEl.querySelectorAll('[data-km="intent"]').forEach((btn) => {
+          (btn as HTMLButtonElement).onclick = () => {
+            const packId = (btn as HTMLElement).dataset.key ?? DEFAULT_PACK_ID;
+            const s1 = sampleFor(packId);
+            if (!s1) return;
+            // 갈래를 골라도 **팩을 갈아치우지는 않는다**. 종류 목록은 어차피 모든 갈래가 함께 보이고,
+            // 팩을 바꾸면 이미 놓인 것들의 기본 종류까지 흔들려 「모든 주제가 공존」이 깨진다.
+            buildFromOutline(s1.outline, packById(packId).nodeKinds[0].id);
+            Toolbox.showToast?.('시작할 판을 깔았습니다 — 마음껏 고치세요', undefined, undefined);
+          };
+        });
       }
       prependTabs();
     }
