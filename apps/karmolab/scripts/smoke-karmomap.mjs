@@ -688,14 +688,19 @@ await step('노드에 칸을 만들면 같은 종류의 다른 노드가 그 칸
   const fbox = await page.locator('.km-canvas').boundingBox();
   await page.mouse.dblclick(fbox.x + fbox.width * 0.2, fbox.y + fbox.height * 0.25);
   await page.waitForSelector('[data-km="fld-new"]', { timeout: 4000 });
+  // 이 검사의 주제는 「**같은 종류**끼리 칸 이름을 물려받는가」다. 그런데 새 노드의 종류는 앞 검사가
+  // 무엇을 깔았느냐에 따라 달라진다 — 그래서 두 노드 모두 **같은 종류로 못 박고** 시작한다.
+  const pinKind = await page.evaluate(() => document.querySelector('[data-km="edit-kind"] option')?.value ?? '');
+  if (pinKind) await page.selectOption('[data-km="edit-kind"]', pinKind);
   await page.fill('[data-km="edit-label"]', '칸주인');
   await page.fill('[data-km="fld-new"]', '출신');
   await page.locator('[data-km="fld-add"]').dispatchEvent('click');
   await page.waitForSelector('[data-km="fld-value"]', { timeout: 4000 });
   await page.locator('[data-km="fld-value"]').first().fill('마계');
 
-  await page.mouse.dblclick(fbox.x + fbox.width * 0.35, fbox.y + fbox.height * 0.25);
+  await page.mouse.dblclick(fbox.x + fbox.width * 0.62, fbox.y + fbox.height * 0.6);
   await page.waitForSelector('[data-km="fld-new"]', { timeout: 4000 });
+  if (pinKind) await page.selectOption('[data-km="edit-kind"]', pinKind);
   // 칸은 **카드에서 읽혀야** 값이 있다 — 패널을 열어야만 보이면 아무도 안 적는다.
   await page.waitForFunction(
     () => [...document.querySelectorAll('.ck-node text')].some((t) => (t.textContent || '').startsWith('출신:')),
@@ -703,7 +708,13 @@ await step('노드에 칸을 만들면 같은 종류의 다른 노드가 그 칸
     { timeout: 4000 }
   );
   const opts = await page.locator('#km-fld-suggest option').evaluateAll((os) => os.map((o) => o.value));
-  if (!opts.includes('출신')) throw new Error('같은 종류가 쓰는 칸이 후보로 안 뜬다: ' + opts.join('/'));
+  if (!opts.includes('출신')) {
+    const why = await page.evaluate(() => {
+      const sel = document.querySelector('[data-km="edit-kind"]');
+      return JSON.stringify({ kind: sel?.value, names: [...document.querySelectorAll('[data-km="fld-name"]')].map((i) => i.value) });
+    });
+    throw new Error('같은 종류가 쓰는 칸이 후보로 안 뜬다: ' + opts.join('/') + ' · ' + why);
+  }
 
   // 칸에 적은 이름이 이 맵의 노드면 **선으로 올릴 수 있어야** 한다 — 글로만 남으면 그림에 안 나온다.
   // 노드를 다시 골라 오가면 어느 노드가 골렸는지에 기대게 된다 — **지금 고른 노드에서** 끝낸다.
