@@ -59,7 +59,7 @@ import { humanLeft, rngFor, stampOf, tickOf, tickProgress, tickStart } from './c
   font-variant-numeric: tabular-nums; }
 
 /* 방송 고르는 줄 — 좁으면 가로로 민다(줄바꿈해서 세 줄이 되면 무대가 밀려난다) */
-.pl-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.pl-chips { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
 .pl-chip { flex: 0 0 auto; display: flex; align-items: center; gap: 5px; padding: 6px 12px;
   font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap;
   background: transparent; color: var(--text-tertiary, #8a8a92);

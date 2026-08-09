@@ -52,11 +52,14 @@ export function paintCard(
 
   const pad = Math.round(w * 0.055);
   const small = Math.max(11, Math.round(w * 0.018));
+  /* 작은 판(지나간 것들)에서는 아래 한 줄을 뺀다 — 그 크기에선 글씨가 뭉개져 얼룩으로만 보이고,
+     시각은 어차피 판 밖에 적혀 있다. 큰 판에서만 적는다. */
+  const roomy = w >= 420;
 
   /* 몸통 — 판에 꽉 차되 절대 넘치지 않게. 글자 수가 셋이든 넷이든 같은 무게로 보여야 하므로
      「글자 크기」가 아니라 **재 본 폭**으로 맞춘다(한글은 로마자보다 넓다). */
   const limit = w - pad * 4;
-  let size = Math.round(h * 0.34);
+  let size = Math.round(h * (roomy ? 0.34 : 0.42));
   c.textAlign = 'center';
   c.textBaseline = 'alphabetic';
   for (let i = 0; i < 24; i++) {
@@ -64,18 +67,21 @@ export function paintCard(
     if (c.measureText(facts.text).width <= limit) break;
     size = Math.round(size * 0.92);
   }
-  const midY = h * (facts.mark ? 0.48 : 0.545);
+  const midY = h * (facts.mark ? 0.46 : 0.5);
+  c.textBaseline = 'middle';
   c.fillStyle = ink.fg;
-  c.fillText(facts.text, w / 2, midY + size * 0.34);
+  c.fillText(facts.text, w / 2, midY);
 
   // 사건 표식 — 몸통 아래 한 줄. 이것 하나로 「그냥 지나간 것」과 「공유할 것」이 갈린다.
   if (facts.mark) {
     c.font = `600 ${Math.round(small * 1.5)}px KarmoSans, sans-serif`;
     c.fillStyle = ink.accent;
-    c.fillText(`◆  ${facts.mark}`, w / 2, midY + size * 0.34 + small * 3.4);
+    c.fillText(`◆  ${facts.mark}`, w / 2, midY + size * 0.62 + small * 1.6);
   }
 
   // 아래 한 줄 — 어느 방송인지, 언제 것인지. 이게 없으면 나중에 아무도 모른다.
+  if (!roomy) return;
+  c.textBaseline = 'alphabetic';
   c.font = `${small}px KarmoSans, sans-serif`;
   c.fillStyle = ink.dim;
   c.textAlign = 'left';
