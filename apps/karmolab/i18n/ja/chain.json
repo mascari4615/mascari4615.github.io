@@ -1,0 +1,15 @@
+{
+  "chain.label.chSteps": "ステップ (JSON)",
+  "chain.t01": "= 1番の結果まるごと ·",
+  "chain.btn.chRun": "実行",
+  "chain.btn.chExample": "例を入れる",
+  "chain.err.02": "ハッシュ計算 (CryptoJS) がまだ読み込まれていません",
+  "chain.t03": "こんにちは",
+  "chain.t06": "つなぎ",
+  "chain.say.07": "例を入れました — 実行を押してみてください",
+  "chain.say.08": "例が入っています — 実行を押してみてください",
+  "chain.unknownTool": "知らないツールです: {id} (あるもの: {known} …)",
+  "chain.unknownOp": "{id} に「{op}」はありません (あるもの: {ops})",
+  "chain.noAlgo": "この画面では {algo} を求められません",
+  "chain.ranSteps": "{n}段を実行 — 結果は最後の行です"
+}
