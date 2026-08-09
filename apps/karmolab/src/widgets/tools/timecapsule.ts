@@ -21,6 +21,8 @@ if (!(globalThis as unknown as { Buffer?: unknown }).Buffer) {
   (globalThis as unknown as { Buffer: unknown }).Buffer = Buffer;
 }
 
+import { t, loadNamespace, fmtDate } from '../../lib/i18n';
+
 (function (): void {
   const MAX_LETTER = 1200; // 주소에 담아야 하므로 — 이보다 길면 링크가 메신저에서 잘린다
 
@@ -40,61 +42,75 @@ if (!(globalThis as unknown as { Buffer?: unknown }).Buffer) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  /** 남은 시간을 사람 말로. */
+  /** 남은 시간을 사람 말로 — 이름은 **쓸 때** 정한다(말 묶음이 온 뒤라야 그 언어로 나온다). */
   function 남은말(ms: number): string {
-    if (ms <= 0) return '지금';
+    if (ms <= 0) return t('timecapsule.left.now');
     const 분 = Math.floor(ms / 60000);
     const 시 = Math.floor(분 / 60);
     const 일 = Math.floor(시 / 24);
-    if (일 >= 1) return `${일}일 뒤`;
-    if (시 >= 1) return `${시}시간 뒤`;
-    if (분 >= 1) return `${분}분 뒤`;
-    return '곧';
+    if (일 >= 1) return t('timecapsule.left.days', { n: 일 });
+    if (시 >= 1) return t('timecapsule.left.hours', { n: 시 });
+    if (분 >= 1) return t('timecapsule.left.minutes', { n: 분 });
+    return t('timecapsule.left.soon');
   }
 
   Toolbox.register({
     id: 'timecapsule',
-    title: '타임캡슐 편지',
+    title: t('widgets.timecapsule.title', undefined, '타임캡슐 편지'),
     category: 'tool',
-    desc: '정한 날 전에는 아무도 못 여는 편지를 만듭니다. 맡아 두는 서버가 없어 잠긴 편지 자체가 주소가 됩니다',
+    desc: t(
+      'widgets-desc.timecapsule.desc',
+      undefined,
+      '정한 날 전에는 아무도 못 여는 편지를 만듭니다. 맡아 두는 서버가 없어 잠긴 편지 자체가 주소가 됩니다'
+    ),
     layout: 'wide',
     icon: '<rect x="4" y="9" width="16" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 9V6.5a4 4 0 0 1 8 0V9" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="15" r="1.6" stroke="currentColor" stroke-width="1.5" fill="none"/>',
     tabs: [
       {
         id: 'app',
-        label: '타임캡슐',
+        label: t('timecapsule.tab', undefined, '타임캡슐'),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '그날까지는 저도 못 봐요. 진짜로요.' });
+          void loadNamespace('timecapsule').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          Mdd.linePreset('tool_run', { msg: t('timecapsule.mdd') });
 
           const 실린것 = location.hash.match(/c=([A-Za-z0-9_-]+)/);
 
           container.innerHTML = `
             <div class="tc-make" id="tcMake" style="${실린것 ? 'display:none;' : ''}">
               <div class="field-group">
-                <label class="field-label" for="tcText">편지 (${MAX_LETTER}자까지)</label>
+                <label class="field-label" for="tcText">${esc(t('timecapsule.label.letter', { max: MAX_LETTER }))}</label>
                 <textarea id="tcText" rows="7" maxlength="${MAX_LETTER}"
-                  placeholder="1년 뒤의 나에게. 그때쯤이면 이 걱정이 우스워졌으면 좋겠다."></textarea>
+                  placeholder="${esc(t('timecapsule.ph.letter'))}"></textarea>
               </div>
               <div class="tool-grid-2">
                 <div>
-                  <label class="field-label" for="tcWhen">열리는 때</label>
+                  <label class="field-label" for="tcWhen">${esc(t('timecapsule.label.when'))}</label>
                   <input type="datetime-local" id="tcWhen">
                 </div>
                 <div>
-                  <label class="field-label" for="tcPreset">빠른 선택</label>
+                  <label class="field-label" for="tcPreset">${esc(t('timecapsule.label.preset'))}</label>
                   <select id="tcPreset" aria-label="빠른 선택">
-                    <option value="">직접 고르기</option>
-                    <option value="0.0035">5분 뒤 (시험용)</option>
-                    <option value="1">내일</option>
-                    <option value="7">일주일 뒤</option>
-                    <option value="30">한 달 뒤</option>
-                    <option value="365" selected>1년 뒤</option>
-                    <option value="3650">10년 뒤</option>
+                    <option value="">${esc(t('timecapsule.preset.custom'))}</option>
+                    <option value="0.0035">${esc(t('timecapsule.preset.5min'))}</option>
+                    <option value="1">${esc(t('timecapsule.preset.tomorrow'))}</option>
+                    <option value="7">${esc(t('timecapsule.preset.week'))}</option>
+                    <option value="30">${esc(t('timecapsule.preset.month'))}</option>
+                    <option value="365" selected>${esc(t('timecapsule.preset.year'))}</option>
+                    <option value="3650">${esc(t('timecapsule.preset.decade'))}</option>
                   </select>
                 </div>
               </div>
               <div style="display:flex; gap:6px; flex-wrap:wrap; margin:var(--space-lg) 0;">
-                <button class="btn btn-primary" id="tcSeal">잠그기</button>
+                <button class="btn btn-primary" id="tcSeal">${esc(t('timecapsule.btn.seal'))}</button>
               </div>
             </div>
 
@@ -102,14 +118,12 @@ if (!(globalThis as unknown as { Buffer?: unknown }).Buffer) {
 
             <div class="tool-status" id="tcStatus">${
               실린것
-                ? '잠긴 편지를 여는 중…'
-                : '편지를 적고 열릴 때를 고르면, 그 전에는 아무도 못 여는 주소가 나옵니다.'
+                ? esc(t('timecapsule.status.opening'))
+                : esc(t('timecapsule.status.idle'))
             }</div>
 
             <div class="tc-note">
-              열쇠는 <b>공개 무작위 시계</b>가 그날 내놓는 값으로만 맞춰집니다 — 만든 사람도, 받은 사람도,
-              이 사이트도 그 전에는 못 엽니다. 컴퓨터 시계를 바꿔도 열리지 않습니다.
-              대신 그 공개 시계가 계속 돌아야 열립니다.
+              ${t('timecapsule.note')}
             </div>
           `;
 
@@ -148,16 +162,16 @@ if (!(globalThis as unknown as { Buffer?: unknown }).Buffer) {
             $<HTMLButtonElement>('#tcSeal').onclick = async () => {
               const 글 = $<HTMLTextAreaElement>('#tcText').value.trim();
               if (글.length < 2) {
-                say('편지를 적어 주세요.', 'error');
+                say(t('timecapsule.err.empty'), 'error');
                 return;
               }
               const 열릴때 = new Date(when.value).getTime();
               if (!열릴때 ||열릴때 <= Date.now() + 60000) {
-                say('열리는 때는 지금보다 1분 넘게 뒤여야 합니다.', 'error');
+                say(t('timecapsule.err.tooSoon'), 'error');
                 return;
               }
               try {
-                say('잠그는 중… 공개 시계에서 그날의 자리를 받아옵니다.');
+                say(t('timecapsule.status.sealing'));
                 const info = await 시계().chain().info();
                 const round = roundAt(열릴때, info);
                 const 봉인 = await timelockEncrypt(round, Buffer.from(글, 'utf8') as never, 시계());
@@ -165,21 +179,26 @@ if (!(globalThis as unknown as { Buffer?: unknown }).Buffer) {
                 const url = `${location.origin}/karmolab/t/timecapsule/#c=${code}`;
                 out.style.display = '';
                 out.innerHTML = `
-                  <div class="tc-when">${new Date(열릴때).toLocaleString('ko-KR')} 에 열립니다 (${남은말(열릴때 - Date.now())})</div>
+                  <div class="tc-when">${esc(
+                    t('timecapsule.opens.at', {
+                      date: fmtDate(열릴때, { dateStyle: 'long', timeStyle: 'short' }),
+                      left: 남은말(열릴때 - Date.now())
+                    })
+                  )}</div>
                   <div class="tc-share">
                     <input type="text" id="tcUrl" readonly aria-label="잠긴 편지 주소" value="${esc(url)}">
-                    <button class="btn btn-primary" id="tcCopy">주소 복사</button>
+                    <button class="btn btn-primary" id="tcCopy">${esc(t('timecapsule.btn.copy'))}</button>
                   </div>
-                  <div class="tc-hint">이 주소가 편지 그 자체입니다 — 잃어버리면 편지도 사라집니다. 우리 쪽에는 아무것도 안 남습니다.</div>
+                  <div class="tc-hint">${esc(t('timecapsule.hint.url'))}</div>
                 `;
                 $<HTMLButtonElement>('#tcCopy').onclick = () => {
-                  void Toolbox.copyText?.(url, { message: '주소를 복사했어요' });
+                  void Toolbox.copyText?.(url, { message: t('timecapsule.copy.done') });
                   Toolbox.trackUse?.('share');
                 };
-                say('잠갔습니다. 그날까지는 아무도 못 엽니다.', 'ok');
+                say(t('timecapsule.say.sealed'), 'ok');
                 Toolbox.trackUse?.('seal');
               } catch (e) {
-                say('잠그지 못했어요: ' + (e instanceof Error ? e.message : String(e)), 'error');
+                say(t('timecapsule.err.seal', { msg: e instanceof Error ? e.message : String(e) }), 'error');
               }
             };
           }
@@ -192,7 +211,7 @@ if (!(globalThis as unknown as { Buffer?: unknown }).Buffer) {
                 const 글 = await timelockDecrypt(봉인, 시계());
                 out.style.display = '';
                 out.innerHTML = `<div class="tc-letter">${esc(글.toString('utf8'))}</div>`;
-                say('열렸습니다.', 'ok');
+                say(t('timecapsule.say.opened'), 'ok');
                 Toolbox.trackUse?.('open');
               } catch (e) {
                 const 말 = e instanceof Error ? e.message : String(e);
@@ -203,19 +222,20 @@ if (!(globalThis as unknown as { Buffer?: unknown }).Buffer) {
                     const info = await 시계().chain().info();
                     const 열릴때 = (Number(info.genesis_time) + Number(m[1]) * Number(info.period)) * 1000;
                     out.style.display = '';
-                    out.innerHTML = `<div class="tc-locked">🔒<div class="tc-when">${new Date(열릴때).toLocaleString('ko-KR')} 에 열립니다</div><div class="tc-remain">${남은말(열릴때 - Date.now())}</div></div>`;
-                    say('아직 열 때가 아닙니다. 그때 이 주소를 다시 열면 됩니다.');
+                    out.innerHTML = `<div class="tc-locked">🔒<div class="tc-when">${esc(
+                      t('timecapsule.opens.atShort', {
+                        date: fmtDate(열릴때, { dateStyle: 'long', timeStyle: 'short' })
+                      })
+                    )}</div><div class="tc-remain">${남은말(열릴때 - Date.now())}</div></div>`;
+                    say(t('timecapsule.say.notYet'));
                     return;
                   } catch {
                     /* 회차를 날짜로 못 바꿔도 아래 안내로 충분하다 */
                   }
                 }
-                say('아직 열 때가 아니거나, 주소가 온전하지 않습니다. (' + 말.slice(0, 80) + ')', 'error');
+                say(t('timecapsule.err.open', { msg: 말.slice(0, 80) }), 'error');
               }
             })();
           }
-        }
-      }
-    ]
-  });
+  }
 })();
