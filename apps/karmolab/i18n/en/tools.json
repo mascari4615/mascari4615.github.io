@@ -266,5 +266,7 @@
   "tools.charconv.description": "Convert between full-width and half-width, Hangul and Roman letters, and Hangul and jamo on one screen. The moment you paste, any full-width characters mixed in are pointed out.",
   "tools.charconv.lead": "Full/half-width · Roman letters · jamo · a warning for mixed characters",
   "tools.comparepic.description": "Stack two photos and drag the handle in the middle to compare before and after. You can save exactly what you see as a PNG, and the files never leave your device.",
-  "tools.comparepic.lead": "Slide between before and after · different sizes are fine · save as PNG"
+  "tools.comparepic.lead": "Slide between before and after · different sizes are fine · save as PNG",
+  "tools.livecount.description": "The time since your reference moment keeps climbing by the second. Months are counted by the calendar, and a rough total is worked out from how many times a day you give.",
+  "tools.livecount.lead": "Climbs by the second · by the calendar · rough conversion"
 }

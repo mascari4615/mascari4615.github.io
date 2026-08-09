@@ -964,5 +964,13 @@
   "faq.comparepic.2.q": "Does it work on a phone?",
   "faq.comparepic.2.a": "Yes. You can drag with a finger, and with a keyboard the arrow keys move it too.",
   "faq.comparepic.3.q": "What is it for?",
-  "faq.comparepic.3.a": "For showing how much changed — retouching before and after, an upscale before and after, a background removed and not."
+  "faq.comparepic.3.a": "For showing how much changed — retouching before and after, an upscale before and after, a background removed and not.",
+  "faq.livecount.0.q": "Why does “months” differ from other calculators?",
+  "faq.livecount.0.a": "Months are counted by the calendar, not divided into 30-day chunks. One month after 31 January is 28 February, not 3 March. Dividing by 30 makes your age depend on which month you were born in.",
+  "faq.livecount.1.q": "Is the rough count accurate?",
+  "faq.livecount.1.a": "No. It simply multiplies your “times a day” by the days elapsed. Days you did none and days you did two are multiplied the same way, which is why the screen says it is a rough figure.",
+  "faq.livecount.2.q": "What if I put in a future date?",
+  "faq.livecount.2.a": "It counts the time remaining. It does not show a negative number.",
+  "faq.livecount.3.q": "Does it keep running when I close the tab?",
+  "faq.livecount.3.a": "No. The timer stops when you leave the screen. Otherwise a tool you closed would keep ticking once a second and eat your battery."
 }
