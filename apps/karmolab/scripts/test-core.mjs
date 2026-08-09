@@ -798,6 +798,64 @@ try {
 }
 check(fhThrew, '빈 값은 던진다');
 
+// ── ②-18 workdays 알맹이 (대체공휴일 — LLM 이 거의 못 맞히는 자리) ────────────
+const wd = await load('src/core/workdays.ts');
+
+eq(wd.spec.id, 'workdays', 'workdays spec.id');
+
+// 주말만 빼도 되는 구간 — 기본이 맞는지 먼저.
+const plain = wd.addWorkdays(new Date(2026, 2, 2), 5); // 2026-03-02 월
+eq(plain.end.getDay(), 1, '월요일 + 영업일 5 = 다음 월요일');
+check(plain.skipped.some((s) => s.why === '토요일') && plain.skipped.some((s) => s.why === '일요일'), '주말을 건너뛴다');
+
+// 토요일 근무를 켜면 답이 달라져야 한다 (안 달라지면 그 설정이 죽은 것).
+const satOff = wd.addWorkdays(new Date(2026, 2, 2), 5, 'KR', false);
+const satOn = wd.addWorkdays(new Date(2026, 2, 2), 5, 'KR', true);
+check(satOn.end.getTime() < satOff.end.getTime(), '토요일도 일하면 더 빨리 끝난다');
+
+/* 이 도구의 진짜 값 — 추석이 낀 구간은 그만큼 밀린다.
+   2026 추석 = 9/24~26. 9/21(월)부터 영업일 5일이면 추석을 넘어간다. */
+const chuseok = wd.addWorkdays(new Date(2026, 8, 21), 5);
+check(chuseok.skipped.some((s) => s.why.includes('추석')), `추석을 건너뛰어야 한다: ${JSON.stringify(chuseok.skipped)}`);
+check(chuseok.end.getTime() > new Date(2026, 8, 26).getTime(), '추석 뒤로 밀린다');
+
+// 공휴일 이름을 열쇠가 아니라 사람 말로 낸다.
+const names = [...wd.holidaysOf('KR', 2026).values()];
+check(names.includes('신정'), `1/1 이 「신정」이어야 한다: ${names.slice(0, 4)}`);
+check(names.some((v) => /^h\d\d$/.test(v)) === false, `열쇠가 그대로 새어 나왔다: ${names.filter((v) => /^h\d\d$/.test(v))}`);
+
+// 쉬는 이유를 말한다 (결과 날짜만 주면 맞는지 확인할 방법이 없다).
+eq(wd.restReason(new Date(2026, 0, 1), 'KR', false), '신정', '신정');
+eq(wd.restReason(new Date(2026, 2, 1), 'KR', false), '일요일', '2026-03-01 은 일요일이 먼저');
+eq(wd.restReason(new Date(2026, 2, 3), 'KR', false), '', '평일은 빈 문자열');
+
+const btw = wd.countWorkdays(new Date(2026, 2, 2), new Date(2026, 2, 8));
+eq(btw.total, 7, '전체 7일');
+/* 5일이 아니라 **4일**이다 — 2026-03-01(삼일절)이 일요일이라 3/2 월요일이 대체공휴일이다.
+   이 한 칸이 이 도구가 있는 이유고, 사람도 LLM 도 여기서 틀린다. */
+eq(btw.workdays, 4, '3/2 가 삼일절 대체공휴일이라 영업일은 4일');
+check(btw.skipped.some((s) => s.why === '대체공휴일'), `대체공휴일이라고 말해야 한다: ${JSON.stringify(btw.skipped)}`);
+check(wd.countWorkdays(new Date(2026, 2, 8), new Date(2026, 2, 2)).workdays === 4, '거꾸로 줘도 같은 답');
+
+/* **모르는 해는 모른다고 말한다** — 이게 「조용히 틀린 날짜」를 막는 자리다.
+   표에 없는 해가 섞이면 그 사실을 값으로 들고 나온다. */
+const far = wd.addWorkdays(new Date(2099, 0, 5), 3);
+check(far.unknownYears.includes(2099), `2099 를 모른다고 해야 한다: ${JSON.stringify(far.unknownYears)}`);
+eq(wd.addWorkdays(new Date(2026, 2, 2), 3).unknownYears.length, 0, '아는 해는 경고 없음');
+check(wd.run('after', { start: '2099-01-05', days: 3 }).includes('믿지 마세요'), 'run 도 모르면 그렇게 말한다');
+
+check(wd.run('after', { start: '2026-09-21', days: 5 }).includes('추석'), 'run after 가 건너뛴 날을 보여 준다');
+check(wd.run('between', { start: '2026-03-02', end: '2026-03-08' }).includes('영업일 4일'), 'run between');
+let wdThrew = 0;
+for (const bad of [['after', { start: '엉뚱', days: 3 }], ['after', { start: '2026-03-02', days: 0 }], ['between', { start: '2026-03-02' }], ['after', { start: '2026-03-02', days: 3, region: 'ZZ' }]]) {
+  try {
+    wd.run(bad[0], bad[1]);
+  } catch {
+    wdThrew++;
+  }
+}
+eq(wdThrew, 4, '잘못된 날짜·0일·끝날 없음·모르는 나라는 전부 던진다');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 
