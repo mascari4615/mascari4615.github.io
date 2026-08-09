@@ -196,5 +196,9 @@
   "howto.pdfsign.0": "契約書（PDF）を入れる",
   "howto.pdfsign.1": "マウスか指で署名を書く",
   "howto.pdfsign.2": "ページを選んでプレビューで置く場所を押す",
-  "howto.pdfsign.3": "大きさを合わせて入れてダウンロードする"
+  "howto.pdfsign.3": "大きさを合わせて入れてダウンロードする",
+  "howto.hashgen.0": "テキストタブ — 文字列を入れると6種を同時に計算",
+  "howto.hashgen.1": "行ごとにコピー",
+  "howto.hashgen.2": "ファイルタブ — ファイルをドラッグして置く",
+  "howto.hashgen.3": "期待するチェックサムを貼り付けて一致を確かめる"
 }
