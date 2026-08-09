@@ -1,5 +1,5 @@
 {
-  "total": 5127,
+  "total": 5107,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -56,7 +56,7 @@
     "src/today.ts": 9,
     "src/toolbox.ts": 72,
     "src/widgets/activity.ts": 12,
-    "src/widgets/adventure/adventure.ts": 35,
+    "src/widgets/adventure/adventure.ts": 4,
     "src/widgets/adventure/end-modal.ts": 12,
     "src/widgets/adventure/imagegen.ts": 4,
     "src/widgets/adventure/npc-context.ts": 6,
@@ -354,6 +354,7 @@
     "src/core/type-pool.generated.ts": 223,
     "src/widgets/tools/dailytype.ts": 11,
     "src/core/word-pool.generated.ts": 165,
-    "src/core/dailycho.ts": 13
+    "src/core/dailycho.ts": 13,
+    "src/widgets/tools/dailycho.ts": 11
   }
 }

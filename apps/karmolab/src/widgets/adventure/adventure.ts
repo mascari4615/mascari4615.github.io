@@ -21,6 +21,7 @@ import { buildSettingsPanel } from './settings';
 import { showEndModal } from './end-modal';
 import { generateAdventureImage } from './imagegen';
 import { attachImageRef } from './turn-loop';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function () {
   type ElProps<K extends keyof HTMLElementTagNameMap> = Omit<Partial<HTMLElementTagNameMap[K]>, 'style'> & {
@@ -56,13 +57,13 @@ import { attachImageRef } from './turn-loop';
 
     /* ===== 헤더 ===== */
     const heading = el('h3', {
-      textContent: '무한 텍스트 어드벤처',
+      textContent: t('adventure.t01'),
       style: { margin: '0', color: 'var(--accent, #a99bf5)' },
     });
     wrap.appendChild(heading);
 
     const phase = el('p', {
-      textContent: '티메토 GM 의 KarmoWorld 모험 — α/β/γ/δ/ε 박힘. ζ (Tauri save) / θ (정수 추출) / κ (sample) 다음.',
+      textContent: t('adventure.t02'),
       style: { margin: '0', fontSize: '13px', color: 'var(--text-tertiary, #888)' },
     });
     wrap.appendChild(phase);
@@ -93,7 +94,7 @@ import { attachImageRef } from './turn-loop';
     providerRow.appendChild(providerSelect);
 
     const settingsToggle = el('button', {
-      textContent: '⚙ 설정',
+      textContent: t('adventure.t03'),
       style: {
         padding: '4px 10px',
         background: 'var(--bg-tertiary, #1f1f1f)',
@@ -117,7 +118,7 @@ import { attachImageRef } from './turn-loop';
     settingsToggle.addEventListener('click', () => {
       const open = settingsPanel.style.display === 'none';
       settingsPanel.style.display = open ? 'flex' : 'none';
-      settingsToggle.textContent = open ? '⚙ 설정 닫기' : '⚙ 설정';
+      settingsToggle.textContent = open ? t('adventure.t04') : t('adventure.t03');
     });
 
     /* ===== 모험 컨테이너 (cast picker / turn loop / 종료) ===== */
@@ -201,7 +202,7 @@ import { attachImageRef } from './turn-loop';
           style: { display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' },
         });
         resumeWrapper.appendChild(resumeSec);
-        resumeSec.appendChild(el('strong', { textContent: '미완 모험 이어가기' }));
+        resumeSec.appendChild(el('strong', { textContent: t('adventure.t05') }));
 
         let hasCard = false;
         for (const slug of savedSlugs) {
@@ -231,14 +232,14 @@ import { attachImageRef } from './turn-loop';
             style: { fontWeight: '600', fontSize: '13px', color: 'var(--text-primary, #e8e8e8)' },
           }));
           card.appendChild(el('div', {
-            textContent: `${date} · ${saved.turns.length}턴 · cast: ${saved.castSlugs.join(', ') || '(없음)'}`,
+            textContent: t('adventure.savedLine', { date, turns: saved.turns.length, cast: saved.castSlugs.join(', ') || t('adventure.none') }),
             style: { fontSize: '12px', color: 'var(--text-tertiary, #888)' },
           }));
 
           const btnRow = el('div', { style: { display: 'flex', gap: '8px', marginTop: '4px' } });
 
           const resumeBtn = el('button', {
-            textContent: '이어가기',
+            textContent: t('adventure.t06'),
             style: {
               padding: '4px 12px',
               background: 'var(--accent, #a99bf5)',
@@ -252,7 +253,7 @@ import { attachImageRef } from './turn-loop';
           resumeBtn.addEventListener('click', () => resumeFromSession(saved));
 
           const discardBtn = el('button', {
-            textContent: '버리기',
+            textContent: t('adventure.t07'),
             style: {
               padding: '4px 12px',
               background: 'var(--bg-secondary, #181818)',
@@ -287,9 +288,9 @@ import { attachImageRef } from './turn-loop';
         }
       }
 
-      stage.appendChild(el('strong', { textContent: '새 모험 — cast 선택' }));
+      stage.appendChild(el('strong', { textContent: t('adventure.t08') }));
       stage.appendChild(el('p', {
-        textContent: '모험 시작 시 자세한 컨텍스트로 박을 NPC 를 선택하세요 (선택은 0~3명, 모험 도중 자동으로 새 NPC cast 흡수됨)',
+        textContent: t('adventure.t09'),
         style: { margin: '0', fontSize: '13px', color: 'var(--text-tertiary, #888)' },
       }));
 
@@ -323,7 +324,7 @@ import { attachImageRef } from './turn-loop';
       stage.appendChild(checkboxList);
 
       const startBtn = el('button', {
-        textContent: '모험 시작',
+        textContent: t('adventure.t10'),
         style: {
           padding: '8px 16px',
           background: 'var(--accent, #a99bf5)',
@@ -340,7 +341,7 @@ import { attachImageRef } from './turn-loop';
         void saveSession(session);
         renderTurnUI();
         // 첫 turn — 사용자 입력 없이 GM 이 도입부 시작
-        void doTurn('(모험을 시작하세요. 도입 narrative + 첫 선택지를 박아주세요.)', true);
+        void doTurn(t('adventure.t11'), true);
       });
       stage.appendChild(startBtn);
     }
@@ -354,7 +355,7 @@ import { attachImageRef } from './turn-loop';
       if (state) {
         meta.appendChild(document.createTextNode(`session: ${state.session.slug}`));
         meta.appendChild(document.createTextNode(`turn: ${state.session.turns.length}`));
-        meta.appendChild(document.createTextNode(`cast: ${state.session.castSlugs.join(', ') || '(없음)'}`));
+        meta.appendChild(document.createTextNode(t('adventure.castLine', { cast: state.session.castSlugs.join(', ') || t('adventure.none') })));
       }
       stage.appendChild(meta);
 
@@ -373,7 +374,7 @@ import { attachImageRef } from './turn-loop';
         },
       });
       narrativeBox.id = 'kl-adv-narrative';
-      narrativeBox.textContent = '(GM 의 narrative 가 박힙니다)';
+      narrativeBox.textContent = t('adventure.t12');
       stage.appendChild(narrativeBox);
 
       const choicesBox = el('div', {
@@ -386,7 +387,7 @@ import { attachImageRef } from './turn-loop';
         style: { display: 'flex', gap: '8px' },
       });
       const inputArea = el('textarea', {
-        placeholder: '자유 입력 (선택지 외 행동) — Ctrl+Enter 로 전송',
+        placeholder: t('adventure.t13'),
         style: {
           flex: '1',
           padding: '8px',
@@ -400,7 +401,7 @@ import { attachImageRef } from './turn-loop';
         },
       });
       const sendBtn = el('button', {
-        textContent: '전송',
+        textContent: t('adventure.t14'),
         style: {
           padding: '0 16px',
           background: 'var(--accent, #a99bf5)',
@@ -411,10 +412,10 @@ import { attachImageRef } from './turn-loop';
         },
       });
       sendBtn.addEventListener('click', () => {
-        const t = inputArea.value.trim();
-        if (!t) return;
+        const said = inputArea.value.trim();
+        if (!said) return;
         inputArea.value = '';
-        void doTurn(t, false);
+        void doTurn(said, false);
       });
       inputArea.addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.key === 'Enter') {
@@ -430,7 +431,7 @@ import { attachImageRef } from './turn-loop';
         style: { display: 'flex', gap: '8px', marginTop: '4px' },
       });
       const cameraBtn = el('button', {
-        textContent: '📷 장면 이미지 (Vertex Imagen)',
+        textContent: t('adventure.t15'),
         style: {
           padding: '4px 10px',
           background: 'var(--bg-tertiary, #1f1f1f)',
@@ -444,13 +445,13 @@ import { attachImageRef } from './turn-loop';
         if (!state) return;
         const lastTurn = state.session.turns[state.session.turns.length - 1];
         if (!lastTurn) {
-          alert('아직 narrative 없습니다. turn 한 번 진행 후 시도하세요.');
+          alert(t('adventure.t16'));
           return;
         }
         const narrative = lastTurn.parsed?.narrative || lastTurn.assistantText;
         cameraBtn.disabled = true;
         const originalLabel = cameraBtn.textContent;
-        cameraBtn.textContent = '📷 생성 중…';
+        cameraBtn.textContent = t('adventure.t17');
         void (async () => {
           try {
             const result = await generateAdventureImage(narrative);
@@ -470,7 +471,7 @@ import { attachImageRef } from './turn-loop';
             const narrativeBox = stage.querySelector('#kl-adv-narrative') as HTMLDivElement | null;
             narrativeBox?.appendChild(img);
           } catch (err) {
-            alert('이미지 생성 실패: ' + (err instanceof Error ? err.message : String(err)));
+            alert(t('adventure.t18') + (err instanceof Error ? err.message : String(err)));
           } finally {
             cameraBtn.disabled = false;
             cameraBtn.textContent = originalLabel;
@@ -479,7 +480,7 @@ import { attachImageRef } from './turn-loop';
       });
       tools.appendChild(cameraBtn);
       const endBtn = el('button', {
-        textContent: '모험 종료 + 정수 추출 → wiki commit',
+        textContent: t('adventure.t19'),
         style: {
           padding: '4px 10px',
           background: 'var(--bg-tertiary, #1f1f1f)',
@@ -492,7 +493,7 @@ import { attachImageRef } from './turn-loop';
       endBtn.addEventListener('click', () => {
         if (!state) return;
         if (state.session.turns.length === 0) {
-          if (!confirm('아직 turn 없는 모험입니다. 그냥 종료할까요?')) return;
+          if (!confirm(t('adventure.t20'))) return;
           state = null;
           renderCastPicker();
           return;
@@ -516,7 +517,7 @@ import { attachImageRef } from './turn-loop';
       const choicesBox = stage.querySelector('#kl-adv-choices') as HTMLDivElement | null;
       if (!narrativeBox || !choicesBox) return;
 
-      narrativeBox.textContent = '(GM 응답 기다리는 중…)';
+      narrativeBox.textContent = t('adventure.t21');
       choicesBox.innerHTML = '';
 
       const provider = createAdventureProvider(providerSelect.value as AdventureProviderId);
@@ -544,14 +545,14 @@ import { attachImageRef } from './turn-loop';
         }
         if (result.parsed.choices.length === 0 && !result.parsed.ended) {
           const note = el('div', {
-            textContent: '(선택지 박히지 않음 — 자유 입력으로 진행)',
+            textContent: t('adventure.t22'),
             style: { fontSize: '12px', color: 'var(--text-tertiary, #888)' },
           });
           choicesBox.appendChild(note);
         }
         if (result.parsed.ended) {
           const note = el('div', {
-            textContent: '[END] 박힘 — 모험 종료. (θ 단계 후 정수 추출 자동)',
+            textContent: t('adventure.t23'),
             style: {
               fontSize: '13px',
               color: 'var(--accent, #a99bf5)',
@@ -590,7 +591,7 @@ import { attachImageRef } from './turn-loop';
           }
         }
       } catch (err) {
-        narrativeBox.textContent = '에러: ' + (err instanceof Error ? err.message : String(err));
+        narrativeBox.textContent = t('adventure.t24') + (err instanceof Error ? err.message : String(err));
       }
       void isOpener;
     }
@@ -606,7 +607,7 @@ import { attachImageRef } from './turn-loop';
       },
     });
     advList.appendChild(el('strong', {
-      textContent: '누적된 모험 (wiki entity)',
+      textContent: t('adventure.t25'),
       style: { display: 'block', marginBottom: '6px' },
     }));
     const KW = (globalThis as unknown as {
@@ -617,7 +618,7 @@ import { attachImageRef } from './turn-loop';
     const adventures = KW?.bindings?.adventure?.adventures ?? [];
     if (adventures.length === 0) {
       advList.appendChild(el('div', {
-        textContent: '(아직 박힌 모험 없음 — 첫 모험 종료 시 wiki entity 로 누적됨)',
+        textContent: t('adventure.t26'),
         style: { color: 'var(--text-tertiary, #888)' },
       }));
     } else {
@@ -641,6 +642,17 @@ import { attachImageRef } from './turn-loop';
 
   Toolbox.register({
     ...Toolbox.getLazyWidgetPublicMeta('adventure'),
-    tabs: [{ id: 'adventure-main', label: '모험', build: buildAdventure }],
+    tabs: [
+      {
+        id: 'adventure-main',
+        label: t('adventure.tab.main', undefined, '모험'),
+        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        build: function (container: HTMLElement): void {
+          void loadNamespace('adventure').then(function () {
+            buildAdventure(container);
+          });
+        },
+      },
+    ],
   });
 })();
