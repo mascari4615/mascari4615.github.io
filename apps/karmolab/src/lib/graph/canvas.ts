@@ -457,6 +457,8 @@ export class GraphCanvas {
 
     // Pan (배경 누름) / drag (노드 누름) / pinch (손가락 둘)
     this.svg.addEventListener('pointerdown', (e) => {
+      // 사람이 손을 대면 진행 중인 미끄러짐은 그 자리에서 접는다 — 손과 화면이 싸우면 안 된다.
+      if (this.tween) { cancelAnimationFrame(this.tween); this.tween = 0; }
       // 손가락 두 개 = 핀치 줌. 첫 손가락이 시작한 드래그는 접고 확대·축소로 넘어간다.
       this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (this.activePointers.size === 2) {
@@ -2794,7 +2796,33 @@ export class GraphCanvas {
 
   /** 뷰를 world bbox 에 맞게 fit. */
   /** 준 노드들만 화면에 꽉 채운다 — 발표에서 「이 장의 인물들」로 줌인할 때. */
-  fitToNodes(ids: string[], pad = 80): void {
+  /**
+   * 화면을 목표 자리로 **미끄러뜨린다** (TASK-KL-202, Prezi 계보). 장에서 장으로 톡 끊어 점프하면
+   * 「어디에서 어디로 갔는지」가 안 남아 발표를 듣는 쪽이 매번 지도를 다시 그린다.
+   *
+   * 새 이동이 들어오면 앞 이동은 그 자리에서 접는다 — 두 트윈이 겹치면 화면이 떤다.
+   * 사람이 손으로 끌면(=다음 pointerdown) 트윈은 스스로 물러난다.
+   */
+  private tween = 0;
+
+  animateTo(target: { tx: number; ty: number; scale: number }, ms = 420): void {
+    if (this.tween) cancelAnimationFrame(this.tween);
+    const from = { tx: this.state.tx, ty: this.state.ty, scale: this.state.scale };
+    const t0 = performance.now();
+    const step = (now: number): void => {
+      const k = Math.min(1, (now - t0) / ms);
+      // ease-in-out — 시작과 끝이 부드러워야 「빨려 들어갔다 놓인다」로 읽힌다.
+      const e = k < 0.5 ? 2 * k * k : 1 - ((-2 * k + 2) ** 2) / 2;
+      this.state.tx = from.tx + (target.tx - from.tx) * e;
+      this.state.ty = from.ty + (target.ty - from.ty) * e;
+      this.state.scale = from.scale + (target.scale - from.scale) * e;
+      this.applyTransform();
+      this.tween = k < 1 ? requestAnimationFrame(step) : 0;
+    };
+    this.tween = requestAnimationFrame(step);
+  }
+
+  fitToNodes(ids: string[], pad = 80, animate = false): void {
     if (!this.spec || ids.length === 0) { this.fitView(); return; }
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const id of ids) {
@@ -2808,9 +2836,16 @@ export class GraphCanvas {
     const h = Math.max(1, maxY - minY);
     const svgW = this.svg.clientWidth || 800;
     const svgH = this.svg.clientHeight || 600;
-    this.state.scale = Math.max(0.1, Math.min(2, Math.min((svgW - pad * 2) / w, (svgH - pad * 2) / h)));
-    this.state.tx = svgW / 2 - (minX + w / 2) * this.state.scale;
-    this.state.ty = svgH / 2 - (minY + h / 2) * this.state.scale;
+    const scale = Math.max(0.1, Math.min(2, Math.min((svgW - pad * 2) / w, (svgH - pad * 2) / h)));
+    const target = {
+      scale,
+      tx: svgW / 2 - (minX + w / 2) * scale,
+      ty: svgH / 2 - (minY + h / 2) * scale,
+    };
+    if (animate) { this.animateTo(target); return; }
+    this.state.scale = target.scale;
+    this.state.tx = target.tx;
+    this.state.ty = target.ty;
     this.applyTransform();
   }
 

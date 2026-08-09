@@ -798,6 +798,49 @@ await step('틀로 담은 장은 나중에 놓은 인물도 함께 데려간다'
   page.off('dialog', onDlg);
   if (dimmedBefore < 0) throw new Error('불가능');
 });
+await step('장을 넘기면 화면이 끊기지 않고 미끄러진다', async () => {
+  // 「목적지에 닿았나」만 보면 점프도 통과한다 — **중간 프레임이 목적지와 다른지**를 봐야 미끄러짐이다.
+  // 화면 자리 = 세계 레이어의 matrix. 빈 문자열이 나오면 잘못 짚은 것이므로 그대로 실패시킨다.
+  const viewOf = async () => {
+    const t = await page.evaluate(() => {
+      const g = [...document.querySelectorAll('.km-canvas svg g')]
+        .find((el) => (el.getAttribute('transform') || '').startsWith('matrix('));
+      return g ? g.getAttribute('transform') : '';
+    });
+    if (!t) throw new Error('세계 레이어 transform 을 못 찾았다');
+    return t;
+  };
+  let n = 0;
+  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '미끄럼 ' + n : ''); };
+  page.on('dialog', onDlg);
+  await page.locator('[data-km="story"]').dispatchEvent('click');
+  await page.waitForSelector('.km-root.is-presenting', { timeout: 4000 });
+  await page.locator('[data-km="stage-add"]').dispatchEvent('click');
+  await page.waitForTimeout(500);
+  // 두 장이 **같은 자리**면 「화면이 그대로」가 당연하다 — 사이에 화면을 옮겨 서로 다른 장으로 만든다.
+  const pbox = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.move(pbox.x + pbox.width * 0.7, pbox.y + pbox.height * 0.7);
+  await page.mouse.down();
+  await page.mouse.move(pbox.x + pbox.width * 0.3, pbox.y + pbox.height * 0.35, { steps: 8 });
+  await page.mouse.up();
+  await page.waitForTimeout(300);
+  await page.locator('[data-km="stage-add"]').dispatchEvent('click');
+  await page.waitForFunction(() => document.querySelectorAll('[data-km="stage-go"]').length >= 2, null, { timeout: 5000 });
+
+  await page.locator('[data-km="stage-go"]').first().dispatchEvent('click');
+  await page.waitForTimeout(500);
+  const settled0 = await viewOf();
+  await page.locator('[data-km="stage-go"]').last().dispatchEvent('click');
+  await page.waitForTimeout(80);
+  const mid = await viewOf();
+  await page.waitForTimeout(700);
+  const settled1 = await viewOf();
+  page.off('dialog', onDlg);
+  await page.locator('[data-km="stage-exit"]').dispatchEvent('click');
+  await page.waitForSelector('.km-root:not(.is-presenting)', { timeout: 4000 });
+  if (settled0 === settled1) throw new Error('장이 바뀌었는데 화면이 그대로다');
+  if (mid === settled1) throw new Error('중간 프레임이 벌써 목적지다 — 미끄러진 게 아니라 점프');
+});
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
   await page.click('[data-km="tab"][data-key="notes"]');
