@@ -18,8 +18,12 @@ import { ensureLocal, localChoices, sharedChoices } from '../lib/pack-choices';
 import { mountPlayBoard, renderPlayResult, submitPlay, type PlaySpec } from '../lib/plays';
 import { variantFor } from '../lib/shared-packs';
 import { onPageActive, takePick } from './pack-pick';
+import { t, loadNamespace } from '../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   type Val = string | string[] | number;
   interface Item {
     name: string;
@@ -62,15 +66,15 @@ import { onPageActive, takePick } from './pack-pick';
   };
 
   const TOPICS: Array<{ id: string; title: string; emoji: string }> = [
-    { id: 'pokemon', title: '포켓몬', emoji: '🔴' },
-    { id: 'lol', title: '롤 챔피언', emoji: '⚔️' },
-    { id: 'genshin', title: '원신 캐릭터', emoji: '🌠' }
+    { id: 'pokemon', title: t('twenty.t09'), emoji: '🔴' },
+    { id: 'lol', title: t('twenty.t10'), emoji: '⚔️' },
+    { id: 'genshin', title: t('twenty.t11'), emoji: '🌠' }
   ];
   /** 「세대이(가)」는 사람이 쓰는 말이 아니다 — 받침을 보고 이/가를 고른다. */
   function ga(word: string): string {
     const last = word.charCodeAt(word.length - 1);
     const hangul = last >= 0xac00 && last <= 0xd7a3;
-    return word + (hangul && (last - 0xac00) % 28 !== 0 ? '이' : '가');
+    return word + (hangul && (last - 0xac00) % 28 !== 0 ? t('twenty.t12') : t('twenty.t13'));
   }
 
   const MAX_ASK = 20;
@@ -78,9 +82,9 @@ import { onPageActive, takePick } from './pack-pick';
 
   Toolbox.register({
     id: 'twenty',
-    title: '스무고개',
+    title: t('widgets.twenty.title', undefined, "스무고개"),
     category: 'tool',
-    desc: '하나를 마음에 정하세요. 스무 번 안에 맞혀 보겠습니다 — 포켓몬·롤·원신',
+    desc: t('widgets-desc.twenty.desc', undefined, "하나를 마음에 정하세요. 스무 번 안에 맞혀 보겠습니다 — 포켓몬·롤·원신"),
     // 커뮤니티와 같은 틀 — 넓게 쓰고 도구 제목 카드는 안 그린다.
     layout: 'wide',
     noHero: true,
@@ -89,22 +93,24 @@ import { onPageActive, takePick } from './pack-pick';
     tabs: [
       {
         id: 'app',
-        label: '스무고개',
+        label: t('twenty.t14', undefined, "스무고개"),
         build: function (container: HTMLElement): void {
-          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: '하나만 마음에 정해 보세요. 제가 맞혀 볼게요.' });
+          void loadNamespace('twenty').then(function () {
+
+          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: t('twenty.t16') });
           container.innerHTML = `
             <div class="field-group">
-              <div class="tool-sublabel">무엇을 생각할까요</div>
-              <div id="twTopics" class="hi-chips" role="group" aria-label="주제 고르기"></div>
+              <div class="tool-sublabel">${esc(t('twenty.t01'))}</div>
+              <div id="twTopics" class="hi-chips" role="group" aria-label="${esc(t('twenty.aria.twTopics'))}"></div>
             </div>
-            <p class="tw-lead">하나를 마음에 정하세요. 스무 번 안에 맞혀 보겠습니다.</p>
+            <p class="tw-lead">${esc(t('twenty.t02'))}</p>
             <section class="tw-card">
-              <div class="tw-head"><span id="twCount">준비 중…</span><span id="twLeft"></span></div>
-              <p class="tw-q" id="twQ">표를 불러오는 중…</p>
+              <div class="tw-head"><span id="twCount">${esc(t('twenty.label.twCount'))}</span><span id="twLeft"></span></div>
+              <p class="tw-q" id="twQ">${esc(t('twenty.label.twQ'))}</p>
               <div class="tw-row" id="twRow">
-                <button type="button" class="btn btn-primary" data-say="yes">예</button>
-                <button type="button" class="btn btn-ghost" data-say="no">아니오</button>
-                <button type="button" class="btn btn-ghost" data-say="skip">모르겠어요</button>
+                <button type="button" class="btn btn-primary" data-say="yes">${esc(t('twenty.t03'))}</button>
+                <button type="button" class="btn btn-ghost" data-say="no">${esc(t('twenty.t04'))}</button>
+                <button type="button" class="btn btn-ghost" data-say="skip">${esc(t('twenty.t05'))}</button>
               </div>
               <div class="tw-guess" id="twGuess" hidden></div>
               <p class="tool-status" id="twMsg" aria-live="polite"></p>
@@ -112,11 +118,11 @@ import { onPageActive, takePick } from './pack-pick';
               <p id="twRecord" hidden></p>
               <div id="twBoard" hidden></div>
               <div class="tw-after" id="twAfter" hidden>
-                <button type="button" class="btn btn-primary" id="twAgain">다시</button>
-                <button type="button" class="btn btn-ghost" id="twShare">결과 복사</button>
+                <button type="button" class="btn btn-primary" id="twAgain">${esc(t('twenty.btn.twAgain'))}</button>
+                <button type="button" class="btn btn-ghost" id="twShare">${esc(t('twenty.btn.twShare'))}</button>
               </div>
             </section>
-            <details class="tw-log" id="twLog" hidden><summary>지금까지 물어본 것</summary><ol id="twLogList"></ol></details>
+            <details class="tw-log" id="twLog" hidden><summary>${esc(t('twenty.t06'))}</summary><ol id="twLogList"></ol></details>
           `;
 
           const $ = (id: string) => container.querySelector<HTMLElement>('#' + id)!;
@@ -134,8 +140,6 @@ import { onPageActive, takePick } from './pack-pick';
           let loadSeq = 0;
           const refused: string[] = []; // 「아니에요」를 들은 추측 — 다시 내밀지 않는다
 
-          const esc = (s: string): string =>
-            String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
           /* ── 질문 만들기 ─────────────────────────────
            * 남은 후보만 보고 만든다. 「전기 타입인가요?」를 물어도 남은 후보에 전기가 하나도
@@ -154,7 +158,7 @@ import { onPageActive, takePick } from './pack-pick';
                 if (mid === nums[0]) continue; // 다 같은 값 — 못 가른다
                 const shown = Number.isInteger(mid) ? String(mid) : mid.toFixed(1);
                 out.push({
-                  text: `${ga(f.label)} ${shown}${f.unit || ''} 보다 큰가요?`,
+                  text: t('twenty.q.greater', { subject: ga(f.label), label: f.label, n: shown, unit: f.unit || '' }),
                   hard: HARD[f.key] ?? 0.5,
                   hit: (it) => typeof it[f.key] === 'number' && (it[f.key] as number) > mid
                 });
@@ -172,8 +176,8 @@ import { onPageActive, takePick } from './pack-pick';
                 out.push({
                   text:
                     kind === 'set'
-                      ? `${f.label}에 「${v}」 이(가) 있나요?`.replace('이(가)', ga(v).slice(v.length))
-                      : `${ga(f.label)} 「${v}」 인가요?`,
+                      ? t('twenty.q.has', { label: f.label, v }).replace(t('twenty.t17'), ga(v).slice(v.length))
+                      : t('twenty.q.is', { subject: ga(f.label), label: f.label, v }),
                   hard: HARD[f.key] ?? 0,
                   hit: (it) => {
                     const x = it[f.key];
@@ -241,7 +245,7 @@ import { onPageActive, takePick } from './pack-pick';
             variant:
               id.indexOf('pack:') === 0 ? variantFor(getPack(id.slice(5)) ?? { id: id.slice(5) }) : id,
             better: 'low',
-            unit: '개',
+            unit: t('twenty.t18'),
             decimals: 0
           });
 
@@ -250,7 +254,7 @@ import { onPageActive, takePick } from './pack-pick';
             guessing = null;
             $('twRow').hidden = true;
             $('twGuess').hidden = true;
-            $('twQ').textContent = win ? '맞혔습니다!' : '졌습니다.';
+            $('twQ').textContent = win ? t('twenty.t19') : t('twenty.t20');
             $('twMsg').textContent = msg;
             $('twAfter').hidden = false;
             $('twLeft').textContent = '';
@@ -274,7 +278,7 @@ import { onPageActive, takePick } from './pack-pick';
           function tryGuess(): boolean {
             const live = pool.filter((it) => refused.indexOf(it.name) < 0);
             if (!live.length) {
-              endRound('제 표에 없는 것 같아요. 알려 주시면 다음엔 맞힐게요.', false);
+              endRound(t('twenty.t21'), false);
               return true;
             }
             if (live.length > 2 && asked < MAX_ASK && bestAsk()) return false;
@@ -284,9 +288,9 @@ import { onPageActive, takePick } from './pack-pick';
             $('twGuess').innerHTML =
               `<div class="tw-face">${guessing.img ? `<img src="${esc(String(guessing.img))}" alt="">` : ''}` +
               `<strong>${esc(guessing.name)}</strong></div>` +
-              `<div class="tw-row"><button type="button" class="btn btn-primary" data-hit="yes">맞아요</button>` +
-              `<button type="button" class="btn btn-ghost" data-hit="no">아니에요</button></div>`;
-            $('twQ').textContent = '혹시 이것인가요?';
+              `<div class="tw-row"><button type="button" class="btn btn-primary" data-hit="yes">${esc(t('twenty.t07'))}</button>` +
+              `<button type="button" class="btn btn-ghost" data-hit="no">${esc(t('twenty.t08'))}</button></div>`;
+            $('twQ').textContent = t('twenty.t22');
             return true;
           }
 
@@ -298,8 +302,8 @@ import { onPageActive, takePick } from './pack-pick';
               return;
             }
             $('twQ').textContent = cur.text;
-            $('twCount').textContent = `${asked + 1}번째 질문`;
-            $('twLeft').textContent = `후보 ${pool.length}`;
+            $('twCount').textContent = t('twenty.nthQuestion', { n: asked + 1 });
+            $('twLeft').textContent = t('twenty.candidates', { n: pool.length });
             $('twRow').hidden = false;
             $('twGuess').hidden = true;
           }
@@ -309,12 +313,12 @@ import { onPageActive, takePick } from './pack-pick';
             const q = cur;
             asked++;
             askedText.add(q.text);
-            history.push(`${q.text} → ${kind === 'yes' ? '예' : kind === 'no' ? '아니오' : '모르겠어요'}`);
+            history.push(`${q.text} → ${kind === 'yes' ? t('twenty.t03') : kind === 'no' ? t('twenty.t04') : t('twenty.t05')}`);
             if (kind !== 'skip') {
               const keep = pool.filter((it) => (kind === 'yes' ? q.hit(it) : !q.hit(it)));
               // 대답이 표와 어긋나 후보가 0이 되면 놀이가 죽는다 — 그 대답만 흘려보낸다.
               if (keep.length) pool = keep;
-              else $('twMsg').textContent = '음… 그 답이면 남는 게 없네요. 방금 건 없던 걸로 할게요.';
+              else $('twMsg').textContent = t('twenty.t23');
             }
             paintLog();
             if (asked >= MAX_ASK) {
@@ -332,20 +336,20 @@ import { onPageActive, takePick } from './pack-pick';
             const b = (e.target as HTMLElement).closest('[data-hit]') as HTMLElement | null;
             if (!b || !guessing) return;
             if (b.dataset.hit === 'yes') {
-              endRound(`${asked}번 만에 맞혔습니다.`, true);
+              endRound(t('twenty.gotItIn', { n: asked }), true);
               return;
             }
             // 아니라면 그것만 빼고 계속 — 남은 것이 없으면 그때 진다.
             refused.push(guessing.name);
             pool = pool.filter((it) => it.name !== guessing!.name);
-            $('twMsg').textContent = '아, 아니군요. 계속해 볼게요.';
+            $('twMsg').textContent = t('twenty.t24');
             $('twGuess').hidden = true;
             nextAsk();
           });
 
           $('twAgain').addEventListener('click', () => start(topicId));
           $('twShare').addEventListener('click', () => {
-            const t = chips.filter((x) => x.id === topicId)[0];
+            const chip = chips.filter((x) => x.id === topicId)[0];
             /* 내 표로 논 결과를 자랑하면 받은 사람에게는 그 표가 없다 — 열어도 남의 표로 놀게 된다.
              * 그래서 내 표일 때는 **표를 실은 주소**를 준다. 그러면 누르는 순간 표까지 따라온다. */
             const mine = topicId.indexOf('pack:') === 0 ? getPack(topicId.slice(5)) : null;
@@ -353,11 +357,11 @@ import { onPageActive, takePick } from './pack-pick';
               ? `blog.mascari4615.com/karmolab/?pack=${packToCode(mine)}#twenty`
               : 'blog.mascari4615.com/karmolab/#twenty';
             const text =
-              `KarmoLab 스무고개 — ${t ? t.title : ''}\n` +
-              `${asked}번 만에 ${$('twQ').textContent === '맞혔습니다!' ? '맞힘' : '못 맞힘'}\n` +
+              `KarmoLab 스무고개 — ${chip ? chip.title : ''}\n` +
+              `${asked}번 만에 ${$('twQ').textContent === t('twenty.t19') ? t('twenty.t25') : t('twenty.t26')}\n` +
               url;
             void navigator.clipboard.writeText(text).then(() => {
-              $('twShare').textContent = '복사했습니다';
+              $('twShare').textContent = t('twenty.t27');
             });
           });
 
@@ -372,8 +376,8 @@ import { onPageActive, takePick } from './pack-pick';
             $('twAfter').hidden = true;
             $('twCourse').hidden = true;
             $('twMsg').textContent = '';
-            $('twShare').textContent = '결과 복사';
-            $('twQ').textContent = '표를 불러오는 중…';
+            $('twShare').textContent = t('twenty.btn.twShare');
+            $('twQ').textContent = t('twenty.label.twQ');
             $('twRow').hidden = true;
             $('twGuess').hidden = true;
             const mine = id.indexOf('pack:') === 0 ? getPack(id.slice(5)) : null;
@@ -392,8 +396,8 @@ import { onPageActive, takePick } from './pack-pick';
               })
               .catch(() => {
                 if (mySeq !== loadSeq) return;
-                $('twQ').textContent = '표를 못 불러왔습니다.';
-                $('twMsg').textContent = '인터넷이 잠깐 끊겼을 수 있어요.';
+                $('twQ').textContent = t('twenty.t28');
+                $('twMsg').textContent = t('twenty.t29');
               });
           }
 
@@ -403,24 +407,24 @@ import { onPageActive, takePick } from './pack-pick';
 
           function drawChips(active: string): void {
             $('twTopics').innerHTML = '';
-            chips.forEach((t) => {
+            chips.forEach((chip) => {
               const btn = document.createElement('button');
               btn.type = 'button';
-              btn.textContent = `${t.emoji} ${t.title}`;
-              btn.setAttribute('aria-pressed', String(t.id === active));
+              btn.textContent = `${chip.emoji} ${chip.title}`;
+              btn.setAttribute('aria-pressed', String(chip.id === active));
               btn.addEventListener('click', () => {
                 [...$('twTopics').children].forEach((c) => c.setAttribute('aria-pressed', 'false'));
                 btn.setAttribute('aria-pressed', 'true');
                 /* 남의 표는 고른 그때 받아 들인다 (TASK-KL-150 ②). */
-                if (t.id.indexOf('shared:') === 0) {
-                  void ensureLocal(t.id).then((got) => {
+                if (chip.id.indexOf('shared:') === 0) {
+                  void ensureLocal(chip.id).then((got) => {
                     if (!got) return;
-                    t.id = got;
+                    chip.id = got;
                     start(got);
                   });
                   return;
                 }
-                start(t.id);
+                start(chip.id);
               });
               $('twTopics').appendChild(btn);
             });
@@ -432,7 +436,7 @@ import { onPageActive, takePick } from './pack-pick';
             drawChips(active);
             void sharedChoices('number').then((rows) => {
               if (!container.isConnected || !rows.length) return;
-              chips = chips.concat(rows.map((c) => ({ id: c.id, title: `${c.title} · ${c.owner ?? '남의 표'}`, emoji: c.emoji })));
+              chips = chips.concat(rows.map((c) => ({ id: c.id, title: `${c.title} · ${c.owner ?? t('twenty.t30')}`, emoji: c.emoji })));
               drawChips(active);
             });
           }
@@ -447,6 +451,7 @@ import { onPageActive, takePick } from './pack-pick';
 
           onPageActive(container, () => useHandoff(topicId || TOPICS[0].id));
           useHandoff(TOPICS[0].id);
+                  });
         }
       }
     ]
