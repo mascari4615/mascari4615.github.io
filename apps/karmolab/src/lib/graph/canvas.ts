@@ -42,6 +42,7 @@ import { nodeBadges } from './canvas-badges';
 import { buildChildCard } from './canvas-children';
 import { buildCardText } from './canvas-card';
 import { buildCanvasDom } from './canvas-dom';
+import { applyFocusClasses } from './canvas-focus';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
@@ -1793,24 +1794,10 @@ export class GraphCanvas {
   }
 
   private applyFocus(): void {
-    const ids = this.focusIds;
-    this.nodeLayer.querySelectorAll('.ck-node').forEach((el) => {
-      const g = el as SVGGElement;
-      g.classList.toggle('is-dimmed', !!ids && !ids.has(g.dataset.id ?? ''));
-    });
-    const edgeOn = (edgeId: string): boolean => {
-      if (!ids) return true;
+    // 흐리게 하는 규칙(양끝이 다 또렷할 때만 선도 또렷)은 canvas-focus 가 안다.
+    applyFocusClasses(this.nodeLayer, this.edgeLayer, this.focusIds, (edgeId) => {
       const e = this.spec?.edges.find((x) => x.id === edgeId);
-      if (!e) return true;
-      return ids.has(this.parseNodeRef(e.from)) && ids.has(this.parseNodeRef(e.to));
-    };
-    this.edgeLayer.querySelectorAll('.ck-edge, .ck-edge-label, .ck-edge-grip, .ck-edge-end').forEach((el) => {
-      const node = el as SVGElement;
-      const id = (node as SVGElement & { dataset: DOMStringMap }).dataset.edgeId ?? '';
-      node.classList.toggle('is-dimmed', !!ids && !edgeOn(id));
-    });
-    this.edgeLayer.querySelectorAll('.ck-leader').forEach((el) => {
-      (el as SVGElement).classList.toggle('is-dimmed', !!ids);
+      return e ? { from: this.parseNodeRef(e.from), to: this.parseNodeRef(e.to) } : null;
     });
   }
 
