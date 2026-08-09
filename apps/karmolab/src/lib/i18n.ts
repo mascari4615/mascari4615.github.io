@@ -229,6 +229,11 @@ function split(key: string): [string, string] {
 
 const warned = new Set<string>();
 
+/** `{이름}` 자리를 채운다 — 글을 찾은 경우와 기본값을 쓰는 경우가 같은 규칙이어야 한다. */
+function fill(raw: string, vars: Record<string, string | number>): string {
+  return raw.replace(/\{(\w+)\}/g, (whole, name: string) => (name in vars ? String(vars[name]) : whole));
+}
+
 function lookup(key: string): string | null {
   const [ns] = split(key);
   const code = locale();
@@ -252,19 +257,28 @@ function lookup(key: string): string | null {
  * 「3개 남음」과 「3 left」는 순서가 같지만, 「방금 전」·「3 minutes ago」처럼 조각을 앞뒤로
  * 옮겨야 하는 말이 많다. 한 문장을 통째로 열쇠 하나에 두고 자리만 뚫어야 번역이 가능해진다.
  */
-export function t(key: string, vars?: Record<string, string | number>): string {
+export function t(key: string, vars?: Record<string, string | number>, fallback?: string): string {
   const raw = lookup(key);
   if (raw == null) {
+    /**
+     * **아직 안 받아온 자리를 위한 대비책** (TASK-KL-203 S9-b).
+     *
+     * 대부분의 글은 「받아온 뒤에 그린다」로 해결된다. 그런데 **도구를 등록하는 순간** 쓰이는
+     * 글이 하나 있다 — 탭 이름이다. 등록은 파일이 실려 오자마자 일어나므로 기다릴 자리가 없다.
+     * 그 언어 장에는 말이 머리말에 박혀 있어 바로 찾지만, 한국어 화면에는 아무것도 안 박는다
+     * (원본 언어라 박을 이유가 없다) — 그래서 그 자리만 열쇠 이름이 뜬다.
+     *
+     * 부르는 쪽이 원본 글을 함께 주면 그 문제가 사라진다. 열쇠는 이미 묶음에 있으므로
+     * 「안 빼낸 글」이 아니다 — 기다릴 수 없는 자리의 **기본값**이다.
+     */
+    if (fallback != null) return vars ? fill(fallback, vars) : fallback;
     if (!warned.has(key)) {
       warned.add(key);
       console.warn(`[i18n] 없는 열쇠: ${key}`);
     }
     return key;
   }
-  if (!vars) return raw;
-  return raw.replace(/\{(\w+)\}/g, (whole, name: string) =>
-    name in vars ? String(vars[name]) : whole
-  );
+  return vars ? fill(raw, vars) : raw;
 }
 
 /**

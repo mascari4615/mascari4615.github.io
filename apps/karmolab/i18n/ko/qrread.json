@@ -32,5 +32,6 @@
   "qrread.status.cameraOff": "카메라를 껐어요.",
   "qrread.status.readError": "읽는 중 문제가 생겼어요: {message}",
   "qrread.status.cameraError": "카메라를 켜지 못했어요: {message}",
-  "qrread.copied": "읽은 내용을 복사했어요"
+  "qrread.copied": "읽은 내용을 복사했어요",
+  "qrread.tab": "QR 읽기"
 }

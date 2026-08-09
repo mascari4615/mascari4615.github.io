@@ -32,5 +32,6 @@
   "qrread.status.cameraOff": "カメラを止めました。",
   "qrread.status.readError": "読み取り中に問題が起きました: {message}",
   "qrread.status.cameraError": "カメラを起動できませんでした: {message}",
-  "qrread.copied": "読み取った内容をコピーしました"
+  "qrread.copied": "読み取った内容をコピーしました",
+  "qrread.tab": "QR を読む"
 }

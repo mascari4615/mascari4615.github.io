@@ -54,7 +54,8 @@ import { t, loadNamespace } from '../../lib/i18n';
     tabs: [
       {
         id: 'app',
-        label: '용량 줄이기',
+        /* 등록 순간에 쓰이는 유일한 글 — 기다릴 자리가 없어 원본을 기본값으로 함께 준다. */
+        label: t('pdfcompress.tab', undefined, '용량 줄이기'),
         /* 도구의 *자기 화면*은 스크립트가 그린다 — 말을 받아온 **뒤에** 그린다.
            안 기다리고 그리면 화면에 열쇠 이름이 그대로 뜬다 (qrread 에서 확인한 것과 같다). */
         build: function (container: HTMLElement): void {

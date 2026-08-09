@@ -41,5 +41,6 @@
   "pdfcompress.error.preview": "미리 보는 중 문제가 생겼어요: {message}",
   "pdfcompress.error.run": "줄이는 중 문제가 생겼어요: {message}",
   "pdfcompress.file.suffix": "-작게.pdf",
-  "pdfcompress.status.saved": "내려받았어요."
+  "pdfcompress.status.saved": "내려받았어요.",
+  "pdfcompress.tab": "용량 줄이기"
 }
