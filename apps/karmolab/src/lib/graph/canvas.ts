@@ -1510,15 +1510,21 @@ export class GraphCanvas {
     }
 
     // 설명이 붙어 있으면 카드 모서리에 작은 표식을 둔다 — 안 그러면 「어디에 써 뒀더라」가 된다.
+    // 남과 **나눠 쓰는 글**이면 표식을 달리한다(🔗+쓰는 곳 수): 여기서 고치면 저기도 바뀐다는
+    // 사실을 카드만 보고 알 수 있어야, 모르고 고쳐 남의 카드가 바뀌는 사고가 안 난다.
+    const sharedUsers = node.docRef && this.spec
+      ? this.spec.nodes.filter((x) => x.docRef === node.docRef).length
+        + this.spec.edges.filter((x) => x.docRef === node.docRef).length
+      : 0;
     if ((node.doc ?? '').trim() || node.docRef) {
       const mark = document.createElementNS(SVG_NS, 'text');
-      mark.setAttribute('x', String(node.w - 9));
+      mark.setAttribute('x', String(node.w - (sharedUsers > 1 ? 14 : 9)));
       mark.setAttribute('y', '12');
       mark.setAttribute('text-anchor', 'middle');
       mark.setAttribute('font-size', '9');
       mark.setAttribute('opacity', '0.75');
       mark.setAttribute('pointer-events', 'none');
-      mark.textContent = '📄';
+      mark.textContent = sharedUsers > 1 ? `🔗${sharedUsers}` : node.docRef ? '🔗' : '📄';
       g.appendChild(mark);
     }
 

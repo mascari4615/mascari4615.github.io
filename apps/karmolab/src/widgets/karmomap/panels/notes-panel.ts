@@ -35,6 +35,7 @@ export function renderNotesPanel(ctx: PanelCtx): void {
               <span class="km-link-name">${esc(head || '(빈 글)')}</span>
               <span class="km-group-count">${users}곳</span>
               <button class="btn btn-ghost" data-km="note-go" data-key="${esc(n.id)}"${users === 0 ? ' disabled' : ''}>가기</button>
+              <button class="btn btn-ghost" data-km="note-show" data-key="${esc(n.id)}"${users < 2 ? ' disabled' : ''}>쓰는 곳 다 보기</button>
             </div>
           </div>`;
         }).join('')}
@@ -55,6 +56,17 @@ export function renderNotesPanel(ctx: PanelCtx): void {
       const id = (el as HTMLElement).dataset.key ?? '';
       const owner = ctx.spec().nodes.find((n) => n.docRef === id);
       if (owner) ctx.focusNode(owner.id);
+    };
+  });
+  // 「가기」는 한 곳만 보여 준다. 같은 글을 **여럿이 나눠 쓴다**는 사실 자체가 이 기능의 값이라,
+  // 쓰는 자리를 한 화면에 모아 또렷하게 만드는 손이 따로 있어야 한다.
+  side.querySelectorAll('[data-km="note-show"]').forEach((el) => {
+    (el as HTMLButtonElement).onclick = () => {
+      const id = (el as HTMLElement).dataset.key ?? '';
+      const ids = ctx.spec().nodes.filter((n) => n.docRef === id).map((n) => n.id);
+      if (ids.length === 0) return;
+      ctx.canvas()?.setFocus(new Set(ids));
+      ctx.canvas()?.fitToNodes(ids, 160);
     };
   });
   const prune = side.querySelector('[data-km="note-prune"]') as HTMLButtonElement | null;
