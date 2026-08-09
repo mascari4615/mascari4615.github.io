@@ -48,6 +48,7 @@ import {
     { id: 'rect', label: '카드', icon: '▭' },
     { id: 'circle', label: '동그라미', icon: '◯' },
     { id: 'bubble', label: '말풍선', icon: '💬' },
+    { id: 'note', label: '메모', icon: '📝' },
   ];
 
   Mdd.injectCSS(
@@ -86,6 +87,8 @@ import {
     .km-avatar-row input[type=color] { width:34px; height:28px; padding:0; border:1px solid var(--border);
       border-radius:var(--radius-sm); background:var(--bg-tertiary); cursor:pointer; }
     .km-avatar-row .btn { padding:4px 8px; }
+    .km-tilt-val { color:var(--text-tertiary); }
+    .km-side input[type=range] { width:100%; }
     .km-empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
       color:var(--text-tertiary); font-size:var(--font-size-sm); text-align:center; pointer-events:none;
       padding:24px; line-height:1.7; }
@@ -314,6 +317,8 @@ import {
         if (node.avatar) h += 26;
         w = Math.max(w + 24, h + 24);
       }
+      // 메모는 글이 주인공이라 여유를 더 준다.
+      if (shape === 'note') w += 16;
       node.w = Math.round(w);
       node.h = Math.round(h);
     }
@@ -480,6 +485,10 @@ import {
           </select>
         </div>
         <div class="km-field">
+          <label>기울기 <span class="km-tilt-val">${Math.round(node.rotate ?? 0)}°</span></label>
+          <input type="range" data-km="edit-rotate" min="-20" max="20" step="1" value="${Math.round(node.rotate ?? 0)}" />
+        </div>
+        <div class="km-field">
           <label>얼굴</label>
           <div class="km-avatar-row">
             <input type="text" data-km="edit-emoji" maxlength="4" placeholder="😀" value="${escapeAttr(node.avatar?.kind === 'emoji' ? node.avatar.value : '')}" />
@@ -514,6 +523,7 @@ import {
                   .join('')
           }
         </div>
+        <button class="btn btn-ghost" data-km="node-copy">⧉ 이 노드 복제</button>
         <button class="btn btn-danger" data-km="node-del">노드 삭제</button>`;
 
       // 이름 편집 — 입력할 때마다 반영 (폭도 같이 조정)
@@ -544,6 +554,33 @@ import {
       (sideEl.querySelector('[data-km="edit-group"]') as HTMLSelectElement).onchange = (ev) => {
         const v = (ev.target as HTMLSelectElement).value;
         node.group = v === '__new' ? createGroup().id : v;
+        applySpec();
+        persistStructure();
+        renderSide();
+      };
+
+      const rotateEl = sideEl.querySelector('[data-km="edit-rotate"]') as HTMLInputElement;
+      rotateEl.oninput = () => {
+        const deg = Number(rotateEl.value);
+        node.rotate = deg === 0 ? undefined : deg;
+        const out = sideEl.querySelector('.km-tilt-val');
+        if (out) out.textContent = `${deg}°`;
+        canvas?.render();
+        canvas?.setSelectedNode(node.id);
+        persistStructure();
+      };
+
+      // 복제 — 같은 설정 그대로 옆에 하나 더 (레퍼런스의 「カード複製」).
+      (sideEl.querySelector('[data-km="node-copy"]') as HTMLButtonElement).onclick = () => {
+        const taken = new Set(spec.nodes.map((n) => n.id));
+        const copy: GraphNode = {
+          ...JSON.parse(JSON.stringify(node)) as GraphNode,
+          id: nextId('node', taken),
+          x: node.x + 24,
+          y: node.y + 24,
+        };
+        spec.nodes.push(copy);
+        selectedId = copy.id;
         applySpec();
         persistStructure();
         renderSide();
