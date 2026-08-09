@@ -610,6 +610,23 @@ await step('공용 글 — 승격하면 목록에 뜨고, 둘째 자리에 붙�
   );
   await page.click('[data-km="tab"][data-key="node"]');
 });
+await step('공용 글을 캔버스에 쪽지로 놓으면 글이 그대로 보인다', async () => {
+  // 쪽지는 사본이 아니라 창이다 — 놓자마자 카드 안에 글자가 있어야 하고, 쓰는 곳 수가 하나 는다.
+  await page.click('[data-km="tab"][data-key="notes"]');
+  await page.waitForSelector('[data-km="note-card"]', { timeout: 4000 });
+  const beforeNodes = await page.locator('.ck-node').count();
+  await page.locator('[data-km="note-card"]').last().dispatchEvent('click');
+  await page.waitForFunction((n) => document.querySelectorAll('.ck-node').length === n + 1, beforeNodes, { timeout: 4000 });
+  await page.waitForFunction(
+    () => [...document.querySelectorAll('.ck-node text')].some((t) => (t.textContent || '').includes('대가를')),
+    null,
+    { timeout: 4000 }
+  );
+  await page.click('[data-km="tab"][data-key="notes"]');
+  const counts = await page.locator('.km-group-count').allTextContents();
+  if (!counts.some((c) => c.includes('3곳'))) throw new Error('쪽지를 놓았는데 쓰는 곳이 안 늘었다: ' + counts.join('/'));
+  await page.click('[data-km="tab"][data-key="node"]');
+});
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
   await page.click('[data-km="tab"][data-key="notes"]');

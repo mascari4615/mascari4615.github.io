@@ -27,7 +27,7 @@ import { HELP } from './help';
 import type { PanelCtx } from './panels/context';
 import { renderHelpPanel } from './panels/help-panel';
 import { renderSnaPanel } from './panels/sna-panel';
-import { resolveDoc } from '../../lib/graph/notes';
+import { resolveDoc, notesOf } from '../../lib/graph/notes';
 import { renderNotesPanel } from './panels/notes-panel';
 import { renderStoragePanel } from './panels/storage-panel';
 import { renderFilterPanel } from './panels/filter-panel';
@@ -767,6 +767,7 @@ import {
       edgeKindOptionsHtml: (sel) => edgeKindOptions(sel),
       selectedEdge: () => spec.edges.find((e) => e.id === selectedEdgeId),
       spawnNodeAt: (x, y, label) => spawnNodeAt(x, y, label),
+      spawnNoteCard: (noteId) => spawnNoteCard(noteId),
       resizeNode: (node) => resize(node),
       openAvatarPicker: (nodeId) => { avatarTargetId = nodeId; imgEl.click(); },
       removeEdge: (id) => {
@@ -1263,6 +1264,39 @@ import {
       }
     }
 
+
+    /**
+     * 공용 글을 **캔버스 위 쪽지로** 놓는다 (TASK-KL-202 노트 1급 객체).
+     * 지금까지 공용 글은 카드를 골라야만 읽혔다 — 세계관 설정처럼 「그림 옆에 늘 펼쳐 두고 싶은 글」이
+     * 갈 자리가 없었다. 쪽지는 글의 **사본이 아니라 창**이라, 쪽지에서 고치면 쓰는 자리가 전부 바뀐다.
+     */
+    function spawnNoteCard(noteId: string): void {
+      const note = notesOf(spec).find((n) => n.id === noteId);
+      if (!note) return;
+      const view = canvas?.viewCenterWorld() ?? { x: 0, y: 0 };
+      const taken = new Set(spec.nodes.map((n) => n.id));
+      const node: GraphNode = {
+        id: nextId('node', taken),
+        kind: lastNodeKind,
+        label: note.title || '메모',
+        group: '',
+        x: Math.round(view.x - 80),
+        y: Math.round(view.y - 40),
+        w: 180,
+        h: NODE_H,
+        ports: [],
+        shape: 'note',
+        docRef: note.id,
+      };
+      resize(node);
+      spec.nodes.push(node);
+      applySpec();
+      persistStructure();
+      selectedId = node.id;
+      sideMode = 'node';
+      renderSide();
+      canvas?.setSelectedNode(node.id);
+    }
 
     // ── 포커스 (격차 M) — 볼 것만 또렷하게 ──────────────────────────────────
     const findEl = q<HTMLInputElement>('find');
