@@ -255,6 +255,17 @@ await step('키보드로 고르고 옮긴다', async () => {
   if (Math.round(after.x - before.x) < 40) throw new Error('방향키로 안 움직였다: ' + Math.round(after.x - before.x));
   await page.keyboard.press('Escape');
 });
+await step('옆 패널 탭으로 아홉 패널을 오간다', async () => {
+  await page.waitForSelector('.km-tabs', { timeout: 4000 });
+  for (const key of ['groups', 'terms', 'filter', 'sna', 'storage', 'help', 'node']) {
+    await page.locator('[data-km="tab"][data-key="' + key + '"]').click();
+    await page.waitForFunction(
+      (k) => document.querySelector('[data-km="tab"][data-key="' + k + '"]')?.classList.contains('is-on') === true,
+      key,
+      { timeout: 4000 }
+    );
+  }
+});
 await step('도움말이 할 수 있는 일을 다 보여 준다', async () => {
   await page.click('[data-km="help"]');
   await page.waitForSelector('[data-km="help-close"]', { timeout: 4000 });
