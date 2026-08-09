@@ -1,0 +1,21 @@
+{
+  "numword.tab": "Convert",
+  "numword.label.num": "Number",
+  "numword.label.kor": "Korean numerals",
+  "numword.opt.formal": "Money style (spell out 일십 · 일백)",
+  "numword.btn.copyKor": "Copy Korean",
+  "numword.btn.copyMoney": "Copy money phrase",
+  "numword.btn.clear": "Clear",
+  "numword.status.idle": "Type in either box and the other follows.",
+  "numword.status.toKor": "Read the number in Korean.",
+  "numword.status.toNum": "Turned the Korean numerals back into digits.",
+  "numword.status.bad": "There is a character that can't be read as a Korean numeral.",
+  "numword.row.comma": "Grouped by thousands",
+  "numword.row.kor": "Korean",
+  "numword.row.money": "Money phrase",
+  "numword.row.digits": "Digits",
+  "numword.value.digits": "{n}",
+  "numword.copy.kor": "Korean copied",
+  "numword.copy.money": "Money phrase copied",
+  "numword.err.tooBig": "Too large (supported up to 경, 10^16)"
+}

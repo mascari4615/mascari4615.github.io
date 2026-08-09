@@ -5,6 +5,8 @@
  * 만·억·조 단위가 네 자리씩 끊기는 반면 우리가 숫자를 쓸 때는 세 자리마다 콤마라
  * **눈으로 세는 자리와 읽는 자리가 어긋나는** 게 실수의 원인이다. 기계가 끊게 한다.
  */
+import { t, loadNamespace, locale } from '../../lib/i18n';
+
 (function (): void {
   const DIGIT = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
   const SMALL = ['', '십', '백', '천'];
@@ -27,7 +29,7 @@
     const digits = num.replace(/[^\d]/g, '').replace(/^0+(?=\d)/, '');
     if (!digits) return '';
     if (digits === '0') return '영';
-    if (digits.length > 20) return '너무 큰 수예요 (경 단위까지 지원)';
+    if (digits.length > 20) return t('numword.err.tooBig');
 
     // 뒤에서 네 자리씩 끊는다 — 만·억·조가 네 자리 주기라서.
     const chunks: string[] = [];
@@ -73,37 +75,54 @@
 
   Toolbox.register({
     id: 'numword',
-    title: '숫자 ↔ 한글',
+    title: t('widgets.numword.title', undefined, '숫자 ↔ 한글'),
     category: 'tool',
-    desc: '숫자를 한글로 읽고 한글 수를 숫자로 되돌립니다. 계약서·영수증 금액 표기',
+    desc: t(
+      'widgets-desc.numword.desc',
+      undefined,
+      '숫자를 한글로 읽고 한글 수를 숫자로 되돌립니다. 계약서·영수증 금액 표기'
+    ),
     layout: 'form',
     icon: '<path d="M4 8h6M7 5v11M14 5h4a2 2 0 0 1 0 4h-2a2 2 0 0 0 0 4h4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '변환',
+        label: t('numword.tab', undefined, '변환'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('numword').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에 — 파일 실릴 때 그리면 이름 자리에 열쇠가 굳는다. */
+  function draw(container: HTMLElement): void {
+          /* 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
+          const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">숫자</label>
+              <label class="field-label">${esc(t('numword.label.num'))}</label>
               <input type="text" id="nwNum" spellcheck="false" placeholder="12340000" inputmode="numeric">
             </div>
             <div class="field-group">
-              <label class="field-label">한글</label>
+              <label class="field-label">${esc(t('numword.label.kor'))}</label>
               <input type="text" id="nwKor" spellcheck="false" placeholder="천이백삼십사만">
             </div>
             <div class="field-group">
               <label class="tool-chip" style="display:inline-flex; align-items:center;">
-                <input type="checkbox" id="nwFormal"> 금액 표기 (일십·일백까지 붙여 적기)
+                <input type="checkbox" id="nwFormal"> ${esc(t('numword.opt.formal'))}
               </label>
             </div>
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-ghost" id="nwCopyKor">한글 복사</button>
-              <button class="btn btn-ghost" id="nwCopyMoney">금액 문구 복사</button>
-              <button class="btn btn-ghost" id="nwClear">지우기</button>
+              <button class="btn btn-ghost" id="nwCopyKor">${esc(t('numword.btn.copyKor'))}</button>
+              <button class="btn btn-ghost" id="nwCopyMoney">${esc(t('numword.btn.copyMoney'))}</button>
+              <button class="btn btn-ghost" id="nwClear">${esc(t('numword.btn.clear'))}</button>
             </div>
             <div class="tool-list" id="nwOut"></div>
-            <div class="tool-status" id="nwStatus">어느 칸에 적어도 반대쪽이 따라 바뀝니다.</div>
+            <div class="tool-status" id="nwStatus">${esc(t('numword.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -126,10 +145,10 @@
             const n = Number(digits);
             const kor = toKorean(digits, formal.checked);
             out.innerHTML =
-              row('세 자리 콤마', n.toLocaleString('ko-KR')) +
-              row('한글', kor) +
-              row('금액 문구', `금 ${kor}원정`) +
-              row('자릿수', `${digits.length}자리`);
+              row(t('numword.row.comma'), n.toLocaleString(locale())) +
+              row(t('numword.row.kor'), esc(kor)) +
+              row(t('numword.row.money'), esc(`금 ${kor}원정`)) +
+              row(t('numword.row.digits'), t('numword.value.digits', { n: digits.length }));
           }
 
           function fromNum(): void {
@@ -138,7 +157,7 @@
             korEl.value = toKorean(numEl.value, formal.checked);
             syncing = false;
             render();
-            status.textContent = numEl.value ? '숫자를 한글로 읽었습니다.' : '어느 칸에 적어도 반대쪽이 따라 바뀝니다.';
+            status.textContent = numEl.value ? t('numword.status.toKor') : t('numword.status.idle');
             status.className = 'tool-status' + (numEl.value ? ' ok' : '');
             Toolbox.trackUse?.('to-korean');
           }
@@ -152,29 +171,26 @@
             numEl.value = n;
             syncing = false;
             render();
-            status.textContent = n ? '한글 수를 숫자로 되돌렸습니다.' : '한글 수로 읽을 수 없는 글자가 있어요.';
+            status.textContent = n ? t('numword.status.toNum') : t('numword.status.bad');
             status.className = 'tool-status' + (n ? ' ok' : ' error');
             Toolbox.trackUse?.('to-number');
           });
 
           $<HTMLButtonElement>('#nwCopyKor').onclick = () => {
-            if (korEl.value) void Toolbox.copyText?.(korEl.value, { message: '한글로 복사했어요' });
+            if (korEl.value) void Toolbox.copyText?.(korEl.value, { message: t('numword.copy.kor') });
           };
           $<HTMLButtonElement>('#nwCopyMoney').onclick = () => {
-            if (korEl.value) void Toolbox.copyText?.(`금 ${korEl.value}원정`, { message: '금액 문구를 복사했어요' });
+            if (korEl.value) void Toolbox.copyText?.(`금 ${korEl.value}원정`, { message: t('numword.copy.money') });
           };
           $<HTMLButtonElement>('#nwClear').onclick = () => {
             numEl.value = '';
             korEl.value = '';
             out.innerHTML = '';
-            status.textContent = '어느 칸에 적어도 반대쪽이 따라 바뀝니다.';
+            status.textContent = t('numword.status.idle');
             status.className = 'tool-status';
           };
 
           numEl.value = '12340000';
           fromNum();
-        }
-      }
-    ]
-  });
+  }
 })();
