@@ -2368,7 +2368,28 @@ export class GraphCanvas {
    * 꼬리표는 사람이 아무 말이나 붙이는 칸이라 색을 미리 정해 둘 수 없다 — 이름에서 **정해진 방식으로**
    * 뽑아 쓴다(같은 말이면 언제나 같은 색, 맵을 바꿔도 같다).
    */
+  /** 규칙에 맞는 것들 — 뒤에 있는 규칙이 이긴다(사람은 목록을 위에서 아래로 읽는다). */
+  private matchedRules(node: GraphNode): { color?: string; scale?: number } {
+    const out: { color?: string; scale?: number } = {};
+    for (const r of this.spec?.decorRules ?? []) {
+      let hit = false;
+      if (r.on === 'kind') hit = node.kind === r.value;
+      else if (r.on === 'tag') hit = (node.tags ?? []).includes(r.value ?? '');
+      else if (r.on === 'field') {
+        const v = (node.fields ?? {})[r.key ?? ''];
+        hit = v !== undefined && (!r.value || String(v).trim() === r.value);
+      }
+      if (!hit) continue;
+      if (r.color) out.color = r.color;
+      if (r.scale) out.scale = r.scale;
+    }
+    return out;
+  }
+
   private nodeColor(node: GraphNode): string {
+    // 규칙이 가장 세다 — 사람이 「이런 것은 이렇게」라고 **직접 적어 둔 것**이라서다.
+    const ruled = this.matchedRules(node).color;
+    if (ruled) return ruled;
     // 칸 값으로 물들이기가 먼저다 — 사람이 **방금 고른** 기준이라 꼬리표보다 뜻이 세다.
     if (this.decorate.colorByField) {
       const v = (node.fields ?? {})[this.decorate.colorByField];
@@ -2383,9 +2404,11 @@ export class GraphCanvas {
 
   /** 노드 크기 배율 — 연결이 많을수록 큼(최대 1.6배). 규칙이 꺼져 있으면 항상 1. */
   private sizeScale(nodeId: string): number {
-    if (!this.decorate.sizeByDegree) return 1;
+    const node = this.spec?.nodes.find((n) => n.id === nodeId);
+    const ruledScale = node ? this.matchedRules(node).scale : undefined;
+    if (!this.decorate.sizeByDegree) return ruledScale ?? 1;
     const d = this.degreeCache.get(nodeId) ?? 0;
-    return Math.min(1.6, 1 + d * 0.12);
+    return Math.min(1.6, 1 + d * 0.12) * (ruledScale ?? 1);
   }
 
   /** 화면에 그려지는 실제 폭 — 배율 반영. 선 앵커·묶음 상자도 이 값을 봐야 어긋나지 않는다. */

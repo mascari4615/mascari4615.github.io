@@ -77,6 +77,28 @@ export function renderFilterPanel(ctx: PanelCtx): void {
       <input type="range" data-km="f-mindeg" min="0" max="6" step="1" value="${st.minDegree}" />
       <div class="km-hint">이웃이 빠지면 그 여파로 또 빠집니다 — 한가운데 뭉치만 남습니다.</div>
     </div>
+    <div class="km-field">
+      <label>꾸미기 규칙 <span class="km-hint">「이런 것은 이렇게」</span></label>
+      <div class="km-hint">체크박스로는 「소속이 마왕성이면 빨갛게」를 못 적습니다. 조건과 모양을 직접 씁니다 — <b>아래 규칙이 이깁니다</b>.</div>
+      ${(spec.decorRules ?? []).map((r) => `<div class="km-link-row">
+        <span class="km-link-name">${esc(r.on === 'tag' ? `꼬리표 ${r.value ?? ''}` : r.on === 'kind' ? `종류 ${ctx.kindLabel(r.value ?? '')}` : `${r.key ?? ''} = ${r.value || '(있으면)'}`)}</span>
+        <span class="km-swatch" style="background:${esc(r.color ?? '#94a3b8')}"></span>
+        <span class="km-group-count">${r.scale && r.scale !== 1 ? `×${r.scale}` : ''}</span>
+        <button class="btn btn-ghost" data-km="rule-del" data-key="${esc(r.id)}" title="지우기">×</button>
+      </div>`).join('')}
+      <div class="km-link-row">
+        <select data-km="rule-on">
+          <option value="field">칸</option>
+          <option value="tag">꼬리표</option>
+          <option value="kind">종류</option>
+        </select>
+        <input type="text" data-km="rule-key" list="km-fld-suggest2" placeholder="칸 이름" />
+        <datalist id="km-fld-suggest2">${fieldNames.map((f) => `<option value="${esc(f)}"></option>`).join('')}</datalist>
+        <input type="text" data-km="rule-value" placeholder="값" />
+        <input type="color" data-km="rule-color" value="#f472b6" title="색" />
+        <button class="btn btn-ghost" data-km="rule-add">규칙 추가</button>
+      </div>
+    </div>
     <button class="btn btn-ghost" data-km="f-reset">전부 다시 보이기</button>
     <button class="btn btn-ghost" data-km="f-close">닫기</button>`;
 
@@ -122,6 +144,31 @@ export function renderFilterPanel(ctx: PanelCtx): void {
     st.colorByTag = (ev.target as HTMLInputElement).checked;
     ctx.applyDecorate();
   };
+  (side.querySelector('[data-km="rule-add"]') as HTMLButtonElement).onclick = () => {
+    const on = (side.querySelector('[data-km="rule-on"]') as HTMLSelectElement).value as 'tag' | 'field' | 'kind';
+    const key = (side.querySelector('[data-km="rule-key"]') as HTMLInputElement).value.trim();
+    const value = (side.querySelector('[data-km="rule-value"]') as HTMLInputElement).value.trim();
+    const color = (side.querySelector('[data-km="rule-color"]') as HTMLInputElement).value;
+    if (on === 'field' && !key) return;         // 칸 규칙은 칸 이름이 있어야 뜻이 선다
+    if (on !== 'field' && !value) return;       // 꼬리표·종류 규칙은 값이 곧 조건이다
+    const spec0 = ctx.spec();
+    spec0.decorRules = [...(spec0.decorRules ?? []), {
+      id: `rule-${Date.now().toString(36)}`, on, key: on === 'field' ? key : undefined, value: value || undefined, color,
+    }];
+    ctx.applySpec();
+    ctx.persist();
+    ctx.refresh();
+  };
+  side.querySelectorAll('[data-km="rule-del"]').forEach((el) => {
+    (el as HTMLButtonElement).onclick = () => {
+      const id = (el as HTMLElement).dataset.key ?? '';
+      const spec0 = ctx.spec();
+      spec0.decorRules = (spec0.decorRules ?? []).filter((r) => r.id !== id);
+      ctx.applySpec();
+      ctx.persist();
+      ctx.refresh();
+    };
+  });
   const fieldSel = side.querySelector('[data-km="f-field"]') as HTMLSelectElement | null;
   if (fieldSel) {
     fieldSel.onchange = () => {

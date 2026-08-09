@@ -245,6 +245,27 @@ export interface GraphComment {
   at: number;
 }
 
+/**
+ * 꾸미기 규칙 — 「이런 노드는 이렇게 보여라」 (TASK-KL-202, Kumu decorations 계보).
+ *
+ * 체크박스 세 개(연결수로 크게·꼬리표 색·칸 색)로는 곧 벽에 부딪힌다: 사람이 원하는 것은
+ * 「**소속이 마왕성이면 빨갛게, 그리고 크게**」처럼 *조건 + 모양*이다. 조건이 겹치면 **나중 규칙이 이긴다**
+ * (규칙을 위에서 아래로 읽는 것이 사람에게 가장 익숙하다).
+ */
+export interface DecorRule {
+  id: string;
+  /** 무엇을 보고 판단하나 — 꼬리표 / 칸 / 종류. */
+  on: 'tag' | 'field' | 'kind';
+  /** \`field\` 일 때 칸 이름. 다른 경우는 안 쓴다. */
+  key?: string;
+  /** 맞아야 하는 값(비면 「그 칸이 있기만 하면」). */
+  value?: string;
+  /** 이 규칙이 맞을 때 입힐 색. */
+  color?: string;
+  /** 이 규칙이 맞을 때 크기 배율(1 = 그대로). */
+  scale?: number;
+}
+
 export interface GraphSpec {
   version: number;
   _meta: Record<string, string>;
@@ -253,6 +274,8 @@ export interface GraphSpec {
   edges: GraphEdge[];
   ephemeral_anchors: EphemeralAnchor[];
   _edge_kinds: Record<string, EdgeKindDef>;
+  /** 꾸미기 규칙들(위에서 아래로, 나중 규칙이 이김). */
+  decorRules?: DecorRule[];
   /** 노드·선에 달린 코멘트들(시간순). 설명과 달리 **여러 개**다. */
   comments?: GraphComment[];
   /** 여러 자리가 나눠 쓰는 글들. 없으면 공용 글을 아직 안 만든 맵. */
