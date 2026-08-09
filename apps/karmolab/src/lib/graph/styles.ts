@@ -60,6 +60,11 @@ export const GRAPH_CANVAS_CSS = `
   stroke-width: 2.5 !important;
 }
 .ck-edge-end { transition: r .12s ease; }
+/* ── 포커스 — 볼 것만 또렷하게 (지우지 않고 잠깐 가린다) ────────────────── */
+.ck-node.is-dimmed { opacity: 0.16; }
+.ck-edge.is-dimmed, .ck-edge-label.is-dimmed, .ck-leader.is-dimmed { opacity: 0.07; }
+.ck-edge-grip.is-dimmed, .ck-edge-end.is-dimmed { opacity: 0 !important; pointer-events: none; }
+.ck-node, .ck-edge, .ck-edge-label, .ck-leader { transition: opacity .15s ease; }
 .ck-link-temp {
   pointer-events: none;
   stroke-dasharray: 5 4;

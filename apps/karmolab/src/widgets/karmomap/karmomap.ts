@@ -62,6 +62,7 @@ import {
       background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-primary);
       border-radius:var(--radius-sm); padding:5px 8px; font-size:var(--font-size-xs); }
     .km-toolbar input[type=text] { min-width:180px; }
+    .km-toolbar input[data-km="find"] { min-width:130px; }
     .km-spacer { flex:1; }
     .km-body { flex:1; display:flex; min-height:0; }
     .km-canvas { flex:1; position:relative; min-width:0; background:var(--bg-tertiary); }
@@ -188,6 +189,13 @@ import {
           <select data-km="new-kind">${nodeKindOptions()}</select>
           <button class="btn btn-primary" data-km="add">+ 추가</button>
           <span class="km-spacer"></span>
+          <input type="text" data-km="find" placeholder="🔎 이름으로 찾기" />
+          <select data-km="degree" title="고른 노드에서 몇 다리까지 볼까">
+            <option value="">전체 보기</option>
+            <option value="0">고른 것만</option>
+            <option value="1">1다리</option>
+            <option value="2">2다리</option>
+          </select>
           <button class="btn btn-ghost" data-km="groups" title="묶음 관리">🫧 묶음</button>
           <button class="btn btn-ghost" data-km="terms" title="내 용어 — 팩에 없는 종류 만들기">🏷 용어</button>
           <button class="btn btn-ghost" data-km="undo" title="되돌리기 (Ctrl+Z)" disabled>↶</button>
@@ -980,6 +988,7 @@ import {
       selectedId = nodeId;
       sideMode = 'node';
       renderSide();
+      syncFocus();
     }
 
     // ── 캔버스 생성 ─────────────────────────────────────────────────────────
@@ -1001,6 +1010,7 @@ import {
         linkingFrom = null;
         canvasEl.classList.remove('km-linking');
         renderSide();
+        syncFocus();
       },
       onBackgroundDoubleClick: (world) => spawnNodeAt(world.x, world.y, ''),
       // 선을 휘거나 이름표를 옮긴 뒤 — 캔버스가 spec 을 고쳤으니 저장만 하면 된다.
@@ -1064,6 +1074,56 @@ import {
     newLabelEl.onkeydown = (e) => {
       if (e.key === 'Enter') addNode();
     };
+
+    // ── 포커스 (격차 M) — 볼 것만 또렷하게 ──────────────────────────────────
+    const findEl = q<HTMLInputElement>('find');
+    const degreeEl = q<HTMLSelectElement>('degree');
+
+    /** 시작점에서 n 다리까지 퍼진 노드 id 들. */
+    function spread(startIds: string[], degree: number): Set<string> {
+      const seen = new Set(startIds);
+      let frontier = startIds;
+      for (let d = 0; d < degree; d += 1) {
+        const next: string[] = [];
+        for (const e of spec.edges) {
+          if (frontier.includes(e.from) && !seen.has(e.to)) { seen.add(e.to); next.push(e.to); }
+          if (frontier.includes(e.to) && !seen.has(e.from)) { seen.add(e.from); next.push(e.from); }
+        }
+        if (next.length === 0) break;
+        frontier = next;
+      }
+      return seen;
+    }
+
+    /**
+     * 지금 봐야 할 것 계산. 찾기 글자가 있으면 **이름이 맞는 노드**가 시작점,
+     * 없으면 **고른 노드**가 시작점. 둘 다 없으면 포커스 해제.
+     */
+    function syncFocus(): void {
+      const q0 = findEl.value.trim().toLowerCase();
+      const degRaw = degreeEl.value;
+      let starts: string[] = [];
+      if (q0) {
+        starts = spec.nodes
+          .filter((n) => n.label.toLowerCase().includes(q0) || (n.note ?? '').toLowerCase().includes(q0))
+          .map((n) => n.id);
+        if (starts.length === 0) {
+          // 아무것도 안 맞으면 전부 흐려서 「없다」를 눈으로 보여 준다.
+          canvas?.setFocus(new Set());
+          return;
+        }
+      } else if (degRaw !== '' && selectedId) {
+        starts = [selectedId];
+      } else {
+        canvas?.setFocus(null);
+        return;
+      }
+      const degree = degRaw === '' ? 1 : Number(degRaw);
+      canvas?.setFocus(spread(starts, degree));
+    }
+
+    findEl.oninput = syncFocus;
+    degreeEl.onchange = syncFocus;
 
     // ── 어휘 팩 전환 ────────────────────────────────────────────────────────
     // 이미 놓아둔 노드는 건드리지 않는다. 팩은 *앞으로 쓸 말*을 바꿀 뿐이고,
