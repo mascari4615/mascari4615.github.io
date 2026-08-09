@@ -54,6 +54,11 @@ const head = `# KarmoLab
   예) \`${SITE}/karmolab/t/base64/?op=encode&text=안녕\`
 - **MCP 서버**가 있습니다 — 계산을 직접 호출하려면 이쪽이 정확합니다 (해시·난수·검증숫자처럼
   지어내면 안 되는 값). 도구 ${mcpTools.length}묶음: ${mcpTools.join(' · ')}
+- **도구를 이어서** 부를 수 있습니다 — 중간값을 돌려받아 다시 넣지 않아도 됩니다.
+  MCP 는 \`chain_run\`, 화면·주소는 \`${SITE}/karmolab/t/chain/\`.
+  예) Base64 로 바꾼 뒤 그 결과의 SHA-256 —
+  \`[{"tool":"base64","op":"encode","args":{"text":"안녕"}},{"tool":"hashgen","op":"text","args":{"text":"$1","algo":"SHA256"}}]\`
+  해시처럼 **지어내면 안 되는 값**은 이렇게 부르는 편이 안전합니다. 중간에 글자가 바뀔 자리가 없습니다.
 `;
 
 const short = `${head}
