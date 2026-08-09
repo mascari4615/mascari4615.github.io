@@ -1,0 +1,10 @@
+{
+ "note": "첫 화면에서 안 쓰인 바이트. audit-coverage.mjs --update 로만 갱신한다.",
+ "at": "2026-08-09T05:30:19.428Z",
+ "totals": {
+  "cssUnused": 160340,
+  "cssTotal": 184829,
+  "jsUnused": null,
+  "jsTotal": null
+ }
+}
