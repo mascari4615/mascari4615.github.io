@@ -25,5 +25,6 @@
   "toolpage.hub.description": "{n} tools in KarmoLab. Each one has its own page you can use straight away, and what you type never leaves your browser.",
   "toolpage.hub.ogAlt": "KarmoLab tool list",
   "toolpage.hub.listName": "KarmoLab tools",
-  "toolpage.sponsor.label": "Sponsor"
+  "toolpage.sponsor.label": "Sponsor",
+  "toolpage.note.privacy": "What you type is handled inside your browser only — nothing is stored or sent anywhere."
 }

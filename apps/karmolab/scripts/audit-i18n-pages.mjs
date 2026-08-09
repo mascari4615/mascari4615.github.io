@@ -66,16 +66,34 @@ for (const code of codes) {
     fail.push(`${code} 장의 canonical 이 제 주소가 아니다`);
 }
 
-/* ④ 도구 상세로 새어 나갔나 ───────────────────────── */
+/* ④ 도구 상세 장의 짝 표시 — **제 것을 가리키는가** ────
+ *
+ * 예전에는 「도구 장에 짝 표시가 하나라도 있으면 실패」였다. 그때는 도구 장에 언어 판이 없었고,
+ * 셸에서 새어 나온 표시는 전부 **첫 화면 주소**를 가리켰기 때문이다(129장이 남의 주소를 제 짝이라
+ * 우기는 상태). 이제 도구 장에도 언어 판이 있으므로 규칙이 바뀐다: **있어야 하고, 제 id 를
+ * 가리켜야 한다.** 없으면 언어 판이 한국어 장을 가리켜도 왕복이 안 돼 양쪽이 통째로 무시된다.
+ */
 const toolsDir = path.join(root, '../blog/karmolab/t');
-if (fs.existsSync(toolsDir)) {
-  let leaked = 0;
+if (fs.existsSync(toolsDir) && codes.length > 1) {
+  const wrong = [];
+  const bare = [];
   for (const id of fs.readdirSync(toolsDir)) {
     const f = path.join(toolsDir, id, 'index.html');
     if (!fs.existsSync(f)) continue;
-    if (links(fs.readFileSync(f, 'utf8')).length) leaked++;
+    const got = links(fs.readFileSync(f, 'utf8'));
+    if (!got.length) {
+      bare.push(id);
+      continue;
+    }
+    /* 이 장의 주소가 아닌 곳을 가리키면(= 첫 화면이 새어 나옴) 그게 제일 나쁜 종류다. */
+    if (got.some((l) => !l.href.endsWith(`/karmolab/t/${id}/`))) wrong.push(id);
   }
-  if (leaked) fail.push(`도구 장 ${leaked}개에 셸의 짝 표시가 새어 나갔다 — shell-page.mjs 의 제거 규칙 확인`);
+  if (wrong.length)
+    fail.push(`도구 장 ${wrong.length}개의 짝 표시가 제 주소가 아니다 (예: ${wrong[0]}) — 셸에서 새어 나왔는지 확인`);
+  if (bare.length)
+    fail.push(
+      `도구 장 ${bare.length}개에 짝 표시가 없다 (예: ${bare[0]}) — 언어 판만 한쪽을 가리키면 양쪽이 무시된다. \`npm run gen:tool-pages-locale\``
+    );
 }
 
 if (fail.length) {

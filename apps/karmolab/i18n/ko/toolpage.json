@@ -25,5 +25,6 @@
   "toolpage.hub.description": "KarmoLab 의 도구 {n}가지. 각 도구는 독립된 페이지에서 바로 쓸 수 있고, 입력한 내용은 브라우저를 벗어나지 않습니다.",
   "toolpage.hub.ogAlt": "KarmoLab 도구 목록",
   "toolpage.hub.listName": "KarmoLab 도구",
-  "toolpage.sponsor.label": "후원"
+  "toolpage.sponsor.label": "후원",
+  "toolpage.note.privacy": "입력한 내용은 브라우저 안에서만 처리되며 어디에도 저장·전송되지 않습니다."
 }
