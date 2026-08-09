@@ -23,5 +23,6 @@
   "garden.dex.still": "{n}칸 · 가만히 있습니다",
   "garden.dex.osc": "{n}칸 · {p}세대마다 제 모습으로",
   "garden.dex.ship": "{n}칸 · {p}세대마다 {d}칸씩 흘러갑니다",
-  "garden.line.found": "{gen}세대 — 처음 보는 것을 찾았습니다. {what}"
+  "garden.line.found": "{gen}세대 — 처음 보는 것을 찾았습니다. {what}",
+  "garden.follow": "따라가기"
 }
