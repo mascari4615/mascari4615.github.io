@@ -152,7 +152,9 @@ import {
     /** 연결 모드일 때 출발 노드 id. null 이면 평소 모드. */
     let linkingFrom: string | null = null;
     /** 오른쪽 패널이 무엇을 보여주는가 — 고른 노드냐, 묶음 목록이냐. */
-    let sideMode: 'node' | 'groups' | 'terms' | 'filter' = 'node';
+    let sideMode: 'node' | 'groups' | 'terms' | 'filter' | 'many' = 'node';
+    /** Shift+드래그로 한 번에 고른 노드들. */
+    let selectedMany: string[] = [];
     /** 화면에서 뺀 종류들 — 자료는 그대로 두고 보기만 줄인다(격차 M-3). */
     const hiddenNodeKinds = new Set<string>();
     const hiddenEdgeKinds = new Set<string>();
@@ -806,6 +808,87 @@ import {
       };
     }
 
+    /**
+     * 여럿 고름 패널 — 한 번에 묶고·바꾸고·지운다.
+     * 노드가 늘면 하나씩 만지는 것이 곧 벽이 된다(Heptabase 도 「골라서 Create Section」이 기본 동작).
+     */
+    function renderManyPanel(): void {
+      sideEl.classList.remove('hidden');
+      sideEl.innerHTML = `
+        <h4>◫ ${selectedMany.length}개 골랐음</h4>
+        <div class="km-hint">캔버스에서 <b>Shift+드래그</b>로 범위를 칠하면 여럿이 골라집니다. 고른 것 중 하나를 끌면 함께 움직입니다.</div>
+        <div class="km-field">
+          <label>한꺼번에 묶음에 넣기</label>
+          <select data-km="many-group">
+            <option value="">— 고르세요 —</option>
+            ${spec.groups.map((g) => `<option value="${escapeAttr(g.id)}">${escapeHtml(g.label)}</option>`).join('')}
+            <option value="__new">+ 새 묶음</option>
+          </select>
+        </div>
+        <div class="km-field">
+          <label>한꺼번에 종류 바꾸기</label>
+          <select data-km="many-kind">
+            <option value="">— 고르세요 —</option>
+            ${nodeKindsNow().map((k) => `<option value="${k.id}">${k.icon} ${escapeHtml(k.label)}</option>`).join('')}
+          </select>
+        </div>
+        <button class="btn btn-danger" data-km="many-del">${selectedMany.length}개 모두 삭제</button>
+        <button class="btn btn-ghost" data-km="many-close">고르기 해제</button>`;
+
+      (sideEl.querySelector('[data-km="many-group"]') as HTMLSelectElement).onchange = (ev) => {
+        const v = (ev.target as HTMLSelectElement).value;
+        if (!v) return;
+        const gid = v === '__new' ? createGroup().id : v;
+        for (const id of selectedMany) {
+          const n = spec.nodes.find((x) => x.id === id);
+          if (n) setMembership(n, [...new Set([...memberOf(n), gid])]);
+        }
+        applySpec();
+        persistStructure();
+        renderSide();
+      };
+
+      (sideEl.querySelector('[data-km="many-kind"]') as HTMLSelectElement).onchange = (ev) => {
+        const v = (ev.target as HTMLSelectElement).value;
+        if (!v) return;
+        for (const id of selectedMany) {
+          const n = spec.nodes.find((x) => x.id === id);
+          if (n) n.kind = v;
+        }
+        applySpec();
+        persistStructure();
+        renderSide();
+      };
+
+      (sideEl.querySelector('[data-km="many-del"]') as HTMLButtonElement).onclick = () => {
+        if (!confirm(`고른 ${selectedMany.length}개 노드와 거기 붙은 선을 모두 지울까요?`)) return;
+        const gone = new Set(selectedMany);
+        const goneEdges = new Set(
+          spec.edges.filter((e) => gone.has(e.from) || gone.has(e.to)).map((e) => e.id)
+        );
+        spec.nodes = spec.nodes.filter((n) => !gone.has(n.id));
+        spec.edges = spec.edges.filter((e) => !gone.has(e.from) && !gone.has(e.to));
+        for (const n of spec.nodes) {
+          if ((n.attachedTo && gone.has(n.attachedTo)) || (n.attachedTo && goneEdges.has(n.attachedTo))) {
+            n.attachedTo = undefined;
+          }
+        }
+        selectedMany = [];
+        selectedId = null;
+        sideMode = 'node';
+        applySpec();
+        persistStructure();
+        renderSide();
+      };
+
+      (sideEl.querySelector('[data-km="many-close"]') as HTMLButtonElement).onclick = () => {
+        selectedMany = [];
+        sideMode = 'node';
+        canvas?.setSelectedNodes([]);
+        renderSide();
+      };
+    }
+
     // ── 선택 패널 ───────────────────────────────────────────────────────────
     function renderSide(): void {
       if (sideMode === 'groups') {
@@ -818,6 +901,10 @@ import {
       }
       if (sideMode === 'filter') {
         renderFilterPanel();
+        return;
+      }
+      if (sideMode === 'many') {
+        renderManyPanel();
         return;
       }
       const node = spec.nodes.find((n) => n.id === selectedId);
@@ -1168,6 +1255,7 @@ import {
       edgeKinds: edgeDefsNow(),
       onNodeClick: (id) => handleNodeClick(id),
       onBackgroundClick: () => {
+        selectedMany = [];
         selectedId = null;
         linkingFrom = null;
         canvasEl.classList.remove('km-linking');
@@ -1177,6 +1265,12 @@ import {
       onBackgroundDoubleClick: (world) => spawnNodeAt(world.x, world.y, ''),
       // 선을 휘거나 이름표를 옮긴 뒤 — 캔버스가 spec 을 고쳤으니 저장만 하면 된다.
       onEdgeChanged: () => persistStructure(),
+      onSelectMany: (ids) => {
+        selectedMany = ids;
+        selectedId = ids.length === 1 ? ids[0] : null;
+        sideMode = ids.length > 1 ? 'many' : 'node';
+        renderSide();
+      },
       onConnect: (fromId, toId) => {
         selectedId = fromId;
         createEdge(fromId, toId);

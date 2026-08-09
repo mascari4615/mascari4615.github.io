@@ -145,6 +145,21 @@ await step('내 용어 패널에서 관계 종류 추가', async () => {
   await page.waitForSelector('[data-term-edge]', { timeout: 4000 });
   await page.click('[data-km="t-close"]');
 });
+await step('Shift+드래그로 여럿 고르고 함께 옮긴다', async () => {
+  const box = await page.locator('.km-canvas').boundingBox();
+  await page.keyboard.down('Shift');
+  await page.mouse.move(box.x + 8, box.y + 8);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width - 8, box.y + box.height - 8, { steps: 12 });
+  await page.mouse.up();
+  await page.keyboard.up('Shift');
+  await page.waitForSelector('[data-km="many-del"]', { timeout: 4000 });
+  const picked = await page.locator('.ck-node.is-selected').count();
+  if (picked < 2) throw new Error(`고른 것이 ${picked}개뿐이다`);
+  // 고른 무리를 함께 끄는 것은 이 자리(묶음이 얽힌 상태)에서 재기가 불안정하다 —
+  // 별도 단계에서 깨끗한 맵으로 잰다.
+  await page.click('[data-km="many-close"]');
+});
 await step('거르기로 노드 종류를 빼면 화면에서 사라진다', async () => {
   const before = await page.locator('.ck-node').count();
   await page.click('[data-km="filter"]');
@@ -176,6 +191,33 @@ await step('발표 모드 진입 / 나가기', async () => {
   await page.locator(`[data-km="stage-exit"]`).dispatchEvent(`click`);
   await page.waitForSelector(`.km-root:not(.is-presenting)`, { timeout: 4000 });
   if (await page.locator('.km-root.is-presenting').count()) throw new Error('나가기가 안 먹음');
+});
+await step('고른 무리는 함께 움직인다 (깨끗한 맵)', async () => {
+  await page.click('[data-km="map-new"]');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
+  const box = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.dblclick(box.x + box.width * 0.3, box.y + box.height * 0.3);
+  await page.waitForSelector('.ck-node', { timeout: 4000 });
+  await page.mouse.dblclick(box.x + box.width * 0.6, box.y + box.height * 0.6);
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 2, null, { timeout: 4000 });
+  await page.keyboard.down('Shift');
+  await page.mouse.move(box.x + 8, box.y + 8);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width - 8, box.y + box.height - 8, { steps: 10 });
+  await page.mouse.up();
+  await page.keyboard.up('Shift');
+  const sel = page.locator('.ck-node.is-selected');
+  if (await sel.count() !== 2) throw new Error(`고른 것이 ${await sel.count()}개`);
+  const dragBox = await sel.first().boundingBox();
+  const before = await sel.nth(1).boundingBox();
+  await page.mouse.move(dragBox.x + dragBox.width / 2, dragBox.y + dragBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(dragBox.x + dragBox.width / 2 + 70, dragBox.y + dragBox.height / 2 + 50, { steps: 10 });
+  await page.mouse.up();
+  const after = await page.locator('.ck-node').nth(1).boundingBox();
+  if (Math.abs(after.x - before.x) < 10 && Math.abs(after.y - before.y) < 10) {
+    throw new Error('무리가 함께 안 움직였다');
+  }
 });
 await step('맵 새로 만들기 → 빈 캔버스', async () => {
   await page.click('[data-km="map-new"]');
