@@ -1,5 +1,5 @@
 {
-  "total": 5125,
+  "total": 5074,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -55,7 +55,7 @@
     "src/tauri-bridge.ts": 1,
     "src/today.ts": 9,
     "src/toolbox.ts": 72,
-    "src/widgets/activity.ts": 63,
+    "src/widgets/activity.ts": 12,
     "src/widgets/adventure/adventure.ts": 35,
     "src/widgets/adventure/end-modal.ts": 12,
     "src/widgets/adventure/imagegen.ts": 4,
