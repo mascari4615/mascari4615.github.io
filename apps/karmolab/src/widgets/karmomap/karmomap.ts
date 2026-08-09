@@ -20,6 +20,7 @@ import type { GraphSpec, GraphNode, GraphEdge, GroupDef, NodeShape, BackgroundKi
 import { emptyGraphSpec } from '../../lib/graph/spec';
 import { KarmoMapLocalStorageAdapter } from './local-storage-adapter';
 import { loadTerms, saveTerms, newTermId, type MyTerms } from './terms';
+import { parseOutline, layoutTree } from './from-text';
 import {
   loadLibrary, setActive, renameMap, touchMap, addMap, removeMap, mapKey,
   type LibraryIndex,
@@ -103,6 +104,9 @@ import {
       border-radius:var(--radius-sm); background:var(--bg-tertiary); cursor:pointer; }
     .km-avatar-row .btn { padding:4px 8px; }
     .km-tilt-val { color:var(--text-tertiary); }
+    .km-textarea { width:100%; background:var(--bg-tertiary); border:1px solid var(--border);
+      color:var(--text-primary); border-radius:var(--radius-sm); padding:8px; font-size:12px;
+      font-family:var(--font-mono, ui-monospace, monospace); line-height:1.6; resize:vertical; margin-bottom:10px; }
     .km-more { position:relative; }
     .km-drawer { position:absolute; right:0; top:calc(100% + 6px); z-index:20; min-width:190px;
       display:flex; flex-direction:column; gap:4px; padding:8px; border:1px solid var(--border);
@@ -152,7 +156,7 @@ import {
     /** 연결 모드일 때 출발 노드 id. null 이면 평소 모드. */
     let linkingFrom: string | null = null;
     /** 오른쪽 패널이 무엇을 보여주는가 — 고른 노드냐, 묶음 목록이냐. */
-    let sideMode: 'node' | 'groups' | 'terms' | 'filter' | 'many' = 'node';
+    let sideMode: 'node' | 'groups' | 'terms' | 'filter' | 'many' | 'text' = 'node';
     /** Shift+드래그로 한 번에 고른 노드들. */
     let selectedMany: string[] = [];
     /** 화면에서 뺀 종류들 — 자료는 그대로 두고 보기만 줄인다(격차 M-3). */
@@ -246,6 +250,7 @@ import {
                   <option value="none">□ 없음</option>
                 </select>
               </label>
+              <button class="btn btn-ghost" data-km="from-text">📝 글로 만들기</button>
               <button class="btn btn-ghost" data-km="png">🖼 그림으로 저장</button>
               <button class="btn btn-ghost" data-km="export">JSON 내보내기</button>
               <button class="btn btn-ghost" data-km="import">JSON 가져오기</button>
@@ -889,6 +894,79 @@ import {
       };
     }
 
+    /**
+     * 글로 만들기 — 들여쓴 목록을 그대로 관계도로 (격차 O).
+     * 이미 그린 것은 건드리지 않고 **더한다**: 사람은 보통 「이만큼 더 있어」로 오지, 처음부터 다시 오지 않는다.
+     */
+    function renderTextPanel(): void {
+      sideEl.classList.remove('hidden');
+      canvas?.setSelectedNode(null);
+      sideEl.innerHTML = `
+        <h4>📝 글로 만들기</h4>
+        <div class="km-hint">들여쓰면 위 줄에 이어집니다. 콜론(:) 뒤는 그 선에 붙는 말입니다.</div>
+        <textarea data-km="text-src" class="km-textarea" rows="12" placeholder="욘&#10;  링 : 부하&#10;  알리사 : 부하&#10;마을&#10;  대장간"></textarea>
+        <div class="km-field">
+          <label>새로 만들 노드 종류</label>
+          <select data-km="text-kind">${nodeKindOptions()}</select>
+        </div>
+        <button class="btn btn-primary" data-km="text-go">이 글로 만들기</button>
+        <button class="btn btn-ghost" data-km="text-close">닫기</button>`;
+
+      (sideEl.querySelector('[data-km="text-close"]') as HTMLButtonElement).onclick = () => {
+        sideMode = 'node';
+        renderSide();
+      };
+
+      (sideEl.querySelector('[data-km="text-go"]') as HTMLButtonElement).onclick = () => {
+        const src = (sideEl.querySelector('[data-km="text-src"]') as HTMLTextAreaElement).value;
+        const kind = (sideEl.querySelector('[data-km="text-kind"]') as HTMLSelectElement).value || nodeKindsNow()[0].id;
+        const parsed = parseOutline(src);
+        if (parsed.length === 0) {
+          Toolbox.showToast?.('읽을 줄이 없습니다', undefined, undefined);
+          return;
+        }
+        const center = canvas?.viewCenterWorld() ?? { x: 0, y: 0 };
+        const pos = layoutTree(parsed, {
+          colW: 240, rowH: 70,
+          originX: Math.round(center.x - 240),
+          originY: Math.round(center.y - (parsed.length * 70) / 4),
+        });
+
+        const takenN = new Set(spec.nodes.map((n) => n.id));
+        const idMap = new Map<string, string>();
+        for (const p of parsed) {
+          const id = nextId('node', takenN);
+          takenN.add(id);
+          idMap.set(p.id, id);
+          const at = pos.get(p.id) ?? { x: center.x, y: center.y };
+          const node: GraphNode = {
+            id, kind, label: p.label, group: '',
+            x: Math.round(at.x), y: Math.round(at.y),
+            w: widthFor(p.label), h: NODE_H, ports: [],
+          };
+          resize(node);
+          spec.nodes.push(node);
+        }
+        const takenE = new Set(spec.edges.map((e) => e.id));
+        const edgeKind = edgeKindsNow()[0].id;
+        for (const p of parsed) {
+          if (!p.parent) continue;
+          const from = idMap.get(p.parent);
+          const to = idMap.get(p.id);
+          if (!from || !to) continue;
+          const id = nextId('edge', takenE);
+          takenE.add(id);
+          spec.edges.push({ id, from, to, kind: edgeKind, label: p.edgeLabel ?? edgeLabel(edgeKind) });
+        }
+        applySpec();
+        persistStructure();
+        canvas?.fitView();
+        sideMode = 'node';
+        renderSide();
+        Toolbox.showToast?.(`${parsed.length}개를 만들었습니다`, undefined, undefined);
+      };
+    }
+
     // ── 선택 패널 ───────────────────────────────────────────────────────────
     function renderSide(): void {
       if (sideMode === 'groups') {
@@ -905,6 +983,10 @@ import {
       }
       if (sideMode === 'many') {
         renderManyPanel();
+        return;
+      }
+      if (sideMode === 'text') {
+        renderTextPanel();
         return;
       }
       const node = spec.nodes.find((n) => n.id === selectedId);
@@ -1485,6 +1567,11 @@ import {
       if (persist) persistStructure();
     }
     packEl.onchange = () => applyPack(packEl.value, true);
+
+    q<HTMLButtonElement>('from-text').onclick = () => {
+      sideMode = 'text';
+      renderSide();
+    };
 
     q<HTMLButtonElement>('filter').onclick = () => {
       sideMode = sideMode === 'filter' ? 'node' : 'filter';
