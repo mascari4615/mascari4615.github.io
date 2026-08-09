@@ -42,33 +42,18 @@ jobs:
   # (`cancel-in-progress: false`), 다섯 번 push 하면 5분짜리 배포가 **다섯 번 차례로** 돈다.
   # 앞의 넷은 어차피 최신 판을 짓지도 않는데 뒤에 온 사람의 차례를 밀어낸다.
   #
-  # 예전에 「3분 기다렸다 시작 + 새 push 면 취소」로 풀려다 실패했다 — 세션이 여섯이라
-  # 3분이 한 번도 안 닫혔다(취소 22 / 성공 3). 기다리는 게 아니라 **비키는** 것이 답이다.
+  # 겹침은 위의 `concurrency: pages` 하나로 충분하다 — 돌던 것은 끝까지 가고, 대기는 최신
+  # 하나만 남는다(깃허브가 오래된 대기를 스스로 지운다).
   #
-  # 취소(`cancel-in-progress: true`)를 안 쓰는 이유: 배포 도중 잘리면 어중간한 상태가 남는다.
-  # 대신 **시작할 때 자기가 최신인지 묻고**, 아니면 그 자리에서 조용히 끝낸다(10초).
-  tip:
-    runs-on: ubuntu-latest
-    outputs:
-      current: ${{ steps.check.outputs.current }}
-    steps:
-      - id: check
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          tip=$(gh api "repos/${{ github.repository }}/commits/${{ github.ref_name }}" --jq .sha)
-          if [ "$tip" = "${{ github.sha }}" ]; then
-            echo "current=true" >> "$GITHUB_OUTPUT"
-            echo "이 판이 최신이다 — 배포한다 ($tip)"
-          else
-            echo "current=false" >> "$GITHUB_OUTPUT"
-            echo "밀린 판이다 — 비킨다. 내 sha=${{ github.sha }} · 지금 최신=$tip"
-            echo "밀린 판이라 비켰습니다. 최신 판($tip)이 배포합니다." >> "$GITHUB_STEP_SUMMARY"
-          fi
+  # ⚠ 예전에 그 위에 「시작할 때 내가 최신인지 묻고 아니면 비킨다」(tip 잡)를 얹었다가
+  # **배포가 통째로 멈췄다** (2026-08-09 실측). 세션 여섯이 3분 간격으로 밀어서 **아무도 최신이
+  # 못 됐고**, 그래서 모든 실행이 「성공」인데 build 는 skipped 였다 — 최근 성공 5건 전부
+  # 그랬다. 실제로 올라간 판은 하루 종일 0. 로그는 초록이라 아무도 몰랐다.
+  #
+  # 「비키기」는 **누군가는 남는다**는 전제가 있어야 성립한다. 밀어대는 속도가 빌드보다 빠르면
+  # 그 전제가 깨지고 전원이 비킨다. 그래서 뺐다 — 겹침 관리는 concurrency 한 곳에서만.
 
   build:
-    needs: tip
-    if: needs.tip.outputs.current == 'true'
     runs-on: ubuntu-latest
     env:
       HUSKY: "0"
