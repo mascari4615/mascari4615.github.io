@@ -980,5 +980,9 @@
   "faq.mesh3d.2.q": "What about glTF, FBX and 3MF?",
   "faq.mesh3d.2.a": "Not yet. STL and OBJ are simple formats that hold only the shape, so they can be read without a library; glTF and FBX also carry materials and animation and are a different thing altogether.",
   "faq.mesh3d.3.q": "The model does not show the colours in the file?",
-  "faq.mesh3d.3.a": "STL has no colour at all, and an OBJ’s colours live in a separate file (.mtl). For now only the shape is drawn, in a single colour."
+  "faq.mesh3d.3.a": "STL has no colour at all, and an OBJ’s colours live in a separate file (.mtl). For now only the shape is drawn, in a single colour.",
+  "faq.charconv.4.q": "What if one simplified character maps to several traditional ones?",
+  "faq.charconv.4.a": "It converts to the first candidate and notes on screen which characters were ambiguous. 发 can be 發 (to send) or 髮 (hair) — only the meaning decides. Picking one silently would ship the wrong text.",
+  "faq.charconv.5.q": "Does it convert by word as well?",
+  "faq.charconv.5.a": "No — by character. Catching vocabulary differences such as 打印機 ↔ 打印机 needs a word dictionary, and that table is far larger."
 }
