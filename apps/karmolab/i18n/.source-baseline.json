@@ -1,5 +1,5 @@
 {
-  "total": 5534,
+  "total": 5491,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -100,7 +100,7 @@
     "src/widgets/eyes.ts": 4,
     "src/widgets/favorites-defaults.ts": 40,
     "src/widgets/favorites.ts": 19,
-    "src/widgets/flow.ts": 47,
+    "src/widgets/flow.ts": 4,
     "src/widgets/folder.ts": 6,
     "src/widgets/font.ts": 18,
     "src/widgets/hacker.ts": 9,
