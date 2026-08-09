@@ -1,5 +1,5 @@
 {
-  "total": 4973,
+  "total": 4954,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -146,7 +146,7 @@
     "src/widgets/memo.ts": 2,
     "src/widgets/moon.ts": 3,
     "src/widgets/news.ts": 6,
-    "src/widgets/orbita.ts": 27,
+    "src/widgets/orbita.ts": 4,
     "src/widgets/pack-store.ts": 6,
     "src/widgets/packs.ts": 53,
     "src/widgets/packwell.ts": 59,
@@ -346,6 +346,7 @@
     "src/widgets/karmomap/presentation-svg.ts": 1,
     "src/widgets/karmomap/stamps.ts": 1,
     "src/lib/graph/canvas-dom.ts": 1,
-    "src/lib/ai-engine.ts": 1
+    "src/lib/ai-engine.ts": 1,
+    "src/lib/ai-gate.ts": 4
   }
 }
