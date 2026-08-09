@@ -4,8 +4,12 @@
  * 이 위젯은 그 데이터를 일자별로 조회·집계해 보여줌. 외부 전송 없음.
  */
 import { invoke as tauriInvoke } from '../tauri-bridge';
+import { t, loadNamespace } from '../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   'use strict';
 
   type ActivitySample = {
@@ -40,20 +44,20 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     'idea64.exe': 'IntelliJ IDEA',
     'pycharm64.exe': 'PyCharm',
     'rider64.exe': 'Rider',
-    'WindowsTerminal.exe': '터미널',
+    'WindowsTerminal.exe': t('activity.t03'),
     'pwsh.exe': 'PowerShell',
     'powershell.exe': 'PowerShell',
-    'cmd.exe': '명령 프롬프트',
+    'cmd.exe': t('activity.t04'),
     'mintty.exe': 'mintty',
     'chrome.exe': 'Chrome',
     'msedge.exe': 'Edge',
     'firefox.exe': 'Firefox',
     'whale.exe': 'Whale',
-    'explorer.exe': '탐색기',
-    'notepad.exe': '메모장',
+    'explorer.exe': t('activity.t05'),
+    'notepad.exe': t('activity.t06'),
     'Discord.exe': 'Discord',
     'Slack.exe': 'Slack',
-    'KakaoTalk.exe': '카카오톡',
+    'KakaoTalk.exe': t('activity.t07'),
     'Telegram.exe': 'Telegram',
     'Notion.exe': 'Notion',
     'obsidian.exe': 'Obsidian',
@@ -113,9 +117,9 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
-    if (h > 0) return `${h}시간 ${m}분`;
-    if (m > 0) return `${m}분 ${s}초`;
-    return `${s}초`;
+    if (h > 0) return t('activity.dur.hm', { h, m });
+    if (m > 0) return t('activity.dur.ms', { m, s });
+    return t('activity.dur.s', { s });
   }
 
   function aggregate(samples: ActivitySample[]): {
@@ -431,7 +435,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     if (!isApp) {
       const note = document.createElement('div');
       note.className = 'activity-disabled-note';
-      note.textContent = '브라우저에서는 사용할 수 없습니다.';
+      note.textContent = t('activity.t08');
       root.appendChild(note);
       container.appendChild(root);
       return;
@@ -440,14 +444,14 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     const controls = document.createElement('div');
     controls.className = 'activity-controls';
     const lab = document.createElement('label');
-    lab.textContent = '기간';
+    lab.textContent = t('activity.t09');
     const periodSel = document.createElement('select');
     periodSel.className = 'activity-period-select';
     ([
-      ['day', '일'],
-      ['week', '주'],
-      ['month', '월'],
-      ['all', '전체']
+      ['day', t('activity.t10')],
+      ['week', t('activity.t11')],
+      ['month', t('activity.t12')],
+      ['all', t('activity.t13')]
     ] as const).forEach(([v, t]) => {
       const o = document.createElement('option');
       o.value = v;
@@ -459,7 +463,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     prevBtn.type = 'button';
     prevBtn.className = 'btn btn-secondary activity-nav-btn';
     prevBtn.textContent = '◀';
-    prevBtn.title = '이전 구간';
+    prevBtn.title = t('activity.t14');
     const dateIn = document.createElement('input');
     dateIn.type = 'date';
     dateIn.value = todayKstDay();
@@ -467,25 +471,25 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     nextBtn.type = 'button';
     nextBtn.className = 'btn btn-secondary activity-nav-btn';
     nextBtn.textContent = '▶';
-    nextBtn.title = '다음 구간';
+    nextBtn.title = t('activity.t15');
     const todayBtn = document.createElement('button');
     todayBtn.type = 'button';
     todayBtn.className = 'btn btn-secondary';
-    todayBtn.textContent = '오늘';
+    todayBtn.textContent = t('activity.t16');
     const refreshBtn = document.createElement('button');
     refreshBtn.type = 'button';
     refreshBtn.className = 'btn btn-secondary';
-    refreshBtn.textContent = '새로고침';
+    refreshBtn.textContent = t('activity.t17');
     const exportSamplesBtn = document.createElement('button');
     exportSamplesBtn.type = 'button';
     exportSamplesBtn.className = 'btn btn-secondary';
-    exportSamplesBtn.textContent = 'CSV 샘플';
-    exportSamplesBtn.title = '현재 범위의 raw 샘플을 CSV 로 내보냅니다 (UTF-8 BOM 포함, Excel 호환)';
+    exportSamplesBtn.textContent = t('activity.t18');
+    exportSamplesBtn.title = t('activity.t19');
     const exportAggBtn = document.createElement('button');
     exportAggBtn.type = 'button';
     exportAggBtn.className = 'btn btn-secondary';
-    exportAggBtn.textContent = 'CSV 집계';
-    exportAggBtn.title = '앱별 누적 시간 집계 결과를 CSV 로 내보냅니다';
+    exportAggBtn.textContent = t('activity.t20');
+    exportAggBtn.title = t('activity.t21');
     controls.appendChild(lab);
     controls.appendChild(periodSel);
     controls.appendChild(prevBtn);
@@ -501,7 +505,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     filterRow.className = 'activity-controls';
     const filterIn = document.createElement('input');
     filterIn.type = 'search';
-    filterIn.placeholder = '앱 이름 / 윈도우 타이틀 검색…';
+    filterIn.placeholder = t('activity.t22');
     filterIn.className = 'activity-filter-input';
     filterRow.appendChild(filterIn);
     root.appendChild(filterRow);
@@ -510,11 +514,11 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     summary.className = 'activity-summary';
     summary.innerHTML = `
             <div class="activity-stat">
-                <div class="activity-stat-label">활성 시간</div>
+                <div class="activity-stat-label">${esc(t('activity.t01'))}</div>
                 <div class="activity-stat-value" data-active>—</div>
             </div>
             <div class="activity-stat">
-                <div class="activity-stat-label">유휴 시간</div>
+                <div class="activity-stat-label">${esc(t('activity.t02'))}</div>
                 <div class="activity-stat-value" data-idle>—</div>
             </div>
         `;
@@ -601,7 +605,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
         const monday = weekStartKst(anchorKstDay);
         const start = kstDayStartEpoch(monday);
         const sunday = shiftKstDay(monday, 6);
-        return { startEpoch: start, endEpoch: start + 7 * 86400, label: `${monday} ~ ${sunday} (주)` };
+        return { startEpoch: start, endEpoch: start + 7 * 86400, label: t('activity.range.week', { from: monday, to: sunday }) };
       }
       if (period === 'month') {
         const first = monthStartKst(anchorKstDay);
@@ -609,11 +613,11 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
         return {
           startEpoch: kstDayStartEpoch(first),
           endEpoch: kstDayStartEpoch(nextFirst),
-          label: `${first.slice(0, 7)} (월)`
+          label: t('activity.range.month', { ym: first.slice(0, 7) })
         };
       }
       // 'all' — placeholder; 실제 범위는 listDays 결과 기반으로 호출 측에서 결정
-      return { startEpoch: 0, endEpoch: Number.MAX_SAFE_INTEGER, label: '전체' };
+      return { startEpoch: 0, endEpoch: Number.MAX_SAFE_INTEGER, label: t('activity.t13') };
     }
 
     /// startEpoch~endEpoch 범위에 걸치는 UTC 일자 목록.
@@ -638,7 +642,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
       return `${hh}:${mm}:${ss}`;
     }
 
-    const DOW_LABELS = ['월', '화', '수', '목', '금', '토', '일'];
+    const DOW_LABELS = [t('activity.t12'), t('activity.t23'), t('activity.t24'), t('activity.t25'), t('activity.t26'), t('activity.t27'), t('activity.t10')];
 
     function renderHeatmap(samples: ActivitySample[]): void {
       // 주 단위 모드 전용. 다른 period 에선 숨김 (KL-002 sub 명세).
@@ -655,8 +659,8 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
       }
       heatmapWrap.style.display = 'block';
       const parts: string[] = [];
-      parts.push('<div class="activity-heatmap-title">시간대 히트맵 (KST)</div>');
-      parts.push('<div class="activity-heatmap-hint">색이 진할수록 그 시간대에 더 많이 활동 · idle 제외</div>');
+      parts.push(t('activity.t28'));
+      parts.push(t('activity.t29'));
       parts.push('<div class="activity-heatmap-grid">');
       parts.push('<div class="activity-heatmap-corner"></div>');
       for (let h = 0; h < 24; h++) {
@@ -677,7 +681,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
           const ratio = v / max;
           const pct = Math.round(18 + ratio * 82);
           const mins = Math.round(v / 60);
-          const tooltip = `${DOW_LABELS[d]} ${h}시 — ${mins}분`;
+          const tooltip = t('activity.heat.tip', { dow: DOW_LABELS[d], h, mins });
           parts.push(
             `<div class="activity-heatmap-cell" style="background:color-mix(in srgb, var(--accent) ${pct}%, var(--bg-tertiary));" title="${escapeHtml(tooltip)}"></div>`
           );
@@ -731,8 +735,8 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
       const period = periodSel.value as Period;
       const isWeek = period === 'week';
       const parts: string[] = [];
-      parts.push(`<div class="activity-bars-title">일자별 활성 시간 (${isWeek ? '주' : '월'})</div>`);
-      parts.push('<div class="activity-bars-hint">막대 높이 = 그 날의 활성 시간 (idle 제외) · 오늘 칸은 강조</div>');
+      parts.push(`<div class="activity-bars-title">일자별 활성 시간 (${isWeek ? t('activity.t11') : t('activity.t12')})</div>`);
+      parts.push(t('activity.t30'));
       parts.push('<div class="activity-bars-grid">');
       for (let i = 0; i < keys.length; i++) {
         const k = keys[i];
@@ -799,9 +803,9 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
         const empty = document.createElement('div');
         empty.className = 'activity-empty';
         if (totalSamples === 0) {
-          empty.textContent = '이 날짜의 샘플이 없습니다. 앱이 시작된 후 5초 이상 기다리거나, 다른 날짜를 선택하세요.';
+          empty.textContent = t('activity.t31');
         } else if (apps.length === 0) {
-          empty.textContent = '활성 샘플이 없습니다 (전부 idle 분류).';
+          empty.textContent = t('activity.t32');
         } else {
           empty.textContent = `"${currentFilter}"에 매칭되는 앱·창이 없습니다.`;
         }
@@ -832,13 +836,13 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
         titlesEl.className = 'activity-titles';
         const titles = Array.from(app.titles.entries()).sort((a, b) => b[1] - a[1]).slice(0, 10);
         for (const [name, secs] of titles) {
-          const t = document.createElement('div');
-          t.className = 'activity-title-row';
-          t.innerHTML = `
+          const titleRow = document.createElement('div');
+          titleRow.className = 'activity-title-row';
+          titleRow.innerHTML = `
                         <span class="name">${escapeHtml(name)}</span>
                         <span>${escapeHtml(formatDuration(secs))}</span>
                     `;
-          titlesEl.appendChild(t);
+          titlesEl.appendChild(titleRow);
         }
         row.appendChild(titlesEl);
 
@@ -856,7 +860,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
       if (period === 'all') {
         const days = (await tauriInvoke('activity_list_days', {}) as string[]) || [];
         if (days.length === 0) {
-          return { startEpoch: 0, endEpoch: 0, utcDays: [], label: '전체 (데이터 없음)' };
+          return { startEpoch: 0, endEpoch: 0, utcDays: [], label: t('activity.t33') };
         }
         const sorted = [...days].sort();
         const first = sorted[0];
@@ -956,14 +960,14 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
       todayBtn.disabled = isAll;
       // prev/next title도 모드에 따라 갱신.
       if (period === 'day') {
-        prevBtn.title = '하루 전';
-        nextBtn.title = '하루 후';
+        prevBtn.title = t('activity.t34');
+        nextBtn.title = t('activity.t35');
       } else if (period === 'week') {
-        prevBtn.title = '한 주 전';
-        nextBtn.title = '한 주 후';
+        prevBtn.title = t('activity.t36');
+        nextBtn.title = t('activity.t37');
       } else if (period === 'month') {
-        prevBtn.title = '한 달 전';
-        nextBtn.title = '한 달 후';
+        prevBtn.title = t('activity.t38');
+        nextBtn.title = t('activity.t39');
       }
     }
 
@@ -986,7 +990,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
 
     function exportSamples(): void {
       if (lastSamples.length === 0) {
-        Toolbox.showToast?.('내보낼 샘플이 없습니다.', 'error', undefined);
+        Toolbox.showToast?.(t('activity.t40'), 'error', undefined);
         return;
       }
       const csv = buildSamplesCsv(lastSamples);
@@ -996,7 +1000,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
 
     function exportAggregate(): void {
       if (lastSamples.length === 0) {
-        Toolbox.showToast?.('내보낼 데이터가 없습니다.', 'error', undefined);
+        Toolbox.showToast?.(t('activity.t41'), 'error', undefined);
         return;
       }
       const { apps, activeSecs, idleSecs } = aggregate(lastSamples);
@@ -1037,6 +1041,17 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
 
   Toolbox.register({
     ...Toolbox.getLazyWidgetPublicMeta!('activity'),
-    tabs: [{ id: 'activity-main', label: '오늘', build }]
+    tabs: [
+      {
+        id: 'activity-main',
+        label: t('activity.tab.today', undefined, '오늘'),
+        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        build: function (container: HTMLElement): void {
+          void loadNamespace('activity').then(function () {
+            build(container);
+          });
+        }
+      }
+    ]
   });
 })();
