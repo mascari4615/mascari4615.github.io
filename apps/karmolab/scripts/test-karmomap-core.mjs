@@ -376,6 +376,13 @@ const M = await loadModules();
   eq(n1.x, 30, '마지막 좌표만 남는다(중간 자리를 다 보내면 지나간 자리를 다시 그린다)');
   eq(pending.size, 0, '보낸 뒤 대기열은 빈다');
 }
+// 안내가 **거짓말하지 않게**: ⌫(Backspace)는 고른 카드를 *지운다*. 되돌리기는 Ctrl+Z 다.
+// 토스트가 「⌫ 로 되돌립니다」라고 하면 사람은 그걸 눌러 카드를 지운다 — 가장 나쁜 안내다.
+{
+  const widget = fs.readFileSync(path.join(root, 'src/widgets/karmomap/karmomap.ts'), 'utf8');
+  const wrong = widget.includes(String.fromCharCode(0x232B) + ' 로 되돌');
+  check(!wrong, '「⌫ 로 되돌립니다」 안내가 남아 있다 — ⌫ 는 지우기다(되돌리기는 Ctrl+Z)');
+}
 // 도움말이 **낡지 않게**: 기능은 느는데 도움말은 그대로면 발견성이 그만큼 준다.
 // 정확한 개수를 박으면 매번 고쳐야 하니 **하한**만 잠근다(줄어들면 누가 지운 것이다).
 {
