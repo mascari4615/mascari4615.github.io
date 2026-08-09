@@ -1595,6 +1595,104 @@ check(odd !== null && odd.info.stage === 'load', '모양이 다르면 load 단�
 
 eng.resetEngine();
 
+// ── ②-32 「AI 켜기」 게이트 (취소해도 도구는 멀쩡해야 한다) ────────────────
+const gate = await load('src/lib/ai-gate.ts');
+
+const makeGate = (fetchImpl) => {
+  const seen = [];
+  const g = new gate.AiGate({ sizeMb: 120, mbps: 20, fetch: fetchImpl, onChange: (v) => seen.push(v.state) });
+  return { g, seen };
+};
+
+/* 열자마자 받지 않는다 — 오늘 이 도구를 쓰러 온 사람은 대개 AI 를 원해서 온 게 아니다. */
+{
+  let started = false;
+  const { g } = makeGate(async () => {
+    started = true;
+  });
+  eq(g.view().state, 'idle', '처음은 꺼져 있다');
+  check(g.view().say.includes('그대로'), '꺼져 있어도 도구는 쓸 수 있다고 말한다');
+  g.ask();
+  eq(g.view().state, 'asking', '누르면 먼저 물어본다');
+  check(started === false, '물어보는 단계에서는 아직 안 받는다');
+  check(/120MB/.test(g.view().say), `받기 전에 크기를 보여 준다: ${g.view().say}`);
+  check(/초|분/.test(g.view().say), '걸리는 시간도 보여 준다');
+}
+
+/* 받기 — 진행률이 오르고 끝나면 켜진다. */
+{
+  const { g, seen } = makeGate(async (onProgress) => {
+    onProgress(30);
+    onProgress(70);
+  });
+  g.ask();
+  const ok = await g.accept();
+  check(ok === true, '받으면 켜진다');
+  eq(g.view().state, 'ready', '상태가 ready');
+  eq(g.view().percent, 100, '끝나면 100%');
+  check(seen.includes('loading'), `받는 중 상태를 거친다: ${seen.join('>')}`);
+}
+
+/*
+ * ★ 이 게이트의 핵심 — **취소한 뒤에도 도구가 멀쩡해야 한다.**
+ * 받다 만 상태를 남기면 다음에 무엇이 될지 아무도 모르고, 사람들은 다시는 안 누른다.
+ */
+{
+  let aborted = false;
+  let late = null;
+  const { g } = makeGate(async (onProgress, signal) => {
+    onProgress(40);
+    signal.addEventListener('abort', () => {
+      aborted = true;
+    });
+    await new Promise((r) => setTimeout(r, 30));
+    late = onProgress; // 취소 뒤에 늦게 오는 진행률
+    onProgress(90);
+  });
+  g.ask();
+  const running = g.accept();
+  check(g.view().cancellable === true, '받는 중에는 취소할 수 있다');
+  g.cancel();
+  eq(g.view().state, 'idle', '취소하면 처음 상태로 (반쯤 켜진 상태를 안 남긴다)');
+  eq(g.view().percent, 0, '진행률도 지운다');
+  await running;
+  check(aborted === true, '실제로 끊는 신호가 간다');
+  check(late !== null, '늦은 진행률이 오긴 했다');
+  eq(g.view().state, 'idle', '늦게 온 진행률이 화면을 되살리지 않는다');
+  check(g.view().say.includes('그대로'), '취소 뒤에도 도구는 그대로');
+  // 취소했다고 영영 못 켜는 것도 아니다.
+  g.ask();
+  eq(g.view().state, 'asking', '취소 뒤에 다시 물어볼 수 있다');
+}
+
+/* 실패 — 왜인지 말하고, 다시 해 볼 수 있는지도 말한다. */
+{
+  const { g } = makeGate(async () => {
+    throw new Error('연결 끊김');
+  });
+  g.ask();
+  const ok = await g.accept();
+  check(ok === false, '실패하면 false');
+  eq(g.view().state, 'failed', '상태가 failed');
+  check(g.view().failure?.retryable === true, '받기 실패는 다시 해 볼 수 있다');
+  check(g.view().say.includes('연결 끊김') || g.view().say.includes('받다'), `왜인지 말한다: ${g.view().say}`);
+}
+
+/* 다시 눌러도 같은 실패라면(지원 안 함) 버튼을 주지 않는다 — 눌러도 같은 실패는 괴롭힘이다. */
+{
+  const info = (await load('src/lib/ai-route.ts')).explainFailure('support');
+  const err = Object.assign(new Error(info.say), { info });
+  const { g } = makeGate(async () => {
+    throw err;
+  });
+  g.ask();
+  await g.accept();
+  eq(g.view().state, 'failed', '지원 안 함도 failed');
+  check(g.view().failure?.retryable === false, '다시 해도 같으니 재시도 X');
+  const again = await g.retry();
+  check(again === false, 'retry 를 불러도 안 한다');
+}
+
 // ── 마무리 ──────────────────────────────────────────────────────────────────
 fs.rmSync(outDir, { recursive: true, force: true });
 process.stdout.write('\n');
