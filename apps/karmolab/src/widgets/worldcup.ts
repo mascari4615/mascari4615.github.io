@@ -21,6 +21,7 @@ import { onPageActive, takePick } from './pack-pick';
 import { joinRoom, selfId } from 'trystero/nostr';
 import { agreement, roundChoices, seededRandom, shuffled, type Match, type Runner } from '../lib/tournament';
 import { copyResultCard } from '../lib/result-card';
+import { t, loadNamespace } from '../lib/i18n';
 
 const API_BASE = 'https://yawnbot.mascari4615.com';
 /** 이 브라우저에 남기는 지난 판 (「작년의 나는 누구를 골랐나」). */
@@ -37,14 +38,15 @@ const HISTORY_KEY = 'karmolab_worldcup_history';
 const CHAMPIONS_KEY = 'champions';
 
 const BUILTIN = [
-  { id: 'pokemon', title: '포켓몬', emoji: '🔴' },
-  { id: 'lol', title: '롤 챔피언', emoji: '⚔️' },
-  { id: 'genshin', title: '원신 캐릭터', emoji: '🌠' },
+  { id: 'pokemon', title: t('worldcup.t09'), emoji: '🔴' },
+  { id: 'lol', title: t('worldcup.t10'), emoji: '⚔️' },
+  { id: 'genshin', title: t('worldcup.t11'), emoji: '🌠' },
 ];
 
 (function (): void {
-  const esc = (s: string): string =>
-    String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 
   /** 그림이 있는 항목만 달린다 — 그림 없는 칸이 섞이면 고르는 재미가 통째로 죽는다. */
   function runnersOf(items: PackItem[]): Runner[] {
@@ -73,9 +75,9 @@ const BUILTIN = [
 
   Toolbox.register({
     id: 'worldcup',
-    title: '이상형 월드컵',
+    title: t('widgets.worldcup.title', undefined, "이상형 월드컵"),
     category: 'play',
-    desc: '둘 중 하나만 고르는 토너먼트. 표를 만들면 그대로 내 월드컵이 됩니다',
+    desc: t('widgets-desc.worldcup.desc', undefined, "둘 중 하나만 고르는 토너먼트. 표를 만들면 그대로 내 월드컵이 됩니다"),
     layout: 'wide',
     noHero: true,
     icon:
@@ -83,23 +85,25 @@ const BUILTIN = [
     tabs: [
       {
         id: 'app',
-        label: '놀기',
+        label: t('worldcup.t14', undefined, "놀기"),
         build: function (container: HTMLElement): void {
-          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: '둘 중 하나만 고르세요. 못 고르겠죠? 그게 재미예요.' });
+          void loadNamespace('worldcup').then(function () {
+
+          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: t('worldcup.t15') });
 
           container.innerHTML = `
             <div id="wcSetup">
               <div class="field-group">
-                <div class="tool-sublabel">무엇으로 겨룰까요</div>
-                <div id="wcPacks" class="hi-chips" role="group" aria-label="표 고르기"></div>
-                <p class="tool-status" id="wcPackMsg">표를 불러오는 중…</p>
+                <div class="tool-sublabel">${esc(t('worldcup.t01'))}</div>
+                <div id="wcPacks" class="hi-chips" role="group" aria-label="${esc(t('worldcup.aria.wcPacks'))}"></div>
+                <p class="tool-status" id="wcPackMsg">${esc(t('worldcup.label.wcPackMsg'))}</p>
               </div>
               <div class="field-group" id="wcRoundBox" hidden>
-                <div class="tool-sublabel">몇 강으로 할까요</div>
-                <div id="wcRounds" class="hi-chips" role="group" aria-label="라운드 고르기"></div>
+                <div class="tool-sublabel">${esc(t('worldcup.t02'))}</div>
+                <div id="wcRounds" class="hi-chips" role="group" aria-label="${esc(t('worldcup.aria.wcRounds'))}"></div>
               </div>
               <div class="pk-row" id="wcStartRow" hidden>
-                <button type="button" class="btn btn-primary" id="wcStart">시작</button>
+                <button type="button" class="btn btn-primary" id="wcStart">${esc(t('worldcup.btn.wcStart'))}</button>
               </div>
             </div>
 
@@ -115,20 +119,20 @@ const BUILTIN = [
             <div id="wcDone" hidden>
               <div id="wcChampion"></div>
               <div class="pk-row">
-                <button type="button" class="btn btn-primary" id="wcAgain">다시</button>
-                <button type="button" class="btn btn-ghost" id="wcShare">결과 복사</button>
-                <button type="button" class="btn btn-ghost" id="wcOther">다른 표로</button>
+                <button type="button" class="btn btn-primary" id="wcAgain">${esc(t('worldcup.btn.wcAgain'))}</button>
+                <button type="button" class="btn btn-ghost" id="wcShare">${esc(t('worldcup.btn.wcShare'))}</button>
+                <button type="button" class="btn btn-ghost" id="wcOther">${esc(t('worldcup.btn.wcOther'))}</button>
               </div>
               <div id="wcPath" style="margin-top:14px"></div>
               <div id="wcTally" style="margin-top:18px"></div>
             </div>
 
             <div id="wcTogether" class="pk-card" style="margin-top:18px">
-              <div class="tool-sublabel">같이 하기</div>
-              <p class="tool-status" id="wcTogetherMsg">같은 표·같은 대진으로 둘이 돌리고, 끝나면 취향이 얼마나 겹치는지 봅니다.</p>
+              <div class="tool-sublabel">${esc(t('worldcup.t03'))}</div>
+              <p class="tool-status" id="wcTogetherMsg">${esc(t('worldcup.label.wcTogetherMsg'))}</p>
               <div class="pk-row">
-                <button type="button" class="btn btn-ghost" id="wcMakeRoom">방 만들기</button>
-                <button type="button" class="btn btn-ghost" id="wcJoinRoom">코드로 참가</button>
+                <button type="button" class="btn btn-ghost" id="wcMakeRoom">${esc(t('worldcup.btn.wcMakeRoom'))}</button>
+                <button type="button" class="btn btn-ghost" id="wcJoinRoom">${esc(t('worldcup.btn.wcJoinRoom'))}</button>
               </div>
             </div>
 
@@ -162,7 +166,7 @@ const BUILTIN = [
             $('wcPacks').innerHTML = '';
             if (!choices.length) {
               $('wcPackMsg').textContent =
-                '그림이 있는 표가 아직 없습니다 — 「내 표 만들기」에서 「그림」 칸에 주소를 넣어 만들어 보세요.';
+                t('worldcup.t16');
               return;
             }
             $('wcPackMsg').textContent = '';
@@ -192,7 +196,7 @@ const BUILTIN = [
             options.forEach((n) => {
               const btn = document.createElement('button');
               btn.type = 'button';
-              btn.textContent = `${n}강`;
+              btn.textContent = t('worldcup.roundOf', { n });
               btn.setAttribute('aria-pressed', String(n === size));
               btn.addEventListener('click', () => {
                 size = n;
@@ -234,7 +238,7 @@ const BUILTIN = [
                 ? [
                     {
                       key: `builtin:${CHAMPIONS_KEY}`,
-                      title: `지난 우승자들 (${uniqueChampions.length})`,
+                      title: t('worldcup.pastChampions', { n: uniqueChampions.length }),
                       emoji: '👑',
                       runners: uniqueChampions.length,
                       builtin: CHAMPIONS_KEY,
@@ -288,7 +292,7 @@ const BUILTIN = [
             if (!current) return;
             const left = current[0];
             const right = current[1];
-            $('wcAsk').textContent = `${roundOf === 2 ? '결승' : `${roundOf}강`} · ${winners.length + 1} / ${roundOf / 2}`;
+            $('wcAsk').textContent = `${roundOf === 2 ? t('worldcup.t17') : t('worldcup.roundOf', { n: roundOf })} · ${winners.length + 1} / ${roundOf / 2}`;
             const face = (r: Runner): string =>
               `<img src="${esc(r.img)}" alt="" loading="lazy" style="width:100%;max-height:260px;object-fit:contain;border-radius:10px">` +
               `<span class="hi-nm" style="display:block;margin-top:8px;font-weight:700">${esc(r.name)}</span>`;
@@ -329,7 +333,7 @@ const BUILTIN = [
             $('wcDone').hidden = false;
             $('wcChampion').innerHTML =
               `<div style="text-align:center">` +
-              `<div style="font-size:var(--font-size-sm);color:var(--text-tertiary)">우승</div>` +
+              `<div style="font-size:var(--font-size-sm);color:var(--text-tertiary)">${esc(t('worldcup.t04'))}</div>` +
               `<img src="${esc(champion.img)}" alt="" style="max-width:320px;max-height:320px;object-fit:contain;border-radius:12px">` +
               `<div style="font-size:20px;font-weight:800;margin-top:8px">${esc(champion.name)}</div></div>`;
 
@@ -338,10 +342,10 @@ const BUILTIN = [
               .slice()
               .reverse()
               .filter((m) => m.round <= 8)
-              .map((m) => `<li>${m.round === 2 ? '결승' : `${m.round}강`} — ${esc(m.win)} <span style="color:var(--text-tertiary)">▸ ${esc(m.lose)}</span></li>`)
+              .map((m) => `<li>${m.round === 2 ? t('worldcup.t17') : t('worldcup.roundOf', { n: m.round })} — ${esc(m.win)} <span style="color:var(--text-tertiary)">▸ ${esc(m.lose)}</span></li>`)
               .join('');
             $('wcPath').innerHTML = path
-              ? `<div class="tool-sublabel">내가 고른 길</div><ol style="list-style:none;padding:0;margin:6px 0 0;line-height:1.8">${path}</ol>`
+              ? `<div class="tool-sublabel">${esc(t('worldcup.t05'))}</div><ol style="list-style:none;padding:0;margin:6px 0 0;line-height:1.8">${path}</ol>`
               : '';
 
             pushHistory({ at: new Date().toISOString(), title: picked?.title ?? '', champion: champion.name, img: champion.img });
@@ -351,10 +355,10 @@ const BUILTIN = [
             const send = sendResult;
             if (send && together) {
               send({ champion: champion.name, path: matches });
-              $('wcTogetherMsg').textContent = '내 결과를 보냈습니다 — 상대가 끝나면 견줍니다.';
+              $('wcTogetherMsg').textContent = t('worldcup.t18');
             }
             paintHistory();
-            if (typeof Mdd !== 'undefined') Mdd.linePreset?.('success', { msg: `${champion.name} 이(가) 우승이네요!` });
+            if (typeof Mdd !== 'undefined') Mdd.linePreset?.('success', { msg: t('worldcup.championIs', { name: champion.name }) });
             sendTournament(champion);
           }
 
@@ -363,7 +367,7 @@ const BUILTIN = [
             const sharedId = picked?.sharedId;
             if (!sharedId) {
               $('wcTally').innerHTML =
-                '<p class="tool-status">이 표는 아직 안 올라가 있어서 남들과의 승률은 안 나옵니다 — 「내 표」에서 올리면 생깁니다.</p>';
+                t('worldcup.t19');
               return;
             }
             fetch(`${API_BASE}/kl/packs/${encodeURIComponent(sharedId)}/tournament`, {
@@ -384,20 +388,21 @@ const BUILTIN = [
                     ? `<p class="tool-status">지금까지 ${totalRuns}판 중 <b>${Math.round(
                         ((mine.champion ?? 0) / totalRuns) * 100
                       )}%</b> 가 ${esc(champion.name)} 를 뽑았습니다 — ${
-                        (mine.champion ?? 0) * 2 >= totalRuns ? '다수파네요.' : '취향이 남다릅니다.'
+                        (mine.champion ?? 0) * 2 >= totalRuns ? t('worldcup.t20') : t('worldcup.t21')
                       }</p>`
                     : '';
                 $('wcTally').innerHTML =
                   taste +
-                  `<div class="tool-sublabel">이 표의 인기 (실제로 붙어 본 판만)</div>` +
+                  `<div class="tool-sublabel">${esc(t('worldcup.t06'))}</div>` +
                   `<ol style="list-style:none;padding:0;margin:6px 0 0">` +
                   body.tally
                     .slice(0, 10)
                     .map(
-                      (t, i) =>
+                      /* `t` 는 말 묶음 함수 이름이다 — 여기서 가리면 이 안에서 t() 를 못 부른다. */
+                      (row, i) =>
                         `<li style="display:flex;justify-content:space-between;gap:12px;padding:4px 0">` +
-                        `<span>${i + 1}. ${esc(t.name)}</span>` +
-                        `<span style="color:var(--text-secondary)">${Math.round(t.rate * 100)}% · ${t.seen}번 마주침${t.champion ? ` · 우승 ${t.champion}` : ''}</span></li>`,
+                        `<span>${i + 1}. ${esc(row.name)}</span>` +
+                        `<span style="color:var(--text-secondary)">${Math.round(row.rate * 100)}% · ${t('worldcup.seen', { n: row.seen })}${row.champion ? ` · ${t('worldcup.wonCount', { n: row.champion })}` : ''}</span></li>`,
                     )
                     .join('') +
                   `</ol>`;
@@ -414,7 +419,7 @@ const BUILTIN = [
               return;
             }
             $('wcHistory').innerHTML =
-              `<div class="tool-sublabel">지난 우승</div>` +
+              `<div class="tool-sublabel">${esc(t('worldcup.t07'))}</div>` +
               `<div class="hi-chips">` +
               list
                 .slice(0, 8)
@@ -434,7 +439,7 @@ const BUILTIN = [
             const all = await runnersFor(picked);
             $('wcStart').removeAttribute('disabled');
             if (all.length < 4) {
-              $('wcPackMsg').textContent = '그 표에서 그림이 있는 항목이 넷도 안 됩니다.';
+              $('wcPackMsg').textContent = t('worldcup.t22');
               return;
             }
             /* 같이 하는 판이면 **같은 씨앗**으로 섞는다 — 그래야 라운드끼리 맞댈 수 있다. */
@@ -482,9 +487,9 @@ const BUILTIN = [
           function compare(theirs: { champion: string; path: Array<{ win: string; lose: string; round: number }> }): void {
             const { rate } = agreement(myPath ?? [], theirs.path);
             $('wcTogetherMsg').innerHTML =
-              `상대 우승: <b>${esc(theirs.champion)}</b> · 나: <b>${esc(myChampion ?? '')}</b><br>` +
-              `같은 갈림길에서 <b>${rate}%</b> 를 같게 골랐습니다 — ` +
-              (theirs.champion === myChampion ? '취향이 통하네요.' : rate >= 60 ? '거의 같은데 끝이 갈렸습니다.' : '완전히 다른 취향입니다.');
+              `${t('worldcup.theirChampion')}: <b>${esc(theirs.champion)}</b> ${esc(t('worldcup.t08'))} <b>${esc(myChampion ?? '')}</b><br>` +
+              t('worldcup.sameRate', { rate }) +
+              (theirs.champion === myChampion ? t('worldcup.t23') : rate >= 60 ? t('worldcup.t24') : t('worldcup.t25'));
           }
 
           function connect(code: string, host: boolean): void {
@@ -513,21 +518,21 @@ const BUILTIN = [
             sendResult = resultChannel.send as (data: unknown) => void;
 
             if (host) {
-              $('wcTogetherMsg').textContent = `방 코드: ${code} — 상대가 들어오면 시작합니다. 표와 몇 강은 내가 고른 대로 갑니다.`;
+              $('wcTogetherMsg').textContent = t('worldcup.roomWaiting', { code });
               r.onPeerJoin = (): void => {
                 if (!picked) {
-                  $('wcTogetherMsg').textContent = '표를 먼저 고르고 다시 방을 만들어 주세요.';
+                  $('wcTogetherMsg').textContent = t('worldcup.t26');
                   return;
                 }
                 together = { seed: Math.floor(Math.random() * 2 ** 31), size, packKey: picked.key };
                 sendSetup(together);
-                $('wcTogetherMsg').textContent = '상대가 들어왔습니다 — 각자 돌리고 끝나면 견줍니다.';
+                $('wcTogetherMsg').textContent = t('worldcup.t27');
                 void start();
               };
               return;
             }
 
-            $('wcTogetherMsg').textContent = '방에 들어갔습니다 — 상대가 표를 고르면 시작합니다.';
+            $('wcTogetherMsg').textContent = t('worldcup.t28');
           }
 
           /** 상대가 정한 대진으로 맞춘다. 그 표가 여기 없으면 말해 준다(조용히 다른 표로 놀면 안 된다). */
@@ -535,7 +540,7 @@ const BUILTIN = [
             together = setup;
             const found = choices.filter((c) => c.key === setup.packKey)[0];
             if (!found) {
-              $('wcTogetherMsg').textContent = '상대가 고른 표가 여기엔 없습니다 — 둘러보기에서 이어받고 다시 들어와 주세요.';
+              $('wcTogetherMsg').textContent = t('worldcup.t29');
               return;
             }
             picked = found;
@@ -546,17 +551,17 @@ const BUILTIN = [
 
           $('wcMakeRoom').addEventListener('click', () => {
             if (!picked) {
-              $('wcTogetherMsg').textContent = '먼저 표를 고르세요 — 방을 만든 쪽의 표로 돌립니다.';
+              $('wcTogetherMsg').textContent = t('worldcup.t30');
               return;
             }
             const code = 'wc' + selfId.slice(0, 6) + Math.random().toString(36).slice(2, 5);
             void navigator.clipboard.writeText(code).catch(() => undefined);
             connect(code, true);
-            $('wcTogetherMsg').textContent = `방 코드 ${code} 를 복사했습니다 — 상대에게 보내세요.`;
+            $('wcTogetherMsg').textContent = t('worldcup.roomCopied', { code });
           });
 
           $('wcJoinRoom').addEventListener('click', () => {
-            const code = prompt('받은 방 코드를 붙여넣으세요');
+            const code = prompt(t('worldcup.t31'));
             if (!code) return;
             connect(code.trim(), false);
           });
@@ -576,7 +581,7 @@ const BUILTIN = [
             const last = readHistory()[0];
             if (!last) return;
             const beat = matches.filter((m) => m.round === 2)[0];
-            $('wcMsg').textContent = '그림 만드는 중…';
+            $('wcMsg').textContent = t('worldcup.t32');
             void copyResultCard(
               {
                 kicker: `이상형 월드컵 · ${last.title}`,
@@ -662,6 +667,7 @@ const BUILTIN = [
 
           refresh();
           paintHistory();
+                  });
         }
       }
     ]
