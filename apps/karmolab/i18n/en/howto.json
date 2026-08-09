@@ -140,5 +140,9 @@
   "howto.videorotate.0": "Choose a video",
   "howto.videorotate.1": "Pick the rotation",
   "howto.videorotate.2": "Check the preview",
-  "howto.videorotate.3": "Record the rotated version and download"
+  "howto.videorotate.3": "Record the rotated version and download",
+  "howto.subtitle.0": "Drop a subtitle file, or paste it in",
+  "howto.subtitle.1": "Set how much to shift",
+  "howto.subtitle.2": "Check the first and last cue times",
+  "howto.subtitle.3": "Download the file"
 }
