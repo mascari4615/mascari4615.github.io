@@ -189,6 +189,8 @@ export interface DeployFreshnessDeps {
   buildUrl?: string;
   /** `owner/repo`. 기본 'Mascari4615/Mascari4615.github.io'. */
   repo?: string;
+  /** 배포 워크플로 파일 이름 — 「왜 안 올라갔나」를 물을 때 쓴다. */
+  workflow?: string;
   /** master 끝을 물을 때 쓸 토큰 (없으면 익명 — 시간당 60회라 10분 간격이면 충분하다). */
   token?: string;
   /** 확인 간격(분). 기본 10, 최소 2. */
@@ -211,6 +213,7 @@ export interface DeployFreshnessHandle {
 
 const DEFAULT_BUILD_URL = 'https://blog.mascari4615.com/apps/karmolab/build.json';
 const DEFAULT_REPO = 'Mascari4615/Mascari4615.github.io';
+const DEFAULT_WORKFLOW = 'pages-deploy.yml';
 const DEFAULT_INTERVAL_MIN = 10;
 /** 판이 갈렸을 때만 쓰는 초초한 간격. */
 const BUSY_INTERVAL_MIN = 3;
@@ -240,9 +243,64 @@ async function getJson(
   }
 }
 
+/**
+ * 왜 안 올라갔나 — **마지막 배포 실행 한 줄**.
+ *
+ * 「사이트가 낡았다」만 오는 알림은 사람을 다시 처음부터 파게 만든다. 오늘 그 파기를 여섯 번 했다.
+ * Sentry 의 release health 가 「이 판이 나쁘다」와 함께 *무엇이* 나쁜지를 붙여 주는 것과 같은 이유로,
+ * 알림에 **마지막 실행의 결론과 죽은 잡 이름**을 붙인다. 못 물어보면 아무 말도 안 붙인다 —
+ * 모르는 것을 지어내면 알림 자체를 못 믿게 된다.
+ */
+export async function lastDeployNote(
+  repo: string,
+  workflow: string,
+  fetchImpl: typeof fetch,
+  timeoutMs: number,
+  token: string | undefined,
+): Promise<string> {
+  try {
+    const headers: Record<string, string> = {
+      Accept: 'application/vnd.github+json',
+      'User-Agent': 'yawnbot-deploy-freshness',
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const runs = (await getJson(
+      `https://api.github.com/repos/${repo}/actions/workflows/${workflow}/runs?per_page=12`,
+      fetchImpl,
+      timeoutMs,
+      headers,
+    )) as { workflow_runs?: Array<{ id: number; status: string; conclusion: string | null; jobs_url?: string }> };
+    const list = runs.workflow_runs || [];
+    /* 취소된 판은 「밀린 것이 겹쳐 비켰다」는 뜻이라 원인이 아니다 — 실제로 끝까지 간 판을 본다. */
+    const done = list.find((r) => r.conclusion && r.conclusion !== 'cancelled');
+    const running = list.find((r) => r.status === 'in_progress' || r.status === 'queued');
+    if (!done) return running ? ' · 지금 도는 판이 있다' : '';
+    if (done.conclusion === 'success') {
+      return ` · 마지막 실행은 **초록인데** 사이트는 안 바뀌었다 — 잡이 통째로 건너뛰어졌을 수 있다`;
+    }
+    let where = '';
+    try {
+      const jobs = (await getJson(
+        `https://api.github.com/repos/${repo}/actions/runs/${done.id}/jobs`,
+        fetchImpl,
+        timeoutMs,
+        headers,
+      )) as { jobs?: Array<{ name: string; conclusion: string | null; steps?: Array<{ name: string; conclusion: string | null }> }> };
+      const bad = (jobs.jobs || []).find((j) => j.conclusion === 'failure');
+      const step = bad?.steps?.find((st) => st.conclusion === 'failure');
+      if (bad) where = ` (${bad.name}${step ? ' → ' + step.name : ''})`;
+    } catch {
+      /* 잡까지는 못 물어봐도 결론은 붙일 수 있다 */
+    }
+    return ` · 마지막 실행 **${done.conclusion}**${where}${running ? ' · 지금 또 도는 중' : ''}`;
+  } catch {
+    return '';
+  }
+}
+
 /** 한 번 확인한다. 알림은 상태 전이에서만 (memory 는 호출부가 들고 있다). */
 export async function runFreshnessTick(
-  deps: Required<Pick<DeployFreshnessDeps, 'buildUrl' | 'repo' | 'staleAfterMin' | 'remindMin'>> & {
+  deps: Required<Pick<DeployFreshnessDeps, 'buildUrl' | 'repo' | 'workflow' | 'staleAfterMin' | 'remindMin'>> & {
     fetchImpl: typeof fetch;
     now: () => Date;
     timeoutMs: number;
@@ -293,6 +351,12 @@ export async function runFreshnessTick(
     staleAfterMin: deps.staleAfterMin,
   });
 
+  /* 나쁜 판정일 때만 한 줄 더 물어본다 — 초록일 때 매번 물으면 그냥 낭비다. */
+  if (verdict.state !== 'fresh') {
+    const note = await lastDeployNote(deps.repo, deps.workflow, fetchImpl, timeoutMs, deps.token);
+    if (note) verdict.reason += note;
+  }
+
   const decision = decideAlert(verdict, memory, now(), deps.remindMin);
   memory.last = verdict.state;
   if (decision.send) {
@@ -326,6 +390,7 @@ export function startDeployFreshness(deps: DeployFreshnessDeps = {}): DeployFres
   const resolved = {
     buildUrl: deps.buildUrl || DEFAULT_BUILD_URL,
     repo: deps.repo || DEFAULT_REPO,
+    workflow: deps.workflow || DEFAULT_WORKFLOW,
     staleAfterMin: deps.staleAfterMin ?? DEFAULT_STALE_AFTER_MIN,
     remindMin: deps.remindMin ?? DEFAULT_REMIND_MIN,
     fetchImpl: deps.fetchImpl ?? fetch,

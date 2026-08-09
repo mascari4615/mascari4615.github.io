@@ -3,6 +3,7 @@ import {
   evaluateFreshness,
   decideAlert,
   runFreshnessTick,
+  lastDeployNote,
   nextDelayMin,
   type AlertMemory,
 } from './deploy-freshness';
@@ -131,6 +132,7 @@ describe('runFreshnessTick — 실제 물어보기', () => {
   const base = {
     buildUrl: 'https://example.test/build.json',
     repo: 'o/r',
+    workflow: 'pages-deploy.yml',
     staleAfterMin: 45,
     remindMin: 360,
     now: () => NOW,
@@ -174,5 +176,37 @@ describe('nextDelayMin — 판이 갈린 동안만 촘촘히 (Datadog adaptive p
   it('낡음·못 받음도 촘촘히', () => {
     expect(nextDelayMin({ state: 'stale', reason: 'x', ageMin: 500 }, 10, 3)).toBe(3);
     expect(nextDelayMin({ state: 'unreachable', reason: 'x', ageMin: null }, 10, 3)).toBe(3);
+  });
+});
+
+describe('lastDeployNote — 알림이 원인까지 말한다', () => {
+  const ok = (body) => ({ ok: true, json: async () => body });
+
+  it('취소된 판은 원인이 아니다 — 끝까지 간 판을 본다', async () => {
+    const f = vi.fn(async (url) => {
+      if (String(url).includes('/runs?')) {
+        return ok({
+          workflow_runs: [
+            { id: 1, status: 'completed', conclusion: 'cancelled' },
+            { id: 2, status: 'completed', conclusion: 'failure' },
+          ],
+        });
+      }
+      return ok({ jobs: [{ name: 'build', conclusion: 'failure', steps: [{ name: 'Build KarmoLab', conclusion: 'failure' }] }] });
+    });
+    const note = await lastDeployNote('o/r', 'w.yml', f, 1000, undefined);
+    expect(note).toContain('failure');
+    expect(note).toContain('build → Build KarmoLab');
+  });
+
+  it('초록인데 사이트가 안 바뀐 경우를 따로 말한다 — 오늘 실제로 그랬다', async () => {
+    const f = vi.fn(async () => ok({ workflow_runs: [{ id: 9, status: 'completed', conclusion: 'success' }] }));
+    const note = await lastDeployNote('o/r', 'w.yml', f, 1000, undefined);
+    expect(note).toContain('초록인데');
+  });
+
+  it('못 물어보면 아무 말도 안 붙인다 — 지어내면 알림을 못 믿게 된다', async () => {
+    const f = vi.fn(async () => ({ ok: false, status: 403 }));
+    expect(await lastDeployNote('o/r', 'w.yml', f, 1000, undefined)).toBe('');
   });
 });
