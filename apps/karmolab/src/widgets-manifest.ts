@@ -9,8 +9,9 @@
  *   Toolbox.register({ ...Toolbox.getLazyWidgetPublicMeta('id'), tabs: [...] })
  */
 window.KARMOLAB_WIDGETS_BOOT = [
-  'favorites',
-  'linktree/linktree',
+  /* 즐겨찾기·링크도 여기 없다 — 첫 화면에서 둘이 40KB 를 받고 한 번도 안 그렸다
+     (TASK-KL-204, KL-201 계기판이 잡았다). 목록에서 보이는 자리는 그대로다:
+     갈래를 빈 값으로 둬서 셸의 「갈래 없음」 묶음에 지금처럼 남는다. */
   /* 광장도 여기 없다 — 같은 이유 (TASK-KL-204). 첫 화면에서 23KB 를 받고 안 그렸다. */
   /* 커뮤니티도 여기 없다 — 같은 이유다 (TASK-KL-204). 첫 화면에서 77KB 를 받고 한 번도
      안 그렸다(KL-201 계기판이 잡았다). 누르면 그때 받는다. */

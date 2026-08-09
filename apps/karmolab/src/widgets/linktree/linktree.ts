@@ -239,12 +239,9 @@
     container.appendChild(wrap);
   }
 
+  /* 메타는 `widgets-lazy-meta.ts` 한 곳에 산다 — 두 곳에 적으면 목록 이름과 화면 이름이 갈라진다. */
   Toolbox.register({
-    id: 'linktree',
-    title: '링크',
-    desc: '개발자 연락처 & 링크 모음',
-    layout: 'narrow',
-    icon: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+    ...Toolbox.getLazyWidgetPublicMeta('linktree'),
     tabs: [{ id: 'linktree-main', label: '링크', build }]
   });
 })();

@@ -105,6 +105,27 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['plaza']
   },
   {
+    /* 즐겨찾기·링크도 부팅에서 뺐다 (TASK-KL-204, 근거 = KL-201 계기판). 첫 화면에서 둘이 40KB 를
+       받고 한 번도 안 그렸다. **갈래를 빈 값으로 둔다** — 셸이 갈래 없는 도구를 따로 모아
+       그리므로(`toolbox.ts` 의 「갈래 없음」 묶음) 목록에 보이는 자리는 지금과 똑같다. */
+    id: 'favorites',
+    title: '즐겨찾기',
+    category: '',
+    desc: '자주 가는 사이트와 도구를 모아 빠르게 접속합니다',
+    layout: 'wide',
+    icon: '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
+    lazyScriptPaths: ['favorites']
+  },
+  {
+    id: 'linktree',
+    title: '링크',
+    category: '',
+    desc: '개발자 연락처 & 링크 모음',
+    layout: 'narrow',
+    icon: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+    lazyScriptPaths: ['linktree/linktree']
+  },
+  {
     id: 'servermonitor',
     title: '서버 모니터',
     category: 'tool',
