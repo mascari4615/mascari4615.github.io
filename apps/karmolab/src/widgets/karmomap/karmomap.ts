@@ -569,6 +569,9 @@ import {
       let h = NODE_H;
       // 모든 노드가 얼굴을 갖게 됐으므로(빈 얼굴 = 첫 글자) 폭 여유도 늘 준다.
       if (shape !== 'circle') w += 28;
+      // 카드에 칸이 보이므로 그 줄 수만큼 키운다 — 안 키우면 글자가 카드 밖으로 흐른다.
+      const fieldCount = Object.values(node.fields ?? {}).filter((v) => String(v).trim()).length;
+      if (fieldCount > 0 && shape !== 'circle') h += Math.min(4, fieldCount) * 11 + 4;
       if (hasNote) {
         h += 14;
         w = Math.max(w, widthFor(node.note ?? '') );
