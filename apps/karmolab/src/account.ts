@@ -411,6 +411,18 @@ function currentToolId(): string | null {
  * 첫 화면은 영원히 아무도 안 온 곳이 된다. 화면을 옮길 때마다 보내지 않고 **한 번만** 보낸다 —
  * 서버도 30분에 한 번만 세지만, 안 보내는 편이 낫다.
  */
+/**
+ * 숫자를 실어 보낼 **자격**이 되나 (TASK-KL-201 후속).
+ *
+ * 방문 알림은 화면이 뜨자마자 한 번 나간다 — 그때는 「첫 그림」도 「큰 그림」도 아직 없다.
+ * 그 반쪽 판까지 서버에 세면 분포가 **실제보다 좋아 보인다**(빈 칸은 안 세이니 남는 건 빠른
+ * 값뿐이다). 실측으로 그 반쪽이 먼저 나가는 것을 보고 막았다.
+ * 그래서 숫자는 **큰 그림이 정해진 뒤**에만 싣는다. 그 전 알림은 지금까지처럼 빈 몸으로 간다.
+ */
+function perfWorthSending(snap: { paint?: { lcp: number | null } } | undefined): boolean {
+    return typeof snap?.paint?.lcp === 'number';
+}
+
 function traceVisit(): void {
     /* 다녀갔다고 알리는 김에 **이 기기에서 잰 숫자**를 같이 보낸다 (TASK-KL-201 후속).
      *
@@ -429,7 +441,7 @@ function traceVisit(): void {
         const snap = perf?.snapshot() as
             | { trust?: { ok?: boolean }; nav?: Record<string, number | null>; paint?: { fcp: number | null; lcp: number | null }; cls?: number | null; inp?: number | null; marks?: Array<{ name: string; at: number }>; device?: Record<string, unknown> }
             | undefined;
-        if (snap?.trust?.ok) {
+        if (snap?.trust?.ok && perfWorthSending(snap)) {
             const round = (v: unknown): number | undefined =>
                 typeof v === 'number' && isFinite(v) ? Math.round(v) : undefined;
             const device = snap.device || {};
