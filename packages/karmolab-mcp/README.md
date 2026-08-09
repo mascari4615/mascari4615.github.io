@@ -1,51 +1,91 @@
 # karmolab-mcp
 
-**KarmoLab 도구를 AI 에이전트가 부를 수 있게.** 의존성 0개.
+**The MCP server for things LLMs quietly get wrong** — exact hashes, real randomness, and Korean rules
+(three different "ages", business-registration checksums, substitute holidays, Hangul keyboard mapping).
 
-LLM 은 해시를 지어낸다. 만나이·대체공휴일·시간대 전환처럼 규칙이 복잡한 것도 자신 있게 틀린다.
-그 계산을 정확히 하는 코드는 [KarmoLab](https://blog.mascari4615.com/karmolab/) 이 이미 갖고 있었는데,
-그동안 **화면으로만** 열려 있었다. 이건 그걸 그대로 내놓는 창구다.
+**Zero dependencies.** 44 tools. Everything runs locally; nothing is sent anywhere.
 
-## 쓰기
+```bash
+claude mcp add karmolab -- npx -y karmolab-mcp
+```
+
+> 🇰🇷 한국어 설명은 아래 [한국어](#한국어) 절에 있습니다.
+
+## Why this exists
+
+An LLM will happily answer these — and be wrong in a way you cannot see:
+
+| You ask | What you often get | What this returns |
+| --- | --- | --- |
+| "sha256 of this string" | a plausible 64-hex string | the actual digest (matches `sha256sum`) |
+| "give me a random password" | something from its training data | `crypto.getRandomValues` |
+| "VAT-exclusive price of ₩110,000" | ₩99,000 (subtracts 10%) | ₩100,000 (divides by 1.1) |
+| "how old is someone born in 1990?" | one number | **three** — Korean law still uses all of them |
+| "5 business days after Sep 21, 2026?" | weekends only | weekends **+ holidays + substitute holidays** |
+| "Seoul → New York time difference" | a memorized 14 hours | 13 or 14 — it changes twice a year (DST) |
+| "1 pyeong in m²" | 3.3 | 3.3057851 (the gap is visible money on an apartment) |
+
+These are not edge cases. They are the everyday questions where a confident wrong answer costs something.
+
+## Tools (44)
+
+Descriptions the agent sees are in Korean — this server's domain *is* Korean rules, and models read it fine.
+
+| Group | Tools | What it's for |
+| --- | --- | --- |
+| **Korean rules** | `bizno_check` · `birth_info` · `workdays_after` · `workdays_between` · `hangulkey_toKorean` · `hangulkey_toEnglish` · `hangulkey_auto` · `jamo_split` · `jamo_join` · `jamo_initials` | business/corporate registration checksums · three Korean ages · substitute holidays (KR/JP/US) · 2-bul keyboard round-trip · Hangul jamo decomposition |
+| **Exactness** | `hashgen_text` · `filehash_verify` · `uuidgen_generate` | MD5·SHA-1·SHA-256·SHA-512·**SHA3-512 (FIPS-202)**·**Keccak-512**·RIPEMD-160 · checksum comparison that tolerates `sha256:` prefixes and case · UUID v4/v7, ULID, NanoID, passwords |
+| **Money** | `vat_add` · `vat_extract` · `interest_deposit` · `interest_saving` · `interest_loan` · `loan_schedule` · `loan_compare` | Korean VAT with proper rounding · deposit/installment savings with 15.4% interest tax · three loan repayment methods side by side |
+| **Time** | `epoch_toDate` · `epoch_toStamp` · `datecalc_shift` · `datecalc_between` · `datecalc_dday` · `timecalc_shift` · `timecalc_sum` · `worldclock_convert` · `worldclock_offset` | s/ms/µs/ns auto-detected by digit count · month arithmetic that clamps (Jan 31 + 1mo = Feb 28) · 60-base time sums · DST-aware conversion |
+| **Text & data** | `base64_encode` · `base64_decode` · `csvjson_toJson` · `csvjson_toCsv` · `tableconv_convert` · `charcount_count` · `charcount_fits` · `wordfreq_count` | UTF-8-safe Base64 · RFC 4180 CSV (quoted commas survive) · Excel/CSV/Markdown table conversion · character counts by every basis people actually use · word frequency with Korean particle stripping |
+| **Other** | `qrgen_svg` · `qrgen_wifi` · `qrgen_contact` · `grade_gpa` · `grade_needed` · `unitconv_convert` · `unitconv_list` | QR as SVG (WiFi/vCard escaping done right) · Korean GPA (4.5 and 4.3 scales) · units including 평·근·돈·되·말 |
+
+## Install
 
 ```bash
 # Claude Code
-claude mcp add karmolab -- node /경로/packages/karmolab-mcp/src/server.mjs
+claude mcp add karmolab -- npx -y karmolab-mcp
+
+# or point any MCP client at the binary
+npx -y karmolab-mcp
 ```
 
-처음 한 번은 알맹이를 찍어 내야 한다:
+Requires Node 20+. Speaks MCP over stdio (newline-delimited JSON-RPC 2.0).
+
+## Design
+
+- **No dependencies.** MCP's stdio transport is line-delimited JSON-RPC, so no SDK is needed.
+  Nothing to audit, nothing to break on install.
+- **No hand-written tool list.** The build emits every `src/core/*.ts` that exports a `spec`;
+  the server reads that and derives names, descriptions and input schemas. Adding a tool touches no server code.
+- **The same code runs the website.** These tools are the calculation cores behind
+  [KarmoLab](https://blog.mascari4615.com/karmolab/) — the browser UI and this server share one implementation,
+  so "the site says X but MCP says Y" is structurally impossible.
+- **Honest boundaries.** Tools say what they cannot know: `bizno_check` states it only validates the
+  checksum (not registration), `workdays_*` says which years aren't in its holiday table instead of
+  inventing dates, `unitconv` deliberately has **no currency** (that would need live rates).
+
+## Tests
 
 ```bash
-node build.mjs        # apps/karmolab/src/core/*.ts → dist/*.mjs
+node ../../apps/karmolab/scripts/smoke-mcp.mjs          # spawn the server, call it, check values
+node ../../apps/karmolab/scripts/smoke-mcp-install.mjs  # pack → install into an empty dir → call that
 ```
 
-## 지금 있는 도구
+Values are checked against OpenSSL where an oracle exists. The install test matters separately:
+"works in our repo" and "works after `npm install`" are different claims, and only the second one is
+what a user gets.
 
-| 이름 | 하는 일 |
-| --- | --- |
-| `base64_encode` / `base64_decode` | 한글 안 깨지는 Base64. URL-safe 표기 지원 |
-| `hashgen_text` | MD5 · SHA-1 · SHA-256 · SHA-512 · **SHA3-512(FIPS-202)** · **Keccak-512(표준 이전)** · RIPEMD-160 |
-| `epoch_toDate` / `epoch_toStamp` | 유닉스 타임스탬프 ↔ 시각. **초·밀리·마이크로·나노를 자릿수로 자동 판별** |
+## 한국어
 
-`SHA3-512` 와 `Keccak-512` 를 **따로** 내놓는 이유: 흔히 쓰는 라이브러리들이 표준화 이전 Keccak 을
-「SHA-3」이라 부른다. 값이 다른데 이름이 같으면 사람은 멀쩡한 파일을 손상됐다고 판단한다.
+**LLM 이 조용히 틀리는 것들을 대신 계산하는 MCP 서버.** 의존성 0개, 도구 44개, 전부 로컬에서 돈다.
 
-## 설계
+값이 가장 큰 자리는 **한국 규칙**이다 — 나이 세 가지, 사업자등록번호 검증숫자, 대체공휴일,
+한영타·자모, 평·근·돈. 이건 지역 지식이라 모델이 외워서 답하다 어긋난다.
 
-- **손으로 적은 도구 목록이 없다.** `dist/manifest.json`(빌드가 찍음)을 읽고, 각 알맹이의 `spec` 에서
-  이름·설명·입력 스키마를 뽑는다. 알맹이가 늘면 여기 손 안 대도 도구가 는다.
-- **의존성 0.** MCP 의 stdio 전송은 줄 단위 JSON-RPC 2.0 이라 SDK 없이 말이 통한다.
-- **같은 코드가 화면에서도 돈다.** `apps/karmolab/src/core/` 한 벌을 브라우저와 여기가 같이 쓴다 —
-  「사이트 값과 MCP 값이 다르다」가 구조적으로 불가능하다.
-- `dist/` 는 커밋하지 않는다. 베낀 게 아니라 찍어 낸 것이므로 매번 새로 만든다.
+같은 계산을 [KarmoLab](https://blog.mascari4615.com/karmolab/) 화면도 쓴다 — 한 벌이라
+「사이트 값과 MCP 값이 다르다」가 생길 수 없다.
 
-## 검사
+## License
 
-```bash
-node ../../apps/karmolab/scripts/smoke-mcp.mjs
-```
-
-서버를 진짜 띄우고 에이전트와 같은 순서로 말을 건 뒤(initialize → tools/list → tools/call),
-**돌아온 값을 OpenSSL 과 대 본다.** 「만들었다」가 아니라 「불러 봤고 값이 맞다」가 통과 기준이다.
-
-설계 배경: `memo/projects/karmolab-absorption/06-execution-layer-design.md` · `10-mcp-tool-selection.md`
+MIT
