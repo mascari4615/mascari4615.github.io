@@ -35,6 +35,27 @@ if (!fs.existsSync(path.join(root, 'js/toolbox.js'))) {
   process.exit(0);
 }
 
+/**
+ * Jekyll 이 처리해 줄 것을 정적 서빙에서도 없앤다 — 앞머리 + 「{%…%}」.
+ *
+ * 왜: 앞머리만 걷었더니 화면 맨 위에 조건문 한 줄이 **글자로** 떴다(계기판 화면을 찍어서
+ * 발견). 그만큼 자리가 밀려 밀림(CLS) 값이 오염된다. 실서비스에는 없는 것이니 재는 자리에도
+ * 없어야 같은 것을 재는 것이 된다.
+ *
+ * 정규식을 안 쓴다 — 여러 줄 정규식을 스크립트로 심다가 세 번 깨졌다(개행·따옴표 이스케이프).
+ */
+function stripJekyll(text) {
+  let out = text;
+  if (out.startsWith('---')) {
+    const close = out.indexOf('---', 3);
+    if (close > 0) out = out.slice(out.indexOf('\n', close) + 1);
+  }
+  return out
+    .split('{%')
+    .map((part, i) => (i === 0 ? part : part.slice(part.indexOf('%}') + 2)))
+    .join('');
+}
+
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8',
@@ -51,7 +72,15 @@ const server = http.createServer((req, res) => {
   }
   let body = fs.readFileSync(f);
   const ext = path.extname(f);
-  if (ext === '.html') body = Buffer.from(String(body).replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, ''), 'utf8');
+  if (ext === '.html') {
+    /* 앞머리만 걷으면 **Liquid 태그가 글자로 뜬다** — 실측: 화면 맨 위에 `{% if
+       jekyll.environment ... %}` 한 줄이 그대로 보였고, 그만큼 자리가 밀려 밀림(CLS)이 오염됐다.
+       실서비스에서는 Jekyll 이 처리해 없는 것이니, 재는 자리에서도 없애야 같은 것을 재게 된다. */
+    body = Buffer.from(
+      stripJekyll(String(body)),
+      'utf8'
+    );
+  }
   res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' }).end(body);
 });
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
