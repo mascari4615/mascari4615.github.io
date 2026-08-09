@@ -37,11 +37,19 @@ try {
 const page = await browser.newPage();
 await page.route('**/*', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8">' }));
 await page.goto('http://localhost/');
-await page.evaluate(() => {
+/*
+ * 말 묶음을 미리 박는다 — **진짜 페이지가 하는 그대로**다(`window.__KARMO_I18N`, 머리말에 박힘).
+ * 이걸 안 하면 화면이 `chain.unknownTool` 같은 열쇠를 그대로 뱉는데, 그건 이 검사의 하네스가
+ * 만든 상태지 제품의 상태가 아니다 — 검사가 제품을 헐뜯게 된다.
+ */
+const koChain = JSON.parse(read('i18n/ko/chain.json'));
+await page.evaluate((cat) => {
+  window.__KARMO_LOCALE = 'ko';
+  window.__KARMO_I18N = { ko: { chain: cat } };
   window.__reg = {};
   window.Toolbox = { register: (t) => { window.__reg[t.id] = t; }, trackUse() {}, copyText() {}, mountTool() { return true; } };
   window.Mdd = { linePreset() {} };
-});
+}, koChain);
 await page.addScriptTag({ content: read('js/vendor/crypto-js.min.js') });
 await page.addScriptTag({ content: read('js/widgets/tools/chain.js') });
 const out = await page.evaluate(async () => {

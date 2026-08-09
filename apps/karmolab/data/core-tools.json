@@ -122,6 +122,11 @@
       "compare"
     ]
   },
+  "mesh3d": {
+    "ops": [
+      "info"
+    ]
+  },
   "passgen": {
     "ops": [
       "strength"

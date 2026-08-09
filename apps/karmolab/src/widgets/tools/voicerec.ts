@@ -64,7 +64,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               <div id="vrAiPanel" style="display:none; margin-top:var(--space-md);">
                 <button class="btn btn-ghost" id="vrAiBtn" type="button"></button>
                 <div class="tool-status" id="vrAiSay"></div>
-                <textarea id="vrAiText" class="tool-input" rows="5" readonly
+                <textarea id="vrAiText" class="tool-input" rows="5" readonly aria-label="받아쓴 글"
                   style="display:none; margin-top:var(--space-sm);"></textarea>
                 <button class="btn btn-ghost" id="vrAiSrt" type="button"
                   style="display:none; margin-top:var(--space-xs);">자막(SRT)으로 복사</button>

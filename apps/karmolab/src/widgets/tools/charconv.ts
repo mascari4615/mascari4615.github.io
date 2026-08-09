@@ -45,8 +45,10 @@ import { spec } from '../../core/charconv';
     title: '문자 변환',
     category: 'tool',
     desc: '전각·반각, 한글·로마자, 한글·자모를 한 곳에서. 붙여 넣으면 섞인 글자를 먼저 알려 줍니다',
+    layout: 'wide',
     tabs: [
       {
+        id: 'conv',
         label: '변환',
         build: function (container: HTMLElement): void {
           container.innerHTML = `
