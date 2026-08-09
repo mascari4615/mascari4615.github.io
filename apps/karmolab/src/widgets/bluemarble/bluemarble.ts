@@ -19,8 +19,9 @@ import { t, loadNamespace, fmtRelative } from '../../lib/i18n';
 import { CITIES } from './cities';
 import { subsolar, toVec, distanceKm } from './sky';
 import { quakes, aurora, kpIndex, iss, launches, type Quake, type AuroraPoint, type IssFix, type Launch } from './sources';
-import { paintSurface, type Tex } from './surface';
+import { paintSurface, type Tex, type Region, type View as SurfaceView } from './surface';
 import { loadTex, loadClouds } from './textures';
+import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
 
 (function (): void {
   if (typeof Toolbox === 'undefined') return;
@@ -36,8 +37,9 @@ import { loadTex, loadClouds } from './textures';
     return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/data/' + name;
   }
 
-  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud';
+  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom';
   const LAYERS: Array<{ id: LayerId; glyph: string }> = [
+    { id: 'zoom', glyph: '⊕' },
     { id: 'cloud', glyph: '☁' },
     { id: 'city', glyph: '✦' },
     { id: 'quake', glyph: '◎' },
@@ -52,7 +54,7 @@ import { loadTex, loadClouds } from './textures';
     spin: boolean;
   }
   function loadPrefs(): Prefs {
-    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true }, spin: true };
+    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true }, spin: true };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return base;
@@ -142,6 +144,10 @@ import { loadTex, loadClouds } from './textures';
           let dayTex: Tex | null = null;
           let nightTex: Tex | null = null;
           let cloudTex: { w: number; h: number; a: Uint8ClampedArray } | null = null;
+          let region: Region | null = null;
+          let regionAt = '';        // 지금 들고 있는 조각의 이름표
+          let regionWanted = '';    // 받아 오는 중인 조각
+          let regionTimer: number | undefined;
           let qs: Quake[] = [];
           let au: AuroraPoint[] = [];
           let kp: number | null = null;
@@ -151,20 +157,36 @@ import { loadTex, loadClouds } from './textures';
           let raf: number | undefined;
           let alive = true;
 
-          /* 표면 판 — 화면 해상도로 안 그린다. 작은 정사각형에 그린 뒤 늘여 덮는다
-             (한 점마다 asin·atan2 가 드니, 계산량을 화면 크기에서 떼어 놓는다). */
-          let surfSize = 0;
+          /* 표면 판 — 화면 해상도로 안 그린다. 작은 판에 그린 뒤 늘여 덮는다
+             (한 점마다 asin·atan2 가 드니, 계산량을 화면 크기에서 떼어 놓는다).
+             판이 덮는 화면 영역 = **지구가 화면보다 작으면 지구, 크면 화면**. 확대해 들어가면
+             지구 대부분이 화면 밖이므로, 원판 기준으로 잡으면 안 보이는 곳을 계산하게 된다. */
+          let surfW = 0;
+          let surfH = 0;
           const surfCv = document.createElement('canvas');
           const surfCtx = surfCv.getContext('2d', { willReadFrequently: true })!;
           let surfImg: ImageData | null = null;
+          let surfView: SurfaceView | null = null;
 
-          function ensureSurface(diameter: number): void {
-            const want = Math.max(224, Math.min(384, Math.round(diameter * 0.62 / 16) * 16));
-            if (want === surfSize && surfImg) return;
-            surfSize = want;
-            surfCv.width = want;
-            surfCv.height = want;
-            surfImg = surfCtx.createImageData(want, want);
+          function ensureSurface(): void {
+            const x0 = Math.max(0, cx - R);
+            const y0 = Math.max(0, cy - R);
+            const x1 = Math.min(W, cx + R);
+            const y1 = Math.min(H, cy + R);
+            const rectW = Math.max(1, x1 - x0);
+            const rectH = Math.max(1, y1 - y0);
+            // 긴 변이 384칸을 넘지 않게 — 여기서 프레임 시간이 정해진다
+            const step = Math.max(1, Math.max(rectW, rectH) / 384);
+            const w = Math.max(1, Math.round(rectW / step));
+            const h = Math.max(1, Math.round(rectH / step));
+            if (w !== surfW || h !== surfH) {
+              surfW = w;
+              surfH = h;
+              surfCv.width = w;
+              surfCv.height = h;
+              surfImg = surfCtx.createImageData(w, h);
+            }
+            surfView = { cx, cy, R, x0, y0, step, w, h };
           }
 
           /* ── 화면 크기 ────────────────────────────────────────────────── */
@@ -233,6 +255,87 @@ import { loadTex, loadClouds } from './textures';
             return { x: cx + R * dot(v, ex), y: cy - R * dot(v, ey), z: dot(v, ez) };
           }
 
+          /* ── 확대하면 실사로 갈아타기 ─────────────────────────────────── */
+
+          /** 화면의 한 점이 지구 위 어디인가. 원 밖이면 null. */
+          function unproject(sx: number, sy: number): { lat: number; lon: number } | null {
+            const nx = (sx - cx) / R;
+            const ny = (cy - sy) / R;
+            const r2 = nx * nx + ny * ny;
+            if (r2 >= 1) return null;
+            const nz = Math.sqrt(1 - r2);
+            const px = nx * ex[0] + ny * ey[0] + nz * ez[0];
+            const py = nx * ex[1] + ny * ey[1] + nz * ez[1];
+            const pz = nx * ex[2] + ny * ey[2] + nz * ez[2];
+            return { lat: Math.asin(Math.max(-1, Math.min(1, pz))) / RAD, lon: Math.atan2(py, px) / RAD };
+          }
+
+          /**
+           * 지금 보이는 자리를 경위도 상자로. 화면을 격자로 훑어 실제로 지구에 닿는 점만 모은다
+           * (원 밖·뒤쪽은 애초에 안 나온다). 경도는 **가운데를 기준으로 이어 붙인다** —
+           * 안 그러면 날짜변경선을 걸칠 때 상자가 지구 한 바퀴로 부풀어 타일 수천 장이 된다.
+           */
+          function visibleBox(): BBox | null {
+            const mid = unproject(Math.min(Math.max(cx, 0), W) , Math.min(Math.max(cy, 0), H)) || unproject(cx, cy);
+            if (!mid) return null;
+            let west = Infinity;
+            let east = -Infinity;
+            let south = Infinity;
+            let north = -Infinity;
+            const N = 7;
+            for (let j = 0; j <= N; j++) {
+              for (let i = 0; i <= N; i++) {
+                const p = unproject((i / N) * W, (j / N) * H);
+                if (!p) continue;
+                let d = p.lon - mid.lon;
+                while (d > 180) d -= 360;
+                while (d < -180) d += 360;
+                const lon = mid.lon + d;
+                if (lon < west) west = lon;
+                if (lon > east) east = lon;
+                if (p.lat < south) south = p.lat;
+                if (p.lat > north) north = p.lat;
+              }
+            }
+            if (!Number.isFinite(west)) return null;
+            const padX = (east - west) * 0.08 + 0.02;
+            const padY = (north - south) * 0.08 + 0.02;
+            return { west: west - padX, east: east + padX, south: south - padY, north: north + padY };
+          }
+
+          /** 화면 한 픽셀이 몇 도인가 — 이 값이 몇 층짜리 타일을 받을지 정한다. */
+          const degPerScreenPx = (): number => 57.29578 / R;
+
+          function scheduleRegion(): void {
+            if (regionTimer !== undefined) window.clearTimeout(regionTimer);
+            // 손을 놀리는 동안엔 안 받는다 — 끌 때마다 받으면 회선이 타일로 가득 찬다
+            regionTimer = window.setTimeout(() => {
+              regionTimer = undefined;
+              if (!alive || !prefs.on.zoom) return;
+              // 담아 둔 그림(2048px = 0.176°/px)보다 화면이 촘촘할 때부터 의미가 있다
+              if (degPerScreenPx() > 0.16) {
+                if (region) {
+                  region = null;
+                  regionAt = '';
+                }
+                return;
+              }
+              const box = visibleBox();
+              if (!box) return;
+              const z = levelFor(degPerScreenPx());
+              const key = regionKey(box, z, '');
+              if (key === regionAt || key === regionWanted) return;
+              regionWanted = key;
+              void loadRegion(box, z).then((got) => {
+                if (!alive || regionWanted !== key) return;
+                regionWanted = '';
+                if (!got) return;
+                region = got;
+                regionAt = key;
+              });
+            }, 320);
+          }
+
           /* ── 그리기 ───────────────────────────────────────────────────── */
           function drawGlobe(now: number): void {
             const c = ctx!;
@@ -259,10 +362,11 @@ import { loadTex, loadClouds } from './textures';
 
             /* 표면 — 땅·바다·구름·도시 불빛·명암을 한 번에. 픽셀마다 구면 위 한 점을 되짚는다.
                (자를 것이 없으므로 「돌리면 땅이 화면을 덮는」 사고가 원리적으로 안 생긴다) */
-            ensureSurface(R * 2);
-            if (surfImg) {
-              paintSurface(surfImg, surfSize, {
+            ensureSurface();
+            if (surfImg && surfView) {
+              paintSurface(surfImg, surfView, {
                 day: dayTex,
+                region: prefs.on.zoom ? region : null,
                 night: prefs.on.city ? nightTex : null,
                 cloud: prefs.on.cloud ? cloudTex : null,
                 ex,
@@ -278,7 +382,9 @@ import { loadTex, loadClouds } from './textures';
             c.clip();
             c.imageSmoothingEnabled = true;
             c.imageSmoothingQuality = 'high';
-            c.drawImage(surfCv, cx - R, cy - R, R * 2, R * 2);
+            if (surfView) {
+              c.drawImage(surfCv, surfView.x0, surfView.y0, surfView.w * surfView.step, surfView.h * surfView.step);
+            }
 
             if (prefs.on.aurora) drawAurora(S);
             if (prefs.on.quake) drawQuakes(now);
@@ -542,6 +648,7 @@ import { loadTex, loadClouds } from './textures';
             camLon = drag.lon - (e.clientX - drag.x) * k;
             camLat = Math.max(-85, Math.min(85, drag.lat + (e.clientY - drag.y) * k));
             idleAt = performance.now();
+            scheduleRegion();
           });
           const endDrag = (): void => {
             if (drag) idleAt = performance.now();
@@ -554,8 +661,10 @@ import { loadTex, loadClouds } from './textures';
             'wheel',
             (e: WheelEvent) => {
               e.preventDefault();
-              zoom = Math.max(0.75, Math.min(3.2, zoom * (e.deltaY < 0 ? 1.12 : 0.89)));
+              // 위쪽 한계 = 담아 둔 그림이 아니라 위성 타일의 한계(250m/px)까지 간다
+              zoom = Math.max(0.75, Math.min(420, zoom * (e.deltaY < 0 ? 1.18 : 0.847)));
               idleAt = performance.now();
+              scheduleRegion();
             },
             { passive: false }
           );
@@ -604,7 +713,9 @@ import { loadTex, loadClouds } from './textures';
             const dt = Math.min(100, now - last);
             last = now;
             // 손을 뗀 뒤 4초쯤 지나면 다시 스스로 돈다 — 만지던 자리에서 이어서 돈다
-            if (spin && !drag && now - idleAt > 4000) camLon += dt * 0.0035;
+            /* 확대해 들어갔으면 자전을 멈춘다 — 들여다보는 중에 화면이 흘러가면 못 본다.
+               (그리고 자전 중 실사 조각을 계속 새로 받는 것은 회선 낭비였다 — 실측으로 멎었다) */
+            if (spin && !drag && zoom < 2.2 && now - idleAt > 4000) camLon += dt * 0.0035;
             if (camLon > 180) camLon -= 360;
             if (camLon < -180) camLon += 360;
             drawGlobe(now);

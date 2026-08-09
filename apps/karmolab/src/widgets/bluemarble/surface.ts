@@ -24,9 +24,35 @@ export interface Tex {
   d: Uint8ClampedArray;
 }
 
+/** 보고 있는 자리만 잘라 온 고해상 조각 (`tiles.ts`). 담아 둔 그림보다 우선한다. */
+export interface Region {
+  /** 왼쪽 위 모서리의 경도·위도 */
+  lon0: number;
+  lat0: number;
+  /** 한 픽셀이 몇 도인가 */
+  dpp: number;
+  w: number;
+  h: number;
+  d: Uint8ClampedArray;
+}
+
+/** 버퍼 한 칸이 화면 어디에 놓이는가. 지구본이 화면보다 커지면 버퍼가 화면 쪽을 덮는다. */
+export interface View {
+  cx: number;
+  cy: number;
+  R: number;
+  x0: number;
+  y0: number;
+  step: number;
+  w: number;
+  h: number;
+}
+
 export interface SurfaceInput {
   /** 맨 지구 (구름 없음) */
   day: Tex | null;
+  /** 확대했을 때 쓰는 실사 조각 */
+  region: Region | null;
   /** 도시 불빛 */
   night: Tex | null;
   /** 오늘의 구름 — 0~255 한 겹 */
@@ -42,19 +68,21 @@ export interface SurfaceInput {
 /** 그림을 못 받았을 때 쓰는 맨색 — 「아무것도 안 뜸」보다 「파란 구슬」이 낫다. */
 const FALLBACK_SEA: [number, number, number] = [18, 54, 102];
 
-export function paintSurface(img: ImageData, size: number, s: SurfaceInput): void {
+export function paintSurface(img: ImageData, view: View, s: SurfaceInput): void {
   const out = img.data;
   const { ex, ey, ez, sun } = s;
   const day = s.day;
   const night = s.night;
   const cloud = s.cloud;
-  const inv = 2 / size;
+  const region = s.region;
+  const { cx, cy, R, x0, y0, step } = view;
+  const invR = 1 / R;
 
   let k = 0;
-  for (let j = 0; j < size; j++) {
-    const ny = 1 - (j + 0.5) * inv;
-    for (let i = 0; i < size; i++, k += 4) {
-      const nx = (i + 0.5) * inv - 1;
+  for (let j = 0; j < view.h; j++) {
+    const ny = (cy - (y0 + (j + 0.5) * step)) * invR;
+    for (let i = 0; i < view.w; i++, k += 4) {
+      const nx = (x0 + (i + 0.5) * step - cx) * invR;
       const r2 = nx * nx + ny * ny;
       if (r2 >= 1) {
         out[k + 3] = 0;
@@ -72,10 +100,37 @@ export function paintSurface(img: ImageData, size: number, s: SurfaceInput): voi
       const u = lon / (Math.PI * 2) + 0.5;
       const v = 0.5 - lat / Math.PI;
 
-      let r: number;
-      let g: number;
-      let b: number;
-      if (day) {
+      let r = 0;
+      let g = 0;
+      let b = 0;
+
+      /* 실사 조각이 이 자리를 덮고 있으면 그것부터 본다 — 「끝까지 확대」의 정체가 여기다. */
+      let got = false;
+      if (region) {
+        const latDeg = (lat * 180) / Math.PI;
+        const ry = (region.lat0 - latDeg) / region.dpp;
+        if (ry >= 0 && ry < region.h) {
+          let lonDeg = (lon * 180) / Math.PI;
+          let rx = (lonDeg - region.lon0) / region.dpp;
+          // 조각이 날짜변경선을 걸치면 경도를 한 바퀴 돌려 다시 맞춰 본다
+          if (rx < 0 || rx >= region.w) {
+            lonDeg += rx < 0 ? 360 : -360;
+            rx = (lonDeg - region.lon0) / region.dpp;
+          }
+          if (rx >= 0 && rx < region.w) {
+            const t = ((ry | 0) * region.w + (rx | 0)) * 4;
+            r = region.d[t];
+            g = region.d[t + 1];
+            b = region.d[t + 2];
+            // 아직 위성이 안 지나간 자리는 새까맣다 — 그런 칸은 담아 둔 그림에 양보한다
+            got = r + g + b > 26;
+          }
+        }
+      }
+
+      if (got) {
+        /* 실사에서 읽었다 */
+      } else if (day) {
         const tx = (u * day.w) | 0;
         const ty = (v * day.h) | 0;
         const t = ((ty < 0 ? 0 : ty >= day.h ? day.h - 1 : ty) * day.w + (tx % day.w)) * 4;
@@ -90,7 +145,9 @@ export function paintSurface(img: ImageData, size: number, s: SurfaceInput): voi
 
       // 구름 — 흰색을 위에 얹는다. 해가 비치는 쪽에서만 보인다(밤 구름은 눈에 안 보인다)
       let cl = 0;
-      if (cloud) {
+      /* 실사 조각을 읽은 자리에는 구름을 얹지 않는다 — 그 사진에 이미 그날 구름이 찍혀 있다.
+         겹쳐 얹으면 확대할수록 1024px 짜리 구름 판이 늘어나 **화면이 흰 죽이 된다**(실측). */
+      if (cloud && !got) {
         const cx2 = (u * cloud.w) | 0;
         const cy2 = (v * cloud.h) | 0;
         const ci = (cy2 < 0 ? 0 : cy2 >= cloud.h ? cloud.h - 1 : cy2) * cloud.w + (cx2 % cloud.w);
@@ -133,8 +190,8 @@ export function paintSurface(img: ImageData, size: number, s: SurfaceInput): voi
       out[k] = r * w + nr * (1 - w);
       out[k + 1] = g * w + ng * (1 - w);
       out[k + 2] = b * w + nb * (1 - w);
-      // 가장자리 한 겹은 알파를 눌러 톱니를 없앤다
-      const edge = (1 - Math.sqrt(r2)) * size * 0.5;
+      // 가장자리 한 겹은 알파를 눌러 톱니를 없앤다 (버퍼 한 칸 = 화면 step px)
+      const edge = ((1 - Math.sqrt(r2)) * R) / step;
       out[k + 3] = edge < 1 ? edge * 255 : 255;
     }
   }
