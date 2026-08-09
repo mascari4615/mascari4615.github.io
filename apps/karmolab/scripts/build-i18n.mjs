@@ -140,6 +140,32 @@ if (fs.existsSync(seoPath)) {
   }
 }
 
+/* ── ①-b-2 「쓰는 법」도 뽑는다 (TASK-KL-203 S8-e) ────
+ *
+ * 도구 장에서 설명 다음으로 사람이 실제로 읽는 절이다. 안 옮기면 언어 장에서 그 절이 통째로
+ * 사라진다 — 원본 언어 글을 영어 주소에 실을 수는 없으니 뺐던 것인데, 빠진 장은 한국어 장보다
+ * 얇다(6,348자). 자주 묻는 질문(46,805자)은 훨씬 크므로 **따로 둔다** — 한 묶음에 넣으면
+ * 「덜 찼다」가 영원히 안 풀린다(이름/설명을 나눈 것과 같은 규칙).
+ */
+const derivedHowto = {};
+if (fs.existsSync(seoPath)) {
+  const tools = JSON.parse(fs.readFileSync(seoPath, 'utf8')).tools;
+  for (const [id, body] of Object.entries(tools)) {
+    if (!Array.isArray(body.howto)) continue;
+    body.howto.forEach((step, i) => {
+      if (typeof step === 'string' && step.trim()) derivedHowto[`howto.${id}.${i}`] = step;
+    });
+  }
+  const koHowtoPath = path.join(I18N_DIR, SOURCE_LOCALE, 'howto.json');
+  const next = JSON.stringify(derivedHowto, null, 2) + '\n';
+  const prev = fs.existsSync(koHowtoPath) ? fs.readFileSync(koHowtoPath, 'utf8').split('\r\n').join('\n') : '';
+  if (prev !== next && !CHECK) fs.writeFileSync(koHowtoPath, next, 'utf8');
+  if (prev !== next && CHECK) {
+    console.error('[i18n] i18n/ko/howto.json 이 data/tools-seo.json 과 어긋남 — `npm run build:i18n` 후 커밋');
+    process.exit(1);
+  }
+}
+
 /* ── ①-c 위젯 이름·설명도 등록 파일에서 뽑는다 ─────────
  *
  * 옆줄·목록·⌘K 에 뜨는 도구 **이름**이다. 여기가 한국어면 영어 화면에서 이름만 한국어로 남아
