@@ -31,6 +31,9 @@ permalink: /karmolab/
     <meta name="apple-mobile-web-app-title" content="KarmoLab">
     <!-- KAR-115 PWA + KL-088 갱신 안내 — 등록·업데이트 배너는 js/pwa-update.js 가 담당 -->
     <script defer fetchpriority="low" src="/apps/karmolab/js/pwa-update.js"></script>
+    <!-- 언어 단추·안내 띠 (TASK-KL-203). 첫 그림에는 필요 없다 — 단추 자체는 HTML 에 이미 있고
+         글자도 찍을 때 박히므로, 이 파일은 누를 때와 안내를 띄울 때만 쓰인다. -->
+    <script defer fetchpriority="low" src="/apps/karmolab/js/lang-switch.js"></script>
     <title>KarmoLab</title>
     <!-- TASK-KL-064: 알람 발화 모드. Rust 스케줄러가 띄우는 label "alarm"
          WebviewWindow 가 #alarm-fire 로 이 페이지를 연다. 대시보드 부트 대신
@@ -249,6 +252,12 @@ permalink: /karmolab/
                      계정 메뉴에도 있지만 그건 서버에 닿을 때만 그려진다. 설정은 서버와 무관하다. -->
                 <button type="button" class="header-btn settings-btn" id="settingsPageBtn" title="환경 설정" aria-label="환경 설정" data-i18n-title="shell.settings" data-i18n-aria-label="shell.settings">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </button>
+                <!-- 언어 단추 (TASK-KL-203). 여기 박아 두는 이유: 검색으로 들어온 사람이 첫 화면에서
+                     바로 찾아야 한다 — 설정 안에 넣으면 우리말을 못 읽는 사람은 거기까지 못 간다.
+                     글자(KO/EN)는 언어 장을 찍을 때 갈아 끼우고, 앱에서는 js/lang-switch.js 가 맞춘다. -->
+                <button type="button" class="header-btn lang-btn" id="langBtn" title="언어 바꾸기" aria-label="언어 바꾸기" data-i18n-title="shell.lang.title" data-i18n-aria-label="shell.lang.aria" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="lang-btn-code" data-i18n="shell.lang.code" style="font-size:.72rem;font-weight:700;letter-spacing:.04em">KO</span>
                 </button>
                 <button type="button" class="theme-toggle" id="themeToggle" title="테마 전환" aria-label="라이트/다크 모드 전환" data-i18n-title="shell.theme.toggle" data-i18n-aria-label="shell.theme.toggleAria">
                     <svg class="theme-icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
