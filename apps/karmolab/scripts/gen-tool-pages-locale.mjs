@@ -59,15 +59,37 @@ const ids = fs
   .filter((e) => e.isDirectory() && fs.existsSync(path.join(srcDir, e.name, 'index.html')))
   .map((e) => e.name);
 
+const L = makeLocalizer(ids);
+
 const codes = LOCALES.filter((l) => NEEDED.every((ns) => coverage(l.code, ns) >= 1)).map((l) => l.code);
 const targets = codes.filter((c) => c !== DEFAULT_LOCALE);
 
 /* ── 한 장을 그 언어로 ──────────────────────────────── */
 
-/** `/karmolab/t/<id>/` 같은 우리 주소에 언어 앞머리를 붙인다. 바깥 링크는 건드리지 않는다. */
-function localizeLinks(html, code) {
-  const prefix = localizedPath('/karmolab', code).replace(/\/$/, '');
-  return html.replace(/href="\/karmolab(\/[^"]*)?"/g, (_w, rest) => `href="${prefix}${rest || '/'}"`);
+/**
+ * **그 언어 판이 실제로 있는 주소만** 앞머리를 붙인다 (TASK-KL-203 S4-b 후속).
+ *
+ * 처음에는 `/karmolab` 으로 시작하는 링크를 전부 `/en/karmolab…` 으로 바꿨다. 그 순간 도구 장
+ * 258개가 **없는 주소를 가리키기 시작했다** — 목록(`/en/karmolab/t/`)·봇 소개(`/en/karmolab/bot/`)·
+ * 변경 기록(`/en/karmolab/changes.xml`) 은 아직 그 언어로 안 찍는다. 링크는 눌러 보기 전에는
+ * 멀쩡해 보이고, 눌러야 404 다.
+ *
+ * 규칙: **없는 곳으로는 안 보낸다.** 그 언어 판이 없는 주소는 원래(한국어) 주소 그대로 둔다 —
+ * 언어가 한 번 되돌아가는 건 불편이지만, 없는 문을 여는 건 고장이다. 그 장을 그 언어로 찍기
+ * 시작하면 아래 목록에 한 줄 늘고 링크도 저절로 따라온다.
+ */
+function makeLocalizer(ids) {
+  const localized = new Set(['/karmolab/', ...ids.map((id) => `/karmolab/t/${id}/`)]);
+  return {
+    has: (bare) => localized.has(bare),
+    /** 그 언어 판이 있으면 앞머리를 붙인 주소, 없으면 원래 주소. */
+    href: (bare, code) => (localized.has(bare) ? localizedPath(bare, code) : bare),
+    apply(html, code) {
+      return html.replace(/href="(\/karmolab[^"]*)"/g, (whole, bare) =>
+        localized.has(bare) ? `href="${localizedPath(bare, code)}"` : whole
+      );
+    }
+  };
 }
 
 function toolSeoSection(id, code, sourceHtml) {
@@ -82,11 +104,12 @@ function toolSeoSection(id, code, sourceHtml) {
     const chunk = sourceHtml.slice(seoStart, sourceHtml.indexOf('</div>', seoStart));
     for (const m of chunk.matchAll(/\/karmolab\/t\/([^/"]+)\//g)) relatedIds.push(m[1]);
   }
-  const base = localizedPath('/karmolab/t', code);
+  const hub = L.href('/karmolab/t/', code);
+  const home = L.href('/karmolab/', code);
   const related = relatedIds
     .map(
       (r) =>
-        `<a href="${base}/${r}/">${esc(tr(code, `widgets.${r}.title`))}<span>${esc(
+        `<a href="${L.href(`/karmolab/t/${r}/`, code)}">${esc(tr(code, `widgets.${r}.title`))}<span>${esc(
           tr(code, `tools.${r}.lead`)
         )}</span></a>`
     )
@@ -94,7 +117,7 @@ function toolSeoSection(id, code, sourceHtml) {
 
   return `<section class="tool-seo">
         <nav class="tool-seo-crumb" aria-label="${esc(tr(code, 'toolpage.crumb.aria'))}">
-          <a href="${localizedPath('/karmolab/', code)}">KarmoLab</a> / <a href="${base}/">${esc(
+          <a href="${home}">KarmoLab</a> / <a href="${hub}">${esc(
     tr(code, 'toolpage.crumb.tools')
   )}</a> / ${esc(title)}
         </nav>
@@ -107,10 +130,7 @@ function toolSeoSection(id, code, sourceHtml) {
 
         <p class="tool-seo-note">
           ${esc(tr(code, 'toolpage.note.privacy'))}
-          <a href="${base}/">${esc(tr(code, 'toolpage.nav.allTools'))}</a> · <a href="${localizedPath(
-    '/karmolab/',
-    code
-  )}">KarmoLab</a> · <a href="https://github.com/Mascari4615" rel="me">${esc(
+          <a href="${hub}">${esc(tr(code, 'toolpage.nav.allTools'))}</a> · <a href="${home}">KarmoLab</a> · <a href="https://github.com/Mascari4615" rel="me">${esc(
     tr(code, 'toolpage.nav.maker')
   )}</a>
         </p>
@@ -166,8 +186,8 @@ function localizeToolPage(source, id, code) {
   html = html.replace(
     /<nav class="tool-crumb"[\s\S]*?<\/nav>/,
     `<nav class="tool-crumb" aria-label="${esc(tr(code, 'toolpage.crumb.aria'))}">` +
-      `<a href="${localizedPath('/karmolab/', code)}">KarmoLab</a><i aria-hidden="true">›</i>` +
-      `<a href="${localizedPath('/karmolab/t', code)}/">${esc(tr(code, 'toolpage.crumb.tools'))}</a>` +
+      `<a href="${L.href('/karmolab/', code)}">KarmoLab</a><i aria-hidden="true">›</i>` +
+      `<a href="${L.href('/karmolab/t/', code)}">${esc(tr(code, 'toolpage.crumb.tools'))}</a>` +
       `<i aria-hidden="true">›</i><span aria-current="page">${esc(title)}</span></nav>`
   );
 
@@ -195,7 +215,7 @@ function localizeToolPage(source, id, code) {
   });
 
   /* 우리 주소에 언어 앞머리. 바깥 링크(github 등)는 안 건드린다. */
-  html = localizeLinks(html, code);
+  html = L.apply(html, code);
   /* 앞머리(front matter)의 주소는 `toLocalePage` 가 이미 옮겼다 — 다시 붙지 않게 확인만. */
   return html;
 }
