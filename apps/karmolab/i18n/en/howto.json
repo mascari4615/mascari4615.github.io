@@ -82,5 +82,8 @@
   "howto.favicon.3": "Download the ZIP and paste the markup",
   "howto.exifclean.0": "Add a JPG photo",
   "howto.exifclean.1": "See what is hidden inside",
-  "howto.exifclean.2": "Strip it and download"
+  "howto.exifclean.2": "Strip it and download",
+  "howto.epoch.0": "Paste a number, or pick a time",
+  "howto.epoch.1": "The other side follows automatically",
+  "howto.epoch.2": "Copy it in seconds or milliseconds"
 }

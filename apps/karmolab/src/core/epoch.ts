@@ -36,15 +36,26 @@ export interface Unit {
   /** 이 단위 값을 밀리초로 만들려면 나눌 수. (초는 0.001 로 나눔 = 1000 곱) */
   div: number;
   label: string;
+  /** 이름 대신 쓰는 표식 — 화면은 이걸로 자기 말을 붙인다. */
+  key: UnitKey;
 }
+
+/** 단위의 **표식**. 이름은 읽는 쪽이 붙인다 (TASK-KL-203). */
+export type UnitKey = 'sec' | 'ms' | 'us' | 'ns';
+
+const UNIT_KO: Record<UnitKey, string> = {
+  ns: '나노초 (19자리)',
+  us: '마이크로초 (16자리)',
+  ms: '밀리초 (13자리)',
+  sec: '초 (10자리)'
+};
 
 /** 자릿수로 단위를 가린다. 부호는 자릿수에 안 넣는다. */
 export function detectUnit(raw: string): Unit {
   const digits = raw.replace('-', '').length;
-  if (digits >= 18) return { div: 1e6, label: '나노초 (19자리)' };
-  if (digits >= 15) return { div: 1e3, label: '마이크로초 (16자리)' };
-  if (digits >= 12) return { div: 1, label: '밀리초 (13자리)' };
-  return { div: 0.001, label: '초 (10자리)' };
+  const key: UnitKey = digits >= 18 ? 'ns' : digits >= 15 ? 'us' : digits >= 12 ? 'ms' : 'sec';
+  const div = key === 'ns' ? 1e6 : key === 'us' ? 1e3 : key === 'ms' ? 1 : 0.001;
+  return { div, label: UNIT_KO[key], key };
 }
 
 export interface ParsedStamp {
@@ -108,6 +119,25 @@ export function stampRows(ms: number, now: number): Array<[string, string]> {
     ['밀리초 (13자리)', String(Math.round(ms))],
     ['마이크로초 (16자리)', String(Math.round(ms * 1e3))],
     ['나노초 (19자리)', String(Math.round(ms * 1e6))]
+  ];
+}
+
+/**
+ * 화면용 — **이름 대신 표식**과 값. 「지금 기준」은 값이 아니라 시각을 넘겨 화면이
+ * `Intl.RelativeTimeFormat` 으로 그 언어답게 적게 한다 (TASK-KL-203).
+ */
+export function stampRowKeys(ms: number): Array<[string, string | number]> {
+  const d = new Date(ms);
+  return [
+    ['local', ''],
+    ['utc', d.toUTCString()],
+    ['iso', d.toISOString()],
+    ['weekday', ''],
+    ['delta', ms],
+    ['sec', String(Math.floor(ms / 1000))],
+    ['ms', String(Math.round(ms))],
+    ['us', String(Math.round(ms * 1e3))],
+    ['ns', String(Math.round(ms * 1e6))]
   ];
 }
 

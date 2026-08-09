@@ -82,5 +82,8 @@
   "howto.favicon.3": "ZIP をダウンロードしてコードを貼る",
   "howto.exifclean.0": "写真（JPG）を入れる",
   "howto.exifclean.1": "入っている情報を確認",
-  "howto.exifclean.2": "情報を消してダウンロード"
+  "howto.exifclean.2": "情報を消してダウンロード",
+  "howto.epoch.0": "数字を貼り付けるか、時刻を選ぶ",
+  "howto.epoch.1": "もう一方が自動で変わる",
+  "howto.epoch.2": "秒またはミリ秒でコピー"
 }
