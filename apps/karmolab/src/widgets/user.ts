@@ -14,6 +14,13 @@
         desc: string;
         icon: string;
         source: string;
+        /**
+         * 얼마나 왔나를 셀 수 있는 것만 (TASK-KL-175 E7).
+         * `track` = 누적 카운터 이름, `goal` = 목표치. 없으면 잠김/열림 두 상태 그대로다 —
+         * 셀 수 없는 것에 가짜 막대를 그리지 않는다.
+         */
+        track?: string;
+        goal?: number;
     };
 
     type UserBadge = {
@@ -42,11 +49,11 @@
         badges: UserBadge[];
     } = {
         achievements: [
-            { id: 'pet_100', title: '100번 쓰다듬기', desc: '고양이를 100번 쓰다듬었다', icon: '🐱', source: 'pet' },
-            { id: 'pet_1000', title: '1,000번 쓰다듬기', desc: '고양이를 1,000번 쓰다듬었다', icon: '🐱', source: 'pet' },
-            { id: 'pet_10000', title: '10,000번 쓰다듬기', desc: '집사 가끔 대단해요', icon: '🐱', source: 'pet' },
-            { id: 'pet_100000', title: '100,000번 쓰다듬기', desc: '진짜로 하고 있었어요?!', icon: '🐱', source: 'pet' },
-            { id: 'pet_500000', title: '500,000번 쓰다듬기', desc: '반이에요... 설마 진심이에요?!', icon: '🐱', source: 'pet' },
+            { id: 'pet_100', title: '100번 쓰다듬기', desc: '고양이를 100번 쓰다듬었다', icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 100 },
+            { id: 'pet_1000', title: '1,000번 쓰다듬기', desc: '고양이를 1,000번 쓰다듬었다', icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 1000 },
+            { id: 'pet_10000', title: '10,000번 쓰다듬기', desc: '집사 가끔 대단해요', icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 10000 },
+            { id: 'pet_100000', title: '100,000번 쓰다듬기', desc: '진짜로 하고 있었어요?!', icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 100000 },
+            { id: 'pet_500000', title: '500,000번 쓰다듬기', desc: '반이에요... 설마 진심이에요?!', icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 500000 },
             { id: 'first_chat', title: '첫 대화', desc: '챗봇과 첫 대화를 나눴다', icon: '💬', source: 'chatbot' },
             { id: 'first_image', title: '첫 이미지 생성', desc: '첫 이미지를 생성했다', icon: '🎨', source: 'imagegen' },
             { id: 'streak_first', title: '첫 줄기', desc: '처음으로 스트릭 하루를 채웠다', icon: '🌱', source: 'streak' },
@@ -169,6 +176,12 @@
         .fp-session-when, .fp-event-when { font-size:11px; color:var(--text-tertiary); white-space:nowrap; }
         .fp-event-meta { flex:2 1 160px; font-size:11px; color:var(--text-secondary);
             overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        /* 얼마나 왔나 (TASK-KL-175 E7) — 잠긴 것에만 붙는다. 연 것에 막대는 뜻이 없다. */
+        .user-item-progress { position:relative; height:14px; margin-top:8px; border-radius:999px;
+            background:var(--bg-secondary); overflow:hidden; }
+        .user-item-progress i { display:block; height:100%; background:var(--accent); opacity:.55; }
+        .user-item-progress span { position:absolute; inset:0; display:grid; place-items:center;
+            font-size:10px; color:var(--text-secondary); font-family:var(--font-mono, monospace); }
         .user-item-rarity { margin-top:6px; font-size:11px; color:var(--accent); }
         .fp-follows { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
         .fp-follows > div { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
@@ -1079,9 +1092,9 @@
      *
      * 이 브라우저가 패스키를 모르면 **단추 자체를 안 그린다** — 눌러도 아무 일 없는 단추가 제일 나쁘다.
      */
-    /* 나눠 쓰는 메모리(SharedArrayBuffer) 위에 앉을 수도 있는 바이트열은 브라우저의 열쇠 API 가
-     * 안 받는다. `Uint8Array.from` 이 그 「어느 쪽이든」 형을 준다 — 그래서 자리를 **직접 잡아**
-     * 준다. (안 하면 CI 만 빨갛다: 여기 형 검사가 멈추고 배포가 통째로 선다.) */
+    /* 반환형을 `Uint8Array<ArrayBuffer>` 로 못 박는다.
+     * 기본형(`Uint8Array<ArrayBufferLike>`)은 공유 버퍼일 수도 있다고 보여서 `BufferSource`
+     * 자리에 못 넣는다 — 타입 검사가 통째로 빨개지고, 그러면 배포가 전부 멈춘다(TS 5.7+). */
     function b64urlToBytes(value: string): Uint8Array<ArrayBuffer> {
         const padded = value.replace(/-/g, '+').replace(/_/g, '/');
         const raw = atob(padded + '='.repeat((4 - (padded.length % 4)) % 4));
@@ -1326,7 +1339,16 @@
     function buildUsage(container: HTMLElement): void {
         container.innerHTML = '<div class="user-layout"><div id="userFootprint"></div><div id="userDash"></div></div>';
         const dash = container.querySelector<HTMLElement>('#userDash');
-        if (dash && typeof window.DashboardBuild === 'function') window.DashboardBuild(dash);
+        /* 쓰임새 표는 **이 자리에서만** 쓰인다 — 그런데 그 코드가 부팅에 딸려 왔다(첫 화면에서
+           받고 한 번도 안 그린다). 여기서 데려온다: 이 탭을 연 사람만 받는다 (TASK-KL-204).
+           못 받아도 이 화면의 나머지는 그대로 뜬다 — 표 자리만 비어 있다. */
+        if (dash) {
+            void Promise.resolve(Toolbox.ensureScript?.('dashboard'))
+                .then(() => {
+                    if (typeof window.DashboardBuild === 'function') window.DashboardBuild(dash);
+                })
+                .catch(() => undefined);
+        }
         mountFootprint(container.querySelector<HTMLElement>('#userFootprint'));
     }
 
@@ -1510,12 +1532,24 @@
         const streaks = data.streaks ?? {};
         const streakIds = Object.keys(streaks);
 
+        const progress = data.progress ?? {};
         const achGrid = DEFS.achievements.map((a) => {
             const unlocked = achievements.includes(a.id);
+            /* 얼마나 왔나 (TASK-KL-175 E7) — 셀 수 있는 것만. 잠김/열림 두 상태뿐이면
+             * 「쓰담 100번」이 1번 한 사람에게도 10,000번 한 사람에게도 똑같이 보인다. */
+            const now = a.track ? progress[a.track] ?? 0 : null;
+            const bar =
+                !unlocked && a.track && a.goal && now !== null
+                    ? `<div class="user-item-progress" title="${now.toLocaleString()} / ${a.goal.toLocaleString()}">
+                           <i style="width:${Math.min(100, Math.round((now / a.goal) * 100))}%"></i>
+                           <span>${now.toLocaleString()} / ${a.goal.toLocaleString()}</span>
+                       </div>`
+                    : '';
             return `<div class="user-item ${unlocked ? '' : 'locked'}" title="${escapeHtml(a.desc)}" data-ach="${escapeHtml(a.id)}">
                 <div class="user-item-icon">${unlocked ? a.icon : '🔒'}</div>
                 <div class="user-item-title">${escapeHtml(a.title)}</div>
                 <div class="user-item-desc">${escapeHtml(a.desc)}</div>
+                ${bar}
                 <div class="user-item-rarity"></div>
             </div>`;
         }).join('');

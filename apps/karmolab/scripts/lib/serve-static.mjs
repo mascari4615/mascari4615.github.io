@@ -20,8 +20,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-/** apps/karmolab/scripts/lib → 저장소 뿌리 */
-const REPO_ROOT = path.dirname(path.dirname(path.dirname(here)));
+/**
+ * `apps/karmolab/scripts/lib` → 저장소 뿌리 (네 단계 위).
+ *
+ * ⚠ 처음에 세 단계만 올라가 `apps/` 를 뿌리로 잡았다. 그러면 화면이 통째로 404 인데 **검사는
+ * 통과했다** — 「쉬는가」를 보는 검사가 빈 페이지를 재고 「쉰다」고 답했다. 볼 대상이 없으면
+ * 통과가 아니라 못 돌림이어야 한다. 그래서 아래 `serveRepo` 가 뿌리를 열 때 한 번 확인한다.
+ */
+const REPO_ROOT = path.dirname(path.dirname(path.dirname(path.dirname(here))));
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -68,6 +74,12 @@ export function stripJekyll(text) {
  */
 export async function serveRepo(options = {}) {
   const root = options.root || REPO_ROOT;
+  /* 뿌리가 틀리면 **화면이 통째로 404 인데 검사는 통과한다** — 빈 페이지는 언제나 조용하고,
+     언제나 가볍다. 실제로 그렇게 한 번 속았다. 그러니 여기서 한 번 확인하고, 아니면 세운다. */
+  const landmark = path.join(root, 'apps/karmolab/index.html');
+  if (!fs.existsSync(landmark)) {
+    throw new Error(`[serve-static] 뿌리가 틀렸다 — ${landmark} 가 없다. 빈 화면을 재면 무엇이든 통과한다.`);
+  }
   const server = http.createServer((req, res) => {
     let target = decodeURIComponent(req.url.split('?')[0]);
     if (target.endsWith('/')) target += 'index.html';
