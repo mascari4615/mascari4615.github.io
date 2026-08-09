@@ -13,7 +13,12 @@
  *
  * 서버(집 노트북)에 못 닿으면 광장만 조용히 닫힌다. 도구는 그대로 돈다.
  */
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
     interface ToolStat {
         toolId: string;
         total: number;
@@ -192,15 +197,15 @@
                 (row, index) =>
                     `<tr><td>${index + 1}</td>` +
                     `<td><a href="/karmolab/u/?h=${encodeURIComponent(row.handle)}">${escapeHtml(row.displayName)}</a></td>` +
-                    `<td>${num(row.streak)}일</td><td>${num(row.activeDays)}일</td></tr>`,
+                    `<td>${t('plaza.unit.days', { n: num(row.streak) })}</td><td>${t('plaza.unit.days', { n: num(row.activeDays) })}</td></tr>`,
             )
             .join('');
         return `
             <section class="plaza-section">
-                <h3>이어 온 사람들</h3>
-                <p class="plaza-section-note">프로필을 열어 둔 사람만 · 최장 연속 순 · 전부 실측</p>
+                <h3>${esc(t('plaza.t01'))}</h3>
+                <p class="plaza-section-note">${esc(t('plaza.t02'))}</p>
                 <table class="plaza-leaders">
-                    <thead><tr><th></th><th>사람</th><th>최장 연속</th><th>다녀간 날</th></tr></thead>
+                    <thead><tr><th></th><th>${esc(t('plaza.t03'))}</th><th>${esc(t('plaza.t04'))}</th><th>${esc(t('plaza.t05'))}</th></tr></thead>
                     <tbody>${rows}</tbody>
                 </table>
             </section>`;
@@ -226,10 +231,10 @@
             .join('');
         return `
             <section class="plaza-section">
-                <h3>놀이 시즌 순위</h3>
-                <p class="plaza-section-note">판마다 메달을 주고 메달 수로 줄 세웁니다 · 점수는 섞지 않습니다</p>
+                <h3>${esc(t('plaza.t06'))}</h3>
+                <p class="plaza-section-note">${esc(t('plaza.t07'))}</p>
                 <table class="plaza-leaders">
-                    <thead><tr><th></th><th>사람</th><th>금</th><th>은</th><th>동</th></tr></thead>
+                    <thead><tr><th></th><th>${esc(t('plaza.t03'))}</th><th>${esc(t('plaza.t08'))}</th><th>${esc(t('plaza.t09'))}</th><th>${esc(t('plaza.t10'))}</th></tr></thead>
                     <tbody>${body}</tbody>
                 </table>
             </section>`;
@@ -250,7 +255,7 @@
     function offline(container: HTMLElement): void {
         // 서버가 죽은 것과 「아무 일도 없다」는 다르다. 섞어서 말하지 않는다.
         container.innerHTML =
-            '<div class="plaza-wrap"><p class="plaza-note">지금은 광장을 못 여네요. 숫자를 세는 서버(집 노트북 한 대)에 못 닿았습니다. 잠시 뒤에 다시 열어 주세요 — 도구는 그대로 쓸 수 있습니다.</p></div>';
+            `<div class="plaza-wrap"><p class="plaza-note">${esc(t('plaza.err.offline'))}</p></div>`;
     }
 
     /* ===== 방문 — 블로그의 Total / Today ===== */
@@ -258,9 +263,9 @@
     function renderVisits(visits: Visits | null): string {
         if (!visits || visits.total === 0) return '';
         const items = [
-            { value: visits.total, label: '지금까지 방문', note: 'Total' },
-            { value: visits.today, label: '오늘 방문', note: 'Today' },
-            { value: visits.peopleToday, label: '오늘 다녀간 사람', note: '같은 사람은 하루 한 번' },
+            { value: visits.total, label: t('plaza.t44'), note: 'Total' },
+            { value: visits.today, label: t('plaza.t45'), note: 'Today' },
+            { value: visits.peopleToday, label: t('plaza.t46'), note: t('plaza.t47') },
         ].filter((item) => item.value > 0);
         return `<div class="plaza-big">${items
             .map(
@@ -279,15 +284,15 @@
             .map((d, index) => {
                 const height = Math.round((d.visits / max) * 100);
                 const today = index === days.length - 1 ? '1' : '0';
-                return `<div class="plaza-spark-bar" data-today="${today}" title="${escapeHtml(d.day)} · 방문 ${num(d.visits)} · 사람 ${num(d.people)}"><i style="height:${Math.max(height, d.visits > 0 ? 6 : 0)}%"></i></div>`;
+                return `<div class="plaza-spark-bar" data-today="${today}" title="${escapeHtml(d.day)} · ${t('plaza.spark.tip', { visits: num(d.visits), people: num(d.people) })}"><i style="height:${Math.max(height, d.visits > 0 ? 6 : 0)}%"></i></div>`;
             })
             .join('');
         return `
             <section class="plaza-section">
-                <h3>최근 2주</h3>
+                <h3>${esc(t('plaza.t11'))}</h3>
                 <p class="plaza-section-note">막대 하나가 하루입니다. 맨 오른쪽이 오늘 · 가장 높은 날 ${num(max)}번</p>
                 <div class="plaza-spark">${bars}</div>
-                <div class="plaza-spark-axis"><span>${escapeHtml(days[0].day)}</span><span>오늘</span></div>
+                <div class="plaza-spark-axis"><span>${escapeHtml(days[0].day)}</span><span>${esc(t('plaza.t12'))}</span></div>
             </section>`;
     }
 
@@ -304,7 +309,7 @@
         const others = online - 1;
         const line =
             others > 0
-                ? `지금 <b>${num(online)}명</b>이 함께 보고 있어요`
+                ? `${t('plaza.online', { n: num(online) })}`
                 : `지금은 혼자 보고 계세요`;
         return `<div class="plaza-online"><span class="plaza-online-dot"></span><span>${line}</span></div>`;
     }
@@ -312,10 +317,10 @@
     /* ===== 누가 왔나 (사람 · 검색엔진 · AI) ===== */
 
     const KIND_LABEL: Record<string, string> = {
-        human: '사람',
-        search: '검색엔진',
+        human: t('plaza.t03'),
+        search: t('plaza.t48'),
         ai: 'AI',
-        unknown: '알 수 없음',
+        unknown: t('plaza.t49'),
     };
 
     /**
@@ -336,15 +341,15 @@
         const sum = rows.reduce((total, row) => total + row.total, 0);
         return `
             <section class="plaza-section">
-                <h3>누가 왔나</h3>
-                <p class="plaza-section-note">사람만 위의 방문 수에 들어갑니다 · 나머지도 버리지 않고 여기에 그대로 둡니다</p>
+                <h3>${esc(t('plaza.t13'))}</h3>
+                <p class="plaza-section-note">${esc(t('plaza.t14'))}</p>
                 <div class="plaza-rows">
                     ${rows
                         .map(
                             (row) => `<div class="plaza-row">
                                 <span class="plaza-row-name">${escapeHtml(row.label)}</span>
                                 <span class="plaza-kind-bar"><i style="width:${Math.max(2, Math.round((row.total / sum) * 100))}%" data-kind="${escapeHtml(row.key)}"></i></span>
-                                <span class="plaza-row-value">${num(row.total)}${row.today ? ` <span class="plaza-row-today">오늘 ${num(row.today)}</span>` : ''}</span>
+                                <span class="plaza-row-value">${num(row.total)}${row.today ? ` <span class="plaza-row-today">${t('plaza.todayCount', { n: num(row.today) })}</span>` : ''}</span>
                             </div>`,
                         )
                         .join('')}
@@ -353,12 +358,10 @@
                     // 가려내기는 나중에 붙였다. 그 전 방문은 종류를 모른다 — 그 사실을 안 적으면
                     // 위의 「방문 N」과 여기 합계가 안 맞는 것이 오류처럼 보인다.
                     (visits?.total ?? 0) > sum
-                        ? `<p class="plaza-section-note">가려내기는 나중에 시작했습니다 — 그 전 방문 ${num((visits?.total ?? 0) - sum)}번은 종류를 모릅니다.</p>`
+                        ? `<p class="plaza-section-note">${t('plaza.beforeFilter', { n: num((visits?.total ?? 0) - sum) })}</p>`
                         : ''
                 }
-                <p class="plaza-section-note plaza-caveat">가려내는 근거는 접속하는 쪽이 스스로 밝히는 이름 하나뿐입니다.
-                    감추고 들어오면 못 알아봅니다 — 그런 것은 「알 수 없음」으로 가고 사람 수에는 안 들어갑니다.
-                    더 잡아내겠다고 방문자를 뒤쫓는 기술은 쓰지 않습니다.</p>
+                <p class="plaza-section-note plaza-caveat">${esc(t('plaza.t15'))}</p>
             </section>`;
     }
 
@@ -366,9 +369,9 @@
 
     /** 늘었나 줄었나 — 비교값 없는 수는 「많다/적다」를 말할 수 없다. */
     function delta(now: number, before: number): string {
-        if (before === 0) return now > 0 ? '<span class="plaza-up">새로</span>' : '';
+        if (before === 0) return now > 0 ? `<span class="plaza-up">${esc(t('plaza.trend.new'))}</span>` : '';
         const diff = Math.round(((now - before) / before) * 100);
-        if (diff === 0) return '<span class="plaza-flat">지난주와 같음</span>';
+        if (diff === 0) return `<span class="plaza-flat">${esc(t('plaza.trend.flat'))}</span>`;
         return diff > 0
             ? `<span class="plaza-up">▲ ${diff}%</span>`
             : `<span class="plaza-down">▼ ${Math.abs(diff)}%</span>`;
@@ -383,35 +386,35 @@
 
         const lines: string[] = [];
         if (recap.people.now > 0) {
-            lines.push(`<div class="plaza-row"><span class="plaza-row-name">다녀간 사람</span><span class="plaza-row-value">${num(recap.people.now)}명 ${delta(recap.people.now, recap.people.before)}</span></div>`);
+            lines.push(`<div class="plaza-row"><span class="plaza-row-name">${esc(t('plaza.t16'))}</span><span class="plaza-row-value">${t('plaza.unit.people', { n: num(recap.people.now) })} ${delta(recap.people.now, recap.people.before)}</span></div>`);
         }
         if (recap.toolOpens.now > 0) {
-            lines.push(`<div class="plaza-row"><span class="plaza-row-name">도구 열림</span><span class="plaza-row-value">${num(recap.toolOpens.now)}번 ${delta(recap.toolOpens.now, recap.toolOpens.before)}</span></div>`);
+            lines.push(`<div class="plaza-row"><span class="plaza-row-name">${esc(t('plaza.t17'))}</span><span class="plaza-row-value">${t('plaza.unit.times', { n: num(recap.toolOpens.now) })} ${delta(recap.toolOpens.now, recap.toolOpens.before)}</span></div>`);
         }
         if (recap.topTools.length > 0) {
             const named = namedTools(recap.topTools.map((t) => t.toolId));
             if (named.length > 0) {
-                lines.push(`<div class="plaza-row"><span class="plaza-row-name">가장 많이 쓴 도구</span><span class="plaza-row-value">${named.map(escapeHtml).join(' · ')}</span></div>`);
+                lines.push(`<div class="plaza-row"><span class="plaza-row-name">${esc(t('plaza.t18'))}</span><span class="plaza-row-value">${named.map(escapeHtml).join(' · ')}</span></div>`);
             }
         }
         if (recap.newTools.length > 0) {
             const named = namedTools(recap.newTools);
             if (named.length > 0) {
-                lines.push(`<div class="plaza-row"><span class="plaza-row-name">이번 주에 처음 쓰인 도구</span><span class="plaza-row-value">${named.map(escapeHtml).join(' · ')}</span></div>`);
+                lines.push(`<div class="plaza-row"><span class="plaza-row-name">${esc(t('plaza.t19'))}</span><span class="plaza-row-value">${named.map(escapeHtml).join(' · ')}</span></div>`);
             }
         }
         if (recap.posts > 0 || recap.replies > 0) {
-            lines.push(`<div class="plaza-row"><span class="plaza-row-name">커뮤니티</span><span class="plaza-row-value">새 글 ${num(recap.posts)} · 답글 ${num(recap.replies)}</span></div>`);
+            lines.push(`<div class="plaza-row"><span class="plaza-row-name">${esc(t('plaza.t20'))}</span><span class="plaza-row-value">${t('plaza.recap.posts', { posts: num(recap.posts), replies: num(recap.replies) })}</span></div>`);
         }
         if (recap.topPost && recap.topPost.votes > 0) {
             const heading = recap.topPost.title || recap.topPost.text;
-            lines.push(`<div class="plaza-row"><span class="plaza-row-name">가장 많은 표</span><span class="plaza-row-value">${escapeHtml(heading)} (${num(recap.topPost.votes)}표)</span></div>`);
+            lines.push(`<div class="plaza-row"><span class="plaza-row-name">${esc(t('plaza.t21'))}</span><span class="plaza-row-value">${escapeHtml(heading)} ${t('plaza.unit.votes', { n: num(recap.topPost.votes) })}</span></div>`);
         }
         if (lines.length === 0) return '';
 
         return `
             <section class="plaza-section">
-                <h3>이번 주 KarmoLab</h3>
+                <h3>${esc(t('plaza.t22'))}</h3>
                 <p class="plaza-section-note">${escapeHtml(recap.from)} ~ ${escapeHtml(recap.to)} · 지난주와 견줍니다</p>
                 <div class="plaza-rows">${lines.join('')}</div>
             </section>`;
@@ -422,9 +425,9 @@
     function renderToolSummary(pulse: Pulse): string {
         if (pulse.opensTotal === 0) return '';
         const items = [
-            { value: pulse.opensTotal, label: '지금까지 도구 열림', note: 'Total' },
-            { value: pulse.opensToday, label: '오늘 도구 열림', note: 'Today' },
-            { value: pulse.toolsUsed, label: '실제로 쓰인 도구', note: '한 번도 안 열린 것은 안 셉니다' },
+            { value: pulse.opensTotal, label: t('plaza.t52'), note: 'Total' },
+            { value: pulse.opensToday, label: t('plaza.t53'), note: 'Today' },
+            { value: pulse.toolsUsed, label: t('plaza.t54'), note: t('plaza.t55') },
         ].filter((item) => item.value > 0);
         return `<div class="plaza-big">${items
             .map(
@@ -459,7 +462,7 @@
             const rest = used.length - shown;
             slot.innerHTML =
                 `<div class="plaza-tools">${toolRows(used.slice(0, shown), max, 0)}</div>` +
-                (rest > 0 ? `<button type="button" class="plaza-more" id="plazaMore">나머지 ${num(rest)}개 더 보기</button>` : '');
+                (rest > 0 ? `<button type="button" class="plaza-more" id="plazaMore">${t('plaza.more', { n: num(rest) })}</button>` : '');
             const more = slot.querySelector('#plazaMore');
             if (more) {
                 (more as HTMLButtonElement).onclick = () => {
@@ -480,7 +483,7 @@
         const total = alive.reduce((sum, b) => sum + b.count, 0);
         return `
             <section class="plaza-section">
-                <h3>커뮤니티</h3>
+                <h3>${esc(t('plaza.t20'))}</h3>
                 <p class="plaza-section-note">갤러리 ${num(boards.length)}개 · 글 ${num(total)}개</p>
                 <div class="plaza-rows">
                     ${alive
@@ -500,12 +503,12 @@
     const OPENNESS = `
         <section class="plaza-section">
             <div class="plaza-open">
-                <h4>여기서 세지 <em>않는</em> 것</h4>
+                <h4>${esc(t('plaza.t23'))} <em>${esc(t('plaza.t24'))}</em> ${esc(t('plaza.t25'))}</h4>
                 <ul>
-                    <li><b>도구에 입력한 내용은 서버로 가지 않습니다.</b> 도구는 전부 브라우저 안에서 돕니다 — 파일도, 글도, 사진도 이 컴퓨터를 안 떠납니다.</li>
-                    <li><b>IP 주소를 저장하지 않습니다.</b> 같은 사람인지만 알아보려고 되돌릴 수 없게 섞은 열쇠를 쓰고, 그것도 오늘치만 들고 있다가 날이 바뀌면 버립니다.</li>
-                    <li><b>추적용 광고·분석 도구가 없습니다.</b> 위 숫자는 우리 서버가 직접 센 것뿐입니다.</li>
-                    <li>같은 사람이 30분 안에 여러 번 움직인 것은 한 번으로 셉니다 — 수를 부풀리지 않으려고요.</li>
+                    <li><b>${esc(t('plaza.t26'))}</b> ${esc(t('plaza.t27'))}</li>
+                    <li><b>${esc(t('plaza.t28'))}</b> ${esc(t('plaza.t29'))}</li>
+                    <li><b>${esc(t('plaza.t30'))}</b> ${esc(t('plaza.t31'))}</li>
+                    <li>${esc(t('plaza.t32'))}</li>
                 </ul>
             </div>
         </section>`;
@@ -541,11 +544,11 @@
     function ago(iso: string): string {
         const gap = Date.now() - new Date(iso).getTime();
         const min = Math.floor(gap / 60000);
-        if (min < 1) return '방금';
-        if (min < 60) return `${min}분 전`;
+        if (min < 1) return t('plaza.t56');
+        if (min < 60) return t('plaza.ago.min', { n: min });
         const hour = Math.floor(min / 60);
-        if (hour < 24) return `${hour}시간 전`;
-        return `${Math.floor(hour / 24)}일 전`;
+        if (hour < 24) return t('plaza.ago.hour', { n: hour });
+        return t('plaza.ago.day', { n: Math.floor(hour / 24) });
     }
 
     function renderFeed(
@@ -570,21 +573,21 @@
         const packRows = packs
             .map(
                 (k) =>
-                    `<li>${escapeHtml(k.emoji)} <b>${escapeHtml(k.title)}</b> <span class="plaza-dim">${k.items}개 · ${escapeHtml(k.ownerHandle)}</span></li>`
+                    `<li>${escapeHtml(k.emoji)} <b>${escapeHtml(k.title)}</b> <span class="plaza-dim">${t('plaza.unit.items', { n: k.items })} · ${escapeHtml(k.ownerHandle)}</span></li>`
             )
             .join('');
 
         return `
         <section class="plaza-section">
-            <h3>방금 있었던 일</h3>
-            <p class="plaza-section-note">실제로 끝낸 판과 실제로 올라온 표만 · 사람만 셉니다</p>
+            <h3>${esc(t('plaza.t33'))}</h3>
+            <p class="plaza-section-note">${esc(t('plaza.t34'))}</p>
             ${playRows ? `<ul class="plaza-feed">${playRows}</ul>` : ''}
-            ${packRows ? `<h4 class="plaza-sub">새로 올라온 표</h4><ul class="plaza-feed">${packRows}</ul>` : ''}
+            ${packRows ? `<h4 class="plaza-sub">${esc(t('plaza.t35'))}</h4><ul class="plaza-feed">${packRows}</ul>` : ''}
         </section>`;
     }
 
     async function buildOverview(container: HTMLElement): Promise<void> {
-        container.innerHTML = '<div class="plaza-wrap"><p class="plaza-note">불러오는 중…</p></div>';
+        container.innerHTML = `<div class="plaza-wrap"><p class="plaza-note">${esc(t('plaza.loading'))}</p></div>`;
         const [rawStats, rawBoards, rawRecap, rawLeaders, rawFeed, rawSeason] = await Promise.all([
             api('/kl/tools/stats'),
             api('/kl/boards'),
@@ -611,20 +614,20 @@
 
         const hasTools = stats.tools.some((t) => t.recent > 0);
         const body = [
-            `<p class="plaza-lead">이 사이트의 숫자를 전부 열어 둡니다. 아래는 서버가 실제로 센 값이고, 손으로 적었거나 부풀린 수는 하나도 없습니다.</p>`,
+            `<p class="plaza-lead">${esc(t('plaza.t36'))}</p>`,
             renderOnline(visits),
             renderFeed(feed),
-            visits ? `<section class="plaza-section"><h3>방문</h3><p class="plaza-section-note">첫 화면만 보고 가도 한 명입니다 · 사람만 셉니다</p>${renderVisits(visits)}</section>` : '',
+            visits ? `<section class="plaza-section"><h3>${esc(t('plaza.t37'))}</h3><p class="plaza-section-note">${esc(t('plaza.t38'))}</p>${renderVisits(visits)}</section>` : '',
             renderSpark(visits),
             renderLeaders(leaders),
             renderSeason(season),
             renderRecap(recap),
             renderKinds(visits),
             stats.pulse.opensTotal > 0
-                ? `<section class="plaza-section"><h3>도구</h3><p class="plaza-section-note">도구를 연 횟수입니다 — 무엇을 입력했는지는 서버가 모릅니다</p>${renderToolSummary(stats.pulse)}</section>`
+                ? `<section class="plaza-section"><h3>${esc(t('plaza.t39'))}</h3><p class="plaza-section-note">${esc(t('plaza.t40'))}</p>${renderToolSummary(stats.pulse)}</section>`
                 : '',
             hasTools
-                ? `<section class="plaza-section"><h3>많이 쓰인 도구</h3><p class="plaza-section-note">최근 7일 순 · 오른쪽은 「7일 / 전체」</p><div id="plazaTools"></div></section>`
+                ? `<section class="plaza-section"><h3>${esc(t('plaza.t41'))}</h3><p class="plaza-section-note">${esc(t('plaza.t42'))}</p><div id="plazaTools"></div></section>`
                 : '',
             renderBoards(boards),
             OPENNESS,
@@ -641,6 +644,17 @@
         ...Toolbox.getLazyWidgetPublicMeta('plaza'),
         // 글판은 여기 두지 않는다 — 커뮤니티(`/karmolab/c/`)가 제 페이지로 갖는다.
         // 같은 것을 두 곳에 두면 한쪽은 반드시 낡고, 어느 쪽이 진짜인지 아무도 모르게 된다.
-        tabs: [{ id: 'plaza-main', label: '통계', build: buildOverview }],
+        tabs: [
+            {
+                id: 'plaza-main',
+                label: t('plaza.tab.stats', undefined, '통계'),
+                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('plaza').then(function () {
+                        buildOverview(container);
+                    });
+                },
+            },
+        ],
     });
 })();
