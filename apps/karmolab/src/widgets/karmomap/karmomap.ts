@@ -1508,7 +1508,8 @@ import {
       // 틀로 잡은 장은 **볼 때마다 다시 센다** — 그 사이 그 자리에 놓인 인물이 함께 나온다.
       const ids = step.rect ? (canvas?.nodesInWorldRect(step.rect) ?? []) : step.nodeIds;
       canvas?.setFocus(ids.length ? new Set(ids) : null);
-      canvas?.fitToNodes(ids);
+      // 장에서 장으로 **미끄러져** 간다 — 톡 끊어 점프하면 듣는 쪽이 매번 지도를 다시 그린다.
+      canvas?.fitToNodes(ids, 80, true);
     }
 
     function setPresenting(on: boolean): void {
