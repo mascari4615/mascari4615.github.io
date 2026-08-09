@@ -1531,6 +1531,70 @@ check(notice.includes('120MB'), `크기를 말한다: ${notice}`);
 check(/초|분/.test(notice), '걸리는 시간을 말한다');
 check(notice.includes('다음부터'), '두 번째부터는 빠르다는 것도 말한다');
 
+// ── ②-31 로컬 AI 엔진 데려오기 (한 번만·실패는 안 기억) ─────────────────────
+const eng = await load('src/lib/ai-engine.ts');
+
+check(eng.ENGINE_URL.includes('@4.2.0'), `주소에 판이 박혀 있다: ${eng.ENGINE_URL}`);
+check(eng.ENGINE_URL.startsWith('https://'), '바깥에서 받는다 (저장소에 9.5MB 를 넣지 않는다)');
+
+/* WebGPU 가 없으면 **받으러 가지도 않는다.** 못 쓸 것을 받게 하면 그건 그냥 데이터 낭비다. */
+const NO_GPU = {};
+const HAS_GPU = { gpu: {} };
+eng.resetEngine();
+let noGpu = null;
+try {
+  await eng.loadEngine(async () => ({ pipeline() {} }), NO_GPU);
+} catch (e) {
+  noGpu = e;
+}
+check(noGpu !== null && noGpu.info.stage === 'support', 'WebGPU 없으면 support 단계로 막는다');
+check(noGpu.info.retryable === false, '다시 눌러도 같으니 버튼을 안 준다');
+
+/* 이제 있다고 치고 — 두 곳에서 동시에 불러도 **한 번만** 받아야 한다 (9MB 를 두 번 받지 않게). */
+eng.resetEngine();
+let fetched = 0;
+const fakeLoad = async () => {
+  fetched++;
+  await new Promise((r) => setTimeout(r, 10));
+  return { pipeline: () => {} };
+};
+const [engA, engB] = await Promise.all([eng.loadEngine(fakeLoad, HAS_GPU), eng.loadEngine(fakeLoad, HAS_GPU)]);
+eq(fetched, 1, '동시에 둘이 불러도 한 번만 받는다');
+check(engA === engB, '둘이 같은 것을 받는다');
+check(eng.engineLoaded() === true, '받아 뒀다고 표시된다');
+
+/* 실패를 기억하면 새로고침 전까지 영영 못 켠다 — 버리고 다시 받을 수 있어야 한다. */
+eng.resetEngine();
+let boom = null;
+try {
+  await eng.loadEngine(async () => {
+    throw new Error('네트워크 끊김');
+  }, HAS_GPU);
+} catch (e) {
+  boom = e;
+}
+check(boom !== null && boom.info.stage === 'download', '못 받으면 download 단계');
+check(boom.info.retryable === true, '다시 받아 볼 수 있다고 말한다');
+check(eng.engineLoaded() === false, '실패는 기억하지 않는다');
+let again = 0;
+await eng.loadEngine(async () => {
+  again++;
+  return { pipeline: () => {} };
+}, HAS_GPU);
+eq(again, 1, '실패 뒤에 다시 부르면 진짜로 다시 받는다');
+
+/* 받아지긴 했는데 모양이 다르면 — 조용히 넘기지 않는다. */
+eng.resetEngine();
+let odd = null;
+try {
+  await eng.loadEngine(async () => ({ 뭔가: 1 }), HAS_GPU);
+} catch (e) {
+  odd = e;
+}
+check(odd !== null && odd.info.stage === 'load', '모양이 다르면 load 단계로 알린다');
+
+eng.resetEngine();
+
 // ── 마무리 ──────────────────────────────────────────────────────────────────
 fs.rmSync(outDir, { recursive: true, force: true });
 process.stdout.write('\n');
