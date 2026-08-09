@@ -102,6 +102,8 @@ export interface GraphCanvasOptions {
   onEdgeChanged?: (edgeId: string) => void;
   /** 여럿을 한 번에 골랐을 때 (Shift+배경 드래그). 이 콜백을 주면 범위 고르기가 켜진다. */
   onSelectMany?: (nodeIds: string[]) => void;
+  /** 묶음을 손으로 고쳤을 때(이름표 자리). 주면 이름표를 끌 수 있게 된다. */
+  onGroupChanged?: (groupId: string) => void;
 }
 
 /** 클릭과 드래그를 가르는 이동 거리 (px). */
@@ -209,6 +211,9 @@ export class GraphCanvas {
   private onConnect?: (fromId: string, toId: string) => void;
   private onEdgeChanged?: (edgeId: string) => void;
   private onSelectMany?: (nodeIds: string[]) => void;
+  private onGroupChanged?: (groupId: string) => void;
+  /** 묶음 이름표를 옮기는 중. */
+  private labelDrag: { groupId: string; x0: number; y0: number; dx0: number; dy0: number } | null = null;
   /** 범위 고르기 중 — 시작점(world)과 화면에 그리는 사각형. */
   private marquee: { x0: number; y0: number; rect: SVGRectElement } | null = null;
   /** 여러 개를 고른 상태. 하나를 끌면 이들이 함께 움직인다. */
@@ -248,6 +253,7 @@ export class GraphCanvas {
     this.onConnect = options.onConnect;
     this.onEdgeChanged = options.onEdgeChanged;
     this.onSelectMany = options.onSelectMany;
+    this.onGroupChanged = options.onGroupChanged;
     instanceSeq += 1;
     this.uid = `g${instanceSeq}`;
     injectGraphCanvasStyles();
@@ -439,6 +445,19 @@ export class GraphCanvas {
           return;
         }
       }
+      const labelDragEl = target.closest('.ck-group-label') as SVGTextElement | null;
+      if (labelDragEl && this.onGroupChanged) {
+        const gid = labelDragEl.dataset.groupId ?? '';
+        const grp = this.spec?.groups.find((x) => x.id === gid);
+        if (grp) {
+          e.stopPropagation();
+          e.preventDefault();
+          const w = this.screenToWorld(e.clientX, e.clientY);
+          this.labelDrag = { groupId: gid, x0: w.x, y0: w.y, dx0: grp.labelDx ?? 0, dy0: grp.labelDy ?? 0 };
+          this.pressOrigin = null;
+          return;
+        }
+      }
       const gripEl = target.closest('.ck-edge-grip') as SVGCircleElement | null;
       const labelEl = target.closest('.ck-edge-label') as SVGGElement | null;
       if ((gripEl || labelEl) && this.onEdgeChanged) {
@@ -576,6 +595,18 @@ export class GraphCanvas {
         this.state.ty = my - (my - this.pinch.startTy) * (newScale / this.pinch.startScale);
         this.state.scale = newScale;
         this.applyTransform();
+        return;
+      }
+      if (this.labelDrag) {
+        const grp = this.spec?.groups.find((x) => x.id === this.labelDrag?.groupId);
+        if (grp) {
+          const w = this.screenToWorld(e.clientX, e.clientY);
+          grp.labelDx = Math.round(this.labelDrag.dx0 + (w.x - this.labelDrag.x0));
+          grp.labelDy = Math.round(this.labelDrag.dy0 + (w.y - this.labelDrag.y0));
+          this.groupLayer.innerHTML = '';
+          this.renderGroups();
+          this.renderAnchors();
+        }
         return;
       }
       if (this.marquee) {
@@ -734,6 +765,12 @@ export class GraphCanvas {
         if (this.activePointers.size < 2) this.pinch = null;
         return;
       }
+      if (this.labelDrag) {
+        const { groupId } = this.labelDrag;
+        this.labelDrag = null;
+        this.onGroupChanged?.(groupId);
+        return;
+      }
       if (this.marquee) {
         const r = this.marquee.rect;
         const x = Number(r.getAttribute('x'));
@@ -818,6 +855,7 @@ export class GraphCanvas {
       this.draggingGroup = null;
       this.panning = null;
       this.edgeDrag = null;
+      this.labelDrag = null;
       this.rewiring?.temp.remove();
       this.rewiring = null;
       this.clearTargetHint();
@@ -1158,13 +1196,15 @@ export class GraphCanvas {
         labelY += 14;
       }
       labelRows.push({ x1: box.x, x2: box.x + box.w, y: labelY });
-      text.setAttribute('x', String(box.x + 8));
-      text.setAttribute('y', String(labelY));
+      // 이름표는 손으로 옮길 수 있다 — 겹친 묶음에서 자동 회피만으로는 늘 부족하다.
+      text.setAttribute('x', String(box.x + 8 + (g.labelDx ?? 0)));
+      text.setAttribute('y', String(labelY + (g.labelDy ?? 0)));
+      text.style.cursor = 'grab';
+      text.setAttribute('pointer-events', 'all');
       text.setAttribute('fill', g.color + 'cc');
       text.setAttribute('font-size', '11');
       text.setAttribute('font-weight', '600');
       text.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
-      text.setAttribute('pointer-events', 'none');
       text.textContent = g.label;
       this.groupLayer.appendChild(text);
     }
@@ -1316,6 +1356,19 @@ export class GraphCanvas {
         row.textContent = child.length > maxChars ? child.slice(0, maxChars - 1) + '…' : child;
         g.appendChild(row);
       });
+    }
+
+    // 설명이 붙어 있으면 카드 모서리에 작은 표식을 둔다 — 안 그러면 「어디에 써 뒀더라」가 된다.
+    if ((node.doc ?? '').trim()) {
+      const mark = document.createElementNS(SVG_NS, 'text');
+      mark.setAttribute('x', String(node.w - 9));
+      mark.setAttribute('y', '12');
+      mark.setAttribute('text-anchor', 'middle');
+      mark.setAttribute('font-size', '9');
+      mark.setAttribute('opacity', '0.75');
+      mark.setAttribute('pointer-events', 'none');
+      mark.textContent = '📄';
+      g.appendChild(mark);
     }
 
     // 연결 손잡이 — 노드 오른쪽 가장자리. 여기서 끌어다 다른 노드에 놓으면 선이 생긴다

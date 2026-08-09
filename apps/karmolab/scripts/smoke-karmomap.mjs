@@ -145,6 +145,15 @@ await step('내 용어 패널에서 관계 종류 추가', async () => {
   await page.waitForSelector('[data-term-edge]', { timeout: 4000 });
   await page.click('[data-km="t-close"]');
 });
+await step('설명을 적으면 카드에 📄 가 붙는다', async () => {
+  await page.locator('.ck-node').first().click({ position: { x: 12, y: 10 } });
+  await page.fill('[data-km="edit-doc"]', '엘프 마녀. 게으르다고 말하지만 실은 혼자 남는 걸 무서워한다.');
+  await page.waitForFunction(
+    () => [...document.querySelectorAll('.ck-node text')].some((t) => t.textContent === '📄'),
+    null,
+    { timeout: 4000 }
+  );
+});
 await step('글로 여러 노드를 한 번에 만든다', async () => {
   const before = await page.locator('.ck-node').count();
   await page.click('[data-km="more"]');

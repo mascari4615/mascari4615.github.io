@@ -1017,6 +1017,11 @@ import {
           <input type="text" data-km="edit-note" value="${escapeAttr(node.note ?? '')}" placeholder="이름 밑에 한 줄" />
         </div>
         <div class="km-field">
+          <label>설명</label>
+          <textarea data-km="edit-doc" class="km-textarea" rows="5" placeholder="이 인물·개념에 대해 길게 적어 두는 자리">${escapeHtml(node.doc ?? '')}</textarea>
+          <div class="km-hint">적어 두면 카드 모서리에 📄 가 붙습니다. 그림에는 안 나옵니다.</div>
+        </div>
+        <div class="km-field">
           <label>묶음 (여러 개 가능)</label>
           ${
             spec.groups.length === 0
@@ -1117,6 +1122,14 @@ import {
         canvas?.setSelectedNode(node.id);
         persistStructure();
         if (redrawSide) renderSide();
+      };
+
+      const docInput = sideEl.querySelector('[data-km="edit-doc"]') as HTMLTextAreaElement;
+      docInput.oninput = () => {
+        node.doc = docInput.value.trim() || undefined;
+        canvas?.render();
+        canvas?.setSelectedNode(node.id);
+        persistStructure();
       };
 
       const noteInput = sideEl.querySelector('[data-km="edit-note"]') as HTMLInputElement;
@@ -1347,6 +1360,7 @@ import {
       onBackgroundDoubleClick: (world) => spawnNodeAt(world.x, world.y, ''),
       // 선을 휘거나 이름표를 옮긴 뒤 — 캔버스가 spec 을 고쳤으니 저장만 하면 된다.
       onEdgeChanged: () => persistStructure(),
+      onGroupChanged: () => persistStructure(),
       onSelectMany: (ids) => {
         selectedMany = ids;
         selectedId = ids.length === 1 ? ids[0] : null;
