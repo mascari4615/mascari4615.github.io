@@ -60,6 +60,10 @@
     paint: { fcp: number | null; lcp: number | null };
     memory: { usedMb: number; limitMb: number } | null;
     trust: { ok: boolean; why: string };
+    verdict: Array<{
+      key: string; label: string; value: number | null; limit: number; unit: string;
+      state: 'pass' | 'fail' | 'unknown';
+    }>;
     inp: number | null;
     interactions: Array<{
       name: string; at: number; ms: number; inputDelayMs: number;
@@ -542,6 +546,42 @@
                 </tbody></table></div>`;
           }
 
+          /**
+           * 한 줄 판정 (TASK-KL-201 ⑧).
+           *
+           * 숫자만 늘어놓으면 볼 때마다 「이게 좋은 건가」를 사람이 다시 판단해야 한다.
+           * **못 잰 것은 합격으로 안 센다** — 「합격」과 「검사 못 함」을 같은 칸에 넣으면
+           * 계측이 조용히 죽은 날에도 화면이 초록으로 남는다. 그게 제일 나쁜 고장이다.
+           */
+          function verdictBanner(snap: Snap): string {
+            const fails = snap.verdict.filter((v) => v.state === 'fail');
+            const unknowns = snap.verdict.filter((v) => v.state === 'unknown');
+            const passes = snap.verdict.filter((v) => v.state === 'pass');
+            const fmt = (v: Snap['verdict'][number]): string =>
+              v.unit === 'B' ? kb(v.value) : v.unit === 'ms' ? ms(v.value) : String((v.value ?? 0).toFixed(3));
+            const limit = (v: Snap['verdict'][number]): string =>
+              v.unit === 'B' ? kb(v.limit) : v.unit === 'ms' ? ms(v.limit) : String(v.limit);
+            const color = fails.length ? '#b91c1c' : unknowns.length ? '#b45309' : '#15803d';
+            const head = fails.length
+              ? `예산 넘김 ${fails.length}개`
+              : unknowns.length
+                ? `넘긴 것 없음 — 다만 ${unknowns.length}개는 못 쟀다`
+                : `예산 안쪽 ${passes.length}개 전부`;
+            return `<div class="pf-none" style="border-style:solid;border-color:${color};">
+                <strong style="color:${color}">${esc(head)}</strong>
+                ${
+                  fails.length
+                    ? `<br>${fails.map((v) => `${esc(v.label)} <b>${fmt(v)}</b> (예산 ${limit(v)})`).join(' · ')}`
+                    : ''
+                }
+                ${
+                  unknowns.length
+                    ? `<br><span style="opacity:.75">못 잼: ${unknowns.map((v) => esc(v.label)).join(' · ')} — 통과로 세지 않습니다.</span>`
+                    : ''
+                }
+              </div>`;
+          }
+
           function distrustBanner(snap: Snap): string {
             /* 이 판을 믿어도 되는지부터 말한다 — 안 보이는 탭·되살아난 판의 숫자를 그냥 두면
                「이번 배포가 두 배 느려졌다」 같은 거짓 회귀가 난다. */
@@ -561,6 +601,7 @@
            * 그 숫자는 못 믿는다. 그래서 칸마다 나눠 두고 **글자가 달라진 칸만** 갈아 끼운다.
            */
           const SECTIONS: Array<{ key: string; title: string; note: string; html: (s: Snap) => string }> = [
+            { key: 'verdict', title: '', note: '', html: verdictBanner },
             { key: 'trust', title: '', note: '', html: distrustBanner },
             { key: 'cards', title: '', note: '', html: summary },
             { key: 'frame', title: '', note: '', html: () => frameLine },
