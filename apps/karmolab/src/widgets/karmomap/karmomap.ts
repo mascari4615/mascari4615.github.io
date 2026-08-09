@@ -171,6 +171,8 @@ import {
     const hiddenEdgeKinds = new Set<string>();
     const hiddenTags = new Set<string>();
     let hideOrphans = false;
+    /** 「많이 이어진 것이 크다」 규칙 (격차 S). 저장본은 안 건드린다 — 끄면 원래 크기로 돌아온다. */
+    let sizeByDegree = false;
     /** 지금 끼워진 어휘 팩. `spec._meta.pack` 에 함께 저장된다. */
     let pack: CanvasPack = packById(DEFAULT_PACK_ID);
     /** 사용자가 직접 만든 종류. 맵이 아니라 **사람**에게 붙는다(격차 A-2). */
@@ -798,6 +800,10 @@ import {
             .join('')}
         </div>`}
         <div class="km-field">
+          <label class="km-check"><input type="checkbox" data-km="f-degree"${sizeByDegree ? ' checked' : ''} /> 많이 이어진 것을 크게</label>
+          <div class="km-hint">손으로 키우지 않아도 중심 인물이 눈에 띕니다. 저장본은 그대로예요.</div>
+        </div>
+        <div class="km-field">
           <label class="km-check"><input type="checkbox" data-km="f-orphan"${hideOrphans ? ' checked' : ''} /> 선이 하나도 안 닿은 노드 숨기기</label>
         </div>
         <button class="btn btn-ghost" data-km="f-reset">전부 다시 보이기</button>
@@ -827,6 +833,11 @@ import {
           applyFilter();
         };
       });
+      (sideEl.querySelector('[data-km="f-degree"]') as HTMLInputElement).onchange = (ev) => {
+        sizeByDegree = (ev.target as HTMLInputElement).checked;
+        canvas?.setDecorate({ sizeByDegree });
+        canvas?.setSelectedNode(selectedId);
+      };
       (sideEl.querySelector('[data-km="f-orphan"]') as HTMLInputElement).onchange = (ev) => {
         hideOrphans = (ev.target as HTMLInputElement).checked;
         applyFilter();
@@ -836,6 +847,8 @@ import {
         hiddenEdgeKinds.clear();
         hiddenTags.clear();
         hideOrphans = false;
+        sizeByDegree = false;
+        canvas?.setDecorate({ sizeByDegree: false });
         applyFilter();
         renderSide();
       };

@@ -154,6 +154,26 @@ await step('설명을 적으면 카드에 📄 가 붙는다', async () => {
     { timeout: 4000 }
   );
 });
+await step('「많이 이어진 것을 크게」가 실제로 크게 만든다', async () => {
+  const widthOf = async () => page.evaluate(() => {
+    const el = document.querySelector('.ck-node .ck-node-bg');
+    if (!el) return 0;
+    return Math.round(el.getBoundingClientRect().width);
+  });
+  const before = await widthOf();
+  await page.click('[data-km="filter"]');
+  await page.locator('[data-km="f-degree"]').check();
+  await page.waitForFunction(
+    (w) => {
+      const el = document.querySelector('.ck-node .ck-node-bg');
+      return el ? Math.round(el.getBoundingClientRect().width) > w : false;
+    },
+    before,
+    { timeout: 4000 }
+  );
+  await page.locator('[data-km="f-degree"]').uncheck();
+  await page.click('[data-km="f-close"]');
+});
 await step('꼬리표를 붙이고 그 꼬리표로 거른다', async () => {
   await page.locator('.ck-node').first().click({ position: { x: 12, y: 10 } });
   await page.fill('[data-km="edit-tags"]', '중요, 나중에');
