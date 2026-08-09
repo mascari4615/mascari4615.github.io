@@ -7,7 +7,12 @@
  * 흐름은 **순서를 적어 둔 종이 한 장**이다. 파일도 결과도 서버에 안 올라간다. 실행은 이 화면이
  * 단계를 차례로 열어 주고, 앞 단계 결과는 지금 있는 「이어서」 배선으로 다음 단계에 넘어간다.
  */
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
     type Step = { toolId: string; note?: string; skipWhen?: 'no-result' | 'small' };
     type Flow = {
         id: string;
@@ -164,16 +169,16 @@
         const stop = document.createElement('button');
         stop.type = 'button';
         stop.className = 'flow-btn';
-        stop.textContent = '잠깐';
+        stop.textContent = t('flow.t19');
         stop.addEventListener('click', () => {
             cancelAuto();
             mark.remove();
             stop.remove();
-            Toolbox.showToast?.('여기서 멈췄어요 — 다음은 손으로 누르세요');
+            Toolbox.showToast?.(t('flow.t20'));
         });
         bar.insertBefore(stop, goBtn);
         const tick = (): void => {
-            mark.textContent = `${left}초 뒤 스스로 다음으로`;
+            mark.textContent = t('flow.autoNext', { n: left });
             if (left <= 0) {
                 cancelAuto();
                 const now = readRun();
@@ -191,7 +196,7 @@
     function finishRun(run: RunState): void {
         noteTrail(run, true);
         writeRun(null);
-        Toolbox.showToast?.('흐름을 끝냈어요');
+        Toolbox.showToast?.(t('flow.t21'));
     }
 
     function goStep(index: number): void {
@@ -204,10 +209,10 @@
         if (!run.steps[at]) {
             noteTrail({ ...run, at: Math.max(0, at - 1) }, true);
             writeRun(null);
-            Toolbox.showToast?.('건너뛸 것만 남아 흐름을 끝냈어요');
+            Toolbox.showToast?.(t('flow.t22'));
             return;
         }
-        if (at !== index) Toolbox.showToast?.(`${index + 1}단계는 건너뛰었어요`);
+        if (at !== index) Toolbox.showToast?.(t('flow.skipped', { n: index + 1 }));
         writeRun({ ...run, at });
         Toolbox.switchPage?.(run.steps[at].toolId);
     }
@@ -223,12 +228,12 @@
         bar.className = 'flow-bar';
         bar.innerHTML =
             `<span class="flow-bar-title">${escapeHtml(run.title)}</span>` +
-            `<span class="flow-bar-count">${run.at + 1} / ${run.steps.length} · 지금 ${escapeHtml(toolTitle(step.toolId))}` +
-            `${run.auto ? ' · 스스로 이어감' : ''}</span>` +
+            `<span class="flow-bar-count">${run.at + 1} / ${run.steps.length} · ${t('flow.nowAt', { tool: escapeHtml(toolTitle(step.toolId)) })}` +
+            `${run.auto ? t('flow.t23') : ''}</span>` +
             (next
-                ? `<button type="button" class="flow-btn flow-btn-go" data-flow-next>다음: ${escapeHtml(toolTitle(next.toolId))} →</button>`
-                : '<button type="button" class="flow-btn flow-btn-go" data-flow-done>끝내기</button>') +
-            '<button type="button" class="flow-btn" data-flow-stop>그만</button>';
+                ? `<button type="button" class="flow-btn flow-btn-go" data-flow-next>${t('flow.next', { tool: escapeHtml(toolTitle(next.toolId)) })} →</button>`
+                : t('flow.t24')) +
+            t('flow.t25');
         document.body.appendChild(bar);
         bar.querySelector('[data-flow-next]')?.addEventListener('click', () => goStep(run.at + 1));
         bar.querySelector('[data-flow-done]')?.addEventListener('click', () => finishRun(run));
@@ -286,29 +291,29 @@
             <div class="flow-card" data-flow="${escapeHtml(flow.id)}">
                 <h4>${escapeHtml(flow.title)}</h4>
                 <div class="flow-steps">${stepsHtml(flow.steps)}</div>
-                <span class="flow-meta" data-summary-for="${escapeHtml(flow.id)}">${flow.runs}번 돌았음${flow.ownerHandle ? ` · @${escapeHtml(flow.ownerHandle)}` : ''}${flow.auto ? '<b class="flow-auto-tag">스스로 이어감</b>' : ''}</span>
+                <span class="flow-meta" data-summary-for="${escapeHtml(flow.id)}">${flow.runs}번 돌았음${flow.ownerHandle ? ` · @${escapeHtml(flow.ownerHandle)}` : ''}${flow.auto ? t('flow.t26') : ''}</span>
                 <div class="flow-actions">
-                    <button type="button" class="flow-btn flow-btn-go" data-run="${escapeHtml(flow.id)}">시작</button>
+                    <button type="button" class="flow-btn flow-btn-go" data-run="${escapeHtml(flow.id)}">${esc(t('flow.t04'))}</button>
                     ${mine
                         ? /* 단계가 하나뿐이면 이어갈 다음이 없다 — 켤 수 없는 것을 켜는 자리로 두지 않는다 */
                           `${flow.steps.length > 1
-                              ? `<label class="flow-auto-toggle" title="결과가 나오면 4초 세고 스스로 다음 단계로 갑니다 (그동안 멈출 수 있어요)">
-                                     <input type="checkbox" data-auto="${escapeHtml(flow.id)}"${flow.auto ? ' checked' : ''}> 스스로 이어감
+                              ? `<label class="flow-auto-toggle" title="${esc(t('flow.t01'))}">
+                                     <input type="checkbox" data-auto="${escapeHtml(flow.id)}"${flow.auto ? ' checked' : ''}> ${esc(t('flow.t05'))}
                                  </label>`
                               : ''}
-                           <button type="button" class="flow-btn" data-del="${escapeHtml(flow.id)}">지우기</button>`
-                        : `<button type="button" class="flow-btn" data-fork="${escapeHtml(flow.id)}">담기</button>`}
+                           <button type="button" class="flow-btn" data-del="${escapeHtml(flow.id)}">${esc(t('flow.t06'))}</button>`
+                        : `<button type="button" class="flow-btn" data-fork="${escapeHtml(flow.id)}">${esc(t('flow.t07'))}</button>`}
                 </div>
             </div>`;
     }
 
     async function build(container: HTMLElement): Promise<void> {
-        container.innerHTML = '<div class="flow-wrap"><p class="flow-lead">불러오는 중…</p></div>';
+        container.innerHTML = t('flow.t27');
         const data = await loadFlows();
         if (!container.isConnected) return;
         if (!data) {
             container.innerHTML =
-                '<div class="flow-wrap"><p class="flow-lead">지금은 흐름을 못 불러왔어요. 서버(집 노트북)에 못 닿았습니다 — 도구는 그대로 씁니다.</p></div>';
+                t('flow.t28');
             return;
         }
 
@@ -317,41 +322,39 @@
 
         container.innerHTML = `
             <div class="flow-wrap">
-                <p class="flow-lead">도구를 이어 붙여 <b>내 순서</b>를 만들어 둡니다. 시작하면 단계가 차례로 열리고,
-                    앞 단계 결과는 다음 단계로 그대로 넘어갑니다. 저장되는 것은 <b>순서뿐</b>이라
-                    파일은 이 브라우저를 떠나지 않습니다.</p>
+                <p class="flow-lead">${esc(t('flow.t08'))} <b>${esc(t('flow.t09'))}</b>${esc(t('flow.t10'))} <b>${esc(t('flow.t11'))}</b>${esc(t('flow.t12'))}</p>
 
                 <div class="user-section">
-                    <h3>➕ 만들기</h3>
+                    <h3>${esc(t('flow.t13'))}</h3>
                     ${signedIn
                         ? `<div class="flow-make">
                                <div class="flow-make-row">
-                                   <input type="text" data-title placeholder="이름 (예: 문서 정리)" maxlength="40">
+                                   <input type="text" data-title placeholder="${esc(t('flow.t02'))}" maxlength="40">
                                    <select data-pick></select>
-                                   <select data-skip title="이 단계를 건너뛸 조건">
-                                       <option value="">늘 한다</option>
-                                       <option value="no-result">앞이 결과를 안 냈으면 건너뛰기</option>
-                                       <option value="small">앞 결과가 작으면(1MB 미만) 건너뛰기</option>
+                                   <select data-skip title="${esc(t('flow.t03'))}">
+                                       <option value="">${esc(t('flow.t14'))}</option>
+                                       <option value="no-result">${esc(t('flow.opt.noresult'))}</option>
+                                       <option value="small">${esc(t('flow.opt.small'))}</option>
                                    </select>
-                                   <button type="button" class="flow-btn" data-add>단계 추가</button>
+                                   <button type="button" class="flow-btn" data-add>${esc(t('flow.t15'))}</button>
                                </div>
-                               <div class="flow-draft" data-draft><span class="flow-empty">아직 비었어요 — 도구를 골라 담아 보세요.</span></div>
+                               <div class="flow-draft" data-draft><span class="flow-empty">${esc(t('flow.t16'))}</span></div>
                                <div class="flow-make-row">
-                                   <button type="button" class="flow-btn flow-btn-go" data-save>저장</button>
-                                   <span class="flow-empty">단계는 8개까지. 담은 것을 누르면 빠집니다.</span>
+                                   <button type="button" class="flow-btn flow-btn-go" data-save>${esc(t('flow.t17'))}</button>
+                                   <span class="flow-empty">${esc(t('flow.t18'))}</span>
                                </div>
                            </div>`
-                        : '<p class="flow-empty">만들려면 로그인이 필요합니다. 남의 흐름을 보고 시작하는 것은 지금도 됩니다.</p>'}
+                        : t('flow.t29')}
                 </div>
 
                 <div class="user-section">
                     <h3>🧰 내 흐름 (${data.mine.length})</h3>
-                    <div class="flow-list">${data.mine.map((flow) => cardHtml(flow, true)).join('') || '<p class="flow-empty">아직 없어요.</p>'}</div>
+                    <div class="flow-list">${data.mine.map((flow) => cardHtml(flow, true)).join('') || t('flow.t30')}</div>
                 </div>
 
                 <div class="user-section">
                     <h3>🌍 남들이 만든 것 (${others.length})</h3>
-                    <div class="flow-list">${others.map((flow) => cardHtml(flow, false)).join('') || '<p class="flow-empty">아직 없어요.</p>'}</div>
+                    <div class="flow-list">${others.map((flow) => cardHtml(flow, false)).join('') || t('flow.t30')}</div>
                 </div>
             </div>`;
 
@@ -378,10 +381,10 @@
                         summary?: { runs: number; finished: number; stuckStep: number | null; medianSeconds: number | null };
                     }).summary;
                     if (!summary) return;
-                    const parts = [`${summary.finished}/${summary.runs} 완주`];
-                    if (summary.medianSeconds !== null) parts.push(`보통 ${summary.medianSeconds}초`);
+                    const parts = [t('flow.finished', { done: summary.finished, runs: summary.runs })];
+                    if (summary.medianSeconds !== null) parts.push(t('flow.median', { n: summary.medianSeconds }));
                     if (summary.stuckStep !== null && summary.finished < summary.runs) {
-                        parts.push(`${summary.stuckStep}단계에서 자주 멈춤`);
+                        parts.push(t('flow.stuck', { n: summary.stuckStep }));
                     }
                     slot.textContent = `${slot.textContent} · ${parts.join(' · ')}`;
                 } catch {
@@ -401,7 +404,7 @@
             // 카드에 담아 둔 id 를 그대로 쓴다.
             return {
                 id,
-                title: card.querySelector('h4')?.textContent ?? '흐름',
+                title: card.querySelector('h4')?.textContent ?? t('flow.t31'),
                 ownerHandle: null,
                 steps: (card.dataset.steps ?? '').split(',').filter(Boolean).map((toolId) => ({ toolId })),
                 runs: 0,
@@ -419,7 +422,7 @@
                     const flow = ((await res.json()) as { flow: Flow }).flow;
                     startRun(flow);
                 } catch {
-                    Toolbox.showToast?.('지금은 못 시작했어요');
+                    Toolbox.showToast?.(t('flow.t32'));
                 }
             });
         });
@@ -440,10 +443,10 @@
                     const saved = (await res.json()) as { auto?: boolean };
                     // 화면은 **서버가 답한 값**을 따른다 — 눌린 대로 두면 저장 안 된 것이 켜져 보인다.
                     box.checked = saved.auto === true;
-                    Toolbox.showToast?.(box.checked ? '이제 결과가 나오면 스스로 다음으로 갑니다' : '스스로 이어가기를 껐어요');
+                    Toolbox.showToast?.(box.checked ? t('flow.t33') : t('flow.t34'));
                 } catch {
                     box.checked = !want;
-                    Toolbox.showToast?.('바꾸지 못했어요');
+                    Toolbox.showToast?.(t('flow.t35'));
                 }
             });
         });
@@ -456,16 +459,16 @@
                         method: 'POST',
                         credentials: 'include',
                     });
-                    Toolbox.showToast?.(res.ok ? '내 흐름에 담았어요' : '담지 못했어요');
+                    Toolbox.showToast?.(res.ok ? t('flow.t36') : t('flow.t37'));
                     if (res.ok) void build(button.closest('.tab-panel') ?? document.createElement('div'));
                 } catch {
-                    Toolbox.showToast?.('담지 못했어요');
+                    Toolbox.showToast?.(t('flow.t37'));
                 }
             });
         });
         container.querySelectorAll<HTMLButtonElement>('[data-del]').forEach((button) => {
             button.addEventListener('click', async () => {
-                if (!confirm('이 흐름을 지울까요? 남이 담아 간 것은 그대로 남습니다.')) return;
+                if (!confirm(t('flow.t38'))) return;
                 const base = api();
                 if (!base) return;
                 await fetch(`${base}/kl/flows/${encodeURIComponent(button.dataset.del ?? '')}`, {
@@ -549,10 +552,10 @@
                       .map(
                           (step, index) =>
                               `<span class="flow-step" data-drop="${index}">${escapeHtml(toolTitle(step.toolId))}` +
-                              `${step.skipWhen ? `<b class="flow-skip">${step.skipWhen === 'small' ? '작으면 건너뜀' : '결과 없으면 건너뜀'}</b>` : ''} ✕</span>`,
+                              `${step.skipWhen ? `<b class="flow-skip">${step.skipWhen === 'small' ? t('flow.t39') : t('flow.t40')}</b>` : ''} ✕</span>`,
                       )
                       .join('<span class="flow-arrow">→</span>')
-                : '<span class="flow-empty">아직 비었어요 — 도구를 골라 담아 보세요.</span>';
+                : t('flow.t41');
             draftSlot.querySelectorAll<HTMLElement>('[data-drop]').forEach((node) => {
                 node.addEventListener('click', () => {
                     draft = draft.filter((_, index) => index !== Number(node.dataset.drop));
@@ -566,7 +569,7 @@
 
         container.querySelector('[data-add]')?.addEventListener('click', () => {
             if (draft.length >= 8) {
-                Toolbox.showToast?.('8단계까지예요');
+                Toolbox.showToast?.(t('flow.t42'));
                 return;
             }
             const skip = container.querySelector<HTMLSelectElement>('[data-skip]')?.value;
@@ -578,7 +581,7 @@
             const base = api();
             if (!base) return;
             if (!titleInput.value.trim() || draft.length === 0) {
-                Toolbox.showToast?.('이름과 단계가 있어야 해요');
+                Toolbox.showToast?.(t('flow.t43'));
                 return;
             }
             try {
@@ -589,10 +592,10 @@
                     body: JSON.stringify({ title: titleInput.value, steps: draft }),
                 });
                 if (!res.ok) throw new Error(String(res.status));
-                Toolbox.showToast?.('흐름을 저장했어요');
-                void build(container);
+                Toolbox.showToast?.(t('flow.t44'));
+                void loadNamespace('flow').then(() => build(container));
             } catch {
-                Toolbox.showToast?.('저장하지 못했어요');
+                Toolbox.showToast?.(t('flow.t45'));
             }
         });
     }
@@ -616,7 +619,7 @@
         const step = run?.steps[run.at];
         if (step && bar) {
             const count = bar.querySelector('.flow-bar-count');
-            if (count && !count.textContent?.includes('결과')) count.textContent += ' · 결과 나옴';
+            if (count && !count.textContent?.includes(t('flow.t46'))) count.textContent += t('flow.t47');
         }
         /* 자동이 켜져 있으면 여기서부터는 손이 필요 없다 — 초를 세고 스스로 넘어간다. */
         if (run?.auto) armAuto(run);
@@ -645,7 +648,7 @@
             if (!flow?.steps?.length) return;
             startRun(flow);
         } catch {
-            Toolbox.showToast?.('그 흐름을 못 찾았어요');
+            Toolbox.showToast?.(t('flow.t48'));
         }
     }
     void startFromLink();
@@ -660,7 +663,7 @@
         tabs: [
             {
                 id: 'flow-main',
-                label: '흐름',
+                label: t('flow.t31', undefined, "흐름"),
                 build: (container: HTMLElement) => {
                     /* 로그인 상태는 처음엔 **아직 모름**이다 (계정 확인이 늦게 온다).
                      * 한 번만 그리면 로그인한 사람에게도 「만들려면 로그인」이 남는다 —
@@ -668,7 +671,7 @@
                     let drawnFor: string | null | undefined;
                     const account = window.KarmoAccount;
                     if (!account) {
-                        void build(container);
+                        void loadNamespace('flow').then(() => build(container));
                         return;
                     }
                     const off = account.subscribe((state) => {
@@ -676,7 +679,7 @@
                         const key = state.account?.handle ?? null;
                         if (drawnFor === key) return;
                         drawnFor = key;
-                        void build(container);
+                        void loadNamespace('flow').then(() => build(container));
                     });
                     Toolbox.onDispose?.(off);
                 },
