@@ -124,5 +124,9 @@
   "howto.pdfredact.0": "PDF を選ぶ",
   "howto.pdfredact.1": "隠す場所をドラッグ（ページを移動しながらでも可）",
   "howto.pdfredact.2": "鮮明さを選ぶ",
-  "howto.pdfredact.3": "隠した PDF をダウンロード"
+  "howto.pdfredact.3": "隠した PDF をダウンロード",
+  "howto.audiospeed.0": "音声ファイルを選ぶ",
+  "howto.audiospeed.1": "速度を選ぶ（1.5倍・2倍）",
+  "howto.audiospeed.2": "「変える」を押して聴いてみる",
+  "howto.audiospeed.3": "ダウンロード"
 }
