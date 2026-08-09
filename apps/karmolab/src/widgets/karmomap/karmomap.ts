@@ -31,6 +31,7 @@ import { renderStoragePanel } from './panels/storage-panel';
 import { renderFilterPanel } from './panels/filter-panel';
 import { renderTermsPanel } from './panels/terms-panel';
 import { renderGroupsPanel } from './panels/groups-panel';
+import { renderManyPanel } from './panels/many-panel';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -635,83 +636,6 @@ import {
      * 여럿 고름 패널 — 한 번에 묶고·바꾸고·지운다.
      * 노드가 늘면 하나씩 만지는 것이 곧 벽이 된다(Heptabase 도 「골라서 Create Section」이 기본 동작).
      */
-    function renderManyPanel(): void {
-      sideEl.classList.remove('hidden');
-      sideEl.innerHTML = `
-        <h4>◫ ${selectedMany.length}개 골랐음</h4>
-        <div class="km-hint">캔버스에서 <b>Shift+드래그</b>로 범위를 칠하면 여럿이 골라집니다. 고른 것 중 하나를 끌면 함께 움직입니다.</div>
-        <div class="km-field">
-          <label>한꺼번에 묶음에 넣기</label>
-          <select data-km="many-group">
-            <option value="">— 고르세요 —</option>
-            ${spec.groups.map((g) => `<option value="${escapeAttr(g.id)}">${escapeHtml(g.label)}</option>`).join('')}
-            <option value="__new">+ 새 묶음</option>
-          </select>
-        </div>
-        <div class="km-field">
-          <label>한꺼번에 종류 바꾸기</label>
-          <select data-km="many-kind">
-            <option value="">— 고르세요 —</option>
-            ${nodeKindsNow().map((k) => `<option value="${k.id}">${k.icon} ${escapeHtml(k.label)}</option>`).join('')}
-          </select>
-        </div>
-        <button class="btn btn-danger" data-km="many-del">${selectedMany.length}개 모두 삭제</button>
-        <button class="btn btn-ghost" data-km="many-close">고르기 해제</button>`;
-
-      (sideEl.querySelector('[data-km="many-group"]') as HTMLSelectElement).onchange = (ev) => {
-        const v = (ev.target as HTMLSelectElement).value;
-        if (!v) return;
-        const gid = v === '__new' ? createGroup().id : v;
-        for (const id of selectedMany) {
-          const n = spec.nodes.find((x) => x.id === id);
-          if (n) setMembership(n, [...new Set([...memberOf(n), gid])]);
-        }
-        applySpec();
-        persistStructure();
-        renderSide();
-      };
-
-      (sideEl.querySelector('[data-km="many-kind"]') as HTMLSelectElement).onchange = (ev) => {
-        const v = (ev.target as HTMLSelectElement).value;
-        if (!v) return;
-        for (const id of selectedMany) {
-          const n = spec.nodes.find((x) => x.id === id);
-          if (n) n.kind = v;
-        }
-        applySpec();
-        persistStructure();
-        renderSide();
-      };
-
-      (sideEl.querySelector('[data-km="many-del"]') as HTMLButtonElement).onclick = () => {
-        if (!confirm(`고른 ${selectedMany.length}개 노드와 거기 붙은 선을 모두 지울까요?`)) return;
-        const gone = new Set(selectedMany);
-        const goneEdges = new Set(
-          spec.edges.filter((e) => gone.has(e.from) || gone.has(e.to)).map((e) => e.id)
-        );
-        spec.nodes = spec.nodes.filter((n) => !gone.has(n.id));
-        spec.edges = spec.edges.filter((e) => !gone.has(e.from) && !gone.has(e.to));
-        for (const n of spec.nodes) {
-          if ((n.attachedTo && gone.has(n.attachedTo)) || (n.attachedTo && goneEdges.has(n.attachedTo))) {
-            n.attachedTo = undefined;
-          }
-        }
-        selectedMany = [];
-        selectedId = null;
-        sideMode = 'node';
-        applySpec();
-        persistStructure();
-        renderSide();
-      };
-
-      (sideEl.querySelector('[data-km="many-close"]') as HTMLButtonElement).onclick = () => {
-        selectedMany = [];
-        sideMode = 'node';
-        canvas?.setSelectedNodes([]);
-        renderSide();
-      };
-    }
-
     /**
      * 글로 만들기 — 들여쓴 목록을 그대로 관계도로 (격차 O).
      * 이미 그린 것은 건드리지 않고 **더한다**: 사람은 보통 「이만큼 더 있어」로 오지, 처음부터 다시 오지 않는다.
@@ -957,6 +881,19 @@ import {
       memberOf: (node) => memberOf(node),
       setMembership: (node, ids) => setMembership(node, ids),
       applySpec: () => applySpec(),
+      selectedMany: () => selectedMany,
+      clearMany: () => { selectedMany = []; selectedId = null; },
+      removeNodes: (ids) => {
+        const gone = new Set(ids);
+        const goneEdges = new Set(
+          spec.edges.filter((e) => gone.has(e.from) || gone.has(e.to)).map((e) => e.id)
+        );
+        spec.nodes = spec.nodes.filter((n) => !gone.has(n.id));
+        spec.edges = spec.edges.filter((e) => !gone.has(e.from) && !gone.has(e.to));
+        for (const n of spec.nodes) {
+          if (n.attachedTo && (gone.has(n.attachedTo) || goneEdges.has(n.attachedTo))) n.attachedTo = undefined;
+        }
+      },
       filterState,
       applyFilter: () => applyFilter(),
       applyDecorate: () => {
@@ -1061,7 +998,7 @@ import {
         return;
       }
       if (sideMode === 'many') {
-        renderManyPanel();
+        renderManyPanel(panelCtx);
         return;
       }
       if (sideMode === 'text') {
