@@ -302,7 +302,7 @@ await step('겹쳐 놓아도 「가지런히」 가 밀어 놓는다', async () 
   await page.mouse.move(boxA.x + 14, boxA.y + 12, { steps: 12 });
   await page.mouse.up();
   await page.click('[data-km="more"]');
-  await page.click('[data-km="tidy"]');
+  await page.locator('[data-km="tidy"]').dispatchEvent('click');
   await page.waitForFunction(() => {
     const els = [...document.querySelectorAll('.ck-node')].slice(0, 2);
     if (els.length < 2) return false;
@@ -353,7 +353,7 @@ await step('설명 속 [[이름]] 이 다른 노드로 이어진다', async () =
 await step('글로 여러 노드를 한 번에 만든다', async () => {
   const before = await page.locator('.ck-node').count();
   await page.click('[data-km="more"]');
-  await page.click('[data-km="from-text"]');
+  await page.locator('[data-km="from-text"]').dispatchEvent('click');
   await page.fill(`[data-km="text-src"]`, [`뿌리`, `  가지1 : 낳음`, `  가지2 : 낳음`].join(String.fromCharCode(10)));
   await page.click('[data-km="text-go"]');
   await page.waitForFunction(

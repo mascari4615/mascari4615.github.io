@@ -9,7 +9,7 @@
  * 무엇이 깨졌는지 알 수 없고, 화면 검사(35항목)가 있어도 되돌릴 지점이 없어진다.
  */
 import type { GraphCanvas } from '../../../lib/graph/canvas';
-import type { GraphSpec } from '../../../lib/graph/spec';
+import type { GraphSpec, GraphNode, GroupDef } from '../../../lib/graph/spec';
 import type { MyTerms } from '../terms';
 
 export interface PanelCtx {
@@ -67,4 +67,14 @@ export interface PanelCtx {
   terms: MyTerms;
   /** 고친 용어를 저장하고 캔버스 색표에 반영. */
   applyTerms: () => void;
+
+  // ── 묶음 패널이 빌리는 것들 ────────────────────────────────────────────
+  /** 새 묶음 하나(팩 프리셋 이름·색을 집어 온다). */
+  createGroup: () => GroupDef;
+  /** 이 노드가 든 묶음들. */
+  memberOf: (node: GraphNode) => string[];
+  /** 소속을 통째로 다시 쓴다. */
+  setMembership: (node: GraphNode, ids: string[]) => void;
+  /** spec → 캔버스 반영 (구조가 바뀐 뒤). */
+  applySpec: () => void;
 }
