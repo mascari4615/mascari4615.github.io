@@ -33,6 +33,7 @@ import { renderTermsPanel } from './panels/terms-panel';
 import { renderGroupsPanel } from './panels/groups-panel';
 import { renderManyPanel } from './panels/many-panel';
 import { renderTextPanel } from './panels/text-panel';
+import { renderEdgePanel } from './panels/edge-panel';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -765,87 +766,6 @@ import {
       return parsed.length;
     }
 
-    /**
-     * 선 패널 — 관계 자체에 붙는 이야기 (격차 Z).
-     * 「언제부터 라이벌인가」는 어느 한쪽 인물의 설명이 아니다. 노드에만 적을 곳을 두면 갈 데가 없다.
-     */
-    function renderEdgePanel(): void {
-      const edge = spec.edges.find((e) => e.id === selectedEdgeId);
-      if (!edge) {
-        sideMode = 'node';
-        renderSide();
-        return;
-      }
-      const nameOf = (id: string): string => spec.nodes.find((n) => n.id === id)?.label || '(이름 없음)';
-      sideEl.classList.remove('hidden');
-      sideEl.innerHTML = `
-        <h4>― 관계</h4>
-        <div class="km-hint">${escapeHtml(nameOf(edge.from))} → ${escapeHtml(nameOf(edge.to))}</div>
-        <div class="km-field">
-          <label>무슨 관계</label>
-          <select data-km="ed-kind">${edgeKindOptions(edge.kind)}</select>
-        </div>
-        <div class="km-field">
-          <label>선 위에 쓸 말</label>
-          <input type="text" data-km="ed-label" value="${escapeAttr(edge.label ?? '')}" placeholder="비우면 안 보임" />
-        </div>
-        <div class="km-field">
-          <label>이 관계의 이야기</label>
-          <textarea data-km="ed-doc" class="km-textarea" rows="5" placeholder="언제부터, 왜 이런 사이가 됐는지">${escapeHtml(edge.doc ?? '')}</textarea>
-        </div>
-        <div class="km-field">
-          <label>꼬리표 <span class="km-hint">쉼표로 여러 개</span></label>
-          <input type="text" data-km="ed-tags" value="${escapeAttr((edge.tags ?? []).join(', '))}" />
-        </div>
-        <button class="btn btn-ghost" data-km="ed-both">${edge.arrowStart ? '양쪽 화살표 ↔' : '한쪽 화살표 →'}</button>
-        <button class="btn btn-danger" data-km="ed-del">이 선 지우기</button>
-        <button class="btn btn-ghost" data-km="ed-close">닫기</button>`;
-
-      const save = (): void => {
-        canvas?.render();
-        persistStructure();
-      };
-      (sideEl.querySelector('[data-km="ed-kind"]') as HTMLSelectElement).onchange = (ev) => {
-        const old = edgeLabel(edge.kind);
-        edge.kind = (ev.target as HTMLSelectElement).value;
-        if (!edge.label || edge.label === old) edge.label = edgeLabel(edge.kind);
-        save();
-        renderSide();
-      };
-      (sideEl.querySelector('[data-km="ed-label"]') as HTMLInputElement).oninput = (ev) => {
-        edge.label = (ev.target as HTMLInputElement).value;
-        save();
-      };
-      (sideEl.querySelector('[data-km="ed-doc"]') as HTMLTextAreaElement).oninput = (ev) => {
-        edge.doc = (ev.target as HTMLTextAreaElement).value.trim() || undefined;
-        persistStructure();
-      };
-      (sideEl.querySelector('[data-km="ed-tags"]') as HTMLInputElement).onchange = (ev) => {
-        const list = (ev.target as HTMLInputElement).value.split(',').map((x) => x.trim()).filter(Boolean);
-        edge.tags = list.length > 0 ? [...new Set(list)] : undefined;
-        persistStructure();
-      };
-      (sideEl.querySelector('[data-km="ed-both"]') as HTMLButtonElement).onclick = (ev) => {
-        edge.arrowStart = edge.arrowStart ? undefined : true;
-        (ev.currentTarget as HTMLButtonElement).textContent = edge.arrowStart ? '양쪽 화살표 ↔' : '한쪽 화살표 →';
-        save();
-      };
-      (sideEl.querySelector('[data-km="ed-del"]') as HTMLButtonElement).onclick = () => {
-        spec.edges = spec.edges.filter((e) => e.id !== edge.id);
-        for (const n of spec.nodes) if (n.attachedTo === edge.id) n.attachedTo = undefined;
-        selectedEdgeId = null;
-        sideMode = 'node';
-        applySpec();
-        persistStructure();
-        renderSide();
-      };
-      (sideEl.querySelector('[data-km="ed-close"]') as HTMLButtonElement).onclick = () => {
-        selectedEdgeId = null;
-        sideMode = 'node';
-        renderSide();
-      };
-    }
-
     /** 패널이 빌려 쓰는 것들 한 덩이 — 옮긴 패널은 이것만 알면 된다 (개편 2). */
     const panelCtx: PanelCtx = {
       side: sideEl,
@@ -870,6 +790,13 @@ import {
       applySpec: () => applySpec(),
       selectedMany: () => selectedMany,
       nodeKindOptionsHtml: () => nodeKindOptions(),
+      edgeKindOptionsHtml: (sel) => edgeKindOptions(sel),
+      selectedEdge: () => spec.edges.find((e) => e.id === selectedEdgeId),
+      removeEdge: (id) => {
+        spec.edges = spec.edges.filter((e) => e.id !== id);
+        for (const n of spec.nodes) if (n.attachedTo === id) n.attachedTo = undefined;
+        selectedEdgeId = null;
+      },
       buildFromOutline: (s0, kind) => buildFromOutline(s0, kind),
       clearMany: () => { selectedMany = []; selectedId = null; },
       removeNodes: (ids) => {
@@ -1003,7 +930,7 @@ import {
         return;
       }
       if (sideMode === 'edge') {
-        renderEdgePanel();
+        renderEdgePanel(panelCtx);
         return;
       }
       if (sideMode === 'help') {
