@@ -231,8 +231,8 @@ export class GraphCanvas {
    * 거르기 (TASK-KL-202 M-3). 포커스가 「잠깐 흐리기」라면 이쪽은 **아예 안 그리기**다 —
    * Kumu 도 focus(근접 기반)와 filter(조건 선별)를 다른 도구로 둔다.
    */
-  private filter: { nodeKinds: Set<string>; edgeKinds: Set<string>; hideOrphans: boolean } = {
-    nodeKinds: new Set(), edgeKinds: new Set(), hideOrphans: false,
+  private filter: { nodeKinds: Set<string>; edgeKinds: Set<string>; tags: Set<string>; hideOrphans: boolean } = {
+    nodeKinds: new Set(), edgeKinds: new Set(), tags: new Set(), hideOrphans: false,
   };
   /** 손잡이에서 끌고 있는 중. 임시 선은 edgeLayer 에 그렸다가 놓을 때 지운다. */
   private linking: { fromId: string; temp: SVGPathElement } | null = null;
@@ -2237,10 +2237,14 @@ export class GraphCanvas {
   }
 
   /** 거르기 설정. 넘긴 종류는 화면에서 빠진다(자료는 그대로). */
-  setFilter(next: { nodeKinds?: Iterable<string>; edgeKinds?: Iterable<string>; hideOrphans?: boolean }): void {
+  setFilter(next: {
+    nodeKinds?: Iterable<string>; edgeKinds?: Iterable<string>;
+    tags?: Iterable<string>; hideOrphans?: boolean;
+  }): void {
     this.filter = {
       nodeKinds: new Set(next.nodeKinds ?? []),
       edgeKinds: new Set(next.edgeKinds ?? []),
+      tags: new Set(next.tags ?? []),
       hideOrphans: next.hideOrphans ?? false,
     };
     this.render();
@@ -2253,7 +2257,11 @@ export class GraphCanvas {
 
   /** 거르기를 통과한 노드들. 렌더·선 그리기가 모두 이걸 기준으로 삼는다. */
   private visibleNodes(): GraphNode[] {
-    const nodes = (this.spec?.nodes ?? []).filter((n) => !this.filter.nodeKinds.has(n.kind));
+    const nodes = (this.spec?.nodes ?? []).filter(
+      (n) => !this.filter.nodeKinds.has(n.kind)
+        // 꺼 둔 꼬리표가 하나라도 붙어 있으면 뺀다 — 「이건 지금 안 볼 것」이 여러 개일 수 있다.
+        && !(n.tags ?? []).some((tag) => this.filter.tags.has(tag))
+    );
     if (!this.filter.hideOrphans) return nodes;
     // 「외톨이 숨기기」 — 선이 하나도 안 닿은 노드를 뺀다(Kumu 의 ignore-orphans).
     const live = new Set(nodes.map((n) => n.id));

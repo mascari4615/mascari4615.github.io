@@ -105,6 +105,8 @@ import {
       border-radius:var(--radius-sm); background:var(--bg-tertiary); cursor:pointer; }
     .km-avatar-row .btn { padding:4px 8px; }
     .km-tilt-val { color:var(--text-tertiary); }
+    .km-tagbar { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
+    .km-tagchip { padding:2px 8px; font-size:11px; border-radius:999px; }
     .km-link-row { display:flex; gap:6px; align-items:center; margin-bottom:4px; }
     .km-link-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
       color:var(--text-primary); }
@@ -167,6 +169,7 @@ import {
     /** 화면에서 뺀 종류들 — 자료는 그대로 두고 보기만 줄인다(격차 M-3). */
     const hiddenNodeKinds = new Set<string>();
     const hiddenEdgeKinds = new Set<string>();
+    const hiddenTags = new Set<string>();
     let hideOrphans = false;
     /** 지금 끼워진 어휘 팩. `spec._meta.pack` 에 함께 저장된다. */
     let pack: CanvasPack = packById(DEFAULT_PACK_ID);
@@ -454,6 +457,11 @@ import {
     // ── 묶음 (TASK-KL-202 격차 D) ────────────────────────────────────────────
     // 캔버스는 이미 묶음을 그리고 끌 줄 안다(멤버를 감싸 자동으로 커진다). 없던 건
     // *만들고 넣는 손잡이* 뿐이었다.
+    /** 이 맵에 이미 쓰인 꼬리표 — 같은 말을 두 번 만들지 않게 눌러서 붙인다. */
+    function allTags(): string[] {
+      return [...new Set(spec.nodes.flatMap((n) => n.tags ?? []))].sort();
+    }
+
     /** 이 노드가 든 묶음들. 옛 저장본은 `group` 한 칸만 갖고 있다. */
     function memberOf(node: GraphNode): string[] {
       if (node.groups && node.groups.length > 0) return node.groups;
@@ -731,7 +739,7 @@ import {
 
     /** 거르기 패널 — 종류 체크를 끄면 그 종류가 화면에서 빠진다(자료는 그대로). */
     function applyFilter(): void {
-      canvas?.setFilter({ nodeKinds: hiddenNodeKinds, edgeKinds: hiddenEdgeKinds, hideOrphans });
+      canvas?.setFilter({ nodeKinds: hiddenNodeKinds, edgeKinds: hiddenEdgeKinds, tags: hiddenTags, hideOrphans });
       canvas?.setSelectedNode(selectedId);
     }
 
@@ -779,6 +787,16 @@ import {
             )
             .join('')}
         </div>
+        ${allTags().length === 0 ? '' : `<div class="km-field">
+          <label>꼬리표</label>
+          ${allTags()
+            .map(
+              (tg) => `<label class="km-check"><input type="checkbox" data-km="f-tag" value="${escapeAttr(tg)}"${
+                hiddenTags.has(tg) ? '' : ' checked'
+              } /> ${escapeHtml(tg)} <span class="km-group-count">${spec.nodes.filter((n) => (n.tags ?? []).includes(tg)).length}</span></label>`
+            )
+            .join('')}
+        </div>`}
         <div class="km-field">
           <label class="km-check"><input type="checkbox" data-km="f-orphan"${hideOrphans ? ' checked' : ''} /> 선이 하나도 안 닿은 노드 숨기기</label>
         </div>
@@ -801,6 +819,14 @@ import {
           applyFilter();
         };
       });
+      sideEl.querySelectorAll('[data-km="f-tag"]').forEach((el) => {
+        (el as HTMLInputElement).onchange = (ev) => {
+          const box = ev.target as HTMLInputElement;
+          if (box.checked) hiddenTags.delete(box.value);
+          else hiddenTags.add(box.value);
+          applyFilter();
+        };
+      });
       (sideEl.querySelector('[data-km="f-orphan"]') as HTMLInputElement).onchange = (ev) => {
         hideOrphans = (ev.target as HTMLInputElement).checked;
         applyFilter();
@@ -808,6 +834,7 @@ import {
       (sideEl.querySelector('[data-km="f-reset"]') as HTMLButtonElement).onclick = () => {
         hiddenNodeKinds.clear();
         hiddenEdgeKinds.clear();
+        hiddenTags.clear();
         hideOrphans = false;
         applyFilter();
         renderSide();
@@ -1082,6 +1109,13 @@ import {
           <input type="text" data-km="edit-note" value="${escapeAttr(node.note ?? '')}" placeholder="이름 밑에 한 줄" />
         </div>
         <div class="km-field">
+          <label>꼬리표 <span class="km-hint">쉼표로 여러 개</span></label>
+          <input type="text" data-km="edit-tags" value="${escapeAttr((node.tags ?? []).join(', '))}" placeholder="영향력 큼, 나중에 다시" />
+          ${allTags().length === 0 ? '' : `<div class="km-tagbar">${allTags()
+            .map((tg) => `<button class="btn btn-ghost km-tagchip" data-km="tag-add" data-key="${escapeAttr(tg)}">${escapeHtml(tg)}</button>`)
+            .join('')}</div>`}
+        </div>
+        <div class="km-field">
           <label>설명</label>
           <textarea data-km="edit-doc" class="km-textarea" rows="5" placeholder="이 인물·개념에 대해 길게 적어 두는 자리">${escapeHtml(node.doc ?? '')}</textarea>
           <div class="km-hint">적어 두면 카드 모서리에 📄 가 붙습니다. 그림에는 안 나옵니다. <b>[[이름]]</b> 으로 다른 노드를 가리킬 수 있어요.</div>
@@ -1189,6 +1223,24 @@ import {
         persistStructure();
         if (redrawSide) renderSide();
       };
+
+      const tagsInput = sideEl.querySelector('[data-km="edit-tags"]') as HTMLInputElement;
+      const applyTags = (): void => {
+        const list = tagsInput.value.split(',').map((x) => x.trim()).filter(Boolean);
+        node.tags = list.length > 0 ? [...new Set(list)] : undefined;
+        persistStructure();
+      };
+      tagsInput.onchange = applyTags;
+      tagsInput.onblur = applyTags;
+      sideEl.querySelectorAll('[data-km="tag-add"]').forEach((el) => {
+        (el as HTMLButtonElement).onclick = () => {
+          const tg = (el as HTMLElement).dataset.key ?? '';
+          const cur = tagsInput.value.split(',').map((x) => x.trim()).filter(Boolean);
+          if (!cur.includes(tg)) cur.push(tg);
+          tagsInput.value = cur.join(', ');
+          applyTags();
+        };
+      });
 
       const docInput = sideEl.querySelector('[data-km="edit-doc"]') as HTMLTextAreaElement;
       docInput.oninput = () => {

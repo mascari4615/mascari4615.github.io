@@ -154,6 +154,19 @@ await step('설명을 적으면 카드에 📄 가 붙는다', async () => {
     { timeout: 4000 }
   );
 });
+await step('꼬리표를 붙이고 그 꼬리표로 거른다', async () => {
+  await page.locator('.ck-node').first().click({ position: { x: 12, y: 10 } });
+  await page.fill('[data-km="edit-tags"]', '중요, 나중에');
+  await page.locator('[data-km="edit-tags"]').blur();
+  const before = await page.locator('.ck-node').count();
+  await page.click('[data-km="filter"]');
+  const tagBox = page.locator('[data-km="f-tag"]').first();
+  await tagBox.waitFor({ timeout: 4000 });
+  await tagBox.uncheck();
+  await page.waitForFunction((c) => document.querySelectorAll('.ck-node').length === c - 1, before, { timeout: 4000 });
+  await page.click('[data-km="f-reset"]');
+  await page.click('[data-km="f-close"]');
+});
 await step('설명 속 [[이름]] 이 다른 노드로 이어진다', async () => {
   const nodes = page.locator('.ck-node');
   const second = await nodes.nth(1).getAttribute('data-id');
