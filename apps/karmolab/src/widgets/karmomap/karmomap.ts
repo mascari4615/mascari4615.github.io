@@ -36,6 +36,7 @@ import { renderTextPanel } from './panels/text-panel';
 import { renderEdgePanel } from './panels/edge-panel';
 import { renderLinkSections, bindLinkSections } from './panels/links-section';
 import { avatarFieldHtml, bindAvatarField } from './panels/avatar-section';
+import { tagsFieldHtml, bindTagsField } from './panels/tags-section';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -598,11 +599,6 @@ import {
     // ── 묶음 (TASK-KL-202 격차 D) ────────────────────────────────────────────
     // 캔버스는 이미 묶음을 그리고 끌 줄 안다(멤버를 감싸 자동으로 커진다). 없던 건
     // *만들고 넣는 손잡이* 뿐이었다.
-    /** 이 맵에 이미 쓰인 꼬리표 — 같은 말을 두 번 만들지 않게 눌러서 붙인다. */
-    function allTags(): string[] {
-      return [...new Set(spec.nodes.flatMap((n) => n.tags ?? []))].sort();
-    }
-
     /** 이 노드가 든 묶음들. 옛 저장본은 `group` 한 칸만 갖고 있다. */
     function memberOf(node: GraphNode): string[] {
       if (node.groups && node.groups.length > 0) return node.groups;
@@ -921,13 +917,7 @@ import {
           <label>한마디</label>
           <input type="text" data-km="edit-note" value="${escapeAttr(node.note ?? '')}" placeholder="이름 밑에 한 줄" />
         </div>
-        <div class="km-field">
-          <label>꼬리표 <span class="km-hint">쉼표로 여러 개</span></label>
-          <input type="text" data-km="edit-tags" value="${escapeAttr((node.tags ?? []).join(', '))}" placeholder="영향력 큼, 나중에 다시" />
-          ${allTags().length === 0 ? '' : `<div class="km-tagbar">${allTags()
-            .map((tg) => `<button class="btn btn-ghost km-tagchip" data-km="tag-add" data-key="${escapeAttr(tg)}">${escapeHtml(tg)}</button>`)
-            .join('')}</div>`}
-        </div>
+        ${tagsFieldHtml(panelCtx, node)}
         <div class="km-field">
           <label>설명</label>
           <textarea data-km="edit-doc" class="km-textarea" rows="5" placeholder="이 인물·개념에 대해 길게 적어 두는 자리">${escapeHtml(node.doc ?? '')}</textarea>
@@ -1028,23 +1018,7 @@ import {
         if (redrawSide) renderSide();
       };
 
-      const tagsInput = sideEl.querySelector('[data-km="edit-tags"]') as HTMLInputElement;
-      const applyTags = (): void => {
-        const list = tagsInput.value.split(',').map((x) => x.trim()).filter(Boolean);
-        node.tags = list.length > 0 ? [...new Set(list)] : undefined;
-        persistStructure();
-      };
-      tagsInput.onchange = applyTags;
-      tagsInput.onblur = applyTags;
-      sideEl.querySelectorAll('[data-km="tag-add"]').forEach((el) => {
-        (el as HTMLButtonElement).onclick = () => {
-          const tg = (el as HTMLElement).dataset.key ?? '';
-          const cur = tagsInput.value.split(',').map((x) => x.trim()).filter(Boolean);
-          if (!cur.includes(tg)) cur.push(tg);
-          tagsInput.value = cur.join(', ');
-          applyTags();
-        };
-      });
+      bindTagsField(panelCtx, node);
 
       const docInput = sideEl.querySelector('[data-km="edit-doc"]') as HTMLTextAreaElement;
       docInput.oninput = () => {
