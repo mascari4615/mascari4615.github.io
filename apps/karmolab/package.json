@@ -164,7 +164,8 @@
     "baseline:i18n:source": "node scripts/audit-i18n-source.mjs --baseline",
     "gen:tool-pages-locale": "node scripts/gen-tool-pages-locale.mjs",
     "test:widget-i18n": "node scripts/smoke-widget-i18n.mjs",
-    "smoke:karmomap": "node scripts/smoke-karmomap.mjs"
+    "smoke:karmomap": "node scripts/smoke-karmomap.mjs",
+    "test:region": "node scripts/smoke-region.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
