@@ -6,24 +6,58 @@
  * 7년에 걸쳐 한 단어씩 다 소진했다. 공통점은 **아무 의미 없는 것을 아주 규칙적으로** 라는 것.
  *
  * 여기서는 그걸 서버 없이 한다. 모든 박동은 **시각의 순수 함수**다 —
- * `내용 = f(방송 id, 박동 번호)`. 그래서 세 가지가 공짜로 따라온다:
+ * `내용 = f(방송 id, 박동 번호)`. 그래서 둘이 공짜로 따라온다:
  *
  *   ① 같은 순간에 접속한 사람은 **전부 같은 것**을 본다 (동기화 장치가 없는데도)
  *   ② **지난 박동**을 되감을 수 있다 (아무것도 저장 안 했는데도)
- *   ③ **다음 박동**을 미리 볼 수 있다 (정해져 있으니까)
+ *
+ * 다음 박동도 계산할 수 있지만 **절대 안 보여준다.** 이 갈래의 알맹이는 기다림이다 —
+ * 다음에 뭐가 올지 알면 볼 이유가 사라진다. 계산이 되는 것과 보여 주는 것은 다른 문제다.
+ * (한 번 미리보기를 달았다가 걷어냈다. 감성이 죽는다 — 사용자 지적, 2026-08-09)
  *
  * 방송을 하나 더 만드는 일 = `channels.ts` 에 `Channel` 하나 추가. 그게 전부다.
  */
 
+/** 화면이 쥐여 주는 색. 방송이 제 색을 박으면 밝은 테마에서 안 보인다. */
+export interface Ink {
+  bg: string;
+  fg: string;
+  dim: string;
+  accent: string;
+}
+
+/**
+ * 카드 얼굴을 직접 그리는 붓.
+ * 이 갈래의 알짜(별밭·어항·뜰·나방·지도)는 전부 **그림**이다 — 글자로는 흉내가 안 난다.
+ * 순수 함수여야 한다: 같은 `rand` 수열이면 같은 그림. (그래야 되감기가 성립한다)
+ */
+export type Paint = (
+  c: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  rand: () => number,
+  ink: Ink
+) => void;
+
 /** 한 번의 박동이 내보내는 것. */
 export interface Beat {
-  /** 큰 글씨로 보이는 몸통 */
-  text: string;
+  /** 한 줄 요약 — 타임라인·되감기·미리보기가 쓴다. 그림 방송도 반드시 있어야 한다. */
+  line: string;
   /** 아래 작은 글씨 (없어도 된다) */
   sub?: string;
-  /** 자간·줄이 의미를 갖는 몸통 (칸 그림·눈금 막대) — 고정폭으로, 줄바꿈 그대로 */
+  /** 자간·줄이 의미를 갖는 몸통 (눈금 막대) — 고정폭으로, 줄바꿈 그대로 */
   mono?: boolean;
+  /** 있으면 카드 얼굴을 이걸로 그린다. 없으면 `line` 을 큰 활자로. */
+  paint?: Paint;
+  /**
+   * 있으면 이 박동은 **소리로 온다**. 종의 「BONG」은 글자로 적으면 아무 뜻도 없다 —
+   * 소리가 본체고 글자는 자막이다.
+   */
+  sound?: (ac: AudioContext, at: number) => void;
 }
+
+/** 벤토 격자에서 이 방송이 차지하는 칸. 그림은 넓게, 신호는 좁게. */
+export type Tile = 'wide' | 'tall' | 'big' | 'unit';
 
 /** 방송 하나. */
 export interface Channel {
@@ -37,6 +71,8 @@ export interface Channel {
   blurb: string;
   /** 이 감성의 원본이 뭐였는지 한 줄 (계보를 지운 채로 만들면 재미의 절반이 사라진다) */
   lineage: string;
+  /** 벤토에서의 크기 (기본 `unit`) */
+  tile?: Tile;
   /**
    * 박동 눈금을 **이곳 시각**에 맞출지. 하루·정각처럼 사람이 체감하는 경계를 쓰는 방송은 true.
    * (기본값은 epoch 기준 = 세계 어디서나 같은 순간에 갈린다)
@@ -136,12 +172,6 @@ export function stampOf(ms: number, withDate = false): string {
 export function dateOf(ms: number): string {
   const d = new Date(ms);
   return `${d.getFullYear()}-${PAD(d.getMonth() + 1)}-${PAD(d.getDate())}`;
-}
-
-/** ▓▓▓▓▓░░░░░ — 눈금 막대. */
-export function bar(ratio: number, width = 14): string {
-  const filled = Math.round(Math.min(1, Math.max(0, ratio)) * width);
-  return '▓'.repeat(filled) + '░'.repeat(width - filled);
 }
 
 export const MINUTE = 60000;
