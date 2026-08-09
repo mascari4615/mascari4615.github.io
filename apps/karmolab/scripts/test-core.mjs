@@ -1861,6 +1861,51 @@ check(dtOut.includes('총 타수'), '총 타수도');
 const dtScored = dt.run('today', { at: '2026-08-11T02:00:00Z', seconds: 30, typed: q1.lines.join(String.fromCharCode(10)) });
 check(dtScored.includes('정확도: 100%'), '친 글을 주면 채점까지');
 
+// ── ②-36 초성 맞히기 데일리 (정답이 새면 끝나는 놀이) ──────────────────────
+const cho = await load('src/core/dailycho.ts');
+eq(cho.spec.id, 'dailycho', 'dailycho spec.id');
+
+const cq = cho.puzzleFor('2026-08-11');
+eq(cq.questions.length, cho.WORDS_PER_DAY, '한 판 다섯 낱말');
+eq(cho.puzzleFor('2026-08-11').questions[0].answer, cq.questions[0].answer, '같은 날 같은 문제');
+check(cho.puzzleFor('2026-08-12').questions[0].answer !== cq.questions[0].answer, '다른 날 다른 문제');
+eq(new Set(cq.questions.map((q) => q.answer)).size, cq.questions.length, '같은 낱말이 두 번 안 나온다');
+
+/* 보여 주는 것은 초성뿐 — 답 글자가 섞이면 문제가 아니다. */
+for (const q of cq.questions) {
+  eq([...q.hint].length, q.length, '초성 수 = 글자 수');
+  check(/^[ㄱ-ㅎ]+$/.test(q.hint), `초성만 보여 준다: ${q.hint}`);
+  check(q.hint.includes(q.answer) === false, '문제에 답이 안 섞인다');
+  check(q.tool.length > 0, '맞힌 뒤 보여 줄 도구가 붙어 있다');
+}
+
+/* 채점 — 「거의」가 있어야 실력이 느는 게 보인다(초성 퀴즈는 아깝게 빗나가는 일이 잦다). */
+const allRight = cho.grade(cq, cq.questions.map((q) => q.answer));
+eq(allRight.right, 5, '다 맞히면 5');
+check(allRight.marks.every((m) => m === 'hit'), '전부 hit');
+
+const choFirst = cq.questions[0];
+const oneCharOff = [...choFirst.answer];
+oneCharOff[0] = oneCharOff[0] === '가' ? '나' : '가';
+const choNear = cho.grade(cq, [oneCharOff.join('')]);
+eq(choNear.marks[0], 'near', '글자 수 같고 한 글자만 다르면 「거의」');
+
+eq(cho.grade(cq, ['아']).marks[0], 'miss', '글자 수가 다르면 틀림');
+eq(cho.grade(cq, []).marks[0], 'miss', '안 쓰면 틀림');
+check(cho.grade(cq, [' ' + choFirst.answer + ' ']).marks[0] === 'hit', '앞뒤 공백은 봐준다');
+
+/* ★ 공유 글에 정답이 새면 그날 이 놀이는 끝난다. */
+const sharedCho = allRight.share;
+check(cq.questions.every((q) => sharedCho.includes(q.answer) === false), `정답이 안 담긴다: ${sharedCho.split(String.fromCharCode(10)).join(' / ')}`);
+check(sharedCho.startsWith('초성 #'), '머리줄에 번호');
+
+/* 창구 — 답을 안 주면 문제만, 주면 채점과 함께 답·도구를 알려 준다. */
+const choQ0 = cho.run('today', { at: '2026-08-11T02:00:00Z' });
+check(choQ0.includes('초성 #2'), 'run 이 오늘 문제를 낸다');
+check(cq.questions.every((q) => choQ0.includes(q.answer) === false), '답을 안 주면 정답도 안 보여 준다');
+const choScored = cho.run('today', { at: '2026-08-11T02:00:00Z', answers: cq.questions.map((q) => q.answer).join(',') });
+check(choScored.includes('5/5 맞힘'), 'run 이 채점한다');
+
 // ── 마무리 ──────────────────────────────────────────────────────────────────
 fs.rmSync(outDir, { recursive: true, force: true });
 process.stdout.write('\n');
