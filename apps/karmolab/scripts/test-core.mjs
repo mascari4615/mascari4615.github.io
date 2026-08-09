@@ -101,6 +101,68 @@ eq(b64.decode('  aGVs bG8=  '), 'hello', '공백 섞인 값 읽기');
 eq(b64.byteLength('안녕'), 6, '한글 바이트 수');
 eq(b64.byteLength(''), 0, '빈 글자 바이트 수');
 
+// ── ②-2 hashgen 알맹이 ──────────────────────────────────────────────────────
+// 계산기를 밖에서 받는 구조라, 여기선 node:crypto 를 손으로 준다. 브라우저는 CryptoJS 를 준다 —
+// 같은 알맹이에 다른 손. 두 손이 같은 답을 내는지는 smoke-core-parity.mjs 가 본다.
+const crypto = await import('node:crypto');
+const hg = await load('src/core/hashgen.ts');
+
+// KECCAK512 는 Node(OpenSSL)에 없다. 여기서는 자리를 채우려고 sha3-512 를 대신 물린다 —
+// **이 줄의 값이 맞는지는 여기서 주장하지 않는다.** 여기서 보는 것은 구조(6줄·이름·대문자 표기)뿐이고,
+// 실제 값 대조는 브라우저와 맞대 보는 `smoke-core-parity.mjs` 가 한다.
+const NODE_ALGO = { MD5: 'md5', SHA1: 'sha1', SHA256: 'sha256', SHA512: 'sha512', KECCAK512: 'sha3-512', RIPEMD160: 'ripemd160' };
+const nodeBackend = (algo, text) => crypto.createHash(NODE_ALGO[algo]).update(text, 'utf8').digest('hex');
+
+eq(hg.spec.id, 'hashgen', 'hashgen spec.id');
+const rows = hg.hashAll('KarmoLab', nodeBackend);
+eq(rows.length, 6, '알고리즘 6종이 나온다');
+eq(rows[0].algo, 'MD5', '흔한 것부터 보여 준다');
+eq(rows.find((r) => r.algo === 'SHA256').hex, crypto.createHash('sha256').update('KarmoLab').digest('hex'), 'SHA-256 값');
+eq(hg.hashAll('', nodeBackend)[0].hex, '', '빈 글자는 빈 값 (0 을 해시하지 않는다)');
+eq(hg.hashAll('a', nodeBackend, true)[0].hex, nodeBackend('MD5', 'a').toUpperCase(), '대문자 표기');
+
+// 남이 준 체크섬은 지저분하게 온다 — 그걸 못 맞추면 「같은 파일인데 다르다」가 된다.
+eq(hg.normalizeExpected('  ABCDEF  '), 'abcdef', '공백·대문자 정리');
+eq(hg.normalizeExpected('sha256:ABCdef'), 'abcdef', '머리말 떼기');
+eq(hg.normalizeExpected('ab cd\nef'), 'abcdef', '줄바꿈 섞인 값');
+const fileHashes = { 'SHA-256': 'deadbeef', 'SHA-1': 'cafe' };
+eq(hg.findMatch(fileHashes, 'DEADBEEF'), 'SHA-256', '대문자로 줘도 찾는다');
+eq(hg.findMatch(fileHashes, 'sha256: deadbeef'), 'SHA-256', '머리말 붙여 줘도 찾는다');
+eq(hg.findMatch(fileHashes, '0000'), null, '없으면 null');
+eq(hg.findMatch(fileHashes, '   '), null, '빈 값이면 null');
+eq(hg.bufToHex(new Uint8Array([0, 1, 255]).buffer), '0001ff', '16진수 표기 (0 채움)');
+
+// ── ②-3 epoch 알맹이 ────────────────────────────────────────────────────────
+const ep = await load('src/core/epoch.ts');
+
+eq(ep.spec.id, 'epoch', 'epoch spec.id');
+
+// 예전에 여기서 서기 5만 년이 나왔다. 네 단위가 같은 순간을 가리켜야 한다.
+const SEC = 1750000000;
+eq(ep.parseTimestamp(String(SEC)).ms, SEC * 1000, '10자리 = 초');
+eq(ep.parseTimestamp(String(SEC * 1000)).ms, SEC * 1000, '13자리 = 밀리초');
+eq(ep.parseTimestamp(String(SEC * 1000) + '000').ms, SEC * 1000, '16자리 = 마이크로초');
+eq(ep.parseTimestamp(String(SEC * 1000) + '000000').ms, SEC * 1000, '19자리 = 나노초');
+eq(ep.parseTimestamp('1750000000').unit.label, '초 (10자리)', '무엇으로 읽었는지 말한다');
+eq(ep.parseTimestamp('1750000000000000000').unit.label, '나노초 (19자리)', '나노초라고 말한다');
+check(new Date(ep.parseTimestamp('1750000000000000000').ms).getUTCFullYear() < 3000, '나노초를 밀리초로 읽어 5만 년이 나오면 안 된다');
+
+eq(ep.parseTimestamp(''), null, '빈 값은 null');
+eq(ep.parseTimestamp('abc'), null, '숫자가 없으면 null');
+eq(ep.parseTimestamp('1,750,000,000').ms, SEC * 1000, '쉼표 섞여 와도 읽는다');
+
+// 「지금」을 인자로 받으므로 답이 흔들리지 않는다.
+const NOW = 1_750_000_000_000;
+eq(ep.humanDelta(NOW, NOW), '방금', '같은 순간');
+eq(ep.humanDelta(NOW - 3 * 86400000, NOW), '3일 전', '과거');
+eq(ep.humanDelta(NOW + 2 * 3600000, NOW), '2시간 후', '미래');
+
+const epRows = ep.stampRows(NOW, NOW);
+eq(epRows.length, 9, '보여 줄 줄 수');
+eq(epRows.find(([k]) => k === '초 (10자리)')[1], String(SEC), '초 값');
+eq(epRows.find(([k]) => k === 'ISO 8601')[1], new Date(NOW).toISOString(), 'ISO 값');
+eq(ep.toLocalInput(new Date(2026, 0, 2, 3, 4, 5)), '2026-01-02T03:04:05', 'datetime-local 모양 (로컬 시간대)');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 

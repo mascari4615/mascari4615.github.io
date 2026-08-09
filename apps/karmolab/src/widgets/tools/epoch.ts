@@ -1,39 +1,13 @@
 /**
- * 유닉스 타임스탬프 변환 (TASK-KL-088)
+ * 유닉스 타임스탬프 변환 — 화면 (TASK-KL-088)
  *
- * 로그와 API 응답의 시각은 대개 숫자로 온다. 이걸 읽으려면 **자릿수부터 가려야 한다** —
- * 10자리는 초, 13자리는 밀리초다. 잘못 고르면 1970년이나 5만 년 뒤가 나온다.
- * 그래서 자릿수를 보고 단위를 알아서 잡고, 무엇으로 봤는지 화면에 적는다.
+ * 자릿수로 단위를 가리는 판단과 값 만들기는 `src/core/epoch.ts` 가 한다 (TASK-KL-205).
+ * 여기는 칸을 그리고 오간 값을 옮기는 일만 한다.
  */
+import { parseTimestamp, spec, stampRows, toLocalInput } from '../../core/epoch';
+import { readInvocation } from '../../lib/tool-url';
+
 (function (): void {
-  const pad = (n: number): string => String(n).padStart(2, '0');
-
-  /** 로컬 시간대 기준 datetime-local 값 (UTC 로 밀리면 한 번 더 틀린다) */
-  function toLocalInput(d: Date): string {
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-  }
-
-  function human(ms: number): string {
-    const diff = ms - Date.now();
-    const abs = Math.abs(diff);
-    const unit: Array<[number, string]> = [
-      [1000, '초'],
-      [60000, '분'],
-      [3600000, '시간'],
-      [86400000, '일'],
-      [2592000000, '개월'],
-      [31536000000, '년']
-    ];
-    let out = '방금';
-    for (let i = unit.length - 1; i >= 0; i--) {
-      if (abs >= unit[i][0]) {
-        out = `${Math.round(abs / unit[i][0])}${unit[i][1]}`;
-        break;
-      }
-    }
-    return diff >= 0 ? `${out} 후` : `${out} 전`;
-  }
-
   Toolbox.register({
     id: 'epoch',
     title: '타임스탬프 변환',
@@ -75,39 +49,19 @@
             `<div class="tool-list-row"><span class="tool-list-key">${k}</span><span class="tool-list-val">${v}</span></div>`;
 
           function render(note: string): void {
-            const d = new Date(ms);
-            out.innerHTML =
-              row('내 시간대', d.toLocaleString('ko-KR')) +
-              row('UTC', d.toUTCString()) +
-              row('ISO 8601', d.toISOString()) +
-              row('요일', ['일', '월', '화', '수', '목', '금', '토'][d.getDay()] + '요일') +
-              row('지금 기준', human(ms)) +
-              row('초 (10자리)', String(Math.floor(ms / 1000))) +
-              row('밀리초 (13자리)', String(Math.round(ms))) +
-              row('마이크로초 (16자리)', String(Math.round(ms * 1e3))) +
-              row('나노초 (19자리)', String(Math.round(ms * 1e6)));
+            out.innerHTML = stampRows(ms, Date.now())
+              .map(([k, v]) => row(k, v))
+              .join('');
             status.textContent = note;
             status.className = 'tool-status ok';
           }
 
           function fromNumber(): void {
-            const raw = num.value.replace(/[^\d-]/g, '');
-            if (!raw) return;
-            const n = Number(raw);
-            if (!isFinite(n)) return;
-            /* 자릿수로 단위를 가린다. 예전에는 「11자리 미만이면 초, 아니면 밀리초」 하나뿐이라
-               **마이크로초(16자리)·나노초(19자리)를 밀리초로 잘못 읽고** 서기 5만 년을 자신 있게
-               내놓았다. 로그에서 흔히 나오는 단위인데 틀린 답에 「밀리초로 읽었습니다」까지 붙어
-               사람이 의심할 길이 없었다. 이제 네 단위를 자릿수로 가른다. */
-            const digits = raw.replace('-', '').length;
-            const unit =
-              digits >= 18 ? { div: 1e6, label: '나노초 (19자리)' }
-              : digits >= 15 ? { div: 1e3, label: '마이크로초 (16자리)' }
-              : digits >= 12 ? { div: 1, label: '밀리초 (13자리)' }
-              : { div: 0.001, label: '초 (10자리)' };
-            ms = n / unit.div;
+            const parsed = parseTimestamp(num.value);
+            if (parsed === null) return;
+            ms = parsed.ms;
             date.value = toLocalInput(new Date(ms));
-            render(`${unit.label}로 읽었습니다.`);
+            render(`${parsed.unit.label}로 읽었습니다.`);
           }
 
           num.addEventListener('input', fromNumber);
@@ -131,9 +85,28 @@
             void Toolbox.copyText?.(String(ms), { message: '밀리초 단위로 복사했어요' });
           };
 
-          num.value = String(Math.floor(ms / 1000));
-          date.value = toLocalInput(new Date(ms));
-          render('지금 시각입니다.');
+          // 주소로 부른 경우(`?op=toDate&ts=…`)는 그 값으로, 아니면 지금 시각으로 연다 (TASK-KL-205).
+          const call = readInvocation(spec);
+          if (call !== null && call.error === undefined && call.op === 'toDate') {
+            num.value = String(call.args.ts ?? '');
+            fromNumber();
+          } else if (call !== null && call.error === undefined && call.op === 'toStamp') {
+            const t = new Date(String(call.args.date ?? '')).getTime();
+            if (Number.isNaN(t) === false) {
+              ms = t;
+              num.value = String(Math.floor(ms / 1000));
+              date.value = toLocalInput(new Date(ms));
+              render('주소로 받은 시각입니다.');
+            }
+          } else {
+            num.value = String(Math.floor(ms / 1000));
+            date.value = toLocalInput(new Date(ms));
+            render('지금 시각입니다.');
+          }
+          if (call?.error !== undefined) {
+            status.textContent = call.error;
+            status.className = 'tool-status error';
+          }
         }
       }
     ]
