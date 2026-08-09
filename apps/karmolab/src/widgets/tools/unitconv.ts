@@ -367,7 +367,7 @@ import { readInvocation } from '../../lib/tool-url';
 
           fillUnits();
 
-          // 주소로 부른 경우 (`?op=convert&value=30&from=pyeong&to=m2`) (TASK-KL-205).
+          // 주소로 부른 경우 — ?op=convert&value=30&from=pyeong&to=m2 (TASK-KL-205)
           const call = readInvocation(spec);
           if (call !== null && call.error === undefined && call.op === 'convert') {
             const wanted = String(call.args.category ?? '');
