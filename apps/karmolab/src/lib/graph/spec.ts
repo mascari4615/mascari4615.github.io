@@ -230,6 +230,21 @@ export interface GraphNote {
   text: string;
 }
 
+/**
+ * 코멘트 — **설명과는 다른 글** (TASK-KL-202, Milanote 계보).
+ *
+ * 설명(`doc`)은 「그것이 무엇인가」이고, 코멘트는 「보다가 든 생각」이다. 한 칸에 몰아 적으면
+ * 설명이 잡담으로 더러워지거나, 잡담이 설명인 척한다. 그래서 **여러 개 · 시간순**으로 따로 쌓는다.
+ */
+export interface GraphComment {
+  id: string;
+  /** 붙은 자리 — 노드 id 또는 선 id. */
+  on: string;
+  text: string;
+  /** 적은 시각(ms). 시간순으로 보여 주는 유일한 근거. */
+  at: number;
+}
+
 export interface GraphSpec {
   version: number;
   _meta: Record<string, string>;
@@ -238,6 +253,8 @@ export interface GraphSpec {
   edges: GraphEdge[];
   ephemeral_anchors: EphemeralAnchor[];
   _edge_kinds: Record<string, EdgeKindDef>;
+  /** 노드·선에 달린 코멘트들(시간순). 설명과 달리 **여러 개**다. */
+  comments?: GraphComment[];
   /** 여러 자리가 나눠 쓰는 글들. 없으면 공용 글을 아직 안 만든 맵. */
   notes?: GraphNote[];
   /** 발표 순서. 없으면 발표 모드 버튼이 「첫 장 담기」로 시작한다. */
