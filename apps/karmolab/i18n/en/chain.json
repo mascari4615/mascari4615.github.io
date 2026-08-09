@@ -1,0 +1,15 @@
+{
+  "chain.label.chSteps": "Steps (JSON)",
+  "chain.t01": "= the whole result of step 1 ·",
+  "chain.btn.chRun": "Run",
+  "chain.btn.chExample": "Put an example in",
+  "chain.err.02": "The hash calculator (CryptoJS) has not loaded yet",
+  "chain.t03": "Hello",
+  "chain.t06": "Chain",
+  "chain.say.07": "An example is in — try pressing Run",
+  "chain.say.08": "There is an example in it — try pressing Run",
+  "chain.unknownTool": "Unknown tool: {id} (available: {known} …)",
+  "chain.unknownOp": "{id} has no “{op}” (available: {ops})",
+  "chain.noAlgo": "{algo} is not available on this screen",
+  "chain.ranSteps": "Ran {n} steps — the result is the last line"
+}

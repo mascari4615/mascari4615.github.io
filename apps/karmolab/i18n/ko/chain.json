@@ -1,0 +1,15 @@
+{
+  "chain.label.chSteps": "단계 (JSON)",
+  "chain.t01": "= 1번 결과 통째로 ·",
+  "chain.btn.chRun": "실행",
+  "chain.btn.chExample": "예시 넣기",
+  "chain.err.02": "해시 계산기(CryptoJS)가 아직 안 실렸습니다",
+  "chain.t03": "안녕하세요",
+  "chain.t06": "묶어 쓰기",
+  "chain.say.07": "예시를 넣었습니다 — 실행을 눌러 보세요",
+  "chain.say.08": "예시가 들어 있습니다 — 실행을 눌러 보세요",
+  "chain.unknownTool": "모르는 도구입니다: {id} (있는 것: {known} …)",
+  "chain.unknownOp": "{id} 에 「{op}」 는 없습니다 (있는 것: {ops})",
+  "chain.noAlgo": "이 화면에서는 {algo} 를 못 구합니다",
+  "chain.ranSteps": "{n}단계 실행 — 결과는 마지막 줄입니다"
+}
