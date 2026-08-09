@@ -442,7 +442,27 @@ const Mdd = (() => {
             gazeTarget.y = clamp((clientY - cy) / reach, -1, 1);
         }
 
+        /* 한 번이라도 화면에 붙었었나. 처음 몇 프레임은 아직 안 붙은 채로 돌 수 있어서
+           (부르는 쪽이 만들어서 나중에 붙인다) 「붙은 적 있다」를 기억해 두고 판단한다. */
+        let wasConnected = false;
+
         function frame(now: number): void {
+            /* **떨어졌으면 스스로 멈춘다** (TASK-KL-201).
+             *
+             * `spot()` 은 `destroy()` 를 돌려주기만 하고, 부르는 위젯 대부분은 그걸 안 부른다 —
+             * 화면이 갈릴 때 DOM 은 사라지지만 이 루프는 영영 돈다. 실측: 위젯 여섯을 열었다
+             * 홈으로 돌아오면 이 함수가 초당 181번(=60fps 세 벌) 돌고 있었다. 손 안 댄 화면이
+             * 배터리를 먹는다.
+             *
+             * `mountAvatar` 는 같은 사고를 이미 겪고 「새로 붙이기 전에 앞의 것을 끊는」 방식으로
+             * 고쳤다(KL-128 ㉔). 그건 부르는 쪽이 기억해야 하는 방식이라 새 사용처가 생기면 또
+             * 샌다. 그래서 여기서, 아바타 자신이 판단한다. 부르는 쪽은 아무것도 안 해도 된다. */
+            if (wasConnected && !el.isConnected) {
+                raf = 0;
+                return;
+            }
+            if (el.isConnected) wasConnected = true;
+
             const t = (now - t0) / 1000;
 
             // 값 보간 — 포즈가 튀지 않고 흘러간다
