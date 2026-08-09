@@ -39,6 +39,7 @@ import { chooseAnchors, edgeCurve, boundsOf } from './canvas-math';
 import { buildEdgePath, buildEdgeLabel, buildLeaderLine } from './canvas-edge';
 import { renderGroups, computeGroupBox } from './canvas-group';
 import { nodeBadges } from './canvas-badges';
+import { buildFieldRows } from './canvas-fields';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
@@ -1255,36 +1256,14 @@ export class GraphCanvas {
       text.textContent = node.label;
       g.appendChild(text);
 
-      // 칸(출신·첫 등장…)은 **카드에서 읽혀야** 값이 있다 — 패널을 열어야만 보이면 안 적게 된다.
-      // 다만 카드가 표가 되면 그림이 안 읽히므로 세 줄까지만, 나머지는 「+N」으로 접는다.
-      const fieldRows = Object.entries(node.fields ?? {}).filter(([, v]) => String(v).trim());
-      if (fieldRows.length > 0 && !centered) {
-        const shown = fieldRows.slice(0, NODE_FIELD_MAX_ROWS);
-        const room = node.w - textX - 10;
-        const maxChars = Math.max(6, Math.floor(room / 5.2));
-        shown.forEach(([name, value], i) => {
-          const row = document.createElementNS(SVG_NS, 'text');
-          row.setAttribute('x', String(textX));
-          row.setAttribute('y', String(labelY + (hasNote ? 26 : 15) + i * NODE_FIELD_ROW_H));
-          row.setAttribute('fill', this.theme.childText);
-          row.setAttribute('font-size', '9');
-          row.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
-          row.setAttribute('pointer-events', 'none');
-          const raw = `${name}: ${value}`;
-          row.textContent = raw.length > maxChars ? `${raw.slice(0, maxChars - 1)}…` : raw;
-          g.appendChild(row);
-        });
-        if (fieldRows.length > shown.length) {
-          const more = document.createElementNS(SVG_NS, 'text');
-          more.setAttribute('x', String(textX));
-          more.setAttribute('y', String(labelY + (hasNote ? 26 : 15) + shown.length * NODE_FIELD_ROW_H));
-          more.setAttribute('fill', this.theme.childText);
-          more.setAttribute('font-size', '9');
-          more.setAttribute('opacity', '0.7');
-          more.setAttribute('pointer-events', 'none');
-          more.textContent = `+${fieldRows.length - shown.length}`;
-          g.appendChild(more);
-        }
+      // 칸 줄 접기 규칙은 canvas-fields 가 안다(세 줄 + 「+N」).
+      if (!centered) {
+        for (const row of buildFieldRows(node.fields, {
+          x: textX,
+          y: labelY + (hasNote ? 26 : 15),
+          width: node.w,
+          color: this.theme.childText,
+        })) g.appendChild(row);
       }
 
       if (hasNote) {
