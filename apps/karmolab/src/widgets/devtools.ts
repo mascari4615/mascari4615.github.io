@@ -2,8 +2,12 @@
  * 개발·디버그용 패널 (Tauri 전용 기능 등). 항목은 섹션 단위로 추가.
  */
 import { invoke as tauriInvoke } from '../tauri-bridge';
+import { t, loadNamespace } from '../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   'use strict';
 
   type NotifyPayload = {
@@ -35,21 +39,21 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
 
     const h = document.createElement('h3');
     h.className = 'devtools-section-title';
-    h.textContent = 'OS 알림';
+    h.textContent = t('devtools.t03');
 
     const notifyLevelKey = 'karmolab_os_notify_level';
     const initLevel = localStorage.getItem(notifyLevelKey) || 'important';
 
     const pLevel = document.createElement('p');
     pLevel.className = 'devtools-section-desc';
-    pLevel.innerHTML = '<strong>OS 알림 연동 수준</strong>: ';
+    pLevel.innerHTML = t('devtools.t04');
     const levelSel = document.createElement('select');
     levelSel.className = 'devtools-select';
     levelSel.style.width = 'auto';
     [
-      ['all', '모든 작업결과 (All)'],
-      ['important', '에러 및 중요 알림만 (Error Only)'],
-      ['off', '완전 끄기 (Off)'],
+      ['all', t('devtools.t05')],
+      ['important', t('devtools.t06')],
+      ['off', t('devtools.t07')],
     ].forEach(([v, text]) => {
       const opt = document.createElement('option');
       opt.value = v;
@@ -59,7 +63,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     });
     levelSel.addEventListener('change', () => {
       localStorage.setItem(notifyLevelKey, levelSel.value);
-      if (typeof Toolbox !== 'undefined') Toolbox.showToast('알림 설정이 저장되었습니다.', 'success', undefined);
+      if (typeof Toolbox !== 'undefined') Toolbox.showToast(t('devtools.t08'), 'success', undefined);
     });
     pLevel.appendChild(levelSel);
 
@@ -67,8 +71,8 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     const isApp = typeof Toolbox.isDesktopApp === 'function' && Toolbox.isDesktopApp();
     p.className = 'devtools-section-desc';
     p.innerHTML = isApp
-      ? '<code>desktop_notify</code> 인자는 아래 미리보기와 동일하게 전송됩니다. Windows에서 <code>Default</code>는 WebView 쪽에서 <code>IM</code> 알림음으로 바꿔 보냅니다(그렇지 않으면 무음).'
-      : '웹 브라우저에서는 사용할 수 없습니다. KarmoLab Tauri 앱으로 열어 주세요.';
+      ? t('devtools.t09')
+      : t('devtools.t10');
 
     sec.appendChild(h);
     sec.appendChild(pLevel);
@@ -88,13 +92,13 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     const titleIn = document.createElement('input');
     titleIn.type = 'text';
     titleIn.className = 'devtools-input';
-    titleIn.value = 'KarmoLab 알림 테스트';
+    titleIn.value = t('devtools.t11');
     titleIn.disabled = !isApp;
 
     const bodyIn = document.createElement('textarea');
     bodyIn.className = 'devtools-textarea';
     bodyIn.rows = 3;
-    bodyIn.value = '알림이 보이면 정상입니다. ' + new Date().toLocaleString();
+    bodyIn.value = t('devtools.t12') + new Date().toLocaleString();
     bodyIn.disabled = !isApp;
 
     const soundSel = document.createElement('select');
@@ -102,8 +106,8 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     soundSel.disabled = !isApp;
     (
       [
-        ['silent', '무음 (sound 생략)'],
-        ['Default', 'Default → Win에서 IM 알림음'],
+        ['silent', t('devtools.t13')],
+        ['Default', t('devtools.t14')],
         ['IM', 'IM'],
         ['Mail', 'Mail'],
         ['SMS', 'SMS'],
@@ -127,11 +131,11 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
 
     const previewLabel = document.createElement('div');
     previewLabel.className = 'devtools-preview-label';
-    previewLabel.textContent = '전송 JSON (invoke 두 번째 인자)';
+    previewLabel.textContent = t('devtools.t15');
 
     const preview = document.createElement('pre');
     preview.className = 'devtools-preview';
-    preview.setAttribute('aria-label', 'desktop_notify 페이로드');
+    preview.setAttribute('aria-label', t('devtools.t16'));
 
     const syncPreview = function (): void {
       preview.textContent = JSON.stringify(buildNotifyPayload(titleIn, bodyIn, soundSel, imageIn), null, 2);
@@ -140,12 +144,12 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'btn btn-primary';
-    btn.textContent = '이 페이로드로 보내기';
+    btn.textContent = t('devtools.t17');
     btn.disabled = !isApp;
 
     const status = document.createElement('div');
     status.className = 'devtools-log';
-    status.textContent = isApp ? '위 JSON이 그대로 전달됩니다.' : '데스크톱 앱이 아니면 비활성입니다.';
+    status.textContent = isApp ? t('devtools.t18') : t('devtools.t19');
 
     [titleIn, bodyIn, soundSel, imageIn].forEach(function (el) {
       el.addEventListener('input', syncPreview);
@@ -169,7 +173,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
           status.className = 'devtools-log devtools-log-err';
           const errMsg = e instanceof Error ? e.message : String(e);
           status.textContent = errMsg + '\n\n전송 시도 페이로드:\n' + JSON.stringify(payload, null, 2);
-          Toolbox.showToast?.('알림 요청 실패', 'error', e);
+          Toolbox.showToast?.(t('devtools.t20'), 'error', e);
         });
     });
 
@@ -192,15 +196,15 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
 
     const h = document.createElement('h3');
     h.className = 'devtools-section-title';
-    h.textContent = '릴리스 워크플로';
+    h.textContent = t('devtools.t21');
 
     const p = document.createElement('p');
     const isApp = typeof Toolbox.isDesktopApp === 'function' && Toolbox.isDesktopApp();
     const currentVersion = isApp ? window.__KARMOLAB_VERSION__ || '?' : '-';
     p.className = 'devtools-section-desc';
     p.innerHTML = isApp
-      ? `현재 설치 버전: <code>${currentVersion}</code><br>GitHub CLI(<code>gh</code>)로 <code>KarmoLab Tauri Release</code> 워크플로를 원격 실행합니다. 이 PC에 <code>gh auth login</code>이 되어 있어야 합니다.`
-      : '웹 브라우저에서는 사용할 수 없습니다. KarmoLab Tauri 앱으로 열어 주세요.';
+      ? t('devtools.releaseNote', { version: currentVersion })
+      : t('devtools.t10');
 
     const row = document.createElement('div');
     row.className = 'devtools-field';
@@ -229,12 +233,12 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     const [maj, min, pat] = [verParts[0], verParts[1], verParts[2]];
     const valid = Number.isFinite(maj) && Number.isFinite(min) && Number.isFinite(pat);
     const preview = (label: string, next: string): string =>
-      valid ? `${label} (${currentVersion} → ${next})` : label;
+      valid ? t('devtools.bumpLabel', { label, from: currentVersion, to: next }) : label;
     const opts: ReadonlyArray<readonly [string, string]> = [
       ['patch', preview('patch', `${maj}.${min}.${pat + 1}`)],
       ['minor', preview('minor', `${maj}.${min + 1}.0`)],
       ['major', preview('major', `${maj + 1}.0.0`)],
-      ['none', 'none (버전 그대로 — 같은 태그 덮어쓰기)']
+      ['none', t('devtools.t22')]
     ];
     opts.forEach(function (opt) {
       const o = document.createElement('option');
@@ -247,20 +251,20 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'btn btn-primary';
-    btn.textContent = '워크플로 실행';
+    btn.textContent = t('devtools.t23');
     btn.disabled = !isApp;
 
     const status = document.createElement('div');
     status.className = 'devtools-log';
     status.textContent = isApp
-      ? '실행 시 GitHub Actions workflow_dispatch를 호출합니다. bump≠none이면 워크플로가 master에 버전 bump 커밋을 직접 푸시합니다.'
-      : '데스크톱 앱이 아니면 비활성입니다.';
+      ? t('devtools.t24')
+      : t('devtools.t19');
 
     btn.addEventListener('click', function () {
       const selectedRef = (refIn.value || '').trim() || 'master';
       const selectedBump = bumpSel.value || 'patch';
       status.className = 'devtools-log';
-      status.textContent = `요청 중…\nworkflow: KarmoLab Tauri Release\nref: ${selectedRef}\nbump: ${selectedBump}`;
+      status.textContent = t('devtools.requesting', { ref: selectedRef, bump: selectedBump });
       void tauriInvoke('desktop_trigger_release_workflow', {
         refName: selectedRef,
         bumpType: selectedBump
@@ -273,7 +277,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
           status.className = 'devtools-log devtools-log-err';
           const errMsg = e instanceof Error ? e.message : String(e);
           status.textContent = errMsg;
-          Toolbox.showToast?.('릴리스 실행 실패', 'error', e);
+          Toolbox.showToast?.(t('devtools.t25'), 'error', e);
         });
     });
 
@@ -329,7 +333,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
 
     const intro = document.createElement('p');
     intro.className = 'devtools-intro';
-    intro.textContent = '배포·사용자용 기능이 아니라, 데스크톱 셸·연동을 점검할 때 쓰는 모음입니다.';
+    intro.textContent = t('devtools.t26');
 
     root.appendChild(intro);
     buildReleaseSection(root);
@@ -340,6 +344,17 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
   /* 메타는 `widgets-lazy-meta.ts` 한 곳에 산다. */
   Toolbox.register({
     ...Toolbox.getLazyWidgetPublicMeta('devtools'),
-    tabs: [{ id: 'devtools-main', label: '패널', build }]
+    tabs: [
+      {
+        id: 'devtools-main',
+        label: t('devtools.tab.panel', undefined, '패널'),
+        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        build: function (container: HTMLElement): void {
+          void loadNamespace('devtools').then(function () {
+            build(container);
+          });
+        }
+      }
+    ]
   });
 })();
