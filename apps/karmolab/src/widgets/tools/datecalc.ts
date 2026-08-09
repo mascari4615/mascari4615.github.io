@@ -4,22 +4,17 @@
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
 
+import { midnight, parseDate, toInput } from '../../core/datecalc';
+
 (function (): void {
   const DAY = 86400000;
   /* 요일 이름은 **쓸 때** 정한다 — 파일 실릴 때 정하면 열쇠가 굳는다. */
   const weekday = (i: number): string => t(`datecalc.week.${i}`);
 
-  const midnight = (d: Date): Date => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  /* 날짜 다루기는 `src/core/datecalc.ts` 가 소유한다 — 특히 `parseDate` 는 2월 30일 같은 값을
+     Date 가 3월로 조용히 넘기는 것을 막는다(여기 있던 판은 그걸 통과시켰다). TASK-KL-205 */
   const today = (): Date => midnight(new Date());
-  const toInput = (d: Date): string =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  const parse = (s: string): Date | null => {
-    if (!s) return null;
-    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!m) return null;
-    const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-    return isNaN(d.getTime()) ? null : d;
-  };
+  const parse = parseDate;
   const label = (d: Date): string => `${toInput(d)} (${weekday(d.getDay())})`;
 
   /** 만 나이 = 생일이 지났는지로 판정 (한국 만나이 통일법 기준) */
