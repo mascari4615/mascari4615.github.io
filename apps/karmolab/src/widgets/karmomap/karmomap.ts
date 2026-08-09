@@ -205,6 +205,7 @@ import {
       edgeKinds: new Set<string>(),
       tags: new Set<string>(),
       hideOrphans: false,
+      minDegree: 0,
       sizeByDegree: false,
       colorByTag: false,
     };
@@ -653,6 +654,7 @@ import {
         edgeKinds: filterState.edgeKinds,
         tags: filterState.tags,
         hideOrphans: filterState.hideOrphans,
+        minDegree: filterState.minDegree,
       });
       canvas?.setSelectedNode(selectedId);
     }

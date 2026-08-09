@@ -53,6 +53,9 @@ export function renderFilterPanel(ctx: PanelCtx): void {
     </div>
     <div class="km-field">
       <label class="km-check"><input type="checkbox" data-km="f-orphan"${st.hideOrphans ? ' checked' : ''} /> 선이 하나도 안 닿은 노드 숨기기</label>
+      <label>선이 <b data-km="f-mindeg-val">${st.minDegree}</b>개 이상인 것만</label>
+      <input type="range" data-km="f-mindeg" min="0" max="6" step="1" value="${st.minDegree}" />
+      <div class="km-hint">이웃이 빠지면 그 여파로 또 빠집니다 — 한가운데 뭉치만 남습니다.</div>
     </div>
     <button class="btn btn-ghost" data-km="f-reset">전부 다시 보이기</button>
     <button class="btn btn-ghost" data-km="f-close">닫기</button>`;
@@ -75,6 +78,15 @@ export function renderFilterPanel(ctx: PanelCtx): void {
     st.hideOrphans = (ev.target as HTMLInputElement).checked;
     ctx.applyFilter();
   };
+  const minDegEl = side.querySelector('[data-km="f-mindeg"]') as HTMLInputElement | null;
+  if (minDegEl) {
+    minDegEl.oninput = () => {
+      st.minDegree = Number(minDegEl.value);
+      const out = side.querySelector('[data-km="f-mindeg-val"]');
+      if (out) out.textContent = String(st.minDegree);
+      ctx.applyFilter();
+    };
+  }
   (side.querySelector('[data-km="f-degree"]') as HTMLInputElement).onchange = (ev) => {
     st.sizeByDegree = (ev.target as HTMLInputElement).checked;
     ctx.applyDecorate();
@@ -88,6 +100,7 @@ export function renderFilterPanel(ctx: PanelCtx): void {
     st.edgeKinds.clear();
     st.tags.clear();
     st.hideOrphans = false;
+    st.minDegree = 0;
     st.sizeByDegree = false;
     st.colorByTag = false;
     ctx.applyFilter();

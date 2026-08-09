@@ -391,6 +391,17 @@ await step('Shift+드래그로 여럿 고르고 함께 옮긴다', async () => {
   // 별도 단계에서 깨끗한 맵으로 잰다.
   await page.click('[data-km="many-close"]');
 });
+await step('선이 N개 이상인 것만 남기기', async () => {
+  const before = await page.locator('.ck-node').count();
+  await page.click('[data-km="tab"][data-key="filter"]');
+  const sld = page.locator('[data-km="f-mindeg"]');
+  await sld.waitFor({ timeout: 4000 });
+  await sld.fill('3');
+  await page.waitForFunction((b) => document.querySelectorAll('.ck-node').length < b, before, { timeout: 4000 });
+  await page.click('[data-km="f-reset"]');
+  await page.waitForFunction((b) => document.querySelectorAll('.ck-node').length === b, before, { timeout: 4000 });
+  await page.click('[data-km="f-close"]');
+});
 await step('거르기로 노드 종류를 빼면 화면에서 사라진다', async () => {
   const before = await page.locator('.ck-node').count();
   await page.click('[data-km="tab"][data-key="filter"]');
