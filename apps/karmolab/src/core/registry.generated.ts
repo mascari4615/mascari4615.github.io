@@ -5,6 +5,7 @@ import { run as base64Run, spec as base64Spec } from './base64';
 import { run as birthRun, spec as birthSpec } from './birth';
 import { run as biznoRun, spec as biznoSpec } from './bizno';
 import { run as chainRun, spec as chainSpec } from './chain';
+import { run as charconvRun, spec as charconvSpec } from './charconv';
 import { run as charcountRun, spec as charcountSpec } from './charcount';
 import { run as csvjsonRun, spec as csvjsonSpec } from './csvjson';
 import { run as dailyRun, spec as dailySpec } from './daily';
@@ -41,6 +42,7 @@ export const CORES: Record<string, CoreEntry> = {
   birth: { run: birthRun, ops: Object.keys(birthSpec.ops) },
   bizno: { run: biznoRun, ops: Object.keys(biznoSpec.ops) },
   chain: { run: chainRun, ops: Object.keys(chainSpec.ops) },
+  charconv: { run: charconvRun, ops: Object.keys(charconvSpec.ops) },
   charcount: { run: charcountRun, ops: Object.keys(charcountSpec.ops) },
   csvjson: { run: csvjsonRun, ops: Object.keys(csvjsonSpec.ops) },
   daily: { run: dailyRun, ops: Object.keys(dailySpec.ops) },
