@@ -44,3 +44,21 @@
 - 렌더 캔버스 **90×90px**, 캐릭터 **58px**, 머리 폭 30px, **눈 4×5px**
 - 픽셀은 텍스처가 아니라 화면에 있다 — 배경·꽃잎·바닥이 전부 같은 격자
 - 형태 = 둥근 다면체 + 조각된 머리카락 셸, 실제 조명으로 면마다 밝기가 다름
+
+## 환경 셋업 (이 기계에서 실제로 밟은 순서)
+
+1. **Blender** = Steam 판 (`C:/Program Files (x86)/Steam/steamapps/common/Blender/blender.exe`, PATH 에 없음)
+2. **Hunyuan3D-2 WinPortable** = `C:\AI\Hunyuan3D2_WinPortable` (3.5GB 다운 → 11.6GB 해제).
+   API = `python_standalone\python.exe -s api_server.py --host 127.0.0.1 --port 8081`
+3. **텍스처 생성 의존성** (`diso` / `custom_rasterizer` / `differentiable_renderer`) 은 컴파일이 필요하고
+   순서대로 이런 벽이 나온다:
+   - `CUDA_HOME not set` → CUDA Toolkit 12.9 설치 (`winget install Nvidia.CUDA --version 12.9`)
+   - `Unable to find a compatible Visual Studio installation` → VS 2022 Build Tools + VCTools 워크로드
+   - `cl.exe failed` → pip 을 `vcvars64.bat` 환경 **안에서** 실행해야 한다
+   - 그 다음 `nvcc failed exit code 2` (진행 중 — 아키텍처 플래그 / MSVC 버전 조합 의심)
+4. **ComfyUI Portable** = `C:\AI\ComfyUI_windows_portable` (컴파일 회피 경로 — prebuilt wheel 사용)
+
+## GPU 경합 주의
+
+이미지 생성과 3D 서버를 **동시에 띄우면 안 된다**. 8GB 카드에서 둘이 물면 SDXL 이
+0.8초/스텝 → 70초/스텝으로 **90배** 느려진다 (실측). 반드시 직렬로.
