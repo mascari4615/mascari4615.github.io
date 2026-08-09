@@ -23,6 +23,7 @@ import { loadTerms, saveTerms, newTermId, type MyTerms } from './terms';
 import { parseOutline, layoutTree } from './from-text';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
+import { computeSna, topBy } from './sna';
 import {
   loadLibrary, setActive, renameMap, touchMap, addMap, removeMap, mapKey,
   type LibraryIndex,
@@ -164,7 +165,7 @@ import {
     /** 연결 모드일 때 출발 노드 id. null 이면 평소 모드. */
     let linkingFrom: string | null = null;
     /** 오른쪽 패널이 무엇을 보여주는가 — 고른 노드냐, 묶음 목록이냐. */
-    let sideMode: 'node' | 'groups' | 'terms' | 'filter' | 'many' | 'text' = 'node';
+    let sideMode: 'node' | 'groups' | 'terms' | 'filter' | 'many' | 'text' | 'sna' = 'node';
     /** Shift+드래그로 한 번에 고른 노드들. */
     let selectedMany: string[] = [];
     /** 화면에서 뺀 종류들 — 자료는 그대로 두고 보기만 줄인다(격차 M-3). */
@@ -248,6 +249,7 @@ import {
           <button class="btn btn-ghost" data-km="groups" title="묶음 관리">🫧</button>
           <button class="btn btn-ghost" data-km="terms" title="내 용어 — 팩에 없는 종류 만들기">🏷</button>
           <button class="btn btn-ghost" data-km="filter" title="거르기 — 종류별로 화면에서 빼기">🔍</button>
+          <button class="btn btn-ghost" data-km="sna" title="누가 중심인가 · 누가 다리인가">📊</button>
           <button class="btn btn-ghost" data-km="undo" title="되돌리기 (Ctrl+Z)" disabled>↶</button>
           <button class="btn btn-ghost" data-km="redo" title="다시 하기 (Ctrl+Y)" disabled>↷</button>
           <button class="btn btn-ghost" data-km="fit" title="화면 맞춤">⤢</button>
@@ -1083,6 +1085,50 @@ import {
       });
     }
 
+    /**
+     * 관계망 읽기 — 누가 중심이고 누가 다리인가 (격차 U).
+     * 선이 많은 것과 「없으면 그림이 두 조각 나는 것」은 다르다. 눈으로는 안 보여서 세어 준다.
+     */
+    function renderSnaPanel(): void {
+      sideEl.classList.remove('hidden');
+      canvas?.setSelectedNode(null);
+      const live = canvas?.getSpec() ?? spec;
+      const sna = computeSna({ nodes: live.nodes, edges: live.edges });
+      const nameOf = (id: string): string => live.nodes.find((n) => n.id === id)?.label || '(이름 없음)';
+      const list = (title: string, hint: string, rows: { id: string; value: number }[], digits: number): string => `
+        <div class="km-field">
+          <label>${title}</label>
+          <div class="km-hint">${hint}</div>
+          ${rows.length === 0
+            ? '<div class="km-hint">아직 이어진 것이 없습니다.</div>'
+            : rows.map((r) => `<div class="km-link-row">
+                <span class="km-link-name">${escapeHtml(nameOf(r.id))}</span>
+                <span class="km-group-count">${r.value.toFixed(digits)}</span>
+                <button class="btn btn-ghost" data-km="go-link" data-key="${escapeAttr(r.id)}">가기</button>
+              </div>`).join('')}
+        </div>`;
+
+      sideEl.innerHTML = `
+        <h4>📊 관계망 읽기</h4>
+        ${list('이어진 선이 많은 쪽', '허브 — 없어지면 곤란한 자리의 1차 신호.', topBy(sna.degree, 5), 0)}
+        ${list('다리 역할', '남들 사이를 잇는 길목. 이 사람이 빠지면 그림이 두 조각 난다.', topBy(sna.betweenness, 5), 1)}
+        ${list('모두에게 가까운 쪽', '소문이 가장 빨리 퍼지는 자리.', topBy(sna.closeness, 5), 3)}
+        <button class="btn btn-ghost" data-km="sna-focus">다리 역할 셋만 보기</button>
+        <button class="btn btn-ghost" data-km="sna-close">닫기</button>`;
+
+      bindLinkSections();
+      (sideEl.querySelector('[data-km="sna-close"]') as HTMLButtonElement).onclick = () => {
+        sideMode = 'node';
+        renderSide();
+      };
+      (sideEl.querySelector('[data-km="sna-focus"]') as HTMLButtonElement).onclick = () => {
+        const top = topBy(sna.betweenness, 3).map((r) => r.id);
+        if (top.length === 0) return;
+        canvas?.setFocus(new Set(top));
+        canvas?.fitToNodes(top, 160);
+      };
+    }
+
     // ── 선택 패널 ───────────────────────────────────────────────────────────
     function renderSide(): void {
       if (sideMode === 'groups') {
@@ -1103,6 +1149,10 @@ import {
       }
       if (sideMode === 'text') {
         renderTextPanel();
+        return;
+      }
+      if (sideMode === 'sna') {
+        renderSnaPanel();
         return;
       }
       const node = spec.nodes.find((n) => n.id === selectedId);
@@ -1769,6 +1819,11 @@ import {
 
     q<HTMLButtonElement>('from-text').onclick = () => {
       sideMode = 'text';
+      renderSide();
+    };
+
+    q<HTMLButtonElement>('sna').onclick = () => {
+      sideMode = sideMode === 'sna' ? 'node' : 'sna';
       renderSide();
     };
 
