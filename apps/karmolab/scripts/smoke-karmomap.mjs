@@ -7,6 +7,7 @@
  *
  * 사용: URL=http://127.0.0.1:8813/apps/karmolab/index.html node scripts/smoke-karmomap.mjs
  */
+import { readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const URL = `${process.env.URL || 'http://127.0.0.1:8813/apps/karmolab/index.html'}#karmomap`;
@@ -752,6 +753,24 @@ await step('공용 글은 맵을 건너간다 — 새 맵에서도 고를 수 �
   await page.waitForSelector('[data-km="edit-doc-unlink"]', { timeout: 4000 });
   const text = await page.inputValue('[data-km="edit-doc"]');
   if (!text.trim()) throw new Error('건너온 글이 비어 있다');
+});
+await step('JSON Canvas 로 내보내면 남의 도구가 읽을 모양이 나온다', async () => {
+  // 나갈 문이 없으면 이 도구를 그만 쓰는 날 그림도 같이 죽는다. 파일 이름만이 아니라 **속**을 본다.
+  await page.click('[data-km="more"]');
+  await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
+  const [dl] = await Promise.all([
+    page.waitForEvent('download', { timeout: 8000 }),
+    page.locator('[data-km="canvas-out"]').dispatchEvent('click'),
+  ]);
+  if (!dl.suggestedFilename().endsWith('.canvas')) throw new Error('.canvas 가 아니다');
+  const path = await dl.path();
+  const text = await readFile(path, 'utf8');
+  const data = JSON.parse(text);
+  if (!Array.isArray(data.nodes) || data.nodes.length === 0) throw new Error('노드가 비었다');
+  if (!data.nodes.every((n) => typeof n.type === 'string' && typeof n.x === 'number')) {
+    throw new Error('JSON Canvas 모양이 아니다');
+  }
+  if (!data.nodes.some((n) => (n.text || '').includes('#'))) throw new Error('이름이 글로 안 접혔다');
 });
 await step('맵 새로 만들기 → 빈 캔버스', async () => {
   await page.click('[data-km="map-new"]');

@@ -29,6 +29,7 @@ import { renderHelpPanel } from './panels/help-panel';
 import { renderSnaPanel } from './panels/sna-panel';
 import { resolveDoc, notesOf } from '../../lib/graph/notes';
 import { mirrorToLibrary, refreshFromLibrary, foreignNotes, adoptNote } from './notes-library';
+import { toJsonCanvas, fromJsonCanvas } from './json-canvas';
 import { renderNotesPanel } from './panels/notes-panel';
 import { renderStoragePanel } from './panels/storage-panel';
 import { renderFilterPanel } from './panels/filter-panel';
@@ -339,6 +340,7 @@ import {
               <button class="btn btn-ghost" data-km="png">🖼 그림으로 저장</button>
               <button class="btn btn-ghost" data-km="export">JSON 내보내기</button>
               <button class="btn btn-ghost" data-km="import">JSON 가져오기</button>
+              <button class="btn btn-ghost" data-km="canvas-out">🗂 JSON Canvas 로 내보내기</button>
               <hr />
               <button class="btn btn-ghost" data-km="map-copy">⧉ 이 맵 복제</button>
               <button class="btn btn-ghost" data-km="map-rename">✎ 맵 이름 바꾸기</button>
@@ -1772,6 +1774,12 @@ import {
       downloadBlob(new Blob([data], { type: 'application/json' }), 'karmomap.json');
     };
 
+    // 남의 도구(Obsidian Canvas·Kinopio…)로 나가는 문. 나갈 길이 있어야 사람이 마음 놓고 쌓는다.
+    q<HTMLButtonElement>('canvas-out').onclick = () => {
+      const data = JSON.stringify(toJsonCanvas(canvas?.getSpec() ?? spec), null, 2);
+      downloadBlob(new Blob([data], { type: 'application/json' }), 'karmomap.canvas');
+    };
+
     q<HTMLButtonElement>('import').onclick = () => fileEl.click();
     fileEl.onchange = () => {
       const file = fileEl.files?.[0];
@@ -1779,13 +1787,18 @@ import {
       void file
         .text()
         .then((text) => {
-          const parsed = JSON.parse(text) as Partial<GraphSpec>;
+          const parsed = JSON.parse(text) as Partial<GraphSpec> & { nodes?: unknown[] };
           if (!Array.isArray(parsed.nodes)) throw new Error('nodes 배열이 없습니다');
-          spec = {
-            ...emptyGraphSpec(),
-            ...parsed,
-            nodes: parsed.nodes.map((n) => ({ ...n, ports: n.ports ?? [] })),
-          } as GraphSpec;
+          // 남의 캔버스인지 우리 것인지는 **노드 모양**으로 갈린다(JSON Canvas 는 `type` 을 갖는다).
+          // 확장자로 가르면 이름만 바꾼 파일에 속는다.
+          const looksCanvas = parsed.nodes.some((n) => typeof (n as { type?: unknown }).type === 'string');
+          spec = looksCanvas
+            ? fromJsonCanvas(parsed, { ...emptyGraphSpec(), _edge_kinds: edgeDefsNow(), _meta: { pack: pack.id } })
+            : ({
+                ...emptyGraphSpec(),
+                ...(parsed as Partial<GraphSpec>),
+                nodes: (parsed.nodes as GraphNode[]).map((n) => ({ ...n, ports: n.ports ?? [] })),
+              } as GraphSpec);
           selectedId = null;
           applyPack(spec._meta?.pack ?? pack.id, false);
           applySpec();
