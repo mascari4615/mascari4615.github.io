@@ -10,28 +10,45 @@
  *  - 저장은 WAV. 다른 도구(오디오 자르기·잇기)에 바로 물릴 수 있고 품질 손실이 없다.
  */
 import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
   Toolbox.register({
     id: 'voicerec',
-    title: '목소리 녹음',
+    title: t('widgets.voicerec.title', undefined, '목소리 녹음'),
     category: 'tool',
-    desc: '마이크로 바로 녹음해 WAV 로 받습니다. 소리가 들어오는지 눈으로 보이고, 파일이 브라우저를 벗어나지 않습니다',
+    desc: t(
+      'widgets-desc.voicerec.desc',
+      undefined,
+      '마이크로 바로 녹음해 WAV 로 받습니다. 소리가 들어오는지 눈으로 보이고, 파일이 브라우저를 벗어나지 않습니다'
+    ),
     layout: 'wide',
     icon: '<rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M12 18v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '녹음',
+        label: t('voicerec.tab', undefined, '녹음'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('voicerec').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-primary" id="vrStart">녹음 시작</button>
-              <button class="btn btn-ghost" id="vrStop" disabled>멈추기</button>
-              <button class="btn btn-ghost" id="vrSave" disabled>내려받기</button>
-              <select id="vrFormat" aria-label="저장 형식">
-                <option value="mp3">MP3 — 작음</option>
-                <option value="wav">WAV — 손실 없음</option>
+              <button class="btn btn-primary" id="vrStart">${esc(t('voicerec.btn.start'))}</button>
+              <button class="btn btn-ghost" id="vrStop" disabled>${esc(t('voicerec.btn.stop'))}</button>
+              <button class="btn btn-ghost" id="vrSave" disabled>${esc(t('voicerec.btn.save'))}</button>
+              <select id="vrFormat" aria-label="${esc(t('voicerec.aria.format'))}">
+                <option value="mp3">${esc(t('voicerec.format.mp3'))}</option>
+                <option value="wav">${esc(t('voicerec.format.wav'))}</option>
               </select>
             </div>
 
@@ -41,11 +58,11 @@ import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
             <div class="cc-stats" id="vrStats"></div>
 
             <div id="vrResult" style="display:none; margin-top:var(--space-lg);">
-              <div class="tool-sublabel">녹음한 소리 — 들어 보고 받으세요</div>
+              <div class="tool-sublabel">${esc(t('voicerec.label.result'))}</div>
               <audio id="vrPreview" controls style="width:100%;"></audio>
             </div>
 
-            <div class="tool-status" id="vrStatus">시작을 누르면 브라우저가 마이크 사용을 물어봅니다. 녹음은 어디에도 올라가지 않습니다.</div>
+            <div class="tool-status" id="vrStatus">${esc(t('voicerec.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -114,7 +131,7 @@ import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
 
           async function start(): Promise<void> {
             if (!navigator.mediaDevices?.getUserMedia) {
-              say('이 브라우저는 녹음을 지원하지 않아요. 크롬·엣지·사파리 최신 버전에서 열어 보세요.', 'error');
+              say(t('voicerec.err.unsupported'), 'error');
               return;
             }
             wav = null;
@@ -126,7 +143,7 @@ import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
             try {
               stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
             } catch {
-              say('마이크를 쓸 수 없어요. 브라우저 주소창의 자물쇠에서 마이크 권한을 허용해 주세요.', 'error');
+              say(t('voicerec.err.denied'), 'error');
               return;
             }
 
@@ -153,7 +170,7 @@ import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
             ticker = window.setInterval(() => {
               clock.textContent = mmss((performance.now() - startedAt) / 1000);
             }, 250);
-            say('녹음 중입니다. 막대가 움직이면 소리가 들어오고 있는 것입니다.', 'ok');
+            say(t('voicerec.say.recording'), 'ok');
 
             const raw = await finished;
             const seconds = (performance.now() - startedAt) / 1000;
@@ -169,7 +186,7 @@ import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
             void ctx.close();
 
             if (!buffer || buffer.duration < 0.05) {
-              say('담긴 소리가 없어요. 마이크가 맞게 골라졌는지 확인해 주세요.', 'error');
+              say(t('voicerec.err.empty'), 'error');
               return;
             }
             recorded = buffer;
@@ -179,17 +196,17 @@ import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
             saveBtn.disabled = false;
             clock.textContent = mmss(buffer.duration);
             stats.innerHTML =
-              stat('길이', mmss(buffer.duration), true) +
-              stat('용량', size(wav.size)) +
-              stat('가장 큰 소리', `${Math.round(peak * 100)}%`);
+              stat(t('voicerec.stat.length'), mmss(buffer.duration), true) +
+              stat(t('voicerec.stat.size'), size(wav.size)) +
+              stat(t('voicerec.stat.peak'), `${Math.round(peak * 100)}%`);
 
             // 소리가 거의 안 들어왔으면 그냥 저장 성공이라고 하면 안 된다 — 사용자는 나중에야 안다
             if (peak < 0.02) {
-              say(`${mmss(seconds)} 담겼지만 소리가 거의 없습니다. 마이크가 음소거이거나 다른 장치가 골라졌을 수 있어요.`, 'error');
+              say(t('voicerec.say.silent', { len: mmss(seconds) }), 'error');
             } else if (peak > 0.99) {
-              say(`${mmss(buffer.duration)} 담았어요. 다만 소리가 너무 커서 찌그러졌을 수 있습니다 — 조금 떨어져서 말해 보세요.`);
+              say(t('voicerec.say.clipped', { len: mmss(buffer.duration) }));
             } else {
-              say(`${mmss(buffer.duration)} · ${size(wav.size)} 담았어요. 들어 보고 받으세요.`, 'ok');
+              say(t('voicerec.say.done', { len: mmss(buffer.duration), size: size(wav.size) }), 'ok');
             }
             Toolbox.trackUse?.('record');
           }
@@ -197,7 +214,7 @@ import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
           startBtn.onclick = () => {
             void start().catch((err: Error) => {
               cleanup();
-              say('녹음 중 문제가 생겼어요: ' + err.message, 'error');
+              say(t('voicerec.err.record', { msg: err.message }), 'error');
             });
           };
           stopBtn.onclick = () => {
@@ -207,21 +224,18 @@ import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
           saveBtn.onclick = () => {
             if (!recorded) return;
             const format = $<HTMLSelectElement>('#vrFormat').value as 'wav' | 'mp3';
-            say(format === 'mp3' ? 'MP3 로 만드는 중…' : '내려받는 중…');
+            say(format === 'mp3' ? t('voicerec.say.encoding') : t('voicerec.say.saving'));
             void encodeAudio(recorded, format)
               .then((blob) => {
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
                 const stamp = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
-                a.download = `녹음-${stamp}.${format}`;
+                a.download = `${t('voicerec.file.name')}-${stamp}.${format}`;
                 a.click();
                 setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-                say(`${size(blob.size)} 로 내려받았어요.`, 'ok');
+                say(t('voicerec.say.saved', { size: size(blob.size) }), 'ok');
               })
-              .catch((err: Error) => say('만드는 중 문제가 생겼어요: ' + err.message, 'error'));
+              .catch((err: Error) => say(t('voicerec.err.encode', { msg: err.message }), 'error'));
           };
-        }
-      }
-    ]
-  });
+  }
 })();

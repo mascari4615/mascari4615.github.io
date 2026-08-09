@@ -165,5 +165,9 @@
   "howto.redact.0": "スクリーンショットを貼り付ける（Ctrl+V）かファイルを選ぶ",
   "howto.redact.1": "隠したいところをドラッグする",
   "howto.redact.2": "黒塗りかモザイクを選ぶ",
-  "howto.redact.3": "PNG でダウンロードする"
+  "howto.redact.3": "PNG でダウンロードする",
+  "howto.voicerec.0": "録音を始めるを押してマイクを許可する",
+  "howto.voicerec.1": "バーが動くのを見ながら話す",
+  "howto.voicerec.2": "止めて聞き返す",
+  "howto.voicerec.3": "MP3 か WAV でダウンロードする"
 }
