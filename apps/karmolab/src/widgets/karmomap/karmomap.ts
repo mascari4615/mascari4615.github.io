@@ -691,6 +691,24 @@ import {
           </select>
         </div>
         <div class="km-field">
+          <label>가리키는 대상</label>
+          <select data-km="edit-attach">
+            <option value="">— 없음 —</option>
+            ${spec.nodes
+              .filter((n) => n.id !== node.id)
+              .map((n) => `<option value="${escapeAttr(n.id)}"${n.id === node.attachedTo ? ' selected' : ''}>${kindIcon(n.kind)} ${escapeHtml(n.label || '(이름 없음)')}</option>`)
+              .join('')}
+            ${spec.edges
+              .map((e) => {
+                const a = spec.nodes.find((n) => n.id === e.from)?.label ?? e.from;
+                const b = spec.nodes.find((n) => n.id === e.to)?.label ?? e.to;
+                return `<option value="${escapeAttr(e.id)}"${e.id === node.attachedTo ? ' selected' : ''}>― ${escapeHtml(a)} ↔ ${escapeHtml(b)}</option>`;
+              })
+              .join('')}
+          </select>
+          <div class="km-hint">고르면 이 노드에서 그쪽으로 옅은 점선이 이어집니다. 관계선과 달리 종류·화살표가 없습니다.</div>
+        </div>
+        <div class="km-field">
           <label>기울기 <span class="km-tilt-val">${Math.round(node.rotate ?? 0)}°</span></label>
           <input type="range" data-km="edit-rotate" min="-20" max="20" step="1" value="${Math.round(node.rotate ?? 0)}" />
         </div>
@@ -775,6 +793,14 @@ import {
         applySpec();
         persistStructure();
         renderSide();
+      };
+
+      (sideEl.querySelector('[data-km="edit-attach"]') as HTMLSelectElement).onchange = (ev) => {
+        const v = (ev.target as HTMLSelectElement).value;
+        node.attachedTo = v || undefined;
+        canvas?.render();
+        canvas?.setSelectedNode(node.id);
+        persistStructure();
       };
 
       const rotateEl = sideEl.querySelector('[data-km="edit-rotate"]') as HTMLInputElement;
@@ -879,6 +905,7 @@ import {
         };
         (row.querySelector('[data-km="edge-del"]') as HTMLButtonElement).onclick = () => {
           spec.edges = spec.edges.filter((x) => x.id !== edgeId);
+          for (const n of spec.nodes) if (n.attachedTo === edgeId) n.attachedTo = undefined;
           applySpec();
           persistStructure();
           renderSide();
@@ -887,8 +914,15 @@ import {
 
       (sideEl.querySelector('[data-km="node-del"]') as HTMLButtonElement).onclick = () => {
         if (!confirm(`"${node.label}" 노드와 연결된 선을 모두 삭제할까요?`)) return;
+        const goneEdges = new Set(
+          spec.edges.filter((e) => e.from === node.id || e.to === node.id).map((e) => e.id)
+        );
         spec.nodes = spec.nodes.filter((n) => n.id !== node.id);
         spec.edges = spec.edges.filter((e) => e.from !== node.id && e.to !== node.id);
+        // 사라진 것을 가리키던 지시선은 함께 지운다 — 안 그러면 허공을 가리킨다.
+        for (const n of spec.nodes) {
+          if (n.attachedTo === node.id || (n.attachedTo && goneEdges.has(n.attachedTo))) n.attachedTo = undefined;
+        }
         selectedId = null;
         linkingFrom = null;
         canvasEl.classList.remove('km-linking');

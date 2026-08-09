@@ -62,6 +62,12 @@ export interface GraphNode {
   note?: string;        // 이름 밑 한 줄 — 「한마디」
   /** 기울기(도). 메모를 삐딱하게 붙여 두면 「정리된 것」과 「갈겨 둔 것」이 눈으로 갈린다. */
   rotate?: number;
+  /**
+   * 이 노드가 가리키는 대상(노드 id 또는 선 id) — **메모의 지시선**(leader line).
+   * 관계선(`edges`)이 아니다. 관계는 세계관의 사실이고, 지시선은 「이 메모가 저것에 대한 말」
+   * 이라는 표시일 뿐이라 종류·화살표·라벨이 없다 (TASK-KL-202 E-2).
+   */
+  attachedTo?: string;
 }
 
 /**

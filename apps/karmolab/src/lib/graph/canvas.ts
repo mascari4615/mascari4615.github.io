@@ -810,6 +810,7 @@ export class GraphCanvas {
     this.renderAnchors();
     this.renderNodes(this.spec.nodes);
     this.redrawEdges();
+    this.renderLeaders();
     this.redrawMinimap();
   }
 
@@ -1563,6 +1564,49 @@ export class GraphCanvas {
       pts.push(`${(p.x - (dy / len) * off).toFixed(2)},${(p.y + (dx / len) * off).toFixed(2)}`);
     }
     return `M ${pts.join(' L ')}`;
+  }
+
+  /**
+   * 메모 지시선 — 메모에서 대상(노드 또는 선)까지 잇는 옅은 점선.
+   * 관계선 위에 그리지 않고 **선 층 맨 뒤**에 둔다: 지시선이 관계선을 가리면
+   * 「무슨 관계인지」가 안 읽힌다. 메모가 무엇을 가리키는지는 두 번째로 중요하다.
+   */
+  private renderLeaders(): void {
+    if (!this.spec) return;
+    for (const n of this.spec.nodes) {
+      const targetId = n.attachedTo;
+      if (!targetId) continue;
+      const from = this.getNodeBox(n.id);
+      if (!from) continue;
+
+      let tx: number;
+      let ty: number;
+      const targetNode = this.getNodeBox(this.parseNodeRef(targetId));
+      if (targetNode) {
+        tx = targetNode.x + targetNode.w / 2;
+        ty = targetNode.y + targetNode.h / 2;
+      } else {
+        const targetEdge = this.spec.edges.find((x) => x.id === targetId);
+        const g = targetEdge ? this.edgeGeom(targetEdge) : null;
+        if (!g) continue;
+        const mid = this.pointOnEdge(g, targetEdge?.labelPos ?? 0.5);
+        tx = mid.x;
+        ty = mid.y;
+      }
+
+      const line = document.createElementNS(SVG_NS, 'path');
+      line.setAttribute('class', 'ck-leader');
+      line.setAttribute('d', `M ${from.x + from.w / 2},${from.y + from.h / 2} L ${tx},${ty}`);
+      line.setAttribute('fill', 'none');
+      line.setAttribute('stroke', this.colorForKind(
+        this.spec.nodes.find((x) => x.id === n.id)?.kind ?? ''
+      ));
+      line.setAttribute('stroke-width', '1');
+      line.setAttribute('stroke-dasharray', '2 4');
+      line.setAttribute('stroke-opacity', '0.55');
+      line.setAttribute('pointer-events', 'none');
+      this.edgeLayer.insertBefore(line, this.edgeLayer.firstChild);
+    }
   }
 
   /** 선 위 라벨 — 베지어 중앙(t=0.5)에 판을 깔고 글자를 얹는다. */
