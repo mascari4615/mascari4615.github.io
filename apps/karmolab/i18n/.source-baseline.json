@@ -1,5 +1,5 @@
 {
-  "total": 4815,
+  "total": 5029,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -156,7 +156,7 @@
     "src/widgets/pet.ts": 13,
     "src/widgets/planner/planner.ts": 3,
     "src/widgets/play-course.ts": 4,
-    "src/widgets/play.ts": 23,
+    "src/widgets/play.ts": 4,
     "src/widgets/plaza.ts": 9,
     "src/widgets/postgraph.ts": 3,
     "src/widgets/pulse/art.ts": 8,
@@ -349,6 +349,8 @@
     "src/lib/ai-engine.ts": 1,
     "src/lib/ai-gate.ts": 4,
     "src/lib/ai-transcribe.ts": 2,
-    "src/core/hangultype.ts": 16
+    "src/core/hangultype.ts": 16,
+    "src/core/dailytype.ts": 10,
+    "src/core/type-pool.generated.ts": 223
   }
 }

@@ -9,8 +9,12 @@
  */
 import { courseRun, courseSteps } from './play-course';
 import { loadPacks } from './pack-store';
+import { t, loadNamespace } from '../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   interface Game {
     id: string;
     title: string;
@@ -21,9 +25,9 @@ import { loadPacks } from './pack-store';
 
   Toolbox.register({
     id: 'play',
-    title: '놀이터',
+    title: t('widgets.play.title', undefined, "놀이터"),
     category: 'tool',
-    desc: '하루 한 판씩 — 하나 맞히기 · 높은 쪽 고르기 · 오늘의 문제',
+    desc: t('widgets-desc.play.desc', undefined, "하루 한 판씩 — 하나 맞히기 · 높은 쪽 고르기 · 오늘의 문제"),
     // 커뮤니티와 같은 틀 — 넓게 쓰고 도구 제목 카드는 안 그린다.
     layout: 'wide',
     noHero: true,
@@ -32,11 +36,13 @@ import { loadPacks } from './pack-store';
     tabs: [
       {
         id: 'app',
-        label: '놀이터',
+        label: t('play.t06', undefined, "놀이터"),
         build: function (container: HTMLElement): void {
-          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: '하루 한 판씩이에요. 오늘 건 하셨어요?' });
+          void loadNamespace('play').then(function () {
+
+          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: t('play.t08') });
           container.innerHTML = `
-            <p class="pl-lead">하루 한 판씩. 하나 하다 다른 것으로 바로 건너가세요.</p>
+            <p class="pl-lead">${esc(t('play.t01'))}</p>
             <section class="pl-course" id="plCourse"></section>
             <div class="pl-grid" id="plGrid"></div>
             <!-- 표를 사람이 만들 수 있게 됐는데 **거기로 가는 문이 없었다** — 주소를 아는
@@ -102,19 +108,19 @@ import { loadPacks } from './pack-store';
                   if (v.status === 'won' || v.status === 'lost') done++;
                   else if ((v.guesses || []).length) playing++;
                 });
-                if (done) return `오늘 ${done}판 끝냈어요`;
-                if (playing) return '풀던 판이 있어요';
+                if (done) return t('play.doneToday', { n: done });
+                if (playing) return t('play.t09');
               }
               if (id === 'quest') {
                 const q = read('karmolab_quest');
-                const t = q && q[dayLabel()];
-                if (t) return t.win ? `오늘 맞혔어요 (${t.tries}번)` : '오늘은 아쉬웠어요';
+                const today = q && q[dayLabel()];
+                if (today) return today.win ? t('play.gotToday', { n: today.tries }) : t('play.t10');
               }
               if (id === 'higher') {
                 const h = read('karmolab_higher_best');
                 if (h) {
                   const top = Math.max(0, ...Object.keys(h).map((k) => Number(h[k]) || 0));
-                  if (top) return `최고 ${top}연승`;
+                  if (top) return t('play.bestStreak', { n: top });
                 }
               }
             } catch {
@@ -139,18 +145,16 @@ import { loadPacks } from './pack-store';
               .join('');
             box.innerHTML =
               `<div class="pl-course-head">` +
-              `<strong>오늘의 코스</strong>` +
+              `<strong>${esc(t('play.t02'))}</strong>` +
               (all
-                ? `<span class="pl-stamp">완주 · ${run}일 연속</span>`
-                : `<span class="pl-course-left">${left}개 남음</span>`) +
+                ? `<span class="pl-stamp">${t('play.finishedRun', { n: run })}</span>`
+                : `<span class="pl-course-left">${t('play.left', { n: left })}</span>`) +
               `</div><div class="pl-steps">${marks}</div>` +
               `<p class="pl-course-note">${
-                all ? '셋 다 끝냈습니다. 내일 또 새 문제가 나옵니다.' : '셋 다 끝내면 오늘 도장이 찍힙니다.'
+                all ? t('play.t11') : t('play.t12')
               }</p>`;
           }
 
-          const esc = (s: string): string =>
-            String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
           /**
            * 오늘의 표 (TASK-KL-153) — 바깥 우물에서 매일 한 벌.
@@ -170,10 +174,10 @@ import { loadPacks } from './pack-store';
                 const today = (body.wells || []).filter((w) => w.id === body.today)[0];
                 if (!today) return;
                 box.innerHTML =
-                  `<div class="pl-mine-head"><strong>오늘의 표</strong>` +
-                  `<button type="button" class="btn btn-ghost" id="plWellGo">길어 오기</button></div>` +
+                  `<div class="pl-mine-head"><strong>${esc(t('play.t03'))}</strong>` +
+                  `<button type="button" class="btn btn-ghost" id="plWellGo">${esc(t('play.btn.plWellGo'))}</button></div>` +
                   `<div class="pl-chips"><span class="pl-chip">${esc(today.emoji)} ${esc(today.title)}</span></div>` +
-                  `<p class="pl-course-note">바깥에서 길어 온 표는 담는 순간 놀이 셋이 그대로 씁니다 — 같은 표로 논 사람끼리 순위가 매겨집니다.</p>`;
+                  `<p class="pl-course-note">${esc(t('play.t04'))}</p>`;
                 box.querySelector('#plWellGo')!.addEventListener('click', () => Toolbox.switchPage('packwell'));
               })
               .catch(() => {
@@ -186,14 +190,14 @@ import { loadPacks } from './pack-store';
             const box = container.querySelector<HTMLElement>('#plMine')!;
             const packs = loadPacks();
             box.innerHTML =
-              `<div class="pl-mine-head"><strong>내가 만든 표</strong>` +
-              `<button type="button" class="btn btn-ghost" id="plNew">${packs.length ? '표 만들기·고치기' : '표 만들기'}</button></div>` +
+              `<div class="pl-mine-head"><strong>${esc(t('play.t05'))}</strong>` +
+              `<button type="button" class="btn btn-ghost" id="plNew">${packs.length ? t('play.t13') : t('play.t14')}</button></div>` +
               (packs.length
                 ? `<div class="pl-chips">${packs
                     .map((p) => `<span class="pl-chip">${esc(p.emoji)} ${esc(p.title)} <b>${p.items.length}</b></span>`)
                     .join('')}</div>` +
-                  '<p class="pl-course-note">놀이에서 주제를 고를 때 이 표들이 함께 나옵니다.</p>'
-                : '<p class="pl-course-note">좋아하는 것으로 표를 만들면 놀이가 그 표로 돌아갑니다 — 스프레드시트에서 붙여넣기 한 판이면 됩니다.</p>');
+                  t('play.t15')
+                : t('play.t16'));
             box.querySelector('#plNew')!.addEventListener('click', () => Toolbox.switchPage('packs'));
           }
 
@@ -232,8 +236,9 @@ import { loadPacks } from './pack-store';
               games = j.games;
             })
             .catch(() => {
-              grid.innerHTML = '<p class="tool-status">놀이 목록을 못 불러왔습니다.</p>';
+              grid.innerHTML = t('play.t17');
             });
+                  });
         }
       }
     ]
