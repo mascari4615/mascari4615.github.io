@@ -1,0 +1,36 @@
+{
+  "_comment": "KarmoLab 언어 등록부 (TASK-KL-203) — 언어를 늘리는 자리는 여기 하나다. 코드·생성기·검사가 전부 이 파일을 읽는다.",
+  "default": "ko",
+  "locales": [
+    {
+      "code": "ko",
+      "prefix": "",
+      "htmlLang": "ko",
+      "ogLocale": "ko_KR",
+      "endonym": "한국어",
+      "english": "Korean",
+      "source": true,
+      "enabled": true
+    },
+    {
+      "code": "en",
+      "prefix": "/en",
+      "htmlLang": "en",
+      "ogLocale": "en_US",
+      "endonym": "English",
+      "english": "English",
+      "source": false,
+      "enabled": true
+    },
+    {
+      "code": "ja",
+      "prefix": "/ja",
+      "htmlLang": "ja",
+      "ogLocale": "ja_JP",
+      "endonym": "日本語",
+      "english": "Japanese",
+      "source": false,
+      "enabled": false
+    }
+  ]
+}

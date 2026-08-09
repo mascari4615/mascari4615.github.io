@@ -1,0 +1,16 @@
+{
+  "site.name": "KarmoLab",
+  "site.tagline": "삶을 섞고 술을 바꿀 시간",
+  "site.title": "KarmoLab — 삶을 섞고 술을 바꿀 시간",
+  "site.description": "삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.",
+  "site.about": "글·이미지·계산·개발에 쓰는 도구를 브라우저 안에서 다루는 곳",
+  "site.tools.all": "도구 전체",
+  "site.tools.allList": "도구 전체 목록",
+  "site.feed.changes": "KarmoLab — 변경 기록",
+  "site.nav.home": "홈",
+  "site.nav.tools": "도구",
+  "site.nav.search": "찾기",
+  "site.lang.switch": "언어",
+  "site.lang.current": "지금 언어: {name}",
+  "site.noscript.intro": "브라우저 안에서 바로 쓰는 도구 모음입니다. 파일은 이 기기 밖으로 나가지 않습니다."
+}
