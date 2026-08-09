@@ -106,6 +106,18 @@ await step('배경 무늬 전환', async () => {
   // 고르고 나면 서랍은 스스로 닫힌다 — 안 닫히면 그 아래 버튼이 통째로 죽으므로 여기서 못 박는다.
   await page.waitForSelector('[data-km="drawer"].hidden', { state: 'attached', timeout: 4000 });
 });
+await step('종류를 타이핑해 좁힐 수 있다', async () => {
+  await page.locator('.ck-node').first().click({ position: { x: 12, y: 10 } });
+  const before = await page.locator('[data-km="edit-kind"] option:not([hidden])').count();
+  await page.fill('[data-km="kind-find"]', '카드');
+  await page.waitForFunction((b) => {
+    const sel = document.querySelector('[data-km="edit-kind"]');
+    if (!sel) return false;
+    const shown = [...sel.querySelectorAll('option')].filter((o) => !o.hidden).length;
+    return shown > 0 && shown < b;
+  }, before, { timeout: 4000 });
+  await page.fill('[data-km="kind-find"]', '');
+});
 await step('종류 목록에 모든 갈래가 함께 보인다', async () => {
   await page.locator('.ck-node').first().click({ position: { x: 12, y: 10 } });
   const groups = await page.locator('[data-km="edit-kind"] optgroup').count();

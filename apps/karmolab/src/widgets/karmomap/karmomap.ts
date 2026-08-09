@@ -132,6 +132,7 @@ import {
     .km-help-how { color:var(--text-tertiary); font-size:11px; text-align:right; flex-shrink:0; max-width:58%; }
     .km-meter { height:8px; border-radius:999px; background:var(--bg-tertiary); overflow:hidden; }
     .km-meter-fill { height:100%; transition:width .2s ease; }
+    .km-kind-find { margin-bottom:4px; }
     .km-tagbar { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
     .km-tagchip { padding:2px 8px; font-size:11px; border-radius:999px; }
     .km-link-row { display:flex; gap:6px; align-items:center; margin-bottom:4px; }
@@ -1035,7 +1036,9 @@ import {
         </div>
         <div class="km-field">
           <label>종류</label>
-          <select data-km="edit-kind">${nodeKindOptions(node.kind)}</select>
+          <input type="text" class="km-kind-find" data-km="kind-find" placeholder="종류 찾기 (인물·카드·개념…)"
+            aria-controls="km-kind-list" />
+          <select id="km-kind-list" data-km="edit-kind">${nodeKindOptions(node.kind)}</select>
         </div>
         <div class="km-field">
           <label>한마디</label>
@@ -1275,6 +1278,24 @@ import {
         node.avatar = undefined;
         touch(true);
       };
+
+      // 타이핑하면 목록이 좁아진다. 고르는 값은 그대로 두고 **보이는 것만** 줄인다 —
+      // 걸러진 사이에 고른 값이 사라지면 「내가 뭘 골랐는지」를 잃는다.
+      const kindFind = sideEl.querySelector('[data-km="kind-find"]') as HTMLInputElement | null;
+      const kindSel = sideEl.querySelector('[data-km="edit-kind"]') as HTMLSelectElement;
+      if (kindFind) {
+        kindFind.oninput = () => {
+          const q0 = kindFind.value.trim().toLowerCase();
+          kindSel.querySelectorAll('option').forEach((op) => {
+            const hit = !q0 || (op.textContent ?? '').toLowerCase().includes(q0);
+            (op as HTMLOptionElement).hidden = !hit && op.value !== kindSel.value;
+          });
+          kindSel.querySelectorAll('optgroup').forEach((g) => {
+            const any = [...g.querySelectorAll('option')].some((op) => !(op as HTMLOptionElement).hidden);
+            (g as HTMLOptGroupElement).hidden = !any;
+          });
+        };
+      }
 
       (sideEl.querySelector('[data-km="edit-kind"]') as HTMLSelectElement).onchange = (ev) => {
         node.kind = (ev.target as HTMLSelectElement).value;
