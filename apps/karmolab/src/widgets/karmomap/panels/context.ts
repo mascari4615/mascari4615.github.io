@@ -26,4 +26,14 @@ export interface PanelCtx {
   /** 다시 그리기 (패널 자신 포함). */
   refresh: () => void;
   esc: (s: string) => string;
+
+  // ── 저장 패널이 빌리는 것들 ────────────────────────────────────────────
+  /** 저장 열쇠 → 사람이 읽는 맵 이름. */
+  mapNameOfKey: (key: string) => string;
+  /** 백업 파일 고르는 창 열기. */
+  openRestore: () => void;
+  /** 모든 맵을 한 파일로 내려받기. */
+  backupAllMaps: () => void;
+  /** 직전 판으로 되돌리기. */
+  restorePrevRevision: () => void;
 }
