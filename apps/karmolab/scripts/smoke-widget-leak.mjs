@@ -93,6 +93,11 @@ const WIDGETS = ['reaction', 'particle', 'bounce', 'moon', 'hourglass', 'eyes'];
 
 async function idleCounts() {
   await page.evaluate(() => Toolbox.switchPage('home'));
+  /* **가라앉을 때까지 기다렸다가** 잰다. 위젯을 막 닫은 직후에는 그 위젯의 마지막 프레임들이
+     아직 흐르고 있어서, 바로 재면 「가만히 둔 화면」이 아니라 「방금 닫은 직후」를 재게 된다.
+     실측으로 그 차이가 113 ↔ 177 이었다 — 상한을 그 위에 잡으면 애먼 빨간불이 난다. */
+  await page.waitForTimeout(3000);
+  await page.evaluate(() => { window.__leak.rafLoops = 0; });
   await page.waitForTimeout(1600); // 카운터가 한 바퀴 돌 시간
   return page.evaluate(() => ({ ...window.__leak }));
 }
@@ -114,10 +119,23 @@ for (let round = 0; round < 3; round++) {
 await browser.close();
 server.close();
 
+/* 가만히 둔 홈에서 초당 몇 번 그리기를 예약하나 — **절대량 상한**.
+   실측(2026-08-09): 가라앉은 뒤 ~120 = 마스코트(`mdd.js` 의 frame, 60fps 상시) + 첫 화면 장면(`home-scene.js`) 둘.
+   그건 「살아 있어 보이게」 하는 선택이라 여기서 끄지 않는다. 다만 **셋째 루프가 새로 생기면**
+   그때는 알아야 한다 — 그래서 지금 값에 여유만 얹어 잠근다. 「쉬는가」 자체는 `smoke-perf.mjs` 몫. */
+const IDLE_RAF_CAP = 180;
+const idleRaf = rounds[2].rafLoops;
+console.log(`[leak] 가만히 둔 홈 — 초당 그리기 예약 ${idleRaf} (상한 ${IDLE_RAF_CAP}, 지금은 마스코트+첫화면 장면 둘)`);
+
 /* 첫 바퀴에 생긴 것은 정상일 수 있다(한 번만 만드는 것). **그 뒤로도 계속 느는지**가 신호다. */
 const growth = rounds[2].intervals - rounds[1].intervals;
 const rafGrowth = rounds[2].rafLoops - rounds[1].rafLoops;
 console.log(`[leak] 2→3바퀴 증가: 타이머 ${growth} · 프레임 루프 ${rafGrowth}`);
+if (idleRaf > IDLE_RAF_CAP) {
+  console.error(`[leak] FAIL — 가만히 둔 화면이 초당 ${idleRaf}번 그리기를 예약한다 (상한 ${IDLE_RAF_CAP}).`);
+  console.error('  새로 생긴 상시 루프가 있는지 보라 — 손 안 댄 화면은 쉬어야 한다(배터리·발열).');
+  process.exit(1);
+}
 if (growth > 0 || rafGrowth > 20) {
   console.error('[leak] FAIL — 화면을 떠난 뒤에도 남는 것이 바퀴마다 늘어난다.');
   console.error('  위젯이 `build` 안에서 `Toolbox.onDispose(fn)` 로 타이머·전역 리스너를 맡겼는지 보라.');
