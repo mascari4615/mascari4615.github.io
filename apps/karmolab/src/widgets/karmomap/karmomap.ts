@@ -1014,6 +1014,17 @@ import {
           };
         });
       }
+      // 👁 보기 전용에서도 **코멘트만은 열어 둔다** — 받은 사람이 「여기 이상해요」를 남길 유일한 칸이고,
+      // 그 말이 없으면 공유는 일방적인 그림 던지기가 된다. 나머지 칸은 잠근다(잠긴 칸은 회색으로 보인다).
+      if (readOnly) {
+        sideEl.querySelectorAll('input, select, textarea, button').forEach((el) => {
+          const key = (el as HTMLElement).dataset.km ?? '';
+          const isComment = key.startsWith('cmt-');
+          const isNav = key === 'tab' || key.startsWith('go-') || key === 'fork';
+          if (isComment || isNav) return;
+          (el as HTMLInputElement).disabled = true;
+        });
+      }
       prependTabs();
     }
 
