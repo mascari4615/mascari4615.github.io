@@ -354,3 +354,51 @@ export async function solarWind(): Promise<{ speed: number; at: number } | null>
 export function windEta(speedKmS: number): number {
   return Math.round(1500000 / speedKmS / 60);
 }
+
+/* ── 오늘의 우주 사진 ──────────────────────────────────────────────────── */
+
+export interface Apod {
+  title: string;
+  url: string;
+  hdurl?: string;
+  thumbnail_url?: string;
+  media_type: string;
+  date: string;
+  copyright?: string;
+}
+
+const APOD_KEY = 'karmolab_bluemarble_apod_v1';
+
+/**
+ * NASA 가 매일 한 장씩 고르는 우주 사진.
+ *
+ * 열쇠 없이 쓰는 `DEMO_KEY` 는 **한 시간에 열 번**이 한도다(응답 헤더로 확인). 화면을 몇 번
+ * 열었다 닫으면 금방 닿는다 — 그래서 **날짜별로 담아 두고 하루에 한 번만 묻는다**.
+ * 어차피 하루에 한 장 바뀌는 것이라 이게 맞는 주기이기도 하다.
+ */
+export async function apod(): Promise<Apod | null> {
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    const raw = localStorage.getItem(APOD_KEY);
+    if (raw) {
+      const c = JSON.parse(raw) as Apod;
+      if (c && c.date === today) return c;
+    }
+  } catch (_) {
+    /* 담아 둔 것이 깨졌으면 새로 묻는다 */
+  }
+  try {
+    const res = await fetch('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&thumbs=true');
+    if (!res.ok) return null;
+    const d = (await res.json()) as Apod;
+    if (!d || !d.title) return null;
+    try {
+      localStorage.setItem(APOD_KEY, JSON.stringify(d));
+    } catch (_) {
+      /* 자리가 없으면 이번만 쓴다 */
+    }
+    return d;
+  } catch (_) {
+    return null;
+  }
+}

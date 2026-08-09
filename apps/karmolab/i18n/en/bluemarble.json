@@ -45,5 +45,8 @@
   "bluemarble.line.mars2": "Even right now, a few things we sent are still driving around up there.",
   "bluemarble.credit.mars": "Mars map: Solar System Scope (CC BY 4.0)",
   "bluemarble.layer.clock": "Hour ring",
-  "bluemarble.line.dawn": "{n} major cities are between 2 and 5 in the morning right now. Someone is awake there too."
+  "bluemarble.line.dawn": "{n} major cities are between 2 and 5 in the morning right now. Someone is awake there too.",
+  "bluemarble.layer.apod": "Picture of the day",
+  "bluemarble.line.apod": "Today NASA picked “{title}” as the picture of the day.",
+  "bluemarble.line.apodBy": "Today NASA picked “{title}” — photographed by {who}."
 }
