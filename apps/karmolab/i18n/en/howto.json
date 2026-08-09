@@ -111,5 +111,9 @@
   "howto.pdfpagenum.0": "Choose a PDF",
   "howto.pdfpagenum.1": "Pick the style and position",
   "howto.pdfpagenum.2": "Set how many cover pages to skip",
-  "howto.pdfpagenum.3": "Add the numbers"
+  "howto.pdfpagenum.3": "Add the numbers",
+  "howto.pdfdiff.0": "Add the original (A) and the revised (B) PDF",
+  "howto.pdfdiff.1": "Choose what to compare — text+image / text only / image only",
+  "howto.pdfdiff.2": "Hit Compare",
+  "howto.pdfdiff.3": "Check the boxed spots on each page, and the added and removed lines"
 }
