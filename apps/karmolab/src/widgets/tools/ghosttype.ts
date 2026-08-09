@@ -18,15 +18,14 @@
  * 타수는 **자소 단위**로 센다 — 한국에서 말하는 「타」는 글자 수가 아니라 누른 횟수다
  * (값 = ㄱ+ㅏ+ㅄ = 4타). 글자 수로 세면 실제보다 절반 아래로 나와 다른 데서 잰 값과 안 맞는다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
-  /** 처음 온 사람에게 보여 줄 글. 자기 글을 넣으면 그 글이 주소에 담기므로 순서는 상관없다. */
-  const PRESETS: string[] = [
-    '아침에 창을 열면 어제와 다른 냄새가 난다. 계절은 언제나 소리 없이 바뀐다.',
-    '급할수록 돌아가라는 말은 게으름의 변명이 아니라 오래 걸어 본 사람의 요령이다.',
-    '고양이는 상자를 좋아한다. 상자가 작을수록 더 좋아한다. 이유는 아무도 모른다.',
-    '비 오는 날의 냄새에는 이름이 있다. 흙이 오래 참았다 내쉬는 숨이다.',
-    'The quick brown fox jumps over the lazy dog while the whole town is asleep.'
-  ];
+  /** 처음 온 사람에게 보여 줄 글. 겨룰 **글 자체가 내용**이라 언어마다 다시 썼다 —
+   *  번역한 한국어 문장은 그 언어 사람에게 칠 맛이 없다. 자기 글을 넣으면 그 글이 주소에
+   *  담기므로 순서는 상관없다. 미리 굳히지 않고 **쓸 때 만든다**(말 묶음이 온 뒤라야 한다). */
+  const PRESET_COUNT = 5;
+  const presets = (): string[] => Array.from({ length: PRESET_COUNT }, (_, i) => t(`ghosttype.preset.${i}`));
 
   const NAME_KEY = 'karmolab.ghosttype.name';
   const MAX_TEXT = 240; // 주소에 담아야 하므로 — 이보다 길면 링크가 메신저에서 잘린다
@@ -120,7 +119,11 @@
       const gaps = unpackVarints(fromBase64Url(gapsPart));
       const text = new TextDecoder().decode(fromBase64Url(textPart));
       if (gaps.length === 0 || !text) return null;
-      return { text, gaps, name: namePart ? decodeURIComponent(namePart).slice(0, 12) : '누군가' };
+      return {
+        text,
+        gaps,
+        name: namePart ? decodeURIComponent(namePart).slice(0, 12) : t('ghosttype.name.default')
+      };
     } catch {
       return null;
     }
@@ -132,67 +135,86 @@
 
   Toolbox.register({
     id: 'ghosttype',
-    title: '유령 타자 대결',
+    title: t('widgets.ghosttype.title', undefined, '유령 타자 대결'),
     category: 'tool',
-    desc: '타자 기록이 주소 하나가 되고, 그 주소를 연 사람은 내 유령과 나란히 달립니다. 아무 글이나 걸 수 있고 주소는 만료되지 않습니다',
+    desc: t(
+      'widgets-desc.ghosttype.desc',
+      undefined,
+      '타자 기록이 주소 하나가 되고, 그 주소를 연 사람은 내 유령과 나란히 달립니다. 아무 글이나 걸 수 있고 주소는 만료되지 않습니다'
+    ),
     layout: 'wide',
     icon: '<path d="M12 3a6 6 0 0 0-6 6v10l2-1.6 2 1.6 2-1.6 2 1.6 2-1.6 2 1.6V9a6 6 0 0 0-6-6z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M10 10h.01M14 10h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '대결',
+        label: t('ghosttype.tab', undefined, '대결'),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '손가락 풀고 오세요. 유령은 안 지치거든요.' });
+          void loadNamespace('ghosttype').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에 — 지문도 단위 이름도 전부 말 묶음에서 나온다. */
+  function draw(container: HTMLElement): void {
+          Mdd.linePreset('tool_run', { msg: t('ghosttype.mdd') });
 
           const ghost = (() => {
             const m = location.hash.match(/g=([^&]+)/);
             return m ? decodeGhost(m[1]) : null;
           })();
 
-          let target = ghost ? ghost.text : PRESETS[Math.floor(Math.random() * PRESETS.length)];
+          const 지문 = presets();
+          let target = ghost ? ghost.text : 지문[Math.floor(Math.random() * 지문.length)];
 
           container.innerHTML = `
             <div class="gt-banner" id="gtBanner" style="${ghost ? '' : 'display:none;'}">
-              <b id="gtGhostName"></b> 의 유령이 이 글에서 기다립니다. 치기 시작하면 같이 달려요.
+              <b id="gtGhostName"></b>${esc(t('ghosttype.banner.rest'))}
             </div>
 
             <div class="gt-track">
               <div class="gt-lane">
-                <div class="gt-lane-label">나</div>
+                <div class="gt-lane-label">${esc(t('ghosttype.lane.me'))}</div>
                 <div class="gt-rail"><div class="gt-runner" id="gtMe">🏃</div></div>
-                <div class="gt-lane-stat" id="gtMeStat">0타</div>
+                <div class="gt-lane-stat" id="gtMeStat">${esc(t('ghosttype.value.cpm', { n: 0 }))}</div>
               </div>
               <div class="gt-lane${ghost ? '' : ' gt-lane-off'}" id="gtGhostLane">
-                <div class="gt-lane-label" id="gtGhostLabel">유령</div>
+                <div class="gt-lane-label" id="gtGhostLabel">${esc(t('ghosttype.lane.ghost'))}</div>
                 <div class="gt-rail"><div class="gt-runner gt-ghost" id="gtGhost">👻</div></div>
-                <div class="gt-lane-stat" id="gtGhostStat">${ghost ? '대기' : '없음'}</div>
+                <div class="gt-lane-stat" id="gtGhostStat">${esc(
+                  ghost ? t('ghosttype.stat.wait') : t('ghosttype.stat.none')
+                )}</div>
               </div>
             </div>
 
             <div class="gt-text" id="gtText"></div>
 
             <div class="field-group" style="margin-top:var(--space-lg);">
-              <label class="field-label" for="gtInput">여기에 그대로 치세요</label>
+              <label class="field-label" for="gtInput">${esc(t('ghosttype.label.input'))}</label>
               <textarea id="gtInput" class="mono-input" rows="3" spellcheck="false" autocomplete="off"
-                placeholder="첫 글자를 치면 바로 시작합니다"></textarea>
+                placeholder="${esc(t('ghosttype.ph.input'))}"></textarea>
             </div>
 
             <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:var(--space-lg);">
-              <button class="btn btn-ghost" id="gtRestart">다시</button>
-              <button class="btn btn-ghost" id="gtNextText">다른 글</button>
-              <button class="btn btn-ghost" id="gtOwnToggle">내 글 넣기</button>
+              <button class="btn btn-ghost" id="gtRestart">${esc(t('ghosttype.btn.restart'))}</button>
+              <button class="btn btn-ghost" id="gtNextText">${esc(t('ghosttype.btn.next'))}</button>
+              <button class="btn btn-ghost" id="gtOwnToggle">${esc(t('ghosttype.btn.own'))}</button>
               <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
-                이름 <input type="text" id="gtName" maxlength="12" placeholder="누군가" style="width:110px;" aria-label="유령에 붙일 이름">
+                ${esc(t('ghosttype.label.name'))} <input type="text" id="gtName" maxlength="12" placeholder="${esc(
+                  t('ghosttype.name.default')
+                )}" style="width:110px;" aria-label="${esc(t('ghosttype.aria.name'))}">
               </label>
             </div>
 
             <div class="field-group" id="gtOwnWrap" style="display:none;">
-              <label class="field-label" for="gtOwn">겨룰 글 — 붙여 넣으면 이 글이 주소에 함께 담깁니다 (${MAX_TEXT}자까지)</label>
-              <textarea id="gtOwn" rows="2" maxlength="${MAX_TEXT}" placeholder="좋아하는 문장, 가사, 오늘 쓴 커밋 메시지"></textarea>
-              <button class="btn btn-primary" id="gtOwnApply" style="margin-top:8px;">이 글로 겨루기</button>
+              <label class="field-label" for="gtOwn">${esc(t('ghosttype.label.own', { max: MAX_TEXT }))}</label>
+              <textarea id="gtOwn" rows="2" maxlength="${MAX_TEXT}" placeholder="${esc(t('ghosttype.ph.own'))}"></textarea>
+              <button class="btn btn-primary" id="gtOwnApply" style="margin-top:8px;">${esc(t('ghosttype.btn.ownApply'))}</button>
             </div>
 
-            <div class="tool-status" id="gtStatus">그대로 치면 됩니다. 틀린 글자는 빨갛게 보여요.</div>
+            <div class="tool-status" id="gtStatus">${esc(t('ghosttype.status.idle'))}</div>
             <div id="gtResult" class="gt-result" style="display:none;"></div>
           `;
 
@@ -273,11 +295,13 @@
             const ms = startedAt ? performance.now() - startedAt : 0;
             const mine = correctPrefix();
             place(meRunner, mine / target.length);
-            meStat.textContent = `${타수(mine, ms)}타`;
+            meStat.textContent = t('ghosttype.value.cpm', { n: 타수(mine, ms) });
             if (racing && ghost) {
               const g = ghostCharsAt(ms);
               place(ghostRunner, g / target.length);
-              ghostStat.textContent = startedAt ? `${타수(Math.floor(g), ms)}타` : '대기';
+              ghostStat.textContent = startedAt
+                ? t('ghosttype.value.cpm', { n: 타수(Math.floor(g), ms) })
+                : t('ghosttype.stat.wait');
               paint(Math.min(target.length - 1, Math.floor(g)));
             }
             raf = requestAnimationFrame(loop);
@@ -294,7 +318,11 @@
             cancelAnimationFrame(raf);
             const ms = performance.now() - startedAt;
             const myCpm = 타수(target.length, ms);
-            const mine: Ghost = { text: target, name: nameInput.value.trim().slice(0, 12) || '누군가', gaps };
+            const mine: Ghost = {
+              text: target,
+              name: nameInput.value.trim().slice(0, 12) || t('ghosttype.name.default'),
+              gaps
+            };
             try {
               localStorage.setItem(NAME_KEY, mine.name);
             } catch {
@@ -306,29 +334,36 @@
             if (racing && ghost) {
               const gMs = ghostTotalMs();
               const gap = Math.abs(ms - gMs) / 1000;
-              verdict =
-                ms < gMs
-                  ? `<b class="gt-win">이겼다</b> — ${esc(ghost.name)} 보다 ${gap.toFixed(1)}초 빨랐어요`
-                  : `<b class="gt-lose">졌다</b> — ${esc(ghost.name)} 이 ${gap.toFixed(1)}초 빨랐어요`;
+              const 이김 = ms < gMs;
+              const 말 = { name: esc(ghost.name), sec: gap.toFixed(1) };
+              verdict = `<b class="${이김 ? 'gt-win' : 'gt-lose'}">${esc(
+                t(이김 ? 'ghosttype.win' : 'ghosttype.lose')
+              )}</b> — ${t(이김 ? 'ghosttype.win.detail' : 'ghosttype.lose.detail', 말)}`;
             } else {
-              verdict = '<b>기록 완료</b> — 이제 이 기록이 유령이 됩니다';
+              verdict = `<b>${esc(t('ghosttype.record'))}</b> — ${esc(t('ghosttype.record.detail'))}`;
             }
 
             result.style.display = '';
             result.innerHTML = `
               <div class="gt-verdict">${verdict}</div>
-              <div class="gt-score">${myCpm}타 · ${(ms / 1000).toFixed(1)}초 · ${타건수(target)}타건</div>
+              <div class="gt-score">${esc(
+                t('ghosttype.score', {
+                  cpm: t('ghosttype.value.cpm', { n: myCpm }),
+                  sec: (ms / 1000).toFixed(1),
+                  keys: 타건수(target)
+                })
+              )}</div>
               <div class="gt-share">
-                <input type="text" id="gtUrl" readonly aria-label="내 유령 주소" value="${esc(url)}">
-                <button class="btn btn-primary" id="gtCopy">내 유령 주소 복사</button>
+                <input type="text" id="gtUrl" readonly aria-label="${esc(t('ghosttype.aria.url'))}" value="${esc(url)}">
+                <button class="btn btn-primary" id="gtCopy">${esc(t('ghosttype.btn.copy'))}</button>
               </div>
-              <div class="gt-hint">이 주소를 받은 사람은 같은 글에서 내 유령과 달립니다. 주소 안에 기록이 들어 있어 만료되지 않아요.</div>
+              <div class="gt-hint">${esc(t('ghosttype.hint'))}</div>
             `;
             $<HTMLButtonElement>('#gtCopy').onclick = () => {
-              void Toolbox.copyText?.(url, { message: '주소를 복사했어요 — 보내면 대결이 시작됩니다' });
+              void Toolbox.copyText?.(url, { message: t('ghosttype.copy.done') });
               Toolbox.trackUse?.('share');
             };
-            status.textContent = '다시 하려면 「다시」를 누르세요.';
+            status.textContent = t('ghosttype.status.again');
             status.className = 'tool-status ok';
             Toolbox.trackUse?.('finish');
           }
@@ -342,12 +377,12 @@
             input.value = '';
             input.disabled = false;
             result.style.display = 'none';
-            status.textContent = '그대로 치면 됩니다. 틀린 글자는 빨갛게 보여요.';
+            status.textContent = t('ghosttype.status.idle');
             status.className = 'tool-status';
             place(meRunner, 0);
             place(ghostRunner, 0);
-            meStat.textContent = '0타';
-            ghostStat.textContent = racing ? '대기' : '없음';
+            meStat.textContent = t('ghosttype.value.cpm', { n: 0 });
+            ghostStat.textContent = racing ? t('ghosttype.stat.wait') : t('ghosttype.stat.none');
             paint();
           }
 
@@ -358,7 +393,7 @@
               racing = false;
               $<HTMLElement>('#gtBanner').style.display = 'none';
               $<HTMLElement>('#gtGhostLane').classList.add('gt-lane-off');
-              status.textContent = '글이 바뀌어 유령은 쉽니다 — 새 기록을 남기면 이 글의 유령이 됩니다.';
+              status.textContent = t('ghosttype.status.textChanged');
             }
             reset();
           }
@@ -387,7 +422,7 @@
           $<HTMLButtonElement>('#gtRestart').onclick = () => reset();
           $<HTMLButtonElement>('#gtNextText').onclick = () => {
             let next = target;
-            while (next === target && PRESETS.length > 1) next = PRESETS[Math.floor(Math.random() * PRESETS.length)];
+            while (next === target && 지문.length > 1) next = 지문[Math.floor(Math.random() * 지문.length)];
             setText(next);
           };
           $<HTMLButtonElement>('#gtOwnToggle').onclick = () => {
@@ -397,7 +432,7 @@
           $<HTMLButtonElement>('#gtOwnApply').onclick = () => {
             const own = $<HTMLTextAreaElement>('#gtOwn').value.replace(/\s+/g, ' ').trim();
             if (own.length < 10) {
-              status.textContent = '열 글자보다는 길어야 겨룰 만해요.';
+              status.textContent = t('ghosttype.status.tooShort');
               status.className = 'tool-status error';
               return;
             }
@@ -422,8 +457,5 @@
           paint();
           place(meRunner, 0);
           place(ghostRunner, 0);
-        }
-      }
-    ]
-  });
+  }
 })();
