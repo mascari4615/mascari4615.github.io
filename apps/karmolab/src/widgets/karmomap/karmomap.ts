@@ -16,7 +16,7 @@
  * KarmoMap 은 그릇이고 렌즈지, 작가가 아니다.
  */
 import { GraphCanvas } from '../../lib/graph/canvas';
-import type { GraphSpec, GraphNode, GraphEdge, NodeShape } from '../../lib/graph/spec';
+import type { GraphSpec, GraphNode, GraphEdge, GroupDef, NodeShape } from '../../lib/graph/spec';
 import { emptyGraphSpec } from '../../lib/graph/spec';
 import { KarmoMapLocalStorageAdapter } from './local-storage-adapter';
 import {
@@ -72,6 +72,11 @@ import {
       color:var(--text-primary); }
     .km-edge-row select { width:74px; }
     .km-hint { color:var(--text-tertiary); font-size:11px; line-height:1.5; }
+    .km-group-row { display:flex; gap:5px; align-items:center; margin-bottom:6px; }
+    .km-group-row input[type=text] { flex:1; min-width:0; }
+    .km-group-row input[type=color] { width:30px; height:26px; padding:0; border:1px solid var(--border);
+      border-radius:var(--radius-sm); background:var(--bg-tertiary); cursor:pointer; }
+    .km-group-count { color:var(--text-tertiary); font-size:11px; min-width:16px; text-align:right; }
     .km-avatar-row { display:flex; gap:6px; align-items:center; }
     .km-avatar-row input[type=text] { width:56px; text-align:center; font-size:16px; padding:2px 4px; }
     .km-avatar-row input[type=color] { width:34px; height:28px; padding:0; border:1px solid var(--border);
@@ -92,6 +97,8 @@ import {
     let selectedId: string | null = null;
     /** 연결 모드일 때 출발 노드 id. null 이면 평소 모드. */
     let linkingFrom: string | null = null;
+    /** 오른쪽 패널이 무엇을 보여주는가 — 고른 노드냐, 묶음 목록이냐. */
+    let sideMode: 'node' | 'groups' = 'node';
     /** 지금 끼워진 어휘 팩. `spec._meta.pack` 에 함께 저장된다. */
     let pack: CanvasPack = packById(DEFAULT_PACK_ID);
 
@@ -131,6 +138,7 @@ import {
           <select data-km="new-kind">${nodeKindOptions()}</select>
           <button class="btn btn-primary" data-km="add">+ 추가</button>
           <span class="km-spacer"></span>
+          <button class="btn btn-ghost" data-km="groups" title="묶음 관리">🫧 묶음</button>
           <button class="btn btn-ghost" data-km="undo" title="되돌리기 (Ctrl+Z)" disabled>↶</button>
           <button class="btn btn-ghost" data-km="redo" title="다시 하기 (Ctrl+Y)" disabled>↷</button>
           <button class="btn btn-ghost" data-km="fit">화면 맞춤</button>
@@ -304,8 +312,106 @@ import {
       if (!existing) canvasEl.appendChild(el);
     }
 
+    // ── 묶음 (TASK-KL-202 격차 D) ────────────────────────────────────────────
+    // 캔버스는 이미 묶음을 그리고 끌 줄 안다(멤버를 감싸 자동으로 커진다). 없던 건
+    // *만들고 넣는 손잡이* 뿐이었다.
+    function nextGroupId(): string {
+      const taken = new Set(spec.groups.map((g) => g.id));
+      let n = 1;
+      while (taken.has(`group-${n}`)) n += 1;
+      return `group-${n}`;
+    }
+
+    /** 팩 프리셋 중 아직 안 쓴 이름·색을 집어 새 묶음을 만든다. 다 썼으면 번호를 붙인다. */
+    function createGroup(): GroupDef {
+      const used = new Set(spec.groups.map((g) => g.label));
+      const preset = pack.groupPresets.find((p) => !used.has(p.label));
+      const label = preset?.label ?? `묶음 ${spec.groups.length + 1}`;
+      const color = preset?.color ?? '#a78bfa';
+      const center = canvas?.viewCenterWorld() ?? { x: 0, y: 0 };
+      const group: GroupDef = {
+        id: nextGroupId(),
+        label,
+        color,
+        // 멤버가 생기면 캔버스가 알아서 감싼다. 빈 묶음도 보이게 최소 상자를 준다.
+        bbox: { x: Math.round(center.x - 90), y: Math.round(center.y - 60), w: 180, h: 120 },
+      };
+      spec.groups.push(group);
+      return group;
+    }
+
+    function renderGroupsPanel(): void {
+      sideEl.classList.remove('hidden');
+      canvas?.setSelectedNode(null);
+      sideEl.innerHTML = `
+        <h4>🫧 묶음</h4>
+        <div class="km-hint">노드를 고른 뒤 「묶음」에서 넣으세요. 묶음 머리를 끌면 안에 든 노드가 같이 움직입니다.</div>
+        <div class="km-field">
+          ${
+            spec.groups.length === 0
+              ? '<div class="km-hint">아직 묶음이 없습니다.</div>'
+              : spec.groups
+                  .map((g) => {
+                    const count = spec.nodes.filter((n) => n.group === g.id).length;
+                    return `<div class="km-group-row" data-group="${escapeAttr(g.id)}">
+                      <input type="color" data-km="group-color" value="${escapeAttr(g.color)}" title="색" />
+                      <input type="text" data-km="group-label" value="${escapeAttr(g.label)}" />
+                      <span class="km-group-count">${count}</span>
+                      <button class="btn btn-ghost" data-km="group-del" title="묶음 삭제">×</button>
+                    </div>`;
+                  })
+                  .join('')
+          }
+        </div>
+        <button class="btn btn-primary" data-km="group-add">+ 새 묶음</button>
+        <button class="btn btn-ghost" data-km="group-close">닫기</button>`;
+
+      (sideEl.querySelector('[data-km="group-add"]') as HTMLButtonElement).onclick = () => {
+        createGroup();
+        applySpec();
+        persistStructure();
+        renderSide();
+      };
+      (sideEl.querySelector('[data-km="group-close"]') as HTMLButtonElement).onclick = () => {
+        sideMode = 'node';
+        renderSide();
+      };
+
+      sideEl.querySelectorAll('.km-group-row').forEach((rowEl) => {
+        const row = rowEl as HTMLElement;
+        const gid = row.dataset.group ?? '';
+        const find = (): GroupDef | undefined => spec.groups.find((g) => g.id === gid);
+        (row.querySelector('[data-km="group-label"]') as HTMLInputElement).oninput = (ev) => {
+          const g = find();
+          if (!g) return;
+          g.label = (ev.target as HTMLInputElement).value;
+          canvas?.render();
+          persistStructure();
+        };
+        (row.querySelector('[data-km="group-color"]') as HTMLInputElement).oninput = (ev) => {
+          const g = find();
+          if (!g) return;
+          g.color = (ev.target as HTMLInputElement).value;
+          canvas?.render();
+          persistStructure();
+        };
+        (row.querySelector('[data-km="group-del"]') as HTMLButtonElement).onclick = () => {
+          // 묶음만 없앤다 — 안에 든 노드는 그 자리에 남는다.
+          spec.groups = spec.groups.filter((g) => g.id !== gid);
+          for (const n of spec.nodes) if (n.group === gid) n.group = '';
+          applySpec();
+          persistStructure();
+          renderSide();
+        };
+      });
+    }
+
     // ── 선택 패널 ───────────────────────────────────────────────────────────
     function renderSide(): void {
+      if (sideMode === 'groups') {
+        renderGroupsPanel();
+        return;
+      }
       const node = spec.nodes.find((n) => n.id === selectedId);
       if (!node) {
         sideEl.classList.add('hidden');
@@ -332,6 +438,16 @@ import {
         <div class="km-field">
           <label>한마디</label>
           <input type="text" data-km="edit-note" value="${escapeAttr(node.note ?? '')}" placeholder="이름 밑에 한 줄" />
+        </div>
+        <div class="km-field">
+          <label>묶음</label>
+          <select data-km="edit-group">
+            <option value="">— 없음 —</option>
+            ${spec.groups
+              .map((g) => `<option value="${escapeAttr(g.id)}"${g.id === node.group ? ' selected' : ''}>${escapeHtml(g.label)}</option>`)
+              .join('')}
+            <option value="__new">+ 새 묶음에 넣기</option>
+          </select>
         </div>
         <div class="km-field">
           <label>모양</label>
@@ -401,6 +517,14 @@ import {
       noteInput.oninput = () => {
         node.note = noteInput.value.trim() || undefined;
         touch(false);
+      };
+
+      (sideEl.querySelector('[data-km="edit-group"]') as HTMLSelectElement).onchange = (ev) => {
+        const v = (ev.target as HTMLSelectElement).value;
+        node.group = v === '__new' ? createGroup().id : v;
+        applySpec();
+        persistStructure();
+        renderSide();
       };
 
       (sideEl.querySelector('[data-km="edit-shape"]') as HTMLSelectElement).onchange = (ev) => {
@@ -524,6 +648,7 @@ import {
         canvasEl.classList.remove('km-linking');
       }
       selectedId = nodeId;
+      sideMode = 'node';
       renderSide();
     }
 
@@ -622,6 +747,11 @@ import {
       if (persist) persistStructure();
     }
     packEl.onchange = () => applyPack(packEl.value, true);
+
+    q<HTMLButtonElement>('groups').onclick = () => {
+      sideMode = sideMode === 'groups' ? 'node' : 'groups';
+      renderSide();
+    };
 
     undoEl.onclick = () => restoreTo(histIndex - 1);
     redoEl.onclick = () => restoreTo(histIndex + 1);
