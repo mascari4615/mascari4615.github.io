@@ -11,6 +11,8 @@
  */
 import { encodeAudio, fileSize as size, mmss } from './shared/media';
 
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   /**
    * 겹쳐 잇기(overlap-add) — 조각을 잘라 겹치는 자리를 서로 녹여 붙인다.
@@ -65,32 +67,50 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
     id: 'audiospeed',
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['audio/*', 'video/*'],
-    title: '소리 속도',
+    title: t('widgets.audiospeed.title', undefined, '소리 속도'),
     category: 'tool',
-    desc: '녹음을 빠르게·느리게 만듭니다. 목소리는 그대로 두고 길이만 바꿉니다',
+    desc: t(
+      'widgets-desc.audiospeed.desc',
+      undefined,
+      '녹음을 빠르게·느리게 만듭니다. 목소리는 그대로 두고 길이만 바꿉니다'
+    ),
     layout: 'wide',
     icon: '<path d="M4 9v6h4l5 4V5L8 9H4z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M16 8l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '속도 바꾸기',
+        label: t('audiospeed.tab', undefined, '속도 바꾸기'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('audiospeed').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="asDrop">
               <input type="file" id="asFile" accept="audio/*,video/*" hidden>
-              <span>소리 파일을 끌어다 놓거나 눌러서 고르세요 — 영상에서 소리만 뽑아도 됩니다</span>
+              <span>${esc(t('audiospeed.drop'))}</span>
             </div>
 
             <div class="field-group" id="asControls" style="display:none; margin-top:var(--space-lg);">
-              <div class="tool-sublabel">속도 <span id="asRateVal" class="range-value">1.5배</span></div>
+              <div class="tool-sublabel">${esc(t('audiospeed.label.rate'))} <span id="asRateVal" class="range-value">${esc(
+                t('audiospeed.value.rate', { n: '1.5' })
+              )}</span></div>
               <input type="range" id="asRate" aria-label="속도" min="0.5" max="3" step="0.05" value="1.5">
               <div class="tool-chips" style="margin-top:10px;">
-                <button type="button" class="tool-chip" data-preset="0.75">0.75배 — 받아쓰기</button>
-                <button type="button" class="tool-chip active" data-preset="1.5">1.5배</button>
-                <button type="button" class="tool-chip" data-preset="2">2배</button>
+                <button type="button" class="tool-chip" data-preset="0.75">${esc(t('audiospeed.preset.slow'))}</button>
+                <button type="button" class="tool-chip active" data-preset="1.5">${esc(t('audiospeed.preset.fast'))}</button>
+                <button type="button" class="tool-chip" data-preset="2">${esc(t('audiospeed.preset.double'))}</button>
               </div>
               <div class="tool-chips" style="margin-top:10px;">
-                <label class="tool-chip"><input type="checkbox" id="asKeep" checked> 목소리 그대로 (권장)</label>
+                <label class="tool-chip"><input type="checkbox" id="asKeep" checked> ${esc(t('audiospeed.opt.keep'))}</label>
               </div>
             </div>
 
@@ -99,11 +119,11 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
             <audio id="asPlay" controls style="width:100%; display:none; margin-bottom:var(--space-lg);"></audio>
 
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="asRun" disabled>바꾸기</button>
-              <button class="btn btn-ghost" id="asSave" disabled>내려받기</button>
+              <button class="btn btn-primary" id="asRun" disabled>${esc(t('audiospeed.btn.run'))}</button>
+              <button class="btn btn-ghost" id="asSave" disabled>${esc(t('audiospeed.btn.save'))}</button>
             </div>
 
-            <div class="tool-status" id="asStatus">소리는 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="asStatus">${esc(t('audiospeed.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -116,7 +136,7 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
 
           let buffer: AudioBuffer | null = null;
           let outBlob: Blob | null = null;
-          let baseName = '소리';
+          let baseName = t('audiospeed.file.base');
 
           const say = (m: string, kind = ''): void => {
             status.textContent = m;
@@ -130,24 +150,24 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
             const rate = parseFloat(rateEl.value);
             const after = buffer.duration / rate;
             stats.innerHTML =
-              stat('바뀐 뒤 길이', mmss(after), true) +
-              stat('원래 길이', mmss(buffer.duration)) +
-              stat('줄어드는 시간', mmss(Math.abs(buffer.duration - after)));
+              stat(t('audiospeed.stat.after'), mmss(after), true) +
+              stat(t('audiospeed.stat.before'), mmss(buffer.duration)) +
+              stat(t('audiospeed.stat.saved'), mmss(Math.abs(buffer.duration - after)));
           }
 
           async function load(file: File): Promise<void> {
-            say('소리를 읽는 중…');
+            say(t('audiospeed.say.reading'));
             const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
             const ctx = new AC();
             try {
               buffer = await ctx.decodeAudioData(await file.arrayBuffer());
             } catch {
-              say('이 파일에서 소리를 읽지 못했어요. 다른 형식으로 해 보세요.', 'error');
+              say(t('audiospeed.err.decode'), 'error');
               void ctx.close();
               return;
             }
             void ctx.close();
-            baseName = (file.name || '소리').replace(/\.[^.]+$/, '');
+            baseName = (file.name || t('audiospeed.file.base')).replace(/\.[^.]+$/, '');
             $<HTMLElement>('#asControls').style.display = '';
             runBtn.disabled = false;
             saveBtn.disabled = true;
@@ -162,7 +182,7 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
             const rate = parseFloat(rateEl.value);
             const keep = $<HTMLInputElement>('#asKeep').checked;
             runBtn.disabled = true;
-            say(keep ? '목소리를 지키며 바꾸는 중…' : '바꾸는 중…');
+            say(t(keep ? 'audiospeed.say.workingKeep' : 'audiospeed.say.working'));
             // 화면이 멈춘 것처럼 보이지 않게 한 박자 넘긴다
             await new Promise((r) => setTimeout(r, 0));
             try {
@@ -182,18 +202,18 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
               player.style.display = '';
               saveBtn.disabled = false;
               stats.innerHTML =
-                stat('바뀐 뒤 길이', mmss(outBuf.length / outBuf.sampleRate), true) +
-                stat('원래 길이', mmss(buffer.duration)) +
-                stat('파일 크기', size(outBlob.size));
+                stat(t('audiospeed.stat.after'), mmss(outBuf.length / outBuf.sampleRate), true) +
+                stat(t('audiospeed.stat.before'), mmss(buffer.duration)) +
+                stat(t('audiospeed.stat.size'), size(outBlob.size));
               say(
                 keep
-                  ? '다 됐어요. 들어 보고 마음에 들면 내려받으세요 — 목소리 높이는 그대로입니다.'
-                  : '다 됐어요. 이 방식은 목소리 높이도 함께 바뀝니다.',
+                  ? t('audiospeed.say.doneKeep')
+                  : t('audiospeed.say.done'),
                 'ok'
               );
               Toolbox.trackUse?.('speed');
             } catch (e) {
-              say((e as Error).message || '속도를 바꾸지 못했어요.', 'error');
+              say((e as Error).message || t('audiospeed.err.generic'), 'error');
             } finally {
               runBtn.disabled = false;
             }
@@ -224,7 +244,9 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
           });
 
           rateEl.addEventListener('input', () => {
-            $<HTMLElement>('#asRateVal').textContent = parseFloat(rateEl.value).toFixed(2).replace(/\.?0+$/, '') + '배';
+            $<HTMLElement>('#asRateVal').textContent = t('audiospeed.value.rate', {
+              n: parseFloat(rateEl.value).toFixed(2).replace(/\.?0+$/, '')
+            });
             container.querySelectorAll('[data-preset]').forEach((c) => c.classList.remove('active'));
             showStats();
           });
@@ -241,15 +263,12 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
             if (!outBlob) return;
             const a = document.createElement('a');
             a.href = URL.createObjectURL(outBlob);
-            a.download = `${baseName}-${parseFloat(rateEl.value)}배.wav`;
+            a.download = baseName + t('audiospeed.file.suffix', { n: parseFloat(rateEl.value) }) + '.wav';
             a.click();
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: outBlob, name: a.download, from: 'audiospeed' });
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say(`${size(outBlob.size)} 로 받았어요.`, 'ok');
+            say(t('audiospeed.say.saved', { size: size(outBlob.size) }), 'ok');
           };
-        }
-      }
-    ]
-  });
+  }
 })();
