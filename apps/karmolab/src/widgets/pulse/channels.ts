@@ -4,16 +4,18 @@
  * 봇 아트 씬(Botwiki 가 「art bot = 봇이기 위한 봇」이라 부르는 갈래)을 다섯 갈래로 갈라
  * 한 갈래에 하나씩 세웠다. 갈래를 채우는 게 목적이라 서로 안 닮게 골랐다:
  *
- *   박동형 — 고정 주기로 무의미한 신호            → 세 글자 · 종
+ *   박동형 — 고정 주기로 무의미한 신호            → 세 글자 · 종(소리)
  *   눈금형 — 세상이 얼마나 지나갔는지 계속 알려줌   → 눈금
- *   소진형 — 유한한 목록을 끝까지 다 뱉고 **끝남**  → 낱말
- *   말뭉치형 — 재료 + 규칙 = 무한 변주             → 한 줄 · 무늬
+ *   소진형 — 유한한 목록을 끝까지 다 뱉고 **끝남**  → 낱말(넉 달) · 음절(7년 8개월)
+ *   말뭉치형 — 재료 + 규칙 = 무한 변주             → 한 줄
  *   주술형 — 보는 사람이 제 의미를 갖다 붙임        → 점 (+ 세 글자의 「나만의 것」)
+ *   그림형 — 그리지 않으면 흉내가 안 나는 것        → `art.ts` (별밭·어항·뜰·나방·섬)
  *
  * 전부 `beat(tick)` 하나로 끝난다 — 저장도, 통신도, 서버도 없다.
  */
 import type { Beat, Channel } from './core';
-import { DAY, HOUR, MINUTE, bar, dateOf, pick, rngFor, tickOf, tickStart } from './core';
+import { ART_CHANNELS, bellPaint, gaugePaint } from './art';
+import { DAY, HOUR, MINUTE, dateOf, pick, rngFor, tickOf, tickStart } from './core';
 
 const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const LOWER = 'abcdefghijklmnopqrstuvwxyz';
@@ -35,21 +37,54 @@ const letters: Channel = {
   name: '세 글자',
   glyph: '🔤',
   period: 10 * MINUTE,
+  tile: 'unit',
   blurb: '10분마다 세 글자. 뜻은 없다.',
   lineage: '@3letter_ — 「3 random letters every 10 mins」',
   beat(tick) {
-    return { text: threeLetters(rngFor('letters', tick)), sub: '지금 이걸 보고 있는 모두가 같은 세 글자를 본다' };
+    return { line: threeLetters(rngFor('letters', tick)), sub: '지금 이걸 보고 있는 모두가 같은 세 글자를 본다' };
   },
   personal(seed) {
     return {
-      text: threeLetters(rngFor('letters/personal', seed)),
+      line: threeLetters(rngFor('letters/personal', seed)),
       sub: `${seed} 의 세 글자 — 이건 안 바뀐다`
     };
   }
 };
 
 /* ── 박동형 ②: 종 ──────────────────────────────────────────────
-   `@big_ben_clock` 은 2009년부터 정각마다 BONG 을 시각 수만큼 쳤다. 48만 명이 그걸 본다. */
+   `@big_ben_clock` 은 2009년부터 정각마다 BONG 을 시각 수만큼 쳤다. 48만 명이 그걸 본다.
+
+   **여기서 본체는 소리다.** 「BONG」이라고 적힌 글자에는 아무 뜻이 없다 —
+   트위터에서 그게 통한 건 읽는 사람 머릿속에서 소리가 났기 때문이다. 화면에서는 그게 안 된다.
+   그래서 진짜로 친다(사용자 지적, 2026-08-09). 글자는 자막으로 강등. */
+
+/** 종 한 번. 배음이 정수배가 아닌 것이 종소리의 정체다 — 정수배로 쌓으면 오르간이 된다. */
+function strike(ac: AudioContext, at: number, base: number, gain: number): void {
+  const partials: Array<[number, number, number]> = [
+    // [배음비, 크기, 길이(초)]
+    [0.5, 0.6, 5.5], // 험(hum) — 낮게 오래 남는 것
+    [1.0, 1.0, 4.2],
+    [1.19, 0.5, 3.0],
+    [1.56, 0.4, 2.2],
+    [2.0, 0.45, 1.8],
+    [2.66, 0.25, 1.1],
+    [3.42, 0.18, 0.7],
+    [4.97, 0.12, 0.45]
+  ];
+  for (const [ratio, amp, life] of partials) {
+    const osc = ac.createOscillator();
+    const env = ac.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = base * ratio;
+    env.gain.setValueAtTime(0, at);
+    env.gain.linearRampToValueAtTime(gain * amp, at + 0.004); // 때리는 순간
+    env.gain.exponentialRampToValueAtTime(0.0001, at + life); // 길게 사라짐
+    osc.connect(env);
+    env.connect(ac.destination);
+    osc.start(at);
+    osc.stop(at + life + 0.05);
+  }
+}
 
 const bell: Channel = {
   id: 'bell',
@@ -57,15 +92,22 @@ const bell: Channel = {
   glyph: '🔔',
   period: HOUR,
   local: true,
-  blurb: '정각마다 시각 수만큼 종을 친다.',
+  tile: 'unit',
+  blurb: '정각마다 시각 수만큼 친다. 글자가 아니라 소리다.',
   lineage: '@big_ben_clock — 2009년부터 정각마다 BONG',
   beat(tick) {
     const at = new Date(tickStart(bell, tick));
     const h24 = at.getHours();
     const h12 = h24 % 12 || 12;
     return {
-      text: Array(h12).fill('BONG').join(' '),
-      sub: `${h24}시 — ${h12}번`
+      line: `${h24}시 — ${h12}번`,
+      sub: '소리를 켜 두면 정각에 울린다',
+      paint: bellPaint(h12),
+      sound(ac, when) {
+        /* 낮의 종은 높고 밤의 종은 낮다 — 같은 소리를 스물네 번 들으면 시각을 잃는다. */
+        const base = 262 - (h24 / 24) * 70;
+        for (let i = 0; i < h12; i++) strike(ac, when + i * 1.15, base, 0.16);
+      }
     };
   }
 };
@@ -97,25 +139,25 @@ const gauge: Channel = {
   glyph: '📊',
   period: MINUTE,
   local: true,
+  tile: 'unit',
   blurb: '이 시각·하루·이달·올해가 얼마나 지나갔나.',
   lineage: '@year_progress — 한 해가 1% 갈 때마다 막대 하나',
   beat(tick) {
     const at = new Date(tickStart(gauge, tick));
-    /* 이름표는 전부 한글 두 자로 맞춘다 — 고정폭에서 한글은 두 칸이라, 글자 수가 다르면
-       막대가 어긋난다(칸 수로 맞추려 해도 폰트마다 다르게 어긋난다). 같은 폭이면 안 어긋난다. */
+    /* 막대를 블록문자(▓░)로 찍었다가 캔버스로 옮겼다 — 한글 이름표와 블록문자는 폰트마다
+       칸 폭이 달라서, 어떻게 맞춰도 어느 기계에선가 어긋나 뭉갠다(사용자 지적, 2026-08-09). */
     const rows: Array<[string, 'hour' | 'day' | 'month' | 'year']> = [
       ['시간', 'hour'],
       ['하루', 'day'],
       ['이달', 'month'],
       ['올해', 'year']
     ];
-    const text = rows
-      .map(([label, unit]) => {
-        const r = spanRatio(at, unit);
-        return `${label} ${bar(r)} ${(r * 100).toFixed(1).padStart(5, ' ')}%`;
-      })
-      .join('\n');
-    return { text, sub: '돌이킬 수 없는 것들', mono: true };
+    const measured = rows.map(([label, unit]) => [label, spanRatio(at, unit)] as const);
+    return {
+      line: measured.map(([label, r]) => `${label} ${(r * 100).toFixed(1)}%`).join(' · '),
+      sub: '돌이킬 수 없는 것들',
+      paint: gaugePaint(measured)
+    };
   }
 };
 
@@ -266,7 +308,126 @@ const WORDS: ReadonlyArray<readonly [string, string]> = [
   ['소맷귀', '소맷부리의 구석'],
   ['달보드레하다', '연하고 달콤하다'],
   ['새록새록', '새로운 것이 자꾸 생기는 모양'],
-  ['얼떨결', '뜻밖의 일에 정신이 얼떨떨한 사이']
+  ['얼떨결', '뜻밖의 일에 정신이 얼떨떨한 사이'],
+  ['가늠', '목표에 맞고 안 맞음을 헤아리는 것'],
+  ['가리사니', '사물을 판단할 실마리'],
+  ['가붓하다', '조금 가벼운 듯하다'],
+  ['가슬가슬', '살결·물체가 매끄럽지 않고 조금 거친 모양'],
+  ['간자미', '가오리의 새끼'],
+  ['갈무리', '물건을 잘 정리해 간수함'],
+  ['개호주', '범의 새끼'],
+  ['건들바람', '초가을에 선들선들 부는 바람'],
+  ['고삿', '마을의 좁은 골목길'],
+  ['고즈넉하다', '고요하고 아늑하다'],
+  ['구메구메', '남모르게 틈틈이'],
+  ['굼닐다', '몸을 굽혔다 일으켰다 하다'],
+  ['그루터기', '나무를 베고 남은 밑동'],
+  ['금줄', '부정을 막으려 문에 걸던 새끼줄'],
+  ['기지개', '몸을 쭉 펴는 짓'],
+  ['깜냥', '스스로 헤아려 갖춘 능력'],
+  ['꼲다', '잘잘못을 따져 평가하다'],
+  ['꽃등', '맨 처음'],
+  ['나부죽이', '작은 것이 좀 넓게 엎드린 모양으로'],
+  ['날포', '하루가 조금 넘는 동안'],
+  ['너나들이', '서로 너니 나니 하며 터놓고 지내는 사이'],
+  ['넉둥', '윷놀이에서 네 번째 말'],
+  ['노고지리길', '종달새가 나는 높이의 길'],
+  ['노느매기', '여러 몫으로 갈라 나누는 일'],
+  ['눈비음', '남의 눈에 들게 겉으로만 꾸미는 일'],
+  ['늦깎이', '남보다 늦게 사리를 깨치거나 시작한 사람'],
+  ['다직해야', '기껏해야'],
+  ['닦아세우다', '꼼짝 못 하게 몰아붙이다'],
+  ['달구비', '땅을 다지듯 굵게 내리는 비'],
+  ['댕돌같다', '돌처럼 야무지고 단단하다'],
+  ['더껑이', '액체 위에 굳어 생긴 껍질'],
+  ['덤받이', '여자가 데리고 온 자식'],
+  ['도리기', '여럿이 돈을 내어 음식을 나눠 먹는 일'],
+  ['돌개바람', '회오리바람'],
+  ['동아리', '뜻을 같이해 모인 무리'],
+  ['된비알', '몹시 험한 비탈'],
+  ['두레박', '줄을 매어 물을 긷는 그릇'],
+  ['둥개다', '일을 감당하지 못하고 쩔쩔매다'],
+  ['드난', '남의 집에서 임시로 붙어 지내며 일함'],
+  ['들머리', '들어가는 첫머리'],
+  ['따따부따', '딱딱한 말씨로 시비를 가리는 모양'],
+  ['땅거미', '해가 진 뒤 어둑해질 때'],
+  ['뜨악하다', '마음이 선뜻 내키지 않다'],
+  ['마늘각시', '하얗고 어여쁜 색시'],
+  ['마수걸이', '그날 처음으로 물건을 파는 일'],
+  ['맏물', '그해 처음 나온 것'],
+  ['멧부리', '산등성이의 가장 높은 꼭대기'],
+  ['모지랑이', '끝이 닳아 무디어진 물건'],
+  ['몽따다', '알면서 일부러 모르는 체하다'],
+  ['무람없다', '스스럼없이 무례하다'],
+  ['묵새기다', '별일 없이 한곳에 오래 묵다'],
+  ['물마', '비가 많이 와 땅에 넘치는 물'],
+  ['미쁨', '믿음성'],
+  ['바지런', '놀지 않고 꾸준히 일하는 태도'],
+  ['반지빠르다', '어중되어 얄밉게 약다'],
+  ['발밤발밤', '한 걸음씩 천천히 걷는 모양'],
+  ['배코', '상투를 앉히려 머리를 깎아 낸 자리'],
+  ['버성기다', '사이가 서먹하다'],
+  ['벼름벼름', '어떤 일을 자꾸 벼르는 모양'],
+  ['보람줄', '읽던 곳에 끼우는 줄, 책갈피'],
+  ['볼가심', '아주 적은 양의 음식으로 시장기를 면함'],
+  ['부라퀴', '자기 이익에 지독히 덤비는 사람'],
+  ['북새', '많은 사람이 야단스레 부산 떠는 일'],
+  ['불목하니', '절에서 밥 짓고 물 긷는 사람'],
+  ['비설거지', '비 맞을 물건을 치우는 일'],
+  ['빌미', '재앙이나 병의 원인'],
+  ['사시랑이', '가늘고 약한 사람이나 물건'],
+  ['살강', '그릇을 얹어 두는 선반'],
+  ['삼삼하다', '잊히지 않고 눈앞에 보이는 듯하다'],
+  ['샅바', '씨름에서 다리에 매는 천'],
+  ['새치미', '시치미를 떼는 태도'],
+  ['서름하다', '남과 가깝지 못하고 서먹하다'],
+  ['설피다', '짜임새가 성글다'],
+  ['소담스럽다', '넉넉하여 탐스러운 데가 있다'],
+  ['속가량', '마음속으로 대강 어림잡음'],
+  ['숫눈', '아무도 밟지 않은 눈'],
+  ['시나위', '즉흥으로 어우러지는 남도 기악'],
+  ['실팍하다', '사람이나 물건이 야무지고 튼튼하다'],
+  ['쌈지', '담배나 부시를 넣는 작은 주머니'],
+  ['아귀차다', '고집이 세고 굳세다'],
+  ['아람치', '자기 차지가 된 몫'],
+  ['안날', '바로 전날'],
+  ['알심', '보기보다 야무진 힘'],
+  ['앙그러지다', '하는 짓이 잘 어울리고 짜인 맛이 있다'],
+  ['애면글면', '힘에 겨운 일을 이루려 갖은 애를 쓰는 모양'],
+  ['어름', '두 물건의 끝이 맞닿은 자리'],
+  ['에움길', '굽은 길, 돌아서 가는 길'],
+  ['여울', '물살이 세게 흐르는 얕은 곳'],
+  ['오달지다', '허술한 데가 없이 야무지다'],
+  ['옹골지다', '실속 있게 꽉 차 있다'],
+  ['우렁잇속', '내용이 복잡해 헤아리기 어려운 일'],
+  ['움트다', '싹이 나기 시작하다'],
+  ['윤슬결', '반짝이는 잔물결의 결'],
+  ['을씨년스럽다', '보기에 몹시 쓸쓸하다'],
+  ['이내', '해 질 무렵 멀리 끼는 푸르스름한 기운'],
+  ['자리끼', '잠자리 머리맡에 두는 물'],
+  ['잔풍하다', '바람이 잔잔하다'],
+  ['제풀에', '저 혼자 저절로'],
+  ['조바심', '조마조마한 마음'],
+  ['좀체', '여간해서는'],
+  ['주전부리', '때를 가리지 않고 군음식을 먹는 일'],
+  ['지청구', '까닭 없이 남을 탓하는 짓'],
+  ['짓조르다', '몹시 조르다'],
+  ['차반', '맛있게 잘 차린 음식'],
+  ['첫밗', '일을 시작한 맨 처음'],
+  ['추렴', '여럿이 돈이나 물건을 나누어 내는 일'],
+  ['치레', '잘 손질하여 모양을 냄'],
+  ['켜켜이', '여러 켜로 겹겹이'],
+  ['타깝다', '남의 딱한 처지가 안타깝다'],
+  ['토렴', '밥이나 국수에 뜨거운 국물을 부었다 따랐다 하는 일'],
+  ['푸접', '남에게 인정 있게 대하는 태도'],
+  ['하리놀다', '남을 헐뜯어 일러바치다'],
+  ['해읍스름하다', '깨끗하지 못하게 조금 희다'],
+  ['허방', '움푹 팬 땅, 잘못 디디는 자리'],
+  ['헛헛하다', '속이 빈 듯 허전하다'],
+  ['호도깝스럽다', '언행이 조급하고 경망스럽다'],
+  ['후미지다', '물가나 산길이 매우 구석지다'],
+  ['흠씬', '아주 꽉 차게'],
+  ['희떱다', '실속은 없어도 마음이 넓다']
 ];
 
 /** 이 방송이 첫 낱말을 뱉은 순간 (이곳 시각 기준). */
@@ -279,20 +440,65 @@ const word: Channel = {
   glyph: '📖',
   period: WORD_PERIOD,
   local: true,
+  tile: 'wide',
   blurb: `순우리말 ${WORDS.length}개를 하루 두 번씩. 다 뱉으면 이 방송은 끝난다.`,
   lineage: '@everyword — 영어 사전을 7년에 걸쳐 다 소진하고 끝냄',
   beat(tick) {
     const first = tickOf(word, WORD_EPOCH);
     const idx = tick - first;
     const endsAt = tickStart(word, first + WORDS.length);
-    if (idx < 0) return { text: '…', sub: `${dateOf(WORD_EPOCH)} 에 시작한다` };
+    if (idx < 0) return { line: '…', sub: `${dateOf(WORD_EPOCH)} 에 시작한다` };
     if (idx >= WORDS.length) {
-      return { text: '— 끝 —', sub: `${WORDS.length}개를 다 뱉었다. ${dateOf(endsAt)} 에 끝났다.` };
+      return { line: '— 끝 —', sub: `${WORDS.length}개를 다 뱉었다. ${dateOf(endsAt)} 에 끝났다.` };
     }
     const [w, meaning] = WORDS[idx];
     return {
-      text: w,
+      line: w,
       sub: `${meaning} · ${idx + 1} / ${WORDS.length} · ${dateOf(endsAt)} 에 끝난다`
+    };
+  }
+};
+
+/* ── 소진형 ②: 음절 ────────────────────────────────────────────
+   낱말 목록은 아무리 늘려도 사람이 손으로 적는 한 유한하고, 몇 달이면 끝난다.
+   `@everyword` 의 진짜 무게는 **7년**에 있었다 — 끝이 보이지 않을 만큼 길다는 것.
+
+   그래서 손으로 안 적는 목록을 하나 둔다: **현대 한글 음절 11,172자 전부** (가 … 힣).
+   유니코드가 정해 놓은 순서 그대로, 여섯 시간에 하나씩. 다 뱉는 데 **7년 8개월**이 걸린다 —
+   `@everyword` 가 실제로 걸린 7년과 같은 무게로 맞춘 것이다.
+
+   주기를 30분으로 잡았다가 고쳤다. 그러면 233일 만에 끝나는데, 처음엔 그걸 「638년」이라고
+   적어 뒀었다(산수를 틀렸다). 검사가 잡았다 — 이 방송의 값어치는 **길이**라서, 길이를
+   틀리면 방송 자체가 거짓말이 된다. */
+
+const SYLLABLE_BASE = 0xac00;
+const SYLLABLE_COUNT = 11172;
+const LEAD = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
+const VOWEL = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ';
+const TAIL = ' ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ';
+const SYLLABLE_EPOCH = new Date(2026, 7, 1, 0, 0, 0).getTime();
+const SYLLABLE_PERIOD = 6 * HOUR;
+
+const syllable: Channel = {
+  id: 'syllable',
+  name: '음절',
+  glyph: '가',
+  period: SYLLABLE_PERIOD,
+  local: true,
+  tile: 'unit',
+  blurb: '한글 11,172자를 여섯 시간에 하나씩. 다 뱉는 데 7년 8개월 걸린다.',
+  lineage: '@everyword 의 무게 — 끝이 안 보이는 목록을 끝까지',
+  beat(tick) {
+    const idx = tick - tickOf(syllable, SYLLABLE_EPOCH);
+    if (idx < 0 || idx >= SYLLABLE_COUNT) return { line: '…', sub: '아직 · 또는 이미' };
+    const ch = String.fromCharCode(SYLLABLE_BASE + idx);
+    const lead = LEAD[Math.floor(idx / (21 * 28))];
+    const vowel = VOWEL[Math.floor(idx / 28) % 21];
+    const tail = TAIL[idx % 28].trim();
+    const yearsLeft = ((SYLLABLE_COUNT - idx) * SYLLABLE_PERIOD) / (365.2425 * 24 * HOUR);
+    return {
+      line: ch,
+      sub: `${lead} + ${vowel}${tail ? ` + ${tail}` : ''} · ${(idx + 1).toLocaleString()} / ${SYLLABLE_COUNT.toLocaleString()} · 남은 ${yearsLeft.toFixed(0)}년`
     };
   }
 };
@@ -319,6 +525,11 @@ const VERB = [
   '되돌아온다', '깜빡인다', '가라앉는다', '고백한다', '자란다', '멈춘다', '넘어진다'
 ] as const;
 
+/* 검사용으로 낱말 통을 내보낸다 — 관형어·부사에 띄어쓰기가 있어서("아주 작은", "정확히 세 번")
+   완성된 문장만 보고는 어디까지가 임자말인지 되짚을 수가 없다. 조사 규칙 자체는 검사기가
+   따로 다시 구현한다(같은 함수를 나눠 쓰면 둘이 같이 틀려도 초록이 뜬다). */
+export const SENTENCE_NOUNS = NOUN;
+
 /** 받침이 있으면 「이」, 없으면 「가」. 이걸 안 하면 「트램펄린가」 같은 게 나온다. */
 function subjectParticle(noun: string): string {
   const last = noun.charCodeAt(noun.length - 1);
@@ -332,13 +543,14 @@ const sentence: Channel = {
   name: '한 줄',
   glyph: '💬',
   period: HOUR,
+  tile: 'wide',
   blurb: '한 시간에 한 문장. 문법은 맞고 뜻은 없다.',
   lineage: 'Darius Kazemi / NaNoGenMo — 말뭉치 + 규칙으로 짓는 봇 시(詩)',
   beat(tick) {
     const r = rngFor('sentence', tick);
     const noun = pick(r, NOUN);
     return {
-      text: `${pick(r, ADNOMINAL)} ${noun}${subjectParticle(noun)} ${pick(r, ADVERB)} ${pick(r, VERB)}.`,
+      line: `${pick(r, ADNOMINAL)} ${noun}${subjectParticle(noun)} ${pick(r, ADVERB)} ${pick(r, VERB)}.`,
       sub: `${ADNOMINAL.length}×${NOUN.length}×${ADVERB.length}×${VERB.length} = ${(
         ADNOMINAL.length * NOUN.length * ADVERB.length * VERB.length
       ).toLocaleString()}가지 중 하나`
@@ -346,38 +558,9 @@ const sentence: Channel = {
   }
 };
 
-/* ── 말뭉치형 ②: 무늬 ──────────────────────────────────────────
-   하루에 하나. 오늘 것은 오늘만 나오고, 어제 것은 되감으면 다시 나온다. */
-
-const SHADES = [' ', '░', '▒', '▓', '█'] as const;
-
-const pattern: Channel = {
-  id: 'pattern',
-  name: '무늬',
-  glyph: '🔳',
-  period: DAY,
-  local: true,
-  blurb: '오늘의 무늬 한 장. 내일이면 사라진다(되감으면 다시 나온다).',
-  lineage: 'Botwiki #generative-art — 매일 한 장 뱉는 그림 봇들',
-  beat(tick) {
-    const r = rngFor('pattern', tick);
-    const size = 9;
-    /* 왼쪽 절반만 뽑고 거울로 접는다 — 그냥 난수는 지저분한데, 접으면 무늬가 된다. */
-    const half = Math.ceil(size / 2);
-    const rows: string[] = [];
-    for (let y = 0; y < size; y++) {
-      const left: string[] = [];
-      for (let x = 0; x < half; x++) {
-        const weight = r();
-        const level = weight < 0.34 ? 0 : weight < 0.55 ? 1 : weight < 0.75 ? 2 : weight < 0.92 ? 3 : 4;
-        left.push(SHADES[level]);
-      }
-      const right = left.slice(0, size - half).reverse();
-      rows.push([...left, ...right].map((c) => c + c).join(''));
-    }
-    return { text: rows.join('\n'), sub: `${dateOf(tickStart(pattern, tick))} 의 무늬`, mono: true };
-  }
-};
+/* 「무늬」(블록문자 ░▒▓ 로 접어 만든 대칭 격자)가 여기 있었다. 걷어냈다 —
+   뭘 그린 건지 안 보였고, 글자 폭이 폰트마다 달라 칸이 어긋났다(사용자 지적, 2026-08-09).
+   그 자리는 `art.ts` 의 진짜 그림 다섯(별밭·어항·뜰·나방·섬)이 대신한다. */
 
 /* ── 주술형: 점 ────────────────────────────────────────────────
    15분마다 지구 표면의 한 점. 열에 일곱은 바다다 — 그게 정직한 결과다.
@@ -394,6 +577,7 @@ const spot: Channel = {
   name: '점',
   glyph: '🌐',
   period: 15 * MINUTE,
+  tile: 'unit',
   blurb: '15분마다 지구 위의 한 점. 대개는 바다다.',
   lineage: '@earthgeobot 류 — 뜻 없는 좌표를 계속 던지는 지리 봇',
   beat(tick) {
@@ -404,12 +588,27 @@ const spot: Channel = {
     const fmt = (v: number, pos: string, neg: string): string =>
       `${Math.abs(v).toFixed(4)}°${v >= 0 ? pos : neg}`;
     return {
-      text: `${fmt(lat, 'N', 'S')}  ${fmt(lon, 'E', 'W')}`,
+      line: `${fmt(lat, 'N', 'S')}  ${fmt(lon, 'E', 'W')}`,
       sub: `${hemisphere(lat, lon)} · 구면에서 고르게 뽑은 한 점`
     };
   }
 };
 
-export const CHANNELS: readonly Channel[] = [letters, bell, gauge, word, sentence, pattern, spot];
+/* 순서 = 벤토에 놓이는 순서. 그림과 신호를 번갈아 둔다 — 그림끼리 몰아 두면
+   한쪽은 화보가 되고 반대쪽은 계기판이 된다. */
+export const CHANNELS: readonly Channel[] = [
+  ART_CHANNELS[0], // 별밭
+  letters,
+  bell,
+  ART_CHANNELS[1], // 어항
+  gauge,
+  syllable,
+  ART_CHANNELS[2], // 뜰
+  word,
+  ART_CHANNELS[3], // 나방
+  sentence,
+  ART_CHANNELS[4], // 섬
+  spot
+];
 
 export type { Beat, Channel };
