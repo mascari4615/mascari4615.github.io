@@ -1,5 +1,5 @@
 {
-  "total": 8127,
+  "total": 8132,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -295,6 +295,7 @@
     "src/core/loan.ts": 28,
     "src/core/timecalc.ts": 16,
     "src/core/vat.ts": 14,
-    "src/core/uuidgen.ts": 5
+    "src/core/uuidgen.ts": 5,
+    "src/core/csvjson.ts": 5
   }
 }

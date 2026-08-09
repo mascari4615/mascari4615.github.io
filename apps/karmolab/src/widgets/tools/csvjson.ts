@@ -5,62 +5,10 @@
  * 순진하게 자르면 열이 밀려 조용히 망가진 데이터가 나온다 — 그래서 한 글자씩 읽는다.
  * 되돌릴 때도 쉼표·따옴표·줄바꿈이 든 값은 따옴표로 감싸고 안쪽 따옴표는 겹쳐 적는다.
  */
+import { coerce, parseCsv, spec, toCsv } from '../../core/csvjson';
+import { readInvocation } from '../../lib/tool-url';
+
 (function (): void {
-  /** 따옴표 규칙(RFC 4180)을 지키며 한 글자씩 읽는다. */
-  function parseCsv(text: string, delim: string): string[][] {
-    const rows: string[][] = [];
-    let row: string[] = [];
-    let cell = '';
-    let inQuote = false;
-    for (let i = 0; i < text.length; i++) {
-      const c = text[i];
-      if (inQuote) {
-        if (c === '"') {
-          if (text[i + 1] === '"') {
-            cell += '"';
-            i++;
-          } else inQuote = false;
-        } else cell += c;
-        continue;
-      }
-      if (c === '"') inQuote = true;
-      else if (c === delim) {
-        row.push(cell);
-        cell = '';
-      } else if (c === '\n') {
-        row.push(cell);
-        rows.push(row);
-        row = [];
-        cell = '';
-      } else if (c !== '\r') cell += c;
-    }
-    if (cell !== '' || row.length) {
-      row.push(cell);
-      rows.push(row);
-    }
-    return rows.filter((r) => r.length > 1 || r[0] !== '');
-  }
-
-  function toCsv(rows: Array<Record<string, unknown>>, delim: string): string {
-    const cols: string[] = [];
-    rows.forEach((r) => Object.keys(r).forEach((k) => (cols.indexOf(k) < 0 ? cols.push(k) : null)));
-    const esc = (v: unknown): string => {
-      const s = v === null || v === undefined ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v);
-      return /["\n\r]|^\s|\s$/.test(s) || s.includes(delim) ? '"' + s.replace(/"/g, '""') + '"' : s;
-    };
-    return [cols.join(delim), ...rows.map((r) => cols.map((c) => esc(r[c])).join(delim))].join('\n');
-  }
-
-  /** 숫자·불리언처럼 보이면 그 타입으로 — 표를 그대로 쓰려면 대개 이쪽이 편하다. */
-  function coerce(s: string): unknown {
-    if (s === '') return '';
-    if (s === 'true') return true;
-    if (s === 'false') return false;
-    if (s === 'null') return null;
-    if (/^-?\d+(\.\d+)?$/.test(s) && String(Number(s)) === s) return Number(s);
-    return s;
-  }
-
   Toolbox.register({
     id: 'csvjson',
     title: 'CSV ↔ JSON 변환',
@@ -171,8 +119,18 @@
           $<HTMLSelectElement>('#cjDelim').addEventListener('change', toJson);
           $<HTMLInputElement>('#cjCoerce').addEventListener('change', toJson);
 
-          csv.value = '이름,나이,메모\n홍길동,30,"쉼표, 들어간 값"\n김철수,25,보통';
-          toJson();
+          // 주소로 부른 경우 (`?op=toJson&csv=…`) — 아니면 예시 (TASK-KL-205).
+          const call = readInvocation(spec);
+          if (call !== null && call.error === undefined && call.op === 'toCsv') {
+            json.value = String(call.args.json ?? '');
+            toCsvSide();
+          } else {
+            csv.value =
+              call !== null && call.error === undefined && call.op === 'toJson'
+                ? String(call.args.csv ?? '')
+                : '이름,나이,메모\n홍길동,30,"쉼표, 들어간 값"\n김철수,25,보통';
+            toJson();
+          }
         }
       }
     ]
