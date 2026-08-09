@@ -12,6 +12,8 @@
  */
 import { fileSize as size } from './shared/media';
 
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   interface Box { page: number; x: number; y: number; w: number; h: number }
 
@@ -38,53 +40,70 @@ import { fileSize as size } from './shared/media';
     id: 'pdfredact',
     // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
     accepts: ['application/pdf'],
-    title: 'PDF 가리개',
+    title: t('widgets.pdfredact.title', undefined, 'PDF 가리개'),
     category: 'tool',
-    desc: 'PDF 에서 개인정보를 지웁니다. 검은 네모를 얹는 게 아니라 글자 자체를 없앱니다',
+    desc: t(
+      'widgets-desc.pdfredact.desc',
+      undefined,
+      'PDF 에서 개인정보를 지웁니다. 검은 네모를 얹는 게 아니라 글자 자체를 없앱니다'
+    ),
     layout: 'wide',
     icon: '<path d="M6 3h8l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="8" y="12" width="7" height="3.5" rx="0.8" fill="currentColor"/>',
     tabs: [
       {
         id: 'app',
-        label: 'PDF 가리기',
+        label: t('pdfredact.tab', undefined, 'PDF 가리기'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('pdfredact').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-status" id="prWarn" style="margin-bottom:var(--space-lg);">
-              PDF 에 검은 네모를 그려도 글자는 파일 안에 남습니다 — 복사하면 다 나옵니다.
-              이 도구는 페이지를 그림으로 다시 구워서 글자 자체를 없앱니다.
+              ${esc(t('pdfredact.warn'))}
             </div>
 
             <div class="tool-drop" id="prDrop">
               <input type="file" id="prFile" accept="application/pdf,.pdf" hidden>
-              <span>가릴 PDF 를 끌어다 놓거나 눌러서 고르세요</span>
+              <span>${esc(t('pdfredact.drop'))}</span>
             </div>
 
             <div class="field-group" id="prControls" style="display:none; margin-top:var(--space-lg);">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">페이지 <span id="prPageVal" class="range-value">1 / 1</span></div>
+                  <div class="tool-sublabel">${esc(t('pdfredact.label.page'))} <span id="prPageVal" class="range-value">1 / 1</span></div>
                   <input type="range" id="prPage" aria-label="페이지" min="1" max="1" value="1">
                 </div>
                 <div>
-                  <div class="tool-sublabel">선명도 <span id="prScaleVal" class="range-value">보통</span></div>
+                  <div class="tool-sublabel">${esc(t('pdfredact.label.scale'))} <span id="prScaleVal" class="range-value">${esc(
+                    t('pdfredact.scale.normal')
+                  )}</span></div>
                   <input type="range" id="prScale" aria-label="선명도" min="1" max="3" step="0.5" value="2">
                 </div>
               </div>
             </div>
 
             <div id="prStage" style="display:none; margin-top:var(--space-lg);">
-              <div class="tool-sublabel">가릴 곳을 드래그하세요 — 페이지를 넘겨 가며 해도 됩니다</div>
+              <div class="tool-sublabel">${esc(t('pdfredact.label.drag'))}</div>
               <canvas id="prCanvas" style="max-width:100%; border-radius:10px; display:block; cursor:crosshair; border:1px solid rgba(128,128,128,0.25); touch-action:none;"></canvas>
             </div>
 
             <div class="cc-stats" id="prStats"></div>
 
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="prSave" disabled>가린 PDF 받기</button>
-              <button class="btn btn-ghost" id="prUndo" disabled>방금 것 취소</button>
+              <button class="btn btn-primary" id="prSave" disabled>${esc(t('pdfredact.btn.save'))}</button>
+              <button class="btn btn-ghost" id="prUndo" disabled>${esc(t('pdfredact.btn.undo'))}</button>
             </div>
 
-            <div class="tool-status" id="prStatus">파일은 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="prStatus">${esc(t('pdfredact.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -100,7 +119,7 @@ import { fileSize as size } from './shared/media';
           let doc: PdfDoc | null = null;
           let boxes: Box[] = [];
           let cur = 1;
-          let baseName = '문서';
+          let baseName = t('pdfredact.file.base');
           let drag: { x: number; y: number } | null = null;
           let dragNow: { x: number; y: number } | null = null;
           let rendering = false;
@@ -160,9 +179,9 @@ import { fileSize as size } from './shared/media';
             }
             const onPage = boxes.filter((b) => b.page === cur).length;
             stats.innerHTML =
-              stat('가린 곳', `${boxes.length}군데`, true) +
-              stat('이 페이지', `${onPage}군데`) +
-              stat('쪽수', `${doc.numPages}쪽`);
+              stat(t('pdfredact.stat.total'), t('pdfredact.value.spots', { n: boxes.length }), true) +
+              stat(t('pdfredact.stat.onPage'), t('pdfredact.value.spots', { n: onPage })) +
+              stat(t('pdfredact.stat.pages'), t('pdfredact.value.pages', { n: doc.numPages }));
             saveBtn.disabled = false;
             undoBtn.disabled = boxes.length === 0;
           }
@@ -175,11 +194,11 @@ import { fileSize as size } from './shared/media';
           }
 
           async function load(file: File): Promise<void> {
-            say('PDF 를 여는 중…');
+            say(t('pdfredact.say.opening'));
             await Toolbox.ensureScript?.('vendor/pdfjs.min');
             const lib = (window as unknown as { pdfjsLib: PdfJs }).pdfjsLib;
             if (!lib) {
-              say('PDF 처리기를 불러오지 못했어요.', 'error');
+              say(t('pdfredact.err.engine'), 'error');
               return;
             }
             // 이 줄이 없으면 PDF 가 아예 안 열린다 (다른 PDF 도구들과 같은 자리)
@@ -188,19 +207,19 @@ import { fileSize as size } from './shared/media';
             try {
               doc = await lib.getDocument({ data: bytes.slice(0) }).promise;
             } catch {
-              say('PDF 를 열지 못했어요 (암호가 걸려 있을 수 있습니다).', 'error');
+              say(t('pdfredact.err.open'), 'error');
               return;
             }
             boxes = [];
             cur = 1;
-            baseName = (file.name || '문서').replace(/\.[^.]+$/, '');
+            baseName = (file.name || t('pdfredact.file.base')).replace(/\.[^.]+$/, '');
             pageEl.max = String(doc.numPages);
             pageEl.value = '1';
             $<HTMLElement>('#prPageVal').textContent = `1 / ${doc.numPages}`;
             $<HTMLElement>('#prStage').style.display = '';
             $<HTMLElement>('#prControls').style.display = '';
             await refresh();
-            say('가릴 곳을 드래그하세요. 받을 때 그 페이지의 글자가 통째로 없어집니다.', 'ok');
+            say(t('pdfredact.say.ready'), 'ok');
           }
 
           canvas.addEventListener('pointerdown', (e) => {
@@ -228,7 +247,7 @@ import { fileSize as size } from './shared/media';
             // 잘못 누른 것을 「가렸다」고 착각하게 두면 안 된다
             if (b.w < 0.005 || b.h < 0.005) {
               void refresh();
-              say('너무 작아서 넘어갔어요. 가릴 곳을 끌어서 네모로 잡아 주세요.', 'error');
+              say(t('pdfredact.err.tooSmall'), 'error');
               return;
             }
             boxes.push(b);
@@ -266,27 +285,29 @@ import { fileSize as size } from './shared/media';
           });
           scaleEl.addEventListener('input', () => {
             const v = parseFloat(scaleEl.value);
-            $<HTMLElement>('#prScaleVal').textContent = v <= 1 ? '작게' : v <= 2 ? '보통' : '선명하게';
+            $<HTMLElement>('#prScaleVal').textContent = t(
+              v <= 1 ? 'pdfredact.scale.small' : v <= 2 ? 'pdfredact.scale.normal' : 'pdfredact.scale.sharp'
+            );
             void refresh();
           });
           undoBtn.onclick = () => {
             boxes.pop();
             void refresh();
-            say(boxes.length ? `${boxes.length}군데 남았어요.` : '잡아 둔 것이 없어졌어요.', 'ok');
+            say(boxes.length ? t('pdfredact.say.left', { n: boxes.length }) : t('pdfredact.say.cleared'), 'ok');
           };
 
           saveBtn.onclick = async () => {
             if (!doc) return;
             if (!boxes.length) {
-              say('가릴 곳을 먼저 잡아 주세요.', 'error');
+              say(t('pdfredact.err.noBoxes'), 'error');
               return;
             }
             saveBtn.disabled = true;
             try {
-              say('페이지를 그림으로 다시 굽는 중…');
+              say(t('pdfredact.say.baking'));
               await Toolbox.ensureScript?.('vendor/pdf-lib.min');
               const L = (window as unknown as { PDFLib: PdfLib }).PDFLib;
-              if (!L) throw new Error('PDF 만들기를 불러오지 못했습니다');
+              if (!L) throw new Error(t('pdfredact.err.maker'));
 
               const outDoc = await L.PDFDocument.create();
               const scale = parseFloat(scaleEl.value);
@@ -307,24 +328,21 @@ import { fileSize as size } from './shared/media';
               const blob = new Blob([out as unknown as BlobPart], { type: 'application/pdf' });
               const a = document.createElement('a');
               a.href = URL.createObjectURL(blob);
-              a.download = baseName + '-가림.pdf';
+              a.download = baseName + t('pdfredact.file.suffix') + '.pdf';
               a.click();
               // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
               Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'pdfredact' });
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
               say(
-                `${doc.numPages}쪽 · ${size(blob.size)} 로 받았어요. 가린 자리는 물론이고 글자 데이터가 통째로 없어져, 복사해도 아무것도 안 나옵니다.`,
+                t('pdfredact.say.done', { pages: doc.numPages, size: size(blob.size) }),
                 'ok'
               );
               Toolbox.trackUse?.('save');
             } catch (e) {
-              say((e as Error).message || '가린 PDF 를 만들지 못했어요.', 'error');
+              say((e as Error).message || t('pdfredact.err.generic'), 'error');
             } finally {
               saveBtn.disabled = false;
             }
           };
-        }
-      }
-    ]
-  });
+  }
 })();
