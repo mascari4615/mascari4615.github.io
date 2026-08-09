@@ -13,21 +13,12 @@ import { readInvocation } from '../../lib/tool-url';
 (function (): void {
   /**
    * CryptoJS 를 알맹이가 아는 모양으로 감싼다. 없으면 던진다 — 조용히 빈 값을 내면 원인이 안 보인다.
-   * `KECCAK512` 가 CryptoJS 쪽 이름 `SHA3` 으로 가는 이유는 `core/hashgen.ts` 의 LABEL 주석에 있다
-   * (그 함수가 내는 값이 표준 SHA-3 이 아니라 Keccak 이다).
+   * SHA3-512·Keccak-512 는 여기 안 온다 — 알맹이가 `core/sha3.ts` 로 직접 계산한다.
    */
-  const CRYPTOJS_NAME: Record<Algo, string> = {
-    MD5: 'MD5',
-    SHA1: 'SHA1',
-    SHA256: 'SHA256',
-    SHA512: 'SHA512',
-    KECCAK512: 'SHA3',
-    RIPEMD160: 'RIPEMD160'
-  };
   const cryptoJsBackend: HashBackend = (algo: Algo, text: string): string => {
     if (typeof CryptoJS === 'undefined' || !CryptoJS) throw new Error('lib-missing');
     const lib = CryptoJS as unknown as Record<string, ((msg: string) => { toString: () => string }) | undefined>;
-    const fn = lib[CRYPTOJS_NAME[algo]];
+    const fn = lib[algo];
     if (typeof fn !== 'function') throw new Error('algo-missing:' + algo);
     return fn(text).toString();
   };
@@ -59,7 +50,7 @@ import { readInvocation } from '../../lib/tool-url';
               </div>
               <div id="hgOut" class="tool-list"></div>
             </div>
-            <div class="tool-status" id="hgNote">MD5·SHA-1 은 충돌이 알려져 있어 무결성 확인 용도로만 쓰고, 비밀번호 저장에는 쓰지 마세요. Keccak-512 는 표준 SHA-3 이전 판이라 <code>sha3sum</code> 값과 다릅니다.</div>
+            <div class="tool-status" id="hgNote">MD5·SHA-1 은 충돌이 알려져 있어 무결성 확인 용도로만 쓰고, 비밀번호 저장에는 쓰지 마세요. <strong>SHA3-512</strong> 가 표준(<code>sha3sum</code> 과 같은 값)이고, <strong>Keccak-512</strong> 는 표준화 이전 판이라 값이 다릅니다.</div>
           `;
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const input = $<HTMLTextAreaElement>('#hgInput');
