@@ -451,6 +451,57 @@ try {
 }
 check(lnThrew, '모르는 상환 방식은 던진다');
 
+// ── ②-11 grade 알맹이 (단순 평균 ≠ 평점) ─────────────────────────────────────
+const gr = await load('src/core/grade.ts');
+
+eq(gr.spec.id, 'grade', 'grade spec.id');
+
+/* 이 도구가 있는 이유 자체 — 3학점 A+ 와 1학점 F 는 무게가 다르다.
+   단순 평균: (4.5 + 0) / 2 = 2.25
+   가중 평균: (3×4.5 + 1×0) / 4 = 3.375  ← 이게 평점 */
+const mixed = gr.parseCourses('3 A+\n1 F', gr.SCALE_45);
+eq(mixed.gpa, 3.375, '학점 가중 평균');
+eq(mixed.simple, 2.25, '단순 평균은 다르다');
+check(mixed.gpa !== mixed.simple, '둘이 같으면 이 도구가 필요 없다');
+eq(mixed.credits, 4, '이수 학점');
+eq(mixed.counted, 2, '과목 수');
+
+// 4.5 만점과 4.3 만점이 둘 다 국내에서 쓰인다 — A+ 만 다르다.
+eq(gr.SCALE_45['A+'], 4.5, '4.5 만점의 A+');
+eq(gr.SCALE_43['A+'], 4.3, '4.3 만점의 A+');
+eq(gr.SCALE_45['A0'], gr.SCALE_43['A0'], 'A0 는 두 기준이 같다');
+eq(gr.maxOf(gr.scaleOf('43')), 4.3, 'scaleOf(43)');
+eq(gr.maxOf(gr.scaleOf(undefined)), 4.5, '기본은 4.5');
+eq(gr.parseCourses('3 A+', gr.SCALE_43).gpa, 4.3, '같은 A+ 라도 기준이 다르면 값이 다르다');
+
+// 사람이 적는 모양 — 「A」 한 글자, 쉼표, 공백 여럿.
+eq(gr.parseCourses('3 A', gr.SCALE_45).gpa, 4.0, '「A」 한 글자는 A0 로 본다');
+eq(gr.parseCourses('3,A+', gr.SCALE_45).gpa, 4.5, '쉼표 구분');
+eq(gr.parseCourses('3   B0', gr.SCALE_45).gpa, 3.0, '공백 여럿');
+eq(gr.parseCourses('1.5 A+', gr.SCALE_45).credits, 1.5, '소수 학점');
+// 못 읽은 줄은 조용히 버리지 않는다.
+const withBad = gr.parseCourses('3 A+\n이건 뭐지\n3 Z+', gr.SCALE_45);
+eq(withBad.bad.length, 2, '못 읽은 줄을 모아 둔다');
+eq(withBad.counted, 1, '읽은 것만 센다');
+
+// 목표 평점 — 식을 뒤집는 자리.
+const need = gr.neededAverage(3 * 4.5, 3, 4.0, 3, 4.5);
+eq(Number(need.required.toFixed(2)), 3.5, '현재 4.5(3학점) → 목표 4.0 이면 남은 3학점에 3.5 필요');
+check(need.possible, '3.5 는 만점 안이라 가능');
+check(gr.neededAverage(0, 3, 4.4, 3, 4.5).possible === false, '만점으로도 안 되는 목표는 불가능이라 말한다');
+check(gr.neededAverage(3 * 4.5, 3, 2.0, 3, 4.5).alreadyThere, '남은 학점을 0점 받아도 목표를 넘으면 「이미 넘었다」');
+
+check(gr.run('gpa', { courses: '3 A+\n1 F' }).includes('3.38'), 'run gpa 가 가중 평균을 낸다');
+check(gr.run('gpa', { courses: '3 A+\n1 F' }).includes('평점은 위쪽입니다'), '단순 평균과 헷갈리지 않게 말해 준다');
+check(gr.run('needed', { courses: '3 A+', target: 4.0, future: 3 }).includes('평균 3.50 필요'), 'run needed');
+let grThrew = false;
+try {
+  gr.run('gpa', { courses: '읽을 수 없음' });
+} catch {
+  grThrew = true;
+}
+check(grThrew, '읽을 줄이 없으면 던진다');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 
