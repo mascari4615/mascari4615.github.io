@@ -32,5 +32,6 @@
   "bluemarble.line.pastQuiet": "Nothing above magnitude 4.5 shook anywhere that day.",
   "bluemarble.line.pastSun": "At this hour that day, the sun stood above {lat}°, {lon}°.",
   "bluemarble.layer.sats": "Things in orbit",
-  "bluemarble.line.sats": "{n} objects are circling above you right now. Almost all of them were put there by people."
+  "bluemarble.line.sats": "{n} objects are circling above you right now. Almost all of them were put there by people.",
+  "bluemarble.layer.sound": "Sound"
 }
