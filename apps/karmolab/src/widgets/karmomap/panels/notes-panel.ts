@@ -7,7 +7,7 @@
  * 「가기」는 **그 글을 쓰는 첫 자리**로 데려간다 — 글만 봐서는 어느 인물 이야기인지 알 수 없다.
  * 안 쓰는 글은 자동으로 안 지운다(방금 떼어 낸 것일 수 있다). 사람이 버튼을 눌러야 치운다.
  */
-import { notesOf, noteUsers, pruneNotes } from '../notes';
+import { notesOf, noteUsers, pruneNotes } from '../../../lib/graph/notes';
 import type { PanelCtx } from './context';
 
 export function renderNotesPanel(ctx: PanelCtx): void {

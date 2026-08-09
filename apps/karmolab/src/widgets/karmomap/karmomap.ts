@@ -27,6 +27,7 @@ import { HELP } from './help';
 import type { PanelCtx } from './panels/context';
 import { renderHelpPanel } from './panels/help-panel';
 import { renderSnaPanel } from './panels/sna-panel';
+import { resolveDoc } from '../../lib/graph/notes';
 import { renderNotesPanel } from './panels/notes-panel';
 import { renderStoragePanel } from './panels/storage-panel';
 import { renderFilterPanel } from './panels/filter-panel';
@@ -565,8 +566,20 @@ import {
         if (node.avatar) h += 26;
         w = Math.max(w + 24, h + 24);
       }
-      // 메모는 글이 주인공이라 여유를 더 준다.
-      if (shape === 'note') w += 16;
+      // 메모는 글이 주인공이라 여유를 더 준다. 글이 붙어 있으면 **그 글이 카드 안에 보이므로**
+      // 줄 수만큼 키워 준다 — 안 키우면 본문이 카드 밖으로 삐져나가 배경 위에 떠 보인다.
+      if (shape === 'note') {
+        w += 16;
+        const body = resolveDoc(spec, node).trim();
+        if (body) {
+          const perLine = Math.max(6, Math.floor((w - 20) / 5.6));
+          const lineCount = Math.min(
+            6,
+            body.split(/\r?\n/).filter(Boolean).reduce((n, para) => n + Math.ceil(para.length / perLine), 0),
+          );
+          h = 22 + lineCount * 12 + 10;
+        }
+      }
       // 사진 카드는 그림이 주인공 — 세로로 긴 초상 비율로 고정한다.
       if (shape === 'photo') { w = 140; h = 176; }
       node.w = Math.round(w);

@@ -5,8 +5,8 @@
  * 참조 중이면 「타자 = 공용 글 수정」이라 다른 자리도 함께 바뀐다 — 그 사실을 칸 위에
  * 눈에 띄게 적어 둔다. 모르고 고치면 남의 카드가 바뀌는 것이 가장 나쁜 놀람이다.
  */
-import { notesOf, resolveDoc, setDocText, shareDoc, useNote, unlinkNote, noteUsers } from '../notes';
-import type { DocHolder } from '../notes';
+import { notesOf, resolveDoc, setDocText, shareDoc, useNote, unlinkNote, noteUsers } from '../../../lib/graph/notes';
+import type { DocHolder } from '../../../lib/graph/notes';
 import type { PanelCtx } from './context';
 
 /**
