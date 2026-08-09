@@ -22,6 +22,19 @@ export interface LiveSpec {
   service?: string;
 }
 
+/**
+ * 노드 얼굴 (TASK-KL-202 격차 B). 관계도에서 「누구인지」는 글자보다 얼굴로 읽힌다 —
+ * 이모지 하나, 색 원 하나, 또는 붙여 넣은 사진. 이미지는 data URL 로 스펙 안에 들어간다
+ * (서버 전송 0 · JSON 한 덩이로 옮겨짐 — 대신 큰 사진은 저장 용량을 먹는다).
+ */
+export type NodeAvatar =
+  | { kind: 'emoji'; value: string }
+  | { kind: 'color'; value: string }
+  | { kind: 'image'; value: string };
+
+/** 노드 겉모양. rect = 기본 카드, circle = 동그라미, bubble = 말풍선. */
+export type NodeShape = 'rect' | 'circle' | 'bubble';
+
 export interface GraphNode {
   id: string;
   kind: string;
@@ -35,6 +48,9 @@ export interface GraphNode {
   doc?: string;
   live?: LiveSpec;
   children?: string[];  // 노드 카드 안에 표시할 서브항목 레이블
+  shape?: NodeShape;    // 없으면 'rect'
+  avatar?: NodeAvatar;
+  note?: string;        // 이름 밑 한 줄 — 「한마디」
 }
 
 export interface GraphEdge {

@@ -16,7 +16,7 @@
  * KarmoMap 은 그릇이고 렌즈지, 작가가 아니다.
  */
 import { GraphCanvas } from '../../lib/graph/canvas';
-import type { GraphSpec, GraphNode, GraphEdge } from '../../lib/graph/spec';
+import type { GraphSpec, GraphNode, GraphEdge, NodeShape } from '../../lib/graph/spec';
 import { emptyGraphSpec } from '../../lib/graph/spec';
 import { KarmoMapLocalStorageAdapter } from './local-storage-adapter';
 import {
@@ -37,6 +37,14 @@ import {
 
   const NODE_H = 40;
   const NODE_MIN_W = 120;
+  /** 얼굴 사진은 이 픽셀로 줄여 넣는다 — 원본을 그대로 넣으면 localStorage 가 몇 장에 터진다. */
+  const AVATAR_PX = 96;
+
+  const SHAPES: { id: NodeShape; label: string; icon: string }[] = [
+    { id: 'rect', label: '카드', icon: '▭' },
+    { id: 'circle', label: '동그라미', icon: '◯' },
+    { id: 'bubble', label: '말풍선', icon: '💬' },
+  ];
 
   Mdd.injectCSS(
     'karmomap',
@@ -63,6 +71,11 @@ import {
       color:var(--text-primary); }
     .km-edge-row select { width:74px; }
     .km-hint { color:var(--text-tertiary); font-size:11px; line-height:1.5; }
+    .km-avatar-row { display:flex; gap:6px; align-items:center; }
+    .km-avatar-row input[type=text] { width:56px; text-align:center; font-size:16px; padding:2px 4px; }
+    .km-avatar-row input[type=color] { width:34px; height:28px; padding:0; border:1px solid var(--border);
+      border-radius:var(--radius-sm); background:var(--bg-tertiary); cursor:pointer; }
+    .km-avatar-row .btn { padding:4px 8px; }
     .km-empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
       color:var(--text-tertiary); font-size:var(--font-size-sm); text-align:center; pointer-events:none;
       padding:24px; line-height:1.7; }
@@ -122,6 +135,7 @@ import {
           <button class="btn btn-ghost" data-km="import">가져오기</button>
           <button class="btn btn-danger" data-km="clear">전체 삭제</button>
           <input type="file" accept="application/json,.json" data-km="file" hidden />
+          <input type="file" accept="image/*" data-km="img" hidden />
         </div>
         <div class="km-body">
           <div class="km-canvas" data-km="canvas"></div>
@@ -135,6 +149,57 @@ import {
     const canvasEl = q<HTMLElement>('canvas');
     const sideEl = q<HTMLElement>('side');
     const fileEl = q<HTMLInputElement>('file');
+    const imgEl = q<HTMLInputElement>('img');
+    /** 사진 고르는 창이 뜬 사이 선택이 바뀔 수 있어, 어느 노드에 붙일지 기억해 둔다. */
+    let avatarTargetId: string | null = null;
+
+    /** 고른 사진을 정사각 96px data URL 로 줄인다 — 저장 용량 폭발 방지. */
+    function shrinkToDataUrl(file: File): Promise<string> {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const im = new Image();
+        im.onload = () => {
+          const side = Math.min(im.naturalWidth, im.naturalHeight);
+          const cv = document.createElement('canvas');
+          cv.width = AVATAR_PX;
+          cv.height = AVATAR_PX;
+          const ctx = cv.getContext('2d');
+          if (!ctx) { URL.revokeObjectURL(url); reject(new Error('canvas 2d 없음')); return; }
+          ctx.drawImage(
+            im,
+            (im.naturalWidth - side) / 2, (im.naturalHeight - side) / 2, side, side,
+            0, 0, AVATAR_PX, AVATAR_PX
+          );
+          URL.revokeObjectURL(url);
+          resolve(cv.toDataURL('image/webp', 0.85));
+        };
+        im.onerror = () => { URL.revokeObjectURL(url); reject(new Error('이미지를 읽지 못했습니다')); };
+        im.src = url;
+      });
+    }
+
+    imgEl.onchange = () => {
+      const file = imgEl.files?.[0];
+      const targetId = avatarTargetId;
+      avatarTargetId = null;
+      imgEl.value = '';
+      if (!file || !targetId) return;
+      void shrinkToDataUrl(file)
+        .then((dataUrl) => {
+          const target = spec.nodes.find((n) => n.id === targetId);
+          if (!target) return;
+          target.avatar = { kind: 'image', value: dataUrl };
+          resize(target);
+          canvas?.render();
+          canvas?.setSelectedNode(selectedId);
+          persistStructure();
+          renderSide();
+        })
+        .catch((e: unknown) => {
+          console.error('[karmomap] 얼굴 사진 처리 실패', e);
+          alert('사진을 읽지 못했습니다.');
+        });
+    };
 
     // ── 저장 ────────────────────────────────────────────────────────────────
     // 구조 변경은 즉시 전체 저장. 좌표 변경은 캔버스가 debounce 후 어댑터로.
@@ -152,6 +217,28 @@ import {
     // ── 노드 폭 — 라벨이 길면 넓힌다 (11px sans 기준 대략치) ────────────────
     function widthFor(label: string): number {
       return Math.max(NODE_MIN_W, Math.min(320, label.length * 9 + 28));
+    }
+
+    /**
+     * 노드 크기 재계산. 얼굴·한마디·모양이 바뀌면 상자도 따라 커져야 한다 —
+     * 안 그러면 글자가 테두리를 넘고, 동그라미 안에서 이름이 잘린다.
+     */
+    function resize(node: GraphNode): void {
+      const shape = node.shape ?? 'rect';
+      const hasNote = Boolean(node.note && node.note.trim());
+      let w = widthFor(node.label);
+      let h = NODE_H;
+      if (node.avatar && shape !== 'circle') w += 28;
+      if (hasNote) {
+        h += 14;
+        w = Math.max(w, widthFor(node.note ?? '') );
+      }
+      if (shape === 'circle') {
+        if (node.avatar) h += 26;
+        w = Math.max(w + 24, h + 24);
+      }
+      node.w = Math.round(w);
+      node.h = Math.round(h);
     }
 
     // ── 빈 상태 안내 ────────────────────────────────────────────────────────
@@ -196,6 +283,28 @@ import {
           <select data-km="edit-kind">${nodeKindOptions(node.kind)}</select>
         </div>
         <div class="km-field">
+          <label>한마디</label>
+          <input type="text" data-km="edit-note" value="${escapeAttr(node.note ?? '')}" placeholder="이름 밑에 한 줄" />
+        </div>
+        <div class="km-field">
+          <label>모양</label>
+          <select data-km="edit-shape">
+            ${SHAPES.map(
+              (s) => `<option value="${s.id}"${(node.shape ?? 'rect') === s.id ? ' selected' : ''}>${s.icon} ${s.label}</option>`
+            ).join('')}
+          </select>
+        </div>
+        <div class="km-field">
+          <label>얼굴</label>
+          <div class="km-avatar-row">
+            <input type="text" data-km="edit-emoji" maxlength="4" placeholder="😀" value="${escapeAttr(node.avatar?.kind === 'emoji' ? node.avatar.value : '')}" />
+            <input type="color" data-km="edit-color" value="${escapeAttr(node.avatar?.kind === 'color' ? node.avatar.value : '#a78bfa')}" title="색 원" />
+            <button class="btn btn-ghost" data-km="edit-img" title="사진 올리기">🖼</button>
+            <button class="btn btn-ghost" data-km="edit-noface" title="얼굴 지우기">✕</button>
+          </div>
+          <div class="km-hint">이모지를 적거나, 색을 고르거나, 사진을 올리세요. 사진은 이 브라우저 안에만 남습니다.</div>
+        </div>
+        <div class="km-field">
           <label>이 노드에서 연결 만들기</label>
           <select data-km="link-kind">${edgeKindOptions()}</select>
           <button class="btn btn-ghost" data-km="link-start">${linkingFrom === node.id ? '연결 취소' : '연결 시작'}</button>
@@ -225,10 +334,52 @@ import {
       const labelInput = sideEl.querySelector('[data-km="edit-label"]') as HTMLInputElement;
       labelInput.oninput = () => {
         node.label = labelInput.value;
-        node.w = widthFor(node.label);
+        resize(node);
         canvas?.render();
         canvas?.setSelectedNode(node.id);
         persistStructure();
+      };
+
+      /** 얼굴·모양·한마디는 전부 「고치면 즉시 다시 그리고 저장」 — 같은 뒷정리를 쓴다. */
+      const touch = (redrawSide: boolean): void => {
+        resize(node);
+        canvas?.render();
+        canvas?.setSelectedNode(node.id);
+        persistStructure();
+        if (redrawSide) renderSide();
+      };
+
+      const noteInput = sideEl.querySelector('[data-km="edit-note"]') as HTMLInputElement;
+      noteInput.oninput = () => {
+        node.note = noteInput.value.trim() || undefined;
+        touch(false);
+      };
+
+      (sideEl.querySelector('[data-km="edit-shape"]') as HTMLSelectElement).onchange = (ev) => {
+        node.shape = (ev.target as HTMLSelectElement).value as NodeShape;
+        touch(false);
+      };
+
+      const emojiInput = sideEl.querySelector('[data-km="edit-emoji"]') as HTMLInputElement;
+      emojiInput.oninput = () => {
+        const v = emojiInput.value.trim();
+        node.avatar = v ? { kind: 'emoji', value: v } : undefined;
+        touch(false);
+      };
+
+      (sideEl.querySelector('[data-km="edit-color"]') as HTMLInputElement).oninput = (ev) => {
+        node.avatar = { kind: 'color', value: (ev.target as HTMLInputElement).value };
+        touch(true);
+      };
+
+      (sideEl.querySelector('[data-km="edit-img"]') as HTMLButtonElement).onclick = () => {
+        avatarTargetId = node.id;
+        imgEl.click();
+      };
+
+      (sideEl.querySelector('[data-km="edit-noface"]') as HTMLButtonElement).onclick = () => {
+        node.avatar = undefined;
+        touch(true);
       };
 
       (sideEl.querySelector('[data-km="edit-kind"]') as HTMLSelectElement).onchange = (ev) => {
@@ -348,6 +499,7 @@ import {
         h: NODE_H,
         ports: [],
       };
+      resize(node);
       spec.nodes.push(node);
       newLabelEl.value = '';
       applySpec();

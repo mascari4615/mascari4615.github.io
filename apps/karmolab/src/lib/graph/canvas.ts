@@ -24,6 +24,7 @@ import type {
   GroupDef,
   EphemeralAnchor,
   EdgeKindDef,
+  NodeShape,
 } from './spec';
 import type { GraphPersistAdapter } from './adapter';
 import { NULL_PERSIST_ADAPTER } from './adapter';
@@ -703,38 +704,60 @@ export class GraphCanvas {
     g.style.cursor = 'grab';
 
     const kindColor = this.colorForKind(node.kind);
+    const shape: NodeShape = node.shape ?? 'rect';
 
-    // 배경 rect
-    const rect = document.createElementNS(SVG_NS, 'rect');
-    rect.setAttribute('width', String(node.w));
-    rect.setAttribute('height', String(effH));
-    rect.setAttribute('rx', '4');
-    rect.setAttribute('fill', this.theme.nodeFill);
-    rect.setAttribute('stroke', kindColor + '60');
-    rect.setAttribute('stroke-width', '1.5');
-    g.appendChild(rect);
+    // 배경 — 모양에 따라 카드 / 동그라미 / 말풍선
+    g.appendChild(this.buildNodeBackground(node, effH, kindColor, shape));
 
-    // 좌측 색띠
-    const bar = document.createElementNS(SVG_NS, 'rect');
-    bar.setAttribute('x', '0');
-    bar.setAttribute('y', '0');
-    bar.setAttribute('width', '3');
-    bar.setAttribute('height', String(effH));
-    bar.setAttribute('rx', '4');
-    bar.setAttribute('fill', kindColor);
-    g.appendChild(bar);
+    // 좌측 색띠 — 카드 모양일 때만 (동그라미·말풍선에선 띠가 어색하다)
+    if (shape === 'rect') {
+      const bar = document.createElementNS(SVG_NS, 'rect');
+      bar.setAttribute('x', '0');
+      bar.setAttribute('y', '0');
+      bar.setAttribute('width', '3');
+      bar.setAttribute('height', String(effH));
+      bar.setAttribute('rx', '4');
+      bar.setAttribute('fill', kindColor);
+      g.appendChild(bar);
+    }
 
     if (children.length === 0) {
-      // 자식 없음 — 기존 스타일: 레이블 수직 중앙
+      const centered = shape === 'circle';
+      const avatarEl = node.avatar ? this.buildNodeAvatar(node, effH, kindColor, centered) : null;
+      if (avatarEl) g.appendChild(avatarEl);
+
+      const hasNote = Boolean(node.note && node.note.trim());
+      const textX = centered ? node.w / 2 : node.avatar ? 40 : 12;
+      // 한마디가 있으면 이름을 위로 올리고 그 밑에 한 줄 더 놓는다.
+      const baseY = centered && node.avatar ? effH / 2 + 18 : effH / 2 + 4;
+      const labelY = hasNote ? baseY - 6 : baseY;
+
       const text = document.createElementNS(SVG_NS, 'text');
-      text.setAttribute('x', '12');
-      text.setAttribute('y', String(node.h / 2 + 4));
+      text.setAttribute('x', String(textX));
+      text.setAttribute('y', String(labelY));
+      if (centered) text.setAttribute('text-anchor', 'middle');
       text.setAttribute('fill', this.theme.nodeText);
       text.setAttribute('font-size', '11');
       text.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
       text.setAttribute('pointer-events', 'none');
       text.textContent = node.label;
       g.appendChild(text);
+
+      if (hasNote) {
+        const note = document.createElementNS(SVG_NS, 'text');
+        note.setAttribute('x', String(textX));
+        note.setAttribute('y', String(labelY + 13));
+        if (centered) note.setAttribute('text-anchor', 'middle');
+        note.setAttribute('fill', this.theme.childText);
+        note.setAttribute('font-size', '9.5');
+        note.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
+        note.setAttribute('pointer-events', 'none');
+        const room = centered ? node.w - 16 : node.w - textX - 10;
+        const maxChars = Math.max(4, Math.floor(room / 5.4));
+        const raw = node.note ?? '';
+        note.textContent = raw.length > maxChars ? raw.slice(0, maxChars - 1) + '…' : raw;
+        g.appendChild(note);
+      }
     } else {
       // 자식 있음 — 헤더 + 구분선 + 자식 목록
       const headerH = NODE_HEADER_H;
@@ -799,6 +822,121 @@ export class GraphCanvas {
     }
 
     return g;
+  }
+
+  /** 노드 배경 도형. 모양이 달라도 바깥에서 보는 상자 크기(w × effH)는 같다 — 선 연결 계산이 흔들리지 않게. */
+  private buildNodeBackground(node: GraphNode, effH: number, kindColor: string, shape: NodeShape): SVGElement {
+    const fill = this.theme.nodeFill;
+    const stroke = kindColor + '60';
+
+    if (shape === 'circle') {
+      const el = document.createElementNS(SVG_NS, 'ellipse');
+      el.setAttribute('cx', String(node.w / 2));
+      el.setAttribute('cy', String(effH / 2));
+      el.setAttribute('rx', String(node.w / 2));
+      el.setAttribute('ry', String(effH / 2));
+      el.setAttribute('fill', fill);
+      el.setAttribute('stroke', stroke);
+      el.setAttribute('stroke-width', '1.5');
+      return el;
+    }
+
+    if (shape === 'bubble') {
+      // 둥근 사각 + 왼쪽 아래 꼬리. 꼬리는 상자 *안쪽* 으로 그려 바깥 크기를 안 늘린다.
+      const r = 12;
+      const w = node.w;
+      const h = effH;
+      const el = document.createElementNS(SVG_NS, 'path');
+      el.setAttribute(
+        'd',
+        `M ${r} 0 H ${w - r} A ${r} ${r} 0 0 1 ${w} ${r} V ${h - r - 6} A ${r} ${r} 0 0 1 ${w - r} ${h - 6}` +
+          ` H ${Math.min(34, w - r)} L ${Math.min(20, w - r - 6)} ${h} L ${Math.min(24, w - r - 4)} ${h - 6}` +
+          ` H ${r} A ${r} ${r} 0 0 1 0 ${h - r - 6} V ${r} A ${r} ${r} 0 0 1 ${r} 0 Z`
+      );
+      el.setAttribute('fill', fill);
+      el.setAttribute('stroke', stroke);
+      el.setAttribute('stroke-width', '1.5');
+      return el;
+    }
+
+    const rect = document.createElementNS(SVG_NS, 'rect');
+    rect.setAttribute('width', String(node.w));
+    rect.setAttribute('height', String(effH));
+    rect.setAttribute('rx', '4');
+    rect.setAttribute('fill', fill);
+    rect.setAttribute('stroke', stroke);
+    rect.setAttribute('stroke-width', '1.5');
+    return rect;
+  }
+
+  /**
+   * 노드 얼굴 — 이모지 / 색 원 / 사진. 사진은 `clipPath` 로 동그랗게 자른다.
+   * clip id 는 캔버스 uid + 노드 id 로 만든다 — 한 페이지에 캔버스가 둘 이상 떠도 안 섞이게.
+   */
+  private buildNodeAvatar(node: GraphNode, effH: number, kindColor: string, centered: boolean): SVGGElement | null {
+    const avatar = node.avatar;
+    if (!avatar) return null;
+    const r = 12;
+    const cx = centered ? node.w / 2 : 22;
+    const cy = centered ? Math.max(r + 6, effH / 2 - 12) : effH / 2;
+
+    const wrap = document.createElementNS(SVG_NS, 'g') as SVGGElement;
+    wrap.setAttribute('pointer-events', 'none');
+
+    if (avatar.kind === 'image') {
+      const clipId = `ck-av-${this.uid}-${node.id}`;
+      const defs = document.createElementNS(SVG_NS, 'defs');
+      const clip = document.createElementNS(SVG_NS, 'clipPath');
+      clip.setAttribute('id', clipId);
+      const circle = document.createElementNS(SVG_NS, 'circle');
+      circle.setAttribute('cx', String(cx));
+      circle.setAttribute('cy', String(cy));
+      circle.setAttribute('r', String(r));
+      clip.appendChild(circle);
+      defs.appendChild(clip);
+      wrap.appendChild(defs);
+
+      const img = document.createElementNS(SVG_NS, 'image');
+      img.setAttribute('x', String(cx - r));
+      img.setAttribute('y', String(cy - r));
+      img.setAttribute('width', String(r * 2));
+      img.setAttribute('height', String(r * 2));
+      img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+      img.setAttribute('clip-path', `url(#${clipId})`);
+      img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', avatar.value);
+      img.setAttribute('href', avatar.value);
+      wrap.appendChild(img);
+
+      const ring = document.createElementNS(SVG_NS, 'circle');
+      ring.setAttribute('cx', String(cx));
+      ring.setAttribute('cy', String(cy));
+      ring.setAttribute('r', String(r));
+      ring.setAttribute('fill', 'none');
+      ring.setAttribute('stroke', kindColor + '90');
+      ring.setAttribute('stroke-width', '1.5');
+      wrap.appendChild(ring);
+      return wrap;
+    }
+
+    const disc = document.createElementNS(SVG_NS, 'circle');
+    disc.setAttribute('cx', String(cx));
+    disc.setAttribute('cy', String(cy));
+    disc.setAttribute('r', String(r));
+    disc.setAttribute('fill', avatar.kind === 'color' ? avatar.value : kindColor + '25');
+    disc.setAttribute('stroke', kindColor + '70');
+    disc.setAttribute('stroke-width', '1');
+    wrap.appendChild(disc);
+
+    if (avatar.kind === 'emoji') {
+      const t = document.createElementNS(SVG_NS, 'text');
+      t.setAttribute('x', String(cx));
+      t.setAttribute('y', String(cy + 5));
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('font-size', '14');
+      t.textContent = avatar.value;
+      wrap.appendChild(t);
+    }
+    return wrap;
   }
 
   private renderEphemeralLayer(): void {
