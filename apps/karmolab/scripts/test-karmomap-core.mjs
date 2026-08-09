@@ -220,6 +220,21 @@ const M = await loadModules();
   eq(a2.side2, 'top', '상대는 윗 면으로 받는다');
 }
 
+// ── 선의 휨 ────────────────────────────────────────────────────────────────
+{
+  const { cmath } = M;
+  const a = { x: 0, y: 0, w: 100, h: 40 };
+  const b = { x: 400, y: 0, w: 100, h: 40 };
+  const g = cmath.edgeCurve(a, b, 0);
+  check(g.c1.x > g.p1.x, '제어점은 나가는 면 **바깥쪽**으로 밀린다');
+  check(g.c2.x < g.p2.x, '받는 쪽도 바깥쪽으로');
+  eq(Math.round(g.p1.y), Math.round(g.p2.y), '나란한 두 상자는 같은 높이에서 잇는다');
+  const bent = cmath.edgeCurve(a, b, 0.3);
+  check(Math.abs(bent.c1.y - g.c1.y) > 1, '휨을 주면 제어점이 옆으로 밀린다');
+  const back = cmath.edgeCurve(a, b, -0.3);
+  check((bent.c1.y - g.c1.y) * (back.c1.y - g.c1.y) < 0, '부호를 바꾸면 반대쪽으로 휜다');
+}
+
 // ── 미니맵 투영 ─────────────────────────────────────────────────────────────
 {
   const { cmath } = M;

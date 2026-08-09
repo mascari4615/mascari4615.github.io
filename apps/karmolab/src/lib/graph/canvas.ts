@@ -35,7 +35,7 @@ import { resolveDoc, displayDoc } from './notes';
 import { exportSvgString } from './canvas-export';
 import { buildNodeAvatar } from './canvas-avatar';
 import { buildNodeBackground } from './canvas-shape';
-import { chooseAnchors } from './canvas-math';
+import { chooseAnchors, edgeCurve } from './canvas-math';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
   fitProjection, projectPoint, viewportRectOnMap } from './canvas-math';
@@ -1788,33 +1788,8 @@ export class GraphCanvas {
     const b1 = this.getNodeBox(this.parseNodeRef(edge.from));
     const b2 = this.getNodeBox(this.parseNodeRef(edge.to));
     if (!b1 || !b2) return null;
-    const { p1, p2, side1, side2 } = this.chooseAnchors(b1, b2);
-    const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-    const push = Math.max(40, dist * 0.4);
-    const off = (side: string, p: { x: number; y: number }) => {
-      switch (side) {
-        case 'top':    return { x: p.x, y: p.y - push };
-        case 'bottom': return { x: p.x, y: p.y + push };
-        case 'left':   return { x: p.x - push, y: p.y };
-        case 'right':  return { x: p.x + push, y: p.y };
-        default:       return { x: p.x, y: p.y };
-      }
-    };
-    const c1 = off(side1, p1);
-    const c2 = off(side2, p2);
-    const curve = edge.curve ?? 0;
-    if (curve) {
-      // 두 점을 잇는 직선의 법선 방향으로 제어점을 함께 밀어 좌우로 휘게 한다.
-      const dx = p2.x - p1.x;
-      const dy = p2.y - p1.y;
-      const len = Math.hypot(dx, dy) || 1;
-      const nx = -dy / len;
-      const ny = dx / len;
-      const amp = curve * len;
-      c1.x += nx * amp; c1.y += ny * amp;
-      c2.x += nx * amp; c2.y += ny * amp;
-    }
-    return { p1, c1, c2, p2 };
+    // 곡선 셈법은 canvas-math 가 안다 — 여기서는 **어느 상자인지**만 찾는다.
+    return edgeCurve(b1, b2, edge.curve ?? 0);
   }
 
   /** 베지어 위 한 점 (t=0~1). 이름표·손잡이 자리를 잡는 데 쓴다. */
