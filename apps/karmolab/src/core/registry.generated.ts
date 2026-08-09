@@ -8,6 +8,7 @@ import { run as chainRun, spec as chainSpec } from './chain';
 import { run as charcountRun, spec as charcountSpec } from './charcount';
 import { run as csvjsonRun, spec as csvjsonSpec } from './csvjson';
 import { run as dailyRun, spec as dailySpec } from './daily';
+import { run as dailychoRun, spec as dailychoSpec } from './dailycho';
 import { run as dailytypeRun, spec as dailytypeSpec } from './dailytype';
 import { run as datecalcRun, spec as datecalcSpec } from './datecalc';
 import { run as epochRun, spec as epochSpec } from './epoch';
@@ -43,6 +44,7 @@ export const CORES: Record<string, CoreEntry> = {
   charcount: { run: charcountRun, ops: Object.keys(charcountSpec.ops) },
   csvjson: { run: csvjsonRun, ops: Object.keys(csvjsonSpec.ops) },
   daily: { run: dailyRun, ops: Object.keys(dailySpec.ops) },
+  dailycho: { run: dailychoRun, ops: Object.keys(dailychoSpec.ops) },
   dailytype: { run: dailytypeRun, ops: Object.keys(dailytypeSpec.ops) },
   datecalc: { run: datecalcRun, ops: Object.keys(datecalcSpec.ops) },
   epoch: { run: epochRun, ops: Object.keys(epochSpec.ops) },
