@@ -110,6 +110,12 @@
       "initials"
     ]
   },
+  "livecount": {
+    "ops": [
+      "since",
+      "rate"
+    ]
+  },
   "loan": {
     "ops": [
       "schedule",

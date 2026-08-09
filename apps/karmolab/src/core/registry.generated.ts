@@ -20,6 +20,7 @@ import { run as hangultypeRun, spec as hangultypeSpec } from './hangultype';
 import { run as hashgenRun, spec as hashgenSpec } from './hashgen';
 import { run as interestRun, spec as interestSpec } from './interest';
 import { run as jamoRun, spec as jamoSpec } from './jamo';
+import { run as livecountRun, spec as livecountSpec } from './livecount';
 import { run as loanRun, spec as loanSpec } from './loan';
 import { run as passgenRun, spec as passgenSpec } from './passgen';
 import { run as qrgenRun, spec as qrgenSpec } from './qrgen';
@@ -57,6 +58,7 @@ export const CORES: Record<string, CoreEntry> = {
   hashgen: { run: hashgenRun, ops: Object.keys(hashgenSpec.ops) },
   interest: { run: interestRun, ops: Object.keys(interestSpec.ops) },
   jamo: { run: jamoRun, ops: Object.keys(jamoSpec.ops) },
+  livecount: { run: livecountRun, ops: Object.keys(livecountSpec.ops) },
   loan: { run: loanRun, ops: Object.keys(loanSpec.ops) },
   passgen: { run: passgenRun, ops: Object.keys(passgenSpec.ops) },
   qrgen: { run: qrgenRun, ops: Object.keys(qrgenSpec.ops) },

@@ -1952,6 +1952,71 @@ try {
 }
 check(convThrew, '빈 글은 던진다');
 
+// ── ②-38 흐른 시간 세기 (달을 30일로 나누면 틀린다) ────────────────────────
+const lc = await load('src/core/livecount.ts');
+eq(lc.spec.id, 'livecount', 'livecount spec.id');
+
+const D = (s2) => new Date(s2);
+
+/* ★ 달은 달력대로 — 30일로 나누면 3월생과 2월생의 나이가 달라진다. */
+const oneMonth = lc.elapsed(D('2026-01-31T00:00:00'), D('2026-02-28T00:00:00'));
+eq(oneMonth.months, 0, '1월 31일 → 2월 28일 은 아직 한 달이 안 됐다');
+eq(oneMonth.days, 28, '28일 지남');
+const exactMonth = lc.elapsed(D('2026-01-15T00:00:00'), D('2026-02-15T00:00:00'));
+eq(exactMonth.months, 1, '15일 → 15일 은 딱 한 달');
+eq(exactMonth.days, 0, '날짜 나머지 0');
+
+const oneYear = lc.elapsed(D('2025-08-10T00:00:00'), D('2026-08-10T00:00:00'));
+eq(oneYear.years, 1, '1년');
+eq(oneYear.months, 0, '나머지 개월 0');
+
+/* 시·분·초가 모자라면 윗자리에서 빌린다. */
+const borrow = lc.elapsed(D('2026-08-09T23:30:00'), D('2026-08-10T00:15:00'));
+eq(borrow.days, 0, '하루가 안 됐다');
+eq(borrow.hours, 0, '0시간');
+eq(borrow.minutes, 45, '45분');
+
+/* 미래는 「-3일」이 아니라 「남음」이다. */
+const soon = lc.elapsed(D('2026-08-20T00:00:00'), D('2026-08-10T00:00:00'));
+check(soon.future === true, '미래를 알아본다');
+eq(soon.days, 10, '10일');
+check(lc.humanElapsed(soon).endsWith('남음'), `남았다고 말한다: ${lc.humanElapsed(soon)}`);
+check(lc.humanElapsed(lc.elapsed(D('2026-08-01T00:00:00'), D('2026-08-10T00:00:00'))).endsWith('지남'), '과거는 지났다고');
+
+/* 0인 앞자리는 안 읽는다 — 「0년 0개월 3일」은 읽기 나쁘다. */
+const short = lc.humanElapsed(lc.elapsed(D('2026-08-07T00:00:00'), D('2026-08-10T00:00:00')));
+eq(short, '3일 지남', `짧은 것은 짧게: ${short}`);
+const hoursOnly = lc.humanElapsed(lc.elapsed(D('2026-08-10T00:00:00'), D('2026-08-10T05:30:00')));
+check(hoursOnly.includes('시간'), `하루 미만은 시간으로: ${hoursOnly}`);
+
+/* 비율 환산 — 값은 내되 「어림」은 부르는 쪽이 붙인다. */
+const tenDays = lc.elapsed(D('2026-08-01T00:00:00'), D('2026-08-11T00:00:00'));
+eq(lc.project(tenDays, 3), 30, '하루 3번 × 10일 = 30');
+eq(lc.project(tenDays, 0), 0, '0이면 0');
+let lcThrew = false;
+try {
+  lc.project(tenDays, -1);
+} catch {
+  lcThrew = true;
+}
+check(lcThrew, '음수 횟수는 던진다');
+
+const rateOut = lc.run('rate', { at: '2026-08-01T00:00:00', now: '2026-08-11T00:00:00', perDay: 3, unit: '잔' });
+check(rateOut.startsWith('30잔'), `run rate: ${rateOut.split(String.fromCharCode(10))[0]}`);
+check(rateOut.includes('어림'), '어림이라고 반드시 적는다');
+
+const sinceOut = lc.run('since', { at: '2026-01-15T00:00:00', now: '2026-02-15T00:00:00' });
+check(sinceOut.includes('1개월'), 'run since');
+check(sinceOut.includes('달력대로'), '어떻게 셌는지 밝힌다');
+
+let badDate = false;
+try {
+  lc.run('since', { at: '어제' });
+} catch {
+  badDate = true;
+}
+check(badDate, '못 읽는 날짜는 던진다');
+
 // ── 마무리 ──────────────────────────────────────────────────────────────────
 fs.rmSync(outDir, { recursive: true, force: true });
 process.stdout.write('\n');

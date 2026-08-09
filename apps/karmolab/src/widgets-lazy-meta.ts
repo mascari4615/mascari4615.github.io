@@ -221,6 +221,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/devtool']
   },
   {
+    id: 'livecount',
+    title: '흐른 시간 카운터',
+    category: 'tool',
+    desc: '그날 이후 흐른 시간이 초 단위로 올라간다 — 하루 몇 번 기준 어림도',
+    layout: 'wide',
+    icon: '<circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/livecount']
+  },
+  {
     id: 'comparepic',
     title: '비교 슬라이더',
     category: 'tool',
