@@ -38,6 +38,7 @@ import { renderLinkSections, bindLinkSections } from './panels/links-section';
 import { avatarFieldHtml, bindAvatarField } from './panels/avatar-section';
 import { tagsFieldHtml, bindTagsField } from './panels/tags-section';
 import { membershipFieldHtml, bindMembershipField } from './panels/membership-section';
+import { shapeFieldHtml, tiltFieldHtml, bindLookFields } from './panels/look-section';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -934,14 +935,7 @@ import {
         </div>
         <div data-km="link-sections">${renderLinkSections(panelCtx, node)}</div>
         ${membershipFieldHtml(panelCtx, node)}
-        <div class="km-field">
-          <label>모양</label>
-          <select data-km="edit-shape">
-            ${SHAPES.map(
-              (s) => `<option value="${s.id}"${(node.shape ?? 'rect') === s.id ? ' selected' : ''}>${s.icon} ${s.label}</option>`
-            ).join('')}
-          </select>
-        </div>
+        ${shapeFieldHtml(panelCtx, node, SHAPES)}
         <div class="km-field">
           <label>가리키는 대상</label>
           <select data-km="edit-attach">
@@ -960,10 +954,7 @@ import {
           </select>
           <div class="km-hint">고르면 이 노드에서 그쪽으로 옅은 점선이 이어집니다. 관계선과 달리 종류·화살표가 없습니다.</div>
         </div>
-        <div class="km-field">
-          <label>기울기 <span class="km-tilt-val">${Math.round(node.rotate ?? 0)}°</span></label>
-          <input type="range" data-km="edit-rotate" min="-20" max="20" step="1" value="${Math.round(node.rotate ?? 0)}" />
-        </div>
+        ${tiltFieldHtml(panelCtx, node)}
         ${avatarFieldHtml(panelCtx, node)}
         <div class="km-field">
           <label>이 노드에서 연결 만들기</label>
@@ -1045,17 +1036,6 @@ import {
         persistStructure();
       };
 
-      const rotateEl = sideEl.querySelector('[data-km="edit-rotate"]') as HTMLInputElement;
-      rotateEl.oninput = () => {
-        const deg = Number(rotateEl.value);
-        node.rotate = deg === 0 ? undefined : deg;
-        const out = sideEl.querySelector('.km-tilt-val');
-        if (out) out.textContent = `${deg}°`;
-        canvas?.render();
-        canvas?.setSelectedNode(node.id);
-        persistStructure();
-      };
-
       // 복제 — 같은 설정 그대로 옆에 하나 더 (레퍼런스의 「カード複製」).
       (sideEl.querySelector('[data-km="node-copy"]') as HTMLButtonElement).onclick = () => {
         const taken = new Set(spec.nodes.map((n) => n.id));
@@ -1072,10 +1052,7 @@ import {
         renderSide();
       };
 
-      (sideEl.querySelector('[data-km="edit-shape"]') as HTMLSelectElement).onchange = (ev) => {
-        node.shape = (ev.target as HTMLSelectElement).value as NodeShape;
-        touch(false);
-      };
+      bindLookFields(panelCtx, node, touch);
 
       bindAvatarField(panelCtx, node, touch);
 
