@@ -85,5 +85,9 @@
   "howto.exifclean.2": "Strip it and download",
   "howto.epoch.0": "Paste a number, or pick a time",
   "howto.epoch.1": "The other side follows automatically",
-  "howto.epoch.2": "Copy it in seconds or milliseconds"
+  "howto.epoch.2": "Copy it in seconds or milliseconds",
+  "howto.textclean.0": "Paste your text on the left",
+  "howto.textclean.1": "Tick the steps you want",
+  "howto.textclean.2": "Set sorting, letter case and prefixes",
+  "howto.textclean.3": "Copy the result"
 }
