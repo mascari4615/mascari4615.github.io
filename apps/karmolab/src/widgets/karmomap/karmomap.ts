@@ -54,7 +54,7 @@ import { commentsSectionHtml, bindCommentsSection } from './panels/comments-sect
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap, layoutCircle, layoutHierarchy, layoutTimeline, bestTimeField } from './tidy';
 import { computeSna, topBy } from './sna';
-import { encodeShare, decodeShare, shareCodeFromLocation, buildShareUrl, isReadOnlyLink, withNodeAnchor, nodeAnchorFromLocation, SHARE_URL_LIMIT } from './share';
+import { encodeShare, decodeShare, shareCodeFromLocation, buildShareUrl, isReadOnlyLink, withNodeAnchor, nodeAnchorFromLocation, SHARE_URL_LIMIT, stripImages } from './share';
 import {
   loadLibrary, setActive, renameMap, touchMap, addMap, removeMap, mapKey,
   type LibraryIndex,
@@ -1982,14 +1982,26 @@ import {
     function makeShareLink(readOnly: boolean): void {
       const live = canvas?.getSpec() ?? spec;
       void encodeShare(live).then(async (code) => {
-        const url = buildShareUrl(new URL(location.href), code, readOnly);
+        let url = buildShareUrl(new URL(location.href), code, readOnly);
         if (url.length > SHARE_URL_LIMIT) {
-          alert(
-            `그림이 커서 링크로는 못 보냅니다 (${Math.round(url.length / 1000)}k자).
+          // 한계를 넘기는 것은 거의 언제나 사진이다. 「파일로 보내세요」로 끝내면 사진 한 장 때문에
+          // 링크 공유가 통째로 막힌다 — 사진만 덜어 낸 링크를 먼저 권한다(얼굴은 첫 글자로 뜬다).
+          const lean = stripImages(live);
+          const leanUrl = lean.removed > 0
+            ? buildShareUrl(new URL(location.href), await encodeShare(lean.spec), readOnly)
+            : url;
+          if (lean.removed > 0 && leanUrl.length <= SHARE_URL_LIMIT
+            && confirm(`사진 ${lean.removed}장 때문에 링크가 깁니다.
+사진만 빼고 보낼까요? (관계·이름·칸은 그대로, 얼굴은 첫 글자로 보입니다)`)) {
+            url = leanUrl;
+          } else {
+            alert(
+              `그림이 커서 링크로는 못 보냅니다 (${Math.round(url.length / 1000)}k자).
 ` +
-            '「JSON 내보내기」로 파일을 보내 주세요. (사진을 붙인 노드가 특히 큽니다)'
-          );
-          return;
+              '「JSON 내보내기」로 파일을 보내 주세요. (사진을 붙인 노드가 특히 큽니다)'
+            );
+            return;
+          }
         }
         try {
           await navigator.clipboard.writeText(url);
