@@ -49,5 +49,8 @@
   "bluemarble.layer.apod": "Picture of the day",
   "bluemarble.line.apod": "Today NASA picked “{title}” as the picture of the day.",
   "bluemarble.line.apodBy": "Today NASA picked “{title}” — photographed by {who}.",
-  "bluemarble.layer.tour": "Earth news"
+  "bluemarble.layer.tour": "Earth news",
+  "bluemarble.layer.dusk": "Follow the sunset",
+  "bluemarble.line.dusk": "Along this line the sun is setting right now. On the other side it is rising.",
+  "bluemarble.line.duskCity": "The sun is setting around {city} right now."
 }
