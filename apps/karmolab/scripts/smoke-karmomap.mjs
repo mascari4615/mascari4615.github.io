@@ -1271,6 +1271,9 @@ await step('본 — 한 벌을 떠서 다른 맵에 찍는다', async () => {
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
   await page.locator('[data-km="stamps"]').dispatchEvent('click');
   await page.waitForSelector('[data-km="stamp-put"]', { timeout: 4000 });
+  // 본 이름만 보면 「그래서 뭐가 들었더라」가 남는다 — 든 카드 이름이 함께 보여야 고를 수 있다.
+  const stampText = await page.evaluate(() => document.querySelector('.km-side')?.textContent || '');
+  if (!stampText.includes('본갑')) throw new Error('본 목록에 든 카드 이름이 안 보인다');
   await page.locator('[data-km="stamp-put"]').first().dispatchEvent('click');
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 2, null, { timeout: 4000 });
   const names = await page.evaluate(() => [...document.querySelectorAll('.ck-node text')].map((t) => t.textContent).join('|'));
