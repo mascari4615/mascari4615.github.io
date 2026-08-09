@@ -41,6 +41,7 @@ import { renderGroups, computeGroupBox } from './canvas-group';
 import { nodeBadges } from './canvas-badges';
 import { buildChildCard } from './canvas-children';
 import { buildCardText } from './canvas-card';
+import { buildCanvasDom } from './canvas-dom';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
@@ -334,103 +335,16 @@ export class GraphCanvas {
   // ── DOM 구성 ────────────────────────────────────────────────────────────────
 
   private buildDOM(): void {
-    this.container.style.position = 'relative';
-    this.container.style.overflow = 'hidden';
-    this.container.style.width = '100%';
-    this.container.style.height = '100%';
-    // 배경 = 부모(KarmoLab) 상속. --ck-canvas-bg 로 커스텀 가능.
-    this.container.style.background = 'var(--ck-canvas-bg, transparent)';
-
-    // 메인 SVG
-    this.svg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
-    // touch-action:none — 안 주면 브라우저가 손가락 끌기를 「페이지 스크롤」로 먼저 먹어서
-    // 터치 기기에서 노드가 안 끌린다(마우스로만 되니 개발 중엔 안 보인다).
-    // color — 배경 무늬가 currentColor 를 쓴다. 테마 글자색을 따라가야 밝은/어두운 판 둘 다 산다.
-    // ★ absolute inset:0 — `height:100%` 는 부모가 **높이를 지정했을 때만** 먹는다.
-    //   부모가 flex 나 min-height 로 커진 경우엔 % 기준이 없어 svg 가 내용 높이(작게)로 남고,
-    //   아랫부분을 눌러도 클릭이 svg 에 안 닿는다 — 화면은 멀쩡해 보이는데 아래쪽만 죽는다
-    //   (실측 2026-08-09: 캔버스 420px 인데 svg 는 그보다 짧아 하단 더블클릭이 무시됐다).
-    this.svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none;color:var(--text-primary,#cbd5e1);';
-    this.svg.setAttribute('xmlns', SVG_NS);
-
-    // defs (마커·필터) — id 는 전역 고정. 캔버스가 여러 개여도 정의가 동일하므로
-    // url(#ck-glow) 가 어느 쪽을 잡아도 결과가 같다 (CSS 가 이 id 를 참조한다).
-    const defs = document.createElementNS(SVG_NS, 'defs');
-    defs.innerHTML = `
-      <marker id="ck-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-        <path d="M0,0 L0,6 L6,3 z" fill="${this.theme.edgeDefaultColor}"/>
-      </marker>
-      <!-- 출발 쪽 화살표. SVG2 의 orient="auto-start-reverse" 로 마커 하나를 돌려 쓸 수도 있지만,
-           그 값을 안 받는 렌더러에선 화살표가 뒤집힌 채 조용히 나온다. 마커 하나 더가 싸다. -->
-      <marker id="ck-arrow-start" markerWidth="6" markerHeight="6" refX="1" refY="3" orient="auto">
-        <path d="M6,0 L6,6 L0,3 z" fill="${this.theme.edgeDefaultColor}"/>
-      </marker>
-      <filter id="ck-glow" x="-30%" y="-30%" width="160%" height="160%">
-        <feGaussianBlur stdDeviation="3" result="blur"/>
-        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-    `;
-    // 배경 무늬 (TASK-KL-202 격차 I) — world 안이 아니라 화면에 깔고 patternTransform 으로
-    // 같이 움직인다. world 안에 두면 무한 캔버스를 덮을 만큼 큰 사각형이 필요해진다.
-    const pat = document.createElementNS(SVG_NS, 'g');
-    pat.innerHTML = `
-      <pattern id="ck-bg-dots-${this.uid}" width="${BG_CELL}" height="${BG_CELL}" patternUnits="userSpaceOnUse">
-        <circle cx="1" cy="1" r="1" fill="currentColor" opacity="0.30"/>
-      </pattern>
-      <pattern id="ck-bg-grid-${this.uid}" width="${BG_CELL}" height="${BG_CELL}" patternUnits="userSpaceOnUse">
-        <path d="M ${BG_CELL} 0 L 0 0 0 ${BG_CELL}" fill="none" stroke="currentColor" stroke-width="1" opacity="0.16"/>
-      </pattern>
-      <pattern id="ck-bg-cross-${this.uid}" width="${BG_CELL}" height="${BG_CELL}" patternUnits="userSpaceOnUse">
-        <path d="M ${BG_CELL / 2} ${BG_CELL / 2 - 3} v6 M ${BG_CELL / 2 - 3} ${BG_CELL / 2} h6" fill="none" stroke="currentColor" stroke-width="1" opacity="0.22"/>
-      </pattern>
-    `;
-    while (pat.firstChild) defs.appendChild(pat.firstChild);
-    this.svg.appendChild(defs);
-
-    this.bgRect = document.createElementNS(SVG_NS, 'rect') as SVGRectElement;
-    this.bgRect.setAttribute('class', 'ck-bg');
-    this.bgRect.setAttribute('x', '0');
-    this.bgRect.setAttribute('y', '0');
-    this.bgRect.setAttribute('width', '100%');
-    this.bgRect.setAttribute('height', '100%');
-    this.bgRect.setAttribute('pointer-events', 'none');
-    this.bgRect.setAttribute('fill', `url(#ck-bg-dots-${this.uid})`);
-    this.svg.appendChild(this.bgRect);
-
-    // world group (pan/zoom matrix)
-    this.world = document.createElementNS(SVG_NS, 'g') as SVGGElement;
-    this.world.setAttribute('class', 'ck-world');
-    this.svg.appendChild(this.world);
-
-    this.groupLayer = document.createElementNS(SVG_NS, 'g') as SVGGElement;
-    this.groupLayer.setAttribute('class', 'ck-groups');
-    this.world.appendChild(this.groupLayer);
-
-    this.edgeLayer = document.createElementNS(SVG_NS, 'g') as SVGGElement;
-    this.edgeLayer.setAttribute('class', 'ck-edges');
-    this.world.appendChild(this.edgeLayer);
-
-    this.nodeLayer = document.createElementNS(SVG_NS, 'g') as SVGGElement;
-    this.nodeLayer.setAttribute('class', 'ck-nodes');
-    this.world.appendChild(this.nodeLayer);
-
-    this.container.appendChild(this.svg);
-
-    // 미니맵
-    this.minimapSvg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
-    this.minimapSvg.style.cssText = `
-      position:absolute; bottom:16px; right:16px;
-      width:${MINIMAP_W}px; height:${MINIMAP_H}px;
-      background:${this.theme.minimapBg}; border:1px solid ${this.theme.minimapBorder};
-      border-radius:4px; pointer-events:all; cursor:pointer;
-    `;
-    this.container.appendChild(this.minimapSvg);
-    this.minimapViewport = document.createElementNS(SVG_NS, 'rect') as SVGRectElement;
-    this.minimapViewport.setAttribute('fill', 'rgba(100,160,255,0.1)');
-    this.minimapViewport.setAttribute('stroke', 'rgba(100,160,255,0.5)');
-    this.minimapViewport.setAttribute('stroke-width', '1');
-    this.minimapSvg.appendChild(this.minimapViewport);
-
+    // 뼈대(층 순서·배경 무늬·미니맵)는 canvas-dom 이 안다.
+    const dom = buildCanvasDom(this.container, this.uid, this.theme);
+    this.svg = dom.svg;
+    this.world = dom.world;
+    this.groupLayer = dom.groupLayer;
+    this.edgeLayer = dom.edgeLayer;
+    this.nodeLayer = dom.nodeLayer;
+    this.bgRect = dom.bgRect;
+    this.minimapSvg = dom.minimapSvg;
+    this.minimapViewport = dom.minimapViewport;
     this.applyTransform();
   }
 
