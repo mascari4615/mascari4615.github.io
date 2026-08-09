@@ -174,6 +174,15 @@
 
           let widgetSort: WidgetSort = 'bytes';
           let frameLine = '';
+          /**
+           * 「안 열어도 아는」 전체 위젯 무게 (TASK-KL-201 ⑪).
+           *
+           * 브라우저는 **받은 것만** 안다 — 이 세션에서 안 연 위젯 200여 개는 계기판에 없다.
+           * 빌드가 재 둔 기준선(`data/bundle-baseline.json`, gzip)을 읽어 그 빈자리를 메운다.
+           * 못 읽으면 「없다」가 아니라 **못 읽었다**고 적는다(파일이 없는 판일 수 있다).
+           */
+          let allSizes: Record<string, number> | null = null;
+          let allSizesState: 'loading' | 'ok' | 'fail' = 'loading';
 
           container.innerHTML = `
             <div class="pf-wrap">
@@ -416,6 +425,31 @@
               }`;
           }
 
+          /** 전체 위젯 무게 — 이 세션에서 안 연 것까지 (TASK-KL-201 ⑪). */
+          function allWidgetTable(snap: Snap): string {
+            if (allSizesState === 'loading') return '<div class="pf-none">전체 무게를 읽는 중…</div>';
+            if (allSizesState === 'fail' || !allSizes) {
+              return '<div class="pf-none">전체 무게를 <b>못 읽었습니다</b> — <code>data/bundle-baseline.json</code> 이 없는 판입니다(<code>npm run audit:bundles -- --update</code>). 아래 위젯 표는 <b>이 세션에서 연 것만</b>이라 전부가 아닙니다.</div>';
+            }
+            const opened = new Set(snap.widgets.map((w) => w.id));
+            const rows = Object.entries(allSizes).sort((a, b) => b[1] - a[1]);
+            const total = rows.reduce((sum, [, bytes]) => sum + bytes, 0);
+            return `<div class="pf-scroll"><table class="pf-table">
+              <thead><tr><th>위젯 묶음</th><th>gzip</th><th>이번에 열었나</th></tr></thead>
+              <tbody>${rows
+                .slice(0, 15)
+                .map(([name, bytes]) => {
+                  const id = name.replace(/\.js$/, '').split('/')[0];
+                  return `<tr>
+                    <td>${esc(name)}</td>
+                    <td${tone(bytes, 24 * 1024, 48 * 1024)}>${kb(bytes)}</td>
+                    <td>${opened.has(id) || opened.has(name.replace(/\.js$/, '')) ? '열었음' : ''}</td>
+                  </tr>`;
+                })
+                .join('')}</tbody></table></div>
+              <p class="pf-sec-note">전부 ${rows.length}개 · gzip 합계 <b>${kb(total)}</b> (한 사람이 다 받지는 않습니다 — 누른 것만 받습니다). 이 표는 <b>빌드가 재 둔 값</b>이라 안 열어 본 위젯도 보입니다. 한계 64KB·회귀 래칫은 <code>npm run audit:bundles</code> 가 CI 에서 봅니다.</p>`;
+          }
+
           /** 도메인별 — 「남의 것이 우리 것보다 무겁나」 (TASK-KL-201 ⑤). */
           function hostTable(snap: Snap): string {
             if (!snap.hosts.length) return '<div class="pf-none">받은 것이 없습니다.</div>';
@@ -626,6 +660,11 @@
               html: widgetTable,
             },
             {
+              key: 'allwidgets', title: '전체 위젯 무게 — 안 열어도 아는 것',
+              note: '위 표는 <b>이번에 연 것만</b>입니다. 여기는 빌드가 재 둔 전부 — 아무도 안 연 위젯이 뚱뚱해지는 것을 이 자리에서 봅니다.',
+              html: allWidgetTable,
+            },
+            {
               key: 'files', title: '받은 것 — 무거운 15개',
               note: '서비스 워커가 답한 것은 브라우저가 크기를 안 알려 줍니다 — 그 줄은 「—」입니다.',
               html: heavyFiles,
@@ -731,6 +770,19 @@
           });
 
           render();
+
+          /* 전체 무게는 파일 하나를 더 받아야 안다 — 첫 그림을 막지 않게 **그린 뒤에** 받는다.
+             실패해도 계기판은 그대로 돈다(그 칸만 「못 읽었다」로 남는다). */
+          void fetch('/apps/karmolab/data/bundle-baseline.json', { cache: 'no-cache' })
+            .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+            .then((data: { sizes?: Record<string, number> }) => {
+              allSizes = data.sizes || null;
+              allSizesState = allSizes ? 'ok' : 'fail';
+            })
+            .catch(() => {
+              allSizesState = 'fail';
+            })
+            .then(() => render());
 
           /* 이 화면 **자기 줄**은 첫 그림 때 비어 있다 (TASK-KL-201).
              순서가 그렇다: 스크립트를 받는 도중에 등록·그리기가 일어나고, 「눌러서 준비까지」는
