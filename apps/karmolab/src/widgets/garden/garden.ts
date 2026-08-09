@@ -15,7 +15,7 @@
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { ruleForDay, ruleTable, rng, type Rule } from './rules';
-import { Life, Watcher, type Stats, type Event } from './life';
+import { Life, Watcher, quality, type Stats, type Event } from './life';
 
 (function (): void {
   if (typeof Toolbox === 'undefined') return;
@@ -211,8 +211,16 @@ import { Life, Watcher, type Stats, type Event } from './life';
             if (paused) return;
             acc += dt;
             /* 오래 굴리면 어떤 규칙이든 판을 다 채우고 그때부터는 잡음이다.
-               600세대쯤에서 새로 심는다 — 볼거리는 「자라는 동안」에 있다. */
-            if (last && last.gen >= 600) reseed();
+               언제 그렇게 되는지는 규칙마다 다르므로 **화면을 직접 재서** 판단한다
+               (30세대에 한 번, `quality()`). 그래도 안 걸리는 경우를 위해 상한도 둔다. */
+            if (last && last.gen % 30 === 0 && last.gen > 60) {
+              const ev = watcher.judge(quality(life), last.gen);
+              if (ev) {
+                say(sentence(ev));
+                window.setTimeout(() => alive && reseed(), 3200);
+              }
+            }
+            if (last && last.gen >= 1500) reseed();
             const stepMs = 1000 / GPS;
             let steps = 0;
             while (acc >= stepMs && steps < 4) {

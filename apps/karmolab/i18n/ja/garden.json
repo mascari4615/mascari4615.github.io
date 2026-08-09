@@ -14,5 +14,7 @@
   "garden.event.bloom": "{gen}世代で急に {v} 倍に増えました。",
   "garden.event.collapse": "{gen}世代で {v}% が一度に消えました。",
   "garden.event.drift": "{gen}世代 — 何かが片側へ流れています。",
-  "garden.event.steady": "{gen}世代目、まだ誰も死んでいません。"
+  "garden.event.steady": "{gen}世代目、まだ誰も死んでいません。",
+  "garden.event.noise": "{gen}世代 — 形がすっかり散りました。ここから先はただの雑音です。",
+  "garden.event.crowded": "{gen}世代 — 盤を埋め尽くしました。もう育つ場所がありません。"
 }
