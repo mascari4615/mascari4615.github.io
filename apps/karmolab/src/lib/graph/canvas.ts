@@ -5,7 +5,7 @@
  * - 1개 <g transform="matrix(s 0 0 s tx ty)"> 안에 전체 콘텐츠.
  * - 노드: <g class="ck-node" data-id="…"> rect + text + ports.
  * - edge: 베지어 path — 두 박스의 가장 가까운 면 쌍 자동 선택.
- * - 드래그: mousedown → mousemove → mouseup → debounce save.
+ * - 드래그: pointerdown → pointermove → pointerup → debounce save (터치·펜 포함, 두 손가락 = 핀치 줌).
  * - 미니맵: 우하단 200×150 overlay SVG.
  * - Ephemeral 노드: 외부(수집기)가 발행하는 임시 노드 (anchor bbox stack).
  *
@@ -172,6 +172,14 @@ export class GraphCanvas {
   // 패닝 상태
   private panning: { startMouseX: number; startMouseY: number; startTx: number; startTy: number } | null = null;
 
+  /** 지금 화면에 닿아 있는 포인터들 — 손가락 두 개를 알아보려면 세고 있어야 한다. */
+  private activePointers: Map<number, { x: number; y: number }> = new Map();
+  private pinch: {
+    startDist: number; startScale: number;
+    startTx: number; startTy: number;
+    startMidX: number; startMidY: number;
+  } | null = null;
+
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private pendingSaves: Map<string, { x: number; y: number; kind: 'node' | 'anchor' | 'group' }> = new Map();
 
@@ -189,7 +197,7 @@ export class GraphCanvas {
   /** 손잡이에서 끌고 있는 중. 임시 선은 edgeLayer 에 그렸다가 놓을 때 지운다. */
   private linking: { fromId: string; temp: SVGPathElement } | null = null;
 
-  /** mousedown 지점 — mouseup 때 이동량으로 클릭/드래그를 가른다. */
+  /** 누른 지점 — 뗄 때 이동량으로 클릭/드래그를 가른다. */
   private pressOrigin: { x: number; y: number; nodeId: string | null } | null = null;
 
   constructor(container: HTMLElement, options: GraphCanvasOptions = {}) {
@@ -239,7 +247,9 @@ export class GraphCanvas {
 
     // 메인 SVG
     this.svg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
-    this.svg.style.cssText = 'width:100%;height:100%;cursor:grab;';
+    // touch-action:none — 안 주면 브라우저가 손가락 끌기를 「페이지 스크롤」로 먼저 먹어서
+    // 터치 기기에서 노드가 안 끌린다(마우스로만 되니 개발 중엔 안 보인다).
+    this.svg.style.cssText = 'width:100%;height:100%;cursor:grab;touch-action:none;';
     this.svg.setAttribute('xmlns', SVG_NS);
 
     // defs (마커·필터) — id 는 전역 고정. 캔버스가 여러 개여도 정의가 동일하므로
@@ -311,8 +321,27 @@ export class GraphCanvas {
       this.applyTransform();
     }, { passive: false });
 
-    // Pan (mousedown on svg background) / drag (mousedown on node)
-    this.svg.addEventListener('mousedown', (e) => {
+    // Pan (배경 누름) / drag (노드 누름) / pinch (손가락 둘)
+    this.svg.addEventListener('pointerdown', (e) => {
+      // 손가락 두 개 = 핀치 줌. 첫 손가락이 시작한 드래그는 접고 확대·축소로 넘어간다.
+      this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (this.activePointers.size === 2) {
+        const [a, b] = [...this.activePointers.values()];
+        this.pinch = {
+          startDist: Math.hypot(b.x - a.x, b.y - a.y) || 1,
+          startScale: this.state.scale,
+          startTx: this.state.tx,
+          startTy: this.state.ty,
+          startMidX: (a.x + b.x) / 2,
+          startMidY: (a.y + b.y) / 2,
+        };
+        this.dragging = null;
+        this.draggingGroup = null;
+        this.panning = null;
+        this.pressOrigin = null;
+        return;
+      }
+      if (this.activePointers.size > 2) return;
       const target = e.target as Element;
       const handleEl = target.closest('.ck-link-handle') as SVGCircleElement | null;
       const nodeEl = target.closest('.ck-node') as SVGGElement | null;
@@ -399,7 +428,25 @@ export class GraphCanvas {
       }
     });
 
-    window.addEventListener('mousemove', (e) => {
+    window.addEventListener('pointermove', (e) => {
+      if (this.activePointers.has(e.pointerId)) {
+        this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      }
+      if (this.pinch && this.activePointers.size >= 2) {
+        const [a, b] = [...this.activePointers.values()];
+        const dist = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+        const { left, top } = this.svg.getBoundingClientRect();
+        const ratio = dist / this.pinch.startDist;
+        const newScale = Math.max(0.1, Math.min(5, this.pinch.startScale * ratio));
+        // 두 손가락 사이 지점을 화면에 고정한 채 배율만 바꾼다(휠 줌과 같은 규칙).
+        const mx = this.pinch.startMidX - left;
+        const my = this.pinch.startMidY - top;
+        this.state.tx = mx - (mx - this.pinch.startTx) * (newScale / this.pinch.startScale);
+        this.state.ty = my - (my - this.pinch.startTy) * (newScale / this.pinch.startScale);
+        this.state.scale = newScale;
+        this.applyTransform();
+        return;
+      }
       if (this.linking) {
         const from = this.getNodeBox(this.linking.fromId);
         if (from) {
@@ -477,7 +524,14 @@ export class GraphCanvas {
       }
     });
 
-    window.addEventListener('mouseup', (e) => {
+    window.addEventListener('pointerup', (e) => {
+      this.activePointers.delete(e.pointerId);
+      if (this.pinch) {
+        // 손가락 하나가 떨어지면 핀치는 끝. 남은 손가락으로 이어서 끌지는 않는다
+        // (핀치 도중 한 손가락이 뜨는 건 흔한데, 거기서 화면이 확 튀면 놀란다).
+        if (this.activePointers.size < 2) this.pinch = null;
+        return;
+      }
       if (this.linking) {
         const { fromId, temp } = this.linking;
         this.linking = null;
@@ -503,6 +557,19 @@ export class GraphCanvas {
       this.dragging = null;
       this.draggingGroup = null;
       this.panning = null;
+      this.svg.style.cursor = 'grab';
+    });
+
+    // 손가락이 화면 밖으로 나가거나 시스템이 제스처를 가로채면 여기로 온다 —
+    // 안 지우면 「끌고 있는 중」 상태가 남아 다음 터치가 이상하게 동작한다.
+    window.addEventListener('pointercancel', (e) => {
+      this.activePointers.delete(e.pointerId);
+      if (this.activePointers.size < 2) this.pinch = null;
+      this.dragging = null;
+      this.draggingGroup = null;
+      this.panning = null;
+      this.linking?.temp.remove();
+      this.linking = null;
       this.svg.style.cursor = 'grab';
     });
 
