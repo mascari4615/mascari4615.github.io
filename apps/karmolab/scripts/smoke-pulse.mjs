@@ -15,7 +15,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { chromium } from 'playwright';
+import { launchOrSkip } from './lib/browser.mjs';
 import { stripJekyll } from './lib/serve-static.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -50,7 +50,8 @@ const server = http.createServer((req, res) => {
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const BASE = `http://127.0.0.1:${server.address().port}`;
 
-const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
+const browser = await launchOrSkip('pulse', { args: ['--autoplay-policy=no-user-gesture-required'] });
+if (!browser) process.exit(0);
 const ctx = await browser.newContext({ viewport: { width: 1200, height: 1200 }, serviceWorkers: 'block' });
 const page = await ctx.newPage();
 

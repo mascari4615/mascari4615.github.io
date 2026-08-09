@@ -11,7 +11,7 @@
  *
  * 사용: node scripts/smoke-region.mjs
  */
-import { chromium } from 'playwright';
+import { launchOrSkip } from './lib/browser.mjs';
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -51,7 +51,8 @@ const server = http.createServer((req, res) => {
 });
 await new Promise((r) => server.listen(PORT, r));
 
-const browser = await chromium.launch();
+const browser = await launchOrSkip('region');
+if (!browser) process.exit(0);
 const fail = [];
 
 for (const c of CASES) {

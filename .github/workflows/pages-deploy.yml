@@ -225,7 +225,11 @@ jobs:
         run: |
           npm run gen:tool-pages-locale
           npm run test:i18n:pages
+          # 브라우저를 쓰는 검사는 **여기서** 돈다 — 앞쪽 `npm run build` 자리에는 아직 브라우저가
+          # 없어서 거기서는 스스로 「못 돈다」고 말하고 비킨다(TASK-KL-203 S17). 실제로 보는 곳은 여기.
           npm run test:widget-i18n
+          npm run test:region
+          npm run test:lang
 
       # TASK-KL-128 ②③: 화면을 옮기는 길이 실제로 빠른가 (미리 실행·이어 붙이기·뒤로 가기).
       #
