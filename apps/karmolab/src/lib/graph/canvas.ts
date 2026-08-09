@@ -100,6 +100,8 @@ export interface GraphCanvasOptions {
    * 캔버스가 `spec` 의 그 선을 직접 고치고, 저장은 위젯이 한다.
    */
   onEdgeChanged?: (edgeId: string) => void;
+  /** 선을 클릭했을 때. 주면 선마다 「잡이 선」이 깔린다. */
+  onEdgeClick?: (edgeId: string) => void;
   /** 여럿을 한 번에 골랐을 때 (Shift+배경 드래그). 이 콜백을 주면 범위 고르기가 켜진다. */
   onSelectMany?: (nodeIds: string[]) => void;
   /** 묶음을 손으로 고쳤을 때(이름표 자리). 주면 이름표를 끌 수 있게 된다. */
@@ -226,6 +228,7 @@ export class GraphCanvas {
   private onBackgroundDoubleClick?: (world: { x: number; y: number }) => void;
   private onConnect?: (fromId: string, toId: string) => void;
   private onEdgeChanged?: (edgeId: string) => void;
+  private onEdgeClick?: (edgeId: string) => void;
   private onSelectMany?: (nodeIds: string[]) => void;
   private onGroupChanged?: (groupId: string) => void;
   /** 묶음 이름표를 옮기는 중. */
@@ -236,11 +239,13 @@ export class GraphCanvas {
   private selectedIds: Set<string> = new Set();
   private multiDrag: Map<string, { x: number; y: number }> | null = null;
   /** 선을 휘거나 이름표를 옮기는 중. */
-  private edgeDrag: { edgeId: string; mode: 'curve' | 'label' } | null = null;
+  private edgeDrag: { edgeId: string; mode: 'curve' | 'label'; moved: boolean } | null = null;
   /** 선 끝점을 다른 노드로 옮기는 중. */
   private rewiring: { edgeId: string; end: 'from' | 'to'; temp: SVGPathElement } | null = null;
   /** 지금 「여기 놓으면 붙는다」로 밝혀 둔 노드. */
   private hintEl: SVGGElement | null = null;
+  /** 누른 자리가 어느 선이었나 — 뗄 때 클릭으로 칠지 판단한다. */
+  private pressEdgeId: string | null = null;
   /** 포커스 대상 id — null 이면 포커스 없음. */
   private focusIds: Set<string> | null = null;
   /**
@@ -276,6 +281,7 @@ export class GraphCanvas {
     this.onBackgroundDoubleClick = options.onBackgroundDoubleClick;
     this.onConnect = options.onConnect;
     this.onEdgeChanged = options.onEdgeChanged;
+    this.onEdgeClick = options.onEdgeClick;
     this.onSelectMany = options.onSelectMany;
     this.onGroupChanged = options.onGroupChanged;
     instanceSeq += 1;
@@ -489,7 +495,7 @@ export class GraphCanvas {
         if (edgeId) {
           e.stopPropagation();
           e.preventDefault();
-          this.edgeDrag = { edgeId, mode: gripEl ? 'curve' : 'label' };
+          this.edgeDrag = { edgeId, mode: gripEl ? 'curve' : 'label', moved: false };
           this.pressOrigin = null;
           return;
         }
@@ -516,6 +522,8 @@ export class GraphCanvas {
         }
       }
 
+      const hitEl = target.closest('.ck-edge-hit') as SVGPathElement | null;
+      this.pressEdgeId = hitEl?.dataset.edgeId ?? null;
       this.pressOrigin = { x: e.clientX, y: e.clientY, nodeId: nodeEl?.dataset.id ?? null };
       if (nodeEl) {
         const nodeId = nodeEl.dataset.id ?? '';
@@ -678,6 +686,7 @@ export class GraphCanvas {
         return;
       }
       if (this.edgeDrag) {
+        this.edgeDrag.moved = true;
         const edge = this.spec?.edges.find((x) => x.id === this.edgeDrag?.edgeId);
         if (!edge) return;
         const b1 = this.getNodeBox(this.parseNodeRef(edge.from));
@@ -835,8 +844,10 @@ export class GraphCanvas {
         return;
       }
       if (this.edgeDrag) {
-        const { edgeId } = this.edgeDrag;
+        const { edgeId, mode, moved } = this.edgeDrag;
         this.edgeDrag = null;
+        // 이름표를 「눌렀다 뗀」 것뿐이면 옮기려던 게 아니라 **그 선을 보려던** 것이다.
+        if (mode === 'label' && !moved) { this.onEdgeClick?.(edgeId); return; }
         this.onEdgeChanged?.(edgeId);
         return;
       }
@@ -860,8 +871,10 @@ export class GraphCanvas {
         const moved = Math.hypot(e.clientX - origin.x, e.clientY - origin.y);
         if (moved < CLICK_SLOP) {
           if (origin.nodeId) this.onNodeClick?.(origin.nodeId, e);
+          else if (this.pressEdgeId) this.onEdgeClick?.(this.pressEdgeId);
           else if (this.panning) this.onBackgroundClick?.();
         }
+        this.pressEdgeId = null;
       }
       this.dragging = null;
       this.draggingGroup = null;
@@ -1654,7 +1667,24 @@ export class GraphCanvas {
       }
       return c;
     };
-    const out: SVGElement[] = [path, mkDot(p1.x, p1.y, 'from'), mkDot(p2.x, p2.y, 'to')];
+    const out: SVGElement[] = [];
+    if (this.onEdgeClick) {
+      // ★ 보이지 않는 두꺼운 선을 밑에 깐다. 1.5px 짜리 선을 정확히 찍는 건 사람에게 무리다
+      //   — 눈에 보이는 굵기와 **잡을 수 있는 굵기**는 다른 값이어야 한다.
+      const hit = document.createElementNS(SVG_NS, 'path');
+      hit.setAttribute('class', 'ck-edge-hit');
+      hit.dataset.edgeId = edge.id;
+      hit.setAttribute('d', path.getAttribute('d') ?? '');
+      hit.setAttribute('fill', 'none');
+      hit.setAttribute('stroke', 'transparent');
+      // ★ 투명한 선은 기본 규칙(visiblePainted)에서 「안 칠해진 것」으로 취급돼 클릭을 못 받는다.
+      //   잡이 선은 눈에 안 보이는 게 목적이므로 규칙을 stroke 로 바꿔 준다.
+      hit.setAttribute('pointer-events', 'stroke');
+      hit.setAttribute('stroke-width', '14');
+      hit.style.cursor = 'pointer';
+      out.push(hit);
+    }
+    out.push(path, mkDot(p1.x, p1.y, 'from'), mkDot(p2.x, p2.y, 'to'));
     if (this.onEdgeChanged) {
       const g = this.edgeGeom(edge);
       if (g) {

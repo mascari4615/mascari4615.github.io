@@ -98,6 +98,12 @@ export interface GraphEdge {
   arrowStart?: boolean;
   /** 이름표 자리. 0 = 출발점, 0.5 = 가운데(기본), 1 = 도착점. */
   labelPos?: number;
+  /**
+   * 이 관계에 대한 긴 설명 (TASK-KL-202 격차 Z). 「언제부터 라이벌인가」 같은 것은
+   * 어느 한쪽 인물의 설명이 아니라 **그 선의 이야기**다 — 노드에만 적을 곳을 두면 갈 데가 없다.
+   */
+  doc?: string;
+  tags?: string[];
 }
 
 export interface GroupDef {
