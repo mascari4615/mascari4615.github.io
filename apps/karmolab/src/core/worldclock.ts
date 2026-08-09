@@ -70,7 +70,11 @@ export function wallOf(at: Date, zone: string): string {
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false
+    /* `hour12: false` 만 주면 **자정을 24:00 으로** 내는 판이 있다(ICU 판마다 다르다).
+       실제로 CI(리눅스)에서만 `2026-01-09 24:00` 이 나와 검사가 빨개졌다 — 로컬은 00:00.
+       `hourCycle: 'h23'` 을 못 박아 어디서나 00~23 으로 만든다. */
+    hour12: false,
+    hourCycle: 'h23'
   }).formatToParts(at);
   const get = (t: string): string => p.find((x) => x.type === t)?.value ?? '';
   return `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')}`;
