@@ -30,6 +30,7 @@ import { renderSnaPanel } from './panels/sna-panel';
 import { renderStoragePanel } from './panels/storage-panel';
 import { renderFilterPanel } from './panels/filter-panel';
 import { renderTermsPanel } from './panels/terms-panel';
+import { renderGroupsPanel } from './panels/groups-panel';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -605,94 +606,6 @@ import {
       return group;
     }
 
-    function renderGroupsPanel(): void {
-      sideEl.classList.remove('hidden');
-      canvas?.setSelectedNode(null);
-      sideEl.innerHTML = `
-        <h4>🫧 묶음</h4>
-        <div class="km-hint">노드를 고른 뒤 「묶음」에서 넣으세요. 묶음 머리를 끌면 안에 든 노드가 같이 움직입니다.</div>
-        <div class="km-field">
-          ${
-            spec.groups.length === 0
-              ? '<div class="km-hint">아직 묶음이 없습니다.</div>'
-              : spec.groups
-                  .map((g) => {
-                    const count = spec.nodes.filter((n) => memberOf(n).includes(g.id)).length;
-                    return `<div class="km-group-row" data-group="${escapeAttr(g.id)}">
-                      <input type="color" data-km="group-color" value="${escapeAttr(g.color)}" title="색" />
-                      <input type="text" data-km="group-label" value="${escapeAttr(g.label)}" />
-                      <span class="km-group-count">${count}</span>
-                      <button class="btn btn-ghost" data-km="group-shape" title="테두리 모양 — 윤곽/네모">${(g.shape ?? 'box') === 'hull' ? '⬡' : '▭'}</button>
-                      <button class="btn btn-ghost" data-km="group-eye" title="상자 보이기/숨기기">${g.hidden ? '🚫' : '👁'}</button>
-                      <button class="btn btn-ghost" data-km="group-del" title="묶음 삭제">×</button>
-                    </div>`;
-                  })
-                  .join('')
-          }
-        </div>
-        <button class="btn btn-primary" data-km="group-add">+ 새 묶음</button>
-        <button class="btn btn-ghost" data-km="group-close">닫기</button>`;
-
-      (sideEl.querySelector('[data-km="group-add"]') as HTMLButtonElement).onclick = () => {
-        createGroup();
-        applySpec();
-        persistStructure();
-        renderSide();
-      };
-      (sideEl.querySelector('[data-km="group-close"]') as HTMLButtonElement).onclick = () => {
-        sideMode = 'node';
-        renderSide();
-      };
-
-      sideEl.querySelectorAll('.km-group-row').forEach((rowEl) => {
-        const row = rowEl as HTMLElement;
-        const gid = row.dataset.group ?? '';
-        const find = (): GroupDef | undefined => spec.groups.find((g) => g.id === gid);
-        (row.querySelector('[data-km="group-label"]') as HTMLInputElement).oninput = (ev) => {
-          const g = find();
-          if (!g) return;
-          g.label = (ev.target as HTMLInputElement).value;
-          canvas?.render();
-          persistStructure();
-        };
-        (row.querySelector('[data-km="group-color"]') as HTMLInputElement).oninput = (ev) => {
-          const g = find();
-          if (!g) return;
-          g.color = (ev.target as HTMLInputElement).value;
-          canvas?.render();
-          persistStructure();
-        };
-        (row.querySelector('[data-km="group-shape"]') as HTMLButtonElement).onclick = (ev) => {
-          const g = find();
-          if (!g) return;
-          g.shape = (g.shape ?? 'box') === 'hull' ? 'box' : 'hull';
-          (ev.currentTarget as HTMLButtonElement).textContent = g.shape === 'hull' ? '⬡' : '▭';
-          canvas?.render();
-          persistStructure();
-        };
-        (row.querySelector('[data-km="group-eye"]') as HTMLButtonElement).onclick = (ev) => {
-          const g = find();
-          if (!g) return;
-          // 상자만 감춘다 — 소속은 그대로라 다시 켜면 그대로 나온다.
-          g.hidden = g.hidden ? undefined : true;
-          (ev.currentTarget as HTMLButtonElement).textContent = g.hidden ? '🚫' : '👁';
-          canvas?.render();
-          persistStructure();
-        };
-        (row.querySelector('[data-km="group-del"]') as HTMLButtonElement).onclick = () => {
-          // 묶음만 없앤다 — 안에 든 노드는 그 자리에 남는다.
-          spec.groups = spec.groups.filter((g) => g.id !== gid);
-          for (const n of spec.nodes) {
-            const rest = memberOf(n).filter((x) => x !== gid);
-            if (rest.length !== memberOf(n).length) setMembership(n, rest);
-          }
-          applySpec();
-          persistStructure();
-          renderSide();
-        };
-      });
-    }
-
     // ── 내 용어 (격차 A-2) ───────────────────────────────────────────────────
     /** 용어가 바뀌면 색표·선 정의를 캔버스에 다시 넘겨야 그린 것이 따라온다. */
     function applyTerms(): void {
@@ -1040,6 +953,10 @@ import {
       esc: (s0) => escapeHtml(s0),
       terms,
       applyTerms: () => applyTerms(),
+      createGroup: () => createGroup(),
+      memberOf: (node) => memberOf(node),
+      setMembership: (node, ids) => setMembership(node, ids),
+      applySpec: () => applySpec(),
       filterState,
       applyFilter: () => applyFilter(),
       applyDecorate: () => {
@@ -1132,7 +1049,7 @@ import {
 
     function renderSideBody(): void {
       if (sideMode === 'groups') {
-        renderGroupsPanel();
+        renderGroupsPanel(panelCtx);
         return;
       }
       if (sideMode === 'terms') {
