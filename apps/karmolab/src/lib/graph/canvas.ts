@@ -35,7 +35,7 @@ import { resolveDoc, displayDoc } from './notes';
 import { exportSvgString } from './canvas-export';
 import { buildNodeAvatar } from './canvas-avatar';
 import { buildNodeBackground, buildNoteCardBody } from './canvas-shape';
-import { chooseAnchors, edgeCurve, boundsOf, zoomAt } from './canvas-math';
+import { chooseAnchors, edgeCurve, boundsOf, zoomAt, rectFromPoints, rectHits } from './canvas-math';
 import { buildEdgePath, buildEdgeLabel, buildLeaderLine } from './canvas-edge';
 import { renderGroups, computeGroupBox } from './canvas-group';
 import { nodeBadges } from './canvas-badges';
@@ -585,12 +585,11 @@ export class GraphCanvas {
       }
       if (this.marquee) {
         const w = this.screenToWorld(e.clientX, e.clientY);
-        const x = Math.min(this.marquee.x0, w.x);
-        const y = Math.min(this.marquee.y0, w.y);
-        this.marquee.rect.setAttribute('x', String(x));
-        this.marquee.rect.setAttribute('y', String(y));
-        this.marquee.rect.setAttribute('width', String(Math.abs(w.x - this.marquee.x0)));
-        this.marquee.rect.setAttribute('height', String(Math.abs(w.y - this.marquee.y0)));
+        const box = rectFromPoints({ x: this.marquee.x0, y: this.marquee.y0 }, w);
+        this.marquee.rect.setAttribute('x', String(box.x));
+        this.marquee.rect.setAttribute('y', String(box.y));
+        this.marquee.rect.setAttribute('width', String(box.w));
+        this.marquee.rect.setAttribute('height', String(box.h));
         return;
       }
       if (this.multiDrag && this.dragging) {
@@ -766,11 +765,10 @@ export class GraphCanvas {
         const h = Number(r.getAttribute('height'));
         r.remove();
         this.marquee = null;
+        // 「조금이라도 겹치면 고른 것」 규칙은 canvas-math 가 안다.
         const hits = (this.spec?.nodes ?? []).filter((n) => {
           const c0 = this.nodeCoords.get(n.id) ?? { x: n.x, y: n.y };
-          const nh = this.getNodeEffectiveH(n);
-          // 조금이라도 겹치면 고른 것으로 본다 — 「완전히 감싸야 한다」는 잔 조작을 강요한다.
-          return c0.x < x + w && c0.x + n.w > x && c0.y < y + h && c0.y + nh > y;
+          return rectHits({ x, y, w, h }, { x: c0.x, y: c0.y, w: n.w, h: this.getNodeEffectiveH(n) });
         });
         this.setSelectedNodes(hits.map((n) => n.id));
         this.onSelectMany?.(hits.map((n) => n.id));
