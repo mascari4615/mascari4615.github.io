@@ -1,5 +1,5 @@
 {
-  "total": 7932,
+  "total": 7939,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -91,7 +91,7 @@
     "src/widgets/imagegen/presets.ts": 71,
     "src/widgets/imagegen/styles.ts": 1,
     "src/widgets/imagelib.ts": 22,
-    "src/widgets/karmomap/karmomap.ts": 57,
+    "src/widgets/karmomap/karmomap.ts": 60,
     "src/widgets/karmomap/library.ts": 9,
     "src/widgets/karmomap/local-storage-adapter.ts": 4,
     "src/widgets/karmomap/packs.ts": 92,
@@ -108,7 +108,7 @@
     "src/widgets/packwell.ts": 37,
     "src/widgets/particle.ts": 6,
     "src/widgets/password.ts": 19,
-    "src/widgets/perf/perf.ts": 56,
+    "src/widgets/perf/perf.ts": 60,
     "src/widgets/pet.ts": 13,
     "src/widgets/planner/planner.ts": 3,
     "src/widgets/play-course.ts": 4,

@@ -125,7 +125,37 @@ export function toLocalePage(html, { code, bare, site, codes, namespaces = ['sit
     `window.__KARMO_I18N=${JSON.stringify(inline)};</script>`;
   html = html.replace('</head>', `    ${boot}\n</head>`);
 
-  /* ⑦ 화면에 박힌 글. 표식(`data-i18n`)이 붙은 것만 바뀐다. */
+  /* ⑦ 도구 이름·설명. 목록이 만들어지는 자리에서 한 번에 갈아 끼우도록 표를 미리 박아 둔다
+     (`src/widgets-lazy-meta.ts` 끝의 한 줄이 이걸 읽는다). 읽는 곳이 넷이라 읽는 쪽에서
+     바꾸면 한 곳을 빠뜨린다 — 그 누락은 한국어를 읽는 사람 눈에 안 보인다. */
+  const names = {};
+  for (const [key, val] of Object.entries(catalog(code, 'widgets'))) {
+    const id = key.slice('widgets.'.length, -'.title'.length);
+    (names[id] ||= {}).title = val;
+  }
+  for (const [key, val] of Object.entries(catalog(code, 'widgets-desc'))) {
+    const id = key.slice('widgets-desc.'.length, -'.desc'.length);
+    (names[id] ||= {}).desc = val;
+  }
+  if (Object.keys(names).length) {
+    /* **대입되는 순간에 건다.**
+     *
+     * 처음에는 목록을 만드는 파일 끝에서 한 번 바꿨는데, 안 바뀌었다. 이 목록을 만드는 곳이
+     * **둘**이기 때문이다 — 원본(`widgets-lazy-meta`)과 빌드가 따로 구워 두는 가벼운 사본
+     * (`widgets-index`). 뒤에 오는 쪽이 통째로 덮어써서 앞에서 바꾼 것이 사라졌다(실측).
+     *
+     * 그래서 「누가 만드느냐」를 신경 쓰지 않는 자리로 옮긴다: 이 이름의 **대입 자체**를 가로채
+     * 들어오는 목록마다 갈아 끼운다. 만드는 쪽이 셋이 되든 순서가 바뀌든 계속 맞는다.
+     * 한국어 화면에는 이 조각이 아예 안 실린다. */
+    const hook = `<script>(function(){var M=${JSON.stringify(names)},v;
+Object.defineProperty(window,'KARMOLAB_LAZY_META',{configurable:true,
+get:function(){return v},
+set:function(a){v=a;if(Array.isArray(a))for(var i=0;i<a.length;i++){var m=M[a[i].id];if(m){if(m.title)a[i].title=m.title;if(m.desc)a[i].desc=m.desc}}}});
+})();</script>`;
+    html = html.replace('</head>', `    ${hook}\n</head>`);
+  }
+
+  /* ⑧ 화면에 박힌 글. 표식(`data-i18n`)이 붙은 것만 바뀐다. */
   html = applyDomStrings(html, code);
 
   return html;
