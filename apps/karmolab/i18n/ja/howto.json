@@ -192,5 +192,9 @@
   "howto.pdftool.0": "PDF をドラッグする（複数でも大丈夫）",
   "howto.pdftool.1": "やりたいことを選ぶ",
   "howto.pdftool.2": "ページ範囲を書く（1-3,5 の形）",
-  "howto.pdftool.3": "実行してダウンロードする"
+  "howto.pdftool.3": "実行してダウンロードする",
+  "howto.pdfsign.0": "契約書（PDF）を入れる",
+  "howto.pdfsign.1": "マウスか指で署名を書く",
+  "howto.pdfsign.2": "ページを選んでプレビューで置く場所を押す",
+  "howto.pdfsign.3": "大きさを合わせて入れてダウンロードする"
 }
