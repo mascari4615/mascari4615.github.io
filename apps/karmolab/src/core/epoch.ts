@@ -11,7 +11,7 @@
  * 「지금」은 인자로 받는다(`now`). 알맹이가 시계를 직접 보면 같은 입력에 답이 매번 달라져
  * 시험이 못 잡는다.
  */
-import type { ToolSpec } from './types';
+import type { ToolRunner, ToolSpec } from './types';
 
 export const spec: ToolSpec = {
   id: 'epoch',
@@ -107,3 +107,24 @@ export function stampRows(ms: number, now: number): Array<[string, string]> {
     ['나노초 (19자리)', String(Math.round(ms * 1e6))]
   ];
 }
+
+/**
+ * 이름으로 부르는 창구 (`types.ts` 의 ToolRunner).
+ * 「지금」이 필요한 답(`지금 기준`)은 `deps.now` 로 받는다 — 안 주면 시계를 본다.
+ */
+export const run: ToolRunner = (op, args, deps) => {
+  const now = typeof deps?.now === 'number' ? deps.now : Date.now();
+  if (op === 'toDate') {
+    const parsed = parseTimestamp(String(args.ts ?? ''));
+    if (parsed === null) throw new Error('타임스탬프에서 숫자를 못 찾았습니다');
+    // 기계가 읽을 답 = 무엇으로 읽었는지 + 값들. 사람이 봐도 바로 읽힌다.
+    const rows = stampRows(parsed.ms, now);
+    return [`${parsed.unit.label}로 읽음`, ...rows.map(([k, v]) => `${k}: ${v}`)].join('\n');
+  }
+  if (op === 'toStamp') {
+    const t = new Date(String(args.date ?? '')).getTime();
+    if (Number.isNaN(t)) throw new Error('시각을 못 읽었습니다 (ISO 8601 로 주세요)');
+    return Math.floor(t / 1000);
+  }
+  throw new Error(`epoch 에 「${op}」 는 없습니다`);
+};

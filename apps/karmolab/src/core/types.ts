@@ -33,6 +33,21 @@ export interface ToolSpec {
   ops: Record<string, OpSpec>;
 }
 
+/**
+ * 「이 도구를 이름으로 불러 달라」는 창구. 각 알맹이가 `spec` 과 짝으로 내놓는다.
+ *
+ * 왜 필요하냐: 주소 호출도 MCP 도 **연산 이름을 문자열로** 받는다(`op=encode`). 그때 어떤 함수를
+ * 부를지 부르는 쪽이 알고 있으면, 알맹이가 바뀔 때마다 부르는 쪽 세 군데를 같이 고쳐야 한다 —
+ * 그러다 하나를 빠뜨리면 조용히 안 되는 도구가 생긴다. 그래서 **알맹이가 자기 창구를 갖는다.**
+ *
+ * `deps` = 알맹이가 스스로 못 하는 것(예: 해시 계산기). 필요 없는 도구는 안 본다.
+ */
+export type ToolRunner = (
+  op: string,
+  args: Record<string, unknown>,
+  deps?: Record<string, unknown>
+) => string | number | boolean;
+
 /** `'boolean?'` → `'boolean'` 처럼 물음표를 뗀다. */
 export function baseType(t: FieldType): 'string' | 'number' | 'boolean' {
   return t.endsWith('?') ? (t.slice(0, -1) as 'string' | 'number' | 'boolean') : (t as 'string' | 'number' | 'boolean');

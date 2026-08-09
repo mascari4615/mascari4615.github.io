@@ -8,7 +8,7 @@
  * 화면 코드는 `widgets/tools/base64.ts` 에 있다. 여기엔 계산만 둔다 (`core/README.md`).
  * btoa·atob·TextEncoder 는 브라우저와 Node 둘 다에 있는 표준이라 이 파일은 양쪽에서 돈다.
  */
-import type { ToolSpec } from './types';
+import type { ToolRunner, ToolSpec } from './types';
 
 export const spec: ToolSpec = {
   id: 'base64',
@@ -46,3 +46,10 @@ export function decode(code: string): string {
 export function byteLength(text: string): number {
   return new TextEncoder().encode(text).length;
 }
+
+/** 이름으로 부르는 창구 (`types.ts` 의 ToolRunner). 주소 호출·MCP 가 이걸 쓴다. */
+export const run: ToolRunner = (op, args) => {
+  if (op === 'encode') return encode(String(args.text ?? ''), args.urlSafe === true);
+  if (op === 'decode') return decode(String(args.code ?? ''));
+  throw new Error(`base64 에 「${op}」 는 없습니다`);
+};
