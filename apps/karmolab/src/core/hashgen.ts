@@ -12,7 +12,7 @@
  * (해시 자체를 AI 가 대신 답하면 그럴듯한 거짓말이 나온다 — 그래서 이 도구는 MCP A등급이다.)
  */
 import { keccak, sha3 } from './sha3';
-import type { ToolSpec } from './types';
+import type { ToolRunner, ToolSpec } from './types';
 
 export type Algo = 'MD5' | 'SHA1' | 'SHA256' | 'SHA512' | 'SHA3_512' | 'KECCAK512' | 'RIPEMD160';
 
@@ -71,7 +71,9 @@ export const spec: ToolSpec = {
   id: 'hashgen',
   ops: {
     text: {
-      desc: '문자열의 MD5·SHA-1·SHA-256·SHA-512·SHA-3·RIPEMD-160 해시를 16진수로 계산한다.',
+      desc:
+        '문자열의 해시를 16진수로 계산한다. algo 를 주면 그것만, 안 주면 7종 전부' +
+        ' (MD5 · SHA-1 · SHA-256 · SHA-512 · SHA3-512(FIPS-202) · Keccak-512(표준 이전) · RIPEMD-160).',
       in: { text: 'string', algo: 'string?', upper: 'boolean?' },
       out: 'string'
     }
@@ -121,3 +123,25 @@ export function findMatch(hashes: Record<string, string>, expectedRaw: string): 
   }
   return null;
 }
+
+/**
+ * 이름으로 부르는 창구 (`types.ts` 의 ToolRunner).
+ * `deps.hash` = 해시 계산기. SHA3-512·Keccak-512 만 쓸 거면 없어도 되지만, 나머지 다섯에는 필요하다.
+ */
+export const run: ToolRunner = (op, args, deps) => {
+  if (op !== 'text') throw new Error(`hashgen 에 「${op}」 는 없습니다`);
+
+  const text = String(args.text ?? '');
+  const upper = args.upper === true;
+  const backend = (deps?.hash as HashBackend | undefined) ?? (() => {
+    throw new Error('해시 계산기가 없습니다 (deps.hash)');
+  });
+
+  const wanted = args.algo === undefined || args.algo === '' ? null : String(args.algo).toUpperCase().replace(/[-\s]/g, '_');
+  const rows = hashAll(text, backend, upper);
+  if (wanted === null) return rows.map((r) => `${r.label}: ${r.hex}`).join('\n');
+
+  const hit = rows.find((r) => r.algo === wanted || r.label.toUpperCase().replace(/[-\s]/g, '_') === wanted);
+  if (hit === undefined) throw new Error(`모르는 알고리즘입니다: ${String(args.algo)} (있는 것: ${ALGOS.join(' · ')})`);
+  return hit.hex;
+};

@@ -1,0 +1,15 @@
+{
+  "name": "karmolab-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "KarmoLab tools as an MCP server — the calculations our site does, callable by an AI agent. Zero dependencies.",
+  "bin": {
+    "karmolab-mcp": "./src/server.mjs"
+  },
+  "files": ["src", "dist", "README.md"],
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node ../../apps/karmolab/scripts/smoke-mcp.mjs"
+  }
+}
