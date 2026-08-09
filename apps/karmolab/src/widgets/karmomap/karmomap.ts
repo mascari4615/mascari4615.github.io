@@ -39,6 +39,7 @@ import { avatarFieldHtml, bindAvatarField } from './panels/avatar-section';
 import { tagsFieldHtml, bindTagsField } from './panels/tags-section';
 import { membershipFieldHtml, bindMembershipField } from './panels/membership-section';
 import { shapeFieldHtml, tiltFieldHtml, bindLookFields } from './panels/look-section';
+import { attachFieldHtml, bindAttachField } from './panels/attach-section';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -936,24 +937,7 @@ import {
         <div data-km="link-sections">${renderLinkSections(panelCtx, node)}</div>
         ${membershipFieldHtml(panelCtx, node)}
         ${shapeFieldHtml(panelCtx, node, SHAPES)}
-        <div class="km-field">
-          <label>가리키는 대상</label>
-          <select data-km="edit-attach">
-            <option value="">— 없음 —</option>
-            ${spec.nodes
-              .filter((n) => n.id !== node.id)
-              .map((n) => `<option value="${escapeAttr(n.id)}"${n.id === node.attachedTo ? ' selected' : ''}>${kindIcon(n.kind)} ${escapeHtml(n.label || '(이름 없음)')}</option>`)
-              .join('')}
-            ${spec.edges
-              .map((e) => {
-                const a = spec.nodes.find((n) => n.id === e.from)?.label ?? e.from;
-                const b = spec.nodes.find((n) => n.id === e.to)?.label ?? e.to;
-                return `<option value="${escapeAttr(e.id)}"${e.id === node.attachedTo ? ' selected' : ''}>― ${escapeHtml(a)} ↔ ${escapeHtml(b)}</option>`;
-              })
-              .join('')}
-          </select>
-          <div class="km-hint">고르면 이 노드에서 그쪽으로 옅은 점선이 이어집니다. 관계선과 달리 종류·화살표가 없습니다.</div>
-        </div>
+        ${attachFieldHtml(panelCtx, node)}
         ${tiltFieldHtml(panelCtx, node)}
         ${avatarFieldHtml(panelCtx, node)}
         <div class="km-field">
@@ -1028,13 +1012,7 @@ import {
 
       bindMembershipField(panelCtx, node);
 
-      (sideEl.querySelector('[data-km="edit-attach"]') as HTMLSelectElement).onchange = (ev) => {
-        const v = (ev.target as HTMLSelectElement).value;
-        node.attachedTo = v || undefined;
-        canvas?.render();
-        canvas?.setSelectedNode(node.id);
-        persistStructure();
-      };
+      bindAttachField(panelCtx, node, touch);
 
       // 복제 — 같은 설정 그대로 옆에 하나 더 (레퍼런스의 「カード複製」).
       (sideEl.querySelector('[data-km="node-copy"]') as HTMLButtonElement).onclick = () => {
