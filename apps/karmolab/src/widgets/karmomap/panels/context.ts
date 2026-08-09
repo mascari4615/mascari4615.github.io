@@ -102,4 +102,6 @@ export interface PanelCtx {
   // ── 설명 속 링크가 빌리는 것 ──────────────────────────────────────────
   /** 그 자리에 노드를 놓는다(이름이 비면 이름 칸에 커서). */
   spawnNodeAt: (x: number, y: number, label: string) => void;
+  /** 이름·모양이 바뀐 뒤 상자 크기를 다시 잰다. */
+  resizeNode: (node: GraphNode) => void;
 }
