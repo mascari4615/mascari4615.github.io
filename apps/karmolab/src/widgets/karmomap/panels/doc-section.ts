@@ -70,6 +70,8 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
   const shared = node.docRef ? notesOf(spec).find((n) => n.id === node.docRef) : undefined;
   const others = notesOf(spec).filter((n) => n.id !== node.docRef);
   const users = shared ? noteUsers(spec, shared.id) : 0;
+  // 다른 맵에서 쓰던 글도 고를 수 있어야 한다 — 맵마다 복붙하면 그 순간 갈라진다.
+  const foreign = ctx.foreignNotes();
 
   return `
     <div class="km-field">
@@ -83,9 +85,14 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
       ${shared
         ? `<button class="btn btn-ghost" data-km="${skin.key}-unlink">이 자리만 따로 쓰기 (사본으로 떼기)</button>`
         : `<button class="btn btn-ghost" data-km="${skin.key}-share">여러 곳에서 같이 쓰기 (공용 글로)</button>`}
-      ${others.length === 0 ? '' : `<select data-km="${skin.key}-use">
+      ${others.length === 0 && foreign.length === 0 ? '' : `<select data-km="${skin.key}-use">
         <option value="">— 있는 공용 글 불러 쓰기 —</option>
-        ${others.map((n) => `<option value="${esc(n.id)}">${esc(n.title || '메모')} (${noteUsers(spec, n.id)}곳)</option>`).join('')}
+        ${others.length === 0 ? '' : `<optgroup label="이 맵">
+          ${others.map((n) => `<option value="${esc(n.id)}">${esc(n.title || '메모')} (${noteUsers(spec, n.id)}곳)</option>`).join('')}
+        </optgroup>`}
+        ${foreign.length === 0 ? '' : `<optgroup label="다른 맵에서 쓰던 글">
+          ${foreign.slice(0, 20).map((n) => `<option value="${esc(n.id)}">${esc(n.title || '메모')} — ${esc(n.from ?? '다른 맵')}</option>`).join('')}
+        </optgroup>`}
       </select>`}
     </div>`;
 }
@@ -135,6 +142,8 @@ export function bindDocField(
   if (useSel) {
     useSel.onchange = () => {
       if (!useSel.value) return;
+      // 이 맵에 없는 글이면 먼저 데려온다(id 는 그대로 — 그래야 두 맵이 같은 글을 쓴다).
+      if (!notesOf(spec).some((n) => n.id === useSel.value)) ctx.adoptNote(useSel.value);
       useNote(spec, node, useSel.value);
       touch(true);
     };

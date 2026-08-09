@@ -658,6 +658,24 @@ await step('쪽지 모양 카드는 글이 카드 안에 보인다', async () =>
     { timeout: 4000 }
   );
 });
+await step('공용 글은 맵을 건너간다 — 새 맵에서도 고를 수 있다', async () => {
+  // 맵마다 복붙하면 그 순간 갈라진다. 새 맵을 만들고 **다른 맵에서 쓰던 글**이 목록에 뜨는지 본다.
+  await page.click('[data-km="map-new"]');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
+  const nbox = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.dblclick(nbox.x + nbox.width * 0.4, nbox.y + nbox.height * 0.4);
+  await page.waitForSelector('[data-km="edit-doc"]', { timeout: 4000 });
+  const group = page.locator('[data-km="edit-doc-use"] optgroup[label="다른 맵에서 쓰던 글"]');
+  if (await group.count() === 0) {
+    const lib = await page.evaluate(() => localStorage.getItem('karmomap.notes'));
+    throw new Error('다른 맵 글 목록이 없다 — 창고: ' + String(lib).slice(0, 200));
+  }
+  const optId = await group.locator('option').first().getAttribute('value');
+  await page.selectOption('[data-km="edit-doc-use"]', optId);
+  await page.waitForSelector('[data-km="edit-doc-unlink"]', { timeout: 4000 });
+  const text = await page.inputValue('[data-km="edit-doc"]');
+  if (!text.trim()) throw new Error('건너온 글이 비어 있다');
+});
 await step('맵 새로 만들기 → 빈 캔버스', async () => {
   await page.click('[data-km="map-new"]');
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
