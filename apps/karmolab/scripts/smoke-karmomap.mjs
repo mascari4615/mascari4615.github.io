@@ -216,6 +216,18 @@ await step('꼬리표를 붙이고 그 꼬리표로 거른다', async () => {
   await page.click('[data-km="f-reset"]');
   await page.click('[data-km="f-close"]');
 });
+await step('꼬리표로 색 입히기가 실제로 색을 바꾼다', async () => {
+  const strokeOf = () => page.evaluate(() => document.querySelector('.ck-node .ck-node-bg')?.getAttribute('stroke') || '');
+  const before = await strokeOf();
+  await page.click('[data-km="filter"]');
+  await page.locator('[data-km="f-colortag"]').check();
+  await page.waitForFunction((b) => {
+    const v = document.querySelector('.ck-node .ck-node-bg')?.getAttribute('stroke') || '';
+    return v !== b;
+  }, before, { timeout: 4000 });
+  await page.locator('[data-km="f-colortag"]').uncheck();
+  await page.click('[data-km="f-close"]');
+});
 await step('설명 속 [[이름]] 이 다른 노드로 이어진다', async () => {
   const nodes = page.locator('.ck-node');
   const second = await nodes.nth(1).getAttribute('data-id');
