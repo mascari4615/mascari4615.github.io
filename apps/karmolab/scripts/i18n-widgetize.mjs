@@ -47,7 +47,7 @@ function findWidget(id) {
         /* 등록하는 이름은 두 가지 꼴로 적힌다 — 직접 적거나(`id: 'moon'`), 미리 박아 둔 것을
          * 꺼내 쓰거나(`getLazyWidgetPublicMeta?.('memo')`). 뒤엣것을 못 알아보면 파일을 못 찾고,
          * 그러면 `tools/` 로 넘어가 엉뚱한 곳을 만진다. */
-        if (body.includes(`id: '${id}'`) || body.includes(`getLazyWidgetPublicMeta('${id}')`) || body.includes(`getLazyWidgetPublicMeta!('${id}')`) || body.includes(`getLazyWidgetPublicMeta?.('${id}')`)) hit.push(f);
+        if (body.includes(`id: '${id}'`) || body.includes(`getLazyWidgetPublicMeta('${id}')`) || body.includes(`getLazyWidgetPublicMeta!('${id}')`) || body.includes(`getLazyWidgetPublicMeta?.('${id}')`) || body.includes(`const ID = '${id}'`)) hit.push(f);
       }
     }
   })(path.join(ROOT, 'src/widgets'));
@@ -348,8 +348,10 @@ for (let at = src.indexOf(BUILD); at >= 0; at = src.indexOf(BUILD, at + 1)) {
  * 점으로 시작하는 줄만 먹으면 **첫 줄만 지워지고 반쪽이 남아** 그 파일 컴파일이 깨진다(worldcup 실측).
  * 그래서 첫 `;` 까지 통째로 먹는다 — 이 함수는 어차피 한 문장이다. */
 src = src.replace(/^[ \t]*const esc = \(s: string\): string =>[^;]*;[ \t]*\n/gm, '');
-// `function esc(s) { … }` 꼴도 같은 이유로 지운다 (이름만 다르고 하는 일은 같다)
-src = src.replace(/^[ \t]*function esc\(s: string\): string \{\n(?:[^\n]*\n){1,2}?[ \t]*\}\n/gm, '');
+/* `function esc(s) { … }` 꼴도 같은 이유로 지운다 (이름만 다르고 하는 일은 같다).
+ * 인자 이름·타입이 늘 `(s: string)` 은 아니고(`(value: unknown)`), 본문도 두 줄이 아닐 수 있다
+ * (`.replace` 를 줄마다 나눠 쓰는 판). 여는 줄부터 **같은 들여쓰기의 닫는 `}`** 까지 먹는다. */
+src = src.replace(/^([ \t]*)function esc\([^)]*\): string \{\n[\s\S]*?\n\1\}\n/gm, '');
 if (!/const esc = /.test(src) && src.includes('esc(t(')) {
   src = src.replace(
     /^\(function \(\): void \{/m,

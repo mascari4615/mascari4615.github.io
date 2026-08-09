@@ -1,5 +1,5 @@
 {
-  "total": 5331,
+  "total": 5282,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -142,7 +142,7 @@
     "src/widgets/laptop.ts": 16,
     "src/widgets/life/life.ts": 17,
     "src/widgets/linktree/linktree.ts": 23,
-    "src/widgets/localai/localai.ts": 54,
+    "src/widgets/localai/localai.ts": 5,
     "src/widgets/memo.ts": 2,
     "src/widgets/moon.ts": 3,
     "src/widgets/news.ts": 6,
