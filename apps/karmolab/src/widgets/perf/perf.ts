@@ -82,6 +82,7 @@
       readyP50: number | null; readyP75: number | null; lcpP50: number | null; lastAt: string;
     }>;
     hosts: Array<{ host: string; count: number; bytes: number | null; ms: number; ours: boolean }>;
+    unused: { bytes: number | null; rows: Array<{ id: string; bytes: number | null; atBoot: boolean }> };
     resources: Array<{
       url: string; kind: string; ms: number; bytes: number | null; transferred: number | null;
       dnsMs: number | null; connectMs: number | null; waitMs: number | null; downloadMs: number | null;
@@ -425,6 +426,31 @@
               }`;
           }
 
+          /**
+           * 받았는데 한 번도 안 그린 코드 (TASK-KL-201 ⑫ — DevTools 「Coverage」 자리).
+           * 브라우저는 「이 줄이 실행됐나」를 페이지에 안 알려 준다 → 우리가 아는 것으로 근사한다.
+           */
+          function unusedTable(snap: Snap): string {
+            const rows = snap.unused.rows;
+            if (!rows.length) return '<div class="pf-none">받은 위젯은 전부 화면에 나왔습니다.</div>';
+            const boot = rows.filter((r) => r.atBoot);
+            return `<div class="pf-scroll"><table class="pf-table">
+              <thead><tr><th>위젯</th><th>받은 양</th><th>부팅에 딸려왔나</th></tr></thead>
+              <tbody>${rows
+                .slice(0, 10)
+                .map(
+                  (row) => `<tr>
+                    <td>${esc(row.id)}</td>
+                    <td${row.atBoot ? tone(row.bytes, 5000, 20000) : ''}>${kb(row.bytes)}</td>
+                    <td>${row.atBoot ? '⚠ 부팅' : '눌러서 받음'}</td>
+                  </tr>`
+                )
+                .join('')}</tbody></table></div>
+              <p class="pf-sec-note">받았는데 이번에 한 번도 안 그린 것 ${rows.length}개 (${kb(snap.unused.bytes)}).
+                <b>「눌러서 받음」은 낭비가 아닙니다</b> — 곧 볼 화면일 수 있습니다. 문제는 <b>⚠ 부팅</b> 쪽입니다:
+                누르지도 않았는데 받았고 쓰이지도 않았습니다${boot.length ? ` (지금 ${boot.length}개)` : ' (지금 없음)'}.</p>`;
+          }
+
           /** 전체 위젯 무게 — 이 세션에서 안 연 것까지 (TASK-KL-201 ⑪). */
           function allWidgetTable(snap: Snap): string {
             if (allSizesState === 'loading') return '<div class="pf-none">전체 무게를 읽는 중…</div>';
@@ -658,6 +684,11 @@
               key: 'widgets', title: '위젯 — 무거운 순',
               note: '이 세션에서 실제로 연 것만 나옵니다. 「눌러서 준비까지」는 딸린 스크립트와 대기까지 포함한 시간이고, 「첫 그리기」가 16ms 를 넘으면 그 순간 한 프레임을 놓칩니다.',
               html: widgetTable,
+            },
+            {
+              key: 'unused', title: '받았는데 안 쓴 코드',
+              note: '브라우저는 「이 줄이 실행됐나」를 알려 주지 않습니다(개발자 도구 전용 통로). 우리가 아는 것으로 근사합니다 — <b>받았는데 한 번도 안 그린</b> 위젯.',
+              html: unusedTable,
             },
             {
               key: 'allwidgets', title: '전체 위젯 무게 — 안 열어도 아는 것',

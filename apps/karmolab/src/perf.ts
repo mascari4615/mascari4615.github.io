@@ -549,6 +549,45 @@
     });
   }
 
+  /**
+   * 받았는데 **한 번도 안 그린** 위젯 코드 (TASK-KL-201 ⑫).
+   *
+   * DevTools 의 「Coverage」에 해당하는 자리다. 브라우저는 「이 줄이 실행됐나」를 페이지 쪽에
+   * 안 알려 준다(그건 개발자 도구 전용 통로다). 그래서 우리가 아는 것으로 근사한다:
+   * **받은 위젯 묶음** 중 `runBuild` 를 한 번도 안 지난 것 = 이번에 화면에 안 나온 코드다.
+   *
+   * 「낭비」라고 단정하지 않는다 — 곧 누를 위젯일 수도 있다. 다만 **부팅에 딸려 온 것**이
+   * 여기 있으면 그건 진짜 낭비다(누르지도 않았는데 받았다). 그 구분을 위해 부팅 목록을 같이 본다.
+   */
+  function unusedWidgetCode(): { bytes: number | null; rows: Array<{ id: string; bytes: number | null; atBoot: boolean }> } {
+    const bootPaths = (window.KARMOLAB_WIDGETS_BOOT || []).map((p) => String(p));
+    const byUrl = new Map<string, number>();
+    for (const row of resources()) if (row.kind === 'widget' && row.bytes != null) byUrl.set(row.url.split('?')[0], row.bytes);
+
+    /* **받은 것에서 출발한다.** 위젯 목록에서 출발하면 부팅에 딸려온 것을 통째로 놓친다 —
+       그건 지연 로더를 안 거쳐서 우리 목록에 아예 없다(실측: 그래서 늘 「전부 썼다」가 나왔다).
+       그런데 부팅에 딸려온 것이야말로 진짜 낭비다: 누르지도 않았는데 받았다. */
+    const drawn = new Set<string>();
+    for (const entry of widgets.values()) {
+      if (entry.builds === 0) continue;
+      for (const url of entry.scripts) drawn.add(url.split('?')[0]);
+      drawn.add(entry.id);
+    }
+
+    const rows: Array<{ id: string; bytes: number | null; atBoot: boolean }> = [];
+    let bytes: number | null = null;
+    for (const [url, size] of byUrl) {
+      if (drawn.has(url)) continue;
+      /* 주소에서 이름을 뽑는다 — `js/widgets/tools/qrgen.js` → `tools/qrgen`. */
+      const name = url.split('/js/widgets/')[1]?.replace(/\.js$/, '') || url;
+      const leaf = name.split('/').pop() || name;
+      if (drawn.has(leaf)) continue;
+      bytes = (bytes || 0) + size;
+      rows.push({ id: name, bytes: size, atBoot: bootPaths.some((p) => p === name || p.split('/').pop() === leaf) });
+    }
+    return { bytes, rows: rows.sort((a, b) => (b.bytes || 0) - (a.bytes || 0)) };
+  }
+
   /** 도메인별 합계 (TASK-KL-201 ⑤ — Lighthouse 의 「서드파티 요약」에 해당). */
   function hostSummary(): Array<{ host: string; count: number; bytes: number | null; ms: number; ours: boolean }> {
     const sum = new Map<string, { host: string; count: number; bytes: number | null; ms: number; ours: boolean }>();
@@ -745,6 +784,7 @@
       buildStats: buildStats(),
       /* 도메인별로 묶은 요약 — 「남의 것이 우리 것보다 무겁나」는 파일 하나씩 봐서는 안 보인다. */
       hosts: hostSummary(),
+      unused: unusedWidgetCode(),
       slowFrames: loafSupported ? slowFrames.slice().sort((a, b) => b.ms - a.ms) : null,
       /* 「누가 제일 많이 잡았나」 — 프레임을 하나씩 보면 안 보이고, 합쳐야 보인다.
          한 번 40ms 보다 매 프레임 8ms 가 대개 더 나쁘다. */
