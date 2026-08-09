@@ -20,6 +20,10 @@ import type { GraphSpec, GraphNode, GraphEdge, GroupDef, NodeShape } from '../..
 import { emptyGraphSpec } from '../../lib/graph/spec';
 import { KarmoMapLocalStorageAdapter } from './local-storage-adapter';
 import {
+  loadLibrary, setActive, renameMap, touchMap, addMap, removeMap, mapKey,
+  type LibraryIndex,
+} from './library';
+import {
   PACKS,
   DEFAULT_PACK_ID,
   packById,
@@ -90,7 +94,9 @@ import {
   );
 
   function buildKarmoMap(container: HTMLElement): void {
-    const store = new KarmoMapLocalStorageAdapter();
+    // 맵 여러 장 — 목록은 항상 최소 한 장을 보장한다(격차 H).
+    let library: LibraryIndex = loadLibrary();
+    let store = new KarmoMapLocalStorageAdapter(mapKey(library.activeId));
 
     let spec: GraphSpec = emptyGraphSpec();
     let canvas: GraphCanvas | null = null;
@@ -131,6 +137,11 @@ import {
     container.innerHTML = `
       <div class="km-root">
         <div class="km-toolbar">
+          <select data-km="maps" title="맵 고르기"></select>
+          <button class="btn btn-ghost" data-km="map-new" title="새 맵">+</button>
+          <button class="btn btn-ghost" data-km="map-copy" title="이 맵 복제">⧉</button>
+          <button class="btn btn-ghost" data-km="map-rename" title="이름 바꾸기">✎</button>
+          <button class="btn btn-ghost" data-km="map-del" title="이 맵 삭제">🗑</button>
           <select data-km="pack" title="어휘 팩 — 같은 캔버스, 다른 말">
             ${PACKS.map((p) => `<option value="${p.id}"${p.id === pack.id ? ' selected' : ''}>${p.icon} ${p.label}</option>`).join('')}
           </select>
@@ -260,6 +271,7 @@ import {
     // 구조 변경은 즉시 전체 저장. 좌표 변경은 캔버스가 debounce 후 어댑터로.
     function persistStructure(): void {
       store.saveSpec(canvas?.getSpec() ?? spec);
+      library = touchMap(library, library.activeId);
       snapshot();
     }
 
@@ -875,18 +887,80 @@ import {
       snapshot();   // 「전체 삭제」도 되돌릴 수 있어야 한다 — 여기가 제일 아쉬운 자리다
     };
 
+    // ── 맵 목록 (격차 H) ────────────────────────────────────────────────────
+    const mapsEl = q<HTMLSelectElement>('maps');
+
+    function renderMapList(): void {
+      mapsEl.innerHTML = library.maps
+        .map((m) => `<option value="${escapeAttr(m.id)}"${m.id === library.activeId ? ' selected' : ''}>${escapeHtml(m.name)}</option>`)
+        .join('');
+    }
+
+    /** 지금 열린 맵을 화면에 올린다. 맵을 바꿀 때마다 되돌리기 이력도 갈아 끼운다. */
+    function openActiveMap(): void {
+      store = new KarmoMapLocalStorageAdapter(mapKey(library.activeId));
+      history.length = 0;
+      histIndex = -1;
+      selectedId = null;
+      linkingFrom = null;
+      sideMode = 'node';
+      void store.load().then((loaded) => {
+        spec = loaded ?? emptyGraphSpec();
+        // 관계 종류 정의는 항상 최신 셋으로 (저장본이 옛 정의를 갖고 있어도 색이 맞게).
+        spec._edge_kinds = { ...ALL_EDGE_KIND_DEFS, ...(spec._edge_kinds ?? {}) };
+        applyPack(spec._meta?.pack ?? DEFAULT_PACK_ID, false);
+        applySpec();
+        if (spec.nodes.length > 0) canvas?.fitView();
+        renderSide();
+        snapshot();   // 되돌리기의 바닥 — 불러온 그 상태
+        syncHistoryButtons();
+      });
+    }
+
+    mapsEl.onchange = () => {
+      library = setActive(library, mapsEl.value);
+      openActiveMap();
+    };
+
+    q<HTMLButtonElement>('map-new').onclick = () => {
+      const added = addMap(library, `맵 ${library.maps.length + 1}`);
+      library = added.index;
+      renderMapList();
+      openActiveMap();
+    };
+
+    q<HTMLButtonElement>('map-copy').onclick = () => {
+      const json = JSON.stringify(canvas?.getSpec() ?? spec);
+      const name = library.maps.find((m) => m.id === library.activeId)?.name ?? '맵';
+      const added = addMap(library, `${name} 사본`, json);
+      library = added.index;
+      renderMapList();
+      openActiveMap();
+    };
+
+    q<HTMLButtonElement>('map-rename').onclick = () => {
+      const cur = library.maps.find((m) => m.id === library.activeId);
+      const name = prompt('맵 이름', cur?.name ?? '')?.trim();
+      if (!name) return;
+      library = renameMap(library, library.activeId, name);
+      renderMapList();
+    };
+
+    q<HTMLButtonElement>('map-del').onclick = () => {
+      const cur = library.maps.find((m) => m.id === library.activeId);
+      const last = library.maps.length <= 1;
+      const msg = last
+        ? `"${cur?.name ?? '맵'}" 의 내용을 모두 지울까요? (마지막 한 장이라 맵 자체는 남습니다)`
+        : `"${cur?.name ?? '맵'}" 맵을 지울까요? 되돌릴 수 없습니다.`;
+      if (!confirm(msg)) return;
+      library = removeMap(library, library.activeId);
+      renderMapList();
+      openActiveMap();
+    };
+
     // ── 초기 로드 ───────────────────────────────────────────────────────────
-    void store.load().then((loaded) => {
-      spec = loaded ?? emptyGraphSpec();
-      // 관계 종류 정의는 항상 최신 셋으로 (저장본이 옛 정의를 갖고 있어도 색이 맞게).
-      spec._edge_kinds = { ...ALL_EDGE_KIND_DEFS, ...(spec._edge_kinds ?? {}) };
-      applyPack(spec._meta?.pack ?? DEFAULT_PACK_ID, false);
-      applySpec();
-      if (spec.nodes.length > 0) canvas?.fitView();
-      renderSide();
-      snapshot();   // 되돌리기의 바닥 — 불러온 그 상태
-      syncHistoryButtons();
-    });
+    renderMapList();
+    openActiveMap();
 
     Mdd.linePreset('tool_run', {
       mood: 'idle',
