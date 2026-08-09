@@ -9,11 +9,9 @@
  * 아래 한 줄이 그걸 문장으로 말해 준다 — 「규모 4.1」이 아니라 「방금 티모르 앞바다가 흔들렸다」.
  *
  * 그리는 법: **정사영(orthographic) 지구본을 손으로 그린다.** three.js/globe.gl 을 안 쓴다.
- *   - 지도 타일도 안 받는다 → 남의 서버로 나가는 요청 0, 색을 우리가 정한다.
- *   - 땅의 윤곽만 한 파일(`data/coastline-110m.json`, 64KB)로 들고 온다.
- *   - 명암은 벡터 내적 하나다. 구면 위 한 점의 밝기 = (그 점의 법선)·(태양 방향).
- *     화면 좌표에서 법선이 곧 (x, y, √(1-x²-y²)) 이므로, 낮은 해상도(160×160)로 한 번 계산해
- *     크게 늘여 덮으면 경계가 부드럽게 나온다. 픽셀마다 매 프레임 도는 것보다 40배 싸다.
+ * 표면은 폴리곤이 아니라 **픽셀 단위 구면 샘플링**이다 (`surface.ts` 머리말에 이유가 있다 —
+ * 폴리곤 시절엔 돌리다 보면 땅이 화면을 통째로 덮었고, 땅이 초록 한 색이었고, 구름을 얹을
+ * 자리가 없었다). 표면 그림은 `data/earth/` 에 담아 두고, **구름만 오늘 것을 받아 온다**.
  *
  * 안 보이면 멈춘다 — 켜 두는 물건이라 더 중요하다(탭이 가려지면 rAF·받아오기 둘 다 정지).
  */
@@ -21,6 +19,8 @@ import { t, loadNamespace, fmtRelative } from '../../lib/i18n';
 import { CITIES } from './cities';
 import { subsolar, toVec, distanceKm } from './sky';
 import { quakes, aurora, kpIndex, iss, launches, type Quake, type AuroraPoint, type IssFix, type Launch } from './sources';
+import { paintSurface, type Tex } from './surface';
+import { loadTex, loadClouds } from './textures';
 
 (function (): void {
   if (typeof Toolbox === 'undefined') return;
@@ -36,12 +36,9 @@ import { quakes, aurora, kpIndex, iss, launches, type Quake, type AuroraPoint, t
     return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/data/' + name;
   }
 
-  interface Coastline {
-    rings: number[][];
-  }
-
-  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch';
+  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud';
   const LAYERS: Array<{ id: LayerId; glyph: string }> = [
+    { id: 'cloud', glyph: '☁' },
     { id: 'city', glyph: '✦' },
     { id: 'quake', glyph: '◎' },
     { id: 'aurora', glyph: '≈' },
@@ -55,7 +52,7 @@ import { quakes, aurora, kpIndex, iss, launches, type Quake, type AuroraPoint, t
     spin: boolean;
   }
   function loadPrefs(): Prefs {
-    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true }, spin: true };
+    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true }, spin: true };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return base;
@@ -141,8 +138,10 @@ import { quakes, aurora, kpIndex, iss, launches, type Quake, type AuroraPoint, t
           let W = 0;
           let H = 0;
           let dpr = 1;
-          let coast: number[][] = [];
           let stars: HTMLCanvasElement | null = null;
+          let dayTex: Tex | null = null;
+          let nightTex: Tex | null = null;
+          let cloudTex: { w: number; h: number; a: Uint8ClampedArray } | null = null;
           let qs: Quake[] = [];
           let au: AuroraPoint[] = [];
           let kp: number | null = null;
@@ -152,13 +151,21 @@ import { quakes, aurora, kpIndex, iss, launches, type Quake, type AuroraPoint, t
           let raf: number | undefined;
           let alive = true;
 
-          /* 명암 판(작게 계산해서 크게 늘인다) */
-          const SHADE = 160;
-          const shadeCv = document.createElement('canvas');
-          shadeCv.width = SHADE;
-          shadeCv.height = SHADE;
-          const shadeCtx = shadeCv.getContext('2d', { willReadFrequently: true })!;
-          const shadeImg = shadeCtx.createImageData(SHADE, SHADE);
+          /* 표면 판 — 화면 해상도로 안 그린다. 작은 정사각형에 그린 뒤 늘여 덮는다
+             (한 점마다 asin·atan2 가 드니, 계산량을 화면 크기에서 떼어 놓는다). */
+          let surfSize = 0;
+          const surfCv = document.createElement('canvas');
+          const surfCtx = surfCv.getContext('2d', { willReadFrequently: true })!;
+          let surfImg: ImageData | null = null;
+
+          function ensureSurface(diameter: number): void {
+            const want = Math.max(224, Math.min(384, Math.round(diameter * 0.62 / 16) * 16));
+            if (want === surfSize && surfImg) return;
+            surfSize = want;
+            surfCv.width = want;
+            surfCv.height = want;
+            surfImg = surfCtx.createImageData(want, want);
+          }
 
           /* ── 화면 크기 ────────────────────────────────────────────────── */
           function resize(): void {
@@ -250,60 +257,29 @@ import { quakes, aurora, kpIndex, iss, launches, type Quake, type AuroraPoint, t
             c.arc(cx, cy, R * 1.16, 0, Math.PI * 2);
             c.fill();
 
-            /* 바다 */
-            const sea = c.createRadialGradient(cx - R * 0.28, cy - R * 0.34, R * 0.1, cx, cy, R);
-            sea.addColorStop(0, '#1d4f8f');
-            sea.addColorStop(0.62, '#12376b');
-            sea.addColorStop(1, '#0a2247');
+            /* 표면 — 땅·바다·구름·도시 불빛·명암을 한 번에. 픽셀마다 구면 위 한 점을 되짚는다.
+               (자를 것이 없으므로 「돌리면 땅이 화면을 덮는」 사고가 원리적으로 안 생긴다) */
+            ensureSurface(R * 2);
+            if (surfImg) {
+              paintSurface(surfImg, surfSize, {
+                day: dayTex,
+                night: prefs.on.city ? nightTex : null,
+                cloud: prefs.on.cloud ? cloudTex : null,
+                ex,
+                ey,
+                ez,
+                sun: sv
+              });
+              surfCtx.putImageData(surfImg, 0, 0);
+            }
             c.save();
             c.beginPath();
             c.arc(cx, cy, R, 0, Math.PI * 2);
             c.clip();
-            c.fillStyle = sea;
-            c.fillRect(cx - R, cy - R, R * 2, R * 2);
+            c.imageSmoothingEnabled = true;
+            c.imageSmoothingQuality = 'high';
+            c.drawImage(surfCv, cx - R, cy - R, R * 2, R * 2);
 
-            /* 땅 — 뒤쪽으로 넘어간 점은 가장자리(limb)에 붙여 실루엣을 닫는다.
-               정확한 구면 자르기 대신 쓰는 고전적인 싼 방법이고, 이 축척에선 눈에 안 띈다. */
-            /* 땅 색 — 원색 초록이면 지구가 아니라 지도가 된다. 위성에서 본 땅에 가깝게
-               올리브 쪽으로 죽이고, 해안선만 얇게 밝혀 물가를 살린다. */
-            const soil = c.createLinearGradient(cx - R, cy - R, cx + R, cy + R);
-            soil.addColorStop(0, '#4a6b46');
-            soil.addColorStop(0.5, '#3c5c3c');
-            soil.addColorStop(1, '#54603a');
-            c.fillStyle = soil;
-            c.strokeStyle = 'rgba(150,205,180,.2)';
-            c.lineWidth = 0.6;
-            for (const ring of coast) {
-              let started = false;
-              let anyVisible = false;
-              c.beginPath();
-              for (let i = 0; i < ring.length; i += 2) {
-                const p = project(ring[i + 1], ring[i]);
-                let { x, y } = p;
-                if (p.z < 0) {
-                  const dx = x - cx;
-                  const dy = y - cy;
-                  const d = Math.hypot(dx, dy) || 1;
-                  x = cx + (dx / d) * R;
-                  y = cy + (dy / d) * R;
-                } else anyVisible = true;
-                if (!started) {
-                  c.moveTo(x, y);
-                  started = true;
-                } else c.lineTo(x, y);
-              }
-              if (!anyVisible) continue;
-              c.closePath();
-              c.fill();
-              c.stroke();
-            }
-
-            /* 명암 — 밤은 덮개다. 낮은 그대로 둔다. */
-            paintShade(S);
-            c.drawImage(shadeCv, cx - R, cy - R, R * 2, R * 2);
-
-            /* 밤이 된 쪽에만 도시가 켜진다 */
-            if (prefs.on.city) drawCities(S, now);
             if (prefs.on.aurora) drawAurora(S);
             if (prefs.on.quake) drawQuakes(now);
             if (prefs.on.launch) drawLaunches();
@@ -328,68 +304,8 @@ import { quakes, aurora, kpIndex, iss, launches, type Quake, type AuroraPoint, t
             }
           }
 
-          /**
-           * 낮/밤 덮개를 낮은 해상도로 계산한다.
-           * 화면 위 원 안의 점 (nx, ny) 은 곧 그 지점의 법선이다 — nz = √(1-nx²-ny²).
-           * 밝기 = 법선·태양. 그래서 픽셀당 곱셈 세 번이면 끝이다.
-           */
-          function paintShade(S: [number, number, number]): void {
-            const d = shadeImg.data;
-            let k = 0;
-            for (let j = 0; j < SHADE; j++) {
-              const ny = 1 - ((j + 0.5) / SHADE) * 2;
-              for (let i = 0; i < SHADE; i++, k += 4) {
-                const nx = ((i + 0.5) / SHADE) * 2 - 1;
-                const r2 = nx * nx + ny * ny;
-                if (r2 >= 1) {
-                  d[k + 3] = 0;
-                  continue;
-                }
-                const nz = Math.sqrt(1 - r2);
-                const lum = nx * S[0] + ny * S[1] + nz * S[2];
-                // -0.10 ~ 0.22 사이를 여명으로 둔다 — 딱 끊으면 종이 오린 자국이 난다
-                let night = (0.22 - lum) / 0.32;
-                night = night < 0 ? 0 : night > 1 ? 1 : night;
-                night = night * night * (3 - 2 * night); // 부드럽게
-                // 가장자리 1px 은 알파를 눌러 톱니를 없앤다
-                const edge = Math.min(1, (1 - Math.sqrt(r2)) * SHADE * 0.5);
-                d[k] = 3;
-                d[k + 1] = 6;
-                d[k + 2] = 18;
-                d[k + 3] = Math.round(night * 214 * edge);
-              }
-            }
-            shadeCtx.putImageData(shadeImg, 0, 0);
-          }
-
           function lumAt(v: [number, number, number], S: [number, number, number]): number {
             return dot(v, ex) * S[0] + dot(v, ey) * S[1] + dot(v, ez) * S[2];
-          }
-
-          function drawCities(S: [number, number, number], now: number): void {
-            const c = ctx!;
-            c.save();
-            c.globalCompositeOperation = 'lighter';
-            for (const city of CITIES) {
-              const v = toVec(city.lat, city.lon);
-              if (dot(v, ez) <= 0.02) continue;
-              const lum = lumAt(v, S);
-              if (lum > 0.06) continue; // 낮인 곳은 안 보인다
-              const dark = Math.min(1, (0.06 - lum) / 0.3);
-              const p = project(city.lat, city.lon);
-              const tw = 0.82 + 0.18 * Math.sin(now / 900 + city.lon * 0.7 + city.lat);
-              const a = dark * city.w * tw * 0.9;
-              const r = (1.1 + city.w * 2.1) * Math.max(0.55, R / 260);
-              const g = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 3);
-              g.addColorStop(0, `rgba(255,226,160,${a})`);
-              g.addColorStop(0.35, `rgba(255,190,110,${a * 0.35})`);
-              g.addColorStop(1, 'rgba(255,180,90,0)');
-              c.fillStyle = g;
-              c.beginPath();
-              c.arc(p.x, p.y, r * 3, 0, Math.PI * 2);
-              c.fill();
-            }
-            c.restore();
           }
 
           function drawAurora(S: [number, number, number]): void {
@@ -726,16 +642,22 @@ import { quakes, aurora, kpIndex, iss, launches, type Quake, type AuroraPoint, t
             sub.textContent = t('bluemarble.hint');
             resize();
 
-            try {
-              const res = await fetch(dataUrl('coastline-110m.json'));
-              const data = (await res.json()) as Coastline;
-              if (Array.isArray(data.rings)) coast = data.rings;
-            } catch (_) {
-              /* 땅이 없으면 바다만 도는 파란 구슬이 된다 — 그래도 멈추지는 않는다 */
-            }
+            /* 표면 그림 — 담아 둔 것이라 빠르다. 못 읽어도 멈추지 않는다(맨 파란 구슬이 된다). */
+            const [d, n] = await Promise.all([
+              loadTex(dataUrl('earth/day.webp'), 2048, 1024),
+              loadTex(dataUrl('earth/night.webp'), 1024, 512)
+            ]);
             if (!alive) return;
+            dayTex = d;
+            nightTex = n;
 
             start();
+
+            /* 구름은 밖에서 온다 — 늦게 와도 되니 지구부터 띄우고 뒤따라 얹는다 */
+            void loadClouds().then((cm) => {
+              if (alive) cloudTex = cm;
+            });
+
             await refresh();
             void refreshSlow();
             if (!alive) return;
