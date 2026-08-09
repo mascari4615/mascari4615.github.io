@@ -120,10 +120,11 @@ await browser.close();
 server.close();
 
 /* 가만히 둔 홈에서 초당 몇 번 그리기를 예약하나 — **절대량 상한**.
-   실측(2026-08-09): 가라앉은 뒤 ~120 = 마스코트(`mdd.js` 의 frame, 60fps 상시) + 첫 화면 장면(`home-scene.js`) 둘.
+   실측(2026-08-09): 60 = 마스코트 한 벌(`mdd.js` frame). 처음엔 120~305 였는데 그건 **떨어진
+   아바타의 루프가 쌓인 것**이었다 — 이 게이트가 그걸 잡아서 `mdd.ts` 가 스스로 멈추도록 고쳤다.
    그건 「살아 있어 보이게」 하는 선택이라 여기서 끄지 않는다. 다만 **셋째 루프가 새로 생기면**
    그때는 알아야 한다 — 그래서 지금 값에 여유만 얹어 잠근다. 「쉬는가」 자체는 `smoke-perf.mjs` 몫. */
-const IDLE_RAF_CAP = 180;
+const IDLE_RAF_CAP = 90;
 const idleRaf = rounds[2].rafLoops;
 console.log(`[leak] 가만히 둔 홈 — 초당 그리기 예약 ${idleRaf} (상한 ${IDLE_RAF_CAP}, 지금은 마스코트+첫화면 장면 둘)`);
 
