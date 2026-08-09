@@ -27,6 +27,7 @@ import { HELP } from './help';
 import type { PanelCtx } from './panels/context';
 import { renderHelpPanel } from './panels/help-panel';
 import { renderSnaPanel } from './panels/sna-panel';
+import { renderNotesPanel } from './panels/notes-panel';
 import { renderStoragePanel } from './panels/storage-panel';
 import { renderFilterPanel } from './panels/filter-panel';
 import { renderTermsPanel } from './panels/terms-panel';
@@ -211,7 +212,7 @@ import {
     /** 연결 모드일 때 출발 노드 id. null 이면 평소 모드. */
     let linkingFrom: string | null = null;
     /** 오른쪽 패널이 무엇을 보여주는가 — 고른 노드냐, 묶음 목록이냐. */
-    type SideMode = 'node' | 'groups' | 'terms' | 'filter' | 'many' | 'text' | 'sna' | 'storage' | 'edge' | 'help';
+    type SideMode = 'node' | 'groups' | 'terms' | 'filter' | 'many' | 'text' | 'sna' | 'storage' | 'notes' | 'edge' | 'help';
     let sideMode: SideMode = 'node';
     /** Shift+드래그로 한 번에 고른 노드들. */
     let selectedMany: string[] = [];
@@ -831,6 +832,7 @@ import {
       { id: 'terms', icon: '🏷', title: '내 용어' },
       { id: 'filter', icon: '🔍', title: '거르기' },
       { id: 'sna', icon: '📊', title: '관계망' },
+      { id: 'notes', icon: '🔗', title: '공용 글' },
       { id: 'storage', icon: '💾', title: '저장' },
       { id: 'help', icon: '?', title: '도움말' },
     ];
@@ -886,6 +888,10 @@ import {
       }
       if (sideMode === 'sna') {
         renderSnaPanel(panelCtx);
+        return;
+      }
+      if (sideMode === 'notes') {
+        renderNotesPanel(panelCtx);
         return;
       }
       if (sideMode === 'storage') {
