@@ -24,6 +24,9 @@ import { parseOutline, layoutTree } from './from-text';
 import { sampleFor } from './samples';
 import { measureStorage, humanBytes, WARN_RATIO } from './storage-health';
 import { HELP } from './help';
+import type { PanelCtx } from './panels/context';
+import { renderHelpPanel } from './panels/help-panel';
+import { renderSnaPanel } from './panels/sna-panel';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -1140,50 +1143,6 @@ import {
     }
 
     /**
-     * 관계망 읽기 — 누가 중심이고 누가 다리인가 (격차 U).
-     * 선이 많은 것과 「없으면 그림이 두 조각 나는 것」은 다르다. 눈으로는 안 보여서 세어 준다.
-     */
-    function renderSnaPanel(): void {
-      sideEl.classList.remove('hidden');
-      canvas?.setSelectedNode(null);
-      const live = canvas?.getSpec() ?? spec;
-      const sna = computeSna({ nodes: live.nodes, edges: live.edges });
-      const nameOf = (id: string): string => live.nodes.find((n) => n.id === id)?.label || '(이름 없음)';
-      const list = (title: string, hint: string, rows: { id: string; value: number }[], digits: number): string => `
-        <div class="km-field">
-          <label>${title}</label>
-          <div class="km-hint">${hint}</div>
-          ${rows.length === 0
-            ? '<div class="km-hint">아직 이어진 것이 없습니다.</div>'
-            : rows.map((r) => `<div class="km-link-row">
-                <span class="km-link-name">${escapeHtml(nameOf(r.id))}</span>
-                <span class="km-group-count">${r.value.toFixed(digits)}</span>
-                <button class="btn btn-ghost" data-km="go-link" data-key="${escapeAttr(r.id)}">가기</button>
-              </div>`).join('')}
-        </div>`;
-
-      sideEl.innerHTML = `
-        <h4>📊 관계망 읽기</h4>
-        ${list('이어진 선이 많은 쪽', '허브 — 없어지면 곤란한 자리의 1차 신호.', topBy(sna.degree, 5), 0)}
-        ${list('다리 역할', '남들 사이를 잇는 길목. 이 사람이 빠지면 그림이 두 조각 난다.', topBy(sna.betweenness, 5), 1)}
-        ${list('모두에게 가까운 쪽', '소문이 가장 빨리 퍼지는 자리.', topBy(sna.closeness, 5), 3)}
-        <button class="btn btn-ghost" data-km="sna-focus">다리 역할 셋만 보기</button>
-        <button class="btn btn-ghost" data-km="sna-close">닫기</button>`;
-
-      bindLinkSections();
-      (sideEl.querySelector('[data-km="sna-close"]') as HTMLButtonElement).onclick = () => {
-        sideMode = 'node';
-        renderSide();
-      };
-      (sideEl.querySelector('[data-km="sna-focus"]') as HTMLButtonElement).onclick = () => {
-        const top = topBy(sna.betweenness, 3).map((r) => r.id);
-        if (top.length === 0) return;
-        canvas?.setFocus(new Set(top));
-        canvas?.fitToNodes(top, 160);
-      };
-    }
-
-    /**
      * 글 한 덩이 → 노드·선. 「글로 만들기」와 「예시 넣어 보기」가 같은 길을 쓴다 —
      * 견본을 코드로 따로 만들면 문법이 갈라져 둘 중 하나가 곧 낡는다.
      */
@@ -1382,29 +1341,23 @@ import {
       };
     }
 
-    /**
-     * 도움말 — 할 수 있는 일과 그 단축키를 나란히 (격차 AA).
-     * **못 찾는 기능은 없는 것과 같다.** 새 기능을 넣을 때 `help.ts` 에 한 줄 안 늘면 그건 숨은 것이다.
-     */
-    function renderHelpPanel(): void {
-      sideEl.classList.remove('hidden');
-      canvas?.setSelectedNode(null);
-      sideEl.innerHTML = `
-        <h4>? 무엇을 할 수 있나</h4>
-        <div class="km-hint">${HELP.reduce((n, s0) => n + s0.items.length, 0)}가지. <b>?</b> 키로 언제든 다시 엽니다.</div>
-        ${HELP.map((sec) => `<div class="km-field">
-          <label>${escapeHtml(sec.title)}</label>
-          ${sec.items.map((it) => `<div class="km-help-row">
-            <span class="km-link-name">${escapeHtml(it.what)}</span>
-            <span class="km-help-how">${escapeHtml(it.how)}</span>
-          </div>`).join('')}
-        </div>`).join('')}
-        <button class="btn btn-ghost" data-km="help-close">닫기</button>`;
-      (sideEl.querySelector('[data-km="help-close"]') as HTMLButtonElement).onclick = () => {
+    /** 패널이 빌려 쓰는 것들 한 덩이 — 옮긴 패널은 이것만 알면 된다 (개편 2). */
+    const panelCtx: PanelCtx = {
+      side: sideEl,
+      spec: () => spec,
+      canvas: () => canvas,
+      goNode: () => { sideMode = 'node'; renderSide(); },
+      focusNode: (nodeId) => {
+        if (!spec.nodes.some((n) => n.id === nodeId)) return;
+        selectedId = nodeId;
         sideMode = 'node';
         renderSide();
-      };
-    }
+        canvas?.fitToNodes([nodeId], 220);
+      },
+      persist: () => persistStructure(),
+      refresh: () => renderSide(),
+      esc: (s0) => escapeHtml(s0),
+    };
 
     /**
      * 오른쪽 패널 탭 (KL-202 개편 1).
@@ -1472,7 +1425,7 @@ import {
         return;
       }
       if (sideMode === 'sna') {
-        renderSnaPanel();
+        renderSnaPanel(panelCtx);
         return;
       }
       if (sideMode === 'storage') {
@@ -1484,7 +1437,7 @@ import {
         return;
       }
       if (sideMode === 'help') {
-        renderHelpPanel();
+        renderHelpPanel(panelCtx);
         return;
       }
       const node = spec.nodes.find((n) => n.id === selectedId);
