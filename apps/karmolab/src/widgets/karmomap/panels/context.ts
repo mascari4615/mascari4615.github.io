@@ -77,4 +77,10 @@ export interface PanelCtx {
   setMembership: (node: GraphNode, ids: string[]) => void;
   /** spec → 캔버스 반영 (구조가 바뀐 뒤). */
   applySpec: () => void;
+
+  // ── 여럿 고름 패널이 빌리는 것들 ──────────────────────────────────────
+  selectedMany: () => string[];
+  clearMany: () => void;
+  /** 노드들과 거기 붙은 선·지시선을 함께 지운다. */
+  removeNodes: (ids: string[]) => void;
 }
