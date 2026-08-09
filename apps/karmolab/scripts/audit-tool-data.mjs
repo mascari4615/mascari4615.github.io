@@ -62,6 +62,8 @@ const problems = [];
       .readdirSync(coreDir)
       .filter((f) => f.endsWith('.ts'))
       .filter((f) => /export const spec/.test(fs.readFileSync(path.join(coreDir, f), 'utf8')))
+      /* 스스로 「화면 없음」이라 밝힌 것은 뺀다 — 예외의 이유는 그 파일 안에 적혀 있다. */
+      .filter((f) => /export const SCREENLESS/.test(fs.readFileSync(path.join(coreDir, f), 'utf8')) === false)
       .map((f) => path.basename(f, '.ts'));
     const orphans = withCore.filter((id) => known.has(id) === false);
     if (orphans.length > 0) {
