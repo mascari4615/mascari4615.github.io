@@ -24,5 +24,6 @@
   "garden.dex.osc": "{n} cells · returns to itself every {p} generations",
   "garden.dex.ship": "{n} cells · drifts {d} cell(s) every {p} generations",
   "garden.line.found": "Generation {gen} — something never seen before. {what}",
-  "garden.follow": "Follow"
+  "garden.follow": "Follow",
+  "garden.sound": "Sound"
 }
