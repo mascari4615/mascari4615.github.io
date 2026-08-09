@@ -1224,6 +1224,7 @@ import {
         </div>
         <button class="btn btn-ghost" data-km="node-copy">⧉ 이 노드 복제</button>
         <button class="btn btn-ghost" data-km="node-link">🔗 이 카드로 오는 링크</button>
+        <button class="btn btn-ghost" data-km="node-dive">${node.subMap ? '⤵ 이 카드 안으로' : '⤵ 이 카드 안에 판 만들기'}</button>
         <button class="btn btn-danger" data-km="node-del">노드 삭제</button>`;
 
       // 이름 편집 — 입력할 때마다 반영 (폭도 같이 조정)
@@ -1267,6 +1268,30 @@ import {
       bindMembershipField(panelCtx, node);
 
       bindAttachField(panelCtx, node, touch);
+
+      // 파고들기 — 한 판에 다 그리면 곧 못 읽는다. 카드 하나를 **그 안의 판**으로 열어 층을 나눈다.
+      // 처음 누르면 그 이름으로 새 판을 만들고, 다음부터는 그 판으로 간다(카드에는 ⤵ 가 붙는다).
+      (sideEl.querySelector('[data-km="node-dive"]') as HTMLButtonElement).onclick = () => {
+        if (!node.subMap) {
+          const added = addMap(library, node.label || '이름 없는 판');
+          library = added.index;
+          node.subMap = added.id;
+          persistStructure();
+          renderMapList();
+          Toolbox.showToast?.(`「${node.label}」 안에 판을 만들었습니다`, undefined, undefined);
+        }
+        const target = node.subMap;
+        if (!target || !library.maps.some((m) => m.id === target)) {
+          Toolbox.showToast?.('그 판이 사라졌습니다 — 다시 만들어 주세요', undefined, undefined);
+          node.subMap = undefined;
+          persistStructure();
+          renderSide();
+          return;
+        }
+        library = setActive(library, target);
+        renderMapList();
+        openActiveMap();
+      };
 
       // 이 카드로 바로 오는 주소 — 큰 그림을 보낼 때 「어디를 보라는 건지」를 말로 설명하지 않게.
       (sideEl.querySelector('[data-km="node-link"]') as HTMLButtonElement).onclick = () => {
