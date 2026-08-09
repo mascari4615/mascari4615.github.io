@@ -115,6 +115,10 @@
     "narrow": 1088,
     "wide": 1145
   },
+  "dailytype": {
+    "narrow": 848,
+    "wide": 660
+  },
   "datecalc": {
     "narrow": 1147,
     "wide": 927
