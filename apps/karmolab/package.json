@@ -25,7 +25,7 @@
     "build:i18n": "node scripts/build-i18n.mjs",
     "test:i18n": "node scripts/build-i18n.mjs --check",
     "seal:i18n": "node scripts/build-i18n.mjs --seal",
-    "build": "npm run build:i18n && npm run typecheck && npm run test:i18n && npm run gen:changelog && npm run gen:feeds && npm run build:wiki && npm run build:worldbook && npm run build:wm-tasks && node build.mjs && npm run test:md && npm run test:tools && npm run test:bundles && npm run audit:script-paths && npm run audit:vendor-globals && npm run test:names && npm run audit:cache && npm run audit:fonts && npm run audit:bg-themes && npm run audit:boot && npm run test:cotext && npm run test:apicache && npm run test:contract && npm run test:perf && npm run test:perf:budget",
+    "build": "npm run build:i18n && npm run typecheck && npm run test:i18n && npm run gen:changelog && npm run gen:feeds && npm run build:wiki && npm run build:worldbook && npm run build:wm-tasks && node build.mjs && npm run test:md && npm run test:tools && npm run test:bundles && npm run audit:script-paths && npm run audit:vendor-globals && npm run test:names && npm run audit:cache && npm run audit:fonts && npm run audit:bg-themes && npm run audit:boot && npm run test:cotext && npm run test:apicache && npm run test:contract && npm run test:perf && npm run test:perf:budget && npm run audit:bundles",
     "gen:fonts": "python scripts/gen-fonts.py",
     "audit:fonts": "node scripts/audit-fonts.mjs",
     "audit:bg-themes": "node scripts/audit-bg-themes.mjs",
@@ -146,6 +146,7 @@
     "test:offline": "node scripts/smoke-offline-app.mjs",
     "test:perf": "node scripts/smoke-perf.mjs",
     "test:perf:budget": "node scripts/smoke-perf-budget.mjs",
+    "audit:bundles": "node scripts/audit-bundle-budget.mjs",
     "test:perf:budget:regress": "node scripts/smoke-perf-budget.mjs --regress",
     "test:perf:self": "node scripts/smoke-perf.mjs --regress",
     "test:orbita": "node scripts/smoke-orbita.mjs"
