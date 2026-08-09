@@ -87,9 +87,17 @@ jobs:
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             echo "흉내만 낸다 (dry_run=true). 진짜로 올리려면 다시 돌리며 체크를 끄면 된다."
             npm publish --access public --dry-run
-          else
-            npm publish --access public
+            exit 0
           fi
+          # 같은 판이 이미 올라가 있으면 npm 은 에러를 낸다. 그건 **고장이 아니라 「할 일 없음」**이다 —
+          # 여기서 죽으면 뒤에 오는 레지스트리 등재까지 못 돈다(등재만 하려는 경우가 실제로 있다).
+          version=$(node -p "require('./package.json').version")
+          if npm view "karmolab-mcp@${version}" version > /dev/null 2>&1; then
+            echo "karmolab-mcp@${version} 은 이미 올라가 있다 — npm 발행은 건너뛴다."
+            echo "새 판을 올리려면 먼저 버전을 올려라: npm version patch"
+            exit 0
+          fi
+          npm publish --access public
 
       - name: What landed
         if: ${{ inputs.dry_run == false }}
