@@ -1631,6 +1631,9 @@ const Toolbox = (() => {
 
     function switchPage(pageId, opts = {}) {
         closeAllHeaderNav();
+        /* 화면이 바뀌는 순간 = 부팅 지표의 끝 (TASK-KL-201). 여기를 안 알려 주면 「제일 큰 그림」이
+           방금 연 위젯 쪽으로 밀려서, 부팅이 아니라 그 위젯 크기를 재게 된다(실측 192ms → 2960ms). */
+        window.KLPerf?.mark('page:' + pageId);
         let { pushHistory = true, skipRecent = false } = opts;
 
         // TASK-KL-088: 도구 상세 페이지(/karmolab/t/<id>/)에서 다른 도구로 옮기면

@@ -126,6 +126,9 @@
   /** 긴 작업 관찰자가 아예 없는 브라우저(사파리)와 「하나도 없었다」를 가른다. */
   let longTaskSupported = false;
   let lcpMs: number | null = null;
+  /** 「큰 그림」은 부팅 지표다 — 첫 손가락 또는 첫 화면 전환에서 끝낸다. */
+  let lcpFrozen = false;
+  let pageSwitches = 0;
   /**
    * 화면이 밀린 사건 하나 (TASK-KL-201 ⑥ — Layout Instability).
    *
@@ -168,6 +171,16 @@
 
   function mark(name: string): void {
     marks.push({ name, at: now() });
+    /* 화면을 갈아 끼우면 「제일 큰 그림」이 그 시점으로 밀린다 — 부팅 지표가 아니라
+       **방금 연 위젯의 크기**를 재게 된다. 실측으로 192ms 짜리가 2960ms 로 튀었다.
+       브라우저는 첫 손가락에서 LCP 갱신을 멈추지만, 코드로 넘긴 화면은 안 멈춘다.
+       그래서 화면이 바뀌는 순간을 우리가 끝으로 삼는다 (TASK-KL-201 ⑧). */
+    if (name.indexOf('page:') === 0) {
+      /* **첫** page: 는 부팅의 일부다 — 셸이 첫 화면을 세우면서 부른다. 그걸로 얼려 버리면
+         「큰 그림」이 영영 안 정해진다(실측: 통째로 「못 잼」이 됐다). 두 번째 전환부터 끝이다. */
+      pageSwitches += 1;
+      if (pageSwitches > 1) lcpFrozen = true;
+    }
   }
 
   function script(url: string, ms: number): void {
@@ -328,7 +341,7 @@
     const lcpObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
       const last = entries[entries.length - 1];
-      if (last) lcpMs = last.startTime;
+      if (last && !lcpFrozen) lcpMs = last.startTime;
     });
     lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
   } catch {
@@ -723,6 +736,7 @@
       paint: paintTiming(),
       memory: memory(),
       trust: trust(),
+      verdict: verdict(),
       inp: inpMs(),
       presentationFloorMs: presentationFloorMs(),
       cls: clsValue(),
@@ -783,6 +797,55 @@
         lastAt: rows[rows.length - 1].at,
       }))
       .sort((a, b) => (a.lastAt < b.lastAt ? 1 : -1));
+  }
+
+  /* ── 예산 — 「좋다/나쁘다」를 여기 한 곳에서 정한다 ───────────────── */
+
+  /**
+   * 예산 (TASK-KL-201 ⑧ — Lighthouse·SpeedCurve 관행).
+   *
+   * 숫자를 늘어놓기만 하면 사람이 매번 「이게 좋은 건가?」를 다시 판단해야 한다. 기준을
+   * **코드 한 곳**에 적어 두면 계기판이 대신 답한다. 값의 출처: 웹 표준 권고(LCP 2.5s ·
+   * INP 200ms · CLS 0.1)와 이 앱의 실측(셸 준비 p75 가 지금 50ms 대라 1200ms 는 넉넉하다 —
+   * 예산은 「지금보다 조금 나빠지는 것」이 아니라 「사람이 답답해지는 선」에 둔다).
+   */
+  const BUDGETS: Array<{ key: string; label: string; limit: number; unit: string; get: () => number | null }> = [
+    { key: 'ready', label: '셸 준비까지', limit: 1200, unit: 'ms', get: () => markOf('shell:ready') },
+    { key: 'lcp', label: '큰 그림 (LCP)', limit: 2500, unit: 'ms', get: () => paintTiming().lcp },
+    { key: 'inp', label: '제일 굼뜬 조작 (INP)', limit: 200, unit: 'ms', get: inpMs },
+    { key: 'cls', label: '화면 밀림 (CLS)', limit: 0.1, unit: '', get: clsValue },
+    {
+      key: 'js', label: '받은 자바스크립트', limit: 700 * 1024, unit: 'B',
+      get: () => {
+        const rows = resources().filter((r) => r.kind === 'widget' || r.kind === 'shell' || r.kind === 'vendor');
+        const known = rows.filter((r) => r.bytes != null);
+        /* 크기를 모르는 것이 절반을 넘으면 합계는 **아는 것만의 합**이라 늘 통과한다.
+           그건 통과가 아니라 못 잰 것이다. */
+        return known.length && known.length >= rows.length / 2 ? known.reduce((s, r) => s + (r.bytes || 0), 0) : null;
+      },
+    },
+    {
+      key: 'longtask', label: '긴 작업 총합', limit: 300, unit: 'ms',
+      get: () => (longTaskSupported ? longTasks.reduce((s, t) => s + t.ms, 0) : null),
+    },
+  ];
+
+  /**
+   * 예산 대조 결과. **못 잰 것은 통과로 세지 않는다** — 「합격」과 「검사 못 함」을 같은 칸에
+   * 넣으면, 계측이 조용히 죽은 날에도 화면은 초록으로 남는다. 그게 제일 나쁜 고장이다.
+   */
+  function verdict(): Array<{ key: string; label: string; value: number | null; limit: number; unit: string; state: 'pass' | 'fail' | 'unknown' }> {
+    return BUDGETS.map((budget) => {
+      const value = budget.get();
+      return {
+        key: budget.key,
+        label: budget.label,
+        value,
+        limit: budget.limit,
+        unit: budget.unit,
+        state: value == null ? 'unknown' : value > budget.limit ? 'fail' : 'pass',
+      };
+    });
   }
 
   function clearBoots(): void {
