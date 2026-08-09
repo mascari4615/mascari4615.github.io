@@ -12,6 +12,8 @@
  */
 import { encodeAudio, fileSize as size, mmss } from './shared/media';
 
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   /**
    * 귀에 맞춘 페이드 — 곧게(선형) 줄이면 중간이 툭 꺼진 듯 들린다.
@@ -23,35 +25,55 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
     id: 'audiofade',
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['audio/*', 'video/*'],
-    title: '소리 페이드',
+    title: t('widgets.audiofade.title', undefined, '소리 페이드'),
     category: 'tool',
-    desc: '시작·끝의 「툭」 하는 끊김을 없앱니다. 어디가 끊기는지 먼저 짚어 줍니다',
+    desc: t(
+      'widgets-desc.audiofade.desc',
+      undefined,
+      '시작·끝의 「툭」 하는 끊김을 없앱니다. 어디가 끊기는지 먼저 짚어 줍니다'
+    ),
     layout: 'wide',
     icon: '<path d="M3 19L21 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3 19h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 19v-3M11 19v-6M15 19v-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>',
     tabs: [
       {
         id: 'app',
-        label: '페이드',
+        label: t('audiofade.tab', undefined, '페이드'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('audiofade').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="afDrop">
               <input type="file" id="afFile" accept="audio/*,video/*" hidden>
-              <span>소리 파일을 끌어다 놓거나 눌러서 고르세요</span>
+              <span>${esc(t('audiofade.drop'))}</span>
             </div>
 
             <div class="field-group" id="afControls" style="display:none; margin-top:var(--space-lg);">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">시작 페이드 <span id="afInVal" class="range-value">0.5초</span></div>
-                  <input type="range" id="afIn" aria-label="시작 페이드" min="0" max="50" value="5">
+                  <div class="tool-sublabel">${esc(t('audiofade.label.in'))} <span id="afInVal" class="range-value">${esc(
+                    t('audiofade.value.sec', { n: '0.5' })
+                  )}</span></div>
+                  <input type="range" id="afIn" aria-label="${esc(t('audiofade.label.in'))}" min="0" max="50" value="5">
                 </div>
                 <div>
-                  <div class="tool-sublabel">끝 페이드 <span id="afOutVal" class="range-value">0.5초</span></div>
-                  <input type="range" id="afOut" aria-label="끝 페이드" min="0" max="50" value="5">
+                  <div class="tool-sublabel">${esc(t('audiofade.label.out'))} <span id="afOutVal" class="range-value">${esc(
+                    t('audiofade.value.sec', { n: '0.5' })
+                  )}</span></div>
+                  <input type="range" id="afOut" aria-label="${esc(t('audiofade.label.out'))}" min="0" max="50" value="5">
                 </div>
               </div>
               <div class="tool-chips" style="margin-top:10px;">
-                <button type="button" class="tool-chip" id="afAuto">끊기는 만큼만 알아서</button>
+                <button type="button" class="tool-chip" id="afAuto">${esc(t('audiofade.btn.auto'))}</button>
               </div>
             </div>
 
@@ -61,11 +83,11 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
             <audio id="afPlay" controls style="width:100%; display:none; margin-bottom:var(--space-lg);"></audio>
 
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="afRun" disabled>페이드 넣기</button>
-              <button class="btn btn-ghost" id="afSave" disabled>내려받기</button>
+              <button class="btn btn-primary" id="afRun" disabled>${esc(t('audiofade.btn.run'))}</button>
+              <button class="btn btn-ghost" id="afSave" disabled>${esc(t('audiofade.btn.save'))}</button>
             </div>
 
-            <div class="tool-status" id="afStatus">소리는 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="afStatus">${esc(t('audiofade.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -78,7 +100,7 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
 
           let buffer: AudioBuffer | null = null;
           let outBlob: Blob | null = null;
-          let baseName = '소리';
+          let baseName = t('audiofade.file.base');
 
           const say = (m: string, kind = ''): void => {
             status.textContent = m;
@@ -108,40 +130,42 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
             const pct = (v: number): string => `${Math.round(v * 100)}%`;
             // 0.02 아래면 사실상 조용히 시작·끝나는 것이라 페이드가 필요 없다
             const rows = [
-              ['시작', head, head > 0.02],
-              ['끝', tail, tail > 0.02]
+              [t('audiofade.edge.head'), head, head > 0.02],
+              [t('audiofade.edge.tail'), tail, tail > 0.02]
             ] as Array<[string, number, boolean]>;
             foundEl.innerHTML = rows
               .map(
                 ([label, v, bad]) =>
-                  `<div class="tool-list-row"><span class="tool-list-key">${label}</span><span class="tool-list-val">${pct(v)} ${bad ? '— 여기서 「툭」 소리가 납니다' : '— 조용히 시작·끝납니다'}</span></div>`
+                  `<div class="tool-list-row"><span class="tool-list-key">${esc(label)}</span><span class="tool-list-val">${pct(v)} ${esc(
+                    t(bad ? 'audiofade.edge.bad' : 'audiofade.edge.good')
+                  )}</span></div>`
               )
               .join('');
             stats.innerHTML =
-              stat('길이', mmss(buffer.duration), true) +
-              stat('시작 진폭', pct(head)) +
-              stat('끝 진폭', pct(tail));
+              stat(t('audiofade.stat.length'), mmss(buffer.duration), true) +
+              stat(t('audiofade.stat.headLevel'), pct(head)) +
+              stat(t('audiofade.stat.tailLevel'), pct(tail));
             const bad = head > 0.02 || tail > 0.02;
             say(
-              bad ? '끊기는 자리가 있어요. 「끊기는 만큼만 알아서」를 눌러 보세요.' : '이미 조용히 시작하고 끝나요. 페이드가 없어도 됩니다.',
+              t(bad ? 'audiofade.say.bad' : 'audiofade.say.good'),
               bad ? 'error' : 'ok'
             );
           }
 
           async function load(file: File): Promise<void> {
             runBtn.disabled = true;
-            say('소리를 읽는 중…');
+            say(t('audiofade.say.reading'));
             const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
             const ctx = new AC();
             try {
               buffer = await ctx.decodeAudioData(await file.arrayBuffer());
             } catch {
-              say('이 파일에서 소리를 읽지 못했어요. 다른 형식으로 해 보세요.', 'error');
+              say(t('audiofade.err.decode'), 'error');
               void ctx.close();
               return;
             }
             void ctx.close();
-            baseName = (file.name || '소리').replace(/\.[^.]+$/, '');
+            baseName = (file.name || t('audiofade.file.base')).replace(/\.[^.]+$/, '');
             outBlob = null;
             saveBtn.disabled = true;
             player.style.display = 'none';
@@ -160,7 +184,7 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
           async function run(): Promise<void> {
             if (!buffer) return;
             runBtn.disabled = true;
-            say('페이드를 넣는 중…');
+            say(t('audiofade.say.working'));
             await new Promise((r) => setTimeout(r, 0));
             try {
               const sr = buffer.sampleRate;
@@ -186,13 +210,13 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
               saveBtn.disabled = false;
               const after = edgeLevels(out);
               stats.innerHTML =
-                stat('시작 진폭', `${Math.round(after.head * 100)}%`, true) +
-                stat('끝 진폭', `${Math.round(after.tail * 100)}%`) +
-                stat('파일 크기', size(outBlob.size));
-              say('다 됐어요. 들어 보고 마음에 들면 내려받으세요.', 'ok');
+                stat(t('audiofade.stat.headLevel'), `${Math.round(after.head * 100)}%`, true) +
+                stat(t('audiofade.stat.tailLevel'), `${Math.round(after.tail * 100)}%`) +
+                stat(t('audiofade.stat.size'), size(outBlob.size));
+              say(t('audiofade.say.done'), 'ok');
               Toolbox.trackUse?.('fade');
             } catch (e) {
-              say((e as Error).message || '페이드를 넣지 못했어요.', 'error');
+              say((e as Error).message || t('audiofade.err.generic'), 'error');
             } finally {
               runBtn.disabled = false;
             }
@@ -223,10 +247,14 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
           });
 
           const showIn = (): void => {
-            $<HTMLElement>('#afInVal').textContent = (parseInt($<HTMLInputElement>('#afIn').value, 10) / 10).toFixed(1) + '초';
+            $<HTMLElement>('#afInVal').textContent = t('audiofade.value.sec', {
+              n: (parseInt($<HTMLInputElement>('#afIn').value, 10) / 10).toFixed(1)
+            });
           };
           const showOut = (): void => {
-            $<HTMLElement>('#afOutVal').textContent = (parseInt($<HTMLInputElement>('#afOut').value, 10) / 10).toFixed(1) + '초';
+            $<HTMLElement>('#afOutVal').textContent = t('audiofade.value.sec', {
+              n: (parseInt($<HTMLInputElement>('#afOut').value, 10) / 10).toFixed(1)
+            });
           };
           $<HTMLInputElement>('#afIn').addEventListener('input', showIn);
           $<HTMLInputElement>('#afOut').addEventListener('input', showOut);
@@ -237,22 +265,19 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
             $<HTMLInputElement>('#afOut').value = String(Math.round(autoSeconds(tail) * 10));
             showIn();
             showOut();
-            say('끊기는 만큼만 잡았어요. 페이드 넣기를 누르세요.', 'ok');
+            say(t('audiofade.say.auto'), 'ok');
           };
           runBtn.onclick = () => void run();
           saveBtn.onclick = () => {
             if (!outBlob) return;
             const a = document.createElement('a');
             a.href = URL.createObjectURL(outBlob);
-            a.download = `${baseName}-페이드.wav`;
+            a.download = baseName + t('audiofade.file.suffix') + '.wav';
             a.click();
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: outBlob, name: a.download, from: 'audiofade' });
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say(`${size(outBlob.size)} 로 받았어요.`, 'ok');
+            say(t('audiofade.say.saved', { size: size(outBlob.size) }), 'ok');
           };
-        }
-      }
-    ]
-  });
+  }
 })();
