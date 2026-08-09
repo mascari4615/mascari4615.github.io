@@ -1,0 +1,22 @@
+{
+  "pace.tab": "Pace",
+  "pace.label.pace": "Pace (min:sec / {unit})",
+  "pace.label.speed": "Speed ({unit}/h)",
+  "pace.label.thisPace": "At this pace",
+  "pace.label.goalCalc": "Pace needed for a goal time",
+  "pace.label.distance": "Distance",
+  "pace.label.goalTime": "Goal time (h:mm:ss)",
+  "pace.dist.half": "Half marathon (21.0975 km)",
+  "pace.dist.full": "Marathon (42.195 km)",
+  "pace.row.needPace": "Pace needed",
+  "pace.row.needSpeed": "Speed needed",
+  "pace.row.atCurrent": "At your current pace",
+  "pace.row.diff": "Difference",
+  "pace.value.under": "inside the goal by",
+  "pace.value.over": "over by",
+  "pace.unit.km": "km",
+  "pace.unit.mile": "mile",
+  "pace.time.hms": "{h}h {m}m {s}s",
+  "pace.time.ms": "{m}m {s}s",
+  "pace.status.note": "Pace is base-60 and speed is base-10, so converting by hand goes wrong easily."
+}

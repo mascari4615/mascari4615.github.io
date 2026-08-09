@@ -1,0 +1,22 @@
+{
+  "pace.tab": "ペース",
+  "pace.label.pace": "ペース（分:秒 / {unit}）",
+  "pace.label.speed": "速度（{unit}/h）",
+  "pace.label.thisPace": "このペースで走ると",
+  "pace.label.goalCalc": "目標タイムから逆算",
+  "pace.label.distance": "距離",
+  "pace.label.goalTime": "目標タイム（時:分:秒）",
+  "pace.dist.half": "ハーフ（21.0975km）",
+  "pace.dist.full": "フル（42.195km）",
+  "pace.row.needPace": "必要なペース",
+  "pace.row.needSpeed": "必要な速度",
+  "pace.row.atCurrent": "今のペースでは",
+  "pace.row.diff": "差",
+  "pace.value.under": "目標内",
+  "pace.value.over": "超過",
+  "pace.unit.km": "km",
+  "pace.unit.mile": "マイル",
+  "pace.time.hms": "{h}時間{m}分{s}秒",
+  "pace.time.ms": "{m}分{s}秒",
+  "pace.status.note": "ペースは60進法、速度は10進法なので手で換算すると間違えやすいです。"
+}

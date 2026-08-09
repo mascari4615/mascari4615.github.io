@@ -1,0 +1,22 @@
+{
+  "pace.tab": "페이스",
+  "pace.label.pace": "페이스 (분:초 / {unit})",
+  "pace.label.speed": "속도 ({unit}/h)",
+  "pace.label.thisPace": "이 페이스로 달리면",
+  "pace.label.goalCalc": "목표 기록에서 페이스 역산",
+  "pace.label.distance": "거리",
+  "pace.label.goalTime": "목표 기록 (시:분:초)",
+  "pace.dist.half": "하프 (21.0975km)",
+  "pace.dist.full": "풀코스 (42.195km)",
+  "pace.row.needPace": "필요한 페이스",
+  "pace.row.needSpeed": "필요한 속도",
+  "pace.row.atCurrent": "현재 페이스로는",
+  "pace.row.diff": "차이",
+  "pace.value.under": "목표 안쪽",
+  "pace.value.over": "초과",
+  "pace.unit.km": "km",
+  "pace.unit.mile": "마일",
+  "pace.time.hms": "{h}시간 {m}분 {s}초",
+  "pace.time.ms": "{m}분 {s}초",
+  "pace.status.note": "페이스는 60진법, 속도는 10진법이라 손으로 옮기면 틀리기 쉽습니다."
+}
