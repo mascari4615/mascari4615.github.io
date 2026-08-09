@@ -906,6 +906,8 @@ import {
         renderSide();
       },
       onBackgroundDoubleClick: (world) => spawnNodeAt(world.x, world.y, ''),
+      // 선을 휘거나 이름표를 옮긴 뒤 — 캔버스가 spec 을 고쳤으니 저장만 하면 된다.
+      onEdgeChanged: () => persistStructure(),
       onConnect: (fromId, toId) => {
         selectedId = fromId;
         createEdge(fromId, toId);

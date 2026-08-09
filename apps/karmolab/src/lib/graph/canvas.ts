@@ -95,6 +95,11 @@ export interface GraphCanvasOptions {
    * 안 주면 읽기 전용 뷰(cockpit)처럼 손잡이 자체가 없다.
    */
   onConnect?: (fromId: string, toId: string) => void;
+  /**
+   * 선을 손으로 고쳤을 때(휘기·이름표 자리). 이 콜백을 주면 선에 손잡이가 생긴다 —
+   * 캔버스가 `spec` 의 그 선을 직접 고치고, 저장은 위젯이 한다.
+   */
+  onEdgeChanged?: (edgeId: string) => void;
 }
 
 /** 클릭과 드래그를 가르는 이동 거리 (px). */
@@ -200,6 +205,9 @@ export class GraphCanvas {
   private onBackgroundClick?: () => void;
   private onBackgroundDoubleClick?: (world: { x: number; y: number }) => void;
   private onConnect?: (fromId: string, toId: string) => void;
+  private onEdgeChanged?: (edgeId: string) => void;
+  /** 선을 휘거나 이름표를 옮기는 중. */
+  private edgeDrag: { edgeId: string; mode: 'curve' | 'label' } | null = null;
   /** 손잡이에서 끌고 있는 중. 임시 선은 edgeLayer 에 그렸다가 놓을 때 지운다. */
   private linking: { fromId: string; temp: SVGPathElement } | null = null;
 
@@ -217,6 +225,7 @@ export class GraphCanvas {
     this.onBackgroundClick = options.onBackgroundClick;
     this.onBackgroundDoubleClick = options.onBackgroundDoubleClick;
     this.onConnect = options.onConnect;
+    this.onEdgeChanged = options.onEdgeChanged;
     instanceSeq += 1;
     this.uid = `g${instanceSeq}`;
     injectGraphCanvasStyles();
@@ -381,6 +390,18 @@ export class GraphCanvas {
       }
       if (this.activePointers.size > 2) return;
       const target = e.target as Element;
+      const gripEl = target.closest('.ck-edge-grip') as SVGCircleElement | null;
+      const labelEl = target.closest('.ck-edge-label') as SVGGElement | null;
+      if ((gripEl || labelEl) && this.onEdgeChanged) {
+        const edgeId = (gripEl ?? labelEl)?.dataset.edgeId ?? '';
+        if (edgeId) {
+          e.stopPropagation();
+          e.preventDefault();
+          this.edgeDrag = { edgeId, mode: gripEl ? 'curve' : 'label' };
+          this.pressOrigin = null;
+          return;
+        }
+      }
       const handleEl = target.closest('.ck-link-handle') as SVGCircleElement | null;
       const nodeEl = target.closest('.ck-node') as SVGGElement | null;
       const groupEl = target.closest('.ck-group') as SVGRectElement | null;
@@ -485,6 +506,32 @@ export class GraphCanvas {
         this.applyTransform();
         return;
       }
+      if (this.edgeDrag) {
+        const edge = this.spec?.edges.find((x) => x.id === this.edgeDrag?.edgeId);
+        if (!edge) return;
+        const b1 = this.getNodeBox(this.parseNodeRef(edge.from));
+        const b2 = this.getNodeBox(this.parseNodeRef(edge.to));
+        if (!b1 || !b2) return;
+        const { p1, p2 } = this.chooseAnchors(b1, b2);
+        const w = this.screenToWorld(e.clientX, e.clientY);
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const len = Math.hypot(dx, dy) || 1;
+        if (this.edgeDrag.mode === 'curve') {
+          // 두 끝점을 잇는 직선에서 얼마나 벗어났는지(법선 성분)를 그대로 휘는 값으로.
+          const nx = -dy / len;
+          const ny = dx / len;
+          const off = (w.x - (p1.x + p2.x) / 2) * nx + (w.y - (p1.y + p2.y) / 2) * ny;
+          const curve = Math.max(-0.8, Math.min(0.8, (off / len) * 1.35));
+          edge.curve = Math.abs(curve) < 0.02 ? undefined : Number(curve.toFixed(3));
+        } else {
+          // 이름표는 두 끝점 사이 어디쯤인지(접선 성분)로 자리를 잡는다.
+          const t = ((w.x - p1.x) * dx + (w.y - p1.y) * dy) / (len * len);
+          edge.labelPos = Number(Math.min(0.95, Math.max(0.05, t)).toFixed(3));
+        }
+        this.redrawEdges();
+        return;
+      }
       if (this.linking) {
         const from = this.getNodeBox(this.linking.fromId);
         if (from) {
@@ -570,6 +617,12 @@ export class GraphCanvas {
         if (this.activePointers.size < 2) this.pinch = null;
         return;
       }
+      if (this.edgeDrag) {
+        const { edgeId } = this.edgeDrag;
+        this.edgeDrag = null;
+        this.onEdgeChanged?.(edgeId);
+        return;
+      }
       if (this.linking) {
         const { fromId, temp } = this.linking;
         this.linking = null;
@@ -606,6 +659,7 @@ export class GraphCanvas {
       this.dragging = null;
       this.draggingGroup = null;
       this.panning = null;
+      this.edgeDrag = null;
       this.linking?.temp.remove();
       this.linking = null;
       this.svg.style.cursor = 'grab';
@@ -1230,6 +1284,22 @@ export class GraphCanvas {
       return c;
     };
     const out: SVGElement[] = [path, mkDot(p1.x, p1.y), mkDot(p2.x, p2.y)];
+    if (this.onEdgeChanged) {
+      const g = this.edgeGeom(edge);
+      if (g) {
+        const mid = this.pointOnEdge(g, 0.5);
+        const grip = document.createElementNS(SVG_NS, 'circle');
+        grip.setAttribute('class', 'ck-edge-grip');
+        grip.dataset.edgeId = edge.id;
+        grip.setAttribute('cx', String(mid.x));
+        grip.setAttribute('cy', String(mid.y));
+        grip.setAttribute('r', '5');
+        grip.setAttribute('fill', color);
+        grip.setAttribute('stroke', this.theme.nodeFill);
+        grip.setAttribute('stroke-width', '1.5');
+        out.push(grip);
+      }
+    }
     const label = this.buildEdgeLabel(edge);
     if (label) out.push(label);
     return out;
@@ -1288,29 +1358,62 @@ export class GraphCanvas {
     return { p1: sidePoint(b1, side1), p2: sidePoint(b2, side2), side1, side2 };
   }
 
-  private buildEdgePath(edge: GraphEdge): SVGPathElement | null {
-    const id1 = this.parseNodeRef(edge.from);
-    const id2 = this.parseNodeRef(edge.to);
-    const b1 = this.getNodeBox(id1);
-    const b2 = this.getNodeBox(id2);
+  /**
+   * 선 하나의 기하 — 시작·끝점과 베지어 제어점. 경로·이름표·손잡이가 **같은 계산**을 쓴다
+   * (예전엔 경로와 이름표가 따로 계산해서, 한쪽만 고치면 이름표가 선을 벗어났다).
+   *
+   * `edge.curve` = 휘는 정도. 0 이면 직선에 가깝고 부호가 바뀌면 반대쪽으로 휜다 —
+   * 같은 두 노드를 잇는 선이 여럿일 때 겹치지 않게 하는 것도 이 값이다(Kumu 와 같은 규칙).
+   */
+  private edgeGeom(edge: GraphEdge): {
+    p1: { x: number; y: number }; c1: { x: number; y: number };
+    c2: { x: number; y: number }; p2: { x: number; y: number };
+  } | null {
+    const b1 = this.getNodeBox(this.parseNodeRef(edge.from));
+    const b2 = this.getNodeBox(this.parseNodeRef(edge.to));
     if (!b1 || !b2) return null;
-
     const { p1, p2, side1, side2 } = this.chooseAnchors(b1, b2);
-
-    // 베지어 control = 면 법선으로 거리 비례 push (자연스러운 곡선).
     const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
     const push = Math.max(40, dist * 0.4);
-    const offset = (side: string, p: { x: number; y: number }) => {
+    const off = (side: string, p: { x: number; y: number }) => {
       switch (side) {
-        case 'top':    return { x: p.x,         y: p.y - push };
-        case 'bottom': return { x: p.x,         y: p.y + push };
-        case 'left':   return { x: p.x - push,  y: p.y };
-        case 'right':  return { x: p.x + push,  y: p.y };
-        default:       return { x: p.x,         y: p.y };
+        case 'top':    return { x: p.x, y: p.y - push };
+        case 'bottom': return { x: p.x, y: p.y + push };
+        case 'left':   return { x: p.x - push, y: p.y };
+        case 'right':  return { x: p.x + push, y: p.y };
+        default:       return { x: p.x, y: p.y };
       }
     };
-    const c1 = offset(side1, p1);
-    const c2 = offset(side2, p2);
+    const c1 = off(side1, p1);
+    const c2 = off(side2, p2);
+    const curve = edge.curve ?? 0;
+    if (curve) {
+      // 두 점을 잇는 직선의 법선 방향으로 제어점을 함께 밀어 좌우로 휘게 한다.
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const nx = -dy / len;
+      const ny = dx / len;
+      const amp = curve * len;
+      c1.x += nx * amp; c1.y += ny * amp;
+      c2.x += nx * amp; c2.y += ny * amp;
+    }
+    return { p1, c1, c2, p2 };
+  }
+
+  /** 베지어 위 한 점 (t=0~1). 이름표·손잡이 자리를 잡는 데 쓴다. */
+  private pointOnEdge(g: { p1: { x: number; y: number }; c1: { x: number; y: number }; c2: { x: number; y: number }; p2: { x: number; y: number } }, t: number): { x: number; y: number } {
+    const u = 1 - t;
+    return {
+      x: u * u * u * g.p1.x + 3 * u * u * t * g.c1.x + 3 * u * t * t * g.c2.x + t * t * t * g.p2.x,
+      y: u * u * u * g.p1.y + 3 * u * u * t * g.c1.y + 3 * u * t * t * g.c2.y + t * t * t * g.p2.y,
+    };
+  }
+
+  private buildEdgePath(edge: GraphEdge): SVGPathElement | null {
+    const g = this.edgeGeom(edge);
+    if (!g) return null;
+    const { p1, c1, c2, p2 } = g;
 
     const kind = this.edgeKindFor(edge.kind);
     // 선 하나만 따로 고친 값이 있으면 그게 이긴다 (edge > kind > 테마).
@@ -1383,28 +1486,12 @@ export class GraphCanvas {
   private buildEdgeLabel(edge: GraphEdge): SVGGElement | null {
     const text = (edge.label ?? '').trim();
     if (!text) return null;
-    const id1 = this.parseNodeRef(edge.from);
-    const id2 = this.parseNodeRef(edge.to);
-    const b1 = this.getNodeBox(id1);
-    const b2 = this.getNodeBox(id2);
-    if (!b1 || !b2) return null;
-    const { p1, p2, side1, side2 } = this.chooseAnchors(b1, b2);
-    const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-    const push = Math.max(40, dist * 0.4);
-    const off = (side: string, p: { x: number; y: number }) => {
-      switch (side) {
-        case 'top':    return { x: p.x, y: p.y - push };
-        case 'bottom': return { x: p.x, y: p.y + push };
-        case 'left':   return { x: p.x - push, y: p.y };
-        case 'right':  return { x: p.x + push, y: p.y };
-        default:       return p;
-      }
-    };
-    const q1 = off(side1, p1);
-    const q2 = off(side2, p2);
-    // t=0.5 의 3차 베지어 값 = (p1 + 3c1 + 3c2 + p2) / 8
-    const mx = (p1.x + 3 * q1.x + 3 * q2.x + p2.x) / 8;
-    const my = (p1.y + 3 * q1.y + 3 * q2.y + p2.y) / 8;
+    const geom = this.edgeGeom(edge);
+    if (!geom) return null;
+    // 이름표 자리 = 선 위 비율(0 = 출발, 1 = 도착). draw.io 의 라벨 위치와 같은 개념.
+    const at = this.pointOnEdge(geom, Math.min(1, Math.max(0, edge.labelPos ?? 0.5)));
+    const mx = at.x;
+    const my = at.y;
 
     const kind = this.edgeKindFor(edge.kind);
     const color = edge.color ?? kind.color ?? this.theme.edgeDefaultColor;
@@ -1414,7 +1501,9 @@ export class GraphCanvas {
     const g = document.createElementNS(SVG_NS, 'g') as SVGGElement;
     g.setAttribute('class', 'ck-edge-label');
     g.dataset.edgeId = edge.id;
-    g.setAttribute('pointer-events', 'none');
+    // 끌 수 있어야 한다 — 선 위 어디에 둘지는 그림마다 다르다.
+    if (this.onEdgeChanged) g.style.cursor = 'grab';
+    else g.setAttribute('pointer-events', 'none');
 
     const plate = document.createElementNS(SVG_NS, 'rect');
     plate.setAttribute('x', String(mx - w / 2));
