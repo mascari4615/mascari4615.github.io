@@ -63,7 +63,7 @@ export interface PanelCtx {
   /** 꾸미기 규칙을 캔버스에 반영. */
   applyDecorate: () => void;
   /** 지금 팩 + 내 용어의 종류 목록. */
-  nodeKinds: () => { id: string; label: string; icon: string }[];
+  nodeKinds: () => { id: string; label: string; icon: string; fields?: string[] }[];
   edgeKinds: () => { id: string; label: string }[];
   kindLabel: (id: string) => string;
   kindIcon: (id: string) => string;

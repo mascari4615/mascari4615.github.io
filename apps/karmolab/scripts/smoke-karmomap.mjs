@@ -932,6 +932,19 @@ await step('연표로 놓기 — 시점 순서대로 왼쪽에서 오른쪽으�
   if (xs.early === null || xs.late === null) throw new Error('노드를 못 찾았다: ' + JSON.stringify(xs));
   if (!(xs.early < xs.late)) throw new Error(`시점 순서가 안 맞다: ${xs.early} / ${xs.late}`);
 });
+await step('종류마다 「틀 한 벌」이 칸 이름을 채워 준다', async () => {
+  // 빈 칸에서 시작하면 무엇을 적을지 몰라 아무것도 안 적는다 — 틀이 실제로 **칸을 만들어야** 값이다.
+  const tbox = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.dblclick(tbox.x + tbox.width * 0.15, tbox.y + tbox.height * 0.6);
+  await page.waitForSelector('[data-km="fld-new"]', { timeout: 4000 });
+  const tplBtn = page.locator('[data-km="fld-template"]');
+  if (await tplBtn.count() === 0) throw new Error('이 종류에 틀이 없다');
+  const before = await page.locator('[data-km="fld-name"]').count();
+  await tplBtn.dispatchEvent('click');
+  await page.waitForFunction((n) => document.querySelectorAll('[data-km="fld-name"]').length > n, before, { timeout: 4000 });
+  // 채운 뒤에는 그 버튼이 사라져야 한다(같은 칸을 두 번 권하면 목록이 지저분해진다).
+  await page.waitForFunction(() => document.querySelectorAll('[data-km="fld-template"]').length === 0, null, { timeout: 4000 });
+});
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
   await page.click('[data-km="tab"][data-key="notes"]');
