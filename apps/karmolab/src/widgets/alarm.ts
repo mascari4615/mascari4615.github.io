@@ -8,6 +8,7 @@
  * 데스크톱(Tauri) 전용. 웹에서는 안내만.
  */
 import { invoke as tauriInvoke } from '../tauri-bridge';
+import { t, loadNamespace } from '../lib/i18n';
 
 (function (): void {
   'use strict';
@@ -25,7 +26,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     force_wake: boolean;
   };
 
-  const DOW = ['월', '화', '수', '목', '금', '토', '일'];
+  const DOW = [t('alarm.t01'), t('alarm.t02'), t('alarm.t03'), t('alarm.t04'), t('alarm.t05'), t('alarm.t06'), t('alarm.t07')];
 
   function newId(): string {
     return 'al-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1e6).toString(36);
@@ -51,8 +52,8 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
   }
 
   function fmtRepeat(repeat: number[]): string {
-    if (repeat.length === 0) return '1회성';
-    if (repeat.length === 7) return '매일';
+    if (repeat.length === 0) return t('alarm.t08');
+    if (repeat.length === 7) return t('alarm.t09');
     return [...repeat].sort((a, b) => a - b).map((d) => DOW[d]).join('·');
   }
 
@@ -104,8 +105,8 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     const root = document.createElement('div');
     root.className = 'kl-alarm-root';
     root.innerHTML =
-      '<p class="kl-alarm-intro">설정한 시각에 KarmoLab이 (트레이 최소화·앱 닫힘 무관) 강제로 깨웁니다. ' +
-      'OS 강제기상 = 절전에서 PC 깨우기 + 모니터 ON + 볼륨 강제·음소거 무시.</p>';
+      t('alarm.t10') +
+      t('alarm.t11');
 
     const list = document.createElement('div');
     list.className = 'kl-alarm-list';
@@ -118,7 +119,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     const addBtn = document.createElement('button');
     addBtn.type = 'button';
     addBtn.className = 'kl-alarm-add';
-    addBtn.textContent = '+ 알람 추가';
+    addBtn.textContent = t('alarm.t12');
     root.appendChild(addBtn);
 
     const bottom = document.createElement('div');
@@ -129,7 +130,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     autoChk.type = 'checkbox';
     autoLabel.appendChild(autoChk);
     autoLabel.appendChild(
-      document.createTextNode(' Windows 시작 시 자동 실행 (재부팅 후 알람 보장)')
+      document.createTextNode(t('alarm.t13'))
     );
     bottom.appendChild(autoLabel);
     root.appendChild(bottom);
@@ -149,7 +150,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     const isApp = typeof Toolbox.isDesktopApp === 'function' && Toolbox.isDesktopApp();
     if (!isApp) {
       list.innerHTML =
-        '<div class="kl-alarm-empty">웹 브라우저에서는 사용할 수 없습니다. KarmoLab Tauri 앱으로 열어 주세요.</div>';
+        t('alarm.t14');
       addBtn.disabled = true;
       autoChk.disabled = true;
       return;
@@ -160,7 +161,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     function renderList(): void {
       list.innerHTML = '';
       if (alarms.length === 0) {
-        list.innerHTML = '<div class="kl-alarm-empty">알람이 없습니다. 아래에서 추가하세요.</div>';
+        list.innerHTML = t('alarm.t15');
         return;
       }
       for (const a of alarms) {
@@ -181,9 +182,9 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
         const sub = document.createElement('div');
         sub.className = 'kl-alarm-sub';
         const bits = [fmtRepeat(a.repeat)];
-        if (a.force_wake) bits.push('강제기상');
-        if (a.snooze_minutes > 0) bits.push('스누즈 ' + a.snooze_minutes + '분');
-        bits.push(a.sound_path ? '커스텀음' : '기본음');
+        if (a.force_wake) bits.push(t('alarm.t16'));
+        if (a.snooze_minutes > 0) bits.push(t('alarm.t17') + a.snooze_minutes + t('alarm.t18'));
+        bits.push(a.sound_path ? t('alarm.t19') : t('alarm.t20'));
         sub.textContent = bits.join(' · ');
         meta.appendChild(lbl);
         meta.appendChild(sub);
@@ -193,11 +194,11 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
         toggle.type = 'button';
         toggle.className = 'kl-alarm-toggle';
         toggle.dataset.on = a.enabled ? '1' : '0';
-        toggle.title = a.enabled ? '켜짐' : '꺼짐';
+        toggle.title = a.enabled ? t('alarm.t21') : t('alarm.t22');
         toggle.addEventListener('click', () => {
           void tauriInvoke('alarm_set_enabled', { id: a.id, enabled: !a.enabled })
             .then(reload)
-            .catch((e: unknown) => fail('on/off 실패', e));
+            .catch((e: unknown) => fail(t('alarm.t23'), e));
         });
         item.appendChild(toggle);
 
@@ -206,16 +207,16 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
         const edit = document.createElement('button');
         edit.type = 'button';
         edit.className = 'kl-alarm-mini';
-        edit.textContent = '편집';
+        edit.textContent = t('alarm.t24');
         edit.addEventListener('click', () => openForm(a));
         const del = document.createElement('button');
         del.type = 'button';
         del.className = 'kl-alarm-mini';
-        del.textContent = '삭제';
+        del.textContent = t('alarm.t25');
         del.addEventListener('click', () => {
           void tauriInvoke('alarm_remove', { id: a.id })
             .then(reload)
-            .catch((e: unknown) => fail('삭제 실패', e));
+            .catch((e: unknown) => fail(t('alarm.t26'), e));
         });
         btns.appendChild(edit);
         btns.appendChild(del);
@@ -258,16 +259,16 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
       timeWrap.appendChild(hIn);
       timeWrap.appendChild(document.createTextNode(':'));
       timeWrap.appendChild(mIn);
-      addRow('시각', timeWrap);
+      addRow(t('alarm.t27'), timeWrap);
 
       // 라벨
       const labelIn = document.createElement('input');
       labelIn.type = 'text';
       labelIn.className = 'kl-alarm-in';
       labelIn.style.width = '100%';
-      labelIn.placeholder = '예: 기상 / 약 먹기';
+      labelIn.placeholder = t('alarm.t28');
       labelIn.value = a.label;
-      addRow('라벨', labelIn);
+      addRow(t('alarm.t29'), labelIn);
 
       // 반복 요일
       const days = document.createElement('div');
@@ -285,7 +286,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
         dayBtns.push(b);
         days.appendChild(b);
       }
-      addRow('반복 (없으면 1회성)', days);
+      addRow(t('alarm.t30'), days);
 
       // 사운드 경로 (.wav, 비우면 기본음)
       const soundWrap = document.createElement('div');
@@ -300,7 +301,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
       const browse = document.createElement('button');
       browse.type = 'button';
       browse.className = 'kl-alarm-mini';
-      browse.textContent = '찾아보기';
+      browse.textContent = t('alarm.t31');
       browse.addEventListener('click', () => {
         const dlg = (window as unknown as { __TAURI__?: { dialog?: { open?: unknown } } })
           .__TAURI__?.dialog;
@@ -309,20 +310,20 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
             ? (dlg.open as (o: unknown) => Promise<unknown>)
             : null;
         if (!openFn) {
-          fail('파일 선택 불가', new Error('Tauri dialog 없음'));
+          fail(t('alarm.t32'), new Error(t('alarm.err.33')));
           return;
         }
         void openFn({
           multiple: false,
           directory: false,
-          filters: [{ name: 'WAV 사운드', extensions: ['wav'] }]
+          filters: [{ name: t('alarm.t34'), extensions: ['wav'] }]
         }).then((sel) => {
           if (typeof sel === 'string' && sel.length > 0) soundIn.value = sel;
         });
       });
       soundWrap.appendChild(soundIn);
       soundWrap.appendChild(browse);
-      addRow('사운드 (.wav)', soundWrap);
+      addRow(t('alarm.t35'), soundWrap);
 
       // 볼륨
       const volWrap = document.createElement('div');
@@ -340,7 +341,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
       });
       volWrap.appendChild(volIn);
       volWrap.appendChild(volVal);
-      addRow('볼륨', volWrap);
+      addRow(t('alarm.t36'), volWrap);
 
       // 스누즈 분
       const snzIn = document.createElement('input');
@@ -349,7 +350,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
       snzIn.min = '0';
       snzIn.max = '60';
       snzIn.value = String(a.snooze_minutes);
-      addRow('스누즈 (분, 0=없음)', snzIn);
+      addRow(t('alarm.t37'), snzIn);
 
       // OS 강제기상
       const fwLabel = document.createElement('label');
@@ -359,9 +360,9 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
       fwChk.checked = a.force_wake;
       fwLabel.appendChild(fwChk);
       fwLabel.appendChild(
-        document.createTextNode(' 절전 깨우기 + 모니터 ON + 볼륨 강제·음소거 무시')
+        document.createTextNode(t('alarm.t38'))
       );
-      addRow('OS 강제기상', fwLabel);
+      addRow(t('alarm.t39'), fwLabel);
 
       form.appendChild(grid);
 
@@ -370,7 +371,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
       const cancel = document.createElement('button');
       cancel.type = 'button';
       cancel.className = 'kl-alarm-btn';
-      cancel.textContent = '취소';
+      cancel.textContent = t('alarm.t40');
       cancel.addEventListener('click', () => {
         form.dataset.open = '0';
         form.innerHTML = '';
@@ -378,7 +379,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
       const save = document.createElement('button');
       save.type = 'button';
       save.className = 'kl-alarm-btn kl-alarm-btn-primary';
-      save.textContent = '저장';
+      save.textContent = t('alarm.t41');
       save.addEventListener('click', () => {
         const hour = Math.max(0, Math.min(23, parseInt(hIn.value, 10) || 0));
         const minute = Math.max(0, Math.min(59, parseInt(mIn.value, 10) || 0));
@@ -404,7 +405,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
             form.innerHTML = '';
             return reload();
           })
-          .catch((e: unknown) => fail('저장 실패', e));
+          .catch((e: unknown) => fail(t('alarm.t42'), e));
       });
       actions.appendChild(cancel);
       actions.appendChild(save);
@@ -415,7 +416,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     function fail(msg: string, e: unknown): void {
       const m = e instanceof Error ? e.message : String(e);
       setLog(msg + ': ' + m, true);
-      Toolbox.showToast?.('알람 ' + msg, 'error', e);
+      Toolbox.showToast?.(t('alarm.t43') + msg, 'error', e);
     }
 
     function reload(): Promise<void> {
@@ -424,17 +425,17 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
           alarms = Array.isArray(res) ? res : [];
           renderList();
         })
-        .catch((e: unknown) => fail('목록 로드 실패', e));
+        .catch((e: unknown) => fail(t('alarm.t44'), e));
     }
 
     addBtn.addEventListener('click', () => openForm(blankAlarm()));
 
     autoChk.addEventListener('change', () => {
       void tauriInvoke('alarm_set_autostart', { enabled: autoChk.checked })
-        .then(() => setLog('autostart ' + (autoChk.checked ? '켜짐' : '꺼짐'), false))
+        .then(() => setLog('autostart ' + (autoChk.checked ? t('alarm.t21') : t('alarm.t22')), false))
         .catch((e: unknown) => {
           autoChk.checked = !autoChk.checked;
-          fail('autostart 변경 실패', e);
+          fail(t('alarm.t45'), e);
         });
     });
 
@@ -450,12 +451,23 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
 
   Toolbox.register({
     id: 'alarm',
-    title: '알람',
+    title: t('widgets.alarm.title', undefined, "알람"),
     category: 'tool',
     desktopOnly: true,
-    desc: '강제 기상 데스크톱 알람 (Free Alarm Clock 레퍼런스, TASK-KL-064) — 상주 스케줄러 + OS 강제기상 + autostart',
+    desc: t('widgets-desc.alarm.desc', undefined, "강제 기상 데스크톱 알람 (Free Alarm Clock 레퍼런스, TASK-KL-064) — 상주 스케줄러 + OS 강제기상 + autostart"),
     layout: 'form',
     icon: '<circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 9v4l3 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M5 3 2 6M19 3l3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-    tabs: [{ id: 'alarm-main', label: '알람', build }]
+    tabs: [
+      {
+        id: 'alarm-main',
+        label: t('alarm.tab.main', undefined, '알람'),
+        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        build: function (container: HTMLElement): void {
+          void loadNamespace('alarm').then(function () {
+            build(container);
+          });
+        }
+      }
+    ]
   });
 })();
