@@ -85,7 +85,11 @@ import { EarthSound } from './sound';
     /* 지구본 안쪽은 우주다 — 여기만은 테마 색을 안 따른다(밝은 테마에서 흰 우주는 우주가 아니다).
        바깥 껍데기·단추는 전부 공용 토큰을 쓴다. */
     el.textContent = `
-.bm-wrap{position:relative;width:100%;height:100%;min-height:420px;display:flex;flex-direction:column;
+/* 높이를 **부모에게 안 묻는다**. 폰에서 부모가 높이를 안 정해 주면 height 100% 가
+   내용 높이로 풀려, 캔버스가 87,000px 짜리로 자랐다(실측 — 프레임 1166ms). 화면 기준으로
+   스스로 정한다: 작은 화면에서도 420px 는 되고, 커도 900px 를 안 넘는다. */
+.bm-wrap{position:relative;width:100%;height:clamp(420px,78svh,900px);max-height:900px;
+  display:flex;flex-direction:column;
   border-radius:var(--radius-md,12px);overflow:hidden;background:#04060d;}
 .bm-canvas{flex:1;display:block;width:100%;height:100%;touch-action:none;cursor:grab;}
 .bm-canvas.bm-drag{cursor:grabbing;}
@@ -236,6 +240,7 @@ import { EarthSound } from './sound';
           let W = 0;
           let H = 0;
           let dpr = 1;
+          let small = false;
           let stars: HTMLCanvasElement | null = null;
           let dayTex: Tex | null = null;
           let nightTex: Tex | null = null;
@@ -285,6 +290,9 @@ import { EarthSound } from './sound';
           const surfCtx = surfCv.getContext('2d', { willReadFrequently: true })!;
           let surfImg: ImageData | null = null;
           let surfView: SurfaceView | null = null;
+          let surfAt = 0;
+          /** 크기·그림이 바뀌면 다음 프레임에 반드시 다시 계산한다 */
+          let surfDirty = true;
 
           function ensureSurface(): void {
             const x0 = Math.max(0, cx - R);
@@ -294,10 +302,12 @@ import { EarthSound } from './sound';
             const rectW = Math.max(1, x1 - x0);
             const rectH = Math.max(1, y1 - y0);
             // 긴 변이 384칸을 넘지 않게 — 여기서 프레임 시간이 정해진다
-            const step = Math.max(1, Math.max(rectW, rectH) / 384);
+            // 폰은 더 작은 판에 그린다 — 여기서 프레임 시간이 정해진다
+            const step = Math.max(1, Math.max(rectW, rectH) / (small ? 256 : 384));
             const w = Math.max(1, Math.round(rectW / step));
             const h = Math.max(1, Math.round(rectH / step));
             if (w !== surfW || h !== surfH) {
+              surfDirty = true;
               surfW = w;
               surfH = h;
               surfCv.width = w;
@@ -310,7 +320,10 @@ import { EarthSound } from './sound';
           /* ── 화면 크기 ────────────────────────────────────────────────── */
           function resize(): void {
             const r = wrap.getBoundingClientRect();
-            dpr = Math.min(2, window.devicePixelRatio || 1);
+            /* 폰에서는 아낀다. 화면이 작고 화소 밀도가 높으면 같은 그림에 픽셀이 세 배 든다 —
+               지구는 부드러운 물체라 촘촘하게 그려도 티가 안 나고, 팬만 돈다. */
+            small = r.width < 620 || (window.devicePixelRatio || 1) > 2;
+            dpr = Math.min(small ? 1.6 : 2, window.devicePixelRatio || 1);
             W = Math.max(1, Math.round(r.width));
             H = Math.max(1, Math.round(r.height));
             canvas.width = Math.round(W * dpr);
@@ -557,7 +570,13 @@ import { EarthSound } from './sound';
             /* 표면 — 땅·바다·구름·도시 불빛·명암을 한 번에. 픽셀마다 구면 위 한 점을 되짚는다.
                (자를 것이 없으므로 「돌리면 땅이 화면을 덮는」 사고가 원리적으로 안 생긴다) */
             ensureSurface();
-            if (surfImg && surfView) {
+            /* 표면은 **매 프레임 다시 계산하지 않는다.** 지구는 천천히 돌고, 사람 눈은 30번이면
+               충분하다. 파문·궤도처럼 빠른 것만 매 프레임 위에 덧그린다. (폰에서 프레임의
+               대부분이 이 한 겹에 들어가고 있었다 — 4배 느린 기기에서 233ms.) */
+            const needSurface = now - surfAt > (small ? 42 : 33) || surfDirty;
+            if (needSurface) surfAt = now;
+            surfDirty = false;
+            if (needSurface && surfImg && surfView) {
               const onEarth = body === 'earth';
               paintSurface(surfImg, surfView, {
                 day: onEarth ? dayTex : bodyTex[body],
