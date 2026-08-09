@@ -15,6 +15,7 @@
  * 전부 `beat(tick)` 하나로 끝난다 — 저장도, 통신도, 서버도 없다.
  */
 import type { Beat, Channel } from './core';
+import { t } from '../../lib/i18n';
 import { ART_CHANNELS, bellPaint, gaugePaint } from './art';
 import { LETTER_CHANNELS } from './letters';
 import { DAY, HOUR, MINUTE, dateOf, pick, rngFor, tickOf, tickStart } from './core';
@@ -56,20 +57,20 @@ function strike(ac: AudioContext, at: number, base: number, gain: number): void 
 
 const bell: Channel = {
   id: 'bell',
-  name: '종',
+  get name() { return t('pulse.ch.bell.name'); },
   glyph: '🔔',
   period: HOUR,
   local: true,
   tile: 'unit',
-  blurb: '정각마다 시각 수만큼 친다. 글자가 아니라 소리다.',
-  lineage: '@big_ben_clock — 2009년부터 정각마다 BONG',
+  get blurb() { return t('pulse.ch.bell.blurb'); },
+  get lineage() { return t('pulse.ch.bell.lineage'); },
   beat(tick) {
     const at = new Date(tickStart(bell, tick));
     const h24 = at.getHours();
     const h12 = h24 % 12 || 12;
     return {
-      line: `${h24}시 — ${h12}번`,
-      sub: '소리를 켜 두면 정각에 울린다',
+      line: t('pulse.bell.line', { h: h24, n: h12 }),
+      sub: t('pulse.bell.sub'),
       paint: bellPaint(h12),
       sound(ac, when) {
         /* 낮의 종은 높고 밤의 종은 낮다 — 같은 소리를 스물네 번 들으면 시각을 잃는다. */
@@ -103,27 +104,27 @@ function spanRatio(now: Date, unit: 'hour' | 'day' | 'month' | 'year'): number {
 
 const gauge: Channel = {
   id: 'gauge',
-  name: '눈금',
+  get name() { return t('pulse.ch.gauge.name'); },
   glyph: '📊',
   period: MINUTE,
   local: true,
   tile: 'unit',
-  blurb: '이 시각·하루·이달·올해가 얼마나 지나갔나.',
-  lineage: '@year_progress — 한 해가 1% 갈 때마다 막대 하나',
+  get blurb() { return t('pulse.ch.gauge.blurb'); },
+  get lineage() { return t('pulse.ch.gauge.lineage'); },
   beat(tick) {
     const at = new Date(tickStart(gauge, tick));
     /* 막대를 블록문자(▓░)로 찍었다가 캔버스로 옮겼다 — 한글 이름표와 블록문자는 폰트마다
        칸 폭이 달라서, 어떻게 맞춰도 어느 기계에선가 어긋나 뭉갠다(사용자 지적, 2026-08-09). */
     const rows: Array<[string, 'hour' | 'day' | 'month' | 'year']> = [
-      ['시간', 'hour'],
-      ['하루', 'day'],
-      ['이달', 'month'],
-      ['올해', 'year']
+      [t('pulse.gauge.hour'), 'hour'],
+      [t('pulse.gauge.day'), 'day'],
+      [t('pulse.gauge.month'), 'month'],
+      [t('pulse.gauge.year'), 'year']
     ];
     const measured = rows.map(([label, unit]) => [label, spanRatio(at, unit)] as const);
     return {
       line: measured.map(([label, r]) => `${label} ${(r * 100).toFixed(1)}%`).join(' · '),
-      sub: '돌이킬 수 없는 것들',
+      sub: t('pulse.gauge.sub'),
       paint: gaugePaint(measured)
     };
   }
@@ -404,25 +405,25 @@ const WORD_PERIOD = 12 * HOUR;
 
 const word: Channel = {
   id: 'word',
-  name: '낱말',
+  get name() { return t('pulse.ch.word.name'); },
   glyph: '📖',
   period: WORD_PERIOD,
   local: true,
   tile: 'wide',
-  blurb: `순우리말 ${WORDS.length}개를 하루 두 번씩. 다 뱉으면 이 방송은 끝난다.`,
-  lineage: '@everyword — 영어 사전을 7년에 걸쳐 다 소진하고 끝냄',
+  get blurb() { return t('pulse.ch.word.blurb', { n: WORDS.length }); },
+  get lineage() { return t('pulse.ch.word.lineage'); },
   beat(tick) {
     const first = tickOf(word, WORD_EPOCH);
     const idx = tick - first;
     const endsAt = tickStart(word, first + WORDS.length);
-    if (idx < 0) return { line: '…', sub: `${dateOf(WORD_EPOCH)} 에 시작한다` };
+    if (idx < 0) return { line: '…', sub: t('pulse.word.before', { date: dateOf(WORD_EPOCH) }) };
     if (idx >= WORDS.length) {
-      return { line: '— 끝 —', sub: `${WORDS.length}개를 다 뱉었다. ${dateOf(endsAt)} 에 끝났다.` };
+      return { line: t('pulse.word.overLine'), sub: t('pulse.word.over', { n: WORDS.length, date: dateOf(endsAt) }) };
     }
     const [w, meaning] = WORDS[idx];
     return {
       line: w,
-      sub: `${meaning} · ${idx + 1} / ${WORDS.length} · ${dateOf(endsAt)} 에 끝난다`
+      sub: t('pulse.word.sub', { meaning, i: idx + 1, n: WORDS.length, date: dateOf(endsAt) })
     };
   }
 };
@@ -449,16 +450,16 @@ const SYLLABLE_PERIOD = 6 * HOUR;
 
 const syllable: Channel = {
   id: 'syllable',
-  name: '음절',
+  get name() { return t('pulse.ch.syllable.name'); },
   glyph: '가',
   period: SYLLABLE_PERIOD,
   local: true,
   tile: 'unit',
-  blurb: '한글 11,172자를 여섯 시간에 하나씩. 다 뱉는 데 7년 8개월 걸린다.',
-  lineage: '@everyword 의 무게 — 끝이 안 보이는 목록을 끝까지',
+  get blurb() { return t('pulse.ch.syllable.blurb'); },
+  get lineage() { return t('pulse.ch.syllable.lineage'); },
   beat(tick) {
     const idx = tick - tickOf(syllable, SYLLABLE_EPOCH);
-    if (idx < 0 || idx >= SYLLABLE_COUNT) return { line: '…', sub: '아직 · 또는 이미' };
+    if (idx < 0 || idx >= SYLLABLE_COUNT) return { line: '…', sub: t('pulse.syllable.outside') };
     const ch = String.fromCharCode(SYLLABLE_BASE + idx);
     const lead = LEAD[Math.floor(idx / (21 * 28))];
     const vowel = VOWEL[Math.floor(idx / 28) % 21];
@@ -466,7 +467,12 @@ const syllable: Channel = {
     const yearsLeft = ((SYLLABLE_COUNT - idx) * SYLLABLE_PERIOD) / (365.2425 * 24 * HOUR);
     return {
       line: ch,
-      sub: `${lead} + ${vowel}${tail ? ` + ${tail}` : ''} · ${(idx + 1).toLocaleString()} / ${SYLLABLE_COUNT.toLocaleString()} · 남은 ${yearsLeft.toFixed(0)}년`
+      sub: t('pulse.syllable.sub', {
+        parts: `${lead} + ${vowel}${tail ? ` + ${tail}` : ''}`,
+        i: (idx + 1).toLocaleString(),
+        n: SYLLABLE_COUNT.toLocaleString(),
+        years: yearsLeft.toFixed(0)
+      })
     };
   }
 };
@@ -474,29 +480,15 @@ const syllable: Channel = {
 /* ── 말뭉치형 ①: 한 줄 ─────────────────────────────────────────
    재료를 규칙에 꽂아 무한히 만든다. 뜻이 통할 때가 있는데, 그건 순전히 사고다. */
 
-const ADNOMINAL = [
-  '잊혀진', '축축한', '아주 작은', '이름 없는', '고장난', '너무 늦은', '조용한',
-  '반쯤 지워진', '길 잃은', '수요일의', '값싼', '거대한', '눅눅한', '마지막',
-  '두 번째로 슬픈', '아무도 안 쓰는', '오래된', '반짝이는'
-] as const;
-const NOUN = [
-  '우체통', '고양이', '자판기', '엘리베이터', '해파리', '주차장', '냉장고',
-  '등대', '복사기', '북극곰', '지하철', '문어', '가로등', '세탁기', '달팽이',
-  '전화번호부', '옥상', '나침반', '트램펄린', '수족관'
-] as const;
-const ADVERB = [
-  '천천히', '아주 진지하게', '몰래', '결국', '어쩔 수 없이', '거꾸로', '정확히 세 번',
-  '아무 이유 없이', '영원히', '오늘만', '잘못', '너무 크게', '조심스럽게'
-] as const;
-const VERB = [
-  '기다린다', '사과한다', '잠든다', '흩어진다', '노래한다', '도망친다', '녹는다',
-  '되돌아온다', '깜빡인다', '가라앉는다', '고백한다', '자란다', '멈춘다', '넘어진다'
-] as const;
+/* 말뭉치를 **말 묶음에서 받는다** — 낱말만 옮겨서는 안 되는 자리다.
+   한국어는 「임자말 + 조사」로 서고, 영어는 관사가 앞에 붙고, 일본어는 「が」가 뒤에 붙는다.
+   그래서 낱말 통(`|` 로 이은 한 줄)과 **문장 틀**을 언어마다 따로 둔다. */
+const bag = (key: string): readonly string[] => t(key).split('|');
 
 /* 검사용으로 낱말 통을 내보낸다 — 관형어·부사에 띄어쓰기가 있어서("아주 작은", "정확히 세 번")
    완성된 문장만 보고는 어디까지가 임자말인지 되짚을 수가 없다. 조사 규칙 자체는 검사기가
    따로 다시 구현한다(같은 함수를 나눠 쓰면 둘이 같이 틀려도 초록이 뜬다). */
-export const SENTENCE_NOUNS = NOUN;
+export const sentenceNouns = (): readonly string[] => bag('pulse.sent.noun');
 
 /** 받침이 있으면 「이」, 없으면 「가」. 이걸 안 하면 「트램펄린가」 같은 게 나온다. */
 function subjectParticle(noun: string): string {
@@ -508,20 +500,34 @@ function subjectParticle(noun: string): string {
 
 const sentence: Channel = {
   id: 'sentence',
-  name: '한 줄',
+  get name() { return t('pulse.ch.sentence.name'); },
   glyph: '💬',
   period: HOUR,
   tile: 'wide',
-  blurb: '한 시간에 한 문장. 문법은 맞고 뜻은 없다.',
-  lineage: 'Darius Kazemi / NaNoGenMo — 말뭉치 + 규칙으로 짓는 봇 시(詩)',
+  get blurb() { return t('pulse.ch.sentence.blurb'); },
+  get lineage() { return t('pulse.ch.sentence.lineage'); },
   beat(tick) {
     const r = rngFor('sentence', tick);
-    const noun = pick(r, NOUN);
+    const adn = bag('pulse.sent.adnominal');
+    const nouns = bag('pulse.sent.noun');
+    const adv = bag('pulse.sent.adverb');
+    const verbs = bag('pulse.sent.verb');
+    const noun = pick(r, nouns);
     return {
-      line: `${pick(r, ADNOMINAL)} ${noun}${subjectParticle(noun)} ${pick(r, ADVERB)} ${pick(r, VERB)}.`,
-      sub: `${ADNOMINAL.length}×${NOUN.length}×${ADVERB.length}×${VERB.length} = ${(
-        ADNOMINAL.length * NOUN.length * ADVERB.length * VERB.length
-      ).toLocaleString()}가지 중 하나`
+      line: t('pulse.sent.tmpl', {
+        adn: pick(r, adn),
+        noun,
+        p: subjectParticle(noun),
+        adv: pick(r, adv),
+        verb: pick(r, verbs)
+      }),
+      sub: t('pulse.sent.count', {
+        a: adn.length,
+        b: nouns.length,
+        c: adv.length,
+        d: verbs.length,
+        total: (adn.length * nouns.length * adv.length * verbs.length).toLocaleString()
+      })
     };
   }
 };
@@ -535,19 +541,19 @@ const sentence: Channel = {
    보는 사람이 「거기 지금 뭐가 있을까」를 갖다 붙이는 순간 이 방송은 완성된다. */
 
 function hemisphere(lat: number, lon: number): string {
-  const ns = lat >= 0 ? '북' : '남';
-  const ew = lon >= 0 ? '동' : '서';
-  return `${ns}반구 · ${ew}경 쪽`;
+  const ns = lat >= 0 ? t('pulse.spot.north') : t('pulse.spot.south');
+  const ew = lon >= 0 ? t('pulse.spot.east') : t('pulse.spot.west');
+  return t('pulse.spot.where', { ns, ew });
 }
 
 const spot: Channel = {
   id: 'spot',
-  name: '점',
+  get name() { return t('pulse.ch.spot.name'); },
   glyph: '🌐',
   period: 15 * MINUTE,
   tile: 'unit',
-  blurb: '15분마다 지구 위의 한 점. 대개는 바다다.',
-  lineage: '@earthgeobot 류 — 뜻 없는 좌표를 계속 던지는 지리 봇',
+  get blurb() { return t('pulse.ch.spot.blurb'); },
+  get lineage() { return t('pulse.ch.spot.lineage'); },
   beat(tick) {
     const r = rngFor('spot', tick);
     /* 위도를 그냥 균등하게 뽑으면 극지방이 과대표집된다. 구면에서 고르려면 sin 을 균등하게. */
@@ -557,7 +563,7 @@ const spot: Channel = {
       `${Math.abs(v).toFixed(4)}°${v >= 0 ? pos : neg}`;
     return {
       line: `${fmt(lat, 'N', 'S')}  ${fmt(lon, 'E', 'W')}`,
-      sub: `${hemisphere(lat, lon)} · 구면에서 고르게 뽑은 한 점`
+      sub: t('pulse.spot.sub', { where: hemisphere(lat, lon) })
     };
   }
 };
