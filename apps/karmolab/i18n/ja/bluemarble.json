@@ -49,5 +49,8 @@
   "bluemarble.layer.apod": "今日の宇宙写真",
   "bluemarble.line.apod": "今日 NASA が選んだ宇宙写真は「{title}」です。",
   "bluemarble.line.apodBy": "今日 NASA が選んだ宇宙写真は「{title}」— {who} が撮りました。",
-  "bluemarble.layer.tour": "地球ニュース"
+  "bluemarble.layer.tour": "地球ニュース",
+  "bluemarble.layer.dusk": "夕暮れを追う",
+  "bluemarble.line.dusk": "いまこの線の上で日が沈んでいます。反対側では昇っています。",
+  "bluemarble.line.duskCity": "いま {city} のあたりで日が沈んでいます。"
 }

@@ -40,7 +40,7 @@ import { EarthSound } from './sound';
     return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/data/' + name;
   }
 
-  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'sun' | 'clock' | 'apod' | 'tour';
+  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'sun' | 'clock' | 'apod' | 'tour' | 'dusk';
   /** `earthOnly` = 지구에서만 뜻이 있는 겹. 달·화성에선 단추 자체를 감춘다 —
       눌러도 아무 일이 없는 단추가 남아 있으면 그건 고장으로 보인다. */
   const LAYERS: Array<{ id: LayerId; glyph: string; earthOnly?: boolean }> = [
@@ -51,6 +51,7 @@ import { EarthSound } from './sound';
     { id: 'clock', earthOnly: true, glyph: '◷' },
     { id: 'apod', glyph: '✧' },
     { id: 'tour', earthOnly: true, glyph: '▶' },
+    { id: 'dusk', earthOnly: true, glyph: '◐' },
     { id: 'zoom', earthOnly: true, glyph: '⊕' },
     { id: 'cloud', earthOnly: true, glyph: '☁' },
     { id: 'city', earthOnly: true, glyph: '✦' },
@@ -68,7 +69,7 @@ import { EarthSound } from './sound';
     panel: boolean;
   }
   function loadPrefs(): Prefs {
-    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, sun: true, clock: true, apod: true, tour: false }, spin: true, panel: false };
+    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, sun: true, clock: true, apod: true, tour: false, dusk: false }, spin: true, panel: false };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return base;
@@ -285,6 +286,11 @@ import { EarthSound } from './sound';
           let tour: TourStop[] = [];
           let tourIdx = -1;
           let tourAt = 0;
+          /* 노을 따라가기 — 카메라를 낮과 밤의 경계 위에 두고 남북으로 훑는다.
+             경계선은 실시간으로는 시간당 15° 씩만 움직여 거의 멎어 보인다. 그래서 지구를
+             빨리 돌리는 대신(그건 거짓말이 된다) **우리가 그 선을 따라 오르내린다**. */
+          let duskAt = 0;
+          let duskSaid = 0;
           /* 어느 곳을 보고 있나. 그리기 장치는 그대로고 **그림만 갈아 끼운다**. */
           type Body = 'earth' | 'moon' | 'mars';
           let body: Body = 'earth';
@@ -1081,8 +1087,8 @@ import { EarthSound } from './sound';
           }
           function cycleLine(): void {
             if (!alive) return;
-            // 상영 중에는 상영이 말한다 — 두 목소리가 겹치면 안 된다
-            if (prefs.on.tour && body === 'earth' && !isPast()) return;
+            // 상영·노을 따라가기 중에는 그쪽이 말한다 — 두 목소리가 겹치면 안 된다
+            if ((prefs.on.tour || prefs.on.dusk) && body === 'earth' && !isPast()) return;
             lines = sentences();
             if (sound.running) {
               const sunv = toVec(subsolar(new Date(clockMs())).lat, subsolar(new Date(clockMs())).lon);
@@ -1097,6 +1103,36 @@ import { EarthSound } from './sound';
               line.textContent = lines[lineIdx];
               line.classList.add('bm-show');
             }, 420);
+          }
+
+          /* ── 노을 따라가기 ────────────────────────────────────────────── */
+
+          /**
+           * 해가 지는 선 위에 카메라를 세운다.
+           *
+           * 해가 바로 위인 경도에서 **동쪽으로 90°** 떨어진 자오선이 지금 해가 지고 있는 선이다
+           * (지구는 동쪽으로 돌고, 그래서 해는 서쪽으로 진다 — 지표 입장에서 해가 지평선에 닿는
+           * 자리가 그 선이다). 위도는 천천히 오르내려, 그 선 위를 북에서 남으로 훑는다.
+           */
+          function stepDusk(now: number): void {
+            if (!prefs.on.dusk || body !== 'earth') return;
+            const sun = subsolar(new Date(clockMs()));
+            /* +90° 가 기하학적 경계지만, 여명을 넓게 칠하고 대기 테까지 있어 화면에서는
+               낮 쪽으로 치우쳐 보인다(실측: 가로줄의 70% 가 밝았다). 조금 더 밤 쪽으로 민다. */
+            const lon = ((((sun.lon + 104) % 360) + 540) % 360) - 180;
+            // 60초에 한 번 남북을 오간다 — 더 빠르면 어지럽고, 더 느리면 멎은 것처럼 보인다
+            const lat = Math.sin(now / 9500) * 52;
+            camLon = lon;
+            camLat = lat;
+            if (zoom < 1.35 || zoom > 1.45) zoom += (1.4 - zoom) * 0.05;
+            idleAt = now; // 자전이 끼어들지 않게
+
+            if (now - duskSaid > 11000) {
+              duskSaid = now;
+              const near = nearestCity(lat, lon, 1600);
+              say(near ? t('bluemarble.line.duskCity', { city: near }) : t('bluemarble.line.dusk'));
+            }
+            duskAt = now;
           }
 
           /* ── 지구 뉴스 상영 ───────────────────────────────────────────── */
@@ -1366,6 +1402,11 @@ import { EarthSound } from './sound';
                 if (l.id === 'sats' && turningOn) void loadSats();
                 if (l.id === 'sun') refreshSun();
                 if (l.id === 'apod') renderApod();
+                if (l.id === 'dusk') {
+                  duskSaid = 0;
+                  if (!turningOn) zoom = 1;
+                  else prefs.on.tour = false;
+                }
                 if (l.id === 'tour') {
                   tourIdx = -1;
                   tourAt = turningOn ? 0 : performance.now();
@@ -1566,7 +1607,10 @@ import { EarthSound } from './sound';
                (그리고 자전 중 실사 조각을 계속 새로 받는 것은 회선 낭비였다 — 실측으로 멎었다) */
             stepFly(now);
             stepTour(now);
-            if (!fly && !prefs.on.tour && spin && !drag && zoom < 2.2 && now - idleAt > 4000) camLon += dt * 0.0035;
+            stepDusk(now);
+            if (!fly && !prefs.on.tour && !prefs.on.dusk && spin && !drag && zoom < 2.2 && now - idleAt > 4000) {
+              camLon += dt * 0.0035;
+            }
             if (camLon > 180) camLon -= 360;
             if (camLon < -180) camLon += 360;
             drawGlobe(now);
