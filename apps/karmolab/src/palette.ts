@@ -832,7 +832,13 @@ const KarmoPalette = (() => {
   /** 입력 + 목록 한 벌. 첫 화면과 떠오르는 창이 **같은 것**을 쓴다. */
   function buildSurface(mode: 'inline' | 'overlay'): Instance {
     const root = document.createElement('div');
-    root.className = 'kp kp-' + mode;
+    /* 첫 화면 쪽은 **만들 때부터 접어 둔다** (TASK-KL-201 후속).
+     *
+     * 접는 일은 아래에서 `collapse()` 가 하는데, 그건 목록을 다 만든 **뒤에** 불린다. 그래서
+     * 한 프레임 동안 목록이 펼쳐진 채로 그려졌다가 접힌다 — 실측: 팔레트가 429px 로 나타났다
+     * 65px 로 줄고, 그 바람에 아래 카드 줄이 **364px 위로 튀었다**(밀림 0.075, 전체의 대부분).
+     * 클래스를 처음부터 달아 두면 펼쳐진 순간 자체가 없다. */
+    root.className = 'kp kp-' + mode + (mode === 'inline' ? ' kp-collapsed' : '');
 
     const box = document.createElement('div');
     box.className = 'kp-box';

@@ -69,9 +69,30 @@
          * 채워지므로 비동기가 맞다. 못 데려오면 이 자리만 빈 채로 남고(`:empty` = 안 보임)
          * 첫 화면은 그대로다. */
         if (Toolbox.ensureScript) {
+            /* **자리를 먼저 잡고 데려온다** (TASK-KL-201 후속).
+             *
+             * 이 칸은 비어 있는 동안 `:empty` 로 사라져 있다가, 조각이 도착하면 65px 로 나타나
+             * 아래 있는 카드·글을 통째로 밀어냈다. 실측: 314ms 에 카드 줄이 335 → 415px 로
+             * 한 번에 내려갔고, 그 한 번이 밀림 값의 대부분이었다(0.0163 / 전체 0.02~0.09).
+             *
+             * 그렇다고 무조건 비워 두면 안 된다 — 못 읽었을 때 이 자리는 **통째로 없어야**
+             * 한다(위 주석의 설계). 그래서 「데려오기 시작할 때」 자리를 잡고, 실패하면 도로
+             * 놓는다. 성공 경로에서만 미리 비워 두는 셈이다. */
+            /* ⚠ 높이만 잡아 두면 안 된다 — `.landing-today:empty { display:none }` 이 이겨서
+               자리 자체가 안 생긴다(실측: 예약을 넣었는데도 81px 밀림이 그대로였다).
+               보이게 만들어야 예약이 뜻을 갖는다. */
+            board.style.minHeight = '65px';
+            board.style.display = 'block';
+            const release = (): void => {
+                board.style.minHeight = '';
+                board.style.display = '';
+            };
             Toolbox.ensureScript('root/today')
-                .then(() => window.KarmoToday && window.KarmoToday.mount(board))
-                .catch(() => {});
+                .then(() => {
+                    if (window.KarmoToday) window.KarmoToday.mount(board);
+                    else release();
+                })
+                .catch(release);
         }
 
         /* 갈 곳 카드는 찾는 칸 **아래** 한 줄로 (사용자 요청).
