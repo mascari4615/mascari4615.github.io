@@ -72,6 +72,11 @@
     }>;
     resources: Array<{ url: string; kind: string; ms: number; bytes: number | null; transferred: number | null }>;
     longTasks: Array<{ at: number; ms: number; from: string }> | null;
+    slowFrames: Array<{
+      at: number; ms: number; blockingMs: number; renderMs: number;
+      scripts: Array<{ source: string; fn: string; invoker: string; ms: number; forcedLayoutMs: number }>;
+    }> | null;
+    culprits: Array<{ who: string; invoker: string; ms: number; forcedLayoutMs: number; frames: number }> | null;
     boots: Array<Record<string, unknown>>;
   }
 
@@ -338,6 +343,43 @@
                 .join('')}</tbody></table></div>`;
           }
 
+          /**
+           * 늦은 프레임의 **범인** (TASK-KL-201 ③ — LoAF).
+           * 긴 작업 표는 「언제 얼마나」까지고, 이 표는 「어느 파일의 어느 함수가」다.
+           */
+          function culpritTable(snap: Snap): string {
+            if (snap.culprits == null) {
+              return '<div class="pf-none">이 브라우저는 프레임별 스크립트 귀속을 안 알려 줍니다(크로미움 123+ 전용). 아래 <b>긴 작업</b> 표만 보세요 — <b>0 이 아니라 못 잰 것</b>입니다.</div>';
+            }
+            if (!snap.culprits.length) {
+              return '<div class="pf-none">50ms 넘게 걸린 프레임이 없습니다 — 잡을 범인이 없습니다.</div>';
+            }
+            const rows = snap.culprits.slice(0, 12);
+            const frames = snap.slowFrames || [];
+            const worst = frames.length ? frames[0] : null;
+            return `<div class="pf-scroll"><table class="pf-table">
+              <thead><tr><th>파일 # 함수</th><th>부른 것</th><th>합계</th><th>강제 레이아웃</th><th>프레임 수</th></tr></thead>
+              <tbody>${rows
+                .map(
+                  (row) => `<tr>
+                    <td>${esc(row.who)}</td>
+                    <td>${esc(row.invoker || '—')}</td>
+                    <td${tone(row.ms, 100, 300)}>${ms(row.ms)}</td>
+                    <td${tone(row.forcedLayoutMs, 10, 40)}>${ms(row.forcedLayoutMs)}</td>
+                    <td>${row.frames}</td>
+                  </tr>`
+                )
+                .join('')}</tbody></table></div>
+              ${
+                worst
+                  ? `<p class="pf-sec-note">제일 늦은 프레임: ${ms(worst.ms)} (손가락 막은 시간 ${ms(
+                      worst.blockingMs
+                    )} · 그리기 ${ms(worst.renderMs)}) — 늦은 프레임 ${frames.length}장.
+                       <b>강제 레이아웃</b>이 붙은 줄은 읽고-쓰기를 번갈아 해서 브라우저에 계산을 두 번 시킨 코드입니다.</p>`
+                  : ''
+              }`;
+          }
+
           function longTasks(snap: Snap): string {
             if (snap.longTasks == null) {
               return '<div class="pf-none">이 브라우저는 긴 작업을 안 알려 줍니다(사파리). <b>0건이 아니라 못 잰 것</b>입니다.</div>';
@@ -392,73 +434,115 @@
                 .join('')}</tbody></table></div>`;
           }
 
-          function render(): void {
-            const snap = perf!.snapshot() as unknown as Snap;
-            stamp.textContent = `판 ${snap.build.tag || '?'} · ${snap.build.commit || '?'} · 열린 지 ${(
-              snap.sinceOpenMs / 1000
-            ).toFixed(1)}s`;
+          function deviceTable(snap: Snap): string {
             const dev = snap.device;
-            /* 이 판을 믿어도 되는지부터 말한다 — 안 보이는 탭·되살아난 판의 숫자를 그냥 두면
-               「이번 배포가 두 배 느려졌다」 같은 거짓 회귀가 난다. */
-            const distrust = snap.trust.ok
-              ? ''
-              : `<div class="pf-none" style="border-style:solid;border-color:#b45309;">
-                   <strong>이 판의 숫자는 비교에 쓰면 안 됩니다.</strong> ${esc(snap.trust.why)}.
-                   판별 부팅 표에서도 이런 줄은 <b>⚠</b> 로 표시됩니다.
-                 </div>`;
-            body.innerHTML = `
-              ${distrust}
-              ${summary(snap)}
-              ${frameLine}
-              <div>
-                <h3 class="pf-sec-title">만질 때 — 굼뜬 조작 순</h3>
-                <p class="pf-sec-note">굼뜸은 셋 중 하나입니다. <b>대기</b>가 크면 다른 코드가 주 스레드를 잡고 있던 것이고, <b>처리</b>가 크면 그 핸들러가, <b>표시</b>가 크면 그리는 비용이 범인입니다. 총 200ms 를 넘으면 사람이 「안 먹었나?」 하고 다시 누릅니다.</p>
-                ${interactionTable(snap)}
-              </div>
-              <div>
-                <h3 class="pf-sec-title">부팅 — 어디서 시간이 갔나</h3>
-                <p class="pf-sec-note">페이지가 열린 순간부터의 시각. 막대는 「그때까지 걸린 시간」이라 오른쪽으로 갈수록 늦은 일입니다.</p>
-                ${waterfall(snap)}
-              </div>
-              <div>
-                <h3 class="pf-sec-title">위젯 — 무거운 순</h3>
-                <p class="pf-sec-note">이 세션에서 실제로 연 것만 나옵니다. 「눌러서 준비까지」는 딸린 스크립트와 대기까지 포함한 시간이고, 「첫 그리기」가 16ms 를 넘으면 그 순간 한 프레임을 놓칩니다.</p>
-                ${widgetTable(snap)}
-              </div>
-              <div>
-                <h3 class="pf-sec-title">받은 것 — 무거운 15개</h3>
-                <p class="pf-sec-note">서비스 워커가 답한 것은 브라우저가 크기를 안 알려 줍니다 — 그 줄은 「—」입니다.</p>
-                ${heavyFiles(snap)}
-              </div>
-              <div>
-                <h3 class="pf-sec-title">긴 작업 — 손가락이 막힌 구간</h3>
-                <p class="pf-sec-note">주 스레드를 50ms 넘게 잡은 작업. 이 구간에 누른 것은 끝난 뒤에야 처리됩니다.</p>
-                ${longTasks(snap)}
-              </div>
-              <div>
-                <h3 class="pf-sec-title">판별 부팅 — 고친 게 진짜 빨라졌나</h3>
-                <p class="pf-sec-note">이 브라우저에 남은 최근 부팅 40회. 판(build)이 바뀐 줄끼리 비교하면 그 배포가 부팅을 어떻게 바꿨는지 보입니다.</p>
-                ${boots(snap)}
-              </div>
-              <div>
-                <h3 class="pf-sec-title">이 기기</h3>
-                <p class="pf-sec-note">같은 코드도 기기가 다르면 다른 숫자가 납니다 — 비교할 때 같이 봅니다.</p>
-                <div class="pf-scroll"><table class="pf-table"><tbody>
+            return `<div class="pf-scroll"><table class="pf-table"><tbody>
                   <tr><td>코어</td><td>${esc(dev.cores ?? '모름')}</td></tr>
                   <tr><td>메모리</td><td>${dev.memoryGb ? esc(dev.memoryGb) + 'GB+' : '모름'}</td></tr>
                   <tr><td>화면</td><td>${esc(dev.screen)} · 보이는 곳 ${esc(dev.viewport)} · ${esc(dev.dpr)}x</td></tr>
                   <tr><td>회선</td><td>${esc(dev.net ?? '모름')}${
                     dev.downlinkMbps ? ` · ${esc(dev.downlinkMbps)}Mbps` : ''
                   }</td></tr>
-                </tbody></table></div>
-              </div>`;
+                </tbody></table></div>`;
+          }
 
-            body.querySelectorAll('.pf-sort').forEach((btn) => {
-              (btn as HTMLButtonElement).onclick = () => {
-                widgetSort = (btn as HTMLElement).dataset.sort as WidgetSort;
-                render();
-              };
-            });
+          function distrustBanner(snap: Snap): string {
+            /* 이 판을 믿어도 되는지부터 말한다 — 안 보이는 탭·되살아난 판의 숫자를 그냥 두면
+               「이번 배포가 두 배 느려졌다」 같은 거짓 회귀가 난다. */
+            return snap.trust.ok
+              ? ''
+              : `<div class="pf-none" style="border-style:solid;border-color:#b45309;">
+                   <strong>이 판의 숫자는 비교에 쓰면 안 됩니다.</strong> ${esc(snap.trust.why)}.
+                   판별 부팅 표에서도 이런 줄은 <b>⚠</b> 로 표시됩니다.
+                 </div>`;
+          }
+
+          /**
+           * 칸 목록 — 제목·설명은 **고정**이고 몸통만 바뀐다 (TASK-KL-201 ④).
+           *
+           * 예전에는 다시 잴 때마다 이 화면 전체를 새로 그렸다. 그 값이 계기판 자기 계측에
+           * 잡혔다: 「다시 재기」의 **표시 지연 70ms**. 재는 도구가 재는 대상을 흔들면
+           * 그 숫자는 못 믿는다. 그래서 칸마다 나눠 두고 **글자가 달라진 칸만** 갈아 끼운다.
+           */
+          const SECTIONS: Array<{ key: string; title: string; note: string; html: (s: Snap) => string }> = [
+            { key: 'trust', title: '', note: '', html: distrustBanner },
+            { key: 'cards', title: '', note: '', html: summary },
+            { key: 'frame', title: '', note: '', html: () => frameLine },
+            {
+              key: 'inp', title: '만질 때 — 굼뜬 조작 순',
+              note: '굼뜸은 셋 중 하나입니다. <b>대기</b>가 크면 다른 코드가 주 스레드를 잡고 있던 것이고, <b>처리</b>가 크면 그 핸들러가, <b>표시</b>가 크면 그리는 비용이 범인입니다. 총 200ms 를 넘으면 사람이 「안 먹었나?」 하고 다시 누릅니다.',
+              html: interactionTable,
+            },
+            {
+              key: 'culprit', title: '늦은 프레임 — 누가 잡고 있었나',
+              note: '프레임이 50ms 를 넘길 때 <b>어느 파일의 어느 함수</b>가 몇 ms 를 썼는지. 한 번 40ms 보다 <b>매 프레임 8ms</b> 가 대개 더 나쁩니다 — 합계로 봅니다.',
+              html: culpritTable,
+            },
+            {
+              key: 'boot', title: '부팅 — 어디서 시간이 갔나',
+              note: '페이지가 열린 순간부터의 시각. 막대는 「그때까지 걸린 시간」이라 오른쪽으로 갈수록 늦은 일입니다.',
+              html: waterfall,
+            },
+            {
+              key: 'widgets', title: '위젯 — 무거운 순',
+              note: '이 세션에서 실제로 연 것만 나옵니다. 「눌러서 준비까지」는 딸린 스크립트와 대기까지 포함한 시간이고, 「첫 그리기」가 16ms 를 넘으면 그 순간 한 프레임을 놓칩니다.',
+              html: widgetTable,
+            },
+            {
+              key: 'files', title: '받은 것 — 무거운 15개',
+              note: '서비스 워커가 답한 것은 브라우저가 크기를 안 알려 줍니다 — 그 줄은 「—」입니다.',
+              html: heavyFiles,
+            },
+            {
+              key: 'longtask', title: '긴 작업 — 손가락이 막힌 구간',
+              note: '주 스레드를 50ms 넘게 잡은 작업. 이 구간에 누른 것은 끝난 뒤에야 처리됩니다.',
+              html: longTasks,
+            },
+            {
+              key: 'boots', title: '판별 부팅 — 고친 게 진짜 빨라졌나',
+              note: '이 브라우저에 남은 최근 부팅 40회. 판(build)이 바뀐 줄끼리 비교하면 그 배포가 부팅을 어떻게 바꿨는지 보입니다.',
+              html: boots,
+            },
+            {
+              key: 'device', title: '이 기기',
+              note: '같은 코드도 기기가 다르면 다른 숫자가 납니다 — 비교할 때 같이 봅니다.',
+              html: deviceTable,
+            },
+          ];
+
+          body.innerHTML = SECTIONS.map(
+            (sec) => `<div${sec.title ? '' : ' data-bare="1"'}>
+              ${sec.title ? `<h3 class="pf-sec-title">${sec.title}</h3>` : ''}
+              ${sec.note ? `<p class="pf-sec-note">${sec.note}</p>` : ''}
+              <div data-sec="${sec.key}"></div>
+            </div>`
+          ).join('');
+          const slots = new Map<string, HTMLElement>();
+          const painted = new Map<string, string>();
+          for (const sec of SECTIONS) slots.set(sec.key, body.querySelector(`[data-sec="${sec.key}"]`) as HTMLElement);
+
+          /* 정렬 단추는 **한 번만** 매단다 — 칸을 갈아 끼워도 이 대리인은 살아 있다.
+             매번 다시 매달면 그 자체가 다시 그리기 비용이 된다. */
+          body.addEventListener('click', (event) => {
+            const btn = (event.target as HTMLElement).closest('.pf-sort') as HTMLElement | null;
+            if (!btn) return;
+            widgetSort = btn.dataset.sort as WidgetSort;
+            render();
+          });
+
+          function render(): void {
+            const snap = perf!.snapshot() as unknown as Snap;
+            stamp.textContent = `판 ${snap.build.tag || '?'} · ${snap.build.commit || '?'} · 열린 지 ${(
+              snap.sinceOpenMs / 1000
+            ).toFixed(1)}s`;
+            for (const sec of SECTIONS) {
+              const html = sec.html(snap);
+              // 글자가 같으면 손대지 않는다 — DOM 을 안 건드리면 레이아웃·페인트도 없다.
+              if (painted.get(sec.key) === html) continue;
+              painted.set(sec.key, html);
+              const slot = slots.get(sec.key);
+              if (slot) slot.innerHTML = html;
+            }
           }
 
           async function measureFrames(seconds: number): Promise<void> {
