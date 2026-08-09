@@ -12,6 +12,8 @@
 import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
 
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   /** 소리의 「체감 크기」. 순간 최대값이 아니라 평균 에너지라 사람이 느끼는 크기에 가깝다. */
   function rms(data: Float32Array): number {
@@ -51,36 +53,52 @@ import { acceptPastedFiles } from './shared/paste';
     id: 'audiolevel',
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['audio/*', 'video/*'],
-    title: '소리 크기 맞추기',
+    title: t('widgets.audiolevel.title', undefined, '소리 크기 맞추기'),
     category: 'tool',
-    desc: '들쭉날쭉한 녹음의 크기를 고르게 만듭니다. 전후를 파형과 숫자로 비교하고, 파일이 브라우저를 벗어나지 않습니다',
+    desc: t(
+      'widgets-desc.audiolevel.desc',
+      undefined,
+      '들쭉날쭉한 녹음의 크기를 고르게 만듭니다. 전후를 파형과 숫자로 비교하고, 파일이 브라우저를 벗어나지 않습니다'
+    ),
     layout: 'wide',
     icon: '<path d="M4 14V10M8 17V7M12 19V5M16 16V8M20 13v-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '크기 맞추기',
+        label: t('audiolevel.tab', undefined, '크기 맞추기'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('audiolevel').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="alDrop">
               <input type="file" id="alFile" accept="audio/*,video/*" hidden>
-              음원이나 영상을 끌어다 놓거나 눌러서 고르세요
+              ${esc(t('audiolevel.drop'))}
             </div>
 
             <div id="alEditor" style="display:none; margin-top:var(--space-lg);">
-              <div class="tool-sublabel">원래 소리</div>
+              <div class="tool-sublabel">${esc(t('audiolevel.label.before'))}</div>
               <canvas id="alBefore" height="70" style="width:100%; height:70px; border-radius:8px; background:var(--surface-2, #1a1a1a); display:block;"></canvas>
-              <div class="tool-sublabel" style="margin-top:10px;">맞춘 소리</div>
+              <div class="tool-sublabel" style="margin-top:10px;">${esc(t('audiolevel.label.after'))}</div>
               <canvas id="alAfter" height="70" style="width:100%; height:70px; border-radius:8px; background:var(--surface-2, #1a1a1a); display:block;"></canvas>
 
               <div class="field-group" style="margin-top:var(--space-lg);">
                 <div class="tool-grid-2">
                   <div>
-                    <div class="tool-sublabel">고르게 <span id="alEvenVal" class="range-value">보통</span></div>
+                    <div class="tool-sublabel">${esc(t('audiolevel.label.even'))} <span id="alEvenVal" class="range-value">보통</span></div>
                     <input type="range" id="alEven" aria-label="고르게 하는 정도" min="0" max="3" step="1" value="2">
                   </div>
                   <div>
-                    <div class="tool-sublabel">목표 크기 <span id="alTargetVal" class="range-value">-1.0 dB</span></div>
+                    <div class="tool-sublabel">${esc(t('audiolevel.label.target'))} <span id="alTargetVal" class="range-value">-1.0 dB</span></div>
                     <input type="range" id="alTarget" aria-label="목표 크기" min="-12" max="-1" step="1" value="-1">
                   </div>
                 </div>
@@ -89,21 +107,21 @@ import { acceptPastedFiles } from './shared/paste';
               <div class="cc-stats" id="alStats"></div>
 
               <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-                <button class="btn btn-primary" id="alRun">크기 맞추기</button>
-                <button class="btn btn-ghost" id="alSave" disabled>내려받기</button>
+                <button class="btn btn-primary" id="alRun">${esc(t('audiolevel.btn.run'))}</button>
+                <button class="btn btn-ghost" id="alSave" disabled>${esc(t('audiolevel.btn.save'))}</button>
                 <select id="alFormat" aria-label="저장 형식">
-                  <option value="mp3">MP3 — 작음</option>
-                  <option value="wav">WAV — 손실 없음</option>
+                  <option value="mp3">${esc(t('audiolevel.format.mp3'))}</option>
+                  <option value="wav">${esc(t('audiolevel.format.wav'))}</option>
                 </select>
               </div>
 
               <div id="alResult" style="display:none;">
-                <div class="tool-sublabel">맞춘 소리 들어 보기</div>
+                <div class="tool-sublabel">${esc(t('audiolevel.label.preview'))}</div>
                 <audio id="alPreview" controls style="width:100%;"></audio>
               </div>
             </div>
 
-            <div class="tool-status" id="alStatus">파일은 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="alStatus">${esc(t('audiolevel.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -117,10 +135,10 @@ import { acceptPastedFiles } from './shared/paste';
           const saveBtn = $<HTMLButtonElement>('#alSave');
 
           const EVEN: Array<[number, string]> = [
-            [1, '안 함'],
-            [0.7, '약하게'],
-            [0.5, '보통'],
-            [0.32, '강하게']
+            [1, t('audiolevel.even.none')],
+            [0.7, t('audiolevel.even.light')],
+            [0.5, t('audiolevel.even.normal')],
+            [0.32, t('audiolevel.even.strong')]
           ];
 
           let fileName = '';
@@ -151,7 +169,7 @@ import { acceptPastedFiles } from './shared/paste';
             try {
               source = await ctx.decodeAudioData(await f.arrayBuffer());
             } catch {
-              say('이 파일의 소리는 브라우저가 해독하지 못했어요. mp3·wav·m4a·mp4 는 대체로 됩니다.', 'error');
+              say(t('audiolevel.err.decode'), 'error');
               void ctx.close();
               return;
             }
@@ -161,10 +179,10 @@ import { acceptPastedFiles } from './shared/paste';
             drawWave($<HTMLCanvasElement>('#alBefore'), ch0, '#7a8894');
             drawWave($<HTMLCanvasElement>('#alAfter'), new Float32Array(0), '#4bb3e0');
             stats.innerHTML =
-              stat('길이', mmss(source.duration), true) +
-              stat('가장 큰 소리', `${db(peakOf(ch0))} dB`) +
-              stat('체감 크기', `${db(rms(ch0))} dB`);
-            say('설정을 고르고 크기 맞추기를 누르세요.', 'ok');
+              stat(t('audiolevel.stat.length'), mmss(source.duration), true) +
+              stat(t('audiolevel.stat.peak'), `${db(peakOf(ch0))} dB`) +
+              stat(t('audiolevel.stat.loudness'), `${db(rms(ch0))} dB`);
+            say(t('audiolevel.say.ready'), 'ok');
           }
 
           /**
@@ -214,7 +232,7 @@ import { acceptPastedFiles } from './shared/paste';
 
           async function run(): Promise<void> {
             if (!source) {
-              say('파일을 먼저 넣어 주세요.', 'error');
+              say(t('audiolevel.err.noFile'), 'error');
               return;
             }
             const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -238,11 +256,14 @@ import { acceptPastedFiles } from './shared/paste';
             const spanBefore = 20 * Math.log10(peakOf(before) / Math.max(1e-6, rms(before)));
             const spanAfter = 20 * Math.log10(peakOf(after) / Math.max(1e-6, rms(after)));
             stats.innerHTML =
-              stat('체감 크기', `${db(rms(before))} → ${db(rms(after))} dB`, true) +
-              stat('가장 큰 소리', `${db(peakOf(before))} → ${db(peakOf(after))} dB`) +
-              stat('들쭉날쭉', `${spanBefore.toFixed(1)} → ${spanAfter.toFixed(1)} dB`) +
-              stat('용량', size(made.size));
-            say(`맞췄어요. 들쭉날쭉한 정도가 ${spanBefore.toFixed(1)} 에서 ${spanAfter.toFixed(1)} dB 로 좁아졌습니다.`, 'ok');
+              stat(t('audiolevel.stat.loudness'), `${db(rms(before))} → ${db(rms(after))} dB`, true) +
+              stat(t('audiolevel.stat.peak'), `${db(peakOf(before))} → ${db(peakOf(after))} dB`) +
+              stat(t('audiolevel.stat.span'), `${spanBefore.toFixed(1)} → ${spanAfter.toFixed(1)} dB`) +
+              stat(t('audiolevel.stat.size'), size(made.size));
+            say(
+              t('audiolevel.say.done', { before: spanBefore.toFixed(1), after: spanAfter.toFixed(1) }),
+              'ok'
+            );
             Toolbox.trackUse?.('level');
           }
 
@@ -273,13 +294,13 @@ import { acceptPastedFiles } from './shared/paste';
           labels();
 
           $<HTMLButtonElement>('#alRun').onclick = () => {
-            void run().catch((err: Error) => say('맞추는 중 문제가 생겼어요: ' + err.message, 'error'));
+            void run().catch((err: Error) => say(t('audiolevel.err.leveling', { msg: err.message }), 'error'));
           };
           saveBtn.onclick = () => {
             if (!processed) return;
             const format = $<HTMLSelectElement>('#alFormat').value as 'wav' | 'mp3';
-            const name = fileName.replace(/\.[^.]+$/, '') + '-크기맞춤.' + format;
-            say(format === 'mp3' ? 'MP3 로 만드는 중…' : '내려받는 중…');
+            const name = fileName.replace(/\.[^.]+$/, '') + t('audiolevel.file.suffix') + '.' + format;
+            say(t(format === 'mp3' ? 'audiolevel.say.encoding' : 'audiolevel.say.saving'));
             void encodeAudio(processed, format)
               .then((blob) => {
                 const a = document.createElement('a');
@@ -291,10 +312,7 @@ import { acceptPastedFiles } from './shared/paste';
                 setTimeout(() => URL.revokeObjectURL(a.href), 2000);
                 say(`${size(blob.size)} 로 내려받았어요.`, 'ok');
               })
-              .catch((err: Error) => say('만드는 중 문제가 생겼어요: ' + err.message, 'error'));
+              .catch((err: Error) => say(t('audiolevel.err.making', { msg: err.message }), 'error'));
           };
-        }
-      }
-    ]
-  });
+  }
 })();

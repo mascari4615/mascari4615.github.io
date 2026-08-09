@@ -89,5 +89,10 @@
   "howto.textclean.0": "Paste your text on the left",
   "howto.textclean.1": "Tick the steps you want",
   "howto.textclean.2": "Set sorting, letter case and prefixes",
-  "howto.textclean.3": "Copy the result"
+  "howto.textclean.3": "Copy the result",
+  "howto.audiolevel.0": "Add an audio or video file",
+  "howto.audiolevel.1": "Pick how even it should be, and the target level",
+  "howto.audiolevel.2": "Hit Normalize",
+  "howto.audiolevel.3": "Compare before and after by waveform and by ear",
+  "howto.audiolevel.4": "Download it as WAV"
 }
