@@ -1053,6 +1053,11 @@ await step('첫 화면이 「무엇을 만들 건가요」 세 갈래를 크게 
   await cards.first().click();
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 3, null, { timeout: 5000 });
   if (await page.locator('.ck-edge').count() === 0) throw new Error('견본에 선이 하나도 없다');
+  // 견본만 깔면 「이제 뭘 적지?」가 남는다 — 그 갈래의 **칸 이름까지 비워서** 깔려 있어야 한다.
+  await page.locator('.ck-node').first().click();
+  await page.waitForSelector('[data-km="fld-name"]', { timeout: 4000 });
+  const names = await page.locator('[data-km="fld-name"]').evaluateAll((els) => els.map((e) => e.value));
+  if (names.length === 0) throw new Error('갈래를 골랐는데 칸 틀이 안 깔렸다');
 });
 await step('맵 새로 만들기 → 빈 캔버스', async () => {
   await page.click('[data-km="map-new"]');
