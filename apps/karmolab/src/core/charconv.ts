@@ -1,13 +1,15 @@
 /**
  * 문자 변환 허브 — 알맹이 (흡수 ⓒ / 02 문서 「한·일·중 공통 수요」)
  *
- * 한 화면에서 끝나야 하는 변환들이 지금은 흩어져 있거나 없다. 이 알맹이는 그중 **규칙으로
- * 되는 것**만 담는다 — 표가 필요한 것(간체↔번체)은 일부러 안 담았다. 아래 § 한계 참고.
+ * 한 화면에서 끝나야 하는 변환들이 지금은 흩어져 있거나 없다. 규칙으로 되는 것(전각·반각,
+ * 로마자, 자모)과 **표가 있어야 되는 것(간체↔번체)** 을 함께 담는다. 표는 유니코드 Unihan 에서
+ * 찍어 온 것이고(`scripts/gen-han-table.mjs`), 기기 안에 함께 실려 인터넷 없이도 돈다.
  *
  * MCP 로 내놓는 이유: 전각·반각은 눈으로 **거의 구분이 안 된다**. ＡＢ 와 AB 는 다른 글자인데
  * 화면에서는 폭만 다르게 보이고, 그래서 「검색이 안 된다 / 로그인이 안 된다 / 엑셀 조회가
  * 0건이다」로 나타난다. 모델에게 물으면 「같은 글자입니다」라고 답하는 일이 잦다.
  */
+import { SIMP_TO_TRAD, SIMP_TO_TRAD_AMBIGUOUS, TRAD_TO_SIMP, TRAD_TO_SIMP_AMBIGUOUS } from './han-table.generated';
 import { compose, decompose } from './jamo';
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -30,6 +32,16 @@ export const spec: ToolSpec = {
         ' and says so in the output rather than pretending.' +
         ' / 한글 → 로마자(글자 단위). 음운 변화는 적용하지 않는다고 함께 밝힌다.',
       in: { text: 'string' },
+      out: 'string'
+    },
+    han: {
+      desc:
+        'Convert Chinese characters between Simplified and Traditional using the Unicode Unihan'
+        + ' variant tables. Character-by-character: where one Simplified character maps to several'
+        + ' Traditional ones (发 → 發 hair-style vs 髮 hair), it picks the first and reports the'
+        + ' ambiguity instead of hiding it. mode = simp (default) or trad.'
+        + ' / 간체 ⟷ 번체. 갈리는 글자는 숨기지 않고 함께 알려 준다.',
+      in: { text: 'string', mode: 'string?' },
       out: 'string'
     },
     jamo: {
@@ -140,6 +152,68 @@ export function needsSoundChange(text: string): boolean {
   return false;
 }
 
+/* ── 간체 ⟷ 번체 ─────────────────────────────────────────────────────────── */
+
+/**
+ * 찍어 낸 짝 글(`가나다라…`)을 두 글자씩 끊어 표로 편다. 파일을 켤 때 한 번만 한다 —
+ * 글자마다 문자열을 뒤지면 긴 글에서 눈에 띄게 느려진다.
+ */
+const pairMap = (pairs: string): Map<string, string> => {
+  const map = new Map<string, string>();
+  /* 한자는 대부분 BMP 라 두 글자 = 코드 두 개지만, 서로게이트가 섞여도 안 깨지게 배열로 편다. */
+  const chars = [...pairs];
+  for (let i = 0; i + 1 < chars.length; i += 2) map.set(chars[i], chars[i + 1]);
+  return map;
+};
+
+const TO_SIMP = pairMap(TRAD_TO_SIMP);
+const TO_TRAD = pairMap(SIMP_TO_TRAD);
+
+/** 갈림 글(`发發髮 …`) — 첫 글자가 원본, 나머지가 후보다. */
+const ambMap = (packed: string): Map<string, string[]> => {
+  const map = new Map<string, string[]>();
+  for (const group of packed.split(' ')) {
+    const chars = [...group];
+    if (chars.length > 1) map.set(chars[0], chars.slice(1));
+  }
+  return map;
+};
+
+const AMB_TO_TRAD = ambMap(SIMP_TO_TRAD_AMBIGUOUS);
+const AMB_TO_SIMP = ambMap(TRAD_TO_SIMP_AMBIGUOUS);
+
+const convert = (text: string, map: Map<string, string>): string =>
+  [...text].map((ch) => map.get(ch) ?? ch).join('');
+
+export function toSimplified(text: string): string {
+  return convert(text, TO_SIMP);
+}
+
+export function toTraditional(text: string): string {
+  return convert(text, TO_TRAD);
+}
+
+/**
+ * **뜻을 봐야 정해지는 글자**들을 골라낸다.
+ *
+ * 간체 한 글자가 번체 여럿으로 갈리는 일이 있다 — 发 는 「보내다(發)」와 「머리카락(髮)」이
+ * 같은 글자로 합쳐진 것이다. 낱말 사전 없이 하나를 고르면 **조용히 틀린 글**이 나온다.
+ * 그래서 고르되(첫 후보), 어떤 글자가 갈렸는지 반드시 함께 말한다.
+ */
+export function ambiguousChars(text: string, toTrad: boolean): { ch: string; candidates: string[] }[] {
+  const table = toTrad ? AMB_TO_TRAD : AMB_TO_SIMP;
+  const seen = new Set<string>();
+  const out: { ch: string; candidates: string[] }[] = [];
+  for (const ch of text) {
+    if (seen.has(ch)) continue;
+    const cand = table.get(ch);
+    if (cand === undefined) continue;
+    seen.add(ch);
+    out.push({ ch, candidates: cand });
+  }
+  return out;
+}
+
 export const run: ToolRunner = (op, args) => {
   const text = String(args.text ?? '');
   if (text === '') throw new Error('바꿀 글이 없습니다');
@@ -162,6 +236,20 @@ export const run: ToolRunner = (op, args) => {
         '',
         '※ 글자 단위 표기입니다. 음운 변화(자음동화 등)는 적용하지 않았습니다 —',
         '   예: 신라 → sinra (규정 표기는 Silla). 사람 이름·지명은 확인하고 쓰세요.'
+      );
+    }
+    return lines.join('\n');
+  }
+
+  if (op === 'han') {
+    const toTrad = mode === 'trad';
+    const lines = [toTrad ? toTraditional(text) : toSimplified(text)];
+    const amb = ambiguousChars(text, toTrad);
+    if (amb.length > 0) {
+      lines.push(
+        '',
+        '※ 뜻을 봐야 정해지는 글자가 있습니다 — 첫 후보로 바꿨습니다:',
+        ...amb.map((a) => `   ${a.ch} → ${a.candidates.join(' 또는 ')}`)
       );
     }
     return lines.join('\n');
