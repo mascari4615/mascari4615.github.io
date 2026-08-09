@@ -136,5 +136,9 @@
   "howto.audiofade.0": "Choose an audio file",
   "howto.audiofade.1": "See where the abrupt edges are",
   "howto.audiofade.2": "Hit \"Just enough to fix the click\"",
-  "howto.audiofade.3": "Apply the fade and download"
+  "howto.audiofade.3": "Apply the fade and download",
+  "howto.videorotate.0": "Choose a video",
+  "howto.videorotate.1": "Pick the rotation",
+  "howto.videorotate.2": "Check the preview",
+  "howto.videorotate.3": "Record the rotated version and download"
 }

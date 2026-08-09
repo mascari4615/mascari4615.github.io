@@ -13,6 +13,8 @@
 import { pickRecordType } from './shared/video';
 import { fileSize as size, mmss } from './shared/media';
 
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   type Capturable = HTMLCanvasElement & { captureStream?: (fps?: number) => MediaStream };
 
@@ -20,52 +22,68 @@ import { fileSize as size, mmss } from './shared/media';
     id: 'videorotate',
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['video/*'],
-    title: '영상 돌리기',
+    title: t('widgets.videorotate.title', undefined, '영상 돌리기'),
     category: 'tool',
-    desc: '누워서 찍힌 영상을 세웁니다. 돌리면 가로세로도 함께 바뀝니다',
+    desc: t(
+      'widgets-desc.videorotate.desc',
+      undefined,
+      '누워서 찍힌 영상을 세웁니다. 돌리면 가로세로도 함께 바뀝니다'
+    ),
     layout: 'wide',
     icon: '<rect x="3" y="7" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M17 8a5 5 0 0 1 0 8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M19.5 5.5L17 8l2.5 2.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '돌리기',
+        label: t('videorotate.tab', undefined, '돌리기'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('videorotate').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="vrDrop">
               <input type="file" id="vrFile" accept="video/*" hidden>
-              <span>영상을 끌어다 놓거나 눌러서 고르세요</span>
+              <span>${esc(t('videorotate.drop'))}</span>
             </div>
 
             <div class="field-group" id="vrControls" style="display:none; margin-top:var(--space-lg);">
-              <div class="tool-sublabel">돌리기</div>
+              <div class="tool-sublabel">${esc(t('videorotate.label.turn'))}</div>
               <div class="tool-chips" id="vrTurns">
-                <button type="button" class="tool-chip active" data-turn="0">그대로</button>
-                <button type="button" class="tool-chip" data-turn="90">오른쪽 90°</button>
-                <button type="button" class="tool-chip" data-turn="180">180°</button>
-                <button type="button" class="tool-chip" data-turn="270">왼쪽 90°</button>
+                <button type="button" class="tool-chip active" data-turn="0">${esc(t('videorotate.turn.0'))}</button>
+                <button type="button" class="tool-chip" data-turn="90">${esc(t('videorotate.turn.90'))}</button>
+                <button type="button" class="tool-chip" data-turn="180">${esc(t('videorotate.turn.180'))}</button>
+                <button type="button" class="tool-chip" data-turn="270">${esc(t('videorotate.turn.270'))}</button>
               </div>
               <div class="tool-chips" style="margin-top:10px;">
-                <label class="tool-chip"><input type="checkbox" id="vrFlipH"> 좌우 뒤집기 (거울)</label>
-                <label class="tool-chip"><input type="checkbox" id="vrFlipV"> 상하 뒤집기</label>
-                <label class="tool-chip"><input type="checkbox" id="vrAudio" checked> 소리 함께</label>
+                <label class="tool-chip"><input type="checkbox" id="vrFlipH"> ${esc(t('videorotate.opt.flipH'))}</label>
+                <label class="tool-chip"><input type="checkbox" id="vrFlipV"> ${esc(t('videorotate.opt.flipV'))}</label>
+                <label class="tool-chip"><input type="checkbox" id="vrAudio" checked> ${esc(t('videorotate.opt.audio'))}</label>
               </div>
             </div>
 
             <video id="vrVideo" playsinline muted style="display:none;"></video>
             <div id="vrStage" style="display:none;">
-              <div class="tool-sublabel">미리보기 — 나오는 그대로입니다</div>
+              <div class="tool-sublabel">${esc(t('videorotate.label.preview'))}</div>
               <canvas id="vrCanvas" style="max-width:100%; border-radius:10px; display:block; border:1px solid rgba(128,128,128,0.25);"></canvas>
             </div>
 
             <div class="cc-stats" id="vrStats"></div>
 
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="vrRun" disabled>돌려서 담기</button>
-              <button class="btn btn-ghost" id="vrStop" style="display:none;">그만</button>
-              <button class="btn btn-ghost" id="vrSave" disabled>내려받기</button>
+              <button class="btn btn-primary" id="vrRun" disabled>${esc(t('videorotate.btn.run'))}</button>
+              <button class="btn btn-ghost" id="vrStop" style="display:none;">${esc(t('videorotate.btn.stop'))}</button>
+              <button class="btn btn-ghost" id="vrSave" disabled>${esc(t('videorotate.btn.save'))}</button>
             </div>
 
-            <div class="tool-status" id="vrStatus">영상은 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="vrStatus">${esc(t('videorotate.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -79,7 +97,7 @@ import { fileSize as size, mmss } from './shared/media';
 
           let turn = 0;
           let made: Blob | null = null;
-          let baseName = '영상';
+          let baseName = t('videorotate.file.base');
           let recorder: MediaRecorder | null = null;
 
           const say = (m: string, kind = ''): void => {
@@ -118,14 +136,14 @@ import { fileSize as size, mmss } from './shared/media';
           function showStats(): void {
             const { w, h } = outSize();
             stats.innerHTML =
-              stat('나오는 크기', `${w}×${h}`, true) +
-              stat('원래 크기', `${video.videoWidth}×${video.videoHeight}`) +
-              stat('길이', mmss(video.duration || 0));
+              stat(t('videorotate.stat.out'), `${w}×${h}`, true) +
+              stat(t('videorotate.stat.src'), `${video.videoWidth}×${video.videoHeight}`) +
+              stat(t('videorotate.stat.length'), mmss(video.duration || 0));
           }
 
           function load(file: File): void {
             video.src = URL.createObjectURL(file);
-            baseName = (file.name || '영상').replace(/\.[^.]+$/, '');
+            baseName = (file.name || t('videorotate.file.base')).replace(/\.[^.]+$/, '');
             video.onloadeddata = () => {
               $<HTMLElement>('#vrStage').style.display = '';
               $<HTMLElement>('#vrControls').style.display = '';
@@ -136,15 +154,15 @@ import { fileSize as size, mmss } from './shared/media';
               video.onseeked = () => paint();
               video.currentTime = 0;
               paint();
-              say('돌려 보고 미리보기가 맞으면 담으세요.', 'ok');
+              say(t('videorotate.say.ready'), 'ok');
             };
-            video.onerror = () => say('이 영상을 열지 못했어요. 다른 파일로 해 보세요.', 'error');
+            video.onerror = () => say(t('videorotate.err.open'), 'error');
           }
 
           async function record(): Promise<void> {
             const ctx = canvas.getContext('2d');
             if (!ctx || !canvas.captureStream) {
-              say('이 브라우저는 영상 담기를 지원하지 않아요. 크롬·엣지에서 열어 보세요.', 'error');
+              say(t('videorotate.err.unsupported'), 'error');
               return;
             }
             made = null;
@@ -192,7 +210,7 @@ import { fileSize as size, mmss } from './shared/media';
             };
             stopBtn.onclick = stop;
             video.onended = stop;
-            say('담는 중… 이 탭을 켜 둔 채로 두세요.');
+            say(t('videorotate.say.recording'));
 
             made = await finished;
             document.removeEventListener('visibilitychange', onHide);
@@ -201,13 +219,13 @@ import { fileSize as size, mmss } from './shared/media';
             saveBtn.disabled = false;
             const { w, h } = outSize();
             stats.innerHTML =
-              stat('나오는 크기', `${w}×${h}`, true) +
-              stat('원래 크기', `${video.videoWidth}×${video.videoHeight}`) +
-              stat('파일 크기', size(made.size));
+              stat(t('videorotate.stat.out'), `${w}×${h}`, true) +
+              stat(t('videorotate.stat.src'), `${video.videoWidth}×${video.videoHeight}`) +
+              stat(t('videorotate.stat.size'), size(made.size));
             say(
               leftTab
-                ? '다 담았는데, 도중에 다른 탭에 다녀오셨어요 — 그 구간은 멈춘 화면일 수 있습니다. 다시 담는 편이 낫습니다.'
-                : '다 담았어요. 내려받으세요.',
+                ? t('videorotate.say.doneHidden')
+                : t('videorotate.say.done'),
               leftTab ? 'error' : 'ok'
             );
             Toolbox.trackUse?.('rotate');
@@ -256,15 +274,12 @@ import { fileSize as size, mmss } from './shared/media';
             if (!made) return;
             const a = document.createElement('a');
             a.href = URL.createObjectURL(made);
-            a.download = `${baseName}-돌림.webm`;
+            a.download = baseName + t('videorotate.file.suffix') + '.webm';
             a.click();
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: made, name: a.download, from: 'videorotate' });
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say(`${size(made.size)} 로 받았어요.`, 'ok');
+            say(t('videorotate.say.saved', { size: size(made.size) }), 'ok');
           };
-        }
-      }
-    ]
-  });
+  }
 })();

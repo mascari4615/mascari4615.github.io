@@ -136,5 +136,9 @@
   "howto.audiofade.0": "音声ファイルを選ぶ",
   "howto.audiofade.1": "切れている箇所を確認",
   "howto.audiofade.2": "「切れる分だけ自動で」を押す",
-  "howto.audiofade.3": "フェードを入れてダウンロード"
+  "howto.audiofade.3": "フェードを入れてダウンロード",
+  "howto.videorotate.0": "動画を選ぶ",
+  "howto.videorotate.1": "回す角度を選ぶ",
+  "howto.videorotate.2": "プレビューを確認",
+  "howto.videorotate.3": "回して書き出し、ダウンロード"
 }
