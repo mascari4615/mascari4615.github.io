@@ -231,6 +231,8 @@ import {
       minDegree: 0,
       sizeByDegree: false,
       colorByTag: false,
+      fieldName: '',
+      fieldValue: '',
     };
     /** 지금 끼워진 어휘 팩. `spec._meta.pack` 에 함께 저장된다. */
     let pack: CanvasPack = packById(DEFAULT_PACK_ID);
@@ -701,6 +703,8 @@ import {
         tags: filterState.tags,
         hideOrphans: filterState.hideOrphans,
         minDegree: filterState.minDegree,
+        fieldName: filterState.fieldName,
+        fieldValue: filterState.fieldValue,
       });
       canvas?.setSelectedNode(selectedId);
     }

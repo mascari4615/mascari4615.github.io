@@ -52,6 +52,9 @@ export interface PanelCtx {
     minDegree: number;
     sizeByDegree: boolean;
     colorByTag: boolean;
+    /** 칸으로 좁히기 — 이름만 있으면 「그 칸을 가진 것」, 값까지 있으면 「그 값인 것」. */
+    fieldName: string;
+    fieldValue: string;
   };
   /** 거르기 값을 캔버스에 반영. */
   applyFilter: () => void;

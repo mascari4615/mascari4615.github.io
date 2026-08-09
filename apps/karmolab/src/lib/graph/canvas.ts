@@ -270,8 +270,11 @@ export class GraphCanvas {
   private filter: {
     nodeKinds: Set<string>; edgeKinds: Set<string>; tags: Set<string>;
     hideOrphans: boolean; minDegree: number;
+    /** 칸으로 좁히기 — 「출신 = 마계」. 이름만 있고 값이 비면 **그 칸을 가진 노드만**. */
+    fieldName: string; fieldValue: string;
   } = {
     nodeKinds: new Set(), edgeKinds: new Set(), tags: new Set(), hideOrphans: false, minDegree: 0,
+    fieldName: '', fieldValue: '',
   };
   /** 손잡이에서 끌고 있는 중. 임시 선은 edgeLayer 에 그렸다가 놓을 때 지운다. */
   private linking: { fromId: string; temp: SVGPathElement } | null = null;
@@ -2493,6 +2496,7 @@ export class GraphCanvas {
   setFilter(next: {
     nodeKinds?: Iterable<string>; edgeKinds?: Iterable<string>;
     tags?: Iterable<string>; hideOrphans?: boolean; minDegree?: number;
+    fieldName?: string; fieldValue?: string;
   }): void {
     this.filter = {
       nodeKinds: new Set(next.nodeKinds ?? []),
@@ -2500,6 +2504,8 @@ export class GraphCanvas {
       tags: new Set(next.tags ?? []),
       hideOrphans: next.hideOrphans ?? false,
       minDegree: next.minDegree ?? 0,
+      fieldName: next.fieldName ?? '',
+      fieldValue: next.fieldValue ?? '',
     };
     this.render();
   }
@@ -2549,6 +2555,13 @@ export class GraphCanvas {
       (n) => !this.filter.nodeKinds.has(n.kind)
         // 꺼 둔 꼬리표가 하나라도 붙어 있으면 뺀다 — 「이건 지금 안 볼 것」이 여러 개일 수 있다.
         && !(n.tags ?? []).some((tag) => this.filter.tags.has(tag))
+        // 칸으로 좁히기 — 값까지 적었으면 그 값인 것만, 이름만 적었으면 **그 칸을 가진 것만**
+        // (「출신을 안 정한 인물이 누구인가」를 보려면 이 반쪽이 필요하다).
+        && (!this.filter.fieldName || (() => {
+          const v = (n.fields ?? {})[this.filter.fieldName];
+          if (v === undefined) return false;
+          return !this.filter.fieldValue || String(v).trim() === this.filter.fieldValue;
+        })())
     );
     const min = Math.max(this.filter.minDegree, this.filter.hideOrphans ? 1 : 0);
     if (min <= 0) return nodes;

@@ -24,6 +24,8 @@ export function renderFilterPanel(ctx: PanelCtx): void {
   const edgeRows = [...new Set(spec.edges.map((e) => e.kind))]
     .map((id) => ({ id, label: ctx.edgeLabel(id) }));
   const tags = [...new Set(spec.nodes.flatMap((n) => n.tags ?? []))].sort();
+  // 이 맵에서 실제로 쓰인 칸 이름들 — 안 쓴 칸을 늘어놓으면 고를 게 없는 목록이 된다.
+  const fieldNames = [...new Set(spec.nodes.flatMap((n) => Object.keys(n.fields ?? {})))].sort();
 
   side.innerHTML = `
     <h4>🔍 거르기</h4>
@@ -45,6 +47,19 @@ export function renderFilterPanel(ctx: PanelCtx): void {
       ${tags.map((tg) => `<label class="km-check"><input type="checkbox" data-km="f-tag" value="${esc(tg)}"${
         st.tags.has(tg) ? '' : ' checked'
       } /> ${esc(tg)} <span class="km-group-count">${spec.nodes.filter((n) => (n.tags ?? []).includes(tg)).length}</span></label>`).join('')}
+    </div>`}
+    ${fieldNames.length === 0 ? '' : `<div class="km-field">
+      <label>칸으로 좁히기</label>
+      <select data-km="f-field">
+        <option value="">— 안 씀 —</option>
+        ${fieldNames.map((f) => `<option value="${esc(f)}"${st.fieldName === f ? ' selected' : ''}>${esc(f)}</option>`).join('')}
+      </select>
+      ${st.fieldName === '' ? '' : `<select data-km="f-fieldval">
+        <option value="">이 칸이 있는 것 전부</option>
+        ${[...new Set(spec.nodes.map((n) => (n.fields ?? {})[st.fieldName]).filter(Boolean))].sort()
+          .map((v) => `<option value="${esc(String(v))}"${st.fieldValue === v ? ' selected' : ''}>${esc(String(v))}</option>`).join('')}
+      </select>`}
+      <div class="km-hint">「출신 = 마계」처럼 좁힙니다. 값을 안 고르면 <b>그 칸을 적어 둔 것 전부</b>가 남습니다 — 안 적은 쪽을 찾을 때 씁니다.</div>
     </div>`}
     <div class="km-field">
       <label class="km-check"><input type="checkbox" data-km="f-degree"${st.sizeByDegree ? ' checked' : ''} /> 많이 이어진 것을 크게</label>
@@ -95,6 +110,22 @@ export function renderFilterPanel(ctx: PanelCtx): void {
     st.colorByTag = (ev.target as HTMLInputElement).checked;
     ctx.applyDecorate();
   };
+  const fieldSel = side.querySelector('[data-km="f-field"]') as HTMLSelectElement | null;
+  if (fieldSel) {
+    fieldSel.onchange = () => {
+      st.fieldName = fieldSel.value;
+      st.fieldValue = '';   // 칸을 바꾸면 옛 값은 뜻이 없다
+      ctx.applyFilter();
+      ctx.refresh();        // 값 목록이 그 칸 것으로 바뀌어야 한다
+    };
+  }
+  const fieldValSel = side.querySelector('[data-km="f-fieldval"]') as HTMLSelectElement | null;
+  if (fieldValSel) {
+    fieldValSel.onchange = () => {
+      st.fieldValue = fieldValSel.value;
+      ctx.applyFilter();
+    };
+  }
   (side.querySelector('[data-km="f-reset"]') as HTMLButtonElement).onclick = () => {
     st.nodeKinds.clear();
     st.edgeKinds.clear();
@@ -103,6 +134,8 @@ export function renderFilterPanel(ctx: PanelCtx): void {
     st.minDegree = 0;
     st.sizeByDegree = false;
     st.colorByTag = false;
+    st.fieldName = '';
+    st.fieldValue = '';
     ctx.applyFilter();
     ctx.applyDecorate();
     ctx.refresh();
