@@ -201,6 +201,20 @@
           let coverage: CoverageBaseline | null = null;
           let coverageState: 'loading' | 'ok' | 'fail' = 'loading';
 
+          /**
+           * **진짜 사람들** 기기의 분포 (TASK-KL-201 후속).
+           *
+           * 이 화면의 다른 숫자는 전부 「지금 이 기기」다 — 만든 사람 기계에서 잰 값이라
+           * 현실과 다를 수 있다. 서버가 사람들 판을 칸으로 모으고 있으니 그것을 나란히 놓는다.
+           * 칸으로 센 값이라 정확한 ms 가 아니라 **칸의 위 경계**다. 그 사실을 적어 둔다.
+           */
+          interface RealWorld {
+            samples?: number;
+            metrics?: Record<string, { p50: number | null; p75: number | null; n: number }>;
+          }
+          let real: RealWorld | null = null;
+          let realState: 'loading' | 'ok' | 'fail' = 'loading';
+
           container.innerHTML = `
             <div class="pf-wrap">
               <p class="pf-lead">
@@ -492,6 +506,55 @@
               <p class="pf-sec-note">전부 ${rows.length}개 · gzip 합계 <b>${kb(total)}</b> (한 사람이 다 받지는 않습니다 — 누른 것만 받습니다). 이 표는 <b>빌드가 재 둔 값</b>이라 안 열어 본 위젯도 보입니다. 한계 64KB·회귀 래칫은 <code>npm run audit:bundles</code> 가 CI 에서 봅니다.</p>`;
           }
 
+          /** 진짜 사람들 분포 — 내 기계 옆에 현실을 놓는다. */
+          function realWorldTable(snap: Snap): string {
+            if (realState === 'loading') return '<div class="pf-none">사람들 숫자를 받는 중…</div>';
+            if (realState === 'fail' || !real?.metrics) {
+              return '<div class="pf-none">사람들 숫자를 <b>못 받았습니다</b> — 서버에 못 닿았거나 아직 그 판이 안 올라갔습니다. (이 화면의 다른 숫자는 전부 <b>지금 이 기기</b>입니다.)</div>';
+            }
+            if (!real.samples) {
+              return '<div class="pf-none">아직 모인 판이 없습니다 — 사람들이 다녀가면 여기가 찹니다. <b>0 이 아니라 「아직 없음」</b>입니다.</div>';
+            }
+            const NAMES: Array<[string, string]> = [
+              ['ready', '셸 준비까지'],
+              ['fcp', '첫 그림'],
+              ['lcp', '큰 그림'],
+              ['inp', '제일 굼뜬 조작'],
+              ['ttfb', '서버 첫 응답'],
+              ['cls', '화면 밀림'],
+            ];
+            const mine: Record<string, number | null> = {
+              ready: snap.marks.find((m) => m.name === 'shell:ready')?.at ?? null,
+              fcp: snap.paint.fcp,
+              lcp: snap.paint.lcp,
+              inp: snap.inp,
+              ttfb: snap.nav.ttfb,
+              cls: snap.cls,
+            };
+            const show = (key: string, value: number | null): string => {
+              if (value == null) return '—';
+              return key === 'cls' ? (value / 1000).toFixed(3) : ms(value);
+            };
+            const showMine = (key: string, value: number | null): string => {
+              if (value == null) return '—';
+              return key === 'cls' ? value.toFixed(3) : ms(value);
+            };
+            return `<div class="pf-scroll"><table class="pf-table">
+              <thead><tr><th>지표</th><th>사람들 중앙값</th><th>사람들 나쁜 쪽</th><th>모인 판</th><th>지금 이 기기</th></tr></thead>
+              <tbody>${NAMES.map(([key, label]) => {
+                const m = real!.metrics![key];
+                if (!m) return '';
+                return `<tr>
+                  <td>${esc(label)}</td>
+                  <td>${show(key, m.p50)}</td>
+                  <td>${show(key, m.p75)}</td>
+                  <td${m.n < 20 ? ' data-tone="warn"' : ''}>${m.n}${m.n < 20 ? ' (적음)' : ''}</td>
+                  <td>${showMine(key, mine[key])}</td>
+                </tr>`;
+              }).join('')}</tbody></table></div>
+              <p class="pf-sec-note">최근 14일. 칸으로 세었으므로 <b>정확한 값이 아니라 칸의 위 경계</b>입니다(「이 값 이하」). 모인 판이 20 미만이면 아직 숫자놀음입니다. 개인은 안 남습니다 — 날짜별 칸에 하나씩 셀 뿐입니다.</p>`;
+          }
+
           /** 안 쓰는 스타일 — CI 가 재 둔 것을 읽어 보여 준다 (TASK-KL-201 ㉒). */
           function coverageTable(): string {
             if (coverageState === 'loading') return '<div class="pf-none">안 쓰는 스타일 자료를 읽는 중…</div>';
@@ -711,6 +774,11 @@
             { key: 'cards', title: '', note: '', html: summary },
             { key: 'frame', title: '', note: '', html: () => frameLine },
             {
+              key: 'real', title: '진짜 사람들 — 이 기기가 아니라 현실',
+              note: '이 화면의 다른 숫자는 전부 <b>지금 이 기기</b>입니다. 여기만 실제로 다녀간 사람들의 분포입니다.',
+              html: realWorldTable,
+            },
+            {
               key: 'inp', title: '만질 때 — 굼뜬 조작 순',
               note: '굼뜸은 셋 중 하나입니다. <b>대기</b>가 크면 다른 코드가 주 스레드를 잡고 있던 것이고, <b>처리</b>가 크면 그 핸들러가, <b>표시</b>가 크면 그리는 비용이 범인입니다. 총 200ms 를 넘으면 사람이 「안 먹었나?」 하고 다시 누릅니다.',
               html: interactionTable,
@@ -854,6 +922,18 @@
 
           /* 전체 무게는 파일 하나를 더 받아야 안다 — 첫 그림을 막지 않게 **그린 뒤에** 받는다.
              실패해도 계기판은 그대로 돈다(그 칸만 「못 읽었다」로 남는다). */
+          void fetch('https://yawnbot.mascari4615.com/kl/tools/stats', { credentials: 'include' })
+            .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+            .then((data: { perf?: RealWorld }) => {
+              real = data?.perf || null;
+              realState = real?.metrics ? 'ok' : 'fail';
+            })
+            .catch(() => {
+              /* 서버가 자고 있어도 계기판은 그대로 돈다 — 그 칸만 「못 받았다」로 남는다. */
+              realState = 'fail';
+            })
+            .then(() => render());
+
           void fetch('/apps/karmolab/data/coverage-baseline.json', { cache: 'no-cache' })
             .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
             .then((data: CoverageBaseline) => {
