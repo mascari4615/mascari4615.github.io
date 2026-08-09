@@ -79,5 +79,8 @@
   "howto.favicon.0": "Add a logo or image",
   "howto.favicon.1": "Set padding, background and rounded corners",
   "howto.favicon.2": "Check the preview at actual size",
-  "howto.favicon.3": "Download the ZIP and paste the markup"
+  "howto.favicon.3": "Download the ZIP and paste the markup",
+  "howto.exifclean.0": "Add a JPG photo",
+  "howto.exifclean.1": "See what is hidden inside",
+  "howto.exifclean.2": "Strip it and download"
 }
