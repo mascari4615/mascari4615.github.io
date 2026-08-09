@@ -36,6 +36,7 @@ import { exportSvgString } from './canvas-export';
 import { buildNodeAvatar } from './canvas-avatar';
 import { buildNodeBackground } from './canvas-shape';
 import { chooseAnchors, edgeCurve } from './canvas-math';
+import { buildEdgePath } from './canvas-edge';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
   fitProjection, projectPoint, viewportRectOnMap } from './canvas-math';
@@ -1800,36 +1801,15 @@ export class GraphCanvas {
   private buildEdgePath(edge: GraphEdge): SVGPathElement | null {
     const g = this.edgeGeom(edge);
     if (!g) return null;
-    const { p1, c1, c2, p2 } = g;
-
     const kind = this.edgeKindFor(edge.kind);
     // 선 하나만 따로 고친 값이 있으면 그게 이긴다 (edge > kind > 테마).
-    const style: EdgeStyle = edge.style ?? kind.style;
-    const color = edge.color ?? kind.color ?? this.theme.edgeDefaultColor;
-    const width = edge.width ?? kind.width ?? 1.5;
-
-    const path = document.createElementNS(SVG_NS, 'path');
-    path.setAttribute('class', 'ck-edge');
-    path.dataset.edgeId = edge.id;
-    path.setAttribute(
-      'd',
-      style === 'wavy' || style === 'crack'
-        ? this.buildWaveD(p1, c1, c2, p2, style)
-        : `M ${p1.x},${p1.y} C ${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`
-    );
-    path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', color);
-    path.setAttribute('stroke-width', String(width));
-    path.setAttribute('stroke-opacity', '0.7');
-    if (style === 'crack') path.setAttribute('stroke-linejoin', 'miter');
-
-    if (style === 'dashed') path.setAttribute('stroke-dasharray', '6 3');
-    else if (style === 'dotted') path.setAttribute('stroke-dasharray', '2 3');
-
-    if (kind.arrow) path.setAttribute('marker-end', 'url(#ck-arrow)');
-    if (edge.arrowStart ?? kind.arrowStart) path.setAttribute('marker-start', 'url(#ck-arrow-start)');
-
-    return path;
+    return buildEdgePath(edge.id, g, {
+      style: edge.style ?? kind.style,
+      color: edge.color ?? kind.color ?? this.theme.edgeDefaultColor,
+      width: edge.width ?? kind.width ?? 1.5,
+      arrowEnd: Boolean(kind.arrow),
+      arrowStart: Boolean(edge.arrowStart ?? kind.arrowStart),
+    });
   }
 
   /**
@@ -1837,16 +1817,6 @@ export class GraphCanvas {
    * `getPointAtLength` 로 재려면 DOM 에 붙어 있어야 해서(브라우저마다 다르다),
    * 수식으로 뜨는 쪽이 확실하고 빠르다.
    */
-  private buildWaveD(
-    p1: { x: number; y: number }, c1: { x: number; y: number },
-    c2: { x: number; y: number }, p2: { x: number; y: number },
-    style: 'wavy' | 'crack'
-  ): string {
-    // 흔들림의 잘기는 **선 길이**에 맞춘다 — 짧은 선을 촘촘히 흔들면 뭉개진다.
-    const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-    const steps = Math.max(12, Math.min(120, Math.round(dist / (style === 'wavy' ? 6 : 12))));
-    return wobblePath({ p1, c1, c2, p2 }, style, { steps, amp: style === 'wavy' ? 3.5 : 5 });
-  }
 
   /**
    * 메모 지시선 — 메모에서 대상(노드 또는 선)까지 잇는 옅은 점선.
