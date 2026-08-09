@@ -5,24 +5,10 @@
  * 1학점 과목의 A는 무게가 다른데, 그냥 더해 나누면 이 차이가 사라진다.
  * 목표 학점을 채우려면 남은 학기에 얼마가 필요한지도 함께 낸다 — 그게 실제 질문이다.
  */
-(function (): void {
-  /** 4.5 만점 기준 (국내 대부분) */
-  const SCALE_45: Record<string, number> = {
-    'A+': 4.5, A0: 4.0, 'A-': 3.7,
-    'B+': 3.5, B0: 3.0, 'B-': 2.7,
-    'C+': 2.5, C0: 2.0, 'C-': 1.7,
-    'D+': 1.5, D0: 1.0, 'D-': 0.7,
-    F: 0
-  };
-  /** 4.3 만점 기준 */
-  const SCALE_43: Record<string, number> = {
-    'A+': 4.3, A0: 4.0, 'A-': 3.7,
-    'B+': 3.3, B0: 3.0, 'B-': 2.7,
-    'C+': 2.3, C0: 2.0, 'C-': 1.7,
-    'D+': 1.3, D0: 1.0, 'D-': 0.7,
-    F: 0
-  };
+import { maxOf, neededAverage, parseCourses, scaleOf, spec } from '../../core/grade';
+import { readInvocation } from '../../lib/tool-url';
 
+(function (): void {
   Toolbox.register({
     id: 'grade',
     title: '학점 계산기',
@@ -74,8 +60,8 @@
           const out = $<HTMLElement>('#grOut');
           const need = $<HTMLElement>('#grNeed');
           const status = $<HTMLElement>('#grStatus');
-          let scale = SCALE_45;
-          let max = 4.5;
+          let scale = scaleOf('45');
+          let max = maxOf(scale);
 
           const stat = (label: string, v: string, primary = false): string =>
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${label}</div><div class="cc-stat-value">${v}</div></div>`;
@@ -83,34 +69,13 @@
             `<div class="tool-list-row"><span class="tool-list-key">${k}</span><span class="tool-list-val">${v}</span></div>`;
 
           function run(): void {
-            const lines = list.value.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-            let credits = 0;
-            let points = 0;
-            let counted = 0;
-            const bad: string[] = [];
-            const dist: Record<string, number> = {};
+            /* 읽기·가중 평균은 `src/core/grade.ts` 가 한다 — 「단순 평균과 다르다」가
+               이 도구의 요점이고, 시험도 거기에 붙어 있다 (TASK-KL-205). */
+            const parsed = parseCourses(list.value, scale);
+            const { credits, points, counted, bad } = parsed;
 
-            lines.forEach((line) => {
-              const m = line.match(/^([\d.]+)\s*[,\s]\s*([A-Fa-f][+\-0]?)$/);
-              if (!m) {
-                bad.push(line);
-                return;
-              }
-              const c = parseFloat(m[1]);
-              let g = m[2].toUpperCase();
-              if (g.length === 1 && g !== 'F') g += '0'; // A → A0
-              if (scale[g] === undefined) {
-                bad.push(line);
-                return;
-              }
-              credits += c;
-              points += c * scale[g];
-              counted++;
-              dist[g] = (dist[g] || 0) + 1;
-            });
-
-            const gpa = credits ? points / credits : 0;
-            const simple = counted ? Object.keys(dist).reduce((a, g) => a + scale[g] * dist[g], 0) / counted : 0;
+            const gpa = parsed.gpa;
+            const simple = parsed.simple;
 
             stats.innerHTML =
               stat('평점', credits ? gpa.toFixed(2) : '—', true) +
@@ -128,11 +93,11 @@
             const target = parseFloat($<HTMLInputElement>('#grTarget').value);
             const future = parseFloat($<HTMLInputElement>('#grFuture').value);
             if (credits && future > 0 && isFinite(target)) {
-              const required = (target * (credits + future) - points) / future;
+              const n = neededAverage(points, credits, target, future, max);
               need.innerHTML =
-                row('필요한 평균', required <= max ? required.toFixed(2) : `${required.toFixed(2)} — 만점으로도 불가능`) +
-                row('가능 여부', required > max ? '이번 목표는 도달 불가' : required <= 0 ? '이미 넘었습니다' : '가능') +
-                row('전부 만점이면', ((points + future * max) / (credits + future)).toFixed(2));
+                row('필요한 평균', n.possible ? n.required.toFixed(2) : `${n.required.toFixed(2)} — 만점으로도 불가능`) +
+                row('가능 여부', n.possible === false ? '이번 목표는 도달 불가' : n.alreadyThere ? '이미 넘었습니다' : '가능') +
+                row('전부 만점이면', n.best.toFixed(2));
             } else {
               need.innerHTML = '';
             }
@@ -148,9 +113,8 @@
             (chip as HTMLButtonElement).onclick = () => {
               container.querySelectorAll('#grScale .tool-chip').forEach((c) => c.classList.remove('active'));
               chip.classList.add('active');
-              const is45 = (chip as HTMLElement).dataset.scale === '45';
-              scale = is45 ? SCALE_45 : SCALE_43;
-              max = is45 ? 4.5 : 4.3;
+              scale = scaleOf((chip as HTMLElement).dataset.scale);
+              max = maxOf(scale);
               run();
             };
           });
