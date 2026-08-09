@@ -66,6 +66,37 @@
   }
 
   /**
+   * 늦은 프레임 하나 (TASK-KL-201 ③ — Long Animation Frames).
+   *
+   * 긴 작업(longtask)은 「50ms 넘게 뭔가 했다」까지만 말한다 — **누가** 했는지는 거의 안 준다.
+   * LoAF 는 프레임 단위로 보고 **어느 파일의 어느 함수**가 몇 ms 를 썼는지, 그중 입력을 막은
+   * 시간이 얼마인지, 스타일·레이아웃에 얼마가 갔는지를 준다. 「긴 작업 3건」과
+   * 「`chat.js` 의 `tick` 이 프레임마다 40ms」는 고칠 수 있느냐 없느냐의 차이다.
+   *
+   * 크로미움 전용(123+)이다. 없는 브라우저에서는 지금까지대로 긴 작업만 보인다 —
+   * 그 자리는 「0건」이 아니라 「못 잼」으로 적는다.
+   */
+  interface SlowFrameScript {
+    source: string;
+    fn: string;
+    /** 무엇이 이 코드를 불렀나 — 이벤트 핸들러 / 타이머 / rAF … */
+    invoker: string;
+    ms: number;
+    /** 이 코드가 **강제로** 스타일·레이아웃을 다시 계산하게 만든 시간 (레이아웃 스래싱). */
+    forcedLayoutMs: number;
+  }
+
+  interface SlowFrameEntry {
+    at: number;
+    ms: number;
+    /** 이 프레임이 손가락을 막은 시간. 프레임 길이보다 이 값이 사람 체감에 가깝다. */
+    blockingMs: number;
+    /** 그리기(스타일·레이아웃·페인트)에 간 시간. */
+    renderMs: number;
+    scripts: SlowFrameScript[];
+  }
+
+  /**
    * 한 번의 조작 (TASK-KL-201 ②).
    *
    * 「굼뜨다」는 **셋 중 하나**다. 이 셋을 안 가르면 고칠 곳을 못 찾는다:
@@ -95,6 +126,8 @@
   /** 긴 작업 관찰자가 아예 없는 브라우저(사파리)와 「하나도 없었다」를 가른다. */
   let longTaskSupported = false;
   let lcpMs: number | null = null;
+  const slowFrames: SlowFrameEntry[] = [];
+  let loafSupported = false;
   /** `interactionId` → 그 조작의 **제일 나쁜** 조각. 한 번 누름이 여러 엔트리로 쪼개져 온다. */
   const interactions = new Map<number, InteractionEntry>();
   let eventTimingSupported = false;
@@ -155,6 +188,54 @@
     longTaskSupported = true;
   } catch {
     /* 사파리엔 없다 — 「0건」이 아니라 「못 잼」이다 (아래 snapshot 이 그렇게 적는다). */
+  }
+
+  const SLOW_FRAME_MAX = 120;
+
+  /** 주소는 길다 — 파일 이름만 남긴다. 크로스오리진이면 브라우저가 아예 안 알려 주기도 한다. */
+  function fileOf(url: string): string {
+    if (!url) return '(모름)';
+    try {
+      return new URL(url).pathname.split('/').slice(-2).join('/');
+    } catch {
+      return url.slice(0, 40);
+    }
+  }
+
+  try {
+    const loafObserver = new PerformanceObserver((list) => {
+      for (const item of list.getEntries()) {
+        const frame = item as PerformanceEntry & {
+          blockingDuration?: number;
+          renderStart?: number;
+          styleAndLayoutStart?: number;
+          scripts?: Array<{
+            sourceURL?: string; sourceFunctionName?: string; invokerType?: string;
+            duration?: number; forcedStyleAndLayoutDuration?: number;
+          }>;
+        };
+        if (slowFrames.length >= SLOW_FRAME_MAX) slowFrames.shift();
+        slowFrames.push({
+          at: frame.startTime,
+          ms: frame.duration,
+          blockingMs: frame.blockingDuration || 0,
+          /* renderStart 가 0 이면 **그리기를 아예 안 한 프레임**이다 — 그때의 「길이 - 0」 은
+             프레임 전체가 되어 「그리기가 전부였다」로 읽힌다. 그건 거짓이므로 0 으로 둔다. */
+          renderMs: frame.renderStart ? frame.startTime + frame.duration - frame.renderStart : 0,
+          scripts: (frame.scripts || []).map((script) => ({
+            source: fileOf(script.sourceURL || ''),
+            fn: script.sourceFunctionName || '(익명)',
+            invoker: script.invokerType || '',
+            ms: script.duration || 0,
+            forcedLayoutMs: script.forcedStyleAndLayoutDuration || 0,
+          })),
+        });
+      }
+    });
+    loafObserver.observe({ type: 'long-animation-frame', buffered: true });
+    loafSupported = true;
+  } catch {
+    /* 크로미움 123 미만·사파리·파이어폭스 — 긴 작업만 보인다. */
   }
 
   /** 무엇을 눌렀는지 사람이 알아볼 만큼만. 노드가 사라지기 전에 굳힌다. */
@@ -249,6 +330,22 @@
     if (restoredFromCache) return { ok: false, why: '뒤로가기로 되살아난 판이다 (다시 안 그렸다)' };
     if (nav?.activationStart) return { ok: false, why: '미리 그려 둔 판이다 (시계의 0 이 다르다)' };
     return { ok: true, why: '' };
+  }
+
+  /** 파일#함수 별로 합친 「주 스레드를 얼마나 잡았나」 순위 (TASK-KL-201 ③). */
+  function culprits(): Array<{ who: string; invoker: string; ms: number; forcedLayoutMs: number; frames: number }> {
+    const sum = new Map<string, { who: string; invoker: string; ms: number; forcedLayoutMs: number; frames: number }>();
+    for (const frame of slowFrames) {
+      for (const script of frame.scripts) {
+        const key = `${script.source}#${script.fn}`;
+        const row = sum.get(key) || { who: key, invoker: script.invoker, ms: 0, forcedLayoutMs: 0, frames: 0 };
+        row.ms += script.ms;
+        row.forcedLayoutMs += script.forcedLayoutMs;
+        row.frames += 1;
+        sum.set(key, row);
+      }
+    }
+    return Array.from(sum.values()).sort((a, b) => b.ms - a.ms);
   }
 
   function navTiming(): Record<string, number | null> {
@@ -473,6 +570,10 @@
       memory: memory(),
       trust: trust(),
       inp: inpMs(),
+      slowFrames: loafSupported ? slowFrames.slice().sort((a, b) => b.ms - a.ms) : null,
+      /* 「누가 제일 많이 잡았나」 — 프레임을 하나씩 보면 안 보이고, 합쳐야 보인다.
+         한 번 40ms 보다 매 프레임 8ms 가 대개 더 나쁘다. */
+      culprits: loafSupported ? culprits() : null,
       /* 굼뜬 순. 못 재는 브라우저(사파리 등)는 `null` — 「조작이 다 빨랐다」와 다르다. */
       interactions: eventTimingSupported
         ? Array.from(interactions.values()).sort((a, b) => b.ms - a.ms)
