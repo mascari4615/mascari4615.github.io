@@ -1,11 +1,13 @@
+import { t, loadNamespace } from '../lib/i18n';
+
 (function() {
     async function loadFromTxt(): Promise<void> {
         try {
             // 시각을 붙이지 않는다 — 저장소에 담긴 파일이라 우리가 바꿀 때만 바뀐다 (KL-088)
             const res = await fetch('/assets/js/mathjax-config.json');
-            if (!res.ok) throw new Error('데이터 파일 로드에 실패했습니다.');
+            if (!res.ok) throw new Error(t('crypto.err.01'));
             (document.getElementById('cryptoInput') as HTMLTextAreaElement).value = (await res.text()).trim();
-            Toolbox.showToast!('데이터 로드 완료');
+            Toolbox.showToast!(t('crypto.t02'));
         } catch (e) { Toolbox.showToast!((e as Error).message, 'error'); }
     }
     window.loadFromTxt = loadFromTxt;
@@ -18,11 +20,11 @@
         const inputEl = document.getElementById('cryptoInput') as HTMLTextAreaElement | null;
 
         if (aesFields) aesFields.style.display = method === 'aes' ? '' : 'none';
-        if (execBtn) execBtn.textContent = mode === 'encrypt' ? '암호화' : '복호화';
+        if (execBtn) execBtn.textContent = mode === 'encrypt' ? t('crypto.t03') : t('crypto.t04');
         if (inputEl) {
             inputEl.placeholder = mode === 'encrypt'
-                ? '암호화할 평문을 입력하세요'
-                : '암호문 또는 Base64 문자열을 입력하세요';
+                ? t('crypto.t05')
+                : t('crypto.t06');
         }
     }
     window.toggleCryptoFields = toggleCryptoFields;
@@ -34,13 +36,13 @@
         const modeBtns = document.querySelectorAll<HTMLElement>('.crypto-mode-btn');
         if (!resultContent || !inputEl) return;
         const text = resultContent.textContent?.trim();
-        if (!text) { Toolbox.showToast!('복사할 결과가 없습니다.', 'error'); return; }
+        if (!text) { Toolbox.showToast!(t('crypto.t07'), 'error'); return; }
         inputEl.value = text;
         const nextMode = hiddenMode?.value === 'encrypt' ? 'decrypt' : 'encrypt';
         if (hiddenMode) hiddenMode.value = nextMode;
         modeBtns.forEach(b => { b.classList.toggle('active', b.dataset.mode === nextMode); });
         toggleCryptoFields();
-        Toolbox.showToast!('입력창으로 복사 & 모드 전환');
+        Toolbox.showToast!(t('crypto.t08'));
     }
     window.swapResultToInput = swapResultToInput;
 
@@ -48,11 +50,11 @@
         if (method === 'base64') {
             try {
                 const encoded = btoa(unescape(encodeURIComponent(text)));
-                Toolbox.displayResult!('crypto', '인코딩 완료', encoded, null);
-                Toolbox.showToast!('인코딩 성공');
+                Toolbox.displayResult!('crypto', t('crypto.t09'), encoded, null);
+                Toolbox.showToast!(t('crypto.t10'));
             } catch (e) {
-                Toolbox.displayResult!('crypto', '오류', '인코딩 실패: ' + (e as Error).message, null, true);
-                Toolbox.showToast!('인코딩 실패', 'error');
+                Toolbox.displayResult!('crypto', t('crypto.t11'), t('crypto.t12') + (e as Error).message, null, true);
+                Toolbox.showToast!(t('crypto.t13'), 'error');
             }
             return;
         }
@@ -60,20 +62,20 @@
         if (method === 'url') {
             try {
                 const encoded = encodeURIComponent(text);
-                Toolbox.displayResult!('crypto', '인코딩 완료', encoded, null);
-                Toolbox.showToast!('인코딩 성공');
+                Toolbox.displayResult!('crypto', t('crypto.t09'), encoded, null);
+                Toolbox.showToast!(t('crypto.t10'));
             } catch (e) {
-                Toolbox.displayResult!('crypto', '오류', '인코딩 실패: ' + (e as Error).message, null, true);
-                Toolbox.showToast!('인코딩 실패', 'error');
+                Toolbox.displayResult!('crypto', t('crypto.t11'), t('crypto.t12') + (e as Error).message, null, true);
+                Toolbox.showToast!(t('crypto.t13'), 'error');
             }
             return;
         }
 
-        if (!CryptoJS) { Toolbox.showToast!('CryptoJS 가 로드되지 않았어요.', 'error'); return; }
+        if (!CryptoJS) { Toolbox.showToast!(t('crypto.t14'), 'error'); return; }
         const pass = (document.getElementById('cryptoPass') as HTMLInputElement).value;
         const iterSlider = document.getElementById('cryptoIterSlider') as HTMLInputElement | null;
         const iterations = parseInt(iterSlider?.value || '10000', 10);
-        if (!pass) { Toolbox.showToast!('비밀번호를 입력해주세요.', 'error'); return; }
+        if (!pass) { Toolbox.showToast!(t('crypto.t15'), 'error'); return; }
 
         const t0 = performance.now();
         try {
@@ -85,11 +87,11 @@
             const hex = salt.toString(CryptoJS.enc.Hex) + iv.toString(CryptoJS.enc.Hex) + iterations.toString(16).padStart(8, '0') + encrypted.ciphertext.toString(CryptoJS.enc.Hex);
             const result = CryptoJS.enc.Hex.parse(hex).toString(CryptoJS.enc.Base64);
 
-            Toolbox.displayResult!('crypto', '암호화 완료', result, (performance.now() - t0) / 1000);
-            Toolbox.showToast!('암호화 성공');
+            Toolbox.displayResult!('crypto', t('crypto.t16'), result, (performance.now() - t0) / 1000);
+            Toolbox.showToast!(t('crypto.t17'));
         } catch (e) {
-            Toolbox.displayResult!('crypto', '오류', '암호화 실패: ' + (e as Error).message, null, true);
-            Toolbox.showToast!('암호화 실패', 'error');
+            Toolbox.displayResult!('crypto', t('crypto.t11'), t('crypto.t18') + (e as Error).message, null, true);
+            Toolbox.showToast!(t('crypto.t19'), 'error');
         }
     }
 
@@ -97,11 +99,11 @@
         if (method === 'base64') {
             try {
                 const decoded = decodeURIComponent(escape(atob(input.trim())));
-                Toolbox.displayResult!('crypto', '디코딩 완료', decoded, null);
-                Toolbox.showToast!('디코딩 성공');
+                Toolbox.displayResult!('crypto', t('crypto.t20'), decoded, null);
+                Toolbox.showToast!(t('crypto.t21'));
             } catch (e) {
-                Toolbox.displayResult!('crypto', '오류', '디코딩 실패: 올바른 Base64 문자열이 아닙니다.', null, true);
-                Toolbox.showToast!('디코딩 실패', 'error');
+                Toolbox.displayResult!('crypto', t('crypto.t11'), t('crypto.t22'), null, true);
+                Toolbox.showToast!(t('crypto.t23'), 'error');
             }
             return;
         }
@@ -109,42 +111,42 @@
         if (method === 'url') {
             try {
                 const decoded = decodeURIComponent(input.trim().replace(/\+/g, '%20'));
-                Toolbox.displayResult!('crypto', '디코딩 완료', decoded, null);
-                Toolbox.showToast!('디코딩 성공');
+                Toolbox.displayResult!('crypto', t('crypto.t20'), decoded, null);
+                Toolbox.showToast!(t('crypto.t21'));
             } catch (e) {
-                Toolbox.displayResult!('crypto', '오류', '디코딩 실패: 올바르지 않은 형식입니다.', null, true);
-                Toolbox.showToast!('디코딩 실패', 'error');
+                Toolbox.displayResult!('crypto', t('crypto.t11'), t('crypto.t24'), null, true);
+                Toolbox.showToast!(t('crypto.t23'), 'error');
             }
             return;
         }
 
-        if (!CryptoJS) { Toolbox.showToast!('CryptoJS 가 로드되지 않았어요.', 'error'); return; }
+        if (!CryptoJS) { Toolbox.showToast!(t('crypto.t14'), 'error'); return; }
         const pass = (document.getElementById('cryptoPass') as HTMLInputElement).value;
-        if (!pass) { Toolbox.showToast!('비밀번호를 입력해주세요.', 'error'); return; }
+        if (!pass) { Toolbox.showToast!(t('crypto.t15'), 'error'); return; }
 
         const t0 = performance.now();
         try {
             const hex = CryptoJS.enc.Base64.parse(input).toString(CryptoJS.enc.Hex);
-            if (hex.length < 72) throw new Error('올바른 포맷의 암호문이 아닙니다.');
+            if (hex.length < 72) throw new Error(t('crypto.err.25'));
 
             const salt = CryptoJS.enc.Hex.parse(hex.substring(0, 32));
             const iv = CryptoJS.enc.Hex.parse(hex.substring(32, 64));
             const iterations = parseInt(hex.substring(64, 72), 16);
             const ciphertext = CryptoJS.enc.Hex.parse(hex.substring(72));
 
-            if (isNaN(iterations) || iterations <= 0 || iterations > 1000000) throw new Error('잘못된 데이터입니다.');
+            if (isNaN(iterations) || iterations <= 0 || iterations > 1000000) throw new Error(t('crypto.err.26'));
 
             const key = CryptoJS.PBKDF2(pass, salt, { keySize: 256 / 32, iterations, hasher: CryptoJS.algo.SHA256 });
             const decrypted = CryptoJS.AES.decrypt(CryptoJS.lib.CipherParams.create({ ciphertext }), key, { iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 });
             const result = decrypted.toString(CryptoJS.enc.Utf8);
 
-            if (!result) throw new Error('비밀번호가 일치하지 않거나 데이터가 손상되었습니다.');
+            if (!result) throw new Error(t('crypto.err.27'));
 
             Toolbox.displayResult!('crypto', `복호화 완료 · iterations: ${iterations.toLocaleString()}`, result, (performance.now() - t0) / 1000);
-            Toolbox.showToast!('복호화 성공');
+            Toolbox.showToast!(t('crypto.t28'));
         } catch (e) {
-            Toolbox.displayResult!('crypto', '오류', '해독 실패: ' + (e as Error).message, null, true);
-            Toolbox.showToast!('복호화 실패', 'error');
+            Toolbox.displayResult!('crypto', t('crypto.t11'), t('crypto.t29') + (e as Error).message, null, true);
+            Toolbox.showToast!(t('crypto.t30'), 'error');
         }
     }
 
@@ -154,7 +156,7 @@
         const text = (document.getElementById('cryptoInput') as HTMLTextAreaElement).value;
 
         if (!text) {
-            Toolbox.showToast!(mode === 'encrypt' ? '텍스트를 입력해주세요.' : '암호문을 입력해주세요.', 'error');
+            Toolbox.showToast!(mode === 'encrypt' ? t('crypto.t31') : t('crypto.t32'), 'error');
             return;
         }
 
@@ -172,22 +174,22 @@
         tabs: [
             {
                 id: 'crypto',
-                label: '암호화 / 복호화',
+                label: t('crypto.t33', undefined, "암호화 / 복호화"),
                 build(c: HTMLElement) {
-                    Mdd.linePreset('meme_done', { msg: '암호화·복호화 실험 개시예요... 히히' });
+                    Mdd.linePreset('meme_done', { msg: t('crypto.t34') });
 
                     const modeGroup = document.createElement('div');
                     modeGroup.className = 'field-group';
-                    modeGroup.innerHTML = '<label class="field-label">모드</label>';
+                    modeGroup.innerHTML = `<label class="field-label">${t('crypto.label.mode')}</label>`;
                     const modeWrap = document.createElement('div');
                     modeWrap.className = 'crypto-mode-btns';
                     modeWrap.style.display = 'flex'; modeWrap.style.gap = '8px';
                     const encBtn = document.createElement('button');
                     encBtn.type = 'button'; encBtn.className = 'btn crypto-mode-btn active';
-                    encBtn.textContent = '암호화'; encBtn.dataset.mode = 'encrypt';
+                    encBtn.textContent = t('crypto.t03'); encBtn.dataset.mode = 'encrypt';
                     const decBtn = document.createElement('button');
                     decBtn.type = 'button'; decBtn.className = 'btn crypto-mode-btn';
-                    decBtn.textContent = '복호화'; decBtn.dataset.mode = 'decrypt';
+                    decBtn.textContent = t('crypto.t04'); decBtn.dataset.mode = 'decrypt';
                     const hiddenMode = document.createElement('input');
                     hiddenMode.type = 'hidden'; hiddenMode.id = 'cryptoMode'; hiddenMode.value = 'encrypt';
                     [encBtn, decBtn].forEach(btn => {
@@ -207,7 +209,7 @@
 
                     const methodGroup = document.createElement('div');
                     methodGroup.className = 'field-group';
-                    methodGroup.innerHTML = '<label class="field-label">방식</label>';
+                    methodGroup.innerHTML = `<label class="field-label">${t('crypto.label.method')}</label>`;
                     const methodWrap = document.createElement('div');
                     methodWrap.className = 'crypto-method-btns';
                     methodWrap.style.display = 'flex'; methodWrap.style.gap = '8px'; methodWrap.style.flexWrap = 'wrap';
@@ -237,29 +239,29 @@
                     c.appendChild(methodGroup);
 
                     const loadBtn = document.createElement('button');
-                    loadBtn.className = 'btn btn-ghost'; loadBtn.textContent = 'DATA 불러오기';
+                    loadBtn.className = 'btn btn-ghost'; loadBtn.textContent = t('crypto.t37');
                     loadBtn.onclick = function () { window.loadFromTxt!(); };
 
                     Toolbox.field!(c, {
-                        id: 'cryptoInput', label: '입력',
-                        placeholder: '암호화할 평문 또는 복호화할 암호문을 입력하세요',
+                        id: 'cryptoInput', label: t('crypto.t38'),
+                        placeholder: t('crypto.t39'),
                         type: undefined,
                         topRight: loadBtn, mono: true
                     });
 
                     const passGroup = document.createElement('div');
                     passGroup.id = 'cryptoAesFields';
-                    Toolbox.field!(passGroup, { tag: 'input', id: 'cryptoPass', label: '비밀번호', placeholder: '비밀번호를 입력하세요', type: 'password', topRight: undefined, mono: false });
+                    Toolbox.field!(passGroup, { tag: 'input', id: 'cryptoPass', label: t('crypto.t40'), placeholder: t('crypto.t41'), type: 'password', topRight: undefined, mono: false });
 
                     const trigger = document.createElement('button');
                     trigger.className = 'collapsible-trigger';
-                    trigger.innerHTML = '<svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>고급 설정';
+                    trigger.innerHTML = `<svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>${t('crypto.label.advanced')}`;
                     trigger.onclick = function () { Toolbox.toggleCollapsible!(trigger); };
                     passGroup.appendChild(trigger);
 
                     const body = document.createElement('div');
                     body.className = 'collapsible-body';
-                    body.innerHTML = '<div class="field-group"><div class="field-row"><label class="field-label" style="margin-bottom:0">반복 횟수 (Iterations)</label><span class="range-value" id="cryptoIterVal">10,000</span></div><input type="range" id="cryptoIterSlider" min="1000" max="100000" step="1000" value="10000"></div>';
+                    body.innerHTML = `<div class="field-group"><div class="field-row"><label class="field-label" style="margin-bottom:0">${t('crypto.label.iterations')}</label><span class="range-value" id="cryptoIterVal">10,000</span></div><input type="range" id="cryptoIterSlider" min="1000" max="100000" step="1000" value="10000"></div>`;
                     passGroup.appendChild(body);
                     c.appendChild(passGroup);
 
@@ -269,12 +271,12 @@
                     const execBtn = document.createElement('button');
                     execBtn.className = 'btn btn-primary';
                     execBtn.id = 'cryptoExecBtn';
-                    execBtn.textContent = '실행';
+                    execBtn.textContent = t('crypto.t44');
                     execBtn.onclick = function () { window.doCrypto!(); };
                     btnRow.appendChild(execBtn);
                     const swapBtn = document.createElement('button');
                     swapBtn.className = 'btn btn-ghost';
-                    swapBtn.textContent = '결과를 입력으로';
+                    swapBtn.textContent = t('crypto.t45');
                     swapBtn.onclick = function () { window.swapResultToInput!(); };
                     btnRow.appendChild(swapBtn);
                     c.appendChild(btnRow);
