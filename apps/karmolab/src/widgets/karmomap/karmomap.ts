@@ -32,6 +32,7 @@ import { renderFilterPanel } from './panels/filter-panel';
 import { renderTermsPanel } from './panels/terms-panel';
 import { renderGroupsPanel } from './panels/groups-panel';
 import { renderManyPanel } from './panels/many-panel';
+import { renderTextPanel } from './panels/text-panel';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -637,43 +638,6 @@ import {
      * 노드가 늘면 하나씩 만지는 것이 곧 벽이 된다(Heptabase 도 「골라서 Create Section」이 기본 동작).
      */
     /**
-     * 글로 만들기 — 들여쓴 목록을 그대로 관계도로 (격차 O).
-     * 이미 그린 것은 건드리지 않고 **더한다**: 사람은 보통 「이만큼 더 있어」로 오지, 처음부터 다시 오지 않는다.
-     */
-    function renderTextPanel(): void {
-      sideEl.classList.remove('hidden');
-      canvas?.setSelectedNode(null);
-      sideEl.innerHTML = `
-        <h4>📝 글로 만들기</h4>
-        <div class="km-hint">들여쓰면 위 줄에 이어집니다. 콜론(:) 뒤는 그 선에 붙는 말입니다.</div>
-        <textarea data-km="text-src" class="km-textarea" rows="12" placeholder="욘&#10;  링 : 부하&#10;  알리사 : 부하&#10;마을&#10;  대장간"></textarea>
-        <div class="km-field">
-          <label>새로 만들 노드 종류</label>
-          <select data-km="text-kind">${nodeKindOptions()}</select>
-        </div>
-        <button class="btn btn-primary" data-km="text-go">이 글로 만들기</button>
-        <button class="btn btn-ghost" data-km="text-close">닫기</button>`;
-
-      (sideEl.querySelector('[data-km="text-close"]') as HTMLButtonElement).onclick = () => {
-        sideMode = 'node';
-        renderSide();
-      };
-
-      (sideEl.querySelector('[data-km="text-go"]') as HTMLButtonElement).onclick = () => {
-        const src = (sideEl.querySelector('[data-km="text-src"]') as HTMLTextAreaElement).value;
-        const kind = (sideEl.querySelector('[data-km="text-kind"]') as HTMLSelectElement).value || nodeKindsNow()[0].id;
-        const made = buildFromOutline(src, kind);
-        if (made === 0) {
-          Toolbox.showToast?.('읽을 줄이 없습니다', undefined, undefined);
-          return;
-        }
-        sideMode = 'node';
-        renderSide();
-        Toolbox.showToast?.(`${made}개를 만들었습니다`, undefined, undefined);
-      };
-    }
-
-    /**
      * 설명 속 연결 — 가리키는 것 / 나를 가리키는 것 / 이름만 나온 곳 (격차 Q).
      * 마지막 것이 이 도구의 값이다: 사람이 링크 문법을 몰라도 그물이 자란다.
      */
@@ -882,6 +846,8 @@ import {
       setMembership: (node, ids) => setMembership(node, ids),
       applySpec: () => applySpec(),
       selectedMany: () => selectedMany,
+      nodeKindOptionsHtml: () => nodeKindOptions(),
+      buildFromOutline: (s0, kind) => buildFromOutline(s0, kind),
       clearMany: () => { selectedMany = []; selectedId = null; },
       removeNodes: (ids) => {
         const gone = new Set(ids);
@@ -1002,7 +968,7 @@ import {
         return;
       }
       if (sideMode === 'text') {
-        renderTextPanel();
+        renderTextPanel(panelCtx);
         return;
       }
       if (sideMode === 'sna') {
