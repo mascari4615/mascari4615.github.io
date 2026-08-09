@@ -5,30 +5,10 @@
  * 근무시간 합계(7:45 + 8:20 + …)도 마찬가지 — 계산기에 넣으면 7.45 로 읽혀 엉뚱한 값이 나온다.
  * 시각 더하기와 시간 합계를 나눠 두 가지 실수 모두 막는다.
  */
+import { clock, dayShift as shiftOf, fmt, spec, sumTimes, toMinutes } from '../../core/timecalc';
+import { readInvocation } from '../../lib/tool-url';
+
 (function (): void {
-  /** "1:30" / "90m" / "1h30" / "90" 을 분으로 */
-  function toMinutes(raw: string): number | null {
-    const s = raw.trim().toLowerCase();
-    if (!s) return null;
-    const hm = s.match(/^(\d+)\s*[:hㅅ시]\s*(\d+)?/);
-    if (hm) return parseInt(hm[1], 10) * 60 + parseInt(hm[2] || '0', 10);
-    const h = s.match(/^([\d.]+)\s*h$/);
-    if (h) return Math.round(parseFloat(h[1]) * 60);
-    const m = s.match(/^(\d+)\s*m?$/);
-    if (m) return parseInt(m[1], 10);
-    return null;
-  }
-
-  const fmt = (min: number): string => {
-    const neg = min < 0;
-    const a = Math.abs(min);
-    return `${neg ? '-' : ''}${Math.floor(a / 60)}시간 ${a % 60}분`;
-  };
-  const clock = (min: number): string => {
-    const d = ((min % 1440) + 1440) % 1440;
-    return `${String(Math.floor(d / 60)).padStart(2, '0')}:${String(d % 60).padStart(2, '0')}`;
-  };
-
   Toolbox.register({
     id: 'timecalc',
     title: '시간 더하기·빼기',
@@ -98,7 +78,7 @@
             }
             const total = op === 'add' ? base + delta : base - delta;
             result.textContent = clock(total);
-            const dayShift = Math.floor(total / 1440);
+            const dayShift = shiftOf(total);
             out.innerHTML =
               row('걸리는 시간', fmt(delta)) +
               row('결과', `${clock(total)}${dayShift > 0 ? ` (${dayShift}일 뒤)` : dayShift < 0 ? ` (${-dayShift}일 전)` : ''}`) +
@@ -110,23 +90,18 @@
           }
 
           function renderSum(): void {
-            const lines = list.value.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-            if (!lines.length) {
+            /* 읽기·합산은 `src/core/timecalc.ts` 가 한다 — 「7:45 는 7.45 가 아니다」가
+               이 도구의 요점이고, 시험도 거기 붙어 있다 (TASK-KL-205). */
+            const r = sumTimes(list.value);
+            if (r.counted === 0 && r.bad === 0) {
               sum.innerHTML = '';
               return;
             }
-            let total = 0;
-            let bad = 0;
-            lines.forEach((l) => {
-              const v = toMinutes(l);
-              if (v === null) bad++;
-              else total += v;
-            });
             sum.innerHTML =
-              stat('합계', fmt(total), true) +
-              stat('소수 시간', `${(total / 60).toFixed(2)}시간`) +
-              stat('평균', fmt(Math.round(total / Math.max(1, lines.length - bad)))) +
-              (bad ? stat('못 읽은 줄', `${bad}줄`) : '');
+              stat('합계', fmt(r.total), true) +
+              stat('소수 시간', `${(r.total / 60).toFixed(2)}시간`) +
+              stat('평균', fmt(Math.round(r.total / Math.max(1, r.counted)))) +
+              (r.bad ? stat('못 읽은 줄', `${r.bad}줄`) : '');
           }
 
           [start, dur].forEach((el) => el.addEventListener('input', render));
@@ -140,9 +115,28 @@
             };
           });
 
-          list.value = '7:45\n8:20\n6:50';
+          // 주소로 부른 경우 (`?op=shift&start=09:40&duration=1:25` / `?op=sum&times=…`) (TASK-KL-205).
+          const call = readInvocation(spec);
+          if (call !== null && call.error === undefined && call.op === 'shift') {
+            start.value = String(call.args.start ?? start.value);
+            dur.value = String(call.args.duration ?? dur.value);
+            if (call.args.minus === true) {
+              op = 'sub';
+              container.querySelectorAll('[data-op]').forEach((c) => {
+                c.classList.toggle('active', (c as HTMLElement).dataset.op === 'sub');
+              });
+            }
+          }
+          list.value =
+            call !== null && call.error === undefined && call.op === 'sum'
+              ? String(call.args.times ?? '')
+              : '7:45\n8:20\n6:50';
           render();
           renderSum();
+          if (call?.error !== undefined) {
+            status.textContent = call.error;
+            status.className = 'tool-status error';
+          }
         }
       }
     ]

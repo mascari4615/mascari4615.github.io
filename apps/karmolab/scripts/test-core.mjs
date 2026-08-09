@@ -502,6 +502,60 @@ try {
 }
 check(grThrew, '읽을 줄이 없으면 던진다');
 
+// ── ②-12 timecalc 알맹이 (7:45 는 7.45 가 아니다) ────────────────────────────
+const tc = await load('src/core/timecalc.ts');
+
+eq(tc.spec.id, 'timecalc', 'timecalc spec.id');
+
+// 사람이 적는 모양이 여럿이다. 전부 「분」 하나로 모은다.
+eq(tc.toMinutes('1:30'), 90, '시:분');
+eq(tc.toMinutes('1:05'), 65, '분이 한 자리로 붙어도');
+eq(tc.toMinutes('90m'), 90, '분 표기');
+eq(tc.toMinutes('90'), 90, '숫자만이면 분');
+eq(tc.toMinutes('1.5h'), 90, '소수 시간');
+eq(tc.toMinutes('2h'), 120, '시간 표기');
+eq(tc.toMinutes('1시30'), 90, '한글 시');
+eq(tc.toMinutes('8:00'), 480, '정각');
+eq(tc.toMinutes(''), null, '빈 값은 null');
+eq(tc.toMinutes('아무거나'), null, '못 읽으면 null (0 으로 넘기면 합계가 조용히 틀린다)');
+
+// 이 도구가 있는 이유 자체 — 7:45 를 7.45 로 읽으면 틀린다.
+eq(tc.toMinutes('7:45'), 465, '7:45 = 465분');
+eq(Number((465 / 60).toFixed(2)), 7.75, '465분 = 7.75시간 (7.45 아님)');
+
+eq(tc.fmt(465), '7시간 45분', '보기 좋은 표기');
+eq(tc.fmt(-90), '-1시간 30분', '음수도 부호를 붙여 그대로');
+eq(tc.fmt(0), '0시간 0분', '0');
+
+// 24시를 넘거나 0시 아래로 가도 하루 안으로.
+eq(tc.clock(580 + 85), '11:05', '09:40 + 1:25');
+eq(tc.clock(1440), '00:00', '24시는 0시');
+eq(tc.clock(1500), '01:00', '25시는 다음 날 1시');
+eq(tc.clock(-60), '23:00', '0시 한 시간 전은 전날 23시');
+eq(tc.dayShift(1500), 1, '하루 넘어감');
+eq(tc.dayShift(-60), -1, '전날로');
+eq(tc.dayShift(600), 0, '같은 날');
+
+const sumR = tc.sumTimes('7:45\n8:20\n6:50');
+eq(sumR.total, 465 + 500 + 410, '근무시간 합계');
+eq(sumR.counted, 3, '읽은 줄 수');
+eq(sumR.bad, 0, '못 읽은 줄 없음');
+const sumBad = tc.sumTimes('7:45\n뭐지\n\n8h');
+eq(sumBad.counted, 2, '빈 줄은 안 세고');
+eq(sumBad.bad, 1, '못 읽은 줄은 센다');
+
+check(tc.run('shift', { start: '09:40', duration: '1:25' }).includes('11:05'), 'run shift');
+check(tc.run('shift', { start: '23:30', duration: '1:00' }).includes('1일 뒤'), '자정을 넘으면 말해 준다');
+check(tc.run('shift', { start: '09:40', duration: '1:25', minus: true }).includes('08:15'), 'run shift 빼기');
+check(tc.run('sum', { times: '7:45\n8:20' }).includes('7.45 가 아니라'), '급여 계산 함정을 짚어 준다');
+let tcThrew = false;
+try {
+  tc.run('sum', { times: '읽을 수 없음' });
+} catch {
+  tcThrew = true;
+}
+check(tcThrew, '읽을 줄이 없으면 던진다');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 
