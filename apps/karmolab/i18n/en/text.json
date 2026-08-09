@@ -1,0 +1,15 @@
+{
+  "text.part.charcount": "Character count",
+  "text.part.textclean": "Clean up",
+  "text.part.textdiff": "Compare",
+  "text.part.caseconv": "Naming style",
+  "text.part.hangulkey": "Korean typo fix",
+  "text.part.lorem": "Dummy text",
+  "text.part.replace": "Find and replace",
+  "text.part.slug": "Slug",
+  "text.part.listdiff": "Compare lists",
+  "text.part.jamo": "Hangul jamo",
+  "text.part.wordfreq": "Word frequency",
+  "text.part.linebreak": "Line breaks",
+  "text.part.checklist": "Checklist"
+}

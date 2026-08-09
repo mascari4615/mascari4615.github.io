@@ -1,0 +1,23 @@
+{
+  "percent.tab": "計算",
+  "percent.status.idle": "数字を直すと結果がすぐ変わります。値は保存されません。",
+  "percent.word.what": "何",
+  "percent.word.of": " の ",
+  "percent.word.isWhat": "% は？",
+  "percent.word.is": " は ",
+  "percent.word.whatPctOf": " の何 %？",
+  "percent.word.from": " から ",
+  "percent.word.changeTo": " に変わると何 % 変化？",
+  "percent.word.up": "増加",
+  "percent.word.down": "減少",
+  "percent.word.to": " に ",
+  "percent.word.plusPct": "% を足すと？",
+  "percent.word.minusPct": "% を引くと？",
+  "percent.word.thenExtra": "% 引きのあとさらに ",
+  "percent.word.discount": "% 引くと？",
+  "percent.word.isPctOfOriginal": " が元の値の ",
+  "percent.word.thenOriginal": "% なら元の値は？",
+  "percent.value.combined": "{price}（合わせて {pct}% 引き）",
+  "percent.label.nth": "{sentence} — {n}番目の値",
+  "percent.copy.one": "コピー: {v}"
+}

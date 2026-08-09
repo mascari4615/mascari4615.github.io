@@ -1,0 +1,12 @@
+{
+  "json2ts.tab": "型を作る",
+  "json2ts.label.name": "最上位の型の名前",
+  "json2ts.aria.in": "入れる JSON",
+  "json2ts.aria.out": "作られた型宣言",
+  "json2ts.btn.run": "型を作る",
+  "json2ts.btn.copy": "コピー",
+  "json2ts.status.idle": "配列はすべての要素を合わせて見ます — 一部にしかない項目は「?」が付きます。",
+  "json2ts.err.json": "JSON を読めませんでした: ",
+  "json2ts.copy.done": "型をコピーしました",
+  "json2ts.say.done": "{n}個の型を作りました。"
+}

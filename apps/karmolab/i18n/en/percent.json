@@ -1,0 +1,23 @@
+{
+  "percent.tab": "Percent",
+  "percent.status.idle": "Change a number and the result updates at once. Nothing is stored.",
+  "percent.word.what": "What",
+  "percent.word.of": " — ",
+  "percent.word.isWhat": "% of it is?",
+  "percent.word.is": " is ",
+  "percent.word.whatPctOf": "— what % of it?",
+  "percent.word.from": "from ",
+  "percent.word.changeTo": "— what % change?",
+  "percent.word.up": "up",
+  "percent.word.down": "down",
+  "percent.word.to": " plus ",
+  "percent.word.plusPct": "% is?",
+  "percent.word.minusPct": "% off is?",
+  "percent.word.thenExtra": "% off, then another ",
+  "percent.word.discount": "% off is?",
+  "percent.word.isPctOfOriginal": " is ",
+  "percent.word.thenOriginal": "% of the original — so the original is?",
+  "percent.value.combined": "{price} ({pct}% off in total)",
+  "percent.label.nth": "{sentence} — value {n}",
+  "percent.copy.one": "Copied: {v}"
+}

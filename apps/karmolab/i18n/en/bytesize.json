@@ -1,0 +1,13 @@
+{
+  "bytesize.label.value": "Size",
+  "bytesize.label.unit": "Unit",
+  "bytesize.opt.binary": "Base 1024 — how the operating system counts",
+  "bytesize.opt.dec": "{u} (base 1000)",
+  "bytesize.opt.bin": "{u} (base 1024)",
+  "bytesize.status.idle": "Manufacturers count in 1000s, operating systems in 1024s.",
+  "bytesize.stat.size": "Size",
+  "bytesize.stat.bytes": "Bytes",
+  "bytesize.stat.gap": "Notation gap",
+  "bytesize.row.diff": "Difference",
+  "bytesize.value.smaller": "looks {pct}% smaller"
+}

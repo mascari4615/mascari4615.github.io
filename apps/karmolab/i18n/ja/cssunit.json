@@ -1,0 +1,16 @@
+{
+  "cssunit.tab": "値",
+  "cssunit.label.root": "ルートの文字サイズ（html）",
+  "cssunit.aria.root": "ルートの文字サイズ（HTML）",
+  "cssunit.label.parent": "親の文字サイズ（em の基準）",
+  "cssunit.aria.parent": "親の文字サイズ（EM 基準）",
+  "cssunit.label.number": "数字",
+  "cssunit.aria.value": "変換する数字",
+  "cssunit.label.unit": "単位",
+  "cssunit.aria.unit": "変換する単位",
+  "cssunit.label.common": "よく使うサイズ — px → rem",
+  "cssunit.status.idle": "rem はルート基準、em は親基準です — 同じ数字でも大きさが違います。",
+  "cssunit.row.rem": "rem（ルート基準）",
+  "cssunit.row.em": "em（親基準）",
+  "cssunit.row.pct": "親に対する %"
+}

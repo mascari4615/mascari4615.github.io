@@ -1,0 +1,15 @@
+{
+  "text.part.charcount": "文字数",
+  "text.part.textclean": "整理",
+  "text.part.textdiff": "比較",
+  "text.part.caseconv": "表記法",
+  "text.part.hangulkey": "ハングル打ち直し",
+  "text.part.lorem": "ダミーテキスト",
+  "text.part.replace": "探して置換",
+  "text.part.slug": "スラッグ",
+  "text.part.listdiff": "リスト比較",
+  "text.part.jamo": "ハングル字母",
+  "text.part.wordfreq": "単語の頻度",
+  "text.part.linebreak": "改行整理",
+  "text.part.checklist": "チェックリスト"
+}

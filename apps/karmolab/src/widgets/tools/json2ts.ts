@@ -5,7 +5,12 @@
  * 배열은 특히 위험하다 — 첫 원소만 보고 타입을 정하면, 어떤 원소에만 있는 필드가 통째로 사라진다.
  * 그래서 배열은 **모든 원소를 합쳐** 보고, 일부에만 있는 필드는 옵셔널로 표시한다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   type Shape = { kind: string; fields?: Record<string, { shape: Shape; optional: boolean }>; of?: Shape };
 
   function shapeOf(value: unknown): Shape {
@@ -68,41 +73,43 @@
 
   Toolbox.register({
     id: 'json2ts',
-    title: 'JSON → 타입 선언',
+    title: t('widgets.json2ts.title', undefined, "JSON → 타입 선언"),
     category: 'tool',
-    desc: 'JSON 에서 TypeScript 인터페이스를 만듭니다. 배열은 모든 원소를 합쳐 봅니다',
+    desc: t('widgets-desc.json2ts.desc', undefined, "JSON 에서 TypeScript 인터페이스를 만듭니다. 배열은 모든 원소를 합쳐 봅니다"),
     layout: 'wide',
     icon: '<path d="M9 4H7a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M14 8h6M17 8v9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '타입 생성',
+        label: t('json2ts.tab', undefined, "타입 생성"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('json2ts').then(function () {
+
           container.innerHTML = `
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">최상위 타입 이름</div>
-                  <input type="text" id="jtName" aria-label="최상위 타입 이름" value="Root" spellcheck="false">
+                  <div class="tool-sublabel">${esc(t('json2ts.label.name'))}</div>
+                  <input type="text" id="jtName" aria-label="${esc(t('json2ts.label.name'))}" value="Root" spellcheck="false">
                 </div>
                 <div>
                   <div class="tool-sublabel">&nbsp;</div>
-                  <button class="btn btn-primary" id="jtRun" style="width:100%;">타입 만들기</button>
+                  <button class="btn btn-primary" id="jtRun" style="width:100%;">${esc(t('json2ts.btn.run'))}</button>
                 </div>
               </div>
             </div>
             <div class="field-group">
               <label class="field-label">JSON</label>
-              <textarea id="jtIn" aria-label="넣을 JSON" rows="9" spellcheck="false"></textarea>
+              <textarea id="jtIn" aria-label="${esc(t('json2ts.aria.in'))}" rows="9" spellcheck="false"></textarea>
             </div>
             <div class="field-group">
               <label class="field-label">TypeScript</label>
-              <textarea id="jtOut" aria-label="만들어진 타입 선언" rows="12" spellcheck="false" readonly></textarea>
+              <textarea id="jtOut" aria-label="${esc(t('json2ts.aria.out'))}" rows="12" spellcheck="false" readonly></textarea>
             </div>
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-ghost" id="jtCopy">복사</button>
+              <button class="btn btn-ghost" id="jtCopy">${esc(t('json2ts.btn.copy'))}</button>
             </div>
-            <div class="tool-status" id="jtStatus">배열은 모든 원소를 합쳐 봅니다 — 일부에만 있는 필드는 물음표로 표시됩니다.</div>
+            <div class="tool-status" id="jtStatus">${esc(t('json2ts.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -115,7 +122,7 @@
             try {
               data = JSON.parse(input.value);
             } catch (e) {
-              status.textContent = 'JSON 을 읽지 못했어요: ' + (e as Error).message;
+              status.textContent = t('json2ts.err.json') + (e as Error).message;
               status.className = 'tool-status error';
               return;
             }
@@ -125,7 +132,7 @@
             out.value =
               (blocks.length ? blocks.reverse().join('\n\n') : `export type ${name} = ${top};`) +
               (blocks.length && top !== name ? `\n\nexport type ${name} = ${top};` : '');
-            status.textContent = `${blocks.length || 1}개 타입을 만들었습니다.`;
+            status.textContent = t('json2ts.say.done', { n: blocks.length || 1 });
             status.className = 'tool-status ok';
             Toolbox.trackUse?.('generate');
           }
@@ -133,7 +140,7 @@
           input.addEventListener('input', run);
           $<HTMLButtonElement>('#jtRun').onclick = run;
           $<HTMLButtonElement>('#jtCopy').onclick = () => {
-            if (out.value) void Toolbox.copyText?.(out.value, { message: '타입을 복사했어요' });
+            if (out.value) void Toolbox.copyText?.(out.value, { message: t('json2ts.copy.done') });
           };
 
           input.value = JSON.stringify(
@@ -142,6 +149,7 @@
             2
           );
           run();
+                  });
         }
       }
     ]

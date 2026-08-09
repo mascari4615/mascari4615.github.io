@@ -1,0 +1,23 @@
+{
+  "percent.status.idle": "숫자를 고치면 결과가 바로 바뀝니다. 값은 저장되지 않습니다.",
+  "percent.word.of": "의 ",
+  "percent.word.isWhat": "% 는?",
+  "percent.word.is": "은 ",
+  "percent.word.whatPctOf": "의 몇 % ?",
+  "percent.word.from": "에서 ",
+  "percent.word.changeTo": "(으)로 바뀌면 몇 % 변화?",
+  "percent.word.up": "증가",
+  "percent.word.down": "감소",
+  "percent.word.to": "에 ",
+  "percent.word.plusPct": "% 를 더하면?",
+  "percent.word.minusPct": "% 를 빼면?",
+  "percent.word.thenExtra": "% 할인 후 추가 ",
+  "percent.word.discount": "% 할인하면?",
+  "percent.word.isPctOfOriginal": "이 원래 값의 ",
+  "percent.word.thenOriginal": "% 라면 원래 값은?",
+  "percent.tab": "계산",
+  "percent.word.what": "몇",
+  "percent.value.combined": "{price} (합쳐서 {pct}% 할인)",
+  "percent.label.nth": "{sentence} — {n}번째 값",
+  "percent.copy.one": "복사: {v}"
+}

@@ -1,0 +1,15 @@
+{
+  "text.part.charcount": "글자수",
+  "text.part.textclean": "정리",
+  "text.part.textdiff": "비교",
+  "text.part.caseconv": "표기법",
+  "text.part.hangulkey": "한영타",
+  "text.part.lorem": "더미 텍스트",
+  "text.part.replace": "찾아 바꾸기",
+  "text.part.slug": "슬러그",
+  "text.part.listdiff": "목록 비교",
+  "text.part.jamo": "자모 분해",
+  "text.part.wordfreq": "단어 빈도",
+  "text.part.linebreak": "줄바꿈",
+  "text.part.checklist": "체크리스트"
+}
