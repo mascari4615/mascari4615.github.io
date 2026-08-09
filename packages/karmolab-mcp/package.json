@@ -1,7 +1,6 @@
 {
   "name": "karmolab-mcp",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "MCP server for the things LLMs get wrong: exact hashes, real randomness, and Korean rules (ages, business registration numbers, substitute holidays, Hangul). No dependencies.",
   "keywords": [
