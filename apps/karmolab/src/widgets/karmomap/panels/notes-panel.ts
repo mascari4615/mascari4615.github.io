@@ -37,6 +37,7 @@ export function renderNotesPanel(ctx: PanelCtx): void {
               <span class="km-group-count">${users}곳</span>
               <button class="btn btn-ghost" data-km="note-go" data-key="${esc(n.id)}"${users === 0 ? ' disabled' : ''}>가기</button>
               <button class="btn btn-ghost" data-km="note-show" data-key="${esc(n.id)}"${users < 2 ? ' disabled' : ''}>쓰는 곳 다 보기</button>
+              <button class="btn btn-ghost" data-km="note-card" data-key="${esc(n.id)}">쪽지로 놓기</button>
               <button class="btn btn-ghost" data-km="note-split" data-key="${esc(n.id)}">흩기</button>
             </div>
           </div>`;
@@ -79,6 +80,13 @@ export function renderNotesPanel(ctx: PanelCtx): void {
       deleteNote(ctx.spec(), id, true);
       ctx.persist();
       ctx.refresh();
+    };
+  });
+  // 「쪽지로 놓기」 = 글을 캔버스에 펼쳐 둔다. 사본이 아니라 **창**이라 쪽지에서 고치면 다 바뀐다.
+  side.querySelectorAll('[data-km="note-card"]').forEach((el) => {
+    (el as HTMLButtonElement).onclick = () => {
+      const id = (el as HTMLElement).dataset.key ?? '';
+      if (id) ctx.spawnNoteCard(id);
     };
   });
   const prune = side.querySelector('[data-km="note-prune"]') as HTMLButtonElement | null;
