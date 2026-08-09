@@ -36,13 +36,51 @@ export function bindTagsField(ctx: PanelCtx, node: GraphNode): void {
   // 타이핑 도중마다 저장하면 「영」·「영향」 같은 조각이 꼬리표로 남는다 — 다 쓰고 나서만.
   input.onchange = apply;
   input.onblur = apply;
+
+  /** 지금 쓰고 있는 조각 = 마지막 쉼표 뒤. 제안은 그 조각으로만 거른다. */
+  const lastToken = (): string => (input.value.split(',').pop() ?? '').trim().toLowerCase();
+  const already = (): string[] => input.value.split(',').map((x) => x.trim()).filter(Boolean);
+
+  const syncChips = (): void => {
+    const token = lastToken();
+    const used = new Set(already().map((x) => x.toLowerCase()));
+    let shown = 0;
+    side.querySelectorAll('[data-km="tag-add"]').forEach((el) => {
+      const btn = el as HTMLButtonElement;
+      const tg = (btn.dataset.key ?? '').toLowerCase();
+      // 이미 붙인 것은 제안할 이유가 없고, 조각과 안 맞는 것도 뺀다.
+      const hit = !used.has(tg) && (!token || tg.includes(token));
+      btn.hidden = !hit;
+      if (hit) shown += 1;
+    });
+    const bar = side.querySelector('.km-tagbar') as HTMLElement | null;
+    if (bar) bar.hidden = shown === 0;
+  };
+  input.addEventListener('input', syncChips);
+  syncChips();
+
+  // Enter = 첫 제안을 붙인다. 타이핑하다 손을 안 떼고 이어 갈 수 있게.
+  input.addEventListener('keydown', (ev) => {
+    if (ev.key !== 'Enter') return;
+    const first = [...side.querySelectorAll('[data-km="tag-add"]')]
+      .find((el) => !(el as HTMLButtonElement).hidden) as HTMLButtonElement | undefined;
+    if (!first) return;
+    ev.preventDefault();
+    first.click();
+  });
   side.querySelectorAll('[data-km="tag-add"]').forEach((el) => {
     (el as HTMLButtonElement).onclick = () => {
       const tg = (el as HTMLElement).dataset.key ?? '';
       const cur = input.value.split(',').map((x) => x.trim()).filter(Boolean);
       if (!cur.includes(tg)) cur.push(tg);
-      input.value = cur.join(', ');
+      // 붙일 때는 쓰던 조각을 지우고 그 자리에 넣는다 — 「영향」 치다 칩을 누르면 「영향, 영향력 큼」이 되면 안 된다.
+      const head = cur.slice(0, -1);
+      const typing = (cur[cur.length - 1] ?? '');
+      const base = typing && tg.toLowerCase().includes(typing.toLowerCase()) ? head : cur;
+      if (!base.includes(tg)) base.push(tg);
+      input.value = base.join(', ');
       apply();
+      syncChips();
     };
   });
 }

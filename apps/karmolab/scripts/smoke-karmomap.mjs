@@ -348,6 +348,23 @@ await step('꼬리표를 붙이고 그 꼬리표로 거른다', async () => {
   await page.click('[data-km="f-reset"]');
   await page.click('[data-km="f-close"]');
 });
+await step('꼬리표를 타이핑하면 제안이 좁아지고 Enter 로 붙는다', async () => {
+  await page.locator('.ck-node').first().click({ position: { x: 12, y: 10 } });
+  await page.fill('[data-km="edit-tags"]', '');
+  const chips = page.locator('[data-km="tag-add"]:not([hidden])');
+  const all = await chips.count();
+  if (all === 0) throw new Error('제안 칩이 없다');
+  await page.locator('[data-km="edit-tags"]').type('중');
+  await page.waitForFunction((a) => {
+    const vis = [...document.querySelectorAll('[data-km="tag-add"]')].filter((b) => !b.hidden).length;
+    return vis > 0 && vis <= a;
+  }, all, { timeout: 4000 });
+  await page.locator('[data-km="edit-tags"]').press('Enter');
+  await page.waitForFunction(() => {
+    const v = document.querySelector('[data-km="edit-tags"]');
+    return v instanceof HTMLInputElement && v.value.trim().length > 1;
+  }, null, { timeout: 4000 });
+});
 await step('꼬리표로 색 입히기가 실제로 색을 바꾼다', async () => {
   const strokeOf = () => page.evaluate(() => document.querySelector('.ck-node .ck-node-bg')?.getAttribute('stroke') || '');
   const before = await strokeOf();
