@@ -203,5 +203,21 @@
   "howto.hashgen.3": "期待するチェックサムを貼り付けて一致を確かめる",
   "howto.ziptool.0": "「まとめる」か「開く」を選ぶ",
   "howto.ziptool.1": "ファイルを入れる",
-  "howto.ziptool.2": "まとめるなら ZIP を作る、開くなら一覧のファイルを押す"
+  "howto.ziptool.2": "まとめるなら ZIP を作る、開くなら一覧のファイルを押す",
+  "howto.text2pdf.0": "文章を貼り付けるか書く",
+  "howto.text2pdf.1": "文字の大きさと行間を合わせる",
+  "howto.text2pdf.2": "プレビューで1ページ目を確かめる",
+  "howto.text2pdf.3": "PDF でダウンロードする",
+  "howto.screenrec.0": "録る音を選ぶ",
+  "howto.screenrec.1": "録画を始めるを押して画面・ウィンドウを選ぶ",
+  "howto.screenrec.2": "見せたい動きをする",
+  "howto.screenrec.3": "止めるを押して確かめてからダウンロード",
+  "howto.interest.0": "積立・定期預金・ローンから選ぶ",
+  "howto.interest.1": "金額と年利を入れる",
+  "howto.interest.2": "期間（か月）を入れる",
+  "howto.interest.3": "税引後の受取額か毎月の返済額を見る",
+  "howto.barcode.0": "規格を選ぶ（文字が入るなら Code128）",
+  "howto.barcode.1": "値を入れる",
+  "howto.barcode.2": "太さと高さを合わせる",
+  "howto.barcode.3": "PNG でダウンロードして印刷する"
 }

@@ -9,8 +9,12 @@
  * 소리는 두 갈래다: 화면 소리(탭·시스템)와 마이크. 둘 다 켜면 섞어야 하므로 오디오를 합친다.
  */
 import { pickRecordType } from './shared/video';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const size = (n: number): string =>
     n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
 
@@ -21,37 +25,39 @@ import { pickRecordType } from './shared/video';
 
   Toolbox.register({
     id: 'screenrec',
-    title: '화면 녹화',
+    title: t('widgets.screenrec.title', undefined, "화면 녹화"),
     category: 'tool',
-    desc: '화면이나 창을 녹화합니다. 소리도 함께 담고, 파일이 브라우저를 벗어나지 않습니다',
+    desc: t('widgets-desc.screenrec.desc', undefined, "화면이나 창을 녹화합니다. 소리도 함께 담고, 파일이 브라우저를 벗어나지 않습니다"),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 21h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="10.5" r="3" fill="currentColor"/>',
     tabs: [
       {
         id: 'app',
-        label: '녹화',
+        label: t('screenrec.t04', undefined, "녹화"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('screenrec').then(function () {
+
           container.innerHTML = `
             <div class="tool-chips" style="margin-bottom:var(--space-lg);">
-              <label class="tool-chip"><input type="checkbox" id="srSysAudio" checked> 화면 소리</label>
-              <label class="tool-chip"><input type="checkbox" id="srMic"> 마이크</label>
+              <label class="tool-chip"><input type="checkbox" id="srSysAudio" checked> ${esc(t('screenrec.opt.sysAudio'))}</label>
+              <label class="tool-chip"><input type="checkbox" id="srMic"> ${esc(t('screenrec.opt.mic'))}</label>
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-primary" id="srStart">녹화 시작</button>
-              <button class="btn btn-ghost" id="srStop" disabled>멈추기</button>
-              <button class="btn btn-ghost" id="srSave" disabled>내려받기</button>
+              <button class="btn btn-primary" id="srStart">${esc(t('screenrec.btn.start'))}</button>
+              <button class="btn btn-ghost" id="srStop" disabled>${esc(t('screenrec.btn.stop'))}</button>
+              <button class="btn btn-ghost" id="srSave" disabled>${esc(t('screenrec.btn.save'))}</button>
             </div>
 
             <div class="tool-display" id="srClock">0:00</div>
             <div class="cc-stats" id="srStats"></div>
 
             <div id="srResult" style="display:none; margin-top:var(--space-lg);">
-              <div class="tool-sublabel">녹화한 화면 — 확인하고 받으세요</div>
+              <div class="tool-sublabel">${esc(t('screenrec.label.result'))}</div>
               <video id="srPreview" controls playsinline style="width:100%; max-height:340px; background:#000; border-radius:8px;"></video>
             </div>
 
-            <div class="tool-status" id="srStatus">시작을 누르면 어떤 화면을 담을지 브라우저가 물어봅니다. 녹화 파일은 어디에도 올라가지 않습니다.</div>
+            <div class="tool-status" id="srStatus">${esc(t('screenrec.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -86,7 +92,7 @@ import { pickRecordType } from './shared/video';
 
           async function start(): Promise<void> {
             if (!navigator.mediaDevices?.getDisplayMedia) {
-              say('이 브라우저는 화면 녹화를 지원하지 않아요. 크롬·엣지에서 열어 보세요.', 'error');
+              say(t('screenrec.err.unsupported'), 'error');
               return;
             }
             made = null;
@@ -101,7 +107,7 @@ import { pickRecordType } from './shared/video';
               });
             } catch {
               // 사용자가 창 고르기를 취소한 경우 — 잘못이 아니므로 조용히 되돌린다
-              say('녹화를 시작하지 않았어요.');
+              say(t('screenrec.err.notStarted'));
               return;
             }
             tracks = screen.getTracks();
@@ -119,7 +125,7 @@ import { pickRecordType } from './shared/video';
                 tracks = tracks.concat(mic.getTracks());
                 audioIn.push(ctx.createMediaStreamSource(mic));
               } catch {
-                say('마이크를 쓸 수 없어 화면 소리만 담습니다.');
+                say(t('screenrec.warn.noMic'));
               }
             }
             // 소리가 둘이면 섞어야 한다 — MediaRecorder 는 오디오 트랙을 하나만 담는다
@@ -149,23 +155,23 @@ import { pickRecordType } from './shared/video';
               const sec = (performance.now() - startedAt) / 1000;
               clock.textContent = mmss(sec);
               const guess = chunks.reduce((a, c) => a + c.size, 0);
-              stats.innerHTML = stat('녹화 시간', mmss(sec), true) + stat('지금까지', size(guess));
+              stats.innerHTML = stat(t('screenrec.stat.length'), mmss(sec), true) + stat(t('screenrec.stat.soFar'), size(guess));
             }, 250);
-            say('녹화 중입니다. 멈추기를 누르거나 브라우저의 공유 중지를 누르세요.', 'ok');
+            say(t('screenrec.say.recording'), 'ok');
 
             made = await finished;
             void ctx.close();
             cleanup();
 
             if (!made || made.size < 100) {
-              say('담긴 내용이 없어요. 시작하자마자 멈추면 이렇게 됩니다 — 몇 초 이상 녹화해 보세요.', 'error');
+              say(t('screenrec.err.empty'), 'error');
               return;
             }
             preview.src = URL.createObjectURL(made);
             $<HTMLElement>('#srResult').style.display = '';
             saveBtn.disabled = false;
             const sec = (performance.now() - startedAt) / 1000;
-            stats.innerHTML = stat('녹화 시간', mmss(sec), true) + stat('용량', size(made.size));
+            stats.innerHTML = stat(t('screenrec.stat.length'), mmss(sec), true) + stat(t('screenrec.stat.size'), size(made.size));
             say(`${mmss(sec)} · ${size(made.size)} 로 담았어요. 확인하고 받으세요.`, 'ok');
             Toolbox.trackUse?.('record');
           }
@@ -179,7 +185,7 @@ import { pickRecordType } from './shared/video';
           startBtn.onclick = () => {
             void start().catch((err: Error) => {
               cleanup();
-              say('녹화 중 문제가 생겼어요: ' + err.message, 'error');
+              say(t('screenrec.err.run') + err.message, 'error');
             });
           };
           stopBtn.onclick = stop;
@@ -188,11 +194,12 @@ import { pickRecordType } from './shared/video';
             const a = document.createElement('a');
             a.href = URL.createObjectURL(made);
             const stamp = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
-            a.download = `화면녹화-${stamp}.webm`;
+            a.download = `${t('screenrec.file.name')}-${stamp}.webm`;
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say('내려받았어요.', 'ok');
+            say(t('screenrec.say.saved'), 'ok');
           };
+                  });
         }
       }
     ]

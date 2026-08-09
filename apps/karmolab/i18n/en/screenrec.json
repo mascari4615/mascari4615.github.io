@@ -1,0 +1,21 @@
+{
+  "screenrec.tab": "Record",
+  "screenrec.opt.sysAudio": "System sound",
+  "screenrec.opt.mic": "Microphone",
+  "screenrec.btn.start": "Start recording",
+  "screenrec.btn.stop": "Stop",
+  "screenrec.btn.save": "Download",
+  "screenrec.label.result": "What you recorded — check it, then download",
+  "screenrec.status.idle": "Hit start and your browser asks which screen to capture. The recording is never uploaded anywhere.",
+  "screenrec.err.unsupported": "This browser cannot record the screen. Try Chrome or Edge.",
+  "screenrec.err.notStarted": "Recording never started.",
+  "screenrec.warn.noMic": "The microphone is unavailable, so only system sound is captured.",
+  "screenrec.stat.length": "Length",
+  "screenrec.stat.soFar": "So far",
+  "screenrec.say.recording": "Recording. Hit stop, or use your browser’s stop-sharing button.",
+  "screenrec.err.empty": "Nothing was captured. Stopping right after starting does that — try recording for a few seconds.",
+  "screenrec.stat.size": "Size",
+  "screenrec.err.run": "Something went wrong while recording: ",
+  "screenrec.say.saved": "Downloaded.",
+  "screenrec.file.name": "screen-recording"
+}
