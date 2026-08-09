@@ -5,6 +5,8 @@
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { inRegion, region } from '../../lib/region';
 
+import { FACTORS as F } from '../../core/unitconv';
+
 (function (): void {
   interface Unit {
     id: string;
@@ -61,16 +63,16 @@ import { inRegion, region } from '../../lib/region';
       defaultFrom: defaultsFor('length', 'cm', 'inch')[0],
       defaultTo: defaultsFor('length', 'cm', 'inch')[1],
       units: [
-        { id: 'mm', label: t('unitconv.mm'), factor: 0.001 },
-        { id: 'cm', label: t('unitconv.cm'), factor: 0.01 },
-        { id: 'm', label: t('unitconv.m'), factor: 1 },
-        { id: 'km', label: t('unitconv.km'), factor: 1000 },
-        { id: 'inch', label: t('unitconv.inch'), factor: 0.0254 },
-        { id: 'ft', label: t('unitconv.ft'), factor: 0.3048 },
-        { id: 'yd', label: t('unitconv.yd'), factor: 0.9144 },
-        { id: 'mile', label: t('unitconv.mi'), factor: 1609.344 },
-        { id: 'ja', label: t('unitconv.ja_'), factor: 0.303 },
-        { id: 'ri', label: t('unitconv.ri'), factor: 392.7 }
+        { id: 'mm', label: t('unitconv.mm'), factor: F.length.mm },
+        { id: 'cm', label: t('unitconv.cm'), factor: F.length.cm },
+        { id: 'm', label: t('unitconv.m'), factor: F.length.m },
+        { id: 'km', label: t('unitconv.km'), factor: F.length.km },
+        { id: 'inch', label: t('unitconv.inch'), factor: F.length.inch },
+        { id: 'ft', label: t('unitconv.ft'), factor: F.length.ft },
+        { id: 'yd', label: t('unitconv.yd'), factor: F.length.yd },
+        { id: 'mile', label: t('unitconv.mi'), factor: F.length.mile },
+        { id: 'ja', label: t('unitconv.ja_'), factor: F.length.ja },
+        { id: 'ri', label: t('unitconv.ri'), factor: F.length.ri }
       ]
     },
     {
@@ -79,15 +81,15 @@ import { inRegion, region } from '../../lib/region';
       defaultFrom: defaultsFor('weight', 'kg', 'lb')[0],
       defaultTo: defaultsFor('weight', 'kg', 'lb')[1],
       units: [
-        { id: 'mg', label: t('unitconv.mg'), factor: 0.000001 },
-        { id: 'g', label: t('unitconv.g'), factor: 0.001 },
-        { id: 'kg', label: t('unitconv.kg'), factor: 1 },
-        { id: 't', label: t('unitconv.t'), factor: 1000 },
-        { id: 'lb', label: t('unitconv.lb'), factor: 0.45359237 },
-        { id: 'oz', label: t('unitconv.oz'), factor: 0.028349523125 },
-        { id: 'geun', label: t('unitconv.geun'), factor: 0.6 },
-        { id: 'don', label: t('unitconv.don'), factor: 0.00375 },
-        { id: 'nyang', label: t('unitconv.nyang'), factor: 0.0375 }
+        { id: 'mg', label: t('unitconv.mg'), factor: F.weight.mg },
+        { id: 'g', label: t('unitconv.g'), factor: F.weight.g },
+        { id: 'kg', label: t('unitconv.kg'), factor: F.weight.kg },
+        { id: 't', label: t('unitconv.t'), factor: F.weight.t },
+        { id: 'lb', label: t('unitconv.lb'), factor: F.weight.lb },
+        { id: 'oz', label: t('unitconv.oz'), factor: F.weight.oz },
+        { id: 'geun', label: t('unitconv.geun'), factor: F.weight.geun },
+        { id: 'don', label: t('unitconv.don'), factor: F.weight.don },
+        { id: 'nyang', label: t('unitconv.nyang'), factor: F.weight.nyang }
       ]
     },
     {
@@ -96,13 +98,13 @@ import { inRegion, region } from '../../lib/region';
       defaultFrom: defaultsFor('area', 'pyeong', 'm2')[0],
       defaultTo: defaultsFor('area', 'pyeong', 'm2')[1],
       units: [
-        { id: 'cm2', label: t('unitconv.cm2'), factor: 0.0001 },
-        { id: 'm2', label: t('unitconv.m2'), factor: 1 },
-        { id: 'km2', label: t('unitconv.km2'), factor: 1000000 },
-        { id: 'pyeong', label: t('unitconv.pyeong'), factor: 3.3057851 },
-        { id: 'ha', label: t('unitconv.ha'), factor: 10000 },
-        { id: 'acre', label: t('unitconv.ac'), factor: 4046.8564224 },
-        { id: 'ft2', label: t('unitconv.ft2'), factor: 0.09290304 }
+        { id: 'cm2', label: t('unitconv.cm2'), factor: F.area.cm2 },
+        { id: 'm2', label: t('unitconv.m2'), factor: F.area.m2 },
+        { id: 'km2', label: t('unitconv.km2'), factor: F.area.km2 },
+        { id: 'pyeong', label: t('unitconv.pyeong'), factor: F.area.pyeong },
+        { id: 'ha', label: t('unitconv.ha'), factor: F.area.ha },
+        { id: 'acre', label: t('unitconv.ac'), factor: F.area.acre },
+        { id: 'ft2', label: t('unitconv.ft2'), factor: F.area.ft2 }
       ]
     },
     {
@@ -111,14 +113,14 @@ import { inRegion, region } from '../../lib/region';
       defaultFrom: defaultsFor('volume', 'l', 'ml')[0],
       defaultTo: defaultsFor('volume', 'l', 'ml')[1],
       units: [
-        { id: 'ml', label: t('unitconv.ml'), factor: 0.001 },
-        { id: 'l', label: t('unitconv.l'), factor: 1 },
-        { id: 'm3', label: t('unitconv.m3'), factor: 1000 },
-        { id: 'cup', label: t('unitconv.cup'), factor: 0.24 },
-        { id: 'floz', label: t('unitconv.floz'), factor: 0.0295735295625 },
-        { id: 'gal', label: t('unitconv.gal'), factor: 3.785411784 },
-        { id: 'doe', label: t('unitconv.doe'), factor: 1.8039 },
-        { id: 'mal', label: t('unitconv.mal'), factor: 18.039 }
+        { id: 'ml', label: t('unitconv.ml'), factor: F.volume.ml },
+        { id: 'l', label: t('unitconv.l'), factor: F.volume.l },
+        { id: 'm3', label: t('unitconv.m3'), factor: F.volume.m3 },
+        { id: 'cup', label: t('unitconv.cup'), factor: F.volume.cup },
+        { id: 'floz', label: t('unitconv.floz'), factor: F.volume.floz },
+        { id: 'gal', label: t('unitconv.gal'), factor: F.volume.gal },
+        { id: 'doe', label: t('unitconv.doe'), factor: F.volume.doe },
+        { id: 'mal', label: t('unitconv.mal'), factor: F.volume.mal }
       ]
     },
     {
@@ -138,13 +140,13 @@ import { inRegion, region } from '../../lib/region';
       defaultFrom: defaultsFor('data', 'mb', 'gb')[0],
       defaultTo: defaultsFor('data', 'mb', 'gb')[1],
       units: [
-        { id: 'b', label: t('unitconv.B'), factor: 1 },
-        { id: 'kb', label: t('unitconv.KB'), factor: 1024 },
-        { id: 'mb', label: t('unitconv.MB'), factor: 1048576 },
-        { id: 'gb', label: t('unitconv.GB'), factor: 1073741824 },
-        { id: 'tb', label: t('unitconv.TB'), factor: 1099511627776 },
-        { id: 'kbit', label: t('unitconv.Kb'), factor: 128 },
-        { id: 'mbit', label: t('unitconv.Mb'), factor: 131072 }
+        { id: 'b', label: t('unitconv.B'), factor: F.data.b },
+        { id: 'kb', label: t('unitconv.KB'), factor: F.data.kb },
+        { id: 'mb', label: t('unitconv.MB'), factor: F.data.mb },
+        { id: 'gb', label: t('unitconv.GB'), factor: F.data.gb },
+        { id: 'tb', label: t('unitconv.TB'), factor: F.data.tb },
+        { id: 'kbit', label: t('unitconv.Kb'), factor: F.data.kbit },
+        { id: 'mbit', label: t('unitconv.Mb'), factor: F.data.mbit }
       ]
     },
     {
@@ -153,11 +155,11 @@ import { inRegion, region } from '../../lib/region';
       defaultFrom: defaultsFor('speed', 'kmh', 'ms')[0],
       defaultTo: defaultsFor('speed', 'kmh', 'ms')[1],
       units: [
-        { id: 'ms', label: t('unitconv.ms_'), factor: 1 },
-        { id: 'kmh', label: t('unitconv.kmh'), factor: 0.2777777778 },
-        { id: 'mph', label: t('unitconv.mph'), factor: 0.44704 },
-        { id: 'knot', label: t('unitconv.kn'), factor: 0.5144444444 },
-        { id: 'mach', label: t('unitconv.mach'), factor: 340.29 }
+        { id: 'ms', label: t('unitconv.ms_'), factor: F.speed.ms },
+        { id: 'kmh', label: t('unitconv.kmh'), factor: F.speed.kmh },
+        { id: 'mph', label: t('unitconv.mph'), factor: F.speed.mph },
+        { id: 'knot', label: t('unitconv.kn'), factor: F.speed.knot },
+        { id: 'mach', label: t('unitconv.mach'), factor: F.speed.mach }
       ]
     },
     {
@@ -166,14 +168,14 @@ import { inRegion, region } from '../../lib/region';
       defaultFrom: defaultsFor('time', 'min', 'sec')[0],
       defaultTo: defaultsFor('time', 'min', 'sec')[1],
       units: [
-        { id: 'ms', label: t('unitconv.msec'), factor: 0.001 },
-        { id: 'sec', label: t('unitconv.sec'), factor: 1 },
-        { id: 'min', label: t('unitconv.min'), factor: 60 },
-        { id: 'hour', label: t('unitconv.hour'), factor: 3600 },
-        { id: 'day', label: t('unitconv.day'), factor: 86400 },
-        { id: 'week', label: t('unitconv.week'), factor: 604800 },
-        { id: 'month', label: t('unitconv.month'), factor: 2592000 },
-        { id: 'year', label: t('unitconv.year'), factor: 31536000 }
+        { id: 'ms', label: t('unitconv.msec'), factor: F.time.ms },
+        { id: 'sec', label: t('unitconv.sec'), factor: F.time.sec },
+        { id: 'min', label: t('unitconv.min'), factor: F.time.min },
+        { id: 'hour', label: t('unitconv.hour'), factor: F.time.hour },
+        { id: 'day', label: t('unitconv.day'), factor: F.time.day },
+        { id: 'week', label: t('unitconv.week'), factor: F.time.week },
+        { id: 'month', label: t('unitconv.month'), factor: F.time.month },
+        { id: 'year', label: t('unitconv.year'), factor: F.time.year }
       ]
     }
   ];
