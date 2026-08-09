@@ -1249,6 +1249,31 @@ await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널
   const canvas = await m.locator('.km-canvas').boundingBox();
   if (!canvas || canvas.height < 300) throw new Error(`폰에서 캔버스가 ${Math.round(canvas?.height ?? 0)}px — 그림이 손바닥만 하다`);
 
+  // 두 손가락 확대 — 폰에서 관계도를 읽는 가장 기본 동작인데 여태 한 번도 안 재 봤다.
+  // Playwright 에는 핀치 도우미가 없어 **CDP 로 손가락 두 개를 직접 그린다**.
+  const cdp = await phone.newCDPSession(m);
+  const scaleOf = () => m.evaluate(() => {
+    const g = [...document.querySelectorAll('.km-canvas svg g')]
+      .find((el) => (el.getAttribute('transform') || '').startsWith('matrix('));
+    const mm = /matrix\(([-0-9.]+)/.exec(g?.getAttribute('transform') || '');
+    return mm ? Number(mm[1]) : 0;
+  });
+  const zoom0 = await scaleOf();
+  const cxp = canvas.x + canvas.width / 2;
+  const cyp = canvas.y + canvas.height / 2;
+  const two = (d) => [
+    { x: cxp - d, y: cyp, id: 1 },
+    { x: cxp + d, y: cyp, id: 2 },
+  ];
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: two(40) });
+  for (const d of [60, 90, 120, 150]) {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: two(d) });
+  }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await m.waitForTimeout(400);
+  const zoom1 = await scaleOf();
+  if (!(zoom1 > zoom0 * 1.15)) throw new Error(`두 손가락으로 벌려도 안 커진다: ${zoom0} → ${zoom1}`);
+
   // 시트는 기본으로 **접혀** 있어야 한다(그림부터 보여야 한다).
   const side = await m.locator('.km-side').boundingBox();
   const down = side.y > canvas.y + canvas.height * 0.6;
@@ -1284,6 +1309,7 @@ await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널
     await m.waitForTimeout(300);
   }
   const down2 = await m.locator('.km-side').boundingBox();
+
   await m.locator('[data-km="sheet-grip"]').click();
   await m.waitForTimeout(320);
   const up = await m.locator('.km-side').boundingBox();
