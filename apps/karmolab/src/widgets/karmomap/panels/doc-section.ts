@@ -72,6 +72,10 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
   const users = shared ? noteUsers(spec, shared.id) : 0;
   // 다른 맵에서 쓰던 글도 고를 수 있어야 한다 — 맵마다 복붙하면 그 순간 갈라진다.
   const foreign = ctx.foreignNotes();
+  // 이 글이 **실어 나르고 있는** 공용 글들 — 실은 자리에서 그대로 고치게 한다(Logseq 임베드).
+  const embedded = [...resolveDoc(spec, node).matchAll(/\{\{note:([^}]+)\}\}/g)]
+    .map((m) => notesOf(spec).find((n) => n.id === m[1].trim()))
+    .filter((n): n is NonNullable<typeof n> => Boolean(n));
 
   return `
     <div class="km-field">
@@ -85,6 +89,15 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
       ${shared
         ? `<button class="btn btn-ghost" data-km="${skin.key}-unlink">이 자리만 따로 쓰기 (사본으로 떼기)</button>`
         : `<button class="btn btn-ghost" data-km="${skin.key}-share">여러 곳에서 같이 쓰기 (공용 글로)</button>`}
+      ${embedded.length === 0 ? '' : `<div class="km-field">
+        <label>여기 실은 글</label>
+        <div class="km-hint">실은 자리에서 바로 고칩니다 — 원본을 찾아가지 않아도 되고, 고치면 이 글을 실은 <b>다른 자리도</b> 함께 바뀝니다.</div>
+        ${embedded.map((n) => `<div>
+          <div class="km-link-row"><span class="km-link-name">${esc(n.title || '메모')}</span>
+            <span class="km-group-count">${noteUsers(spec, n.id)}곳</span></div>
+          <textarea class="km-textarea" rows="3" data-km="${skin.key}-embedded" data-key="${esc(n.id)}">${esc(n.text)}</textarea>
+        </div>`).join('')}
+      </div>`}
       ${others.length === 0 ? '' : `<select data-km="${skin.key}-embed">
         <option value="">— 이 글 안에 다른 공용 글 끼워 넣기 —</option>
         ${others.map((n) => `<option value="${esc(n.id)}">${esc(n.title || '메모')}</option>`).join('')}
@@ -137,6 +150,15 @@ export function bindDocField(
     };
   }
   // 끼워 넣기 = 글 **안에** 다른 글을 싣는다(사본 아님). 커서 자리에 표를 박는다.
+  side.querySelectorAll(`[data-km="${skin.key}-embedded"]`).forEach((el) => {
+    const box = el as HTMLTextAreaElement;
+    box.oninput = () => {
+      const note = notesOf(spec).find((n) => n.id === box.dataset.key);
+      if (!note) return;
+      note.text = box.value;
+      touch(false);
+    };
+  });
   const embedSel = side.querySelector(`[data-km="${skin.key}-embed"]`) as HTMLSelectElement | null;
   if (embedSel) {
     embedSel.onchange = () => {
