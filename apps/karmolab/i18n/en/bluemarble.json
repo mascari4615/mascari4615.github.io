@@ -25,5 +25,10 @@
   "bluemarble.line.meNight": "It's {time} in {place} right now. Night.",
   "bluemarble.line.meDay": "It's {time} in {place} right now. Day.",
   "bluemarble.line.issPass": "{when} — at {clock}, people pass {el}° above your head. Look up and you can see them.",
-  "bluemarble.line.issPassNone": "The ISS does not pass over this place in the next 24 hours."
+  "bluemarble.line.issPassNone": "The ISS does not pass over this place in the next 24 hours.",
+  "bluemarble.now": "Back to now",
+  "bluemarble.line.pastDay": "This is Earth on {date}. That day’s clouds, where they were.",
+  "bluemarble.line.pastQuake": "The Earth shook {n} times that day. The largest was magnitude {mag}, near {where}.",
+  "bluemarble.line.pastQuiet": "Nothing above magnitude 4.5 shook anywhere that day.",
+  "bluemarble.line.pastSun": "At this hour that day, the sun stood above {lat}°, {lon}°."
 }

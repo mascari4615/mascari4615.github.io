@@ -13,7 +13,17 @@
 import { cloudMaskFrom, type Tex } from './surface';
 
 const SNAPSHOT = 'https://wvs.earthdata.nasa.gov/api/v1/snapshot';
-const LAYER = 'VIIRS_NOAA20_CorrectedReflectance_TrueColor';
+
+/**
+ * 그날 하늘을 찍은 위성이 무엇이었나. 시간을 되감으면 위성도 되감아야 한다 —
+ * NOAA-20 은 2018년에 올라갔고, 그 전 하늘은 Terra(2000년~)가 찍었다.
+ * 없는 위성에게 그날을 물으면 검은 그림이 온다.
+ */
+function layerFor(day: string): string {
+  return day >= '2018-01-01'
+    ? 'VIIRS_NOAA20_CorrectedReflectance_TrueColor'
+    : 'MODIS_Terra_CorrectedReflectance_TrueColor';
+}
 
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -58,7 +68,7 @@ function ymd(offsetDays: number): string {
 function snapshotUrl(day: string, w: number, h: number): string {
   const q = new URLSearchParams({
     REQUEST: 'GetSnapshot',
-    LAYERS: LAYER,
+    LAYERS: layerFor(day),
     CRS: 'EPSG:4326',
     TIME: day,
     BBOX: '-90,-180,90,180',
@@ -81,6 +91,15 @@ function coverage(d: Uint8ClampedArray): number {
     if (d[k] + d[k + 1] + d[k + 2] > 24) filled++;
   }
   return seen ? filled / seen : 0;
+}
+
+/**
+ * 그날의 구름. `day` 를 주면 그날 것만 받는다(시간을 되감았을 때 —
+ * 「오늘이 반쪽이면 어제로 메운다」는 규칙은 *오늘*에만 쓴다. 과거는 이미 다 차 있다).
+ */
+export async function loadCloudsOn(day: string): Promise<{ w: number; h: number; a: Uint8ClampedArray } | null> {
+  const px = await loadOne(day);
+  return px ? cloudMaskFrom(px.data, CW, CH) : null;
 }
 
 export async function loadClouds(): Promise<{ w: number; h: number; a: Uint8ClampedArray } | null> {

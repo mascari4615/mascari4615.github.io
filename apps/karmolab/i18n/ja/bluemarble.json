@@ -25,5 +25,10 @@
   "bluemarble.line.meNight": "いま {place} は {time}、夜です。",
   "bluemarble.line.meDay": "いま {place} は {time}、昼です。",
   "bluemarble.line.issPass": "{when} — {clock} に、人が乗ったものが頭上 {el}° を通ります。見上げれば見えます。",
-  "bluemarble.line.issPassNone": "これから24時間、ISS はこの場所の上を通りません。"
+  "bluemarble.line.issPassNone": "これから24時間、ISS はこの場所の上を通りません。",
+  "bluemarble.now": "いまへ戻る",
+  "bluemarble.line.pastDay": "{date} の地球です。その日の雲が、その日の場所にあります。",
+  "bluemarble.line.pastQuake": "その日、地球は {n} 回揺れました。最大は {where} 近くのマグニチュード {mag} です。",
+  "bluemarble.line.pastQuiet": "その日はマグニチュード4.5以上の揺れがどこにもありませんでした。",
+  "bluemarble.line.pastSun": "その日のこの時刻、太陽は緯度 {lat}° 経度 {lon}° の上にありました。"
 }
