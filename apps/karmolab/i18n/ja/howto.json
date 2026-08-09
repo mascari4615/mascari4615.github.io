@@ -79,5 +79,8 @@
   "howto.favicon.0": "ロゴや画像を入れる",
   "howto.favicon.1": "余白・背景・角の丸みを調整",
   "howto.favicon.2": "実寸のプレビューを確認",
-  "howto.favicon.3": "ZIP をダウンロードしてコードを貼る"
+  "howto.favicon.3": "ZIP をダウンロードしてコードを貼る",
+  "howto.exifclean.0": "写真（JPG）を入れる",
+  "howto.exifclean.1": "入っている情報を確認",
+  "howto.exifclean.2": "情報を消してダウンロード"
 }

@@ -11,6 +11,8 @@
  */
 import { acceptPastedFiles } from './shared/paste';
 
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   interface Info {
     date?: string;
@@ -156,20 +158,37 @@ import { acceptPastedFiles } from './shared/paste';
     id: 'exifclean',
     // 다른 도구가 만든 그림을 그대로 받는다 (TASK-KL-133)
     accepts: ['image/jpeg'],
-    title: '사진 정보 지우기',
+    title: t('widgets.exifclean.title', undefined, '사진 정보 지우기'),
     category: 'tool',
-    desc: '사진에 든 위치·카메라 정보를 보여 주고 지웁니다. 화질을 건드리지 않고, 사진이 브라우저를 벗어나지 않습니다',
+    desc: t(
+      'widgets-desc.exifclean.desc',
+      undefined,
+      '사진에 든 위치·카메라 정보를 보여 주고 지웁니다. 화질을 건드리지 않고, 사진이 브라우저를 벗어나지 않습니다'
+    ),
     layout: 'wide',
     icon: '<rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 6l1.5-2h5L16 6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M18.5 4.5 5.5 21" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '정보 지우기',
+        label: t('exifclean.tab', undefined, '정보 지우기'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('exifclean').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          /* 번역 글에 꺾쇠·따옴표가 들어와도 화면이 안 깨지게 — 그리기 **전**에 있어야 한다. */
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="exDrop">
               <input type="file" id="exFile" accept="image/jpeg" hidden>
-              사진(JPG)을 끌어다 놓거나 눌러서 고르세요
+              ${esc(t('exifclean.drop'))}
             </div>
 
             <div id="exEditor" style="display:none; margin-top:var(--space-lg);">
@@ -177,11 +196,11 @@ import { acceptPastedFiles } from './shared/paste';
               <div class="cc-stats" id="exStats"></div>
 
               <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-                <button class="btn btn-primary" id="exRun">정보 지우고 받기</button>
+                <button class="btn btn-primary" id="exRun">${esc(t('exifclean.btn.run'))}</button>
               </div>
             </div>
 
-            <div class="tool-status" id="exStatus">사진은 브라우저 안에서만 열립니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="exStatus">${esc(t('exifclean.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -201,15 +220,15 @@ import { acceptPastedFiles } from './shared/paste';
           };
           const stat = (l: string, v: string, primary = false): string =>
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
-          const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-          const ORIENT: Record<number, string> = { 1: '똑바로', 3: '180° 돌아감', 6: '오른쪽으로 90°', 8: '왼쪽으로 90°' };
+          /* 방향 이름은 **찾을 때** 정한다 — 표를 만들 때 정하면 열쇠가 굳는다. */
+          const orientName = (n: number): string => t(`exifclean.orient.${n}`);
 
           async function load(f: File): Promise<void> {
             fileName = f.name;
             raw = new Uint8Array(await f.arrayBuffer());
             if (raw[0] !== 0xff || raw[1] !== 0xd8) {
-              say('JPG 사진만 다룰 수 있어요. PNG 에는 위치 정보가 거의 들어가지 않습니다.', 'error');
+              say(t('exifclean.err.jpgOnly'), 'error');
               editor.style.display = 'none';
               return;
             }
@@ -219,12 +238,13 @@ import { acceptPastedFiles } from './shared/paste';
             const exifSeg = segs.find((s) => s.marker === 0xe1);
             const info = exifSeg ? readExif(raw, exifSeg) : {};
             const rows: Array<[string, string]> = [];
-            if (info.gps) rows.push(['찍은 곳', info.gps + '  ← 집이나 직장이 드러날 수 있습니다']);
-            if (info.date) rows.push(['찍은 때', info.date]);
-            if (info.camera) rows.push(['카메라', info.camera]);
-            if (info.lens) rows.push(['렌즈', info.lens]);
-            if (info.software) rows.push(['편집 프로그램', info.software]);
-            if (info.orientation) rows.push(['방향', ORIENT[info.orientation] || String(info.orientation)]);
+            if (info.gps) rows.push([t('exifclean.row.gps'), t('exifclean.row.gpsNote', { v: info.gps })]);
+            if (info.date) rows.push([t('exifclean.row.date'), info.date]);
+            if (info.camera) rows.push([t('exifclean.row.camera'), info.camera]);
+            if (info.lens) rows.push([t('exifclean.row.lens'), info.lens]);
+            if (info.software) rows.push([t('exifclean.row.software'), info.software]);
+            if (info.orientation)
+              rows.push([t('exifclean.row.orientation'), orientName(info.orientation) || String(info.orientation)]);
 
             listEl.innerHTML = rows.length
               ? rows
@@ -233,17 +253,17 @@ import { acceptPastedFiles } from './shared/paste';
                       `<div class="tool-list-row"><span class="tool-list-key">${esc(k)}</span><span class="tool-list-val">${esc(v)}</span></div>`
                   )
                   .join('')
-              : '<div class="tool-list-row"><span class="tool-list-val">들어 있는 정보가 없습니다.</span></div>';
+              : `<div class="tool-list-row"><span class="tool-list-val">${esc(t('exifclean.none'))}</span></div>`;
 
             const cleaned = strip(raw);
             stats.innerHTML =
-              stat('원래 용량', size(raw.length), true) +
-              stat('지운 뒤', size(cleaned.length)) +
-              stat('위치 정보', info.gps ? '있음' : '없음');
+              stat(t('exifclean.stat.before'), size(raw.length), true) +
+              stat(t('exifclean.stat.after'), size(cleaned.length)) +
+              stat(t('exifclean.stat.gps'), t(info.gps ? 'exifclean.value.has' : 'exifclean.value.none'));
 
-            if (info.gps) say('찍은 곳 좌표가 들어 있습니다. 지우고 받으세요.', 'error');
-            else if (rows.length) say('위치 정보는 없지만 카메라·시각 정보가 남아 있습니다.', 'ok');
-            else say('지울 정보가 이미 없습니다.', 'ok');
+            if (info.gps) say(t('exifclean.say.gps'), 'error');
+            else if (rows.length) say(t('exifclean.say.someInfo'), 'ok');
+            else say(t('exifclean.say.clean'), 'ok');
           }
 
           drop.onclick = () => fileInput.click();
@@ -276,7 +296,7 @@ import { acceptPastedFiles } from './shared/paste';
             const blob = new Blob([cleaned as unknown as BlobPart], { type: 'image/jpeg' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = fileName.replace(/\.[^.]+$/, '') + '-정보지움.jpg';
+            a.download = fileName.replace(/\.[^.]+$/, '') + t('exifclean.file.suffix') + '.jpg';
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
             say(`정보를 지워 받았어요 (${size(raw.length)} → ${size(cleaned.length)}). 그림 자체는 그대로입니다.`, 'ok');
@@ -284,8 +304,5 @@ import { acceptPastedFiles } from './shared/paste';
             Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'exifclean' });
             Toolbox.trackUse?.('strip');
           };
-        }
-      }
-    ]
-  });
+  }
 })();
