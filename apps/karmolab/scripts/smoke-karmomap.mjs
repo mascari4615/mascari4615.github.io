@@ -174,6 +174,13 @@ await step('「많이 이어진 것을 크게」가 실제로 크게 만든다',
   await page.locator('[data-km="f-degree"]').uncheck();
   await page.click('[data-km="f-close"]');
 });
+await step('관계망 읽기가 순위를 낸다', async () => {
+  await page.click('[data-km="sna"]');
+  await page.waitForSelector('[data-km="sna-focus"]', { timeout: 4000 });
+  const rows = await page.locator('[data-km="go-link"]').count();
+  if (rows === 0) throw new Error('순위가 하나도 안 나왔다');
+  await page.click('[data-km="sna-close"]');
+});
 await step('겹쳐 놓아도 「가지런히」 가 밀어 놓는다', async () => {
   // 두 노드를 일부러 같은 자리에 포갠다.
   const ids = await page.evaluate(() => {
