@@ -37,6 +37,33 @@ export const EDGE_DOC_SKIN: DocFieldSkin = {
   key: 'ed-doc',
 };
 
+/**
+ * 이 글을 쓰는 자리들 — **패널을 옮기지 않고 그 자리에서** 편다 (Roam 의 linked references).
+ * 「N곳이 씁니다」만 있으면 그 N곳이 어디인지 확인하러 목록 패널까지 가야 하고, 대개 안 간다.
+ */
+function sharedUsersHtml(ctx: PanelCtx, noteId: string, key: string): string {
+  const esc = ctx.esc;
+  const spec = ctx.spec();
+  const rows = [
+    ...spec.nodes.filter((n) => n.docRef === noteId).map((n) => ({ id: n.id, kind: 'node', name: n.label || '(이름 없음)' })),
+    ...spec.edges.filter((e) => e.docRef === noteId).map((e) => ({
+      id: e.id,
+      kind: 'edge',
+      name: `― ${spec.nodes.find((n) => n.id === e.from)?.label ?? e.from} ↔ ${spec.nodes.find((n) => n.id === e.to)?.label ?? e.to}`,
+    })),
+  ];
+  if (rows.length <= 1) return '';
+  return `<details class="km-field" data-km="${key}-users">
+    <summary class="km-hint">이 글을 쓰는 ${rows.length}곳 보기</summary>
+    ${rows.map((r) => `<div class="km-link-row">
+      <span class="km-link-name">${esc(r.name)}</span>
+      ${r.kind === 'node'
+        ? `<button class="btn btn-ghost" data-km="${key}-user-go" data-key="${esc(r.id)}">가기</button>`
+        : '<span class="km-group-count">관계</span>'}
+    </div>`).join('')}
+  </details>`;
+}
+
 export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin = NODE_DOC_SKIN): string {
   const esc = ctx.esc;
   const spec = ctx.spec();
@@ -48,7 +75,8 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
     <div class="km-field">
       <label>${esc(skin.label)}</label>
       ${shared
-        ? `<div class="km-hint" style="color:#fcd34d">🔗 <b>${esc(shared.title || '메모')}</b> — ${users}곳이 함께 씁니다. 여기서 고치면 그 ${users}곳이 전부 바뀝니다.</div>`
+        ? `<div class="km-hint" style="color:#fcd34d">🔗 <b>${esc(shared.title || '메모')}</b> — ${users}곳이 함께 씁니다. 여기서 고치면 그 ${users}곳이 전부 바뀝니다.</div>
+           ${sharedUsersHtml(ctx, shared.id, skin.key)}`
         : ''}
       <textarea data-km="${skin.key}" class="km-textarea" rows="5" placeholder="${esc(skin.placeholder)}">${esc(resolveDoc(spec, node))}</textarea>
       ${skin.hint ? `<div class="km-hint">${skin.hint}</div>` : ''}
@@ -97,6 +125,12 @@ export function bindDocField(
       touch(true);
     };
   }
+  side.querySelectorAll(`[data-km="${skin.key}-user-go"]`).forEach((el) => {
+    (el as HTMLButtonElement).onclick = () => {
+      const id = (el as HTMLElement).dataset.key ?? '';
+      if (id) ctx.focusNode(id);
+    };
+  });
   const useSel = side.querySelector(`[data-km="${skin.key}-use"]`) as HTMLSelectElement | null;
   if (useSel) {
     useSel.onchange = () => {
