@@ -234,3 +234,41 @@ b2: { x: number; y: number; w: number; h: number },
   };
   return { p1: sidePoint(b1, side1), p2: sidePoint(b2, side2), side1, side2 };
 }
+
+
+/**
+ * 두 상자를 잇는 **베지어 네 점**. 제어점은 나가는 면의 **바깥쪽으로** 밀어 낸다 —
+ * 그래야 선이 카드에서 수직으로 빠져나와 「어디에 붙었는지」가 또렷하다.
+ * `curve` 는 두 점을 잇는 직선의 법선 방향으로 제어점을 함께 밀어 좌우로 휘게 한다
+ * (같은 두 노드를 잇는 선이 여럿일 때 겹침을 푸는 유일한 손잡이).
+ */
+export function edgeCurve(
+  b1: { x: number; y: number; w: number; h: number },
+  b2: { x: number; y: number; w: number; h: number },
+  curve = 0,
+): { p1: Pt; c1: Pt; c2: Pt; p2: Pt } {
+  const { p1, p2, side1, side2 } = chooseAnchors(b1, b2);
+  const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+  const push = Math.max(40, dist * 0.4);
+  const off = (side: Side, p: Pt): Pt => {
+    switch (side) {
+      case 'top':    return { x: p.x, y: p.y - push };
+      case 'bottom': return { x: p.x, y: p.y + push };
+      case 'left':   return { x: p.x - push, y: p.y };
+      default:       return { x: p.x + push, y: p.y };
+    }
+  };
+  const c1 = off(side1, p1);
+  const c2 = off(side2, p2);
+  if (curve) {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len;
+    const ny = dx / len;
+    const amp = curve * len;
+    c1.x += nx * amp; c1.y += ny * amp;
+    c2.x += nx * amp; c2.y += ny * amp;
+  }
+  return { p1, c1, c2, p2 };
+}
