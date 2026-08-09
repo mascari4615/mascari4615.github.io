@@ -661,6 +661,16 @@ await step('글 안에 다른 공용 글 끼워 넣기 — 쪽지에 원본 글�
     null,
     { timeout: 4000 }
   );
+
+  // 실은 글은 **그 자리에서** 고쳐진다 — 원본을 찾아가야 하면 아무도 안 고친다.
+  const inline = page.locator('[data-km="edit-doc-embedded"]').first();
+  await inline.waitFor({ timeout: 4000 });
+  await inline.fill('규칙이 바뀌었다: 대가는 두 배');
+  await page.waitForFunction(
+    () => [...document.querySelectorAll('.ck-node text')].some((t) => (t.textContent || '').includes('두 배')),
+    null,
+    { timeout: 4000 }
+  );
 });
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
