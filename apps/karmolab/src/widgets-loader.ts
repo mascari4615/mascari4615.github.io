@@ -67,12 +67,12 @@
       const waits = window.KARMOLAB_WIDGET_LOADER_WAIT || [];
       Promise.allSettled(waits).then(async function () {
         // 부팅 마일스톤 (TASK-KL-201) — 어느 칸에서 시간이 갔는지는 여기서만 알 수 있다.
-        window.KLPerf?.mark('shell:scripts-loaded');
+        (window.KLPerf?.mark ?? window.__klMark)?.('shell:scripts-loaded');
         Toolbox.initTheme();
-        window.KLPerf?.mark('shell:theme');
+        (window.KLPerf?.mark ?? window.__klMark)?.('shell:theme');
         await yieldToMain();
         Toolbox.init();
-        window.KLPerf?.mark('shell:ready');
+        (window.KLPerf?.mark ?? window.__klMark)?.('shell:ready');
         await yieldToMain();
         const lastPage = (function () {
           try {

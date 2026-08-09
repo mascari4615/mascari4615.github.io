@@ -47,6 +47,9 @@ declare global {
      * 성능 계측 이음매 — `src/perf.ts` (TASK-KL-201). 셸이 받아 적고 계기판 위젯이 읽는다.
      * 계측기가 아직 안 실렸어도 셸은 그대로 돌아야 하므로 전부 optional 이다.
      */
+    /** 계측기가 오기 전 셸이 눈금을 담아 두는 통 (TASK-KL-201). */
+    __klMark?: (name: string) => void;
+    __klMarks?: Array<[string, number]>;
     KLPerf?: {
       /** 부팅 마일스톤 한 점. */
       mark: (name: string) => void;
