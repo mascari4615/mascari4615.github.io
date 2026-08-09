@@ -11,7 +11,12 @@
  *  - 여백(quiet zone)을 반드시 남긴다. 이걸 빼면 스캐너가 시작을 못 찾는다 — 직접 그린
  *    바코드가 안 읽히는 가장 흔한 이유다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   /** Code128 (B/C 자동) — 글자·숫자 아무거나 담을 수 있어 물품 관리에 두루 쓴다 */
   const CODE128: string[] = [
     '11011001100','11001101100','11001100110','10010011000','10010001100','10001001100','10011001000','10011000100','10001100100','11001001000',
@@ -45,12 +50,12 @@
     if (kind === 'ean13') {
       const digits = value.replace(/\D/g, '');
       if (digits.length !== 12 && digits.length !== 13) {
-        throw new Error('EAN-13 은 숫자 12자리(검사 숫자 자동) 또는 13자리여야 합니다');
+        throw new Error(t('barcode.err.ean13'));
       }
       const base = digits.slice(0, 12);
       const check = digits.length === 13 ? Number(digits[12]) : eanCheck(base);
       if (digits.length === 13 && check !== eanCheck(base)) {
-        throw new Error(`마지막 검사 숫자가 맞지 않습니다 (${digits[12]} → ${eanCheck(base)} 이어야 합니다)`);
+        throw new Error(t('barcode.err.checkDigit', { got: digits[12], want: eanCheck(base) }));
       }
       const full = base + check;
       const parity = EAN_PARITY[Number(full[0])];
@@ -62,8 +67,8 @@
     }
 
     // Code128-B — 아스키 32~126
-    if (/[^\x20-\x7e]/.test(value)) throw new Error('Code128 은 영문·숫자·기호만 담을 수 있습니다 (한글 X)');
-    if (!value) throw new Error('담을 값을 적어 주세요');
+    if (/[^\x20-\x7e]/.test(value)) throw new Error(t('barcode.err.code128'));
+    if (!value) throw new Error(t('barcode.err.empty'));
     let sum = 104; // START B
     let bits = CODE128[104];
     for (let i = 0; i < value.length; i++) {
@@ -76,42 +81,44 @@
 
   Toolbox.register({
     id: 'barcode',
-    title: '바코드 만들기',
+    title: t('widgets.barcode.title', undefined, "바코드 만들기"),
     category: 'tool',
-    desc: '재고·도서·물품 라벨용 바코드를 만듭니다. 안 읽히는 값은 미리 알려 줍니다',
+    desc: t('widgets-desc.barcode.desc', undefined, "재고·도서·물품 라벨용 바코드를 만듭니다. 안 읽히는 값은 미리 알려 줍니다"),
     layout: 'wide',
     icon: '<path d="M4 5v14M7 5v14M9.5 5v14M13 5v14M16 5v14M18 5v14M20 5v14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '바코드',
+        label: t('barcode.t08', undefined, "바코드"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('barcode').then(function () {
+
           container.innerHTML = `
             <div class="field-group">
               <div class="tool-chips" id="bcKind">
-                <button type="button" class="tool-chip active" data-kind="code128">Code128 — 글자·숫자 아무거나</button>
-                <button type="button" class="tool-chip" data-kind="ean13">EAN-13 — 상품 바코드</button>
+                <button type="button" class="tool-chip active" data-kind="code128">${esc(t('barcode.kind.code128'))}</button>
+                <button type="button" class="tool-chip" data-kind="ean13">${esc(t('barcode.kind.ean13'))}</button>
               </div>
             </div>
 
             <div class="field-group">
-              <label class="field-label" for="bcValue">담을 값</label>
-              <input type="text" id="bcValue" aria-label="담을 값" value="KARMOLAB-001" spellcheck="false">
+              <label class="field-label" for="bcValue">${esc(t('barcode.label.value'))}</label>
+              <input type="text" id="bcValue" aria-label="${esc(t('barcode.label.value'))}" value="KARMOLAB-001" spellcheck="false">
             </div>
 
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">막대 굵기 <span id="bcWidthVal" class="range-value">2px</span></div>
-                  <input type="range" id="bcWidth" aria-label="막대 굵기" min="1" max="6" value="2">
+                  <div class="tool-sublabel">${esc(t('barcode.label.width'))} <span id="bcWidthVal" class="range-value">2px</span></div>
+                  <input type="range" id="bcWidth" aria-label="${esc(t('barcode.label.width'))}" min="1" max="6" value="2">
                 </div>
                 <div>
-                  <div class="tool-sublabel">높이 <span id="bcHeightVal" class="range-value">80px</span></div>
-                  <input type="range" id="bcHeight" aria-label="높이" min="30" max="200" step="5" value="80">
+                  <div class="tool-sublabel">${esc(t('barcode.label.height'))} <span id="bcHeightVal" class="range-value">80px</span></div>
+                  <input type="range" id="bcHeight" aria-label="${esc(t('barcode.label.height'))}" min="30" max="200" step="5" value="80">
                 </div>
               </div>
               <div class="tool-chips" style="margin-top:10px;">
-                <label class="tool-chip"><input type="checkbox" id="bcText" checked> 아래에 값 적기</label>
+                <label class="tool-chip"><input type="checkbox" id="bcText" checked> ${esc(t('barcode.opt.showText'))}</label>
               </div>
             </div>
 
@@ -120,10 +127,10 @@
             <div class="cc-stats" id="bcStats"></div>
 
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="bcSave">PNG 으로 받기</button>
+              <button class="btn btn-primary" id="bcSave">${esc(t('barcode.btn.save'))}</button>
             </div>
 
-            <div class="tool-status" id="bcStatus">값은 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="bcStatus">${esc(t('barcode.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -178,13 +185,13 @@
             }
 
             stats.innerHTML =
-              stat('규격', kind === 'ean13' ? 'EAN-13' : 'Code128', true) +
-              stat('막대 수', `${bits.length}개`) +
-              stat('그림 크기', `${canvas.width}×${canvas.height}`);
+              stat(t('barcode.stat.spec'), kind === 'ean13' ? 'EAN-13' : 'Code128', true) +
+              stat(t('barcode.stat.bars'), t('barcode.value.bars', { n: bits.length })) +
+              stat(t('barcode.stat.size'), `${canvas.width}×${canvas.height}`);
             say(
               kind === 'ean13'
-                ? `읽히는 값: ${eanFull(value)} (검사 숫자 포함). 인쇄해도 여백을 자르지 마세요.`
-                : '만들었어요. 인쇄할 때 양옆 여백을 자르지 마세요 — 그러면 안 읽힙니다.',
+                ? t('barcode.say.ean', { full: eanFull(value) })
+                : t('barcode.say.made'),
               'ok'
             );
             Toolbox.trackUse?.('barcode');
@@ -219,20 +226,21 @@
           $<HTMLInputElement>('#bcText').addEventListener('change', draw);
           $<HTMLButtonElement>('#bcSave').onclick = () => {
             if (canvas.width < 10) {
-              say('먼저 담을 수 있는 값을 넣어 주세요.', 'error');
+              say(t('barcode.err.noValue'), 'error');
               return;
             }
             canvas.toBlob((blob) => {
               if (!blob) return;
               const a = document.createElement('a');
               a.href = URL.createObjectURL(blob);
-              a.download = '바코드.png';
+              a.download = t('barcode.file.name');
               a.click();
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-              say('받았어요. 인쇄할 때 양옆 여백을 자르지 마세요.', 'ok');
+              say(t('barcode.say.saved'), 'ok');
             }, 'image/png');
           };
           draw();
+                  });
         }
       }
     ]

@@ -1,0 +1,21 @@
+{
+  "screenrec.tab": "録画",
+  "screenrec.opt.sysAudio": "画面の音",
+  "screenrec.opt.mic": "マイク",
+  "screenrec.btn.start": "録画を始める",
+  "screenrec.btn.stop": "止める",
+  "screenrec.btn.save": "ダウンロード",
+  "screenrec.label.result": "録画した画面 — 確かめてからダウンロード",
+  "screenrec.status.idle": "始めるを押すと、どの画面を撮るかブラウザが聞いてきます。録画ファイルはどこにも上がりません。",
+  "screenrec.err.unsupported": "このブラウザは画面録画に対応していません。Chrome・Edge で開いてみてください。",
+  "screenrec.err.notStarted": "録画は始まりませんでした。",
+  "screenrec.warn.noMic": "マイクが使えないので画面の音だけ録ります。",
+  "screenrec.stat.length": "録画時間",
+  "screenrec.stat.soFar": "ここまで",
+  "screenrec.say.recording": "録画中です。止めるを押すか、ブラウザの共有停止を押してください。",
+  "screenrec.err.empty": "中身がありません。始めてすぐ止めるとこうなります — 数秒以上録ってみてください。",
+  "screenrec.stat.size": "容量",
+  "screenrec.err.run": "録画中に問題が起きました: ",
+  "screenrec.say.saved": "ダウンロードしました。",
+  "screenrec.file.name": "画面録画"
+}

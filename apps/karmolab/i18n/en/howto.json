@@ -203,5 +203,21 @@
   "howto.hashgen.3": "Paste the expected checksum to confirm a match",
   "howto.ziptool.0": "Choose Make or Open",
   "howto.ziptool.1": "Add the files",
-  "howto.ziptool.2": "Make gives you a ZIP; Open lets you click a file in the list"
+  "howto.ziptool.2": "Make gives you a ZIP; Open lets you click a file in the list",
+  "howto.text2pdf.0": "Paste or type the text",
+  "howto.text2pdf.1": "Set the text size and line spacing",
+  "howto.text2pdf.2": "Check the first page in the preview",
+  "howto.text2pdf.3": "Download it as PDF",
+  "howto.screenrec.0": "Choose which sound to capture",
+  "howto.screenrec.1": "Hit start and pick the screen or window",
+  "howto.screenrec.2": "Do the thing you want to show",
+  "howto.screenrec.3": "Hit stop, check it, then download",
+  "howto.interest.0": "Pick savings, deposit or loan",
+  "howto.interest.1": "Enter the amount and the annual rate",
+  "howto.interest.2": "Enter the term in months",
+  "howto.interest.3": "Read the after-tax amount or the monthly payment",
+  "howto.barcode.0": "Pick the standard (Code128 if it contains letters)",
+  "howto.barcode.1": "Enter the value",
+  "howto.barcode.2": "Set the bar thickness and height",
+  "howto.barcode.3": "Download the PNG and print it"
 }

@@ -1,0 +1,21 @@
+{
+  "screenrec.opt.sysAudio": "화면 소리",
+  "screenrec.opt.mic": "마이크",
+  "screenrec.btn.start": "녹화 시작",
+  "screenrec.btn.stop": "멈추기",
+  "screenrec.btn.save": "내려받기",
+  "screenrec.label.result": "녹화한 화면 — 확인하고 받으세요",
+  "screenrec.status.idle": "시작을 누르면 어떤 화면을 담을지 브라우저가 물어봅니다. 녹화 파일은 어디에도 올라가지 않습니다.",
+  "screenrec.tab": "녹화",
+  "screenrec.err.unsupported": "이 브라우저는 화면 녹화를 지원하지 않아요. 크롬·엣지에서 열어 보세요.",
+  "screenrec.err.notStarted": "녹화를 시작하지 않았어요.",
+  "screenrec.warn.noMic": "마이크를 쓸 수 없어 화면 소리만 담습니다.",
+  "screenrec.stat.length": "녹화 시간",
+  "screenrec.stat.soFar": "지금까지",
+  "screenrec.say.recording": "녹화 중입니다. 멈추기를 누르거나 브라우저의 공유 중지를 누르세요.",
+  "screenrec.err.empty": "담긴 내용이 없어요. 시작하자마자 멈추면 이렇게 됩니다 — 몇 초 이상 녹화해 보세요.",
+  "screenrec.stat.size": "용량",
+  "screenrec.err.run": "녹화 중 문제가 생겼어요: ",
+  "screenrec.say.saved": "내려받았어요.",
+  "screenrec.file.name": "화면녹화"
+}
