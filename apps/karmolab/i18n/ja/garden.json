@@ -1,0 +1,18 @@
+{
+  "garden.gen": "{gen}世代 · {pop}マス",
+  "garden.reseed": "まき直す",
+  "garden.pause": "とめる",
+  "garden.resume": "すすめる",
+  "garden.rule.wild": "名前のない規則",
+  "garden.hint.named": "9マス（まわりの八つと自分）だけで決まります。手は出しません。",
+  "garden.hint.wild": "誰も名前をつけていない規則です。今日なにが起きるかは誰も知りません。",
+  "garden.line.today": "今日の規則は {rule} ({code}) です。種をまいたので、もう誰も触りません。",
+  "garden.line.seeded": "種をまき直しました。({n}回目)",
+  "garden.event.extinct": "{gen}世代で誰も残りませんでした。",
+  "garden.event.frozen": "{gen}世代から何も変わりません。固まりました。",
+  "garden.event.cycle": "{v}世代ごとに同じ形へ戻ります。呼吸のように。",
+  "garden.event.bloom": "{gen}世代で急に {v} 倍に増えました。",
+  "garden.event.collapse": "{gen}世代で {v}% が一度に消えました。",
+  "garden.event.drift": "{gen}世代 — 何かが片側へ流れています。",
+  "garden.event.steady": "{gen}世代目、まだ誰も死んでいません。"
+}

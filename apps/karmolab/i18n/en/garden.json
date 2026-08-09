@@ -1,0 +1,18 @@
+{
+  "garden.gen": "gen {gen} · {pop} cells",
+  "garden.reseed": "Reseed",
+  "garden.pause": "Pause",
+  "garden.resume": "Resume",
+  "garden.rule.wild": "a rule with no name",
+  "garden.hint.named": "Decided by nine cells — the eight around it and itself. Nobody touches it.",
+  "garden.hint.wild": "Nobody has named this rule. What happens today, nobody knows.",
+  "garden.line.today": "Today’s rule is {rule} ({code}). The seeds are down; nobody touches it now.",
+  "garden.line.seeded": "Seeded again. (#{n})",
+  "garden.event.extinct": "By generation {gen}, no one was left.",
+  "garden.event.frozen": "Nothing has changed since generation {gen}. It set.",
+  "garden.event.cycle": "It returns to the same shape every {v} generations. Like breathing.",
+  "garden.event.bloom": "At generation {gen} it suddenly grew {v}× larger.",
+  "garden.event.collapse": "At generation {gen}, {v}% vanished at once.",
+  "garden.event.drift": "Generation {gen} — something is drifting to one side.",
+  "garden.event.steady": "{gen} generations in, and no one has died."
+}
