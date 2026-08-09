@@ -93,6 +93,35 @@ const real = errors.filter(
 );
 if (real.length) fail.push('콘솔 오류: ' + real.slice(0, 3).join(' | '));
 
+/* ⑤ 영어 장에서 **도구 이름이 영어로** 나오는가 (TASK-KL-203 S5-b).
+   이름은 목록이 만들어지는 자리에서 한 번에 갈아 끼운다 — 그 한 줄이 빠지면 화면은 멀쩡한데
+   옆줄·목록·⌘K 의 이름만 한국어로 남는다. 한국어를 읽는 사람 눈에는 안 보이는 종류의 고장이라
+   여기서 직접 열어 본다. */
+{
+  const en = page.context ? await browser.newPage() : null;
+  if (en) {
+    await en.goto(`http://127.0.0.1:${PORT}/apps/blog/en/karmolab/index.html`, { waitUntil: 'domcontentloaded' });
+    const swapped = await en
+      .waitForFunction(
+        () => {
+          const list = window.KARMOLAB_LAZY_META;
+          if (!Array.isArray(list) || !list.length) return false;
+          const hit = list.find((w) => w.id === 'charcount');
+          return hit ? hit.title : false;
+        },
+        { timeout: 5000 }
+      )
+      .then((h) => h.jsonValue())
+      .catch(() => null);
+    if (swapped !== 'Character count') fail.push(`영어 장의 도구 이름이 안 바뀌었다: ${swapped}`);
+    const korean = await en.evaluate(
+      () => (window.KARMOLAB_LAZY_META || []).filter((w) => /[가-힣]/.test(w.title || '')).length
+    );
+    if (korean) fail.push(`영어 장에 한국어 이름이 ${korean}개 남았다`);
+    await en.close();
+  }
+}
+
 await browser.close();
 server.close();
 

@@ -23,6 +23,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { APP_ROOT, ALL_LOCALES, LOCALES, DEFAULT_LOCALE, SOURCE_LOCALE } from './lib/locales.mjs';
+import { widgetCatalog } from './lib/widgets-meta.mjs';
 
 const CHECK = process.argv.includes('--check');
 const SEAL = process.argv.includes('--seal');
@@ -103,6 +104,42 @@ if (fs.existsSync(seoPath)) {
     console.error('[i18n] i18n/ko/tools.json 이 data/tools-seo.json 과 어긋남 — `npm run build:i18n` 후 커밋');
     process.exit(1);
   }
+}
+
+/* ── ①-c 위젯 이름·설명도 등록 파일에서 뽑는다 ─────────
+ *
+ * 옆줄·목록·⌘K 에 뜨는 도구 **이름**이다. 여기가 한국어면 영어 화면에서 이름만 한국어로 남아
+ * 제일 눈에 띈다. 정본은 `src/widgets-lazy-meta.ts` — 여기서도 적지 않고 뽑는다.
+ *
+ * 이름(`widgets`)과 한 줄 설명(`widgets-desc`)을 **다른 묶음으로** 나눈 이유: 이름은 165개로 짧아
+ * 금방 차지만 설명은 그 몇 배다. 한 묶음에 두면 「다 찼나」가 설명에 묶여, 이름이 다 준비돼도
+ * 영어 장을 못 찍는다. 차는 속도가 다른 것은 나눠 둔다.
+ */
+const widgetsAll = widgetCatalog();
+const widgetSplit = {
+  widgets: Object.fromEntries(Object.entries(widgetsAll).filter(([k]) => k.endsWith('.title'))),
+  'widgets-desc': Object.fromEntries(
+    Object.entries(widgetsAll)
+      .filter(([k]) => k.endsWith('.desc'))
+      .map(([k, v]) => [k.replace(/^widgets\./, 'widgets-desc.'), v])
+  )
+};
+for (const [ns, body] of Object.entries(widgetSplit)) {
+  /* 갑자기 확 줄면 등록 파일 모양이 바뀐 것이다 — 조용히 비면 영어 화면에 한국어가 되돌아온다. */
+  if (Object.keys(body).length < 50) {
+    console.error(`[i18n] ${ns} 로 뽑힌 것이 ${Object.keys(body).length}개뿐 — widgets-lazy-meta.ts 모양 확인`);
+    process.exit(1);
+  }
+  const p = path.join(I18N_DIR, SOURCE_LOCALE, ns + '.json');
+  const next = JSON.stringify(body, null, 2) + '\n';
+  const prev = fs.existsSync(p) ? fs.readFileSync(p, 'utf8').split('\r\n').join('\n') : '';
+  if (prev === next) continue;
+  if (CHECK) {
+    console.error(`[i18n] i18n/${SOURCE_LOCALE}/${ns}.json 이 widgets-lazy-meta.ts 와 어긋남 — \`npm run build:i18n\` 후 커밋`);
+    process.exit(1);
+  }
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  fs.writeFileSync(p, next, 'utf8');
 }
 
 /* ── ② 글 묶음 읽기 ─────────────────────────────────── */
