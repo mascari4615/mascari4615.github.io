@@ -75,5 +75,9 @@
   "howto.imgresize.0": "Choose a photo",
   "howto.imgresize.1": "Pick a long-side or file-size target",
   "howto.imgresize.2": "Hit Resize",
-  "howto.imgresize.3": "Download it"
+  "howto.imgresize.3": "Download it",
+  "howto.favicon.0": "Add a logo or image",
+  "howto.favicon.1": "Set padding, background and rounded corners",
+  "howto.favicon.2": "Check the preview at actual size",
+  "howto.favicon.3": "Download the ZIP and paste the markup"
 }
