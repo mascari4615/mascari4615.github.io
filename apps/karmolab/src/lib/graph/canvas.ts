@@ -32,7 +32,8 @@ import type { GraphPersistAdapter } from './adapter';
 import { NULL_PERSIST_ADAPTER } from './adapter';
 import { injectGraphCanvasStyles, GRAPH_CANVAS_CSS } from './styles';
 import { resolveDoc, displayDoc } from './notes';
-import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath } from './canvas-math';
+import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
+  fitProjection, projectPoint, viewportRectOnMap } from './canvas-math';
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -2189,16 +2190,13 @@ export class GraphCanvas {
     const bounds = this.worldBounds();
     if (bounds.w <= 0 || bounds.h <= 0) return;
 
-    const scaleX = MINIMAP_W / bounds.w;
-    const scaleY = MINIMAP_H / bounds.h;
-    const ms = Math.min(scaleX, scaleY) * 0.9;
-    const offsetX = (MINIMAP_W - bounds.w * ms) / 2;
-    const offsetY = (MINIMAP_H - bounds.h * ms) / 2;
-
-    const toMm = (x: number, y: number) => ({
-      mx: (x - bounds.minX) * ms + offsetX,
-      my: (y - bounds.minY) * ms + offsetY,
-    });
+    const proj = fitProjection(bounds, { w: MINIMAP_W, h: MINIMAP_H });
+    if (proj.scale <= 0) return;
+    const ms = proj.scale;
+    const toMm = (x: number, y: number) => {
+      const p = projectPoint(bounds, proj, x, y);
+      return { mx: p.x, my: p.y };
+    };
 
     // 그룹 배경
     for (const g of this.spec.groups) {
@@ -2242,21 +2240,15 @@ export class GraphCanvas {
       this.minimapSvg.insertBefore(rect, this.minimapViewport);
     }
 
-    // viewport 박스
-    const svgW = this.svg.clientWidth || 1;
-    const svgH = this.svg.clientHeight || 1;
-    // 캔버스 좌상단이 world 에서 어느 좌표인지
-    const worldLeft = (-this.state.tx) / this.state.scale;
-    const worldTop = (-this.state.ty) / this.state.scale;
-    const worldRight = worldLeft + svgW / this.state.scale;
-    const worldBottom = worldTop + svgH / this.state.scale;
-
-    const vp1 = toMm(worldLeft, worldTop);
-    const vp2 = toMm(worldRight, worldBottom);
-    this.minimapViewport.setAttribute('x', String(Math.max(0, vp1.mx)));
-    this.minimapViewport.setAttribute('y', String(Math.max(0, vp1.my)));
-    this.minimapViewport.setAttribute('width', String(Math.min(MINIMAP_W, vp2.mx - vp1.mx)));
-    this.minimapViewport.setAttribute('height', String(Math.min(MINIMAP_H, vp2.my - vp1.my)));
+    // 「지금 보는 곳」 상자 — 판 밖으로 삐져나간 만큼은 셈법 쪽에서 잘라 준다.
+    const vp = viewportRectOnMap(bounds, proj, {
+      tx: this.state.tx, ty: this.state.ty, scale: this.state.scale,
+      w: this.svg.clientWidth || 1, h: this.svg.clientHeight || 1,
+    }, { w: MINIMAP_W, h: MINIMAP_H });
+    this.minimapViewport.setAttribute('x', String(vp.x));
+    this.minimapViewport.setAttribute('y', String(vp.y));
+    this.minimapViewport.setAttribute('width', String(vp.w));
+    this.minimapViewport.setAttribute('height', String(vp.h));
   }
 
   // ── 변환 적용 ────────────────────────────────────────────────────────────────

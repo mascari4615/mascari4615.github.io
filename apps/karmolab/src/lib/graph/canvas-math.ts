@@ -133,3 +133,65 @@ export function wobblePath(
   }
   return `M ${pts.join(' L ')}`;
 }
+
+/** 미니맵·맞춤보기가 쓰는 「세계 → 작은 판」 투영. */
+export interface Projection {
+  scale: number;
+  offsetX: number;
+  offsetY: number;
+}
+
+export interface WorldBounds {
+  minX: number;
+  minY: number;
+  w: number;
+  h: number;
+}
+
+/**
+ * 세계 전체를 `size` 안에 **가운데 맞춰** 담는 배율·여백. `margin` 은 가장자리를 조금 남기는 비율
+ * (1 이면 딱 붙어 그림이 판에 물린 것처럼 보인다).
+ *
+ * 세계가 비면(폭·높이 0) 배율 0 을 돌려준다 — 호출한 쪽이 「그릴 게 없다」로 곧장 빠져나가게.
+ */
+export function fitProjection(bounds: WorldBounds, size: { w: number; h: number }, margin = 0.9): Projection {
+  if (bounds.w <= 0 || bounds.h <= 0) return { scale: 0, offsetX: 0, offsetY: 0 };
+  const scale = Math.min(size.w / bounds.w, size.h / bounds.h) * margin;
+  return {
+    scale,
+    offsetX: (size.w - bounds.w * scale) / 2,
+    offsetY: (size.h - bounds.h * scale) / 2,
+  };
+}
+
+/** 세계 좌표 → 작은 판 좌표. */
+export function projectPoint(bounds: WorldBounds, p: Projection, x: number, y: number): Pt {
+  return {
+    x: (x - bounds.minX) * p.scale + p.offsetX,
+    y: (y - bounds.minY) * p.scale + p.offsetY,
+  };
+}
+
+/**
+ * 지금 화면이 덮는 자리를 작은 판 위 사각형으로. 판 밖으로 삐져나간 만큼은 잘라 낸다
+ * — 안 자르면 미니맵의 「지금 보는 곳」 상자가 판을 넘어가 어디를 보는지 되레 흐려진다.
+ */
+export function viewportRectOnMap(
+  bounds: WorldBounds,
+  p: Projection,
+  view: { tx: number; ty: number; scale: number; w: number; h: number },
+  size: { w: number; h: number },
+): { x: number; y: number; w: number; h: number } {
+  const left = -view.tx / view.scale;
+  const top = -view.ty / view.scale;
+  const a = projectPoint(bounds, p, left, top);
+  const b = projectPoint(bounds, p, left + view.w / view.scale, top + view.h / view.scale);
+  const x = Math.max(0, a.x);
+  const y = Math.max(0, a.y);
+  return {
+    x,
+    y,
+    w: Math.max(0, Math.min(size.w - x, b.x - a.x)),
+    h: Math.max(0, Math.min(size.h - y, b.y - a.y)),
+  };
+}
