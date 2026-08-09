@@ -25,6 +25,7 @@ import {
   preferredLocale,
   hasExplicitChoice
 } from './lib/i18n';
+import { REGIONS, region, regionMeta, setRegion } from './lib/region';
 
 /**
  * **이 화면이 실제로 가지고 있는 언어**만 목록에 올린다 (TASK-KL-203 S6).
@@ -46,6 +47,16 @@ function pageLocales(): typeof ENABLED_LOCALES {
   return found.length ? found : ENABLED_LOCALES;
 }
 
+/** 나라 이름을 **지금 화면 말로**. 못 구하면 그 나라 말 이름으로 떨어진다. */
+function countryName(code: string, fallback: string): string {
+  try {
+    const dn = new Intl.DisplayNames([locale()], { type: 'region' });
+    return dn.of(code) || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 const STYLE_ID = 'lang-switch-style';
 const DISMISS_KEY = 'karmolab_locale_hint_off';
 
@@ -61,6 +72,11 @@ function ensureStyle(): void {
   font-size:.85rem;color:var(--text,#e8e8ee);display:flex;justify-content:space-between;gap:.75rem}
 .lang-menu button:hover,.lang-menu button:focus-visible{background:var(--bg-hover,#2a2a33)}
 .lang-menu button[aria-current="true"]{font-weight:600}
+.lang-menu-head{padding:.35rem .6rem .2rem;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;
+  opacity:.55;color:var(--text,#e8e8ee)}
+.lang-menu-sep{height:1px;margin:.3rem .4rem;background:var(--border,#33333c)}
+.lang-menu-note{padding:.3rem .6rem .15rem;font-size:.72rem;line-height:1.45;opacity:.6;
+  color:var(--text,#e8e8ee);max-width:15rem;white-space:normal}
 .lang-hint{display:flex;align-items:center;gap:.6rem;justify-content:center;flex-wrap:wrap;
   padding:.45rem .8rem;font-size:.85rem;background:var(--bg-elev,#1b1b20);
   border-bottom:1px solid var(--border,#33333c);color:var(--text,#e8e8ee)}
@@ -86,6 +102,15 @@ function openMenu(btn: HTMLElement): void {
   const box = document.createElement('div');
   box.className = 'lang-menu';
   box.setAttribute('role', 'listbox');
+
+  const head = (label: string): void => {
+    const h = document.createElement('div');
+    h.className = 'lang-menu-head';
+    h.textContent = label;
+    box.appendChild(h);
+  };
+
+  head(t('shell.lang.section', undefined, '언어'));
   const now = locale();
   for (const l of pageLocales()) {
     const item = document.createElement('button');
@@ -101,6 +126,45 @@ function openMenu(btn: HTMLElement): void {
     });
     box.appendChild(item);
   }
+
+  /* ── 지역 — **언어와 다른 축**이라 같은 목록 안에 칸을 나눠 둔다.
+     따로 단추를 하나 더 만들지 않는 이유: 둘 다 「나는 누구인가」를 말하는 자리라 사람은 한
+     자리에서 찾는다. 대신 **무엇이 바뀌는지 한 줄로 적어 준다** — 안 적으면 나라를 바꿨을 때
+     화면이 달라진 이유를 알 수 없다. */
+  const sep = document.createElement('div');
+  sep.className = 'lang-menu-sep';
+  box.appendChild(sep);
+  head(t('shell.region.section', undefined, '지역'));
+
+  const nowRegion = region();
+  for (const r of REGIONS) {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.setAttribute('role', 'option');
+    item.setAttribute('aria-current', String(r.code === nowRegion));
+    /* 나라 이름은 **손으로 안 적는다** — `Intl.DisplayNames` 가 지금 화면 말로 모든 나라 이름을
+       안다(ko→대한민국 / en→South Korea / ja→韓国). 언어 목록은 반대로 **그 언어 이름**을 쓰는데,
+       거기서는 화면 말을 못 읽는 사람이 자기 것을 찾아야 하기 때문이다. 지역은 이미 읽을 수 있는
+       말로 화면이 그려진 뒤의 선택이라, 「대한민국」을 못 읽는 사람(=한국 사는 외국인, 이 축을
+       만든 이유 그 자체)에게 한글을 던지면 안 된다. */
+    const name = r.code === 'XX' ? t('shell.region.other', undefined, '그 밖의 나라') : countryName(r.code, r.endonym);
+    item.innerHTML = `<span>${r.flag} ${name}</span><span>${r.code === nowRegion ? '✓' : ''}</span>`;
+    item.addEventListener('click', () => {
+      if (r.code === nowRegion) return closeMenu();
+      setRegion(r.code);
+    });
+    box.appendChild(item);
+  }
+
+  const note = document.createElement('div');
+  note.className = 'lang-menu-note';
+  note.textContent = t(
+    'shell.region.note',
+    undefined,
+    '단위·공휴일·서류 규격·도구 순서가 이 나라 기준으로 바뀝니다.'
+  );
+  box.appendChild(note);
+
   document.body.appendChild(box);
   const r = btn.getBoundingClientRect();
   box.style.top = `${r.bottom + 6 + scrollY}px`;
@@ -121,8 +185,11 @@ function onAway(e: MouseEvent): void {
 function mountButton(): void {
   const btn = document.getElementById('langBtn');
   if (!btn) return;
+  /* 단추에 **둘 다** 적는다 — 「KO 🇰🇷」. 언어만 적으면 지역이 짐작으로 정해진 것을 아무도
+     모르고, 한국 사는 영어 사용자는 자기 화면이 왜 이런지 알 길이 없다. */
   const label = btn.querySelector('.lang-btn-code');
-  if (label) label.textContent = locale().toUpperCase();
+  if (label) label.textContent = `${locale().toUpperCase()} ${regionMeta().flag}`;
+  btn.setAttribute('aria-label', t('shell.region.aria', undefined, '언어와 지역'));
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (menu) closeMenu();
