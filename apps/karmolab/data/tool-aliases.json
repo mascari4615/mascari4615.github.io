@@ -131,6 +131,20 @@
     "duel": "duel 대결 미니게임 1대1 실시간 친구 초성 순발력",
     "timecapsule": "timecapsule 타임캡슐 편지 미래 잠금 나에게 쓰는 편지 예약",
     "localai": "번역 요약 통역 translate summarize 짧은생성 오프라인 서버없이 기기안 로컬AI 온디바이스",
-    "perf": "성능 계기판 속도 느림 측정 부팅 프레임 밀림 예산 perf 개발용"
+    "perf": "성능 계기판 속도 느림 측정 부팅 프레임 밀림 예산 perf 개발용",
+    "favorites": "북마크 즐겨찾기 바로가기 링크모음 자주가는곳 bookmark",
+    "linktree": "연락처 프로필 소개 링크 누구 만든사람 contact profile",
+    "community": "게시판 커뮤니티 글 질문 자랑 자유게시판 forum board",
+    "plaza": "광장 통계 방문자 숫자 지표 현황 stats",
+    "docs": "문서 설명서 도움말 가이드 매뉴얼 help docs guide",
+    "randomgen": "랜덤 제비뽑기 뽑기 추첨 무작위 random 정하기",
+    "chatbot": "챗봇 대화 말동무 이야기 AI채팅 chat gpt",
+    "servermonitor": "서버 모니터 프로세스 상태 로컬서버 재시작",
+    "activity": "활동 기록 히스토리 최근 내가한것 log history",
+    "wm": "게임 마녀 위치 인디게임 witch mendokusai 개발일지",
+    "flow": "흐름 순서 이어붙이기 자동화 파이프라인 workflow",
+    "usertool": "만든도구 남의도구 공유 사용자도구 user tool",
+    "life": "라이프 화면녹화 음성 캡처 기록 life",
+    "devtools": "디버그 개발 점검 테스트 devtools debug"
   }
 }
