@@ -604,6 +604,60 @@ try {
 }
 check(uuThrew, '모르는 종류는 던진다');
 
+// ── ②-14 csvjson 알맹이 (따옴표 안 쉼표에서 열이 밀린다 — A등급) ──────────────
+const cj = await load('src/core/csvjson.ts');
+
+eq(cj.spec.id, 'csvjson', 'csvjson spec.id');
+
+// 이 도구가 있는 이유 자체 — 쉼표로 자르면 여기서 열이 밀린다.
+const tricky = cj.parseCsv('이름,메모\n홍길동,"쉼표, 들어간 값"');
+eq(tricky.length, 2, '줄 수');
+eq(tricky[1].length, 2, '따옴표 안 쉼표로 열이 늘면 안 된다');
+eq(tricky[1][1], '쉼표, 들어간 값', '따옴표 안 쉼표를 그대로 보존');
+
+// 따옴표 안 줄바꿈 — 이걸 놓치면 줄 수가 늘어난다.
+const multiline = cj.parseCsv('a,b\n1,"두\n줄"');
+eq(multiline.length, 2, '따옴표 안 줄바꿈으로 줄이 늘면 안 된다');
+eq(multiline[1][1], '두\n줄', '줄바꿈 보존');
+// 겹따옴표 = 따옴표 한 개
+eq(cj.parseCsv('a\n"그는 ""안녕"" 이라 했다"')[1][0], '그는 "안녕" 이라 했다', '겹따옴표');
+eq(cj.parseCsv('a\tb\n1\t2', '\t')[1][1], '2', '탭 구분자');
+eq(cj.parseCsv('a,b\r\n1,2')[1][0], '1', 'CRLF 도 읽는다');
+eq(cj.parseCsv('').length, 0, '빈 글자는 빈 표');
+
+// 되돌리기 — 감싸야 할 값을 안 감싸면 다음 사람이 못 읽는다.
+eq(cj.toCsv([{ a: '쉼표, 값' }]), 'a\n"쉼표, 값"', '쉼표가 있으면 감싼다');
+eq(cj.toCsv([{ a: '따옴표"안' }]), 'a\n"따옴표""안"', '따옴표는 겹쳐 적는다');
+eq(cj.toCsv([{ a: ' 앞뒤공백 ' }]), 'a\n" 앞뒤공백 "', '앞뒤 공백도 감싼다');
+eq(cj.toCsv([{ a: 1 }, { b: 2 }]), 'a,b\n1,\n,2', '열이 다른 객체는 합집합으로');
+eq(cj.toCsv([{ a: null }]), 'a\n', 'null 은 빈 칸');
+
+// 왕복 — 까다로운 값을 넣었다 빼도 그대로여야 한다.
+const round = cj.parseCsv(cj.toCsv([{ x: '쉼표, 와 "따옴표"' }, { x: '줄\n바꿈' }]));
+eq(round[1][0], '쉼표, 와 "따옴표"', '왕복 1');
+eq(round[2][0], '줄\n바꿈', '왕복 2');
+
+eq(cj.coerce('42'), 42, '숫자로');
+eq(cj.coerce('true'), true, '불리언으로');
+eq(cj.coerce('null'), null, 'null 로');
+eq(cj.coerce('007'), '007', '0 으로 시작하면 글자 그대로 (전화번호·우편번호)');
+eq(cj.coerce(''), '', '빈 값');
+eq(cj.rowsToObjects(cj.parseCsv('a,b\n1,2'))[0].a, 1, '객체로 바꾸면서 타입도');
+eq(cj.rowsToObjects(cj.parseCsv('a,b\n1,2'), false)[0].a, '1', 'coerce 끄면 글자 그대로');
+eq(Object.keys(cj.rowsToObjects(cj.parseCsv(',b\n1,2'))[0])[0], '열1', '머리글이 비면 열N');
+
+check(cj.run('toJson', { csv: 'a,b\n1,2' }).includes('"a": 1'), 'run toJson');
+check(cj.run('toCsv', { json: '[{"a":1}]' }) === 'a\n1', 'run toCsv');
+let cjThrew = 0;
+for (const bad of [{ op: 'toJson', args: { csv: 'a,b' } }, { op: 'toCsv', args: { json: '{oops' } }, { op: 'toCsv', args: { json: '{"a":1}' } }]) {
+  try {
+    cj.run(bad.op, bad.args);
+  } catch {
+    cjThrew++;
+  }
+}
+eq(cjThrew, 3, '자료 없는 CSV·깨진 JSON·배열 아닌 JSON 은 전부 던진다');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 
