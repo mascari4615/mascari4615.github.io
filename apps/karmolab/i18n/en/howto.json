@@ -144,5 +144,10 @@
   "howto.subtitle.0": "Drop a subtitle file, or paste it in",
   "howto.subtitle.1": "Set how much to shift",
   "howto.subtitle.2": "Check the first and last cue times",
-  "howto.subtitle.3": "Download the file"
+  "howto.subtitle.3": "Download the file",
+  "howto.asciiart.0": "Drop in an image (pasting or choosing a file works too)",
+  "howto.asciiart.1": "Set how many characters across — more means finer detail",
+  "howto.asciiart.2": "Pick a character set (detailed · blocks · simple · braille)",
+  "howto.asciiart.3": "Invert the brightness if it goes on a dark background",
+  "howto.asciiart.4": "Copy the text, or save it as PNG"
 }

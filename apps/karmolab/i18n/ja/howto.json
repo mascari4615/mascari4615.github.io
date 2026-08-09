@@ -144,5 +144,10 @@
   "howto.subtitle.0": "字幕ファイルを入れるか貼り付ける",
   "howto.subtitle.1": "ずらす時間を決める",
   "howto.subtitle.2": "最初と最後の時刻を確認",
-  "howto.subtitle.3": "ファイルでダウンロード"
+  "howto.subtitle.3": "ファイルでダウンロード",
+  "howto.asciiart.0": "画像をドラッグ（貼り付け・ファイル選択も可）",
+  "howto.asciiart.1": "横の文字数を調整 — 多いほど細かい",
+  "howto.asciiart.2": "文字セットを選ぶ（細かく・ブロック・シンプル・点字）",
+  "howto.asciiart.3": "暗い背景で使うなら明暗を反転",
+  "howto.asciiart.4": "テキストをコピー、または PNG で保存"
 }
