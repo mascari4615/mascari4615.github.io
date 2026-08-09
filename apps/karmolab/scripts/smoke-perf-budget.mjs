@@ -14,6 +14,11 @@
  * **기다리지 않고 일으킨다.** 조작 지연(INP)은 아무도 안 만지면 영영 「못 잼」이다 — 게이트가
  * 직접 눌러서 그 사건을 만든다. 안 그러면 그 예산은 있으나 마나다.
  *
+ * **한 번 재고 판정하지 않는다.** 같은 코드도 기계가 바쁘면 두 배가 난다 — 표본 하나로 CI 를
+ * 세우면 애먼 빨간불이 나고, 애먼 빨간불이 몇 번 나면 사람이 그 검사를 안 믿게 된다(그 순간
+ * 게이트는 죽는다). 화면마다 세 번 재서 **중앙값**으로 판정한다. 못 잰 항목은 중앙값에서도
+ * 「못 잼」이다 — 잰 것만 골라 평균 내면 없는 값이 조용히 사라진다.
+ *
  * 사용: node scripts/smoke-perf-budget.mjs        (npm run test:perf:budget)
  *       node scripts/smoke-perf-budget.mjs --regress   ← 예산을 일부러 조여 **빨간불이 나는지** 확인
  */
@@ -114,9 +119,30 @@ const limitOf = (v) => (v.unit === 'B' ? `${(v.limit / 1024).toFixed(0)}KB` : v.
 let totalFails = 0;
 let measuredScreens = 0;
 
+/** 항목별 중앙값. 못 잰 회차가 절반을 넘으면 그 항목은 「못 잼」이다(잰 것만 골라 세지 않는다). */
+function median(runs) {
+  const base = runs[0].verdict;
+  return base.map((sample, index) => {
+    const values = runs.map((run) => run.verdict[index].value).filter((v) => v != null);
+    if (values.length * 2 <= runs.length) return { ...sample, value: null, state: 'unknown' };
+    values.sort((a, b) => a - b);
+    const value = values[Math.floor(values.length / 2)];
+    return { ...sample, value, state: value > sample.limit ? 'fail' : 'pass' };
+  });
+}
+
+const RUNS = 3;
+
 for (const [label, url] of TARGETS) {
-  const result = await measure(url);
-  console.log(`[perf-budget] ── ${label}`);
+  const runs = [];
+  for (let i = 0; i < RUNS; i++) {
+    const one = await measure(url);
+    if (one) runs.push(one);
+  }
+  const result = runs.length
+    ? { verdict: median(runs), trust: runs[runs.length - 1].trust, errors: runs.flatMap((r) => r.errors) }
+    : null;
+  console.log(`[perf-budget] ── ${label}${runs.length ? ` (${runs.length}회 중앙값)` : ''}`);
   if (!result) {
     /* 계측기가 안 실린 화면은 「통과」가 아니라 **못 돌림**이다. 도구 장은 배포 때 셸을 복사해
        찍히므로, 셸에 계측기를 넣은 뒤 아직 안 찍힌 판에서는 여기로 온다. */
