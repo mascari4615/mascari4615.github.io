@@ -3,7 +3,7 @@
 **The MCP server for things LLMs quietly get wrong** — exact hashes, real randomness, and Korean rules
 (three different "ages", business-registration checksums, substitute holidays, Hangul keyboard mapping).
 
-**Zero dependencies.** 58 tools. Everything runs locally; nothing is sent anywhere.
+**Zero dependencies.** 59 tools. Everything runs locally; nothing is sent anywhere.
 
 ```bash
 claude mcp add karmolab -- npx -y karmolab-mcp
@@ -27,7 +27,7 @@ An LLM will happily answer these — and be wrong in a way you cannot see:
 
 These are not edge cases. They are the everyday questions where a confident wrong answer costs something.
 
-## Tools (58)
+## Tools (59)
 
 Every tool description is English-first with the Korean original appended, and says *why* the tool
 exists — the failure it prevents — not just what it does.
@@ -102,7 +102,7 @@ what a user gets.
 
 ## 한국어
 
-**LLM 이 조용히 틀리는 것들을 대신 계산하는 MCP 서버.** 의존성 0개, 도구 58개, 전부 로컬에서 돈다.
+**LLM 이 조용히 틀리는 것들을 대신 계산하는 MCP 서버.** 의존성 0개, 도구 59개, 전부 로컬에서 돈다.
 
 값이 가장 큰 자리는 **한국 규칙**이다 — 나이 세 가지, 사업자등록번호 검증숫자, 대체공휴일,
 한영타·자모, 평·근·돈. 이건 지역 지식이라 모델이 외워서 답하다 어긋난다.

@@ -2,8 +2,9 @@
  * 문자 변환 허브 — 알맹이 (흡수 ⓒ / 02 문서 「한·일·중 공통 수요」)
  *
  * 한 화면에서 끝나야 하는 변환들이 지금은 흩어져 있거나 없다. 규칙으로 되는 것(전각·반각,
- * 로마자, 자모)과 **표가 있어야 되는 것(간체↔번체)** 을 함께 담는다. 표는 유니코드 Unihan 에서
- * 찍어 온 것이고(`scripts/gen-han-table.mjs`), 기기 안에 함께 실려 인터넷 없이도 돈다.
+ * 로마자, 자모)과 **표가 있어야 되는 것(간체↔번체·병음)** 을 함께 담는다. 표는 유니코드
+ * Unihan 에서 찍어 왔다. 간체↔번체 표(31KB)는 함께 실어 인터넷 없이 돌고, 소리 표(167KB)는
+ * 커서 **건네받는다** — 전각·반각만 쓰러 온 사람에게까지 물릴 수는 없다.
  *
  * MCP 로 내놓는 이유: 전각·반각은 눈으로 **거의 구분이 안 된다**. ＡＢ 와 AB 는 다른 글자인데
  * 화면에서는 폭만 다르게 보이고, 그래서 「검색이 안 된다 / 로그인이 안 된다 / 엑셀 조회가
@@ -42,6 +43,16 @@ export const spec: ToolSpec = {
         + ' ambiguity instead of hiding it. mode = simp (default) or trad.'
         + ' / 간체 ⟷ 번체. 갈리는 글자는 숨기지 않고 함께 알려 준다.',
       in: { text: 'string', mode: 'string?' },
+      out: 'string'
+    },
+    pinyin: {
+      desc:
+        'Read Chinese characters as Mandarin pinyin, using the Unicode Unihan kMandarin readings.'
+        + ' tone = mark (hàn, default), number (han4) or none (han). The reading table is large, so'
+        + ' it is handed in rather than bundled; the tool says so instead of returning the input'
+        + ' unchanged. Characters with more than one listed reading are reported, not hidden.'
+        + ' / 한자 → 병음. 소리가 여럿인 글자는 함께 알려 준다.',
+      in: { text: 'string', tone: 'string?' },
       out: 'string'
     },
     jamo: {
@@ -214,10 +225,128 @@ export function ambiguousChars(text: string, toTrad: boolean): { ch: string; can
   return out;
 }
 
-export const run: ToolRunner = (op, args) => {
+/* ── 병음 ────────────────────────────────────────────────────────────────── */
+
+export interface PinyinTable {
+  read: Map<string, string>;
+  /** 소리가 여럿이라고 Unihan 이 적어 둔 글자 — 화면이 「뜻을 봐야 한다」고 말할 자리. */
+  many: Map<string, string[]>;
+}
+
+/**
+ * 표를 편다. 표는 **묶음에 안 박고 건네받는다** — 2만 자짜리(170KB)라, 전각·반각만 쓰러 온
+ * 사람에게까지 물릴 수는 없다. 화면은 「병음」을 고를 때 받아 오고, MCP 는 파일에서 읽는다.
+ */
+export function parsePinyinTable(raw: { chars: string; readings: string; many?: string }): PinyinTable {
+  const chars = [...raw.chars];
+  const readings = raw.readings.split(' ');
+  if (chars.length !== readings.length) {
+    throw new Error(`병음 표가 어긋났습니다 — 글자 ${chars.length}개인데 소리 ${readings.length}개입니다`);
+  }
+  const read = new Map<string, string>();
+  for (let i = 0; i < chars.length; i++) read.set(chars[i], readings[i]);
+  const many = new Map<string, string[]>();
+  for (const item of (raw.many ?? '').split(' ')) {
+    if (item === '') continue;
+    const at = item.indexOf(':');
+    if (at < 0) continue;
+    many.set(item.slice(0, at), item.slice(at + 1).split(','));
+  }
+  return { read, many };
+}
+
+/**
+ * 성조를 숫자로. `hàn` → `han4`.
+ *
+ * 글자를 낱낱으로 풀면(NFD) 성조는 **모음에 붙은 별도 부호**가 된다 — 그 부호 하나만 보면
+ * 되니 모음 표를 손으로 적을 필요가 없다(적으면 ü·ê 같은 데서 빠뜨린다).
+ */
+const TONE_MARKS: Record<string, string> = {
+  '̄': '1',
+  '́': '2',
+  '̌': '3',
+  '̀': '4'
+};
+
+export function toneNumber(syllable: string): string {
+  const flat = syllable.normalize('NFD');
+  let tone = '5'; // 부호가 없으면 경성
+  let out = '';
+  for (const ch of flat) {
+    const mark = TONE_MARKS[ch];
+    if (mark !== undefined) {
+      tone = mark;
+      continue;
+    }
+    /* ü 의 두 점(U+0308)은 성조가 아니라 **글자의 일부**다 — 버리면 lǜ 가 lu 가 된다(다른 소리다). */
+    if (ch === '̈') {
+      out += ch;
+      continue;
+    }
+    if (ch >= '̀' && ch <= 'ͯ') continue; // 그 밖의 붙임표는 버린다
+    out += ch;
+  }
+  return out.normalize('NFC') + tone;
+}
+
+/** 성조를 아예 뺀다. `hàn` → `han`. 파일 이름·아이디에 쓰는 사람이 이걸 찾는다. */
+export function stripTone(syllable: string): string {
+  /* U+0308(ü 의 두 점)만 남긴다 — 성조가 아니라 글자다. */
+  return syllable
+    .normalize('NFD')
+    .replace(/[̀-̇̉-ͯ]/g, '')
+    .normalize('NFC');
+}
+
+export type ToneStyle = 'mark' | 'number' | 'none';
+
+/**
+ * 한자를 소리로 바꾼다. 한자가 아닌 글자는 **그대로 둔다** — 사이에 낀 쉼표·숫자를 지우면
+ * 사람이 원문과 대조를 못 한다. 표에 없는 한자도 그대로 둔다(지우면 없어진 줄도 모른다).
+ */
+export function pinyinOf(table: PinyinTable, text: string, tone: ToneStyle = 'mark'): string {
+  /*
+   * **소리끼리만** 띄운다. 전부 띄우면 `abc 123` 이 `a b c 1 2 3` 이 되어 원문 대조가 안 된다
+   * (시험이 잡았다). 한자가 아닌 글자는 원문 그대로 두고, 소리 옆에 붙을 때만 한 칸 넣는다.
+   */
+  let out = '';
+  let afterReading = false;
+  const gap = (): void => {
+    if (out !== '' && /s$/.test(out) === false) out += ' ';
+  };
+  for (const ch of text) {
+    const got = table.read.get(ch);
+    if (got === undefined) {
+      if (afterReading && /s/.test(ch) === false) gap();
+      out += ch;
+      afterReading = false;
+      continue;
+    }
+    gap();
+    out += tone === 'number' ? toneNumber(got) : tone === 'none' ? stripTone(got) : got;
+    afterReading = true;
+  }
+  return out.trim();
+}
+
+/** 소리가 여럿인 글자 골라내기 — 간체·번체의 갈림 알림과 같은 약속이다. */
+export function manyReadings(table: PinyinTable, text: string): { ch: string; readings: string[] }[] {
+  const seen = new Set<string>();
+  const out: { ch: string; readings: string[] }[] = [];
+  for (const ch of text) {
+    if (seen.has(ch)) continue;
+    const got = table.many.get(ch);
+    if (got === undefined) continue;
+    seen.add(ch);
+    out.push({ ch, readings: got });
+  }
+  return out;
+}
+
+export const run: ToolRunner = (op, args, deps) => {
   const text = String(args.text ?? '');
   if (text === '') throw new Error('바꿀 글이 없습니다');
-  const mode = String(args.mode ?? '');
+  const mode = String(args.mode ?? args.tone ?? '');
 
   if (op === 'width') {
     const toFull = mode === 'full';
@@ -252,6 +381,31 @@ export const run: ToolRunner = (op, args) => {
         ...amb.map((a) => `   ${a.ch} → ${a.candidates.join(' 또는 ')}`)
       );
     }
+    return lines.join('\n');
+  }
+
+  if (op === 'pinyin') {
+    /* 표는 부르는 쪽이 준다. 없으면 **원문을 그대로 돌려주지 않는다** — 그러면 「안 바뀌었네」
+       하고 넘어가게 된다. 못 한다고 말하는 편이 낫다. */
+    const raw = deps?.hanPinyin as { chars?: string; readings?: string; many?: string } | undefined;
+    if (raw === undefined || raw === null || typeof raw.chars !== 'string' || typeof raw.readings !== 'string') {
+      throw new Error('병음 표가 없습니다 — data/han-pinyin.json 을 건네주세요 (표가 커서 따로 받습니다)');
+    }
+    const table = parsePinyinTable({ chars: raw.chars, readings: raw.readings, many: raw.many });
+    const tone: ToneStyle = mode === 'number' || mode === 'none' ? mode : 'mark';
+    const lines = [pinyinOf(table, text, tone)];
+    const multi = manyReadings(table, text);
+    if (multi.length > 0) {
+      lines.push(
+        '',
+        '※ 소리가 여럿인 글자가 있습니다 — 첫 소리로 읽었습니다:',
+        ...multi.map((m) => `   ${m.ch} → ${m.readings.join(' 또는 ')}`)
+      );
+    }
+    lines.push(
+      '',
+      '※ 글자 단위입니다. 낱말·문맥에 따라 달라지는 소리(行 xíng·háng 등)는 가려내지 못합니다.'
+    );
     return lines.join('\n');
   }
 

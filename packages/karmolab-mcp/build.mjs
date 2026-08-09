@@ -64,6 +64,18 @@ await esbuild.build({
   logLevel: 'error'
 });
 
+/*
+ * 소리 표(병음)는 알맹이에 안 박혀 있다 — 화면 쪽은 필요할 때 받아 오고, 여기서는 파일로
+ * 함께 싣는다. 안 실으면 `charconv_pinyin` 이 「표가 없습니다」만 내놓는다(조용히 원문을
+ * 돌려주지는 않으니 들키긴 하지만, 쓸 수 없는 도구를 목록에 올려 두는 셈이다).
+ */
+const pinyinSrc = path.join(here, '../../apps/karmolab/data/han-pinyin.json');
+if (fs.existsSync(pinyinSrc) === false) {
+  console.error('[karmolab-mcp] 소리 표가 없다: apps/karmolab/data/han-pinyin.json');
+  process.exit(1);
+}
+fs.copyFileSync(pinyinSrc, path.join(outDir, 'han-pinyin.json'));
+
 // 무엇이 들어 있는지 적어 둔다 — 서버가 이걸 읽어 도구를 올린다(손으로 적은 목록 없음).
 const manifest = entries.map((f) => path.basename(f, '.ts'));
 fs.writeFileSync(path.join(outDir, 'manifest.json'), JSON.stringify({ tools: manifest }, null, 2) + '\n');

@@ -1966,6 +1966,34 @@ const convHanAmb = conv.run('han', { text: '发', mode: 'trad' });
 check(convHanAmb.includes('뜻을 봐야'), '갈리는 글자는 답에 함께 적는다');
 check(convHanAmb.includes('發') && convHanAmb.includes('髮'), `후보를 다 보여 준다: ${convHanAmb.split(NL_).pop()}`);
 
+/* 병음 — 표를 **건네받는** 자리다. 표는 묶음에 없다(2만 자·167KB). */
+const pyRaw = JSON.parse(fs.readFileSync('data/han-pinyin.json', 'utf8'));
+const pyTable = conv.parsePinyinTable(pyRaw);
+eq(conv.pinyinOf(pyTable, '汉字'), 'hàn zì', '한자 → 병음(성조 부호)');
+eq(conv.pinyinOf(pyTable, '汉字', 'number'), 'han4 zi4', '성조를 숫자로');
+eq(conv.pinyinOf(pyTable, '汉字', 'none'), 'han zi', '성조를 뺀다');
+eq(conv.toneNumber('hàn'), 'han4', '내림 성조 = 4');
+eq(conv.toneNumber('mā'), 'ma1', '평 성조 = 1');
+eq(conv.toneNumber('má'), 'ma2', '오름 = 2');
+eq(conv.toneNumber('mǎ'), 'ma3', '내렸다 오름 = 3');
+eq(conv.toneNumber('ma'), 'ma5', '부호가 없으면 경성 = 5');
+eq(conv.toneNumber('lǜ'), 'lü4', 'ü 의 두 점은 성조가 아니라 글자다 — 지우면 안 된다');
+eq(conv.stripTone('lǜ'), 'lü', '성조만 빼고 ü 는 남긴다');
+eq(conv.pinyinOf(pyTable, 'abc 123'), 'abc 123', '한자가 아니면 그대로');
+
+/* ★ 표 없이 부르면 **원문을 그대로 돌려주지 않는다** — 그러면 안 바뀐 걸 모르고 넘어간다. */
+let pyThrew = false;
+try {
+  conv.run('pinyin', { text: '汉' });
+} catch {
+  pyThrew = true;
+}
+check(pyThrew, '표 없이 부르면 못 한다고 말한다');
+
+const pyOut = conv.run('pinyin', { text: '汉字' }, { hanPinyin: pyRaw });
+check(pyOut.startsWith('hàn zì'), `run pinyin: ${pyOut.split(NL_)[0]}`);
+check(pyOut.includes('글자 단위입니다'), '문맥은 못 본다는 사실을 답에 적는다');
+
 let convThrew = false;
 try {
   conv.run('width', { text: '' });
