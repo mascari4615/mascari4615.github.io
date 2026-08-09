@@ -23,6 +23,7 @@ import { loadTerms, saveTerms, newTermId, type MyTerms } from './terms';
 import { parseOutline, layoutTree } from './from-text';
 import { sampleFor } from './samples';
 import { measureStorage, humanBytes, WARN_RATIO } from './storage-health';
+import { HELP } from './help';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -111,6 +112,8 @@ import {
     .km-avatar-row .btn { padding:4px 8px; }
     .km-tilt-val { color:var(--text-tertiary); }
     .km-storage-warn { padding:6px 12px; background:#7f1d1d; color:#fecaca; font-size:var(--font-size-xs); }
+    .km-help-row { display:flex; gap:8px; align-items:baseline; padding:2px 0; }
+    .km-help-how { color:var(--text-tertiary); font-size:11px; text-align:right; flex-shrink:0; max-width:58%; }
     .km-meter { height:8px; border-radius:999px; background:var(--bg-tertiary); overflow:hidden; }
     .km-meter-fill { height:100%; transition:width .2s ease; }
     .km-tagbar { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
@@ -172,7 +175,7 @@ import {
     /** 연결 모드일 때 출발 노드 id. null 이면 평소 모드. */
     let linkingFrom: string | null = null;
     /** 오른쪽 패널이 무엇을 보여주는가 — 고른 노드냐, 묶음 목록이냐. */
-    let sideMode: 'node' | 'groups' | 'terms' | 'filter' | 'many' | 'text' | 'sna' | 'storage' | 'edge' = 'node';
+    let sideMode: 'node' | 'groups' | 'terms' | 'filter' | 'many' | 'text' | 'sna' | 'storage' | 'edge' | 'help' = 'node';
     /** Shift+드래그로 한 번에 고른 노드들. */
     let selectedMany: string[] = [];
     /** 지금 고른 선. 선에도 이야기가 붙는다(격차 Z). */
@@ -259,6 +262,7 @@ import {
           <button class="btn btn-ghost" data-km="terms" title="내 용어 — 팩에 없는 종류 만들기">🏷</button>
           <button class="btn btn-ghost" data-km="filter" title="거르기 — 종류별로 화면에서 빼기">🔍</button>
           <button class="btn btn-ghost" data-km="sna" title="누가 중심인가 · 누가 다리인가">📊</button>
+          <button class="btn btn-ghost" data-km="help" title="무엇을 할 수 있나 (?)">?</button>
           <button class="btn btn-ghost" data-km="undo" title="되돌리기 (Ctrl+Z)" disabled>↶</button>
           <button class="btn btn-ghost" data-km="redo" title="다시 하기 (Ctrl+Y)" disabled>↷</button>
           <button class="btn btn-ghost" data-km="fit" title="화면 맞춤">⤢</button>
@@ -525,7 +529,7 @@ import {
       el.innerHTML =
         `${escapeHtml(pack.hint)}<br><b>빈 곳을 두 번 클릭</b>하면 그 자리에 노드가 생깁니다.<br>` +
         '노드 오른쪽의 <b>점을 끌어다</b> 다른 노드에 놓으면 선이 이어져요.<br>' +
-        '<span style="opacity:.75">키보드: <b>Tab</b> 다음 노드 · <b>방향키</b> 옮기기 · <b>Enter</b> 이름 고치기 · <b>Delete</b> 지우기</span>' +
+        '<span style="opacity:.75">키보드: <b>Tab</b> 다음 노드 · <b>방향키</b> 옮기기 · <b>Enter</b> 이름 · <b>?</b> 전체 도움말</span>' +
         (sample
           ? `<br><br><button class="btn btn-primary" data-km="sample">「${escapeHtml(sample.title)}」 예시 넣어 보기</button>`
           : '');
@@ -1353,6 +1357,30 @@ import {
       };
     }
 
+    /**
+     * 도움말 — 할 수 있는 일과 그 단축키를 나란히 (격차 AA).
+     * **못 찾는 기능은 없는 것과 같다.** 새 기능을 넣을 때 `help.ts` 에 한 줄 안 늘면 그건 숨은 것이다.
+     */
+    function renderHelpPanel(): void {
+      sideEl.classList.remove('hidden');
+      canvas?.setSelectedNode(null);
+      sideEl.innerHTML = `
+        <h4>? 무엇을 할 수 있나</h4>
+        <div class="km-hint">${HELP.reduce((n, s0) => n + s0.items.length, 0)}가지. <b>?</b> 키로 언제든 다시 엽니다.</div>
+        ${HELP.map((sec) => `<div class="km-field">
+          <label>${escapeHtml(sec.title)}</label>
+          ${sec.items.map((it) => `<div class="km-help-row">
+            <span class="km-link-name">${escapeHtml(it.what)}</span>
+            <span class="km-help-how">${escapeHtml(it.how)}</span>
+          </div>`).join('')}
+        </div>`).join('')}
+        <button class="btn btn-ghost" data-km="help-close">닫기</button>`;
+      (sideEl.querySelector('[data-km="help-close"]') as HTMLButtonElement).onclick = () => {
+        sideMode = 'node';
+        renderSide();
+      };
+    }
+
     // ── 선택 패널 ───────────────────────────────────────────────────────────
     function renderSide(): void {
       if (sideMode === 'groups') {
@@ -1385,6 +1413,10 @@ import {
       }
       if (sideMode === 'edge') {
         renderEdgePanel();
+        return;
+      }
+      if (sideMode === 'help') {
+        renderHelpPanel();
         return;
       }
       const node = spec.nodes.find((n) => n.id === selectedId);
@@ -2093,6 +2125,11 @@ import {
       renderSide();
     };
 
+    q<HTMLButtonElement>('help').onclick = () => {
+      sideMode = sideMode === 'help' ? 'node' : 'help';
+      renderSide();
+    };
+
     q<HTMLButtonElement>('sna').onclick = () => {
       sideMode = sideMode === 'sna' ? 'node' : 'sna';
       renderSide();
@@ -2189,6 +2226,12 @@ import {
             ev.preventDefault();
             (sideEl.querySelector('[data-km="node-del"]') as HTMLButtonElement | null)?.click();
           }
+          return;
+        }
+        if (ev.key === '?' || (ev.key === '/' && ev.shiftKey)) {
+          ev.preventDefault();
+          sideMode = sideMode === 'help' ? 'node' : 'help';
+          renderSide();
           return;
         }
         if (ev.key === 'Escape' && (selectedId || selectedMany.length > 0)) {

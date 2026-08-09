@@ -243,6 +243,13 @@ await step('키보드로 고르고 옮긴다', async () => {
   if (Math.round(after.x - before.x) < 40) throw new Error('방향키로 안 움직였다: ' + Math.round(after.x - before.x));
   await page.keyboard.press('Escape');
 });
+await step('도움말이 할 수 있는 일을 다 보여 준다', async () => {
+  await page.click('[data-km="help"]');
+  await page.waitForSelector('[data-km="help-close"]', { timeout: 4000 });
+  const rows = await page.locator('.km-help-row').count();
+  if (rows < 20) throw new Error(`도움말 줄이 ${rows}개뿐이다`);
+  await page.click('[data-km="help-close"]');
+});
 await step('관계망 읽기가 순위를 낸다', async () => {
   await page.click('[data-km="sna"]');
   await page.waitForSelector('[data-km="sna-focus"]', { timeout: 4000 });
