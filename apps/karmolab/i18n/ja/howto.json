@@ -115,5 +115,10 @@
   "howto.pdfdiff.0": "元 (A) と変更後 (B) の PDF を入れる",
   "howto.pdfdiff.1": "何を比べるか選ぶ — 文字+画像 / 文字だけ / 画像だけ",
   "howto.pdfdiff.2": "「照合する」を押す",
-  "howto.pdfdiff.3": "ページごとに囲まれた箇所と、増えた行・減った行を確認"
+  "howto.pdfdiff.3": "ページごとに囲まれた箇所と、増えた行・減った行を確認",
+  "howto.video2gif.0": "動画ファイルを入れる",
+  "howto.video2gif.1": "再生しながら開始点と終了点を決める",
+  "howto.video2gif.2": "横幅と1秒あたりの枚数を決める",
+  "howto.video2gif.3": "GIF を作ってプレビューを確認",
+  "howto.video2gif.4": "良ければダウンロード"
 }
