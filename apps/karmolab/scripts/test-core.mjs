@@ -1269,6 +1269,37 @@ const pgOut = pg.run('strength', { password: 'Password1!' });
 check(pgOut.includes('약'), 'run 이 판정을 글로 낸다');
 check(pgOut.includes('흔한 단어'), 'run 이 왜 깎였는지 말한다');
 
+// ── ②-27 배선 — 알맹이가 있는데 화면이 안 쓰면 두 답이 갈린다 ─────────────────
+/*
+ * 2026-08-09 실제로 났던 일: `passgen` 알맹이를 만들었는데 화면 위젯에는 **옛 계산이 그대로**
+ * 남아 있었다. 둘이 같은 질문에 정반대로 답했다(화면 「강함」 / MCP 「약함」). 타입 검사도,
+ * 단위 검사도, 화면 검사도 전부 초록이었다 — 각자 자기 계산으로 맞기 때문이다.
+ *
+ * 그래서 **같은 이름이면 붙어 있어야 한다**를 규칙으로 박는다. 알맹이 `x` 가 있고 위젯 `x` 가
+ * 있으면, 그 위젯은 `core/x` 를 불러야 한다. 화면이 없는 알맹이(도우미·MCP 전용)는 안 따진다.
+ */
+const widgetOf = (id) => {
+  for (const rel of [`src/widgets/${id}.ts`, `src/widgets/tools/${id}.ts`]) {
+    if (fs.existsSync(path.join(root, rel))) return rel;
+  }
+  return null;
+};
+
+let wired = 0;
+for (const file of coreFiles) {
+  const id = path.basename(file, '.ts');
+  const rel = widgetOf(id);
+  if (rel === null) continue;
+  const body = fs.readFileSync(path.join(root, rel), 'utf8');
+  /* 따옴표까지 봐야 한다 — `includes('core/vat')` 는 `core/vat2` 에도 걸려 안 문다(실측). */
+  check(
+    new RegExp(`core/${id}['"\`]`).test(body),
+    `${rel} 가 core/${id} 를 안 쓴다 — 화면과 MCP 가 다른 답을 낼 수 있다`
+  );
+  wired++;
+}
+check(wired >= 20, `배선을 확인한 도구가 ${wired}개뿐 — 찾는 경로가 틀렸을 수 있다`);
+
 // ── 마무리 ──────────────────────────────────────────────────────────────────
 fs.rmSync(outDir, { recursive: true, force: true });
 process.stdout.write('\n');
