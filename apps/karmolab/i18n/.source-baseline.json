@@ -1,5 +1,5 @@
 {
-  "total": 4941,
+  "total": 4943,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -347,6 +347,7 @@
     "src/widgets/karmomap/stamps.ts": 1,
     "src/lib/graph/canvas-dom.ts": 1,
     "src/lib/ai-engine.ts": 1,
-    "src/lib/ai-gate.ts": 4
+    "src/lib/ai-gate.ts": 4,
+    "src/lib/ai-transcribe.ts": 2
   }
 }
