@@ -233,6 +233,7 @@ import {
       colorByTag: false,
       fieldName: '',
       fieldValue: '',
+      colorByField: '',
     };
     /** 지금 끼워진 어휘 팩. `spec._meta.pack` 에 함께 저장된다. */
     let pack: CanvasPack = packById(DEFAULT_PACK_ID);
@@ -819,7 +820,11 @@ import {
       filterState,
       applyFilter: () => applyFilter(),
       applyDecorate: () => {
-        canvas?.setDecorate({ sizeByDegree: filterState.sizeByDegree, colorByTag: filterState.colorByTag });
+        canvas?.setDecorate({
+          sizeByDegree: filterState.sizeByDegree,
+          colorByTag: filterState.colorByTag,
+          colorByField: filterState.colorByField,
+        });
         canvas?.setSelectedNode(selectedId);
       },
       nodeKinds: () => nodeKindsNow().map((k) => ({ id: k.id, label: k.label, icon: k.icon })),

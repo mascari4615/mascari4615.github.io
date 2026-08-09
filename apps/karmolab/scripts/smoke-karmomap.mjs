@@ -720,6 +720,18 @@ await step('칸으로 좁히면 그 칸을 적은 것만 남는다', async () =>
   await page.waitForFunction((n) => document.querySelectorAll('.ck-node').length < n, before, { timeout: 4000 });
   const narrowed = await page.locator('.ck-node').count();
   if (narrowed === 0) throw new Error('칸을 적은 노드까지 사라졌다');
+  // 칸 값으로 물들이면 **테두리 색이 실제로 바뀌어야** 한다(고른 것만으로는 아무 일도 안 일어날 수 있다).
+  const strokeNow = () => page.evaluate(
+    () => document.querySelector('.ck-node .ck-node-bg')?.getAttribute('stroke') || ''
+  );
+  const beforeColor = await strokeNow();
+  await page.selectOption('[data-km="f-colorfield"]', '출신');
+  await page.waitForFunction(
+    (b) => (document.querySelector('.ck-node .ck-node-bg')?.getAttribute('stroke') || '') !== b,
+    beforeColor,
+    { timeout: 4000 }
+  );
+
   await page.locator('[data-km="f-reset"]').dispatchEvent('click');
   await page.waitForFunction((n) => document.querySelectorAll('.ck-node').length === n, before, { timeout: 4000 });
   await page.click('[data-km="tab"][data-key="node"]');

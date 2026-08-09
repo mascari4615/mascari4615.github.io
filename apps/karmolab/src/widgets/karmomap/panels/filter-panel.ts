@@ -64,6 +64,11 @@ export function renderFilterPanel(ctx: PanelCtx): void {
     <div class="km-field">
       <label class="km-check"><input type="checkbox" data-km="f-degree"${st.sizeByDegree ? ' checked' : ''} /> 많이 이어진 것을 크게</label>
       <label class="km-check"><input type="checkbox" data-km="f-colortag"${st.colorByTag ? ' checked' : ''} /> 꼬리표로 색 입히기</label>
+      ${fieldNames.length === 0 ? '' : `<label>칸 값으로 물들이기</label>
+      <select data-km="f-colorfield">
+        <option value="">— 안 씀 —</option>
+        ${fieldNames.map((f) => `<option value="${esc(f)}"${st.colorByField === f ? ' selected' : ''}>${esc(f)}별로</option>`).join('')}
+      </select>`}
       <div class="km-hint">손으로 키우지 않아도 중심 인물이 눈에 띕니다. 저장본은 그대로예요.</div>
     </div>
     <div class="km-field">
@@ -106,6 +111,13 @@ export function renderFilterPanel(ctx: PanelCtx): void {
     st.sizeByDegree = (ev.target as HTMLInputElement).checked;
     ctx.applyDecorate();
   };
+  const colorFieldSel = side.querySelector('[data-km="f-colorfield"]') as HTMLSelectElement | null;
+  if (colorFieldSel) {
+    colorFieldSel.onchange = () => {
+      st.colorByField = colorFieldSel.value;
+      ctx.applyDecorate();
+    };
+  }
   (side.querySelector('[data-km="f-colortag"]') as HTMLInputElement).onchange = (ev) => {
     st.colorByTag = (ev.target as HTMLInputElement).checked;
     ctx.applyDecorate();
@@ -136,6 +148,7 @@ export function renderFilterPanel(ctx: PanelCtx): void {
     st.colorByTag = false;
     st.fieldName = '';
     st.fieldValue = '';
+    st.colorByField = '';
     ctx.applyFilter();
     ctx.applyDecorate();
     ctx.refresh();
