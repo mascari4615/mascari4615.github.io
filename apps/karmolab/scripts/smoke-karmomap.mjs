@@ -1268,6 +1268,34 @@ await step('PNG 내보내기가 파일을 만든다', async () => {
   if (!download.suggestedFilename().endsWith('.png')) throw new Error('png 아님');
 });
 
+await step('「이 카드로 오는 링크」로 열면 그 카드가 골라져 있다', async () => {
+  // 큰 그림을 보내면 받는 쪽은 어디를 보라는 건지 모른다 — 링크가 그 자리까지 데려가야 한다.
+  await page.click('[data-km="map-new"]');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
+  const abox = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.dblclick(abox.x + abox.width * 0.3, abox.y + abox.height * 0.3);
+  await page.waitForSelector('[data-km="edit-label"]', { timeout: 4000 });
+  await page.fill('[data-km="edit-label"]', '가리킨카드');
+  // 링크는 **만들자마자 골라져 있는 그 카드**로 뽑는다 — 다시 고르러 가면 「어느 카드가 골렸나」에
+  // 기대게 되고, 그 기대가 틀리면 검사가 엉뚱한 카드를 가리킨다(실제로 그렇게 한 번 틀렸다).
+  await page.waitForSelector('[data-km="node-link"]', { timeout: 4000 });
+  let link = '';
+  page.once('dialog', (d) => { link = d.message() || ''; d.accept(); });
+  await page.locator('[data-km="node-link"]').dispatchEvent('click');
+  await page.waitForTimeout(900);
+  if (!link) link = await page.evaluate(() => navigator.clipboard?.readText?.() ?? '').catch(() => '');
+  if (!link.includes('kmnode=')) throw new Error('링크에 카드 표시가 없다: ' + String(link).slice(0, 60));
+
+  await page.goto(link.replace(/#.*$/, '') + '#karmomap', { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('.ck-node.is-selected', { timeout: 8000 });
+  const picked = await page.evaluate(() => document.querySelector('.ck-node.is-selected')?.textContent || '');
+  if (!picked.includes('가리킨카드')) throw new Error('링크가 가리킨 카드가 안 골라졌다: ' + picked);
+  // 둘째 카드는 링크를 뽑은 **뒤에** 놓는다(가리킨 카드가 화면에서 혼자가 아니어야 「맞춰 보기」가 뜻이 산다).
+  // 보기 전용으로 열리므로 이어 그리려면 복제 — 다음 검사들을 위해 풀어 둔다.
+  const fork = page.locator('[data-km="fork"]');
+  if (await fork.count() > 0) await fork.click();
+  await page.waitForSelector('.km-root:not(.is-readonly)', { timeout: 4000 });
+});
 // ── 폰 화면 ──────────────────────────────────────────────────────────────────
 // 관계도는 **보는 일**이 폰에서 훨씬 많다(링크 받아 열기). 그런데 지금까지 폰 크기는 한 번도 안 봤다.
 await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널은 아래 시트로 뜬다', async () => {
