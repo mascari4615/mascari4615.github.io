@@ -214,8 +214,10 @@ import {
     let terms: MyTerms = loadTerms();
 
     // 팩 + 내 용어를 합친 것이 「지금 쓸 수 있는 말」이다. 아래 조회는 전부 이걸 거친다.
-    const nodeKindsNow = (): typeof pack.nodeKinds => [...pack.nodeKinds, ...terms.nodeKinds];
-    const edgeKindsNow = (): typeof pack.edgeKinds => [...pack.edgeKinds, ...terms.edgeKinds];
+    // ★ 갈래를 먼저 고르지 않는다(사용자 2026-08-09) — 쓸 수 있는 말은 **언제나 전부**다.
+    //   팩은 고르는 문이 아니라 목록의 소제목일 뿐이다.
+    const nodeKindsNow = (): typeof pack.nodeKinds => [...PACKS.flatMap((p0) => p0.nodeKinds), ...terms.nodeKinds];
+    const edgeKindsNow = (): typeof pack.edgeKinds => [...PACKS.flatMap((p0) => p0.edgeKinds), ...terms.edgeKinds];
     const kindIcon = (id: string): string =>
       terms.nodeKinds.find((k) => k.id === id)?.icon ?? ALL_KIND_ICONS[id] ?? '·';
     const kindLabel = (id: string): string =>
@@ -561,7 +563,7 @@ import {
       el.className = 'km-empty';
       const samples = PACKS.map((pk) => ({ pk, s: sampleFor(pk.id) })).filter((x) => x.s);
       el.innerHTML =
-        `${escapeHtml(pack.hint)}<br><b>빈 곳을 두 번 클릭</b>하면 그 자리에 노드가 생깁니다.<br>` +
+        '인물·장소·사건·카드·개념 — <b>무엇이든 한 판에</b> 놓을 수 있어요.<br><b>빈 곳을 두 번 클릭</b>하면 그 자리에 노드가 생깁니다.<br>' +
         '노드 오른쪽의 <b>점을 끌어다</b> 다른 노드에 놓으면 선이 이어져요.<br>' +
         '<span style="opacity:.75">키보드: <b>Tab</b> 다음 노드 · <b>방향키</b> 옮기기 · <b>Enter</b> 이름 · <b>?</b> 전체 도움말</span>' +
         (samples.length === 0
@@ -615,7 +617,8 @@ import {
     /** 팩 프리셋 중 아직 안 쓴 이름·색을 집어 새 묶음을 만든다. 다 썼으면 번호를 붙인다. */
     function createGroup(): GroupDef {
       const used = new Set(spec.groups.map((g) => g.label));
-      const preset = pack.groupPresets.find((p) => !used.has(p.label));
+      // 묶음 이름 후보도 갈래를 안 가린다 — 「가족」이든 「묘지」든 이 맵에 없으면 후보다.
+      const preset = PACKS.flatMap((p0) => p0.groupPresets).find((p0) => !used.has(p0.label));
       const label = preset?.label ?? `묶음 ${spec.groups.length + 1}`;
       const color = preset?.color ?? '#a78bfa';
       const center = canvas?.viewCenterWorld() ?? { x: 0, y: 0 };

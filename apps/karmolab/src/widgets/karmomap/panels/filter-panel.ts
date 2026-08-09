@@ -17,22 +17,12 @@ export function renderFilterPanel(ctx: PanelCtx): void {
   const nodeCount = (id: string): number => spec.nodes.filter((n) => n.kind === id).length;
   const edgeCount = (id: string): number => spec.edges.filter((e) => e.kind === id).length;
 
-  // 목록 = 지금 팩의 종류 + **이 맵에 실제로 쓰인 종류**. 팩을 바꾼 뒤에는 화면에 보이는
-  // 종류가 팩 목록에 없을 수 있는데, 그러면 「보이는데 끌 수가 없는」 종류가 생긴다.
-  const packNodeKinds = ctx.nodeKinds();
-  const packEdgeKinds = ctx.edgeKinds();
-  const nodeRows = [
-    ...packNodeKinds,
-    ...[...new Set(spec.nodes.map((n) => n.kind))]
-      .filter((id) => !packNodeKinds.some((k) => k.id === id))
-      .map((id) => ({ id, label: ctx.kindLabel(id), icon: ctx.kindIcon(id) })),
-  ];
-  const edgeRows = [
-    ...packEdgeKinds,
-    ...[...new Set(spec.edges.map((e) => e.kind))]
-      .filter((id) => !packEdgeKinds.some((k) => k.id === id))
-      .map((id) => ({ id, label: ctx.edgeLabel(id) })),
-  ];
+  // ★ 목록 = **이 맵에 실제로 쓰인 종류만**. 종류가 스물여섯인데 안 쓴 것까지 늘어놓으면
+  //   「끌 게 없는 스위치」가 대부분이 된다 — 거르기는 있는 것만 거르면 된다.
+  const nodeRows = [...new Set(spec.nodes.map((n) => n.kind))]
+    .map((id) => ({ id, label: ctx.kindLabel(id), icon: ctx.kindIcon(id) }));
+  const edgeRows = [...new Set(spec.edges.map((e) => e.kind))]
+    .map((id) => ({ id, label: ctx.edgeLabel(id) }));
   const tags = [...new Set(spec.nodes.flatMap((n) => n.tags ?? []))].sort();
 
   side.innerHTML = `
