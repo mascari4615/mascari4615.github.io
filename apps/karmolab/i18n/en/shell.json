@@ -35,5 +35,6 @@
   "shell.lang.section": "Language",
   "shell.region.note": "Units, public holidays, document formats and tool order follow this country.",
   "shell.region.aria": "Language and region",
-  "shell.region.other": "Elsewhere"
+  "shell.region.other": "Elsewhere",
+  "shell.card.save": "Save as image"
 }

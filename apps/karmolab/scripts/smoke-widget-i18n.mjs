@@ -35,6 +35,9 @@ const FIRST_SCREEN = [
   'cat.length'
 ];
 
+/** 한국어가 **내용 자체**인 도구 — 여기서 한글이 보이는 건 정상이다. */
+const HANGUL_OK = new Set(['hangulkey', 'jamo', 'numword', 'morse', 'bizno']);
+
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(appRoot));
 const PORT = 8833;
@@ -76,7 +79,18 @@ const browser = await chromium.launch();
 const fail = [];
 
 for (const { code, id, page } of targets) {
-  const tab = await browser.newPage();
+  /* **한국 밖에서 보는 사람**으로 열어 본다 (TASK-KL-203 S10). 지역을 안 정하면 이 기계의
+     시간대(서울)를 따라 KR 이 되고, 그러면 한국 전용 칸(평당 가격 등)이 켜져 「한국어가 남았다」로
+     잡힌다 — 그건 맞는 동작이다. 이 검사가 보려는 것은 **어디서나 나오는 화면**이다. */
+  const ctx = await browser.newContext();
+  await ctx.addInitScript(() => {
+    try {
+      localStorage.setItem('karmolab_region', 'XX');
+    } catch {
+      /* 저장을 막아 둔 환경 */
+    }
+  });
+  const tab = await ctx.newPage();
   const rel = path.relative(path.join(appRoot, '..', '..'), page).split(path.sep).join('/');
   await tab.goto(`http://127.0.0.1:${PORT}/${rel}`, { waitUntil: 'domcontentloaded' });
 
@@ -87,7 +101,7 @@ for (const { code, id, page } of targets) {
   const src = catalog(SOURCE_LOCALE, id);
   const keys = FIRST_SCREEN.map((k) => `${id}.${k}`).filter((k) => mine[k] && src[k]);
   if (!keys.length) {
-    await tab.close();
+    await ctx.close();
     continue;
   }
 
@@ -113,7 +127,36 @@ for (const { code, id, page } of targets) {
     if (live.includes(src[k])) fail.push(`${code}/${id}: 원본 언어 글이 남았다 — ${k} (${src[k]})`);
   }
 
-  await tab.close();
+  /* **열쇠로 아는 글만 보면 새로 박힌 한국어는 못 잡는다.**
+     실측(2026-08-09): 다른 작업이 알맹이 리팩터를 하며 글자수 세기에 「텍스트 입력」·「붙여넣기」·
+     「지우기」를 도로 박았고, 그 셋은 말 묶음에 없는 낱말이라 이 검사를 그대로 통과해
+     **영어 화면에 한국어 단추 셋이 나가고 있었다**. 운으로 발견했다.
+     → 이미 옮긴 도구에서는 **그린 자리 안의 한글을 통째로** 본다. */
+  if (!HANGUL_OK.has(id)) {
+    const strayText = await tab.evaluate(() => {
+      const host = document.querySelector('#tool-pages');
+      if (!host) return '';
+      /* **안 보이는 자리는 빼고 본다** — 지역 때문에 숨긴 칸(평당 가격 등)은 화면에 없는데
+         글자만 DOM 에 남아 있어서, 그대로 읽으면 「한국어가 남았다」로 잡힌다(실측). */
+      host.querySelectorAll('*').forEach((el) => {
+        if (el instanceof HTMLElement && el.offsetParent === null && getComputedStyle(el).position !== 'fixed') {
+          el.setAttribute('data-smoke-hidden', '1');
+        }
+      });
+      const copy = host.cloneNode(true);
+      copy.querySelectorAll('[data-smoke-hidden]').forEach((n) => n.remove());
+      /* 도구 **자기 화면**만 본다 — 아래 「여기도 있어요」 묶음은 *다른 도구들의* 이름·설명이라
+         아직 안 옮긴 도구가 하나라도 있으면 늘 걸린다. 그건 이 도구의 잘못이 아니다. */
+      copy.querySelectorAll('script,style,textarea,input,.tool-page-next').forEach((n) => n.remove());
+      return copy.textContent || '';
+    });
+    const stray = [...new Set((strayText.match(/[가-힣][가-힣\s]{0,20}/g) || []).map((v) => v.trim()))].filter(Boolean);
+    if (stray.length) {
+      fail.push(`${code}/${id}: 옮긴 도구인데 화면에 한국어가 남았다 — ${stray.slice(0, 4).join(' / ')}`);
+    }
+  }
+
+  await ctx.close();
 }
 
 await browser.close();

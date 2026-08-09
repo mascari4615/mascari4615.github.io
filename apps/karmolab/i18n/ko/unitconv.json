@@ -70,5 +70,9 @@
   "unitconv.label.from": "바꿀 단위",
   "unitconv.label.result": "바뀐 값",
   "unitconv.label.to": "바꿀 대상 단위",
-  "unitconv.copied": "결과를 복사했어요"
+  "unitconv.copied": "결과를 복사했어요",
+  "unitconv.label.category": "분류",
+  "unitconv.btn.swap": "단위 뒤집기",
+  "unitconv.btn.copy": "결과 복사",
+  "unitconv.label.all": "전체 단위 환산"
 }
