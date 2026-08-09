@@ -66,13 +66,26 @@ let skipped = 0;
 /** 못 그린 것 — 「일부러 건너뜀」과 **다르다**. 이게 조용히 넘어가면 배포마다 빈 칸이 쌓인다. */
 const failed = [];
 
-for (const id of targets) {
-  if (SKIP_IDS.has(id)) { skipped++; continue; }
+/**
+ * **네 장을 동시에 그린다** (2026-08-09).
+ *
+ * 도구가 백스무 개인데 한 줄로 세워 두었다 — 배포에서 99초. 여기서 그리는 것은 도구마다
+ * **서로 남남**이다(자기 화면을 열어 자기 파일에 쓴다). 줄 세울 이유가 없다.
+ *
+ * ⚠ 검사(무엇을 세는 일)였다면 병렬로 안 돌렸다 — 이 저장소에는 「병렬로 돌렸더니 세던 수가
+ * 사라져 전부 통과로 보이던」 사고가 있다. 이건 **만드는 일**이라 다르다: 만든 결과를 끝에서
+ * 파일로 직접 세므로(아래 `missing`), 동시에 돌려도 거짓 초록이 안 생긴다.
+ * 넷으로 잡은 이유 = 같은 기계에서 서버·브라우저를 나눠 쓰므로 더 늘리면 서로 느려진다.
+ */
+const LANES = Math.max(1, Number(process.env.PRERENDER_LANES) || 4);
+
+async function drawOne(id) {
+  if (SKIP_IDS.has(id)) { skipped++; return; }
   const file = path.join(OUT, id, 'index.html');
-  if (!fs.existsSync(file)) continue;
+  if (!fs.existsSync(file)) return;
   const html = fs.readFileSync(file, 'utf8');
-  if (html.includes(MARK)) { skipped++; continue; }      // 이미 박혀 있다
-  if (!html.includes(EMPTY)) { skipped++; continue; }     // 넣을 자리가 없다
+  if (html.includes(MARK)) { skipped++; return; }      // 이미 박혀 있다
+  if (!html.includes(EMPTY)) { skipped++; return; }     // 넣을 자리가 없다
 
   const page = await ctx.newPage();
   let markup = '';
@@ -106,17 +119,28 @@ for (const id of targets) {
   } catch (err) {
     failed.push(`${id}: ${String(err?.message || err).split('\n')[0]}`);
     await page.close();
-    continue;
+    return;
   }
   await page.close();
 
-  if (!markup || markup.length < 200) { failed.push(`${id}: 그린 것이 너무 짧다 (${markup.length}자)`); continue; }
+  if (!markup || markup.length < 200) { failed.push(`${id}: 그린 것이 너무 짧다 (${markup.length}자)`); return; }
 
   const filled =
     MARK + '\n<div class="content-body" id="tool-pages">' + markup + '</div>';
   fs.writeFileSync(file, html.replace(EMPTY, filled), 'utf8');
   done++;
 }
+
+let cursor = 0;
+await Promise.all(
+  Array.from({ length: LANES }, async () => {
+    for (;;) {
+      const i = cursor++;
+      if (i >= targets.length) return;
+      await drawOne(targets[i]);
+    }
+  })
+);
 
 await browser.close();
 /* 끝나고 **결과를 직접 센다** — 「몇 장 돌렸나」가 아니라 「몇 장에 실제로 박혔나」.
