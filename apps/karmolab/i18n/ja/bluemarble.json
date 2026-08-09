@@ -19,5 +19,11 @@
   "bluemarble.line.kpStorm": "磁気嵐が近づいています (Kp {kp})。オーロラがいつもより南まで降りてきます。",
   "bluemarble.line.aurora": "いま極地のどこかで、空が緑に揺れています。",
   "bluemarble.line.launch": "{when}、{name} が地球の外へ出ます。",
-  "bluemarble.word.openSea": "沖合"
+  "bluemarble.word.openSea": "沖合",
+  "bluemarble.layer.me": "私の場所",
+  "bluemarble.word.here": "ここ",
+  "bluemarble.line.meNight": "いま {place} は {time}、夜です。",
+  "bluemarble.line.meDay": "いま {place} は {time}、昼です。",
+  "bluemarble.line.issPass": "{when} — {clock} に、人が乗ったものが頭上 {el}° を通ります。見上げれば見えます。",
+  "bluemarble.line.issPassNone": "これから24時間、ISS はこの場所の上を通りません。"
 }
