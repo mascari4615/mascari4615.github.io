@@ -40,6 +40,7 @@ import { tagsFieldHtml, bindTagsField } from './panels/tags-section';
 import { membershipFieldHtml, bindMembershipField } from './panels/membership-section';
 import { shapeFieldHtml, tiltFieldHtml, bindLookFields } from './panels/look-section';
 import { attachFieldHtml, bindAttachField } from './panels/attach-section';
+import { docFieldHtml, bindDocField } from './panels/doc-section';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -929,11 +930,7 @@ import {
           <input type="text" data-km="edit-note" value="${escapeAttr(node.note ?? '')}" placeholder="이름 밑에 한 줄" />
         </div>
         ${tagsFieldHtml(panelCtx, node)}
-        <div class="km-field">
-          <label>설명</label>
-          <textarea data-km="edit-doc" class="km-textarea" rows="5" placeholder="이 인물·개념에 대해 길게 적어 두는 자리">${escapeHtml(node.doc ?? '')}</textarea>
-          <div class="km-hint">적어 두면 카드 모서리에 📄 가 붙습니다. 그림에는 안 나옵니다. <b>[[이름]]</b> 으로 다른 노드를 가리킬 수 있어요.</div>
-        </div>
+        ${docFieldHtml(panelCtx, node)}
         <div data-km="link-sections">${renderLinkSections(panelCtx, node)}</div>
         ${membershipFieldHtml(panelCtx, node)}
         ${shapeFieldHtml(panelCtx, node, SHAPES)}
@@ -990,19 +987,14 @@ import {
 
       bindTagsField(panelCtx, node);
 
-      const docInput = sideEl.querySelector('[data-km="edit-doc"]') as HTMLTextAreaElement;
-      docInput.oninput = () => {
-        node.doc = docInput.value.trim() || undefined;
-        canvas?.render();
-        canvas?.setSelectedNode(node.id);
-        persistStructure();
-        // 링크 목록만 다시 그린다 — 패널 전체를 다시 그리면 타자 치던 커서가 날아간다.
+      // 링크 목록만 다시 그린다 — 패널 전체를 다시 그리면 타자 치던 커서가 날아간다.
+      bindDocField(panelCtx, node, touch, () => {
         const holder = sideEl.querySelector('[data-km="link-sections"]');
         if (holder) {
           holder.innerHTML = renderLinkSections(panelCtx, node);
           bindLinkSections(panelCtx, selectedId);
         }
-      };
+      });
 
       const noteInput = sideEl.querySelector('[data-km="edit-note"]') as HTMLInputElement;
       noteInput.oninput = () => {

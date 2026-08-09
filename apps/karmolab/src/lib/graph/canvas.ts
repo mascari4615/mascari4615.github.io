@@ -1467,7 +1467,7 @@ export class GraphCanvas {
     }
 
     // 설명이 붙어 있으면 카드 모서리에 작은 표식을 둔다 — 안 그러면 「어디에 써 뒀더라」가 된다.
-    if ((node.doc ?? '').trim()) {
+    if ((node.doc ?? '').trim() || node.docRef) {
       const mark = document.createElementNS(SVG_NS, 'text');
       mark.setAttribute('x', String(node.w - 9));
       mark.setAttribute('y', '12');
