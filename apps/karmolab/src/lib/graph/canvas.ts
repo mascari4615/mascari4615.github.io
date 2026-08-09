@@ -47,6 +47,7 @@ import { nodeColor, nodeScale } from './canvas-decor';
 import { visibleNodes, degreeMap } from './canvas-filter';
 import { drainSaves, queueSave } from './canvas-save';
 import { pressIntent, readPressHits } from './canvas-press';
+import { canRewireTo, isDropOnNode, releaseIntent } from './canvas-release';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
@@ -132,7 +133,6 @@ export interface GraphCanvasOptions {
 }
 
 /** 클릭과 드래그를 가르는 이동 거리 (px). */
-const CLICK_SLOP = 4;
 
 // ─── 상수 ─────────────────────────────────────────────────────────────────────
 
@@ -779,8 +779,7 @@ export class GraphCanvas {
         const toEl = under?.closest?.('.ck-node') as SVGGElement | null;
         const dropId = toEl?.dataset.id ?? '';
         const otherId = edge ? this.parseNodeRef(end === 'from' ? edge.to : edge.from) : '';
-        // 자기 자신에 잇거나 반대편과 같아지면 선이 사라진 것처럼 보인다 — 그냥 되돌린다.
-        if (edge && dropId && dropId !== otherId) {
+        if (edge && canRewireTo(dropId, otherId)) {
           if (end === 'from') edge.from = dropId;
           else edge.to = dropId;
           this.redrawEdges();
@@ -811,16 +810,17 @@ export class GraphCanvas {
         this.svg.style.cursor = 'grab';
         return;
       }
-      // 드래그 상태를 지우기 *전에* 클릭 판정 — 이동이 slop 미만이면 클릭.
+      // 드래그 상태를 지우기 *전에* 클릭 판정 — 판단은 canvas-release 가 한다.
       const origin = this.pressOrigin;
       this.pressOrigin = null;
       if (origin) {
-        const moved = Math.hypot(e.clientX - origin.x, e.clientY - origin.y);
-        if (moved < CLICK_SLOP) {
-          if (origin.nodeId) this.onNodeClick?.(origin.nodeId, e);
-          else if (this.pressEdgeId) this.onEdgeClick?.(this.pressEdgeId);
-          else if (this.panning) this.onBackgroundClick?.();
-        }
+        const rel = releaseIntent(origin, { x: e.clientX, y: e.clientY, pointerType: e.pointerType }, {
+          pressEdgeId: this.pressEdgeId,
+          panning: !!this.panning,
+        });
+        if (rel.kind === 'click-node') this.onNodeClick?.(rel.nodeId, e);
+        else if (rel.kind === 'click-edge') this.onEdgeClick?.(rel.edgeId);
+        else if (rel.kind === 'click-background') this.onBackgroundClick?.();
         this.pressEdgeId = null;
       }
       if (this.sizing) {
@@ -832,11 +832,9 @@ export class GraphCanvas {
       if (this.dragging && this.onNodeDropped) {
         const dragged = this.dragging.nodeId;
         const moved = Math.hypot(e.clientX - this.dragging.startMouseX, e.clientY - this.dragging.startMouseY);
-        if (moved >= CLICK_SLOP) {
-          const under = document.elementFromPoint(e.clientX, e.clientY);
-          const overId = (under?.closest?.('.ck-node') as SVGGElement | null)?.dataset.id ?? '';
-          if (overId && overId !== dragged) this.onNodeDropped(dragged, overId);
-        }
+        const under = document.elementFromPoint(e.clientX, e.clientY);
+        const overId = (under?.closest?.('.ck-node') as SVGGElement | null)?.dataset.id ?? '';
+        if (isDropOnNode(dragged, overId, moved, e.pointerType)) this.onNodeDropped(dragged, overId);
       }
       this.dragging = null;
       this.draggingGroup = null;
