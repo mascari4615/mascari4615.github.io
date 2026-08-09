@@ -10,6 +10,8 @@
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { region } from '../../lib/region';
 import { holidayKeys, knowsYear, hasCalendar } from '../../lib/holidays';
+import { spec } from '../../core/workdays';
+import { readInvocation } from '../../lib/tool-url';
 
 (function (): void {
   /* 쉬는 날 표는 **나라별로** `src/lib/holidays.ts` 에 있다 (TASK-KL-203 S13).
@@ -208,6 +210,19 @@ import { holidayKeys, knowsYear, hasCalendar } from '../../lib/holidays';
           ['#wdSat', '#wdIncludeStart'].forEach((s) => $<HTMLInputElement>(s).addEventListener('change', refresh));
           $<HTMLElement>('#wdModeAfter').onclick = () => setMode('after');
           $<HTMLElement>('#wdModeBetween').onclick = () => setMode('between');
+
+          // 주소로 부른 경우 (`?op=after&start=2026-09-21&days=5`) (TASK-KL-205).
+          const call = readInvocation(spec);
+          if (call !== null && call.error === undefined) {
+            if (call.args.start !== undefined) fromEl.value = String(call.args.start);
+            if (call.op === 'between') {
+              setMode('between');
+              if (call.args.end !== undefined) toEl.value = String(call.args.end);
+            } else if (call.args.days !== undefined) {
+              daysEl.value = String(call.args.days);
+            }
+            if (call.args.saturday === true) $<HTMLInputElement>('#wdSat').checked = true;
+          }
           refresh();
   }
 })();
