@@ -73,6 +73,38 @@ const registryOld = fs.existsSync(registryPath) ? fs.readFileSync(registryPath, 
 const registryDrift = registryOld.split('\r\n').join('\n') !== registryTs;
 if (registryDrift && !CHECK) fs.writeFileSync(registryPath, registryTs, 'utf8');
 
+/* ── ①-b 도구 글은 이미 있는 파일에서 뽑는다 ───────────
+ *
+ * 도구 129장의 설명은 `data/tools-seo.json` 에 있고, 그게 **정본이다**. 같은 글을
+ * `i18n/ko/tools.json` 에 한 벌 더 적어 두면 그날부터 두 벌이 갈라진다(이 레포에서 여러 번 그랬다).
+ * 그래서 원본 언어 묶음은 **적지 않고 뽑는다** — 손으로 고칠 파일은 여전히 `tools-seo.json` 하나다.
+ *
+ * 지금 뽑는 것 = 검색 결과에 그대로 나가는 두 줄(`description`·`lead`). 사용법·자주 묻는 질문은
+ * 4만 자가 넘어 따로 다룬다(그것까지 한 번에 걸면 「덜 찼다」가 영원히 안 풀린다).
+ */
+const TOOL_FIELDS = ['description', 'lead'];
+const seoPath = path.join(APP_ROOT, 'data/tools-seo.json');
+const derivedTools = {};
+if (fs.existsSync(seoPath)) {
+  const tools = JSON.parse(fs.readFileSync(seoPath, 'utf8')).tools;
+  for (const [id, body] of Object.entries(tools)) {
+    for (const f of TOOL_FIELDS) {
+      if (typeof body[f] === 'string' && body[f].trim()) derivedTools[`tools.${id}.${f}`] = body[f];
+    }
+  }
+  const koToolsPath = path.join(I18N_DIR, SOURCE_LOCALE, 'tools.json');
+  const next = JSON.stringify(derivedTools, null, 2) + '\n';
+  const prev = fs.existsSync(koToolsPath) ? fs.readFileSync(koToolsPath, 'utf8').split('\r\n').join('\n') : '';
+  if (prev !== next && !CHECK) {
+    fs.mkdirSync(path.dirname(koToolsPath), { recursive: true });
+    fs.writeFileSync(koToolsPath, next, 'utf8');
+  }
+  if (prev !== next && CHECK) {
+    console.error('[i18n] i18n/ko/tools.json 이 data/tools-seo.json 과 어긋남 — `npm run build:i18n` 후 커밋');
+    process.exit(1);
+  }
+}
+
 /* ── ② 글 묶음 읽기 ─────────────────────────────────── */
 
 /** `i18n/<언어>/` 안의 묶음들. 없는 언어 폴더는 「아직 번역 0」 으로 본다(오류 아님). */
