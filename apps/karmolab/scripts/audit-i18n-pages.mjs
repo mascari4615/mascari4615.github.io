@@ -96,6 +96,46 @@ if (fs.existsSync(toolsDir) && codes.length > 1) {
     );
 }
 
+/* ⑤ 언어 장의 링크가 **실제로 있는 곳**을 가리키는가 ──
+ *
+ * 도구 장 258개를 찍자마자 그 전부가 `/en/karmolab/t/`(목록)·`/en/karmolab/bot/`(봇 소개)를
+ * 가리켰다 — 그 둘은 아직 그 언어로 안 찍는다. 링크는 **눌러 보기 전에는 멀쩡해 보인다**:
+ * 화면도 검사도 통과하고, 누른 사람만 404 를 본다. 그래서 찍은 장을 훑어 그 언어 주소를 전부
+ * 모으고, 파일이 실제로 있는지 본다. 없는 곳을 가리키면 여기서 선다.
+ */
+{
+  const dead = new Set();
+  let checked = 0;
+  for (const code of codes) {
+    if (code === DEFAULT_LOCALE) continue;
+    const prefix = localizedPath('/karmolab/', code);
+    const dir = path.join(root, '../blog', prefix.replace(/^\//, ''));
+    if (!fs.existsSync(dir)) continue;
+    const walk = (d) => {
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const f = path.join(d, e.name);
+        if (e.isDirectory()) {
+          walk(f);
+          continue;
+        }
+        if (e.name !== 'index.html') continue;
+        checked++;
+        const html = fs.readFileSync(f, 'utf8');
+        for (const m of html.matchAll(/href="(\/[a-z]{2}\/karmolab[^"#?]*)"/g)) {
+          const target = path.join(root, '../blog', m[1].replace(/^\//, ''), 'index.html');
+          if (!fs.existsSync(target)) dead.add(m[1]);
+        }
+      }
+    };
+    walk(dir);
+  }
+  if (dead.size)
+    fail.push(
+      `언어 장이 없는 주소를 가리킨다 (${dead.size}종, 장 ${checked}개 검사): ${[...dead].slice(0, 3).join(', ')}` +
+        ' — 그 언어로 안 찍는 장은 원래 주소 그대로 둬야 한다'
+    );
+}
+
 if (fail.length) {
   for (const f of fail) console.error('[i18n-pages] ' + f);
   process.exit(1);
