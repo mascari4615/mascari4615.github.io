@@ -347,6 +347,7 @@ import {
               <button class="btn btn-ghost" data-km="tidy">🧹 가지런히</button>
               <button class="btn btn-ghost" data-km="from-text">📝 글로 만들기</button>
               <button class="btn btn-ghost" data-km="png">🖼 그림으로 저장</button>
+              <button class="btn btn-ghost" data-km="svg">✒ SVG 로 저장 (글자 살아 있음)</button>
               <button class="btn btn-ghost" data-km="export">JSON 내보내기</button>
               <button class="btn btn-ghost" data-km="import">JSON 가져오기</button>
               <button class="btn btn-ghost" data-km="canvas-out">🗂 JSON Canvas 로 내보내기</button>
@@ -1883,6 +1884,18 @@ import {
     };
 
     // 남의 도구(Obsidian Canvas·Kinopio…)로 나가는 문. 나갈 길이 있어야 사람이 마음 놓고 쌓는다.
+    // SVG = **글자가 글자로 남는** 그림. 인쇄·확대·검색이 되고, 남이 색만 바꿔 쓰기도 쉽다
+    // (PNG 는 확대하면 뭉갠다). Sozi 계보 — 발표 결과물이 브라우저만 있으면 도는 한 장.
+    q<HTMLButtonElement>('svg').onclick = () => {
+      if (spec.nodes.length === 0) {
+        Toolbox.showToast?.('아직 그릴 것이 없습니다', undefined, undefined);
+        return;
+      }
+      const svgText = canvas?.exportSVGString({ background: canvasBackground() });
+      if (!svgText) return;
+      downloadBlob(new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' }), 'karmomap.svg');
+    };
+
     q<HTMLButtonElement>('canvas-out').onclick = () => {
       const data = JSON.stringify(toJsonCanvas(canvas?.getSpec() ?? spec), null, 2);
       downloadBlob(new Blob([data], { type: 'application/json' }), 'karmomap.canvas');

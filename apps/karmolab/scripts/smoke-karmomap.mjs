@@ -841,6 +841,19 @@ await step('장을 넘기면 화면이 끊기지 않고 미끄러진다', async 
   if (settled0 === settled1) throw new Error('장이 바뀌었는데 화면이 그대로다');
   if (mid === settled1) throw new Error('중간 프레임이 벌써 목적지다 — 미끄러진 게 아니라 점프');
 });
+await step('SVG 로 저장하면 글자가 글자로 남는다', async () => {
+  // PNG 는 확대하면 뭉갠다. SVG 의 값은 **글자가 <text> 로 살아 있는 것** — 파일 속을 열어 본다.
+  await page.click('[data-km="more"]');
+  await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
+  const [dl] = await Promise.all([
+    page.waitForEvent('download', { timeout: 8000 }),
+    page.locator('[data-km="svg"]').dispatchEvent('click'),
+  ]);
+  if (!dl.suggestedFilename().endsWith('.svg')) throw new Error('.svg 가 아니다');
+  const text = await readFile(await dl.path(), 'utf8');
+  if (!text.includes('<svg')) throw new Error('SVG 가 아니다');
+  if (!/<text[\s>]/.test(text)) throw new Error('글자가 <text> 로 안 남았다');
+});
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
   await page.click('[data-km="tab"][data-key="notes"]');
