@@ -447,7 +447,7 @@ export class GraphCanvas {
         e.stopPropagation();
         const startNodeCoords = new Map<string, { x: number; y: number }>();
         for (const n of this.spec.nodes) {
-          if (n.group !== groupId) continue;
+          if (!this.isMember(n, groupId)) continue;
           const c = this.nodeCoords.get(n.id) ?? { x: n.x, y: n.y };
           startNodeCoords.set(n.id, { x: c.x, y: c.y });
         }
@@ -817,6 +817,12 @@ export class GraphCanvas {
    * content = group 멤버 노드(드래그 반영) + group 소속 anchor(effective h, stack push 반영).
    * 근본 — spec 은 최소 hint, 실제는 자기 컨텐츠 항상 감쌈.
    */
+  /** 이 노드가 그 묶음에 드는가. 여러 묶음에 동시에 들 수 있다(격차 D-2). */
+  private isMember(n: { group: string; groups?: string[] }, groupId: string): boolean {
+    if (n.groups && n.groups.length > 0) return n.groups.includes(groupId);
+    return n.group === groupId;
+  }
+
   private computeGroupBox(group: GroupDef): { x: number; y: number; w: number; h: number } {
     let minX = group.bbox.x;
     let minY = group.bbox.y;
@@ -825,7 +831,7 @@ export class GraphCanvas {
     const pad = 12;
     // persistent 노드 (드래그 좌표 반영)
     for (const n of this.spec?.nodes ?? []) {
-      if (n.group !== group.id) continue;
+      if (!this.isMember(n, group.id)) continue;
       const c = this.nodeCoords.get(n.id) ?? { x: n.x, y: n.y };
       minX = Math.min(minX, c.x - pad);
       minY = Math.min(minY, c.y - pad);

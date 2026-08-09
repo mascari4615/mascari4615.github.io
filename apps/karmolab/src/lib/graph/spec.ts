@@ -42,7 +42,13 @@ export interface GraphNode {
   id: string;
   kind: string;
   label: string;
+  /**
+   * 소속 묶음. `group` = 주 소속(옛 필드, cockpit 이 아직 이 이름으로 읽는다),
+   * `groups` = **여러 묶음에 동시에 들 때**의 정본 (TASK-KL-202 D-2).
+   * 둘 다 있을 때는 `groups` 가 이긴다 — 캔버스의 `isMember()` 한 곳에서만 판정한다.
+   */
   group: string;
+  groups?: string[];
   x: number;
   y: number;
   w: number;
@@ -90,7 +96,13 @@ export interface GroupDef {
 export interface EphemeralAnchor {
   id: string;
   label: string;
+  /**
+   * 소속 묶음. `group` = 주 소속(옛 필드, cockpit 이 아직 이 이름으로 읽는다),
+   * `groups` = **여러 묶음에 동시에 들 때**의 정본 (TASK-KL-202 D-2).
+   * 둘 다 있을 때는 `groups` 가 이긴다 — 캔버스의 `isMember()` 한 곳에서만 판정한다.
+   */
   group: string;
+  groups?: string[];
   x: number;
   y: number;
   w: number;
