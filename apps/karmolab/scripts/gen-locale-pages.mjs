@@ -24,7 +24,7 @@ const outArg = process.argv.indexOf('--out');
 const outRoot = path.resolve(root, outArg >= 0 ? process.argv[outArg + 1] : '../blog');
 
 /** 지금 언어 판을 찍을 장들. 늘 때는 여기에 한 줄 는다. */
-const PAGES = [{ bare: '/karmolab/', namespaces: ['site'] }];
+const PAGES = [{ bare: '/karmolab/', namespaces: ['site', 'shell'] }];
 
 const shell = loadShell(root);
 const made = [];

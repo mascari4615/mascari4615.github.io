@@ -19,6 +19,45 @@ import { LOCALES, DEFAULT_LOCALE, meta, localizedPath, hreflangTags, catalog, tr
 const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+/**
+ * 화면에 박힌 글을 그 언어로 바꾼다 — **표식이 붙은 것만** (TASK-KL-203 S3).
+ *
+ * 표식 두 가지:
+ *   `data-i18n="shell.nav.tools"`        → 그 태그 안의 글
+ *   `data-i18n-title="shell.nav.tools"`  → 그 태그의 `title` 값 (aria-label 등도 같은 꼴)
+ *
+ * **왜 실행 중이 아니라 찍을 때 바꾸나**: 한국어 장은 `index.html` 그 자체다. 여기 글을 코드로
+ * 그리게 바꾸면 스크립트가 안 도는 사람과 크롤러에게는 빈 화면이 된다(지금 그 두 쪽 다 챙기고
+ * 있다 — noscript 안내까지 박아 뒀다). 그래서 **원본은 한국어 그대로 두고, 다른 언어 장을 찍을
+ * 때만** 갈아 끼운다. 실행 중 바꾸기는 언어 단추가 눌렸을 때만 필요한데, 그때는 어차피 그 언어의
+ * 주소로 옮겨 가므로 다시 찍힌 장이 온다.
+ *
+ * 표식이 곧 목록이라 **빠뜨림이 눈에 보인다** — 표식 없는 글은 안 바뀌고, 그건 `audit-i18n-dom.mjs`
+ * 가 「이 장에 표식 없는 한국어가 N개」로 센다.
+ */
+export function applyDomStrings(html, code) {
+  /* ① 태그 안의 글. 안에 다른 태그가 없는 것만 바꾼다 — 표식은 글을 직접 담은 태그에 붙인다. */
+  html = html.replace(
+    /(<(\w+)\b[^>]*\bdata-i18n="([^"]+)"[^>]*>)([^<]*)(<\/\2>)/g,
+    (_w, open, _tag, key, _old, close) => open + esc(tr(code, key)) + close
+  );
+
+  /* ② 속성값 (title·aria-label·placeholder…). 같은 태그 안에서만 찾는다. */
+  html = html.replace(/<\w+\b[^>]*>/g, (tag) => {
+    if (!tag.includes('data-i18n-')) return tag;
+    let out = tag;
+    for (const [, attr, key] of tag.matchAll(/\bdata-i18n-([\w-]+)="([^"]+)"/g)) {
+      const re = new RegExp(`\\b${attr}="[^"]*"`);
+      /* 표식만 있고 바꿀 속성이 없으면 그대로 둔다 — 조용히 새 속성을 만들지 않는다
+         (오타 하나로 `titel="…"` 같은 게 생기면 아무도 못 찾는다). 그건 검사가 잡는다. */
+      if (re.test(out)) out = out.replace(re, `${attr}="${esc(tr(code, key))}"`);
+    }
+    return out;
+  });
+
+  return html;
+}
+
 /** head 의 한 줄 meta 를 값만 갈아끼운다. 없으면 그냥 넘어간다(장마다 있는 것이 다르다). */
 function setMeta(html, attr, name, content) {
   const re = new RegExp(`(<meta\\s+${attr}="${name}"\\s+content=")[^"]*(">)`);
@@ -85,6 +124,9 @@ export function toLocalePage(html, { code, bare, site, codes, namespaces = ['sit
     `<script>window.__KARMO_LOCALE=${JSON.stringify(code)};` +
     `window.__KARMO_I18N=${JSON.stringify(inline)};</script>`;
   html = html.replace('</head>', `    ${boot}\n</head>`);
+
+  /* ⑦ 화면에 박힌 글. 표식(`data-i18n`)이 붙은 것만 바뀐다. */
+  html = applyDomStrings(html, code);
 
   return html;
 }
