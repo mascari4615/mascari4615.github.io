@@ -1,0 +1,20 @@
+{
+  "textdiff.tab": "Compare",
+  "textdiff.mdd": "I will look closely at what changed.",
+  "textdiff.label.a": "Original (A)",
+  "textdiff.label.b": "Changed (B)",
+  "textdiff.ph.a": "Original text",
+  "textdiff.ph.b": "Text to compare",
+  "textdiff.btn.swap": "A ↔ B",
+  "textdiff.btn.clear": "Clear",
+  "textdiff.view.unified": "Unified",
+  "textdiff.view.split": "Side by side",
+  "textdiff.opt.trim": "Ignore trailing spaces",
+  "textdiff.opt.case": "Ignore case",
+  "textdiff.opt.onlyChanged": "Only changed lines",
+  "textdiff.status.idle": "Put text on both sides and it compares right away.",
+  "textdiff.status.none": "Nothing to show.",
+  "textdiff.status.same": "The two texts are identical ({n} lines).",
+  "textdiff.status.diff": "{add} added · {del} removed · {same} unchanged",
+  "textdiff.status.truncated": " · compared the first {n} lines only"
+}
