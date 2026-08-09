@@ -29,7 +29,7 @@ import type {
 } from './spec';
 import type { GraphPersistAdapter } from './adapter';
 import { NULL_PERSIST_ADAPTER } from './adapter';
-import { injectGraphCanvasStyles } from './styles';
+import { injectGraphCanvasStyles, GRAPH_CANVAS_CSS } from './styles';
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -1503,6 +1503,50 @@ export class GraphCanvas {
   }
 
   // ── 공개 헬퍼 ───────────────────────────────────────────────────────────────
+
+  /**
+   * 그린 것 전체를 **혼자 서는 SVG 문자열**로 뽑는다 (TASK-KL-202 격차 G).
+   *
+   * 화면에 보이는 만큼이 아니라 *world bbox 전체* 를 담고, 화면용 UI(연결 손잡이·선택 테두리)는
+   * 뺀다 — 레퍼런스들이 「스크린샷 모드」로 UI 를 숨기고 사람에게 캡처를 시키는 자리인데,
+   * 여기선 그럴 필요가 없다. CSS 를 문자열째 끼워 넣어야 클래스로 준 모양이 살아남는다.
+   */
+  exportSVGString(opts: { padding?: number; background?: string } = {}): string {
+    const pad = opts.padding ?? 32;
+    const bounds = this.worldBounds();
+    const w = Math.max(1, bounds.w + pad * 2);
+    const h = Math.max(1, bounds.h + pad * 2);
+
+    const clone = this.svg.cloneNode(true) as SVGSVGElement;
+    clone.removeAttribute('style');
+    clone.setAttribute('xmlns', SVG_NS);
+    clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+    clone.setAttribute('width', String(Math.round(w)));
+    clone.setAttribute('height', String(Math.round(h)));
+    clone.setAttribute('viewBox', `${bounds.minX - pad} ${bounds.minY - pad} ${w} ${h}`);
+
+    // 화면용 변환(pan/zoom)은 viewBox 가 대신한다 — 남겨 두면 두 번 적용된다.
+    clone.querySelector('.ck-world')?.removeAttribute('transform');
+    // 화면에서만 쓰는 손잡이·선택 표시는 그림에 남지 않는다.
+    clone.querySelectorAll('.ck-link-handle, .ck-link-temp').forEach((el) => el.remove());
+    clone.querySelectorAll('.is-selected').forEach((el) => el.classList.remove('is-selected'));
+
+    const style = document.createElementNS(SVG_NS, 'style');
+    style.textContent = GRAPH_CANVAS_CSS;
+    clone.insertBefore(style, clone.firstChild);
+
+    if (opts.background) {
+      const bg = document.createElementNS(SVG_NS, 'rect');
+      bg.setAttribute('x', String(bounds.minX - pad));
+      bg.setAttribute('y', String(bounds.minY - pad));
+      bg.setAttribute('width', String(w));
+      bg.setAttribute('height', String(h));
+      bg.setAttribute('fill', opts.background);
+      clone.insertBefore(bg, style.nextSibling);
+    }
+
+    return new XMLSerializer().serializeToString(clone);
+  }
 
   /** 화면 좌표(clientX/Y) → world 좌표. 더블클릭 자리·끌고 있는 선 끝을 잡는 데 쓴다. */
   screenToWorld(clientX: number, clientY: number): { x: number; y: number } {
