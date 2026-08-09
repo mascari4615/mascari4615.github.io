@@ -32,5 +32,6 @@
   "qrread.status.cameraOff": "Camera turned off.",
   "qrread.status.readError": "Something went wrong while reading: {message}",
   "qrread.status.cameraError": "Could not turn the camera on: {message}",
-  "qrread.copied": "Copied what it says"
+  "qrread.copied": "Copied what it says",
+  "qrread.tab": "Read a QR"
 }

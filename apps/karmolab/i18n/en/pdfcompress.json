@@ -41,5 +41,6 @@
   "pdfcompress.error.preview": "Something went wrong while previewing: {message}",
   "pdfcompress.error.run": "Something went wrong while shrinking: {message}",
   "pdfcompress.file.suffix": "-small.pdf",
-  "pdfcompress.status.saved": "Downloaded."
+  "pdfcompress.status.saved": "Downloaded.",
+  "pdfcompress.tab": "Shrink it"
 }

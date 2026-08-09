@@ -41,5 +41,6 @@
   "pdfcompress.error.preview": "プレビュー中に問題が起きました: {message}",
   "pdfcompress.error.run": "処理中に問題が起きました: {message}",
   "pdfcompress.file.suffix": "-small.pdf",
-  "pdfcompress.status.saved": "ダウンロードしました。"
+  "pdfcompress.status.saved": "ダウンロードしました。",
+  "pdfcompress.tab": "容量を減らす"
 }
