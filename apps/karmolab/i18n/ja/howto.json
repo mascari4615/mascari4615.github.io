@@ -53,5 +53,10 @@
   "howto.qrgen.0": "種類を選ぶ（URL・Wi-Fi・連絡先・SMS）",
   "howto.qrgen.1": "内容を入力 — プレビューが即時に更新",
   "howto.qrgen.2": "誤り訂正レベル・サイズ・色を調整",
-  "howto.qrgen.3": "PNG または SVG で保存（印刷物は SVG）"
+  "howto.qrgen.3": "PNG または SVG で保存（印刷物は SVG）",
+  "howto.jsonfmt.0": "JSON を貼り付ける（貼った瞬間に検査・整形）",
+  "howto.jsonfmt.1": "「ツリー」で構造を眺める — 折りたたみ・展開、行を押すとパスをコピー",
+  "howto.jsonfmt.2": "検索欄にキーや値を入れるとその行だけ示す",
+  "howto.jsonfmt.3": "エラーが出たら行と文字位置を確認、よくある間違いなら「このまま直す」",
+  "howto.jsonfmt.4": "整形・圧縮・キー順に並べ替え・文字列エスケープから必要なものを選ぶ"
 }

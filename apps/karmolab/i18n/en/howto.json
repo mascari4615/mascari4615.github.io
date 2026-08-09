@@ -53,5 +53,10 @@
   "howto.qrgen.0": "Pick a type (URL, Wi-Fi, contact, message)",
   "howto.qrgen.1": "Enter the content — the preview updates as you type",
   "howto.qrgen.2": "Adjust error correction, size and colors",
-  "howto.qrgen.3": "Save as PNG or SVG (use SVG for print)"
+  "howto.qrgen.3": "Save as PNG or SVG (use SVG for print)",
+  "howto.jsonfmt.0": "Paste JSON — it is checked and beautified as you paste",
+  "howto.jsonfmt.1": "Use Tree to scan the shape — fold and unfold, click a row to copy its path",
+  "howto.jsonfmt.2": "Type a key or value in the find box to jump to that row",
+  "howto.jsonfmt.3": "On an error, read the line and column — for a common slip, use \"Fix it for me\"",
+  "howto.jsonfmt.4": "Switch between beautify, minify, sort keys and escape string"
 }
