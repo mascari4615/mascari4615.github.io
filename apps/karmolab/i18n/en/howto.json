@@ -149,5 +149,9 @@
   "howto.asciiart.1": "Set how many characters across — more means finer detail",
   "howto.asciiart.2": "Pick a character set (detailed · blocks · simple · braille)",
   "howto.asciiart.3": "Invert the brightness if it goes on a dark background",
-  "howto.asciiart.4": "Copy the text, or save it as PNG"
+  "howto.asciiart.4": "Copy the text, or save it as PNG",
+  "howto.text2img.0": "Write your text",
+  "howto.text2img.1": "Pick the size and color",
+  "howto.text2img.2": "Check the preview",
+  "howto.text2img.3": "Download as PNG"
 }

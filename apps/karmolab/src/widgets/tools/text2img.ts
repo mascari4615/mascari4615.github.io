@@ -11,19 +11,22 @@
  */
 import { fileSize as size } from './shared/media';
 
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
-  const RATIOS: Array<[string, number, number, string]> = [
-    ['square', 1080, 1080, '정사각형 — 인스타'],
-    ['wide', 1200, 675, '가로 — 트위터·블로그'],
-    ['story', 1080, 1350, '세로 — 스토리'],
-    ['banner', 1200, 400, '띠 — 머리말']
+  /* 이름은 **쓸 때** 붙인다 — 표를 만들 때 정하면 그 시점엔 말 묶음이 아직 안 와서 열쇠가 굳는다. */
+  const RATIOS: Array<[string, number, number]> = [
+    ['square', 1080, 1080],
+    ['wide', 1200, 675],
+    ['story', 1080, 1350],
+    ['banner', 1200, 400]
   ];
 
-  const THEMES: Array<[string, string, string, string]> = [
-    ['dark', '#12141a', '#f2f4f8', '어두운'],
-    ['light', '#f7f8fa', '#1a1d24', '밝은'],
-    ['warm', '#2a1810', '#ffd9a8', '따뜻한'],
-    ['mint', '#0f2a25', '#a8f0dc', '민트']
+  const THEMES: Array<[string, string, string]> = [
+    ['dark', '#12141a', '#f2f4f8'],
+    ['light', '#f7f8fa', '#1a1d24'],
+    ['warm', '#2a1810', '#ffd9a8'],
+    ['mint', '#0f2a25', '#a8f0dc']
   ];
 
   const toLinear = (v: number): number => (v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
@@ -45,63 +48,81 @@ import { fileSize as size } from './shared/media';
 
   Toolbox.register({
     id: 'text2img',
-    title: '글자를 그림으로',
+    title: t('widgets.text2img.title', undefined, '글자를 그림으로'),
     category: 'tool',
-    desc: '인용구나 공지를 이미지 카드로 만듭니다. 긴 글도 잘리지 않게 크기를 맞춰 줍니다',
+    desc: t(
+      'widgets-desc.text2img.desc',
+      undefined,
+      '인용구나 공지를 이미지 카드로 만듭니다. 긴 글도 잘리지 않게 크기를 맞춰 줍니다'
+    ),
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 10h10M7 13h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '글자 → 그림',
+        label: t('text2img.tab', undefined, '글자 → 그림'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('text2img').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label" for="tiText">넣을 글</label>
-              <textarea id="tiText" rows="5" spellcheck="false" style="width:100%;" placeholder="여기에 적으면 오른쪽 그림이 바로 바뀝니다.">사람은 이유를 알아야 고친다.</textarea>
+              <label class="field-label" for="tiText">${esc(t('text2img.label.text'))}</label>
+              <textarea id="tiText" rows="5" spellcheck="false" style="width:100%;" placeholder="${esc(t('text2img.ph.text'))}">${esc(t('text2img.sample'))}</textarea>
             </div>
 
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">크기</div>
-                  <select id="tiRatio" aria-label="크기">
-                    ${RATIOS.map(([id, , , label]) => `<option value="${id}">${label}</option>`).join('')}
+                  <div class="tool-sublabel">${esc(t('text2img.label.ratio'))}</div>
+                  <select id="tiRatio" aria-label="${esc(t('text2img.label.ratio'))}">
+                    ${RATIOS.map(([id]) => `<option value="${id}">${esc(t(`text2img.ratio.${id}`))}</option>`).join('')}
                   </select>
                 </div>
                 <div>
-                  <div class="tool-sublabel">색</div>
-                  <select id="tiTheme" aria-label="색">
-                    ${THEMES.map(([id, , , label]) => `<option value="${id}">${label}</option>`).join('')}
+                  <div class="tool-sublabel">${esc(t('text2img.label.theme'))}</div>
+                  <select id="tiTheme" aria-label="${esc(t('text2img.label.theme'))}">
+                    ${THEMES.map(([id]) => `<option value="${id}">${esc(t(`text2img.theme.${id}`))}</option>`).join('')}
                   </select>
                 </div>
               </div>
               <div class="tool-grid-2" style="margin-top:10px;">
                 <div>
-                  <div class="tool-sublabel">글자 크기 <span id="tiScaleVal" class="range-value">자동</span></div>
-                  <input type="range" id="tiScale" aria-label="글자 크기" min="0" max="200" value="0">
+                  <div class="tool-sublabel">${esc(t('text2img.label.scale'))} <span id="tiScaleVal" class="range-value">${esc(
+                    t('text2img.scale.auto')
+                  )}</span></div>
+                  <input type="range" id="tiScale" aria-label="${esc(t('text2img.label.scale'))}" min="0" max="200" value="0">
                 </div>
                 <div>
-                  <div class="tool-sublabel">아래 서명 (비우면 없음)</div>
-                  <input type="text" id="tiSign" aria-label="아래 서명" placeholder="@mascari4615" spellcheck="false">
+                  <div class="tool-sublabel">${esc(t('text2img.label.sign'))}</div>
+                  <input type="text" id="tiSign" aria-label="${esc(t('text2img.label.sign'))}" placeholder="@mascari4615" spellcheck="false">
                 </div>
               </div>
               <div class="tool-chips" style="margin-top:10px;">
-                <label class="tool-chip"><input type="checkbox" id="tiGrad" checked> 그라데이션 배경</label>
-                <label class="tool-chip"><input type="checkbox" id="tiQuote"> 따옴표 붙이기</label>
+                <label class="tool-chip"><input type="checkbox" id="tiGrad" checked> ${esc(t('text2img.opt.grad'))}</label>
+                <label class="tool-chip"><input type="checkbox" id="tiQuote"> ${esc(t('text2img.opt.quote'))}</label>
               </div>
             </div>
 
-            <div class="tool-sublabel">미리보기</div>
+            <div class="tool-sublabel">${esc(t('text2img.label.preview'))}</div>
             <canvas id="tiCanvas" style="max-width:100%; border-radius:10px; display:block; border:1px solid rgba(128,128,128,0.25);"></canvas>
 
             <div class="cc-stats" id="tiStats"></div>
 
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="tiSave">PNG 으로 받기</button>
+              <button class="btn btn-primary" id="tiSave">${esc(t('text2img.btn.save'))}</button>
             </div>
 
-            <div class="tool-status" id="tiStatus">글은 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="tiStatus">${esc(t('text2img.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -139,8 +160,8 @@ import { fileSize as size } from './shared/media';
           }
 
           function draw(): { lines: number; fontSize: number } {
-            const [, W, H] = RATIOS.find((r) => r[0] === $<HTMLSelectElement>('#tiRatio').value) as [string, number, number, string];
-            const [, bg, fg] = THEMES.find((t) => t[0] === $<HTMLSelectElement>('#tiTheme').value) as [string, string, string, string];
+            const [, W, H] = RATIOS.find((r) => r[0] === $<HTMLSelectElement>('#tiRatio').value) as [string, number, number];
+            const [, bg, fg] = THEMES.find((t) => t[0] === $<HTMLSelectElement>('#tiTheme').value) as [string, string, string];
             canvas.width = W;
             canvas.height = H;
             const ctx = canvas.getContext('2d');
@@ -197,15 +218,15 @@ import { fileSize as size } from './shared/media';
 
           function refresh(): void {
             const manual = parseInt(scaleEl.value, 10);
-            $<HTMLElement>('#tiScaleVal').textContent = manual > 0 ? manual + 'px' : '자동';
+            $<HTMLElement>('#tiScaleVal').textContent = manual > 0 ? manual + 'px' : t('text2img.scale.auto');
             const { lines, fontSize } = draw();
             stats.innerHTML =
-              stat('그림 크기', `${canvas.width}×${canvas.height}`, true) +
-              stat('줄', `${lines}줄`) +
-              stat('글자 크기', `${fontSize}px`);
+              stat(t('text2img.stat.size'), `${canvas.width}×${canvas.height}`, true) +
+              stat(t('text2img.stat.lines'), t('text2img.value.lines', { n: lines })) +
+              stat(t('text2img.stat.font'), `${fontSize}px`);
             if (manual > 0 && lines * fontSize * 1.45 > canvas.height * 0.86) {
-              say('글자가 커서 넘칠 수 있어요. 자동으로 두면 알아서 맞춥니다.', 'error');
-            } else say('마음에 들면 받으세요.', 'ok');
+              say(t('text2img.say.overflow'), 'error');
+            } else say(t('text2img.say.ready'), 'ok');
           }
 
           [textEl, scaleEl, $<HTMLInputElement>('#tiSign')].forEach((el) => el.addEventListener('input', refresh));
@@ -213,23 +234,20 @@ import { fileSize as size } from './shared/media';
           $<HTMLButtonElement>('#tiSave').onclick = () => {
             canvas.toBlob((blob) => {
               if (!blob) {
-                say('그림으로 바꾸지 못했어요.', 'error');
+                say(t('text2img.err.render'), 'error');
                 return;
               }
               const a = document.createElement('a');
               a.href = URL.createObjectURL(blob);
-              a.download = '글자카드.png';
+              a.download = t('text2img.file.name') + '.png';
               a.click();
               // 만든 것을 이어서 쓸 수 있게 내놓는다 (TASK-KL-133) — 받을 도구가 없으면 줄이 안 생긴다.
               Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'text2img' });
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-              say(`${canvas.width}×${canvas.height} · ${size(blob.size)} 로 받았어요.`, 'ok');
+              say(t('text2img.say.saved', { w: canvas.width, h: canvas.height, size: size(blob.size) }), 'ok');
               Toolbox.trackUse?.('save');
             }, 'image/png');
           };
           refresh();
-        }
-      }
-    ]
-  });
+  }
 })();

@@ -149,5 +149,9 @@
   "howto.asciiart.1": "横の文字数を調整 — 多いほど細かい",
   "howto.asciiart.2": "文字セットを選ぶ（細かく・ブロック・シンプル・点字）",
   "howto.asciiart.3": "暗い背景で使うなら明暗を反転",
-  "howto.asciiart.4": "テキストをコピー、または PNG で保存"
+  "howto.asciiart.4": "テキストをコピー、または PNG で保存",
+  "howto.text2img.0": "文章を書く",
+  "howto.text2img.1": "サイズと色を選ぶ",
+  "howto.text2img.2": "プレビューを確認",
+  "howto.text2img.3": "PNG でダウンロード"
 }
