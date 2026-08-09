@@ -19,6 +19,8 @@
   "widgets-desc.randomgen.desc": "창작용 키워드·주제를 랜덤으로 뽑습니다",
   "widgets-desc.passgen.desc": "안전한 비밀번호를 만들고, 쓰던 것이 얼마나 버티는지 확인합니다. 아무것도 전송하지 않습니다",
   "widgets-desc.devtool.desc": "JSON 포맷·JWT 디코드·정규식 테스트·해시·UUID·크론·URL·암호화를 한 곳에서",
+  "widgets-desc.dailytype.desc": "매일 바뀌는 세 문장 — 전원 같은 문제, 결과는 격자로만 공유",
+  "widgets-desc.chain.desc": "도구 여러 개를 이어서 한 번에 — 앞 결과가 다음 도구의 입력이 됩니다",
   "widgets-desc.base64.desc": "텍스트와 Base64 를 서로 바꿉니다. 한글 안 깨짐, URL-safe 표기 지원",
   "widgets-desc.crypto.desc": "텍스트를 AES, Base64, URL 인코딩으로 암호화·복호화합니다",
   "widgets-desc.memo.desc": "로컬 메모를 저장하고 관리합니다",
@@ -189,6 +191,7 @@
   "widgets-desc.laptop.desc": "집에서 24시간 도는 노트북 — 파일 공유·빌드 현황으로 가는 문",
   "widgets-desc.orbita.desc": "궤도에 색을 찍어 만드는 폴리리듬 시퀀서 — 브라우저 신스 + MIDI 출력",
   "widgets-desc.bluemarble.desc": "지금 이 순간의 지구 — 낮과 밤, 도시 불빛, 방금 난 지진, 머리 위의 ISS",
+  "widgets-desc.garden.desc": "오늘의 규칙 하나로 스스로 자라는 격자 — 손대지 않고 지켜봅니다",
   "widgets-desc.collection.desc": "써 본 도구에 도장이 찍힌다 — 몇 칸이나 채웠나",
   "widgets-desc.karmomap.desc": "관계도·세계관·카드 전개를 그리는 캔버스 — 어휘 팩을 갈아끼우면 쓰임새가 바뀐다"
 }

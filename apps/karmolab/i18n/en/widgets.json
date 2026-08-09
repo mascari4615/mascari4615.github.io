@@ -192,5 +192,6 @@
   "widgets.devtools.title": "Debug",
   "widgets.localai.title": "On-device AI",
   "widgets.chain.title": "Chain tools",
-  "widgets.garden.title": "Garden"
+  "widgets.garden.title": "Garden",
+  "widgets.dailytype.title": "Today’s Hangul typing"
 }
