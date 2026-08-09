@@ -57,15 +57,32 @@ const server = http.createServer((req, res) => {
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const BASE = `http://127.0.0.1:${server.address().port}`;
 
+/* 화면 **폭 둘**에서 잰다. 폭이 다르면 쓰이는 규칙이 달라진다 — 데스크톱에서만 재면
+   `RESPONSIVE` 구역 25KB 가 통째로 「낭비」로 보이지만, 그건 폰에서 쓰이는 것이다.
+   한쪽에서만 재고 「안 쓰인다」고 적으면 지도가 사람을 엉뚱한 데로 보낸다. */
+const VIEWPORTS = [
+  { name: '데스크톱 1280', width: 1280, height: 800 },
+  { name: '폰 390', width: 390, height: 844 },
+];
+
 const browser = await chromium.launch();
-const page = await browser.newPage();
-await Promise.all([page.coverage.startJSCoverage(), page.coverage.startCSSCoverage()]);
-await page.goto(BASE + '/apps/karmolab/index.html', { waitUntil: 'load' });
-await page.waitForFunction(() => typeof Toolbox !== 'undefined', null, { timeout: 30000 }).catch(() => {});
-/* 첫 화면이 **자리를 잡을 때까지**. 여기서 일찍 끊으면 늦게 도는 코드가 통째로 「안 쓰임」이 된다
-   (마스코트·글꼴·계정은 한가해진 뒤에 온다). */
-await page.waitForTimeout(4000);
-const [js, css] = await Promise.all([page.coverage.stopJSCoverage(), page.coverage.stopCSSCoverage()]);
+
+async function collect(viewport) {
+  const page = await browser.newPage({ viewport: { width: viewport.width, height: viewport.height } });
+  await Promise.all([page.coverage.startJSCoverage(), page.coverage.startCSSCoverage()]);
+  await page.goto(BASE + '/apps/karmolab/index.html', { waitUntil: 'load' });
+  await page.waitForFunction(() => typeof Toolbox !== 'undefined', null, { timeout: 30000 }).catch(() => {});
+  /* 첫 화면이 **자리를 잡을 때까지**. 여기서 일찍 끊으면 늦게 도는 코드가 통째로 「안 쓰임」이 된다
+     (마스코트·글꼴·계정은 한가해진 뒤에 온다). */
+  await page.waitForTimeout(4000);
+  const [jsOne, cssOne] = await Promise.all([page.coverage.stopJSCoverage(), page.coverage.stopCSSCoverage()]);
+  await page.close();
+  return { js: jsOne, css: cssOne };
+}
+
+const perView = [];
+for (const viewport of VIEWPORTS) perView.push({ viewport, ...(await collect(viewport)) });
+const { js, css } = perView[0]; // 기준선·판정은 데스크톱 판으로 (한 벌만 잠근다)
 
 /** 우리 파일만 본다 — 남의 CDN 이나 인라인 조각을 섞으면 무엇을 고쳐야 할지 흐려진다. */
 function summarize(entries, kind) {
@@ -126,8 +143,6 @@ function sectionUsage(entries) {
     .sort((a, b) => b.unused - a.unused);
 }
 
-const sectionRows = sectionUsage(css);
-
 const rows = [...summarize(css, 'css'), ...summarize(js, 'js')].sort((a, b) => b.unused - a.unused);
 const kb = (n) => `${(n / 1024).toFixed(1)}KB`;
 const sum = (list, key) => list.reduce((s, r) => s + r[key], 0);
@@ -155,11 +170,28 @@ if (totals.jsUnused == null) {
 for (const row of rows.slice(0, 8)) {
   console.log(`[coverage]   ${kb(row.unused).padStart(8)} 안 쓰임 / ${kb(row.total).padStart(8)}  ${row.file}`);
 }
-if (sectionRows) {
-  console.log('[coverage] 첫 그림을 막는 shell-critical.css — 구역별 안 쓰임 (뒤로 뺄 후보 지도)');
-  for (const row of sectionRows.slice(0, 8)) {
-    console.log(`[coverage]   ${kb(row.unused).padStart(8)} / ${kb(row.total).padStart(8)}  ${row.title}`);
+/* 지도는 **폭을 나란히** 놓는다. 「양쪽 다 안 쓰임」인 구역만이 진짜 후보다 —
+   한쪽에서만 안 쓰이는 것은 그 폭에서 쓰는 것이지 낭비가 아니다. */
+const maps = perView.map((v) => ({ name: v.viewport.name, rows: sectionUsage(v.css) }));
+if (maps.every((m) => m.rows)) {
+  const byTitle = new Map();
+  for (const map of maps) {
+    for (const row of map.rows) {
+      const acc = byTitle.get(row.title) || { title: row.title, total: row.total, per: {} };
+      acc.per[map.name] = row.unused;
+      byTitle.set(row.title, acc);
+    }
   }
+  const names = maps.map((m) => m.name);
+  const merged = Array.from(byTitle.values())
+    .map((row) => ({ ...row, bothUnused: Math.min(...names.map((n) => row.per[n] ?? 0)) }))
+    .sort((a, b) => b.bothUnused - a.bothUnused);
+  console.log(`[coverage] 첫 그림을 막는 shell-critical.css — 구역별 안 쓰임 (${names.join(' / ')})`);
+  for (const row of merged.slice(0, 8)) {
+    const cells = names.map((n) => kb(row.per[n] ?? 0).padStart(8)).join(' /');
+    console.log(`[coverage]   ${cells} / 전체 ${kb(row.total).padStart(8)}  ${row.title}`);
+  }
+  console.log('[coverage]   양쪽 폭에서 다 안 쓰이는 것만 후보다 — 한쪽만이면 그 폭에서 쓰는 것이다.');
   console.log('[coverage]   ⚠ 이 숫자만 보고 빼지 마라 — 쓰임 0% 인데 자리를 잡는 구역이 있다(split-css.mjs 머리말).');
 } else {
   console.log('[coverage] 구역별 쓰임은 못 쟀다 — shell-critical.css 를 못 받았거나 구역 배너가 없다.');
