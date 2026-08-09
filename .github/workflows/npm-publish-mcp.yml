@@ -6,8 +6,14 @@ name: "karmolab-mcp 발행"
 # 명령을 돌리는 자리(에이전트 셸·CI)는 TTY 가 아니라서, npm 이 승인 URL 만 찍고 그대로 죽는다
 # (2026-08-10 에 세 번 그랬다). 즉 발행이 **사람이 창 앞에 앉아 있는지**에 달려 있었다.
 #
-# 여기서는 그 의존을 끊는다. 저장소 비밀 `NPM_TOKEN`(granular access token, bypass 2FA)만
-# 있으면 버튼 한 번으로 나간다. 토큰 만들기는 npmjs.com 웹에서 하는 일이라 TTY 가 필요 없다.
+# 여기서는 그 의존을 끊는다. **비밀은 안 쓰는 쪽이 기본이다** — npm 의 Trusted Publishing
+# (OIDC)을 쓰면 저장소에 토큰을 두지 않고도 발행된다. npm 이 이 저장소·이 워크플로를 신뢰하도록
+# 한 번 등록해 두면, 그다음부터는 깃허브가 발급한 일회용 증명으로 올라간다.
+# (npm 자신이 「bypass-2FA 토큰은 위험하니 Trusted Publishing 을 쓰라」고 안내한다.)
+#
+# 닭-달걀이 하나 있다: Trusted Publisher 는 **이미 있는 패키지**에 등록한다. 그래서 순서는
+#   ① 첫 판만 사람이 진짜 터미널에서 발행 → ② npmjs.com 에서 이 워크플로를 신뢰 등록
+#   → ③ 그 뒤로는 버튼. 그 전까지는 `NPM_TOKEN` 비밀이 있으면 그걸로도 돈다(임시 우회).
 #
 # 손으로만 돌린다(`workflow_dispatch`) — 태그·push 에 매달지 않는다. 발행은 되돌리기 어려우니
 # **사람이 누르는 순간**이 있어야 한다.
@@ -24,6 +30,12 @@ concurrency:
   group: npm-publish-mcp
   cancel-in-progress: false
 
+# OIDC 증명을 받으려면 이 권한이 있어야 한다. 없으면 Trusted Publishing 이 조용히 토큰
+# 방식으로 떨어진다 — 그러면 「비밀 없이 된다」던 약속이 깨진 걸 아무도 모른다.
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -34,6 +46,13 @@ jobs:
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org
+
+      # Trusted Publishing(OIDC)은 **최신 npm 에만** 있다. Node 20 이 데려오는 npm 10 으로는
+      # 조용히 토큰 방식으로 떨어진다. 그래서 여기서 npm 만 올려 둔다.
+      - name: Use a recent npm
+        run: |
+          npm install -g npm@latest
+          npm --version
 
       # 알맹이는 화면 쪽 저장소에 있고, 빌드에 그쪽 esbuild 를 빌려 쓴다.
       - name: Install karmolab deps
@@ -55,8 +74,11 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           if [ -z "$NODE_AUTH_TOKEN" ]; then
-            echo "::error::NPM_TOKEN 비밀이 없다. npmjs.com → Access Tokens → Granular(=publish 권한, bypass 2FA) 로 만들어 저장소 Secrets 에 NPM_TOKEN 으로 넣어라."
-            exit 1
+            echo "토큰 없음 — Trusted Publishing(OIDC)으로 시도한다. 이게 바라던 길이다."
+            echo "안 되면 둘 중 하나다: ① 아직 이 워크플로가 npm 에 신뢰 등록되지 않았다"
+            echo "  (npmjs.com → karmolab-mcp → Settings → Trusted Publisher 에 저장소와 이 파일 이름을 등록)"
+            echo "  — 단 그 화면은 패키지가 이미 있어야 나온다. 첫 판은 사람이 터미널에서 한 번 올려야 한다."
+            echo "② 급하면 Secrets 에 NPM_TOKEN(granular, bypass 2FA)을 넣어 임시로 우회한다."
           fi
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             echo "흉내만 낸다 (dry_run=true). 진짜로 올리려면 다시 돌리며 체크를 끄면 된다."
