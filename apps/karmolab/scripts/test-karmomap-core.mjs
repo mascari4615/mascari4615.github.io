@@ -46,6 +46,7 @@ async function loadModules() {
     export * as edgedrag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-edgedrag.ts'))};
     export * as drag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-drag.ts'))};
     export * as minimap from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-minimap.ts'))};
+    export * as pick from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-pick.ts'))};
     export * as sna from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/sna.ts'))};
   `);
   const out = path.join(os.tmpdir(), `km-core-${Date.now()}.mjs`);
@@ -508,6 +509,19 @@ const M = await loadModules();
   check(tiny[0].w >= MINIMAP_MIN_PX && tiny[0].h >= MINIMAP_MIN_PX, '아무리 줄여도 안 보일 만큼 작아지지 않는다');
   const far = rects[2];
   check(far.x > rects[1].x && far.y > rects[1].y, '판 반대편 카드는 미니맵에서도 반대편에 있다');
+}
+
+// ---- 겹친 선 중에서 고르기 (canvas-pick)
+{
+  const { nextOverlapping } = M.pick;
+  check(nextOverlapping([], null) === null, '아무것도 없으면 고를 것도 없다');
+  check(nextOverlapping(['e1', 'e2', 'e3'], null) === 'e1', '처음 누르면 맨 위 선');
+  check(nextOverlapping(['e1', 'e2', 'e3'], 'e1') === 'e2', 'Shift 를 누를 때마다 아래로 내려간다');
+  // 끝에서 멈추면 사람은 그게 끝인지 고장인지 모른다 — 돌아온다.
+  check(nextOverlapping(['e1', 'e2', 'e3'], 'e3') === 'e1', '마지막 다음은 처음으로 돌아온다');
+  check(nextOverlapping(['e1', 'e2'], 'e9') === 'e1', '직전에 고른 선이 이 자리에 없으면 맨 위부터');
+  check(nextOverlapping(['e1', 'e1', 'e2'], 'e1') === 'e2', '같은 선이 두 번 잡혀도 한 번으로 센다');
+  check(nextOverlapping(['e1'], 'e1') === 'e1', '한 개뿐이면 그대로');
 }
 
 // 되돌아가지 않게: **캔버스 크기 자물쇠**.
