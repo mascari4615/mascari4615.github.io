@@ -33,6 +33,14 @@ export function renderEdgePanel(ctx: PanelCtx): void {
     </div>
     ${docFieldHtml(ctx, edge, EDGE_DOC_SKIN)}
     <div class="km-field">
+      <label>양쪽 시선</label>
+      <div class="km-hint">같은 관계라도 <b>보는 쪽에 따라 다릅니다</b>. 한 칸에 몰아 적으면 누구 마음인지 흐려집니다.</div>
+      <input type="text" data-km="ed-view-from" value="${esc(edge.viewFrom ?? '')}"
+        placeholder="${esc(nameOf(edge.from))} 가 보는 ${esc(nameOf(edge.to))}" />
+      <input type="text" data-km="ed-view-to" value="${esc(edge.viewTo ?? '')}"
+        placeholder="${esc(nameOf(edge.to))} 가 보는 ${esc(nameOf(edge.from))}" />
+    </div>
+    <div class="km-field">
       <label>꼬리표 <span class="km-hint">쉼표로 여러 개</span></label>
       <input type="text" data-km="ed-tags" value="${esc((edge.tags ?? []).join(', '))}" />
     </div>
@@ -60,6 +68,14 @@ export function renderEdgePanel(ctx: PanelCtx): void {
     ctx.persist();
     if (redrawSide) ctx.refresh();
   }, () => {}, EDGE_DOC_SKIN);
+  (side.querySelector('[data-km="ed-view-from"]') as HTMLInputElement).oninput = (ev) => {
+    edge.viewFrom = (ev.target as HTMLInputElement).value.trim() || undefined;
+    ctx.persist();
+  };
+  (side.querySelector('[data-km="ed-view-to"]') as HTMLInputElement).oninput = (ev) => {
+    edge.viewTo = (ev.target as HTMLInputElement).value.trim() || undefined;
+    ctx.persist();
+  };
   (side.querySelector('[data-km="ed-tags"]') as HTMLInputElement).onchange = (ev) => {
     const list = (ev.target as HTMLInputElement).value.split(',').map((x) => x.trim()).filter(Boolean);
     edge.tags = list.length > 0 ? [...new Set(list)] : undefined;
