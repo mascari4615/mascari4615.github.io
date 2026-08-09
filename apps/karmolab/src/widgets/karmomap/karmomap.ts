@@ -142,6 +142,7 @@ import {
           <button class="btn btn-ghost" data-km="undo" title="되돌리기 (Ctrl+Z)" disabled>↶</button>
           <button class="btn btn-ghost" data-km="redo" title="다시 하기 (Ctrl+Y)" disabled>↷</button>
           <button class="btn btn-ghost" data-km="fit">화면 맞춤</button>
+          <button class="btn btn-ghost" data-km="png" title="보이는 그대로 PNG 로 (2배 해상도)">🖼 그림</button>
           <button class="btn btn-ghost" data-km="export">내보내기</button>
           <button class="btn btn-ghost" data-km="import">가져오기</button>
           <button class="btn btn-danger" data-km="clear">전체 삭제</button>
@@ -773,15 +774,60 @@ import {
 
     q<HTMLButtonElement>('fit').onclick = () => canvas?.fitView();
 
-    q<HTMLButtonElement>('export').onclick = () => {
-      const data = JSON.stringify(canvas?.getSpec() ?? spec, null, 2);
-      const blob = new Blob([data], { type: 'application/json' });
+    // ── 그림으로 내보내기 (격차 G) ──────────────────────────────────────────
+    // 레퍼런스들은 「UI 를 숨길 테니 직접 캡처하세요」에서 멈춘다. 우리 캔버스는 SVG 라
+    // 화면 밖까지 포함해 원본 해상도로 뽑을 수 있다 — 사람 손을 빌릴 이유가 없다.
+    function downloadBlob(blob: Blob, name: string): void {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'karmomap.json';
+      a.download = name;
       a.click();
       URL.revokeObjectURL(url);
+    }
+
+    /** 화면 테마의 실제 배경색 — 투명 PNG 로 뽑으면 흰 배경 뷰어에서 글씨가 안 보인다. */
+    function canvasBackground(): string {
+      const probe = getComputedStyle(canvasEl).backgroundColor;
+      return probe && probe !== 'rgba(0, 0, 0, 0)' ? probe : '#111318';
+    }
+
+    function exportImage(scale: number): void {
+      if (spec.nodes.length === 0) {
+        Toolbox.showToast?.('아직 그릴 것이 없습니다', undefined, undefined);
+        return;
+      }
+      const svgText = canvas?.exportSVGString({ background: canvasBackground() });
+      if (!svgText) return;
+      // data URI 로 넘긴다 — SVG 를 http URL 로 물리면 브라우저가 캔버스를 오염시켜
+      // toBlob 이 통째로 막힌다(내보내기가 「아무 일도 안 일어남」이 된다).
+      const src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgText)}`;
+      const im = new Image();
+      im.onload = () => {
+        const out = document.createElement('canvas');
+        out.width = Math.max(1, Math.round(im.width * scale));
+        out.height = Math.max(1, Math.round(im.height * scale));
+        const ctx = out.getContext('2d');
+        if (!ctx) return;
+        ctx.drawImage(im, 0, 0, out.width, out.height);
+        out.toBlob((blob) => {
+          if (!blob) {
+            alert('그림을 만들지 못했습니다.');
+            return;
+          }
+          downloadBlob(blob, 'karmomap.png');
+          Toolbox.showToast?.(`${out.width}×${out.height} PNG 로 저장했습니다`, undefined, undefined);
+        }, 'image/png');
+      };
+      im.onerror = () => alert('그림을 만들지 못했습니다.');
+      im.src = src;
+    }
+
+    q<HTMLButtonElement>('png').onclick = () => exportImage(2);
+
+    q<HTMLButtonElement>('export').onclick = () => {
+      const data = JSON.stringify(canvas?.getSpec() ?? spec, null, 2);
+      downloadBlob(new Blob([data], { type: 'application/json' }), 'karmomap.json');
     };
 
     q<HTMLButtonElement>('import').onclick = () => fileEl.click();

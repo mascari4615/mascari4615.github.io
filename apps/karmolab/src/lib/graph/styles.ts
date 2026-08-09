@@ -8,7 +8,7 @@
 
 const STYLE_ID = 'kl-graph-canvas-styles';
 
-const CSS = `
+export const GRAPH_CANVAS_CSS = `
 /* ── 노드 활성 하이라이트 ──────────────────────────────────────────────────── */
 .ck-node.is-active > .ck-node-bg {
   stroke: #22d3ee !important;
@@ -59,6 +59,6 @@ export function injectGraphCanvasStyles(): void {
   if (document.getElementById(STYLE_ID)) return;
   const tag = document.createElement('style');
   tag.id = STYLE_ID;
-  tag.textContent = CSS;
+  tag.textContent = GRAPH_CANVAS_CSS;
   document.head.appendChild(tag);
 }
