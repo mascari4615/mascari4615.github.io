@@ -317,6 +317,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['conch']
   },
   {
+    id: 'pulse',
+    title: '박동',
+    category: 'play',
+    desc: '아무 의미 없는 것을 아주 규칙적으로 내보내는 방송국 7개 — 세 글자·종·눈금·낱말·한 줄·무늬·점 (TASK-KL-207)',
+    layout: 'full',
+    icon: '<path d="M2 12h4l3-8 4 16 3-8h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+    lazyScriptPaths: ['pulse/pulse']
+  },
+  {
     id: 'adventure',
     title: '무한 텍스트 어드벤처',
     category: 'play',
