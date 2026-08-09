@@ -928,6 +928,70 @@ export class GraphCanvas {
     return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
   }
 
+  /**
+   * 멤버들을 감싸는 볼록 껍질(convex hull) 경로. 각 노드의 네 모서리를 점으로 모아 껍질을 구하고,
+   * 바깥으로 살짝 부풀린 뒤 모서리를 둥글린다.
+   *
+   * Bubble Sets 처럼 오목한 등고선까지 가진 않는다 — 이 캔버스는 노드가 수십 개 규모라
+   * **가장 싸면서 겹침을 확 낫게 하는 것**이 볼록 껍질이다. 멤버가 둘 이하면 네모가 낫다(껍질이 선이 된다).
+   */
+  private groupHullPath(g: GroupDef): string | null {
+    if (!this.spec) return null;
+    const pad = 18;
+    const pts: { x: number; y: number }[] = [];
+    for (const n of this.spec.nodes) {
+      if (!this.isMember(n, g.id)) continue;
+      const c0 = this.nodeCoords.get(n.id) ?? { x: n.x, y: n.y };
+      const h = this.getNodeEffectiveH(n);
+      pts.push(
+        { x: c0.x - pad, y: c0.y - pad },
+        { x: c0.x + n.w + pad, y: c0.y - pad },
+        { x: c0.x + n.w + pad, y: c0.y + h + pad },
+        { x: c0.x - pad, y: c0.y + h + pad }
+      );
+    }
+    if (pts.length < 12) return null;   // 멤버 2 이하 — 네모가 낫다
+
+    // Andrew monotone chain
+    pts.sort((a, b) => (a.x - b.x) || (a.y - b.y));
+    const cross = (o: typeof pts[0], a: typeof pts[0], b: typeof pts[0]) =>
+      (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    const lower: typeof pts = [];
+    for (const p of pts) {
+      while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) lower.pop();
+      lower.push(p);
+    }
+    const upper: typeof pts = [];
+    for (let i = pts.length - 1; i >= 0; i -= 1) {
+      const p = pts[i];
+      while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop();
+      upper.push(p);
+    }
+    const hull = lower.slice(0, -1).concat(upper.slice(0, -1));
+    if (hull.length < 3) return null;
+
+    // 모서리 둥글리기 — 각 꼭짓점에서 이웃 방향으로 r 만큼 물러난 두 점을 이차 곡선으로 잇는다.
+    const r = 14;
+    const at = (i: number) => hull[(i + hull.length) % hull.length];
+    const lerp = (a: { x: number; y: number }, b: { x: number; y: number }, t: number) => ({
+      x: a.x + (b.x - a.x) * t,
+      y: a.y + (b.y - a.y) * t,
+    });
+    let d = '';
+    for (let i = 0; i < hull.length; i += 1) {
+      const prev = at(i - 1);
+      const cur = at(i);
+      const next = at(i + 1);
+      const dPrev = Math.hypot(cur.x - prev.x, cur.y - prev.y) || 1;
+      const dNext = Math.hypot(next.x - cur.x, next.y - cur.y) || 1;
+      const a = lerp(cur, prev, Math.min(0.5, r / dPrev));
+      const b = lerp(cur, next, Math.min(0.5, r / dNext));
+      d += i === 0 ? `M ${a.x.toFixed(1)},${a.y.toFixed(1)}` : ` L ${a.x.toFixed(1)},${a.y.toFixed(1)}`;
+      d += ` Q ${cur.x.toFixed(1)},${cur.y.toFixed(1)} ${b.x.toFixed(1)},${b.y.toFixed(1)}`;
+    }
+    return d + ' Z';
+  }
+
   private renderGroups(): void {
     if (!this.spec) return;
     // ★ 큰 묶음부터 그린다. SVG 는 먼저 그린 것이 아래에 깔리므로, 큰 것을 먼저 깔아야
@@ -943,22 +1007,30 @@ export class GraphCanvas {
 
     for (const { g, box } of boxes) {
 
-      // ── 바디 (전체 프레임) ────────────────────────────────────────────────
-      const bodyRect = document.createElementNS(SVG_NS, 'rect');
-      bodyRect.setAttribute('class', 'ck-group');
-      bodyRect.dataset.groupId = g.id;
-      bodyRect.setAttribute('x', String(box.x));
-      bodyRect.setAttribute('y', String(box.y));
-      bodyRect.setAttribute('width', String(box.w));
-      bodyRect.setAttribute('height', String(box.h));
-      bodyRect.setAttribute('rx', '6');
-      bodyRect.setAttribute('fill', g.color + '06');
-      bodyRect.setAttribute('stroke', g.color + '28');
-      bodyRect.setAttribute('stroke-width', '1');
-      bodyRect.style.cursor = 'grab';
-      this.groupLayer.appendChild(bodyRect);
+      // ── 바디 — 네모 또는 멤버를 감싸는 윤곽 ──────────────────────────────
+      const hullD = (g.shape ?? 'box') === 'hull' ? this.groupHullPath(g) : null;
+      const body = document.createElementNS(SVG_NS, hullD ? 'path' : 'rect');
+      body.setAttribute('class', 'ck-group');
+      body.dataset.groupId = g.id;
+      if (hullD) {
+        body.setAttribute('d', hullD);
+      } else {
+        body.setAttribute('x', String(box.x));
+        body.setAttribute('y', String(box.y));
+        body.setAttribute('width', String(box.w));
+        body.setAttribute('height', String(box.h));
+        body.setAttribute('rx', '6');
+      }
+      body.setAttribute('fill', g.color + '10');
+      body.setAttribute('stroke', g.color + '38');
+      body.setAttribute('stroke-width', '1.4');
+      body.setAttribute('stroke-linejoin', 'round');
+      (body as SVGElement & { style: CSSStyleDeclaration }).style.cursor = 'grab';
+      this.groupLayer.appendChild(body);
 
-      // ── 헤더 바 (Unity 스타일) ─────────────────────────────────────────────
+      // ── 헤더 바 (Unity 스타일) — 네모 묶음일 때만. 윤곽 위에 네모 띠를 얹으면 어색하다.
+      if (!hullD) {
+
       // clipPath 로 상단 rx 살리면서 헤더만 클리핑.
       // id 에 인스턴스 uid 를 섞는다 — 캔버스 2개가 같은 group id 를 쓰면 충돌.
       const clipId = `ck-clip-${this.uid}-${g.id}`;
@@ -984,6 +1056,8 @@ export class GraphCanvas {
       headerRect.setAttribute('clip-path', `url(#${clipId})`);
       headerRect.style.cursor = 'grab';
       this.groupLayer.appendChild(headerRect);
+
+      }
 
       // ── 헤더 레이블 ───────────────────────────────────────────────────────
       const text = document.createElementNS(SVG_NS, 'text');

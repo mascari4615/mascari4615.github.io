@@ -101,6 +101,12 @@ export interface GroupDef {
   bbox: { x: number; y: number; w: number; h: number };
   /** 상자를 안 그린다. 소속은 그대로 — 「지금은 이 묶음 말고 저 묶음만 보고 싶다」 (TASK-KL-202 D-3). */
   hidden?: boolean;
+  /**
+   * 테두리 모양. 'box' = 네모(예전 그대로), 'hull' = **멤버를 감싸는 윤곽** (TASK-KL-202 D-4).
+   * 겹치는 묶음을 네모로 그리면 서로 남의 빈 자리를 크게 물어 「누가 누구에 속하는지」가 흐려진다.
+   * Bubble Sets 계열이 말하는 문제이고, 볼록 껍질은 그 중 가장 싼 해법이다.
+   */
+  shape?: 'box' | 'hull';
 }
 
 export interface EphemeralAnchor {
