@@ -47,6 +47,14 @@ permalink: /karmolab/
     </script>
     <meta name="description" content="삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.">
     <link rel="canonical" href="https://blog.mascari4615.com/karmolab/">
+    <!-- 언어 판 왕복 표시 (TASK-KL-203). 원본(이 장)도 상대를 가리켜야 한 벌로 인정된다 —
+         한쪽만 가리키면 양쪽 표시가 통째로 무시된다(다국어 사이트가 가장 자주 틀리는 곳).
+         이 세 줄은 `data/locales.json` 에서 나온 것이고, 어긋나면 `npm run test:i18n:pages` 가 잡는다.
+         도구 상세 129장은 이 셸을 복사해 쓰지만 아직 한국어뿐이라, `shell-page.mjs` 가 이 줄을
+         빼고 찍는다 — 안 빼면 129장이 전부 이 주소(/karmolab/)를 제 짝이라고 우긴다. -->
+    <link rel="alternate" hreflang="ko" href="https://blog.mascari4615.com/karmolab/">
+    <link rel="alternate" hreflang="en" href="https://blog.mascari4615.com/en/karmolab/">
+    <link rel="alternate" hreflang="x-default" href="https://blog.mascari4615.com/karmolab/">
     <!-- 검색 결과에서 그림과 문구를 넉넉히 쓰게 허용한다 (TASK-KL-089).
          기본값이면 그림은 작은 썸네일로 나가거나 아예 안 나가고, 문구도 짧게 잘린다.
          도구마다 공유 카드를 따로 찍어 뒀고 설명도 두 줄에 맞춰 다듬었는데, 이 한 줄이 없으면
