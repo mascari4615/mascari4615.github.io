@@ -1,5 +1,5 @@
 {
-  "total": 4843,
+  "total": 4815,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -95,7 +95,7 @@
     "src/widgets/crypto.ts": 2,
     "src/widgets/darkroom.ts": 5,
     "src/widgets/dashboard.ts": 5,
-    "src/widgets/devtools.ts": 33,
+    "src/widgets/devtools.ts": 5,
     "src/widgets/docs/docs.ts": 3,
     "src/widgets/eyes.ts": 4,
     "src/widgets/favorites-defaults.ts": 40,
