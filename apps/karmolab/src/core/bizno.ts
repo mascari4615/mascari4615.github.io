@@ -51,15 +51,32 @@ export function checkCorp(digits: string): CheckResult | null {
   return { ok: expect === Number(digits[12]), expect, got: Number(digits[12]) };
 }
 
+/** 사업자 종류 — 이름 말고 **표식**. 이름은 읽는 쪽이 붙인다 (TASK-KL-203). */
+export type BizKind = 'individual' | 'religious' | 'corpHq' | 'nonprofit' | 'taxFree' | 'unknown';
+
 /** 가운데 두 자리는 사업자 종류를 뜻한다 — 번호만 보고도 알 수 있는 정보. */
-export function kindOf(mid: string): string {
+export function kindKeyOf(mid: string): BizKind {
   const n = Number(mid);
-  if (n >= 1 && n <= 79) return '개인 과세사업자';
-  if (n === 80) return '법인이 아닌 종교단체';
-  if (n >= 81 && n <= 88) return '영리법인 본점';
-  if (n === 89) return '비영리법인 본점·지점';
-  if (n >= 90 && n <= 99) return '개인 면세사업자·비영리';
-  return '알 수 없음';
+  if (n >= 1 && n <= 79) return 'individual';
+  if (n === 80) return 'religious';
+  if (n >= 81 && n <= 88) return 'corpHq';
+  if (n === 89) return 'nonprofit';
+  if (n >= 90 && n <= 99) return 'taxFree';
+  return 'unknown';
+}
+
+const KIND_KO: Record<BizKind, string> = {
+  individual: '개인 과세사업자',
+  religious: '법인이 아닌 종교단체',
+  corpHq: '영리법인 본점',
+  nonprofit: '비영리법인 본점·지점',
+  taxFree: '개인 면세사업자·비영리',
+  unknown: '알 수 없음'
+};
+
+/** 글로 답하는 쪽(MCP)이 쓰는 한국어 이름. 화면은 `kindKeyOf` 로 자기 말을 붙인다. */
+export function kindOf(mid: string): string {
+  return KIND_KO[kindKeyOf(mid)];
 }
 
 export const onlyDigits = (raw: string): string => raw.replace(/\D/g, '');
