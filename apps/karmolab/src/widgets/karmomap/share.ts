@@ -69,10 +69,23 @@ export function shareCodeFromLocation(search: string): string {
   return new URLSearchParams(search).get('km') ?? '';
 }
 
-/** 공유 주소 만들기. 도구 이름(#karmomap)은 그대로 두고 `?km=` 만 갈아 끼운다. */
-export function buildShareUrl(base: URL, code: string): string {
+/**
+ * 공유 주소 만들기. 도구 이름(#karmomap)은 그대로 두고 `?km=` 만 갈아 끼운다.
+ *
+ * `readOnly` = **보기 전용** 링크(`&kmv=1`). 남에게 관계도를 보여 줄 때 대부분은 *읽히기만* 하면 된다 —
+ * 편집 손잡이가 그대로 보이면 받는 쪽은 「내가 고쳐도 되나」부터 헷갈리고, 실수로 고쳐 놓고
+ * 원본이 바뀐 줄 안다(사실은 자기 브라우저에만 남는다). 그 혼란을 링크에서 끊는다.
+ */
+export function buildShareUrl(base: URL, code: string, readOnly = false): string {
   const url = new URL(base.toString());
   url.searchParams.set('km', code);
+  if (readOnly) url.searchParams.set('kmv', '1');
+  else url.searchParams.delete('kmv');
   url.hash = '#karmomap';
   return url.toString();
+}
+
+/** 이 주소가 보기 전용인가. */
+export function isReadOnlyLink(search: string): boolean {
+  return new URLSearchParams(search).get('kmv') === '1';
 }

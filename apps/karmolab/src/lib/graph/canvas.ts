@@ -944,7 +944,7 @@ export class GraphCanvas {
 
     // 빈 배경 더블클릭 → 그 자리에 새 노드 (Scapple·FigJam 의 「그냥 두 번 눌러라」).
     this.svg.addEventListener('dblclick', (e) => {
-      if (!this.onBackgroundDoubleClick) return;
+      if (!this.onBackgroundDoubleClick || !this.editable) return;
       const target = e.target as Element;
       if (target.closest('.ck-node') || target.closest('.ck-group')) return;
       e.preventDefault();
@@ -1553,7 +1553,7 @@ export class GraphCanvas {
     // 연결 손잡이 — 노드 오른쪽 가장자리. 여기서 끌어다 다른 노드에 놓으면 선이 생긴다
     // (Miro·FigJam 의 파란 점. 「연결 시작」 버튼을 누르고 다시 클릭하던 2단계를 없앤다).
     // 크기 손잡이 — **고른 카드에만**. 늘 보이면 카드가 지저분해지고 잘못 잡는다.
-    if (this.selectedIds.size === 1 && this.selectedIds.has(node.id)) {
+    if (this.editable && this.selectedIds.size === 1 && this.selectedIds.has(node.id)) {
       const grip = document.createElementNS(SVG_NS, 'rect');
       grip.setAttribute('class', 'ck-size-handle');
       grip.dataset.sizeFor = node.id;
@@ -1569,7 +1569,7 @@ export class GraphCanvas {
       g.appendChild(grip);
     }
 
-    if (this.onConnect) {
+    if (this.onConnect && this.editable) {
       const handle = document.createElementNS(SVG_NS, 'circle');
       handle.setAttribute('class', 'ck-link-handle');
       handle.dataset.linkFrom = node.id;
@@ -2118,6 +2118,19 @@ export class GraphCanvas {
     p?.setAttribute('patternTransform', `matrix(${s} 0 0 ${s} ${tx} ${ty})`);
   }
 
+  /**
+   * 편집 손잡이를 통째로 끄고 켠다 (보기 전용 링크). **숨기는 게 아니라 안 만든다** —
+   * 숨기기는 CSS 한 줄만 어긋나도 새어 나오고, 「보이지만 안 먹히는 손잡이」가 제일 나쁘다.
+   */
+  setEditable(on: boolean): void {
+    this.editable = on;
+    this.render();
+  }
+
+  isEditable(): boolean {
+    return this.editable;
+  }
+
   /** 배경 무늬 고르기 — 점 / 모눈 / 십자 / 없음. */
   setBackground(kind: BackgroundKind): void {
     this.background = kind;
@@ -2492,7 +2505,7 @@ export class GraphCanvas {
       // 크기 손잡이는 **고른 카드 하나에만** 붙는다. 통째 다시 그리면 타자 중에 화면이 튄다 —
       // 그래서 그 카드에만 넣고 뺀다.
       const has = g.querySelector('.ck-size-handle');
-      if (id === only && !has) {
+      if (id === only && !has && this.editable) {
         const n = this.spec?.nodes.find((x) => x.id === id);
         if (n) {
           const grip = document.createElementNS(SVG_NS, 'rect');
@@ -2524,6 +2537,7 @@ export class GraphCanvas {
    * 새 이동이 들어오면 앞 이동은 그 자리에서 접는다 — 두 트윈이 겹치면 화면이 떤다.
    * 사람이 손으로 끌면(=다음 pointerdown) 트윈은 스스로 물러난다.
    */
+  private editable = true;
   private tween = 0;
 
   animateTo(target: { tx: number; ty: number; scale: number }, ms = 420): void {
