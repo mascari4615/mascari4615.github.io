@@ -1,5 +1,5 @@
 {
-  "total": 4942,
+  "total": 4889,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -171,7 +171,7 @@
     "src/widgets/randomgen/randomgen-name.ts": 58,
     "src/widgets/randomgen/randomgen-number.ts": 7,
     "src/widgets/randomgen/randomgen-time.ts": 5,
-    "src/widgets/randomgen/randomgen.ts": 58,
+    "src/widgets/randomgen/randomgen.ts": 5,
     "src/widgets/reaction.ts": 24,
     "src/widgets/ref/ascii.ts": 2,
     "src/widgets/ref/charmap.ts": 6,
