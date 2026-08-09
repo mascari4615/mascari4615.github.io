@@ -16,17 +16,25 @@ export const spec: ToolSpec = {
   id: 'jamo',
   ops: {
     split: {
-      desc: '한글을 초성·중성·종성으로 쪼갠다. 초성만 뽑기(초성 검색용)도 함께 낸다.',
+      desc:
+        'Split Hangul syllables into initial / medial / final jamo, and extract initials' +
+        ' (used for Korean initial-consonant search). Compound finals (ㄳ ㄺ ㅄ) stay whole.' +
+        ' / 한글을 초성·중성·종성으로 쪼갠다. 초성 뽑기 포함.',
       in: { text: 'string' },
       out: 'string'
     },
     join: {
-      desc: '자모 나열(ㄱㅏㅇ)을 다시 글자(강)로 되돌린다. NFD 로 풀린 파일 이름을 되돌릴 때 쓴다.',
+      desc:
+        'Recompose a jamo sequence (ㄱㅏㅇ) back into syllables (강) — e.g. filenames that came out of' +
+        ' macOS decomposed (NFD).' +
+        ' / 자모 나열을 다시 글자로. NFD 로 풀린 파일 이름 되돌리기.',
       in: { text: 'string' },
       out: 'string'
     },
     initials: {
-      desc: '초성만 뽑는다 (ㅎㄱ ← 한글). 초성 검색 색인을 만들 때.',
+      desc:
+        'Extract only the initial consonants (ㅎㄱ ← 한글) — for building a Korean initial-search index.' +
+        ' / 초성만 뽑는다. 초성 검색 색인용.',
       in: { text: 'string' },
       out: 'string'
     }

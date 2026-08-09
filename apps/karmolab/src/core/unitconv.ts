@@ -16,8 +16,11 @@ export const spec: ToolSpec = {
   ops: {
     convert: {
       desc:
-        '단위를 바꾼다. 한국·일본 전통 단위 포함 — 평·근·돈·냥·되·말·자·리(LLM 이 어림값으로 답하는 자리).' +
-        ' category = length·weight·area·volume·temp·data·speed·time. 환율은 없다(실시간 값).',
+        'Convert units, including Korean/Japanese traditional ones — pyeong(평), geun(근), don(돈),' +
+        ' nyang(냥), doe(되), mal(말), ja(자), ri(리). Models answer these with rounded folklore' +
+        ' (1 pyeong is 3.3057851 m², not 3.3 — on an apartment that gap is visible money).' +
+        ' No currency here: that would need live rates.' +
+        ' / 단위 변환. 한국·일본 전통 단위 포함. 환율은 없다.',
       in: { value: 'number', from: 'string', to: 'string', category: 'string?' },
       out: 'string'
     },

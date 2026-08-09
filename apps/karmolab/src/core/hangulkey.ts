@@ -15,17 +15,25 @@ export const spec: ToolSpec = {
   id: 'hangulkey',
   ops: {
     toKorean: {
-      desc: '한영키를 안 누르고 친 영문(두벌식 키)을 한글로 되돌린다. dkssudgktpdy → 안녕하세요',
+      desc:
+        'Recover Hangul typed without switching the IME (2-beolsik layout). dkssudgktpdy → 안녕하세요.' +
+        ' Not a substitution table — it replays the composition automata (final consonants move to the' +
+        ' next syllable when a vowel follows).' +
+        ' / 한영키를 안 누르고 친 영문을 한글로 되돌린다.',
       in: { text: 'string' },
       out: 'string'
     },
     toEnglish: {
-      desc: '한글을 두벌식 자판의 영문 키 나열로 바꾼다. 안녕하세요 → dkssudgktpdy',
+      desc:
+        'Turn Hangul into the 2-beolsik key sequence. 안녕하세요 → dkssudgktpdy.' +
+        ' / 한글을 두벌식 자판의 영문 키 나열로.',
       in: { text: 'string' },
       out: 'string'
     },
     auto: {
-      desc: '어느 쪽인지 알아서 판단해 반대로 바꾼다. 한글이 하나라도 있으면 한글→영문.',
+      desc:
+        'Detect the direction and convert. Any Hangul present means Hangul → keys.' +
+        ' / 어느 쪽인지 알아서 판단해 반대로 바꾼다.',
       in: { text: 'string' },
       out: 'string'
     }

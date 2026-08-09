@@ -20,8 +20,9 @@ export const spec: ToolSpec = {
     },
     extract: {
       desc:
-        '부가세가 포함된 총액에서 공급가액과 세액을 빼낸다 (총액 ÷ (1+세율)).' +
-        ' 총액의 10% 를 빼는 것과 다르다 — 그렇게 하면 틀린다.',
+        'Extract the net amount and VAT from a VAT-inclusive total (total ÷ 1.1), which is NOT the same as' +
+        ' subtracting 10% — that common shortcut gives 99,000 instead of 100,000 for a 110,000 total.' +
+        ' / 총액에서 공급가·세액을 빼낸다. 10% 를 빼는 것과 다르다.',
       in: { amount: 'number', rate: 'number?', rounding: 'string?' },
       out: 'string'
     }

@@ -17,8 +17,10 @@ export const spec: ToolSpec = {
   ops: {
     info: {
       desc:
-        '생년월일로 한국식 나이 3종(만·연·세는)·띠·별자리·태어난 요일·산 날수·다음 생일을 계산한다.' +
-        ' 한국에서 「나이」는 쓰는 곳마다 다르므로 셋을 함께 낸다.',
+        'From a birth date: the three Korean ages (international / year-age / traditional), zodiac,' +
+        ' star sign, weekday born, days lived, next birthday. Korea still uses all three ages in different' +
+        ' laws, so all three are returned.' +
+        ' / 한국식 나이 3종·띠·별자리·태어난 요일·산 날수·다음 생일.',
       in: { date: 'string' },
       out: 'string'
     }
