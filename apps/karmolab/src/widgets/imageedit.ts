@@ -1,3 +1,9 @@
+import { t, loadNamespace } from '../lib/i18n';
+
+/** 화면에 그대로 박아 넣는 글은 태그로 읽히면 안 된다. */
+const esc = (v: unknown): string =>
+    String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 (function () {
     /* ===== CSS ===== */
     Mdd.injectCSS('imageedit', `
@@ -649,7 +655,7 @@
         const raw = (displayName || '').trim();
         let base = ieToolbarSplitFileName(raw).stem.trim();
         base = base.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '').replace(/\s+/g, ' ').trim();
-        if (!base || base === '.' || base === '..') base = '편집';
+        if (!base || base === '.' || base === '..') base = t('imageedit.t59');
         if (base.length > 200) base = base.slice(0, 200);
         return base + '.' + ext;
     }
@@ -866,15 +872,15 @@
         if (ori >= 1 && ori <= 8) {
             const om = ({
                 1: '0°',
-                2: '좌우 반전',
+                2: t('imageedit.t60'),
                 3: '180°',
-                4: '상하 반전',
-                5: '90°+반전',
-                6: '90° (시계)',
-                7: '90° CCW+반전',
-                8: '90° (반시계)'
+                4: t('imageedit.t61'),
+                5: t('imageedit.t62'),
+                6: t('imageedit.t63'),
+                7: t('imageedit.t64'),
+                8: t('imageedit.t65')
             } as any)[ori];
-            if (om) lines.push('방향 · ' + om);
+            if (om) lines.push(t('imageedit.t66') + om);
         }
         const photo = [];
         const exp = (tags as any)[0x829a];
@@ -892,7 +898,7 @@
         const fl = (tags as any)[0x920a];
         if (typeof fl === 'number' && fl > 0) photo.push(Math.round(fl) + ' mm');
         const fl35 = (tags as any)[0xa405];
-        if (typeof fl35 === 'number' && fl35 > 0) photo.push('35mm환산 ' + fl35 + ' mm');
+        if (typeof fl35 === 'number' && fl35 > 0) photo.push(t('imageedit.t67') + fl35 + ' mm');
         if (photo.length) lines.push(photo.join(' · '));
         return lines.length ? lines : null;
     }
@@ -912,19 +918,19 @@
         const lines = ieImageSourceMeta.exifLines;
         if (lines === null) {
             el.textContent = 'EXIF\n읽는 중…';
-            el.setAttribute('aria-label', 'EXIF 읽는 중');
+            el.setAttribute('aria-label', t('imageedit.t68'));
             return;
         }
         if (!(lines as any).length) {
             el.textContent =
                 'EXIF\n이 파일에는 읽을 수 있는 EXIF가 없습니다.\n' +
                 '(카메라 JPEG에 흔하고, PNG·WebP·재저장본에는 없을 수 있어요.)\n' +
-                'URL은 보안(CORS) 때문에 메타를 못 읽을 때도 있습니다.';
-            el.setAttribute('aria-label', 'EXIF 없음');
+                t('imageedit.t69');
+            el.setAttribute('aria-label', t('imageedit.t70'));
             return;
         }
         el.textContent = 'EXIF\n' + (lines as any).join('\n');
-        el.setAttribute('aria-label', 'EXIF 메타데이터');
+        el.setAttribute('aria-label', t('imageedit.t71'));
     }
 
     function updateSizeLabel() {
@@ -958,17 +964,17 @@
         if (sb != null && Number.isFinite(sb) && sb >= 0) {
             const fmt = ieFormatToolbarBytes(sb);
             if (bk === 'file') {
-                bytesPart = fmt + ' (파일)';
-                bytesTitleExtra = '\n파일 용량: ' + fmt + ' (업로드·저장 시 크기)';
+                bytesPart = fmt + t('imageedit.t72');
+                bytesTitleExtra = '\n파일 용량: ' + fmt + t('imageedit.t73');
             } else if (bk === 'dataUrl') {
-                bytesPart = '≈' + fmt + ' (data 근사)';
+                bytesPart = '≈' + fmt + t('imageedit.t74');
                 bytesTitleExtra = '\ndata URL 인코딩 길이로 잡은 근사 용량입니다.';
             } else {
                 bytesPart = fmt;
                 bytesTitleExtra = '\n용량: ' + fmt;
             }
         } else {
-            bytesPart = '≈' + ieFormatToolbarBytes(uncomp) + ' (무압축)';
+            bytesPart = '≈' + ieFormatToolbarBytes(uncomp) + t('imageedit.t75');
             bytesTitleExtra =
                 '\n파일 용량을 알 수 없어, 현재 캔버스 픽셀 기준 무압축(RGBA·가로×세로×4) 추정치입니다. JPEG/PNG 등 압축 파일은 실제보다 클 수 있어요.';
         }
@@ -991,18 +997,18 @@
         el.textContent = parts.join(' · ');
         const mpVal = px / 1e6;
         el.title =
-            (nameRaw ? '파일: ' + nameRaw + '\n' : '') +
-            '해상도: ' +
+            (nameRaw ? t('imageedit.t76') + nameRaw + '\n' : '') +
+            t('imageedit.t77') +
             w +
             ' × ' +
             h +
             ' px (' +
             px.toLocaleString() +
             ' 화소)\n' +
-            '메가픽셀: ' +
+            t('imageedit.t78') +
             (mpVal < 0.01 ? '—' : mpVal.toFixed(3).replace(/\.?0+$/, '') + ' MP') +
             ' (= 가로×세로÷1,000,000)\n' +
-            '1 미만(예: 0.2 MP)은 약 20만 화소짜리 작은 이미지일 때 정상입니다.' +
+            t('imageedit.t79') +
             bytesTitleExtra;
     }
 
@@ -1012,7 +1018,7 @@
 
     function requireImage() {
         if (hasImage()) return true;
-        Toolbox.showToast('먼저 이미지를 불러오세요.', 'error');
+        Toolbox.showToast(t('imageedit.t80'), 'error');
         return false;
     }
 
@@ -1021,11 +1027,11 @@
         if (hasImage()) return true;
         if (window.KarmoLabImageBatch) {
             Toolbox.showToast(
-                '캔버스 미리보기·저장은 이미지가 필요해요. 여러 장만 한꺼번에 변환할 때는 오른쪽 「여러 파일 → 파일 선택」이나 이미지를 2장 이상 드래그하세요.',
+                t('imageedit.t81'),
                 'error'
             );
         } else {
-            Toolbox.showToast('먼저 이미지를 불러오세요.', 'error');
+            Toolbox.showToast(t('imageedit.t80'), 'error');
         }
         return false;
     }
@@ -1035,11 +1041,11 @@
         const sub = document.querySelector('#iePlaceholder .ie-placeholder-sub');
         if (!text || !sub) return;
         if (activeTool === 'convert' && window.KarmoLabImageBatch) {
-            text.textContent = '이미지를 불러오세요';
+            text.textContent = t('imageedit.t51');
             sub.innerHTML =
-                '클릭·드롭·붙여넣기·가져오기는 다른 도구와 같습니다. <strong>여러 장 일괄 변환</strong>만 오른쪽 「여러 파일 → 파일 선택」 또는 <strong>이미지 2장 이상</strong>을 한 번에 드래그하세요.<br><span style="opacity:0.75">보기: 휠 줌 · 스페이스+드래그 또는 가운데 클릭으로 이동</span>';
+                t('imageedit.t82');
         } else {
-            text.textContent = '이미지를 불러오세요';
+            text.textContent = t('imageedit.t51');
             sub.innerHTML =
                 '클릭, 드래그&드롭, Ctrl+V 붙여넣기, 또는 \'가져오기\' 사용<br><span style="opacity:0.75">보기: 휠 줌 · 스페이스+드래그 또는 가운데 클릭으로 이동</span>';
         }
@@ -1051,8 +1057,8 @@
         if (status) {
             status.textContent =
                 ieCvBatchState.files.length === 0
-                    ? '선택된 파일: 없음'
-                    : '선택된 파일: ' + ieCvBatchState.files.length + '개';
+                    ? t('imageedit.label.ieCvBatchStatus')
+                    : t('imageedit.t83') + ieCvBatchState.files.length + t('imageedit.t84');
         }
         if (run) (run as any).disabled = ieCvBatchState.files.length === 0;
     }
@@ -1118,8 +1124,8 @@
             commitImageLoad(img);
         };
         img.onerror = () => {
-            Toolbox.showToast('이미지를 불러올 수 없습니다.', 'error');
-            Mdd.linePreset('error', { msg: '이미지 로드 실패했어요...' });
+            Toolbox.showToast(t('imageedit.t85'), 'error');
+            Mdd.linePreset('error', { msg: t('imageedit.t86') });
         };
         img.src = src;
     }
@@ -1138,7 +1144,7 @@
         hidePlaceholder();
         resetImageView();
         selectTool(activeTool);
-        Mdd.linePreset('success', { mood: 'happy', msg: '이미지 불러왔어요!' });
+        Mdd.linePreset('success', { mood: 'happy', msg: t('imageedit.t87') });
     }
 
     function commitImageLoadDownscaled(img: any, targetW: any, targetH: any) {
@@ -1155,7 +1161,7 @@
         hidePlaceholder();
         resetImageView();
         selectTool(activeTool);
-        Mdd.linePreset('success', { mood: 'happy', msg: '이미지를 축소해서 불러왔어요!' });
+        Mdd.linePreset('success', { mood: 'happy', msg: t('imageedit.t88') });
     }
 
     function showSizeWarning(img: any, forceDownscale: any) {
@@ -1170,10 +1176,10 @@
         const dw = Math.round(w * scale), dh = Math.round(h * scale);
 
         document!.getElementById('ieWarnText')!.innerHTML =
-            '이미지 크기: <strong>' + w + ' × ' + h + '</strong> (' + mp + ')<br>' +
+            t('imageedit.t89') + w + ' × ' + h + '</strong> (' + mp + ')<br>' +
             (forceDownscale
-                ? '너무 큰 이미지입니다. 편집을 위해 <strong>' + dw + ' × ' + dh + '</strong>로 축소합니다.'
-                : '큰 이미지는 메모리를 많이 사용합니다. 축소하시겠습니까?<br>축소 시: <strong>' + dw + ' × ' + dh + '</strong>');
+                ? t('imageedit.t90') + dw + ' × ' + dh + t('imageedit.t91')
+                : t('imageedit.t92') + dw + ' × ' + dh + '</strong>');
 
         const btnOrig = document.getElementById('ieWarnOriginal');
         const btnDown = document.getElementById('ieWarnDownscale');
@@ -1194,12 +1200,12 @@
 
     function loadImageFromFile(file: any) {
         if (!file || !file.type.startsWith('image/')) {
-            Toolbox.showToast('이미지 파일이 아닙니다.', 'error');
+            Toolbox.showToast(t('imageedit.t93'), 'error');
             return;
         }
         const g = ++ieImageLoadGen;
         ieImageSourceMeta = {
-            displayName: (file.name && String(file.name).trim()) || '이미지',
+            displayName: (file.name && String(file.name).trim()) || t('imageedit.t94'),
             sourceBytes: typeof file.size === 'number' && file.size >= 0 ? file.size : null,
             bytesKind: 'file',
             sourceNaturalW: null,
@@ -1229,8 +1235,9 @@
     }
 
     /* ===== Tool Panels ===== */
-    const CROP_RATIOS = [
-        { label: '자유', value: null },
+    /* 이름은 **쓸 때** 정한다 — 표로 굳히면 말 묶음이 오기 전이라 열쇠가 그대로 박힌다. */
+    const cropRatios = () => [
+        { label: t('imageedit.t95'), value: null },
         { label: '1:1', value: 1 },
         { label: '4:3', value: 4 / 3 },
         { label: '3:4', value: 3 / 4 },
@@ -1241,7 +1248,7 @@
     function buildCropOptions(container: any) {
         container.innerHTML = '';
 
-        CROP_RATIOS.forEach(r => {
+        cropRatios().forEach(r => {
             const btn = document.createElement('button');
             btn.className = 'ie-opt-btn' + (cropAspect === r.value ? ' active' : '');
             btn.textContent = r.label;
@@ -1260,33 +1267,33 @@
 
         const info = document.createElement('span');
         info.className = 'ie-opt-label';
-        info.textContent = '캔버스 위에서 드래그하여 영역을 선택하세요';
+        info.textContent = t('imageedit.t96');
         info.id = 'ieCropInfo';
         container.appendChild(info);
 
         const applyBtn = document.createElement('button');
         applyBtn.className = 'ie-apply-btn';
-        applyBtn.textContent = '자르기 적용';
+        applyBtn.textContent = t('imageedit.t97');
         applyBtn.onclick = applyCrop;
         container.appendChild(applyBtn);
     }
 
     function buildResizeOptions(container: any) {
         container.innerHTML = `
-            <span class="ie-opt-label">너비</span>
+            <span class="ie-opt-label">${esc(t('imageedit.t12'))}</span>
             <input type="number" class="ie-opt-input" id="ieResizeW" min="1">
-            <span class="ie-opt-label">높이</span>
+            <span class="ie-opt-label">${esc(t('imageedit.t13'))}</span>
             <input type="number" class="ie-opt-input" id="ieResizeH" min="1">
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
                 <input type="checkbox" class="ie-opt-check" id="ieResizeLock" checked>
-                <span class="ie-opt-label">비율 유지</span>
+                <span class="ie-opt-label">${esc(t('imageedit.t14'))}</span>
             </label>
             <span class="ie-toolbar-sep"></span>
             <button class="ie-opt-btn" data-pct="50">50%</button>
             <button class="ie-opt-btn" data-pct="75">75%</button>
             <button class="ie-opt-btn" data-pct="150">150%</button>
             <button class="ie-opt-btn" data-pct="200">200%</button>
-            <button class="ie-apply-btn" id="ieResizeApply">적용</button>`;
+            <button class="ie-apply-btn" id="ieResizeApply">${esc(t('imageedit.btn.ieResizeApply'))}</button>`;
 
         requestAnimationFrame(() => {
             if (!hasImage()) return;
@@ -1322,14 +1329,14 @@
             <button class="ie-opt-btn" id="ieRot90cw">↻ 90°</button>
             <button class="ie-opt-btn" id="ieRot90ccw">↺ -90°</button>
             <button class="ie-opt-btn" id="ieRot180">⟳ 180°</button>
-            <button class="ie-opt-btn" id="ieFlipH">↔ 수평</button>
-            <button class="ie-opt-btn" id="ieFlipV">↕ 수직</button>
+            <button class="ie-opt-btn" id="ieFlipH">${esc(t('imageedit.btn.ieFlipH'))}</button>
+            <button class="ie-opt-btn" id="ieFlipV">${esc(t('imageedit.btn.ieFlipV'))}</button>
             <span class="ie-toolbar-sep"></span>
-            <span class="ie-opt-label">자유 회전</span>
+            <span class="ie-opt-label">${esc(t('imageedit.t15'))}</span>
             <input type="range" class="ie-opt-range" id="ieRotRange" min="-180" max="180" value="0" style="width:140px;">
             <input type="number" class="ie-opt-input" id="ieRotDeg" value="0" min="-360" max="360" style="width:56px;">
             <span class="ie-opt-label">°</span>
-            <button class="ie-apply-btn" id="ieRotApply">적용</button>`;
+            <button class="ie-apply-btn" id="ieRotApply">${esc(t('imageedit.btn.ieResizeApply'))}</button>`;
 
         requestAnimationFrame(() => {
             document!.getElementById('ieRot90cw')!.onclick = () => applyRotate(90);
@@ -1375,17 +1382,17 @@
     function buildAdjustOptions(container: any) {
         adjustValues = { brightness: 100, contrast: 100, saturate: 100, hue: 0, sharpen: 0 };
         const sliders = [
-            { id: 'brightness', label: '밝기', min: 0, max: 200, val: 100, unit: '%' },
-            { id: 'contrast', label: '대비', min: 0, max: 200, val: 100, unit: '%' },
-            { id: 'saturate', label: '채도', min: 0, max: 200, val: 100, unit: '%' },
-            { id: 'hue', label: '색조', min: -180, max: 180, val: 0, unit: '°' },
-            { id: 'sharpen', label: '선명도', min: 0, max: 120, val: 0, unit: '' },
+            { id: 'brightness', label: t('imageedit.opt.luminance'), min: 0, max: 200, val: 100, unit: '%' },
+            { id: 'contrast', label: t('imageedit.t98'), min: 0, max: 200, val: 100, unit: '%' },
+            { id: 'saturate', label: t('imageedit.t99'), min: 0, max: 200, val: 100, unit: '%' },
+            { id: 'hue', label: t('imageedit.t100'), min: -180, max: 180, val: 0, unit: '°' },
+            { id: 'sharpen', label: t('imageedit.t101'), min: 0, max: 120, val: 0, unit: '' },
         ];
         container.innerHTML = sliders.map(s => `
             <span class="ie-opt-label">${s.label}${(s as any).suffix || ''}</span>
             <input type="range" class="ie-opt-range" id="ieAdj_${s.id}" min="${s.min}" max="${s.max}" value="${s.val}">
             <span class="ie-opt-range-val" id="ieAdjVal_${s.id}">${s.val}${s.unit}</span>
-        `).join('') + '<button class="ie-opt-btn" id="ieAdjReset">초기화</button><button class="ie-apply-btn" id="ieAdjApply">적용</button>';
+        `).join('') + t('imageedit.t102');
 
         requestAnimationFrame(() => {
             sliders.forEach(s => {
@@ -1434,15 +1441,16 @@
         }
     }
 
-    const FILTERS = [
-        { id: 'none', name: '원본', css: 'none' },
-        { id: 'grayscale', name: '흑백', css: 'grayscale(100%)' },
-        { id: 'sepia', name: '세피아', css: 'sepia(100%)' },
-        { id: 'blur', name: '블러', css: 'blur(3px)' },
-        { id: 'invert', name: '반전', css: 'invert(100%)' },
-        { id: 'vintage', name: '빈티지', css: 'sepia(40%) contrast(90%) brightness(110%) saturate(80%)' },
-        { id: 'cool', name: '쿨톤', css: 'saturate(80%) hue-rotate(180deg) brightness(105%)' },
-        { id: 'warm', name: '따뜻한', css: 'sepia(20%) saturate(140%) brightness(105%)' },
+    /* 위와 같은 이유로 함수. */
+    const filters = () => [
+        { id: 'none', name: t('imageedit.t103'), css: 'none' },
+        { id: 'grayscale', name: t('imageedit.t104'), css: 'grayscale(100%)' },
+        { id: 'sepia', name: t('imageedit.t105'), css: 'sepia(100%)' },
+        { id: 'blur', name: t('imageedit.t106'), css: 'blur(3px)' },
+        { id: 'invert', name: t('imageedit.label.ieMaskInvertCb'), css: 'invert(100%)' },
+        { id: 'vintage', name: t('imageedit.t107'), css: 'sepia(40%) contrast(90%) brightness(110%) saturate(80%)' },
+        { id: 'cool', name: t('imageedit.t108'), css: 'saturate(80%) hue-rotate(180deg) brightness(105%)' },
+        { id: 'warm', name: t('imageedit.t109'), css: 'sepia(20%) saturate(140%) brightness(105%)' },
     ];
 
     function buildFilterOptions(container: any) {
@@ -1450,7 +1458,7 @@
         const grid = document.createElement('div');
         grid.className = 'ie-filter-grid';
 
-        FILTERS.forEach(f => {
+        filters().forEach(f => {
             const card = document.createElement('div');
             card.className = 'ie-filter-card' + (f.id === 'none' ? ' active' : '');
             card.dataset.filterId = f.id;
@@ -1485,7 +1493,7 @@
 
         const applyBtn = document.createElement('button');
         applyBtn.className = 'ie-apply-btn';
-        applyBtn.textContent = '필터 적용';
+        applyBtn.textContent = t('imageedit.t110');
         applyBtn.onclick = applyFilter;
         container.appendChild(applyBtn);
     }
@@ -1582,7 +1590,7 @@
     function applyAdjust() {
         if (!requireImage()) return;
         if (!isAdjustPending()) {
-            Toolbox.showToast('변경된 항목이 없습니다.', 'info');
+            Toolbox.showToast(t('imageedit.t111'), 'info');
             return;
         }
         if (adjustValues.sharpen === 0) {
@@ -1594,7 +1602,7 @@
         hasPendingPreview = false;
         adjustValues = { brightness: 100, contrast: 100, saturate: 100, hue: 0, sharpen: 0 };
         captureAdjustSnapshot();
-        Toolbox.showToast('조정 적용 완료');
+        Toolbox.showToast(t('imageedit.t112'));
     }
 
     function previewFilter(css: any) {
@@ -1608,14 +1616,14 @@
         const activeCard = document.querySelector('.ie-filter-card.active');
         if (!activeCard) return;
         const fId = (activeCard as any).dataset.filterId;
-        const f = FILTERS.find(x => x.id === fId);
+        const f = filters().find(x => x.id === fId);
         if (!f || f.id === 'none') {
             canvas.style.filter = '';
             return;
         }
         applyCanvasFilter(f.css);
         canvas.style.filter = '';
-        Toolbox.showToast('필터 적용 완료');
+        Toolbox.showToast(t('imageedit.t113'));
     }
 
     function applyCanvasFilter(filterStr: any) {
@@ -1635,7 +1643,7 @@
         const w = parseInt((document!.getElementById('ieResizeW') as any).value);
         const h = parseInt((document!.getElementById('ieResizeH') as any).value);
         if (!w || !h || w < 1 || h < 1) {
-            Toolbox.showToast('유효한 크기를 입력하세요.', 'error');
+            Toolbox.showToast(t('imageedit.t114'), 'error');
             return;
         }
         const off = document.createElement('canvas');
@@ -1647,7 +1655,7 @@
         ctx.drawImage(off, 0, 0);
         pushHistory();
         updateSizeLabel();
-        Toolbox.showToast('크기 조절 완료');
+        Toolbox.showToast(t('imageedit.t115'));
     }
 
     function applyRotate(deg: any) {
@@ -1669,7 +1677,7 @@
         ctx.drawImage(off, 0, 0);
         pushHistory();
         updateSizeLabel();
-        Toolbox.showToast(deg + '° 회전 완료');
+        Toolbox.showToast(deg + t('imageedit.t116'));
     }
 
     function applyFreeRotate(deg: any) {
@@ -1690,7 +1698,7 @@
         ctx.drawImage(off, 0, 0);
         pushHistory();
         updateSizeLabel();
-        Toolbox.showToast(deg + '° 회전 완료');
+        Toolbox.showToast(deg + t('imageedit.t116'));
     }
 
     function applyFlip(dir: any) {
@@ -1710,7 +1718,7 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(off, 0, 0);
         pushHistory();
-        Toolbox.showToast(dir === 'h' ? '수평 뒤집기 완료' : '수직 뒤집기 완료');
+        Toolbox.showToast(dir === 'h' ? t('imageedit.t117') : t('imageedit.t118'));
     }
 
     /* ===== Background Removal — Common ===== */
@@ -1722,12 +1730,12 @@
     function buildRembgOptions(container: any) {
         destroyBrush();
         const modes = [
-            { id: 'chroma', label: '🎨 크로마키' },
-            { id: 'brush',  label: '🖌️ 브러시' },
+            { id: 'chroma', label: t('imageedit.t119') },
+            { id: 'brush',  label: t('imageedit.t120') },
             { id: 'ai',     label: '🤖 AI (ONNX)' },
             { id: 'gemini', label: '✨ Gemini' },
-            { id: 'bgg',    label: '배경색' },
-            { id: 'upscale', label: '✨ 업스케일' }
+            { id: 'bgg',    label: t('imageedit.t29') },
+            { id: 'upscale', label: t('imageedit.t121') }
         ];
         container.innerHTML = `
             <div class="ie-options-stack" style="width:100%;display:flex;flex-direction:column;gap:8px;">
@@ -1766,18 +1774,18 @@
     /* ===== Mode 1 — Chromakey ===== */
     function buildChromaBody(body: any) {
         body.innerHTML = `
-            <span class="ie-opt-label">색상</span>
+            <span class="ie-opt-label">${esc(t('imageedit.t16'))}</span>
             <span class="ie-chroma-swatch" id="ieChromaSwatch"></span>
-            <span class="ie-opt-label" id="ieChromaHex" style="font-family:monospace;min-width:60px;">(클릭으로 선택)</span>
+            <span class="ie-opt-label" id="ieChromaHex" style="font-family:monospace;min-width:60px;">${esc(t('imageedit.label.ieChromaHex'))}</span>
             <span class="ie-toolbar-sep"></span>
-            <span class="ie-opt-label">허용치</span>
+            <span class="ie-opt-label">${esc(t('imageedit.t17'))}</span>
             <input type="range" class="ie-opt-range" id="ieChromaTol" min="1" max="120" value="${chromaTolerance}" style="width:100px;">
             <span class="ie-opt-range-val" id="ieChromaTolVal">${chromaTolerance}</span>
             <span class="ie-toolbar-sep"></span>
-            <span class="ie-opt-label">페더</span>
+            <span class="ie-opt-label">${esc(t('imageedit.t18'))}</span>
             <input type="range" class="ie-opt-range" id="ieChromaFeather" min="0" max="30" value="${chromaFeather}" style="width:80px;">
             <span class="ie-opt-range-val" id="ieChromaFeatherVal">${chromaFeather}</span>
-            <button class="ie-apply-btn" id="ieChromaApply">적용</button>`;
+            <button class="ie-apply-btn" id="ieChromaApply">${esc(t('imageedit.btn.ieResizeApply'))}</button>`;
         requestAnimationFrame(() => {
             const swatch = document.getElementById('ieChromaSwatch');
             if (chromaColor) swatch!.style.backgroundColor = `rgb(${chromaColor.join(',')})`;
@@ -1810,7 +1818,7 @@
 
     function applyChromakey() {
         if (!requireImage()) return;
-        if (!chromaColor) { Toolbox.showToast('먼저 이미지에서 제거할 색상을 클릭하세요.', 'error'); return; }
+        if (!chromaColor) { Toolbox.showToast(t('imageedit.t122'), 'error'); return; }
         const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const d = imgData.data;
         const [tr, tg, tb] = chromaColor;
@@ -1827,22 +1835,22 @@
         ctx.putImageData(imgData, 0, 0);
         pushHistory();
         updateSizeLabel();
-        Toolbox.showToast('크로마키 적용 완료');
-        Mdd.linePreset('success', { mood: 'happy', msg: '배경 날렸어요!' });
+        Toolbox.showToast(t('imageedit.t123'));
+        Mdd.linePreset('success', { mood: 'happy', msg: t('imageedit.t124') });
     }
 
     /* ===== Mode 2 — Brush ===== */
     function buildBrushBody(body: any) {
         body.innerHTML = `
-            <span class="ie-opt-label">모드</span>
-            <button class="ie-opt-btn${brushMode === 'bg' ? ' active' : ''}" id="ieBrushBg">🔴 배경 (제거)</button>
-            <button class="ie-opt-btn${brushMode === 'fg' ? ' active' : ''}" id="ieBrushFg">🟢 전경 (유지)</button>
+            <span class="ie-opt-label">${esc(t('imageedit.t19'))}</span>
+            <button class="ie-opt-btn${brushMode === 'bg' ? ' active' : ''}" id="ieBrushBg">${esc(t('imageedit.btn.ieBrushBg'))}</button>
+            <button class="ie-opt-btn${brushMode === 'fg' ? ' active' : ''}" id="ieBrushFg">${esc(t('imageedit.btn.ieBrushFg'))}</button>
             <span class="ie-toolbar-sep"></span>
-            <span class="ie-opt-label">크기</span>
+            <span class="ie-opt-label">${esc(t('imageedit.t20'))}</span>
             <input type="range" class="ie-opt-range" id="ieBrushSize" min="4" max="80" value="${brushSize}" style="width:100px;">
             <span class="ie-opt-range-val" id="ieBrushSizeVal">${brushSize}px</span>
-            <button class="ie-opt-btn" id="ieBrushClear">지우기</button>
-            <button class="ie-apply-btn" id="ieBrushApply">적용</button>`;
+            <button class="ie-opt-btn" id="ieBrushClear">${esc(t('imageedit.btn.ieBrushClear'))}</button>
+            <button class="ie-apply-btn" id="ieBrushApply">${esc(t('imageedit.btn.ieResizeApply'))}</button>`;
         requestAnimationFrame(() => {
             const bgBtn = document.getElementById('ieBrushBg');
             const fgBtn = document.getElementById('ieBrushFg');
@@ -1923,7 +1931,7 @@
             else { bgH[bin]++; bgC++; }
         }
 
-        if (!fgC || !bgC) { Toolbox.showToast('전경(🟢)과 배경(🔴)을 모두 칠해주세요.', 'error'); return; }
+        if (!fgC || !bgC) { Toolbox.showToast(t('imageedit.t125'), 'error'); return; }
         for (let i = 0; i < TOTAL; i++) { fgH[i] /= fgC; bgH[i] /= bgC; }
 
         const EPS = 1e-7;
@@ -1936,25 +1944,25 @@
         destroyBrush();
         pushHistory();
         updateSizeLabel();
-        Toolbox.showToast('브러시 분류 적용 완료');
-        Mdd.linePreset('success', { mood: 'happy', msg: '누끼 작업 완료했어요!' });
+        Toolbox.showToast(t('imageedit.t126'));
+        Mdd.linePreset('success', { mood: 'happy', msg: t('imageedit.t127') });
     }
 
     /* ===== Mode 3 — AI (ONNX) ===== */
     function buildAiBody(body: any) {
         body.innerHTML = `
-            <span class="ie-opt-label">모델</span>
-            <button class="ie-opt-btn${rembgModel === 'isnet_quint8' ? ' active' : ''}" id="ieRembgSmall">⚡ 빠른</button>
-            <button class="ie-opt-btn${rembgModel === 'isnet_fp16' ? ' active' : ''}" id="ieRembgMedium">✨ 정밀</button>
+            <span class="ie-opt-label">${esc(t('imageedit.t21'))}</span>
+            <button class="ie-opt-btn${rembgModel === 'isnet_quint8' ? ' active' : ''}" id="ieRembgSmall">${esc(t('imageedit.btn.ieRembgSmall'))}</button>
+            <button class="ie-opt-btn${rembgModel === 'isnet_fp16' ? ' active' : ''}" id="ieRembgMedium">${esc(t('imageedit.btn.ieRembgMedium'))}</button>
             <span class="ie-toolbar-sep"></span>
-            <span class="ie-opt-label">해상도</span>
+            <span class="ie-opt-label">${esc(t('imageedit.t22'))}</span>
             <select class="ie-opt-input" id="ieRembgSize" style="width:auto;">
                 <option value="512"${rembgMaxSize === 512 ? ' selected' : ''}>512</option>
                 <option value="768"${rembgMaxSize === 768 ? ' selected' : ''}>768</option>
                 <option value="1024"${rembgMaxSize === 1024 ? ' selected' : ''}>1024</option>
             </select>
-            <span class="ie-opt-label ie-rembg-note">처음 실행 시 모델 다운로드 · 느릴 수 있음</span>
-            <button class="ie-apply-btn" id="ieRembgApply">🪄 배경 제거</button>`;
+            <span class="ie-opt-label ie-rembg-note">${esc(t('imageedit.t23'))}</span>
+            <button class="ie-apply-btn" id="ieRembgApply">${esc(t('imageedit.btn.ieRembgApply'))}</button>`;
         requestAnimationFrame(() => {
             const s = document.getElementById('ieRembgSmall'), m = document.getElementById('ieRembgMedium');
             s!.onclick = () => { rembgModel = 'isnet_quint8'; s!.classList.add('active'); m!.classList.remove('active'); };
@@ -2023,17 +2031,17 @@
         ov.className = 'ie-rembg-overlay'; ov.id = 'ieRembgOverlay';
         ov.innerHTML = `
             <div class="ie-rembg-spinner"></div>
-            <div class="ie-rembg-status" id="ieRembgStatus">준비 중...</div>
-            <div class="ie-rembg-status" style="font-size:var(--font-size-xs);font-weight:400;opacity:0.8" id="ieRembgElapsed">경과: 0.0s</div>
+            <div class="ie-rembg-status" id="ieRembgStatus">${esc(t('imageedit.label.ieRembgStatus'))}</div>
+            <div class="ie-rembg-status" style="font-size:var(--font-size-xs);font-weight:400;opacity:0.8" id="ieRembgElapsed">${esc(t('imageedit.label.ieRembgElapsed'))}</div>
             <div class="ie-rembg-bar-wrap"><div class="ie-rembg-bar" id="ieRembgBar"></div></div>
-            <button class="ie-tb-btn" id="ieRembgCancel" style="margin-top:6px;">취소</button>`;
+            <button class="ie-tb-btn" id="ieRembgCancel" style="margin-top:6px;">${esc(t('imageedit.btn.ieRembgCancel'))}</button>`;
         wrap!.appendChild(ov);
         const start = performance.now();
         const timer = setInterval(() => {
             const el = document.getElementById('ieRembgElapsed');
             if (!el) return;
             const s = (performance.now() - start) / 1000;
-            el.textContent = '경과: ' + s.toFixed(s < 10 ? 1 : 0) + 's';
+            el.textContent = t('imageedit.t128') + s.toFixed(s < 10 ? 1 : 0) + 's';
         }, 200);
         return { timer, overlay: ov };
     }
@@ -2046,7 +2054,7 @@
 
     async function applyRemoveBackground() {
         if (!requireImage()) return;
-        if (rembgBusy) { Toolbox.showToast('이미 처리 중입니다.', 'error'); return; }
+        if (rembgBusy) { Toolbox.showToast(t('imageedit.t129'), 'error'); return; }
         rembgBusy = true;
 
         const ui = showRembgOverlay();
@@ -2054,13 +2062,13 @@
         const barEl = () => document.getElementById('ieRembgBar');
         let cancelFn: any = null;
         const cBtn = document.getElementById('ieRembgCancel');
-        if (cBtn) cBtn.onclick = () => { if (cancelFn) cancelFn(); cleanupOverlay(ui); Toolbox.showToast('취소됨'); };
+        if (cBtn) cBtn.onclick = () => { if (cancelFn) cancelFn(); cleanupOverlay(ui); Toolbox.showToast(t('imageedit.t130')); };
 
         const onProg = (key: any, cur: any, tot: any) => {
             if (!tot) return;
             const p = Math.round(cur / tot * 100);
             const b = barEl(); if (b) { b.classList.add('determinate'); b.style.width = p + '%'; }
-            const s = stEl(); if (s) s.textContent = (key.includes('onnx') || key.includes('model') ? '모델 다운로드 ' : '처리 ') + p + '%';
+            const s = stEl(); if (s) s.textContent = (key.includes('onnx') || key.includes('model') ? t('imageedit.t131') : t('imageedit.t132')) + p + '%';
         };
 
         try {
@@ -2069,21 +2077,21 @@
             let procW = origW, procH = origH;
             if (longest > rembgMaxSize) { const sc = rembgMaxSize / longest; procW = Math.round(origW * sc); procH = Math.round(origH * sc); }
 
-            if (stEl()) stEl!()!.textContent = '이미지 축소 중... (' + procW + '×' + procH + ')';
+            if (stEl()) stEl!()!.textContent = t('imageedit.t133') + procW + '×' + procH + ')';
             const pc = document.createElement('canvas'); pc.width = procW; pc.height = procH;
             pc!.getContext('2d')!.drawImage(canvas, 0, 0, procW, procH);
             const blob = await new Promise(r => pc.toBlob(r, 'image/png'));
 
-            if (stEl()) stEl!()!.textContent = 'AI 엔진 초기화 중...';
+            if (stEl()) stEl!()!.textContent = t('imageedit.t134');
             let rb;
             try {
                 const job = runInWorker(blob, rembgModel, onProg);
                 cancelFn = job.cancel;
                 rb = await job.promise;
             } catch (we) {
-                if (stEl()) stEl!()!.textContent = '배경 제거 중... (화면 멈출 수 있음)';
+                if (stEl()) stEl!()!.textContent = t('imageedit.t135');
                 const b = barEl(); if (b) { b.classList.remove('determinate'); b.style.width = ''; }
-                const c = document.getElementById('ieRembgCancel'); if (c) { (c as any).disabled = true; c.textContent = '취소 불가'; }
+                const c = document.getElementById('ieRembgCancel'); if (c) { (c as any).disabled = true; c.textContent = t('imageedit.t136'); }
                 await new Promise(r => requestAnimationFrame(() => setTimeout(r, 100)));
                 rb = await runOnMainThread(blob, rembgModel, onProg);
             }
@@ -2105,12 +2113,12 @@
             }
             URL.revokeObjectURL(u);
             pushHistory(); updateSizeLabel(); cleanupOverlay(ui);
-            Toolbox.showToast('배경 제거 완료!');
-            Mdd.linePreset('success', { msg: '누끼 완성이에요!' });
+            Toolbox.showToast(t('imageedit.t137'));
+            Mdd.linePreset('success', { msg: t('imageedit.t138') });
         } catch (e) {
             console.error('BG removal error:', e);
             cleanupOverlay(ui);
-            Toolbox.showToast('배경 제거 실패: ' + ((e as any).message || e), 'error');
+            Toolbox.showToast(t('imageedit.t139') + ((e as any).message || e), 'error');
         }
     }
 
@@ -2120,15 +2128,15 @@
     function buildGeminiBody(body: any) {
         const hasKey = !!Gemini!.getApiKey();
         body.innerHTML = `
-            <span class="ie-opt-label">모델</span>
+            <span class="ie-opt-label">${esc(t('imageedit.t21'))}</span>
             <select class="ie-opt-input" id="ieGeminiModel" style="width:auto;">
                 ${Gemini!.MODELS.geminiImage.map((m: any) => `<option value="${m.id}">${m.name}</option>`).join('')}
             </select>
             <span class="ie-toolbar-sep"></span>
-            <span class="ie-opt-label ie-rembg-note">${hasKey ? '✅ API 키 설정됨' : '⚠️ API 키 필요 (홈 > 사용자 설정)'}</span>
+            <span class="ie-opt-label ie-rembg-note">${hasKey ? t('imageedit.t140') : t('imageedit.t141')}</span>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="ie-apply-btn" id="ieGeminiApply" ${hasKey ? '' : 'disabled'}>✨ Gemini 배경 제거</button>
-                <button class="ie-apply-btn" id="ieGeminiDownloadMask" style="background:#555;" ${lastGeminiMaskDataUrl ? '' : 'disabled'}>🖼️ 마스크 다운로드</button>
+                <button class="ie-apply-btn" id="ieGeminiApply" ${hasKey ? '' : 'disabled'}>${esc(t('imageedit.btn.ieGeminiApply'))}</button>
+                <button class="ie-apply-btn" id="ieGeminiDownloadMask" style="background:#555;" ${lastGeminiMaskDataUrl ? '' : 'disabled'}>${esc(t('imageedit.btn.ieGeminiDownloadMask'))}</button>
             </div>`;
         requestAnimationFrame(() => {
             document!.getElementById('ieGeminiApply')!.onclick = applyGeminiRemoveBg;
@@ -2137,19 +2145,19 @@
     }
 
     function downloadGeminiMask() {
-        if (!lastGeminiMaskDataUrl) { Toolbox.showToast('마스크가 없습니다. 먼저 배경 제거를 실행하세요.', 'error'); return; }
+        if (!lastGeminiMaskDataUrl) { Toolbox.showToast(t('imageedit.t142'), 'error'); return; }
         const a = document.createElement('a');
         a.href = lastGeminiMaskDataUrl;
         a.download = 'gemini_mask.png';
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        Toolbox.showToast('마스크 다운로드!');
+        Toolbox.showToast(t('imageedit.t143'));
     }
 
     async function applyGeminiRemoveBg() {
         if (!requireImage()) return;
         const key = Gemini!.requireApiKey();
         if (!key) return;
-        if (rembgBusy) { Toolbox.showToast('이미 처리 중입니다.', 'error'); return; }
+        if (rembgBusy) { Toolbox.showToast(t('imageedit.t129'), 'error'); return; }
         rembgBusy = true;
 
         const ui = showRembgOverlay();
@@ -2157,7 +2165,7 @@
         const origW = canvas.width, origH = canvas.height;
 
         try {
-            if (stEl()) stEl!()!.textContent = '이미지 준비 중...';
+            if (stEl()) stEl!()!.textContent = t('imageedit.t144');
             const maxSide = 1024;
             let dw = origW, dh = origH;
             const longest = Math.max(dw, dh);
@@ -2166,7 +2174,7 @@
             tmp!.getContext('2d')!.drawImage(canvas, 0, 0, dw, dh);
             const base64 = tmp.toDataURL('image/png').split(',')[1];
 
-            if (stEl()) stEl!()!.textContent = 'Gemini에 마스크 요청 중...';
+            if (stEl()) stEl!()!.textContent = t('imageedit.t145');
             const modelId = (document.getElementById('ieGeminiModel') as any)?.value || Gemini!.MODELS.geminiImage[0].id;
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${key}`;
             const reqBody = {
@@ -2180,9 +2188,9 @@
             const res = await Gemini!.fetchWithRetry(url, reqBody);
             const data = await res.json();
             const imgPart = data.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
-            if (!imgPart) throw new Error('Gemini에서 마스크 응답이 없습니다.');
+            if (!imgPart) throw new Error(t('imageedit.err.146'));
 
-            if (stEl()) stEl!()!.textContent = '마스크 적용 중...';
+            if (stEl()) stEl!()!.textContent = t('imageedit.t147');
             const rawMaskUrl = `data:${imgPart.inlineData.mimeType || 'image/png'};base64,${imgPart.inlineData.data}`;
             const maskImg = new Image();
             await new Promise((ok, no) => { maskImg.onload = ok; maskImg.onerror = no; maskImg.src = rawMaskUrl; });
@@ -2217,13 +2225,13 @@
             ctx.drawImage(off, 0, 0);
 
             pushHistory(); updateSizeLabel(); cleanupOverlay(ui);
-            Toolbox.showToast('Gemini 마스크 적용 완료!');
-            Mdd.linePreset('success', { msg: 'Gemini가 마스크 만들어줬어요!' });
+            Toolbox.showToast(t('imageedit.t148'));
+            Mdd.linePreset('success', { msg: t('imageedit.t149') });
         } catch (e) {
             console.error('Gemini mask error:', e);
             cleanupOverlay(ui);
-            Toolbox.showToast('Gemini 실패: ' + ((e as any).message || e), 'error');
-            Mdd.linePreset('error', { msg: 'Gemini 실패했어요...' });
+            Toolbox.showToast(t('imageedit.t150') + ((e as any).message || e), 'error');
+            Mdd.linePreset('error', { msg: t('imageedit.t151') });
         }
     }
 
@@ -2257,23 +2265,23 @@
         const hasKey = !!Gemini!.getApiKey();
         body.innerHTML = `
             <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;width:100%;">
-                <span class="ie-opt-label">배율</span>
+                <span class="ie-opt-label">${esc(t('imageedit.t24'))}</span>
                 <select class="ie-opt-input" id="ieUpscaleFactor" style="width:auto;">
                     <option value="2">2×</option>
                     <option value="4">4×</option>
                 </select>
-                <button type="button" class="ie-opt-btn" id="ieUpscaleLocal">⚡ 로컬 확대</button>
+                <button type="button" class="ie-opt-btn" id="ieUpscaleLocal">${esc(t('imageedit.btn.ieUpscaleLocal'))}</button>
                 <span class="ie-toolbar-sep"></span>
-                <span class="ie-opt-label">모델 (AI)</span>
+                <span class="ie-opt-label">${esc(t('imageedit.t25'))}</span>
                 <select class="ie-opt-input" id="ieUpscaleModel" style="width:auto;">
                     ${Gemini!.MODELS.geminiImage.map((m: any) => `<option value="${m.id}">${m.name}</option>`).join('')}
                 </select>
-                <button type="button" class="ie-apply-btn" id="ieUpscaleApply" ${hasKey ? '' : 'disabled'}>✨ AI 업스케일</button>
+                <button type="button" class="ie-apply-btn" id="ieUpscaleApply" ${hasKey ? '' : 'disabled'}>${esc(t('imageedit.btn.ieUpscaleApply'))}</button>
             </div>
-            <span class="ie-opt-label ie-rembg-note">${hasKey ? '✅ API 키 설정됨' : '⚠️ API 키 필요 (홈 > 사용자 설정)'}</span>
+            <span class="ie-opt-label ie-rembg-note">${hasKey ? t('imageedit.t140') : t('imageedit.t141')}</span>
             <div style="font-size:var(--font-size-xs);opacity:0.85;max-width:600px;line-height:1.45;">
-                <strong>로컬</strong> — 브라우저 2D 보간(고품질)으로만 키웁니다. API·네트워크 없음. 원래 없던 선명한 디테일은 생기지 않고, 덜 뭉개져 보일 수 있습니다. Real-ESRGAN 같은 초해상도 신경망은 별도 모델(WASM 등)이 필요해 여기서는 넣지 않았습니다.<br>
-                <strong>AI</strong> — Nano Banana에 보내 디테일을 “추정”해 키웁니다. 긴 변 최대 약 1536px로 줄여 요청하고, 결과를 위 배율 크기에 맞춥니다.
+                <strong>${esc(t('imageedit.t26'))}</strong> ${esc(t('imageedit.t27'))}<br>
+                <strong>AI</strong> ${esc(t('imageedit.t28'))}
             </div>`;
         requestAnimationFrame(() => {
             document!.getElementById('ieUpscaleLocal')!.onclick = applyLocalUpscale;
@@ -2284,7 +2292,7 @@
     /** 보간만 사용하는 업스케일 (서버·API 없음). 초해상도(Real-ESRGAN 등)와는 다릅니다. */
     function applyLocalUpscale() {
         if (!requireImage()) return;
-        if (upscaleBusy) { Toolbox.showToast('이미 처리 중입니다.', 'error'); return; }
+        if (upscaleBusy) { Toolbox.showToast(t('imageedit.t129'), 'error'); return; }
         const factor = parseInt((document.getElementById('ieUpscaleFactor') as any)?.value || '2', 10);
         if (factor !== 2 && factor !== 4) return;
         const origW = canvas.width;
@@ -2311,13 +2319,13 @@
         pushHistory();
         updateSizeLabel();
         Toolbox.showToast(`${factor}× 로컬 확대 완료`);
-        Mdd.linePreset('success', { mood: 'happy', msg: '로컬에서 키웠어요!' });
+        Mdd.linePreset('success', { mood: 'happy', msg: t('imageedit.t152') });
     }
 
     async function applyGeminiUpscale() {
         if (!requireImage()) return;
         if (!Gemini!.requireApiKey()) return;
-        if (upscaleBusy) { Toolbox.showToast('이미 처리 중입니다.', 'error'); return; }
+        if (upscaleBusy) { Toolbox.showToast(t('imageedit.t129'), 'error'); return; }
 
         const factor = parseInt((document.getElementById('ieUpscaleFactor') as any)?.value || '2', 10);
         if (factor !== 2 && factor !== 4) return;
@@ -2337,7 +2345,7 @@
         const targetH = origH * factor;
 
         try {
-            if (stEl()) stEl!()!.textContent = '이미지 준비 중...';
+            if (stEl()) stEl!()!.textContent = t('imageedit.t144');
             const maxSide = 1536;
             let dw = origW, dh = origH;
             const longest = Math.max(dw, dh);
@@ -2361,14 +2369,14 @@
                 'Enhance fine detail and sharpness naturally without adding new objects, people, or text. ' +
                 'Do not crop or reframe. Output a single PNG image.';
 
-            if (stEl()) stEl!()!.textContent = 'Gemini 업스케일 요청 중...';
+            if (stEl()) stEl!()!.textContent = t('imageedit.t153');
             const result = await (Gemini as any)!.callGeminiImage(prompt, modelId, {
                 referenceImage: base64,
                 aspectRatio: ar
             });
-            if (!result?.dataUrl) throw new Error('이미지 응답이 없습니다.');
+            if (!result?.dataUrl) throw new Error(t('imageedit.err.154'));
 
-            if (stEl()) stEl!()!.textContent = '결과 적용 중...';
+            if (stEl()) stEl!()!.textContent = t('imageedit.t155');
             const img = new Image();
             await new Promise((ok, no) => { img.onload = ok; img.onerror = no; img.src = result.dataUrl; });
 
@@ -2383,12 +2391,12 @@
             updateSizeLabel();
             cleanupOverlay(ui);
             Toolbox.showToast(`${factor}× AI 업스케일 완료`);
-            Mdd.linePreset('success', { msg: '이미지 키워줬어요!' });
+            Mdd.linePreset('success', { msg: t('imageedit.t156') });
         } catch (e) {
             console.error('Gemini upscale error:', e);
             cleanupOverlay(ui);
-            Toolbox.showToast('업스케일 실패: ' + ((e as any).message || e), 'error');
-            Mdd.linePreset('error', { msg: '업스케일 실패했어요...' });
+            Toolbox.showToast(t('imageedit.t157') + ((e as any).message || e), 'error');
+            Mdd.linePreset('error', { msg: t('imageedit.t158') });
         } finally {
             upscaleBusy = false;
         }
@@ -2400,17 +2408,17 @@
     function buildBggBody(body: any) {
         const hasKey = !!Gemini!.getApiKey();
         body.innerHTML = `
-            <span class="ie-opt-label">배경색</span>
+            <span class="ie-opt-label">${esc(t('imageedit.t29'))}</span>
             <input type="color" id="ieBggColor" value="#ffffff" style="width:40px;height:28px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer;">
-            <input type="text" id="ieBggColorText" placeholder="예: 하늘색, 그라데이션" style="width:120px;padding:4px 8px;font-size:var(--font-size-xs);border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-tertiary);color:var(--text-primary);" title="색상명 또는 설명 입력">
+            <input type="text" id="ieBggColorText" placeholder="${esc(t('imageedit.ph.ieBggColorText'))}" style="width:120px;padding:4px 8px;font-size:var(--font-size-xs);border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-tertiary);color:var(--text-primary);" title="${esc(t('imageedit.title.ieBggColorText'))}">
             <span class="ie-toolbar-sep"></span>
-            <span class="ie-opt-label">모델</span>
+            <span class="ie-opt-label">${esc(t('imageedit.t21'))}</span>
             <select class="ie-opt-input" id="ieBggModel" style="width:auto;">
                 ${Gemini!.MODELS.geminiImage.map((m: any) => `<option value="${m.id}">${m.name}</option>`).join('')}
             </select>
             <span class="ie-toolbar-sep"></span>
-            <span class="ie-opt-label ie-rembg-note">${hasKey ? '✅ API 키 설정됨' : '⚠️ API 키 필요'}</span>
-            <button class="ie-apply-btn" id="ieBggApply" ${hasKey ? '' : 'disabled'}>🎨 Gemini 배경색 변경</button>`;
+            <span class="ie-opt-label ie-rembg-note">${hasKey ? t('imageedit.t140') : t('imageedit.t159')}</span>
+            <button class="ie-apply-btn" id="ieBggApply" ${hasKey ? '' : 'disabled'}>${esc(t('imageedit.btn.ieBggApply'))}</button>`;
         requestAnimationFrame(() => {
             const textEl = document.getElementById('ieBggColorText');
             textEl?.addEventListener('input', () => {
@@ -2425,7 +2433,7 @@
         if (!requireImage()) return;
         const key = Gemini!.requireApiKey();
         if (!key) return;
-        if (bggBusy) { Toolbox.showToast('이미 처리 중입니다.', 'error'); return; }
+        if (bggBusy) { Toolbox.showToast(t('imageedit.t129'), 'error'); return; }
         bggBusy = true;
 
         const colorText = (document.getElementById('ieBggColorText') as any)?.value?.trim();
@@ -2436,7 +2444,7 @@
         const stEl = () => document.getElementById('ieRembgStatus');
 
         try {
-            if (stEl()) stEl!()!.textContent = '이미지 준비 중...';
+            if (stEl()) stEl!()!.textContent = t('imageedit.t144');
             const maxSide = 1024;
             let dw = canvas.width, dh = canvas.height;
             const longest = Math.max(dw, dh);
@@ -2446,7 +2454,7 @@
             tmp!.getContext('2d')!.drawImage(canvas, 0, 0, dw, dh);
             const base64 = tmp.toDataURL('image/png').split(',')[1];
 
-            if (stEl()) stEl!()!.textContent = 'Gemini에 배경색 변경 요청 중...';
+            if (stEl()) stEl!()!.textContent = t('imageedit.t160');
             const modelId = (document.getElementById('ieBggModel') as any)?.value || Gemini!.MODELS.geminiImage[0].id;
             const colorPrompt = /^#[0-9a-fA-F]{6}$/.test(colorDesc)
                 ? `solid color ${colorDesc}`
@@ -2454,9 +2462,9 @@
             const prompt = `Change the background of this image to ${colorPrompt}. Keep the foreground subject exactly the same. Do not alter the subject's appearance, pose, or lighting. Replace only the background. Output the result as a PNG image.`;
 
             const result = await (Gemini as any)!.callGeminiImage(prompt, modelId, { referenceImage: base64 });
-            if (!result?.dataUrl) throw new Error('이미지 응답이 없습니다.');
+            if (!result?.dataUrl) throw new Error(t('imageedit.err.154'));
 
-            if (stEl()) stEl!()!.textContent = '결과 적용 중...';
+            if (stEl()) stEl!()!.textContent = t('imageedit.t155');
             const img = new Image();
             await new Promise((ok, no) => { img.onload = ok; img.onerror = no; img.src = result.dataUrl; });
 
@@ -2464,24 +2472,25 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0);
             pushHistory(); updateSizeLabel(); cleanupOverlay(ui);
-            Toolbox.showToast('배경색 변경 완료!');
-            Mdd.linePreset('success', { msg: '배경색 바꿔줬어요!' });
+            Toolbox.showToast(t('imageedit.t162'));
+            Mdd.linePreset('success', { msg: t('imageedit.t163') });
         } catch (e) {
             console.error('Gemini BGG error:', e);
             cleanupOverlay(ui);
-            Toolbox.showToast('Gemini 실패: ' + ((e as any).message || e), 'error');
-            Mdd.linePreset('error', { msg: 'Gemini 실패했어요...' });
+            Toolbox.showToast(t('imageedit.t150') + ((e as any).message || e), 'error');
+            Mdd.linePreset('error', { msg: t('imageedit.t151') });
         } finally {
             bggBusy = false;
         }
     }
 
     /* ===== Caption Tool ===== */
-    const CAPTION_PRESETS = [
-        { id: 'impact', label: '흰 테두리 검정', icon: '⬛', font: 'Impact, "KarmoSans", Arial Black, sans-serif', fontSize: 0.07, fillStyle: '#000000', strokeStyle: '#FFFFFF', lineWidth: 4, position: 'bottom', uppercase: true, maxLines: 3 },
-        { id: 'subtitle', label: '자막 스타일', icon: '🟡', font: '"KarmoSans", sans-serif', fontWeight: 'bold', fontSize: 0.055, fillStyle: '#FFFF00', strokeStyle: '#000000', lineWidth: 3, position: 'bottom', bgBar: 'rgba(0,0,0,0.5)', maxLines: 3 },
-        { id: 'bubble', label: '만화 말풍선', icon: '💬', font: '"Comic Sans MS", "나눔손글씨 붓", cursive', fontSize: 0.06, fillStyle: '#000000', bubbleStyle: { fill: '#FFFFFF', stroke: '#000000', strokeWidth: 2, padding: 16 }, position: 'center', maxLines: 4 },
-        { id: 'bar', label: '심플 하단바', icon: '▬', font: '"KarmoSans", sans-serif', fontSize: 0.05, fillStyle: '#FFFFFF', barBg: 'rgba(0,0,0,0.7)', padding: 20, position: 'bottom', maxLines: 2 }
+    /* 위와 같은 이유로 함수. */
+    const captionPresets = () => [
+        { id: 'impact', label: t('imageedit.t164'), icon: '⬛', font: 'Impact, "KarmoSans", Arial Black, sans-serif', fontSize: 0.07, fillStyle: '#000000', strokeStyle: '#FFFFFF', lineWidth: 4, position: 'bottom', uppercase: true, maxLines: 3 },
+        { id: 'subtitle', label: t('imageedit.t165'), icon: '🟡', font: '"KarmoSans", sans-serif', fontWeight: 'bold', fontSize: 0.055, fillStyle: '#FFFF00', strokeStyle: '#000000', lineWidth: 3, position: 'bottom', bgBar: 'rgba(0,0,0,0.5)', maxLines: 3 },
+        { id: 'bubble', label: t('imageedit.t166'), icon: '💬', font: t('imageedit.t167'), fontSize: 0.06, fillStyle: '#000000', bubbleStyle: { fill: '#FFFFFF', stroke: '#000000', strokeWidth: 2, padding: 16 }, position: 'center', maxLines: 4 },
+        { id: 'bar', label: t('imageedit.t168'), icon: '▬', font: '"KarmoSans", sans-serif', fontSize: 0.05, fillStyle: '#FFFFFF', barBg: 'rgba(0,0,0,0.7)', padding: 20, position: 'bottom', maxLines: 2 }
     ];
     (function ensureCaptionFonts() {
         if (document.getElementById('ie-caption-fonts')) return;
@@ -2637,7 +2646,7 @@
         const ov = document.getElementById('ieCaptionOverlay');
         if (!ov || ov.style.display !== 'block' || !hasImage()) return;
         const presetId = (document.querySelector('#ieCaptionPresets button.active') as any)?.dataset?.preset || 'impact';
-        const preset = CAPTION_PRESETS.find(p => p.id === presetId) || CAPTION_PRESETS[0];
+        const preset = captionPresets().find(p => p.id === presetId) || captionPresets()[0];
         const text = (document.getElementById('ieCaptionText') as any)?.value?.trim() || '';
         const ovCtx = (ov as any).getContext('2d');
         ovCtx.drawImage(canvas, 0, 0);
@@ -2683,18 +2692,18 @@
     function buildCaptionOptions(optPanel: any) {
         optPanel.innerHTML = `
             <div class="ie-opt-row" style="flex-wrap:wrap;gap:8px;">
-                <span class="ie-opt-label">스타일</span>
+                <span class="ie-opt-label">${esc(t('imageedit.t30'))}</span>
                 <div class="ie-filter-grid" id="ieCaptionPresets" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;"></div>
             </div>
             <div class="ie-opt-row" style="flex-direction:column;align-items:stretch;">
-                <span class="ie-opt-label">캡션 텍스트 <span style="color:var(--text-tertiary);font-weight:400;">(드래그로 위치 이동)</span></span>
-                <textarea class="ie-opt-input" id="ieCaptionText" placeholder="캡션을 입력하세요 (줄바꿈 가능)" style="min-height:60px;resize:vertical;"></textarea>
+                <span class="ie-opt-label">${esc(t('imageedit.t31'))} <span style="color:var(--text-tertiary);font-weight:400;">${esc(t('imageedit.t32'))}</span></span>
+                <textarea class="ie-opt-input" id="ieCaptionText" placeholder="${esc(t('imageedit.ph.ieCaptionText'))}" style="min-height:60px;resize:vertical;"></textarea>
             </div>
             <div class="ie-opt-row">
-                <button class="ie-apply-btn" id="ieCaptionApply">캡션 적용</button>
+                <button class="ie-apply-btn" id="ieCaptionApply">${esc(t('imageedit.btn.ieCaptionApply'))}</button>
             </div>`;
         const presetWrap = document.getElementById('ieCaptionPresets');
-        CAPTION_PRESETS.forEach((p, i) => {
+        captionPresets().forEach((p, i) => {
             const btn = document.createElement('button');
             btn.className = 'ie-opt-btn' + (i === 0 ? ' active' : '');
             btn.dataset.preset = p.id;
@@ -2721,15 +2730,15 @@
     function applyCaption() {
         if (!requireImage()) return;
         const presetId = (document.querySelector('#ieCaptionPresets button.active') as any)?.dataset?.preset || 'impact';
-        const preset = CAPTION_PRESETS.find(p => p.id === presetId) || CAPTION_PRESETS[0];
+        const preset = captionPresets().find(p => p.id === presetId) || captionPresets()[0];
         const text = (document.getElementById('ieCaptionText') as any)?.value?.trim();
-        if (!text) { Toolbox.showToast('캡션 텍스트를 입력하세요.', 'error'); return; }
+        if (!text) { Toolbox.showToast(t('imageedit.t169'), 'error'); return; }
         pushHistory();
         renderCaptionOnCanvas(ctx, preset, text, canvas.width, canvas.height, { x: captionPosX, y: captionPosY });
         (document!.getElementById('ieCaptionText') as any).value = '';
         redrawCaptionPreview();
         updateSizeLabel();
-        Toolbox.showToast('캡션 적용됨', 'success');
+        Toolbox.showToast(t('imageedit.t170'), 'success');
     }
 
     /* ===== Sticker Tool ===== */
@@ -2815,16 +2824,16 @@
     function buildStickerOptions(optPanel: any) {
         optPanel.innerHTML = `
             <div class="ie-opt-row" style="flex-wrap:wrap;gap:8px;">
-                <span class="ie-opt-label">스티커 <span style="color:var(--text-tertiary);font-weight:400;">(드래그로 위치 이동)</span></span>
+                <span class="ie-opt-label">${esc(t('imageedit.t10'))} <span style="color:var(--text-tertiary);font-weight:400;">${esc(t('imageedit.t32'))}</span></span>
                 <div class="ie-filter-grid" id="ieStickerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:6px;max-height:120px;overflow-y:auto;"></div>
             </div>
             <div class="ie-opt-row" style="align-items:center;gap:8px;">
-                <span class="ie-opt-label">크기</span>
+                <span class="ie-opt-label">${esc(t('imageedit.t20'))}</span>
                 <input type="range" class="ie-opt-range" id="ieStickerScale" min="5" max="50" value="20" style="width:100px;">
                 <span id="ieStickerScaleVal" class="ie-opt-range-val">20%</span>
             </div>
             <div class="ie-opt-row">
-                <button class="ie-apply-btn" id="ieStickerApply">스티커 적용</button>
+                <button class="ie-apply-btn" id="ieStickerApply">${esc(t('imageedit.btn.ieStickerApply'))}</button>
             </div>`;
         const grid = document.getElementById('ieStickerGrid');
         const scaleSlider = document.getElementById('ieStickerScale');
@@ -2836,7 +2845,7 @@
         };
         function loadStickers(files: any) {
                 if (!Array.isArray(files) || files.length === 0) {
-                    grid!.innerHTML = '<span class="ie-opt-label" style="grid-column:1/-1;">스티커가 없습니다. img/stickers/ 폴더에 이미지 추가 후 stickers.json에 파일명을 적어주세요.</span>';
+                    grid!.innerHTML = t('imageedit.t171');
                     return;
                 }
                 stickerImages = [];
@@ -2872,7 +2881,7 @@
             .then(r => r.ok ? r.json() : [])
             .then(files => loadStickers(files))
             .catch(() => {
-                grid!.innerHTML = '<span class="ie-opt-label" style="grid-column:1/-1;">stickers.json을 불러올 수 없습니다.</span>';
+                grid!.innerHTML = t('imageedit.t172');
             });
         document!.getElementById('ieStickerApply')!.onclick = applySticker;
         if (hasImage()) initStickerOverlay();
@@ -2881,14 +2890,14 @@
     function applySticker() {
         if (!requireImage()) return;
         if (!selectedStickerImg || !selectedStickerImg.complete) {
-            Toolbox.showToast('스티커를 선택하세요.', 'error');
+            Toolbox.showToast(t('imageedit.t173'), 'error');
             return;
         }
         pushHistory();
         renderStickerOnCanvas(ctx, selectedStickerImg, canvas.width, canvas.height, stickerPosX, stickerPosY, stickerScale);
         redrawStickerPreview();
         updateSizeLabel();
-        Toolbox.showToast('스티커 적용됨', 'success');
+        Toolbox.showToast(t('imageedit.t174'), 'success');
     }
 
     /* ===== Mask Apply Tool ===== */
@@ -2900,41 +2909,41 @@
         optPanel.innerHTML = `
             <div class="ie-options-stack" style="display:flex;flex-direction:column;gap:10px;width:100%;">
                 <div style="padding-bottom:8px;border-bottom:1px solid var(--border);">
-                    <span class="ie-opt-label" style="font-weight:600;margin-bottom:4px;">📁 외부 마스크 적용</span>
+                    <span class="ie-opt-label" style="font-weight:600;margin-bottom:4px;">${esc(t('imageedit.t33'))}</span>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px;">
-                        <button class="ie-apply-btn" id="ieMaskLoadFile" style="background:#555;">📂 파일</button>
-                        <button class="ie-apply-btn" id="ieMaskPaste" style="background:#555;">📋 붙여넣기</button>
+                        <button class="ie-apply-btn" id="ieMaskLoadFile" style="background:#555;">${esc(t('imageedit.btn.ieMaskLoadFile'))}</button>
+                        <button class="ie-apply-btn" id="ieMaskPaste" style="background:#555;">${esc(t('imageedit.btn.ieMaskPaste'))}</button>
                         <div id="ieMaskPreviewWrap" style="display:none; align-items:center; gap:6px;">
                             <canvas id="ieMaskPreview" style="max-width:60px; max-height:40px; border:1px solid var(--border); border-radius:4px;"></canvas>
                             <span id="ieMaskInfo" class="ie-opt-label" style="font-size:var(--font-size-xs);"></span>
                         </div>
-                        <span class="ie-opt-label">해석</span>
+                        <span class="ie-opt-label">${esc(t('imageedit.t34'))}</span>
                         <select class="ie-opt-input" id="ieMaskInterpret" style="width:auto;">
-                            <option value="alpha">알파 채널</option>
-                            <option value="luminance">밝기</option>
+                            <option value="alpha">${esc(t('imageedit.opt.alpha'))}</option>
+                            <option value="luminance">${esc(t('imageedit.opt.luminance'))}</option>
                         </select>
                         <label id="ieMaskInvertLabel" style="display:none; align-items:center; gap:4px; font-size:var(--font-size-sm); color:var(--text-secondary); cursor:pointer;">
-                            <input type="checkbox" id="ieMaskInvertCb"> 반전
+                            <input type="checkbox" id="ieMaskInvertCb"> ${esc(t('imageedit.label.ieMaskInvertCb'))}
                         </label>
-                        <button class="ie-apply-btn" id="ieMaskPreviewBtn" disabled style="background:#666;">👁 미리보기</button>
-                        <button class="ie-apply-btn" id="ieMaskApplyBtn" disabled>🎭 적용</button>
+                        <button class="ie-apply-btn" id="ieMaskPreviewBtn" disabled style="background:#666;">${esc(t('imageedit.btn.ieMaskPreviewBtn'))}</button>
+                        <button class="ie-apply-btn" id="ieMaskApplyBtn" disabled>${esc(t('imageedit.btn.ieMaskApplyBtn'))}</button>
                     </div>
                 </div>
                 <div>
-                    <span class="ie-opt-label" style="font-weight:600;margin-bottom:4px;">🎯 셀프 마스크 (현재 이미지 기준)</span>
+                    <span class="ie-opt-label" style="font-weight:600;margin-bottom:4px;">${esc(t('imageedit.t35'))}</span>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px;">
-                        <span class="ie-opt-label">대상</span>
+                        <span class="ie-opt-label">${esc(t('imageedit.t36'))}</span>
                         <select class="ie-opt-input" id="ieSelfMaskTarget" style="width:auto;">
-                            <option value="dark">검정 (어두운 영역 제거)</option>
-                            <option value="light">흰색 (밝은 영역 제거)</option>
+                            <option value="dark">${esc(t('imageedit.opt.dark'))}</option>
+                            <option value="light">${esc(t('imageedit.opt.light'))}</option>
                         </select>
-                        <span class="ie-opt-label">허용치</span>
+                        <span class="ie-opt-label">${esc(t('imageedit.t17'))}</span>
                         <input type="range" class="ie-opt-range" id="ieSelfMaskTol" min="1" max="128" value="30" style="width:80px;">
                         <span id="ieSelfMaskTolVal" class="ie-opt-label" style="min-width:28px;">30</span>
-                        <span class="ie-opt-label">페더</span>
+                        <span class="ie-opt-label">${esc(t('imageedit.t18'))}</span>
                         <input type="range" class="ie-opt-range" id="ieSelfMaskFeather" min="0" max="64" value="10" style="width:60px;">
                         <span id="ieSelfMaskFeatherVal" class="ie-opt-label" style="min-width:28px;">10</span>
-                        <button class="ie-apply-btn" id="ieSelfMaskApply">✂️ 제거</button>
+                        <button class="ie-apply-btn" id="ieSelfMaskApply">${esc(t('imageedit.btn.ieSelfMaskApply'))}</button>
                     </div>
                 </div>
             </div>`;
@@ -2954,8 +2963,8 @@
                         const imgType = item.types.find(t => t.startsWith('image/'));
                         if (imgType) { loadMaskFromFile(await item.getType(imgType)); return; }
                     }
-                    Toolbox.showToast('클립보드에 이미지가 없습니다.', 'error');
-                } catch { Toolbox.showToast('클립보드 읽기 실패', 'error'); }
+                    Toolbox.showToast(t('imageedit.t175'), 'error');
+                } catch { Toolbox.showToast(t('imageedit.t176'), 'error'); }
             };
 
             document!.getElementById('ieMaskInterpret')!.onchange = () => {
@@ -2995,7 +3004,7 @@
                 if (prevBtn) (prevBtn as any).disabled = false;
                 (document!.getElementById('ieMaskPreviewWrap') as any).style.display = 'flex';
                 (document!.getElementById('ieMaskInvertLabel') as any).style.display = 'flex';
-                Toolbox.showToast('마스크 이미지 로드 완료');
+                Toolbox.showToast(t('imageedit.t177'));
             };
             img.src = e!.target!.result as string;
         };
@@ -3018,7 +3027,7 @@
             pc.globalCompositeOperation = 'source-over';
         }
         const info = document.getElementById('ieMaskInfo');
-        if (info) info.textContent = `${w}×${h}${maskInvert ? ' (반전)' : ''}`;
+        if (info) info.textContent = `${w}×${h}${maskInvert ? t('imageedit.t178') : ''}`;
     }
 
     function computeMaskedImageData() {
@@ -3140,15 +3149,15 @@
 
     function applyMaskToImage() {
         if (!requireImage()) return;
-        if (!maskImageData) { Toolbox.showToast('마스크 이미지를 먼저 불러오세요.', 'error'); return; }
+        if (!maskImageData) { Toolbox.showToast(t('imageedit.t179'), 'error'); return; }
 
         const masked = computeMaskedImageData();
         ctx.putImageData(masked, 0, 0);
 
         destroyMaskPreview();
         pushHistory(); updateSizeLabel();
-        Toolbox.showToast('마스크 적용 완료!');
-        Mdd.linePreset('success', { msg: '마스크 적용했어요!' });
+        Toolbox.showToast(t('imageedit.t180'));
+        Mdd.linePreset('success', { msg: t('imageedit.t181') });
     }
 
     function applySelfMask() {
@@ -3179,9 +3188,9 @@
         ctx.putImageData(imgData, 0, 0);
 
         pushHistory(); updateSizeLabel();
-        const label = target === 'dark' ? '어두운' : '밝은';
+        const label = target === 'dark' ? t('imageedit.t182') : t('imageedit.t183');
         Toolbox.showToast(`${label} 영역 제거 완료!`);
-        Mdd.linePreset('success', { msg: '깔끔하게 날렸어요!' });
+        Mdd.linePreset('success', { msg: t('imageedit.t184') });
     }
 
     /* ===== Crop ===== */
@@ -3372,7 +3381,7 @@
         updateSizeLabel();
         destroyCrop();
         if (activeTool === 'crop') initCrop();
-        Toolbox.showToast('자르기 완료');
+        Toolbox.showToast(t('imageedit.t185'));
     }
 
     /* ===== Export ===== */
@@ -3391,7 +3400,7 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             const sizeKB = (blob.size / 1024).toFixed(1);
-            Toolbox.showToast('다운로드 시작 (' + sizeKB + ' KB)');
+            Toolbox.showToast(t('imageedit.t186') + sizeKB + ' KB)');
         }, mime, quality);
     }
 
@@ -3400,9 +3409,9 @@
         try {
             const blob = await new Promise<Blob>(resolve => canvas.toBlob((b: Blob) => resolve(b), 'image/png'));
             await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-            Toolbox.showToast('클립보드에 복사됨');
+            Toolbox.showToast(t('imageedit.t187'));
         } catch (e) {
-            Toolbox.showToast('클립보드 복사 실패', 'error', e);
+            Toolbox.showToast(t('imageedit.t188'), 'error', e);
         }
     }
 
@@ -3413,17 +3422,17 @@
             await (globalThis as any).ImageDB.save({
                 id: 'edit_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
                 url: dataUrl,
-                prompt: '(이미지 편집)',
+                prompt: t('imageedit.t189'),
                 model: 'imageedit',
-                modelName: '이미지 편집',
+                modelName: t('imageedit.t190'),
                 timestamp: Date.now(),
                 tokens: null,
                 elapsed: null
             });
-            Toolbox.showToast('라이브러리에 저장됨');
-            Mdd.linePreset('success', { msg: '라이브러리에 저장했어요!' });
+            Toolbox.showToast(t('imageedit.t191'));
+            Mdd.linePreset('success', { msg: t('imageedit.t192') });
         } catch (e) {
-            Toolbox.showToast('저장 실패', 'error', e);
+            Toolbox.showToast(t('imageedit.t193'), 'error', e);
         }
     }
 
@@ -3545,13 +3554,13 @@
         if (ql) ql.style.opacity = lossy ? '1' : '0.45';
         if (qv) qv.style.opacity = lossy ? '1' : '0.45';
         if (hint) {
-            const tail = ' 미리보기 후 화면을 누르면 닫혀요.';
+            const tail = t('imageedit.t194');
             if (fmt === 'jpeg') {
-                hint.textContent = 'JPEG는 알파가 없습니다. 투명 영역은 배경색으로 채워집니다.' + tail;
+                hint.textContent = t('imageedit.t195') + tail;
             } else if (fmt === 'webp') {
-                hint.textContent = 'WebP는 투명을 유지할 수 있어요.' + tail;
+                hint.textContent = t('imageedit.t196') + tail;
             } else {
-                hint.textContent = 'PNG는 무손실입니다. 캔버스 내용을 그대로 인코딩합니다.' + tail;
+                hint.textContent = t('imageedit.t197') + tail;
             }
         }
     }
@@ -3596,21 +3605,21 @@
      * @param {{ w?: number, h?: number, bytes?: number|null, bytesKind?: string|null, naturalW?: number, naturalH?: number }|null|undefined} m
      */
     function ieCvFormatOriginalMetaLine(m: any) {
-        const label = '변환 전';
+        const label = t('imageedit.t198');
         if (!m || !(m.w > 0) || !(m.h > 0)) return label + ': —';
         const parts = [m.w + ' × ' + m.h + ' px'];
         const nw = m.naturalW,
             nh = m.naturalH;
         if (nw > 0 && nh > 0 && (nw !== m.w || nh !== m.h)) {
-            parts.push('불러온 원본 ' + nw + '×' + nh);
+            parts.push(t('imageedit.t199') + nw + '×' + nh);
         }
         if (m.bytes != null && m.bytes >= 0) {
             const b = ieCvFormatLbBytes(m.bytes);
-            if (m.bytesKind === 'file') parts.push(b + ' (파일)');
-            else if (m.bytesKind === 'dataUrl') parts.push('≈' + b + ' (data 근사)');
+            if (m.bytesKind === 'file') parts.push(b + t('imageedit.t72'));
+            else if (m.bytesKind === 'dataUrl') parts.push('≈' + b + t('imageedit.t74'));
             else parts.push(b);
         } else {
-            parts.push('용량 알 수 없음');
+            parts.push(t('imageedit.t200'));
         }
         return label + ': ' + parts.join(' · ');
     }
@@ -3628,7 +3637,7 @@
             el.textContent = ieCvFormatOriginalMetaLine(meta.original);
             return;
         }
-        el.textContent = ieCvFormatLbMetaLine('변환 미리보기', meta.preview);
+        el.textContent = ieCvFormatLbMetaLine(t('imageedit.btn.ieCvPreview'), meta.preview);
     }
 
     function ieCvLightboxSetView(lb: any, mode: any) {
@@ -3638,7 +3647,7 @@
         if (!img || !preview) return;
         const showOriginal = mode === 'original' && original;
         img.src = showOriginal ? original : preview;
-        img.alt = showOriginal ? '변환 전(현재 편집 화면)' : '변환 미리보기';
+        img.alt = showOriginal ? t('imageedit.t201') : t('imageedit.btn.ieCvPreview');
         lb.querySelectorAll('.ie-cv-lb-btn').forEach((b: any) => {
             const v = b.getAttribute('data-ie-cv-view');
             b.classList.toggle('ie-cv-lb-active', showOriginal ? v === 'original' : v === 'preview');
@@ -3653,14 +3662,14 @@
             lb.id = 'ieCvLightbox';
             lb.className = 'ie-cv-lightbox';
             lb.setAttribute('role', 'dialog');
-            lb.setAttribute('aria-label', '변환 미리보기');
+            lb.setAttribute('aria-label', t('imageedit.btn.ieCvPreview'));
             lb.innerHTML =
                 '<div class="ie-cv-lightbox-fill">' +
-                '<div class="ie-cv-lightbox-inner"><img alt="변환 미리보기"></div>' +
-                '<div class="ie-cv-lightbox-bar" role="group" aria-label="변환 전과 미리보기 전환">' +
+                t('imageedit.t202') +
+                t('imageedit.t203') +
                 '<div class="ie-cv-lb-btn-row">' +
-                '<button type="button" class="ie-cv-lb-btn" data-ie-cv-view="original">변환 전</button>' +
-                '<button type="button" class="ie-cv-lb-btn ie-cv-lb-active" data-ie-cv-view="preview">미리보기</button>' +
+                t('imageedit.t204') +
+                t('imageedit.t205') +
                 '</div>' +
                 '<div class="ie-cv-lb-meta" id="ieCvLbMeta" aria-live="polite"></div>' +
                 '</div></div>';
@@ -3680,16 +3689,16 @@
             lb.onclick = null;
             ieCvRevokeLightboxUrls(lb);
             const img = lb.querySelector('img');
-            const prevAlt = (img && img.getAttribute('alt')) || '변환 미리보기';
+            const prevAlt = (img && img.getAttribute('alt')) || t('imageedit.btn.ieCvPreview');
             lb.innerHTML =
                 '<div class="ie-cv-lightbox-fill">' +
                 '<div class="ie-cv-lightbox-inner"><img alt="' +
                 prevAlt.replace(/"/g, '&quot;') +
                 '"></div>' +
-                '<div class="ie-cv-lightbox-bar" role="group" aria-label="변환 전과 미리보기 전환">' +
+                t('imageedit.t203') +
                 '<div class="ie-cv-lb-btn-row">' +
-                '<button type="button" class="ie-cv-lb-btn" data-ie-cv-view="original">변환 전</button>' +
-                '<button type="button" class="ie-cv-lb-btn ie-cv-lb-active" data-ie-cv-view="preview">미리보기</button>' +
+                t('imageedit.t204') +
+                t('imageedit.t205') +
                 '</div>' +
                 '<div class="ie-cv-lb-meta" id="ieCvLbMeta" aria-live="polite"></div>' +
                 '</div></div>';
@@ -3740,7 +3749,7 @@
         const origBtn = lb.querySelector('[data-ie-cv-view="original"]');
         if (origBtn) (origBtn as any).style.display = originalUrl ? '' : 'none';
         (img! as any).src = previewUrl;
-        (img! as any).alt = '변환 미리보기';
+        (img! as any).alt = t('imageedit.btn.ieCvPreview');
         lb.querySelectorAll('.ie-cv-lb-btn').forEach(b => {
             const v = b.getAttribute('data-ie-cv-view');
             b.classList.toggle('ie-cv-lb-active', v === 'preview');
@@ -3792,7 +3801,7 @@
             };
             img.onerror = () => {
                 URL.revokeObjectURL(url);
-                Toolbox.showToast('캔버스를 읽지 못했어요.', 'error');
+                Toolbox.showToast(t('imageedit.t206'), 'error');
             };
             img.src = url;
         }, 'image/png');
@@ -3803,7 +3812,7 @@
         const Batch = window.KarmoLabImageBatch;
         if (!IC) {
             optPanel.innerHTML =
-                '<span class="ie-opt-label">변환 모듈이 로드되지 않았어요. 페이지를 새로고침해 주세요.</span>';
+                t('imageedit.t207');
             return;
         }
         convertPreviewBlob = null;
@@ -3813,55 +3822,55 @@
         if (st.outFmt === 'webp' && !webpOk) st.outFmt = 'png';
 
         const maxOpts =
-            '<option value="">원본 크기 유지</option>' +
-            '<option value="8192">8192 px 이하</option>' +
-            '<option value="4096">4096 px 이하</option>' +
-            '<option value="2560">2560 px 이하</option>' +
-            '<option value="1920">1920 px 이하</option>' +
-            '<option value="1280">1280 px 이하</option>' +
-            '<option value="1024">1024 px 이하</option>' +
-            '<option value="800">800 px 이하</option>' +
-            '<option value="640">640 px 이하</option>' +
-            '<option value="512">512 px 이하</option>' +
-            '<option value="384">384 px 이하</option>' +
-            '<option value="256">256 px 이하</option>' +
-            '<option value="custom">사용자 지정…</option>';
+            t('imageedit.t208') +
+            t('imageedit.t209') +
+            t('imageedit.t210') +
+            t('imageedit.t211') +
+            t('imageedit.t212') +
+            t('imageedit.t213') +
+            t('imageedit.t214') +
+            t('imageedit.t215') +
+            t('imageedit.t216') +
+            t('imageedit.t217') +
+            t('imageedit.t218') +
+            t('imageedit.t219') +
+            t('imageedit.t220');
 
         optPanel.innerHTML = `
             <div class="ie-opt-row" style="flex-wrap:wrap;align-items:center;gap:8px;width:100%;">
-                <span class="ie-opt-label">형식</span>
+                <span class="ie-opt-label">${esc(t('imageedit.t37'))}</span>
                 <label class="ie-cv-fmt"><input type="radio" name="ieCvFmt" value="png" ${st.outFmt === 'png' ? 'checked' : ''}> PNG</label>
                 <label class="ie-cv-fmt"><input type="radio" name="ieCvFmt" value="jpeg" ${st.outFmt === 'jpeg' ? 'checked' : ''}> JPEG</label>
                 <label class="ie-cv-fmt${webpOk ? '' : ' ie-cv-off'}"><input type="radio" name="ieCvFmt" value="webp" ${st.outFmt === 'webp' && webpOk ? 'checked' : ''} ${webpOk ? '' : 'disabled'}> WebP</label>
             </div>
             <div class="ie-opt-row" id="ieCvQlRow" style="flex-wrap:wrap;align-items:center;gap:8px;">
-                <span class="ie-opt-label" id="ieCvQlLabel">품질</span>
+                <span class="ie-opt-label" id="ieCvQlLabel">${esc(t('imageedit.label.ieCvQlLabel'))}</span>
                 <input type="range" class="ie-opt-range" id="ieCvQuality" min="5" max="100" value="${st.quality}" style="width:120px;">
                 <span class="ie-opt-range-val" id="ieCvQualityVal">${st.quality}%</span>
             </div>
             <div class="ie-opt-row" style="flex-wrap:wrap;align-items:center;gap:8px;">
-                <span class="ie-opt-label">긴 변</span>
+                <span class="ie-opt-label">${esc(t('imageedit.t38'))}</span>
                 <select class="ie-opt-input" id="ieCvMaxPreset" style="width:auto;min-width:132px;font-family:inherit;">${maxOpts}</select>
                 <input type="number" class="ie-opt-input" id="ieCvMaxCustom" min="64" max="16384" value="${st.maxCustom}" title="px" style="width:88px;">
             </div>
             <div class="ie-opt-row" id="ieCvResampleRow" style="flex-wrap:wrap;align-items:center;gap:8px;">
-                <span class="ie-opt-label">스케일</span>
+                <span class="ie-opt-label">${esc(t('imageedit.t39'))}</span>
                 <select class="ie-opt-input" id="ieCvSmooth" style="width:auto;min-width:120px;font-family:inherit;">
-                    <option value="high" ${st.smoothing === 'high' ? 'selected' : ''}>고품질 · 부드럽게</option>
-                    <option value="medium" ${st.smoothing === 'medium' ? 'selected' : ''}>보통</option>
-                    <option value="low" ${st.smoothing === 'low' ? 'selected' : ''}>빠름 · 픽셀 느낌</option>
+                    <option value="high" ${st.smoothing === 'high' ? 'selected' : ''}>${esc(t('imageedit.opt.high'))}</option>
+                    <option value="medium" ${st.smoothing === 'medium' ? 'selected' : ''}>${esc(t('imageedit.opt.medium'))}</option>
+                    <option value="low" ${st.smoothing === 'low' ? 'selected' : ''}>${esc(t('imageedit.opt.low'))}</option>
                 </select>
             </div>
             <div class="ie-opt-row" style="flex-wrap:wrap;align-items:center;gap:8px;">
-                <span class="ie-opt-label">배경</span>
+                <span class="ie-opt-label">${esc(t('imageedit.t40'))}</span>
                 <input type="color" id="ieCvBg" value="${st.bg}" style="width:44px;height:28px;padding:2px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;vertical-align:middle;">
                 <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:var(--font-size-2xs);color:var(--text-secondary);white-space:nowrap;">
-                    <input type="checkbox" class="ie-opt-check" id="ieCvFillAlpha" ${st.fillAlpha ? 'checked' : ''}> 투명→배경색
+                    <input type="checkbox" class="ie-opt-check" id="ieCvFillAlpha" ${st.fillAlpha ? 'checked' : ''}> ${esc(t('imageedit.label.ieCvFillAlpha'))}
                 </label>
             </div>
             <div class="ie-opt-row" style="flex-wrap:wrap;align-items:center;gap:8px;">
-                <button type="button" class="ie-opt-btn" id="ieCvPreview">변환 미리보기</button>
-                <button type="button" class="ie-apply-btn" id="ieCvDownload">파일로 저장</button>
+                <button type="button" class="ie-opt-btn" id="ieCvPreview">${esc(t('imageedit.btn.ieCvPreview'))}</button>
+                <button type="button" class="ie-apply-btn" id="ieCvDownload">${esc(t('imageedit.btn.ieCvDownload'))}</button>
             </div>
             <div class="ie-opt-row" style="width:100%;">
                 <span class="ie-opt-label" id="ieCvHint" style="white-space:normal;font-weight:400;line-height:1.45;max-width:720px;"></span>
@@ -3869,15 +3878,15 @@
             ${
                 Batch
                     ? `<div class="ie-opt-row ie-cv-batch" style="flex-direction:column;align-items:stretch;gap:10px;padding-top:12px;border-top:1px solid var(--border);width:100%;">
-                <span class="ie-opt-label" style="font-weight:600;">여러 파일</span>
-                <span class="ie-opt-label" style="white-space:normal;font-weight:400;line-height:1.45;">캔버스와 별개입니다. <strong>여러 장</strong>을 한 번에 고르면 위 옵션대로 각각 변환합니다. 한 장은 캔버스(클릭·드롭 등)로 불러오세요. 저장 창이 연달아 뜰 수 있어요.</span>
+                <span class="ie-opt-label" style="font-weight:600;">${esc(t('imageedit.t41'))}</span>
+                <span class="ie-opt-label" style="white-space:normal;font-weight:400;line-height:1.45;">${esc(t('imageedit.t42'))} <strong>${esc(t('imageedit.t43'))}</strong>${esc(t('imageedit.t44'))}</span>
                 <input type="file" id="ieCvBatchInput" accept="image/*" multiple style="display:none">
                 <div style="display:flex;flex-wrap:wrap;gap:8px;">
-                    <button type="button" class="ie-opt-btn" id="ieCvBatchPick">파일 선택…</button>
-                    <button type="button" class="ie-opt-btn" id="ieCvBatchRun" disabled>일괄 변환 후 저장</button>
-                    <button type="button" class="ie-opt-btn" id="ieCvBatchCancel" disabled style="display:none">취소</button>
+                    <button type="button" class="ie-opt-btn" id="ieCvBatchPick">${esc(t('imageedit.btn.ieCvBatchPick'))}</button>
+                    <button type="button" class="ie-opt-btn" id="ieCvBatchRun" disabled>${esc(t('imageedit.btn.ieCvBatchRun'))}</button>
+                    <button type="button" class="ie-opt-btn" id="ieCvBatchCancel" disabled style="display:none">${esc(t('imageedit.btn.ieRembgCancel'))}</button>
                 </div>
-                <span class="ie-opt-label" id="ieCvBatchStatus" style="white-space:normal;font-weight:400;">선택된 파일: 없음</span>
+                <span class="ie-opt-label" id="ieCvBatchStatus" style="white-space:normal;font-weight:400;">${esc(t('imageedit.label.ieCvBatchStatus'))}</span>
             </div>`
                     : ''
             }`;
@@ -3951,13 +3960,13 @@
                                     bytes: blob.size
                                 }
                             });
-                            Toolbox.showToast('미리보기 — 화면을 눌러 닫기');
-                            Mdd.linePreset('success', { mood: 'happy', msg: '이렇게 저장돼요' });
+                            Toolbox.showToast(t('imageedit.t221'));
+                            Mdd.linePreset('success', { mood: 'happy', msg: t('imageedit.t222') });
                         });
                     })
                     .catch(() => {
                         URL.revokeObjectURL(srcUrl);
-                        Toolbox.showToast('변환에 실패했어요.', 'error');
+                        Toolbox.showToast(t('imageedit.t223'), 'error');
                     })
                     .finally(() => {
                         (btn! as any).disabled = false;
@@ -3979,8 +3988,8 @@
                 a.download = ieDownloadFilenameFromDisplayName(ieImageSourceMeta.displayName, ext);
                 a.click();
                 setTimeout(() => URL.revokeObjectURL(url), 2000);
-                Toolbox.showToast('저장했어요');
-                Mdd.linePreset('success', { mood: 'happy', msg: '내려받기 완료!' });
+                Toolbox.showToast(t('imageedit.t224'));
+                Mdd.linePreset('success', { mood: 'happy', msg: t('imageedit.t225') });
             };
 
             if (convertPreviewBlob && convertPreviewKey === key) {
@@ -3995,7 +4004,7 @@
                     })
                     .catch(() => {
                         URL.revokeObjectURL(srcUrl);
-                        Toolbox.showToast('변환에 실패했어요.', 'error');
+                        Toolbox.showToast(t('imageedit.t223'), 'error');
                     });
             });
         };
@@ -4047,12 +4056,12 @@
                 const dlBtn = document.getElementById('ieCvDownload');
                 if (prevBtn) (prevBtn as any).disabled = true;
                 if (dlBtn) (dlBtn as any).disabled = true;
-                batchStatus!.textContent = '변환 중… 0 / ' + ieCvBatchState.files.length;
+                batchStatus!.textContent = t('imageedit.t226') + ieCvBatchState.files.length;
                 Batch.processFilesSequential(IC, ieCvBatchState.files, recipe, {
                     signal: ieCvBatchAbort.signal,
                     onItemStart(idx, file, total) {
                         batchStatus!.textContent =
-                            '변환 중… ' + (idx + 1) + ' / ' + total + ' · ' + (file.name || '');
+                            t('imageedit.t227') + (idx + 1) + ' / ' + total + ' · ' + (file.name || '');
                     }
                 })
                     .then(out => {
@@ -4060,24 +4069,24 @@
                         const okc = results.filter(r => r.ok).length;
                         const failed = results.length - okc;
                         if (out.aborted) {
-                            Toolbox.showToast('일괄 변환을 취소했어요.');
+                            Toolbox.showToast(t('imageedit.t228'));
                             batchStatus!.textContent =
-                                '취소됨 · 처리 ' + results.length + ' · 성공 ' + okc + ' · 실패 ' + failed;
+                                t('imageedit.t229') + results.length + t('imageedit.t230') + okc + t('imageedit.t231') + failed;
                             return;
                         }
                         batchStatus!.textContent =
-                            '완료 · 성공 ' + okc + ' · 실패 ' + failed + (okc ? ' · 저장 창이 순서대로 열립니다' : '');
+                            t('imageedit.t232') + okc + t('imageedit.t231') + failed + (okc ? t('imageedit.t233') : '');
                         if (!okc) {
-                            Toolbox.showToast('변환에 성공한 파일이 없어요.', 'error');
+                            Toolbox.showToast(t('imageedit.t234'), 'error');
                             return;
                         }
                         return Batch.downloadResultsSequential(results, IC, mime).then(() => {
-                            Toolbox.showToast('일괄 저장 요청을 마쳤어요');
-                            Mdd.linePreset('success', { mood: 'happy', msg: '모두 저장했어요!' });
+                            Toolbox.showToast(t('imageedit.t235'));
+                            Mdd.linePreset('success', { mood: 'happy', msg: t('imageedit.t236') });
                         });
                     })
                     .catch(() => {
-                        Toolbox.showToast('일괄 처리 중 오류가 났어요.', 'error');
+                        Toolbox.showToast(t('imageedit.t237'), 'error');
                     })
                     .finally(() => {
                         batchIdle();
@@ -4086,13 +4095,13 @@
             };
         }
 
-        Mdd.linePreset('tool_run', { mood: 'idle', msg: '캔버스 그대로 두고 형식만 바꿔요' });
+        Mdd.linePreset('tool_run', { mood: 'idle', msg: t('imageedit.t238') });
     }
 
     /* ===== Tool Switching ===== */
     function selectTool(toolId: any) {
         if (hasPendingPreview && toolId !== activeTool) {
-            if (!confirm('적용하지 않은 변경사항이 있습니다. 무시하고 전환하시겠습니까?')) return;
+            if (!confirm(t('imageedit.t239'))) return;
             if (activeTool === 'adjust' && adjustSnapshot && ctx) {
                 ctx.putImageData(adjustSnapshot, 0, 0);
             }
@@ -4159,10 +4168,10 @@
         if (!d) return;
         d.classList.add('open');
         const grid = document.getElementById('ieLibGrid');
-        grid!.innerHTML = '<div class="ie-lib-empty">로딩 중...</div>';
+        grid!.innerHTML = t('imageedit.t240');
         (globalThis as any).ImageDB.getAll().then((items: any) => {
             if (items.length === 0) {
-                grid!.innerHTML = '<div class="ie-lib-empty">라이브러리가 비어 있습니다.</div>';
+                grid!.innerHTML = t('imageedit.t241');
                 return;
             }
             grid!.innerHTML = '';
@@ -4174,7 +4183,7 @@
                     const p = item.prompt != null ? String(item.prompt) : '';
                     const g = ++ieImageLoadGen;
                     ieImageSourceMeta = {
-                        displayName: p ? (p.length > 48 ? p.slice(0, 47) + '…' : p) : '라이브러리',
+                        displayName: p ? (p.length > 48 ? p.slice(0, 47) + '…' : p) : t('imageedit.t242'),
                         sourceBytes: null,
                         bytesKind: null,
                         sourceNaturalW: null,
@@ -4206,46 +4215,46 @@
                 grid!.appendChild(card);
             });
         }).catch(() => {
-            grid!.innerHTML = '<div class="ie-lib-empty">라이브러리를 불러올 수 없습니다.</div>';
+            grid!.innerHTML = t('imageedit.t243');
         });
     }
 
     /* ===== Build ===== */
     function buildEditor(container: any) {
-        Mdd.linePreset('tool_run', { mood: 'happy', msg: '이미지 편집이에요!' });
+        Mdd.linePreset('tool_run', { mood: 'happy', msg: t('imageedit.t244') });
 
         container.innerHTML = `
             <div class="ie-layout">
                 <div class="ie-toolbar">
                     <div class="ie-toolbar-group">
-                        <button class="ie-tb-btn" id="ieUndoBtn" disabled title="되돌리기 (Ctrl+Z)">↩ 되돌리기</button>
-                        <button class="ie-tb-btn" id="ieRedoBtn" disabled title="다시실행 (Ctrl+Y)">↪ 다시실행</button>
-                        <button class="ie-tb-btn" id="ieResetBtn" title="원본으로 복원">⟲ 리셋</button>
+                        <button class="ie-tb-btn" id="ieUndoBtn" disabled title="${esc(t('imageedit.title.ieUndoBtn'))}">${esc(t('imageedit.btn.ieUndoBtn'))}</button>
+                        <button class="ie-tb-btn" id="ieRedoBtn" disabled title="${esc(t('imageedit.title.ieRedoBtn'))}">${esc(t('imageedit.btn.ieRedoBtn'))}</button>
+                        <button class="ie-tb-btn" id="ieResetBtn" title="${esc(t('imageedit.title.ieResetBtn'))}">${esc(t('imageedit.btn.ieResetBtn'))}</button>
                     </div>
                     <span class="ie-size-label" id="ieSizeLabel"></span>
-                    <span class="ie-exif-locate-hint" id="ieExifLocateHint" hidden title="EXIF 요약은 편집 영역(회색 체크 무늬) 왼쪽 위 고정 패널에 표시됩니다.">EXIF · 편집영역 좌상단</span>
+                    <span class="ie-exif-locate-hint" id="ieExifLocateHint" hidden title="${esc(t('imageedit.title.ieExifLocateHint'))}">${esc(t('imageedit.label.ieExifLocateHint'))}</span>
                     <span class="ie-spacer"></span>
                     <div class="ie-toolbar-group">
                         <div class="ie-dropdown">
-                            <button class="ie-tb-btn" id="ieImportBtn">📥 가져오기 ▾</button>
+                            <button class="ie-tb-btn" id="ieImportBtn">${esc(t('imageedit.btn.ieImportBtn'))}</button>
                             <div class="ie-dropdown-menu" id="ieImportMenu">
-                                <button class="ie-dropdown-item" id="ieImportFile">📁 파일 업로드</button>
-                                <button class="ie-dropdown-item" id="ieImportUrl">🔗 URL 입력</button>
-                                <button class="ie-dropdown-item" id="ieImportLib">🖼️ 라이브러리에서</button>
+                                <button class="ie-dropdown-item" id="ieImportFile">${esc(t('imageedit.btn.ieImportFile'))}</button>
+                                <button class="ie-dropdown-item" id="ieImportUrl">${esc(t('imageedit.btn.ieImportUrl'))}</button>
+                                <button class="ie-dropdown-item" id="ieImportLib">${esc(t('imageedit.btn.ieImportLib'))}</button>
                             </div>
                         </div>
                         <div class="ie-dropdown">
-                            <button class="ie-tb-btn accent" id="ieExportBtn">📤 내보내기 ▾</button>
+                            <button class="ie-tb-btn accent" id="ieExportBtn">${esc(t('imageedit.btn.ieExportBtn'))}</button>
                             <div class="ie-dropdown-menu" id="ieExportMenu">
-                                <button class="ie-dropdown-item" id="ieExDlPng">⬇️ PNG 다운로드</button>
-                                <button class="ie-dropdown-item" id="ieExDlJpg">⬇️ JPEG 다운로드</button>
+                                <button class="ie-dropdown-item" id="ieExDlPng">${esc(t('imageedit.btn.ieExDlPng'))}</button>
+                                <button class="ie-dropdown-item" id="ieExDlJpg">${esc(t('imageedit.btn.ieExDlJpg'))}</button>
                                 <div style="padding:6px 14px;display:flex;align-items:center;gap:6px;">
-                                    <span style="font-size:var(--font-size-2xs);color:var(--text-tertiary);">JPEG 품질</span>
+                                    <span style="font-size:var(--font-size-2xs);color:var(--text-tertiary);">${esc(t('imageedit.t45'))}</span>
                                     <input type="range" id="ieJpegQuality" min="10" max="100" value="92" style="width:80px;accent-color:var(--accent);">
                                     <span id="ieJpegQualityVal" style="font-size:var(--font-size-2xs);color:var(--text-tertiary);font-family:monospace;min-width:28px;">92%</span>
                                 </div>
-                                <button class="ie-dropdown-item" id="ieExClip">📋 클립보드 복사</button>
-                                <button class="ie-dropdown-item" id="ieExLib">🖼️ 라이브러리에 저장</button>
+                                <button class="ie-dropdown-item" id="ieExClip">${esc(t('imageedit.btn.ieExClip'))}</button>
+                                <button class="ie-dropdown-item" id="ieExLib">${esc(t('imageedit.btn.ieExLib'))}</button>
                             </div>
                         </div>
                     </div>
@@ -4253,54 +4262,54 @@
                 </div>
 
                 <div class="ie-body">
-                    <div class="ie-tools" role="toolbar" aria-label="편집 도구" aria-orientation="vertical">
-                        <button type="button" class="ie-tool-btn active" data-tool="crop" title="자르기">
+                    <div class="ie-tools" role="toolbar" aria-label="${esc(t('imageedit.t01'))}" aria-orientation="vertical">
+                        <button type="button" class="ie-tool-btn active" data-tool="crop" title="${esc(t('imageedit.t02'))}">
                             <span class="ie-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg></span>
-                            <span class="ie-tool-label">자르기</span>
+                            <span class="ie-tool-label">${esc(t('imageedit.t02'))}</span>
                         </button>
-                        <button type="button" class="ie-tool-btn" data-tool="resize" title="크기 조절">
+                        <button type="button" class="ie-tool-btn" data-tool="resize" title="${esc(t('imageedit.t03'))}">
                             <span class="ie-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></span>
-                            <span class="ie-tool-label">크기 조절</span>
+                            <span class="ie-tool-label">${esc(t('imageedit.t03'))}</span>
                         </button>
-                        <button type="button" class="ie-tool-btn" data-tool="rotate" title="회전/뒤집기">
+                        <button type="button" class="ie-tool-btn" data-tool="rotate" title="${esc(t('imageedit.t04'))}">
                             <span class="ie-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></span>
-                            <span class="ie-tool-label">회전·뒤집기</span>
+                            <span class="ie-tool-label">${esc(t('imageedit.t46'))}</span>
                         </button>
-                        <button type="button" class="ie-tool-btn" data-tool="adjust" title="밝기/대비/채도/선명도">
+                        <button type="button" class="ie-tool-btn" data-tool="adjust" title="${esc(t('imageedit.t05'))}">
                             <span class="ie-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20z"/></svg></span>
-                            <span class="ie-tool-label">밝기·대비·선명</span>
+                            <span class="ie-tool-label">${esc(t('imageedit.t47'))}</span>
                         </button>
-                        <button type="button" class="ie-tool-btn" data-tool="filter" title="필터">
+                        <button type="button" class="ie-tool-btn" data-tool="filter" title="${esc(t('imageedit.t06'))}">
                             <span class="ie-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></span>
-                            <span class="ie-tool-label">필터</span>
+                            <span class="ie-tool-label">${esc(t('imageedit.t06'))}</span>
                         </button>
-                        <button type="button" class="ie-tool-btn" data-tool="rembg" title="배경 제거 (AI)">
+                        <button type="button" class="ie-tool-btn" data-tool="rembg" title="${esc(t('imageedit.t07'))}">
                             <span class="ie-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21l9.5-9.5"/><path d="M15 4l1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/><path d="M19 10l.7 1.3 1.3.7-1.3.7-.7 1.3-.7-1.3-1.3-.7 1.3-.7z"/></svg></span>
-                            <span class="ie-tool-label">배경 제거</span>
+                            <span class="ie-tool-label">${esc(t('imageedit.t48'))}</span>
                         </button>
-                        <button type="button" class="ie-tool-btn" data-tool="mask" title="마스크 적용">
+                        <button type="button" class="ie-tool-btn" data-tool="mask" title="${esc(t('imageedit.t08'))}">
                             <span class="ie-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="5"/><path d="M12 7v0M12 17v0M7 12h0M17 12h0"/></svg></span>
-                            <span class="ie-tool-label">마스크</span>
+                            <span class="ie-tool-label">${esc(t('imageedit.t49'))}</span>
                         </button>
-                        <button type="button" class="ie-tool-btn" data-tool="caption" title="캡션">
+                        <button type="button" class="ie-tool-btn" data-tool="caption" title="${esc(t('imageedit.t09'))}">
                             <span class="ie-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h12"/></svg></span>
-                            <span class="ie-tool-label">캡션</span>
+                            <span class="ie-tool-label">${esc(t('imageedit.t09'))}</span>
                         </button>
-                        <button type="button" class="ie-tool-btn" data-tool="sticker" title="스티커">
+                        <button type="button" class="ie-tool-btn" data-tool="sticker" title="${esc(t('imageedit.t10'))}">
                             <span class="ie-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8"/></svg></span>
-                            <span class="ie-tool-label">스티커</span>
+                            <span class="ie-tool-label">${esc(t('imageedit.t10'))}</span>
                         </button>
-                        <button type="button" class="ie-tool-btn" data-tool="convert" title="형식·크기 변환">
+                        <button type="button" class="ie-tool-btn" data-tool="convert" title="${esc(t('imageedit.t11'))}">
                             <span class="ie-tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/><path d="M21 15l-5-5L5 21"/></svg></span>
-                            <span class="ie-tool-label">형식·변환</span>
+                            <span class="ie-tool-label">${esc(t('imageedit.t50'))}</span>
                         </button>
                     </div>
                     <div class="ie-canvas-area">
                         <div class="ie-canvas-wrap" id="ieCanvasWrap">
                             <div class="ie-placeholder" id="iePlaceholder">
                                 <div class="ie-placeholder-icon">🖼️</div>
-                                <div class="ie-placeholder-text">이미지를 불러오세요</div>
-                                <div class="ie-placeholder-sub">클릭, 드래그&드롭, Ctrl+V 붙여넣기, 또는 '가져오기' 사용<br><span style="opacity:0.75">보기: 휠 줌 · 스페이스+드래그 또는 가운데 클릭으로 이동</span></div>
+                                <div class="ie-placeholder-text">${esc(t('imageedit.t51'))}</div>
+                                <div class="ie-placeholder-sub">${esc(t('imageedit.t52'))}<br><span style="opacity:0.75">${esc(t('imageedit.t53'))}</span></div>
                             </div>
                             <pre class="ie-exif-overlay" id="ieExifOverlay" role="note" aria-label="EXIF"></pre>
                             <div class="ie-pan-zoom" id="iePanZoom">
@@ -4331,50 +4340,50 @@
                                                 </div>
                                             </div>
                                             <div class="ie-mask-preview-sliderrow" id="ieMaskPreviewSliderrow">
-                                                <span>적용 전</span>
+                                                <span>${esc(t('imageedit.t54'))}</span>
                                                 <input type="range" id="ieMaskPreviewRange" min="0" max="100" value="50">
-                                                <span>적용 후</span>
-                                                <button class="ie-mask-preview-close" id="ieMaskPreviewClose">닫기</button>
+                                                <span>${esc(t('imageedit.t55'))}</span>
+                                                <button class="ie-mask-preview-close" id="ieMaskPreviewClose">${esc(t('imageedit.btn.ieMaskPreviewClose'))}</button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="ie-options" id="ieOptions" role="region" aria-label="도구 옵션"></div>
+                        <div class="ie-options" id="ieOptions" role="region" aria-label="${esc(t('imageedit.aria.ieOptions'))}"></div>
                     </div>
                 </div>
             </div>
 
             <div class="ie-url-dialog" id="ieUrlDialog">
                 <div class="ie-url-dialog-box">
-                    <div class="ie-url-dialog-title">URL에서 이미지 불러오기</div>
+                    <div class="ie-url-dialog-title">${esc(t('imageedit.t56'))}</div>
                     <input type="text" class="ie-url-dialog-input" id="ieUrlInput" placeholder="https://example.com/image.png">
                     <div class="ie-url-dialog-actions">
-                        <button class="ie-tb-btn" id="ieUrlCancel">취소</button>
-                        <button class="ie-tb-btn accent" id="ieUrlConfirm">불러오기</button>
+                        <button class="ie-tb-btn" id="ieUrlCancel">${esc(t('imageedit.btn.ieRembgCancel'))}</button>
+                        <button class="ie-tb-btn accent" id="ieUrlConfirm">${esc(t('imageedit.btn.ieUrlConfirm'))}</button>
                     </div>
                 </div>
             </div>
 
             <div class="ie-lib-dialog" id="ieLibDialog">
                 <div class="ie-lib-dialog-box">
-                    <div class="ie-lib-dialog-title">라이브러리에서 이미지 선택</div>
+                    <div class="ie-lib-dialog-title">${esc(t('imageedit.t57'))}</div>
                     <div class="ie-lib-grid" id="ieLibGrid"></div>
                     <div style="text-align:right; margin-top:12px;">
-                        <button class="ie-tb-btn" id="ieLibClose">닫기</button>
+                        <button class="ie-tb-btn" id="ieLibClose">${esc(t('imageedit.btn.ieMaskPreviewClose'))}</button>
                     </div>
                 </div>
             </div>
 
             <div class="ie-warn-dialog" id="ieWarnDialog">
                 <div class="ie-warn-dialog-box">
-                    <div class="ie-warn-dialog-title">⚠️ 큰 이미지 감지</div>
+                    <div class="ie-warn-dialog-title">${esc(t('imageedit.t58'))}</div>
                     <div class="ie-warn-dialog-text" id="ieWarnText"></div>
                     <div class="ie-warn-dialog-actions">
-                        <button class="ie-tb-btn" id="ieWarnCancel">취소</button>
-                        <button class="ie-tb-btn" id="ieWarnOriginal">원본 유지</button>
-                        <button class="ie-tb-btn accent" id="ieWarnDownscale">축소</button>
+                        <button class="ie-tb-btn" id="ieWarnCancel">${esc(t('imageedit.btn.ieRembgCancel'))}</button>
+                        <button class="ie-tb-btn" id="ieWarnOriginal">${esc(t('imageedit.btn.ieWarnOriginal'))}</button>
+                        <button class="ie-tb-btn accent" id="ieWarnDownscale">${esc(t('imageedit.btn.ieWarnDownscale'))}</button>
                     </div>
                 </div>
             </div>`;
@@ -4401,7 +4410,7 @@
                 updateSizeLabel();
                 canvas.style.filter = '';
                 resetImageView();
-                Toolbox.showToast('원본으로 복원');
+                Toolbox.showToast(t('imageedit.title.ieResetBtn'));
                 selectTool(activeTool);
             };
 
@@ -4461,7 +4470,7 @@
             document!.getElementById('ieUrlCancel')!.onclick = () => document!.getElementById('ieUrlDialog')!.classList!.remove('open');
             document!.getElementById('ieUrlConfirm')!.onclick = () => {
                 const url = (document!.getElementById('ieUrlInput') as any).value.trim();
-                if (!url) { Toolbox.showToast('URL을 입력하세요.', 'error'); return; }
+                if (!url) { Toolbox.showToast(t('imageedit.t245'), 'error'); return; }
                 let disp = 'URL';
                 try {
                     const u = new URL(url);
@@ -4531,7 +4540,7 @@
                 ) {
                     ieCvBatchState.files = list;
                     syncIeCvBatchUiFromState();
-                    Toolbox.showToast(list.length + '개를 일괄 변환 목록에 넣었어요. 오른쪽에서 「일괄 변환 후 저장」을 누르세요.');
+                    Toolbox.showToast(list.length + t('imageedit.t246'));
                     return;
                 }
                 const file = list[0] || dt[0];
@@ -4689,6 +4698,17 @@
     /* ===== Register ===== */
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta('imageedit'),
-        tabs: [{ id: 'imageedit-main', label: '편집', build: buildEditor }]
+        tabs: [
+            {
+                id: 'imageedit-main',
+                label: t('imageedit.tab.editor', undefined, '편집'),
+                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('imageedit').then(function () {
+                        buildEditor(container);
+                    });
+                }
+            }
+        ]
     });
 })();
