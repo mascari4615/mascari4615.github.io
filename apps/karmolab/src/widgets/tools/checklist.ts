@@ -5,7 +5,12 @@
  * 계정을 만들어야 한다. 그 사이 — **주소만 있으면 되는 목록**을 만든다.
  * 내용을 주소에 담으므로 서버도 계정도 없이 그대로 공유되고, 링크를 잃으면 사라진다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   interface Item {
     text: string;
     done: boolean;
@@ -33,33 +38,35 @@
 
   Toolbox.register({
     id: 'checklist',
-    title: '체크리스트',
+    title: t('widgets.checklist.title', undefined, "체크리스트"),
     category: 'tool',
-    desc: '할 일 목록을 만들고 주소 하나로 공유합니다. 계정도 서버도 없이',
+    desc: t('widgets-desc.checklist.desc', undefined, "할 일 목록을 만들고 주소 하나로 공유합니다. 계정도 서버도 없이"),
     layout: 'form',
     icon: '<path d="M4 7l2 2 4-4M4 14l2 2 4-4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 7h7M13 16h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '체크리스트',
+        label: t('checklist.tab', undefined, "체크리스트"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('checklist').then(function () {
+
           container.innerHTML = `
             <div class="field-group">
-              <input type="text" id="clTitle" placeholder="목록 이름 (예: 여행 준비물)">
+              <input type="text" id="clTitle" placeholder="${esc(t('checklist.ph.title'))}">
             </div>
             <div class="field-group">
-              <label class="field-label">항목 — 한 줄에 하나</label>
-              <textarea id="clInput" rows="6" spellcheck="false" placeholder="여권&#10;충전기&#10;상비약"></textarea>
+              <label class="field-label">${esc(t('checklist.label.items'))}</label>
+              <textarea id="clInput" rows="6" spellcheck="false" placeholder="${esc(t('checklist.ph.items'))}"></textarea>
             </div>
 
             <div class="cc-stats" id="clStats"></div>
             <div class="tool-list" id="clList"></div>
 
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="clShare">공유 주소 복사</button>
-              <button class="btn btn-ghost" id="clReset">체크 전부 풀기</button>
+              <button class="btn btn-primary" id="clShare">${esc(t('checklist.btn.share'))}</button>
+              <button class="btn btn-ghost" id="clReset">${esc(t('checklist.btn.reset'))}</button>
             </div>
-            <div class="tool-status" id="clStatus">내용이 주소에 담깁니다 — 서버에 저장되지 않고, 링크를 잃으면 사라집니다.</div>
+            <div class="tool-status" id="clStatus">${esc(t('checklist.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -67,7 +74,6 @@
           const inputEl = $<HTMLTextAreaElement>('#clInput');
           const listEl = $<HTMLElement>('#clList');
           const stats = $<HTMLElement>('#clStats');
-          const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
           let items: Item[] = [];
 
           function syncFromText(): void {
@@ -81,9 +87,9 @@
           function render(): void {
             const done = items.filter((i) => i.done).length;
             stats.innerHTML =
-              `<div class="cc-stat cc-stat-primary"><div class="cc-stat-label">남은 항목</div><div class="cc-stat-value">${items.length - done}개</div></div>` +
-              `<div class="cc-stat"><div class="cc-stat-label">끝낸 항목</div><div class="cc-stat-value">${done}개</div></div>` +
-              `<div class="cc-stat"><div class="cc-stat-label">진행</div><div class="cc-stat-value">${items.length ? Math.round((done / items.length) * 100) : 0}%</div></div>`;
+              `<div class="cc-stat cc-stat-primary"><div class="cc-stat-label">${esc(t('checklist.stat.left'))}</div><div class="cc-stat-value">${esc(t('checklist.value.count', { n: items.length - done }))}</div></div>` +
+              `<div class="cc-stat"><div class="cc-stat-label">${esc(t('checklist.stat.done'))}</div><div class="cc-stat-value">${esc(t('checklist.value.count', { n: done }))}</div></div>` +
+              `<div class="cc-stat"><div class="cc-stat-label">${esc(t('checklist.stat.progress'))}</div><div class="cc-stat-value">${items.length ? Math.round((done / items.length) * 100) : 0}%</div></div>`;
 
             listEl.innerHTML = items
               .map(
@@ -110,7 +116,7 @@
           $<HTMLButtonElement>('#clShare').onclick = () => {
             const code = encodeState(titleEl.value, items);
             const url = `${location.origin}/karmolab/t/checklist/#list=${code}`;
-            void Toolbox.copyText?.(url, { message: '공유 주소를 복사했어요' });
+            void Toolbox.copyText?.(url, { message: t('checklist.copy.done') });
             Toolbox.trackUse?.('share');
           };
           $<HTMLButtonElement>('#clReset').onclick = () => {
@@ -127,9 +133,10 @@
             inputEl.value = items.map((i) => i.text).join('\n');
             render();
           } else {
-            inputEl.value = '여권\n충전기\n상비약';
+            inputEl.value = t('checklist.sample');
             syncFromText();
           }
+                  });
         }
       }
     ]

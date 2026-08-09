@@ -1,0 +1,22 @@
+{
+  "listdiff.ph.list": "한 줄에 하나",
+  "listdiff.aria.out": "비교 결과",
+  "listdiff.label.a": "A 목록",
+  "listdiff.label.b": "B 목록",
+  "listdiff.opt.trim": "양끝 공백 무시",
+  "listdiff.opt.case": "대소문자 구분",
+  "listdiff.tab.both": "양쪽 다 (교집합)",
+  "listdiff.tab.onlyA": "A 에만",
+  "listdiff.tab.onlyB": "B 에만",
+  "listdiff.tab.all": "전부 (합집합)",
+  "listdiff.btn.copy": "결과 복사",
+  "listdiff.status.idle": "순서와 상관없이 겹치는 항목을 찾습니다.",
+  "listdiff.tab": "목록 비교",
+  "listdiff.stat.both": "양쪽 다",
+  "listdiff.stat.all": "전부",
+  "listdiff.copy.done": "결과를 복사했어요",
+  "listdiff.value.count": "{n}개",
+  "listdiff.say.counts": "A {a}줄 · B {b}줄 — 중복은 하나로 셉니다.",
+  "listdiff.sample.a": "사과\n바나나\n포도\n딸기",
+  "listdiff.sample.b": "바나나\n딸기\n수박"
+}

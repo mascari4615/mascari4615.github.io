@@ -1,0 +1,20 @@
+{
+  "higher.tab": "Play",
+  "higher.mdd": "One wrong answer ends it. Careful now.",
+  "higher.label.pickBoard": "What shall we compare?",
+  "higher.aria.boards": "Pick a board",
+  "higher.board.pokemon": "Pokémon",
+  "higher.board.lol": "LoL champions",
+  "higher.board.genshin": "Genshin characters",
+  "higher.say.loading": "Loading…",
+  "higher.stat.streak": "Streak",
+  "higher.stat.best": "Best",
+  "higher.btn.retry": "Again",
+  "higher.btn.share": "Copy the result",
+  "higher.say.right": "Correct",
+  "higher.err.board": "Could not load the board. Try again in a moment.",
+  "higher.copy.done": "Copied",
+  "higher.ask": "{field} — which one is bigger?",
+  "higher.say.lost": "So close — the streak ended at {n}",
+  "higher.share.head": "KarmoLab Higher or Lower — {board} / {field}"
+}

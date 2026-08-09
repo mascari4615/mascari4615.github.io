@@ -1,0 +1,15 @@
+{
+  "caseconv.tab": "変換",
+  "caseconv.label.in": "名前 — 複数行なら行ごとに変換します",
+  "caseconv.status.idle": "どの表記法で書いても、自動で単語に分けます。",
+  "caseconv.copy.done": "コピーしました",
+  "caseconv.note.camel": "JavaScript の変数・関数",
+  "caseconv.note.pascal": "クラス・型・コンポーネント",
+  "caseconv.note.snake": "Python・DB のカラム",
+  "caseconv.note.screaming": "定数・環境変数",
+  "caseconv.note.kebab": "URL・CSS クラス・ファイル名",
+  "caseconv.note.dot": "設定キー・名前空間",
+  "caseconv.note.title": "見出し・ラベル",
+  "caseconv.note.lower": "文",
+  "caseconv.say.lines": "{n}行 · 行を押すとコピーできます。"
+}
