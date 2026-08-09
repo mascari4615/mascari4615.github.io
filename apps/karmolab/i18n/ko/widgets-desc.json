@@ -8,6 +8,10 @@
   "widgets-desc.perf.desc": "KarmoLab 자기 성능 실측 — 부팅 · 위젯별 무게 · 긴 작업 · 프레임 · 판별 부팅 비교 (개발용)",
   "widgets-desc.community.desc": "자유 · 질문 · 자랑 · 도구 요청 — 도구를 쓰는 사람들이 모이는 자리",
   "widgets-desc.plaza.desc": "이 사이트의 숫자를 전부 공개하는 자리 — 방문 · 도구 · 커뮤니티, 전부 실측",
+  "widgets-desc.favorites.desc": "자주 가는 사이트와 도구를 모아 빠르게 접속합니다",
+  "widgets-desc.linktree.desc": "개발자 연락처 & 링크 모음",
+  "widgets-desc.devtools.desc": "데스크톱 앱·연동 점검용 테스트 모음 (알림 등)",
+  "widgets-desc.localai.desc": "번역·요약을 서버 없이 이 기기 안에서 — 글이 밖으로 안 나갑니다 (크롬 계열 최신판)",
   "widgets-desc.servermonitor.desc": "로컬 URL·프로세스·.env (데스크톱)",
   "widgets-desc.activity.desc": "내 PC에서 어떤 앱·창에 시간을 얼마나 썼는지 (데스크톱 앱 전용)",
   "widgets-desc.wm.desc": "만들고 있는 게임 — 소개 · 하루 체험 · 세계 도감 · 이야기 · 소식 · 만드는 중",
@@ -26,6 +30,7 @@
   "widgets-desc.tierlist.desc": "후보 풀(주제별 요소)에서 순위 인스턴스를 만들고, 블로그·로컬 JSON으로 주고받기 (개발 중)",
   "widgets-desc.postgraph.desc": "블로그 포스트 간 내부 링크 관계를 그래프로 봅니다 (개발 중)",
   "widgets-desc.conch.desc": "소라고동에게 질문합니다",
+  "widgets-desc.pulse.desc": "아무 의미 없는 것을 아주 규칙적으로 내보내는 방송국 7개 — 세 글자·종·눈금·낱말·한 줄·무늬·점 (TASK-KL-207)",
   "widgets-desc.adventure.desc": "티메토 GM 의 무한 텍스트 어드벤처 (KL-032). 무대 = KarmoWorld, history → wiki entity 누적",
   "widgets-desc.planner.desc": "나만의 일정 동기화 및 스트릭 칸반 보드 (개발 중)",
   "widgets-desc.cockpit.desc": "프로젝트 구조·상황 단일 표면 — Unity Shader Graph 식 노드 그래프 + TASK 탭 (TASK-KL-082, 통합 위젯)",
@@ -183,5 +188,7 @@
   "widgets-desc.stash.desc": "정리 안 된 실험들이 한 상자에 살아 움직임",
   "widgets-desc.laptop.desc": "집에서 24시간 도는 노트북 — 파일 공유·빌드 현황으로 가는 문",
   "widgets-desc.orbita.desc": "궤도에 색을 찍어 만드는 폴리리듬 시퀀서 — 브라우저 신스 + MIDI 출력",
-  "widgets-desc.collection.desc": "써 본 도구에 도장이 찍힌다 — 몇 칸이나 채웠나"
+  "widgets-desc.bluemarble.desc": "지금 이 순간의 지구 — 낮과 밤, 도시 불빛, 방금 난 지진, 머리 위의 ISS",
+  "widgets-desc.collection.desc": "써 본 도구에 도장이 찍힌다 — 몇 칸이나 채웠나",
+  "widgets-desc.karmomap.desc": "관계도·세계관·카드 전개를 그리는 캔버스 — 어휘 팩을 갈아끼우면 쓰임새가 바뀐다"
 }

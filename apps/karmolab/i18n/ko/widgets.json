@@ -8,6 +8,10 @@
   "widgets.perf.title": "성능 계기판",
   "widgets.community.title": "커뮤니티",
   "widgets.plaza.title": "광장",
+  "widgets.favorites.title": "즐겨찾기",
+  "widgets.linktree.title": "링크",
+  "widgets.devtools.title": "디버그",
+  "widgets.localai.title": "기기 안 AI",
   "widgets.servermonitor.title": "서버 모니터",
   "widgets.activity.title": "활동 기록",
   "widgets.wm.title": "Witch-Mendokusai",
@@ -26,6 +30,7 @@
   "widgets.tierlist.title": "티어리스트",
   "widgets.postgraph.title": "글 그래프",
   "widgets.conch.title": "소라고동",
+  "widgets.pulse.title": "박동",
   "widgets.adventure.title": "무한 텍스트 어드벤처",
   "widgets.planner.title": "플래너",
   "widgets.cockpit.title": "Cockpit",
@@ -183,5 +188,7 @@
   "widgets.stash.title": "잡동사니",
   "widgets.laptop.title": "노트북",
   "widgets.orbita.title": "ORBITA",
-  "widgets.collection.title": "도감"
+  "widgets.bluemarble.title": "블루마블",
+  "widgets.collection.title": "도감",
+  "widgets.karmomap.title": "KarmoMap"
 }
