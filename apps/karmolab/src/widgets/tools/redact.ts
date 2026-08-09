@@ -12,6 +12,7 @@
  */
 import { acceptPastedFiles } from './shared/paste';
 import { fileSize as size } from './shared/media';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
   interface Box {
@@ -23,47 +24,63 @@ import { fileSize as size } from './shared/media';
 
   Toolbox.register({
     id: 'redact',
-    title: '가리개',
+    title: t('widgets.redact.title', undefined, '가리개'),
     category: 'tool',
-    desc: '캡처에서 계좌번호·이름 같은 것을 지웁니다. 덮는 게 아니라 그 자리를 없앱니다',
+    desc: t(
+      'widgets-desc.redact.desc',
+      undefined,
+      '캡처에서 계좌번호·이름 같은 것을 지웁니다. 덮는 게 아니라 그 자리를 없앱니다'
+    ),
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="6" y="9" width="7" height="4" rx="1" fill="currentColor"/><path d="M15 15h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '가리기',
+        label: t('redact.tab', undefined, '가리기'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('redact').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="rdDrop">
               <input type="file" id="rdFile" accept="image/*" hidden>
-              <span>가릴 그림을 끌어다 놓거나 눌러서 고르세요 — 붙여넣기(Ctrl+V)도 됩니다</span>
+              <span>${esc(t('redact.drop'))}</span>
             </div>
 
             <div class="field-group" id="rdControls" style="display:none; margin-top:var(--space-lg);">
               <div class="tool-chips">
-                <button type="button" class="tool-chip active" id="rdModeFill">검은칠 — 되돌릴 수 없음</button>
-                <button type="button" class="tool-chip" id="rdModePixel">모자이크</button>
+                <button type="button" class="tool-chip active" id="rdModeFill">${esc(t('redact.mode.fill'))}</button>
+                <button type="button" class="tool-chip" id="rdModePixel">${esc(t('redact.mode.pixel'))}</button>
               </div>
               <div id="rdPixelWrap" style="display:none; margin-top:10px;">
-                <div class="tool-sublabel">모자이크 크기 <span id="rdBlockVal" class="range-value">16px</span></div>
-                <input type="range" id="rdBlock" aria-label="모자이크 크기" min="6" max="48" value="16">
+                <div class="tool-sublabel">${esc(t('redact.label.block'))} <span id="rdBlockVal" class="range-value">16px</span></div>
+                <input type="range" id="rdBlock" aria-label="${esc(t('redact.label.block'))}" min="6" max="48" value="16">
               </div>
             </div>
 
             <div id="rdStage" style="display:none; margin-top:var(--space-lg);">
-              <div class="tool-sublabel">가릴 곳을 드래그하세요 — 여러 번 해도 됩니다</div>
+              <div class="tool-sublabel">${esc(t('redact.label.stage'))}</div>
               <canvas id="rdCanvas" style="max-width:100%; border-radius:10px; display:block; cursor:crosshair; border:1px solid rgba(128,128,128,0.25); touch-action:none;"></canvas>
             </div>
 
             <div class="cc-stats" id="rdStats"></div>
 
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;" id="rdActions">
-              <button class="btn btn-primary" id="rdSave" disabled>PNG 으로 받기</button>
-              <button class="btn btn-ghost" id="rdUndo" disabled>방금 것 취소</button>
-              <button class="btn btn-ghost" id="rdReset" disabled>처음으로</button>
+              <button class="btn btn-primary" id="rdSave" disabled>${esc(t('redact.btn.save'))}</button>
+              <button class="btn btn-ghost" id="rdUndo" disabled>${esc(t('redact.btn.undo'))}</button>
+              <button class="btn btn-ghost" id="rdReset" disabled>${esc(t('redact.btn.reset'))}</button>
             </div>
 
-            <div class="tool-status" id="rdStatus">그림은 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="rdStatus">${esc(t('redact.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -81,7 +98,7 @@ import { fileSize as size } from './shared/media';
           let mode: 'fill' | 'pixel' = 'fill';
           let dragStart: { x: number; y: number } | null = null;
           let dragNow: { x: number; y: number } | null = null;
-          let sourceName = '가린그림';
+          let sourceName = t('redact.file.fallback');
 
           const say = (m: string, kind = ''): void => {
             status.textContent = m;
@@ -153,9 +170,12 @@ import { fileSize as size } from './shared/media';
             const covered = boxes.reduce((s, b) => s + b.w * b.h, 0);
             const pct = canvas.width * canvas.height ? (covered / (canvas.width * canvas.height)) * 100 : 0;
             stats.innerHTML =
-              stat('가린 곳', `${boxes.length}군데`, true) +
-              stat('그림 크기', `${canvas.width}×${canvas.height}`) +
-              stat('가린 넓이', `${pct < 0.1 && covered > 0 ? '0.1 미만' : pct.toFixed(1)}%`);
+              stat(t('redact.stat.boxes'), t('redact.value.boxes', { n: boxes.length }), true) +
+              stat(t('redact.stat.size'), `${canvas.width}×${canvas.height}`) +
+              stat(
+                t('redact.stat.area'),
+                `${pct < 0.1 && covered > 0 ? t('redact.value.tiny') : pct.toFixed(1)}%`
+              );
             saveBtn.disabled = false;
             undoBtn.disabled = boxes.length === 0;
             resetBtn.disabled = boxes.length === 0;
@@ -183,15 +203,15 @@ import { fileSize as size } from './shared/media';
               boxes = [];
               canvas.width = im.naturalWidth;
               canvas.height = im.naturalHeight;
-              sourceName = (file.name || '그림').replace(/\.[^.]+$/, '');
+              sourceName = (file.name || t('redact.file.fallback')).replace(/\.[^.]+$/, '');
               $<HTMLElement>('#rdStage').style.display = '';
               $<HTMLElement>('#rdControls').style.display = '';
               redraw();
-              say('가릴 곳을 드래그하세요. 덮는 게 아니라 그 자리를 지웁니다.', 'ok');
+              say(t('redact.say.loaded'), 'ok');
               URL.revokeObjectURL(url);
             };
             im.onerror = () => {
-              say('그림을 열지 못했어요. 다른 파일로 해 보세요.', 'error');
+              say(t('redact.err.open'), 'error');
               URL.revokeObjectURL(url);
             };
             im.src = url;
@@ -221,12 +241,12 @@ import { fileSize as size } from './shared/media';
             // 아주 작은 것은 잘못 누른 것이다 — 가렸다고 착각하게 두면 안 된다
             if (b.w < 3 || b.h < 3) {
               redraw();
-              say('너무 작아서 넘어갔어요. 가릴 곳을 끌어서 네모로 잡아 주세요.', 'error');
+              say(t('redact.err.tooSmall'), 'error');
               return;
             }
             boxes.push(b);
             redraw();
-            say(`${boxes.length}군데 지웠어요. 더 가려도 되고, 바로 받아도 됩니다.`, 'ok');
+            say(t('redact.say.added', { n: boxes.length }), 'ok');
           });
 
           drop.onclick = () => fileInput.click();
@@ -257,8 +277,8 @@ import { fileSize as size } from './shared/media';
             redraw();
             // 「가린 줄 알았는데 아니었다」가 이 도구에서 가장 나쁜 결과다 — 미리 말해 준다
             if (next === 'pixel') {
-              say('모자이크는 글자를 되살릴 수 있다고 알려져 있어요. 꼭 가려야 할 것은 검은칠로 하세요.', 'error');
-            } else say('검은칠은 되돌릴 수 없어요. 그 자리의 점들이 없어집니다.', 'ok');
+              say(t('redact.say.pixel'), 'error');
+            } else say(t('redact.say.fill'), 'ok');
           };
           $<HTMLElement>('#rdModeFill').onclick = () => setMode('fill');
           $<HTMLElement>('#rdModePixel').onclick = () => setMode('pixel');
@@ -270,31 +290,28 @@ import { fileSize as size } from './shared/media';
           undoBtn.onclick = () => {
             boxes.pop();
             redraw();
-            say(boxes.length ? `${boxes.length}군데 남았어요.` : '가린 것이 없어졌어요.', 'ok');
+            say(boxes.length ? t('redact.say.left', { n: boxes.length }) : t('redact.say.empty'), 'ok');
           };
           resetBtn.onclick = () => {
             boxes = [];
             redraw();
-            say('원래 그림으로 되돌렸어요.', 'ok');
+            say(t('redact.say.reset'), 'ok');
           };
           saveBtn.onclick = () => {
             canvas.toBlob((blob) => {
               if (!blob) {
-                say('그림으로 바꾸지 못했어요.', 'error');
+                say(t('redact.err.render'), 'error');
                 return;
               }
               const a = document.createElement('a');
               a.href = URL.createObjectURL(blob);
-              a.download = sourceName + '-가림.png';
+              a.download = sourceName + t('redact.file.suffix') + '.png';
               a.click();
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
               // 다시 그려 내보내므로 사진에 붙어 있던 위치·기기 정보도 함께 떨어진다
-              say(`${size(blob.size)} 로 받았어요. 가린 자리는 파일 안에도 없고, 사진에 남아 있던 위치 정보도 떨어졌어요.`, 'ok');
+              say(t('redact.say.saved', { size: size(blob.size) }), 'ok');
               Toolbox.trackUse?.('save');
             }, 'image/png');
           };
-        }
-      }
-    ]
-  });
+  }
 })();

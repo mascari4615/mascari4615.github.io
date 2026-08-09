@@ -161,5 +161,9 @@
   "howto.ghosttype.0": "Type the text you see — the first keystroke starts the race",
   "howto.ghosttype.1": "While you run, the two lanes on top compare you against the ghost",
   "howto.ghosttype.2": "When you finish, copy the link that appears and send it",
-  "howto.ghosttype.3": "Whoever opens it races your ghost on the same text"
+  "howto.ghosttype.3": "Whoever opens it races your ghost on the same text",
+  "howto.redact.0": "Paste a screenshot (Ctrl+V) or choose a file",
+  "howto.redact.1": "Drag over what you want hidden",
+  "howto.redact.2": "Pick black-out or pixelate",
+  "howto.redact.3": "Download it as PNG"
 }
