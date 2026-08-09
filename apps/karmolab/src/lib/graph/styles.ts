@@ -55,6 +55,11 @@ export const GRAPH_CANVAS_CSS = `
   transition: opacity .12s ease;
 }
 .ck-edges:hover .ck-edge-grip { opacity: 0.9; }
+.ck-node.is-drop-target > .ck-node-bg {
+  stroke: #4ade80 !important;
+  stroke-width: 2.5 !important;
+}
+.ck-edge-end { transition: r .12s ease; }
 .ck-link-temp {
   pointer-events: none;
   stroke-dasharray: 5 4;

@@ -208,6 +208,10 @@ export class GraphCanvas {
   private onEdgeChanged?: (edgeId: string) => void;
   /** 선을 휘거나 이름표를 옮기는 중. */
   private edgeDrag: { edgeId: string; mode: 'curve' | 'label' } | null = null;
+  /** 선 끝점을 다른 노드로 옮기는 중. */
+  private rewiring: { edgeId: string; end: 'from' | 'to'; temp: SVGPathElement } | null = null;
+  /** 지금 「여기 놓으면 붙는다」로 밝혀 둔 노드. */
+  private hintEl: SVGGElement | null = null;
   /** 손잡이에서 끌고 있는 중. 임시 선은 edgeLayer 에 그렸다가 놓을 때 지운다. */
   private linking: { fromId: string; temp: SVGPathElement } | null = null;
 
@@ -395,6 +399,24 @@ export class GraphCanvas {
       }
       if (this.activePointers.size > 2) return;
       const target = e.target as Element;
+      const endEl = target.closest('.ck-edge-end') as SVGCircleElement | null;
+      if (endEl && this.onEdgeChanged) {
+        const edgeId = endEl.dataset.edgeId ?? '';
+        const end = (endEl.dataset.end ?? 'to') as 'from' | 'to';
+        if (edgeId) {
+          e.stopPropagation();
+          e.preventDefault();
+          const temp = document.createElementNS(SVG_NS, 'path');
+          temp.setAttribute('class', 'ck-edge ck-link-temp');
+          temp.setAttribute('fill', 'none');
+          temp.setAttribute('stroke', this.theme.edgeDefaultColor);
+          temp.setAttribute('stroke-width', '2');
+          this.edgeLayer.appendChild(temp);
+          this.rewiring = { edgeId, end, temp };
+          this.pressOrigin = null;
+          return;
+        }
+      }
       const gripEl = target.closest('.ck-edge-grip') as SVGCircleElement | null;
       const labelEl = target.closest('.ck-edge-label') as SVGGElement | null;
       if ((gripEl || labelEl) && this.onEdgeChanged) {
@@ -511,6 +533,21 @@ export class GraphCanvas {
         this.applyTransform();
         return;
       }
+      if (this.rewiring) {
+        const edge = this.spec?.edges.find((x) => x.id === this.rewiring?.edgeId);
+        if (!edge) return;
+        // 붙잡은 쪽 반대편은 고정. 거기서 커서까지 임시 선을 긋는다.
+        const anchorId = this.parseNodeRef(this.rewiring.end === 'from' ? edge.to : edge.from);
+        const box = this.getNodeBox(anchorId);
+        if (box) {
+          const w = this.screenToWorld(e.clientX, e.clientY);
+          this.linkTargetHint(e.clientX, e.clientY);
+          this.rewiring.temp.setAttribute(
+            'd', `M ${box.x + box.w / 2},${box.y + box.h / 2} L ${w.x},${w.y}`
+          );
+        }
+        return;
+      }
       if (this.edgeDrag) {
         const edge = this.spec?.edges.find((x) => x.id === this.edgeDrag?.edgeId);
         if (!edge) return;
@@ -540,6 +577,7 @@ export class GraphCanvas {
       if (this.linking) {
         const from = this.getNodeBox(this.linking.fromId);
         if (from) {
+          this.linkTargetHint(e.clientX, e.clientY);
           const p = this.screenToWorld(e.clientX, e.clientY);
           const sx = from.x + from.w;
           const sy = from.y + from.h / 2;
@@ -622,6 +660,27 @@ export class GraphCanvas {
         if (this.activePointers.size < 2) this.pinch = null;
         return;
       }
+      if (this.rewiring) {
+        const { edgeId, end, temp } = this.rewiring;
+        this.rewiring = null;
+        temp.remove();
+        this.clearTargetHint();
+        const edge = this.spec?.edges.find((x) => x.id === edgeId);
+        const under = document.elementFromPoint(e.clientX, e.clientY);
+        const toEl = under?.closest?.('.ck-node') as SVGGElement | null;
+        const dropId = toEl?.dataset.id ?? '';
+        const otherId = edge ? this.parseNodeRef(end === 'from' ? edge.to : edge.from) : '';
+        // 자기 자신에 잇거나 반대편과 같아지면 선이 사라진 것처럼 보인다 — 그냥 되돌린다.
+        if (edge && dropId && dropId !== otherId) {
+          if (end === 'from') edge.from = dropId;
+          else edge.to = dropId;
+          this.redrawEdges();
+          this.onEdgeChanged?.(edgeId);
+        } else {
+          this.redrawEdges();
+        }
+        return;
+      }
       if (this.edgeDrag) {
         const { edgeId } = this.edgeDrag;
         this.edgeDrag = null;
@@ -632,6 +691,7 @@ export class GraphCanvas {
         const { fromId, temp } = this.linking;
         this.linking = null;
         temp.remove();
+        this.clearTargetHint();
         // 놓은 자리 아래에 있는 노드를 찾는다. 임시 선은 이미 지웠으니 가로막지 않는다.
         const under = document.elementFromPoint(e.clientX, e.clientY);
         const toEl = under?.closest?.('.ck-node') as SVGGElement | null;
@@ -665,6 +725,9 @@ export class GraphCanvas {
       this.draggingGroup = null;
       this.panning = null;
       this.edgeDrag = null;
+      this.rewiring?.temp.remove();
+      this.rewiring = null;
+      this.clearTargetHint();
       this.linking?.temp.remove();
       this.linking = null;
       this.svg.style.cursor = 'grab';
@@ -1283,18 +1346,26 @@ export class GraphCanvas {
     if (!b1 || !b2) return [path];
     const { p1, p2 } = this.chooseAnchors(b1, b2);
     const color = edge.color ?? this.edgeKindFor(edge.kind).color ?? this.theme.edgeDefaultColor;
-    const mkDot = (x: number, y: number) => {
+    const mkDot = (x: number, y: number, end?: 'from' | 'to') => {
       const c = document.createElementNS(SVG_NS, 'circle');
       c.setAttribute('cx', String(x));
       c.setAttribute('cy', String(y));
-      c.setAttribute('r', '3.5');
+      c.setAttribute('r', end && this.onEdgeChanged ? '4.5' : '3.5');
       c.setAttribute('fill', this.theme.edgeDotFill);
       c.setAttribute('stroke', color);
       c.setAttribute('stroke-width', '1.5');
-      c.setAttribute('pointer-events', 'none');
+      if (end && this.onEdgeChanged) {
+        // 끝점을 끌어 다른 노드로 옮긴다 (FigJam 의 커넥터 끝점 재연결).
+        c.setAttribute('class', 'ck-edge-end');
+        c.dataset.edgeId = edge.id;
+        c.dataset.end = end;
+        c.style.cursor = 'crosshair';
+      } else {
+        c.setAttribute('pointer-events', 'none');
+      }
       return c;
     };
-    const out: SVGElement[] = [path, mkDot(p1.x, p1.y), mkDot(p2.x, p2.y)];
+    const out: SVGElement[] = [path, mkDot(p1.x, p1.y, 'from'), mkDot(p2.x, p2.y, 'to')];
     if (this.onEdgeChanged) {
       const g = this.edgeGeom(edge);
       if (g) {
@@ -1799,6 +1870,24 @@ export class GraphCanvas {
     }
 
     return new XMLSerializer().serializeToString(clone);
+  }
+
+  /**
+   * 끌고 있는 끝이 어느 노드 위인지 테두리로 알린다 — draw.io·Visio 가 연결점을 초록/파랑으로
+   * 밝히는 자리. 이 표시가 없으면 「놓았는데 안 붙었다」가 자주 난다.
+   */
+  private linkTargetHint(clientX: number, clientY: number): void {
+    const under = document.elementFromPoint(clientX, clientY);
+    const nodeEl = under?.closest?.('.ck-node') as SVGGElement | null;
+    if (this.hintEl === nodeEl) return;
+    this.hintEl?.classList.remove('is-drop-target');
+    this.hintEl = nodeEl;
+    this.hintEl?.classList.add('is-drop-target');
+  }
+
+  private clearTargetHint(): void {
+    this.hintEl?.classList.remove('is-drop-target');
+    this.hintEl = null;
   }
 
   /** 화면 좌표(clientX/Y) → world 좌표. 더블클릭 자리·끌고 있는 선 끝을 잡는 데 쓴다. */
