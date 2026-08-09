@@ -252,10 +252,11 @@ import {
       .km-side { position:absolute; left:0; right:0; bottom:0; width:auto; z-index:18;
         max-height:64vh; border-left:none; border-top:1px solid var(--border);
         border-radius:14px 14px 0 0; box-shadow:0 -8px 24px rgba(0,0,0,.35);
-        transform:translateY(calc(100% - 42px)); transition:transform .18s ease; padding-top:20px; }
+        /* 접혔을 때 내다보이는 만큼 = **손잡이 높이 그대로**. 손잡이만 키우면 그 아래가 화면 밖으로 나가 안 눌린다. */
+        transform:translateY(calc(100% - 44px)); transition:transform .18s ease; padding-top:44px; }
       .km-root.is-sheet-up .km-side { transform:translateY(0); }
       /* 손잡이 — 폰에서 시트를 올리고 내리는 유일한 자리라 **크게**(44px 규격) 잡는다. */
-      .km-sheet-grip { position:absolute; left:0; right:0; top:0; height:20px; display:flex;
+      .km-sheet-grip { position:absolute; left:0; right:0; top:0; height:44px; display:flex;
         align-items:center; justify-content:center; cursor:grab; }
       .km-sheet-grip::before { content:''; width:44px; height:4px; border-radius:999px; background:var(--border); }
       /* 폰에서 툴바가 **줄바꿈으로 부풀면** 그림이 그만큼 밀려난다(실측: 화면 절반을 먹었다).
@@ -265,9 +266,14 @@ import {
       .km-toolbar::-webkit-scrollbar { display:none; }
       .km-toolbar > * { flex:0 0 auto; }
       .km-toolbar input[type=text] { min-width:110px; }
-      /* 손가락으로 누를 것들은 44px 규격에 가깝게 — 아이콘 버튼이 작으면 폰에서 오조작이 는다. */
-      .km-toolbar .btn { min-height:34px; }
       .km-toolbar .btn { padding:6px 10px; }
+    }
+    /* 손가락에는 손가락 크기를 준다 (TASK-KL-202 방향④).
+       실측: 폰에서 툴바 아이콘이 34×30px 이었다 — 애플 44pt · 머티리얼 48dp 권장의 절반 남짓이라
+       ↶ 를 누르려다 ↷ 가 눌린다. 마우스가 있는 화면은 그대로 둔다(커서는 1px 도 정확하다). */
+    @media (pointer: coarse) {
+      .km-toolbar .btn, .km-mini .btn, .km-sheet .btn { min-height:44px; min-width:44px; }
+      .km-toolbar select, .km-toolbar input[type=text] { min-height:44px; }
     }
     `
   );
