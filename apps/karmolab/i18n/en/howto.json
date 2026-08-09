@@ -200,5 +200,8 @@
   "howto.hashgen.0": "Text tab — type a string, six hashes at once",
   "howto.hashgen.1": "Copy any row",
   "howto.hashgen.2": "File tab — drop a file in",
-  "howto.hashgen.3": "Paste the expected checksum to confirm a match"
+  "howto.hashgen.3": "Paste the expected checksum to confirm a match",
+  "howto.ziptool.0": "Choose Make or Open",
+  "howto.ziptool.1": "Add the files",
+  "howto.ziptool.2": "Make gives you a ZIP; Open lets you click a file in the list"
 }

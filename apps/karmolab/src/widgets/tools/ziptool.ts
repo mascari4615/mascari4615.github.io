@@ -6,8 +6,12 @@
  * 안을 훑어보는 것만으로 끝날 때가 많으므로 **풀기 전에 목록을 먼저 보여준다.**
  */
 import { acceptPastedFiles } from './shared/paste';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   interface ZipEntry {
     name: string;
     dir: boolean;
@@ -27,9 +31,9 @@ import { acceptPastedFiles } from './shared/paste';
 
   Toolbox.register({
     id: 'ziptool',
-    title: 'ZIP 만들기·풀기',
+    title: t('widgets.ziptool.title', undefined, "ZIP 만들기·풀기"),
     category: 'tool',
-    desc: '파일을 ZIP 으로 묶고, 받은 ZIP 의 목록을 보고 풀어 냅니다',
+    desc: t('widgets-desc.ziptool.desc', undefined, "파일을 ZIP 으로 묶고, 받은 ZIP 의 목록을 보고 풀어 냅니다"),
     layout: 'wide',
     icon: '<path d="M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 3v2h2V3M11 7v2h2V7M11 11v2h2v-2" stroke="currentColor" stroke-width="1.5"/><rect x="10.5" y="15" width="3" height="4" rx="0.6" stroke="currentColor" stroke-width="1.5" fill="none"/>',
     tabs: [
@@ -37,31 +41,33 @@ import { acceptPastedFiles } from './shared/paste';
         id: 'app',
         label: 'ZIP',
         build: function (container: HTMLElement): void {
+          void loadNamespace('ziptool').then(function () {
+
           container.innerHTML = `
             <div class="field-group">
               <div class="tool-chips" id="zpMode">
-                <button type="button" class="tool-chip active" data-mode="make">묶기</button>
-                <button type="button" class="tool-chip" data-mode="open">열기</button>
+                <button type="button" class="tool-chip active" data-mode="make">${esc(t('ziptool.mode.make'))}</button>
+                <button type="button" class="tool-chip" data-mode="open">${esc(t('ziptool.mode.open'))}</button>
               </div>
             </div>
 
             <div class="tool-drop" id="zpDrop">
               <input type="file" id="zpFile" multiple hidden>
-              <span id="zpDropText">묶을 파일을 끌어다 놓거나 눌러서 고르세요</span>
+              <span id="zpDropText">${esc(t('ziptool.drop.make'))}</span>
             </div>
 
             <div class="field-group" id="zpLevelWrap" style="margin-top:var(--space-lg);">
-              <div class="tool-sublabel">압축 세기 <span id="zpLevelVal" class="range-value">보통</span></div>
-              <input type="range" id="zpLevel" aria-label="압축 세기" min="0" max="9" value="6">
+              <div class="tool-sublabel">${esc(t('ziptool.label.level'))} <span id="zpLevelVal" class="range-value">${esc(t('ziptool.level.mid'))}</span></div>
+              <input type="range" id="zpLevel" aria-label="${esc(t('ziptool.label.level'))}" min="0" max="9" value="6">
             </div>
 
             <div class="tool-list" id="zpList"></div>
 
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="zpRun">ZIP 만들기</button>
-              <button class="btn btn-ghost" id="zpClear">비우기</button>
+              <button class="btn btn-primary" id="zpRun">${esc(t('ziptool.btn.run'))}</button>
+              <button class="btn btn-ghost" id="zpClear">${esc(t('ziptool.btn.clear'))}</button>
             </div>
-            <div class="tool-status" id="zpStatus">파일은 브라우저 안에서만 다뤄집니다.</div>
+            <div class="tool-status" id="zpStatus">${esc(t('ziptool.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -75,7 +81,6 @@ import { acceptPastedFiles } from './shared/paste';
           let opened: ZipInstance | null = null;
           let JSZipCtor: (new () => ZipInstance) | null = null;
 
-          const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
           const say = (m: string, kind = ''): void => {
             status.textContent = m;
             status.className = 'tool-status' + (kind ? ' ' + kind : '');
@@ -83,10 +88,10 @@ import { acceptPastedFiles } from './shared/paste';
 
           async function loadLib(): Promise<new () => ZipInstance> {
             if (JSZipCtor) return JSZipCtor;
-            say('압축 처리기를 불러오는 중…');
+            say(t('ziptool.say.loadingLib'));
             await Toolbox.ensureScript?.('vendor/jszip.min');
             const g = (window as unknown as { JSZip: new () => ZipInstance }).JSZip;
-            if (!g) throw new Error('압축 처리기를 불러오지 못했습니다');
+            if (!g) throw new Error(t('ziptool.err.lib'));
             JSZipCtor = g;
             return g;
           }
@@ -105,14 +110,14 @@ import { acceptPastedFiles } from './shared/paste';
             try {
               opened = await new Z().loadAsync(await f.arrayBuffer());
             } catch {
-              say('ZIP 을 열지 못했어요 (암호가 걸려 있을 수 있습니다).', 'error');
+              say(t('ziptool.err.open'), 'error');
               return;
             }
             const entries = Object.values(opened.files).filter((e) => !e.dir);
             listEl.innerHTML = entries
               .map(
                 (e, i) =>
-                  `<div class="tool-list-row cc-copy-row" data-i="${i}"><span class="tool-list-key">${size(e._data?.uncompressedSize || 0)}</span><span class="tool-list-val">${esc(e.name)} <span class="tool-list-dim">눌러서 내려받기</span></span></div>`
+                  `<div class="tool-list-row cc-copy-row" data-i="${i}"><span class="tool-list-key">${size(e._data?.uncompressedSize || 0)}</span><span class="tool-list-val">${esc(e.name)} <span class="tool-list-dim">${esc(t('ziptool.row.download'))}</span></span></div>`
               )
               .join('');
             listEl.querySelectorAll('[data-i]').forEach((el) => {
@@ -126,17 +131,17 @@ import { acceptPastedFiles } from './shared/paste';
                 setTimeout(() => URL.revokeObjectURL(a.href), 2000);
               };
             });
-            say(`${entries.length}개 파일이 들어 있어요. 줄을 누르면 그 파일만 내려받습니다.`, 'ok');
+            say(t('ziptool.say.opened', { n: entries.length }), 'ok');
             Toolbox.trackUse?.('open');
           }
 
           async function makeZip(): Promise<void> {
             if (!files.length) {
-              say('묶을 파일을 먼저 넣어 주세요.', 'error');
+              say(t('ziptool.err.noFile'), 'error');
               return;
             }
             const Z = await loadLib();
-            say('압축하는 중…');
+            say(t('ziptool.say.zipping'));
             const zip = new Z();
             files.forEach((f) => zip.file(f.name, f));
             const lv = parseInt(level.value, 10);
@@ -147,15 +152,28 @@ import { acceptPastedFiles } from './shared/paste';
             });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = '묶음.zip';
+            a.download = t('ziptool.file.name');
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
             const before = files.reduce((s, f) => s + f.size, 0);
             // 사진·영상처럼 이미 눌린 파일은 묶으면 오히려 커진다. 그때 「-3% 줄었어요」라고 하면
             // 숫자도 말도 틀린다 — 늘었으면 늘었다고 적는다.
             const pct = Math.round(Math.abs(1 - blob.size / before) * 100);
-            const verdict = blob.size < before ? `${pct}% 줄었어요` : blob.size > before ? `${pct}% 커졌어요 — 이미 압축된 파일이라 그렇습니다` : '크기는 그대로예요';
-            say(`${files.length}개 · ${size(before)} → ${size(blob.size)} (${verdict})`, 'ok');
+            const verdict =
+              blob.size < before
+                ? t('ziptool.verdict.smaller', { pct })
+                : blob.size > before
+                  ? t('ziptool.verdict.bigger', { pct })
+                  : t('ziptool.verdict.same');
+            say(
+              t('ziptool.say.made', {
+                n: files.length,
+                before: size(before),
+                after: size(blob.size),
+                verdict
+              }),
+              'ok'
+            );
             Toolbox.trackUse?.('make');
           }
 
@@ -167,10 +185,10 @@ import { acceptPastedFiles } from './shared/paste';
             fileInput.multiple = mode === 'make';
             fileInput.accept = mode === 'make' ? '' : '.zip,application/zip';
             $<HTMLElement>('#zpDropText').textContent =
-              mode === 'make' ? '묶을 파일을 끌어다 놓거나 눌러서 고르세요' : 'ZIP 파일을 끌어다 놓거나 눌러서 고르세요';
+              mode === 'make' ? t('ziptool.drop.make') : t('ziptool.drop.open');
             $<HTMLElement>('#zpLevelWrap').style.display = mode === 'make' ? '' : 'none';
             $<HTMLButtonElement>('#zpRun').style.display = mode === 'make' ? '' : 'none';
-            say(mode === 'make' ? '넣은 파일을 하나의 ZIP 으로 묶습니다.' : '풀기 전에 안에 무엇이 있는지 먼저 보여줍니다.');
+            say(mode === 'make' ? t('ziptool.say.makeHint') : t('ziptool.say.openHint'));
           }
 
           function accept(list: FileList | File[]): void {
@@ -178,7 +196,13 @@ import { acceptPastedFiles } from './shared/paste';
             if (mode === 'make') {
               files.push(...arr);
               renderMake();
-              say(`${files.length}개 · 총 ${size(files.reduce((s, f) => s + f.size, 0))}`, 'ok');
+              say(
+                t('ziptool.say.picked', {
+                  n: files.length,
+                  total: size(files.reduce((s, f) => s + f.size, 0))
+                }),
+                'ok'
+              );
             } else if (arr[0]) {
               void openZip(arr[0]);
             }
@@ -209,12 +233,13 @@ import { acceptPastedFiles } from './shared/paste';
           });
           level.addEventListener('input', () => {
             const v = parseInt(level.value, 10);
-            $<HTMLElement>('#zpLevelVal').textContent = v === 0 ? '압축 안 함' : v <= 3 ? '빠르게' : v <= 6 ? '보통' : '작게';
+            $<HTMLElement>('#zpLevelVal').textContent = v === 0 ? t('ziptool.level.none') : v <= 3 ? t('ziptool.level.fast') : v <= 6 ? t('ziptool.level.mid') : t('ziptool.level.small');
           });
           $<HTMLButtonElement>('#zpRun').onclick = () => void makeZip();
           $<HTMLButtonElement>('#zpClear').onclick = () => setMode(mode);
 
           setMode('make');
+                  });
         }
       }
     ]
