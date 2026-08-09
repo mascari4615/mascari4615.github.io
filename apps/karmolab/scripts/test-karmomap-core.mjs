@@ -42,6 +42,7 @@ async function loadModules() {
     export * as decor from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-decor.ts'))};
     export * as cmath from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-math.ts'))};
     export * as press from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-press.ts'))};
+    export * as release from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-release.ts'))};
     export * as sna from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/sna.ts'))};
   `);
   const out = path.join(os.tmpdir(), `km-core-${Date.now()}.mjs`);
@@ -415,6 +416,29 @@ const M = await loadModules();
   check(pressIntent({ edgeGrip: 'e1', edgeEnd: { edgeId: 'e1', end: 'to' } }, all).kind === 'rewire',
     '선 끝이 가운데 손잡이보다 먼저(끝을 잡으면 다시 잇기)');
   check(pressIntent({ groupLabel: 'g1', group: 'g1' }, all).kind === 'label-drag', '묶음 이름표가 묶음보다 먼저');
+}
+
+// ---- 손을 떼면 무슨 뜻인가 (canvas-release)
+{
+  const { releaseIntent, canRewireTo, isDropOnNode, clickSlopFor } = M.release;
+  const o = { x: 100, y: 100, nodeId: null };
+  check(releaseIntent(o, { x: 101, y: 100 }, { panning: true }).kind === 'click-background', '거의 안 움직였으면 배경 클릭');
+  check(releaseIntent(o, { x: 140, y: 100 }, { panning: true }).kind === 'drag-end', '멀리 끌었으면 클릭이 아니다');
+  check(releaseIntent(o, { x: 101, y: 100 }, {}).kind === 'drag-end', '밀기로 잡고 있던 게 아니면 배경 클릭 아님(고른 게 안 풀린다)');
+  check(releaseIntent({ ...o, nodeId: 'n1' }, { x: 101, y: 100 }, { pressEdgeId: 'e1' }).kind === 'click-node',
+    '카드가 그 밑을 지나는 선보다 먼저');
+  check(releaseIntent(o, { x: 101, y: 100 }, { pressEdgeId: 'e1' }).kind === 'click-edge', '카드가 없으면 선 클릭');
+  // 손가락은 마우스보다 훨씬 흔들린다 — 같은 8px 이 마우스면 「끌기」, 손가락이면 「눌렀다 뗌」.
+  check(releaseIntent(o, { x: 108, y: 100 }, { panning: true }).kind === 'drag-end', '마우스 8px = 끌기');
+  check(releaseIntent(o, { x: 108, y: 100, pointerType: 'touch' }, { panning: true }).kind === 'click-background',
+    '손가락 8px 은 그냥 누른 것(안 그러면 폰에서 탭이 자꾸 씹힌다)');
+  check(clickSlopFor('touch') > clickSlopFor('mouse'), '손가락 허용 흔들림이 마우스보다 크다');
+  check(canRewireTo('n2', 'n1') === true, '다른 카드로 선 끝 옮기기 OK');
+  check(canRewireTo('', 'n1') === false, '빈 자리에 놓으면 되돌린다');
+  check(canRewireTo('n1', 'n1') === false, '반대편과 같은 카드면 되돌린다(선이 증발해 보인다)');
+  check(isDropOnNode('n1', 'n2', 40) === true, '카드를 다른 카드 위에 떨어뜨리면 잇는다');
+  check(isDropOnNode('n1', 'n1', 40) === false, '자기 자신 위는 아니다');
+  check(isDropOnNode('n1', 'n2', 2) === false, '누른 것뿐이면 떨어뜨린 게 아니다');
 }
 
 // 되돌아가지 않게: **캔버스 크기 자물쇠**.
