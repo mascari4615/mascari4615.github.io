@@ -43,6 +43,37 @@ const stale = [
 
 const problems = [];
 
+/*
+ * ★ 반대 방향 하나 더 — **알맹이는 있는데 tools-seo 에 없는 도구** (2026-08-10, 두 번 밟았다).
+ *
+ * `tools-seo.json` 이 도구 페이지·마크다운 쌍둥이·검색 유입·주소(`/karmolab/t/<id>/`)를 만든다.
+ * 알맹이(`src/core/<id>.ts`)가 있다는 건 **주소로 부를 수 있다**는 뜻인데, 여기 없으면 그 주소가
+ * 아예 안 생긴다 — 위젯은 있고 **들어갈 문이 없는** 상태다. 빌드도 타입 검사도 전부 초록이라
+ * 아무 데서도 안 걸린다. `chain` 을 그렇게 내보냈다가 다음 회차에 발견했다.
+ *
+ * 기준을 「등록된 위젯 전부」로 잡으면 안 된다 — settings·status 처럼 **페이지가 없어야 맞는**
+ * 화면이 32개 걸려서 아무도 못 고치는 빨간불이 된다(실제로 그렇게 써 보고 되돌렸다).
+ * 알맹이 유무가 정확한 신호다.
+ */
+{
+  const coreDir = path.join(root, 'src/core');
+  if (fs.existsSync(coreDir)) {
+    const withCore = fs
+      .readdirSync(coreDir)
+      .filter((f) => f.endsWith('.ts'))
+      .filter((f) => /export const spec/.test(fs.readFileSync(path.join(coreDir, f), 'utf8')))
+      .map((f) => path.basename(f, '.ts'));
+    const orphans = withCore.filter((id) => known.has(id) === false);
+    if (orphans.length > 0) {
+      problems.push(
+        `알맹이는 있는데 tools-seo 에 없다 ${orphans.length}개 — ${orphans.join(', ')}` +
+          ' (도구 페이지·쌍둥이·주소가 안 생긴다)'
+      );
+    }
+  }
+}
+
+
 /* 내 컴퓨터의 도구 페이지가 **지금 빌드로 찍힌 것인지** (TASK-KL-089).
  * 다른 사람이 앱을 다시 빌드하면 내가 찍어 둔 페이지는 그 순간 낡는다. 열어 보면 도구가
  * 안 뜨는데, 겉으로는 「그 도구가 깨졌다」처럼 보인다 — 실제로 없는 결함을 한참 쫓았다.

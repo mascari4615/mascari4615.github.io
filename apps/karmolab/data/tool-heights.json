@@ -63,6 +63,10 @@
     "narrow": 797,
     "wide": 864
   },
+  "chain": {
+    "narrow": 792,
+    "wide": 691
+  },
   "charcount": {
     "narrow": 1339,
     "wide": 916
@@ -122,6 +126,10 @@
   "draw": {
     "narrow": 1228,
     "wide": 987
+  },
+  "duel": {
+    "narrow": 560,
+    "wide": 660
   },
   "emoji": {
     "narrow": 6415,
@@ -438,6 +446,10 @@
   "timecalc": {
     "narrow": 1206,
     "wide": 1112
+  },
+  "timecapsule": {
+    "narrow": 1118,
+    "wide": 906
   },
   "timer": {
     "narrow": 618,
