@@ -107,5 +107,9 @@
   "howto.timecapsule.0": "Write the letter",
   "howto.timecapsule.1": "Pick when it opens (tomorrow · a month · a year · ten years)",
   "howto.timecapsule.2": "Hit Lock it, then keep or send the link you get",
-  "howto.timecapsule.3": "Open that link on the day and the letter is there"
+  "howto.timecapsule.3": "Open that link on the day and the letter is there",
+  "howto.pdfpagenum.0": "Choose a PDF",
+  "howto.pdfpagenum.1": "Pick the style and position",
+  "howto.pdfpagenum.2": "Set how many cover pages to skip",
+  "howto.pdfpagenum.3": "Add the numbers"
 }

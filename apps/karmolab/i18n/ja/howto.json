@@ -107,5 +107,9 @@
   "howto.timecapsule.0": "手紙を書く",
   "howto.timecapsule.1": "開く日時を選ぶ（明日・1か月・1年・10年）",
   "howto.timecapsule.2": "「鍵をかける」を押して出たリンクを保管するか送る",
-  "howto.timecapsule.3": "その日にそのリンクを開くと手紙が出てくる"
+  "howto.timecapsule.3": "その日にそのリンクを開くと手紙が出てくる",
+  "howto.pdfpagenum.0": "PDF を選ぶ",
+  "howto.pdfpagenum.1": "形式と位置を選ぶ",
+  "howto.pdfpagenum.2": "飛ばす表紙のページ数を決める",
+  "howto.pdfpagenum.3": "番号を入れる"
 }
