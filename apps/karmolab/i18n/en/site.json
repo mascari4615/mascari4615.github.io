@@ -1,0 +1,16 @@
+{
+  "site.name": "KarmoLab",
+  "site.tagline": "Time to stir your life and switch your drink",
+  "site.title": "KarmoLab — Time to stir your life and switch your drink",
+  "site.description": "Time to stir your life and switch your drink. A workshop of tools that fit in your hands.",
+  "site.about": "A place to work with writing, image, math and dev tools right inside your browser",
+  "site.tools.all": "All tools",
+  "site.tools.allList": "Browse every tool",
+  "site.feed.changes": "KarmoLab — Changelog",
+  "site.nav.home": "Home",
+  "site.nav.tools": "Tools",
+  "site.nav.search": "Search",
+  "site.lang.switch": "Language",
+  "site.lang.current": "Current language: {name}",
+  "site.noscript.intro": "A set of tools that run straight in your browser. Your files never leave this device."
+}
