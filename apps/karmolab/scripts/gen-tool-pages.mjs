@@ -305,7 +305,7 @@ function copyPrint(id) {
     (t.related || []).join(','),
     ALIASES[id] || ''
   ]
-    .join('')
+    .join('\u0001')
     .replace(/\s+/g, ' ')
     .trim();
   // 짧은 지문이면 충분하다 — 같은 글이 다른 지문을 낼 일만 없으면 된다.
