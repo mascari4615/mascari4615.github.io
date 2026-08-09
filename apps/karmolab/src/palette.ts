@@ -81,8 +81,11 @@ function toCho(s: string): string {
 }
 
 /** 찾기 비교용 정규화 — 대소문자·공백을 지운다. 「글자수 세기」와 「글자수세기」가 같아야 한다. */
-function norm(s: string): string {
-  return (s || '').toLowerCase().replace(/\s+/g, '');
+function norm(s: unknown): string {
+  /* 별칭은 한 줄 글월이 보통이지만 **목록으로 적힌 것도 있다**(`chain`). 글월로만 알고 다루면
+   * 찾기 알맹이가 통째로 터져 이름 바꾸기까지 멈춘다 — 실제로 그렇게 6개가 안 바뀌었다. */
+  const text = Array.isArray(s) ? s.join(' ') : s == null ? '' : String(s);
+  return text.toLowerCase().replace(/\s+/g, '');
 }
 
 /** 입력이 초성만으로 이뤄졌나 (「ㄱㅈㅅ」). 그럴 때만 초성 대조를 켠다 —

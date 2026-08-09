@@ -30,9 +30,19 @@ const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (�
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
-await page.route('**/*', (route) =>
-  route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' })
-);
+await page.route('**/*', (route) => {
+  /* 말 묶음은 **진짜 것을 준다**. 빈 껍데기로 답하면 위젯이 열쇠 이름을 그대로 그려서
+   * (`base64.ph.text`) 이 검사가 화면 값을 못 읽는다 — 실제 화면과 다른 걸 재게 된다. */
+  const url = new URL(route.request().url());
+  const at = url.pathname.indexOf('/js/i18n/');
+  if (at >= 0) {
+    const file = path.join(root, url.pathname.slice(at + 1));
+    if (fs.existsSync(file)) {
+      return route.fulfill({ status: 200, contentType: 'application/javascript', body: fs.readFileSync(file, 'utf8') });
+    }
+  }
+  return route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' });
+});
 const script = read('js/widgets/tools/base64.js');
 
 /** 주어진 주소로 열어 위젯을 한 번 그린 뒤, 화면에 뭐가 들어갔는지 돌려준다. */
@@ -43,12 +53,21 @@ async function open(search) {
     window.Toolbox = { register: (t) => { window.__reg[t.id] = t; }, trackUse() {}, copyText() {}, mountTool() { return true; } };
   });
   await page.addScriptTag({ content: script });
-  return page.evaluate(() => {
+  /* 위젯은 **말 묶음을 받은 뒤에** 그린다 (TASK-KL-203). 그래서 `build()` 는 바로 돌아오고
+   * 화면은 조금 뒤에 채워진다 — 부르자마자 읽으면 `null.value` 로 터진다. 그려질 때까지 기다린다. */
+  const drawn = await page.evaluate(() => {
     const tool = window.__reg['base64'];
-    if (!tool) return { missing: true };
+    if (!tool) return false;
     const host = document.createElement('div');
+    host.id = 'host';
     document.body.appendChild(host);
     tool.tabs[0].build(host);
+    return true;
+  });
+  if (!drawn) return { missing: true };
+  await page.waitForSelector('#host #b6Text', { timeout: 5000 });
+  return page.evaluate(() => {
+    const host = document.getElementById('host');
     return {
       text: host.querySelector('#b6Text').value,
       code: host.querySelector('#b6Code').value,
