@@ -161,7 +161,8 @@
     "test:lang": "node scripts/smoke-lang-switch.mjs",
     "test:i18n:source": "node scripts/audit-i18n-source.mjs",
     "baseline:i18n:source": "node scripts/audit-i18n-source.mjs --baseline",
-    "gen:tool-pages-locale": "node scripts/gen-tool-pages-locale.mjs"
+    "gen:tool-pages-locale": "node scripts/gen-tool-pages-locale.mjs",
+    "test:widget-i18n": "node scripts/smoke-widget-i18n.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
