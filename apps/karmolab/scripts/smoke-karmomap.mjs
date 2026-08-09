@@ -28,7 +28,23 @@ await page.reload({ waitUntil: 'domcontentloaded' });
 
 const step = async (name, fn) => {
   try { await fn(); console.log(`  OK   ${name}`); }
-  catch (e) { console.log(`  FAIL ${name} — ${e.message.split('\n')[0]}`); errors.push(`${name}: ${e.message.split('\n')[0]}`); }
+  catch (e) {
+    console.log(`  FAIL ${name} — ${e.message.split(`\n`)[0]}`);
+    errors.push(`${name}: ${e.message.split(`\n`)[0]}`);
+    // 「왜 안 눌렸나」는 사후에 못 되살린다 — 그 자리에서 화면 상태를 한 줄 남긴다.
+    const dump = await page.evaluate(() => {
+      const el = document.querySelector(`[data-km="story"]`);
+      const r = el && el.getBoundingClientRect();
+      const top = r && document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+      const tb = document.querySelector(`.km-toolbar`);
+      return [`툴바=${tb ? Math.round(tb.getBoundingClientRect().height) : 0}px`,
+        `발표버튼=${r ? Math.round(r.x) + `,` + Math.round(r.y) : `없음`}`,
+        `그자리=${top ? top.tagName + `|` + String(top.getAttribute(`data-km`) || top.getAttribute(`class`) || ``).slice(0,28) : `-`}`,
+        `서랍=${document.querySelector(`[data-km="drawer"]`).className}`,
+        `발표중=${document.querySelector(`.km-root`).classList.contains(`is-presenting`)}`].join(` · `);
+    }).catch((err) => `상태 못 읽음`);
+    console.log(`       ↳ ${dump}`);
+  }
 };
 
 await step('위젯이 뜬다', async () => {
@@ -113,9 +129,12 @@ await step('찾기 → 포커스가 걸린다', async () => {
   await page.selectOption('[data-km="degree"]', '');
 });
 await step('발표 모드 진입 / 나가기', async () => {
-  await page.click('[data-km="story"]');
+  // 이 버튼은 눌리는 순간 툴바를 통째로 숨긴다 — 보통 click 은 「대상이 사라졌다」로 보고
+  // 30초를 기다린다(제품이 아니라 검사 쪽 함정). 이벤트만 던진다.
+  await page.locator(`[data-km="story"]`).dispatchEvent(`click`);
   await page.waitForSelector('.km-root.is-presenting', { timeout: 4000 });
-  await page.click('[data-km="stage-exit"]');
+  await page.locator(`[data-km="stage-exit"]`).dispatchEvent(`click`);
+  await page.waitForSelector(`.km-root:not(.is-presenting)`, { timeout: 4000 });
   if (await page.locator('.km-root.is-presenting').count()) throw new Error('나가기가 안 먹음');
 });
 await step('맵 새로 만들기 → 빈 캔버스', async () => {
