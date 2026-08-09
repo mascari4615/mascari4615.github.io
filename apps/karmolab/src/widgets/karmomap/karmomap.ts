@@ -371,6 +371,7 @@ import {
       <div class="km-root">
         <div class="km-toolbar">
           <select data-km="maps" title="맵 고르기"></select>
+          <button class="btn btn-ghost hidden" data-km="map-up" title="이 판을 담은 카드로 (⤴)">⤴</button>
           <button class="btn btn-ghost" data-km="map-new" title="새 맵">+</button>
           <select data-km="new-kind" title="새로 만들 노드 종류">${nodeKindOptions()}</select>
           <span class="km-sep"></span>
@@ -2327,6 +2328,7 @@ import {
     const mapsEl = q<HTMLSelectElement>('maps');
 
     function renderMapList(): void {
+      queueMicrotask(syncUpButton);
       mapsEl.innerHTML = library.maps
         .map((m) => `<option value="${escapeAttr(m.id)}"${m.id === library.activeId ? ' selected' : ''}>${escapeHtml(m.name)}</option>`)
         .join('');
@@ -2390,6 +2392,47 @@ import {
     mapsEl.onchange = () => {
       library = setActive(library, mapsEl.value);
       openActiveMap();
+    };
+
+    /**
+     * ⤴ 위 판으로 — 지금 판을 **담고 있는 카드**를 찾아 그리로 돌아간다.
+     * 들어가는 길만 있고 나오는 길이 없으면 층이 미로가 된다(맵 고르개에서 이름으로 찾게 하는 건 길이 아니다).
+     */
+    function findParentOfCurrent(): { mapId: string; nodeId: string } | null {
+      for (const m of library.maps) {
+        if (m.id === library.activeId) continue;
+        try {
+          const raw = localStorage.getItem(mapKey(m.id));
+          if (!raw) continue;
+          const parsed = JSON.parse(raw) as Partial<GraphSpec>;
+          const hit = (parsed.nodes ?? []).find((n) => n.subMap === library.activeId);
+          if (hit) return { mapId: m.id, nodeId: hit.id };
+        } catch {
+          // 깨진 칸 하나 때문에 나가는 길이 막히면 안 된다 — 다음 맵을 계속 본다.
+        }
+      }
+      return null;
+    }
+
+    function syncUpButton(): void {
+      const btn = root.querySelector('[data-km="map-up"]') as HTMLButtonElement | null;
+      if (btn) btn.classList.toggle('hidden', !findParentOfCurrent());
+    }
+
+    q<HTMLButtonElement>('map-up').onclick = () => {
+      const parent = findParentOfCurrent();
+      if (!parent) return;
+      library = setActive(library, parent.mapId);
+      renderMapList();
+      openActiveMap();
+      // 돌아가면 **그 카드가 골라져 있어야** 한다 — 어디서 나왔는지가 바로 보인다.
+      setTimeout(() => {
+        selectedId = parent.nodeId;
+        sideMode = 'node';
+        renderSide();
+        canvas?.setSelectedNode(parent.nodeId);
+        canvas?.fitToNodes([parent.nodeId], 240);
+      }, 120);
     };
 
     q<HTMLButtonElement>('map-new').onclick = () => {
