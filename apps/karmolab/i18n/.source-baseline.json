@@ -1,5 +1,5 @@
 {
-  "total": 7955,
+  "total": 7956,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -8,6 +8,7 @@
     "src/badapple/studio.ts": 9,
     "src/brag-card.ts": 10,
     "src/core/base64.ts": 2,
+    "src/core/hashgen.ts": 1,
     "src/desktop-chrome.ts": 25,
     "src/gemini.ts": 73,
     "src/home-page.ts": 4,
