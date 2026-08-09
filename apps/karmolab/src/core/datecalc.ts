@@ -20,20 +20,25 @@ export const spec: ToolSpec = {
   ops: {
     shift: {
       desc:
-        '날짜에 일·주·월·년을 더하거나 뺀다. 「1월 31일 + 1개월」처럼 그 달에 없는 날은' +
-        ' 그 달의 마지막 날로 맞춘다(2월 31일 같은 날짜를 만들지 않는다).',
+        'Add or subtract days/weeks/months/years. Jan 31 + 1 month clamps to the last day of February' +
+        ' instead of rolling over into March, which is what naive date math does.' +
+        ' / 날짜 더하기·빼기. 없는 날은 그 달 마지막 날로.',
       in: { date: 'string', days: 'number?', weeks: 'number?', months: 'number?', years: 'number?' },
       out: 'string'
     },
     between: {
-      desc: '두 날짜 사이의 일수·주수·평일수를 낸다. 끝날 포함 여부를 둘 다 보여 준다.',
+      desc:
+        'Days, weeks and weekdays between two dates — reported both inclusive and exclusive of the end date,' +
+        ' because that off-by-one is the whole argument.' +
+        ' / 두 날짜 사이 일수·주수·평일수. 끝날 포함/제외 둘 다.',
       in: { start: 'string', end: 'string' },
       out: 'string'
     },
     dday: {
       desc:
-        '기준일까지 며칠 남았는지(또는 지났는지). D-Day 관례(시작일을 1일째로 셈)와' +
-        ' 단순 날짜 차이를 함께 낸다 — 이 둘이 하루 차이라 사람들이 헷갈린다.',
+        'Days until (or since) a target date. Reports both the D-Day convention (start day counts as day 1)' +
+        ' and the plain difference — they differ by one and that is where the confusion lives.' +
+        ' / D-Day. 관례 계산과 단순 차이를 함께.',
       in: { date: 'string', today: 'string?' },
       out: 'string'
     }

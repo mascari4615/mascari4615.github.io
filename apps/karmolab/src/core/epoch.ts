@@ -17,7 +17,10 @@ export const spec: ToolSpec = {
   id: 'epoch',
   ops: {
     toDate: {
-      desc: '유닉스 타임스탬프를 사람이 읽는 시각으로 바꾼다. 초·밀리초·마이크로초·나노초를 자릿수로 자동 판별한다.',
+      desc:
+        'Turn a Unix timestamp into a readable time, detecting seconds / milliseconds / microseconds /' +
+        ' nanoseconds from the digit count — guessing wrong lands you in 1970 or the year 55000.' +
+        ' / 유닉스 타임스탬프 → 사람이 읽는 시각. 단위 자동 판별.',
       in: { ts: 'string' },
       out: 'string'
     },

@@ -17,19 +17,26 @@ export const spec: ToolSpec = {
   id: 'interest',
   ops: {
     deposit: {
-      desc: '정기예금(단리) — 목돈을 맡겼을 때 만기 이자와 세후 수령액. 이자소득세 15.4% 반영.',
+      desc:
+        'Korean time deposit (simple interest) — maturity interest and the amount actually received,' +
+        ' after the 15.4% interest income tax that quoted rates never include.' +
+        ' / 정기예금 단리. 이자소득세 15.4% 반영.',
       in: { amount: 'number', rate: 'number', months: 'number' },
       out: 'string'
     },
     saving: {
       desc:
-        '정기적금(단리) — 매달 넣을 때. 먼저 넣은 돈만 오래 굴러서 「총액 × 연이율」보다 훨씬 적다.' +
-        ' 그 차이를 함께 보여 준다.',
+        'Korean installment savings (simple interest). Only the early deposits earn a full year, so the' +
+        ' real interest is roughly half of total × rate — the single most common money miscalculation here.' +
+        ' The gap is shown explicitly.' +
+        ' / 정기적금 단리. 「총액 × 연이율」과의 차이를 함께.',
       in: { monthly: 'number', rate: 'number', months: 'number' },
       out: 'string'
     },
     loan: {
-      desc: '원리금균등 대출 — 매달 갚는 금액, 총 상환액, 총 이자.',
+      desc:
+        'Equal-payment loan — monthly payment, total repaid, total interest.' +
+        ' / 원리금균등 대출. 월 상환액·총 상환액·총 이자.',
       in: { amount: 'number', rate: 'number', months: 'number' },
       out: 'string'
     }

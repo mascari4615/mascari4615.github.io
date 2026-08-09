@@ -14,7 +14,9 @@ export const spec: ToolSpec = {
   id: 'base64',
   ops: {
     encode: {
-      desc: '텍스트를 Base64 로 바꾼다. 한글은 UTF-8 로 다뤄 깨지지 않는다.',
+      desc:
+        'Encode text to Base64. Handles non-ASCII via UTF-8, so Korean does not break (plain btoa does).' +
+        ' / 텍스트를 Base64 로. 한글 안 깨짐.',
       in: { text: 'string', urlSafe: 'boolean?' },
       out: 'string'
     },

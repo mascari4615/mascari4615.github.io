@@ -16,8 +16,9 @@ export const spec: ToolSpec = {
   ops: {
     schedule: {
       desc:
-        '대출 상환표를 만든다. method = equal(원리금균등·기본) | principal(원금균등) | bullet(만기일시).' +
-        ' grace 는 거치개월(이자만 냄), extra 는 매달 더 갚는 금액.',
+        'Full amortization schedule. method = equal (equal payment, default) | principal (equal principal)' +
+        ' | bullet (interest-only then lump sum). grace = interest-only months, extra = extra paid monthly.' +
+        ' / 대출 상환표. 원리금균등·원금균등·만기일시, 거치·추가상환 포함.',
       in: {
         amount: 'number',
         rate: 'number',
@@ -29,7 +30,10 @@ export const spec: ToolSpec = {
       out: 'string'
     },
     compare: {
-      desc: '세 상환 방식(원리금균등·원금균등·만기일시)의 총이자와 첫 달 상환액을 나란히 비교한다.',
+      desc:
+        'Compare all three repayment methods side by side — total interest and first-month payment,' +
+        ' the two numbers that actually decide the choice.' +
+        ' / 세 상환 방식 비교. 총이자·첫 달 상환액.',
       in: { amount: 'number', rate: 'number', months: 'number' },
       out: 'string'
     }

@@ -21,8 +21,9 @@ export const spec: ToolSpec = {
   ops: {
     svg: {
       desc:
-        '내용을 QR 코드 SVG 로 만든다 (외부 API 없음). level = L·M·Q·H 오류복원 수준(기본 M),' +
-        ' size 는 픽셀 크기.',
+        'Make a QR code as SVG — no external API, so the contents never leave the machine.' +
+        ' level = L/M/Q/H error correction (default M), size in pixels.' +
+        ' / 내용을 QR SVG 로. 외부 API 없음.',
       in: { text: 'string', level: 'string?', size: 'number?' },
       out: 'string'
     },
@@ -34,7 +35,9 @@ export const spec: ToolSpec = {
       out: 'string'
     },
     contact: {
-      desc: '연락처(vCard) QR 을 만든다. 스캔하면 주소록에 바로 들어간다.',
+      desc:
+        'Make a contact (vCard) QR — scanning it adds the contact directly.' +
+        ' / 연락처(vCard) QR.',
       in: { name: 'string', org: 'string?', tel: 'string?', email: 'string?', size: 'number?' },
       out: 'string'
     }
