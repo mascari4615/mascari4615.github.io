@@ -1217,6 +1217,25 @@ await step('카드를 다른 카드 위에 떨어뜨리면 이어진다', async 
   await page.mouse.up();
   await page.waitForFunction((n) => document.querySelectorAll('.ck-edge').length > n, edgesBefore, { timeout: 4000 });
 });
+await step('카드 안으로 파고들면 그 이름의 판이 열린다', async () => {
+  // 한 판에 다 그리면 곧 못 읽는다 — 카드 하나를 그 안의 판으로 열어 층을 나눈다.
+  await page.click('[data-km="map-new"]');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
+  const vbox = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.dblclick(vbox.x + vbox.width * 0.35, vbox.y + vbox.height * 0.4);
+  await page.waitForSelector('[data-km="node-dive"]', { timeout: 4000 });
+  await page.fill('[data-km="edit-label"]', '마왕성');
+  const mapsBefore = await page.locator('[data-km="maps"] option').count();
+  await page.locator('[data-km="node-dive"]').dispatchEvent('click');
+  await page.waitForFunction((n) => document.querySelectorAll('[data-km="maps"] option').length === n + 1, mapsBefore, { timeout: 4000 });
+  // 그 판이 열려 있어야 한다(빈 판 + 이름이 카드 이름).
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
+  const current = await page.evaluate(() => {
+    const sel = document.querySelector('[data-km="maps"]');
+    return sel ? sel.options[sel.selectedIndex]?.textContent || '' : '';
+  });
+  if (!current.includes('마왕성')) throw new Error('파고든 판이 안 열렸다: ' + current);
+});
 await step('본 — 한 벌을 떠서 다른 맵에 찍는다', async () => {
   // 같은 덩어리를 판마다 다시 그리면 모양도 이름도 조금씩 갈린다. 본은 **맵을 건너**야 값이 있다.
   const sbox = await page.locator('.km-canvas').boundingBox();

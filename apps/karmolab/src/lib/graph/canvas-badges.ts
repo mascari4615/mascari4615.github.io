@@ -37,6 +37,9 @@ export function nodeBadges(spec: GraphSpec | null, node: GraphNode, effH: number
     out.push(badge(node.w - (sharedUsers > 1 ? 14 : 9), 12, mark, '0.75'));
   }
 
+  // 안에 따로 그린 판이 있으면 ⤵ — 카드만 보고 「더 있다」를 알아야 파고들 생각이 난다.
+  if (node.subMap) out.push(badge(12, effH - 6, '⤵', '0.8'));
+
   const comments = (spec?.comments ?? []).filter((c) => c.on === node.id).length;
   if (comments > 0) out.push(badge(node.w - 12, effH - 6, `💬${comments}`, '0.8'));
 

@@ -81,6 +81,11 @@ export interface GraphNode {
    */
   fields?: Record<string, string>;
   /**
+   * 이 카드 **안**에 따로 그린 판(맵 id) — 「파고들기」 (TASK-KL-202, Muse 의 nested board 계보).
+   * 한 판에 다 그리면 곧 못 읽는다: 「마왕성」 카드를 열면 그 안에 성의 사람들이 있는 식으로 층을 나눈다.
+   */
+  subMap?: string;
+  /**
    * 사람이 모서리를 끌어 **직접 정한 크기**. 켜져 있으면 글자 길이에 맞춘 자동 크기가 손대지 않는다
    * — 손으로 맞춘 판이 타자 한 번에 도로 튀는 것이 가장 짜증나는 일이다 (TASK-KL-202, tldraw 계보).
    */
