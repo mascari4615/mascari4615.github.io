@@ -40,8 +40,13 @@ await step('툴바 버튼 전부 있다', async () => {
   }
 });
 await step('캔버스가 쓸 만한 크기다', async () => {
-  const box = await page.locator('.km-canvas').boundingBox();
-  if (box.height < 320) throw new Error(`캔버스 높이가 ${Math.round(box.height)}px 뿐이다 (툴바가 다 먹었다)`);
+  // ★ 자리가 잡힐 때까지 기다린다 — `.km-root` 가 나타난 **직후**에 재면 아직 배치 전이라
+  //   117px 같은 값이 나온다(실측 2026-08-09: 같은 코드로 117 과 832 가 번갈아 나왔다).
+  await page.waitForFunction(
+    () => (document.querySelector('.km-canvas')?.getBoundingClientRect().height ?? 0) >= 320,
+    null,
+    { timeout: 8000 }
+  );
 });
 await step('빈 곳 더블클릭 → 노드 생김', async () => {
   const box = await page.locator('.km-canvas').boundingBox();
@@ -79,9 +84,8 @@ await step('배경 무늬 전환', async () => {
   await page.selectOption('[data-km="bg"]', 'grid');
   const fill = await page.locator('.ck-bg').getAttribute('fill');
   if (!fill?.includes('grid')) throw new Error(`배경이 안 바뀜: ${fill}`);
-  // 서랍은 열어 두면 아래 단계의 클릭을 가로챈다 — 같은 버튼으로 닫고 넘어간다.
-  await page.click('[data-km="more"]');
-  await page.waitForSelector('[data-km="drawer"].hidden', { timeout: 4000 });
+  // 고르고 나면 서랍은 스스로 닫힌다 — 안 닫히면 그 아래 버튼이 통째로 죽으므로 여기서 못 박는다.
+  await page.waitForSelector('[data-km="drawer"].hidden', { state: 'attached', timeout: 4000 });
 });
 await step('어휘 팩 전환 (관계도)', async () => {
   await page.selectOption('[data-km="pack"]', 'relation');
@@ -124,7 +128,7 @@ await step('PNG 내보내기가 파일을 만든다', async () => {
   await page.selectOption('[data-km="maps"]', ids[0]);
   await page.waitForSelector('.ck-node', { timeout: 4000 });
   await page.click('[data-km="more"]');
-  await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { timeout: 4000 });
+  await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
   const [download] = await Promise.all([
     page.waitForEvent('download', { timeout: 8000 }),
     page.click('[data-km="png"]'),

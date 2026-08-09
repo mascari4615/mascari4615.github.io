@@ -55,9 +55,17 @@ import {
   Mdd.injectCSS(
     'karmomap',
     `
-    .km-root { display:flex; flex-direction:column; height:100%; width:100%; min-height:680px; overflow:hidden; }
-    .km-toolbar { display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:8px 12px;
-      border-bottom:1px solid var(--border); background:var(--bg-secondary); flex-shrink:0; }
+    /* ★ 높이를 화면에서 직접 가져온다. height:100% 는 셸 카드가 높이를 안 주면 0 이 되고,
+       그때 캔버스는 117px 까지 눌렸다가 다음 실행엔 420px 이 되는 식으로 **들쭉날쭉**했다
+       (실측 2026-08-09 — 같은 코드로 두 번 돌려 다른 결과가 났다). 캔버스는 넓이가 곧 쓸모라
+       셸에 기대지 않고 스스로 확보한다. */
+    .km-root { display:flex; flex-direction:column; width:100%;
+      height:min(82vh, 920px); min-height:560px; overflow:hidden; }
+    /* position+z-index — 캔버스 svg 를 absolute inset:0 로 깔면서, 툴바가 두 줄이 되는 순간
+       그 svg 가 툴바 아랫줄을 덮어 **버튼이 눌리지 않았다**(실측 2026-08-09: 「⋯」 자리를 찍으면
+       svg 가 잡혔다). 화면은 멀쩡해 보이는데 클릭만 죽는 부류라 눈으로는 못 잡는다. */
+    .km-toolbar { position:relative; z-index:5; display:flex; flex-wrap:wrap; gap:6px; align-items:center;
+      padding:8px 12px; border-bottom:1px solid var(--border); background:var(--bg-secondary); flex-shrink:0; }
     .km-toolbar input[type=text], .km-toolbar select, .km-side select, .km-side input[type=text] {
       background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-primary);
       border-radius:var(--radius-sm); padding:5px 8px; font-size:var(--font-size-xs); }
@@ -1302,6 +1310,12 @@ import {
     // 먼저다 — 이름을 고치다 Ctrl+Z 를 눌렀는데 노드가 통째로 사라지면 그게 더 놀랍다.
     function onKeyDown(ev: KeyboardEvent): void {
       if (!root.isConnected) return;
+      // Esc = 열린 것을 닫는다. 서랍이 열린 채로 남으면 그 아래 버튼들이 통째로 안 눌린다.
+      if (ev.key === 'Escape' && !drawerEl.classList.contains('hidden')) {
+        ev.preventDefault();
+        drawerEl.classList.add('hidden');
+        return;
+      }
       // 발표 중에는 좌우 키로 장을 넘긴다 (글자 칸에 커서가 있으면 양보).
       const tag0 = (ev.target as HTMLElement | null)?.tagName ?? '';
       if (presenting && tag0 !== 'INPUT' && tag0 !== 'TEXTAREA') {
@@ -1326,6 +1340,8 @@ import {
       canvas?.setBackground(bgEl.value as BackgroundKind);
       spec._meta = { ...spec._meta, bg: bgEl.value };
       persistStructure();
+      // 고르고 나면 서랍은 할 일을 다 했다 — 열어 두면 그 아래 버튼이 통째로 안 눌린다.
+      drawerEl.classList.add('hidden');
     };
 
     q<HTMLButtonElement>('fit').onclick = () => canvas?.fitView();
