@@ -40,7 +40,7 @@ import { EarthSound } from './sound';
     return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/data/' + name;
   }
 
-  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'sun' | 'clock' | 'apod';
+  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'sun' | 'clock' | 'apod' | 'tour';
   /** `earthOnly` = 지구에서만 뜻이 있는 겹. 달·화성에선 단추 자체를 감춘다 —
       눌러도 아무 일이 없는 단추가 남아 있으면 그건 고장으로 보인다. */
   const LAYERS: Array<{ id: LayerId; glyph: string; earthOnly?: boolean }> = [
@@ -50,6 +50,7 @@ import { EarthSound } from './sound';
     { id: 'sun', glyph: '☀' },
     { id: 'clock', earthOnly: true, glyph: '◷' },
     { id: 'apod', glyph: '✧' },
+    { id: 'tour', earthOnly: true, glyph: '▶' },
     { id: 'zoom', earthOnly: true, glyph: '⊕' },
     { id: 'cloud', earthOnly: true, glyph: '☁' },
     { id: 'city', earthOnly: true, glyph: '✦' },
@@ -67,7 +68,7 @@ import { EarthSound } from './sound';
     panel: boolean;
   }
   function loadPrefs(): Prefs {
-    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, sun: true, clock: true, apod: true }, spin: true, panel: false };
+    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, sun: true, clock: true, apod: true, tour: false }, spin: true, panel: false };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return base;
@@ -272,6 +273,18 @@ import { EarthSound } from './sound';
           let satLoading = false;
           let wind: { speed: number; at: number } | null = null;
           let pic: Apod | null = null;
+
+          /* 지구 뉴스 상영 — 오늘 지구에 일어난 일을 카메라가 차례로 찾아가 읽어 준다.
+             지구본은 「보는 것」이었는데, 이걸 켜면 「들려주는 것」이 된다. */
+          interface TourStop {
+            lat: number;
+            lon: number;
+            zoom: number;
+            line: string;
+          }
+          let tour: TourStop[] = [];
+          let tourIdx = -1;
+          let tourAt = 0;
           /* 어느 곳을 보고 있나. 그리기 장치는 그대로고 **그림만 갈아 끼운다**. */
           type Body = 'earth' | 'moon' | 'mars';
           let body: Body = 'earth';
@@ -396,13 +409,31 @@ import { EarthSound } from './sound';
           /* 사건이 들어오면 지구가 **천천히 그쪽으로 돈다**. 순간이동시키면 사람이 방향을
              잃는다 — 어디서 어디로 갔는지가 안 보이면 그건 새 화면이지 같은 지구가 아니다.
              그래서 각도로 보간하고(짧은 쪽으로), 다 돌면 다시 제 속도로 자전한다. */
-          let fly: { lon: number; lat: number; from: number; ms: number; startLon: number; startLat: number } | null = null;
+          let fly: {
+            lon: number;
+            lat: number;
+            from: number;
+            ms: number;
+            startLon: number;
+            startLat: number;
+            zoom: number;
+            startZoom: number;
+          } | null = null;
 
-          function flyTo(lat: number, lon: number, ms = 2600): void {
+          function flyTo(lat: number, lon: number, ms = 2600, toZoom?: number): void {
             let d = lon - camLon;
             while (d > 180) d -= 360;
             while (d < -180) d += 360;
-            fly = { lon: camLon + d, lat: Math.max(-70, Math.min(70, lat)), from: performance.now(), ms, startLon: camLon, startLat: camLat };
+            fly = {
+              lon: camLon + d,
+              lat: Math.max(-70, Math.min(70, lat)),
+              from: performance.now(),
+              ms,
+              startLon: camLon,
+              startLat: camLat,
+              zoom: toZoom ?? zoom,
+              startZoom: zoom
+            };
             idleAt = performance.now() + ms; // 도착할 때까진 자전이 끼어들지 않는다
           }
 
@@ -412,6 +443,8 @@ import { EarthSound } from './sound';
             const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; // ease-in-out
             camLon = fly.startLon + (fly.lon - fly.startLon) * e;
             camLat = fly.startLat + (fly.lat - fly.startLat) * e;
+            // 멀어졌다 가까워지는 것까지 같이 보간해야 「찾아간다」로 보인다
+            zoom = fly.startZoom + (fly.zoom - fly.startZoom) * e;
             if (p >= 1) {
               fly = null;
               scheduleRegion();
@@ -1036,8 +1069,20 @@ import { EarthSound } from './sound';
 
           let lines: string[] = [];
           let lineIdx = 0;
+
+          /** 한 줄을 바꿔 말한다 (상영 중에는 여기로만 말한다). */
+          function say(text: string): void {
+            line.classList.remove('bm-show');
+            window.setTimeout(() => {
+              if (!alive) return;
+              line.textContent = text;
+              line.classList.add('bm-show');
+            }, 380);
+          }
           function cycleLine(): void {
             if (!alive) return;
+            // 상영 중에는 상영이 말한다 — 두 목소리가 겹치면 안 된다
+            if (prefs.on.tour && body === 'earth' && !isPast()) return;
             lines = sentences();
             if (sound.running) {
               const sunv = toVec(subsolar(new Date(clockMs())).lat, subsolar(new Date(clockMs())).lon);
@@ -1052,6 +1097,101 @@ import { EarthSound } from './sound';
               line.textContent = lines[lineIdx];
               line.classList.add('bm-show');
             }, 420);
+          }
+
+          /* ── 지구 뉴스 상영 ───────────────────────────────────────────── */
+
+          /**
+           * 오늘 무슨 일이 있었나를 **자리와 함께** 모은다. 문장만 흘리면 「어디」가 안 남는다 —
+           * 카메라가 그 자리로 찾아가야 「거기서 일어난 일」이 된다.
+           */
+          function buildTour(): TourStop[] {
+            const stops: TourStop[] = [];
+            const sun = subsolar(new Date(clockMs()));
+
+            // 오늘 가장 크게 흔들린 곳 셋
+            for (const q of qs.slice().sort((a, b) => b.mag - a.mag).slice(0, 3)) {
+              const near = nearestCity(q.lat, q.lon, 900);
+              stops.push({
+                lat: q.lat,
+                lon: q.lon,
+                zoom: 2.6,
+                line: t('bluemarble.line.quake', {
+                  mag: q.mag.toFixed(1),
+                  where: near || t('bluemarble.word.openSea'),
+                  ago: fmtRelative(q.time)
+                })
+              });
+            }
+
+            // 사람이 지금 지나가는 자리
+            if (issFix) {
+              const near = nearestCity(issFix.lat, issFix.lon, 1200);
+              stops.push({
+                lat: issFix.lat,
+                lon: issFix.lon,
+                zoom: 1.5,
+                line: near
+                  ? t('bluemarble.line.issCity', { city: near, kmh: Math.round(issFix.vel).toLocaleString() })
+                  : t('bluemarble.line.issSea', { alt: Math.round(issFix.alt), kmh: Math.round(issFix.vel).toLocaleString() })
+              });
+            }
+
+            // 다음에 지구 밖으로 나가는 자리
+            if (ls.length) {
+              const next = ls.slice().sort((a, b) => a.net - b.net)[0];
+              stops.push({
+                lat: next.lat,
+                lon: next.lon,
+                zoom: 2.2,
+                line: t('bluemarble.line.launch', { name: next.name, when: fmtRelative(next.net) })
+              });
+            }
+
+            // 해가 바로 위인 자리
+            const sunCity = nearestCity(sun.lat, sun.lon, 1400);
+            stops.push({
+              lat: sun.lat,
+              lon: sun.lon,
+              zoom: 1.2,
+              line: sunCity
+                ? t('bluemarble.line.sunCity', { city: sunCity })
+                : t('bluemarble.line.sunSea', { lat: sun.lat.toFixed(0), lon: sun.lon.toFixed(0) })
+            });
+
+            // 마지막은 나 — 돌고 돌아 자기 자리로 온다
+            if (me) {
+              const night = dot(toVec(me.lat, me.lon), toVec(sun.lat, sun.lon)) < 0.05;
+              const clock = new Date(clockMs()).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+              stops.push({
+                lat: me.lat,
+                lon: me.lon,
+                zoom: 1.8,
+                line: t(night ? 'bluemarble.line.meNight' : 'bluemarble.line.meDay', {
+                  place: me.label || t('bluemarble.word.here'),
+                  time: clock
+                })
+              });
+            }
+            return stops;
+          }
+
+          /** 한 자리에 머무는 시간. 읽고 보기에 충분하되 지루하지 않은 선. */
+          const TOUR_MS = 9000;
+
+          function stepTour(now: number): void {
+            if (!prefs.on.tour || body !== 'earth' || isPast()) return;
+            if (now - tourAt < TOUR_MS) return;
+            if (tourIdx < 0 || tourIdx >= tour.length - 1) {
+              tour = buildTour();
+              tourIdx = -1;
+            }
+            if (!tour.length) return;
+            tourIdx = (tourIdx + 1) % tour.length;
+            tourAt = now;
+            const stop = tour[tourIdx];
+            flyTo(stop.lat, stop.lon, 2800, stop.zoom);
+            say(stop.line);
           }
 
           /* ── 받아오기 ─────────────────────────────────────────────────── */
@@ -1226,6 +1366,11 @@ import { EarthSound } from './sound';
                 if (l.id === 'sats' && turningOn) void loadSats();
                 if (l.id === 'sun') refreshSun();
                 if (l.id === 'apod') renderApod();
+                if (l.id === 'tour') {
+                  tourIdx = -1;
+                  tourAt = turningOn ? 0 : performance.now();
+                  if (!turningOn) zoom = 1;
+                }
                 if (l.id === 'sound') {
                   // **이 클릭 안에서** 시작해야 한다 — 브라우저가 제스처 밖의 소리를 막는다
                   if (turningOn) sound.start();
@@ -1420,7 +1565,8 @@ import { EarthSound } from './sound';
             /* 확대해 들어갔으면 자전을 멈춘다 — 들여다보는 중에 화면이 흘러가면 못 본다.
                (그리고 자전 중 실사 조각을 계속 새로 받는 것은 회선 낭비였다 — 실측으로 멎었다) */
             stepFly(now);
-            if (!fly && spin && !drag && zoom < 2.2 && now - idleAt > 4000) camLon += dt * 0.0035;
+            stepTour(now);
+            if (!fly && !prefs.on.tour && spin && !drag && zoom < 2.2 && now - idleAt > 4000) camLon += dt * 0.0035;
             if (camLon > 180) camLon -= 360;
             if (camLon < -180) camLon += 360;
             drawGlobe(now);

@@ -48,5 +48,6 @@
   "bluemarble.line.dawn": "지금 새벽 두 시에서 다섯 시 사이인 큰 도시가 {n} 곳입니다. 거기도 누군가는 깨어 있습니다.",
   "bluemarble.layer.apod": "오늘의 우주 사진",
   "bluemarble.line.apod": "오늘 NASA 가 고른 우주 사진은 「{title}」 입니다.",
-  "bluemarble.line.apodBy": "오늘 NASA 가 고른 우주 사진은 「{title}」 — {who} 가 찍었습니다."
+  "bluemarble.line.apodBy": "오늘 NASA 가 고른 우주 사진은 「{title}」 — {who} 가 찍었습니다.",
+  "bluemarble.layer.tour": "지구 뉴스"
 }
