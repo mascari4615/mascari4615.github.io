@@ -11,7 +11,7 @@
 window.KARMOLAB_WIDGETS_BOOT = [
   'favorites',
   'linktree/linktree',
-  'plaza',
+  /* 광장도 여기 없다 — 같은 이유 (TASK-KL-204). 첫 화면에서 23KB 를 받고 안 그렸다. */
   /* 커뮤니티도 여기 없다 — 같은 이유다 (TASK-KL-204). 첫 화면에서 77KB 를 받고 한 번도
      안 그렸다(KL-201 계기판이 잡았다). 누르면 그때 받는다. */
   /* 채팅은 여기 없다 — **화면을 다 그린 뒤** 온다 (TASK-KL-128 26).
