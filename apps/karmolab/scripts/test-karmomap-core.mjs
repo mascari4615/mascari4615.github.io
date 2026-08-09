@@ -37,6 +37,7 @@ async function loadModules() {
     export * as fromText from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/from-text.ts'))};
     export * as jsonCanvas from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/json-canvas.ts'))};
     export * as mermaid from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/mermaid.ts'))};
+    export * as decor from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-decor.ts'))};
     export * as cmath from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-math.ts'))};
     export * as sna from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/sna.ts'))};
   `);
@@ -319,6 +320,27 @@ const M = await loadModules();
   eq(top.id, 'b', '가운데 낀 쪽이 다리 역할 1위');
 }
 
+// ── 꾸미기: 이기는 순서 ─────────────────────────────────────────────────────
+{
+  const { decor } = M;
+  const flags = { sizeByDegree: false, colorByTag: true, colorByField: '진영' };
+  const node = nodeOf('a', { tags: ['주인공'], fields: { 진영: '마왕성' } });
+  const kindColor = () => '#kind';
+  const ruled = decor.nodeColor(node, [{ id: 'r', on: 'field', key: '진영', value: '마왕성', color: '#rule' }], flags, kindColor);
+  eq(ruled, '#rule', '규칙이 가장 세다');
+  const byField = decor.nodeColor(node, [], flags, kindColor);
+  check(byField !== '#kind', '칸 색이 종류 색을 이긴다');
+  eq(decor.nodeColor(nodeOf('b'), [], flags, kindColor), '#kind', '아무 근거 없으면 종류 색');
+  // 뒤 규칙이 앞 규칙을 덮는다 — 목록을 위에서 아래로 읽는 것이 사람에게 익숙하다.
+  eq(decor.nodeColor(node, [
+    { id: '1', on: 'tag', value: '주인공', color: '#one' },
+    { id: '2', on: 'tag', value: '주인공', color: '#two' },
+  ], flags, kindColor), '#two', '아래 규칙이 이긴다');
+  eq(decor.nodeScale(node, [{ id: 's', on: 'tag', value: '주인공', scale: 2 }], flags, 5), 2, '연결수 끄면 규칙 배율만');
+  const both = decor.nodeScale(node, [{ id: 's', on: 'tag', value: '주인공', scale: 2 }], { ...flags, sizeByDegree: true }, 5);
+  check(both > 2, '둘 다 켜면 곱해진다');
+  check(decor.nodeScale(nodeOf('c'), [], { ...flags, sizeByDegree: true }, 100) <= 1.6, '연결수 배율은 1.6 에서 멈춘다');
+}
 // 되돌아가지 않게: **캔버스 크기 자물쇠**.
 // 2865 줄짜리 한 덩이를 조각내는 중이다. 자물쇠가 없으면 기능 두어 개면 도로 부푼다 —
 // 지금 크기 + 조금을 상한으로 박아 두고, 줄어들면 상한도 같이 내린다(비율 아니라 실측).
