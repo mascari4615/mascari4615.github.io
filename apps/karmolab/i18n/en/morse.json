@@ -1,0 +1,19 @@
+{
+  "morse.tab": "Morse code",
+  "morse.mdd": "Beep — beep — beep —",
+  "morse.lang.en": "Latin · digits",
+  "morse.lang.ko": "Hangul",
+  "morse.label.text": "Text",
+  "morse.label.code": "Morse code — space between letters, / between words",
+  "morse.btn.play": "Play it",
+  "morse.btn.playing": "Playing…",
+  "morse.btn.copy": "Copy the code",
+  "morse.label.light": "Blink",
+  "morse.status.idle": "Type in either box and the other follows.",
+  "morse.status.koNote": "Hangul is sent letter by letter (jamo).",
+  "morse.status.converted": "Converted",
+  "morse.status.unknown": "Some symbols are not in the table, so they became ?.",
+  "morse.status.readKo": "Decoded. Hangul Morse sends only the jamo, so some readings are ambiguous (어쓰 vs 엇스).",
+  "morse.status.read": "Decoded.",
+  "morse.copy.done": "Morse code copied"
+}

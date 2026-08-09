@@ -5,6 +5,8 @@
  * 어디선가 본 점·선을 **읽어야** 한다. 그래서 양방향으로 만들고, 한글 모스(1926년 제정,
  * 자모 단위로 찍는다)도 넣는다. 소리·불빛 재생은 그대로 살린다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   const EN: Record<string, string> = {
     A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.', H: '....',
@@ -211,45 +213,61 @@
 
   Toolbox.register({
     id: 'morse',
-    title: '모스 부호 변환',
+    title: t('widgets.morse.title', undefined, '모스 부호 변환'),
     category: 'tool',
-    desc: '글자를 모스 부호로 바꾸고 부호를 다시 글자로 읽습니다. 한글 모스와 소리·불빛 재생 지원',
+    desc: t(
+      'widgets-desc.morse.desc',
+      undefined,
+      '글자를 모스 부호로 바꾸고 부호를 다시 글자로 읽습니다. 한글 모스와 소리·불빛 재생 지원'
+    ),
     layout: 'form',
     icon: '<path d="M3 12h2M8 12h6M17 12h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M3 7h4M10 7h2M15 7h6M3 17h6M12 17h2M17 17h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/>',
     tabs: [
       {
         id: 'app',
-        label: '모스 부호',
+        label: t('morse.tab', undefined, '모스 부호'),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '삐— 삐— 삐—' });
+          void loadNamespace('morse').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+          Mdd.linePreset('tool_run', { msg: t('morse.mdd') });
           container.innerHTML = `
             <div class="field-group">
               <div class="tool-chips">
-                <button type="button" class="tool-chip active" data-lang="en">영문·숫자</button>
-                <button type="button" class="tool-chip" data-lang="ko">한글</button>
+                <button type="button" class="tool-chip active" data-lang="en">${esc(t('morse.lang.en'))}</button>
+                <button type="button" class="tool-chip" data-lang="ko">${esc(t('morse.lang.ko'))}</button>
               </div>
             </div>
 
             <div class="field-group">
-              <label class="field-label">글자</label>
+              <label class="field-label">${esc(t('morse.label.text'))}</label>
               <textarea id="msText" rows="3" spellcheck="false" placeholder="SOS"></textarea>
             </div>
 
             <div class="field-group">
-              <label class="field-label">모스 부호 — 글자 사이는 공백, 낱말 사이는 /</label>
+              <label class="field-label">${esc(t('morse.label.code'))}</label>
               <textarea id="msCode" rows="3" spellcheck="false" placeholder="... --- ..."></textarea>
             </div>
 
             <div style="display:flex; align-items:center; gap:12px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-primary" id="msPlay">소리로 듣기</button>
-              <button class="btn btn-ghost" id="msCopy">부호 복사</button>
+              <button class="btn btn-primary" id="msPlay">${esc(t('morse.btn.play'))}</button>
+              <button class="btn btn-ghost" id="msCopy">${esc(t('morse.btn.copy'))}</button>
               <span style="display:flex; align-items:center; gap:6px;">
                 <span id="msLed" class="ms-led"></span>
-                <span style="font-size:var(--font-size-xs); color:var(--text-tertiary);">신호등</span>
+                <span style="font-size:var(--font-size-xs); color:var(--text-tertiary);">${esc(t('morse.label.light'))}</span>
               </span>
             </div>
 
-            <div class="tool-status" id="msStatus">어느 칸에 적어도 반대쪽이 따라 바뀝니다.</div>
+            <div class="tool-status" id="msStatus">${esc(t('morse.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -270,7 +288,7 @@
             syncing = true;
             codeEl.value = encode(textEl.value, korean);
             syncing = false;
-            setStatus(korean ? '한글은 자모 단위로 찍습니다.' : '변환됨', 'ok');
+            setStatus(t(korean ? 'morse.status.koNote' : 'morse.status.converted'), 'ok');
             Toolbox.trackUse?.('encode');
           });
           codeEl.addEventListener('input', () => {
@@ -281,10 +299,10 @@
             syncing = false;
             setStatus(
               out.includes('?')
-                ? '표에 없는 부호가 섞여 있어 ? 로 뒀어요.'
+                ? t('morse.status.unknown')
                 : korean
-                  ? '읽었습니다. 한글 모스는 자모만 보내서 「어쓰」와 「엇스」처럼 갈래가 갈리는 자리가 있어요.'
-                  : '읽었습니다.',
+                  ? t('morse.status.readKo')
+                  : t('morse.status.read'),
               out.includes('?') ? '' : 'ok'
             );
             Toolbox.trackUse?.('decode');
@@ -302,7 +320,7 @@
 
           $<HTMLButtonElement>('#msCopy').onclick = async () => {
             if (!codeEl.value) return;
-            await Toolbox.copyText?.(codeEl.value, { message: '모스 부호를 복사했어요' });
+            await Toolbox.copyText?.(codeEl.value, { message: t('morse.copy.done') });
           };
 
           // ── 소리·불빛 재생 (점 1 : 선 3 : 글자 사이 3 : 낱말 사이 7 — 국제 표준 비율)
@@ -314,7 +332,7 @@
             const btn = $<HTMLButtonElement>('#msPlay');
             playing = true;
             btn.disabled = true;
-            btn.textContent = '재생 중…';
+            btn.textContent = t('morse.btn.playing');
             const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
             const ctx = AC ? new AC() : null;
             const unit = 100;
@@ -352,13 +370,10 @@
             if (ctx) setTimeout(() => void ctx.close(), 120);
             playing = false;
             btn.disabled = false;
-            btn.textContent = '소리로 듣기';
+            btn.textContent = t('morse.btn.play');
           };
 
           textEl.value = 'SOS';
           textEl.dispatchEvent(new Event('input'));
-        }
-      }
-    ]
-  });
+  }
 })();

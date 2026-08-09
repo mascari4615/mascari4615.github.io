@@ -99,5 +99,9 @@
   "howto.videocompress.1": "画面サイズと画質を選ぶ",
   "howto.videocompress.2": "予想容量を確認",
   "howto.videocompress.3": "「容量を減らす」を押して待つ",
-  "howto.videocompress.4": "結果を見てダウンロード"
+  "howto.videocompress.4": "結果を見てダウンロード",
+  "howto.morse.0": "英数字かハングルを選ぶ",
+  "howto.morse.1": "文字欄か符号欄のどちらに入れてもよい",
+  "howto.morse.2": "もう一方が追従するのを確認",
+  "howto.morse.3": "音で聞く"
 }

@@ -1,0 +1,19 @@
+{
+  "morse.tab": "모스 부호",
+  "morse.mdd": "삐— 삐— 삐—",
+  "morse.lang.en": "영문·숫자",
+  "morse.lang.ko": "한글",
+  "morse.label.text": "글자",
+  "morse.label.code": "모스 부호 — 글자 사이는 공백, 낱말 사이는 /",
+  "morse.btn.play": "소리로 듣기",
+  "morse.btn.playing": "재생 중…",
+  "morse.btn.copy": "부호 복사",
+  "morse.label.light": "신호등",
+  "morse.status.idle": "어느 칸에 적어도 반대쪽이 따라 바뀝니다.",
+  "morse.status.koNote": "한글은 자모 단위로 찍습니다.",
+  "morse.status.converted": "변환됨",
+  "morse.status.unknown": "표에 없는 부호가 섞여 있어 ? 로 뒀어요.",
+  "morse.status.readKo": "읽었습니다. 한글 모스는 자모만 보내서 「어쓰」와 「엇스」처럼 갈래가 갈리는 자리가 있어요.",
+  "morse.status.read": "읽었습니다.",
+  "morse.copy.done": "모스 부호를 복사했어요"
+}
