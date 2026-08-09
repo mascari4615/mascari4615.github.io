@@ -1,5 +1,5 @@
 {
-  "total": 5380,
+  "total": 5331,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -112,7 +112,7 @@
     "src/widgets/imageconvert/widget.ts": 87,
     "src/widgets/imageedit.ts": 18,
     "src/widgets/imagegen/core.ts": 11,
-    "src/widgets/imagegen/imagegen.ts": 54,
+    "src/widgets/imagegen/imagegen.ts": 5,
     "src/widgets/imagegen/presets.ts": 71,
     "src/widgets/imagegen/styles.ts": 1,
     "src/widgets/imagelib.ts": 22,

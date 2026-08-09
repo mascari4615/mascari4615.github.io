@@ -1,3 +1,9 @@
+import { t, loadNamespace } from '../../lib/i18n';
+
+/** 화면에 그대로 박는 글은 태그로 읽히면 안 된다. */
+const esc = (v: unknown): string =>
+    String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 /**
  * imagegen - 메인 엔트리 (buildMain, UI, (window as any)._ig)
  * window.ImageGen (IG) 의 presets, config, queue, utils 사용
@@ -10,7 +16,7 @@
      */
     function mustEl<T extends HTMLElement>(id: string): T {
         const found = document.getElementById(id);
-        if (found == null) throw new Error('[imagegen] 화면에 없는 요소: #' + id);
+        if (found == null) throw new Error(t('imagegen.err.32') + id);
         return found as T;
     }
 
@@ -98,8 +104,8 @@
                     <div class="ig-q-meta">${escapeHtml(modelName)}${infoText ? ' · ' + escapeHtml(infoText) : ''}</div>
                 </div>
                 ${q.status === 'pending' || q.status === 'running'
-                    ? `<button class="ig-q-cancel" data-qid="${q.id}" title="취소">✕</button>`
-                    : `<button class="ig-q-remove" data-qid="${q.id}" title="제거">✕</button>`
+                    ? `<button class="ig-q-cancel" data-qid="${q.id}" title="${esc(t('imagegen.t01'))}">✕</button>`
+                    : `<button class="ig-q-remove" data-qid="${q.id}" title="${esc(t('imagegen.t02'))}">✕</button>`
                 }`;
             listEl.appendChild(row);
         });
@@ -114,7 +120,7 @@
         const countEl = document.getElementById('igQueueCount') as HTMLElement | null;
         const pending = queue.filter((q: any) => q.status === 'pending').length;
         const running = queue.filter((q: any) => q.status === 'running').length;
-        if (countEl) countEl.textContent = running ? `처리 중 ${running} / 대기 ${pending}` : `대기 ${pending}`;
+        if (countEl) countEl.textContent = running ? t('imagegen.queueBoth', { running, pending }) : t('imagegen.queueWaiting', { pending });
 
         const cancelBtn = document.getElementById('igCancelBtn') as HTMLButtonElement | null;
         if (cancelBtn) cancelBtn.style.display = running > 0 ? '' : 'none';
@@ -260,7 +266,7 @@
         container.innerHTML = '';
         const btn = document.createElement('button');
         btn.className = 'ig-preset-btn';
-        btn.title = '프리셋 선택';
+        btn.title = t('imagegen.t33');
         btn.textContent = '📚';
         btn.onclick = () => showPresetPopup(state.currentContextTab);
         container.appendChild(btn);
@@ -274,7 +280,7 @@
         state.igPresetPopup.innerHTML = `
             <div class="ig-preset-panel">
                 <div class="ig-preset-popup-header">
-                    <h3>📚 프리셋</h3>
+                    <h3>${esc(t('imagegen.t05'))}</h3>
                     <button class="btn btn-ghost" id="igPresetPopupClose">✕</button>
                 </div>
                 <div class="ig-preset-popup-tabs" id="igPresetPopupTabs"></div>
@@ -298,7 +304,7 @@
             state.slotValues = {};
             hideSlotSection();
             const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
-            if (promptEl) { promptEl.value = ''; promptEl.placeholder = '이미지 프롬프트를 입력하세요...'; }
+            if (promptEl) { promptEl.value = ''; promptEl.placeholder = t('imagegen.ph.igPrompt'); }
             return;
         }
         state.currentContextPreset = item;
@@ -314,7 +320,7 @@
             if (promptEl) promptEl.value = item.prompt;
         }
         const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
-        if (promptEl) promptEl.placeholder = hasSlots ? '추가 설명 (선택)' : '추가 설명 (선택)';
+        if (promptEl) promptEl.placeholder = hasSlots ? t('imagegen.t34') : t('imagegen.t34');
     }
 
     function showSlotSection(contextItem: any) {
@@ -327,7 +333,7 @@
 
         const header = document.createElement('div');
         header.className = 'ig-slot-header';
-        header.innerHTML = `<span class="ig-slot-context">${escapeHtml(contextItem.icon + ' ' + contextItem.label)}</span><button type="button" class="btn btn-ghost" onclick="window._ig.openContextPreset()">컨텍스트 변경</button>`;
+        header.innerHTML = `<span class="ig-slot-context">${escapeHtml(contextItem.icon + ' ' + contextItem.label)}</span><button type="button" class="btn btn-ghost" onclick="window._ig.openContextPreset()">${esc(t('imagegen.t06'))}</button>`;
         section.appendChild(header);
 
         function buildCharSelect(slotId: any, label: any) {
@@ -338,10 +344,10 @@
             row.innerHTML = `
                 <label class="ig-slot-label">${label}</label>
                 <div class="ig-slot-select-wrap">
-                    <select id="igSlot_${slotId}"><option value="">선택</option>${opts}<option value="${CUSTOM_INPUT_ID}">✏️ 직접 입력</option></select>
-                    <button type="button" class="btn btn-ghost ig-slot-add-char" title="캐릭터 추가">➕</button>
+                    <select id="igSlot_${slotId}"><option value="">${esc(t('imagegen.t07'))}</option>${opts}<option value="${CUSTOM_INPUT_ID}">${esc(t('imagegen.opt.cUSTOMINPUTID'))}</option></select>
+                    <button type="button" class="btn btn-ghost ig-slot-add-char" title="${esc(t('imagegen.t03'))}">➕</button>
                 </div>
-                <input type="text" id="igSlotCustom_${slotId}" class="ig-slot-custom-input" placeholder="직접 입력 (캐릭터 설명)" style="display:none;">
+                <input type="text" id="igSlotCustom_${slotId}" class="ig-slot-custom-input" placeholder="${esc(t('imagegen.ph.igSlotCustomslotId'))}" style="display:none;">
             `;
             const sel = row.querySelector('select') as HTMLSelectElement | null;
             const customInput = row.querySelector('.ig-slot-custom-input') as HTMLInputElement | null;
@@ -364,7 +370,7 @@
         }
 
         slots.forEach((slotId: any) => {
-            const label = slotId === 'CHAR' ? '👤 캐릭터' : `<${slotId}>`;
+            const label = slotId === 'CHAR' ? t('imagegen.t35') : `<${slotId}>`;
             section.appendChild(buildCharSelect(slotId, escapeHtml(label)));
         });
     }
@@ -374,13 +380,13 @@
         form.className = 'ig-add-char-form';
         form.innerHTML = `
             <div class="ig-add-char-row">
-                <input id="igAcIcon" placeholder="아이콘" value="🎨" style="width:48px;">
-                <input id="igAcLabel" placeholder="이름" style="flex:1;">
+                <input id="igAcIcon" placeholder="${esc(t('imagegen.ph.igAcIcon'))}" value="🎨" style="width:48px;">
+                <input id="igAcLabel" placeholder="${esc(t('imagegen.ph.igAcLabel'))}" style="flex:1;">
             </div>
-            <textarea id="igAcPrompt" placeholder="캐릭터 프롬프트 (설명)"></textarea>
+            <textarea id="igAcPrompt" placeholder="${esc(t('imagegen.ph.igAcPrompt'))}"></textarea>
             <div class="ig-add-char-actions">
-                <button type="button" class="btn btn-ghost" id="igAcSave">추가</button>
-                <button type="button" class="btn btn-ghost" id="igAcCancel">취소</button>
+                <button type="button" class="btn btn-ghost" id="igAcSave">${esc(t('imagegen.btn.igAcSave'))}</button>
+                <button type="button" class="btn btn-ghost" id="igAcCancel">${esc(t('imagegen.t01'))}</button>
             </div>
         `;
         const prev = rowEl.nextElementSibling;
@@ -390,13 +396,13 @@
             const icon = mustEl<HTMLInputElement>('igAcIcon').value.trim() || '🎨';
             const label = mustEl<HTMLInputElement>('igAcLabel').value.trim();
             const prompt = mustEl<HTMLTextAreaElement>('igAcPrompt').value.trim();
-            if (!label || !prompt) { Toolbox.showToast('이름과 프롬프트를 입력해주세요.', 'error'); return; }
+            if (!label || !prompt) { Toolbox.showToast(t('imagegen.t36'), 'error'); return; }
             const list = loadCustomCharacters();
             list.push({ id: 'uc_' + Date.now(), icon, label, prompt });
             saveCustomCharacters(list);
             form.remove();
             showSlotSection(state.currentContextPreset);
-            Toolbox.showToast('캐릭터 추가됨');
+            Toolbox.showToast(t('imagegen.t37'));
         };
     }
 
@@ -404,7 +410,7 @@
         const section = document.getElementById('igSlotSection') as HTMLDivElement | null;
         const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
         if (section) section.style.display = 'none';
-        if (promptEl) promptEl.placeholder = '이미지 프롬프트를 입력하세요...';
+        if (promptEl) promptEl.placeholder = t('imagegen.ph.igPrompt');
         state.currentContextPreset = null;
         state.slotValues = {};
     }
@@ -462,7 +468,7 @@
 
         bodyEl.innerHTML = '';
         const rawItems = state.currentContextTab === 'custom' ? loadCustomPresets() : (CONTEXT_PRESETS[state.currentContextTab] || []);
-        const noneItem = { id: '_none', icon: '⬜', label: '없음' };
+        const noneItem = { id: '_none', icon: '⬜', label: t('imagegen.t38') };
         const items = [noneItem, ...rawItems];
 
         const grid = document.createElement('div');
@@ -477,18 +483,18 @@
                 acts.className = 'ig-card-actions';
                 const editBtn = document.createElement('button');
                 editBtn.className = 'btn btn-ghost';
-                editBtn.textContent = '수정';
+                editBtn.textContent = t('imagegen.t39');
                 editBtn.onclick = (e: any) => { e.stopPropagation(); showCustomFormInPopup(item, idx - 1, bodyEl, state.currentContextTab); };
                 const delBtn = document.createElement('button');
                 delBtn.className = 'btn btn-danger';
-                delBtn.textContent = '삭제';
+                delBtn.textContent = t('imagegen.t40');
                 delBtn.onclick = (e: any) => {
                     e.stopPropagation();
                     const presets = loadCustomPresets();
                     presets.splice(idx - 1, 1);
                     saveCustomPresets(presets);
                     showPresetPopup(state.currentContextTab);
-                    Toolbox.showToast('프리셋 삭제됨');
+                    Toolbox.showToast(t('imagegen.t41'));
                 };
                 acts.appendChild(editBtn);
                 acts.appendChild(delBtn);
@@ -497,7 +503,7 @@
             card.onclick = () => {
                 applyContextPreset(item);
                 closePresetPopup();
-                Toolbox.showToast(item.id === '_none' ? '프리셋 해제됨' : '컨텍스트 적용됨');
+                Toolbox.showToast(item.id === '_none' ? t('imagegen.t42') : t('imagegen.t43'));
             };
             grid.appendChild(card);
         });
@@ -505,7 +511,7 @@
         if (state.currentContextTab === 'custom') {
             const addCard = document.createElement('div');
             addCard.className = 'ig-card';
-            addCard.innerHTML = `<div class="ig-card-icon" style="font-size:24px">+</div><div class="ig-card-label">새 프리셋</div>`;
+            addCard.innerHTML = `<div class="ig-card-icon" style="font-size:24px">+</div><div class="ig-card-label">${esc(t('imagegen.t08'))}</div>`;
             addCard.onclick = () => showCustomFormInPopup(null, -1, bodyEl, state.currentContextTab);
             grid.appendChild(addCard);
         }
@@ -519,13 +525,13 @@
         form.className = 'ig-custom-form';
         form.innerHTML = `
             <div class="ig-custom-form-row">
-                <input id="igCfIcon" placeholder="아이콘 (이모지)" value="${escapeHtml(item?.icon || '')}" style="width:60px;">
-                <input id="igCfLabel" placeholder="이름" value="${escapeHtml(item?.label || '')}" style="flex:1;">
+                <input id="igCfIcon" placeholder="${esc(t('imagegen.ph.igCfIcon'))}" value="${escapeHtml(item?.icon || '')}" style="width:60px;">
+                <input id="igCfLabel" placeholder="${esc(t('imagegen.ph.igAcLabel'))}" value="${escapeHtml(item?.label || '')}" style="flex:1;">
             </div>
-            <textarea id="igCfPrompt" placeholder="프롬프트 (캐릭터 슬롯: &lt;A&gt;, &lt;B&gt;, &lt;CHAR&gt; 등)">${escapeHtml(item?.prompt || '')}</textarea>
+            <textarea id="igCfPrompt" placeholder="${esc(t('imagegen.ph.igCfPrompt'))}">${escapeHtml(item?.prompt || '')}</textarea>
             <div class="ig-custom-form-row">
-                <button class="btn btn-ghost" id="igCfSave" style="flex:1;">${idx >= 0 ? '수정' : '추가'}</button>
-                <button class="btn btn-ghost" id="igCfCancel">취소</button>
+                <button class="btn btn-ghost" id="igCfSave" style="flex:1;">${idx >= 0 ? t('imagegen.t39') : t('imagegen.btn.igAcSave')}</button>
+                <button class="btn btn-ghost" id="igCfCancel">${esc(t('imagegen.t01'))}</button>
             </div>`;
         bodyEl.innerHTML = '';
         bodyEl.appendChild(form);
@@ -535,14 +541,14 @@
             const icon = mustEl<HTMLInputElement>('igCfIcon').value.trim() || '🎨';
             const label = mustEl<HTMLInputElement>('igCfLabel').value.trim();
             const prompt = mustEl<HTMLTextAreaElement>('igCfPrompt').value.trim();
-            if (!label || !prompt) { Toolbox.showToast('이름과 프롬프트를 입력해주세요.', 'error'); return; }
+            if (!label || !prompt) { Toolbox.showToast(t('imagegen.t36'), 'error'); return; }
             const presets = loadCustomPresets();
             const entry = { id: item?.id || 'c_' + Date.now(), icon, label, prompt };
             if (idx >= 0 && idx < presets.length) presets[idx] = entry;
             else presets.push(entry);
             saveCustomPresets(presets);
             showPresetPopup(state.currentContextTab);
-            Toolbox.showToast(idx >= 0 ? '프리셋 수정 완료' : '프리셋 추가 완료');
+            Toolbox.showToast(idx >= 0 ? t('imagegen.t44') : t('imagegen.t45'));
         };
     }
 
@@ -558,10 +564,10 @@
             overlay.innerHTML = `
                 <div class="ig-api-history-panel">
                     <div class="ig-api-history-header">
-                        <h3>📋 API 요청/응답 이력</h3>
+                        <h3>${esc(t('imagegen.t09'))}</h3>
                         <div>
-                            <button class="btn btn-ghost" id="igApiHistoryClear">비우기</button>
-                            <button class="btn btn-ghost" id="igApiHistoryClose">닫기</button>
+                            <button class="btn btn-ghost" id="igApiHistoryClear">${esc(t('imagegen.btn.igApiHistoryClear'))}</button>
+                            <button class="btn btn-ghost" id="igApiHistoryClose">${esc(t('imagegen.btn.igApiHistoryClose'))}</button>
                         </div>
                     </div>
                     <div class="ig-api-history-list" id="igApiHistoryList"></div>
@@ -582,7 +588,7 @@
         listEl.innerHTML = '';
 
         if (history.length === 0) {
-            listEl.innerHTML = '<div class="ig-api-history-empty">이미지 생성 요청 후 여기서 확인할 수 있습니다.</div>';
+            listEl.innerHTML = t('imagegen.t46');
         } else {
             history.forEach((entry: any, i: number) => {
                 const card = document.createElement('div');
@@ -637,7 +643,7 @@
         let promptText;
         if (state.currentContextPreset) {
             promptText = buildFinalPrompt();
-            if (!promptText) { Toolbox.showToast('프롬프트를 입력해주세요.', 'error'); return; }
+            if (!promptText) { Toolbox.showToast(t('imagegen.t47'), 'error'); return; }
             const slots = getSlotsFromPrompt(state.currentContextPreset.prompt);
             const allFilled = slots.every((s: any) => {
                 const selVal = (document.getElementById('igSlot_' + s) as HTMLSelectElement | null)?.value || state.slotValues[s];
@@ -645,11 +651,11 @@
                 if (selVal === CUSTOM_INPUT_ID) return !!((document.getElementById('igSlotCustom_' + s) as HTMLInputElement | null)?.value.trim() || state.slotValues[s + '_custom']);
                 return true;
             });
-            if (!allFilled) { Toolbox.showToast('모든 캐릭터 슬롯을 채워주세요.', 'error'); return; }
+            if (!allFilled) { Toolbox.showToast(t('imagegen.t48'), 'error'); return; }
         } else {
             const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
             promptText = promptEl?.value.trim();
-            if (!promptText) { Toolbox.showToast('프롬프트를 입력해주세요.', 'error'); return; }
+            if (!promptText) { Toolbox.showToast(t('imagegen.t47'), 'error'); return; }
         }
         if (!(Gemini as any).requireApiKey()) return;
 
@@ -664,7 +670,7 @@
         const pending = queue.filter((q: any) => q.status === 'pending').length;
         const running = queue.filter((q: any) => q.status === 'running').length;
         if (pending + running > 1) {
-            Toolbox.showToast(`큐에 추가됨 (대기 ${pending}개)`);
+            Toolbox.showToast(t('imagegen.queued', { pending }));
         }
     }
 
@@ -672,8 +678,8 @@
         const running = queue.find((q: any) => q.status === 'running');
         if (running) {
             cancelQueueItem(running.id);
-            Toolbox.showToast('현재 생성 취소됨');
-            Mdd.linePreset('tool_run', { mood: 'idle', msg: '취소했어요!' });
+            Toolbox.showToast(t('imagegen.t49'));
+            Mdd.linePreset('tool_run', { mood: 'idle', msg: t('imagegen.t50') });
         }
     }
 
@@ -683,7 +689,7 @@
     }
 
     function toggleCompare() {
-        if (state.sessionGallery.length < 2) { Toolbox.showToast('비교하려면 이미지가 2장 이상 필요합니다.', 'error'); return; }
+        if (state.sessionGallery.length < 2) { Toolbox.showToast(t('imagegen.t51'), 'error'); return; }
         state.compareMode = !state.compareMode;
         const preview = document.getElementById('igPreview') as HTMLDivElement | null;
         const img = document.getElementById('igImage') as HTMLImageElement | null;
@@ -699,15 +705,15 @@
             let cmp = preview.querySelector('.ig-compare') as HTMLDivElement | null;
             if (cmp == null) { cmp = document.createElement('div'); cmp.className = 'ig-compare'; preview.appendChild(cmp); }
             cmp.innerHTML = `
-                <div class="ig-compare-pane"><div class="ig-compare-label">이전</div><img src="${prevItem.url}" alt="Previous"></div>
-                <div class="ig-compare-pane"><div class="ig-compare-label">현재</div><img src="${state.currentItem.url}" alt="Current"></div>`;
+                <div class="ig-compare-pane"><div class="ig-compare-label">${esc(t('imagegen.t10'))}</div><img src="${prevItem.url}" alt="Previous"></div>
+                <div class="ig-compare-pane"><div class="ig-compare-label">${esc(t('imagegen.t11'))}</div><img src="${state.currentItem.url}" alt="Current"></div>`;
             cmp.style.display = 'flex';
-            if (btn) btn.textContent = '🔀 비교 해제';
+            if (btn) btn.textContent = t('imagegen.t52');
         } else {
             const cmp = preview?.querySelector('.ig-compare') as HTMLDivElement | null;
             if (cmp) cmp.style.display = 'none';
             if (img && state.currentItem) img.style.display = '';
-            if (btn) btn.textContent = '🔀 비교';
+            if (btn) btn.textContent = t('imagegen.btn.igCompareBtn');
         }
     }
 
@@ -718,7 +724,7 @@
         if (isOpen) {
             const history = getPromptHistory();
             if (history.length === 0) {
-                dd.innerHTML = '<div class="ig-history-empty">아직 히스토리가 없습니다</div>';
+                dd.innerHTML = t('imagegen.t53');
             } else {
                 dd.innerHTML = '';
                 history.forEach((text: any) => {
@@ -752,13 +758,13 @@
     async function enhancePrompt() {
         const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
         const raw = promptEl?.value.trim();
-        if (!raw) { Toolbox.showToast('프롬프트를 입력해주세요.', 'error'); return; }
+        if (!raw) { Toolbox.showToast(t('imagegen.t47'), 'error'); return; }
         if (!(Gemini as any).requireApiKey()) return;
 
         const btn = document.querySelector('.ig-enhance-btn') as HTMLButtonElement | null;
         const originalLabel = btn?.textContent;
         try {
-            if (btn) { btn.disabled = true; btn.textContent = '⏳ 다듬는 중...'; }
+            if (btn) { btn.disabled = true; btn.textContent = t('imagegen.t54'); }
             if (promptEl) promptEl.classList.add('ig-enhancing');
 
             const enhanced = await (Gemini as any).enhancePrompt(raw);
@@ -767,7 +773,7 @@
                 promptEl.value = enhanced;
                 setTimeout(() => promptEl.classList.remove('ig-enhanced-flash'), 600);
             }
-            Toolbox.showToast('프롬프트를 다듬었습니다.');
+            Toolbox.showToast(t('imagegen.t55'));
         } catch (e: any) {
             Toolbox.showToast(e.message || '다듬기 실패', 'error', e);
         } finally {
@@ -778,85 +784,85 @@
 
     /* ===== buildMain ===== */
     function buildMain(container: any) {
-        Mdd.linePreset('daily_start', { msg: '이미지 만들어볼까요?' });
+        Mdd.linePreset('daily_start', { msg: t('imagegen.t56') });
 
         container.innerHTML = `
             <div class="ig-layout">
                 <div class="ig-sidebar">
                     <div class="field-group">
-                        <label class="field-label">🔑 API 키</label>
+                        <label class="field-label">${esc(t('imagegen.t12'))}</label>
                         <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;">
                             <div style="font-size:var(--font-size-xs);color:var(--text-tertiary);">
-                                프로필: <strong id="igActiveProfileName" style="color:var(--text-secondary);">${typeof Gemini !== 'undefined' ? ((Gemini as any).getActiveProfileName() || '기본') : '-'}</strong>
+                                ${esc(t('imagegen.t13'))} <strong id="igActiveProfileName" style="color:var(--text-secondary);">${typeof Gemini !== 'undefined' ? ((Gemini as any).getActiveProfileName() || '기본') : '-'}</strong>
                             </div>
-                            <button class="btn btn-ghost" type="button" onclick="Toolbox.switchPage('user'); Toolbox.switchTab('user-settings');">설정에서 변경</button>
+                            <button class="btn btn-ghost" type="button" onclick="Toolbox.switchPage('user'); Toolbox.switchTab('user-settings');">${esc(t('imagegen.t14'))}</button>
                         </div>
                     </div>
                     <div class="field-group">
-                        <label class="field-label">🤖 모델</label>
+                        <label class="field-label">${esc(t('imagegen.t15'))}</label>
                         <select id="igModelSelect"></select>
                     </div>
                     <div class="field-group">
-                        <label class="field-label">🌐 호출</label>
+                        <label class="field-label">${esc(t('imagegen.t16'))}</label>
                         <select id="igApiRoute">
-                            <option value="aiStudio">AI Studio (기존)</option>
+                            <option value="aiStudio">${esc(t('imagegen.opt.aiStudio'))}</option>
                             <option value="vertex">Vertex AI</option>
                         </select>
                         <div style="font-size:var(--font-size-2xs);color:var(--text-tertiary);margin-top:6px;line-height:1.4;">
-                            Gemini 이미지: Vertex는 <code>generateContent</code>, Imagen은 Vertex <code>predict</code>(참고 스크립트와 동일 계열)입니다. Imagen+Vertex일 때 GCP 프로젝트·리전이 필요합니다.
+                            ${esc(t('imagegen.t17'))} <code>generateContent</code>${esc(t('imagegen.t18'))} <code>predict</code>${esc(t('imagegen.t19'))}
                         </div>
                     </div>
                     <div class="field-group" id="igVertexImagenGroup" style="display:none">
                         <label class="field-label">☁️ Vertex Imagen (GCP)</label>
                         <p style="font-size:var(--font-size-2xs);color:var(--text-tertiary);margin:0 0 8px 0;line-height:1.4;">
-                            <code>projects/…/locations/…/publishers/google/models/…:predict</code> 호출에 사용합니다. (예: 스크립트의 <code>PROJECT_ID</code>, <code>LOCATION</code>)
+                            <code>projects/…/locations/…/publishers/google/models/…:predict</code> ${esc(t('imagegen.t20'))} <code>PROJECT_ID</code>, <code>LOCATION</code>)
                         </p>
                         <div style="display:flex;flex-direction:column;gap:8px;">
                             <div>
-                                <label class="field-label" for="igVertexProjectId" style="font-size:var(--font-size-xs);">프로젝트 ID</label>
+                                <label class="field-label" for="igVertexProjectId" style="font-size:var(--font-size-xs);">${esc(t('imagegen.label.igVertexProjectId'))}</label>
                                 <input type="text" id="igVertexProjectId" class="settings-control" style="width:100%;box-sizing:border-box;" placeholder="my-gcp-project-id" autocomplete="off">
                             </div>
                             <div>
-                                <label class="field-label" for="igVertexLocation" style="font-size:var(--font-size-xs);">리전</label>
+                                <label class="field-label" for="igVertexLocation" style="font-size:var(--font-size-xs);">${esc(t('imagegen.label.igVertexLocation'))}</label>
                                 <input type="text" id="igVertexLocation" class="settings-control" style="width:100%;box-sizing:border-box;" placeholder="us-central1" autocomplete="off">
                             </div>
                         </div>
                     </div>
                     <div class="field-group">
-                        <label class="field-label">📐 비율</label>
+                        <label class="field-label">${esc(t('imagegen.t21'))}</label>
                         <select id="igAspectRatio">
                             ${ASPECT_RATIOS.map((r: any) => `<option value="${r.value}"${r.value === '16:9' ? ' selected' : ''}>${r.label}</option>`).join('')}
                         </select>
                     </div>
                     <div class="field-group">
-                        <label class="field-label">🎭 바이브</label>
+                        <label class="field-label">${esc(t('imagegen.t22'))}</label>
                         <select id="igVibe">
                             ${VIBE_OPTIONS.map((v: any) => `<option value="${v.id}">${v.label}</option>`).join('')}
                         </select>
                         <div class="ig-vibe-info" id="igVibeInfo"></div>
                     </div>
                     <div class="field-group">
-                        <label class="field-label">🛡️ 안전 필터</label>
+                        <label class="field-label">${esc(t('imagegen.t23'))}</label>
                         <select id="igSafety">
                             ${SAFETY_LEVELS.map((s: any) => `<option value="${s.value}"${s.value === 'BLOCK_ONLY_HIGH' ? ' selected' : ''}>${s.label}</option>`).join('')}
                         </select>
                     </div>
                     <div class="field-group" id="igNegPromptGroup" style="display:none">
-                        <label class="field-label">🚫 네거티브 프롬프트 <span style="font-weight:400;color:var(--text-tertiary)">(Imagen)</span></label>
-                        <input type="text" id="igNegPrompt" placeholder="예: blurry, low quality, watermark">
+                        <label class="field-label">${esc(t('imagegen.t24'))} <span style="font-weight:400;color:var(--text-tertiary)">(Imagen)</span></label>
+                        <input type="text" id="igNegPrompt" placeholder="${esc(t('imagegen.ph.igNegPrompt'))}">
                     </div>
                     <div class="field-group" id="igPersonGenGroup" style="display:none">
-                        <label class="field-label">👤 인물 생성 <span style="font-weight:400;color:var(--text-tertiary)">(Imagen)</span></label>
+                        <label class="field-label">${esc(t('imagegen.t25'))} <span style="font-weight:400;color:var(--text-tertiary)">(Imagen)</span></label>
                         <select id="igPersonGen">
                             ${PERSON_GEN_OPTIONS.map((p: any) => `<option value="${p.value}">${p.label}</option>`).join('')}
                         </select>
                     </div>
                     <div class="field-group">
-                        <label class="field-label">📚 프리셋</label>
+                        <label class="field-label">${esc(t('imagegen.t05'))}</label>
                         <div class="ig-preset-btns" id="igPresetBtns"></div>
                     </div>
                     <div class="ig-ref-card">
-                        <div class="ig-ref-label">참고 사이트</div>
+                        <div class="ig-ref-label">${esc(t('imagegen.t26'))}</div>
                         <a href="https://pixai.art/ko/generator/image" target="_blank" rel="noopener">PixAI</a>
                         <a href="https://tensor.art/ko-KR" target="_blank" rel="noopener">Tensor.art</a>
                         <a href="https://novelai.net" target="_blank" rel="noopener">NovelAI</a>
@@ -865,7 +871,7 @@
 
                 <div class="ig-canvas">
                     <div class="ig-preview" id="igPreview">
-                        <div class="ig-placeholder" id="igPlaceholder"><span>🎨</span>프리셋을 선택하거나 프롬프트를 입력하세요</div>
+                        <div class="ig-placeholder" id="igPlaceholder"><span>🎨</span>${esc(t('imagegen.t27'))}</div>
                         <div id="igLoadingArea" style="display:none; flex-direction:column; align-items:center; justify-content:center; gap:8px;">
                             <div id="igSpinner" class="ig-spinner"></div>
                             <div id="igLoadingText" class="ig-loading-text">Dreaming...</div>
@@ -876,24 +882,24 @@
                         <div class="ig-slot-section" id="igSlotSection" style="display:none;"></div>
                         <div class="ig-history-dropdown" id="igHistoryDropdown"></div>
                         <div class="ig-input-row">
-                            <textarea id="igPrompt" placeholder="이미지 프롬프트를 입력하세요..."></textarea>
-                            <button class="btn btn-ghost" id="igHistoryBtn" onclick="window._ig.toggleHistory()" title="최근 프롬프트">📜</button>
-                            <button class="btn btn-ghost ig-enhance-btn" onclick="window._ig.enhancePrompt()">✨ 다듬기</button>
-                            <button class="btn btn-accent ig-gen-btn" id="igGenBtn" onclick="window._ig.generate()"><span>✨</span>생성</button>
-                            <button class="btn btn-danger ig-gen-btn" id="igCancelBtn" style="display:none" onclick="window._ig.cancel()"><span>✕</span>취소</button>
+                            <textarea id="igPrompt" placeholder="${esc(t('imagegen.ph.igPrompt'))}"></textarea>
+                            <button class="btn btn-ghost" id="igHistoryBtn" onclick="window._ig.toggleHistory()" title="${esc(t('imagegen.title.igHistoryBtn'))}">📜</button>
+                            <button class="btn btn-ghost ig-enhance-btn" onclick="window._ig.enhancePrompt()">${esc(t('imagegen.t28'))}</button>
+                            <button class="btn btn-accent ig-gen-btn" id="igGenBtn" onclick="window._ig.generate()"><span>✨</span>${esc(t('imagegen.t29'))}</button>
+                            <button class="btn btn-danger ig-gen-btn" id="igCancelBtn" style="display:none" onclick="window._ig.cancel()"><span>✕</span>${esc(t('imagegen.t01'))}</button>
                         </div>
                         <div class="ig-actions">
                             <span id="igMetaDisplay" class="ig-meta-display"></span>
-                            <button class="btn btn-ghost" id="igCompareBtn" style="display:none;font-size:var(--font-size-xs);" onclick="window._ig.toggleCompare()">🔀 비교</button>
-                            <button class="btn btn-ghost" id="igDownloadBtn" style="display:none" onclick="window._ig.download()">⬇️ 다운로드</button>
-                            <button class="btn btn-ghost" style="font-size:var(--font-size-xs);" onclick="window._ig.showApiHistory()" title="요청/응답 raw 확인">📋 API 이력</button>
+                            <button class="btn btn-ghost" id="igCompareBtn" style="display:none;font-size:var(--font-size-xs);" onclick="window._ig.toggleCompare()">${esc(t('imagegen.btn.igCompareBtn'))}</button>
+                            <button class="btn btn-ghost" id="igDownloadBtn" style="display:none" onclick="window._ig.download()">${esc(t('imagegen.btn.igDownloadBtn'))}</button>
+                            <button class="btn btn-ghost" style="font-size:var(--font-size-xs);" onclick="window._ig.showApiHistory()" title="${esc(t('imagegen.t04'))}">${esc(t('imagegen.t30'))}</button>
                             <span id="igTokenDisplay" class="ig-token-display"></span>
                         </div>
                         <div class="ig-gallery" id="igGallery"></div>
                         <div class="ig-queue-panel" id="igQueuePanel" style="display:none">
                             <div class="ig-queue-header">
-                                <div><span class="ig-queue-title">📋 생성 큐</span><span class="ig-queue-count" id="igQueueCount"></span></div>
-                                <button class="ig-queue-clear" id="igQueueClear">전체 비우기</button>
+                                <div><span class="ig-queue-title">${esc(t('imagegen.t31'))}</span><span class="ig-queue-count" id="igQueueCount"></span></div>
+                                <button class="ig-queue-clear" id="igQueueClear">${esc(t('imagegen.btn.igQueueClear'))}</button>
                             </div>
                             <div class="ig-queue-list" id="igQueueList"></div>
                         </div>
@@ -905,7 +911,7 @@
             const sel = document.getElementById('igModelSelect') as HTMLSelectElement | null;
             if (sel) {
                 const gGroup = document.createElement('optgroup');
-                gGroup.label = 'Gemini (이미지)';
+                gGroup.label = t('imagegen.t57');
                 ((Gemini as any).MODELS.geminiImage || (Gemini as any).MODELS.gemini).forEach((m: any) => {
                     const o = document.createElement('option');
                     o.value = m.id; o.textContent = m.name;
@@ -1020,7 +1026,16 @@
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta('imagegen'),
         tabs: [
-            { id: 'imagegen-main', label: '생성', build: buildMain }
+            {
+                id: 'imagegen-main',
+                label: t('imagegen.tab.main', undefined, '생성'),
+                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('imagegen').then(function () {
+                        buildMain(container);
+                    });
+                }
+            }
         ]
     });
 })();
