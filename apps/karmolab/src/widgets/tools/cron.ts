@@ -45,7 +45,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     let text = raw.toUpperCase();
     /* 이름 → 숫자. 달은 1부터(JAN=1), 요일은 0부터(SUN=0)라 `min` 을 더한다. */
     if (names) names.forEach((nm, i) => { text = text.split(nm).join(String(i + min)); });
-    if (max === 6) text = text.replace(/7/g, '0');
+    if (max === 6) text = text.replace(/\b7\b/g, '0');
     raw = text;
     for (const chunk of raw.split(',')) {
       const [range, stepRaw] = chunk.split('/');

@@ -114,6 +114,39 @@ function scan() {
       stack.push({ kind: 'tpl' });
       continue;
     }
+    /* 정규식 리터럴. **꼭 필요하다** — `.replace(/['"`]/g, '')` 처럼 따옴표를 *담고 있는* 정규식이
+     * 흔한데, 그걸 글월 시작으로 읽으면 거기서부터 자가 통째로 어긋난다(slug 에서 실제로
+     * 그래서 뽑힌 열쇠가 0개였다 — 조용히 아무것도 안 한 것이라 더 나빴다).
+     * `/` 가 나눗셈인지 정규식인지는 **앞의 뜻 있는 글자**로 가른다(자바스크립트의 오랜 방법). */
+    if (c === '/') {
+      let k = i - 1;
+      while (k >= 0 && ' \t\n\r'.includes(src[k])) k--;
+      const prev = k >= 0 ? src[k] : '';
+      const word = /[A-Za-z0-9_$]/.test(prev) ? /[A-Za-z_$][\w$]*$/.exec(src.slice(0, k + 1))?.[0] : null;
+      const KEYWORD = ['return', 'typeof', 'case', 'in', 'of', 'new', 'delete', 'do', 'else', 'yield', 'await'];
+      const isRegex = !prev || '(,=:[!&|?{};+-*%~^<>'.includes(prev) || (word && KEYWORD.includes(word));
+      if (isRegex) {
+        m[i++] = 'J';
+        let inClass = false;
+        while (i < src.length) {
+          const ch = src[i];
+          if (ch === '\\') {
+            m[i++] = 'J';
+            if (i < src.length) m[i++] = 'J';
+            continue;
+          }
+          if (ch === '[') inClass = true;
+          else if (ch === ']') inClass = false;
+          else if (ch === '/' && !inClass) {
+            m[i++] = 'J';
+            break;
+          } else if (ch === '\n') break; // 정규식이 아니었다 — 더 삼키지 않는다
+          m[i++] = 'J';
+        }
+        while (i < src.length && /[a-z]/.test(src[i])) m[i++] = 'J'; // 뒤에 붙는 g·i·m…
+        continue;
+      }
+    }
     if (c === '{') {
       here.brace++;
       m[i++] = 'J';
@@ -299,7 +332,7 @@ for (const m of src.matchAll(/`[^`]*[가-힣][^`]*`/g)) {
  * 값이 정해진다는 뜻이다. 그 자리는 영원히 한국어로 남는다. 기계가 고칠 수는 없지만
  * (표를 함수로 바꾸는 건 사람 판단), **있다는 사실은 반드시 알려야 한다.** */
 const regAt = src.indexOf('Toolbox.register(');
-const early = regAt > 0 ? (src.slice(0, regAt).match(/t\(/g) || []).length : 0;
+const early = regAt > 0 ? (src.slice(0, regAt).match(/\bt\(/g) || []).length : 0;
 
 /* 아무 데서도 안 부르게 된 열쇠는 턴다 (④ 에서 이름이 바뀐 것들). */
 for (const key of Object.keys(catalog)) {
@@ -308,6 +341,13 @@ for (const key of Object.keys(catalog)) {
 
 const rel = path.relative(ROOT, file).replace(/\\/g, '/');
 console.log(`[widgetize] ${rel} · build ${wrapped}곳 감쌈 · 열쇠 ${Object.keys(catalog).length}개`);
+/* 아무것도 못 뽑았는데 화면에 나갈 법한 한국어가 남아 있으면, 그건 **자가 어긋났다는 뜻**이다.
+ * 조용히 0개로 끝나는 게 제일 나쁘다 — 사람이 「이 도구는 원래 한국어가 없나 보다」로 읽는다. */
+const stillKo = (src.match(/[가-힣]/g) || []).length;
+if (Object.keys(catalog).length === 0 && stillKo > 20) {
+  console.log(`[widgetize] ⚠ 뽑은 열쇠가 0개인데 한국어가 ${stillKo}자 남아 있다 — 훑기가 어긋났을 수 있다.`);
+  console.log('   정규식 리터럴·특이한 따옴표를 의심하고, --write 없이 다시 보라.');
+}
 if (early) {
   console.log(`[widgetize] ⚠ 등록보다 먼저 t() 를 ${early}곳에서 부른다 — 그 표는 말 묶음이 오기 전에 굳는다.`);
   console.log('   쓸 때 만드는 함수로 바꿔야 한다 (사람 판단).');
