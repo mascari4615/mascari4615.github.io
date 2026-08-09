@@ -1,5 +1,5 @@
 {
-  "total": 8335,
+  "total": 8405,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -305,6 +305,7 @@
     "src/core/datecalc.ts": 29,
     "src/core/charcount.ts": 19,
     "src/core/unitconv.ts": 14,
-    "src/widgets/localai/localai.ts": 30
+    "src/widgets/localai/localai.ts": 30,
+    "src/core/wordfreq.ts": 70
   }
 }
