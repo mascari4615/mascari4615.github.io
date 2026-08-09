@@ -49,5 +49,9 @@
   "howto.workdays.0": "開始日を選ぶ",
   "howto.workdays.1": "営業日数を決めるか、終了日を選ぶ",
   "howto.workdays.2": "土曜を稼働日にするか決める",
-  "howto.workdays.3": "除いた日の一覧で結果を確かめる"
+  "howto.workdays.3": "除いた日の一覧で結果を確かめる",
+  "howto.qrgen.0": "種類を選ぶ（URL・Wi-Fi・連絡先・SMS）",
+  "howto.qrgen.1": "内容を入力 — プレビューが即時に更新",
+  "howto.qrgen.2": "誤り訂正レベル・サイズ・色を調整",
+  "howto.qrgen.3": "PNG または SVG で保存（印刷物は SVG）"
 }
