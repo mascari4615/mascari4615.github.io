@@ -246,6 +246,36 @@ await Promise.all(
 process.stdout.write('\n');
 await browser.close();
 
+/*
+ * ── 마크다운 쌍둥이 (`/karmolab/t/<id>.md`) — 읽으러 온 쪽이 받는 판
+ *
+ * 이 129장은 **사람이 안 보는 자리**라 깨져도 아무도 눈치채지 못한다. 실제로 두 번 깨져 있었다:
+ * 한 번은 다음 생성기가 폴더째 지워서 404, 한 번은 살아남았지만 Jekyll 이 HTML 로 바꿔 놓아서
+ * 마크다운을 달라고 온 쪽에 `<h1>` 이 갔다. 둘 다 **빌드 로그는 성공**이었다.
+ *
+ * 그래서 배포된 주소를 직접 받아 본다. 브라우저는 필요 없다 — 글자만 보면 된다.
+ * 표본 몇 개면 충분하다(생성기가 하나라 하나가 깨지면 전부 깨진다).
+ */
+const MD_SAMPLES = ids.slice(0, 3);
+for (const id of MD_SAMPLES) {
+  const url = `${BASE}/karmolab/t/${id}.md`;
+  try {
+    const res = await fetch(url, { redirect: 'follow' });
+    if (res.ok === false) {
+      failures.push(`${id}.md: ${res.status} — 마크다운 쌍둥이가 안 올라갔다 (${url})`);
+      continue;
+    }
+    const text = (await res.text()).trim();
+    if (text.startsWith('<')) {
+      failures.push(`${id}.md: HTML 이 왔다 — 원본이 .md 라 Jekyll 이 변환했을 것 (${url})`);
+    } else if (text.startsWith('#') === false) {
+      failures.push(`${id}.md: 마크다운 제목으로 시작하지 않는다: ${text.slice(0, 40)}`);
+    }
+  } catch (e) {
+    failures.push(`${id}.md: 받지 못했다 — ${String(e.message).slice(0, 60)}`);
+  }
+}
+
 if (failures.length) {
   console.error(`[smoke-live-pages] 빈 화면 ${failures.length}건 / ${ids.length}`);
   failures.forEach((f) => console.error('  - ' + f));
