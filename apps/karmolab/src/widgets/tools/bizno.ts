@@ -5,39 +5,10 @@
  * 그래서 오타는 대부분 계산만으로 걸러진다 — 국세청에 묻지 않아도 「형식상 불가능한 번호」 를 안다.
  * 다만 계산이 맞아도 실제로 등록된 번호인지는 알 수 없다. 그 경계를 화면에 분명히 적는다.
  */
+import { checkBiz, checkCorp, formatBiz, formatCorp, kindOf, onlyDigits, spec } from '../../core/bizno';
+import { readInvocation } from '../../lib/tool-url';
+
 (function (): void {
-  const WEIGHT = [1, 3, 7, 1, 3, 7, 1, 3, 5];
-
-  /** 국세청 사업자등록번호 검증 규칙 */
-  function checkBiz(digits: string): { ok: boolean; expect: number } | null {
-    if (!/^\d{10}$/.test(digits)) return null;
-    let sum = 0;
-    for (let i = 0; i < 9; i++) sum += Number(digits[i]) * WEIGHT[i];
-    sum += Math.floor((Number(digits[8]) * 5) / 10);
-    const expect = (10 - (sum % 10)) % 10;
-    return { ok: expect === Number(digits[9]), expect };
-  }
-
-  /** 법인등록번호(13자리) 검증 — 가중치 1,2 반복 */
-  function checkCorp(digits: string): { ok: boolean; expect: number } | null {
-    if (!/^\d{13}$/.test(digits)) return null;
-    let sum = 0;
-    for (let i = 0; i < 12; i++) sum += Number(digits[i]) * (i % 2 === 0 ? 1 : 2);
-    const expect = (10 - (sum % 10)) % 10;
-    return { ok: expect === Number(digits[12]), expect };
-  }
-
-  /** 중간 자리는 사업자 종류를 뜻한다 — 번호만 보고도 알 수 있는 정보 */
-  function kindOf(mid: string): string {
-    const n = Number(mid);
-    if (n >= 1 && n <= 79) return '개인 과세사업자';
-    if (n >= 80 && n <= 80) return '법인이 아닌 종교단체';
-    if (n >= 81 && n <= 88) return '영리법인 본점';
-    if (n === 89) return '비영리법인 본점·지점';
-    if (n >= 90 && n <= 99) return '개인 면세사업자·비영리';
-    return '알 수 없음';
-  }
-
   Toolbox.register({
     id: 'bizno',
     title: '사업자번호 검사',
@@ -69,7 +40,7 @@
             `<div class="tool-list-row"><span class="tool-list-key">${k}</span><span class="tool-list-val">${v}</span></div>`;
 
           function run(): void {
-            const digits = input.value.replace(/\D/g, '');
+            const digits = onlyDigits(input.value);
             if (!digits) {
               mark.textContent = '—';
               out.innerHTML = '';
@@ -83,7 +54,7 @@
               mark.className = 'tool-display' + (r.ok ? '' : ' tool-display-done');
               out.innerHTML =
                 row('종류', '사업자등록번호 (10자리)') +
-                row('표기', `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`) +
+                row('표기', formatBiz(digits)) +
                 row('사업자 구분', kindOf(digits.slice(3, 5))) +
                 row('검증 숫자', r.ok ? `${digits[9]} (맞음)` : `${digits[9]} — 계산상 ${r.expect} 이어야 함`);
               status.textContent = r.ok
@@ -96,7 +67,7 @@
               mark.className = 'tool-display' + (r.ok ? '' : ' tool-display-done');
               out.innerHTML =
                 row('종류', '법인등록번호 (13자리)') +
-                row('표기', `${digits.slice(0, 6)}-${digits.slice(6)}`) +
+                row('표기', formatCorp(digits)) +
                 row('검증 숫자', r.ok ? `${digits[12]} (맞음)` : `${digits[12]} — 계산상 ${r.expect} 이어야 함`);
               status.textContent = r.ok ? '형식상 올바른 번호입니다.' : '마지막 자리가 계산과 안 맞습니다.';
               status.className = 'tool-status' + (r.ok ? ' ok' : ' error');
@@ -110,6 +81,16 @@
           }
 
           input.addEventListener('input', run);
+
+          // 주소로 부른 경우 (`?op=check&number=…`) — 링크만으로 결과가 보인다 (TASK-KL-205).
+          const call = readInvocation(spec);
+          if (call !== null && call.error === undefined && call.op === 'check') {
+            input.value = String(call.args.number ?? '');
+            run();
+          } else if (call?.error !== undefined) {
+            status.textContent = call.error;
+            status.className = 'tool-status error';
+          }
         }
       }
     ]

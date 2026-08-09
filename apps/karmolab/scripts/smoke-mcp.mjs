@@ -65,8 +65,8 @@ child.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initia
 
 const list = (await rpc('tools/list')).result;
 const names = list.tools.map((t) => t.name).sort();
-check(names.length >= 4, `도구가 4개 이상이어야 하는데 ${names.length}개: ${names.join(', ')}`);
-for (const want of ['base64_encode', 'base64_decode', 'epoch_toDate', 'epoch_toStamp', 'hashgen_text']) {
+check(names.length >= 7, `도구가 7개 이상이어야 하는데 ${names.length}개: ${names.join(', ')}`);
+for (const want of ['base64_encode', 'base64_decode', 'epoch_toDate', 'epoch_toStamp', 'hashgen_text', 'bizno_check', 'birth_info']) {
   check(names.includes(want), `${want} 가 목록에 없다 (있는 것: ${names.join(', ')})`);
 }
 const b64enc = list.tools.find((t) => t.name === 'base64_encode');
@@ -94,6 +94,19 @@ const toDate = await callTool('epoch_toDate', { ts: '1750000000000000000' });
 check(toDate.content[0].text.startsWith('나노초'), `자릿수를 나노초로 읽어야 한다: ${toDate.content[0].text.split('\n')[0]}`);
 check(toDate.content[0].text.includes('2025-06-15'), `2025-06-15 가 나와야 한다 (5만 년 X): ${toDate.content[0].text}`);
 eq((await callTool('epoch_toStamp', { date: '2025-06-15T15:06:40.000Z' })).content[0].text, '1750000000', 'epoch_toStamp');
+
+// 한국 규칙 — 우리 무기. LLM 이 자릿수만 맞춰 지어내거나 옛 나이 규칙으로 답하는 자리다.
+const biz = await callTool('bizno_check', { number: '123-45-67890' });
+check(biz.content[0].text.includes('사업자등록번호'), `종류를 말해야 한다: ${biz.content[0].text}`);
+check(biz.content[0].text.includes('국세청'), '「형식만 본다」 경계를 반드시 말한다');
+const bizBad = await callTool('bizno_check', { number: '123456789' });
+check(bizBad.isError === true, '9자리는 오류로 답한다');
+
+const birth = await callTool('birth_info', { date: '1990-05-05' });
+for (const want of ['만 나이', '연 나이', '세는 나이']) {
+  check(birth.content[0].text.includes(want), `${want} 가 함께 나와야 한다 (한국은 셋이 다르다)`);
+}
+check((await callTool('birth_info', { date: '1990-02-30' })).isError === true, '없는 날짜는 오류');
 
 // ── 틀린 호출은 조용히 넘어가지 않는다 ──────────────────────────────────────
 const bad = await callTool('hashgen_text', { text: 'a', algo: '없는알고' });

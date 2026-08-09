@@ -201,6 +201,56 @@ eq(epRows.find(([k]) => k === '초 (10자리)')[1], String(SEC), '초 값');
 eq(epRows.find(([k]) => k === 'ISO 8601')[1], new Date(NOW).toISOString(), 'ISO 값');
 eq(ep.toLocalInput(new Date(2026, 0, 2, 3, 4, 5)), '2026-01-02T03:04:05', 'datetime-local 모양 (로컬 시간대)');
 
+// ── ②-4 bizno 알맹이 (한국 규칙 — LLM 이 자릿수만 맞춰 지어내는 자리) ────────
+const bz = await load('src/core/bizno.ts');
+
+eq(bz.spec.id, 'bizno', 'bizno spec.id');
+// 검증 숫자를 규칙대로 만들어 스스로 대 본다 (특정 실제 사업자 번호를 박지 않는다).
+const bizBody = '123456789';
+const bizExpect = bz.checkBiz(bizBody + '0').expect;
+check(bz.checkBiz(bizBody + String(bizExpect)).ok === true, '규칙대로 만든 번호는 통과해야 한다');
+check(bz.checkBiz(bizBody + String((bizExpect + 1) % 10)).ok === false, '검증 숫자를 하나 틀리면 걸러야 한다');
+eq(bz.checkBiz('12345'), null, '10자리가 아니면 null');
+eq(bz.checkBiz('12345678a0'), null, '숫자가 아니면 null');
+eq(bz.onlyDigits('123-45-67890'), '1234567890', '하이픈을 떼고 본다');
+eq(bz.formatBiz('1234567890'), '123-45-67890', '표기 모양');
+eq(bz.kindOf('01'), '개인 과세사업자', '가운데 두 자리 = 사업자 구분 (01)');
+eq(bz.kindOf('80'), '법인이 아닌 종교단체', '80');
+eq(bz.kindOf('81'), '영리법인 본점', '81');
+eq(bz.kindOf('89'), '비영리법인 본점·지점', '89');
+eq(bz.kindOf('90'), '개인 면세사업자·비영리', '90');
+const corpExpect = bz.checkCorp('123456789012' + '0').expect;
+check(bz.checkCorp('123456789012' + String(corpExpect)).ok === true, '법인번호도 규칙대로면 통과');
+check(bz.run('check', { number: '123-45-6789' + String(bizExpect) }).includes('형식상 올바름'), 'run 이 사람 말로 답한다');
+check(bz.run('check', { number: '1234567890' }).includes('국세청'), '「형식만 본다」를 반드시 말한다');
+
+// ── ②-5 birth 알맹이 (한국 나이 3종 — 쓰는 곳마다 답이 다르다) ───────────────
+const bi = await load('src/core/birth.ts');
+const TODAY = new Date(2026, 7, 9); // 2026-08-09
+
+eq(bi.spec.id, 'birth', 'birth spec.id');
+const info = bi.birthInfo('1990-05-05', TODAY);
+eq(info.age, 36, '만 나이 (생일 지남)');
+eq(info.yearAge, 36, '연 나이');
+eq(info.koreanAge, 37, '세는 나이');
+eq(bi.birthInfo('1990-12-25', TODAY).age, 35, '만 나이 (생일 아직 — 하나 뺀다)');
+eq(bi.birthInfo('1990-08-09', TODAY).age, 36, '생일 당일은 이미 지난 것으로 센다');
+eq(bi.birthInfo('1990-08-09', TODAY).untilNext, 0, '생일 당일은 0일 남음');
+eq(bi.birthInfo('1990-08-10', TODAY).untilNext, 1, '내일 생일');
+
+eq(info.zodiac, '말', '1990년생 = 말띠');
+eq(bi.signOf(1, 19), '염소자리', '1/19 = 염소자리 (경계)');
+eq(bi.signOf(1, 20), '물병자리', '1/20 = 물병자리 (경계)');
+eq(bi.signOf(12, 21), '사수자리', '12/21 = 사수자리 (경계)');
+eq(bi.signOf(12, 22), '염소자리', '12/22 = 염소자리 (경계)');
+eq(bi.birthInfo('2000-02-29', TODAY).weekday, '화', '윤년 2/29 는 화요일');
+
+eq(bi.birthInfo('1990-02-30', TODAY), null, '없는 날짜는 null (Date 가 3월로 넘기는 것을 막는다)');
+eq(bi.birthInfo('2030-01-01', TODAY), null, '미래 생일은 null');
+eq(bi.birthInfo('1990/05/05', TODAY), null, '형식이 다르면 null');
+check(bi.run('info', { date: '1990-05-05' }, { now: TODAY }).includes('만 나이: 36세'), 'run 이 세 나이를 함께 낸다');
+check(bi.run('info', { date: '1990-05-05' }, { now: TODAY }).includes('세는 나이: 37세'), '세는 나이도 함께');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 
