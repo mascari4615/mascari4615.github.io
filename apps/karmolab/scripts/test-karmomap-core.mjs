@@ -319,6 +319,15 @@ const M = await loadModules();
   eq(top.id, 'b', '가운데 낀 쪽이 다리 역할 1위');
 }
 
+// 되돌아가지 않게: **캔버스 크기 자물쇠**.
+// 2865 줄짜리 한 덩이를 조각내는 중이다. 자물쇠가 없으면 기능 두어 개면 도로 부푼다 —
+// 지금 크기 + 조금을 상한으로 박아 두고, 줄어들면 상한도 같이 내린다(비율 아니라 실측).
+{
+  const CAP = 2200;
+  const file = path.join(root, 'src/lib/graph/canvas.ts');
+  const lines = fs.readFileSync(file, 'utf8').split(String.fromCharCode(10)).length;
+  check(lines <= CAP, `canvas.ts 가 ${lines}줄 — 상한 ${CAP}줄을 넘었다(새 기능은 조각 파일로 빼라)`);
+}
 process.stdout.write('\n');
 if (failures.length > 0) {
   console.error(`\nRESULT: FAIL (${failures.length})\n - ` + failures.join('\n - '));
