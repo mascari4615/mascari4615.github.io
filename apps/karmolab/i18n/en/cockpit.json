@@ -80,7 +80,7 @@
   "cockpit.t61": "repo_root is not set — choose the repository root in Server Monitor.",
   "cockpit.cards.filtered": "{n} / {total} (filtered)",
   "cockpit.cards.recent": "{n} (recent)",
-  "cockpit.cards.loadFailed": "Loading failed: {why}",
+  "cockpit.cards.loadFailed": "Load failed: {why}",
   "cockpit.t62": "[cockpit] cockpit_get_graph_spec failed",
   "cockpit.t63": "[cockpit] cockpit_save_graph_coords failed",
   "cockpit.t64": "[cockpit] cockpit_get_activity failed"

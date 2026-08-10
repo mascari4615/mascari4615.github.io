@@ -11,7 +11,7 @@
   "numword.status.toNum": "ハングルの数を数字に戻しました。",
   "numword.status.bad": "ハングルの数として読めない文字があります。",
   "numword.row.comma": "3桁区切り",
-  "numword.row.kor": "ハングル",
+  "numword.row.kor": "ハングル表記",
   "numword.row.money": "金額文",
   "numword.row.digits": "桁数",
   "numword.value.digits": "{n}桁",
