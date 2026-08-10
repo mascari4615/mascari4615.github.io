@@ -374,7 +374,9 @@ src = src.replace(/^([ \t]*)function esc\([^)]*\): string \{\n[\s\S]*?\n\1\}\n/g
 if (!/const esc = /.test(src) && src.includes('esc(t(')) {
   src = src.replace(
     /^\(function \(\): void \{/m,
-    `(function (): void {\n  const esc = (v: string): string =>\n    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');\n`
+    /* 인자는 **unknown** 으로 받는다. 원래 있던 `esc` 가 `unknown` 을 받고 있었는데 `string` 짜리로
+       갈아 끼우면, 숫자·널을 넘기던 자리가 전부 컴파일 오류가 된다(perf 에서 30곳 넘게 깨졌다). */
+    `(function (): void {\n  const esc = (v: unknown): string =>\n    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');\n`
   );
 }
 /* 위젯이 `tools/` 밖에 있으면 깊이가 다르다 — `../../lib/i18n` 을 박으면 그 파일만 컴파일이 깨진다. */
