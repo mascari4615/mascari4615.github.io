@@ -187,7 +187,8 @@
     "test:mesh3d": "node scripts/smoke-mesh3d.mjs",
     "test:pinyin": "node scripts/smoke-charconv-pinyin.mjs",
     "test:daily": "node scripts/smoke-daily.mjs",
-    "test:compare": "node scripts/smoke-compare-count.mjs"
+    "test:compare": "node scripts/smoke-compare-count.mjs",
+    "check:live-tools": "node scripts/check-live-tools.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
