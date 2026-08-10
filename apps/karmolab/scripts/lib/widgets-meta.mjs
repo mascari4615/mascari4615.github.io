@@ -45,6 +45,21 @@ export function widgetMeta() {
       continue;
     }
     if (!cur) continue;
+    /* 이름·설명은 **읽는 순간에 정해지는 getter** 로 바뀌었다 (KL-203: 도구 목록도 그 언어로).
+       그 안의 기본값(한국어)이 곧 원본이다 —
+       `get title() { return t('widgets.x.title', undefined, "한국어"); },`
+       이 모양을 못 읽으면 여기서 뽑히는 수가 180 → 20 으로 떨어지고, 그러면 **원본 자체가
+       사라져** 세 언어가 전부 빈다. 실제로 한 번 그랬다. */
+    m = /^\s*get title\(\)[^"]*"((?:[^"\\]|\\.)*)"/.exec(line);
+    if (m) {
+      out[cur].title = unesc(m[1].replace(/\\"/g, '"'));
+      continue;
+    }
+    m = /^\s*get desc\(\)[^"]*"((?:[^"\\]|\\.)*)"/.exec(line);
+    if (m) {
+      out[cur].desc = unesc(m[1].replace(/\\"/g, '"'));
+      continue;
+    }
     m = /^\s*title:\s*'((?:[^'\\]|\\.)*)',/.exec(line);
     if (m) {
       out[cur].title = unesc(m[1]);

@@ -20,6 +20,7 @@
 import { courseGames, courseSteps, courseRun, pushCourseSlots, type CourseStep } from './widgets/play-course';
 import { shareBrag, drawBragCard } from './brag-card';
 import { stampsLocal } from './stamps';
+import { t, loadNamespace } from './lib/i18n';
 
 declare const Toolbox: { switchPage: (id: string) => void };
 
@@ -54,6 +55,8 @@ async function fromServer(): Promise<{ signedIn: boolean; run: number; crowd: nu
 }
 
 async function mount(slot: HTMLElement): Promise<void> {
+    /* 첫 화면의 자리라 아무도 말 묶음을 챙겨 주지 않는다 — 스스로 받고 그린다. */
+    await loadNamespace('today');
     const games = await courseGames();
     if (!games.length || !slot.isConnected) return;
     const steps: CourseStep[] = courseSteps(games);
@@ -87,9 +90,9 @@ async function mount(slot: HTMLElement): Promise<void> {
 
     /* 연속일은 **2일부터** 말한다 — 첫날의 「1일 연속」은 축하가 아니라 셈이 켜졌다는 통보다.
        완주한 사람 수도 0이면 그 줄이 없다: 「오늘 0명」은 북적임이 아니라 죽은 화면이다. */
-    const streak = run >= 2 ? `<span class="lt-run">🔥 ${run}일 연속</span>` : '';
-    const line = all ? '오늘 다 끝냈습니다' : `${done} / ${steps.length}` + (done ? ' — 조금만 더' : '');
-    const others = crowd > 0 ? `<span class="lt-crowd">오늘 ${crowd}명 완주</span>` : '';
+    const streak = run >= 2 ? `<span class="lt-run">${escapeHtml(t('today.streak', { n: run }))}</span>` : '';
+    const line = all ? t('today.t02') : `${done} / ${steps.length}` + (done ? t('today.t03') : '');
+    const others = crowd > 0 ? `<span class="lt-crowd">${escapeHtml(t('today.crowd', { n: crowd }))}</span>` : '';
 
     /* 도감으로 가는 문 (TASK-KL-196). 도구가 160개인 곳에서 새 화면을 목록에만 두면
        아무도 못 찾는다 — 이미 보는 자리에 한 줄 걸어야 있는 것이 된다.
@@ -100,12 +103,12 @@ async function mount(slot: HTMLElement): Promise<void> {
     ).length;
     const book =
         stamped > 0 && tools > 0
-            ? `<a class="lt-book" href="/karmolab/#collection" data-go="collection">도감 ${stamped} / ${tools}</a>`
+            ? `<a class="lt-book" href="/karmolab/#collection" data-go="collection">${escapeHtml(t('today.book', { n: stamped, total: tools }))}</a>`
             : '';
-    const brag = all ? '<button type="button" class="lt-brag" data-brag>자랑하기</button>' : '';
+    const brag = all ? t('today.t04') : '';
 
     slot.innerHTML =
-        `<div class="lt-head"><span class="lt-tag">오늘의 판</span>` +
+        `<div class="lt-head"><span class="lt-tag">${escapeHtml(t('today.t01'))}</span>` +
         `<span class="lt-count">${line}</span>${streak}${others}${book}${brag}</div>` +
         `<div class="lt-chips">${chips}</div>`;
 
@@ -127,11 +130,11 @@ async function mount(slot: HTMLElement): Promise<void> {
                오므로 부팅에는 안 얹힌다(따로 떼면 조각만 늘고 얻는 것이 없다). */
             bragButton.disabled = true;
             const was = bragButton.textContent;
-            bragButton.textContent = '그리는 중…';
+            bragButton.textContent = t('today.t05');
             try {
                 bragButton.textContent = await shareBrag({ done: steps.length, total: steps.length, run });
             } catch {
-                bragButton.textContent = was || '자랑하기';
+                bragButton.textContent = was || t('today.brag');
                 bragButton.disabled = false;
             }
         });

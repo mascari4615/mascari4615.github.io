@@ -1,0 +1,11 @@
+{
+  "today.t01": "오늘의 판",
+  "today.t02": "오늘 다 끝냈습니다",
+  "today.t03": " — 조금만 더",
+  "today.t04": "<button type=\"button\" class=\"lt-brag\" data-brag>자랑하기</button>",
+  "today.t05": "그리는 중…",
+  "today.streak": "🔥 {n}일 연속",
+  "today.crowd": "오늘 {n}명 완주",
+  "today.book": "도감 {n} / {total}",
+  "today.brag": "자랑하기"
+}

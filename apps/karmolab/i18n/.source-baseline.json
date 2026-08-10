@@ -1,7 +1,6 @@
 {
-  "total": 3451,
+  "total": 3416,
   "files": {
-    "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
     "src/ask.ts": 3,
     "src/badapple/load-demo.ts": 4,
@@ -53,7 +52,6 @@
     "src/secrets.ts": 14,
     "src/sw.ts": 1,
     "src/tauri-bridge.ts": 1,
-    "src/today.ts": 9,
     "src/toolbox.ts": 72,
     "src/widgets/activity.ts": 12,
     "src/widgets/adventure/adventure.ts": 4,
