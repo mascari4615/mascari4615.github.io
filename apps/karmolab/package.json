@@ -30,7 +30,7 @@
     "gen:locale-pages": "node scripts/gen-locale-pages.mjs",
     "test:i18n:pages": "node scripts/audit-i18n-pages.mjs",
     "build": "npm run build:i18n && npm run audit:ctl && npm run typecheck && npm run test:i18n && npm run gen:locale-pages && npm run test:i18n:pages && npm run test:i18n:source && npm run gen:changelog && npm run gen:feeds && npm run gen:llms && npm run build:wiki && npm run build:worldbook && npm run build:wm-tasks && npm run gen:core-tools && npm run test:core && npm run test:mcp && npm run test:mcp:install && node build.mjs && npm run gen:tool-md && npm run test:parity && npm run test:chain && npm run test:ai && npm run gates",
-    "gates": "node scripts/run-gates.mjs test:karmomap test:md test:tools test:pulse test:tool-url test:parity test:mesh3d test:pinyin test:daily test:compare audit:play-urls test:mcp test:bundles audit:script-paths audit:vendor-globals audit:wf-prereq test:names audit:cache audit:fonts audit:bg-themes audit:footer test:cotext test:apicache test:contract test:lang",
+    "gates": "node scripts/run-gates.mjs test:karmomap test:md test:tools test:pulse test:tool-url test:parity test:mesh3d test:pinyin test:daily test:compare audit:play-urls audit:keystroke test:mcp test:bundles audit:script-paths audit:vendor-globals audit:wf-prereq test:names audit:cache audit:fonts audit:bg-themes audit:footer test:cotext test:apicache test:contract test:lang",
     "gen:fonts": "python scripts/gen-fonts.py",
     "audit:fonts": "node scripts/audit-fonts.mjs",
     "audit:bg-themes": "node scripts/audit-bg-themes.mjs",
@@ -189,7 +189,8 @@
     "test:daily": "node scripts/smoke-daily.mjs",
     "test:compare": "node scripts/smoke-compare-count.mjs",
     "check:live-tools": "node scripts/check-live-tools.mjs",
-    "audit:play-urls": "node scripts/audit-play-urls.mjs"
+    "audit:play-urls": "node scripts/audit-play-urls.mjs",
+    "audit:keystroke": "node scripts/audit-one-keystroke-table.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
