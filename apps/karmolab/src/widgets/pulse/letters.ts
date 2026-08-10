@@ -15,6 +15,7 @@
  * `쐤퉪뷁` 같은 게 나와 읽히지도 않으므로, **실제로 자주 쓰이는 자모**에 무게를 준다.
  */
 import type { Channel } from './core';
+import { t } from '../../lib/i18n';
 import { MINUTE, rngFor } from './core';
 
 const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -125,15 +126,16 @@ const SIGILS = '◆◇○●□■△▽☆★✦✧❖◈⌘⌬⎔⏣✶✳❉�
 /** 방송 하나를 찍어 내는 틀 — 다섯 개가 같은 뼈대를 쓴다. */
 function lettersChannel(spec: {
   id: string;
-  name: string;
   glyph: string;
   period: number;
   count: number;
   kind: 'roman' | 'hangul' | 'sigil';
   space: number;
-  lineage: string;
 }): Channel {
-  const { id, name, glyph, period, count, kind, space, lineage } = spec;
+  /* 이름·계보는 **말 묶음에서 온다** — 방송 목록은 화면이 뜨기 전에 만들어지므로,
+     여기서 문자열을 받아 두면 한국어로 굳는다. 열쇠는 방송 id 로 정해진다. */
+  const { id, glyph, period, count, kind, space } = spec;
+  const name = (): string => t(`pulse.ch.${id}.name`);
   const make = (rand: () => number): string =>
     kind === 'roman'
       ? romanRun(rand, count)
@@ -153,83 +155,79 @@ function lettersChannel(spec: {
     return {
       line: text,
       sub: hit
-        ? `${space.toLocaleString()}가지 중 하나 — 그런데 진짜 낱말이 나왔다`
-        : `${space.toLocaleString()}가지 중 하나`,
-      mark: hit ? (kind === 'roman' ? '진짜 단어다' : '진짜 낱말이다') : undefined
+        ? t('pulse.letters.hitSub', { n: space.toLocaleString() })
+        : t('pulse.letters.sub', { n: space.toLocaleString() }),
+      mark: hit ? t(kind === 'roman' ? 'pulse.letters.markWord' : 'pulse.letters.markHangul') : undefined
     };
   };
 
   return {
     id,
-    name,
+    get name() {
+      return name();
+    },
     glyph,
     period,
     tile: 'unit',
-    blurb: `${period / MINUTE}분마다 ${name}. 뜻은 없다 — 가끔 있다.`,
-    lineage,
+    get blurb() {
+      return t('pulse.letters.blurb', { min: period / MINUTE, name: name() });
+    },
+    get lineage() {
+      return t(`pulse.ch.${id}.lineage`);
+    },
     beat(tick) {
       return dress(make(rngFor(id, tick)));
     },
     personal(seed) {
       const dressed = dress(make(rngFor(`${id}/personal`, seed)));
-      return { ...dressed, sub: `${seed} 의 ${name} — 이건 안 바뀐다` };
+      return { ...dressed, sub: t('pulse.letters.personal', { seed, name: name() }) };
     }
   };
 }
 
 export const roman3 = lettersChannel({
   id: 'roman3',
-  name: '세 글자',
   glyph: 'Ab',
   period: 10 * MINUTE,
   count: 3,
   kind: 'roman',
-  space: 26 ** 3,
-  lineage: '@3letter_ — 「3 random letters every 10 mins」 (이 도구의 출발점)'
+  space: 26 ** 3
 });
 
 export const roman4 = lettersChannel({
   id: 'roman4',
-  name: '네 글자',
   glyph: 'Abc',
   period: 20 * MINUTE,
   count: 4,
   kind: 'roman',
-  space: 26 ** 4,
-  lineage: '@3letter_ 를 한 칸 늘린 것 — 공간이 26배라 진짜 단어가 훨씬 귀하다'
+  space: 26 ** 4
 });
 
 export const hangul3 = lettersChannel({
   id: 'hangul3',
-  name: '세 글자 (한글)',
   glyph: '가나',
   period: 10 * MINUTE,
   count: 3,
   kind: 'hangul',
-  space: 11172 ** 3,
-  lineage: '@3letter_ 의 한글판 — 읽히도록 흔한 자모에 무게를 줬다'
+  space: 11172 ** 3
 });
 
 export const hangul4 = lettersChannel({
   id: 'hangul4',
-  name: '네 글자 (한글)',
   glyph: '가나다',
   period: 20 * MINUTE,
   count: 4,
   kind: 'hangul',
-  space: 11172 ** 4,
-  lineage: '@3letter_ 의 한글판 — 네 글자쯤 되면 그럴듯한 이름처럼 읽힌다'
+  space: 11172 ** 4
 });
 
 export const sigil3 = lettersChannel({
   id: 'sigil3',
-  name: '기호',
   glyph: '◈',
   period: 15 * MINUTE,
   count: 3,
   kind: 'sigil',
-  space: SIGILS.length ** 3,
-  lineage: 'Botwiki #unicode — 읽히지 않는 것을 계속 던지는 봇들'
+  space: SIGILS.length ** 3
 });
 
 export const LETTER_CHANNELS: readonly Channel[] = [roman3, hangul3, roman4, hangul4, sigil3];
