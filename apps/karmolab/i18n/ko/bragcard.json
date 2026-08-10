@@ -1,0 +1,11 @@
+{
+  "bragcard.t01": "오늘의 판",
+  "bragcard.t02": "공유했습니다",
+  "bragcard.t03": "주소를 복사했습니다",
+  "bragcard.t04": "복사했습니다",
+  "bragcard.t05": "복사가 막혀 있습니다",
+  "bragcard.done": "{n}판 완주",
+  "bragcard.run": "{n}일 연속",
+  "bragcard.line": "{day}  ·  다섯 판 중 {n}판",
+  "bragcard.share": "KarmoLab 오늘의 판 {n}판 완주"
+}

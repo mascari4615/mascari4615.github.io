@@ -1,0 +1,6 @@
+{
+  "aigate.t01": "AI features are off — the tools still work",
+  "aigate.t02": "AI features are on",
+  "aigate.t03": "It failed for an unknown reason",
+  "aigate.downloading": "Fetching… {pct}%  (cancelling still leaves the tools working)"
+}

@@ -1,0 +1,11 @@
+{
+  "bragcard.t01": "Today’s board",
+  "bragcard.t02": "Shared",
+  "bragcard.t03": "The address is copied",
+  "bragcard.t04": "Copied",
+  "bragcard.t05": "Copying is blocked",
+  "bragcard.done": "{n} rounds finished",
+  "bragcard.run": "{n} days in a row",
+  "bragcard.line": "{day}  ·  {n} of five rounds",
+  "bragcard.share": "KarmoLab today’s board — {n} rounds finished"
+}

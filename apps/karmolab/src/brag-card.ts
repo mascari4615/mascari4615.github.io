@@ -16,6 +16,11 @@
  *   ② 서버에 올리고 그 그림을 얼굴로 쓰는 **공유 주소**를 복사 (`/kl/b/<그림>`)
  *   ③ 둘 다 막히면 글자만 복사 — 없는 기능을 있는 척하지 않는다
  */
+import { t, loadNamespace } from './lib/i18n';
+
+/* 위젯이 아니라 셸·라이브러리 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+   빌드는 브라우저 밖에서도 읽으므로 document 가 있을 때만. */
+if (typeof document !== 'undefined') void loadNamespace('bragcard');
 const WIDTH = 1200;
 const HEIGHT = 630;
 
@@ -80,22 +85,22 @@ export async function drawBragCard(facts: BragFacts): Promise<Blob | null> {
     // 머리말
     ctx.fillStyle = '#6d5bd0';
     ctx.font = '700 26px ui-monospace, Consolas, monospace';
-    ctx.fillText('오늘의 판', left, 132);
+    ctx.fillText(t('bragcard.t01'), left, 132);
 
     // 본문 — 큰 숫자가 주인공이다. 「5판 완주」가 한눈에 안 들어오면 자랑이 아니다.
     ctx.fillStyle = '#16151f';
     ctx.font = '900 116px KarmoSerif, Georgia, serif';
-    ctx.fillText(`${facts.done}판 완주`, left, 268);
+    ctx.fillText(t('bragcard.done', { n: facts.done }), left, 268);
 
     if (facts.run >= 2) {
         ctx.fillStyle = '#6d5bd0';
         ctx.font = '900 72px KarmoSerif, Georgia, serif';
-        ctx.fillText(`${facts.run}일 연속`, left, 372);
+        ctx.fillText(t('bragcard.run', { n: facts.run }), left, 372);
     }
 
     ctx.fillStyle = '#57546b';
     ctx.font = '400 30px KarmoSans, "Malgun Gothic", sans-serif';
-    ctx.fillText(`${dayLabel()}  ·  다섯 판 중 ${facts.done}판`, left, facts.run >= 2 ? 442 : 356);
+    ctx.fillText(t('bragcard.line', { day: dayLabel(), n: facts.done }), left, facts.run >= 2 ? 442 : 356);
 
     // 발
     ctx.fillStyle = '#2aa9a0';
@@ -112,7 +117,7 @@ export async function drawBragCard(facts: BragFacts): Promise<Blob | null> {
 /** 자랑 한 번 — 그림을 만들어 나갈 수 있는 가장 강한 길로 내보낸다. 화면에 쓸 말을 돌려준다. */
 export async function shareBrag(facts: BragFacts): Promise<string> {
     const text =
-        `KarmoLab 오늘의 판 ${facts.done}판 완주` + (facts.run >= 2 ? ` · ${facts.run}일 연속` : '');
+        t('bragcard.share', { n: facts.done }) + (facts.run >= 2 ? ' · ' + t('bragcard.run', { n: facts.run }) : '');
     const blob = await drawBragCard(facts);
     const nav = navigator as any;
 
@@ -122,7 +127,7 @@ export async function shareBrag(facts: BragFacts): Promise<string> {
             const file = new File([blob], 'karmolab-today.png', { type: 'image/png' });
             if (nav.canShare({ files: [file] })) {
                 await nav.share({ files: [file], text });
-                return '공유했습니다';
+                return t('bragcard.t02');
             }
         } catch {
             /* 사람이 취소했거나 막혔다 — 아래로 내려간다 */
@@ -149,7 +154,7 @@ export async function shareBrag(facts: BragFacts): Promise<string> {
                 const saved = await response.json();
                 const link = `${base}/kl/b/${saved.id}?run=${facts.run}&done=${facts.done}`;
                 await navigator.clipboard.writeText(`${text}\n${link}`);
-                return '주소를 복사했습니다';
+                return t('bragcard.t03');
             }
         } catch {
             /* 로그인 안 했거나 서버가 없다 — 글자만이라도 내보낸다 */
@@ -159,8 +164,8 @@ export async function shareBrag(facts: BragFacts): Promise<string> {
     // ③ 글자만.
     try {
         await navigator.clipboard.writeText(`${text}\nhttps://blog.mascari4615.com/karmolab/play/`);
-        return '복사했습니다';
+        return t('bragcard.t04');
     } catch {
-        return '복사가 막혀 있습니다';
+        return t('bragcard.t05');
     }
 }

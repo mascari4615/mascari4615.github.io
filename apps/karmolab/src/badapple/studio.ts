@@ -9,6 +9,11 @@
  */
 import { decode, encode, Player, sampleVideo, TextSurface, DomTilesSurface } from 'badapple';
 import { CLIP_STORAGE_KEY } from './shared';
+import { t, loadNamespace } from '../lib/i18n';
+
+/* 위젯이 아니라 셸·라이브러리 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+   빌드는 브라우저 밖에서도 읽으므로 document 가 있을 때만. */
+if (typeof document !== 'undefined') void loadNamespace('badapple');
 
 (function (): void {
 	const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -78,7 +83,7 @@ import { CLIP_STORAGE_KEY } from './shared';
 			raf = requestAnimationFrame(loop);
 		};
 		raf = requestAnimationFrame(loop);
-		status(`재생 중 — ${clip.width}×${clip.height} · ${clip.frameCount}장 · 초당 ${clip.fps}장`);
+		status(t('badapple.playing', { w: clip.width, h: clip.height, frames: clip.frameCount, fps: clip.fps }));
 	}
 
 	async function bake(file: File): Promise<void> {
@@ -90,14 +95,14 @@ import { CLIP_STORAGE_KEY } from './shared';
 
 		await new Promise<void>((resolve, reject) => {
 			video.addEventListener('loadedmetadata', () => resolve(), { once: true });
-			video.addEventListener('error', () => reject(new Error('이 영상을 브라우저가 못 읽는다')), { once: true });
+			video.addEventListener('error', () => reject(new Error(t('badapple.err.01'))), { once: true });
 		});
 
 		const width = Number($<HTMLInputElement>('baWidth').value) || 64;
 		const height = Number($<HTMLInputElement>('baHeight').value) || 48;
 		const fps = Number($<HTMLInputElement>('baFps').value) || 15;
 
-		status('굽는 중… 0%');
+		status(t('badapple.t02'));
 		const sampled = await sampleVideo(video, {
 			width,
 			height,
@@ -105,7 +110,7 @@ import { CLIP_STORAGE_KEY } from './shared';
 			threshold: Number($<HTMLInputElement>('baThreshold').value) || 128,
 			invert: $<HTMLInputElement>('baInvert').checked,
 			onProgress: (done, total) => {
-				if (done % 5 === 0 || done === total) status(`굽는 중… ${Math.round((done / total) * 100)}%`);
+				if (done % 5 === 0 || done === total) status(t('badapple.baking', { pct: Math.round((done / total) * 100) }));
 			}
 		});
 
@@ -115,8 +120,8 @@ import { CLIP_STORAGE_KEY } from './shared';
 		const raw = sampled.frames.length * Math.ceil((width * height) / 8);
 		const handed = handOverToHome(baked);
 		status(
-			`다 구웠다 — ${(baked.length / 1024).toFixed(1)}KB (안 줄였으면 ${(raw / 1024).toFixed(1)}KB)` +
-				(handed ? ' · 이제 홈에서도 이게 나온다' : ' · 홈에 넘기기엔 너무 커서 이 화면에서만 나온다')
+			t('badapple.baked', { size: (baked.length / 1024).toFixed(1), raw: (raw / 1024).toFixed(1) }) +
+				(handed ? t('badapple.t03') : t('badapple.t04'))
 		);
 		$<HTMLButtonElement>('baSave').disabled = false;
 		playBaked(baked);
@@ -126,7 +131,7 @@ import { CLIP_STORAGE_KEY } from './shared';
 	$('baFile').addEventListener('change', (event) => {
 		const file = (event.target as HTMLInputElement).files?.[0];
 		if (!file) return;
-		bake(file).catch((error: unknown) => status(error instanceof Error ? error.message : '굽다 실패했다'));
+		bake(file).catch((error: unknown) => status(error instanceof Error ? error.message : t('badapple.t05')));
 	});
 
 	$('baSave').addEventListener('click', () => {
@@ -141,7 +146,7 @@ import { CLIP_STORAGE_KEY } from './shared';
 
 	$('baStop').addEventListener('click', () => {
 		stop();
-		status('멈췄다.');
+		status(t('badapple.t06'));
 	});
 
 	$('baOverlay').addEventListener('change', () => {
