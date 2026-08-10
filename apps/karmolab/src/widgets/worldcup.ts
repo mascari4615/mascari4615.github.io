@@ -38,9 +38,9 @@ const HISTORY_KEY = 'karmolab_worldcup_history';
 const CHAMPIONS_KEY = 'champions';
 
 const BUILTIN = [
-  { id: 'pokemon', title: t('worldcup.t09'), emoji: '🔴' },
-  { id: 'lol', title: t('worldcup.t10'), emoji: '⚔️' },
-  { id: 'genshin', title: t('worldcup.t11'), emoji: '🌠' },
+  { id: 'pokemon', title: t('worldcup.t09', undefined, '포켓몬'), emoji: '🔴' },
+  { id: 'lol', title: t('worldcup.t10', undefined, '롤 챔피언'), emoji: '⚔️' },
+  { id: 'genshin', title: t('worldcup.t11', undefined, '원신 캐릭터'), emoji: '🌠' },
 ];
 
 (function (): void {

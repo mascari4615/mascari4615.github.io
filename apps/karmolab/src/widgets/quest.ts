@@ -13,7 +13,7 @@ import { t, loadNamespace } from '../lib/i18n';
  * 오늘의 문제 순위 (TASK-KL-148 ②) — **적게 시도할수록** 위다.
  * 표가 갈리지 않는다: 문제는 하루에 하나뿐이라 모두가 같은 것을 푼다.
  */
-const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: t('quest.t03'), decimals: 0 };
+const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: t('quest.t03', undefined, '번'), decimals: 0 };
 
 (function (): void {
   const esc = (v: string): string =>

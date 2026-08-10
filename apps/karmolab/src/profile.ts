@@ -49,8 +49,8 @@ const API_BASE = 'https://yawnbot.mascari4615.com';
 
 /** 트랙 id → 사람이 읽는 이름. 모르는 id 는 id 그대로 (지어내지 않는다). */
 const STREAK_LABELS: Record<string, string> = {
-    daily_review: t('profile.t16'),
-    exercise: t('profile.t17'),
+    daily_review: t('profile.t16', undefined, '일일 리뷰'),
+    exercise: t('profile.t17', undefined, '운동'),
 };
 
 function escapeHtml(value: string): string {
@@ -112,11 +112,11 @@ function cardHtml(profile: PublicProfile): string {
  * 빈 칸을 그냥 두면 보는 사람이 「아무것도 안 했나 보다」로 읽는다 — 그건 틀린 말이다.
  */
 const HIDDEN_LABELS: Record<string, string> = {
-    achievements: t('profile.t08'),
-    badges: t('profile.t09'),
-    streaks: t('profile.t04'),
-    community: t('profile.t13'),
-    activity: t('profile.t03'),
+    achievements: t('profile.t08', undefined, '도전과제'),
+    badges: t('profile.t09', undefined, '뱃지'),
+    streaks: t('profile.t04', undefined, '연속 기록'),
+    community: t('profile.t13', undefined, '커뮤니티 활동'),
+    activity: t('profile.t03', undefined, '발자국'),
 };
 
 function hiddenNote(profile: PublicProfile): string {

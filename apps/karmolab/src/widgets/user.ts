@@ -11,7 +11,10 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
     const PROGRESS_KEY = 'pet_strokes';
     /** [karmolab-react-src DEFAULT_TRACKS] id → 표시 이름 */
-    const STREAK_TRACK_LABELS: Record<string, string> = { daily_review: t('user.t58'), exercise: t('user.t59') };
+    const STREAK_TRACK_LABELS: Record<string, string> = {
+        daily_review: t('user.t58', undefined, '일일 복습'),
+        exercise: t('user.t59', undefined, '운동')
+    };
 
     type UserAchievement = {
         id: string;
@@ -54,23 +57,23 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         badges: UserBadge[];
     } = {
         achievements: [
-            { id: 'pet_100', title: t('user.t60'), desc: t('user.t61'), icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 100 },
-            { id: 'pet_1000', title: t('user.t62'), desc: t('user.t63'), icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 1000 },
-            { id: 'pet_10000', title: t('user.t64'), desc: t('user.t65'), icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 10000 },
-            { id: 'pet_100000', title: t('user.t66'), desc: t('user.t67'), icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 100000 },
-            { id: 'pet_500000', title: t('user.t68'), desc: t('user.t69'), icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 500000 },
-            { id: 'first_chat', title: t('user.t70'), desc: t('user.t71'), icon: '💬', source: 'chatbot' },
-            { id: 'first_image', title: t('user.t72'), desc: t('user.t73'), icon: '🎨', source: 'imagegen' },
-            { id: 'streak_first', title: t('user.t74'), desc: t('user.t75'), icon: '🌱', source: 'streak' },
-            { id: 'streak_7', title: t('user.t76'), desc: t('user.t77'), icon: '🔥', source: 'streak' },
-            { id: 'streak_30', title: t('user.t78'), desc: t('user.t79'), icon: '🔥', source: 'streak' },
-            { id: 'streak_100', title: t('user.t80'), desc: t('user.t81'), icon: '🔥', source: 'streak' },
-            { id: 'reaction_200', title: t('user.t82'), desc: t('user.t83'), icon: '⚡', source: 'reaction' },
-            { id: 'reaction_150', title: t('user.t84'), desc: t('user.t85'), icon: '⚡', source: 'reaction' },
+            { id: 'pet_100', title: t('user.t60', undefined, '100번 쓰다듬기'), desc: t('user.t61', undefined, '고양이를 100번 쓰다듬었다'), icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 100 },
+            { id: 'pet_1000', title: t('user.t62', undefined, '1000번 쓰다듬기'), desc: t('user.t63', undefined, '고양이를 1000번 쓰다듬었다'), icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 1000 },
+            { id: 'pet_10000', title: t('user.t64', undefined, '10000번 쓰다듬기'), desc: t('user.t65', undefined, '고양이를 10000번 쓰다듬었다'), icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 10000 },
+            { id: 'pet_100000', title: t('user.t66', undefined, '100000번 쓰다듬기'), desc: t('user.t67', undefined, '고양이를 100000번 쓰다듬었다'), icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 100000 },
+            { id: 'pet_500000', title: t('user.t68', undefined, '500000번 쓰다듬기'), desc: t('user.t69', undefined, '고양이를 500000번 쓰다듬었다'), icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 500000 },
+            { id: 'first_chat', title: t('user.t70', undefined, '첫 대화'), desc: t('user.t71', undefined, '챗봇과 처음 이야기했다'), icon: '💬', source: 'chatbot' },
+            { id: 'first_image', title: t('user.t72', undefined, '첫 그림'), desc: t('user.t73', undefined, '이미지를 처음 만들었다'), icon: '🎨', source: 'imagegen' },
+            { id: 'streak_first', title: t('user.t74', undefined, '첫 스트릭'), desc: t('user.t75', undefined, '연속 기록을 처음 만들었다'), icon: '🌱', source: 'streak' },
+            { id: 'streak_7', title: t('user.t76', undefined, '7일 스트릭'), desc: t('user.t77', undefined, '7일 연속으로 왔다'), icon: '🔥', source: 'streak' },
+            { id: 'streak_30', title: t('user.t78', undefined, '30일 스트릭'), desc: t('user.t79', undefined, '30일 연속으로 왔다'), icon: '🔥', source: 'streak' },
+            { id: 'streak_100', title: t('user.t80', undefined, '100일 스트릭'), desc: t('user.t81', undefined, '100일 연속으로 왔다'), icon: '🔥', source: 'streak' },
+            { id: 'reaction_200', title: t('user.t82', undefined, '반응 200'), desc: t('user.t83', undefined, '반응 속도 200점을 넘겼다'), icon: '⚡', source: 'reaction' },
+            { id: 'reaction_150', title: t('user.t84', undefined, '반응 150'), desc: t('user.t85', undefined, '반응 속도 150점을 넘겼다'), icon: '⚡', source: 'reaction' },
         ],
         badges: [
-            { id: 'pet_marriage', title: t('user.t86'), desc: t('user.t87'), icon: '💖', source: 'pet' },
-            { id: 'toolbox_explorer', title: t('user.t88'), desc: t('user.t89'), icon: '🧭', source: 'system' },
+            { id: 'pet_marriage', title: t('user.t86', undefined, '결혼'), desc: t('user.t87', undefined, '고양이와 결혼했다'), icon: '💖', source: 'pet' },
+            { id: 'toolbox_explorer', title: t('user.t88', undefined, '탐험가'), desc: t('user.t89', undefined, '도구상자의 여러 곳을 돌아다녔다'), icon: '🧭', source: 'system' },
         ],
     };
 
@@ -1044,9 +1047,9 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
     /** 받을 알림 갈래 (TASK-KL-175 E1). 이름은 서버 칸 이름과 같다. */
     const NOTIFY_LABELS: Array<[string, string]> = [
-        ['community', t('user.t136')],
-        ['follow', t('user.t137')],
-        ['system', t('user.t138')],
+        ['community', t('user.t136', undefined, '커뮤니티 안')],
+        ['follow', t('user.t137', undefined, '사람 사이')],
+        ['system', t('user.t138', undefined, '그 밖(계정·도구·봇)')],
     ];
 
     async function mountNotifyPrefs(slot: HTMLElement | null, base: string): Promise<void> {
@@ -1282,14 +1285,14 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
     /** 공개 범위 (TASK-KL-152 C4) — 끄면 서버 응답에서 빠진다. 여기 칸 이름은 서버 칸 이름과 같다. */
     const VISIBILITY_LABELS: Array<[string, string]> = [
-        ['profile', t('user.t154')],
-        ['achievements', t('user.t90')],
-        ['badges', t('user.t91')],
-        ['streaks', t('user.t155')],
-        ['community', t('user.t156')],
-        ['activity', t('user.t157')],
+        ['profile', t('user.t154', undefined, '프로필')],
+        ['achievements', t('user.t90', undefined, '도전과제')],
+        ['badges', t('user.t91', undefined, '뱃지')],
+        ['streaks', t('user.t155', undefined, '스트릭')],
+        ['community', t('user.t156', undefined, '커뮤니티')],
+        ['activity', t('user.t157', undefined, '활동')],
         // 이것만 기본이 꺼짐이다 — 새로 생기는 노출은 켜는 사람만 켠다 (TASK-KL-156 D5).
-        ['presence', t('user.t158')],
+        ['presence', t('user.t158', undefined, '지금 하고 있는 것')],
     ];
 
     function mountVisibility(slot: HTMLElement | null, base: string): void {
