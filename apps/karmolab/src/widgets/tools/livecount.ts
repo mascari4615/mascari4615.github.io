@@ -9,32 +9,38 @@
  * 그런 게 열 개 쌓이면 배터리가 닳고, 원인은 아무 데도 안 보인다(가만히 둔 화면이 초당 300번
  * 그리던 사고를 하루 전에 겪었다). `Toolbox.onDispose` 가 그 자리를 위해 있다.
  */
-import { elapsed, humanElapsed, project } from '../../core/livecount';
+import { elapsed, project } from '../../core/livecount';
+import { t, loadNamespace, locale } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'livecount',
-    title: '흐른 시간 카운터',
+    title: t('widgets.livecount.title', undefined, "흐른 시간 카운터"),
     category: 'tool',
-    desc: '그날 이후 흐른 시간이 초 단위로 올라갑니다. 하루 몇 번 기준으로 어림도 냅니다',
+    desc: t('widgets-desc.livecount.desc', undefined, "그날 이후 흐른 시간이 초 단위로 올라갑니다. 하루 몇 번 기준으로 어림도 냅니다"),
     layout: 'wide',
     tabs: [
       {
         id: 'count',
-        label: '카운터',
+        label: t('livecount.t03', undefined, "카운터"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('livecount').then(function () {
+
           container.innerHTML = `
             <div class="tool-block">
               <div class="tool-row">
-                <label class="tool-label" for="lcAt">기준 시각</label>
+                <label class="tool-label" for="lcAt">${esc(t('livecount.label.lcAt'))}</label>
                 <input id="lcAt" class="tool-input" type="datetime-local" />
               </div>
               <div id="lcBig" class="tool-display" style="font-variant-numeric:tabular-nums;">—</div>
               <div id="lcSub" class="tool-hint"></div>
               <div class="tool-row" style="margin-top:var(--space-md);">
-                <label class="tool-label" for="lcRate">하루 몇 번</label>
+                <label class="tool-label" for="lcRate">${esc(t('livecount.label.lcRate'))}</label>
                 <input id="lcRate" class="tool-input" type="number" min="0" step="0.5" value="0" style="max-width:8em;" />
-                <input id="lcUnit" class="tool-input" type="text" value="잔" maxlength="6" style="max-width:6em;" aria-label="단위" />
+                <input id="lcUnit" class="tool-input" type="text" value="잔" maxlength="6" style="max-width:6em;" aria-label="${esc(t('livecount.aria.lcUnit'))}" />
               </div>
               <div id="lcRateOut" class="tool-note"></div>
             </div>`;
@@ -52,20 +58,29 @@ import { elapsed, humanElapsed, project } from '../../core/livecount';
             const at = new Date(atInput.value);
             if (Number.isNaN(at.getTime())) {
               $('#lcBig').textContent = '—';
-              $('#lcSub').textContent = '기준 시각을 골라 주세요';
+              $('#lcSub').textContent = t('livecount.t04');
               return;
             }
             const e = elapsed(at);
-            $('#lcBig').textContent = `${e.totalSeconds.toLocaleString('ko-KR')}초`;
+            $('#lcBig').textContent = t('livecount.seconds', { n: e.totalSeconds.toLocaleString(locale()) });
             $('#lcSub').textContent =
-              `${humanElapsed(e)} · ${e.totalDays.toLocaleString('ko-KR')}일 · ` +
-              `${e.years}년 ${e.months}개월 ${e.days}일 ${e.hours}:${String(e.minutes).padStart(2, '0')}:${String(e.seconds).padStart(2, '0')}`;
+              t('livecount.line', {
+                days: e.totalDays.toLocaleString(locale()),
+                y: e.years,
+                mo: e.months,
+                d: e.days,
+                clock: `${e.hours}:${String(e.minutes).padStart(2, '0')}:${String(e.seconds).padStart(2, '0')}`,
+                tail: e.future ? t('livecount.left') : t('livecount.past'),
+              });
 
             const perDay = Number(rateInput.value);
-            const unit = unitInput.value.trim() === '' ? '번' : unitInput.value.trim();
+            const unit = unitInput.value.trim() === '' ? t('livecount.t05') : unitInput.value.trim();
             if (Number.isFinite(perDay) && perDay > 0) {
               $('#lcRateOut').textContent =
-                `약 ${project(e, perDay).toLocaleString('ko-KR')}${unit} — 어림입니다(안 한 날도 그대로 곱했습니다)`;
+                t('livecount.projected', {
+                  n: project(e, perDay).toLocaleString(locale()),
+                  unit,
+                });
             } else {
               $('#lcRateOut').textContent = '';
             }
@@ -80,6 +95,7 @@ import { elapsed, humanElapsed, project } from '../../core/livecount';
            */
           const timer = window.setInterval(tick, 1000);
           Toolbox.onDispose?.(() => window.clearInterval(timer));
+                  });
         }
       }
     ]

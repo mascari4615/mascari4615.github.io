@@ -1,0 +1,13 @@
+{
+  "livecount.aria.lcUnit": "Unit",
+  "livecount.label.lcAt": "The moment counted from",
+  "livecount.label.lcRate": "How many a day",
+  "livecount.t03": "Counter",
+  "livecount.t04": "Please choose the moment to count from",
+  "livecount.t05": "times",
+  "livecount.seconds": "{n} seconds",
+  "livecount.line": "{y}y {mo}mo {d}d {tail} · {days} days · {y}y {mo}mo {d}d {clock}",
+  "livecount.left": "left",
+  "livecount.past": "gone",
+  "livecount.projected": "about {n}{unit} — a rough guess (days you skipped were multiplied all the same)"
+}

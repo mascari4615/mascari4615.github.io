@@ -1,0 +1,14 @@
+{
+  "comparepic.aria.cpHandle": "Compare position",
+  "comparepic.label.cpA": "Choose the left (before)",
+  "comparepic.label.cpB": "Choose the right (after)",
+  "comparepic.btn.cpSave": "Save as PNG",
+  "comparepic.t03": "Before and after",
+  "comparepic.t04": "Push the handle (← → keys work too)",
+  "comparepic.say.05": "Choose the other picture as well",
+  "comparepic.say.06": "This picture could not be read",
+  "comparepic.say.07": "The image to save could not be made",
+  "comparepic.say.08": "Saved exactly as it looks now",
+  "comparepic.say.09": "Choose two photos. The files never leave your device",
+  "comparepic.sizeDiff": "The sizes differ ({a} / {b}) — they are laid over each other at the larger size"
+}

@@ -12,21 +12,26 @@
  */
 import { dateKST, humanLeft, msUntilNextKST, playKey } from '../../core/daily';
 import { grade, puzzleFor, type Puzzle } from '../../core/dailytype';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (s: string): string => s.replace(/[<&]/g, (c) => (c === '<' ? '&lt;' : '&amp;'));
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 
   Toolbox.register({
     id: 'dailytype',
-    title: '오늘의 한글 타자',
+    title: t('widgets.dailytype.title', undefined, "오늘의 한글 타자"),
     category: 'tool',
-    desc: '매일 바뀌는 세 문장. 전원 같은 문제이고, 결과는 격자로만 공유됩니다',
+    desc: t('widgets-desc.dailytype.desc', undefined, "매일 바뀌는 세 문장. 전원 같은 문제이고, 결과는 격자로만 공유됩니다"),
     layout: 'wide',
     tabs: [
       {
         id: 'play',
-        label: '오늘의 타자',
+        label: t('dailytype.t04', undefined, "오늘의 타자"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('dailytype').then(function () {
+
           const today = dateKST();
           const puzzle: Puzzle = puzzleFor(today);
           const done = localStorage.getItem(playKey('hangul-type', today));
@@ -37,15 +42,15 @@ import { grade, puzzleFor, type Puzzle } from '../../core/dailytype';
                 <strong>한글타자 #${puzzle.day}</strong>
                 <span class="tool-hint">다음 문제까지 ${esc(humanLeft(msUntilNextKST()))}</span>
               </div>
-              <p class="tool-hint">세 문장을 그대로 칩니다. 첫 글자를 치는 순간 시간이 갑니다.</p>
+              <p class="tool-hint">${esc(t('dailytype.t01'))}</p>
               <div id="dtLines"></div>
               <div class="tool-row">
-                <button id="dtDone" class="tool-btn tool-btn-primary" type="button">다 쳤어요</button>
-                <button id="dtReset" class="tool-btn" type="button">다시</button>
+                <button id="dtDone" class="tool-btn tool-btn-primary" type="button">${esc(t('dailytype.btn.dtDone'))}</button>
+                <button id="dtReset" class="tool-btn" type="button">${esc(t('dailytype.btn.dtReset'))}</button>
               </div>
               <div id="dtSay" class="tool-note" role="status"></div>
               <pre id="dtShare" style="display:none; white-space:pre-wrap;"></pre>
-              <button id="dtCopy" class="tool-btn" type="button" style="display:none;">결과 복사</button>
+              <button id="dtCopy" class="tool-btn" type="button" style="display:none;">${esc(t('dailytype.btn.dtCopy'))}</button>
             </div>`;
 
           const $ = <T extends HTMLElement>(sel: string): T => container.querySelector(sel) as T;
@@ -79,17 +84,17 @@ import { grade, puzzleFor, type Puzzle } from '../../core/dailytype';
 
           const finish = (): void => {
             if (startedAt === 0) {
-              say('아직 한 글자도 안 쳤어요', 'error');
+              say(t('dailytype.say.05'), 'error');
               return;
             }
             const seconds = Math.max(1, (Date.now() - startedAt) / 1000);
             const report = grade(puzzle, { seconds, typed: inputs.map((i) => i.value) });
-            say(`${report.perMinute}타/분 · 정확도 ${report.accuracy}%`, 'ok');
+            say(t('dailytype.report', { wpm: report.perMinute, acc: report.accuracy }), 'ok');
             $('#dtShare').textContent = report.share;
             $('#dtShare').style.display = '';
             $('#dtCopy').style.display = '';
             $<HTMLButtonElement>('#dtCopy').onclick = () =>
-              void Toolbox.copyText?.(report.share, { message: '결과를 복사했어요 (문장은 안 담겨요)' });
+              void Toolbox.copyText?.(report.share, { message: t('dailytype.t06') });
 
             /* 오늘 했다는 것만 남긴다. 막지는 않는다 — 막으면 내일도 안 온다. */
             try {
@@ -105,14 +110,15 @@ import { grade, puzzleFor, type Puzzle } from '../../core/dailytype';
             startedAt = 0;
             $('#dtShare').style.display = 'none';
             $('#dtCopy').style.display = 'none';
-            say('처음부터');
+            say(t('dailytype.say.07'));
           };
 
           say(
             done === null
-              ? `오늘 총 ${puzzle.strokes}타 — 준비되면 바로 치세요`
-              : `오늘은 이미 ${done}타/분 했어요. 연습은 계속 열려 있습니다`
+              ? t('dailytype.today', { n: puzzle.strokes })
+              : t('dailytype.already', { n: done })
           );
+                  });
         }
       }
     ]

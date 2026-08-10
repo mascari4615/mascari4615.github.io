@@ -1,0 +1,14 @@
+{
+  "comparepic.aria.cpHandle": "비교 위치",
+  "comparepic.label.cpA": "왼쪽(전) 고르기",
+  "comparepic.label.cpB": "오른쪽(후) 고르기",
+  "comparepic.btn.cpSave": "PNG 로 저장",
+  "comparepic.t03": "전후 비교",
+  "comparepic.t04": "손잡이를 밀어 보세요 (← → 키도 됩니다)",
+  "comparepic.say.05": "나머지 한 장도 고르세요",
+  "comparepic.say.06": "이 그림을 못 읽었습니다",
+  "comparepic.say.07": "저장할 그림을 못 만들었습니다",
+  "comparepic.say.08": "지금 보이는 그대로 저장했습니다",
+  "comparepic.say.09": "사진 두 장을 고르세요. 파일은 기기 밖으로 나가지 않습니다",
+  "comparepic.sizeDiff": "크기가 다릅니다 ({a} / {b}) — 큰 쪽에 맞춰 겹쳤습니다"
+}

@@ -1,0 +1,12 @@
+{
+  "dailycho.t01": "答えはこのサイトにある道具の名前です。当たると、どの道具かを教えます。",
+  "dailycho.btn.chDone": "採点",
+  "dailycho.btn.chReset": "消す",
+  "dailycho.btn.chCopy": "結果をコピー",
+  "dailycho.t04": "今日の頭文字",
+  "dailycho.t05": "🟨 一文字ちがい",
+  "dailycho.t06": "結果をコピーしました (答えは入っていません)",
+  "dailycho.say.07": "最初から",
+  "dailycho.t08": "頭文字だけを見て当ててみてください",
+  "dailycho.score": "{right}/{total} 正解"
+}

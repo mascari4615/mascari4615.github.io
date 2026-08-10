@@ -1,0 +1,18 @@
+{
+  "mesh3d.label.m3File": "Choose a 3D file",
+  "mesh3d.btn.m3Reset": "Reset the angle",
+  "mesh3d.btn.m3Png": "Save as PNG",
+  "mesh3d.t01": "Drag to turn it, and zoom with the wheel or two fingers. It reads STL (text and binary) and OBJ.",
+  "mesh3d.err.02": "The WebGL shader could not be made",
+  "mesh3d.t05": "Open it",
+  "mesh3d.say.06": "WebGL is not available in this browser — 3D cannot be drawn",
+  "mesh3d.err.07": "The WebGL program could not be made",
+  "mesh3d.say.08": "Reading…",
+  "mesh3d.err.09": "There is not a single triangle — the file may be empty",
+  "mesh3d.t10": "(the unit is not written in the file — for 3D printing it is usually mm)",
+  "mesh3d.say.11": "The image to save could not be made",
+  "mesh3d.say.12": "Choose an STL or OBJ file. The file never leaves your device",
+  "mesh3d.err.shader": "Shader error: {why}",
+  "mesh3d.err.link": "WebGL link error: {why}",
+  "mesh3d.info": "{n} triangles · size {x} × {y} × {z}"
+}

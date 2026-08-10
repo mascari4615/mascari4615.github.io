@@ -1,0 +1,13 @@
+{
+  "dailytype.t01": "Type the three sentences as they are. The clock starts the moment you type the first letter.",
+  "dailytype.btn.dtDone": "Done typing",
+  "dailytype.btn.dtReset": "Again",
+  "dailytype.btn.dtCopy": "Copy the result",
+  "dailytype.t04": "Today’s typing",
+  "dailytype.say.05": "Not a single letter yet",
+  "dailytype.t06": "The result is copied (the sentences are not included)",
+  "dailytype.say.07": "From the start",
+  "dailytype.report": "{wpm} keystrokes/min · accuracy {acc}%",
+  "dailytype.today": "{n} keystrokes in all today — start whenever you are ready",
+  "dailytype.already": "You already did {n} keystrokes/min today. Practice stays open."
+}
