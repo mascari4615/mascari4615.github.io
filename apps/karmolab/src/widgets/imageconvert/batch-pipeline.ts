@@ -10,6 +10,7 @@ import type {
   KarmoLabImageBatchRecipe,
   KarmoLabImageConvertAPI
 } from '../../../types/karmolab';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (global: Window) {
   const StepType = {
@@ -18,7 +19,7 @@ import type {
 
   function assertRecipe(recipe: KarmoLabImageBatchRecipe | null | undefined): void {
     if (!recipe || !Array.isArray(recipe.steps) || recipe.steps.length === 0) {
-      throw new Error('KarmoLabImageBatch: recipe.steps 가 비어 있지 않아야 합니다.');
+      throw new Error(t('imageconvert.err.832'));
     }
   }
 
@@ -34,11 +35,11 @@ import type {
   ): Promise<Blob> {
     assertRecipe(recipe);
     if (!recipe || recipe.steps.length !== 1) {
-      return Promise.reject(new Error('KarmoLabImageBatch: 현재는 변환 단계 1개만 지원합니다.'));
+      return Promise.reject(new Error(t('imageconvert.err.842')));
     }
     const step = recipe.steps[0];
     if (step.type !== StepType.CONVERT || !step.opts) {
-      return Promise.reject(new Error('KarmoLabImageBatch: 지원하지 않는 단계입니다.'));
+      return Promise.reject(new Error(t('imageconvert.err.852')));
     }
     if (signal && signal.aborted) {
       return Promise.reject(new DOMException('Aborted', 'AbortError'));

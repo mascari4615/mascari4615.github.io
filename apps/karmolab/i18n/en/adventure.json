@@ -38,5 +38,9 @@
   "adventure.t33": "commit + push in progress...",
   "adventure.t34": "Error: not a Tauri environment (committing is not possible in a browser)",
   "adventure.t35": "(no change)",
-  "adventure.end.extracted": "Extraction done — slug: {slug}, title: {title}. Review, then commit."
+  "adventure.end.extracted": "Extraction done — slug: {slug}, title: {title}. Review, then commit.",
+  "adventure.t36": "⚙ Provider settings",
+  "adventure.t37": "Claude (Max OAuth) works only inside the Tauri desktop app (after stage ζ). Vertex is called straight from the browser — it needs an API key and a project ID.",
+  "adventure.t38": "Claude model",
+  "adventure.t39": "Vertex model"
 }

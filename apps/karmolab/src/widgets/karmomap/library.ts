@@ -11,6 +11,8 @@
  *
  * 옛 단일 키는 처음 열 때 첫 장으로 옮기고 **스스로 지운다** (마이그레이션은 자기소멸).
  */
+import { t } from '../../lib/i18n';
+
 
 const INDEX_KEY = 'karmomap.index';
 const MAP_PREFIX = 'karmomap.map.';
@@ -42,7 +44,7 @@ function readIndex(): LibraryIndex | null {
       maps: parsed.maps.filter((m): m is MapEntry => Boolean(m && m.id)),
     };
   } catch (e) {
-    console.error('[karmomap] 맵 목록 읽기 실패', e);
+    console.error(t('karmomap.t405'), e);
     return null;
   }
 }
@@ -51,7 +53,7 @@ function writeIndex(index: LibraryIndex): void {
   try {
     localStorage.setItem(INDEX_KEY, JSON.stringify(index));
   } catch (e) {
-    console.error('[karmomap] 맵 목록 저장 실패', e);
+    console.error(t('karmomap.t406'), e);
   }
 }
 
@@ -79,12 +81,12 @@ export function loadLibrary(): LibraryIndex {
       localStorage.setItem(mapKey(id), legacy);
       localStorage.removeItem(LEGACY_KEY);   // 마이그레이션은 자기소멸 — 두 곳에 남기지 않는다
     } catch (e) {
-      console.error('[karmomap] 옛 저장본 이사 실패', e);
+      console.error(t('karmomap.t407'), e);
     }
   }
   const index: LibraryIndex = {
     activeId: id,
-    maps: [{ id, name: legacy ? '내 맵' : '첫 맵', updatedAt: Date.now() }],
+    maps: [{ id, name: legacy ? t('karmomap.t408') : t('karmomap.t409'), updatedAt: Date.now() }],
   };
   writeIndex(index);
   return index;
@@ -115,7 +117,7 @@ export function addMap(index: LibraryIndex, name: string, specJson?: string): { 
     try {
       localStorage.setItem(mapKey(id), specJson);
     } catch (e) {
-      console.error('[karmomap] 새 맵 저장 실패', e);
+      console.error(t('karmomap.t410'), e);
     }
   }
   const next: LibraryIndex = {
@@ -134,10 +136,10 @@ export function removeMap(index: LibraryIndex, id: string): LibraryIndex {
   try {
     localStorage.removeItem(mapKey(id));
   } catch (e) {
-    console.error('[karmomap] 맵 삭제 실패', e);
+    console.error(t('karmomap.t411'), e);
   }
   if (index.maps.length <= 1) {
-    const next: LibraryIndex = { activeId: id, maps: [{ id, name: index.maps[0]?.name ?? '첫 맵', updatedAt: Date.now() }] };
+    const next: LibraryIndex = { activeId: id, maps: [{ id, name: index.maps[0]?.name ?? t('karmomap.t409'), updatedAt: Date.now() }] };
     writeIndex(next);
     return next;
   }
@@ -148,5 +150,5 @@ export function removeMap(index: LibraryIndex, id: string): LibraryIndex {
 }
 
 export function activeName(index: LibraryIndex): string {
-  return index.maps.find((m) => m.id === index.activeId)?.name ?? '맵';
+  return index.maps.find((m) => m.id === index.activeId)?.name ?? t('karmomap.t412');
 }

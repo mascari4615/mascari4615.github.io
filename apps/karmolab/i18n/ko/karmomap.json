@@ -451,5 +451,13 @@
   "karmomap.nothingYet": "아직 없습니다.",
   "karmomap.andMore": "외 {n}",
   "karmomap.minsAgo": "{n}분 전",
-  "karmomap.hoursAgo": "{n}시간 전"
+  "karmomap.hoursAgo": "{n}시간 전",
+  "karmomap.t405": "[karmomap] 맵 목록 읽기 실패",
+  "karmomap.t406": "[karmomap] 맵 목록 저장 실패",
+  "karmomap.t407": "[karmomap] 옛 저장본 이사 실패",
+  "karmomap.t408": "내 맵",
+  "karmomap.t409": "첫 맵",
+  "karmomap.t410": "[karmomap] 새 맵 저장 실패",
+  "karmomap.t411": "[karmomap] 맵 삭제 실패",
+  "karmomap.t412": "맵"
 }

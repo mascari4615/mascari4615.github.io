@@ -11,6 +11,8 @@
  * 그림을 내보내는 길은 `brag-card.ts` 와 같은 순서다: 공유 창에 그림 얹기 → 안 되면 내려받기
  * → 그것도 막히면 글자만 복사. 없는 기능을 있는 척하지 않는다.
  */
+import { t } from '../../lib/i18n';
+
 const WIDTH = 1200;
 const HEIGHT = 630;
 
@@ -113,14 +115,14 @@ export async function shareCard(
   facts: { text: string; channel: string }
 ): Promise<string> {
   const blob = await drawShareable(render);
-  if (!blob) return '그림을 못 만들었어요';
+  if (!blob) return t('pulse.t17');
 
   const file = new File([blob], `pulse-${facts.text}.png`, { type: 'image/png' });
   const nav = navigator as Navigator & { canShare?: (data: ShareData) => boolean };
   if (nav.share && nav.canShare?.({ files: [file] })) {
     try {
       await nav.share({ files: [file], text: `${facts.text} — ${facts.channel}` });
-      return '공유했어요';
+      return t('pulse.t18');
     } catch (err) {
       /* 사용자가 창을 닫은 것도 여기로 온다 — 실패로 떠들지 않는다 */
       if ((err as Error)?.name === 'AbortError') return '';
@@ -132,7 +134,7 @@ export async function shareCard(
     const ClipItem = (window as unknown as { ClipboardItem?: typeof ClipboardItem }).ClipboardItem;
     if (ClipItem && navigator.clipboard?.write) {
       await navigator.clipboard.write([new ClipItem({ 'image/png': blob })]);
-      return '그림을 클립보드에 담았어요';
+      return t('pulse.t19');
     }
   } catch {
     /* 다음 수단으로 */
@@ -145,5 +147,5 @@ export async function shareCard(
   a.download = `pulse-${facts.text}.png`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
-  return '그림으로 내려받았어요';
+  return t('pulse.t20');
 }

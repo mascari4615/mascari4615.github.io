@@ -347,5 +347,9 @@
   "pulse.t14": " · one nebula",
   "pulse.t15": "A nebula hangs far off",
   "pulse.t16": "A sky where nothing happens",
-  "pulse.art.times": "{n}×"
+  "pulse.art.times": "{n}×",
+  "pulse.t17": "The image could not be made",
+  "pulse.t18": "Shared",
+  "pulse.t19": "The image is on the clipboard",
+  "pulse.t20": "Downloaded as an image"
 }

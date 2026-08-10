@@ -38,5 +38,9 @@
   "adventure.t33": "commit + push 진행 중...",
   "adventure.t34": "에러: Tauri 환경 아님 (브라우저에서는 commit 불가)",
   "adventure.t35": "(변경 없음)",
-  "adventure.end.extracted": "추출 완료 — slug: {slug}, title: {title}. 검토 후 commit."
+  "adventure.end.extracted": "추출 완료 — slug: {slug}, title: {title}. 검토 후 commit.",
+  "adventure.t36": "⚙ Provider 설정",
+  "adventure.t37": "Claude (Max OAuth) 는 Tauri 데스크톱 앱 안에서만 동작합니다 (ζ 단계 후). Vertex 는 브라우저 직접 호출 — API key + 프로젝트 ID 필요.",
+  "adventure.t38": "Claude 모델",
+  "adventure.t39": "Vertex 모델"
 }

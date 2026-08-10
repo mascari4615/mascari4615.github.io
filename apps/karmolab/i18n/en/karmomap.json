@@ -451,5 +451,13 @@
   "karmomap.nothingYet": "None yet.",
   "karmomap.andMore": "and {n} more",
   "karmomap.minsAgo": "{n} min ago",
-  "karmomap.hoursAgo": "{n} h ago"
+  "karmomap.hoursAgo": "{n} h ago",
+  "karmomap.t405": "[karmomap] reading the map list failed",
+  "karmomap.t406": "[karmomap] saving the map list failed",
+  "karmomap.t407": "[karmomap] moving the old save failed",
+  "karmomap.t408": "My maps",
+  "karmomap.t409": "First map",
+  "karmomap.t410": "[karmomap] saving the new map failed",
+  "karmomap.t411": "[karmomap] deleting the map failed",
+  "karmomap.t412": "Map"
 }
