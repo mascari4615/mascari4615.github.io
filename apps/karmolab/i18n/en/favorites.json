@@ -31,5 +31,16 @@
   "favorites.t14": "Please put in a URL",
   "favorites.t15": "Added",
   "favorites.t16": "Deleted",
-  "favorites.tab.main": "Favourites"
+  "favorites.tab.main": "Favourites",
+  "favorites.group.dev": "Development",
+  "favorites.group.career": "Jobs and career",
+  "favorites.group.maple": "MapleStory",
+  "favorites.group.searchAi": "Search and AI",
+  "favorites.group.aiArt": "AI art",
+  "favorites.group.social": "Social and media",
+  "favorites.group.neighbours": "Mutual neighbours",
+  "favorites.group.friends": "Neighbours",
+  "favorites.group.tools": "Tools",
+  "favorites.group.guide": "Guides",
+  "favorites.group.keep": "Keep reading"
 }

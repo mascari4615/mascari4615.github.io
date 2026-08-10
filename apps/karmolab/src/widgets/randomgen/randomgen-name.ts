@@ -2,6 +2,8 @@
  * 랜덤 생성기 — 이름 (generator 전용)
  * randomgen-topics.js 로드 후 RANDOMGEN_TOPICS에 추가됨
  */
+import { t } from '../../lib/i18n';
+
 (function () {
   function pick(arr: string[]): string {
     return arr[Math.floor(Math.random() * arr.length)];
@@ -73,8 +75,8 @@
 
   topics.push({
     id: 'kr',
-    label: '한국 이름',
-    group: '이름',
+    get label() { return t('randomgen.topic.kr.label'); },
+    get group() { return t('randomgen.topic.kr.group'); },
     generator: function () {
       return pick(family) + pick(given) + pick(given);
     }

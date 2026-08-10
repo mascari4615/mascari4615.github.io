@@ -31,5 +31,16 @@
   "favorites.t14": "URL을 입력해주세요",
   "favorites.t15": "추가되었습니다",
   "favorites.t16": "삭제되었습니다",
-  "favorites.tab.main": "즐겨찾기"
+  "favorites.tab.main": "즐겨찾기",
+  "favorites.group.dev": "개발",
+  "favorites.group.career": "채용·커리어",
+  "favorites.group.maple": "메이플",
+  "favorites.group.searchAi": "검색·AI",
+  "favorites.group.aiArt": "AI 아트",
+  "favorites.group.social": "소셜·미디어",
+  "favorites.group.neighbours": "서로이웃",
+  "favorites.group.friends": "짝이웃",
+  "favorites.group.tools": "도구",
+  "favorites.group.guide": "이끔",
+  "favorites.group.keep": "계속"
 }

@@ -31,5 +31,16 @@
   "favorites.t14": "URL を入力してください",
   "favorites.t15": "追加しました",
   "favorites.t16": "削除しました",
-  "favorites.tab.main": "お気に入り"
+  "favorites.tab.main": "お気に入り",
+  "favorites.group.dev": "開発",
+  "favorites.group.career": "採用・キャリア",
+  "favorites.group.maple": "メイプル",
+  "favorites.group.searchAi": "検索・AI",
+  "favorites.group.aiArt": "AI アート",
+  "favorites.group.social": "ソーシャル・メディア",
+  "favorites.group.neighbours": "相互リンク",
+  "favorites.group.friends": "ご近所ブログ",
+  "favorites.group.tools": "道具",
+  "favorites.group.guide": "導き",
+  "favorites.group.keep": "読み続ける"
 }

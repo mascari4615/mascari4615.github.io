@@ -52,5 +52,22 @@
   "randomgen.t11": "</div><div id=\"randomTopicOptionsWrap\" class=\"randomgen-topic-options-wrap\"><div class=\"randomgen-popup-title\">Chosen topics <span class=\"randomgen-topic-hint\">(pin: always include one)</span></div><div id=\"randomTopicSelectedList\" class=\"randomgen-topic-selected-list\"></div></div></div><div class=\"randomgen-topic-tab-panel\" id=\"randomTopicAddPanel\" data-tab=\"add\"><div class=\"randomgen-add-section\"><div class=\"randomgen-add-header\"><h3 class=\"randomgen-add-title\">Add a new topic</h3><p class=\"randomgen-add-desc\">Type the items separated by commas.</p></div><div id=\"randomTopicAddForm\" class=\"randomgen-add-form\"><div class=\"randomgen-add-row\"><div class=\"randomgen-add-field\"><label class=\"randomgen-add-label\">Name</label><input type=\"text\" id=\"addTopicLabel\" placeholder=\"My topic\" class=\"field-input\"></div><div class=\"randomgen-add-field\"><label class=\"randomgen-add-label\">Group</label><input type=\"text\" id=\"addTopicGroup\" placeholder=\"Other\" class=\"field-input\" value=\"Other\"></div></div><div class=\"randomgen-add-field randomgen-add-field-id\"><label class=\"randomgen-add-label\">ID <span class=\"randomgen-add-hint\">(left blank, it is made from the name)</span></label><input type=\"text\" id=\"addTopicId\" placeholder=\"my_topic\" class=\"field-input\"></div><div class=\"randomgen-add-field\"><label class=\"randomgen-add-label\">Items</label><textarea id=\"addTopicItems\" class=\"field-input\" rows=\"4\" placeholder=\"item 1, item 2, item 3\"></textarea></div><div class=\"randomgen-add-actions\"><button class=\"btn btn-primary\" id=\"addTopicBtn\">Add</button><span id=\"addTopicMsg\" class=\"randomgen-add-msg\"></span></div></div></div></div><button type=\"button\" class=\"randomgen-topic-close-fab\" id=\"randomTopicClose\" title=\"Close\">×</button></div></div>",
   "randomgen.t12": "<div class=\"randomgen-popup-backdrop\" id=\"randomTablePopup\"><div class=\"randomgen-popup randomgen-table-popup\" onclick=\"event.stopPropagation()\"><div class=\"randomgen-popup-title\" id=\"randomTableTitle\">Items</div><div id=\"randomTableContent\" class=\"randomgen-table-content\"></div><button type=\"button\" class=\"btn btn-ghost\" style=\"margin-top:12px;\" id=\"randomTableClose\">Close</button></div></div>",
   "randomgen.t13": "<div class=\"randomgen-popup-backdrop\" id=\"randomInfoPopup\"><div class=\"randomgen-popup\" onclick=\"event.stopPropagation()\"><div class=\"randomgen-popup-title\">Sources</div><div class=\"randomgen-info-content\"><p>Topics and keywords from:</p><p><a href=\"https://nihilapp.github.io/keyword\" target=\"_blank\" rel=\"noopener\" style=\"color:var(--accent);\">Nihil random keywords</a> · <a href=\"https://github.com/nihilapp/random-keyword-code\" target=\"_blank\" rel=\"noopener\" style=\"color:var(--accent);\">GitHub</a></p></div><button type=\"button\" class=\"btn btn-ghost\" style=\"margin-top:12px;\" id=\"randomInfoClose\">Close</button></div></div>",
-  "randomgen.t24": "\" title=\"See the items\">i</button>"
+  "randomgen.t24": "\" title=\"See the items\">i</button>",
+  "randomgen.topic.kr.label": "Korean name",
+  "randomgen.topic.kr.group": "Names",
+  "randomgen.topic.color_hex.label": "Colour (hex)",
+  "randomgen.topic.color_hex.group": "Nature",
+  "randomgen.topic.number_1_10.label": "Number (1–10)",
+  "randomgen.topic.number_1_10.group": "Basic",
+  "randomgen.topic.number_1_100.label": "Number (1–100)",
+  "randomgen.topic.number_1_100.group": "Basic",
+  "randomgen.topic.age.label": "Age",
+  "randomgen.topic.age.group": "Character",
+  "randomgen.topic.date.label": "Date",
+  "randomgen.topic.date.group": "Time",
+  "randomgen.topic.time_24h.label": "Time (24h)",
+  "randomgen.topic.time_24h.group": "Time",
+  "randomgen.unit.age": "{n} years old",
+  "randomgen.unit.day": "day {n}",
+  "randomgen.groupOther": "Other"
 }

@@ -42,8 +42,8 @@ import { t, loadNamespace } from '../../lib/i18n';
     function getGroups(): Array<{ id: string; label: string }> {
         const seen = new Set<string>();
         const groups: Array<{ id: string; label: string }> = [];
-        topics.forEach(t => {
-            const g = t.group || '기타';
+        topics.forEach(topic => {
+            const g = topic.group || t('randomgen.groupOther');
             if (!seen.has(g)) {
                 seen.add(g);
                 groups.push({ id: g, label: g });
@@ -54,10 +54,10 @@ import { t, loadNamespace } from '../../lib/i18n';
 
     function getTopicsByGroup(): Record<string, Topic[]> {
         const byGroup: Record<string, Topic[]> = {};
-        topics.forEach(t => {
-            const g = t.group || '기타';
+        topics.forEach(topic => {
+            const g = topic.group || t('randomgen.groupOther');
             if (!byGroup[g]) byGroup[g] = [];
-            byGroup[g].push(t);
+            byGroup[g].push(topic);
         });
         return byGroup;
     }
@@ -276,7 +276,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                     var label = ((container.querySelector('#addTopicLabel') as HTMLInputElement).value || '').trim();
                     var idRaw = ((container.querySelector('#addTopicId') as HTMLInputElement).value || '').trim();
                     var id = idRaw ? idRaw.replace(/\s+/g, '_') : (label ? label.replace(/\s+/g, '_') : '');
-                    var group = ((container.querySelector('#addTopicGroup') as HTMLInputElement).value || '기타').trim();
+                    var group = ((container.querySelector('#addTopicGroup') as HTMLInputElement).value || t('randomgen.groupOther')).trim();
                     var itemsStr = ((container.querySelector('#addTopicItems') as HTMLTextAreaElement).value || '').trim();
                     var items = itemsStr.split(/[,，]/).map(function (s) { return s.trim(); }).filter(Boolean);
                     var msgEl = container.querySelector('#addTopicMsg') as HTMLElement;
