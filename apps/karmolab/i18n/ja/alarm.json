@@ -8,7 +8,7 @@
   "alarm.t07": "日",
   "alarm.t08": "1回だけ",
   "alarm.t09": "毎日",
-  "alarm.t10": "<p class=\"kl-alarm-intro\">設定した時刻に KarmoLab が(トレイ最小化・アプリを閉じていても)強制的に起こします。",
+  "alarm.t10": "<p class=\"kl-alarm-intro\">設定した時刻に KarmoLab が(トレイ最小化・アプリを閉じていても)強制的に起こします。 ",
   "alarm.t11": "強制起床 = スリープから PC を起こす + モニタを ON + 音量を強制しミュートを無視。</p>",
   "alarm.t12": "+ アラームを追加",
   "alarm.t13": " Windows 起動時に自動実行 (再起動後もアラームを保証)",

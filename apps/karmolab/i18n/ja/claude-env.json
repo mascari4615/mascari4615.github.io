@@ -7,7 +7,7 @@
   "claude-env.t06": "Claude 環境の試聴に失敗",
   "claude-env.t07": "サウンド (wav/mp3)",
   "claude-env.t08": "Claude 環境のファイル選択に失敗",
-  "claude-env.t09": "Claude Code の Stop / Notification hook のサウンド通知。",
+  "claude-env.t09": "Claude Code の Stop / Notification hook のサウンド通知。 ",
   "claude-env.t10": "保存すると memo/dotfiles/claude-hooks/notify-*.ps1 の正本を編集し、sync-claude-hooks.ps1 が ~/.claude/hooks/ へ配ります。",
   "claude-env.t11": "正本の場所: (loading…)",
   "claude-env.t12": "Stop hook (応答の終わり)",
