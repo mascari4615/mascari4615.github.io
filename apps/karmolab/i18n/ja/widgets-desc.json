@@ -130,7 +130,7 @@
   "widgets-desc.numword.desc": "数字を漢数字で読み、漢数字を数字に戻します。契約書・領収書の金額表記に",
   "widgets-desc.aspect.desc": "縦横比を保ったままサイズを計算します。よく使う画面比と余白の計算つき",
   "widgets-desc.grade.desc": "科目ごとの単位と成績から GPA を計算します。目標に必要な成績も一緒に",
-  "widgets-desc.vat.desc": "本体価格に消費税を足したり、総額から抜いたりします。請求書の三行そのまま",
+  "widgets-desc.vat.desc": "本体価格に付加価値税を足したり、総額から抜いたりします。請求書の三行そのまま",
   "widgets-desc.bytesize.desc": "KB · MB · GB を相互に変換します。1000 基準と 1024 基準を並べて見ます",
   "widgets-desc.bizno.desc": "事業者登録番号・法人登録番号が形式として正しいか計算で確かめます",
   "widgets-desc.loan.desc": "元利均等・元金均等・満期一括を比べ、月ごとの元金と利息を見ます",
