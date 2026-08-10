@@ -24,21 +24,25 @@ import {
 import { compose, decompose } from '../../core/jamo';
 import { readInvocation } from '../../lib/tool-url';
 import { spec } from '../../core/charconv';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (s: string): string => s.replace(/[<&]/g, (c) => (c === '<' ? '&lt;' : '&amp;'));
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 
   type Mode = 'half' | 'full' | 'roman' | 'split' | 'join' | 'simp' | 'trad' | 'pinyin';
 
-  const MODES: Array<{ id: Mode; label: string }> = [
-    { id: 'half', label: '전각 → 반각' },
-    { id: 'full', label: '반각 → 전각' },
-    { id: 'roman', label: '한글 → 로마자' },
-    { id: 'split', label: '한글 → 자모' },
-    { id: 'join', label: '자모 → 한글' },
-    { id: 'simp', label: '번체 → 간체' },
-    { id: 'trad', label: '간체 → 번체' },
-    { id: 'pinyin', label: '한자 → 병음' }
+  /* 이름은 **쓸 때 정한다** — 이 배열이 모듈 뜨는 순간에 굳으면 한국어로 굳는다. */
+  const modes = (): Array<{ id: Mode; label: string }> => [
+    { id: 'half', label: t('charconv.t01') },
+    { id: 'full', label: t('charconv.t02') },
+    { id: 'roman', label: t('charconv.t03') },
+    { id: 'split', label: t('charconv.t04') },
+    { id: 'join', label: t('charconv.t05') },
+    { id: 'simp', label: t('charconv.t06') },
+    { id: 'trad', label: t('charconv.t07') },
+    { id: 'pinyin', label: t('charconv.t08') }
   ];
 
   /*
@@ -54,7 +58,7 @@ import { spec } from '../../core/charconv';
     if (pinyinLoading !== null) return pinyinLoading;
     pinyinLoading = fetch('/apps/karmolab/data/han-pinyin.json')
       .then((r) => {
-        if (r.ok === false) throw new Error(`소리 표를 못 받았습니다 (${r.status})`);
+        if (r.ok === false) throw new Error(t('charconv.err.table', { status: r.status }));
         return r.json();
       })
       .then((raw) => {
@@ -95,34 +99,36 @@ import { spec } from '../../core/charconv';
 
   Toolbox.register({
     id: 'charconv',
-    title: '문자 변환',
+    title: t('widgets.charconv.title', undefined, "문자 변환"),
     category: 'tool',
-    desc: '전각·반각, 한글·로마자, 한글·자모를 한 곳에서. 붙여 넣으면 섞인 글자를 먼저 알려 줍니다',
+    desc: t('widgets-desc.charconv.desc', undefined, "전각·반각, 한글·로마자, 한글·자모를 한 곳에서. 붙여 넣으면 섞인 글자를 먼저 알려 줍니다"),
     layout: 'wide',
     tabs: [
       {
         id: 'conv',
-        label: '변환',
+        label: t('charconv.t11', undefined, "변환"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('charconv').then(function () {
+
           container.innerHTML = `
             <div class="tool-block">
               <div class="tool-row" id="ccModes"></div>
-              <label class="tool-label" for="ccIn">넣을 글</label>
+              <label class="tool-label" for="ccIn">${esc(t('charconv.label.ccIn'))}</label>
               <textarea id="ccIn" class="tool-input" rows="4" spellcheck="false"></textarea>
               <div id="ccWarn" class="tool-note" role="status"></div>
-              <label class="tool-label" for="ccOut">바뀐 글</label>
+              <label class="tool-label" for="ccOut">${esc(t('charconv.label.ccOut'))}</label>
               <textarea id="ccOut" class="tool-input" rows="4" readonly></textarea>
               <div class="tool-row" id="ccToneRow" hidden>
-                <label class="tool-label" for="ccTone">성조</label>
+                <label class="tool-label" for="ccTone">${esc(t('charconv.label.ccTone'))}</label>
                 <select id="ccTone" class="tool-input" style="max-width:14em;">
-                  <option value="mark">부호 (hàn)</option>
-                  <option value="number">숫자 (han4)</option>
-                  <option value="none">없이 (han)</option>
+                  <option value="mark">${esc(t('charconv.opt.mark'))}</option>
+                  <option value="number">${esc(t('charconv.opt.number'))}</option>
+                  <option value="none">${esc(t('charconv.opt.none'))}</option>
                 </select>
               </div>
               <div class="tool-row">
-                <button id="ccCopy" class="tool-btn" type="button">복사</button>
-                <button id="ccSwap" class="tool-btn" type="button">결과를 입력으로</button>
+                <button id="ccCopy" class="tool-btn" type="button">${esc(t('charconv.btn.ccCopy'))}</button>
+                <button id="ccSwap" class="tool-btn" type="button">${esc(t('charconv.btn.ccSwap'))}</button>
               </div>
             </div>`;
 
@@ -131,7 +137,7 @@ import { spec } from '../../core/charconv';
           const output = $<HTMLTextAreaElement>('#ccOut');
           let mode: Mode = 'half';
 
-          $('#ccModes').innerHTML = MODES.map(
+          $('#ccModes').innerHTML = modes().map(
             (m) => `<button class="tool-btn" type="button" data-mode="${m.id}">${esc(m.label)}</button>`
           ).join('');
 
@@ -155,20 +161,20 @@ import { spec } from '../../core/charconv';
             const amb = mode === 'simp' || mode === 'trad' ? ambiguousChars(input.value, mode === 'trad') : [];
             const multi = mode === 'pinyin' && pinyinTable !== null ? manyReadings(pinyinTable, input.value) : [];
             if (mode === 'pinyin' && pinyinTable === null) {
-              warn.textContent = '소리 표를 받는 중입니다 (한 번만 받습니다)';
+              warn.textContent = t('charconv.t12');
               warn.className = 'tool-note';
             } else if (multi.length > 0) {
               warn.textContent =
-                '소리가 여럿인 글자가 있습니다 (첫 소리로 읽었습니다): ' +
-                multi.map((m) => `${m.ch} → ${m.readings.join(' 또는 ')}`).join(' · ');
+                t('charconv.t13') +
+                multi.map((m) => `${m.ch} → ${m.readings.join(t('charconv.t14'))}`).join(' · ');
               warn.className = 'tool-note error';
             } else if (amb.length > 0) {
               warn.textContent =
-                '뜻을 봐야 정해지는 글자가 있습니다 (첫 후보로 바꿨습니다): ' +
-                amb.map((a) => `${a.ch} → ${a.candidates.join(' 또는 ')}`).join(' · ');
+                t('charconv.t15') +
+                amb.map((a) => `${a.ch} → ${a.candidates.join(t('charconv.t14'))}`).join(' · ');
               warn.className = 'tool-note error';
             } else if (mode !== 'full' && hasFullWidth(input.value)) {
-              warn.textContent = '전각 글자가 섞여 있습니다 — 검색·로그인·조회가 안 되던 이유가 대개 이것입니다.';
+              warn.textContent = t('charconv.t16');
               warn.className = 'tool-note error';
             } else {
               warn.textContent = '';
@@ -198,7 +204,7 @@ import { spec } from '../../core/charconv';
           };
           input.addEventListener('input', render);
           $<HTMLButtonElement>('#ccCopy').onclick = () =>
-            void Toolbox.copyText?.(output.value, { message: '바뀐 글을 복사했어요' });
+            void Toolbox.copyText?.(output.value, { message: t('charconv.t17') });
           $<HTMLButtonElement>('#ccSwap').onclick = () => {
             input.value = output.value;
             render();
@@ -225,6 +231,7 @@ import { spec } from '../../core/charconv';
             warn.textContent = call.error;
             warn.className = 'tool-note error';
           }
+                  });
         }
       }
     ]
