@@ -5,6 +5,8 @@
  * 각 위젯은 .ts 분리 유지, 잡동사니 안에서 lazy 로드 + inline render + 자동 작동.
  * Pinterest masonry layout (CSS columns). 티메토 「조수님, 여기 정리 안 된 실험들이에요!」.
  */
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
   Mdd.injectCSS(
     'stash',
@@ -84,15 +86,17 @@
     tabs: [
       {
         id: 'main',
-        label: '잡동사니',
+        label: t('stash.t01', undefined, "잡동사니"),
         build(container: HTMLElement): void {
+          void loadNamespace('stash').then(function () {
+
           const root = document.createElement('div');
           root.className = 'stash-root';
           container.appendChild(root);
 
           const intro = document.createElement('div');
           intro.className = 'stash-intro';
-          intro.textContent = '조수님, 여기 정리 안 된 실험들이에요! 한 상자에 살아 움직이는 잡동사니. 만져보면 다 작동해요.';
+          intro.textContent = t('stash.t02');
           root.appendChild(intro);
 
           const grid = document.createElement('div');
@@ -128,20 +132,21 @@
             Toolbox.kickLazyLoad(id)
               .then(() => {
                 const ok = Toolbox.renderInline(id, slot);
-                if (!ok) slot.innerHTML = '<p class="stash-error">렌더 실패</p>';
+                if (!ok) slot.innerHTML = t('stash.t03');
               })
               .catch((err: unknown) => {
                 console.warn('[stash] load fail —', id, err);
-                slot.innerHTML = '<p class="stash-error">로드 실패</p>';
+                slot.innerHTML = t('stash.t04');
               });
           }
 
           try {
             const m = (window as unknown as { Mdd?: { linePreset?: (id: string, opts?: { msg?: string; mood?: string; duration?: number }) => boolean } }).Mdd;
             if (m && typeof m.linePreset === 'function') {
-              m.linePreset('home_hub', { msg: '조수님, 여기 정리 안 된 실험들이에요! 한 번 만져보세요.', duration: 4500 });
+              m.linePreset('home_hub', { msg: t('stash.t05'), duration: 4500 });
             }
           } catch (_) {}
+                  });
         }
       }
     ]

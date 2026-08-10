@@ -147,5 +147,15 @@
   "imagegen.ctxTab.lab": "実験室",
   "imagegen.ctxTab.mascot": "🐱 マスコット",
   "imagegen.ctxTab.emoji": "😀 絵文字",
-  "imagegen.ctxTab.custom": "⭐ カスタム"
+  "imagegen.ctxTab.custom": "⭐ カスタム",
+  "imagegen.btn.igLightboxDl": "⬇️ ダウンロード",
+  "imagegen.btn.igLightboxClose": "閉じる",
+  "imagegen.t58": "ダウンロードを始めました",
+  "imagegen.err.59": "Vertex の API キーが必要です。",
+  "imagegen.t61": "リクエストをキャンセルしました。",
+  "imagegen.t62": "API のリクエスト上限を超えました。キューを空にしました。少しあとでもう一度お試しください。",
+  "imagegen.t63": "キューの作業がすべて完了しました!",
+  "imagegen.genFailed": "生成に失敗",
+  "imagegen.imageFailed": "画像の生成に失敗",
+  "imagegen.queueDone": "キュー完了: {n}枚 生成しました"
 }

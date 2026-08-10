@@ -1,0 +1,14 @@
+{
+  "countdown.t01": "⏰ The speed at which a life is spent (ms left to the target time)",
+  "countdown.t02": "Target date:",
+  "countdown.t03": "--- a feel for the waste (ms conversion) ---",
+  "countdown.t04": "1 minute",
+  "countdown.t05": "1 hour",
+  "countdown.t06": "1 day",
+  "countdown.t07": "1 week",
+  "countdown.t08": "1 month (30 days)",
+  "countdown.t09": "1 year (365 days)",
+  "countdown.t10": "Countdown",
+  "countdown.t12": "Time is passing...",
+  "countdown.t13": "The time is up."
+}

@@ -1,0 +1,18 @@
+{
+  "terminal.t01": "Type a command and press Enter (active after starting)",
+  "terminal.t02": "The terminal widget is only for the Tauri desktop app.",
+  "terminal.t03": "▶ Start",
+  "terminal.t04": "⏹ Stop",
+  "terminal.t05": "Run",
+  "terminal.t06": "[no Tauri invoke — the terminal is unavailable]",
+  "terminal.t07": "terminal listen failed",
+  "terminal.t08": "[attached to a shell that is already running]",
+  "terminal.t09": "[stop requested — taskkill /T /F]",
+  "terminal.t10": "Press start and a single PowerShell shell is spawned. cd / Set-Location is tracked automatically (the cwd line).",
+  "terminal.t11": "[reattached to the existing shell]",
+  "terminal.exited": "[shell exited — exit code {code}]",
+  "terminal.started": "[{shell} started — pwsh.exe / powershell.exe chosen automatically]",
+  "terminal.startFailed": "[starting failed: {why}]",
+  "terminal.stopFailed": "[stopping failed: {why}]",
+  "terminal.writeFailed": "[input failed: {why}]"
+}

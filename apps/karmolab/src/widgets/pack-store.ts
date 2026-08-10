@@ -11,6 +11,8 @@
  * 어디에 사나: 이 브라우저(localStorage). 서버가 없으니 남에게 줄 때는 **주소에 담아** 준다
  * (유령 타자 대결이 먼저 쓴 방식이다 — 만료가 없는 게 서버 없음의 강점이다).
  */
+import { t } from '../lib/i18n';
+
 export interface PackField {
   key: string;
   label: string;
@@ -95,7 +97,7 @@ export function parseTable(text: string): { fields: PackField[]; items: PackItem
   const problems: string[] = [];
   const lines = text.split(/\r?\n/).filter((l) => l.trim());
   if (lines.length < 2) {
-    problems.push('첫 줄에 칸 이름, 그 아래에 항목을 한 줄씩 넣어 주세요.');
+    problems.push(t('packs.t37'));
     return { fields: [], items: [], problems };
   }
   // 탭이 있으면 탭으로 나눈다(스프레드시트에서 긁으면 그렇다). 아니면 쉼표.
@@ -104,7 +106,7 @@ export function parseTable(text: string): { fields: PackField[]; items: PackItem
 
   const head = rows[0];
   const body = rows.slice(1).filter((r) => r[0]);
-  if (!body.length) problems.push('항목이 하나도 없습니다.');
+  if (!body.length) problems.push(t('packs.t38'));
 
   const fields: PackField[] = [];
   const imgAt = head.findIndex((h) => /^(그림|이미지|img|image)$/i.test(h));
@@ -119,12 +121,12 @@ export function parseTable(text: string): { fields: PackField[]; items: PackItem
     const unit = allNum ? (num.find((n) => n && n.unit)?.unit ?? '') : '';
     fields.push({
       key: 'f' + i,
-      label: label || `칸 ${i}`,
+      label: label || t('packs.column', { i }),
       kind: allNum ? 'number' : anySet ? 'set' : 'category',
       ...(unit ? { unit } : {})
     });
   });
-  if (!fields.length) problems.push('이름 말고 견줄 칸이 하나는 있어야 합니다 (예: 종류·나이·키).');
+  if (!fields.length) problems.push(t('packs.t39'));
 
   const seen = new Set<string>();
   const items: PackItem[] = [];
@@ -149,7 +151,7 @@ export function parseTable(text: string): { fields: PackField[]; items: PackItem
     }
     items.push(it);
   }
-  if (items.length < 4) problems.push('항목이 넷은 넘어야 놀이가 됩니다.');
+  if (items.length < 4) problems.push(t('packs.t40'));
   return { fields, items, problems };
 }
 
@@ -233,7 +235,7 @@ export function codeToPack(code: string): Pack | null {
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     const j = JSON.parse(new TextDecoder().decode(bytes));
     if (!j || !Array.isArray(j.i) || !Array.isArray(j.f)) return null;
-    return { id: 'p' + Date.now().toString(36), title: String(j.t || '받은 표'), emoji: String(j.e || '🎲'), fields: j.f, items: j.i };
+    return { id: 'p' + Date.now().toString(36), title: String(j.t || t('packs.receivedTable')), emoji: String(j.e || '🎲'), fields: j.f, items: j.i };
   } catch {
     return null;
   }

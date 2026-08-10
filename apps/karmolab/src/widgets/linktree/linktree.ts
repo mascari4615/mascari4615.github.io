@@ -2,6 +2,8 @@
  * Link Tree — 링크 인 바이오 스타일 페이지
  * 프로필 + 링크 카드 목록
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   const ICONS: Record<string, string> = {
     email:
@@ -38,22 +40,22 @@
   } = {
     avatar: '/assets/img/profile/star-transparent.png',
     name: 'mascari4615',
-    bio: '삶을 섞고 술을 바꿀 시간',
+    bio: t('linktree.t01'),
     groups: [
       {
-        group: '연락처',
+        group: t('linktree.t02'),
         items: [
-          { copyTarget: 'Mascari4615@gmail.com', label: '이메일', desc: 'Mascari4615@gmail.com', icon: 'email' },
-          { url: 'https://github.com/mascari4615', label: 'GitHub', desc: '코드 & 프로젝트', icon: 'github' },
-          { url: 'https://twitter.com/mascari4615', label: 'Twitter / X', desc: '짧은 생각', icon: 'twitter' },
-          { url: 'https://www.linkedin.com/in/도윤-김-b89049194/', label: 'LinkedIn', desc: '커리어', icon: 'linkedin' }
+          { copyTarget: 'Mascari4615@gmail.com', label: t('linktree.t03'), desc: 'Mascari4615@gmail.com', icon: 'email' },
+          { url: 'https://github.com/mascari4615', label: 'GitHub', desc: t('linktree.t04'), icon: 'github' },
+          { url: 'https://twitter.com/mascari4615', label: 'Twitter / X', desc: t('linktree.t05'), icon: 'twitter' },
+          { url: t('linktree.t06'), label: 'LinkedIn', desc: t('linktree.t07'), icon: 'linkedin' }
         ]
       },
       {
-        group: '블로그·프로젝트',
-        items: [{ url: 'https://mascari4615.github.io/', label: '블로그', desc: '메모, 기록, 전략', icon: 'blog' }]
+        group: t('linktree.t08'),
+        items: [{ url: 'https://mascari4615.github.io/', label: t('linktree.t09'), desc: t('linktree.t10'), icon: 'blog' }]
       },
-      { group: '기타', items: [] }
+      { group: t('linktree.t11'), items: [] }
     ]
   };
 
@@ -87,7 +89,9 @@
   );
 
   function build(container: HTMLElement): void {
-    Mdd.linePreset('home_hub', { msg: '링크 모아뒀어요~' });
+             void loadNamespace('linktree').then(function () {
+
+    Mdd.linePreset('home_hub', { msg: t('linktree.t12') });
 
     const wrap = document.createElement('div');
     wrap.className = 'linktree-wrap';
@@ -96,11 +100,11 @@
     const email = 'Mascari4615@gmail.com';
     function copyAndToast(text: string, btn: HTMLButtonElement): void {
       function done(): void {
-        Toolbox.showToast?.('클립보드에 복사됨', undefined, undefined);
-        const t = btn.title;
-        btn.title = '복사됨!';
+        Toolbox.showToast?.(t('linktree.t13'), undefined, undefined);
+        const before = btn.title;
+        btn.title = t('linktree.t14');
         setTimeout(function () {
-          btn.title = t;
+          btn.title = before;
         }, 2000);
       }
       if (navigator.clipboard?.writeText) {
@@ -120,16 +124,16 @@
     const emailBtn = document.createElement('button');
     emailBtn.type = 'button';
     emailBtn.className = 'linktree-intro-btn';
-    emailBtn.textContent = '이메일';
-    emailBtn.title = '클립보드에 복사';
+    emailBtn.textContent = t('linktree.t03');
+    emailBtn.title = t('linktree.t15');
     emailBtn.onclick = function (): void {
       copyAndToast(email, emailBtn);
     };
     const linkBtn = document.createElement('button');
     linkBtn.type = 'button';
     linkBtn.className = 'linktree-intro-btn';
-    linkBtn.textContent = '링크';
-    linkBtn.title = '클립보드에 복사';
+    linkBtn.textContent = t('linktree.t16');
+    linkBtn.title = t('linktree.t15');
     linkBtn.onclick = function (): void {
       copyAndToast(linktreeUrl, linkBtn);
     };
@@ -195,7 +199,7 @@
           body;
         if (isEmail) {
           html +=
-            '<button type="button" class="linktree-card-copy" title="클립보드에 복사"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+            t('linktree.t17') +
             ICONS.copy +
             '</svg></button>';
         }
@@ -208,10 +212,10 @@
             btn.addEventListener('click', function (e: Event) {
               e.stopPropagation();
               function done(): void {
-                Toolbox.showToast?.('클립보드에 복사됨', undefined, undefined);
-                btn.title = '복사됨!';
+                Toolbox.showToast?.(t('linktree.t13'), undefined, undefined);
+                btn.title = t('linktree.t14');
                 setTimeout(function () {
-                  btn.title = '클립보드에 복사';
+                  btn.title = t('linktree.t15');
                 }, 2000);
               }
               if (navigator.clipboard?.writeText) {
@@ -237,11 +241,12 @@
 
     container.innerHTML = '';
     container.appendChild(wrap);
-  }
+               });
+           }
 
   /* 메타는 `widgets-lazy-meta.ts` 한 곳에 산다 — 두 곳에 적으면 목록 이름과 화면 이름이 갈라진다. */
   Toolbox.register({
     ...Toolbox.getLazyWidgetPublicMeta('linktree'),
-    tabs: [{ id: 'linktree-main', label: '링크', build }]
+    tabs: [{ id: 'linktree-main', label: t('linktree.t16'), build }]
   });
 })();

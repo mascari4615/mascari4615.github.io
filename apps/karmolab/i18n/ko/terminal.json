@@ -1,0 +1,18 @@
+{
+  "terminal.t01": "명령어 입력 후 Enter (시작 후 활성)",
+  "terminal.t02": "terminal 위젯은 Tauri 데스크톱 앱 전용입니다.",
+  "terminal.t03": "▶ 시작",
+  "terminal.t04": "⏹ 종료",
+  "terminal.t05": "실행",
+  "terminal.t06": "[Tauri invoke 없음 — 터미널 사용 불가]",
+  "terminal.t07": "terminal listen 실패",
+  "terminal.t08": "[이미 실행 중인 셸에 연결됨]",
+  "terminal.t09": "[종료 요청 — taskkill /T /F]",
+  "terminal.t10": "시작 버튼을 누르면 PowerShell 단일 셸 spawn. cd / Set-Location 자동 추적 (cwd 라인).",
+  "terminal.t11": "[기존 셸에 reattach]",
+  "terminal.exited": "[셸 종료 — exit code {code}]",
+  "terminal.started": "[{shell} 시작 — pwsh.exe / powershell.exe 자동선택]",
+  "terminal.startFailed": "[시작 실패: {why}]",
+  "terminal.stopFailed": "[종료 실패: {why}]",
+  "terminal.writeFailed": "[입력 실패: {why}]"
+}

@@ -1,8 +1,13 @@
 /**
  * imagegen - 큐 시스템, 유틸, 히스토리
  */
+import { t } from '../../lib/i18n';
+
 (function () {
     'use strict';
+    const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
     const IG = window.ImageGen;
     if (!IG) return;
     if (typeof Gemini === 'undefined') return;
@@ -76,8 +81,8 @@
             el.innerHTML = `
                 <img id="igLightboxImg" src="" alt="Full Size">
                 <div class="ig-lightbox-actions">
-                    <button class="btn btn-accent" id="igLightboxDl">⬇️ 다운로드</button>
-                    <button class="btn btn-ghost" id="igLightboxClose">닫기</button>
+                    <button class="btn btn-accent" id="igLightboxDl">${esc(t('imagegen.btn.igLightboxDl'))}</button>
+                    <button class="btn btn-ghost" id="igLightboxClose">${esc(t('imagegen.btn.igLightboxClose'))}</button>
                 </div>`;
             el.onclick = (e) => { if (e.target === el) el.classList.remove('open'); };
             document.body.appendChild(el);
@@ -98,7 +103,7 @@
         a.href = url;
         a.download = `ai-image-${Date.now()}.png`;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        Toolbox.showToast?.('다운로드 시작');
+        Toolbox.showToast?.(t('imagegen.t58'));
     }
 
     function getPromptHistory(): string[] {
@@ -193,7 +198,7 @@
             if (modelId.startsWith('gemini')) {
                 const route = next.options.apiRoute || 'aiStudio';
                 if (route === 'vertex') {
-                    if (!G.requireVertexApiKey?.()) throw new Error('Vertex API 키가 필요합니다.');
+                    if (!G.requireVertexApiKey?.()) throw new Error(t('imagegen.err.59'));
                     const result = await G.callVertexGeminiImage!(next.finalPrompt, modelId, {
                         signal, aspectRatio, safetyThreshold,
                         projectId: next.options.vertexProjectId,
@@ -210,7 +215,7 @@
                 const imgSafety = safetyThreshold === 'OFF' ? 'block_none' : safetyThreshold.toLowerCase();
                 const route = next.options.apiRoute || 'aiStudio';
                 if (route === 'vertex') {
-                    if (!G.requireVertexApiKey?.()) throw new Error('Vertex API 키가 필요합니다.');
+                    if (!G.requireVertexApiKey?.()) throw new Error(t('imagegen.err.59'));
                     const images = await G.callVertexImagen!(next.finalPrompt, modelId, 1, {
                         signal, aspectRatio, safetyFilterLevel: imgSafety,
                         negativePrompt: next.options.negativePrompt || undefined,
@@ -260,14 +265,14 @@
         } catch (e) {
             const err = e as Error;
             next.status = 'error';
-            next.error = err.message || '생성 실패';
-            if (err.message !== '요청이 취소되었습니다.') {
+            next.error = err.message || t('imagegen.genFailed');
+            if (err.message !== t('imagegen.t61')) {
                 const is429 = /429|Too Many/i.test(err.message || '');
                 if (is429) {
                     clearQueue();
-                    Toolbox.showToast?.('API 요청 한도 초과. 큐를 비웠습니다. 잠시 후 다시 시도해주세요.', 'error');
+                    Toolbox.showToast?.(t('imagegen.t62'), 'error');
                 } else {
-                    Toolbox.showToast?.(err.message || '이미지 생성 실패', 'error', err);
+                    Toolbox.showToast?.(err.message || t('imagegen.imageFailed'), 'error', err);
                 }
             }
         } finally {
@@ -281,8 +286,8 @@
                 Mdd.linePreset('tool_run', { msg: `다음 이미지 시작! (${remaining}개 남음)` });
                 processQueue();
             } else if (doneCount > 0) {
-                Mdd.linePreset('success', { msg: '큐 작업 모두 완료!' });
-                Toolbox.showToast?.(`큐 완료: ${doneCount}장 생성됨`);
+                Mdd.linePreset('success', { msg: t('imagegen.t63') });
+                Toolbox.showToast?.(t('imagegen.queueDone', { n: doneCount }));
                 deps.hideMainLoading();
             }
         }
