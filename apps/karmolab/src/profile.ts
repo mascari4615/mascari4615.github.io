@@ -14,7 +14,7 @@
  * 이 파일은 별도 스크립트다 — 페이지 안에 직접 쓴 스크립트는 한 글자만 틀려도 화면이
  * 통째로 비고 로그도 안 남는다. 빌드와 타입 검사를 받는 자리에 둔다.
  */
-import { t, loadNamespace } from './lib/i18n';
+import { t, loadNamespace, locale } from './lib/i18n';
 
 /* 이 파일은 위젯이 아니라 **셸·라이브러리**다 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
    빌드는 브라우저 밖에서도 이 파일을 읽으므로 document 가 있을 때만 부른다. */
@@ -65,7 +65,7 @@ function formatDate(iso: string): string {
     const date = new Date(iso);
     if (Number.isNaN(date.getTime())) return '';
     // 사이트 전체가 KST 기준으로 말한다.
-    return new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long', timeZone: 'Asia/Seoul' }).format(date);
+    return new Intl.DateTimeFormat(locale(), { dateStyle: 'long', timeZone: 'Asia/Seoul' }).format(date);
 }
 
 function renderMessage(root: HTMLElement, title: string, detail: string): void {

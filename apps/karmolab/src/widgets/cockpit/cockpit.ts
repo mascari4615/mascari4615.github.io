@@ -1,4 +1,4 @@
-import { loadNamespace } from '../../lib/i18n';
+import { loadNamespace, locale } from '../../lib/i18n';
 /**
  * cockpit.ts — Cockpit 위젯 엔트리 (TASK-KL-082 단위 J).
  *
@@ -102,7 +102,7 @@ import { buildCardsTab } from './cards-tab';
       canvas.applyHighlights();
       loadingEl.remove(); // 첫 페치 도착하면 오버레이 제거
       if (statusEl) {
-        const ts = new Date(snapshot.ts * 1000).toLocaleTimeString('ko-KR');
+        const ts = new Date(snapshot.ts * 1000).toLocaleTimeString(locale());
         const activeCount = activeSets.node_ids_active.size;
         statusEl.textContent = `${ts} | 활성 노드 ${activeCount}`;
       }

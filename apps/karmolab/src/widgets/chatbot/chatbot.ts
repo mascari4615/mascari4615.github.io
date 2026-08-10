@@ -1,4 +1,4 @@
-import { t, loadNamespace } from '../../lib/i18n';
+import { t, loadNamespace, locale } from '../../lib/i18n';
 
 /** 화면에 그대로 박는 글은 태그로 읽히면 안 된다. */
 const esc = (v: unknown): string =>
@@ -574,7 +574,7 @@ import {
                 const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
                 if (SpeechRecognition) {
                     const recognition = new SpeechRecognition();
-                    recognition.lang = 'ko-KR';
+                    recognition.lang = locale();
                     recognition.interimResults = true;
                     recognition.continuous = false;
                     let isRecording = false;

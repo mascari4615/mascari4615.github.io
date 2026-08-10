@@ -3,7 +3,7 @@
  *
  * 환경 설정(테마·API 키·저장소)은 여기 없다 → `widgets/settings.ts`.
  */
-import { t, loadNamespace } from '../lib/i18n';
+import { t, loadNamespace, locale } from '../lib/i18n';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -1462,7 +1462,7 @@ import { t, loadNamespace } from '../lib/i18n';
         ];
         const first = activity.firstSeenAt ? new Date(activity.firstSeenAt) : null;
         const firstText = first && !Number.isNaN(first.getTime())
-            ? new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long', timeZone: 'Asia/Seoul' }).format(first)
+            ? new Intl.DateTimeFormat(locale(), { dateStyle: 'long', timeZone: 'Asia/Seoul' }).format(first)
             : null;
         return `
             <div class="user-stats fp-recap">${cells

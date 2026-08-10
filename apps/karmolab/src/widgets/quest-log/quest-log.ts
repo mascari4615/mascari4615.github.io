@@ -21,7 +21,7 @@
 // KL-071: 레거시 IIFE 의 `: any` 어노테이션 제거 + 인터페이스화 완료 →
 // `@ts-nocheck` 제거. 이 파일은 이제 `tsc --noEmit` (strict) 로 실검증됨.
 import { isDesktop, invoke, listen } from '../../tauri-bridge';
-import { t, loadNamespace } from '../../lib/i18n';
+import { t, loadNamespace, locale } from '../../lib/i18n';
 
 const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 
@@ -489,7 +489,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       overviewWrap.innerHTML = '';
       return;
     }
-    const dt = new Date(ov.generatedAt).toLocaleTimeString('ko-KR');
+    const dt = new Date(ov.generatedAt).toLocaleTimeString(locale());
     const domainsHtml = ov.domainStats.map((d) => `
       <div class="overview-domain">
         <div class="overview-domain-head">
