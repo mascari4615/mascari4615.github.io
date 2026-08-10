@@ -4,19 +4,26 @@ permalink: /llms-full.txt
 
 # KarmoLab
 
-> 브라우저에서 바로 쓰는 도구 129개와 놀이. 설치·로그인 없이 열리고, **파일은 기기 밖으로 나가지 않습니다** (변환·계산이 전부 브라우저 안에서 끝납니다). 오픈소스.
+> 브라우저에서 바로 쓰는 도구 136개와 놀이. 설치·로그인 없이 열리고, **파일은 기기 밖으로 나가지 않습니다** (변환·계산이 전부 브라우저 안에서 끝납니다). 오픈소스.
 
 한국어가 기본입니다. 한국 규칙(만 나이 3종·사업자등록번호 검증숫자·대체공휴일·한글 자모·한영타)을 정확히 다루는 것이 이 사이트의 강점입니다.
 
 ## AI 에이전트에게
 
 - 도구마다 정적 설명 페이지가 있습니다: `https://blog.mascari4615.com/karmolab/t/<도구id>/`
+- 같은 주소 끝에 `.md` 를 붙이면 **HTML 이 아니라 마크다운 원문**이 옵니다:
+  `https://blog.mascari4615.com/karmolab/t/<도구id>.md` — 읽으려고 왔다면 이쪽이 싸고 정확합니다.
 - 주소로 바로 실행할 수 있습니다: `https://blog.mascari4615.com/karmolab/t/<도구id>/?op=<연산>&<칸>=<값>`
   예) `https://blog.mascari4615.com/karmolab/t/base64/?op=encode&text=안녕`
 - **MCP 서버**가 있습니다 — 계산을 직접 호출하려면 이쪽이 정확합니다 (해시·난수·검증숫자처럼
-  지어내면 안 되는 값). 도구 17묶음: base64 · birth · bizno · csvjson · epoch · filehash · grade · hangulkey · hashgen · interest · jamo · loan · qrgen · tableconv · timecalc · uuidgen · vat
+  지어내면 안 되는 값). 도구 32묶음: base64 · birth · bizno · chain · charconv · charcount · csvjson · daily · dailycho · dailytype · datecalc · epoch · filehash · grade · hangulkey · hangultype · hashgen · interest · jamo · livecount · loan · mesh3d · passgen · qrgen · tableconv · timecalc · unitconv · uuidgen · vat · wordfreq · workdays · worldclock
+- **도구를 이어서** 부를 수 있습니다 — 중간값을 돌려받아 다시 넣지 않아도 됩니다.
+  MCP 는 `chain_run`, 화면·주소는 `https://blog.mascari4615.com/karmolab/t/chain/`.
+  예) Base64 로 바꾼 뒤 그 결과의 SHA-256 —
+  `[{"tool":"base64","op":"encode","args":{"text":"안녕"}},{"tool":"hashgen","op":"text","args":{"text":"$1","algo":"SHA256"}}]`
+  해시처럼 **지어내면 안 되는 값**은 이렇게 부르는 편이 안전합니다. 중간에 글자가 바뀔 자리가 없습니다.
 
-## 도구 129개
+## 도구 136개
 
 - [ascii](https://blog.mascari4615.com/karmolab/t/ascii/): 0~127 · 10진 · 16진 · 2진 · 제어문자 의미
 - [asciiart](https://blog.mascari4615.com/karmolab/t/asciiart/): 이미지 → 글자 그림 · 문자 세트 5종 · 텍스트·PNG 저장
@@ -34,6 +41,8 @@ permalink: /llms-full.txt
 - [bytesize](https://blog.mascari4615.com/karmolab/t/bytesize/): 1000 기준 · 1024 기준 · 표기 차이
 - [calc](https://blog.mascari4615.com/karmolab/t/calc/): 퍼센트 · 이자 · BMI · 단위 · 진법
 - [caseconv](https://blog.mascari4615.com/karmolab/t/caseconv/): camelCase · snake_case · kebab-case · 상수
+- [chain](https://blog.mascari4615.com/karmolab/t/chain/): 앞 결과가 다음 입력 · 단계별로 다 보임 · 최대 8단계
+- [charconv](https://blog.mascari4615.com/karmolab/t/charconv/): 전각·반각 · 로마자 · 자모 · 간체·번체 · 병음
 - [charcount](https://blog.mascari4615.com/karmolab/t/charcount/): 공백 포함·제외 · 바이트 · 원고지 · 읽는 시간 · 한도별 통과 여부
 - [charmap](https://blog.mascari4615.com/karmolab/t/charmap/): 특수문자 · 이모지 · HTML 엔티티 · ASCII
 - [checklist](https://blog.mascari4615.com/karmolab/t/checklist/): 주소로 공유 · 계정 없음 · 진행률 표시
@@ -41,11 +50,14 @@ permalink: /llms-full.txt
 - [colorblind](https://blog.mascari4615.com/karmolab/t/colorblind/): 적·녹·청색맹 · 전색맹 · 구분 가능 판정
 - [colorconv](https://blog.mascari4615.com/karmolab/t/colorconv/): HEX·RGB·HSL·CMYK · 화면에서 색 집기 · 대비비·팔레트
 - [colorname](https://blog.mascari4615.com/karmolab/t/colorname/): 148색 · 이름 ↔ HEX · 계열별 보기
+- [comparepic](https://blog.mascari4615.com/karmolab/t/comparepic/): 전후 겹쳐 밀기 · 크기 달라도 됨 · PNG 저장
 - [contrast](https://blog.mascari4615.com/karmolab/t/contrast/): 대비비 · 접근성 기준 판정 · 통과 색 제안
 - [cron](https://blog.mascari4615.com/karmolab/t/cron/): 뜻풀이 · 다음 실행 시각 5개 · 자주 쓰는 예시
 - [crypto](https://blog.mascari4615.com/karmolab/t/crypto/): AES 암호화·복호화 · Base64 · URL 인코딩
 - [cssunit](https://blog.mascari4615.com/karmolab/t/cssunit/): px · rem · em · pt · % · 자주 쓰는 크기표
 - [csvjson](https://blog.mascari4615.com/karmolab/t/csvjson/): 양방향 · 구분자 선택 · 숫자 자동 인식
+- [dailycho](https://blog.mascari4615.com/karmolab/t/dailycho/): 매일 다섯 문제 · 전원 같은 문제 · 답은 도구 이름
+- [dailytype](https://blog.mascari4615.com/karmolab/t/dailytype/): 매일 세 문장 · 전원 같은 문제 · 타수와 정확도
 - [datecalc](https://blog.mascari4615.com/karmolab/t/datecalc/): D-Day · 두 날짜 사이 · 평일만 · 100일·주년 기념일
 - [devtool](https://blog.mascari4615.com/karmolab/t/devtool/): JSON · JWT · 정규식 · 해시 · UUID · 크론 · URL · 암호화
 - [draw](https://blog.mascari4615.com/karmolab/t/draw/): 로또 · 사다리타기 · 추첨 · 팀 나누기
@@ -81,11 +93,13 @@ permalink: /llms-full.txt
 - [ladder](https://blog.mascari4615.com/karmolab/t/ladder/): 최대 10명 · 경로를 눈으로 확인 · 결과 복사
 - [linebreak](https://blog.mascari4615.com/karmolab/t/linebreak/): 끊긴 줄 잇기 · 길이 맞춰 나누기 · 한 줄로
 - [listdiff](https://blog.mascari4615.com/karmolab/t/listdiff/): 교집합 · 차집합 · 합집합 · 순서 무관
+- [livecount](https://blog.mascari4615.com/karmolab/t/livecount/): 초 단위로 올라감 · 달력대로 · 어림 환산
 - [loan](https://blog.mascari4615.com/karmolab/t/loan/): 세 방식 비교 · 거치기간 · 더 갚으면 얼마나 아끼나 · 표 내려받기
 - [lorem](https://blog.mascari4615.com/karmolab/t/lorem/): 한글 더미 · 로렘 입숨 · 문단·문장·단어
 - [lotto](https://blog.mascari4615.com/karmolab/t/lotto/): 최대 20게임 · 고정수 · 제외수 · 홀짝 조건
 - [markdown](https://blog.mascari4615.com/karmolab/t/markdown/): GFM 기준 · 붙여넣을 조각 · 분류별 검색
 - [memo](https://blog.mascari4615.com/karmolab/t/memo/): 여러 장 · 자동 저장 · 이 브라우저 안에만
+- [mesh3d](https://blog.mascari4615.com/karmolab/t/mesh3d/): 설치 없이 열기 · 돌려 보기 · 삼각형 수와 크기
 - [moon](https://blog.mascari4615.com/karmolab/t/moon/): 오늘의 달 모양 · 위상 이름
 - [morse](https://blog.mascari4615.com/karmolab/t/morse/): 양방향 변환 · 한글 모스 · 소리·불빛 재생
 - [numword](https://blog.mascari4615.com/karmolab/t/numword/): 한글 읽기 · 숫자 되돌리기 · 금액 문구
