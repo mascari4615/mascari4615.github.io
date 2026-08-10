@@ -6,21 +6,22 @@
  */
 import type { GraphNode } from '../../../lib/graph/spec';
 import type { PanelCtx } from './context';
+import { t, loadNamespace } from '../../../lib/i18n';
 
 export function avatarFieldHtml(ctx: PanelCtx, node: GraphNode): string {
   const esc = ctx.esc;
   return `
     <div class="km-field">
-      <label>얼굴</label>
+      <label>${esc(t('karmomap.t393'))}</label>
       <div class="km-avatar-row">
         <input type="text" data-km="edit-emoji" maxlength="4" placeholder="😀"
           value="${esc(node.avatar?.kind === 'emoji' ? node.avatar.value : '')}" />
         <input type="color" data-km="edit-color"
-          value="${esc(node.avatar?.kind === 'color' ? node.avatar.value : '#a78bfa')}" title="색 원" />
-        <button class="btn btn-ghost" data-km="edit-img" title="사진 올리기">🖼</button>
-        <button class="btn btn-ghost" data-km="edit-noface" title="얼굴 지우기">✕</button>
+          value="${esc(node.avatar?.kind === 'color' ? node.avatar.value : '#a78bfa')}" title="${esc(t('karmomap.t390'))}" />
+        <button class="btn btn-ghost" data-km="edit-img" title="${esc(t('karmomap.t391'))}">🖼</button>
+        <button class="btn btn-ghost" data-km="edit-noface" title="${esc(t('karmomap.t392'))}">✕</button>
       </div>
-      <div class="km-hint">이모지를 적거나, 색을 고르거나, 사진을 올리세요. 사진은 이 브라우저 안에만 남습니다.</div>
+      <div class="km-hint">${esc(t('karmomap.t394'))}</div>
     </div>`;
 }
 

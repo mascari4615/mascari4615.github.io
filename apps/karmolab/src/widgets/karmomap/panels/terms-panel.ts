@@ -6,6 +6,7 @@
  */
 import { newTermId } from '../terms';
 import type { PanelCtx } from './context';
+import { t, loadNamespace } from '../../../lib/i18n';
 
 /** 화살표 상태 글자 — 없음 / 한쪽 / 양쪽. */
 function arrowGlyph(e: { arrow: boolean; arrowStart?: boolean }): string {
@@ -18,25 +19,25 @@ export function renderTermsPanel(ctx: PanelCtx): void {
   side.classList.remove('hidden');
   ctx.canvas()?.setSelectedNode(null);
   const EDGE_STYLES: { id: string; label: string }[] = [
-    { id: 'solid', label: '실선' }, { id: 'dashed', label: '파선' }, { id: 'dotted', label: '점선' },
-    { id: 'wavy', label: '물결' }, { id: 'crack', label: '금간' },
+    { id: 'solid', label: t('karmomap.t372') }, { id: 'dashed', label: t('karmomap.t373') }, { id: 'dotted', label: t('karmomap.t374') },
+    { id: 'wavy', label: t('karmomap.t375') }, { id: 'crack', label: t('karmomap.t376') },
   ];
   side.innerHTML = `
-    <h4>🏷 내 용어</h4>
-    <div class="km-hint">팩에 없는 말은 직접 만드세요. 여기 만든 종류는 <b>모든 맵</b>에서 씁니다.</div>
+    <h4>${esc(t('karmomap.t365'))}</h4>
+    <div class="km-hint">${t('karmomap.hint03', { em: `<b>${esc(t('karmomap.t367'))}</b>` })}</div>
     <div class="km-field">
       <label>내 노드 종류 ${ctx.terms.nodeKinds.length}개</label>
       ${ctx.terms.nodeKinds
         .map(
           (k) => `<div class="km-group-row" data-term-node="${esc(k.id)}">
-            <input type="text" data-km="t-icon" maxlength="4" value="${esc(k.icon)}" title="아이콘" />
+            <input type="text" data-km="t-icon" maxlength="4" value="${esc(k.icon)}" title="${esc(t('karmomap.t362'))}" />
             <input type="text" data-km="t-label" value="${esc(k.label)}" />
             <input type="color" data-km="t-color" value="${esc(k.color)}" />
-            <button class="btn btn-ghost" data-km="t-del" title="지우기">×</button>
+            <button class="btn btn-ghost" data-km="t-del" title="${esc(t('karmomap.t363'))}">×</button>
           </div>`
         )
-        .join('') || '<div class="km-hint">아직 없습니다.</div>'}
-      <button class="btn btn-ghost" data-km="t-add-node">+ 노드 종류</button>
+        .join('') || `<div class="km-hint">${t('karmomap.nothingYet')}</div>`}
+      <button class="btn btn-ghost" data-km="t-add-node">${esc(t('karmomap.t369'))}</button>
     </div>
     <div class="km-field">
       <label>내 관계 종류 ${ctx.terms.edgeKinds.length}개</label>
@@ -48,14 +49,14 @@ export function renderTermsPanel(ctx: PanelCtx): void {
             <select data-km="t-style">
               ${EDGE_STYLES.map((s) => `<option value="${s.id}"${s.id === e.style ? ' selected' : ''}>${s.label}</option>`).join('')}
             </select>
-            <button class="btn btn-ghost" data-km="t-arrow" title="화살표 — 없음 / 한쪽 / 양쪽">${arrowGlyph(e)}</button>
-            <button class="btn btn-ghost" data-km="t-del" title="지우기">×</button>
+            <button class="btn btn-ghost" data-km="t-arrow" title="${esc(t('karmomap.t364'))}">${arrowGlyph(e)}</button>
+            <button class="btn btn-ghost" data-km="t-del" title="${esc(t('karmomap.t363'))}">×</button>
           </div>`
         )
-        .join('') || '<div class="km-hint">아직 없습니다.</div>'}
-      <button class="btn btn-ghost" data-km="t-add-edge">+ 관계 종류</button>
+        .join('') || `<div class="km-hint">${t('karmomap.nothingYet')}</div>`}
+      <button class="btn btn-ghost" data-km="t-add-edge">${esc(t('karmomap.t370'))}</button>
     </div>
-    <button class="btn btn-ghost" data-km="t-close">닫기</button>`;
+    <button class="btn btn-ghost" data-km="t-close">${esc(t('karmomap.t371'))}</button>`;
 
   (side.querySelector('[data-km="t-close"]') as HTMLButtonElement).onclick = () => {
     ctx.goNode();
@@ -63,14 +64,14 @@ export function renderTermsPanel(ctx: PanelCtx): void {
 
   (side.querySelector('[data-km="t-add-node"]') as HTMLButtonElement).onclick = () => {
     const taken = new Set([...ctx.terms.nodeKinds, ...ctx.terms.edgeKinds].map((k) => k.id));
-    ctx.terms.nodeKinds.push({ id: newTermId('n', taken), label: '새 종류', icon: '🔖', color: '#38bdf8' });
+    ctx.terms.nodeKinds.push({ id: newTermId('n', taken), label: t('karmomap.t377'), icon: '🔖', color: '#38bdf8' });
     ctx.applyTerms();
     ctx.refresh();
   };
 
   (side.querySelector('[data-km="t-add-edge"]') as HTMLButtonElement).onclick = () => {
     const taken = new Set([...ctx.terms.nodeKinds, ...ctx.terms.edgeKinds].map((k) => k.id));
-    ctx.terms.edgeKinds.push({ id: newTermId('e', taken), label: '새 관계', color: '#38bdf8', style: 'solid', arrow: true });
+    ctx.terms.edgeKinds.push({ id: newTermId('e', taken), label: t('karmomap.t378'), color: '#38bdf8', style: 'solid', arrow: true });
     ctx.applyTerms();
     ctx.refresh();
   };

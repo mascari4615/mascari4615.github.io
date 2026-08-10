@@ -6,13 +6,14 @@
  */
 import type { GraphNode } from '../../../lib/graph/spec';
 import type { PanelCtx } from './context';
+import { t, loadNamespace } from '../../../lib/i18n';
 
 export function attachFieldHtml(ctx: PanelCtx, node: GraphNode): string {
   const esc = ctx.esc;
   const spec = ctx.spec();
   const nodeOpts = spec.nodes
     .filter((n) => n.id !== node.id)
-    .map((n) => `<option value="${esc(n.id)}"${n.id === node.attachedTo ? ' selected' : ''}>${ctx.kindIcon(n.kind)} ${esc(n.label || '(이름 없음)')}</option>`)
+    .map((n) => `<option value="${esc(n.id)}"${n.id === node.attachedTo ? ' selected' : ''}>${ctx.kindIcon(n.kind)} ${esc(n.label || t('karmomap.unnamed'))}</option>`)
     .join('');
   const edgeOpts = spec.edges
     .map((e) => {
@@ -23,13 +24,13 @@ export function attachFieldHtml(ctx: PanelCtx, node: GraphNode): string {
     .join('');
   return `
     <div class="km-field">
-      <label>가리키는 대상</label>
+      <label>${esc(t('karmomap.t387'))}</label>
       <select data-km="edit-attach">
-        <option value="">— 없음 —</option>
+        <option value="">${esc(t('karmomap.t388'))}</option>
         ${nodeOpts}
         ${edgeOpts}
       </select>
-      <div class="km-hint">고르면 이 노드에서 그쪽으로 옅은 점선이 이어집니다. 관계선과 달리 종류·화살표가 없습니다.</div>
+      <div class="km-hint">${esc(t('karmomap.t389'))}</div>
     </div>`;
 }
 

@@ -9,6 +9,7 @@
  */
 import type { GraphComment } from '../../../lib/graph/spec';
 import type { PanelCtx } from './context';
+import { t, loadNamespace } from '../../../lib/i18n';
 
 function listOf(ctx: PanelCtx): GraphComment[] {
   const spec = ctx.spec();
@@ -19,9 +20,9 @@ function listOf(ctx: PanelCtx): GraphComment[] {
 /** 시간을 사람 말로 — 몇 분 전인지가 날짜보다 훨씬 자주 필요하다. */
 function ago(at: number): string {
   const s = Math.max(0, Math.round((Date.now() - at) / 1000));
-  if (s < 60) return '방금';
-  if (s < 3600) return `${Math.floor(s / 60)}분 전`;
-  if (s < 86400) return `${Math.floor(s / 3600)}시간 전`;
+  if (s < 60) return t('karmomap.t401');
+  if (s < 3600) return t('karmomap.minsAgo', { n: Math.floor(s / 60) });
+  if (s < 86400) return t('karmomap.hoursAgo', { n: Math.floor(s / 3600) });
   return new Date(at).toLocaleDateString('ko-KR');
 }
 
@@ -31,15 +32,15 @@ export function commentsSectionHtml(ctx: PanelCtx, onId: string): string {
   return `
     <div class="km-field">
       <label>코멘트 ${rows.length === 0 ? '' : `<span class="km-group-count">${rows.length}</span>`}</label>
-      <div class="km-hint">설명과 달리 <b>여러 개</b>가 시간순으로 쌓입니다 — 보다가 든 생각·남길 말.</div>
+      <div class="km-hint">${t('karmomap.hint01', { em: `<b>${esc(t('karmomap.t398'))}</b>` })}</div>
       ${rows.map((c) => `<div class="km-link-row">
         <span class="km-link-name">${esc(c.text)}</span>
         <span class="km-group-count">${esc(ago(c.at))}</span>
-        <button class="btn btn-ghost" data-km="cmt-del" data-key="${esc(c.id)}" title="지우기">×</button>
+        <button class="btn btn-ghost" data-km="cmt-del" data-key="${esc(c.id)}" title="${esc(t('karmomap.t395'))}">×</button>
       </div>`).join('')}
       <div class="km-link-row">
-        <input type="text" data-km="cmt-new" placeholder="한마디 남기기 (Enter)" />
-        <button class="btn btn-ghost" data-km="cmt-add">남기기</button>
+        <input type="text" data-km="cmt-new" placeholder="${esc(t('karmomap.t396'))}" />
+        <button class="btn btn-ghost" data-km="cmt-add">${esc(t('karmomap.t400'))}</button>
       </div>
     </div>`;
 }
