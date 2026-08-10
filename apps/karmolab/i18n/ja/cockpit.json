@@ -65,5 +65,20 @@
   "cockpit.t54": "エラー",
   "cockpit.t55": "[cockpit-task] quest-tree-changed の listen に失敗",
   "cockpit.task.noMatch": "条件に合う TASK なし",
-  "cockpit.task.createFailed": "作成に失敗: {why}"
+  "cockpit.task.createFailed": "作成に失敗: {why}",
+  "cockpit.t56": "検索 (トピック・本文)",
+  "cockpit.t57": "🎴 エージェントのカードフィード",
+  "cockpit.opt.all": "すべて",
+  "cockpit.opt.decision": "決定",
+  "cockpit.opt.fix": "修正",
+  "cockpit.opt.finding": "発見",
+  "cockpit.opt.incident": "事故",
+  "cockpit.opt.note": "ノート",
+  "cockpit.t58": "更新",
+  "cockpit.t59": "<div style=\"opacity:.5;padding:1rem;text-align:center\">表示するカードなし</div>",
+  "cockpit.t60": "読み込み中...",
+  "cockpit.t61": "repo_root が未設定です — Server Monitor でリポジトリのルートを選んでください。",
+  "cockpit.cards.filtered": "{n} / {total} (フィルタ)",
+  "cockpit.cards.recent": "{n}件 (最近)",
+  "cockpit.cards.loadFailed": "読み込みに失敗: {why}"
 }

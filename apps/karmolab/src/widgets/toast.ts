@@ -1,25 +1,32 @@
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'toast',
-    title: '토스트',
+    title: t('widgets.toast.title', undefined, "토스트"),
     category: 'play',
-    desc: '토스트 알림을 띄웁니다',
+    desc: t('widgets-desc.toast.desc', undefined, "토스트 알림을 띄웁니다"),
     layout: 'form',
     icon: '<path d="M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z M8 10h8 M8 14h8" stroke="currentColor" stroke-width="1.5" fill="none"/>',
     tabs: [
       {
         id: 'app',
-        label: '토스트',
+        label: t('toast.t01', undefined, "토스트"),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('meme_done', { msg: '알림이 끝도 없어요...' });
+          void loadNamespace('toast').then(function () {
+
+          Mdd.linePreset('meme_done', { msg: t('toast.t03') });
           container.innerHTML = `
                     <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:360px; gap:16px;">
-                        <div id="toastStatus" style="font-size:15px; font-weight:600; color:var(--text-secondary);">식빵 위에 마우스를 올리고 있으세요 🍞</div>
+                        <div id="toastStatus" style="font-size:15px; font-weight:600; color:var(--text-secondary);">${esc(t('toast.label.status'))}</div>
                         <div id="toastImg" style="font-size:80px; cursor:pointer; transition:all 80ms; user-select:none;">🍞</div>
                         <div style="width:200px; height:8px; background:var(--bg-tertiary); border-radius:4px; overflow:hidden;">
                             <div id="toastProgress" style="width:0%; height:100%; background:var(--accent); transition:width 50ms;"></div>
                         </div>
-                        <button class="btn btn-ghost" id="resetToast">태초의 빵으로</button>
+                        <button class="btn btn-ghost" id="resetToast">${esc(t('toast.btn.resetToast'))}</button>
                     </div>
                 `;
           const imgEl = container.querySelector('#toastImg') as HTMLElement | null;
@@ -80,16 +87,17 @@
             }
             img.style.filter = `sepia(${sep}%) brightness(${br}) contrast(${ct})`;
 
-            if (heat < 30) status.textContent = '식빵이 서늘합니다 ❄️';
-            else if (heat < 65) status.textContent = '노릇노릇 익어가는 중... ☀️';
+            if (heat < 30) status.textContent = t('toast.t04');
+            else if (heat < 65) status.textContent = t('toast.t05');
             else if (heat < 80)
               status.innerHTML =
-                "<span style='color:var(--success)'>🚨 딱 좋게 구워졌습니다! 골든 토스트! 🚨</span>";
+                `<span style='color:var(--success)'>${t('toast.golden')}</span>`;
             else if (heat < 95)
               status.innerHTML =
-                "<span style='color:var(--warning)'>탄다! 타요! 마우스 떼세요! 🔥</span>";
-            else status.innerHTML = "<span style='color:var(--error)'>석탄이 되었습니다... 💀</span>";
+                `<span style='color:var(--warning)'>${t('toast.burning')}</span>`;
+            else status.innerHTML = `<span style='color:var(--error)'>${t('toast.charcoal')}</span>`;
           }
+                  });
         }
       }
     ]

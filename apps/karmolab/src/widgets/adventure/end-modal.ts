@@ -10,6 +10,7 @@
 import type { AdventureSession } from './storage';
 import { extractSummary } from './summary';
 import type { AdventureSummary } from './summary';
+import { t, loadNamespace } from '../../lib/i18n';
 
 interface CommitResult {
   karmolab_pushed: boolean;
@@ -34,10 +35,10 @@ type TauriInvoke = (
 ) => Promise<CommitResult>;
 
 function getInvoke(): TauriInvoke | null {
-  const t = (globalThis as unknown as {
+  const tauri = (globalThis as unknown as {
     __TAURI__?: { core?: { invoke?: TauriInvoke } };
   }).__TAURI__;
-  return t?.core?.invoke ?? null;
+  return tauri?.core?.invoke ?? null;
 }
 
 const STYLE = {
@@ -78,7 +79,7 @@ export async function showEndModal(session: AdventureSession): Promise<boolean> 
     card.style.gap = '12px';
 
     const heading = document.createElement('h3');
-    heading.textContent = '모험 종료 — 정수 추출';
+    heading.textContent = t('adventure.t27');
     heading.style.margin = '0';
     heading.style.color = STYLE.accent;
     card.appendChild(heading);
@@ -87,11 +88,11 @@ export async function showEndModal(session: AdventureSession): Promise<boolean> 
     status.style.margin = '0';
     status.style.fontSize = '13px';
     status.style.color = STYLE.textTertiary;
-    status.textContent = '정수 추출 중... (LLM 응답 대기)';
+    status.textContent = t('adventure.t28');
     card.appendChild(status);
 
     const yamlLabel = document.createElement('label');
-    yamlLabel.textContent = 'yaml (편집 가능)';
+    yamlLabel.textContent = t('adventure.t29');
     yamlLabel.style.fontSize = '12px';
     yamlLabel.style.color = STYLE.textTertiary;
     yamlLabel.style.display = 'none';
@@ -111,7 +112,7 @@ export async function showEndModal(session: AdventureSession): Promise<boolean> 
     card.appendChild(yamlArea);
 
     const mdLabel = document.createElement('label');
-    mdLabel.textContent = 'md (편집 가능)';
+    mdLabel.textContent = t('adventure.t30');
     mdLabel.style.fontSize = '12px';
     mdLabel.style.color = STYLE.textTertiary;
     mdLabel.style.display = 'none';
@@ -136,7 +137,7 @@ export async function showEndModal(session: AdventureSession): Promise<boolean> 
     buttons.style.justifyContent = 'flex-end';
 
     const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = '취소';
+    cancelBtn.textContent = t('adventure.t31');
     cancelBtn.style.padding = '8px 16px';
     cancelBtn.style.background = STYLE.bgTertiary;
     cancelBtn.style.color = STYLE.textPrimary;
@@ -170,7 +171,7 @@ export async function showEndModal(session: AdventureSession): Promise<boolean> 
     void (async () => {
       try {
         summary = await extractSummary(session);
-        status.textContent = `추출 완료 — slug: ${summary.slug}, title: ${summary.title}. 검토 후 commit.`;
+        status.textContent = t('adventure.end.extracted', { slug: summary.slug, title: summary.title });
         yamlLabel.style.display = '';
         yamlArea.style.display = '';
         yamlArea.value = summary.yaml;
@@ -180,7 +181,7 @@ export async function showEndModal(session: AdventureSession): Promise<boolean> 
         commitBtn.disabled = false;
         commitBtn.style.opacity = '1';
       } catch (err) {
-        status.textContent = '에러: ' + (err instanceof Error ? err.message : String(err));
+        status.textContent = t('adventure.t32') + (err instanceof Error ? err.message : String(err));
         status.style.color = STYLE.danger;
       }
     })();
@@ -191,10 +192,10 @@ export async function showEndModal(session: AdventureSession): Promise<boolean> 
       commitBtn.style.opacity = '0.5';
       cancelBtn.disabled = true;
       cancelBtn.style.opacity = '0.5';
-      status.textContent = 'commit + push 진행 중...';
+      status.textContent = t('adventure.t33');
       const invoke = getInvoke();
       if (!invoke) {
-        status.textContent = '에러: Tauri 환경 아님 (브라우저에서는 commit 불가)';
+        status.textContent = t('adventure.t34');
         status.style.color = STYLE.danger;
         return;
       }
@@ -209,14 +210,14 @@ export async function showEndModal(session: AdventureSession): Promise<boolean> 
               md: mdArea.value,
             },
           });
-          status.textContent = `완료 — wiki: ${result.karmolab_pushed ? '✅ push' : '✗'}, memo raw: ${result.memo_pushed ? '✅ push' : '(변경 없음)'}`;
+          status.textContent = `완료 — wiki: ${result.karmolab_pushed ? '✅ push' : '✗'}, memo raw: ${result.memo_pushed ? '✅ push' : t('adventure.t35')}`;
           status.style.color = STYLE.accent;
           setTimeout(() => {
             overlay.remove();
             resolve(true);
           }, 2000);
         } catch (err) {
-          status.textContent = '에러: ' + (err instanceof Error ? err.message : String(err));
+          status.textContent = t('adventure.t32') + (err instanceof Error ? err.message : String(err));
           status.style.color = STYLE.danger;
           commitBtn.disabled = false;
           commitBtn.style.opacity = '1';

@@ -65,5 +65,20 @@
   "cockpit.t54": "Error",
   "cockpit.t55": "[cockpit-task] quest-tree-changed listen failed",
   "cockpit.task.noMatch": "No TASK matches",
-  "cockpit.task.createFailed": "Creating it failed: {why}"
+  "cockpit.task.createFailed": "Creating it failed: {why}",
+  "cockpit.t56": "Search (topic and body)",
+  "cockpit.t57": "🎴 Agent card feed",
+  "cockpit.opt.all": "All",
+  "cockpit.opt.decision": "Decision",
+  "cockpit.opt.fix": "Fix",
+  "cockpit.opt.finding": "Finding",
+  "cockpit.opt.incident": "Incident",
+  "cockpit.opt.note": "Note",
+  "cockpit.t58": "Refresh",
+  "cockpit.t59": "<div style=\"opacity:.5;padding:1rem;text-align:center\">No card to show</div>",
+  "cockpit.t60": "Loading...",
+  "cockpit.t61": "repo_root is not set — choose the repository root in Server Monitor.",
+  "cockpit.cards.filtered": "{n} / {total} (filtered)",
+  "cockpit.cards.recent": "{n} (recent)",
+  "cockpit.cards.loadFailed": "Loading failed: {why}"
 }

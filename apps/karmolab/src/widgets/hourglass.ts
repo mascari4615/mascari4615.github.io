@@ -1,20 +1,27 @@
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'hourglass',
-    title: '모래시계',
+    title: t('widgets.hourglass.title', undefined, "모래시계"),
     category: 'tool',
-    desc: '모래시계 타이머를 실행합니다',
+    desc: t('widgets-desc.hourglass.desc', undefined, "모래시계 타이머를 실행합니다"),
     layout: 'form',
     icon: '<path d="M6 2h12 M6 22h12 M6 2l6 10-6 10 M18 2l-6 10 18 10" stroke="currentColor" stroke-width="1.5" fill="none"/>',
     tabs: [
       {
         id: 'app',
-        label: '모래시계',
+        label: t('hourglass.t02', undefined, "모래시계"),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '모래시계... 졸려요...' });
+          void loadNamespace('hourglass').then(function () {
+
+          Mdd.linePreset('tool_run', { msg: t('hourglass.t04') });
           container.innerHTML = `
                 <div style="display:flex; flex-direction:column; padding:20px; height:380px; box-sizing:border-box; overflow:hidden;">
-                    <div style="font-size:var(--font-size-xs); color:var(--text-tertiary); margin-bottom:8px;">픽셀 모래가 다 떨어지면 다시 시작돼요...</div>
+                    <div style="font-size:var(--font-size-xs); color:var(--text-tertiary); margin-bottom:8px;">${esc(t('hourglass.t01'))}</div>
                     <canvas id="hourglassCanvas" style="flex:1; background:#0a0a0c; border-radius:8px;"></canvas>
                 </div>
             `;
@@ -94,6 +101,7 @@
             else if (animId !== undefined) cancelAnimationFrame(animId);
           });
           observer.observe(canvas);
+                  });
         }
       }
     ]

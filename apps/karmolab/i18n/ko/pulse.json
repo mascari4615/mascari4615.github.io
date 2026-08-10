@@ -340,5 +340,12 @@
   "pulse.left.s": "{s}초",
   "pulse.left.ms": "{m}분 {s}초",
   "pulse.left.hm": "{h}시간 {m}분",
-  "pulse.left.dh": "{d}일 {h}시간"
+  "pulse.left.dh": "{d}일 {h}시간",
+  "pulse.t11": "별밭",
+  "pulse.t12": "15분마다 상상 우주의 한 귀퉁이.",
+  "pulse.t13": "@tiny_star_field (Katie Rose Pipkin) — 작은 우주 한 조각",
+  "pulse.t14": " · 성운 하나",
+  "pulse.t15": "멀리 성운이 걸려 있다",
+  "pulse.t16": "아무 일도 없는 하늘",
+  "pulse.art.times": "{n}번"
 }

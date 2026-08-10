@@ -1,0 +1,5 @@
+{
+  "postgraph.t01": "グラフを読み込めませんでした。(公開サイトで /assets/js/data/post-graph.json を確認)",
+  "postgraph.t02": "記事どうしのリンク関係です。ノードを押すと記事が新しいタブで開きます。",
+  "postgraph.t03": "グラフ"
+}

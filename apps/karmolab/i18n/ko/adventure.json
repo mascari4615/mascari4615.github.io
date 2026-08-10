@@ -28,5 +28,15 @@
   "adventure.savedLine": "{date} · {turns}턴 · cast: {cast}",
   "adventure.castLine": "cast: {cast}",
   "adventure.none": "(없음)",
-  "adventure.tab.main": "모험"
+  "adventure.tab.main": "모험",
+  "adventure.t27": "모험 종료 — 정수 추출",
+  "adventure.t28": "정수 추출 중... (LLM 응답 대기)",
+  "adventure.t29": "yaml (편집 가능)",
+  "adventure.t30": "md (편집 가능)",
+  "adventure.t31": "취소",
+  "adventure.t32": "에러: ",
+  "adventure.t33": "commit + push 진행 중...",
+  "adventure.t34": "에러: Tauri 환경 아님 (브라우저에서는 commit 불가)",
+  "adventure.t35": "(변경 없음)",
+  "adventure.end.extracted": "추출 완료 — slug: {slug}, title: {title}. 검토 후 commit."
 }

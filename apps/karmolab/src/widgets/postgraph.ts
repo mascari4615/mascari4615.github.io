@@ -1,3 +1,5 @@
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
   let lastDestroy: (() => void) | null = null;
 
@@ -18,6 +20,8 @@
 
   const PostGraph = {
     build(container: HTMLElement): void {
+      void loadNamespace('postgraph').then(function () {
+
       if (typeof lastDestroy === 'function') {
         try {
           lastDestroy();
@@ -63,18 +67,19 @@
         } catch (e) {
           console.error(e);
           wrap.textContent =
-            '그래프를 불러오지 못했습니다. (배포된 사이트에서 /assets/js/data/post-graph.json 확인)';
+            t('postgraph.t01');
         }
       })();
 
       if (typeof Mdd !== 'undefined') {
-        Mdd.linePreset('tool_run', { mood: 'idle', msg: '포스트 링크 관계예요. 노드를 누르면 글이 새 탭에서 열려요.' });
+        Mdd.linePreset('tool_run', { mood: 'idle', msg: t('postgraph.t02') });
       }
+          });
     }
   };
 
   Toolbox.register({
     ...(Toolbox.getLazyWidgetPublicMeta?.('postgraph') ?? {}),
-    tabs: [{ id: 'graph', label: '그래프', build: PostGraph.build }]
+    tabs: [{ id: 'graph', label: t('postgraph.t03'), build: PostGraph.build }]
   });
 })();
