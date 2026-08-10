@@ -11,7 +11,7 @@
  * 0건이다」로 나타난다. 모델에게 물으면 「같은 글자입니다」라고 답하는 일이 잦다.
  */
 import { SIMP_TO_TRAD, SIMP_TO_TRAD_AMBIGUOUS, TRAD_TO_SIMP, TRAD_TO_SIMP_AMBIGUOUS } from './han-table.generated';
-import { CHO, JONG, compose, decompose } from './jamo';
+import { compose, decompose } from './jamo';
 import type { ToolRunner, ToolSpec } from './types';
 
 export const spec: ToolSpec = {
@@ -127,9 +127,9 @@ const ROMAN_JONG = [
   'm', 'p', 'p', 't', 't', 'ng', 't', 't', 'k', 't', 'p', 't'
 ];
 
-/* 자모 표는 `core/jamo.ts` 하나뿐이다 — 여기 한 벌 더 적으면 언젠가 한쪽만 고쳐진다. */
-const CHO_LIST = CHO;
-const JONG_LIST = JONG;
+const CHO_LIST = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const JUNG_LIST = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+const JONG_LIST = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
 
 export function romanize(text: string): string {
   let out = '';

@@ -11,7 +11,6 @@ import type { Client } from 'discord.js';
 import { getServerStatsRecorder, type DebugDump, type ServerSummary } from '../services/server-stats';
 import { renderDashboardPage } from './wrapped-dashboard';
 import { renderDevPage } from './wrapped-dev';
-import { coverageNotice, guildCoverage, UNKNOWN_COVERAGE, type CoverageReport } from './stats-coverage';
 
 /** 카드에 실을 값 — HTML 과 JSON 이 같은 모양을 쓰도록 한 번 만든다. */
 export interface WrappedPageData {
@@ -24,8 +23,6 @@ export interface WrappedPageData {
   channelNames: Record<string, string>;
   /** 분석판 주소 (`/w/<키>/board`). 없으면 버튼을 안 그린다. */
   boardPath?: string;
-  /** 욘이 이 서버에서 어느 채널을 보는가 — 0 이 「조용함」인지 「안 보임」인지 가른다. */
-  coverage?: CoverageReport;
   generatedAt: string;
 }
 
@@ -279,24 +276,10 @@ export function renderWrappedPage(data: WrappedPageData): string {
   const { summary, guildName } = data;
   const title = `${guildName} 결산`;
 
-  // 마크다운 굵게(**) 는 embed 문법 — 웹에서는 태그로 바꿔 준다.
-  const notice = coverageNotice(data.coverage ?? UNKNOWN_COVERAGE, summary.totalMessages);
-  const noticeHtml = notice
-    ? `<section class="card blind"><p class="one-line">${escapeHtml(notice).replace(
-        /\*\*(.+?)\*\*/g,
-        '<b>$1</b>',
-      )}</p></section>`
-    : '';
-
   const body =
-    noticeHtml +
-    (summary.totalMessages === 0
+    summary.totalMessages === 0
       ? `<section class="card"><h2>아직 셀 게 없어요</h2>
-           <p class="empty">${
-             notice
-               ? '위 채널 권한부터 확인해 주세요 — 욘이 못 보는 곳의 대화는 세지 못해요.'
-               : '봇이 이제 막 세기 시작했어요. 며칠 떠들고 다시 열어 주세요.'
-           }</p></section>`
+           <p class="empty">봇이 이제 막 세기 시작했어요. 며칠 떠들고 다시 열어 주세요.</p></section>`
       : [
           `<section class="card hero">
              <div class="big">${summary.totalMessages.toLocaleString('ko-KR')}</div>
@@ -334,7 +317,7 @@ export function renderWrappedPage(data: WrappedPageData): string {
                  : ''
              }
            </section>`,
-        ].join(''));
+        ].join('');
 
   return `<!doctype html>
 <html lang="ko"><head>
@@ -380,9 +363,6 @@ export function renderWrappedPage(data: WrappedPageData): string {
   .num { color: #ffc86b; font-variant-numeric: tabular-nums; }
   .emojis { margin: 0; font-size: 17px; line-height: 1.7; }
   .empty { color: #8f87a8; font-size: 14px; margin: 0; }
-  /* 「왜 0인가」는 카드보다 먼저 눈에 띄어야 한다 — 안 그러면 또 조용한 서버로 오해한다. */
-  .card.blind { background: rgba(255,152,107,0.10); border-color: rgba(255,152,107,0.32); }
-  .card.blind .one-line { margin: 0; font-size: 14px; line-height: 1.6; color: #ffd7c2; }
   .hours { display: flex; align-items: flex-end; gap: 2px; height: 72px; }
   .hours .bar { flex: 1; height: 100%; display: flex; align-items: flex-end; }
   .hours .bar i { display: block; width: 100%; background: linear-gradient(180deg, #ffc86b, #b98bff); border-radius: 2px; }
@@ -458,7 +438,6 @@ export function mountWrappedWeb(app: Application, client: Client | null): void {
       detail,
       channelNames,
       boardPath: `/w/${key}/board`,
-      coverage: guildCoverage(guild),
       generatedAt: new Date().toISOString(),
     };
   };
@@ -549,7 +528,6 @@ export function mountWrappedWeb(app: Application, client: Client | null): void {
           guildId: id,
           days: Object.keys(g.days).length,
         })),
-        coverage: guildCoverage(guild),
       }),
     );
   });

@@ -1,6 +1,6 @@
 {
  "note": "gzip 바이트. audit-bundle-budget.mjs --update 로만 갱신한다.",
- "at": "2026-08-09T12:36:08.507Z",
+ "at": "2026-08-09T12:41:27.060Z",
  "sizes": {
   "activity.js": 7886,
   "adventure/adventure.js": 13323,

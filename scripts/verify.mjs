@@ -48,17 +48,6 @@ if (!existsSync('packages/karmolab-ai/dist')) {
 requireDeps('apps/karmolab');
 run('apps/karmolab build', 'apps/karmolab', 'npm run build');
 
-// 2.0-b. **품질 래칫은 여기서 본다** (TASK-KL-203 S19).
-//
-// 부팅 예산·성능·새는 루프는 「제품이 고장났다」가 아니라 「더 나빠졌다」를 재는 것들이다.
-// 그런데 배포 길목(`npm run build`)에 있어서, 어느 슬롯이 화면 하나를 실험하면 **사이트 전체가
-// 몇 시간씩 안 나갔다**(2026-08-09: leak·boot·bundle 이 번갈아 배포를 세웠고 그동안 실서비스는
-// 하루 종일 옛 판이었다). 막는 값어치보다 막힌 것의 값어치가 훨씬 컸다.
-//
-// 그래서 **여기(push 전 verify)** 로 옮긴다 — 고칠 사람이 고칠 자리에서 여전히 빨갛고,
-// 사이트는 나간다.
-run('apps/karmolab 품질 래칫 (부팅·성능·누수)', 'apps/karmolab', 'npm run verify:quality');
-
 // 2.1. 도구 페이지가 앱 셸과 갈라졌는지 (KL-097).
 //    도구 상세 127장은 index.html 에서 **만들어진 것**이다. 단일 출처는 이미 있는데,
 //    셸을 고치고 다시 안 찍어도 아무도 안 잡았다 — 실제로 인트로 규칙과 브랜드 글자 규칙을

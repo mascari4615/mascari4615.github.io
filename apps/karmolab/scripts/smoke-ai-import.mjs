@@ -11,7 +11,6 @@
  *
  * 사용: node scripts/smoke-ai-import.mjs
  */
-import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -58,19 +57,6 @@ try {
 const page = await browser.newPage();
 await page.route('**/*', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8">' }));
 await page.goto('http://localhost/');
-/*
- * 말 묶음을 미리 박는다 — 진짜 페이지가 머리말에 박는 그대로. 안 박으면 오류 글이
- * `airoute.noLocal` 같은 열쇠로 나와, 제품이 멀쩡한데 검사만 빨개진다.
- */
-await page.evaluate((cat) => {
-  window.__KARMO_LOCALE = 'ko';
-  window.__KARMO_I18N = { ko: cat };
-}, {
-  airoute: JSON.parse(fs.readFileSync(path.join(root, 'i18n/ko/airoute.json'), 'utf8')),
-  aiengine: fs.existsSync(path.join(root, 'i18n/ko/aiengine.json'))
-    ? JSON.parse(fs.readFileSync(path.join(root, 'i18n/ko/aiengine.json'), 'utf8'))
-    : {}
-});
 await page.addScriptTag({ content: code });
 
 const result = await page.evaluate(async () => {

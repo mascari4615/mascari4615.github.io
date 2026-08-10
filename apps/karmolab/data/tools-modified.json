@@ -1,20 +1,20 @@
 {
   "tools": {
     "charcount": {
-      "print": "41wrwk",
-      "date": "2026-08-07"
+      "print": "1vu3sze",
+      "date": "2026-08-08"
     },
     "jsonfmt": {
-      "print": "2mka26",
-      "date": "2026-08-06"
+      "print": "1bta8gd",
+      "date": "2026-08-08"
     },
     "hangulkey": {
-      "print": "1q03ifw",
-      "date": "2026-08-07"
+      "print": "o45f07",
+      "date": "2026-08-08"
     },
     "qrgen": {
-      "print": "1we5h3r",
-      "date": "2026-08-06"
+      "print": "18qcltj",
+      "date": "2026-08-08"
     },
     "lotto": {
       "print": "15kwjmm",
@@ -25,12 +25,12 @@
       "date": "2026-08-06"
     },
     "datecalc": {
-      "print": "1h5njwt",
-      "date": "2026-08-06"
+      "print": "1e8ncre",
+      "date": "2026-08-09"
     },
     "unitconv": {
-      "print": "5t73tw",
-      "date": "2026-08-06"
+      "print": "17vkdo3",
+      "date": "2026-08-08"
     },
     "hashgen": {
       "print": "xtbuk4",
@@ -41,16 +41,16 @@
       "date": "2026-08-06"
     },
     "textdiff": {
-      "print": "1btk5k6",
-      "date": "2026-08-07"
+      "print": "1h2gy9h",
+      "date": "2026-08-08"
     },
     "regextest": {
       "print": "5lhz9k",
       "date": "2026-08-06"
     },
     "colorconv": {
-      "print": "xo2goh",
-      "date": "2026-08-06"
+      "print": "rhkfes",
+      "date": "2026-08-08"
     },
     "asciiart": {
       "print": "1u8b2y4",
@@ -161,8 +161,8 @@
       "date": "2026-08-06"
     },
     "color": {
-      "print": "1pp2a36",
-      "date": "2026-08-06"
+      "print": "1h2emf8",
+      "date": "2026-08-09"
     },
     "text": {
       "print": "16iau41",
@@ -217,8 +217,8 @@
       "date": "2026-08-06"
     },
     "birth": {
-      "print": "jt734i",
-      "date": "2026-08-06"
+      "print": "1vy249l",
+      "date": "2026-08-08"
     },
     "contrast": {
       "print": "pffbnr",
@@ -273,8 +273,8 @@
       "date": "2026-08-06"
     },
     "loan": {
-      "print": "1n7faa2",
-      "date": "2026-08-06"
+      "print": "10epiak",
+      "date": "2026-08-08"
     },
     "cssunit": {
       "print": "10ylhkl",
@@ -345,8 +345,8 @@
       "date": "2026-08-06"
     },
     "memo": {
-      "print": "1gltqn8",
-      "date": "2026-08-06"
+      "print": "a5qrlq",
+      "date": "2026-08-09"
     },
     "video2gif": {
       "print": "1cxxlcr",
@@ -433,8 +433,8 @@
       "date": "2026-08-06"
     },
     "passgen": {
-      "print": "73uf3i",
-      "date": "2026-08-06"
+      "print": "r347u5",
+      "date": "2026-08-08"
     },
     "gradient": {
       "print": "1i52vgh",
@@ -481,8 +481,8 @@
       "date": "2026-08-06"
     },
     "imgresize": {
-      "print": "1myxckt",
-      "date": "2026-08-06"
+      "print": "1iirym9",
+      "date": "2026-08-08"
     },
     "audiofade": {
       "print": "1kcnj3y",
@@ -515,6 +515,34 @@
     "timecapsule": {
       "print": "rb6iqb",
       "date": "2026-08-07"
+    },
+    "chain": {
+      "print": "6rra6s",
+      "date": "2026-08-09"
+    },
+    "dailytype": {
+      "print": "uuz1dc",
+      "date": "2026-08-09"
+    },
+    "dailycho": {
+      "print": "1rre8zx",
+      "date": "2026-08-09"
+    },
+    "charconv": {
+      "print": "29yq40",
+      "date": "2026-08-10"
+    },
+    "comparepic": {
+      "print": "fu34zu",
+      "date": "2026-08-09"
+    },
+    "livecount": {
+      "print": "lujwki",
+      "date": "2026-08-09"
+    },
+    "mesh3d": {
+      "print": "zlj64u",
+      "date": "2026-08-09"
     }
   }
 }

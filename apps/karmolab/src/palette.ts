@@ -19,7 +19,6 @@
  * `Toolbox.switchPage` 가 묶음으로 보내고 그 탭을 열어 주므로, 메뉴에 없다는 것이
  * 「닿을 수 없다」를 뜻하지 않게 된다. 메뉴 123개 대 찾기 160개의 차이가 여기서 난다.
  */
-import { initials as toCho } from './core/jamo';
 
 type PaletteTool = {
   id: string;
@@ -65,7 +64,21 @@ const RESULT_MAX = 40;
 const INLINE_ROW_MAX = 5;
 const INLINE_RESULT_MAX = 8;
 
-/* 초성 뽑기는 `core/jamo.ts` 가 한다 — 표를 여기 한 벌 더 적으면 언젠가 한쪽만 고쳐진다. */
+const CHO_TABLE = [
+  'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ',
+  'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
+];
+
+/** 한글 음절을 초성으로. 한글이 아니면 그대로 (영문·숫자도 같이 쳐질 수 있으므로). */
+function toCho(s: string): string {
+  let out = '';
+  for (const ch of s) {
+    const code = ch.charCodeAt(0) - 0xac00;
+    if (code >= 0 && code < 11172) out += CHO_TABLE[Math.floor(code / 588)];
+    else out += ch;
+  }
+  return out;
+}
 
 /** 찾기 비교용 정규화 — 대소문자·공백을 지운다. 「글자수 세기」와 「글자수세기」가 같아야 한다. */
 function norm(s: unknown): string {
@@ -1015,4 +1028,3 @@ const KarmoPalette = (() => {
 })();
 
 (window as unknown as { KarmoPalette: typeof KarmoPalette }).KarmoPalette = KarmoPalette;
-

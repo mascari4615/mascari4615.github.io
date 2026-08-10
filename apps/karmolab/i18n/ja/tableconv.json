@@ -17,5 +17,6 @@
   "tableconv.copy.done": "変換した表をコピーしました",
   "tableconv.value.rows": "{n}行",
   "tableconv.value.cols": "{n}列",
-  "tableconv.say.detected": "{kind} として読みました。コピーして使ってください。"
+  "tableconv.say.detected": "{kind} として読みました。コピーして使ってください。",
+  "tableconv.tab": "表を変換"
 }

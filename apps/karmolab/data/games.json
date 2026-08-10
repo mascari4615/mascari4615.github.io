@@ -35,6 +35,27 @@
       "emoji": "👻",
       "url": "/karmolab/#ghosttype",
       "lead": "앞선 사람의 유령과 나란히 달린다 — 기록이 주소가 된다"
+    },
+    {
+      "id": "worldcup",
+      "title": "이상형 월드컵",
+      "emoji": "👑",
+      "url": "/karmolab/#worldcup",
+      "lead": "둘 중 하나만 고른다 — 표를 만들면 그대로 내 월드컵"
+    },
+    {
+      "id": "reaction",
+      "title": "반응속도",
+      "emoji": "⚡",
+      "url": "/karmolab/#reaction",
+      "lead": "초록으로 바뀌는 순간 누른다"
+    },
+    {
+      "id": "speed",
+      "title": "속도측정",
+      "emoji": "🖱",
+      "url": "/karmolab/#speed",
+      "lead": "1MB 블럭을 골인까지 끌고 간다"
     }
   ]
 }

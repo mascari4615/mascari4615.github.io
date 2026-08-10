@@ -55,19 +55,8 @@
    - `CUDA_HOME not set` → CUDA Toolkit 12.9 설치 (`winget install Nvidia.CUDA --version 12.9`)
    - `Unable to find a compatible Visual Studio installation` → VS 2022 Build Tools + VCTools 워크로드
    - `cl.exe failed` → pip 을 `vcvars64.bat` 환경 **안에서** 실행해야 한다
-   - `nvcc: unsupported Microsoft Visual Studio version` → **VS2022 쪽 `vcvars64.bat` 안에서** pip 실행
-     (`C:\Program Files (x86)\Microsoft Visual Studio2\BuildTools\...`). VS18(2026, MSVC 14.51)은
-     CUDA 12.9 와 호환되지 않는다. 이 조합으로 `custom_rasterizer` · `mesh_processor` 컴파일 성공.
+   - 그 다음 `nvcc failed exit code 2` (진행 중 — 아키텍처 플래그 / MSVC 버전 조합 의심)
 4. **ComfyUI Portable** = `C:\AI\ComfyUI_windows_portable` (컴파일 회피 경로 — prebuilt wheel 사용)
-
-## ⏸ 현재 상태 (2026-08-09)
-
-**보류.** 마스코트는 KarmoLab 에서 기본 비활성(`apps/karmolab/src/mdd.ts` → `PREF_DEFAULTS.enabled = false`)
-이고, 3D 시도는 5판 전부 사용자 반려로 멈췄다. 경위·실측·재개 경로 정본 =
-`memo/projects/karmolab/tasks/TASK-KL-134-마스코트-벡터-재제작.md` 맨 아래 § 2026-08-09.
-
-재개 시 첫 두 단계만 기억하면 된다: **① 목표 화풍 레퍼런스 확보 ② 클라우드 3D(Tripo/Meshy/ComfyUI API)**.
-로컬 8GB 로 텍스처를 굽는 길은 1장 15분+ 로 폐기했다.
 
 ## GPU 경합 주의
 

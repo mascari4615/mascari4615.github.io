@@ -17,5 +17,6 @@
   "tableconv.copy.done": "Converted table copied",
   "tableconv.value.rows": "{n}",
   "tableconv.value.cols": "{n}",
-  "tableconv.say.detected": "Read it as {kind}. Copy it and use it."
+  "tableconv.say.detected": "Read it as {kind}. Copy it and use it.",
+  "tableconv.tab": "Convert a table"
 }

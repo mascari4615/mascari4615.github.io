@@ -23,8 +23,8 @@ print("inputs:", len(files), flush=True)
 for img in files:
     name = os.path.basename(img)[:-4]
     p = {"image": base64.b64encode(open(img, 'rb').read()).decode(),
-         "octree_resolution": 320, "num_inference_steps": 20, "guidance_scale": 5.0,
-         "texture": True, "face_count": 20000, "seed": 1234, "remove_background": True}
+         "octree_resolution": 256, "num_inference_steps": 30, "guidance_scale": 5.0,
+         "texture": True, "face_count": 20000, "seed": 1234, "type": "glb"}
     r = urllib.request.Request(API + "/generate", data=json.dumps(p).encode(),
                                headers={"Content-Type": "application/json"})
     t = time.time()
