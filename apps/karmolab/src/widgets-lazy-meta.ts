@@ -181,6 +181,21 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['activity']
   },
   {
+    id: 'quest-log',
+    get title() { return t('widgets.quest-log.title', undefined, "Quest Log"); },
+    category: 'lab',
+    desktopOnly: true,
+    hidden: true,
+    get desc() { return t('widgets-desc.quest-log.desc', undefined, "memo TASK 정본을 읽어 프로젝트 진행도를 보여주는 개발용 작업 지도"); },
+    layout: 'full',
+    noHero: true,
+    icon:
+      '<path d="M5 4h14v16H5z" stroke="currentColor" stroke-width="1.5" fill="none"/>' +
+      '<path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' +
+      '<path d="M4 7h2M4 12h2M4 17h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['quest-log/quest-log']
+  },
+  {
     id: 'wm',
     get title() { return t('widgets.wm.title', undefined, "Witch-Mendokusai"); },
     category: 'tool',
@@ -199,6 +214,20 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     icon: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
     lazyScriptPaths: ['docs/docs']
+  },
+  {
+    id: 'project-atlas',
+    get title() { return t('widgets.project-atlas.title', undefined, "Project Atlas"); },
+    category: 'lab',
+    get desc() { return t('widgets-desc.project-atlas.desc', undefined, "KarmoLab·WM·memo 구조를 C4식 지도로 보고, Web 초심자 눈높이로 수정 지점을 찾습니다"); },
+    layout: 'wide',
+    noHero: true,
+    icon:
+      '<rect x="3" y="4" width="7" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/>' +
+      '<rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/>' +
+      '<rect x="8" y="15" width="8" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/>' +
+      '<path d="M10 7h4M6.5 10v3.5M17.5 10v3.5M8 18H5.5M16 18h2.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['project-atlas/project-atlas']
   },
   {
     id: 'randomgen',
