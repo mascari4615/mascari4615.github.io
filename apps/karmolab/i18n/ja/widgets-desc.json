@@ -127,7 +127,7 @@
   "widgets-desc.ladder.desc": "名前と結果を入れるとあみだを描き、押した人の経路をたどって組み合わせを決めます",
   "widgets-desc.palette.desc": "写真から代表色を抜き出して HEX · RGB のパレットにします。CSS 変数としてもまとめてコピー",
   "widgets-desc.calc.desc": "パーセント · 利息 · BMI · 単位 · 基数の計算をひとまとめに",
-  "widgets-desc.numword.desc": "数字を漢数字で読み、漢数字を数字に戻します。契約書・領収書の金額表記に",
+  "widgets-desc.numword.desc": "数字をハングルで読み、ハングルの数を数字に戻します。契約書・領収書の金額表記に",
   "widgets-desc.aspect.desc": "縦横比を保ったままサイズを計算します。よく使う画面比と余白の計算つき",
   "widgets-desc.grade.desc": "科目ごとの単位と成績から GPA を計算します。目標に必要な成績も一緒に",
   "widgets-desc.vat.desc": "本体価格に付加価値税を足したり、総額から抜いたりします。請求書の三行そのまま",

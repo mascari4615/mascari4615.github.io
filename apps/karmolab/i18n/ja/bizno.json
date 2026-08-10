@@ -2,7 +2,7 @@
   "bizno.tab": "検査",
   "bizno.label.number": "番号 — ハイフンはあってもなくても大丈夫です",
   "bizno.status.idle": "計算が合っていても実際に登録されているかは分かりません — それは韓国国税庁の照会が必要です。",
-  "bizno.status.bizOk": "形式としては正しい番号です。実際の登録有無は国税庁の照会が必要です。",
+  "bizno.status.bizOk": "形式としては正しい番号です。実際の登録有無は韓国国税庁の照会が必要です。",
   "bizno.status.bizBad": "最後の桁が計算と合いません — 入力ミスの可能性が高いです。",
   "bizno.status.corpOk": "形式としては正しい番号です。",
   "bizno.status.corpBad": "最後の桁が計算と合いません。",
