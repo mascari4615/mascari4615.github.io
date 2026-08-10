@@ -18,9 +18,28 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as esbuild from 'esbuild';
+import { SOURCE_LOCALE } from './lib/locales.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const coreDir = path.join(root, 'src/core');
+
+/**
+ * 노드에서 `t()` 가 원본 열쇠를 그대로 뱉지 않게, 원본 로케일 묶음을 미리 박는다.
+ *
+ * 브라우저는 `build-i18n` 이 `window.__KARMO_I18N` 을 채워 주지만, 이 시험은 브라우저 없이
+ * core 모듈을 직접 부르므로 같은 상태를 손으로 맞춰 줘야 한다.
+ */
+globalThis.window = {
+  __KARMO_LOCALE: SOURCE_LOCALE,
+  __KARMO_I18N: {
+    [SOURCE_LOCALE]: Object.fromEntries(
+      fs
+        .readdirSync(path.join(root, 'i18n', SOURCE_LOCALE))
+        .filter((f) => f.endsWith('.json'))
+        .map((f) => [f.replace(/\.json$/, ''), JSON.parse(fs.readFileSync(path.join(root, 'i18n', SOURCE_LOCALE, f), 'utf8'))])
+    )
+  }
+};
 
 const failures = [];
 const check = (ok, why) => {
