@@ -12,16 +12,14 @@
  * **못 잰 자리는 못 쟀다고 적는다.** 서비스 워커가 준 응답은 크기가 안 오고, 크롬 밖에서는
  * 메모리와 긴 작업을 못 잰다. 그 자리에 0 을 적으면 「아주 좋다」로 읽혀서 고칠 것을 못 찾는다.
  */
+import { t, loadNamespace, locale } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const ID = 'perf';
 
-  function esc(value: unknown): string {
-    return String(value ?? '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
 
   /** 못 잰 것은 「—」. 0 으로 적으면 아주 빠른 것으로 읽힌다. */
   function ms(value: unknown, digits = 0): string {
@@ -156,8 +154,10 @@
     tabs: [
       {
         id: 'app',
-        label: '성능 계기판',
+        label: t('perf.t106', undefined, "성능 계기판"),
         build(container: HTMLElement): void {
+          void loadNamespace('perf').then(function () {
+
           const perf = window.KLPerf;
 
           /* 계측기가 안 실린 판이면 **표를 0 으로 채우지 않는다** — 「전부 0ms」는 아주 빠른
@@ -165,10 +165,12 @@
           if (!perf) {
             container.innerHTML = `
               <div class="pf-none">
-                <strong>계측기가 이 판에 안 실렸습니다.</strong><br>
-                <code>js/perf.js</code> 가 셸보다 먼저 실려야 합니다 (<code>index.html</code>).
-                빌드를 다시 하거나(<code>npm run build</code>) 새로고침해 보세요.
-                지금 숫자를 지어내 보여 주지는 않습니다.
+                <strong>${esc(t('perf.t01'))}</strong><br>
+                ${t('perf.noProbe', {
+                  file: '<code>js/perf.js</code>',
+                  shell: '<code>index.html</code>',
+                  cmd: '<code>npm run build</code>',
+                })}
               </div>`;
             return;
           }
@@ -218,15 +220,18 @@
           container.innerHTML = `
             <div class="pf-wrap">
               <p class="pf-lead">
-                KarmoLab 자기 성능. 재는 곳은 셸 한 곳(<code>src/perf.ts</code>)이고 이 화면은 읽기만 합니다.
-                숫자는 <b>이 브라우저·이 기기의 실측</b>이며, 못 잰 자리는 <b>—</b> 로 둡니다.
+                ${t('perf.lead', {
+                  where: '<code>src/perf.ts</code>',
+                  measured: `<b>${esc(t('perf.t07'))}</b>`,
+                  dash: '<b>—</b>',
+                })}
               </p>
               <div class="pf-bar">
-                <button type="button" class="pf-btn" data-act="refresh">다시 재기</button>
-                <button type="button" class="pf-btn" data-act="frame3">프레임 3초 재기</button>
-                <button type="button" class="pf-btn" data-act="frame10">10초</button>
-                <button type="button" class="pf-btn" data-act="copy">JSON 복사</button>
-                <button type="button" class="pf-btn" data-act="clear">부팅 원장 비우기</button>
+                <button type="button" class="pf-btn" data-act="refresh">${esc(t('perf.t10'))}</button>
+                <button type="button" class="pf-btn" data-act="frame3">${esc(t('perf.t11'))}</button>
+                <button type="button" class="pf-btn" data-act="frame10">${esc(t('perf.t12'))}</button>
+                <button type="button" class="pf-btn" data-act="copy">${esc(t('perf.t13'))}</button>
+                <button type="button" class="pf-btn" data-act="clear">${esc(t('perf.t14'))}</button>
                 <span class="pf-stamp" id="pfStamp"></span>
               </div>
               <div id="pfBody"></div>
@@ -245,37 +250,37 @@
             ).length;
             const longSum = snap.longTasks ? snap.longTasks.reduce((s, t) => s + t.ms, 0) : null;
             const cards: Array<[string, string, string]> = [
-              ['셸 준비까지', ms(ready?.at), '테마 + 도구 목록이 선 시점'],
-              ['첫 그림 (FCP)', ms(snap.paint.fcp), '뭐라도 그려진 순간'],
-              ['큰 그림 (LCP)', ms(snap.paint.lcp), '제일 큰 것이 자리잡은 순간'],
+              [t('perf.t107'), ms(ready?.at), t('perf.t108')],
+              [t('perf.t109'), ms(snap.paint.fcp), t('perf.t110')],
+              [t('perf.t111'), ms(snap.paint.lcp), t('perf.t112')],
               [
-                '받은 자바스크립트',
+                t('perf.t113'),
                 kb(jsBytes),
-                jsUnknown ? `${jsUnknown}개는 크기 모름 (서비스 워커)` : '압축된 채로',
+                jsUnknown ? t('perf.jsUnknown', { n: jsUnknown }) : t('perf.t114'),
               ],
               [
-                '긴 작업 총합',
-                longSum == null ? '못 잼' : ms(longSum),
-                longSum == null ? '이 브라우저는 안 알려 줌' : `${snap.longTasks!.length}건 · 50ms 넘긴 것`,
+                t('perf.t115'),
+                longSum == null ? t('perf.t116') : ms(longSum),
+                longSum == null ? t('perf.t117') : t('perf.longTaskNote', { n: snap.longTasks!.length }),
               ],
               [
                 /* 「만질 때 굼뜨나」 — 개발용 계기판에서 부팅만큼 중요한데 여태 없던 축.
                    200ms 를 넘으면 사람이 「눌렀는데 안 먹었나?」 하고 한 번 더 누른다. */
-                '제일 굼뜬 조작 (INP)',
-                snap.inp == null ? (snap.interactions == null ? '못 잼' : '조작 없음') : ms(snap.inp),
+                t('perf.t118'),
+                snap.inp == null ? (snap.interactions == null ? t('perf.t116') : t('perf.t119')) : ms(snap.inp),
                 snap.interactions == null
-                  ? '이 브라우저는 안 알려 줌'
-                  : `${snap.interactions.length}번 만짐 · 200ms 넘으면 답답함`,
+                  ? t('perf.t117')
+                  : t('perf.inpNote', { n: snap.interactions.length }),
               ],
               [
-                '화면 밀림 (CLS)',
-                snap.cls == null ? '못 잼' : snap.cls.toFixed(3),
-                snap.cls == null ? '이 브라우저는 안 알려 줌' : '0.1 넘으면 눌렀는데 딴 게 눌린다',
+                t('perf.t120'),
+                snap.cls == null ? t('perf.t116') : snap.cls.toFixed(3),
+                snap.cls == null ? t('perf.t117') : t('perf.t121'),
               ],
               [
-                '자바스크립트 메모리',
-                snap.memory ? `${snap.memory.usedMb.toFixed(0)}MB` : '못 잼',
-                snap.memory ? `한도 ${snap.memory.limitMb.toFixed(0)}MB` : '크로미움에서만 알려 줌',
+                t('perf.t122'),
+                snap.memory ? `${snap.memory.usedMb.toFixed(0)}MB` : t('perf.t116'),
+                snap.memory ? t('perf.memLimit', { mb: snap.memory.limitMb.toFixed(0) }) : t('perf.t123'),
               ],
             ];
             return `<div class="pf-cards">${cards
@@ -292,17 +297,17 @@
 
           function waterfall(snap: Snap): string {
             const rows: Array<[string, number | null]> = [
-              ['서버 첫 응답', snap.nav.ttfb],
-              ['문서 해석', snap.nav.domInteractive],
-              ['첫 그림 (FCP)', snap.paint.fcp],
+              [t('perf.t124'), snap.nav.ttfb],
+              [t('perf.t125'), snap.nav.domInteractive],
+              [t('perf.t109'), snap.paint.fcp],
               ...snap.marks.map((m) => [m.name, m.at] as [string, number]),
-              ['큰 그림 (LCP)', snap.paint.lcp],
-              ['문서 다 뜸', snap.nav.load],
+              [t('perf.t111'), snap.paint.lcp],
+              [t('perf.t126'), snap.nav.load],
             ];
             const known = rows.filter((r) => typeof r[1] === 'number') as Array<[string, number]>;
             known.sort((a, b) => a[1] - b[1]);
             const max = known.length ? known[known.length - 1][1] : 1;
-            if (!known.length) return '<div class="pf-none">부팅 기록이 없습니다.</div>';
+            if (!known.length) return t('perf.t127');
             return `<div class="pf-fall">${known
               .map(
                 ([name, at]) => `
@@ -321,7 +326,9 @@
             const rows = snap.widgets.slice();
             rows.sort((a, b) => (Number(b[widgetSort] ?? -1) || -1) - (Number(a[widgetSort] ?? -1) || -1));
             if (!rows.length) {
-              return `<div class="pf-none">아직 연 위젯이 없습니다. 도구를 몇 개 열고 <b>다시 재기</b>를 누르면 이 표가 찹니다.</div>`;
+              return `<div class="pf-none">${t('perf.noWidgets', {
+                again: `<b>${esc(t('perf.t10'))}</b>`,
+              })}</div>`;
             }
             const head = (key: WidgetSort, label: string): string =>
               `<th><button type="button" class="pf-sort" data-sort="${key}" data-on="${
@@ -329,13 +336,13 @@
               }">${esc(label)}</button></th>`;
             return `<div class="pf-scroll"><table class="pf-table">
               <thead><tr>
-                <th>위젯</th>
-                ${head('bytes', '크기')}
-                <th>받기</th>
-                ${head('loadMs', '눌러서 준비까지')}
-                ${head('firstBuildMs', '첫 그리기')}
-                <th>마지막 그리기</th>
-                ${head('builds', '그린 횟수')}
+                <th>${esc(t('perf.t17'))}</th>
+                ${head('bytes', t('perf.t22'))}
+                <th>${esc(t('perf.t18'))}</th>
+                ${head('loadMs', t('perf.t128'))}
+                ${head('firstBuildMs', t('perf.t129'))}
+                <th>${esc(t('perf.t19'))}</th>
+                ${head('builds', t('perf.t130'))}
               </tr></thead>
               <tbody>${rows
                 .map(
@@ -358,10 +365,10 @@
               .sort((a, b) => (b.bytes || 0) - (a.bytes || 0))
               .slice(0, 15);
             const cached = snap.resources.filter((r) => r.transferred === 0).length;
-            if (!rows.length) return '<div class="pf-none">받은 것의 크기를 못 읽었습니다.</div>';
+            if (!rows.length) return t('perf.t131');
             const blockers = snap.resources.filter((r) => r.blocking === 'blocking').length;
             return `<div class="pf-scroll"><table class="pf-table">
-              <thead><tr><th>파일</th><th>종류</th><th>크기</th><th>합계</th><th>이름찾기</th><th>연결</th><th>서버 기다림</th><th>내려받기</th><th>첫그림 막음</th></tr></thead>
+              <thead><tr><th>${esc(t('perf.t20'))}</th><th>${esc(t('perf.t21'))}</th><th>${esc(t('perf.t22'))}</th><th>${esc(t('perf.t23'))}</th><th>${esc(t('perf.t24'))}</th><th>${esc(t('perf.t25'))}</th><th>${esc(t('perf.t26'))}</th><th>${esc(t('perf.t27'))}</th><th>${esc(t('perf.t28'))}</th></tr></thead>
               <tbody>${rows
                 .map(
                   (row) => `<tr>
@@ -373,12 +380,19 @@
                     <td>${ms(row.connectMs)}</td>
                     <td${tone(row.waitMs, 100, 300)}>${ms(row.waitMs)}</td>
                     <td>${ms(row.downloadMs)}</td>
-                    <td>${row.blocking === 'blocking' ? '⚠ 막음' : row.transferred === 0 ? '캐시' : ''}</td>
+                    <td>${row.blocking === 'blocking' ? t('perf.t132') : row.transferred === 0 ? t('perf.t133') : ''}</td>
                   </tr>`
                 )
                 .join('')}</tbody></table></div>
-              <p class="pf-sec-note">받은 것 ${snap.resources.length}개 중 ${cached}개는 회선을 안 탔습니다(캐시·서비스 워커) · 첫 그림을 막은 것 ${blockers}개.
-                단계 칸이 전부 「—」면 <b>빠른 게 아니라 안 알려 준 것</b>입니다(남의 도메인 + <code>Timing-Allow-Origin</code> 없음).</p>`;
+              <p class="pf-sec-note">${t('perf.resNote', {
+                total: snap.resources.length,
+                cached,
+                blockers,
+              })}
+                ${t('perf.resTaoNote', {
+                  other: `<b>${esc(t('perf.t29'))}</b>`,
+                  header: '<code>Timing-Allow-Origin</code>',
+                })}</p>`;
           }
 
           /**
@@ -387,10 +401,10 @@
            */
           function interactionTable(snap: Snap): string {
             if (snap.interactions == null) {
-              return '<div class="pf-none">이 브라우저는 조작 지연을 안 알려 줍니다. <b>0 이 아니라 못 잰 것</b>입니다.</div>';
+              return t('perf.t134');
             }
             if (!snap.interactions.length) {
-              return '<div class="pf-none">아직 만진 것이 없습니다 — 도구를 눌러 보고 <b>다시 재기</b>를 누르세요. (한 프레임(16ms)을 넘긴 조작만 셉니다.)</div>';
+              return t('perf.t135');
             }
             const rows = snap.interactions.slice(0, 12);
             /* 「표시 40ms = 느리다」는 틀린 판정이다 — 핸들러가 하나도 없는 빈 클릭도 이 환경에선
@@ -398,11 +412,11 @@
             const floor = snap.presentationFloorMs;
             const overFloor = (value: number): number | null => (floor == null ? value : Math.max(0, value - floor));
             return `<div class="pf-scroll"><table class="pf-table">
-              <thead><tr><th>무엇을 눌렀나</th><th>종류</th><th>언제</th><th>총</th><th>대기</th><th>처리</th><th>표시</th></tr></thead>
+              <thead><tr><th>${esc(t('perf.t32'))}</th><th>${esc(t('perf.t21'))}</th><th>${esc(t('perf.t33'))}</th><th>${esc(t('perf.t34'))}</th><th>${esc(t('perf.t35'))}</th><th>${esc(t('perf.t36'))}</th><th>${esc(t('perf.t37'))}</th></tr></thead>
               <tbody>${rows
                 .map(
                   (row) => `<tr>
-                    <td>${esc(row.target || '모름')}</td>
+                    <td>${esc(row.target || t('perf.unknownValue'))}</td>
                     <td>${esc(row.name)}</td>
                     <td>${ms(row.at)}</td>
                     <td${tone(row.ms, 200, 500)}>${ms(row.ms)}</td>
@@ -414,8 +428,8 @@
                 .join('')}</tbody></table></div>
               <p class="pf-sec-note">${
                 floor == null
-                  ? '이 환경의 <b>표시 하한</b>은 아직 모릅니다 — 아무 일도 안 하는 곳을 몇 번 더 눌러야 정해집니다.'
-                  : `이 환경의 <b>표시 하한 ${ms(floor)}</b> (아무 일도 안 하는 클릭의 중앙값). 표시 칸은 <b>이 하한을 넘은 만큼</b>으로 색을 칠합니다 — 하한 자체는 우리 코드가 아니라 기기·브라우저가 쓰는 시간입니다.`
+                  ? t('perf.t136')
+                  : t('perf.floorNote', { floor: `<b>${ms(floor)}</b>`, over: `<b>${esc(t('perf.t39'))}</b>` })
               }</p>`;
           }
 
@@ -425,16 +439,16 @@
            */
           function culpritTable(snap: Snap): string {
             if (snap.culprits == null) {
-              return '<div class="pf-none">이 브라우저는 프레임별 스크립트 귀속을 안 알려 줍니다(크로미움 123+ 전용). 아래 <b>긴 작업</b> 표만 보세요 — <b>0 이 아니라 못 잰 것</b>입니다.</div>';
+              return t('perf.t137');
             }
             if (!snap.culprits.length) {
-              return '<div class="pf-none">50ms 넘게 걸린 프레임이 없습니다 — 잡을 범인이 없습니다.</div>';
+              return t('perf.t138');
             }
             const rows = snap.culprits.slice(0, 12);
             const frames = snap.slowFrames || [];
             const worst = frames.length ? frames[0] : null;
             return `<div class="pf-scroll"><table class="pf-table">
-              <thead><tr><th>파일 # 함수</th><th>부른 것</th><th>합계</th><th>강제 레이아웃</th><th>프레임 수</th></tr></thead>
+              <thead><tr><th>${esc(t('perf.t40'))}</th><th>${esc(t('perf.t41'))}</th><th>${esc(t('perf.t23'))}</th><th>${esc(t('perf.t42'))}</th><th>${esc(t('perf.t43'))}</th></tr></thead>
               <tbody>${rows
                 .map(
                   (row) => `<tr>
@@ -448,10 +462,13 @@
                 .join('')}</tbody></table></div>
               ${
                 worst
-                  ? `<p class="pf-sec-note">제일 늦은 프레임: ${ms(worst.ms)} (손가락 막은 시간 ${ms(
-                      worst.blockingMs
-                    )} · 그리기 ${ms(worst.renderMs)}) — 늦은 프레임 ${frames.length}장.
-                       <b>강제 레이아웃</b>이 붙은 줄은 읽고-쓰기를 번갈아 해서 브라우저에 계산을 두 번 시킨 코드입니다.</p>`
+                  ? `<p class="pf-sec-note">${t('perf.worstFrame', {
+                      worst: ms(worst.ms),
+                      blocking: ms(worst.blockingMs),
+                      render: ms(worst.renderMs),
+                      n: frames.length,
+                    })}
+                       ${t('perf.forcedLayout', { what: `<b>${esc(t('perf.t42'))}</b>` })}</p>`
                   : ''
               }`;
           }
@@ -462,36 +479,39 @@
            */
           function unusedTable(snap: Snap): string {
             const rows = snap.unused.rows;
-            if (!rows.length) return '<div class="pf-none">받은 위젯은 전부 화면에 나왔습니다.</div>';
+            if (!rows.length) return t('perf.t139');
             const boot = rows.filter((r) => r.atBoot);
             return `<div class="pf-scroll"><table class="pf-table">
-              <thead><tr><th>위젯</th><th>받은 양</th><th>부팅에 딸려왔나</th></tr></thead>
+              <thead><tr><th>${esc(t('perf.t17'))}</th><th>${esc(t('perf.t45'))}</th><th>${esc(t('perf.t46'))}</th></tr></thead>
               <tbody>${rows
                 .slice(0, 10)
                 .map(
                   (row) => `<tr>
                     <td>${esc(row.id)}</td>
                     <td${row.atBoot ? tone(row.bytes, 5000, 20000) : ''}>${kb(row.bytes)}</td>
-                    <td>${row.atBoot ? '⚠ 부팅' : '눌러서 받음'}</td>
+                    <td>${row.atBoot ? t('perf.t49') : t('perf.t140')}</td>
                   </tr>`
                 )
                 .join('')}</tbody></table></div>
-              <p class="pf-sec-note">받았는데 이번에 한 번도 안 그린 것 ${rows.length}개 (${kb(snap.unused.bytes)}).
-                <b>「눌러서 받음」은 낭비가 아닙니다</b> — 곧 볼 화면일 수 있습니다. 문제는 <b>⚠ 부팅</b> 쪽입니다:
-                누르지도 않았는데 받았고 쓰이지도 않았습니다${boot.length ? ` (지금 ${boot.length}개)` : ' (지금 없음)'}.</p>`;
+              <p class="pf-sec-note">${t('perf.unusedNote', { n: rows.length, size: kb(snap.unused.bytes) })}
+                ${t('perf.unusedWhy', {
+                  onDemand: `<b>${esc(t('perf.t47'))}</b>`,
+                  atBoot: `<b>${esc(t('perf.t49'))}</b>`,
+                  count: boot.length ? t('perf.unusedBootCount', { n: boot.length }) : t('perf.t141'),
+                })}</p>`;
           }
 
           /** 전체 위젯 무게 — 이 세션에서 안 연 것까지 (TASK-KL-201 ⑪). */
           function allWidgetTable(snap: Snap): string {
-            if (allSizesState === 'loading') return '<div class="pf-none">전체 무게를 읽는 중…</div>';
+            if (allSizesState === 'loading') return t('perf.t142');
             if (allSizesState === 'fail' || !allSizes) {
-              return '<div class="pf-none">전체 무게를 <b>못 읽었습니다</b> — <code>data/bundle-baseline.json</code> 이 없는 판입니다(<code>npm run audit:bundles -- --update</code>). 아래 위젯 표는 <b>이 세션에서 연 것만</b>이라 전부가 아닙니다.</div>';
+              return t('perf.t143');
             }
             const opened = new Set(snap.widgets.map((w) => w.id));
             const rows = Object.entries(allSizes).sort((a, b) => b[1] - a[1]);
             const total = rows.reduce((sum, [, bytes]) => sum + bytes, 0);
             return `<div class="pf-scroll"><table class="pf-table">
-              <thead><tr><th>위젯 묶음</th><th>gzip</th><th>이번에 열었나</th></tr></thead>
+              <thead><tr><th>${esc(t('perf.t50'))}</th><th>gzip</th><th>${esc(t('perf.t51'))}</th></tr></thead>
               <tbody>${rows
                 .slice(0, 15)
                 .map(([name, bytes]) => {
@@ -499,29 +519,34 @@
                   return `<tr>
                     <td>${esc(name)}</td>
                     <td${tone(bytes, 24 * 1024, 48 * 1024)}>${kb(bytes)}</td>
-                    <td>${opened.has(id) || opened.has(name.replace(/\.js$/, '')) ? '열었음' : ''}</td>
+                    <td>${opened.has(id) || opened.has(name.replace(/\.js$/, '')) ? t('perf.t144') : ''}</td>
                   </tr>`;
                 })
                 .join('')}</tbody></table></div>
-              <p class="pf-sec-note">전부 ${rows.length}개 · gzip 합계 <b>${kb(total)}</b> (한 사람이 다 받지는 않습니다 — 누른 것만 받습니다). 이 표는 <b>빌드가 재 둔 값</b>이라 안 열어 본 위젯도 보입니다. 한계 64KB·회귀 래칫은 <code>npm run audit:bundles</code> 가 CI 에서 봅니다.</p>`;
+              <p class="pf-sec-note">${t('perf.bundleTotal', {
+                n: rows.length,
+                size: `<b>${kb(total)}</b>`,
+                cached: `<b>${esc(t('perf.t53'))}</b>`,
+                cmd: '<code>npm run audit:bundles</code>',
+              })}</p>`;
           }
 
           /** 진짜 사람들 분포 — 내 기계 옆에 현실을 놓는다. */
           function realWorldTable(snap: Snap): string {
-            if (realState === 'loading') return '<div class="pf-none">사람들 숫자를 받는 중…</div>';
+            if (realState === 'loading') return t('perf.t145');
             if (realState === 'fail' || !real?.metrics) {
-              return '<div class="pf-none">사람들 숫자를 <b>못 받았습니다</b> — 서버에 못 닿았거나 아직 그 판이 안 올라갔습니다. (이 화면의 다른 숫자는 전부 <b>지금 이 기기</b>입니다.)</div>';
+              return t('perf.t146');
             }
             if (!real.samples) {
-              return '<div class="pf-none">아직 모인 판이 없습니다 — 사람들이 다녀가면 여기가 찹니다. <b>0 이 아니라 「아직 없음」</b>입니다.</div>';
+              return t('perf.t147');
             }
             const NAMES: Array<[string, string]> = [
-              ['ready', '셸 준비까지'],
-              ['fcp', '첫 그림'],
-              ['lcp', '큰 그림'],
-              ['inp', '제일 굼뜬 조작'],
-              ['ttfb', '서버 첫 응답'],
-              ['cls', '화면 밀림'],
+              ['ready', t('perf.t107')],
+              ['fcp', t('perf.t89')],
+              ['lcp', t('perf.t90')],
+              ['inp', t('perf.t148')],
+              ['ttfb', t('perf.t124')],
+              ['cls', t('perf.t149')],
             ];
             const mine: Record<string, number | null> = {
               ready: snap.marks.find((m) => m.name === 'shell:ready')?.at ?? null,
@@ -540,7 +565,7 @@
               return key === 'cls' ? value.toFixed(3) : ms(value);
             };
             return `<div class="pf-scroll"><table class="pf-table">
-              <thead><tr><th>지표</th><th>사람들 중앙값</th><th>사람들 나쁜 쪽</th><th>모인 판</th><th>지금 이 기기</th></tr></thead>
+              <thead><tr><th>${esc(t('perf.t56'))}</th><th>${esc(t('perf.t57'))}</th><th>${esc(t('perf.t58'))}</th><th>${esc(t('perf.t59'))}</th><th>${esc(t('perf.t60'))}</th></tr></thead>
               <tbody>${NAMES.map(([key, label]) => {
                 const m = real!.metrics![key];
                 if (!m) return '';
@@ -548,24 +573,24 @@
                   <td>${esc(label)}</td>
                   <td>${show(key, m.p50)}</td>
                   <td>${show(key, m.p75)}</td>
-                  <td${m.n < 20 ? ' data-tone="warn"' : ''}>${m.n}${m.n < 20 ? ' (적음)' : ''}</td>
+                  <td${m.n < 20 ? ' data-tone="warn"' : ''}>${m.n}${m.n < 20 ? t('perf.t150') : ''}</td>
                   <td>${showMine(key, mine[key])}</td>
                 </tr>`;
               }).join('')}</tbody></table></div>
-              <p class="pf-sec-note">최근 14일. 칸으로 세었으므로 <b>정확한 값이 아니라 칸의 위 경계</b>입니다(「이 값 이하」). 모인 판이 20 미만이면 아직 숫자놀음입니다. 개인은 안 남습니다 — 날짜별 칸에 하나씩 셀 뿐입니다.</p>`;
+              <p class="pf-sec-note">${t('perf.realNote', { bound: `<b>${esc(t('perf.t62'))}</b>` })}</p>`;
           }
 
           /** 안 쓰는 스타일 — CI 가 재 둔 것을 읽어 보여 준다 (TASK-KL-201 ㉒). */
           function coverageTable(): string {
-            if (coverageState === 'loading') return '<div class="pf-none">안 쓰는 스타일 자료를 읽는 중…</div>';
+            if (coverageState === 'loading') return t('perf.t151');
             if (coverageState === 'fail' || !coverage?.sections) {
-              return '<div class="pf-none">안 쓰는 스타일 자료를 <b>못 읽었습니다</b> — <code>npm run audit:coverage -- --update</code> 로 한 번 재 두면 여기에 뜹니다. (브라우저는 「이 줄이 실행됐나」를 페이지에 안 알려 줍니다 — 개발자 도구 전용 통로라 CI 가 대신 잽니다.)</div>';
+              return t('perf.t152');
             }
             const views = coverage.viewports || [];
             const totals = coverage.totals;
             const when = coverage.at ? new Date(coverage.at) : null;
             return `<div class="pf-scroll"><table class="pf-table">
-              <thead><tr><th>구역</th>${views.map((v) => `<th>${esc(v)}</th>`).join('')}<th>전체</th></tr></thead>
+              <thead><tr><th>${esc(t('perf.t64'))}</th>${views.map((v) => `<th>${esc(v)}</th>`).join('')}<th>${esc(t('perf.t65'))}</th></tr></thead>
               <tbody>${coverage.sections
                 .slice(0, 10)
                 .map(
@@ -577,23 +602,36 @@
                 )
                 .join('')}</tbody></table></div>
               <p class="pf-sec-note">
-                ${totals?.cssUnused != null ? `첫 화면 CSS <b>${kb(totals.cssUnused)} / ${kb(totals.cssTotal)} 안 쓰임</b>. ` : ''}
-                <b>양쪽 폭에서 다 안 쓰이는 것만</b> 뒤로 뺄 후보입니다 — 한쪽만이면 그 폭에서 쓰는 것입니다.
+                ${
+                  totals?.cssUnused != null
+                    ? t('perf.cssUnused', {
+                        unused: `<b>${kb(totals.cssUnused)} / ${kb(totals.cssTotal)}</b>`,
+                      }) + ' '
+                    : ''
+                }
+                <b>${esc(t('perf.t66'))}</b> 뒤로 뺄 후보입니다 — 한쪽만이면 그 폭에서 쓰는 것입니다.
                 ⚠ 이 숫자만 보고 빼면 안 됩니다: 쓰임 0%인데 자리를 잡는 구역이 있습니다(실측으로 밀림이 0.011→0.636 이 된 적이 있습니다).
-                ${when ? `잰 때: ${esc(when.toLocaleString('ko-KR', { hour12: false }))} — <b>지금이 아니라 그때의 값</b>입니다.` : ''}
+                ${
+                  when
+                    ? t('perf.measuredAt', {
+                        when: esc(when.toLocaleString(locale(), { hour12: false })),
+                        what: `<b>${esc(t('perf.t67'))}</b>`,
+                      })
+                    : ''
+                }
               </p>`;
           }
 
           /** 도메인별 — 「남의 것이 우리 것보다 무겁나」 (TASK-KL-201 ⑤). */
           function hostTable(snap: Snap): string {
-            if (!snap.hosts.length) return '<div class="pf-none">받은 것이 없습니다.</div>';
+            if (!snap.hosts.length) return t('perf.t153');
             return `<div class="pf-scroll"><table class="pf-table">
-              <thead><tr><th>어디서</th><th>파일 수</th><th>크기</th><th>받는 데 합계</th></tr></thead>
+              <thead><tr><th>${esc(t('perf.t68'))}</th><th>${esc(t('perf.t69'))}</th><th>${esc(t('perf.t22'))}</th><th>${esc(t('perf.t70'))}</th></tr></thead>
               <tbody>${snap.hosts
                 .slice(0, 10)
                 .map(
                   (row) => `<tr>
-                    <td>${esc(row.host)}${row.ours ? '' : ' <span style="opacity:.6">(남)</span>'}</td>
+                    <td>${esc(row.host)}${row.ours ? '' : t('perf.t154')}</td>
                     <td>${row.count}</td>
                     <td${tone(row.bytes, 300000, 800000)}>${kb(row.bytes)}</td>
                     <td>${ms(row.ms)}</td>
@@ -604,20 +642,20 @@
 
           function longTasks(snap: Snap): string {
             if (snap.longTasks == null) {
-              return '<div class="pf-none">이 브라우저는 긴 작업을 안 알려 줍니다(사파리). <b>0건이 아니라 못 잰 것</b>입니다.</div>';
+              return t('perf.t155');
             }
             if (!snap.longTasks.length) {
-              return '<div class="pf-none">50ms 넘게 주 스레드를 잡은 작업이 없습니다.</div>';
+              return t('perf.t156');
             }
             const rows = snap.longTasks.slice().sort((a, b) => b.ms - a.ms).slice(0, 15);
             return `<div class="pf-scroll"><table class="pf-table">
-              <thead><tr><th>언제 (열린 뒤)</th><th>길이</th><th>어디서</th></tr></thead>
+              <thead><tr><th>${esc(t('perf.t71'))}</th><th>${esc(t('perf.t72'))}</th><th>${esc(t('perf.t68'))}</th></tr></thead>
               <tbody>${rows
                 .map(
                   (row) => `<tr>
                     <td>${ms(row.at)}</td>
                     <td${tone(row.ms, 100, 250)}>${ms(row.ms)}</td>
-                    <td>${esc(row.from || '모름')}</td>
+                    <td>${esc(row.from || t('perf.unknownValue'))}</td>
                   </tr>`
                 )
                 .join('')}</tbody></table></div>`;
@@ -626,13 +664,13 @@
           /** 무엇이 화면을 밀었나 (TASK-KL-201 ⑥). */
           function shiftTable(snap: Snap): string {
             if (snap.shiftCulprits == null) {
-              return '<div class="pf-none">이 브라우저는 화면 밀림을 안 알려 줍니다. <b>0 이 아니라 못 잰 것</b>입니다.</div>';
+              return t('perf.t157');
             }
             if (!snap.shiftCulprits.length) {
-              return '<div class="pf-none">사용자 조작과 무관하게 밀린 곳이 없습니다.</div>';
+              return t('perf.t158');
             }
             return `<div class="pf-scroll"><table class="pf-table">
-              <thead><tr><th>밀린 것</th><th>밀림 값</th><th>횟수</th></tr></thead>
+              <thead><tr><th>${esc(t('perf.t73'))}</th><th>${esc(t('perf.t74'))}</th><th>${esc(t('perf.t75'))}</th></tr></thead>
               <tbody>${snap.shiftCulprits
                 .slice(0, 10)
                 .map(
@@ -643,39 +681,39 @@
                   </tr>`
                 )
                 .join('')}</tbody></table></div>
-              <p class="pf-sec-note">누른 직후의 이동(탭 펼치기 등)은 뺐습니다 — 그건 대개 의도한 것입니다. 총점은 <b>제일 나쁜 5초 구간</b>만 셉니다(다 더하면 오래 켜 둘수록 나쁜 점수가 나옵니다).</p>`;
+              <p class="pf-sec-note">${t('perf.clsNote', { window: `<b>${esc(t('perf.t77'))}</b>` })}</p>`;
           }
 
           /** 판별 분포 — 한 번 재고 「빨라졌다」는 말은 못 한다 (TASK-KL-201 ⑦). */
           function buildStatsTable(snap: Snap): string {
             if (!snap.buildStats.length) {
-              return '<div class="pf-none">믿을 만한 부팅 기록이 아직 없습니다.</div>';
+              return t('perf.t159');
             }
             return `<div class="pf-scroll"><table class="pf-table">
-              <thead><tr><th>판</th><th>커밋</th><th>표본</th><th>셸 준비 p50</th><th>나쁜 쪽 p75</th><th>큰 그림 p50</th></tr></thead>
+              <thead><tr><th>${esc(t('perf.t79'))}</th><th>${esc(t('perf.t80'))}</th><th>${esc(t('perf.t81'))}</th><th>${esc(t('perf.t82'))}</th><th>${esc(t('perf.t83'))}</th><th>${esc(t('perf.t84'))}</th></tr></thead>
               <tbody>${snap.buildStats
                 .slice(0, 8)
                 .map(
                   (row) => `<tr>
                     <td>${esc(row.build.slice(0, 8))}</td>
                     <td>${esc(row.commit || '—')}</td>
-                    <td${row.n < 3 ? ' data-tone="warn"' : ''}>${row.n}${row.n < 3 ? ' (적음)' : ''}</td>
+                    <td${row.n < 3 ? ' data-tone="warn"' : ''}>${row.n}${row.n < 3 ? t('perf.t150') : ''}</td>
                     <td${tone(row.readyP50, 1200, 2500)}>${ms(row.readyP50)}</td>
                     <td${tone(row.readyP75, 1500, 3000)}>${ms(row.readyP75)}</td>
                     <td>${ms(row.lcpP50)}</td>
                   </tr>`
                 )
                 .join('')}</tbody></table></div>
-              <p class="pf-sec-note">표본이 3회 미만인 줄은 <b>아직 못 믿습니다</b> — 같은 코드도 기계가 바쁘면 두 배가 납니다. 못 믿을 판(안 보이는 탭·되살아난 판)은 애초에 빠져 있습니다.</p>`;
+              <p class="pf-sec-note">${t('perf.sampleNote', { trust: `<b>${esc(t('perf.t86'))}</b>` })}</p>`;
           }
 
           function boots(snap: Snap): string {
             const rows = snap.boots.slice().reverse().slice(0, 12);
             if (!rows.length) {
-              return '<div class="pf-none">부팅 기록이 아직 없습니다 — 한 번 더 열면 이 판이 한 줄로 남습니다. (이번 판은 이 화면을 연 뒤 몇 초 있다가 적힙니다.)</div>';
+              return t('perf.t160');
             }
             return `<div class="pf-scroll"><table class="pf-table">
-              <thead><tr><th>언제</th><th>판</th><th>커밋</th><th>첫 응답</th><th>첫 그림</th><th>큰 그림</th><th>셸 준비</th><th>긴 작업</th></tr></thead>
+              <thead><tr><th>${esc(t('perf.t33'))}</th><th>${esc(t('perf.t79'))}</th><th>${esc(t('perf.t80'))}</th><th>${esc(t('perf.t88'))}</th><th>${esc(t('perf.t89'))}</th><th>${esc(t('perf.t90'))}</th><th>${esc(t('perf.t91'))}</th><th>${esc(t('perf.t92'))}</th></tr></thead>
               <tbody>${rows
                 .map((row) => {
                   const at = new Date(String(row.at));
@@ -696,7 +734,7 @@
                     <td>${ms(row.fcp)}</td>
                     <td>${ms(row.lcp)}</td>
                     <td${tone(typeof row.ready === 'number' ? row.ready : null, 1200, 2500)}>${ms(row.ready)}</td>
-                    <td>${row.longTaskMs == null ? '못 잼' : ms(row.longTaskMs)}</td>
+                    <td>${row.longTaskMs == null ? t('perf.t116') : ms(row.longTaskMs)}</td>
                   </tr>`;
                 })
                 .join('')}</tbody></table></div>`;
@@ -705,10 +743,10 @@
           function deviceTable(snap: Snap): string {
             const dev = snap.device;
             return `<div class="pf-scroll"><table class="pf-table"><tbody>
-                  <tr><td>코어</td><td>${esc(dev.cores ?? '모름')}</td></tr>
-                  <tr><td>메모리</td><td>${dev.memoryGb ? esc(dev.memoryGb) + 'GB+' : '모름'}</td></tr>
-                  <tr><td>화면</td><td>${esc(dev.screen)} · 보이는 곳 ${esc(dev.viewport)} · ${esc(dev.dpr)}x</td></tr>
-                  <tr><td>회선</td><td>${esc(dev.net ?? '모름')}${
+                  <tr><td>${esc(t('perf.t93'))}</td><td>${esc(dev.cores ?? t('perf.t161'))}</td></tr>
+                  <tr><td>${esc(t('perf.t94'))}</td><td>${dev.memoryGb ? esc(dev.memoryGb) + 'GB+' : t('perf.t161')}</td></tr>
+                  <tr><td>${esc(t('perf.t95'))}</td><td>${esc(dev.screen)} · 보이는 곳 ${esc(dev.viewport)} · ${esc(dev.dpr)}x</td></tr>
+                  <tr><td>${esc(t('perf.t96'))}</td><td>${esc(dev.net ?? t('perf.t161'))}${
                     dev.downlinkMbps ? ` · ${esc(dev.downlinkMbps)}Mbps` : ''
                   }</td></tr>
                 </tbody></table></div>`;
@@ -731,20 +769,27 @@
               v.unit === 'B' ? kb(v.limit) : v.unit === 'ms' ? ms(v.limit) : String(v.limit);
             const color = fails.length ? '#b91c1c' : unknowns.length ? '#b45309' : '#15803d';
             const head = fails.length
-              ? `예산 넘김 ${fails.length}개`
+              ? t('perf.budgetOver', { n: fails.length })
               : unknowns.length
-                ? `넘긴 것 없음 — 다만 ${unknowns.length}개는 못 쟀다`
-                : `예산 안쪽 ${passes.length}개 전부`;
+                ? t('perf.budgetUnknown', { n: unknowns.length })
+                : t('perf.budgetOk', { n: passes.length });
             return `<div class="pf-none" style="border-style:solid;border-color:${color};">
                 <strong style="color:${color}">${esc(head)}</strong>
                 ${
                   fails.length
-                    ? `<br>${fails.map((v) => `${esc(v.label)} <b>${fmt(v)}</b> (예산 ${limit(v)})`).join(' · ')}`
+                    ? `<br>${fails
+                        .map(
+                          (v) =>
+                            `${esc(v.label)} <b>${fmt(v)}</b> ${t('perf.budgetOf', { limit: limit(v) })}`
+                        )
+                        .join(' · ')}`
                     : ''
                 }
                 ${
                   unknowns.length
-                    ? `<br><span style="opacity:.75">못 잼: ${unknowns.map((v) => esc(v.label)).join(' · ')} — 통과로 세지 않습니다.</span>`
+                    ? `<br><span style="opacity:.75">${t('perf.budgetNotMeasured', {
+                        list: unknowns.map((v) => esc(v.label)).join(' · '),
+                      })}</span>`
                     : ''
                 }
               </div>`;
@@ -756,8 +801,8 @@
             return snap.trust.ok
               ? ''
               : `<div class="pf-none" style="border-style:solid;border-color:#b45309;">
-                   <strong>이 판의 숫자는 비교에 쓰면 안 됩니다.</strong> ${esc(snap.trust.why)}.
-                   판별 부팅 표에서도 이런 줄은 <b>⚠</b> 로 표시됩니다.
+                   <strong>${esc(t('perf.t97'))}</strong> ${esc(snap.trust.why)}.
+                   ${t('perf.trustNote', { mark: '<b>⚠</b>' })}
                  </div>`;
           }
 
@@ -774,78 +819,78 @@
             { key: 'cards', title: '', note: '', html: summary },
             { key: 'frame', title: '', note: '', html: () => frameLine },
             {
-              key: 'real', title: '진짜 사람들 — 이 기기가 아니라 현실',
-              note: '이 화면의 다른 숫자는 전부 <b>지금 이 기기</b>입니다. 여기만 실제로 다녀간 사람들의 분포입니다.',
+              key: 'real', title: t('perf.t162'),
+              note: t('perf.t163'),
               html: realWorldTable,
             },
             {
-              key: 'inp', title: '만질 때 — 굼뜬 조작 순',
-              note: '굼뜸은 셋 중 하나입니다. <b>대기</b>가 크면 다른 코드가 주 스레드를 잡고 있던 것이고, <b>처리</b>가 크면 그 핸들러가, <b>표시</b>가 크면 그리는 비용이 범인입니다. 총 200ms 를 넘으면 사람이 「안 먹었나?」 하고 다시 누릅니다.',
+              key: 'inp', title: t('perf.t164'),
+              note: t('perf.t165'),
               html: interactionTable,
             },
             {
-              key: 'culprit', title: '늦은 프레임 — 누가 잡고 있었나',
-              note: '프레임이 50ms 를 넘길 때 <b>어느 파일의 어느 함수</b>가 몇 ms 를 썼는지. 한 번 40ms 보다 <b>매 프레임 8ms</b> 가 대개 더 나쁩니다 — 합계로 봅니다.',
+              key: 'culprit', title: t('perf.t166'),
+              note: t('perf.t167'),
               html: culpritTable,
             },
             {
-              key: 'boot', title: '부팅 — 어디서 시간이 갔나',
-              note: '페이지가 열린 순간부터의 시각. 막대는 「그때까지 걸린 시간」이라 오른쪽으로 갈수록 늦은 일입니다.',
+              key: 'boot', title: t('perf.t168'),
+              note: t('perf.t169'),
               html: waterfall,
             },
             {
-              key: 'widgets', title: '위젯 — 무거운 순',
-              note: '이 세션에서 실제로 연 것만 나옵니다. 「눌러서 준비까지」는 딸린 스크립트와 대기까지 포함한 시간이고, 「첫 그리기」가 16ms 를 넘으면 그 순간 한 프레임을 놓칩니다.',
+              key: 'widgets', title: t('perf.t170'),
+              note: t('perf.t171'),
               html: widgetTable,
             },
             {
-              key: 'unused', title: '받았는데 안 쓴 코드',
-              note: '브라우저는 「이 줄이 실행됐나」를 알려 주지 않습니다(개발자 도구 전용 통로). 우리가 아는 것으로 근사합니다 — <b>받았는데 한 번도 안 그린</b> 위젯.',
+              key: 'unused', title: t('perf.t172'),
+              note: t('perf.t173'),
               html: unusedTable,
             },
             {
-              key: 'coverage', title: '안 쓰는 스타일 — 첫 화면 기준',
-              note: '브라우저는 「이 줄이 실행됐나」를 페이지에 안 알려 줍니다. CI(<code>npm run audit:coverage</code>)가 재 둔 것을 여기서 읽습니다.',
+              key: 'coverage', title: t('perf.t174'),
+              note: t('perf.t175'),
               html: coverageTable,
             },
             {
-              key: 'allwidgets', title: '전체 위젯 무게 — 안 열어도 아는 것',
-              note: '위 표는 <b>이번에 연 것만</b>입니다. 여기는 빌드가 재 둔 전부 — 아무도 안 연 위젯이 뚱뚱해지는 것을 이 자리에서 봅니다.',
+              key: 'allwidgets', title: t('perf.t176'),
+              note: t('perf.t177'),
               html: allWidgetTable,
             },
             {
-              key: 'files', title: '받은 것 — 무거운 15개',
-              note: '서비스 워커가 답한 것은 브라우저가 크기를 안 알려 줍니다 — 그 줄은 「—」입니다.',
+              key: 'files', title: t('perf.t178'),
+              note: t('perf.t179'),
               html: heavyFiles,
             },
             {
-              key: 'hosts', title: '어디서 받았나 — 도메인별',
-              note: '남의 도메인이 우리 것보다 무거우면 파일 하나씩 봐서는 안 보입니다. 합쳐서 봅니다.',
+              key: 'hosts', title: t('perf.t180'),
+              note: t('perf.t181'),
               html: hostTable,
             },
             {
-              key: 'longtask', title: '긴 작업 — 손가락이 막힌 구간',
-              note: '주 스레드를 50ms 넘게 잡은 작업. 이 구간에 누른 것은 끝난 뒤에야 처리됩니다.',
+              key: 'longtask', title: t('perf.t182'),
+              note: t('perf.t183'),
               html: longTasks,
             },
             {
-              key: 'shift', title: '화면 밀림 — 무엇이 밀었나',
-              note: '「눌렀는데 딴 게 눌렸다」의 정체. 총점만으로는 못 고칩니다 — <b>무엇이</b> 밀었는지가 있어야 합니다.',
+              key: 'shift', title: t('perf.t184'),
+              note: t('perf.t185'),
               html: shiftTable,
             },
             {
-              key: 'buildstats', title: '판별 분포 — 진짜 빨라졌나',
-              note: '한 번 재고 「빨라졌다」는 말은 못 합니다. 판마다 중앙값(p50)·나쁜 쪽(p75)을 <b>표본 수와 함께</b> 봅니다.',
+              key: 'buildstats', title: t('perf.t186'),
+              note: t('perf.t187'),
               html: buildStatsTable,
             },
             {
-              key: 'boots', title: '판별 부팅 — 매 회 기록',
-              note: '이 브라우저에 남은 최근 부팅 40회. 판(build)이 바뀐 줄끼리 비교하면 그 배포가 부팅을 어떻게 바꿨는지 보입니다.',
+              key: 'boots', title: t('perf.t188'),
+              note: t('perf.t189'),
               html: boots,
             },
             {
-              key: 'device', title: '이 기기',
-              note: '같은 코드도 기기가 다르면 다른 숫자가 납니다 — 비교할 때 같이 봅니다.',
+              key: 'device', title: t('perf.t190'),
+              note: t('perf.t191'),
               html: deviceTable,
             },
           ];
@@ -872,9 +917,11 @@
 
           function render(): void {
             const snap = perf!.snapshot() as unknown as Snap;
-            stamp.textContent = `판 ${snap.build.tag || '?'} · ${snap.build.commit || '?'} · 열린 지 ${(
-              snap.sinceOpenMs / 1000
-            ).toFixed(1)}s`;
+            stamp.textContent = t('perf.stamp', {
+              tag: snap.build.tag || '?',
+              commit: snap.build.commit || '?',
+              sec: (snap.sinceOpenMs / 1000).toFixed(1),
+            });
             for (const sec of SECTIONS) {
               const html = sec.html(snap);
               // 글자가 같으면 손대지 않는다 — DOM 을 안 건드리면 레이아웃·페인트도 없다.
@@ -886,15 +933,22 @@
           }
 
           async function measureFrames(seconds: number): Promise<void> {
-            frameLine = `<div class="pf-none">프레임 재는 중… ${seconds}초. <b>이 창을 앞에 두세요</b> — 뒤로 넘기면 브라우저가 그리기를 멈춰서 숫자가 거짓말이 됩니다.</div>`;
+            frameLine = `<div class="pf-none">${t('perf.frameMeasuring', {
+              sec: seconds,
+              front: `<b>${esc(t('perf.t99'))}</b>`,
+            })}</div>`;
             render();
             const result = await perf!.frameProbe(seconds * 1000);
             frameLine = `<div class="pf-none">
-                최근 ${(result.windowMs / 1000).toFixed(1)}초 — 평균 <b>${result.fps.toFixed(1)}fps</b>
-                · 나쁜 1% <b>${result.fpsLow.toFixed(1)}fps</b>
-                · 33ms 넘긴 프레임 <b>${result.janks}</b>회 (제일 나쁜 프레임 ${ms(result.worstMs)})
-                · 그린 프레임 ${result.frames}장.
-                <br>가만히 둔 화면에서도 fps 가 60 근처면 <b>쉬지 않고 다시 그리고 있다</b>는 뜻입니다.
+                ${t('perf.frameResult', {
+                  sec: (result.windowMs / 1000).toFixed(1),
+                  fps: `<b>${result.fps.toFixed(1)}fps</b>`,
+                  low: `<b>${result.fpsLow.toFixed(1)}fps</b>`,
+                  janks: `<b>${result.janks}</b>`,
+                  worst: ms(result.worstMs),
+                  frames: result.frames,
+                })}
+                <br>${t('perf.frameIdleNote', { redraw: `<b>${esc(t('perf.t104'))}</b>` })}
               </div>`;
             render();
           }
@@ -907,7 +961,7 @@
               else if (act === 'frame10') void measureFrames(10);
               else if (act === 'copy') {
                 void Toolbox.copyText?.(JSON.stringify(perf.snapshot(), null, 2), {
-                  message: '성능 스냅샷을 복사했습니다',
+                  message: t('perf.t192'),
                   toolId: ID,
                   action: 'perf-snapshot',
                 });
@@ -963,6 +1017,7 @@
              다시 그린다(폴링 아님 — 계속 돌면 재는 것 자체가 비용이 된다). */
           const settle = setTimeout(render, 400);
           Toolbox.onDispose?.(() => clearTimeout(settle));
+                  });
         },
       },
     ],
