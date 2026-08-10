@@ -8,7 +8,7 @@
   "devtools.t09": "<code>desktop_notify</code> の引数は下のプレビューと同じものが送られます。Windows では <code>Default</code> を WebView 側で <code>IM</code> の通知音に差し替えます(そうしないと無音)。",
   "devtools.t10": "Web ブラウザでは使えません。KarmoLab Tauri アプリで開いてください。",
   "devtools.t11": "KarmoLab 通知テスト",
-  "devtools.t12": "通知が見えれば正常です。",
+  "devtools.t12": "通知が見えれば正常です。 ",
   "devtools.t13": "無音 (sound 省略)",
   "devtools.t14": "Default → Windows では IM の通知音",
   "devtools.t15": "送信 JSON (invoke の第2引数)",
