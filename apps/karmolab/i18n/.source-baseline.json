@@ -1,5 +1,5 @@
 {
-  "total": 4325,
+  "total": 4267,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -196,9 +196,9 @@
     "src/widgets/stone.ts": 3,
     "src/widgets/task-launcher.ts": 18,
     "src/widgets/terminal/terminal.ts": 13,
-    "src/widgets/tierlist/dialogs.ts": 37,
+    "src/widgets/tierlist/dialogs.ts": 9,
     "src/widgets/tierlist/index.ts": 3,
-    "src/widgets/tierlist/publish.ts": 33,
+    "src/widgets/tierlist/publish.ts": 3,
     "src/widgets/tierlist/render.ts": 13,
     "src/widgets/tierlist/storage.ts": 10,
     "src/widgets/tierlist/styles.ts": 1,

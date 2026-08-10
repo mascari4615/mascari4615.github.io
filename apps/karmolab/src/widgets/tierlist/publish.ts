@@ -1,4 +1,8 @@
+import { t } from '../../lib/i18n';
+
 (function () {
+    const esc = (v: string): string =>
+        String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     const T = ((window.Tierlist = window.Tierlist || {}) as unknown) as TierlistNamespace;
 
     let publishedIndexCache: TlPublishedIndexItem[] | null = null;
@@ -37,7 +41,7 @@
     async function getPublishedIndex(): Promise<TlPublishedIndexItem[]> {
         if (publishedIndexCache) return publishedIndexCache;
         const res = await fetch(publishedIndexUrl(), { cache: 'no-store' });
-        if (!res.ok) throw new Error('index.json 로드 실패: ' + res.status);
+        if (!res.ok) throw new Error(t('tierlist.err.114') + res.status);
         const items = await res.json();
         publishedIndexCache = Array.isArray(items) ? (items as TlPublishedIndexItem[]) : [];
         return publishedIndexCache;
@@ -48,7 +52,7 @@
         const cached = publishedJsonCache.get(url);
         if (cached !== undefined) return cached;
         const r = await fetch(url, { cache: 'no-store' });
-        if (!r.ok) throw new Error('JSON 로드 실패: ' + r.status);
+        if (!r.ok) throw new Error(t('tierlist.err.115') + r.status);
         const data = (await r.json()) as TlPublishedData;
         publishedJsonCache.set(url, data);
         return data;
@@ -156,10 +160,10 @@
     /** 슬림 순위 JSON(catalogRef + itemOverrides) → 풀과 합친 list + images */
     async function hydrateSlimInstance(data: TlPublishedData): Promise<{ list: TlListInstance; images: Record<string, string> }> {
         const rel = data.catalogRef?.url;
-        if (!rel || typeof data.itemOverrides !== 'object') throw new Error('catalogRef.url 과 itemOverrides 가 필요합니다.');
+        if (!rel || typeof data.itemOverrides !== 'object') throw new Error(t('tierlist.err.116'));
         publishedJsonCache.delete(resolvePublishedUrl(rel));
         const cat = await getPublishedJsonByUrl(rel);
-        if (!T.state.isCatalogPayload(cat)) throw new Error('catalogRef 가 가리키는 파일이 후보 풀이 아닙니다.');
+        if (!T.state.isCatalogPayload(cat)) throw new Error(t('tierlist.err.117'));
         const catItems = cat.items || {};
         pruneSlimPayloadAgainstCatalog(data, catItems);
         const overrides = data.itemOverrides || {};
@@ -201,7 +205,7 @@
             const data = await getPublishedJsonByUrl(relUrl);
             if (T.state.isCatalogPayload(data)) {
                 const n = Object.keys(data.items || {}).length;
-                return `총 ${n}개`;
+                return t('tierlist.totalCount', { n });
             }
             if (isSlimInstancePayload(data)) {
                 let poolN: number | null = null;
@@ -211,13 +215,13 @@
                 } catch (_) { /* 풀 URL 실패 */ }
                 const ranked = collectRankingItemIds(data.list as TlListInstance).size;
                 if (poolN != null) return `후보 풀 총 ${poolN}개 · 판 ${ranked}개`;
-                return ranked ? `판 ${ranked}개` : '';
+                return ranked ? t('tierlist.boardCount', { n: ranked }) : '';
             }
             if (data?.list) {
                 const n = Object.keys(data.list.items || {}).length;
-                if (n) return `총 ${n}개`;
+                if (n) return t('tierlist.totalCount', { n });
                 const ranked = collectRankingItemIds(data.list).size;
-                return ranked ? `판 ${ranked}개` : '';
+                return ranked ? t('tierlist.boardCount', { n: ranked }) : '';
             }
         } catch (_) {}
         return '';
@@ -359,7 +363,7 @@
                 } catch (_) { /* 오프라인 */ }
             }
         } else {
-            throw new Error('유효하지 않은 JSON(후보 풀·순위 중 하나여야 해요)');
+            throw new Error(t('tierlist.err.118'));
         }
         await T.render.renderAll();
     }
@@ -417,27 +421,27 @@
     async function showJsonPreview() {
         const data = await buildExportPayload();
         if (!data) {
-            Toolbox.showToast?.('보낼 데이터가 없습니다.', 'error');
+            Toolbox.showToast?.(t('tierlist.t119'), 'error');
             return;
         }
         const jsonText = JSON.stringify(data, null, 2);
 
         T.ui.openDialog({
-            title: data.kind === 'catalog' ? '후보 풀 JSON' : '순위 JSON',
+            title: data.kind === 'catalog' ? t('tierlist.t120') : t('tierlist.t121'),
             wide: true,
             bodyHtml: `
                 <div style="font-size:12px; color:var(--text-tertiary); margin-bottom:10px;">
                     ${data.kind === 'catalog'
-                        ? '열어 둔 후보 풀(요소만)을 JSON으로 보냅니다.'
+                        ? t('tierlist.t122')
                         : data.catalogRef
-                            ? '<strong>슬림 순위</strong>: 베이스 후보 풀 URL(<code>catalogRef.url</code>) + 풀과 다른 항목만 <code>itemOverrides</code>에 넣습니다. 풀 JSON은 그대로 두고 순위만 가볍게 올릴 때 쓰세요.'
-                            : '순위를 이 브라우저에서 연 데가 후보 풀 URL과 연결되지 않았거나 풀을 불러올 수 없어, <strong>전체 항목</strong>이 들어간 순위 JSON입니다.'}
+                            ? t('tierlist.t123')
+                            : t('tierlist.t124')}
                 </div>
                 <textarea id="tl-json-preview" spellcheck="false" readonly style="min-height:360px; white-space:pre; overflow:auto;"></textarea>
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn" id="tl-json-copy">복사</button>
-                    <button class="tl-btn tl-btn-primary" id="tl-json-download">다운로드</button>
-                    <button class="tl-btn" id="tl-json-close">닫기</button>
+                    <button class="tl-btn" id="tl-json-copy">${esc(t('tierlist.btn.tljsoncopy'))}</button>
+                    <button class="tl-btn tl-btn-primary" id="tl-json-download">${esc(t('tierlist.btn.tljsondownload'))}</button>
+                    <button class="tl-btn" id="tl-json-close">${esc(t('tierlist.btn.tljsonclose'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
@@ -448,16 +452,16 @@
                 dialog.querySelector<HTMLButtonElement>('#tl-json-copy')!.onclick = async () => {
                     try {
                         await navigator.clipboard.writeText(jsonText);
-                        Toolbox.showToast?.('클립보드에 복사됨');
+                        Toolbox.showToast?.(t('tierlist.t125'));
                     } catch (_) {
                         ta.focus(); ta.select(); document.execCommand('copy');
-                        Toolbox.showToast?.('클립보드에 복사됨');
+                        Toolbox.showToast?.(t('tierlist.t125'));
                     }
                 };
                 dialog.querySelector<HTMLButtonElement>('#tl-json-download')!.onclick = () => {
                     const base = String(data.title || 'tierlist').replace(/[\\/:*?"<>|]+/g, '-');
                     downloadJson(base + '.json', data);
-                    Toolbox.showToast?.('JSON 다운로드 시작');
+                    Toolbox.showToast?.(t('tierlist.t126'));
                 };
             }
         });
@@ -472,7 +476,7 @@
         type Html2CanvasFn = (el: Element, opts: { backgroundColor?: string; scale?: number; useCORS?: boolean }) => Promise<HTMLCanvasElement>;
         const win = window as Window & { html2canvas?: Html2CanvasFn };
 
-        Toolbox.showToast?.('이미지 생성 중...');
+        Toolbox.showToast?.(t('tierlist.t127'));
         if (!win.html2canvas) {
             await new Promise<void>((resolve, reject) => {
                 const s = document.createElement('script');
@@ -493,9 +497,9 @@
             link.download = (list.title || 'tierlist') + '.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
-            Toolbox.showToast?.('이미지 저장됨');
+            Toolbox.showToast?.(t('tierlist.t128'));
         } catch (err) {
-            Toolbox.showToast?.('이미지 생성 실패', 'error', err);
+            Toolbox.showToast?.(t('tierlist.t129'), 'error', err);
         }
     }
 
@@ -636,7 +640,7 @@
             return;
         }
 
-        throw new Error('유효하지 않은 데이터');
+        throw new Error(t('tierlist.err.130'));
     }
 
     async function importFromJSONFilePicker() {
@@ -650,9 +654,9 @@
                 const text = await file.text();
                 const data = JSON.parse(text) as TlPublishedData & { lists?: Record<string, TlListInstance> };
                 await importFromDataObject(data);
-                Toolbox.showToast?.('가져오기 완료');
+                Toolbox.showToast?.(t('tierlist.t131'));
             } catch (err) {
-                Toolbox.showToast?.('가져오기 실패', 'error', err);
+                Toolbox.showToast?.(t('tierlist.t132'), 'error', err);
             }
         };
         input.click();
@@ -693,11 +697,11 @@
     }
 
     async function resetItemToCatalogDefault(itemId: string): Promise<boolean> {
-        if (!confirm('이름·이미지·라벨을 후보 풀 기준으로 되돌릴까요?')) return false;
+        if (!confirm(t('tierlist.t133'))) return false;
         T.state.ensureWritableList?.('resetItem');
         const list = T.state.currentList();
         if (!list?.items?.[itemId]) {
-            Toolbox.showToast?.('항목을 찾을 수 없어요.', 'error');
+            Toolbox.showToast?.(t('tierlist.t134'), 'error');
             return false;
         }
         const st = T.state.getState();
@@ -715,14 +719,14 @@
             }
         }
         if (!entry) {
-            Toolbox.showToast?.('후보 풀에 없는 항목이거나 풀을 불러올 수 없어요.', 'error');
+            Toolbox.showToast?.(t('tierlist.t135'), 'error');
             return false;
         }
         if (!T.state.applyCatalogEntryToItem(list, itemId, entry)) {
-            Toolbox.showToast?.('되돌리기에 실패했어요.', 'error');
+            Toolbox.showToast?.(t('tierlist.t136'), 'error');
             return false;
         }
-        Toolbox.showToast?.('후보 풀 기준으로 되돌렸어요.');
+        Toolbox.showToast?.(t('tierlist.t137'));
         return true;
     }
 
