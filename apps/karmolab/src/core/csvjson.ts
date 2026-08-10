@@ -107,7 +107,7 @@ export const run: ToolRunner = (op, args) => {
 
   if (op === 'toJson') {
     const rows = parseCsv(String(args.csv ?? '').trim(), delim);
-    if (rows.length < 2) throw new Error('머리글 한 줄과 자료 한 줄 이상이 필요합니다');
+    if (rows.length < 2) throw new Error('CSV must contain a header row and at least one data row');
     const objs = rowsToObjects(rows, args.coerce !== false);
     return JSON.stringify(objs, null, 2);
   }
@@ -117,12 +117,12 @@ export const run: ToolRunner = (op, args) => {
     try {
       data = JSON.parse(String(args.json ?? ''));
     } catch (e) {
-      throw new Error(`JSON 을 읽을 수 없습니다: ${(e as Error).message}`);
+      throw new Error(`Invalid JSON: ${(e as Error).message}`);
     }
-    if (Array.isArray(data) === false) throw new Error('JSON 배열이어야 합니다 (예: [{"a":1},{"a":2}])');
-    if (data.length === 0) throw new Error('빈 배열입니다');
+    if (Array.isArray(data) === false) throw new Error('JSON must be an array (for example: [{"a":1},{"a":2}])');
+    if (data.length === 0) throw new Error('JSON array is empty');
     return toCsv(data as Array<Record<string, unknown>>, delim);
   }
 
-  throw new Error(`csvjson 에 「${op}」 는 없습니다`);
+  throw new Error(`Unknown csvjson op: ${op}`);
 };

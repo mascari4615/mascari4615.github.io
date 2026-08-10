@@ -1191,7 +1191,10 @@ eq(wf.analyze('Tool tool TOOL', { stopwords: false }).rows[0].count, 3, '대소�
 eq(wf.analyze('Tool tool TOOL', { stopwords: false, caseSensitive: true }).rows[0].count, 1, '켜면 따로 센다');
 
 check(wf.run('count', { text: sample }).includes('도구 — 3회'), 'run count');
-check(wf.run('count', { text: sample }).includes('형태소 분석 아님'), '어림이라는 한계를 적어 둔다');
+check(
+  wf.run('count', { text: sample }).includes('particle-stripping approximation'),
+  '어림이라는 한계를 적어 둔다'
+);
 check(wf.run('count', { text: sample, top: 1 }).split('\n').filter((l) => /^\d+\./.test(l)).length === 1, 'top 개수를 지킨다');
 let wfThrew = 0;
 for (const bad of [{ text: '' }, { text: '가 나 다' }]) {
@@ -2183,8 +2186,8 @@ eq(m3Info.longest, 1, '가장 긴 변');
 eq(m3Info.center[0], 0.5, '가운데');
 
 const m3Out = m3.run('info', { text: objQuad, format: 'obj' });
-check(m3Out.includes('삼각형 2개'), `run m3Info: ${m3Out.split(String.fromCharCode(10))[0]}`);
-check(m3Out.includes('단위는 파일에 적혀 있지 않습니다'), '단위가 없다는 사실을 밝힌다');
+check(m3Out.includes('Triangles: 2'), `run m3Info: ${m3Out.split(String.fromCharCode(10))[0]}`);
+check(m3Out.includes('Units are not written in the file'), '단위가 없다는 사실을 밝힌다');
 
 let m3Threw = false;
 try {
