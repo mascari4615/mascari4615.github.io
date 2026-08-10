@@ -70,8 +70,13 @@ if (!fs.existsSync(file)) {
   process.exit(2);
 }
 let src = fs.readFileSync(file, 'utf8');
-if (src.includes('loadNamespace')) {
-  console.error(`${id} 은 이미 말 묶음을 쓴다 — 손대지 않는다.`);
+/* **반쯤 옮긴 파일**이 있다. 먼저 build 만 감싸 두고 글자는 뒤에 훑는 판(karmomap) —
+ * `loadNamespace` 가 있다고 무조건 물러서면 그 파일은 영영 못 훑는다.
+ * 그래서 「이미 t() 로 바꾼 글이 많은가」로 본다. 그래도 다시 돌리고 싶으면 `--again`. */
+const AGAIN = process.argv.includes('--again');
+const alreadyMoved = (src.match(/\bt\('/g) || []).length;
+if (src.includes('loadNamespace') && alreadyMoved > 5 && !AGAIN) {
+  console.error(`${id} 은 이미 말 묶음을 쓴다 (t() ${alreadyMoved}곳) — 손대지 않는다. 다시 돌리려면 --again`);
   process.exit(0);
 }
 
