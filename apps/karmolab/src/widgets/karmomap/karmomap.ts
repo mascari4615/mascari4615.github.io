@@ -15,7 +15,7 @@
  * 내용은 전적으로 사용자가 쓴다. AI 가 노드를 만들지 않는다 —
  * KarmoMap 은 그릇이고 렌즈지, 작가가 아니다.
  */
-import { loadNamespace } from '../../lib/i18n';
+import { t, loadNamespace } from '../../lib/i18n';
 import { GraphCanvas } from '../../lib/graph/canvas';
 import type { GraphSpec, GraphNode, GraphEdge, GroupDef, NodeShape, BackgroundKind, EdgeKindDef, StoryStep } from '../../lib/graph/spec';
 import { emptyGraphSpec } from '../../lib/graph/spec';
@@ -75,6 +75,9 @@ import {
 } from './packs';
 
 (function (): void {
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   if (typeof Toolbox === 'undefined') return;
   const tb = Toolbox;
 
@@ -84,11 +87,11 @@ import {
   const AVATAR_PX = 96;
 
   const SHAPES: { id: NodeShape; label: string; icon: string }[] = [
-    { id: 'rect', label: '카드', icon: '▭' },
-    { id: 'circle', label: '동그라미', icon: '◯' },
-    { id: 'bubble', label: '말풍선', icon: '💬' },
-    { id: 'note', label: '메모', icon: '📝' },
-    { id: 'photo', label: '사진 카드', icon: '🖼' },
+    { id: 'rect', label: t('karmomap.t155'), icon: '▭' },
+    { id: 'circle', label: t('karmomap.t156'), icon: '◯' },
+    { id: 'bubble', label: t('karmomap.t157'), icon: '💬' },
+    { id: 'note', label: t('karmomap.t158'), icon: '📝' },
+    { id: 'photo', label: t('karmomap.t159'), icon: '🖼' },
   ];
 
   Mdd.injectCSS(
@@ -357,12 +360,12 @@ import {
         (g) => `<optgroup label="${g.title}">${g.kinds.map(opt).join('')}</optgroup>`
       );
       if (mine.length > 0) {
-        parts.push(`<optgroup label="🏷 내 용어">${mine.map(opt).join('')}</optgroup>`);
+        parts.push(`<optgroup label="${escapeAttr(t('karmomap.optgroup.mine'))}">${mine.map(opt).join('')}</optgroup>`);
         mine.forEach((k) => known.add(k.id));
       }
       // 어느 묶음에도 없는 종류(옛 저장본 등)는 잃지 않게 뒤에 붙인다.
       if (selected && !known.has(selected)) {
-        parts.push(`<optgroup label="그 밖"><option value="${selected}" selected>${kindIcon(selected)} ${kindLabel(selected)}</option></optgroup>`);
+        parts.push(`<optgroup label="${escapeAttr(t('karmomap.optgroup.other'))}"><option value="${selected}" selected>${kindIcon(selected)} ${kindLabel(selected)}</option></optgroup>`);
       }
       return parts.join('');
     }
@@ -378,11 +381,11 @@ import {
         (g) => `<optgroup label="${g.title}">${g.kinds.map(opt).join('')}</optgroup>`
       );
       if (mine.length > 0) {
-        parts.push(`<optgroup label="🏷 내 용어">${mine.map(opt).join('')}</optgroup>`);
+        parts.push(`<optgroup label="${escapeAttr(t('karmomap.optgroup.mine'))}">${mine.map(opt).join('')}</optgroup>`);
         mine.forEach((k) => known.add(k.id));
       }
       if (selected && !known.has(selected)) {
-        parts.push(`<optgroup label="그 밖"><option value="${selected}" selected>${edgeLabel(selected)}</option></optgroup>`);
+        parts.push(`<optgroup label="${escapeAttr(t('karmomap.optgroup.other'))}"><option value="${selected}" selected>${edgeLabel(selected)}</option></optgroup>`);
       }
       return parts.join('');
     }
@@ -390,56 +393,56 @@ import {
     container.innerHTML = `
       <div class="km-root">
         <div class="km-toolbar">
-          <select data-km="maps" title="맵 고르기"></select>
-          <button class="btn btn-ghost hidden" data-km="map-up" title="이 판을 담은 카드로 (⤴)">⤴</button>
-          <span class="km-saved hidden" data-km="saved" title="이 브라우저에 자동 저장됩니다">저장됨</span>
-          <button class="btn btn-ghost" data-km="map-new" title="새 맵">+</button>
-          <select data-km="new-kind" title="새로 만들 노드 종류">${nodeKindOptions()}</select>
+          <select data-km="maps" title="${esc(t('karmomap.t92'))}"></select>
+          <button class="btn btn-ghost hidden" data-km="map-up" title="${esc(t('karmomap.t93'))}">⤴</button>
+          <span class="km-saved hidden" data-km="saved" title="${esc(t('karmomap.t94'))}">${esc(t('karmomap.t117'))}</span>
+          <button class="btn btn-ghost" data-km="map-new" title="${esc(t('karmomap.t95'))}">+</button>
+          <select data-km="new-kind" title="${esc(t('karmomap.t96'))}">${nodeKindOptions()}</select>
           <span class="km-sep"></span>
-          <input type="text" data-km="find" placeholder="🔎 이름으로 찾기" />
-          <select data-km="degree" title="고른 노드에서 몇 다리까지 볼까">
-            <option value="">전체 보기</option>
-            <option value="0">고른 것만</option>
-            <option value="1">1다리</option>
-            <option value="2">2다리</option>
+          <input type="text" data-km="find" placeholder="${esc(t('karmomap.t97'))}" />
+          <select data-km="degree" title="${esc(t('karmomap.t98'))}">
+            <option value="">${esc(t('karmomap.t118'))}</option>
+            <option value="0">${esc(t('karmomap.opt.0'))}</option>
+            <option value="1">${esc(t('karmomap.opt.1'))}</option>
+            <option value="2">${esc(t('karmomap.opt.2'))}</option>
           </select>
-          <button class="btn btn-ghost" data-km="undo" title="되돌리기 (Ctrl+Z)" disabled>↶</button>
-          <button class="btn btn-ghost" data-km="redo" title="다시 하기 (Ctrl+Y)" disabled>↷</button>
-          <button class="btn btn-ghost" data-km="fit" title="화면 맞춤">⤢</button>
-          <button class="btn btn-ghost" data-km="story" title="발표 모드 — 볼 것을 몇 장으로 나눠 차례로">▶</button>
+          <button class="btn btn-ghost" data-km="undo" title="${esc(t('karmomap.t99'))}" disabled>↶</button>
+          <button class="btn btn-ghost" data-km="redo" title="${esc(t('karmomap.t100'))}" disabled>↷</button>
+          <button class="btn btn-ghost" data-km="fit" title="${esc(t('karmomap.t101'))}">⤢</button>
+          <button class="btn btn-ghost" data-km="story" title="${esc(t('karmomap.t102'))}">▶</button>
           <div class="km-more">
-            <button class="btn btn-ghost" data-km="more" title="더 보기">⋯</button>
+            <button class="btn btn-ghost" data-km="more" title="${esc(t('karmomap.t103'))}">⋯</button>
             <div class="km-drawer hidden" data-km="drawer">
-              <label>배경 무늬
+              <label>${esc(t('karmomap.t119'))}
                 <select data-km="bg">
-                  <option value="dots">· 점</option>
-                  <option value="grid">▦ 모눈</option>
-                  <option value="cross">✛ 십자</option>
-                  <option value="none">□ 없음</option>
+                  <option value="dots">${esc(t('karmomap.opt.dots'))}</option>
+                  <option value="grid">${esc(t('karmomap.opt.grid'))}</option>
+                  <option value="cross">${esc(t('karmomap.opt.cross'))}</option>
+                  <option value="none">${esc(t('karmomap.opt.none'))}</option>
                 </select>
               </label>
-              <button class="btn btn-ghost" data-km="storage">💾 저장 상태</button>
-              <button class="btn btn-ghost" data-km="share">🔗 링크 만들기</button>
-              <button class="btn btn-ghost" data-km="share-view">👁 보기 전용 링크</button>
-              <button class="btn btn-ghost" data-km="tidy">🧹 가지런히</button>
-              <button class="btn btn-ghost" data-km="lay-circle">◯ 둥글게 놓기</button>
-              <button class="btn btn-ghost" data-km="lay-tree">⌂ 흐름대로 놓기</button>
-              <button class="btn btn-ghost" data-km="lay-time">🕰 연표로 놓기</button>
-              <button class="btn btn-ghost" data-km="from-text">📝 글로 만들기</button>
-              <button class="btn btn-ghost" data-km="stamps">🖈 본 찍기</button>
-              <button class="btn btn-ghost" data-km="png">🖼 그림으로 저장</button>
-              <button class="btn btn-ghost" data-km="svg">✒ SVG 로 저장 (글자 살아 있음)</button>
-              <button class="btn btn-ghost" data-km="svg-story">🎞 발표를 SVG 한 장으로</button>
-              <button class="btn btn-ghost" data-km="export">JSON 내보내기</button>
-              <button class="btn btn-ghost" data-km="import">JSON 가져오기</button>
-              <button class="btn btn-ghost" data-km="canvas-out">🗂 JSON Canvas 로 내보내기</button>
-              <button class="btn btn-ghost" data-km="mermaid">📄 Mermaid 글로 저장</button>
+              <button class="btn btn-ghost" data-km="storage">${esc(t('karmomap.t120'))}</button>
+              <button class="btn btn-ghost" data-km="share">${esc(t('karmomap.t121'))}</button>
+              <button class="btn btn-ghost" data-km="share-view">${esc(t('karmomap.t122'))}</button>
+              <button class="btn btn-ghost" data-km="tidy">${esc(t('karmomap.t123'))}</button>
+              <button class="btn btn-ghost" data-km="lay-circle">${esc(t('karmomap.t124'))}</button>
+              <button class="btn btn-ghost" data-km="lay-tree">${esc(t('karmomap.t125'))}</button>
+              <button class="btn btn-ghost" data-km="lay-time">${esc(t('karmomap.t126'))}</button>
+              <button class="btn btn-ghost" data-km="from-text">${esc(t('karmomap.t127'))}</button>
+              <button class="btn btn-ghost" data-km="stamps">${esc(t('karmomap.t128'))}</button>
+              <button class="btn btn-ghost" data-km="png">${esc(t('karmomap.t129'))}</button>
+              <button class="btn btn-ghost" data-km="svg">${esc(t('karmomap.t130'))}</button>
+              <button class="btn btn-ghost" data-km="svg-story">${esc(t('karmomap.t131'))}</button>
+              <button class="btn btn-ghost" data-km="export">${esc(t('karmomap.t132'))}</button>
+              <button class="btn btn-ghost" data-km="import">${esc(t('karmomap.t133'))}</button>
+              <button class="btn btn-ghost" data-km="canvas-out">${esc(t('karmomap.t134'))}</button>
+              <button class="btn btn-ghost" data-km="mermaid">${esc(t('karmomap.t135'))}</button>
               <hr />
-              <button class="btn btn-ghost" data-km="map-copy">⧉ 이 맵 복제</button>
-              <button class="btn btn-ghost" data-km="map-rename">✎ 맵 이름 바꾸기</button>
-              <button class="btn btn-ghost" data-km="map-del">🗑 이 맵 삭제</button>
+              <button class="btn btn-ghost" data-km="map-copy">${esc(t('karmomap.t136'))}</button>
+              <button class="btn btn-ghost" data-km="map-rename">${esc(t('karmomap.t137'))}</button>
+              <button class="btn btn-ghost" data-km="map-del">${esc(t('karmomap.t138'))}</button>
               <hr />
-              <button class="btn btn-danger" data-km="clear">전체 삭제</button>
+              <button class="btn btn-danger" data-km="clear">${esc(t('karmomap.t139'))}</button>
             </div>
           </div>
           <input type="file" accept="application/json,.json" data-km="file" hidden />
@@ -449,10 +452,10 @@ import {
         <div class="km-body">
           <div class="km-canvas" data-km="canvas">
             <div class="km-mini hidden" data-km="mini">
-              <button class="btn btn-ghost" data-km="mini-link" title="여기서 선 잇기">↝</button>
-              <button class="btn btn-ghost" data-km="mini-note" title="이 노드에 붙는 쪽지">🗒</button>
-              <button class="btn btn-ghost" data-km="mini-copy" title="복제">⧉</button>
-              <button class="btn btn-ghost" data-km="mini-del" title="지우기">🗑</button>
+              <button class="btn btn-ghost" data-km="mini-link" title="${esc(t('karmomap.t104'))}">↝</button>
+              <button class="btn btn-ghost" data-km="mini-note" title="${esc(t('karmomap.t105'))}">🗒</button>
+              <button class="btn btn-ghost" data-km="mini-copy" title="${esc(t('karmomap.t106'))}">⧉</button>
+              <button class="btn btn-ghost" data-km="mini-del" title="${esc(t('karmomap.t107'))}">🗑</button>
             </div>
             <div class="km-stage hidden" data-km="stage">
               <div class="km-stage-strip" data-km="stage-strip"></div>
@@ -462,13 +465,13 @@ import {
                 <button class="btn btn-ghost" data-km="stage-prev">◀</button>
                 <span data-km="stage-count"></span>
                 <button class="btn btn-ghost" data-km="stage-next">▶</button>
-                <button class="btn btn-ghost" data-km="stage-auto" title="6초마다 다음 장으로">⏱ 자동</button>
-                <button class="btn btn-ghost" data-km="stage-add">+ 지금 화면을 한 장으로</button>
-                <button class="btn btn-ghost" data-km="stage-back" title="이 장을 앞으로">↤</button>
-                <button class="btn btn-ghost" data-km="stage-fwd" title="이 장을 뒤로">↦</button>
-                <button class="btn btn-ghost" data-km="stage-rename" title="이 장 제목 고치기">✎</button>
-                <button class="btn btn-ghost" data-km="stage-del">이 장 지우기</button>
-                <button class="btn btn-ghost" data-km="stage-exit">나가기</button>
+                <button class="btn btn-ghost" data-km="stage-auto" title="${esc(t('karmomap.t108'))}">${esc(t('karmomap.t140'))}</button>
+                <button class="btn btn-ghost" data-km="stage-add">${esc(t('karmomap.t141'))}</button>
+                <button class="btn btn-ghost" data-km="stage-back" title="${esc(t('karmomap.t109'))}">↤</button>
+                <button class="btn btn-ghost" data-km="stage-fwd" title="${esc(t('karmomap.t110'))}">↦</button>
+                <button class="btn btn-ghost" data-km="stage-rename" title="${esc(t('karmomap.t111'))}">✎</button>
+                <button class="btn btn-ghost" data-km="stage-del">${esc(t('karmomap.t142'))}</button>
+                <button class="btn btn-ghost" data-km="stage-exit">${esc(t('karmomap.t143'))}</button>
               </div>
             </div>
           </div>
@@ -493,7 +496,7 @@ import {
       const grip = document.createElement('div');
       grip.className = 'km-sheet-grip';
       grip.dataset.km = 'sheet-grip';
-      grip.title = '올리기 / 내리기';
+      grip.title = t('karmomap.t160');
       grip.onclick = () => root.classList.toggle('is-sheet-up');
       sideEl.appendChild(grip);
     }
@@ -519,7 +522,7 @@ import {
           cv.width = AVATAR_PX;
           cv.height = AVATAR_PX;
           const ctx = cv.getContext('2d');
-          if (!ctx) { URL.revokeObjectURL(url); reject(new Error('canvas 2d 없음')); return; }
+          if (!ctx) { URL.revokeObjectURL(url); reject(new Error(t('karmomap.err.161'))); return; }
           ctx.drawImage(
             im,
             (im.naturalWidth - side) / 2, (im.naturalHeight - side) / 2, side, side,
@@ -528,7 +531,7 @@ import {
           URL.revokeObjectURL(url);
           resolve(cv.toDataURL('image/webp', 0.85));
         };
-        im.onerror = () => { URL.revokeObjectURL(url); reject(new Error('이미지를 읽지 못했습니다')); };
+        im.onerror = () => { URL.revokeObjectURL(url); reject(new Error(t('karmomap.err.162'))); };
         im.src = url;
       });
     }
@@ -547,8 +550,8 @@ import {
         try { parsed = JSON.parse(text) as Backup; } catch { parsed = null; }
         if (!parsed || parsed.kind !== 'karmomap-backup' || !Array.isArray(parsed.maps)) {
           alert([
-            'KarmoMap 백업 파일이 아닙니다.',
-            '(「모든 맵 한 파일로 내보내기」로 만든 파일을 골라 주세요)',
+            t('karmomap.t163'),
+            t('karmomap.t164'),
           ].join(String.fromCharCode(10)));
           return;
         }
@@ -557,8 +560,8 @@ import {
         for (const m of parsed.maps) {
           const spec0 = m.spec as Partial<GraphSpec> | null;
           if (!spec0 || !Array.isArray(spec0.nodes)) continue;
-          const base = (m.name ?? '맵').trim() || '맵';
-          const name = used.has(base) ? `${base} (복원)` : base;
+          const base = (m.name ?? t('karmomap.t165')).trim() || '맵';
+          const name = used.has(base) ? t('karmomap.restoredName', { base }) : base;
           used.add(name);
           const res = addMap(library, name, JSON.stringify(spec0));
           library = res.index;
@@ -567,7 +570,7 @@ import {
         renderMapList();
         openActiveMap();
         Toolbox.showToast?.(
-          added === 0 ? '되돌릴 맵이 없었습니다' : `맵 ${added}개를 되돌렸습니다`,
+          added === 0 ? t('karmomap.t166') : `맵 ${added}개를 되돌렸습니다`,
           undefined, undefined
         );
       });
@@ -591,8 +594,8 @@ import {
           renderSide();
         })
         .catch((e: unknown) => {
-          console.error('[karmomap] 얼굴 사진 처리 실패', e);
-          alert('사진을 읽지 못했습니다.');
+          console.error(t('karmomap.t167'), e);
+          alert(t('karmomap.t168'));
         });
     };
 
@@ -646,13 +649,13 @@ import {
       if (root.querySelector('.km-storage-warn')) return;
       const bar = document.createElement('div');
       bar.className = 'km-storage-warn';
-      bar.innerHTML = `저장 칸이 ${Math.round(rep.ratio * 100)}% 찼습니다 — 「💾 저장 상태」에서 백업하세요.`;
+      bar.innerHTML = t('karmomap.storageFull', { pct: Math.round(rep.ratio * 100) });
       root.querySelector('.km-toolbar')?.insertAdjacentElement('afterend', bar);
     }
 
     /** 지금 맵 이름 — 라이브러리 목록에서 「어느 맵에서 온 글인가」를 보여 주는 데 쓴다. */
     function activeMapName(): string {
-      return library.maps.find((m) => m.id === library.activeId)?.name ?? '맵';
+      return library.maps.find((m) => m.id === library.activeId)?.name ?? t('karmomap.t165');
     }
 
     /**
@@ -663,7 +666,7 @@ import {
     function flashSaved(): void {
       const el = root.querySelector('[data-km="saved"]') as HTMLElement | null;
       if (!el) return;
-      el.textContent = '저장됨';
+      el.textContent = t('karmomap.t117');
       el.classList.remove('hidden');
       if (savedTimer) clearTimeout(savedTimer);
       savedTimer = setTimeout(() => el.classList.add('hidden'), 1400);
@@ -789,10 +792,10 @@ import {
       // 처음 여는 사람이 첫 동작부터 막힌다(실제로 검사가 그렇게 걸렸다). 고르는 자리는 옆 패널이다.
       // 한 줄에 한 가지만. 전에는 둘째 줄이 길어 「이어집니다.」 넉 자만 셋째 줄로 떨어졌다(실서비스 첫 화면).
       el.innerHTML = '<div class="km-empty-in">' +
-        '<b>무엇이든 한 판에</b> — 인물·장소·사건·개념을 함께 놓고 선으로 잇습니다.<br>' +
-        '<b>빈 곳을 두 번 클릭</b> — 그 자리에 카드가 생깁니다.<br>' +
-        '<b>카드 오른쪽 점을 끌기</b> — 다른 카드에 놓으면 선이 이어집니다.<br>' +
-        '<span style="opacity:.75">오른쪽에서 <b>시작할 판</b>을 고를 수 있어요 · <b>?</b> 전체 도움말</span>' +
+        t('karmomap.t169') +
+        t('karmomap.t170') +
+        t('karmomap.t171') +
+        t('karmomap.t172') +
         '</div>';
 
       // 안내는 클릭을 통과시키지만(pointer-events:none) 버튼만은 눌려야 한다.
@@ -804,7 +807,7 @@ import {
           if (!s0) return;
           // 견본을 넣어도 **갈래가 고정되지 않는다** — 그 견본의 종류로 만들 뿐이다.
           buildFromOutline(s0.outline, packById(packId).nodeKinds[0].id);
-          Toolbox.showToast?.('예시를 넣었습니다 — 마음껏 고치세요', undefined, undefined);
+          Toolbox.showToast?.(t('karmomap.t173'), undefined, undefined);
         });
       });
       if (!existing) canvasEl.appendChild(el);
@@ -837,7 +840,7 @@ import {
       const used = new Set(spec.groups.map((g) => g.label));
       // 묶음 이름 후보도 갈래를 안 가린다 — 「가족」이든 「묘지」든 이 맵에 없으면 후보다.
       const preset = PACKS.flatMap((p0) => p0.groupPresets).find((p0) => !used.has(p0.label));
-      const label = preset?.label ?? `묶음 ${spec.groups.length + 1}`;
+      const label = preset?.label ?? t('karmomap.groupNth', { n: spec.groups.length + 1 });
       const color = preset?.color ?? '#a78bfa';
       const center = canvas?.viewCenterWorld() ?? { x: 0, y: 0 };
       const group: GroupDef = {
@@ -985,7 +988,7 @@ import {
         selectedMany = ids;
         sideMode = 'many';
         renderSide();
-        Toolbox.showToast?.(`「${st.name}」 을 찍었습니다 (${ids.length}개)`, undefined, undefined);
+        Toolbox.showToast?.(t('karmomap.stamped', { name: st.name, n: ids.length }), undefined, undefined);
       },
       removeStamp: (stampId) => {
         deleteStamp(stampId);
@@ -994,7 +997,7 @@ import {
       saveStamp: (name) => {
         const st = captureStamp(spec, selectedMany, name);
         if (!st) return;
-        Toolbox.showToast?.(`「${st.name}」 본을 떴습니다 — 서랍에서 다른 맵에도 찍습니다`, undefined, undefined);
+        Toolbox.showToast?.(t('karmomap.stampSaved', { name: st.name }), undefined, undefined);
         renderSide();
       },
       linkWithLabel: (from, to, label) => {
@@ -1058,22 +1061,22 @@ import {
           new Blob([JSON.stringify({ kind: 'karmomap-backup', v: 1, maps: all }, null, 2)], { type: 'application/json' }),
           'karmomap-backup.json'
         );
-        Toolbox.showToast?.(`맵 ${all.length}개를 한 파일로 담았습니다`, undefined, undefined);
+        Toolbox.showToast?.(t('karmomap.mapsBundled', { n: all.length }), undefined, undefined);
       },
       restorePrevRevision: () => {
         const prev = store.loadPrev();
         if (!prev) {
-          Toolbox.showToast?.('되살릴 직전 판이 없습니다', undefined, undefined);
+          Toolbox.showToast?.(t('karmomap.t174'), undefined, undefined);
           return;
         }
-        if (!confirm(`직전 판(노드 ${prev.nodes.length}개)으로 되돌릴까요? 지금 것은 다시 직전 판이 됩니다.`)) return;
+        if (!confirm(t('karmomap.confirmRestore', { n: prev.nodes.length }))) return;
         spec = prev;
         applySpec();
         persistStructure();
         canvas?.fitView();
         sideMode = 'node';
         renderSide();
-        Toolbox.showToast?.('직전 판으로 되돌렸습니다', undefined, undefined);
+        Toolbox.showToast?.(t('karmomap.t175'), undefined, undefined);
       },
     };
 
@@ -1084,14 +1087,14 @@ import {
      * 「지금 어디에 있고 어디로 갈 수 있는지」를 한자리에서 보인다.
      */
     const SIDE_TABS: { id: SideMode; icon: string; title: string }[] = [
-      { id: 'node', icon: '◉', title: '고른 것' },
-      { id: 'groups', icon: '🫧', title: '묶음' },
-      { id: 'terms', icon: '🏷', title: '내 용어' },
-      { id: 'filter', icon: '🔍', title: '거르기' },
-      { id: 'sna', icon: '📊', title: '관계망' },
-      { id: 'notes', icon: '🔗', title: '공용 글' },
-      { id: 'storage', icon: '💾', title: '저장' },
-      { id: 'help', icon: '?', title: '도움말' },
+      { id: 'node', icon: '◉', title: t('karmomap.t176') },
+      { id: 'groups', icon: '🫧', title: t('karmomap.t177') },
+      { id: 'terms', icon: '🏷', title: t('karmomap.t178') },
+      { id: 'filter', icon: '🔍', title: t('karmomap.t179') },
+      { id: 'sna', icon: '📊', title: t('karmomap.t180') },
+      { id: 'notes', icon: '🔗', title: t('karmomap.t181') },
+      { id: 'storage', icon: '💾', title: t('karmomap.t182') },
+      { id: 'help', icon: '?', title: t('karmomap.t183') },
     ];
 
     /** 패널 내용을 그린 뒤 맨 앞에 탭을 얹는다 — 각 패널이 innerHTML 을 통째로 쓰기 때문. */
@@ -1124,13 +1127,13 @@ import {
         const intents = INTENTS.filter((it) => sampleFor(it.packId));
         // 빈 판에서는 **묻는 말이 맨 위**다. 「고르면 여기서 고칩니다」를 위에 두면 정작 첫 할 일이
         // 그 아래로 밀려 안 보인다(고를 것이 아직 하나도 없는데 고르라는 안내가 먼저 나온다).
-        const pickHint = '<div class="km-hint">노드나 선을 고르면 여기서 고칩니다.</div>';
+        const pickHint = t('karmomap.t184');
         const empty = spec.nodes.length === 0 && intents.length > 0;
         sideEl.innerHTML = (empty ? '' : pickHint) +
           (!empty ? '' : `
             <div class="km-field">
-              <label>무엇을 만들 건가요?</label>
-              <div class="km-hint">고르면 그 갈래의 <b>견본 · 종류 · 칸 틀</b>이 한꺼번에 깔립니다. 나중에 다른 갈래를 섞어도 됩니다.</div>
+              <label>${esc(t('karmomap.t144'))}</label>
+              <div class="km-hint">${t('karmomap.packHint', { what: `<b>${esc(t('karmomap.t146'))}</b>` })}</div>
               <div class="km-intent">${intents.map((it) => `
                 <button data-km="intent" data-key="${it.packId}">
                   <span class="km-intent-ico">${it.icon}</span>
@@ -1143,11 +1146,11 @@ import {
         if (spec.nodes.length > 0 && spec._meta?.tips !== 'off') {
           const tips = document.createElement('div');
           tips.className = 'km-field';
-          tips.innerHTML = '<label>다음 걸음</label>'
-            + '<div class="km-hint">① 빈 곳을 <b>두 번 클릭</b>해 인물을 더 놓기<br>'
-            + '② 카드 오른쪽 <b>점을 끌어</b> 다른 카드에 놓아 관계 잇기<br>'
-            + '③ 카드를 골라 <b>칸</b>(출신·첫 등장)을 채우기 — 나중에 그 칸으로 거르고 색을 입힙니다</div>'
-            + '<button class="btn btn-ghost" data-km="tips-off">알겠어요</button>';
+          tips.innerHTML = t('karmomap.t185')
+            + t('karmomap.t186')
+            + t('karmomap.t187')
+            + t('karmomap.t188')
+            + t('karmomap.t189');
           sideEl.appendChild(tips);
           (tips.querySelector('[data-km="tips-off"]') as HTMLButtonElement).onclick = () => {
             spec._meta = { ...spec._meta, tips: 'off' };
@@ -1169,7 +1172,7 @@ import {
             void before;
             applySpec();
             persistStructure();
-            Toolbox.showToast?.('시작할 판을 깔았습니다 — 마음껏 고치세요', undefined, undefined);
+            Toolbox.showToast?.(t('karmomap.t190'), undefined, undefined);
           };
         });
       }
@@ -1250,18 +1253,18 @@ import {
       sideEl.innerHTML = `
         <h4>${kindIcon(node.kind)} 노드</h4>
         <div class="km-field">
-          <label>이름</label>
+          <label>${esc(t('karmomap.t148'))}</label>
           <input type="text" data-km="edit-label" value="${escapeAttr(node.label)}" />
         </div>
         <div class="km-field">
-          <label>종류</label>
-          <input type="text" class="km-kind-find" data-km="kind-find" placeholder="종류 찾기 (인물·카드·개념…)"
+          <label>${esc(t('karmomap.t149'))}</label>
+          <input type="text" class="km-kind-find" data-km="kind-find" placeholder="${esc(t('karmomap.t112'))}"
             aria-controls="km-kind-list" />
           <select id="km-kind-list" data-km="edit-kind">${nodeKindOptions(node.kind)}</select>
         </div>
         <div class="km-field">
-          <label>한마디</label>
-          <input type="text" data-km="edit-note" value="${escapeAttr(node.note ?? '')}" placeholder="이름 밑에 한 줄" />
+          <label>${esc(t('karmomap.t150'))}</label>
+          <input type="text" data-km="edit-note" value="${escapeAttr(node.note ?? '')}" placeholder="${esc(t('karmomap.t113'))}" />
         </div>
         ${tagsFieldHtml(panelCtx, node)}
         ${fieldsSectionHtml(panelCtx, node)}
@@ -1274,16 +1277,16 @@ import {
         ${tiltFieldHtml(panelCtx, node)}
         ${avatarFieldHtml(panelCtx, node)}
         <div class="km-field">
-          <label>이 노드에서 연결 만들기</label>
+          <label>${esc(t('karmomap.t151'))}</label>
           <select data-km="link-kind">${edgeKindOptions()}</select>
-          <button class="btn btn-ghost" data-km="link-start">${linkingFrom === node.id ? '연결 취소' : '연결 시작'}</button>
-          ${linkingFrom === node.id ? '<div class="km-hint">이어붙일 다른 노드를 클릭하세요. 배경을 클릭하면 취소됩니다.</div>' : ''}
+          <button class="btn btn-ghost" data-km="link-start">${linkingFrom === node.id ? t('karmomap.t191') : t('karmomap.t192')}</button>
+          ${linkingFrom === node.id ? t('karmomap.t193') : ''}
         </div>
         <div class="km-field">
           <label>연결 ${related.length}개</label>
           ${
             related.length === 0
-              ? '<div class="km-hint">아직 없습니다.</div>'
+              ? t('karmomap.t194')
               : related
                   .map((e) => {
                     const outgoing = e.from === node.id;
@@ -1291,18 +1294,18 @@ import {
                     return `<div class="km-edge-row" data-edge="${escapeAttr(e.id)}">
                       <span class="km-edge-peer" title="${escapeAttr(labelOf(peer))}">${outgoing ? '→' : '←'} ${escapeHtml(labelOf(peer))}</span>
                       <select data-km="edge-kind">${edgeKindOptions(e.kind)}</select>
-                      <button class="btn btn-ghost" data-km="edge-both" title="양쪽 화살표로">${e.arrowStart ? '↔' : '→'}</button>
-                      <button class="btn btn-ghost" data-km="edge-del" title="연결 삭제">×</button>
-                      <input type="text" data-km="edge-label" class="km-edge-label" value="${escapeAttr(e.label ?? '')}" placeholder="선 위에 쓸 말 (비우면 안 보임)" />
+                      <button class="btn btn-ghost" data-km="edge-both" title="${esc(t('karmomap.t114'))}">${e.arrowStart ? '↔' : '→'}</button>
+                      <button class="btn btn-ghost" data-km="edge-del" title="${esc(t('karmomap.t115'))}">×</button>
+                      <input type="text" data-km="edge-label" class="km-edge-label" value="${escapeAttr(e.label ?? '')}" placeholder="${esc(t('karmomap.t116'))}" />
                     </div>`;
                   })
                   .join('')
           }
         </div>
-        <button class="btn btn-ghost" data-km="node-copy">⧉ 이 노드 복제</button>
-        <button class="btn btn-ghost" data-km="node-link">🔗 이 카드로 오는 링크</button>
-        <button class="btn btn-ghost" data-km="node-dive">${node.subMap ? '⤵ 이 카드 안으로' : '⤵ 이 카드 안에 판 만들기'}</button>
-        <button class="btn btn-danger" data-km="node-del">노드 삭제</button>`;
+        <button class="btn btn-ghost" data-km="node-copy">${esc(t('karmomap.t152'))}</button>
+        <button class="btn btn-ghost" data-km="node-link">${esc(t('karmomap.t153'))}</button>
+        <button class="btn btn-ghost" data-km="node-dive">${node.subMap ? t('karmomap.t195') : t('karmomap.t196')}</button>
+        <button class="btn btn-danger" data-km="node-del">${esc(t('karmomap.t154'))}</button>`;
 
       // 이름 편집 — 입력할 때마다 반영 (폭도 같이 조정)
       const labelInput = sideEl.querySelector('[data-km="edit-label"]') as HTMLInputElement;
@@ -1350,16 +1353,16 @@ import {
       // 처음 누르면 그 이름으로 새 판을 만들고, 다음부터는 그 판으로 간다(카드에는 ⤵ 가 붙는다).
       (sideEl.querySelector('[data-km="node-dive"]') as HTMLButtonElement).onclick = () => {
         if (!node.subMap) {
-          const added = addMap(library, node.label || '이름 없는 판');
+          const added = addMap(library, node.label || t('karmomap.untitledMap'));
           library = added.index;
           node.subMap = added.id;
           persistStructure();
           renderMapList();
-          Toolbox.showToast?.(`「${node.label}」 안에 판을 만들었습니다`, undefined, undefined);
+          Toolbox.showToast?.(t('karmomap.innerMapMade', { name: node.label }), undefined, undefined);
         }
         const target = node.subMap;
         if (!target || !library.maps.some((m) => m.id === target)) {
-          Toolbox.showToast?.('그 판이 사라졌습니다 — 다시 만들어 주세요', undefined, undefined);
+          Toolbox.showToast?.(t('karmomap.t197'), undefined, undefined);
           node.subMap = undefined;
           persistStructure();
           renderSide();
@@ -1376,14 +1379,14 @@ import {
         void encodeShare(live).then(async (code) => {
           const url = withNodeAnchor(buildShareUrl(new URL(location.href), code, true), node.id);
           if (url.length > SHARE_URL_LIMIT) {
-            alert('그림이 커서 링크로는 못 보냅니다 — 「JSON 내보내기」로 파일을 보내 주세요.');
+            alert(t('karmomap.t198'));
             return;
           }
           try {
             await navigator.clipboard.writeText(url);
-            Toolbox.showToast?.('이 카드로 오는 링크를 복사했습니다 (보기 전용)', undefined, undefined);
+            Toolbox.showToast?.(t('karmomap.t199'), undefined, undefined);
           } catch {
-            prompt('이 링크를 복사해 보내세요', url);
+            prompt(t('karmomap.t200'), url);
           }
         });
       };
@@ -1484,7 +1487,7 @@ import {
       bindLinkSections(panelCtx, selectedId);
 
       (sideEl.querySelector('[data-km="node-del"]') as HTMLButtonElement).onclick = () => {
-        if (!confirm(`"${node.label}" 노드와 연결된 선을 모두 삭제할까요?`)) return;
+        if (!confirm(t('karmomap.confirmDeleteEdges', { name: node.label }))) return;
         const goneEdges = new Set(
           spec.edges.filter((e) => e.from === node.id || e.to === node.id).map((e) => e.id)
         );
@@ -1517,7 +1520,7 @@ import {
         (e) => (e.from === from && e.to === to) || (e.from === to && e.to === from)
       );
       if (dup) {
-        Toolbox.showToast?.('두 노드는 이미 연결돼 있습니다', undefined, undefined);
+        Toolbox.showToast?.(t('karmomap.t201'), undefined, undefined);
         return;
       }
       const taken = new Set(spec.edges.map((e) => e.id));
@@ -1581,7 +1584,7 @@ import {
       if (!node) return;
       const taken = new Set(spec.nodes.map((n) => n.id));
       const memo: GraphNode = {
-        id: nextId('node', taken), kind: node.kind, label: '메모', group: '',
+        id: nextId('node', taken), kind: node.kind, label: t('karmomap.t158'), group: '',
         x: node.x + node.w + 40, y: node.y - 20, w: 160, h: NODE_H, ports: [],
         shape: 'note', rotate: -3, attachedTo: node.id,
       };
@@ -1595,7 +1598,7 @@ import {
     q<HTMLButtonElement>('mini-del').onclick = () => {
       const node = spec.nodes.find((n) => n.id === selectedId);
       if (!node) return;
-      if (!confirm(`"${node.label}" 노드와 연결된 선을 모두 삭제할까요?`)) return;
+      if (!confirm(t('karmomap.confirmDeleteEdges', { name: node.label }))) return;
       spec.nodes = spec.nodes.filter((n) => n.id !== node.id);
       spec.edges = spec.edges.filter((e) => e.from !== node.id && e.to !== node.id);
       for (const n of spec.nodes) if (n.attachedTo === node.id) n.attachedTo = undefined;
@@ -1657,7 +1660,7 @@ import {
         spec.edges.push({ id: nextId('edge', taken), from: draggedId, to: overId, kind, label: edgeLabel(kind) });
         applySpec();
         persistStructure();
-        Toolbox.showToast?.('겹쳐 놓아 이었습니다 — Ctrl+Z 로 되돌립니다', undefined, undefined);
+        Toolbox.showToast?.(t('karmomap.t202'), undefined, undefined);
       },
       // 선을 휘거나 이름표를 옮긴 뒤 — 캔버스가 spec 을 고쳤으니 저장만 하면 된다.
       onEdgeChanged: () => persistStructure(),
@@ -1733,7 +1736,7 @@ import {
       const node: GraphNode = {
         id: nextId('node', taken),
         kind: lastNodeKind,
-        label: note.title || '메모',
+        label: note.title || t('karmomap.noteLabel'),
         group: '',
         x: Math.round(view.x - 80),
         y: Math.round(view.y - 40),
@@ -1815,9 +1818,9 @@ import {
     function showStep(): void {
       const list = steps();
       const step = list[stepIndex];
-      (q<HTMLElement>('stage-title')).textContent = step?.title ?? '아직 담은 장이 없습니다';
+      (q<HTMLElement>('stage-title')).textContent = step?.title ?? t('karmomap.t203');
       (q<HTMLElement>('stage-note')).textContent =
-        step?.note ?? '찾기·다리수로 볼 것을 고른 뒤 「+ 지금 화면을 한 장으로」 를 누르세요.';
+        step?.note ?? t('karmomap.t204');
       (q<HTMLElement>('stage-count')).textContent = list.length ? `${stepIndex + 1} / ${list.length}` : '0 / 0';
       // 장 목록 — 어디쯤 와 있는지 보이고, 눌러서 바로 건너뛴다(슬라이드 정렬 보기 자리).
       const strip = q<HTMLElement>('stage-strip');
@@ -1862,13 +1865,13 @@ import {
       if (autoTimer) clearInterval(autoTimer);
       autoTimer = null;
       const btn = root.querySelector('[data-km="stage-auto"]');
-      if (btn) btn.textContent = '⏱ 자동';
+      if (btn) btn.textContent = t('karmomap.t140');
     }
     Toolbox.onDispose?.(stopAuto);
 
     q<HTMLButtonElement>('stage-auto').onclick = (ev) => {
       if (autoTimer) { stopAuto(); return; }
-      (ev.currentTarget as HTMLButtonElement).textContent = '⏸ 멈춤';
+      (ev.currentTarget as HTMLButtonElement).textContent = t('karmomap.t205');
       autoTimer = setInterval(() => {
         const list = steps();
         if (list.length === 0 || !presenting) { stopAuto(); return; }
@@ -1890,12 +1893,12 @@ import {
     q<HTMLButtonElement>('stage-add').onclick = () => {
       // 지금 또렷한 것들을 그대로 한 장으로 굳힌다. 포커스가 없으면 전체 장.
       const focused = currentFocusIds();
-      const title = prompt('이 장의 제목', `${steps().length + 1}장`)?.trim();
+      const title = prompt(t('karmomap.t206'), `${steps().length + 1}장`)?.trim();
       if (title === undefined) return;
-      const note = prompt('설명 한 줄 (건너뛰려면 비우고 확인)')?.trim();
+      const note = prompt(t('karmomap.t207'))?.trim();
       steps().splice(stepIndex + (steps().length ? 1 : 0), 0, {
         id: `step-${Date.now().toString(36)}`,
-        title: title || `${steps().length + 1}장`,
+        title: title || t('karmomap.sceneNth', { n: steps().length + 1 }),
         nodeIds: focused,
         note: note || undefined,
         // 또렷하게 고른 것이 없으면 「지금 보이는 자리」를 **틀**로 굳힌다. 그러면 나중에 그 자리에
@@ -1922,7 +1925,7 @@ import {
     q<HTMLButtonElement>('stage-rename').onclick = () => {
       const step = steps()[stepIndex];
       if (!step) return;
-      const title = prompt('이 장의 제목', step.title)?.trim();
+      const title = prompt(t('karmomap.t206'), step.title)?.trim();
       if (!title) return;
       step.title = title;
       persistStructure();
@@ -1992,24 +1995,22 @@ import {
             ? buildShareUrl(new URL(location.href), await encodeShare(lean.spec), readOnly)
             : url;
           if (lean.removed > 0 && leanUrl.length <= SHARE_URL_LIMIT
-            && confirm(`사진 ${lean.removed}장 때문에 링크가 깁니다.
-사진만 빼고 보낼까요? (관계·이름·칸은 그대로, 얼굴은 첫 글자로 보입니다)`)) {
+            && confirm(t('karmomap.confirmLeanShare', { n: lean.removed }))) {
             url = leanUrl;
           } else {
             alert(
-              `그림이 커서 링크로는 못 보냅니다 (${Math.round(url.length / 1000)}k자).
-` +
-              '「JSON 내보내기」로 파일을 보내 주세요. (사진을 붙인 노드가 특히 큽니다)'
+              t('karmomap.tooBigForLink', { k: Math.round(url.length / 1000) }) + '\n' +
+              t('karmomap.t208')
             );
             return;
           }
         }
         try {
           await navigator.clipboard.writeText(url);
-          Toolbox.showToast?.('링크를 복사했습니다', undefined, undefined);
+          Toolbox.showToast?.(t('karmomap.t209'), undefined, undefined);
         } catch {
           // 클립보드가 막힌 자리(비보안 컨텍스트 등)에서도 사람이 직접 복사할 수 있게 보여 준다.
-          prompt('이 링크를 복사해 보내세요', url);
+          prompt(t('karmomap.t200'), url);
         }
       });
     }
@@ -2047,7 +2048,7 @@ import {
       applySpec();
       persistStructure();
       canvas?.fitView();
-      Toolbox.showToast?.(`${placed.size}개를 ${kind === 'circle' ? '둥글게' : '흐름대로'} 놓았습니다 — Ctrl+Z 로 되돌립니다`, undefined, undefined);
+      Toolbox.showToast?.(`${placed.size}개를 ${kind === 'circle' ? t('karmomap.t210') : t('karmomap.t211')} 놓았습니다 — Ctrl+Z 로 되돌립니다`, undefined, undefined);
     }
     // 연표 — 「언제」가 적힌 칸을 시간축으로 삼는다. 어느 칸인지는 **숫자가 가장 많이 든 칸**으로 고른다
     // (사람에게 「날짜 칸을 먼저 정하라」고 시키면 아무도 안 쓴다).
@@ -2055,7 +2056,7 @@ import {
       const live = canvas?.getSpec() ?? spec;
       const field = bestTimeField(live.nodes);
       if (!field) {
-        Toolbox.showToast?.('시점으로 쓸 칸이 없습니다 — 「첫 등장: 3화」처럼 숫자가 든 칸을 두 곳 이상 적어 주세요', undefined, undefined);
+        Toolbox.showToast?.(t('karmomap.t212'), undefined, undefined);
         return;
       }
       const boxes = live.nodes.map((n) => ({ id: n.id, x: n.x, y: n.y, w: n.w, h: n.h }));
@@ -2073,7 +2074,7 @@ import {
       applySpec();
       persistStructure();
       canvas?.fitView();
-      Toolbox.showToast?.(`「${field}」 순서로 ${placed.size}개를 늘어놓았습니다 — Ctrl+Z 로 되돌립니다`, undefined, undefined);
+      Toolbox.showToast?.(t('karmomap.arranged', { field, n: placed.size }), undefined, undefined);
     };
     q<HTMLButtonElement>('lay-circle').onclick = () => relayout('circle');
     q<HTMLButtonElement>('lay-tree').onclick = () => relayout('tree');
@@ -2104,7 +2105,7 @@ import {
       persistStructure();
       const n = pushed.size;
       Toolbox.showToast?.(
-        n === 0 ? '이미 가지런합니다' : `겹친 ${n}개를 밀었습니다`,
+        n === 0 ? t('karmomap.t213') : `겹친 ${n}개를 밀었습니다`,
         undefined, undefined
       );
     };
@@ -2186,7 +2187,7 @@ import {
         }
         if ((ev.key === 'Delete' || ev.key === 'Backspace') && selectedId) {
           const node = spec.nodes.find((n) => n.id === selectedId);
-          if (node && confirm(`"${node.label}" 을(를) 지울까요?`)) {
+          if (node && confirm(t('karmomap.confirmDeleteNode', { name: node.label }))) {
             ev.preventDefault();
             (sideEl.querySelector('[data-km="node-del"]') as HTMLButtonElement | null)?.click();
           }
@@ -2210,9 +2211,9 @@ import {
       }
 
       if (!(ev.ctrlKey || ev.metaKey)) return;
-      const t = ev.target as HTMLElement | null;
-      const tag = t?.tagName ?? '';
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || t?.isContentEditable) return;
+      const target = ev.target as HTMLElement | null;
+      const tag = target?.tagName ?? '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
       const key = ev.key.toLowerCase();
       if (key === 'z' && !ev.shiftKey) { ev.preventDefault(); restoreTo(histIndex - 1); }
       else if (key === 'y' || (key === 'z' && ev.shiftKey)) { ev.preventDefault(); restoreTo(histIndex + 1); }
@@ -2252,7 +2253,7 @@ import {
 
     function exportImage(scale: number): void {
       if (spec.nodes.length === 0) {
-        Toolbox.showToast?.('아직 그릴 것이 없습니다', undefined, undefined);
+        Toolbox.showToast?.(t('karmomap.t214'), undefined, undefined);
         return;
       }
       const svgText = canvas?.exportSVGString({ background: canvasBackground() });
@@ -2270,14 +2271,14 @@ import {
         ctx.drawImage(im, 0, 0, out.width, out.height);
         out.toBlob((blob) => {
           if (!blob) {
-            alert('그림을 만들지 못했습니다.');
+            alert(t('karmomap.t215'));
             return;
           }
           downloadBlob(blob, 'karmomap.png');
-          Toolbox.showToast?.(`${out.width}×${out.height} PNG 로 저장했습니다`, undefined, undefined);
+          Toolbox.showToast?.(t('karmomap.savedPng', { w: out.width, h: out.height }), undefined, undefined);
         }, 'image/png');
       };
-      im.onerror = () => alert('그림을 만들지 못했습니다.');
+      im.onerror = () => alert(t('karmomap.t215'));
       im.src = src;
     }
 
@@ -2293,7 +2294,7 @@ import {
     // (PNG 는 확대하면 뭉갠다). Sozi 계보 — 발표 결과물이 브라우저만 있으면 도는 한 장.
     q<HTMLButtonElement>('svg').onclick = () => {
       if (spec.nodes.length === 0) {
-        Toolbox.showToast?.('아직 그릴 것이 없습니다', undefined, undefined);
+        Toolbox.showToast?.(t('karmomap.t214'), undefined, undefined);
         return;
       }
       const svgText = canvas?.exportSVGString({ background: canvasBackground() });
@@ -2306,13 +2307,13 @@ import {
     q<HTMLButtonElement>('mermaid').onclick = () => {
       const live = canvas?.getSpec() ?? spec;
       if (live.nodes.length === 0) {
-        Toolbox.showToast?.('아직 그릴 것이 없습니다', undefined, undefined);
+        Toolbox.showToast?.(t('karmomap.t214'), undefined, undefined);
         return;
       }
       const text = toMermaidBlock(live);
       downloadBlob(new Blob([text], { type: 'text/markdown;charset=utf-8' }), 'karmomap.mermaid.md');
       void navigator.clipboard?.writeText(text).then(
-        () => Toolbox.showToast?.('파일로 받았고 클립보드에도 담았습니다', undefined, undefined),
+        () => Toolbox.showToast?.(t('karmomap.t216'), undefined, undefined),
         () => {},   // 클립보드는 못 쓸 수 있다(권한·문맥) — 파일이 이미 나갔으니 조용히 넘긴다
       );
     };
@@ -2322,7 +2323,7 @@ import {
       const live = canvas?.getSpec() ?? spec;
       const story = live.story ?? [];
       if (story.length === 0) {
-        Toolbox.showToast?.('먼저 발표 모드에서 장을 담아 주세요 (▶ → + 지금 화면을 한 장으로)', undefined, undefined);
+        Toolbox.showToast?.(t('karmomap.t217'), undefined, undefined);
         return;
       }
       const svgText = canvas?.exportSVGString({ background: canvasBackground() });
@@ -2346,7 +2347,7 @@ import {
         new Blob([withPresentation(svgText, scenes)], { type: 'image/svg+xml;charset=utf-8' }),
         'karmomap-presentation.svg',
       );
-      Toolbox.showToast?.(`${scenes.length}장짜리 발표를 한 장으로 받았습니다 — 브라우저로 열고 ←→`, undefined, undefined);
+      Toolbox.showToast?.(t('karmomap.savedDeck', { n: scenes.length }), undefined, undefined);
     };
 
     // 본 찍기 — 창고에 뜬 한 벌을 지금 화면 한가운데에 놓는다. id 는 새로 뽑으므로 같은 본을
@@ -2354,7 +2355,7 @@ import {
     q<HTMLButtonElement>('stamps').onclick = () => {
       const list = loadStamps();
       if (list.length === 0) {
-        Toolbox.showToast?.('아직 뜬 본이 없습니다 — 여럿 고른 뒤 「본으로 저장」', undefined, undefined);
+        Toolbox.showToast?.(t('karmomap.t218'), undefined, undefined);
         return;
       }
       sideMode = 'stamps';
@@ -2374,7 +2375,7 @@ import {
         .text()
         .then((text) => {
           const parsed = JSON.parse(text) as Partial<GraphSpec> & { nodes?: unknown[] };
-          if (!Array.isArray(parsed.nodes)) throw new Error('nodes 배열이 없습니다');
+          if (!Array.isArray(parsed.nodes)) throw new Error(t('karmomap.err.219'));
           // 남의 캔버스인지 우리 것인지는 **노드 모양**으로 갈린다(JSON Canvas 는 `type` 을 갖는다).
           // 확장자로 가르면 이름만 바꾼 파일에 속는다.
           const looksCanvas = parsed.nodes.some((n) => typeof (n as { type?: unknown }).type === 'string');
@@ -2391,11 +2392,11 @@ import {
           canvas?.fitView();
           persistStructure();
           renderSide();
-          Toolbox.showToast?.(`${spec.nodes.length}개 노드를 불러왔습니다`, undefined, undefined);
+          Toolbox.showToast?.(t('karmomap.loadedNodes', { n: spec.nodes.length }), undefined, undefined);
         })
         .catch((e: unknown) => {
-          console.error('[karmomap] 가져오기 실패', e);
-          alert('JSON 을 읽지 못했습니다. KarmoMap 에서 내보낸 파일인지 확인해 주세요.');
+          console.error(t('karmomap.t220'), e);
+          alert(t('karmomap.t221'));
         })
         .finally(() => {
           fileEl.value = '';
@@ -2403,7 +2404,7 @@ import {
     };
 
     q<HTMLButtonElement>('clear').onclick = () => {
-      if (!confirm('KarmoMap 의 모든 노드와 연결을 삭제할까요? 되돌릴 수 없습니다.')) return;
+      if (!confirm(t('karmomap.t222'))) return;
       spec = emptyGraphSpec();
       spec._edge_kinds = { ...edgeDefsNow() };
       spec._meta = { pack: pack.id };
@@ -2440,7 +2441,7 @@ import {
       canvasEl.style.cursor = 'grab';
       const badge = document.createElement('div');
       badge.className = 'km-viewbadge';
-      badge.innerHTML = '👁 보기 전용 <button class="btn btn-ghost" data-km="fork">내 것으로 복제</button>';
+      badge.innerHTML = t('karmomap.t223');
       canvasEl.appendChild(badge);
       (badge.querySelector('[data-km="fork"]') as HTMLButtonElement).onclick = () => {
         readOnly = false;
@@ -2451,7 +2452,7 @@ import {
         const url = new URL(location.href);
         url.searchParams.delete('kmv');
         history0.replaceState(null, '', url.toString());
-        Toolbox.showToast?.('이제 고칠 수 있습니다 — 이 브라우저에만 저장됩니다', undefined, undefined);
+        Toolbox.showToast?.(t('karmomap.t224'), undefined, undefined);
         renderSide();
       };
     }
@@ -2528,7 +2529,7 @@ import {
     };
 
     q<HTMLButtonElement>('map-new').onclick = () => {
-      const added = addMap(library, `맵 ${library.maps.length + 1}`);
+      const added = addMap(library, t('karmomap.mapNth', { n: library.maps.length + 1 }));
       library = added.index;
       renderMapList();
       openActiveMap();
@@ -2536,8 +2537,8 @@ import {
 
     q<HTMLButtonElement>('map-copy').onclick = () => {
       const json = JSON.stringify(canvas?.getSpec() ?? spec);
-      const name = library.maps.find((m) => m.id === library.activeId)?.name ?? '맵';
-      const added = addMap(library, `${name} 사본`, json);
+      const name = library.maps.find((m) => m.id === library.activeId)?.name ?? t('karmomap.t165');
+      const added = addMap(library, t('karmomap.copyOf', { name }), json);
       library = added.index;
       renderMapList();
       openActiveMap();
@@ -2545,7 +2546,7 @@ import {
 
     q<HTMLButtonElement>('map-rename').onclick = () => {
       const cur = library.maps.find((m) => m.id === library.activeId);
-      const name = prompt('맵 이름', cur?.name ?? '')?.trim();
+      const name = prompt(t('karmomap.t225'), cur?.name ?? '')?.trim();
       if (!name) return;
       library = renameMap(library, library.activeId, name);
       renderMapList();
@@ -2555,8 +2556,8 @@ import {
       const cur = library.maps.find((m) => m.id === library.activeId);
       const last = library.maps.length <= 1;
       const msg = last
-        ? `"${cur?.name ?? '맵'}" 의 내용을 모두 지울까요? (마지막 한 장이라 맵 자체는 남습니다)`
-        : `"${cur?.name ?? '맵'}" 맵을 지울까요? 되돌릴 수 없습니다.`;
+        ? `"${cur?.name ?? t('karmomap.t165')}" 의 내용을 모두 지울까요? (마지막 한 장이라 맵 자체는 남습니다)`
+        : `"${cur?.name ?? t('karmomap.t165')}" 맵을 지울까요? 되돌릴 수 없습니다.`;
       if (!confirm(msg)) return;
       library = removeMap(library, library.activeId);
       renderMapList();
@@ -2573,10 +2574,10 @@ import {
       void decodeShare(shareCode).then((data) => {
         const incoming = data as Partial<GraphSpec> | null;
         if (!incoming || !Array.isArray(incoming.nodes)) {
-          Toolbox.showToast?.('링크의 내용을 읽지 못했습니다', undefined, undefined);
+          Toolbox.showToast?.(t('karmomap.t226'), undefined, undefined);
           return;
         }
-        const added = addMap(library, '받은 맵');
+        const added = addMap(library, t('karmomap.t227'));
         library = added.index;
         renderMapList();
         store = new KarmoMapLocalStorageAdapter(mapKey(library.activeId));
@@ -2605,13 +2606,13 @@ import {
         renderSide();
         snapshot();
         syncHistoryButtons();
-        Toolbox.showToast?.(`링크에서 ${spec.nodes.length}개를 받았습니다`, undefined, undefined);
+        Toolbox.showToast?.(t('karmomap.loadedFromLink', { n: spec.nodes.length }), undefined, undefined);
       });
     }
 
     Mdd.linePreset('tool_run', {
       mood: 'idle',
-      msg: '뭘 그려볼까요? 위에서 어휘 팩을 고르면 캔버스가 그 말로 바뀝니다.',
+      msg: t('karmomap.t228'),
     });
   }
 
