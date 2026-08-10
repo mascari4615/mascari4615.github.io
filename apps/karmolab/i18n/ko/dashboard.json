@@ -1,0 +1,17 @@
+{
+  "dashboard.t01": "💬 총 채팅 횟수",
+  "dashboard.t02": "🎨 총 이미지 생성",
+  "dashboard.t03": "💬 총 채팅 토큰",
+  "dashboard.t04": "🎨 총 이미지 토큰",
+  "dashboard.t05": "날짜",
+  "dashboard.t06": "채팅",
+  "dashboard.t07": "채팅 토큰",
+  "dashboard.t08": "이미지",
+  "dashboard.t09": "이미지 토큰",
+  "dashboard.btn.dashRefresh": "🔄 새로고침",
+  "dashboard.btn.dashClear": "🗑️ 기록 초기화",
+  "dashboard.t10": "사용 기록을 볼까요?",
+  "dashboard.t11": "<div class=\"dash-empty\"><div style=\"font-size:40px;margin-bottom:12px;opacity:0.3;\">📊</div>아직 사용 기록이 없습니다.<br>챗봇이나 이미지 생성을 사용하면 여기에 기록됩니다.</div>",
+  "dashboard.t12": "모든 사용량 기록을 삭제하시겠습니까?",
+  "dashboard.t13": "사용량 기록 초기화 완료"
+}

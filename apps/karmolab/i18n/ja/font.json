@@ -1,0 +1,20 @@
+{
+  "font.t01": "🎰 フォントを変えるにはガチャを回してください!",
+  "font.label.display": "あいうえお ABC Hello 123",
+  "font.btn.drawFontBtn": "🎰 ガチャを回す!",
+  "font.label.collection": "集めた数:",
+  "font.t02": "フォントガチャ",
+  "font.t04": "フォントガチャです! 何が出るでしょう〜",
+  "font.t05": "既定のフォント",
+  "font.t06": "グリム",
+  "font.t07": "クンソ",
+  "font.t08": "パタン",
+  "font.t09": "ナヌムゴシック",
+  "font.t10": "クンソ体",
+  "font.t11": "回っています…!!",
+  "font.t12": "UR!! 伝説級のフォントです!! 🎉🎉🎉",
+  "font.t13": "SR! なかなかレアな当たりです!",
+  "font.t14": "C級… ありふれたものです…",
+  "font.got": "獲得: {grade} {name}",
+  "font.gotToast": "{name} を獲得!"
+}

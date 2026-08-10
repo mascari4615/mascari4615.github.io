@@ -1,0 +1,17 @@
+{
+  "dashboard.t01": "💬 チャットの総回数",
+  "dashboard.t02": "🎨 画像生成の総数",
+  "dashboard.t03": "💬 チャットの総トークン",
+  "dashboard.t04": "🎨 画像の総トークン",
+  "dashboard.t05": "日付",
+  "dashboard.t06": "チャット",
+  "dashboard.t07": "チャットのトークン",
+  "dashboard.t08": "画像",
+  "dashboard.t09": "画像のトークン",
+  "dashboard.btn.dashRefresh": "🔄 更新",
+  "dashboard.btn.dashClear": "🗑️ 記録を消す",
+  "dashboard.t10": "使った記録を見ますか?",
+  "dashboard.t11": "<div class=\"dash-empty\"><div style=\"font-size:40px;margin-bottom:12px;opacity:0.3;\">📊</div>まだ使った記録がありません。<br>チャットボットや画像生成を使うと、ここに記録されます。</div>",
+  "dashboard.t12": "すべての使用量の記録を消しますか?",
+  "dashboard.t13": "使用量の記録を消しました"
+}

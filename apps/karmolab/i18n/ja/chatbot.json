@@ -158,5 +158,15 @@
   "chatbot.rp.scenario": "状況: {value}",
   "chatbot.rp.visual": "外見(画像・一貫性用。セリフでそのまま読み上げないこと): {value}",
   "chatbot.charBadge": "💬 {name}",
-  "chatbot.charOverwritten": "キャラクターを上書きしました: {name}"
+  "chatbot.charOverwritten": "キャラクターを上書きしました: {name}",
+  "chatbot.t111": "🖼 画像を作っています…",
+  "chatbot.err.112": "Gemini のモジュールが読み込まれていません。",
+  "chatbot.t113": "画像生成: Vertex の API キーが設定されていません。",
+  "chatbot.t114": "画像生成: Vertex を使うには設定に GCP のプロジェクト ID が必要です。",
+  "chatbot.t115": "Vertex: プロジェクト ID を設定してください。",
+  "chatbot.err.116": "Vertex の画像生成の関数が使えません。",
+  "chatbot.err.117": "画像生成の関数が使えません。",
+  "chatbot.t118": "キャラクターの画像",
+  "chatbot.t119": "画像の作成に失敗: ",
+  "chatbot.imageError": "画像のエラー"
 }

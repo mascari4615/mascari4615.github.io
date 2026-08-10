@@ -158,5 +158,15 @@
   "chatbot.rp.scenario": "Situation: {value}",
   "chatbot.rp.visual": "Appearance (for images and consistency; do not recite it in dialogue): {value}",
   "chatbot.charBadge": "💬 {name}",
-  "chatbot.charOverwritten": "Character overwritten: {name}"
+  "chatbot.charOverwritten": "Character overwritten: {name}",
+  "chatbot.t111": "🖼 Making the image…",
+  "chatbot.err.112": "The Gemini module was not loaded.",
+  "chatbot.t113": "Image generation: the Vertex API key is not set.",
+  "chatbot.t114": "Image generation: using Vertex needs a GCP project ID in the settings.",
+  "chatbot.t115": "Vertex: please set the project ID.",
+  "chatbot.err.116": "The Vertex image-generation function is unavailable.",
+  "chatbot.err.117": "The image-generation function is unavailable.",
+  "chatbot.t118": "Character image",
+  "chatbot.t119": "The image could not be made: ",
+  "chatbot.imageError": "Image error"
 }

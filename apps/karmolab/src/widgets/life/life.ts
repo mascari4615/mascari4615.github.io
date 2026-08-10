@@ -2,6 +2,8 @@
  * Life 채널 위젯 — 화면 캡처 (PrintScreen) / 음성 녹음 (Ctrl+Alt+Space) on/off 토글.
  * 기능이 off 상태면 Whisper 모델 (~3.1GB) 이 RAM 에서 해제됨.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   'use strict';
 
@@ -14,7 +16,7 @@
   function desktopInvoke<T>(cmd: string, args?: unknown): Promise<T> {
     const core = (window as unknown as { __TAURI__?: { core?: { invoke?: (cmd: string, args?: unknown) => Promise<T> } } }).__TAURI__?.core;
     const fn_ = core && typeof core.invoke === 'function' ? core.invoke : null;
-    if (!fn_) return Promise.reject(new Error('Tauri 환경 아님'));
+    if (!fn_) return Promise.reject(new Error(t('life.err.01')));
     return fn_(cmd, args);
   }
 
@@ -76,7 +78,7 @@
 
     const status = document.createElement('span');
     status.className = 'life-feature-status';
-    status.textContent = '로딩 중...';
+    status.textContent = t('life.t02');
 
     switchWrap.appendChild(input);
     switchWrap.appendChild(slider);
@@ -93,7 +95,7 @@
 
     input.addEventListener('change', () => {
       input.disabled = true;
-      status.textContent = input.checked ? '활성화 중...' : '비활성화 중...';
+      status.textContent = input.checked ? t('life.t03') : t('life.t04');
       opts.onToggle(input.checked);
     });
 
@@ -101,13 +103,13 @@
       input.checked = enabled;
       input.disabled = loading;
       if (loading) {
-        status.textContent = '모델 로드 중... (~3.1GB)';
+        status.textContent = t('life.t05');
         status.style.color = 'var(--text-muted, #888)';
       } else if (enabled) {
-        status.textContent = '활성';
+        status.textContent = t('life.t06');
         status.style.color = 'var(--color-success, #4caf50)';
       } else {
-        status.textContent = '비활성';
+        status.textContent = t('life.t07');
         status.style.color = 'var(--text-muted, #888)';
       }
     };
@@ -164,6 +166,8 @@
   }
 
   function build(container: HTMLElement): void {
+             void loadNamespace('life').then(function () {
+
     const style = document.createElement('style');
     style.textContent = buildStyles();
     container.appendChild(style);
@@ -175,8 +179,8 @@
     let voiceUpdater: ((e: boolean, l?: boolean) => void) | null = null;
 
     const screenCtrl = buildToggleRow(wrap, {
-      label: '화면 캡처',
-      sublabel: '활성화 시 PrintScreen 키로 화면 캡처 + OCR + 분류 저장',
+      label: t('life.t08', undefined, "화면 캡처"),
+      sublabel: t('life.t09'),
       badge: 'Screen',
       hotkey: 'PrintScreen',
       featureKey: 'screen',
@@ -184,7 +188,7 @@
         setFeature('screen', enabled)
           .then(() => refresh())
           .catch((e) => {
-            console.error('[life] screen toggle 실패', e);
+            console.error(t('life.t10'), e);
             refresh();
           });
       },
@@ -192,8 +196,8 @@
     screenUpdater = screenCtrl.updateState;
 
     const voiceCtrl = buildToggleRow(wrap, {
-      label: '음성 녹음',
-      sublabel: 'Whisper-large-v3 (~3.1 GB RAM). 활성 시 백그라운드 모델 로드.',
+      label: t('life.t11', undefined, "음성 녹음"),
+      sublabel: t('life.t12'),
       badge: 'Voice',
       hotkey: 'Ctrl + Alt + Space (hold)',
       featureKey: 'voice',
@@ -208,7 +212,7 @@
             if (enabled) startVoicePoll();
           })
           .catch((e) => {
-            console.error('[life] voice toggle 실패', e);
+            console.error(t('life.t13'), e);
             refresh();
           });
       },
@@ -217,7 +221,7 @@
 
     const hint = document.createElement('p');
     hint.className = 'life-hint';
-    hint.textContent = 'Tauri 앱에서만 동작합니다. 설정은 세션 간 유지됩니다.';
+    hint.textContent = t('life.t14');
     wrap.appendChild(hint);
 
     container.appendChild(wrap);
@@ -269,18 +273,19 @@
         screenUpdater?.(false, false);
         voiceUpdater?.(false, false);
       });
-  }
+               });
+           }
 
   Toolbox.register({
     id: 'life',
-    title: 'Life 채널',
+    title: t('widgets.life.title', undefined, "Life 채널"),
     category: 'tool',
-    desc: '화면 캡처 / 음성 녹음 기능 on/off. 비활성 시 Whisper 모델 (~3.1GB) RAM 해제.',
+    desc: t('widgets-desc.life.desc', undefined, "화면 캡처 / 음성 녹음 기능 on/off. 비활성 시 Whisper 모델 (~3.1GB) RAM 해제."),
     icon: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
     tabs: [
       {
         id: 'main',
-        label: '기능 설정',
+        label: t('life.t17', undefined, "기능 설정"),
         build,
       },
     ],
