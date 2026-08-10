@@ -476,5 +476,16 @@
   "karmomap.t424": "<div class=\"km-hint\">まだグループがありません。</div>",
   "karmomap.t425": "影響力が大きい、あとでまた",
   "karmomap.t426": "タグ",
-  "karmomap.t427": "コンマで複数"
+  "karmomap.t427": "コンマで複数",
+  "karmomap.err.428": "JSON Canvas ではありません",
+  "karmomap.t429": "グループ",
+  "karmomap.t430": "[karmomap] 自分の語彙の読み込みに失敗",
+  "karmomap.t431": "[karmomap] 自分の語彙の保存に失敗",
+  "karmomap.t432": "文に名前が書かれているのに、まだ [[ ]] でつながっていない所です。",
+  "karmomap.t433": "移動",
+  "karmomap.t434": "作る",
+  "karmomap.t435": "つないでみる",
+  "karmomap.t436": "[karmomap] 保存領域を測れませんでした",
+  "karmomap.t437": "形",
+  "karmomap.t438": "傾き"
 }

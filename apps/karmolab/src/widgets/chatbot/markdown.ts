@@ -1,3 +1,5 @@
+import { t } from '../../lib/i18n';
+
 /** 챗봇 메시지용 경량 마크다운 → HTML (styles.js의 .cb-msg-bot 규칙과 대응) */
 (function () {
     function escapeHtml(s: unknown): string {
@@ -15,7 +17,7 @@
         let md = text.replace(/```(\w*)\n([\s\S]*?)```/g, (_: string, lang: string, code: string) => {
             const cls = lang ? ` language-${lang}` : '';
             const langLabel = lang || 'code';
-            const header = `<div class="cb-code-header"><span class="cb-code-lang">${escapeHtml(langLabel)}</span><button class="btn btn-ghost" onclick="navigator.clipboard.writeText(this.closest('.cb-code-block').querySelector('code').textContent).then(()=>Toolbox.showToast('복사됨'))">복사</button></div>`;
+            const header = `<div class="cb-code-header"><span class="cb-code-lang">${escapeHtml(langLabel)}</span><button class="btn btn-ghost" onclick="navigator.clipboard.writeText(this.closest('.cb-code-block').querySelector('code').textContent).then(()=>Toolbox.showToast('복사됨'))">${escapeHtml(t('chatbot.t120'))}</button></div>`;
             codeBlocks.push(`<div class="cb-code-block">${header}<pre class="${cls.trim()}"><code class="${cls.trim()}">${escapeHtml(code.trimEnd())}</code></pre></div>`);
             return `%%CODEBLOCK_${codeBlocks.length - 1}%%`;
         });

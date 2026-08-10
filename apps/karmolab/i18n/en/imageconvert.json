@@ -86,5 +86,6 @@
   "imageconvert.err.85": "The image could not be loaded.",
   "imageconvert.err.832": "KarmoLabImageBatch: recipe.steps must not be empty.",
   "imageconvert.err.842": "KarmoLabImageBatch: only one conversion step is supported for now.",
-  "imageconvert.err.852": "KarmoLabImageBatch: unsupported step."
+  "imageconvert.err.852": "KarmoLabImageBatch: unsupported step.",
+  "imageconvert.t83": "Loading the image converter failed"
 }

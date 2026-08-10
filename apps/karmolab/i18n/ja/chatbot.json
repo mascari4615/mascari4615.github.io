@@ -168,5 +168,6 @@
   "chatbot.err.117": "画像生成の関数が使えません。",
   "chatbot.t118": "キャラクターの画像",
   "chatbot.t119": "画像の作成に失敗: ",
-  "chatbot.imageError": "画像のエラー"
+  "chatbot.imageError": "画像のエラー",
+  "chatbot.t120": "コピー"
 }

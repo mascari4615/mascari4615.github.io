@@ -10,6 +10,7 @@
  */
 import type { GraphSpec, NodeCoord } from '../../lib/graph/spec';
 import type { GraphPersistAdapter } from '../../lib/graph/adapter';
+import { t, loadNamespace } from '../../lib/i18n';
 
 /** cockpit 의 노드 종류별 색 — KarmoMap 등 다른 캔버스는 자기 셋을 쓴다. */
 export const COCKPIT_KIND_COLORS: Record<string, string> = {
@@ -41,7 +42,7 @@ export const cockpitGraphAdapter: GraphPersistAdapter = {
     try {
       return (await invoke('cockpit_get_graph_spec', { repoRoot: repo_root })) as GraphSpec;
     } catch (e) {
-      console.error('[cockpit] cockpit_get_graph_spec 실패', e);
+      console.error(t('cockpit.t62'), e);
       return null;
     }
   },
@@ -54,7 +55,7 @@ export const cockpitGraphAdapter: GraphPersistAdapter = {
     try {
       await invoke('cockpit_save_graph_coords', { repoRoot: repo_root, updates });
     } catch (e) {
-      console.error('[cockpit] cockpit_save_graph_coords 실패', e);
+      console.error(t('cockpit.t63'), e);
     }
   },
 };

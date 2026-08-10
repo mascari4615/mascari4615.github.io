@@ -476,5 +476,16 @@
   "karmomap.edgeBothViews": "같은 관계라도 {em}. 한 칸에 몰아 적으면 누구 마음인지 흐려집니다.",
   "karmomap.stampsWhat": "자주 쓰는 덩어리를 떠 둔 것입니다. {em} 어디서든 찍을 수 있습니다.",
   "karmomap.filterHide": "체크를 끄면 그 종류가 {em} 빠집니다. 지우는 게 아닙니다.",
-  "karmomap.termsOwn": "팩에 없는 말은 직접 만드세요. 여기 만든 종류는 {em}에서 씁니다."
+  "karmomap.termsOwn": "팩에 없는 말은 직접 만드세요. 여기 만든 종류는 {em}에서 씁니다.",
+  "karmomap.err.428": "JSON Canvas 가 아닙니다",
+  "karmomap.t429": "묶음",
+  "karmomap.t430": "[karmomap] 내 용어 읽기 실패",
+  "karmomap.t431": "[karmomap] 내 용어 저장 실패",
+  "karmomap.t432": "글에 이름이 적혀 있는데 아직 [[ ]] 로 안 이어진 자리입니다.",
+  "karmomap.t433": "가기",
+  "karmomap.t434": "만들기",
+  "karmomap.t435": "이어 주기",
+  "karmomap.t436": "[karmomap] 저장 공간을 재지 못했다",
+  "karmomap.t437": "모양",
+  "karmomap.t438": "기울기"
 }

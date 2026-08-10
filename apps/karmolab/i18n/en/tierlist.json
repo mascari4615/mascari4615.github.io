@@ -173,5 +173,6 @@
   "tierlist.t137": "It is back to the candidate pool.",
   "tierlist.boardCount": "{n} boards",
   "tierlist.totalCount": "{n} in all",
-  "tierlist.t138": " (copy)"
+  "tierlist.t138": " (copy)",
+  "tierlist.t139": "loading tierlist failed"
 }

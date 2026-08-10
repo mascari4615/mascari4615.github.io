@@ -12,6 +12,8 @@
  * `navigator.storage.estimate()` 는 IndexedDB·Cache 몫이라 localStorage 를 안 센다 —
  * 그래서 우리 열쇠들의 글자 수를 직접 잰다(대략 UTF-16 이라 글자당 2바이트로 본다).
  */
+import { t } from '../../lib/i18n';
+
 
 export const WEB_STORAGE_BUDGET = 5 * 1024 * 1024;
 export const WARN_RATIO = 0.8;
@@ -44,7 +46,7 @@ export function measureStorage(prefix = 'karmomap.'): StorageReport {
       items.push({ key, bytes });
     }
   } catch (e) {
-    console.error('[karmomap] 저장 공간을 재지 못했다', e);
+    console.error(t('karmomap.t436'), e);
   }
   items.sort((a, b) => b.bytes - a.bytes);
   const ratio = used / WEB_STORAGE_BUDGET;
