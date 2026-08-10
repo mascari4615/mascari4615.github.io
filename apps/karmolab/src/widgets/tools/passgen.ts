@@ -122,6 +122,16 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     return [...new Set(found)];
   }
 
+  function labelForScore(score: number): string {
+    return score <= 1
+      ? t('passgen.level.weak')
+      : score === 2
+        ? t('passgen.level.fair')
+        : score === 3
+          ? t('passgen.level.strong')
+          : t('passgen.level.veryStrong');
+  }
+
   /**
    * 세기. **계산은 `core/passgen` 이 한다** — 이 화면과 MCP(`passgen_strength`)가 같은 값을
    * 내야 하기 때문이다. 갈리면 「사이트는 강하다는데 에이전트는 약하다더라」가 된다.
@@ -130,7 +140,9 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
    * 통과시키고 긴 낱말묶음을 탈락시킨다 — 정확히 거꾸로였다.
    */
   function strength(pw: string): { bits: number; label: string; time: string; tone: string } {
-    const real = pw === '' ? 0 : analyze(pw).bits;
+    const analyzed = pw === '' ? null : analyze(pw);
+    const real = analyzed?.bits ?? 0;
+    const score = analyzed?.score ?? 0;
 
     // 초당 100억 번 시도(요즘 그래픽카드 여러 대) 기준
     const seconds = Math.pow(2, real - 1) / 1e10;
@@ -141,14 +153,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           ? t('passgen.time.centuries')
           : humanDuration(seconds);
 
-    const label =
-      real < 40
-        ? t('passgen.level.weak')
-        : real < 60
-          ? t('passgen.level.fair')
-          : real < 80
-            ? t('passgen.level.strong')
-            : t('passgen.level.veryStrong');
+    const label = labelForScore(score);
     const tone = real < 40 ? 'error' : real < 60 ? '' : 'ok';
     return { bits: Math.round(real), label, time, tone };
   }

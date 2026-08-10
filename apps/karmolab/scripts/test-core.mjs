@@ -200,8 +200,9 @@ eq(ep.parseTimestamp(String(SEC)).ms, SEC * 1000, '10자리 = 초');
 eq(ep.parseTimestamp(String(SEC * 1000)).ms, SEC * 1000, '13자리 = 밀리초');
 eq(ep.parseTimestamp(String(SEC * 1000) + '000').ms, SEC * 1000, '16자리 = 마이크로초');
 eq(ep.parseTimestamp(String(SEC * 1000) + '000000').ms, SEC * 1000, '19자리 = 나노초');
-eq(ep.parseTimestamp('1750000000').unit.label, '초 (10자리)', '무엇으로 읽었는지 말한다');
-eq(ep.parseTimestamp('1750000000000000000').unit.label, '나노초 (19자리)', '나노초라고 말한다');
+eq(ep.parseTimestamp('1750000000').unit.key, 'sec', '무엇으로 읽었는지 key 로 든다');
+eq(ep.parseTimestamp('1750000000000000000').unit.key, 'ns', '나노초라고 말한다');
+eq(ep.unitKo('sec'), '초 (10자리)', 'unit key → 한국어');
 check(new Date(ep.parseTimestamp('1750000000000000000').ms).getUTCFullYear() < 3000, '나노초를 밀리초로 읽어 5만 년이 나오면 안 된다');
 
 eq(ep.parseTimestamp(''), null, '빈 값은 null');
@@ -213,11 +214,14 @@ const NOW = 1_750_000_000_000;
 eq(ep.humanDelta(NOW, NOW), '방금', '같은 순간');
 eq(ep.humanDelta(NOW - 3 * 86400000, NOW), '3일 전', '과거');
 eq(ep.humanDelta(NOW + 2 * 3600000, NOW), '2시간 후', '미래');
+eq(ep.humanDeltaParts(NOW, NOW).tense, 'now', '같은 순간은 now');
+eq(ep.humanDeltaParts(NOW + 2 * 3600000, NOW).tense, 'future', '미래 tense');
 
 const epRows = ep.stampRows(NOW, NOW);
 eq(epRows.length, 9, '보여 줄 줄 수');
 eq(epRows.find(([k]) => k === '초 (10자리)')[1], String(SEC), '초 값');
 eq(epRows.find(([k]) => k === 'ISO 8601')[1], new Date(NOW).toISOString(), 'ISO 값');
+eq(ep.weekdayKo(2), '화', '요일 key → 한국어');
 eq(ep.toLocalInput(new Date(2026, 0, 2, 3, 4, 5)), '2026-01-02T03:04:05', 'datetime-local 모양 (로컬 시간대)');
 
 // ── ②-4 bizno 알맹이 (한국 규칙 — LLM 이 자릿수만 맞춰 지어내는 자리) ────────
@@ -257,12 +261,15 @@ eq(bi.birthInfo('1990-08-09', TODAY).age, 36, '생일 당일은 이미 지난 �
 eq(bi.birthInfo('1990-08-09', TODAY).untilNext, 0, '생일 당일은 0일 남음');
 eq(bi.birthInfo('1990-08-10', TODAY).untilNext, 1, '내일 생일');
 
-eq(info.zodiac, '말', '1990년생 = 말띠');
+eq(info.zodiacIndex, 10, '1990년생 = 말띠 index');
+eq(bi.zodiacKo(info.zodiacIndex), '말', '띠 index → 한국어');
 eq(bi.signOf(1, 19), '염소자리', '1/19 = 염소자리 (경계)');
 eq(bi.signOf(1, 20), '물병자리', '1/20 = 물병자리 (경계)');
 eq(bi.signOf(12, 21), '사수자리', '12/21 = 사수자리 (경계)');
 eq(bi.signOf(12, 22), '염소자리', '12/22 = 염소자리 (경계)');
-eq(bi.birthInfo('2000-02-29', TODAY).weekday, '화', '윤년 2/29 는 화요일');
+eq(bi.birthInfo('2000-02-29', TODAY).weekdayIndex, 2, '윤년 2/29 는 화요일 index');
+eq(bi.weekdayKo(2), '화', '요일 index → 한국어');
+eq(bi.gemKo(5), '에메랄드', '탄생석 month → 한국어');
 
 eq(bi.birthInfo('1990-02-30', TODAY), null, '없는 날짜는 null (Date 가 3월로 넘기는 것을 막는다)');
 eq(bi.birthInfo('2030-01-01', TODAY), null, '미래 생일은 null');
@@ -825,7 +832,7 @@ eq(wd.spec.id, 'workdays', 'workdays spec.id');
 // 주말만 빼도 되는 구간 — 기본이 맞는지 먼저.
 const plain = wd.addWorkdays(new Date(2026, 2, 2), 5); // 2026-03-02 월
 eq(plain.end.getDay(), 1, '월요일 + 영업일 5 = 다음 월요일');
-check(plain.skipped.some((s) => s.why === '토요일') && plain.skipped.some((s) => s.why === '일요일'), '주말을 건너뛴다');
+check(plain.skipped.some((s) => s.whyKey === 'weekday.saturday') && plain.skipped.some((s) => s.whyKey === 'weekday.sunday'), '주말을 건너뛴다');
 
 // 토요일 근무를 켜면 답이 달라져야 한다 (안 달라지면 그 설정이 죽은 것).
 const satOff = wd.addWorkdays(new Date(2026, 2, 2), 5, 'KR', false);
@@ -835,15 +842,20 @@ check(satOn.end.getTime() < satOff.end.getTime(), '토요일도 일하면 더 �
 /* 이 도구의 진짜 값 — 추석이 낀 구간은 그만큼 밀린다.
    2026 추석 = 9/24~26. 9/21(월)부터 영업일 5일이면 추석을 넘어간다. */
 const chuseok = wd.addWorkdays(new Date(2026, 8, 21), 5);
-check(chuseok.skipped.some((s) => s.why.includes('추석')), `추석을 건너뛰어야 한다: ${JSON.stringify(chuseok.skipped)}`);
+check(chuseok.skipped.some((s) => s.whyKey.includes('chuseok')), `추석을 건너뛰어야 한다: ${JSON.stringify(chuseok.skipped)}`);
 check(chuseok.end.getTime() > new Date(2026, 8, 26).getTime(), '추석 뒤로 밀린다');
 
-// 공휴일 이름을 열쇠가 아니라 사람 말로 낸다.
+// 공휴일 표는 열쇠로 들고 있고, 부르는 쪽이 그 열쇠를 사람 말로 바꾼다.
 const names = [...wd.holidaysOf('KR', 2026).values()];
-check(names.includes('신정'), `1/1 이 「신정」이어야 한다: ${names.slice(0, 4)}`);
-check(names.some((v) => /^h\d\d$/.test(v)) === false, `열쇠가 그대로 새어 나왔다: ${names.filter((v) => /^h\d\d$/.test(v))}`);
+check(names.includes('newYear'), `1/1 이 holiday key 「newYear」여야 한다: ${names.slice(0, 4)}`);
+check(names.some((v) => /^h\d\d$/.test(v)) === false, `깨진 열쇠가 새어 나왔다: ${names.filter((v) => /^h\d\d$/.test(v))}`);
 
 // 쉬는 이유를 말한다 (결과 날짜만 주면 맞는지 확인할 방법이 없다).
+eq(wd.reasonKeyToKo('newYear'), '신정', 'holiday key → 한국어');
+eq(wd.reasonKeyToKo('weekday.sunday'), '일요일', 'weekday key → 한국어');
+eq(wd.restReasonKey(new Date(2026, 0, 1), 'KR', false), 'newYear', '신정 key');
+eq(wd.restReasonKey(new Date(2026, 2, 1), 'KR', false), 'weekday.sunday', '2026-03-01 은 일요일이 먼저');
+eq(wd.restReasonKey(new Date(2026, 2, 3), 'KR', false), '', '평일은 빈 key');
 eq(wd.restReason(new Date(2026, 0, 1), 'KR', false), '신정', '신정');
 eq(wd.restReason(new Date(2026, 2, 1), 'KR', false), '일요일', '2026-03-01 은 일요일이 먼저');
 eq(wd.restReason(new Date(2026, 2, 3), 'KR', false), '', '평일은 빈 문자열');
@@ -853,7 +865,7 @@ eq(btw.total, 7, '전체 7일');
 /* 5일이 아니라 **4일**이다 — 2026-03-01(삼일절)이 일요일이라 3/2 월요일이 대체공휴일이다.
    이 한 칸이 이 도구가 있는 이유고, 사람도 LLM 도 여기서 틀린다. */
 eq(btw.workdays, 4, '3/2 가 삼일절 대체공휴일이라 영업일은 4일');
-check(btw.skipped.some((s) => s.why === '대체공휴일'), `대체공휴일이라고 말해야 한다: ${JSON.stringify(btw.skipped)}`);
+check(btw.skipped.some((s) => s.whyKey === 'substitute'), `대체공휴일 key 를 말해야 한다: ${JSON.stringify(btw.skipped)}`);
 check(wd.countWorkdays(new Date(2026, 2, 8), new Date(2026, 2, 2)).workdays === 4, '거꾸로 줘도 같은 답');
 
 /* **모르는 해는 모른다고 말한다** — 이게 「조용히 틀린 날짜」를 막는 자리다.
@@ -899,6 +911,7 @@ check(winterGap !== summerGap, '두 값이 같으면 이 도구가 필요 없다
 
 eq(wc.usesDst('Europe/London', 2026), true, '런던도 서머타임');
 eq(wc.usesDst('Asia/Tokyo', 2026), false, '일본은 안 씀');
+eq(wc.zoneErrorKo('출발', 'Asia/없는곳'), '출발 시간대를 못 찾았습니다: Asia/없는곳 (예: Asia/Seoul · America/New_York)', '시간대 오류 helper');
 
 // 없는 시간대를 조용히 0 으로 처리하면 안 된다.
 eq(wc.isZone('Asia/Seoul'), true, '있는 시간대');
@@ -913,6 +926,14 @@ eq(wc.wallOf(inst, 'UTC'), '2026-08-09 05:00', '같은 순간의 UTC');
    hourCycle 을 못 박았고, 여기서 잠근다. */
 eq(wc.wallOf(new Date(Date.UTC(2026, 0, 9, 5, 0)), 'America/New_York'), '2026-01-09 00:00', '자정은 00:00 (24:00 아님)');
 eq(wc.wallOf(new Date(Date.UTC(2026, 0, 8, 15, 0)), 'Asia/Seoul'), '2026-01-09 00:00', '서울 자정도 00:00');
+eq(wc.hours(-90), '-1:30', '분 오프셋 표기');
+eq(wc.parseWall('2026-08-09 14:00'), '2026-08-09T14:00', '벽시계 입력 정규화');
+const wcView = wc.convertView('Asia/Seoul', 'America/New_York', '2026-08-09T14:00');
+eq(wcView.toWall, '2026-08-09 01:00', 'convert helper 결과');
+check(wcView.hasDstWarning === true, 'convert helper 가 경고 필요를 안다');
+const wcOff = wc.offsetView('Asia/Seoul', 'Europe/London', new Date('2026-07-01T12:00:00Z'));
+eq(wcOff.diff, '-8', 'offset helper 시차');
+check(wcOff.dstRows.length > 0, 'offset helper DST 줄');
 
 /* 이 셋은 **실패해도 이유를 안 말했다** — CI 에서만 「run convert (겨울 = 14시간 차)」 한 줄이
    뜨고, 로컬에서는 KST·UTC 어느 쪽으로도 재현이 안 됐다(2026-08-09). 그래서 며칠 동안
@@ -1250,13 +1271,13 @@ for (const pw of ['qwerty123', 'abcd1234', 'aaaaaaaa', 'Tr0ub4dor&3', 'x9#Lq2!vB
 }
 
 // 패턴은 실제로 잡혀야 한다 (안 잡히면 위 부등식은 그냥 통과한다 — 무의미한 초록).
-const why = (pw) => pg.analyze(pw).chunks.map((c) => c.why);
-check(why('qwertyui').includes('자판 줄'), '자판 줄을 잡는다');
-check(why('abcdefgh').includes('연속된 글자'), '연속을 잡는다');
-check(why('abababab').includes('반복'), '반복을 잡는다');
-check(why('hello1998').includes('연도'), '연도를 잡는다');
-check(why('letmein').includes('흔한 단어'), '흔한 단어를 잡는다');
-check(why('x9#Lq2!v').includes('무작위'), '무작위는 무작위로 둔다');
+const why = (pw) => pg.analyze(pw).chunks.map((c) => c.whyKey);
+check(why('qwertyui').includes('keyboard'), '자판 줄을 잡는다');
+check(why('abcdefgh').includes('sequence'), '연속을 잡는다');
+check(why('abababab').includes('repeat'), '반복을 잡는다');
+check(why('hello1998').includes('year'), '연도를 잡는다');
+check(why('letmein').includes('common'), '흔한 단어를 잡는다');
+check(why('x9#Lq2!v').includes('random'), '무작위는 무작위로 둔다');
 
 // 길게 늘려도 반복이면 거의 안 늘어야 한다 (여기가 깨지면 도구가 거짓말을 한다).
 const rep8 = pg.analyze('abababababababab');
@@ -1273,6 +1294,9 @@ eq(pg.humanTime(0.4), '즉시', '1초 미만');
 check(/초$/.test(pg.humanTime(30)), '30초');
 check(/분$/.test(pg.humanTime(300)), '5분');
 check(pg.humanTime(1e30) === '사실상 불가능', '너무 크면 그렇게 말한다');
+eq(pg.labelKo('veryWeak'), '매우 약함', '강도 key → 한국어');
+eq(pg.labelKey(4), 'veryStrong', 'score → labelKey');
+eq(pg.whyKo({ text: 'qwerty', bits: 1, kind: 'keyboard', whyKey: 'keyboard' }), '자판 줄', '약점 key → 한국어');
 
 // 빈 값은 던진다 — 0점이 아니라 「잴 게 없다」다.
 let pgThrew = false;
@@ -1963,7 +1987,7 @@ eq(conv.run('jamo', { text: '한' }), (await load('src/core/jamo.ts')).decompose
 
 const convWidth = conv.run('width', { text: 'ＡＢ' });
 check(convWidth.startsWith('AB'), 'run width');
-check(convWidth.includes('전각 글자가 섞여'), '왜 안 되던 건지 알려 준다');
+check(convWidth.includes('full-width characters were mixed in'), '왜 안 되던 건지 알려 준다');
 
 /* 간체 ⟷ 번체 — 규칙이 아니라 표다(유니코드 Unihan 에서 찍었다). 표가 실제로 실렸는지부터. */
 eq(conv.toSimplified('漢字變換'), '汉字变换', '번체 → 간체');
@@ -1982,7 +2006,7 @@ eq(conv.ambiguousChars('汉字', true).length, 0, '안 갈리는 글자는 조�
 const convHan = conv.run('han', { text: '漢字' });
 check(convHan.startsWith('汉字'), `run han: ${convHan.split(NL_)[0]}`);
 const convHanAmb = conv.run('han', { text: '发', mode: 'trad' });
-check(convHanAmb.includes('뜻을 봐야'), '갈리는 글자는 답에 함께 적는다');
+check(convHanAmb.includes('need meaning/context'), '갈리는 글자는 답에 함께 적는다');
 check(convHanAmb.includes('發') && convHanAmb.includes('髮'), `후보를 다 보여 준다: ${convHanAmb.split(NL_).pop()}`);
 
 /* 병음 — 표를 **건네받는** 자리다. 표는 묶음에 없다(2만 자·167KB). */
@@ -2011,7 +2035,7 @@ check(pyThrew, '표 없이 부르면 못 한다고 말한다');
 
 const pyOut = conv.run('pinyin', { text: '汉字' }, { hanPinyin: pyRaw });
 check(pyOut.startsWith('hàn zì'), `run pinyin: ${pyOut.split(NL_)[0]}`);
-check(pyOut.includes('글자 단위입니다'), '문맥은 못 본다는 사실을 답에 적는다');
+check(pyOut.includes('character-by-character only'), '문맥은 못 본다는 사실을 답에 적는다');
 
 let convThrew = false;
 try {
@@ -2049,6 +2073,8 @@ eq(borrow.minutes, 45, '45분');
 const soon = lc.elapsed(D('2026-08-20T00:00:00'), D('2026-08-10T00:00:00'));
 check(soon.future === true, '미래를 알아본다');
 eq(soon.days, 10, '10일');
+eq(lc.humanElapsedParts(soon).tailKey, 'future', '미래 tail key');
+eq(lc.humanElapsedParts(soon).parts.join(' '), '10일', '미래 parts');
 check(lc.humanElapsed(soon).endsWith('남음'), `남았다고 말한다: ${lc.humanElapsed(soon)}`);
 check(lc.humanElapsed(lc.elapsed(D('2026-08-01T00:00:00'), D('2026-08-10T00:00:00'))).endsWith('지남'), '과거는 지났다고');
 
@@ -2057,6 +2083,7 @@ const short = lc.humanElapsed(lc.elapsed(D('2026-08-07T00:00:00'), D('2026-08-10
 eq(short, '3일 지남', `짧은 것은 짧게: ${short}`);
 const hoursOnly = lc.humanElapsed(lc.elapsed(D('2026-08-10T00:00:00'), D('2026-08-10T05:30:00')));
 check(hoursOnly.includes('시간'), `하루 미만은 시간으로: ${hoursOnly}`);
+eq(lc.detailKo(lc.elapsed(D('2026-08-10T00:00:00'), D('2026-08-10T05:30:00'))), '0년 0개월 0일 5시간 30분 0초', '자세히 helper');
 
 /* 비율 환산 — 값은 내되 「어림」은 부르는 쪽이 붙인다. */
 const tenDays = lc.elapsed(D('2026-08-01T00:00:00'), D('2026-08-11T00:00:00'));

@@ -9,8 +9,8 @@
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { region } from '../../lib/region';
-import { holidayKeys, knowsYear, hasCalendar } from '../../lib/holidays';
-import { spec } from '../../core/workdays';
+import { knowsYear, hasCalendar } from '../../lib/holidays';
+import { spec, holidaysOf as coreHolidaysOf, restReasonKey } from '../../core/workdays';
 import { readInvocation } from '../../lib/tool-url';
 
 (function (): void {
@@ -22,7 +22,7 @@ import { readInvocation } from '../../lib/tool-url';
   /** 그 해 쉬는 날 → 이름. 이름은 **찾을 때** 정한다(표를 만들 때 정하면 열쇠가 굳는다). */
   function holidaysOf(year: number): Map<string, string> {
     const named = new Map<string, string>();
-    for (const [at, nameKey] of holidayKeys(region(), year)) {
+    for (const [at, nameKey] of coreHolidaysOf(region(), year)) {
       named.set(at, t(`workdays.holiday.${nameKey}`));
     }
     return named;
@@ -114,10 +114,11 @@ import { readInvocation } from '../../lib/tool-url';
 
           /** 그 날이 쉬는 날이면 이유를, 아니면 빈 문자열을 준다. */
           function restReason(d: Date, satWorks: boolean): string {
-            const day = d.getDay();
-            if (day === 0) return t('workdays.day.sunday');
-            if (day === 6 && !satWorks) return t('workdays.day.saturday');
-            return holidaysOf(d.getFullYear()).get(key(d)) || '';
+            const reasonKey = restReasonKey(d, region(), satWorks);
+            if (reasonKey === '') return '';
+            if (reasonKey === 'weekday.sunday') return t('workdays.day.sunday');
+            if (reasonKey === 'weekday.saturday') return t('workdays.day.saturday');
+            return holidaysOf(d.getFullYear()).get(key(d)) || reasonKey;
           }
 
           function warnUnknown(years: number[]): void {

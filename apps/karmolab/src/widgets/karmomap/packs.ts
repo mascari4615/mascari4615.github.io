@@ -13,6 +13,7 @@
  * 노드가 색을 잃지 않도록 `ALL_KIND_COLORS` 가 전 팩을 합쳐 캔버스에 넘어간다.
  */
 import type { EdgeKindDef, EdgeStyle } from '../../lib/graph/spec';
+import { t } from '../../lib/i18n';
 
 export interface NodeKindDef {
   id: string;
@@ -55,168 +56,176 @@ export interface CanvasPack {
   groupPresets: GroupPreset[];
 }
 
+const packLabel = (packId: string) => t(`karmomap.pack.${packId}.label`);
+const packHint = (packId: string) => t(`karmomap.pack.${packId}.hint`);
+const nodeLabel = (packId: string, nodeId: string) => t(`karmomap.pack.${packId}.node.${nodeId}.label`);
+const nodeFields = (packId: string, nodeId: string, fieldIds: string[]) =>
+  fieldIds.map((fieldId) => t(`karmomap.pack.${packId}.node.${nodeId}.field.${fieldId}`));
+const edgeLabel = (packId: string, edgeId: string) => t(`karmomap.pack.${packId}.edge.${edgeId}.label`);
+const groupLabel = (packId: string, groupId: string) => t(`karmomap.pack.${packId}.group.${groupId}.label`);
+
 // ── 팩 정의 ───────────────────────────────────────────────────────────────────
 
 const WORLDVIEW: CanvasPack = {
   id: 'worldview',
-  label: '세계관',
+  label: packLabel('worldview'),
   icon: '🌍',
-  hint: '인물·장소·사건을 놓고 관계로 이어서 세계관을 펼쳐 보세요.',
+  hint: packHint('worldview'),
   nodeKinds: [
-    { id: 'character', label: '인물', icon: '👤', color: '#f472b6', fields: ['출신', '소속', '첫 등장'] },
-    { id: 'place',     label: '장소', icon: '🗺', color: '#34d399', fields: ['어디', '누가 다스리나'] },
-    { id: 'item',      label: '물건', icon: '🔮', color: '#fbbf24', fields: ['주인', '능력'] },
-    { id: 'event',     label: '사건', icon: '⚡', color: '#60a5fa', fields: ['언제', '어디서', '결과'] },
-    { id: 'concept',   label: '개념', icon: '💭', color: '#a78bfa' },
+    { id: 'character', label: nodeLabel('worldview', 'character'), icon: '👤', color: '#f472b6', fields: nodeFields('worldview', 'character', ['origin', 'faction', 'firstAppearance']) },
+    { id: 'place', label: nodeLabel('worldview', 'place'), icon: '🗺', color: '#34d399', fields: nodeFields('worldview', 'place', ['where', 'rule']) },
+    { id: 'item', label: nodeLabel('worldview', 'item'), icon: '🔮', color: '#fbbf24', fields: nodeFields('worldview', 'item', ['owner', 'power']) },
+    { id: 'event', label: nodeLabel('worldview', 'event'), icon: '⚡', color: '#60a5fa', fields: nodeFields('worldview', 'event', ['when', 'where', 'result']) },
+    { id: 'concept', label: nodeLabel('worldview', 'concept'), icon: '💭', color: '#a78bfa' },
   ],
   edgeKinds: [
-    { id: 'relates',      label: '관련', color: '#94a3b8', style: 'solid',  arrow: false },
-    { id: 'parent',       label: '상위', color: '#a78bfa', style: 'solid',  arrow: true },
-    { id: 'contains',     label: '포함', color: '#34d399', style: 'dashed', arrow: true },
-    { id: 'opposes',      label: '대립', color: '#f87171', style: 'dotted', arrow: false },
-    { id: 'before-after', label: '선후', color: '#60a5fa', style: 'solid',  arrow: true },
+    { id: 'relates', label: edgeLabel('worldview', 'relates'), color: '#94a3b8', style: 'solid', arrow: false },
+    { id: 'parent', label: edgeLabel('worldview', 'parent'), color: '#a78bfa', style: 'solid', arrow: true },
+    { id: 'contains', label: edgeLabel('worldview', 'contains'), color: '#34d399', style: 'dashed', arrow: true },
+    { id: 'opposes', label: edgeLabel('worldview', 'opposes'), color: '#f87171', style: 'dotted', arrow: false },
+    { id: 'before-after', label: edgeLabel('worldview', 'before-after'), color: '#60a5fa', style: 'solid', arrow: true },
   ],
   groupPresets: [
-    { label: '진영', color: '#a78bfa' },
-    { label: '지역', color: '#34d399' },
-    { label: '시대', color: '#60a5fa' },
+    { label: groupLabel('worldview', 'faction'), color: '#a78bfa' },
+    { label: groupLabel('worldview', 'region'), color: '#34d399' },
+    { label: groupLabel('worldview', 'era'), color: '#60a5fa' },
   ],
 };
 
 /** 三角関係ジェネレーター 계열 — 팬이 최애 관계도를 그리는 용도. */
 const RELATION: CanvasPack = {
   id: 'relation',
-  label: '인물 관계도',
+  label: packLabel('relation'),
   icon: '💞',
-  hint: '인물을 놓고 ♡좋아함 · ✕싫어함 · ⚡라이벌 로 이어 보세요.',
+  hint: packHint('relation'),
   nodeKinds: [
-    { id: 'rel-person', label: '인물',   icon: '👤', color: '#f472b6', fields: ['한 줄 소개', '첫 등장'] },
-    { id: 'rel-group',  label: '집단',   icon: '👥', color: '#f59e0b' },
-    { id: 'rel-stage',  label: '무대',   icon: '🏙', color: '#34d399' },
-    { id: 'rel-note',   label: '한마디', icon: '💬', color: '#94a3b8' },
+    { id: 'rel-person', label: nodeLabel('relation', 'rel-person'), icon: '👤', color: '#f472b6', fields: nodeFields('relation', 'rel-person', ['hook', 'firstAppearance']) },
+    { id: 'rel-group', label: nodeLabel('relation', 'rel-group'), icon: '👥', color: '#f59e0b' },
+    { id: 'rel-stage', label: nodeLabel('relation', 'rel-stage'), icon: '🏙', color: '#34d399' },
+    { id: 'rel-note', label: nodeLabel('relation', 'rel-note'), icon: '💬', color: '#94a3b8' },
   ],
   edgeKinds: [
-    { id: 'rel-like',    label: '♡ 좋아함',   color: '#fb7185', style: 'solid',  arrow: true, width: 2.2 },
-    { id: 'rel-hate',    label: '✕ 싫어함',   color: '#64748b', style: 'dotted', arrow: true },
-    { id: 'rel-rival',   label: '⚡ 라이벌',   color: '#f59e0b', style: 'solid',  arrow: true, arrowStart: true },
-    { id: 'rel-trust',   label: '★ 신뢰',     color: '#38bdf8', style: 'solid',  arrow: true },
-    { id: 'rel-curious', label: '? 신경쓰임', color: '#a78bfa', style: 'wavy',   arrow: true },
-    { id: 'rel-family',  label: '🏠 가족',    color: '#34d399', style: 'solid',  arrow: true, arrowStart: true },
-    { id: 'rel-broken',  label: '💔 금이 감', color: '#ef4444', style: 'crack',  arrow: false },
+    { id: 'rel-like', label: edgeLabel('relation', 'rel-like'), color: '#fb7185', style: 'solid', arrow: true, width: 2.2 },
+    { id: 'rel-hate', label: edgeLabel('relation', 'rel-hate'), color: '#64748b', style: 'dotted', arrow: true },
+    { id: 'rel-rival', label: edgeLabel('relation', 'rel-rival'), color: '#f59e0b', style: 'solid', arrow: true, arrowStart: true },
+    { id: 'rel-trust', label: edgeLabel('relation', 'rel-trust'), color: '#38bdf8', style: 'solid', arrow: true },
+    { id: 'rel-curious', label: edgeLabel('relation', 'rel-curious'), color: '#a78bfa', style: 'wavy', arrow: true },
+    { id: 'rel-family', label: edgeLabel('relation', 'rel-family'), color: '#34d399', style: 'solid', arrow: true, arrowStart: true },
+    { id: 'rel-broken', label: edgeLabel('relation', 'rel-broken'), color: '#ef4444', style: 'crack', arrow: false },
   ],
   groupPresets: [
-    { label: '가족',  color: '#fbcfe8' },
-    { label: '학교',  color: '#bfdbfe' },
-    { label: '직장',  color: '#bbf7d0' },
-    { label: '적대',  color: '#fecaca' },
+    { label: groupLabel('relation', 'family'), color: '#fbcfe8' },
+    { label: groupLabel('relation', 'school'), color: '#bfdbfe' },
+    { label: groupLabel('relation', 'work'), color: '#bbf7d0' },
+    { label: groupLabel('relation', 'rivals'), color: '#fecaca' },
   ],
 };
 
 /** カードゲーム展開ジェネレーター 계열 — 콤보·전개 루트 정리. */
 const CARDGAME: CanvasPack = {
   id: 'cardgame',
-  label: '카드 전개',
+  label: packLabel('cardgame'),
   icon: '🃏',
-  hint: '카드를 놓고 ☆소환 · ⚡효과 · ➲서치 로 이어 전개 루트를 그려 보세요.',
+  hint: packHint('cardgame'),
   nodeKinds: [
-    { id: 'cg-card',   label: '카드',   icon: '🃏', color: '#60a5fa' },
-    { id: 'cg-branch', label: '분기',   icon: '◈', color: '#f59e0b' },
-    { id: 'cg-token',  label: '토큰',   icon: '🔸', color: '#34d399' },
-    { id: 'cg-note',   label: '해설',   icon: '📝', color: '#94a3b8' },
+    { id: 'cg-card', label: nodeLabel('cardgame', 'cg-card'), icon: '🃏', color: '#60a5fa' },
+    { id: 'cg-branch', label: nodeLabel('cardgame', 'cg-branch'), icon: '◈', color: '#f59e0b' },
+    { id: 'cg-token', label: nodeLabel('cardgame', 'cg-token'), icon: '🔸', color: '#34d399' },
+    { id: 'cg-note', label: nodeLabel('cardgame', 'cg-note'), icon: '📝', color: '#94a3b8' },
   ],
   edgeKinds: [
-    { id: 'cg-summon',  label: '☆ 소환',     color: '#fbbf24', style: 'solid',  arrow: true },
-    { id: 'cg-special', label: '✦ 특수소환', color: '#a78bfa', style: 'solid',  arrow: true },
-    { id: 'cg-effect',  label: '⚡ 효과발동', color: '#38bdf8', style: 'solid',  arrow: true },
-    { id: 'cg-search',  label: '➲ 서치/드로우', color: '#34d399', style: 'dashed', arrow: true },
-    { id: 'cg-revive',  label: '✺ 소생/회수', color: '#f472b6', style: 'dashed', arrow: true },
-    { id: 'cg-attack',  label: '⚔ 공격',     color: '#ef4444', style: 'solid',  arrow: true },
-    { id: 'cg-destroy', label: '✕ 파괴/묘지', color: '#64748b', style: 'crack',  arrow: true },
-    { id: 'cg-cost',    label: '◆ 코스트',   color: '#f59e0b', style: 'dotted', arrow: true },
+    { id: 'cg-summon', label: edgeLabel('cardgame', 'cg-summon'), color: '#fbbf24', style: 'solid', arrow: true },
+    { id: 'cg-special', label: edgeLabel('cardgame', 'cg-special'), color: '#a78bfa', style: 'solid', arrow: true },
+    { id: 'cg-effect', label: edgeLabel('cardgame', 'cg-effect'), color: '#38bdf8', style: 'solid', arrow: true },
+    { id: 'cg-search', label: edgeLabel('cardgame', 'cg-search'), color: '#34d399', style: 'dashed', arrow: true },
+    { id: 'cg-revive', label: edgeLabel('cardgame', 'cg-revive'), color: '#f472b6', style: 'dashed', arrow: true },
+    { id: 'cg-attack', label: edgeLabel('cardgame', 'cg-attack'), color: '#ef4444', style: 'solid', arrow: true },
+    { id: 'cg-destroy', label: edgeLabel('cardgame', 'cg-destroy'), color: '#64748b', style: 'crack', arrow: true },
+    { id: 'cg-cost', label: edgeLabel('cardgame', 'cg-cost'), color: '#f59e0b', style: 'dotted', arrow: true },
   ],
   groupPresets: [
-    { label: '패',    color: '#bfdbfe' },
-    { label: '필드',  color: '#bbf7d0' },
-    { label: '묘지',  color: '#e5e7eb' },
-    { label: '덱',    color: '#ddd6fe' },
-    { label: '제외',  color: '#fed7aa' },
+    { label: groupLabel('cardgame', 'hand'), color: '#bfdbfe' },
+    { label: groupLabel('cardgame', 'field'), color: '#bbf7d0' },
+    { label: groupLabel('cardgame', 'graveyard'), color: '#e5e7eb' },
+    { label: groupLabel('cardgame', 'deck'), color: '#ddd6fe' },
+    { label: groupLabel('cardgame', 'banished'), color: '#fed7aa' },
   ],
 };
 
 /** 전문가가 개념·논증을 설명하는 용도. */
 const CONCEPT: CanvasPack = {
   id: 'concept',
-  label: '개념 설명',
+  label: packLabel('concept'),
   icon: '🧠',
-  hint: '개념을 놓고 근거·사례·반론을 붙여 설명 한 장을 만들어 보세요.',
+  hint: packHint('concept'),
   nodeKinds: [
-    { id: 'cn-concept', label: '개념',   icon: '💡', color: '#a78bfa' },
-    { id: 'cn-example', label: '사례',   icon: '📌', color: '#34d399' },
-    { id: 'cn-evidence',label: '근거',   icon: '📖', color: '#60a5fa' },
-    { id: 'cn-counter', label: '반론',   icon: '⚖', color: '#f87171' },
-    { id: 'cn-result',  label: '결론',   icon: '🎯', color: '#fbbf24' },
+    { id: 'cn-concept', label: nodeLabel('concept', 'cn-concept'), icon: '💡', color: '#a78bfa' },
+    { id: 'cn-example', label: nodeLabel('concept', 'cn-example'), icon: '📌', color: '#34d399' },
+    { id: 'cn-evidence', label: nodeLabel('concept', 'cn-evidence'), icon: '📖', color: '#60a5fa' },
+    { id: 'cn-counter', label: nodeLabel('concept', 'cn-counter'), icon: '⚖', color: '#f87171' },
+    { id: 'cn-result', label: nodeLabel('concept', 'cn-result'), icon: '🎯', color: '#fbbf24' },
   ],
   edgeKinds: [
-    { id: 'cn-leads',    label: '이끎',   color: '#60a5fa', style: 'solid',  arrow: true },
-    { id: 'cn-supports', label: '뒷받침', color: '#34d399', style: 'solid',  arrow: true },
-    { id: 'cn-contrast', label: '대조',   color: '#f59e0b', style: 'wavy',   arrow: false },
-    { id: 'cn-refutes',  label: '반박',   color: '#f87171', style: 'dotted', arrow: true },
-    { id: 'cn-partof',   label: '부분',   color: '#94a3b8', style: 'dashed', arrow: true },
+    { id: 'cn-leads', label: edgeLabel('concept', 'cn-leads'), color: '#60a5fa', style: 'solid', arrow: true },
+    { id: 'cn-supports', label: edgeLabel('concept', 'cn-supports'), color: '#34d399', style: 'solid', arrow: true },
+    { id: 'cn-contrast', label: edgeLabel('concept', 'cn-contrast'), color: '#f59e0b', style: 'wavy', arrow: false },
+    { id: 'cn-refutes', label: edgeLabel('concept', 'cn-refutes'), color: '#f87171', style: 'dotted', arrow: true },
+    { id: 'cn-partof', label: edgeLabel('concept', 'cn-partof'), color: '#94a3b8', style: 'dashed', arrow: true },
   ],
   groupPresets: [
-    { label: '전제', color: '#bfdbfe' },
-    { label: '본론', color: '#ddd6fe' },
-    { label: '한계', color: '#fecaca' },
+    { label: groupLabel('concept', 'topic'), color: '#bfdbfe' },
+    { label: groupLabel('concept', 'thesis'), color: '#ddd6fe' },
+    { label: groupLabel('concept', 'counterpoint'), color: '#fecaca' },
   ],
 };
 
 /** 새로 만들려는 것을 구상할 때. */
 const IDEA: CanvasPack = {
   id: 'idea',
-  label: '구상',
+  label: packLabel('idea'),
   icon: '✨',
-  hint: '떠오른 것을 던져 놓고 파생·막힘으로 이어 구상을 굴려 보세요.',
+  hint: packHint('idea'),
   nodeKinds: [
-    { id: 'id-idea',  label: '아이디어', icon: '✨', color: '#fbbf24' },
-    { id: 'id-ask',   label: '질문',     icon: '❓', color: '#60a5fa' },
-    { id: 'id-todo',  label: '할 일',    icon: '☑', color: '#34d399' },
-    { id: 'id-memo',  label: '메모',     icon: '📝', color: '#94a3b8' },
-    { id: 'id-risk',  label: '위험',     icon: '⚠', color: '#f87171' },
+    { id: 'id-idea', label: nodeLabel('idea', 'id-idea'), icon: '✨', color: '#fbbf24' },
+    { id: 'id-ask', label: nodeLabel('idea', 'id-ask'), icon: '❓', color: '#60a5fa' },
+    { id: 'id-todo', label: nodeLabel('idea', 'id-todo'), icon: '☑', color: '#34d399' },
+    { id: 'id-memo', label: nodeLabel('idea', 'id-memo'), icon: '📝', color: '#94a3b8' },
+    { id: 'id-risk', label: nodeLabel('idea', 'id-risk'), icon: '⚠', color: '#f87171' },
   ],
   edgeKinds: [
-    { id: 'id-derives', label: '파생',   color: '#fbbf24', style: 'solid',  arrow: true },
-    { id: 'id-relates', label: '관련',   color: '#94a3b8', style: 'solid',  arrow: false },
-    { id: 'id-blocks',  label: '막힘',   color: '#f87171', style: 'crack',  arrow: true },
-    { id: 'id-then',    label: '이어짐', color: '#60a5fa', style: 'dashed', arrow: true },
+    { id: 'id-derives', label: edgeLabel('idea', 'id-derives'), color: '#fbbf24', style: 'solid', arrow: true },
+    { id: 'id-relates', label: edgeLabel('idea', 'id-relates'), color: '#94a3b8', style: 'solid', arrow: false },
+    { id: 'id-blocks', label: edgeLabel('idea', 'id-blocks'), color: '#f87171', style: 'crack', arrow: true },
+    { id: 'id-then', label: edgeLabel('idea', 'id-then'), color: '#60a5fa', style: 'dashed', arrow: true },
   ],
   groupPresets: [
-    { label: '지금',   color: '#bbf7d0' },
-    { label: '나중',   color: '#e5e7eb' },
-    { label: '안 함',  color: '#fecaca' },
+    { label: groupLabel('idea', 'now'), color: '#bbf7d0' },
+    { label: groupLabel('idea', 'later'), color: '#e5e7eb' },
+    { label: groupLabel('idea', 'blocked'), color: '#fecaca' },
   ],
 };
 
 /** 사람·팀·산출물 배치. */
 const ORG: CanvasPack = {
   id: 'org',
-  label: '조직·프로젝트',
+  label: packLabel('org'),
   icon: '🏢',
-  hint: '사람·팀·산출물을 놓고 담당·보고로 이어 보세요.',
+  hint: packHint('org'),
   nodeKinds: [
-    { id: 'og-person',  label: '사람',   icon: '🧑', color: '#f472b6' },
-    { id: 'og-team',    label: '팀',     icon: '🏢', color: '#60a5fa' },
-    { id: 'og-role',    label: '역할',   icon: '🎽', color: '#a78bfa' },
-    { id: 'og-output',  label: '산출물', icon: '📦', color: '#34d399' },
+    { id: 'og-person', label: nodeLabel('org', 'og-person'), icon: '🧑', color: '#f472b6' },
+    { id: 'og-team', label: nodeLabel('org', 'og-team'), icon: '🏢', color: '#60a5fa' },
+    { id: 'og-role', label: nodeLabel('org', 'og-role'), icon: '🎽', color: '#a78bfa' },
+    { id: 'og-output', label: nodeLabel('org', 'og-output'), icon: '📦', color: '#34d399' },
   ],
   edgeKinds: [
-    { id: 'og-reports', label: '보고',   color: '#60a5fa', style: 'solid',  arrow: true },
-    { id: 'og-owns',    label: '담당',   color: '#a78bfa', style: 'solid',  arrow: true },
-    { id: 'og-works',   label: '협업',   color: '#94a3b8', style: 'dashed', arrow: true, arrowStart: true },
-    { id: 'og-makes',   label: '만듦',   color: '#34d399', style: 'solid',  arrow: true },
+    { id: 'og-reports', label: edgeLabel('org', 'og-reports'), color: '#60a5fa', style: 'solid', arrow: true },
+    { id: 'og-owns', label: edgeLabel('org', 'og-owns'), color: '#a78bfa', style: 'solid', arrow: true },
+    { id: 'og-works', label: edgeLabel('org', 'og-works'), color: '#94a3b8', style: 'dashed', arrow: true, arrowStart: true },
+    { id: 'og-makes', label: edgeLabel('org', 'og-makes'), color: '#34d399', style: 'solid', arrow: true },
   ],
   groupPresets: [
-    { label: '본부', color: '#bfdbfe' },
-    { label: '외부', color: '#fed7aa' },
+    { label: groupLabel('org', 'hq'), color: '#bfdbfe' },
+    { label: groupLabel('org', 'remote'), color: '#fed7aa' },
   ],
 };
 

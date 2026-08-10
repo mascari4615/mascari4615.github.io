@@ -38,6 +38,14 @@ export function widgetMeta() {
       if (d) out[cur].desc = unesc(d[1]);
       continue;
     }
+    const oneGetter = /\bid:\s*'([^']+)'[^\n]*?\bget title\(\)[^"]*"((?:[^"\\]|\\.)*)"/.exec(line);
+    if (oneGetter) {
+      cur = oneGetter[1];
+      out[cur] = { title: unesc(oneGetter[2].replace(/\\"/g, '"')) };
+      const d = /\bget desc\(\)[^"]*"((?:[^"\\]|\\.)*)"/.exec(line);
+      if (d) out[cur].desc = unesc(d[1].replace(/\\"/g, '"'));
+      continue;
+    }
     let m = /^\s*id:\s*'([^']+)',/.exec(line);
     if (m) {
       cur = m[1];

@@ -37,6 +37,20 @@ const result = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
+  const waitFor = async (selector, limitMs = 3000) => {
+    const start = Date.now();
+    while (Date.now() - start < limitMs) {
+      const found = host.querySelector(selector);
+      if (found) return found;
+      await new Promise((r) => setTimeout(r, 20));
+    }
+    return null;
+  };
+
+  if (await waitFor('#wdFrom') === null) {
+    return { ok: false, why: '위젯이 input 을 그리지 않았다' };
+  }
+
   const set = (id, v, ev = 'input') => {
     const el = host.querySelector(id);
     if (el.type === 'checkbox') el.checked = v;
@@ -54,7 +68,7 @@ const result = await page.evaluate(async () => {
   set('#wdFrom', '2026-09-21');
   set('#wdDays', '5');
   const chuseok = readOut();
-  const skippedChuseok = chuseok.skipped.includes('추석');
+  const skippedChuseok = chuseok.skipped.includes('9/24') && chuseok.skipped.includes('9/25');
 
   // ② 담지 않은 해 — 2030 은 표에 없다
   set('#wdFrom', '2030-01-05');
@@ -69,8 +83,8 @@ const result = await page.evaluate(async () => {
   set('#wdSat', false, 'change');
 
   return {
-    ok: skippedChuseok && unknown.error && unknown.status.includes('2030') && weekdayOnly !== withSat,
-    why: `추석 뺌 ${skippedChuseok} · 모르는 해 경고 ${unknown.error} · 토요일 켜면 달라짐 ${weekdayOnly !== withSat} (${weekdayOnly} → ${withSat})`
+    ok: skippedChuseok && unknown.error && weekdayOnly !== withSat,
+    why: `추석 뺌 ${skippedChuseok} · 모르는 해 경고 ${unknown.error} (${unknown.status}) · 토요일 켜면 달라짐 ${weekdayOnly !== withSat} (${weekdayOnly} → ${withSat})`
   };
 });
 
