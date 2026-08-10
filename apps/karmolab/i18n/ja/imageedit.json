@@ -28,7 +28,7 @@
   "imageedit.t16": "色",
   "imageedit.label.ieChromaHex": "(クリックで選択)",
   "imageedit.t17": "許容値",
-  "imageedit.t18": "ぼかし",
+  "imageedit.t18": "フェザー（ふちのぼかし）",
   "imageedit.t19": "モード",
   "imageedit.btn.ieBrushBg": "🔴 背景 (消す)",
   "imageedit.btn.ieBrushFg": "🟢 前景 (残す)",
