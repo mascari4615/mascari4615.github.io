@@ -17,6 +17,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { mountWidget } from './lib/mount-widget.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BUNDLE = 'js/widgets/tools/mesh3d.js';
@@ -68,55 +69,24 @@ const page = await browser.newPage();
 await page.route('**/*', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8">' }));
 await page.goto('http://localhost/');
 /*
- * 말 묶음을 미리 박는다 — **진짜 페이지가 하는 그대로**(`window.__KARMO_I18N`, 머리말에 박힘).
- * 안 박으면 화면이 `dailycho.score` 같은 열쇠를 그대로 뱉거나 아예 안 그려진다. 그건 하네스가
- * 만든 상태지 제품의 상태가 아니다 — 검사가 제품을 헐뜯게 된다(실측: CI 배포 빨강).
+ * 올리는 일은 공용 받침이 한다 — 말 묶음 미리 박기·그려질 때까지 기다리기·hidden 칸까지.
+ * 이 세 가지를 검사마다 다시 짜다가 배포를 두 번 세웠다(2026-08-10).
  */
-const catalogs = { mesh3d: JSON.parse(fs.readFileSync(path.join(root, 'i18n/ko/mesh3d.json'), 'utf8')) };
-await page.evaluate((cat) => {
-  window.__KARMO_LOCALE = 'ko';
-  window.__KARMO_I18N = { ko: cat };
-  window.__reg = {};
-  window.Toolbox = {
-    register: (t) => {
-      window.__reg[t.id] = t;
-    },
-    trackUse() {},
-    copyText() {},
-    onDispose() {},
-    mountTool() {
-      return true;
-    }
-  };
-}, catalogs);
-await page.addScriptTag({ content: fs.readFileSync(path.join(root, BUNDLE), 'utf8') });
+const host = await mountWidget(page, { appRoot: root, id: 'mesh3d', waitFor: '#m3File' });
 
 const fails = [];
 
-const mount = await page.evaluate(() => {
-  const tool = window.__reg['mesh3d'];
-  if (!tool) return { missing: true };
-  const host = document.createElement('div');
-  host.style.width = '640px';
-  document.body.appendChild(host);
-  tool.tabs[0].build(host);
-  window.__host = host;
-  return { built: true };
-});
+const built =
+  host === null
+    ? { hasInput: false, note: '' }
+    : await page.evaluate((h) => {
+        window.__host = document.querySelector(h);
+        return { hasInput: true, note: window.__host.querySelector('#m3Info')?.textContent ?? '' };
+      }, host);
 
-/*
- * 위젯은 **말 묶음을 받은 뒤에** 그린다 — `build()` 는 바로 돌아오고 화면은 조금 뒤에 채워진다.
- * 부르자마자 읽으면 「칸이 없다」로 헛보인다(실측: CI 배포 빨강). 그려질 때까지 기다린다.
- */
-/* 파일 칸은 hidden 이다(꾸민 라벨이 대신 보인다) — 기본값인 「보일 때까지」로 기다리면 영영 안 온다. */
-const drawn = await page.waitForSelector('#m3File', { state: 'attached', timeout: 8000 }).catch(() => null);
-const built = drawn === null ? { hasInput: false, note: '' } : await page.evaluate(() => ({
-  hasInput: true,
-  note: document.querySelector('#m3Info')?.textContent ?? ''
-}));
+if (host === null) {
 
-if (mount.missing === true) {
-  fails.push('번들을 실어도 mesh3d 가 등록되지 않는다');
+  fails.push('mesh3d 가 등록되지 않았거나 8초 안에 안 그려졌다');
 } else {
   if (built.hasInput !== true) fails.push('파일 고르는 칸이 없다 — 아무것도 열 수 없다');
   if (/WebGL/.test(built.note)) {
