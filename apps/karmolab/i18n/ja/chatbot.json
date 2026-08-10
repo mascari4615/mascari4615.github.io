@@ -102,7 +102,6 @@
   "chatbot.t67": "読み込む会話が見つかりません。",
   "chatbot.t68": "読み込みに失敗: ",
   "chatbot.t69": "書き出す会話がありません。",
-  "chatbot.t70": "チャット",
   "chatbot.chatN": "会話 {n}",
   "chatbot.pendingImages": "[📎 画像 {n}枚]",
   "chatbot.error": "エラー: {why}",

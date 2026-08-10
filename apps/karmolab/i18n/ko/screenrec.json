@@ -6,7 +6,6 @@
   "screenrec.btn.save": "내려받기",
   "screenrec.label.result": "녹화한 화면 — 확인하고 받으세요",
   "screenrec.status.idle": "시작을 누르면 어떤 화면을 담을지 브라우저가 물어봅니다. 녹화 파일은 어디에도 올라가지 않습니다.",
-  "screenrec.tab": "녹화",
   "screenrec.err.unsupported": "이 브라우저는 화면 녹화를 지원하지 않아요. 크롬·엣지에서 열어 보세요.",
   "screenrec.err.notStarted": "녹화를 시작하지 않았어요.",
   "screenrec.warn.noMic": "마이크를 쓸 수 없어 화면 소리만 담습니다.",

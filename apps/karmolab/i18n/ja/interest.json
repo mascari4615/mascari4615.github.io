@@ -8,7 +8,6 @@
   "interest.label.amount": "元金",
   "interest.label.rate": "年利（%）",
   "interest.label.months": "期間（か月）",
-  "interest.btn.run": "計算",
   "interest.row.monthly": "毎月の返済額",
   "interest.row.totalPaid": "返済総額",
   "interest.row.totalInterest": "利息の合計",

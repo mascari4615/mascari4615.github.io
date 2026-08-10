@@ -102,7 +102,6 @@
   "chatbot.t67": "No conversation to import was found.",
   "chatbot.t68": "Import failed: ",
   "chatbot.t69": "There is no conversation to export.",
-  "chatbot.t70": "Chat",
   "chatbot.chatN": "Conversation {n}",
   "chatbot.pendingImages": "[📎 {n} images]",
   "chatbot.error": "Error: {why}",

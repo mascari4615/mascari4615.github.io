@@ -13,7 +13,6 @@
   "loan.label.grace": "거치기간 (개월) — 이자만 내는 기간",
   "loan.label.extra": "매달 더 갚기",
   "loan.table.head": "달별 상환표 — 처음 12개월과 마지막 달",
-  "loan.table.all": "달별 상환표 — 전체",
   "loan.btn.all": "전체 보기",
   "loan.btn.fold": "접기",
   "loan.btn.csv": "표 내려받기",

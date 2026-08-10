@@ -11,7 +11,6 @@
   "barcode.err.code128": "Code128 には英数字と記号だけ入れられます",
   "barcode.err.empty": "入れる値を書いてください",
   "barcode.err.checkDigit": "最後のチェックデジットが合いません（{got} → {want} のはずです）",
-  "barcode.stat.kind": "バーコード",
   "barcode.stat.spec": "規格",
   "barcode.stat.bars": "バーの数",
   "barcode.stat.size": "画像サイズ",
