@@ -84,12 +84,12 @@ const starPaint =
 
 export const starfield: Channel = {
   id: 'starfield',
-  name: t('pulse.t11'),
+  name: t('pulse.t11', undefined, '별밭'),
   glyph: '✦',
   period: 15 * MINUTE,
   tile: 'wide',
-  blurb: t('pulse.t12'),
-  lineage: t('pulse.t13'),
+  blurb: t('pulse.t12', undefined, '15분마다 밤하늘 한 장면. 밝은 별 몇 개만 십자 광채를 낸다.'),
+  lineage: t('pulse.t13', undefined, '@tiny_star_field'),
   beat(tick) {
     const r = rngFor('starfield/spec', tick);
     const count = 30 + Math.floor(r() * 90);

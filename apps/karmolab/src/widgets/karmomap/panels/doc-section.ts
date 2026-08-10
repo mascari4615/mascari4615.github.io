@@ -27,14 +27,14 @@ export interface DocFieldSkin {
 
 export const NODE_DOC_SKIN: DocFieldSkin = {
   label: t('karmomap.t301', undefined, "설명"),
-  placeholder: t('karmomap.t302'),
+  placeholder: t('karmomap.t302', undefined, '이 노드가 누구인지, 왜 중요한지 적어 두세요.'),
   key: 'edit-doc',
-  hint: t('karmomap.t303'),
+  hint: t('karmomap.t303', undefined, '[[다른 이름]]으로 링크하면 관계가 함께 보입니다.'),
 };
 
 export const EDGE_DOC_SKIN: DocFieldSkin = {
   label: t('karmomap.t304', undefined, "이 관계의 이야기"),
-  placeholder: t('karmomap.t305'),
+  placeholder: t('karmomap.t305', undefined, '둘 사이의 사건, 감정, 규칙을 적어 두세요.'),
   key: 'ed-doc',
 };
 

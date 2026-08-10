@@ -32,9 +32,9 @@ const DOMAINS: Array<{ value: string; label: string }> = [
   { value: 'wm', label: 'WitchMendokusai' },
   { value: 'karmolab', label: 'KarmoLab' },
   { value: 'yawnbot', label: 'YawnBot' },
-  { value: 'life', label: t('cockpit.t37') },
-  { value: 'hobby', label: t('cockpit.t38') },
-  { value: 'learning', label: t('cockpit.t39') },
+  { value: 'life', label: t('cockpit.t37', undefined, '인생') },
+  { value: 'hobby', label: t('cockpit.t38', undefined, '취미') },
+  { value: 'learning', label: t('cockpit.t39', undefined, '학습') },
 ];
 
 const DOMAIN_ICON: Record<string, string> = {
@@ -43,12 +43,12 @@ const DOMAIN_ICON: Record<string, string> = {
 };
 
 const DOMAIN_SUBTITLE: Record<string, string> = {
-  wm:       t('cockpit.t40'),
-  karmolab: t('cockpit.t41'),
-  yawnbot:  t('cockpit.t42'),
-  life:     t('cockpit.t43'),
-  hobby:    t('cockpit.t44'),
-  learning: t('cockpit.t45'),
+  wm:       t('cockpit.t40', undefined, '메인 프로젝트 · 주황머리 마녀와 인형들'),
+  karmolab: t('cockpit.t41', undefined, 'Tauri 데스크톱 + 웹 위젯 + AI'),
+  yawnbot:  t('cockpit.t42', undefined, 'Discord 봇 · 캐릭터 호스트'),
+  life:     t('cockpit.t43', undefined, '인생 일반 — 건강·금융·집·관계'),
+  hobby:    t('cockpit.t44', undefined, '취미 — 음악·독서·게임·여행'),
+  learning: t('cockpit.t45', undefined, '학습 — 책·강의·언어·기술'),
 };
 
 const DOMAIN_IMAGE: Record<string, string> = {
@@ -411,9 +411,9 @@ const DOMAINS_FULL: Array<{ value: string; label: string }> = [
   { value: 'wm', label: 'WitchMendokusai (WM)' },
   { value: 'karmolab', label: 'KarmoLab (KL)' },
   { value: 'yawnbot', label: 'YawnBot (YB)' },
-  { value: 'life', label: t('cockpit.t49') },
-  { value: 'hobby', label: t('cockpit.t50') },
-  { value: 'learning', label: t('cockpit.t51') },
+  { value: 'life', label: t('cockpit.t49', undefined, '인생 (LIFE)') },
+  { value: 'hobby', label: t('cockpit.t50', undefined, '취미 (HOBBY)') },
+  { value: 'learning', label: t('cockpit.t51', undefined, '학습 (LEARN)') },
 ];
 
 function showCreateModal(root: HTMLElement, onCreated: (path: string) => void): void {

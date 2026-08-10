@@ -33,11 +33,11 @@ export interface SecretDef {
  * 개수를 두 곳에 적으면 「5개 중 3개」가 그날부터 거짓이 된다.
  */
 export const SECRETS: SecretDef[] = [
-    { id: 'konami', title: t('secrets.t01'), how: '↑↑↓↓←→←→ B A' },
-    { id: 'logo', title: t('secrets.t02'), how: t('secrets.t03') },
-    { id: 'console', title: t('secrets.t04'), how: t('secrets.t05') },
-    { id: 'collector', title: t('secrets.t06'), how: t('secrets.t07') },
-    { id: 'owl', title: t('secrets.t08'), how: t('secrets.t09') }
+    { id: 'konami', title: t('secrets.t01', undefined, '코나미'), how: '↑↑↓↓←→←→ B A' },
+    { id: 'logo', title: t('secrets.t02', undefined, '로고를 계속 누름'), how: t('secrets.t03', undefined, '머리띠의 KarmoLab 을 일곱 번') },
+    { id: 'console', title: t('secrets.t04', undefined, '콘솔 인사'), how: t('secrets.t05', undefined, '개발자 도구를 열고 karmo() 를 침') },
+    { id: 'collector', title: t('secrets.t06', undefined, '수집가'), how: t('secrets.t07', undefined, '도감 스무 칸') },
+    { id: 'owl', title: t('secrets.t08', undefined, '새벽 세 시'), how: t('secrets.t09', undefined, '새벽 3~5시에 다녀감') }
 ];
 
 const KEY = 'karmolab_secrets';
