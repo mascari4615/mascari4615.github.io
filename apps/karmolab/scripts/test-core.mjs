@@ -1485,6 +1485,19 @@ for (const file of coreFiles) {
 check(wired >= 20, `배선을 확인한 도구가 ${wired}개뿐 — 찾는 경로가 틀렸을 수 있다`);
 
 // ── ②-30 AI 경로 고르기 (로컬 AI 는 「추가」이지 「전제」가 아니다) ─────────────
+/*
+ * 길 고르기의 글도 이제 말 묶음에서 온다. 여기는 브라우저가 아니라 `window` 가 없어서,
+ * 아무것도 안 하면 `t()` 가 열쇠(`airoute.t01`)를 그대로 돌려준다 — 검사가 제품을 헐뜯게 된다.
+ * 진짜 화면이 머리말에 박아 두는 것과 **같은 모양**을 여기서 만들어 준다.
+ */
+globalThis.window = globalThis.window ?? {};
+globalThis.window.__KARMO_LOCALE = 'ko';
+globalThis.window.__KARMO_I18N = {
+  ko: {
+    airoute: JSON.parse(fs.readFileSync(path.join(root, 'i18n/ko/airoute.json'), 'utf8')),
+    aigate: JSON.parse(fs.readFileSync(path.join(root, 'i18n/ko/aigate.json'), 'utf8'))
+  }
+};
 const ai = await load('src/lib/ai-route.ts');
 
 /*
