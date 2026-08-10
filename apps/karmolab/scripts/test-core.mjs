@@ -237,15 +237,15 @@ eq(bz.checkBiz('12345'), null, '10자리가 아니면 null');
 eq(bz.checkBiz('12345678a0'), null, '숫자가 아니면 null');
 eq(bz.onlyDigits('123-45-67890'), '1234567890', '하이픈을 떼고 본다');
 eq(bz.formatBiz('1234567890'), '123-45-67890', '표기 모양');
-eq(bz.kindOf('01'), '개인 과세사업자', '가운데 두 자리 = 사업자 구분 (01)');
-eq(bz.kindOf('80'), '법인이 아닌 종교단체', '80');
-eq(bz.kindOf('81'), '영리법인 본점', '81');
-eq(bz.kindOf('89'), '비영리법인 본점·지점', '89');
-eq(bz.kindOf('90'), '개인 면세사업자·비영리', '90');
+eq(bz.kindOf('01'), 'Individual taxable business', '가운데 두 자리 = 사업자 구분 (01)');
+eq(bz.kindOf('80'), 'Religious organization', '80');
+eq(bz.kindOf('81'), 'For-profit corporation HQ', '81');
+eq(bz.kindOf('89'), 'Non-profit corporation HQ/branch', '89');
+eq(bz.kindOf('90'), 'Individual tax-free business / non-profit', '90');
 const corpExpect = bz.checkCorp('123456789012' + '0').expect;
 check(bz.checkCorp('123456789012' + String(corpExpect)).ok === true, '법인번호도 규칙대로면 통과');
-check(bz.run('check', { number: '123-45-6789' + String(bizExpect) }).includes('형식상 올바름'), 'run 이 사람 말로 답한다');
-check(bz.run('check', { number: '1234567890' }).includes('국세청'), '「형식만 본다」를 반드시 말한다');
+check(bz.run('check', { number: '123-45-6789' + String(bizExpect) }).includes('Check digit: valid'), 'run 이 사람 말로 답한다');
+check(bz.run('check', { number: '1234567890' }).includes('National Tax Service'), '형식 경계를 반드시 말한다');
 
 // ── ②-5 birth 알맹이 (한국 나이 3종 — 쓰는 곳마다 답이 다르다) ───────────────
 const bi = await load('src/core/birth.ts');
@@ -341,12 +341,12 @@ eq(vt.vatExtract(11111).supply, 10100, '절사가 기본 (실무) — 10100.909�
 eq(vt.vatExtract(11111, 10, 'round').supply, 10101, '반올림 선택 — 같은 값이 10101 이 된다');
 eq(vt.vatAdd(1000, 0).tax, 0, '세율 0% 면 세액 0');
 eq(vt.vatAdd(1000, 20).total, 1200, '세율 20%');
-eq(vt.won(1234567), '1,234,567원', '금액 표기');
+eq(vt.won(1234567), '₩1,234,567', '금액 표기');
 
-check(vt.run('extract', { amount: 110000 }).includes('공급가액: 100,000원'), 'run extract');
-check(vt.run('extract', { amount: 110000 }).includes('÷ 1.10'), '어떻게 계산했는지 말한다');
-check(vt.run('add', { amount: 1000000 }).includes('합계금액: 1,100,000원'), 'run add');
-check(vt.run('add', { amount: 12345 }).includes('확인: 공급가 + 세액'), '세 줄이 맞는지 스스로 보여 준다');
+check(vt.run('extract', { amount: 110000 }).includes('Supply: ₩100,000'), 'run extract');
+check(vt.run('extract', { amount: 110000 }).includes('total ÷ 1.10'), '어떻게 계산했는지 말한다');
+check(vt.run('add', { amount: 1000000 }).includes('Total: ₩1,100,000'), 'run add');
+check(vt.run('add', { amount: 12345 }).includes('Check: supply + VAT'), '세 줄이 맞는지 스스로 보여 준다');
 let vatThrew = false;
 try {
   vt.run('add', { amount: 'abc' });
@@ -381,14 +381,14 @@ eq(Math.round(at.payout), 6109980, '세후 수령액 = 원금 + 세후이자');
 
 // 대출 원리금균등 — 3천만원 · 연 5% · 60개월.
 const pay = it.annuityPayment(30000000, 5, 60);
-check(pay > 566000 && pay < 567000, `월 상환액이 566,xxx 여야 한다: ${Math.round(pay)}`);
+check(pay > 566000 && pay < 567000, `Monthly payment should be 566,xxx: ${Math.round(pay)}`);
 check(pay * 60 > 30000000, '총 상환액은 원금보다 크다');
 eq(it.annuityPayment(1200000, 0, 12), 100000, '무이자면 그냥 나눈다');
 
-check(it.run('saving', { monthly: 500000, rate: 4, months: 12 }).includes('130,000원'), 'run saving 세전 이자');
-check(it.run('saving', { monthly: 500000, rate: 4, months: 12 }).includes('그건 틀립니다'), '흔한 오답을 짚어 준다');
-check(it.run('deposit', { amount: 10000000, rate: 4, months: 12 }).includes('이자소득세'), 'run deposit 세금 표기');
-check(it.run('loan', { amount: 30000000, rate: 5, months: 60 }).includes('월 상환액'), 'run loan');
+check(it.run('saving', { monthly: 500000, rate: 4, months: 12 }).includes('₩130,000'), 'run saving 세전 이자');
+check(it.run('saving', { monthly: 500000, rate: 4, months: 12 }).includes('that is wrong'), '흔한 오답을 짚어 준다');
+check(it.run('deposit', { amount: 10000000, rate: 4, months: 12 }).includes('Interest income tax'), 'run deposit 세금 표기');
+check(it.run('loan', { amount: 30000000, rate: 5, months: 60 }).includes('Monthly payment'), 'run loan');
 let itThrew = false;
 try {
   it.run('deposit', { amount: -1, rate: 4, months: 12 });
@@ -467,8 +467,8 @@ check(ln.totalInterest(extra) < iEq, '더 갚으면 이자가 준다');
 eq(ln.withExtra(eq1, 5, 0).length, 60, '0 이면 그대로');
 
 eq(ln.equalPayment(1200000, 0, 12)[0].pay, 100000, '무이자면 그냥 나눈다');
-check(ln.run('compare', { amount: P, rate: 5, months: 60 }).includes('원금균등'), 'run compare 가 셋을 나란히');
-check(ln.run('schedule', { amount: P, rate: 5, months: 60, extra: 200000 }).includes('개월 단축'), 'run schedule 이 절약을 말한다');
+check(ln.run('compare', { amount: P, rate: 5, months: 60 }).includes('Equal principal'), 'run compare 가 셋을 나란히');
+check(ln.run('schedule', { amount: P, rate: 5, months: 60, extra: 200000 }).includes('months shorter'), 'run schedule 이 절약을 말한다');
 let lnThrew = false;
 try {
   ln.run('schedule', { amount: P, rate: 5, months: 60, method: '엉뚱' });
@@ -518,8 +518,8 @@ check(gr.neededAverage(0, 3, 4.4, 3, 4.5).possible === false, '만점으로도 �
 check(gr.neededAverage(3 * 4.5, 3, 2.0, 3, 4.5).alreadyThere, '남은 학점을 0점 받아도 목표를 넘으면 「이미 넘었다」');
 
 check(gr.run('gpa', { courses: '3 A+\n1 F' }).includes('3.38'), 'run gpa 가 가중 평균을 낸다');
-check(gr.run('gpa', { courses: '3 A+\n1 F' }).includes('평점은 위쪽입니다'), '단순 평균과 헷갈리지 않게 말해 준다');
-check(gr.run('needed', { courses: '3 A+', target: 4.0, future: 3 }).includes('평균 3.50 필요'), 'run needed');
+check(gr.run('gpa', { courses: '3 A+\n1 F' }).includes('GPA is above'), '단순 평균과 헷갈리지 않게 말해 준다');
+check(gr.run('needed', { courses: '3 A+', target: 4.0, future: 3 }).includes('average of 3.50'), 'run needed');
 let grThrew = false;
 try {
   gr.run('gpa', { courses: '읽을 수 없음' });
@@ -549,9 +549,9 @@ eq(tc.toMinutes('아무거나'), null, '못 읽으면 null (0 으로 넘기면 �
 eq(tc.toMinutes('7:45'), 465, '7:45 = 465분');
 eq(Number((465 / 60).toFixed(2)), 7.75, '465분 = 7.75시간 (7.45 아님)');
 
-eq(tc.fmt(465), '7시간 45분', '보기 좋은 표기');
-eq(tc.fmt(-90), '-1시간 30분', '음수도 부호를 붙여 그대로');
-eq(tc.fmt(0), '0시간 0분', '0');
+eq(tc.fmt(465), '7h 45m', '보기 좋은 표기');
+eq(tc.fmt(-90), '-1h 30m', '음수도 부호를 붙여 그대로');
+eq(tc.fmt(0), '0h 0m', '0');
 
 // 24시를 넘거나 0시 아래로 가도 하루 안으로.
 eq(tc.clock(580 + 85), '11:05', '09:40 + 1:25');
@@ -571,9 +571,9 @@ eq(sumBad.counted, 2, '빈 줄은 안 세고');
 eq(sumBad.bad, 1, '못 읽은 줄은 센다');
 
 check(tc.run('shift', { start: '09:40', duration: '1:25' }).includes('11:05'), 'run shift');
-check(tc.run('shift', { start: '23:30', duration: '1:00' }).includes('1일 뒤'), '자정을 넘으면 말해 준다');
+check(tc.run('shift', { start: '23:30', duration: '1:00' }).includes('1 day later'), '자정을 넘으면 말해 준다');
 check(tc.run('shift', { start: '09:40', duration: '1:25', minus: true }).includes('08:15'), 'run shift 빼기');
-check(tc.run('sum', { times: '7:45\n8:20' }).includes('7.45 가 아니라'), '급여 계산 함정을 짚어 준다');
+check(tc.run('sum', { times: '7:45\n8:20' }).includes('7.75, not 7.45'), '급여 계산 함정을 짚어 준다');
 let tcThrew = false;
 try {
   tc.run('sum', { times: '읽을 수 없음' });
@@ -690,9 +690,9 @@ const tv = await load('src/core/tableconv.ts');
 eq(tv.spec.id, 'tableconv', 'tableconv spec.id');
 
 // 들어온 꼴을 스스로 알아본다 — 셋 다 자주 온다.
-eq(tv.parse('a\tb\n1\t2').kind, '엑셀 붙여넣기', '탭이 있으면 엑셀에서 복사한 것');
+eq(tv.parse('a\tb\n1\t2').kind, 'Excel paste', '탭이 있으면 엑셀에서 복사한 것');
 eq(tv.parse('a,b\n1,2').kind, 'CSV', '쉼표면 CSV');
-eq(tv.parse('| a | b |\n| --- | --- |\n| 1 | 2 |').kind, '마크다운 표', '두 번째 줄이 구분선이면 마크다운');
+eq(tv.parse('| a | b |\n| --- | --- |\n| 1 | 2 |').kind, 'Markdown table', '두 번째 줄이 구분선이면 마크다운');
 eq(tv.parse('| a | b |\n| --- | --- |\n| 1 | 2 |').rows.length, 2, '마크다운 구분선은 줄로 안 센다');
 eq(tv.parse('').rows.length, 0, '빈 글자는 빈 표');
 eq(tv.parse('a,"쉼표, 값"').rows[0][1], '쉼표, 값', 'CSV 따옴표 안 쉼표');
@@ -720,7 +720,7 @@ eq(tv.toJson([['a']]), '[]', '머리글만 있으면 빈 배열');
 // 열 수가 다른 줄이 있어도 표가 깨지면 안 된다.
 eq(tv.toMarkdown([['a', 'b'], ['1']], false).split('\n')[2], '| 1 |  |', '모자란 칸은 빈 칸으로 채운다');
 
-check(tv.run('convert', { table: 'a\tb\n1\t2' }).includes('엑셀 붙여넣기'), 'run 이 읽은 꼴을 말한다');
+check(tv.run('convert', { table: 'a\tb\n1\t2' }).includes('Input: Excel paste'), 'run 이 읽은 꼴을 말한다');
 check(tv.run('convert', { table: 'a\tb\n1\t2', to: 'csv' }).includes('a,b'), 'run to=csv');
 let tvThrew = 0;
 for (const bad of [{ table: '' }, { table: 'a\tb', to: '엉뚱' }]) {
@@ -1132,7 +1132,7 @@ for (const [v, a, b, cat] of [[7, 'pyeong', 'm2', 'area'], [3, 'don', 'g', 'weig
 }
 
 check(uc.run('convert', { value: 30, from: 'pyeong', to: 'm2' }).includes('3.3057851'), 'run 이 어림 주의를 붙인다');
-check(uc.run('convert', { value: 1, from: 'don', to: 'g' }).includes('3.75g'), 'run 돈');
+check(uc.run('convert', { value: 1, from: 'don', to: 'g' }).includes('3.75 g'), 'run 돈');
 check(uc.run('list', {}).includes('pyeong'), 'run list');
 let ucThrew = 0;
 for (const bad of [{ value: 1, from: '엉뚱', to: 'm', category: 'length' }, { value: 1, from: 'ms', to: 'ms' }, { value: 'abc', from: 'm', to: 'km' }]) {

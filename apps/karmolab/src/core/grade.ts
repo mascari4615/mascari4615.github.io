@@ -1,12 +1,10 @@
 /**
- * 학점 계산 — 알맹이 (TASK-KL-088 / S1)
+ * GPA calculation core (TASK-KL-088 / S1)
  *
- * 학점은 단순 평균이 아니라 **학점 수로 가중한 평균**이다. 3학점 과목의 A와 1학점 과목의 A는
- * 무게가 다른데, 그냥 더해 나누면 그 차이가 사라진다.
+ * GPA must be credit-weighted, not a plain average.
  *
- * MCP 로 내놓는 이유(B등급): ① LLM 은 「평점 계산해 줘」에 **단순 평균**을 내는 경우가 많다.
- * ② 4.5 만점과 4.3 만점이 섞여 있는데(둘 다 국내에서 쓴다) 어느 쪽인지 안 묻고 답한다.
- * ③ 「목표 학점 맞추려면 남은 학기에 얼마 필요?」는 식이 뒤집힌 문제라 특히 자주 틀린다.
+ * MCP exposes this because models often use a plain average, guess the wrong scale, or
+ * misread the inverse "what average is needed" problem.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -16,23 +14,21 @@ export const spec: ToolSpec = {
     gpa: {
       desc:
         'Korean university GPA from "credits grade" lines, e.g. "3 A+\\n3 B0\\n2 A-" — credit-weighted,' +
-        ' not a plain average. scale = 4.5 (default, the Korean norm) or 4.3.' +
-        ' / 학점 가중 평점. scale 45(기본)·43.',
+        ' not a plain average. scale = 4.5 (default, the Korean norm) or 4.3.',
       in: { courses: 'string', scale: 'string?' },
       out: 'string'
     },
     needed: {
       desc:
         'What average the remaining credits must earn to reach a target GPA —' +
-        ' and it says so plainly when even straight A+ cannot get there.' +
-        ' / 목표 평점에 필요한 남은 평균. 불가능하면 불가능하다고.',
+        ' and it says so plainly when even straight A+ cannot get there.',
       in: { courses: 'string', target: 'number', future: 'number', scale: 'string?' },
       out: 'string'
     }
   }
 };
 
-/** 4.5 만점 기준 (국내 대부분) */
+/** 4.5 scale (default). */
 export const SCALE_45: Record<string, number> = {
   'A+': 4.5, A0: 4.0, 'A-': 3.7,
   'B+': 3.5, B0: 3.0, 'B-': 2.7,
@@ -41,7 +37,7 @@ export const SCALE_45: Record<string, number> = {
   F: 0
 };
 
-/** 4.3 만점 기준 */
+/** 4.3 scale. */
 export const SCALE_43: Record<string, number> = {
   'A+': 4.3, A0: 4.0, 'A-': 3.7,
   'B+': 3.3, B0: 3.0, 'B-': 2.7,
@@ -54,20 +50,20 @@ export const scaleOf = (name?: string): Record<string, number> => (String(name) 
 export const maxOf = (scale: Record<string, number>): number => scale['A+'];
 
 export interface GpaResult {
-  /** 학점 가중 평균 — 이게 진짜 평점. */
+  /** Credit-weighted GPA. */
   gpa: number;
-  /** 단순 평균 — 참고용. 위와 다르다는 걸 보여 주려고 함께 낸다. */
+  /** Plain average for comparison. */
   simple: number;
   credits: number;
   points: number;
   counted: number;
-  /** 못 읽은 줄. 조용히 버리지 않는다. */
+  /** Unreadable lines. */
   bad: string[];
 }
 
 /**
- * 「3 A+」 처럼 한 줄에 학점 수와 성적. 사이 구분은 공백·탭·쉼표 아무거나.
- * `A` 처럼 한 글자로 적으면 `A0` 로 본다 (사람들이 그렇게 적는다).
+ * One line per course, e.g. "3 A+". Separator can be spaces, tabs, or commas.
+ * A single "A" is treated as "A0".
  */
 export function parseCourses(text: string, scale: Record<string, number>): GpaResult {
   let credits = 0;
@@ -104,13 +100,13 @@ export function parseCourses(text: string, scale: Record<string, number>): GpaRe
 export interface NeededResult {
   required: number;
   possible: boolean;
-  /** 이미 목표를 넘었으면 true. */
+  /** Already at or above target. */
   alreadyThere: boolean;
-  /** 남은 학점을 전부 만점 받으면 나올 평점. */
+  /** GPA if remaining credits are all maxed out. */
   best: number;
 }
 
-/** 목표를 채우려면 남은 학점에서 평균 얼마가 필요한가. 식을 뒤집는 자리라 자주 틀린다. */
+/** Required average over the remaining credits. */
 export function neededAverage(
   points: number,
   credits: number,
@@ -131,34 +127,34 @@ export const run: ToolRunner = (op, args) => {
   const scale = scaleOf(args.scale === undefined ? undefined : String(args.scale));
   const max = maxOf(scale);
   const r = parseCourses(String(args.courses ?? ''), scale);
-  if (r.counted === 0) throw new Error('읽을 수 있는 줄이 없습니다 — 「3 A+」 처럼 학점과 성적을 한 줄에 적어 주세요');
+  if (r.counted === 0) throw new Error('No readable lines found - enter one course per line like "3 A+"');
 
   const head = [
-    `평점(학점 가중): ${r.gpa.toFixed(2)} / ${max}`,
-    `이수 학점: ${r.credits}  ·  과목 수: ${r.counted}`,
-    `단순 평균(참고): ${r.simple.toFixed(2)}  ← 학점 수를 무시하면 이 값이 나옵니다. 평점은 위쪽입니다.`,
-    `백분위 환산: ${((r.gpa / max) * 100).toFixed(1)}점`
+    `GPA (credit-weighted): ${r.gpa.toFixed(2)} / ${max}`,
+    `Credits: ${r.credits}  ·  Courses: ${r.counted}`,
+    `Plain average: ${r.simple.toFixed(2)}  <- ignore credits and you get this. GPA is above.`,
+    `Percent of max: ${((r.gpa / max) * 100).toFixed(1)}%`
   ];
-  if (r.bad.length > 0) head.push(`못 읽은 줄 ${r.bad.length}개: ${r.bad.slice(0, 3).join(' · ')}`);
+  if (r.bad.length > 0) head.push(`Unreadable lines ${r.bad.length}: ${r.bad.slice(0, 3).join(' · ')}`);
 
   if (op === 'gpa') return head.join('\n');
 
   if (op === 'needed') {
     const target = Number(args.target);
     const future = Number(args.future);
-    if (Number.isFinite(target) === false) throw new Error('목표 평점을 숫자로 주세요');
-    if (Number.isFinite(future) === false || future <= 0) throw new Error('남은 학점을 0보다 큰 숫자로 주세요');
+    if (Number.isFinite(target) === false) throw new Error('Enter the target GPA as a number');
+    if (Number.isFinite(future) === false || future <= 0) throw new Error('Enter remaining credits as a number greater than 0');
     const n = neededAverage(r.points, r.credits, target, future, max);
     head.push(
       n.alreadyThere
-        ? `목표 ${target}: 이미 넘었습니다`
+        ? `Target ${target}: already exceeded`
         : n.possible
-          ? `목표 ${target} 을(를) 맞추려면 남은 ${future}학점에서 평균 ${n.required.toFixed(2)} 필요`
-          : `목표 ${target} 은 남은 ${future}학점을 전부 만점 받아도 불가능합니다 (필요 ${n.required.toFixed(2)} > 만점 ${max})`,
-      `남은 학점을 전부 만점 받으면: ${n.best.toFixed(2)}`
+          ? `To reach ${target}, the remaining ${future} credits need an average of ${n.required.toFixed(2)}`
+          : `Target ${target} is impossible even with all remaining ${future} credits at max (need ${n.required.toFixed(2)} > max ${max})`,
+      `If remaining credits are all maxed out: ${n.best.toFixed(2)}`
     );
     return head.join('\n');
   }
 
-  throw new Error(`grade 에 「${op}」 는 없습니다`);
+  throw new Error(`grade has no operation named "${op}"`);
 };
