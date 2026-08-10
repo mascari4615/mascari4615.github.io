@@ -1,0 +1,17 @@
+{
+  "life.err.01": "Not a Tauri environment",
+  "life.t02": "Loading...",
+  "life.t03": "Switching on...",
+  "life.t04": "Switching off...",
+  "life.t05": "Loading the model... (~3.1GB)",
+  "life.t06": "On",
+  "life.t07": "Off",
+  "life.t08": "Screen capture",
+  "life.t09": "When on, PrintScreen captures the screen, runs OCR and files it",
+  "life.t10": "[life] screen toggle failed",
+  "life.t11": "Voice recording",
+  "life.t12": "Whisper-large-v3 (~3.1 GB RAM). When on, the model loads in the background.",
+  "life.t13": "[life] voice toggle failed",
+  "life.t14": "It works only in the Tauri app. The settings persist across sessions.",
+  "life.t17": "Feature settings"
+}

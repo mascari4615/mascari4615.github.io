@@ -1,4 +1,9 @@
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Mdd.injectCSS(
     'dashboard',
     `
@@ -20,8 +25,12 @@
   );
 
   function buildDashboard(container: HTMLElement): void {
-    Mdd.linePreset('tool_run', { msg: '사용 기록을 볼까요?' });
-    render(container);
+    /* 이 화면은 사람이 「내 정보」 탭을 열 때 따로 받아 온다 — 아무도 말 묶음을 챙겨
+       주지 않으므로 스스로 받고 그린다. */
+    void loadNamespace('dashboard').then(() => {
+      Mdd.linePreset('tool_run', { msg: t('dashboard.t10') });
+      render(container);
+  });
   }
 
   function render(container: HTMLElement): void {
@@ -42,7 +51,7 @@
 
     if (days.length === 0) {
       container.innerHTML =
-        '<div class="dash-empty"><div style="font-size:40px;margin-bottom:12px;opacity:0.3;">📊</div>아직 사용 기록이 없습니다.<br>챗봇이나 이미지 생성을 사용하면 여기에 기록됩니다.</div>';
+        t('dashboard.t11');
       return;
     }
 
@@ -51,25 +60,25 @@
                 <div class="dash-cards">
                     <div class="dash-card">
                         <div class="dash-card-value">${totalChat.toLocaleString()}</div>
-                        <div class="dash-card-label">💬 총 채팅 횟수</div>
+                        <div class="dash-card-label">${esc(t('dashboard.t01'))}</div>
                     </div>
                     <div class="dash-card">
                         <div class="dash-card-value">${totalImage.toLocaleString()}</div>
-                        <div class="dash-card-label">🎨 총 이미지 생성</div>
+                        <div class="dash-card-label">${esc(t('dashboard.t02'))}</div>
                     </div>
                     <div class="dash-card">
                         <div class="dash-card-value">${formatTokens(totalChatTokens)}</div>
-                        <div class="dash-card-label">💬 총 채팅 토큰</div>
+                        <div class="dash-card-label">${esc(t('dashboard.t03'))}</div>
                     </div>
                     <div class="dash-card">
                         <div class="dash-card-value">${formatTokens(totalImageTokens)}</div>
-                        <div class="dash-card-label">🎨 총 이미지 토큰</div>
+                        <div class="dash-card-label">${esc(t('dashboard.t04'))}</div>
                     </div>
                 </div>
                 <div class="dash-table-wrap">
                     <table class="dash-table">
                         <thead>
-                            <tr><th>날짜</th><th>채팅</th><th>채팅 토큰</th><th>이미지</th><th>이미지 토큰</th></tr>
+                            <tr><th>${esc(t('dashboard.t05'))}</th><th>${esc(t('dashboard.t06'))}</th><th>${esc(t('dashboard.t07'))}</th><th>${esc(t('dashboard.t08'))}</th><th>${esc(t('dashboard.t09'))}</th></tr>
                         </thead>
                         <tbody>
                             ${days
@@ -82,8 +91,8 @@
                     </table>
                 </div>
                 <div class="dash-actions">
-                    <button class="btn btn-ghost" id="dashRefresh">🔄 새로고침</button>
-                    <button class="btn btn-danger" id="dashClear">🗑️ 기록 초기화</button>
+                    <button class="btn btn-ghost" id="dashRefresh">${esc(t('dashboard.btn.dashRefresh'))}</button>
+                    <button class="btn btn-danger" id="dashClear">${esc(t('dashboard.btn.dashClear'))}</button>
                 </div>
             </div>`;
 
@@ -92,10 +101,10 @@
     if (refreshEl) refreshEl.onclick = () => render(container);
     if (clearEl) {
       clearEl.onclick = () => {
-        if (!confirm('모든 사용량 기록을 삭제하시겠습니까?')) return;
+        if (!confirm(t('dashboard.t12'))) return;
         localStorage.removeItem('toolbox_usage_stats');
         render(container);
-        Toolbox.showToast?.('사용량 기록 초기화 완료', undefined, undefined);
+        Toolbox.showToast?.(t('dashboard.t13'), undefined, undefined);
       };
     }
   }

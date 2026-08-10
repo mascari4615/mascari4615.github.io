@@ -158,5 +158,15 @@
   "chatbot.rp.scenario": "상황: {value}",
   "chatbot.rp.visual": "외형(이미지·일관성용, 대사에 그대로 읊지 말 것): {value}",
   "chatbot.charBadge": "💬 {name}",
-  "chatbot.charOverwritten": "캐릭터를 덮어썼습니다: {name}"
+  "chatbot.charOverwritten": "캐릭터를 덮어썼습니다: {name}",
+  "chatbot.t111": "🖼 이미지 생성 중…",
+  "chatbot.err.112": "Gemini 모듈이 로드되지 않았습니다.",
+  "chatbot.t113": "이미지 생성: Vertex API 키가 설정되지 않았습니다.",
+  "chatbot.t114": "이미지 생성: Vertex 사용 시 설정에 GCP 프로젝트 ID가 필요합니다.",
+  "chatbot.t115": "Vertex: 프로젝트 ID를 설정하세요.",
+  "chatbot.err.116": "Vertex 이미지 생성 함수를 사용할 수 없습니다.",
+  "chatbot.err.117": "이미지 생성 함수를 사용할 수 없습니다.",
+  "chatbot.t118": "캐릭터 이미지",
+  "chatbot.t119": "이미지 생성 실패: ",
+  "chatbot.imageError": "이미지 오류"
 }

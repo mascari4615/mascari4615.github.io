@@ -1,0 +1,20 @@
+{
+  "font.t01": "🎰 Spin the gacha to change the font!",
+  "font.label.display": "Handgloves ABC Hello 123",
+  "font.btn.drawFontBtn": "🎰 Spin!",
+  "font.label.collection": "Collected:",
+  "font.t02": "Font gacha",
+  "font.t04": "It is a font gacha! What will come out~",
+  "font.t05": "Default font",
+  "font.t06": "Gulim",
+  "font.t07": "Gungsuh",
+  "font.t08": "Batang",
+  "font.t09": "NanumGothic",
+  "font.t10": "Gungsuhche",
+  "font.t11": "Spinning…!!",
+  "font.t12": "UR!! A legendary font!! 🎉🎉🎉",
+  "font.t13": "SR! Quite a rare pull!",
+  "font.t14": "Grade C... a very common one...",
+  "font.got": "Got: {grade} {name}",
+  "font.gotToast": "{name} obtained!"
+}

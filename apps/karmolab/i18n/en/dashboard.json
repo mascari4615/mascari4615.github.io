@@ -1,0 +1,17 @@
+{
+  "dashboard.t01": "💬 Chats in total",
+  "dashboard.t02": "🎨 Images in total",
+  "dashboard.t03": "💬 Chat tokens in total",
+  "dashboard.t04": "🎨 Image tokens in total",
+  "dashboard.t05": "Date",
+  "dashboard.t06": "Chats",
+  "dashboard.t07": "Chat tokens",
+  "dashboard.t08": "Images",
+  "dashboard.t09": "Image tokens",
+  "dashboard.btn.dashRefresh": "🔄 Refresh",
+  "dashboard.btn.dashClear": "🗑️ Clear the record",
+  "dashboard.t10": "Shall we look at the usage record?",
+  "dashboard.t11": "<div class=\"dash-empty\"><div style=\"font-size:40px;margin-bottom:12px;opacity:0.3;\">📊</div>There is no usage record yet.<br>Use the chatbot or image generation and it is recorded here.</div>",
+  "dashboard.t12": "Delete every usage record?",
+  "dashboard.t13": "The usage record is cleared"
+}

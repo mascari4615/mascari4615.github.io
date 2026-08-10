@@ -1,0 +1,17 @@
+{
+  "life.err.01": "Tauri 환경 아님",
+  "life.t02": "로딩 중...",
+  "life.t03": "활성화 중...",
+  "life.t04": "비활성화 중...",
+  "life.t05": "모델 로드 중... (~3.1GB)",
+  "life.t06": "활성",
+  "life.t07": "비활성",
+  "life.t08": "화면 캡처",
+  "life.t09": "활성화 시 PrintScreen 키로 화면 캡처 + OCR + 분류 저장",
+  "life.t10": "[life] screen toggle 실패",
+  "life.t11": "음성 녹음",
+  "life.t12": "Whisper-large-v3 (~3.1 GB RAM). 활성 시 백그라운드 모델 로드.",
+  "life.t13": "[life] voice toggle 실패",
+  "life.t14": "Tauri 앱에서만 동작합니다. 설정은 세션 간 유지됩니다.",
+  "life.t17": "기능 설정"
+}

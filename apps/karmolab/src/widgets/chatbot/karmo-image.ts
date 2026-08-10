@@ -1,6 +1,7 @@
 import { DEFAULT_VERTEX_LOCATION } from 'karmolab-ai';
 import { chatbotUiSurfaceToPackage, getChatbotApiSurfaceUi } from './api-surface';
 import type { ChatbotCharacter, KarmoImageSpec } from '../../../types/karmolab';
+import { t, loadNamespace } from '../../lib/i18n';
 
 /** 스트리밍 표시용 KARMO_IMAGE 태그 제거·파싱·캐릭터 이미지 생성 */
 (function () {
@@ -35,7 +36,7 @@ import type { ChatbotCharacter, KarmoImageSpec } from '../../../types/karmolab';
         if (!wrap?.parentNode || !spec?.show || !spec.prompt) return;
         const loading = document.createElement('div');
         loading.className = 'cb-msg cb-msg-bot cb-msg-image cb-msg-image-loading';
-        loading.textContent = '🖼 이미지 생성 중…';
+        loading.textContent = t('chatbot.t111');
         wrap.parentNode.insertBefore(loading, wrap.nextSibling);
 
         const sceneEn = String(spec.prompt).slice(0, 800);
@@ -54,33 +55,33 @@ import type { ChatbotCharacter, KarmoImageSpec } from '../../../types/karmolab';
         if (ref && ref.startsWith('data:')) opt.referenceImage = ref;
 
         const G = Gemini;
-        if (!G) throw new Error('Gemini 모듈이 로드되지 않았습니다.');
+        if (!G) throw new Error(t('chatbot.err.112'));
 
         try {
             let res;
             if (chatbotUiSurfaceToPackage(getChatbotApiSurfaceUi()) === 'vertex') {
                 if (!G.requireVertexApiKey?.()) {
                     loading.className = 'cb-msg cb-msg-bot cb-msg-error cb-msg-image';
-                    loading.textContent = '이미지 생성: Vertex API 키가 설정되지 않았습니다.';
+                    loading.textContent = t('chatbot.t113');
                     return;
                 }
                 const projectId = (Toolbox.getPref?.('ig_vertex_project_id', '') || '').trim();
                 if (!projectId) {
                     loading.className = 'cb-msg cb-msg-bot cb-msg-error cb-msg-image';
-                    loading.textContent = '이미지 생성: Vertex 사용 시 설정에 GCP 프로젝트 ID가 필요합니다.';
-                    Toolbox.showToast?.('Vertex: 프로젝트 ID를 설정하세요.', 'error');
+                    loading.textContent = t('chatbot.t114');
+                    Toolbox.showToast?.(t('chatbot.t115'), 'error');
                     return;
                 }
                 const locationRaw = (Toolbox.getPref?.('ig_vertex_location', '') || '').trim();
                 const location = locationRaw || DEFAULT_VERTEX_LOCATION;
-                if (!G.callVertexGeminiImage) throw new Error('Vertex 이미지 생성 함수를 사용할 수 없습니다.');
+                if (!G.callVertexGeminiImage) throw new Error(t('chatbot.err.116'));
                 res = await G.callVertexGeminiImage(fullPrompt, imgModel, {
                     ...opt,
                     projectId,
                     location,
                 });
             } else {
-                if (!G.callGeminiImage) throw new Error('이미지 생성 함수를 사용할 수 없습니다.');
+                if (!G.callGeminiImage) throw new Error(t('chatbot.err.117'));
                 res = await G.callGeminiImage(fullPrompt, imgModel, opt);
             }
             loading.remove();
@@ -88,7 +89,7 @@ import type { ChatbotCharacter, KarmoImageSpec } from '../../../types/karmolab';
             box.className = 'cb-msg cb-msg-bot cb-msg-image';
             const img = document.createElement('img');
             img.src = res.dataUrl;
-            img.alt = '캐릭터 이미지';
+            img.alt = t('chatbot.t118');
             box.appendChild(img);
             wrap.parentNode.insertBefore(box, wrap.nextSibling);
             const msgs = document.getElementById('cbMessages');
@@ -97,8 +98,8 @@ import type { ChatbotCharacter, KarmoImageSpec } from '../../../types/karmolab';
         } catch (e) {
             const msg = e instanceof Error ? e.message : String(e);
             loading.className = 'cb-msg cb-msg-bot cb-msg-error cb-msg-image';
-            loading.textContent = '이미지 생성 실패: ' + msg;
-            Toolbox.showToast?.(msg || '이미지 오류', 'error', e);
+            loading.textContent = t('chatbot.t119') + msg;
+            Toolbox.showToast?.(msg || t('chatbot.imageError'), 'error', e);
         }
     }
 
