@@ -17,6 +17,7 @@
  *
  * 방송을 하나 더 만드는 일 = `channels.ts` 에 `Channel` 하나 추가. 그게 전부다.
  */
+import { t } from '../../lib/i18n';
 
 /** 화면이 쥐여 주는 색. 방송이 제 색을 박으면 밝은 테마에서 안 보인다. */
 export interface Ink {
@@ -158,12 +159,12 @@ const PAD = (n: number): string => String(n).padStart(2, '0');
 /** 「3분 20초」처럼 남은 시간을 사람 말로. */
 export function humanLeft(ms: number): string {
   const s = Math.max(0, Math.ceil(ms / 1000));
-  if (s < 60) return `${s}초`;
+  if (s < 60) return t('pulse.left.s', { s });
   const m = Math.floor(s / 60);
-  if (m < 60) return `${m}분 ${PAD(s % 60)}초`;
+  if (m < 60) return t('pulse.left.ms', { m, s: PAD(s % 60) });
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}시간 ${PAD(m % 60)}분`;
-  return `${Math.floor(h / 24)}일 ${PAD(h % 24)}시간`;
+  if (h < 24) return t('pulse.left.hm', { h, m: PAD(m % 60) });
+  return t('pulse.left.dh', { d: Math.floor(h / 24), h: PAD(h % 24) });
 }
 
 /** 「08-09 14:20」 — 박동이 나온 시각. */
