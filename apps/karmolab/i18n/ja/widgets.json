@@ -85,7 +85,7 @@
   "widgets.tableconv.title": "表の変換",
   "widgets.json2ts.title": "JSON → 型宣言",
   "widgets.jsonfmt.title": "JSON フォーマッタ",
-  "widgets.hangulkey.title": "かな/英字キー変換",
+  "widgets.hangulkey.title": "ハングル/英字キー変換",
   "widgets.qrgen.title": "QR コード作成",
   "widgets.qrread.title": "QR コード読み取り",
   "widgets.qr.title": "QR ツール",
