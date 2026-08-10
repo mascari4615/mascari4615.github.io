@@ -451,5 +451,13 @@
   "karmomap.nothingYet": "まだありません。",
   "karmomap.andMore": "ほか {n}",
   "karmomap.minsAgo": "{n}分前",
-  "karmomap.hoursAgo": "{n}時間前"
+  "karmomap.hoursAgo": "{n}時間前",
+  "karmomap.t405": "[karmomap] マップ一覧の読み込みに失敗",
+  "karmomap.t406": "[karmomap] マップ一覧の保存に失敗",
+  "karmomap.t407": "[karmomap] 古い保存データの移行に失敗",
+  "karmomap.t408": "わたしのマップ",
+  "karmomap.t409": "最初のマップ",
+  "karmomap.t410": "[karmomap] 新しいマップの保存に失敗",
+  "karmomap.t411": "[karmomap] マップの削除に失敗",
+  "karmomap.t412": "マップ"
 }

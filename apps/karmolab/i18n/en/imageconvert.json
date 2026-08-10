@@ -80,5 +80,11 @@
   "imageconvert.t79": "Saved them all!",
   "imageconvert.t80": "Something went wrong during the batch.",
   "imageconvert.t81": "Download with the format and size you want",
-  "imageconvert.t82": "Image format, size and quality in one place"
+  "imageconvert.t82": "Image format, size and quality in one place",
+  "imageconvert.err.83": "SVG is not supported by this tool.",
+  "imageconvert.err.84": "Please put in a supported image (PNG, JPEG, WebP, GIF, BMP).",
+  "imageconvert.err.85": "The image could not be loaded.",
+  "imageconvert.err.832": "KarmoLabImageBatch: recipe.steps must not be empty.",
+  "imageconvert.err.842": "KarmoLabImageBatch: only one conversion step is supported for now.",
+  "imageconvert.err.852": "KarmoLabImageBatch: unsupported step."
 }

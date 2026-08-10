@@ -5,5 +5,11 @@
   "reference.part.shortcut": "ショートカット",
   "reference.part.filetype": "ファイル拡張子",
   "reference.part.keycode": "キーコード",
-  "reference.part.regexref": "正規表現"
+  "reference.part.regexref": "正規表現",
+  "reference.t01": "すべて",
+  "reference.t02": "検索結果がありません。",
+  "reference.tapToCopy": "項目を押すとクリップボードにコピーされます。",
+  "reference.copiedItem": "{noun}をコピー: {value}",
+  "reference.countNote": "{n}件 · {note}",
+  "reference.tapCopies": "押すとコピーされます。"
 }

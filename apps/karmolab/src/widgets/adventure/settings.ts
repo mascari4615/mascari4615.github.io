@@ -10,6 +10,7 @@
  */
 import { ALL_ADVENTURE_PROVIDERS, ADV_PROVIDER_PREF_KEY } from './provider';
 import type { AdventureProvider, AdventureProviderId } from './provider';
+import { t, loadNamespace } from '../../lib/i18n';
 
 interface ToolboxPrefAPI {
   getPref?: (key: string) => unknown;
@@ -114,7 +115,7 @@ export function buildSettingsPanel(opts: {
   wrap.style.gap = '10px';
 
   const heading = document.createElement('strong');
-  heading.textContent = '⚙ Provider 설정';
+  heading.textContent = t('adventure.t36');
   wrap.appendChild(heading);
 
   const note = document.createElement('p');
@@ -122,7 +123,7 @@ export function buildSettingsPanel(opts: {
   note.style.fontSize = '12px';
   note.style.color = STYLE_TOKENS.textTertiary;
   note.textContent =
-    'Claude (Max OAuth) 는 Tauri 데스크톱 앱 안에서만 동작합니다 (ζ 단계 후). Vertex 는 브라우저 직접 호출 — API key + 프로젝트 ID 필요.';
+    t('adventure.t37');
   wrap.appendChild(note);
 
   /* ===== Provider 선택 ===== */
@@ -142,7 +143,7 @@ export function buildSettingsPanel(opts: {
 
   /* ===== Claude 모델 ===== */
   const claudeProvider = ALL_ADVENTURE_PROVIDERS.find((p) => p.id === 'claude');
-  const { row: claudeRow, cell: claudeCell } = makeRow('Claude 모델');
+  const { row: claudeRow, cell: claudeCell } = makeRow(t('adventure.t38'));
   let claudeSelect: HTMLSelectElement | null = null;
   if (claudeProvider) {
     claudeSelect = makeSelect(
@@ -156,7 +157,7 @@ export function buildSettingsPanel(opts: {
 
   /* ===== Vertex 모델 ===== */
   const vertexProvider = ALL_ADVENTURE_PROVIDERS.find((p) => p.id === 'vertex');
-  const { row: vertexModelRow, cell: vertexModelCell } = makeRow('Vertex 모델');
+  const { row: vertexModelRow, cell: vertexModelCell } = makeRow(t('adventure.t39'));
   let vertexModelSelect: HTMLSelectElement | null = null;
   if (vertexProvider) {
     vertexModelSelect = makeSelect(

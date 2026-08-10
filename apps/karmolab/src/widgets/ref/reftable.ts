@@ -35,7 +35,12 @@ interface RefSpec {
   note?: string;
 }
 
+import { t, loadNamespace, locale } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   /**
    * 표 정의를 이름표로 보관한다.
    *
@@ -51,6 +56,8 @@ interface RefSpec {
   }
 
   function build(container: HTMLElement, spec: RefSpec): void {
+             void loadNamespace('reference').then(function () {
+
     const groups: string[] = [];
     spec.items.forEach((it) => {
       if (groups.indexOf(it.group) < 0) groups.push(it.group);
@@ -61,12 +68,12 @@ interface RefSpec {
       <div class="field-group">
         <input type="text" class="rt-search" placeholder="${spec.placeholder}">
         <div class="tool-chips rt-chips" style="margin-top:10px;">
-          <button type="button" class="tool-chip active" data-group="">전체</button>
+          <button type="button" class="tool-chip active" data-group="">${esc(t('reference.t01'))}</button>
           ${groups.map((g) => `<button type="button" class="tool-chip" data-group="${g}">${g}</button>`).join('')}
         </div>
       </div>
       <div class="rt-body ${layout === 'grid' ? 'rt-grid' : 'rt-list'}"></div>
-      <div class="tool-status rt-status" style="margin-top:12px;">${spec.note || '항목을 누르면 클립보드로 복사됩니다.'}</div>
+      <div class="tool-status rt-status" style="margin-top:12px;">${spec.note || t('reference.tapToCopy')}</div>
     `;
 
     const search = container.querySelector('.rt-search') as HTMLInputElement;
@@ -74,7 +81,6 @@ interface RefSpec {
     const status = container.querySelector('.rt-status') as HTMLElement;
     let group = '';
 
-    const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
     function render(): void {
       const q = search.value.trim().toLowerCase();
@@ -110,7 +116,7 @@ interface RefSpec {
         (el as HTMLButtonElement).onclick = () => {
           const item = list[Number((el as HTMLElement).dataset.i)];
           if (!item) return;
-          void Toolbox.copyText?.(item.copy, { message: `${spec.copyNoun} 복사: ${item.copy}` }).then((ok) => {
+          void Toolbox.copyText?.(item.copy, { message: t('reference.copiedItem', { noun: spec.copyNoun, value: item.copy }) }).then((ok) => {
             if (!ok) return;
             el.classList.add('rt-copied');
             setTimeout(() => el.classList.remove('rt-copied'), 600);
@@ -119,8 +125,8 @@ interface RefSpec {
       });
 
       status.textContent = list.length
-        ? `${list.length.toLocaleString('ko-KR')}개 · ${spec.note || '누르면 복사됩니다.'}`
-        : '검색 결과가 없어요.';
+        ? t('reference.countNote', { n: list.length.toLocaleString(locale()), note: spec.note || t('reference.tapCopies') })
+        : t('reference.t02');
     }
 
     search.addEventListener('input', render);
@@ -134,7 +140,8 @@ interface RefSpec {
     });
 
     render();
-  }
+               });
+           }
 
   window.RefTable = { build, define, get };
 })();

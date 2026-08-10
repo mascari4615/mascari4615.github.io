@@ -5,5 +5,11 @@
   "reference.part.shortcut": "Shortcuts",
   "reference.part.filetype": "File extensions",
   "reference.part.keycode": "Key codes",
-  "reference.part.regexref": "Regex"
+  "reference.part.regexref": "Regex",
+  "reference.t01": "All",
+  "reference.t02": "No search result.",
+  "reference.tapToCopy": "Press an item and it goes to the clipboard.",
+  "reference.copiedItem": "{noun} copied: {value}",
+  "reference.countNote": "{n} · {note}",
+  "reference.tapCopies": "press to copy"
 }

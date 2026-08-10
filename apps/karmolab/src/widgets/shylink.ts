@@ -1,21 +1,28 @@
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'shylink',
-    title: '어그로',
+    title: t('widgets.shylink.title', undefined, "어그로"),
     category: 'play',
-    desc: '움직이는 링크를 잡는 미니게임',
+    desc: t('widgets-desc.shylink.desc', undefined, "움직이는 링크를 잡는 미니게임"),
     layout: 'form',
     icon: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71 M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>',
     tabs: [
       {
         id: 'app',
-        label: '어그로',
+        label: t('shylink.t01', undefined, "어그로"),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('meme_done', { msg: '이 링크... 잡을 수 있어요?' });
+          void loadNamespace('shylink').then(function () {
+
+          Mdd.linePreset('meme_done', { msg: t('shylink.t03') });
           container.innerHTML = `
                     <div style="position:relative; width:100%; height:450px; background:#1a1a2e; overflow:hidden; border-radius:var(--radius-lg); cursor:crosshair;" id="shyArea">
                         <a href="#" id="shyTarget" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#ff4757; font-size:24px; font-weight:900; text-decoration:none; text-shadow:0 0 10px rgba(255,71,87,0.5); white-space:nowrap; padding:20px; transition: opacity 0.1s; user-select:none;">
-                            ❗❗[속보] 야 이거 봤냐??? 진짜 레전드다 ㅋㅋㅋㅋㅋㅋㅋㅋ❗❗
+                            ${esc(t('shylink.label.shyTarget'))}
                         </a>
                     </div>
                 
@@ -69,6 +76,7 @@
             modal.style.display = 'none';
             iframeBox.innerHTML = '';
           };
+                  });
         }
       }
     ]

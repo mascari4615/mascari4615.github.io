@@ -80,5 +80,11 @@
   "imageconvert.t79": "すべて保存しました!",
   "imageconvert.t80": "まとめ処理中にエラーが出ました。",
   "imageconvert.t81": "形式・サイズを合わせてダウンロード",
-  "imageconvert.t82": "画像の形式・サイズ・品質を一か所で"
+  "imageconvert.t82": "画像の形式・サイズ・品質を一か所で",
+  "imageconvert.err.83": "SVG はこの道具では扱えません。",
+  "imageconvert.err.84": "対応している画像 (PNG, JPEG, WebP, GIF, BMP) を入れてください。",
+  "imageconvert.err.85": "画像を読み込めませんでした。",
+  "imageconvert.err.832": "KarmoLabImageBatch: recipe.steps が空であってはいけません。",
+  "imageconvert.err.842": "KarmoLabImageBatch: いまは変換ステップ1つのみ対応です。",
+  "imageconvert.err.852": "KarmoLabImageBatch: 対応していないステップです。"
 }

@@ -1,23 +1,30 @@
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'bounce',
-    title: '바운스',
+    title: t('widgets.bounce.title', undefined, "바운스"),
     category: 'play',
-    desc: '공을 튕겨 바운스 게임을 합니다',
+    desc: t('widgets-desc.bounce.desc', undefined, "공을 튕겨 바운스 게임을 합니다"),
     layout: 'form',
     icon: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
     tabs: [
       {
         id: 'app',
-        label: '바운스',
+        label: t('bounce.t02', undefined, "바운스"),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('daily_start', { msg: '통통볼 놀이에요!' });
+          void loadNamespace('bounce').then(function () {
+
+          Mdd.linePreset('daily_start', { msg: t('bounce.t04') });
           container.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                        <div style="font-size:var(--font-size-xs); color:var(--text-tertiary);">구석 적중: <span id="cornerCount" style="color:var(--success); font-weight:bold;">0</span></div>
+                        <div style="font-size:var(--font-size-xs); color:var(--text-tertiary);">${esc(t('bounce.t01'))} <span id="cornerCount" style="color:var(--success); font-weight:bold;">0</span></div>
                         <label class="btn-ghost" style="padding:4px 8px; font-size:var(--font-size-xs); cursor:pointer;">
                             <input type="file" id="logoUpload" accept="image/*" style="display:none;">
-                            이미지 업로드
+                            ${esc(t('bounce.label.logoUpload'))}
                         </label>
                     </div>
                     <canvas class="playground-canvas" id="bounceCanvas" style="background:#000;"></canvas>
@@ -112,7 +119,7 @@
             if (hitX && hitY) {
               corners++;
               countLabel.textContent = String(corners);
-              Toolbox.showToast?.('🎯 구석 적중!', undefined, undefined);
+              Toolbox.showToast?.(t('bounce.t05'), undefined, undefined);
             }
 
             c2d.save();
@@ -142,6 +149,7 @@
             { threshold: 0.1 }
           );
           observer.observe(canvas);
+                  });
         }
       }
     ]

@@ -3,6 +3,7 @@
  * 다른 스크립트에서 window.KarmoLabImageConvert 로 사용
  */
 import type { ImageConvertOptions, KarmoLabImageConvertAPI } from '../../../types/karmolab';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (global: Window) {
   const MIME_PNG = 'image/png';
@@ -127,11 +128,11 @@ import type { ImageConvertOptions, KarmoLabImageConvertAPI } from '../../../type
   }> {
     return new Promise(function (resolve, reject) {
       if (isSvgFile(file)) {
-        reject(new Error('SVG는 이 도구에서 지원하지 않아요.'));
+        reject(new Error(t('imageconvert.err.83')));
         return;
       }
       if (!isRasterImageFile(file)) {
-        reject(new Error('지원하는 이미지(PNG, JPEG, WebP, GIF, BMP)만 넣어 주세요.'));
+        reject(new Error(t('imageconvert.err.84')));
         return;
       }
       const url = URL.createObjectURL(file);
@@ -145,7 +146,7 @@ import type { ImageConvertOptions, KarmoLabImageConvertAPI } from '../../../type
         } catch {
           /* noop */
         }
-        reject(new Error('이미지를 불러오지 못했어요.'));
+        reject(new Error(t('imageconvert.err.85')));
       };
       im.src = url;
     });

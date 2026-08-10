@@ -5,5 +5,11 @@
   "reference.part.shortcut": "단축키",
   "reference.part.filetype": "파일 확장자",
   "reference.part.keycode": "키 코드",
-  "reference.part.regexref": "정규식"
+  "reference.part.regexref": "정규식",
+  "reference.t01": "전체",
+  "reference.t02": "검색 결과가 없어요.",
+  "reference.tapToCopy": "항목을 누르면 클립보드로 복사됩니다.",
+  "reference.copiedItem": "{noun} 복사: {value}",
+  "reference.countNote": "{n}개 · {note}",
+  "reference.tapCopies": "누르면 복사됩니다."
 }
