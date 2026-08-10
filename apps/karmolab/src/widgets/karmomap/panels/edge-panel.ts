@@ -6,6 +6,7 @@
  */
 import type { PanelCtx } from './context';
 import { docFieldHtml, bindDocField, EDGE_DOC_SKIN } from './doc-section';
+import { t, loadNamespace } from '../../../lib/i18n';
 
 /**
  * 선 패널 — 관계 자체에 붙는 이야기 (격차 Z).
@@ -18,35 +19,35 @@ export function renderEdgePanel(ctx: PanelCtx): void {
     ctx.goNode();
     return;
   }
-  const nameOf = (id: string): string => ctx.spec().nodes.find((n) => n.id === id)?.label || '(이름 없음)';
+  const nameOf = (id: string): string => ctx.spec().nodes.find((n) => n.id === id)?.label || t('karmomap.unnamed');
   side.classList.remove('hidden');
   side.innerHTML = `
-    <h4>― 관계</h4>
+    <h4>${esc(t('karmomap.t323'))}</h4>
     <div class="km-hint">${esc(nameOf(edge.from))} → ${esc(nameOf(edge.to))}</div>
     <div class="km-field">
-      <label>무슨 관계</label>
+      <label>${esc(t('karmomap.t324'))}</label>
       <select data-km="ed-kind">${ctx.edgeKindOptionsHtml(edge.kind)}</select>
     </div>
     <div class="km-field">
-      <label>선 위에 쓸 말</label>
-      <input type="text" data-km="ed-label" value="${esc(edge.label ?? '')}" placeholder="비우면 안 보임" />
+      <label>${esc(t('karmomap.t325'))}</label>
+      <input type="text" data-km="ed-label" value="${esc(edge.label ?? '')}" placeholder="${esc(t('karmomap.t322'))}" />
     </div>
     ${docFieldHtml(ctx, edge, EDGE_DOC_SKIN)}
     <div class="km-field">
-      <label>양쪽 시선</label>
-      <div class="km-hint">같은 관계라도 <b>보는 쪽에 따라 다릅니다</b>. 한 칸에 몰아 적으면 누구 마음인지 흐려집니다.</div>
+      <label>${esc(t('karmomap.t326'))}</label>
+      <div class="km-hint">${t('karmomap.hint02', { em: `<b>${esc(t('karmomap.t328'))}</b>` })}</div>
       <input type="text" data-km="ed-view-from" value="${esc(edge.viewFrom ?? '')}"
         placeholder="${esc(nameOf(edge.from))} 가 보는 ${esc(nameOf(edge.to))}" />
       <input type="text" data-km="ed-view-to" value="${esc(edge.viewTo ?? '')}"
         placeholder="${esc(nameOf(edge.to))} 가 보는 ${esc(nameOf(edge.from))}" />
     </div>
     <div class="km-field">
-      <label>꼬리표 <span class="km-hint">쉼표로 여러 개</span></label>
+      <label>${esc(t('karmomap.t330'))} <span class="km-hint">${esc(t('karmomap.t331'))}</span></label>
       <input type="text" data-km="ed-tags" value="${esc((edge.tags ?? []).join(', '))}" />
     </div>
-    <button class="btn btn-ghost" data-km="ed-both">${edge.arrowStart ? '양쪽 화살표 ↔' : '한쪽 화살표 →'}</button>
-    <button class="btn btn-danger" data-km="ed-del">이 선 지우기</button>
-    <button class="btn btn-ghost" data-km="ed-close">닫기</button>`;
+    <button class="btn btn-ghost" data-km="ed-both">${edge.arrowStart ? t('karmomap.t334') : t('karmomap.t335')}</button>
+    <button class="btn btn-danger" data-km="ed-del">${esc(t('karmomap.t332'))}</button>
+    <button class="btn btn-ghost" data-km="ed-close">${esc(t('karmomap.t333'))}</button>`;
 
   const save = (): void => {
     ctx.canvas()?.render();
@@ -83,7 +84,7 @@ export function renderEdgePanel(ctx: PanelCtx): void {
   };
   (side.querySelector('[data-km="ed-both"]') as HTMLButtonElement).onclick = (ev) => {
     edge.arrowStart = edge.arrowStart ? undefined : true;
-    (ev.currentTarget as HTMLButtonElement).textContent = edge.arrowStart ? '양쪽 화살표 ↔' : '한쪽 화살표 →';
+    (ev.currentTarget as HTMLButtonElement).textContent = edge.arrowStart ? t('karmomap.t334') : t('karmomap.t335');
     save();
   };
   (side.querySelector('[data-km="ed-del"]') as HTMLButtonElement).onclick = () => {

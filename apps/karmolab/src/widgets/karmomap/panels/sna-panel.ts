@@ -5,6 +5,7 @@
  */
 import { computeSna, topBy, structuralGaps } from '../sna';
 import type { PanelCtx } from './context';
+import { t, loadNamespace } from '../../../lib/i18n';
 
 export function renderSnaPanel(ctx: PanelCtx): void {
   const { side, esc } = ctx;
@@ -13,7 +14,7 @@ export function renderSnaPanel(ctx: PanelCtx): void {
 
   const live = ctx.canvas()?.getSpec() ?? ctx.spec();
   const sna = computeSna({ nodes: live.nodes, edges: live.edges });
-  const nameOf = (id: string): string => live.nodes.find((n) => n.id === id)?.label || '(이름 없음)';
+  const nameOf = (id: string): string => live.nodes.find((n) => n.id === id)?.label || t('karmomap.unnamed');
 
   // 순위만으로는 「그래서 뭘 하지」가 안 나온다 — 이을 자리를 짚어 준다.
   const gaps = structuralGaps({ nodes: live.nodes, edges: live.edges });
@@ -23,30 +24,30 @@ export function renderSnaPanel(ctx: PanelCtx): void {
       <label>${title}</label>
       <div class="km-hint">${hint}</div>
       ${rows.length === 0
-        ? '<div class="km-hint">아직 이어진 것이 없습니다.</div>'
+        ? t('karmomap.t315')
         : rows.map((r) => `<div class="km-link-row">
             <span class="km-link-name">${esc(nameOf(r.id))}</span>
             <span class="km-group-count">${r.value.toFixed(digits)}</span>
-            <button class="btn btn-ghost" data-km="go-link" data-key="${esc(r.id)}">가기</button>
+            <button class="btn btn-ghost" data-km="go-link" data-key="${esc(r.id)}">${esc(t('karmomap.t308'))}</button>
           </div>`).join('')}
     </div>`;
 
   side.innerHTML = `
-    <h4>📊 관계망 읽기</h4>
-    ${list('이어진 선이 많은 쪽', '허브 — 없어지면 곤란한 자리의 1차 신호.', topBy(sna.degree, 5), 0)}
-    ${list('다리 역할', '남들 사이를 잇는 길목. 이 사람이 빠지면 그림이 두 조각 난다.', topBy(sna.betweenness, 5), 1)}
-    ${list('모두에게 가까운 쪽', '소문이 가장 빨리 퍼지는 자리.', topBy(sna.closeness, 5), 3)}
+    <h4>${esc(t('karmomap.t309'))}</h4>
+    ${list(t('karmomap.t316'), t('karmomap.t317'), topBy(sna.degree, 5), 0)}
+    ${list(t('karmomap.t318'), t('karmomap.t319'), topBy(sna.betweenness, 5), 1)}
+    ${list(t('karmomap.t320'), t('karmomap.t321'), topBy(sna.closeness, 5), 3)}
     ${gaps.length === 0 ? '' : `<div class="km-field">
-      <label>이어질 법한데 안 이어진 자리</label>
-      <div class="km-hint">아는 사이가 여럿 겹치는데 **서로는 안 이어진** 둘입니다 — 대개 아직 안 쓴 이야기이거나 빠뜨린 연결입니다.</div>
+      <label>${esc(t('karmomap.t310'))}</label>
+      <div class="km-hint">${esc(t('karmomap.t311'))}</div>
       ${gaps.slice(0, 5).map((g0) => `<div class="km-link-row">
         <span class="km-link-name">${esc(nameOf(g0.a))} ↔ ${esc(nameOf(g0.b))}</span>
         <span class="km-group-count">겹치는 사이 ${g0.shared}</span>
-        <button class="btn btn-ghost" data-km="gap-link" data-key="${esc(g0.a)}" data-to="${esc(g0.b)}">이어 주기</button>
+        <button class="btn btn-ghost" data-km="gap-link" data-key="${esc(g0.a)}" data-to="${esc(g0.b)}">${esc(t('karmomap.t312'))}</button>
       </div>`).join('')}
     </div>`}
-    <button class="btn btn-ghost" data-km="sna-focus">다리 역할 셋만 보기</button>
-    <button class="btn btn-ghost" data-km="sna-close">닫기</button>`;
+    <button class="btn btn-ghost" data-km="sna-focus">${esc(t('karmomap.t313'))}</button>
+    <button class="btn btn-ghost" data-km="sna-close">${esc(t('karmomap.t314'))}</button>`;
 
   side.querySelectorAll('[data-km="go-link"]').forEach((el) => {
     (el as HTMLButtonElement).onclick = () => {
