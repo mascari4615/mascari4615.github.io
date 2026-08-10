@@ -16,7 +16,7 @@ export function renderStampsPanel(ctx: PanelCtx): void {
 
   side.innerHTML = `
     <h4>${esc(t('karmomap.t380'))}</h4>
-    <div class="km-hint">${t('karmomap.hint02', { em: `<b>${esc(t('karmomap.t382'))}</b>` })}</div>
+    <div class="km-hint">${t('karmomap.stampsWhat', { em: `<b>${esc(t('karmomap.t382'))}</b>` })}</div>
     ${list.length === 0
       ? t('karmomap.t386')
       : list.map((st) => `<div class="km-link-row">

@@ -7,6 +7,7 @@
  * imagegen 위젯의 Gemini.callVertexGeminiImage 패턴 흡수했지만 의존 분리 — adventure 한정 단순 호출.
  */
 import { buildVertexPublisherModelUrl, DEFAULT_VERTEX_LOCATION } from 'karmolab-ai';
+import { t, loadNamespace } from '../../lib/i18n';
 
 interface ToolboxLike {
   getPref?: (key: string) => unknown;
@@ -38,7 +39,7 @@ export async function generateAdventureImage(
   const modelId = readPref('adv_imagen_model_id') || IMAGEN_MODEL_DEFAULT;
 
   if (!apiKey || !projectId) {
-    throw new Error('이미지 생성 = Vertex Imagen 사용. ⚙ 설정에서 Vertex API key + Project ID 박아주세요.');
+    throw new Error(t('adventure.err.50'));
   }
 
   // narrativeSnippet 앞 280자만 prompt — Imagen prompt 길이 제한 의식
@@ -87,7 +88,7 @@ export async function generateAdventureImage(
   }
   const b64 = data.predictions?.[0]?.bytesBase64Encoded;
   if (!b64) {
-    throw new Error('Vertex Imagen 응답에 이미지 없음: ' + JSON.stringify(data).slice(0, 400));
+    throw new Error(t('adventure.err.51') + JSON.stringify(data).slice(0, 400));
   }
   const mime = data.predictions?.[0]?.mimeType || 'image/png';
   const dataUrl = `data:${mime};base64,${b64}`;

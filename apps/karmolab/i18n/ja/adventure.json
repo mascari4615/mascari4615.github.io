@@ -42,5 +42,18 @@
   "adventure.t36": "⚙ プロバイダ設定",
   "adventure.t37": "Claude (Max OAuth) は Tauri のデスクトップアプリ内でのみ動きます (ζ 段階のあと)。Vertex はブラウザから直接呼びます — API キーとプロジェクト ID が必要です。",
   "adventure.t38": "Claude のモデル",
-  "adventure.t39": "Vertex のモデル"
+  "adventure.t39": "Vertex のモデル",
+  "adventure.t40": "Vertex の API キー / プロジェクト ID が未設定です。ウィジェットのオプションに入れてください (adv_vertex_api_key, adv_vertex_project_id)。",
+  "adventure.err.41": "Vertex の応答にテキストがありません: ",
+  "adventure.t41": "[adventure] adventure_save_image: path がありません",
+  "adventure.t42": "[adventure] adventure_save_image に失敗、dataUrl にフォールバック",
+  "adventure.t43": "[adventure] adventure_save_raw が使えず、localStorage にフォールバック",
+  "adventure.t44": "[adventure] localStorage への保存に失敗",
+  "adventure.t45": "[adventure] localStorage からの読み込みに失敗",
+  "adventure.t46": "[adventure] adventure_delete_raw が使えず、localStorage にフォールバック",
+  "adventure.t47": "[adventure] localStorage からの削除に失敗",
+  "adventure.t48": "[adventure] localStorage の一覧取得に失敗",
+  "adventure.t49": "Claude プロバイダは Tauri のデスクトップアプリ内でのみ動きます (KL-032 決定1: 舞台は Tauri 限定)。ブラウザでは Vertex プロバイダに切り替えてください。",
+  "adventure.err.50": "画像生成は Vertex Imagen を使います。⚙ 設定に Vertex の API キーとプロジェクト ID を入れてください。",
+  "adventure.err.51": "Vertex Imagen の応答に画像がありません: "
 }

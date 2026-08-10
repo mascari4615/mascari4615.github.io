@@ -8,6 +8,11 @@
  * 셈은 여기 한 벌만 둔다. 새 판정 기준은 만들지 않는다 — 각 놀이가 이미 이 브라우저에
  * 남긴 것만 읽는다. 못 읽으면 코스만 조용히 빠지고 놀이는 그대로 된다.
  */
+import { t } from '../lib/i18n';
+
+const esc = (v: unknown): string =>
+  String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 export interface CourseStep {
   id: string;
   title: string;
@@ -183,7 +188,7 @@ export function mountCourseNext(slot: HTMLElement, meId: string): void {
 
       if (meDone) {
         slot.hidden = false;
-        slot.innerHTML = `<span class="pc-tag">오늘의 코스</span><span>셋 다 끝냈습니다 — ${courseRun(
+        slot.innerHTML = `<span class="pc-tag">${esc(t('play.t18'))}</span><span>셋 다 끝냈습니다 — ${courseRun(
           true
         )}일 연속</span>`;
         return;
@@ -193,7 +198,7 @@ export function mountCourseNext(slot: HTMLElement, meId: string): void {
       const next = left[0];
       const emoji = (j.games.filter((g) => g.id === next.id)[0] || {}).emoji || '';
       slot.innerHTML =
-        `<span class="pc-tag">오늘의 코스</span>` +
+        `<span class="pc-tag">${esc(t('play.t18'))}</span>` +
         `<span>${left.length}개 남았습니다</span>` +
         `<a class="pc-go" href="${next.url}">${emoji} ${next.title} 하러 가기 →</a>`;
       const go = slot.querySelector<HTMLAnchorElement>('.pc-go')!;

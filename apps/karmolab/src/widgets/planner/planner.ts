@@ -1,3 +1,5 @@
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
     function buildPlanner(container: HTMLElement): void {
         // React 앱이 마운트될 루트 엘리먼트 생성
@@ -32,14 +34,14 @@
 
     Toolbox.register({
         id: 'planner',
-        title: '플래너',
+        title: t('widgets.planner.title', undefined, "플래너"),
         category: 'lab',
-        desc: '나만의 일정 동기화 및 스트릭 칸반 보드 (개발 중)',
+        desc: t('widgets-desc.planner.desc', undefined, "나만의 일정 동기화 및 스트릭 칸반 보드 (개발 중)"),
         icon: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>',
         layout: 'full',
         noHero: true,
         tabs: [
-            { id: 'planner-main', label: '대시보드', build: buildPlanner }
+            { id: 'planner-main', label: t('planner.t03'), build: buildPlanner }
         ]
     });
 })();

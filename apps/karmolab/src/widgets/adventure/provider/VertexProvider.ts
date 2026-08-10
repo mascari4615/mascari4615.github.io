@@ -5,6 +5,7 @@ import type {
   AdventureCompletionResponse,
   AdventureProviderModel,
 } from './types';
+import { t, loadNamespace } from '../../../lib/i18n';
 
 const VERTEX_MODEL_DEFAULT = 'gemini-2.5-pro';
 const VERTEX_MODELS_AVAILABLE: AdventureProviderModel[] = [
@@ -45,7 +46,7 @@ export class VertexProvider implements AdventureProvider {
 
     if (!apiKey || !projectId) {
       throw new Error(
-        'Vertex API 키 / 프로젝트 ID 미설정. 위젯 옵션에서 박아주세요 (adv_vertex_api_key, adv_vertex_project_id).',
+        t('adventure.t40'),
       );
     }
 
@@ -96,7 +97,7 @@ export class VertexProvider implements AdventureProvider {
     }
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (typeof text !== 'string' || text === '') {
-      throw new Error('Vertex 응답에 텍스트 없음: ' + JSON.stringify(data).slice(0, 400));
+      throw new Error(t('adventure.err.41') + JSON.stringify(data).slice(0, 400));
     }
 
     return { text, providerId: this.id, modelId };

@@ -92,7 +92,7 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
         : `<button class="btn btn-ghost" data-km="${skin.key}-share">${esc(t('karmomap.t294'))}</button>`}
       ${embedded.length === 0 ? '' : `<div class="km-field">
         <label>${esc(t('karmomap.t295'))}</label>
-        <div class="km-hint">${t('karmomap.hint01', { em: `<b>${esc(t('karmomap.t297'))}</b>` })}</div>
+        <div class="km-hint">${t('karmomap.docShared', { em: `<b>${esc(t('karmomap.t297'))}</b>` })}</div>
         ${embedded.map((n) => `<div>
           <div class="km-link-row"><span class="km-link-name">${esc(n.title || t('karmomap.noteLabel'))}</span>
             <span class="km-group-count">${noteUsers(spec, n.id)}곳</span></div>
