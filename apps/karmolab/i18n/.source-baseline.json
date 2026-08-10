@@ -1,5 +1,5 @@
 {
-  "total": 4742,
+  "total": 4481,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -161,7 +161,7 @@
     "src/widgets/postgraph.ts": 3,
     "src/widgets/pulse/art.ts": 8,
     "src/widgets/pulse/card.ts": 4,
-    "src/widgets/pulse/channels.ts": 526,
+    "src/widgets/pulse/channels.ts": 265,
     "src/widgets/pulse/core.ts": 4,
     "src/widgets/pulse/letters.ts": 20,
     "src/widgets/pulse/pulse.ts": 3,
