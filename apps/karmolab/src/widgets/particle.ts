@@ -1,4 +1,9 @@
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Mdd.injectCSS(
     'particle',
     `
@@ -8,18 +13,20 @@
 
   Toolbox.register({
     id: 'particle',
-    title: '파티클',
+    title: t('widgets.particle.title', undefined, "파티클"),
     category: 'play',
-    desc: '마우스로 파티클을 움직이고 클릭으로 폭발시킵니다',
+    desc: t('widgets-desc.particle.desc', undefined, "마우스로 파티클을 움직이고 클릭으로 폭발시킵니다"),
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="6" cy="6" r="1.5" fill="currentColor"/><circle cx="18" cy="8" r="1" fill="currentColor"/><circle cx="8" cy="18" r="1.5" fill="currentColor"/><circle cx="17" cy="17" r="1" fill="currentColor"/>',
     tabs: [
       {
         id: 'app',
-        label: '파티클',
+        label: t('particle.t02', undefined, "파티클"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('particle').then(function () {
+
           container.innerHTML = `
-                <div style="margin-bottom:12px; font-size:var(--font-size-xs); color:var(--text-tertiary);">마우스를 움직이거나 클릭(폭발)하여 파티클을 춤추게 하세요.</div>
+                <div style="margin-bottom:12px; font-size:var(--font-size-xs); color:var(--text-tertiary);">${esc(t('particle.t01'))}</div>
                 <canvas class="playground-canvas" id="particleCanvas"></canvas>
             `;
           const canvasEl = container.querySelector('#particleCanvas') as HTMLCanvasElement | null;
@@ -30,7 +37,7 @@
           if (!ctx) return;
           const c2d = ctx;
 
-          Mdd.linePreset('tool_run', { mood: 'idle', msg: '파티클 놀이터예요~' });
+          Mdd.linePreset('tool_run', { mood: 'idle', msg: t('particle.t04') });
 
           function resize(): void {
             const parent = canvas.parentElement;
@@ -88,7 +95,7 @@
 
           canvas.onclick = (e: MouseEvent) => {
             for (let i = 0; i < 40; i++) particles.push(new Particle(e.offsetX, e.offsetY, true));
-            Mdd.linePreset('idle_wake', { msg: '폭발이에요!!' });
+            Mdd.linePreset('idle_wake', { msg: t('particle.t05') });
             Mdd.bounce();
             setTimeout(() => Mdd.setMood('happy'), 1500);
           };
@@ -121,6 +128,7 @@
             { threshold: 0.1 }
           );
           observer.observe(canvas);
+                  });
         }
       }
     ]

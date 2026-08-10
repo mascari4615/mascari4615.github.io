@@ -28,5 +28,15 @@
   "adventure.savedLine": "{date} · {turns}ターン · cast: {cast}",
   "adventure.castLine": "cast: {cast}",
   "adventure.none": "(なし)",
-  "adventure.tab.main": "冒険"
+  "adventure.tab.main": "冒険",
+  "adventure.t27": "冒険の終わり — 精髄の抽出",
+  "adventure.t28": "精髄を抽出中... (LLM の応答待ち)",
+  "adventure.t29": "yaml (編集可)",
+  "adventure.t30": "md (編集可)",
+  "adventure.t31": "キャンセル",
+  "adventure.t32": "エラー: ",
+  "adventure.t33": "commit + push を実行中...",
+  "adventure.t34": "エラー: Tauri の環境ではありません (ブラウザでは commit できません)",
+  "adventure.t35": "(変更なし)",
+  "adventure.end.extracted": "抽出完了 — slug: {slug}, title: {title}。確認してから commit。"
 }

@@ -1,17 +1,24 @@
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'folder',
-    title: '에러',
+    title: t('widgets.folder.title', undefined, "에러"),
     category: 'play',
-    desc: '폴더가 무한 증식하는 이스터에그',
+    desc: t('widgets-desc.folder.desc', undefined, "폴더가 무한 증식하는 이스터에그"),
     layout: 'form',
     icon: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
     tabs: [
       {
         id: 'app',
-        label: '에러',
+        label: t('folder.t03', undefined, "에러"),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('idle_wake', { msg: '폴더가 무한 증식해요?!' });
+          void loadNamespace('folder').then(function () {
+
+          Mdd.linePreset('idle_wake', { msg: t('folder.t05') });
           container.innerHTML = `
                     <div style="position:relative; width:100%; height:450px; background:#008080; overflow:hidden; border-radius:var(--radius-lg); font-family:sans-serif; cursor:default; user-select:none;" id="desktop">
                     </div>
@@ -73,9 +80,9 @@
                         <div style="padding:15px; text-align:center; color:#000; cursor:default; user-select:none;">
                             <div style="margin-bottom:15px; font-size:var(--font-size-xs); display:flex; align-items:center; gap:10px;">
                                 <span style="font-size:24px;">⚠️</span>
-                                <span>작업을 완료할 수 없습니다.</span>
+                                <span>${esc(t('folder.t01'))}</span>
                             </div>
-                            <button class="win-ok" style="background:#c0c0c0; border:2px solid; border-color:#fff #808080 #808080 #fff; padding:4px 15px; cursor:default; color:#000;">확인</button>
+                            <button class="win-ok" style="background:#c0c0c0; border:2px solid; border-color:#fff #808080 #808080 #fff; padding:4px 15px; cursor:default; color:#000;">${esc(t('folder.t02'))}</button>
                         </div>
                     `;
 
@@ -85,7 +92,7 @@
               win.style.zIndex = String(zIndex++);
               spawnWindow((currentLeft + 20) % (desktop.clientWidth - 200), (currentTop + 20) % (desktop.clientHeight - 100));
               spawnWindow(Math.max(10, currentLeft - 20), (currentTop + 35) % (desktop.clientHeight - 100));
-              Toolbox.showToast('알 수 없는 오류로 창이 증식합니다!', 'error', undefined);
+              Toolbox.showToast(t('folder.t06'), 'error', undefined);
             };
 
             const closeBtn = win.querySelector('.win-close');
@@ -98,6 +105,7 @@
           }
 
           spawnWindow(30, 30);
+                  });
         }
       }
     ]

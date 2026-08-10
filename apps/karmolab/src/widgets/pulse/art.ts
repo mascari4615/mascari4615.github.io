@@ -14,6 +14,7 @@
  */
 import type { Channel, Ink, Paint } from './core';
 import { MINUTE, rngFor } from './core';
+import { t, loadNamespace } from '../../lib/i18n';
 
 /* ── 붓 몇 자루 ────────────────────────────────────────────── */
 
@@ -83,19 +84,19 @@ const starPaint =
 
 export const starfield: Channel = {
   id: 'starfield',
-  name: '별밭',
+  name: t('pulse.t11'),
   glyph: '✦',
   period: 15 * MINUTE,
   tile: 'wide',
-  blurb: '15분마다 상상 우주의 한 귀퉁이.',
-  lineage: '@tiny_star_field (Katie Rose Pipkin) — 작은 우주 한 조각',
+  blurb: t('pulse.t12'),
+  lineage: t('pulse.t13'),
   beat(tick) {
     const r = rngFor('starfield/spec', tick);
     const count = 30 + Math.floor(r() * 90);
     const nebula = r() < 0.35;
     return {
-      line: `별 ${count}개${nebula ? ' · 성운 하나' : ''}`,
-      sub: nebula ? '멀리 성운이 걸려 있다' : '아무 일도 없는 하늘',
+      line: `별 ${count}개${nebula ? t('pulse.t14') : ''}`,
+      sub: nebula ? t('pulse.t15') : t('pulse.t16'),
       paint: starPaint(count, nebula)
     };
   }
@@ -179,7 +180,7 @@ export const bellPaint =
     c.font = `600 ${Math.max(11, s * 0.5)}px sans-serif`;
     c.textAlign = 'center';
     c.fillStyle = fade(c, ink.dim, 1);
-    c.fillText(`${times}번`, cx, h - 8);
+    c.fillText(t('pulse.art.times', { n: times }), cx, h - 8);
   };
 
 export const ART_CHANNELS: readonly Channel[] = [starfield];

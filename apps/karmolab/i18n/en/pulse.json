@@ -340,5 +340,12 @@
   "pulse.left.s": "{s}s",
   "pulse.left.ms": "{m}m {s}s",
   "pulse.left.hm": "{h}h {m}m",
-  "pulse.left.dh": "{d}d {h}h"
+  "pulse.left.dh": "{d}d {h}h",
+  "pulse.t11": "Star field",
+  "pulse.t12": "A corner of an imagined universe every 15 minutes.",
+  "pulse.t13": "@tiny_star_field (Katie Rose Pipkin) — a small slice of a universe",
+  "pulse.t14": " · one nebula",
+  "pulse.t15": "A nebula hangs far off",
+  "pulse.t16": "A sky where nothing happens",
+  "pulse.art.times": "{n}×"
 }

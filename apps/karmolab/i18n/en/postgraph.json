@@ -1,0 +1,5 @@
+{
+  "postgraph.t01": "The graph could not be loaded. (On the deployed site, check /assets/js/data/post-graph.json)",
+  "postgraph.t02": "How the posts link to each other. Press a node and the post opens in a new tab.",
+  "postgraph.t03": "Graph"
+}

@@ -340,5 +340,12 @@
   "pulse.left.s": "{s}秒",
   "pulse.left.ms": "{m}分 {s}秒",
   "pulse.left.hm": "{h}時間 {m}分",
-  "pulse.left.dh": "{d}日 {h}時間"
+  "pulse.left.dh": "{d}日 {h}時間",
+  "pulse.t11": "星の原",
+  "pulse.t12": "15分ごとに想像の宇宙のひと隅。",
+  "pulse.t13": "@tiny_star_field (Katie Rose Pipkin) — 小さな宇宙のひとかけら",
+  "pulse.t14": " · 星雲ひとつ",
+  "pulse.t15": "遠くに星雲がかかっている",
+  "pulse.t16": "何も起きない空",
+  "pulse.art.times": "{n}回"
 }

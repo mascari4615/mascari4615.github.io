@@ -1,4 +1,9 @@
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Mdd.injectCSS(
     'bubble',
     `
@@ -13,21 +18,23 @@
 
   Toolbox.register({
     id: 'bubble',
-    title: '뽁뽁이',
+    title: t('widgets.bubble.title', undefined, "뽁뽁이"),
     category: 'play',
-    desc: '뽁뽁이를 터뜨립니다',
+    desc: t('widgets-desc.bubble.desc', undefined, "뽁뽁이를 터뜨립니다"),
     layout: 'form',
     icon: '<circle cx="9" cy="9" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="17" cy="9" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="13" cy="17" r="3.5" stroke="currentColor" stroke-width="1.5" fill="none"/>',
     tabs: [
       {
         id: 'app',
-        label: '뽁뽁이',
+        label: t('bubble.t02', undefined, "뽁뽁이"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('bubble').then(function () {
+
           container.innerHTML = `
                 <div class="bubble-wrap-container">
                     <div class="bubble-wrap-header">
-                        <span style="font-size:var(--font-size-sm); font-weight:600; color:var(--text-primary);">터진 뽁뽁이: <span id="popCount" style="color:var(--accent)">0</span> / <span id="popTotal">90</span></span>
-                        <button class="btn btn-ghost" id="resetBubbleBtn">새 판 깔기</button>
+                        <span style="font-size:var(--font-size-sm); font-weight:600; color:var(--text-primary);">${esc(t('bubble.t01'))} <span id="popCount" style="color:var(--accent)">0</span> / <span id="popTotal">90</span></span>
+                        <button class="btn btn-ghost" id="resetBubbleBtn">${esc(t('bubble.btn.resetBubbleBtn'))}</button>
                     </div>
                     <div class="bubble-wrap-grid" id="bubbleGrid"></div>
                 </div>
@@ -47,7 +54,7 @@
           const total = 90;
           totalLabel.textContent = String(total);
 
-          Mdd.linePreset('tool_run', { mood: 'idle', msg: '뽁뽁이에요! 눌러보세요~' });
+          Mdd.linePreset('tool_run', { mood: 'idle', msg: t('bubble.t04') });
 
           function createGrid(): void {
             grid.innerHTML = '';
@@ -63,11 +70,11 @@
                   countLabel.textContent = String(popped);
 
                   if (popped % 15 === 0 && popped < total) {
-                    Mdd.linePreset('idle_wake', { msg: '뽁! 뽁! 멈출 수 없어요!' });
+                    Mdd.linePreset('idle_wake', { msg: t('bubble.t05') });
                     Mdd.bounce();
                   }
                   if (popped === total) {
-                    Mdd.linePreset('success', { msg: '올 클리어예요!! 🎉🎉' });
+                    Mdd.linePreset('success', { msg: t('bubble.t06') });
                   }
                 }
               };
@@ -77,9 +84,10 @@
 
           resetBtn.onclick = () => {
             createGrid();
-            Mdd.linePreset('success', { mood: 'happy', msg: '새 뽁뽁이를 깔았어요!' });
+            Mdd.linePreset('success', { mood: 'happy', msg: t('bubble.t07') });
           };
           createGrid();
+                  });
         }
       }
     ]

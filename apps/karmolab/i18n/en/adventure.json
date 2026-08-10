@@ -28,5 +28,15 @@
   "adventure.savedLine": "{date} · {turns} turns · cast: {cast}",
   "adventure.castLine": "cast: {cast}",
   "adventure.none": "(none)",
-  "adventure.tab.main": "Adventure"
+  "adventure.tab.main": "Adventure",
+  "adventure.t27": "End of the adventure — extracting the essence",
+  "adventure.t28": "Extracting the essence... (waiting for the LLM)",
+  "adventure.t29": "yaml (editable)",
+  "adventure.t30": "md (editable)",
+  "adventure.t31": "Cancel",
+  "adventure.t32": "Error: ",
+  "adventure.t33": "commit + push in progress...",
+  "adventure.t34": "Error: not a Tauri environment (committing is not possible in a browser)",
+  "adventure.t35": "(no change)",
+  "adventure.end.extracted": "Extraction done — slug: {slug}, title: {title}. Review, then commit."
 }

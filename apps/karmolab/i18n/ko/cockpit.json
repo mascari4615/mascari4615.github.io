@@ -65,5 +65,20 @@
   "cockpit.t54": "오류",
   "cockpit.t55": "[cockpit-task] quest-tree-changed listen 실패",
   "cockpit.task.noMatch": "조건에 맞는 TASK 없음",
-  "cockpit.task.createFailed": "생성 실패: {why}"
+  "cockpit.task.createFailed": "생성 실패: {why}",
+  "cockpit.t56": "검색 (토픽·본문)",
+  "cockpit.t57": "🎴 에이전트 카드 피드",
+  "cockpit.opt.all": "전체",
+  "cockpit.opt.decision": "결정",
+  "cockpit.opt.fix": "수정",
+  "cockpit.opt.finding": "발견",
+  "cockpit.opt.incident": "사고",
+  "cockpit.opt.note": "노트",
+  "cockpit.t58": "새로고침",
+  "cockpit.t59": "<div style=\"opacity:.5;padding:1rem;text-align:center\">표시할 카드 없음</div>",
+  "cockpit.t60": "로딩 중...",
+  "cockpit.t61": "repo_root 미설정 — Server Monitor 에서 저장소 루트 선택해주세요.",
+  "cockpit.cards.filtered": "{n} / {total} (필터)",
+  "cockpit.cards.recent": "{n}건 (최근)",
+  "cockpit.cards.loadFailed": "로드 실패: {why}"
 }
