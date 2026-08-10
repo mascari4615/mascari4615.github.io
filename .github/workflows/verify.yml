@@ -21,6 +21,15 @@ on:
   # event 미발동 시점에 사용자/자동화가 master 검증 강제 호출 (`gh workflow run verify.yml --ref master`).
   # KL-029 해결 후엔 push trigger 정상 작동 → 본 trigger 는 응급 가치만 남음.
   workflow_dispatch:
+  # ★ 「폭풍 속에서도 한 판은 끝까지 본다」 (2026-08-10, 실측으로 붙임).
+  #   최근 verify 13 판 중 **12 판이 취소**였다. 세션 6개가 1~2분 간격으로 master 에 밀면
+  #   아래 cancel-in-progress 가 앞판을 계속 접어서, 활동 시간 내내 **완주하는 판이 0**이 된다.
+  #   그 사이 typecheck 빨강이 몇 시간씩 살아 있었다(세션 버스 실측) — 검사가 있는데 안 도는 상태다.
+  #   취소 자체는 옳다(낡은 커밋 결과는 아무도 안 본다). 모자란 건 **바닥**이다:
+  #   주기 실행은 push 와 **다른 concurrency 그룹**이라 접히지 않고, 그래서
+  #   「최신 master 는 늦어도 23분 안에 한 번은 끝까지 검증된다」가 구조적으로 참이 된다.
+  schedule:
+    - cron: '*/23 * * * *'
 
 permissions:
   contents: read
@@ -29,9 +38,10 @@ permissions:
 #   verify 는 한 판에 평균 4분이고, 세션들이 몇 분 간격으로 master 에 밀어 실행이 겹겹이 쌓인다.
 #   낡은 커밋의 결과는 아무도 안 보므로 최신 것만 돌면 된다 — 배포(pages)와 달리 **끊어도 안전한
 #   검사**라 여기서는 cancel-in-progress 를 켠다(배포 쪽은 일부러 꺼 둔 것과 대비).
+#   ★ 주기 실행만 따로 세운다 — 같은 그룹에 두면 push 가 그것마저 접어 바닥이 사라진다.
 concurrency:
-  group: verify-${{ github.ref }}
-  cancel-in-progress: true
+  group: verify-${{ github.event_name == 'schedule' && 'nightwatch' || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'schedule' }}
 
 jobs:
   verify:
@@ -153,6 +163,21 @@ jobs:
       # verify 잡에서도 돌아야 한다. 브라우저를 깔아 둔 이 잡이 그 시험들을 맡는다.
       - name: Tool behavior tests (browser)
         run: cd apps/karmolab && npm run test:behavior
+
+      # 크기·쓰임새 **드리프트** 는 여기서 본다 — 배포 길목이 아니다 (2026-08-09).
+      #
+      # 이것들은 기준선과 견주는 **래칫**이다. 「틀렸다」가 아니라 「기준선과 달라졌다」를
+      # 말한다. 그런데 이 저장소는 여러 세션이 하루에도 수십 번 위젯을 새로 만들고 지운다 —
+      # 정당한 성장에도 빨개진다. 그걸 배포 길목에 두면 **사이트 전체가 남의 정상 작업에
+      # 멈춰 선다**(실제로 오늘 배포가 이걸로 죽었다: 새것 5·사라진 것 10·커진 것 6).
+      #
+      # 드리프트는 봐야 하되 **사람이 보는 자리**에서 봐야 한다. verify 가 빨개도 사이트는
+      # 나간다. 기준선 옮기기 = `npm run audit:bundles -- --update` (커밋에 줄이 남는다).
+      #
+      # 반대로 `audit:boot`(첫 화면 절대 천장)은 배포 길목에 **그대로 둔다** — 그건 기준선이
+      # 아니라 사람이 겪는 한계선이고, 넘으면 실제로 느려진 것이다.
+      - name: Size / usage drift (ratchet)
+        run: cd apps/karmolab && npm run audit:drift
 
       - name: Contrast sweep (light/dark)
         run: cd apps/karmolab && npm run test:contrast
