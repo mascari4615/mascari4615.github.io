@@ -328,10 +328,16 @@ for (const field of ['title', 'desc', 'label']) {
 /* ── ⑤ build 를 「말 묶음 받은 뒤 그린다」로 감싼다 ──
  * 몸통을 밖으로 끌어내지 않고 **감싸기만** 한다. 끌어내면 닫는 괄호 개수를 사람이 다시 세야 하고,
  * 실제로 그 자리에서 매번 깨졌다. 감싸기는 여는 줄 하나 + 닫는 줄 하나로 끝난다. */
-const BUILD = 'build: function (container: HTMLElement): void {';
+/* 여는 줄의 **모양이 하나가 아니다.** 처음에는 `build: function (container: HTMLElement)` 한 줄만
+ * 글자 그대로 찾았는데, 인자 이름이 `root` 인 파일(packwell)에서 조용히 **0곳 감쌈**으로 지나갔다 —
+ * 열쇠는 다 박히고 말 묶음은 안 받는 상태라, 미리보기 줄을 안 읽었으면 그대로 커밋됐다.
+ * 그래서 인자 이름·선언 꼴을 다 받아 준다. 뒤에서부터 감싸야 앞쪽 자리가 안 밀린다. */
+const BUILD_RE = /(?:build: function ?\(|build\(|build: ?\([^)]*\): void => ?\{|build: async function ?\()[^)]*\)?(?:: void)? ?\{/g;
+const opens = [...src.matchAll(BUILD_RE)].filter((m) => m[0].includes('HTMLElement'));
 let wrapped = 0;
-for (let at = src.indexOf(BUILD); at >= 0; at = src.indexOf(BUILD, at + 1)) {
-  const open = at + BUILD.length - 1;
+for (const m of opens.reverse()) {
+  const at = m.index;
+  const open = at + m[0].length - 1;
   let depth = 0;
   let end = -1;
   for (let i = open; i < src.length; i++) {
@@ -345,12 +351,11 @@ for (let at = src.indexOf(BUILD); at >= 0; at = src.indexOf(BUILD, at + 1)) {
       }
     }
   }
-  if (end < 0) break;
+  if (end < 0) continue;
   const indent = ' '.repeat(at - src.lastIndexOf('\n', at) - 1);
-  const head = `${BUILD}\n${indent}  void loadNamespace('${ns}').then(function () {\n`;
+  const head = `${m[0]}\n${indent}  void loadNamespace('${ns}').then(function () {\n`;
   src = src.slice(0, at) + head + src.slice(open + 1, end) + `${indent}  });\n${indent}` + src.slice(end);
   wrapped++;
-  at = src.indexOf('});', end); // 감싼 만큼 뒤로 밀렸다
 }
 
 /* ── ⑥ esc / import 를 심는다 ──
@@ -382,9 +387,14 @@ const i18nSpec = (() => {
 })();
 if (!src.includes(`from '${i18nSpec}'`)) {
   const line = `import { t, loadNamespace } from '${i18nSpec}';`;
+  /* 마지막 `import` **줄** 다음이 아니라 마지막 import **문장**이 끝난 다음에 넣는다.
+   * 여러 줄로 펼친 import(`import {\n  a,\n  b\n} from '…'`) 의 여는 줄이 마지막이면,
+   * 줄 기준으로 넣을 때 **그 중괄호 안**에 박혀 파일이 통째로 안 읽힌다(packs 실측). */
   const lastImport = src.lastIndexOf('\nimport ');
   if (lastImport >= 0) {
-    const eol = src.indexOf('\n', lastImport + 1);
+    const from = src.indexOf("from '", lastImport);
+    const semi = from >= 0 ? src.indexOf(';', from) : src.indexOf('\n', lastImport + 1);
+    const eol = src.indexOf('\n', semi >= 0 ? semi : lastImport + 1);
     src = src.slice(0, eol + 1) + line + '\n' + src.slice(eol + 1);
   } else {
     src = src.replace(/^\(function \(\): void \{/m, `${line}\n\n(function (): void {`);
@@ -423,6 +433,12 @@ console.log(`[widgetize] ${rel} · build ${wrapped}곳 감쌈 · 열쇠 ${Object
 /* 아무것도 못 뽑았는데 화면에 나갈 법한 한국어가 남아 있으면, 그건 **자가 어긋났다는 뜻**이다.
  * 조용히 0개로 끝나는 게 제일 나쁘다 — 사람이 「이 도구는 원래 한국어가 없나 보다」로 읽는다. */
 const stillKo = (src.match(/[가-힣]/g) || []).length;
+/* 열쇠는 박혔는데 **한 곳도 못 감쌌다** = 말 묶음을 안 받고 그린다 = 화면에 열쇠 이름이 그대로 뜬다.
+ * 이건 조용히 지나가면 안 된다 (packwell 에서 실제로 그럴 뻔했다). */
+if (wrapped === 0 && Object.keys(catalog).length > 0) {
+  console.log('[widgetize] ⚠ 열쇠는 뽑았는데 build 를 한 곳도 못 감쌌다 — 이대로면 말 묶음 없이 그린다.');
+  console.log('   여는 줄 모양을 확인하고, 손으로 loadNamespace 뒤에 넣어라.');
+}
 if (Object.keys(catalog).length === 0 && stillKo > 20) {
   console.log(`[widgetize] ⚠ 뽑은 열쇠가 0개인데 한국어가 ${stillKo}자 남아 있다 — 훑기가 어긋났을 수 있다.`);
   console.log('   정규식 리터럴·특이한 따옴표를 의심하고, --write 없이 다시 보라.');
