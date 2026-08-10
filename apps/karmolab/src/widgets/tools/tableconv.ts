@@ -25,7 +25,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     tabs: [
       {
         id: 'app',
-        label: t('tableconv.t01', undefined, undefined),
+        label: t('tableconv.tab', undefined, "표 바꾸기"),
         build: function (container: HTMLElement): void {
           void loadNamespace('tableconv').then(function () {
 

@@ -11,7 +11,6 @@
  */
 import type { Analytics, DebugDump, ServerSummary, WeeklySchedule } from '../services/server-stats';
 import { WEEKLY_POST_HOUR, kstDayKey, weekdayOf } from '../services/server-stats';
-import { UNKNOWN_COVERAGE, type CoverageReport } from './stats-coverage';
 
 export interface DevPageData {
   guildName: string;
@@ -28,8 +27,6 @@ export interface DevPageData {
   channelNames: Record<string, string>;
   /** 원시 상태 요약 (서버별 기록 일수). */
   guildDayCounts: { guildId: string; days: number }[];
-  /** 채널 시야 — 「0 인데 왜 0 인가」의 1순위 용의자. */
-  coverage?: CoverageReport;
 }
 
 function escapeHtml(text: string): string {
@@ -54,15 +51,6 @@ export function nextWeeklyText(weekly: WeeklySchedule | null, at: Date): string 
   const hour = (at.getUTCHours() + 9) % 24;
   if (daysSinceMonday === 0 && hour < WEEKLY_POST_HOUR) return `오늘 오전 ${WEEKLY_POST_HOUR}시 이후`;
   return '지금 보내야 함 (다음 확인에서 발송)';
-}
-
-/** 채널 시야 한 칸 — 가려진 채널이 있으면 그 이름까지 편다(진단 자리라 다 보여준다). */
-function coverageRow(coverage: CoverageReport): string {
-  if (!coverage.known) return '<span class="dim">확인 못 함</span>';
-  const head = `${coverage.visible} / ${coverage.total}`;
-  if (!coverage.blind.length) return `<span class="ok">${head}</span>`;
-  const names = coverage.blind.map((c) => escapeHtml('#' + c.name)).join(', ');
-  return `<span class="warn">${head}</span> · 가려짐: ${names}`;
 }
 
 function row(label: string, value: string): string {
@@ -160,7 +148,6 @@ export function renderDevPage(data: DevPageData): string {
   ${row('오늘(KST)', escapeHtml(detail.todayKey))}
   ${row('상태 파일', detail.stateFileExists ? `있음 · 마지막 저장 ${escapeHtml(detail.stateFileMtime ?? '')}` : '<span class="warn">아직 없음</span>')}
   ${row('미저장 변경', detail.dirty ? '<span class="warn">있음</span>' : '<span class="ok">없음</span>')}
-  ${row('채널 시야 (봄/전체)', coverageRow(data.coverage ?? UNKNOWN_COVERAGE))}
   ${row('이 서버 총 메시지 (범위 내)', num(summary.totalMessages))}
   ${row('참여자', num(summary.activeUsers))}
   ${row('직전 같은 기간', `${num(a.previous.messages)} → ${num(a.current.messages)}`)}

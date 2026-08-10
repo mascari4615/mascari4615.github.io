@@ -13,13 +13,6 @@ import {
   type RankedUser,
   type ServerSummary,
 } from '../../services/server-stats';
-import {
-  coverageDebugLine,
-  coverageNotice,
-  guildCoverage,
-  UNKNOWN_COVERAGE,
-  type CoverageReport,
-} from '../stats-coverage';
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 const SPARK = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
@@ -55,23 +48,19 @@ function rankLines(entries: RankedUser[], unit: string): string {
 }
 
 /** 요약 → 카드 embed. Discord 없이도 테스트 가능하도록 순수 함수로 뺀다. */
-export function buildWrappedEmbed(
-  summary: ServerSummary,
-  guildName: string,
-  coverage: CoverageReport = UNKNOWN_COVERAGE,
-): EmbedBuilder {
-  const notice = coverageNotice(coverage, summary.totalMessages);
+export function buildWrappedEmbed(summary: ServerSummary, guildName: string): EmbedBuilder {
   const embed = new EmbedBuilder()
     .setTitle(`🎁 ${guildName} 결산`)
     .setColor(0xffc86b)
     .setFooter({ text: `최근 ${summary.days}일 · 기록된 날 ${summary.daysWithData}일 · 메시지 내용은 저장하지 않습니다` });
 
   if (summary.totalMessages === 0) {
-    // 0 이 「아무도 안 떠들었다」인지 「욘이 그 채널을 못 본다」인지 여기서 갈라 준다.
     embed.setDescription(
-      notice
-        ? [notice, '', '권한을 켜면 그때부터 세기 시작해요 (지나간 대화는 소급 X).'].join('\n')
-        : ['아직 셀 게 없어요.', '', '지금부터 세기 시작합니다 — 며칠 떠들고 다시 불러 주세요.'].join('\n'),
+      [
+        '아직 셀 게 없어요.',
+        '',
+        '지금부터 세기 시작합니다 — 며칠 떠들고 다시 불러 주세요.',
+      ].join('\n'),
     );
     return embed;
   }
@@ -110,9 +99,6 @@ export function buildWrappedEmbed(
   rhythm.push('```' + sparkline(summary.hours) + '```');
   embed.addFields({ name: '🕐 하루의 리듬 (0시 → 23시)', value: rhythm.join('\n'), inline: false });
 
-  // 숫자가 나오는 카드에도 「일부만 세고 있다」는 사실은 붙어야 한다 — 안 그러면 축소된 값을 진짜로 믿는다.
-  if (notice) embed.addFields({ name: '🙈 안 보이는 곳', value: notice, inline: false });
-
   return embed;
 }
 
@@ -120,14 +106,9 @@ export function buildWrappedEmbed(
  * 원시 수치 창 — 카드가 이상할 때 "집계가 틀렸나 표시가 틀렸나"를 가른다.
  * 표시용 가공을 최소로 하고, 저장 상태(파일 존재·마지막 저장 시각)까지 같이 보여준다.
  */
-export function buildDebugText(
-  dump: DebugDump,
-  days: number,
-  coverage: CoverageReport = UNKNOWN_COVERAGE,
-): string {
+export function buildDebugText(dump: DebugDump, days: number): string {
   const lines: string[] = [];
   lines.push(`■ 범위 ${days}일 · 오늘(KST) = ${dump.todayKey}`);
-  lines.push(coverageDebugLine(coverage));
   lines.push(`■ 기록 있는 날 ${dump.dayKeys.length}개: ${dump.dayKeys.slice(0, 8).join(', ') || '(없음)'}`);
   lines.push(
     `■ 저장: ${dump.stateFileExists ? `있음 (마지막 ${dump.stateFileMtime})` : '아직 없음 (첫 저장 전)'}` +
@@ -136,12 +117,7 @@ export function buildDebugText(
   lines.push('');
 
   if (!dump.rows.length) {
-    // 「안 보이는 채널」이 있으면 그게 0 의 원인일 확률이 높다 — 엉뚱한 안내부터 하지 않는다.
-    lines.push(
-      coverage.known && coverage.blind.length
-        ? `아직 잡힌 사람 없음 — 가려진 채널 ${coverage.blind.length}개부터 의심. 채널 권한에서 욘에게 「채널 보기」를 켜라.`
-        : '아직 잡힌 사람 없음. 아무 채널에나 한 마디 하고 다시 쳐 보세요.',
-    );
+    lines.push('아직 잡힌 사람 없음. 아무 채널에나 한 마디 하고 다시 쳐 보세요.');
   } else {
     lines.push('사람      메시지  글자   새벽  준반응  받은반응');
     for (const row of dump.rows.slice(0, 15)) {
@@ -192,7 +168,7 @@ export async function handleWrapped(_ctx: BotContext, interaction: ChatInputComm
   if (interaction.options.getBoolean('자세히')) {
     // 눈으로 파일을 확인할 수 있게 즉시 저장한 뒤 덤프한다 (20초 대기 X).
     recorder.flushNow();
-    const text = buildDebugText(recorder.debug(interaction.guildId, days), days, guildCoverage(interaction.guild));
+    const text = buildDebugText(recorder.debug(interaction.guildId, days), days);
 
     // 개발 콘솔 주소는 *서버를 관리하는 사람에게만*, 그것도 나만 보이는 답으로 준다.
     // 이 주소는 카드 공유 키와 다른 열쇠라, 카드를 남에게 줘도 콘솔은 안 열린다.
@@ -210,7 +186,7 @@ export async function handleWrapped(_ctx: BotContext, interaction: ChatInputComm
 
   const summary = recorder.summarize(interaction.guildId, days);
   const guildName = interaction.guild?.name ?? '우리 서버';
-  const embed = buildWrappedEmbed(summary, guildName, guildCoverage(interaction.guild));
+  const embed = buildWrappedEmbed(summary, guildName);
 
   // 자랑은 디스코드 밖에서 일어나야 유입이 된다 → 링크를 항상 같이 준다.
   const url = wrappedUrl(recorder.shareKey(interaction.guildId), days);

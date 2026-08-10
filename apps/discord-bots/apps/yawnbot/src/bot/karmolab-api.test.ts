@@ -788,27 +788,6 @@ describe('다른 길로 들어오기 — 복구 코드 · 기기 코드', () => 
     expect(again.status).toBe(401);
   });
 
-  it('게임(WM)이 같은 코드로 「누구 거냐」를 묻고, 한 번 쓰면 사라진다', async () => {
-    const { cookie } = signIn();
-    const made = await fetch(`${baseUrl}/kl/me/link-code`, { method: 'POST', headers: { Cookie: cookie } });
-    const { code } = (await made.json()) as { code: string };
-
-    const asked = await fetch(`${baseUrl}/kl/link/verify?code=${encodeURIComponent(code)}`);
-    expect(asked.status).toBe(200);
-    const who = (await asked.json()) as { handle: string };
-    expect(who.handle).toBeTruthy();
-
-    // 세션은 안 만든다 — 브라우저 로그인이 아니라 게임이 묻는 것이다.
-    expect(asked.headers.get('set-cookie')).toBeNull();
-
-    // 한 번 쓰면 사라진다.
-    expect((await fetch(`${baseUrl}/kl/link/verify?code=${encodeURIComponent(code)}`)).status).toBe(404);
-  });
-
-  it('없는 코드로 물으면 아무도 아니다', async () => {
-    expect((await fetch(`${baseUrl}/kl/link/verify?code=ZZZ-999`)).status).toBe(404);
-  });
-
   it('로그인 안 하면 코드를 못 만든다', async () => {
     expect((await fetch(`${baseUrl}/kl/me/recovery-codes`, { method: 'POST' })).status).toBe(401);
     expect((await fetch(`${baseUrl}/kl/me/link-code`, { method: 'POST' })).status).toBe(401);

@@ -599,26 +599,6 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 게임(WM)이 「이 코드 누구 거냐」고 묻는 자리 (TASK-WM-218).
-   *
-   * ★ 새 계정 시스템을 만들지 않았다 — 이미 있는 「다른 기기 로그인 코드」를 그대로 쓴다.
-   *   사람은 KarmoLab 에서 늘 하던 대로 코드를 받고, 게임에 그 코드를 적어 넣는다.
-   *   게임 창은 브라우저가 아니라 쿠키를 못 읽는다 — 코드가 그 자리를 메운다.
-   *
-   * 여기서는 **세션을 만들지 않는다**(브라우저 로그인이 아니다). 손잡이 이름만 돌려준다.
-   * 코드는 한 번 쓰면 사라진다 — 게임 서버가 그 뒤로는 자기 신원 장부로 그 사람을 기억한다.
-   */
-  app.get('/kl/link/verify', (req: Request, res: Response) => {
-    const account = store.consumeLinkCode(String(req.query.code ?? ''));
-    if (!account) {
-      res.status(404).json({ error: 'bad_code' });
-      return;
-    }
-    store.noteEvent(account.id, 'link-used', { device: '게임(WM)' });
-    res.json({ handle: account.handle, displayName: account.displayName });
-  });
-
-  /**
    * 내 발자국 (TASK-KL-152 C1) — 잔디·돌아보기가 읽는 자리.
    *
    * 지어낸 수는 하나도 없다. 로그인한 뒤에 실제로 열린 것만 들어 있고, 없으면 빈 채로 답한다

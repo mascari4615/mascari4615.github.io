@@ -1,16 +1,16 @@
 {
   "source": "memo/wm/tasks",
   "counts": {
-    "docs": 66,
-    "groups": 6,
-    "shown": 66,
+    "docs": 67,
+    "groups": 7,
+    "shown": 67,
     "hidden": 0
   },
   "groups": [
     {
       "status": "in_progress",
       "label": "하는 중",
-      "count": 26,
+      "count": 27,
       "items": [
         {
           "id": "TASK-WM-027",
@@ -159,6 +159,14 @@
         {
           "id": "TASK-WM-194",
           "title": "특수시공 개척 TD 최소슬라이스",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-196",
+          "title": "투기장 TD 공용 전투셸 추출",
           "status": "in_progress",
           "statusLabel": "하는 중",
           "priority": "normal",
@@ -494,7 +502,7 @@
     {
       "status": "unit_verified",
       "label": "unit_verified",
-      "count": 6,
+      "count": 5,
       "items": [
         {
           "id": "TASK-WM-029-B",
@@ -507,14 +515,6 @@
         {
           "id": "TASK-WM-049",
           "title": "KCC 엣지케이스 테스트 씬",
-          "status": "unit_verified",
-          "statusLabel": "unit_verified",
-          "priority": "normal",
-          "updated": ""
-        },
-        {
-          "id": "TASK-WM-196",
-          "title": "투기장 TD 공용 전투셸 추출",
           "status": "unit_verified",
           "statusLabel": "unit_verified",
           "priority": "normal",
@@ -572,6 +572,21 @@
           "title": "TASK-QUALITY-OK 사용자 발화가 아니라 사고(2026-08-07 대량 삭제)에서 나온 건 — 인용할 원본 발화가 없다. 사고 실측은 본문 § 왜 에 있다.",
           "status": "in_review",
           "statusLabel": "in_review",
+          "priority": "high",
+          "updated": ""
+        }
+      ]
+    },
+    {
+      "status": "reference",
+      "label": "reference",
+      "count": 1,
+      "items": [
+        {
+          "id": "TASK-WM-209-HANDOFF",
+          "title": "TASK-QUALITY-OK 인계 문서 — 사용자 발화가 아니라 세션 종료 시 남기는 상태 스냅샷이다.",
+          "status": "reference",
+          "statusLabel": "reference",
           "priority": "high",
           "updated": ""
         }

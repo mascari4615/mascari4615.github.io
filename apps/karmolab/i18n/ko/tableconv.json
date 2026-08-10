@@ -17,5 +17,6 @@
   "tableconv.copy.done": "바뀐 표를 복사했어요",
   "tableconv.value.rows": "{n}줄",
   "tableconv.value.cols": "{n}칸",
-  "tableconv.say.detected": "{kind} 로 알아봤어요. 복사해서 쓰세요."
+  "tableconv.say.detected": "{kind} 로 알아봤어요. 복사해서 쓰세요.",
+  "tableconv.tab": "표 바꾸기"
 }
