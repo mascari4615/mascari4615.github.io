@@ -1,0 +1,11 @@
+{
+  "today.t01": "今日の板",
+  "today.t02": "今日はぜんぶ終わりました",
+  "today.t03": " — もう少し",
+  "today.t04": "<button type=\"button\" class=\"lt-brag\" data-brag>自慢する</button>",
+  "today.t05": "描いています…",
+  "today.streak": "🔥 {n}日 連続",
+  "today.crowd": "今日 {n}人が完走",
+  "today.book": "図鑑 {n} / {total}",
+  "today.brag": "自慢する"
+}

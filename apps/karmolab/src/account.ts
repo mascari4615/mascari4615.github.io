@@ -12,6 +12,10 @@
  * 충분하고, 그 파일은 다른 작업이 동시에 만지고 있다.
  */
 import { stampToday } from './stamps';
+import { t, loadNamespace } from './lib/i18n';
+
+const esc = (v: unknown): string =>
+  String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 type StreakEntry = { current: number; longest: number; lastActivityDate: string | null };
 
@@ -125,7 +129,7 @@ function noteStale(response: Response): void {
     if (document.getElementById('kl-stale-note')) return;
     const note = document.createElement('div');
     note.id = 'kl-stale-note';
-    note.textContent = '지금은 서버에 못 닿아 마지막으로 받아 둔 숫자를 보여 주고 있어요 — 도구는 그대로 씁니다.';
+    note.textContent = t('account.t04');
     note.style.cssText =
         'position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:64;' +
         'padding:8px 14px;border-radius:999px;font-size:12px;' +
@@ -157,7 +161,7 @@ function offlineNote(show: boolean): void {
         if (existing) return;
         const note = document.createElement('div');
         note.id = ID;
-        note.textContent = '서버에 못 닿고 있어요 — 도구는 그대로 씁니다. 로그인·광장·저장만 잠시 쉽니다.';
+        note.textContent = t('account.t05');
         note.style.cssText =
             'position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:64;' +
             'padding:8px 14px;border-radius:999px;font-size:12px;' +
@@ -210,7 +214,7 @@ function emit(): void {
         try {
             listener(state);
         } catch (error) {
-            console.warn('[account] 화면 갱신 중 오류:', error);
+            console.warn(t('account.t06'), error);
         }
     }
 }
@@ -269,6 +273,8 @@ function watchLocalChanges(): void {
 }
 
 async function refresh(): Promise<void> {
+    /* 머리띠의 계정 자리도 첫 화면이다 — 스스로 말 묶음을 받고 그린다. */
+    await loadNamespace('account');
     const response = await call('/kl/me');
     state.loading = false;
     if (!response || !response.ok) {
@@ -580,23 +586,23 @@ function mountHeaderAccount(): void {
         const me = state.loading ? null : state.account;
         const canAccount = !state.loading && state.reachable;
         const avatar = me ? KarmoAccount.avatarUrl(me.avatarPath) : null;
-        const label = me ? me.displayName.replace(/[<>&"]/g, '') : '내 정보';
+        const label = me ? me.displayName.replace(/[<>&"]/g, '') : t('account.t01');
 
         slot.innerHTML = `
-            <button type="button" class="header-account-btn" id="klHeaderMe" title="${me ? '내 계정' : '내 정보'}"
+            <button type="button" class="header-account-btn" id="klHeaderMe" title="${me ? t('account.t07') : t('account.t01')}"
                     aria-haspopup="menu" aria-expanded="${menuOpen}">
                 ${avatar ? `<img src="${avatar}" alt="">` : BLANK_FACE}
                 <span class="header-account-name">${label}</span>
             </button>` +
             (menuOpen
                 ? `<div class="header-account-menu" role="menu">
-                       <button type="button" role="menuitem" data-go="user">내 정보</button>
-                       ${me ? `<a role="menuitem" href="${me.profileUrl}">남에게 보이는 프로필</a>` : ''}
-                       <button type="button" role="menuitem" data-go="settings">환경 설정</button>
-                       ${me ? '<button type="button" role="menuitem" class="header-account-menu-out" data-signout>로그아웃</button>' : ''}
-                       ${!me && canAccount ? '<button type="button" role="menuitem" data-signin>디스코드로 시작하기</button>' : ''}
+                       <button type="button" role="menuitem" data-go="user">${esc(t('account.t01'))}</button>
+                       ${me ? `<a role="menuitem" href="${me.profileUrl}">${esc(t('account.t02'))}</a>` : ''}
+                       <button type="button" role="menuitem" data-go="settings">${esc(t('account.t03'))}</button>
+                       ${me ? t('account.t08') : ''}
+                       ${!me && canAccount ? t('account.t09') : ''}
                        ${!me && canAccount && typeof window.PublicKeyCredential !== 'undefined'
-                           ? '<button type="button" role="menuitem" data-passkey-in>패스키로 로그인</button>'
+                           ? t('account.t10')
                            : ''}
                    </div>`
                 : '');
@@ -672,11 +678,11 @@ function relativeTimeShort(iso: string): string {
     const then = new Date(iso).getTime();
     if (Number.isNaN(then)) return '';
     const minutes = Math.floor((Date.now() - then) / 60000);
-    if (minutes < 1) return '방금';
-    if (minutes < 60) return `${minutes}분 전`;
+    if (minutes < 1) return t('account.t11');
+    if (minutes < 60) return t('account.minsAgo', { n: minutes });
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}시간 전`;
-    return `${Math.floor(hours / 24)}일 전`;
+    if (hours < 24) return t('account.hoursAgo', { n: hours });
+    return t('account.daysAgo', { n: Math.floor(hours / 24) });
 }
 
 function bellStyle(): void {
@@ -782,23 +788,23 @@ function mountBell(): void {
                           `</button>`,
                   )
                   .join('')
-            : '<div class="kl-bell-empty">새 알림이 없습니다</div>';
+            : t('account.t12');
 
         /* 「어디로 받을 것인가」를 알림을 보는 자리에 둔다 (TASK-KL-157).
            종은 사이트 안에서만 울린다 — 사이트를 안 열고 있으면 그 알림은 없는 것과 같다.
            설정 화면 깊숙이 두면 이 스위치가 있다는 것 자체를 아무도 모른다. */
         const discordRow = discordAvailable
             ? `<button type="button" class="kl-bell-dm" id="klBellDm" data-on="${discordOn ? '1' : '0'}">` +
-              `${discordOn ? '☑' : '☐'} 디스코드로도 받기</button>`
+              `${discordOn ? '☑' : '☐'} ${esc(t('account.alsoDiscord'))}</button>`
             : '';
 
         /* 갈래 줄 — 사람이 켜고 끄는 갈래와 **같은 이름**이어야 한다. 여기만 다른 말을 쓰면
          * 「community 를 껐는데 왜 커뮤니티 알림이 오지」가 된다. */
         const TABS: Array<[string, string]> = [
-            ['', '전체'],
-            ['community', '커뮤니티'],
-            ['follow', '팔로우'],
-            ['system', '그 밖'],
+            ['', t('account.t13')],
+            ['community', t('account.t14')],
+            ['follow', t('account.t15')],
+            ['system', t('account.t16')],
         ];
         const tabs = items.length || bucket
             ? `<div class="kl-bell-tabs">${TABS.map(([key, label]) => {
@@ -811,17 +817,17 @@ function mountBell(): void {
             : '';
         /* 「더 보기」는 **받은 만큼 찼을 때만** 뜬다 — 다 보여 준 뒤에도 뜨면 눌러도 아무 일이 없다. */
         const more = items.length >= limit && limit < 100
-            ? '<button type="button" class="kl-bell-more" id="klBellMore">지난 알림 더 보기</button>'
+            ? t('account.t17')
             : '';
 
         const panel = open
-            ? `<div class="kl-bell-panel"><div class="kl-bell-head"><span>알림</span>${
-                  unread ? '<button type="button" id="klBellAll">모두 읽음</button>' : ''
+            ? `<div class="kl-bell-panel"><div class="kl-bell-head"><span>${esc(t('account.title.klBell'))}</span>${
+                  unread ? t('account.t18') : ''
               }</div>${tabs}${list}${more}${discordRow}</div>`
             : '';
 
         slot!.innerHTML =
-            `<button type="button" class="kl-bell-btn" id="klBell" title="알림" aria-label="알림">` +
+            `<button type="button" class="kl-bell-btn" id="klBell" title="${esc(t('account.title.klBell'))}" aria-label="${esc(t('account.title.klBell'))}">` +
             `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" ` +
             `stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>` +
             `<path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>` +

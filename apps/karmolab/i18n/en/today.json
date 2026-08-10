@@ -1,0 +1,11 @@
+{
+  "today.t01": "Today’s board",
+  "today.t02": "All done for today",
+  "today.t03": " — a little more",
+  "today.t04": "<button type=\"button\" class=\"lt-brag\" data-brag>Show it off</button>",
+  "today.t05": "Drawing…",
+  "today.streak": "🔥 {n} days in a row",
+  "today.crowd": "{n} finished today",
+  "today.book": "Collection {n} / {total}",
+  "today.brag": "Show it off"
+}
