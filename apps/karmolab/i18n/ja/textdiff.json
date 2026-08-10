@@ -5,7 +5,6 @@
   "textdiff.label.b": "変更後 (B)",
   "textdiff.ph.a": "元のテキスト",
   "textdiff.ph.b": "比較するテキスト",
-  "textdiff.btn.swap": "A ↔ B",
   "textdiff.btn.clear": "消去",
   "textdiff.view.unified": "統合表示",
   "textdiff.view.split": "左右に並べて",

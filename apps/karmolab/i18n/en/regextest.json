@@ -1,5 +1,4 @@
 {
-  "regextest.tab": "Regex",
   "regextest.mdd": "Regular expressions are not scary. Let’s try them together!",
   "regextest.label.pattern": "Pattern",
   "regextest.note.flags": "Flags — g all, i ignore case, m multiline, s dot matches newlines, u unicode",

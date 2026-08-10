@@ -1,5 +1,4 @@
 {
-  "datecalc.tab.dday": "D-Day",
   "datecalc.mdd": "あと何日か数えます。",
   "datecalc.label.base": "基準日",
   "datecalc.label.target": "目標日",
@@ -29,8 +28,6 @@
   "datecalc.label.baseDate": "基準の日付",
   "datecalc.label.number": "数",
   "datecalc.label.unit": "単位",
-  "datecalc.between.result": "{days}日(両端を含めて{inclusive}日) · 平日{weekdays}日 · 週末{weekend}日",
-  "datecalc.add.result": "{from} から {n}{unit} → {to}",
   "datecalc.tab.age": "年齢",
   "datecalc.label.birth": "生年月日",
   "datecalc.age.full": "満{n}歳",

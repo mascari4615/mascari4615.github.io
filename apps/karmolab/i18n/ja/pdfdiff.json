@@ -14,7 +14,6 @@
   "pdfdiff.mode.text": "文字だけ — 速い",
   "pdfdiff.mode.pixel": "画像だけ — スキャン向き",
   "pdfdiff.btn.run": "照合する",
-  "pdfdiff.btn.swap": "A ↔ B",
   "pdfdiff.status.idle": "2つの版を入れて「照合する」を押してください。ファイルはブラウザの外に出ません。",
   "pdfdiff.say.engine": "PDF 処理エンジンを読み込み中…",
   "pdfdiff.err.engine": "PDF 処理エンジンを読み込めませんでした",

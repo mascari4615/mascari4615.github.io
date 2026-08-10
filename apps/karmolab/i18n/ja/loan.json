@@ -13,7 +13,6 @@
   "loan.label.grace": "据置期間（か月） — 利息だけ払う期間",
   "loan.label.extra": "毎月の繰上返済",
   "loan.table.head": "月ごとの返済表 — 最初の12か月と最終月",
-  "loan.table.all": "月ごとの返済表 — 全期間",
   "loan.btn.all": "すべて表示",
   "loan.btn.fold": "折りたたむ",
   "loan.btn.csv": "表をダウンロード",

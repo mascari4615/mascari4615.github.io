@@ -1,5 +1,4 @@
 {
-  "text2pdf.tab": "文章 → PDF",
   "text2pdf.label.text": "PDF にする文章",
   "text2pdf.ph.text": "ここに貼り付けるか書いてください。空行で段落を分けます。",
   "text2pdf.label.size": "文字の大きさ",

@@ -1,5 +1,4 @@
 {
-  "regextest.tab": "正規表現",
   "regextest.mdd": "正規表現は怖くありません。一緒に試しましょう！",
   "regextest.label.pattern": "パターン",
   "regextest.note.flags": "フラグ — g 全体、i 大文字小文字を無視、m 複数行、s 改行も含む(.)、u ユニコード",

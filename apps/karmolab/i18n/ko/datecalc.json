@@ -1,5 +1,4 @@
 {
-  "datecalc.tab.dday": "D-Day",
   "datecalc.mdd": "며칠 남았는지 세어 드릴게요.",
   "datecalc.label.base": "기준일",
   "datecalc.label.target": "목표일",
@@ -29,8 +28,6 @@
   "datecalc.label.baseDate": "기준 날짜",
   "datecalc.label.number": "숫자",
   "datecalc.label.unit": "단위",
-  "datecalc.between.result": "{days}일 (양쪽 끝 포함 {inclusive}일) · 평일 {weekdays}일 · 주말 {weekend}일",
-  "datecalc.add.result": "{from} 에서 {n}{unit} → {to}",
   "datecalc.tab.age": "만 나이",
   "datecalc.label.birth": "생년월일",
   "datecalc.age.full": "만 {n}세",

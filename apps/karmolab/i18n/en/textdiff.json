@@ -5,7 +5,6 @@
   "textdiff.label.b": "Changed (B)",
   "textdiff.ph.a": "Original text",
   "textdiff.ph.b": "Text to compare",
-  "textdiff.btn.swap": "A ↔ B",
   "textdiff.btn.clear": "Clear",
   "textdiff.view.unified": "Unified",
   "textdiff.view.split": "Side by side",

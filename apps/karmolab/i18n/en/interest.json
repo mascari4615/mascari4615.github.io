@@ -8,7 +8,6 @@
   "interest.label.amount": "Principal",
   "interest.label.rate": "Annual rate (%)",
   "interest.label.months": "Term (months)",
-  "interest.btn.run": "Calculate",
   "interest.row.monthly": "Monthly payment",
   "interest.row.totalPaid": "Total repaid",
   "interest.row.totalInterest": "Total interest",

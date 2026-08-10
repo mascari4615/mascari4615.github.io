@@ -14,7 +14,6 @@
   "pdfdiff.mode.text": "Text only — fast",
   "pdfdiff.mode.pixel": "Image only — for scans",
   "pdfdiff.btn.run": "Compare",
-  "pdfdiff.btn.swap": "A ↔ B",
   "pdfdiff.status.idle": "Add both revisions and hit Compare. The files never leave your browser.",
   "pdfdiff.say.engine": "Loading the PDF engine…",
   "pdfdiff.err.engine": "Could not load the PDF engine",

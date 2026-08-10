@@ -14,7 +14,6 @@
   "pdfdiff.mode.text": "글자만 — 빠름",
   "pdfdiff.mode.pixel": "그림만 — 스캔본",
   "pdfdiff.btn.run": "대조하기",
-  "pdfdiff.btn.swap": "A ↔ B",
   "pdfdiff.status.idle": "두 판본을 넣고 대조를 누르세요. 파일은 브라우저 밖으로 나가지 않습니다.",
   "pdfdiff.say.engine": "PDF 처리기를 불러오는 중…",
   "pdfdiff.err.engine": "PDF 처리기를 불러오지 못했습니다",

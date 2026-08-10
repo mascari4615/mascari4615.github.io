@@ -20,7 +20,6 @@
   "regextest.sample.date": "출시 2026-08-05, 종료 2027-01-01",
   "regextest.preset.spaces": "중복 공백",
   "regextest.sample.spaces": "공백이    많은   문장",
-  "regextest.tab": "정규식",
   "regextest.mdd": "정규식은 무섭지 않아요. 같이 시험해봐요!",
   "regextest.err.pattern": "정규식 오류 — ",
   "regextest.value.none": "(없음)",

@@ -1,5 +1,4 @@
 {
-  "datecalc.tab.dday": "D-Day",
   "datecalc.mdd": "I will count the days left for you.",
   "datecalc.label.base": "Start date",
   "datecalc.label.target": "Target date",
@@ -29,8 +28,6 @@
   "datecalc.label.baseDate": "Base date",
   "datecalc.label.number": "Number",
   "datecalc.label.unit": "Unit",
-  "datecalc.between.result": "{days} days ({inclusive} counting both ends) · {weekdays} weekdays · {weekend} weekend days",
-  "datecalc.add.result": "{from} plus {n}{unit} → {to}",
   "datecalc.tab.age": "Age",
   "datecalc.label.birth": "Date of birth",
   "datecalc.age.full": "{n} years old",
