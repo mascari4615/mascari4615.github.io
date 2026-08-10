@@ -147,5 +147,15 @@
   "imagegen.ctxTab.lab": "Laboratory",
   "imagegen.ctxTab.mascot": "🐱 Mascot",
   "imagegen.ctxTab.emoji": "😀 Emoji",
-  "imagegen.ctxTab.custom": "⭐ Custom"
+  "imagegen.ctxTab.custom": "⭐ Custom",
+  "imagegen.btn.igLightboxDl": "⬇️ Download",
+  "imagegen.btn.igLightboxClose": "Close",
+  "imagegen.t58": "The download has started",
+  "imagegen.err.59": "A Vertex API key is required.",
+  "imagegen.t61": "The request was cancelled.",
+  "imagegen.t62": "The API request limit was exceeded. The queue is cleared. Please try again in a moment.",
+  "imagegen.t63": "Every queued job is done!",
+  "imagegen.genFailed": "Generation failed",
+  "imagegen.imageFailed": "The image could not be made",
+  "imagegen.queueDone": "Queue done: {n} images made"
 }

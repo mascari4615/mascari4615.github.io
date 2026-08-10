@@ -147,5 +147,15 @@
   "imagegen.ctxTab.lab": "실험실",
   "imagegen.ctxTab.mascot": "🐱 마스코트",
   "imagegen.ctxTab.emoji": "😀 이모지",
-  "imagegen.ctxTab.custom": "⭐ 커스텀"
+  "imagegen.ctxTab.custom": "⭐ 커스텀",
+  "imagegen.btn.igLightboxDl": "⬇️ 다운로드",
+  "imagegen.btn.igLightboxClose": "닫기",
+  "imagegen.t58": "다운로드 시작",
+  "imagegen.err.59": "Vertex API 키가 필요합니다.",
+  "imagegen.t61": "요청이 취소되었습니다.",
+  "imagegen.t62": "API 요청 한도 초과. 큐를 비웠습니다. 잠시 후 다시 시도해주세요.",
+  "imagegen.t63": "큐 작업 모두 완료!",
+  "imagegen.genFailed": "생성 실패",
+  "imagegen.imageFailed": "이미지 생성 실패",
+  "imagegen.queueDone": "큐 완료: {n}장 생성됨"
 }

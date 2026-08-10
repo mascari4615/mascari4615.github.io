@@ -55,5 +55,11 @@
   "packs.msg.uploadedOne": "“{title}” is up — it now stands in Browse.",
   "packs.msg.uploadedMany": "{n} tables are up.",
   "packs.sharedLine": "{n} items · {who}",
-  "packs.opens": "opened {n}×"
+  "packs.opens": "opened {n}×",
+  "packs.t37": "Put the column names on the first row, and one entry per row below it.",
+  "packs.t38": "There is not a single entry.",
+  "packs.t39": "Besides the name there must be at least one column to compare (e.g. kind, age, height).",
+  "packs.t40": "It needs more than four entries to make a game.",
+  "packs.column": "column {i}",
+  "packs.receivedTable": "a table you received"
 }

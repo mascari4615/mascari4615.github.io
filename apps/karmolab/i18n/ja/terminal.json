@@ -1,0 +1,18 @@
+{
+  "terminal.t01": "コマンドを入れて Enter (開始後に有効)",
+  "terminal.t02": "terminal ウィジェットは Tauri のデスクトップアプリ専用です。",
+  "terminal.t03": "▶ 開始",
+  "terminal.t04": "⏹ 終了",
+  "terminal.t05": "実行",
+  "terminal.t06": "[Tauri invoke なし — ターミナルは使えません]",
+  "terminal.t07": "terminal の listen に失敗",
+  "terminal.t08": "[すでに動いているシェルに接続しました]",
+  "terminal.t09": "[終了を要求 — taskkill /T /F]",
+  "terminal.t10": "開始ボタンを押すと PowerShell のシェルが一つ spawn されます。cd / Set-Location は自動で追跡します (cwd 行)。",
+  "terminal.t11": "[既存のシェルに reattach]",
+  "terminal.exited": "[シェル終了 — exit code {code}]",
+  "terminal.started": "[{shell} 開始 — pwsh.exe / powershell.exe を自動選択]",
+  "terminal.startFailed": "[開始に失敗: {why}]",
+  "terminal.stopFailed": "[終了に失敗: {why}]",
+  "terminal.writeFailed": "[入力に失敗: {why}]"
+}

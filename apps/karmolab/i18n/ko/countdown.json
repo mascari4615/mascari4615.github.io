@@ -1,0 +1,14 @@
+{
+  "countdown.t01": "⏰ 인생이 낭비되는 속도 (목표 시간까지 남은 ms)",
+  "countdown.t02": "목표일:",
+  "countdown.t03": "--- 낭비 체감 가이드 (ms 전환표) ---",
+  "countdown.t04": "1분",
+  "countdown.t05": "1시간",
+  "countdown.t06": "1일",
+  "countdown.t07": "1주일",
+  "countdown.t08": "1달 (30일)",
+  "countdown.t09": "1년 (365일)",
+  "countdown.t10": "카운트다운",
+  "countdown.t12": "시간이 흐르고 있어요...",
+  "countdown.t13": "시간이 다 되었습니다."
+}

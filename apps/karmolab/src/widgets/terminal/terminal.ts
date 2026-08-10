@@ -8,8 +8,12 @@
  * 이벤트: karmolab://terminal-line / karmolab://terminal-cwd / karmolab://terminal-exit
  */
 import { isDesktop, invoke, listen } from '../../tauri-bridge';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   interface TerminalStartResult {
     running: boolean;
     cwd: string;
@@ -32,9 +36,12 @@ import { isDesktop, invoke, listen } from '../../tauri-bridge';
         id: 'app',
         label: 'shell',
         build(container: HTMLElement): void {
+          void loadNamespace('terminal').then(function () {
+
           injectStyles();
           renderShell(container);
           if (isDesktop()) void boot(container);
+                  });
         },
       },
     ],
@@ -73,22 +80,22 @@ import { isDesktop, invoke, listen } from '../../tauri-bridge';
 
   function renderShell(container: HTMLElement): void {
     if (!isDesktop()) {
-      container.innerHTML = `<div class="kt-term"><div class="kt-disabled">terminal 위젯은 Tauri 데스크톱 앱 전용입니다.</div></div>`;
+      container.innerHTML = `<div class="kt-term"><div class="kt-disabled">${esc(t('terminal.t02'))}</div></div>`;
       return;
     }
     container.innerHTML = `
       <div class="kt-term">
         <div class="kt-bar" data-kt="bar">
           <span class="kt-status-dot"></span>
-          <button data-kt="btn-start" type="button">▶ 시작</button>
-          <button data-kt="btn-stop" class="kt-btn-stop" type="button" disabled>⏹ 종료</button>
+          <button data-kt="btn-start" type="button">${esc(t('terminal.t03'))}</button>
+          <button data-kt="btn-stop" class="kt-btn-stop" type="button" disabled>${esc(t('terminal.t04'))}</button>
           <span class="kt-shell" data-kt="shell">—</span>
           <span class="kt-cwd" data-kt="cwd">cwd: —</span>
         </div>
         <div class="kt-out" data-kt="out"></div>
         <form class="kt-form" data-kt="form">
-          <input data-kt="input" type="text" autocomplete="off" spellcheck="false" placeholder="명령어 입력 후 Enter (시작 후 활성)" disabled />
-          <button data-kt="btn-send" type="submit" disabled>실행</button>
+          <input data-kt="input" type="text" autocomplete="off" spellcheck="false" placeholder="${esc(t('terminal.t01'))}" disabled />
+          <button data-kt="btn-send" type="submit" disabled>${esc(t('terminal.t05'))}</button>
         </form>
       </div>
     `;
@@ -110,7 +117,7 @@ import { isDesktop, invoke, listen } from '../../tauri-bridge';
     // 데스크톱 플래그 true 인데 Tauri 미주입(깨진 빌드)이면 seam invoke 가
     // 각 호출 site 에서 명확한 reject 메시지로 진단(아래 try/catch 가 표시).
     if (!isDesktop()) {
-      appendMeta(out, '[Tauri invoke 없음 — 터미널 사용 불가]');
+      appendMeta(out, t('terminal.t06'));
       return;
     }
 
@@ -141,11 +148,11 @@ import { isDesktop, invoke, listen } from '../../tauri-bridge';
         });
         unlistenExit = await listen('karmolab://terminal-exit', (e: { payload: unknown }) => {
           const p = (e.payload || {}) as TerminalExitEvt;
-          appendMeta(out, `[셸 종료 — exit code ${p.code ?? '?'}]`);
+          appendMeta(out, t('terminal.exited', { code: p.code ?? '?' }));
           setRunning(false);
         });
       } catch (err) {
-        console.error('terminal listen 실패', err);
+        console.error(t('terminal.t07'), err);
       }
     };
 
@@ -164,14 +171,14 @@ import { isDesktop, invoke, listen } from '../../tauri-bridge';
         shellLabel.textContent = res.shell;
         cwdLabel.textContent = `cwd: ${res.cwd}`;
         if (res.alreadyRunning) {
-          appendMeta(out, '[이미 실행 중인 셸에 연결됨]');
+          appendMeta(out, t('terminal.t08'));
         } else {
-          appendMeta(out, `[${res.shell} 시작 — pwsh.exe / powershell.exe 자동선택]`);
+          appendMeta(out, t('terminal.started', { shell: res.shell }));
         }
         setRunning(true);
         input.focus();
       } catch (err) {
-        appendMeta(out, `[시작 실패: ${String(err)}]`);
+        appendMeta(out, t('terminal.startFailed', { why: String(err) }));
         teardownEvents();
         btnStart.disabled = false;
       }
@@ -181,9 +188,9 @@ import { isDesktop, invoke, listen } from '../../tauri-bridge';
       btnStop.disabled = true;
       try {
         await invoke('terminal_stop');
-        appendMeta(out, '[종료 요청 — taskkill /T /F]');
+        appendMeta(out, t('terminal.t09'));
       } catch (err) {
-        appendMeta(out, `[종료 실패: ${String(err)}]`);
+        appendMeta(out, t('terminal.stopFailed', { why: String(err) }));
       }
       // exit 이벤트가 setRunning(false) 처리. 안 와도 일정 시간 뒤 정리.
       setTimeout(() => { if (running) setRunning(false); teardownEvents(); }, 1500);
@@ -198,7 +205,7 @@ import { isDesktop, invoke, listen } from '../../tauri-bridge';
       try {
         await invoke('terminal_send_stdin', { line });
       } catch (err) {
-        appendMeta(out, `[입력 실패: ${String(err)}]`);
+        appendMeta(out, t('terminal.writeFailed', { why: String(err) }));
       }
     });
 
@@ -216,14 +223,14 @@ import { isDesktop, invoke, listen } from '../../tauri-bridge';
     observer.observe(document.body, { childList: true, subtree: true });
 
     // 첫 진입 안내.
-    appendMeta(out, '시작 버튼을 누르면 PowerShell 단일 셸 spawn. cd / Set-Location 자동 추적 (cwd 라인).');
+    appendMeta(out, t('terminal.t10'));
 
     // 이미 실행 중인 셸이 있을 수 있음 — status 체크 후 자동 reattach.
     try {
       const s = await invoke('terminal_status') as { running: boolean };
       if (s.running) {
         await wireEvents();
-        appendMeta(out, '[기존 셸에 reattach]');
+        appendMeta(out, t('terminal.t11'));
         setRunning(true);
         input.focus();
       }

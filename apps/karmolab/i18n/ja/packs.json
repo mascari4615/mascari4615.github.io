@@ -55,5 +55,11 @@
   "packs.msg.uploadedOne": "「{title}」を上げました — これで見てまわるに並びます。",
   "packs.msg.uploadedMany": "表 {n}個を上げました。",
   "packs.sharedLine": "{n}件 · {who}",
-  "packs.opens": "{n}回 開かれた"
+  "packs.opens": "{n}回 開かれた",
+  "packs.t37": "一行目に列の名前、その下に項目を一行ずつ入れてください。",
+  "packs.t38": "項目が一つもありません。",
+  "packs.t39": "名前のほかに、比べられる列が一つは必要です (例: 種類・年齢・身長)。",
+  "packs.t40": "項目が四つを超えないと遊びになりません。",
+  "packs.column": "列 {i}",
+  "packs.receivedTable": "もらった表"
 }
