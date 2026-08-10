@@ -1,6 +1,8 @@
 /**
  * 기본 즐겨찾기 데이터 — URL·그룹만 편집하면 됨 (위젯 로직은 favorites.ts)
  */
+import { t } from '../lib/i18n';
+
 export type FavoriteItem = {
     url?: string;
     label: string;
@@ -23,7 +25,7 @@ export const FAVICON_FALLBACK = 'data:image/svg+xml,' + encodeURIComponent(
 );
 
 export const DEFAULT_ITEMS: FavoriteGroup[] = [
-    { group: '개발', items: [
+    { get group() { return t('favorites.group.dev'); }, items: [
         { url: 'https://github.com', label: 'GitHub', icon: 'https://cdn.simpleicons.org/github' },
         { url: 'https://www.postman.com/', label: 'Postman', icon: 'https://cdn.simpleicons.org/postman' },
         { url: 'https://discord.com/developers/applications/', label: 'Discord Developer', icon: 'https://cdn.simpleicons.org/discord' },
@@ -37,7 +39,7 @@ export const DEFAULT_ITEMS: FavoriteGroup[] = [
         { url: 'https://wrchat.github.io/Woodon/index.json', label: 'WRChat index.json', icon: FAVICON_FALLBACK },
         { url: 'https://status.vrchat.com/', label: 'VRChat Status', icon: 'https://cdn.simpleicons.org/vrchat' },
     ]},
-    { group: '채용·커리어', items: [
+    { get group() { return t('favorites.group.career'); }, items: [
         { url: 'https://blog.maplestory.nexon.com/Employment', label: '메이플 채용', icon: 'https://cdn.simpleicons.org/nexon' },
         { url: 'https://maplecareer.stibee.com', label: '메이플 커리어 레터', icon: FAVICON_FALLBACK },
         { url: 'https://careers.nexon.com', label: '넥슨 채용', icon: 'https://cdn.simpleicons.org/nexon' },
@@ -45,13 +47,13 @@ export const DEFAULT_ITEMS: FavoriteGroup[] = [
         { url: 'https://www.gamejob.co.kr/User/resumemng/portfolio', label: '게임잡 포트폴리오', icon: null },
         { url: 'https://inditor.co.kr', label: '인디터웹', icon: null },
     ]},
-    { group: '메이플', items: [
+    { get group() { return t('favorites.group.maple'); }, items: [
         { url: 'https://blog.maplestory.nexon.com/Tech', label: '메이플 테크 블로그', icon: 'https://cdn.simpleicons.org/nexon' },
         { url: 'https://blog.maplestory.nexon.com/Tech/Content/10', label: '메이플 테크 (1)', icon: 'https://cdn.simpleicons.org/nexon' },
         { url: 'https://blog.maplestory.nexon.com/Tech/Content/2', label: '메이플 테크 (2)', icon: 'https://cdn.simpleicons.org/nexon' },
         { url: 'https://maplescouter.com/ko', label: '환산주스탯', icon: null },
     ]},
-    { group: '검색·AI', items: [
+    { get group() { return t('favorites.group.searchAi'); }, items: [
         { url: 'https://www.google.com', label: 'Google', icon: 'https://cdn.simpleicons.org/google' },
         { url: 'https://www.naver.com/', label: 'Naver', icon: null },
         { url: 'https://feedly.com/i/my', label: 'Feedly', icon: null },
@@ -63,13 +65,13 @@ export const DEFAULT_ITEMS: FavoriteGroup[] = [
         { url: 'https://cursor.com/dashboard/spending', label: 'Cursor Spending', icon: 'https://cdn.simpleicons.org/cursor' },
         { url: 'https://console.cloud.google.com/welcome?chat=true&orgonly=true&project=gen-lang-client-0029124356', label: 'GCP Console (gen-lang-client)', icon: 'https://cdn.simpleicons.org/googlecloud' },
     ]},
-    { group: 'AI 아트', items: [
+    { get group() { return t('favorites.group.aiArt'); }, items: [
         { url: 'https://pixai.art/', label: 'PixAI', icon: null },
         { url: 'https://tensor.art/', label: 'Tensor.art', icon: null },
         { url: 'https://novelai.net/', label: 'NovelAI', icon: null },
         { url: 'https://www.seaart.ai/', label: 'SeaArt', icon: null },
     ]},
-    { group: '소셜·미디어', items: [
+    { get group() { return t('favorites.group.social'); }, items: [
         { url: 'https://www.netflix.com', label: '넷플릭스', icon: 'https://cdn.simpleicons.org/netflix' },
         { url: 'https://laftel.net', label: '라프텔', icon: null },
         { url: 'https://www.youtube.com', label: 'YouTube', icon: 'https://cdn.simpleicons.org/youtube' },
@@ -83,23 +85,23 @@ export const DEFAULT_ITEMS: FavoriteGroup[] = [
         { url: 'https://discord.com', label: 'Discord', icon: 'https://cdn.simpleicons.org/discord' },
         { url: 'https://lolesports.com/', label: 'LoL Esports', icon: null },
     ]},
-    { group: '서로이웃', items: [
+    { get group() { return t('favorites.group.neighbours'); }, items: [
         { url: 'https://orbit3230.github.io', label: 'orbit3230', icon: 'https://orbit3230.github.io/favicon.ico' },
     ]},
-    { group: '짝이웃', items: [
+    { get group() { return t('favorites.group.friends'); }, items: [
         { url: 'https://hyngng.github.io', label: 'HYNGNG', icon: null },
         { url: 'https://blog.naver.com/tigermon', label: '윤농 - 윤농의 작업실', icon: FAVICON_FALLBACK },
         { url: 'https://shoark7.github.io/', label: 'Parkito - Faster, Faster', icon: null },
         { url: 'https://blog.naver.com/blancleo/', label: '블랑레오', icon: FAVICON_FALLBACK },
         { url: 'https://blog.naver.com/hugspa', label: '그대만을(hugspa) - 득행하자!', icon: FAVICON_FALLBACK },
     ]},
-    { group: '도구', items: [
+    { get group() { return t('favorites.group.tools'); }, items: [
         { url: 'https://www.dhlottery.co.kr/main', label: '동행복권', icon: null },
         { url: 'https://www.notion.so', label: 'Notion', icon: 'https://cdn.simpleicons.org/notion' },
         { url: 'https://figma.com', label: 'Figma', icon: 'https://cdn.simpleicons.org/figma' },
         { url: 'https://excalidraw.com', label: 'Excalidraw', icon: 'https://cdn.simpleicons.org/excalidraw' },
     ]},
-    { group: '이끔', items: [
+    { get group() { return t('favorites.group.guide'); }, items: [
         { url: '/posts/year-2025/', label: '2025', icon: null },
         { url: '/posts/music-playlist/', label: '플레이리스트', icon: null },
         { url: '/posts/strategy/', label: '전략', icon: null },
@@ -109,7 +111,7 @@ export const DEFAULT_ITEMS: FavoriteGroup[] = [
         { url: '/posts/cold/', label: '찬 바람', icon: null },
         { url: '/posts/ps-algorithm/', label: '코딩테스트', icon: null },
     ]},
-    { group: '계속', items: [
+    { get group() { return t('favorites.group.keep'); }, items: [
         { url: 'https://brunch.co.kr/@dangkunlove/21', label: '시시콜콜한 이야기의 위로', icon: null },
         { url: 'https://brunch.co.kr/@064040503a2242a/42', label: '내 작업물에 대한 공격은 나에 대한 공격으로 간주한다', icon: null },
         { url: 'https://blog.naver.com/jysa000/223676533324', label: '나는 어떤 경험을 하고 싶을까?', icon: FAVICON_FALLBACK },

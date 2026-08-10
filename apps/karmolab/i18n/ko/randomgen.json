@@ -52,5 +52,22 @@
   "randomgen.t51": "중복 없이 뽑을 수 있는 게 이거까지만 있대요.",
   "randomgen.t52": "이거 어때요?",
   "randomgen.t53": "먼저 키워드를 뽑아주세요.",
-  "randomgen.t54": "챗봇에서 이야기 만들어보세요!"
+  "randomgen.t54": "챗봇에서 이야기 만들어보세요!",
+  "randomgen.topic.kr.label": "한국 이름",
+  "randomgen.topic.kr.group": "이름",
+  "randomgen.topic.color_hex.label": "색 (hex)",
+  "randomgen.topic.color_hex.group": "자연",
+  "randomgen.topic.number_1_10.label": "숫자 (1~10)",
+  "randomgen.topic.number_1_10.group": "기본",
+  "randomgen.topic.number_1_100.label": "숫자 (1~100)",
+  "randomgen.topic.number_1_100.group": "기본",
+  "randomgen.topic.age.label": "나이",
+  "randomgen.topic.age.group": "캐릭터",
+  "randomgen.topic.date.label": "날짜",
+  "randomgen.topic.date.group": "시간",
+  "randomgen.topic.time_24h.label": "시간 (24h)",
+  "randomgen.topic.time_24h.group": "시간",
+  "randomgen.unit.age": "{n}세",
+  "randomgen.unit.day": "{n}일",
+  "randomgen.groupOther": "기타"
 }
