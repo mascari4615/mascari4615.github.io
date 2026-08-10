@@ -1,0 +1,13 @@
+{
+  "dailytype.t01": "세 문장을 그대로 칩니다. 첫 글자를 치는 순간 시간이 갑니다.",
+  "dailytype.btn.dtDone": "다 쳤어요",
+  "dailytype.btn.dtReset": "다시",
+  "dailytype.btn.dtCopy": "결과 복사",
+  "dailytype.t04": "오늘의 타자",
+  "dailytype.say.05": "아직 한 글자도 안 쳤어요",
+  "dailytype.t06": "결과를 복사했어요 (문장은 안 담겨요)",
+  "dailytype.say.07": "처음부터",
+  "dailytype.report": "{wpm}타/분 · 정확도 {acc}%",
+  "dailytype.today": "오늘 총 {n}타 — 준비되면 바로 치세요",
+  "dailytype.already": "오늘은 이미 {n}타/분 했어요. 연습은 계속 열려 있습니다"
+}

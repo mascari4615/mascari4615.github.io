@@ -1,0 +1,18 @@
+{
+  "mesh3d.label.m3File": "3Dファイルを選ぶ",
+  "mesh3d.btn.m3Reset": "角度を戻す",
+  "mesh3d.btn.m3Png": "PNG で保存",
+  "mesh3d.t01": "ドラッグで回し、ホイールや二本指で拡大します。STL(テキスト・バイナリ)と OBJ を読みます。",
+  "mesh3d.err.02": "WebGL のシェーダーを作れませんでした",
+  "mesh3d.t05": "開いて見る",
+  "mesh3d.say.06": "このブラウザでは WebGL が使えません — 3D を描けません",
+  "mesh3d.err.07": "WebGL のプログラムを作れませんでした",
+  "mesh3d.say.08": "読んでいます…",
+  "mesh3d.err.09": "三角形が一つもありません — 空のファイルかもしれません",
+  "mesh3d.t10": "(単位はファイルに書かれていません — 3Dプリンタ側はたいてい mm)",
+  "mesh3d.say.11": "保存する画像を作れませんでした",
+  "mesh3d.say.12": "STL・OBJ のファイルを選んでください。ファイルは端末の外に出ません",
+  "mesh3d.err.shader": "シェーダーのエラー: {why}",
+  "mesh3d.err.link": "WebGL のリンクエラー: {why}",
+  "mesh3d.info": "三角形 {n}個 · 大きさ {x} × {y} × {z}"
+}

@@ -6,6 +6,7 @@
  * 그래서 한 곳으로 모았다. 각 위젯은 묶음으로 빌드되므로 여기 코드는 각자 안에 심긴다
  * (즉 이 파일을 먼저 불러야 하는 순서 문제가 생기지 않는다).
  */
+import { t, loadNamespace } from '../../../lib/i18n';
 
 /** AudioBuffer → WAV(16비트 PCM). 브라우저에 저장 기능이 없어 머리말을 직접 엮는다. */
 export function toWav(buffer: AudioBuffer): Blob {
@@ -58,7 +59,12 @@ interface Mp3Encoder {
 export async function toMp3(buffer: AudioBuffer, kbps = 128): Promise<Blob> {
   await Toolbox.ensureScript?.('vendor/lame.min');
   const lame = (window as unknown as { lamejs?: { Mp3Encoder: new (ch: number, rate: number, kbps: number) => Mp3Encoder } }).lamejs;
-  if (!lame) throw new Error('MP3 압축기를 불러오지 못했습니다');
+  if (!lame) {
+    /* 이 파일은 도구 여덟이 나눠 쓴다 — 어느 묶음에 얹을지 정할 수 없어 제 묶음(`media`)을 둔다.
+       여기까지 왔다는 건 이미 압축기를 받으러 갔다 왔다는 뜻이라, 한 번 더 기다려도 늦지 않다. */
+    await loadNamespace('media');
+    throw new Error(t('media.err.mp3'));
+  }
 
   const channels = Math.min(2, buffer.numberOfChannels);
   const encoder = new lame.Mp3Encoder(channels, buffer.sampleRate, kbps);

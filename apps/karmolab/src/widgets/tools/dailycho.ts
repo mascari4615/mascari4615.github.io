@@ -12,21 +12,26 @@
  */
 import { dateKST, humanLeft, msUntilNextKST, playKey } from '../../core/daily';
 import { grade, puzzleFor, type ChoPuzzle } from '../../core/dailycho';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  const esc = (s: string): string => s.replace(/[<&]/g, (c) => (c === '<' ? '&lt;' : '&amp;'));
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 
   Toolbox.register({
     id: 'dailycho',
-    title: '오늘의 초성 맞히기',
+    title: t('widgets.dailycho.title', undefined, "오늘의 초성 맞히기"),
     category: 'tool',
-    desc: '초성만 보고 낱말 다섯 개. 답은 이 사이트의 도구 이름입니다',
+    desc: t('widgets-desc.dailycho.desc', undefined, "초성만 보고 낱말 다섯 개. 답은 이 사이트의 도구 이름입니다"),
     layout: 'wide',
     tabs: [
       {
         id: 'play',
-        label: '오늘의 초성',
+        label: t('dailycho.t04', undefined, "오늘의 초성"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('dailycho').then(function () {
+
           const today = dateKST();
           const puzzle: ChoPuzzle = puzzleFor(today);
           const done = localStorage.getItem(playKey('cho-quiz', today));
@@ -37,15 +42,15 @@ import { grade, puzzleFor, type ChoPuzzle } from '../../core/dailycho';
                 <strong>초성 #${puzzle.day}</strong>
                 <span class="tool-hint">다음 문제까지 ${esc(humanLeft(msUntilNextKST()))}</span>
               </div>
-              <p class="tool-hint">답은 이 사이트에 있는 도구의 이름입니다. 맞히면 어떤 도구인지 알려 줍니다.</p>
+              <p class="tool-hint">${esc(t('dailycho.t01'))}</p>
               <div id="chList"></div>
               <div class="tool-row">
-                <button id="chDone" class="tool-btn tool-btn-primary" type="button">채점</button>
-                <button id="chReset" class="tool-btn" type="button">지우기</button>
+                <button id="chDone" class="tool-btn tool-btn-primary" type="button">${esc(t('dailycho.btn.chDone'))}</button>
+                <button id="chReset" class="tool-btn" type="button">${esc(t('dailycho.btn.chReset'))}</button>
               </div>
               <div id="chSay" class="tool-note" role="status"></div>
               <pre id="chShare" style="display:none; white-space:pre-wrap;"></pre>
-              <button id="chCopy" class="tool-btn" type="button" style="display:none;">결과 복사</button>
+              <button id="chCopy" class="tool-btn" type="button" style="display:none;">${esc(t('dailycho.btn.chCopy'))}</button>
             </div>`;
 
           const $ = <T extends HTMLElement>(sel: string): T => container.querySelector(sel) as T;
@@ -79,15 +84,15 @@ import { grade, puzzleFor, type ChoPuzzle } from '../../core/dailycho';
                 /* 맞힌 칸에만 도구를 알려 준다 — 이게 이 놀이가 사이트를 가르치는 자리다. */
                 mark.textContent = `🟩 ${q.tool}`;
               } else {
-                mark.textContent = report.marks[i] === 'near' ? '🟨 한 글자 다름' : '⬛';
+                mark.textContent = report.marks[i] === 'near' ? t('dailycho.t05') : '⬛';
               }
             });
-            say(`${report.right}/${puzzle.questions.length} 맞힘`, report.right === puzzle.questions.length ? 'ok' : '');
+            say(t('dailycho.score', { right: report.right, total: puzzle.questions.length }), report.right === puzzle.questions.length ? 'ok' : '');
             $('#chShare').textContent = report.share;
             $('#chShare').style.display = '';
             $('#chCopy').style.display = '';
             $<HTMLButtonElement>('#chCopy').onclick = () =>
-              void Toolbox.copyText?.(report.share, { message: '결과를 복사했어요 (정답은 안 담겨요)' });
+              void Toolbox.copyText?.(report.share, { message: t('dailycho.t06') });
 
             try {
               localStorage.setItem(playKey('cho-quiz', today), String(report.right));
@@ -104,7 +109,7 @@ import { grade, puzzleFor, type ChoPuzzle } from '../../core/dailycho';
             });
             $('#chShare').style.display = 'none';
             $('#chCopy').style.display = 'none';
-            say('처음부터');
+            say(t('dailycho.say.07'));
           };
 
           /* 마지막 칸에서 엔터 = 채점. 다섯 개를 치고 마우스로 옮겨 가는 건 번거롭다. */
@@ -116,7 +121,8 @@ import { grade, puzzleFor, type ChoPuzzle } from '../../core/dailycho';
             });
           });
 
-          say(done === null ? '초성만 보고 맞혀 보세요' : `오늘은 이미 ${done}개 맞혔어요. 다시 해도 됩니다`);
+          say(done === null ? t('dailycho.t08') : `오늘은 이미 ${done}개 맞혔어요. 다시 해도 됩니다`);
+                  });
         }
       }
     ]

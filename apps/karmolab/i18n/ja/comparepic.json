@@ -1,0 +1,14 @@
+{
+  "comparepic.aria.cpHandle": "比較の位置",
+  "comparepic.label.cpA": "左(前)を選ぶ",
+  "comparepic.label.cpB": "右(後)を選ぶ",
+  "comparepic.btn.cpSave": "PNG で保存",
+  "comparepic.t03": "前後の比較",
+  "comparepic.t04": "ハンドルを動かしてみてください (← → キーでも動きます)",
+  "comparepic.say.05": "もう一枚も選んでください",
+  "comparepic.say.06": "この画像を読めませんでした",
+  "comparepic.say.07": "保存する画像を作れませんでした",
+  "comparepic.say.08": "いま見えているとおりに保存しました",
+  "comparepic.say.09": "写真を二枚選んでください。ファイルは端末の外に出ません",
+  "comparepic.sizeDiff": "大きさが違います ({a} / {b}) — 大きいほうに合わせて重ねました"
+}

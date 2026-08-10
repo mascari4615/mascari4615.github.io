@@ -13,6 +13,7 @@
  * ★ 파일은 기기 밖으로 안 나간다. 남의 3D 뷰어 사이트는 대개 업로드부터 시킨다.
  */
 import { describe, parseMesh } from '../../core/mesh3d';
+import { t, loadNamespace, locale } from '../../lib/i18n';
 
 /** 삼각형마다 제 법선을 준다(플랫 셰이딩). 파일에 적힌 법선은 틀린 것이 많아 다시 계산한다. */
 function faceNormals(positions: Float32Array): Float32Array {
@@ -83,41 +84,46 @@ const FRAG = [
 
 function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLShader {
   const sh = gl.createShader(type);
-  if (sh === null) throw new Error('WebGL 셰이더를 못 만들었습니다');
+  if (sh === null) throw new Error(t('mesh3d.err.02'));
   gl.shaderSource(sh, src);
   gl.compileShader(sh);
   if (gl.getShaderParameter(sh, gl.COMPILE_STATUS) !== true) {
-    throw new Error(`셰이더 오류: ${String(gl.getShaderInfoLog(sh))}`);
+    throw new Error(t('mesh3d.err.shader', { why: String(gl.getShaderInfoLog(sh)) }));
   }
   return sh;
 }
 
 (function (): void {
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'mesh3d',
-    title: '3D 뷰어',
+    title: t('widgets.mesh3d.title', undefined, "3D 뷰어"),
     category: 'tool',
-    desc: 'STL·OBJ 를 열어 돌려 봅니다. 삼각형 수·크기도 함께. 파일은 기기 밖으로 나가지 않습니다',
+    desc: t('widgets-desc.mesh3d.desc', undefined, "STL·OBJ 를 열어 돌려 봅니다. 삼각형 수·크기도 함께. 파일은 기기 밖으로 나가지 않습니다"),
     layout: 'wide',
     tabs: [
       {
         id: 'view',
-        label: '열어 보기',
+        label: t('mesh3d.t05', undefined, "열어 보기"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('mesh3d').then(function () {
+
           container.innerHTML = `
             <div class="tool-block">
               <div class="tool-row">
-                <label class="tool-btn" for="m3File">3D 파일 고르기
+                <label class="tool-btn" for="m3File">${esc(t('mesh3d.label.m3File'))}
                   <input id="m3File" type="file" accept=".stl,.obj,model/stl,model/obj" hidden /></label>
-                <button id="m3Reset" class="tool-btn" type="button" disabled>각도 되돌리기</button>
-                <button id="m3Png" class="tool-btn" type="button" disabled>PNG 로 저장</button>
+                <button id="m3Reset" class="tool-btn" type="button" disabled>${esc(t('mesh3d.btn.m3Reset'))}</button>
+                <button id="m3Png" class="tool-btn" type="button" disabled>${esc(t('mesh3d.btn.m3Png'))}</button>
               </div>
               <div id="m3Stage" style="position:relative; border-radius:8px; overflow:hidden;
                 background:var(--surface-2, #14161a); touch-action:none;">
                 <canvas id="m3Canvas" style="display:block; width:100%; height:min(60vh, 520px);"></canvas>
               </div>
               <div id="m3Info" class="tool-note" role="status"></div>
-              <p class="tool-hint">끌어서 돌리고, 휠·두 손가락으로 확대합니다. STL(글자·이진)·OBJ 를 읽습니다.</p>
+              <p class="tool-hint">${esc(t('mesh3d.t01'))}</p>
             </div>`;
 
           const $ = <T extends HTMLElement>(sel: string): T => container.querySelector(sel) as T;
@@ -131,19 +137,19 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
           /* preserveDrawingBuffer — 없으면 PNG 저장이 빈 그림으로 나온다(그린 직후가 아니면 지워진다). */
           const gl = canvas.getContext('webgl', { antialias: true, preserveDrawingBuffer: true });
           if (gl === null) {
-            say('이 브라우저에서 WebGL 을 못 씁니다 — 3D 를 그릴 수 없습니다', 'error');
+            say(t('mesh3d.say.06'), 'error');
             return;
           }
 
           let program: WebGLProgram | null = null;
           try {
             const p = gl.createProgram();
-            if (p === null) throw new Error('WebGL 프로그램을 못 만들었습니다');
+            if (p === null) throw new Error(t('mesh3d.err.07'));
             gl.attachShader(p, compile(gl, gl.VERTEX_SHADER, VERT));
             gl.attachShader(p, compile(gl, gl.FRAGMENT_SHADER, FRAG));
             gl.linkProgram(p);
             if (gl.getProgramParameter(p, gl.LINK_STATUS) !== true) {
-              throw new Error(`WebGL 연결 오류: ${String(gl.getProgramInfoLog(p))}`);
+              throw new Error(t('mesh3d.err.link', { why: String(gl.getProgramInfoLog(p)) }));
             }
             program = p;
           } catch (err) {
@@ -203,11 +209,11 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
           };
 
           const show = async (file: File): Promise<void> => {
-            say('읽는 중…');
+            say(t('mesh3d.say.08'));
             try {
               const bytes = new Uint8Array(await file.arrayBuffer());
               const mesh = parseMesh(bytes, file.name);
-              if (mesh.triangles === 0) throw new Error('삼각형이 하나도 없습니다 — 빈 파일일 수 있습니다');
+              if (mesh.triangles === 0) throw new Error(t('mesh3d.err.09'));
               const info = describe(mesh);
 
               /*
@@ -241,9 +247,14 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
               $<HTMLButtonElement>('#m3Png').disabled = false;
               const r2 = (n: number): string => String(Math.round(n * 100) / 100);
               say(
-                `삼각형 ${info.triangles.toLocaleString('ko-KR')}개 · ` +
-                  `크기 ${r2(info.size[0])} × ${r2(info.size[1])} × ${r2(info.size[2])} ` +
-                  '(단위는 파일에 안 적혀 있습니다 — 3D 프린터 쪽은 대개 mm)'
+                t('mesh3d.info', {
+                  n: info.triangles.toLocaleString(locale()),
+                  x: r2(info.size[0]),
+                  y: r2(info.size[1]),
+                  z: r2(info.size[2]),
+                }) +
+                  ' ' +
+                  t('mesh3d.t10')
               );
               invalidate();
             } catch (err) {
@@ -269,7 +280,7 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
             render(); // 저장 직전에 한 판 — 그린 지 오래된 화면은 비어 있을 수 있다
             canvas.toBlob((blob) => {
               if (blob === null) {
-                say('저장할 그림을 못 만들었습니다', 'error');
+                say(t('mesh3d.say.11'), 'error');
                 return;
               }
               const a = document.createElement('a');
@@ -322,8 +333,9 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
             window.removeEventListener('resize', onResize);
           });
 
-          say('STL·OBJ 파일을 고르세요. 파일은 기기 밖으로 나가지 않습니다');
+          say(t('mesh3d.say.12'));
           invalidate();
+                  });
         }
       }
     ]

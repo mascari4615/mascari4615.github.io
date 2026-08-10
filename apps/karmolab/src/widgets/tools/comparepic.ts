@@ -11,29 +11,36 @@
  * ② 크기가 다른 두 장도 겹쳐진다 — 「전/후」는 대개 크기가 다르다(업스케일이 그렇다)
  * ③ 지금 보이는 그대로 PNG 로 저장 — 자랑하려면 그림 한 장이 있어야 한다
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'comparepic',
-    title: '비교 슬라이더',
+    title: t('widgets.comparepic.title', undefined, "비교 슬라이더"),
     category: 'tool',
-    desc: '사진 두 장을 겹쳐 밀어 보며 비교합니다. 파일은 기기 밖으로 나가지 않습니다',
+    desc: t('widgets-desc.comparepic.desc', undefined, "사진 두 장을 겹쳐 밀어 보며 비교합니다. 파일은 기기 밖으로 나가지 않습니다"),
     layout: 'wide',
     tabs: [
       {
         id: 'compare',
-        label: '전후 비교',
+        label: t('comparepic.t03', undefined, "전후 비교"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('comparepic').then(function () {
+
           container.innerHTML = `
             <div class="tool-block">
               <div class="tool-row">
-                <label class="tool-btn" for="cpA">왼쪽(전) 고르기<input id="cpA" type="file" accept="image/*" hidden /></label>
-                <label class="tool-btn" for="cpB">오른쪽(후) 고르기<input id="cpB" type="file" accept="image/*" hidden /></label>
-                <button id="cpSave" class="tool-btn" type="button" disabled>PNG 로 저장</button>
+                <label class="tool-btn" for="cpA">${esc(t('comparepic.label.cpA'))}<input id="cpA" type="file" accept="image/*" hidden /></label>
+                <label class="tool-btn" for="cpB">${esc(t('comparepic.label.cpB'))}<input id="cpB" type="file" accept="image/*" hidden /></label>
+                <button id="cpSave" class="tool-btn" type="button" disabled>${esc(t('comparepic.btn.cpSave'))}</button>
               </div>
               <div id="cpStage" style="position:relative; overflow:hidden; border-radius:8px;
                 background:var(--surface-2, #1a1a1a); touch-action:none; user-select:none;">
                 <canvas id="cpCanvas" style="display:block; width:100%; height:auto;"></canvas>
-                <div id="cpHandle" role="slider" tabindex="0" aria-label="비교 위치"
+                <div id="cpHandle" role="slider" tabindex="0" aria-label="${esc(t('comparepic.aria.cpHandle'))}"
                   aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"
                   style="position:absolute; top:0; bottom:0; width:3px; left:50%; margin-left:-1.5px;
                   background:#fff; box-shadow:0 0 0 1px rgba(0,0,0,.35); cursor:ew-resize;"></div>
@@ -93,14 +100,17 @@
                 const differ = left.naturalWidth !== right.naturalWidth || left.naturalHeight !== right.naturalHeight;
                 say(
                   differ
-                    ? `크기가 다릅니다 (${left.naturalWidth}×${left.naturalHeight} / ${right.naturalWidth}×${right.naturalHeight}) — 큰 쪽에 맞춰 겹쳤습니다`
-                    : '손잡이를 밀어 보세요 (← → 키도 됩니다)'
+                    ? t('comparepic.sizeDiff', {
+                        a: `${left.naturalWidth}×${left.naturalHeight}`,
+                        b: `${right.naturalWidth}×${right.naturalHeight}`,
+                      })
+                    : t('comparepic.t04')
                 );
               } else {
-                say('나머지 한 장도 고르세요');
+                say(t('comparepic.say.05'));
               }
             };
-            img.onerror = () => say('이 그림을 못 읽었습니다', 'error');
+            img.onerror = () => say(t('comparepic.say.06'), 'error');
             img.src = URL.createObjectURL(file);
           };
 
@@ -148,7 +158,7 @@
           $<HTMLButtonElement>('#cpSave').onclick = () => {
             canvas.toBlob((blob) => {
               if (blob === null) {
-                say('저장할 그림을 못 만들었습니다', 'error');
+                say(t('comparepic.say.07'), 'error');
                 return;
               }
               const a = document.createElement('a');
@@ -156,11 +166,12 @@
               a.download = 'compare.png';
               a.click();
               URL.revokeObjectURL(a.href);
-              say('지금 보이는 그대로 저장했습니다');
+              say(t('comparepic.say.08'));
             }, 'image/png');
           };
 
-          say('사진 두 장을 고르세요. 파일은 기기 밖으로 나가지 않습니다');
+          say(t('comparepic.say.09'));
+                  });
         }
       }
     ]

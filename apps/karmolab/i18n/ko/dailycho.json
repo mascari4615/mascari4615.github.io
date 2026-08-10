@@ -1,0 +1,12 @@
+{
+  "dailycho.t01": "답은 이 사이트에 있는 도구의 이름입니다. 맞히면 어떤 도구인지 알려 줍니다.",
+  "dailycho.btn.chDone": "채점",
+  "dailycho.btn.chReset": "지우기",
+  "dailycho.btn.chCopy": "결과 복사",
+  "dailycho.t04": "오늘의 초성",
+  "dailycho.t05": "🟨 한 글자 다름",
+  "dailycho.t06": "결과를 복사했어요 (정답은 안 담겨요)",
+  "dailycho.say.07": "처음부터",
+  "dailycho.t08": "초성만 보고 맞혀 보세요",
+  "dailycho.score": "{right}/{total} 맞힘"
+}

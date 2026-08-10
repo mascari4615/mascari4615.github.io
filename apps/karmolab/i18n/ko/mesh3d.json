@@ -1,0 +1,18 @@
+{
+  "mesh3d.label.m3File": "3D 파일 고르기",
+  "mesh3d.btn.m3Reset": "각도 되돌리기",
+  "mesh3d.btn.m3Png": "PNG 로 저장",
+  "mesh3d.t01": "끌어서 돌리고, 휠·두 손가락으로 확대합니다. STL(글자·이진)·OBJ 를 읽습니다.",
+  "mesh3d.err.02": "WebGL 셰이더를 못 만들었습니다",
+  "mesh3d.t05": "열어 보기",
+  "mesh3d.say.06": "이 브라우저에서 WebGL 을 못 씁니다 — 3D 를 그릴 수 없습니다",
+  "mesh3d.err.07": "WebGL 프로그램을 못 만들었습니다",
+  "mesh3d.say.08": "읽는 중…",
+  "mesh3d.err.09": "삼각형이 하나도 없습니다 — 빈 파일일 수 있습니다",
+  "mesh3d.t10": "(단위는 파일에 안 적혀 있습니다 — 3D 프린터 쪽은 대개 mm)",
+  "mesh3d.say.11": "저장할 그림을 못 만들었습니다",
+  "mesh3d.say.12": "STL·OBJ 파일을 고르세요. 파일은 기기 밖으로 나가지 않습니다",
+  "mesh3d.err.shader": "셰이더 오류: {why}",
+  "mesh3d.err.link": "WebGL 연결 오류: {why}",
+  "mesh3d.info": "삼각형 {n}개 · 크기 {x} × {y} × {z}"
+}

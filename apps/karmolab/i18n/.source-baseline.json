@@ -1,5 +1,5 @@
 {
-  "total": 4053,
+  "total": 4014,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -287,7 +287,6 @@
     "src/widgets/tools/regextest.ts": 3,
     "src/widgets/tools/replace.ts": 3,
     "src/widgets/tools/screenrec.ts": 4,
-    "src/widgets/tools/shared/media.ts": 1,
     "src/widgets/tools/slug.ts": 4,
     "src/widgets/tools/sound.ts": 8,
     "src/widgets/tools/subtitle.ts": 4,
@@ -351,16 +350,16 @@
     "src/core/hangultype.ts": 16,
     "src/core/dailytype.ts": 10,
     "src/core/type-pool.generated.ts": 223,
-    "src/widgets/tools/dailytype.ts": 11,
+    "src/widgets/tools/dailytype.ts": 5,
     "src/core/word-pool.generated.ts": 165,
     "src/core/dailycho.ts": 13,
-    "src/widgets/tools/dailycho.ts": 11,
+    "src/widgets/tools/dailycho.ts": 6,
     "src/core/charconv.ts": 14,
     "src/widgets/tools/charconv.ts": 3,
-    "src/widgets/tools/comparepic.ts": 11,
+    "src/widgets/tools/comparepic.ts": 3,
     "src/core/livecount.ts": 19,
-    "src/widgets/tools/livecount.ts": 10,
+    "src/widgets/tools/livecount.ts": 4,
     "src/core/mesh3d.ts": 12,
-    "src/widgets/tools/mesh3d.ts": 16
+    "src/widgets/tools/mesh3d.ts": 3
   }
 }

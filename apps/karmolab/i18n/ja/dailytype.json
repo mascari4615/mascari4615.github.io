@@ -1,0 +1,13 @@
+{
+  "dailytype.t01": "三つの文をそのまま打ちます。最初の一文字を打った瞬間に時間が動きます。",
+  "dailytype.btn.dtDone": "打ち終わった",
+  "dailytype.btn.dtReset": "やり直す",
+  "dailytype.btn.dtCopy": "結果をコピー",
+  "dailytype.t04": "今日のタイピング",
+  "dailytype.say.05": "まだ一文字も打っていません",
+  "dailytype.t06": "結果をコピーしました (文は入っていません)",
+  "dailytype.say.07": "最初から",
+  "dailytype.report": "{wpm}打/分 · 正確さ {acc}%",
+  "dailytype.today": "今日は全部で {n}打 — 準備ができたらすぐ打ってください",
+  "dailytype.already": "今日はもう {n}打/分 やりました。練習はいつでも開いています"
+}
