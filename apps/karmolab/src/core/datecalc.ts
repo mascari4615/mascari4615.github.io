@@ -47,10 +47,17 @@ export const spec: ToolSpec = {
 
 export const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
 
+export interface DateLabelParts {
+  iso: string;
+  weekdayIndex: number;
+}
+
 export const midnight = (d: Date): Date => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
 export const toInput = (d: Date): string =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+export const dateLabelParts = (d: Date): DateLabelParts => ({ iso: toInput(d), weekdayIndex: d.getDay() });
 
 export function parseDate(s: string): Date | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
@@ -121,12 +128,82 @@ export interface DdayResult {
   nth: number;
 }
 
+export interface ShiftView {
+  toDate: Date;
+  from: DateLabelParts;
+  to: DateLabelParts;
+  diffDays: number;
+  clamped: { wantedDay: number; actualDay: number } | null;
+}
+
+export interface BetweenView {
+  from: DateLabelParts;
+  to: DateLabelParts;
+  days: number;
+  inclusive: number;
+  weeks: number;
+  extraDays: number;
+  weekdays: number;
+  weekendDays: number;
+}
+
+export interface DdayView {
+  target: DateLabelParts;
+  today: string;
+  diff: number;
+  tag: string;
+  nth: number;
+  state: 'future' | 'past' | 'today';
+}
+
 export function dday(target: Date, today: Date): DdayResult {
   const diff = Math.round((midnight(target).getTime() - midnight(today).getTime()) / DAY);
   return {
     diff,
     tag: diff === 0 ? 'D-DAY' : diff > 0 ? `D-${diff}` : `D+${-diff}`,
     nth: -diff + 1
+  };
+}
+
+export function shiftView(from: Date, opts: { days?: number; weeks?: number; months?: number; years?: number }): ShiftView {
+  const to = shift(from, opts);
+  return {
+    toDate: to,
+    from: dateLabelParts(from),
+    to: dateLabelParts(to),
+    diffDays: Math.round((to.getTime() - from.getTime()) / DAY),
+    clamped:
+      (opts.months ?? 0) !== 0 || (opts.years ?? 0) !== 0
+        ? from.getDate() === to.getDate()
+          ? null
+          : { wantedDay: from.getDate(), actualDay: to.getDate() }
+        : null
+  };
+}
+
+export function betweenView(from: Date, to: Date): BetweenView {
+  const b = between(from, to);
+  return {
+    from: dateLabelParts(from),
+    to: dateLabelParts(to),
+    days: b.days,
+    inclusive: b.inclusive,
+    weeks: b.weeks,
+    extraDays: b.days % 7,
+    weekdays: b.weekdays,
+    weekendDays: b.inclusive - b.weekdays
+  };
+}
+
+export function ddayView(target: Date, today: Date): DdayView {
+  const r = dday(target, today);
+  return {
+    target: dateLabelParts(target),
+    today: toInput(today),
+    diff: r.diff,
+    tag: r.tag,
+    nth: r.nth,
+    state: r.diff === 0 ? 'today' : r.diff > 0 ? 'future' : 'past'
   };
 }
 
@@ -147,13 +224,10 @@ export const run: ToolRunner = (op, args) => {
     };
     if (Object.values(opts).every((v) => v === 0)) throw new Error('더하거나 뺄 값을 하나는 주세요 (days·weeks·months·years)');
     if (Object.values(opts).some((v) => Number.isFinite(v) === false)) throw new Error('더할 값은 숫자여야 합니다');
-    const to = shift(from, opts);
-    const lines = [`${label(from)} → ${label(to)}`, `날짜 차이: ${Math.round((to.getTime() - from.getTime()) / DAY)}일`];
-    if (opts.months !== 0 || opts.years !== 0) {
-      const naive = from.getDate();
-      if (to.getDate() !== naive) {
-        lines.push(`※ ${naive}일이 그 달에 없어 마지막 날(${to.getDate()}일)로 맞췄습니다.`);
-      }
+    const v = shiftView(from, opts);
+    const lines = [`${label(from)} → ${label(v.toDate)}`, `날짜 차이: ${v.diffDays}일`];
+    if (v.clamped !== null) {
+      lines.push(`※ ${v.clamped.wantedDay}일이 그 달에 없어 마지막 날(${v.clamped.actualDay}일)로 맞췄습니다.`);
     }
     return lines.join('\n');
   }
@@ -161,21 +235,21 @@ export const run: ToolRunner = (op, args) => {
   if (op === 'between') {
     const from = need(args.start, '시작일');
     const to = need(args.end, '끝나는 날');
-    const b = between(from, to);
+    const b = betweenView(from, to);
     return [
       `${label(from)} ~ ${label(to)}`,
       `${b.days}일 (끝날 안 셈)  ·  ${b.inclusive}일 (끝날까지 셈)  ← 「며칠간」은 대개 이쪽`,
-      `${b.weeks}주 + ${b.days % 7}일  ·  평일 ${b.weekdays}일 (공휴일은 안 뺐습니다 — 그건 workdays)`
+      `${b.weeks}주 + ${b.extraDays}일  ·  평일 ${b.weekdays}일 (공휴일은 안 뺐습니다 — 그건 workdays)`
     ].join('\n');
   }
 
   if (op === 'dday') {
     const target = need(args.date, '기준일');
     const today = args.today === undefined ? midnight(new Date()) : need(args.today, '오늘');
-    const r = dday(target, today);
-    const lines = [`${label(target)} → ${r.tag} (오늘 ${toInput(today)} 기준)`];
-    if (r.diff > 0) lines.push(`${r.diff}일 남음`);
-    else if (r.diff < 0) lines.push(`${-r.diff}일 지남 · 시작일을 1일째로 세면 오늘이 ${r.nth}일째`);
+    const r = ddayView(target, today);
+    const lines = [`${label(target)} → ${r.tag} (오늘 ${r.today} 기준)`];
+    if (r.state === 'future') lines.push(`${r.diff}일 남음`);
+    else if (r.state === 'past') lines.push(`${-r.diff}일 지남 · 시작일을 1일째로 세면 오늘이 ${r.nth}일째`);
     else lines.push('오늘입니다');
     return lines.join('\n');
   }

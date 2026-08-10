@@ -4,7 +4,7 @@
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
 
-import { midnight, parseDate, toInput } from '../../core/datecalc';
+import { between, dday, midnight, parseDate, shift, toInput } from '../../core/datecalc';
 
 (function (): void {
   const DAY = 86400000;
@@ -27,17 +27,6 @@ import { midnight, parseDate, toInput } from '../../core/datecalc';
     let next = new Date(on.getFullYear(), birth.getMonth(), birth.getDate());
     if (next.getTime() < on.getTime()) next = new Date(on.getFullYear() + 1, birth.getMonth(), birth.getDate());
     return { full, korean, nextBirthday: next, daysToBirthday: Math.round((next.getTime() - on.getTime()) / DAY) };
-  }
-
-  function businessDays(from: Date, to: Date): number {
-    const a = from.getTime() <= to.getTime() ? from : to;
-    const b = from.getTime() <= to.getTime() ? to : from;
-    let n = 0;
-    for (let t = a.getTime(); t < b.getTime(); t += DAY) {
-      const day = new Date(t).getDay();
-      if (day !== 0 && day !== 6) n++;
-    }
-    return n;
   }
 
   Toolbox.register({
@@ -101,10 +90,10 @@ import { midnight, parseDate, toInput } from '../../core/datecalc';
             <div class="cc-stats" id="ddStats"></div>
             <!-- 기념일 표 — 커플·기념일 계산기가 앞세우는 것. 기준일만 넣으면 나온다. -->
             <div class="field-group" style="margin-top:var(--space-lg);">
-              <label class="field-label">기준일부터의 기념일</label>
+              <label class="field-label">${esc(t('datecalc.label.anniversaries'))}</label>
               <div class="tool-list" id="ddMarks"></div>
             </div>
-            <div class="tool-status" id="ddNote">D-Day 는 목표일 당일을 D-Day 로, 하루 전을 D-1 로 셉니다. 기념일은 <b>기준일을 1일째</b>로 세는 한국식입니다.</div>
+            <div class="tool-status" id="ddNote">${t('datecalc.note.dday')}</div>
           `;
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const base = $<HTMLInputElement>('#ddBase');
@@ -119,15 +108,16 @@ import { midnight, parseDate, toInput } from '../../core/datecalc';
             const a = parse(base.value);
             const b = parse(target.value);
             if (!a || !b) return;
-            const diff = Math.round((b.getTime() - a.getTime()) / DAY);
-            out.textContent = diff === 0 ? 'D-DAY' : diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`;
+            const r = dday(b, a);
+            const span = between(a, b);
+            out.textContent = r.tag;
             const cells: Array<[string, string]> = [
               [t('datecalc.stat.target'), label(b)],
-              [t('datecalc.stat.daysLeft'), t('datecalc.value.days', { n: Math.abs(diff).toLocaleString(locale()) })],
-              [t('datecalc.stat.weeks'), t('datecalc.value.weeksDays', { w: Math.floor(Math.abs(diff) / 7), d: Math.abs(diff) % 7 })],
-              [t('datecalc.stat.weekdays'), t('datecalc.value.days', { n: businessDays(a, b).toLocaleString(locale()) })],
-              [t('datecalc.stat.inclusive'), t('datecalc.value.nth', { n: (Math.abs(diff) + 1).toLocaleString(locale()) })],
-              [t('datecalc.stat.months'), t('datecalc.value.months', { n: (Math.abs(diff) / 30.44).toFixed(1) })]
+              [t('datecalc.stat.daysLeft'), t('datecalc.value.days', { n: Math.abs(r.diff).toLocaleString(locale()) })],
+              [t('datecalc.stat.weeks'), t('datecalc.value.weeksDays', { w: Math.floor(Math.abs(r.diff) / 7), d: Math.abs(r.diff) % 7 })],
+              [t('datecalc.stat.weekdays'), t('datecalc.value.days', { n: span.weekdays.toLocaleString(locale()) })],
+              [t('datecalc.stat.inclusive'), t('datecalc.value.nth', { n: span.inclusive.toLocaleString(locale()) })],
+              [t('datecalc.stat.months'), t('datecalc.value.months', { n: (Math.abs(r.diff) / 30.44).toFixed(1) })]
             ];
             stats.innerHTML = cells
               .map(([k, v]) => `<div class="cc-stat"><div class="cc-stat-label">${k}</div><div class="cc-stat-value">${v}</div></div>`)
@@ -147,8 +137,8 @@ import { midnight, parseDate, toInput } from '../../core/datecalc';
                   ? new Date(a.getFullYear() - plus, a.getMonth(), a.getDate())
                   : new Date(a.getTime() + plus * DAY);
                 const left = Math.round((day.getTime() - now.getTime()) / DAY);
-                const 남은말 = left === 0 ? t('datecalc.mark.today') : left > 0 ? `D-${left}` : t('datecalc.mark.passed', { n: Math.abs(left) });
-                return `<div class="tool-list-row"><span class="tool-list-key">${name}</span><span class="tool-list-val">${label(day)} <span class="tool-list-dim">${남은말}</span></span></div>`;
+                const leftText = left === 0 ? t('datecalc.mark.today') : left > 0 ? `D-${left}` : t('datecalc.mark.passed', { n: Math.abs(left) });
+                return `<div class="tool-list-row"><span class="tool-list-key">${name}</span><span class="tool-list-val">${label(day)} <span class="tool-list-dim">${leftText}</span></span></div>`;
               })
               .join('');
           }
@@ -183,10 +173,10 @@ import { midnight, parseDate, toInput } from '../../core/datecalc';
                 <div style="display:flex; gap:6px;">
                   <input type="text" id="daAmount" inputmode="numeric" value="100" placeholder="${esc(t('datecalc.label.number'))}">
                   <select id="daUnit" aria-label="${esc(t('datecalc.label.unit'))}" style="width:auto;">
-                    <option value="day">일</option>
-                    <option value="week">주</option>
-                    <option value="month">개월</option>
-                    <option value="year">년</option>
+                    <option value="day">${esc(t('datecalc.unit.day'))}</option>
+                    <option value="week">${esc(t('datecalc.unit.week'))}</option>
+                    <option value="month">${esc(t('datecalc.unit.month'))}</option>
+                    <option value="year">${esc(t('datecalc.unit.year'))}</option>
                   </select>
                 </div>
               </div>
@@ -210,9 +200,14 @@ import { midnight, parseDate, toInput } from '../../core/datecalc';
             const a = parse(from.value);
             const b = parse(to.value);
             if (!a || !b) return;
-            const days = Math.round(Math.abs(b.getTime() - a.getTime()) / DAY);
+            const r = between(a, b);
             dbOut.className = 'tool-status ok';
-            dbOut.textContent = `${days.toLocaleString('ko-KR')}일 (양쪽 끝 포함 ${(days + 1).toLocaleString('ko-KR')}일) · 평일 ${businessDays(a, b).toLocaleString('ko-KR')}일 · 주말 ${(days - businessDays(a, b)).toLocaleString('ko-KR')}일`;
+            dbOut.textContent = t('datecalc.value.betweenSummary', {
+              days: r.days.toLocaleString(locale()),
+              inclusive: r.inclusive.toLocaleString(locale()),
+              weekdays: r.weekdays.toLocaleString(locale()),
+              weekends: (r.inclusive - r.weekdays).toLocaleString(locale())
+            });
           }
           function renderAdd(): void {
             const a = parse(daBase.value);
@@ -221,19 +216,24 @@ import { midnight, parseDate, toInput } from '../../core/datecalc';
             let d: Date;
             switch (daUnit.value) {
               case 'week':
-                d = new Date(a.getTime() + n * 7 * DAY);
+                d = shift(a, { weeks: n });
                 break;
               case 'month':
-                d = new Date(a.getFullYear(), a.getMonth() + n, a.getDate());
+                d = shift(a, { months: n });
                 break;
               case 'year':
-                d = new Date(a.getFullYear() + n, a.getMonth(), a.getDate());
+                d = shift(a, { years: n });
                 break;
               default:
-                d = new Date(a.getTime() + n * DAY);
+                d = shift(a, { days: n });
             }
             daOut.className = 'tool-status ok';
-            daOut.textContent = `${label(a)} 에서 ${n.toLocaleString('ko-KR')}${daUnit.options[daUnit.selectedIndex].text} → ${label(d)}`;
+            daOut.textContent = t('datecalc.value.shiftSummary', {
+              from: label(a),
+              amount: n.toLocaleString(locale()),
+              unit: daUnit.options[daUnit.selectedIndex].text,
+              to: label(d)
+            });
           }
           [from, to].forEach((el) => el.addEventListener('change', renderBetween));
           [daBase, daAmount, daUnit].forEach((el) => {
@@ -254,7 +254,7 @@ import { midnight, parseDate, toInput } from '../../core/datecalc';
             </div>
             <div class="tool-display" id="agResult">-</div>
             <div class="cc-stats" id="agStats"></div>
-            <div class="tool-status">2023년 6월부터 법적 나이는 「만 나이」로 통일되었습니다.</div>
+            <div class="tool-status">${t('datecalc.note.ageLaw')}</div>
           `;
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const birth = $<HTMLInputElement>('#agBirth');
