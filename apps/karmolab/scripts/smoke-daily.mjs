@@ -52,8 +52,18 @@ try {
 const page = await browser.newPage();
 await page.route('**/*', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8">' }));
 await page.goto('http://localhost/');
-await page.evaluate(() => {
+/*
+ * 말 묶음을 미리 박는다 — **진짜 페이지가 하는 그대로**(`window.__KARMO_I18N`, 머리말에 박힘).
+ * 안 박으면 화면이 `dailycho.score` 같은 열쇠를 그대로 뱉거나 아예 안 그려진다. 그건 하네스가
+ * 만든 상태지 제품의 상태가 아니다 — 검사가 제품을 헐뜯게 된다(실측: CI 배포 빨강).
+ */
+const catalogs = {
+  dailycho: JSON.parse(fs.readFileSync(path.join(appRoot, 'i18n/ko/dailycho.json'), 'utf8')),
+  dailytype: JSON.parse(fs.readFileSync(path.join(appRoot, 'i18n/ko/dailytype.json'), 'utf8'))
+};
+await page.evaluate((cat) => {
   window.__KARMO_LOCALE = 'ko';
+  window.__KARMO_I18N = { ko: cat };
   window.__reg = {};
   window.Toolbox = {
     register: (t) => {
@@ -66,7 +76,7 @@ await page.evaluate(() => {
       return true;
     }
   };
-});
+}, catalogs);
 const read = (rel) => fs.readFileSync(path.join(appRoot, rel), 'utf8');
 await page.addScriptTag({ content: read('js/widgets/tools/dailycho.js') });
 await page.addScriptTag({ content: read('js/widgets/tools/dailytype.js') });
@@ -83,6 +93,12 @@ const choBuilt = await page.evaluate(() => {
   tool.tabs[0].build(host);
   return true;
 });
+
+/*
+ * 위젯은 **말 묶음을 받은 뒤에** 그린다 — `build()` 는 바로 돌아오고 화면은 조금 뒤에 채워진다.
+ * 부르자마자 읽으면 「칸이 없다」로 헛보인다(실측: CI 배포 빨강).
+ */
+await page.waitForSelector('#choHost #chIn0', { state: 'attached', timeout: 8000 }).catch(() => null);
 
 if (choBuilt === false) {
   fails.push('번들을 실어도 dailycho 가 등록되지 않는다');
@@ -127,6 +143,10 @@ const typeOut = await page.evaluate(async () => {
   host.id = 'dtHost';
   document.body.appendChild(host);
   tool.tabs[0].build(host);
+  /* 여기도 그려질 때까지 기다린다 — 말 묶음이 온 뒤에 칸이 생긴다. */
+  for (let i = 0; i < 80 && host.querySelector('#dtIn0') === null; i++) {
+    await new Promise((r) => setTimeout(r, 100));
+  }
   const first = host.querySelector('#dtIn0');
   if (!first) return { noInput: true };
   /* 한 줄만 그대로 옮겨 친다 — 화면이 보여 준 문장이니 답이 새는 문제가 없다. */
