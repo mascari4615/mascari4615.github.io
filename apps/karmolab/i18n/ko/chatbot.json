@@ -168,5 +168,6 @@
   "chatbot.err.117": "이미지 생성 함수를 사용할 수 없습니다.",
   "chatbot.t118": "캐릭터 이미지",
   "chatbot.t119": "이미지 생성 실패: ",
-  "chatbot.imageError": "이미지 오류"
+  "chatbot.imageError": "이미지 오류",
+  "chatbot.t120": "복사"
 }

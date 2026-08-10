@@ -173,5 +173,6 @@
   "tierlist.t137": "候補プール基準に戻しました。",
   "tierlist.boardCount": "{n}板",
   "tierlist.totalCount": "全 {n}件",
-  "tierlist.t138": "(複製)"
+  "tierlist.t138": "(複製)",
+  "tierlist.t139": "tierlist の読み込みに失敗"
 }

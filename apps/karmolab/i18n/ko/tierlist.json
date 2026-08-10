@@ -173,5 +173,6 @@
   "tierlist.totalCount": "총 {n}개",
   "tierlist.tierHint": "위에서 아래 순으로 티어판에 나옵니다. 줄을 삭제하면 그 티어에 있던 카드는 {unplaced}로 옮겨집니다.",
   "tierlist.labelHint": "여기서 만든 라벨을 카드 {path}에서 고를 수 있어요. 이름은 카드 위에 색 띠로 보입니다.",
-  "tierlist.t138": " (복제)"
+  "tierlist.t138": " (복제)",
+  "tierlist.t139": "tierlist 로드 실패"
 }

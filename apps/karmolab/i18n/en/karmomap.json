@@ -476,5 +476,16 @@
   "karmomap.t424": "<div class=\"km-hint\">No group yet.</div>",
   "karmomap.t425": "big influence, come back later",
   "karmomap.t426": "Tags",
-  "karmomap.t427": "several, separated by commas"
+  "karmomap.t427": "several, separated by commas",
+  "karmomap.err.428": "This is not a JSON Canvas",
+  "karmomap.t429": "Group",
+  "karmomap.t430": "[karmomap] reading my vocabulary failed",
+  "karmomap.t431": "[karmomap] saving my vocabulary failed",
+  "karmomap.t432": "The name is written in the text but not yet joined with [[ ]].",
+  "karmomap.t433": "Go",
+  "karmomap.t434": "Make it",
+  "karmomap.t435": "Connect them",
+  "karmomap.t436": "[karmomap] could not measure the storage",
+  "karmomap.t437": "Shape",
+  "karmomap.t438": "Tilt"
 }

@@ -55,5 +55,6 @@
   "adventure.t48": "[adventure] localStorage 목록 실패",
   "adventure.t49": "Claude provider는 Tauri 데스크톱 앱 안에서만 동작합니다 (KL-032 결정 1: 무대 = Tauri 한정). 브라우저에서는 Vertex provider 로 토글하세요.",
   "adventure.err.50": "이미지 생성 = Vertex Imagen 사용. ⚙ 설정에서 Vertex API key + Project ID 박아주세요.",
-  "adventure.err.51": "Vertex Imagen 응답에 이미지 없음: "
+  "adventure.err.51": "Vertex Imagen 응답에 이미지 없음: ",
+  "adventure.err.502": "이미 turn 진행 중입니다."
 }

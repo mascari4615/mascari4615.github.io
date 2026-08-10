@@ -55,5 +55,6 @@
   "adventure.t48": "[adventure] localStorage の一覧取得に失敗",
   "adventure.t49": "Claude プロバイダは Tauri のデスクトップアプリ内でのみ動きます (KL-032 決定1: 舞台は Tauri 限定)。ブラウザでは Vertex プロバイダに切り替えてください。",
   "adventure.err.50": "画像生成は Vertex Imagen を使います。⚙ 設定に Vertex の API キーとプロジェクト ID を入れてください。",
-  "adventure.err.51": "Vertex Imagen の応答に画像がありません: "
+  "adventure.err.51": "Vertex Imagen の応答に画像がありません: ",
+  "adventure.err.502": "すでにターンが進行中です。"
 }

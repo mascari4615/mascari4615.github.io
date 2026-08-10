@@ -7,6 +7,7 @@
 
 import type { GraphSpec, LiveSpec } from '../../lib/graph/spec';
 import type { ActiveSets, EphemeralNodeRender } from '../../lib/graph/canvas';
+import { t, loadNamespace } from '../../lib/i18n';
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -108,8 +109,8 @@ export class ActivityCollector {
   }
 
   private async fetchSnapshot(): Promise<ActivitySnapshot | null> {
-    const t = (window as unknown as { __TAURI__?: { core?: { invoke?: unknown } } }).__TAURI__;
-    const invoke = t?.core?.invoke;
+    const tauri = (window as unknown as { __TAURI__?: { core?: { invoke?: unknown } } }).__TAURI__;
+    const invoke = tauri?.core?.invoke;
     if (typeof invoke !== 'function') return null;
 
     const repoRoot = (window as unknown as { __cockpitRepoRoot?: string }).__cockpitRepoRoot ?? '';
@@ -121,7 +122,7 @@ export class ActivityCollector {
         { repoRoot },
       );
     } catch (e) {
-      console.warn('[cockpit] cockpit_get_activity 실패', e);
+      console.warn(t('cockpit.t64'), e);
       return null;
     }
   }

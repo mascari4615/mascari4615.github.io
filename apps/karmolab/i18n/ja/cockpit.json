@@ -80,5 +80,8 @@
   "cockpit.t61": "repo_root が未設定です — Server Monitor でリポジトリのルートを選んでください。",
   "cockpit.cards.filtered": "{n} / {total} (フィルタ)",
   "cockpit.cards.recent": "{n}件 (最近)",
-  "cockpit.cards.loadFailed": "読み込みに失敗: {why}"
+  "cockpit.cards.loadFailed": "読み込みに失敗: {why}",
+  "cockpit.t62": "[cockpit] cockpit_get_graph_spec に失敗",
+  "cockpit.t63": "[cockpit] cockpit_save_graph_coords に失敗",
+  "cockpit.t64": "[cockpit] cockpit_get_activity に失敗"
 }

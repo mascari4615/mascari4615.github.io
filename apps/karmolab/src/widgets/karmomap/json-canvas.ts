@@ -10,6 +10,7 @@
  */
 import type { GraphSpec, GraphNode } from '../../lib/graph/spec';
 import { resolveDoc } from '../../lib/graph/notes';
+import { t, loadNamespace } from '../../lib/i18n';
 
 interface CanvasNode {
   id: string;
@@ -83,7 +84,7 @@ export function toJsonCanvas(spec: GraphSpec): JsonCanvas {
  */
 export function fromJsonCanvas(raw: unknown, base: GraphSpec): GraphSpec {
   const src = raw as Partial<JsonCanvas> | null;
-  if (!src || !Array.isArray(src.nodes)) throw new Error('JSON Canvas 가 아닙니다');
+  if (!src || !Array.isArray(src.nodes)) throw new Error(t('karmomap.err.428'));
 
   const nodes: GraphNode[] = [];
   const groups = [...base.groups];
@@ -91,7 +92,7 @@ export function fromJsonCanvas(raw: unknown, base: GraphSpec): GraphSpec {
     if (cn.type === 'group') {
       groups.push({
         id: cn.id,
-        label: cn.label ?? '묶음',
+        label: cn.label ?? t('karmomap.t429'),
         color: '#94a3b8',
         bbox: { x: cn.x, y: cn.y, w: cn.width, h: cn.height },
         shape: 'box',

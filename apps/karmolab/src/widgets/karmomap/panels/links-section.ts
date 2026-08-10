@@ -8,6 +8,10 @@ import type { GraphNode } from '../../../lib/graph/spec';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from '../links';
 import { resolveDoc, setDocText } from '../../../lib/graph/notes';
 import type { PanelCtx } from './context';
+import { t, loadNamespace } from '../../../lib/i18n';
+
+const esc = (v: unknown): string =>
+  String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /**
  * 설명 속 연결 — 가리키는 것 / 나를 가리키는 것 / 이름만 나온 곳 (격차 Q).
@@ -31,13 +35,13 @@ export function renderLinkSections(ctx: PanelCtx, node: GraphNode): string {
   return `
     ${out.length === 0 ? '' : `<div class="km-field"><label>가리키는 것 ${out.length}</label>
       ${out.map((o) => (o.node
-        ? row(o.name, 'go-link', o.node.id, '가기')
-        : row(o.name, 'make-link', o.name, '만들기'))).join('')}</div>`}
+        ? row(o.name, 'go-link', o.node.id, t('karmomap.t433'))
+        : row(o.name, 'make-link', o.name, t('karmomap.t434')))).join('')}</div>`}
     ${back.length === 0 ? '' : `<div class="km-field"><label>나를 가리키는 것 ${back.length}</label>
-      ${back.map((b) => row(b.label, 'go-link', b.id, '가기')).join('')}</div>`}
+      ${back.map((b) => row(b.label, 'go-link', b.id, t('karmomap.t433'))).join('')}</div>`}
     ${loose.length === 0 ? '' : `<div class="km-field"><label>이름만 나온 곳 ${loose.length}</label>
-      ${loose.map((m) => row(m.label, 'link-mention', m.id, '이어 주기')).join('')}
-      <div class="km-hint">글에 이름이 적혀 있는데 아직 [[ ]] 로 안 이어진 자리입니다.</div></div>`}`;
+      ${loose.map((m) => row(m.label, 'link-mention', m.id, t('karmomap.t435'))).join('')}
+      <div class="km-hint">${esc(t('karmomap.t432'))}</div></div>`}`;
 }
 
 /** 링크 목록의 버튼들. renderSide 가 다시 그릴 때마다 새로 매단다. */

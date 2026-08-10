@@ -168,5 +168,6 @@
   "chatbot.err.117": "The image-generation function is unavailable.",
   "chatbot.t118": "Character image",
   "chatbot.t119": "The image could not be made: ",
-  "chatbot.imageError": "Image error"
+  "chatbot.imageError": "Image error",
+  "chatbot.t120": "Copy"
 }

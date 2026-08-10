@@ -9,6 +9,7 @@
  * 다음 맵에서도 쓰고 싶은 것이 정상이다.
  */
 import type { NodeKindDef, EdgeKindPreset } from './packs';
+import { t, loadNamespace } from '../../lib/i18n';
 
 const TERMS_KEY = 'karmomap.terms';
 
@@ -31,7 +32,7 @@ export function loadTerms(): MyTerms {
       edgeKinds: Array.isArray(parsed.edgeKinds) ? parsed.edgeKinds : [],
     };
   } catch (e) {
-    console.error('[karmomap] 내 용어 읽기 실패', e);
+    console.error(t('karmomap.t430'), e);
     return emptyTerms();
   }
 }
@@ -40,7 +41,7 @@ export function saveTerms(terms: MyTerms): void {
   try {
     localStorage.setItem(TERMS_KEY, JSON.stringify(terms));
   } catch (e) {
-    console.error('[karmomap] 내 용어 저장 실패', e);
+    console.error(t('karmomap.t431'), e);
   }
 }
 

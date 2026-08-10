@@ -86,5 +86,6 @@
   "imageconvert.err.85": "이미지를 불러오지 못했어요.",
   "imageconvert.err.832": "KarmoLabImageBatch: recipe.steps 가 비어 있지 않아야 합니다.",
   "imageconvert.err.842": "KarmoLabImageBatch: 현재는 변환 단계 1개만 지원합니다.",
-  "imageconvert.err.852": "KarmoLabImageBatch: 지원하지 않는 단계입니다."
+  "imageconvert.err.852": "KarmoLabImageBatch: 지원하지 않는 단계입니다.",
+  "imageconvert.t83": "이미지 변환 로드 실패"
 }

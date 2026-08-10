@@ -3,6 +3,8 @@
  * core.js -> batch-pipeline.js -> widget.js 순서로 동적 로드하고,
  * 결과 Promise를 `window.KARMOLAB_WIDGET_LOADER_WAIT`에 등록합니다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   function baseUrl(): string {
     const s = document.currentScript as HTMLScriptElement | null;
@@ -39,7 +41,7 @@
 
   p.catch((err: unknown) => {
     try {
-      Toolbox.showToast?.('이미지 변환 로드 실패', 'error', err);
+      Toolbox.showToast?.(t('imageconvert.t83'), 'error', err);
     } catch (_) {}
     console.error(err);
   });

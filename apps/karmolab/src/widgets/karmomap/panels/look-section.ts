@@ -6,6 +6,10 @@
  */
 import type { GraphNode, NodeShape } from '../../../lib/graph/spec';
 import type { PanelCtx } from './context';
+import { t, loadNamespace } from '../../../lib/i18n';
+
+const esc = (v: unknown): string =>
+  String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 export interface ShapeOption { id: NodeShape; label: string; icon: string }
 
@@ -13,7 +17,7 @@ export function shapeFieldHtml(ctx: PanelCtx, node: GraphNode, shapes: ShapeOpti
   const esc = ctx.esc;
   return `
     <div class="km-field">
-      <label>모양</label>
+      <label>${esc(t('karmomap.t437'))}</label>
       <select data-km="edit-shape">
         ${shapes.map((s) => `<option value="${s.id}"${(node.shape ?? 'rect') === s.id ? ' selected' : ''}>${s.icon} ${esc(s.label)}</option>`).join('')}
       </select>
@@ -25,7 +29,7 @@ export function tiltFieldHtml(ctx: PanelCtx, node: GraphNode): string {
   const deg = Math.round(node.rotate ?? 0);
   return `
     <div class="km-field">
-      <label>기울기 <span class="km-tilt-val">${deg}°</span></label>
+      <label>${esc(t('karmomap.t438'))} <span class="km-tilt-val">${deg}°</span></label>
       <input type="range" data-km="edit-rotate" min="-20" max="20" step="1" value="${deg}" />
     </div>`;
 }

@@ -80,5 +80,8 @@
   "cockpit.t61": "repo_root 미설정 — Server Monitor 에서 저장소 루트 선택해주세요.",
   "cockpit.cards.filtered": "{n} / {total} (필터)",
   "cockpit.cards.recent": "{n}건 (최근)",
-  "cockpit.cards.loadFailed": "로드 실패: {why}"
+  "cockpit.cards.loadFailed": "로드 실패: {why}",
+  "cockpit.t62": "[cockpit] cockpit_get_graph_spec 실패",
+  "cockpit.t63": "[cockpit] cockpit_save_graph_coords 실패",
+  "cockpit.t64": "[cockpit] cockpit_get_activity 실패"
 }

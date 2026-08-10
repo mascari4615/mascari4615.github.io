@@ -55,5 +55,6 @@
   "adventure.t48": "[adventure] listing localStorage failed",
   "adventure.t49": "The Claude provider works only inside the Tauri desktop app (KL-032 decision 1: the stage is Tauri only). In a browser, switch to the Vertex provider.",
   "adventure.err.50": "Image generation uses Vertex Imagen. Put a Vertex API key and project ID in ⚙ settings.",
-  "adventure.err.51": "No image in the Vertex Imagen response: "
+  "adventure.err.51": "No image in the Vertex Imagen response: ",
+  "adventure.err.502": "A turn is already running."
 }

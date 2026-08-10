@@ -12,6 +12,7 @@ import {
   saveImage,
   saveSession,
 } from './storage';
+import { t, loadNamespace } from '../../lib/i18n';
 
 export interface TurnLoopState {
   session: AdventureSession;
@@ -45,7 +46,7 @@ export async function runTurn(
   signal?: AbortSignal,
 ): Promise<TurnResult> {
   if (state.busy) {
-    throw new Error('이미 turn 진행 중입니다.');
+    throw new Error(t('adventure.err.502'));
   }
   state.busy = true;
   try {
