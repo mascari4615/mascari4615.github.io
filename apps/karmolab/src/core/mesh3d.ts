@@ -90,7 +90,7 @@ export function parseAsciiStl(text: string): Mesh {
     if (m === null) continue;
     nums.push(Number(m[1]), Number(m[2]), Number(m[3]));
   }
-  if (nums.length % 9 !== 0) throw new Error('STL 의 꼭짓점 수가 3의 배수가 아닙니다 — 파일이 잘렸을 수 있습니다');
+  if (nums.length % 9 !== 0) throw new Error('STL vertex count must be a multiple of 3 — the file may be truncated');
   const positions = Float32Array.from(nums);
   return { positions, triangles: nums.length / 9, ...bounds(positions) };
 }
@@ -124,7 +124,7 @@ export function parseObj(text: string): Mesh {
     for (let i = 1; i + 1 < idx.length; i++) {
       for (const at of [idx[0], idx[i], idx[i + 1]]) {
         const v = verts[at];
-        if (v === undefined) throw new Error('OBJ 의 면이 없는 꼭짓점을 가리킵니다 — 파일이 잘렸을 수 있습니다');
+        if (v === undefined) throw new Error('OBJ face references a missing vertex — the file may be truncated');
         out.push(v[0], v[1], v[2]);
       }
     }
@@ -139,7 +139,7 @@ export function parseMesh(bytes: Uint8Array, name = ''): Mesh {
   const text = new TextDecoder().decode(bytes);
   if (/^\s*solid/.test(text) && /vertex/.test(text)) return parseAsciiStl(text);
   if (/^\s*v\s/m.test(text)) return parseObj(text);
-  throw new Error(`${name === '' ? '이 파일' : name} 은 STL·OBJ 로 안 읽힙니다`);
+  throw new Error(`${name === '' ? 'This file' : name} is not readable as STL or OBJ`);
 }
 
 export interface MeshInfo {
@@ -167,20 +167,20 @@ export function describe(mesh: Mesh): MeshInfo {
 const mm = (n: number): string => `${Math.round(n * 100) / 100}`;
 
 export const run: ToolRunner = (op, args) => {
-  if (op !== 'info') throw new Error(`mesh3d 에 「${op}」 는 없습니다`);
+  if (op !== 'info') throw new Error(`Unknown mesh3d op: ${op}`);
   const text = String(args.text ?? '');
-  if (text.trim() === '') throw new Error('읽을 내용이 없습니다');
+  if (text.trim() === '') throw new Error('No input text provided');
 
   const format = String(args.format ?? '').toLowerCase();
   const mesh = format === 'obj' ? parseObj(text) : format === 'stl' ? parseAsciiStl(text) : parseMesh(new TextEncoder().encode(text));
   const info = describe(mesh);
 
   return [
-    `삼각형 ${info.triangles.toLocaleString('ko-KR')}개`,
+    `Triangles: ${info.triangles.toLocaleString('en-US')}`,
     `크기: ${mm(info.size[0])} × ${mm(info.size[1])} × ${mm(info.size[2])}`,
-    `가장 긴 변: ${mm(info.longest)}`,
+    `Longest side: ${mm(info.longest)}`,
     '',
-    '※ 단위는 파일에 적혀 있지 않습니다 — STL·OBJ 는 숫자만 담습니다.',
-    '   3D 프린터 쪽은 대개 mm 로 읽습니다.'
+    'Units are not written in the file — STL and OBJ only store numbers.',
+    '3D printers usually read them as mm.'
   ].join('\n');
 };

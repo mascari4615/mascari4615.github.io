@@ -111,23 +111,23 @@ export function analyze(
 }
 
 export const run: ToolRunner = (op, args) => {
-  if (op !== 'count') throw new Error(`wordfreq 에 「${op}」 는 없습니다`);
+  if (op !== 'count') throw new Error(`Unknown wordfreq op: ${op}`);
   const text = String(args.text ?? '');
-  if (text.trim() === '') throw new Error('셀 글이 없습니다');
+  if (text.trim() === '') throw new Error('No text provided');
 
   const top = Math.min(100, Math.max(1, Math.round(Number(args.top ?? 15))));
   const r = analyze(text, { particles: args.particles !== false, stopwords: args.stopwords !== false });
-  if (r.rows.length === 0) throw new Error('셀 만한 낱말이 없습니다 (두 글자 미만은 안 셉니다)');
+  if (r.rows.length === 0) throw new Error('No countable words found (words shorter than two letters are ignored)');
 
   const lines = [
-    `낱말 ${r.total}개 · 서로 다른 낱말 ${r.unique}개`,
+    `Words: ${r.total} total · ${r.unique} unique`,
     '',
-    '자주 쓴 낱말:',
+    'Top words:',
     ...r.rows.slice(0, top).map((x, i) => `${i + 1}. ${x.word} — ${x.count}회`)
   ];
   if (r.phrases.length > 0) {
-    lines.push('', '자주 붙어 나온 두 낱말:', ...r.phrases.slice(0, 10).map((x) => `- ${x.word} — ${x.count}회`));
+    lines.push('', 'Top word pairs:', ...r.phrases.slice(0, 10).map((x) => `- ${x.word} — ${x.count} times`));
   }
-  lines.push('', '※ 조사만 떼는 어림입니다(형태소 분석 아님) — 「했다/하는」 같은 활용형은 따로 셉니다.');
+  lines.push('', 'This is only a particle-stripping approximation, not full morphological analysis — inflected forms like 했다/하는 are counted separately.');
   return lines.join('\n');
 };
