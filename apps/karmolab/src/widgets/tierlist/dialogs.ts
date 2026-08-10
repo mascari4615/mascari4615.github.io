@@ -1,4 +1,8 @@
+import { t } from '../../lib/i18n';
+
 (function () {
+    const esc = (v: string): string =>
+        String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     interface TierItem {
         name?: string;
         tlOrigin?: string;
@@ -57,23 +61,22 @@
         return root.querySelector(sel) as T | null;
     }
 
-    const esc = (s: string): string => Toolbox.escapeHtml?.(s) ?? s;
 
     function showAddItemDialog(): void {
         const list = T.state.currentList();
-        if (!list) { Toolbox.showToast?.('먼저 티어리스트를 선택하세요.', 'error'); return; }
+        if (!list) { Toolbox.showToast?.(t('tierlist.t95'), 'error'); return; }
 
         let pendingFiles: File[] = [];
         T.ui.openDialog({
-            title: '아이템 추가',
+            title: t('widgets.tierlist.title', undefined, "아이템 추가"),
             wide: false,
             bodyHtml: `
                 <input type="file" id="tl-add-file" accept="image/*" multiple>
-                <label>이름(선택)</label>
-                <input type="text" id="tl-add-name" placeholder="아이템 이름">
+                <label>${esc(t('tierlist.t83'))}</label>
+                <input type="text" id="tl-add-name" placeholder="${esc(t('tierlist.ph.tladdname'))}">
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn" id="tl-add-cancel">취소</button>
-                    <button class="tl-btn tl-btn-primary" id="tl-add-ok">추가</button>
+                    <button class="tl-btn" id="tl-add-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
+                    <button class="tl-btn tl-btn-primary" id="tl-add-ok">${esc(t('tierlist.btn.tladdok'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
@@ -88,7 +91,7 @@
                 cancel.onclick = close;
                 ok.onclick = async () => {
                     const name = nameInput.value.trim();
-                    if (!pendingFiles.length && !name) { Toolbox.showToast?.('이미지나 이름을 입력하세요.', 'error'); return; }
+                    if (!pendingFiles.length && !name) { Toolbox.showToast?.(t('tierlist.t97'), 'error'); return; }
                     close();
                     if (pendingFiles.length) {
                         for (const f of pendingFiles) {
@@ -112,15 +115,15 @@
 
         const showReset = T.state.canResetItemFromPool(list, itemId);
         T.ui.openDialog({
-            title: '아이템 편집',
+            title: t('widgets.tierlist.title', undefined, "아이템 편집"),
             wide: false,
             bodyHtml: `
-                <label>이름</label>
+                <label>${esc(t('tierlist.t84'))}</label>
                 <input type="text" id="tl-edit-name" value="${Toolbox.escapeHtml?.(item.name || '') ?? ''}">
-                ${showReset ? '<p class="tl-tier-hint" style="margin-top:10px;">이름·이미지·라벨을 연결된 후보 풀과 동일하게 맞춥니다.</p><button type="button" class="tl-btn" id="tl-edit-reset" style="margin-top:6px;">수정 초기화 (풀과 같게)</button>' : ''}
+                ${showReset ? t('tierlist.t99') : ''}
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn" id="tl-edit-cancel">취소</button>
-                    <button class="tl-btn tl-btn-primary" id="tl-edit-ok">저장</button>
+                    <button class="tl-btn" id="tl-edit-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
+                    <button class="tl-btn tl-btn-primary" id="tl-edit-ok">${esc(t('tierlist.btn.tleditok'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
@@ -156,16 +159,16 @@
 
     function showNewListDialog(): void {
         T.ui.openDialog({
-            title: '새 티어리스트',
+            title: t('widgets.tierlist.title', undefined, "새 티어리스트"),
             wide: false,
             bodyHtml: `
-                <label>제목</label>
-                <input type="text" id="tl-new-title" placeholder="예: 2026 애니">
-                <label>카테고리</label>
-                <input type="text" id="tl-new-cat" placeholder="예: 애니">
+                <label>${esc(t('tierlist.t85'))}</label>
+                <input type="text" id="tl-new-title" placeholder="${esc(t('tierlist.ph.tlnewtitle'))}">
+                <label>${esc(t('tierlist.t86'))}</label>
+                <input type="text" id="tl-new-cat" placeholder="${esc(t('tierlist.ph.tlnewcat'))}">
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn" id="tl-new-cancel">취소</button>
-                    <button class="tl-btn tl-btn-primary" id="tl-new-ok">생성</button>
+                    <button class="tl-btn" id="tl-new-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
+                    <button class="tl-btn tl-btn-primary" id="tl-new-ok">${esc(t('tierlist.btn.tlnewok'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
@@ -176,9 +179,9 @@
                 ok.onclick = () => {
                     const titleEl = dq<HTMLInputElement>(dialog, '#tl-new-title');
                     const catEl = dq<HTMLInputElement>(dialog, '#tl-new-cat');
-                    const t = titleEl?.value.trim() ?? '';
+                    const typedTitle = titleEl?.value.trim() ?? '';
                     const c = catEl?.value.trim() ?? '';
-                    T.state.createList(t || '새 티어리스트', c);
+                    T.state.createList(typedTitle || t('tierlist.newListTitle'), c);
                     close();
                     T.render.renderAll();
                 };
@@ -188,16 +191,16 @@
 
     function showNewCatalogDialog(): void {
         T.ui.openDialog({
-            title: '새 후보 풀',
+            title: t('widgets.tierlist.title', undefined, "새 후보 풀"),
             wide: false,
             bodyHtml: `
-                <label>주제 이름</label>
-                <input type="text" id="tl-cat-title" placeholder="예: 2026 겨울 애니 후보">
-                <label>카테고리(선택)</label>
-                <input type="text" id="tl-cat-cat" placeholder="예: 애니">
+                <label>${esc(t('tierlist.t87'))}</label>
+                <input type="text" id="tl-cat-title" placeholder="${esc(t('tierlist.ph.tlcattitle'))}">
+                <label>${esc(t('tierlist.t88'))}</label>
+                <input type="text" id="tl-cat-cat" placeholder="${esc(t('tierlist.ph.tlnewcat'))}">
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn" id="tl-cat-cancel">취소</button>
-                    <button class="tl-btn tl-btn-primary" id="tl-cat-ok">만들기</button>
+                    <button class="tl-btn" id="tl-cat-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
+                    <button class="tl-btn tl-btn-primary" id="tl-cat-ok">${esc(t('tierlist.btn.tlcatok'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
@@ -208,12 +211,12 @@
                 ok.onclick = () => {
                     const titleEl = dq<HTMLInputElement>(dialog, '#tl-cat-title');
                     const catEl = dq<HTMLInputElement>(dialog, '#tl-cat-cat');
-                    const t = titleEl?.value.trim() ?? '';
+                    const typedTitle = titleEl?.value.trim() ?? '';
                     const c = catEl?.value.trim() ?? '';
-                    T.state.createCatalog(t || '새 후보 풀', c);
+                    T.state.createCatalog(typedTitle || t('tierlist.newPoolTitle'), c);
                     close();
                     T.render.renderAll();
-                    Toolbox.showToast?.('후보 풀을 만들었어요. 목록에서 우클릭으로 항목을 추가할 수 있어요.');
+                    Toolbox.showToast?.(t('tierlist.t102'));
                 };
             }
         });
@@ -225,15 +228,15 @@
 
         let pendingFiles: File[] = [];
         T.ui.openDialog({
-            title: '후보 항목 추가',
+            title: t('widgets.tierlist.title', undefined, "후보 항목 추가"),
             wide: false,
             bodyHtml: `
                 <input type="file" id="tl-cat-add-file" accept="image/*" multiple>
-                <label>이름(선택)</label>
-                <input type="text" id="tl-cat-add-name" placeholder="항목 이름">
+                <label>${esc(t('tierlist.t83'))}</label>
+                <input type="text" id="tl-cat-add-name" placeholder="${esc(t('tierlist.ph.tlcataddname'))}">
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn" id="tl-cat-add-cancel">취소</button>
-                    <button class="tl-btn tl-btn-primary" id="tl-cat-add-ok">추가</button>
+                    <button class="tl-btn" id="tl-cat-add-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
+                    <button class="tl-btn tl-btn-primary" id="tl-cat-add-ok">${esc(t('tierlist.btn.tladdok'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
@@ -248,7 +251,7 @@
                 cancel.onclick = close;
                 ok.onclick = async () => {
                     const name = nameInput.value.trim();
-                    if (!pendingFiles.length && !name) { Toolbox.showToast?.('이미지나 이름을 입력하세요.', 'error'); return; }
+                    if (!pendingFiles.length && !name) { Toolbox.showToast?.(t('tierlist.t97'), 'error'); return; }
                     close();
                     if (pendingFiles.length) {
                         for (const f of pendingFiles) {
@@ -273,17 +276,17 @@
         return '#999999';
     }
 
-    function tierRowHtml(t: TierDef): string {
-        const id = esc(t.id);
-        const lab = esc(t.label || '');
-        const col = esc(normTierColor(t.color));
+    function tierRowHtml(tier: TierDef): string {
+        const id = esc(tier.id);
+        const lab = esc(tier.label || '');
+        const col = esc(normTierColor(tier.color));
         return `<div class="tl-tier-row" data-tier-id="${id}">
-            <input type="text" class="tl-tier-label" value="${lab}" maxlength="12" aria-label="티어 이름">
-            <input type="color" class="tl-tier-color" value="${col}" aria-label="티어 색">
+            <input type="text" class="tl-tier-label" value="${lab}" maxlength="12" aria-label="${esc(t('tierlist.t75'))}">
+            <input type="color" class="tl-tier-color" value="${col}" aria-label="${esc(t('tierlist.t76'))}">
             <div class="tl-tier-row-btns">
-                <button type="button" class="tl-btn tl-tier-up" title="위로">↑</button>
-                <button type="button" class="tl-btn tl-tier-down" title="아래로">↓</button>
-                <button type="button" class="tl-btn tl-tier-del" title="삭제">✕</button>
+                <button type="button" class="tl-btn tl-tier-up" title="${esc(t('tierlist.t77'))}">↑</button>
+                <button type="button" class="tl-btn tl-tier-down" title="${esc(t('tierlist.t78'))}">↓</button>
+                <button type="button" class="tl-btn tl-tier-del" title="${esc(t('tierlist.t79'))}">✕</button>
             </div>
         </div>`;
     }
@@ -292,23 +295,23 @@
         T.state.ensureWritableList?.('tierSettings');
         const list = T.state.currentList();
         if (!list?.tiers?.length) {
-            Toolbox.showToast('순위 보드를 먼저 열어 주세요.', 'error');
+            Toolbox.showToast(t('tierlist.t104'), 'error');
             return;
         }
 
         T.ui.openDialog({
-            title: '티어 설정 (S A B … 이름·색·순서)',
+            title: t('widgets.tierlist.title', undefined, "티어 설정 (S A B … 이름·색·순서)"),
             wide: true,
             bodyHtml: `
-                <p class="tl-tier-hint">위에서 아래 순으로 티어판에 나옵니다. 줄을 삭제하면 그 티어에 있던 카드는 <strong>미배치</strong>로 옮겨집니다.</p>
+                <p class="tl-tier-hint">${t('tierlist.tierHint', { unplaced: `<strong>${esc(t('tierlist.t90'))}</strong>` })}</p>
                 <div id="tl-tier-rows" class="tl-tier-rows"></div>
                 <div class="tl-tier-actions">
-                    <button type="button" class="tl-btn" id="tl-tier-add">티어 추가</button>
-                    <button type="button" class="tl-btn" id="tl-tier-default">S A B C D F로 맞추기</button>
+                    <button type="button" class="tl-btn" id="tl-tier-add">${esc(t('tierlist.btn.tltieradd'))}</button>
+                    <button type="button" class="tl-btn" id="tl-tier-default">${esc(t('tierlist.btn.tltierdefault'))}</button>
                 </div>
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn" id="tl-tier-cancel">취소</button>
-                    <button class="tl-btn tl-btn-primary" id="tl-tier-ok">저장</button>
+                    <button class="tl-btn" id="tl-tier-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
+                    <button class="tl-btn tl-btn-primary" id="tl-tier-ok">${esc(t('tierlist.btn.tleditok'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
@@ -337,7 +340,7 @@
                         if (next) wrap.insertBefore(next, row);
                     } else if (btn.classList.contains('tl-tier-del')) {
                         if (wrap.querySelectorAll('.tl-tier-row').length <= 1) {
-                            Toolbox.showToast?.('티어는 최소 1개 필요합니다.', 'error');
+                            Toolbox.showToast?.(t('tierlist.t106'), 'error');
                             return;
                         }
                         row.remove();
@@ -353,7 +356,7 @@
                 };
 
                 defaultBtn.onclick = () => {
-                    if (!confirm('티어 줄을 S A B C D F(기본 색)로 바꿉니다.\n지금 쓰는 티어 id와 다른 줄에 있던 카드는 미배치로 옮겨질 수 있어요. 계속할까요?')) return;
+                    if (!confirm(t('tierlist.confirmDefaultTiers'))) return;
                     paint(T.state.getDefaultTiers());
                 };
 
@@ -361,12 +364,12 @@
                 okBtn.onclick = () => {
                     const rows = [...wrap.querySelectorAll('.tl-tier-row')] as HTMLElement[];
                     if (!rows.length) {
-                        Toolbox.showToast?.('티어는 최소 1개 필요합니다.', 'error');
+                        Toolbox.showToast?.(t('tierlist.t106'), 'error');
                         return;
                     }
                     const cur = T.state.currentList();
                     if (!cur) {
-                        Toolbox.showToast?.('순위를 찾을 수 없어요.', 'error');
+                        Toolbox.showToast?.(t('tierlist.t107'), 'error');
                         return;
                     }
                     const tiers: TierDef[] = rows.map(r => {
@@ -379,7 +382,7 @@
                         };
                     });
                     if (!T.state.applyTiers(cur, tiers)) {
-                        Toolbox.showToast?.('저장에 실패했어요.', 'error');
+                        Toolbox.showToast?.(t('tierlist.t108'), 'error');
                         return;
                     }
                     close();
@@ -393,20 +396,20 @@
         T.state.ensureWritableList?.('userLabels');
         const list0 = T.state.currentList();
         if (!list0) {
-            Toolbox.showToast?.('순위 보드를 먼저 열어 주세요.', 'error');
+            Toolbox.showToast?.(t('tierlist.t104'), 'error');
             return;
         }
         T.state.ensureListUserLabels(list0);
 
         T.ui.openDialog({
-            title: '카드 라벨 · 뱃지 (이름·색)',
+            title: t('widgets.tierlist.title', undefined, "카드 라벨 · 뱃지 (이름·색)"),
             wide: true,
             bodyHtml: `
-                <p class="tl-tier-hint">여기서 만든 라벨을 카드 <strong>우클릭 → 라벨</strong>에서 고를 수 있어요. 이름은 카드 위에 색 띠로 보입니다.</p>
+                <p class="tl-tier-hint">${t('tierlist.labelHint', { path: `<strong>${esc(t('tierlist.t93'))}</strong>` })}</p>
                 <div id="tl-ul-manager-body" class="tl-ul-manager-body"></div>
-                <button type="button" class="tl-btn" id="tl-ul-add">라벨 추가</button>
+                <button type="button" class="tl-btn" id="tl-ul-add">${esc(t('tierlist.btn.tluladd'))}</button>
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn tl-btn-primary" id="tl-ul-done">닫기</button>
+                    <button class="tl-btn tl-btn-primary" id="tl-ul-done">${esc(t('tierlist.btn.tluldone'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
@@ -422,7 +425,7 @@
                     T.state.ensureListUserLabels(list);
                     const defs = Object.values(list.userLabels).sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ko'));
                     if (!defs.length) {
-                        body.innerHTML = '<div class="tl-ul-empty">아직 라벨이 없습니다. 「라벨 추가」로 예: 보기만 함, 기대작 등을 만드세요.</div>';
+                        body.innerHTML = t('tierlist.t110');
                         return;
                     }
                     body.innerHTML = defs.map(d => {
@@ -430,10 +433,10 @@
                         const nm = esc(d.name || '');
                         const col = esc(d.color || '#5c6bc0');
                         return `<div class="tl-ul-row" data-id="${esc(d.id)}">
-                            <input type="text" class="tl-ul-name" value="${nm}" maxlength="32" aria-label="라벨 이름">
-                            <input type="color" class="tl-ul-color" value="${col}" aria-label="라벨 색">
-                            <span class="tl-ul-usage" title="이 라벨이 붙은 카드 수">${n}장</span>
-                            <button type="button" class="tl-btn tl-ul-del" title="삭제">✕</button>
+                            <input type="text" class="tl-ul-name" value="${nm}" maxlength="32" aria-label="${esc(t('tierlist.t80'))}">
+                            <input type="color" class="tl-ul-color" value="${col}" aria-label="${esc(t('tierlist.t81'))}">
+                            <span class="tl-ul-usage" title="${esc(t('tierlist.t82'))}">${n}장</span>
+                            <button type="button" class="tl-btn tl-ul-del" title="${esc(t('tierlist.t79'))}">✕</button>
                         </div>`;
                     }).join('');
                 }
@@ -441,7 +444,7 @@
                 paint();
 
                 addBtn.onclick = () => {
-                    T.state.addUserLabelDef('새 라벨', '#5c6bc0');
+                    T.state.addUserLabelDef(t('tierlist.t111'), '#5c6bc0');
                     paint();
                 };
 
@@ -461,7 +464,7 @@
                         else {
                             const n = T.state.countCardsUsingUserLabel(id);
                             const u = row.querySelector('.tl-ul-usage');
-                            if (u) u.textContent = `${n}장`;
+                            if (u) u.textContent = t('tierlist.cardCount', { n });
                         }
                     }
                 });
@@ -473,7 +476,7 @@
                     const row = btn.closest('.tl-ul-row') as HTMLElement | null;
                     if (!row) return;
                     const id = row.getAttribute('data-id') || row.dataset.id || '';
-                    if (!confirm('이 라벨을 지우면 모든 카드에서 빠집니다. 계속할까요?')) return;
+                    if (!confirm(t('tierlist.t112'))) return;
                     T.state.removeUserLabelDef(id);
                     paint();
                 });
@@ -496,7 +499,7 @@
         const cur = new Set(list.items[itemId].userLabelIds || []);
 
         if (!defs.length) {
-            Toolbox.showToast?.('먼저 툴바 「라벨」에서 라벨을 추가하세요.', 'error');
+            Toolbox.showToast?.(t('tierlist.t113'), 'error');
             return;
         }
 
@@ -512,13 +515,13 @@
         }).join('');
 
         T.ui.openDialog({
-            title: '이 카드에 라벨 달기',
+            title: t('widgets.tierlist.title', undefined, "이 카드에 라벨 달기"),
             wide: false,
             bodyHtml: `
                 <div id="tl-ul-assign-list" class="tl-ul-assign-list">${checks}</div>
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn" id="tl-ul-assign-cancel">취소</button>
-                    <button class="tl-btn tl-btn-primary" id="tl-ul-assign-ok">적용</button>
+                    <button class="tl-btn" id="tl-ul-assign-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
+                    <button class="tl-btn tl-btn-primary" id="tl-ul-assign-ok">${esc(t('tierlist.btn.tlulassignok'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
