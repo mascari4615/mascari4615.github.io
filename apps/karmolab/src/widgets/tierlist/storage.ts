@@ -1,3 +1,5 @@
+import { t } from '../../lib/i18n';
+
 (function () {
     const T = ((window.Tierlist = window.Tierlist || {}) as unknown) as TierlistNamespace;
 
@@ -903,7 +905,7 @@
         const id = 'tl-' + uid();
         const copied = JSON.parse(JSON.stringify(src)) as TlListInstance;
         copied.id = id;
-        copied.title = (src.title || '티어리스트') + ' (복제)';
+        copied.title = (src.title || '티어리스트') + t('tierlist.t138');
         copied.createdAt = now;
         copied.updatedAt = now;
         copied.meta = { ...(copied.meta || {}), source: 'duplicate', dirty: true };

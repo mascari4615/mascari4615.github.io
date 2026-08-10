@@ -1,3 +1,5 @@
+import { t } from '../../../lib/i18n';
+
 import type {
   AdventureProvider,
   AdventureCompletionRequest,
@@ -61,7 +63,7 @@ export class ClaudeProvider implements AdventureProvider {
     const invoke = getTauriInvoke();
     if (!invoke) {
       throw new Error(
-        'Claude provider는 Tauri 데스크톱 앱 안에서만 동작합니다 (KL-032 결정 1: 무대 = Tauri 한정). 브라우저에서는 Vertex provider 로 토글하세요.',
+        t('adventure.t49'),
       );
     }
 

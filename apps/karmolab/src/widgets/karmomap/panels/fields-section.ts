@@ -9,6 +9,7 @@
  */
 import type { GraphNode } from '../../../lib/graph/spec';
 import type { PanelCtx } from './context';
+import { t, loadNamespace } from '../../../lib/i18n';
 
 /** 같은 종류의 다른 노드들이 쓰고 있는 칸 이름 (많이 쓰인 순). */
 function kindFieldNames(ctx: PanelCtx, node: GraphNode): string[] {
@@ -42,21 +43,21 @@ export function fieldsSectionHtml(ctx: PanelCtx, node: GraphNode): string {
     .filter((x): x is { field: string; id: string; label: string } => Boolean(x));
   return `
     <div class="km-field">
-      <label>칸 <span class="km-hint">이 ${esc(ctx.kindLabel(node.kind))}에 대해 적어 두는 것</span></label>
+      <label>${esc(t('karmomap.t416'))} <span class="km-hint">이 ${esc(ctx.kindLabel(node.kind))}에 대해 적어 두는 것</span></label>
       ${rows.map(([name, value], i) => `<div class="km-link-row">
         <input type="text" class="km-field-name" data-km="fld-name" data-key="${esc(name)}" value="${esc(name)}" />
-        <input type="text" data-km="fld-value" data-key="${esc(name)}" value="${esc(value)}" placeholder="내용" />
-        <button class="btn btn-ghost" data-km="fld-del" data-key="${esc(name)}" title="이 칸 지우기">×</button>
+        <input type="text" data-km="fld-value" data-key="${esc(name)}" value="${esc(value)}" placeholder="${esc(t('karmomap.t413'))}" />
+        <button class="btn btn-ghost" data-km="fld-del" data-key="${esc(name)}" title="${esc(t('karmomap.t414'))}">×</button>
       </div>${i === rows.length - 1 ? '' : ''}`).join('')}
-      ${promotable.length === 0 ? '' : `<div class="km-hint">칸에 적은 이름이 이 맵에 <b>있는 노드</b>입니다 — 글로만 적어 두면 그림에는 안 나옵니다.</div>
+      ${promotable.length === 0 ? '' : `<div class="km-hint">${t('karmomap.fieldPromote', { em: `<b>${esc(t('karmomap.t418'))}</b>` })}</div>
       ${promotable.map((p) => `<div class="km-link-row">
         <span class="km-link-name">${esc(p.field)}: ${esc(p.label)}</span>
-        <button class="btn btn-ghost" data-km="fld-link" data-key="${esc(p.field)}" data-to="${esc(p.id)}">선으로 잇기</button>
+        <button class="btn btn-ghost" data-km="fld-link" data-key="${esc(p.field)}" data-to="${esc(p.id)}">${esc(t('karmomap.t420'))}</button>
       </div>`).join('')}`}
       <div class="km-link-row">
-        <input type="text" data-km="fld-new" list="km-fld-suggest" placeholder="새 칸 이름 (예: 출신)" />
+        <input type="text" data-km="fld-new" list="km-fld-suggest" placeholder="${esc(t('karmomap.t415'))}" />
         <datalist id="km-fld-suggest">${suggest.map((n) => `<option value="${esc(n)}"></option>`).join('')}</datalist>
-        <button class="btn btn-ghost" data-km="fld-add">추가</button>
+        <button class="btn btn-ghost" data-km="fld-add">${esc(t('karmomap.t421'))}</button>
       </div>
       ${suggest.length === 0 ? '' : `<div class="km-hint">같은 종류가 쓰는 칸: ${suggest.slice(0, 6).map((n) => esc(n)).join(' · ')}</div>`}
       ${template.length === 0 ? '' : `<button class="btn btn-ghost" data-km="fld-template">틀 한 벌 넣기: ${template.map((n) => esc(n)).join(' · ')}</button>`}

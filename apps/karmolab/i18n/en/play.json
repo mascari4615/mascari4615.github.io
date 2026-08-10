@@ -20,5 +20,6 @@
   "play.gotToday": "Got it today ({n} tries)",
   "play.bestStreak": "best {n} in a row",
   "play.finishedRun": "finished · {n} days in a row",
-  "play.left": "{n} left"
+  "play.left": "{n} left",
+  "play.t18": "Today’s course"
 }

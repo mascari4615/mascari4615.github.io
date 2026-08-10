@@ -35,7 +35,7 @@ export function renderEdgePanel(ctx: PanelCtx): void {
     ${docFieldHtml(ctx, edge, EDGE_DOC_SKIN)}
     <div class="km-field">
       <label>${esc(t('karmomap.t326'))}</label>
-      <div class="km-hint">${t('karmomap.hint02', { em: `<b>${esc(t('karmomap.t328'))}</b>` })}</div>
+      <div class="km-hint">${t('karmomap.edgeBothViews', { em: `<b>${esc(t('karmomap.t328'))}</b>` })}</div>
       <input type="text" data-km="ed-view-from" value="${esc(edge.viewFrom ?? '')}"
         placeholder="${esc(nameOf(edge.from))} 가 보는 ${esc(nameOf(edge.to))}" />
       <input type="text" data-km="ed-view-to" value="${esc(edge.viewTo ?? '')}"

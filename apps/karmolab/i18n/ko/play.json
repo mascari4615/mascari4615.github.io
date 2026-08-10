@@ -20,5 +20,6 @@
   "play.gotToday": "오늘 맞혔어요 ({n}번)",
   "play.bestStreak": "최고 {n}연승",
   "play.finishedRun": "완주 · {n}일 연속",
-  "play.left": "{n}개 남음"
+  "play.left": "{n}개 남음",
+  "play.t18": "오늘의 코스"
 }

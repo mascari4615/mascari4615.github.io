@@ -20,5 +20,6 @@
   "play.gotToday": "今日は当てました ({n}回)",
   "play.bestStreak": "最高 {n}連勝",
   "play.finishedRun": "完走 · {n}日連続",
-  "play.left": "残り {n}個"
+  "play.left": "残り {n}個",
+  "play.t18": "今日のコース"
 }

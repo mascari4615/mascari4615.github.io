@@ -42,5 +42,18 @@
   "adventure.t36": "⚙ Provider 설정",
   "adventure.t37": "Claude (Max OAuth) 는 Tauri 데스크톱 앱 안에서만 동작합니다 (ζ 단계 후). Vertex 는 브라우저 직접 호출 — API key + 프로젝트 ID 필요.",
   "adventure.t38": "Claude 모델",
-  "adventure.t39": "Vertex 모델"
+  "adventure.t39": "Vertex 모델",
+  "adventure.t40": "Vertex API 키 / 프로젝트 ID 미설정. 위젯 옵션에서 박아주세요 (adv_vertex_api_key, adv_vertex_project_id).",
+  "adventure.err.41": "Vertex 응답에 텍스트 없음: ",
+  "adventure.t41": "[adventure] adventure_save_image: path 없음",
+  "adventure.t42": "[adventure] adventure_save_image 실패, dataUrl fallback",
+  "adventure.t43": "[adventure] adventure_save_raw 미가용, localStorage fallback",
+  "adventure.t44": "[adventure] localStorage 저장 실패",
+  "adventure.t45": "[adventure] localStorage 로드 실패",
+  "adventure.t46": "[adventure] adventure_delete_raw 미가용, localStorage fallback",
+  "adventure.t47": "[adventure] localStorage 삭제 실패",
+  "adventure.t48": "[adventure] localStorage 목록 실패",
+  "adventure.t49": "Claude provider는 Tauri 데스크톱 앱 안에서만 동작합니다 (KL-032 결정 1: 무대 = Tauri 한정). 브라우저에서는 Vertex provider 로 토글하세요.",
+  "adventure.err.50": "이미지 생성 = Vertex Imagen 사용. ⚙ 설정에서 Vertex API key + Project ID 박아주세요.",
+  "adventure.err.51": "Vertex Imagen 응답에 이미지 없음: "
 }

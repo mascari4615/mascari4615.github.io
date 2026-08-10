@@ -9,6 +9,8 @@
  * KL-037: 이미지 (η Vertex Imagen) 는 dataUrl 인라인 X — `adventure_save_image` 가
  * 별 PNG 로 박고 path 만 imageRef 에 박힘. raw JSON 사이즈 폭주 방지 + git diff/push 비용 ↓.
  */
+import { t } from '../../lib/i18n';
+
 
 export interface AdventureTurnRecord {
   ts: string;
@@ -85,10 +87,10 @@ export async function saveImage(
       if (result?.path) {
         return result.path;
       }
-      console.warn('[adventure] adventure_save_image: path 없음', result);
+      console.warn(t('adventure.t41'), result);
       return null;
     } catch (err) {
-      console.warn('[adventure] adventure_save_image 실패, dataUrl fallback', err);
+      console.warn(t('adventure.t42'), err);
     }
   }
   // 브라우저 fallback — dataUrl 직접 박지만 size limit 강제 (KL-037 raw JSON 폭주 방지).
@@ -110,13 +112,13 @@ export async function saveSession(session: AdventureSession): Promise<void> {
       return;
     } catch (err) {
       // Tauri command 미구현 (ζ 단계 전) — fallback localStorage
-      console.warn('[adventure] adventure_save_raw 미가용, localStorage fallback', err);
+      console.warn(t('adventure.t43'), err);
     }
   }
   try {
     localStorage.setItem(STORAGE_KEY_PREFIX + session.slug, JSON.stringify(session));
   } catch (err) {
-    console.error('[adventure] localStorage 저장 실패', err);
+    console.error(t('adventure.t44'), err);
   }
 }
 
@@ -126,7 +128,7 @@ export function loadSession(slug: string): AdventureSession | null {
     if (!raw) return null;
     return JSON.parse(raw) as AdventureSession;
   } catch (err) {
-    console.error('[adventure] localStorage 로드 실패', err);
+    console.error(t('adventure.t45'), err);
     return null;
   }
 }
@@ -138,13 +140,13 @@ export async function deleteSession(slug: string): Promise<void> {
       await invoke('adventure_delete_raw', { slug });
       return;
     } catch (err) {
-      console.warn('[adventure] adventure_delete_raw 미가용, localStorage fallback', err);
+      console.warn(t('adventure.t46'), err);
     }
   }
   try {
     localStorage.removeItem(STORAGE_KEY_PREFIX + slug);
   } catch (err) {
-    console.error('[adventure] localStorage 삭제 실패', err);
+    console.error(t('adventure.t47'), err);
   }
 }
 
@@ -158,7 +160,7 @@ export function listLocalSessionSlugs(): string[] {
       }
     }
   } catch (err) {
-    console.error('[adventure] localStorage 목록 실패', err);
+    console.error(t('adventure.t48'), err);
   }
   return slugs.sort().reverse();
 }

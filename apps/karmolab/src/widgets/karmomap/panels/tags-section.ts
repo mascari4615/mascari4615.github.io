@@ -6,6 +6,7 @@
  */
 import type { GraphNode } from '../../../lib/graph/spec';
 import type { PanelCtx } from './context';
+import { t, loadNamespace } from '../../../lib/i18n';
 
 /** 이 맵에 이미 쓰인 꼬리표 (가나다순). */
 export function allTagsIn(nodes: GraphNode[]): string[] {
@@ -17,8 +18,8 @@ export function tagsFieldHtml(ctx: PanelCtx, node: GraphNode): string {
   const tags = allTagsIn(ctx.spec().nodes);
   return `
     <div class="km-field">
-      <label>꼬리표 <span class="km-hint">쉼표로 여러 개</span></label>
-      <input type="text" data-km="edit-tags" value="${esc((node.tags ?? []).join(', '))}" placeholder="영향력 큼, 나중에 다시" />
+      <label>${esc(t('karmomap.t426'))} <span class="km-hint">${esc(t('karmomap.t427'))}</span></label>
+      <input type="text" data-km="edit-tags" value="${esc((node.tags ?? []).join(', '))}" placeholder="${esc(t('karmomap.t425'))}" />
       ${tags.length === 0 ? '' : `<div class="km-tagbar">${tags
         .map((tg) => `<button class="btn btn-ghost km-tagchip" data-km="tag-add" data-key="${esc(tg)}">${esc(tg)}</button>`)
         .join('')}</div>`}

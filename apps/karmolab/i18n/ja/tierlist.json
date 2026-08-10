@@ -172,5 +172,6 @@
   "tierlist.t136": "戻すのに失敗しました。",
   "tierlist.t137": "候補プール基準に戻しました。",
   "tierlist.boardCount": "{n}板",
-  "tierlist.totalCount": "全 {n}件"
+  "tierlist.totalCount": "全 {n}件",
+  "tierlist.t138": "(複製)"
 }

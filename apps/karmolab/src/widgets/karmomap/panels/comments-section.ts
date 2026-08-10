@@ -32,7 +32,7 @@ export function commentsSectionHtml(ctx: PanelCtx, onId: string): string {
   return `
     <div class="km-field">
       <label>코멘트 ${rows.length === 0 ? '' : `<span class="km-group-count">${rows.length}</span>`}</label>
-      <div class="km-hint">${t('karmomap.hint01', { em: `<b>${esc(t('karmomap.t398'))}</b>` })}</div>
+      <div class="km-hint">${t('karmomap.commentsPile', { em: `<b>${esc(t('karmomap.t398'))}</b>` })}</div>
       ${rows.map((c) => `<div class="km-link-row">
         <span class="km-link-name">${esc(c.text)}</span>
         <span class="km-group-count">${esc(ago(c.at))}</span>

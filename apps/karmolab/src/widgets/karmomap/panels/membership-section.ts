@@ -6,19 +6,20 @@
  */
 import type { GraphNode } from '../../../lib/graph/spec';
 import type { PanelCtx } from './context';
+import { t, loadNamespace } from '../../../lib/i18n';
 
 export function membershipFieldHtml(ctx: PanelCtx, node: GraphNode): string {
   const esc = ctx.esc;
   const groups = ctx.spec().groups;
   return `
     <div class="km-field">
-      <label>묶음 (여러 개 가능)</label>
+      <label>${esc(t('karmomap.t422'))}</label>
       ${groups.length === 0
-        ? '<div class="km-hint">아직 묶음이 없습니다.</div>'
+        ? t('karmomap.t424')
         : groups.map((g) => `<label class="km-check"><input type="checkbox" data-km="in-group" value="${esc(g.id)}"${
             ctx.memberOf(node).includes(g.id) ? ' checked' : ''
           } /> <span class="km-swatch" style="background:${esc(g.color)}"></span>${esc(g.label)}</label>`).join('')}
-      <button class="btn btn-ghost" data-km="group-new-here">+ 새 묶음에 넣기</button>
+      <button class="btn btn-ghost" data-km="group-new-here">${esc(t('karmomap.t423'))}</button>
     </div>`;
 }
 

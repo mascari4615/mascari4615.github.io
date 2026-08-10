@@ -24,7 +24,7 @@ export function renderTermsPanel(ctx: PanelCtx): void {
   ];
   side.innerHTML = `
     <h4>${esc(t('karmomap.t365'))}</h4>
-    <div class="km-hint">${t('karmomap.hint03', { em: `<b>${esc(t('karmomap.t367'))}</b>` })}</div>
+    <div class="km-hint">${t('karmomap.termsOwn', { em: `<b>${esc(t('karmomap.t367'))}</b>` })}</div>
     <div class="km-field">
       <label>내 노드 종류 ${ctx.terms.nodeKinds.length}개</label>
       ${ctx.terms.nodeKinds

@@ -172,5 +172,6 @@
   "tierlist.t136": "The reset failed.",
   "tierlist.t137": "It is back to the candidate pool.",
   "tierlist.boardCount": "{n} boards",
-  "tierlist.totalCount": "{n} in all"
+  "tierlist.totalCount": "{n} in all",
+  "tierlist.t138": " (copy)"
 }

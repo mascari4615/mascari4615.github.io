@@ -30,7 +30,7 @@ export function renderFilterPanel(ctx: PanelCtx): void {
 
   side.innerHTML = `
     <h4>${esc(t('karmomap.t233'))}</h4>
-    <div class="km-hint">${t('karmomap.hint03', { em: `<b>${esc(t('karmomap.t235'))}</b>` })}</div>
+    <div class="km-hint">${t('karmomap.filterHide', { em: `<b>${esc(t('karmomap.t235'))}</b>` })}</div>
     <div class="km-field">
       <label>${esc(t('karmomap.t237'))}</label>
       ${nodeRows.map((k) => `<label class="km-check"><input type="checkbox" data-km="f-node" value="${esc(k.id)}"${

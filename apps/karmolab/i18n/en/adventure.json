@@ -42,5 +42,18 @@
   "adventure.t36": "⚙ Provider settings",
   "adventure.t37": "Claude (Max OAuth) works only inside the Tauri desktop app (after stage ζ). Vertex is called straight from the browser — it needs an API key and a project ID.",
   "adventure.t38": "Claude model",
-  "adventure.t39": "Vertex model"
+  "adventure.t39": "Vertex model",
+  "adventure.t40": "The Vertex API key / project ID is not set. Put them in the widget options (adv_vertex_api_key, adv_vertex_project_id).",
+  "adventure.err.41": "No text in the Vertex response: ",
+  "adventure.t41": "[adventure] adventure_save_image: no path",
+  "adventure.t42": "[adventure] adventure_save_image failed, falling back to dataUrl",
+  "adventure.t43": "[adventure] adventure_save_raw unavailable, falling back to localStorage",
+  "adventure.t44": "[adventure] saving to localStorage failed",
+  "adventure.t45": "[adventure] loading from localStorage failed",
+  "adventure.t46": "[adventure] adventure_delete_raw unavailable, falling back to localStorage",
+  "adventure.t47": "[adventure] deleting from localStorage failed",
+  "adventure.t48": "[adventure] listing localStorage failed",
+  "adventure.t49": "The Claude provider works only inside the Tauri desktop app (KL-032 decision 1: the stage is Tauri only). In a browser, switch to the Vertex provider.",
+  "adventure.err.50": "Image generation uses Vertex Imagen. Put a Vertex API key and project ID in ⚙ settings.",
+  "adventure.err.51": "No image in the Vertex Imagen response: "
 }
