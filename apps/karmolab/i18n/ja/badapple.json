@@ -1,0 +1,11 @@
+{
+  "badapple.err.01": "このブラウザはこの動画を読めません",
+  "badapple.t02": "焼いています… 0%",
+  "badapple.t03": " · これでホームにも出ます",
+  "badapple.t04": " · ホームに渡すには大きすぎるので、この画面だけに出ます",
+  "badapple.t05": "焼くのに失敗しました",
+  "badapple.t06": "止めました。",
+  "badapple.playing": "再生中 — {w}×{h} · {frames}コマ · 毎秒 {fps}コマ",
+  "badapple.baking": "焼いています… {pct}%",
+  "badapple.baked": "焼き上がり — {size}KB (縮めなければ {raw}KB)"
+}

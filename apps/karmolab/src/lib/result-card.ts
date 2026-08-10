@@ -11,6 +11,11 @@
  * 그림(우승자 얼굴 등)은 **남의 서버 것**일 수 있다. 그러면 canvas 가 오염되어 그림으로 뽑는
  * 순간 막힌다 — 그래서 그림은 「되면 얹고, 안 되면 없이」 간다(자랑이 통째로 막히는 것보다 낫다).
  */
+import { t, loadNamespace } from './i18n';
+
+/* 위젯이 아니라 셸·라이브러리 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+   빌드는 브라우저 밖에서도 읽으므로 document 가 있을 때만. */
+if (typeof document !== 'undefined') void loadNamespace('resultcard');
 export interface ResultCard {
   /** 위에 작게 — 어느 놀이인가. */
   kicker: string;
@@ -121,12 +126,12 @@ export async function drawResultCard(card: ResultCard): Promise<HTMLCanvasElemen
 export async function copyResultCard(card: ResultCard, fileName = 'karmolab.png'): Promise<string> {
   const canvas = await drawResultCard(card);
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
-  if (!blob) return '그림을 못 만들었습니다.';
+  if (!blob) return t('resultcard.t01');
 
   try {
     // 사파리는 사용자 동작 안에서만 허용한다 — 그래서 부르는 쪽은 클릭 처리 안에서 부른다.
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-    return '결과 그림을 복사했습니다 — 그대로 붙여넣으세요.';
+    return t('resultcard.t02');
   } catch {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -134,6 +139,6 @@ export async function copyResultCard(card: ResultCard, fileName = 'karmolab.png'
     a.download = fileName;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 10_000);
-    return '결과 그림을 내려받았습니다 (이 브라우저는 그림 복사를 막습니다).';
+    return t('resultcard.t03');
   }
 }

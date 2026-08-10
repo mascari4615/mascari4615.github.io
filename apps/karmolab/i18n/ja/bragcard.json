@@ -1,0 +1,11 @@
+{
+  "bragcard.t01": "今日の板",
+  "bragcard.t02": "共有しました",
+  "bragcard.t03": "URLをコピーしました",
+  "bragcard.t04": "コピーしました",
+  "bragcard.t05": "コピーがブロックされています",
+  "bragcard.done": "{n}判 完走",
+  "bragcard.run": "{n}日 連続",
+  "bragcard.line": "{day}  ·  五判のうち {n}判",
+  "bragcard.share": "KarmoLab 今日の板 {n}判 完走"
+}

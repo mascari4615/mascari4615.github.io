@@ -12,6 +12,11 @@
  * 받다 만 상태가 도구를 망가뜨리면, 사람들은 「AI 켜기」를 다시는 안 누른다.
  */
 import { downloadNotice, explainFailure, type AiFailure } from './ai-route';
+import { t, loadNamespace } from './i18n';
+
+/* 위젯이 아니라 셸·라이브러리 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+   빌드는 브라우저 밖에서도 읽으므로 document 가 있을 때만. */
+if (typeof document !== 'undefined') void loadNamespace('aigate');
 
 export type GateState =
   /** 아직 아무 것도 안 했다. 도구는 그냥 도구다. */
@@ -68,15 +73,15 @@ export class AiGate {
   private say(): string {
     switch (this.state) {
       case 'idle':
-        return 'AI 기능은 꺼져 있습니다 — 도구는 그대로 쓸 수 있습니다';
+        return t('aigate.t01');
       case 'asking':
         return downloadNotice(this.opts.sizeMb, this.opts.mbps);
       case 'loading':
-        return `받는 중… ${this.percent}%  (취소해도 도구는 그대로 씁니다)`;
+        return t('aigate.downloading', { pct: this.percent });
       case 'ready':
-        return 'AI 기능이 켜졌습니다';
+        return t('aigate.t02');
       case 'failed':
-        return this.failure?.say ?? '알 수 없는 이유로 실패했습니다';
+        return this.failure?.say ?? t('aigate.t03');
     }
   }
 

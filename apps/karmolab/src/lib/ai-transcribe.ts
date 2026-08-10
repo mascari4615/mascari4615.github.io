@@ -13,6 +13,11 @@
  * 어디가 틀렸는지 안 보이는 종류다. 그래서 변환을 여기 한 곳에 두고 시험으로 잠근다.
  */
 import type { EngineModule } from './ai-engine';
+import { t, loadNamespace } from './i18n';
+
+/* 위젯이 아니라 셸·라이브러리 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+   빌드는 브라우저 밖에서도 읽으므로 document 가 있을 때만. */
+if (typeof document !== 'undefined') void loadNamespace('aitranscribe');
 
 /**
  * 판을 박은 모델. 작은 것부터 — 큰 모델은 「받다 지쳐 떠나는」 쪽이 더 크다.
@@ -69,7 +74,7 @@ export async function toModelAudio(
  */
 export function resampleTo16k(input: Float32Array, fromHz: number): Float32Array {
   if (fromHz === TARGET_HZ) return input;
-  if (fromHz <= 0) throw new Error('표본율을 알 수 없습니다');
+  if (fromHz <= 0) throw new Error(t('aitranscribe.err.01'));
   const ratio = fromHz / TARGET_HZ;
   const out = new Float32Array(Math.max(1, Math.round(input.length / ratio)));
   for (let i = 0; i < out.length; i++) {
@@ -100,7 +105,7 @@ export async function transcribe(
   audio: Float32Array,
   opts: TranscribeOptions = {}
 ): Promise<Transcript> {
-  if (audio.length === 0) throw new Error('소리가 비어 있습니다');
+  if (audio.length === 0) throw new Error(t('aitranscribe.err.02'));
 
   const pipe = (await engine.pipeline('automatic-speech-recognition', TRANSCRIBE_MODEL, {
     progress_callback: (p: { progress?: number }) => {

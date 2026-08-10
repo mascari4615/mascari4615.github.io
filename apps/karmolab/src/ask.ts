@@ -10,6 +10,11 @@
  * 못 하면 못 한다고 말한다 — 자격이 없거나 못 고르면 그렇게 적는다. 억지로 아무 도구나
  * 내밀면 다음부터 이 자리는 아무도 안 누른다.
  */
+import { t, loadNamespace } from './lib/i18n';
+
+/* 위젯이 아니라 셸·라이브러리 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+   빌드는 브라우저 밖에서도 읽으므로 document 가 있을 때만. */
+if (typeof document !== 'undefined') void loadNamespace('ask');
 interface AskArgs {
     host: HTMLElement;
     q: string;
@@ -38,10 +43,10 @@ async function run(args: AskArgs): Promise<void> {
         });
         const data = await response.json();
         if (data && data.ready && data.pick) picked = data.pick;
-        else if (data && data.ready) line = '알맞은 도구를 못 찾았어요.';
-        else line = '지금은 말로 찾기를 못 해요.';
+        else if (data && data.ready) line = t('ask.t01');
+        else line = t('ask.t02');
     } catch {
-        line = '지금은 말로 찾기를 못 해요.';
+        line = t('ask.t02');
     }
     if (!host.isConnected) return;
     if (button) button.remove();

@@ -1,0 +1,11 @@
+{
+  "badapple.err.01": "This browser cannot read this video",
+  "badapple.t02": "Baking… 0%",
+  "badapple.t03": " · now it shows on the home screen too",
+  "badapple.t04": " · too large to hand to the home screen, so it only shows here",
+  "badapple.t05": "Baking failed",
+  "badapple.t06": "Stopped.",
+  "badapple.playing": "Playing — {w}×{h} · {frames} frames · {fps} fps",
+  "badapple.baking": "Baking… {pct}%",
+  "badapple.baked": "Baked — {size}KB (unshrunk it would be {raw}KB)"
+}

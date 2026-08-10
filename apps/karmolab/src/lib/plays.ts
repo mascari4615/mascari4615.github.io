@@ -12,6 +12,14 @@
  * (반응속도는 작을수록 빠르다). 서버도 같은 표를 들고 있지만 그건 복사본이 아니라 **경계**다 —
  * 순위는 브라우저가 보내온 말을 믿고 매길 수 없다.
  */
+import { t, loadNamespace } from './i18n';
+
+const esc = (v: unknown): string =>
+  String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/* 위젯이 아니라 셸·라이브러리 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+   빌드는 브라우저 밖에서도 읽으므로 document 가 있을 때만. */
+if (typeof document !== 'undefined') void loadNamespace('plays');
 const API_BASE = 'https://yawnbot.mascari4615.com';
 const LOCAL_KEY = 'karmolab_play_best';
 const TIMEOUT_MS = 4000;
@@ -180,13 +188,13 @@ export function renderPlayResult(slot: HTMLElement, spec: PlaySpec, result: Play
   const yesterday = server ? server.yesterdayBest : result.localYesterday;
   const improved = server ? server.improved : result.localImproved;
 
-  parts.push(`${improved ? '🏆 신기록' : '최고'} ${formatScore(spec, best)}`);
-  if (server && server.total > 1) parts.push(`${server.rank}위 / ${server.total}명`);
+  parts.push(`${improved ? t('plays.t03') : t('plays.t04')} ${formatScore(spec, best)}`);
+  if (server && server.total > 1) parts.push(t('plays.rank', { rank: server.rank, total: server.total }));
   if (yesterday !== null && yesterday !== undefined) {
     const delta = spec.better === 'low' ? yesterday - best : best - yesterday;
     parts.push(`어제 ${formatScore(spec, yesterday)}${delta > 0 ? ' ↑' : delta < 0 ? ' ↓' : ''}`);
   }
-  if (!server) parts.push('이 브라우저에만 저장됨');
+  if (!server) parts.push(t('plays.t05'));
 
   slot.hidden = false;
   slot.style.cssText =
@@ -250,7 +258,7 @@ export function mountPlayBoard(slot: HTMLElement, spec: PlaySpec, period: 'day' 
 
       const footer =
         body.signedIn === false
-          ? `<div style="margin-top:8px;color:var(--text-tertiary);">로그인하면 내 기록도 여기 오른다</div>`
+          ? `<div style="margin-top:8px;color:var(--text-tertiary);">${esc(t('plays.t01'))}</div>`
           : mine
             ? `<div style="margin-top:8px;color:var(--text-tertiary);">내 기록 ${formatScore(spec, mine.best)} · ${mine.rank}위</div>`
             : '';
@@ -258,7 +266,7 @@ export function mountPlayBoard(slot: HTMLElement, spec: PlaySpec, period: 'day' 
       slot.hidden = false;
       slot.innerHTML =
         `<div style="width:100%;max-width:420px;margin:0 auto;font-size:var(--font-size-xs);color:var(--text-secondary);">` +
-        `<div style="font-weight:700;color:var(--text-primary);margin-bottom:6px;">순위판</div>` +
+        `<div style="font-weight:700;color:var(--text-primary);margin-bottom:6px;">${esc(t('plays.t02'))}</div>` +
         `<ol style="list-style:none;margin:0;padding:0;">${rows}</ol>${footer}</div>`;
 
       /* 그림이 없는 계정도 있다(디스코드 아바타가 없거나 씨앗 계정). 깨진 그림 표시가 뜨면

@@ -1,0 +1,4 @@
+{
+  "aitranscribe.err.01": "The sample rate is unknown",
+  "aitranscribe.err.02": "The audio is empty"
+}

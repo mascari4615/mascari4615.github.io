@@ -1,0 +1,11 @@
+{
+  "badapple.err.01": "이 영상을 브라우저가 못 읽는다",
+  "badapple.t02": "굽는 중… 0%",
+  "badapple.t03": " · 이제 홈에서도 이게 나온다",
+  "badapple.t04": " · 홈에 넘기기엔 너무 커서 이 화면에서만 나온다",
+  "badapple.t05": "굽다 실패했다",
+  "badapple.t06": "멈췄다.",
+  "badapple.playing": "재생 중 — {w}×{h} · {frames}장 · 초당 {fps}장",
+  "badapple.baking": "굽는 중… {pct}%",
+  "badapple.baked": "다 구웠다 — {size}KB (안 줄였으면 {raw}KB)"
+}

@@ -13,6 +13,12 @@
  *
  * 데스크톱(Tauri)은 자체 업데이터 배너(toolbox.ts)를 쓰므로 여기서는 아무것도 하지 않는다.
  */
+import { t, loadNamespace } from './lib/i18n';
+
+/* 위젯이 아니라 셸·라이브러리 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+   빌드는 브라우저 밖에서도 읽으므로 document 가 있을 때만. */
+if (typeof document !== 'undefined') void loadNamespace('pwa');
+
 (function (): void {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
   if (window.__KARMOLAB_DESKTOP__) return;
@@ -38,18 +44,18 @@
     body.className = 'karmolab-update-banner-body';
     const msg = document.createElement('div');
     msg.className = 'karmolab-update-banner-msg';
-    msg.textContent = '새 버전이 나왔어요. 지금 새로 불러올까요?';
+    msg.textContent = t('pwa.t01');
     body.appendChild(msg);
 
     const updateBtn = document.createElement('button');
     updateBtn.type = 'button';
     updateBtn.className = 'karmolab-update-banner-install';
-    updateBtn.textContent = '지금 갱신';
+    updateBtn.textContent = t('pwa.t02');
 
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'karmolab-update-banner-close';
-    closeBtn.setAttribute('aria-label', '나중에');
+    closeBtn.setAttribute('aria-label', t('pwa.t03'));
     closeBtn.textContent = '×';
 
     banner.appendChild(body);
@@ -59,7 +65,7 @@
 
     updateBtn.onclick = () => {
       updateBtn.disabled = true;
-      updateBtn.textContent = '갱신 중…';
+      updateBtn.textContent = t('pwa.t04');
       onUpdate();
       // SW 교체가 막히는 환경(다른 탭이 붙잡고 있는 등)에서도 사용자가 갇히지 않게 강제 새로고침.
       setTimeout(() => {
