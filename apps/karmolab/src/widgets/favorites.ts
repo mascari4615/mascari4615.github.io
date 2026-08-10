@@ -425,15 +425,15 @@ import { t, loadNamespace } from '../lib/i18n';
                             <div class="form-group">
                                 <label for="fav-group">${esc(t('favorites.label.favgroup'))}</label>
                                 <select id="fav-group" class="input">
-                                    <option value="개발">${esc(t('favorites.opt.null'))}</option>
-                                    <option value="채용·커리어">${esc(t('favorites.opt.null2'))}</option>
-                                    <option value="메이플">${esc(t('favorites.opt.null3'))}</option>
-                                    <option value="검색·AI">${esc(t('favorites.opt.aI'))}</option>
-                                    <option value="AI 아트">${esc(t('favorites.opt.aI2'))}</option>
-                                    <option value="소셜·미디어">${esc(t('favorites.opt.null4'))}</option>
-                                    <option value="서로이웃">${esc(t('favorites.opt.null5'))}</option>
-                                    <option value="짝이웃">${esc(t('favorites.opt.null6'))}</option>
-                                    <option value="도구">${esc(t('favorites.t07'))}</option>
+                                    <option value="개발">${esc(t('favorites.group.dev'))}</option>
+                                    <option value="채용·커리어">${esc(t('favorites.group.career'))}</option>
+                                    <option value="메이플">${esc(t('favorites.group.maple'))}</option>
+                                    <option value="검색·AI">${esc(t('favorites.group.searchAi'))}</option>
+                                    <option value="AI 아트">${esc(t('favorites.group.aiArt'))}</option>
+                                    <option value="소셜·미디어">${esc(t('favorites.group.social'))}</option>
+                                    <option value="서로이웃">${esc(t('favorites.group.neighbours'))}</option>
+                                    <option value="짝이웃">${esc(t('favorites.group.friends'))}</option>
+                                    <option value="도구">${esc(t('favorites.group.tools'))}</option>
                                     <option value="기타">${esc(t('favorites.opt.null7'))}</option>
                                 </select>
                             </div>

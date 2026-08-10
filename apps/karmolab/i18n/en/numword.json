@@ -11,7 +11,7 @@
   "numword.status.toNum": "Turned the Korean numerals back into digits.",
   "numword.status.bad": "There is a character that can't be read as a Korean numeral.",
   "numword.row.comma": "Grouped by thousands",
-  "numword.row.kor": "Korean",
+  "numword.row.kor": "Korean numerals",
   "numword.row.money": "Money phrase",
   "numword.row.digits": "Digits",
   "numword.value.digits": "{n}",
