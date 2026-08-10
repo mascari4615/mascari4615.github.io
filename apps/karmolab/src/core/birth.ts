@@ -27,28 +27,28 @@ export const spec: ToolSpec = {
   }
 };
 
-const ZODIAC = ['원숭이', '닭', '개', '돼지', '쥐', '소', '호랑이', '토끼', '용', '뱀', '말', '양'];
+const ZODIAC_KO = ['원숭이', '닭', '개', '돼지', '쥐', '소', '호랑이', '토끼', '용', '뱀', '말', '양'];
 
 /** [시작 월, 시작 일, 이름] — 그 날짜부터 다음 항목 전날까지 */
 const SIGNS: Array<[number, number, string]> = [
-  [1, 20, '물병자리'],
-  [2, 19, '물고기자리'],
-  [3, 21, '양자리'],
-  [4, 20, '황소자리'],
-  [5, 21, '쌍둥이자리'],
-  [6, 22, '게자리'],
-  [7, 23, '사자자리'],
-  [8, 23, '처녀자리'],
-  [9, 23, '천칭자리'],
-  [10, 23, '전갈자리'],
-  [11, 22, '사수자리'],
-  [12, 22, '염소자리']
+  [1, 20, 'aquarius'],
+  [2, 19, 'pisces'],
+  [3, 21, 'aries'],
+  [4, 20, 'taurus'],
+  [5, 21, 'gemini'],
+  [6, 22, 'cancer'],
+  [7, 23, 'leo'],
+  [8, 23, 'virgo'],
+  [9, 23, 'libra'],
+  [10, 23, 'scorpio'],
+  [11, 22, 'sagittarius'],
+  [12, 22, 'capricorn']
 ];
 
 /** 달마다 정해진 탄생석 — 상위 계산기들이 대개 함께 준다. */
-export const GEMS = ['가넷', '자수정', '아쿠아마린', '다이아몬드', '에메랄드', '진주', '루비', '페리도트', '사파이어', '오팔', '토파즈', '터키석'];
+export const GEMS_KO = ['가넷', '자수정', '아쿠아마린', '다이아몬드', '에메랄드', '진주', '루비', '페리도트', '사파이어', '오팔', '토파즈', '터키석'];
 
-export const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
+export const WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토'] as const;
 
 /** 몇 번째 별자리인가 (`SIGNS` 의 자리, 0=물병자리 … 11=염소자리). */
 export function signIndexOf(month: number, day: number): number {
@@ -62,7 +62,36 @@ export function signIndexOf(month: number, day: number): number {
 }
 
 export function signOf(month: number, day: number): string {
-  return SIGNS[signIndexOf(month, day)][2];
+  return signKo(signIndexOf(month, day));
+}
+
+export function zodiacKo(index: number): string {
+  return ZODIAC_KO[index] ?? '';
+}
+
+export function signKo(index: number): string {
+  return ({
+    0: '물병자리',
+    1: '물고기자리',
+    2: '양자리',
+    3: '황소자리',
+    4: '쌍둥이자리',
+    5: '게자리',
+    6: '사자자리',
+    7: '처녀자리',
+    8: '천칭자리',
+    9: '전갈자리',
+    10: '사수자리',
+    11: '염소자리'
+  } as Record<number, string>)[index] ?? '';
+}
+
+export function weekdayKo(index: number): string {
+  return WEEKDAYS_KO[index] ?? '';
+}
+
+export function gemKo(month: number): string {
+  return GEMS_KO[month - 1] ?? '';
 }
 
 export interface BirthInfo {
@@ -72,10 +101,6 @@ export interface BirthInfo {
   yearAge: number;
   /** 세는 나이 — 연 나이 + 1. 예전 한국식. */
   koreanAge: number;
-  zodiac: string;
-  sign: string;
-  weekday: string;
-  gem: string;
   /**
    * 위 넷의 **자리 번호**. 이름은 읽는 쪽이 정한다 (TASK-KL-203).
    *
@@ -130,10 +155,6 @@ export function birthInfo(birth: string, now: Date = new Date()): BirthInfo | nu
     age,
     yearAge,
     koreanAge: yearAge + 1,
-    zodiac: ZODIAC[y % 12],
-    sign: signOf(m, d),
-    weekday: WEEKDAYS[born.getDay()],
-    gem: GEMS[m - 1],
     zodiacIndex: y % 12,
     signIndex: signIndexOf(m, d),
     weekdayIndex: born.getDay(),
@@ -157,11 +178,11 @@ export const run: ToolRunner = (op, args, deps) => {
     `만 나이: ${info.age}세  ← 2023-06 이후 기본`,
     `연 나이: ${info.yearAge}세  ← 올해 − 태어난 해 (병역·청소년보호법 등)`,
     `세는 나이: ${info.koreanAge}세  ← 예전 한국식`,
-    `띠: ${info.zodiac}띠`,
-    `별자리: ${info.sign}`,
-    `태어난 요일: ${info.weekday}요일`,
+    `띠: ${zodiacKo(info.zodiacIndex)}띠`,
+    `별자리: ${signKo(info.signIndex)}`,
+    `태어난 요일: ${weekdayKo(info.weekdayIndex)}요일`,
     `산 날수: ${info.lived.toLocaleString('ko-KR')}일째`,
     info.untilNext === 0 ? '다음 생일: 오늘' : `다음 생일: ${info.untilNext}일 남음`,
-    `탄생석: ${info.gem}`
+    `탄생석: ${gemKo(info.month)}`
   ].join('\n');
 };

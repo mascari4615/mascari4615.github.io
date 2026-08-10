@@ -99,24 +99,36 @@ const iso = (d: Date): string =>
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
-/** 그 해 쉬는 날 → 한국어 이름. 표는 `lib/holidays` 것을 쓴다. */
+export type WorkdayReasonKey = '' | 'weekday.sunday' | 'weekday.saturday' | string;
+
+/** 그 해 쉬는 날 → 열쇠. 말은 부르는 쪽이 붙인다. */
 export function holidaysOf(regionCode: string, year: number): Map<string, string> {
-  const named = new Map<string, string>();
-  for (const [at, key] of holidayKeys(regionCode, year)) named.set(at, HOLIDAY_KO[key] ?? key);
-  return named;
+  return new Map<string, string>(holidayKeys(regionCode, year));
 }
 
-/** 쉬는 날이면 이유, 일하는 날이면 빈 문자열. */
-export function restReason(d: Date, regionCode: string, saturdayWorks: boolean): string {
+export function reasonKeyToKo(reasonKey: WorkdayReasonKey): string {
+  if (reasonKey === '') return '';
+  if (reasonKey === 'weekday.sunday') return '일요일';
+  if (reasonKey === 'weekday.saturday') return '토요일';
+  return HOLIDAY_KO[reasonKey] ?? reasonKey;
+}
+
+/** 쉬는 날이면 이유 열쇠, 일하는 날이면 빈 문자열. */
+export function restReasonKey(d: Date, regionCode: string, saturdayWorks: boolean): WorkdayReasonKey {
   const wd = d.getDay();
-  if (wd === 0) return '일요일';
-  if (wd === 6 && saturdayWorks === false) return '토요일';
+  if (wd === 0) return 'weekday.sunday';
+  if (wd === 6 && saturdayWorks === false) return 'weekday.saturday';
   return holidaysOf(regionCode, d.getFullYear()).get(dayKey(d)) ?? '';
+}
+
+/** 레거시 호환: headless 기본 출력은 아직 한국어 문장으로 낸다. */
+export function restReason(d: Date, regionCode: string, saturdayWorks: boolean): string {
+  return reasonKeyToKo(restReasonKey(d, regionCode, saturdayWorks));
 }
 
 export interface Skipped {
   date: string;
-  why: string;
+  whyKey: WorkdayReasonKey;
 }
 
 export interface AfterResult {
@@ -136,9 +148,9 @@ export function addWorkdays(start: Date, days: number, regionCode = 'KR', saturd
   while (left > 0 && guard++ < 4000) {
     cur.setDate(cur.getDate() + 1);
     years.add(cur.getFullYear());
-    const why = restReason(cur, regionCode, saturdayWorks);
-    if (why === '') left--;
-    else skipped.push({ date: iso(cur), why });
+    const whyKey = restReasonKey(cur, regionCode, saturdayWorks);
+    if (whyKey === '') left--;
+    else skipped.push({ date: iso(cur), whyKey });
   }
   return {
     end: cur,
@@ -166,9 +178,9 @@ export function countWorkdays(start: Date, end: Date, regionCode = 'KR', saturda
   while (cur.getTime() <= to.getTime() && guard++ < 40000) {
     years.add(cur.getFullYear());
     total++;
-    const why = restReason(cur, regionCode, saturdayWorks);
-    if (why === '') workdays++;
-    else skipped.push({ date: iso(cur), why });
+    const whyKey = restReasonKey(cur, regionCode, saturdayWorks);
+    if (whyKey === '') workdays++;
+    else skipped.push({ date: iso(cur), whyKey });
     cur.setDate(cur.getDate() + 1);
   }
   return { workdays, total, skipped, unknownYears: [...years].filter((y) => knowsYear(regionCode, y) === false) };
@@ -181,7 +193,7 @@ const warn = (regionCode: string, unknown: number[]): string =>
     ? ''
     : `\n⚠ ${unknown.join('·')}년 공휴일은 아직 안 담겨 있습니다 — 그 구간은 주말만 뺐습니다. 답을 그대로 믿지 마세요.`;
 
-export const run: ToolRunner = (op, args) => {
+export const run: ToolRunner = (op, args, deps) => {
   const regionCode = String(args.region ?? 'KR').toUpperCase();
   if (hasCalendar(regionCode) === false) throw new Error(`${regionCode} 공휴일은 아직 안 담겨 있습니다`);
   const saturday = args.saturday === true;
@@ -189,13 +201,17 @@ export const run: ToolRunner = (op, args) => {
   const start = parseDate(String(args.start ?? ''));
   if (start === null) throw new Error('시작일을 YYYY-MM-DD 로 주세요');
 
+  const renderReason = typeof deps?.reasonLabel === 'function'
+    ? deps.reasonLabel as (reasonKey: WorkdayReasonKey) => string
+    : (reasonKey: WorkdayReasonKey) => reasonKeyToKo(reasonKey);
+
   if (op === 'after') {
     const days = Math.round(Number(args.days));
     if (Number.isFinite(days) === false || days < 1) throw new Error('영업일 수를 1 이상으로 주세요');
     const r = addWorkdays(start, days, regionCode, saturday);
     const lines = [
       `${label(start)} 로부터 영업일 ${days}일 뒤 → ${label(r.end)}`,
-      `건너뛴 날 ${r.skipped.length}일: ${r.skipped.map((s) => `${s.date}(${s.why})`).join(' · ') || '없음'}`
+      `건너뛴 날 ${r.skipped.length}일: ${r.skipped.map((s) => `${s.date}(${renderReason(s.whyKey)})`).join(' · ') || '없음'}`
     ];
     return lines.join('\n') + warn(regionCode, r.unknownYears);
   }
@@ -207,7 +223,7 @@ export const run: ToolRunner = (op, args) => {
     const lines = [
       `${label(start)} ~ ${label(end)}`,
       `영업일 ${r.workdays}일 (전체 ${r.total}일 중 ${r.skipped.length}일 쉼)`,
-      `쉰 날: ${r.skipped.map((s) => `${s.date}(${s.why})`).join(' · ') || '없음'}`
+      `쉰 날: ${r.skipped.map((s) => `${s.date}(${renderReason(s.whyKey)})`).join(' · ') || '없음'}`
     ];
     return lines.join('\n') + warn(regionCode, r.unknownYears);
   }

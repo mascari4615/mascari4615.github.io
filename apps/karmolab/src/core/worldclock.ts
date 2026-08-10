@@ -92,34 +92,88 @@ export function usesDst(zone: string, year: number): boolean {
   return offsetMinutes(zone, new Date(Date.UTC(year, 0, 15))) !== offsetMinutes(zone, new Date(Date.UTC(year, 6, 15)));
 }
 
-const hours = (min: number): string => {
+export const hours = (min: number): string => {
   const sign = min < 0 ? '-' : '+';
   const a = Math.abs(min);
   return `${sign}${Math.floor(a / 60)}${a % 60 === 0 ? '' : ':' + String(a % 60).padStart(2, '0')}`;
 };
 
+export function zoneErrorKo(label: string, zone: string): string {
+  return `${label} 시간대를 못 찾았습니다: ${zone} (예: Asia/Seoul · America/New_York)`;
+}
+
 const needZone = (raw: unknown, label: string): string => {
   const z = String(raw ?? '');
-  if (isZone(z) === false) throw new Error(`${label} 시간대를 못 찾았습니다: ${z} (예: Asia/Seoul · America/New_York)`);
+  if (isZone(z) === false) throw new Error(zoneErrorKo(label, z));
   return z;
 };
+
+export function parseWall(raw: unknown): string {
+  const wall = String(raw ?? '').trim().replace(' ', 'T');
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(wall) === false) {
+    throw new Error('시각을 「2026-08-09 14:00」 처럼 주세요');
+  }
+  return wall;
+}
+
+export interface ConvertView {
+  fromWall: string;
+  toWall: string;
+  diffHours: number;
+  hasDstWarning: boolean;
+}
+
+export function convertView(from: string, to: string, wall: string): ConvertView {
+  const at = wallToInstant(wall, from);
+  return {
+    fromWall: wallOf(at, from),
+    toWall: wallOf(at, to),
+    diffHours: (offsetMinutes(to, at) - offsetMinutes(from, at)) / 60,
+    hasDstWarning: usesDst(to, at.getFullYear()) || usesDst(from, at.getFullYear())
+  };
+}
+
+export interface OffsetView {
+  fromOffset: string;
+  toOffset: string;
+  diff: string;
+  date: string;
+  dstRows: Array<{ zone: string; january: number; july: number }>;
+}
+
+export function offsetView(from: string, to: string, at: Date): OffsetView {
+  const y = at.getUTCFullYear();
+  const dstRows: Array<{ zone: string; january: number; july: number }> = [];
+  for (const z of [from, to]) {
+    if (usesDst(z, y)) {
+      dstRows.push({
+        zone: z,
+        january: offsetMinutes(z, new Date(Date.UTC(y, 0, 15))) / 60,
+        july: offsetMinutes(z, new Date(Date.UTC(y, 6, 15))) / 60
+      });
+    }
+  }
+  return {
+    fromOffset: hours(offsetMinutes(from, at)),
+    toOffset: hours(offsetMinutes(to, at)),
+    diff: hours(offsetMinutes(to, at) - offsetMinutes(from, at)),
+    date: at.toISOString().slice(0, 10),
+    dstRows
+  };
+}
 
 export const run: ToolRunner = (op, args) => {
   const from = needZone(args.from, '출발');
   const to = needZone(args.to, '도착');
 
   if (op === 'convert') {
-    const wall = String(args.time ?? '').trim().replace(' ', 'T');
-    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(wall) === false) {
-      throw new Error('시각을 「2026-08-09 14:00」 처럼 주세요');
-    }
-    const at = wallToInstant(wall, from);
-    const diff = (offsetMinutes(to, at) - offsetMinutes(from, at)) / 60;
+    const wall = parseWall(args.time);
+    const view = convertView(from, to, wall);
     return [
-      `${from} ${wallOf(at, from)}`,
-      `→ ${to} ${wallOf(at, to)}`,
-      `시차 ${diff >= 0 ? '+' : ''}${diff}시간 (이 날짜 기준)`,
-      usesDst(to, at.getFullYear()) || usesDst(from, at.getFullYear())
+      `${from} ${view.fromWall}`,
+      `→ ${to} ${view.toWall}`,
+      `시차 ${view.diffHours >= 0 ? '+' : ''}${view.diffHours}시간 (이 날짜 기준)`,
+      view.hasDstWarning
         ? '⚠ 둘 중 한쪽이 서머타임을 씁니다 — 시차가 계절마다 달라집니다. 외운 숫자를 쓰지 마세요.'
         : ''
     ]
@@ -131,18 +185,13 @@ export const run: ToolRunner = (op, args) => {
     const raw = String(args.date ?? '');
     const at = raw === '' ? new Date() : new Date(`${raw}T12:00:00Z`);
     if (Number.isNaN(at.getTime())) throw new Error('날짜를 YYYY-MM-DD 로 주세요');
-    const y = at.getUTCFullYear();
-    const diff = offsetMinutes(to, at) - offsetMinutes(from, at);
+    const view = offsetView(from, to, at);
     const lines = [
-      `${from} (UTC${hours(offsetMinutes(from, at))}) → ${to} (UTC${hours(offsetMinutes(to, at))})`,
-      `시차 ${hours(diff)}시간 · 기준일 ${at.toISOString().slice(0, 10)}`
+      `${from} (UTC${view.fromOffset}) → ${to} (UTC${view.toOffset})`,
+      `시차 ${view.diff}시간 · 기준일 ${view.date}`
     ];
-    for (const z of [from, to]) {
-      if (usesDst(z, y)) {
-        const jan = offsetMinutes(z, new Date(Date.UTC(y, 0, 15))) / 60;
-        const jul = offsetMinutes(z, new Date(Date.UTC(y, 6, 15))) / 60;
-        lines.push(`⚠ ${z} 는 서머타임을 씁니다 — 1월 UTC${jan >= 0 ? '+' : ''}${jan} · 7월 UTC${jul >= 0 ? '+' : ''}${jul}`);
-      }
+    for (const row of view.dstRows) {
+      lines.push(`⚠ ${row.zone} 는 서머타임을 씁니다 — 1월 UTC${row.january >= 0 ? '+' : ''}${row.january} · 7월 UTC${row.july >= 0 ? '+' : ''}${row.july}`);
     }
     return lines.join('\n');
   }

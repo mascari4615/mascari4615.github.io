@@ -102,6 +102,8 @@ export function poolSize(pw: string): number {
  * 열쇠 없이 한국어 문장을 넘기면 화면 쪽이 그 문장을 비교하게 되고, 문장을 고치는 순간 조용히 깨진다.
  */
 export type ChunkKind = 'common' | 'keyboard' | 'sequence' | 'repeat' | 'year' | 'random';
+export type ChunkWhyKey = 'common' | 'common.unleet' | 'keyboard' | 'sequence' | 'repeat' | 'year' | 'random';
+export type StrengthLabelKey = 'veryWeak' | 'weak' | 'fair' | 'strong' | 'veryStrong';
 
 export interface Chunk {
   text: string;
@@ -109,8 +111,8 @@ export interface Chunk {
   bits: number;
   /** 무엇으로 잡혔나. 화면이 자기 말을 고를 때 쓰는 열쇠. */
   kind: ChunkKind;
-  /** 사람에게 보여 줄 이유(한국어). 「왜 깎였나」를 말하지 않으면 고칠 수가 없다. */
-  why: string;
+  /** 사람에게 보여 줄 이유 열쇠. 호출부가 자기 말로 고른다. */
+  whyKey: ChunkWhyKey;
 }
 
 const log2 = (n: number): number => Math.log2(Math.max(n, 1));
@@ -133,7 +135,7 @@ function cheapChunkAt(pw: string, i: number): Chunk | null {
           text: rest.slice(0, w.length),
           bits,
           kind: 'common',
-          why: leeted ? '흔한 단어(치환 되돌림)' : '흔한 단어'
+          whyKey: leeted ? 'common.unleet' : 'common'
         };
       }
     }
@@ -146,7 +148,7 @@ function cheapChunkAt(pw: string, i: number): Chunk | null {
       let len = 0;
       while (len < rest.length && seq.slice(0, len + 1) === restLower.slice(0, len + 1)) len++;
       if (len >= 4) {
-        return { text: rest.slice(0, len), bits: log2(KEYBOARD_RUNS.length * 2 * len), kind: 'keyboard', why: '자판 줄' };
+        return { text: rest.slice(0, len), bits: log2(KEYBOARD_RUNS.length * 2 * len), kind: 'keyboard', whyKey: 'keyboard' };
       }
     }
   }
@@ -163,7 +165,7 @@ function cheapChunkAt(pw: string, i: number): Chunk | null {
     runLen++;
   }
   if (runLen >= 4) {
-    return { text: pw.slice(i, i + runLen), bits: log2(94 * 2 * runLen), kind: 'sequence', why: '연속된 글자' };
+    return { text: pw.slice(i, i + runLen), bits: log2(94 * 2 * runLen), kind: 'sequence', whyKey: 'sequence' };
   }
 
   // ④ 반복 (aaaa · abab)
@@ -178,13 +180,13 @@ function cheapChunkAt(pw: string, i: number): Chunk | null {
         text: pw.slice(i, i + unit * reps),
         bits: unit * log2(poolSize(u)) + log2(reps),
         kind: 'repeat',
-        why: '반복'
+        whyKey: 'repeat'
       };
     }
   }
 
   // ⑤ 연도 (1900~2099). 사람들이 붙이는 숫자 넷 중 대부분이 이것이다.
-  if (/^(19|20)\d{2}/.test(rest)) return { text: rest.slice(0, 4), bits: log2(200), kind: 'year', why: '연도' };
+  if (/^(19|20)\d{2}/.test(rest)) return { text: rest.slice(0, 4), bits: log2(200), kind: 'year', whyKey: 'year' };
 
   return null;
 }
@@ -199,7 +201,33 @@ export interface Strength {
   chunks: Chunk[];
   /** 0~4. zxcvbn 과 같은 눈금을 쓴다 — 이미 익숙한 눈금이다. */
   score: number;
-  label: string;
+  labelKey: StrengthLabelKey;
+}
+
+export function labelKey(score: number): StrengthLabelKey {
+  return ['veryWeak', 'weak', 'fair', 'strong', 'veryStrong'][score] as StrengthLabelKey;
+}
+
+export function labelKo(key: StrengthLabelKey): string {
+  return {
+    veryWeak: '매우 약함',
+    weak: '약함',
+    fair: '보통',
+    strong: '강함',
+    veryStrong: '매우 강함'
+  }[key];
+}
+
+export function whyKo(chunk: Chunk): string {
+  return {
+    common: '흔한 단어',
+    'common.unleet': '흔한 단어(치환 되돌림)',
+    keyboard: '자판 줄',
+    sequence: '연속된 글자',
+    repeat: '반복',
+    year: '연도',
+    random: '무작위'
+  }[chunk.whyKey];
 }
 
 export function analyze(pw: string): Strength {
@@ -220,7 +248,7 @@ export function analyze(pw: string): Strength {
     let j = i;
     while (j < pw.length && cheapChunkAt(pw, j) === null) j++;
     const text = pw.slice(i, j);
-    chunks.push({ text, bits: text.length * log2(poolSize(text)), kind: 'random', why: '무작위' });
+    chunks.push({ text, bits: text.length * log2(poolSize(text)), kind: 'random', whyKey: 'random' });
     i = j;
   }
 
@@ -230,8 +258,7 @@ export function analyze(pw: string): Strength {
 
   const bits = Math.min(naiveBits, patternBits);
   const score = bits < 28 ? 0 : bits < 36 ? 1 : bits < 60 ? 2 : bits < 80 ? 3 : 4;
-  const label = ['매우 약함', '약함', '보통', '강함', '매우 강함'][score];
-  return { naiveBits, patternBits, bits, chunks, score, label };
+  return { naiveBits, patternBits, bits, chunks, score, labelKey: labelKey(score) };
 }
 
 /** 덩어리 배치 가짓수의 어림 — n! 은 너무 커서 실제보다 후해진다. 작게 잡는다. */
@@ -269,7 +296,7 @@ export const run: ToolRunner = (op, args) => {
   const r = analyze(pw);
 
   const lines = [
-    `${r.label} (${r.score}/4) — 실질 ${r.bits.toFixed(1)}비트`,
+    `${labelKo(r.labelKey)} (${r.score}/4) — 실질 ${r.bits.toFixed(1)}비트`,
     '',
     `무작위로 만들었다면: ${r.naiveBits.toFixed(1)}비트`,
     `패턴을 아는 공격자 기준: ${r.patternBits.toFixed(1)}비트`,
@@ -278,7 +305,7 @@ export const run: ToolRunner = (op, args) => {
     `                          로그인 창에 직접(초당 100): ${humanTime(crackSeconds(r.bits, ONLINE_GUESSES_PER_SEC))}`,
     '',
     '뜯어보면:',
-    ...r.chunks.map((c) => `- "${c.text}" — ${c.why} · ${c.bits.toFixed(1)}비트`),
+    ...r.chunks.map((c) => `- "${c.text}" — ${whyKo(c)} · ${c.bits.toFixed(1)}비트`),
     '',
     '※ 유출 목록 대조가 아닙니다. 여기 담긴 단어표에 없는 흔한 말은 못 잡습니다 —',
     '   그러면 점수가 후해집니다. 이 값보다 **약할 수는 있어도 강할 수는 없습니다.**'

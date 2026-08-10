@@ -35,7 +35,6 @@ export const spec: ToolSpec = {
 export interface Unit {
   /** 이 단위 값을 밀리초로 만들려면 나눌 수. (초는 0.001 로 나눔 = 1000 곱) */
   div: number;
-  label: string;
   /** 이름 대신 쓰는 표식 — 화면은 이걸로 자기 말을 붙인다. */
   key: UnitKey;
 }
@@ -50,12 +49,16 @@ const UNIT_KO: Record<UnitKey, string> = {
   sec: '초 (10자리)'
 };
 
+export function unitKo(key: UnitKey): string {
+  return UNIT_KO[key];
+}
+
 /** 자릿수로 단위를 가린다. 부호는 자릿수에 안 넣는다. */
 export function detectUnit(raw: string): Unit {
   const digits = raw.replace('-', '').length;
   const key: UnitKey = digits >= 18 ? 'ns' : digits >= 15 ? 'us' : digits >= 12 ? 'ms' : 'sec';
   const div = key === 'ns' ? 1e6 : key === 'us' ? 1e3 : key === 'ms' ? 1 : 0.001;
-  return { div, label: UNIT_KO[key], key };
+  return { div, key };
 }
 
 export interface ParsedStamp {
@@ -97,6 +100,24 @@ export function humanDelta(ms: number, now: number): string {
   return diff >= 0 ? `${out} 후` : `${out} 전`;
 }
 
+export type DeltaKey = 'now' | 'past' | 'future';
+
+export function humanDeltaParts(ms: number, now: number): { amount: number; unitKo: string; tense: DeltaKey } {
+  const diff = ms - now;
+  const abs = Math.abs(diff);
+  if (abs < 1000) return { amount: 0, unitKo: '', tense: 'now' };
+  for (let i = DELTA_UNITS.length - 1; i >= 0; i--) {
+    if (abs >= DELTA_UNITS[i][0]) {
+      return {
+        amount: Math.round(abs / DELTA_UNITS[i][0]),
+        unitKo: DELTA_UNITS[i][1],
+        tense: diff >= 0 ? 'future' : 'past'
+      };
+    }
+  }
+  return { amount: 0, unitKo: '', tense: 'now' };
+}
+
 const pad = (n: number): string => String(n).padStart(2, '0');
 
 /** `<input type="datetime-local">` 이 받는 모양. **로컬 시간대**로 적어야 한다 — UTC 로 밀면 한 번 더 틀린다. */
@@ -104,7 +125,11 @@ export function toLocalInput(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
-export const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
+export const WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토'] as const;
+
+export function weekdayKo(index: number): string {
+  return WEEKDAYS_KO[index] ?? '';
+}
 
 /** 화면이 줄줄이 보여 줄 값들. 여기서 만들어야 Node·브라우저가 같은 답을 낸다. */
 export function stampRows(ms: number, now: number): Array<[string, string]> {
@@ -113,7 +138,7 @@ export function stampRows(ms: number, now: number): Array<[string, string]> {
     ['내 시간대', d.toLocaleString('ko-KR')],
     ['UTC', d.toUTCString()],
     ['ISO 8601', d.toISOString()],
-    ['요일', WEEKDAYS[d.getDay()] + '요일'],
+    ['요일', weekdayKo(d.getDay()) + '요일'],
     ['지금 기준', humanDelta(ms, now)],
     ['초 (10자리)', String(Math.floor(ms / 1000))],
     ['밀리초 (13자리)', String(Math.round(ms))],
@@ -152,7 +177,7 @@ export const run: ToolRunner = (op, args, deps) => {
     if (parsed === null) throw new Error('타임스탬프에서 숫자를 못 찾았습니다');
     // 기계가 읽을 답 = 무엇으로 읽었는지 + 값들. 사람이 봐도 바로 읽힌다.
     const rows = stampRows(parsed.ms, now);
-    return [`${parsed.unit.label}로 읽음`, ...rows.map(([k, v]) => `${k}: ${v}`)].join('\n');
+    return [`${unitKo(parsed.unit.key)}로 읽음`, ...rows.map(([k, v]) => `${k}: ${v}`)].join('\n');
   }
   if (op === 'toStamp') {
     const t = new Date(String(args.date ?? '')).getTime();

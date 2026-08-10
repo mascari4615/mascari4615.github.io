@@ -345,7 +345,7 @@ export function manyReadings(table: PinyinTable, text: string): { ch: string; re
 
 export const run: ToolRunner = (op, args, deps) => {
   const text = String(args.text ?? '');
-  if (text === '') throw new Error('바꿀 글이 없습니다');
+  if (text === '') throw new Error('No text to convert');
   const mode = String(args.mode ?? args.tone ?? '');
 
   if (op === 'width') {
@@ -353,7 +353,7 @@ export const run: ToolRunner = (op, args, deps) => {
     const result = toFull ? toFullWidth(text) : toHalfWidth(text);
     const lines = [result];
     if (toFull === false && hasFullWidth(text)) {
-      lines.push('', '※ 전각 글자가 섞여 있었습니다 — 검색·로그인·조회가 안 되던 이유가 대개 이것입니다.');
+      lines.push('', 'Note: full-width characters were mixed in — that is often why search, login, or lookups silently failed.');
     }
     return lines.join('\n');
   }
@@ -363,8 +363,8 @@ export const run: ToolRunner = (op, args, deps) => {
     if (needsSoundChange(text)) {
       lines.push(
         '',
-        '※ 글자 단위 표기입니다. 음운 변화(자음동화 등)는 적용하지 않았습니다 —',
-        '   예: 신라 → sinra (규정 표기는 Silla). 사람 이름·지명은 확인하고 쓰세요.'
+        'Note: this is letter-by-letter romanization only. Sound changes were not applied.',
+        '   Example: 신라 -> sinra (the standard spelling is Silla). Check names and place names before using them.'
       );
     }
     return lines.join('\n');
@@ -377,8 +377,8 @@ export const run: ToolRunner = (op, args, deps) => {
     if (amb.length > 0) {
       lines.push(
         '',
-        '※ 뜻을 봐야 정해지는 글자가 있습니다 — 첫 후보로 바꿨습니다:',
-        ...amb.map((a) => `   ${a.ch} → ${a.candidates.join(' 또는 ')}`)
+        'Note: some characters need meaning/context to choose the right variant. Converted with the first candidate:',
+        ...amb.map((a) => `   ${a.ch} -> ${a.candidates.join(' or ')}`)
       );
     }
     return lines.join('\n');
@@ -389,7 +389,7 @@ export const run: ToolRunner = (op, args, deps) => {
        하고 넘어가게 된다. 못 한다고 말하는 편이 낫다. */
     const raw = deps?.hanPinyin as { chars?: string; readings?: string; many?: string } | undefined;
     if (raw === undefined || raw === null || typeof raw.chars !== 'string' || typeof raw.readings !== 'string') {
-      throw new Error('병음 표가 없습니다 — data/han-pinyin.json 을 건네주세요 (표가 커서 따로 받습니다)');
+      throw new Error('Pinyin table missing — pass data/han-pinyin.json separately because the table is large');
     }
     const table = parsePinyinTable({ chars: raw.chars, readings: raw.readings, many: raw.many });
     const tone: ToneStyle = mode === 'number' || mode === 'none' ? mode : 'mark';
@@ -398,18 +398,18 @@ export const run: ToolRunner = (op, args, deps) => {
     if (multi.length > 0) {
       lines.push(
         '',
-        '※ 소리가 여럿인 글자가 있습니다 — 첫 소리로 읽었습니다:',
-        ...multi.map((m) => `   ${m.ch} → ${m.readings.join(' 또는 ')}`)
+        'Note: some characters have more than one listed reading. Used the first reading:',
+        ...multi.map((m) => `   ${m.ch} -> ${m.readings.join(' or ')}`)
       );
     }
     lines.push(
       '',
-      '※ 글자 단위입니다. 낱말·문맥에 따라 달라지는 소리(行 xíng·háng 등)는 가려내지 못합니다.'
+      'Note: this is character-by-character only. It does not resolve word/context-dependent readings (for example 行 xing/hang).'
     );
     return lines.join('\n');
   }
 
   if (op === 'jamo') return mode === 'join' ? compose(text) : decompose(text);
 
-  throw new Error(`charconv 에 「${op}」 는 없습니다`);
+  throw new Error(`Unknown charconv op: ${op}`);
 };

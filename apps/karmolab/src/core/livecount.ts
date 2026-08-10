@@ -50,6 +50,8 @@ export interface Elapsed {
   totalDays: number;
 }
 
+export type ElapsedTailKey = 'future' | 'past';
+
 const DAY_MS = 86400000;
 
 /**
@@ -108,14 +110,19 @@ export function elapsed(from: Date, now: Date = new Date()): Elapsed {
 }
 
 /** 사람이 읽는 한 줄. 0인 앞자리는 빼고 말한다 — 「0년 0개월 3일」은 읽기 나쁘다. */
-export function humanElapsed(e: Elapsed): string {
+export function humanElapsedParts(e: Elapsed): { parts: string[]; tailKey: ElapsedTailKey } {
   const parts: string[] = [];
   if (e.years > 0) parts.push(`${e.years}년`);
   if (e.months > 0) parts.push(`${e.months}개월`);
   if (e.days > 0) parts.push(`${e.days}일`);
   if (parts.length === 0) parts.push(`${e.hours}시간 ${e.minutes}분`);
-  const head = parts.join(' ');
-  return e.future ? `${head} 남음` : `${head} 지남`;
+  return { parts, tailKey: e.future ? 'future' : 'past' };
+}
+
+export function humanElapsed(e: Elapsed): string {
+  const shaped = humanElapsedParts(e);
+  const head = shaped.parts.join(' ');
+  return shaped.tailKey === 'future' ? `${head} 남음` : `${head} 지남`;
 }
 
 /**
@@ -125,6 +132,10 @@ export function humanElapsed(e: Elapsed): string {
 export function project(e: Elapsed, perDay: number): number {
   if (Number.isFinite(perDay) === false || perDay < 0) throw new Error('하루 횟수를 0 이상의 숫자로 주세요');
   return Math.floor((e.totalSeconds / 86400) * perDay);
+}
+
+export function detailKo(e: Elapsed): string {
+  return `${e.years}년 ${e.months}개월 ${e.days}일 ${e.hours}시간 ${e.minutes}분 ${e.seconds}초`;
 }
 
 const parse = (raw: string, what: string): Date => {
@@ -143,7 +154,7 @@ export const run: ToolRunner = (op, args) => {
       humanElapsed(e),
       '',
       `총 ${e.totalDays.toLocaleString('ko-KR')}일 · ${e.totalSeconds.toLocaleString('ko-KR')}초`,
-      `자세히: ${e.years}년 ${e.months}개월 ${e.days}일 ${e.hours}시간 ${e.minutes}분 ${e.seconds}초`,
+      `자세히: ${detailKo(e)}`,
       '',
       '※ 달은 달력대로 셉니다 (30일로 나누지 않습니다).'
     ].join('\n');

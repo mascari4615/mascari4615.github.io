@@ -1,5 +1,5 @@
 {
-  "total": 3235,
+  "total": 3341,
   "files": {
     "src/alarm-fire.ts": 4,
     "src/badapple/load-demo.ts": 4,
@@ -99,7 +99,6 @@
     "src/widgets/imagelib.ts": 6,
     "src/widgets/karmomap/karmomap.ts": 9,
     "src/widgets/karmomap/local-storage-adapter.ts": 1,
-    "src/widgets/karmomap/packs.ts": 92,
     "src/widgets/karmomap/panels/edge-panel.ts": 1,
     "src/widgets/karmomap/panels/groups-panel.ts": 3,
     "src/widgets/karmomap/panels/help-panel.ts": 1,
@@ -283,7 +282,7 @@
     "src/widgets/wm/wm.ts": 11,
     "src/widgets/worldcup.ts": 9,
     "src/widgets/youtubedl.ts": 4,
-    "src/widgets-lazy-meta.ts": 384,
+    "src/widgets-lazy-meta.ts": 398,
     "src/workshop-hang.ts": 1,
     "src/world/load-adventures-from-wiki.ts": 4,
     "src/world/load-characters-from-wiki.ts": 8,
@@ -312,12 +311,13 @@
     "src/core/word-pool.generated.ts": 165,
     "src/core/dailycho.ts": 13,
     "src/widgets/tools/dailycho.ts": 6,
-    "src/core/charconv.ts": 14,
+    "src/core/charconv.ts": 13,
     "src/widgets/tools/charconv.ts": 3,
     "src/widgets/tools/comparepic.ts": 3,
     "src/core/livecount.ts": 19,
     "src/widgets/tools/livecount.ts": 4,
     "src/core/mesh3d.ts": 12,
-    "src/widgets/tools/mesh3d.ts": 3
+    "src/widgets/tools/mesh3d.ts": 3,
+    "src/widgets/project-atlas/project-atlas.ts": 185
   }
 }
