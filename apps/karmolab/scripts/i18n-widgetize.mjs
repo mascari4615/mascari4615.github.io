@@ -312,9 +312,20 @@ src = src.replace(/'([^'\\\n]*[가-힣][^'\\\n]*)'/g, (whole, text, offset) => {
 });
 
 /* ── ④ 등록 title/desc/label 은 **기본값 딸린 t()** 로 (묶음이 늦게 와도 이름이 빈칸이 안 되게) ── */
+/* `title`/`desc` 는 **등록 한 곳**에만 있다고 보고 이름을 정한다(`widgets.<id>.title`).
+ * 그런데 같은 이름의 자리가 파일 안에 여러 개일 수 있다 — karmomap 의 도움말은 갈래 다섯이
+ * 저마다 `title:` 을 갖는데, 그것들이 **전부 한 열쇠로 뭉개져** 다섯 갈래 이름이 하나가 됐다.
+ * 그래서 등록 근처(= `Toolbox.register` 뒤 2,000자)에 있는 첫 자리만 바꾼다. */
+const registerAt = src.indexOf('Toolbox.register');
 for (const field of ['title', 'desc', 'label']) {
+  let done = false;
   const re = new RegExp(`(\\n\\s*${field}: )t\\('([^']+)'\\)`, 'g');
-  src = src.replace(re, (whole, head, key) => {
+  src = src.replace(re, (whole, head, key, offset) => {
+    if (field !== 'label') {
+      const near = registerAt >= 0 && offset > registerAt && offset - registerAt < 2000;
+      if (done || !near) return whole;
+      done = true;
+    }
     const ko = catalog[key];
     const named =
       field === 'title' ? `widgets.${ns}.title` : field === 'desc' ? `widgets-desc.${ns}.desc` : key;
