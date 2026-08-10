@@ -198,6 +198,25 @@ export async function reportCharStateSnapshot(
  * 정합. heartbeat/charstate 와 *다른 관심사*(정본 신선도) 라 별 임베드.
  * 상태 전이에서만 호출되므로 자체 dedup 불요.
  */
+/**
+ * 배포 파수꾼 알림 (TASK-KL-210).
+ *
+ * heartbeat 와 **다른 관심사**다 — 봇이 살아있나가 아니라 *사이트가 최신인가*. 같은 임베드로
+ * 뭉치면 「봇 문제」로 오인해 노트북부터 본다. 실제로 봐야 할 곳은 배포 실행 로그다.
+ */
+export async function reportDeployFreshness(
+  ctx: OpsReportContext,
+  alert: { healthy: boolean; reason: string },
+): Promise<void> {
+  const embed = new EmbedBuilder()
+    .setColor(alert.healthy ? 0x2ecc71 : 0xe74c3c)
+    .setTitle(alert.healthy ? '🟢 사이트가 최신 판으로 돌아왔다' : '🔴 사이트가 옛 판이다 — 배포가 안 올라간다')
+    .setDescription(`${alert.reason.slice(0, 700)}`)
+    .setFooter({ text: buildFooter(ctx) })
+    .setTimestamp();
+  await sendEmbed(ctx, embed, { mentionAdmins: !alert.healthy });
+}
+
 export async function reportMemoSync(
   ctx: OpsReportContext,
   alert: { healthy: boolean; reason: string },
