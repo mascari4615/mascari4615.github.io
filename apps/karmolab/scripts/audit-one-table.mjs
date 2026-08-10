@@ -36,7 +36,11 @@ const walk = (dir) => {
     if (e.name.endsWith('.ts') === false) continue;
     files.push({
       rel: path.relative(appRoot, at).split(String.fromCharCode(92)).join(String.fromCharCode(47)),
-      text: fs.readFileSync(at, 'utf8')
+      /*
+       * 띄어쓰기를 지우고 견준다. 안 그러면 `['ㄱ', 'ㄲ']` 처럼 한 칸씩 띄어 적은 사본을
+       * 못 잡는다 — 실제로 core/hangulkey.ts 의 네 번째 사본이 그렇게 빠져나갔다.
+       */
+      text: fs.readFileSync(at, 'utf8').replace(/[ 	]+/g, '')
     });
   }
 };
@@ -44,7 +48,8 @@ walk(path.join(appRoot, 'src'));
 
 let bad = 0;
 for (const t of TABLES) {
-  const found = files.filter((f) => f.text.includes(t.mark)).map((f) => f.rel);
+  const mark = t.mark.replace(/[ 	]+/g, "");
+  const found = files.filter((f) => f.text.includes(mark)).map((f) => f.rel);
   if (found.length === 1 && found[0] === t.home) continue;
   bad++;
   console.error(`[one-table] ${t.what}가 ${found.length}군데 있다 (있어야 할 곳: ${t.home}):`);
