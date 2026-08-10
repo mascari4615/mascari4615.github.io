@@ -29,7 +29,11 @@ const WHERE = {
   '/karmolab/#twenty': path.join(apps, 'karmolab/js/widgets/twenty.js'),
   '/karmolab/#worldcup': path.join(apps, 'karmolab/js/widgets/worldcup.js'),
   '/karmolab/#reaction': path.join(apps, 'karmolab/js/widgets/reaction.js'),
-  '/karmolab/#speed': path.join(apps, 'karmolab/js/widgets/speed.js')
+  '/karmolab/#speed': path.join(apps, 'karmolab/js/widgets/speed.js'),
+  /* 오늘의 놀이 둘은 해시가 아니라 **제 도구 장**으로 간다 — 검색으로 바로 들어올 수 있게.
+     장은 배포 때 찍히므로, 있는지 물을 대상은 장이 아니라 그 장을 채우는 위젯 묶음이다. */
+  '/karmolab/t/dailytype/': path.join(apps, 'karmolab/js/widgets/tools/dailytype.js'),
+  '/karmolab/t/dailycho/': path.join(apps, 'karmolab/js/widgets/tools/dailycho.js')
 };
 
 for (const g of list) {
