@@ -8,6 +8,7 @@
 import { notesOf, resolveDoc, setDocText, shareDoc, useNote, unlinkNote, noteUsers, noteBlocks } from '../../../lib/graph/notes';
 import type { DocHolder } from '../../../lib/graph/notes';
 import type { PanelCtx } from './context';
+import { t, loadNamespace } from '../../../lib/i18n';
 
 /**
  * 칸 하나의 겉모습만 다르다 — 노드는 「설명」, 선은 「이 관계의 이야기」.
@@ -25,15 +26,15 @@ export interface DocFieldSkin {
 }
 
 export const NODE_DOC_SKIN: DocFieldSkin = {
-  label: '설명',
-  placeholder: '이 인물·개념에 대해 길게 적어 두는 자리',
+  label: t('karmomap.t301', undefined, "설명"),
+  placeholder: t('karmomap.t302'),
   key: 'edit-doc',
-  hint: '적어 두면 카드 모서리에 📄 가 붙습니다. 그림에는 안 나옵니다. <b>[[이름]]</b> 으로 다른 노드를 가리킬 수 있어요.',
+  hint: t('karmomap.t303'),
 };
 
 export const EDGE_DOC_SKIN: DocFieldSkin = {
-  label: '이 관계의 이야기',
-  placeholder: '언제부터, 왜 이런 사이가 됐는지',
+  label: t('karmomap.t304', undefined, "이 관계의 이야기"),
+  placeholder: t('karmomap.t305'),
   key: 'ed-doc',
 };
 
@@ -45,7 +46,7 @@ function sharedUsersHtml(ctx: PanelCtx, noteId: string, key: string): string {
   const esc = ctx.esc;
   const spec = ctx.spec();
   const rows = [
-    ...spec.nodes.filter((n) => n.docRef === noteId).map((n) => ({ id: n.id, kind: 'node', name: n.label || '(이름 없음)' })),
+    ...spec.nodes.filter((n) => n.docRef === noteId).map((n) => ({ id: n.id, kind: 'node', name: n.label || t('karmomap.unnamed') })),
     ...spec.edges.filter((e) => e.docRef === noteId).map((e) => ({
       id: e.id,
       kind: 'edge',
@@ -58,8 +59,8 @@ function sharedUsersHtml(ctx: PanelCtx, noteId: string, key: string): string {
     ${rows.map((r) => `<div class="km-link-row">
       <span class="km-link-name">${esc(r.name)}</span>
       ${r.kind === 'node'
-        ? `<button class="btn btn-ghost" data-km="${key}-user-go" data-key="${esc(r.id)}">가기</button>`
-        : '<span class="km-group-count">관계</span>'}
+        ? `<button class="btn btn-ghost" data-km="${key}-user-go" data-key="${esc(r.id)}">${esc(t('karmomap.t292'))}</button>`
+        : t('karmomap.t306')}
     </div>`).join('')}
   </details>`;
 }
@@ -81,40 +82,40 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
     <div class="km-field">
       <label>${esc(skin.label)}</label>
       ${shared
-        ? `<div class="km-hint" style="color:#fcd34d">🔗 <b>${esc(shared.title || '메모')}</b> — ${users}곳이 함께 씁니다. 여기서 고치면 그 ${users}곳이 전부 바뀝니다.</div>
+        ? `<div class="km-hint" style="color:#fcd34d">🔗 ${t('karmomap.sharedDoc', { title: `<b>${esc(shared.title || t('karmomap.noteLabel'))}</b>`, n: users })}</div>
            ${sharedUsersHtml(ctx, shared.id, skin.key)}`
         : ''}
       <textarea data-km="${skin.key}" class="km-textarea" rows="5" placeholder="${esc(skin.placeholder)}">${esc(resolveDoc(spec, node))}</textarea>
       ${skin.hint ? `<div class="km-hint">${skin.hint}</div>` : ''}
       ${shared
-        ? `<button class="btn btn-ghost" data-km="${skin.key}-unlink">이 자리만 따로 쓰기 (사본으로 떼기)</button>`
-        : `<button class="btn btn-ghost" data-km="${skin.key}-share">여러 곳에서 같이 쓰기 (공용 글로)</button>`}
+        ? `<button class="btn btn-ghost" data-km="${skin.key}-unlink">${esc(t('karmomap.t293'))}</button>`
+        : `<button class="btn btn-ghost" data-km="${skin.key}-share">${esc(t('karmomap.t294'))}</button>`}
       ${embedded.length === 0 ? '' : `<div class="km-field">
-        <label>여기 실은 글</label>
-        <div class="km-hint">실은 자리에서 바로 고칩니다 — 원본을 찾아가지 않아도 되고, 고치면 이 글을 실은 <b>다른 자리도</b> 함께 바뀝니다.</div>
+        <label>${esc(t('karmomap.t295'))}</label>
+        <div class="km-hint">${t('karmomap.hint01', { em: `<b>${esc(t('karmomap.t297'))}</b>` })}</div>
         ${embedded.map((n) => `<div>
-          <div class="km-link-row"><span class="km-link-name">${esc(n.title || '메모')}</span>
+          <div class="km-link-row"><span class="km-link-name">${esc(n.title || t('karmomap.noteLabel'))}</span>
             <span class="km-group-count">${noteUsers(spec, n.id)}곳</span></div>
           <textarea class="km-textarea" rows="3" data-km="${skin.key}-embedded" data-key="${esc(n.id)}">${esc(n.text)}</textarea>
         </div>`).join('')}
       </div>`}
       ${others.length === 0 ? '' : `<select data-km="${skin.key}-embed">
-        <option value="">— 이 글 안에 다른 공용 글 끼워 넣기 —</option>
+        <option value="">${esc(t('karmomap.t299'))}</option>
         ${others.map((n) => {
           // 글에 `^표식`이 달려 있으면 **그 대목만** 고를 수 있게 함께 편다 — 열 줄짜리 규칙에서
           // 한 줄만 싣고 싶은 일이 훨씬 잦다 (Obsidian 블록 참조 계보).
           const blocks = noteBlocks(n.text);
-          return `<option value="${esc(n.id)}">${esc(n.title || '메모')} (전체)</option>`
-            + blocks.map((b) => `<option value="${esc(n.id)}#${esc(b.id)}">${esc(n.title || '메모')} › ${esc(b.id)}</option>`).join('');
+          return `<option value="${esc(n.id)}">${esc(n.title || t('karmomap.noteLabel'))} ${esc(t('karmomap.docWhole'))}</option>`
+            + blocks.map((b) => `<option value="${esc(n.id)}#${esc(b.id)}">${esc(n.title || t('karmomap.noteLabel'))} › ${esc(b.id)}</option>`).join('');
         }).join('')}
       </select>`}
       ${others.length === 0 && foreign.length === 0 ? '' : `<select data-km="${skin.key}-use">
-        <option value="">— 있는 공용 글 불러 쓰기 —</option>
-        ${others.length === 0 ? '' : `<optgroup label="이 맵">
-          ${others.map((n) => `<option value="${esc(n.id)}">${esc(n.title || '메모')} (${noteUsers(spec, n.id)}곳)</option>`).join('')}
+        <option value="">${esc(t('karmomap.t300'))}</option>
+        ${others.length === 0 ? '' : `<optgroup label="${esc(t('karmomap.docThisMap'))}">
+          ${others.map((n) => `<option value="${esc(n.id)}">${esc(n.title || t('karmomap.noteLabel'))} ${esc(t('karmomap.docUsedIn', { n: noteUsers(spec, n.id) }))}</option>`).join('')}
         </optgroup>`}
-        ${foreign.length === 0 ? '' : `<optgroup label="다른 맵에서 쓰던 글">
-          ${foreign.slice(0, 20).map((n) => `<option value="${esc(n.id)}">${esc(n.title || '메모')} — ${esc(n.from ?? '다른 맵')}</option>`).join('')}
+        ${foreign.length === 0 ? '' : `<optgroup label="${esc(t('karmomap.docOtherMap'))}">
+          ${foreign.slice(0, 20).map((n) => `<option value="${esc(n.id)}">${esc(n.title || '메모')} — ${esc(n.from ?? t('karmomap.t307'))}</option>`).join('')}
         </optgroup>`}
       </select>`}
     </div>`;

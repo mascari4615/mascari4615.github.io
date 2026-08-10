@@ -9,6 +9,7 @@
  */
 import { notesOf, noteUsers, pruneNotes, deleteNote } from '../../../lib/graph/notes';
 import type { PanelCtx } from './context';
+import { t, loadNamespace } from '../../../lib/i18n';
 
 export function renderNotesPanel(ctx: PanelCtx): void {
   const { side, esc } = ctx;
@@ -22,39 +23,46 @@ export function renderNotesPanel(ctx: PanelCtx): void {
   const foreign = ctx.foreignNotes();
 
   side.innerHTML = `
-    <h4>🔗 공용 글</h4>
-    <div class="km-hint">여러 자리가 <b>나눠 쓰는 글</b>입니다. 하나를 고치면 쓰는 곳이 전부 바뀝니다.
-      <b>흩기</b>를 누르면 공용을 그만두고 쓰던 자리마다 <b>사본</b>으로 남습니다(글은 안 사라집니다).</div>
+    <h4>${esc(t('karmomap.t337'))}</h4>
+    <div class="km-hint">${t('karmomap.hint07', { em: `<b>${esc(t('karmomap.t339'))}</b>` })}
+      ${t('karmomap.scatterHint', {
+        scatter: `<b>${esc(t('karmomap.t341'))}</b>`,
+        copy: `<b>${esc(t('karmomap.t343'))}</b>`,
+      })}</div>
     ${notes.length === 0
-      ? `<div class="km-field"><div class="km-hint">아직 없습니다. 인물이나 관계의 <b>설명</b> 칸에서
-          「여러 곳에서 같이 쓰기」를 누르면 여기로 올라옵니다 — 세계관 설정처럼 <b>같은 글이 여러 인물에게
-          붙는 것</b>이 이 자리의 쓸모입니다.</div></div>`
+      ? `<div class="km-field"><div class="km-hint">${t('karmomap.notesEmpty', {
+            desc: `<b>${esc(t('karmomap.t346'))}</b>`,
+            many: `<b>${esc(t('karmomap.t348'))}</b>`,
+          })}</div></div>`
       : notes.map((n) => {
           const users = noteUsers(spec, n.id);
           const head = (n.text.split('\n')[0] ?? '').slice(0, 60);
           return `<div class="km-field">
-            <input type="text" data-km="note-title" data-key="${esc(n.id)}" value="${esc(n.title ?? '')}" placeholder="제목 (목록에서 고를 때 쓰입니다)" />
+            <input type="text" data-km="note-title" data-key="${esc(n.id)}" value="${esc(n.title ?? '')}" placeholder="${esc(t('karmomap.t336'))}" />
             <div class="km-link-row">
-              <span class="km-link-name">${esc(head || '(빈 글)')}</span>
+              <span class="km-link-name">${esc(head || t('karmomap.emptyDoc'))}</span>
               <span class="km-group-count">${users}곳</span>
-              <button class="btn btn-ghost" data-km="note-go" data-key="${esc(n.id)}"${users === 0 ? ' disabled' : ''}>가기</button>
-              <button class="btn btn-ghost" data-km="note-show" data-key="${esc(n.id)}"${users < 2 ? ' disabled' : ''}>쓰는 곳 다 보기</button>
-              <button class="btn btn-ghost" data-km="note-card" data-key="${esc(n.id)}">쪽지로 놓기</button>
-              <button class="btn btn-ghost" data-km="note-split" data-key="${esc(n.id)}">흩기</button>
+              <button class="btn btn-ghost" data-km="note-go" data-key="${esc(n.id)}"${users === 0 ? ' disabled' : ''}>${esc(t('karmomap.t350'))}</button>
+              <button class="btn btn-ghost" data-km="note-show" data-key="${esc(n.id)}"${users < 2 ? ' disabled' : ''}>${esc(t('karmomap.t351'))}</button>
+              <button class="btn btn-ghost" data-km="note-card" data-key="${esc(n.id)}">${esc(t('karmomap.t352'))}</button>
+              <button class="btn btn-ghost" data-km="note-split" data-key="${esc(n.id)}">${esc(t('karmomap.t341'))}</button>
             </div>
           </div>`;
         }).join('')}
     ${foreign.length === 0 ? '' : `<div class="km-field">
-      <label>다른 맵에서 쓰던 글</label>
-      <div class="km-hint">글은 <b>맵보다 오래 삽니다</b>. 가져오면 <b>같은 글</b>이 되어, 어느 맵에서 고쳐도 함께 바뀝니다.</div>
+      <label>${esc(t('karmomap.t353'))}</label>
+      <div class="km-hint">${t('karmomap.notesForeign', {
+        outlive: `<b>${esc(t('karmomap.t355'))}</b>`,
+        same: `<b>${esc(t('karmomap.t357'))}</b>`,
+      })}</div>
       ${foreign.slice(0, 12).map((n) => `<div class="km-link-row">
-        <span class="km-link-name">${esc(n.title || (n.text.split(/\r?\n/)[0] ?? '').slice(0, 40) || '(빈 글)')}</span>
-        <span class="km-group-count">${esc(n.from ?? '다른 맵')}</span>
-        <button class="btn btn-ghost" data-km="note-adopt" data-key="${esc(n.id)}">가져오기</button>
+        <span class="km-link-name">${esc(n.title || (n.text.split(/\r?\n/)[0] ?? '').slice(0, 40) || t('karmomap.emptyDoc'))}</span>
+        <span class="km-group-count">${esc(n.from ?? t('karmomap.t361'))}</span>
+        <button class="btn btn-ghost" data-km="note-adopt" data-key="${esc(n.id)}">${esc(t('karmomap.t359'))}</button>
       </div>`).join('')}
     </div>`}
-    ${orphans === 0 ? '' : `<button class="btn btn-danger" data-km="note-prune">아무도 안 쓰는 글 ${orphans}개 치우기</button>`}
-    <button class="btn btn-ghost" data-km="note-close">닫기</button>`;
+    ${orphans === 0 ? '' : `<button class="btn btn-danger" data-km="note-prune">${esc(t('karmomap.pruneOrphans', { n: orphans }))}</button>`}
+    <button class="btn btn-ghost" data-km="note-close">${esc(t('karmomap.t360'))}</button>`;
 
   side.querySelectorAll('[data-km="note-title"]').forEach((el) => {
     const input = el as HTMLInputElement;

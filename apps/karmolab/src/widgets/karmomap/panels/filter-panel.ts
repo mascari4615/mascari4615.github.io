@@ -6,6 +6,7 @@
  * `ctx.filterState` 로 **빌려 와 직접 고친다** — 고친 뒤 `ctx.applyFilter()` 로 알린다.
  */
 import type { PanelCtx } from './context';
+import { t, loadNamespace } from '../../../lib/i18n';
 
 export function renderFilterPanel(ctx: PanelCtx): void {
   const { side, esc } = ctx;
@@ -28,79 +29,85 @@ export function renderFilterPanel(ctx: PanelCtx): void {
   const fieldNames = [...new Set(spec.nodes.flatMap((n) => Object.keys(n.fields ?? {})))].sort();
 
   side.innerHTML = `
-    <h4>🔍 거르기</h4>
-    <div class="km-hint">체크를 끄면 그 종류가 <b>화면에서만</b> 빠집니다. 지우는 게 아닙니다.</div>
+    <h4>${esc(t('karmomap.t233'))}</h4>
+    <div class="km-hint">${t('karmomap.hint03', { em: `<b>${esc(t('karmomap.t235'))}</b>` })}</div>
     <div class="km-field">
-      <label>노드 종류</label>
+      <label>${esc(t('karmomap.t237'))}</label>
       ${nodeRows.map((k) => `<label class="km-check"><input type="checkbox" data-km="f-node" value="${esc(k.id)}"${
         st.nodeKinds.has(k.id) ? '' : ' checked'
       } /> ${k.icon} ${esc(k.label)} <span class="km-group-count">${nodeCount(k.id)}</span></label>`).join('')}
     </div>
     <div class="km-field">
-      <label>관계 종류</label>
+      <label>${esc(t('karmomap.t238'))}</label>
       ${edgeRows.map((k) => `<label class="km-check"><input type="checkbox" data-km="f-edge" value="${esc(k.id)}"${
         st.edgeKinds.has(k.id) ? '' : ' checked'
       } /> ${esc(k.label)} <span class="km-group-count">${edgeCount(k.id)}</span></label>`).join('')}
     </div>
     ${tags.length === 0 ? '' : `<div class="km-field">
-      <label>꼬리표</label>
+      <label>${esc(t('karmomap.t239'))}</label>
       ${tags.map((tg) => `<label class="km-check"><input type="checkbox" data-km="f-tag" value="${esc(tg)}"${
         st.tags.has(tg) ? '' : ' checked'
       } /> ${esc(tg)} <span class="km-group-count">${spec.nodes.filter((n) => (n.tags ?? []).includes(tg)).length}</span></label>`).join('')}
     </div>`}
     ${fieldNames.length === 0 ? '' : `<div class="km-field">
-      <label>칸으로 좁히기</label>
+      <label>${esc(t('karmomap.t240'))}</label>
       <select data-km="f-field">
-        <option value="">— 안 씀 —</option>
+        <option value="">${esc(t('karmomap.t241'))}</option>
         ${fieldNames.map((f) => `<option value="${esc(f)}"${st.fieldName === f ? ' selected' : ''}>${esc(f)}</option>`).join('')}
       </select>
       ${st.fieldName === '' ? '' : `<select data-km="f-fieldval">
-        <option value="">이 칸이 있는 것 전부</option>
+        <option value="">${esc(t('karmomap.t242'))}</option>
         ${[...new Set(spec.nodes.map((n) => (n.fields ?? {})[st.fieldName]).filter(Boolean))].sort()
           .map((v) => `<option value="${esc(String(v))}"${st.fieldValue === v ? ' selected' : ''}>${esc(String(v))}</option>`).join('')}
       </select>`}
-      <div class="km-hint">「출신 = 마계」처럼 좁힙니다. 값을 안 고르면 <b>그 칸을 적어 둔 것 전부</b>가 남습니다 — 안 적은 쪽을 찾을 때 씁니다.</div>
+      <div class="km-hint">${t('karmomap.hint04', { em: `<b>${esc(t('karmomap.t244'))}</b>` })}</div>
     </div>`}
     <div class="km-field">
-      <label class="km-check"><input type="checkbox" data-km="f-degree"${st.sizeByDegree ? ' checked' : ''} /> 많이 이어진 것을 크게</label>
-      <label class="km-check"><input type="checkbox" data-km="f-colortag"${st.colorByTag ? ' checked' : ''} /> 꼬리표로 색 입히기</label>
-      ${fieldNames.length === 0 ? '' : `<label>칸 값으로 물들이기</label>
+      <label class="km-check"><input type="checkbox" data-km="f-degree"${st.sizeByDegree ? ' checked' : ''} /> ${esc(t('karmomap.t246'))}</label>
+      <label class="km-check"><input type="checkbox" data-km="f-colortag"${st.colorByTag ? ' checked' : ''} /> ${esc(t('karmomap.t247'))}</label>
+      ${fieldNames.length === 0 ? '' : `<label>${esc(t('karmomap.t248'))}</label>
       <select data-km="f-colorfield">
-        <option value="">— 안 씀 —</option>
-        ${fieldNames.map((f) => `<option value="${esc(f)}"${st.colorByField === f ? ' selected' : ''}>${esc(f)}별로</option>`).join('')}
+        <option value="">${esc(t('karmomap.t241'))}</option>
+        ${fieldNames.map((f) => `<option value="${esc(f)}"${st.colorByField === f ? ' selected' : ''}>${esc(t('karmomap.byField', { field: f }))}</option>`).join('')}
       </select>`}
-      <div class="km-hint">손으로 키우지 않아도 중심 인물이 눈에 띕니다. 저장본은 그대로예요.</div>
+      <div class="km-hint">${esc(t('karmomap.t249'))}</div>
     </div>
     <div class="km-field">
-      <label class="km-check"><input type="checkbox" data-km="f-orphan"${st.hideOrphans ? ' checked' : ''} /> 선이 하나도 안 닿은 노드 숨기기</label>
-      <label>선이 <b data-km="f-mindeg-val">${st.minDegree}</b>개 이상인 것만</label>
+      <label class="km-check"><input type="checkbox" data-km="f-orphan"${st.hideOrphans ? ' checked' : ''} /> ${esc(t('karmomap.t250'))}</label>
+      <label>${esc(t('karmomap.t251'))} <b data-km="f-mindeg-val">${st.minDegree}</b>${esc(t('karmomap.t252'))}</label>
       <input type="range" data-km="f-mindeg" min="0" max="6" step="1" value="${st.minDegree}" />
-      <div class="km-hint">이웃이 빠지면 그 여파로 또 빠집니다 — 한가운데 뭉치만 남습니다.</div>
+      <div class="km-hint">${esc(t('karmomap.t253'))}</div>
     </div>
     <div class="km-field">
-      <label>꾸미기 규칙 <span class="km-hint">「이런 것은 이렇게」</span></label>
-      <div class="km-hint">체크박스로는 「소속이 마왕성이면 빨갛게」를 못 적습니다. 조건과 모양을 직접 씁니다 — <b>아래 규칙이 이깁니다</b>.</div>
+      <label>${esc(t('karmomap.t254'))} <span class="km-hint">${esc(t('karmomap.t255'))}</span></label>
+      <div class="km-hint">${esc(t('karmomap.t256'))} <b>${esc(t('karmomap.t257'))}</b>.</div>
       ${(spec.decorRules ?? []).map((r) => `<div class="km-link-row">
-        <span class="km-link-name">${esc(r.on === 'tag' ? `꼬리표 ${r.value ?? ''}` : r.on === 'kind' ? `종류 ${ctx.kindLabel(r.value ?? '')}` : `${r.key ?? ''} = ${r.value || '(있으면)'}`)}</span>
+        <span class="km-link-name">${esc(
+          r.on === 'tag'
+            ? t('karmomap.ruleTag', { value: r.value ?? '' })
+            : r.on === 'kind'
+              ? t('karmomap.ruleKind', { value: ctx.kindLabel(r.value ?? '') })
+              : `${r.key ?? ''} = ${r.value || t('karmomap.ruleAny')}`
+        )}</span>
         <span class="km-swatch" style="background:${esc(r.color ?? '#94a3b8')}"></span>
         <span class="km-group-count">${r.scale && r.scale !== 1 ? `×${r.scale}` : ''}</span>
-        <button class="btn btn-ghost" data-km="rule-del" data-key="${esc(r.id)}" title="지우기">×</button>
+        <button class="btn btn-ghost" data-km="rule-del" data-key="${esc(r.id)}" title="${esc(t('karmomap.t229'))}">×</button>
       </div>`).join('')}
       <div class="km-link-row">
         <select data-km="rule-on">
-          <option value="field">칸</option>
-          <option value="tag">꼬리표</option>
-          <option value="kind">종류</option>
+          <option value="field">${esc(t('karmomap.opt.field'))}</option>
+          <option value="tag">${esc(t('karmomap.t239'))}</option>
+          <option value="kind">${esc(t('karmomap.opt.kind'))}</option>
         </select>
-        <input type="text" data-km="rule-key" list="km-fld-suggest2" placeholder="칸 이름" />
+        <input type="text" data-km="rule-key" list="km-fld-suggest2" placeholder="${esc(t('karmomap.t230'))}" />
         <datalist id="km-fld-suggest2">${fieldNames.map((f) => `<option value="${esc(f)}"></option>`).join('')}</datalist>
-        <input type="text" data-km="rule-value" placeholder="값" />
-        <input type="color" data-km="rule-color" value="#f472b6" title="색" />
-        <button class="btn btn-ghost" data-km="rule-add">규칙 추가</button>
+        <input type="text" data-km="rule-value" placeholder="${esc(t('karmomap.t231'))}" />
+        <input type="color" data-km="rule-color" value="#f472b6" title="${esc(t('karmomap.t232'))}" />
+        <button class="btn btn-ghost" data-km="rule-add">${esc(t('karmomap.t258'))}</button>
       </div>
     </div>
-    <button class="btn btn-ghost" data-km="f-reset">전부 다시 보이기</button>
-    <button class="btn btn-ghost" data-km="f-close">닫기</button>`;
+    <button class="btn btn-ghost" data-km="f-reset">${esc(t('karmomap.t259'))}</button>
+    <button class="btn btn-ghost" data-km="f-close">${esc(t('karmomap.t260'))}</button>`;
 
   const toggleInto = (set: Set<string>, sel: string): void => {
     side.querySelectorAll(sel).forEach((el) => {

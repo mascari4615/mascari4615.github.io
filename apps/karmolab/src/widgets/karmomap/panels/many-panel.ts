@@ -5,52 +5,53 @@
  * 자리에서 되돌릴 수 없는 일은 반드시 한 번 물어야 한다.
  */
 import type { PanelCtx } from './context';
+import { t, loadNamespace } from '../../../lib/i18n';
 
 export function renderManyPanel(ctx: PanelCtx): void {
   const { side, esc } = ctx;
   side.classList.remove('hidden');
   side.innerHTML = `
-    <h4>◫ ${ctx.selectedMany().length}개 골랐음 <button class="btn btn-ghost km-h4btn" data-km="many-close">해제</button></h4>
-    <div class="km-hint">캔버스에서 <b>Shift+드래그</b>로 범위를 칠하면 여럿이 골라집니다. 고른 것 중 하나를 끌면 함께 움직입니다.</div>
+    <h4>◫ ${ctx.selectedMany().length}개 골랐음 <button class="btn btn-ghost km-h4btn" data-km="many-close">${esc(t('karmomap.t278'))}</button></h4>
+    <div class="km-hint">${t('karmomap.hint05', { em: `<b>${esc(t('karmomap.t280'))}</b>` })}</div>
     <div class="km-field">
-      <label>한꺼번에 묶음에 넣기</label>
+      <label>${esc(t('karmomap.t282'))}</label>
       <select data-km="many-group">
-        <option value="">— 고르세요 —</option>
+        <option value="">${esc(t('karmomap.t283'))}</option>
         ${ctx.spec().groups.map((g) => `<option value="${esc(g.id)}">${esc(g.label)}</option>`).join('')}
-        <option value="__new">+ 새 묶음</option>
+        <option value="__new">${esc(t('karmomap.opt.new'))}</option>
       </select>
     </div>
     <div class="km-field">
-      <label>한꺼번에 종류 바꾸기</label>
+      <label>${esc(t('karmomap.t284'))}</label>
       <select data-km="many-kind">
-        <option value="">— 고르세요 —</option>
+        <option value="">${esc(t('karmomap.t283'))}</option>
         ${ctx.nodeKinds().map((k) => `<option value="${k.id}">${k.icon} ${esc(k.label)}</option>`).join('')}
       </select>
     </div>
     <div class="km-field">
-      <label>이 한 벌을 「본」으로</label>
-      <div class="km-hint">자주 쓰는 덩어리(세력 한 벌·삼각관계)를 떠 두면 <b>다른 맵에도 찍을 수</b> 있습니다.</div>
+      <label>${esc(t('karmomap.t285'))}</label>
+      <div class="km-hint">${t('karmomap.hint06', { em: `<b>${esc(t('karmomap.t287'))}</b>` })}</div>
       <div class="km-link-row">
-        <input type="text" data-km="stamp-name" placeholder="본 이름 (예: 세력 한 벌)" />
-        <button class="btn btn-ghost" data-km="stamp-save">본으로 저장</button>
+        <input type="text" data-km="stamp-name" placeholder="${esc(t('karmomap.t275'))}" />
+        <button class="btn btn-ghost" data-km="stamp-save">${esc(t('karmomap.t289'))}</button>
       </div>
     </div>
     <div class="km-field">
-      <label>고른 것</label>
+      <label>${esc(t('karmomap.t290'))}</label>
       <div class="km-table">
         ${ctx.selectedMany().map((id) => {
           const n = ctx.spec().nodes.find((x) => x.id === id);
           if (!n) return '';
           const tags = (n.tags ?? []).join(', ');
           return `<div class="km-trow" data-key="${esc(id)}">
-            <input type="text" data-km="many-name" value="${esc(n.label)}" title="이름" />
+            <input type="text" data-km="many-name" value="${esc(n.label)}" title="${esc(t('karmomap.t276'))}" />
             <span class="km-tcell">${ctx.kindIcon(n.kind)} ${esc(ctx.kindLabel(n.kind))}</span>
             <span class="km-tcell km-tdim" title="${esc(tags)}">${tags ? esc(tags) : '—'}</span>
-            <button class="btn btn-ghost" data-km="many-go" title="가기">→</button>
+            <button class="btn btn-ghost" data-km="many-go" title="${esc(t('karmomap.t277'))}">→</button>
           </div>`;
         }).join('')}
       </div>
-      <div class="km-hint">이름은 여기서 바로 고칠 수 있어요.</div>
+      <div class="km-hint">${esc(t('karmomap.t291'))}</div>
     </div>
     <button class="btn btn-danger" data-km="many-del">${ctx.selectedMany().length}개 모두 삭제</button>
 `;
@@ -97,7 +98,7 @@ export function renderManyPanel(ctx: PanelCtx): void {
   };
 
   (side.querySelector('[data-km="many-del"]') as HTMLButtonElement).onclick = () => {
-    if (!confirm(`고른 ${ctx.selectedMany().length}개 노드와 거기 붙은 선을 모두 지울까요?`)) return;
+    if (!confirm(t('karmomap.confirmDeleteMany', { n: ctx.selectedMany().length }))) return;
     // 지우기는 위젯에게 맡긴다 — ctx.spec() 은 읽기용이라 여기서 배열을 갈아 끼워도 안 먹는다.
     ctx.removeNodes(ctx.selectedMany());
     ctx.clearMany();
