@@ -15,8 +15,14 @@
  * 잠깐씩 되물어보는 길(`/kl/chat/recent`)로 내려간다. 서버가 아예 없으면 **채팅만 조용히 사라진다** —
  * 도구는 그대로 돈다.
  */
-(function (): void {
+import { t, loadNamespace } from '../lib/i18n';
+
+void (async function (): Promise<void> {
     'use strict';
+
+    /* 채팅창은 셸에 상주하므로 **아무도 안 불러 준다** — 스스로 말 묶음을 받고서 몸을 세운다.
+       먼저 세우고 나중에 글자를 갈아 끼우면, 한국어로 한 번 뜬 뒤 영어로 바뀌는 게 눈에 보인다. */
+    await loadNamespace('chat');
 
     interface Me {
         who: string;
@@ -206,29 +212,29 @@
     root.style.bottom = '16px';
     root.style.zIndex = '940';
     root.innerHTML = `
-        <div class="klchat-panel" role="log" aria-label="실시간 익명 채팅">
+        <div class="klchat-panel" role="log" aria-label="${t('chat.aria.panel')}">
             <div class="klchat-head">
                 <span class="klchat-dot" id="klChatDot"></span>
-                <b>지금 여기</b>
+                <b>${t('chat.here')}</b>
                 <span id="klChatHere">·</span>
                 <span class="klchat-spacer"></span>
-                <button type="button" class="klchat-filter" id="klChatOnlyKept" title="지킨 줄만 보기">⭐</button>
-                <span id="klChatMe" title="오늘의 내 이름표 — 자정에 바뀐다"></span>
-                <button type="button" class="klchat-x" id="klChatClose" aria-label="닫기">✕</button>
+                <button type="button" class="klchat-filter" id="klChatOnlyKept" title="${t('chat.onlyKept')}">⭐</button>
+                <span id="klChatMe" title="${t('chat.myLabel')}"></span>
+                <button type="button" class="klchat-x" id="klChatClose" aria-label="${t('chat.close')}">✕</button>
             </div>
             <div class="klchat-log" id="klChatLog"></div>
             <div class="klchat-foot">
                 <div class="klchat-replying" id="klChatReplying" hidden></div>
                 <div class="klchat-row">
-                    <textarea class="klchat-input" id="klChatInput" rows="1" placeholder="아무 말이나 — 하루 뒤 사라진다 (☆ 누르면 남음)" maxlength="300"></textarea>
-                    <button type="button" class="klchat-send" id="klChatSend">보내기</button>
+                    <textarea class="klchat-input" id="klChatInput" rows="1" placeholder="${t('chat.placeholder')}" maxlength="300"></textarea>
+                    <button type="button" class="klchat-send" id="klChatSend">${t('chat.send')}</button>
                 </div>
                 <div class="klchat-status" id="klChatStatus"></div>
             </div>
         </div>
         <button type="button" class="klchat-dock" id="klChatDock">
             <span class="klchat-dot" id="klChatDockDot"></span>
-            <span>채팅</span>
+            <span>${t('chat.dock')}</span>
             <span id="klChatDockCount" style="color:var(--text-tertiary,#6b7688);font-weight:600"></span>
             <span class="klchat-badge" id="klChatUnread" style="display:none">0</span>
         </button>
@@ -259,7 +265,7 @@
     }
 
     function renderHeader(): void {
-        el.here.textContent = here > 0 ? `${here}명` : '·';
+        el.here.textContent = here > 0 ? t('chat.hereCount', { n: here }) : '·';
         el.dockCount.textContent = here > 0 ? String(here) : '';
         el.dot.className = `klchat-dot${connected ? ' on' : ''}`;
         el.dockDot.className = `klchat-dot${connected ? ' on' : ''}`;
@@ -278,7 +284,7 @@
             previous !== null &&
             previous.who === m.who &&
             Date.parse(m.at) - Date.parse(previous.at) < 5 * 60 * 1000;
-        const owner = m.byOwner ? '<span class="klchat-owner">주인</span>' : '';
+        const owner = m.byOwner ? `<span class="klchat-owner">${t('chat.owner')}</span>` : '';
         // 지킨 줄은 목록에서도 표가 나야 한다 — 안 그러면 왜 안 사라지는지 아무도 모른다.
         const keptMark = (m.kept ?? 0) > 0 ? '<span class="klchat-kept">⭐</span>' : '';
         const head = sameSpeaker
@@ -292,18 +298,18 @@
          * 「사라지기 전에 알려 주기」보다 이쪽이 근본이다: 알림은 그 순간 보고 있어야 하지만,
          * 지키기는 한 번 누르면 끝난다. 📌 는 커뮤니티로 옮기는 것이라 하는 일이 다르다. */
         const star = `<button data-act="star" data-id="${m.id}" data-on="${mineKept ? '1' : '0'}" title="${
-            mineKept ? '지키는 중 — 안 사라진다' : '지키기 (하루 뒤에도 남는다)'
+            mineKept ? t('chat.keepingTitle') : t('chat.keepTitle')
         }">${mineKept ? '⭐' : '☆'}${keptCount > 1 ? keptCount : ''}</button>`;
-        const keep = `${star}<button data-act="keep" data-id="${m.id}" title="글로 옮기기">📌</button>`;
+        const keep = `${star}<button data-act="keep" data-id="${m.id}" title="${t('chat.toPost')}">📌</button>`;
         // 답하기 — 여럿이 동시에 말하면 「누구한테 하는 말이지?」가 안 보인다.
-        const answer = `<button data-act="answer" data-id="${m.id}" title="답하기">↩</button>`;
+        const answer = `<button data-act="answer" data-id="${m.id}" title="${t('chat.reply')}">↩</button>`;
         /* 이미 신고한 줄은 눌린 채로 둔다. 안 그러면 눌렀는지 몰라 또 누르고,
            또 눌러도 아무 일이 안 일어나니 고장으로 읽힌다. */
         const report = m.reportedByMe
-            ? '<button data-act="none" data-on="1" title="이미 신고했다" disabled>🚩</button>'
-            : `<button data-act="report" data-id="${m.id}" title="신고">🚩</button>`;
+            ? `<button data-act="none" data-on="1" title="${t('chat.reportedAlready')}" disabled>🚩</button>`
+            : `<button data-act="report" data-id="${m.id}" title="${t('chat.report')}">🚩</button>`;
         const actions = isAdmin
-            ? `${answer}${keep}<button data-act="del" data-id="${m.id}" title="지우기">🗑</button><button data-act="mute" data-who="${m.who}" title="30분 재갈">🤫</button>`
+            ? `${answer}${keep}<button data-act="del" data-id="${m.id}" title="${t('chat.delete')}">🗑</button><button data-act="mute" data-who="${m.who}" title="${t('chat.mute')}">🤫</button>`
             : `${answer}${keep}${report}`;
         // 답한 줄에는 **무엇에 답한 것인지**가 한 줄 위에 붙는다.
         const quoted = m.replyTo
@@ -335,28 +341,25 @@
         const hint =
             pref(HINT_KEY, '') === '1'
                 ? ''
-                : '<div class="klchat-note">여긴 <b>하루짜리 이름표</b>로 말하는 자리 — 자정에 이름이 바뀌고 계정은 안 드러난다.<br>' +
-                  '<b>여기 쓴 말은 하루 뒤 사라진다.</b> 남기고 싶으면 ☆ (여기 그대로 남김) 또는 📌 (커뮤니티 글로 옮김).</div>';
+                : `<div class="klchat-note">${t('chat.hint')}</div>`;
         const shown = onlyKept ? messages.filter((m) => (m.kept ?? 0) > 0) : messages;
         let html = onlyKept ? '' : hint;
         for (let i = 0; i < shown.length; i += 1) {
             html += lineHtml(shown[i], i > 0 ? shown[i - 1] : null);
         }
         if (onlyKept && shown.length === 0) {
-            html += '<div class="klchat-note" style="border:none">아직 지킨 줄이 없다. 남기고 싶은 줄에 ☆ 를 눌러라.</div>';
+            html += `<div class="klchat-note" style="border:none">${t('chat.emptyKept')}</div>`;
         }
         if (!onlyKept && messages.length === 0) {
-            html += '<div class="klchat-note" style="border:none">아직 아무도 말을 안 했다. 첫 줄을 남겨도 된다.</div>';
+            html += `<div class="klchat-note" style="border:none">${t('chat.emptyAll')}</div>`;
         }
         /* 혼자 있을 때 이 창은 **죽은 방으로 읽힌다** (TASK-KL-157).
          * 실시간 방은 이렇게 죽는다: 아무도 없을 때 남긴 말이 아무에게도 안 닿고 → 아무도 안
          * 남기고 → 영영 빈다. 그래서 남긴 말이 **나중에 닿는다**는 사실을 그 자리에서 말해 준다.
          * 지어낸 수는 안 쓴다 — 오늘 실제로 말한 사람 수만 적는다. */
         if (!onlyKept && here <= 1) {
-            const others = todayVoices > 1 ? `오늘 여기서 ${todayVoices}명이 말했다. ` : '';
-            html +=
-                `<div class="klchat-note klchat-alone">지금은 혼자다. ${others}` +
-                '남겨 두면 오늘 여기 있던 사람들에게 알림이 간다.</div>';
+            const others = todayVoices > 1 ? t('chat.aloneToday', { n: todayVoices }) + ' ' : '';
+            html += `<div class="klchat-note klchat-alone">${t('chat.alone', { others })}</div>`;
         }
         el.log.innerHTML = html;
         if (stick) el.log.scrollTop = el.log.scrollHeight;
@@ -373,7 +376,7 @@
         el.replying.innerHTML =
             `↩ <b style="color:${replyTo.color}">${escapeHtml(replyTo.name)}</b> ` +
             `<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(replyTo.text.slice(0, 40))}</span>` +
-            '<button type="button" data-cancel-reply title="답하기 그만">✕</button>';
+            `<button type="button" data-cancel-reply title="${t('chat.cancelReply')}">✕</button>`;
         el.replying.querySelector('[data-cancel-reply]')?.addEventListener('click', () => {
             replyTo = null;
             renderReplying();
@@ -524,7 +527,7 @@
              * 다만 완전히 닫힌 상태(CLOSED)면 브라우저도 포기한 것이므로 그때만 되물어보기로 내려간다. */
             connected = false;
             renderHeader();
-            el.status.textContent = '다시 붙는 중…';
+            el.status.textContent = t('chat.reconnecting');
             el.status.classList.add('warn');
             if (source && source.readyState === EventSource.CLOSED) startPolling(base);
         };
@@ -532,14 +535,15 @@
 
     // ── 보내기 ────────────────────────────────────────────────────────────────
 
-    const FAILURE_TEXT: Record<string, string> = {
-        empty: '빈 줄은 안 보내진다.',
-        too_long: `${maxLength}자까지만.`,
-        too_fast: '조금만 천천히.',
-        too_many: '잠깐 쉬었다 하자 — 너무 많이 보냈다.',
-        muted: '지금은 말할 수 없는 상태다.',
-        not_human: '사람만 말할 수 있는 자리다.',
-    };
+    /** 못 보낸 까닭. **쓸 때 정한다** — 모듈이 뜨는 순간에 굳으면 한국어로 굳는다. */
+    const failureText = (): Record<string, string> => ({
+        empty: t('chat.err.empty'),
+        too_long: t('chat.err.tooLong', { n: maxLength }),
+        too_fast: t('chat.err.tooFast'),
+        too_many: t('chat.err.tooMany'),
+        muted: t('chat.err.muted'),
+        not_human: t('chat.err.notHuman'),
+    });
 
     async function send(): Promise<void> {
         const base = apiBase();
@@ -566,11 +570,13 @@
                 return;
             }
             const body = (await response.json().catch(() => ({}))) as { error?: string; retryAfterMs?: number };
-            const wait = body.retryAfterMs ? ` (${Math.ceil(body.retryAfterMs / 1000)}초)` : '';
-            el.status.textContent = (FAILURE_TEXT[body.error ?? ''] ?? '보내지 못했다.') + wait;
+            const wait = body.retryAfterMs
+                ? ' ' + t('chat.err.retryAfter', { sec: Math.ceil(body.retryAfterMs / 1000) })
+                : '';
+            el.status.textContent = (failureText()[body.error ?? ''] ?? t('chat.err.failed')) + wait;
             el.status.classList.add('warn');
         } catch {
-            el.status.textContent = '서버에 못 닿았다.';
+            el.status.textContent = t('chat.err.offline');
             el.status.classList.add('warn');
         } finally {
             el.send.disabled = false;
@@ -607,7 +613,10 @@
             // 커뮤니티가 이미 쓰는 초안 자리. 새 통로를 안 만든다 (`community.ts` 의 draftKey).
             localStorage.setItem(
                 'karmolab_community_draft_free',
-                JSON.stringify({ title: '', text: `${quoted}\n\n— 채팅에서 (${line.name})\n\n` }),
+                JSON.stringify({
+                    title: '',
+                    text: `${quoted}\n\n${t('chat.fromChat', { name: line.name })}\n\n`,
+                }),
             );
             // 「글쓰기 칸을 펴 둔 채로 도착해라」 한 번만 쓰이는 표식.
             localStorage.setItem('karmolab_community_open_writer', '1');
@@ -621,7 +630,7 @@
         search.delete('p');
         history.replaceState({}, '', `${location.pathname}?${search.toString()}#community`);
         Toolbox.switchPage?.('community');
-        Toolbox.showToast?.('채팅 줄을 옮겨 왔다 — 자유 판에 글쓰기를 열었다.', 'info');
+        Toolbox.showToast?.(t('chat.moved'), 'info');
     }
 
     // ── 배선 ──────────────────────────────────────────────────────────────────
@@ -659,7 +668,7 @@
         el.input.style.height = `${Math.min(el.input.scrollHeight, 96)}px`;
         const left = maxLength - el.input.value.length;
         el.status.classList.remove('warn');
-        el.status.textContent = left <= 40 ? `${left}자 남음` : '';
+        el.status.textContent = left <= 40 ? t('chat.left', { n: left }) : '';
     };
 
     el.log.onclick = (event) => {
@@ -673,7 +682,7 @@
             if (line) line.reportedByMe = true; // 누른 자리에서 바로 표가 나야 또 안 누른다.
             renderLog();
             void act('/kl/chat/report', { id: button.dataset.id });
-            Toolbox.showToast?.('신고했다 — 주인에게 갔다.', 'info');
+            Toolbox.showToast?.(t('chat.reported'), 'info');
         }
         if (kind === 'keep') keep(button.dataset.id ?? '');
         if (kind === 'answer') {
