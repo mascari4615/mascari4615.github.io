@@ -984,5 +984,9 @@
   "faq.charconv.4.q": "What if one simplified character maps to several traditional ones?",
   "faq.charconv.4.a": "It converts to the first candidate and notes on screen which characters were ambiguous. 发 can be 發 (to send) or 髮 (hair) — only the meaning decides. Picking one silently would ship the wrong text.",
   "faq.charconv.5.q": "Does it convert by word as well?",
-  "faq.charconv.5.a": "No — by character. Catching vocabulary differences such as 打印機 ↔ 打印机 needs a word dictionary, and that table is far larger."
+  "faq.charconv.5.a": "No — by character. Catching vocabulary differences such as 打印機 ↔ 打印机 needs a word dictionary, and that table is far larger.",
+  "faq.charconv.6.q": "Why does pinyin pause the first time I press it?",
+  "faq.charconv.6.a": "The sound table is 20,000 characters (167KB), so it is not bundled with the tool. Someone who came only for full-width and half-width should not carry that weight, so it is fetched once, and only for those who choose pinyin. After that it is never fetched again.",
+  "faq.charconv.7.q": "What about characters with several readings (多音字)?",
+  "faq.charconv.7.a": "Where Unihan records several readings, it uses the first and shows the rest alongside. It cannot tell apart readings that depend on the word or the context (行 xíng / háng), and it says so in the result."
 }
