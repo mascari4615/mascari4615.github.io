@@ -316,3 +316,43 @@ const SWAP_PAIRS = [
     console.log('[i18n-source] 바꿔치기 의심 0');
   }
 }
+
+/* ── 자리표시·태그가 옮기면서 사라졌나 ─────────────────────────
+ * `{n}` 이 빠지면 숫자가 영영 안 나온다 — 화면은 멀쩡해 보이고 **뜻만** 없어진다.
+ * 열쇠 수 검사도 값 검사도 못 본다(수도 맞고 한국어도 아니다).
+ *
+ * 다만 **일부러 다른** 자리가 있다: 한국어는 조사가 붙은 말을 통째로 받고(`{subject}`),
+ * 영어·일본어는 값만 받는다(`{n}` · `{label}`). 부르는 쪽이 둘 다 넘겨 주므로 맞는 동작이다.
+ * 그 열쇠만 적어 두고, 나머지가 어긋나면 알린다. */
+const HOLES_OK = new Set([
+  'pulse.sent.tmpl',   // {p} = 한국어 조사. 영어·일본어 문장에는 그 자리가 없다
+  'quest.q.radix', 'quest.hint.radix', 'quest.q.unit',
+  'twenty.q.greater', 'twenty.q.is',
+]);
+{
+  const holes = (v) => (v.match(/\{(\w+)\}/g) || []).sort().join(',');
+  const tags = (v) => (v.match(/<\/?(b|strong|code|br|span|div|button|p)\b/g) || []).sort().join(',');
+  const broken = [];
+  for (const loc of ['en', 'ja']) {
+    for (const f of fs.readdirSync(path.join(root, 'i18n', 'ko'))) {
+      const tp = path.join(root, 'i18n', loc, f);
+      if (!fs.existsSync(tp)) continue;
+      const ko = JSON.parse(fs.readFileSync(path.join(root, 'i18n', 'ko', f), 'utf8'));
+      const tr = JSON.parse(fs.readFileSync(tp, 'utf8'));
+      for (const [k, v] of Object.entries(ko)) {
+        const t = tr[k];
+        if (typeof v !== 'string' || typeof t !== 'string' || HOLES_OK.has(k)) continue;
+        if (holes(v) !== holes(t)) broken.push(`${loc}/${k} — 자리표시 ${holes(v) || '(없음)'} → ${holes(t) || '(없음)'}`);
+        else if (tags(v) !== tags(t)) broken.push(`${loc}/${k} — 태그 ${tags(v) || '(없음)'} → ${tags(t) || '(없음)'}`);
+      }
+    }
+  }
+  if (broken.length) {
+    console.error(`[i18n-source] 옮기면서 자리표시·태그가 어긋난 값 ${broken.length}개:`);
+    for (const line of broken.slice(0, 12)) console.error('  ' + line);
+    console.error('  (일부러 다른 자리면 audit-i18n-source.mjs 의 HOLES_OK 에 이유와 함께 적어라)');
+    if (STRICT) process.exit(1);
+  } else {
+    console.log('[i18n-source] 자리표시·태그 어긋남 0');
+  }
+}
