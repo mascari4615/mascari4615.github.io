@@ -19,6 +19,7 @@
 import { stampsLocal, stampToday } from '../stamps';
 import { onPageActive } from './pack-pick';
 import { SECRETS, foundLocal, syncSecrets } from '../secrets';
+import { t, loadNamespace } from '../lib/i18n';
 
 interface ToolMeta {
     id: string;
@@ -29,6 +30,9 @@ interface ToolMeta {
 }
 
 (function (): void {
+  const esc = (v: unknown): string =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
     /* 도감 스타일은 **이 화면이 열릴 때만** 온다 (TASK-KL-196).
        공용 시트(`css/tools.css`)에 넣었더니 도구 화면 130장이 도감 스타일을 같이 받아
        그쪽 CSS 천장(68KB gz)에 붙었다 — 한 화면에서만 쓰는 것을 모두에게 지우지 않는다. */
@@ -103,9 +107,9 @@ interface ToolMeta {
 
     Toolbox.register({
         id: 'collection',
-        title: '도감',
+        title: t('widgets.collection.title', undefined, "도감"),
         category: 'tool',
-        desc: '써 본 도구에 도장이 찍힌다 — 몇 칸이나 채웠나',
+        desc: t('widgets-desc.collection.desc', undefined, "써 본 도구에 도장이 찍힌다 — 몇 칸이나 채웠나"),
         layout: 'wide',
         noHero: true,
         icon:
@@ -113,11 +117,13 @@ interface ToolMeta {
         tabs: [
             {
                 id: 'app',
-                label: '도감',
+                label: t('collection.t03', undefined, "도감"),
                 build: function (container: HTMLElement): void {
+                  void loadNamespace('collection').then(function () {
+
                     injectStyles();
                     container.innerHTML = `
-                      <p class="cl-lead">써 본 도구에 도장이 찍힙니다. 지운 적 없으면 예전에 쓴 것도 들어 있어요.</p>
+                      <p class="cl-lead">${esc(t('collection.t01'))}</p>
                       <div class="cl-head" id="clHead"></div>
                       <div class="cl-grid" id="clGrid"></div>
                       <section class="cl-secrets" id="clSecrets"></section>
@@ -132,7 +138,7 @@ interface ToolMeta {
                     const paintSecrets = (): void => {
                         const found = new Set(foundLocal());
                         secretSlot.innerHTML =
-                            `<h3 class="cl-sec-title">숨긴 것 <b>${found.size}</b> / ${SECRETS.length}</h3>` +
+                            `<h3 class="cl-sec-title">${esc(t('collection.t02'))} <b>${found.size}</b> / ${SECRETS.length}</h3>` +
                             '<div class="cl-sec-row">' +
                             SECRETS.map((secret) =>
                                 found.has(secret.id)
@@ -141,8 +147,8 @@ interface ToolMeta {
                             ).join('') +
                             '</div>' +
                             (found.size === SECRETS.length
-                                ? '<p class="cl-note">전부 찾았습니다.</p>'
-                                : '<p class="cl-note">사이트 어딘가에 있습니다. 도구를 쓰다 보면 걸리는 것도 있어요.</p>');
+                                ? t('collection.t05')
+                                : t('collection.t06'));
                     };
 
                     const paint = (stamped: Set<string>, signedIn: boolean): void => {
@@ -160,7 +166,7 @@ interface ToolMeta {
                             `<div class="cl-bar"><i style="width:${percent}%"></i></div>` +
                             (signedIn
                                 ? ''
-                                : '<p class="cl-note">로그인하면 도감이 기기를 따라옵니다 — 지금은 이 브라우저에만 남아요.</p>');
+                                : t('collection.t07'));
 
                         grid.innerHTML = tools
                             .map((tool) => {
@@ -207,6 +213,7 @@ interface ToolMeta {
                         if (container.isConnected) paintSecrets();
                     });
                     onPageActive(container, draw);
+                                  });
                 }
             }
         ]

@@ -1,0 +1,8 @@
+{
+  "collection.t01": "使った道具にスタンプが押されます。消していなければ、昔使ったものも入っています。",
+  "collection.t02": "隠れているもの",
+  "collection.t03": "図鑑",
+  "collection.t05": "<p class=\"cl-note\">すべて見つけました。</p>",
+  "collection.t06": "<p class=\"cl-note\">サイトのどこかにあります。道具を使っていると引っかかるものもあります。</p>",
+  "collection.t07": "<p class=\"cl-note\">ログインすると図鑑が端末についてきます — いまはこのブラウザにだけ残ります。</p>"
+}

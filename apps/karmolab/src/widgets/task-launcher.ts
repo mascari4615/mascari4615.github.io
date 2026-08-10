@@ -13,6 +13,11 @@
  *
  * 자동 새로고침: KL-024 'quest-tree-changed' 이벤트 listen.
  */
+import { t, loadNamespace } from '../lib/i18n';
+
+const esc = (v: unknown): string =>
+  String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 ;(function (): void {
   interface MemoTaskNode {
     id: string;
@@ -31,13 +36,14 @@
     memoPath: string;
   }
 
-  const DOMAINS: Array<{ value: string; label: string; prefix: string }> = [
+  /* 이름은 **쓸 때 정한다** — 이 배열이 모듈 뜨는 순간에 굳으면 한국어로 굳는다. */
+  const domains = (): Array<{ value: string; label: string; prefix: string }> => [
     { value: 'wm', label: 'WitchMendokusai (WM)', prefix: 'WM' },
     { value: 'karmolab', label: 'KarmoLab (KL)', prefix: 'KL' },
     { value: 'yawnbot', label: 'YawnBot (YB)', prefix: 'YB' },
-    { value: 'life', label: '인생 (LIFE)', prefix: 'LIFE' },
-    { value: 'hobby', label: '취미 (HOBBY)', prefix: 'HOBBY' },
-    { value: 'learning', label: '학습 (LEARN)', prefix: 'LEARN' },
+    { value: 'life', label: t('task-launcher.t14'), prefix: 'LIFE' },
+    { value: 'hobby', label: t('task-launcher.t15'), prefix: 'HOBBY' },
+    { value: 'learning', label: t('task-launcher.t16'), prefix: 'LEARN' }
   ];
 
   const STATUS_COLORS: Record<string, string> = {
@@ -142,14 +148,6 @@
     return typeof window.__TAURI__ !== 'undefined';
   }
 
-  function esc(s: unknown): string {
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
 
   async function fetchTree(): Promise<MemoQuestTree | null> {
     const invoke = window.__TAURI__?.core?.invoke;
@@ -157,7 +155,7 @@
     try {
       return (await invoke('get_quest_tree')) as MemoQuestTree;
     } catch (err) {
-      console.error('get_quest_tree 실패', err);
+      console.error(t('task-launcher.t17'), err);
       return null;
     }
   }
@@ -181,7 +179,7 @@
     statusFilter: string,
     sortMode: string,
   ): MemoTaskNode[] {
-    const filtered = [...tasks.filter((t) => matches(t, query, statusFilter))];
+    const filtered = [...tasks.filter((task) => matches(task, query, statusFilter))];
     if (sortMode === 'mtime') {
       filtered.sort((a, b) => (b.modifiedUnix ?? 0) - (a.modifiedUnix ?? 0));
     } else {
@@ -197,19 +195,19 @@
 
   function renderList(listEl: HTMLElement, sorted: MemoTaskNode[], selectedIdx: number): void {
     if (sorted.length === 0) {
-      listEl.innerHTML = `<div class="empty">조건에 맞는 TASK 없음 — 검색어 변경 또는 + 새 TASK</div>`;
+      listEl.innerHTML = `<div class="empty">${esc(t('task-launcher.t04'))}</div>`;
       return;
     }
     listEl.innerHTML = sorted
-      .map((t, i) => {
-        const statusColor = STATUS_COLORS[t.status] ?? 'var(--ink-3)';
-        const tagsLabel = t.tags.length > 0 ? `[${t.tags.slice(0, 3).join(', ')}${t.tags.length > 3 ? '…' : ''}]` : '';
+      .map((task, i) => {
+        const statusColor = STATUS_COLORS[task.status] ?? 'var(--ink-3)';
+        const tagsLabel = task.tags.length > 0 ? `[${task.tags.slice(0, 3).join(', ')}${task.tags.length > 3 ? '…' : ''}]` : '';
         const selectedClass = i === selectedIdx ? ' selected' : '';
         return `
-          <div class="row${selectedClass}" data-file="${esc(t.filePath)}" data-idx="${i}">
-            <span class="id">${esc(t.id)}</span>
-            <span class="status" style="color:${statusColor};">${esc(t.status)}</span>
-            <span class="title">${esc(t.title)}</span>
+          <div class="row${selectedClass}" data-file="${esc(task.filePath)}" data-idx="${i}">
+            <span class="id">${esc(task.id)}</span>
+            <span class="status" style="color:${statusColor};">${esc(task.status)}</span>
+            <span class="title">${esc(task.title)}</span>
             <span class="tags">${esc(tagsLabel)}</span>
           </div>
         `;
@@ -225,16 +223,16 @@
     backdrop.className = 'modal-backdrop';
     backdrop.innerHTML = `
       <div class="modal">
-        <h3>+ 새 TASK 생성</h3>
-        <label>도메인</label>
+        <h3>${esc(t('task-launcher.t05'))}</h3>
+        <label>${esc(t('task-launcher.t06'))}</label>
         <select class="modal-domain">
-          ${DOMAINS.map((d) => `<option value="${d.value}">${d.label}</option>`).join('')}
+          ${domains().map((d) => `<option value="${d.value}">${d.label}</option>`).join('')}
         </select>
-        <label>제목 (한글/영문 OK, 파일명 자동 정규화)</label>
-        <input type="text" class="modal-title" placeholder="예: 새 시스템 시드" autofocus>
+        <label>${esc(t('task-launcher.t07'))}</label>
+        <input type="text" class="modal-title" placeholder="${esc(t('task-launcher.t01'))}" autofocus>
         <div class="modal-actions">
-          <button class="modal-cancel">취소</button>
-          <button class="modal-create">생성 + 오픈</button>
+          <button class="modal-cancel">${esc(t('task-launcher.t08'))}</button>
+          <button class="modal-create">${esc(t('task-launcher.t09'))}</button>
         </div>
       </div>
     `;
@@ -260,7 +258,7 @@
       }
       const invoke = window.__TAURI__?.core?.invoke;
       if (typeof invoke !== 'function') {
-        alert('Tauri invoke 사용 불가 — KarmoLab 데스크톱 앱이어야 동작합니다.');
+        alert(t('task-launcher.t18'));
         return;
       }
       try {
@@ -268,8 +266,8 @@
         close();
         onCreated(newPath);
       } catch (err) {
-        console.error('create_task 실패', err);
-        alert(`TASK 생성 실패: ${err}`);
+        console.error(t('task-launcher.t19'), err);
+        alert(t('task-launcher.createFailed', { why: String(err) }));
       }
     };
 
@@ -286,14 +284,16 @@
     try {
       await invoke('open_task_in_editor', { filePath });
     } catch (err) {
-      console.error('open_task_in_editor 실패', err);
-      alert(`외부 에디터 오픈 실패: ${err}`);
+      console.error(t('task-launcher.t20'), err);
+      alert(t('task-launcher.openFailed', { why: String(err) }));
     }
   }
 
   function build(container: HTMLElement): void {
+             void loadNamespace('task-launcher').then(function () {
+
     if (!isKarmolabDesktop()) {
-      container.innerHTML = `<div class="kl-task-launcher"><div class="empty">TASK Launcher 는 KarmoLab 데스크톱 앱 (Tauri) 에서만 동작합니다.</div></div>`;
+      container.innerHTML = `<div class="kl-task-launcher"><div class="empty">${esc(t('task-launcher.t10'))}</div></div>`;
       return;
     }
 
@@ -307,7 +307,7 @@
     // 이전 마운트의 unlisten 정리
     const prevUnlisten = _launcherUnlisten.get(container);
     if (typeof prevUnlisten === 'function') {
-      try { prevUnlisten(); } catch (e) { console.error('previous unlisten 실패', e); }
+      try { prevUnlisten(); } catch (e) { console.error(t('task-launcher.t21'), e); }
       _launcherUnlisten.delete(container);
     }
 
@@ -316,17 +316,17 @@
     container.innerHTML = `
       <div class="kl-task-launcher">
         <div class="header">
-          <input type="text" class="search" placeholder="검색 — id / title / tag / status (↑↓ Enter Esc)">
-          <select class="sort-mode" data-sort title="정렬 모드">
-            <option value="mtime">최근 수정 ▾</option>
+          <input type="text" class="search" placeholder="${esc(t('task-launcher.t02'))}">
+          <select class="sort-mode" data-sort title="${esc(t('task-launcher.t03'))}">
+            <option value="mtime">${esc(t('task-launcher.opt.mtime'))}</option>
             <option value="id">ID</option>
           </select>
-          <button class="new-btn">+ 새 TASK</button>
+          <button class="new-btn">${esc(t('task-launcher.t11'))}</button>
         </div>
         <div class="filter-chips" data-chips>
           ${STATUS_FILTERS.map((s) => `<button class="chip${s === 'all' ? ' on' : ''}" data-filter="${s}">${s.toUpperCase()}</button>`).join('')}
         </div>
-        <div class="meta" data-meta>로딩 중…</div>
+        <div class="meta" data-meta>${esc(t('task-launcher.t12'))}</div>
         <div class="list" data-list></div>
       </div>
     `;
@@ -355,8 +355,8 @@
     const reload = async (): Promise<void> => {
       const tree = await fetchTree();
       if (!tree) {
-        listEl.innerHTML = `<div class="empty">데이터 로딩 실패. F12 콘솔 확인.</div>`;
-        metaEl.textContent = '오류';
+        listEl.innerHTML = `<div class="empty">${esc(t('task-launcher.t13'))}</div>`;
+        metaEl.textContent = t('task-launcher.t22');
         return;
       }
       currentTasks = tree.tasks;
@@ -443,11 +443,12 @@
           const unlisten = await tauriListen('quest-tree-changed', () => { void reload(); });
           _launcherUnlisten.set(container, unlisten);
         } catch (err) {
-          console.error('quest-tree-changed listen 실패', err);
+          console.error(t('task-launcher.t23'), err);
         }
       })();
     }
-  }
+               });
+           }
 
   Toolbox.register({
     ...Toolbox.getLazyWidgetPublicMeta('task-launcher'),

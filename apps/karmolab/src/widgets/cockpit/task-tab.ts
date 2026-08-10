@@ -1,6 +1,11 @@
 /**
  * task-tab.ts — TASK Launcher 로직 이식 (TASK-KL-082 단위 I).
  */
+import { t } from '../../lib/i18n';
+
+const esc = (v: unknown): string =>
+  String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 
 interface MemoTaskNode {
   id: string;
@@ -27,9 +32,9 @@ const DOMAINS: Array<{ value: string; label: string }> = [
   { value: 'wm', label: 'WitchMendokusai' },
   { value: 'karmolab', label: 'KarmoLab' },
   { value: 'yawnbot', label: 'YawnBot' },
-  { value: 'life', label: '인생' },
-  { value: 'hobby', label: '취미' },
-  { value: 'learning', label: '학습' },
+  { value: 'life', label: t('cockpit.t37') },
+  { value: 'hobby', label: t('cockpit.t38') },
+  { value: 'learning', label: t('cockpit.t39') },
 ];
 
 const DOMAIN_ICON: Record<string, string> = {
@@ -38,12 +43,12 @@ const DOMAIN_ICON: Record<string, string> = {
 };
 
 const DOMAIN_SUBTITLE: Record<string, string> = {
-  wm:       '메인 프로젝트 · 주황머리 마녀와 인형들',
-  karmolab: 'Tauri 데스크톱 + 웹 위젯 + AI',
-  yawnbot:  'Discord 봇 · 캐릭터 호스트',
-  life:     '인생 일반 — 건강·금융·집·관계',
-  hobby:    '취미 — 음악·독서·게임·여행',
-  learning: '학습 — 책·강의·언어·기술',
+  wm:       t('cockpit.t40'),
+  karmolab: t('cockpit.t41'),
+  yawnbot:  t('cockpit.t42'),
+  life:     t('cockpit.t43'),
+  hobby:    t('cockpit.t44'),
+  learning: t('cockpit.t45'),
 };
 
 const DOMAIN_IMAGE: Record<string, string> = {
@@ -68,15 +73,10 @@ const STATUS_ORDER = ['active', 'ready', 'hold', 'seed', 'done', 'sealed'];
 const STATUS_FILTERS = ['all', 'seed', 'ready', 'active', 'hold', 'done', 'sealed'];
 const DOMAIN_ORDER = ['wm', 'karmolab', 'yawnbot', 'life', 'hobby', 'learning'];
 
-function esc(s: unknown): string {
-  return String(s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
 
 function getInvoke(): ((cmd: string, args?: Record<string, unknown>) => Promise<unknown>) | null {
-  const t = (window as unknown as { __TAURI__?: { core?: { invoke?: unknown } } }).__TAURI__;
-  const fn_ = t?.core?.invoke;
+  const tauri = (window as unknown as { __TAURI__?: { core?: { invoke?: unknown } } }).__TAURI__;
+  const fn_ = tauri?.core?.invoke;
   return typeof fn_ === 'function' ? (fn_ as (cmd: string, args?: Record<string, unknown>) => Promise<unknown>) : null;
 }
 
@@ -86,7 +86,7 @@ async function fetchTree(): Promise<MemoQuestTree | null> {
   try {
     return (await invoke('get_quest_tree')) as MemoQuestTree;
   } catch (e) {
-    console.error('[cockpit-task] get_quest_tree 실패', e);
+    console.error(t('cockpit.t46'), e);
     return null;
   }
 }
@@ -137,7 +137,7 @@ async function openInEditor(filePath: string): Promise<void> {
   try {
     await invoke('open_task_in_editor', { filePath });
   } catch (e) {
-    console.error('[cockpit-task] open_task_in_editor 실패', e);
+    console.error(t('cockpit.t47'), e);
   }
 }
 
@@ -148,14 +148,14 @@ function applyFilter(
   sortMode: string,
 ): MemoTaskNode[] {
   const q = query.toLowerCase();
-  const filtered = tasks.filter((t) => {
-    if (statusFilter !== 'all' && t.status !== statusFilter) return false;
+  const filtered = tasks.filter((task) => {
+    if (statusFilter !== 'all' && task.status !== statusFilter) return false;
     if (!q) return true;
     return (
-      t.id.toLowerCase().includes(q) ||
-      t.title.toLowerCase().includes(q) ||
-      t.status.toLowerCase().includes(q) ||
-      t.tags.some((tag) => tag.toLowerCase().includes(q))
+      task.id.toLowerCase().includes(q) ||
+      task.title.toLowerCase().includes(q) ||
+      task.status.toLowerCase().includes(q) ||
+      task.tags.some((tag) => tag.toLowerCase().includes(q))
     );
   });
   if (sortMode === 'mtime') {
@@ -181,26 +181,26 @@ function renderList(
   cardMap: Map<string, CardInfo[]>,
 ): void {
   // 루트 태스크만 (parent == null)
-  const roots = sorted.filter((t) => t.parent == null);
+  const roots = sorted.filter((task) => task.parent == null);
   if (roots.length === 0) {
-    listEl.innerHTML = '<div class="ckt-empty">조건에 맞는 TASK 없음</div>';
+    listEl.innerHTML = t('cockpit.t48');
     return;
   }
   listEl.innerHTML = roots
-    .map((t, i) => {
-      const sc = STATUS_COLORS[t.status] ?? '#55555a';
+    .map((task, i) => {
+      const sc = STATUS_COLORS[task.status] ?? '#55555a';
       const sel = i === selectedIdx ? ' selected' : '';
-      const subs = subCountMap.get(t.id) ?? 0;
+      const subs = subCountMap.get(task.id) ?? 0;
       const subBadge = subs > 0 ? `<span class="ckt-sub-badge">(${subs})</span>` : '';
-      const latestCard = cardMap.get(t.id)?.[0];
+      const latestCard = cardMap.get(task.id)?.[0];
       const cardHint = latestCard
         ? `<div class="ckt-card-hint">${esc(latestCard.summary.slice(0, 80))}</div>`
         : '';
-      return `<div class="ckt-row${sel}" data-task-id="${esc(t.id)}" data-idx="${i}">
-        <span class="ckt-id">${esc(t.id)}</span>
-        <span class="ckt-status" style="color:${sc}">${esc(t.status)}</span>
-        <span class="ckt-title">${esc(t.title)}${subBadge}</span>
-        <span class="ckt-tags">${t.tags.length > 0 ? esc(`[${t.tags.slice(0, 3).join(', ')}${t.tags.length > 3 ? '…' : ''}]`) : ''}</span>
+      return `<div class="ckt-row${sel}" data-task-id="${esc(task.id)}" data-idx="${i}">
+        <span class="ckt-id">${esc(task.id)}</span>
+        <span class="ckt-status" style="color:${sc}">${esc(task.status)}</span>
+        <span class="ckt-title">${esc(task.title)}${subBadge}</span>
+        <span class="ckt-tags">${task.tags.length > 0 ? esc(`[${task.tags.slice(0, 3).join(', ')}${task.tags.length > 3 ? '…' : ''}]`) : ''}</span>
         ${cardHint}
       </div>`;
     })
@@ -213,7 +213,7 @@ function renderList(
 
 function buildStatusBar(tasks: MemoTaskNode[]): string {
   const counts: Record<string, number> = {};
-  for (const t of tasks) counts[t.status] = (counts[t.status] ?? 0) + 1;
+  for (const task of tasks) counts[task.status] = (counts[task.status] ?? 0) + 1;
   const parts = STATUS_ORDER
     .filter((s) => counts[s] > 0)
     .map((s) => `<span class="ckt-qstat-item" style="color:${STATUS_COLORS[s] ?? '#9a9a94'}">${s.toUpperCase()} <b>${counts[s]}</b></span>`);
@@ -254,18 +254,18 @@ function renderQuestSection(domain: string, tasks: MemoTaskNode[], domainIdx: nu
     : svgStarField(domain.charCodeAt(0) + domain.length);
 
   const taskRows = tasks
-    .map((t) => {
-      const sc = STATUS_COLORS[t.status] ?? '#55555a';
-      const isActive = t.status === 'active';
+    .map((task) => {
+      const sc = STATUS_COLORS[task.status] ?? '#55555a';
+      const isActive = task.status === 'active';
       const prefix = isActive
         ? '<span class="ckt-qrow-prefix" style="color:#a99bf5">✦</span>'
         : '<span class="ckt-qrow-prefix" style="color:#33363d">◇</span>';
-      const indentCls = t.parent ? ' ckt-qrow--sub' : '';
-      return `<div class="ckt-qrow${indentCls}" data-task-id="${esc(t.id)}">
+      const indentCls = task.parent ? ' ckt-qrow--sub' : '';
+      return `<div class="ckt-qrow${indentCls}" data-task-id="${esc(task.id)}">
         ${prefix}
-        <span class="ckt-qid">${esc(t.id)}</span>
-        <span class="ckt-qmag" style="color:${sc};border-color:${sc}33">${esc(t.status.toUpperCase())}</span>
-        <span class="ckt-qtitle" data-status="${esc(t.status)}">${t.parent ? '<span class="ckt-qsub-mark">└ </span>' : ''}${esc(t.title)}</span>
+        <span class="ckt-qid">${esc(task.id)}</span>
+        <span class="ckt-qmag" style="color:${sc};border-color:${sc}33">${esc(task.status.toUpperCase())}</span>
+        <span class="ckt-qtitle" data-status="${esc(task.status)}">${task.parent ? '<span class="ckt-qsub-mark">└ </span>' : ''}${esc(task.title)}</span>
       </div>`;
     })
     .join('');
@@ -289,21 +289,21 @@ function renderQuestSection(domain: string, tasks: MemoTaskNode[], domainIdx: nu
     </div>
     <div class="ckt-qbody" data-body="${esc(domain)}"${bodyDisplay}>
       <div class="ckt-qstatbar">${buildStatusBar(tasks)}</div>
-      <div class="ckt-qtasks">${taskRows || '<div class="ckt-qempty">조건에 맞는 TASK 없음</div>'}</div>
+      <div class="ckt-qtasks">${taskRows || `<div class="ckt-qempty">${t('cockpit.task.noMatch')}</div>`}</div>
     </div>
   </div>`;
 }
 
 function renderQuestLog(listEl: HTMLElement, sorted: MemoTaskNode[], expandedDomains: Set<string>): void {
   if (sorted.length === 0) {
-    listEl.innerHTML = '<div class="ckt-empty">조건에 맞는 TASK 없음</div>';
+    listEl.innerHTML = t('cockpit.t48');
     return;
   }
   const groups = new Map<string, MemoTaskNode[]>();
-  for (const t of sorted) {
-    const d = t.path[0] ?? '_other';
+  for (const task of sorted) {
+    const d = task.path[0] ?? '_other';
     if (!groups.has(d)) groups.set(d, []);
-    groups.get(d)!.push(t);
+    groups.get(d)!.push(task);
   }
   const orderedKeys = [
     ...DOMAIN_ORDER.filter((k) => groups.has(k)),
@@ -329,9 +329,9 @@ function openDrawer(
   const pathStr = task.path.slice(1).join(' / ');
 
   // 부모 태스크 찾기
-  const parentTask = task.parent ? allTasks.find((t) => t.id === task.parent) : null;
+  const parentTask = task.parent ? allTasks.find((task) => task.id === task.parent) : null;
   // 이 태스크의 서브 태스크들
-  const children = allTasks.filter((t) => t.parent === task.id);
+  const children = allTasks.filter((task) => task.parent === task.id);
 
   crumbEl.innerHTML = `COCKPIT / <b>${esc(task.id)}</b>`;
 
@@ -392,7 +392,7 @@ function openDrawer(
     })()}
 
     <div class="ckt-dr-actions">
-      <button class="ckt-dr-open-btn" data-open-file="${esc(task.filePath)}">↗ 에디터에서 열기</button>
+      <button class="ckt-dr-open-btn" data-open-file="${esc(task.filePath)}">${esc(t('cockpit.t29'))}</button>
     </div>
   `;
 
@@ -411,9 +411,9 @@ const DOMAINS_FULL: Array<{ value: string; label: string }> = [
   { value: 'wm', label: 'WitchMendokusai (WM)' },
   { value: 'karmolab', label: 'KarmoLab (KL)' },
   { value: 'yawnbot', label: 'YawnBot (YB)' },
-  { value: 'life', label: '인생 (LIFE)' },
-  { value: 'hobby', label: '취미 (HOBBY)' },
-  { value: 'learning', label: '학습 (LEARN)' },
+  { value: 'life', label: t('cockpit.t49') },
+  { value: 'hobby', label: t('cockpit.t50') },
+  { value: 'learning', label: t('cockpit.t51') },
 ];
 
 function showCreateModal(root: HTMLElement, onCreated: (path: string) => void): void {
@@ -421,16 +421,16 @@ function showCreateModal(root: HTMLElement, onCreated: (path: string) => void): 
   backdrop.className = 'ckt-modal-backdrop';
   backdrop.innerHTML = `
     <div class="ckt-modal">
-      <h3>+ 새 TASK 생성</h3>
-      <label>도메인</label>
+      <h3>${esc(t('cockpit.t30'))}</h3>
+      <label>${esc(t('cockpit.t31'))}</label>
       <select class="ckt-domain">
         ${DOMAINS_FULL.map((d) => `<option value="${d.value}">${esc(d.label)}</option>`).join('')}
       </select>
-      <label>제목</label>
-      <input type="text" class="ckt-title-input" placeholder="예: 새 시스템 시드" autofocus>
+      <label>${esc(t('cockpit.t32'))}</label>
+      <input type="text" class="ckt-title-input" placeholder="${esc(t('cockpit.t27'))}" autofocus>
       <div class="ckt-modal-actions">
-        <button class="ckt-cancel">취소</button>
-        <button class="ckt-create">생성 + 오픈</button>
+        <button class="ckt-cancel">${esc(t('cockpit.t33'))}</button>
+        <button class="ckt-create">${esc(t('cockpit.t34'))}</button>
       </div>
     </div>
   `;
@@ -446,12 +446,12 @@ function showCreateModal(root: HTMLElement, onCreated: (path: string) => void): 
     const title = titleInput.value.trim();
     if (!title) { titleInput.style.borderColor = '#d4504e'; return; }
     const invoke = getInvoke();
-    if (!invoke) { alert('Tauri invoke 불가'); return; }
+    if (!invoke) { alert(t('cockpit.t52')); return; }
     try {
       const newPath = (await invoke('create_task', { domain, title })) as string;
       close();
       onCreated(newPath);
-    } catch (e) { alert(`생성 실패: ${e}`); }
+    } catch (e) { alert(t('cockpit.task.createFailed', { why: String(e) })); }
   };
   backdrop.querySelector('.ckt-create')!.addEventListener('click', () => { void submit(); });
   titleInput.addEventListener('keydown', (e) => {
@@ -770,17 +770,17 @@ export function buildTaskTab(container: HTMLElement): void {
           <button class="ckt-mode-btn on" data-mode="list">≡ LIST</button>
           <button class="ckt-mode-btn" data-mode="quest">◉ QUEST</button>
         </div>
-        <input type="text" class="ckt-search" placeholder="검색 — id / title / tag / status (↑↓ Enter)">
+        <input type="text" class="ckt-search" placeholder="${esc(t('cockpit.t28'))}">
         <select class="ckt-sort">
-          <option value="mtime">최근 수정 ▾</option>
+          <option value="mtime">${esc(t('cockpit.opt.mtime'))}</option>
           <option value="id">ID</option>
         </select>
-        <button class="ckt-new-btn">+ 새 TASK</button>
+        <button class="ckt-new-btn">${esc(t('cockpit.t35'))}</button>
       </div>
       <div class="ckt-chips" data-chips>
         ${STATUS_FILTERS.map((s) => `<button class="ckt-chip${s === 'all' ? ' on' : ''}" data-filter="${s}">${s.toUpperCase()}</button>`).join('')}
       </div>
-      <div class="ckt-meta" data-meta>로딩 중…</div>
+      <div class="ckt-meta" data-meta>${esc(t('cockpit.t36'))}</div>
       <div class="ckt-list" data-list></div>
       <div class="ckt-backdrop" data-backdrop></div>
       <aside class="ckt-drawer" data-drawer>
@@ -820,7 +820,7 @@ export function buildTaskTab(container: HTMLElement): void {
   const doCloseDrawer = () => closeDrawer(drawerEl, backdropEl);
 
   const doOpenDrawer = (taskId: string) => {
-    const task = currentTasks.find((t) => t.id === taskId);
+    const task = currentTasks.find((task) => task.id === taskId);
     if (!task) return;
     openDrawer(task, currentTasks, drawerEl, backdropEl, crumbEl, bodyEl, busMap);
   };
@@ -835,14 +835,14 @@ export function buildTaskTab(container: HTMLElement): void {
 
   const refilter = () => {
     filteredTasks = applyFilter(currentTasks, searchEl.value, statusFilter, sortMode);
-    listRoots = filteredTasks.filter((t) => t.parent == null);
+    listRoots = filteredTasks.filter((task) => task.parent == null);
     if (selectedIdx >= listRoots.length) selectedIdx = 0;
     rerender();
   };
 
   const reload = async () => {
     const [tree, repoRoot] = await Promise.all([fetchTree(), fetchRepoRoot()]);
-    if (!tree) { listEl.innerHTML = '<div class="ckt-empty">데이터 로딩 실패</div>'; metaEl.textContent = '오류'; return; }
+    if (!tree) { listEl.innerHTML = t('cockpit.t53'); metaEl.textContent = t('cockpit.t54'); return; }
     currentTasks = tree.tasks;
     if (repoRoot) {
       const [busEntries, cardEntries] = await Promise.all([
@@ -854,8 +854,8 @@ export function buildTaskTab(container: HTMLElement): void {
     }
     // 전체 서브카운트 맵 (필터 무관)
     subCountMap = new Map();
-    for (const t of currentTasks) {
-      if (t.parent) subCountMap.set(t.parent, (subCountMap.get(t.parent) ?? 0) + 1);
+    for (const task of currentTasks) {
+      if (task.parent) subCountMap.set(task.parent, (subCountMap.get(task.parent) ?? 0) + 1);
     }
     metaEl.textContent = `${currentTasks.length} TASK`;
     refilter();
@@ -879,7 +879,7 @@ export function buildTaskTab(container: HTMLElement): void {
     if (viewMode !== 'list') return;
     if (e.key === 'ArrowDown') { e.preventDefault(); selectedIdx = Math.min(selectedIdx + 1, listRoots.length - 1); renderList(listEl, listRoots, selectedIdx, subCountMap, cardMap); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIdx = Math.max(selectedIdx - 1, 0); renderList(listEl, listRoots, selectedIdx, subCountMap, cardMap); }
-    else if (e.key === 'Enter') { e.preventDefault(); const t = listRoots[selectedIdx]; if (t) doOpenDrawer(t.id); }
+    else if (e.key === 'Enter') { e.preventDefault(); const picked = listRoots[selectedIdx]; if (picked) doOpenDrawer(picked.id); }
     else if (e.key === 'Escape') {
       e.preventDefault();
       if (drawerEl.classList.contains('open')) { doCloseDrawer(); return; }
@@ -952,7 +952,7 @@ export function buildTaskTab(container: HTMLElement): void {
       try {
         const unlisten = await (tauriListen as (event: string, cb: () => void) => Promise<() => void>)('quest-tree-changed', () => { void reload(); });
         _taskUnlisten.set(container, unlisten);
-      } catch (e) { console.warn('[cockpit-task] quest-tree-changed listen 실패', e); }
+      } catch (e) { console.warn(t('cockpit.t55'), e); }
     })();
   }
 }
