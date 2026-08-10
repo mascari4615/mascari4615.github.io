@@ -15,6 +15,11 @@
  * 저장: 이 브라우저(`karmolab_secrets`) + 로그인했으면 계정에도(`/kl/me/secrets`).
  * 도감과 같은 성질이다 — 로그인해야 생기는 것이 아니라, 로그인하면 따라온다.
  */
+import { t, loadNamespace } from './lib/i18n';
+
+/* 이 파일은 위젯이 아니라 **셸·라이브러리**다 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+   빌드는 브라우저 밖에서도 이 파일을 읽으므로 document 가 있을 때만 부른다. */
+if (typeof document !== 'undefined') void loadNamespace('secrets');
 export interface SecretDef {
     id: string;
     /** 찾은 뒤 보이는 이름. 못 찾았으면 이 이름도 안 보인다. */
@@ -28,11 +33,11 @@ export interface SecretDef {
  * 개수를 두 곳에 적으면 「5개 중 3개」가 그날부터 거짓이 된다.
  */
 export const SECRETS: SecretDef[] = [
-    { id: 'konami', title: '코나미', how: '↑↑↓↓←→←→ B A' },
-    { id: 'logo', title: '로고를 계속 누름', how: '머리띠의 KarmoLab 을 일곱 번' },
-    { id: 'console', title: '콘솔 인사', how: '개발자 도구를 열고 karmo() 를 침' },
-    { id: 'collector', title: '수집가', how: '도감 스무 칸' },
-    { id: 'owl', title: '새벽 세 시', how: '새벽 3~5시에 다녀감' }
+    { id: 'konami', title: t('secrets.t01'), how: '↑↑↓↓←→←→ B A' },
+    { id: 'logo', title: t('secrets.t02'), how: t('secrets.t03') },
+    { id: 'console', title: t('secrets.t04'), how: t('secrets.t05') },
+    { id: 'collector', title: t('secrets.t06'), how: t('secrets.t07') },
+    { id: 'owl', title: t('secrets.t08'), how: t('secrets.t09') }
 ];
 
 const KEY = 'karmolab_secrets';
@@ -83,7 +88,7 @@ export function findSecret(id: string): boolean {
     push(id);
     const left = SECRETS.length - found.length;
     (window as any).Toolbox?.showToast?.(
-        `숨긴 것을 찾았다 — ${def.title}` + (left > 0 ? ` (${left}개 남음)` : ' (전부 찾았다)')
+        `숨긴 것을 찾았다 — ${def.title}` + (left > 0 ? ` (${left}개 남음)` : t('secrets.t10'))
     );
     return true;
 }
@@ -141,7 +146,7 @@ function installConsoleHello(): void {
        수법들은 전부 브라우저를 속이는 짓이다) **한 번 찍어 두고** 부르면 답한다. */
     try {
         console.log(
-            '%cKarmoLab%c 숨긴 것을 찾고 있나요? %ckarmo()%c 를 쳐 보세요.',
+            t('secrets.t11'),
             'font-weight:700;color:#a99bf5',
             'color:inherit',
             'font-family:monospace;color:#2aa9a0',
@@ -153,7 +158,7 @@ function installConsoleHello(): void {
     (window as any).karmo = function karmo(): string {
         findSecret('console');
         const found = foundLocal().length;
-        return `찾은 것 ${found} / ${SECRETS.length} — 도감(#collection) 아래에 있습니다.`;
+        return t('secrets.found', { n: found, total: SECRETS.length });
     };
 }
 

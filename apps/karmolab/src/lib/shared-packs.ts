@@ -11,6 +11,11 @@
  * 돌려주고, 화면은 지금까지와 똑같이 이 브라우저 표만 쓴다.
  */
 import { loadPacks, putPack, type Pack, type PackField, type PackItem } from '../widgets/pack-store';
+import { t, loadNamespace } from './i18n';
+
+/* 이 파일은 위젯이 아니라 **셸·라이브러리**다 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+   빌드는 브라우저 밖에서도 이 파일을 읽으므로 document 가 있을 때만 부른다. */
+if (typeof document !== 'undefined') void loadNamespace('sharedpacks');
 
 const API_BASE = 'https://yawnbot.mascari4615.com';
 const TIMEOUT_MS = 6000;
@@ -151,23 +156,23 @@ export function variantFor(pack: { id: string; sharedId?: string }): string {
 export function packErrorText(error: string, detail?: Record<string, unknown>): string {
   switch (error) {
     case 'not_signed_in':
-      return '표를 올리려면 로그인해야 합니다 — 만든 사람이 누구인지 남아야 하니까요.';
+      return t('sharedpacks.t01');
     case 'too_few_items':
-      return `항목이 ${detail?.min ?? 4}개는 넘어야 놀이가 됩니다.`;
+      return t('sharedpacks.tooFew', { n: Number(detail?.min ?? 4) });
     case 'no_fields':
-      return '이름 말고 견줄 칸이 하나는 있어야 합니다 (예: 나이·키·분류).';
+      return t('sharedpacks.t02');
     case 'bad_title':
-      return '표 이름을 적어 주세요.';
+      return t('sharedpacks.t03');
     case 'too_big':
-      return '표가 너무 큽니다. 항목을 줄여 주세요.';
+      return t('sharedpacks.t04');
     case 'daily_limit':
-      return `오늘은 ${detail?.limit ?? 20}개까지 올렸습니다. 내일 다시 올릴 수 있어요.`;
+      return t('sharedpacks.dailyLimit', { n: Number(detail?.limit ?? 20) });
     case 'not_owner':
-      return '남의 표는 못 고칩니다 — 「이어받기」로 내 표를 만들면 마음껏 고칠 수 있어요.';
+      return t('sharedpacks.t05');
     case 'offline':
-      return '지금 서버에 못 닿았습니다. 표는 이 브라우저에 그대로 있어요.';
+      return t('sharedpacks.t06');
     default:
-      return '표를 못 올렸습니다.';
+      return t('sharedpacks.t07');
   }
 }
 
