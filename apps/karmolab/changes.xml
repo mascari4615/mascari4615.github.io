@@ -12,214 +12,214 @@ permalink: /karmolab/changes.xml
     <language>ko</language>
     <lastBuildDate>Mon, 10 Aug 2026 00:00:00 GMT</lastBuildDate>
     <item>
-      <title>[새로 생김] 표 우물도 그 언어로 — 탭 셋 전부</title>
+      <title>[고침] KarmoLab 연동과 래퍼 흐름을 맞춘다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-f16703841</guid>
+      <guid isPermaLink="false">karmolab-change-800e24527</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>표 우물도 그 언어로 — 탭 셋 전부</description>
+      <description>KarmoLab 연동과 래퍼 흐름을 맞춘다</description>
     </item>
     <item>
-      <title>[새로 생김] 박동의 글자 방송 다섯 + 남은 시간도 그 언어로</title>
+      <title>[새로 생김] 번역·위젯 문구를 마저 정리한다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-45e8b97ed</guid>
+      <guid isPermaLink="false">karmolab-change-155746901</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>박동의 글자 방송 다섯 + 남은 시간도 그 언어로</description>
+      <description>번역·위젯 문구를 마저 정리한다</description>
     </item>
     <item>
-      <title>[새로 생김] 채팅창도 그 언어로 — 셸에 상주하는 첫 자리</title>
+      <title>[고침] 앞뒤 공백이 옮기면서 사라져 글자가 붙던 자리 셋</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-d14cc944b</guid>
+      <guid isPermaLink="false">karmolab-change-f30bd276e</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>채팅창도 그 언어로 — 셸에 상주하는 첫 자리</description>
+      <description>앞뒤 공백이 옮기면서 사라져 글자가 붙던 자리 셋</description>
     </item>
     <item>
-      <title>[새로 생김] 순우리말 261개의 뜻풀이를 말 묶음으로</title>
+      <title>[고침] 숫자·날짜 모양이 아직 한국식이었다 — 17파일</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-d4cb48b75</guid>
+      <guid isPermaLink="false">karmolab-change-e0b239bed</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>순우리말 261개의 뜻풀이를 말 묶음으로</description>
+      <description>숫자·날짜 모양이 아직 한국식이었다 — 17파일</description>
     </item>
     <item>
-      <title>[새로 생김] 문자 변환 허브에 병음 — 소리 표는 고른 사람만 받는다</title>
+      <title>[고침] 뜻이 다른 둘이 같은 말로 옮겨져 있었다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-fc186a1bc</guid>
+      <guid isPermaLink="false">karmolab-change-cebb66399</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>문자 변환 허브에 병음 — 소리 표는 고른 사람만 받는다</description>
+      <description>뜻이 다른 둘이 같은 말로 옮겨져 있었다</description>
     </item>
     <item>
-      <title>[새로 생김] 박동 방송 목록을 말 묶음에서 — 낱말 통까지 언어마다</title>
+      <title>[고침] 같은 도구 안에서 같은 말이 두 가지로 옮겨져 있었다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-a1bc51f88</guid>
+      <guid isPermaLink="false">karmolab-change-f12d28418</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>박동 방송 목록을 말 묶음에서 — 낱말 통까지 언어마다</description>
+      <description>같은 도구 안에서 같은 말이 두 가지로 옮겨져 있었다</description>
     </item>
     <item>
-      <title>[새로 생김] 문자 변환 허브에 간체 ⟷ 번체 — 표는 유니코드 Unihan 에서 찍어 왔다</title>
+      <title>[고침] 한글 수가 漢数字·「金○○円也」로, 국세청이 일본 국세청으로</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-68ab426bf</guid>
+      <guid isPermaLink="false">karmolab-change-b65f94857</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>문자 변환 허브에 간체 ⟷ 번체 — 표는 유니코드 Unihan 에서 찍어 왔다</description>
+      <description>한글 수가 漢数字·「金○○円也」로, 국세청이 일본 국세청으로</description>
     </item>
     <item>
-      <title>[고침] 코드모드가 한 묶음을 나눠 쓰는 파일에서 앞 파일 열쇠를 덮어쓰던 것 + 챗봇 캐릭터 50열쇠</title>
+      <title>[고침] 일본어에서 한국 부가세가 일본 소비세로, 원이 엔으로 바뀌어 있었다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-3b3997ef3</guid>
+      <guid isPermaLink="false">karmolab-change-2ce3ce519</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>코드모드가 한 묶음을 나눠 쓰는 파일에서 앞 파일 열쇠를 덮어쓰던 것 + 챗봇 캐릭터 50열쇠</description>
+      <description>일본어에서 한국 부가세가 일본 소비세로, 원이 엔으로 바뀌어 있었다</description>
     </item>
     <item>
-      <title>[새로 생김] 3D 뷰어 — STL·OBJ 를 설치 없이 열어 돌려 본다 (라이브러리 0)</title>
+      <title>[고침] 일본어에서 「한영키」가 「かな/英字キー」로 옮겨져 있었다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-7bb9d9caf</guid>
+      <guid isPermaLink="false">karmolab-change-df5cdc769</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>3D 뷰어 — STL·OBJ 를 설치 없이 열어 돌려 본다 (라이브러리 0)</description>
+      <description>일본어에서 「한영키」가 「かな/英字キー」로 옮겨져 있었다</description>
     </item>
     <item>
-      <title>[새로 생김] 이미지 변환 다국어 82열쇠 + chain 예시가 굳던 것</title>
+      <title>[고침] 배포 빨강 — AI 길 고르기 검사가 말 묶음 없이 돌아 열쇠를 읽고 있었다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-294a2b183</guid>
+      <guid isPermaLink="false">karmolab-change-70e71f3e2</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>이미지 변환 다국어 82열쇠 + chain 예시가 굳던 것</description>
+      <description>배포 빨강 — AI 길 고르기 검사가 말 묶음 없이 돌아 열쇠를 읽고 있었다</description>
     </item>
     <item>
-      <title>[새로 생김] 티어리스트 다국어 96열쇠 + 신작 mesh3d 장 16열쇠</title>
+      <title>[새로 생김] 셸 조각 여덟도 그 언어로 — 39열쇠</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-2e3dcba94</guid>
+      <guid isPermaLink="false">karmolab-change-823aa65b1</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>티어리스트 다국어 96열쇠 + 신작 mesh3d 장 16열쇠</description>
+      <description>셸 조각 여덟도 그 언어로 — 39열쇠</description>
     </item>
     <item>
-      <title>[새로 생김] 박동 다국어 18열쇠 + 이름 바꾸기가 속성까지 바꾸던 것</title>
+      <title>[새로 생김] 셸·라이브러리 다섯도 그 언어로 — 143열쇠</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-3eb46d247</guid>
+      <guid isPermaLink="false">karmolab-change-0c1481d51</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>박동 다국어 18열쇠 + 이름 바꾸기가 속성까지 바꾸던 것</description>
+      <description>셸·라이브러리 다섯도 그 언어로 — 143열쇠</description>
     </item>
     <item>
-      <title>[새로 생김] 콕핏(팀 탭) 다국어 35열쇠</title>
+      <title>[고침] 오늘의 판·머리띠 계정도 그 언어로 + 앞 커밋이 원본 뽑기를 깨뜨렸다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-060d5fde3</guid>
+      <guid isPermaLink="false">karmolab-change-930a0cdb9</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>콕핏(팀 탭) 다국어 35열쇠</description>
+      <description>오늘의 판·머리띠 계정도 그 언어로 + 앞 커밋이 원본 뽑기를 깨뜨렸다</description>
     </item>
     <item>
-      <title>[새로 생김] 반응속도 다국어 20열쇠</title>
+      <title>[고침] 도구 목록·찾기창·첫 화면이 아직 한국어였다 — 이름 180쌍 배선</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-c29a209bf</guid>
+      <guid isPermaLink="false">karmolab-change-806681002</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>반응속도 다국어 20열쇠</description>
+      <description>도구 목록·찾기창·첫 화면이 아직 한국어였다 — 이름 180쌍 배선</description>
     </item>
     <item>
-      <title>[새로 생김] 흐른 시간 카운터 — 숫자가 계속 올라간다 (도구 135개, MCP 56개)</title>
+      <title>[새로 생김] 남은 열넷 — 18열쇠로 꼬리를 닫는다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-4de7e3024</guid>
+      <guid isPermaLink="false">karmolab-change-ca12ae7a5</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>흐른 시간 카운터 — 숫자가 계속 올라간다 (도구 135개, MCP 56개)</description>
+      <description>남은 열넷 — 18열쇠로 꼬리를 닫는다</description>
     </item>
     <item>
-      <title>[새로 생김] 반려돌 21열쇠 + 신작 livecount 장 16열쇠 (오늘 다섯 번째 신작)</title>
+      <title>[고침] 조각 합치개가 번호를 다시 매겨 안내문 셋이 한 열쇠로 뭉쳤다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-2c9dd73d1</guid>
+      <guid isPermaLink="false">karmolab-change-ca563bbb8</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>반려돌 21열쇠 + 신작 livecount 장 16열쇠 (오늘 다섯 번째 신작)</description>
+      <description>조각 합치개가 번호를 다시 매겨 안내문 셋이 한 열쇠로 뭉쳤다</description>
     </item>
     <item>
-      <title>[새로 생김] 높은 쪽 고르기 다국어 20열쇠 + 코드모드에 --ns 추가</title>
+      <title>[새로 생김] 남은 작은 것 아홉 — 다크룸·낚시링크·바운스·맵서랍·모험설정·이미지변환 알맹이·표·박동 카드</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-53cee8e42</guid>
+      <guid isPermaLink="false">karmolab-change-8a38473d1</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>높은 쪽 고르기 다국어 20열쇠 + 코드모드에 --ns 추가</description>
+      <description>남은 작은 것 아홉 — 다크룸·낚시링크·바운스·맵서랍·모험설정·이미지변환 알맹이·표·박동 카드</description>
     </item>
     <item>
-      <title>[새로 생김] 즐겨찾기 다국어 33열쇠 + 신작 comparepic 장 16열쇠 (오늘 네 번째 신작)</title>
+      <title>[새로 생김] 견본 여섯 + 옆 패널 여섯도 그 언어로 — 59열쇠</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-e2a32164a</guid>
+      <guid isPermaLink="false">karmolab-change-162ac3a62</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>즐겨찾기 다국어 33열쇠 + 신작 comparepic 장 16열쇠 (오늘 네 번째 신작)</description>
+      <description>견본 여섯 + 옆 패널 여섯도 그 언어로 — 59열쇠</description>
     </item>
     <item>
-      <title>[새로 생김] 비교 슬라이더 — 전후를 겹쳐 밀어 본다 (도구 134개)</title>
+      <title>[새로 생김] 옆 패널 일곱도 그 언어로 — 135열쇠</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-cea869248</guid>
+      <guid isPermaLink="false">karmolab-change-c312cb905</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>비교 슬라이더 — 전후를 겹쳐 밀어 본다 (도구 134개)</description>
+      <description>옆 패널 일곱도 그 언어로 — 135열쇠</description>
     </item>
     <item>
-      <title>[새로 생김] 가짜 뉴스 다국어 4열쇠 + 신작 charconv 장 16열쇠</title>
+      <title>[새로 생김] 화면 전체를 그 언어로 — 167열쇠</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-c2d309c55</guid>
+      <guid isPermaLink="false">karmolab-change-5c70f4e52</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>가짜 뉴스 다국어 4열쇠 + 신작 charconv 장 16열쇠</description>
+      <description>화면 전체를 그 언어로 — 167열쇠</description>
     </item>
     <item>
-      <title>[새로 생김] 문자 변환 화면 — 묻기 전에 알려 준다 (도구 133개)</title>
+      <title>[새로 생김] 「무엇을 할 수 있나」 목록 92개도 그 언어로</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-fd9163b60</guid>
+      <guid isPermaLink="false">karmolab-change-dd2688d8b</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>문자 변환 화면 — 묻기 전에 알려 준다 (도구 133개)</description>
+      <description>「무엇을 할 수 있나」 목록 92개도 그 언어로</description>
     </item>
     <item>
-      <title>[새로 생김] 유튜브 받기 다국어 24열쇠</title>
+      <title>[새로 생김] 미뤄 뒀던 둘 — 무엇을 옮기고 무엇을 남길지 갈라서</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-9dc716fa6</guid>
+      <guid isPermaLink="false">karmolab-change-7aa25dc7a</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>유튜브 받기 다국어 24열쇠</description>
+      <description>미뤄 뒀던 둘 — 무엇을 옮기고 무엇을 남길지 갈라서</description>
     </item>
     <item>
-      <title>[새로 생김] 문자 변환 허브 알맹이 — 눈으로 구분 안 되는 글자들 (도구 54개)</title>
+      <title>[새로 생김] 파티클·카드피드·모험종료·토스트·뽁뽁이·폴더·그래프·별밭·모래시계</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-1f1fb694c</guid>
+      <guid isPermaLink="false">karmolab-change-828106239</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>문자 변환 허브 알맹이 — 눈으로 구분 안 되는 글자들 (도구 54개)</description>
+      <description>파티클·카드피드·모험종료·토스트·뽁뽁이·폴더·그래프·별밭·모래시계</description>
     </item>
     <item>
-      <title>[새로 생김] Claude 환경 패널 다국어 32열쇠</title>
+      <title>[고침] 화면 검사 셋이 배포에서만 빨갰다 — 말 묶음을 안 박고, 그려지기 전에 읽었다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-8f135b0d0</guid>
+      <guid isPermaLink="false">karmolab-change-4ef0110d3</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>Claude 환경 패널 다국어 32열쇠</description>
+      <description>화면 검사 셋이 배포에서만 빨갰다 — 말 묶음을 안 박고, 그려지기 전에 읽었다</description>
     </item>
     <item>
-      <title>[새로 생김] 신작 dailycho 의 장 en/ja 14열쇠 (설명·쓰는 법 4·자주 묻는 질문 8)</title>
+      <title>[새로 생김] 터미널·이미지생성 큐·링크나무·카운트다운·속도·표 저장소·잡동사니</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-136f76ce2</guid>
+      <guid isPermaLink="false">karmolab-change-9ec03697b</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>신작 dailycho 의 장 en/ja 14열쇠 (설명·쓰는 법 4·자주 묻는 질문 8)</description>
+      <description>터미널·이미지생성 큐·링크나무·카운트다운·속도·표 저장소·잡동사니</description>
     </item>
     <item>
-      <title>[새로 생김] 초성 맞히기 화면 — 데일리 게임 둘 다 열렸다 (도구 132개)</title>
+      <title>[새로 생김] 계기판·폰트가챠·라이프·해커·챗봇 이미지도 그 언어로</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-6bf1addda</guid>
+      <guid isPermaLink="false">karmolab-change-9feb7f507</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>초성 맞히기 화면 — 데일리 게임 둘 다 열렸다 (도구 132개)</description>
+      <description>계기판·폰트가챠·라이프·해커·챗봇 이미지도 그 언어로</description>
     </item>
     <item>
-      <title>[새로 생김] 무한 텍스트 어드벤처 다국어 30열쇠 + 남의 신작 dailycho 이름·설명</title>
+      <title>[새로 생김] 조종석 TASK 탭·런처·소라고동·고양이·도감도 그 언어로</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-dc64d770a</guid>
+      <guid isPermaLink="false">karmolab-change-ed26bcbfe</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>무한 텍스트 어드벤처 다국어 30열쇠 + 남의 신작 dailycho 이름·설명</description>
+      <description>조종석 TASK 탭·런처·소라고동·고양이·도감도 그 언어로</description>
     </item>
     <item>
-      <title>[새로 생김] 초성 맞히기 데일리 알맹이 — 답이 곧 우리 도구 이름 (도구 51개)</title>
+      <title>[새로 생김] 도구 번역 꼬리 끝 — 남은 다섯 + 소리 공용</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-13c2991cd</guid>
+      <guid isPermaLink="false">karmolab-change-c0f7c75bb</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>초성 맞히기 데일리 알맹이 — 답이 곧 우리 도구 이름 (도구 51개)</description>
+      <description>도구 번역 꼬리 끝 — 남은 다섯 + 소리 공용</description>
     </item>
     <item>
-      <title>[새로 생김] 노트북 문 다국어 16열쇠</title>
+      <title>[새로 생김] 문자 변환도 그 언어로 — 24열쇠</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-f76502207</guid>
+      <guid isPermaLink="false">karmolab-change-53aeb18b7</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>노트북 문 다국어 16열쇠</description>
+      <description>문자 변환도 그 언어로 — 24열쇠</description>
     </item>
     <item>
-      <title>[새로 생김] 이미지 라이브러리 다국어 23열쇠</title>
+      <title>[고침] 배포를 세운 것 고침 — 놀이 판 생성기 WHERE 에 오늘의 놀이 둘이 없었다</title>
       <link>https://blog.mascari4615.com/karmolab/#status</link>
-      <guid isPermaLink="false">karmolab-change-a2041035d</guid>
+      <guid isPermaLink="false">karmolab-change-a8eb44ae9</guid>
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
-      <description>이미지 라이브러리 다국어 23열쇠</description>
+      <description>배포를 세운 것 고침 — 놀이 판 생성기 WHERE 에 오늘의 놀이 둘이 없었다</description>
     </item>
   </channel>
 </rss>

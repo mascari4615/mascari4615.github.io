@@ -12,6 +12,7 @@
  * 사용: node scripts/smoke-ai-import.mjs
  */
 import path from 'node:path';
+import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
@@ -57,6 +58,16 @@ try {
 const page = await browser.newPage();
 await page.route('**/*', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8">' }));
 await page.goto('http://localhost/');
+const koCatalogs = {
+  airoute: JSON.parse(fs.readFileSync(path.join(root, 'i18n/ko/airoute.json'), 'utf8')),
+  aigate: JSON.parse(fs.readFileSync(path.join(root, 'i18n/ko/aigate.json'), 'utf8')),
+  aitranscribe: JSON.parse(fs.readFileSync(path.join(root, 'i18n/ko/aitranscribe.json'), 'utf8'))
+};
+await page.evaluate((cats) => {
+  document.documentElement.lang = 'ko';
+  window.__KARMO_LOCALE = 'ko';
+  window.__KARMO_I18N = { ko: cats };
+}, koCatalogs);
 await page.addScriptTag({ content: code });
 
 const result = await page.evaluate(async () => {
