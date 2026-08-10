@@ -56,6 +56,20 @@
       "emoji": "🖱",
       "url": "/karmolab/#speed",
       "lead": "1MB 블럭을 골인까지 끌고 간다"
+    },
+    {
+      "id": "dailytype",
+      "title": "오늘의 한글 타자",
+      "emoji": "⌨️",
+      "url": "/karmolab/t/dailytype/",
+      "lead": "모두 같은 다섯 줄 — 오늘 하루만 나오는 문장"
+    },
+    {
+      "id": "dailycho",
+      "title": "오늘의 초성",
+      "emoji": "🔤",
+      "url": "/karmolab/t/dailycho/",
+      "lead": "초성만 보고 낱말 다섯 — 답은 이 사이트의 도구 이름"
     }
   ]
 }
