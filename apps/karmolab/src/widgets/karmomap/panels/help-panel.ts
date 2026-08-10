@@ -3,7 +3,8 @@
  *
  * 의존이 가장 적은 패널이라 여기부터 옮겼다 — 목록(`help.ts`)과 그릴 자리만 있으면 된다.
  */
-import { HELP } from '../help';
+import { help } from '../help';
+import { t } from '../../../lib/i18n';
 import type { PanelCtx } from './context';
 
 export function renderHelpPanel(ctx: PanelCtx): void {
@@ -12,8 +13,8 @@ export function renderHelpPanel(ctx: PanelCtx): void {
   ctx.canvas()?.setSelectedNode(null);
   side.innerHTML = `
     <h4>? 무엇을 할 수 있나</h4>
-    <div class="km-hint">${HELP.reduce((n, s) => n + s.items.length, 0)}가지. <b>?</b> 키로 언제든 다시 엽니다.</div>
-    ${HELP.map((sec) => `<div class="km-field">
+    <div class="km-hint">${t('karmomap.help.count', { n: help().reduce((n2, sec) => n2 + sec.items.length, 0), key: '<b>?</b>' })}</div>
+    ${help().map((sec) => `<div class="km-field">
       <label>${esc(sec.title)}</label>
       ${sec.items.map((it) => `<div class="km-help-row">
         <span class="km-link-name">${esc(it.what)}</span>

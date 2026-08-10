@@ -1,5 +1,5 @@
 {
-  "total": 3754,
+  "total": 3695,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -113,7 +113,6 @@
     "src/widgets/imagegen/presets.ts": 1,
     "src/widgets/imagegen/styles.ts": 1,
     "src/widgets/imagelib.ts": 6,
-    "src/widgets/karmomap/help.ts": 59,
     "src/widgets/karmomap/karmomap.ts": 86,
     "src/widgets/karmomap/library.ts": 9,
     "src/widgets/karmomap/local-storage-adapter.ts": 4,

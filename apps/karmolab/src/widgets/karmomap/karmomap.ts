@@ -15,6 +15,7 @@
  * 내용은 전적으로 사용자가 쓴다. AI 가 노드를 만들지 않는다 —
  * KarmoMap 은 그릇이고 렌즈지, 작가가 아니다.
  */
+import { loadNamespace } from '../../lib/i18n';
 import { GraphCanvas } from '../../lib/graph/canvas';
 import type { GraphSpec, GraphNode, GraphEdge, GroupDef, NodeShape, BackgroundKind, EdgeKindDef, StoryStep } from '../../lib/graph/spec';
 import { emptyGraphSpec } from '../../lib/graph/spec';
@@ -23,7 +24,7 @@ import { loadTerms, saveTerms, newTermId, type MyTerms } from './terms';
 import { parseOutline, layoutTree } from './from-text';
 import { sampleFor, INTENTS } from './samples';
 import { measureStorage, humanBytes, WARN_RATIO } from './storage-health';
-import { HELP } from './help';
+import { help } from './help';
 import type { PanelCtx } from './panels/context';
 import { renderHelpPanel } from './panels/help-panel';
 import { renderSnaPanel } from './panels/sna-panel';
@@ -2626,6 +2627,15 @@ import {
 
   tb.register({
     ...(tb.getLazyWidgetPublicMeta ? tb.getLazyWidgetPublicMeta('karmomap') : { id: 'karmomap' }),
-    tabs: [{ id: 'karmomap-main', label: 'KarmoMap', build: buildKarmoMap }],
+    tabs: [
+      {
+        id: 'karmomap-main',
+        label: 'KarmoMap',
+        /* 도움말 목록(`help.ts`)이 말 묶음에서 오므로 **받고 나서** 그린다. */
+        build: (container: HTMLElement): void => {
+          void loadNamespace('karmomap').then(() => buildKarmoMap(container));
+        },
+      },
+    ],
   });
 })();
