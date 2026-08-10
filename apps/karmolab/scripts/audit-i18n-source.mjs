@@ -21,6 +21,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -354,5 +355,36 @@ const HOLES_OK = new Set([
     if (STRICT) process.exit(1);
   } else {
     console.log('[i18n-source] 자리표시·태그 어긋남 0');
+  }
+}
+
+/* ── 말 묶음이 **지워지기로 예약**돼 있나 ───────────────────────
+ * 2026-08-10 실측: 인덱스에 말 묶음 36개가 `D`(지우기)로 박혀 있었다. 파일은 디스크에 그대로라
+ * **아무 검사도 안 걸렸다** — 검사는 디스크를 읽으니까. 그 상태에서 누가 경로 없이 커밋하면
+ * 36개가 한꺼번에 사라지고, 그 도구들은 영어·일본어 화면에서 조용히 한국어로 돌아간다.
+ * 「파일은 있는데 git 은 없앨 참」인 자리를 여기서 본다. */
+{
+  let staged = '';
+  try {
+    staged = execSync('git diff --cached --name-status', {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+  } catch {
+    /* git 이 없는 자리(배포 산출물만 있는 곳)에서는 볼 것이 없다 */
+  }
+  const doomed = staged
+    .split('\n')
+    .filter((line) => line.startsWith('D\t'))
+    .map((line) => line.slice(2).trim())
+    .filter((p) => fs.existsSync(path.join(root, '..', '..', p)));
+  if (doomed.length) {
+    console.error(`[i18n-source] 디스크엔 있는데 **지우기로 예약된** 말 묶음 ${doomed.length}개 —`);
+    for (const p of doomed.slice(0, 10)) console.error('  ' + p);
+    console.error('  경로 없이 커밋하면 그대로 나간다. 일부러가 아니면 `git restore --staged` 로 풀어라.');
+    if (STRICT) process.exit(1);
+  } else {
+    console.log('[i18n-source] 지우기로 예약된 말 묶음 0');
   }
 }
