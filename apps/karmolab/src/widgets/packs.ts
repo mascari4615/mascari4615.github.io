@@ -18,20 +18,21 @@ import {
   uploadPack,
   type SharedPackSummary
 } from '../lib/shared-packs';
+import { t, loadNamespace } from '../lib/i18n';
 
 (function (): void {
-  const SAMPLE =
-    '이름\t그림\t분류\t나이\t사는곳\n' +
-    '멍멍이\t\t개, 큰개\t3\t마당\n' +
-    '야옹이\t\t고양이\t2\t거실\n' +
-    '짹짹이\t\t새\t1\t창가\n' +
-    '꼬물이\t\t물고기\t1\t어항';
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  /* 보기 표는 **쓸 때 정한다** — 모듈이 뜨는 순간에 굳으면 한국어 표가 그대로 붙는다.
+     칸 이름·값이 다 그 언어여야 「내 표를 이렇게 붙이면 되는구나」가 읽힌다. */
+  const sample = (): string => t('packs.sample');
 
   Toolbox.register({
     id: 'packs',
-    title: '내 표 만들기',
+    title: t('widgets.packs.title', undefined, "내 표 만들기"),
     category: 'tool',
-    desc: '놀이에 쓸 표를 직접 만듭니다 — 붙여넣기 한 판이면 됩니다',
+    desc: t('widgets-desc.packs.desc', undefined, "놀이에 쓸 표를 직접 만듭니다 — 붙여넣기 한 판이면 됩니다"),
     layout: 'wide',
     noHero: true,
     icon:
@@ -39,49 +40,48 @@ import {
     tabs: [
       {
         id: 'app',
-        label: '내 표',
+        label: t('packs.t16', undefined, "내 표"),
         build: function (container: HTMLElement): void {
-          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: '좋아하는 걸로 표를 만들면 놀이가 그걸로 돌아가요!' });
+          void loadNamespace('packs').then(function () {
+
+          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: t('packs.t17') });
           container.innerHTML = `
-            <p class="pk-lead">놀이에 쓸 표를 직접 만드세요. 스프레드시트에서 긁어다 붙여넣으면 됩니다 —
-              첫 줄은 칸 이름, 첫 칸은 이름, 「그림」 칸이 있으면 그림 주소로 씁니다.</p>
+            <p class="pk-lead">${esc(t('packs.t01'))}</p>
             <section class="pk-card">
               <div class="tool-grid-2">
                 <div class="field-group">
-                  <label class="field-label" for="pkTitle">표 이름</label>
-                  <input type="text" id="pkTitle" placeholder="예: 우리 집 동물">
+                  <label class="field-label" for="pkTitle">${esc(t('packs.label.pkTitle'))}</label>
+                  <input type="text" id="pkTitle" placeholder="${esc(t('packs.ph.pkTitle'))}">
                 </div>
                 <div class="field-group">
-                  <label class="field-label" for="pkEmoji">그림글자 하나</label>
+                  <label class="field-label" for="pkEmoji">${esc(t('packs.label.pkEmoji'))}</label>
                   <input type="text" id="pkEmoji" maxlength="4" placeholder="🐶">
                 </div>
               </div>
               <div class="field-group">
-                <label class="field-label" for="pkText">표 붙여넣기</label>
-                <textarea id="pkText" rows="8" spellcheck="false" placeholder="이름&#9;분류&#9;나이"></textarea>
+                <label class="field-label" for="pkText">${esc(t('packs.label.pkText'))}</label>
+                <textarea id="pkText" rows="8" spellcheck="false" placeholder="${esc(t('packs.ph.pkText'))}"></textarea>
               </div>
               <div class="pk-row">
-                <button type="button" class="btn btn-primary" id="pkSave">이 표 만들기</button>
-                <button type="button" class="btn btn-ghost" id="pkSample">보기 채워 넣기</button>
-                <button type="button" class="btn btn-ghost" id="pkPaste">받은 주소로 가져오기</button>
+                <button type="button" class="btn btn-primary" id="pkSave">${esc(t('packs.btn.pkSave'))}</button>
+                <button type="button" class="btn btn-ghost" id="pkSample">${esc(t('packs.btn.pkSample'))}</button>
+                <button type="button" class="btn btn-ghost" id="pkPaste">${esc(t('packs.btn.pkPaste'))}</button>
               </div>
               <p class="tool-status" id="pkMsg" aria-live="polite"></p>
             </section>
             <div class="field-group" style="margin-top:18px">
-              <div class="tool-sublabel">만들어 둔 표</div>
+              <div class="tool-sublabel">${esc(t('packs.t02'))}</div>
               <div id="pkList" class="pk-list"></div>
             </div>
           `;
 
           const $ = (id: string) => container.querySelector<HTMLElement>('#' + id)!;
           const val = (id: string) => (container.querySelector<HTMLInputElement>('#' + id)!).value;
-          const esc = (s: string): string =>
-            String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
           function paintList(): void {
             const list = loadPacks();
             if (!list.length) {
-              $('pkList').innerHTML = '<p class="tool-status">아직 없습니다. 위에서 하나 만들어 보세요.</p>';
+              $('pkList').innerHTML = t('packs.t18');
               return;
             }
             $('pkList').innerHTML = list
@@ -90,19 +90,19 @@ import {
                   `<div class="pk-item" data-id="${esc(p.id)}">` +
                   `<span class="pk-emoji">${esc(p.emoji)}</span>` +
                   `<div class="pk-meta"><strong>${esc(p.title)}</strong>` +
-                  `<span>${p.items.length}개 · 칸 ${p.fields.map((f) => esc(f.label)).join('·')}` +
-                  (p.sharedId ? ` · <b>올라감</b>${p.sharedBy ? ` (${esc(p.sharedBy)})` : ''}` : '') +
+                  `<span>${t('packs.packLine', { n: p.items.length, fields: p.fields.map((f) => esc(f.label)).join('·') })}` +
+                  (p.sharedId ? ` · <b>${esc(t('packs.t03'))}</b>${p.sharedBy ? ` (${esc(p.sharedBy)})` : ''}` : '') +
                   `</span></div>` +
                   `<div class="pk-acts">` +
-                  `<button type="button" class="btn btn-ghost" data-up="1">${p.sharedId ? '올린 표 고치기' : '올리기'}</button>` +
-                  `<button type="button" class="btn btn-ghost" data-go="twenty">스무고개로</button>` +
-                  `<a class="btn btn-ghost" href="/daily/mine/?pack=${esc(p.id)}">하나 맞히기로</a>` +
-                  `<button type="button" class="btn btn-ghost" data-go="higher">높은 쪽으로</button>` +
+                  `<button type="button" class="btn btn-ghost" data-up="1">${p.sharedId ? t('packs.t19') : t('packs.t20')}</button>` +
+                  `<button type="button" class="btn btn-ghost" data-go="twenty">${esc(t('packs.t04'))}</button>` +
+                  `<a class="btn btn-ghost" href="/daily/mine/?pack=${esc(p.id)}">${esc(t('packs.t05'))}</a>` +
+                  `<button type="button" class="btn btn-ghost" data-go="higher">${esc(t('packs.t06'))}</button>` +
                   (p.items.filter((it) => it.img).length >= 4
-                    ? `<button type="button" class="btn btn-ghost" data-go="worldcup">월드컵으로</button>`
+                    ? `<button type="button" class="btn btn-ghost" data-go="worldcup">${esc(t('packs.t07'))}</button>`
                     : '') +
-                  `<button type="button" class="btn btn-ghost" data-share="1">주소 복사</button>` +
-                  `<button type="button" class="btn btn-ghost" data-del="1">지우기</button>` +
+                  `<button type="button" class="btn btn-ghost" data-share="1">${esc(t('packs.t08'))}</button>` +
+                  `<button type="button" class="btn btn-ghost" data-del="1">${esc(t('packs.t09'))}</button>` +
                   `</div></div>`
               )
               .join('');
@@ -117,7 +117,7 @@ import {
             if (btn.dataset.del) {
               dropPack(p.id);
               paintList();
-              $('pkMsg').textContent = `「${p.title}」 를 지웠습니다.`;
+              $('pkMsg').textContent = t('packs.msg.dropped', { title: p.title });
               return;
             }
             if (btn.dataset.share) {
@@ -125,8 +125,8 @@ import {
               void navigator.clipboard.writeText(url).then(() => {
                 $('pkMsg').textContent =
                   url.length > 6000
-                    ? '복사했습니다 — 다만 표가 커서 주소가 깁니다. 어떤 앱에서는 잘릴 수 있어요.'
-                    : '주소를 복사했습니다. 받은 사람이 열면 그 표가 생깁니다.';
+                    ? t('packs.t21')
+                    : t('packs.t22');
               });
               return;
             }
@@ -134,7 +134,7 @@ import {
               /* 올리기 = 이 표에 **주소를 붙이는 일**이다 (TASK-KL-150).
                * 주소가 붙으면 남이 이어받을 수 있고, 같은 표로 논 사람끼리 한 순위판에서 만난다. */
               btn.setAttribute('disabled', 'true');
-              $('pkMsg').textContent = '올리는 중…';
+              $('pkMsg').textContent = t('packs.t23');
               void (p.sharedId ? updateShared(p.sharedId, p) : uploadPack(p)).then((res) => {
                 btn.removeAttribute('disabled');
                 if (res.error === 'not_signed_in') {
@@ -142,7 +142,7 @@ import {
                      두고 왕복을 다녀오라는 뜻이기 때문이다. 올리려던 표를 적어 두고 보낸다:
                      돌아오면 저절로 올라간다 (TASK-KL-151 ⑦). */
                   queueUpload(p.id);
-                  $('pkMsg').textContent = '로그인하고 오면 이 표가 저절로 올라갑니다 — 잠시 디스코드로 다녀올게요.';
+                  $('pkMsg').textContent = t('packs.t24');
                   setTimeout(() => window.KarmoAccount?.signIn(), 700);
                   return;
                 }
@@ -152,7 +152,7 @@ import {
                 }
                 putPack({ ...p, sharedId: res.id });
                 paintList();
-                $('pkMsg').textContent = `「${p.title}」 올렸습니다 — 이제 「둘러보기」에 서고, 이 표의 순위판이 생깁니다.`;
+                $('pkMsg').textContent = t('packs.msg.uploaded', { title: p.title });
               });
               return;
             }
@@ -168,10 +168,10 @@ import {
           });
 
           $('pkSample').addEventListener('click', () => {
-            (container.querySelector<HTMLTextAreaElement>('#pkText')!).value = SAMPLE;
-            (container.querySelector<HTMLInputElement>('#pkTitle')!).value = '우리 집 동물';
+            (container.querySelector<HTMLTextAreaElement>('#pkText')!).value = sample();
+            (container.querySelector<HTMLInputElement>('#pkTitle')!).value = t('packs.t25');
             (container.querySelector<HTMLInputElement>('#pkEmoji')!).value = '🐶';
-            $('pkMsg').textContent = '이대로 「이 표 만들기」 를 눌러 보세요.';
+            $('pkMsg').textContent = t('packs.t26');
           });
 
           $('pkSave').addEventListener('click', () => {
@@ -182,39 +182,43 @@ import {
             }
             const pack: Pack = {
               id: 'p' + Date.now().toString(36),
-              title: val('pkTitle').trim() || '이름 없는 표',
+              title: val('pkTitle').trim() || t('packs.untitled'),
               emoji: val('pkEmoji').trim() || '🎲',
               fields,
               items
             };
             if (!putPack(pack)) {
-              $('pkMsg').textContent = '이 브라우저에 저장을 못 했습니다 (사생활 모드이거나 자리가 없어요).';
+              $('pkMsg').textContent = t('packs.t27');
               return;
             }
-            $('pkMsg').textContent = `「${pack.title}」 만들었습니다 — ${items.length}개, 칸 ${fields.length}개.`;
+            $('pkMsg').textContent = t('packs.msg.made', {
+              title: pack.title,
+              n: items.length,
+              fields: fields.length,
+            });
             paintList();
           });
 
           $('pkPaste').addEventListener('click', () => {
-            const url = prompt('받은 주소를 붙여넣으세요');
+            const url = prompt(t('packs.t28'));
             if (!url) return;
             const m = url.match(/[?&]pack=([^&#]+)/);
             const p = m && codeToPack(m[1]);
             if (!p) {
-              $('pkMsg').textContent = '그 주소에서 표를 못 읽었습니다.';
+              $('pkMsg').textContent = t('packs.t29');
               return;
             }
             putPack(p);
             paintList();
-            $('pkMsg').textContent = `「${p.title}」 를 가져왔습니다.`;
+            $('pkMsg').textContent = t('packs.msg.imported', { title: p.title });
           });
 
           /* 주소로 받은 표는 **열자마자** 들어와야 한다 — 「가져오기를 누르세요」는 한 단계 더다. */
           const got = new URLSearchParams(location.search).get('pack');
           if (got) {
             const p = codeToPack(got);
-            if (p && putPack(p)) $('pkMsg').textContent = `「${p.title}」 를 받았습니다. 아래에서 놀이로 보내세요.`;
-            else $('pkMsg').textContent = '받은 주소에서 표를 못 읽었습니다.';
+            if (p && putPack(p)) $('pkMsg').textContent = t('packs.msg.received', { title: p.title });
+            else $('pkMsg').textContent = t('packs.t30');
           }
 
           /* 로그인하고 돌아왔으면 적어 둔 표를 올린다 (TASK-KL-151 ⑦).
@@ -227,18 +231,19 @@ import {
               paintList();
               $('pkMsg').textContent =
                 done.length === 1
-                  ? `「${done[0].title}」 를 올렸습니다 — 이제 둘러보기에 섭니다.`
-                  : `표 ${done.length}개를 올렸습니다.`;
+                  ? t('packs.msg.uploadedOne', { title: done[0].title })
+                  : t('packs.msg.uploadedMany', { n: done.length });
             });
           });
           if (stopWatch) Toolbox.onDispose?.(stopWatch);
 
           paintList();
+                  });
         }
       },
       {
         id: 'browse',
-        label: '둘러보기',
+        label: t('packs.t31', undefined, "둘러보기"),
         /**
          * 남들이 올린 표 (TASK-KL-150).
          *
@@ -249,22 +254,21 @@ import {
          * 곳」으로 읽히는데, 그건 사실이 아니다.
          */
         build: function (container: HTMLElement): void {
+          void loadNamespace('packs').then(function () {
+
           container.innerHTML = `
-            <p class="pk-lead">남들이 올린 표입니다. 「이어받기」를 누르면 내 표가 되고, 그대로 놀이에 걸 수 있습니다.
-              같은 표로 논 사람끼리는 <b>한 순위판</b>에서 만납니다.</p>
+            <p class="pk-lead">${t('packs.browseLead', { board: `<b>${esc(t('packs.t11'))}</b>` })}</p>
             <section class="pk-card">
               <div class="pk-row">
-                <input type="search" id="pkFind" placeholder="표 이름으로 찾기" style="flex:1;min-width:180px">
-                <button type="button" class="btn btn-ghost" id="pkSortPop">많이 열린 순</button>
-                <button type="button" class="btn btn-ghost" id="pkSortNew">새로 올린 순</button>
+                <input type="search" id="pkFind" placeholder="${esc(t('packs.ph.pkFind'))}" style="flex:1;min-width:180px">
+                <button type="button" class="btn btn-ghost" id="pkSortPop">${esc(t('packs.btn.pkSortPop'))}</button>
+                <button type="button" class="btn btn-ghost" id="pkSortNew">${esc(t('packs.btn.pkSortNew'))}</button>
               </div>
-              <p class="tool-status" id="pkBrowseMsg" aria-live="polite">불러오는 중…</p>
+              <p class="tool-status" id="pkBrowseMsg" aria-live="polite">${esc(t('packs.label.pkBrowseMsg'))}</p>
             </section>
             <div id="pkShared" class="pk-list" style="margin-top:14px"></div>
           `;
           const $ = (id: string) => container.querySelector<HTMLElement>('#' + id)!;
-          const esc = (s: string): string =>
-            String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           let sort: 'popular' | 'new' = 'popular';
 
           function paint(rows: SharedPackSummary[]): void {
@@ -274,12 +278,12 @@ import {
                   `<div class="pk-item" data-shared="${esc(r.id)}">` +
                   `<span class="pk-emoji">${esc(r.emoji)}</span>` +
                   `<div class="pk-meta"><strong>${esc(r.title)}</strong>` +
-                  `<span>${r.items}개 · ${esc(r.ownerHandle)}` +
-                  (r.opens ? ` · ${r.opens}번 열림` : '') +
-                  (r.forkOf ? ' · 이어받은 표' : '') +
+                  `<span>${t('packs.sharedLine', { n: r.items, who: esc(r.ownerHandle) })}` +
+                  (r.opens ? ' · ' + t('packs.opens', { n: r.opens }) : '') +
+                  (r.forkOf ? t('packs.t32') : '') +
                   `</span></div>` +
                   `<div class="pk-acts">` +
-                  `<button type="button" class="btn btn-primary" data-adopt="1">이어받기</button>` +
+                  `<button type="button" class="btn btn-primary" data-adopt="1">${esc(t('packs.t13'))}</button>` +
                   `</div></div>`
               )
               .join('');
@@ -287,19 +291,19 @@ import {
 
           function load(): void {
             const q = (container.querySelector<HTMLInputElement>('#pkFind')!).value.trim();
-            $('pkBrowseMsg').textContent = '불러오는 중…';
+            $('pkBrowseMsg').textContent = t('packs.label.pkBrowseMsg');
             void listShared({ sort, q, limit: 30 }).then((got) => {
               if (!container.isConnected) return;
               if (!got) {
                 // 서버에 못 닿았다 — 없는 것과 다르다. 그 둘을 같은 화면으로 말하지 않는다.
-                $('pkBrowseMsg').textContent = '지금은 남의 표를 못 불러왔습니다. 내 표로는 그대로 놀 수 있어요.';
+                $('pkBrowseMsg').textContent = t('packs.t33');
                 $('pkShared').innerHTML = '';
                 return;
               }
               if (!got.packs.length) {
                 $('pkBrowseMsg').textContent = q
-                  ? '그 이름의 표가 없습니다.'
-                  : '아직 올라온 표가 없습니다 — 「내 표」에서 하나 만들어 올려 보세요.';
+                  ? t('packs.t34')
+                  : t('packs.t35');
                 $('pkShared').innerHTML = '';
                 return;
               }
@@ -317,7 +321,7 @@ import {
               btn.removeAttribute('disabled');
               $('pkBrowseMsg').textContent = pack
                 ? `「${pack.title}」 를 이어받았습니다 — 「내 표」에서 놀이로 보내세요.`
-                : '이어받지 못했습니다. 잠시 뒤 다시 눌러 주세요.';
+                : t('packs.t36');
             });
           });
 
@@ -340,6 +344,7 @@ import {
           });
 
           load();
+                  });
         }
       }
     ]

@@ -1,5 +1,5 @@
 {
-  "total": 4372,
+  "total": 4325,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -148,7 +148,7 @@
     "src/widgets/news.ts": 3,
     "src/widgets/orbita.ts": 4,
     "src/widgets/pack-store.ts": 6,
-    "src/widgets/packs.ts": 53,
+    "src/widgets/packs.ts": 6,
     "src/widgets/packwell.ts": 3,
     "src/widgets/particle.ts": 6,
     "src/widgets/password.ts": 4,
