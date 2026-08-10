@@ -356,3 +356,38 @@ if (bad) {
   console.error('[i18n] 낡거나 남는 번역이 있다 — 위 목록 처리 후 다시');
   process.exit(1);
 }
+
+/* ── ⑥ 「옮겼다더니 그대로」 잡기 ─────────────────────────────
+ * 열쇠 **수**만 세면 en 값이 한국어 그대로여도 100% 로 보인다. 그런 자리는 두 종류다:
+ *   · 일부러 그대로 둔 것 — 남의 주소(링크드인), 한국어 재료(로렘 낱말), 정규식 [가-힣].
+ *   · 잊고 안 옮긴 것 — 이건 잡아야 한다.
+ * 둘을 기계가 못 가르므로 **일부러 둔 것만 적어 두고**, 그 밖에 원본과 글자까지 같은 한국어
+ * 값이 나오면 세운다. (늘 초록인 검사는 검사가 아니고, 늘 빨간 검사는 사람이 꺼 버린다.) */
+const SAME_OK = new Set([
+  'linktree.t06',             // 사람 이름이 든 진짜 주소 — 옮기면 404
+  'lorem.words.ko',           // 한국어 로렘의 재료 그 자체
+  'regexref.t19',             // 정규식 [가-힣]
+  'regextest.pattern.hangul', // 같은 이유
+  'regextest.sample.hangul',  // 한글 맛보기 — 한글이라야 뜻이 있다
+]);
+if (CHECK) {
+  const HANGUL = /[가-힣]/;
+  const untouched = [];
+  for (const l of LOCALES) {
+    if (l.code === SOURCE_LOCALE) continue;
+    const mine = byLocale[l.code];
+    for (const [ns, cat] of Object.entries(source)) {
+      for (const [k, srcText] of Object.entries(cat)) {
+        if (SAME_OK.has(k)) continue;
+        if (typeof srcText !== 'string' || !HANGUL.test(srcText)) continue;
+        if (mine[ns]?.[k] === srcText) untouched.push(l.code + '/' + k);
+      }
+    }
+  }
+  if (untouched.length) {
+    console.error('[i18n] 옮겼다면서 한국어 그대로인 값 ' + untouched.length + '개 —');
+    for (const k of untouched.slice(0, 10)) console.error('         ' + k);
+    console.error('       일부러 그대로 둘 것이면 build-i18n.mjs 의 SAME_OK 에 이유와 함께 적어라.');
+    process.exit(1);
+  }
+}
