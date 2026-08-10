@@ -97,8 +97,8 @@ eq((await callTool('epoch_toStamp', { date: '2025-06-15T15:06:40.000Z' })).conte
 
 // 한국 규칙 — 우리 무기. LLM 이 자릿수만 맞춰 지어내거나 옛 나이 규칙으로 답하는 자리다.
 const biz = await callTool('bizno_check', { number: '123-45-67890' });
-check(biz.content[0].text.includes('사업자등록번호'), `종류를 말해야 한다: ${biz.content[0].text}`);
-check(biz.content[0].text.includes('국세청'), '「형식만 본다」 경계를 반드시 말한다');
+check(biz.content[0].text.includes('business registration number'), `종류를 말해야 한다: ${biz.content[0].text}`);
+check(biz.content[0].text.includes('National Tax Service'), '형식 경계를 반드시 말한다');
 const bizBad = await callTool('bizno_check', { number: '123456789' });
 check(bizBad.isError === true, '9자리는 오류로 답한다');
 
