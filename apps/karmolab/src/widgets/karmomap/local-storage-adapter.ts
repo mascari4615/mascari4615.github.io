@@ -11,6 +11,7 @@
 import type { GraphSpec, NodeCoord } from '../../lib/graph/spec';
 import { emptyGraphSpec } from '../../lib/graph/spec';
 import type { GraphPersistAdapter } from '../../lib/graph/adapter';
+import { t, loadNamespace } from '../../lib/i18n';
 
 const DEFAULT_KEY = 'karmomap.graph';
 
@@ -28,7 +29,7 @@ export class KarmoMapLocalStorageAdapter implements GraphPersistAdapter {
       const parsed = JSON.parse(raw) as Partial<GraphSpec>;
       return Promise.resolve(this.normalize(parsed));
     } catch (e) {
-      console.error('[karmomap] 저장본 읽기 실패 — 빈 캔버스로 시작합니다', e);
+      console.error(t('karmomap.t402'), e);
       return Promise.resolve(null);
     }
   }
@@ -65,7 +66,7 @@ export class KarmoMapLocalStorageAdapter implements GraphPersistAdapter {
       localStorage.removeItem(this.key);
       if (before) { try { localStorage.setItem(this.prevKey(), before); } catch { /* 칸이 좁으면 포기 */ } }
     } catch (e) {
-      console.error('[karmomap] 저장본 삭제 실패', e);
+      console.error(t('karmomap.t403'), e);
     }
   }
 
@@ -101,7 +102,7 @@ export class KarmoMapLocalStorageAdapter implements GraphPersistAdapter {
     } catch (e) {
       // 용량 초과(QuotaExceeded)가 대표 케이스 — 조용히 삼키면 사용자가
       // 저장된 줄 알고 작업을 계속하다 통째로 잃는다. 그래서 알린다.
-      console.error('[karmomap] 저장 실패', e);
+      console.error(t('karmomap.t404'), e);
       alert('KarmoMap 저장에 실패했습니다. 브라우저 저장 공간을 확인해 주세요.\n(JSON 내보내기로 먼저 백업하시길 권합니다)');
     }
   }

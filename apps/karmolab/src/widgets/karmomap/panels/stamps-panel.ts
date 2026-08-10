@@ -6,6 +6,7 @@
  */
 import { loadStamps } from '../stamps';
 import type { PanelCtx } from './context';
+import { t, loadNamespace } from '../../../lib/i18n';
 
 export function renderStampsPanel(ctx: PanelCtx): void {
   const { side, esc } = ctx;
@@ -14,18 +15,18 @@ export function renderStampsPanel(ctx: PanelCtx): void {
   const list = loadStamps().sort((a, b) => b.at - a.at);
 
   side.innerHTML = `
-    <h4>🖈 본</h4>
-    <div class="km-hint">자주 쓰는 덩어리를 떠 둔 것입니다. <b>맵을 건너</b> 어디서든 찍을 수 있습니다.</div>
+    <h4>${esc(t('karmomap.t380'))}</h4>
+    <div class="km-hint">${t('karmomap.hint02', { em: `<b>${esc(t('karmomap.t382'))}</b>` })}</div>
     ${list.length === 0
-      ? '<div class="km-hint">아직 없습니다 — 여럿 고른 뒤(Shift+드래그) 「본으로 저장」.</div>'
+      ? t('karmomap.t386')
       : list.map((st) => `<div class="km-link-row">
           <span class="km-link-name">${esc(st.name)}</span>
           <span class="km-group-count">${st.nodes.length}개</span>
-          <button class="btn btn-ghost" data-km="stamp-put" data-key="${esc(st.id)}">찍기</button>
-          <button class="btn btn-ghost" data-km="stamp-del" data-key="${esc(st.id)}" title="본 지우기">×</button>
+          <button class="btn btn-ghost" data-km="stamp-put" data-key="${esc(st.id)}">${esc(t('karmomap.t384'))}</button>
+          <button class="btn btn-ghost" data-km="stamp-del" data-key="${esc(st.id)}" title="${esc(t('karmomap.t379'))}">×</button>
         </div>
-        <div class="km-hint" style="margin:-4px 0 8px">${esc(st.nodes.slice(0, 5).map((n) => n.label || '(이름 없음)').join(' · '))}${st.nodes.length > 5 ? ` 외 ${st.nodes.length - 5}` : ''}</div>`).join('')}
-    <button class="btn btn-ghost" data-km="stamp-close">닫기</button>`;
+        <div class="km-hint" style="margin:-4px 0 8px">${esc(st.nodes.slice(0, 5).map((n) => n.label || t('karmomap.unnamed')).join(' · '))}${st.nodes.length > 5 ? ' ' + t('karmomap.andMore', { n: st.nodes.length - 5 }) : ''}</div>`).join('')}
+    <button class="btn btn-ghost" data-km="stamp-close">${esc(t('karmomap.t385'))}</button>`;
 
   side.querySelectorAll('[data-km="stamp-put"]').forEach((el) => {
     (el as HTMLButtonElement).onclick = () => ctx.putStamp((el as HTMLElement).dataset.key ?? '');

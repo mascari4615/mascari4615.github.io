@@ -7,74 +7,35 @@
  *
  * 견본은 **글 문법 그대로**다(`from-text.ts`). 새 팩이 생겨도 코드가 아니라 글 한 덩이가 는다.
  */
+import { t } from '../../lib/i18n';
 
+
+/* 견본은 **한 덩이 글**이라 통째로 한 열쇠에 담는다 — 줄마다 쪼개면 들여쓰기가 뜻인 문법이 깨진다.
+   읽는 순간에 정해지도록 getter 로 둔다. */
 export const SAMPLES: Record<string, { title: string; outline: string }> = {
   worldview: {
-    title: '작은 세계관',
-    outline: [
-      '마녀의 집',
-      '  욘 : 살고 있음',
-      '    마도서 : 연구함',
-      '    링 : 만든 인형',
-      '    알리사 : 만든 인형',
-      '  마을 : 내려다봄',
-      '    대장간 : 있음',
-      '    광장 : 있음',
-    ].join('\n'),
+    get title() { return t('karmomap.sample.worldview.title'); },
+    get outline() { return t('karmomap.sample.worldview.outline'); },
   },
   relation: {
-    title: '네 사람의 관계',
-    outline: [
-      '주인공',
-      '  소꿉친구 : ♡ 좋아함',
-      '  라이벌 : ⚡ 라이벌',
-      '  선배 : ★ 신뢰',
-      '소꿉친구',
-      '  라이벌 : ? 신경쓰임',
-    ].join('\n'),
+    get title() { return t('karmomap.sample.relation.title'); },
+    get outline() { return t('karmomap.sample.relation.outline'); },
   },
   cardgame: {
-    title: '한 턴 전개',
-    outline: [
-      '패의 카드 A',
-      '  카드 B : ➲ 서치',
-      '    토큰 : ☆ 소환',
-      '      상대 몬스터 : ⚔ 공격',
-      '  묘지의 카드 C : ✕ 버림',
-      '    카드 D : ✺ 소생',
-    ].join('\n'),
+    get title() { return t('karmomap.sample.cardgame.title'); },
+    get outline() { return t('karmomap.sample.cardgame.outline'); },
   },
   concept: {
-    title: '주장 한 덩이',
-    outline: [
-      '주장',
-      '  근거 1 : 뒷받침',
-      '    사례 : 예시',
-      '  근거 2 : 뒷받침',
-      '  반론 : 반박',
-      '    재반박 : 반박',
-    ].join('\n'),
+    get title() { return t('karmomap.sample.concept.title'); },
+    get outline() { return t('karmomap.sample.concept.outline'); },
   },
   idea: {
-    title: '구상 굴리기',
-    outline: [
-      '만들고 싶은 것',
-      '  왜 만드나 : 질문',
-      '  먼저 할 일 : 파생',
-      '    막힌 곳 : 막힘',
-      '  나중에 : 이어짐',
-    ].join('\n'),
+    get title() { return t('karmomap.sample.idea.title'); },
+    get outline() { return t('karmomap.sample.idea.outline'); },
   },
   org: {
-    title: '작은 팀',
-    outline: [
-      '팀',
-      '  기획 : 담당',
-      '    기획서 : 만듦',
-      '  개발 : 담당',
-      '    시제품 : 만듦',
-      '  디자인 : 협업',
-    ].join('\n'),
+    get title() { return t('karmomap.sample.org.title'); },
+    get outline() { return t('karmomap.sample.org.outline'); },
   },
 };
 
@@ -91,7 +52,22 @@ export function sampleFor(packId: string): { title: string; outline: string } | 
  * 한꺼번에 깔린다(갈래는 고정이 아니다. 언제든 다른 종류를 섞어 쓸 수 있다).
  */
 export const INTENTS: { packId: string; icon: string; title: string; sub: string }[] = [
-  { packId: 'relation', icon: '🫂', title: '작품 관계도', sub: '좋아하는 인물들의 사이를 그린다' },
-  { packId: 'worldview', icon: '🌍', title: '내 세계관', sub: '인물·장소·사건을 한 판에 펼친다' },
-  { packId: 'concept', icon: '💭', title: '개념 설명', sub: '아이디어·구조를 남에게 보여 준다' },
+  {
+    packId: 'relation',
+    icon: '🫂',
+    get title() { return t('karmomap.intent.relation.title'); },
+    get sub() { return t('karmomap.intent.relation.sub'); },
+  },
+  {
+    packId: 'worldview',
+    icon: '🌍',
+    get title() { return t('karmomap.intent.worldview.title'); },
+    get sub() { return t('karmomap.intent.worldview.sub'); },
+  },
+  {
+    packId: 'concept',
+    icon: '💭',
+    get title() { return t('karmomap.intent.concept.title'); },
+    get sub() { return t('karmomap.intent.concept.sub'); },
+  },
 ];
