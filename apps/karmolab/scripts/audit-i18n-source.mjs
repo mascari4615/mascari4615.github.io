@@ -273,3 +273,46 @@ console.log(
   `[i18n-source] 코드 안 한국어 글자열 ${total}개 (기준선 ${base.total})` +
     (shrunk > 0 ? ` — ${shrunk}개 줄었다. \`--baseline\` 으로 잠금을 조여라` : '')
 );
+
+
+/* ── 「그 나라 것으로 바꿔치기」 훑개 ─────────────────────────────
+ * 옮기긴 했는데 **가리키는 것이 달라진** 자리가 있다. 열쇠 수 검사도, 값 검사도 못 본다 —
+ * 수도 맞고, 한국어도 아니고, 원문과 같지도 않다. 두 번 잡혔다:
+ *   · 한영키(한글/영문 자판) → `かな/英字キー` — 일본어로 읽는 사람은 자기 IME 이야기로 읽는다
+ *   · 한국 부가세·원 → `消費税`·`円` / 한글 수 → `漢数字`·「金○○円也」
+ * 기계가 「맞는 말인가」를 못 보므로, **의심 자리를 좁혀 사람에게 보여 준다**. 세우지는 않는다
+ * (坪 처럼 진짜 같은 단위인 경우가 섞여 있어, 세우면 곧 꺼진다). */
+const SWAP_PAIRS = [
+  [/부가세|부가가치세/, /消費税/, '한국 부가세 → 일본 소비세'],
+  [/한글|한영|자모|초성/, /かな|仮名|ひらがな|カタカナ/, '한글 → 일본 가나'],
+  [/한글 수|한글로 읽|한글로 적/, /漢数字/, '한글 수 → 한자 숫자'],
+  [/국세청/, /(?<!韓国)国税庁|IRS/, '한국 국세청 → 그 나라 세무서'],
+  [/[0-9]\s*원|원 미만|만원/, /円|¥|yen/i, '원 → 엔'],
+  [/주민등록/, /マイナンバー|My ?Number|Social Security/i, '주민등록 → 그 나라 신분번호'],
+];
+{
+  const suspect = [];
+  for (const loc of ['en', 'ja']) {
+    for (const f of fs.readdirSync(path.join(root, 'i18n', 'ko'))) {
+      const kp = path.join(root, 'i18n', 'ko', f);
+      const tp = path.join(root, 'i18n', loc, f);
+      if (!fs.existsSync(tp)) continue;
+      const ko = JSON.parse(fs.readFileSync(kp, 'utf8'));
+      const tr = JSON.parse(fs.readFileSync(tp, 'utf8'));
+      for (const [k, v] of Object.entries(ko)) {
+        const t = tr[k];
+        if (typeof v !== 'string' || typeof t !== 'string') continue;
+        for (const [koRe, badRe, why] of SWAP_PAIRS) {
+          if (koRe.test(v) && badRe.test(t)) suspect.push(`${loc}/${k} — ${why}`);
+        }
+      }
+    }
+  }
+  if (suspect.length) {
+    console.log(`[i18n-source] 「그 나라 것으로 바꿔치기」 의심 ${suspect.length}개 — 사람이 읽고 판단하라:`);
+    for (const line of suspect.slice(0, 12)) console.log('  ' + line);
+    if (suspect.length > 12) console.log(`  … 그 밖 ${suspect.length - 12}개`);
+  } else {
+    console.log('[i18n-source] 바꿔치기 의심 0');
+  }
+}
