@@ -13,7 +13,7 @@
  *
  * 서버(집 노트북)에 못 닿으면 광장만 조용히 닫힌다. 도구는 그대로 돈다.
  */
-import { t, loadNamespace } from '../lib/i18n';
+import { t, loadNamespace, locale } from '../lib/i18n';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -169,7 +169,7 @@ import { t, loadNamespace } from '../lib/i18n';
     }
 
     function num(value: unknown): string {
-        return Number(value || 0).toLocaleString('ko-KR');
+        return Number(value || 0).toLocaleString(locale());
     }
 
     /** 도구 id → 사람이 읽는 이름. 모르면 id 그대로 (지어내지 않는다). */

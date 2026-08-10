@@ -5,7 +5,7 @@
  * 전부 다른 식인데, 계산기 하나에 몰아넣으면 어느 칸에 뭘 넣을지부터 헷갈린다.
  * 그래서 **질문 문장 그대로** 줄을 나누고, 각 줄이 빈칸 채우기가 되게 한다.
  */
-import { t, loadNamespace } from '../../lib/i18n';
+import { t, loadNamespace, locale } from '../../lib/i18n';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -14,7 +14,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   const fmt = (n: number): string => {
     if (!isFinite(n)) return '—';
     const r = Math.round(n * 1e6) / 1e6;
-    return r.toLocaleString('ko-KR', { maximumFractionDigits: 6 });
+    return r.toLocaleString(locale(), { maximumFractionDigits: 6 });
   };
 
   interface Row {

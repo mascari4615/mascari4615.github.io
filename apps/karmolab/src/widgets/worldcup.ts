@@ -21,7 +21,7 @@ import { onPageActive, takePick } from './pack-pick';
 import { joinRoom, selfId } from 'trystero/nostr';
 import { agreement, roundChoices, seededRandom, shuffled, type Match, type Runner } from '../lib/tournament';
 import { copyResultCard } from '../lib/result-card';
-import { t, loadNamespace } from '../lib/i18n';
+import { t, loadNamespace, locale } from '../lib/i18n';
 
 const API_BASE = 'https://yawnbot.mascari4615.com';
 /** 이 브라우저에 남기는 지난 판 (「작년의 나는 누구를 골랐나」). */
@@ -589,7 +589,7 @@ const BUILTIN = [
                 lines: [
                   `${runners.length}강`,
                   beat ? `결승에서 ${beat.lose} 를 이겼습니다` : '',
-                  new Date(last.at).toLocaleDateString('ko-KR')
+                  new Date(last.at).toLocaleDateString(locale())
                 ].filter(Boolean),
                 imageUrl: last.img
               },

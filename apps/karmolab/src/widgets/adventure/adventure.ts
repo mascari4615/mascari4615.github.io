@@ -21,7 +21,7 @@ import { buildSettingsPanel } from './settings';
 import { showEndModal } from './end-modal';
 import { generateAdventureImage } from './imagegen';
 import { attachImageRef } from './turn-loop';
-import { t, loadNamespace } from '../../lib/i18n';
+import { t, loadNamespace, locale } from '../../lib/i18n';
 
 (function () {
   type ElProps<K extends keyof HTMLElementTagNameMap> = Omit<Partial<HTMLElementTagNameMap[K]>, 'style'> & {
@@ -223,7 +223,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           });
           card.dataset.slug = slug;
 
-          const date = new Date(saved.startedAt).toLocaleString('ko-KR', {
+          const date = new Date(saved.startedAt).toLocaleString(locale(), {
             year: 'numeric', month: '2-digit', day: '2-digit',
             hour: '2-digit', minute: '2-digit',
           });

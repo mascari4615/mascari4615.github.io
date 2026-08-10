@@ -3,7 +3,7 @@
  * agent-team.ts build() 로직 이식. Toolbox.register X — cockpit.ts 가 탭으로 마운트.
  */
 import { invoke as tauriInvoke } from '../../tauri-bridge';
-import { t, loadNamespace } from '../../lib/i18n';
+import { t, loadNamespace, locale } from '../../lib/i18n';
 
 /** 화면에 그대로 박는 글은 태그로 읽히면 안 된다. */
 const esc = (v: unknown): string =>
@@ -410,7 +410,7 @@ export function buildTeamTab(container: HTMLElement): void {
       const activeAgents = (agents as AgentInfo[]).filter((a) => (a.status || '').toLowerCase() === 'active').length;
       const pendingProposals = (proposals as ProposalInfo[]).filter((p) => !p.decided).length;
       const liveSessions = (sessions as SessionInfo[]).filter((s) => /in_progress|active|deploy/i.test(s.state)).length;
-      const time = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+      const time = new Date().toLocaleTimeString(locale(), { hour12: false });
       const repoShort = repoRoot.split(/[\\/]/).slice(-2).join('/');
       meta.innerHTML = t('cockpit.statusLine', { time: esc(time), repo: esc(repoShort), cores: activeAgents, sessions: liveSessions, pending: pendingProposals, tasks: tasks.length, last24h });
     } catch (e) {

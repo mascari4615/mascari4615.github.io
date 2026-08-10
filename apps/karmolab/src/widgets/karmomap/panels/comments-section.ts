@@ -9,7 +9,7 @@
  */
 import type { GraphComment } from '../../../lib/graph/spec';
 import type { PanelCtx } from './context';
-import { t, loadNamespace } from '../../../lib/i18n';
+import { t, loadNamespace, locale } from '../../../lib/i18n';
 
 function listOf(ctx: PanelCtx): GraphComment[] {
   const spec = ctx.spec();
@@ -23,7 +23,7 @@ function ago(at: number): string {
   if (s < 60) return t('karmomap.t401');
   if (s < 3600) return t('karmomap.minsAgo', { n: Math.floor(s / 60) });
   if (s < 86400) return t('karmomap.hoursAgo', { n: Math.floor(s / 3600) });
-  return new Date(at).toLocaleDateString('ko-KR');
+  return new Date(at).toLocaleDateString(locale());
 }
 
 export function commentsSectionHtml(ctx: PanelCtx, onId: string): string {

@@ -19,7 +19,7 @@
  * 뒤로 가기로 목록↔글을 오간다.
  */
 import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './community-markdown';
-import { t, loadNamespace } from '../lib/i18n';
+import { t, loadNamespace, locale } from '../lib/i18n';
 
 (function (): void {
     interface Board {
@@ -455,7 +455,7 @@ import { t, loadNamespace } from '../lib/i18n';
         if (hours < 24) return t('community.ago.hour', { n: hours });
         const days = Math.floor(hours / 24);
         if (days < 30) return t('community.ago.day', { n: days });
-        return new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium', timeZone: 'Asia/Seoul' }).format(new Date(then));
+        return new Intl.DateTimeFormat(locale(), { dateStyle: 'medium', timeZone: 'Asia/Seoul' }).format(new Date(then));
     }
 
     const preview = plainPreview;
@@ -601,7 +601,7 @@ import { t, loadNamespace } from '../lib/i18n';
             at: new Date().toISOString(),
         };
         const text = FAILURE_TEXT[failure.kind];
-        const stamp = new Intl.DateTimeFormat('ko-KR', {
+        const stamp = new Intl.DateTimeFormat(locale(), {
             timeZone: 'Asia/Seoul',
             dateStyle: 'short',
             timeStyle: 'medium',
@@ -1426,7 +1426,7 @@ import { t, loadNamespace } from '../lib/i18n';
         const stamp = (iso: string): string => {
             const at = new Date(iso);
             if (Number.isNaN(at.getTime())) return '';
-            const kst = new Intl.DateTimeFormat('ko-KR', {
+            const kst = new Intl.DateTimeFormat(locale(), {
                 timeZone: 'Asia/Seoul',
                 month: '2-digit',
                 day: '2-digit',
@@ -1435,7 +1435,7 @@ import { t, loadNamespace } from '../lib/i18n';
                 hour12: false,
             }).formatToParts(at);
             const get = (type: string): string => kst.find((x) => x.type === type)?.value ?? '';
-            const todayParts = new Intl.DateTimeFormat('ko-KR', {
+            const todayParts = new Intl.DateTimeFormat(locale(), {
                 timeZone: 'Asia/Seoul',
                 month: '2-digit',
                 day: '2-digit',

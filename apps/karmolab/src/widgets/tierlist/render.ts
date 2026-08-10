@@ -1,4 +1,4 @@
-import { t, loadNamespace } from '../../lib/i18n';
+import { t, loadNamespace, locale } from '../../lib/i18n';
 
 (function () {
     const T = ((window.Tierlist = window.Tierlist || {}) as unknown) as TierlistNamespace;
@@ -38,7 +38,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     function optionsFromPublishedRows(rows: TlPublishedIndexItem[], meta: TlCurrentMetaView): string {
         if (!rows.length) return t('tierlist.t36');
         return [...rows]
-            .sort((a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'ko-KR'))
+            .sort((a, b) => String(a.title || '').localeCompare(String(b.title || ''), locale()))
             .map((it) => {
                 const selected = T.state.isPublishedMode() && meta.url === it.url;
                 const esc = Toolbox.escapeHtml ?? ((s: string) => s);
@@ -50,7 +50,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     async function buildListSelectorHtml(st: TlState, meta: TlCurrentMetaView): Promise<string> {
         const esc = Toolbox.escapeHtml ?? ((s: string) => s);
         const localInst = Object.values(st.instances || {})
-            .sort((a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'ko-KR'))
+            .sort((a, b) => String(a.title || '').localeCompare(String(b.title || ''), locale()))
             .map((l) => {
                 const val = `local:${l.id}`;
                 const sel = !T.state.isPublishedMode() && l.id === st.currentInstanceId;

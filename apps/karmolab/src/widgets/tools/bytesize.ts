@@ -5,7 +5,7 @@
  * 운영체제는 1024 배로 센다(TiB). 같은 이름을 두 뜻으로 쓰기 때문에 생기는 차이라,
  * **두 계열을 나란히** 보여주고 차이를 %로 적는다.
  */
-import { t, loadNamespace } from '../../lib/i18n';
+import { t, loadNamespace, locale } from '../../lib/i18n';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -15,7 +15,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   const BIN = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
 
   const fmt = (n: number): string =>
-    n >= 1000 || Number.isInteger(n) ? n.toLocaleString('ko-KR', { maximumFractionDigits: 2 }) : n.toFixed(3);
+    n >= 1000 || Number.isInteger(n) ? n.toLocaleString(locale(), { maximumFractionDigits: 2 }) : n.toFixed(3);
 
   Toolbox.register({
     id: 'bytesize',
@@ -88,7 +88,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             const decVal = bytes / Math.pow(1000, level);
             const binVal = bytes / Math.pow(1024, level);
             note.innerHTML =
-              row(t('bytesize.stat.bytes'), `${Math.round(bytes).toLocaleString('ko-KR')} B`) +
+              row(t('bytesize.stat.bytes'), `${Math.round(bytes).toLocaleString(locale())} B`) +
               row(t('bytesize.stat.gap'), `${fmt(decVal)} ${DEC[level]} = ${fmt(binVal)} ${BIN[level]}`) +
               row(
                 t('bytesize.row.diff'),

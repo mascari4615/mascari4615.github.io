@@ -16,7 +16,7 @@
  */
 import { loadPacks, putPack, type Pack, type PackField, type PackItem } from './pack-store';
 import { putPick } from './pack-pick';
-import { t, loadNamespace } from '../lib/i18n';
+import { t, loadNamespace, locale } from '../lib/i18n';
 
 const API_BASE = 'https://yawnbot.mascari4615.com';
 const TIMEOUT_MS = 30000;
@@ -57,7 +57,7 @@ interface WellPack {
   function whenText(iso: string): string {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return '';
-    return d.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', dateStyle: 'medium', timeStyle: 'short' });
+    return d.toLocaleString(locale(), { timeZone: 'Asia/Seoul', dateStyle: 'medium', timeStyle: 'short' });
   }
 
   /** 기존 「오늘의 문제」와 같은 대조 규칙 — 소문자·공백·쉼표를 지우고 잰다. */

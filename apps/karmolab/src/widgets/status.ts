@@ -12,7 +12,7 @@
  * 서버에 못 닿는 것 자체가 답이다. 그때는 자리를 숨기지 않고 **못 닿았다고 적는다** —
  * 여기는 「지금 어떤가」를 보러 오는 자리라, 여기서까지 조용하면 볼 곳이 없다.
  */
-import { t, loadNamespace } from '../lib/i18n';
+import { t, loadNamespace, locale } from '../lib/i18n';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -41,7 +41,7 @@ import { t, loadNamespace } from '../lib/i18n';
 
 
     function num(value: unknown): string {
-        return Number(value || 0).toLocaleString('ko-KR');
+        return Number(value || 0).toLocaleString(locale());
     }
 
     /** 언제였나 — 「2026-08-08 00:12」 보다 「3시간 전」이 사람에게 먼저 읽힌다. */
