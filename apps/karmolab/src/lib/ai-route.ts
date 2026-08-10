@@ -12,6 +12,11 @@
  * 아무 것도 안 갖춘 사람에게도 도구는 그대로 열려야 한다 — AI 는 그 위에 얹히는 것이다.
  * 그래서 아래 판정의 기본값은 `off` 이고, 그건 「고장」이 아니라 「그냥 도구」다.
  */
+import { t, loadNamespace } from './i18n';
+
+/* 이 파일은 위젯이 아니라 **셸·라이브러리**다 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+   빌드는 브라우저 밖에서도 이 파일을 읽으므로 document 가 있을 때만 부른다. */
+if (typeof document !== 'undefined') void loadNamespace('airoute');
 
 export type AiRoute =
   /** 사용자 키로 원격 호출. 빠르고 품질이 좋다. */
@@ -50,25 +55,25 @@ export interface AiDecision {
  */
 export function chooseRoute(ctx: AiContext): AiDecision {
   if (ctx.tooSmall === true) {
-    return { route: 'off', why: '이 기기에서는 로컬 모델이 버겁습니다 — AI 없이 도구만 씁니다' };
+    return { route: 'off', why: t('airoute.t01') };
   }
   /* 위에서 tooSmall 을 이미 걸렀다 — 여기서 또 보면 타입상 늘 참이라 뜻이 없다. */
   const canLocal = ctx.webgpu;
 
   if (ctx.preferLocal === true && canLocal) {
     return ctx.modelCached
-      ? { route: 'local', why: '기기 안에서 처리합니다 (내보내지 않기를 골랐습니다)' }
-      : { route: 'gate', why: '기기 안에서 처리하려면 모델을 한 번 받아야 합니다' };
+      ? { route: 'local', why: t('airoute.t02') }
+      : { route: 'gate', why: t('airoute.t03') };
   }
-  if (ctx.hasKey) return { route: 'remote', why: '내 키로 원격 호출합니다 (빠르고 품질이 좋습니다)' };
-  if (canLocal && ctx.modelCached) return { route: 'local', why: '받아 둔 모델로 기기 안에서 처리합니다 (키 불필요)' };
-  if (canLocal) return { route: 'gate', why: '키 없이 쓸 수 있습니다 — 모델을 한 번 받으면 됩니다' };
+  if (ctx.hasKey) return { route: 'remote', why: t('airoute.t04') };
+  if (canLocal && ctx.modelCached) return { route: 'local', why: t('airoute.t05') };
+  if (canLocal) return { route: 'gate', why: t('airoute.t06') };
 
   return {
     route: 'off',
     why: ctx.webgpu
-      ? 'AI 기능은 지금 못 씁니다 — 도구는 그대로 쓸 수 있습니다'
-      : '이 브라우저는 WebGPU 를 지원하지 않습니다 — 도구는 그대로 쓸 수 있습니다'
+      ? t('airoute.t07')
+      : t('airoute.t08')
   };
 }
 
@@ -101,14 +106,14 @@ export function explainFailure(stage: AiFailStage, detail = ''): AiFailure {
     case 'support':
       return {
         stage,
-        say: `이 브라우저는 로컬 AI 를 못 돌립니다${tail} — 도구 자체는 그대로 씁니다`,
+        say: t('airoute.noLocal', { tail }),
         retryable: false,
         suggestRemote: true
       };
     case 'download':
       return {
         stage,
-        say: `모델을 받다 끊겼습니다${tail} — 다시 받거나, 키를 넣어 원격으로 쓸 수 있습니다`,
+        say: t('airoute.downloadCut', { tail }),
         retryable: true,
         suggestRemote: true
       };
@@ -118,14 +123,14 @@ export function explainFailure(stage: AiFailStage, detail = ''): AiFailure {
         /* 여기서 「작게 해서 다시」를 권하지 않는다 — 적재 실패는 입력 크기와 무관하다. */
         say:
           `모델을 GPU 에 올리지 못했습니다${tail} — 지금 비어 있는 그래픽 메모리가 모자라거나,` +
-          ' 이 기기의 그래픽 설정이 안 맞는 경우입니다. 다른 무거운 탭을 닫고 다시 해 보세요.',
+          t('airoute.t09'),
         retryable: true,
         suggestRemote: true
       };
     case 'run':
       return {
         stage,
-        say: `처리 중에 멈췄습니다${tail} — 입력을 조금 줄여 다시 해 보세요`,
+        say: t('airoute.stalled', { tail }),
         retryable: true,
         suggestRemote: false
       };
@@ -135,6 +140,6 @@ export function explainFailure(stage: AiFailStage, detail = ''): AiFailure {
 /** 받기 전에 **얼마나 걸리는지** 먼저 말한다 (12 § 2). 숫자 없이 「잠시만」은 안 된다. */
 export function downloadNotice(sizeMb: number, mbps = 20): string {
   const seconds = Math.max(1, Math.round((sizeMb * 8) / mbps));
-  const time = seconds < 60 ? `${seconds}초` : `${Math.round(seconds / 60)}분`;
-  return `${sizeMb}MB 를 한 번 받습니다 — 이 정도 속도면 약 ${time}. 다음부터는 바로 열립니다.`;
+  const time = seconds < 60 ? t('airoute.sec', { n: seconds }) : t('airoute.min', { n: Math.round(seconds / 60) });
+  return t('airoute.downloadNote', { mb: sizeMb, time });
 }

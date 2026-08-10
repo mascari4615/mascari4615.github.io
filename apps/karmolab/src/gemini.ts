@@ -30,6 +30,14 @@ import {
   DOC_URL_VERTEX_API_KEYS,
   type ModelProvider,
 } from 'karmolab-ai';
+import { t, loadNamespace } from './lib/i18n';
+
+/* 이 파일은 위젯이 아니라 **셸·라이브러리**다 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+   빌드는 브라우저 밖에서도 이 파일을 읽으므로 document 가 있을 때만 부른다. */
+if (typeof document !== 'undefined') void loadNamespace('gemini');
+
+const esc = (v: unknown): string =>
+  String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /* ===== 내부 타입 (Gemini IIFE 와 ImageDB IIFE 공용) ===== */
 interface ApiKeyProfile {
@@ -168,7 +176,7 @@ const Gemini = (() => {
                 if (Array.isArray(obj.profiles)) {
                     const profiles = obj.profiles as ApiKeyProfile[];
                     if (!profiles.length) {
-                        profiles.push({ id: 'default', name: '기본', key: '' });
+                        profiles.push({ id: 'default', name: t('gemini.t15'), key: '' });
                     }
                     const activeId = (typeof obj.activeId === 'string' && obj.activeId) || profiles[0].id;
                     return { activeId, profiles };
@@ -177,9 +185,9 @@ const Gemini = (() => {
                 const keys = obj.keys as { free?: string; paid?: string } | undefined;
                 if (keys) {
                     const profiles: ApiKeyProfile[] = [];
-                    if (keys.free) profiles.push({ id: 'free', name: '무료', key: keys.free });
-                    if (keys.paid) profiles.push({ id: 'paid', name: '유료', key: keys.paid });
-                    if (!profiles.length) profiles.push({ id: 'default', name: '기본', key: '' });
+                    if (keys.free) profiles.push({ id: 'free', name: t('gemini.t16'), key: keys.free });
+                    if (keys.paid) profiles.push({ id: 'paid', name: t('gemini.t17'), key: keys.paid });
+                    if (!profiles.length) profiles.push({ id: 'default', name: t('gemini.t15'), key: '' });
                     const activeId = profiles.find(p => p.id === obj.active)?.id || profiles[0].id;
                     const migrated: ApiKeyStore = { activeId, profiles };
                     localStorage.setItem(KEYS_STORE_KEY, JSON.stringify(migrated));
@@ -191,8 +199,8 @@ const Gemini = (() => {
         // 3) 더 구버전: STORAGE_KEY 단일 키
         const legacy = localStorage.getItem(STORAGE_KEY) || '';
         const baseProfile: ApiKeyProfile = legacy
-            ? { id: 'default', name: '기본', key: legacy }
-            : { id: 'default', name: '기본', key: '' };
+            ? { id: 'default', name: t('gemini.t15'), key: legacy }
+            : { id: 'default', name: t('gemini.t15'), key: '' };
         const store: ApiKeyStore = { activeId: baseProfile.id, profiles: [baseProfile] };
         localStorage.setItem(KEYS_STORE_KEY, JSON.stringify(store));
         return store;
@@ -238,7 +246,7 @@ const Gemini = (() => {
         if (!pid) {
             pid = 'profile_' + Date.now();
             store.profiles = store.profiles || [];
-            store.profiles.push({ id: pid, name: nameOverride || '프로필', key: '' });
+            store.profiles.push({ id: pid, name: nameOverride || t('gemini.profileName'), key: '' });
             store.activeId = pid;
         }
         const idx = (store.profiles || []).findIndex(p => p.id === pid);
@@ -246,7 +254,7 @@ const Gemini = (() => {
             store.profiles[idx].key = key;
             if (nameOverride) store.profiles[idx].name = nameOverride;
         } else {
-            store.profiles.push({ id: pid, name: nameOverride || '프로필', key });
+            store.profiles.push({ id: pid, name: nameOverride || t('gemini.profileName'), key });
         }
         saveKeyStore(store);
     }
@@ -254,7 +262,7 @@ const Gemini = (() => {
     function requireApiKey() {
         const key = getApiKey();
         if (!key) {
-            Toolbox.showToast('API 키를 먼저 설정해주세요.', 'error');
+            Toolbox.showToast(t('gemini.t18'), 'error');
             return null;
         }
         return key;
@@ -279,7 +287,7 @@ const Gemini = (() => {
     function requireVertexApiKey() {
         const key = getVertexApiKey();
         if (!key) {
-            Toolbox.showToast('Vertex AI API 키를 설정에서 먼저 입력해주세요.', 'error');
+            Toolbox.showToast(t('gemini.t19'), 'error');
             return null;
         }
         return key;
@@ -382,7 +390,7 @@ const Gemini = (() => {
             const response = await fetch(url, fetchOpts);
 
             if (!response.ok) {
-                let errorDetails = '상세 정보 없음';
+                let errorDetails = t('gemini.t20');
                 let fullError: GeminiResponseBody | null = null;
                 try {
                     fullError = await response.json() as GeminiResponseBody;
@@ -404,10 +412,10 @@ const Gemini = (() => {
                 }
 
                 let userMessage = errorDetails;
-                if (response.status === 401) userMessage = 'API 키 인증 실패. 올바른 API 키를 확인해주세요.';
-                else if (response.status === 403) userMessage = 'API 접근이 거부되었습니다.';
-                else if (response.status === 429) userMessage = 'API 요청 한도 초과. 잠시 후 다시 시도해주세요.';
-                else if (response.status === 500) userMessage = 'Google API 서버 오류. 잠시 후 다시 시도해주세요.';
+                if (response.status === 401) userMessage = t('gemini.t21');
+                else if (response.status === 403) userMessage = t('gemini.t22');
+                else if (response.status === 429) userMessage = t('gemini.t23');
+                else if (response.status === 500) userMessage = t('gemini.t24');
 
                 console.warn(`[Gemini API] ${response.status} ${url ? maskUrl(url) : ''}`);
                 throw new Error(`[HTTP ${response.status}] ${userMessage}`);
@@ -416,9 +424,9 @@ const Gemini = (() => {
             return response;
         } catch (e: unknown) {
             if (e instanceof Error) {
-                if (e.name === 'AbortError') throw new Error('요청이 취소되었습니다.');
+                if (e.name === 'AbortError') throw new Error(t('gemini.err.25'));
                 if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
-                    throw new Error('네트워크 연결 오류. 인터넷 연결을 확인해주세요.');
+                    throw new Error(t('gemini.err.26'));
                 }
             }
             throw e;
@@ -442,7 +450,7 @@ const Gemini = (() => {
         const data = await res.json() as GeminiResponseBody;
 
         if (!data.candidates || !data.candidates[0]) {
-            throw new Error('응답에 결과가 없습니다: ' + JSON.stringify(data));
+            throw new Error(t('gemini.err.27') + JSON.stringify(data));
         }
 
         return {
@@ -476,7 +484,7 @@ const Gemini = (() => {
         const data = await res.json() as GeminiResponseBody;
 
         if (!data.candidates || !data.candidates[0]?.content) {
-            throw new Error('응답에 결과가 없습니다.');
+            throw new Error(t('gemini.err.28'));
         }
 
         return {
@@ -551,7 +559,7 @@ const Gemini = (() => {
 
         const { projectId, location } = getVertexChatContext(options);
         if (!projectId) {
-            throw new Error('Vertex 채팅·텍스트에는 GCP 프로젝트 ID가 필요합니다. 사용자 설정에서 프로젝트 ID를 입력하세요.');
+            throw new Error(t('gemini.err.29'));
         }
 
         const model = modelId || getDefaultModel('gemini');
@@ -572,10 +580,10 @@ const Gemini = (() => {
         const data = await res.json() as GeminiResponseBody;
 
         if (data.error) {
-            throw new Error(data.error.message || data.error.status || 'Vertex API 오류');
+            throw new Error(data.error.message || data.error.status || t('gemini.vertexError'));
         }
         if (!data.candidates || !data.candidates[0]) {
-            throw new Error('응답에 결과가 없습니다: ' + JSON.stringify(data));
+            throw new Error(t('gemini.err.27') + JSON.stringify(data));
         }
 
         return {
@@ -590,7 +598,7 @@ const Gemini = (() => {
 
         const { projectId, location } = getVertexChatContext(options);
         if (!projectId) {
-            throw new Error('Vertex 채팅·텍스트에는 GCP 프로젝트 ID가 필요합니다. 사용자 설정에서 프로젝트 ID를 입력하세요.');
+            throw new Error(t('gemini.err.29'));
         }
 
         const model = modelId || getDefaultModel('gemini');
@@ -615,10 +623,10 @@ const Gemini = (() => {
         const data = await res.json() as GeminiResponseBody;
 
         if (data.error) {
-            throw new Error(data.error.message || data.error.status || 'Vertex API 오류');
+            throw new Error(data.error.message || data.error.status || t('gemini.vertexError'));
         }
         if (!data.candidates || !data.candidates[0]?.content) {
-            throw new Error('응답에 결과가 없습니다.');
+            throw new Error(t('gemini.err.28'));
         }
 
         return {
@@ -633,7 +641,7 @@ const Gemini = (() => {
 
         const { projectId, location } = getVertexChatContext(options);
         if (!projectId) {
-            throw new Error('Vertex 채팅·텍스트에는 GCP 프로젝트 ID가 필요합니다. 사용자 설정에서 프로젝트 ID를 입력하세요.');
+            throw new Error(t('gemini.err.29'));
         }
 
         const model = modelId || getDefaultModel('gemini');
@@ -708,7 +716,7 @@ const Gemini = (() => {
      */
     async function callGeminiImage(prompt: string, modelId: string | undefined, options: GeminiImageOptions = {}) {
         const key = requireApiKey();
-        if (!key) throw new Error('API 키가 설정되지 않았습니다.');
+        if (!key) throw new Error(t('gemini.err.34'));
 
         const model = modelId || getDefaultModel('geminiImage');
         const url = buildAiStudioGenerateContentUrl(model, key);
@@ -725,7 +733,7 @@ const Gemini = (() => {
         if (options.referenceImage) {
             let b64 = options.referenceImage;
             if (typeof b64 === 'string' && b64.includes(',')) b64 = b64.split(',')[1];
-            if (typeof b64 !== 'string' || !b64.length) throw new Error('참조 이미지(base64)가 비어 있습니다.');
+            if (typeof b64 !== 'string' || !b64.length) throw new Error(t('gemini.err.35'));
             parts.push({
                 inlineData: {
                     mimeType: options.referenceMimeType || 'image/png',
@@ -764,10 +772,10 @@ const Gemini = (() => {
             throw new Error(msg);
         }
         if (data.candidates && data.candidates[0]?.finishReason === 'SAFETY') {
-            throw new Error('안전 필터에 의해 차단되었습니다.');
+            throw new Error(t('gemini.err.36'));
         }
         if (!data.candidates || data.candidates.length === 0) {
-            throw new Error('이미지 데이터가 없습니다. (API가 candidates를 반환하지 않음)');
+            throw new Error(t('gemini.err.37'));
         }
         const cand = data.candidates[0];
         if (!cand.content || !cand.content.parts?.length) {
@@ -779,8 +787,8 @@ const Gemini = (() => {
         if (!imageData?.inlineData) {
             const hasText = cand.content.parts.some(p => p.text);
             throw new Error(hasText
-                ? '이미지 대신 텍스트만 반환되었습니다. 이 모델은 이미지 생성이 제한되거나, 프롬프트/안전 필터로 인해 이미지가 생성되지 않았을 수 있습니다.'
-                : '이미지를 찾을 수 없습니다.');
+                ? t('gemini.t38')
+                : t('gemini.t39'));
         }
 
         return {
@@ -798,12 +806,12 @@ const Gemini = (() => {
      */
     async function callVertexGeminiImage(prompt: string, modelId: string | undefined, options: VertexGeminiImageOptions = {}) {
         const key = requireVertexApiKey();
-        if (!key) throw new Error('Vertex API 키가 설정되지 않았습니다.');
+        if (!key) throw new Error(t('gemini.err.40'));
 
         const model = modelId || getDefaultModel('geminiImage');
         const projectId = (options.projectId || '').trim();
         if (!projectId) {
-            throw new Error('Vertex Gemini 이미지에는 GCP 프로젝트 ID가 필요합니다. 위젯에 프로젝트 ID를 입력하세요.');
+            throw new Error(t('gemini.err.41'));
         }
         const location = (options.location || DEFAULT_VERTEX_LOCATION).trim() || DEFAULT_VERTEX_LOCATION;
 
@@ -827,7 +835,7 @@ const Gemini = (() => {
         if (options.referenceImage) {
             let b64 = options.referenceImage;
             if (typeof b64 === 'string' && b64.includes(',')) b64 = b64.split(',')[1];
-            if (typeof b64 !== 'string' || !b64.length) throw new Error('참조 이미지(base64)가 비어 있습니다.');
+            if (typeof b64 !== 'string' || !b64.length) throw new Error(t('gemini.err.35'));
             parts.push({
                 inlineData: {
                     mimeType: options.referenceMimeType || 'image/png',
@@ -866,10 +874,10 @@ const Gemini = (() => {
             throw new Error(msg);
         }
         if (data.candidates && data.candidates[0]?.finishReason === 'SAFETY') {
-            throw new Error('안전 필터에 의해 차단되었습니다.');
+            throw new Error(t('gemini.err.36'));
         }
         if (!data.candidates || data.candidates.length === 0) {
-            throw new Error('이미지 데이터가 없습니다. (API가 candidates를 반환하지 않음)');
+            throw new Error(t('gemini.err.37'));
         }
         const cand = data.candidates[0];
         if (!cand.content || !cand.content.parts?.length) {
@@ -881,8 +889,8 @@ const Gemini = (() => {
         if (!imageData?.inlineData) {
             const hasText = cand.content.parts.some(p => p.text);
             throw new Error(hasText
-                ? '이미지 대신 텍스트만 반환되었습니다. 이 모델은 이미지 생성이 제한되거나, 프롬프트/안전 필터로 인해 이미지가 생성되지 않았을 수 있습니다.'
-                : '이미지를 찾을 수 없습니다.');
+                ? t('gemini.t38')
+                : t('gemini.t39'));
         }
 
         return {
@@ -901,7 +909,7 @@ const Gemini = (() => {
      */
     async function callImagen(prompt: string, modelId: string | undefined, count: number = 1, options: ImagenOptions = {}): Promise<string[]> {
         const key = requireApiKey();
-        if (!key) throw new Error('API 키가 설정되지 않았습니다.');
+        if (!key) throw new Error(t('gemini.err.34'));
 
         const model = modelId || getDefaultModel('imagen');
         const url = buildAiStudioPredictUrl(model, key);
@@ -929,12 +937,12 @@ const Gemini = (() => {
         });
 
         if (!data.predictions || data.predictions.length === 0) {
-            throw new Error('이미지 생성 결과가 없습니다.');
+            throw new Error(t('gemini.err.46'));
         }
 
         return data.predictions.map((p) => {
             const pred = p as ImagenPrediction;
-            if (!pred.bytesBase64Encoded) throw new Error('base64 이미지 데이터 없음');
+            if (!pred.bytesBase64Encoded) throw new Error(t('gemini.err.47'));
             return `data:image/png;base64,${pred.bytesBase64Encoded}`;
         });
     }
@@ -956,11 +964,11 @@ const Gemini = (() => {
      */
     async function callVertexImagen(prompt: string, modelId: string | undefined, count: number = 1, options: VertexImagenOptions = {}): Promise<string[]> {
         const key = requireVertexApiKey();
-        if (!key) throw new Error('Vertex API 키가 설정되지 않았습니다.');
+        if (!key) throw new Error(t('gemini.err.40'));
 
         const projectId = (options.projectId || '').trim();
         if (!projectId) {
-            throw new Error('Vertex Imagen에는 GCP 프로젝트 ID가 필요합니다. 위젯에 프로젝트 ID를 입력하세요.');
+            throw new Error(t('gemini.err.49'));
         }
 
         const location = (options.location || DEFAULT_VERTEX_LOCATION).trim() || DEFAULT_VERTEX_LOCATION;
@@ -1001,12 +1009,12 @@ const Gemini = (() => {
             throw new Error(msg);
         }
         if (!data.predictions || data.predictions.length === 0) {
-            throw new Error('이미지 생성 결과가 없습니다.');
+            throw new Error(t('gemini.err.46'));
         }
 
         return data.predictions.map((p) => {
             const b64 = extractImagenPredictionBase64(p as ImagenPrediction);
-            if (!b64) throw new Error('base64 이미지 데이터 없음 (필터 차단 또는 응답 형식 불일치)');
+            if (!b64) throw new Error(t('gemini.err.51'));
             return `data:image/png;base64,${b64}`;
         });
     }
@@ -1018,44 +1026,44 @@ const Gemini = (() => {
         const activeId = store.activeId;
         const html = `
             <div class="field-group">
-                <label class="field-label">🔑 Google AI Studio (Gemini API) — 프로필</label>
+                <label class="field-label">${esc(t('gemini.t02'))}</label>
                 <div id="${idPrefix}ApiProfileList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
                 <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
-                    <button type="button" class="btn btn-ghost" id="${idPrefix}ApiAdd" style="font-size:var(--font-size-xs);padding:4px 10px;">+ 프로필 추가</button>
-                    <span style="font-size:var(--font-size-2xs);color:var(--text-tertiary);">여러 개의 키를 저장해두고 상황에 따라 활성 프로필을 선택할 수 있습니다.</span>
+                    <button type="button" class="btn btn-ghost" id="${idPrefix}ApiAdd" style="font-size:var(--font-size-xs);padding:4px 10px;">${esc(t('gemini.btn.idPrefixApiAdd'))}</button>
+                    <span style="font-size:var(--font-size-2xs);color:var(--text-tertiary);">${esc(t('gemini.t03'))}</span>
                 </div>
                 <div style="font-size:var(--font-size-2xs);margin-top:4px;color:var(--text-tertiary);">
-                    Google AI Studio에서 발급: <a href="${DOC_URL_AI_STUDIO_API_KEY}" target="_blank" rel="noopener" style="color:var(--accent);">API 키 발급 페이지</a>
+                    ${esc(t('gemini.t04'))} <a href="${DOC_URL_AI_STUDIO_API_KEY}" target="_blank" rel="noopener" style="color:var(--accent);">${esc(t('gemini.t05'))}</a>
                 </div>
                 <div style="font-size:var(--font-size-2xs);margin-top:4px;color:#facc15;">
-                    ⚠️ API 키는 브라우저 localStorage에 평문 저장됩니다. 공용 PC에서는 사용 후 반드시 삭제하세요.
+                    ${esc(t('gemini.t06'))}
                 </div>
             </div>
             <div class="field-group">
-                <label class="field-label">☁️ Vertex AI (Google Cloud API 키)</label>
+                <label class="field-label">${esc(t('gemini.t07'))}</label>
                 <p style="font-size:var(--font-size-2xs);color:var(--text-tertiary);margin:0 0 8px 0;">
-                    AI Studio 키와는 <strong>별도</strong>입니다. Vertex / Express 모드 등에서 발급한 Google Cloud API 키를 넣습니다. (접두사는 <code>AIza</code>가 아닐 수 있어 형식 검증은 하지 않습니다.)
+                    ${esc(t('gemini.t08'))} <strong>${esc(t('gemini.t09'))}</strong>${esc(t('gemini.t10'))} <code>AIza</code>${esc(t('gemini.t11'))}
                 </p>
                 <div id="${idPrefix}VertexKeyRow" style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px;border:1px solid var(--border);border-radius:6px;margin-bottom:8px;">
                     <span id="${idPrefix}VertexKeyStatus" style="font-size:var(--font-size-2xs);flex:1;min-width:120px;"></span>
-                    <button type="button" class="btn btn-ghost" id="${idPrefix}VertexKeyEdit" style="font-size:var(--font-size-2xs);padding:3px 10px;">키 변경</button>
-                    <button type="button" class="btn btn-ghost" id="${idPrefix}VertexKeyClear" style="font-size:var(--font-size-2xs);padding:3px 10px;color:var(--error);">삭제</button>
+                    <button type="button" class="btn btn-ghost" id="${idPrefix}VertexKeyEdit" style="font-size:var(--font-size-2xs);padding:3px 10px;">${esc(t('gemini.btn.idPrefixVertexKeyEdit'))}</button>
+                    <button type="button" class="btn btn-ghost" id="${idPrefix}VertexKeyClear" style="font-size:var(--font-size-2xs);padding:3px 10px;color:var(--error);">${esc(t('gemini.btn.idPrefixVertexKeyClear'))}</button>
                 </div>
                 <div style="font-size:var(--font-size-2xs);color:var(--text-tertiary);">
-                    안내: <a href="${DOC_URL_VERTEX_API_KEYS}" target="_blank" rel="noopener" style="color:var(--accent);">Vertex AI — API 키</a>
+                    ${esc(t('gemini.t12'))} <a href="${DOC_URL_VERTEX_API_KEYS}" target="_blank" rel="noopener" style="color:var(--accent);">${esc(t('gemini.t13'))}</a>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
                     <div>
-                        <label class="field-label" for="${idPrefix}VertexProjectId" style="font-size:var(--font-size-xs);">GCP 프로젝트 ID</label>
+                        <label class="field-label" for="${idPrefix}VertexProjectId" style="font-size:var(--font-size-xs);">${esc(t('gemini.label.idPrefixVertexProjectId'))}</label>
                         <input type="text" id="${idPrefix}VertexProjectId" class="settings-control" style="width:100%;box-sizing:border-box;" placeholder="my-gcp-project-id" autocomplete="off">
                     </div>
                     <div>
-                        <label class="field-label" for="${idPrefix}VertexLocation" style="font-size:var(--font-size-xs);">리전</label>
+                        <label class="field-label" for="${idPrefix}VertexLocation" style="font-size:var(--font-size-xs);">${esc(t('gemini.label.idPrefixVertexLocation'))}</label>
                         <input type="text" id="${idPrefix}VertexLocation" class="settings-control" style="width:100%;box-sizing:border-box;" placeholder="${DEFAULT_VERTEX_LOCATION}" autocomplete="off">
                     </div>
                 </div>
                 <p style="font-size:var(--font-size-2xs);color:var(--text-tertiary);margin:8px 0 0 0;line-height:1.4;">
-                    Vertex 호출(이미지 생성 등)에 공통으로 쓰입니다. 이미지 생성 위젯의 입력란과 같은 값을 공유합니다.
+                    ${esc(t('gemini.t14'))}
                 </p>
             </div>`;
         return {
@@ -1088,7 +1096,7 @@ const Gemini = (() => {
                 function renderVertexRow() {
                     if (!vertexStatusEl) return;
                     const has = !!getVertexApiKey();
-                    vertexStatusEl.textContent = has ? '키 저장됨' : '키 없음';
+                    vertexStatusEl.textContent = has ? t('gemini.t52') : t('gemini.t53');
                     vertexStatusEl.style.color = has ? 'var(--success)' : 'var(--text-tertiary)';
                 }
 
@@ -1101,11 +1109,11 @@ const Gemini = (() => {
                         const hasKey = !!p.key;
                         return `
                             <div class="api-prof-row" data-id="${p.id}" style="display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:${p.id === activeId ? 'var(--accent-subtle)' : 'transparent'};">
-                                <input type="text" class="api-prof-name" value="${Toolbox.escapeHtml(p.name || '')}" placeholder="프로필 이름" style="flex:1;min-width:80px;font-size:var(--font-size-xs);padding:4px 6px;border-radius:4px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);">
-                                <span class="api-prof-status" style="font-size:var(--font-size-2xs);color:${hasKey ? 'var(--success)' : 'var(--text-tertiary)'};">${hasKey ? '키 저장됨' : '키 없음'}</span>
-                                <button type="button" class="btn btn-ghost api-prof-active" data-role="active" style="font-size:var(--font-size-2xs);padding:3px 8px;${p.id === activeId ? 'color:var(--accent);' : ''}">${p.id === activeId ? '✓ 활성' : '활성화'}</button>
-                                <button type="button" class="btn btn-ghost api-prof-edit" data-role="edit" style="font-size:var(--font-size-2xs);padding:3px 8px;">키 변경</button>
-                                <button type="button" class="btn btn-ghost api-prof-del" data-role="delete" style="font-size:var(--font-size-2xs);padding:3px 8px;color:var(--error);">삭제</button>
+                                <input type="text" class="api-prof-name" value="${Toolbox.escapeHtml(p.name || '')}" placeholder="${esc(t('gemini.t01'))}" style="flex:1;min-width:80px;font-size:var(--font-size-xs);padding:4px 6px;border-radius:4px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);">
+                                <span class="api-prof-status" style="font-size:var(--font-size-2xs);color:${hasKey ? 'var(--success)' : 'var(--text-tertiary)'};">${hasKey ? t('gemini.t52') : t('gemini.t53')}</span>
+                                <button type="button" class="btn btn-ghost api-prof-active" data-role="active" style="font-size:var(--font-size-2xs);padding:3px 8px;${p.id === activeId ? 'color:var(--accent);' : ''}">${p.id === activeId ? t('gemini.t54') : t('gemini.t55')}</button>
+                                <button type="button" class="btn btn-ghost api-prof-edit" data-role="edit" style="font-size:var(--font-size-2xs);padding:3px 8px;">${esc(t('gemini.btn.idPrefixVertexKeyEdit'))}</button>
+                                <button type="button" class="btn btn-ghost api-prof-del" data-role="delete" style="font-size:var(--font-size-2xs);padding:3px 8px;color:var(--error);">${esc(t('gemini.btn.idPrefixVertexKeyClear'))}</button>
                             </div>`;
                     }).join('');
                 }
@@ -1132,7 +1140,7 @@ const Gemini = (() => {
                     vertexEditBtn.addEventListener('click', () => {
                         const current = getVertexApiKey();
                         const val = prompt(
-                            'Vertex AI용 Google Cloud API 키를 입력하세요 (빈 값이면 취소)',
+                            t('gemini.t56'),
                             current ? '••••••••••' : ''
                         );
                         if (val === null) return;
@@ -1140,21 +1148,21 @@ const Gemini = (() => {
                         if (!trimmed || trimmed === '••••••••••') {
                             if (!current) return;
                             setVertexApiKey('');
-                            Toolbox.showToast('Vertex API 키가 삭제되었습니다.');
+                            Toolbox.showToast(t('gemini.t57'));
                             renderVertexRow();
                             return;
                         }
                         setVertexApiKey(trimmed);
-                        Toolbox.showToast('Vertex API 키 저장 완료');
+                        Toolbox.showToast(t('gemini.t58'));
                         renderVertexRow();
                     });
                 }
                 if (vertexClearBtn) {
                     vertexClearBtn.addEventListener('click', () => {
                         if (!getVertexApiKey()) return;
-                        if (!confirm('저장된 Vertex API 키를 삭제할까요?')) return;
+                        if (!confirm(t('gemini.t59'))) return;
                         setVertexApiKey('');
-                        Toolbox.showToast('Vertex API 키가 삭제되었습니다.');
+                        Toolbox.showToast(t('gemini.t57'));
                         renderVertexRow();
                     });
                 }
@@ -1164,7 +1172,7 @@ const Gemini = (() => {
                         const store = getKeyStore();
                         const profiles = store.profiles || [];
                         const newId = 'profile_' + Date.now();
-                        const newName = '프로필 ' + (profiles.length + 1);
+                        const newName = t('gemini.t60') + (profiles.length + 1);
                         profiles.push({ id: newId, name: newName, key: '' });
                         store.profiles = profiles;
                         store.activeId = newId;
@@ -1207,34 +1215,34 @@ const Gemini = (() => {
                             store.activeId = id;
                             saveKeyStore(store);
                             window.dispatchEvent(new CustomEvent('gemini-active-profile-changed'));
-                            Toolbox.showToast('활성 프로필이 변경되었습니다.');
+                            Toolbox.showToast(t('gemini.t61'));
                             render();
                         } else if (role === 'edit') {
                             const current = profiles[idx];
-                            const val = prompt('새 API 키를 입력하세요 (빈 값 입력 시 키 삭제)', current.key ? '••••••••••' : '');
+                            const val = prompt(t('gemini.t62'), current.key ? '••••••••••' : '');
                             if (val === null) return;
                             const trimmed = val.trim();
                             if (!trimmed || trimmed === '••••••••••') {
                                 profiles[idx].key = '';
                                 saveKeyStore(store);
-                                Toolbox.showToast('키가 삭제되었습니다.');
+                                Toolbox.showToast(t('gemini.t63'));
                                 render();
                                 return;
                             }
                             if (!trimmed.startsWith('AIza')) {
-                                Toolbox.showToast('⚠️ 유효하지 않은 키 형식입니다.', 'error');
+                                Toolbox.showToast(t('gemini.t64'), 'error');
                                 return;
                             }
                             profiles[idx].key = trimmed;
                             saveKeyStore(store);
-                            Toolbox.showToast('API 키 저장 완료');
+                            Toolbox.showToast(t('gemini.t65'));
                             render();
                         } else if (role === 'delete') {
                             if (profiles.length === 1) {
-                                Toolbox.showToast('최소 1개의 프로필은 필요합니다.', 'error');
+                                Toolbox.showToast(t('gemini.t66'), 'error');
                                 return;
                             }
-                            if (!confirm('이 프로필을 삭제하시겠습니까?')) return;
+                            if (!confirm(t('gemini.t67'))) return;
                             profiles.splice(idx, 1);
                             if (store.activeId === id) {
                                 store.activeId = profiles[0]?.id || '';
@@ -1242,7 +1250,7 @@ const Gemini = (() => {
                             }
                             store.profiles = profiles;
                             saveKeyStore(store);
-                            Toolbox.showToast('프로필이 삭제되었습니다.');
+                            Toolbox.showToast(t('gemini.t68'));
                             render();
                         }
                     });
@@ -1259,7 +1267,7 @@ Keep the same subject and intent, but add details about lighting, composition, a
 Reply ONLY with the enhanced prompt in English, nothing else. Do not add any explanation.`;
 
         const result = await callText(originalPrompt, systemPrompt, undefined);
-        if (!result) throw new Error('프롬프트 향상 실패');
+        if (!result) throw new Error(t('gemini.err.69'));
         return result.text.trim();
     }
 

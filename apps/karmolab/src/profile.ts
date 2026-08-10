@@ -14,6 +14,14 @@
  * 이 파일은 별도 스크립트다 — 페이지 안에 직접 쓴 스크립트는 한 글자만 틀려도 화면이
  * 통째로 비고 로그도 안 남는다. 빌드와 타입 검사를 받는 자리에 둔다.
  */
+import { t, loadNamespace } from './lib/i18n';
+
+/* 이 파일은 위젯이 아니라 **셸·라이브러리**다 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+   빌드는 브라우저 밖에서도 이 파일을 읽으므로 document 가 있을 때만 부른다. */
+if (typeof document !== 'undefined') void loadNamespace('profile');
+
+const esc = (v: unknown): string =>
+  String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 interface PublicProfile {
     handle: string;
     displayName: string;
@@ -41,8 +49,8 @@ const API_BASE = 'https://yawnbot.mascari4615.com';
 
 /** 트랙 id → 사람이 읽는 이름. 모르는 id 는 id 그대로 (지어내지 않는다). */
 const STREAK_LABELS: Record<string, string> = {
-    daily_review: '일일 리뷰',
-    exercise: '운동',
+    daily_review: t('profile.t16'),
+    exercise: t('profile.t17'),
 };
 
 function escapeHtml(value: string): string {
@@ -65,7 +73,7 @@ function renderMessage(root: HTMLElement, title: string, detail: string): void {
         <div class="profile-empty">
             <h1>${escapeHtml(title)}</h1>
             <p>${escapeHtml(detail)}</p>
-            <p><a href="/karmolab/">KarmoLab 으로 돌아가기</a></p>
+            <p><a href="/karmolab/">${esc(t('profile.t02'))}</a></p>
         </div>`;
 }
 
@@ -104,17 +112,17 @@ function cardHtml(profile: PublicProfile): string {
  * 빈 칸을 그냥 두면 보는 사람이 「아무것도 안 했나 보다」로 읽는다 — 그건 틀린 말이다.
  */
 const HIDDEN_LABELS: Record<string, string> = {
-    achievements: '도전과제',
-    badges: '뱃지',
-    streaks: '연속 기록',
-    community: '커뮤니티 활동',
-    activity: '발자국',
+    achievements: t('profile.t08'),
+    badges: t('profile.t09'),
+    streaks: t('profile.t04'),
+    community: t('profile.t13'),
+    activity: t('profile.t03'),
 };
 
 function hiddenNote(profile: PublicProfile): string {
     const hidden = (profile.hidden ?? []).map((key) => HIDDEN_LABELS[key] ?? key);
     if (!hidden.length) return '';
-    return `<p class="profile-note">${escapeHtml(hidden.join(' · '))} 은(는) 본인이 가려 뒀습니다.</p>`;
+    return `<p class="profile-note">${t('profile.hidden', { what: escapeHtml(hidden.join(' · ')) })}</p>`;
 }
 
 /**
@@ -139,12 +147,12 @@ function grassHtml(profile: PublicProfile): string {
         const future = d > today;
         const value = footprint.days[key];
         const level = future ? 'x' : value === undefined ? '0' : value === 0 ? '1' : value < 3 ? '2' : value < 8 ? '3' : '4';
-        cells.push(`<i data-lv="${level}"${future ? '' : ` title="${key} · ${value === undefined ? '안 옴' : value === 0 ? '둘러봄' : `${value}번`}"`}></i>`);
+        cells.push(`<i data-lv="${level}"${future ? '' : ` title="${key} · ${value === undefined ? t('profile.t18') : value === 0 ? t('profile.t19') : `${value}번`}"`}></i>`);
     }
     return `
         <section class="profile-grass-wrap">
-            <h2>발자국 <span class="profile-dim">지금 연속 ${footprint.streak.current}일 · 최장 ${footprint.streak.longest}일</span></h2>
-            <div class="profile-grass" role="img" aria-label="지난 1년 활동">${cells.join('')}</div>
+            <h2>${esc(t('profile.t03'))} <span class="profile-dim">지금 연속 ${footprint.streak.current}일 · 최장 ${footprint.streak.longest}일</span></h2>
+            <div class="profile-grass" role="img" aria-label="${esc(t('profile.t01'))}">${cells.join('')}</div>
         </section>`;
 }
 
@@ -156,15 +164,15 @@ function renderProfile(root: HTMLElement, profile: PublicProfile): void {
 
     const streaksHtml = streakEntries.length
         ? `<table class="profile-table">
-               <thead><tr><th>연속 기록</th><th>지금</th><th>최장</th></tr></thead>
+               <thead><tr><th>${esc(t('profile.t04'))}</th><th>${esc(t('profile.t05'))}</th><th>${esc(t('profile.t06'))}</th></tr></thead>
                <tbody>${streakEntries
                    .map(
                        ([id, s]) =>
-                           `<tr><td>${escapeHtml(STREAK_LABELS[id] ?? id)}</td><td>${s.current}일</td><td>${s.longest}일</td></tr>`,
+                           `<tr><td>${escapeHtml(STREAK_LABELS[id] ?? id)}</td><td>${escapeHtml(t('profile.days', { n: s.current }))}</td><td>${escapeHtml(t('profile.days', { n: s.longest }))}</td></tr>`,
                    )
                    .join('')}</tbody>
            </table>`
-        : '<p class="profile-note">아직 이어 온 기록이 없습니다.</p>';
+        : t('profile.t20');
 
     root.innerHTML = `
         <article class="profile-card">
@@ -173,34 +181,34 @@ function renderProfile(root: HTMLElement, profile: PublicProfile): void {
                 <div>
                     <h1 class="profile-name">${escapeHtml(profile.displayName)}</h1>
                     <p class="profile-handle">@${escapeHtml(profile.handle)}${
-                        profile.online === true ? ' <span class="profile-online">● 지금 접속 중</span>' : ''
+                        profile.online === true ? t('profile.t21') : ''
                     }</p>
                     <p class="profile-joined">${escapeHtml(formatDate(profile.joinedAt))}부터</p>
                 </div>
                 ${profile.canFollow
                     ? `<div class="profile-actions">
-                           <button type="button" class="profile-follow${profile.following ? ' on' : ''}" id="profileFollow">${profile.following ? '따라가는 중' : '따라가기'}</button>
-                           <button type="button" class="profile-block" id="profileBlock">막기</button>
+                           <button type="button" class="profile-follow${profile.following ? ' on' : ''}" id="profileFollow">${profile.following ? t('profile.t22') : t('profile.t23')}</button>
+                           <button type="button" class="profile-block" id="profileBlock">${esc(t('profile.btn.block'))}</button>
                        </div>`
                     : ''}
             </header>
             ${cardHtml(profile)}
             ${hiddenNote(profile)}
             <section class="profile-stats">
-                <div class="profile-stat"><strong>${profile.followers ?? 0}</strong><span>팔로워</span></div>
-                <div class="profile-stat"><strong>${profile.achievements.length}</strong><span>도전과제</span></div>
-                <div class="profile-stat"><strong>${profile.badges.length}</strong><span>뱃지</span></div>
-                <div class="profile-stat"><strong>${streakEntries.length}</strong><span>연속 기록 트랙</span></div>
+                <div class="profile-stat"><strong>${profile.followers ?? 0}</strong><span>${esc(t('profile.t07'))}</span></div>
+                <div class="profile-stat"><strong>${profile.achievements.length}</strong><span>${esc(t('profile.t08'))}</span></div>
+                <div class="profile-stat"><strong>${profile.badges.length}</strong><span>${esc(t('profile.t09'))}</span></div>
+                <div class="profile-stat"><strong>${streakEntries.length}</strong><span>${esc(t('profile.t10'))}</span></div>
             </section>
             ${grassHtml(profile)}
             ${streaksHtml}
             <div id="profileWorks"></div>
             <div id="profileActivity"></div>
             <footer class="profile-foot">
-                <a href="/karmolab/">KarmoLab 에서 도구 보기</a>
+                <a href="/karmolab/">${esc(t('profile.t11'))}</a>
                 <!-- 공유용 주소 (TASK-KL-156 D9). 이 주소로 붙여넣어야 카드 그림이 펼쳐진다 —
                      지금 주소(?h=)는 어느 사람이든 미리보기가 같다. -->
-                <button type="button" class="profile-share" id="profileShare">공유 주소 복사</button>
+                <button type="button" class="profile-share" id="profileShare">${esc(t('profile.btn.share'))}</button>
             </footer>
         </article>`;
 }
@@ -244,7 +252,7 @@ async function loadWorks(handle: string): Promise<void> {
         };
         root.innerHTML = `
             <section class="profile-works">
-                <h2>작업실 <span class="profile-dim">${works.length}점</span></h2>
+                <h2>${esc(t('profile.t12'))} <span class="profile-dim">${works.length}점</span></h2>
                 <div class="profile-works-grid">
                     ${works
                         .map(
@@ -292,9 +300,9 @@ async function loadActivity(handle: string): Promise<void> {
 
         root.innerHTML = `
             <section class="profile-act">
-                <h2>커뮤니티 활동 <span class="profile-dim">글 ${data.counts.posts} · 답글 ${data.counts.replies}</span></h2>
-                ${posts ? `<h3>쓴 글</h3><ul class="profile-list">${posts}</ul>` : ''}
-                ${replies ? `<h3>단 답글</h3><ul class="profile-list">${replies}</ul>` : ''}
+                <h2>${esc(t('profile.t13'))} <span class="profile-dim">글 ${data.counts.posts} · 답글 ${data.counts.replies}</span></h2>
+                ${posts ? `<h3>${esc(t('profile.t14'))}</h3><ul class="profile-list">${posts}</ul>` : ''}
+                ${replies ? `<h3>${esc(t('profile.t15'))}</h3><ul class="profile-list">${replies}</ul>` : ''}
             </section>`;
     } catch {
         /* 활동을 못 받아도 프로필 자체는 보인다 */
@@ -323,7 +331,7 @@ function mountFollow(root: HTMLElement, profile: PublicProfile): void {
             if (!response.ok) throw new Error(String(response.status));
             const body = (await response.json()) as { following: boolean; count: number };
             on = body.following;
-            button.textContent = on ? '따라가는 중' : '따라가기';
+            button.textContent = on ? t('profile.t22') : t('profile.t23');
             button.classList.toggle('on', on);
             const followerCell = root.querySelector('.profile-stat strong');
             if (followerCell) followerCell.textContent = String(body.count);
@@ -349,11 +357,11 @@ function mountBlock(root: HTMLElement, profile: PublicProfile): void {
             [
                 `@${profile.handle} 님을 막습니다.`,
                 '',
-                '· 그 사람 글이 내 피드·알림에서 사라집니다',
-                '· 서로 따라가기가 끊깁니다',
-                '· 막았다는 사실은 상대에게 안 알립니다',
+                t('profile.t24'),
+                t('profile.t25'),
+                t('profile.t26'),
                 '',
-                '내 정보 › 계정 에서 언제든 풀 수 있습니다. 계속할까요?',
+                t('profile.t27'),
             ].join('\n'),
         );
         if (!ok) return;
@@ -366,10 +374,10 @@ function mountBlock(root: HTMLElement, profile: PublicProfile): void {
                 body: JSON.stringify({ on: true }),
             });
             if (!response.ok) throw new Error(String(response.status));
-            button.textContent = '막았어요';
+            button.textContent = t('profile.t28');
             const follow = root.querySelector<HTMLButtonElement>('#profileFollow');
             if (follow) {
-                follow.textContent = '따라가기';
+                follow.textContent = t('profile.t23');
                 follow.classList.remove('on');
             }
         } catch {
@@ -390,9 +398,9 @@ function mountShare(root: HTMLElement, profile: PublicProfile): void {
     button.addEventListener('click', () => {
         const url = `${API_BASE}/kl/u/${encodeURIComponent(profile.handle)}/card`;
         void navigator.clipboard?.writeText(url);
-        button.textContent = '복사했어요';
+        button.textContent = t('profile.t29');
         setTimeout(() => {
-            button.textContent = '공유 주소 복사';
+            button.textContent = t('profile.btn.share');
         }, 2000);
     });
 }
@@ -403,7 +411,7 @@ async function main(): Promise<void> {
 
     const handle = new URLSearchParams(location.search).get('h') ?? '';
     if (!handle) {
-        renderMessage(root, '프로필 주소가 아니에요', '주소 끝에 ?h=핸들 이 있어야 합니다.');
+        renderMessage(root, t('profile.t30'), t('profile.t31'));
         return;
     }
 
@@ -411,16 +419,16 @@ async function main(): Promise<void> {
         const response = await fetch(`${API_BASE}/kl/u/${encodeURIComponent(handle)}`, { credentials: 'include' });
         // 잠근 것과 없는 것은 다르다 — 링크를 걸어 둔 사람이 왜 안 열리는지 알아야 한다 (KL-152 C4).
         if (response.status === 403) {
-            renderMessage(root, '비공개 프로필이에요', `@${handle} 님이 프로필을 남에게 안 보이게 해 뒀습니다.`);
+            renderMessage(root, t('profile.t32'), `@${handle} 님이 프로필을 남에게 안 보이게 해 뒀습니다.`);
             return;
         }
         if (response.status === 404) {
-            renderMessage(root, '그런 사람이 없어요', `@${handle} 는 아직 없는 프로필입니다.`);
+            renderMessage(root, t('profile.t33'), `@${handle} 는 아직 없는 프로필입니다.`);
             return;
         }
         if (!response.ok) throw new Error(`상태 ${response.status}`);
         const data = (await response.json()) as { profile?: PublicProfile };
-        if (!data.profile) throw new Error('프로필이 비어 있음');
+        if (!data.profile) throw new Error(t('profile.err.34'));
         renderProfile(root, data.profile);
         mountFollow(root, data.profile);
         mountBlock(root, data.profile);
@@ -428,9 +436,9 @@ async function main(): Promise<void> {
         void loadWorks(data.profile.handle);
         void loadActivity(data.profile.handle);
     } catch (error) {
-        console.warn('[profile] 프로필을 못 불러왔다:', error);
+        console.warn(t('profile.t35'), error);
         // 서버가 잠깐 죽은 것과 「없는 사람」은 다르다. 섞어서 말하지 않는다.
-        renderMessage(root, '지금은 프로필을 못 보여드려요', '잠시 뒤에 다시 열어 주세요.');
+        renderMessage(root, t('profile.t36'), t('profile.t37'));
     }
 }
 

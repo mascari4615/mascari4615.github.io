@@ -1,0 +1,17 @@
+{
+  "airoute.t01": "A local model is too heavy for this device — the tools run without AI",
+  "airoute.t02": "It runs inside the device (you chose not to send anything out)",
+  "airoute.t03": "To run it inside the device, the model has to be fetched once",
+  "airoute.t04": "It calls out with your key (fast, better quality)",
+  "airoute.t05": "It runs inside the device with the model you already have (no key needed)",
+  "airoute.t06": "It works without a key — you only fetch the model once",
+  "airoute.t07": "AI features are unavailable right now — the tools still work",
+  "airoute.t08": "This browser does not support WebGPU — the tools still work",
+  "airoute.t09": " This is when the device’s graphics settings do not fit. Close other heavy tabs and try again.",
+  "airoute.noLocal": "This browser cannot run a local AI{tail} — the tool itself still works",
+  "airoute.downloadCut": "Fetching the model was cut off{tail} — fetch it again, or put in a key and use it remotely",
+  "airoute.stalled": "It stalled while processing{tail} — trim the input a little and try again",
+  "airoute.sec": "{n}s",
+  "airoute.min": "{n} min",
+  "airoute.downloadNote": "{mb}MB is fetched once — at this speed, about {time}. After that it opens right away."
+}

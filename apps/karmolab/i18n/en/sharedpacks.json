@@ -1,0 +1,11 @@
+{
+  "sharedpacks.t01": "You have to sign in to upload a table — who made it has to be recorded.",
+  "sharedpacks.t02": "Besides the name there must be at least one column to compare (e.g. age, height, kind).",
+  "sharedpacks.t03": "Please write a name for the table.",
+  "sharedpacks.t04": "The table is too large. Please trim the entries.",
+  "sharedpacks.t05": "Someone else’s table cannot be edited — take it over and your own copy is yours to change.",
+  "sharedpacks.t06": "The server is out of reach right now. Your table is still here in this browser.",
+  "sharedpacks.t07": "The table could not be uploaded.",
+  "sharedpacks.tooFew": "It needs more than {n} entries to make a game.",
+  "sharedpacks.dailyLimit": "You have uploaded up to {n} today. You can upload again tomorrow."
+}
