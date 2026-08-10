@@ -316,13 +316,6 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
     /* ===== 누가 왔나 (사람 · 검색엔진 · AI) ===== */
 
-    const KIND_LABEL: Record<string, string> = {
-        human: t('plaza.t03'),
-        search: t('plaza.t48'),
-        ai: 'AI',
-        unknown: t('plaza.t49'),
-    };
-
     /**
      * 사람 · 검색엔진 · AI 를 나눠서 공개한다 (사용자: "크롤러로 통계로 얼만큼인지 분류되면 좋을듯.
      * AI가 사이트 접속하는것도 만약 탐지 가능하면").
@@ -332,6 +325,14 @@ import { t, loadNamespace, locale } from '../lib/i18n';
      * 사람 수에는 안 들어간다.
      */
     function renderKinds(visits: Visits | null): string {
+        // 함수 안으로 옮기면, renderKinds가 호출될 때 평가되므로 번역이 이미 도착해 있습니다.
+        const KIND_LABEL: Record<string, string> = {
+            human: t('plaza.t03'),
+            search: t('plaza.t48'),
+            ai: 'AI',
+            unknown: t('plaza.t49'),
+        };
+
         const kinds = visits?.kinds;
         if (!kinds) return '';
         const rows = Object.keys(KIND_LABEL)
@@ -500,19 +501,21 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
     /* ===== 무엇을 안 세는가 (공개의 나머지 반쪽) ===== */
 
-    const OPENNESS = `
-        <section class="plaza-section">
-            <div class="plaza-open">
-                <h4>${esc(t('plaza.t23'))} <em>${esc(t('plaza.t24'))}</em> ${esc(t('plaza.t25'))}</h4>
-                <ul>
-                    <li><b>${esc(t('plaza.t26'))}</b> ${esc(t('plaza.t27'))}</li>
-                    <li><b>${esc(t('plaza.t28'))}</b> ${esc(t('plaza.t29'))}</li>
-                    <li><b>${esc(t('plaza.t30'))}</b> ${esc(t('plaza.t31'))}</li>
-                    <li>${esc(t('plaza.t32'))}</li>
-                </ul>
-            </div>
-        </section>`;
-
+    // 상수로 두지 말고, 그릴 때 t()가 실행되도록 함수로 만듭니다.
+    function renderOpenness(): string {
+        return `
+            <section class="plaza-section">
+                <div class="plaza-open">
+                    <h4>${esc(t('plaza.t23'))} <em>${esc(t('plaza.t24'))}</em> ${esc(t('plaza.t25'))}</h4>
+                    <ul>
+                        <li><b>${esc(t('plaza.t26'))}</b> ${esc(t('plaza.t27'))}</li>
+                        <li><b>${esc(t('plaza.t28'))}</b> ${esc(t('plaza.t29'))}</li>
+                        <li><b>${esc(t('plaza.t30'))}</b> ${esc(t('plaza.t31'))}</li>
+                        <li>${esc(t('plaza.t32'))}</li>
+                    </ul>
+                </div>
+            </section>`;
+    }
 
     /* ===== 방금 무슨 일이 있었나 (TASK-KL-151 ③) ===== */
 
@@ -630,7 +633,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                 ? `<section class="plaza-section"><h3>${esc(t('plaza.t41'))}</h3><p class="plaza-section-note">${esc(t('plaza.t42'))}</p><div id="plazaTools"></div></section>`
                 : '',
             renderBoards(boards),
-            OPENNESS,
+            renderOpenness(),
         ]
             .filter(Boolean)
             .join('');
