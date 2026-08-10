@@ -16,10 +16,16 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const MARK = 'ㅘ: 2';
-const HOME = 'src/core/hangultype.ts';
+/*
+ * 「이 표는 여기 하나뿐」 목록. 표가 곧 규칙이라, 두 벌이 되는 순간 규칙이 두 개가 된다.
+ * 실제로 둘 다 두 벌이었다 — 타수는 ghosttype 에, 자모는 charconv·morse 에 손으로 적혀 있었다.
+ */
+const TABLES = [
+  { what: '타수 세는 표', mark: 'ㅘ: 2', home: 'src/core/hangultype.ts' },
+  { what: '자모 표', mark: "'ㄱ','ㄲ','ㄴ'", home: 'src/core/jamo.ts' }
+];
 
-const found = [];
+const files = [];
 const walk = (dir) => {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const at = path.join(dir, e.name);
@@ -28,15 +34,22 @@ const walk = (dir) => {
       continue;
     }
     if (e.name.endsWith('.ts') === false) continue;
-    if (fs.readFileSync(at, 'utf8').includes(MARK)) found.push(path.relative(appRoot, at).split(String.fromCharCode(92)).join(String.fromCharCode(47)));
+    files.push({
+      rel: path.relative(appRoot, at).split(String.fromCharCode(92)).join(String.fromCharCode(47)),
+      text: fs.readFileSync(at, 'utf8')
+    });
   }
 };
 walk(path.join(appRoot, 'src'));
 
-if (found.length !== 1 || found[0] !== HOME) {
-  console.error(`[one-keystroke-table] 타수 세는 표가 ${found.length}군데 있다 (있어야 할 곳: ${HOME}):`);
+let bad = 0;
+for (const t of TABLES) {
+  const found = files.filter((f) => f.text.includes(t.mark)).map((f) => f.rel);
+  if (found.length === 1 && found[0] === t.home) continue;
+  bad++;
+  console.error(`[one-table] ${t.what}가 ${found.length}군데 있다 (있어야 할 곳: ${t.home}):`);
   for (const f of found) console.error('  - ' + f);
-  console.error(`  한 벌만 남기고 나머지는 \`import { 타건수 } from '…/core/hangultype'\` 로 바꿔라.`);
-  process.exit(1);
+  console.error(`  한 벌만 남기고 나머지는 ${t.home} 에서 가져다 써라.`);
 }
-console.log(`[one-keystroke-table] 타수 세는 표는 ${HOME} 한 곳뿐이다`);
+if (bad > 0) process.exit(1);
+console.log(`[one-table] 표 ${TABLES.length}종 전부 제자리에 한 벌씩만 있다`);
