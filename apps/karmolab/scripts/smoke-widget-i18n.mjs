@@ -45,11 +45,16 @@ const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/cs
 
 /** 말 묶음이 있는 도구 = 이 검사의 대상. */
 const targets = [];
+const knownKeys = new Set();
 for (const l of LOCALES) {
-  if (l.code === SOURCE_LOCALE) continue;
   const dir = path.join(appRoot, 'i18n', l.code);
   if (!fs.existsSync(dir)) continue;
   for (const f of fs.readdirSync(dir)) {
+    if (f.endsWith('.json')) {
+      const values = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
+      Object.keys(values).forEach((key) => knownKeys.add(key));
+    }
+    if (l.code === SOURCE_LOCALE) continue;
     const id = f.replace(/\.json$/, '');
     /* 도구 묶음만 — 공용 묶음(site·shell…)은 도구가 아니다. 판별 = 그 이름의 도구 장이 있는가. */
     const page = path.join(appRoot, '../blog', localizedPath(`/karmolab/t/${id}/`, l.code).replace(/^\//, ''), 'index.html');
@@ -133,6 +138,28 @@ for (const { code, id, page } of targets) {
      「지우기」를 도로 박았고, 그 셋은 말 묶음에 없는 낱말이라 이 검사를 그대로 통과해
      **영어 화면에 한국어 단추 셋이 나가고 있었다**. 운으로 발견했다.
      → 이미 옮긴 도구에서는 **그린 자리 안의 한글을 통째로** 본다. */
+  const leakedKeys = await tab.evaluate((keysToCheck) => {
+    const visible = [
+      document.body?.innerText || '',
+      ...[...document.querySelectorAll('body *')]
+        .filter((element) => {
+          const style = getComputedStyle(element);
+          return style.display !== 'none' && style.visibility !== 'hidden' &&
+            (element.offsetParent !== null || style.position === 'fixed');
+        })
+        .flatMap((element) => [
+          element.getAttribute('title') || '',
+          element.getAttribute('aria-label') || '',
+          element.getAttribute('placeholder') || '',
+          element.getAttribute('value') || ''
+        ])
+    ].join('\n');
+    return keysToCheck.filter((key) => visible.includes(key)).slice(0, 8);
+  }, [...knownKeys]);
+  if (leakedKeys.length) {
+    fail.push(`${code}/${id}: translation key exposed: ${leakedKeys.join(', ')}`);
+  }
+
   if (!HANGUL_OK.has(id)) {
     const strayText = await tab.evaluate(() => {
       const host = document.querySelector('#tool-pages');

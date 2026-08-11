@@ -205,8 +205,7 @@ function inject(code: string, ns: string): Promise<void> {
   const p = new Promise<void>((resolve, reject) => {
     const s = document.createElement('script');
     s.src = catalogUrl(code, ns);
-    /* 못 받아도 resolve 한다 — 글이 없다고 도구가 멈추면 안 된다.
-       그 경우 t() 가 원본 언어로 떨어지고, 그것도 없으면 열쇠를 보여 준다. */
+    /* catalog를 받지 못하면 성공으로 위장하지 않는다. 이후 위젯 경계가 안전한 오류 화면으로 전환한다. */
     s.onload = () => {
       if (have(code, ns)) {
         resolve();
