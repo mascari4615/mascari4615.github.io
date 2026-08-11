@@ -11,18 +11,18 @@
     color-scheme: dark;
 
     /* 밤의 종이 — body는 보라 기운의 어두움, 카드/패널은 paper/ink 톤 유지 (TASK-KL-097) */
-    --bg-void: #0e0d14;        /* night sky */
-    --bg-primary: #16151f;     /* paper */
-    --bg-secondary: #1b1a26;   /* paper-2 */
-    --bg-tertiary: #24222f;    /* line */
-    --bg-hover: #302d40;       /* line-2 */
-    --bg-active: #423e56;      /* line-3 */
+    --bg-void: #0f1016;        /* quiet night */
+    --bg-primary: #171821;     /* work surface */
+    --bg-secondary: #1d1e28;   /* raised surface */
+    --bg-tertiary: #292a36;    /* divider */
+    --bg-hover: #343542;       /* hover surface */
+    --bg-active: #424352;      /* active surface */
 
-    --glass: rgba(22, 21, 31, 0.96);
-    --glass-hover: rgba(27, 26, 38, 0.98);
-    --glass-strong: rgba(14, 13, 20, 0.98);
+    --glass: rgba(23, 24, 33, 0.97);
+    --glass-hover: rgba(29, 30, 40, 0.98);
+    --glass-strong: rgba(15, 16, 22, 0.99);
     /* 유리를 옅게 열어 둘수록 흐림이 세야 「유리」로 읽힌다 — 약하면 그냥 반투명 판이다. */
-    --glass-blur: blur(22px) saturate(160%);
+    --glass-blur: blur(16px) saturate(115%);
 
     --text-primary: #f2f2ee;   /* ink */
     --text-secondary: #9a9a94; /* ink-2 */
@@ -38,16 +38,16 @@
     --font-size-lg: 22px;
 
     /* 브랜드 = 연보라 (TASK-KL-097). 황동 금색은 폐기 — 두 테마가 같은 색을 공유한다. */
-    --accent: #a99bf5;         /* 연보라 글로우 — 어두운 바탕에서 뜨게 밝게 */
-    --accent-hover: #c0b5f8;
-    --accent-dim: rgba(169, 155, 245, 0.15);
-    --accent-subtle: rgba(169, 155, 245, 0.08);
-    --accent-glow: rgba(169, 155, 245, 0.30);
+    --accent: #a79bef;         /* quiet lavender */
+    --accent-hover: #bdb4f4;
+    --accent-dim: rgba(167, 155, 239, 0.14);
+    --accent-subtle: rgba(167, 155, 239, 0.07);
+    --accent-glow: rgba(167, 155, 239, 0.20);
 
-    --secondary: #7fa6d4;      /* cool starlight */
-    --secondary-hover: #95b7df;
-    --secondary-subtle: rgba(127, 166, 212, 0.08);
-    --secondary-glow: rgba(127, 166, 212, 0.25);
+    --secondary: #8292ad;      /* muted blue */
+    --secondary-hover: #9aa8be;
+    --secondary-subtle: rgba(130, 146, 173, 0.08);
+    --secondary-glow: rgba(130, 146, 173, 0.16);
 
     --success: #22C55E;
     --success-subtle: rgba(34, 197, 94, 0.08);
@@ -61,10 +61,10 @@
     --border-strong: rgba(169, 155, 245, 0.4);
 
     /* Observatory: 직각에 가까운 라디우스 (종이/도감 톤) */
-    --radius-sm: 2px;
-    --radius-md: 4px;
-    --radius-lg: 6px;
-    --radius-xl: 8px;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 10px;
 
     --space-xs: 4px;
     --space-sm: 8px;
@@ -97,9 +97,9 @@
     --font-mono: 'KarmoMono', ui-monospace, Consolas, monospace;
 
     /* 격자 두 겹 — 굵은 칸은 또렷하게, 가는 칸은 아주 옅게 (모눈 종이) */
-    --grid-color: rgba(210, 205, 245, 0.075);
-    --grid-color-fine: rgba(210, 205, 245, 0.030);
-    --vignette: rgba(0, 0, 0, 0.5);   /* 바닥 가장자리 어둠 */
+    --grid-color: rgba(191, 187, 220, 0.045);
+    --grid-color-fine: rgba(191, 187, 220, 0.018);
+    --vignette: rgba(0, 0, 0, 0.38);   /* 바닥 가장자리 어둠 */
 
     /* Y2K 그라데이션 (TASK-KL-097) — **토큰으로만** 낸다.
        곳곳에 그라데이션 문자열을 박으면 다음 톤 조정 때 전부 찾아 고쳐야 한다.
@@ -110,23 +110,25 @@
        주의: 이 넷은 라이트 블록에도 같은 이름으로 있어야 한다. 한쪽만 있으면 그 테마에서
        배경이 통째로 안 그려지고 버튼이 투명해진다(실제로 다크가 그렇게 깨져 있었다). */
     --holo-sweep: linear-gradient(112deg,
-        rgba(109, 91, 208, 0.34) 0%,
-        rgba(180, 110, 200, 0.22) 18%,
-        rgba(14, 13, 20, 0) 34%,
-        rgba(14, 13, 20, 0) 58%,
-        rgba(80, 170, 210, 0.18) 74%,
-        rgba(120, 100, 230, 0.28) 100%);
-    --holo-bloom: radial-gradient(ellipse 120% 60% at 50% -20%, rgba(120, 100, 230, 0.30), transparent 70%);
+        rgba(126, 113, 190, 0.16) 0%,
+        rgba(155, 111, 153, 0.09) 18%,
+        rgba(15, 16, 22, 0) 34%,
+        rgba(15, 16, 22, 0) 58%,
+        rgba(99, 143, 157, 0.08) 74%,
+        rgba(126, 113, 190, 0.13) 100%);
+    --holo-bloom: radial-gradient(ellipse 120% 60% at 50% -20%, rgba(126, 113, 190, 0.16), transparent 70%);
     --chrome-grad: linear-gradient(135deg, #c9bdff 0%, #a99bf5 32%, #ffffff 54%, #a99bf5 78%, #8b7ce8 100%);
     --chrome-grad-hover: linear-gradient(135deg, #ddd5ff 0%, #c0b5f8 32%, #ffffff 54%, #c0b5f8 78%, #a99bf5 100%);
+    --brand-edge: rgba(242, 242, 238, 0.34);
+    --brand-shadow: rgba(0, 0, 0, 0.48);
 
     /* 첫 화면 장식이 쓰는 색. 어두운 바탕에서는 밝게 떠야 보인다.
        (밝은 테마는 아래에서 더 짙은 값으로 덮는다 — 흰 종이 위에서 이 값들은 씻겨 사라진다.) */
-    --decor-a: #ec4899;
-    --decor-b: #a78bfa;
-    --decor-c: #22d3ee;
-    --decor-d: #f0abfc;
-    --decor-e: #6d5bd0;
+    --decor-a: #a97999;
+    --decor-b: #9188c4;
+    --decor-c: #6d9da7;
+    --decor-d: #aa8ca8;
+    --decor-e: #756ca8;
 
     /* 넓게 칠하는 버튼 전용. 다크에선 강조색 그대로가 가장 밝게 빛난다. */
     --fill-strong: var(--accent);
@@ -211,6 +213,8 @@
     /* 흰 바탕에서는 크롬을 밝게 두면 글자가 안 읽힌다 — 중간 톤에서 흰 하이라이트만 스친다. */
     --chrome-grad: linear-gradient(135deg, #8a7ae8 0%, #6d5bd0 30%, #b9a8f0 52%, #6d5bd0 76%, #5847bb 100%);
     --chrome-grad-hover: linear-gradient(135deg, #9b8cf0 0%, #7b69dc 30%, #cdc0f7 52%, #7b69dc 76%, #6d5bd0 100%);
+    --brand-edge: rgba(26, 26, 31, 0.30);
+    --brand-shadow: rgba(255, 255, 255, 0.72);
 
     /* 연보라를 넓게 칠하면 흰 종이 위에서 탁해진다. 넓은 면은 잉크로 칠하고
        보라는 글자·테두리·선택 표시 같은 작은 면적에 남긴다. */
@@ -600,6 +604,7 @@ html[data-intro="off"] .intro-overlay {
     margin: 0;
     font-size: var(--font-size-xs);
     font-weight: 500;
+    color: var(--text-primary);
     background: transparent;
     border: none;
     box-shadow: none;
@@ -615,10 +620,22 @@ html[data-intro="off"] .intro-overlay {
     background: var(--accent-dim);
     box-shadow: none;
 }
+.header-nav-panel--mega .nav-item-find {
+    grid-column: 1 / -1;
+    justify-content: center;
+    padding-left: 8px;
+    color: var(--accent);
+    background: var(--accent-subtle);
+    font-weight: 600;
+}
+.header-nav-panel--mega .nav-item-find:hover {
+    background: var(--accent-dim);
+}
 .header-nav-panel--mega .nav-icon {
     left: 8px;
     width: 15px;
     height: 15px;
+    opacity: 0.78;
 }
 
 /* 폰 전용 도구 목록 입구 — 폰 미디어쿼리에서만 켠다 (PC 는 사이드바가 그 역할).
@@ -747,6 +764,10 @@ html[data-intro="off"] .intro-overlay {
 }
 .header-bar:has(.header-nav-group.is-open)::after {
     height: calc(52px + var(--header-mega-max-h));
+    /* 메뉴를 열었을 때만 표면을 한 단계 더 세워 글자와 아이콘을 보호한다.
+       닫힌 헤더의 가벼운 투명감은 유지하고, 열린 메뉴는 읽기 우선으로 처리한다. */
+    background: color-mix(in srgb, var(--glass-strong) 88%, transparent);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.24);
 }
 
 .header-bar > * {
@@ -1037,11 +1058,18 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
 .landing-page {
     display: none; flex-direction: column;
     padding: var(--space-xl) var(--space-2xl) var(--space-2xl);
-    flex: 0 0 auto;
+    flex: 1 1 auto;
+    min-height: calc(100svh - 52px);
     max-width: 960px; margin: 0 auto; width: 100%;
     justify-content: center;
 }
+.content-body:has(.landing-page.active) {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
 .landing-page.active { display: flex; }
+[data-block][hidden] { display: none !important; }
 
 /* ── Hero ── */
 
@@ -1055,7 +1083,7 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
 }
 
 .landing-title {
-    font-size: 48px;
+    font-size: clamp(64px, 9vw, 96px);
     color: var(--text-primary);
     margin-bottom: var(--space-sm);
 }
@@ -1093,7 +1121,7 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
    같이 줄이면 **잘리는 선이 화면 안쪽으로 들어와** 도형이 허공에서 직선으로 잘린다.
    틀은 화면에 고정, 무대만 물러난다. */
 html[data-view="tool"] .home-decor { opacity: 0.35; transition: opacity .45s ease; }
-html[data-view="home"] .home-decor { opacity: 1; transition: opacity .45s ease; }
+html[data-view="home"] .home-decor { opacity: 0.72; transition: opacity .45s ease; }
 .home-decor-stage {
     position: absolute;
     inset: 0;
@@ -1133,7 +1161,12 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
    @supports 로 감싼 이유: 글자에 배경을 오려 넣는 방식이라, 안 되는 브라우저에서 색을
    투명으로 두면 **제목이 통째로 사라진다**. 되는 곳에서만 투명으로 바꾼다. */
 @supports (background-clip: text) or (-webkit-background-clip: text) {
-    .header-logo-text,
+    .header-logo-text {
+        background: var(--chrome-grad);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
     .landing-title {
         background: var(--chrome-grad);
         -webkit-background-clip: text;
@@ -1153,6 +1186,7 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
     color: var(--text-tertiary);
     font-weight: 400;
     letter-spacing: 0.04em;
+    text-shadow: 0 1px 7px var(--brand-shadow);
 }
 
 /* ── 첫 화면 — 찾는 칸이 주인공, 카드는 그 아래 한 줄 (TASK-KL-099 → KL-136) ──
@@ -1264,11 +1298,16 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
    자리를 먼저 만들어 두고 그 안에 넣으면 아무것도 안 움직인다. 위 여백까지 함께 잡는다
    (단추가 제 여백을 갖고 있어서, 키만 잡으면 그 여백만큼 또 밀린다). */
 .hp-slot { min-height: calc(31px + var(--space-lg)); }
-.hp-open { display: block; margin: var(--space-lg) auto 0; padding: 4px 10px; font: inherit;
-    font-size: var(--font-size-2xs); color: var(--text-tertiary); background: none;
-    border: 1px solid transparent; border-radius: var(--radius-sm); cursor: pointer; }
+.hp-open { position: fixed; right: max(var(--space-lg), env(safe-area-inset-right));
+    bottom: max(var(--space-lg), env(safe-area-inset-bottom)); z-index: 90;
+    display: block; padding: 5px 10px; font: inherit;
+    font-size: var(--font-size-2xs); color: var(--text-tertiary); background: var(--glass-strong);
+    border: 1px solid var(--border); border-radius: 999px; cursor: pointer;
+    box-shadow: var(--shadow-float); }
 .hp-open:hover { color: var(--accent); border-color: var(--border); }
-.hp-panel { max-width: 420px; margin: var(--space-sm) auto 0; padding: 14px 16px; text-align: left;
+.hp-panel { position: fixed; right: max(var(--space-lg), env(safe-area-inset-right));
+    bottom: calc(max(var(--space-lg), env(safe-area-inset-bottom)) + 40px); z-index: 90;
+    width: min(420px, calc(100vw - 2 * var(--space-lg))); margin: 0; padding: 14px 16px; text-align: left;
     background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); }
 .hp-panel h3 { margin: 0 0 10px; font-size: var(--font-size-sm); }
 .hp-name { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-xs);
@@ -1348,7 +1387,7 @@ a.landing-cta-card:hover { color: inherit; }
    두 배로 키우고 있었다. 크기는 자리이므로 여기, 색은 뒤에. */
 .kp-inline .kp-input-icon { width: 18px; height: 18px; flex: 0 0 auto; }
 .kp-inline .kp-kbd { flex: 0 0 auto; }
-.kp-inline input.kp-input { flex: 1 1 auto; min-width: 0; padding: 18px 0; font-size: var(--font-size-md); }
+.kp-inline input.kp-input { flex: 1 1 auto; min-width: 0; padding: 12px 0; font-size: var(--font-size-md); }
 
 /* ═══════ 명령 팔레트 (TASK-KL-099) ═══════
    한 벌의 규칙이 두 자리를 칠한다 — 첫 화면에 박힌 것(.kp-inline)과 ⌘K 로 뜨는 것
@@ -1392,7 +1431,7 @@ a.landing-cta-card:hover { color: inherit; }
     font-family: inherit;
     font-size: var(--font-size-md);
     /* 16px 미만이면 iOS 가 입력에 닿는 순간 화면을 확대한다 — 그러면 목록이 밖으로 밀린다. */
-    padding: 18px 0;
+    padding: 12px 0;
     letter-spacing: 0.01em;
 }
 /* 포커스 표시는 바깥 상자(.kp-box:focus-within)가 이미 한다. 공통 규칙이 여기에 또
@@ -2223,6 +2262,11 @@ html[data-nav="sidebar"]:has(.sidebar:hover) .main-content {
     margin-left: var(--sidebar-width);
 }
 
+html[data-nav="sidebar"] .main-content:has(.tool-page.layout-full.active),
+html[data-nav="sidebar"]:has(.sidebar:hover) .main-content:has(.tool-page.layout-full.active) {
+    margin-left: 0;
+}
+
 .sidebar-nav {
     padding: var(--space-md) var(--space-sm);
     flex: 1;
@@ -2489,7 +2533,7 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     .mobile-nav { display: flex !important; margin-top: 52px; min-height: 55px; }
     .content-body { padding: var(--space-md); }
     .landing-page { padding: var(--space-md); }
-    .landing-title { font-size: 32px; }
+    .landing-title { font-size: 52px; }
     .landing-hero { padding: var(--space-lg) 0 var(--space-md); }
     .prism-theme-select { width: 100px; font-size: var(--font-size-2xs); }
     .tool-page-hero { padding: var(--space-md) 0 var(--space-sm); }
@@ -3328,4 +3372,37 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     padding: 22px 30px; border: 2px dashed var(--accent); border-radius: var(--radius-lg);
     background: var(--bg-secondary); color: var(--text-primary);
     font-size: var(--font-size-sm); font-weight: 600;
+}
+
+html.is-layout-full .main-content {
+    overflow: hidden;
+}
+html.is-layout-full .content-body {
+    flex: 1;
+    min-height: 0;
+    padding: 0;
+    padding-top: 52px;
+}
+html.is-layout-full .tool-page.layout-full.active {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+}
+html.is-layout-full .tool-page.layout-full.active > .tab-panel.active {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+}
+html[data-nav="sidebar"].is-layout-full .main-content,
+html[data-nav="sidebar"].is-layout-full .main-content:has(.tool-page.layout-full.active),
+html[data-nav="sidebar"].is-layout-full:has(.sidebar:hover) .main-content,
+html[data-nav="sidebar"].is-layout-full:has(.sidebar:hover) .main-content:has(.tool-page.layout-full.active) {
+    margin-left: 0;
 }

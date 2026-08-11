@@ -17,12 +17,14 @@
 declare const Toolbox: { showToast?: (msg: string) => void };
 
 interface HomePrefs {
+    version: number;
     order: string[];
     hidden: string[];
     name: string;
 }
 
 const KEY = 'karmolab_home_prefs';
+const DEFAULT_HIDDEN = ['today', 'live', 'cta'];
 
 /** 옮길 수 있는 블록 — 이름은 화면에 그대로 나온다. 여기 없는 블록은 손대지 않는다. */
 const BLOCKS: Array<{ id: string; label: string }> = [
@@ -34,14 +36,21 @@ const BLOCKS: Array<{ id: string; label: string }> = [
 
 function read(): HomePrefs {
     try {
-        const raw = JSON.parse(localStorage.getItem(KEY) || '{}');
+        const stored = localStorage.getItem(KEY);
+        if (!stored) return { version: 2, order: [], hidden: [...DEFAULT_HIDDEN], name: '' };
+        const raw = JSON.parse(stored);
+        const savedOrder = Array.isArray(raw.order) ? raw.order.filter((id: unknown) => typeof id === 'string') : [];
+        const savedHidden = Array.isArray(raw.hidden) ? raw.hidden.filter((id: unknown) => typeof id === 'string') : [];
+        const hasCustomLayout = savedOrder.length > 0 || savedHidden.length > 0 || (typeof raw.name === 'string' && raw.name.trim().length > 0);
+        const isLegacyEmpty = raw.version !== 2 && !hasCustomLayout;
         return {
-            order: Array.isArray(raw.order) ? raw.order.filter((id: unknown) => typeof id === 'string') : [],
-            hidden: Array.isArray(raw.hidden) ? raw.hidden.filter((id: unknown) => typeof id === 'string') : [],
+            version: 2,
+            order: savedOrder,
+            hidden: isLegacyEmpty ? [...DEFAULT_HIDDEN] : savedHidden,
             name: typeof raw.name === 'string' ? raw.name.slice(0, 20) : ''
         };
     } catch {
-        return { order: [], hidden: [], name: '' };
+        return { version: 2, order: [], hidden: [...DEFAULT_HIDDEN], name: '' };
     }
 }
 
@@ -160,9 +169,9 @@ function panel(landing: HTMLElement): HTMLElement {
     });
 
     box.querySelector('.hp-reset')!.addEventListener('click', () => {
-        const empty: HomePrefs = { order: [], hidden: [], name: '' };
-        write(empty);
-        apply(landing, empty);
+        const defaults: HomePrefs = { version: 2, order: [], hidden: [...DEFAULT_HIDDEN], name: '' };
+        write(defaults);
+        apply(landing, defaults);
         input.value = '';
         paint();
         Toolbox.showToast?.('처음 차림으로 되돌렸어요');
