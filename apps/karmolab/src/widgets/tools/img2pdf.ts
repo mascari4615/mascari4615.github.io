@@ -7,6 +7,7 @@
  */
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
+import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -33,7 +34,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   };
 
   Toolbox.register({
-    id: 'img2pdf',
+    id: imagePdfCoreSpec.id,
     // 다른 도구가 만든 그림을 그대로 받는다 (TASK-KL-133)
     accepts: ['image/*'],
     title: t('widgets.img2pdf.title', undefined, "이미지 → PDF"),

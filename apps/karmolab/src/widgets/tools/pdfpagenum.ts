@@ -13,6 +13,7 @@
 import { fileSize as size } from './shared/media';
 
 import { t, loadNamespace } from '../../lib/i18n';
+import { spec as pdfPageNumberCoreSpec } from '../../core/pdfpagenum';
 
 (function (): void {
   interface PDFLib {
@@ -53,7 +54,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   }
 
   Toolbox.register({
-    id: 'pdfpagenum',
+    id: pdfPageNumberCoreSpec.id,
     // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
     accepts: ['application/pdf'],
     title: t('widgets.pdfpagenum.title', undefined, 'PDF 쪽 번호'),
