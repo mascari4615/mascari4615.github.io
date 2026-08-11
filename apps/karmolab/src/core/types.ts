@@ -46,7 +46,7 @@ export type ToolRunner = (
   op: string,
   args: Record<string, unknown>,
   deps?: Record<string, unknown>
-) => string | number | boolean;
+) => string | number | boolean | Promise<string | number | boolean>;
 
 /** `'boolean?'` → `'boolean'` 처럼 물음표를 뗀다. */
 export function baseType(t: FieldType): 'string' | 'number' | 'boolean' {

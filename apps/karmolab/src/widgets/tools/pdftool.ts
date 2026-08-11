@@ -7,6 +7,7 @@
  */
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
+import { parsePages } from '../../core/pdftool';
 
 (function (): void {
   interface PDFLib {
@@ -27,6 +28,9 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   /** "1-3,5,8-" → [0,1,2,4,7,...] (1부터 세는 사람 표기를 0부터 세는 색인으로) */
   function parseRange(spec: string, total: number): number[] {
+    if (/^(?:\d+(?:-\d+)?)(?:\s*,\s*\d+(?:-\d+)?)*$/.test(spec.trim())) {
+      return parsePages(spec).filter((page) => page <= total).map((page) => page - 1);
+    }
     const out: number[] = [];
     const seen = new Set<number>();
     for (const chunk of spec.split(',')) {

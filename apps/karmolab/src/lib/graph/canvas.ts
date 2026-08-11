@@ -16,7 +16,6 @@
  *   ③ 색상 하드코딩(#131720 등) → `options.theme` (기본값 = 이주 전 값 그대로)
  * 렌더 로직·좌표 계산·이벤트는 손대지 않았다 (cockpit 회귀 0 목표).
  */
-
 import type {
   GraphSpec,
   GraphNode,
@@ -36,6 +35,7 @@ import { exportSvgString } from './canvas-export';
 import { buildNodeAvatar } from './canvas-avatar';
 import { buildNodeBackground, buildNoteCardBody } from './canvas-shape';
 import { chooseAnchors, edgeCurve, boundsOf, zoomAt, rectFromPoints, rectHits } from './canvas-math';
+import { cameraForRect } from './canvas-camera';
 import { buildEdgePath, buildEdgeLabel, buildLeaderLine } from './canvas-edge';
 import { renderGroups, computeGroupBox } from './canvas-group';
 import { nodeBadges } from './canvas-badges';
@@ -1878,6 +1878,11 @@ export class GraphCanvas {
     this.applyTransform();
   }
 
+  fitToWorldRect(rect: { x: number; y: number; w: number; h: number }, pad = 0, animate = false): void {
+    const target = cameraForRect(rect, this.svg.clientWidth || 800, this.svg.clientHeight || 600, pad);
+    if (animate) { this.animateTo(target); return; }
+    Object.assign(this.state, target); this.applyTransform();
+  }
   fitView(): void {
     const bounds = this.worldBounds();
     if (bounds.w <= 0 || bounds.h <= 0) return;
