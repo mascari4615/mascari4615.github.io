@@ -498,11 +498,45 @@ const Toolbox = (() => {
      *  한 군데라도 빼먹으면 그 위젯만 뒷정리가 안 되고, 그건 눈에 안 보인다. */
     /* 눈금은 여기 하나에만 붙인다 (TASK-KL-201) — 모든 위젯의 그리기가 이 문을 지난다.
        위젯마다 따로 재면 그날부터 「그린 시간」의 뜻이 갈라진다. */
-    function runBuild(toolId, fn) {
+    function isI18nBuildError(err) {
+        return !!err && (err.name === 'MissingTranslationError' || err.name === 'CatalogLoadError');
+    }
+
+    function renderBuildFailure(container, toolId, err) {
+        if (!container) throw err;
+        const i18nFailure = isI18nBuildError(err);
+        container.replaceChildren();
+        const notice = document.createElement('div');
+        notice.className = 'tool-status error karmolab-build-error';
+        notice.setAttribute('role', 'alert');
+        const language = (document.documentElement.getAttribute('lang') || 'ko').toLowerCase().split('-')[0];
+        const messages = i18nFailure
+            ? {
+                ko: '번역을 불러오지 못했습니다. 페이지를 새로고침해 주세요.',
+                en: 'Translations could not be loaded. Please refresh the page.',
+                ja: '翻訳を読み込めませんでした。ページを再読み込みしてください.'
+            }
+            : {
+                ko: '이 화면을 불러오지 못했습니다. 페이지를 새로고침해 주세요.',
+                en: 'This screen could not be loaded. Please refresh the page.',
+                ja: 'この画面を読み込めませんでした。ページを再読み込みしてください.'
+            };
+        notice.textContent = messages[language] || messages.en;
+        container.appendChild(notice);
+        const log = i18nFailure ? console.error : console.warn;
+        log.call(console, '[KarmoLab] widget build failed —', toolId, err);
+    }
+
+    function runBuild(toolId, fn, container) {
         const prev = buildingTool;
         buildingTool = toolId;
         const startedAt = performance.now();
-        try { return fn(); } finally {
+        try {
+            return fn();
+        } catch (err) {
+            renderBuildFailure(container, toolId, err);
+            return undefined;
+        } finally {
             buildingTool = prev;
             window.KLPerf?.build(toolId, performance.now() - startedAt);
         }
@@ -568,7 +602,7 @@ const Toolbox = (() => {
         const tab = tool.tabs[0];
         if (typeof tab.build !== 'function') return false;
         try {
-            runBuild(id, () => tab.build(container));
+            runBuild(id, () => tab.build(container), container);
             return true;
         } catch (err) {
             console.warn('[KarmoLab] renderInline fail —', id, err);
@@ -1832,7 +1866,7 @@ const Toolbox = (() => {
         const build = panel._lazyBuild;
         const owner = panel._lazyOwner;
         panel._lazyBuild = null;
-        runBuild(owner, () => build(panel));
+        runBuild(owner, () => build(panel), panel);
     }
 
     /* ===== Page Builder ===== */
@@ -1923,7 +1957,7 @@ const Toolbox = (() => {
                 panel._lazyBuild = tab.build;
                 panel._lazyOwner = tool.id;
             } else {
-                runBuild(tool.id, () => tab.build(panel));
+                runBuild(tool.id, () => tab.build(panel), panel);
             }
             panelsHost.appendChild(panel);
         });
@@ -2419,7 +2453,7 @@ const Toolbox = (() => {
             container.innerHTML = '<div class="tool-status error">「' + id + '」 를 불러오지 못했어요.</div>';
             return false;
         }
-        runBuild(id, () => tab.build(container));
+        runBuild(id, () => tab.build(container), container);
         return true;
     }
 
