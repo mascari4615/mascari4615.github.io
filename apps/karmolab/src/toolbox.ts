@@ -58,10 +58,52 @@ const Toolbox = (() => {
         { id: 'lab', label: '실험실 · 개발중', icon: '<path d="M9 3h6v5l4 4v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7l4-4V3z"/><path d="M9 3h6"/>' },
     ];
 
+    const NAV_TOOL_GROUPS = [
+        {
+            id: 'tool-calc',
+            label: '계산 · 변환',
+            prefixes: ['aspect', 'birth', 'bmi', 'bytesize', 'calc', 'datecalc', 'grade', 'interest', 'loan', 'numword', 'pace', 'percent', 'time', 'unitconv', 'vat', 'workdays', 'worldclock', 'livecount', 'countdown', 'hourglass']
+        },
+        {
+            id: 'tool-media',
+            label: '파일 · 미디어',
+            prefixes: ['asciiart', 'audio', 'barcode', 'color', 'exif', 'favicon', 'filetool', 'filesplit', 'gif', 'image', 'img', 'icsmake', 'palette', 'pdf', 'qr', 'redact', 'screenrec', 'sound', 'subtitle', 'video', 'voicerec', 'ziptool']
+        },
+        {
+            id: 'tool-dev',
+            label: '개발 · 텍스트',
+            prefixes: ['base64', 'caseconv', 'char', 'cron', 'cssunit', 'csvjson', 'devtool', 'epoch', 'filehash', 'hangul', 'hash', 'jamo', 'json', 'jwt', 'linebreak', 'listdiff', 'morse', 'radix', 'regex', 'replace', 'slug', 'tableconv', 'text', 'urlparse', 'uuid', 'wordfreq']
+        },
+        { id: 'tool-create', label: '생성 · 정리', prefixes: [] },
+    ];
+
+    const NAV_CATEGORIES = [
+        ...NAV_TOOL_GROUPS,
+        { id: 'ref', label: '자료' },
+        { id: 'play', label: '놀이' },
+    ];
+
+    function startsWithAny(value, prefixes) {
+        return prefixes.some((prefix) => value === prefix || value.startsWith(prefix));
+    }
+
+    function getNavigationCategory(tool) {
+        if (tool.category !== 'tool') return tool.category;
+        const group = NAV_TOOL_GROUPS.find((candidate) => candidate.prefixes.length > 0 && startsWithAny(tool.id, candidate.prefixes));
+        return group ? group.id : 'tool-create';
+    }
+
+    function getNavigationTools(categoryId) {
+        return tools.filter((tool) => {
+            if (categoryId === 'tool-create') return tool.category === 'tool' && getNavigationCategory(tool) === categoryId;
+            return getNavigationCategory(tool) === categoryId;
+        });
+    }
+
     /** 갈래 목록 (id·label·icon) — 화면 여러 곳이 같은 이름을 써야 하므로 여기서만 정의한다.
      *  손으로 라벨을 한 벌 더 적으면 메뉴와 즐겨찾기가 서로 다른 이름으로 갈라진다. */
     function getCategories() {
-        return CATEGORIES.map((c) => ({ ...c }));
+        return CATEGORIES.filter((c) => c.id !== 'lab').map((c) => ({ ...c }));
     }
 
     /** 위젯별 메타데이터 (category, desc, hidden, desktopOnly 등) — 각 위젯 register에서 정의 */
@@ -77,6 +119,9 @@ const Toolbox = (() => {
      * 별 하나가 네 곳을 같이 바꾼다: 도구 목록 · 찾는 창 · 옆줄 · 도구 화면.
      * 저장하는 자리는 하나뿐이라 어디서 꽂든 같은 것을 가리킨다. */
     const PINNED_KEY = 'toolbox_pinned_tools';
+    const HEADER_TOOL_LIMIT = 12;
+    const HEADER_QUICK_LIMIT = 8;
+    const HEADER_QUICK_IDS = ['calc', 'charcount', 'unitconv', 'jsonfmt', 'pdftool', 'imageedit', 'qrgen', 'passgen'];
     /** 옆줄의 「내 것」 칸을 다시 그리는 손잡이 — 옆줄이 만들어질 때 채워진다. */
     let rebuildMineGroup = null;
 
@@ -877,6 +922,11 @@ const Toolbox = (() => {
         const startedAt = performance.now();
         const urls = [];
         const p = (async () => {
+            /* A widget bundle may translate during module evaluation. Establish its
+               namespace barrier before inserting the script, not only before tab.build. */
+            if (typeof window.__KARMO_LOAD_NAMESPACE === 'function') {
+                await window.__KARMO_LOAD_NAMESPACE(pageId);
+            }
             let waitIdx = (window.KARMOLAB_WIDGET_LOADER_WAIT || []).length;
             for (let i = 0; i < paths.length; i++) {
                 const url = resolveScriptPath(paths[i]);
@@ -1106,6 +1156,19 @@ const Toolbox = (() => {
             mobileNav.appendChild(m);
         }
 
+        function addBrowseAllItem(container) {
+            const a = document.createElement('a');
+            a.className = 'nav-item nav-item-find';
+            a.href = '#';
+            a.textContent = '전체 도구 찾기';
+            a.onclick = (e) => {
+                e.preventDefault();
+                closeAllHeaderNav();
+                window.KarmoPalette?.open();
+            };
+            container.appendChild(a);
+        }
+
         /* TASK-KL-099 — 손가락으로 쓰는 화면에는 ⌘K 가 없다. 팔레트를 부를 길이 아예
          * 없으면 좁은 화면 사람만 160개짜리 가로 목록에 남겨진다. 이미 있는 줄의 맨 앞에
          * 세워서 새 떠다니는 버튼을 만들지 않는다. */
@@ -1151,7 +1214,7 @@ const Toolbox = (() => {
             mobileNav.appendChild(m);
         });
 
-        function buildHeaderNavGroup(label, catTools, navParent) {
+        function buildHeaderNavGroup(label, catTools, navParent, options = {}) {
             if (!catTools.length) return;
 
             const canHover = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
@@ -1180,7 +1243,9 @@ const Toolbox = (() => {
             function fillPanelOnce() {
                 if (innerFilled) return;
                 innerFilled = true;
-                catTools.forEach(tool => addNavItem(inner, tool));
+                const visibleTools = options.limit ? catTools.slice(0, options.limit) : catTools;
+                visibleTools.forEach(tool => addNavItem(inner, tool));
+                if (visibleTools.length < catTools.length) addBrowseAllItem(inner);
             }
             panel.appendChild(inner);
 
@@ -1224,19 +1289,28 @@ const Toolbox = (() => {
             headerNavScroll.className = 'header-nav-scroll';
             headerNav.appendChild(headerNavScroll);
 
-            CATEGORIES.forEach(cat => {
-                const catTools = tools
-                    .filter(t => !hiddenSet.has(t.id) && t.category === cat.id && (!isDesktopOnlyTool(t) || isDesktopApp()))
-                    .sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
-                buildHeaderNavGroup(cat.label, catTools, headerNavScroll);
-            });
+            const visibleToolIds = new Set([
+                ...getPins(),
+                (() => { try { return localStorage.getItem(LAST_PAGE_KEY); } catch (_) { return null; } })(),
+                ...HEADER_QUICK_IDS,
+            ].filter(Boolean));
+            const quickTools = tools
+                .filter(t => !hiddenSet.has(t.id) && visibleToolIds.has(t.id) && (!isDesktopOnlyTool(t) || isDesktopApp()))
+                .sort((a, b) => {
+                    const aRank = getPins().indexOf(a.id);
+                    const bRank = getPins().indexOf(b.id);
+                    if (aRank !== -1 || bRank !== -1) return (aRank === -1 ? 999 : aRank) - (bRank === -1 ? 999 : bRank);
+                    return (a.title || '').localeCompare(b.title || '', 'ko-KR');
+                })
+                .slice(0, HEADER_QUICK_LIMIT);
+            buildHeaderNavGroup('빠른 실행', quickTools, headerNavScroll);
 
-            const uncategorized = tools
-                .filter(t => !hiddenSet.has(t.id) && !t.category)
-                .sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
-            if (uncategorized.length) {
-                buildHeaderNavGroup('기타', uncategorized, headerNavScroll);
-            }
+            NAV_CATEGORIES.forEach(cat => {
+                const catTools = getNavigationTools(cat.id)
+                    .filter(t => !hiddenSet.has(t.id) && (!isDesktopOnlyTool(t) || isDesktopApp()))
+                    .sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
+                buildHeaderNavGroup(cat.label, catTools, headerNavScroll, cat.id === 'tool-create' ? { limit: HEADER_TOOL_LIMIT } : {});
+            });
 
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.header-nav')) closeAllHeaderNav();
@@ -1315,17 +1389,13 @@ const Toolbox = (() => {
             };
             rebuildMineGroup();
 
-            CATEGORIES.forEach(cat => {
-                const catTools = tools
-                    .filter(t => !hiddenSet.has(t.id) && t.category === cat.id && (!isDesktopOnlyTool(t) || isDesktopApp()))
+            NAV_CATEGORIES.forEach(cat => {
+                const catTools = getNavigationTools(cat.id)
+                    .filter(t => !hiddenSet.has(t.id) && (!isDesktopOnlyTool(t) || isDesktopApp()))
                     .sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
                 buildSidebarGroup(cat.id, cat.label, catTools);
             });
 
-            const sidebarUncategorized = tools
-                .filter(t => !hiddenSet.has(t.id) && !t.category)
-                .sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
-            buildSidebarGroup('misc', '기타', sidebarUncategorized);
         }
 
         /* TASK-KL-129: 본문이 이미 HTML 에 박혀 있는 페이지(도구 목록)에서는 화면을 앱이 안 그린다.
@@ -1798,6 +1868,7 @@ const Toolbox = (() => {
         const tool = tools.find(t => t.id === pageId);
         /* 묶음 안의 도구는 여기서 `tool` 이 **없다**(`bmi` 는 `calc` 묶음으로 열린다).
            `if (tool)` 안에 두었더니 묶음 도구 전부가 빠졌다 — 그쪽이 계산기의 대부분이다. */
+        document.documentElement.classList.toggle('is-layout-full', tool?.layout === 'full');
         offerResultCard(pageId, tool ? tool.title : pageId);
         if (tool) {
             document.getElementById('pageTitle').textContent = tool.title;
