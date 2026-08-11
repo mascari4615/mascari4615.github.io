@@ -73,6 +73,8 @@ await page.evaluate(() => {
   window.Mdd = { linePreset() {} };
   // i18n 무한 대기를 뚫기 위한 가짜 번역 객체 주입
   window.i18next = { t: (k) => k, loadNamespaces: async () => {} };
+  window.i18n = { t: (k) => k, loadNamespace: async () => {} };
+  window.loadNamespace = async () => {};
   window.t = (k) => k;
 });
 await page.addScriptTag({ content: read('js/vendor/crypto-js.min.js') });
