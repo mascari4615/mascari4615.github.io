@@ -169,6 +169,26 @@ export function setLocale(code: string): void {
 
 const pending = new Map<string, Promise<void>>();
 
+/** A translation key must never become user-visible text. */
+export class MissingTranslationError extends Error {
+  public readonly key: string;
+  public readonly code: string;
+
+  public constructor(key: string, code: string = locale()) {
+    super(`[i18n] Missing translation: ${code}/${key}`);
+    this.name = 'MissingTranslationError';
+    this.key = key;
+    this.code = code;
+  }
+}
+
+class CatalogLoadError extends Error {
+  public constructor(code: string, ns: string) {
+    super(`[i18n] Failed to load catalog: ${code}/${ns}`);
+    this.name = 'CatalogLoadError';
+  }
+}
+
 function catalogUrl(code: string, ns: string): string {
   const tag = (typeof window !== 'undefined' && window.KARMOLAB_BUILD_PRINT) || '';
   return `/apps/karmolab/js/i18n/${code}/${ns}.js` + (tag ? `?b=${tag}` : '');
@@ -182,17 +202,24 @@ function inject(code: string, ns: string): Promise<void> {
   const key = code + '/' + ns;
   const already = pending.get(key);
   if (already) return already;
-  const p = new Promise<void>((resolve) => {
+  const p = new Promise<void>((resolve, reject) => {
     const s = document.createElement('script');
     s.src = catalogUrl(code, ns);
     /* 못 받아도 resolve 한다 — 글이 없다고 도구가 멈추면 안 된다.
        그 경우 t() 가 원본 언어로 떨어지고, 그것도 없으면 열쇠를 보여 준다. */
-    s.onload = () => resolve();
-    s.onerror = () => resolve();
+    s.onload = () => {
+      if (have(code, ns)) {
+        resolve();
+        return;
+      }
+      reject(new CatalogLoadError(code, ns));
+    };
+    s.onerror = () => reject(new CatalogLoadError(code, ns));
     document.head.appendChild(s);
   });
-  pending.set(key, p);
-  return p;
+  const tracked = p.finally(() => pending.delete(key));
+  pending.set(key, tracked);
+  return tracked;
 }
 
 /**
@@ -301,7 +328,7 @@ export function t(key: string, vars?: Record<string, string | number>, fallback?
       warned.add(key);
       console.warn(`[i18n] 없는 열쇠: ${key}`);
     }
-    return key;
+    throw new MissingTranslationError(key);
   }
   return vars ? fill(raw, vars) : raw;
 }
