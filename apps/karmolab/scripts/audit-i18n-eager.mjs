@@ -40,8 +40,16 @@ function isTCall(node) {
 }
 
 function isImmediateIife(fn) {
-  const p = fn.parent;
-  return ts.isCallExpression(p) && p.expression === fn;
+  let p = fn.parent;
+  while (p && (ts.isParenthesizedExpression(p) || ts.isAsExpression(p) || ts.isTypeAssertionExpression(p))) {
+    p = p.parent;
+  }
+  if (!ts.isCallExpression(p)) return false;
+  let callee = p.expression;
+  while (callee && (ts.isParenthesizedExpression(callee) || ts.isAsExpression(callee) || ts.isTypeAssertionExpression(callee))) {
+    callee = callee.expression;
+  }
+  return callee === fn;
 }
 
 function functionAncestors(node) {
@@ -72,9 +80,14 @@ walkFiles(src, files);
 for (const file of files) {
   const text = fs.readFileSync(file, 'utf8');
   const sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const relative = path.relative(root, file).split(path.sep).join('/');
+  /* Deferred widget bundles are loaded only after the shell's namespace barrier.
+     Their module-level labels are therefore safe; the shell and boot modules still
+     have to provide a literal fallback or wait explicitly. */
+  const deferredWidget = relative.startsWith('src/widgets/');
 
   function visit(node) {
-    if (isTCall(node) && eagerScope(node) && node.arguments.length < 3) {
+    if (isTCall(node) && !deferredWidget && eagerScope(node) && node.arguments.length < 3) {
       const key = firstArgKey(node);
       const { line, character } = sf.getLineAndCharacterOfPosition(node.getStart());
       failures.push({

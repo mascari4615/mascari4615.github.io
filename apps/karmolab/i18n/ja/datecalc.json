@@ -56,5 +56,6 @@
   "datecalc.week.3": "水",
   "datecalc.week.4": "木",
   "datecalc.week.5": "金",
-  "datecalc.week.6": "土"
+  "datecalc.week.6": "土",
+  "datecalc.quick.add": "+{n}日"
 }

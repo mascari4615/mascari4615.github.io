@@ -22,6 +22,8 @@
   "localai.t10": ". Nothing is sent to a server.",
   "localai.t11": "It is a small model — use it for polishing and naming, where being short and a bit wrong is fine.\n          For long texts and fact-checking use the other AI tools (the server ones).",
   "localai.btn.laiPRun": "Make it",
+  "localai.btn.laiRun": "Translate",
+  "localai.btn.laiSum": "Summarize",
   "localai.t12": "Korean",
   "localai.t13": "English",
   "localai.t14": "Japanese",
