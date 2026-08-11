@@ -12,7 +12,7 @@ import type { GraphSpec, NodeCoord } from '../../lib/graph/spec';
 import type { GraphPersistAdapter } from '../../lib/graph/adapter';
 import { t, loadNamespace } from '../../lib/i18n';
 
-/** cockpit 의 노드 종류별 색 — KarmoMap 등 다른 캔버스는 자기 셋을 쓴다. */
+/** cockpit 의 노드 종류별 색 — KarmoGraph 등 다른 캔버스는 자기 셋을 쓴다. */
 export const COCKPIT_KIND_COLORS: Record<string, string> = {
   domain:   '#a78bfa',
   app:      '#60a5fa',

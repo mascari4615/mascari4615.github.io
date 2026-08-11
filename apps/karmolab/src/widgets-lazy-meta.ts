@@ -18,6 +18,18 @@ if (typeof document !== 'undefined') {
 
 window.KARMOLAB_LAZY_META = [
   {
+    id: 'ditherdeck',
+    title: 'Ditherdeck',
+    category: 'tool',
+    desc: 'Frame-by-frame pixel animation workspace with onion skinning, playback, and sprite-sheet export',
+    layout: 'full',
+    noHero: true,
+    accepts: ['application/json'],
+    produces: ['image/png', 'application/json'],
+    icon: '<rect x="3" y="3" width="7" height="7" fill="currentColor"/><rect x="14" y="3" width="7" height="7" fill="currentColor" opacity=".45"/><rect x="3" y="14" width="7" height="7" fill="currentColor" opacity=".45"/><path d="M14 14h7v7h-7zM17.5 12v11M12 17.5h11" stroke="currentColor" stroke-width="1.4"/>',
+    lazyScriptPaths: ['ditherdeck/ditherdeck']
+  },
+  {
     id: 'life',
     get title() { return t('widgets.life.title', undefined, "Life 채널"); },
     category: 'tool',
@@ -99,7 +111,7 @@ window.KARMOLAB_LAZY_META = [
     get title() { return t('widgets.community.title', undefined, "커뮤니티"); },
     category: 'tool',
     get desc() { return t('widgets-desc.community.desc', undefined, "자유 · 질문 · 자랑 · 도구 요청 — 도구를 쓰는 사람들이 모이는 자리"); },
-    layout: 'wide',
+    layout: 'full',
     noHero: true,
     icon: '<path d="M4 5.5h16v10H9l-4 3.5v-3.5H4z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><path d="M8 9.5h8M8 12h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     lazyScriptPaths: ['community']
@@ -124,6 +136,7 @@ window.KARMOLAB_LAZY_META = [
     category: '',
     get desc() { return t('widgets-desc.favorites.desc', undefined, "자주 가는 사이트와 도구를 모아 빠르게 접속합니다"); },
     layout: 'wide',
+    noHero: true,
     icon: '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
     lazyScriptPaths: ['favorites']
   },
@@ -200,7 +213,7 @@ window.KARMOLAB_LAZY_META = [
     get title() { return t('widgets.wm.title', undefined, "Witch-Mendokusai"); },
     category: 'tool',
     get desc() { return t('widgets-desc.wm.desc', undefined, "만들고 있는 게임 — 소개 · 하루 체험 · 세계 도감 · 이야기 · 소식 · 만드는 중"); },
-    layout: 'wide',
+    layout: 'full',
     noHero: true,
     icon:
       '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 7.5h6M9 11h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -211,7 +224,7 @@ window.KARMOLAB_LAZY_META = [
     get title() { return t('widgets.docs.title', undefined, "문서"); },
     category: 'tool',
     get desc() { return t('widgets-desc.docs.desc', undefined, "KarmoLab 소개·로드맵·가이드 + 캐릭터·시스템 위키 — 사이드바 그룹 내비게이션, 본문 + 목차"); },
-    layout: 'wide',
+    layout: 'full',
     icon: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
     lazyScriptPaths: ['docs/docs']
   },
@@ -2023,6 +2036,20 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['laptop']
   },
 
+  /* Karmo Studio (TASK-KL-220) — 녹음·편곡·믹싱·WAV 출력을 한 프로젝트에서 닫는 DAW. */
+  {
+    id: 'karmo-studio',
+    title: 'Karmo Studio',
+    category: 'lab',
+    desc: '멀티트랙 녹음·MIDI 편곡·믹싱·WAV 출력을 한 프로젝트에서 완성하는 브라우저 DAW',
+    layout: 'full',
+    noHero: true,
+    accepts: ['audio/*', 'application/json'],
+    produces: ['audio/wav', 'application/json'],
+    icon: '<path d="M3 17V7M7 20V4M11 15V9M15 19V5M19 14V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M2 12h20" stroke="currentColor" stroke-width="1" opacity=".35"/>',
+    lazyScriptPaths: ['karmo-studio/karmo-studio']
+  },
+
   /* ORBITA (TASK-KL-193) — 순서를 줄이 아니라 궤도로 적는 시퀀서. 색이 곧 음이다. */
   {
     id: 'orbita',
@@ -2071,22 +2098,22 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['collection']
   },
 
-  /* KarmoMap (TASK-KL-087 / KL-202) — 관계도·세계관·카드 전개를 그리는 캔버스.
+  /* KarmoGraph (TASK-KL-087 / KL-202) — 관계도·세계관·카드 전개를 그리는 캔버스.
    * ★ 이 항목이 없어서 20 커밋치 기능이 **앱에서 열 수 없는 상태**로 있었다(2026-08-09 실측):
    *   여기 적힌 `lazyScriptPaths` 가 번들 대상 목록이기도 해서, 안 적으면 묶음 자체가 안 만들어진다.
    *   타입체크·번들 정합 검사는 그때도 전부 초록이었다 — 「없는 것」은 검사할 대상이 없으니까. */
   {
-    id: 'karmomap',
-    get title() { return t('widgets.karmomap.title', undefined, "KarmoMap"); },
+    id: 'karmograph',
+    get title() { return t('widgets.karmograph.title', undefined, "KarmoGraph"); },
     category: 'lab',
-    get desc() { return t('widgets-desc.karmomap.desc', undefined, "관계도·세계관·카드 전개를 그리는 캔버스 — 어휘 팩을 갈아끼우면 쓰임새가 바뀐다"); },
-    layout: 'wide',
+    get desc() { return t('widgets-desc.karmograph.desc', undefined, "관계도·세계관·카드 전개를 그리는 캔버스 — 어휘 팩을 갈아끼우면 쓰임새가 바뀐다"); },
+    layout: 'full',
     noHero: true,
     icon:
       '<circle cx="6" cy="7" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
       '<circle cx="18" cy="6" r="2.2" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
       '<circle cx="12" cy="17" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
       '<path d="M8.4 8.4 10.6 15M15.9 7.6 13.4 15M8.5 6.6h7" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".7"/>',
-    lazyScriptPaths: ['karmomap/karmomap']
+    lazyScriptPaths: ['karmograph/karmograph']
   }
 ] as KarmoLabLazyWidgetStub[];
