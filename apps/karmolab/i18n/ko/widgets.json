@@ -1,4 +1,5 @@
 {
+  "widgets.ditherdeck.title": "Ditherdeck",
   "widgets.life.title": "Life 채널",
   "widgets.user.title": "내 정보",
   "widgets.usertool.title": "만든 도구",
@@ -196,9 +197,10 @@
   "widgets.ytdownloader.title": "유튜브 다운로드",
   "widgets.stash.title": "잡동사니",
   "widgets.laptop.title": "노트북",
+  "widgets.karmo-studio.title": "Karmo Studio",
   "widgets.orbita.title": "ORBITA",
   "widgets.bluemarble.title": "블루마블",
   "widgets.garden.title": "정원",
   "widgets.collection.title": "도감",
-  "widgets.karmomap.title": "KarmoMap"
+  "widgets.karmograph.title": "KarmoGraph"
 }

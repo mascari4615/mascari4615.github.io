@@ -222,6 +222,8 @@ export interface StoryStep {
    * 새로 놓은 인물도 저절로 장에 낀다(노드 목록으로 굳히면 새 인물이 영영 안 낀다).
    */
   rect?: { x: number; y: number; w: number; h: number };
+  /** 장면을 저장할 때 보고 있던 카메라. 노드 자동 맞춤보다 발표자의 구도를 우선한다. */
+  camera?: { x: number; y: number; w: number; h: number };
 }
 
 /**

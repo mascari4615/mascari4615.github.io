@@ -1,4 +1,5 @@
 {
+  "widgets-desc.ditherdeck.desc": "Frame-by-frame pixel animation workspace with onion skinning, playback, and sprite-sheet export",
   "widgets-desc.life.desc": "화면 캡처 / 음성 녹음 기능 on/off. 비활성 시 Whisper 모델 (~3.1GB) RAM 해제.",
   "widgets-desc.user.desc": "프로필 · 성과 · 활동 · 계정",
   "widgets-desc.usertool.desc": "사람들이 만들어 올린 도구 — 상자 안에서만 돕니다",
@@ -196,9 +197,10 @@
   "widgets-desc.ytdownloader.desc": "유튜브 영상을 다운로드합니다",
   "widgets-desc.stash.desc": "정리 안 된 실험들이 한 상자에 살아 움직임",
   "widgets-desc.laptop.desc": "집에서 24시간 도는 노트북 — 파일 공유·빌드 현황으로 가는 문",
+  "widgets-desc.karmo-studio.desc": "멀티트랙 녹음·MIDI 편곡·믹싱·WAV 출력을 한 프로젝트에서 완성하는 브라우저 DAW",
   "widgets-desc.orbita.desc": "궤도에 색을 찍어 만드는 폴리리듬 시퀀서 — 브라우저 신스 + MIDI 출력",
   "widgets-desc.bluemarble.desc": "지금 이 순간의 지구 — 낮과 밤, 도시 불빛, 방금 난 지진, 머리 위의 ISS",
   "widgets-desc.garden.desc": "오늘의 규칙 하나로 스스로 자라는 격자 — 손대지 않고 지켜봅니다",
   "widgets-desc.collection.desc": "써 본 도구에 도장이 찍힌다 — 몇 칸이나 채웠나",
-  "widgets-desc.karmomap.desc": "관계도·세계관·카드 전개를 그리는 캔버스 — 어휘 팩을 갈아끼우면 쓰임새가 바뀐다"
+  "widgets-desc.karmograph.desc": "관계도·세계관·카드 전개를 그리는 캔버스 — 어휘 팩을 갈아끼우면 쓰임새가 바뀐다"
 }

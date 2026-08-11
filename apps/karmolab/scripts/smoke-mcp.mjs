@@ -11,6 +11,10 @@ import { spawn } from 'node:child_process';
 import crypto from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+
+const requireMcp = createRequire(new URL('../../../packages/karmolab-mcp/package.json', import.meta.url));
+const { PDFDocument, StandardFonts } = requireMcp('pdf-lib');
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const serverPath = path.resolve(root, '../../packages/karmolab-mcp/src/server.mjs');
@@ -114,6 +118,46 @@ check(bad.isError === true, '모르는 알고리즘이면 isError 를 세워야 
 check(bad.content[0].text.includes('모르는 알고리즘'), `이유를 말해야 한다: ${bad.content[0].text}`);
 const missing = await callTool('epoch_toDate', { ts: 'abc' });
 check(missing.isError === true, '못 읽는 값이면 isError');
+
+// 파일 바이트 세로 관통 — JSON/base64 → ZIP → 목록 → 원본 바이트.
+const zipMade = await callTool('ziptool_create', {
+  files: JSON.stringify([
+    { name: 'hello.txt', data: Buffer.from('안녕 KarmoLab').toString('base64') },
+    { name: 'nested/value.txt', data: Buffer.from('42').toString('base64') }
+  ]),
+  level: 6
+});
+check(zipMade.isError !== true && zipMade.content[0].text.length > 40, 'ZIP base64 를 만든다');
+const zipList = await callTool('ziptool_list', { data: zipMade.content[0].text });
+const zipEntries = JSON.parse(zipList.content[0].text);
+eq(zipEntries.map((entry) => entry.name).join(','), 'hello.txt,nested/value.txt', 'ZIP 목록');
+const zipExtracted = await callTool('ziptool_extract', { data: zipMade.content[0].text, name: 'hello.txt' });
+eq(Buffer.from(zipExtracted.content[0].text, 'base64').toString(), '안녕 KarmoLab', 'ZIP 추출 왕복');
+
+// PDF도 같은 바이트 계약으로 왕복한다. 두 판을 만들고 합친 뒤 쪽 수·추출·회전·글자를 확인한다.
+async function samplePdf(text) {
+  const doc = await PDFDocument.create();
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  doc.addPage([300, 200]).drawText(text, { x: 30, y: 120, size: 18, font });
+  return Buffer.from(await doc.save()).toString('base64');
+}
+const pdfA = await samplePdf('KarmoLab Alpha');
+const pdfB = await samplePdf('KarmoLab Beta');
+const pdfMerged = await callTool('pdftool_merge', { files: JSON.stringify([pdfA, pdfB]) });
+eq((await callTool('pdftool_pages', { data: pdfMerged.content[0].text })).content[0].text, '2', 'PDF 합치기·쪽 수');
+const pdfExtracted = await callTool('pdftool_extract', { data: pdfMerged.content[0].text, pages: '2' });
+eq((await callTool('pdftool_pages', { data: pdfExtracted.content[0].text })).content[0].text, '1', 'PDF 쪽 추출');
+const pdfRotated = await callTool('pdftool_rotate', { data: pdfExtracted.content[0].text, pages: '1', degrees: 90 });
+check(pdfRotated.isError !== true && pdfRotated.content[0].text.length > 100, 'PDF 회전');
+const pdfText = await callTool('pdf2text_extract', { data: pdfMerged.content[0].text });
+check(pdfText.content[0].text.includes('KarmoLab Alpha') && pdfText.content[0].text.includes('KarmoLab Beta'), 'PDF 글자 추출');
+const pdfCropped = await callTool('pdfcrop_crop', { data: pdfMerged.content[0].text, top: 10, right: 10, bottom: 10, left: 10 });
+eq((await callTool('pdftool_pages', { data: pdfCropped.content[0].text })).content[0].text, '2', 'PDF 여백 자르기');
+const pdfNumbered = await callTool('pdfpagenum_add', { data: pdfMerged.content[0].text, startPage: 1, prefix: 'p. ' });
+eq((await callTool('pdftool_pages', { data: pdfNumbered.content[0].text })).content[0].text, '2', 'PDF 쪽 번호');
+const onePixelPng = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+const imagePdf = await callTool('img2pdf_create', { images: JSON.stringify([{ data: onePixelPng, type: 'png' }]), page: 'a4' });
+eq((await callTool('pdftool_pages', { data: imagePdf.content[0].text })).content[0].text, '1', '이미지 → PDF');
 
 const unknown = await rpc('tools/call', { name: '없는도구', arguments: {} });
 check(unknown.result?.isError === true, '없는 도구도 오류로 답한다(죽지 않는다)');
