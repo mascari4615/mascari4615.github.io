@@ -1,0 +1,318 @@
+/** Karmo Studio — KarmoLab 안에서 곡을 끝까지 만드는 브라우저 DAW (TASK-KL-220). */
+import { KarmoStudioEngine, renderProject, type StudioAssetRuntime } from './audio-engine';
+import {
+  cloneClip, findClip, findTrack, newProject, newTrack, normalizeProject, projectLength, snapBeat, splitClip, studioId,
+  type StudioClip, type StudioProject, type StudioSelection, type StudioTrack
+} from './model';
+import { toWav } from '../tools/shared/media';
+import { addAsset, hydrateAssets, importPortable, loadProject, portableProject, saveProject } from './storage';
+import { ProjectHistory } from './history';
+
+(function (): void {
+  const esc = (value: unknown): string => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const icon = '<path d="M3 17V7M7 20V4M11 15V9M15 19V5M19 14V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M2 12h20" stroke="currentColor" stroke-width="1" opacity=".35"/>';
+
+  Mdd.injectCSS('karmo-studio', `
+    .ks-root { --ks-head:172px; --ks-beat:72px; display:flex; flex-direction:column; width:100%; user-select:none;
+      height:calc(100dvh - 150px); min-height:620px; overflow:hidden; background:var(--bg-primary); color:var(--text-primary); }
+    .ks-root input,.ks-root textarea { user-select:text; }
+    .ks-toolbar { display:flex; align-items:center; gap:6px; padding:7px 9px; flex-wrap:wrap; flex:none;
+      border-bottom:1px solid var(--border); background:var(--bg-secondary); position:relative; z-index:8; }
+    .ks-toolbar > * { width:auto; flex:0 0 auto; margin:0; }
+    .ks-brand { font:700 12px/1 var(--font-mono); letter-spacing:.13em; margin-right:5px; color:var(--accent); }
+    .ks-btn { border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-tertiary); color:var(--text-primary);
+      min-height:30px; padding:4px 9px; font:11px var(--font-mono); cursor:pointer; }
+    .ks-btn:hover { border-color:var(--border-hover); background:var(--bg-hover); }
+    .ks-btn.is-on, .ks-btn.is-recording { color:var(--accent-hover); background:var(--accent-dim); border-color:var(--accent); }
+    .ks-btn.is-recording { color:#ff7a86; }
+    .ks-project-name { width:150px !important; border:0; background:transparent; color:var(--text-primary); font-weight:650; padding:4px; }
+    .ks-number { width:58px !important; padding:5px; background:var(--bg-primary); color:var(--text-primary); border:1px solid var(--border); border-radius:var(--radius-sm); }
+    .ks-time { min-width:82px; font:12px var(--font-mono); text-align:center; color:var(--text-secondary); }
+    .ks-spacer { flex:1 1 20px !important; }
+    .ks-work { display:grid; grid-template-columns:minmax(0, 1fr) 260px; min-height:0; flex:1; }
+    .ks-arranger { min-width:0; min-height:0; display:flex; flex-direction:column; }
+    .ks-scroll { position:relative; overflow:auto; min-height:0; flex:1; background:var(--bg-tertiary); }
+    .ks-ruler { position:sticky; top:0; z-index:7; height:30px; min-width:100%; background:var(--bg-secondary); border-bottom:1px solid var(--border); }
+    .ks-ruler-head { position:sticky; left:0; z-index:2; width:var(--ks-head); height:30px; border-right:1px solid var(--border); background:var(--bg-secondary); }
+    .ks-mark { position:absolute; top:0; height:30px; border-left:1px solid var(--border); color:var(--text-tertiary); font:10px var(--font-mono); padding:5px; }
+    .ks-track-row { display:grid; grid-template-columns:var(--ks-head) auto; min-height:84px; border-bottom:1px solid var(--border); }
+    .ks-track-head { position:sticky; left:0; z-index:5; padding:7px; border-right:1px solid var(--border); background:var(--bg-secondary); }
+    .ks-track-title { display:flex; align-items:center; gap:5px; }
+    .ks-track-color { width:9px; height:9px; border-radius:50%; flex:none; }
+    .ks-track-title input { min-width:0; width:100%; border:0; padding:2px; background:transparent; color:var(--text-primary); font-size:12px; }
+    .ks-track-actions { display:flex; gap:3px; margin:5px 0; }
+    .ks-mini { width:25px; height:23px; padding:0; border:1px solid var(--border); background:var(--bg-tertiary); color:var(--text-secondary); border-radius:4px; font:10px var(--font-mono); cursor:pointer; }
+    .ks-mini.is-on { background:var(--accent-dim); color:var(--accent-hover); border-color:var(--accent); }
+    .ks-track-head input[type=range] { width:72px; height:14px; margin:0; accent-color:var(--accent); }
+    .ks-lane { position:relative; height:84px; background-image:linear-gradient(to right, var(--border) 1px, transparent 1px);
+      background-size:var(--ks-beat) 100%; }
+    .ks-lane::after { content:""; position:absolute; inset:0; pointer-events:none; background-image:linear-gradient(to right, transparent calc(100% - 1px), color-mix(in srgb, var(--border) 55%, transparent) 1px); background-size:calc(var(--ks-beat) / 4) 100%; opacity:.45; }
+    .ks-clip { position:absolute; top:9px; height:64px; min-width:8px; border:1px solid color-mix(in srgb, var(--clip) 80%, white);
+      border-radius:5px; background:color-mix(in srgb, var(--clip) 42%, var(--bg-secondary)); overflow:hidden; cursor:grab; z-index:2; user-select:none; }
+    .ks-root[data-tool="slice"] .ks-clip { cursor:col-resize; }
+    .ks-root[data-tool="select"] .ks-lane { cursor:default; }
+    .ks-root[data-tool="draw"] .ks-lane[data-kind="midi"] { cursor:crosshair; }
+    .ks-clip.is-selected { outline:2px solid var(--text-primary); outline-offset:1px; }
+    .ks-clip-name { height:20px; padding:3px 7px; background:color-mix(in srgb, var(--clip) 58%, transparent); font:10px var(--font-mono); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .ks-midi-notes { position:absolute; inset:23px 5px 5px; }
+    .ks-midi-note { position:absolute; height:4px; border-radius:2px; background:color-mix(in srgb, var(--clip) 55%, white); }
+    .ks-wave-svg { position:absolute; inset:23px 4px 4px; width:calc(100% - 8px); height:calc(100% - 27px); overflow:visible; color:color-mix(in srgb,var(--clip) 52%,white); }
+    .ks-wave-svg path { fill:none; stroke:currentColor; stroke-width:1; vector-effect:non-scaling-stroke; }
+    .ks-wave-missing { position:absolute; inset:26px 6px 5px; display:grid; place-items:center; color:var(--text-tertiary); font:9px var(--font-mono); }
+    .ks-audio-editor { flex:1; min-height:0; position:relative; display:flex; flex-direction:column; padding:16px; gap:12px; }
+    .ks-audio-wave { position:relative; flex:1; min-height:110px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-tertiary); overflow:hidden; }
+    .ks-audio-wave .ks-wave-svg { inset:12px; width:calc(100% - 24px); height:calc(100% - 24px); }
+    .ks-audio-zero { position:absolute; left:0; right:0; top:50%; border-top:1px solid var(--border-hover); opacity:.55; }
+    .ks-audio-controls { display:grid; grid-template-columns:repeat(4,minmax(110px,1fr)); gap:10px; }
+    .ks-audio-controls .ks-field { grid-template-columns:70px minmax(0,1fr); }
+    .ks-handle { position:absolute; top:0; right:0; width:8px; height:100%; cursor:ew-resize; background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--clip) 70%,white)); }
+    .ks-playhead { position:absolute; top:30px; bottom:0; width:1px; background:#ff5d6c; z-index:6; pointer-events:none; box-shadow:0 0 5px #ff5d6c; }
+    .ks-playhead::before { content:""; position:absolute; top:-5px; left:-4px; border:5px solid transparent; border-top-color:#ff5d6c; }
+    .ks-loop { position:absolute; top:0; height:4px; background:var(--accent); opacity:.8; z-index:3; }
+    .ks-side { min-height:0; border-left:1px solid var(--border); background:var(--bg-secondary); display:flex; flex-direction:column; }
+    .ks-side-tabs { display:flex; border-bottom:1px solid var(--border); flex:none; }
+    .ks-side-tabs button { flex:1; border:0; border-right:1px solid var(--border); border-radius:0; }
+    .ks-side-body { overflow:auto; padding:10px; min-height:0; }
+    .ks-section { margin-bottom:14px; }
+    .ks-section h4 { margin:0 0 7px; font:10px var(--font-mono); letter-spacing:.1em; color:var(--text-tertiary); }
+    .ks-field { display:grid; grid-template-columns:82px minmax(0,1fr); align-items:center; gap:7px; margin:5px 0; font-size:11px; color:var(--text-secondary); }
+    .ks-field input,.ks-field select { min-width:0; width:100%; margin:0; padding:5px; border:1px solid var(--border); border-radius:4px; background:var(--bg-primary); color:var(--text-primary); }
+    .ks-field input[type=range] { padding:0; accent-color:var(--accent); }
+    .ks-meter { height:6px; background:var(--bg-tertiary); border-radius:5px; overflow:hidden; }
+    .ks-meter span { display:block; height:100%; background:var(--accent); }
+    .ks-editor { flex:none; height:210px; border-top:1px solid var(--border); background:var(--bg-primary); display:flex; flex-direction:column; }
+    .ks-editor.is-expanded { position:fixed; inset:5dvh 3vw; width:auto; height:auto; z-index:1000;
+      border:1px solid var(--border-hover); border-radius:var(--radius-md); box-shadow:0 18px 70px rgba(0,0,0,.72); }
+    .ks-modal-backdrop { display:none; position:fixed; inset:0; z-index:999; background:rgba(0,0,0,.64); }
+    .ks-modal-backdrop.is-open { display:block; }
+    .ks-context { position:fixed; z-index:1100; min-width:180px; padding:5px; border:1px solid var(--border-hover);
+      border-radius:var(--radius-sm); background:var(--bg-secondary); box-shadow:0 12px 36px rgba(0,0,0,.55); }
+    .ks-context[hidden] { display:none; }
+    .ks-context button { display:block; width:100%; padding:7px 10px; border:0; border-radius:var(--radius-sm);
+      background:transparent; color:var(--text-primary); text-align:left; font:11px var(--font-mono); cursor:pointer; }
+    .ks-context button:hover,.ks-context button:focus-visible { background:var(--bg-hover); outline:none; }
+    .ks-editor-head { height:30px; display:flex; align-items:center; gap:8px; padding:4px 8px; border-bottom:1px solid var(--border); font:11px var(--font-mono); }
+    .ks-piano { flex:1; overflow:auto; position:relative; background:repeating-linear-gradient(to bottom,var(--bg-secondary) 0 15px,var(--border) 16px),repeating-linear-gradient(to right,transparent 0 calc(var(--ks-beat) / 4 - 1px),var(--border) calc(var(--ks-beat) / 4)); }
+    .ks-key { position:absolute; left:0; width:68px; height:16px; border:1px solid var(--border); border-top:0;
+      background:#e8e8e4; color:#25252b; font:9px var(--font-mono); padding:2px 5px; z-index:4; }
+    .ks-key.is-black { width:45px; background:#25252b; color:#d8d8d3; border-color:#111; z-index:5; }
+    .ks-piano-ruler { position:absolute; top:0; left:68px; height:24px; z-index:3; background:var(--bg-secondary); border-bottom:1px solid var(--border); }
+    .ks-piano-bar { position:absolute; top:0; height:24px; border-left:1px solid var(--border-hover); padding:4px 6px; color:var(--text-tertiary); font:9px var(--font-mono); }
+    .ks-note { position:absolute; height:12px; border-radius:2px; background:var(--accent); cursor:grab; min-width:5px; z-index:3; }
+    .ks-note-handle { position:absolute; right:0; top:0; bottom:0; width:7px; cursor:ew-resize; background:rgba(255,255,255,.36); border-radius:0 2px 2px 0; }
+    .ks-note.is-selected { outline:1px solid white; }
+    .ks-empty { padding:18px 8px; text-align:center; color:var(--text-tertiary); font-size:11px; line-height:1.6; }
+    .ks-status { margin-left:auto; max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-tertiary); font:10px var(--font-mono); }
+    @media(max-width:850px) { .ks-root{height:auto;min-height:720px}.ks-work{grid-template-columns:1fr}.ks-side{border-left:0;border-top:1px solid var(--border);max-height:250px}.ks-scroll{height:420px}.ks-editor{height:190px}.ks-editor.is-expanded{inset:2dvh 2vw;height:auto}.ks-audio-controls{grid-template-columns:1fr 1fr}.ks-toolbar .ks-status{display:none} }
+  `);
+
+  Toolbox.register({
+    ...(Toolbox.getLazyWidgetPublicMeta?.('karmo-studio') || {}), id: 'karmo-studio', title: 'Karmo Studio', category: 'lab',
+    desc: '녹음부터 편곡·믹싱·WAV 출력까지 한 프로젝트에서 완성하는 브라우저 DAW', layout: 'full', icon,
+    accepts: ['audio/*', 'application/json'], produces: ['audio/wav', 'application/json'],
+    tabs: [{ id: 'app', label: 'Karmo Studio', build(container: HTMLElement): void { buildStudio(container); } }]
+  });
+
+  function buildStudio(container: HTMLElement): void {
+    let project = loadProject() || newProject();
+    let selection: StudioSelection = { type: 'clip', trackId: project.tracks[0].id, clipId: project.tracks[0].clips[0].id };
+    let playhead = 0; let pxPerBeat = 72; let sideMode: 'inspector' | 'mixer' = 'inspector';let editTool:'draw'|'select'|'slice'='draw'; let assets = new Map<string, StudioAssetRuntime>();
+    let raf: number | undefined; let saveTimer: number | undefined; let recording: MediaRecorder | null = null; let recordChunks: Blob[] = []; let recordStart = 0;
+    let editorExpanded = false; let editorScrollTop = 0; let editorScrollLeft = 0; let editorClipId = ''; let pianoPxPerBeat = pxPerBeat;
+    let editorReturnFocus: HTMLElement | null = null; let cancelActiveGesture: (()=>void) | null = null;
+    let clipboard: {type:'clip';sourceTrackId:string;clip:StudioClip}|{type:'note';note:StudioClip['notes'][number]}|null=null;
+    const engine = new KarmoStudioEngine();
+    const history = new ProjectHistory(project, normalizeProject);
+
+    container.innerHTML = `<div class="ks-root">
+      <div class="ks-toolbar">
+        <span class="ks-brand">KARMO STUDIO</span><button class="ks-btn" data-act="new">NEW</button><button class="ks-btn" data-act="open">OPEN</button><button class="ks-btn" data-act="save">SAVE</button><button class="ks-btn" data-act="undo" title="실행 취소 (Ctrl+Z)">↶</button><button class="ks-btn" data-act="redo" title="다시 실행 (Ctrl+Y)">↷</button>
+        <input class="ks-project-name" data-bind="project-name" aria-label="프로젝트 이름">
+        <button class="ks-btn" data-act="back" aria-label="처음으로">|◀</button><button class="ks-btn" data-act="play" aria-label="재생">▶</button><button class="ks-btn" data-act="stop" aria-label="정지">■</button><button class="ks-btn" data-act="record" aria-label="마이크 녹음">● REC</button>
+        <span class="ks-time" data-role="time">1.1.00</span><label>BPM <input class="ks-number" data-bind="bpm" type="number" min="30" max="300"></label><label>METER <select class="ks-number" data-bind="meter"><option value="3">3/4</option><option value="4">4/4</option><option value="5">5/4</option><option value="6">6/4</option><option value="7">7/4</option></select></label>
+        <label>SNAP <select class="ks-number" data-bind="snap"><option value="1">1</option><option value="0.5">1/2</option><option value="0.25">1/4</option><option value="0.125">1/8</option><option value="0.0625">1/16</option></select></label>
+        <button class="ks-btn is-on" data-tool="draw" title="그리기 (P)">✎ DRAW</button><button class="ks-btn" data-tool="select" title="선택 (E)">□ SELECT</button><button class="ks-btn" data-tool="slice" title="자르기 (C)">╱ SLICE</button>
+        <button class="ks-btn" data-act="loop">LOOP</button><button class="ks-btn" data-act="audio">+ AUDIO</button><button class="ks-btn" data-act="midi">+ MIDI</button><button class="ks-btn" data-act="import-audio">IMPORT AUDIO</button>
+        <button class="ks-btn" data-act="cut" title="잘라내기 (Ctrl+X)">CUT</button><button class="ks-btn" data-act="copy" title="복사 (Ctrl+C)">COPY</button><button class="ks-btn" data-act="paste" title="붙여넣기 (Ctrl+V)">PASTE</button>
+        <span class="ks-spacer"></span><button class="ks-btn" data-act="zoom-out">−</button><button class="ks-btn" data-act="zoom-in">＋</button><button class="ks-btn" data-act="export-wav">EXPORT WAV</button><span class="ks-status" data-role="status">Ready</span>
+      </div>
+      <div class="ks-work"><div class="ks-arranger"><div class="ks-scroll" data-role="scroll"><div class="ks-ruler" data-role="ruler"></div><div data-role="tracks"></div><div class="ks-playhead" data-role="playhead"></div></div><div class="ks-editor" data-role="editor"></div></div>
+      <aside class="ks-side"><div class="ks-side-tabs"><button class="ks-btn is-on" data-side="inspector">INSPECTOR</button><button class="ks-btn" data-side="mixer">MIXER</button></div><div class="ks-side-body" data-role="side"></div></aside></div>
+      <div class="ks-modal-backdrop" data-role="backdrop"></div><div class="ks-context" data-role="context" role="menu" hidden></div>
+      <input type="file" data-file="audio" accept="audio/*" multiple hidden><input type="file" data-file="project" accept="application/json,.json" hidden>
+    </div>`;
+    const root = container.querySelector('.ks-root') as HTMLElement;
+    const $ = <T extends HTMLElement>(selector: string): T => root.querySelector(selector) as T;
+    const status = (message: string): void => { $<HTMLElement>('[data-role=status]').textContent = message; };
+    const saveSoon = (mergeKey = ''): void => { history.record(project,mergeKey);engine.updateProject(project);if (saveTimer !== undefined) clearTimeout(saveTimer); saveTimer = window.setTimeout(() => { try { saveProject(project); status('Saved locally'); } catch (_) { status('Local save is full — export the project'); } }, 250); };
+    const restoreHistory = (direction: 'undo'|'redo'): void => { const result=direction==='undo'?history.undo(project):history.redo(project);if(!result.changed){status(direction==='undo'?'Nothing to undo':'Nothing to redo');return;}project=result.value;selection=project.tracks[0]?{type:'track',trackId:project.tracks[0].id}:null;engine.updateProject(project);if(saveTimer!==undefined)clearTimeout(saveTimer);saveTimer=window.setTimeout(()=>saveProject(project),250);renderAll();void refreshAssets();status(direction==='undo'?'Undone':'Redone'); };
+    const beatText = (beat: number): string => { const bar = Math.floor(beat / project.beatsPerBar) + 1; const within = beat % project.beatsPerBar; return `${bar}.${Math.floor(within) + 1}.${String(Math.floor((within % 1) * 100)).padStart(2, '0')}`; };
+    const trackWidth = (): number => Math.max(900, projectLength(project) * pxPerBeat);
+
+    function selectedTrack(): StudioTrack | undefined { return selection ? findTrack(project, selection.trackId) : undefined; }
+    function selectedClip(): StudioClip | undefined { return selection?.type === 'clip' || selection?.type === 'note' ? findClip(project, selection.trackId, selection.clipId) : undefined; }
+    function copySelection(): boolean { const chosen=selection;if(!chosen)return false;if(chosen.type==='note'){const clip=findClip(project,chosen.trackId,chosen.clipId);const note=clip?.notes.find((item)=>item.id===chosen.noteId);if(!note)return false;clipboard={type:'note',note:{...note}};status('MIDI note copied');return true;}if(chosen.type==='clip'){const clip=findClip(project,chosen.trackId,chosen.clipId);if(!clip)return false;clipboard={type:'clip',sourceTrackId:chosen.trackId,clip:cloneClip(clip,clip.start)};status('Clip copied');return true;}return false; }
+    function pasteClipboard(): boolean { if(!clipboard){status('Clipboard is empty');return false;}if(clipboard.type==='clip'){const selected=selectedTrack();const source=findTrack(project,clipboard.sourceTrackId);const target=selected?.kind===clipboard.clip.kind?selected:source;if(!target){status('Compatible track not found');return false;}const copy=cloneClip(clipboard.clip,snapBeat(playhead,project.snap));copy.trackId=target.id;target.clips.push(copy);selection={type:'clip',trackId:target.id,clipId:copy.id};status(`Pasted clip at ${beatText(copy.start)}`);}else{const clip=selectedClip();const track=selectedTrack();if(!clip||clip.kind!=='midi'||!track){status('Select a MIDI clip before pasting a note');return false;}const source=clipboard.note;const beat=Math.max(0,Math.min(clip.duration-source.duration,snapBeat(playhead-clip.start,project.snap)));const note={...source,id:studioId('note'),beat};clip.notes.push(note);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:note.id};status(`Pasted note at ${beatText(clip.start+beat)}`);}saveSoon();renderAll();return true; }
+    function cutSelection(): void { if(!copySelection())return;deleteSelection();status(clipboard?.type==='note'?'MIDI note cut':'Clip cut'); }
+    function duplicateSelection(): void { if(selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const track=selectedTrack();const note=clip?.notes.find((item)=>item.id===noteId);if(clip&&track&&note){const copy={...note,id:studioId('note'),beat:Math.min(clip.duration-note.duration,snapBeat(note.beat+note.duration,project.snap))};clip.notes.push(copy);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copy.id};saveSoon();renderEditor();renderTracks();renderSide();}return;}const clip=selectedClip();const track=selectedTrack();if(clip&&track){const copy=cloneClip(clip,snapBeat(clip.start+clip.duration,project.snap));track.clips.push(copy);selection={type:'clip',trackId:track.id,clipId:copy.id};saveSoon();renderAll();} }
+    function addPianoNote(event: MouseEvent): boolean { const target=event.target as HTMLElement;const piano=target.closest<HTMLElement>('[data-piano]');const clip=selectedClip();const track=selectedTrack();if(!piano||!clip||clip.kind!=='midi'||!track||target.closest('.ks-note,.ks-key,.ks-piano-ruler'))return false;const rect=piano.firstElementChild!.getBoundingClientRect();const pitch=Math.max(36,Math.min(84,84-Math.floor((event.clientY-rect.top-24)/16)));const beat=snapBeat((event.clientX-rect.left-68)/pianoPxPerBeat,project.snap);if(beat<0||beat>=clip.duration)return false;const existing=clip.notes.find((note)=>note.pitch===pitch&&Math.abs(note.beat-beat)<project.snap/2);if(existing){selection={type:'note',trackId:track.id,clipId:clip.id,noteId:existing.id};renderEditor();renderSide();return true;}const note={id:studioId('note'),beat,duration:Math.min(project.snap*2,clip.duration-beat),pitch,velocity:.8};clip.notes.push(note);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:note.id};void engine.preview(track,pitch);saveSoon();renderEditor();renderTracks();renderSide();return true; }
+    function createMidiClip(track:StudioTrack,start:number,open=false):StudioClip { const snapped=snapBeat(start,project.snap);const existing=track.clips.find((clip)=>clip.kind==='midi'&&Math.abs(clip.start-snapped)<project.snap/2);if(existing){selection={type:'clip',trackId:track.id,clipId:existing.id};renderAll();if(open)setEditorExpanded(true);return existing;}const clip:StudioClip={id:studioId('clip'),trackId:track.id,kind:'midi',name:'MIDI Clip',start:snapped,duration:project.beatsPerBar,offset:0,notes:[],gain:1,fadeIn:0,fadeOut:0};track.clips.push(clip);selection={type:'clip',trackId:track.id,clipId:clip.id};saveSoon();renderAll();if(open)setEditorExpanded(true);return clip; }
+    function hideContextMenu(): void { const menu=$<HTMLElement>('[data-role=context]');menu.hidden=true;menu.innerHTML=''; }
+    function setEditorExpanded(next: boolean): void { const editor=$<HTMLElement>('[data-role=editor]');if(next&&!editorExpanded)editorReturnFocus=document.activeElement instanceof HTMLElement?document.activeElement:null;editorExpanded=next;editor.classList.toggle('is-expanded',next);editor.toggleAttribute('role',next);editor.toggleAttribute('aria-modal',next);if(next){editor.setAttribute('role','dialog');editor.setAttribute('aria-modal','true');editor.tabIndex=-1;}else{editor.removeAttribute('role');editor.removeAttribute('aria-modal');editor.removeAttribute('tabindex');} $<HTMLElement>('[data-role=backdrop]').classList.toggle('is-open',next);renderEditor();if(next)editor.focus({preventScroll:true});else editorReturnFocus?.focus({preventScroll:true}); }
+    function showContextMenu(x:number,y:number,items:Array<[string,string]>):void{const menu=$<HTMLElement>('[data-role=context]');menu.innerHTML=items.map(([act,label])=>`<button type="button" role="menuitem" data-context-act="${act}">${label}</button>`).join('');menu.hidden=false;menu.style.left=`${Math.min(x,window.innerWidth-200)}px`;menu.style.top=`${Math.min(y,window.innerHeight-menu.offsetHeight-8)}px`;menu.querySelector<HTMLElement>('button')?.focus({preventScroll:true});}
+
+    function renderAll(): void {
+      const scrollElement=root.querySelector<HTMLElement>('[data-role=scroll]');const arrangerLeft=scrollElement?.scrollLeft||0;const arrangerTop=scrollElement?.scrollTop||0;
+      root.style.setProperty('--ks-beat', `${pxPerBeat}px`);
+      root.dataset.tool=editTool;root.querySelectorAll('[data-tool]').forEach((button)=>button.classList.toggle('is-on',(button as HTMLElement).dataset.tool===editTool));
+      $<HTMLInputElement>('[data-bind=project-name]').value = project.name; $<HTMLInputElement>('[data-bind=bpm]').value = String(project.bpm); $<HTMLSelectElement>('[data-bind=meter]').value = String(project.beatsPerBar); $<HTMLSelectElement>('[data-bind=snap]').value = String(project.snap);
+      root.querySelector('[data-act=loop]')?.classList.toggle('is-on', project.loop);
+      renderRuler(); renderTracks(); renderSide(); renderEditor(); updatePlayhead();
+      if(scrollElement){scrollElement.scrollLeft=arrangerLeft;scrollElement.scrollTop=arrangerTop;}
+    }
+
+    function renderRuler(): void {
+      const ruler = $<HTMLElement>('[data-role=ruler]'); const length = Math.ceil(projectLength(project));
+      ruler.style.width = `${172 + trackWidth()}px`;
+      let html = '<div class="ks-ruler-head"></div>';
+      for (let beat = 0; beat <= length; beat += project.beatsPerBar) html += `<div class="ks-mark" style="left:${172 + beat * pxPerBeat}px">${beat / project.beatsPerBar + 1}</div>`;
+      html += `<div class="ks-loop" style="left:${172 + project.loopStart * pxPerBeat}px;width:${(project.loopEnd - project.loopStart) * pxPerBeat}px"></div>`; ruler.innerHTML = html;
+    }
+
+    function waveformSvg(clip: StudioClip, className = ''): string {
+      const runtime=clip.assetId?assets.get(clip.assetId):undefined;const buffer=runtime?.buffer;if(!buffer)return `<div class="ks-wave-missing">${runtime?'DECODING…':'AUDIO MISSING'}</div>`;
+      const data=buffer.getChannelData(0);const secondsPerBeat=60/project.bpm;const start=Math.max(0,Math.floor(clip.offset*secondsPerBeat*buffer.sampleRate));const end=Math.min(data.length,Math.ceil((clip.offset+clip.duration)*secondsPerBeat*buffer.sampleRate));const columns=96;let path='';
+      for(let column=0;column<columns;column++){const from=Math.floor(start+(end-start)*column/columns);const to=Math.max(from+1,Math.floor(start+(end-start)*(column+1)/columns));let low=1,high=-1;for(let index=from;index<to;index++){const value=data[index]||0;if(value<low)low=value;if(value>high)high=value;}const x=column/(columns-1)*100;path+=`M${x.toFixed(2)} ${(16-high*14).toFixed(2)}L${x.toFixed(2)} ${(16-low*14).toFixed(2)}`;}
+      return `<svg class="ks-wave-svg ${className}" viewBox="0 0 100 32" preserveAspectRatio="none" aria-label="${esc(runtime?.name||clip.name)} 파형"><path d="${path}"></path></svg>`;
+    }
+
+    function clipHtml(track: StudioTrack, clip: StudioClip): string {
+      const selected = (selection?.type === 'clip' || selection?.type === 'note') && selection.clipId === clip.id;
+      const notes = clip.notes.length ? `<div class="ks-midi-notes">${clip.notes.map((note) => {
+        const pitches = clip.notes.map((item) => item.pitch); const low = Math.min(...pitches); const high = Math.max(...pitches, low + 1);
+        return `<i class="ks-midi-note" style="left:${note.beat / clip.duration * 100}%;width:${Math.max(1,note.duration / clip.duration * 100)}%;bottom:${(note.pitch-low)/(high-low)*90}%"></i>`;
+      }).join('')}</div>` : waveformSvg(clip);
+      return `<div class="ks-clip${selected ? ' is-selected' : ''}" data-clip="${clip.id}" data-track="${track.id}" style="--clip:${track.color};left:${clip.start * pxPerBeat}px;width:${clip.duration * pxPerBeat}px"><div class="ks-clip-name">${esc(clip.name)}</div>${notes}<div class="ks-handle" data-resize="1"></div></div>`;
+    }
+
+    function renderTracks(): void {
+      const tracks = $<HTMLElement>('[data-role=tracks]'); const width = trackWidth();
+      tracks.innerHTML = project.tracks.map((track) => `<div class="ks-track-row" data-track-row="${track.id}" style="width:${172 + width}px">
+        <div class="ks-track-head"><div class="ks-track-title"><span class="ks-track-color" style="background:${track.color}"></span><input data-track-name="${track.id}" value="${esc(track.name)}" aria-label="트랙 이름"></div>
+        <div class="ks-track-actions"><button class="ks-mini${track.mute?' is-on':''}" data-track-act="mute" data-track="${track.id}">M</button><button class="ks-mini${track.solo?' is-on':''}" data-track-act="solo" data-track="${track.id}">S</button><button class="ks-mini" data-track-act="arm" data-track="${track.id}">●</button><button class="ks-mini" data-track-act="delete" data-track="${track.id}">×</button></div>
+        <input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-track-volume="${track.id}" aria-label="${esc(track.name)} 볼륨"></div>
+        <div class="ks-lane" data-lane="${track.id}" data-kind="${track.kind}" style="width:${width}px">${track.clips.map((clip)=>clipHtml(track,clip)).join('')}</div></div>`).join('');
+    }
+
+    const field = (label: string, input: string): string => `<label class="ks-field"><span>${label}</span>${input}</label>`;
+    function renderSide(): void {
+      root.querySelectorAll('[data-side]').forEach((button) => button.classList.toggle('is-on', (button as HTMLElement).dataset.side === sideMode));
+      const side = $<HTMLElement>('[data-role=side]');
+      if (sideMode === 'mixer') {
+        side.innerHTML = project.tracks.map((track) => `<section class="ks-section"><h4><span style="color:${track.color}">●</span> ${esc(track.name)}</h4>${field('VOLUME',`<input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-mix="volume" data-track="${track.id}">`)}${field('PAN',`<input type="range" min="-1" max="1" step="0.01" value="${track.pan}" data-mix="pan" data-track="${track.id}">`)}<div class="ks-meter"><span style="width:${Math.min(100,track.volume*83)}%"></span></div></section>`).join('') + `<section class="ks-section"><h4>MASTER</h4>${field('VOLUME',`<input type="range" min="0" max="1" step="0.01" value="${project.masterVolume}" data-master="volume">`)}</section>`; return;
+      }
+      const track = selectedTrack(); const clip = selectedClip();
+      if (!track) { side.innerHTML = '<div class="ks-empty">트랙이나 클립을 선택하세요.</div>'; return; }
+      const noteSelection = selection?.type === 'note' ? selection : null;
+      const chosenNote = noteSelection && clip ? clip.notes.find((note) => note.id === noteSelection.noteId) : undefined;
+      side.innerHTML = `<section class="ks-section"><h4>PROJECT</h4>${field('LOOP START',`<input type="number" min="0" step="${project.snap}" value="${project.loopStart}" data-project-ins="loopStart">`)}${field('LOOP END',`<input type="number" min="${project.snap}" step="${project.snap}" value="${project.loopEnd}" data-project-ins="loopEnd">`)}</section><section class="ks-section"><h4>TRACK · ${track.kind.toUpperCase()}</h4>
+        ${field('NAME',`<input value="${esc(track.name)}" data-ins="track-name">`)}${field('COLOR',`<input type="color" value="${track.color}" data-ins="color">`)}
+        ${field('VOLUME',`<input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-ins="volume">`)}${field('PAN',`<input type="range" min="-1" max="1" step="0.01" value="${track.pan}" data-ins="pan">`)}
+        ${track.kind==='midi'?field('SYNTH',`<select data-ins="instrument">${['sine','triangle','sawtooth','square'].map((wave)=>`<option${wave===track.instrument?' selected':''}>${wave}</option>`).join('')}</select>`):''}</section>
+        <section class="ks-section"><h4>CHANNEL STRIP</h4>${field('LOW EQ',`<input type="range" min="-12" max="12" step="0.5" value="${track.eqLow}" data-ins="eqLow">`)}${field('MID EQ',`<input type="range" min="-12" max="12" step="0.5" value="${track.eqMid}" data-ins="eqMid">`)}${field('HIGH EQ',`<input type="range" min="-12" max="12" step="0.5" value="${track.eqHigh}" data-ins="eqHigh">`)}${field('COMP',`<input type="range" min="0" max="1" step="0.01" value="${track.compressor}" data-ins="compressor">`)}${field('REVERB',`<input type="range" min="0" max="0.8" step="0.01" value="${track.reverb}" data-ins="reverb">`)}</section>
+        ${clip?`<section class="ks-section"><h4>CLIP</h4>${field('NAME',`<input value="${esc(clip.name)}" data-clip-ins="name">`)}${field('START',`<input type="number" min="0" step="${project.snap}" value="${clip.start}" data-clip-ins="start">`)}${field('LENGTH',`<input type="number" min="${project.snap}" step="${project.snap}" value="${clip.duration}" data-clip-ins="duration">`)}${field('GAIN',`<input type="range" min="0" max="2" step="0.01" value="${clip.gain}" data-clip-ins="gain">`)}<div style="display:flex;gap:5px"><button class="ks-btn" data-act="duplicate">DUPLICATE</button><button class="ks-btn" data-act="split">SPLIT @ PLAYHEAD</button><button class="ks-btn" data-act="delete-clip">DELETE</button></div></section>`:''}
+        ${chosenNote?`<section class="ks-section"><h4>MIDI NOTE · ${chosenNote.pitch}</h4>${field('PITCH',`<input type="number" min="0" max="127" value="${chosenNote.pitch}" data-note-ins="pitch">`)}${field('START',`<input type="number" min="0" max="${clip?.duration||1}" step="${project.snap}" value="${chosenNote.beat}" data-note-ins="beat">`)}${field('LENGTH',`<input type="number" min="${project.snap}" step="${project.snap}" value="${chosenNote.duration}" data-note-ins="duration">`)}${field('VELOCITY',`<input type="range" min="0.05" max="1" step="0.01" value="${chosenNote.velocity}" data-note-ins="velocity">`)}</section>`:''}`;
+    }
+
+    function renderEditor(): void {
+      const editor = $<HTMLElement>('[data-role=editor]'); const previousPiano = editor.querySelector<HTMLElement>('.ks-piano');
+      if (previousPiano) { editorScrollTop = previousPiano.scrollTop; editorScrollLeft = previousPiano.scrollLeft; }
+      const track = selectedTrack(); const clip = selectedClip(); editor.classList.toggle('is-expanded', editorExpanded);
+      if (!track || !clip) { editorExpanded=false;editor.classList.remove('is-expanded');$<HTMLElement>('[data-role=backdrop]').classList.remove('is-open');editor.innerHTML = `<div class="ks-editor-head">CLIP EDITOR</div><div class="ks-empty">클립을 선택하면 편집기가 열립니다.<br>클립을 더블클릭하면 큰 전용 편집 창으로 봅니다.</div>`; return; }
+      if (clip.kind === 'audio') {
+        const runtime=clip.assetId?assets.get(clip.assetId):undefined;
+        editor.innerHTML=`<div class="ks-editor-head"><strong>AUDIO CLIP · ${esc(clip.name)}</strong><span>${runtime?`${runtime.duration.toFixed(2)}s · ${Math.round((runtime.buffer?.sampleRate||0)/1000)}kHz`:'원본 음원을 찾을 수 없음'}</span><span class="ks-spacer"></span><span>더블클릭: 큰 편집 창</span><button class="ks-btn" data-act="toggle-editor">${editorExpanded?'작게':'크게 열기'}</button></div><div class="ks-audio-editor"><div class="ks-audio-wave"><i class="ks-audio-zero"></i>${waveformSvg(clip,'ks-wave-large')}</div><div class="ks-audio-controls">${field('START',`<input type="number" min="0" step="${project.snap}" value="${clip.start}" data-clip-ins="start">`)}${field('LENGTH',`<input type="number" min="${project.snap}" step="${project.snap}" value="${clip.duration}" data-clip-ins="duration">`)}${field('FADE IN',`<input type="number" min="0" step="${project.snap}" value="${clip.fadeIn}" data-clip-ins="fadeIn">`)}${field('FADE OUT',`<input type="number" min="0" step="${project.snap}" value="${clip.fadeOut}" data-clip-ins="fadeOut">`)}</div></div>`;
+        return;
+      }
+      const high = 84, low = 36, row = 16, keyWidth = 68, rulerHeight = 24;
+      pianoPxPerBeat = editorExpanded ? Math.max(pxPerBeat, Math.min(160, (window.innerWidth - 180) / Math.max(clip.duration, 8))) : pxPerBeat;
+      const width = Math.max(640, clip.duration * pianoPxPerBeat);
+      if (editorClipId !== clip.id) { editorClipId=clip.id;editorScrollLeft=0;const topPitch=clip.notes.length?Math.max(...clip.notes.map((note)=>note.pitch)):72;editorScrollTop=Math.max(0,(high-topPitch)*row-64); }
+      const names=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+      let keys = ''; for (let pitch=high; pitch>=low; pitch--) { const black=[1,3,6,8,10].includes(pitch%12);keys += `<span class="ks-key${black?' is-black':''}" style="top:${rulerHeight+(high-pitch)*row}px">${names[pitch%12]}${Math.floor(pitch/12)-1}</span>`; }
+      let bars='';for(let beat=0;beat<=clip.duration;beat+=project.beatsPerBar)bars+=`<span class="ks-piano-bar" style="left:${beat*pianoPxPerBeat}px">${beat/project.beatsPerBar+1}</span>`;
+      const notes = clip.notes.map((note)=>`<i class="ks-note${selection?.type==='note'&&selection.noteId===note.id?' is-selected':''}" title="${names[note.pitch%12]}${Math.floor(note.pitch/12)-1} · velocity ${Math.round(note.velocity*127)}" data-note="${note.id}" style="left:${keyWidth+note.beat*pianoPxPerBeat}px;top:${rulerHeight+(high-note.pitch)*row+Math.max(1,Math.round((1-note.velocity)*5))}px;width:${note.duration*pianoPxPerBeat}px;height:${Math.round(7+note.velocity*7)}px;opacity:${0.5+note.velocity*0.5}"><b class="ks-note-handle" data-note-resize="1"></b></i>`).join('');
+      editor.innerHTML = `<div class="ks-editor-head"><strong>PIANO ROLL · ${esc(clip.name)}</strong><span>세로=음높이 · 가로=시간 · 밝기=세기</span><span class="ks-spacer"></span><span>좌클릭: 음 추가 · 드래그: 이동 · Delete: 삭제 · Ctrl+B: 복제</span><button class="ks-btn" data-act="toggle-editor">${editorExpanded?'작게':'크게 열기'}</button></div><div class="ks-piano" data-piano="1"><div style="position:relative;width:${keyWidth+width}px;height:${rulerHeight+(high-low+1)*row}px"><div class="ks-piano-ruler" style="width:${width}px">${bars}</div>${keys}${notes}</div></div>`;
+      const piano=editor.querySelector<HTMLElement>('.ks-piano');if(piano){piano.scrollTop=editorScrollTop;piano.scrollLeft=editorScrollLeft;}
+    }
+
+    function updatePlayhead(): void {
+      $<HTMLElement>('[data-role=playhead]').style.left = `${172 + playhead * pxPerBeat}px`;
+      $<HTMLElement>('[data-role=time]').textContent = beatText(playhead);
+    }
+    function transportLoop(): void { if (!engine.isPlaying()) return; playhead = engine.currentBeat(); updatePlayhead(); const scroll = $<HTMLElement>('[data-role=scroll]'); const x = 172 + playhead * pxPerBeat; if (x > scroll.scrollLeft + scroll.clientWidth - 80) scroll.scrollLeft = x - scroll.clientWidth * .45; raf = requestAnimationFrame(transportLoop); }
+    function play(): void { engine.setAssets(assets); engine.play(project, playhead); root.querySelector('[data-act=play]')?.classList.add('is-on'); if (raf!==undefined)cancelAnimationFrame(raf); transportLoop(); }
+    function stop(): void { engine.stop(); root.querySelector('[data-act=play]')?.classList.remove('is-on'); if(raf!==undefined)cancelAnimationFrame(raf); raf=undefined; }
+    engine.onEnded = () => { root.querySelector('[data-act=play]')?.classList.remove('is-on'); };
+
+    async function refreshAssets(): Promise<void> { const AC=window.AudioContext||(window as Window & {webkitAudioContext?:typeof AudioContext}).webkitAudioContext; const context=new AC(); assets=await hydrateAssets(project,context); await context.close(); engine.setAssets(assets); }
+    async function importAudio(files: File[]): Promise<void> {
+      const selectedAudioTrack = selectedTrack();
+      const audioTrack: StudioTrack = selectedAudioTrack?.kind === 'audio'
+        ? selectedAudioTrack
+        : project.tracks.find((track) => track.kind === 'audio') || (() => { const track = newTrack('audio', project.tracks.length + 1); project.tracks.push(track); return track; })();
+      const AC=window.AudioContext||(window as Window & {webkitAudioContext?:typeof AudioContext}).webkitAudioContext; const context=new AC();
+      for (const file of files) { try { const bytes=await file.arrayBuffer(); const buffer=await context.decodeAudioData(bytes.slice(0)); const asset:StudioAssetRuntime={id:studioId('asset'),name:file.name,type:file.type||'audio/wav',duration:buffer.duration,buffer}; await addAsset(new Blob([bytes],{type:asset.type}),asset); assets.set(asset.id,asset); project.assets.push(asset); const duration=buffer.duration/(60/project.bpm); const clip:StudioClip={id:studioId('clip'),trackId:audioTrack.id,kind:'audio',name:file.name.replace(/\.[^.]+$/,''),start:snapBeat(playhead,project.snap),duration,offset:0,assetId:asset.id,notes:[],gain:1,fadeIn:0.02/(60/project.bpm),fadeOut:0.02/(60/project.bpm)}; audioTrack.clips.push(clip); selection={type:'clip',trackId:audioTrack.id,clipId:clip.id}; status(`Imported ${file.name}`); } catch(error){status(`Could not decode ${file.name}`);} }
+      await context.close(); saveSoon(); renderAll();
+    }
+    async function startRecording(): Promise<void> {
+      if (recording) { recording.stop(); return; }
+      try { const stream=await navigator.mediaDevices.getUserMedia({audio:true}); recordChunks=[]; recording=new MediaRecorder(stream); recordStart=playhead; recording.ondataavailable=(event)=>{if(event.data.size)recordChunks.push(event.data);}; recording.onstop=()=>{const blob=new Blob(recordChunks,{type:recording?.mimeType||'audio/webm'});stream.getTracks().forEach((track)=>track.stop());recording=null;root.querySelector('[data-act=record]')?.classList.remove('is-recording');playhead=recordStart;void importAudio([new File([blob],`Recording ${new Date().toLocaleTimeString()}.webm`,{type:blob.type})]);}; recording.start(); root.querySelector('[data-act=record]')?.classList.add('is-recording'); if(!engine.isPlaying())play(); status('Recording microphone…'); } catch(_){status('Microphone permission was not granted');}
+    }
+    const download = (blob: Blob, name: string): void => { const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000); };
+
+    root.addEventListener('click',(event)=>{ const raw=event.target as HTMLElement;if(addPianoNote(event))return;const contextAct=raw.closest<HTMLElement>('[data-context-act]')?.dataset.contextAct;if(contextAct){hideContextMenu();if(contextAct==='open-editor')setEditorExpanded(true);else if(contextAct==='copy')copySelection();else if(contextAct==='cut')cutSelection();else if(contextAct==='duplicate')root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();else if(contextAct==='duplicate-note'&&selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const note=clip?.notes.find((item)=>item.id===noteId);const track=selectedTrack();if(clip&&note&&track){const copy={...note,id:studioId('note'),beat:Math.min(clip.duration-note.duration,snapBeat(note.beat+project.snap,project.snap))};clip.notes.push(copy);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copy.id};saveSoon();renderEditor();renderTracks();}}else if(contextAct==='split')root.querySelector<HTMLElement>('[data-act=split]')?.click();else if(contextAct==='delete')deleteSelection();return;}const tool=raw.closest<HTMLElement>('.ks-btn[data-tool]')?.dataset.tool;if(tool){editTool=tool as typeof editTool;renderAll();status(`${tool.toUpperCase()} tool`);return;} const target=raw.closest<HTMLElement>('[data-act],[data-side],[data-track-act]'); if(!target){hideContextMenu();return;}
+      if(target.dataset.side){sideMode=target.dataset.side as typeof sideMode;renderSide();return;}
+      const trackAct=target.dataset.trackAct; if(trackAct){const track=findTrack(project,target.dataset.track||'');if(!track)return;if(trackAct==='mute')track.mute=!track.mute;else if(trackAct==='solo')track.solo=!track.solo;else if(trackAct==='delete'&&confirm(`Delete ${track.name}?`)){project.tracks=project.tracks.filter((item)=>item.id!==track.id);selection=null;}saveSoon();renderAll();return;}
+      const act=target.dataset.act;
+      if(act==='play')engine.isPlaying()?stop():play(); else if(act==='stop')stop(); else if(act==='back'){stop();playhead=0;updatePlayhead();} else if(act==='loop'){project.loop=!project.loop;saveSoon();renderAll();}
+      else if(act==='audio'||act==='midi'){const track=newTrack(act,project.tracks.length+1);project.tracks.push(track);selection={type:'track',trackId:track.id};saveSoon();renderAll();}
+      else if(act==='import-audio')$<HTMLInputElement>('[data-file=audio]').click(); else if(act==='open')$<HTMLInputElement>('[data-file=project]').click();
+      else if(act==='new'&&confirm('Start a new project? Export the current one first if you need it.')){stop();project=newProject();assets.clear();selection={type:'clip',trackId:project.tracks[0].id,clipId:project.tracks[0].clips[0].id};playhead=0;saveSoon();renderAll();}
+      else if(act==='save'){void portableProject(project).then((json)=>download(new Blob([json],{type:'application/json'}),`${project.name||'Karmo Studio'}.karmo.json`));}
+      else if(act==='export-wav'){stop();status('Rendering WAV…');const from=project.loop?project.loopStart:0;const to=project.loop?project.loopEnd:projectLength(project);void renderProject(project,assets,from,to).then((buffer)=>{const blob=toWav(buffer);download(blob,`${project.name||'Karmo Studio'}.wav`);Toolbox.offerNext?.($('[data-role=status]'),{blob,name:`${project.name}.wav`,from:'karmo-studio'});status(`WAV ready · ${(blob.size/1048576).toFixed(1)} MB`);}).catch((error:Error)=>status(`Render failed: ${error.message}`));}
+      else if(act==='zoom-in'||act==='zoom-out'){pxPerBeat=Math.max(28,Math.min(180,pxPerBeat*(act==='zoom-in'?1.25:.8)));renderAll();}
+      else if(act==='record')void startRecording(); else if(act==='duplicate')duplicateSelection();
+      else if(act==='copy')copySelection();else if(act==='cut')cutSelection();else if(act==='paste')pasteClipboard();
+      else if(act==='undo')restoreHistory('undo');else if(act==='redo')restoreHistory('redo');
+      else if(act==='toggle-editor')setEditorExpanded(!editorExpanded);
+      else if(act==='split'){const clip=selectedClip();const track=selectedTrack();if(clip&&track){const right=splitClip(clip,snapBeat(playhead,project.snap));if(right){track.clips.push(right);selection={type:'clip',trackId:track.id,clipId:right.id};saveSoon();renderAll();}else status('Place the playhead inside the selected clip');}}
+      else if(act==='delete-clip'){deleteSelection();}
+    });
+
+    root.addEventListener('input',(event)=>{const input=event.target as HTMLInputElement; if(input.dataset.bind==='project-name')project.name=input.value;else if(input.dataset.bind==='bpm')project.bpm=Math.max(30,Math.min(300,Number(input.value)||120));else if(input.dataset.bind==='meter')project.beatsPerBar=Number(input.value);else if(input.dataset.bind==='snap')project.snap=Number(input.value);else if(input.dataset.projectIns){const key=input.dataset.projectIns;const value=Math.max(0,Number(input.value));if(key==='loopStart')project.loopStart=Math.min(value,project.loopEnd-project.snap);else project.loopEnd=Math.max(project.loopStart+project.snap,value);}else if(input.dataset.trackName){const track=findTrack(project,input.dataset.trackName);if(track)track.name=input.value;}else if(input.dataset.trackVolume){const track=findTrack(project,input.dataset.trackVolume);if(track)track.volume=Number(input.value);}else if(input.dataset.mix){const track=findTrack(project,input.dataset.track||'');if(track)(track as unknown as Record<string,unknown>)[input.dataset.mix]=Number(input.value);}else if(input.dataset.master)project.masterVolume=Number(input.value);else if(input.dataset.ins){const track=selectedTrack();if(track){const key=input.dataset.ins;if(key==='track-name')track.name=input.value;else if(key==='color')track.color=input.value;else if(key==='instrument')track.instrument=input.value as OscillatorType;else (track as unknown as Record<string,unknown>)[key]=Number(input.value);}}else if(input.dataset.clipIns){const clip=selectedClip();if(clip){const key=input.dataset.clipIns;if(key==='name')clip.name=input.value;else (clip as unknown as Record<string,unknown>)[key]=Math.max(key==='start'||key==='fadeIn'||key==='fadeOut'?0:0.0625,Number(input.value));}}else if(input.dataset.noteIns&&selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const note=clip?.notes.find((item)=>item.id===noteId);if(note){const key=input.dataset.noteIns;const value=Number(input.value);if(key==='pitch')note.pitch=Math.max(0,Math.min(127,value));else if(key==='beat')note.beat=Math.max(0,Math.min((clip?.duration||1)-note.duration,value));else if(key==='duration')note.duration=Math.max(project.snap,Math.min((clip?.duration||1)-note.beat,value));else note.velocity=Math.max(.05,Math.min(1,value));}}const historyKey=`input:${input.dataset.bind||input.dataset.projectIns||input.dataset.trackName||input.dataset.trackVolume||input.dataset.mix||input.dataset.master||input.dataset.ins||input.dataset.clipIns||input.dataset.noteIns||'field'}`;saveSoon(historyKey); if(event.type==='change')renderAll();});
+    root.addEventListener('change',(event)=>{const input=event.target as HTMLInputElement;if(input.dataset.bind||input.dataset.projectIns||input.dataset.ins||input.dataset.clipIns||input.dataset.noteIns||input.dataset.mix||input.dataset.master||input.dataset.trackName)renderAll();});
+
+    const audioInput=$<HTMLInputElement>('[data-file=audio]');audioInput.onchange=()=>{if(audioInput.files)void importAudio(Array.from(audioInput.files));audioInput.value='';};
+    const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.onchange=()=>{const file=projectInput.files?.[0];if(!file)return;void file.text().then(importPortable).then(async(next)=>{stop();project=next;history.reset(project);await refreshAssets();selection=project.tracks[0]?{type:'track',trackId:project.tracks[0].id}:null;playhead=0;renderAll();status(`Opened ${file.name}`);}).catch((error:Error)=>status(`Open failed: ${error.message}`));projectInput.value='';};
+
+    const scroll=$<HTMLElement>('[data-role=scroll]'); scroll.addEventListener('pointerdown',(event)=>{if(event.button!==0||!event.isPrimary)return;hideContextMenu();const target=event.target as HTMLElement;const clipEl=target.closest<HTMLElement>('.ks-clip');const lane=target.closest<HTMLElement>('.ks-lane');if(!clipEl&&!lane)return;
+      if(clipEl&&editTool==='slice'){const trackId=clipEl.dataset.track||'',clipId=clipEl.dataset.clip||'';const track=findTrack(project,trackId),clip=findClip(project,trackId,clipId);if(!track||!clip||!lane)return;const at=snapBeat((event.clientX-lane.getBoundingClientRect().left)/pxPerBeat,project.snap);const right=splitClip(clip,at);if(right){track.clips.push(right);selection={type:'clip',trackId,clipId:right.id};saveSoon();renderAll();status(`Split at ${beatText(at)}`);}else status('Click inside the clip to split');return;}
+      if(!clipEl&&lane){selection={type:'track',trackId:lane.dataset.lane||''};playhead=snapBeat((event.clientX-lane.getBoundingClientRect().left)/pxPerBeat,project.snap);updatePlayhead();renderSide();return;}
+      if(!clipEl)return;const trackId=clipEl.dataset.track||'',clipId=clipEl.dataset.clip||'';const clip=findClip(project,trackId,clipId);if(!clip)return;selection={type:'clip',trackId,clipId};root.querySelectorAll('.ks-clip').forEach((element)=>element.classList.toggle('is-selected',element===clipEl));renderSide();renderEditor();const startX=event.clientX,originalStart=clip.start,originalDuration=clip.duration,isResize=Boolean(target.closest('[data-resize]'));let moved=false;if(!clipEl.isConnected)return;try{clipEl.setPointerCapture(event.pointerId);}catch(_){return;}
+      const move=(moveEvent:PointerEvent)=>{const delta=(moveEvent.clientX-startX)/pxPerBeat;if(Math.abs(moveEvent.clientX-startX)>2)moved=true;if(isResize)clip.duration=Math.max(project.snap,snapBeat(originalDuration+delta,project.snap));else clip.start=snapBeat(originalStart+delta,project.snap);clipEl.style.left=`${clip.start*pxPerBeat}px`;clipEl.style.width=`${clip.duration*pxPerBeat}px`;};
+      const cleanup=()=>{clipEl.removeEventListener('pointermove',move);clipEl.removeEventListener('pointerup',up);clipEl.removeEventListener('pointercancel',cancel);clipEl.removeEventListener('lostpointercapture',cancel);cancelActiveGesture=null;};const up=()=>{cleanup();if(moved){saveSoon();renderAll();}};const cancel=()=>{clip.start=originalStart;clip.duration=originalDuration;cleanup();renderAll();};cancelActiveGesture=cancel;clipEl.addEventListener('pointermove',move);clipEl.addEventListener('pointerup',up,{once:true});clipEl.addEventListener('pointercancel',cancel,{once:true});clipEl.addEventListener('lostpointercapture',cancel,{once:true});
+    });
+    scroll.addEventListener('click',(event)=>{if(event.button!==0||editTool!=='draw')return;const target=event.target as HTMLElement;if(target.closest('.ks-clip'))return;const lane=target.closest<HTMLElement>('.ks-lane');if(!lane||lane.dataset.kind!=='midi')return;const track=findTrack(project,lane.dataset.lane||'');if(track)createMidiClip(track,(event.clientX-lane.getBoundingClientRect().left)/pxPerBeat);});
+    scroll.addEventListener('dblclick',(event)=>{if(event.button!==0)return;event.preventDefault();const target=event.target as HTMLElement;const clipElement=target.closest<HTMLElement>('.ks-clip');if(clipElement){const trackId=clipElement.dataset.track||'',clipId=clipElement.dataset.clip||'';const clip=findClip(project,trackId,clipId);if(clip){selection={type:'clip',trackId,clipId};renderTracks();renderSide();setEditorExpanded(true);}return;}const lane=target.closest<HTMLElement>('.ks-lane');if(!lane||lane.dataset.kind!=='midi')return;const track=findTrack(project,lane.dataset.lane||'');if(track)createMidiClip(track,(event.clientX-lane.getBoundingClientRect().left)/pxPerBeat,true);});
+
+    root.addEventListener('pointerdown',(event)=>{if(event.button!==0||!event.isPrimary)return;const target=event.target as HTMLElement;const noteEl=target.closest<HTMLElement>('.ks-note');const clip=selectedClip();const track=selectedTrack();if(!noteEl||!clip||!track)return;const note=clip.notes.find((item)=>item.id===noteEl.dataset.note);if(!note)return;selection={type:'note',trackId:track.id,clipId:clip.id,noteId:note.id};const startX=event.clientX,startY=event.clientY,beat=note.beat,pitch=note.pitch,duration=note.duration,isResize=Boolean(target.closest('[data-note-resize]'));if(!noteEl.isConnected)return;try{noteEl.setPointerCapture(event.pointerId);}catch(_){return;}const move=(moveEvent:PointerEvent)=>{if(isResize){note.duration=Math.max(project.snap,Math.min(clip.duration-note.beat,snapBeat(duration+(moveEvent.clientX-startX)/pianoPxPerBeat,project.snap)));noteEl.style.width=`${note.duration*pianoPxPerBeat}px`;}else{note.beat=Math.max(0,Math.min(clip.duration-note.duration,snapBeat(beat+(moveEvent.clientX-startX)/pianoPxPerBeat,project.snap)));note.pitch=Math.max(36,Math.min(84,pitch-Math.round((moveEvent.clientY-startY)/16)));noteEl.style.left=`${68+note.beat*pianoPxPerBeat}px`;noteEl.style.top=`${24+(84-note.pitch)*16+2}px`;}};const cleanup=()=>{noteEl.removeEventListener('pointermove',move);noteEl.removeEventListener('pointerup',up);noteEl.removeEventListener('pointercancel',cancel);noteEl.removeEventListener('lostpointercapture',cancel);cancelActiveGesture=null;};const up=()=>{cleanup();void engine.preview(track,note.pitch,note.velocity);saveSoon();renderEditor();renderTracks();};const cancel=()=>{note.beat=beat;note.pitch=pitch;note.duration=duration;cleanup();renderEditor();renderTracks();};cancelActiveGesture=cancel;noteEl.addEventListener('pointermove',move);noteEl.addEventListener('pointerup',up,{once:true});noteEl.addEventListener('pointercancel',cancel,{once:true});noteEl.addEventListener('lostpointercapture',cancel,{once:true});});
+    root.addEventListener('contextmenu',(event)=>{const target=event.target as HTMLElement;const clipEl=target.closest<HTMLElement>('.ks-clip');const noteEl=target.closest<HTMLElement>('.ks-note');const lane=target.closest<HTMLElement>('.ks-lane');if(!clipEl&&!noteEl&&!lane)return;event.preventDefault();event.stopPropagation();if(noteEl){const clip=selectedClip();const track=selectedTrack();const note=clip?.notes.find((item)=>item.id===noteEl.dataset.note);if(clip&&track&&note){selection={type:'note',trackId:track.id,clipId:clip.id,noteId:note.id};renderSide();renderEditor();showContextMenu(event.clientX,event.clientY,[['copy','음 복사'],['cut','음 잘라내기'],['duplicate-note','음 복제'],['delete','음 삭제']]);}}else if(clipEl){const trackId=clipEl.dataset.track||'',clipId=clipEl.dataset.clip||'';selection={type:'clip',trackId,clipId};renderSide();renderEditor();showContextMenu(event.clientX,event.clientY,[['open-editor','편집기 열기'],['copy','클립 복사'],['cut','클립 잘라내기'],['duplicate','클립 복제'],['split','재생 헤드에서 분할'],['delete','클립 삭제']]);}else if(lane){selection={type:'track',trackId:lane.dataset.lane||''};renderSide();showContextMenu(event.clientX,event.clientY,[['open-editor','클립을 더블클릭해 편집']]);}});
+    function deleteSelection():void{const chosen=selection;if(!chosen)return;const track=findTrack(project,chosen.trackId);if(!track)return;if(chosen.type==='note'){const clip=findClip(project,chosen.trackId,chosen.clipId);if(clip)clip.notes=clip.notes.filter((note)=>note.id!==chosen.noteId);}else if(chosen.type==='clip')track.clips=track.clips.filter((clip)=>clip.id!==chosen.clipId);selection={type:'track',trackId:track.id};saveSoon();renderAll();}
+    const keydown=(event:KeyboardEvent)=>{if(!root.isConnected)return;if(event.key==='Escape'){event.preventDefault();cancelActiveGesture?.();hideContextMenu();if(editorExpanded)setEditorExpanded(false);return;}const command=event.ctrlKey||event.metaKey;if(command&&event.key.toLowerCase()==='z'){event.preventDefault();restoreHistory(event.shiftKey?'redo':'undo');return;}if(command&&event.key.toLowerCase()==='y'){event.preventDefault();restoreHistory('redo');return;}const tag=(event.target as HTMLElement).tagName;if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;if(!command&&['p','e','c'].includes(event.key.toLowerCase())){editTool=event.key.toLowerCase()==='p'?'draw':event.key.toLowerCase()==='e'?'select':'slice';renderAll();status(`${editTool.toUpperCase()} tool`);return;}if(command&&event.key.toLowerCase()==='c'){event.preventDefault();copySelection();return;}if(command&&event.key.toLowerCase()==='x'){event.preventDefault();cutSelection();return;}if(command&&event.key.toLowerCase()==='v'){event.preventDefault();pasteClipboard();return;}if(event.code==='Space'){event.preventDefault();engine.isPlaying()?stop():play();}else if(event.key==='Delete'||event.key==='Backspace'){event.preventDefault();deleteSelection();}else if(command&&event.key.toLowerCase()==='b'){event.preventDefault();root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();}};document.addEventListener('keydown',keydown);
+    $<HTMLElement>('[data-role=backdrop]').addEventListener('click',()=>setEditorExpanded(false));
+    Toolbox.onHandoff?.('karmo-studio',(file: File)=>{if(file.type.startsWith('audio/'))void importAudio([file]);else if(file.type==='application/json')void file.text().then(importPortable).then((next: StudioProject)=>{project=next;history.reset(project);return refreshAssets();}).then(()=>renderAll());});
+    Toolbox.onDispose?.(()=>{stop();engine.dispose();document.removeEventListener('keydown',keydown);if(saveTimer!==undefined)clearTimeout(saveTimer);if(recording)recording.stop();});
+    renderAll(); void refreshAssets().then(()=>{renderAll();status('Ready · autosave on');}); Mdd.linePreset('tool_run',{mood:'idle',msg:'Karmo Studio — 편곡부터 WAV까지 한 프로젝트에서.'});
+  }
+})();
