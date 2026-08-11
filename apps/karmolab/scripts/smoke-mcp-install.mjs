@@ -213,8 +213,15 @@ try {
   const want = crypto.createHash('sha256').update('KarmoLab').digest('hex');
   check(seen.get(3)?.result?.content?.[0]?.text === want, '설치본이 낸 해시가 OpenSSL 과 다르다');
 } finally {
-  if (child !== undefined) child.stdin.end();
-  fs.rmSync(work, { recursive: true, force: true });
+  if (child !== undefined) {
+    const closed = new Promise((resolve) => child.once('close', resolve));
+    child.stdin.end();
+    const timer = setTimeout(() => child.kill(), 2000);
+    await closed;
+    clearTimeout(timer);
+  }
+  // Windows는 종료 직후 .cmd가 잡았던 파일 손잡이를 늦게 놓을 수 있다.
+  fs.rmSync(work, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 }
 
 process.stdout.write('\n');
