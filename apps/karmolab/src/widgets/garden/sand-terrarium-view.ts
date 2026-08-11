@@ -1,6 +1,7 @@
 import { t } from '../../lib/i18n';
 import { rng } from './rules';
 import { Material, SandTerrarium, TerrariumWatcher, type TerrariumStats } from './sand-terrarium';
+import { createObservationControls } from './observation-controls';
 
 const COLORS = [[6,8,11],[73,70,68],[111,76,48],[210,164,89],[54,132,203],[59,159,76],[255,111,38],[126,132,142]];
 
@@ -13,8 +14,9 @@ export function buildSandTerrarium(container: HTMLElement): void {
   function build(): void { const r = wrap.getBoundingClientRect(); const w = Math.max(95, Math.floor(r.width / 4)); const h = Math.max(64, Math.floor((r.height || 420) / 4)); canvas.width = Math.max(1, Math.round(r.width)); canvas.height = Math.max(1, Math.round(r.height || 420)); field.width = w; field.height = h; pixels = fc!.createImageData(w, h); sim = new SandTerrarium(w, h); plant(); }
   function plant(): void { seedNo++; random = randomFor(seedNo); sim.seed(random); watcher.reset(); line.textContent = t('garden.st.seeded', { n: seedNo }); }
   function draw(stats: TerrariumStats): void { const data = pixels.data; for (let i = 0, p = 0; i < sim.cells.length; i++, p += 4) { const material = sim.cells[i]; const color = COLORS[material]; const flicker = material === Material.Fire ? (sim.age[i] % 3) * 18 : 0; data[p] = Math.min(255, color[0] + flicker); data[p + 1] = color[1]; data[p + 2] = color[2]; data[p + 3] = material === Material.Smoke ? 190 : 255; } fc!.putImageData(pixels, 0, 0); c.imageSmoothingEnabled = false; c.drawImage(field, 0, 0, canvas.width, canvas.height); stepEl.textContent = t('garden.st.step', { n: stats.step }); }
-  function frame(): void { raf = requestAnimationFrame(frame); if (paused) return; let stats = sim.step(random); stats = sim.step(random); const event = watcher.observe(stats); if (event) line.textContent = t(`garden.st.event.${event}`, { n: stats.step }); draw(stats); if (stats.step >= 6000) plant(); }
+  const controls = createObservationControls();
+  container.querySelector('.st-actions')?.appendChild(controls.element);
+  function frame(): void { raf = requestAnimationFrame(frame); if (paused) return; let stats = null as unknown as TerrariumStats; controls.run(2, () => { stats = sim.step(random); }); const event = watcher.observe(stats); if (event) line.textContent = t(`garden.st.event.${event}`, { n: stats.step }); draw(stats); if (stats.step >= 6000) plant(); }
   reseed.onclick = plant; pause.onclick = () => { paused = !paused; pause.setAttribute('aria-pressed', String(paused)); pause.textContent = t(paused ? 'garden.resume' : 'garden.pause'); }; reseed.textContent = t('garden.reseed'); pause.textContent = t('garden.pause'); name.textContent = t('garden.st.name'); code.textContent = t('garden.st.code'); hint.textContent = t('garden.st.hint'); build(); line.textContent = t('garden.st.today'); raf = requestAnimationFrame(frame);
   const ro = new ResizeObserver(() => { const r = wrap.getBoundingClientRect(); const w = Math.max(95, Math.floor(r.width / 4)); const h = Math.max(64, Math.floor((r.height || 420) / 4)); if (w !== sim.w || h !== sim.h) build(); }); ro.observe(wrap); Toolbox.onDispose?.(() => { if (raf !== undefined) cancelAnimationFrame(raf); ro.disconnect(); });
 }
-

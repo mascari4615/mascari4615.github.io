@@ -1,5 +1,6 @@
 import { t } from '../../lib/i18n';
 import { rng } from './rules';
+import { createObservationControls } from './observation-controls';
 import { makeParticleLifeConfig, ParticleLife, ParticleLifeWatcher, type ParticleLifeStats } from './particle-life';
 
 const COLORS = ['#70e1f5', '#ffd36a', '#ff719a', '#a78bfa', '#83ef9b'];
@@ -24,7 +25,8 @@ export function buildParticleLife(container: HTMLElement): void {
   const stepEl = document.createElement('span'); stepEl.className = 'pl-step'; head.append(name, code, stepEl);
   const actions = document.createElement('div'); actions.className = 'pl-actions';
   const reseed = document.createElement('button'); reseed.type = 'button'; reseed.className = 'pl-btn';
-  const pause = document.createElement('button'); pause.type = 'button'; pause.className = 'pl-btn'; actions.append(reseed, pause);
+  const pause = document.createElement('button'); pause.type = 'button'; pause.className = 'pl-btn';
+  const controls = createObservationControls(); actions.append(controls.element, reseed, pause);
   const log = document.createElement('div'); log.className = 'pl-log'; const line = document.createElement('span');
   const hint = document.createElement('span'); hint.className = 'pl-hint'; log.append(line, hint); wrap.append(canvas, head, actions, log); container.appendChild(wrap);
   const ctx = canvas.getContext('2d'); if (!ctx) return;
@@ -34,6 +36,7 @@ export function buildParticleLife(container: HTMLElement): void {
   let paused = false;
   let raf: number | undefined;
   let sim: ParticleLife;
+  let stats: ParticleLifeStats = { step: 0, kinetic: 0, neighborRate: 0, separation: 0, ringScore: 0 };
   const watcher = new ParticleLifeWatcher();
 
   function randomFor(extra: number): () => number {
@@ -46,6 +49,7 @@ export function buildParticleLife(container: HTMLElement): void {
     const config = makeParticleLifeConfig(randomFor(seedNo * 2), 5, 420);
     sim = new ParticleLife(config);
     sim.seed(randomFor(seedNo * 2 + 1));
+    stats = { step: 0, kinetic: 0, neighborRate: 0, separation: 0, ringScore: 0 };
     watcher.reset();
     line.textContent = t('garden.pl.seeded', { n: seedNo });
   }
@@ -70,7 +74,7 @@ export function buildParticleLife(container: HTMLElement): void {
   function frame(): void {
     raf = requestAnimationFrame(frame);
     if (paused) return;
-    const stats = sim.step();
+    controls.run(1, () => { stats = sim.step(); });
     const event = watcher.observe(stats);
     if (event) line.textContent = t(`garden.pl.event.${event}`, { n: stats.step });
     draw(stats);

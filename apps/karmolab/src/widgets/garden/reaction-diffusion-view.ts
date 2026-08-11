@@ -1,6 +1,7 @@
 import { t } from '../../lib/i18n';
 import { ReactionDiffusion, ReactionWatcher, presetForDay, type ReactionStats } from './reaction-diffusion';
 import { rng } from './rules';
+import { createObservationControls } from './observation-controls';
 
 export function buildReactionDiffusion(container: HTMLElement): void {
   const styleId = 'rd-style';
@@ -33,7 +34,8 @@ export function buildReactionDiffusion(container: HTMLElement): void {
   const actions = document.createElement('div'); actions.className = 'rd-actions';
   const reseed = document.createElement('button'); reseed.className = 'rd-btn'; reseed.type = 'button';
   const pause = document.createElement('button'); pause.className = 'rd-btn'; pause.type = 'button';
-  actions.append(reseed, pause);
+  const controls = createObservationControls();
+  actions.append(controls.element, reseed, pause);
   const log = document.createElement('div'); log.className = 'rd-log';
   const line = document.createElement('span');
   const hint = document.createElement('span'); hint.className = 'rd-hint';
@@ -98,7 +100,7 @@ export function buildReactionDiffusion(container: HTMLElement): void {
     raf = requestAnimationFrame(frame);
     if (paused) return;
     let stats: ReactionStats = { step: sim.stepNo, active: 0, edge: 0, delta: 0 };
-    for (let i = 0; i < 3; i++) stats = sim.step(preset);
+    controls.run(3, () => { stats = sim.step(preset); });
     const event = watcher.observe(stats);
     if (event) line.textContent = t(`garden.rd.event.${event}`, { n: stats.step });
     draw(stats);
@@ -133,4 +135,3 @@ export function buildReactionDiffusion(container: HTMLElement): void {
     ro.disconnect();
   });
 }
-

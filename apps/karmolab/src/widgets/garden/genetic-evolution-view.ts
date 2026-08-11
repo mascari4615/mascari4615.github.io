@@ -1,6 +1,7 @@
 import { t } from '../../lib/i18n';
 import { rng } from './rules';
 import { EvolutionWatcher, GeneticEvolution, type EvolutionStats } from './genetic-evolution';
+import { createObservationControls } from './observation-controls';
 
 const COLORS = ['#77d9ff','#ffd36f','#ff7f9e','#a990ff','#76e39b','#ff9f63','#72d8ca','#e792dd'];
 
@@ -12,7 +13,8 @@ export function buildGeneticEvolution(container: HTMLElement): void {
   function resize(): void { const r = wrap.getBoundingClientRect(); const dpr = Math.min(2, devicePixelRatio || 1); canvas.width = Math.max(1, Math.round(r.width * dpr)); canvas.height = Math.max(1, Math.round((r.height || 420) * dpr)); }
   function plant(): void { seedNo++; random = randomFor(seedNo); sim.seed(random); watcher.reset(); line.textContent = t('garden.ev.seeded', { n: seedNo }); }
   function draw(stats: EvolutionStats): void { const w = canvas.width, h = canvas.height; c.fillStyle = 'rgba(8,11,16,.25)'; c.fillRect(0, 0, w, h); c.fillStyle = '#d8f29a'; for (let f = 0; f < sim.foodCount; f++) { c.beginPath(); c.arc(sim.foodX[f] * w, sim.foodY[f] * h, 2.6, 0, Math.PI * 2); c.fill(); } for (let i = 0; i < sim.count; i++) { const color = COLORS[sim.speciesOf[i] % COLORS.length]; const a = sim.heading[i], size = 3.3 + sim.energy[i] * 1.8; c.save(); c.translate(sim.x[i] * w, sim.y[i] * h); c.rotate(a); c.fillStyle = color; c.beginPath(); c.moveTo(size, 0); c.lineTo(-size, size * 0.56); c.lineTo(-size * 0.5, 0); c.lineTo(-size, -size * 0.56); c.closePath(); c.fill(); c.restore(); } stepEl.textContent = t('garden.ev.step', { g: stats.generation, n: stats.tick, s: stats.species }); }
-  function frame(): void { raf = requestAnimationFrame(frame); if (paused) return; let stats = sim.step(random); stats = sim.step(random); const event = watcher.observe(stats); if (event) line.textContent = t(`garden.ev.event.${event}`, { g: stats.generation, best: Math.round(stats.bestFitness), d: stats.diversity.toFixed(2), s: stats.species, id: stats.champion }); draw(stats); }
+  const controls = createObservationControls();
+  container.querySelector('.ev-actions')?.appendChild(controls.element);
+  function frame(): void { raf = requestAnimationFrame(frame); if (paused) return; let stats = null as unknown as EvolutionStats; controls.run(2, () => { stats = sim.step(random); }); const event = watcher.observe(stats); if (event) line.textContent = t(`garden.ev.event.${event}`, { g: stats.generation, best: Math.round(stats.bestFitness), d: stats.diversity.toFixed(2), s: stats.species, id: stats.champion }); draw(stats); }
   reseed.onclick = plant; pause.onclick = () => { paused = !paused; pause.setAttribute('aria-pressed', String(paused)); pause.textContent = t(paused ? 'garden.resume' : 'garden.pause'); }; reseed.textContent = t('garden.reseed'); pause.textContent = t('garden.pause'); name.textContent = t('garden.ev.name'); code.textContent = t('garden.ev.code'); hint.textContent = t('garden.ev.hint'); resize(); plant(); line.textContent = t('garden.ev.today'); raf = requestAnimationFrame(frame); const ro = new ResizeObserver(resize); ro.observe(wrap); Toolbox.onDispose?.(() => { if (raf !== undefined) cancelAnimationFrame(raf); ro.disconnect(); });
 }
-
