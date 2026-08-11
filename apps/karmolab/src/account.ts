@@ -924,7 +924,8 @@ window.KarmoAccount = KarmoAccount;
 watchLocalChanges();
 window.addEventListener('hashchange', traceCurrentTool);
 // 첫 화면 그리기와 겨루지 않게 뒤로 미룬다 — 계정은 급하지 않고 도구가 먼저다.
-function start(): void {
+async function start(): Promise<void> {
+    await loadNamespace('account');
     mountHeaderAccount();
     mountBell();
     void refresh();
@@ -933,7 +934,7 @@ function start(): void {
     startPresence();
     traceCurrentTool();
 }
-if (document.readyState === 'complete') start();
-else window.addEventListener('load', start);
+if (document.readyState === 'complete') void start();
+else window.addEventListener('load', () => { void start(); });
 
 export {};

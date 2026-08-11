@@ -97,6 +97,17 @@ for (const { code, id, page } of targets) {
     }
   });
   const tab = await ctx.newPage();
+  const runtimeI18nErrors = [];
+  tab.on('console', (message) => {
+    const text = message.text();
+    if (text.includes('[i18n]') && /없는 열쇠|Missing translation|Failed to load catalog/.test(text)) {
+      runtimeI18nErrors.push(text);
+    }
+  });
+  tab.on('pageerror', (error) => {
+    const text = String(error?.message || error);
+    if (/MissingTranslationError|CatalogLoadError|\[i18n\]/.test(text)) runtimeI18nErrors.push(text);
+  });
   const rel = path.relative(path.join(appRoot, '..', '..'), page).split(path.sep).join('/');
   await tab.goto(`http://127.0.0.1:${PORT}/${rel}`, { waitUntil: 'domcontentloaded' });
 
@@ -158,6 +169,10 @@ for (const { code, id, page } of targets) {
   }, [...knownKeys]);
   if (leakedKeys.length) {
     fail.push(`${code}/${id}: translation key exposed: ${leakedKeys.join(', ')}`);
+  }
+
+  if (runtimeI18nErrors.length) {
+    fail.push(`${code}/${id}: runtime i18n error: ${[...new Set(runtimeI18nErrors)].slice(0, 4).join(' | ')}`);
   }
 
   if (!HANGUL_OK.has(id)) {
