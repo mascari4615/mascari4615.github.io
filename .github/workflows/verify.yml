@@ -105,6 +105,15 @@ jobs:
       - name: Install chromium (화면 여는 검사용)
         run: cd apps/karmolab && npx playwright install --with-deps chromium
 
+      - name: Build karmolab-ai
+        run: cd packages/karmolab-ai && npm run build
+
+      - name: Build karmolab-mcp
+        run: cd packages/karmolab-mcp && npm run build
+
+      - name: Build karmolab
+        run: cd apps/karmolab && npm run build
+
       - name: Run verify (master invariant)
         run: npm run verify
 
