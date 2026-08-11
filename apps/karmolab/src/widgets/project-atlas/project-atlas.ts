@@ -11,6 +11,27 @@ import { injectAtlasStyles } from './styles';
   let layoutKind: 'flex' | 'grid' = 'grid';
   let layoutGap = 16;
   let eventCount = 0;
+  const PROJECT_STARTER = `<!doctype html>
+<meta charset="utf-8">
+<style>
+  body { font: 18px system-ui; padding: 24px; text-align: center; }
+  button { padding: 10px 16px; margin: 4px; }
+  output { display: block; margin: 18px; font-size: 40px; }
+</style>
+<h1>My Counter</h1>
+<output>0</output>
+<button data-delta="-1">-1</button>
+<button data-delta="1">+1</button>
+<script>
+  let count = 0;
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-delta]');
+    if (!button) return;
+    count += Number(button.dataset.delta);
+    document.querySelector('output').textContent = count;
+  });
+<\/script>`;
+  let projectCode = PROJECT_STARTER;
 
   function esc(value: string): string { return value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function readCompleted(): Set<string> { try { const value=JSON.parse(localStorage.getItem(PROGRESS_KEY)||'[]'); if(Array.isArray(value)) return new Set(value.filter((item):item is string=>typeof item==='string')); } catch {} return new Set(); }
@@ -57,7 +78,7 @@ import { injectAtlasStyles } from './styles';
     if(item.lab==='event') return `<section class="pa-lab"><div class="pa-lab-head"><span>Interactive lab</span><b>event → state → render</b></div><div class="pa-event-flow"><button data-pa-delta="-1">−1</button><output>${eventCount}</output><button data-pa-delta="1">+1</button></div><div class="pa-runtime-trace"><span>click</span><i>→</i><span>dataset.delta</span><i>→</i><span>count = ${eventCount}</span><i>→</i><span>render</span></div></section>`;
     if(item.lab==='architecture') return `<section class="pa-lab pa-architecture"><div class="pa-lab-head"><span>Runtime map</span><b>하나를 눌러 책임과 파일을 확인하세요</b></div><div class="pa-arch-flow">${[['meta','주소록'],['loader','불러오기'],['register','등록'],['build','화면 생성'],['dispose','정리']].map(([id,label],i)=>`${i?'<i>→</i>':''}<button data-pa-arch="${id}">${label}</button>`).join('')}</div><p data-pa-arch-note>화면 이름에서 시작해 왼쪽부터 따라갑니다.</p></section>`;
     if(item.lab==='debug') return `<section class="pa-lab"><div class="pa-lab-head"><span>Diagnostic lab</span><b>증상을 누르면 첫 관측 도구가 나옵니다</b></div><div class="pa-debug-grid">${[['화면이 안 뜸','Network → bundle 요청'],['버튼 무반응','Console → data-* → listener'],['간격이 이상함','Elements → 부모 computed style'],['목록이 비었음','Network → response JSON']].map(([a,b])=>`<button data-pa-debug="${esc(b)}"><b>${a}</b><span>${b}</span></button>`).join('')}</div><p data-pa-debug-result>무작정 파일을 고치기 전에 증상을 관측 도구와 연결하세요.</p></section>`;
-    if(item.lab==='project') return `<section class="pa-lab pa-project-board"><div class="pa-lab-head"><span>Capstone</span><b>My Counter 위젯 정의서</b></div><div class="pa-project-columns"><article><span>사용자 결과</span><h3>숫자와 ± 버튼</h3><p>메뉴에서 열고 두 버튼으로 값을 바꾼다.</p></article><article><span>수정 파일</span><code>widgets-lazy-meta.ts</code><code>my-counter.ts</code><code>build.mjs</code></article><article><span>완성 조건</span><label><input type="checkbox"> 메뉴에서 열린다</label><label><input type="checkbox"> ± 클릭이 작동한다</label><label><input type="checkbox"> 모바일 넘침이 없다</label></article></div></section>`;
+    if(item.lab==='project') return `<section class="pa-lab pa-project-board"><div class="pa-lab-head"><span>Capstone · 직접 수정하기</span><b>My Counter 미니 작업대</b></div><div class="pa-project-intro"><p>왼쪽 코드는 완성된 최소 예제입니다. 제목, 색상, 버튼 문구를 먼저 바꾸고 실행하세요. 익숙해지면 버튼을 하나 더 추가해 보세요.</p><ol><li>코드를 한 군데 바꾼다.</li><li><b>실행</b>을 눌러 결과를 본다.</li><li>± 버튼이 여전히 동작하는지 확인한다.</li></ol></div><div class="pa-project-workbench"><div class="pa-project-editor"><div><b>index.html</b><span>HTML · CSS · JavaScript가 한 파일에 있습니다</span></div><textarea data-pa-project-code aria-label="카운터 실습 코드" spellcheck="false">${esc(projectCode)}</textarea><div class="pa-project-actions"><button data-pa-project-reset>처음 코드로</button><button class="is-primary" data-pa-project-run>실행</button></div></div><div class="pa-project-result"><div><b>미리보기</b><span data-pa-project-status>코드를 바꾼 뒤 실행하세요</span></div><iframe data-pa-project-preview title="카운터 실습 미리보기" sandbox="allow-scripts"></iframe></div></div><div class="pa-project-checks"><b>완성 조건</b><span data-pa-project-check="output">○ 숫자 출력</span><span data-pa-project-check="buttons">○ 두 방향 버튼</span><span data-pa-project-check="event">○ 클릭 이벤트</span></div><details class="pa-project-help"><summary>무엇을 바꿔야 할지 모르겠어요</summary><p><code>&lt;h1&gt;My Counter&lt;/h1&gt;</code>의 글자를 바꾸거나, <code>body</code> 안에 <code>background: lavender;</code>를 추가해 보세요. 오류가 나면 처음 코드로 돌아갈 수 있습니다.</p></details></section>`;
     return `<section class="pa-lab pa-command-lab"><div class="pa-lab-head"><span>Setup checkpoint</span><b>세 창의 역할</b></div><div class="pa-window-map"><article><b>VS Code</b><span>원본 파일 수정</span></article><i>→</i><article><b>터미널</b><span>dev · typecheck · build</span></article><i>→</i><article><b>브라우저</b><span>화면 · Console · Network</span></article></div></section>`;
   }
 
@@ -76,7 +97,15 @@ import { injectAtlasStyles } from './styles';
     return `<main class="pa-reference"><aside><p class="pa-kicker">Reference</p><h2>증상에서 파일로</h2><p>과정을 순서대로 읽는 곳이 아닙니다. 지금 막힌 증상을 찾아 필요한 층만 확인하세요.</p><button data-pa-mode="learn">← 학습 과정으로</button></aside><div><section class="pa-ref-block"><p class="pa-kicker">Runtime</p><h3>화면 이름에서 실행까지</h3><div class="pa-ref-flow"><span>메뉴 이름</span><i>→</i><span>widgets-lazy-meta</span><i>→</i><span>lazy loader</span><i>→</i><span>Toolbox.register</span><i>→</i><span>build(container)</span><i>→</i><span>DOM</span></div></section><section class="pa-ref-block"><p class="pa-kicker">Troubleshooting</p><h3>실패 복구 사전</h3><div class="pa-trouble-list">${TROUBLESHOOT.map(([a,b])=>`<details><summary>${esc(a)}</summary><p>${esc(b)}</p></details>`).join('')}</div></section><section class="pa-ref-block"><p class="pa-kicker">Workspace</p><h3>네 영역</h3><div class="pa-workspace-grid"><article><b>KarmoLab</b><code>Mascari4615.github.io/apps/karmolab/</code><span>웹 shell과 위젯</span></article><article><b>봇·packages</b><code>apps/discord-bots/ · packages/</code><span>봇과 공용 코드</span></article><article><b>memo</b><code>memo/</code><span>규칙·TASK·설계 정본</span></article><article><b>WM</b><code>WitchMendokusai/</code><span>Unity 게임 본체</span></article></div></section></div></main>`;
   }
 
-  function render(container: HTMLElement): void { container.innerHTML=`<div class="pa-root">${topbarHtml()}${mode==='learn'?lessonHtml():referenceHtml()}</div>`; }
+  function updateProjectPreview(container: HTMLElement): void {
+    const frame=container.querySelector<HTMLIFrameElement>('[data-pa-project-preview]');
+    if(frame) frame.srcdoc=projectCode;
+    const checks={output:/<output\b/i.test(projectCode),buttons:(projectCode.match(/data-delta=/g)||[]).length>=2,event:/addEventListener\s*\(/.test(projectCode)};
+    Object.entries(checks).forEach(([key,ok])=>{const node=container.querySelector<HTMLElement>(`[data-pa-project-check="${key}"]`);if(node){node.classList.toggle('is-done',ok);node.textContent=`${ok?'✓':'○'} ${node.textContent?.replace(/^[✓○]\s*/,'')||''}`;}});
+    const status=container.querySelector<HTMLElement>('[data-pa-project-status]');
+    if(status) status.textContent=Object.values(checks).every(Boolean)?'핵심 구조 3가지를 모두 찾았습니다':'빠진 구조가 있습니다. 아래 완성 조건을 확인하세요';
+  }
+  function render(container: HTMLElement): void { container.innerHTML=`<div class="pa-root">${topbarHtml()}${mode==='learn'?lessonHtml():referenceHtml()}</div>`; updateProjectPreview(container); }
 
   function wire(container: HTMLElement, controller: AbortController): void {
     container.addEventListener('click',(event:Event)=>{
@@ -93,9 +122,11 @@ import { injectAtlasStyles } from './styles';
       const layout=target.closest<HTMLElement>('[data-pa-layout]')?.dataset.paLayout as 'flex'|'grid'|undefined;if(layout){layoutKind=layout;render(container);return;}
       const delta=target.closest<HTMLElement>('[data-pa-delta]')?.dataset.paDelta;if(delta){eventCount+=Number(delta);render(container);return;}
       const arch=target.closest<HTMLElement>('[data-pa-arch]')?.dataset.paArch;if(arch){const notes:Record<string,string>={meta:'widgets-lazy-meta.ts — id, 제목, layout, bundle 경로',loader:'widgets-loader.ts — 필요한 script만 불러옴',register:'Toolbox.register — bundle이 위젯 정의를 shell에 전달',build:'build(container) — 탭을 열 때 실제 DOM 생성',dispose:'Toolbox.onDispose — timer와 listener 정리'};const out=container.querySelector('[data-pa-arch-note]');if(out)out.textContent=notes[arch];return;}
-      const debug=target.closest<HTMLElement>('[data-pa-debug]')?.dataset.paDebug;if(debug){const out=container.querySelector('[data-pa-debug-result]');if(out)out.textContent=`첫 관측: ${debug}`;}
+      const debug=target.closest<HTMLElement>('[data-pa-debug]')?.dataset.paDebug;if(debug){const out=container.querySelector('[data-pa-debug-result]');if(out)out.textContent=`첫 관측: ${debug}`;return;}
+      if(target.closest('[data-pa-project-run]')){const editor=container.querySelector<HTMLTextAreaElement>('[data-pa-project-code]');if(editor)projectCode=editor.value;updateProjectPreview(container);return;}
+      if(target.closest('[data-pa-project-reset]')){projectCode=PROJECT_STARTER;rerender(container);return;}
     },{signal:controller.signal});
-    container.addEventListener('input',(event:Event)=>{const range=(event.target as HTMLElement).closest<HTMLInputElement>('[data-pa-gap]');if(range){layoutGap=Number(range.value);render(container);}},{signal:controller.signal});
+    container.addEventListener('input',(event:Event)=>{const range=(event.target as HTMLElement).closest<HTMLInputElement>('[data-pa-gap]');if(range){layoutGap=Number(range.value);render(container);return;}const editor=(event.target as HTMLElement).closest<HTMLTextAreaElement>('[data-pa-project-code]');if(editor){projectCode=editor.value;const status=container.querySelector<HTMLElement>('[data-pa-project-status]');if(status)status.textContent='변경됨 · 실행을 눌러 반영하세요';}},{signal:controller.signal});
   }
 
   Toolbox.register({...Toolbox.getLazyWidgetPublicMeta!('project-atlas'),tabs:[{id:'project-atlas-main',label:'Atlas',build(container:HTMLElement):void{injectAtlasStyles();container.classList.add('project-atlas');const controller=new AbortController();Toolbox.onDispose?.(()=>controller.abort());render(container);wire(container,controller);}}]});
