@@ -11,6 +11,7 @@
 - [ ] **외부 lib 동일 출처** — mermaid·marked·prism 등은 `assets/lib/<lib>/<lib>.min.js` 에 동일 출처로 박혀있음 (Tauri webview 의 Tracking Prevention 회피). CDN (`cdn.jsdelivr.net` 등) 우선 안 쓴다.
 - [ ] **글로벌 디자인 토큰 사용** — 자체 색·폰트·spacing 박지 말 것. CSS 변수: `--bg-primary` / `--bg-secondary` / `--bg-tertiary` / `--text-primary` / `--text-tertiary` / `--accent` / `--border` / `--border-color` / `--radius-sm` / `--radius-md` / `--font-mono`. 다른 위젯이 쓰는 패턴 그대로.
 - [ ] **자체 CSS injection 최소화** — `injectStyles()` 패턴은 *위젯 한정 클래스* 만. 컨테이너 / 카드 / 버튼 / 표 / 코드블록은 글로벌 스타일에 맡긴다. 다른 위젯과 외관 톤 어긋나면 사용자가 *이질감* 느낀다.
+- [ ] **탭 컨테이너와 내부 레이아웃 분리** — `build(container)`의 `container`는 공용 `.tab-panel`이기도 하다. `display:grid/flex` 같은 화면 레이아웃은 컨테이너에 직접 걸지 말고, 내부 전용 wrapper에 건다. 공용 `.tab-panel.active` 규칙과 충돌하면 넓은 화면에서만 레이아웃이 풀릴 수 있다.
 
 체크 안 하고 자체 구현하면 *사용자 부정적 경험* (재구현, 디자인 일관성 깨짐, 유지보수 부담 증가) — 룰 단일 출처: `memo/UMBRELLA.md` § 새 기능·위젯·모듈 — 기존 정독 우선.
 

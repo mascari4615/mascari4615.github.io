@@ -4,7 +4,7 @@
  * 캔버스는 "어디에 저장되는가" 를 모른다. 이 인터페이스 하나만 안다.
  * 구현체:
  *  - `widgets/cockpit/graph-tauri-adapter.ts` — Tauri invoke (memo/.claude/graph.json)
- *  - `widgets/karmomap/local-storage-adapter.ts` — localStorage
+ *  - `widgets/karmograph/local-storage-adapter.ts` — localStorage
  */
 import type { GraphSpec, NodeCoord } from './spec';
 
