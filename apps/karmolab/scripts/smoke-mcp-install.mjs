@@ -104,8 +104,11 @@ try {
 
   // ② 빈 폴더에 설치 — 저장소 밖이라 우리 파일에 기댈 수 없다.
   fs.writeFileSync(path.join(work, 'package.json'), JSON.stringify({ name: 'install-test', private: true }) + '\n');
-  /* --offline: 우리 tarball 은 손안에 있고 의존성이 0개다. 레지스트리를 안 거치면 망 문제로 빨개질 일이 없다. */
-  runNpm(['install', q('./' + tgz), '--offline', '--no-audit', '--no-fund'], work);
+  /*
+   * --offline: 우리 tarball 은 손안에 있고 의존성이 0개다. 레지스트리를 안 거치면 망 문제로 빨개질 일이 없다. (인터넷 연결을 완전히 끊고, 오직 내 컴퓨터(깃헙 서버)에 이미 다운받아둔 캐시 파일만 가지고 설치)
+   * --prefer-offline: 캐시를 먼저 뒤져보되, 없으면 인터넷에서 몰래 빨리 받아와 설치한다. 그건 「망이 안 됐다」라는 실패 자리 자체가 사라지게 한다.
+   */
+  runNpm(['install', q('./' + tgz), '--prefer-offline', '--no-audit', '--no-fund'], work);
   const installed = path.join(work, 'node_modules', 'karmolab-mcp', 'src', 'server.mjs');
   check(fs.existsSync(installed), '설치본에 server.mjs 가 없다');
   const distDir = path.join(work, 'node_modules', 'karmolab-mcp', 'dist');
