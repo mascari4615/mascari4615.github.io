@@ -19,7 +19,6 @@ import { t, loadNamespace } from './lib/i18n';
 
 /* 이 파일은 위젯이 아니라 **셸·라이브러리**다 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
    빌드는 브라우저 밖에서도 이 파일을 읽으므로 document 가 있을 때만 부른다. */
-if (typeof document !== 'undefined') void loadNamespace('secrets');
 export interface SecretDef {
     id: string;
     /** 찾은 뒤 보이는 이름. 못 찾았으면 이 이름도 안 보인다. */
@@ -208,8 +207,9 @@ export async function syncSecrets(): Promise<string[]> {
 
 let installed = false;
 
-export function installSecrets(): void {
+export async function installSecrets(): Promise<void> {
     if (installed) return;
+    await loadNamespace('secrets');
     installed = true;
     watchKonami();
     watchLogo();
