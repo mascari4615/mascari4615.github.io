@@ -131,6 +131,9 @@ jobs:
             packages/karmolab-ai/package-lock.json
             packages/karmolab-mcp/package-lock.json
 
+      - name: Install karmolab deps
+        run: cd apps/karmolab && npm ci
+
       - name: Install karmolab-ai deps
         run: cd packages/karmolab-ai && npm ci
 
@@ -149,9 +152,6 @@ jobs:
 
       - name: Build karmolab-mcp (karmolab build 가 이 dist 를 불러온다)
         run: cd packages/karmolab-mcp && npm run build
-
-      - name: Install karmolab deps
-        run: cd apps/karmolab && npm ci
 
       # 브라우저 내려받기는 매 실행 50초 넘게 먹는다(2026-08-07 실측: 54초).
       # 잠금파일이 그대로면 같은 버전이므로 캐시로 건너뛴다. 시스템 라이브러리(--with-deps)는
