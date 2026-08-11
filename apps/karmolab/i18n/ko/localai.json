@@ -22,6 +22,8 @@
   "localai.t10": "만듭니다. 서버로 안 보냅니다.",
   "localai.t11": "가벼운 모델입니다 — 다듬기·이름 짓기처럼 짧고 틀려도 되는 일에 씁니다.\n          긴 글·사실 확인은 다른 AI 도구(서버 쪽)를 쓰세요.",
   "localai.btn.laiPRun": "만들기",
+  "localai.btn.laiRun": "번역하기",
+  "localai.btn.laiSum": "요약하기",
   "localai.t12": "한국어",
   "localai.t13": "영어",
   "localai.t14": "일본어",

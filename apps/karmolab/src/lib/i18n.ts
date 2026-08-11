@@ -45,6 +45,7 @@ declare global {
     /** 페이지를 찍을 때 박아 두는 값 — 없으면 주소·저장값·브라우저 순으로 정한다. */
     __KARMO_LOCALE?: string;
     KARMOLAB_BUILD_PRINT?: string;
+    __KARMO_LOAD_NAMESPACE?: (ns: string) => Promise<void>;
   }
 }
 
@@ -235,6 +236,10 @@ export async function loadNamespace(ns: string): Promise<void> {
   if (code !== DEFAULT_LOCALE && !have(DEFAULT_LOCALE, ns)) jobs.push(inject(DEFAULT_LOCALE, ns));
   if (jobs.length) await Promise.all(jobs);
 }
+
+/* The shell loads deferred widget scripts before those bundles can import this module.
+   Expose the same loader so the shell can establish the namespace barrier first. */
+if (typeof window !== 'undefined') window.__KARMO_LOAD_NAMESPACE = loadNamespace;
 
 /**
  * **다른 언어**의 묶음을 받아온다 — 지금 언어가 아니라 지정한 언어.
