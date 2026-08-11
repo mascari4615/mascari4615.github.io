@@ -70,7 +70,7 @@ if (!fs.existsSync(file)) {
   process.exit(2);
 }
 let src = fs.readFileSync(file, 'utf8');
-/* **반쯤 옮긴 파일**이 있다. 먼저 build 만 감싸 두고 글자는 뒤에 훑는 판(karmomap) —
+/* **반쯤 옮긴 파일**이 있다. 먼저 build 만 감싸 두고 글자는 뒤에 훑는 판(karmograph) —
  * `loadNamespace` 가 있다고 무조건 물러서면 그 파일은 영영 못 훑는다.
  * 그래서 「이미 t() 로 바꾼 글이 많은가」로 본다. 그래도 다시 돌리고 싶으면 `--again`. */
 const AGAIN = process.argv.includes('--again');
@@ -318,7 +318,7 @@ src = src.replace(/'([^'\\\n]*[가-힣][^'\\\n]*)'/g, (whole, text, offset) => {
 
 /* ── ④ 등록 title/desc/label 은 **기본값 딸린 t()** 로 (묶음이 늦게 와도 이름이 빈칸이 안 되게) ── */
 /* `title`/`desc` 는 **등록 한 곳**에만 있다고 보고 이름을 정한다(`widgets.<id>.title`).
- * 그런데 같은 이름의 자리가 파일 안에 여러 개일 수 있다 — karmomap 의 도움말은 갈래 다섯이
+ * 그런데 같은 이름의 자리가 파일 안에 여러 개일 수 있다 — karmograph 의 도움말은 갈래 다섯이
  * 저마다 `title:` 을 갖는데, 그것들이 **전부 한 열쇠로 뭉개져** 다섯 갈래 이름이 하나가 됐다.
  * 그래서 등록 근처(= `Toolbox.register` 뒤 2,000자)에 있는 첫 자리만 바꾼다. */
 const registerAt = src.indexOf('Toolbox.register');
