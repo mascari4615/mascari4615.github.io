@@ -56,5 +56,6 @@
   "datecalc.week.3": "수",
   "datecalc.week.4": "목",
   "datecalc.week.5": "금",
-  "datecalc.week.6": "토"
+  "datecalc.week.6": "토",
+  "datecalc.quick.add": "+{n}일"
 }

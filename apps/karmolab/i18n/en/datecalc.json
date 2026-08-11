@@ -56,5 +56,6 @@
   "datecalc.week.3": "Wed",
   "datecalc.week.4": "Thu",
   "datecalc.week.5": "Fri",
-  "datecalc.week.6": "Sat"
+  "datecalc.week.6": "Sat",
+  "datecalc.quick.add": "+{n} days"
 }
