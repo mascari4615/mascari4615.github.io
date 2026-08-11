@@ -18,6 +18,15 @@ import { ruleForDay, ruleTable, rng, type Rule } from './rules';
 import { Life, Watcher, quality, type Stats, type Event } from './life';
 import { findObjects, type Found, type Kind } from './dex';
 import { GardenSound } from './gsound';
+import { buildReactionDiffusion } from './reaction-diffusion-view';
+import { buildParticleLife } from './particle-life-view';
+import { buildPhysarum } from './physarum-view';
+import { buildCyclicEcosystem } from './cyclic-ecosystem-view';
+import { buildSandTerrarium } from './sand-terrarium-view';
+import { buildBoids } from './boids-view';
+import { buildLenia } from './lenia-view';
+import { buildNeuralCA } from './neural-ca-view';
+import { buildGeneticEvolution } from './genetic-evolution-view';
 
 (function (): void {
   if (typeof Toolbox === 'undefined') return;
@@ -609,6 +618,51 @@ import { GardenSound } from './gsound';
             }
           });
         }
+      },
+      {
+        id: 'reaction-diffusion',
+        label: 'Reaction–Diffusion',
+        build: buildReactionDiffusion
+      },
+      {
+        id: 'particle-life',
+        label: 'Particle Life',
+        build: buildParticleLife
+      },
+      {
+        id: 'physarum',
+        label: 'Physarum',
+        build: buildPhysarum
+      },
+      {
+        id: 'cyclic-ecosystem',
+        label: 'Cyclic Ecosystem',
+        build: buildCyclicEcosystem
+      },
+      {
+        id: 'sand-terrarium',
+        label: 'Sand Terrarium',
+        build: buildSandTerrarium
+      },
+      {
+        id: 'boids',
+        label: 'Boids',
+        build: buildBoids
+      },
+      {
+        id: 'lenia',
+        label: 'Lenia',
+        build: buildLenia
+      },
+      {
+        id: 'neural-ca',
+        label: 'Neural CA',
+        build: buildNeuralCA
+      },
+      {
+        id: 'genetic-evolution',
+        label: 'Evolution',
+        build: buildGeneticEvolution
       }
     ]
   });

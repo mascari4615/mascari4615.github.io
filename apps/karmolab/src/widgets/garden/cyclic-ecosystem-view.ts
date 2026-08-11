@@ -1,0 +1,28 @@
+import { t } from '../../lib/i18n';
+import { rng } from './rules';
+import { CyclicEcosystem, CyclicWatcher, type CyclicStats } from './cyclic-ecosystem';
+
+const COLORS = [[26,151,138],[238,193,74],[224,91,104],[117,108,193],[82,156,220]];
+
+export function buildCyclicEcosystem(container: HTMLElement): void {
+  if (!document.getElementById('ce-style')) {
+    const style = document.createElement('style'); style.id = 'ce-style';
+    style.textContent = `.ce-wrap{position:relative;width:100%;height:clamp(420px,78svh,900px);overflow:hidden;border-radius:var(--radius-md,12px);background:#07090a}.ce-canvas{display:block;width:100%;height:100%;image-rendering:pixelated}.ce-head{position:absolute;inset:0 0 auto;display:flex;gap:9px;align-items:baseline;padding:13px 15px 30px;pointer-events:none;background:linear-gradient(#07090ae8,transparent)}.ce-name{color:#f2fff6;font-size:13px}.ce-code,.ce-step{color:#c6ddd080;font:11px var(--font-mono,monospace)}.ce-step{margin-left:auto}.ce-actions{position:absolute;right:12px;top:45px;display:flex;gap:6px}.ce-btn{border:1px solid #ffffff28;background:#101912bd;color:#dcf6e3;padding:6px 9px;border-radius:999px;cursor:pointer;font:11px var(--font-mono,monospace)}.ce-btn[aria-pressed="true"]{border-color:#75d98d88;background:#1b4525bd}.ce-log{position:absolute;inset:auto 0 0;padding:35px 16px 16px;color:#eaffef;font-size:14px;line-height:1.45;pointer-events:none;background:linear-gradient(transparent,#07090ae8)}.ce-hint{display:block;margin-top:3px;color:#c6ddd080;font:11px var(--font-mono,monospace)}`;
+    document.head.appendChild(style);
+  }
+  const wrap = document.createElement('div'); wrap.className = 'ce-wrap'; const canvas = document.createElement('canvas'); canvas.className = 'ce-canvas';
+  const head = document.createElement('div'); head.className = 'ce-head'; const name = document.createElement('span'); name.className = 'ce-name'; const code = document.createElement('span'); code.className = 'ce-code'; const stepEl = document.createElement('span'); stepEl.className = 'ce-step'; head.append(name, code, stepEl);
+  const actions = document.createElement('div'); actions.className = 'ce-actions'; const reseed = document.createElement('button'); reseed.type = 'button'; reseed.className = 'ce-btn'; const pause = document.createElement('button'); pause.type = 'button'; pause.className = 'ce-btn'; actions.append(reseed, pause);
+  const log = document.createElement('div'); log.className = 'ce-log'; const line = document.createElement('span'); const hint = document.createElement('span'); hint.className = 'ce-hint'; log.append(line, hint); wrap.append(canvas, head, actions, log); container.appendChild(wrap);
+  const ctx = canvas.getContext('2d'); if (!ctx) return; const c = ctx; const field = document.createElement('canvas'); const fc = field.getContext('2d'); if (!fc) return;
+  const day = new Date().toISOString().slice(0, 10); let seedNo = 0, paused = false; let raf: number | undefined; let restartTimer: number | undefined; let sim = new CyclicEcosystem(1, 1); let pixels = fc.createImageData(1, 1); const watcher = new CyclicWatcher();
+  function randomFor(extra: number): () => number { let hash = extra * 2654435761; for (let i = 0; i < day.length; i++) hash = Math.imul(hash ^ day.charCodeAt(i), 16777619); return rng(hash >>> 0); }
+  function build(): void { const r = wrap.getBoundingClientRect(); const w = Math.max(85, Math.floor(r.width / 4)); const h = Math.max(58, Math.floor((r.height || 420) / 4)); canvas.width = Math.max(1, Math.round(r.width)); canvas.height = Math.max(1, Math.round(r.height || 420)); field.width = w; field.height = h; pixels = fc!.createImageData(w, h); sim = new CyclicEcosystem(w, h, 5); plant(); }
+  function plant(): void { if (restartTimer !== undefined) window.clearTimeout(restartTimer); restartTimer = undefined; seedNo++; sim.seed(randomFor(seedNo)); watcher.reset(); line.textContent = t('garden.ce.seeded', { n: seedNo }); }
+  function draw(stats: CyclicStats): void { const data = pixels.data; for (let i = 0, p = 0; i < sim.cells.length; i++, p += 4) { const color = COLORS[sim.cells[i]]; data[p] = color[0]; data[p + 1] = color[1]; data[p + 2] = color[2]; data[p + 3] = 255; } fc!.putImageData(pixels, 0, 0); c.imageSmoothingEnabled = false; c.drawImage(field, 0, 0, canvas.width, canvas.height); stepEl.textContent = t('garden.ce.step', { n: stats.gen }); }
+  function frame(): void { raf = requestAnimationFrame(frame); if (paused || restartTimer !== undefined) return; let stats = sim.step(2); stats = sim.step(2); const event = watcher.observe(stats); if (event) line.textContent = t(`garden.ce.event.${event}`, { n: stats.gen, species: stats.leader + 1 }); draw(stats); if (stats.gen >= 5000 || event === 'extinct') restartTimer = window.setTimeout(plant, 2400); }
+  reseed.onclick = plant; pause.onclick = () => { paused = !paused; pause.setAttribute('aria-pressed', String(paused)); pause.textContent = t(paused ? 'garden.resume' : 'garden.pause'); };
+  reseed.textContent = t('garden.reseed'); pause.textContent = t('garden.pause'); name.textContent = t('garden.ce.name'); code.textContent = t('garden.ce.code'); hint.textContent = t('garden.ce.hint'); build(); line.textContent = t('garden.ce.today'); raf = requestAnimationFrame(frame);
+  const ro = new ResizeObserver(() => { const r = wrap.getBoundingClientRect(); const w = Math.max(85, Math.floor(r.width / 4)); const h = Math.max(58, Math.floor((r.height || 420) / 4)); if (w !== sim.w || h !== sim.h) build(); }); ro.observe(wrap);
+  Toolbox.onDispose?.(() => { if (raf !== undefined) cancelAnimationFrame(raf); if (restartTimer !== undefined) window.clearTimeout(restartTimer); ro.disconnect(); });
+}
