@@ -59,6 +59,7 @@ jobs:
             apps/karmolab/package-lock.json
             packages/karmolab-ai/package-lock.json
             apps/blog/package-lock.json
+            packages/karmolab-mcp/package-lock.json
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -84,6 +85,9 @@ jobs:
 
       - name: Install karmolab-ai deps
         run: cd packages/karmolab-ai && npm ci
+
+      - name: Install karmolab-mcp deps
+        run: cd packages/karmolab-mcp && npm ci
 
       # `apps/karmolab` 이 `file:../../packages/badapple` 로 물고 있다. 그 패키지는 **타입을
       # 빌드해야 생긴다** — CI 는 새 체크아웃이라 `dist` 가 없고, 그러면 typecheck 이
@@ -125,9 +129,13 @@ jobs:
           cache-dependency-path: |
             apps/karmolab/package-lock.json
             packages/karmolab-ai/package-lock.json
+            packages/karmolab-mcp/package-lock.json
 
       - name: Install karmolab-ai deps
         run: cd packages/karmolab-ai && npm ci
+
+      - name: Install karmolab-mcp deps
+        run: cd packages/karmolab-mcp && npm ci
 
       # `apps/karmolab` 이 `file:../../packages/badapple` 로 물고 있다. 그 패키지는 **타입을
       # 빌드해야 생긴다** — CI 는 새 체크아웃이라 `dist` 가 없고, 그러면 typecheck 이
@@ -138,6 +146,9 @@ jobs:
 
       - name: Build karmolab-ai (karmolab build 가 이 dist 를 불러온다)
         run: cd packages/karmolab-ai && npm run build
+
+      - name: Build karmolab-mcp (karmolab build 가 이 dist 를 불러온다)
+        run: cd packages/karmolab-mcp && npm run build
 
       - name: Install karmolab deps
         run: cd apps/karmolab && npm ci
