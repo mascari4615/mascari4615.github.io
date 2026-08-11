@@ -19,6 +19,9 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import readline from 'node:readline';
+import JSZip from 'jszip';
+import { PDFDocument, degrees as pdfDegrees } from 'pdf-lib';
+import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -100,7 +103,152 @@ const hanPinyin = () => {
   return hanPinyinCache ?? undefined;
 };
 
-function callTool(name, args) {
+const zipBackend = {
+  async create(files, level) {
+    const zip = new JSZip();
+    for (const file of files) zip.file(file.name, Buffer.from(file.data, 'base64'));
+    const bytes = await zip.generateAsync({
+      type: 'nodebuffer',
+      compression: level === 0 ? 'STORE' : 'DEFLATE',
+      compressionOptions: { level: Math.max(1, level) }
+    });
+    return bytes.toString('base64');
+  },
+  async list(data) {
+    const zip = await JSZip.loadAsync(Buffer.from(data, 'base64'));
+    const entries = [];
+    for (const entry of Object.values(zip.files)) {
+      if (entry.dir) continue;
+      const bytes = await entry.async('uint8array');
+      entries.push({ name: entry.name, size: bytes.byteLength });
+    }
+    return entries;
+  },
+  async extract(data, name) {
+    const zip = await JSZip.loadAsync(Buffer.from(data, 'base64'));
+    const entry = zip.file(name);
+    if (!entry) throw new Error(`ZIP 안에 파일이 없습니다: ${name}`);
+    return Buffer.from(await entry.async('uint8array')).toString('base64');
+  }
+};
+
+const pdfBytes = (data) => Uint8Array.from(Buffer.from(data, 'base64'));
+const pdfBase64 = (data) => Buffer.from(data).toString('base64');
+const checkedPages = (doc, pages) => pages.map((page) => {
+  if (page < 1 || page > doc.getPageCount()) throw new Error(`PDF에 ${page}쪽이 없습니다 (총 ${doc.getPageCount()}쪽)`);
+  return page - 1;
+});
+const pdfBackend = {
+  async merge(files) {
+    const out = await PDFDocument.create();
+    for (const data of files) {
+      const source = await PDFDocument.load(pdfBytes(data), { ignoreEncryption: true });
+      const copied = await out.copyPages(source, source.getPageIndices());
+      for (const page of copied) out.addPage(page);
+    }
+    return pdfBase64(await out.save());
+  },
+  async pages(data) {
+    return (await PDFDocument.load(pdfBytes(data), { ignoreEncryption: true })).getPageCount();
+  },
+  async extract(data, pages) {
+    const source = await PDFDocument.load(pdfBytes(data), { ignoreEncryption: true });
+    const out = await PDFDocument.create();
+    const copied = await out.copyPages(source, checkedPages(source, pages));
+    for (const page of copied) out.addPage(page);
+    return pdfBase64(await out.save());
+  },
+  async rotate(data, pages, degrees) {
+    const doc = await PDFDocument.load(pdfBytes(data), { ignoreEncryption: true });
+    for (const index of checkedPages(doc, pages)) {
+      const page = doc.getPage(index);
+      page.setRotation(pdfDegrees((page.getRotation().angle + degrees) % 360));
+    }
+    return pdfBase64(await doc.save());
+  }
+};
+const pdfTextBackend = {
+  async extract(data, maxPages) {
+    const task = getDocument({ data: pdfBytes(data), isEvalSupported: false, useWorkerFetch: false });
+    const doc = await task.promise;
+    const pages = [];
+    for (let pageNo = 1; pageNo <= Math.min(doc.numPages, maxPages); pageNo++) {
+      const page = await doc.getPage(pageNo);
+      const content = await page.getTextContent();
+      const lines = [];
+      let current = '';
+      let lastY;
+      for (const item of content.items) {
+        if (!('str' in item)) continue;
+        const y = item.transform?.[5];
+        if (lastY !== undefined && y !== undefined && Math.abs(y - lastY) > 2 && current.trim()) {
+          lines.push(current.trim()); current = '';
+        }
+        current += (current && !/^\s/.test(item.str) ? ' ' : '') + item.str;
+        lastY = y;
+      }
+      if (current.trim()) lines.push(current.trim());
+      pages.push(lines.join('\n'));
+    }
+    await task.destroy();
+    return pages.join('\n\n--- page ---\n\n');
+  }
+};
+const pdfCropBackend = {
+  async crop(data, margins) {
+    const doc = await PDFDocument.load(pdfBytes(data), { ignoreEncryption: true });
+    for (const page of doc.getPages()) {
+      const box = page.getCropBox();
+      const width = box.width - margins.left - margins.right;
+      const height = box.height - margins.top - margins.bottom;
+      if (width <= 0 || height <= 0) throw new Error('여백이 페이지보다 큽니다');
+      page.setCropBox(box.x + margins.left, box.y + margins.bottom, width, height);
+    }
+    return pdfBase64(await doc.save());
+  }
+};
+const pdfPageNumberBackend = {
+  async number(data, options) {
+    const doc = await PDFDocument.load(pdfBytes(data), { ignoreEncryption: true });
+    const font = await doc.embedFont('Helvetica');
+    const pages = doc.getPages();
+    for (let index = options.startPage - 1; index < pages.length; index++) {
+      const page = pages[index];
+      const text = `${options.prefix}${options.startNumber + index - (options.startPage - 1)}${options.suffix}`;
+      const size = 10;
+      const textWidth = font.widthOfTextAtSize(text, size);
+      const top = options.position.startsWith('top-');
+      const align = options.position.split('-')[1];
+      const x = align === 'left' ? 24 : align === 'right' ? page.getWidth() - textWidth - 24 : (page.getWidth() - textWidth) / 2;
+      const y = top ? page.getHeight() - 24 : 18;
+      page.drawText(text, { x, y, size, font });
+    }
+    return pdfBase64(await doc.save());
+  }
+};
+const imagePdfBackend = {
+  async create(images, pageMode) {
+    const doc = await PDFDocument.create();
+    for (const source of images) {
+      const bytes = pdfBytes(source.data);
+      const png = source.type === 'png' || (!source.type && bytes[0] === 0x89 && bytes[1] === 0x50);
+      const image = png ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
+      if (pageMode === 'fit') {
+        const page = doc.addPage([image.width, image.height]);
+        page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
+      } else {
+        const page = doc.addPage([595.28, 841.89]);
+        const scale = Math.min((page.getWidth() - 48) / image.width, (page.getHeight() - 48) / image.height);
+        const width = image.width * scale;
+        const height = image.height * scale;
+        page.drawImage(image, { x: (page.getWidth() - width) / 2, y: (page.getHeight() - height) / 2, width, height });
+      }
+    }
+    return pdfBase64(await doc.save());
+  }
+};
+
+function callToolRaw(name, args) {
   const t = registry.get(name);
   if (t === undefined) throw new Error(`모르는 도구입니다: ${name}`);
   /*
@@ -110,15 +258,29 @@ function callTool(name, args) {
    */
   const value = t.mod.run(t.op, args ?? {}, {
     hash: hashBackend,
-    call: (toolId, op, a) => callTool(`${toolId}_${op}`, a),
+    call: (toolId, op, a) => {
+      const nested = callToolRaw(`${toolId}_${op}`, a);
+      if (nested instanceof Promise) throw new Error('비동기 파일 도구는 chain 안에서 아직 부를 수 없습니다');
+      return nested;
+    },
+    zip: zipBackend,
+    pdf: pdfBackend,
+    pdfText: pdfTextBackend,
+    pdfCrop: pdfCropBackend,
+    pdfPageNumber: pdfPageNumberBackend,
+    imagePdf: imagePdfBackend,
     hanPinyin: hanPinyin()
   });
-  return String(value);
+  return value;
+}
+
+async function callTool(name, args) {
+  return String(await callToolRaw(name, args));
 }
 
 const rl = readline.createInterface({ input: process.stdin, crlfDelay: Infinity });
 
-rl.on('line', (line) => {
+rl.on('line', async (line) => {
   const text = line.trim();
   if (text === '') return;
 
@@ -149,7 +311,7 @@ rl.on('line', (line) => {
     }
     if (msg.method === 'tools/call') {
       try {
-        const out = callTool(msg.params?.name, msg.params?.arguments);
+        const out = await callTool(msg.params?.name, msg.params?.arguments);
         ok(msg.id, { content: [{ type: 'text', text: out }] });
       } catch (e) {
         // 도구가 실패한 것은 **프로토콜 오류가 아니다** — 에이전트가 읽고 고칠 수 있게 내용으로 준다.

@@ -7,6 +7,7 @@
  */
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
+import { spec as zipCoreSpec } from '../../core/ziptool';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -30,7 +31,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(1)}KB` : `${n}B`;
 
   Toolbox.register({
-    id: 'ziptool',
+    id: zipCoreSpec.id,
     title: t('widgets.ziptool.title', undefined, "ZIP 만들기·풀기"),
     category: 'tool',
     desc: t('widgets-desc.ziptool.desc', undefined, "파일을 ZIP 으로 묶고, 받은 ZIP 의 목록을 보고 풀어 냅니다"),

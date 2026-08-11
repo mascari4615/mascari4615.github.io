@@ -10,6 +10,7 @@
  */
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { rebuildTextItems as rebuild } from '../../core/pdf2text';
 
 (function (): void {
   interface TextItem {
@@ -33,7 +34,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
    * 글자 조각들을 사람이 읽는 줄·문단으로 되살린다.
    * PDF 는 조각을 아무 순서로나 담을 수 있어, 자리(y)로 줄을 묶고 x 로 정렬해야 한다.
    */
-  function rebuild(items: TextItem[]): string {
+  function legacyRebuild(items: TextItem[]): string {
     const lines: Array<{ y: number; parts: Array<{ x: number; s: string }> }> = [];
     for (const it of items) {
       const s = it.str || '';
