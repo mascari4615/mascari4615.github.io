@@ -59,14 +59,21 @@ try {
   process.exit(1);
 }
 const page = await browser.newPage();
-await page.route('**/*', (route) =>
-  route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' })
-);
+await page.route('**/*', (route) => {
+  // JSON(번역 파일) 요청이면 빈 껍데기 JSON을 줘서 에러를 막는다.
+  if (route.request().url().endsWith('.json')) {
+    return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+  }
+  return route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' });
+});
 await page.goto('http://localhost/');
 await page.evaluate(() => {
   window.__reg = {};
   window.Toolbox = { register: (t) => { window.__reg[t.id] = t; }, trackUse() {}, copyText() {}, mountTool() { return true; } };
   window.Mdd = { linePreset() {} };
+  // i18n 무한 대기를 뚫기 위한 가짜 번역 객체 주입
+  window.i18next = { t: (k) => k, loadNamespaces: async () => {} };
+  window.t = (k) => k;
 });
 await page.addScriptTag({ content: read('js/vendor/crypto-js.min.js') });
 await page.addScriptTag({ content: read('js/widgets/tools/hashgen.js') });
