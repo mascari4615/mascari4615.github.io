@@ -110,6 +110,31 @@ console.log('[arcade] 씨앗 — 같은 방은 같은 판');
   ok(c.view().state.order !== va.order || JSON.stringify(c.view().state.choices) !== JSON.stringify(va.choices), '다른 씨앗 → 다른 문제');
 }
 
+console.log('[arcade] 난수 — 판 중에 굴려도 값이 바뀐다');
+{
+  /* 주사위처럼 판 중에 뽑는 게임이 있으므로, 같은 판 안에서 rng 를 두 번 부르면 달라야 한다.
+     예전에는 부를 때마다 새로 만들어 늘 같은 값이 나왔다(굴리는 게임이 아예 불가능했다). */
+  const probe = {
+    id: 'probe-rng', seats: [1, 1], rounds: 1,
+    init: (ctx) => ({ rolls: [ctx.rng()] }),
+    reduce: (s, a, seat, ctx) => ({ rolls: [...s.rolls, ctx.rng()] }),
+    outcome: (s) => (s.rolls.length >= 6 ? { over: true, scores: [1] } : { over: false }),
+    bot: () => null
+  };
+  const m = new Match(probe, 4242, [{ name: 'me', bot: false }]);
+  for (let i = 0; i < 5; i++) m.dispatch(0, {});
+  const rolls = m.view().state.rolls;
+  ok(new Set(rolls).size === rolls.length, `같은 판에서 부를 때마다 다른 값 (${rolls.length}개)`);
+
+  const a = new Match(probe, 4242, [{ name: 'me', bot: false }]);
+  const b = new Match(probe, 4242, [{ name: 'me', bot: false }]);
+  for (let i = 0; i < 3; i++) { a.dispatch(0, {}); b.dispatch(0, {}); }
+  ok(
+    JSON.stringify(a.view().state.rolls) === JSON.stringify(b.view().state.rolls),
+    '같은 씨앗이면 굴린 값의 차례까지 같다'
+  );
+}
+
 console.log('[arcade] 반응 측정 — 실시간·동시');
 {
   /* 아무도 손을 안 뻗어도 제한시간이 지나면 판이 넘어가고, 다섯 판 뒤 끝난다. */
