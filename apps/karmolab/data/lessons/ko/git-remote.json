@@ -1,102 +1,753 @@
 {
   "id": "git-remote",
-  "minutes": 11,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "`pull` 이 사실 **fetch + merge** 라는 것만 알아도, 이상한 병합 커밋과 「왜 내 커밋이 사라졌지」의 절반이 사라진다."
-    },
-    {
-      "type": "h",
-      "text": "1. 세 개의 이름"
-    },
-    {
-      "type": "p",
-      "text": "`main`(내 브랜치) · `origin/main`(내가 마지막으로 받아 온 원격의 상태) · 실제 원격. `origin/main` 은 **원격이 아니라 사본**이다 — `fetch` 해야 갱신된다."
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "받아만 오고 합치지 않기",
-      "text": "git fetch origin              # 사본만 갱신 (내 작업은 안 건드림)\ngit log --oneline main..origin/main   # 내가 아직 안 받은 커밋\ngit log --oneline origin/main..main   # 내가 아직 안 올린 커밋"
-    },
-    {
-      "type": "h",
-      "text": "2. pull 의 두 가지 성격"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "병합이냐 재적용이냐",
-      "text": "git pull                 # = fetch + merge (병합 커밋이 생길 수 있다)\ngit pull --rebase        # = fetch + rebase (내 커밋을 원격 위에 다시 얹는다)\n\ngit config pull.rebase true   # 기본값을 정해 두면 매번 안 헷갈린다"
-    },
-    {
-      "type": "h",
-      "text": "3. push 가 거부될 때"
-    },
-    {
-      "type": "note",
-      "text": "`rejected (non-fast-forward)` 는 **내가 모르는 커밋이 원격에 있다**는 뜻이다. `--force` 는 그 커밋을 지운다 — 공유 브랜치에서는 절대 금지. 먼저 `git pull --rebase` 로 받아 얹고 다시 push 하라."
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "굳이 강제해야 한다면 이것만",
-      "text": "git push --force-with-lease   # 내가 본 상태와 원격이 같을 때만 강제 (남의 새 커밋이 있으면 거부)"
-    },
-    {
-      "type": "h",
-      "text": "4. 추적 관계"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "어느 원격 브랜치를 따르나",
-      "text": "git push -u origin feat/login   # 처음 올릴 때 추적 설정\ngit branch -vv                  # [origin/feat/login: ahead 2] 처럼 보인다"
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "`git fetch` 만 하고 `git log --oneline main..origin/main` 을 찍어 봐라. 받아 오기 전과 후의 `origin/main` 이 어떻게 달라지는지 확인하라."
-    },
-    {
-      "type": "try",
-      "text": "연습 저장소에서 push 거부를 일부러 만들어라(다른 클론에서 커밋 후 push). `--force` 대신 `pull --rebase` 로 푸는 흐름을 손에 익혀라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "`origin/main` 은 무엇인가?",
-      "choices": [
-        "원격 서버의 실시간 상태",
-        "마지막 fetch 시점의 원격 사본",
-        "내 로컬 브랜치의 별명"
+      "id": "1",
+      "title": "리모트는 별명이고, origin/main 은 내 안의 사본이다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`origin` 은 특별한 단어가 아니라 **주소에 붙인 별명**이다. `git clone` 이 자동으로 그 이름을 붙여 줄 뿐이고, 이름은 바꿔도 되고 여러 개를 둬도 된다."
+        },
+        {
+          "type": "p",
+          "text": "더 중요한 것은 `origin/main` 의 정체다. 이것은 서버에 있는 브랜치가 **아니다.** 내 컴퓨터 안에 있는 **「마지막으로 확인했을 때 서버의 main 은 여기였다」는 메모**다. 그래서 인터넷이 끊겨도 볼 수 있고, `fetch` 하기 전까지는 낡은 채로 남아 있다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "어느 것이 내 것이고 어느 것이 메모인가",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const COL = { ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 이름표 색을 나눈다 — 내 것(노랑=HEAD, 회색=로컬)과 원격 추적(파랑)은 성질이 다르다. */\n  function draw(state) {\n    ctx.clearRect(0, 0, 440, 210);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af'; ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8'; ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const remote = name.startsWith('origin/');\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : remote ? '#1d4ed8' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#e2e8f0';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\nconst base = [\n    { id:'a1c', parents:[], lane:0, msg:'첫 커밋' },\n    { id:'b2d', parents:['a1c'], lane:0, msg:'로그인' },\n    { id:'c3e', parents:['b2d'], lane:0, msg:'검색' },\n  ];\n  const view = '{{view}}';\n  const commits = base.slice();\n  let refs = { main: 'c3e', 'origin/main': 'c3e' }, cmd, note;\n  if (view === 'same') {\n    cmd = 'git clone https://…/repo.git';\n    note = '갓 받아 왔다 — 내 main 과 메모(origin/main)가 같은 커밋을 가리킨다.';\n  } else if (view === 'ahead') {\n    commits.push({ id:'d4f', parents:['c3e'], lane:0, msg:'내 작업' });\n    refs = { main: 'd4f', 'origin/main': 'c3e' };\n    cmd = 'git commit -m \"내 작업\"';\n    note = '내 main 만 앞섰다. status 가 「ahead 1」이라고 말하는 상태 — 서버는 아직 모른다.';\n  } else {\n    commits.push({ id:'e5a', parents:['c3e'], lane:0, msg:'남의 작업' });\n    refs = { main: 'c3e', 'origin/main': 'e5a' };\n    cmd = 'git fetch';\n    note = '메모만 앞으로 갔다(파란 이름표). 내 파일은 한 글자도 안 바뀌었다 — 「behind 1」.';\n  }\n  draw({ commits, refs, head: 'main' });\n  say(cmd, note);\n</script>",
+          "controls": [
+            {
+              "id": "view",
+              "label": "상황",
+              "type": "select",
+              "value": "same",
+              "options": [
+                {
+                  "value": "same",
+                  "label": "clone 직후"
+                },
+                {
+                  "value": "ahead",
+                  "label": "내가 커밋했다(ahead)"
+                },
+                {
+                  "value": "behind",
+                  "label": "남이 올렸다(behind)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "리모트를 다루는 명령",
+          "text": "git remote -v                     # 별명과 주소 목록\ngit remote add upstream <url>      # 별명을 더 붙인다 (포크 작업에서 흔하다)\ngit remote rename origin old       # 이름은 언제든 바꿀 수 있다\ngit branch -vv                     # 내 브랜치가 어느 원격 브랜치를 따라가나"
+        },
+        {
+          "type": "note",
+          "text": "`git status` 의 「ahead 2, behind 1」은 **서버에 물어본 결과가 아니다.** 마지막 `fetch` 때의 메모와 비교한 값이다. 그래서 정확한 상태를 보려면 먼저 `git fetch` 다."
+        },
+        {
+          "type": "try",
+          "text": "`git branch -vv` 를 쳐 보라. 각 브랜치 옆의 `[origin/main: ahead 2]` 가 무엇과 비교한 값인지 이제 말할 수 있어야 한다."
+        }
       ],
-      "answer": 1,
-      "why": "fetch 하기 전까지는 갱신되지 않는 스냅샷이다."
+      "quiz": [
+        {
+          "q": "`origin/main` 의 정체는?",
+          "choices": [
+            "서버에 있는 브랜치",
+            "내 안에 있는 「마지막으로 본 서버 상태」 메모",
+            "로컬 브랜치의 별명",
+            "태그"
+          ],
+          "answer": 1,
+          "why": "그래서 fetch 전까지 낡아 있을 수 있다."
+        },
+        {
+          "q": "`git status` 의 ahead/behind 는 무엇과 비교한 값인가?",
+          "choices": [
+            "지금 서버 상태",
+            "마지막 fetch 때의 메모",
+            "reflog",
+            "인덱스"
+          ],
+          "answer": 1,
+          "why": "정확히 보려면 먼저 fetch."
+        },
+        {
+          "q": "`origin` 이라는 이름은?",
+          "choices": [
+            "git 예약어",
+            "clone 이 붙여 준 별명 — 바꿔도 된다",
+            "서버가 정한다",
+            "브랜치 이름"
+          ],
+          "answer": 1,
+          "why": "여러 리모트를 둘 수도 있다."
+        }
+      ]
     },
     {
-      "q": "push 가 non-fast-forward 로 거부됐다. 올바른 처리는?",
-      "choices": [
-        "--force 로 밀어 넣는다",
-        "pull --rebase 로 원격 커밋 위에 내 커밋을 얹고 다시 push",
-        "브랜치를 지운다"
+      "id": "2",
+      "title": "fetch — 받아만 오고 아무것도 안 바꾼다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`fetch` 는 이 챕터에서 가장 안전한 명령이다. 서버에서 새 커밋을 받아 **메모(origin/…)만 갱신**한다. 내 브랜치도, 작업트리도, 인덱스도 손대지 않는다. 그래서 「일단 fetch 하고 보기」는 언제나 옳다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "받아온 뒤 무엇이 달라졌나 — 내 것은 그대로다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const COL = { ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 이름표 색을 나눈다 — 내 것(노랑=HEAD, 회색=로컬)과 원격 추적(파랑)은 성질이 다르다. */\n  function draw(state) {\n    ctx.clearRect(0, 0, 440, 210);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af'; ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8'; ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const remote = name.startsWith('origin/');\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : remote ? '#1d4ed8' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#e2e8f0';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\nconst base = [\n    { id:'a1c', parents:[], lane:0, msg:'첫 커밋' },\n    { id:'b2d', parents:['a1c'], lane:0, msg:'로그인' },\n    { id:'c3e', parents:['b2d'], lane:0, msg:'검색' },\n  ];\n  const step = {{step}};\n  const commits = base.slice();\n  let refs = { main: 'c3e', 'origin/main': 'c3e' };\n  let cmd = '(fetch 전)', note = '메모가 낡았다 — 서버에 새 커밋이 있어도 여기서는 안 보인다.';\n  if (step >= 1) {\n    commits.push({ id:'e5a', parents:['c3e'], lane:0, msg:'남의 커밋' });\n    refs = { main: 'c3e', 'origin/main': 'e5a' };\n    cmd = 'git fetch';\n    note = '커밋은 받아 왔고 메모만 앞으로. 내 main 은 그대로 — 파일도 그대로다.';\n  }\n  if (step >= 2) {\n    cmd = 'git log --oneline main..origin/main';\n    note = '합치기 전에 「무엇이 올 예정인지」를 먼저 읽는다. 이게 fetch 를 따로 쓰는 이유다.';\n  }\n  if (step >= 3) {\n    refs = { main: 'e5a', 'origin/main': 'e5a' };\n    cmd = 'git merge origin/main   # 또는 git pull';\n    note = '이제야 내 main 이 따라간다. 갈라진 적이 없으니 fast-forward.';\n  }\n  draw({ commits, refs, head: 'main' });\n  say(cmd, note);\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 3,
+              "step": 1,
+              "value": 1
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "받아온 뒤 먼저 읽는다",
+          "text": "git fetch                          # 메모 갱신 (안전)\ngit log --oneline main..origin/main   # 올 예정인 커밋\ngit log --oneline origin/main..main   # 내가 올릴 예정인 커밋\ngit diff main origin/main             # 내용 차이"
+        },
+        {
+          "type": "note",
+          "text": "`A..B` 는 **B 에는 있고 A 에는 없는 커밋**이다. 방향을 뒤집으면 뜻이 정반대가 된다 — 「받을 것」과 「보낼 것」이 바로 이 한 점 차이다."
+        },
+        {
+          "type": "try",
+          "text": "협업 중인 저장소에서 `git fetch` 후 `git log --oneline main..origin/main` 을 읽어라. 합치기 전에 무엇이 오는지 아는 습관이 사고를 절반으로 줄인다."
+        }
       ],
-      "answer": 1,
-      "why": "force 는 남의 커밋을 지운다. 공유 브랜치에서는 받아서 얹는 것이 정답이다."
+      "quiz": [
+        {
+          "q": "`git fetch` 가 바꾸는 것은?",
+          "choices": [
+            "작업트리",
+            "내 브랜치",
+            "원격 추적 메모(origin/…)",
+            "인덱스"
+          ],
+          "answer": 2,
+          "why": "내 것은 아무것도 안 건드린다."
+        },
+        {
+          "q": "`main..origin/main` 이 뜻하는 것은?",
+          "choices": [
+            "내가 올릴 커밋",
+            "받을 예정인 커밋",
+            "충돌한 커밋",
+            "전체 역사"
+          ],
+          "answer": 1,
+          "why": "오른쪽에는 있고 왼쪽에는 없는 커밋."
+        },
+        {
+          "q": "fetch 가 안전한 이유는?",
+          "choices": [
+            "네트워크를 안 써서",
+            "내 브랜치·파일을 안 건드려서",
+            "되돌릴 수 있어서",
+            "빨라서"
+          ],
+          "answer": 1,
+          "why": "합치는 것은 별개의 명령이다."
+        }
+      ]
     },
     {
-      "q": "`--force-with-lease` 가 `--force` 보다 안전한 이유는?",
-      "choices": [
-        "백업을 만든다",
-        "내가 마지막으로 본 원격 상태와 다르면 거부하기 때문",
-        "느리게 동작해서"
+      "id": "3",
+      "title": "pull — fetch + 합치기, 그 「합치기」를 정하라",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`pull` 은 두 명령을 붙인 것이다: `fetch` + (`merge` 또는 `rebase`). 사람들이 pull 에서 사고를 내는 이유는 **뒤쪽 절반이 무엇인지 정해 두지 않아서**다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "무엇으로 합칠지 골라 보라 — 결과 모양이 다르다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const COL = { ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 이름표 색을 나눈다 — 내 것(노랑=HEAD, 회색=로컬)과 원격 추적(파랑)은 성질이 다르다. */\n  function draw(state) {\n    ctx.clearRect(0, 0, 440, 210);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af'; ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8'; ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const remote = name.startsWith('origin/');\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : remote ? '#1d4ed8' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#e2e8f0';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\n  const how = '{{how}}';\n  const commits = [\n    { id:'a1c', parents:[], lane:0, msg:'첫 커밋' },\n    { id:'b2d', parents:['a1c'], lane:0, msg:'공통' },\n    { id:'e5a', parents:['b2d'], lane:0, msg:'남의 커밋' },\n  ];\n  let refs = { 'origin/main': 'e5a' }, cmd, note;\n  if (how === 'merge') {\n    commits.push({ id:'d4f', parents:['b2d'], lane:1, msg:'내 커밋' });\n    commits.push({ id:'m6b', parents:['e5a','d4f'], lane:0, msg:'병합' });\n    refs.main = 'm6b';\n    cmd = 'git pull            # 기본: merge';\n    note = '병합 커밋이 하나 생긴다. 역사가 사실 그대로 남지만, 이런 커밋이 쌓이면 로그가 지저분해진다.';\n  } else if (how === 'rebase') {\n    commits.push({ id:'d4f', parents:['b2d'], lane:1, msg:'내 커밋', ghost:true });\n    commits.push({ id:\"d4f'\", parents:['e5a'], lane:0, msg:'내 커밋(새 해시)' });\n    refs.main = \"d4f'\";\n    cmd = 'git pull --rebase';\n    note = '내 커밋을 남의 커밋 뒤로 옮겨 적는다. 선이 곧게 남는다 — 대신 내 커밋의 해시가 바뀐다.';\n  } else {\n    commits.push({ id:'d4f', parents:['b2d'], lane:1, msg:'내 커밋' });\n    refs.main = 'd4f';\n    cmd = 'git pull --ff-only\\nfatal: Not possible to fast-forward, aborting.';\n    note = '갈라졌으면 아예 멈춘다. 「모르는 사이에 합쳐지는 일」이 없어서 팀 기본값으로 좋다.';\n  }\n  draw({ commits, refs, head: 'main' });\n  say(cmd, note);\n</script>",
+          "controls": [
+            {
+              "id": "how",
+              "label": "합치는 방식",
+              "type": "select",
+              "value": "merge",
+              "options": [
+                {
+                  "value": "merge",
+                  "label": "pull (merge)"
+                },
+                {
+                  "value": "rebase",
+                  "label": "pull --rebase"
+                },
+                {
+                  "value": "ffonly",
+                  "label": "pull --ff-only"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "한 번 정해 두고 잊는다",
+          "text": "git config --global pull.ff only        # 갈라졌으면 멈춘다 (추천 기본값)\ngit config --global pull.rebase true    # 늘 rebase 로 합친다\n\n# 멈췄을 때 그 자리에서 고른다\ngit pull --rebase        # 내 커밋을 뒤로 옮겨 적기\ngit pull --no-rebase     # 병합 커밋 만들기"
+        },
+        {
+          "type": "note",
+          "text": "`pull --rebase` 는 **내 로컬 커밋**을 다시 쓴다. 아직 안 올린 커밋이면 안전하다. 다만 이미 올렸던 커밋이라면 6장의 황금률(공유한 역사는 다시 쓰지 않는다)에 걸린다."
+        },
+        {
+          "type": "try",
+          "text": "`git config --global pull.ff only` 를 걸어 두고 며칠 써 보라. 멈출 때마다 「지금 갈라졌구나」를 알게 되고, 그때 merge 와 rebase 중 **의식적으로** 고르게 된다."
+        }
       ],
-      "answer": 1,
-      "why": "내가 모르는 새 커밋이 올라와 있으면 밀어 넣지 않는다."
+      "quiz": [
+        {
+          "q": "`git pull` 은 무엇의 줄임인가?",
+          "choices": [
+            "fetch + merge(또는 rebase)",
+            "clone + checkout",
+            "fetch + push",
+            "merge + commit"
+          ],
+          "answer": 0,
+          "why": "뒤쪽 절반을 정해 두는 것이 핵심."
+        },
+        {
+          "q": "`pull --ff-only` 가 갈라진 상태에서 하는 일은?",
+          "choices": [
+            "강제로 합친다",
+            "멈춘다",
+            "rebase 한다",
+            "새 브랜치를 만든다"
+          ],
+          "answer": 1,
+          "why": "모르는 사이에 합쳐지는 일을 막는다."
+        },
+        {
+          "q": "`pull --rebase` 가 다시 쓰는 것은?",
+          "choices": [
+            "서버의 커밋",
+            "아직 안 올린 내 로컬 커밋",
+            "병합 커밋",
+            "태그"
+          ],
+          "answer": 1,
+          "why": "그래서 이미 공유한 커밋에는 조심해야 한다."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "push — 거부당하는 이유는 늘 하나다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`push` 는 「내 브랜치가 가리키는 커밋으로 **서버의 이름표를 옮겨라**」는 요청이다. 그리고 git 은 그 요청을 **옮기는 것이 앞으로 나아가는 경우에만** 들어준다. 이것이 거부의 전부다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "무엇이 거부이고 무엇이 통과인가",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const COL = { ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 이름표 색을 나눈다 — 내 것(노랑=HEAD, 회색=로컬)과 원격 추적(파랑)은 성질이 다르다. */\n  function draw(state) {\n    ctx.clearRect(0, 0, 440, 210);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af'; ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8'; ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const remote = name.startsWith('origin/');\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : remote ? '#1d4ed8' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#e2e8f0';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\n  const c = '{{case}}';\n  const commits = [\n    { id:'a1c', parents:[], lane:0, msg:'첫 커밋' },\n    { id:'b2d', parents:['a1c'], lane:0, msg:'공통' },\n  ];\n  let refs = {}, cmd, note;\n  if (c === 'ok') {\n    commits.push({ id:'d4f', parents:['b2d'], lane:0, msg:'내 커밋' });\n    refs = { main: 'd4f', 'origin/main': 'b2d' };\n    cmd = 'git push          ->  b2d..d4f  main -> main';\n    note = '서버 이름표가 앞으로만 간다 = 통과. 아무도 커밋을 잃지 않는다.';\n  } else if (c === 'reject') {\n    commits.push({ id:'e5a', parents:['b2d'], lane:0, msg:'남의 커밋' });\n    commits.push({ id:'d4f', parents:['b2d'], lane:1, msg:'내 커밋' });\n    refs = { main: 'd4f', 'origin/main': 'e5a' };\n    cmd = 'git push\\n ! [rejected] main -> main (non-fast-forward)';\n    note = '내 커밋으로 이름표를 옮기면 남의 e5a 를 아무도 안 가리키게 된다 -> 그래서 막는다.';\n  } else if (c === 'fixed') {\n    commits.push({ id:'e5a', parents:['b2d'], lane:0, msg:'남의 커밋' });\n    commits.push({ id:'d4f', parents:['b2d'], lane:1, msg:'내 커밋', ghost:true });\n    commits.push({ id:\"d4f'\", parents:['e5a'], lane:0, msg:'옮겨 적음' });\n    refs = { main: \"d4f'\", 'origin/main': 'e5a' };\n    cmd = 'git pull --rebase && git push';\n    note = '내 커밋을 남의 뒤로 옮겨 적으니 다시 「앞으로만」이 됐다. 이것이 정답 경로.';\n  } else {\n    commits.push({ id:'e5a', parents:['b2d'], lane:0, msg:'남의 커밋', ghost:true });\n    commits.push({ id:'d4f', parents:['b2d'], lane:1, msg:'내 커밋' });\n    refs = { main: 'd4f', 'origin/main': 'd4f' };\n    cmd = 'git push --force   # e5a 가 서버에서 사라졌다';\n    note = '남의 커밋이 아무 이름표에서도 안 닿게 됐다. 이래서 --force 대신 --force-with-lease 다.';\n  }\n  draw({ commits, refs, head: 'main' });\n  say(cmd, note);\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "경우",
+              "type": "select",
+              "value": "reject",
+              "options": [
+                {
+                  "value": "ok",
+                  "label": "통과 (앞으로만)"
+                },
+                {
+                  "value": "reject",
+                  "label": "거부 (갈라짐)"
+                },
+                {
+                  "value": "fixed",
+                  "label": "rebase 후 통과"
+                },
+                {
+                  "value": "force",
+                  "label": "force 로 밀어붙임"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "처음 올릴 때와 다시 쓸 때",
+          "text": "git push -u origin feature      # 처음: 올리면서 추적 관계까지 맺는다\ngit push                        # 그 뒤로는 이것만\n\ngit push --force-with-lease     # 다시 쓴 역사를 올릴 때 (그 사이 남이 올렸으면 멈춘다)\ngit push --force                # 쓰지 마라 — 남의 커밋을 소리 없이 지운다"
+        },
+        {
+          "type": "note",
+          "text": "거부 메시지를 보고 반사적으로 `--force` 를 치는 습관이 사고의 근원이다. 거부는 **git 이 남의 작업을 지키고 있는 것**이다. 정답은 거의 언제나 `pull --rebase` 후 다시 push."
+        },
+        {
+          "type": "try",
+          "text": "거부를 일부러 만들어 보라 — 저장소를 두 폴더에 clone 해 양쪽에서 커밋하고 둘 다 push 하라. 두 번째가 거부되면 `pull --rebase` 로 풀어 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "push 가 거부되는 이유는?",
+          "choices": [
+            "권한 부족만",
+            "서버 이름표를 옮기면 어떤 커밋이 도달 불가가 되기 때문",
+            "네트워크 문제",
+            "브랜치 이름이 달라서"
+          ],
+          "answer": 1,
+          "why": "앞으로 나아가는 경우에만 허용된다."
+        },
+        {
+          "q": "거부됐을 때 정답 경로는?",
+          "choices": [
+            "--force",
+            "pull --rebase 후 push",
+            "새 브랜치를 만든다",
+            "clone 을 다시 한다"
+          ],
+          "answer": 1,
+          "why": "내 커밋을 남의 뒤로 옮겨 적으면 다시 앞으로만 가는 모양이 된다."
+        },
+        {
+          "q": "`-u`(--set-upstream) 가 하는 일은?",
+          "choices": [
+            "강제로 올린다",
+            "추적 관계를 맺어 다음부터 git push 만으로 되게 한다",
+            "태그를 올린다",
+            "브랜치를 만든다"
+          ],
+          "answer": 1,
+          "why": "ahead/behind 표시도 이 관계가 있어야 나온다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "역사를 다시 쓴 채로 올릴 때",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "PR 브랜치를 정리하다 보면 rebase·amend 를 쓰게 되고, 그러면 서버와 갈라진다. 이때 필요한 것이 `--force-with-lease` 다. 이름이 길지만 뜻은 간단하다 — **「내가 마지막으로 본 그 상태 그대로면 밀어라, 아니면 멈춰라」**."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "그 사이 남이 올렸다면 어떻게 되나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const COL = { ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 이름표 색을 나눈다 — 내 것(노랑=HEAD, 회색=로컬)과 원격 추적(파랑)은 성질이 다르다. */\n  function draw(state) {\n    ctx.clearRect(0, 0, 440, 210);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af'; ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8'; ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const remote = name.startsWith('origin/');\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : remote ? '#1d4ed8' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#e2e8f0';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\n  const c = '{{case}}';\n  const commits = [\n    { id:'a1c', parents:[], lane:0, msg:'첫 커밋' },\n    { id:'b2d', parents:['a1c'], lane:0, msg:'공통' },\n    { id:'d4f', parents:['b2d'], lane:1, msg:'내 옛 커밋', ghost:true },\n    { id:\"d4f'\", parents:['b2d'], lane:0, msg:'정리한 커밋' },\n  ];\n  let refs, cmd, note;\n  if (c === 'safe') {\n    refs = { main: \"d4f'\", 'origin/main': \"d4f'\" };\n    cmd = 'git push --force-with-lease   ->  통과';\n    note = '서버가 내가 본 그대로(d4f)였다 -> 안전하게 갈아 끼웠다.';\n  } else if (c === 'blocked') {\n    commits.push({ id:'z9y', parents:['d4f'], lane:1, msg:'남이 그 사이 올린 것' });\n    refs = { main: \"d4f'\", 'origin/main': 'z9y' };\n    cmd = 'git push --force-with-lease\\n ! [rejected] stale info';\n    note = '그 사이 서버가 달라졌다 -> 멈춘다. 남의 z9y 를 지울 뻔한 것을 막아 준 것.';\n  } else {\n    commits.push({ id:'z9y', parents:['d4f'], lane:1, msg:'남이 올린 것', ghost:true });\n    refs = { main: \"d4f'\", 'origin/main': \"d4f'\" };\n    cmd = 'git push --force   ->  통과(하지만)';\n    note = 'z9y 가 사라졌다. 올린 사람은 자기 것이 없어진 줄도 모른다 — 가장 나쁜 종류의 사고.';\n  }\n  draw({ commits, refs, head: 'main' });\n  say(cmd, note);\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "경우",
+              "type": "select",
+              "value": "safe",
+              "options": [
+                {
+                  "value": "safe",
+                  "label": "with-lease · 그대로였다"
+                },
+                {
+                  "value": "blocked",
+                  "label": "with-lease · 남이 올렸다"
+                },
+                {
+                  "value": "force",
+                  "label": "그냥 --force"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "`--force-with-lease` 도 만능은 아니다. 다른 창에서 무심코 `git fetch` 를 돌렸다면 「내가 본 상태」가 갱신되어 안전장치가 풀린다. 확실히 하려면 `--force-with-lease=main:<내가 아는 해시>` 로 못 박는다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "공유 브랜치를 지키는 쪽이 더 근본",
+          "text": "# GitHub: Settings > Branches > Protect matching branches\n#  - Require a pull request before merging\n#  - Do not allow force pushes\n#  - Require status checks to pass\n\n# 손버릇 대신 규칙으로 막는 것이 언제나 낫다"
+        },
+        {
+          "type": "try",
+          "text": "내 저장소의 main 에 「force push 금지」 보호 규칙이 걸려 있는지 확인하라. 없으면 지금 켜라 — 이 장의 사고는 규칙 한 줄로 사라진다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`--force-with-lease` 가 멈추는 때는?",
+          "choices": [
+            "항상",
+            "그 사이 서버가 내가 본 것과 달라졌을 때",
+            "브랜치가 보호돼 있을 때",
+            "충돌이 있을 때"
+          ],
+          "answer": 1,
+          "why": "남의 커밋을 지울 상황을 잡아 준다."
+        },
+        {
+          "q": "with-lease 의 안전장치가 풀리는 경우는?",
+          "choices": [
+            "fetch 를 다시 돌려 「본 상태」가 갱신됐을 때",
+            "브랜치를 바꿨을 때",
+            "커밋이 많을 때",
+            "태그가 있을 때"
+          ],
+          "answer": 0,
+          "why": "그래서 해시를 직접 지정하는 형태가 더 확실하다."
+        },
+        {
+          "q": "가장 근본적인 예방책은?",
+          "choices": [
+            "--force 금지 약속",
+            "브랜치 보호 규칙",
+            "자주 fetch",
+            "브랜치 이름 규칙"
+          ],
+          "answer": 1,
+          "why": "손버릇이 아니라 서버가 막는다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "브랜치 정리 — 유령 이름표 치우기",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "협업이 길어지면 `git branch -r` 이 죽은 이름으로 가득 찬다. 서버에서 지워진 브랜치의 **메모는 자동으로 안 사라진다** — 지워 달라고 말해야 사라진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "정리 전후 — 파란 이름표가 줄어든다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const COL = { ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 이름표 색을 나눈다 — 내 것(노랑=HEAD, 회색=로컬)과 원격 추적(파랑)은 성질이 다르다. */\n  function draw(state) {\n    ctx.clearRect(0, 0, 440, 210);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af'; ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8'; ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const remote = name.startsWith('origin/');\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : remote ? '#1d4ed8' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#e2e8f0';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\n  const after = {{after}};\n  const commits = [\n    { id:'a1c', parents:[], lane:0, msg:'첫 커밋' },\n    { id:'b2d', parents:['a1c'], lane:0, msg:'공통' },\n    { id:'c3e', parents:['b2d'], lane:0, msg:'merge 된 기능' },\n  ];\n  const refs = { main: 'c3e', 'origin/main': 'c3e' };\n  if (!after) { refs['origin/feat-a'] = 'b2d'; refs['origin/feat-b'] = 'b2d'; }\n  draw({ commits, refs, head: 'main' });\n  say(after ? 'git fetch --prune' : '(정리 전 — 서버에서는 이미 지워진 브랜치들)',\n      after ? '서버에 없는 브랜치의 메모를 지웠다. 남은 것만 진짜다.'\n            : 'feat-a·feat-b 는 서버에서 이미 merge 후 삭제됐다. 그런데 내 메모에는 남아 있다.');\n</script>",
+          "controls": [
+            {
+              "id": "after",
+              "label": "prune 후",
+              "type": "toggle",
+              "value": false
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "정리 세 줄",
+          "text": "git fetch --prune                     # 서버에 없는 원격 메모 지우기\ngit config --global fetch.prune true   # 늘 그렇게\n\n# 이미 merge 된 내 로컬 브랜치 지우기\ngit branch --merged main | grep -v '\\*\\|main' | xargs -r git branch -d"
+        },
+        {
+          "type": "note",
+          "text": "로컬 브랜치는 `-d`(안전: 병합된 것만) 와 `-D`(강제)가 다르다. `-D` 로 지운 브랜치의 커밋도 reflog 에는 남으니 완전히 잃지는 않는다 — 다만 찾는 데 시간이 든다."
+        },
+        {
+          "type": "p",
+          "text": "리모트에서 브랜치를 지우는 명령은 모양이 낯설다: `git push origin --delete feature`. 「서버의 그 이름표를 지워라」는 뜻이고, 예전 문법 `git push origin :feature`(빈 것을 밀어 넣는다)도 같은 뜻이다."
+        },
+        {
+          "type": "try",
+          "text": "`git branch -r | wc -l` 로 원격 메모 수를 세고, `git fetch --prune` 후 다시 세어 보라. 줄어든 만큼이 유령이었다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "서버에서 지워진 브랜치의 원격 메모는?",
+          "choices": [
+            "자동으로 사라진다",
+            "prune 해야 사라진다",
+            "영영 남는다",
+            "clone 해야 사라진다"
+          ],
+          "answer": 1,
+          "why": "git fetch --prune 또는 fetch.prune 설정."
+        },
+        {
+          "q": "`git branch -d` 가 거부할 때의 뜻은?",
+          "choices": [
+            "권한이 없다",
+            "아직 어디에도 병합되지 않았다",
+            "원격에 있다",
+            "충돌 중이다"
+          ],
+          "answer": 1,
+          "why": "지우면 도달 불가가 되는 커밋이 있다는 경고."
+        },
+        {
+          "q": "리모트 브랜치를 지우는 명령은?",
+          "choices": [
+            "git branch -d origin/feature",
+            "git push origin --delete feature",
+            "git fetch --delete",
+            "git remote rm feature"
+          ],
+          "answer": 1,
+          "why": "-d 는 내 로컬 메모만 지운다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "큰 저장소 — 다 받지 않는 법",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "저장소가 커지면 clone 이 몇 분씩 걸린다. 받아 오는 양을 줄이는 손잡이가 세 개 있고, 셋은 **줄이는 대상이 다르다** — 역사, 파일 내용, 작업트리."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "무엇을 줄이는지 골라 보라",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const COL = { ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 이름표 색을 나눈다 — 내 것(노랑=HEAD, 회색=로컬)과 원격 추적(파랑)은 성질이 다르다. */\n  function draw(state) {\n    ctx.clearRect(0, 0, 440, 210);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af'; ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8'; ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const remote = name.startsWith('origin/');\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : remote ? '#1d4ed8' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#e2e8f0';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\n  const k = '{{kind}}';\n  const rows = [['역사(옛 커밋)', 0], ['파일 내용(블롭)', 1], ['작업트리(펼치는 파일)', 2]];\n  const cut = { shallow:[1,0,0], partial:[0,1,0], sparse:[0,0,1], full:[0,0,0] }[k];\n  ctx.clearRect(0,0,440,210);\n  ctx.textAlign='left';\n  rows.forEach(([name], i) => {\n    const y = 24 + i * 56;\n    ctx.fillStyle = cut[i] ? '#14351f' : '#111c33';\n    ctx.strokeStyle = cut[i] ? '#22c55e' : '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(16, y, 408, 44, 8); ctx.fill(); ctx.stroke();\n    ctx.fillStyle = '#e2e8f0'; ctx.font='13px system-ui';\n    ctx.fillText(name, 30, y + 27);\n    ctx.fillStyle = cut[i] ? '#22c55e' : '#64748b'; ctx.font='12px system-ui'; ctx.textAlign='right';\n    ctx.fillText(cut[i] ? '줄인다' : '다 받는다', 410, y + 27);\n    ctx.textAlign='left';\n  });\n  const t = {\n    full: ['git clone <url>', '전부 받는다. 작은 저장소면 이게 제일 편하다.'],\n    shallow: ['git clone --depth 1 <url>', '최근 커밋만. CI 에서 거의 늘 이것 — 역사가 필요 없으니까.'],\n    partial: ['git clone --filter=blob:none <url>', '파일 내용은 필요할 때 받아 온다. 역사 탐색은 그대로 된다.'],\n    sparse: ['git sparse-checkout set apps/web', '받기는 다 받되 펼치는 폴더만 고른다 — 거대 모노레포용.'],\n  }[k];\n  say(t[0], t[1]);\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "방식",
+              "type": "select",
+              "value": "shallow",
+              "options": [
+                {
+                  "value": "full",
+                  "label": "전부 (기본)"
+                },
+                {
+                  "value": "shallow",
+                  "label": "--depth 1"
+                },
+                {
+                  "value": "partial",
+                  "label": "--filter=blob:none"
+                },
+                {
+                  "value": "sparse",
+                  "label": "sparse-checkout"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "shallow clone 에서는 `git log` 가 짧게 끊기고 `git bisect`·`git blame` 이 제 구실을 못 한다. 필요해지면 `git fetch --unshallow` 로 나머지를 받아 오면 된다 — 되돌릴 수 있는 선택이다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "CI 에서 자주 쓰는 조합",
+          "text": "# 체크아웃은 얕게, 그런데 diff 가 필요하면 두 커밋만 더\ngit clone --depth 2 <url>\n\n# GitHub Actions\n- uses: actions/checkout@v4\n  with:\n    fetch-depth: 0     # 0 = 전부 (tag·blame 이 필요할 때만)"
+        },
+        {
+          "type": "try",
+          "text": "큰 오픈소스 저장소를 `--depth 1` 과 기본으로 각각 clone 해 시간과 `.git` 폴더 크기를 비교하라. 숫자를 한 번 보면 CI 설정이 달라진다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`--depth 1` 이 줄이는 것은?",
+          "choices": [
+            "파일 내용",
+            "옛 커밋(역사)",
+            "펼치는 폴더",
+            "브랜치 수"
+          ],
+          "answer": 1,
+          "why": "그래서 blame·bisect 가 제한된다."
+        },
+        {
+          "q": "거대 모노레포에서 내 폴더만 펼치려면?",
+          "choices": [
+            "--depth 1",
+            "sparse-checkout",
+            "--filter=blob:none",
+            "--single-branch"
+          ],
+          "answer": 1,
+          "why": "작업트리에 펼치는 범위를 고른다."
+        },
+        {
+          "q": "shallow clone 을 나중에 되돌리려면?",
+          "choices": [
+            "다시 clone",
+            "git fetch --unshallow",
+            "git gc",
+            "불가능하다"
+          ],
+          "answer": 1,
+          "why": "나머지 역사를 받아 온다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "올리면 안 되는 것을 올렸을 때",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "비밀 키·토큰을 커밋해 push 했다면, 규칙은 하나다 — **그 비밀은 이미 유출됐다.** 역사에서 지우는 것은 두 번째 할 일이고, 첫 번째는 **그 키를 폐기하고 새로 발급하는 것**이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "순서를 골라 보라 — 무엇이 먼저인가",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const COL = { ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 이름표 색을 나눈다 — 내 것(노랑=HEAD, 회색=로컬)과 원격 추적(파랑)은 성질이 다르다. */\n  function draw(state) {\n    ctx.clearRect(0, 0, 440, 210);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af'; ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8'; ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const remote = name.startsWith('origin/');\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : remote ? '#1d4ed8' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#e2e8f0';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\n  const step = {{step}};\n  const steps = [\n    ['1. 키를 폐기하고 새로 발급한다', '이미 남이 봤다고 가정한다. 이것만이 진짜 대응.'],\n    ['2. 역사에서 지운다 (git filter-repo / BFG)', '해시가 전부 바뀐다 — 팀 전체가 다시 clone 해야 한다.'],\n    ['3. 서버 캐시·포크·PR 을 확인한다', 'GitHub 은 지워도 한동안 해시로 접근 가능하다. 지원팀에 GC 요청.'],\n    ['4. 다시 안 생기게 막는다', 'gitleaks·pre-commit 훅 · .gitignore · secret scanning 켜기'],\n  ];\n  ctx.clearRect(0,0,440,210);\n  ctx.textAlign='left';\n  steps.forEach(([t, d], i) => {\n    const on = i <= step;\n    const y = 10 + i * 50;\n    ctx.fillStyle = on ? '#14351f' : '#111c33';\n    ctx.strokeStyle = on ? '#22c55e' : '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(16, y, 408, 40, 8); ctx.fill(); ctx.stroke();\n    ctx.fillStyle = on ? '#e2e8f0' : '#64748b'; ctx.font='12.5px system-ui';\n    ctx.fillText(t, 28, y + 17);\n    ctx.fillStyle = '#94a3b8'; ctx.font='11px system-ui';\n    ctx.fillText(d, 28, y + 32);\n  });\n  say('사고 대응 ' + (step + 1) + '/4 단계', step === 0 ? '여기서 멈추면 안 된다 — 하지만 여기서 시작하지 않으면 나머지가 무의미하다.' : '');\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 3,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "다시 안 생기게 막는 쪽이 싸다",
+          "text": ".env\n*.pem\n*.key\n\n# 훅으로 미리 잡기\npip install pre-commit && pre-commit install\n# .pre-commit-config.yaml 에 gitleaks 등록\n\n# GitHub: Settings > Code security > Secret scanning / Push protection 켜기"
+        },
+        {
+          "type": "note",
+          "text": "인증 방식도 미리 정해 두라. HTTPS + 개인 토큰은 만료가 있고 범위를 좁힐 수 있어 안전하다. SSH 키는 편하지만 기기별로 만들고, 잃어버린 기기의 키는 **바로 서버에서 뗀다**."
+        },
+        {
+          "type": "try",
+          "text": "내 저장소에 `.env` 가 `.gitignore` 에 들어 있는지, `git log --all -- .env` 가 비어 있는지 확인하라. 뭔가 나오면 오늘 할 일이 생긴 것이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "비밀 키를 push 했을 때 가장 먼저 할 일은?",
+          "choices": [
+            "역사에서 지우기",
+            "키를 폐기하고 재발급",
+            "force push",
+            "저장소 비공개 전환"
+          ],
+          "answer": 1,
+          "why": "이미 유출됐다고 가정해야 한다."
+        },
+        {
+          "q": "역사에서 파일을 지우면 생기는 일은?",
+          "choices": [
+            "아무 영향 없다",
+            "해시가 전부 바뀌어 팀이 다시 받아야 한다",
+            "브랜치가 사라진다",
+            "리모트가 끊긴다"
+          ],
+          "answer": 1,
+          "why": "역사를 다시 쓰는 일이기 때문."
+        },
+        {
+          "q": "재발을 막는 가장 싼 방법은?",
+          "choices": [
+            "코드 리뷰",
+            "gitignore + 훅/스캐닝으로 자동 차단",
+            "브랜치 보호",
+            "커밋 메시지 규칙"
+          ],
+          "answer": 1,
+          "why": "사람 기억이 아니라 기계가 막는다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "리모트에서 막히면 물어볼 것은 셋뿐이다. **내 메모가 최신인가 · 갈라졌나 · 남의 것을 지우려 하고 있나.**"
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "리모트 점검 순서",
+          "text": "1. 메모가 최신인가?           git fetch  (status 의 ahead/behind 는 메모 기준)\n2. 무엇이 오고 무엇이 가나?    git log --oneline main..origin/main  (반대도)\n3. 갈라졌나?                  갈라졌으면 pull --rebase 또는 merge 를 의식적으로 고른다\n4. push 가 거부됐나?          --force 금지. pull --rebase 후 다시 push\n5. 꼭 다시 써야 하나?         --force-with-lease + 브랜치 보호 규칙 확인\n6. 유령 브랜치가 쌓였나?      git fetch --prune  (fetch.prune true)\n7. 올리면 안 될 것이 있나?    .gitignore · 훅 · secret scanning"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 여섯 문항",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const COL = { ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 이름표 색을 나눈다 — 내 것(노랑=HEAD, 회색=로컬)과 원격 추적(파랑)은 성질이 다르다. */\n  function draw(state) {\n    ctx.clearRect(0, 0, 440, 210);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af'; ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8'; ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const remote = name.startsWith('origin/');\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : remote ? '#1d4ed8' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#e2e8f0';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\n  const q = [\n    ['origin/main 은 서버가 아니라 내 안의 메모다', true],\n    ['fetch 는 내 브랜치와 파일을 바꾼다', false],\n    ['push 거부는 대개 남의 커밋을 지키려는 것이다', true],\n    ['--force 는 거부됐을 때의 정답이다', false],\n    ['서버에서 지운 브랜치의 메모는 저절로 사라진다', false],\n    ['비밀을 push 했으면 먼저 키를 재발급한다', true],\n  ];\n  ctx.clearRect(0,0,440,210);\n  ctx.textAlign='left'; ctx.font='12px system-ui';\n  q.forEach(([t, a], i) => {\n    const y = 18 + i * 32;\n    ctx.fillStyle = a ? '#22c55e' : '#ef4444';\n    ctx.fillText(a ? 'O' : 'X', 18, y + 4);\n    ctx.fillStyle = '#cbd5e1';\n    ctx.fillText(t, 38, y + 4);\n  });\n  say('여섯 문항 · O/X', '틀린 것이 있으면 그 장으로 — 1장(메모) 2장(fetch) 4장(거부) 6장(prune) 8장(비밀)');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸은 PR·코드 리뷰다. 여기까지가 「커밋을 주고받는 법」이었다면, 다음은 그 주고받음에 **사람의 합의**를 붙이는 일이다."
+        },
+        {
+          "type": "try",
+          "text": "위 일곱 줄을 내가 참여 중인 저장소 하나에 실제로 돌려 보라. 4번과 6번에서 걸리는 사람이 대부분이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "리모트 문제에서 늘 먼저 할 일은?",
+          "choices": [
+            "push",
+            "fetch (메모 갱신)",
+            "clone 다시",
+            "브랜치 삭제"
+          ],
+          "answer": 1,
+          "why": "낡은 메모로 판단하면 전부 어긋난다."
+        },
+        {
+          "q": "push 가 거부됐을 때 하면 안 되는 것은?",
+          "choices": [
+            "pull --rebase",
+            "merge",
+            "--force",
+            "브랜치 확인"
+          ],
+          "answer": 2,
+          "why": "남의 커밋을 소리 없이 지운다."
+        }
+      ]
     }
   ]
 }
