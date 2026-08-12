@@ -602,5 +602,15 @@
   "karmograph.drawer.g.make": "作る",
   "karmograph.drawer.g.out": "書き出し",
   "karmograph.drawer.g.share": "共有",
-  "karmograph.drawer.g.map": "この盤"
+  "karmograph.drawer.g.map": "この盤",
+  "karmograph.align.label": "そろえる",
+  "karmograph.align.left": "左そろえ",
+  "karmograph.align.hcenter": "左右中央そろえ",
+  "karmograph.align.right": "右そろえ",
+  "karmograph.align.top": "上そろえ",
+  "karmograph.align.vcenter": "上下中央そろえ",
+  "karmograph.align.bottom": "下そろえ",
+  "karmograph.align.spreadX": "横に等間隔",
+  "karmograph.align.spreadY": "縦に等間隔",
+  "karmograph.align.hint": "両端はそのまま、間隔だけ均します。"
 }

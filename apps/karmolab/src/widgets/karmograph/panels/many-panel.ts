@@ -5,6 +5,7 @@
  * 자리에서 되돌릴 수 없는 일은 반드시 한 번 물어야 한다.
  */
 import type { PanelCtx } from './context';
+import { alignBoxes, spreadBoxes, type AlignHow, type Boxish } from '../tidy';
 import { t, loadNamespace } from '../../../lib/i18n';
 
 export function renderManyPanel(ctx: PanelCtx): void {
@@ -27,6 +28,22 @@ export function renderManyPanel(ctx: PanelCtx): void {
         <option value="">${esc(t('karmograph.t283'))}</option>
         ${ctx.nodeKinds().map((k) => `<option value="${k.id}">${k.icon} ${esc(k.label)}</option>`).join('')}
       </select>
+    </div>
+    <div class="km-field">
+      <label>${esc(t('karmograph.align.label'))}</label>
+      <div class="km-alignbar">
+        <button class="btn btn-ghost" data-km="al" data-how="left" title="${esc(t('karmograph.align.left'))}">⇤</button>
+        <button class="btn btn-ghost" data-km="al" data-how="hcenter" title="${esc(t('karmograph.align.hcenter'))}">⇹</button>
+        <button class="btn btn-ghost" data-km="al" data-how="right" title="${esc(t('karmograph.align.right'))}">⇥</button>
+        <span class="km-sep"></span>
+        <button class="btn btn-ghost" data-km="al" data-how="top" title="${esc(t('karmograph.align.top'))}">⤒</button>
+        <button class="btn btn-ghost" data-km="al" data-how="vcenter" title="${esc(t('karmograph.align.vcenter'))}">⇳</button>
+        <button class="btn btn-ghost" data-km="al" data-how="bottom" title="${esc(t('karmograph.align.bottom'))}">⤓</button>
+        <span class="km-sep"></span>
+        <button class="btn btn-ghost" data-km="sp" data-axis="x" title="${esc(t('karmograph.align.spreadX'))}">⇿</button>
+        <button class="btn btn-ghost" data-km="sp" data-axis="y" title="${esc(t('karmograph.align.spreadY'))}">↕</button>
+      </div>
+      <div class="km-hint">${esc(t('karmograph.align.hint'))}</div>
     </div>
     <div class="km-field">
       <label>${esc(t('karmograph.t285'))}</label>
@@ -55,6 +72,34 @@ export function renderManyPanel(ctx: PanelCtx): void {
     </div>
     <button class="btn btn-danger" data-km="many-del">${ctx.selectedMany().length}개 모두 삭제</button>
 `;
+
+  /* 나란히 놓기 · 고르게 벌리기 — 셈은 `tidy.ts` 가 하고 여기서는 결과를 얹기만 한다.
+     좌표를 바꾸면 캔버스가 들고 있던 자리(nodeCoords)도 같이 갈려야 하므로 통째로 다시 그린다. */
+  const applyMove = (moved: Map<string, { x: number; y: number }>): void => {
+    if (moved.size === 0) return;
+    for (const [id, p] of moved) {
+      const n = ctx.spec().nodes.find((x) => x.id === id);
+      if (n) { n.x = p.x; n.y = p.y; }
+    }
+    ctx.canvas()?.setSpec(ctx.spec());
+    ctx.canvas()?.render();
+    ctx.persist();
+  };
+  const pickedBoxes = (): Boxish[] => ctx.selectedMany()
+    .map((id) => ctx.spec().nodes.find((n) => n.id === id))
+    .filter((n): n is NonNullable<typeof n> => Boolean(n))
+    .map((n) => ({ id: n.id, x: n.x, y: n.y, w: n.w, h: n.h }));
+
+  side.querySelectorAll('[data-km="al"]').forEach((el) => {
+    (el as HTMLButtonElement).onclick = () => {
+      applyMove(alignBoxes(pickedBoxes(), (el as HTMLElement).dataset.how as AlignHow));
+    };
+  });
+  side.querySelectorAll('[data-km="sp"]').forEach((el) => {
+    (el as HTMLButtonElement).onclick = () => {
+      applyMove(spreadBoxes(pickedBoxes(), (el as HTMLElement).dataset.axis === 'y' ? 'y' : 'x'));
+    };
+  });
 
   // 표 = 「이 무리가 뭐였지」에 즉답. 이름은 그 자리에서 고친다(yEd 의 tabular view 자리).
   side.querySelectorAll('.km-trow').forEach((rowEl) => {
