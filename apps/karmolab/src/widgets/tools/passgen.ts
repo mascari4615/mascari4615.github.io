@@ -9,6 +9,7 @@
  */
 import { analyze, type ChunkKind } from '../../core/passgen';
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { checkPassword, verdict } from '../../lib/pwned';
 
 (function (): void {
   const LOWER = 'abcdefghijkmnopqrstuvwxyz'; // l 제외
@@ -319,6 +320,12 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             <div class="cc-stats" id="pcStats"></div>
             <div class="tool-list" id="pcWhy"></div>
 
+            <div class="field-group" style="margin-top:var(--space-lg);">
+              <button class="btn" id="pcPwned">${esc(t('passgen.pwned.btn', undefined, '유출 목록에 있는지 확인'))}</button>
+              <p class="pc-how">${esc(t('passgen.pwned.how', undefined, '비밀번호는 안 보냅니다 — 해시 앞 다섯 글자만 보내고, 나머지 대조는 이 브라우저에서 합니다'))}</p>
+              <div id="pcPwnedOut"></div>
+            </div>
+
             <div class="tool-status" id="pcStatus">${esc(t('passgen.check.idle'))}</div>
           `;
 
@@ -358,7 +365,37 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             Toolbox.trackUse?.('check');
           }
 
-          input.addEventListener('input', refresh);
+          /* 유출 확인은 **누를 때만** 한다 — 글자마다 물어보면 남의 서버를 두들기는 꼴이고,
+             무엇보다 「내가 언제 물어봤는지」를 사람이 정하게 하는 편이 맞다. */
+          const pwnedOut = $<HTMLElement>('#pcPwnedOut');
+          $<HTMLButtonElement>('#pcPwned').onclick = (): void => {
+            const pw = input.value;
+            if (!pw) {
+              pwnedOut.innerHTML = `<div class="tool-status warn">${esc(t('passgen.pwned.empty', undefined, '먼저 비밀번호를 적어 주세요'))}</div>`;
+              return;
+            }
+            pwnedOut.innerHTML = `<div class="tool-status">${esc(t('passgen.pwned.asking', undefined, '물어보는 중…'))}</div>`;
+            void checkPassword(pw).then((r) => {
+              if (!r) {
+                pwnedOut.innerHTML = `<div class="tool-status warn">${esc(t('passgen.pwned.failed', undefined, '지금은 확인할 수 없습니다 — 잠시 뒤 다시'))}</div>`;
+                return;
+              }
+              const v = verdict(r.count);
+              const tone = v === 'clean' ? 'ok' : v === 'seen' ? 'warn' : 'error';
+              const msg =
+                v === 'clean'
+                  ? t('passgen.pwned.clean', undefined, '알려진 유출 목록에는 없습니다')
+                  : t('passgen.pwned.found', { n: r.count.toLocaleString() }, `유출 목록에 ${r.count.toLocaleString()}번 나옵니다 — 쓰지 마세요`);
+              pwnedOut.innerHTML =
+                `<div class="tool-status ${tone}" id="pcPwnedMsg">${esc(msg)}</div>` +
+                `<p class="pc-how" id="pcPwnedSent">${esc(t('passgen.pwned.sent', { sent: r.sent, n: r.amongst.toLocaleString() }, `보낸 것: ${r.sent} 다섯 글자뿐 · 받은 해시 ${r.amongst.toLocaleString()}개 중 어느 것인지 서버는 모릅니다`))}</p>`;
+            });
+          };
+
+          input.addEventListener('input', () => {
+            refresh();
+            pwnedOut.innerHTML = ''; // 비밀번호가 바뀌면 앞의 답은 남의 답이다
+          });
           refresh();
   }
 })();

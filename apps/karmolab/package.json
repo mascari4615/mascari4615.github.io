@@ -12,6 +12,7 @@
     "trystero": "^0.25.3"
   },
   "scripts": {
+    "verify:prepush": "node scripts/run-gates.mjs test:names audit:aliases audit:scripts test:tools test:tool-url",
     "build:wiki": "node scripts/sync-wiki.mjs",
     "build:devlog": "node scripts/build-devlog.mjs",
     "build:wm-tasks": "node scripts/build-wm-tasks.mjs",
@@ -197,6 +198,8 @@
     "test:shell": "node scripts/test-shell-explain.mjs",
     "test:burnnote": "node scripts/test-burnnote-core.mjs",
     "test:papermap": "node scripts/test-papermap-core.mjs",
+    "test:pwned": "node scripts/test-pwned-core.mjs",
+    "smoke:pwned": "node scripts/smoke-pwned.mjs",
     "smoke:papermap": "node scripts/smoke-papermap.mjs",
     "smoke:burnnote": "node scripts/smoke-burnnote.mjs",
     "smoke:shell": "node scripts/smoke-explainshell.mjs",

@@ -45,5 +45,13 @@
   "passgen.check.noWeakness": "No obvious weak points.",
   "passgen.check.adviceWeak": "If you are using this somewhere, change it. Adding length helps more than anything else.",
   "passgen.check.adviceStrong": "Strong enough. Just do not reuse it in several places.",
-  "passgen.check.adviceFair": "Not bad, but a little more length makes it much better."
+  "passgen.check.adviceFair": "Not bad, but a little more length makes it much better.",
+  "passgen.pwned.btn": "Check if it has leaked",
+  "passgen.pwned.how": "Your password is never sent — only the first five characters of its hash go out, and the rest is compared in this browser",
+  "passgen.pwned.empty": "Type a password first",
+  "passgen.pwned.asking": "Asking…",
+  "passgen.pwned.failed": "Cannot check right now — try again shortly",
+  "passgen.pwned.clean": "Not in any known breach list",
+  "passgen.pwned.found": "Appears {n} times in breach lists — do not use it",
+  "passgen.pwned.sent": "Sent: just the five characters {sent} · the server cannot tell which of the {n} hashes it received is yours"
 }

@@ -45,5 +45,13 @@
   "passgen.check.noWeakness": "目立つ弱点はありません。",
   "passgen.check.adviceWeak": "いま使っている場所があるなら変えたほうがいいです。長くするのが一番効きます。",
   "passgen.check.adviceStrong": "十分に強いです。ただし使い回しはしないでください。",
-  "passgen.check.adviceFair": "悪くありませんが、もう少し長くするとずっと良くなります。"
+  "passgen.check.adviceFair": "悪くありませんが、もう少し長くするとずっと良くなります。",
+  "passgen.pwned.btn": "流出リストにあるか確認",
+  "passgen.pwned.how": "パスワードは送りません — ハッシュの先頭5文字だけを送り、残りの照合はこのブラウザで行います",
+  "passgen.pwned.empty": "まずパスワードを入力してください",
+  "passgen.pwned.asking": "問い合わせ中…",
+  "passgen.pwned.failed": "今は確認できません — 少し後にもう一度",
+  "passgen.pwned.clean": "既知の流出リストにはありません",
+  "passgen.pwned.found": "流出リストに{n}回出ています — 使わないでください",
+  "passgen.pwned.sent": "送ったもの: {sent} の5文字だけ · 受け取った{n}件のハッシュのどれかはサーバーには分かりません"
 }
