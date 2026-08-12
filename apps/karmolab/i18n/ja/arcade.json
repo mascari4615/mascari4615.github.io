@@ -317,5 +317,14 @@
   "arcade.game.sudoku.desc": "同じ問題で先に埋める。6×6",
   "arcade.sudoku.hint": "マスを選んで数字を押す",
   "arcade.sudoku.win": "{who} が先に埋めた",
-  "arcade.sudoku.timeup": "時間切れ — {who} {n}マス"
+  "arcade.sudoku.timeup": "時間切れ — {who} {n}マス",
+  "arcade.game.nunchi.name": "ヌンチ",
+  "arcade.game.nunchi.desc": "いつ言ってもいい。ただし重なったら両方脱落",
+  "arcade.nunchi.call": "{n} !",
+  "arcade.nunchi.called": "{n} と言った",
+  "arcade.nunchi.dead": "脱落",
+  "arcade.nunchi.clash": "— 重なった",
+  "arcade.nunchi.left": "残り{n}秒",
+  "arcade.nunchi.win": "{who} が生き残った",
+  "arcade.nunchi.none": "全員脱落"
 }

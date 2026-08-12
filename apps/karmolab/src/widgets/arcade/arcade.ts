@@ -463,6 +463,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-sun{width:38px;height:38px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:inherit;font-size:var(--font-size-md);cursor:pointer}',
       '.ac-sun:disabled{opacity:.45;cursor:default}',
       '.ac-suwho{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}',
+      '.ac-nu{max-width:320px;margin:var(--space-lg) auto;text-align:center}',
+      '.ac-nunum{font-size:clamp(60px,20vw,110px);font-weight:800;line-height:1}',
+      '.ac-nubtn{width:100%;margin:var(--space-lg) 0;font-size:var(--font-size-lg);padding:16px}',
+      '.ac-nulog{min-height:70px;font-size:var(--font-size-xs);color:var(--text-secondary)}',
+      '.ac-nul{padding:2px 0}',
+      '.ac-nul.ac-clash{color:#ef4444}',
+      '.ac-nuwho{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:var(--space-lg)}',
       '.ac-code{font-size:clamp(28px,8vw,48px);font-weight:800;letter-spacing:.18em;text-align:center;margin:var(--space-lg) 0}',
       '.ac-share{display:flex;gap:6px;margin:var(--space-lg) 0}',
       '.ac-share input{flex:1;min-width:0}'

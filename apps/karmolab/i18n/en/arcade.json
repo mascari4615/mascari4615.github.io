@@ -317,5 +317,14 @@
   "arcade.game.sudoku.desc": "Same puzzle, first to finish. 6×6",
   "arcade.sudoku.hint": "Pick a cell, then a number",
   "arcade.sudoku.win": "{who} filled it first",
-  "arcade.sudoku.timeup": "Time — {who} with {n}"
+  "arcade.sudoku.timeup": "Time — {who} with {n}",
+  "arcade.game.nunchi.name": "Nunchi",
+  "arcade.game.nunchi.desc": "Call whenever — but if two call together, both are out",
+  "arcade.nunchi.call": "{n} !",
+  "arcade.nunchi.called": "called {n}",
+  "arcade.nunchi.dead": "You're out",
+  "arcade.nunchi.clash": "— clashed",
+  "arcade.nunchi.left": "{n}s left",
+  "arcade.nunchi.win": "{who} survived",
+  "arcade.nunchi.none": "everyone is out"
 }
