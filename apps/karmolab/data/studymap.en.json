@@ -60,6 +60,14 @@
     "product": {
       "title": "Product sense",
       "lead": "Judgment rather than technique — deciding what to build and what not to"
+    },
+    "analytics": {
+      "title": "Data analysis",
+      "lead": "Making answers out of numbers — so you do not draw a wrong answer beautifully"
+    },
+    "a11y": {
+      "title": "Accessibility",
+      "lead": "If someone cannot use it, that is a defect, not a preference"
     }
   },
   "stages": {
@@ -99,7 +107,11 @@
     "embed-a": "The small machine",
     "embed-b": "Connecting to the world",
     "product-a": "What to build",
-    "product-b": "After you build it"
+    "product-b": "After you build it",
+    "analytics-a": "How to ask",
+    "analytics-b": "How to show",
+    "a11y-a": "Experience it first",
+    "a11y-b": "Keep it while building"
   },
   "nodes": {
     "web-html": {
@@ -996,6 +1008,95 @@
       "check": "You write one paragraph in user words about what changed",
       "links": [
         "Keep a Changelog"
+      ]
+    },
+    "analytics-question": {
+      "title": "Question first, data second",
+      "why": "Start from the data and you only notice what you already believed.",
+      "check": "Before analyzing you write down what result would change your mind",
+      "links": [
+        "Rules of ML (Google)"
+      ]
+    },
+    "analytics-stats": {
+      "title": "Statistics basics — the trap of the average",
+      "why": "Summarize with one average and half the story disappears. The distribution and the outliers are the story.",
+      "check": "You conclude from mean, median and distribution together",
+      "links": [
+        "Seeing Theory (visual textbook)"
+      ]
+    },
+    "analytics-clean": {
+      "title": "Cleaning — where the time actually goes",
+      "why": "Most of analysis is washing. Missing values, duplicates and units flip results entirely.",
+      "check": "You record how missing values were handled",
+      "links": [
+        "Tidy Data (Hadley Wickham)"
+      ]
+    },
+    "analytics-viz": {
+      "title": "Visualization — the shape is the claim",
+      "why": "Pick the wrong bar or line and you say something false with correct data.",
+      "check": "You write in one line which question the chart answers",
+      "links": [
+        "From Data to Viz"
+      ]
+    },
+    "analytics-ab": {
+      "title": "Experiments — A/B and causality",
+      "why": "The only way to tell your change from the season.",
+      "check": "You fix the sample size up front and do not stop early",
+      "links": [
+        "Trustworthy Online Controlled Experiments"
+      ]
+    },
+    "analytics-repro": {
+      "title": "Reproducible analysis",
+      "why": "A conclusion built by jumping around notebook cells cannot be rebuilt by anyone, including you.",
+      "check": "A clean top-to-bottom run gives the same numbers",
+      "links": [
+        "Ten Simple Rules for Reproducible Research"
+      ]
+    },
+    "a11y-keyboard": {
+      "title": "Everything with the keyboard alone",
+      "why": "Not only about people who cannot use a mouse — a screen with no focus usually has no structure either.",
+      "check": "Tab alone completes the main flow and you always see where you are",
+      "links": [
+        "MDN keyboard accessibility"
+      ]
+    },
+    "a11y-sr": {
+      "title": "Listen with a screen reader",
+      "why": "Hear it read aloud once and you learn how noisy meaningless markup is.",
+      "check": "You go through your own screen with your eyes closed",
+      "links": [
+        "NVDA (free screen reader)"
+      ]
+    },
+    "a11y-semantics": {
+      "title": "Semantics first, ARIA last",
+      "why": "Misused ARIA is worse than none. A button should just be a button.",
+      "check": "You replace div-based controls with real elements",
+      "links": [
+        "Using ARIA"
+      ]
+    },
+    "a11y-contrast": {
+      "title": "Contrast, text size, motion",
+      "why": "Sunlight, aging eyes, motion sickness — conditions everyone meets, not rare exceptions.",
+      "check": "Body text clears 4.5:1 and reduced-motion is respected",
+      "links": [
+        "WCAG quick reference"
+      ],
+      "tool": "Contrast checker"
+    },
+    "a11y-test": {
+      "title": "Automated checks plus a human pass",
+      "why": "Automated tools catch about a third. The rest you only find by using it.",
+      "check": "You wire up something like axe and still walk through by hand",
+      "links": [
+        "axe DevTools"
       ]
     }
   }
