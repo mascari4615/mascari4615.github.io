@@ -69,9 +69,9 @@
   "bluemarble.card.saved": "カードを保存しました。",
   "bluemarble.layer.radio": "ラジオ",
   "bluemarble.radio.loading": "放送局リストを取得中…",
-  "bluemarble.radio.ready": "世界{n}か所で放送中 — 輪をタップ",
+  "bluemarble.radio.ready": "世界{n}か所で放送中 — どこか一つを流しました。別の輪をタップでその町へ",
   "bluemarble.radio.fail": "放送局リストを取得できませんでした",
-  "bluemarble.radio.hint": "輪をタップするとその町の放送が流れます",
+  "bluemarble.radio.hint": "輪をタップするとその町の放送（同じ輪をもう一度で次の局）",
   "bluemarble.radio.on": "{name} · {where} · 現地は{time}",
   "bluemarble.radio.dead": "そこは今どこも放送していません"
 }

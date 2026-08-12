@@ -40,6 +40,9 @@ const CACHE_MS = 24 * 60 * 60 * 1000;
 const PER_SPOT_MAX = 24;
 /** 좌표를 이만큼 반올림해 같은 자리로 본다. 0.05° ≈ 5km — 한 도시 안이면 같은 자리다. */
 const SPOT_GRID = 0.05;
+/** 길이 0 짜리 무음 WAV — 소리를 내려는 게 아니라 브라우저의 허락을 받으려고 트는 것. */
+const SILENCE =
+  'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=';
 
 /** 알려진 가짜 좌표 (반지름 1°). 늘어나면 여기 한 줄씩. */
 const FAKE_SPOTS: Array<[number, number]> = [
@@ -180,6 +183,14 @@ export type RadioState =
  * (사람이 「안 나오네」를 알아채기 전에 다음이 나오는 게 목표다.)
  */
 export class RadioPlayer {
+  /**
+   * 소리 내는 요소는 **하나를 계속 쓴다.**
+   *
+   * 방송국마다 새로 만들면, 목록을 받아 온 뒤(=누른 손가락에서 이미 멀어진 뒤) 만들어진 요소는
+   * 브라우저가 「제스처 밖의 소리」로 보고 막는다. 켜자마자 한 곳이 울려야 하는 이 기능에서는
+   * 그게 곧 **아무 소리도 안 나는 것**이다. 한 번 허락받은 요소는 계속 허락된 채로 남으므로,
+   * 누른 그 순간에 만들어 두고 이후에는 `src` 만 갈아 끼운다.
+   */
   private audio: HTMLAudioElement | null = null;
   private spot: Spot | null = null;
   private idx = 0;
@@ -190,12 +201,17 @@ export class RadioPlayer {
   private readonly waitMs: number;
   /** 소리를 만드는 자리. 검사에서는 진짜 `Audio` 대신 가짜를 끼운다. */
   private readonly make: (url: string) => HTMLAudioElement;
+  /**
+   * 지금 기다리고 있는 주소.
+   *
+   * 그릇 하나를 계속 쓰면 **지난 시도의 메아리**가 뒤늦게 도착한다 — 앞 주소가 낸 실패가
+   * 다음 방송이 막 시작된 뒤에 와서, 멀쩡한 방송을 「죽었다」고 넘겨 버린다(2026-08-12 실측:
+   * 이것 때문에 켜자마자 아무 소리도 안 났다). 그래서 알림이 올 때마다 **그게 지금 주소에
+   * 대한 것인지** 확인한다.
+   */
+  private expect = '';
 
-  constructor(
-    onState: (s: RadioState) => void,
-    waitMs = 6000,
-    make?: (url: string) => HTMLAudioElement
-  ) {
+  constructor(onState: (s: RadioState) => void, waitMs = 6000, make?: (url: string) => HTMLAudioElement) {
     this.onState = onState;
     this.waitMs = waitMs;
     this.make =
@@ -220,9 +236,24 @@ export class RadioPlayer {
     return this.spot;
   }
 
+  /**
+   * **사용자가 누른 그 순간에** 부른다. 소리 낼 그릇을 미리 만들어 브라우저의 허락을 받아 둔다 —
+   * 목록을 받아 오는 사이에 그 허락이 사라지기 때문이다. 아직 틀 방송이 없어도 상관없다.
+   */
+  unlock(): void {
+    if (this.audio) return;
+    /* 길이 0 짜리 무음. **빈 주소를 넣으면 안 된다** — 그건 실패로 처리돼 알림이 하나 날아간다. */
+    const el = this.make(SILENCE);
+    this.audio = el;
+    this.bind(el);
+    const p = el.play() as unknown as Promise<void> | undefined;
+    // 여기서 얻는 것은 소리가 아니라 **허락**이다
+    if (p && typeof p.catch === 'function') p.catch(() => undefined);
+  }
+
   /** 자리를 틀어 준다. 같은 자리를 다시 누르면 **그 자리 안에서 다음 방송국**으로 넘어간다. */
   play(spot: Spot): void {
-    if (this.spot === spot && this.audio) {
+    if (this.spot === spot) {
       this.tried = 0;
       this.hop();
       return;
@@ -239,7 +270,10 @@ export class RadioPlayer {
     this.tried += 1;
     if (this.tried >= this.spot.stations.length) {
       const dead = this.spot;
-      this.stop();
+      this.silence();
+      this.spot = null;
+      this.idx = 0;
+      this.tried = 0;
       this.onState({ kind: 'dead', spot: dead });
       return;
     }
@@ -252,22 +286,45 @@ export class RadioPlayer {
     this.tune();
   }
 
-  private tune(): void {
-    const spot = this.spot;
-    const station = this.current;
-    if (!spot || !station) return;
-    this.teardown();
-
-    const el = this.make(station.url);
-    this.audio = el;
-
+  /** 이벤트는 요소마다 **한 번만** 건다 — 방송국을 옮길 때마다 걸면 같은 알림이 여러 번 온다. */
+  private bind(el: HTMLAudioElement): void {
     el.addEventListener('playing', () => {
+      const spot = this.spot;
+      const station = this.current;
+      if (!spot || !station || !this.mine(el)) return;
       this.clearTimer();
       this.tried = 0; // 소리가 났으면 「몇 번 실패했나」는 없던 일이다
       this.onState({ kind: 'playing', spot, station });
     });
-    el.addEventListener('error', () => this.next());
-    el.addEventListener('stalled', () => this.next());
+    el.addEventListener('error', () => {
+      if (this.spot && this.mine(el)) this.next();
+    });
+    el.addEventListener('stalled', () => {
+      if (this.spot && this.mine(el)) this.next();
+    });
+  }
+
+  /** 이 알림이 **지금 기다리는 주소**에 대한 것인가. 아니면 지난 시도의 메아리다. */
+  private mine(el: HTMLAudioElement): boolean {
+    const now = el.currentSrc || el.src || '';
+    return !this.expect || now === this.expect;
+  }
+
+  private tune(): void {
+    const spot = this.spot;
+    const station = this.current;
+    if (!spot || !station) return;
+    this.clearTimer();
+    this.expect = station.url;
+
+    if (!this.audio) {
+      const el = this.make(station.url);
+      this.audio = el;
+      this.bind(el);
+    } else {
+      this.audio.src = station.url;
+    }
+    const el = this.audio;
 
     this.onState({ kind: 'tuning', spot, station, tried: this.tried });
     // 시간 안에 소리가 안 나면 다음 — `error` 는 서버가 조용히 안 끊으면 영영 안 온다
@@ -280,26 +337,31 @@ export class RadioPlayer {
   }
 
   stop(): void {
-    this.teardown();
+    this.silence();
+    if (this.audio) {
+      this.audio.remove?.(); // 화면에 붙여 쓰는 경우가 있다 — 떼지 않으면 조용한 요소가 쌓인다
+      this.audio = null;
+    }
     this.spot = null;
     this.idx = 0;
     this.tried = 0;
     this.onState({ kind: 'idle' });
   }
 
+  /** 소리만 멈춘다 — 그릇(허락받은 요소)은 남긴다. */
+  private silence(): void {
+    this.clearTimer();
+    this.expect = '';
+    if (this.audio) {
+      this.audio.pause();
+      this.audio.removeAttribute('src');
+    }
+  }
+
   private clearTimer(): void {
     if (this.timer !== null) {
       clearTimeout(this.timer);
       this.timer = null;
-    }
-  }
-
-  private teardown(): void {
-    this.clearTimer();
-    if (this.audio) {
-      this.audio.pause();
-      this.audio.src = '';
-      this.audio = null;
     }
   }
 }

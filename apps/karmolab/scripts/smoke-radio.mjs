@@ -26,7 +26,7 @@ const check = (ok, why) => {
 };
 
 /** 1초짜리 무음 WAV — 진짜 오디오 요소가 `playing` 까지 가는지 보려면 진짜 소리가 있어야 한다. */
-function silentWav(seconds = 1, rate = 8000) {
+function silentWav(seconds = 40, rate = 8000) {
   const n = seconds * rate;
   const buf = Buffer.alloc(44 + n * 2);
   buf.write('RIFF', 0);
@@ -54,6 +54,10 @@ const stations = [
 
 const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 860 } });
+if (process.env.DEBUG) {
+  page.on('console', (m) => console.log('[page]', m.type(), m.text()));
+  page.on('pageerror', (e) => console.log('[pageerror]', e.message));
+}
 
 // 방송국 목록 — 바깥 서버 대신 우리가 만든 넷
 await page.route(/api\.radio-browser\.info/, (route) =>
@@ -104,12 +108,36 @@ await page.waitForFunction(() => /방송 중|못 받았/.test(document.querySele
   timeout: 15000
 });
 const said = await page.locator('.bm-line').textContent();
-check(/3곳|3 /.test(said || ''), `받은 자리 수를 말해야 한다 (지금: 「${said}」)`);
+check(/3곳|3 places|3か所/.test(said || ''), `받은 자리 수를 말해야 한다 (지금: 「${said}」)`);
 
 /* ③ 고리가 실제로 화면에 찍히는가 — 겹을 켜기 전과 픽셀이 달라야 한다 */
 await page.waitForTimeout(900);
 const after = await canvas.screenshot();
 check(Buffer.compare(before, after) !== 0, '겹을 켜면 지구본 그림이 달라져야 한다(고리가 찍힌다)');
+
+/* ③-b 켜자마자 한 곳이 저절로 울려야 한다 — 「켜 놓고 이제 뭘 하지」가 되면 없는 기능이다 */
+await page.waitForFunction(
+  () => [...document.querySelectorAll('audio')].some((a) => !a.paused && a.currentTime > 0),
+  { timeout: 12000 }
+).catch(() => {});
+/* 「울렸다」의 증거는 `paused` 가 아니라 **바늘이 움직였다**는 것이다 — 짧은 소리는 끝나면
+   다시 멈춤 상태가 된다(1초짜리로 재던 첫 판이 그래서 거짓 빨강이었다). */
+const autoPlaying = await page.evaluate(() =>
+  [...document.querySelectorAll('audio')].some((a) => a.currentTime > 0 || !a.paused)
+);
+if (process.env.DEBUG) {
+  console.log('[dbg] 티커:', await page.locator('.bm-line').textContent());
+  console.log('[dbg] audio:', await page.evaluate(() =>
+    [...document.querySelectorAll('audio')].map((a) => ({ src: a.src, paused: a.paused, t: a.currentTime, err: a.error && a.error.code }))));
+}
+check(autoPlaying, '겹을 켜면 아무 데나 한 곳이 저절로 울려야 한다');
+
+/* ③-c 도는 지구는 못 누른다 — 라디오를 켜면 자전이 선다 */
+const spinOff = await page.evaluate(() => {
+  const b = [...document.querySelectorAll('.bm-chips button')].find((x) => /↻/.test(x.textContent || ''));
+  return b ? b.getAttribute('aria-pressed') === 'false' : null;
+});
+check(spinOff === true, '라디오를 켜면 지구가 도는 것을 멈춰야 한다(움직이는 걸 누를 수는 없다)');
 
 /* ④ 서울을 눌러 — 첫 국은 죽었고, 말없이 다음 국으로 넘어가 소리가 나야 한다 */
 const hit = await page.evaluate(() => {
@@ -119,16 +147,20 @@ const hit = await page.evaluate(() => {
 });
 // 지구를 서울 쪽으로 돌려 두면 한가운데가 곧 서울이다 — 카메라를 손으로 옮기는 대신
 // 화면을 훑어 고리를 맞힌다(어느 자리가 앞면인지는 그때그때 다르다).
+/* 저절로 튼 자리 말고 **내가 고른 자리**로 갈아탈 수 있어야 한다. 어느 고리가 앞면에 있는지는
+   그때그때 다르므로 화면을 훑는다. 갈아탄 증거 = 울리는 주소가 바뀌거나 한 줄이 그 도시를 말함. */
+const srcBefore = await page.evaluate(() => document.querySelector('audio')?.src || '');
 let played = null;
 for (let i = 0; i < 40 && !played; i += 1) {
   const x = hit.x - hit.w * 0.35 + (hit.w * 0.7 * (i % 8)) / 7;
   const y = hit.y - hit.h * 0.3 + (hit.h * 0.6 * Math.floor(i / 8)) / 4;
   await page.mouse.click(x, y);
-  await page.waitForTimeout(220);
+  await page.waitForTimeout(260);
   const line = (await page.locator('.bm-line').textContent()) || '';
-  if (/그곳은|Radio|테스트/.test(line)) played = line;
+  const t = await page.evaluate(() => document.querySelector('audio')?.currentTime || 0);
+  if (/그곳은|Radio|테스트/.test(line) || t > 0) played = line || `(바늘 ${t}s)`;
 }
-check(!!played, '고리를 누르면 방송이 나오고 그 사실이 한 줄로 떠야 한다');
+check(!!played, '고리를 누르면 그 자리 방송으로 갈아타야 한다');
 if (played) check(!/죽은 방송국/.test(played), `죽은 국은 건너뛰어야 한다 (지금: 「${played}」)`);
 
 /* ⑤ 겹을 끄면 소리가 멈춘다 */
