@@ -80,5 +80,9 @@
   "arcade.yacht.cat.fullhouse": "풀하우스",
   "arcade.yacht.cat.sstraight": "작은 스트레이트",
   "arcade.yacht.cat.lstraight": "큰 스트레이트",
-  "arcade.yacht.cat.yacht": "요트"
+  "arcade.yacht.cat.yacht": "요트",
+  "arcade.game.checkers.name": "체커",
+  "arcade.game.checkers.desc": "뛰어넘어 잡고, 끝줄에 닿으면 왕",
+  "arcade.checkers.win": "{who} 이(가) 판을 쓸었다",
+  "arcade.checkers.stale": "아무 일도 안 일어난 채 오래 끌었다 — 비겼다"
 }
