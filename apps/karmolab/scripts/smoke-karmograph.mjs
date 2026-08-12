@@ -1432,6 +1432,50 @@ await step('「전체 보기」를 누르면 카드가 한 장도 화면 밖에 
   await ctx.close();
 });
 
+await step('여럿 골라 나란히 놓기 — 왼쪽 맞춤이 실제로 한 줄로 세운다', async () => {
+  /* 셈(`tidy.ts`)은 알맹이 시험이 본다. 여기서 볼 것은 **그 셈이 화면에 이어져 있나**다 —
+     단추는 있는데 아무 일도 안 일어나는 부류가 제일 오래 안 들킨다. */
+  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.evaluate(() => {
+    const nodes = [
+      { id: 'q1', label: '가', kind: 'character', x: 120, y: 100, w: 160, h: 44 },
+      { id: 'q2', label: '나', kind: 'character', x: 320, y: 240, w: 160, h: 44 },
+      { id: 'q3', label: '다', kind: 'character', x: 220, y: 380, w: 160, h: 44 },
+    ];
+    const spec = { version: 1, _meta: {}, groups: [], nodes, edges: [], ephemeral_anchors: [], _edge_kinds: {} };
+    const idx = JSON.parse(localStorage.getItem('karmograph.index') || 'null');
+    const id = idx?.activeId || 'align';
+    localStorage.setItem('karmograph.map.' + id, JSON.stringify(spec));
+    if (!idx) localStorage.setItem('karmograph.index', JSON.stringify({ activeId: id, maps: [{ id, name: '맞춤 판' }] }));
+  });
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 3, null, { timeout: 8000 });
+
+  const cv = await m.locator('.km-canvas').boundingBox();
+  await m.keyboard.down('Shift');
+  await m.mouse.move(cv.x + 12, cv.y + 12);
+  await m.mouse.down();
+  await m.mouse.move(cv.x + cv.width - 12, cv.y + cv.height - 12, { steps: 8 });
+  await m.mouse.up();
+  await m.keyboard.up('Shift');
+  await m.waitForSelector('[data-km="al"][data-how="left"]', { timeout: 4000 });
+
+  await m.locator('[data-km="al"][data-how="left"]').click();
+  await m.waitForTimeout(600);
+  const xs = await m.evaluate(() => JSON.parse(localStorage.getItem(
+    'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId
+  )).nodes.map((n) => n.x));
+  if (new Set(xs).size !== 1) throw new Error('왼쪽 맞춤을 눌렀는데 x 가 안 맞는다: ' + xs.join(','));
+  if (xs[0] !== 120) throw new Error('가장 왼쪽(120)이 기준이어야 한다: ' + xs[0]);
+  await ctx.close();
+});
+
 // ── 폰 화면 ──────────────────────────────────────────────────────────────────
 // 관계도는 **보는 일**이 폰에서 훨씬 많다(링크 받아 열기). 그런데 지금까지 폰 크기는 한 번도 안 봤다.
 await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널은 아래 시트로 뜬다', async () => {
