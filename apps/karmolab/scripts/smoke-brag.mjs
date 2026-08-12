@@ -19,6 +19,11 @@ const problems = [];
 const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, permissions: ['clipboard-write'] });
 await context.route('**/kl/**', (route) => route.abort());
+/* ★ 오늘의 판은 이제 켜야 보인다 (`21c1a19e3`) — 켠 사람의 화면을 보러 왔으니 그 값을 미리 넣는다.
+ *   안 넣으면 자랑 단추가 있는 칸 자체가 접혀 있어 「없다」로 죽는다(기본값은 디자인 결정). */
+await context.addInitScript(() => {
+  localStorage.setItem('karmolab_home_prefs', JSON.stringify({ version: 2, order: [], hidden: [], name: '' }));
+});
 const page = await context.newPage();
 page.on('pageerror', (e) => problems.push(`페이지 스크립트가 죽었다: ${e.message}`));
 

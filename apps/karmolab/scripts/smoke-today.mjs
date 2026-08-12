@@ -22,6 +22,15 @@ const context = await browser.newContext({ viewport: { width: 1280, height: 900 
 /* 서버는 안 부른다 — 있어도 없어도 이 화면은 같아야 한다. 껐을 때가 기본값이므로 그쪽을 본다. */
 await context.route('**/kl/**', (route) => route.abort());
 
+/* ★ 이 칸은 이제 **켜야 보인다** (2026-08-12, `21c1a19e3 refine KarmoLab home UI`).
+ *   첫 화면 꾸미기가 today·live·cta 를 기본으로 접어 두는 쪽으로 바뀌었다. 그 뒤로 이 검사는
+ *   「.lt-chips 가 안 보인다」로 여덟 판 연속 빨갰다 — 제품이 깨진 게 아니라 **켠 사람의 화면**을
+ *   보러 온 검사가 안 켜고 들어온 것이다. 사람이 꾸미기에서 켠 것과 같은 값을 미리 넣는다.
+ *   (기본값 자체는 디자인 결정이라 검사가 뒤집지 않는다.) */
+await context.addInitScript(() => {
+  localStorage.setItem('karmolab_home_prefs', JSON.stringify({ version: 2, order: [], hidden: [], name: '' }));
+});
+
 const page = await context.newPage();
 page.on('pageerror', (e) => problems.push(`페이지 스크립트가 죽었다: ${e.message}`));
 
