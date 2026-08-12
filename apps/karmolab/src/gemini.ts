@@ -166,7 +166,13 @@ const Gemini = (() => {
     /** Vertex AI (Google Cloud API 키 / Express 모드 등) — AI Studio 키와 별도 */
     const VERTEX_API_KEY_STORAGE = 'toolbox_vertex_api_key';
 
-    /* ===== API 키 관리 (다중 프로필) ===== */
+    /* ===== API 키 관리 (다중 프로필) =====
+     *
+     * ★ 여기 이름들은 원본 글(기본·무료·유료)을 함께 준다 (2026-08-12).
+     *   이 함수는 **동기**라 말 묶음을 기다릴 자리가 없는데, 위쪽 `loadNamespace('gemini')` 는
+     *   기다리지 않고 던져 두는 부름이다. 먼저 불리면 `t()` 가 「없는 열쇠」로 죽어
+     *   `test:i18n:lazy` 가 들쭉날쭉 빨개졌다(같은 판에서 한 번은 통과, 한 번은 실패).
+     *   묶음이 오면 그 글이 이기고, 아직이면 원본 글이 나간다 — 열쇠 이름이 화면에 뜨는 일은 없다. */
     function getKeyStore(): ApiKeyStore {
         // 1) 최신 구조: { activeId, profiles: [{id,name,key}] }
         try {
@@ -176,7 +182,7 @@ const Gemini = (() => {
                 if (Array.isArray(obj.profiles)) {
                     const profiles = obj.profiles as ApiKeyProfile[];
                     if (!profiles.length) {
-                        profiles.push({ id: 'default', name: t('gemini.t15'), key: '' });
+                        profiles.push({ id: 'default', name: t('gemini.t15', undefined, '기본'), key: '' });
                     }
                     const activeId = (typeof obj.activeId === 'string' && obj.activeId) || profiles[0].id;
                     return { activeId, profiles };
@@ -185,9 +191,9 @@ const Gemini = (() => {
                 const keys = obj.keys as { free?: string; paid?: string } | undefined;
                 if (keys) {
                     const profiles: ApiKeyProfile[] = [];
-                    if (keys.free) profiles.push({ id: 'free', name: t('gemini.t16'), key: keys.free });
-                    if (keys.paid) profiles.push({ id: 'paid', name: t('gemini.t17'), key: keys.paid });
-                    if (!profiles.length) profiles.push({ id: 'default', name: t('gemini.t15'), key: '' });
+                    if (keys.free) profiles.push({ id: 'free', name: t('gemini.t16', undefined, '무료'), key: keys.free });
+                    if (keys.paid) profiles.push({ id: 'paid', name: t('gemini.t17', undefined, '유료'), key: keys.paid });
+                    if (!profiles.length) profiles.push({ id: 'default', name: t('gemini.t15', undefined, '기본'), key: '' });
                     const activeId = profiles.find(p => p.id === obj.active)?.id || profiles[0].id;
                     const migrated: ApiKeyStore = { activeId, profiles };
                     localStorage.setItem(KEYS_STORE_KEY, JSON.stringify(migrated));
@@ -199,8 +205,8 @@ const Gemini = (() => {
         // 3) 더 구버전: STORAGE_KEY 단일 키
         const legacy = localStorage.getItem(STORAGE_KEY) || '';
         const baseProfile: ApiKeyProfile = legacy
-            ? { id: 'default', name: t('gemini.t15'), key: legacy }
-            : { id: 'default', name: t('gemini.t15'), key: '' };
+            ? { id: 'default', name: t('gemini.t15', undefined, '기본'), key: legacy }
+            : { id: 'default', name: t('gemini.t15', undefined, '기본'), key: '' };
         const store: ApiKeyStore = { activeId: baseProfile.id, profiles: [baseProfile] };
         localStorage.setItem(KEYS_STORE_KEY, JSON.stringify(store));
         return store;
