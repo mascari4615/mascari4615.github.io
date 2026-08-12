@@ -17,6 +17,7 @@
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { GraphCanvas } from '../../lib/graph/canvas';
+import { themeFromCss } from '../../lib/graph/canvas-theme';
 import type { GraphSpec, GraphNode, GraphEdge, GroupDef, NodeShape, BackgroundKind, EdgeKindDef, StoryStep } from '../../lib/graph/spec';
 import { emptyGraphSpec } from '../../lib/graph/spec';
 import { KarmoGraphLocalStorageAdapter } from './local-storage-adapter';
@@ -1577,6 +1578,12 @@ import {
     }
     Toolbox.onDispose?.(() => { if (miniRaf) cancelAnimationFrame(miniRaf); });
 
+    /* 테마를 바꾸면 판도 같이 바뀌어야 한다. 색은 그릴 때 값으로 박히므로(내보낸 SVG 가
+       혼자 서려면 그래야 한다) 바뀐 순간 다시 읽어 넣는다. */
+    const themeWatch = new MutationObserver(() => canvas?.setTheme(themeFromCss(canvasEl)));
+    themeWatch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    Toolbox.onDispose?.(() => themeWatch.disconnect());
+
     q<HTMLButtonElement>('mini-link').onclick = () => {
       if (!selectedId) return;
       linkingFrom = selectedId;
@@ -1651,6 +1658,8 @@ import {
       },
       kindColors: kindColorsNow(),
       edgeKinds: edgeDefsNow(),
+      // 판 색은 앱 테마에서 읽어 온다 — 안 그러면 밝은 테마에서 판만 까만 채로 남는다.
+      theme: themeFromCss(canvasEl),
       onNodeClick: (id) => handleNodeClick(id),
       onBackgroundClick: () => {
         // 폰: 빈 곳을 누르면 시트가 내려간다 — 고를 것을 놓았으니 그림을 다시 크게 보고 싶은 것이다

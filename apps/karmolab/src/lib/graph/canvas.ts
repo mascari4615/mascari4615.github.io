@@ -51,6 +51,7 @@ import { canRewireTo, isDropOnNode, releaseIntent } from './canvas-release';
 import { curveFromPointer, labelPosFromPointer } from './canvas-edgedrag';
 import { groupDelta, resizedBox, snappedPoint, worldDelta } from './canvas-drag';
 import { minimapRects, minimapWorthIt, paintMinimap, worldFitsInView } from './canvas-minimap';
+import { DEFAULT_THEME } from './canvas-theme';
 import { nextOverlapping } from './canvas-pick';
 import { buildEphemeralNode } from './canvas-ephemeral';
 import { buildLinkHandle, buildPhotoCard, buildSizeHandle } from './canvas-photo';
@@ -161,22 +162,6 @@ const NODE_CHILD_ROW_H = 18; // 자식 항목 한 줄 높이
 const NODE_CHILD_PAD = 6;    // 자식 영역 상하 패딩
 
 const DEFAULT_KIND_COLOR = '#94a3b8';
-
-const DEFAULT_THEME: Required<GraphCanvasTheme> = {
-  nodeFill: '#131720',
-  nodeText: '#e2e8f0',
-  childText: 'rgba(226,232,240,0.65)',
-  edgeDotFill: '#0a0c10',
-  edgeDefaultColor: '#64748b',
-  ephemeralFill: '#0f1520',
-  ephemeralStroke: '#22d3ee60',
-  ephemeralText: '#22d3ee',
-  anchorFill: 'rgba(34,211,238,0.04)',
-  anchorStroke: 'rgba(34,211,238,0.35)',
-  anchorText: 'rgba(34,211,238,0.85)',
-  minimapBg: 'var(--glass-strong)',
-  minimapBorder: 'var(--border)',
-};
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -328,6 +313,12 @@ export class GraphCanvas {
 
   /** node.kind → 색. 주입된 맵에 없으면 기본색. */
   /** 노드 종류 색표를 갈아 끼운다 — 사용자가 자기 종류를 만들면 표가 늘어난다. */
+  /** 앱 테마가 바뀌면 색표를 갈아 끼운다. 부르는 쪽이 `themeFromCss()` 로 읽어 넘긴다. */
+  setTheme(theme: GraphCanvasTheme): void {
+    this.theme = { ...this.theme, ...theme };
+    this.render();
+  }
+
   setKindColors(colors: Record<string, string>): void {
     this.kindColors = colors;
     this.render();
