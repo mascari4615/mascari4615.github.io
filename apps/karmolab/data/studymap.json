@@ -2201,6 +2201,122 @@
           ]
         }
       ]
+    },
+    {
+      "id": "lang",
+      "title": "언어 · 패러다임",
+      "emoji": "🧮",
+      "lead": "문법이 아니라 사고방식 — 두 번째 언어부터가 진짜 공부다",
+      "stages": [
+        {
+          "id": "lang-a",
+          "title": "생각의 틀",
+          "nodes": [
+            {
+              "id": "lang-second",
+              "title": "두 번째 언어 — 다른 계열로",
+              "why": "비슷한 언어를 하나 더 배우면 문법만 늘고, 다른 계열을 배우면 첫 언어가 다시 보인다.",
+              "check": "지금 언어에 없는 개념 하나를 새 언어에서 설명한다",
+              "links": [
+                {
+                  "label": "Exercism (여러 언어 연습)",
+                  "url": "https://exercism.org/"
+                }
+              ]
+            },
+            {
+              "id": "lang-fp",
+              "title": "함수형 — 값을 안 바꾸기",
+              "why": "버그의 큰 덩어리는 「누가 이걸 바꿨나」다. 안 바꾸면 그 질문 자체가 사라진다.",
+              "check": "반복문 하나를 map·filter·fold 로 다시 쓴다",
+              "links": [
+                {
+                  "label": "Professor Frisby (JS 함수형)",
+                  "url": "https://mostly-adequate.gitbook.io/mostly-adequate-guide/"
+                }
+              ]
+            },
+            {
+              "id": "lang-oop",
+              "title": "객체 — 상속보다 합성",
+              "why": "상속으로 짠 구조는 처음엔 빠르고 나중엔 못 바꾼다.",
+              "check": "상속으로 된 곳 하나를 합성으로 바꿔 본다",
+              "links": [
+                {
+                  "label": "Composition over inheritance (정리)",
+                  "url": "https://refactoring.guru/ko/design-patterns/composite"
+                }
+              ],
+              "prereq": [
+                "design-coupling"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "lang-b",
+          "title": "언어가 지켜 주는 것",
+          "nodes": [
+            {
+              "id": "lang-types",
+              "title": "타입 — 컴파일러가 대신 읽어 주는 규칙",
+              "why": "테스트가 못 잡는 종류의 실수를 기계가 먼저 잡는다. 대가는 표현의 제약.",
+              "check": "잘못된 상태를 아예 못 만들게 타입을 짠다",
+              "links": [
+                {
+                  "label": "Parse, don’t validate",
+                  "url": "https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/"
+                }
+              ],
+              "prereq": [
+                "web-ts"
+              ]
+            },
+            {
+              "id": "lang-memory",
+              "title": "메모리 모델 — GC 냐 소유권이냐",
+              "why": "언어를 고르는 진짜 기준 중 하나. 멈춤(GC)을 감당할 수 있느냐의 문제.",
+              "check": "GC 언어와 Rust 식 소유권의 대가를 각각 말한다",
+              "links": [
+                {
+                  "label": "Rust Book — 소유권",
+                  "url": "https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html"
+                }
+              ],
+              "prereq": [
+                "cs-memory"
+              ]
+            },
+            {
+              "id": "lang-concurrency",
+              "title": "동시성 모델 — 스레드 · async · 액터",
+              "why": "같은 문제를 언어마다 다르게 푼다. 모델을 알면 그 언어의 관용구가 읽힌다.",
+              "check": "스레드·async·메시지 전달 중 이 문제에 맞는 것을 고른다",
+              "links": [
+                {
+                  "label": "Go 동시성 패턴",
+                  "url": "https://go.dev/blog/pipelines"
+                }
+              ],
+              "prereq": [
+                "cs-concurrency"
+              ]
+            },
+            {
+              "id": "lang-pick",
+              "title": "언어 고르기 — 생태계까지가 언어다",
+              "why": "문법이 예뻐도 라이브러리·채용·도구가 없으면 프로젝트가 고생한다.",
+              "check": "이 프로젝트에 이 언어인 이유를 세 줄로 쓴다",
+              "links": [
+                {
+                  "label": "Stack Overflow 개발자 설문",
+                  "url": "https://survey.stackoverflow.co/"
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
