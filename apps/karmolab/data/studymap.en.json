@@ -68,6 +68,10 @@
     "a11y": {
       "title": "Accessibility",
       "lead": "If someone cannot use it, that is a defect, not a preference"
+    },
+    "design": {
+      "title": "Design & architecture",
+      "lead": "The craft of staying changeable — code is cheap, structural fit is expensive"
     }
   },
   "stages": {
@@ -111,7 +115,9 @@
     "analytics-a": "How to ask",
     "analytics-b": "How to show",
     "a11y-a": "Experience it first",
-    "a11y-b": "Keep it while building"
+    "a11y-b": "Keep it while building",
+    "design-a": "What is stuck to what",
+    "design-b": "Holding up under change"
   },
   "nodes": {
     "web-html": {
@@ -1097,6 +1103,62 @@
       "check": "You wire up something like axe and still walk through by hand",
       "links": [
         "axe DevTools"
+      ]
+    },
+    "design-coupling": {
+      "title": "Coupling and cohesion",
+      "why": "Why fixing one place breaks three. The names are fancy, the instinct is simple — keep what changes together together.",
+      "check": "You count how many files one change touches",
+      "links": [
+        "A Philosophy of Software Design"
+      ]
+    },
+    "design-boundary": {
+      "title": "Boundaries — what to hide",
+      "why": "A module is worth what it hides, not what it holds.",
+      "check": "You name one decision this module hides",
+      "links": [
+        "Parnas — criteria for modularization (1972)"
+      ]
+    },
+    "design-model": {
+      "title": "Domain modeling — same words in talk and code",
+      "why": "When product language and code names differ, you pay a translation tax in every meeting.",
+      "check": "You find five core concepts in the code under their domain names",
+      "links": [
+        "DDD Reference (Eric Evans, free)"
+      ]
+    },
+    "design-pattern": {
+      "title": "Patterns — recognize, do not memorize",
+      "why": "A pattern is a label, not a goal. See the problem first, name it later.",
+      "check": "You point at a pattern already in your code",
+      "links": [
+        "Refactoring Guru — patterns"
+      ]
+    },
+    "design-seam": {
+      "title": "Seams — the places that make testing possible",
+      "why": "Hard to test usually means a design signal: there is nowhere to plug in.",
+      "check": "You create one place where an external dependency can be swapped",
+      "links": [
+        "Working Effectively with Legacy Code (key points)"
+      ]
+    },
+    "design-record": {
+      "title": "Record the decision (ADR)",
+      "why": "When the why disappears, the next person either reverts it or imitates it.",
+      "check": "You write one big decision on one page (context, choice, cost)",
+      "links": [
+        "ADR introduction"
+      ]
+    },
+    "design-evolve": {
+      "title": "Decide later — reversible choices first",
+      "why": "A design that settles everything up front ages fastest. Settle only what is hard to undo.",
+      "check": "You order decisions by whether they are reversible",
+      "links": [
+        "Martin Fowler — evolutionary design"
       ]
     }
   }
