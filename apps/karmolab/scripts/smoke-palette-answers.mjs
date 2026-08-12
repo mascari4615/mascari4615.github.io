@@ -58,7 +58,7 @@ const page = await (await browser.newContext({ viewport: { width: 1280, height: 
 async function askPalette(q) {
   await page.goto(`${BASE}/karmolab/`, { waitUntil: 'load', timeout: 30000 });
   await page.evaluate(() => Toolbox.switchPage('home'));
-  await page.waitForSelector('.kp-inline .kp-input', { timeout: 15000 });
+  await page.waitForSelector('.kp-inline .kp-input', { timeout: 45000 });
   await page.locator('.kp-inline .kp-input').fill(q);
   await page.waitForTimeout(250);
   return page.$$eval('.kp-inline .kp-answer-value', (els) => els.map((e) => e.textContent.trim()));
@@ -71,8 +71,12 @@ async function askTool(toolId, fills) {
    *   느린 판에서는 그 사이에 값을 넣게 되고, `.catch(() => {})` 가 그 실패를 삼켜
    *   「도구 화면에 그 값이 없다」로 팔레트를 탓했다(실주소 CI 에서만 빨갰다).
    *   칸이 생길 때까지 기다리고, 그래도 없으면 삼키지 말고 말한다. */
+  /* ★ **남의 기계는 내 기계보다 느리다** (2026-08-13). 이 15초는 내 컴퓨터 기준이었다 —
+     CI 의 찬 러너에서는 도구 하나가 말 묶음까지 받아 그리는 데 그보다 오래 걸려,
+     도구는 멀쩡한데 검사만 「칸이 없다」로 죽었다(실측: 같은 자리를 손으로 열면 곧바로 뜬다).
+     기다림은 **못 기다려서 나는 거짓 빨강**보다 싸다. */
   for (const [sel] of fills) {
-    await page.waitForSelector(sel, { timeout: 15000 });
+    await page.waitForSelector(sel, { timeout: 45000 });
   }
   for (const [sel, val] of fills) {
     await page.fill(sel, val);
