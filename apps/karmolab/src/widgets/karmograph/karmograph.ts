@@ -200,6 +200,9 @@ import {
        그 결과 「추가」가 「추 / 가」로, 「남기기」가 「남기 / 기」로 세로로 쪼개져 찍혔다
        (실측 2026-08-12, 노드 패널). 좁으면 입력칸이 줄어야지 버튼 글자가 접혀선 안 된다. */
     .km-side .btn { white-space:nowrap; flex:0 0 auto; }
+    /* 나란히 놓기 줄 — 아이콘 단추 여덟 개가 한 줄에 선다. 손가락 화면에서도 44px 규격을 탄다. */
+    .km-alignbar { display:flex; align-items:center; gap:3px; flex-wrap:wrap; }
+    .km-alignbar .btn { padding:4px 8px; font-size:14px; line-height:1.1; }
     .km-tagbar { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
     .km-tagchip { padding:2px 8px; font-size:11px; border-radius:999px; }
     .km-link-row { display:flex; gap:6px; align-items:center; margin-bottom:4px; }

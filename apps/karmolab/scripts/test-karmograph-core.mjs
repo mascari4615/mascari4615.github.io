@@ -493,6 +493,30 @@ const M = await loadModules();
 
 // ---- 손바닥만 한 판 (canvas-minimap)
 {
+  /* 나란히 놓기 · 고르게 벌리기 (2026-08-12) — 셈만 여기서 못 박는다. */
+  {
+    const { alignBoxes, spreadBoxes } = M.tidy;
+    const boxes = [
+      { id: 'a', x: 10, y: 0, w: 100, h: 40 },
+      { id: 'b', x: 50, y: 100, w: 60, h: 40 },
+      { id: 'c', x: 200, y: 200, w: 80, h: 40 },
+    ];
+    const left = alignBoxes(boxes, 'left');
+    check(left.get('b').x === 10 && left.get('c').x === 10, '왼쪽 맞춤 — 가장 왼쪽에 선다');
+    check(left.has('a') === false, '이미 맞은 것은 결과에 안 넣는다');
+    const right = alignBoxes(boxes, 'right');
+    check(right.get('a').x === 280 - 100, '오른쪽 맞춤 — 오른끝이 같아진다');
+    const mid = alignBoxes(boxes, 'hcenter');
+    check(mid.get('c').x === Math.round((10 + 280) / 2 - 40), '가로 가운데 맞춤');
+    check(alignBoxes([boxes[0]], 'left').size === 0, '한 장만 골랐으면 아무것도 안 한다');
+
+    const spread = spreadBoxes(boxes, 'x');
+    const xs = [10, spread.get('b') ? spread.get('b').x : 50, 200];
+    check(xs[1] > 10 && xs[1] < 200, '고르게 벌리기 — 가운데 것이 사이로 간다');
+    check(spread.has('c') === false || spread.get('c').x === 200, '양끝은 그대로 둔다');
+    check(spreadBoxes(boxes.slice(0, 2), 'x').size === 0, '두 장은 벌릴 사이가 없다');
+  }
+
   const { minimapWorthIt, minimapRects, MINIMAP_MIN_PX, EPHEMERAL_FILL } = M.minimap;
   const { fitProjection } = M.cmath;
   check(minimapWorthIt(0) === false && minimapWorthIt(3) === false, '카드가 서넛뿐이면 미니맵은 안 띄운다(검은 상자로 보인다)');

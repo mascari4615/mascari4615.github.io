@@ -602,5 +602,15 @@
   "karmograph.drawer.g.make": "Create",
   "karmograph.drawer.g.out": "Export",
   "karmograph.drawer.g.share": "Share",
-  "karmograph.drawer.g.map": "This board"
+  "karmograph.drawer.g.map": "This board",
+  "karmograph.align.label": "Line up",
+  "karmograph.align.left": "Align left",
+  "karmograph.align.hcenter": "Center horizontally",
+  "karmograph.align.right": "Align right",
+  "karmograph.align.top": "Align top",
+  "karmograph.align.vcenter": "Center vertically",
+  "karmograph.align.bottom": "Align bottom",
+  "karmograph.align.spreadX": "Space evenly across",
+  "karmograph.align.spreadY": "Space evenly down",
+  "karmograph.align.hint": "Ends stay put; only the gaps between are evened out."
 }

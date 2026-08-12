@@ -222,3 +222,62 @@ export function bestTimeField(
   for (const [name, count] of score) if (count > top) { top = count; best = name; }
   return top >= 2 ? best : null;   // 하나뿐이면 축이 아니라 우연이다
 }
+
+/* ── 나란히 놓기 · 고르게 벌리기 (2026-08-12) ──────────────────────────────────
+ *
+ * 캔버스 도구의 기본기인데 여기 없었다. 손으로 픽셀을 맞추면 늘 1~2px 씩 어긋나고,
+ * 그 어긋남이 쌓이면 그림이 「대충 그린 것」으로 보인다. 고른 것들만 다룬다 —
+ * 판 전체를 흩는 자동 배치와는 다른 일이다(위 머리말 참고).
+ */
+
+export type AlignHow = 'left' | 'hcenter' | 'right' | 'top' | 'vcenter' | 'bottom';
+
+/** 고른 것들을 한 줄에 세운다. 기준은 **고른 것들이 차지한 테두리**다. */
+export function alignBoxes(boxes: Boxish[], how: AlignHow): Map<string, { x: number; y: number }> {
+  const out = new Map<string, { x: number; y: number }>();
+  if (boxes.length < 2) return out;
+  const left = Math.min(...boxes.map((b) => b.x));
+  const right = Math.max(...boxes.map((b) => b.x + b.w));
+  const top = Math.min(...boxes.map((b) => b.y));
+  const bottom = Math.max(...boxes.map((b) => b.y + b.h));
+  const cx = (left + right) / 2;
+  const cy = (top + bottom) / 2;
+  for (const b of boxes) {
+    let { x, y } = b;
+    if (how === 'left') x = left;
+    else if (how === 'right') x = right - b.w;
+    else if (how === 'hcenter') x = Math.round(cx - b.w / 2);
+    else if (how === 'top') y = top;
+    else if (how === 'bottom') y = bottom - b.h;
+    else if (how === 'vcenter') y = Math.round(cy - b.h / 2);
+    if (x !== b.x || y !== b.y) out.set(b.id, { x, y });
+  }
+  return out;
+}
+
+/**
+ * 고른 것들 **사이 간격을 고르게** 한다. 양끝은 그대로 두고 가운데만 옮긴다 —
+ * 사람이 잡아 둔 범위는 건드리지 않는 것이 이 파일의 규칙이다.
+ */
+export function spreadBoxes(boxes: Boxish[], axis: 'x' | 'y'): Map<string, { x: number; y: number }> {
+  const out = new Map<string, { x: number; y: number }>();
+  if (boxes.length < 3) return out;
+  const size = (b: Boxish): number => (axis === 'x' ? b.w : b.h);
+  const pos = (b: Boxish): number => (axis === 'x' ? b.x : b.y);
+  const sorted = [...boxes].sort((a, b) => pos(a) - pos(b));
+  const first = sorted[0];
+  const last = sorted[sorted.length - 1];
+  const span = pos(last) + size(last) - pos(first);
+  const used = sorted.reduce((sum, b) => sum + size(b), 0);
+  // 남는 자리를 사이 수만큼 똑같이 나눈다. 겹쳐 있어 남는 자리가 없으면 0 — 그때는 줄만 맞춘다.
+  const gap = Math.max(0, (span - used) / (sorted.length - 1));
+  let cursor = pos(first);
+  for (const b of sorted) {
+    const want = Math.round(cursor);
+    if (want !== pos(b)) {
+      out.set(b.id, axis === 'x' ? { x: want, y: b.y } : { x: b.x, y: want });
+    }
+    cursor += size(b) + gap;
+  }
+  return out;
+}

@@ -602,5 +602,15 @@
   "karmograph.drawer.g.make": "만들기",
   "karmograph.drawer.g.out": "내보내기",
   "karmograph.drawer.g.share": "나누기",
-  "karmograph.drawer.g.map": "이 맵"
+  "karmograph.drawer.g.map": "이 맵",
+  "karmograph.align.label": "나란히 놓기",
+  "karmograph.align.left": "왼쪽 맞춤",
+  "karmograph.align.hcenter": "가로 가운데 맞춤",
+  "karmograph.align.right": "오른쪽 맞춤",
+  "karmograph.align.top": "위 맞춤",
+  "karmograph.align.vcenter": "세로 가운데 맞춤",
+  "karmograph.align.bottom": "아래 맞춤",
+  "karmograph.align.spreadX": "가로로 고르게 벌리기",
+  "karmograph.align.spreadY": "세로로 고르게 벌리기",
+  "karmograph.align.hint": "양끝은 그대로 두고 사이 간격만 고르게 합니다."
 }
