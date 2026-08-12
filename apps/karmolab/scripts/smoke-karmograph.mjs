@@ -524,10 +524,13 @@ await step('찾기 → 포커스가 걸린다', async () => {
   await page.selectOption('[data-km="degree"]', '0');
   await page.fill('[data-km="find"]', '욘');
   await page.waitForFunction(() => document.querySelectorAll('.ck-node.is-dimmed').length > 0, null, { timeout: 4000 });
-  // 찾은 수가 칸 옆에 뜬다 — 흐려지는 것만으로는 「없다」와 「아직 안 쳤다」가 구별되지 않는다.
+  /* 찾은 수가 칸 옆에 뜬다 — 흐려지는 것만으로는 「없다」와 「아직 안 쳤다」가 구별되지 않는다.
+     ★ 「숫자가 보인다」로 재면 안 된다. 이 자리의 판이 무엇이냐에 따라 「욘」이 0개일 수 있고,
+     그때 표시는 「없음」이라 숫자가 없다 — 실제로 그걸로 두 판을 헛되이 빨갛게 만들었다.
+     여기서 볼 것은 **글자를 치면 수가 뜬다**는 것 하나다. */
   await page.waitForFunction(() => {
     const el = document.querySelector('[data-km="find-count"]');
-    return el && !el.classList.contains('hidden') && /[0-9]/.test(el.textContent || '');
+    return el !== null && !el.classList.contains('hidden') && (el.textContent || '').length > 0;
   }, null, { timeout: 4000 });
   await page.fill('[data-km="find"]', '없을이름zzz');
   await page.waitForFunction(() => {
