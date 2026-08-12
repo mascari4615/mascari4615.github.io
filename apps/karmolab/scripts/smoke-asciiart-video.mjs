@@ -156,6 +156,24 @@ const report = await page.evaluate(async () => {
   HTMLAnchorElement.prototype.click = function () {};
   $('aaGif').click();
   for (let i = 0; i < 300 && !grabbed.some((b) => b.type === 'image/gif'); i++) await sleep(100);
+  // 터미널용 ANSI — 색이 붙었나. 붙여넣기 자리를 가로채 무엇을 담았는지 본다.
+  let ansi = '';
+  const clip = navigator.clipboard;
+  const realWrite = clip && clip.writeText ? clip.writeText.bind(clip) : null;
+  if (clip) clip.writeText = async (text) => { ansi = text; };
+  const fallback = document.execCommand ? document.execCommand.bind(document) : null;
+  document.execCommand = function (name) {
+    if (name === 'copy') {
+      const active = document.querySelector('textarea[data-copy], textarea');
+      if (active && active.value) ansi = active.value;
+      return true;
+    }
+    return fallback ? fallback.apply(document, arguments) : false;
+  };
+  $('aaAnsi').click();
+  for (let i = 0; i < 50 && !ansi; i++) await sleep(100);
+  if (clip && realWrite) clip.writeText = realWrite;
+
   // 파일로 내보내는 길이 하나 더 있다 — 구운 그대로의 `.bab`. 머리 네 글자가 규약이다.
   $('aaBab').click();
   const babBlob = grabbed.find((b) => b.type === 'application/octet-stream');
@@ -181,7 +199,10 @@ const report = await page.evaluate(async () => {
     gifBytes,
     gifHeader,
     babBytes: babBlob ? babBlob.size : 0,
-    babHeader
+    babHeader,
+    ansiLen: ansi.length,
+    ansiHasColor: ansi.includes(String.fromCharCode(27) + '[38;2;'),
+    ansiResets: ansi.split(String.fromCharCode(27) + '[0m').length - 1
   };
 });
 
@@ -195,6 +216,8 @@ if (!report.textHidden) fail.push('영상 모드인데 이미지용 <pre> 가 �
 if (Math.max(0, ...report.inks) === 0) fail.push('글자판이 통째로 비었다 — 아무것도 안 그려졌다');
 if (report.distinct < 2) fail.push(`트는 동안 그림이 안 바뀐다 (서로 다른 장 ${report.distinct}개)`);
 if (report.colored === 0) fail.push('색을 켰는데 회색만 나온다');
+if (!report.ansiHasColor) fail.push(`ANSI 로 복사했는데 색 코드가 없다 (${report.ansiLen}자)`);
+if (report.ansiResets < 2) fail.push('ANSI 줄 끝 초기화가 없다 — 붙여넣은 뒤 프롬프트까지 물든다');
 if (report.babHeader !== 'BAB1') fail.push(`.bab 로 안 뽑힌다 (머리 ${JSON.stringify(report.babHeader)})`);
 if (report.gifHeader !== 'GIF89a') fail.push(`GIF 로 안 뽑힌다 (머리 ${JSON.stringify(report.gifHeader)})`);
 if (errors.length) fail.push(`화면에서 오류가 났다: ${errors.slice(0, 2).join(' | ')}`);

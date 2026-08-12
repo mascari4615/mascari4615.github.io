@@ -101,6 +101,10 @@ if (typeof document !== 'undefined') void loadNamespace('badapple');
 			fps,
 			threshold: Number($<HTMLInputElement>('baThreshold').value) || 128,
 			invert: $<HTMLInputElement>('baInvert').checked,
+			// 색을 담으면 실루엣 위에 평면이 얹힌다. 색을 못 쓰는 표면(파비콘·기계 부하)은
+			// 그대로 실루엣만 읽으므로, 켜도 그쪽이 달라지지 않는다.
+			levels: $<HTMLInputElement>('baColor').checked,
+			colors: $<HTMLInputElement>('baColor').checked,
 			onProgress: (done, total) => {
 				if (done % 5 === 0 || done === total) status(t('badapple.baking', { pct: Math.round((done / total) * 100) }));
 			}
@@ -108,7 +112,11 @@ if (typeof document !== 'undefined') void loadNamespace('badapple');
 
 		URL.revokeObjectURL(video.src);
 
-		baked = encode(sampled.frames, { width: sampled.width, height: sampled.height, fps: sampled.fps });
+		baked = encode(
+			sampled.frames,
+			{ width: sampled.width, height: sampled.height, fps: sampled.fps },
+			{ levels: sampled.levels, colors: sampled.colors }
+		);
 		const raw = sampled.frames.length * Math.ceil((width * height) / 8);
 		const handed = await handOverToHome(baked);
 		status(

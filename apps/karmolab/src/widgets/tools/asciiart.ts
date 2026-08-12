@@ -50,6 +50,37 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
    */
   const toDarkFirst = (ramp: string): string => [...ramp].reverse().join('');
 
+  /**
+   * 글자판 + 칸 색 → 터미널이 색으로 읽는 글 (24비트 ANSI).
+   *
+   * 왜 넣나: 이 그림의 원래 자리는 터미널이다. `.txt` 로 내보내면 색이 통째로 사라지고,
+   * HTML 로 내보내면 터미널에서는 태그가 그대로 보인다. 둘 다 「글자로 그린 그림」을
+   * 원래 자리에 못 갖다 놓는다.
+   *
+   * 줄 끝마다 초기화(`\u001b[0m`)를 넣는다 — 안 넣으면 마지막 칸 색이 그 뒤 셸 프롬프트까지
+   * 물들인다. 색이 안 바뀌는 동안은 코드를 다시 안 적어서, 대개 원본보다 짧다.
+   */
+  function toAnsi(text: string, cols: number, colors: Int32Array | null): string {
+    const lines = text.split(String.fromCharCode(10));
+    if (!colors) return text;
+    const out: string[] = [];
+    for (let y = 0; y < lines.length; y++) {
+      const line = lines[y] ?? '';
+      let painted = '';
+      let brush = -1;
+      for (let x = 0; x < line.length; x++) {
+        const tone = colors[y * cols + x] ?? 0;
+        if (tone !== brush) {
+          brush = tone;
+          painted += `\u001b[38;2;${(tone >> 16) & 255};${(tone >> 8) & 255};${tone & 255}m`;
+        }
+        painted += line[x];
+      }
+      out.push(`${painted}\u001b[0m`);
+    }
+    return out.join(String.fromCharCode(10));
+  }
+
   Toolbox.register({
     id: 'asciiart',
     title: t('widgets.asciiart.title', undefined, '이미지 → 아스키 아트'),
@@ -151,6 +182,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
               <button class="btn btn-primary" id="aaCopy">${esc(t('asciiart.btn.copy'))}</button>
               <button class="btn btn-secondary" id="aaTxt">${esc(t('asciiart.btn.txt'))}</button>
               <button class="btn btn-secondary" id="aaPng">${esc(t('asciiart.btn.png'))}</button>
+              <button class="btn btn-secondary" id="aaAnsi">${esc(t('asciiart.btn.ansi'))}</button>
               <button class="btn btn-secondary" id="aaGif" hidden>${esc(t('asciiart.btn.gif'))}</button>
               <button class="btn btn-ghost" id="aaBab" hidden>${esc(t('asciiart.btn.bab'))}</button>
               <button class="btn btn-ghost" id="aaSample">${esc(t('asciiart.btn.sample'))}</button>
@@ -177,6 +209,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const babBtn = $<HTMLButtonElement>('#aaBab');
           let image: HTMLImageElement | null = null;
           let plainText = '';
+          /** 지금 화면에 있는 그림의 칸 색 — ANSI 로 낼 때 쓴다. 색을 안 켰으면 `null`. */
+          let cellColors: Int32Array | null = null;
 
           // ── 영상 ─────────────────────────────────────────────────────────
           /** 고른 영상. 아직 안 구웠어도 여기 들어 있다. */
@@ -253,6 +287,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                 write: (frame) => {
                   current = frame;
                   plainText = frame.text;
+                  cellColors = frame.colors;
                   paintCanvas(frame);
                 }
               })
@@ -396,6 +431,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             const c = (259 * (contrast + 255)) / (255 * (259 - contrast));
             const lines: string[] = [];
             const colorLines: string[] = [];
+            // 색을 켰을 때만 칸 색을 들고 있는다 — ANSI 로 낼 때 쓴다.
+            const tones = colorize ? new Int32Array(cols * rows) : null;
 
             for (let y = 0; y < rows; y++) {
               let line = '';
@@ -414,6 +451,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                 const idx = Math.min(ramp.length - 1, Math.floor((norm / 256) * ramp.length));
                 const ch = ramp[idx];
                 line += ch;
+                if (tones) tones[y * cols + x] = (r << 16) | (g << 8) | b;
                 if (colorize) {
                   const esc = ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch === '&' ? '&amp;' : ch;
                   colorLine += `<span style="color:rgb(${r},${g},${b})">${esc}</span>`;
@@ -424,6 +462,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             }
 
             plainText = lines.join('\n');
+            cellColors = tones;
             if (colorize) {
               out.innerHTML = colorLines.join('\n');
             } else {
@@ -472,6 +511,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             player?.dispose();
             player = null;
             current = null;
+            cellColors = null;
             baked = null;
             if (video) URL.revokeObjectURL(video.src);
             video = null;
@@ -637,6 +677,16 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 1000);
           }
+
+          $<HTMLButtonElement>('#aaAnsi').onclick = async () => {
+            if (!plainText) return;
+            const cols = current ? current.cols : parseInt(widthInput.value, 10);
+            const text = toAnsi(plainText, cols, cellColors);
+            Toolbox.trackUse?.('copy-ansi');
+            await Toolbox.copyText?.(text, {
+              message: cellColors ? t('asciiart.copy.ansi') : t('asciiart.copy.ansiPlain')
+            });
+          };
 
           babBtn.onclick = () => {
             if (!baked) return;
