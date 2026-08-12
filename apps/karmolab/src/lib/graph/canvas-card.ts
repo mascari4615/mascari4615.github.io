@@ -3,10 +3,13 @@
  *
  * 자리 규칙 두 개가 여기 산다:
  *  - 얼굴이 있으면 글은 그 오른쪽에서 시작한다(동그라미 카드는 가운데 정렬).
+ *    ★ 「얼굴이 있나」는 `canvas-avatar.ts` 만 안다 — 얼굴을 안 정한 노드에도 이름 첫 글자 원이
+ *    그려지기 때문이다. 그래서 자리를 여기서 다시 세지 않고 `cardTextX()` 를 받아 쓴다.
  *  - 한마디가 있으면 이름을 살짝 **위로 올리고** 그 밑에 한 줄 더 — 안 올리면 둘이 겹쳐 읽힌다.
  */
 import type { GraphNode } from './spec';
 import { buildFieldRows } from './canvas-fields';
+import { cardTextX, faceGeometry } from './canvas-avatar';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -18,8 +21,8 @@ export function buildCardText(
 ): SVGElement[] {
   const out: SVGElement[] = [];
   const hasNote = Boolean(node.note && node.note.trim());
-  const textX = centered ? node.w / 2 : node.avatar ? 40 : 12;
-  const baseY = centered && node.avatar ? effH / 2 + 18 : effH / 2 + 4;
+  const textX = cardTextX(node, effH, centered);
+  const baseY = centered && faceGeometry(node, effH, centered) ? effH / 2 + 18 : effH / 2 + 4;
   const labelY = hasNote ? baseY - 6 : baseY;
 
   const text = document.createElementNS(SVG_NS, 'text');

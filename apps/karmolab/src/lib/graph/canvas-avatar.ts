@@ -12,6 +12,35 @@ import type { GraphNode } from './spec';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
+/**
+ * 얼굴이 **실제로 그려지는가**, 그리고 그 자리.
+ *
+ * ★ 카드 글 자리(`canvas-card.ts`)가 이 값을 그대로 받아 쓴다. 예전엔 두 곳이 따로 셌는데,
+ * 글 쪽은 「`node.avatar` 가 있을 때만 얼굴이 있다」고 알고 있었다 — 그런데 여기는 얼굴을
+ * 안 정한 노드에도 **이름 첫 글자 원**을 그린다. 그래서 얼굴을 안 정한 카드마다 이름이
+ * 원 위에 겹쳐 찍혔다(실측 2026-08-12, 견본 관계도 6장 전부). 자리 계산은 한 곳에만 둔다.
+ */
+export function faceGeometry(
+  node: GraphNode,
+  effH: number,
+  centered: boolean,
+): { cx: number; cy: number; r: number } | null {
+  const hasAvatar = Boolean(node.avatar);
+  const hasInitial = !hasAvatar && Boolean((node.label ?? '').trim().slice(0, 1));
+  if (!hasAvatar && !hasInitial) return null;
+  const r = hasAvatar ? 12 : 11;
+  const cx = centered ? node.w / 2 : hasAvatar ? 22 : 21;
+  const cy = centered ? Math.max(r + 6, effH / 2 - 12) : effH / 2;
+  return { cx, cy, r };
+}
+
+/** 얼굴 오른쪽에서 글이 시작하는 자리. 얼굴이 없으면 카드 왼쪽 여백. */
+export function cardTextX(node: GraphNode, effH: number, centered: boolean): number {
+  if (centered) return node.w / 2;
+  const face = faceGeometry(node, effH, centered);
+  return face ? Math.round(face.cx + face.r + 6) : 12;
+}
+
 export function buildNodeAvatar(
 node: GraphNode,
 effH: number,
@@ -27,9 +56,7 @@ uid = 'km',
   if (!avatar) {
     const initial = (node.label ?? '').trim().slice(0, 1);
     if (!initial) return null;
-    const r0 = 11;
-    const cx0 = centered ? node.w / 2 : 21;
-    const cy0 = centered ? Math.max(r0 + 6, effH / 2 - 12) : effH / 2;
+    const { cx: cx0, cy: cy0, r: r0 } = faceGeometry(node, effH, centered)!;
     const g0 = document.createElementNS(SVG_NS, 'g') as SVGGElement;
     g0.setAttribute('pointer-events', 'none');
     const disc0 = document.createElementNS(SVG_NS, 'circle');
@@ -53,9 +80,7 @@ uid = 'km',
     g0.appendChild(t0);
     return g0;
   }
-  const r = 12;
-  const cx = centered ? node.w / 2 : 22;
-  const cy = centered ? Math.max(r + 6, effH / 2 - 12) : effH / 2;
+  const { cx, cy, r } = faceGeometry(node, effH, centered)!;
 
   const wrap = document.createElementNS(SVG_NS, 'g') as SVGGElement;
   wrap.setAttribute('pointer-events', 'none');
