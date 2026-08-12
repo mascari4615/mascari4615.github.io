@@ -1,7 +1,7 @@
 /** Karmo Studio — KarmoLab 안에서 곡을 끝까지 만드는 브라우저 DAW (TASK-KL-220). */
 import { KarmoStudioEngine, renderProject, type StudioAssetRuntime } from './audio-engine';
 import {
-  cloneClip, findClip, findTrack, legatoNotes, newProject, newTrack, normalizeProject, projectLength, quantizeNotes, setNoteVelocity, snapBeat, splitClip, studioId, transposeNotes,
+  automationValueAt, cloneClip, findClip, findTrack, legatoNotes, newProject, newTrack, normalizeProject, projectLength, putAutomationPoint, quantizeNotes, setNoteVelocity, snapBeat, splitClip, studioId, transposeNotes,
   type StudioClip, type StudioProject, type StudioSelection, type StudioTrack
 } from './model';
 import { toWav } from '../tools/shared/media';
@@ -73,6 +73,11 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     .ks-audio-controls .ks-field { grid-template-columns:70px minmax(0,1fr); }
     .ks-handle { position:absolute; top:0; right:0; width:8px; height:100%; cursor:ew-resize; background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--clip) 70%,white)); }
     .ks-playhead { position:absolute; top:30px; bottom:0; width:1px; background:#ff5d6c; z-index:6; pointer-events:none; box-shadow:0 0 5px #ff5d6c; }
+    .ks-auto { position:relative; height:46px; border-top:1px dashed var(--border); background:color-mix(in srgb,var(--bg-secondary) 60%,transparent); cursor:crosshair; }
+    .ks-auto svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+    .ks-auto path { fill:none; stroke:var(--accent); stroke-width:1.5; }
+    .ks-auto i { position:absolute; width:9px; height:9px; margin:-5px 0 0 -5px; border-radius:50%; background:var(--accent); border:1px solid var(--bg-primary); cursor:grab; }
+    .ks-auto-tag { position:absolute; left:4px; top:2px; font:9px var(--font-mono); color:var(--text-tertiary); pointer-events:none; }
     .ks-lane.is-drop { box-shadow:inset 0 0 0 2px var(--accent); }
     .ks-export { position:fixed; left:50%; top:12%; transform:translateX(-50%); z-index:1000; width:min(420px,92vw); padding:14px; border:1px solid var(--border-hover); border-radius:8px; background:var(--bg-secondary); box-shadow:0 18px 40px rgba(0,0,0,.45); display:grid; gap:8px; }
     .ks-export h4 { margin:0; font:12px var(--font-mono); color:var(--text-secondary); letter-spacing:.08em; }
@@ -144,7 +149,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     let selection: StudioSelection = { type: 'clip', trackId: project.tracks[0].id, clipId: project.tracks[0].clips[0].id };
     let playhead = 0; let pxPerBeat = 72; let sideMode: 'inspector' | 'mixer' = 'inspector';let editTool:'draw'|'select'|'slice'='draw'; let assets = new Map<string, StudioAssetRuntime>();
     let raf: number | undefined; let saveTimer: number | undefined; let recording: MediaRecorder | null = null; let recordChunks: Blob[] = []; let recordStart = 0;
-    let armedTrackId=''; let metronome=false; let countIn=false;
+    let armedTrackId=''; let metronome=false; let countIn=false; const autoLanes=new Set<string>();
     let exportOptions={range:'song' as ExportRangeMode,sampleRate:44100,mono:false,normalize:true};
     let editorExpanded = false; let editorScrollTop = 0; let editorScrollLeft = 0; let editorClipId = ''; let pianoPxPerBeat = pxPerBeat;
     let editorReturnFocus: HTMLElement | null = null; let cancelActiveGesture: (()=>void) | null = null;
@@ -360,14 +365,27 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       return `<div class="ks-clip${selected ? ' is-selected' : ''}" data-clip="${clip.id}" data-track="${track.id}" style="--clip:${track.color};left:${clip.start * pxPerBeat}px;width:${clip.duration * pxPerBeat}px"><div class="ks-clip-name">${esc(clip.name)}</div>${notes}<div class="ks-handle" data-resize="1"></div></div>`;
     }
 
+    /** 볼륨 자동화 줄 — 점을 잇는 선 하나와 점들. 화면 높이 46px 안에서 0~1.2 를 그린다. */
+    const AUTO_HEIGHT=46, AUTO_MAX=1.2;
+    function automationY(value: number): number { return AUTO_HEIGHT-(Math.max(0,Math.min(AUTO_MAX,value))/AUTO_MAX)*AUTO_HEIGHT; }
+    function automationHtml(track: StudioTrack, width: number): string {
+      if(!autoLanes.has(track.id))return '';
+      const points=[...track.volumeAutomation].sort((a,b)=>a.beat-b.beat);
+      const length=Math.max(projectLength(project),1);
+      const line=points.length
+        ? `M0,${automationY(points[0].value)} `+points.map((point)=>`L${point.beat*pxPerBeat},${automationY(point.value)}`).join(' ')+` L${width},${automationY(points[points.length-1].value)}`
+        : `M0,${automationY(track.volume)} L${width},${automationY(track.volume)}`;
+      const dots=points.map((point)=>`<i data-auto-point="${point.id}" data-track="${track.id}" style="left:${point.beat*pxPerBeat}px;top:${automationY(point.value)}px" title="${beatText(point.beat)} · ${Math.round(point.value*100)}%"></i>`).join('');
+      return `<div class="ks-auto" data-auto="${track.id}" style="width:${width}px" title="빈 곳 클릭 = 점 추가 · 점 드래그 = 이동 · 우클릭 = 삭제"><svg viewBox="0 0 ${Math.max(1,length*pxPerBeat)} ${AUTO_HEIGHT}" preserveAspectRatio="none"><path d="${line}"></path></svg><span class="ks-auto-tag">VOLUME${points.length?` · ${points.length}점`:' · 점 없음(트랙 볼륨 그대로)'}</span>${dots}</div>`;
+    }
     function renderTracks(): void {
       reconcileMarks();
       const tracks = $<HTMLElement>('[data-role=tracks]'); const width = trackWidth();
       tracks.innerHTML = project.tracks.map((track) => `<div class="ks-track-row" data-track-row="${track.id}" style="width:${172 + width}px">
         <div class="ks-track-head"><div class="ks-track-title"><span class="ks-track-color" style="background:${track.color}"></span><input data-track-name="${track.id}" value="${esc(track.name)}" aria-label="트랙 이름"></div>
-        <div class="ks-track-actions"><button class="ks-mini${track.mute?' is-on':''}" data-track-act="mute" data-track="${track.id}">M</button><button class="ks-mini${track.solo?' is-on':''}" data-track-act="solo" data-track="${track.id}">S</button><button class="ks-mini${armedTrackId===track.id?' is-on':''}" data-track-act="arm" data-track="${track.id}" title="${track.kind==='audio'?'녹음 대상으로 지정':'오디오 트랙만 녹음 대상이 된다'}"${track.kind==='audio'?'':' disabled'}>●</button><button class="ks-mini" data-track-act="delete" data-track="${track.id}">×</button></div>
+        <div class="ks-track-actions"><button class="ks-mini${track.mute?' is-on':''}" data-track-act="mute" data-track="${track.id}">M</button><button class="ks-mini${track.solo?' is-on':''}" data-track-act="solo" data-track="${track.id}">S</button><button class="ks-mini${autoLanes.has(track.id)?' is-on':''}" data-track-act="auto" data-track="${track.id}" title="볼륨 자동화 줄 보이기">A</button><button class="ks-mini${armedTrackId===track.id?' is-on':''}" data-track-act="arm" data-track="${track.id}" title="${track.kind==='audio'?'녹음 대상으로 지정':'오디오 트랙만 녹음 대상이 된다'}"${track.kind==='audio'?'':' disabled'}>●</button><button class="ks-mini" data-track-act="delete" data-track="${track.id}">×</button></div>
         <input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-track-volume="${track.id}" aria-label="${esc(track.name)} 볼륨"></div>
-        <div class="ks-lane" data-lane="${track.id}" data-kind="${track.kind}" style="width:${width}px">${track.clips.map((clip)=>clipHtml(track,clip)).join('')}</div></div>`).join('');
+        <div class="ks-lane" data-lane="${track.id}" data-kind="${track.kind}" style="width:${width}px">${track.clips.map((clip)=>clipHtml(track,clip)).join('')}</div>${automationHtml(track,width)}</div>`).join('');
     }
 
     const field = (label: string, input: string): string => `<label class="ks-field"><span>${label}</span>${input}</label>`;
@@ -496,7 +514,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
 
     root.addEventListener('click',(event)=>{ const raw=event.target as HTMLElement;const exportAct=raw.closest<HTMLElement>('[data-export-act]')?.dataset.exportAct;if(exportAct){if(exportAct==='cancel')closeExport();else void runExport();return;}if(addPianoNote(event))return;const contextAct=raw.closest<HTMLElement>('[data-context-act]')?.dataset.contextAct;if(contextAct){hideContextMenu();if(contextAct==='open-editor')setEditorExpanded(true);else if(contextAct==='copy')copySelection();else if(contextAct==='cut')cutSelection();else if(contextAct==='duplicate')root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();else if(contextAct==='duplicate-note'&&selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const note=clip?.notes.find((item)=>item.id===noteId);const track=selectedTrack();if(clip&&note&&track){const copy={...note,id:studioId('note'),beat:Math.min(clip.duration-note.duration,snapBeat(note.beat+project.snap,project.snap))};clip.notes.push(copy);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copy.id};saveSoon();renderEditor();renderTracks();}}else if(contextAct==='split')root.querySelector<HTMLElement>('[data-act=split]')?.click();else if(contextAct==='delete')deleteSelection();return;}const meterReset=raw.closest<HTMLElement>('[data-meter-reset]')?.dataset.meterReset;if(meterReset){meterClipped.delete(meterReset);paintMeters();status('Clip indicator cleared');return;}const noteAct=raw.closest<HTMLElement>('[data-note-act]')?.dataset.noteAct;if(noteAct){applyNoteTool(noteAct);return;}const tool=raw.closest<HTMLElement>('.ks-btn[data-tool]')?.dataset.tool;if(tool){editTool=tool as typeof editTool;renderAll();status(`${tool.toUpperCase()} tool`);return;} const target=raw.closest<HTMLElement>('[data-act],[data-side],[data-track-act]'); if(!target){hideContextMenu();return;}
       if(target.dataset.side){sideMode=target.dataset.side as typeof sideMode;renderSide();return;}
-      const trackAct=target.dataset.trackAct; if(trackAct){const track=findTrack(project,target.dataset.track||'');if(!track)return;if(trackAct==='mute')track.mute=!track.mute;else if(trackAct==='solo')track.solo=!track.solo;else if(trackAct==='arm'){if(track.kind!=='audio'){status('Only audio tracks can be armed');return;}armedTrackId=armedTrackId===track.id?'':track.id;status(armedTrackId?`Armed ${track.name}`:'Disarmed');renderAll();return;}else if(trackAct==='delete'&&confirm(`Delete ${track.name}?`)){project.tracks=project.tracks.filter((item)=>item.id!==track.id);selection=null;}saveSoon();renderAll();return;}
+      const trackAct=target.dataset.trackAct; if(trackAct){const track=findTrack(project,target.dataset.track||'');if(!track)return;if(trackAct==='mute')track.mute=!track.mute;else if(trackAct==='solo')track.solo=!track.solo;else if(trackAct==='auto'){if(autoLanes.has(track.id))autoLanes.delete(track.id);else autoLanes.add(track.id);renderTracks();status(autoLanes.has(track.id)?`${track.name} 자동화 줄 열림`:'자동화 줄 닫힘');return;} else if(trackAct==='arm'){if(track.kind!=='audio'){status('Only audio tracks can be armed');return;}armedTrackId=armedTrackId===track.id?'':track.id;status(armedTrackId?`Armed ${track.name}`:'Disarmed');renderAll();return;}else if(trackAct==='delete'&&confirm(`Delete ${track.name}?`)){project.tracks=project.tracks.filter((item)=>item.id!==track.id);selection=null;}saveSoon();renderAll();return;}
       const act=target.dataset.act;
       if(act==='play')engine.isPlaying()?stop():play(); else if(act==='stop')stop(); else if(act==='back'){stop();playhead=0;updatePlayhead();} else if(act==='loop'){project.loop=!project.loop;saveSoon();renderAll();} else if(act==='metronome'){metronome=!metronome;engine.metronome=metronome;renderToggles();status(metronome?'Metronome on':'Metronome off');} else if(act==='count-in'){countIn=!countIn;renderToggles();status(countIn?'Count-in: one bar before recording':'Count-in off');}
       else if(act==='audio'||act==='midi'){const track=newTrack(act,project.tracks.length+1);project.tracks.push(track);selection={type:'track',trackId:track.id};saveSoon();renderAll();}
@@ -709,6 +727,37 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
     scroll.addEventListener('click',(event)=>{if(event.button!==0||editTool!=='draw')return;const target=event.target as HTMLElement;if(target.closest('.ks-clip'))return;const lane=target.closest<HTMLElement>('.ks-lane');if(!lane||lane.dataset.kind!=='midi')return;const track=findTrack(project,lane.dataset.lane||'');if(track)createMidiClip(track,(event.clientX-lane.getBoundingClientRect().left)/pxPerBeat);});
     scroll.addEventListener('dblclick',(event)=>{if(event.button!==0)return;event.preventDefault();const target=event.target as HTMLElement;const clipElement=target.closest<HTMLElement>('.ks-clip');if(clipElement){const trackId=clipElement.dataset.track||'',clipId=clipElement.dataset.clip||'';const clip=findClip(project,trackId,clipId);if(clip){selection={type:'clip',trackId,clipId};renderTracks();renderSide();setEditorExpanded(true);}return;}const lane=target.closest<HTMLElement>('.ks-lane');if(!lane||lane.dataset.kind!=='midi')return;const track=findTrack(project,lane.dataset.lane||'');if(track)createMidiClip(track,(event.clientX-lane.getBoundingClientRect().left)/pxPerBeat,true);});
 
+    /** 자동화 줄 조작 — 빈 곳 클릭은 점 추가, 점 드래그는 이동, 우클릭은 삭제. */
+    root.addEventListener('pointerdown',(event)=>{
+      if(event.button!==0||!event.isPrimary)return;
+      const target=event.target as HTMLElement;
+      const lane=target.closest<HTMLElement>('[data-auto]');
+      if(!lane)return;
+      const track=findTrack(project,lane.dataset.auto||'');if(!track)return;
+      event.preventDefault();
+      const rect=lane.getBoundingClientRect();
+      const valueAt=(clientY:number):number=>Math.max(0,Math.min(AUTO_MAX,(1-(clientY-rect.top)/Math.max(1,rect.height))*AUTO_MAX));
+      const beatAt=(clientX:number):number=>snapBeat((clientX-rect.left)/pxPerBeat,project.snap);
+      const dot=target.closest<HTMLElement>('[data-auto-point]');
+      let point=track.volumeAutomation.find((item)=>item.id===dot?.dataset.autoPoint);
+      if(!point){
+        track.volumeAutomation=putAutomationPoint(track.volumeAutomation,beatAt(event.clientX),valueAt(event.clientY));
+        point=track.volumeAutomation.find((item)=>Math.abs(item.beat-beatAt(event.clientX))<=0.05);
+        renderTracks();
+        if(!point){saveSoon('automation');return;}
+      }
+      const held=point;const originBeat=held.beat,originValue=held.value;
+      const move=(moveEvent:PointerEvent):void=>{
+        held.beat=beatAt(moveEvent.clientX);held.value=valueAt(moveEvent.clientY);
+        track.volumeAutomation=[...track.volumeAutomation].sort((a,b)=>a.beat-b.beat);
+        renderTracks();
+      };
+      const cleanup=():void=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',abort);cancelActiveGesture=null;};
+      const up=():void=>{cleanup();saveSoon('automation');engine.updateProject(project);status(`볼륨 ${Math.round(held.value*100)}% @ ${beatText(held.beat)}`);};
+      const abort=():void=>{held.beat=originBeat;held.value=originValue;cleanup();renderTracks();};
+      cancelActiveGesture=abort;
+      window.addEventListener('pointermove',move);window.addEventListener('pointerup',up,{once:true});window.addEventListener('pointercancel',abort,{once:true});
+    });
     /** piano roll box selection — 빈 칸에서 끌면 지나간 음을 묶는다. */
     root.addEventListener('pointerdown',(event)=>{
       if(event.button!==0||!event.isPrimary)return;
@@ -786,7 +835,7 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
       cancelActiveGesture=cancel;
       noteEl.addEventListener('pointermove',move);noteEl.addEventListener('pointerup',up,{once:true});noteEl.addEventListener('pointercancel',cancel,{once:true});noteEl.addEventListener('lostpointercapture',cancel,{once:true});
     });
-    root.addEventListener('contextmenu',(event)=>{const target=event.target as HTMLElement;const clipEl=target.closest<HTMLElement>('.ks-clip');const noteEl=target.closest<HTMLElement>('.ks-note');const lane=target.closest<HTMLElement>('.ks-lane');if(!clipEl&&!noteEl&&!lane)return;event.preventDefault();event.stopPropagation();if(noteEl){const clip=selectedClip();const track=selectedTrack();const note=clip?.notes.find((item)=>item.id===noteEl.dataset.note);if(clip&&track&&note){clip.notes=clip.notes.filter((item)=>item.id!==note.id);selection={type:'clip',trackId:track.id,clipId:clip.id};saveSoon();renderEditor();renderTracks();renderSide();status('Right-click · deleted MIDI note');}}else if(clipEl){const trackId=clipEl.dataset.track||'',clipId=clipEl.dataset.clip||'';selection={type:'clip',trackId,clipId};renderSide();renderEditor();showContextMenu(event.clientX,event.clientY,[['open-editor','편집기 열기'],['copy','클립 복사'],['cut','클립 잘라내기'],['duplicate','클립 복제'],['split','재생 헤드에서 분할'],['delete','클립 삭제']]);}else if(lane){selection={type:'track',trackId:lane.dataset.lane||''};renderSide();showContextMenu(event.clientX,event.clientY,[['open-editor','클립을 더블클릭해 편집']]);}});
+    root.addEventListener('contextmenu',(event)=>{const target=event.target as HTMLElement;const dot=target.closest<HTMLElement>('[data-auto-point]');if(dot){event.preventDefault();const track=findTrack(project,dot.dataset.track||'');if(track){track.volumeAutomation=track.volumeAutomation.filter((point)=>point.id!==dot.dataset.autoPoint);saveSoon('automation');engine.updateProject(project);renderTracks();status('자동화 점 삭제');}return;}const clipEl=target.closest<HTMLElement>('.ks-clip');const noteEl=target.closest<HTMLElement>('.ks-note');const lane=target.closest<HTMLElement>('.ks-lane');if(!clipEl&&!noteEl&&!lane)return;event.preventDefault();event.stopPropagation();if(noteEl){const clip=selectedClip();const track=selectedTrack();const note=clip?.notes.find((item)=>item.id===noteEl.dataset.note);if(clip&&track&&note){clip.notes=clip.notes.filter((item)=>item.id!==note.id);selection={type:'clip',trackId:track.id,clipId:clip.id};saveSoon();renderEditor();renderTracks();renderSide();status('Right-click · deleted MIDI note');}}else if(clipEl){const trackId=clipEl.dataset.track||'',clipId=clipEl.dataset.clip||'';selection={type:'clip',trackId,clipId};renderSide();renderEditor();showContextMenu(event.clientX,event.clientY,[['open-editor','편집기 열기'],['copy','클립 복사'],['cut','클립 잘라내기'],['duplicate','클립 복제'],['split','재생 헤드에서 분할'],['delete','클립 삭제']]);}else if(lane){selection={type:'track',trackId:lane.dataset.lane||''};renderSide();showContextMenu(event.clientX,event.clientY,[['open-editor','클립을 더블클릭해 편집']]);}});
     function deleteSelection():void{
       const chosen=selection;if(!chosen)return;const track=findTrack(project,chosen.trackId);if(!track)return;
       if(chosen.type==='note'){const doomed=markedNotes();const clip=findClip(project,chosen.trackId,chosen.clipId);if(clip&&doomed.length){const ids=new Set(doomed.map((item)=>item.note.id));clip.notes=clip.notes.filter((note)=>!ids.has(note.id));noteSel.clear();if(doomed.length>1)status(`Deleted ${doomed.length} notes`);}selection={type:'clip',trackId:chosen.trackId,clipId:chosen.clipId};saveSoon();renderAll();return;}

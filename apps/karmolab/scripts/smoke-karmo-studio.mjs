@@ -196,6 +196,19 @@ await page.click('[data-act=play]');await page.waitForTimeout(700);await page.cl
 const clicksAfter=await page.evaluate(()=>window.__ksOsc);
 await page.click('[data-act=metronome]');await page.waitForTimeout(80);
 const metronomeOff=await page.locator('[data-act=metronome]').evaluate((element)=>element.classList.contains('is-on'));
+/* 볼륨 자동화 줄 — A 로 열고, 빈 곳을 눌러 점을 놓고, 우클릭으로 지운다. */
+await page.locator('[data-track-act=auto]').first().click();await page.waitForTimeout(120);
+const autoLaneOpen=await page.locator('[data-auto]').count();
+const autoBox=await page.locator('[data-auto]').first().boundingBox();
+const autoX=await page.evaluate(([left,right,y])=>{for(let x=left+20;x<right-10;x+=6){const el=document.elementFromPoint(x,y);if(el&&el.closest('[data-auto]'))return x;}return left+40;},[autoBox.x,autoBox.x+Math.min(autoBox.width,600),autoBox.y+12]);
+await page.mouse.click(autoX,autoBox.y+12);await page.waitForTimeout(140);
+await page.mouse.click(autoX+90,autoBox.y+36);await page.waitForTimeout(140);
+const autoPointCount=await page.locator('[data-auto-point]').count();
+const autoPathBefore=await page.locator('[data-auto] path').first().getAttribute('d');
+await page.locator('[data-auto-point]').first().click({button:'right'});await page.waitForTimeout(140);
+const autoPointAfterDelete=await page.locator('[data-auto-point]').count();
+await page.waitForTimeout(400);
+const autoSaved=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null');return raw?raw.tracks.reduce((sum,track)=>sum+((track.volumeAutomation||[]).length),0):-1;});
 /* 믹서 미터 — 페이더 위치가 아니라 실제로 나는 소리를 그린다. */
 await page.click('[data-side=mixer]');await page.waitForTimeout(100);
 const meterCount=await page.locator('[data-meter]').count();
@@ -296,6 +309,11 @@ if(armedOff)problems.push('녹음 대상 해제가 안 된다');
 if(armedLaneClipsBefore<1)problems.push('오디오 트랙에 클립이 없다 — 무장 대상 검사가 무의미');
 if(!metronomeOn||metronomeOff)problems.push(`박자 소리 토글이 상태를 안 바꾼다 (${metronomeOn}→${metronomeOff})`);
 if(clicksAfter<=clicksBefore)problems.push(`박자 소리가 안 난다 (oscillator ${clicksBefore}→${clicksAfter})`);
+if(autoLaneOpen<1)problems.push('A 를 눌러도 자동화 줄이 안 열린다');
+if(autoPointCount<2)problems.push(`자동화 점이 안 찍힌다 (${autoPointCount})`);
+if(!autoPathBefore||autoPathBefore.split('L').length<3)problems.push(`자동화 선이 점을 안 잇는다 (${autoPathBefore})`);
+if(autoPointAfterDelete!==autoPointCount-1)problems.push(`우클릭 삭제 실패 (${autoPointCount}→${autoPointAfterDelete})`);
+if(autoSaved<1)problems.push(`자동화가 저장에 안 남았다 (${autoSaved})`);
 if(meterCount<2)problems.push(`믹서 미터가 트랙 수만큼 없다 (${meterCount})`);
 if(meterBeforePlay!=='−∞')problems.push(`재생 전 미터가 0 이 아니다 (${meterBeforePlay})`);
 if(!meterMoved)problems.push('재생해도 미터가 안 움직인다 — 가짜 미터');
