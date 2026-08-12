@@ -1,118 +1,778 @@
 {
   "id": "cs-binary",
-  "minutes": 12,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "컴퓨터가 숫자를 다루는 방식은 우리가 배운 것과 두 군데에서 다르다. **자리가 유한하다**는 것, 그리고 **소수를 2진법으로 담는다**는 것. 실무 사고의 상당수가 이 둘에서 나온다."
-    },
-    {
-      "type": "demo",
-      "kind": "js",
-      "label": "숫자를 밀어 보라 — 2진수로 어떻게 적히나",
-      "height": "190px",
-      "controls": [
+      "id": "1",
+      "title": "자리값 — 2진수와 16진수는 같은 수의 다른 옷",
+      "minutes": 8,
+      "blocks": [
         {
-          "id": "v",
-          "label": "값",
-          "type": "range",
-          "min": 0,
-          "max": 255,
-          "step": 1,
-          "value": 42
+          "type": "p",
+          "text": "10진수 `342` 를 우리는 「3백 4십 2」로 읽는다. 자리마다 10의 거듭제곱이 곱해져 있기 때문이다. 2진수도 규칙이 똑같고 **밑수만 2**다. 그래서 새로 배울 것이 없다 — 자리값만 바꿔 읽으면 된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "숫자를 밀어 보라 — 어느 자리가 켜지나",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const V = {{v}};\n  const bits = V.toString(2).padStart(8, '0');\n  app.innerHTML = bitRow(bits, { weights: true });\n  const on = [...bits].map((b, i) => (b === '1' ? Math.pow(2, 7 - i) : 0)).filter(Boolean);\n  show('10진  ' + V + '\\n'\n     + '2진   0b' + bits + '\\n'\n     + '16진  0x' + V.toString(16).toUpperCase().padStart(2, '0') + '\\n\\n'\n     + '켜진 자리를 더하면: ' + (on.join(' + ') || '0') + ' = ' + V);\n</script>",
+          "controls": [
+            {
+              "id": "v",
+              "label": "값",
+              "type": "range",
+              "min": 0,
+              "max": 255,
+              "step": 1,
+              "value": 42
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "16진수를 쓰는 이유는 하나다 — **16 = 2⁴** 이라서 비트 네 개가 글자 하나에 딱 떨어진다. 그래서 `0xFF` 는 `1111 1111`, `0xA0` 은 `1010 0000` 임을 눈으로 바로 읽을 수 있다. 색 `#RRGGBB`, 메모리 주소, 해시가 전부 16진수인 까닭이다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "진법 사이를 오가는 법",
+          "text": "(255).toString(2)     // '11111111'\n(255).toString(16)    // 'ff'\nparseInt('ff', 16)    // 255\nNumber('0b1010')      // 10\nNumber('0xff')        // 255\n\n// 자릿수를 맞춰 읽기 좋게\n(5).toString(2).padStart(8, '0')   // '00000101'"
+        },
+        {
+          "type": "note",
+          "text": "1바이트 = 8비트 = 0~255 = 16진수 두 글자. 이 등식 하나만 외워 두면 색·주소·파일 크기가 전부 같은 자로 읽힌다."
+        },
+        {
+          "type": "try",
+          "text": "`#3B82F6` 을 10진수 세 개로 바꿔 보라(개발자도구 콘솔에서 `parseInt('3B',16)`). 그리고 그 색을 CSS 에 `rgb(...)` 로 적어 같은 색이 나오는지 확인하라."
         }
       ],
-      "text": "const V = {{v}};\nconst bits = V.toString(2).padStart(8, '0');\nctx.font = '28px ui-monospace, monospace';\nbits.split('').forEach((b, i) => {\n  ctx.fillStyle = b === '1' ? '#60a5fa' : '#374151';\n  ctx.fillRect(16 + i * 38, 30, 32, 40);\n  ctx.fillStyle = b === '1' ? '#0b1220' : '#9ca3af';\n  ctx.fillText(b, 26 + i * 38, 60);\n});\nctx.font = '12px ui-monospace, monospace'; ctx.fillStyle = '#9ca3af';\nbits.split('').forEach((_, i) => ctx.fillText(String(2 ** (7 - i)), 18 + i * 38, 88));\nctx.font = '15px system-ui'; ctx.fillStyle = '#eee';\nctx.fillText('10진 ' + V + '  ·  16진 0x' + V.toString(16).toUpperCase().padStart(2, '0'), 16, 128);"
+      "quiz": [
+        {
+          "q": "`0b1010` 은 10진수로?",
+          "choices": [
+            "5",
+            "10",
+            "12",
+            "20"
+          ],
+          "answer": 1,
+          "why": "8 + 2 = 10."
+        },
+        {
+          "q": "16진수를 쓰는 이유는?",
+          "choices": [
+            "짧아서",
+            "16 = 2^4 이라 비트 4개가 글자 하나에 딱 맞아서",
+            "표준이라",
+            "10진수보다 빨라서"
+          ],
+          "answer": 1,
+          "why": "그래서 비트 패턴을 눈으로 읽을 수 있다."
+        },
+        {
+          "q": "1바이트로 표현할 수 있는 부호 없는 정수 범위는?",
+          "choices": [
+            "0~127",
+            "0~255",
+            "0~512",
+            "1~256"
+          ],
+          "answer": 1,
+          "why": "2^8 = 256가지, 0부터 세면 255까지."
+        }
+      ]
     },
     {
-      "type": "h",
-      "text": "1. 진법은 표기일 뿐"
-    },
-    {
-      "type": "p",
-      "text": "255 · 0xFF · 0b11111111 은 같은 값의 다른 표기다. 16진법을 쓰는 이유는 단순하다 — **네 비트가 정확히 한 자리**라서 눈으로 비트를 읽기 쉽다."
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "브라우저 콘솔에서 바로",
-      "text": "(255).toString(2)   // '11111111'\n(255).toString(16)  // 'ff'\nparseInt('ff', 16)  // 255\n0b1010 | 0b0101     // 15  (비트 OR)\n1 << 10             // 1024 (왼쪽으로 10칸 = 2^10)"
-    },
-    {
-      "type": "h",
-      "text": "2. 자리가 넘치면 — 오버플로"
-    },
-    {
-      "type": "p",
-      "text": "32비트 정수는 약 21억까지다. 그 위로 넘어가면 조용히 음수가 되거나 0으로 돌아간다. 옛날 게임에서 점수가 마이너스가 되던 그 버그다."
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "JS 도 비트 연산은 32비트로 내려간다",
-      "text": "2147483647 | 0        //  2147483647  (32비트 최대)\n(2147483647 + 1) | 0  // -2147483648  <- 넘쳐서 음수\n\n// 큰 정수는 BigInt 로\n9007199254740993n + 1n // 9007199254740994n"
-    },
-    {
-      "type": "h",
-      "text": "3. 0.1 + 0.2 가 왜 그 모양인가"
-    },
-    {
-      "type": "p",
-      "text": "2진법 소수로는 0.1 을 정확히 못 쓴다. 10진법으로 1/3 을 못 쓰는 것과 같다(0.3333…). 그래서 컴퓨터는 **가장 가까운 값**으로 반올림해 저장하고, 더하면 그 오차가 보인다."
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "직접 확인",
-      "text": "0.1 + 0.2            // 0.30000000000000004\n0.1 + 0.2 === 0.3    // false\n(0.1).toFixed(20)    // '0.10000000000000000555'\n\n// 비교는 오차 허용치로\nMath.abs((0.1 + 0.2) - 0.3) < Number.EPSILON  // true"
-    },
-    {
-      "type": "note",
-      "text": "**돈은 소수로 다루지 마라.** 원 단위 정수(또는 최소 단위 정수)로 저장하고, 보여 줄 때만 나눠라. 이자·부가세 계산에서 1원씩 어긋나는 사고가 거의 다 여기서 난다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "KarmoLab 의 **진법 변환기**(칸 아래 ▶ 단추)에 자기 생일을 숫자로 넣고 2진법·16진법으로 바꿔 봐라. 16진법 한 자리가 2진법 네 자리와 어떻게 짝지어지는지 눈으로 확인."
-    },
-    {
-      "type": "try",
-      "text": "콘솔에서 `0.1 * 3`, `0.7 + 0.1`, `1.005.toFixed(2)` 를 쳐 보고 예상과 다른 것을 찾아라. 그리고 그 계산을 정수(× 100)로 바꿔 다시 해 봐라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "16진법을 즐겨 쓰는 가장 큰 이유는?",
-      "choices": [
-        "10진법보다 계산이 빨라서",
-        "한 자리가 정확히 네 비트라 비트를 눈으로 읽기 쉬워서",
-        "컴퓨터가 내부적으로 16진법으로 계산해서"
+      "id": "2",
+      "title": "음수 — 2의 보수는 왜 그렇게 생겼나",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "부호를 나타내는 방법은 여럿 있었다. 맨 앞 비트를 부호로 쓰는 방식(부호-크기)은 **0이 두 개**(+0, -0)가 되고, 덧셈 회로를 따로 만들어야 했다. 그래서 살아남은 것이 **2의 보수**다 — 「빼기를 더하기로 만드는」 표현."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "값을 밀어 보라 — 같은 비트가 두 뜻으로 읽힌다",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const V = {{v}};\n  const u = V < 0 ? V + 256 : V;                    /* 8비트 비트열 */\n  const bits = u.toString(2).padStart(8, '0');\n  app.innerHTML = bitRow(bits, { weights: true, sign: true });\n  const signed = u > 127 ? u - 256 : u;\n  show('비트열      ' + bits + '\\n'\n     + '부호 없이   ' + u + '   (0~255)\\n'\n     + '2의 보수로  ' + signed + '   (-128~127)\\n\\n'\n     + '맨 앞 자리의 무게가 +128 이 아니라 -128 이다.\\n'\n     + '그래서 ' + bits + ' = ' + (bits[0] === '1' ? '-128 + ' : '') + (signed + (bits[0] === '1' ? 128 : 0)) + ' = ' + signed);\n</script>",
+          "controls": [
+            {
+              "id": "v",
+              "label": "값",
+              "type": "range",
+              "min": -128,
+              "max": 127,
+              "step": 1,
+              "value": -5
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "핵심은 한 줄이다 — **맨 앞 비트의 무게를 음수로 둔다.** 8비트면 `-128, 64, 32, 16, 8, 4, 2, 1`. 그러면 `11111111` 은 -128+127 = **-1** 이 되고, 덧셈 규칙이 음수에도 그대로 통한다. 뺄셈 회로가 따로 필요 없어진다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "손으로 바꾸는 법 — 뒤집고 1 더하기",
+          "text": "  5 = 0000 0101\n뒤집기 1111 1010\n+1     1111 1011  = -5\n\n검산: -5 + 5 = 1111 1011 + 0000 0101 = 1 0000 0000\n      9번째 자리는 버려진다 -> 0000 0000 = 0  ✓"
+        },
+        {
+          "type": "note",
+          "text": "범위가 한쪽으로 하나 치우친다: 8비트는 -128~127. 음수가 하나 더 많다 — 0 이 양수 쪽에 들어가기 때문이다. 그래서 `-(-128)` 은 8비트에서 표현할 수 없다(오버플로). 이 비대칭이 실제 버그를 만든다."
+        },
+        {
+          "type": "try",
+          "text": "`(-5 >>> 0).toString(2)` 를 콘솔에서 쳐 보라. 32비트 2의 보수가 그대로 보인다 — 1이 잔뜩 나오는 이유를 이제 설명할 수 있어야 한다."
+        }
       ],
-      "answer": 1,
-      "why": "내부는 2진법이다. 16진법은 사람이 비트를 묶어 읽기 좋은 표기일 뿐이다."
+      "quiz": [
+        {
+          "q": "8비트 2의 보수에서 `1111 1111` 은?",
+          "choices": [
+            "255",
+            "-1",
+            "-127",
+            "127"
+          ],
+          "answer": 1,
+          "why": "-128 + 127 = -1."
+        },
+        {
+          "q": "2의 보수를 쓰는 가장 큰 이유는?",
+          "choices": [
+            "읽기 쉬워서",
+            "덧셈 회로 하나로 뺄셈까지 되고 0이 하나라서",
+            "범위가 넓어서",
+            "표준이라서"
+          ],
+          "answer": 1,
+          "why": "부호-크기 방식은 0이 둘이고 회로가 둘이었다."
+        },
+        {
+          "q": "8비트 정수의 범위는?",
+          "choices": [
+            "-127~128",
+            "-128~127",
+            "-128~128",
+            "0~255"
+          ],
+          "answer": 1,
+          "why": "0이 양수 쪽에 들어가 음수가 하나 많다."
+        }
+      ]
     },
     {
-      "q": "`0.1 + 0.2 === 0.3` 이 false 인 이유는?",
-      "choices": [
-        "JavaScript 의 버그라서",
-        "0.1 과 0.2 를 2진법 소수로 정확히 표현할 수 없어 반올림 오차가 남아서",
-        "덧셈 순서가 잘못돼서"
+      "id": "3",
+      "title": "비트 연산 — AND · OR · XOR · 시프트",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "비트 연산은 두 수를 **자리마다 따로** 계산한다. 자리 사이에 영향이 없다는 점(시프트 제외)이 보통 산술과 가장 다르다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "연산을 골라 보라 — 자리마다 무슨 일이 일어나나",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const op = '{{op}}', A = {{a}}, B = 12;\n  const f = { and: (a,b)=>a&b, or:(a,b)=>a|b, xor:(a,b)=>a^b, shl:(a)=>(a<<1)&255, shr:(a)=>a>>1 }[op];\n  const R = f(A, B);\n  const b8 = (n) => (n & 255).toString(2).padStart(8, '0');\n  const label = { and:'A & B', or:'A | B', xor:'A ^ B', shl:'A << 1', shr:'A >> 1' }[op];\n  app.innerHTML =\n    '<div class=\"hint\">A = ' + A + '</div>' + bitRow(b8(A)) +\n    (op === 'shl' || op === 'shr' ? '' : '<div class=\"hint\">B = ' + B + '</div>' + bitRow(b8(B))) +\n    '<div class=\"hint\">' + label + ' = ' + R + '</div>' + bitRow(b8(R));\n  const why = {\n    and: '둘 다 1일 때만 1 — 「골라내기(마스크)」에 쓴다.',\n    or:  '하나라도 1이면 1 — 「켜기」에 쓴다.',\n    xor: '다를 때만 1 — 「뒤집기」와 「같은지 보기」에 쓴다. 같은 값을 두 번 XOR 하면 원래대로.',\n    shl: '왼쪽으로 한 칸 = 2를 곱한 것. 넘친 비트는 버려진다.',\n    shr: '오른쪽으로 한 칸 = 2로 나눈 몫(내림).',\n  }[op];\n  show(label + ' = ' + R + '\\n\\n' + why);\n</script>",
+          "controls": [
+            {
+              "id": "op",
+              "label": "연산",
+              "type": "select",
+              "value": "and",
+              "options": [
+                {
+                  "value": "and",
+                  "label": "AND (&)"
+                },
+                {
+                  "value": "or",
+                  "label": "OR (|)"
+                },
+                {
+                  "value": "xor",
+                  "label": "XOR (^)"
+                },
+                {
+                  "value": "shl",
+                  "label": "왼쪽 시프트 (<<)"
+                },
+                {
+                  "value": "shr",
+                  "label": "오른쪽 시프트 (>>)"
+                }
+              ]
+            },
+            {
+              "id": "a",
+              "label": "A",
+              "type": "range",
+              "min": 0,
+              "max": 255,
+              "step": 1,
+              "value": 10
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "실제로 쓰는 자리",
+          "text": "// 색에서 채널 뽑기 — 마스크 & 시프트\nconst r = (color >> 16) & 0xff;\nconst g = (color >> 8) & 0xff;\nconst b = color & 0xff;\n\n// 짝수인가 — 마지막 비트만 보면 된다\nconst even = (n & 1) === 0;\n\n// 두 값 비교 없이 「다른 비트 수」 세기 (해밍 거리)\nlet d = 0, x = a ^ b;\nwhile (x) { d += x & 1; x >>= 1; }"
+        },
+        {
+          "type": "note",
+          "text": "JavaScript 의 비트 연산은 값을 **32비트 정수로 바꾼 뒤** 계산한다. 그래서 큰 수에 `|0` 을 쓰면 잘리고, `>>>`(부호 없는 시프트)만 결과가 부호 없는 값이 된다. 안전한 범위를 넘으면 `BigInt` 를 써라(7장)."
+        },
+        {
+          "type": "try",
+          "text": "`x ^ y ^ y === x` 가 늘 참인지 아무 수로 확인하라. 이 성질이 옛 「임시 변수 없이 두 값 바꾸기」 트릭의 근거다."
+        }
       ],
-      "answer": 1,
-      "why": "IEEE 754 부동소수의 성질이다. 거의 모든 언어에서 같은 결과가 나온다."
+      "quiz": [
+        {
+          "q": "「짝수인가」를 비트로 확인하는 식은?",
+          "choices": [
+            "n & 1",
+            "n | 1",
+            "n ^ 1",
+            "n >> 1"
+          ],
+          "answer": 0,
+          "why": "마지막 비트가 0이면 짝수."
+        },
+        {
+          "q": "같은 값으로 두 번 XOR 하면?",
+          "choices": [
+            "0이 된다",
+            "원래 값으로 돌아온다",
+            "두 배가 된다",
+            "부호가 바뀐다"
+          ],
+          "answer": 1,
+          "why": "XOR 은 자기 역연산이다."
+        },
+        {
+          "q": "`x << 1` 이 뜻하는 것은?",
+          "choices": [
+            "2로 나누기",
+            "2 곱하기",
+            "부호 뒤집기",
+            "1 더하기"
+          ],
+          "answer": 1,
+          "why": "자리값이 한 칸씩 올라간다."
+        }
+      ]
     },
     {
-      "q": "결제 금액을 다루는 가장 안전한 방법은?",
-      "choices": [
-        "double(부동소수)로 두고 마지막에 반올림한다",
-        "최소 단위(원·센트) 정수로 저장하고 보여 줄 때만 나눈다",
-        "문자열로 저장하고 필요할 때 숫자로 바꾼다"
+      "id": "4",
+      "title": "비트마스크 — 여러 개의 예/아니오를 한 수에",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "설정 스무 개를 불리언 스무 개로 들고 다니는 대신, **한 정수의 각 비트**에 담을 수 있다. 파일 권한(`chmod 755`), 이벤트 플래그, 게임의 상태이상이 전부 이 방식이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "플래그를 켜고 꺼 보라 — 한 숫자가 전부를 담는다",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const READ = 1, WRITE = 2, EXEC = 4;\n  let flags = ({{r}} ? READ : 0) | ({{w}} ? WRITE : 0) | ({{x}} ? EXEC : 0);\n  app.innerHTML = bitRow(flags.toString(2).padStart(4, '0'));\n  const has = (f) => (flags & f) !== 0;\n  show('flags = ' + flags + '  (0b' + flags.toString(2).padStart(3, '0') + ')\\n\\n'\n     + 'READ  (1) : ' + has(READ) + '\\n'\n     + 'WRITE (2) : ' + has(WRITE) + '\\n'\n     + 'EXEC  (4) : ' + has(EXEC) + '\\n\\n'\n     + '켜기   flags |= WRITE\\n'\n     + '끄기   flags &= ~WRITE\\n'\n     + '뒤집기 flags ^= WRITE\\n'\n     + '확인   (flags & WRITE) !== 0');\n</script>",
+          "controls": [
+            {
+              "id": "r",
+              "label": "읽기",
+              "type": "toggle",
+              "value": true
+            },
+            {
+              "id": "w",
+              "label": "쓰기",
+              "type": "toggle",
+              "value": false
+            },
+            {
+              "id": "x",
+              "label": "실행",
+              "type": "toggle",
+              "value": false
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "값은 반드시 **2의 거듭제곱**이어야 한다(1, 2, 4, 8…). 그래야 자리가 겹치지 않는다. `1 << 0`, `1 << 1`, `1 << 2` 로 적으면 실수하지 않는다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "쓰는 모양",
+          "text": "const Perm = { READ: 1 << 0, WRITE: 1 << 1, EXEC: 1 << 2 };\n\nlet p = Perm.READ | Perm.WRITE;   // 읽기+쓰기\np |=  Perm.EXEC;                  // 켜기\np &= ~Perm.WRITE;                 // 끄기\np ^=  Perm.READ;                  // 뒤집기\nconst canExec = (p & Perm.EXEC) !== 0;\n\n// chmod 755 = 소유자 rwx(7) · 그룹 r-x(5) · 나머지 r-x(5)"
+        },
+        {
+          "type": "note",
+          "text": "JavaScript 의 비트 연산은 32비트라 플래그가 **31개**를 넘으면 무너진다. 그 이상이면 `BigInt` 나 `Set` 을 써라. 그리고 자료를 저장할 때는 사람이 못 읽는 정수보다 이름 목록이 나은 경우가 많다 — 성능이 진짜 문제일 때만 마스크로 가라."
+        },
+        {
+          "type": "try",
+          "text": "`chmod 640` 을 비트로 풀어 보라 — 각 자리(소유자·그룹·기타)를 3비트씩 읽으면 된다. 640 = `110 100 000` = rw- r-- ---."
+        }
       ],
-      "answer": 1,
-      "why": "정수 연산에는 반올림 오차가 없다. 돈 계산 사고의 대부분이 부동소수 누적 오차에서 나온다."
+      "quiz": [
+        {
+          "q": "플래그 값이 2의 거듭제곱이어야 하는 이유는?",
+          "choices": [
+            "빨라서",
+            "자리가 겹치지 않게 하려고",
+            "관습이라",
+            "음수를 피하려고"
+          ],
+          "answer": 1,
+          "why": "겹치면 서로를 지운다."
+        },
+        {
+          "q": "플래그를 끄는 식은?",
+          "choices": [
+            "f |= X",
+            "f &= ~X",
+            "f ^= X",
+            "f -= X"
+          ],
+          "answer": 1,
+          "why": "그 자리만 0으로 만든다. ^= 는 뒤집기다."
+        },
+        {
+          "q": "JavaScript 비트마스크로 안전하게 다룰 수 있는 플래그 수는?",
+          "choices": [
+            "8개",
+            "31개 정도",
+            "64개",
+            "무제한"
+          ],
+          "answer": 1,
+          "why": "비트 연산이 32비트 정수로 처리된다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "부동소수 — 0.1 + 0.2 가 왜 그런가",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`0.1 + 0.2 !== 0.3` 은 JavaScript 의 버그가 아니라 **2진 소수의 성질**이다. 10진수에서 1/3 을 유한한 자릿수로 못 적듯이, 2진수에서는 **1/10 을 유한한 자릿수로 못 적는다.**"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "더해 보라 — 어디서 어긋나나",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const N = {{n}};\n  let sum = 0;\n  for (let i = 0; i < N; i++) sum += 0.1;\n  const want = N * 0.1;\n  app.innerHTML = '<div class=\"hint\">0.1 을 ' + N + '번 더한다</div>';\n  show('결과   ' + sum.toFixed(17) + '\\n'\n     + '기대   ' + want.toFixed(17) + '\\n'\n     + '차이   ' + Math.abs(sum - want).toExponential(3) + '\\n'\n     + '=== 로 같나?  ' + (sum === want) + '\\n\\n'\n     + '0.1 의 실제 값: ' + (0.1).toFixed(20) + '\\n'\n     + '-> 2진수로 0.000110011001100…(무한 반복). 어딘가에서 끊어야 한다.');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "더한 횟수",
+              "type": "range",
+              "min": 1,
+              "max": 1000,
+              "step": 1,
+              "value": 10
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "`double`(64비트)의 구조는 셋이다 — **부호 1비트 · 지수 11비트 · 가수 52비트**. 과학적 표기법 `1.xxxx × 2^n` 을 그대로 담은 것이고, 가수의 자릿수가 유한하기 때문에 그 아래는 **반올림**된다. 그 반올림 오차가 더할 때마다 쌓인다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "그래서 이렇게 비교한다",
+          "text": "// 나쁨\nif (a === b) …\n\n// 좋음: 허용 오차로 비교\nconst near = (a, b, eps = Number.EPSILON * 8) => Math.abs(a - b) < eps;\n\n// 돈은 아예 소수를 쓰지 않는다 — 최소 단위(원·센트)의 정수로\nconst price = 1290;      // 12.90 달러가 아니라 1290 센트"
+        },
+        {
+          "type": "note",
+          "text": "**돈에 부동소수를 쓰지 마라.** 정수(최소 단위)나 십진 라이브러리를 써라. 화면에 보이는 `12.90` 이 실제로는 `12.899999…` 라서, 더하고 반올림하는 순간 1원이 사라지거나 생긴다."
+        },
+        {
+          "type": "try",
+          "text": "`0.1 + 0.2 === 0.3` 과 `0.5 + 0.25 === 0.75` 를 각각 실행해 보라. 뒤쪽은 왜 정확한가? 0.5·0.25 는 2의 거듭제곱의 역수라 2진수로 딱 떨어지기 때문이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`0.1 + 0.2 !== 0.3` 인 이유는?",
+          "choices": [
+            "JavaScript 버그",
+            "0.1 을 2진 소수로 유한하게 못 적어서",
+            "정밀도 설정 때문",
+            "반올림 함수 때문"
+          ],
+          "answer": 1,
+          "why": "10진의 1/3 과 같은 사정이다."
+        },
+        {
+          "q": "`0.5 + 0.25` 가 정확한 이유는?",
+          "choices": [
+            "작은 수라서",
+            "2의 거듭제곱의 역수라 2진수로 딱 떨어져서",
+            "우연히",
+            "정수로 처리돼서"
+          ],
+          "answer": 1,
+          "why": "0.5 = 2^-1, 0.25 = 2^-2."
+        },
+        {
+          "q": "돈 계산에 권하는 방식은?",
+          "choices": [
+            "double 로 계산 후 반올림",
+            "최소 단위의 정수로 계산",
+            "문자열로 계산",
+            "float 사용"
+          ],
+          "answer": 1,
+          "why": "센트·원 단위 정수면 오차가 없다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "정밀도의 한계 — 안전한 정수와 큰 수",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "JavaScript 의 숫자는 전부 `double` 하나다. 정수도 여기에 담기는데, 가수가 52비트라 **2⁵³ 부터는 정수를 하나씩 셀 수 없다.** 그 경계가 `Number.MAX_SAFE_INTEGER` = 9007199254740991 이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "경계 너머를 보라 — 두 수가 같아진다",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const K = {{k}};\n  const base = Number.MAX_SAFE_INTEGER + K;\n  app.innerHTML = '<div class=\"hint\">MAX_SAFE_INTEGER + ' + K + '</div>';\n  show('MAX_SAFE_INTEGER = ' + Number.MAX_SAFE_INTEGER + '\\n'\n     + '값               = ' + base + '\\n'\n     + '값 + 1           = ' + (base + 1) + '\\n'\n     + '두 값이 같나?    ' + (base === base + 1) + '\\n\\n'\n     + 'BigInt 로 하면:  ' + (BigInt(Number.MAX_SAFE_INTEGER) + BigInt(K)) + 'n\\n'\n     + '                 ' + (BigInt(Number.MAX_SAFE_INTEGER) + BigInt(K) + 1n) + 'n  (제대로 는다)');\n</script>",
+          "controls": [
+            {
+              "id": "k",
+              "label": "얼마나 넘기나",
+              "type": "range",
+              "min": 0,
+              "max": 20,
+              "step": 1,
+              "value": 3
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "그래서 **서버가 준 큰 ID 를 숫자로 받으면 조용히 뭉개진다.** 트위터·디스코드의 눈송이 ID(64비트)가 대표적이다 — JSON 에서 문자열로 주고받아야 하고, `JSON.parse` 가 이미 숫자로 바꿔 버린 뒤에는 되돌릴 수 없다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "큰 정수를 다루는 법",
+          "text": "Number.isSafeInteger(9007199254740993);   // false\n\n// BigInt — 끝에 n, 또는 BigInt()\nconst big = 9007199254740993n;\nbig + 1n;                 // 9007199254740994n\n// 주의: Number 와 섞어 계산할 수 없다(TypeError)\n// 주의: JSON.stringify 가 BigInt 를 못 다룬다 -> 문자열로\n\n// ID 는 애초에 문자열로 받는다\n{ \"id\": \"1234567890123456789\" }"
+        },
+        {
+          "type": "p",
+          "text": "정밀도는 값이 커질수록 나빠진다. 2⁵³ 근처에서는 간격이 2가 되고, 더 커지면 4, 8… 로 벌어진다. **큰 수일수록 「다음 표현 가능한 수」가 멀어진다** — 이것이 부동소수의 본질이다."
+        },
+        {
+          "type": "try",
+          "text": "`JSON.parse('{\"id\": 9007199254740993}').id` 를 실행해 보라. 값이 달라져 있으면, 그 서버 응답은 문자열로 받아야 한다는 뜻이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`Number.MAX_SAFE_INTEGER` 를 넘으면?",
+          "choices": [
+            "오류가 난다",
+            "정수를 하나씩 구분하지 못한다",
+            "자동으로 BigInt 가 된다",
+            "0이 된다"
+          ],
+          "answer": 1,
+          "why": "가수 52비트의 한계."
+        },
+        {
+          "q": "64비트 ID 를 안전하게 받는 방법은?",
+          "choices": [
+            "Number 로 받기",
+            "문자열로 주고받기",
+            "parseFloat",
+            "반올림"
+          ],
+          "answer": 1,
+          "why": "JSON.parse 단계에서 이미 뭉개진다."
+        },
+        {
+          "q": "BigInt 와 Number 를 섞어 더하면?",
+          "choices": [
+            "자동 변환된다",
+            "TypeError",
+            "정밀도만 떨어진다",
+            "문자열이 된다"
+          ],
+          "answer": 1,
+          "why": "명시적으로 변환해야 한다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "넘침과 자르기 — 32비트로 떨어지는 순간",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "3장의 각주를 여기서 정면으로 본다. JavaScript 에서 **비트 연산자는 피연산자를 32비트 정수로 바꾼다.** 그래서 큰 수에 `| 0` 이나 `<<` 를 쓰면 위쪽이 잘려 나간다 — 오류 없이, 조용히."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "연산을 골라 보라 — 큰 수가 어떻게 잘리나",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const op = '{{op}}';\n  const V = 3000000000;   /* 30억 — 32비트 부호 있는 정수 범위(21억) 밖 */\n  const r = { or0: V | 0, shr0: V >>> 0, trunc: Math.trunc(V), big: null }[op];\n  const text = {\n    or0:   'V | 0        = ' + (V | 0) + '\\n-> 32비트 부호 있는 정수로 해석 = 음수가 됐다.',\n    shr0:  'V >>> 0      = ' + (V >>> 0) + '\\n-> 부호 없는 32비트로 해석 = 원래 값이 살아났다(0~42억까지).',\n    trunc: 'Math.trunc(V)= ' + Math.trunc(V) + '\\n-> 비트 연산이 아니라 소수만 버린다. 큰 수도 안전.',\n    big:   'BigInt(V)*2n = ' + (BigInt(V) * 2n) + 'n\\n-> 자릿수 제한이 없다. 대신 Number 와 못 섞는다.',\n  }[op];\n  app.innerHTML = '<div class=\"hint\">V = ' + V + ' (32비트 부호 있는 정수 최대 = 2147483647)</div>';\n  show(text + '\\n\\n규칙: 소수를 버리려면 Math.trunc, 비트를 다루려면 | 와 >>> 를 뜻대로 골라라.');\n</script>",
+          "controls": [
+            {
+              "id": "op",
+              "label": "연산",
+              "type": "select",
+              "value": "or0",
+              "options": [
+                {
+                  "value": "or0",
+                  "label": "V | 0"
+                },
+                {
+                  "value": "shr0",
+                  "label": "V >>> 0"
+                },
+                {
+                  "value": "trunc",
+                  "label": "Math.trunc(V)"
+                },
+                {
+                  "value": "big",
+                  "label": "BigInt"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "옛 코드에서 `~~x` 나 `x | 0` 을 「빠른 정수 변환」으로 쓰는 것을 볼 수 있다. 값이 21억을 안 넘을 때만 맞다. 뜻을 그대로 적는 `Math.trunc(x)` 가 낫고, 요즘 엔진에서는 속도 차이도 없다."
+        },
+        {
+          "type": "p",
+          "text": "다른 언어에서는 **넘침 자체가 사고**가 된다. C 의 `int` 는 21억을 넘으면 정의되지 않은 동작이고, 게임에서 점수가 갑자기 음수가 되는 유명한 버그들이 여기서 나왔다. Rust 는 디버그 빌드에서 아예 패닉을 낸다 — 조용한 실패를 시끄러운 실패로 바꾼 선택이다."
+        },
+        {
+          "type": "try",
+          "text": "`(2**31) | 0` 과 `(2**31) >>> 0` 을 각각 실행해 결과가 왜 다른지 설명해 보라. 하나는 부호 있는 해석, 하나는 부호 없는 해석이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`3000000000 | 0` 의 결과가 음수인 이유는?",
+          "choices": [
+            "버그",
+            "32비트 부호 있는 정수로 해석돼서",
+            "반올림돼서",
+            "BigInt 라서"
+          ],
+          "answer": 1,
+          "why": "맨 앞 비트가 부호 자리가 된다."
+        },
+        {
+          "q": "소수만 버리고 싶을 때 쓸 것은?",
+          "choices": [
+            "| 0",
+            "~~x",
+            "Math.trunc",
+            ">> 0"
+          ],
+          "answer": 2,
+          "why": "비트 연산은 32비트 제한이 따라온다."
+        },
+        {
+          "q": "`>>> 0` 이 다른 시프트와 다른 점은?",
+          "choices": [
+            "더 빠르다",
+            "결과를 부호 없는 32비트로 만든다",
+            "소수를 살린다",
+            "BigInt 를 지원한다"
+          ],
+          "answer": 1,
+          "why": "0~4294967295 범위가 된다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "글자도 숫자다 — 유니코드와 UTF-8",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "컴퓨터에는 글자가 없다. 번호와 **번호를 바이트로 적는 규칙**이 있을 뿐이다. 유니코드는 「가 = U+AC00」처럼 **번호를 정한 표**이고, UTF-8 은 그 번호를 **바이트로 적는 방법**이다. 둘은 다른 층이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "글자를 골라 보라 — 몇 바이트이고 length 는 얼마인가",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  const s = { ascii: 'A', ko: '가', emoji: '🐱', family: '👨‍👩‍👧', flag: '🇰🇷' }[kind];\n  const bytes = new TextEncoder().encode(s);\n  const points = [...s];\n  app.innerHTML = '<div style=\"font-size:44px;text-align:center;padding:6px\">' + s + '</div>';\n  show('글자             ' + s + '\\n'\n     + 's.length         ' + s.length + '   (UTF-16 단위 수 — 「글자 수」가 아니다)\\n'\n     + '[...s].length    ' + points.length + '   (코드포인트 수)\\n'\n     + 'UTF-8 바이트 수  ' + bytes.length + '\\n'\n     + '코드포인트       ' + points.map((c) => 'U+' + c.codePointAt(0).toString(16).toUpperCase()).join(' ') + '\\n'\n     + 'UTF-8 바이트     ' + [...bytes].map((b) => b.toString(16).padStart(2, '0')).join(' ') + '\\n\\n'\n     + 's.slice(0, 1)  -> \"' + s.slice(0, 1) + '\"   <- 여기서 글자가 깨지면 그게 이 장의 요점이다.');\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "글자",
+              "type": "select",
+              "value": "emoji",
+              "options": [
+                {
+                  "value": "ascii",
+                  "label": "A"
+                },
+                {
+                  "value": "ko",
+                  "label": "가"
+                },
+                {
+                  "value": "emoji",
+                  "label": "🐱"
+                },
+                {
+                  "value": "family",
+                  "label": "👨‍👩‍👧 (가족)"
+                },
+                {
+                  "value": "flag",
+                  "label": "🇰🇷 (국기)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "UTF-8 은 **길이가 변한다** — ASCII 는 1바이트, 한글은 3바이트, 이모지는 4바이트. 그래서 영어권 문서는 예전과 같은 크기로 남고(호환), 나머지 세계도 같은 규칙 안에 들어왔다. 오늘 웹의 사실상 유일한 인코딩인 이유다."
+        },
+        {
+          "type": "note",
+          "text": "`\"🐱\".length === 2` 다. JavaScript 문자열은 UTF-16 단위의 배열이라, 4바이트 글자는 **두 칸**을 차지한다(서로게이트 쌍). 그래서 `slice`·`substring`·인덱스 접근이 글자를 반으로 자를 수 있다 — 글자 단위로 다루려면 `[...str]` 이나 `Intl.Segmenter` 를 써라."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "글자를 세는 세 가지 층",
+          "text": "const s = '👨‍👩‍👧';\ns.length                                   // 8  (UTF-16 단위)\n[...s].length                              // 5  (코드포인트 — ZWJ 포함)\n[...new Intl.Segmenter().segment(s)].length // 1  (사람이 보는 글자 한 개)\n\n// 이름 길이 제한·글자 자르기는 세 번째 기준이어야 한다"
+        },
+        {
+          "type": "try",
+          "text": "입력칸에 이모지를 넣고 `value.length` 로 20자 제한을 거는 코드를 상상해 보라. 이모지 열 개면 이미 20이 넘는다 — 이것이 실제로 자주 나는 버그다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "유니코드와 UTF-8 의 관계는?",
+          "choices": [
+            "같은 말",
+            "유니코드는 번호표, UTF-8 은 그 번호를 바이트로 적는 규칙",
+            "UTF-8 이 상위 개념",
+            "둘 다 인코딩"
+          ],
+          "answer": 1,
+          "why": "층이 다르다."
+        },
+        {
+          "q": "`'🐱'.length` 의 값은?",
+          "choices": [
+            "1",
+            "2",
+            "4",
+            "0"
+          ],
+          "answer": 1,
+          "why": "UTF-16 서로게이트 쌍이라 두 칸."
+        },
+        {
+          "q": "사람이 보는 「글자 한 개」 단위로 세려면?",
+          "choices": [
+            "str.length",
+            "[...str].length",
+            "Intl.Segmenter",
+            "TextEncoder"
+          ],
+          "answer": 2,
+          "why": "가족 이모지처럼 여러 코드포인트가 한 글자인 경우까지 처리한다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "이 칸의 내용은 「몰라도 돌아가지만, 모르면 어느 날 조용히 틀리는」 것들이다. 그 조용한 틀림이 어디서 나오는지만 기억하면 된다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "숫자·글자가 이상할 때 점검 순서",
+          "text": "값이 미세하게 다르다\n  [ ] 소수를 === 로 비교했나            -> 허용 오차 비교 (5장)\n  [ ] 돈을 소수로 다뤘나                 -> 최소 단위 정수 (5장)\n큰 수가 이상하다\n  [ ] MAX_SAFE_INTEGER 를 넘었나         -> BigInt · ID 는 문자열 (6장)\n  [ ] 비트 연산·| 0 로 32비트에 잘렸나   -> Math.trunc / >>> (7장)\n음수가 이상하다\n  [ ] 부호 비트를 부호 없는 값으로 읽었나 (2장)\n글자 수가 이상하다\n  [ ] length 로 셌나                     -> [...str] · Intl.Segmenter (8장)\n  [ ] slice 가 이모지를 반으로 잘랐나 (8장)\n플래그가 이상하다\n  [ ] 값이 2의 거듭제곱인가 · 31개를 넘었나 (4장)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 실제로 돌려서 확인한다",
+          "height": "320px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const cases = [\n    ['0.1 + 0.2 === 0.3', 0.1 + 0.2 === 0.3, false],\n    ['0.5 + 0.25 === 0.75', 0.5 + 0.25 === 0.75, true],\n    ['(255).toString(16)', (255).toString(16), 'ff'],\n    ['(-1 >>> 0)', -1 >>> 0, 4294967295],\n    ['3000000000 | 0 < 0', (3000000000 | 0) < 0, true],\n    [\"'🐱'.length\", '🐱'.length, 2],\n    ['MAX_SAFE + 2 === MAX_SAFE + 3', Number.MAX_SAFE_INTEGER + 2 === Number.MAX_SAFE_INTEGER + 3, true],\n    ['(10 & 1) === 0', (10 & 1) === 0, true],\n  ];\n  let ok = 0;\n  const lines = cases.map(([label, got, want]) => {\n    const pass = JSON.stringify(got) === JSON.stringify(want);\n    if (pass) ok++;\n    return (pass ? '  O  ' : '  X  ') + label + '  ->  ' + JSON.stringify(got);\n  });\n  app.innerHTML = '<div class=\"hint\">여덟 줄을 실제로 실행한 결과다</div>';\n  show(lines.join('\\n') + '\\n\\n예상과 달랐던 줄이 있으면 그 장으로 돌아가라. (' + ok + '/' + cases.length + ')');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸은 메모리다. 여기까지가 「값이 비트로 어떻게 적히나」였다면, 다음은 **그 비트가 어디에 놓이고 언제 사라지나**다."
+        },
+        {
+          "type": "try",
+          "text": "내 코드에서 소수 `===` 비교, `| 0`, `.length` 로 글자 수 세기 — 이 셋을 검색해 보라. 하나라도 나오면 오늘 배운 것이 실제로 걸린 자리다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "값이 미세하게 다를 때 먼저 의심할 것은?",
+          "choices": [
+            "부동소수 비교",
+            "비트 연산",
+            "유니코드",
+            "BigInt"
+          ],
+          "answer": 0,
+          "why": "=== 대신 허용 오차 비교."
+        },
+        {
+          "q": "글자 수가 예상보다 크게 나올 때는?",
+          "choices": [
+            "인코딩 오류",
+            "length 가 UTF-16 단위를 세고 있어서",
+            "폰트 문제",
+            "공백 때문"
+          ],
+          "answer": 1,
+          "why": "이모지는 두 칸 이상을 차지한다."
+        }
+      ]
     }
   ]
 }
