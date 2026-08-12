@@ -113,7 +113,9 @@ if (!markup || markup.length < 400) {
 
 fs.writeFileSync(
   FILE,
-  html.replace(EMPTY, MARK + '\n<div class="content-body" id="tool-pages">' + markup + '</div>'),
+  /* 넣을 글은 **함수로** — 그 안의 `$&`·`$1` 이 치환 패턴으로 읽히면 안 된다
+     (자세한 사고 기록은 `prerender-tools.mjs` 의 같은 자리 주석). */
+  html.replace(EMPTY, () => MARK + '\n<div class="content-body" id="tool-pages">' + markup + '</div>'),
   'utf8'
 );
 console.log(`[prerender-home] 첫 화면을 미리 그려 넣었다 (${(markup.length / 1024).toFixed(1)}KB)`);
