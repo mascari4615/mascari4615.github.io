@@ -40,6 +40,8 @@ function withGhost(url) {
   return i < 0 ? URL_TOOL : URL_TOOL + url.slice(i);
 }
 
+let stage = '시작';
+
 async function open(url) {
   // 빈 쪽을 거쳐 간다 — 주소만 바뀌면 도구가 스스로 새로 열기 때문에(같은 문서 안 이동 대응),
   // 곧바로 옮겨 가면 검사가 그 새로 열림과 겹쳐 치던 글자를 잃는다.
@@ -52,15 +54,21 @@ async function open(url) {
 
 /** 지금 화면의 글을 한 글자씩 친다. perChar 를 크게 주면 느리게 친 판이 된다. */
 async function typeAll(perChar) {
-  /* ★ 칠 글은 **치기 직전에** 읽는다 (2026-08-12). 위젯이 말 묶음을 받아 온 뒤 화면을 다시
-   *   그리면서 글이 바뀌는 순간이 있다 — 먼저 읽어 둔 옛 글을 치면 끝까지 쳐도 「다 쳤다」가
-   *   안 되고, 검사는 `#gtUrl` 을 20초 기다리다 죽는다(실주소에서 그렇게 빨갰다).
-   *   한 글자 칠 때마다 지금 글과 견주고, 글이 바뀌면 그 자리에서 다시 시작한다. */
-  let target = await page.evaluate(() => document.querySelector('#gtText')?.textContent || '');
-  if (!target) throw new Error('칠 글이 화면에 없다');
+  /* ★ 칠 글이 **가만해질 때까지** 기다린 뒤 친다 (2026-08-12).
+   *   위젯은 말 묶음을 받아 온 뒤 화면을 다시 그리고, 판이 끝나면 스스로 화면을 옮긴다.
+   *   ① 먼저 읽어 둔 옛 글을 치면 「다 쳤다」가 안 되고(20초 대기 후 죽음)
+   *   ② 한 글자마다 다시 읽으면 그 화면 옮김과 부딪혀 「실행 맥락이 사라졌다」로 죽는다.
+   *   그래서 **읽기는 치기 전에 한 번만**, 대신 두 번 연속 같은 글이 나올 때까지 기다린다. */
+  let target = '';
+  for (let tries = 0; tries < 40; tries += 1) {
+    const first = await page.evaluate(() => document.querySelector('#gtText')?.textContent || '');
+    await page.waitForTimeout(150);
+    const second = await page.evaluate(() => document.querySelector('#gtText')?.textContent || '');
+    if (first && first === second) { target = first; break; }
+  }
+  if (!target) throw new Error('칠 글이 화면에서 가만해지지 않는다');
+
   for (let i = 0; i < target.length; i += 1) {
-    const now = await page.evaluate(() => document.querySelector('#gtText')?.textContent || '');
-    if (now !== target) { target = now; i = -1; await page.fill('#gtInput', ''); continue; }
     await page.fill('#gtInput', target.slice(0, i + 1));
     if (perChar > 0) await page.waitForTimeout(perChar);
   }
@@ -74,6 +82,7 @@ async function typeAll(perChar) {
 
 try {
   // ① 한 판 치면 주소가 나온다 (느리게 쳐서, 뒤에 올 사람이 이길 수 있게)
+  stage = '① 첫 판 치기';
   await open(URL_TOOL);
   const first = await typeAll(30);
   check('첫 판 주소', /#g=/.test(first.url), `주소: ${first.url.slice(0, 60)}`);
@@ -81,6 +90,7 @@ try {
   check('타수 표기', /\d+타/.test(first.score), `점수: ${first.score}`);
 
   // ② 그 주소를 열면 유령이 기다리고, 치는 동안 앞으로 나아간다
+  stage = '② 유령과 대결';
   await open(withGhost(first.url));
   const banner = await page.evaluate(() => {
     const b = document.querySelector('#gtBanner');
@@ -97,6 +107,7 @@ try {
 
   // ③ 아주 빠르게 치면 이긴다 — 판정이 한쪽으로 굳어 있지 않은지
   await open(withGhost(first.url));
+  stage = '③ 빠르게 쳐서 이기기';
   const fast = await typeAll(0);
   check('빠르면 이긴다', /이겼다/.test(fast.verdict), `판정: ${fast.verdict}`);
 
@@ -119,7 +130,8 @@ try {
   check('자소 단위 타건', /40타건/.test(own.score), `점수: ${own.score} (10글자 × 4타 = 40이어야 한다)`);
   check('내 글이 주소에 담김', /#g=/.test(own.url) && own.url.length > 60, `주소: ${own.url.slice(0, 60)}`);
 } catch (e) {
-  failures.push(`검사가 끝까지 못 갔다: ${e.message}`);
+  /* 어디서 멈췄는지 없이 「끝까지 못 갔다」만 남기면 다음 사람이 처음부터 다시 좁혀야 한다. */
+  failures.push(`검사가 끝까지 못 갔다 (단계: ${stage}): ${e.message}`);
 } finally {
   await browser.close();
 }
