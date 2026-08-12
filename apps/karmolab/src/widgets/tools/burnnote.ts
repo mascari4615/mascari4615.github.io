@@ -58,7 +58,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         </div>
         <div class="field-group" id="bnResult" style="display:none;">
           <div class="tool-sublabel">${esc(t('burnnote.label.link', undefined, '이 링크를 건네세요'))}</div>
-          <input type="text" id="bnLink" readonly style="width:100%; font-family:var(--font-mono,monospace);">
+          <input type="text" id="bnLink" readonly aria-label="${esc(t('burnnote.label.link', undefined, '이 링크를 건네세요'))}" style="width:100%; font-family:var(--font-mono,monospace);">
           <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
             <button class="btn" id="bnCopy">${esc(t('burnnote.btn.copy', undefined, '복사'))}</button>
           </div>
@@ -71,7 +71,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           <div class="tool-sublabel">${esc(t('burnnote.label.got', undefined, '받은 쪽지'))}</div>
           <p class="bn-warn">${esc(t('burnnote.note.warn', undefined, '지금 열면 사라집니다. 옮겨 적을 준비가 됐을 때 누르세요.'))}</p>
           <button class="btn btn-primary" id="bnOpen">${esc(t('burnnote.btn.open', undefined, '열기 (한 번뿐)'))}</button>
-          <textarea id="bnGot" rows="6" readonly style="width:100%; display:none; margin-top:10px;"></textarea>
+          <textarea id="bnGot" rows="6" readonly aria-label="${esc(t('burnnote.label.got', undefined, '받은 쪽지'))}" style="width:100%; display:none; margin-top:10px;"></textarea>
           <button class="btn btn-primary" id="bnSave" style="display:none; margin-top:10px;">${esc(t('burnnote.btn.save', undefined, '파일 받기'))}</button>
         </div>
       </div>
