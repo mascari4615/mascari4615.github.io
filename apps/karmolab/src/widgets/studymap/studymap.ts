@@ -11,7 +11,15 @@
  * 「체크하려고 가입」이 지도를 안 열게 만드는 가장 흔한 이유라서.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
-import { collectHeadings, tocHtml, bindTocClicks, watchReading, highlightCode, addCopyButtons } from '../../lib/doc-view';
+import {
+  collectHeadings,
+  tocHtml,
+  bindTocClicks,
+  watchReading,
+  highlightCode,
+  addCopyButtons,
+  mountDemos,
+} from '../../lib/doc-view';
 
 interface SmLink { label: string; url: string }
 interface SmTool { id: string; label: string }
@@ -21,7 +29,15 @@ interface SmTrack { id: string; title: string; emoji: string; lead: string; scop
 interface SmData { tracks: SmTrack[] }
 
 /** 강의 한 편 — `data/lessons/<언어>/<칸id>.json`. 위젯은 그리기만 하고 내용은 표에 있다. */
-interface SmBlock { type: 'p' | 'h' | 'code' | 'note' | 'try'; text: string; lang?: string; label?: string }
+/** demo = 실행되는 예제. kind 가 어떤 판에서 돌릴지 정한다(html · js 캔버스 · 프래그먼트 셰이더). */
+interface SmBlock {
+  type: 'p' | 'h' | 'code' | 'note' | 'try' | 'demo';
+  text: string;
+  lang?: string;
+  label?: string;
+  kind?: 'html' | 'js' | 'shader';
+  height?: string;
+}
 interface SmQuiz { q: string; choices: string[]; answer: number; why?: string }
 interface SmLesson { id: string; minutes?: number; blocks: SmBlock[]; quiz?: SmQuiz[] }
 
@@ -178,6 +194,15 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 /* 강의 — 읽는 화면. 글줄은 68ch 를 안 넘긴다. */
 .sm-lesson { max-width: 68ch; }
 .sm-code pre { position: relative; }
+/* 살아 있는 예제 — 결과가 위, 고칠 코드가 아래. 결과를 먼저 봐야 코드를 읽을 마음이 생긴다. */
+.sm-demo { margin: 14px 0; }
+.doc-demo { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-secondary); }
+.doc-demo-view { width: 100%; border: 0; display: block; background: #fff; }
+.doc-demo-code { width: 100%; box-sizing: border-box; border: 0; border-top: 1px solid var(--border); background: var(--bg-tertiary); color: var(--text-primary); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 1.6; padding: 10px 12px; min-height: 92px; resize: vertical; }
+.doc-demo-code:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.doc-demo-bar { display: flex; gap: 6px; padding: 8px 10px; border-top: 1px solid var(--border); }
+.doc-demo-btn { font: inherit; font-size: 11px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; }
+.doc-demo-btn:hover { border-color: var(--accent); color: var(--accent); }
 .doc-copy { position: absolute; top: 6px; right: 6px; font: inherit; font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-tertiary); cursor: pointer; opacity: 0; transition: opacity .15s; }
 pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .doc-copy:hover { color: var(--accent); border-color: var(--accent); }
@@ -488,6 +513,11 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             const lang = /^[\w-]+$/.test(blk.lang || '') ? (blk.lang as string) : 'text';
             return `<div class="sm-code">${blk.label ? `<div class="sm-code-label">${esc(blk.label)}</div>` : ''}<pre><code class="language-${esc(lang)}">${esc(blk.text)}</code></pre></div>`;
           }
+          if (blk.type === 'demo') {
+            const kind = blk.kind === 'js' || blk.kind === 'shader' ? blk.kind : 'html';
+            const h = /^\d{2,4}px$/.test(blk.height || '') ? blk.height : '';
+            return `<div class="sm-demo">${blk.label ? `<div class="sm-code-label">${esc(blk.label)}</div>` : ''}<div data-demo="${kind}"${h ? ` data-demo-height="${esc(h)}"` : ''}>${esc(blk.text)}</div></div>`;
+          }
           if (blk.type === 'note' || blk.type === 'try') {
             const tag = blk.type === 'try' ? t('studymap.lesson.try', undefined, '직접 해보기') : t('studymap.lesson.note', undefined, '기억할 것');
             return `<div class="sm-callout${blk.type === 'try' ? ' is-try' : ''}"><span class="sm-callout-tag">${esc(tag)}</span>${strong(blk.text)}</div>`;
@@ -527,6 +557,12 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       const lessonBody = elStages.querySelector('.sm-lesson');
       if (lessonBody instanceof HTMLElement) {
         addCopyButtons(lessonBody, t('studymap.copy', undefined, '복사'), t('studymap.copied', undefined, '복사됨'));
+        mountDemos(lessonBody, {
+          run: t('studymap.demo.run', undefined, '다시 그리기'),
+          reset: t('studymap.demo.reset', undefined, '되돌리기'),
+          code: t('studymap.demo.code', undefined, '예제 코드'),
+          result: t('studymap.demo.result', undefined, '실행 결과'),
+        });
         void highlightCode(lessonBody);
       }
 

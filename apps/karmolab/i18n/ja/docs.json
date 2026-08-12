@@ -48,5 +48,9 @@
   "docs.t47": "[docs] manifest の読み込みに失敗 (entity グループなしで続行):",
   "docs.t48": "ドキュメント",
   "docs.copy": "コピー",
-  "docs.copied": "コピーした"
+  "docs.copied": "コピーした",
+  "docs.demo.run": "再描画",
+  "docs.demo.reset": "元に戻す",
+  "docs.demo.code": "サンプルコード",
+  "docs.demo.result": "実行結果"
 }

@@ -36,5 +36,9 @@
   "studymap.find": "찾기",
   "studymap.lesson.toc": "목차",
   "studymap.copy": "복사",
-  "studymap.copied": "복사됨"
+  "studymap.copied": "복사됨",
+  "studymap.demo.run": "다시 그리기",
+  "studymap.demo.reset": "되돌리기",
+  "studymap.demo.code": "예제 코드",
+  "studymap.demo.result": "실행 결과"
 }

@@ -48,5 +48,9 @@
   "docs.t47": "[docs] manifest failed to load (continuing without the entity group):",
   "docs.t48": "Documents",
   "docs.copy": "Copy",
-  "docs.copied": "Copied"
+  "docs.copied": "Copied",
+  "docs.demo.run": "Run again",
+  "docs.demo.reset": "Reset",
+  "docs.demo.code": "Example code",
+  "docs.demo.result": "Result"
 }

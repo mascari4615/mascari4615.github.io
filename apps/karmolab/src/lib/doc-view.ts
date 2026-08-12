@@ -247,3 +247,130 @@ export function addCopyButtons(root: HTMLElement, label: string, doneLabel: stri
     pre.appendChild(btn);
   });
 }
+
+/* ─────────── 살아 있는 예제 ───────────
+ * 코드만 보여 주면 「그래서 어떻게 되는데」가 안 남는다. 결과를 옆에 띄우고, 고치면 바로 다시 그린다.
+ *
+ * 실행은 전부 **격리된 iframe**(sandbox=allow-scripts, 같은 출처 아님) 안에서만 한다.
+ * 문서에 적힌 코드가 우리 화면의 저장소·쿠키·DOM 에 손댈 수 없다는 뜻 — 이게 이 기능의 전제다.
+ */
+
+export type DemoKind = 'html' | 'js' | 'shader';
+
+const DEMO_LABELS = { run: '다시 그리기', reset: '되돌리기', code: '코드', result: '결과' };
+
+/** 캔버스 한 장과 붙잡을 고리만 준 최소 판 — 예제 코드가 짧아진다. */
+function jsPage(code: string): string {
+  return `<!doctype html><meta charset="utf-8"><style>
+    html,body{margin:0;height:100%;background:#111;color:#eee;font:13px/1.5 system-ui,sans-serif;overflow:hidden}
+    canvas{display:block;width:100%;height:100%}
+  </style><canvas id="c"></canvas><script>
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    function fit(){ canvas.width = innerWidth * devicePixelRatio; canvas.height = innerHeight * devicePixelRatio; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
+    fit(); addEventListener('resize', fit);
+    const W = () => innerWidth, H = () => innerHeight;
+    try { ${code} } catch (e) { document.body.innerHTML = '<pre style="color:#f88;padding:10px;white-space:pre-wrap">' + e + '</pre>'; }
+  <\/script>`;
+}
+
+/** 프래그먼트 셰이더 한 장 — u_time·u_resolution 만 준다(배우는 데 그 둘이면 충분). */
+function shaderPage(frag: string): string {
+  return `<!doctype html><meta charset="utf-8"><style>html,body{margin:0;height:100%;overflow:hidden;background:#111}canvas{display:block;width:100%;height:100%}
+  pre{color:#f88;font:12px/1.5 ui-monospace,monospace;padding:10px;white-space:pre-wrap;margin:0}</style><canvas id="c"></canvas><script>
+  const cv = document.getElementById('c');
+  const gl = cv.getContext('webgl');
+  const fail = (m) => { document.body.innerHTML = '<pre>' + m + '</pre>'; };
+  if (!gl) fail('이 브라우저에서 WebGL 을 쓸 수 없다');
+  else {
+    const vs = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+    const fs = ${JSON.stringify(
+      'precision mediump float;\nuniform float u_time;\nuniform vec2 u_resolution;\n',
+    )} + ${JSON.stringify(frag)};
+    const mk = (t, src) => { const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { fail(gl.getShaderInfoLog(s) || '셰이더 오류'); return null; } return s; };
+    const v = mk(gl.VERTEX_SHADER, vs), f = mk(gl.FRAGMENT_SHADER, fs);
+    if (v && f) {
+      const pr = gl.createProgram(); gl.attachShader(pr, v); gl.attachShader(pr, f); gl.linkProgram(pr); gl.useProgram(pr);
+      const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,3,-1,-1,3]), gl.STATIC_DRAW);
+      const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+      const uT = gl.getUniformLocation(pr, 'u_time'), uR = gl.getUniformLocation(pr, 'u_resolution');
+      const t0 = performance.now();
+      (function loop(){
+        cv.width = innerWidth; cv.height = innerHeight;
+        gl.viewport(0, 0, cv.width, cv.height);
+        gl.uniform1f(uT, (performance.now() - t0) / 1000);
+        gl.uniform2f(uR, cv.width, cv.height);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        requestAnimationFrame(loop);
+      })();
+    }
+  }
+  <\/script>`;
+}
+
+function demoPage(kind: DemoKind, code: string): string {
+  if (kind === 'js') return jsPage(code);
+  if (kind === 'shader') return shaderPage(code);
+  /* html — 글자 크기만 맞춰 주고 나머지는 예제가 정한다 */
+  return `<!doctype html><meta charset="utf-8"><style>body{margin:0;padding:12px;font:14px/1.6 system-ui,sans-serif;color:#222;background:#fff}</style>${code}`;
+}
+
+/**
+ * `[data-demo]` 가 붙은 자리(강의 블록·문서의 ```demo-… 울타리)를 살아 있는 판으로 바꾼다.
+ * 코드는 그 자리에서 고칠 수 있고, 멈추면 다시 그린다.
+ */
+export function mountDemos(root: HTMLElement, labels: Partial<typeof DEMO_LABELS> = {}): void {
+  const L = { ...DEMO_LABELS, ...labels };
+  root.querySelectorAll<HTMLElement>('[data-demo]').forEach((host) => {
+    if (host.dataset.demoReady === '1') return;
+    host.dataset.demoReady = '1';
+    const kind = (host.dataset.demo || 'html') as DemoKind;
+    const source = (host.textContent || '').replace(/\s+$/, '');
+    host.textContent = '';
+    host.classList.add('doc-demo');
+
+    const frame = document.createElement('iframe');
+    frame.className = 'doc-demo-view';
+    frame.setAttribute('sandbox', 'allow-scripts');
+    frame.setAttribute('title', L.result);
+    frame.style.height = host.dataset.demoHeight || '220px';
+
+    const editor = document.createElement('textarea');
+    editor.className = 'doc-demo-code';
+    editor.spellcheck = false;
+    editor.value = source;
+    editor.setAttribute('aria-label', L.code);
+
+    const bar = document.createElement('div');
+    bar.className = 'doc-demo-bar';
+    const run = document.createElement('button');
+    run.type = 'button';
+    run.className = 'doc-demo-btn';
+    run.textContent = L.run;
+    const reset = document.createElement('button');
+    reset.type = 'button';
+    reset.className = 'doc-demo-btn';
+    reset.textContent = L.reset;
+    bar.append(run, reset);
+
+    const draw = (): void => {
+      frame.srcdoc = demoPage(kind, editor.value);
+    };
+    let timer = 0;
+    /* 타자 칠 때마다 다시 그리면 어지럽다 — 손이 멈춘 뒤에 한 번. */
+    editor.addEventListener('input', () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(draw, 600);
+    });
+    run.addEventListener('click', draw);
+    reset.addEventListener('click', () => {
+      editor.value = source;
+      draw();
+    });
+
+    host.append(frame, editor, bar);
+    draw();
+  });
+}
