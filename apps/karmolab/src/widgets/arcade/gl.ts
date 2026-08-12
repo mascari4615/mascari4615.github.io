@@ -109,10 +109,16 @@ const BOX = box();
 
 /** 던지는 쪽 뒤에서 낮게 내려다본다 — 핀이 서 있는 게 보이는 자리. */
 function camera(out: Float32Array, w: number, h: number, aspect: number): void {
-  /* 던지는 사람 눈높이에 가깝게. 멀찍이 두면 핀이 점이 되고, 그러면 3D 로 그릴 이유가 없다. */
-  const eye = [w / 2, h + h * 0.10, h * 0.085];
-  const at = [w / 2, h * 0.16, 4];
-  const near = 1, far = h * 4, fov = 0.85;
+  /*
+   * 던지는 사람 뒤에서, **핀 쪽으로 당겨서** 본다.
+   *
+   * 처음엔 레인 전체가 들어오게 잡았더니 핀 열 개가 한 덩어리로 보였다(스크린샷으로 확인).
+   * 이 놀이의 그림은 「서 있던 게 넘어간다」라서, 레인을 다 보여 주는 것보다 **핀이 크게
+   * 보이는 쪽**이 맞다. 그래서 눈을 낮추고 화각을 좁혀 앞쪽 레인을 일부러 잘라 낸다.
+   */
+  const eye = [w / 2, h * 0.72, h * 0.105];
+  const at = [w / 2, h * 0.12, h * 0.022];
+  const near = 1, far = h * 4, fov = 0.62;
   const f = 1 / Math.tan(fov / 2);
 
   let zx = eye[0] - at[0], zy = eye[1] - at[1], zz = eye[2] - at[2];

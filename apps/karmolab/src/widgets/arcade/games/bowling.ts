@@ -13,11 +13,13 @@ import type { GameDef, BotMove, Outcome } from '../types';
 export const W = 60;
 export const H = 200;
 export const BALL_R = 4;
-export const PIN_R = 2.9;
+export const PIN_R = 1.9;
 /** 핀이 서는 자리 (삼각형 열 개) */
 export const PIN_SPOTS: Array<[number, number]> = (() => {
   const out: Array<[number, number]> = [];
-  const gap = 6.2;
+  /* 지름의 두 배 넘게 벌린다 — 실제 볼링이 그렇고(지름 12cm·간격 30cm), 붙여 놓으면
+     가까이서 봤을 때 열 개가 한 덩어리 벽으로 보인다(스크린샷으로 확인). */
+  const gap = 8.6;
   for (let row = 0; row < 4; row++) {
     for (let i = 0; i <= row; i++) {
       out.push([W / 2 + (i - row / 2) * gap, 34 - row * gap * 0.87]);
