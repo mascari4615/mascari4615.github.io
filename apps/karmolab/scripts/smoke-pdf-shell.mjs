@@ -66,14 +66,19 @@ check((await page.locator('#pfName').innerText()) === '보고서.pdf', '파일 �
 await page.waitForFunction(() => /2/.test(document.querySelector('#pfMeta')?.textContent || ''), { timeout: 15000 }).catch(() => {});
 const meta = await page.locator('#pfMeta').innerText();
 check(/2/.test(meta), `쪽 수를 읽어야 한다 (지금 「${meta}」)`);
-await page.waitForFunction(() => !!document.querySelector('#pfPreview canvas'), { timeout: 15000 }).catch(() => {});
-check((await page.locator('#pfPreview canvas').count()) === 1, '미리보기가 그려진다');
+await page.waitForFunction(() => document.querySelectorAll('#pfPages .pf-thumb').length >= 2, { timeout: 20000 }).catch(() => {});
+const thumbs = await page.locator('#pfPages .pf-thumb').count();
+check(thumbs === 2, `쪽 격자에 두 쪽이 다 보인다 (지금 ${thumbs})`);
+check((await page.locator('#pfPages .pf-thumb canvas').count()) === 2, '썸네일이 실제로 그려진다');
 
-/* ③ 두 쪽이면 넘기는 단추가 산다 */
-check(await page.locator('#pfPager').isVisible(), '두 쪽이면 넘기는 단추가 보인다');
-await page.click('#pfNext');
-await page.waitForTimeout(700);
-check(/2 \/ 2/.test(await page.locator('#pfPage').innerText()), '다음 쪽으로 넘어간다');
+/* ③ 눌러서 크게 본다 — 작은 격자만으로는 「이 쪽이 맞나」를 못 본다 */
+await page.locator('.pf-thumb[data-page="2"]').click();
+await page.waitForSelector('#pfZoom canvas', { timeout: 15000 }).catch(() => {});
+check((await page.locator('#pfZoom canvas').count()) === 1, '누르면 크게 뜬다');
+check(/2 \/ 2/.test(await page.locator('.pf-zoom-tag').innerText()), '크게 본 것이 누른 그 쪽이다');
+await page.click('#pfZoom');
+await page.waitForTimeout(200);
+check((await page.locator('#pfZoom').count()) === 0, '다시 누르면 닫힌다');
 
 /* ④ 할 일을 고르면 그 자리에서 열린다 — 파일은 안 사라진다 */
 await page.locator('.pf-job[data-job="pdfcrop"]').click();
@@ -99,7 +104,27 @@ const got2 = await page.evaluate(() => {
   const input = document.querySelector('#pfHost input[type=file]');
   return input && input.files && input.files.length ? input.files[0].name : '';
 });
-check(got2 === '보고서.pdf', `다른 할 일로 옮겨도 파일이 따라간다 (지금 「${got2}」) — 이게 이 판의 요점`);
+check(got2 === '보고서.pdf', `다른 할 일로 옮겨도 파일이 따라간다 (지금 「${got2}」) — 이게 앞 판의 요점`);
+
+/* ⑦ 결과 이어받기 — 할 일이 결과를 내놓으면 그것이 다음 판의 입력이 된다 (KL-260)
+ *    도구가 실제로 결과를 낼 때까지 기다리는 대신, 도구가 부르는 그 신호를 그대로 울려 본다
+ *    (도구 쪽 계산은 다른 검사가 본다 — 여기서 볼 것은 **껍데기가 그 결과를 받아 무는가**). */
+await page.evaluate(() => {
+  const blob = new Blob([new Uint8Array([37, 80, 68, 70])], { type: 'application/pdf' });
+  Toolbox.offerResult({ blob, name: '보고서-쪽번호.pdf', from: 'pdfpagenum' });
+  window.dispatchEvent(new CustomEvent('karmolab-result', {
+    detail: { type: 'application/pdf', name: '보고서-쪽번호.pdf', from: 'pdfpagenum', size: 4 }
+  }));
+});
+await page.waitForSelector('#pfChain:visible', { timeout: 10000 }).catch(() => {});
+check(await page.locator('#pfChain').isVisible(), '결과가 나오면 「이어서」 줄이 뜬다');
+await page.click('#pfChainUse');
+await page.waitForTimeout(500);
+check(
+  (await page.locator('#pfName').innerText()) === '보고서-쪽번호.pdf',
+  '누르면 **그 결과가 손에 든 파일이 된다** — 다시 안 올린다 (이 판의 요점)'
+);
+check(await page.locator('#pfJobs').isVisible(), '이어서 다음 할 일을 고르는 자리로 돌아온다');
 
 process.stdout.write('\n');
 await browser.close();

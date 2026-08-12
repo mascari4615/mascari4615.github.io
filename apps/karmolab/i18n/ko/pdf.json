@@ -23,5 +23,8 @@
   "pdf.preview.fail": "이 문서는 미리 못 봅니다",
   "pdf.meta": "{n}쪽 · {size}",
   "pdf.meta.unreadable": "미리보기를 못 그렸습니다",
-  "pdf.err.mount": "이 할 일을 불러오지 못했습니다"
+  "pdf.err.mount": "이 할 일을 불러오지 못했습니다",
+  "pdf.btn.more": "더 보기 ({n}쪽)",
+  "pdf.btn.chain": "이 결과로 이어서",
+  "pdf.chain.ready": "결과 「{name}」"
 }
