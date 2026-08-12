@@ -127,7 +127,13 @@ async function drawOne(id) {
 
   const filled =
     MARK + '\n<div class="content-body" id="tool-pages">' + markup + '</div>';
-  fs.writeFileSync(file, html.replace(EMPTY, filled), 'utf8');
+  /* ★ 넣을 글을 **함수로** 준다 (2026-08-12). `String.replace` 는 넣는 글 안의 `$&`·`$1` 을
+   *   특별한 뜻으로 읽는다 — 미리 그린 화면에 그런 글자가 있으면 그 자리에 **찾던 글이
+   *   통째로 끼어든다**. 실제로 정규식 도구의 「$1, &lt;name&gt;」 안내가
+   *   「$1, <div class="content-body" id="tool-pages"></div>lt;name&gt;」로 나갔고,
+   *   그 `</div>` 가 상자를 일찍 닫아 설명이 스크롤 밖으로 밀렸다(사람은 아래를 못 본다).
+   *   함수로 주면 그런 해석이 없다. */
+  fs.writeFileSync(file, html.replace(EMPTY, () => filled), 'utf8');
   done++;
 }
 
