@@ -146,7 +146,8 @@ export function audioCtx(): AudioContext {
 export async function loadAudio(file: File | Blob): Promise<AudioBuffer> {
   const bytes = await file.arrayBuffer();
   /* 사본을 넘긴다 — `decodeAudioData` 는 받은 통을 자기 것으로 삼아 비운다.
-   * 안 그러면 같은 파일을 두 번째로 읽을 때 빈손이 된다(PDF 쪽과 같은 함정). */
+   * 다만 통을 매번 새로 뜨므로 이 사본이 없어도 **겉으로는 같게 돈다**. 지키는 것은
+   * 「`bytes` 를 여기서 더 쓰거나 밖으로 넘길 때」 — 앞으로를 위한 울타리다(PDF 쪽과 같다). */
   return await audioCtx().decodeAudioData(bytes.slice(0));
 }
 
