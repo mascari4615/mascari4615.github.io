@@ -12,6 +12,10 @@ extend-exclude = [
   # 공유 카드 이미지 목록 — 값이 전부 내용 해시(16진수)라 영어 단어로 오독된다
   "apps/karmolab/img/og/manifest.json",
 
+  # 「오타를 제안하는 법」 강의 — 본문이 **일부러 틀린 낱말**을 예로 든다
+  # (`'lenght' → 혹시 'length' 인가요?`). 낱말로 풀어 주면 진짜 오타를 놓치므로 이 파일만 뺀다.
+  "apps/karmolab/data/lessons/ko/plt-error.json",
+
   # 변경 이력(생성물) — 커밋 해시가 그대로 들어간다. 해시에 우연히 영어 단어처럼 보이는
   # 조각이 섞이면 그날 master 가 통째로 빨개진다 (2026-08-08: `d6daa35f` 의 `daa`).
   # 단어를 하나씩 허용해 봐야 다음 해시에서 또 난다 — 파일째 뺀다.
@@ -36,6 +40,7 @@ adn = "adn"              # pulse 코드 식별자: adnominal(관형사형) 줄�
 Mosquitto = "Mosquitto"  # MQTT 브로커 제품 이름 (embed-net 강의) — 모기(mosquito) 아님
 mosquitto = "mosquitto"  # 같은 이름의 명령줄 도구 (mosquitto_sub)
 MAPE = "MAPE"            # Mean Absolute Percentage Error — 예측 오차 지표 (ml-eval 강의)
+RTO = "RTO"              # Recovery Time Objective — 복구 목표 시간 (db-backup 강의). RPO 와 짝
 
 # 의도된 약어 / 외국어 / 고유명사 / 식별자
 # typos action 이 master log 로 발견한 false-positive (TASK-KL-032 시드).
