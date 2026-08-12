@@ -7,6 +7,7 @@
  * 이미지는 브라우저 안에서만 읽고 어디로도 보내지 않는다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { loadImage } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -159,26 +160,23 @@ import { t, loadNamespace } from '../../lib/i18n';
             });
           }
 
-          function load(f: File): void {
+          /** 공용 `loadImage` 로 (TASK-KL-280). 미리보기는 읽어 온 그림의 주소를 그대로 쓴다. */
+          async function load(f: File): Promise<void> {
             if (!f.type.startsWith('image/')) {
               status.textContent = t('palette.err.notImage');
               status.className = 'tool-status error';
               return;
             }
-            const url = URL.createObjectURL(f);
-            const img = new Image();
-            img.onload = () => {
-              preview.src = url;
+            try {
+              const img = await loadImage(f);
+              preview.src = img.src;
               previewWrap.style.display = '';
               lastImage = img;
               extract(img);
-            };
-            img.onerror = () => {
+            } catch {
               status.textContent = t('palette.err.open');
               status.className = 'tool-status error';
-              URL.revokeObjectURL(url);
-            };
-            img.src = url;
+            }
           }
 
           countEl.addEventListener('input', () => {
@@ -189,7 +187,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           drop.onclick = () => file.click();
           file.onchange = () => {
-            if (file.files && file.files[0]) load(file.files[0]);
+            if (file.files && file.files[0]) void load(file.files[0]);
           };
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -200,10 +198,10 @@ import { t, loadNamespace } from '../../lib/i18n';
             e.preventDefault();
             drop.classList.remove('over');
             const f = e.dataTransfer?.files?.[0];
-            if (f) load(f);
+            if (f) void load(f);
           });
           // 파일을 바로 붙여넣는 것이 잦다
-          acceptPastedFiles(container, (files) => { load(files[0]); }, (f) => f.type.startsWith('image/'));
+          acceptPastedFiles(container, (files) => { void load(files[0]); }, (f) => f.type.startsWith('image/'));
           // 스크린샷을 바로 붙여 넣는 흐름이 실제로 제일 많다.
           container.addEventListener('paste', (e) => {
             const items = (e as ClipboardEvent).clipboardData?.items;
@@ -211,7 +209,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             for (const it of items) {
               if (it.type.startsWith('image/')) {
                 const f = it.getAsFile();
-                if (f) load(f);
+                if (f) void load(f);
                 break;
               }
             }
