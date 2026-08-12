@@ -9,7 +9,7 @@
  *  ② **키우기(정규화)** — 그 뒤에 전체를 목표 크기까지 올린다
  * 순서가 반대면 찌그러진다. 처리 전후를 **숫자와 파형으로 나란히** 보여 주고, 귀로도 비교하게 한다.
  */
-import { toWav, encodeAudio, fileSize as size, mmss, download, audioCtx } from './shared/media';
+import { toWav, encodeAudio, fileSize as size, mmss, download, audioCtx, loadAudio } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
 
 import { t, loadNamespace } from '../../lib/i18n';
@@ -164,9 +164,8 @@ import { t, loadNamespace } from '../../lib/i18n';
             saveBtn.disabled = true;
             $<HTMLElement>('#alResult').style.display = 'none';
             say(`${f.name} · ${size(f.size)} 를 읽는 중…`);
-            const ctx = audioCtx();
             try {
-              source = await ctx.decodeAudioData(await f.arrayBuffer());
+              source = await loadAudio(f);
             } catch {
               say(t('audiolevel.err.decode'), 'error');
               return;

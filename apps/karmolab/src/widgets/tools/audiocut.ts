@@ -5,7 +5,7 @@
  * 브라우저는 이미 오디오를 해독할 수 있으므로(Web Audio) 잘라 내는 일은 밖으로 나갈 필요가 없다.
  * 내보내기는 MP3(작아서 보내기 좋음)와 WAV(손실 없음) 중 고른다. MP3 압축기는 그때만 받아 온다.
  */
-import { encodeAudio, fileSize as size, mmss, download, audioCtx } from './shared/media';
+import { encodeAudio, fileSize as size, mmss, download, audioCtx, loadAudio } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -143,8 +143,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             say(t('audiocut.say.opening'));
             fileName = file.name.replace(/\.[^.]+$/, '');
             try {
-              const ctx = audioCtx();
-              buffer = await ctx.decodeAudioData(await file.arrayBuffer());
+              buffer = await loadAudio(file);
             } catch {
               say(t('audiocut.err.format'), 'error');
               return;

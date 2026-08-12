@@ -9,7 +9,7 @@
  *    입력 크기를 실시간으로 그린다. 조용하면 조용하다고 알려 준다.
  *  - 저장은 WAV. 다른 도구(오디오 자르기·잇기)에 바로 물릴 수 있고 품질 손실이 없다.
  */
-import { toWav, encodeAudio, fileSize as size, mmss, audioCtx } from './shared/media';
+import { toWav, encodeAudio, fileSize as size, mmss, audioCtx, loadAudio } from './shared/media';
 import { AiGate } from '../../lib/ai-gate';
 import { loadEngine, webgpuAvailable } from '../../lib/ai-engine';
 import { MODEL_SIZE_MB, toModelAudio, toSrt, transcribe } from '../../lib/ai-transcribe';
@@ -242,7 +242,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             // 녹음한 소리를 WAV 로 바꾼다. 담긴 형식은 브라우저마다 달라, 한 번 해독해 통일한다.
             let buffer: AudioBuffer | null = null;
             try {
-              buffer = await ctx.decodeAudioData(await raw.arrayBuffer());
+              buffer = await loadAudio(raw);
             } catch {
               buffer = null;
             }

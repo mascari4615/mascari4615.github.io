@@ -5,7 +5,7 @@
  * 그대로 이어 붙일 수 없다 — 44.1kHz 와 48kHz 를 섞으면 뒤쪽이 빨라지거나 느려진다.
  * 가장 높은 표본율에 맞추고 채널도 통일한 뒤 잇는다. 사이에 무음을 넣는 선택지도 둔다.
  */
-import { encodeAudio, fileSize as size, mmss, download, audioCtx } from './shared/media';
+import { encodeAudio, fileSize as size, mmss, download, audioCtx, loadAudio } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -99,11 +99,10 @@ import { t, loadNamespace } from '../../lib/i18n';
           }
 
           async function add(list: FileList | File[]): Promise<void> {
-            const ctx = audioCtx();
             for (const f of Array.from(list)) {
               if (!f.type.startsWith('audio/')) continue;
               try {
-                items.push({ name: f.name, buffer: await ctx.decodeAudioData(await f.arrayBuffer()) });
+                items.push({ name: f.name, buffer: await loadAudio(f) });
               } catch {
                 say(t('audiojoin.err.one', { name: f.name }), 'error');
               }
