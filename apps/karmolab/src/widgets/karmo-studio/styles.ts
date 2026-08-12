@@ -13,7 +13,7 @@ export const KARMO_STUDIO_CSS = `
     .ks-btn.is-on, .ks-btn.is-recording { color:var(--accent-hover); background:var(--accent-dim); border-color:var(--accent); }
     .ks-btn.is-recording { color:#ff7a86; }
     .ks-project-name { width:150px !important; border:0; background:transparent; color:var(--text-primary); font-weight:650; padding:4px; }
-    .ks-number { width:58px !important; padding:5px; background:var(--bg-primary); color:var(--text-primary); border:1px solid var(--border); border-radius:var(--radius-sm); }
+    .ks-number { width:74px !important; min-width:74px; flex:none; padding:5px; background:var(--bg-primary); color:var(--text-primary); border:1px solid var(--border); border-radius:var(--radius-sm); }
     .ks-time { min-width:82px; font:12px var(--font-mono); text-align:center; color:var(--text-secondary); }
     .ks-spacer { flex:1 1 20px !important; }
     .ks-work { display:grid; grid-template-columns:minmax(0, 1fr) 260px; min-height:0; flex:1; }
@@ -90,8 +90,9 @@ export const KARMO_STUDIO_CSS = `
     .ks-clip.is-locked .ks-clip-name::after { content:' 🔒'; }
     .ks-clip.is-locked .ks-handle { display:none; }
     .ks-clip.is-muted .ks-clip-name::before { content:'🔇 '; }
-    .ks-auto-pick { position:absolute; right:4px; top:2px; display:flex; gap:3px; z-index:2; }
-    .ks-auto-tag { position:absolute; left:4px; top:2px; font:9px var(--font-mono); color:var(--text-tertiary); pointer-events:none; }
+    .ks-btn, .ks-mini { white-space:nowrap; }
+    .ks-auto-pick { position:sticky; float:left; left:6px; top:2px; width:max-content; display:flex; gap:3px; z-index:2; }
+    .ks-auto-tag { position:sticky; float:left; left:6px; top:16px; width:max-content; font:9px var(--font-mono); color:var(--text-tertiary); pointer-events:none; }
     .ks-lane.is-drop { box-shadow:inset 0 0 0 2px var(--accent); }
     .ks-help { position:fixed; left:50%; top:8%; transform:translateX(-50%); z-index:1000; width:min(620px,94vw); max-height:84dvh; overflow:auto; padding:14px 16px; border:1px solid var(--border-hover); border-radius:8px; background:var(--bg-secondary); box-shadow:0 18px 40px rgba(0,0,0,.45); }
     .ks-help-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; font:12px var(--font-mono); color:var(--text-secondary); }
