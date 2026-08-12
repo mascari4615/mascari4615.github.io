@@ -1382,7 +1382,9 @@ import {
       const labelOf = (id: string): string => spec.nodes.find((n) => n.id === id)?.label ?? id;
 
       sideEl.innerHTML = `
-        <h4>${kindIcon(node.kind)} 노드</h4>
+        <!-- 머리에는 **이 카드가 무엇인지**를 적는다. 「노드」는 프로그램 말이지 사람 말이 아니고,
+             바로 위 탭이 이미 「고른 것」이라 같은 말이 두 번 나오기도 했다. -->
+        <h4>${kindIcon(node.kind)} ${esc(kindLabel(node.kind))}</h4>
         <div class="km-field">
           <label>${esc(t('karmograph.t148'))}</label>
           <input type="text" data-km="edit-label" value="${escapeAttr(node.label)}" />
