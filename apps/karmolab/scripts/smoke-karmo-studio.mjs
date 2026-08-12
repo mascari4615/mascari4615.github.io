@@ -141,6 +141,21 @@ const focusY=focusBox.y+focusBox.height/2;
 const focusX=await page.evaluate(([left,right,y])=>{for(let x=left+3;x<right-9;x+=3){const element=document.elementFromPoint(x,y);if(element&&element.closest('.ks-note')&&!element.closest('[data-note-resize]'))return x;}return left+3;},[focusBox.x,focusBox.x+focusBox.width,focusY]);
 await page.mouse.click(focusX,focusY);await page.waitForTimeout(100);
 const focusedNotes=await page.locator('.ks-note.is-selected').count();
+/* 피아노롤 도구 — quantize / transpose / velocity 가 고른 음에만 닿는다. */
+const notePitchesBeforeTranspose=await page.locator('.ks-note').evaluateAll((elements)=>elements.map((element)=>parseFloat(element.style.top)));
+/* 지금은 음 하나만 골라 둔 상태 — 도구는 고른 음에만 닿아야 한다.
+   ±12 는 음역 천장에 걸려 왕복이 비대칭이라(정상) 여기선 ±1 로 잰다. 천장 규칙은 단위 테스트가 덮는다. */
+await page.click('[data-note-act=up]');await page.waitForTimeout(120);
+const notePitchesAfterTranspose=await page.locator('.ks-note').evaluateAll((elements)=>elements.map((element)=>parseFloat(element.style.top)));
+const transposedCount=notePitchesAfterTranspose.filter((value,index)=>Math.abs(value-notePitchesBeforeTranspose[index])>0.6).length;
+await page.click('[data-note-act=down]');await page.waitForTimeout(120);
+const notePitchesAfterUndoTranspose=await page.locator('.ks-note').evaluateAll((elements)=>elements.map((element)=>parseFloat(element.style.top)));
+const velocityBars=await page.locator('.ks-vel').count();
+const velocityHeightsBefore=await page.locator('.ks-vel').evaluateAll((elements)=>elements.map((element)=>parseFloat(element.style.height)));
+await page.locator('[data-note-velocity]').evaluate((element)=>{element.value='1';element.dispatchEvent(new Event('input',{bubbles:true}));});
+await page.waitForTimeout(120);
+const velocityHeightsAfter=await page.locator('.ks-vel').evaluateAll((elements)=>elements.map((element)=>parseFloat(element.style.height)));
+const quantizeStatus=await (async()=>{await page.click('[data-note-act=quantize]');await page.waitForTimeout(120);return page.locator('[data-role=status]').textContent();})();
 const noteCountBeforePaste=await page.locator('.ks-note').count();await page.keyboard.press('Control+c');await page.keyboard.press('Control+v');await page.waitForTimeout(80);const noteCountAfterPaste=await page.locator('.ks-note').count();
 /* 확장 편집기가 열려 있을 때만 접는다 — 무조건 toggle 하면 오히려 열려서 툴바를 덮는다. */
 if(await page.locator('.ks-editor.is-expanded').count())await page.click('[data-act=toggle-editor]');
@@ -198,6 +213,12 @@ if(noteDeltas.length<2||noteDeltas.some((value)=>Math.abs(value-noteDeltas[0])>0
 if(noteCountAfterGroupDuplicate!==noteCountBeforeGroupDelete*2)problems.push(`묶음 note 복제 실패 (${noteCountBeforeGroupDelete}→${noteCountAfterGroupDuplicate})`);
 if(noteCountAfterGroupDelete!==noteCountBeforeGroupDelete)problems.push(`묶음 note 삭제 실패 (${noteCountAfterGroupDuplicate}→${noteCountAfterGroupDelete})`);
 if(focusedNotes!==1)problems.push(`수식어 없는 클릭이 묶음을 접지 않았다 (${focusedNotes} selected)`);
+if(transposedCount!==1)problems.push(`반음 올림이 고른 음 하나에만 닿지 않았다 (${transposedCount}개 이동, ${JSON.stringify(notePitchesBeforeTranspose)}→${JSON.stringify(notePitchesAfterTranspose)})`);
+if(Math.abs((notePitchesAfterTranspose.find((value,index)=>Math.abs(value-notePitchesBeforeTranspose[index])>0.6)??0)-(notePitchesBeforeTranspose[notePitchesAfterTranspose.findIndex((value,index)=>Math.abs(value-notePitchesBeforeTranspose[index])>0.6)]-16))>0.6)problems.push('반음 올림 폭이 1반음(16px)이 아니다');
+if(notePitchesAfterUndoTranspose.some((value,index)=>Math.abs(value-notePitchesBeforeTranspose[index])>0.6))problems.push(`반음 내림이 원래 자리로 안 돌아왔다 (${JSON.stringify(notePitchesAfterUndoTranspose)})`);
+if(velocityBars<1)problems.push('velocity lane 막대가 없다');
+if(velocityHeightsAfter.filter((value,index)=>value>velocityHeightsBefore[index]).length!==1)problems.push(`velocity 슬라이더가 고른 음 하나에만 닿지 않았다 (${JSON.stringify(velocityHeightsBefore)}→${JSON.stringify(velocityHeightsAfter)})`);
+if(!/Quantized|grid/.test(quantizeStatus||''))problems.push(`quantize 결과 보고가 없다 (${quantizeStatus})`);
 if(noteCountAfterPaste!==noteCountBeforePaste+1)problems.push(`MIDI note copy/paste 실패 (${noteCountBeforePaste}→${noteCountAfterPaste})`);
 if(arrangerScrollBefore>5&&arrangerScrollAfter<arrangerScrollBefore-5)problems.push(`타임라인 재렌더 뒤 스크롤 초기화 (${arrangerScrollBefore}→${arrangerScrollAfter})`);
 if(!mobile&&(laneCountsBeforeCross.length<2||laneCountsAfterCross[0]!==laneCountsBeforeCross[0]-1||laneCountsAfterCross[laneCountsAfterCross.length-1]!==laneCountsBeforeCross[laneCountsBeforeCross.length-1]+1))problems.push(`트랙 간 클립 이동 실패 (${JSON.stringify(laneCountsBeforeCross)}→${JSON.stringify(laneCountsAfterCross)})`);

@@ -185,3 +185,57 @@ export function normalizeProject(input: unknown): StudioProject {
 export function projectJson(project: StudioProject, pretty = true): string {
   return JSON.stringify({ ...project, updatedAt: new Date().toISOString() }, null, pretty ? 2 : 0);
 }
+
+/**
+ * 음 편집 연산 — 피아노롤 도구가 쓰는 순수 변형.
+ * 전부 제자리 변형이지만 프로젝트/DOM 을 모르므로 단위 테스트로 닫힌다.
+ */
+
+/** 시작 위치를 격자로 당긴다. strength 0~1 = 얼마나 당길지 (1 = 완전히 붙임). */
+export function quantizeNotes(notes: StudioNote[], snap: number, strength = 1): number {
+  const unit = snap > 0 ? snap : 0.25;
+  const amount = Math.max(0, Math.min(1, strength));
+  let moved = 0;
+  for (const note of notes) {
+    const target = Math.max(0, Math.round(note.beat / unit) * unit);
+    const next = note.beat + (target - note.beat) * amount;
+    if (Math.abs(next - note.beat) > 1e-9) moved++;
+    note.beat = next;
+  }
+  return moved;
+}
+
+/** 음높이를 옮긴다. MIDI 범위를 벗어나면 묶음 전체가 그만큼만 움직인다 (모양 보존). */
+export function transposeNotes(notes: StudioNote[], semitones: number, low = 0, high = 127): number {
+  if (!notes.length || !semitones) return 0;
+  const lowest = Math.min(...notes.map((note) => note.pitch));
+  const highest = Math.max(...notes.map((note) => note.pitch));
+  const shift = semitones > 0
+    ? Math.min(semitones, high - highest)
+    : Math.max(semitones, low - lowest);
+  if (!shift) return 0;
+  for (const note of notes) note.pitch += shift;
+  return shift;
+}
+
+/** 세기를 한 번에 맞춘다. */
+export function setNoteVelocity(notes: StudioNote[], velocity: number): void {
+  const value = Math.max(0.05, Math.min(1, velocity));
+  for (const note of notes) note.velocity = value;
+}
+
+/** 앞 음의 끝을 다음 음의 시작까지 늘린다 (같은 음높이 줄 기준). */
+export function legatoNotes(notes: StudioNote[], limit: number): number {
+  const ordered = [...notes].sort((a, b) => a.beat - b.beat);
+  let changed = 0;
+  for (let index = 0; index < ordered.length; index++) {
+    const note = ordered[index];
+    const next = ordered.slice(index + 1).find((item) => item.beat > note.beat);
+    const end = next ? next.beat : limit;
+    const duration = Math.max(0.0625, end - note.beat);
+    if (Math.abs(duration - note.duration) > 1e-9) changed++;
+    note.duration = duration;
+  }
+  return changed;
+}
+
