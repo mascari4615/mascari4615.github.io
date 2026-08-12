@@ -56,6 +56,10 @@
     "embed": {
       "title": "Embedded & IoT",
       "lead": "Computers off-screen — kilobytes of memory, and someone has to walk over to unplug it"
+    },
+    "product": {
+      "title": "Product sense",
+      "lead": "Judgment rather than technique — deciding what to build and what not to"
     }
   },
   "stages": {
@@ -93,7 +97,9 @@
     "gfx-b": "Deciding the color",
     "gfx-c": "Making it fast",
     "embed-a": "The small machine",
-    "embed-b": "Connecting to the world"
+    "embed-b": "Connecting to the world",
+    "product-a": "What to build",
+    "product-b": "After you build it"
   },
   "nodes": {
     "web-html": {
@@ -942,6 +948,54 @@
       "check": "It recovers even when an update is cut off midway",
       "links": [
         "ESP-IDF OTA"
+      ]
+    },
+    "product-problem": {
+      "title": "Problem first, solution later",
+      "why": "Decide the feature first and you get something that solves a problem nobody has, very well.",
+      "check": "Before building, you can name one person who has the problem",
+      "links": [
+        "The Mom Test"
+      ]
+    },
+    "product-scope": {
+      "title": "Cutting scope",
+      "why": "The power to finish comes from subtraction, not addition. The not-doing list is the schedule.",
+      "check": "You write down what will not go into this round",
+      "links": [
+        "Shape Up (free)"
+      ]
+    },
+    "product-mvp": {
+      "title": "The smallest check",
+      "why": "Instead of building for six months and then asking, build for a week and ask.",
+      "check": "You build only enough to test one core assumption",
+      "links": [
+        "Making sense of MVP (Henrik Kniberg)"
+      ]
+    },
+    "product-metric": {
+      "title": "Metrics — what says it got better",
+      "why": "Judge by feel and the loudest person sets the direction.",
+      "check": "You decide the number that means success before shipping",
+      "links": [
+        "Lean Analytics"
+      ]
+    },
+    "product-feedback": {
+      "title": "How to take feedback",
+      "why": "\"Nice\" is not information. Where they stopped is.",
+      "check": "You find one place users got stuck and fix it",
+      "links": [
+        "Test with 5 users (NN/g)"
+      ]
+    },
+    "product-release": {
+      "title": "Release notes and telling people",
+      "why": "If nobody knows you built it, you did not build it.",
+      "check": "You write one paragraph in user words about what changed",
+      "links": [
+        "Keep a Changelog"
       ]
     }
   }
