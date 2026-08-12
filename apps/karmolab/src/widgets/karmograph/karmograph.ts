@@ -275,7 +275,12 @@ import {
     .km-saved.hidden { display:none; }
     .km-linking { outline:2px dashed var(--accent); outline-offset:-2px; }
     /* 발표 모드 — 그림을 가리지 않게 아래에만 얹는다. */
-    .km-stage { position:absolute; left:0; right:0; bottom:0; padding:14px 16px;
+    /* ★ 발표 줄은 **판 위에 떠야 한다.** z-index 를 안 주면(auto) 캔버스 svg 가 그 위에 깔려
+       「한 장으로 담기」·「다음」·「나가기」가 **마우스로 안 눌렸다** — 실측 2026-08-12: 단추
+       한가운데를 찍으면 svg 가 잡혔다. 화면 검사는 hit-test 를 건너뛰는 방식(dispatchEvent)이라
+       여태 초록이었다. 앱의 떠 있는 것들(채팅 알약 z=940)보다도 위여야 한다 —
+       발표 중에는 이 줄이 화면의 주인이다. 바탕은 여전히 pointer-events:none 이라 그림은 그대로 끌린다. */
+    .km-stage { position:absolute; left:0; right:0; bottom:0; z-index:950; padding:14px 16px;
       background:linear-gradient(to top, rgba(0,0,0,.72), rgba(0,0,0,0));
       display:flex; flex-direction:column; gap:6px; pointer-events:none; }
     .km-stage.hidden { display:none; }
@@ -285,7 +290,10 @@ import {
     .km-chip.is-on { background:rgba(255,255,255,.28); color:#fff; }
     .km-stage-title { font-size:var(--font-size-lg); font-weight:700; color:#fff; }
     .km-stage-note { font-size:var(--font-size-sm); color:rgba(255,255,255,.82); }
-    .km-stage-bar { display:flex; gap:6px; align-items:center; margin-top:4px; pointer-events:auto; }
+    /* 조작 단추는 **오른쪽**에 모은다. 왼쪽 아래는 앱의 채팅 알약 자리라 「이전」이 그 밑에
+       깔려 안 눌렸다(실측 2026-08-12). 그 알약은 페이지 층에 떠 있어 z-index 로는 못 이긴다. */
+    .km-stage-bar { display:flex; gap:6px; align-items:center; justify-content:flex-end;
+      margin-top:4px; pointer-events:auto; flex-wrap:wrap; }
     .km-stage-bar span { color:rgba(255,255,255,.7); font-size:var(--font-size-xs); min-width:48px; text-align:center; }
     .km-root.is-presenting .km-toolbar,
     .km-root.is-presenting .km-side { display:none; }
