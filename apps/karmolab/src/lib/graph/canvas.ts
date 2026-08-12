@@ -1881,7 +1881,7 @@ export class GraphCanvas {
     if (b.w <= 0 || b.h <= 0) return;
     // 셈은 `cameraForRect` 하나만 안다 — 여기서 또 세면 「전체 보기」와 발표 카메라가 갈라진다.
     Object.assign(this.state, cameraForRect({ x: b.minX, y: b.minY, w: b.w, h: b.h },
-      this.svg.clientWidth || 800, this.svg.clientHeight || 600, 60));
+      this.svg.clientWidth || 800, this.svg.clientHeight || 600, 60, 1));
     this.applyTransform();
   }
 
