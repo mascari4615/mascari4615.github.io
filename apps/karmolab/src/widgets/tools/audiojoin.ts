@@ -5,7 +5,7 @@
  * 그대로 이어 붙일 수 없다 — 44.1kHz 와 48kHz 를 섞으면 뒤쪽이 빨라지거나 느려진다.
  * 가장 높은 표본율에 맞추고 채널도 통일한 뒤 잇는다. 사이에 무음을 넣는 선택지도 둔다.
  */
-import { encodeAudio, fileSize as size, mmss } from './shared/media';
+import { encodeAudio, fileSize as size, mmss, download } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -216,13 +216,10 @@ import { t, loadNamespace } from '../../lib/i18n';
             say(format === 'mp3' ? t('audiojoin.say.encoding') : t('audiojoin.say.saving'));
             void encodeAudio(out, format)
               .then((blob) => {
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = t('audiojoin.file.name') + format;
-                a.click();
+                const aName = t('audiojoin.file.name') + format;
+                download(blob, aName);
                 // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-                Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'audiojoin' });
-                setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+                Toolbox.offerNext?.(status, { blob: blob, name: aName, from: 'audiojoin' });
                 say(t('audiojoin.say.done', { len: mmss(out.duration), size: size(blob.size) }), 'ok');
                 Toolbox.trackUse?.('join');
               })

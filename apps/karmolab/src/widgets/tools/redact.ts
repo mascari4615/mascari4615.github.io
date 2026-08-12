@@ -11,6 +11,7 @@
  *    고르면 그 사실을 말해 준다. 「가린 줄 알았는데 아니었다」가 이 도구에서 가장 나쁜 결과다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { download } from './shared/image';
 import { fileSize as size } from './shared/media';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -303,11 +304,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 say(t('redact.err.render'), 'error');
                 return;
               }
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download = sourceName + t('redact.file.suffix') + '.png';
-              a.click();
-              setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+              download(blob, sourceName + t('redact.file.suffix') + '.png');
               // 다시 그려 내보내므로 사진에 붙어 있던 위치·기기 정보도 함께 떨어진다
               say(t('redact.say.saved', { size: size(blob.size) }), 'ok');
               Toolbox.trackUse?.('save');

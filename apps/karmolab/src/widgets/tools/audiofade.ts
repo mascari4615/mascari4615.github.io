@@ -10,7 +10,7 @@
  *  - 페이드 모양은 **귀에 맞춘 곡선**을 쓴다. 소리 크기를 곧게 줄이면 중간이 갑자기 조용해진 듯
  *    들린다 — 사람 귀는 소리 세기를 곧게 느끼지 않는다.
  */
-import { encodeAudio, fileSize as size, mmss } from './shared/media';
+import { encodeAudio, fileSize as size, mmss, download } from './shared/media';
 
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -270,13 +270,10 @@ import { t, loadNamespace } from '../../lib/i18n';
           runBtn.onclick = () => void run();
           saveBtn.onclick = () => {
             if (!outBlob) return;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(outBlob);
-            a.download = baseName + t('audiofade.file.suffix') + '.wav';
-            a.click();
+            const aName = baseName + t('audiofade.file.suffix') + '.wav';
+            download(outBlob, aName);
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-            Toolbox.offerNext?.(status, { blob: outBlob, name: a.download, from: 'audiofade' });
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            Toolbox.offerNext?.(status, { blob: outBlob, name: aName, from: 'audiofade' });
             say(t('audiofade.say.saved', { size: size(outBlob.size) }), 'ok');
           };
   }

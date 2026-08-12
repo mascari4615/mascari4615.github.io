@@ -7,7 +7,7 @@
  *
  * 파일은 브라우저 밖으로 나가지 않는다. GIF 압축까지 여기서 직접 한다(`gifenc`).
  */
-import { seekTo } from './shared/video';
+import { seekTo, download } from './shared/video';
 
 import { acceptPastedFiles } from './shared/paste';
 
@@ -320,13 +320,10 @@ import { t, loadNamespace } from '../../lib/i18n';
           };
           saveBtn.onclick = () => {
             if (!made) return;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(made);
-            a.download = fileName.replace(/\.[^.]+$/, '') + '.gif';
-            a.click();
+            const aName = fileName.replace(/\.[^.]+$/, '') + '.gif';
+            download(made, aName);
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-            Toolbox.offerNext?.(status, { blob: made, name: a.download, from: 'video2gif' });
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            Toolbox.offerNext?.(status, { blob: made, name: aName, from: 'video2gif' });
             say(t('video2gif.say.saved'), 'ok');
           };
   }

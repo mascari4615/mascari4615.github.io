@@ -10,7 +10,7 @@
  *  - 담는 동안 다른 탭으로 가면 브라우저가 화면 그리기를 멈춰 그 구간이 정지 화면이 된다.
  *    막을 방법이 없으므로 **일어났으면 알려 준다.** 모르고 받아 가는 게 제일 나쁘다.
  */
-import { pickRecordType } from './shared/video';
+import { pickRecordType, download } from './shared/video';
 import { fileSize as size, mmss } from './shared/media';
 
 import { t, loadNamespace } from '../../lib/i18n';
@@ -272,13 +272,10 @@ import { t, loadNamespace } from '../../lib/i18n';
           runBtn.onclick = () => void record();
           saveBtn.onclick = () => {
             if (!made) return;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(made);
-            a.download = baseName + t('videorotate.file.suffix') + '.webm';
-            a.click();
+            const aName = baseName + t('videorotate.file.suffix') + '.webm';
+            download(made, aName);
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-            Toolbox.offerNext?.(status, { blob: made, name: a.download, from: 'videorotate' });
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            Toolbox.offerNext?.(status, { blob: made, name: aName, from: 'videorotate' });
             say(t('videorotate.say.saved', { size: size(made.size) }), 'ok');
           };
   }

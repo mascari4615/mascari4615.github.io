@@ -8,6 +8,7 @@
  * 어떤 파일이 되는지 알려 준다 — 「아무 일도 안 일어남」이 제일 나쁜 결과다.
  */
 import { encodeAudio, fileSize as size, mmss } from './shared/media';
+import { download } from './shared/video';
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -126,13 +127,10 @@ import { t, loadNamespace } from '../../lib/i18n';
             say(format === 'mp3' ? t('video2audio.say.encoding') : t('video2audio.say.making'));
             void encodeAudio(held, format)
               .then((blob) => {
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = name.replace(/\.[^.]+$/, '') + '.' + format;
-                a.click();
+                const aName = name.replace(/\.[^.]+$/, '') + '.' + format;
+                download(blob, aName);
                 // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-                Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'video2audio' });
-                setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+                Toolbox.offerNext?.(status, { blob: blob, name: aName, from: 'video2audio' });
                 say(t('video2audio.say.done', { len: mmss(held.duration), size: size(blob.size) }), 'ok');
                 Toolbox.trackUse?.('extract');
               })

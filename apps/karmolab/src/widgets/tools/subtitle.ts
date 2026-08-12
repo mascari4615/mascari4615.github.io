@@ -12,6 +12,7 @@
  *  - SRT 와 VTT 를 오간다. 웹 플레이어는 VTT 만 받고, 대부분의 자막은 SRT 로 돌아다닌다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { download } from './shared/video';
 
 (function (): void {
   interface Cue { start: number; end: number; text: string }
@@ -245,11 +246,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               return;
             }
             const blob = new Blob([out.value], { type: 'text/plain;charset=utf-8' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `${baseName}.${outFmt}`;
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            download(blob, `${baseName}.${outFmt}`);
             say(t('subtitle.say.saved', { name: `${baseName}.${outFmt}` }), 'ok');
           };
           run();

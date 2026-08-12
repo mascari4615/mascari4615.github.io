@@ -11,6 +11,7 @@
  *  - 원본보다 커지는 일이 없게 한다 — 「줄이려고 눌렀는데 커졌다」는 배신이다.
  */
 import { fileSize as size } from './shared/media';
+import { download } from './shared/image';
 
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -344,14 +345,11 @@ import { t, loadNamespace } from '../../lib/i18n';
           saveBtn.onclick = () => {
             if (!made) return;
             const ext = made.type.includes('webp') ? 'webp' : made.type.includes('png') ? 'png' : 'jpg';
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(made);
-            a.download = `${baseName}-맞춤.${ext}`;
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            const aName = `${baseName}-맞춤.${ext}`;
+            download(made, aName);
             say(t('imgresize.say.saved', { size: size(made.size) }), 'ok');
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-            Toolbox.offerNext?.(status, { blob: made, name: a.download, from: 'imgresize' });
+            Toolbox.offerNext?.(status, { blob: made, name: aName, from: 'imgresize' });
           };
   }
 })();
