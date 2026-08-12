@@ -198,7 +198,8 @@
     "check:live-tools": "node scripts/check-live-tools.mjs",
     "audit:play-urls": "node scripts/audit-play-urls.mjs",
     "test:studymap": "node scripts/check-studymap-links.mjs",
-    "test:studymap:i18n": "node scripts/check-studymap-i18n.mjs"
+    "test:studymap:i18n": "node scripts/check-studymap-i18n.mjs",
+    "test:studymap:lessons": "node scripts/check-studymap-lessons.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

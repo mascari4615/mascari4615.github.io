@@ -31,5 +31,6 @@
   "studymap.lesson.minutes": "about {n} min",
   "studymap.lesson.cleared": "All correct — this topic is marked done.",
   "studymap.scope.personal": "Mine — about this repository",
-  "studymap.scope.badge": "mine"
+  "studymap.scope.badge": "mine",
+  "studymap.lesson.tag": "lesson"
 }
