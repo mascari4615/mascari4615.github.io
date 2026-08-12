@@ -7,12 +7,15 @@
  * 붙는 자리: `main.ts` 가 `registerKarmolabApi(app)` **다음에** 부른다 — `/kl` CORS
  * 미들웨어가 거기서 달리고 Express 는 먼저 달린 것부터 태운다.
  */
+import express from 'express';
 import type { Application, Request, Response } from 'express';
 import { BurnNoteStore, MAX_BODY, getBurnNoteStore } from '../services/burn-note-store';
 
 export function registerNoteRoutes(app: Application, store: BurnNoteStore = getBurnNoteStore()): void {
   /** 맡기기. 몸통은 잠긴 덩어리 하나. */
-  app.post('/kl/note', (req: Request, res: Response) => {
+  /* 앞단의 몸통 파서는 100KB 에서 끊는다 — 파일도 같은 문으로 들어오므로(TASK-KL-252)
+     이 라우트만 크게 연다. 그래도 곳간이 다시 한 번 상한을 본다. */
+  app.post('/kl/note', express.json({ limit: '9mb' }), (req: Request, res: Response) => {
     const body = (req.body as { body?: unknown } | undefined)?.body;
     if (typeof body !== 'string') {
       res.status(400).json({ error: 'body must be a string' });

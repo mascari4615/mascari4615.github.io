@@ -13,9 +13,13 @@
   "burnnote.status.gone": "すでに開かれたか、消えています",
   "burnnote.status.opened": "開きました — このメモはもうありません",
   "burnnote.status.badkey": "鍵が合いません — リンクが切れている可能性があります",
-  "burnnote.status.empty": "渡すものを書いてください",
+  "burnnote.status.empty": "渡すものを書くか、ファイルを選んでください",
   "burnnote.status.failed": "預けられませんでした — 少し後にもう一度",
   "burnnote.status.made": "リンクを作りました",
   "burnnote.status.copied": "コピーしました",
-  "burnnote.status.copyfail": "コピーが塞がれました — ご自身で選んでコピーしてください"
+  "burnnote.status.copyfail": "コピーが塞がれました — ご自身で選んでコピーしてください",
+  "burnnote.label.file": "ファイルも（1つ・5MBまで）",
+  "burnnote.btn.save": "ファイルを受け取る",
+  "burnnote.status.openedFile": "ファイル「{name}」— 今受け取ってください。閉じると消えます",
+  "burnnote.status.big": "ファイルが5MBを超えています"
 }
