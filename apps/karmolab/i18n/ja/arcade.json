@@ -375,5 +375,6 @@
   "arcade.tuho.flying": "飛んでいる",
   "arcade.tuho.left": "残り{n}",
   "arcade.tuho.win": "{who} · {n}点",
-  "arcade.btn.sound": "音のオン・オフ"
+  "arcade.btn.sound": "音のオン・オフ",
+  "arcade.intro.skip": "押してすぐ開始"
 }

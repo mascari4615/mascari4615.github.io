@@ -375,5 +375,6 @@
   "arcade.tuho.flying": "in the air",
   "arcade.tuho.left": "{n} left",
   "arcade.tuho.win": "{who} · {n} pts",
-  "arcade.btn.sound": "Sound on/off"
+  "arcade.btn.sound": "Sound on/off",
+  "arcade.intro.skip": "tap to start now"
 }
