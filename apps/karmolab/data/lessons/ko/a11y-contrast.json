@@ -7,6 +7,33 @@
       "text": "햇빛 아래, 노안, 저가 액정, 멀미 — 모두가 겪는 조건이다. 접근성은 소수를 위한 배려가 아니라 **모두를 위한 여유**다."
     },
     {
+      "type": "demo",
+      "kind": "html",
+      "label": "색을 밀어 보라 — 대비가 4.5 아래면 읽기 어렵다",
+      "height": "200px",
+      "controls": [
+        {
+          "id": "lum",
+          "label": "글자 밝기",
+          "type": "range",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "value": 60
+        },
+        {
+          "id": "bg",
+          "label": "배경 밝기",
+          "type": "range",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "value": 100
+        }
+      ],
+      "text": "<div id=\"box\" style=\"padding:16px;border-radius:10px\">\n  <p style=\"margin:0 0 6px;font-size:18px\">이 글이 편하게 읽히나?</p>\n  <p style=\"margin:0;font-size:13px\" id=\"ratio\"></p>\n</div>\n<script>\n  const L = {{lum}} / 100, B = {{bg}} / 100;\n  const box = document.getElementById('box');\n  const fg = 'rgb(' + [L*255, L*255, L*255].map(Math.round).join(',') + ')';\n  const bgc = 'rgb(' + [B*255, B*255, B*255].map(Math.round).join(',') + ')';\n  box.style.color = fg; box.style.background = bgc;\n  const lin = (v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));\n  const rel = (v) => 0.2126 * lin(v) + 0.7152 * lin(v) + 0.0722 * lin(v);\n  const a = rel(L) + 0.05, b = rel(B) + 0.05;\n  const ratio = (Math.max(a, b) / Math.min(a, b));\n  document.getElementById('ratio').textContent =\n    '대비 ' + ratio.toFixed(2) + ':1 — ' + (ratio >= 4.5 ? '통과 (본문 기준 4.5 이상)' : '탈락');\n</script>"
+    },
+    {
       "type": "h",
       "text": "1. 대비 기준"
     },

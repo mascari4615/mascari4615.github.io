@@ -38,6 +38,8 @@ interface SmBlock {
   label?: string;
   kind?: 'html' | 'js' | 'shader';
   height?: string;
+  /** 손잡이 — 코드 안 `{{id}}` 자리에 값이 들어간다. */
+  controls?: Array<{ id: string; label: string; type: 'range' | 'toggle' | 'select'; min?: number; max?: number; step?: number; value?: string | number | boolean; options?: Array<{ value: string; label: string }> }>;
 }
 interface SmQuiz { q: string; choices: string[]; answer: number; why?: string }
 interface SmLesson { id: string; minutes?: number; blocks: SmBlock[]; quiz?: SmQuiz[] }
@@ -210,6 +212,11 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .doc-demo-view { width: 100%; border: 0; display: block; background: #fff; }
 .doc-demo-code { width: 100%; box-sizing: border-box; border: 0; border-top: 1px solid var(--border); background: var(--bg-tertiary); color: var(--text-primary); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 1.6; padding: 10px 12px; min-height: 92px; resize: vertical; }
 .doc-demo-code:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.doc-demo-knobs { display: flex; flex-wrap: wrap; gap: 14px; padding: 10px 12px; border-top: 1px solid var(--border); background: var(--bg-secondary); }
+.doc-demo-ctl { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--text-secondary); }
+.doc-demo-ctl input[type="range"] { width: 116px; accent-color: var(--accent); }
+.doc-demo-ctl output { font-variant-numeric: tabular-nums; color: var(--accent); min-width: 28px; }
+.doc-demo-ctl select { font: inherit; font-size: 11px; padding: 2px 6px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-tertiary); color: var(--text-primary); }
 .doc-demo-bar { display: flex; gap: 6px; padding: 8px 10px; border-top: 1px solid var(--border); }
 .doc-demo-btn { font: inherit; font-size: 11px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; }
 .doc-demo-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -683,7 +690,8 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
           if (blk.type === 'demo') {
             const kind = blk.kind === 'js' || blk.kind === 'shader' ? blk.kind : 'html';
             const h = /^\d{2,4}px$/.test(blk.height || '') ? blk.height : '';
-            return `<div class="sm-demo">${blk.label ? `<div class="sm-code-label">${esc(blk.label)}</div>` : ''}<div data-demo="${kind}"${h ? ` data-demo-height="${esc(h)}"` : ''}>${esc(blk.text)}</div></div>`;
+            const ctl = blk.controls?.length ? ` data-demo-controls="${esc(JSON.stringify(blk.controls))}"` : '';
+            return `<div class="sm-demo">${blk.label ? `<div class="sm-code-label">${esc(blk.label)}</div>` : ''}<div data-demo="${kind}"${h ? ` data-demo-height="${esc(h)}"` : ''}${ctl}>${esc(blk.text)}</div></div>`;
           }
           if (blk.type === 'note' || blk.type === 'try') {
             const tag = blk.type === 'try' ? t('studymap.lesson.try', undefined, '직접 해보기') : t('studymap.lesson.note', undefined, '기억할 것');

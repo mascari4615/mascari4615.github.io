@@ -46,6 +46,17 @@ for (const locale of fs.existsSync(lessonsDir) ? fs.readdirSync(lessonsDir) : []
     for (const [at, block] of (lesson.blocks || []).entries()) {
       if (!BLOCK_TYPES.has(block.type)) fail.push(`${where}: blocks[${at}] 모르는 종류 「${block.type}」`);
       if (typeof block.text !== 'string' || block.text.trim() === '') fail.push(`${where}: blocks[${at}] 글이 비었다`);
+      if (block.type === 'demo' && Array.isArray(block.controls)) {
+        for (const c of block.controls) {
+          if (!c || !c.id || !c.label || !['range', 'toggle', 'select'].includes(c.type)) {
+            fail.push(`${where}: blocks[${at}] 손잡이는 id·label·type(range/toggle/select) 이 필요하다`);
+          }
+          /* 손잡이를 만들었는데 코드가 안 쓰면 아무 일도 안 일어난다 — 조용한 실패를 막는다. */
+          if (c && c.id && !String(block.text).includes(`{{${c.id}}}`)) {
+            fail.push(`${where}: blocks[${at}] 손잡이 「${c.id}」 를 예제 코드가 안 쓴다 ({{${c.id}}} 자리 없음)`);
+          }
+        }
+      }
       if (block.type === 'demo' && !DEMO_KINDS.has(block.kind)) {
         fail.push(`${where}: blocks[${at}] demo 는 kind 가 html·js·shader 중 하나여야 한다 (지금 「${block.kind}」)`);
       }
