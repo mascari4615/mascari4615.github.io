@@ -47,5 +47,8 @@
   "studymap.view.tree": "ツリー",
   "studymap.view.list": "一覧",
   "studymap.tree.tracks": "分野マップ — 押して中へ",
-  "studymap.tree.up": "← 分野マップ"
+  "studymap.tree.up": "← 分野マップ",
+  "studymap.review.tag": "復習",
+  "studymap.review.count": "{n}件たまっている",
+  "studymap.review.set": "全問正解 — 次の復習は {when}"
 }

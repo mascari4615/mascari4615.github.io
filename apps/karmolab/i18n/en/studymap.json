@@ -47,5 +47,8 @@
   "studymap.view.tree": "Tree",
   "studymap.view.list": "List",
   "studymap.tree.tracks": "Track map — click to go in",
-  "studymap.tree.up": "← Track map"
+  "studymap.tree.up": "← Track map",
+  "studymap.review.tag": "Review",
+  "studymap.review.count": "{n} due",
+  "studymap.review.set": "All correct — next review {when}"
 }
