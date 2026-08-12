@@ -10,7 +10,7 @@
  */
 
 import type { Doc } from './model';
-import { bounds, handlePoints, type Box } from './geom';
+import { bounds, handlePoints, pathPoints, type Box } from './geom';
 import { clampSlice, type Slice } from './slice';
 import { toSvg } from './svg';
 
@@ -22,6 +22,8 @@ export class BonView {
   scale = 2;
   /** 격자 간격(문서 px). 0 = 안 그림 */
   grid = 8;
+  /** 점 편집 중인가 — 켜면 경로의 점이 하나씩 보이고 잡을 수 있다. */
+  nodesOn = false;
   /** 9-slice 경계선을 보일까. 켜면 선 넷이 뜨고 잡아서 끌 수 있다. */
   sliceOn = false;
   slice: Slice = { left: 0, right: 0, top: 0, bottom: 0 };
@@ -87,6 +89,15 @@ export class BonView {
     }
     if (selected) {
       const node = doc.layers[selected.layer]?.nodes[selected.index];
+      if (node && this.nodesOn && node.kind === 'path') {
+        // 점 편집 중에는 **점만** 보여 준다. 크기 손잡이까지 같이 뜨면 무엇을 잡는지 헷갈린다.
+        const r = 4 / this.scale;
+        for (const p of pathPoints(node.d)) {
+          parts.push(`<rect x="${p.x - r}" y="${p.y - r}" width="${r * 2}" height="${r * 2}" class="bon-node" vector-effect="non-scaling-stroke"/>`);
+        }
+        this.guides.innerHTML = parts.join('');
+        return;
+      }
       if (node) {
         const b: Box = bounds(node);
         parts.push(`<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" class="bon-sel" vector-effect="non-scaling-stroke"/>`);

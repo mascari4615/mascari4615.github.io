@@ -342,6 +342,48 @@ await page.keyboard.press('Escape');
 await page.waitForTimeout(200);
 check('Esc 로 취소하면 짓던 것이 안 남는다', (await pathCount()) === beforePen, String(await pathCount()));
 
+
+// ── 점 고치기 ──────────────────────────────
+// 펜으로 선 하나를 만들고, 그 점을 잡아 옮긴다.
+await page.evaluate(() => { const shelf = document.querySelector('.bon-shelf'); if (shelf) shelf.hidden = true; });
+await page.keyboard.press('p');
+await page.waitForTimeout(120);
+const nodePts = [[0.15, 0.7], [0.4, 0.75], [0.6, 0.6]];
+for (const [fx, fy] of nodePts) {
+  const pt = at(fx, fy);
+  await page.mouse.move(pt.x, pt.y);
+  await page.mouse.down();
+  await page.mouse.up();
+  await page.waitForTimeout(110);
+}
+await page.keyboard.press('Enter');
+await page.waitForTimeout(200);
+
+await page.keyboard.press('n');
+await page.waitForTimeout(250);
+const dots = () => page.evaluate(() => document.querySelectorAll('.bon-guides .bon-node').length);
+check('점 고치기로 바꾸면 점이 보인다', (await dots()) === 3, String(await dots()));
+check('점 편집 중엔 크기 손잡이가 안 뜬다', (await handles()) === 0, String(await handles()));
+
+const dOf = () => page.evaluate(() => {
+  const paths = [...document.querySelectorAll('.bon-art svg path')];
+  return paths[paths.length - 1].getAttribute('d');
+});
+const dBefore = await dOf();
+const grab = at(nodePts[1][0], nodePts[1][1]);
+await page.mouse.move(grab.x, grab.y);
+await page.mouse.down();
+await page.mouse.move(grab.x, grab.y - 40, { steps: 6 });
+await page.mouse.up();
+await page.waitForTimeout(250);
+const dAfter = await dOf();
+check('점을 끌면 모양이 바뀐다', dAfter !== dBefore, dBefore + ' → ' + dAfter);
+check('점 개수는 그대로', (await dots()) === 3, String(await dots()));
+
+await page.locator('.bon-bar [data-act="undo"]').click();
+await page.waitForTimeout(250);
+check('점 옮기기도 되돌려진다', (await dOf()) === dBefore, (await dOf()) + ' vs ' + dBefore);
+
 if (SHOT) {
   fs.mkdirSync(path.join(here, 'tmp'), { recursive: true });
   await page.screenshot({ path: path.join(here, 'tmp', 'bon.png'), fullPage: false });
@@ -352,5 +394,5 @@ check('콘솔 오류 없음', errors.length === 0, errors.slice(0, 3).join(' | '
 
 await browser.close();
 server.close();
-console.log(problems.length ? `\n[smoke-bon] 실패 ${problems.length}건` : '\n[smoke-bon] ✓ 그리기 · 고르기 · 옮기기 · 숫자 반영 · 되돌리기 · 안내선 분리 · 레이어 · 9-slice · 선 · 펜 · 시작점 · 정렬 · 선반');
+console.log(problems.length ? `\n[smoke-bon] 실패 ${problems.length}건` : '\n[smoke-bon] ✓ 그리기 · 고르기 · 옮기기 · 숫자 반영 · 되돌리기 · 안내선 분리 · 레이어 · 9-slice · 선 · 펜 · 시작점 · 정렬 · 점 고치기 · 선반');
 process.exit(problems.length ? 1 : 0);

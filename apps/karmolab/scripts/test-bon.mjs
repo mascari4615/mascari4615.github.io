@@ -213,6 +213,31 @@ const { alignTo, fitToDoc } = mod;
   check('여백이 판보다 커도 음수 크기가 안 나온다', tight.w >= 0 && tight.h >= 0, JSON.stringify(tight));
 }
 
+
+/* ── 점 편집 (10단계) ───────────────────────── */
+const { pathPoints, pathFrom, isClosedPath, pointAt, movePoint } = mod;
+{
+  const open = 'M10 10L30 10L30 30';
+  const closed = 'M10 10L30 10L30 30Z';
+
+  check('점을 뽑는다', pathPoints(open).length === 3, JSON.stringify(pathPoints(open)));
+  check('닫힘을 안다', isClosedPath(closed) && !isClosedPath(open));
+
+  check('가까운 점을 잡는다', pointAt(open, 31, 9, 3) === 1, String(pointAt(open, 31, 9, 3)));
+  check('멀면 아무것도 안 잡는다', pointAt(open, 100, 100, 3) === -1);
+  check('겹치면 더 가까운 쪽', pointAt('M10 10L12 10', 11.4, 10, 5) === 1, String(pointAt('M10 10L12 10', 11.4, 10, 5)));
+
+  const moved = movePoint(open, 1, 50, 5);
+  check('점 하나만 옮긴다', pathPoints(moved)[1].x === 50 && pathPoints(moved)[0].x === 10, moved);
+  check('점 개수는 그대로', pathPoints(moved).length === 3);
+
+  const movedClosed = movePoint(closed, 0, 5, 5);
+  check('닫힌 것은 닫힌 채로 남는다', isClosedPath(movedClosed), movedClosed);
+
+  check('없는 점을 옮기라 하면 그대로 둔다', movePoint(open, 9, 0, 0) === open);
+  check('다시 글로 만들면 왕복한다', pathFrom(pathPoints(closed), true) === closed, pathFrom(pathPoints(closed), true));
+}
+
 rmSync(out, { recursive: true, force: true });
 console.log(failed ? `\n[test-bon] 실패 ${failed}건` : '\n[test-bon] ✓ 문서 · 부품 3종 · 손잡이 반응 · 변형 묶음 · SVG 정합 · 극단값');
 process.exit(failed ? 1 : 0);

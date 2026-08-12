@@ -60,6 +60,7 @@ export function injectBonStyles(): void {
     .bon-guides { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
     .bon-grid { stroke:rgba(90,120,180,.30); stroke-width:1; fill:none; }
     .bon-sel { fill:none; stroke:var(--accent); stroke-width:1.5; stroke-dasharray:4 3; }
+    .bon-node { fill:#ffd166; stroke:#7a5c2e; stroke-width:1.4; }
     .bon-slice { stroke:#ff9f43; stroke-width:1.4; stroke-dasharray:6 4; fill:none; }
     .bon-handle { fill:var(--bg-primary); stroke:var(--accent); stroke-width:1.5; }
 
