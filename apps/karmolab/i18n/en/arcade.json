@@ -312,5 +312,10 @@
   "arcade.simon.repeat": "Now repeat it",
   "arcade.simon.dead": "Missed — watching",
   "arcade.simon.win": "{who} — reached {n}",
-  "arcade.simon.out": "everyone missed at {n}"
+  "arcade.simon.out": "everyone missed at {n}",
+  "arcade.game.sudoku.name": "Sudoku Race",
+  "arcade.game.sudoku.desc": "Same puzzle, first to finish. 6×6",
+  "arcade.sudoku.hint": "Pick a cell, then a number",
+  "arcade.sudoku.win": "{who} filled it first",
+  "arcade.sudoku.timeup": "Time — {who} with {n}"
 }

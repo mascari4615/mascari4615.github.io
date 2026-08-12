@@ -312,5 +312,10 @@
   "arcade.simon.repeat": "同じ順に押してください",
   "arcade.simon.dead": "間違えた — 観戦",
   "arcade.simon.win": "{who} — {n}個まで",
-  "arcade.simon.out": "{n}個で全員脱落"
+  "arcade.simon.out": "{n}個で全員脱落",
+  "arcade.game.sudoku.name": "数独レース",
+  "arcade.game.sudoku.desc": "同じ問題で先に埋める。6×6",
+  "arcade.sudoku.hint": "マスを選んで数字を押す",
+  "arcade.sudoku.win": "{who} が先に埋めた",
+  "arcade.sudoku.timeup": "時間切れ — {who} {n}マス"
 }

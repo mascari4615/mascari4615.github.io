@@ -312,5 +312,10 @@
   "arcade.simon.repeat": "그대로 따라 누르세요",
   "arcade.simon.dead": "틀렸다 — 구경",
   "arcade.simon.win": "{who} — {n}칸까지",
-  "arcade.simon.out": "{n}칸에서 다 틀렸다"
+  "arcade.simon.out": "{n}칸에서 다 틀렸다",
+  "arcade.game.sudoku.name": "스도쿠 경주",
+  "arcade.game.sudoku.desc": "같은 문제를 놓고 먼저 채우기. 6×6",
+  "arcade.sudoku.hint": "칸을 고르고 숫자를 누르세요",
+  "arcade.sudoku.win": "{who} 이(가) 먼저 채웠다",
+  "arcade.sudoku.timeup": "시간이 다 됐다 — {who} {n}칸"
 }
