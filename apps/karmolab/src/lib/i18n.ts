@@ -199,13 +199,10 @@ function have(code: string, ns: string): boolean {
   return !!store[code]?.[ns];
 }
 
-function inject(code: string, ns: string): Promise<void> {
-  const key = code + '/' + ns;
-  const already = pending.get(key);
-  if (already) return already;
-  const p = new Promise<void>((resolve, reject) => {
+function fetchOnce(code: string, ns: string, bust: number): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
     const s = document.createElement('script');
-    s.src = catalogUrl(code, ns);
+    s.src = catalogUrl(code, ns) + (bust ? (catalogUrl(code, ns).includes('?') ? '&' : '?') + 'r=' + bust : '');
     /* catalog를 받지 못하면 성공으로 위장하지 않는다. 이후 위젯 경계가 안전한 오류 화면으로 전환한다. */
     s.onload = () => {
       if (have(code, ns)) {
@@ -217,6 +214,19 @@ function inject(code: string, ns: string): Promise<void> {
     s.onerror = () => reject(new CatalogLoadError(code, ns));
     document.head.appendChild(s);
   });
+}
+
+function inject(code: string, ns: string): Promise<void> {
+  const key = code + '/' + ns;
+  const already = pending.get(key);
+  if (already) return already;
+  /* ★ **한 번 놓쳤다고 도구가 죽지는 않게** (2026-08-13).
+     말 묶음은 그냥 파일 하나인데, 그 한 번의 실패(서버 503·잠깐 끊긴 회선)로 도구 화면이
+     통째로 오류가 됐다 — 실측: `ko/color.js` 503 한 번에 색 도구가 안 떴다. 사람은 그저
+     새로고침하면 되는 것을 「고장」으로 겪는다. 짧게 두 번 더 받아 본다(그래도 안 오면 그때 오류). */
+  const p = fetchOnce(code, ns, 0)
+    .catch(() => new Promise<void>((r) => setTimeout(r, 400)).then(() => fetchOnce(code, ns, 1)))
+    .catch(() => new Promise<void>((r) => setTimeout(r, 1200)).then(() => fetchOnce(code, ns, 2)));
   const tracked = p.finally(() => pending.delete(key));
   pending.set(key, tracked);
   return tracked;
