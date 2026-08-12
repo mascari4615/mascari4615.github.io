@@ -52,8 +52,8 @@
     "wide": 497
   },
   "bmi": {
-    "narrow": 841,
-    "wide": 760
+    "narrow": 1034,
+    "wide": 832
   },
   "bytesize": {
     "narrow": 993,
@@ -448,8 +448,8 @@
     "wide": 1073
   },
   "text": {
-    "narrow": 979,
-    "wide": 854
+    "narrow": 1088,
+    "wide": 810
   },
   "text2img": {
     "narrow": 1360,
