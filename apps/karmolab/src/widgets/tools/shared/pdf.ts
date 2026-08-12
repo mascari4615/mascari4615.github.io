@@ -99,7 +99,10 @@ export async function loadPdfLib(): Promise<PDFLib> {
  * 파일을 **읽기용**으로 연다(그리기·글자 뽑기).
  *
  * `slice(0)` 이 붙어 있는 이유: pdf.js 는 받은 바이트 통을 자기 것으로 삼아 **비워 버린다**.
- * 같은 파일을 다시 열거나 pdf-lib 에 넘기려면 사본을 줘야 한다 — 안 그러면 두 번째가 빈손이다.
+ * 여기서는 통을 매번 새로 뜨므로(`file.arrayBuffer()`) 이 사본이 없어도 **겉으로는 같게 돈다** —
+ * 지키는 것은 「`bytes` 를 여기서 더 쓰거나 밖으로 넘길 때」다. 즉 **앞으로를 위한 울타리**이지
+ * 지금 눈에 보이는 고장을 막는 줄이 아니다. (2026-08-13 실측: 이 줄을 빼도 검사가 안 빨개진다.
+ * 그래서 설명을 실제에 맞춰 고쳤다 — `rules/quality.md § 설명문이 거짓말이면`.)
  */
 export async function openForRead(file: File | Blob): Promise<PdfJsDoc> {
   const lib = await loadPdfJs();
