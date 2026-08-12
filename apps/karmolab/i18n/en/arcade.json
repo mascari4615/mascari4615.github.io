@@ -145,5 +145,15 @@
   "arcade.kind.board": "On a board",
   "arcade.kind.card": "Cards and dice",
   "arcade.kind.sport": "Toy sports",
-  "arcade.kind.puzzle": "Solo and thinking"
+  "arcade.kind.puzzle": "Solo and thinking",
+  "arcade.game.highlow.name": "High-Low",
+  "arcade.game.highlow.desc": "Higher or lower. Doubles on a streak, zero on a miss",
+  "arcade.highlow.high": "Higher",
+  "arcade.highlow.low": "Lower",
+  "arcade.highlow.bank": "Bank ({n})",
+  "arcade.highlow.pot": "Pot {n}",
+  "arcade.highlow.nopot": "Call one to start",
+  "arcade.highlow.left": "{n} left",
+  "arcade.highlow.win": "{who} — {n} points",
+  "arcade.highlow.draw": "Tied at {n}"
 }

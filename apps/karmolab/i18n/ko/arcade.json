@@ -145,5 +145,15 @@
   "arcade.kind.board": "판 위에서",
   "arcade.kind.card": "카드와 주사위",
   "arcade.kind.sport": "장난감 스포츠",
-  "arcade.kind.puzzle": "혼자서도, 머리로"
+  "arcade.kind.puzzle": "혼자서도, 머리로",
+  "arcade.game.highlow.name": "하이로우",
+  "arcade.game.highlow.desc": "다음 장이 위냐 아래냐. 이어 맞히면 배로, 틀리면 0",
+  "arcade.highlow.high": "위",
+  "arcade.highlow.low": "아래",
+  "arcade.highlow.bank": "챙기기 ({n})",
+  "arcade.highlow.pot": "쌓인 것 {n}",
+  "arcade.highlow.nopot": "한 장 골라 시작",
+  "arcade.highlow.left": "{n}판 남음",
+  "arcade.highlow.win": "{who} — {n}점",
+  "arcade.highlow.draw": "{n}점으로 똑같다"
 }
