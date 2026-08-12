@@ -10,7 +10,7 @@
  * 그리고 **붙일 코드까지 준다**. 파일만 받아서는 어디에 어떻게 넣는지가 또 막힌다.
  */
 import { fileSize as size } from './shared/media';
-import { download } from './shared/image';
+import { download, loadImage } from './shared/image';
 import { acceptPastedFiles } from './shared/paste';
 
 import { t, loadNamespace } from '../../lib/i18n';
@@ -208,9 +208,16 @@ import { t, loadNamespace } from '../../lib/i18n';
           const toBlob = (cv: HTMLCanvasElement): Promise<Blob> =>
             new Promise((res, rej) => cv.toBlob((b) => (b ? res(b) : rej(new Error(t('favicon.err.toBlob')))), 'image/png'));
 
-          function load(f: File): void {
-            const img = new Image();
-            img.onload = () => {
+          /** 공용 `loadImage` 로 (TASK-KL-280) — 주소를 여기서 만들고 안 거두던 자리였다. */
+          async function load(f: File): Promise<void> {
+            let img: HTMLImageElement;
+            try {
+              img = await loadImage(f);
+            } catch {
+              say(t('favicon.err.open'), 'error');
+              return;
+            }
+            {
               source = img;
               editor.style.display = '';
               refresh();
@@ -221,14 +228,12 @@ import { t, loadNamespace } from '../../lib/i18n';
                   : `${img.naturalWidth}×${img.naturalHeight} 은 정사각형이 아닙니다. 가운데에 맞춰 넣지만, 정사각형 그림이 가장 깔끔합니다.`,
                 square ? 'ok' : ''
               );
-            };
-            img.onerror = () => say(t('favicon.err.open'), 'error');
-            img.src = URL.createObjectURL(f);
+            }
           }
 
           drop.onclick = () => fileInput.click();
           fileInput.onchange = () => {
-            if (fileInput.files?.[0]) load(fileInput.files[0]);
+            if (fileInput.files?.[0]) void load(fileInput.files[0]);
           };
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -239,10 +244,10 @@ import { t, loadNamespace } from '../../lib/i18n';
             e.preventDefault();
             drop.classList.remove('over');
             const f = e.dataTransfer?.files?.[0];
-            if (f) load(f);
+            if (f) void load(f);
           });
           // 화면 캡처를 바로 붙여넣는 것이 가장 잦은 쓰임이다
-          acceptPastedFiles(container, (files) => { load(files[0]); });
+          acceptPastedFiles(container, (files) => { void load(files[0]); });
           [padEl, $<HTMLSelectElement>('#fvBg'), $<HTMLInputElement>('#fvRound')].forEach((el) =>
             el.addEventListener('input', refresh)
           );
