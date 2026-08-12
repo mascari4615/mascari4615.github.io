@@ -9,7 +9,7 @@
  * 부분을 부드럽게 이어 붙이며 조각 사이의 간격만 조절한다(겹쳐 잇기). 높이는 건드리지 않는다.
  * 「그냥 빠르게」도 남겨 뒀다 — 효과음이나 배속 감상용으로 일부러 쓰는 사람이 있다.
  */
-import { encodeAudio, fileSize as size, mmss } from './shared/media';
+import { encodeAudio, fileSize as size, mmss, download } from './shared/media';
 
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -261,13 +261,10 @@ import { t, loadNamespace } from '../../lib/i18n';
           runBtn.onclick = () => void run();
           saveBtn.onclick = () => {
             if (!outBlob) return;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(outBlob);
-            a.download = baseName + t('audiospeed.file.suffix', { n: parseFloat(rateEl.value) }) + '.wav';
-            a.click();
+            const aName = baseName + t('audiospeed.file.suffix', { n: parseFloat(rateEl.value) }) + '.wav';
+            download(outBlob, aName);
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-            Toolbox.offerNext?.(status, { blob: outBlob, name: a.download, from: 'audiospeed' });
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            Toolbox.offerNext?.(status, { blob: outBlob, name: aName, from: 'audiospeed' });
             say(t('audiospeed.say.saved', { size: size(outBlob.size) }), 'ok');
           };
   }

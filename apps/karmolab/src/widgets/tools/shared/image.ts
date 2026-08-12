@@ -104,3 +104,16 @@ export function download(blob: Blob, filename: string): void {
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
+
+/**
+ * **이미 있는 주소**를 내려준다 (dataURL, 또는 다른 데서도 쓰는 objectURL).
+ *
+ * `download(blob, name)` 과 갈라 둔 이유는 **거두느냐**다 — 이쪽 주소는 화면이 계속 쓰고 있어서
+ * 거두면 그 자리 그림이 깨진다. 한 함수에 섞으면 어느 쪽인지 부르는 쪽이 매번 판단해야 한다.
+ */
+export function downloadUrl(url: string, filename: string): void {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+}

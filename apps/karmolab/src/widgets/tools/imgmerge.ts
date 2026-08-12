@@ -8,6 +8,7 @@
  * 나머지를 맞추고, 남는 자리는 배경색으로 채운다. 순서는 넣은 순서대로 두되 끌어서 바꿀 수 있다.
  */
 import { fileSize as size } from './shared/media';
+import { download } from './shared/image';
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -259,11 +260,8 @@ import { t, loadNamespace } from '../../lib/i18n';
               made = blob;
               $<HTMLImageElement>('#imPreview').src = URL.createObjectURL(blob);
               $<HTMLElement>('#imResult').style.display = '';
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download = t('imgmerge.file.name');
-              a.click();
-              setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+              const aName = t('imgmerge.file.name');
+              download(blob, aName);
               say(
             t('imgmerge.say.done', {
               n: shots.length,
@@ -274,7 +272,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             'ok'
           );
               // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-              Toolbox.offerNext?.(status, { blob: made, name: a.download, from: 'imgmerge' });
+              Toolbox.offerNext?.(status, { blob: made, name: aName, from: 'imgmerge' });
               Toolbox.trackUse?.('merge');
             }, 'image/png');
           };

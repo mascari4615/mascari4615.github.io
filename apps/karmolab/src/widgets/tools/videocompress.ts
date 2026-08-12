@@ -10,7 +10,7 @@
  * 「얼마나 줄지」는 해 봐야 알기에, 시작 전 어림값을 보여 주고 끝나면 실제 값으로 바꾼다.
  * 이미 잘 눌린 영상은 오히려 커질 수 있는데, 그때 줄었다고 우기지 않는다.
  */
-import { fileSize as size, mmss } from './shared/media';
+import { fileSize as size, mmss, download } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
 import { pickRecordType } from './shared/video';
 
@@ -320,13 +320,10 @@ import { t, loadNamespace } from '../../lib/i18n';
           };
           saveBtn.onclick = () => {
             if (!made) return;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(made);
-            a.download = fileName.replace(/\.[^.]+$/, '') + t('videocompress.file.suffix') + '.webm';
-            a.click();
+            const aName = fileName.replace(/\.[^.]+$/, '') + t('videocompress.file.suffix') + '.webm';
+            download(made, aName);
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-            Toolbox.offerNext?.(status, { blob: made, name: a.download, from: 'videocompress' });
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            Toolbox.offerNext?.(status, { blob: made, name: aName, from: 'videocompress' });
             say(t('videocompress.say.saved'), 'ok');
           };
   }

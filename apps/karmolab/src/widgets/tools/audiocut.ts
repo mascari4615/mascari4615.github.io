@@ -5,7 +5,7 @@
  * 브라우저는 이미 오디오를 해독할 수 있으므로(Web Audio) 잘라 내는 일은 밖으로 나갈 필요가 없다.
  * 내보내기는 MP3(작아서 보내기 좋음)와 WAV(손실 없음) 중 고른다. MP3 압축기는 그때만 받아 온다.
  */
-import { encodeAudio, fileSize as size, mmss } from './shared/media';
+import { encodeAudio, fileSize as size, mmss, download } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -240,13 +240,10 @@ import { t, loadNamespace } from '../../lib/i18n';
             say(format === 'mp3' ? t('audiocut.say.encoding') : t('audiocut.say.saving'));
             void encodeAudio(out, format)
               .then((blob) => {
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = `${fileName}${t('audiocut.file.suffix')}.${format}`;
-                a.click();
+                const aName = `${fileName}${t('audiocut.file.suffix')}.${format}`;
+                download(blob, aName);
                 // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-                Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'audiocut' });
-                setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+                Toolbox.offerNext?.(status, { blob: blob, name: aName, from: 'audiocut' });
                 say(t('audiocut.say.done', { len: mmss(out.duration), size: size(blob.size) }), 'ok');
                 Toolbox.trackUse?.('cut');
               })

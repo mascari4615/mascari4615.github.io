@@ -9,7 +9,7 @@
  *  ② **키우기(정규화)** — 그 뒤에 전체를 목표 크기까지 올린다
  * 순서가 반대면 찌그러진다. 처리 전후를 **숫자와 파형으로 나란히** 보여 주고, 귀로도 비교하게 한다.
  */
-import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
+import { toWav, encodeAudio, fileSize as size, mmss, download } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
 
 import { t, loadNamespace } from '../../lib/i18n';
@@ -303,13 +303,10 @@ import { t, loadNamespace } from '../../lib/i18n';
             say(t(format === 'mp3' ? 'audiolevel.say.encoding' : 'audiolevel.say.saving'));
             void encodeAudio(processed, format)
               .then((blob) => {
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = name;
-                a.click();
+                const aName = name;
+                download(blob, aName);
                 // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-                Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'audiolevel' });
-                setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+                Toolbox.offerNext?.(status, { blob: blob, name: aName, from: 'audiolevel' });
                 say(`${size(blob.size)} 로 내려받았어요.`, 'ok');
               })
               .catch((err: Error) => say(t('audiolevel.err.making', { msg: err.message }), 'error'));

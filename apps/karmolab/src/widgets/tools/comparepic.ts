@@ -12,6 +12,7 @@
  * ③ 지금 보이는 그대로 PNG 로 저장 — 자랑하려면 그림 한 장이 있어야 한다
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { download } from './shared/image';
 
 (function (): void {
   const esc = (v: unknown): string =>
@@ -161,11 +162,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 say(t('comparepic.say.07'), 'error');
                 return;
               }
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download = 'compare.png';
-              a.click();
-              URL.revokeObjectURL(a.href);
+              download(blob, 'compare.png');
               say(t('comparepic.say.08'));
             }, 'image/png');
           };

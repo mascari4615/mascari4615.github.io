@@ -10,6 +10,7 @@
  * 그리고 **붙일 코드까지 준다**. 파일만 받아서는 어디에 어떻게 넣는지가 또 막힌다.
  */
 import { fileSize as size } from './shared/media';
+import { download } from './shared/image';
 import { acceptPastedFiles } from './shared/paste';
 
 import { t, loadNamespace } from '../../lib/i18n';
@@ -254,11 +255,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 parts.push({ size: px, bytes: new Uint8Array(await (await toBlob(render(px))).arrayBuffer()) });
               }
               const blob = buildIco(parts);
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download = 'favicon.ico';
-              a.click();
-              setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+              download(blob, 'favicon.ico');
               say(`favicon.ico 를 받았어요 (16·32·48 세 크기가 한 파일에 들어 있습니다, ${size(blob.size)}).`, 'ok');
               Toolbox.trackUse?.('ico');
             })().catch((err: Error) => say(t('favicon.err.making', { msg: err.message }), 'error'));
@@ -298,11 +295,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 )
               );
               const out = await zip.generateAsync({ type: 'blob' });
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(out);
-              a.download = t('favicon.file.zip');
-              a.click();
-              setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+              download(out, t('favicon.file.zip'));
               say(t('favicon.say.zipDone', { n: sizes().length, size: size(out.size) }), 'ok');
               Toolbox.trackUse?.('zip');
             })().catch((err: Error) => say(t('favicon.err.making', { msg: err.message }), 'error'));

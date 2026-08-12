@@ -14,6 +14,7 @@
  * 색이 이어지는 동안 붓을 안 바꾸므로 실제로 색이 몇 개 안 되는 아스키 그림에 잘 맞는다.
  */
 import { AsciiSurface, decode, encode, Player, sampleVideo, type AsciiFrame } from 'badapple';
+import { download, downloadUrl } from './shared/image';
 
 import { acceptPastedFiles } from './shared/paste';
 
@@ -723,21 +724,14 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           };
           $<HTMLButtonElement>('#aaTxt').onclick = () => {
             if (!plainText) return;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([plainText], { type: 'text/plain;charset=utf-8' }));
-            a.download = 'ascii-art.txt';
             Toolbox.trackUse?.('save-txt');
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+            download(new Blob([plainText], { type: 'text/plain;charset=utf-8' }), 'ascii-art.txt');
           };
           $<HTMLButtonElement>('#aaPng').onclick = () => {
             // 캔버스가 보이는 동안은 그게 곧 화면이다 (영상이거나, 효과를 건 이미지거나).
             if (!stageCanvas.hidden) {
-              const a = document.createElement('a');
-              a.href = stageCanvas.toDataURL('image/png');
-              a.download = 'ascii-frame.png';
               Toolbox.trackUse?.('save-png');
-              a.click();
+              downloadUrl(stageCanvas.toDataURL('image/png'), 'ascii-frame.png');
               return;
             }
             if (!plainText) return;
@@ -757,19 +751,11 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             ctx.font = `${fontSize}px monospace`;
             ctx.textBaseline = 'top';
             lines.forEach((line, i) => ctx.fillText(line, 10, 10 + i * lineHeight));
-            const a = document.createElement('a');
-            a.href = canvas.toDataURL('image/png');
-            a.download = 'ascii-art.png';
             Toolbox.trackUse?.('save-png');
-            a.click();
+            downloadUrl(canvas.toDataURL('image/png'), 'ascii-art.png');
           };
-          function save(blob: Blob, name: string): void {
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = name;
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-          }
+          /* 내려주기는 `shared/image` 것을 쓴다 (TASK-KL-270) — 여기 있던 지역 사본은 지웠다. */
+          const save = download;
 
           $<HTMLButtonElement>('#aaAnsi').onclick = async () => {
             if (!plainText) return;

@@ -9,10 +9,10 @@
  *  - **일정 간격** — 몇 초마다 한 장씩 여러 장 (요약·정리·연속 동작 확인)
  * 뽑은 장은 눌러 하나씩 받거나 ZIP 으로 한 번에 받는다.
  */
-import { fileSize as size, mmss } from './shared/media';
+import { fileSize as size, mmss, download } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
 
-import { seekTo } from './shared/video';
+import { seekTo, downloadUrl } from './shared/video';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -122,10 +122,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             grid.querySelectorAll('[data-i]').forEach((el) => {
               (el as HTMLElement).onclick = () => {
                 const s = shots[parseInt((el as HTMLElement).dataset.i || '0', 10)];
-                const a = document.createElement('a');
-                a.href = s.url;
-                a.download = `${fileName.replace(/\.[^.]+$/, '')}-${mmss(s.time).replace(':', 'm')}s.${extOf()}`;
-                a.click();
+                downloadUrl(s.url, `${fileName.replace(/\.[^.]+$/, '')}-${mmss(s.time).replace(':', 'm')}s.${extOf()}`);
               };
             });
             zipBtn.disabled = shots.length < 2;
@@ -246,11 +243,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               const ext = extOf();
               shots.forEach((s, i) => z.file(`${String(i + 1).padStart(3, '0')}-${mmss(s.time).replace(':', 'm')}s.${ext}`, s.blob));
               const blob = await z.generateAsync({ type: 'blob' });
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download = fileName.replace(/\.[^.]+$/, '') + t('video2img.file.zip');
-              a.click();
-              setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+              download(blob, fileName.replace(/\.[^.]+$/, '') + t('video2img.file.zip'));
               say(t('video2img.say.zipped', { n: shots.length }), 'ok');
             })().catch((err: Error) => say(t('video2img.err.zip') + err.message, 'error'));
           };

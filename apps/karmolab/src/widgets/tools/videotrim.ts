@@ -7,7 +7,7 @@
  * 그래서 이 도구는 고른 구간을 실제로 재생하며 담는다 — 즉 **자르는 데 그 구간만큼 시간이 걸린다**.
  * 이건 우회가 아니라 브라우저에서 가능한 유일한 길이라, 숨기지 않고 남은 시간을 보여 준다.
  */
-import { seekTo, pickRecordType } from './shared/video';
+import { seekTo, pickRecordType, download } from './shared/video';
 
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -269,13 +269,10 @@ import { t, loadNamespace } from '../../lib/i18n';
           };
           saveBtn.onclick = () => {
             if (!made) return;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(made);
-            a.download = fileName.replace(/\.[^.]+$/, '') + t('videotrim.file.suffix');
-            a.click();
+            const aName = fileName.replace(/\.[^.]+$/, '') + t('videotrim.file.suffix');
+            download(made, aName);
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-            Toolbox.offerNext?.(status, { blob: made, name: a.download, from: 'videotrim' });
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            Toolbox.offerNext?.(status, { blob: made, name: aName, from: 'videotrim' });
             say(t('videotrim.say.saved'), 'ok');
           };
                   });

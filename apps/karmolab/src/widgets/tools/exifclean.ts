@@ -10,6 +10,7 @@
  * 무엇이 들어 있었는지 먼저 보여 준다. 「지웠다」는 말만으로는 사람이 안심하지 못한다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { download } from './shared/image';
 
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -294,14 +295,11 @@ import { t, loadNamespace } from '../../lib/i18n';
             if (!raw) return;
             const cleaned = strip(raw);
             const blob = new Blob([cleaned as unknown as BlobPart], { type: 'image/jpeg' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = fileName.replace(/\.[^.]+$/, '') + t('exifclean.file.suffix') + '.jpg';
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            const aName = fileName.replace(/\.[^.]+$/, '') + t('exifclean.file.suffix') + '.jpg';
+            download(blob, aName);
             say(`정보를 지워 받았어요 (${size(raw.length)} → ${size(cleaned.length)}). 그림 자체는 그대로입니다.`, 'ok');
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-            Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'exifclean' });
+            Toolbox.offerNext?.(status, { blob: blob, name: aName, from: 'exifclean' });
             Toolbox.trackUse?.('strip');
           };
   }

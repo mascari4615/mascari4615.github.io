@@ -10,6 +10,7 @@
  *  - 배경은 단색과 그라데이션 둘 다. 그라데이션은 눈에 맞춰 섞어 가운데가 탁해지지 않게 한다.
  */
 import { fileSize as size } from './shared/media';
+import { download } from './shared/image';
 
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -237,13 +238,10 @@ import { t, loadNamespace } from '../../lib/i18n';
                 say(t('text2img.err.render'), 'error');
                 return;
               }
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download = t('text2img.file.name') + '.png';
-              a.click();
+              const outName = t('text2img.file.name') + '.png';
+              download(blob, outName);
               // 만든 것을 이어서 쓸 수 있게 내놓는다 (TASK-KL-133) — 받을 도구가 없으면 줄이 안 생긴다.
-              Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'text2img' });
-              setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+              Toolbox.offerNext?.(status, { blob: blob, name: outName, from: 'text2img' });
               say(t('text2img.say.saved', { w: canvas.width, h: canvas.height, size: size(blob.size) }), 'ok');
               Toolbox.trackUse?.('save');
             }, 'image/png');
