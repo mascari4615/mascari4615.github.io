@@ -103,5 +103,6 @@
   "settings.t58": "Mascot record reset",
   "settings.tab.display": "Display · API",
   "settings.tab.mascot": "Mascot",
-  "settings.tab.data": "What is stored in this browser"
+  "settings.tab.data": "What is stored in this browser",
+  "settings.label.setNextLinks": "\"See also\" under tools"
 }
