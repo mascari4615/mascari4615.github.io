@@ -1,0 +1,108 @@
+{
+  "id": "shell-editor",
+  "minutes": 10,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "서버에는 내 에디터가 없다. 최소한 **열고 고치고 나오는 것**은 할 수 있어야 한다."
+    },
+    {
+      "type": "h",
+      "text": "1. nano — 지금 당장 필요한 경우"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "화면 아래에 안내가 나온다",
+      "text": "nano /etc/hosts\nCtrl+O  저장(Write Out) → Enter\nCtrl+X  나가기\nCtrl+W  찾기 · Ctrl+K 줄 삭제"
+    },
+    {
+      "type": "h",
+      "text": "2. vim — 모드가 전부"
+    },
+    {
+      "type": "note",
+      "text": "vim 이 어려운 이유는 하나다: **모드**. 처음엔 명령 모드이고, 글자를 넣으려면 `i` 를 눌러 입력 모드로 가야 한다. `Esc` 로 돌아온다. 이 하나만 알면 나머지는 검색으로 해결된다."
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "살아 나오는 최소 명령",
+      "text": "i          입력 시작 (Esc 로 빠져나옴)\n:w         저장\n:q         나가기\n:wq        저장하고 나가기\n:q!        저장 안 하고 강제로 나가기   ← 제일 중요\n\ndd 줄 삭제 · u 되돌리기 · /검색어 찾기 · G 맨 끝 · gg 맨 앞"
+    },
+    {
+      "type": "h",
+      "text": "3. 실수했을 때"
+    },
+    {
+      "type": "p",
+      "text": "뭘 눌렀는지 모르겠으면 **Esc 를 두 번 누르고 `:q!`**. 그러면 파일은 그대로다. 이 탈출 경로를 알면 두려움이 사라진다."
+    },
+    {
+      "type": "h",
+      "text": "4. 서버 파일을 고칠 때의 안전"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "고치기 전에 사본",
+      "text": "sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak\nsudo nano /etc/nginx/nginx.conf\nsudo nginx -t          # 문법 검사 후에만 재시작\nsudo systemctl reload nginx"
+    },
+    {
+      "type": "note",
+      "text": "설정 파일은 **검사 명령이 있는 경우가 많다**(`nginx -t`, `sshd -t`, `visudo`). 검사 없이 재시작하면 서비스가 안 뜨고, 그때는 콘솔이 필요해진다."
+    },
+    {
+      "type": "h",
+      "text": "5. 조금 더 편하게"
+    },
+    {
+      "type": "p",
+      "text": "`~/.vimrc` 에 `set number`·`syntax on` 정도만 넣어도 훨씬 낫다. 자주 쓰는 서버라면 `EDITOR=nano` 로 기본 편집기를 바꿔 두는 것도 방법이다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "vim 으로 파일을 열어 한 줄 고치고 저장하고 나와라. 그 다음 일부러 이상하게 누른 뒤 `:q!` 로 탈출해 보라."
+    },
+    {
+      "type": "try",
+      "text": "설정 파일을 고치기 전에 사본을 만들고, 검사 명령을 찾아 실행하는 습관을 한 번 돌려 보라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "vim 에서 저장하지 않고 강제로 나가는 명령은?",
+      "choices": [
+        ":q!",
+        ":wq",
+        "Ctrl+X"
+      ],
+      "answer": 0,
+      "why": "탈출 경로를 아는 것이 첫걸음이다."
+    },
+    {
+      "q": "vim 에서 글자를 입력하려면?",
+      "choices": [
+        "i 로 입력 모드에 들어간다",
+        "바로 타이핑한다",
+        "Ctrl+I"
+      ],
+      "answer": 0,
+      "why": "모드 개념이 vim 의 핵심이다."
+    },
+    {
+      "q": "서버 설정 파일을 고친 뒤 재시작 전에 할 일은?",
+      "choices": [
+        "문법 검사 명령 실행(nginx -t 등)",
+        "즉시 재시작",
+        "로그 삭제"
+      ],
+      "answer": 0,
+      "why": "검사 없이 재시작하면 서비스가 안 뜬다."
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "id": "lang-fp",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "버그의 큰 덩어리는 「누가 이걸 바꿨나」다. **안 바꾸면** 그 질문 자체가 사라진다."
+    },
+    {
+      "type": "h",
+      "text": "1. 순수 함수"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "같은 입력 → 같은 출력, 부수효과 없음",
+      "text": "// 순수 X: 밖을 바꾸고, 시간에 따라 결과가 달라진다\nlet total = 0;\nfunction add(x) { total += x; return Date.now(); }\n\n// 순수 O: 테스트도 캐시도 쉬워진다\nfunction sum(list) { return list.reduce((a, b) => a + b, 0); }"
+    },
+    {
+      "type": "h",
+      "text": "2. 불변으로 다루기"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "바꾸지 말고 새로 만든다",
+      "text": "const next = [...items, item];              // push 대신\nconst updated = { ...user, name: '욘' };     // 직접 대입 대신\nconst removed = items.filter((i) => i.id !== id);\n\n// 깊은 구조는 structuredClone 이나 immer 같은 도구로"
+    },
+    {
+      "type": "note",
+      "text": "불변이면 **되돌리기·비교·동시성**이 쉬워진다. React 가 이전 값과 비교해 다시 그릴 수 있는 것도 이 덕분이다."
+    },
+    {
+      "type": "h",
+      "text": "3. 세 가지 도구"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "map · filter · reduce 로 반복문 대체",
+      "text": "const totals = orders\n  .filter((o) => o.status === 'paid')\n  .map((o) => o.amount)\n  .reduce((a, b) => a + b, 0);\n\n// 반복문보다 「무엇을 하는지」가 먼저 읽힌다"
+    },
+    {
+      "type": "h",
+      "text": "4. 부수효과를 가장자리로"
+    },
+    {
+      "type": "p",
+      "text": "함수형이라고 IO 를 안 하는 게 아니다. **계산은 안쪽, 부수효과는 바깥쪽**으로 몰아 두면 핵심 로직이 순수해지고 테스트가 쉬워진다(함수형 코어 / 명령형 셸)."
+    },
+    {
+      "type": "h",
+      "text": "5. 어디까지"
+    },
+    {
+      "type": "note",
+      "text": "모든 것을 함수형으로 만들 필요는 없다. 성능이 중요한 반복문에서는 가변이 낫고, 팀이 못 읽는 추상화는 비용이다. **불변과 순수 함수 두 가지만** 습관으로 들여도 대부분의 이득을 얻는다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "반복문 하나를 map·filter·reduce 로 다시 쓰고, 어느 쪽이 읽기 쉬운지 팀원에게 물어라."
+    },
+    {
+      "type": "try",
+      "text": "객체를 직접 수정하던 함수를 새 객체를 반환하도록 바꿔라. 호출부에서 무엇이 달라지는지 확인하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "순수 함수의 조건은?",
+      "choices": [
+        "같은 입력에 같은 출력, 부수효과 없음",
+        "짧은 함수",
+        "인자가 하나"
+      ],
+      "answer": 0,
+      "why": "테스트·캐시·병렬화가 쉬워진다."
+    },
+    {
+      "q": "불변 데이터의 이점이 아닌 것은?",
+      "choices": [
+        "메모리를 항상 절약한다",
+        "비교가 쉬워진다",
+        "되돌리기가 쉬워진다"
+      ],
+      "answer": 0,
+      "why": "복사 때문에 메모리는 오히려 더 쓸 수 있다."
+    },
+    {
+      "q": "함수형 코어 / 명령형 셸이란?",
+      "choices": [
+        "계산은 순수하게 안쪽에, 부수효과는 바깥 얇은 층에",
+        "함수형 언어만 쓰기",
+        "IO 를 금지하기"
+      ],
+      "answer": 0,
+      "why": "핵심 로직을 테스트 가능하게 유지한다."
+    }
+  ]
+}
