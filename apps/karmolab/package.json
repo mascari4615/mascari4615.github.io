@@ -193,6 +193,8 @@
     "smoke:radio": "node scripts/smoke-radio.mjs",
     "smoke:bm": "node scripts/smoke-bluemarble-frame.mjs",
     "test:codeshot": "node scripts/test-codeshot-core.mjs",
+    "test:soundscape": "node scripts/test-soundscape-core.mjs",
+    "smoke:soundscape": "node scripts/smoke-soundscape.mjs",
     "smoke:codeshot": "node scripts/smoke-codeshot.mjs",
     "test:region": "node scripts/smoke-region.mjs",
     "verify:quality": "node scripts/run-gates.mjs audit:boot test:perf test:perf:budget test:leak",

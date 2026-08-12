@@ -1481,6 +1481,15 @@ window.KARMOLAB_LAZY_META = [
   },
 
   {
+    id: 'soundscape',
+    get title() { return t('widgets.soundscape.title', undefined, "소리 풍경"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.soundscape.desc', undefined, "비·파도·모닥불을 섞어 집중용 배경음을 만듭니다. 음원을 내려받지 않고 그 자리에서 소리를 만들어 같은 소리가 반복되지 않습니다"); },
+    layout: 'wide',
+    icon: '<path d="M4 12h2l2-5 3 12 3-16 3 14 2-5h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/soundscape']
+  },
+  {
     id: 'codeshot',
     get title() { return t('widgets.codeshot.title', undefined, "코드 사진"); },
     category: 'tool',
