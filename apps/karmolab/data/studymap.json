@@ -4451,6 +4451,140 @@
           ]
         }
       ]
+    },
+    {
+      "id": "sync",
+      "title": "실시간 · 동기화",
+      "emoji": "🔄",
+      "lead": "둘 이상이 같은 것을 동시에 고칠 때 — 누구도 글자를 잃지 않게 만드는 기술",
+      "stages": [
+        {
+          "id": "sync-a",
+          "title": "연결을 잇는다",
+          "nodes": [
+            {
+              "id": "sync-transport",
+              "title": "폴링 · SSE · 웹소켓",
+              "why": "실시간이 필요하다고 다 웹소켓은 아니다. 셋의 비용과 한계를 알아야 고를 수 있다.",
+              "check": "내 기능에 맞는 방식을 근거를 대고 고른다",
+              "links": [
+                {
+                  "label": "MDN — WebSocket API",
+                  "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API"
+                }
+              ],
+              "prereq": [
+                "net-tcp-udp"
+              ]
+            },
+            {
+              "id": "sync-presence",
+              "title": "누가 와 있나 — 프레즌스",
+              "why": "커서·타이핑 표시가 협업의 체감을 만든다. 그리고 유령 사용자가 남는 사고도 여기서 난다.",
+              "check": "접속·이탈을 감지해 목록을 정확히 유지한다",
+              "links": [
+                {
+                  "label": "MDN — Server-sent events",
+                  "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events"
+                }
+              ]
+            },
+            {
+              "id": "sync-reconnect",
+              "title": "끊김을 전제로 짠다",
+              "why": "모바일은 반드시 끊긴다. 재연결과 놓친 메시지 따라잡기가 없으면 조용히 화면이 틀려진다.",
+              "check": "연결을 끊었다 살려도 상태가 맞는지 확인한다",
+              "links": [
+                {
+                  "label": "MDN — 온라인/오프라인 이벤트",
+                  "url": "https://developer.mozilla.org/en-US/docs/Web/API/Navigator/onLine"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sync-b",
+          "title": "같은 문서를 함께",
+          "nodes": [
+            {
+              "id": "sync-conflict",
+              "title": "충돌은 피할 수 없다",
+              "why": "「마지막 저장이 이긴다」는 남의 글을 조용히 지운다. 무증상이라 더 나쁘다.",
+              "check": "동시 수정 시 무엇이 사라지는지 직접 재현한다",
+              "links": [
+                {
+                  "label": "Martin Fowler — Optimistic Offline Lock",
+                  "url": "https://martinfowler.com/eaaCatalog/optimisticOfflineLock.html"
+                }
+              ],
+              "prereq": [
+                "data-tx"
+              ]
+            },
+            {
+              "id": "sync-crdt",
+              "title": "OT 와 CRDT — 합쳐지는 자료구조",
+              "why": "충돌을 막는 대신 「항상 합쳐지게」 설계하는 길. 공동 편집기의 심장이다.",
+              "check": "순서가 뒤바뀌어도 같은 결과가 되는 구조를 만든다",
+              "links": [
+                {
+                  "label": "CRDT 정리 사이트",
+                  "url": "https://crdt.tech/"
+                }
+              ]
+            },
+            {
+              "id": "sync-offline",
+              "title": "로컬 우선 — 오프라인이 기본",
+              "why": "네트워크를 기다리지 않는 앱이 훨씬 빠르게 느껴진다. 동기화는 뒤에서 한다.",
+              "check": "비행기 모드에서 쓰고 복귀 후 반영되게 만든다",
+              "links": [
+                {
+                  "label": "Ink & Switch — Local-first software",
+                  "url": "https://www.inkandswitch.com/local-first/"
+                }
+              ],
+              "prereq": [
+                "mobile-offline"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sync-c",
+          "title": "믿을 수 있게",
+          "nodes": [
+            {
+              "id": "sync-event",
+              "title": "이벤트 로그와 되감기",
+              "why": "현재 값만 저장하면 「왜 이렇게 됐는지」를 영원히 모른다. 로그가 있으면 되감을 수 있다.",
+              "check": "변경을 이벤트로 쌓고 임의 시점을 복원한다",
+              "links": [
+                {
+                  "label": "Martin Fowler — Event Sourcing",
+                  "url": "https://martinfowler.com/eaaDev/EventSourcing.html"
+                }
+              ]
+            },
+            {
+              "id": "sync-cost",
+              "title": "실시간의 규모와 비용",
+              "why": "연결 1만 개는 요청 1만 개와 전혀 다른 문제다. 메모리와 팬아웃이 먼저 터진다.",
+              "check": "동시 접속당 비용을 계산하고 상한을 정한다",
+              "links": [
+                {
+                  "label": "Cloudflare — WebSockets",
+                  "url": "https://developers.cloudflare.com/workers/runtime-apis/websockets/"
+                }
+              ],
+              "prereq": [
+                "scale-cap"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -140,6 +140,10 @@
     "sys": {
       "title": "Systems programming",
       "lead": "The OS is not magic — open it up and it is processes, files and a few signals"
+    },
+    "sync": {
+      "title": "Realtime & sync",
+      "lead": "When two people edit the same thing at once — the craft of losing nobody’s words"
     }
   },
   "stages": {
@@ -235,7 +239,10 @@
     "plt-c": "Applying it to other code",
     "sys-a": "Where a program lives",
     "sys-b": "Fighting over resources",
-    "sys-c": "Confining and measuring"
+    "sys-c": "Confining and measuring",
+    "sync-a": "Keeping a connection",
+    "sync-b": "Sharing one document",
+    "sync-c": "Making it trustworthy"
   },
   "nodes": {
     "web-html": {
@@ -2345,6 +2352,70 @@
       "check": "You profile one slow task and name the top consumer",
       "links": [
         "Brendan Gregg — flame graphs"
+      ]
+    },
+    "sync-transport": {
+      "title": "Polling, SSE, WebSocket",
+      "why": "Needing realtime does not mean needing WebSocket; you pick by cost and limits.",
+      "check": "You choose one for your feature and justify it",
+      "links": [
+        "MDN — WebSocket API"
+      ]
+    },
+    "sync-presence": {
+      "title": "Who is here — presence",
+      "why": "Cursors and typing indicators are what collaboration feels like, and ghost users are born here too.",
+      "check": "Join and leave are detected so the list stays correct",
+      "links": [
+        "MDN — server-sent events"
+      ]
+    },
+    "sync-reconnect": {
+      "title": "Assume the connection drops",
+      "why": "Mobile will disconnect; without reconnect and catch-up the screen quietly goes wrong.",
+      "check": "State is still correct after you kill and restore the link",
+      "links": [
+        "MDN — online/offline events"
+      ]
+    },
+    "sync-conflict": {
+      "title": "Conflicts are unavoidable",
+      "why": "\"Last write wins\" silently deletes someone else’s work, and silence is what makes it bad.",
+      "check": "You reproduce exactly what disappears on concurrent edits",
+      "links": [
+        "Martin Fowler — optimistic offline lock"
+      ]
+    },
+    "sync-crdt": {
+      "title": "OT and CRDTs — data that merges",
+      "why": "Instead of preventing conflicts you design so merges always succeed; this is the heart of collaborative editors.",
+      "check": "You build a structure that converges regardless of order",
+      "links": [
+        "CRDT reference site"
+      ]
+    },
+    "sync-offline": {
+      "title": "Local-first — offline as the default",
+      "why": "An app that never waits for the network simply feels faster, and syncing happens behind it.",
+      "check": "It works in airplane mode and reconciles once back",
+      "links": [
+        "Ink & Switch — local-first software"
+      ]
+    },
+    "sync-event": {
+      "title": "Event logs and rewinding",
+      "why": "Storing only the current value loses \"how it got this way\" forever; a log lets you rewind.",
+      "check": "You append changes as events and restore any point in time",
+      "links": [
+        "Martin Fowler — event sourcing"
+      ]
+    },
+    "sync-cost": {
+      "title": "Scale and cost of realtime",
+      "why": "Ten thousand connections is a different problem from ten thousand requests; memory and fan-out break first.",
+      "check": "You compute cost per concurrent connection and set a ceiling",
+      "links": [
+        "Cloudflare — WebSockets"
       ]
     }
   }
