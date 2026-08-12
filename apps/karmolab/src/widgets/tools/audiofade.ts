@@ -10,7 +10,7 @@
  *  - 페이드 모양은 **귀에 맞춘 곡선**을 쓴다. 소리 크기를 곧게 줄이면 중간이 갑자기 조용해진 듯
  *    들린다 — 사람 귀는 소리 세기를 곧게 느끼지 않는다.
  */
-import { encodeAudio, fileSize as size, mmss, download } from './shared/media';
+import { encodeAudio, fileSize as size, mmss, download, audioCtx } from './shared/media';
 
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -155,16 +155,13 @@ import { t, loadNamespace } from '../../lib/i18n';
           async function load(file: File): Promise<void> {
             runBtn.disabled = true;
             say(t('audiofade.say.reading'));
-            const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-            const ctx = new AC();
+            const ctx = audioCtx();
             try {
               buffer = await ctx.decodeAudioData(await file.arrayBuffer());
             } catch {
               say(t('audiofade.err.decode'), 'error');
-              void ctx.close();
               return;
             }
-            void ctx.close();
             baseName = (file.name || t('audiofade.file.base')).replace(/\.[^.]+$/, '');
             outBlob = null;
             saveBtn.disabled = true;
@@ -191,8 +188,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               const inN = Math.min(Math.round((parseInt($<HTMLInputElement>('#afIn').value, 10) / 10) * sr), Math.floor(buffer.length / 2));
               const outN = Math.min(Math.round((parseInt($<HTMLInputElement>('#afOut').value, 10) / 10) * sr), Math.floor(buffer.length / 2));
 
-              const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-              const ctx = new AC();
+              const ctx = audioCtx();
               const out = ctx.createBuffer(buffer.numberOfChannels, buffer.length, sr);
               for (let c = 0; c < buffer.numberOfChannels; c++) {
                 const src = buffer.getChannelData(c);
@@ -202,7 +198,6 @@ import { t, loadNamespace } from '../../lib/i18n';
                 for (let i = 0; i < outN; i++) dst[dst.length - 1 - i] *= curve(i / outN);
                 out.copyToChannel(dst, c);
               }
-              void ctx.close();
 
               outBlob = await encodeAudio(out, 'wav');
               player.src = URL.createObjectURL(outBlob);

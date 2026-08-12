@@ -9,7 +9,7 @@
  *  ② **키우기(정규화)** — 그 뒤에 전체를 목표 크기까지 올린다
  * 순서가 반대면 찌그러진다. 처리 전후를 **숫자와 파형으로 나란히** 보여 주고, 귀로도 비교하게 한다.
  */
-import { toWav, encodeAudio, fileSize as size, mmss, download } from './shared/media';
+import { toWav, encodeAudio, fileSize as size, mmss, download, audioCtx } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
 
 import { t, loadNamespace } from '../../lib/i18n';
@@ -164,16 +164,13 @@ import { t, loadNamespace } from '../../lib/i18n';
             saveBtn.disabled = true;
             $<HTMLElement>('#alResult').style.display = 'none';
             say(`${f.name} · ${size(f.size)} 를 읽는 중…`);
-            const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-            const ctx = new AC();
+            const ctx = audioCtx();
             try {
               source = await ctx.decodeAudioData(await f.arrayBuffer());
             } catch {
               say(t('audiolevel.err.decode'), 'error');
-              void ctx.close();
               return;
             }
-            void ctx.close();
             editor.style.display = '';
             const ch0 = source.getChannelData(0);
             drawWave($<HTMLCanvasElement>('#alBefore'), ch0, '#7a8894');
@@ -235,11 +232,9 @@ import { t, loadNamespace } from '../../lib/i18n';
               say(t('audiolevel.err.noFile'), 'error');
               return;
             }
-            const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-            const ctx = new AC();
+            const ctx = audioCtx();
             const held = source;
             const out = await process(held, ctx);
-            void ctx.close();
 
             const before = held.getChannelData(0);
             const after = out.getChannelData(0);

@@ -9,7 +9,7 @@
  * 부분을 부드럽게 이어 붙이며 조각 사이의 간격만 조절한다(겹쳐 잇기). 높이는 건드리지 않는다.
  * 「그냥 빠르게」도 남겨 뒀다 — 효과음이나 배속 감상용으로 일부러 쓰는 사람이 있다.
  */
-import { encodeAudio, fileSize as size, mmss, download } from './shared/media';
+import { encodeAudio, fileSize as size, mmss, download, audioCtx } from './shared/media';
 
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -157,16 +157,13 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           async function load(file: File): Promise<void> {
             say(t('audiospeed.say.reading'));
-            const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-            const ctx = new AC();
+            const ctx = audioCtx();
             try {
               buffer = await ctx.decodeAudioData(await file.arrayBuffer());
             } catch {
               say(t('audiospeed.err.decode'), 'error');
-              void ctx.close();
               return;
             }
-            void ctx.close();
             baseName = (file.name || t('audiospeed.file.base')).replace(/\.[^.]+$/, '');
             $<HTMLElement>('#asControls').style.display = '';
             runBtn.disabled = false;
@@ -191,11 +188,9 @@ import { t, loadNamespace } from '../../lib/i18n';
                 const src = buffer.getChannelData(c);
                 chans.push(keep ? stretch(src, rate, buffer.sampleRate) : resample(src, rate));
               }
-              const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-              const ctx = new AC();
+              const ctx = audioCtx();
               const outBuf = ctx.createBuffer(chans.length, chans[0].length, buffer.sampleRate);
               for (let c = 0; c < chans.length; c++) outBuf.copyToChannel(chans[c], c);
-              void ctx.close();
 
               outBlob = await encodeAudio(outBuf, 'wav');
               player.src = URL.createObjectURL(outBlob);

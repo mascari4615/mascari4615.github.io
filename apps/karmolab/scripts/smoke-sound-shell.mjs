@@ -52,6 +52,19 @@ function loudTailWav() {
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
+/* 소리틀(AudioContext) 을 **몇 개나 만드는지** 센다 (TASK-KL-271).
+ * 브라우저는 이걸 무제한으로 안 열어 준다 — 도구마다 새로 만들면 몇 번 오간 뒤부터
+ * 소리가 **조용히** 안 난다(오류도 안 뜬다). 세는 것 말고는 손대지 않는다. */
+await page.addInitScript(() => {
+  window.__ctxCount = 0;
+  const Real = window.AudioContext;
+  window.AudioContext = class extends Real {
+    constructor(...args) {
+      window.__ctxCount++;
+      super(...args);
+    }
+  };
+});
 await page.goto(`${BASE}#sound`, { waitUntil: 'domcontentloaded' });
 await page.waitForSelector('#pfDrop', { timeout: 20000 });
 
@@ -135,6 +148,28 @@ await page.evaluate(() => {
 });
 await page.waitForSelector('#pfChain:visible', { timeout: 10000 }).catch(() => {});
 check(await page.locator('#pfChain').isVisible(), '결과가 나오면 「이어서」 줄이 뜬다');
+
+/* ⑦ 할 일을 네 번 오가도 **소리틀은 늘어나지 않는다** — 이게 「오가다 소리가 죽던」 자리다 */
+for (const job of ['audiofade', 'audiolevel', 'audiospeed', 'audiocut']) {
+  await page.click('#pfBack');
+  await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+  await page.locator(`.pf-job[data-job="${job}"]`).click();
+  await page.waitForSelector('#pfMount:visible', { timeout: 20000 });
+  await page.waitForTimeout(700);
+}
+const ctxCount = await page.evaluate(() => window.__ctxCount);
+check(ctxCount <= 2, `소리 도구 다섯을 오가도 소리틀은 한둘이어야 한다 (지금 ${ctxCount}개)`);
+
+/* 그리고 오간 뒤에도 **소리가 실제로 읽히는지** — 틀이 죽었으면 여기서 조용히 실패한다 */
+const stillWorks = await page.evaluate(async () => {
+  const res = await fetch(document.querySelector('#sdPlayer').src);
+  const buf = await res.arrayBuffer();
+  const ctx = new AudioContext();
+  const decoded = await ctx.decodeAudioData(buf);
+  return Math.round(decoded.duration);
+});
+check(stillWorks === 3, `오간 뒤에도 소리가 읽힌다 (길이 ${stillWorks}초)`);
+
 
 process.stdout.write('\n');
 await browser.close();
