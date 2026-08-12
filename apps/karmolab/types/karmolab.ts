@@ -49,6 +49,13 @@ export interface KarmoLabLazyWidgetStub {
   layout: string;
   icon: string;
   lazyScriptPaths?: string[];
+  /** 도구 화면 맨 아래 안내(제목·설명·방문수)를 끈다. 창문형 위젯이 쓴다. */
+  noHero?: boolean;
+  /**
+   * 도구 화면 맨 아래 「여기도 있어요」(커뮤니티·광장·도구 전체)를 붙일지.
+   * **기본은 끔** — 대부분의 도구에서는 군더더기다. 다 쓰고 나가는 흐름이 자연스러운 위젯만 켠다.
+   */
+  nextLinks?: boolean;
 }
 
 export interface KarmoLabImageBatchRecipe {

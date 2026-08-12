@@ -2072,12 +2072,14 @@ const Toolbox = (() => {
      *
      * 도구 화면 맨 아래에만 둔다. 위쪽은 도구의 자리다 — 일하러 온 사람을 붙잡지 않는다.
      */
-    /** 「여기도 있어요」를 보일지 — **기본은 끔**. 대부분의 도구 화면에서는 군더더기라 사용자가 켤 때만 붙인다. */
-    const NEXT_FOOTER_PREF = 'show_next_links';
-
     function appendToolFooter(page, tool) {
         if (tool.noHero === true) return;
-        if (getPref(NEXT_FOOTER_PREF, false) !== true) return;
+        /**
+         * 「여기도 있어요」는 **위젯이 스스로 켠다** (`nextLinks: true`). 기본은 끔.
+         * 대부분의 도구 화면에서는 군더더기고, 어울리는 자리(도구를 다 쓰고 나가는 흐름)는
+         * 그 위젯을 만든 사람이 안다 — 사용자에게 물을 일이 아니라 등록할 때 정할 일이다.
+         */
+        if (tool.nextLinks !== true) return;
         /* 시스템 화면에는 안 붙인다 (TASK-KL-139). 여기 온 사람은 도구를 쓰러 온 게 아니라
          * 자기 것·자기 설정을 보러 왔다 — 계정 아래에 「여기도 있어요」를 깔면 자기 화면이
          * 아니라 광고판이 된다. (`hidden` 으로 거르면 안 된다: base64 처럼 **검색 유입 주소를

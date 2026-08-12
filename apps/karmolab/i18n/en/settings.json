@@ -69,8 +69,6 @@
   "settings.t24": "Background: ",
   "settings.t25": "Sharing: on",
   "settings.t26": "Sharing: off",
-  "settings.t27": "Theme (light/dark)",
-  "settings.t28": "Navigation layout (top/sidebar)",
   "settings.t29": "Whether sidebar groups are collapsed",
   "settings.t30": "Code highlighting theme",
   "settings.t31": "The page you were on last",
@@ -103,6 +101,5 @@
   "settings.t58": "Mascot record reset",
   "settings.tab.display": "Display · API",
   "settings.tab.mascot": "Mascot",
-  "settings.tab.data": "What is stored in this browser",
-  "settings.label.setNextLinks": "\"See also\" under tools"
+  "settings.tab.data": "What is stored in this browser"
 }
