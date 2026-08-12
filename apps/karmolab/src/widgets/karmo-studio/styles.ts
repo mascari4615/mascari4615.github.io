@@ -86,6 +86,13 @@ export const KARMO_STUDIO_CSS = `
     .ks-auto-pick { position:absolute; right:4px; top:2px; display:flex; gap:3px; z-index:2; }
     .ks-auto-tag { position:absolute; left:4px; top:2px; font:9px var(--font-mono); color:var(--text-tertiary); pointer-events:none; }
     .ks-lane.is-drop { box-shadow:inset 0 0 0 2px var(--accent); }
+    .ks-help { position:fixed; left:50%; top:8%; transform:translateX(-50%); z-index:1000; width:min(620px,94vw); max-height:84dvh; overflow:auto; padding:14px 16px; border:1px solid var(--border-hover); border-radius:8px; background:var(--bg-secondary); box-shadow:0 18px 40px rgba(0,0,0,.45); }
+    .ks-help-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; font:12px var(--font-mono); color:var(--text-secondary); }
+    .ks-help-body { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:10px 18px; }
+    .ks-help h5 { margin:0 0 4px; font:10px var(--font-mono); letter-spacing:.1em; color:var(--accent); }
+    .ks-help p { display:flex; gap:8px; align-items:baseline; margin:0 0 3px; font:11px var(--font-mono); color:var(--text-tertiary); }
+    .ks-help .ks-keys { flex:none; display:flex; gap:3px; }
+    .ks-help kbd { padding:1px 5px; border:1px solid var(--border-hover); border-bottom-width:2px; border-radius:3px; background:var(--bg-tertiary); color:var(--text-secondary); font:10px var(--font-mono); }
     .ks-export { position:fixed; left:50%; top:12%; transform:translateX(-50%); z-index:1000; width:min(420px,92vw); padding:14px; border:1px solid var(--border-hover); border-radius:8px; background:var(--bg-secondary); box-shadow:0 18px 40px rgba(0,0,0,.45); display:grid; gap:8px; }
     .ks-export h4 { margin:0; font:12px var(--font-mono); color:var(--text-secondary); letter-spacing:.08em; }
     .ks-export label { display:flex; align-items:center; justify-content:space-between; gap:10px; font:11px var(--font-mono); color:var(--text-tertiary); }

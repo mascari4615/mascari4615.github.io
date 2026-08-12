@@ -220,6 +220,17 @@ await page.keyboard.press('Alt+ArrowRight');await page.waitForTimeout(120);
 const playheadAfterMarkerKey=await page.locator('[data-role=playhead]').evaluate((element)=>parseFloat(element.style.left));
 await page.locator('[data-marker]').first().click({button:'right'});await page.waitForTimeout(140);
 const markerCountAfterDelete=await page.locator('[data-marker]').count();
+/* 단축키 도움말 — ? 로 열고 Escape 로 닫는다. */
+await page.locator('.ks-root').click({position:{x:5,y:5}});
+await page.keyboard.press('?');await page.waitForTimeout(160);
+const helpKeys=await page.locator('.ks-help kbd').count();
+const helpDialog=await page.locator('.ks-help[role=dialog]').count();
+await page.keyboard.press('Escape');await page.waitForTimeout(160);
+const helpAfterEscape=await page.locator('.ks-help').count();
+await page.click('[data-act=help]');await page.waitForTimeout(160);
+const helpFromButton=await page.locator('.ks-help').count();
+await page.click('[data-help-act=close]');await page.waitForTimeout(160);
+const helpAfterClose=await page.locator('.ks-help').count();
 /* 셋잇단 격자 — 고르면 화면 눈금도 같이 바뀐다(격자와 음이 어긋나면 못 쓴다). */
 const gridBefore=await page.locator('.ks-root').evaluate((element)=>getComputedStyle(element).getPropertyValue('--ks-grid').trim());
 await page.selectOption('[data-bind=snap]','0.3333333333333333');await page.waitForTimeout(200);
@@ -364,6 +375,11 @@ const after=await page.evaluate(()=>{const saved=JSON.parse(localStorage.getItem
 if(initial.tracks<2||initial.clips<1||initial.notes<4)problems.push(`기본 프로젝트가 비었다 (${JSON.stringify(initial)})`);
 if(clipStartAfterContext!==clipStartBeforeContext||!contextLabels.includes('편집기 열기'))problems.push(`우클릭 입력 격리 실패 (${clipStartBeforeContext}→${clipStartAfterContext}, ${contextLabels.join(', ')})`);
 if(selectTool!=='select'||drawTool!=='draw')problems.push(`FL식 tool 단축키 실패 (${selectTool}, ${drawTool})`);
+if(helpKeys<15)problems.push(`단축키 도움말이 비었다 (${helpKeys}개)`);
+if(helpDialog!==1)problems.push('도움말이 큰 창 규약(role=dialog)을 안 지킨다');
+if(helpAfterEscape!==0)problems.push('Escape 로 도움말이 안 닫힌다');
+if(helpFromButton!==1)problems.push('? 단추로 도움말이 안 열린다');
+if(helpAfterClose!==0)problems.push('닫기 단추가 안 먹는다');
 if(!gridBefore||gridBefore===gridTriplet)problems.push(`셋잇단으로 바꿔도 눈금이 그대로다 (${gridBefore}→${gridTriplet})`);
 if(Math.abs(snapSaved-1/3)>0.001)problems.push(`셋잇단 격자가 저장에 안 남았다 (${snapSaved})`);
 if(gridBack!==gridBefore)problems.push(`격자를 되돌려도 눈금이 안 돌아온다 (${gridBefore}→${gridBack})`);
