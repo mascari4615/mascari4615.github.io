@@ -39,6 +39,7 @@ export const META: GameMeta[] = [
   { id: 'nim', icon: '⚪', kind: 'board' },
   { id: 'minishogi', icon: '将', kind: 'board' },
   { id: 'mancala', icon: '🪵', kind: 'board' },
+  { id: 'foxhounds', icon: '🦊', kind: 'board' },
 
   { id: 'blackjack', icon: '♠️', kind: 'card' },
   { id: 'president', icon: '👑', kind: 'card' },

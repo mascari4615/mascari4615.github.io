@@ -265,5 +265,11 @@
   "arcade.shell.right": "맞혔다",
   "arcade.shell.wrong": "놓쳤다",
   "arcade.shell.win": "{who} — {n}번 맞힘",
-  "arcade.shell.perfect": "{who} — 다 맞혔다"
+  "arcade.shell.perfect": "{who} — 다 맞혔다",
+  "arcade.game.foxhounds.name": "여우와 사냥개",
+  "arcade.game.foxhounds.desc": "개 넷이 여우 하나를 가둔다. 이길 조건이 서로 다르다",
+  "arcade.fox.youFox": "당신은 🦊 여우 — 아래 끝줄까지 빠져나가면 이깁니다",
+  "arcade.fox.youHound": "당신은 🐶 사냥개 — 앞으로만 갑니다. 여우를 가두면 이깁니다",
+  "arcade.fox.foxWin": "{who} — 여우가 빠져나갔다",
+  "arcade.fox.houndWin": "{who} — 여우를 가뒀다"
 }

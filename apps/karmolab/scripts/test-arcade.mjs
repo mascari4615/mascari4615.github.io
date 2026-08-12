@@ -118,17 +118,17 @@ for (const g of GAMES) {
    * 판을 좀 굴린 뒤에 본다 — 시작하자마자는 아직 감출 것이 없는 게임이 있다(아무도 안 냈으니까).
    * 첫 판만 보고 「안 지운다」고 하면 검사가 이름값을 못 한다. */
   if (g.redact) {
+    /* **자리를 다 본다.** 어떤 게임은 특정 자리에 가릴 것이 없다(스무고개의 답 쥔 사람은
+       제 답을 봐야 한다). 자리 하나만 보고 「안 지운다」고 하면 그건 검사가 틀린 것이다. */
+    const hides = (st) =>
+      seats.some((_, i) => JSON.stringify(g.redact(st, i)) !== JSON.stringify(st));
     const warm = new Match(g, 999, seats);
     for (let now = 0; now < 30000; now += 50) {
       warm.step(now);
       if (warm.view().finished) break;
-      if (JSON.stringify(g.redact(warm.view().state, 0)) !== JSON.stringify(warm.view().state)) break;
+      if (hides(warm.view().state)) break;
     }
-    const st = warm.view().state;
-    ok(
-      JSON.stringify(g.redact(st, 0)) !== JSON.stringify(st),
-      `${g.id}: 감춘 것이 손님 판에서 지워진다`
-    );
+    ok(hides(warm.view().state), `${g.id}: 감춘 것이 손님 판에서 지워진다`);
   }
 
   /* ⑥ 자리 수가 말이 된다. */

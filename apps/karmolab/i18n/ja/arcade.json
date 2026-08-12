@@ -265,5 +265,11 @@
   "arcade.shell.right": "当たり",
   "arcade.shell.wrong": "はずれ",
   "arcade.shell.win": "{who} — {n}回正解",
-  "arcade.shell.perfect": "{who} — 全部当てた"
+  "arcade.shell.perfect": "{who} — 全部当てた",
+  "arcade.game.foxhounds.name": "狐と猟犬",
+  "arcade.game.foxhounds.desc": "犬4匹で狐1匹を追い詰める。勝ち方が互いに違う",
+  "arcade.fox.youFox": "あなたは 🦊 狐 — 向こう端に抜ければ勝ち",
+  "arcade.fox.youHound": "あなたは 🐶 猟犬 — 前にしか進めない。狐を閉じ込めれば勝ち",
+  "arcade.fox.foxWin": "{who} — 狐が抜けた",
+  "arcade.fox.houndWin": "{who} — 狐を閉じ込めた"
 }
