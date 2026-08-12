@@ -613,5 +613,8 @@
   "karmograph.align.spreadX": "가로로 고르게 벌리기",
   "karmograph.align.spreadY": "세로로 고르게 벌리기",
   "karmograph.align.hint": "양끝은 그대로 두고 사이 간격만 고르게 합니다.",
-  "karmograph.help.selectAll": "보이는 것 전부 고르기 (나란히 놓기·묶음 넣기로 이어짐)"
+  "karmograph.help.selectAll": "보이는 것 전부 고르기 (나란히 놓기·묶음 넣기로 이어짐)",
+  "karmograph.find.count": "{n}개",
+  "karmograph.find.none": "없음",
+  "karmograph.find.countTitle": "이름·한마디에서 맞은 카드 수"
 }
