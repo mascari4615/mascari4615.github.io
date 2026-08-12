@@ -501,6 +501,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-yumsg{min-height:24px;font-size:var(--font-size-sm)}',
       '.ac-yuctl{display:flex;gap:8px;justify-content:center;margin:var(--space-md) 0}',
       '.ac-yuwho .ac-now{outline:1px solid var(--accent-color)}',
+      '.ac-intro{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--bg-primary);text-align:center;padding:var(--space-lg)}',
+      '.ac-introicon{font-size:44px}',
+      '.ac-introname{font-size:var(--font-size-xl);font-weight:800}',
+      '.ac-introdesc{font-size:var(--font-size-sm);color:var(--text-secondary);max-width:22em}',
+      '.ac-introcount{font-size:clamp(48px,16vw,84px);font-weight:800;color:var(--accent-color);line-height:1}',
+      '.ac-stage{position:relative;min-height:300px}',
       '.ac-fl{max-width:760px;margin:0 auto}',
       '.ac-flmsg{text-align:center;font-size:var(--font-size-sm);min-height:22px}',
       '.ac-flgrids{display:flex;flex-wrap:wrap;gap:var(--space-lg);justify-content:center}',
@@ -555,7 +561,16 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '</div></div>' +
       '<div id="acPlay" style="display:none">' +
       '<div class="ac-seats" id="acSeats"></div>' +
+      '<div class="ac-stage" id="acStage">' +
+      '<div class="ac-intro" id="acIntro" style="display:none">' +
+      '<div class="ac-introicon" id="acIntroIcon"></div>' +
+      '<div class="ac-introname" id="acIntroName"></div>' +
+      '<div class="ac-introdesc" id="acIntroDesc"></div>' +
+      '<div class="ac-introcount" id="acIntroNum"></div>' +
+      '<div class="ac-introskip" id="acIntroSkip"></div>' +
+      '</div>' +
       '<div id="acView"></div>' +
+      '</div>' +
       '<div class="tool-status" id="acStatus"></div>' +
       '<div style="display:flex;gap:6px;margin-top:var(--space-lg)">' +
       '<button class="btn btn-ghost" id="acQuit">' + esc(t('arcade.btn.quit')) + '</button>' +
@@ -761,11 +776,65 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       Toolbox.trackUse?.(id);
     }
 
+    /**
+     * 판 시작 3초 (TASK-KL-264).
+     *
+     * **51개가 한꺼번에 얻는다** — 껍데기에서 하니 게임 파일은 이걸 모른다. 규칙 한 줄은
+     * 로비에 이미 적혀 있는 그 문장을 그대로 쓴다(두 벌 적으면 갈라진다).
+     *
+     * 왜 3초인가: 처음 여는 놀이는 규칙을 읽을 틈이 있어야 하고, 두 번째부터는 그 3초가
+     * 「이제 시작한다」는 신호가 된다. 커널은 이 시간 동안 아예 안 돈다 — 덮개를 씌운 채로
+     * 시계를 돌리면 반응 측정 같은 놀이는 시작하자마자 지고 있다.
+     */
+    /** 세는 중에 나가면 물린다 — 안 그러면 로비로 돌아간 뒤에 판이 저 혼자 시작한다(실측). */
+    let dropIntro: (() => void) | null = null;
+
+    function withIntro(id: string, go: () => void): void {
+      const introEl = $<HTMLElement>('#acIntro');
+      const numEl = $<HTMLElement>('#acIntroNum');
+      $<HTMLElement>('#acIntroIcon').textContent = iconOf(id);
+      $<HTMLElement>('#acIntroName').textContent = t('arcade.game.' + id + '.name');
+      $<HTMLElement>('#acIntroDesc').textContent = t('arcade.game.' + id + '.desc');
+      introEl.style.display = '';
+      $<HTMLElement>('#acIntroSkip').textContent = t('arcade.intro.skip');
+      let left = 3;
+      let done = false;
+      const finish = (): void => {
+        if (done) return;
+        done = true;
+        window.clearInterval(tick);
+        introEl.style.display = 'none';
+        introEl.onclick = null;
+        go();
+      };
+      /* 두 번째부터는 규칙을 이미 안다 — 누르면 바로 시작한다. */
+      introEl.onclick = finish;
+      dropIntro = (): void => {
+        done = true;
+        window.clearInterval(tick);
+        introEl.style.display = 'none';
+        introEl.onclick = null;
+      };
+      numEl.textContent = String(left);
+      blip('start');
+      const tick: number = window.setInterval(() => {
+        left -= 1;
+        if (left > 0) {
+          numEl.textContent = String(left);
+          blip('tap');
+          return;
+        }
+        finish();
+      }, 900);
+      Toolbox.onDispose?.(() => window.clearInterval(tick));
+    }
+
     /** 혼자 — 그물망 없이 커널만. 빈 자리는 봇이 앉는다. */
     function startSolo(id: string): void {
       net?.leave();
       net = null;
-      beginMatch(id, [{ name: myName(), bot: false }], seedFrom(id + String(Date.now())));
+      show('play');
+      withIntro(id, () => beginMatch(id, [{ name: myName(), bot: false }], seedFrom(id + String(Date.now()))));
     }
 
     /* ── 여럿 ────────────────────────────────────────────────────── */
@@ -848,7 +917,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         { name: myName(), bot: false },
         ...take.map((p) => ({ name: p.name, bot: false }))
       ];
-      beginMatch(gameId, seats, seedFrom(gameId + String(Date.now())));
+      show('play');
+      withIntro(gameId, () => beginMatch(gameId, seats, seedFrom(gameId + String(Date.now()))));
     }
 
     startBtn.onclick = startTogether;
@@ -866,6 +936,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     };
 
     const quit = (): void => {
+      dropIntro?.();
+      dropIntro = null;
       cancelAnimationFrame(raf);
       net?.leave();
       net = null;

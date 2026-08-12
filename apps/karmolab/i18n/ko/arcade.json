@@ -375,5 +375,6 @@
   "arcade.tuho.flying": "날아간다",
   "arcade.tuho.left": "화살 {n}",
   "arcade.tuho.win": "{who} · {n}점",
-  "arcade.btn.sound": "소리 켜고 끄기"
+  "arcade.btn.sound": "소리 켜고 끄기",
+  "arcade.intro.skip": "눌러서 바로 시작"
 }
