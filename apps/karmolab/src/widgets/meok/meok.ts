@@ -217,6 +217,12 @@ function buildMeok(container: HTMLElement): void {
           '<label>' + esc(T('layerOpacity', '불투명도')) + '<input data-layer="opacity" type="range" min="0" max="1" step="0.01"></label>' +
           '<label>' + esc(T('blend', '섞기')) + '<select data-layer="blend"></select></label>' +
           '<label class="meok-check"><input data-layer="clip" type="checkbox"> ' + esc(T('clip', '아래에 끼우기')) + '</label>' +
+          '<div class="meok-fix-row">' +
+            '<button data-act="mask-from-selection" data-needs-selection title="' + esc(T('maskFromSelectionHelp', '고른 자리만 보이게 가림막을 만든다 — 그림은 안 지운다')) + '">' + esc(T('maskFromSelection', '가림막')) + '</button>' +
+            '<button data-act="mask-invert" data-needs-mask title="' + esc(T('maskInvertHelp', '보이는 자리와 가린 자리를 맞바꾼다')) + '">' + esc(T('maskInvert', '뒤집기')) + '</button>' +
+            '<button data-act="mask-apply" data-needs-mask title="' + esc(T('maskApplyHelp', '가림막대로 그림을 실제로 지운다')) + '">' + esc(T('maskApply', '굳히기')) + '</button>' +
+            '<button data-act="mask-clear" data-needs-mask>' + esc(T('maskClear', '없애기')) + '</button>' +
+          '</div>' +
         '</div>' +
         '<div class="meok-layer-list" data-layers></div>' +
         '<details class="meok-fix"><summary>' + esc(T('fix', '고치기')) + '</summary>' +
@@ -281,7 +287,15 @@ function buildMeok(container: HTMLElement): void {
     }
     const empty = isEmpty(selection);
     root.querySelectorAll<HTMLButtonElement>('[data-needs-selection]').forEach(button => { button.disabled = empty; });
+    syncMaskButtons();
     view.invalidate();
+  }
+
+  /** 가림막이 있는 레이어에서만 뒤집기·굳히기·없애기가 눌린다. */
+  function syncMaskButtons(): void {
+    const layer = activeLayer(doc);
+    const has = !!(layer && layer.mask);
+    root.querySelectorAll<HTMLButtonElement>('[data-needs-mask]').forEach(button => { button.disabled = !has; });
   }
 
   /** 지금 붓이 지켜야 할 자리. 아무것도 안 골랐으면 판 전체다(= null). */
@@ -314,7 +328,8 @@ function buildMeok(container: HTMLElement): void {
       row.innerHTML =
         '<button class="meok-eye" title="' + esc(T('toggleVisible', '보이기/숨기기')) + '">' + (layer.visible ? '●' : '○') + '</button>' +
         '<canvas class="meok-thumb" width="40" height="40"></canvas>' +
-        '<span class="meok-layer-name" title="' + esc(T('renameHelp', '두 번 누르면 이름 고치기')) + '">' + esc(layer.name) + '</span>' +
+        '<span class="meok-layer-name" title="' + esc(T('renameHelp', '두 번 누르면 이름 고치기')) + '">' + esc(layer.name)
+         + (layer.mask ? ' <b class="meok-maskmark" title="' + esc(T('hasMask', '가림막이 걸려 있다')) + '">◐</b>' : '') + '</span>' +
         '<button class="meok-lock" title="' + esc(T('toggleLock', '잠그기')) + '">' + (layer.locked ? '🔒' : '○') + '</button>';
       const thumb = row.querySelector('canvas') as HTMLCanvasElement;
       const cel = celAt(layer, doc.activeFrame);
@@ -356,6 +371,7 @@ function buildMeok(container: HTMLElement): void {
       list.append(row);
     });
     syncLayerProps();
+    syncMaskButtons();
   }
 
   function syncLayerProps(): void {
@@ -660,17 +676,25 @@ function buildMeok(container: HTMLElement): void {
    */
   let saveTimer = 0;
   let saving = false;
+  /* 쓰는 중에 또 바뀌었나 — 그러면 다 쓴 뒤 **한 번 더** 쓴다.
+     예전엔 이 경우를 그냥 버렸다(재시도 없음). 화면엔 「저장됨」이 떠 있는데 마지막 획만
+     빠진 판이 남아, 새로고침해야 알 수 있었다 — 실브라우저 검사가 이걸 잡았다. */
+  let dirtyAgain = false;
+  function writeNow(): void {
+    if (saving) { dirtyAgain = true; return; }
+    saving = true;
+    dirtyAgain = false;
+    void saveLast(packDoc(doc))
+      .then(() => { savedMark(); })
+      .catch(() => { say(T('saveFailed', '자동 저장이 막혔다 — 파일로 내보내 두는 게 좋다')); })
+      .then(() => {
+        saving = false;
+        if (dirtyAgain) writeNow();
+      });
+  }
   function touched(): void {
     if (saveTimer) clearTimeout(saveTimer);
-    saveTimer = window.setTimeout(() => {
-      saveTimer = 0;
-      if (saving) return;
-      saving = true;
-      void saveLast(packDoc(doc))
-        .then(() => { savedMark(); })
-        .catch(() => { say(T('saveFailed', '자동 저장이 막혔다 — 파일로 내보내 두는 게 좋다')); })
-        .then(() => { saving = false; });
-    }, 1200);
+    saveTimer = window.setTimeout(() => { saveTimer = 0; writeNow(); }, 1200);
   }
   const savedMark = (): void => {
     const now = new Date();
@@ -824,6 +848,44 @@ function buildMeok(container: HTMLElement): void {
       say(T('feathered', '가장자리를 부드럽게 했다'));
     },
     'deselect': () => { selectNone(selection); selectionChanged(); },
+    'mask-from-selection': () => {
+      const layer = activeLayer(doc);
+      if (!layer) return;
+      if (isEmpty(selection)) { say(T('needSelectionMask', '먼저 보일 자리를 골라라')); return; }
+      const next = new Uint8ClampedArray(doc.w * doc.h);
+      next.set(selection.mask);
+      history.run(fieldChange(layer, 'mask', next, T('maskFromSelection', '가림막')));
+      selectNone(selection);
+      selectionChanged();
+      renderLayers(); repaint(); touched();
+    },
+    'mask-invert': () => {
+      const layer = activeLayer(doc);
+      if (!layer || !layer.mask) return;
+      const next = new Uint8ClampedArray(layer.mask.length);
+      for (let p = 0; p < next.length; p += 1) next[p] = 255 - layer.mask[p];
+      history.run(fieldChange(layer, 'mask', next, T('maskInvert', '뒤집기')));
+      renderLayers(); repaint(); touched();
+    },
+    'mask-clear': () => {
+      const layer = activeLayer(doc);
+      if (!layer || !layer.mask) return;
+      history.run(fieldChange(layer, 'mask', null, T('maskClear', '없애기')));
+      renderLayers(); repaint(); touched();
+    },
+    'mask-apply': () => {
+      const layer = canDraw();
+      if (!layer || !layer.mask) return;
+      const mask = layer.mask;
+      /* 가림막대로 알파를 깎고 가림막은 치운다 — 「지금 보이는 대로」가 그림이 된다. */
+      paintOp(T('maskApply', '굳히기'), surface => {
+        const out = cloneSurface(surface);
+        for (let p = 0; p < mask.length; p += 1) out.data[p * 4 + 3] = surface.data[p * 4 + 3] * (mask[p] / 255);
+        return out;
+      });
+      layer.mask = null;
+      renderLayers(); repaint(); touched();
+    },
     'crop-selection': () => {
       const bounds = selection.bounds;
       if (!bounds) { say(T('needSelection', '먼저 자를 자리를 골라라')); return; }
@@ -1023,6 +1085,8 @@ function buildMeok(container: HTMLElement): void {
   });
 
   Toolbox.onDispose?.(() => {
+    /* 다른 도구로 넘어가는 순간에도 아직 안 쓴 것이 있으면 지금 쓴다. */
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = 0; writeNow(); }
     if (playing) clearInterval(playing);
     if (ants) clearInterval(ants);
     observer.disconnect();
@@ -1097,6 +1161,7 @@ function injectStyles(): void {
     '.meok-layer.active{border-color:var(--accent,#4f7cff);background:color-mix(in srgb,var(--accent,#4f7cff) 12%,transparent)}',
     '.meok-layer canvas{width:34px;height:34px;background:#fff;border-radius:4px;image-rendering:pixelated}',
     '.meok-layer-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+    '.meok-maskmark{color:var(--accent,#4f7cff);font-weight:400}',
     '.meok-eye,.meok-lock{padding:2px 3px!important;border-color:transparent!important;background:none!important;font-size:10px;color:var(--text-tertiary);opacity:.8}',
     '@media(max-width:860px){.meok-body{grid-template-columns:60px minmax(0,1fr)}.meok-layers{grid-column:1/-1;border-left:0;border-top:1px solid var(--border);max-height:210px}.meok{height:auto}}'
   ].join('');
