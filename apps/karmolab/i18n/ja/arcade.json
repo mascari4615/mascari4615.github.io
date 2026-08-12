@@ -305,5 +305,12 @@
   "arcade.rps.noLock": "まだ全部出せる",
   "arcade.rps.round": "{n}/5 回戦",
   "arcade.rps.win": "{who} — {a} 対 {b}",
-  "arcade.rps.draw": "{n} 対 {n} — 引き分け"
+  "arcade.rps.draw": "{n} 対 {n} — 引き分け",
+  "arcade.game.simon.name": "記憶の順番",
+  "arcade.game.simon.desc": "見た順にそのまま。1つずつ長くなる",
+  "arcade.simon.watch": "見ている — {n}個",
+  "arcade.simon.repeat": "同じ順に押してください",
+  "arcade.simon.dead": "間違えた — 観戦",
+  "arcade.simon.win": "{who} — {n}個まで",
+  "arcade.simon.out": "{n}個で全員脱落"
 }
