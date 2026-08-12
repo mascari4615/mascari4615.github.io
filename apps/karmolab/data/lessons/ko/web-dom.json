@@ -1,0 +1,106 @@
+{
+  "id": "web-dom",
+  "minutes": 14,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "프레임워크가 대신 해 주는 일이 정확히 이것이다 — **상태를 화면으로 바꾸는 일**. 한 번 손으로 해 보면 프레임워크가 무엇을 덜어 주는지, 그리고 언제 프레임워크 없이도 되는지 알게 된다."
+    },
+    {
+      "type": "h",
+      "text": "1. 찾기 — 화면에서 조각 집어 오기"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "선택자는 CSS 와 같다",
+      "text": "const list = document.querySelector('#todo');       // 첫 하나\nconst items = document.querySelectorAll('.item');   // 전부 (배열 아님)\n[...items].filter((el) => el.dataset.done === '1'); // 배열로 바꿔 쓰기"
+    },
+    {
+      "type": "note",
+      "text": "`querySelectorAll` 이 주는 것은 **그 순간의 목록**이다. 나중에 추가된 요소는 안 들어 있다. 그래서 목록을 저장해 두고 쓰면 조용히 어긋난다."
+    },
+    {
+      "type": "h",
+      "text": "2. 만들기 — innerHTML 과 createElement"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "남의 글을 넣을 땐 반드시 textContent",
+      "text": "// 빠르고 편하지만, 값이 사용자 입력이면 위험하다\nel.innerHTML = `<b>${name}</b>`;      // name 에 <script> 가 오면?\n\n// 안전한 기본값\nconst b = document.createElement('b');\nb.textContent = name;                 // 태그가 아니라 글자로 들어간다\nel.replaceChildren(b);"
+    },
+    {
+      "type": "h",
+      "text": "3. 이벤트 — 하나에 걸고 위임한다"
+    },
+    {
+      "type": "p",
+      "text": "항목마다 리스너를 거는 대신 **부모 하나**에 걸고, 눌린 곳에서 의도를 읽는다. 항목이 늘어도 리스너는 하나다."
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "위임 — 이 한 패턴이 대부분을 덮는다",
+      "text": "list.addEventListener('click', (e) => {\n  const btn = e.target.closest('[data-action]');\n  if (!btn) return;                       // 빈 곳을 눌렀다\n  const id = btn.closest('li').dataset.id;\n  if (btn.dataset.action === 'remove') remove(id);\n});"
+    },
+    {
+      "type": "h",
+      "text": "4. 상태 → 화면, 한 방향"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "DOM 을 진실로 삼지 마라",
+      "text": "let todos = [];                          // 진실은 여기 한 곳\n\nfunction render() {\n  list.replaceChildren(...todos.map((t) => {\n    const li = document.createElement('li');\n    li.dataset.id = t.id;\n    li.textContent = t.text;\n    return li;\n  }));\n}\n\nfunction add(text) { todos = [...todos, { id: crypto.randomUUID(), text }]; render(); }"
+    },
+    {
+      "type": "note",
+      "text": "화면에서 값을 다시 읽어(예: `li.textContent`) 판단하기 시작하면, 곧 화면과 데이터가 서로 다른 말을 한다. **상태에서 화면으로 한 방향**이 프레임워크의 핵심 규칙이고, 손으로 짤 때도 똑같이 지켜야 한다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "라이브러리 없이 할 일 목록을 만들어라 — 추가·삭제·완료 표시·필터. 규칙 하나만 지켜라: **화면에서 값을 읽지 않는다**. 모든 판단은 배열에서."
+    },
+    {
+      "type": "try",
+      "text": "완성한 뒤 항목 1000개를 넣어 보고, 항목마다 리스너를 거는 방식과 위임 방식의 차이를 개발자도구 Performance 로 재 봐라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "목록 항목이 계속 늘어나는 화면에서 클릭 처리는?",
+      "choices": [
+        "항목마다 addEventListener 를 건다",
+        "부모 하나에 걸고 e.target.closest 로 의도를 읽는다(위임)",
+        "전역 onclick 속성을 쓴다"
+      ],
+      "answer": 1,
+      "why": "위임하면 리스너가 하나로 유지되고, 나중에 추가된 항목도 그대로 동작한다."
+    },
+    {
+      "q": "사용자가 입력한 이름을 화면에 넣을 때 안전한 방법은?",
+      "choices": [
+        "innerHTML 로 넣는다",
+        "textContent 로 넣는다",
+        "document.write 를 쓴다"
+      ],
+      "answer": 1,
+      "why": "textContent 는 태그를 글자로 취급한다. innerHTML 은 입력이 그대로 코드가 될 수 있다."
+    },
+    {
+      "q": "「화면과 데이터가 서로 다른 말을 한다」를 막는 규칙은?",
+      "choices": [
+        "상태에서 화면으로만 흐르게 하고, 화면에서 값을 되읽지 않는다",
+        "DOM 을 자주 갱신한다",
+        "querySelectorAll 결과를 변수에 저장해 재사용한다"
+      ],
+      "answer": 0,
+      "why": "진실을 한 곳(상태)에 두고 화면은 그 결과로만 만든다."
+    }
+  ]
+}

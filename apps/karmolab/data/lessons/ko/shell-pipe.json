@@ -1,0 +1,112 @@
+{
+  "id": "shell-pipe",
+  "minutes": 13,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "유닉스의 사상은 하나다 — **작은 도구를 이어 붙인다**. 이걸 손에 넣으면 로그 분석 도구를 따로 사지 않아도 되는 순간이 자주 온다."
+    },
+    {
+      "type": "h",
+      "text": "1. 파이프 — 앞의 출력이 뒤의 입력"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "기본 흐름",
+      "text": "cat access.log | grep ' 500 ' | wc -l        # 500 에러 개수\ngrep -c ' 500 ' access.log                    # 같은 일, 더 짧게\n\n# 흔한 실수: grep 은 표준입력을 읽는다. 파일이 있으면 인자로 주는 게 빠르다."
+    },
+    {
+      "type": "h",
+      "text": "2. 골라내기 — grep"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "자주 쓰는 조합",
+      "text": "grep -i error app.log        # 대소문자 무시\ngrep -v health app.log       # 뺀다(헬스체크 소음 제거)\ngrep -n 'TODO' -r src/       # 줄 번호 + 폴더 전체\ngrep -A2 -B2 'panic' app.log # 앞뒤 2줄까지 같이"
+    },
+    {
+      "type": "h",
+      "text": "3. 자르고 세기 — cut · sort · uniq"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "가장 많이 쓰는 한 줄: 상위 N개",
+      "text": "awk '{print $7}' access.log | sort | uniq -c | sort -rn | head -10\n#     경로만 뽑고    묶기 위해 정렬  같은 것 세기   많은 순    위 10개"
+    },
+    {
+      "type": "note",
+      "text": "`uniq` 는 **인접한** 중복만 없앤다. 그래서 앞에 `sort` 가 반드시 붙는다. 이걸 모르면 개수가 조용히 틀린다."
+    },
+    {
+      "type": "h",
+      "text": "4. 조금 더 — awk · sed"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "열 다루기와 치환",
+      "text": "awk -F, '$3 > 100 {print $1, $3}' data.csv    # 콤마로 나눠 3번째가 100 초과인 줄\nsed 's/localhost/example.com/g' conf.txt      # 치환(출력만)\nsed -i.bak 's/8080/8081/g' conf.txt           # 파일 자체 수정 + .bak 백업"
+    },
+    {
+      "type": "h",
+      "text": "5. 안전하게"
+    },
+    {
+      "type": "note",
+      "text": "`sed -i` · `xargs rm` 처럼 되돌릴 수 없는 것은 **먼저 출력만 해 보고** 실행하라. `xargs` 는 `-print0` / `-0` 를 짝으로 써야 공백 있는 파일 이름에서 안 깨진다."
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "먼저 보고, 그 다음 실행",
+      "text": "find . -name '*.tmp' -print                 # 먼저 목록만\nfind . -name '*.tmp' -print0 | xargs -0 rm  # 확인했으면 실행"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "아무 로그 파일에서 「가장 많이 나온 경로 10개」와 「시간대별 요청 수」를 각각 한 줄 파이프로 뽑아라. 두 번째는 시간 부분만 잘라 세면 된다."
+    },
+    {
+      "type": "try",
+      "text": "`sort` 없이 `uniq -c` 를 돌려 보고 결과가 왜 틀리는지 눈으로 확인하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "`uniq -c` 앞에 `sort` 를 붙이는 이유는?",
+      "choices": [
+        "속도 때문에",
+        "uniq 는 인접한 중복만 합치기 때문",
+        "알파벳 순서로 보여 주려고"
+      ],
+      "answer": 1,
+      "why": "떨어져 있는 같은 값은 uniq 가 못 합친다. 정렬해서 붙여 놔야 한다."
+    },
+    {
+      "q": "공백이 들어간 파일 이름을 xargs 로 안전하게 넘기려면?",
+      "choices": [
+        "find -print0 과 xargs -0 을 짝으로 쓴다",
+        "따옴표로 감싼다",
+        "xargs -n1 을 쓴다"
+      ],
+      "answer": 0,
+      "why": "널 문자로 구분하면 공백·줄바꿈이 든 이름도 안 깨진다."
+    },
+    {
+      "q": "`sed -i` 를 실행하기 전에 권장되는 습관은?",
+      "choices": [
+        "먼저 -i 없이 실행해 출력만 확인한다",
+        "백업 없이 바로 실행한다",
+        "sudo 를 붙인다"
+      ],
+      "answer": 0,
+      "why": "-i 는 파일을 직접 고친다. 되돌릴 수 없는 명령은 먼저 눈으로 결과를 확인한다."
+    }
+  ]
+}

@@ -4,8 +4,12 @@
     "ko": [
       "cs-algo",
       "cs-binary",
+      "cs-ds",
+      "devops-ci",
       "git-areas",
+      "git-branch",
       "git-model",
+      "git-undo",
       "kl-architecture",
       "kl-boundaries",
       "kl-browser",
@@ -15,9 +19,13 @@
       "kl-orientation",
       "kl-project",
       "kl-trouble",
+      "shell-pipe",
       "web-css",
+      "web-dom",
       "web-html",
-      "web-js"
+      "web-http",
+      "web-js",
+      "web-test"
     ]
   }
 }

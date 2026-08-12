@@ -1,0 +1,104 @@
+{
+  "id": "git-branch",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "브랜치를 겁내면 모든 작업이 한 줄기에 쌓이고, 되돌릴 수 없는 상태가 된다. 브랜치는 이름표 한 줄이라 만들고 지우는 값이 거의 0 이다."
+    },
+    {
+      "type": "h",
+      "text": "1. 만들고 옮겨 다니기"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "기본 손동작",
+      "text": "git switch -c feat/login     # 만들고 그리로 이동 (checkout -b 와 같다)\ngit switch main              # 돌아오기\ngit branch -vv               # 어디를 가리키는지 · 원격과 얼마나 어긋났는지\ngit branch -d feat/login     # 병합된 것만 지운다 (-D 는 강제)"
+    },
+    {
+      "type": "h",
+      "text": "2. 합치는 두 방법"
+    },
+    {
+      "type": "p",
+      "text": "**merge** 는 두 줄기를 잇는 커밋을 하나 만든다(역사가 그대로 남는다). **rebase** 는 내 커밋을 상대 위에 다시 만든다(한 줄로 펴진다). 팀 규칙이 우선이고, 혼자면 취향이다."
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "둘의 차이를 눈으로",
+      "text": "git switch feat/login\ngit merge main        # 합치는 커밋이 생긴다\n# 또는\ngit rebase main       # 내 커밋들이 main 끝에 다시 얹힌다 (해시가 바뀐다)\n\ngit log --graph --oneline --all | head -20"
+    },
+    {
+      "type": "h",
+      "text": "3. 충돌 — 겁낼 것 없다"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "충돌 표식의 의미",
+      "text": "<<<<<<< HEAD\n지금 내가 있는 쪽의 내용\n=======\n가져오는 쪽의 내용\n>>>>>>> main"
+    },
+    {
+      "type": "p",
+      "text": "표식을 지우고 **원하는 결과**를 직접 쓴 뒤 `git add <파일>` → `git merge --continue`(또는 `rebase --continue`). 겁나면 `git merge --abort` 로 아무 일 없던 상태로 돌아갈 수 있다."
+    },
+    {
+      "type": "note",
+      "text": "충돌 해결 후에는 **반드시 빌드·테스트를 돌려라**. 표식만 지우면 문법은 맞는데 뜻이 어긋난 코드가 그대로 커밋된다 — 리뷰에서도 잘 안 보인다."
+    },
+    {
+      "type": "h",
+      "text": "4. 이름은 규칙으로"
+    },
+    {
+      "type": "p",
+      "text": "`feat/`, `fix/`, `chore/` 처럼 앞을 맞추면 목록이 저절로 정리되고, CI 규칙도 걸기 쉬워진다. 브랜치 이름은 **무엇을 하는지**를 적는다 — `test2`, `new` 같은 이름은 일주일 뒤 아무도 모른다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "연습용 저장소에서 같은 파일의 같은 줄을 두 브랜치에서 다르게 고치고 일부러 충돌을 내라. 손으로 풀고, `git merge --abort` 로 되돌려 보고, rebase 로도 한 번 풀어 봐라."
+    },
+    {
+      "type": "try",
+      "text": "`git log --graph --oneline --all` 을 merge 방식과 rebase 방식 각각에서 찍어 두고 그림을 비교하라 — 이 차이가 팀이 전략을 고르는 이유다."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "merge 와 rebase 의 가장 큰 차이는?",
+      "choices": [
+        "merge 는 역사를 그대로 두고 합치는 커밋을 만들고, rebase 는 커밋을 다시 만들어 한 줄로 편다",
+        "rebase 가 항상 더 안전하다",
+        "merge 는 충돌이 안 난다"
+      ],
+      "answer": 0,
+      "why": "rebase 는 커밋을 새로 만들기 때문에 해시가 바뀐다 — 이미 공유된 커밋에는 위험하다."
+    },
+    {
+      "q": "충돌 해결이 끝난 뒤 가장 중요한 다음 행동은?",
+      "choices": [
+        "바로 push 한다",
+        "빌드·테스트를 돌려 뜻이 어긋나지 않았는지 확인한다",
+        "표식만 지운다"
+      ],
+      "answer": 1,
+      "why": "표식을 지우면 문법은 통과하지만 로직이 반쯤 섞인 코드가 남을 수 있다."
+    },
+    {
+      "q": "병합 중인데 상황이 꼬였다. 안전한 탈출은?",
+      "choices": [
+        "git merge --abort",
+        "git reset --hard origin/main",
+        "rm -rf .git"
+      ],
+      "answer": 0,
+      "why": "abort 는 병합 시작 전 상태로 되돌린다. 공유 트리에서 reset --hard 는 남의 작업까지 날릴 수 있다."
+    }
+  ]
+}

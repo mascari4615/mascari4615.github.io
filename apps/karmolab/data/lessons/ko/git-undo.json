@@ -1,0 +1,102 @@
+{
+  "id": "git-undo",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "Git 에서 **커밋된 것은 거의 잃지 않는다**. 이 사실을 아는 사람과 모르는 사람은 손의 자유가 다르다."
+    },
+    {
+      "type": "h",
+      "text": "1. 세 가지 되돌리기"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "무엇을 되돌리는지가 다르다",
+      "text": "git revert <커밋>      # 그 커밋을 취소하는 새 커밋을 만든다 (역사 보존 · 공유된 것에 안전)\ngit reset --soft HEAD~1  # 커밋만 풀고 변경은 인덱스에 그대로\ngit reset --mixed HEAD~1 # 커밋·인덱스 풀고 작업 트리에 남김 (기본값)\ngit reset --hard HEAD~1  # 전부 되돌림 — 안 커밋된 변경은 사라진다"
+    },
+    {
+      "type": "note",
+      "text": "**이미 push 한 커밋은 revert** 로 되돌려라. reset 으로 역사를 바꾸면 남의 저장소와 갈라진다."
+    },
+    {
+      "type": "h",
+      "text": "2. reflog — 잃어버린 커밋 찾기"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "내가 서 있던 자리의 기록",
+      "text": "git reflog\n# a1b2c3d HEAD@{0}: reset: moving to HEAD~1\n# 9f8e7d6 HEAD@{1}: commit: 로그인 실패 메시지 추가   <- 사라진 줄 알았던 커밋\n\ngit switch -c rescue 9f8e7d6     # 그 자리로 새 가지를 내어 되찾는다"
+    },
+    {
+      "type": "p",
+      "text": "reflog 는 **내 저장소에서 HEAD 가 움직인 기록**이다(기본 90일). 남의 저장소에는 없고, 커밋되지 않은 편집도 없다."
+    },
+    {
+      "type": "h",
+      "text": "3. 커밋 메시지·내용 고치기"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "마지막 커밋 손보기",
+      "text": "git commit --amend                 # 메시지 수정 (내용도 함께 담을 수 있다)\ngit commit --amend --no-edit       # 메시지는 그대로, 빠뜨린 파일만 추가\n\n# 이미 push 했다면 amend 대신 새 커밋을 쌓는다"
+    },
+    {
+      "type": "h",
+      "text": "4. 잘못 지운 파일"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "커밋에는 남아 있다",
+      "text": "git restore --source=HEAD~1 -- path/to/file.ts   # 한 커밋 전 판으로\ngit log --diff-filter=D --oneline -- path/to/file.ts  # 언제 지워졌나"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "연습 저장소에서 커밋 하나를 만들고 `git reset --hard HEAD~1` 로 날려라. 그 다음 `git reflog` 로 찾아 새 브랜치로 되살려 봐라 — 이 왕복을 한 번 해 두면 실전에서 손이 떨리지 않는다."
+    },
+    {
+      "type": "try",
+      "text": "`git revert` 로 되돌린 뒤 로그를 봐라. 원래 커밋이 남아 있고 취소 커밋이 하나 더 생긴 모습을 확인하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "이미 원격에 push 한 커밋을 되돌려야 한다. 무엇을 쓰나?",
+      "choices": [
+        "git reset --hard",
+        "git revert",
+        "git commit --amend"
+      ],
+      "answer": 1,
+      "why": "revert 는 역사를 유지하며 취소 커밋을 추가한다. reset·amend 는 역사를 바꿔 남과 갈라진다."
+    },
+    {
+      "q": "reset --hard 로 날린 커밋을 되찾는 도구는?",
+      "choices": [
+        "git reflog",
+        "git clean",
+        "git gc"
+      ],
+      "answer": 0,
+      "why": "reflog 에는 HEAD 가 지나온 자리가 남아 있어 그 해시로 되살릴 수 있다."
+    },
+    {
+      "q": "reflog 로도 못 되찾는 것은?",
+      "choices": [
+        "한 번도 커밋·stash 되지 않은 편집",
+        "되돌린 커밋",
+        "amend 이전의 커밋"
+      ],
+      "answer": 0,
+      "why": "Git 이 기억하는 것은 저장소에 들어온 것뿐이다."
+    }
+  ]
+}
