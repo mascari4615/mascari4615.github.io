@@ -109,6 +109,34 @@ const B = await load();
   eq(await B.open(body, key), emoji, '이모지·한글이 깨지지 않는다');
 }
 
+/* ── 파일 봉투 (TASK-KL-252) ─────────────────────────────────────── */
+{
+  const bytes = new Uint8Array([0, 1, 2, 250, 251, 255]);
+  const packed = B.packFile('계약서 최종.pdf', 'application/pdf', bytes);
+  const { body, key } = await B.seal(packed);
+  check(!body.includes('계약서'), '파일 이름도 잠긴 안쪽에 있다 — 이름 자체가 정보다');
+  const out = B.unpackFile(await B.open(body, key));
+  eq(out?.name, '계약서 최종.pdf', '이름이 돌아온다');
+  eq(out?.type, 'application/pdf', '종류가 돌아온다');
+  eq(Array.from(out.bytes).join(','), '0,1,2,250,251,255', '바이트가 한 개도 안 틀리고 돌아온다');
+}
+
+{
+  check(B.unpackFile('그냥 글') === null, '그냥 글은 파일 봉투가 아니다');
+  check(B.unpackFile('') === null, '빈 것도 아니다');
+  const half = B.packFile('a', 'b', new Uint8Array([1])).slice(0, 20);
+  check(B.unpackFile(half) === null, '잘린 봉투는 null — 반쯤 읽은 파일을 내주면 안 된다');
+}
+
+{
+  /* 큰 파일도 바이트가 그대로여야 한다 — base64 자리 맞춤에서 끝이 잘리는 실수가 흔하다. */
+  const big = new Uint8Array(100000);
+  for (let i = 0; i < big.length; i += 1) big[i] = i % 256;
+  const out = B.unpackFile(B.packFile('big.bin', '', big));
+  eq(out.bytes.length, 100000, '10만 바이트가 그대로');
+  eq(out.bytes[99999], 99999 % 256, '마지막 바이트까지 그대로');
+}
+
 /* ── 링크 ────────────────────────────────────────────────────────── */
 {
   const link = B.linkFor('https://x.example', 'ID123', 'KEY456');

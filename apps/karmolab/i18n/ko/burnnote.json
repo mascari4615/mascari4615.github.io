@@ -13,9 +13,13 @@
   "burnnote.status.gone": "이미 열렸거나 사라진 쪽지입니다",
   "burnnote.status.opened": "열었습니다 — 이 쪽지는 이제 없습니다",
   "burnnote.status.badkey": "열쇠가 맞지 않습니다 — 링크가 잘렸을 수 있습니다",
-  "burnnote.status.empty": "건넬 것을 적어 주세요",
+  "burnnote.status.empty": "건넬 것을 적거나 파일을 고르세요",
   "burnnote.status.failed": "맡기지 못했습니다 — 잠시 뒤 다시",
   "burnnote.status.made": "링크를 만들었습니다",
   "burnnote.status.copied": "복사했습니다",
-  "burnnote.status.copyfail": "복사가 막혔습니다 — 직접 골라 복사해 주세요"
+  "burnnote.status.copyfail": "복사가 막혔습니다 — 직접 골라 복사해 주세요",
+  "burnnote.label.file": "파일도 함께 (하나, 5MB 까지)",
+  "burnnote.btn.save": "파일 받기",
+  "burnnote.status.openedFile": "파일 「{name}」 — 지금 받으세요. 창을 닫으면 없습니다",
+  "burnnote.status.big": "파일이 5MB 를 넘습니다"
 }

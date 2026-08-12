@@ -125,6 +125,33 @@ await page.waitForTimeout(900);
 const bad = await page.locator('#bnStatus').innerText();
 check(/열쇠|맞지|key/i.test(bad), `틀린 열쇠는 그렇다고 말해야 한다 (지금 「${bad}」)`);
 
+
+/* ⑧ 파일도 같은 길로 간다 (TASK-KL-252) */
+/* 앞 검사들이 「여는 화면」에 있었으므로 빈 곳을 거쳐 **쓰는 화면**으로 새로 연다. */
+await freshOpen(`${BASE}#burnnote`);
+await page.waitForSelector('#bnFile', { timeout: 15000 });
+await page.setInputFiles('#bnFile', {
+  name: '계약서 최종.pdf',
+  mimeType: 'application/pdf',
+  buffer: Buffer.from([0, 1, 2, 250, 251, 255])
+});
+await page.click('#bnMake');
+await page.waitForSelector('#bnResult:visible', { timeout: 15000 });
+const fileLink = await page.inputValue('#bnLink');
+const fileStored = [...vault.values()].pop() || '';
+check(!fileStored.includes('계약서'), '파일 이름도 잠긴 안쪽에 있다 — 서버는 이름조차 모른다');
+
+const fileOpenUrl = `${BASE}` + fileLink.slice(fileLink.indexOf('#'));
+await freshOpen(fileOpenUrl);
+await page.waitForSelector('#bnOpen', { timeout: 15000 });
+await page.click('#bnOpen');
+await page.waitForSelector('#bnSave:visible', { timeout: 15000 });
+check(true, '파일이면 「받기」 단추가 뜬다');
+const fileStatus = await page.locator('#bnStatus').innerText();
+check(/계약서/.test(fileStatus), `받는 사람에게 파일 이름을 알려 준다 (지금 「${fileStatus.slice(0, 30)}」)`);
+const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('#bnSave')]);
+check(dl.suggestedFilename() === '계약서 최종.pdf', `받은 파일 이름이 그대로여야 한다 (지금 「${dl.suggestedFilename()}」)`);
+
 process.stdout.write('\n');
 await browser.close();
 if (frozen) await frozen.close();

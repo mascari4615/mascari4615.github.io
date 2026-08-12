@@ -7,7 +7,7 @@
  * 덩어리 하나뿐이다. 그래서 「우리도 못 본다」가 말이 아니라 구조다. 그 사실을 화면에도
  * 적어 둔다: 믿음이 알맹이인 도구에서 그 근거가 안 보이면 값어치가 없다.
  */
-import { linkFor, open, parseLink, seal } from '../../lib/burn-note';
+import { linkFor, open, packFile, parseLink, seal, unpackFile } from '../../lib/burn-note';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -48,6 +48,11 @@ import { t, loadNamespace } from '../../lib/i18n';
           <textarea id="bnText" rows="6" spellcheck="false" style="width:100%;"
                     placeholder="${esc(t('burnnote.ph.text', undefined, '비밀번호, 주소, 한 번만 보일 말…'))}"></textarea>
         </div>
+        <div class="field-group">
+          <div class="tool-sublabel">${esc(t('burnnote.label.file', undefined, '파일도 함께 (하나, 5MB 까지)'))}</div>
+          <input type="file" id="bnFile">
+          <p class="bn-note" id="bnFileNote" style="display:none;"></p>
+        </div>
         <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
           <button class="btn btn-primary" id="bnMake">${esc(t('burnnote.btn.make', undefined, '링크 만들기'))}</button>
         </div>
@@ -67,6 +72,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           <p class="bn-warn">${esc(t('burnnote.note.warn', undefined, '지금 열면 사라집니다. 옮겨 적을 준비가 됐을 때 누르세요.'))}</p>
           <button class="btn btn-primary" id="bnOpen">${esc(t('burnnote.btn.open', undefined, '열기 (한 번뿐)'))}</button>
           <textarea id="bnGot" rows="6" readonly style="width:100%; display:none; margin-top:10px;"></textarea>
+          <button class="btn btn-primary" id="bnSave" style="display:none; margin-top:10px;">${esc(t('burnnote.btn.save', undefined, '파일 받기'))}</button>
         </div>
       </div>
 
@@ -98,11 +104,28 @@ import { t, loadNamespace } from '../../lib/i18n';
             }
             const { body } = (await res.json()) as { body: string };
             const text = await open(body, incoming.key);
-            const box = $<HTMLTextAreaElement>('#bnGot');
-            box.value = text;
-            box.style.display = '';
             $('#bnOpen').setAttribute('disabled', 'true');
-            say(t('burnnote.status.opened', undefined, '열었습니다 — 이 쪽지는 이제 없습니다'), 'ok');
+            const file = unpackFile(text);
+            if (file) {
+              /* 파일은 화면에 못 보여 준다 — 받는 단추 하나로 끝낸다. 이 창을 닫으면
+                 서버에도 없으므로 **지금 받지 않으면 영영 없다**. */
+              const save = $<HTMLButtonElement>('#bnSave');
+              save.style.display = '';
+              save.onclick = (): void => {
+                const blob = new Blob([file.bytes], { type: file.type || 'application/octet-stream' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = file.name;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+              };
+              say(t('burnnote.status.openedFile', { name: file.name }, `파일 「${file.name}」 — 지금 받으세요. 창을 닫으면 없습니다`), 'ok');
+            } else {
+              const box = $<HTMLTextAreaElement>('#bnGot');
+              box.value = text;
+              box.style.display = '';
+              say(t('burnnote.status.opened', undefined, '열었습니다 — 이 쪽지는 이제 없습니다'), 'ok');
+            }
           } catch {
             /* 열쇠가 틀리면 조용히 넘어가면 안 된다 — 「빈 쪽지였나 보다」로 읽힌다. */
             say(t('burnnote.status.badkey', undefined, '열쇠가 맞지 않습니다 — 링크가 잘렸을 수 있습니다'), 'warn');
@@ -115,12 +138,22 @@ import { t, loadNamespace } from '../../lib/i18n';
     $('#bnMake').onclick = (): void => {
       void (async () => {
         const text = $<HTMLTextAreaElement>('#bnText').value;
-        if (!text.trim()) {
-          say(t('burnnote.status.empty', undefined, '건넬 것을 적어 주세요'), 'warn');
+        const picked = $<HTMLInputElement>('#bnFile').files?.[0] || null;
+        if (!text.trim() && !picked) {
+          say(t('burnnote.status.empty', undefined, '건넬 것을 적거나 파일을 고르세요'), 'warn');
+          return;
+        }
+        if (picked && picked.size > 5 * 1024 * 1024) {
+          say(t('burnnote.status.big', undefined, '파일이 5MB 를 넘습니다'), 'warn');
           return;
         }
         try {
-          const { body, key } = await seal(text);
+          /* 파일을 골랐으면 파일이 앞선다 — 하나의 덩어리에 하나만 담는다(둘을 섞으면
+             받는 쪽 화면이 「글이냐 파일이냐」로 갈려 둘 다 어정쩡해진다). */
+          const payload = picked
+            ? packFile(picked.name, picked.type, new Uint8Array(await picked.arrayBuffer()))
+            : text;
+          const { body, key } = await seal(payload);
           const res = await fetch(API, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

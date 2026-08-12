@@ -13,9 +13,13 @@
   "burnnote.status.gone": "Already opened, or gone",
   "burnnote.status.opened": "Opened — this note no longer exists",
   "burnnote.status.badkey": "The key does not match — the link may have been cut short",
-  "burnnote.status.empty": "Write something to hand over",
+  "burnnote.status.empty": "Write something, or pick a file",
   "burnnote.status.failed": "Could not store it — try again shortly",
   "burnnote.status.made": "Link created",
   "burnnote.status.copied": "Copied",
-  "burnnote.status.copyfail": "Copying was blocked — please select and copy it yourself"
+  "burnnote.status.copyfail": "Copying was blocked — please select and copy it yourself",
+  "burnnote.label.file": "Or a file (one, up to 5MB)",
+  "burnnote.btn.save": "Download file",
+  "burnnote.status.openedFile": "File “{name}” — download it now. Close this and it is gone",
+  "burnnote.status.big": "That file is over 5MB"
 }
