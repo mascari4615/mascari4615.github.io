@@ -1,5 +1,5 @@
 import type { AutomationPoint, StudioAsset, StudioClip, StudioProject, StudioTrack } from './model';
-import { automationValueAt } from './model';
+import { automationValueAt, swingBeat } from './model';
 
 type AudioContextLike = AudioContext | OfflineAudioContext;
 
@@ -90,9 +90,10 @@ function updateTrackGraph(graph: TrackGraph, track: StudioTrack, muted: boolean,
   if(!track.automation.reverb.length)graph.reverbSend.gain.setTargetAtTime(track.reverb, at, 0.015);
 }
 
-function scheduleMidi(context: AudioContextLike, input: AudioNode, track: StudioTrack, clip: StudioClip, fromBeat: number, toBeat: number, startTime: number, secondsPerBeat: number, sources: AudioScheduledSourceNode[]): void {
+function scheduleMidi(context: AudioContextLike, input: AudioNode, track: StudioTrack, clip: StudioClip, fromBeat: number, toBeat: number, startTime: number, secondsPerBeat: number, sources: AudioScheduledSourceNode[], swing = 0): void {
   for (const note of clip.notes) {
-    const absoluteBeat = clip.start + note.beat;
+    /* 스윙은 **소리 낼 때만** 민다 — 저장된 위치는 그대로라 껐다 켜면 정박으로 돌아온다. */
+    const absoluteBeat = swingBeat(clip.start + note.beat, swing);
     if (absoluteBeat + note.duration <= fromBeat || absoluteBeat >= toBeat) continue;
     const audibleStart = Math.max(absoluteBeat, fromBeat);
     const audibleEnd = Math.min(absoluteBeat + note.duration, toBeat);
@@ -146,7 +147,7 @@ function scheduleProject(context: AudioContextLike, project: StudioProject, asse
     scheduleAutomation(graph, track, fromBeat, toBeat, startTime, secondsPerBeat, muted);
     for (const clip of track.clips) {
       if (clip.mute) continue;
-      if (clip.kind === 'midi') scheduleMidi(context, graph.input, track, clip, fromBeat, toBeat, startTime, secondsPerBeat, sources);
+      if (clip.kind === 'midi') scheduleMidi(context, graph.input, track, clip, fromBeat, toBeat, startTime, secondsPerBeat, sources, project.swing);
       else scheduleAudio(context, graph.input, clip, clip.assetId ? assets.get(clip.assetId) : undefined, fromBeat, toBeat, startTime, secondsPerBeat, sources);
     }
   }
@@ -229,7 +230,7 @@ export class KarmoStudioEngine {
     const beat=this.currentBeat();const endBeat=this.endBeat(project);
     if(beat>=endBeat-.001){if(project.loop){for(const source of this.sources){try{source.stop();}catch(_){}}this.sources=[];this.scheduled.clear();this.startedBeat=project.loopStart;this.startedAt=context.currentTime+0.012;this.scheduledThroughBeat=project.loopStart;}else{this.stop();this.onEnded?.();return;}}
     const secondsPerBeat=60/project.bpm;const horizonBeat=Math.min(endBeat,this.currentBeat()+0.24/secondsPerBeat);const from=Math.max(this.scheduledThroughBeat,this.currentBeat());if(horizonBeat<=from)return;const fromTime=this.startedAt+(from-this.startedBeat)*secondsPerBeat;
-    for(const track of project.tracks){const graph=this.graphs.get(track.id);if(!graph)continue;for(const clip of track.clips){if(clip.mute)continue;if(clip.kind==='audio'){const key=`audio:${clip.id}`;if(this.scheduled.has(key)||clip.start+clip.duration<=from||clip.start>=horizonBeat)continue;this.scheduled.add(key);scheduleAudio(context,graph.input,clip,clip.assetId?this.assets.get(clip.assetId):undefined,from,endBeat,fromTime,secondsPerBeat,this.sources);}else for(const note of clip.notes){const absolute=clip.start+note.beat;const key=`note:${clip.id}:${note.id}`;if(this.scheduled.has(key)||absolute+note.duration<=from||absolute>=horizonBeat)continue;this.scheduled.add(key);scheduleMidi(context,graph.input,track,{...clip,notes:[note]},from,endBeat,fromTime,secondsPerBeat,this.sources);}}}
+    for(const track of project.tracks){const graph=this.graphs.get(track.id);if(!graph)continue;for(const clip of track.clips){if(clip.mute)continue;if(clip.kind==='audio'){const key=`audio:${clip.id}`;if(this.scheduled.has(key)||clip.start+clip.duration<=from||clip.start>=horizonBeat)continue;this.scheduled.add(key);scheduleAudio(context,graph.input,clip,clip.assetId?this.assets.get(clip.assetId):undefined,from,endBeat,fromTime,secondsPerBeat,this.sources);}else for(const note of clip.notes){const absolute=clip.start+note.beat;const key=`note:${clip.id}:${note.id}`;if(this.scheduled.has(key)||absolute+note.duration<=from||absolute>=horizonBeat)continue;this.scheduled.add(key);scheduleMidi(context,graph.input,track,{...clip,notes:[note]},from,endBeat,fromTime,secondsPerBeat,this.sources,project.swing);}}}
     for(const track of project.tracks){const graph=this.graphs.get(track.id);if(!graph||!(['volume','pan','reverb'] as const).some((key)=>track.automation[key].length))continue;const anySolo=project.tracks.some((item)=>item.solo);scheduleAutomation(graph,track,from,horizonBeat,fromTime,secondsPerBeat,track.mute||(anySolo&&!track.solo));}
     if(this.metronome){
       for(let beat=Math.ceil(from-1e-6);beat<horizonBeat;beat++){
