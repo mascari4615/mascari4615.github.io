@@ -6,14 +6,23 @@
  * 단위 테스트가 막힌다.
  */
 
-import type { AutomationPoint, StudioClip, StudioTrack } from './model';
+import { AUTOMATION_RANGE, type AutomationParam, type AutomationPoint, type StudioClip, type StudioTrack } from './model';
 
-/** 자동화 줄 좌표 규칙 — 뷰와 제스처가 같은 숫자를 본다. */
-export const AUTOMATION_GEOMETRY = { height: 46, max: 1.2 } as const;
+/** 자동화 줄 높이 — 뷰와 제스처가 같은 숫자를 본다. 값의 범위는 항목마다 다르다. */
+export const AUTOMATION_GEOMETRY = { height: 46 } as const;
 
-export function automationY(value: number): number {
-  const { height, max } = AUTOMATION_GEOMETRY;
-  return height - (Math.max(0, Math.min(max, value)) / max) * height;
+/** 값 → 화면 y. 항목의 최소~최대를 줄 높이에 편다 (볼륨 0~1.2, 팬 -1~1). */
+export function automationY(value: number, param: AutomationParam = 'volume'): number {
+  const { height } = AUTOMATION_GEOMETRY;
+  const { min, max } = AUTOMATION_RANGE[param];
+  const ratio = (Math.max(min, Math.min(max, value)) - min) / (max - min);
+  return height - ratio * height;
+}
+
+/** 화면 y → 값 — 제스처가 쓰는 반대 방향. */
+export function automationValue(ratioFromTop: number, param: AutomationParam = 'volume'): number {
+  const { min, max } = AUTOMATION_RANGE[param];
+  return min + (1 - Math.max(0, Math.min(1, ratioFromTop))) * (max - min);
 }
 
 /** 표본 한 줄에서 96칸의 최소/최대를 뽑아 SVG path 로. 소리 자료가 없으면 빈 문자열. */
@@ -93,6 +102,7 @@ export function clipHtml(input: ClipViewInput): string {
 
 export interface AutomationViewInput {
   trackId: string;
+  param: AutomationParam;
   points: AutomationPoint[];
   /** 점이 없을 때 그릴 평평한 선의 높이 = 트랙 볼륨. */
   fallback: number;
@@ -103,14 +113,20 @@ export interface AutomationViewInput {
 }
 
 export function automationHtml(input: AutomationViewInput): string {
-  const { trackId, fallback, pxPerBeat, width, projectBeats, beatLabel } = input;
+  const { trackId, param, fallback, pxPerBeat, width, projectBeats, beatLabel } = input;
+  const y = (value: number): number => automationY(value, param);
   const points = [...input.points].sort((a, b) => a.beat - b.beat);
   const line = points.length
-    ? `M0,${automationY(points[0].value)} ` + points.map((point) => `L${point.beat * pxPerBeat},${automationY(point.value)}`).join(' ') + ` L${width},${automationY(points[points.length - 1].value)}`
-    : `M0,${automationY(fallback)} L${width},${automationY(fallback)}`;
-  const dots = points.map((point) => `<i data-auto-point="${point.id}" data-track="${trackId}" style="left:${point.beat * pxPerBeat}px;top:${automationY(point.value)}px" title="${beatLabel(point.beat)} · ${Math.round(point.value * 100)}%"></i>`).join('');
-  const tag = points.length ? ` · ${points.length}점` : ' · 점 없음(트랙 볼륨 그대로)';
-  return `<div class="ks-auto" data-auto="${trackId}" style="width:${width}px" title="빈 곳 클릭 = 점 추가 · 점 드래그 = 이동 · 우클릭 = 삭제"><svg viewBox="0 0 ${Math.max(1, projectBeats * pxPerBeat)} ${AUTOMATION_GEOMETRY.height}" preserveAspectRatio="none"><path d="${line}"></path></svg><span class="ks-auto-tag">VOLUME${tag}</span>${dots}</div>`;
+    ? `M0,${y(points[0].value)} ` + points.map((point) => `L${point.beat * pxPerBeat},${y(point.value)}`).join(' ') + ` L${width},${y(points[points.length - 1].value)}`
+    : `M0,${y(fallback)} L${width},${y(fallback)}`;
+  const label = (value: number): string => param === 'pan'
+    ? (Math.abs(value) < 0.02 ? '가운데' : `${value < 0 ? 'L' : 'R'}${Math.round(Math.abs(value) * 100)}`)
+    : `${Math.round(value * 100)}%`;
+  const dots = points.map((point) => `<i data-auto-point="${point.id}" data-track="${trackId}" style="left:${point.beat * pxPerBeat}px;top:${y(point.value)}px" title="${beatLabel(point.beat)} · ${label(point.value)}"></i>`).join('');
+  const name = param === 'pan' ? 'PAN' : 'VOLUME';
+  const tag = points.length ? ` · ${points.length}점` : ` · 점 없음(트랙 ${param === 'pan' ? '팬' : '볼륨'} 그대로)`;
+  const pick = (['volume', 'pan'] as AutomationParam[]).map((option) => `<button class="ks-mini${option === param ? ' is-on' : ''}" data-auto-param="${option}" data-track="${trackId}">${option === 'pan' ? 'PAN' : 'VOL'}</button>`).join('');
+  return `<div class="ks-auto" data-auto="${trackId}" data-auto-kind="${param}" style="width:${width}px" title="빈 곳 클릭 = 점 추가 · 점 드래그 = 이동 · 우클릭 = 삭제"><svg viewBox="0 0 ${Math.max(1, projectBeats * pxPerBeat)} ${AUTOMATION_GEOMETRY.height}" preserveAspectRatio="none"><path d="${line}"></path></svg><span class="ks-auto-tag">${name}${tag}</span><span class="ks-auto-pick">${pick}</span>${dots}</div>`;
 }
 
 /**

@@ -23,6 +23,14 @@ export interface StudioClip {
   fadeOut: number;
 }
 
+/** 자동화할 수 있는 값. 눈금 범위가 달라서 뷰·엔진이 이 이름으로 갈라진다. */
+export type AutomationParam = 'volume' | 'pan';
+
+export const AUTOMATION_RANGE: Record<AutomationParam, { min: number; max: number }> = {
+  volume: { min: 0, max: 1.2 },
+  pan: { min: -1, max: 1 }
+};
+
 export interface AutomationPoint {
   id: string;
   beat: number;
@@ -46,8 +54,8 @@ export interface StudioTrack {
   reverb: number;
   instrument: OscillatorType;
   clips: StudioClip[];
-  /** 시간에 따라 움직이는 볼륨. 점이 0개면 트랙 볼륨을 그대로 쓴다. */
-  volumeAutomation: AutomationPoint[];
+  /** 시간에 따라 움직이는 값들. 점이 0개인 항목은 트랙의 고정값을 그대로 쓴다. */
+  automation: Record<AutomationParam, AutomationPoint[]>;
   /** 접으면 클립 미리보기 대신 얇은 띠만 남는다 — 곡이 길어지면 세로가 부족해진다. */
   folded: boolean;
 }
@@ -104,7 +112,7 @@ export function newTrack(kind: TrackKind, index: number): StudioTrack {
     id: studioId('track'), kind, name: kind === 'audio' ? `Audio ${index}` : `Instrument ${index}`,
     color: COLORS[(index - 1) % COLORS.length], volume: 0.82, pan: 0, mute: false, solo: false,
     eqLow: 0, eqMid: 0, eqHigh: 0, compressor: 0.25, reverb: 0.08,
-    instrument: kind === 'midi' ? 'sawtooth' : 'sine', clips: [], volumeAutomation: [], folded: false
+    instrument: kind === 'midi' ? 'sawtooth' : 'sine', clips: [], automation: { volume: [], pan: [] }, folded: false
   };
 }
 
@@ -198,18 +206,13 @@ export function normalizeProject(input: unknown): StudioProject {
     const source = raw as Partial<StudioTrack>;
     const track = { ...newTrack(source.kind === 'audio' ? 'audio' : 'midi', index + 1), ...source } as StudioTrack;
     track.folded = source.folded === true;
-    track.volumeAutomation = Array.isArray(source.volumeAutomation)
-      ? sortAutomation(source.volumeAutomation
-          .filter((point) => point && Number.isFinite(Number((point as AutomationPoint).beat)))
-          .map((point) => {
-            const raw = point as Partial<AutomationPoint>;
-            return {
-              id: typeof raw.id === 'string' ? raw.id : studioId('auto'),
-              beat: Math.max(0, Number(raw.beat) || 0),
-              value: Math.max(0, Math.min(1.2, Number(raw.value) ?? 1))
-            };
-          }))
-      : [];
+    /* 옛 저장본은 볼륨 자동화를 `volumeAutomation` 한 줄로 들고 있었다 — 새 자리로 옮겨 담는다. */
+    const legacyVolume = (raw as { volumeAutomation?: unknown }).volumeAutomation;
+    const storedAutomation = (source as { automation?: Partial<Record<AutomationParam, unknown>> }).automation;
+    track.automation = {
+      volume: cleanAutomation(storedAutomation?.volume ?? legacyVolume, 'volume'),
+      pan: cleanAutomation(storedAutomation?.pan, 'pan')
+    };
     track.clips = Array.isArray(source.clips) ? source.clips.map((rawClip) => {
       const clip = rawClip as Partial<StudioClip>;
       return {
@@ -284,6 +287,22 @@ export function legatoNotes(notes: StudioNote[], limit: number): number {
 }
 
 /** 점을 시간순으로 세운다 — 편집이 어디에 점을 놓든 읽는 쪽은 정렬을 전제한다. */
+/** 저장본에서 온 점들을 값 범위에 맞춰 걸러 낸다. 숫자가 아닌 위치는 버린다. */
+export function cleanAutomation(input: unknown, param: AutomationParam): AutomationPoint[] {
+  if (!Array.isArray(input)) return [];
+  const range = AUTOMATION_RANGE[param];
+  return sortAutomation(input
+    .filter((point) => point && Number.isFinite(Number((point as AutomationPoint).beat)))
+    .map((point) => {
+      const raw = point as Partial<AutomationPoint>;
+      return {
+        id: typeof raw.id === 'string' ? raw.id : studioId('auto'),
+        beat: Math.max(0, Number(raw.beat) || 0),
+        value: Math.max(range.min, Math.min(range.max, Number(raw.value) ?? 0))
+      };
+    }));
+}
+
 export function sortAutomation(points: AutomationPoint[]): AutomationPoint[] {
   return [...points].sort((a, b) => a.beat - b.beat);
 }
@@ -310,9 +329,10 @@ export function automationValueAt(points: AutomationPoint[], beat: number, fallb
 }
 
 /** 같은 자리에 점을 겹쳐 놓지 않는다 — 가까우면 그 점의 값을 바꾼다. */
-export function putAutomationPoint(points: AutomationPoint[], beat: number, value: number, tolerance = 0.05): AutomationPoint[] {
+export function putAutomationPoint(points: AutomationPoint[], beat: number, value: number, param: AutomationParam = 'volume', tolerance = 0.05): AutomationPoint[] {
+  const range = AUTOMATION_RANGE[param];
   const clean = Math.max(0, beat);
-  const level = Math.max(0, Math.min(1.2, value));
+  const level = Math.max(range.min, Math.min(range.max, value));
   const existing = points.find((point) => Math.abs(point.beat - clean) <= tolerance);
   if (existing) { existing.value = level; return sortAutomation(points); }
   points.push({ id: studioId('auto'), beat: clean, value: level });

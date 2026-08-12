@@ -238,7 +238,17 @@ const autoPathBefore=await page.locator('[data-auto] path').first().getAttribute
 await page.locator('[data-auto-point]').first().click({button:'right'});await page.waitForTimeout(140);
 const autoPointAfterDelete=await page.locator('[data-auto-point]').count();
 await page.waitForTimeout(400);
-const autoSaved=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null');return raw?raw.tracks.reduce((sum,track)=>sum+((track.volumeAutomation||[]).length),0):-1;});
+/* 같은 줄에서 항목을 팬으로 바꾸면 팬 점을 따로 찍는다. */
+await page.locator('[data-auto]').first().scrollIntoViewIfNeeded();
+await page.locator('[data-auto-param=pan]').first().click();await page.waitForTimeout(160);
+const panLaneKind=await page.locator('[data-auto]').first().getAttribute('data-auto-kind');
+const panPointsBefore=await page.locator('[data-auto] [data-auto-point]').count();
+const panBox=await page.locator('[data-auto]').first().boundingBox();
+const panSpot=await page.evaluate(([left,right,top,bottom])=>{const l=Math.max(4,left),r=Math.min(window.innerWidth-4,right),t=Math.max(4,top),b=Math.min(window.innerHeight-4,bottom);for(let y=t+4;y<b-2;y+=3){for(let x=l+8;x<r-8;x+=6){const el=document.elementFromPoint(x,y);if(el&&el.closest('[data-auto]')&&!el.closest('[data-auto-point]')&&!el.closest('[data-auto-param]'))return {x,y};}}return null;},[panBox.x,panBox.x+panBox.width,panBox.y,panBox.y+panBox.height]);
+if(!panSpot)problems.push('자동화 줄에서 누를 자리를 못 찾았다');
+if(panSpot){await page.mouse.click(panSpot.x,panSpot.y);await page.waitForTimeout(160);}
+const panPointsAfter=await page.locator('[data-auto] [data-auto-point]').count();
+const autoSaved=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null');return raw?raw.tracks.reduce((sum,track)=>sum+((track.automation?.volume||[]).length)+((track.automation?.pan||[]).length),0):-1;});
 /* 믹서 미터 — 페이더 위치가 아니라 실제로 나는 소리를 그린다. */
 await page.click('[data-side=mixer]');await page.waitForTimeout(100);
 const meterCount=await page.locator('[data-meter]').count();
@@ -290,7 +300,9 @@ if(!mobile){
   laneCountsAfterCross=await midiLaneCounts();
 }
 
-const after=await page.evaluate(()=>({tracks:document.querySelectorAll('.ks-track-row').length,clips:document.querySelectorAll('.ks-clip').length,notes:document.querySelectorAll('.ks-note').length,osc:window.__ksOsc,status:document.querySelector('[data-role=status]').textContent}));
+/* 클립 수는 화면이 아니라 프로젝트에서 센다 — 화면 밖 클립은 안 그리므로(KL-220 14회차)
+   DOM 개수는 「지금 보이는 것」이지 「가진 것」이 아니다. */
+const after=await page.evaluate(()=>{const saved=JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null');return {tracks:document.querySelectorAll('.ks-track-row').length,clips:saved?saved.tracks.reduce((sum,track)=>sum+track.clips.length,0):-1,visibleClips:document.querySelectorAll('.ks-clip').length,notes:document.querySelectorAll('.ks-note').length,osc:window.__ksOsc,status:document.querySelector('[data-role=status]').textContent};});
 if(initial.tracks<2||initial.clips<1||initial.notes<4)problems.push(`기본 프로젝트가 비었다 (${JSON.stringify(initial)})`);
 if(clipStartAfterContext!==clipStartBeforeContext||!contextLabels.includes('편집기 열기'))problems.push(`우클릭 입력 격리 실패 (${clipStartBeforeContext}→${clipStartAfterContext}, ${contextLabels.join(', ')})`);
 if(selectTool!=='select'||drawTool!=='draw')problems.push(`FL식 tool 단축키 실패 (${selectTool}, ${drawTool})`);
@@ -352,6 +364,8 @@ if(autoLaneOpen<1)problems.push('A 를 눌러도 자동화 줄이 안 열린다'
 if(autoPointCount<2)problems.push(`자동화 점이 안 찍힌다 (${autoPointCount})`);
 if(!autoPathBefore||autoPathBefore.split('L').length<3)problems.push(`자동화 선이 점을 안 잇는다 (${autoPathBefore})`);
 if(autoPointAfterDelete!==autoPointCount-1)problems.push(`우클릭 삭제 실패 (${autoPointCount}→${autoPointAfterDelete})`);
+if(panLaneKind!=='pan')problems.push(`자동화 항목 전환 실패 (${panLaneKind})`);
+if(panPointsAfter!==panPointsBefore+1)problems.push(`팬 자동화 점이 안 찍힌다 (${panPointsBefore}→${panPointsAfter})`);
 if(autoSaved<1)problems.push(`자동화가 저장에 안 남았다 (${autoSaved})`);
 if(meterCount<2)problems.push(`믹서 미터가 트랙 수만큼 없다 (${meterCount})`);
 if(meterBeforePlay!=='−∞')problems.push(`재생 전 미터가 0 이 아니다 (${meterBeforePlay})`);
