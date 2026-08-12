@@ -48,6 +48,14 @@
     "scale": {
       "title": "Distribution & scale",
       "lead": "When one machine stops being enough — and the new problems that splitting creates"
+    },
+    "gfx": {
+      "title": "Graphics & shaders",
+      "lead": "Why a pixel is that color — the rules of triangles and light"
+    },
+    "embed": {
+      "title": "Embedded & IoT",
+      "lead": "Computers off-screen — kilobytes of memory, and someone has to walk over to unplug it"
     }
   },
   "stages": {
@@ -80,7 +88,12 @@
     "mobile-b": "Fit it to the hand",
     "mobile-c": "Ship it",
     "scale-a": "Before you split",
-    "scale-b": "After you split"
+    "scale-b": "After you split",
+    "gfx-a": "The order things get drawn",
+    "gfx-b": "Deciding the color",
+    "gfx-c": "Making it fast",
+    "embed-a": "The small machine",
+    "embed-b": "Connecting to the world"
   },
   "nodes": {
     "web-html": {
@@ -833,6 +846,102 @@
       "check": "Your service answers even when a dependency is dead",
       "links": [
         "Circuit breaker pattern"
+      ]
+    },
+    "gfx-pipeline": {
+      "title": "Render pipeline — vertex to pixel",
+      "why": "If you cannot tell whether \"it is heavy\" means vertices or pixels, every optimization is a gamble.",
+      "check": "You name draw call, vertex and fragment stages in order",
+      "links": [
+        "LearnOpenGL"
+      ]
+    },
+    "gfx-space": {
+      "title": "Coordinate spaces and matrices",
+      "why": "99% of objects vanishing or flipping comes from losing track of which space you are in.",
+      "check": "You explain model, view and projection transforms in order",
+      "links": [
+        "3Blue1Brown linear algebra (video)"
+      ]
+    },
+    "gfx-shader": {
+      "title": "Shaders — tiny programs on the GPU",
+      "why": "Written with a CPU mindset they crawl. This is where \"millions at once\" enters your hands.",
+      "check": "You write a fragment shader that shifts color over time",
+      "links": [
+        "The Book of Shaders"
+      ]
+    },
+    "gfx-light": {
+      "title": "Light and materials (PBR)",
+      "why": "Why the same model looks different per game. Physically based means there are rules.",
+      "check": "You change roughness and metalness and predict the result",
+      "links": [
+        "LearnOpenGL PBR"
+      ]
+    },
+    "gfx-color": {
+      "title": "Color spaces and gamma",
+      "why": "The answer to \"why does it look washed out only in Unity\". Mix linear and sRGB and color collapses.",
+      "check": "You explain why a linear workflow is needed",
+      "links": [
+        "Gamma correction (LearnOpenGL)"
+      ]
+    },
+    "gfx-perf": {
+      "title": "Profiling — what eats the frame",
+      "why": "Bottlenecks guessed by eye are usually wrong, especially on the GPU.",
+      "check": "You separate CPU-bound from GPU-bound with a tool",
+      "links": [
+        "RenderDoc"
+      ]
+    },
+    "embed-mcu": {
+      "title": "MCU and GPIO — wiggling one pin",
+      "why": "First time you touch electricity with code. One LED lighting up opens everything after it.",
+      "check": "A button press turns an LED on",
+      "links": [
+        "Arduino getting started"
+      ]
+    },
+    "embed-limit": {
+      "title": "Resource limits — memory and power",
+      "why": "Kilobytes and a battery decide the design. PC instincts break here.",
+      "check": "You explain why dynamic allocation is avoided",
+      "links": [
+        "The Embedded Rust Book"
+      ]
+    },
+    "embed-rt": {
+      "title": "Interrupts and real time",
+      "why": "\"It freezes sometimes\" usually means you stayed too long inside an interrupt.",
+      "check": "You list what must not happen in an interrupt handler",
+      "links": [
+        "FreeRTOS documentation"
+      ]
+    },
+    "embed-bus": {
+      "title": "Buses — UART, I2C, SPI",
+      "why": "When a sensor will not answer, the eye that tells wiring from protocol.",
+      "check": "You read the signal on a logic analyzer",
+      "links": [
+        "SparkFun I2C tutorial"
+      ]
+    },
+    "embed-net": {
+      "title": "IoT — MQTT and wireless",
+      "why": "Flaky links, batteries, untrusted networks. Web assumptions do not hold here.",
+      "check": "Data survives a disconnect and reconnect",
+      "links": [
+        "MQTT getting started"
+      ]
+    },
+    "embed-ota": {
+      "title": "Firmware updates (OTA)",
+      "why": "A machine you cannot fix ends up in a box. This is also where bricking on a failed update is prevented.",
+      "check": "It recovers even when an update is cut off midway",
+      "links": [
+        "ESP-IDF OTA"
       ]
     }
   }
