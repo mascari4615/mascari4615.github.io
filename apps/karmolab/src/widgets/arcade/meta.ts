@@ -27,6 +27,7 @@ export const META: GameMeta[] = [
   { id: 'pong', icon: '🏓', kind: 'quick' },
   { id: 'whack', icon: '🐹', kind: 'quick' },
   { id: 'tug', icon: '🪢', kind: 'quick' },
+  { id: 'rps', icon: '✌️', kind: 'quick' },
   { id: 'wordchain', icon: '🗣️', kind: 'quick' },
   { id: 'lineup', icon: '👥', kind: 'quick' },
   { id: 'twenty', icon: '❓', kind: 'quick' },

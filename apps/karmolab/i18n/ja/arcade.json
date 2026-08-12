@@ -298,5 +298,12 @@
   "arcade.game.capturego.desc": "地は数えない。先に5子取れば勝ち",
   "arcade.go.pass": "パス",
   "arcade.go.win": "{who} — {n}子",
-  "arcade.go.draw": "{n} 対 {n} — 引き分け"
+  "arcade.go.draw": "{n} 対 {n} — 引き分け",
+  "arcade.game.rps.name": "じゃんけん",
+  "arcade.game.rps.desc": "勝った手は次の回に出せない。だから読みが生まれる",
+  "arcade.rps.locked": "{h} は出せない",
+  "arcade.rps.noLock": "まだ全部出せる",
+  "arcade.rps.round": "{n}/5 回戦",
+  "arcade.rps.win": "{who} — {a} 対 {b}",
+  "arcade.rps.draw": "{n} 対 {n} — 引き分け"
 }

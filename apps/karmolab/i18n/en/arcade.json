@@ -298,5 +298,12 @@
   "arcade.game.capturego.desc": "No territory counting. First to capture five wins",
   "arcade.go.pass": "Pass",
   "arcade.go.win": "{who} — {n} captured",
-  "arcade.go.draw": "{n} all — a draw"
+  "arcade.go.draw": "{n} all — a draw",
+  "arcade.game.rps.name": "Rock Paper Scissors",
+  "arcade.game.rps.desc": "The winning hand is locked out next round. Now there is a choice",
+  "arcade.rps.locked": "{h} locked",
+  "arcade.rps.noLock": "nothing locked yet",
+  "arcade.rps.round": "round {n}/5",
+  "arcade.rps.win": "{who} — {a} to {b}",
+  "arcade.rps.draw": "{n} all — a draw"
 }
