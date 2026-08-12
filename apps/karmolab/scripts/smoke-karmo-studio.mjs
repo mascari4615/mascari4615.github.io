@@ -122,6 +122,12 @@ const piano=page.locator('[data-piano]');
 await piano.dblclick({position:{x:180,y:120}});await page.waitForTimeout(120);
 const noteCountBeforeFlDuplicate=await page.locator('.ks-note').count();await page.keyboard.press('Control+b');await page.waitForTimeout(80);const noteCountAfterFlDuplicate=await page.locator('.ks-note').count();
 const resizeHandle=page.locator('.ks-note-handle').last();const resizeBox=await resizeHandle.boundingBox();const noteWidthBefore=await resizeHandle.locator('..').evaluate((element)=>element.getBoundingClientRect().width);await page.mouse.move(resizeBox.x+2,resizeBox.y+3);await page.mouse.down();await page.mouse.move(resizeBox.x+70,resizeBox.y+3,{steps:3});await page.mouse.up();await page.waitForTimeout(80);const noteWidthAfter=await page.locator('.ks-note').last().evaluate((element)=>element.getBoundingClientRect().width);
+/* MIDI 건반 — 기기가 없어도 죽지 않고 사람에게 뭐라도 말해야 한다. */
+const midiButton=await page.locator('[data-note-act=midi]').count();
+const midiTitleBefore=await page.locator('[data-note-act=midi]').getAttribute('title');
+await page.click('[data-note-act=midi]');await page.waitForTimeout(500);
+const midiTitleAfter=await page.locator('[data-note-act=midi]').getAttribute('title');
+const midiAlive=await page.locator('.ks-piano').count();
 /* 자판 건반 — 켜면 Z~M 이 음이 되고, 끄면 도구 단축키로 돌아온다. */
 const notesBeforeStep=await page.locator('.ks-note').count();
 await page.click('[data-note-act=step]');await page.waitForTimeout(140);
@@ -451,6 +457,9 @@ if(!audioWave||audioWave.length<100||!largeAudioWave||largeAudioWave.length<100)
 if(afterAddTrack!==3||afterUndoTrack!==2||afterRedoTrack!==3)problems.push(`undo/redo 실패 (${afterAddTrack}→${afterUndoTrack}→${afterRedoTrack})`);
 if(noteWidthAfter<=noteWidthBefore)problems.push(`MIDI 노트 길이 조절 실패 (${noteWidthBefore}→${noteWidthAfter})`);
 if(noteCountAfterFlDuplicate!==noteCountBeforeFlDuplicate+1)problems.push(`FL식 Ctrl+B note 복제 실패 (${noteCountBeforeFlDuplicate}→${noteCountAfterFlDuplicate})`);
+if(midiButton!==1)problems.push('MIDI 단추가 없다');
+if(!midiTitleAfter||midiTitleAfter===midiTitleBefore)problems.push(`MIDI 를 눌렀는데 단추가 결과를 안 말한다 (${midiTitleBefore}→${midiTitleAfter})`);
+if(midiAlive!==1)problems.push('MIDI 를 누르고 나서 피아노롤이 사라졌다');
 if(!stepOn)problems.push('자판 건반 모드가 안 켜진다');
 if(notesAfterStep!==notesBeforeStep+4)problems.push(`자판으로 음이 안 찍힌다 (${notesBeforeStep}→${notesAfterStep})`);
 if(notesAfterStepBack!==notesAfterStep-1)problems.push(`Backspace 로 안 지워진다 (${notesAfterStep}→${notesAfterStepBack})`);
