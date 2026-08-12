@@ -228,6 +228,16 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
   .sm-lesson { min-width: 0; }
   .doc-toc { position: sticky; top: 12px; margin: 44px 0 0; max-height: calc(100vh - 80px); overflow-y: auto; }
 }
+.sm-crumb { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-tertiary); margin-bottom: 14px; }
+.sm-crumb-btn { background: none; border: 0; padding: 0; font: inherit; font-size: 11px; color: var(--text-secondary); cursor: pointer; }
+.sm-crumb-btn:hover { color: var(--accent); text-decoration: underline; }
+.sm-pager { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--border); }
+.sm-nav-btn { display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-secondary); color: var(--text-primary); font: inherit; cursor: pointer; }
+.sm-nav-btn.is-next { text-align: right; align-items: flex-end; }
+.sm-nav-btn:hover { border-color: var(--accent); }
+.sm-nav-dir { font-size: 10px; color: var(--text-tertiary); }
+.sm-nav-title { font-size: 12px; line-height: 1.45; }
+.sm-track-node.is-current { background: var(--accent-subtle); color: var(--text-primary); font-weight: 600; }
 .sm-back { background: none; border: 1px solid var(--border); color: var(--text-secondary); font: inherit; font-size: 11px; padding: 6px 12px; border-radius: 999px; cursor: pointer; margin-bottom: 18px; }
 .sm-back:hover { border-color: var(--accent); color: var(--accent); }
 .sm-lesson h3 { font-size: var(--font-size-md); margin: 0 0 4px; }
@@ -361,6 +371,32 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
     const trackOf = (id: string): SmTrack => tracks.find((tr) => tr.id === id) || tracks[0];
     const nodesOf = (tr: SmTrack): SmNode[] => tr.stages.flatMap((s) => s.nodes);
+
+    /**
+     * 지도 전체를 한 줄로 편 순서. 강의 아래 「이전·다음 칸」이 갈래 끝에서 멈추지 않고
+     * 다음 갈래로 이어지게 하려는 것 — 읽던 흐름이 끊기면 사람은 거기서 그만둔다.
+     */
+    const flatOrder: Array<{ id: string; title: string; trackId: string; stageTitle: string }> = tracks.flatMap((tr) =>
+      tr.stages.flatMap((st) => st.nodes.map((n) => ({ id: n.id, title: n.title, trackId: tr.id, stageTitle: st.title }))),
+    );
+    const orderAt = new Map(flatOrder.map((x, i) => [x.id, i]));
+
+    /** 마지막으로 연 강의 — 「이어서」의 근거. 화면을 닫아도 남는다. */
+    const LAST_KEY = 'karmolab-studymap-last';
+    const readLast = (): string => {
+      try {
+        return localStorage.getItem(LAST_KEY) || '';
+      } catch {
+        return '';
+      }
+    };
+    const writeLast = (id: string): void => {
+      try {
+        localStorage.setItem(LAST_KEY, id);
+      } catch {
+        /* 못 적어도 지금 읽는 데는 지장 없다 */
+      }
+    };
     const hits = (n: SmNode): boolean => {
       if (!query) return true;
       const hay = `${n.title} ${n.why} ${n.check || ''} ${(n.links || []).map((l) => l.label).join(' ')}`.toLowerCase();
@@ -389,7 +425,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
                   (st) => `<div class="sm-track-stage">${esc(st.title)}</div>${st.nodes
                     .map(
                       (n) =>
-                        `<button type="button" class="sm-track-node${done.has(n.id) ? ' is-done' : ''}" data-goto="${esc(n.id)}">${esc(n.title)}</button>`,
+                        `<button type="button" class="sm-track-node${done.has(n.id) ? ' is-done' : ''}${n.id === lessonOpen ? ' is-current' : ''}" data-${lessonOpen ? 'open' : 'goto'}="${esc(n.id)}">${esc(n.title)}</button>`,
                     )
                     .join('')}`,
                 )
@@ -482,6 +518,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         }
       }
       lessonOpen = id;
+      paintTracks();   /* 옆 목록에서 지금 읽는 칸이 눈에 띄게 */
       const node = found.node;
       elStages.innerHTML = `<div class="sm-empty">${esc(t('studymap.lesson.loading', undefined, '강의를 펴는 중…'))}</div>`;
 
@@ -493,7 +530,23 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         lessonCache.set(id, lesson ?? null);
       }
 
-      const back = `<button type="button" class="sm-back" data-back="1">← ${esc(t('studymap.lesson.back', undefined, '지도로'))}</button>`;
+      writeLast(id);
+      /* 빵부스러기 — 지금 지도의 어디인지. 문서 사이트에서 길을 잃지 않게 하는 최소 장치. */
+      const stageTitle = flatOrder[orderAt.get(id) ?? 0]?.stageTitle || '';
+      const back = `<nav class="sm-crumb"><button type="button" class="sm-crumb-btn" data-back="1">${esc(trackOf(found.trackId).title)}</button><span>›</span><span>${esc(stageTitle)}</span></nav>`;
+
+      /* 이전·다음 칸 — 갈래 경계를 넘어 이어진다. */
+      const at = orderAt.get(id) ?? -1;
+      const near = (step: number): string => {
+        const x = at >= 0 ? flatOrder[at + step] : undefined;
+        if (!x) return '<span></span>';
+        const dir = step < 0 ? t('studymap.lesson.prev', undefined, '이전') : t('studymap.lesson.next', undefined, '다음');
+        return `<button type="button" class="sm-nav-btn${step < 0 ? '' : ' is-next'}" data-open="${esc(x.id)}">
+          <span class="sm-nav-dir">${step < 0 ? '‹' : ''} ${esc(dir)} ${step < 0 ? '' : '›'}</span>
+          <span class="sm-nav-title">${esc(x.title)}</span>
+        </button>`;
+      };
+      const pager = `<nav class="sm-pager">${near(-1)}${near(1)}</nav>`;
       /* 도구가 붙은 칸은 **여기서 바로 해 볼 수 있다** — 읽고 끝나면 안 남는다. */
       const toolRow = node.tool ? `<a class="sm-link sm-tool" href="#${esc(node.tool.id)}">▶ ${esc(node.tool.label)}</a>` : '';
       const linkRow =
@@ -527,6 +580,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
           ${prereqBlock}
           ${checkBlock}
           <div class="sm-links">${linkRow}</div>
+          ${pager}
         </div>`;
         return;
       }
@@ -577,6 +631,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         ${checkBlock}
         ${quiz ? `<h4>${esc(t('studymap.lesson.quiz', undefined, '확인 문제'))}</h4><div class="sm-quiz" data-lesson="${esc(id)}">${quiz}</div>` : ''}
         <div class="sm-links" style="margin-top:18px">${linkRow}</div>
+        ${pager}
       </article></div>`;
 
       /* 코드 강조·복사도 문서 위젯과 같은 모듈로 — 강의는 코드가 본체다. */
