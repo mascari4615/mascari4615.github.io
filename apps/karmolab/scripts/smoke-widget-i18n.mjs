@@ -104,9 +104,18 @@ for (const { code, id, page } of targets) {
       runtimeI18nErrors.push(text);
     }
   });
+  /* ★ **이 도구의 말**만 센다 (2026-08-12).
+   *   화면에는 셸 위젯(대화 등)도 같이 실려 제 말 묶음을 받아 온다. 검사가 이 도구의 글을 다 재고
+   *   창을 닫으면 그 요청이 취소되고, 취소는 `CatalogLoadError` 로 올라온다 — 도구도 묶음도
+   *   멀쩡한데 「en/chat 을 못 받았다」로 빨개졌다(실측: 도구 여럿이 같은 이유로 줄줄이).
+   *   열쇠가 없는 것(MissingTranslation)은 어느 묶음이든 진짜 고장이라 그대로 센다.
+   *   묶음 받기 실패는 **재는 도구의 묶음일 때만** 센다. */
   tab.on('pageerror', (error) => {
     const text = String(error?.message || error);
-    if (/MissingTranslationError|CatalogLoadError|\[i18n\]/.test(text)) runtimeI18nErrors.push(text);
+    if (!/MissingTranslationError|CatalogLoadError|\[i18n\]/.test(text)) return;
+    const catalogFail = /Failed to load catalog: [^/]+\/([\w-]+)/.exec(text);
+    if (catalogFail && catalogFail[1] !== id) return;
+    runtimeI18nErrors.push(text);
   });
   const rel = path.relative(path.join(appRoot, '..', '..'), page).split(path.sep).join('/');
   await tab.goto(`http://127.0.0.1:${PORT}/${rel}`, { waitUntil: 'domcontentloaded' });
@@ -205,8 +214,14 @@ for (const { code, id, page } of targets) {
 await browser.close();
 server.close();
 
-if (fail.length) {
-  for (const f of fail) console.error('[widget-i18n] ' + f);
+/* ★ **막는 것은 원본 언어(한국어)뿐이다** (2026-08-12, 사용자 결정).
+ *   화면은 한국어로 먼저 만든다 — 다른 언어는 따라오는 것이라, 번역이 덜 됐다고 배포를 세우면
+ *   고친 한국어 화면이 사람에게 안 나간다. 다른 언어 문제는 **적어서 보여 주되 막지 않는다**. */
+const blocking = fail.filter((f) => String(f).startsWith(SOURCE_LOCALE + '/'));
+const warnOnly = fail.filter((f) => !String(f).startsWith(SOURCE_LOCALE + '/'));
+for (const f of warnOnly) console.log('[widget-i18n] 경고(막지 않음) — ' + f);
+if (blocking.length) {
+  for (const f of blocking) console.error('[widget-i18n] ' + f);
   process.exit(1);
 }
 console.log(`[widget-i18n] 도구 화면 ${targets.length}건 정상 — ${targets.map((t) => `${t.code}/${t.id}`).join(', ')}`);

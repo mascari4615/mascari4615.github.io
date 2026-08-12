@@ -290,10 +290,17 @@ for (const l of LOCALES) {
   const total = Object.values(source).reduce((n, c) => n + Object.keys(c).length, 0);
   const done = total - missing.length;
   report.push({ code: l.code, total, done, missing, extra, stale });
-  /* 빠진 것은 아직 **막지 않는다** — 번역은 화면을 옮겨 가며 조금씩 는다. 막으면 첫날부터
-     빌드가 빨갛고, 그러면 사람이 검사를 꺼 버린다. 대신 **낡은 것과 남는 것**은 막는다:
-     둘 다 「고쳤는데 반영이 안 된 상태」라 조용히 틀린 글을 내보낸다. */
-  if (stale.length || extra.length) bad++;
+  /* ★ **막는 것은 원본 언어(한국어)뿐이다** (2026-08-12, 사용자 결정).
+   *   화면은 한국어로 먼저 만든다 — 다른 언어는 따라오는 것이지 앞을 막을 것이 아니다.
+   *   번역이 낡았다고 배포가 서면, 글 한 줄 고칠 때마다 세 언어를 손봐야 하고 그 사이
+   *   고친 한국어 화면이 사람에게 안 나간다. 그건 손해가 이득보다 크다.
+   *   그래서 다른 언어의 낡음·남음은 **경고로만** 남기고(할 일 목록에는 계속 보인다),
+   *   원본 언어가 어긋난 경우에만 막는다 — 그건 화면에 그대로 나가는 글이다. */
+  const isSource = l.code === SOURCE_LOCALE;
+  if (stale.length || extra.length) {
+    if (isSource) bad++;
+    else console.log(`         ↳ ${l.code} 는 경고만 — 배포를 막지 않는다 (한국어만 필수)`);
+  }
 }
 
 /* ── ④ 내보내기 ─────────────────────────────────────── */
