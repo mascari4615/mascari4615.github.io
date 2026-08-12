@@ -210,7 +210,9 @@ export function deferShellExtras(html) {
     `<script defer fetchpriority="low" src="/apps/karmolab/js/${file}"></script>`;
   /* `home-page.js` 는 미루는 게 아니라 **아예 안 싣는다** — 이 화면들에서는 한 번도 안 불린다
      (`init()` 이 `staticBody` 면 건너뛴다). 미룰 것과 달리 대신 세울 자리도 필요 없다. */
-  for (const f of ['home-page.js', 'palette.js', 'widgets-index.js', 'account.js']) {
+  /* `widgets-lazy-meta.js` — 첫 화면은 옆줄을 바로 그리느라 전체 메타를 셸에서 받는다.
+     도구 한 장짜리 화면은 그 목록으로 하는 일이 없다(찾기창을 열 때 아래 shim 이 lite 를 부른다). */
+  for (const f of ['home-page.js', 'palette.js', 'widgets-lazy-meta.js', 'account.js']) {
     if (!html.includes(tag(f))) throw new Error(`셸에서 ${f} 자리를 못 찾음 — index.html 확인`);
     html = html.replace(tag(f) + '\n', '').replace(tag(f), '');
   }

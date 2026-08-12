@@ -23,9 +23,26 @@ const browser = await chromium.launch();
 const page = await browser.newPage();
 // about:blank 에서는 장을 번호로 꺼내는 기능(ImageDecoder)이 없다 — 안전한 출처에서만 열린다.
 // 네트워크는 쓰지 않고, localhost 요청을 가로채 빈 문서를 돌려준다.
-await page.route('**/*', (route) =>
-  route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' })
-);
+/*
+ * ★ `/apps/karmolab/js/**` 요청은 **디스크의 진짜 산출물**로 돌려준다 (2026-08-12).
+ *   위젯의 build() 는 이제 말 묶음(i18n)을 받아 온 **뒤에** 그린다. 그 loader 는 묶음이
+ *   `window.__KARMO_I18N` 에 실렸는지까지 보고 안 실렸으면 reject 한다(조용한 누락 금지).
+ *   껍데기 HTML 을 돌려주면 그리기가 영영 안 일어나고, 검사는 `#vgFile` 이 null 이라
+ *   「Cannot set properties of null」로 죽는다 — 제품이 아니라 검사가 굶긴 것이다.
+ */
+await page.route('**/*', (route) => {
+  const url = new URL(route.request().url());
+  const rel = url.pathname.replace(/^\/apps\/karmolab\//, '');
+  const onDisk = rel !== url.pathname ? path.join(root, rel) : null;
+  if (onDisk && fs.existsSync(onDisk)) {
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/javascript; charset=utf-8',
+      body: fs.readFileSync(onDisk)
+    });
+  }
+  return route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' });
+});
 await page.goto('http://localhost/');
 
 // 위젯은 Toolbox 에 자기를 등록한다. 진짜 Toolbox 대신 등록만 받아 두는 가짜를 놓고,
@@ -39,6 +56,8 @@ await page.evaluate(() => {
     trackUse: () => {},
     mountTool: () => true
   };
+  /* 러너 브라우저 취향(영어)에 따라 받아오는 묶음이 바뀌지 않게 언어를 못 박는다. */
+  window.__KARMO_LOCALE = 'ko';
 });
 await page.addScriptTag({ content: read('js/widgets/tools/gifenc.js') });
 await page.addScriptTag({ content: read('js/widgets/tools/video2gif.js') });
@@ -83,8 +102,19 @@ const result = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
+  /* build() 는 말 묶음을 받아 온 뒤에 그린다 — 그려질 때까지 기다린다(sleep 아님). */
+  const waitEl = async (sel, ms = 8000) => {
+    const until = Date.now() + ms;
+    for (;;) {
+      const el = host.querySelector(sel);
+      if (el) return el;
+      if (Date.now() > until) throw new Error(`${sel} 이 ${ms}ms 안에 안 그려졌다 — build() 가 기다리는 말 묶음이 안 온다`);
+      await new Promise((r) => setTimeout(r, 25));
+    }
+  };
+
+  const input = await waitEl('#vgFile');
   const video = host.querySelector('#vgVideo');
-  const input = host.querySelector('#vgFile');
 
   // 위젯이 파일을 받는 길 그대로 태운다
   const dt = new DataTransfer();
