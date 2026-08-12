@@ -12,6 +12,7 @@ import { History } from '../../lib/history';
 import { addLayer, createDoc, isPaintable, mergeDown, moveLayer, removeLayer, type Doc, type Node } from './model';
 import { applyBox, bounds, handleAt, hitTest, resizeBox, type Handle } from './geom';
 import { toSvg } from './svg';
+import { clampSlice, defaultSlice, sliceMeta, type Slice } from './slice';
 import { injectBonStyles } from './styles';
 import { BonView } from './view';
 
@@ -21,7 +22,7 @@ declare const Toolbox: {
   onDispose?(fn: () => void): void;
 };
 
-type Tool = 'select' | 'rect' | 'ellipse';
+type Tool = 'select' | 'rect' | 'ellipse' | 'slice';
 
 const esc = (v: unknown): string =>
   String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
@@ -29,9 +30,10 @@ const esc = (v: unknown): string =>
 const ICONS: Record<Tool, string> = {
   select: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M5 3l14 8-6 1.6L10 19z"/></svg>',
   rect: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="6" width="16" height="12" rx="2"/></svg>',
-  ellipse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="12" cy="12" rx="8" ry="6"/></svg>'
+  ellipse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="12" cy="12" rx="8" ry="6"/></svg>',
+  slice: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M8 5v14M16 5v14M3 10h18M3 15h18" stroke-dasharray="2 2"/></svg>'
 };
-const TOOL_LABEL: Record<Tool, string> = { select: '고르기 (V)', rect: '사각형 (R)', ellipse: '타원 (E)' };
+const TOOL_LABEL: Record<Tool, string> = { select: '고르기 (V)', rect: '사각형 (R)', ellipse: '타원 (E)', slice: '9-slice 경계 (S)' };
 
 function buildBon(container: HTMLElement): void {
   injectBonStyles();
@@ -55,11 +57,13 @@ function buildBon(container: HTMLElement): void {
           '<input type="number" data-doc-h value="64" min="1" max="2048"></label>' +
         '<label class="bon-row"><span>격자</span><input type="number" data-grid value="8" min="0" max="64"></label>' +
         '<label class="bon-row"><span>확대</span><input type="range" data-zoom min="1" max="8" step="1" value="2"></label>' +
-        '<button data-act="svg">SVG 저장</button>' +
+        '<button data-act="svg">SVG</button>' +
+        '<button data-act="png">PNG</button>' +
+        '<button data-act="pack" title="SVG + PNG + 9-slice 값">9-slice 묶음</button>' +
       '</div>' +
       '<div class="bon-body">' +
         '<div class="bon-tools">' +
-          (['select', 'rect', 'ellipse'] as Tool[]).map((t) =>
+          (['select', 'rect', 'ellipse', 'slice'] as Tool[]).map((t) =>
             '<button data-tool="' + t + '" title="' + esc(TOOL_LABEL[t]) + '" aria-label="' + esc(TOOL_LABEL[t]) + '">' + ICONS[t] + '</button>').join('') +
         '</div>' +
         '<div class="bon-canvas" data-canvas></div>' +
@@ -170,9 +174,26 @@ function buildBon(container: HTMLElement): void {
     before: string;
   } = null;
 
+  /** 지금 잡고 있는 9-slice 선. */
+  let sliceDrag: keyof Slice | null = null;
+
   view.root.addEventListener('pointerdown', (event: PointerEvent) => {
     const p = view.toDoc(event);
     const snap = view.grid;
+
+    if (tool === 'slice') {
+      // 가장 가까운 선을 잡는다. 확대해도 잡기 쉬움이 그대로이도록 손가락 굵기를 문서 좌표로 옮긴다.
+      const slop = view.slop(7);
+      for (const line of view.sliceLines(doc)) {
+        const near = line.vertical ? Math.abs(line.at - p.x) : Math.abs(line.at - p.y);
+        if (near <= slop) {
+          sliceDrag = line.name;
+          view.root.setPointerCapture(event.pointerId);
+          return;
+        }
+      }
+      return;
+    }
 
     if (tool === 'select') {
       const current = activeNode();
@@ -211,6 +232,19 @@ function buildBon(container: HTMLElement): void {
   });
 
   view.root.addEventListener('pointermove', (event: PointerEvent) => {
+    if (sliceDrag) {
+      const p = view.toDoc(event);
+      const snap = view.grid;
+      const q = (v: number): number => (snap > 0 ? Math.round(v / snap) * snap : Math.round(v));
+      const next = { ...view.slice };
+      if (sliceDrag === 'left') next.left = q(p.x);
+      else if (sliceDrag === 'right') next.right = q(doc.w - p.x);
+      else if (sliceDrag === 'top') next.top = q(p.y);
+      else next.bottom = q(doc.h - p.y);
+      view.slice = clampSlice(next, doc.w, doc.h);
+      repaint();
+      return;
+    }
     if (!drag) return;
     const p = view.toDoc(event);
     const box = resizeBox(drag.startBox, drag.handle, p.x - drag.startDoc.x, p.y - drag.startDoc.y, view.grid);
@@ -219,6 +253,11 @@ function buildBon(container: HTMLElement): void {
   });
 
   view.root.addEventListener('pointerup', (event: PointerEvent) => {
+    if (sliceDrag) {
+      sliceDrag = null;
+      try { view.root.releasePointerCapture(event.pointerId); } catch { /* 이미 놓았다 */ }
+      return;
+    }
     if (!drag) return;
     const finished = drag;
     drag = null;
@@ -382,6 +421,58 @@ function buildBon(container: HTMLElement): void {
     repaint();
   });
 
+  /* ── 내보내기 ──────────────────────────────── */
+  function download(blob: Blob, name: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  /**
+   * PNG 는 SVG 를 그림으로 한 번 거쳐 굽는다. **`scale` 배로 크게 굽는다** — 게임은 보통
+   * 2~4 배 짜리를 쓰고, 벡터라 크게 구워도 안 뭉개진다.
+   */
+  async function renderPng(scale = 1): Promise<Blob> {
+    const svg = toSvg(doc);
+    const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+    try {
+      const image = new Image();
+      await new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve();
+        image.onerror = () => reject(new Error('SVG 를 그림으로 못 읽었다'));
+        image.src = url;
+      });
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(doc.w * scale));
+      canvas.height = Math.max(1, Math.round(doc.h * scale));
+      const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      return await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('PNG 로 못 구웠다'))), 'image/png');
+      });
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  async function exportPng(): Promise<void> {
+    download(await renderPng(1), 'bon.png');
+  }
+
+  /**
+   * 묶음 — 게임에 넣을 때 필요한 것을 한 번에. SVG(원본) · PNG(2배) · 9-slice 값(json).
+   * 값을 따로 적어 두지 않으면 「이 그림의 경계가 어디였더라」가 며칠 뒤에 사라진다.
+   */
+  async function exportPack(): Promise<void> {
+    download(new Blob([toSvg(doc)], { type: 'image/svg+xml' }), 'bon.svg');
+    download(await renderPng(2), 'bon@2x.png');
+    const meta = { ...sliceMeta(view.slice, doc.w, doc.h), madeWith: 'KarmoLab 본' };
+    download(new Blob([JSON.stringify(meta, null, 2)], { type: 'application/json' }), 'bon.9slice.json');
+  }
+
   /* ── 위쪽 막대 ──────────────────────────────── */
   const bar = container.querySelector('.bon-bar') as HTMLElement;
 
@@ -390,15 +481,9 @@ function buildBon(container: HTMLElement): void {
     const act = holder ? holder.dataset.act : undefined;
     if (act === 'undo') { history.undo(); selected = null; repaint(); }
     else if (act === 'redo') { history.redo(); selected = null; repaint(); }
-    else if (act === 'svg') {
-      const blob = new Blob([toSvg(doc)], { type: 'image/svg+xml' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'bon.svg';
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    }
+    else if (act === 'svg') download(new Blob([toSvg(doc)], { type: 'image/svg+xml' }), 'bon.svg');
+    else if (act === 'png') void exportPng();
+    else if (act === 'pack') void exportPack();
   });
 
   bar.addEventListener('input', (event) => {
@@ -412,7 +497,14 @@ function buildBon(container: HTMLElement): void {
   });
 
   container.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach((button) => {
-    button.addEventListener('click', () => { tool = button.dataset.tool as Tool; repaint(); });
+    button.addEventListener('click', () => {
+      tool = button.dataset.tool as Tool;
+      view.sliceOn = tool === 'slice';
+      if (view.sliceOn && view.slice.left + view.slice.right + view.slice.top + view.slice.bottom === 0) {
+        view.slice = defaultSlice(doc.w, doc.h);   // 처음 켤 때만 자리를 잡아 준다
+      }
+      repaint();
+    });
   });
 
   const keydown = (event: KeyboardEvent): void => {
@@ -422,6 +514,12 @@ function buildBon(container: HTMLElement): void {
     if (event.key === 'v') { tool = 'select'; repaint(); }
     else if (event.key === 'r') { tool = 'rect'; repaint(); }
     else if (event.key === 'e') { tool = 'ellipse'; repaint(); }
+    else if (event.key === 's') {
+      tool = 'slice';
+      view.sliceOn = true;
+      if (view.slice.left + view.slice.right + view.slice.top + view.slice.bottom === 0) view.slice = defaultSlice(doc.w, doc.h);
+      repaint();
+    }
     else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
       event.preventDefault();
       if (event.shiftKey) history.redo(); else history.undo();

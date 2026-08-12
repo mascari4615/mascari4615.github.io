@@ -11,6 +11,7 @@
 
 import type { Doc } from './model';
 import { bounds, handlePoints, type Box } from './geom';
+import { clampSlice, type Slice } from './slice';
 import { toSvg } from './svg';
 
 export class BonView {
@@ -21,6 +22,9 @@ export class BonView {
   scale = 2;
   /** 격자 간격(문서 px). 0 = 안 그림 */
   grid = 8;
+  /** 9-slice 경계선을 보일까. 켜면 선 넷이 뜨고 잡아서 끌 수 있다. */
+  sliceOn = false;
+  slice: Slice = { left: 0, right: 0, top: 0, bottom: 0 };
 
   constructor(parent: HTMLElement) {
     this.root = document.createElement('div');
@@ -42,6 +46,17 @@ export class BonView {
   /** 화면에서 손가락 굵기 몇 px 이 문서 좌표로 얼마인지 — 확대해도 잡기 쉬움이 그대로다. */
   slop(screenPx = 6): number { return screenPx / this.scale; }
 
+  /** 9-slice 선 넷의 문서 좌표. 화면이 「어느 선을 잡았나」를 물을 때 쓴다. */
+  sliceLines(doc: Doc): { name: keyof Slice; at: number; vertical: boolean }[] {
+    const s = clampSlice(this.slice, doc.w, doc.h);
+    return [
+      { name: 'left', at: s.left, vertical: true },
+      { name: 'right', at: doc.w - s.right, vertical: true },
+      { name: 'top', at: s.top, vertical: false },
+      { name: 'bottom', at: doc.h - s.bottom, vertical: false }
+    ];
+  }
+
   draw(doc: Doc, selected: { layer: number; index: number } | null): void {
     const w = doc.w * this.scale;
     const h = doc.h * this.scale;
@@ -62,6 +77,13 @@ export class BonView {
       for (let x = step; x < doc.w; x += step) lines.push(`M${x} 0V${doc.h}`);
       for (let y = step; y < doc.h; y += step) lines.push(`M0 ${y}H${doc.w}`);
       parts.push(`<path d="${lines.join('')}" class="bon-grid" vector-effect="non-scaling-stroke"/>`);
+    }
+    if (this.sliceOn) {
+      // 늘려도 안 뭉개지는 자리를 사람이 보이게 — 저장물에는 안 들어간다(안내선 겹이다).
+      for (const line of this.sliceLines(doc)) {
+        const d = line.vertical ? `M${line.at} 0V${doc.h}` : `M0 ${line.at}H${doc.w}`;
+        parts.push(`<path d="${d}" class="bon-slice" vector-effect="non-scaling-stroke"/>`);
+      }
     }
     if (selected) {
       const node = doc.layers[selected.layer]?.nodes[selected.index];
