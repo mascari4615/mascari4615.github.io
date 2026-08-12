@@ -1,0 +1,14 @@
+{
+  "explainshell.tab": "뜯어보기",
+  "explainshell.label.line": "명령줄",
+  "explainshell.status.local": "붙여넣은 줄은 이 브라우저를 벗어나지 않습니다",
+  "explainshell.unknown": "사전에 없습니다",
+  "explainshell.danger.head": "조심하세요",
+  "explainshell.seg": "명령 {n}",
+  "explainshell.kind.command": "명령",
+  "explainshell.kind.flag": "옵션",
+  "explainshell.kind.value": "값",
+  "explainshell.kind.operator": "이음말",
+  "explainshell.kind.redirect": "방향",
+  "explainshell.kind.subshell": "안쪽"
+}

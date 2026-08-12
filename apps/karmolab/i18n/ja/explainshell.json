@@ -1,0 +1,14 @@
+{
+  "explainshell.tab": "読み解く",
+  "explainshell.label.line": "コマンド行",
+  "explainshell.status.local": "貼り付けた行はこのブラウザから出ません",
+  "explainshell.unknown": "辞書にありません",
+  "explainshell.danger.head": "注意",
+  "explainshell.seg": "コマンド {n}",
+  "explainshell.kind.command": "コマンド",
+  "explainshell.kind.flag": "オプション",
+  "explainshell.kind.value": "値",
+  "explainshell.kind.operator": "つなぎ",
+  "explainshell.kind.redirect": "向き",
+  "explainshell.kind.subshell": "内側"
+}

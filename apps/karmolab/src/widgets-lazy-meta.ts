@@ -1481,6 +1481,15 @@ window.KARMOLAB_LAZY_META = [
   },
 
   {
+    id: 'explainshell',
+    get title() { return t('widgets.explainshell.title', undefined, "명령줄 뜯어보기"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.explainshell.desc', undefined, "명령줄을 붙여넣으면 조각마다 무슨 뜻인지 알려 줍니다. 되돌릴 수 없는 명령에는 경고가 붙고, 붙여넣은 줄은 브라우저 밖으로 나가지 않습니다"); },
+    layout: 'wide',
+    icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 9l3 3-3 3M12 15h5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/explainshell']
+  },
+  {
     id: 'soundscape',
     get title() { return t('widgets.soundscape.title', undefined, "소리 풍경"); },
     category: 'tool',
