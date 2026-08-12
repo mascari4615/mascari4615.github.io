@@ -1,0 +1,12 @@
+{
+  "foundry.tab": "선반",
+  "foundry.title": "선반",
+  "foundry.note": "여기 도구로 만든 것. 전부 CC0 — 아무나 가져다 쓴다.",
+  "foundry.all": "전부",
+  "foundry.reload": "새로 읽기",
+  "foundry.download": "내려받기",
+  "foundry.empty": "아직 아무것도 없다. 도구에서 만든 것을 올려 보라.",
+  "foundry.reading": "선반을 읽는 중…",
+  "foundry.failed": "선반을 못 읽었다",
+  "foundry.retry": "다시"
+}

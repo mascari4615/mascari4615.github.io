@@ -414,6 +414,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['root/gemini', 'imageconvert/imageconvert', 'imageedit']
   },
   {
+    id: 'foundry',
+    get title() { return t('widgets.foundry.title', undefined, "선반"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.foundry.desc', undefined, "여기 도구로 만든 것이 쌓인다 — 전부 CC0, 로그인 없이 가져다 쓴다"); },
+    layout: 'full',
+    icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 8h18M3 14h18" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="11" r="1.2" fill="currentColor"/><circle cx="7" cy="17" r="1.2" fill="currentColor"/>',
+    lazyScriptPaths: ['foundry/foundry']
+  },
+  {
     id: 'bon',
     get title() { return t('widgets.bon.title', undefined, "본"); },
     category: 'tool',

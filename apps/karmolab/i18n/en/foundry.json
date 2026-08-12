@@ -1,0 +1,12 @@
+{
+  "foundry.tab": "Shelf",
+  "foundry.title": "Shelf",
+  "foundry.note": "Made with the tools here. All CC0 — take and use freely.",
+  "foundry.all": "All",
+  "foundry.reload": "Reload",
+  "foundry.download": "Download",
+  "foundry.empty": "Nothing here yet. Upload something you made.",
+  "foundry.reading": "Reading the shelf…",
+  "foundry.failed": "Could not read the shelf",
+  "foundry.retry": "Retry"
+}
