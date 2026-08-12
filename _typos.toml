@@ -29,6 +29,8 @@ extend-exclude = [
 
 [default.extend-words]
 # === 2026-08-12: 새로 든 파일들이 낸 false-positive (verify 를 세우고 있었다) ===
+Neet = "Neet"            # NeetCode — 코딩 문제 학습 사이트 이름 (studymap 자료 링크)
+Trak = "Trak"            # CelesTrak — 위성 궤도 데이터 제공처 이름 (bluemarble 위젯)
 metalness = "metalness"  # PBR 표준 용어 (금속성) — studymap.en.json 의 그래픽스 단원
 adn = "adn"              # pulse 코드 식별자: adnominal(관형사형) 줄임 — 한국어 문법 용어
 
