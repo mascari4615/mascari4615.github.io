@@ -270,7 +270,7 @@ await step('링크로 내보내고 그 링크로 다시 받는다', async () => 
   page.on('dialog', onDialog);
   await page.click('[data-km="more"]');
   // 이 버튼은 눌리면 서랍을 닫는다 — 보통 click 은 「대상이 사라졌다」로 30초를 기다린다.
-  await page.locator('[data-km="share"]').dispatchEvent('click');
+  await page.locator('[data-km="share"]').click();
   await page.waitForTimeout(1200);
   const url = fromDialog || (await page.evaluate(() => navigator.clipboard.readText().catch(() => '')));
   page.off('dialog', onDialog);
@@ -283,7 +283,7 @@ await step('링크로 내보내고 그 링크로 다시 받는다', async () => 
 });
 await step('저장 상태가 크기를 보여 주고 백업 파일을 만든다', async () => {
   await page.click('[data-km="more"]');
-  await page.locator('[data-km="storage"]').dispatchEvent('click');
+  await page.locator('[data-km="storage"]').click();
   await page.waitForSelector('[data-km="st-backup"]', { timeout: 4000 });
   const meter = await page.locator('.km-meter-fill').count();
   if (meter === 0) throw new Error('용량 막대가 없다');
@@ -314,7 +314,7 @@ await step('저장 상태가 크기를 보여 주고 백업 파일을 만든다'
     { timeout: 6000 }
   );
   await page.click('[data-km="more"]');
-  await page.locator('[data-km="storage"]').dispatchEvent('click');
+  await page.locator('[data-km="storage"]').click();
   await page.waitForSelector('[data-km="st-close"]', { timeout: 4000 });
   await page.click('[data-km="st-close"]');
 });
@@ -386,7 +386,7 @@ await step('겹쳐 놓아도 「가지런히」 가 밀어 놓는다', async () 
   await page.mouse.move(boxA.x + 14, boxA.y + 12, { steps: 12 });
   await page.mouse.up();
   await page.click('[data-km="more"]');
-  await page.locator('[data-km="tidy"]').dispatchEvent('click');
+  await page.locator('[data-km="tidy"]').click();
   await page.waitForFunction(() => {
     const els = [...document.querySelectorAll('.ck-node')].slice(0, 2);
     if (els.length < 2) return false;
@@ -460,7 +460,7 @@ await step('설명 속 [[이름]] 이 다른 노드로 이어진다', async () =
 await step('글로 여러 노드를 한 번에 만든다', async () => {
   const before = await page.locator('.ck-node').count();
   await page.click('[data-km="more"]');
-  await page.locator('[data-km="from-text"]').dispatchEvent('click');
+  await page.locator('[data-km="from-text"]').click();
   await page.fill(`[data-km="text-src"]`, [`뿌리`, `  가지1 : 낳음`, `  가지2 : 낳음`].join(String.fromCharCode(10)));
   await page.click('[data-km="text-go"]');
   await page.waitForFunction(
@@ -491,7 +491,7 @@ await step('Shift+드래그로 여럿 고르고 함께 옮긴다', async () => {
     null,
     { timeout: 4000 }
   );
-  await page.locator('[data-km="many-close"]').dispatchEvent('click');
+  await page.locator('[data-km="many-close"]').click();
 });
 await step('선이 N개 이상인 것만 남기기', async () => {
   const before = await page.locator('.ck-node').count();
@@ -550,13 +550,13 @@ await step('발표 장을 담고 순서를 바꾼다', async () => {
   let n = 0;
   const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '장 ' + n : '').catch(() => {}); };
   page.on('dialog', onDlg);
-  await page.locator('[data-km="story"]').dispatchEvent('click');
+  await page.locator('[data-km="story"]').click();
   await page.waitForSelector('.km-root.is-presenting', { timeout: 4000 });
   await page.locator('[data-km="stage-add"]').click();
   await page.locator('[data-km="stage-add"]').click();
   await page.waitForFunction(() => document.querySelectorAll('[data-km="stage-go"]').length >= 2, null, { timeout: 5000 });
   const firstBefore = await page.locator('[data-km="stage-go"]').first().textContent();
-  await page.locator('[data-km="stage-back"]').dispatchEvent('click');
+  await page.locator('[data-km="stage-back"]').click();
   await page.waitForFunction((bb) => {
     const el = document.querySelector('[data-km="stage-go"]');
     return el && el.textContent !== bb;
@@ -568,7 +568,7 @@ await step('발표 장을 담고 순서를 바꾼다', async () => {
 await step('발표 모드 진입 / 나가기', async () => {
   // 이 버튼은 눌리는 순간 툴바를 통째로 숨긴다 — 보통 click 은 「대상이 사라졌다」로 보고
   // 30초를 기다린다(제품이 아니라 검사 쪽 함정). 이벤트만 던진다.
-  await page.locator(`[data-km="story"]`).dispatchEvent(`click`);
+  await page.locator(`[data-km="story"]`).click();
   await page.waitForSelector('.km-root.is-presenting', { timeout: 4000 });
   await page.locator(`[data-km="stage-exit"]`).click();
   await page.waitForSelector(`.km-root:not(.is-presenting)`, { timeout: 4000 });
@@ -619,7 +619,7 @@ await step('공용 글 — 승격하면 목록에 뜨고, 둘째 자리에 붙�
   const detachIfShared = async () => {
     const unlink = page.locator('[data-km="edit-doc-unlink"]');
     if (await unlink.count() > 0) {
-      await unlink.dispatchEvent('click');
+      await unlink.click();
       await page.waitForSelector('[data-km="edit-doc-share"]', { timeout: 4000 });
     }
   };
@@ -628,7 +628,7 @@ await step('공용 글 — 승격하면 목록에 뜨고, 둘째 자리에 붙�
   await page.waitForSelector('[data-km="edit-doc"]', { timeout: 4000 });
   await detachIfShared();
   await page.fill('[data-km="edit-doc"]', '이 세계의 마법은 대가를 요구한다');
-  await page.locator('[data-km="edit-doc-share"]').dispatchEvent('click');
+  await page.locator('[data-km="edit-doc-share"]').click();
   await page.waitForSelector('[data-km="edit-doc-unlink"]', { timeout: 4000 });
 
   await page.click('[data-km="tab"][data-key="notes"]');
@@ -688,7 +688,7 @@ await step('공용 글을 캔버스에 쪽지로 놓으면 글이 그대로 보�
   await page.click('[data-km="tab"][data-key="notes"]');
   await page.waitForSelector('[data-km="note-card"]', { timeout: 4000 });
   const beforeNodes = await page.locator('.ck-node').count();
-  await page.locator('[data-km="note-card"]').last().dispatchEvent('click');
+  await page.locator('[data-km="note-card"]').last().click();
   await page.waitForFunction((n) => document.querySelectorAll('.ck-node').length === n + 1, beforeNodes, { timeout: 4000 });
   await page.waitForFunction(
     () => [...document.querySelectorAll('.ck-node text')].some((t) => (t.textContent || '').includes('대가를')),
@@ -750,7 +750,7 @@ await step('노드에 칸을 만들면 같은 종류의 다른 노드가 그 칸
   if (pinKind) await page.selectOption('[data-km="edit-kind"]', pinKind);
   await page.fill('[data-km="edit-label"]', '칸주인');
   await page.fill('[data-km="fld-new"]', '출신');
-  await page.locator('[data-km="fld-add"]').dispatchEvent('click');
+  await page.locator('[data-km="fld-add"]').click();
   await page.waitForSelector('[data-km="fld-value"]', { timeout: 4000 });
   await page.locator('[data-km="fld-value"]').first().fill('마계');
 
@@ -776,7 +776,7 @@ await step('노드에 칸을 만들면 같은 종류의 다른 노드가 그 칸
   // 노드를 다시 골라 오가면 어느 노드가 골렸는지에 기대게 된다 — **지금 고른 노드에서** 끝낸다.
   await page.fill('[data-km="edit-label"]', '마왕성');
   await page.fill('[data-km="fld-new"]', '소속');
-  await page.locator('[data-km="fld-add"]').dispatchEvent('click');
+  await page.locator('[data-km="fld-add"]').click();
   await page.waitForSelector('[data-km="fld-value"]', { timeout: 4000 });
   await page.locator('[data-km="fld-value"]').first().fill('칸주인');
   // 값은 **손을 뗄 때** 확정된다(타자 한 글자마다 패널을 다시 그리면 커서가 날아간다) —
@@ -785,7 +785,7 @@ await step('노드에 칸을 만들면 같은 종류의 다른 노드가 그 칸
   const promote = page.locator('[data-km="fld-link"]');
   await promote.first().waitFor({ timeout: 4000 });
   const edgesBefore = await page.locator('.ck-edge').count();
-  await promote.first().dispatchEvent('click');
+  await promote.first().click();
   await page.waitForFunction((n) => document.querySelectorAll('.ck-edge').length > n, edgesBefore, { timeout: 4000 });
 });
 await step('칸으로 좁히면 그 칸을 적은 것만 남는다', async () => {
@@ -809,7 +809,7 @@ await step('칸으로 좁히면 그 칸을 적은 것만 남는다', async () =>
     { timeout: 4000 }
   );
 
-  await page.locator('[data-km="f-reset"]').dispatchEvent('click');
+  await page.locator('[data-km="f-reset"]').click();
   await page.waitForFunction((n) => document.querySelectorAll('.ck-node').length === n, before, { timeout: 4000 });
   await page.click('[data-km="tab"][data-key="node"]');
 });
@@ -819,7 +819,7 @@ await step('고른 노드 옆 작은 도구 줄에서 쪽지를 바로 붙인다
   await page.mouse.dblclick(tbox.x + tbox.width * 0.7, tbox.y + tbox.height * 0.3);
   await page.waitForSelector('[data-km="mini"]:not(.hidden)', { timeout: 4000 });
   const before = await page.locator('.ck-node').count();
-  await page.locator('[data-km="mini-note"]').dispatchEvent('click');
+  await page.locator('[data-km="mini-note"]').click();
   await page.waitForFunction((n) => document.querySelectorAll('.ck-node').length === n + 1, before, { timeout: 4000 });
   // 쪽지는 그 노드를 **가리켜야** 한다(지시선이 하나 늘어난다).
   if (await page.locator('.ck-leader').count() === 0) throw new Error('쪽지가 아무것도 안 가리킨다');
@@ -850,7 +850,7 @@ await step('틀로 담은 장은 나중에 놓은 인물도 함께 데려간다'
   let n = 0;
   const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '틀 장' : '').catch(() => {}); };
   page.on('dialog', onDlg);
-  await page.locator('[data-km="story"]').dispatchEvent('click');
+  await page.locator('[data-km="story"]').click();
   await page.waitForSelector('.km-root.is-presenting', { timeout: 4000 });
   await page.locator('[data-km="stage-add"]').click();
   await page.waitForFunction(() => document.querySelectorAll('[data-km="stage-go"]').length >= 1, null, { timeout: 5000 });
@@ -864,7 +864,7 @@ await step('틀로 담은 장은 나중에 놓은 인물도 함께 데려간다'
   await page.waitForSelector('[data-km="edit-label"]', { timeout: 4000 });
   await page.fill('[data-km="edit-label"]', '나중에온사람');
 
-  await page.locator('[data-km="story"]').dispatchEvent('click');
+  await page.locator('[data-km="story"]').click();
   await page.waitForSelector('.km-root.is-presenting', { timeout: 4000 });
   // 새 인물이 장에 꼈으면 **흐려진 것 중에 없어야** 한다.
   const stillDim = await page.evaluate(() => [...document.querySelectorAll('.ck-node.is-dimmed')]
@@ -890,7 +890,7 @@ await step('장을 넘기면 화면이 끊기지 않고 미끄러진다', async 
   let n = 0;
   const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '미끄럼 ' + n : '').catch(() => {}); };
   page.on('dialog', onDlg);
-  await page.locator('[data-km="story"]').dispatchEvent('click');
+  await page.locator('[data-km="story"]').click();
   await page.waitForSelector('.km-root.is-presenting', { timeout: 4000 });
   await page.locator('[data-km="stage-add"]').click();
   await page.waitForTimeout(500);
@@ -904,10 +904,10 @@ await step('장을 넘기면 화면이 끊기지 않고 미끄러진다', async 
   await page.locator('[data-km="stage-add"]').click();
   await page.waitForFunction(() => document.querySelectorAll('[data-km="stage-go"]').length >= 2, null, { timeout: 5000 });
 
-  await page.locator('[data-km="stage-go"]').first().dispatchEvent('click');
+  await page.locator('[data-km="stage-go"]').first().click();
   await page.waitForTimeout(500);
   const settled0 = await viewOf();
-  await page.locator('[data-km="stage-go"]').last().dispatchEvent('click');
+  await page.locator('[data-km="stage-go"]').last().click();
   await page.waitForTimeout(80);
   const mid = await viewOf();
   await page.waitForTimeout(700);
@@ -924,7 +924,7 @@ await step('SVG 로 저장하면 글자가 글자로 남는다', async () => {
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
   const [dl] = await Promise.all([
     page.waitForEvent('download', { timeout: 8000 }),
-    page.locator('[data-km="svg"]').dispatchEvent('click'),
+    page.locator('[data-km="svg"]').click(),
   ]);
   if (!dl.suggestedFilename().endsWith('.svg')) throw new Error('.svg 가 아니다');
   const text = await readFile(await dl.path(), 'utf8');
@@ -947,7 +947,7 @@ await step('둥글게 놓기 — 자리가 실제로 바뀌고 아무도 안 사
   const n0 = await countOf();
   await page.click('[data-km="more"]');
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
-  await page.locator('[data-km="lay-circle"]').dispatchEvent('click');
+  await page.locator('[data-km="lay-circle"]').click();
   await page.waitForFunction((b) => [...document.querySelectorAll('.ck-node')]
     .map((g) => g.getAttribute('transform') || '').join('|') !== b, before, { timeout: 4000 });
   if (await countOf() !== n0) throw new Error('둥글게 놓았더니 노드 수가 달라졌다');
@@ -960,11 +960,11 @@ await step('글로 만들기에서 화살표 줄이 옆으로 난 관계를 만�
   // 들여쓰기 트리로는 「A 가 B 를 지킨다」 같은 옆줄을 못 적는다 — 화살표 줄이 그 자리를 메운다.
   await page.click('[data-km="more"]');
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
-  await page.locator('[data-km="from-text"]').dispatchEvent('click');
+  await page.locator('[data-km="from-text"]').click();
   await page.waitForSelector('[data-km="text-src"]', { timeout: 4000 });
   const edgesBefore = await page.locator('.ck-edge').count();
   await page.fill('[data-km="text-src"]', ['화살표갑', '화살표을', '화살표갑 -> 화살표을 : 지킨다'].join(String.fromCharCode(10)));
-  await page.locator('[data-km="text-go"]').dispatchEvent('click');
+  await page.locator('[data-km="text-go"]').click();
   await page.waitForFunction((n) => document.querySelectorAll('.ck-edge').length > n, edgesBefore, { timeout: 5000 });
   const labels = await page.evaluate(() => [...document.querySelectorAll('.ck-edge-label text')].map((t) => t.textContent).join('|'));
   if (!labels.includes('지킨다')) throw new Error('화살표 줄의 이름표가 안 붙었다: ' + labels);
@@ -975,7 +975,7 @@ await step('Mermaid 글로 저장하면 문서에 그대로 붙는 코드블록�
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
   const [dl] = await Promise.all([
     page.waitForEvent('download', { timeout: 8000 }),
-    page.locator('[data-km="mermaid"]').dispatchEvent('click'),
+    page.locator('[data-km="mermaid"]').click(),
   ]);
   const text = await readFile(await dl.path(), 'utf8');
   if (!text.startsWith('```mermaid')) throw new Error('코드블록으로 안 감쌌다');
@@ -992,7 +992,7 @@ await step('연표로 놓기 — 시점 순서대로 왼쪽에서 오른쪽으�
     await page.waitForSelector('[data-km="fld-new"]', { timeout: 4000 });
     await page.fill('[data-km="edit-label"]', name);
     await page.fill('[data-km="fld-new"]', '첫 등장');
-    await page.locator('[data-km="fld-add"]').dispatchEvent('click');
+    await page.locator('[data-km="fld-add"]').click();
     await page.waitForSelector('[data-km="fld-value"]', { timeout: 4000 });
     await page.locator('[data-km="fld-value"]').first().fill(when);
     await page.locator('[data-km="fld-value"]').first().blur();
@@ -1002,7 +1002,7 @@ await step('연표로 놓기 — 시점 순서대로 왼쪽에서 오른쪽으�
 
   await page.click('[data-km="more"]');
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
-  await page.locator('[data-km="lay-time"]').dispatchEvent('click');
+  await page.locator('[data-km="lay-time"]').click();
   await page.keyboard.press('Escape');
   await page.waitForTimeout(400);
   const xs = await page.evaluate(() => {
@@ -1034,7 +1034,7 @@ await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본
   await page.click('[data-km="tab"][data-key="notes"]');
   await page.waitForSelector('[data-km="note-split"]', { timeout: 4000 });
   const before = await page.locator('[data-km="note-title"]').count();
-  await page.locator('[data-km="note-split"]').last().dispatchEvent('click');
+  await page.locator('[data-km="note-split"]').last().click();
   await page.waitForFunction(
     (n) => document.querySelectorAll('[data-km="note-title"]').length === n - 1,
     before,
@@ -1084,7 +1084,7 @@ await step('JSON Canvas 로 내보내면 남의 도구가 읽을 모양이 나�
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
   const [dl] = await Promise.all([
     page.waitForEvent('download', { timeout: 8000 }),
-    page.locator('[data-km="canvas-out"]').dispatchEvent('click'),
+    page.locator('[data-km="canvas-out"]').click(),
   ]);
   if (!dl.suggestedFilename().endsWith('.canvas')) throw new Error('.canvas 가 아니다');
   const path = await dl.path();
@@ -1132,7 +1132,7 @@ await step('첫 화면이 「무엇을 만들 건가요」 세 갈래를 크게 
   await page.waitForTimeout(400);
   const tips = page.locator('[data-km="tips-off"]');
   if (await tips.count() === 0) throw new Error('견본을 깔았는데 다음 걸음 안내가 없다');
-  await tips.first().dispatchEvent('click');
+  await tips.first().click();
   await page.waitForTimeout(400);
   if (await page.locator('[data-km="tips-off"]').count() > 0) throw new Error('닫았는데 안내가 또 뜬다');
 
@@ -1148,10 +1148,10 @@ await step('코멘트는 여러 개 쌓이고 카드에 개수가 뜬다', async
   await page.mouse.dblclick(cbox.x + cbox.width * 0.15, cbox.y + cbox.height * 0.8);
   await page.waitForSelector('[data-km="cmt-new"]', { timeout: 4000 });
   await page.fill('[data-km="cmt-new"]', '여기 이름이 어색해요');
-  await page.locator('[data-km="cmt-add"]').dispatchEvent('click');
+  await page.locator('[data-km="cmt-add"]').click();
   await page.waitForSelector('[data-km="cmt-del"]', { timeout: 4000 });
   await page.fill('[data-km="cmt-new"]', '두 번째 생각');
-  await page.locator('[data-km="cmt-add"]').dispatchEvent('click');
+  await page.locator('[data-km="cmt-add"]').click();
   await page.waitForFunction(() => document.querySelectorAll('[data-km="cmt-del"]').length === 2, null, { timeout: 4000 });
   // 카드만 보고도 말이 오갔음을 알아야 한다.
   await page.waitForFunction(
@@ -1165,7 +1165,7 @@ await step('발표를 SVG 한 장으로 — 브라우저만 있으면 도는 파
   let n = 0;
   const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '한 장 ' + n : '').catch(() => {}); };
   page.on('dialog', onDlg);
-  await page.locator('[data-km="story"]').dispatchEvent('click');
+  await page.locator('[data-km="story"]').click();
   await page.waitForSelector('.km-root.is-presenting', { timeout: 4000 });
   await page.locator('[data-km="stage-add"]').click();
   await page.waitForFunction(() => document.querySelectorAll('[data-km="stage-go"]').length >= 1, null, { timeout: 5000 });
@@ -1177,7 +1177,7 @@ await step('발표를 SVG 한 장으로 — 브라우저만 있으면 도는 파
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
   const [dl] = await Promise.all([
     page.waitForEvent('download', { timeout: 8000 }),
-    page.locator('[data-km="svg-story"]').dispatchEvent('click'),
+    page.locator('[data-km="svg-story"]').click(),
   ]);
   if (!dl.suggestedFilename().includes('presentation')) throw new Error('발표 파일 이름이 아니다');
   const text = await readFile(await dl.path(), 'utf8');
@@ -1194,7 +1194,7 @@ await step('보기 전용 링크 — 손잡이가 사라지고, 「내 것으로
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
   let link = '';
   page.once('dialog', (d) => { link = d.message() || ''; d.accept().catch(() => {}); });
-  await page.locator('[data-km="share-view"]').dispatchEvent('click');
+  await page.locator('[data-km="share-view"]').click();
   await page.waitForTimeout(900);
   if (!link) link = await page.evaluate(() => navigator.clipboard?.readText?.() ?? '').catch(() => '');
   if (!link || !link.includes('kmv=1')) throw new Error('보기 전용 표시가 링크에 없다: ' + String(link).slice(0, 80));
@@ -1211,7 +1211,7 @@ await step('보기 전용 링크 — 손잡이가 사라지고, 「내 것으로
   if (await page.locator('[data-km="cmt-new"]').isDisabled()) throw new Error('보기 전용에서 코멘트까지 잠겼다');
   if (!(await page.locator('[data-km="edit-label"]').isDisabled())) throw new Error('보기 전용인데 이름 칸이 안 잠겼다');
   await page.fill('[data-km="cmt-new"]', '받은 사람이 남기는 말');
-  await page.locator('[data-km="cmt-add"]').dispatchEvent('click');
+  await page.locator('[data-km="cmt-add"]').click();
   await page.waitForSelector('[data-km="cmt-del"]', { timeout: 4000 });
 
   // 되돌아가는 길이 반드시 있어야 한다 — 없으면 남의 그림을 이어 그릴 방법이 사라진다.
@@ -1230,7 +1230,7 @@ await step('꾸미기 규칙 — 「이 칸이 이 값이면 이 색」이 실�
   await page.waitForSelector('[data-km="fld-new"]', { timeout: 4000 });
   await page.fill('[data-km="edit-label"]', '규칙대상');
   await page.fill('[data-km="fld-new"]', '진영');
-  await page.locator('[data-km="fld-add"]').dispatchEvent('click');
+  await page.locator('[data-km="fld-add"]').click();
   await page.waitForFunction(
     () => [...document.querySelectorAll('[data-km="fld-name"]')].some((i) => i.value === '진영'),
     null, { timeout: 4000 });
@@ -1255,14 +1255,14 @@ await step('꾸미기 규칙 — 「이 칸이 이 값이면 이 색」이 실�
     el.value = '#ff0000';
     el.dispatchEvent(new Event('input', { bubbles: true }));
   });
-  await page.locator('[data-km="rule-add"]').dispatchEvent('click');
+  await page.locator('[data-km="rule-add"]').click();
   await page.waitForFunction((b) => {
     const g = [...document.querySelectorAll('.ck-node')].find((el) => (el.textContent || '').includes('규칙대상'));
     const now = g?.querySelector('.ck-node-bg')?.getAttribute('stroke') || '';
     return now !== b && now !== '';
   }, before, { timeout: 4000 });
   // 규칙을 지우면 원래대로 — 못 지우는 규칙은 사람이 안 만든다.
-  await page.locator('[data-km="rule-del"]').first().dispatchEvent('click');
+  await page.locator('[data-km="rule-del"]').first().click();
   await page.waitForTimeout(400);
   await page.click('[data-km="tab"][data-key="node"]');
 });
@@ -1306,7 +1306,7 @@ await step('카드 안으로 파고들면 그 이름의 판이 열린다', async
   await page.waitForSelector('[data-km="node-dive"]', { timeout: 4000 });
   await page.fill('[data-km="edit-label"]', '마왕성');
   const mapsBefore = await page.locator('[data-km="maps"] option').count();
-  await page.locator('[data-km="node-dive"]').dispatchEvent('click');
+  await page.locator('[data-km="node-dive"]').click();
   await page.waitForFunction((n) => document.querySelectorAll('[data-km="maps"] option').length === n + 1, mapsBefore, { timeout: 4000 });
   // 그 판이 열려 있어야 한다(빈 판 + 이름이 카드 이름).
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
@@ -1318,7 +1318,7 @@ await step('카드 안으로 파고들면 그 이름의 판이 열린다', async
 
   // 들어가는 길만 있고 나오는 길이 없으면 층이 미로가 된다 — ⤴ 로 그 카드로 돌아와야 한다.
   await page.waitForSelector('[data-km="map-up"]:not(.hidden)', { timeout: 4000 });
-  await page.locator('[data-km="map-up"]').dispatchEvent('click');
+  await page.locator('[data-km="map-up"]').click();
   await page.waitForSelector('.ck-node.is-selected', { timeout: 6000 });
   const back = await page.evaluate(() => document.querySelector('.ck-node.is-selected')?.textContent || '');
   if (!back.includes('마왕성')) throw new Error('돌아왔는데 그 카드가 안 골라졌다: ' + back);
@@ -1342,19 +1342,19 @@ await step('본 — 한 벌을 떠서 다른 맵에 찍는다', async () => {
   await page.keyboard.up('Shift');
   await page.waitForSelector('[data-km="stamp-save"]', { timeout: 4000 });
   await page.fill('[data-km="stamp-name"]', '검사용 한 벌');
-  await page.locator('[data-km="stamp-save"]').dispatchEvent('click');
+  await page.locator('[data-km="stamp-save"]').click();
 
   // 새 맵에서 찍는다 — 창고에 남아 있어야 한다.
   await page.click('[data-km="map-new"]');
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
   await page.click('[data-km="more"]');
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
-  await page.locator('[data-km="stamps"]').dispatchEvent('click');
+  await page.locator('[data-km="stamps"]').click();
   await page.waitForSelector('[data-km="stamp-put"]', { timeout: 4000 });
   // 본 이름만 보면 「그래서 뭐가 들었더라」가 남는다 — 든 카드 이름이 함께 보여야 고를 수 있다.
   const stampText = await page.evaluate(() => document.querySelector('.km-side')?.textContent || '');
   if (!stampText.includes('본갑')) throw new Error('본 목록에 든 카드 이름이 안 보인다');
-  await page.locator('[data-km="stamp-put"]').first().dispatchEvent('click');
+  await page.locator('[data-km="stamp-put"]').first().click();
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 2, null, { timeout: 4000 });
   const names = await page.evaluate(() => [...document.querySelectorAll('.ck-node text')].map((t) => t.textContent).join('|'));
   if (!names.includes('본갑') || !names.includes('본을')) throw new Error('찍은 본에 이름이 안 따라왔다: ' + names);
@@ -1390,7 +1390,7 @@ await step('「이 카드로 오는 링크」로 열면 그 카드가 골라져 
   await page.waitForSelector('[data-km="node-link"]', { timeout: 4000 });
   let link = '';
   page.once('dialog', (d) => { link = d.message() || ''; d.accept().catch(() => {}); });
-  await page.locator('[data-km="node-link"]').dispatchEvent('click');
+  await page.locator('[data-km="node-link"]').click();
   await page.waitForTimeout(900);
   if (!link) link = await page.evaluate(() => navigator.clipboard?.readText?.() ?? '').catch(() => '');
   if (!link.includes('kmnode=')) throw new Error('링크에 카드 표시가 없다: ' + String(link).slice(0, 60));
