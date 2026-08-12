@@ -1,0 +1,106 @@
+{
+  "id": "math-random",
+  "minutes": 11,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "난수에는 두 가지 요구가 있다 — **재현 가능해야** 디버깅이 되고, **예측 불가능해야** 보안이 된다. 둘은 다른 도구다."
+    },
+    {
+      "type": "h",
+      "text": "1. 시드가 있어야 디버깅이 된다"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "작은 시드 난수 (mulberry32)",
+      "text": "function seeded(seed) {\n  return function () {\n    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;\n    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);\n    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;\n    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;\n  };\n}\n\nconst rng = seeded(12345);\n// 같은 시드 → 항상 같은 순서\n// 버그 리포트에 시드를 함께 남기면 그대로 재현된다  ★"
+    },
+    {
+      "type": "note",
+      "text": "게임·시뮬레이션은 **시드를 화면에 표시**하거나 저장에 담아라. 「가끔 이상해요」가 「시드 8471 에서 이상해요」로 바뀌는 순간 문제는 이미 절반 풀린 것이다."
+    },
+    {
+      "type": "h",
+      "text": "2. 보안용은 다르다"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "Math.random 을 토큰에 쓰지 마라",
+      "text": "// ❌ 예측 가능 — 비밀번호 초기화 토큰·세션 id 에 쓰면 사고\nMath.random().toString(36).slice(2);\n\n// ✅ 암호학적 난수\ncrypto.randomUUID();\ncrypto.getRandomValues(new Uint8Array(32));"
+    },
+    {
+      "type": "h",
+      "text": "3. 범위와 편향"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "흔한 실수",
+      "text": "// 1~6 주사위\nMath.floor(Math.random() * 6) + 1;      // ✅\nMath.round(Math.random() * 5) + 1;      // ❌ 양 끝이 절반 확률\n\n// 배열 섞기는 Fisher–Yates 로\nfor (let i = a.length - 1; i > 0; i--) {\n  const j = Math.floor(Math.random() * (i + 1));\n  [a[i], a[j]] = [a[j], a[i]];\n}\n// sort(() => Math.random() - 0.5) 는 고르게 안 섞인다  ← 아주 흔한 오해"
+    },
+    {
+      "type": "h",
+      "text": "4. 사람이 느끼는 「랜덤」은 다르다"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "진짜 무작위는 뭉친다",
+      "text": "20% 확률을 10번 시도 → 연속 5번 실패는 흔하다 (약 3%)\n사용자는 이걸 \"확률이 거짓말\" 이라고 느낀다\n\n체감 보정 방법\n · 실패할수록 확률을 올린다 (pity/천장)  ← 가챠의 표준\n · 카드 뭉치 방식: 10칸 중 2칸이 성공, 뽑으면 제거 → 반드시 2번 성공\n · 연속 실패 상한을 둔다\n\n\"공정함\" 은 수학이 아니라 설계 결정이다"
+    },
+    {
+      "type": "h",
+      "text": "5. 테스트에서"
+    },
+    {
+      "type": "p",
+      "text": "난수를 쓰는 코드는 **난수 함수를 인자로 받게** 만들어라. 테스트에서는 고정된 값을 돌려주는 함수를 넣으면 결과가 결정적이 된다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "시드 난수를 넣고 같은 시드로 두 번 돌려 결과가 같은지 확인하라. 그리고 시드를 로그에 남겨라."
+    },
+    {
+      "type": "try",
+      "text": "20% 확률을 1000번 돌려 최장 연속 실패 길이를 재고, 그 값이 사용자에게 어떻게 느껴질지 판단하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "버그 재현을 위해 필요한 것은?",
+      "choices": [
+        "시드 고정과 시드 기록",
+        "더 좋은 난수",
+        "로그 확대"
+      ],
+      "answer": 0,
+      "why": "같은 순서를 다시 만들 수 있어야 한다."
+    },
+    {
+      "q": "토큰 생성에 Math.random 을 쓰면?",
+      "choices": [
+        "예측 가능해 보안 사고가 된다",
+        "느려진다",
+        "중복이 는다"
+      ],
+      "answer": 0,
+      "why": "암호학적 난수를 써야 한다."
+    },
+    {
+      "q": "배열을 고르게 섞는 방법은?",
+      "choices": [
+        "Fisher–Yates",
+        "sort 에 랜덤 비교 함수",
+        "reverse 반복"
+      ],
+      "answer": 0,
+      "why": "랜덤 비교 정렬은 편향된다."
+    }
+  ]
+}

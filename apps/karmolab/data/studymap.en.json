@@ -144,6 +144,10 @@
     "sync": {
       "title": "Realtime & sync",
       "lead": "When two people edit the same thing at once — the craft of losing nobody’s words"
+    },
+    "math": {
+      "title": "Math for developers",
+      "lead": "Not exam math — the math that quietly breaks your screen and your ledger"
     }
   },
   "stages": {
@@ -242,7 +246,10 @@
     "sys-c": "Confining and measuring",
     "sync-a": "Keeping a connection",
     "sync-b": "Sharing one document",
-    "sync-c": "Making it trustworthy"
+    "sync-c": "Making it trustworthy",
+    "math-a": "Can you trust the numbers",
+    "math-b": "Moving the screen",
+    "math-c": "Judging by numbers"
   },
   "nodes": {
     "web-html": {
@@ -2416,6 +2423,70 @@
       "check": "You compute cost per concurrent connection and set a ceiling",
       "links": [
         "Cloudflare — WebSockets"
+      ]
+    },
+    "math-float": {
+      "title": "Why 0.1 + 0.2 is not 0.3",
+      "why": "Decimals are approximations, and not knowing that means chasing off-by-one-cent bugs forever.",
+      "check": "You reproduce the error and compare safely",
+      "links": [
+        "Floating point guide"
+      ]
+    },
+    "math-money": {
+      "title": "Money and rounding",
+      "why": "Treat amounts as floats and a coin eventually vanishes — tax, discounts and splitting always expose it.",
+      "check": "You hold money in integers and fix a rounding rule",
+      "links": [
+        "MDN — Intl.NumberFormat"
+      ]
+    },
+    "math-random": {
+      "title": "Randomness — seeds and fairness",
+      "why": "Irreproducible randomness makes bugs uncatchable, and perceived fairness differs from real probability.",
+      "check": "A fixed seed reproduces the same run",
+      "links": [
+        "MDN — Math.random()"
+      ]
+    },
+    "math-vector": {
+      "title": "Vectors — direction and distance",
+      "why": "\"Is the enemy behind me\" and \"how far\" both reduce to a dot product and a length.",
+      "check": "You use a dot product for front/back and normalize properly",
+      "links": [
+        "Red Blob Games — interactive game math"
+      ]
+    },
+    "math-matrix": {
+      "title": "Matrices — move, rotate, scale",
+      "why": "Knowing why order matters is what fixes objects flying off to nowhere.",
+      "check": "You explain the difference when translation and rotation swap",
+      "links": [
+        "MDN — CSS transform"
+      ]
+    },
+    "math-easing": {
+      "title": "Interpolation and easing",
+      "why": "Good motion is a curve, not a feeling, and plain lerp already brings a screen to life.",
+      "check": "You compare the same motion under three curves",
+      "links": [
+        "Easing functions"
+      ]
+    },
+    "math-prob": {
+      "title": "Probability and expected value",
+      "why": "You can compute what \"20% crit\" actually feels like instead of tuning by vibes.",
+      "check": "You tune balance using expected value and variance",
+      "links": [
+        "Red Blob Games — damage rolls"
+      ]
+    },
+    "math-stats": {
+      "title": "Averages lie — read percentiles",
+      "why": "A 200ms average still leaves the top 1% waiting five seconds; averages hide incidents.",
+      "check": "You measure p50, p95 and p99 and compare to the mean",
+      "links": [
+        "Brendan Gregg — latency heat maps"
       ]
     }
   }
