@@ -1,0 +1,108 @@
+{
+  "id": "shell-script",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "두 번 한 일은 스크립트로, 매일 할 일은 예약으로. 손으로 하면 언젠가 빠뜨리고, 빠뜨린 날이 하필 중요한 날이다."
+    },
+    {
+      "type": "h",
+      "text": "1. 안전한 머리말"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "이 세 줄이 사고를 막는다",
+      "text": "#!/usr/bin/env bash\nset -euo pipefail\n# -e 실패하면 즉시 중단 · -u 빈 변수 금지 · -o pipefail 파이프 중간 실패도 실패로\n\nIFS=$'\\n\\t'   # 공백이 든 파일 이름에서 안 깨지게"
+    },
+    {
+      "type": "h",
+      "text": "2. 인자와 기본값"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "필수 인자는 명시적으로",
+      "text": "TARGET=\"${1:?사용법: backup.sh <대상 폴더>}\"\nDEST=\"${2:-$HOME/backups}\"\n\nmkdir -p \"$DEST\"                  # 변수는 항상 큰따옴표\ntar czf \"$DEST/$(date +%F).tgz\" \"$TARGET\""
+    },
+    {
+      "type": "h",
+      "text": "3. 실패를 말하게"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "조용한 실패가 제일 나쁘다",
+      "text": "log() { printf '[%s] %s\\n' \"$(date +%T)\" \"$*\" >&2; }\n\nif ! curl -fsS \"$URL\" -o out.json; then\n  log \"내려받기 실패: $URL\"\n  exit 1\nfi\nlog '완료'"
+    },
+    {
+      "type": "h",
+      "text": "4. 예약 — cron"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "매일 새벽 3시 7분",
+      "text": "crontab -e\n# 분 시 일 월 요일  명령\n7 3 * * * /home/masca/bin/backup.sh /data >> /var/log/backup.log 2>&1"
+    },
+    {
+      "type": "note",
+      "text": "cron 은 **당신의 셸 환경을 모른다**. PATH·환경변수가 없어서 「손으로는 되는데 cron 에서만 안 되는」 일이 생긴다. 스크립트 안에서 절대 경로를 쓰고, 필요한 환경은 직접 설정하라. 출력은 반드시 로그로 남긴다."
+    },
+    {
+      "type": "h",
+      "text": "5. 검사"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "기계가 먼저 본다",
+      "text": "npx shellcheck backup.sh     # 흔한 함정을 잡아 준다\nbash -n backup.sh            # 문법만 확인"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "자주 치는 명령 두세 개를 스크립트 한 편으로 묶어라. `set -euo pipefail` 을 넣고, 인자를 하나 받게 만들어라."
+    },
+    {
+      "type": "try",
+      "text": "그 스크립트를 cron 에 걸고 **로그 파일**을 확인하라. 첫 실행에서 PATH 문제로 실패하는지 보는 것이 이 강의의 핵심 경험이다."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "`set -euo pipefail` 중 -u 의 역할은?",
+      "choices": [
+        "빈(정의되지 않은) 변수를 쓰면 에러로 중단",
+        "출력 숨기기",
+        "병렬 실행"
+      ],
+      "answer": 0,
+      "why": "`rm -rf $DIR/` 같은 사고를 막는 안전선이다."
+    },
+    {
+      "q": "cron 에서만 스크립트가 실패하는 흔한 이유는?",
+      "choices": [
+        "환경변수·PATH 가 로그인 셸과 달라서",
+        "cron 이 느려서",
+        "권한이 항상 부족해서"
+      ],
+      "answer": 0,
+      "why": "절대 경로를 쓰고 필요한 환경을 스크립트 안에서 설정한다."
+    },
+    {
+      "q": "셸 변수에 큰따옴표를 두르는 이유는?",
+      "choices": [
+        "가독성",
+        "공백·특수문자가 든 값이 여러 인자로 쪼개지는 것을 막으려고",
+        "속도"
+      ],
+      "answer": 1,
+      "why": "따옴표 없는 변수는 공백에서 갈라진다 — 파일 이름 사고의 단골이다."
+    }
+  ]
+}
