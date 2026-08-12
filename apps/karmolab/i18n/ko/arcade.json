@@ -219,5 +219,10 @@
   "arcade.twenty.kept": "{who} 이(가) 끝까지 안 들켰다",
   "arcade.game.snake.name": "뱀 경주",
   "arcade.game.snake.desc": "쓸어서 방향을 바꾼다. 남이 지나간 자리가 벽이다",
-  "arcade.snake.win": "{who} — {n}개"
+  "arcade.snake.win": "{who} — {n}개",
+  "arcade.game.onestroke.name": "한붓그리기",
+  "arcade.game.onestroke.desc": "붓을 떼지 않고 모든 선을 지난다. 같은 그림으로 경주",
+  "arcade.stroke.win": "{who} 이(가) 다 그렸다",
+  "arcade.stroke.timeup": "시간이 다 됐다 — {who} {n}획",
+  "arcade.stroke.stuck": "막혔다"
 }

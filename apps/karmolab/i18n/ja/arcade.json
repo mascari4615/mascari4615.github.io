@@ -219,5 +219,10 @@
   "arcade.twenty.kept": "{who} は最後までばれなかった",
   "arcade.game.snake.name": "スネークレース",
   "arcade.game.snake.desc": "スワイプで曲がる。通った跡が壁になる",
-  "arcade.snake.win": "{who} — {n}個"
+  "arcade.snake.win": "{who} — {n}個",
+  "arcade.game.onestroke.name": "一筆書き",
+  "arcade.game.onestroke.desc": "筆を離さず全ての線をなぞる。同じ図形で競争",
+  "arcade.stroke.win": "{who} が全部なぞった",
+  "arcade.stroke.timeup": "時間切れ — {who} {n}本",
+  "arcade.stroke.stuck": "詰まった"
 }
