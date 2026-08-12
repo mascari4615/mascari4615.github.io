@@ -6,6 +6,10 @@
  * 손잡이를 끌어 구간을 잡으면 그 자리를 미리 보여 주느라 이미 도착해 있으므로, 바로 이어서 누르면
  * 그 상황이 된다. 복사본이 셋이면 그 함정도 셋이고, 한 곳만 고치면 나머지가 조용히 남는다.
  * 그래서 한 곳으로 모았다.
+ *
+ * **2026-08-13 (TASK-KL-268) 에 더 모았다.** 영상 도구 아홉을 재 보니 여전히 흩어져 있었다:
+ * 파일을 영상으로 읽기 8/9 · 내려주기 8/9 · 길이·크기 알아내기 4/9 · 프레임 그리기 4/9 ·
+ * 끌어다 놓기 7/9. 아래 손잡이들이 그 자리다.
  */
 
 /**
@@ -39,4 +43,106 @@ export function pickRecordType(): string {
   const wanted = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
   for (const t of wanted) if (MediaRecorder.isTypeSupported(t)) return t;
   return '';
+}
+
+/* ── 2026-08-13 에 모은 것 (TASK-KL-268) ─────────────────────────── */
+
+export interface VideoMeta {
+  /** 길이(초) — 못 알아내면 0 */
+  duration: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * 파일을 영상으로 읽는다. **길이를 알 때까지 기다린다** — 브라우저는 파일을 붙이자마자
+ * `duration` 을 알려 주지 않아서, 바로 읽으면 `NaN` 이 나온다(도구마다 따로 겪던 자리다).
+ *
+ * 주소는 여기서 거둔다. 각자 거두다 잊으면 큰 파일이 그대로 메모리에 남는다.
+ */
+export function loadVideo(file: File | Blob): Promise<HTMLVideoElement> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const v = document.createElement('video');
+    v.preload = 'metadata';
+    v.muted = true;
+    v.playsInline = true;
+    const fail = (): void => {
+      URL.revokeObjectURL(url);
+      reject(new Error('이 영상은 못 읽습니다'));
+    };
+    v.onerror = fail;
+    v.onloadedmetadata = (): void => {
+      /* 어떤 webm 은 길이가 Infinity 로 온다 — 끝까지 한 번 밀어 보면 제대로 잡힌다 */
+      if (!Number.isFinite(v.duration) || v.duration === 0) {
+        v.currentTime = 1e101;
+        v.ontimeupdate = (): void => {
+          v.ontimeupdate = null;
+          v.currentTime = 0;
+          resolve(v);
+        };
+        return;
+      }
+      resolve(v);
+    };
+    v.src = url;
+  });
+}
+
+export function metaOf(v: HTMLVideoElement): VideoMeta {
+  return {
+    duration: Number.isFinite(v.duration) ? v.duration : 0,
+    width: v.videoWidth,
+    height: v.videoHeight
+  };
+}
+
+/** 그 시각의 한 장면을 그린다. `maxW` 는 **긴 변** 기준으로 줄인다. */
+export async function frameAt(v: HTMLVideoElement, time: number, maxW = 320): Promise<HTMLCanvasElement> {
+  await seekTo(v, time);
+  const k = Math.min(1, maxW / (v.videoWidth || maxW));
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round((v.videoWidth || maxW) * k));
+  c.height = Math.max(1, Math.round((v.videoHeight || maxW) * k));
+  const ctx = c.getContext('2d');
+  if (!ctx) throw new Error('캔버스를 못 씁니다');
+  ctx.drawImage(v, 0, 0, c.width, c.height);
+  return c;
+}
+
+/**
+ * **필름 스트립** — 영상 전체에서 고르게 몇 장을 뽑는다.
+ *
+ * 첫 장면 하나만 보여 주면 「이 영상이 맞나」밖에 못 판단한다. 어디를 자를지·어디서 GIF 를
+ * 만들지는 **흐름이 보일 때** 정해진다(Clideo·Kapwing 의 타임라인이 하는 일).
+ * 맨 끝은 검은 화면일 때가 많아 조금 앞에서 뽑는다.
+ */
+export async function filmstrip(
+  v: HTMLVideoElement,
+  count = 8,
+  maxW = 220,
+  each?: (i: number, canvas: HTMLCanvasElement, at: number) => void
+): Promise<HTMLCanvasElement[]> {
+  const dur = metaOf(v).duration;
+  const out: HTMLCanvasElement[] = [];
+  for (let i = 0; i < count; i++) {
+    const at = dur > 0 ? (dur * (i + 0.5)) / count : 0;
+    try {
+      const c = await frameAt(v, at, maxW);
+      out.push(c);
+      each?.(i, c, at);
+    } catch {
+      /* 한 장 못 뽑아도 나머지는 보여 준다 */
+    }
+  }
+  return out;
+}
+
+/** 내려주기 — 여덟 곳이 각자 적던 네 줄. */
+export function download(blob: Blob, filename: string): void {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
