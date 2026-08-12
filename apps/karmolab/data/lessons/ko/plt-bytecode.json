@@ -1,0 +1,102 @@
+{
+  "id": "plt-bytecode",
+  "minutes": 11,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "트리를 매번 걷는 대신 **평평한 명령 목록**으로 바꾼다. 왜 빨라지는지가 이 칸의 전부다."
+    },
+    {
+      "type": "h",
+      "text": "1. 트리 걷기의 비용"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "느린 이유는 계산이 아니다",
+      "text": "· 노드마다 객체 하나 → 메모리 여기저기 흩어짐 (캐시 미스)\n· 노드마다 switch 분기 → 예측 실패\n· 재귀 호출 비용\n\n같은 덧셈이라도 \"명령 배열을 순서대로 읽는\" 쪽이 훨씬 기계에 친하다"
+    },
+    {
+      "type": "h",
+      "text": "2. 스택 기계"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "2 + 3 * 4 를 명령으로",
+      "text": "PUSH 2\nPUSH 3\nPUSH 4\nMUL          ← 스택 위 둘을 꺼내 곱해서 넣는다\nADD\n\n스택:  [2] → [2,3] → [2,3,4] → [2,12] → [14]"
+    },
+    {
+      "type": "h",
+      "text": "3. 컴파일 = 트리를 후위 순회"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "놀랄 만큼 짧다",
+      "text": "function compile(node, out = []) {\n  if (node.kind === 'num') { out.push(['PUSH', node.value]); return out; }\n  if (node.kind === 'bin') {\n    compile(node.left, out);\n    compile(node.right, out);\n    out.push([{ '+': 'ADD', '-': 'SUB', '*': 'MUL', '/': 'DIV' }[node.op]]);\n    return out;\n  }\n  throw new Error('모르는 노드');\n}\n\nfunction run(code) {\n  const st = [];\n  for (const [op, arg] of code) {\n    if (op === 'PUSH') { st.push(arg); continue; }\n    const b = st.pop(), a = st.pop();\n    st.push(op === 'ADD' ? a + b : op === 'SUB' ? a - b : op === 'MUL' ? a * b : a / b);\n  }\n  return st.pop();\n}"
+    },
+    {
+      "type": "h",
+      "text": "4. 분기와 반복"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "점프 명령으로 바뀐다",
+      "text": "if (조건) A else B\n\n  <조건 계산>\n  JUMP_IF_FALSE → L1\n  <A>\n  JUMP → L2\nL1: <B>\nL2:\n\n고급 문법이 전부 \"조건부 점프\" 로 내려온다 — 어셈블리를 읽는 감각이 여기서 생긴다"
+    },
+    {
+      "type": "h",
+      "text": "5. 언제 할 가치가 있나"
+    },
+    {
+      "type": "note",
+      "text": "**같은 코드를 여러 번 실행할 때만.** 한 번 실행할 규칙식이라면 트리 인터프리터가 더 간단하고 충분하다. 최적화는 항상 「재고 나서」다 — 먼저 재라."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "위 컴파일러·VM 을 돌려 결과가 트리 인터프리터와 같은지 확인하고, 같은 식을 10만 번 실행해 두 방식의 시간을 비교하라."
+    },
+    {
+      "type": "try",
+      "text": "JUMP_IF_FALSE 를 추가해 if 를 지원하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "바이트코드가 트리 걷기보다 빠른 주된 이유는?",
+      "choices": [
+        "평평한 배열을 순서대로 읽어 기계에 친하다",
+        "명령 수가 적어서",
+        "메모리를 안 써서"
+      ],
+      "answer": 0,
+      "why": "캐시 지역성과 분기 예측이 좋아진다."
+    },
+    {
+      "q": "스택 기계에서 2+3*4 컴파일 순서는?",
+      "choices": [
+        "피연산자를 먼저 넣고 연산 명령을 뒤에",
+        "연산 명령을 먼저",
+        "왼쪽부터 연산"
+      ],
+      "answer": 0,
+      "why": "후위(postfix) 순회 결과다."
+    },
+    {
+      "q": "바이트코드로 갈 가치가 있는 경우는?",
+      "choices": [
+        "같은 코드를 반복 실행할 때",
+        "코드가 길 때",
+        "문법이 복잡할 때"
+      ],
+      "answer": 0,
+      "why": "한 번 실행이면 트리 쪽이 더 단순하다."
+    }
+  ]
+}
