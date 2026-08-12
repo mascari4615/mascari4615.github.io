@@ -1,0 +1,104 @@
+{
+  "id": "scale-fail",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "한 곳이 느려지면 전부 같이 죽는다. 분산 시스템에서 가장 흔한 장애 모양이고, 막는 방법은 **실패를 빨리 끊는 것**이다."
+    },
+    {
+      "type": "h",
+      "text": "1. 타임아웃 없는 호출은 시한폭탄"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "모든 외부 호출에 시간 제한",
+      "text": "const ctl = new AbortController();\nconst t = setTimeout(() => ctl.abort(), 2000);\ntry {\n  const res = await fetch(url, { signal: ctl.signal });\n} finally { clearTimeout(t); }"
+    },
+    {
+      "type": "note",
+      "text": "타임아웃이 없으면 스레드·커넥션이 물려 **자원이 고갈**되고, 그 순간 관계없는 요청까지 실패한다. 기본값이 무한대인 클라이언트가 많으니 확인하라."
+    },
+    {
+      "type": "h",
+      "text": "2. 재시도는 신중하게"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "지수 백오프 + 지터",
+      "text": "for (let i = 0; i < 3; i++) {\n  try { return await call(); }\n  catch (e) {\n    if (!isRetryable(e)) throw e;               // 4xx 는 다시 해도 같다\n    await sleep(2 ** i * 200 + Math.random() * 100);   // 지터로 동시 재시도 분산\n  }\n}"
+    },
+    {
+      "type": "p",
+      "text": "지터가 없으면 모두가 같은 순간에 다시 몰려 **재시도 폭풍**이 난다. 그리고 재시도는 상대가 이미 처리했을 수 있으므로 **멱등**해야 한다."
+    },
+    {
+      "type": "h",
+      "text": "3. 서킷 브레이커"
+    },
+    {
+      "type": "note",
+      "text": "실패율이 임계를 넘으면 **회로를 열어** 잠시 호출 자체를 막는다(즉시 실패 반환). 일정 시간 뒤 시험 요청을 하나 보내 회복됐으면 닫는다. 죽은 상대를 계속 두드리는 것보다 서로에게 낫다."
+    },
+    {
+      "type": "h",
+      "text": "4. 격벽과 우아한 저하"
+    },
+    {
+      "type": "p",
+      "text": "기능별로 **커넥션 풀을 분리**하면(격벽) 추천 서비스가 죽어도 결제는 산다. 그리고 부가 기능은 실패 시 **빈 값으로 대체**해 화면을 살려라 — 전부 아니면 전무는 나쁜 설계다."
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "핵심과 부가를 나눈다",
+      "text": "const [order, recs] = await Promise.allSettled([getOrder(id), getRecommendations(id)]);\nrender(order.value, recs.status === 'fulfilled' ? recs.value : []);   // 추천은 없어도 화면은 산다"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "의존 서비스를 일부러 3초 지연시키고 내 서비스가 어떻게 되는지 보라. 타임아웃을 넣기 전후를 비교하라."
+    },
+    {
+      "type": "try",
+      "text": "부가 기능 하나를 `allSettled` 로 바꿔 실패해도 화면이 뜨는지 확인하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "외부 호출에 타임아웃이 없으면?",
+      "choices": [
+        "커넥션·스레드가 물려 관계없는 요청까지 실패한다",
+        "응답이 느려질 뿐이다",
+        "재시도가 자동으로 된다"
+      ],
+      "answer": 0,
+      "why": "자원 고갈이 장애 전파의 주 경로다."
+    },
+    {
+      "q": "재시도에 지터를 넣는 이유는?",
+      "choices": [
+        "모두가 같은 순간 다시 몰리는 재시도 폭풍을 막으려고",
+        "평균 지연을 줄이려고",
+        "로그를 줄이려고"
+      ],
+      "answer": 0,
+      "why": "동시 재시도는 회복 중인 서비스를 다시 무너뜨린다."
+    },
+    {
+      "q": "부가 기능 실패가 전체 화면을 죽이지 않게 하려면?",
+      "choices": [
+        "Promise.allSettled 등으로 부분 실패를 허용하고 대체값을 쓴다",
+        "전부 await 로 묶는다",
+        "캐시를 끈다"
+      ],
+      "answer": 0,
+      "why": "우아한 저하가 가용성을 지킨다."
+    }
+  ]
+}
