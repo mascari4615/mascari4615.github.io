@@ -82,20 +82,26 @@ jobs:
         working-directory: packages/badapple
         run: npm ci --no-audit --no-fund && npm run build
 
-      # 개발 서버(`scripts/dev.mjs`)는 뜰 때 `build.mjs` 를 그대로 부른다 — 빌드와 서빙이
-      # 한 벌이라 두 벌로 적을 일이 없다. 말 묶음만 먼저 만들어 준다(js/i18n/*).
       - name: 말 묶음 짓기
         run: npm run build:i18n
+
+      # ★ **먼저 짓고, 그 다음에 띄운다.** 예전에는 개발 서버(뜰 때 스스로 짓는다)에 맡겼는데,
+      #   그 서버는 **짓는 도중에도 index.html 을 200 으로 준다** — 2초 만에 「준비됨」이 뜨고,
+      #   검사는 아직 만들어지지 않은 위젯 묶음을 열다가 항목이 줄줄이 빨갛게 났다
+      #   (실측 2026-08-12: 판정이 처음 나온 판이 통째로 그 이유였다). 짓기가 깨지면 여기서 선다.
+      - name: 앱 짓기
+        run: node build.mjs
 
       - name: 서버 띄우기
         run: |
           node scripts/dev.mjs 8813 > /tmp/dev.log 2>&1 &
-          for i in $(seq 1 90); do
-            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8813/apps/karmolab/index.html || true)
-            if [ "$code" = "200" ]; then echo "서버 준비됨 (${i}초)"; exit 0; fi
+          # index.html 이 아니라 **위젯 묶음**이 나올 때까지 본다 — 그게 검사가 실제로 여는 것이다.
+          for i in $(seq 1 120); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8813/apps/karmolab/js/widgets/karmograph/karmograph.js || true)
+            if [ "$code" = "200" ]; then echo "위젯 묶음까지 준비됨 (${i}초)"; exit 0; fi
             sleep 1
           done
-          echo "서버가 90초 안에 안 떴다"; cat /tmp/dev.log; exit 1
+          echo "120초 안에 위젯 묶음이 안 나왔다"; cat /tmp/dev.log; exit 1
 
       # ★ 이 단계에 **따로 상한**을 둔다. 판정 없이 잘린 판이 있었다(2026-08-12: 한 항목에
       #   20분 넘게 매달려 있다가 job 째로 끊겼고, 로그는 단계가 끝나야 나와서 아무것도 못 봤다).
