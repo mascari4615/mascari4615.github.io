@@ -38,7 +38,6 @@ const result = await page.evaluate(async () => {
   const host = document.createElement('div');
   document.body.appendChild(host);
   tool.tabs[0].build(host);
-
   await window.__karmoWaitDrawn(host);
   host.querySelector('#vrStart').click();
 

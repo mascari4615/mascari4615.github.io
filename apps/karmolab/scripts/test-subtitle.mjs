@@ -46,7 +46,6 @@ const out = await page.evaluate(async () => {
   const host = document.createElement('div');
   document.body.appendChild(host);
   tool.tabs[0].build(host);
-
   await window.__karmoWaitDrawn(host);
   const set = (shift, rate, fmt) => {
     host.querySelector('#sbIn').value = SRT;
