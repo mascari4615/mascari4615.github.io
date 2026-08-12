@@ -1,0 +1,98 @@
+{
+  "id": "devops-iac",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "클릭으로 만든 인프라는 아무도 재현할 수 없다. 그리고 만든 사람이 없어지면 **왜 그렇게 되어 있는지**도 사라진다."
+    },
+    {
+      "type": "h",
+      "text": "1. 선언형 — 「이렇게 되어 있어라」"
+    },
+    {
+      "type": "code",
+      "lang": "hcl",
+      "label": "Terraform 예시",
+      "text": "resource \"aws_s3_bucket\" \"assets\" {\n  bucket = \"karmolab-assets\"\n}\n\nresource \"aws_s3_bucket_public_access_block\" \"assets\" {\n  bucket                  = aws_s3_bucket.assets.id\n  block_public_acls       = true\n  restrict_public_buckets = true\n}"
+    },
+    {
+      "type": "p",
+      "text": "명령형(만들어라)이 아니라 **원하는 상태**를 적는다. 도구가 현재 상태와 비교해 차이만 적용한다."
+    },
+    {
+      "type": "h",
+      "text": "2. plan 을 읽는 습관"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "적용 전에 반드시",
+      "text": "terraform plan     # + 생성 · ~ 수정 · - 삭제\n# 「- destroy」 가 예상보다 많으면 그 자리에서 멈춰라\nterraform apply"
+    },
+    {
+      "type": "note",
+      "text": "이름이나 키 속성을 바꾸면 도구가 **지우고 새로 만든다**. 데이터베이스에 이런 변경을 무심코 적용하면 데이터가 사라진다 — plan 의 `destroy` 줄이 그래서 중요하다."
+    },
+    {
+      "type": "h",
+      "text": "3. 상태 파일"
+    },
+    {
+      "type": "note",
+      "text": "Terraform 은 「무엇을 만들었는지」를 상태 파일에 적어 둔다. 여럿이 쓰면 **원격 상태 + 잠금**이 필수다 — 두 사람이 동시에 apply 하면 서로의 자원을 지운다. 그리고 상태 파일에는 비밀이 담기므로 저장소에 커밋하지 않는다."
+    },
+    {
+      "type": "h",
+      "text": "4. 손으로 고치면 어긋난다(drift)"
+    },
+    {
+      "type": "p",
+      "text": "콘솔에서 급히 손을 대면 코드와 실제가 달라진다. 그러면 다음 apply 가 그 변경을 되돌린다. 급하게 고쳤다면 **반드시 코드에 반영**하라 — 아니면 다음 사람이 원인 모를 장애를 만난다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "작은 자원 하나(버킷·정적 사이트)를 코드로 만들고 지워 보라. 그 다음 콘솔에서 설정을 손으로 바꾸고 `plan` 을 돌려 drift 가 어떻게 보이는지 확인하라."
+    },
+    {
+      "type": "try",
+      "text": "기존 인프라 중 하나를 골라 「이걸 코드로 옮기면 무엇이 필요한가」를 목록으로 적어라. 옮기지 않아도 목록 자체가 문서가 된다."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "선언형 IaC 의 특징은?",
+      "choices": [
+        "원하는 상태를 적으면 도구가 차이만 적용한다",
+        "순서대로 명령을 실행한다",
+        "GUI 를 자동화한다"
+      ],
+      "answer": 0,
+      "why": "현재 상태와 목표 상태의 차이를 계산하는 것이 핵심이다."
+    },
+    {
+      "q": "`terraform plan` 에서 특히 주의 깊게 볼 줄은?",
+      "choices": [
+        "+ 생성",
+        "- destroy(삭제·재생성)",
+        "변수 목록"
+      ],
+      "answer": 1,
+      "why": "이름·키 변경은 삭제 후 재생성으로 이어져 데이터가 사라질 수 있다."
+    },
+    {
+      "q": "여러 사람이 쓰는 환경에서 상태 파일은?",
+      "choices": [
+        "각자 로컬에 둔다",
+        "원격 저장소에 두고 잠금을 건다",
+        "git 에 커밋한다"
+      ],
+      "answer": 1,
+      "why": "동시 apply 를 막고 비밀 노출도 피한다."
+    }
+  ]
+}
