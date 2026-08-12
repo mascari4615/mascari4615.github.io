@@ -1,0 +1,102 @@
+{
+  "id": "desktop-fs",
+  "minutes": 11,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "앱 데이터를 **아무 데나 쓰면** 백업도 삭제도 안 된다. OS 마다 정해진 자리가 있다."
+    },
+    {
+      "type": "h",
+      "text": "1. 표준 경로"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "종류별로 자리가 다르다",
+      "text": "설정(config)   : macOS ~/Library/Preferences · Windows %APPDATA% · Linux ~/.config\n데이터(data)   : ~/Library/Application Support · %APPDATA% · ~/.local/share\n캐시(cache)    : ~/Library/Caches · %LOCALAPPDATA% · ~/.cache  ← 지워져도 되는 것만\n로그           : ~/Library/Logs · %LOCALAPPDATA%\\Logs · ~/.local/state\n\n프레임워크의 path API 를 쓰면 알아서 골라 준다"
+    },
+    {
+      "type": "note",
+      "text": "**캐시와 데이터를 구분**하라. 캐시는 OS 나 사용자가 지울 수 있어야 하고, 지워도 앱이 살아야 한다."
+    },
+    {
+      "type": "h",
+      "text": "2. 사용자 파일 접근"
+    },
+    {
+      "type": "p",
+      "text": "사용자의 문서·사진에 접근하려면 **파일 선택 대화상자**로 받는 것이 원칙이다. macOS 는 폴더 접근에 별도 권한이 필요하고, 샌드박스 앱은 선택한 것 외에는 못 본다."
+    },
+    {
+      "type": "h",
+      "text": "3. 안전한 저장"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "쓰다가 죽어도 안 깨지게",
+      "text": "1) 임시 파일에 쓴다 (config.json.tmp)\n2) fsync 로 디스크에 확실히 내린다\n3) 원본 위로 원자적 rename\n\n그냥 덮어쓰다 전원이 나가면 빈 파일이 남는다"
+    },
+    {
+      "type": "h",
+      "text": "4. 비밀은 키체인에"
+    },
+    {
+      "type": "note",
+      "text": "토큰·비밀번호는 평문 파일에 두지 말고 **OS 자격 증명 저장소**(keychain·Credential Manager·Secret Service)를 쓰라. 로컬 앱이라도 다른 프로그램이 읽을 수 있다."
+    },
+    {
+      "type": "h",
+      "text": "5. 삭제와 이전"
+    },
+    {
+      "type": "p",
+      "text": "**제거(uninstall) 시 무엇을 남길지** 정하라. 그리고 저장 형식이 바뀔 때를 대비해 **버전 필드**를 넣어 두면 마이그레이션이 쉬워진다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "내 앱이 파일을 쓰는 위치를 전부 찾아 표준 경로로 옮겨라. 캐시와 데이터를 나눴는지 확인하라."
+    },
+    {
+      "type": "try",
+      "text": "설정 저장을 임시 파일 + rename 방식으로 바꾸고, 저장 도중 강제 종료해도 파일이 온전한지 확인하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "캐시를 데이터와 구분해 저장하는 이유는?",
+      "choices": [
+        "지워져도 앱이 동작해야 하고 OS·사용자가 지울 수 있어야 하기 때문",
+        "속도 때문",
+        "용량 계산 때문"
+      ],
+      "answer": 0,
+      "why": "캐시 경로는 언제든 비워질 수 있다."
+    },
+    {
+      "q": "설정 파일을 안전하게 저장하는 방법은?",
+      "choices": [
+        "임시 파일에 쓰고 원자적 rename",
+        "바로 덮어쓰기",
+        "두 번 쓰기"
+      ],
+      "answer": 0,
+      "why": "중간에 죽어도 원본이 깨지지 않는다."
+    },
+    {
+      "q": "토큰·비밀번호의 올바른 보관처는?",
+      "choices": [
+        "OS 자격 증명 저장소(키체인 등)",
+        "설정 JSON",
+        "로컬 스토리지"
+      ],
+      "answer": 0,
+      "why": "평문 파일은 다른 프로그램이 읽을 수 있다."
+    }
+  ]
+}

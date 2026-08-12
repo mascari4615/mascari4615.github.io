@@ -1,0 +1,110 @@
+{
+  "id": "desktop-process",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "데스크톱 앱은 **두 세계**로 나뉜다 — 화면(웹뷰)과 시스템 권한을 가진 쪽. 그 경계가 곧 **보안 경계**다."
+    },
+    {
+      "type": "h",
+      "text": "1. 구조"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "누가 무엇을 할 수 있나",
+      "text": "Electron : 메인 프로세스(Node·전권) ↔ 렌더러(웹) — preload 로 다리를 놓는다\nTauri    : Rust 코어(전권) ↔ 웹뷰 — #[command] 로 노출한 함수만 호출 가능\n\n원칙: 웹뷰는 「신뢰하지 않는 쪽」으로 취급한다"
+    },
+    {
+      "type": "h",
+      "text": "2. 안전한 다리"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "Electron — 필요한 것만 노출",
+      "text": "// preload.js\nconst { contextBridge, ipcRenderer } = require('electron');\ncontextBridge.exposeInMainWorld('api', {\n  readConfig: () => ipcRenderer.invoke('config:read'),   // 특정 기능만\n});\n// nodeIntegration: false · contextIsolation: true 는 기본으로 둔다"
+    },
+    {
+      "type": "code",
+      "lang": "rust",
+      "label": "Tauri — 명령 단위 노출",
+      "text": "#[tauri::command]\nfn read_config(app: tauri::AppHandle) -> Result<Config, String> { … }\n// 프런트: await invoke('read_config')"
+    },
+    {
+      "type": "note",
+      "text": "「파일을 읽어 주는 범용 함수」를 노출하면 **경계가 사라진다**. `readFile(path)` 대신 `readConfig()` 처럼 **의도 단위**로 노출하라."
+    },
+    {
+      "type": "h",
+      "text": "3. 무거운 일은 뒤로"
+    },
+    {
+      "type": "p",
+      "text": "웹뷰 스레드에서 무거운 계산을 하면 화면이 멈춘다. 파일 스캔·이미지 변환 같은 것은 **백엔드(Rust·Node)에서 비동기**로 돌리고 진행률만 이벤트로 보내라."
+    },
+    {
+      "type": "h",
+      "text": "4. 이벤트"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "양방향 통신",
+      "text": "// 백엔드 → 프런트 (진행률·상태 변화)\nlisten('scan:progress', (e) => setProgress(e.payload));\n\n// 프런트 → 백엔드는 invoke/ipc 호출"
+    },
+    {
+      "type": "h",
+      "text": "5. 디버깅"
+    },
+    {
+      "type": "note",
+      "text": "**두 쪽을 따로 본다** — 웹뷰는 개발자도구, 백엔드는 로그·디버거. 「호출했는데 아무 일도 없다」의 절반은 명령 등록 누락, 나머지는 권한/허용 목록 설정이다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "설정 파일을 읽는 명령을 하나 만들고, 그것만 노출하라. 그 다음 임의 경로 읽기 함수를 노출했을 때 무엇이 위험한지 적어 보라."
+    },
+    {
+      "type": "try",
+      "text": "3초 걸리는 작업을 프런트에서 돌려 화면이 멈추는 것을 확인하고, 백엔드로 옮겨 진행률 이벤트를 붙여라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "웹뷰(렌더러)를 어떻게 취급해야 하나?",
+      "choices": [
+        "신뢰하지 않는 쪽으로 보고 노출을 최소화",
+        "내 코드니 전권 부여",
+        "보안과 무관"
+      ],
+      "answer": 0,
+      "why": "외부 콘텐츠나 XSS 가 들어오면 그 권한이 그대로 쓰인다."
+    },
+    {
+      "q": "IPC 로 노출할 함수의 좋은 형태는?",
+      "choices": [
+        "의도 단위(readConfig)",
+        "범용(readFile(path))",
+        "전체 모듈 노출"
+      ],
+      "answer": 0,
+      "why": "범용 노출은 경계를 없앤다."
+    },
+    {
+      "q": "무거운 계산을 백엔드로 보내는 이유는?",
+      "choices": [
+        "웹뷰 스레드가 막혀 화면이 멈추기 때문",
+        "보안 때문만",
+        "용량 때문"
+      ],
+      "answer": 0,
+      "why": "진행률은 이벤트로 전달한다."
+    }
+  ]
+}
