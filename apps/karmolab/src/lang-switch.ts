@@ -81,7 +81,10 @@ function ensureStyle(): void {
   padding:.45rem .8rem;font-size:.85rem;background:var(--bg-elev,#1b1b20);
   border-bottom:1px solid var(--border,#33333c);color:var(--text,#e8e8ee)}
 .lang-hint a{color:inherit;text-decoration:underline;text-underline-offset:.15em}
-.lang-hint button{all:unset;cursor:pointer;padding:.1rem .45rem;border-radius:.35rem;opacity:.7}
+/* 손가락으로 누를 만해야 한다 — 닫기 ✕ 가 28x25 라 관문 검사에 걸렸다(기준 32px, 실측 2026-08-13).
+   생김새는 그대로 두고 **누를 자리만** 넓힌다. */
+.lang-hint button{all:unset;cursor:pointer;padding:.1rem .45rem;border-radius:.35rem;opacity:.7;
+  min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center}
 .lang-hint button:hover{opacity:1;background:var(--bg-hover,#2a2a33)}`;
   document.head.appendChild(s);
 }
