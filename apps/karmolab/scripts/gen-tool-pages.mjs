@@ -17,6 +17,17 @@ import { fileURLToPath } from 'node:url';
 // 셸을 정적 페이지로 만드는 손질은 한 벌뿐이다 (TASK-KL-129) — 목록·봇 소개·프로필도 같은 것을 쓴다.
 import { loadShell, shellCommon, replaceMeta, scriptFile, esc } from './lib/shell-page.mjs';
 
+// 셸(apps/karmolab/index.html)의 제목을 이 장의 제목으로 바꾼다.
+// 예전엔 `'<title>KarmoLab</title>'` 리터럴을 찾아 바꿨는데, 셸 제목에 한 글자만 붙어도
+// **아무 말 없이 안 바뀐 채** 129장이 전부 셸 제목으로 나갔다 (2026-08-13에 실제로 밟음).
+// 그래서 모양이 아니라 자리로 찾고, 못 찾으면 그 자리에서 세운다.
+function replaceTitle(html, title) {
+  const next = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${title}</title>`);
+  if (next === html) throw new Error(`[title] 셸에서 <title> 을 못 찾았다 — 바꾸려던 제목: ${title}`);
+  return next;
+}
+
+
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = 'https://blog.mascari4615.com';
 const BASE_PATH = '/karmolab/t';
@@ -632,7 +643,7 @@ function buildToolPage(id) {
     bootPaths
   });
 
-  html = html.replace('<title>KarmoLab</title>', `<title>${esc(title)}</title>`);
+  html = replaceTitle(html, esc(title));
   html = html.replace(
     '<link rel="canonical" href="https://blog.mascari4615.com/karmolab/">',
     `<link rel="canonical" href="${toolPageUrl(id)}">`
@@ -894,7 +905,7 @@ function buildHub() {
     bootPaths: []
   });
 
-  html = html.replace('<title>KarmoLab</title>', `<title>${HUB_TITLE}</title>`);
+  html = replaceTitle(html, HUB_TITLE);
   html = html.replace(
     '<link rel="canonical" href="https://blog.mascari4615.com/karmolab/">',
     `<link rel="canonical" href="${SITE}${BASE_PATH}/">`
