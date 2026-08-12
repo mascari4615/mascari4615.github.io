@@ -90,11 +90,11 @@ import {
   /* ★ 모양 이름은 **불릴 때** 꺼낸다. 이 자리(묶음이 읽히는 순간)는 말 묶음이 아직 안 들어온
      시점이라 `t()` 가 없는 열쇠로 던진다 — 그러면 위젯이 등록조차 안 된다(실측 2026-08-12). */
   const shapes = (): { id: NodeShape; label: string; icon: string }[] => [
-    { id: 'rect', label: t('karmograph.t155'), icon: '▭' },
-    { id: 'circle', label: t('karmograph.t156'), icon: '◯' },
-    { id: 'bubble', label: t('karmograph.t157'), icon: '💬' },
-    { id: 'note', label: t('karmograph.t158'), icon: '📝' },
-    { id: 'photo', label: t('karmograph.t159'), icon: '🖼' },
+    { id: 'rect', label: t('karmograph.shapes.msg'), icon: '▭' },
+    { id: 'circle', label: t('karmograph.shapes.msg2'), icon: '◯' },
+    { id: 'bubble', label: t('karmograph.shapes.msg3'), icon: '💬' },
+    { id: 'note', label: t('karmograph.shapes.msg4'), icon: '📝' },
+    { id: 'photo', label: t('karmograph.shapes.msg5'), icon: '🖼' },
   ];
 
   Mdd.injectCSS(
@@ -492,41 +492,41 @@ import {
     container.innerHTML = `
       <div class="km-root">
         <div class="km-toolbar">
-          <select data-km="maps" title="${esc(t('karmograph.t92'))}"></select>
+          <select data-km="maps" title="${esc(t('karmograph.maps.title'))}"></select>
           <!-- 판 이름을 바꾸는 자리가 ⋯ 서랍 안에만 있었다 — **이름 옆**이 그 자리다 (2026-08-12 검토). -->
-          <button class="btn btn-ghost" data-km="map-rename2" title="${esc(t('karmograph.t137'))}"
-            aria-label="${esc(t('karmograph.t137'))}">✎</button>
-          <button class="btn btn-ghost hidden" data-km="map-up" title="${esc(t('karmograph.t93'))}">↑<span
+          <button class="btn btn-ghost" data-km="map-rename2" title="${esc(t('karmograph.mapRename2.title'))}"
+            aria-label="${esc(t('karmograph.mapRename2.title'))}">✎</button>
+          <button class="btn btn-ghost hidden" data-km="map-up" title="${esc(t('karmograph.mapUp.title'))}">↑<span
             class="km-btn-name">${esc(t('karmograph.btn.up'))}</span></button>
           <!-- 시작 갈래(작품 관계도·내 세계관·개념 설명)로 **돌아가는 유일한 길**이 이 단추다
                (빈 판에서만 그 고르개가 뜬다). 이름이 없으면 그 길이 안 보인다 — 2026-08-12 검토. -->
-          <button class="btn btn-ghost" data-km="map-new" title="${esc(t('karmograph.t95'))}">+<span
+          <button class="btn btn-ghost" data-km="map-new" title="${esc(t('karmograph.mapNew.title'))}">+<span
             class="km-btn-name">${esc(t('karmograph.btn.newMap'))}</span></button>
           <span class="km-sep"></span>
-          <input type="text" data-km="find" placeholder="${esc(t('karmograph.t97'))}" />
+          <input type="text" data-km="find" placeholder="${esc(t('karmograph.find.ph'))}" />
           <span class="km-findcount hidden" data-km="find-count" title="${esc(t('karmograph.find.countTitle'))}"></span>
-          <select data-km="degree" title="${esc(t('karmograph.t98'))}">
-            <option value="">${esc(t('karmograph.t118'))}</option>
+          <select data-km="degree" title="${esc(t('karmograph.degree.title'))}">
+            <option value="">${esc(t('karmograph.parts.msg'))}</option>
             <option value="0">${esc(t('karmograph.opt.0'))}</option>
             <option value="1">${esc(t('karmograph.opt.1'))}</option>
             <option value="2">${esc(t('karmograph.opt.2'))}</option>
           </select>
-          <button class="btn btn-ghost" data-km="undo" title="${esc(t('karmograph.t99'))}" disabled>↶</button>
-          <button class="btn btn-ghost" data-km="redo" title="${esc(t('karmograph.t100'))}" disabled>↷</button>
+          <button class="btn btn-ghost" data-km="undo" title="${esc(t('karmograph.undo.title'))}" disabled>↶</button>
+          <button class="btn btn-ghost" data-km="redo" title="${esc(t('karmograph.redo.title'))}" disabled>↷</button>
           <!-- ★ 이 둘은 **이 도구에만 있는 기능**이라 그림만으로는 아무도 못 맞힌다
                (2026-08-12 사용자 검토: ⤢ ▶ 가 무엇인지 화면에서 알 길이 없었다).
                되돌리기 ↶ ↷ 는 어디서나 같은 그림이라 그대로 둔다 — 이름을 다 달면 그것대로 줄이 길어진다. -->
-          <button class="btn btn-ghost" data-km="fit" title="${esc(t('karmograph.t101'))}">⤢<span
+          <button class="btn btn-ghost" data-km="fit" title="${esc(t('karmograph.fit.title'))}">⤢<span
             class="km-btn-name">${esc(t('karmograph.btn.fit'))}</span></button>
-          <button class="btn btn-ghost" data-km="story" title="${esc(t('karmograph.t102'))}">▶<span
+          <button class="btn btn-ghost" data-km="story" title="${esc(t('karmograph.story.title'))}">▶<span
             class="km-btn-name">${esc(t('karmograph.btn.story'))}</span></button>
           <div class="km-more">
-            <button class="btn btn-ghost" data-km="more" title="${esc(t('karmograph.t103'))}">⋯</button>
+            <button class="btn btn-ghost" data-km="more" title="${esc(t('karmograph.more.title'))}">⋯</button>
             <!-- ★ 20개를 한 줄기로 늘어놓으면 **찾는 데가 아니라 훑는 데**가 된다(높이 845px 였다).
                  하는 일끼리 묶고 이름표를 단다 — 왼쪽 정렬이라 눈이 한 줄로 내려간다. -->
             <div class="km-drawer hidden" data-km="drawer">
               <div class="km-drawer-h">${esc(t('karmograph.drawer.g.view'))}</div>
-              <label>${esc(t('karmograph.t119'))}
+              <label>${esc(t('karmograph.parts.msg2'))}
                 <select data-km="bg">
                   <option value="dots">${esc(t('karmograph.opt.dots'))}</option>
                   <option value="grid">${esc(t('karmograph.opt.grid'))}</option>
@@ -535,30 +535,30 @@ import {
                 </select>
               </label>
               <div class="km-drawer-h">${esc(t('karmograph.drawer.g.tidy'))}</div>
-              <button class="btn btn-ghost" data-km="tidy">${esc(t('karmograph.t123'))}</button>
-              <button class="btn btn-ghost" data-km="lay-circle">${esc(t('karmograph.t124'))}</button>
-              <button class="btn btn-ghost" data-km="lay-tree">${esc(t('karmograph.t125'))}</button>
-              <button class="btn btn-ghost" data-km="lay-time">${esc(t('karmograph.t126'))}</button>
+              <button class="btn btn-ghost" data-km="tidy">${esc(t('karmograph.tidy.label'))}</button>
+              <button class="btn btn-ghost" data-km="lay-circle">${esc(t('karmograph.layCircle.label'))}</button>
+              <button class="btn btn-ghost" data-km="lay-tree">${esc(t('karmograph.layTree.label'))}</button>
+              <button class="btn btn-ghost" data-km="lay-time">${esc(t('karmograph.layTime.label'))}</button>
               <div class="km-drawer-h">${esc(t('karmograph.drawer.g.make'))}</div>
-              <button class="btn btn-ghost" data-km="from-text">${esc(t('karmograph.t127'))}</button>
-              <button class="btn btn-ghost" data-km="stamps">${esc(t('karmograph.t128'))}</button>
+              <button class="btn btn-ghost" data-km="from-text">${esc(t('karmograph.fromText.label'))}</button>
+              <button class="btn btn-ghost" data-km="stamps">${esc(t('karmograph.stamps.label'))}</button>
               <div class="km-drawer-h">${esc(t('karmograph.drawer.g.out'))}</div>
-              <button class="btn btn-ghost" data-km="png">${esc(t('karmograph.t129'))}</button>
-              <button class="btn btn-ghost" data-km="svg">${esc(t('karmograph.t130'))}</button>
-              <button class="btn btn-ghost" data-km="svg-story">${esc(t('karmograph.t131'))}</button>
-              <button class="btn btn-ghost" data-km="export">${esc(t('karmograph.t132'))}</button>
-              <button class="btn btn-ghost" data-km="import">${esc(t('karmograph.t133'))}</button>
-              <button class="btn btn-ghost" data-km="canvas-out">${esc(t('karmograph.t134'))}</button>
-              <button class="btn btn-ghost" data-km="mermaid">${esc(t('karmograph.t135'))}</button>
+              <button class="btn btn-ghost" data-km="png">${esc(t('karmograph.png.label'))}</button>
+              <button class="btn btn-ghost" data-km="svg">${esc(t('karmograph.svg.label'))}</button>
+              <button class="btn btn-ghost" data-km="svg-story">${esc(t('karmograph.svgStory.label'))}</button>
+              <button class="btn btn-ghost" data-km="export">${esc(t('karmograph.export.label'))}</button>
+              <button class="btn btn-ghost" data-km="import">${esc(t('karmograph.import.label'))}</button>
+              <button class="btn btn-ghost" data-km="canvas-out">${esc(t('karmograph.canvasOut.label'))}</button>
+              <button class="btn btn-ghost" data-km="mermaid">${esc(t('karmograph.mermaid.label'))}</button>
               <div class="km-drawer-h">${esc(t('karmograph.drawer.g.share'))}</div>
-              <button class="btn btn-ghost" data-km="share">${esc(t('karmograph.t121'))}</button>
-              <button class="btn btn-ghost" data-km="share-view">${esc(t('karmograph.t122'))}</button>
-              <button class="btn btn-ghost" data-km="storage">${esc(t('karmograph.t120'))}</button>
+              <button class="btn btn-ghost" data-km="share">${esc(t('karmograph.share.label'))}</button>
+              <button class="btn btn-ghost" data-km="share-view">${esc(t('karmograph.shareView.label'))}</button>
+              <button class="btn btn-ghost" data-km="storage">${esc(t('karmograph.storage.label'))}</button>
               <div class="km-drawer-h">${esc(t('karmograph.drawer.g.map'))}</div>
-              <button class="btn btn-ghost" data-km="map-copy">${esc(t('karmograph.t136'))}</button>
-              <button class="btn btn-ghost" data-km="map-del">${esc(t('karmograph.t138'))}</button>
+              <button class="btn btn-ghost" data-km="map-copy">${esc(t('karmograph.mapCopy.label'))}</button>
+              <button class="btn btn-ghost" data-km="map-del">${esc(t('karmograph.mapDel.label'))}</button>
               <hr />
-              <button class="btn btn-danger" data-km="clear">${esc(t('karmograph.t139'))}</button>
+              <button class="btn btn-danger" data-km="clear">${esc(t('karmograph.clear.label'))}</button>
             </div>
           </div>
           <input type="file" accept="application/json,.json" data-km="file" hidden />
@@ -568,10 +568,10 @@ import {
         <div class="km-body">
           <div class="km-canvas" data-km="canvas">
             <div class="km-mini hidden" data-km="mini">
-              <button class="btn btn-ghost" data-km="mini-link" title="${esc(t('karmograph.t104'))}">↝</button>
-              <button class="btn btn-ghost" data-km="mini-note" title="${esc(t('karmograph.t105'))}">🗒</button>
-              <button class="btn btn-ghost" data-km="mini-copy" title="${esc(t('karmograph.t106'))}">⧉</button>
-              <button class="btn btn-ghost" data-km="mini-del" title="${esc(t('karmograph.t107'))}">🗑</button>
+              <button class="btn btn-ghost" data-km="mini-link" title="${esc(t('karmograph.miniLink.title'))}">↝</button>
+              <button class="btn btn-ghost" data-km="mini-note" title="${esc(t('karmograph.miniNote.title'))}">🗒</button>
+              <button class="btn btn-ghost" data-km="mini-copy" title="${esc(t('karmograph.miniCopy.title'))}">⧉</button>
+              <button class="btn btn-ghost" data-km="mini-del" title="${esc(t('karmograph.miniDel.title'))}">🗑</button>
             </div>
             <div class="km-zoom" data-km="zoom">
               <button class="btn btn-ghost" data-km="zoom-out" title="${esc(t('karmograph.zoom.out'))}">−</button>
@@ -581,7 +581,7 @@ import {
             <!-- ★ 저장 표시는 **툴바 밖**에 산다 (TASK-KL-271 F3). 툴바 흐름 안에 있던 동안엔
                  뜰 때마다 오른쪽 것들을 밀어서 「+ 새 판」이 208px → 318px 로 움직였다(실측).
                  눌리는 자리가 스스로 움직이면 손이 헛간다 — 판 위 제 자리에서 왔다 사라진다. -->
-            <span class="km-saved hidden" data-km="saved" title="${esc(t('karmograph.t94'))}">${esc(t('karmograph.savedHere'))}</span>
+            <span class="km-saved hidden" data-km="saved" title="${esc(t('karmograph.saved.title'))}">${esc(t('karmograph.savedHere'))}</span>
             <div class="km-stage hidden" data-km="stage">
               <div class="km-stage-strip" data-km="stage-strip"></div>
               <div class="km-stage-title" data-km="stage-title"></div>
@@ -590,13 +590,13 @@ import {
                 <button class="btn btn-ghost" data-km="stage-prev">◀</button>
                 <span data-km="stage-count"></span>
                 <button class="btn btn-ghost" data-km="stage-next">▶</button>
-                <button class="btn btn-ghost" data-km="stage-auto" title="${esc(t('karmograph.t108'))}">${esc(t('karmograph.t140'))}</button>
-                <button class="btn btn-ghost" data-km="stage-add">${esc(t('karmograph.t141'))}</button>
-                <button class="btn btn-ghost" data-km="stage-back" title="${esc(t('karmograph.t109'))}">↤</button>
-                <button class="btn btn-ghost" data-km="stage-fwd" title="${esc(t('karmograph.t110'))}">↦</button>
-                <button class="btn btn-ghost" data-km="stage-rename" title="${esc(t('karmograph.t111'))}">✎</button>
-                <button class="btn btn-ghost" data-km="stage-del">${esc(t('karmograph.t142'))}</button>
-                <button class="btn btn-ghost" data-km="stage-exit">${esc(t('karmograph.t143'))}</button>
+                <button class="btn btn-ghost" data-km="stage-auto" title="${esc(t('karmograph.stageAuto.title'))}">${esc(t('karmograph.stageAuto.label'))}</button>
+                <button class="btn btn-ghost" data-km="stage-add">${esc(t('karmograph.stageAdd.label'))}</button>
+                <button class="btn btn-ghost" data-km="stage-back" title="${esc(t('karmograph.stageBack.title'))}">↤</button>
+                <button class="btn btn-ghost" data-km="stage-fwd" title="${esc(t('karmograph.stageFwd.title'))}">↦</button>
+                <button class="btn btn-ghost" data-km="stage-rename" title="${esc(t('karmograph.stageRename.title'))}">✎</button>
+                <button class="btn btn-ghost" data-km="stage-del">${esc(t('karmograph.stageDel.label'))}</button>
+                <button class="btn btn-ghost" data-km="stage-exit">${esc(t('karmograph.stageExit.label'))}</button>
               </div>
             </div>
           </div>
@@ -640,7 +640,7 @@ import {
       const grip = document.createElement('div');
       grip.className = 'km-sheet-grip';
       grip.dataset.km = 'sheet-grip';
-      grip.title = t('karmograph.t160');
+      grip.title = t('karmograph.sheetGrip.label');
       grip.onclick = () => root.classList.toggle('is-sheet-up');
       sideEl.appendChild(grip);
     }
@@ -760,8 +760,8 @@ import {
         try { parsed = JSON.parse(text) as Backup; } catch { parsed = null; }
         if (!parsed || parsed.kind !== 'karmograph-backup' || !Array.isArray(parsed.maps)) {
           alert([
-            t('karmograph.t163'),
-            t('karmograph.t164'),
+            t('karmograph.file.msg'),
+            t('karmograph.file.msg2'),
           ].join(String.fromCharCode(10)));
           return;
         }
@@ -770,7 +770,7 @@ import {
         for (const m of parsed.maps) {
           const spec0 = m.spec as Partial<GraphSpec> | null;
           if (!spec0 || !Array.isArray(spec0.nodes)) continue;
-          const base = (m.name ?? t('karmograph.t165')).trim() || '맵';
+          const base = (m.name ?? t('karmograph.file.msg3')).trim() || '맵';
           const name = used.has(base) ? t('karmograph.restoredName', { base }) : base;
           used.add(name);
           const res = addMap(library, name, JSON.stringify(spec0));
@@ -780,7 +780,7 @@ import {
         renderMapList();
         openActiveMap();
         Toolbox.showToast?.(
-          added === 0 ? t('karmograph.t166') : `맵 ${added}개를 되돌렸습니다`,
+          added === 0 ? t('karmograph.file.msg4') : `맵 ${added}개를 되돌렸습니다`,
           undefined, undefined
         );
       });
@@ -804,8 +804,8 @@ import {
           renderSide();
         })
         .catch((e: unknown) => {
-          console.error(t('karmograph.t167'), e);
-          alert(t('karmograph.t168'));
+          console.error(t('karmograph.targetId.msg'), e);
+          alert(t('karmograph.targetId.msg2'));
         });
     };
 
@@ -858,8 +858,8 @@ import {
       //   (2026-08-12 사용자 검토). 마지막으로 한 일을 이름으로 붙여 준다.
       const back = histLabels[histIndex] ?? '';
       const fwd = histLabels[histIndex + 1] ?? '';
-      undoEl.title = back ? t('karmograph.undoWhat', { what: back }) : t('karmograph.t99');
-      redoEl.title = fwd ? t('karmograph.redoWhat', { what: fwd }) : t('karmograph.t100');
+      undoEl.title = back ? t('karmograph.undoWhat', { what: back }) : t('karmograph.undo.title');
+      redoEl.title = fwd ? t('karmograph.redoWhat', { what: fwd }) : t('karmograph.redo.title');
     }
 
     // ── 저장 ────────────────────────────────────────────────────────────────
@@ -877,7 +877,7 @@ import {
 
     /** 지금 맵 이름 — 라이브러리 목록에서 「어느 맵에서 온 글인가」를 보여 주는 데 쓴다. */
     function activeMapName(): string {
-      return library.maps.find((m) => m.id === library.activeId)?.name ?? t('karmograph.t165');
+      return library.maps.find((m) => m.id === library.activeId)?.name ?? t('karmograph.file.msg3');
     }
 
     /**
@@ -892,7 +892,7 @@ import {
       // ★ 「저장됨」만으로는 **어디에** 저장됐는지 모른다 — 방문기록을 지우면 사라지는 것을
       //   모른 채 몇 달을 쓰게 된다(2026-08-12 사용자 검토). 처음 몇 번은 자리까지 말해 준다.
       savedCount += 1;
-      el.textContent = savedCount <= 3 ? t('karmograph.savedHere') : t('karmograph.t117');
+      el.textContent = savedCount <= 3 ? t('karmograph.savedHere') : t('karmograph.el.msg');
       el.classList.remove('hidden');
       if (savedTimer) clearTimeout(savedTimer);
       savedTimer = setTimeout(() => el.classList.add('hidden'), 1400);
@@ -1040,9 +1040,9 @@ import {
          겹쳐 문장이 중간에서 잘리고, 잘린 안내는 안 읽는다 — 실측: 「…고를 수 있어」에서 끊겼다.
          선 잇는 법은 시트를 올리면 나오는 시작 갈래와 도움말(?)이 맡는다. */
       el.innerHTML = '<div class="km-empty-in">' +
-        t('karmograph.t169') +
-        t(touch ? 'karmograph.t170.touch' : 'karmograph.t170') +
-        (touch ? '' : t('karmograph.t171') + t('karmograph.t172')) +
+        t('karmograph.touch.msg') +
+        t(touch ? 'karmograph.touch.msg2Touch' : 'karmograph.touch.msg2') +
+        (touch ? '' : t('karmograph.touch.msg3') + t('karmograph.touch.msg4')) +
         '</div>';
 
       // 안내는 클릭을 통과시키지만(pointer-events:none) 버튼만은 눌려야 한다.
@@ -1054,7 +1054,7 @@ import {
           if (!s0) return;
           // 견본을 넣어도 **갈래가 고정되지 않는다** — 그 견본의 종류로 만들 뿐이다.
           buildFromOutline(s0.outline, packById(packId).nodeKinds[0].id);
-          Toolbox.showToast?.(t('karmograph.t173'), undefined, undefined);
+          Toolbox.showToast?.(t('karmograph.sample.label'), undefined, undefined);
         });
       });
       if (!existing) canvasEl.appendChild(el);
@@ -1327,7 +1327,7 @@ import {
       restorePrevRevision: () => {
         const prev = store.loadPrev();
         if (!prev) {
-          Toolbox.showToast?.(t('karmograph.t174'), undefined, undefined);
+          Toolbox.showToast?.(t('karmograph.byLabel.msg'), undefined, undefined);
           return;
         }
         if (!confirm(t('karmograph.confirmRestore', { n: prev.nodes.length }))) return;
@@ -1337,7 +1337,7 @@ import {
         canvas?.fitView();
         sideMode = 'node';
         renderSide();
-        Toolbox.showToast?.(t('karmograph.t175'), undefined, undefined);
+        Toolbox.showToast?.(t('karmograph.byLabel.msg2'), undefined, undefined);
       },
     };
 
@@ -1348,14 +1348,14 @@ import {
      * 「지금 어디에 있고 어디로 갈 수 있는지」를 한자리에서 보인다.
      */
     const SIDE_TABS: { id: SideMode; icon: string; title: string }[] = [
-      { id: 'node', icon: '◉', title: t('karmograph.t176') },
-      { id: 'groups', icon: '🫧', title: t('karmograph.t177') },
-      { id: 'terms', icon: '🏷', title: t('karmograph.t178') },
-      { id: 'filter', icon: '🔍', title: t('karmograph.t179') },
-      { id: 'sna', icon: '📊', title: t('karmograph.t180') },
-      { id: 'notes', icon: '🔗', title: t('karmograph.t181') },
-      { id: 'storage', icon: '💾', title: t('karmograph.t182') },
-      { id: 'help', icon: '?', title: t('karmograph.t183') },
+      { id: 'node', icon: '◉', title: t('karmograph.byLabel.msg3') },
+      { id: 'groups', icon: '🫧', title: t('karmograph.byLabel.msg4') },
+      { id: 'terms', icon: '🏷', title: t('karmograph.byLabel.msg5') },
+      { id: 'filter', icon: '🔍', title: t('karmograph.byLabel.msg6') },
+      { id: 'sna', icon: '📊', title: t('karmograph.byLabel.msg7') },
+      { id: 'notes', icon: '🔗', title: t('karmograph.byLabel.msg8') },
+      { id: 'storage', icon: '💾', title: t('karmograph.byLabel.msg9') },
+      { id: 'help', icon: '?', title: t('karmograph.byLabel.msg10') },
     ];
 
     /** 패널 내용을 그린 뒤 맨 앞에 탭을 얹는다 — 각 패널이 innerHTML 을 통째로 쓰기 때문. */
@@ -1394,7 +1394,7 @@ import {
         const intents = INTENTS.filter((it) => sampleFor(it.packId));
         // 빈 판에서는 **묻는 말이 맨 위**다. 「고르면 여기서 고칩니다」를 위에 두면 정작 첫 할 일이
         // 그 아래로 밀려 안 보인다(고를 것이 아직 하나도 없는데 고르라는 안내가 먼저 나온다).
-        const pickHint = t('karmograph.t184');
+        const pickHint = t('karmograph.renderSide.msg');
         const empty = spec.nodes.length === 0 && intents.length > 0;
         // 폰에서는 갈래 고르기가 **접힌 시트 안**에 있어 첫 화면에서 아예 안 보였다.
         // 빈 판이면 시트를 올려 둔다 — 덮을 그림도 아직 없다.
@@ -1402,8 +1402,8 @@ import {
         sideEl.innerHTML = (empty ? '' : pickHint) +
           (!empty ? '' : `
             <div class="km-field">
-              <label>${esc(t('karmograph.t144'))}</label>
-              <div class="km-hint">${t('karmograph.packHint', { what: `<b>${esc(t('karmograph.t146'))}</b>` })}</div>
+              <label>${esc(t('karmograph.renderSide.msg2'))}</label>
+              <div class="km-hint">${t('karmograph.packHint', { what: `<b>${esc(t('karmograph.renderSide.msg3'))}</b>` })}</div>
               <div class="km-intent">${intents.map((it) => `
                 <button data-km="intent" data-key="${it.packId}">
                   <span class="km-intent-ico">${it.icon}</span>
@@ -1416,11 +1416,11 @@ import {
         if (spec.nodes.length > 0 && spec._meta?.tips !== 'off') {
           const tips = document.createElement('div');
           tips.className = 'km-field';
-          tips.innerHTML = t('karmograph.t185')
-            + t('karmograph.t186')
-            + t('karmograph.t187')
-            + t('karmograph.t188')
-            + t('karmograph.t189');
+          tips.innerHTML = t('karmograph.renderSide.msg4')
+            + t('karmograph.renderSide.msg5')
+            + t('karmograph.renderSide.msg6')
+            + t('karmograph.renderSide.msg7')
+            + t('karmograph.renderSide.msg8');
           sideEl.appendChild(tips);
           (tips.querySelector('[data-km="tips-off"]') as HTMLButtonElement).onclick = () => {
             spec._meta = { ...spec._meta, tips: 'off' };
@@ -1442,7 +1442,7 @@ import {
             void before;
             applySpec();
             persistStructure();
-            Toolbox.showToast?.(t('karmograph.t190'), undefined, undefined);
+            Toolbox.showToast?.(t('karmograph.renderSide.msg9'), undefined, undefined);
           };
         });
       }
@@ -1531,20 +1531,20 @@ import {
              바로 위 탭이 이미 「고른 것」이라 같은 말이 두 번 나오기도 했다. -->
         <h4>${kindIcon(node.kind)} ${esc(kindLabel(node.kind))}</h4>
         <div class="km-field">
-          <label>${esc(t('karmograph.t148'))}</label>
+          <label>${esc(t('karmograph.labelOf.msg'))}</label>
           <input type="text" data-km="edit-label" value="${escapeAttr(node.label)}" />
         </div>
         <div class="km-field">
           <div class="km-kindrow">
-            <label for="km-kind-list">${esc(t('karmograph.t149'))}</label>
-            <input type="text" class="km-kind-find" data-km="kind-find" placeholder="${esc(t('karmograph.t112'))}"
+            <label for="km-kind-list">${esc(t('karmograph.labelOf.msg2'))}</label>
+            <input type="text" class="km-kind-find" data-km="kind-find" placeholder="${esc(t('karmograph.kindFind.ph'))}"
               aria-controls="km-kind-list" />
           </div>
           <select id="km-kind-list" data-km="edit-kind">${nodeKindOptions(node.kind)}</select>
         </div>
         <div class="km-field">
-          <label>${esc(t('karmograph.t150'))}</label>
-          <input type="text" data-km="edit-note" value="${escapeAttr(node.note ?? '')}" placeholder="${esc(t('karmograph.t113'))}" />
+          <label>${esc(t('karmograph.labelOf.msg3'))}</label>
+          <input type="text" data-km="edit-note" value="${escapeAttr(node.note ?? '')}" placeholder="${esc(t('karmograph.editNote.ph'))}" />
         </div>
         <!-- ★ 첫 카드부터 칸을 열다섯 개 펼쳐 놓으면 **한 줄 적으려던 사람이 지친다**
              (2026-08-12 사용자 검토: 이름 하나 넣으려는데 꼬리표·칸 3개·코멘트·설명이 한꺼번에 열렸다).
@@ -1572,16 +1572,16 @@ import {
         `}
         <div data-km="link-sections">${renderLinkSections(panelCtx, node)}</div>
         <div class="km-field">
-          <label>${esc(t('karmograph.t151'))}</label>
+          <label>${esc(t('karmograph.labelOf.msg4'))}</label>
           <select data-km="link-kind">${edgeKindOptions()}</select>
-          <button class="btn btn-ghost" data-km="link-start">${linkingFrom === node.id ? t('karmograph.t191') : t('karmograph.t192')}</button>
-          ${linkingFrom === node.id ? t('karmograph.t193') : ''}
+          <button class="btn btn-ghost" data-km="link-start">${linkingFrom === node.id ? t('karmograph.linkStart.label') : t('karmograph.linkStart.label2')}</button>
+          ${linkingFrom === node.id ? t('karmograph.labelOf.msg5') : ''}
         </div>
         <div class="km-field">
           <label>연결 ${related.length}개</label>
           ${
             related.length === 0
-              ? t('karmograph.t194')
+              ? t('karmograph.labelOf.msg6')
               : related
                   .map((e) => {
                     const outgoing = e.from === node.id;
@@ -1589,18 +1589,18 @@ import {
                     return `<div class="km-edge-row" data-edge="${escapeAttr(e.id)}">
                       <span class="km-edge-peer" title="${escapeAttr(labelOf(peer))}">${outgoing ? '→' : '←'} ${escapeHtml(labelOf(peer))}</span>
                       <select data-km="edge-kind">${edgeKindOptions(e.kind)}</select>
-                      <button class="btn btn-ghost" data-km="edge-both" title="${esc(t('karmograph.t114'))}">${e.arrowStart ? '↔' : '→'}</button>
-                      <button class="btn btn-ghost" data-km="edge-del" title="${esc(t('karmograph.t115'))}">×</button>
-                      <input type="text" data-km="edge-label" class="km-edge-label" value="${escapeAttr(e.label ?? '')}" placeholder="${esc(t('karmograph.t116'))}" />
+                      <button class="btn btn-ghost" data-km="edge-both" title="${esc(t('karmograph.edgeBoth.title'))}">${e.arrowStart ? '↔' : '→'}</button>
+                      <button class="btn btn-ghost" data-km="edge-del" title="${esc(t('karmograph.edgeDel.title'))}">×</button>
+                      <input type="text" data-km="edge-label" class="km-edge-label" value="${escapeAttr(e.label ?? '')}" placeholder="${esc(t('karmograph.edgeLabel.ph'))}" />
                     </div>`;
                   })
                   .join('')
           }
         </div>
-        <button class="btn btn-ghost" data-km="node-copy">${esc(t('karmograph.t152'))}</button>
-        <button class="btn btn-ghost" data-km="node-link">${esc(t('karmograph.t153'))}</button>
-        <button class="btn btn-ghost" data-km="node-dive">${node.subMap ? t('karmograph.t195') : t('karmograph.t196')}</button>
-        <button class="btn btn-danger" data-km="node-del">${esc(t('karmograph.t154'))}</button>`;
+        <button class="btn btn-ghost" data-km="node-copy">${esc(t('karmograph.nodeCopy.label'))}</button>
+        <button class="btn btn-ghost" data-km="node-link">${esc(t('karmograph.nodeLink.label'))}</button>
+        <button class="btn btn-ghost" data-km="node-dive">${node.subMap ? t('karmograph.nodeDive.label') : t('karmograph.nodeDive.label2')}</button>
+        <button class="btn btn-danger" data-km="node-del">${esc(t('karmograph.nodeDel.label'))}</button>`;
 
       // 이름 편집 — 입력할 때마다 반영 (폭도 같이 조정)
       const labelInput = sideEl.querySelector('[data-km="edit-label"]') as HTMLInputElement;
@@ -1665,7 +1665,7 @@ import {
         }
         const target = node.subMap;
         if (!target || !library.maps.some((m) => m.id === target)) {
-          Toolbox.showToast?.(t('karmograph.t197'), undefined, undefined);
+          Toolbox.showToast?.(t('karmograph.nodeDive.label3'), undefined, undefined);
           node.subMap = undefined;
           persistStructure();
           renderSide();
@@ -1682,14 +1682,14 @@ import {
         void encodeShare(live).then(async (code) => {
           const url = withNodeAnchor(buildShareUrl(new URL(location.href), code, true), node.id);
           if (url.length > SHARE_URL_LIMIT) {
-            alert(t('karmograph.t198'));
+            alert(t('karmograph.nodeLink.label2'));
             return;
           }
           try {
             await navigator.clipboard.writeText(url);
-            Toolbox.showToast?.(t('karmograph.t199'), undefined, undefined);
+            Toolbox.showToast?.(t('karmograph.nodeLink.label3'), undefined, undefined);
           } catch {
-            prompt(t('karmograph.t200'), url);
+            prompt(t('karmograph.nodeLink.label4'), url);
           }
         });
       };
@@ -1847,7 +1847,7 @@ import {
         (e) => (e.from === from && e.to === to) || (e.from === to && e.to === from)
       );
       if (dup) {
-        Toolbox.showToast?.(t('karmograph.t201'), undefined, undefined);
+        Toolbox.showToast?.(t('karmograph.linkKind.label'), undefined, undefined);
         return;
       }
       const taken = new Set(spec.edges.map((e) => e.id));
@@ -1917,7 +1917,7 @@ import {
       if (!node) return;
       const taken = new Set(spec.nodes.map((n) => n.id));
       const memo: GraphNode = {
-        id: nextId('node', taken), kind: node.kind, label: t('karmograph.t158'), group: '',
+        id: nextId('node', taken), kind: node.kind, label: t('karmograph.shapes.msg4'), group: '',
         x: node.x + node.w + 40, y: node.y - 20, w: 160, h: NODE_H, ports: [],
         shape: 'note', rotate: -3, attachedTo: node.id,
       };
@@ -1998,7 +1998,7 @@ import {
         spec.edges.push({ id: nextId('edge', taken), from: draggedId, to: overId, kind, label: edgeLabel(kind) });
         applySpec();
         persistStructure();
-        Toolbox.showToast?.(t('karmograph.t202'), undefined, undefined);
+        Toolbox.showToast?.(t('karmograph.handleNodeClick.msg'), undefined, undefined);
       },
       // 선을 휘거나 이름표를 옮긴 뒤 — 캔버스가 spec 을 고쳤으니 저장만 하면 된다.
       onEdgeChanged: () => persistStructure(),
@@ -2193,9 +2193,9 @@ import {
     function showStep(): void {
       const list = steps();
       const step = list[stepIndex];
-      (q<HTMLElement>('stage-title')).textContent = step?.title ?? t('karmograph.t203');
+      (q<HTMLElement>('stage-title')).textContent = step?.title ?? t('karmograph.step.msg');
       (q<HTMLElement>('stage-note')).textContent =
-        step?.note ?? t('karmograph.t204');
+        step?.note ?? t('karmograph.step.msg2');
       (q<HTMLElement>('stage-count')).textContent = list.length ? `${stepIndex + 1} / ${list.length}` : '0 / 0';
       // 장 목록 — 어디쯤 와 있는지 보이고, 눌러서 바로 건너뛴다(슬라이드 정렬 보기 자리).
       const strip = q<HTMLElement>('stage-strip');
@@ -2241,13 +2241,13 @@ import {
       if (autoTimer) clearInterval(autoTimer);
       autoTimer = null;
       const btn = root.querySelector('[data-km="stage-auto"]');
-      if (btn) btn.textContent = t('karmograph.t140');
+      if (btn) btn.textContent = t('karmograph.stageAuto.label');
     }
     Toolbox.onDispose?.(stopAuto);
 
     q<HTMLButtonElement>('stage-auto').onclick = (ev) => {
       if (autoTimer) { stopAuto(); return; }
-      (ev.currentTarget as HTMLButtonElement).textContent = t('karmograph.t205');
+      (ev.currentTarget as HTMLButtonElement).textContent = t('karmograph.btn.msg');
       autoTimer = setInterval(() => {
         const list = steps();
         if (list.length === 0 || !presenting) { stopAuto(); return; }
@@ -2269,9 +2269,9 @@ import {
     q<HTMLButtonElement>('stage-add').onclick = () => {
       // 지금 또렷한 것들을 그대로 한 장으로 굳힌다. 포커스가 없으면 전체 장.
       const focused = currentFocusIds();
-      const title = prompt(t('karmograph.t206'), `${steps().length + 1}장`)?.trim();
+      const title = prompt(t('karmograph.title.msg'), `${steps().length + 1}장`)?.trim();
       if (title === undefined) return;
-      const note = prompt(t('karmograph.t207'))?.trim();
+      const note = prompt(t('karmograph.note.msg'))?.trim();
       steps().splice(stepIndex + (steps().length ? 1 : 0), 0, {
         id: `step-${Date.now().toString(36)}`,
         title: title || t('karmograph.sceneNth', { n: steps().length + 1 }),
@@ -2302,7 +2302,7 @@ import {
     q<HTMLButtonElement>('stage-rename').onclick = () => {
       const step = steps()[stepIndex];
       if (!step) return;
-      const title = prompt(t('karmograph.t206'), step.title)?.trim();
+      const title = prompt(t('karmograph.title.msg'), step.title)?.trim();
       if (!title) return;
       step.title = title;
       persistStructure();
@@ -2376,17 +2376,17 @@ import {
           } else {
             alert(
               t('karmograph.tooBigForLink', { k: Math.round(url.length / 1000) }) + '\n' +
-              t('karmograph.t208')
+              t('karmograph.live.msg')
             );
             return;
           }
         }
         try {
           await navigator.clipboard.writeText(url);
-          Toolbox.showToast?.(t('karmograph.t209'), undefined, undefined);
+          Toolbox.showToast?.(t('karmograph.live.msg2'), undefined, undefined);
         } catch {
           // 클립보드가 막힌 자리(비보안 컨텍스트 등)에서도 사람이 직접 복사할 수 있게 보여 준다.
-          prompt(t('karmograph.t200'), url);
+          prompt(t('karmograph.nodeLink.label4'), url);
         }
       });
     }
@@ -2424,7 +2424,7 @@ import {
       applySpec();
       persistStructure();
       canvas?.fitView();
-      Toolbox.showToast?.(`${placed.size}개를 ${kind === 'circle' ? t('karmograph.t210') : t('karmograph.t211')} 놓았습니다 — Ctrl+Z 로 되돌립니다`, undefined, undefined);
+      Toolbox.showToast?.(`${placed.size}개를 ${kind === 'circle' ? t('karmograph.placed.msg') : t('karmograph.placed.msg2')} 놓았습니다 — Ctrl+Z 로 되돌립니다`, undefined, undefined);
     }
     // 연표 — 「언제」가 적힌 칸을 시간축으로 삼는다. 어느 칸인지는 **숫자가 가장 많이 든 칸**으로 고른다
     // (사람에게 「날짜 칸을 먼저 정하라」고 시키면 아무도 안 쓴다).
@@ -2432,7 +2432,7 @@ import {
       const live = canvas?.getSpec() ?? spec;
       const field = bestTimeField(live.nodes);
       if (!field) {
-        Toolbox.showToast?.(t('karmograph.t212'), undefined, undefined);
+        Toolbox.showToast?.(t('karmograph.field.msg'), undefined, undefined);
         return;
       }
       const boxes = live.nodes.map((n) => ({ id: n.id, x: n.x, y: n.y, w: n.w, h: n.h }));
@@ -2481,7 +2481,7 @@ import {
       persistStructure();
       const n = pushed.size;
       Toolbox.showToast?.(
-        n === 0 ? t('karmograph.t213') : `겹친 ${n}개를 밀었습니다`,
+        n === 0 ? t('karmograph.n.msg') : `겹친 ${n}개를 밀었습니다`,
         undefined, undefined
       );
     };
@@ -2772,7 +2772,7 @@ import {
 
     function exportImage(scale: number): void {
       if (spec.nodes.length === 0) {
-        Toolbox.showToast?.(t('karmograph.t214'), undefined, undefined);
+        Toolbox.showToast?.(t('karmograph.exportImage.msg'), undefined, undefined);
         return;
       }
       const svgText = canvas?.exportSVGString({ background: canvasBackground() });
@@ -2790,14 +2790,14 @@ import {
         ctx.drawImage(im, 0, 0, out.width, out.height);
         out.toBlob((blob) => {
           if (!blob) {
-            alert(t('karmograph.t215'));
+            alert(t('karmograph.im.msg'));
             return;
           }
           downloadBlob(blob, 'karmograph.png');
           Toolbox.showToast?.(t('karmograph.savedPng', { w: out.width, h: out.height }), undefined, undefined);
         }, 'image/png');
       };
-      im.onerror = () => alert(t('karmograph.t215'));
+      im.onerror = () => alert(t('karmograph.im.msg'));
       im.src = src;
     }
 
@@ -2813,7 +2813,7 @@ import {
     // (PNG 는 확대하면 뭉갠다). Sozi 계보 — 발표 결과물이 브라우저만 있으면 도는 한 장.
     q<HTMLButtonElement>('svg').onclick = () => {
       if (spec.nodes.length === 0) {
-        Toolbox.showToast?.(t('karmograph.t214'), undefined, undefined);
+        Toolbox.showToast?.(t('karmograph.exportImage.msg'), undefined, undefined);
         return;
       }
       const svgText = canvas?.exportSVGString({ background: canvasBackground() });
@@ -2826,13 +2826,13 @@ import {
     q<HTMLButtonElement>('mermaid').onclick = () => {
       const live = canvas?.getSpec() ?? spec;
       if (live.nodes.length === 0) {
-        Toolbox.showToast?.(t('karmograph.t214'), undefined, undefined);
+        Toolbox.showToast?.(t('karmograph.exportImage.msg'), undefined, undefined);
         return;
       }
       const text = toMermaidBlock(live);
       downloadBlob(new Blob([text], { type: 'text/markdown;charset=utf-8' }), 'karmograph.mermaid.md');
       void navigator.clipboard?.writeText(text).then(
-        () => Toolbox.showToast?.(t('karmograph.t216'), undefined, undefined),
+        () => Toolbox.showToast?.(t('karmograph.text.msg'), undefined, undefined),
         () => {},   // 클립보드는 못 쓸 수 있다(권한·문맥) — 파일이 이미 나갔으니 조용히 넘긴다
       );
     };
@@ -2842,7 +2842,7 @@ import {
       const live = canvas?.getSpec() ?? spec;
       const story = live.story ?? [];
       if (story.length === 0) {
-        Toolbox.showToast?.(t('karmograph.t217'), undefined, undefined);
+        Toolbox.showToast?.(t('karmograph.story.msg'), undefined, undefined);
         return;
       }
       const svgText = canvas?.exportSVGString({ background: canvasBackground() });
@@ -2874,7 +2874,7 @@ import {
     q<HTMLButtonElement>('stamps').onclick = () => {
       const list = loadStamps();
       if (list.length === 0) {
-        Toolbox.showToast?.(t('karmograph.t218'), undefined, undefined);
+        Toolbox.showToast?.(t('karmograph.list.msg'), undefined, undefined);
         return;
       }
       sideMode = 'stamps';
@@ -2914,8 +2914,8 @@ import {
           Toolbox.showToast?.(t('karmograph.loadedNodes', { n: spec.nodes.length }), undefined, undefined);
         })
         .catch((e: unknown) => {
-          console.error(t('karmograph.t220'), e);
-          alert(t('karmograph.t221'));
+          console.error(t('karmograph.file.msg5'), e);
+          alert(t('karmograph.file.msg6'));
         })
         .finally(() => {
           fileEl.value = '';
@@ -2923,7 +2923,7 @@ import {
     };
 
     q<HTMLButtonElement>('clear').onclick = () => {
-      if (!confirm(t('karmograph.t222'))) return;
+      if (!confirm(t('karmograph.file.msg7'))) return;
       spec = emptyGraphSpec();
       spec._edge_kinds = { ...edgeDefsNow() };
       spec._meta = { pack: pack.id };
@@ -2960,7 +2960,7 @@ import {
       canvasEl.style.cursor = 'grab';
       const badge = document.createElement('div');
       badge.className = 'km-viewbadge';
-      badge.innerHTML = t('karmograph.t223');
+      badge.innerHTML = t('karmograph.badge.msg');
       canvasEl.appendChild(badge);
       (badge.querySelector('[data-km="fork"]') as HTMLButtonElement).onclick = () => {
         readOnly = false;
@@ -2971,7 +2971,7 @@ import {
         const url = new URL(location.href);
         url.searchParams.delete('kmv');
         history0.replaceState(null, '', url.toString());
-        Toolbox.showToast?.(t('karmograph.t224'), undefined, undefined);
+        Toolbox.showToast?.(t('karmograph.fork.label'), undefined, undefined);
         renderSide();
       };
     }
@@ -3058,7 +3058,7 @@ import {
 
     q<HTMLButtonElement>('map-copy').onclick = () => {
       const json = JSON.stringify(canvas?.getSpec() ?? spec);
-      const name = library.maps.find((m) => m.id === library.activeId)?.name ?? t('karmograph.t165');
+      const name = library.maps.find((m) => m.id === library.activeId)?.name ?? t('karmograph.file.msg3');
       const added = addMap(library, t('karmograph.copyOf', { name }), json);
       library = added.index;
       renderMapList();
@@ -3068,7 +3068,7 @@ import {
     // 이름 옆 ✎ 와 서랍의 「이름 바꾸기」는 **같은 길**을 쓴다 — 두 길이 생기면 언젠가 갈라진다.
     const renameActiveMap = (): void => {
       const cur = library.maps.find((m) => m.id === library.activeId);
-      const name = prompt(t('karmograph.t225'), cur?.name ?? '')?.trim();
+      const name = prompt(t('karmograph.name.msg'), cur?.name ?? '')?.trim();
       if (!name) return;
       library = renameMap(library, library.activeId, name);
       renderMapList();
@@ -3080,8 +3080,8 @@ import {
       const cur = library.maps.find((m) => m.id === library.activeId);
       const last = library.maps.length <= 1;
       const msg = last
-        ? `"${cur?.name ?? t('karmograph.t165')}" 의 내용을 모두 지울까요? (마지막 한 장이라 맵 자체는 남습니다)`
-        : `"${cur?.name ?? t('karmograph.t165')}" 맵을 지울까요? 되돌릴 수 없습니다.`;
+        ? `"${cur?.name ?? t('karmograph.file.msg3')}" 의 내용을 모두 지울까요? (마지막 한 장이라 맵 자체는 남습니다)`
+        : `"${cur?.name ?? t('karmograph.file.msg3')}" 맵을 지울까요? 되돌릴 수 없습니다.`;
       if (!confirm(msg)) return;
       library = removeMap(library, library.activeId);
       renderMapList();
@@ -3098,10 +3098,10 @@ import {
       void decodeShare(shareCode).then((data) => {
         const incoming = data as Partial<GraphSpec> | null;
         if (!incoming || !Array.isArray(incoming.nodes)) {
-          Toolbox.showToast?.(t('karmograph.t226'), undefined, undefined);
+          Toolbox.showToast?.(t('karmograph.shareCode.msg'), undefined, undefined);
           return;
         }
-        const added = addMap(library, t('karmograph.t227'));
+        const added = addMap(library, t('karmograph.shareCode.msg2'));
         library = added.index;
         renderMapList();
         store = new KarmoGraphLocalStorageAdapter(mapKey(library.activeId));
@@ -3136,7 +3136,7 @@ import {
 
     Mdd.linePreset('tool_run', {
       mood: 'idle',
-      msg: t('karmograph.t228'),
+      msg: t('karmograph.shareCode.msg3'),
     });
   }
 

@@ -20,7 +20,7 @@ function listOf(ctx: PanelCtx): GraphComment[] {
 /** 시간을 사람 말로 — 몇 분 전인지가 날짜보다 훨씬 자주 필요하다. */
 function ago(at: number): string {
   const s = Math.max(0, Math.round((Date.now() - at) / 1000));
-  if (s < 60) return t('karmograph.t401');
+  if (s < 60) return t('karmograph.s.msg');
   if (s < 3600) return t('karmograph.minsAgo', { n: Math.floor(s / 60) });
   if (s < 86400) return t('karmograph.hoursAgo', { n: Math.floor(s / 3600) });
   return new Date(at).toLocaleDateString(locale());
@@ -32,15 +32,15 @@ export function commentsSectionHtml(ctx: PanelCtx, onId: string): string {
   return `
     <div class="km-field">
       <label>코멘트 ${rows.length === 0 ? '' : `<span class="km-group-count">${rows.length}</span>`}</label>
-      <div class="km-hint">${t('karmograph.commentsPile', { em: `<b>${esc(t('karmograph.t398'))}</b>` })}</div>
+      <div class="km-hint">${t('karmograph.commentsPile', { em: `<b>${esc(t('karmograph.rows.msg'))}</b>` })}</div>
       ${rows.map((c) => `<div class="km-link-row">
         <span class="km-link-name">${esc(c.text)}</span>
         <span class="km-group-count">${esc(ago(c.at))}</span>
-        <button class="btn btn-ghost" data-km="cmt-del" data-key="${esc(c.id)}" title="${esc(t('karmograph.t395'))}">×</button>
+        <button class="btn btn-ghost" data-km="cmt-del" data-key="${esc(c.id)}" title="${esc(t('karmograph.cmtDel.title'))}">×</button>
       </div>`).join('')}
       <div class="km-link-row">
-        <input type="text" data-km="cmt-new" placeholder="${esc(t('karmograph.t396'))}" />
-        <button class="btn btn-ghost" data-km="cmt-add">${esc(t('karmograph.t400'))}</button>
+        <input type="text" data-km="cmt-new" placeholder="${esc(t('karmograph.cmtNew.ph'))}" />
+        <button class="btn btn-ghost" data-km="cmt-add">${esc(t('karmograph.cmtAdd.label'))}</button>
       </div>
     </div>`;
 }

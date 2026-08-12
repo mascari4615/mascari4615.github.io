@@ -29,58 +29,58 @@ export function renderFilterPanel(ctx: PanelCtx): void {
   const fieldNames = [...new Set(spec.nodes.flatMap((n) => Object.keys(n.fields ?? {})))].sort();
 
   side.innerHTML = `
-    <h4>${esc(t('karmograph.t233'))}</h4>
-    <div class="km-hint">${t('karmograph.filterHide', { em: `<b>${esc(t('karmograph.t235'))}</b>` })}</div>
+    <h4>${esc(t('karmograph.fieldNames.msg'))}</h4>
+    <div class="km-hint">${t('karmograph.filterHide', { em: `<b>${esc(t('karmograph.fieldNames.msg2'))}</b>` })}</div>
     <div class="km-field">
-      <label>${esc(t('karmograph.t237'))}</label>
+      <label>${esc(t('karmograph.fieldNames.msg3'))}</label>
       ${nodeRows.map((k) => `<label class="km-check"><input type="checkbox" data-km="f-node" value="${esc(k.id)}"${
         st.nodeKinds.has(k.id) ? '' : ' checked'
       } /> ${k.icon} ${esc(k.label)} <span class="km-group-count">${nodeCount(k.id)}</span></label>`).join('')}
     </div>
     <div class="km-field">
-      <label>${esc(t('karmograph.t238'))}</label>
+      <label>${esc(t('karmograph.fieldNames.msg4'))}</label>
       ${edgeRows.map((k) => `<label class="km-check"><input type="checkbox" data-km="f-edge" value="${esc(k.id)}"${
         st.edgeKinds.has(k.id) ? '' : ' checked'
       } /> ${esc(k.label)} <span class="km-group-count">${edgeCount(k.id)}</span></label>`).join('')}
     </div>
     ${tags.length === 0 ? '' : `<div class="km-field">
-      <label>${esc(t('karmograph.t239'))}</label>
+      <label>${esc(t('karmograph.fieldNames.msg5'))}</label>
       ${tags.map((tg) => `<label class="km-check"><input type="checkbox" data-km="f-tag" value="${esc(tg)}"${
         st.tags.has(tg) ? '' : ' checked'
       } /> ${esc(tg)} <span class="km-group-count">${spec.nodes.filter((n) => (n.tags ?? []).includes(tg)).length}</span></label>`).join('')}
     </div>`}
     ${fieldNames.length === 0 ? '' : `<div class="km-field">
-      <label>${esc(t('karmograph.t240'))}</label>
+      <label>${esc(t('karmograph.fieldNames.msg6'))}</label>
       <select data-km="f-field">
-        <option value="">${esc(t('karmograph.t241'))}</option>
+        <option value="">${esc(t('karmograph.fieldNames.msg7'))}</option>
         ${fieldNames.map((f) => `<option value="${esc(f)}"${st.fieldName === f ? ' selected' : ''}>${esc(f)}</option>`).join('')}
       </select>
       ${st.fieldName === '' ? '' : `<select data-km="f-fieldval">
-        <option value="">${esc(t('karmograph.t242'))}</option>
+        <option value="">${esc(t('karmograph.fieldNames.msg8'))}</option>
         ${[...new Set(spec.nodes.map((n) => (n.fields ?? {})[st.fieldName]).filter(Boolean))].sort()
           .map((v) => `<option value="${esc(String(v))}"${st.fieldValue === v ? ' selected' : ''}>${esc(String(v))}</option>`).join('')}
       </select>`}
-      <div class="km-hint">${t('karmograph.hint04', { em: `<b>${esc(t('karmograph.t244'))}</b>` })}</div>
+      <div class="km-hint">${t('karmograph.hint04', { em: `<b>${esc(t('karmograph.fieldNames.msg9'))}</b>` })}</div>
     </div>`}
     <div class="km-field">
-      <label class="km-check"><input type="checkbox" data-km="f-degree"${st.sizeByDegree ? ' checked' : ''} /> ${esc(t('karmograph.t246'))}</label>
-      <label class="km-check"><input type="checkbox" data-km="f-colortag"${st.colorByTag ? ' checked' : ''} /> ${esc(t('karmograph.t247'))}</label>
-      ${fieldNames.length === 0 ? '' : `<label>${esc(t('karmograph.t248'))}</label>
+      <label class="km-check"><input type="checkbox" data-km="f-degree"${st.sizeByDegree ? ' checked' : ''} /> ${esc(t('karmograph.fDegree.label'))}</label>
+      <label class="km-check"><input type="checkbox" data-km="f-colortag"${st.colorByTag ? ' checked' : ''} /> ${esc(t('karmograph.fColortag.label'))}</label>
+      ${fieldNames.length === 0 ? '' : `<label>${esc(t('karmograph.fieldNames.msg10'))}</label>
       <select data-km="f-colorfield">
-        <option value="">${esc(t('karmograph.t241'))}</option>
+        <option value="">${esc(t('karmograph.fieldNames.msg7'))}</option>
         ${fieldNames.map((f) => `<option value="${esc(f)}"${st.colorByField === f ? ' selected' : ''}>${esc(t('karmograph.byField', { field: f }))}</option>`).join('')}
       </select>`}
-      <div class="km-hint">${esc(t('karmograph.t249'))}</div>
+      <div class="km-hint">${esc(t('karmograph.fieldNames.msg11'))}</div>
     </div>
     <div class="km-field">
-      <label class="km-check"><input type="checkbox" data-km="f-orphan"${st.hideOrphans ? ' checked' : ''} /> ${esc(t('karmograph.t250'))}</label>
-      <label>${esc(t('karmograph.t251'))} <b data-km="f-mindeg-val">${st.minDegree}</b>${esc(t('karmograph.t252'))}</label>
+      <label class="km-check"><input type="checkbox" data-km="f-orphan"${st.hideOrphans ? ' checked' : ''} /> ${esc(t('karmograph.fOrphan.label'))}</label>
+      <label>${esc(t('karmograph.fieldNames.msg12'))} <b data-km="f-mindeg-val">${st.minDegree}</b>${esc(t('karmograph.fieldNames.msg13'))}</label>
       <input type="range" data-km="f-mindeg" min="0" max="6" step="1" value="${st.minDegree}" />
-      <div class="km-hint">${esc(t('karmograph.t253'))}</div>
+      <div class="km-hint">${esc(t('karmograph.fieldNames.msg14'))}</div>
     </div>
     <div class="km-field">
-      <label>${esc(t('karmograph.t254'))} <span class="km-hint">${esc(t('karmograph.t255'))}</span></label>
-      <div class="km-hint">${esc(t('karmograph.t256'))} <b>${esc(t('karmograph.t257'))}</b>.</div>
+      <label>${esc(t('karmograph.fieldNames.msg15'))} <span class="km-hint">${esc(t('karmograph.fieldNames.msg16'))}</span></label>
+      <div class="km-hint">${esc(t('karmograph.fieldNames.msg17'))} <b>${esc(t('karmograph.fieldNames.msg18'))}</b>.</div>
       ${(spec.decorRules ?? []).map((r) => `<div class="km-link-row">
         <span class="km-link-name">${esc(
           r.on === 'tag'
@@ -91,23 +91,23 @@ export function renderFilterPanel(ctx: PanelCtx): void {
         )}</span>
         <span class="km-swatch" style="background:${esc(r.color ?? '#94a3b8')}"></span>
         <span class="km-group-count">${r.scale && r.scale !== 1 ? `×${r.scale}` : ''}</span>
-        <button class="btn btn-ghost" data-km="rule-del" data-key="${esc(r.id)}" title="${esc(t('karmograph.t229'))}">×</button>
+        <button class="btn btn-ghost" data-km="rule-del" data-key="${esc(r.id)}" title="${esc(t('karmograph.ruleDel.title'))}">×</button>
       </div>`).join('')}
       <div class="km-link-row">
         <select data-km="rule-on">
           <option value="field">${esc(t('karmograph.opt.field'))}</option>
-          <option value="tag">${esc(t('karmograph.t239'))}</option>
+          <option value="tag">${esc(t('karmograph.fieldNames.msg5'))}</option>
           <option value="kind">${esc(t('karmograph.opt.kind'))}</option>
         </select>
-        <input type="text" data-km="rule-key" list="km-fld-suggest2" placeholder="${esc(t('karmograph.t230'))}" />
+        <input type="text" data-km="rule-key" list="km-fld-suggest2" placeholder="${esc(t('karmograph.ruleKey.ph'))}" />
         <datalist id="km-fld-suggest2">${fieldNames.map((f) => `<option value="${esc(f)}"></option>`).join('')}</datalist>
-        <input type="text" data-km="rule-value" placeholder="${esc(t('karmograph.t231'))}" />
-        <input type="color" data-km="rule-color" value="#f472b6" title="${esc(t('karmograph.t232'))}" />
-        <button class="btn btn-ghost" data-km="rule-add">${esc(t('karmograph.t258'))}</button>
+        <input type="text" data-km="rule-value" placeholder="${esc(t('karmograph.ruleValue.ph'))}" />
+        <input type="color" data-km="rule-color" value="#f472b6" title="${esc(t('karmograph.ruleColor.title'))}" />
+        <button class="btn btn-ghost" data-km="rule-add">${esc(t('karmograph.ruleAdd.label'))}</button>
       </div>
     </div>
-    <button class="btn btn-ghost" data-km="f-reset">${esc(t('karmograph.t259'))}</button>
-    <button class="btn btn-ghost" data-km="f-close">${esc(t('karmograph.t260'))}</button>`;
+    <button class="btn btn-ghost" data-km="f-reset">${esc(t('karmograph.fReset.label'))}</button>
+    <button class="btn btn-ghost" data-km="f-close">${esc(t('karmograph.fClose.label'))}</button>`;
 
   const toggleInto = (set: Set<string>, sel: string): void => {
     side.querySelectorAll(sel).forEach((el) => {

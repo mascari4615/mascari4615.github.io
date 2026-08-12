@@ -15,18 +15,18 @@ export function renderStampsPanel(ctx: PanelCtx): void {
   const list = loadStamps().sort((a, b) => b.at - a.at);
 
   side.innerHTML = `
-    <h4>${esc(t('karmograph.t380'))}</h4>
-    <div class="km-hint">${t('karmograph.stampsWhat', { em: `<b>${esc(t('karmograph.t382'))}</b>` })}</div>
+    <h4>${esc(t('karmograph.list.msg12'))}</h4>
+    <div class="km-hint">${t('karmograph.stampsWhat', { em: `<b>${esc(t('karmograph.list.msg13'))}</b>` })}</div>
     ${list.length === 0
-      ? t('karmograph.t386')
+      ? t('karmograph.list.msg14')
       : list.map((st) => `<div class="km-link-row">
           <span class="km-link-name">${esc(st.name)}</span>
           <span class="km-group-count">${st.nodes.length}개</span>
-          <button class="btn btn-ghost" data-km="stamp-put" data-key="${esc(st.id)}">${esc(t('karmograph.t384'))}</button>
-          <button class="btn btn-ghost" data-km="stamp-del" data-key="${esc(st.id)}" title="${esc(t('karmograph.t379'))}">×</button>
+          <button class="btn btn-ghost" data-km="stamp-put" data-key="${esc(st.id)}">${esc(t('karmograph.stampPut.label'))}</button>
+          <button class="btn btn-ghost" data-km="stamp-del" data-key="${esc(st.id)}" title="${esc(t('karmograph.stampDel.title'))}">×</button>
         </div>
         <div class="km-hint" style="margin:-4px 0 8px">${esc(st.nodes.slice(0, 5).map((n) => n.label || t('karmograph.unnamed')).join(' · '))}${st.nodes.length > 5 ? ' ' + t('karmograph.andMore', { n: st.nodes.length - 5 }) : ''}</div>`).join('')}
-    <button class="btn btn-ghost" data-km="stamp-close">${esc(t('karmograph.t385'))}</button>`;
+    <button class="btn btn-ghost" data-km="stamp-close">${esc(t('karmograph.stampClose.label'))}</button>`;
 
   side.querySelectorAll('[data-km="stamp-put"]').forEach((el) => {
     (el as HTMLButtonElement).onclick = () => ctx.putStamp((el as HTMLElement).dataset.key ?? '');

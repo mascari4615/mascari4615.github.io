@@ -92,7 +92,7 @@ export function fromJsonCanvas(raw: unknown, base: GraphSpec): GraphSpec {
     if (cn.type === 'group') {
       groups.push({
         id: cn.id,
-        label: cn.label ?? t('karmograph.t429'),
+        label: cn.label ?? t('karmograph.groups.msg'),
         color: '#94a3b8',
         bbox: { x: cn.x, y: cn.y, w: cn.width, h: cn.height },
         shape: 'box',

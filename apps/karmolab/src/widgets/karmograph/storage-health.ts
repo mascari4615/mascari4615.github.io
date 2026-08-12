@@ -46,7 +46,7 @@ export function measureStorage(prefix = 'karmograph.'): StorageReport {
       items.push({ key, bytes });
     }
   } catch (e) {
-    console.error(t('karmograph.t436'), e);
+    console.error(t('karmograph.bytes.msg'), e);
   }
   items.sort((a, b) => b.bytes - a.bytes);
   const ratio = used / WEB_STORAGE_BUDGET;

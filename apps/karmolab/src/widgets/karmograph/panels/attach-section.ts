@@ -24,13 +24,13 @@ export function attachFieldHtml(ctx: PanelCtx, node: GraphNode): string {
     .join('');
   return `
     <div class="km-field">
-      <label>${esc(t('karmograph.t387'))}</label>
+      <label>${esc(t('karmograph.b.msg'))}</label>
       <select data-km="edit-attach">
-        <option value="">${esc(t('karmograph.t388'))}</option>
+        <option value="">${esc(t('karmograph.b.msg2'))}</option>
         ${nodeOpts}
         ${edgeOpts}
       </select>
-      <div class="km-hint">${esc(t('karmograph.t389'))}</div>
+      <div class="km-hint">${esc(t('karmograph.b.msg3'))}</div>
     </div>`;
 }
 

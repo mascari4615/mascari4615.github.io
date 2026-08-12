@@ -12,20 +12,20 @@ export function renderManyPanel(ctx: PanelCtx): void {
   const { side, esc } = ctx;
   side.classList.remove('hidden');
   side.innerHTML = `
-    <h4>◫ ${ctx.selectedMany().length}개 골랐음 <button class="btn btn-ghost km-h4btn" data-km="many-close">${esc(t('karmograph.t278'))}</button></h4>
-    <div class="km-hint">${t('karmograph.hint05', { em: `<b>${esc(t('karmograph.t280'))}</b>` })}</div>
+    <h4>◫ ${ctx.selectedMany().length}개 골랐음 <button class="btn btn-ghost km-h4btn" data-km="many-close">${esc(t('karmograph.manyClose.label'))}</button></h4>
+    <div class="km-hint">${t('karmograph.hint05', { em: `<b>${esc(t('karmograph.manyPanel.txt'))}</b>` })}</div>
     <div class="km-field">
-      <label>${esc(t('karmograph.t282'))}</label>
+      <label>${esc(t('karmograph.manyPanel.txt2'))}</label>
       <select data-km="many-group">
-        <option value="">${esc(t('karmograph.t283'))}</option>
+        <option value="">${esc(t('karmograph.manyPanel.txt3'))}</option>
         ${ctx.spec().groups.map((g) => `<option value="${esc(g.id)}">${esc(g.label)}</option>`).join('')}
         <option value="__new">${esc(t('karmograph.opt.new'))}</option>
       </select>
     </div>
     <div class="km-field">
-      <label>${esc(t('karmograph.t284'))}</label>
+      <label>${esc(t('karmograph.manyPanel.txt4'))}</label>
       <select data-km="many-kind">
-        <option value="">${esc(t('karmograph.t283'))}</option>
+        <option value="">${esc(t('karmograph.manyPanel.txt3'))}</option>
         ${ctx.nodeKinds().map((k) => `<option value="${k.id}">${k.icon} ${esc(k.label)}</option>`).join('')}
       </select>
     </div>
@@ -46,29 +46,29 @@ export function renderManyPanel(ctx: PanelCtx): void {
       <div class="km-hint">${esc(t('karmograph.align.hint'))}</div>
     </div>
     <div class="km-field">
-      <label>${esc(t('karmograph.t285'))}</label>
-      <div class="km-hint">${t('karmograph.hint06', { em: `<b>${esc(t('karmograph.t287'))}</b>` })}</div>
+      <label>${esc(t('karmograph.manyPanel.txt5'))}</label>
+      <div class="km-hint">${t('karmograph.hint06', { em: `<b>${esc(t('karmograph.manyPanel.txt6'))}</b>` })}</div>
       <div class="km-link-row">
-        <input type="text" data-km="stamp-name" placeholder="${esc(t('karmograph.t275'))}" />
-        <button class="btn btn-ghost" data-km="stamp-save">${esc(t('karmograph.t289'))}</button>
+        <input type="text" data-km="stamp-name" placeholder="${esc(t('karmograph.stampName.ph'))}" />
+        <button class="btn btn-ghost" data-km="stamp-save">${esc(t('karmograph.stampSave.label'))}</button>
       </div>
     </div>
     <div class="km-field">
-      <label>${esc(t('karmograph.t290'))}</label>
+      <label>${esc(t('karmograph.manyPanel.txt7'))}</label>
       <div class="km-table">
         ${ctx.selectedMany().map((id) => {
           const n = ctx.spec().nodes.find((x) => x.id === id);
           if (!n) return '';
           const tags = (n.tags ?? []).join(', ');
           return `<div class="km-trow" data-key="${esc(id)}">
-            <input type="text" data-km="many-name" value="${esc(n.label)}" title="${esc(t('karmograph.t276'))}" />
+            <input type="text" data-km="many-name" value="${esc(n.label)}" title="${esc(t('karmograph.manyName.title'))}" />
             <span class="km-tcell">${ctx.kindIcon(n.kind)} ${esc(ctx.kindLabel(n.kind))}</span>
             <span class="km-tcell km-tdim" title="${esc(tags)}">${tags ? esc(tags) : '—'}</span>
-            <button class="btn btn-ghost" data-km="many-go" title="${esc(t('karmograph.t277'))}">→</button>
+            <button class="btn btn-ghost" data-km="many-go" title="${esc(t('karmograph.manyGo.title'))}">→</button>
           </div>`;
         }).join('')}
       </div>
-      <div class="km-hint">${esc(t('karmograph.t291'))}</div>
+      <div class="km-hint">${esc(t('karmograph.manyPanel.txt8'))}</div>
     </div>
     <button class="btn btn-danger" data-km="many-del">${ctx.selectedMany().length}개 모두 삭제</button>
 `;
