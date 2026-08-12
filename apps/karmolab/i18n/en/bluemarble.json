@@ -73,5 +73,6 @@
   "bluemarble.radio.fail": "Could not fetch the station list",
   "bluemarble.radio.hint": "Tap a ring to hear that town (tap it again for the next station)",
   "bluemarble.radio.on": "{name} · {where} · it is {time} there",
-  "bluemarble.radio.dead": "Nobody is on air there right now"
+  "bluemarble.radio.dead": "Nobody is on air there right now",
+  "bluemarble.intro.title": "BLUE MARBLE"
 }
