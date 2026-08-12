@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Date, JSON, crypto });
-const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT, nextClipColor, CLIP_COLORS, tapTempo, selectionRange, swingBeat } = module.exports;
+const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT, nextClipColor, CLIP_COLORS, tapTempo, selectionRange, swingBeat, keyToPitch, isPianoKey } = module.exports;
 
 const note = (beat, pitch = 60, duration = 0.5, velocity = 0.8) => ({ id: `n${beat}-${pitch}`, beat, duration, pitch, velocity });
 
@@ -293,4 +293,24 @@ assert.deepEqual(triplets.map((item) => Number(item.beat.toFixed(4))), [0.3333, 
 // 격자가 아무리 작아도 0 으로 안 나눈다
 assert.equal(snapBeat(1.2, 0), 1.25, '0 격자는 기본 1/4');
 
-console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘 · 구간 이름표 · 줄 높이 · 클립 잠금·색 · TAP·선택구간 · 스윙 · 셋잇단/점음표 격자');
+// 자판 건반 — 트래커 배열
+assert.equal(keyToPitch('z', 4), 60, 'z = C4');
+assert.equal(keyToPitch('Z', 4), 60, '대문자도 같다');
+assert.equal(keyToPitch('s', 4), 61, 's = C#4');
+assert.equal(keyToPitch('m', 4), 71, 'm = B4');
+assert.equal(keyToPitch('q', 4), 72, '윗줄은 한 옥타브 위');
+assert.equal(keyToPitch('z', 3), 48, '옥타브를 내리면 12 낮다');
+assert.equal(keyToPitch('1', 4), null, '없는 자판은 null');
+assert.equal(keyToPitch('', 4), null);
+// 음역 밖은 null — 화면에 없는 음을 만들지 않는다
+assert.equal(keyToPitch('z', 4, 62, 84), null, '아래 음역 밖');
+assert.equal(keyToPitch('i', 8, 36, 84), null, '위 음역 밖');
+assert.equal(keyToPitch('z', 4, 36, 84), 60, '음역 안이면 그대로');
+// 도구 단축키와 겹치는 키를 미리 안다
+assert.equal(isPianoKey('e'), true, 'e 는 건반이기도 하다 — 그래서 모드가 필요하다');
+assert.equal(isPianoKey('c'), true);
+assert.equal(isPianoKey('m'), true);
+assert.equal(isPianoKey('p'), false, 'p 는 안 겹친다');
+assert.equal(isPianoKey('9'), false);
+
+console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘 · 구간 이름표 · 줄 높이 · 클립 잠금·색 · TAP·선택구간 · 스윙 · 셋잇단/점음표 격자 · 자판 건반');
