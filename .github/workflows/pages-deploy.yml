@@ -31,8 +31,11 @@ permissions:
 # 여러 세션이 몇 분 간격으로 밀어 넣는데 배포가 5~10분이라, 끊는 설정에서는
 # 배포가 끝까지 가는 일 자체가 드물었다 (실측: 연속 3건이 완주 못 하고 취소).
 # 끊지 않으면 돌던 것은 끝나고, 대기 중이던 것만 최신 것으로 교체된다.
+# ★ 손으로 부른 배포는 **줄 뒤로 밀려 지워지지 않게** 따로 선다 (2026-08-12).
+#   한 그룹에 두면 깃허브가 기다리는 것 하나만 남기므로, 「지금 올려 보자」고 부른 판이
+#   다음 push 에 조용히 취소됐다(실측). 겹침 방지는 그대로다 — push 레인은 여전히 하나.
 concurrency:
-  group: "pages"
+  group: pages-${{ github.event_name == 'workflow_dispatch' && 'manual' || 'auto' }}
   cancel-in-progress: false
 
 jobs:
@@ -139,10 +142,14 @@ jobs:
         # 그래서 배포 잡에서 「Executable doesn't exist」로 통째로 섰다(2026-08-09 실측).
         # 검사 쪽에도 관문을 뒀지만(없으면 「못 돌림」으로 빠진다) 관문 없는 남의 검사가 더 많고,
         # 무엇보다 **여기서는 실제로 재는 편이 맞다** — 배포 직전이 마지막 그물이다.
+        # ★ **배포는 찍어 올리는 일이다** (2026-08-12). 여기서 `npm run build` 를 부르면
+        #   28단계 중 16단계가 검사다 — 브라우저까지 깔아 도구 시험을 돌린다. 그래서
+        #   ① 배포가 오래 걸리고 ② 검사 하나가 빨개지면 **고친 화면이 사람에게 안 나간다**.
+        #   검증은 `verify` 가 같은 커밋에서 이미 전부 돌린다(그쪽이 master invariant 정본).
+        #   배포는 산출물만 찍는다 — 브라우저도 필요 없다.
         run: |
           npm ci
-          npx playwright install --with-deps chromium
-          npm run build
+          npm run build:artifacts
 
       - name: Prepare KarmoLab Jekyll page
         run: |
