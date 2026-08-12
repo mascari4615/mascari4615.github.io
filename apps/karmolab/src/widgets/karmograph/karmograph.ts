@@ -260,6 +260,11 @@ import {
     .km-intent .km-intent-t { font-weight:600; font-size:13px; }
     .km-intent .km-intent-s { font-size:11px; color:var(--text-tertiary); line-height:1.4; }
     .km-empty-more { pointer-events:auto; }
+    /* 다음 걸음 한 줄 — 판 아래 가운데. **누르는 것을 가리면 안 된다**(pointer-events:none). */
+    .km-next { position:absolute; left:50%; bottom:14px; transform:translateX(-50%); pointer-events:none;
+      max-width:min(560px, 88%); text-align:center; padding:6px 12px; border-radius:999px;
+      background:var(--bg-secondary); border:1px solid var(--border); color:var(--text-secondary);
+      font-size:11px; opacity:.92; z-index:3; }
     .km-empty-in { max-width:min(760px, 100%); color:var(--text-tertiary); font-size:var(--font-size-sm);
       text-align:center; line-height:1.7; }
     /* 👁 보기 전용 — 편집 손잡이를 **아예 없앤다**. 「고쳐도 원본은 안 바뀝니다」를 글로 설명하는 것보다
@@ -474,7 +479,10 @@ import {
           <button class="btn btn-ghost hidden" data-km="map-up" title="${esc(t('karmograph.t93'))}">↑<span
             class="km-btn-name">${esc(t('karmograph.btn.up'))}</span></button>
           <span class="km-saved hidden" data-km="saved" title="${esc(t('karmograph.t94'))}">${esc(t('karmograph.savedHere'))}</span>
-          <button class="btn btn-ghost" data-km="map-new" title="${esc(t('karmograph.t95'))}">+</button>
+          <!-- 시작 갈래(작품 관계도·내 세계관·개념 설명)로 **돌아가는 유일한 길**이 이 단추다
+               (빈 판에서만 그 고르개가 뜬다). 이름이 없으면 그 길이 안 보인다 — 2026-08-12 검토. -->
+          <button class="btn btn-ghost" data-km="map-new" title="${esc(t('karmograph.t95'))}">+<span
+            class="km-btn-name">${esc(t('karmograph.btn.newMap'))}</span></button>
           <select data-km="new-kind" title="${esc(t('karmograph.t96'))}">${nodeKindOptions()}</select>
           <span class="km-sep"></span>
           <input type="text" data-km="find" placeholder="${esc(t('karmograph.t97'))}" />
@@ -1723,6 +1731,30 @@ import {
     function applySpec(): void {
       canvas?.setSpec(spec);
       syncEmptyHint();
+      syncNextHint();
+    }
+
+    /**
+     * **다음 걸음 한 줄** (2026-08-12 사용자 검토).
+     *
+     * 빈 판에는 안내가 있는데, 카드를 하나 만드는 순간 그 안내가 통째로 사라졌다 —
+     * 처음 여는 사람이 「이제 뭘 하지」로 멈추는 자리가 바로 거기였다. 그래서 **다 익힐 때까지만**
+     * 한 줄이 따라온다: 카드 하나 → 하나 더 · 카드 둘인데 선 0 → 잇는 법 · 선이 생기면 사라진다.
+     * 안 배운 것만 말하므로 저절로 없어진다(끄는 단추가 필요 없다).
+     */
+    function syncNextHint(): void {
+      const nodes = spec.nodes.length;
+      const edges = spec.edges.length;
+      const key = nodes === 0 || edges > 0 ? '' : nodes === 1 ? 'one' : 'link';
+      const had = canvasEl.querySelector('.km-next');
+      if (!key || readOnly) { had?.remove(); return; }
+      const el = (had as HTMLElement | null) ?? document.createElement('div');
+      el.className = 'km-next';
+      const touch = window.matchMedia('(max-width: 720px)').matches;
+      el.textContent = key === 'one'
+        ? t(touch ? 'karmograph.next.oneTouch' : 'karmograph.next.one')
+        : t(touch ? 'karmograph.next.linkTouch' : 'karmograph.next.link');
+      if (!had) canvasEl.appendChild(el);
     }
 
     // ── 선 만들기 — 「연결 시작」 버튼과 손잡이 드래그가 같은 길을 쓴다 ──────

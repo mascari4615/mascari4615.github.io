@@ -629,5 +629,10 @@
   "karmograph.btn.fit": "全体",
   "karmograph.btn.story": "発表",
   "karmograph.btn.up": "上へ",
-  "karmograph.savedHere": "このブラウザに保存"
+  "karmograph.savedHere": "このブラウザに保存",
+  "karmograph.next.one": "カードをもう1枚 — 空いた所をダブルクリック。",
+  "karmograph.next.oneTouch": "カードをもう1枚 — 空いた所をダブルタップ。",
+  "karmograph.next.link": "つないでみましょう — カード右の点を別のカードへドラッグ。",
+  "karmograph.next.linkTouch": "つないでみましょう — カード右の点を別のカードへドラッグ。",
+  "karmograph.btn.newMap": "新しい板"
 }

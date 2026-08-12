@@ -629,5 +629,10 @@
   "karmograph.btn.fit": "Fit",
   "karmograph.btn.story": "Present",
   "karmograph.btn.up": "Up",
-  "karmograph.savedHere": "Saved in this browser"
+  "karmograph.savedHere": "Saved in this browser",
+  "karmograph.next.one": "Add one more card — double-click empty space.",
+  "karmograph.next.oneTouch": "Add one more card — double-tap empty space.",
+  "karmograph.next.link": "Now connect them — drag the dot on a card onto another card.",
+  "karmograph.next.linkTouch": "Now connect them — drag the dot on a card onto another card.",
+  "karmograph.btn.newMap": "New map"
 }
