@@ -34,5 +34,12 @@
   "arcade.game.memory.name": "Matching",
   "arcade.game.memory.desc": "Flip and remember. A match buys another turn",
   "arcade.memory.draw": "An even split",
-  "arcade.memory.win": "{who} — {n} pairs"
+  "arcade.memory.win": "{who} — {n} pairs",
+  "arcade.game.hitblow.name": "Hit and Blow",
+  "arcade.game.hitblow.desc": "Crack a hidden 3-digit number in ten",
+  "arcade.hitblow.throw": "Guess",
+  "arcade.hitblow.aria": "Three digits",
+  "arcade.hitblow.solved": "{who} cracked it on try {n}",
+  "arcade.hitblow.none": "Nobody cracked it",
+  "arcade.hitblow.closest": "{who} came closest"
 }

@@ -89,7 +89,14 @@ for (const g of GAMES) {
   }
   ok(jsonOk, `${g.id}: 판을 통째로 흘려보낼 수 있다 (JSON)`);
 
-  /* ⑤ 자리 수가 말이 된다. */
+  /* ⑤ 감출 것이 있는 게임은 **손님에게 갈 판에 그것이 없어야** 한다. 화면이 안 그려도 값은 간다. */
+  if (g.redact) {
+    const before = JSON.stringify(a1.view().state);
+    const safe = JSON.stringify(g.redact(a1.view().state, 0));
+    ok(before !== safe, `${g.id}: 감춘 것이 손님 판에서 지워진다`);
+  }
+
+  /* ⑥ 자리 수가 말이 된다. */
   ok(g.seats[0] >= 1 && g.seats[0] <= g.seats[1], `${g.id}: 자리 수가 말이 된다 (${g.seats.join('~')})`);
 }
 

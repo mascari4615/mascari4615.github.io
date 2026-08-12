@@ -9,8 +9,9 @@ import { reflexView } from './games/reflex-view';
 import { gomokuView } from './games/gomoku-view';
 import { fourView } from './games/four-view';
 import { memoryView } from './games/memory-view';
+import { hitblowView } from './games/hitblow-view';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const VIEWS: Array<GameView<any, any>> = [reflexView, gomokuView, fourView, memoryView];
+export const VIEWS: Array<GameView<any, any>> = [reflexView, gomokuView, fourView, memoryView, hitblowView];
 
 export const viewById = (id: string): GameView<any, any> | undefined => VIEWS.find((v) => v.id === id);

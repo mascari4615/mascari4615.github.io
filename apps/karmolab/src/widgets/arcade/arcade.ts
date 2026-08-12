@@ -121,6 +121,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-card2:disabled{cursor:default}',
       '.ac-card2.ac-open{border-color:var(--accent)}',
       '.ac-card2.ac-gone{opacity:.35}',
+      '.ac-hb{max-width:340px;margin:var(--space-lg) auto}',
+      '.ac-hblist{list-style:none;padding:0;margin:0 0 10px;max-height:230px;overflow:auto;display:flex;flex-direction:column;gap:4px}',
+      '.ac-hblist li{display:flex;justify-content:space-between;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-variant-numeric:tabular-nums}',
+      '.ac-hblist b{letter-spacing:.2em;font-size:var(--font-size-md)}',
+      '.ac-hblist span{color:var(--text-secondary);font-size:var(--font-size-xs)}',
+      '.ac-hbrow{display:flex;gap:6px}',
+      '.ac-hbrow input{flex:1;min-width:0;letter-spacing:.3em;text-align:center;font-size:var(--font-size-lg)}',
       '.ac-code{font-size:clamp(28px,8vw,48px);font-weight:800;letter-spacing:.18em;text-align:center;margin:var(--space-lg) 0}',
       '.ac-share{display:flex;gap:6px;margin:var(--space-lg) 0}',
       '.ac-share input{flex:1;min-width:0}'
@@ -275,10 +282,30 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         const v = match.view();
         paint(v, now);
         /* 주인은 판을 통째로 흘려보낸다 — 손님이 커널을 안 돌려야 판정이 하나로 남는다. */
-        net?.sync({ game: gameId, now, seatOf, v: v as unknown as Json });
+        sendBoard(v, now);
       } else if (shadow) {
         /* 손님 시계는 주인이 보낸 시각에서 이어 간다 — 소식이 30ms 마다 와도 막대는 부드럽다. */
         paint(shadow.v, shadow.now + (performance.now() - shadow.at));
+      }
+    }
+
+    /**
+     * 판을 손님들에게 보낸다.
+     *
+     * 감출 것이 있는 게임이면 **자리마다 다른 판**을 만들어 각자에게 따로 보낸다 —
+     * 통째로 뿌리면 화면이 안 그려도 값은 이미 건너간 뒤다(개발자 도구로 다 보인다).
+     */
+    function sendBoard(v: MatchView<unknown>, now: number): void {
+      if (!net?.host) return;
+      const g = gameById(gameId);
+      const base = { game: gameId, now, seatOf };
+      if (!g?.redact) {
+        net.sync({ ...base, v: v as unknown as Json });
+        return;
+      }
+      for (const [peerId, seat] of Object.entries(seatOf)) {
+        const safe = { ...v, state: g.redact(v.state, seat) };
+        net.sync({ ...base, v: safe as unknown as Json }, peerId);
       }
     }
 
