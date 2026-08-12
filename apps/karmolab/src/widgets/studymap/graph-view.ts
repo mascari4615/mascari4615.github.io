@@ -23,6 +23,8 @@ export interface TreeViewOptions {
   onPick: (id: string) => void;
   /** 지금 자리 — 열자마자 여기로 화면을 맞춘다. */
   focusId?: string;
+  /** 참이면 전체가 한 화면에 들어오게 — 칸이 적은 갈래 안 지도에서 쓴다. */
+  fitAll?: boolean;
   /** 동그라미 지름. 갈래 지도는 크게, 칸 트리는 조금 작게. */
   size?: number;
 }
@@ -137,14 +139,34 @@ export function mountTree(host: HTMLElement, layout: TreeLayout, opts: TreeViewO
    * 다만 **한 노드에 맞추면 안 된다** — 그러면 배율이 튀어 글자가 커지고 주변이 안 보인다(실측).
    * 그래서 그 노드를 가운데 둔 **일정한 크기의 창**을 잡는다: 배율은 늘 비슷하고, 이웃이 함께 보인다.
    */
-  const focus = opts.focusId ? layout.nodes.find((n) => n.id === opts.focusId) : undefined;
-  if (focus) {
-    const w = 1080;
-    const h = 620;
-    canvas.fitToWorldRect({ x: focus.x - w / 2, y: focus.y - h / 2, w, h }, 20);
-  } else {
-    canvas.fitToNodes(layout.nodes.map((n) => n.id), 60);
-  }
+  /**
+   * 카메라. 두 가지를 조심한다.
+   *  ① 한 노드에 맞추면 배율이 튄다 → 일정 크기 창을 잡는다.
+   *  ② 칸이 적은 지도를 「전부 맞춤」 하면 이번엔 **너무 확대**된다(7칸짜리가 화면을 가득 채운다).
+   *     그래서 최소 창 크기를 정해 배율 상한을 만든다.
+   *  ③ 자리 계산은 CSS 가 붙은 뒤라야 맞다 → 다음 프레임에 한 번 더 맞춘다.
+   */
+  /* 창의 최소 크기 = 배율 상한. 작게 잡으면 6칸짜리 지도가 텅 비어 보이고, 크게 잡으면 글자가 커진다. */
+  const MIN_W = opts.fitAll ? 820 : 1180;
+  const MIN_H = opts.fitAll ? 420 : 680;
+  const aim = (): void => {
+    const focus = opts.fitAll ? undefined : opts.focusId ? layout.nodes.find((n) => n.id === opts.focusId) : undefined;
+    if (focus) {
+      canvas.fitToWorldRect({ x: focus.x - MIN_W / 2, y: focus.y - MIN_H / 2, w: MIN_W, h: MIN_H }, 20);
+      return;
+    }
+    const xs = layout.nodes.map((n) => n.x);
+    const ys = layout.nodes.map((n) => n.y);
+    const x0 = Math.min(...xs);
+    const y0 = Math.min(...ys);
+    const w = Math.max(MIN_W, Math.max(...xs) - x0);
+    const h = Math.max(MIN_H, Math.max(...ys) - y0);
+    const cx = x0 + (Math.max(...xs) - x0) / 2;
+    const cy = y0 + (Math.max(...ys) - y0) / 2;
+    canvas.fitToWorldRect({ x: cx - w / 2, y: cy - h / 2, w, h }, 40);
+  };
+  aim();
+  requestAnimationFrame(aim);
 
   return () => {
     host.innerHTML = '';
