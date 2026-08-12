@@ -1,0 +1,102 @@
+{
+  "id": "desktop-package",
+  "minutes": 11,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "서명 없는 앱은 **「알 수 없는 개발자」 경고**를 만나고, 대부분의 사용자는 거기서 닫는다."
+    },
+    {
+      "type": "h",
+      "text": "1. OS 별 절차"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "대략의 요구",
+      "text": "macOS   : Apple Developer 계정 → 코드 서명 → 공증(notarize) → 스테이플\nWindows : 코드 서명 인증서(OV/EV) → signtool. EV 는 SmartScreen 경고를 빨리 없앤다\nLinux   : AppImage · deb · rpm · Flatpak — 서명보다 배포 채널이 문제"
+    },
+    {
+      "type": "note",
+      "text": "인증서는 **발급에 시간과 돈이 든다**(개인은 신원 확인이 오래 걸리기도). 출시 일정에 미리 넣어라."
+    },
+    {
+      "type": "h",
+      "text": "2. 자동화"
+    },
+    {
+      "type": "code",
+      "lang": "yaml",
+      "label": "CI 에서 세 OS 를 굽는다",
+      "text": "strategy:\n  matrix:\n    os: [macos-latest, windows-latest, ubuntu-latest]\nsteps:\n  - run: npm ci && npm run tauri build\n  # 서명 키는 CI secret 으로 주입 (절대 저장소에 X)"
+    },
+    {
+      "type": "h",
+      "text": "3. 설치 경험"
+    },
+    {
+      "type": "p",
+      "text": "설치본 크기·설치 시간·기본 설치 경로·바로가기 생성 여부. macOS 는 「드래그해서 Applications 로」가 관례고, Windows 는 설치 마법사가 흔하다. **관례를 따르는 것**이 가장 친절하다."
+    },
+    {
+      "type": "h",
+      "text": "4. 첫 실행"
+    },
+    {
+      "type": "note",
+      "text": "설치 직후 첫 실행이 가장 중요한 순간이다 — 권한 요청은 **필요할 때** 하고, 온보딩은 짧게, 그리고 **바로 쓸 수 있는 상태**로 시작하라(빈 화면 금지)."
+    },
+    {
+      "type": "h",
+      "text": "5. 스토어에 낼 것인가"
+    },
+    {
+      "type": "p",
+      "text": "Mac App Store·Microsoft Store 는 발견성과 신뢰를 주지만 **샌드박스 제약**과 심사가 따라온다. 파일 접근이 핵심인 앱은 직접 배포가 나은 경우가 많다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "CI 에서 세 OS 설치본을 만들어 아티팩트로 올려라. 서명은 나중에 붙이더라도 빌드 자동화가 먼저다."
+    },
+    {
+      "type": "try",
+      "text": "서명 없는 빌드를 다른 컴퓨터에서 실행해 어떤 경고가 뜨는지 직접 보라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "macOS 배포에서 서명 외에 추가로 필요한 절차는?",
+      "choices": [
+        "공증(notarization)",
+        "스토어 등록",
+        "샌드박스 해제"
+      ],
+      "answer": 0,
+      "why": "공증이 없으면 실행이 차단될 수 있다."
+    },
+    {
+      "q": "서명 키를 다루는 올바른 방법은?",
+      "choices": [
+        "CI 비밀로 주입하고 저장소에 넣지 않는다",
+        "저장소에 암호화해 커밋",
+        "팀 채팅으로 공유"
+      ],
+      "answer": 0,
+      "why": "유출되면 악성 배포가 가능해진다."
+    },
+    {
+      "q": "스토어 배포의 대가는?",
+      "choices": [
+        "샌드박스 제약과 심사",
+        "용량 제한만",
+        "무료 배포 불가"
+      ],
+      "answer": 0,
+      "why": "파일 접근이 핵심이면 직접 배포가 나을 수 있다."
+    }
+  ]
+}

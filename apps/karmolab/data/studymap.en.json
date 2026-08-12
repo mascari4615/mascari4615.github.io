@@ -104,6 +104,10 @@
     "career": {
       "title": "Career & growth",
       "lead": "The part skill alone does not cover — being seen, and lasting"
+    },
+    "desktop": {
+      "title": "Desktop apps",
+      "lead": "What appears the moment web tech opens a window — files, permissions, updates, signing"
     }
   },
   "stages": {
@@ -172,7 +176,10 @@
     "team-c": "Let people stay",
     "career-a": "Make it visible",
     "career-b": "Move and negotiate",
-    "career-c": "Keep going"
+    "career-c": "Keep going",
+    "desktop-a": "What to build it with",
+    "desktop-b": "Make it feel native",
+    "desktop-c": "Keep it usable"
   },
   "nodes": {
     "web-html": {
@@ -1705,6 +1712,71 @@
       "check": "Rest is actually in the plan",
       "links": [
         "WHO — burnout definition"
+      ]
+    },
+    "desktop-why": {
+      "title": "Why desktop, and which stack",
+      "why": "Wrapping something the web already does only adds cost; files, background work and OS integration are the real reasons.",
+      "check": "You give three reasons why this must be a desktop app",
+      "links": [
+        "Tauri",
+        "Electron"
+      ]
+    },
+    "desktop-process": {
+      "title": "Process model and IPC",
+      "why": "The window (webview) and the privileged side are separate, and that boundary is your security boundary.",
+      "check": "You can draw the path from UI to a system call",
+      "links": [
+        "Tauri commands (IPC)"
+      ]
+    },
+    "desktop-fs": {
+      "title": "File system, permissions, paths",
+      "why": "App data, settings and cache live in different places per OS; writing anywhere breaks backup and uninstall.",
+      "check": "You store data in the OS standard locations",
+      "links": [
+        "Tauri path API"
+      ]
+    },
+    "desktop-os": {
+      "title": "OS integration — tray, notifications, shortcuts",
+      "why": "Desktop-ness comes from outside the window: launch at login, global shortcuts, living in the tray.",
+      "check": "Closing the window keeps it alive in the tray and notifications arrive",
+      "links": [
+        "Tauri system tray"
+      ]
+    },
+    "desktop-update": {
+      "title": "Auto update",
+      "why": "Users do not re-download apps; with no update path that version lives forever.",
+      "check": "Signed updates apply automatically and roll back on failure",
+      "links": [
+        "Tauri updater"
+      ]
+    },
+    "desktop-package": {
+      "title": "Packaging, signing, distribution",
+      "why": "Unsigned apps hit an \"unknown developer\" warning and most users stop there.",
+      "check": "You build and sign installers for the three OSes",
+      "links": [
+        "Tauri distribution guide"
+      ]
+    },
+    "desktop-perf": {
+      "title": "Memory and startup time",
+      "why": "A desktop app stays open all day, so leaks invisible on the web surface here.",
+      "check": "Memory does not grow after hours of uptime",
+      "links": [
+        "Chrome DevTools memory"
+      ]
+    },
+    "desktop-security": {
+      "title": "Security — local storage and remote content",
+      "why": "A local app can reach the user’s whole file system; loading arbitrary pages in the webview leaks that power.",
+      "check": "External links open in the system browser and permissions stay minimal",
+      "links": [
+        "Electron security checklist"
       ]
     }
   }

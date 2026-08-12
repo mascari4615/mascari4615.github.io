@@ -3226,6 +3226,147 @@
           ]
         }
       ]
+    },
+    {
+      "id": "desktop",
+      "title": "데스크톱 앱",
+      "emoji": "🖥",
+      "lead": "웹 기술로 창을 띄우는 순간 생기는 것들 — 파일·권한·업데이트·서명",
+      "stages": [
+        {
+          "id": "desktop-a",
+          "title": "무엇으로 만드나",
+          "nodes": [
+            {
+              "id": "desktop-why",
+              "title": "왜 데스크톱인가 · 기술 선택",
+              "why": "웹으로 되는 일을 앱으로 만들면 비용만 는다. 파일·백그라운드·OS 통합이 이유가 된다.",
+              "check": "데스크톱이어야 하는 이유를 세 줄로 댄다",
+              "links": [
+                {
+                  "label": "Tauri",
+                  "url": "https://tauri.app/"
+                },
+                {
+                  "label": "Electron",
+                  "url": "https://www.electronjs.org/"
+                }
+              ]
+            },
+            {
+              "id": "desktop-process",
+              "title": "프로세스 모델과 IPC",
+              "why": "화면(웹뷰)과 시스템 권한이 있는 쪽이 분리돼 있다. 그 경계가 곧 보안 경계다.",
+              "check": "화면에서 시스템 기능을 호출하는 경로를 그린다",
+              "links": [
+                {
+                  "label": "Tauri 명령(IPC)",
+                  "url": "https://v2.tauri.app/develop/calling-rust/"
+                }
+              ],
+              "prereq": [
+                "cs-os"
+              ]
+            },
+            {
+              "id": "desktop-fs",
+              "title": "파일 시스템 · 권한 · 경로",
+              "why": "앱 데이터·설정·캐시가 OS 마다 다른 곳에 있다. 아무 데나 쓰면 백업·삭제가 안 된다.",
+              "check": "OS 별 표준 경로에 저장한다",
+              "links": [
+                {
+                  "label": "Tauri 경로 API",
+                  "url": "https://v2.tauri.app/reference/javascript/api/namespacepath/"
+                }
+              ],
+              "prereq": [
+                "shell-perm"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "desktop-b",
+          "title": "앱처럼 만든다",
+          "nodes": [
+            {
+              "id": "desktop-os",
+              "title": "OS 통합 — 트레이 · 알림 · 단축키",
+              "why": "데스크톱다움은 창 밖에서 나온다. 시작 시 실행·전역 단축키·트레이 상주.",
+              "check": "창을 닫아도 트레이에서 살아 있고 알림이 온다",
+              "links": [
+                {
+                  "label": "Tauri 시스템 트레이",
+                  "url": "https://v2.tauri.app/learn/system-tray/"
+                }
+              ]
+            },
+            {
+              "id": "desktop-update",
+              "title": "자동 업데이트",
+              "why": "사용자는 앱을 다시 받지 않는다. 업데이트 경로가 없으면 그 버전이 영원히 남는다.",
+              "check": "서명된 업데이트가 자동으로 적용되고 실패해도 되돌아간다",
+              "links": [
+                {
+                  "label": "Tauri Updater",
+                  "url": "https://v2.tauri.app/plugin/updater/"
+                }
+              ],
+              "prereq": [
+                "devops-cd"
+              ]
+            },
+            {
+              "id": "desktop-package",
+              "title": "패키징 · 서명 · 배포",
+              "why": "서명 없는 앱은 「알 수 없는 개발자」 경고를 만나고, 대부분 거기서 닫는다.",
+              "check": "세 OS 용 설치본을 만들고 서명한다",
+              "links": [
+                {
+                  "label": "Tauri 배포 가이드",
+                  "url": "https://v2.tauri.app/distribute/"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "desktop-c",
+          "title": "오래 쓰이게",
+          "nodes": [
+            {
+              "id": "desktop-perf",
+              "title": "메모리 · 시작 시간",
+              "why": "데스크톱 앱은 하루 종일 떠 있다. 웹에서 안 보이던 누수가 여기서 드러난다.",
+              "check": "몇 시간 켜 둬도 메모리가 안 자란다",
+              "links": [
+                {
+                  "label": "Chrome DevTools 메모리",
+                  "url": "https://developer.chrome.com/docs/devtools/memory-problems"
+                }
+              ],
+              "prereq": [
+                "cs-memory"
+              ]
+            },
+            {
+              "id": "desktop-security",
+              "title": "보안 — 로컬 저장 · 원격 콘텐츠",
+              "why": "로컬 앱은 사용자 파일 전체에 닿을 수 있다. 웹뷰에 아무 페이지나 띄우면 그 권한이 새어 나간다.",
+              "check": "외부 링크는 시스템 브라우저로 열고 권한을 최소화한다",
+              "links": [
+                {
+                  "label": "Electron 보안 체크리스트",
+                  "url": "https://www.electronjs.org/docs/latest/tutorial/security"
+                }
+              ],
+              "prereq": [
+                "sec-owasp"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
