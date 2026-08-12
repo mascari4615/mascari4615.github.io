@@ -44,7 +44,7 @@ function readIndex(): LibraryIndex | null {
       maps: parsed.maps.filter((m): m is MapEntry => Boolean(m && m.id)),
     };
   } catch (e) {
-    console.error(t('karmograph.t405'), e);
+    console.error(t('karmograph.parsed.msg'), e);
     return null;
   }
 }
@@ -53,7 +53,7 @@ function writeIndex(index: LibraryIndex): void {
   try {
     localStorage.setItem(INDEX_KEY, JSON.stringify(index));
   } catch (e) {
-    console.error(t('karmograph.t406'), e);
+    console.error(t('karmograph.writeIndex.msg'), e);
   }
 }
 
@@ -81,12 +81,12 @@ export function loadLibrary(): LibraryIndex {
       localStorage.setItem(mapKey(id), legacy);
       localStorage.removeItem(LEGACY_KEY);   // 마이그레이션은 자기소멸 — 두 곳에 남기지 않는다
     } catch (e) {
-      console.error(t('karmograph.t407'), e);
+      console.error(t('karmograph.legacy.msg'), e);
     }
   }
   const index: LibraryIndex = {
     activeId: id,
-    maps: [{ id, name: legacy ? t('karmograph.t408') : t('karmograph.t409'), updatedAt: Date.now() }],
+    maps: [{ id, name: legacy ? t('karmograph.legacy.msg2') : t('karmograph.legacy.msg3'), updatedAt: Date.now() }],
   };
   writeIndex(index);
   return index;
@@ -117,7 +117,7 @@ export function addMap(index: LibraryIndex, name: string, specJson?: string): { 
     try {
       localStorage.setItem(mapKey(id), specJson);
     } catch (e) {
-      console.error(t('karmograph.t410'), e);
+      console.error(t('karmograph.id.msg'), e);
     }
   }
   const next: LibraryIndex = {
@@ -136,10 +136,10 @@ export function removeMap(index: LibraryIndex, id: string): LibraryIndex {
   try {
     localStorage.removeItem(mapKey(id));
   } catch (e) {
-    console.error(t('karmograph.t411'), e);
+    console.error(t('karmograph.id.msg2'), e);
   }
   if (index.maps.length <= 1) {
-    const next: LibraryIndex = { activeId: id, maps: [{ id, name: index.maps[0]?.name ?? t('karmograph.t409'), updatedAt: Date.now() }] };
+    const next: LibraryIndex = { activeId: id, maps: [{ id, name: index.maps[0]?.name ?? t('karmograph.legacy.msg3'), updatedAt: Date.now() }] };
     writeIndex(next);
     return next;
   }
@@ -150,5 +150,5 @@ export function removeMap(index: LibraryIndex, id: string): LibraryIndex {
 }
 
 export function activeName(index: LibraryIndex): string {
-  return index.maps.find((m) => m.id === index.activeId)?.name ?? t('karmograph.t412');
+  return index.maps.find((m) => m.id === index.activeId)?.name ?? t('karmograph.maps.msg');
 }

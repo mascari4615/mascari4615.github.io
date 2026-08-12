@@ -19,25 +19,25 @@ export function renderTermsPanel(ctx: PanelCtx): void {
   side.classList.remove('hidden');
   ctx.canvas()?.setSelectedNode(null);
   const EDGE_STYLES: { id: string; label: string }[] = [
-    { id: 'solid', label: t('karmograph.t372') }, { id: 'dashed', label: t('karmograph.t373') }, { id: 'dotted', label: t('karmograph.t374') },
-    { id: 'wavy', label: t('karmograph.t375') }, { id: 'crack', label: t('karmograph.t376') },
+    { id: 'solid', label: t('karmograph.arrowGlyph.msg') }, { id: 'dashed', label: t('karmograph.arrowGlyph.msg2') }, { id: 'dotted', label: t('karmograph.arrowGlyph.msg3') },
+    { id: 'wavy', label: t('karmograph.arrowGlyph.msg4') }, { id: 'crack', label: t('karmograph.arrowGlyph.msg5') },
   ];
   side.innerHTML = `
-    <h4>${esc(t('karmograph.t365'))}</h4>
-    <div class="km-hint">${t('karmograph.termsOwn', { em: `<b>${esc(t('karmograph.t367'))}</b>` })}</div>
+    <h4>${esc(t('karmograph.arrowGlyph.msg6'))}</h4>
+    <div class="km-hint">${t('karmograph.termsOwn', { em: `<b>${esc(t('karmograph.arrowGlyph.msg7'))}</b>` })}</div>
     <div class="km-field">
       <label>내 노드 종류 ${ctx.terms.nodeKinds.length}개</label>
       ${ctx.terms.nodeKinds
         .map(
           (k) => `<div class="km-group-row" data-term-node="${esc(k.id)}">
-            <input type="text" data-km="t-icon" maxlength="4" value="${esc(k.icon)}" title="${esc(t('karmograph.t362'))}" />
+            <input type="text" data-km="t-icon" maxlength="4" value="${esc(k.icon)}" title="${esc(t('karmograph.tIcon.title'))}" />
             <input type="text" data-km="t-label" value="${esc(k.label)}" />
             <input type="color" data-km="t-color" value="${esc(k.color)}" />
-            <button class="btn btn-ghost" data-km="t-del" title="${esc(t('karmograph.t363'))}">×</button>
+            <button class="btn btn-ghost" data-km="t-del" title="${esc(t('karmograph.tDel.title'))}">×</button>
           </div>`
         )
         .join('') || `<div class="km-hint">${t('karmograph.nothingYet')}</div>`}
-      <button class="btn btn-ghost" data-km="t-add-node">${esc(t('karmograph.t369'))}</button>
+      <button class="btn btn-ghost" data-km="t-add-node">${esc(t('karmograph.tAddNode.label'))}</button>
     </div>
     <div class="km-field">
       <label>내 관계 종류 ${ctx.terms.edgeKinds.length}개</label>
@@ -49,14 +49,14 @@ export function renderTermsPanel(ctx: PanelCtx): void {
             <select data-km="t-style">
               ${EDGE_STYLES.map((s) => `<option value="${s.id}"${s.id === e.style ? ' selected' : ''}>${s.label}</option>`).join('')}
             </select>
-            <button class="btn btn-ghost" data-km="t-arrow" title="${esc(t('karmograph.t364'))}">${arrowGlyph(e)}</button>
-            <button class="btn btn-ghost" data-km="t-del" title="${esc(t('karmograph.t363'))}">×</button>
+            <button class="btn btn-ghost" data-km="t-arrow" title="${esc(t('karmograph.tArrow.title'))}">${arrowGlyph(e)}</button>
+            <button class="btn btn-ghost" data-km="t-del" title="${esc(t('karmograph.tDel.title'))}">×</button>
           </div>`
         )
         .join('') || `<div class="km-hint">${t('karmograph.nothingYet')}</div>`}
-      <button class="btn btn-ghost" data-km="t-add-edge">${esc(t('karmograph.t370'))}</button>
+      <button class="btn btn-ghost" data-km="t-add-edge">${esc(t('karmograph.tAddEdge.label'))}</button>
     </div>
-    <button class="btn btn-ghost" data-km="t-close">${esc(t('karmograph.t371'))}</button>`;
+    <button class="btn btn-ghost" data-km="t-close">${esc(t('karmograph.tClose.label'))}</button>`;
 
   (side.querySelector('[data-km="t-close"]') as HTMLButtonElement).onclick = () => {
     ctx.goNode();
@@ -64,14 +64,14 @@ export function renderTermsPanel(ctx: PanelCtx): void {
 
   (side.querySelector('[data-km="t-add-node"]') as HTMLButtonElement).onclick = () => {
     const taken = new Set([...ctx.terms.nodeKinds, ...ctx.terms.edgeKinds].map((k) => k.id));
-    ctx.terms.nodeKinds.push({ id: newTermId('n', taken), label: t('karmograph.t377'), icon: '🔖', color: '#38bdf8' });
+    ctx.terms.nodeKinds.push({ id: newTermId('n', taken), label: t('karmograph.tAddNode.label2'), icon: '🔖', color: '#38bdf8' });
     ctx.applyTerms();
     ctx.refresh();
   };
 
   (side.querySelector('[data-km="t-add-edge"]') as HTMLButtonElement).onclick = () => {
     const taken = new Set([...ctx.terms.nodeKinds, ...ctx.terms.edgeKinds].map((k) => k.id));
-    ctx.terms.edgeKinds.push({ id: newTermId('e', taken), label: t('karmograph.t378'), color: '#38bdf8', style: 'solid', arrow: true });
+    ctx.terms.edgeKinds.push({ id: newTermId('e', taken), label: t('karmograph.tAddEdge.label2'), color: '#38bdf8', style: 'solid', arrow: true });
     ctx.applyTerms();
     ctx.refresh();
   };

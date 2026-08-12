@@ -29,7 +29,7 @@ export class KarmoGraphLocalStorageAdapter implements GraphPersistAdapter {
       const parsed = JSON.parse(raw) as Partial<GraphSpec>;
       return Promise.resolve(this.normalize(parsed));
     } catch (e) {
-      console.error(t('karmograph.t402'), e);
+      console.error(t('karmograph.parsed.msg2'), e);
       return Promise.resolve(null);
     }
   }
@@ -66,7 +66,7 @@ export class KarmoGraphLocalStorageAdapter implements GraphPersistAdapter {
       localStorage.removeItem(this.key);
       if (before) { try { localStorage.setItem(this.prevKey(), before); } catch { /* 칸이 좁으면 포기 */ } }
     } catch (e) {
-      console.error(t('karmograph.t403'), e);
+      console.error(t('karmograph.before.msg'), e);
     }
   }
 
@@ -102,7 +102,7 @@ export class KarmoGraphLocalStorageAdapter implements GraphPersistAdapter {
     } catch (e) {
       // 용량 초과(QuotaExceeded)가 대표 케이스 — 조용히 삼키면 사용자가
       // 저장된 줄 알고 작업을 계속하다 통째로 잃는다. 그래서 알린다.
-      console.error(t('karmograph.t404'), e);
+      console.error(t('karmograph.before.msg2'), e);
       alert('KarmoGraph 저장에 실패했습니다. 브라우저 저장 공간을 확인해 주세요.\n(JSON 내보내기로 먼저 백업하시길 권합니다)');
     }
   }

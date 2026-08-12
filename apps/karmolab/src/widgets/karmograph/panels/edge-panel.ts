@@ -22,32 +22,32 @@ export function renderEdgePanel(ctx: PanelCtx): void {
   const nameOf = (id: string): string => ctx.spec().nodes.find((n) => n.id === id)?.label || t('karmograph.unnamed');
   side.classList.remove('hidden');
   side.innerHTML = `
-    <h4>${esc(t('karmograph.t323'))}</h4>
+    <h4>${esc(t('karmograph.nameOf.msg'))}</h4>
     <div class="km-hint">${esc(nameOf(edge.from))} → ${esc(nameOf(edge.to))}</div>
     <div class="km-field">
-      <label>${esc(t('karmograph.t324'))}</label>
+      <label>${esc(t('karmograph.nameOf.msg2'))}</label>
       <select data-km="ed-kind">${ctx.edgeKindOptionsHtml(edge.kind)}</select>
     </div>
     <div class="km-field">
-      <label>${esc(t('karmograph.t325'))}</label>
-      <input type="text" data-km="ed-label" value="${esc(edge.label ?? '')}" placeholder="${esc(t('karmograph.t322'))}" />
+      <label>${esc(t('karmograph.nameOf.msg3'))}</label>
+      <input type="text" data-km="ed-label" value="${esc(edge.label ?? '')}" placeholder="${esc(t('karmograph.edLabel.ph'))}" />
     </div>
     ${docFieldHtml(ctx, edge, EDGE_DOC_SKIN)}
     <div class="km-field">
-      <label>${esc(t('karmograph.t326'))}</label>
-      <div class="km-hint">${t('karmograph.edgeBothViews', { em: `<b>${esc(t('karmograph.t328'))}</b>` })}</div>
+      <label>${esc(t('karmograph.nameOf.msg4'))}</label>
+      <div class="km-hint">${t('karmograph.edgeBothViews', { em: `<b>${esc(t('karmograph.nameOf.msg5'))}</b>` })}</div>
       <input type="text" data-km="ed-view-from" value="${esc(edge.viewFrom ?? '')}"
         placeholder="${esc(nameOf(edge.from))} 가 보는 ${esc(nameOf(edge.to))}" />
       <input type="text" data-km="ed-view-to" value="${esc(edge.viewTo ?? '')}"
         placeholder="${esc(nameOf(edge.to))} 가 보는 ${esc(nameOf(edge.from))}" />
     </div>
     <div class="km-field">
-      <label>${esc(t('karmograph.t330'))} <span class="km-hint">${esc(t('karmograph.t331'))}</span></label>
+      <label>${esc(t('karmograph.nameOf.msg6'))} <span class="km-hint">${esc(t('karmograph.nameOf.msg7'))}</span></label>
       <input type="text" data-km="ed-tags" value="${esc((edge.tags ?? []).join(', '))}" />
     </div>
-    <button class="btn btn-ghost" data-km="ed-both">${edge.arrowStart ? t('karmograph.t334') : t('karmograph.t335')}</button>
-    <button class="btn btn-danger" data-km="ed-del">${esc(t('karmograph.t332'))}</button>
-    <button class="btn btn-ghost" data-km="ed-close">${esc(t('karmograph.t333'))}</button>`;
+    <button class="btn btn-ghost" data-km="ed-both">${edge.arrowStart ? t('karmograph.edBoth.label') : t('karmograph.edBoth.label2')}</button>
+    <button class="btn btn-danger" data-km="ed-del">${esc(t('karmograph.edDel.label'))}</button>
+    <button class="btn btn-ghost" data-km="ed-close">${esc(t('karmograph.edClose.label'))}</button>`;
 
   const save = (): void => {
     ctx.canvas()?.render();
@@ -84,7 +84,7 @@ export function renderEdgePanel(ctx: PanelCtx): void {
   };
   (side.querySelector('[data-km="ed-both"]') as HTMLButtonElement).onclick = (ev) => {
     edge.arrowStart = edge.arrowStart ? undefined : true;
-    (ev.currentTarget as HTMLButtonElement).textContent = edge.arrowStart ? t('karmograph.t334') : t('karmograph.t335');
+    (ev.currentTarget as HTMLButtonElement).textContent = edge.arrowStart ? t('karmograph.edBoth.label') : t('karmograph.edBoth.label2');
     save();
   };
   (side.querySelector('[data-km="ed-del"]') as HTMLButtonElement).onclick = () => {

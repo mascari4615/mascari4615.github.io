@@ -23,46 +23,46 @@ export function renderNotesPanel(ctx: PanelCtx): void {
   const foreign = ctx.foreignNotes();
 
   side.innerHTML = `
-    <h4>${esc(t('karmograph.t337'))}</h4>
-    <div class="km-hint">${t('karmograph.hint07', { em: `<b>${esc(t('karmograph.t339'))}</b>` })}
+    <h4>${esc(t('karmograph.foreign.msg'))}</h4>
+    <div class="km-hint">${t('karmograph.hint07', { em: `<b>${esc(t('karmograph.foreign.msg2'))}</b>` })}
       ${t('karmograph.scatterHint', {
-        scatter: `<b>${esc(t('karmograph.t341'))}</b>`,
-        copy: `<b>${esc(t('karmograph.t343'))}</b>`,
+        scatter: `<b>${esc(t('karmograph.foreign.msg3'))}</b>`,
+        copy: `<b>${esc(t('karmograph.foreign.msg4'))}</b>`,
       })}</div>
     ${notes.length === 0
       ? `<div class="km-field"><div class="km-hint">${t('karmograph.notesEmpty', {
-            desc: `<b>${esc(t('karmograph.t346'))}</b>`,
-            many: `<b>${esc(t('karmograph.t348'))}</b>`,
+            desc: `<b>${esc(t('karmograph.foreign.msg5'))}</b>`,
+            many: `<b>${esc(t('karmograph.foreign.msg6'))}</b>`,
           })}</div></div>`
       : notes.map((n) => {
           const users = noteUsers(spec, n.id);
           const head = (n.text.split('\n')[0] ?? '').slice(0, 60);
           return `<div class="km-field">
-            <input type="text" data-km="note-title" data-key="${esc(n.id)}" value="${esc(n.title ?? '')}" placeholder="${esc(t('karmograph.t336'))}" />
+            <input type="text" data-km="note-title" data-key="${esc(n.id)}" value="${esc(n.title ?? '')}" placeholder="${esc(t('karmograph.noteTitle.ph'))}" />
             <div class="km-link-row">
               <span class="km-link-name">${esc(head || t('karmograph.emptyDoc'))}</span>
               <span class="km-group-count">${users}곳</span>
-              <button class="btn btn-ghost" data-km="note-go" data-key="${esc(n.id)}"${users === 0 ? ' disabled' : ''}>${esc(t('karmograph.t350'))}</button>
-              <button class="btn btn-ghost" data-km="note-show" data-key="${esc(n.id)}"${users < 2 ? ' disabled' : ''}>${esc(t('karmograph.t351'))}</button>
-              <button class="btn btn-ghost" data-km="note-card" data-key="${esc(n.id)}">${esc(t('karmograph.t352'))}</button>
-              <button class="btn btn-ghost" data-km="note-split" data-key="${esc(n.id)}">${esc(t('karmograph.t341'))}</button>
+              <button class="btn btn-ghost" data-km="note-go" data-key="${esc(n.id)}"${users === 0 ? ' disabled' : ''}>${esc(t('karmograph.noteGo.label'))}</button>
+              <button class="btn btn-ghost" data-km="note-show" data-key="${esc(n.id)}"${users < 2 ? ' disabled' : ''}>${esc(t('karmograph.foreign.msg7'))}</button>
+              <button class="btn btn-ghost" data-km="note-card" data-key="${esc(n.id)}">${esc(t('karmograph.noteCard.label'))}</button>
+              <button class="btn btn-ghost" data-km="note-split" data-key="${esc(n.id)}">${esc(t('karmograph.foreign.msg3'))}</button>
             </div>
           </div>`;
         }).join('')}
     ${foreign.length === 0 ? '' : `<div class="km-field">
-      <label>${esc(t('karmograph.t353'))}</label>
+      <label>${esc(t('karmograph.foreign.msg8'))}</label>
       <div class="km-hint">${t('karmograph.notesForeign', {
-        outlive: `<b>${esc(t('karmograph.t355'))}</b>`,
-        same: `<b>${esc(t('karmograph.t357'))}</b>`,
+        outlive: `<b>${esc(t('karmograph.foreign.msg9'))}</b>`,
+        same: `<b>${esc(t('karmograph.foreign.msg10'))}</b>`,
       })}</div>
       ${foreign.slice(0, 12).map((n) => `<div class="km-link-row">
         <span class="km-link-name">${esc(n.title || (n.text.split(/\r?\n/)[0] ?? '').slice(0, 40) || t('karmograph.emptyDoc'))}</span>
-        <span class="km-group-count">${esc(n.from ?? t('karmograph.t361'))}</span>
-        <button class="btn btn-ghost" data-km="note-adopt" data-key="${esc(n.id)}">${esc(t('karmograph.t359'))}</button>
+        <span class="km-group-count">${esc(n.from ?? t('karmograph.foreign.msg11'))}</span>
+        <button class="btn btn-ghost" data-km="note-adopt" data-key="${esc(n.id)}">${esc(t('karmograph.noteAdopt.label'))}</button>
       </div>`).join('')}
     </div>`}
     ${orphans === 0 ? '' : `<button class="btn btn-danger" data-km="note-prune">${esc(t('karmograph.pruneOrphans', { n: orphans }))}</button>`}
-    <button class="btn btn-ghost" data-km="note-close">${esc(t('karmograph.t360'))}</button>`;
+    <button class="btn btn-ghost" data-km="note-close">${esc(t('karmograph.noteClose.label'))}</button>`;
 
   side.querySelectorAll('[data-km="note-title"]').forEach((el) => {
     const input = el as HTMLInputElement;

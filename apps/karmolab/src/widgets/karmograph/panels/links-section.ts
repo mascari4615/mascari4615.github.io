@@ -35,13 +35,13 @@ export function renderLinkSections(ctx: PanelCtx, node: GraphNode): string {
   return `
     ${out.length === 0 ? '' : `<div class="km-field"><label>가리키는 것 ${out.length}</label>
       ${out.map((o) => (o.node
-        ? row(o.name, 'go-link', o.node.id, t('karmograph.t433'))
-        : row(o.name, 'make-link', o.name, t('karmograph.t434')))).join('')}</div>`}
+        ? row(o.name, 'go-link', o.node.id, t('karmograph.row.msg'))
+        : row(o.name, 'make-link', o.name, t('karmograph.row.msg2')))).join('')}</div>`}
     ${back.length === 0 ? '' : `<div class="km-field"><label>나를 가리키는 것 ${back.length}</label>
-      ${back.map((b) => row(b.label, 'go-link', b.id, t('karmograph.t433'))).join('')}</div>`}
+      ${back.map((b) => row(b.label, 'go-link', b.id, t('karmograph.row.msg'))).join('')}</div>`}
     ${loose.length === 0 ? '' : `<div class="km-field"><label>이름만 나온 곳 ${loose.length}</label>
-      ${loose.map((m) => row(m.label, 'link-mention', m.id, t('karmograph.t435'))).join('')}
-      <div class="km-hint">${esc(t('karmograph.t432'))}</div></div>`}`;
+      ${loose.map((m) => row(m.label, 'link-mention', m.id, t('karmograph.row.msg3'))).join('')}
+      <div class="km-hint">${esc(t('karmograph.row.msg4'))}</div></div>`}`;
 }
 
 /** 링크 목록의 버튼들. renderSide 가 다시 그릴 때마다 새로 매단다. */

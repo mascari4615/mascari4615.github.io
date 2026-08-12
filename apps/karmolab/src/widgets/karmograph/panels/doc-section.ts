@@ -26,15 +26,15 @@ export interface DocFieldSkin {
 }
 
 export const NODE_DOC_SKIN: DocFieldSkin = {
-  label: t('karmograph.t301', undefined, "설명"),
-  placeholder: t('karmograph.t302', undefined, '이 노드가 누구인지, 왜 중요한지 적어 두세요.'),
+  label: t('karmograph.docSection.txt', undefined, "설명"),
+  placeholder: t('karmograph.docSection.txt2', undefined, '이 노드가 누구인지, 왜 중요한지 적어 두세요.'),
   key: 'edit-doc',
-  hint: t('karmograph.t303', undefined, '[[다른 이름]]으로 링크하면 관계가 함께 보입니다.'),
+  hint: t('karmograph.docSection.txt3', undefined, '[[다른 이름]]으로 링크하면 관계가 함께 보입니다.'),
 };
 
 export const EDGE_DOC_SKIN: DocFieldSkin = {
-  label: t('karmograph.t304', undefined, "이 관계의 이야기"),
-  placeholder: t('karmograph.t305', undefined, '둘 사이의 사건, 감정, 규칙을 적어 두세요.'),
+  label: t('karmograph.docSection.txt4', undefined, "이 관계의 이야기"),
+  placeholder: t('karmograph.docSection.txt5', undefined, '둘 사이의 사건, 감정, 규칙을 적어 두세요.'),
   key: 'ed-doc',
 };
 
@@ -59,8 +59,8 @@ function sharedUsersHtml(ctx: PanelCtx, noteId: string, key: string): string {
     ${rows.map((r) => `<div class="km-link-row">
       <span class="km-link-name">${esc(r.name)}</span>
       ${r.kind === 'node'
-        ? `<button class="btn btn-ghost" data-km="${key}-user-go" data-key="${esc(r.id)}">${esc(t('karmograph.t292'))}</button>`
-        : t('karmograph.t306')}
+        ? `<button class="btn btn-ghost" data-km="${key}-user-go" data-key="${esc(r.id)}">${esc(t('karmograph.rows.msg2'))}</button>`
+        : t('karmograph.rows.msg3')}
     </div>`).join('')}
   </details>`;
 }
@@ -88,11 +88,11 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
       <textarea data-km="${skin.key}" class="km-textarea" rows="5" placeholder="${esc(skin.placeholder)}">${esc(resolveDoc(spec, node))}</textarea>
       ${skin.hint ? `<div class="km-hint">${skin.hint}</div>` : ''}
       ${shared
-        ? `<button class="btn btn-ghost" data-km="${skin.key}-unlink">${esc(t('karmograph.t293'))}</button>`
-        : `<button class="btn btn-ghost" data-km="${skin.key}-share">${esc(t('karmograph.t294'))}</button>`}
+        ? `<button class="btn btn-ghost" data-km="${skin.key}-unlink">${esc(t('karmograph.embedded.msg'))}</button>`
+        : `<button class="btn btn-ghost" data-km="${skin.key}-share">${esc(t('karmograph.embedded.msg2'))}</button>`}
       ${embedded.length === 0 ? '' : `<div class="km-field">
-        <label>${esc(t('karmograph.t295'))}</label>
-        <div class="km-hint">${t('karmograph.docShared', { em: `<b>${esc(t('karmograph.t297'))}</b>` })}</div>
+        <label>${esc(t('karmograph.embedded.msg3'))}</label>
+        <div class="km-hint">${t('karmograph.docShared', { em: `<b>${esc(t('karmograph.embedded.msg4'))}</b>` })}</div>
         ${embedded.map((n) => `<div>
           <div class="km-link-row"><span class="km-link-name">${esc(n.title || t('karmograph.noteLabel'))}</span>
             <span class="km-group-count">${noteUsers(spec, n.id)}곳</span></div>
@@ -100,7 +100,7 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
         </div>`).join('')}
       </div>`}
       ${others.length === 0 ? '' : `<select data-km="${skin.key}-embed">
-        <option value="">${esc(t('karmograph.t299'))}</option>
+        <option value="">${esc(t('karmograph.embedded.msg5'))}</option>
         ${others.map((n) => {
           // 글에 `^표식`이 달려 있으면 **그 대목만** 고를 수 있게 함께 편다 — 열 줄짜리 규칙에서
           // 한 줄만 싣고 싶은 일이 훨씬 잦다 (Obsidian 블록 참조 계보).
@@ -110,12 +110,12 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
         }).join('')}
       </select>`}
       ${others.length === 0 && foreign.length === 0 ? '' : `<select data-km="${skin.key}-use">
-        <option value="">${esc(t('karmograph.t300'))}</option>
+        <option value="">${esc(t('karmograph.embedded.msg6'))}</option>
         ${others.length === 0 ? '' : `<optgroup label="${esc(t('karmograph.docThisMap'))}">
           ${others.map((n) => `<option value="${esc(n.id)}">${esc(n.title || t('karmograph.noteLabel'))} ${esc(t('karmograph.docUsedIn', { n: noteUsers(spec, n.id) }))}</option>`).join('')}
         </optgroup>`}
         ${foreign.length === 0 ? '' : `<optgroup label="${esc(t('karmograph.docOtherMap'))}">
-          ${foreign.slice(0, 20).map((n) => `<option value="${esc(n.id)}">${esc(n.title || '메모')} — ${esc(n.from ?? t('karmograph.t307'))}</option>`).join('')}
+          ${foreign.slice(0, 20).map((n) => `<option value="${esc(n.id)}">${esc(n.title || '메모')} — ${esc(n.from ?? t('karmograph.embedded.msg7'))}</option>`).join('')}
         </optgroup>`}
       </select>`}
     </div>`;

@@ -13,13 +13,13 @@ export function membershipFieldHtml(ctx: PanelCtx, node: GraphNode): string {
   const groups = ctx.spec().groups;
   return `
     <div class="km-field">
-      <label>${esc(t('karmograph.t422'))}</label>
+      <label>${esc(t('karmograph.groups.msg2'))}</label>
       ${groups.length === 0
-        ? t('karmograph.t424')
+        ? t('karmograph.groups.msg3')
         : groups.map((g) => `<label class="km-check"><input type="checkbox" data-km="in-group" value="${esc(g.id)}"${
             ctx.memberOf(node).includes(g.id) ? ' checked' : ''
           } /> <span class="km-swatch" style="background:${esc(g.color)}"></span>${esc(g.label)}</label>`).join('')}
-      <button class="btn btn-ghost" data-km="group-new-here">${esc(t('karmograph.t423'))}</button>
+      <button class="btn btn-ghost" data-km="group-new-here">${esc(t('karmograph.groupNewHere.label'))}</button>
     </div>`;
 }
 

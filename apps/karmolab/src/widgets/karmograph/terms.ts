@@ -32,7 +32,7 @@ export function loadTerms(): MyTerms {
       edgeKinds: Array.isArray(parsed.edgeKinds) ? parsed.edgeKinds : [],
     };
   } catch (e) {
-    console.error(t('karmograph.t430'), e);
+    console.error(t('karmograph.parsed.msg3'), e);
     return emptyTerms();
   }
 }
@@ -41,7 +41,7 @@ export function saveTerms(terms: MyTerms): void {
   try {
     localStorage.setItem(TERMS_KEY, JSON.stringify(terms));
   } catch (e) {
-    console.error(t('karmograph.t431'), e);
+    console.error(t('karmograph.parsed.msg4'), e);
   }
 }
 

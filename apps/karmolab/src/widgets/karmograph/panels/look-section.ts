@@ -17,7 +17,7 @@ export function shapeFieldHtml(ctx: PanelCtx, node: GraphNode, shapes: ShapeOpti
   const esc = ctx.esc;
   return `
     <div class="km-field">
-      <label>${esc(t('karmograph.t437'))}</label>
+      <label>${esc(t('karmograph.esc.msg3'))}</label>
       <select data-km="edit-shape">
         ${shapes.map((s) => `<option value="${s.id}"${(node.shape ?? 'rect') === s.id ? ' selected' : ''}>${s.icon} ${esc(s.label)}</option>`).join('')}
       </select>
@@ -29,7 +29,7 @@ export function tiltFieldHtml(ctx: PanelCtx, node: GraphNode): string {
   const deg = Math.round(node.rotate ?? 0);
   return `
     <div class="km-field">
-      <label>${esc(t('karmograph.t438'))} <span class="km-tilt-val">${deg}°</span></label>
+      <label>${esc(t('karmograph.deg.msg'))} <span class="km-tilt-val">${deg}°</span></label>
       <input type="range" data-km="edit-rotate" min="-20" max="20" step="1" value="${deg}" />
     </div>`;
 }

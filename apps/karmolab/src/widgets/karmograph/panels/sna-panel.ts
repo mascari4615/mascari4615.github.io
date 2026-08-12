@@ -24,30 +24,30 @@ export function renderSnaPanel(ctx: PanelCtx): void {
       <label>${title}</label>
       <div class="km-hint">${hint}</div>
       ${rows.length === 0
-        ? t('karmograph.t315')
+        ? t('karmograph.list.msg2')
         : rows.map((r) => `<div class="km-link-row">
             <span class="km-link-name">${esc(nameOf(r.id))}</span>
             <span class="km-group-count">${r.value.toFixed(digits)}</span>
-            <button class="btn btn-ghost" data-km="go-link" data-key="${esc(r.id)}">${esc(t('karmograph.t308'))}</button>
+            <button class="btn btn-ghost" data-km="go-link" data-key="${esc(r.id)}">${esc(t('karmograph.goLink.label'))}</button>
           </div>`).join('')}
     </div>`;
 
   side.innerHTML = `
-    <h4>${esc(t('karmograph.t309'))}</h4>
-    ${list(t('karmograph.t316'), t('karmograph.t317'), topBy(sna.degree, 5), 0)}
-    ${list(t('karmograph.t318'), t('karmograph.t319'), topBy(sna.betweenness, 5), 1)}
-    ${list(t('karmograph.t320'), t('karmograph.t321'), topBy(sna.closeness, 5), 3)}
+    <h4>${esc(t('karmograph.list.msg3'))}</h4>
+    ${list(t('karmograph.list.msg4'), t('karmograph.list.msg5'), topBy(sna.degree, 5), 0)}
+    ${list(t('karmograph.list.msg6'), t('karmograph.list.msg7'), topBy(sna.betweenness, 5), 1)}
+    ${list(t('karmograph.list.msg8'), t('karmograph.list.msg9'), topBy(sna.closeness, 5), 3)}
     ${gaps.length === 0 ? '' : `<div class="km-field">
-      <label>${esc(t('karmograph.t310'))}</label>
-      <div class="km-hint">${esc(t('karmograph.t311'))}</div>
+      <label>${esc(t('karmograph.list.msg10'))}</label>
+      <div class="km-hint">${esc(t('karmograph.list.msg11'))}</div>
       ${gaps.slice(0, 5).map((g0) => `<div class="km-link-row">
         <span class="km-link-name">${esc(nameOf(g0.a))} ↔ ${esc(nameOf(g0.b))}</span>
         <span class="km-group-count">겹치는 사이 ${g0.shared}</span>
-        <button class="btn btn-ghost" data-km="gap-link" data-key="${esc(g0.a)}" data-to="${esc(g0.b)}">${esc(t('karmograph.t312'))}</button>
+        <button class="btn btn-ghost" data-km="gap-link" data-key="${esc(g0.a)}" data-to="${esc(g0.b)}">${esc(t('karmograph.gapLink.label'))}</button>
       </div>`).join('')}
     </div>`}
-    <button class="btn btn-ghost" data-km="sna-focus">${esc(t('karmograph.t313'))}</button>
-    <button class="btn btn-ghost" data-km="sna-close">${esc(t('karmograph.t314'))}</button>`;
+    <button class="btn btn-ghost" data-km="sna-focus">${esc(t('karmograph.snaFocus.label'))}</button>
+    <button class="btn btn-ghost" data-km="sna-close">${esc(t('karmograph.snaClose.label'))}</button>`;
 
   side.querySelectorAll('[data-km="go-link"]').forEach((el) => {
     (el as HTMLButtonElement).onclick = () => {

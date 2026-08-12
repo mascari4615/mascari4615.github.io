@@ -12,16 +12,16 @@ export function avatarFieldHtml(ctx: PanelCtx, node: GraphNode): string {
   const esc = ctx.esc;
   return `
     <div class="km-field">
-      <label>${esc(t('karmograph.t393'))}</label>
+      <label>${esc(t('karmograph.esc.msg'))}</label>
       <div class="km-avatar-row">
         <input type="text" data-km="edit-emoji" maxlength="4" placeholder="😀"
           value="${esc(node.avatar?.kind === 'emoji' ? node.avatar.value : '')}" />
         <input type="color" data-km="edit-color"
-          value="${esc(node.avatar?.kind === 'color' ? node.avatar.value : '#a78bfa')}" title="${esc(t('karmograph.t390'))}" />
-        <button class="btn btn-ghost" data-km="edit-img" title="${esc(t('karmograph.t391'))}">🖼</button>
-        <button class="btn btn-ghost" data-km="edit-noface" title="${esc(t('karmograph.t392'))}">✕</button>
+          value="${esc(node.avatar?.kind === 'color' ? node.avatar.value : '#a78bfa')}" title="${esc(t('karmograph.editColor.title'))}" />
+        <button class="btn btn-ghost" data-km="edit-img" title="${esc(t('karmograph.editImg.title'))}">🖼</button>
+        <button class="btn btn-ghost" data-km="edit-noface" title="${esc(t('karmograph.editNoface.title'))}">✕</button>
       </div>
-      <div class="km-hint">${esc(t('karmograph.t394'))}</div>
+      <div class="km-hint">${esc(t('karmograph.esc.msg2'))}</div>
     </div>`;
 }
 

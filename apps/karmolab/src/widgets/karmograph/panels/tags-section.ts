@@ -18,8 +18,8 @@ export function tagsFieldHtml(ctx: PanelCtx, node: GraphNode): string {
   const tags = allTagsIn(ctx.spec().nodes);
   return `
     <div class="km-field">
-      <label>${esc(t('karmograph.t426'))} <span class="km-hint">${esc(t('karmograph.t427'))}</span></label>
-      <input type="text" data-km="edit-tags" value="${esc((node.tags ?? []).join(', '))}" placeholder="${esc(t('karmograph.t425'))}" />
+      <label>${esc(t('karmograph.tags.msg'))} <span class="km-hint">${esc(t('karmograph.tags.msg2'))}</span></label>
+      <input type="text" data-km="edit-tags" value="${esc((node.tags ?? []).join(', '))}" placeholder="${esc(t('karmograph.editTags.ph'))}" />
       ${tags.length === 0 ? '' : `<div class="km-tagbar">${tags
         .map((tg) => `<button class="btn btn-ghost km-tagchip" data-km="tag-add" data-key="${esc(tg)}">${esc(tg)}</button>`)
         .join('')}</div>`}
