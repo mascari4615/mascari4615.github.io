@@ -19,6 +19,10 @@ export interface StudioClip {
   assetId?: string;
   /** 이 클립만 소리를 끈다 — 트랙 전체를 끄지 않고 한 부분만 빼 보려고. */
   mute: boolean;
+  /** 잠그면 옮기거나 길이를 바꾸거나 지울 수 없다 — 다 짠 부분을 실수로 건드리지 않게. */
+  locked: boolean;
+  /** 트랙 색 대신 쓸 색. 없으면 트랙 색을 따른다. */
+  color?: string;
   notes: StudioNote[];
   gain: number;
   fadeIn: number;
@@ -114,6 +118,17 @@ export function clampTrackHeight(value: unknown): number {
 
 const COLORS = ['#8b7cf6', '#42b9a8', '#ed8b55', '#e15d8a', '#5d9cec', '#c5a34e'];
 
+/** 클립에 골라 줄 수 있는 색 — 트랙 색과 같은 묶음이라 화면이 안 튄다. */
+export const CLIP_COLORS = COLORS;
+
+/** 다음 색으로 한 칸. 트랙 색을 따르던 것(undefined)이면 첫 색부터. */
+export function nextClipColor(current: string | undefined): string | undefined {
+  if (!current) return CLIP_COLORS[0];
+  const index = CLIP_COLORS.indexOf(current);
+  if (index < 0) return CLIP_COLORS[0];
+  return index + 1 >= CLIP_COLORS.length ? undefined : CLIP_COLORS[index + 1];
+}
+
 export function studioId(prefix: string): string {
   const random = typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID().slice(0, 8)
@@ -134,7 +149,7 @@ export function newProject(): StudioProject {
   const midi = newTrack('midi', 1);
   const clip: StudioClip = {
     id: studioId('clip'), trackId: midi.id, kind: 'midi', name: 'First idea', start: 0, duration: 4,
-    offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, mute: false, notes: [60, 64, 67, 72].map((pitch, index) => ({
+    offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, mute: false, locked: false, notes: [60, 64, 67, 72].map((pitch, index) => ({
       id: studioId('note'), beat: index, duration: 0.8, pitch, velocity: 0.78
     }))
   };
@@ -234,7 +249,7 @@ export function normalizeProject(input: unknown): StudioProject {
         id: typeof clip.id === 'string' ? clip.id : studioId('clip'), trackId: track.id, kind: track.kind,
         name: typeof clip.name === 'string' ? clip.name : 'Clip', start: Math.max(0, Number(clip.start) || 0),
         duration: Math.max(0.0625, Number(clip.duration) || 1), offset: Math.max(0, Number(clip.offset) || 0),
-        assetId: clip.assetId, mute: clip.mute === true, gain: Math.max(0, Math.min(2, Number(clip.gain) || 1)),
+        assetId: clip.assetId, mute: clip.mute === true, locked: clip.locked === true, color: typeof clip.color === 'string' ? clip.color : undefined, gain: Math.max(0, Math.min(2, Number(clip.gain) || 1)),
         fadeIn: Math.max(0, Number(clip.fadeIn) || 0), fadeOut: Math.max(0, Number(clip.fadeOut) || 0),
         notes: Array.isArray(clip.notes) ? clip.notes.map((note) => ({ ...note })) : []
       };

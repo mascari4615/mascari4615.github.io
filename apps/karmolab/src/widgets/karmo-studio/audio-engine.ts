@@ -217,7 +217,7 @@ export class KarmoStudioEngine {
   async preview(track: StudioTrack, pitch: number, velocity = 0.8): Promise<void> {
     const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     const context = new AC();
-    const clip: StudioClip = { id: 'preview', trackId: track.id, kind: 'midi', name: '', start: 0, duration: 1, offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, mute: false, notes: [{ id: 'note', beat: 0, duration: 0.35, pitch, velocity }] };
+    const clip: StudioClip = { id: 'preview', trackId: track.id, kind: 'midi', name: '', start: 0, duration: 1, offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, mute: false, locked: false, notes: [{ id: 'note', beat: 0, duration: 0.35, pitch, velocity }] };
     scheduleProject(context, { ...({} as StudioProject), bpm: 120, masterVolume: 0.8, tracks: [{ ...track, clips: [clip] }] }, new Map(), 0, 1, context.currentTime + 0.01, context.destination);
     window.setTimeout(() => void context.close(), 700);
   }
