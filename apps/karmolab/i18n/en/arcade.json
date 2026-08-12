@@ -170,5 +170,13 @@
   "arcade.hanabi.pickHint": "Pick your card, or tap a card to tell them",
   "arcade.hanabi.waiting": "Waiting for your turn",
   "arcade.hanabi.score": "{n} / {max} built",
-  "arcade.hanabi.perfect": "All built — perfect"
+  "arcade.hanabi.perfect": "All built — perfect",
+  "arcade.game.wordchain.name": "Word Chain",
+  "arcade.game.wordchain.desc": "Start with the last letter. Run dry and you're out",
+  "arcade.chain.words": "apple,egg,goat,tiger,rain,nest,tent,train,note,echo,ocean,nose,eagle,elbow,wing,gate,exit,tea,arrow,wolf,fox,xray,yarn,north,house,edge,ember,river,rock,king,green,nut,tulip,pearl,lemon,north,harbor,road,desk,kite",
+  "arcade.chain.go": "Play",
+  "arcade.chain.aria": "Your word",
+  "arcade.chain.hint": "a word starting with {c}",
+  "arcade.chain.waiting": "Waiting for your turn",
+  "arcade.chain.win": "{who} was last standing — {n} words"
 }
