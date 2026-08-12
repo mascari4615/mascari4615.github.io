@@ -202,5 +202,19 @@
   "arcade.liars.call": "Liar",
   "arcade.liars.waiting": "Waiting for your turn",
   "arcade.liars.real": "actually {n}",
-  "arcade.liars.win": "{who} was last standing"
+  "arcade.liars.win": "{who} was last standing",
+  "arcade.game.twenty.name": "20 Questions",
+  "arcade.game.twenty.desc": "Narrow it with yes or no. One holds the answer, the rest ask",
+  "arcade.twenty.words": "cat|car|apple|umbrella|guitar|sea|tree|clock|airplane|chair|fire|book",
+  "arcade.twenty.questions": "Is it alive?|Did people make it?|Is it indoors?|Can you hold it?|Can you eat it?|Does it move?|Does it float?|Does it make sound?|Is it colorful?|Do you see it outside?",
+  "arcade.twenty.facts": "1001010110|0100011001|1001100000|0101000010|0100011010|1000010111|1000001011|0101001000|0100011001|0101000000|0000011110|0101000010",
+  "arcade.twenty.yes": "Yes",
+  "arcade.twenty.no": "No",
+  "arcade.twenty.youKeep": "You hold the answer",
+  "arcade.twenty.asking": "{n} left",
+  "arcade.twenty.waitAnswer": "Waiting for the answer",
+  "arcade.twenty.waitAsk": "Waiting for a question",
+  "arcade.twenty.missed": "A guess, and it was wrong",
+  "arcade.twenty.found": "{who} got it in {n}",
+  "arcade.twenty.kept": "{who} was never found out"
 }
