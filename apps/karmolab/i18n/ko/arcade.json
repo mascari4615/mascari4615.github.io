@@ -282,5 +282,9 @@
   "arcade.derby.running": "달리는 중",
   "arcade.derby.result": "{s} 가 들어왔다",
   "arcade.derby.win": "{who} — {n}",
-  "arcade.pong.draw": "{n} 대 {n} — 비겼다"
+  "arcade.pong.draw": "{n} 대 {n} — 비겼다",
+  "arcade.game.whack.name": "두더지 잡기",
+  "arcade.game.whack.desc": "나오는 대로 두드린다. 💣 는 치면 깎인다",
+  "arcade.whack.bad": "💣 −2",
+  "arcade.whack.win": "{who} — {n}점"
 }

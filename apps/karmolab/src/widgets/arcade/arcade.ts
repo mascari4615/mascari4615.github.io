@@ -404,6 +404,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-dbp{padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:inherit;cursor:pointer;font-size:var(--font-size-xs)}',
       '.ac-dbp:hover{border-color:var(--accent)}',
       '.ac-dbwho{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}',
+      '.ac-wk{max-width:min(90vw,320px);margin:var(--space-lg) auto;text-align:center}',
+      '.ac-wkgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:var(--space-lg) 0}',
+      '.ac-wkh{aspect-ratio:1;border:2px solid var(--border);border-radius:50%;background:color-mix(in srgb,#78350f 22%,var(--surface));font-size:min(9vw,34px);padding:0;cursor:pointer;display:grid;place-items:center}',
+      '.ac-wkh.ac-up{border-color:#22c55e}',
+      '.ac-wkh.ac-bad{border-color:#ef4444}',
+      '.ac-wkh span{line-height:1}',
+      '.ac-wkwho{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}',
       '.ac-code{font-size:clamp(28px,8vw,48px);font-weight:800;letter-spacing:.18em;text-align:center;margin:var(--space-lg) 0}',
       '.ac-share{display:flex;gap:6px;margin:var(--space-lg) 0}',
       '.ac-share input{flex:1;min-width:0}'

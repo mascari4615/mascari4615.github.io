@@ -282,5 +282,9 @@
   "arcade.derby.running": "発走",
   "arcade.derby.result": "{s} が来た",
   "arcade.derby.win": "{who} — {n}",
-  "arcade.pong.draw": "{n} 対 {n} — 引き分け"
+  "arcade.pong.draw": "{n} 対 {n} — 引き分け",
+  "arcade.game.whack.name": "モグラたたき",
+  "arcade.game.whack.desc": "出たら叩く。💣 を叩くと減る",
+  "arcade.whack.bad": "💣 −2",
+  "arcade.whack.win": "{who} — {n}点"
 }
