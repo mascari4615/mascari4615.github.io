@@ -108,5 +108,13 @@
   "arcade.dominoes.right": "Right end",
   "arcade.dominoes.draw": "Draw",
   "arcade.dominoes.pass": "Pass",
-  "arcade.dominoes.win": "{who} went out first"
+  "arcade.dominoes.win": "{who} went out first",
+  "arcade.game.curling.name": "Curling",
+  "arcade.game.curling.desc": "Slide close to the button. Knocking others out is fair game",
+  "arcade.curling.aim": "Line",
+  "arcade.curling.power": "Weight",
+  "arcade.curling.throw": "Throw ({n} left)",
+  "arcade.curling.sliding": "Sliding",
+  "arcade.curling.win": "{who} — {n} in the house",
+  "arcade.curling.none": "Nothing in the house"
 }

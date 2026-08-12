@@ -171,6 +171,39 @@ console.log('[arcade] 반응 측정 — 실시간·동시');
   ok(limits.length >= 4 && limits.every((l, i) => i === 0 || l < limits[i - 1]), `판마다 짧아진다 (${limits.join(' → ')})`);
 }
 
+console.log('[arcade] 컬링 — 물리가 커널 안에서 돈다');
+{
+  const g = gameById('curling');
+  const seats = [{ name: '나', bot: false }, { name: '봇', bot: true }];
+
+  /* ① 던지면 미끄러지다 **반드시 선다**. 안 서면 판이 영영 안 넘어간다. */
+  const m = new Match(g, 21, seats);
+  m.dispatch(0, { aim: 0, power: 0.6 });
+  let stoppedAt = -1;
+  for (let now = 0; now < 60000; now += 16) {
+    m.step(now);
+    if (!m.view().state.moving) { stoppedAt = now; break; }
+  }
+  ok(stoppedAt > 0, `던진 돌이 선다 (${stoppedAt}ms)`);
+
+  /* ② 같은 힘 = 같은 자리. 기기가 느리든 빠르든 결과가 같아야 한다. */
+  const run = (stepMs) => {
+    const mm = new Match(g, 21, [{ name: 'a', bot: false }, { name: 'b', bot: false }]);
+    mm.dispatch(0, { aim: 0.1, power: 0.7 });
+    for (let now = 0; now < 60000 && mm.view().state.moving; now += stepMs) mm.step(now);
+    const st = mm.view().state.stones[0];
+    return st ? `${st.x.toFixed(3)},${st.y.toFixed(3)}` : 'none';
+  };
+  ok(run(16) === run(50), `한 걸음이 프레임이 아니라 시간이다 (16ms=${run(16)} · 50ms=${run(50)})`);
+
+  /* ③ 판 밖으로 나간 돌은 사라진다. */
+  const hard = new Match(g, 5, [{ name: 'a', bot: false }, { name: 'b', bot: false }]);
+  hard.dispatch(0, { aim: 0, power: 1 });
+  for (let now = 0; now < 60000 && hard.view().state.moving; now += 16) hard.step(now);
+  const inField = hard.view().state.stones.every((st) => st.y > -20 && st.y < 300);
+  ok(inField, '판 밖으로 나간 돌은 남지 않는다');
+}
+
 console.log('[arcade] 오목 — 차례·보드');
 {
   const g = gameById('gomoku');

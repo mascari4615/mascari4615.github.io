@@ -108,5 +108,13 @@
   "arcade.dominoes.right": "오른쪽에",
   "arcade.dominoes.draw": "더미에서",
   "arcade.dominoes.pass": "넘기기",
-  "arcade.dominoes.win": "{who} 이(가) 먼저 털었다"
+  "arcade.dominoes.win": "{who} 이(가) 먼저 털었다",
+  "arcade.game.curling.name": "컬링",
+  "arcade.game.curling.desc": "밀어서 가운데에 가깝게. 부딪혀 밀어내도 된다",
+  "arcade.curling.aim": "좌우",
+  "arcade.curling.power": "세기",
+  "arcade.curling.throw": "던지기 ({n}개 남음)",
+  "arcade.curling.sliding": "미끄러지는 중",
+  "arcade.curling.win": "{who} — 하우스 안 {n}개",
+  "arcade.curling.none": "하우스에 든 돌이 없다"
 }
