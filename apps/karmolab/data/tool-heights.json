@@ -76,8 +76,8 @@
     "wide": 695
   },
   "charcount": {
-    "narrow": 1339,
-    "wide": 916
+    "narrow": 2337,
+    "wide": 1362
   },
   "charmap": {
     "narrow": 6661,
@@ -384,8 +384,8 @@
     "wide": 1103
   },
   "qrgen": {
-    "narrow": 1068,
-    "wide": 1073
+    "narrow": 1347,
+    "wide": 1276
   },
   "qrread": {
     "narrow": 318,
