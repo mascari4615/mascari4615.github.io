@@ -1048,8 +1048,7 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
 .landing-pulse-k { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em;
     text-transform: uppercase; color: var(--text-tertiary); }
 .landing-pulse-line b { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
-/* 손가락으로 누를 만해야 한다 — 글자만 있는 단추라 높이가 22px 이었다(관문 검사 기준 32px).
-   생김새는 그대로 두고 **누를 자리만** 넓힌다 (실측 2026-08-12). */
+
 .landing-pulse-all { background:none; border:0; padding:5px 6px; margin:-5px -6px; font:inherit;
     min-height:32px; display:inline-flex; align-items:center;
     font-size:var(--font-size-xs); color:var(--accent); cursor:pointer; }

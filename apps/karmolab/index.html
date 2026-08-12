@@ -311,6 +311,13 @@ permalink: /karmolab/
                     <div id="sidebar-nav"></div>
                 </nav>
                 <div class="sidebar-footer">
+                    <!-- 다른 말 판으로 가는 **진짜 링크** (TASK-KL-244). 위 언어 단추(#langBtn)는
+                         JS 가 목록을 만들어서 HTML 엔 `<a>` 가 없다 — 크롤러는 그 길을 못 탄다.
+                         그래서 en/ja 274장이 sitemap 에만 있고 내부 링크 0 이었다.
+                         **안쪽은 생성기가 갈아 끼운다** (`locales.mjs` 의 `withLangLinks`) —
+                         도구 장이면 그 도구의 en/ja 로, 언어 판이면 나머지 말들로. 손으로 고치지 마라.
+                         여기 적힌 것은 첫 화면(/karmolab/)의 몫이다. -->
+                    <div class="sidebar-lang-links" data-lang-links><a href="/en/karmolab/" class="sidebar-dev-links sidebar-lang-link" hreflang="en" lang="en" title="English"><span class="sidebar-dev-links-icon" aria-hidden="true">◐</span><span class="sidebar-dev-links-text">English</span></a><a href="/ja/karmolab/" class="sidebar-dev-links sidebar-lang-link" hreflang="ja" lang="ja" title="日本語"><span class="sidebar-dev-links-icon" aria-hidden="true">◐</span><span class="sidebar-dev-links-text">日本語</span></a></div>
                     <!-- 정적 앵커 — 크롤러가 도구 상세 페이지(/karmolab/t/*)로 들어오는 입구 (TASK-KL-088) -->
                     <a href="/karmolab/t/" class="sidebar-dev-links" title="도구 전체 목록" aria-label="도구 전체 목록" data-i18n-title="shell.nav.toolsList" data-i18n-aria-label="shell.nav.toolsList">
                         <span class="sidebar-dev-links-icon" aria-hidden="true">≡</span>
