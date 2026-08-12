@@ -617,5 +617,6 @@
   "karmograph.find.count": "{n}件",
   "karmograph.find.none": "なし",
   "karmograph.find.countTitle": "名前・ひとことに一致したカード数",
-  "karmograph.degree.pick": "カードを一つ選んでください"
+  "karmograph.degree.pick": "カードを一つ選んでください",
+  "karmograph.inline.hint": "カードを二回押すとその場で名前を直せます（Enter 保存・Esc 取り消し）"
 }

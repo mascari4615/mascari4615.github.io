@@ -273,6 +273,11 @@ import {
     /* 저장 표시 — 조용히 왔다 사라진다. 늘 떠 있으면 그것대로 잔소리가 된다. */
     .km-saved { font-size:11px; color:var(--text-tertiary); padding:0 4px; opacity:.9; }
     .km-saved.hidden { display:none; }
+    /* 카드 위에 그 자리에서 뜨는 이름 칸 (TASK-KL-235). 카드와 **같은 크기·같은 글자**로 떠야
+       「고치는 중」이 딴 창처럼 안 보인다. 판이 움직이면 닫는다 — 떠 있는 채 어긋나면 더 나쁘다. */
+    .km-inline { position:absolute; z-index:20; box-sizing:border-box; font-weight:600;
+      background:var(--bg-secondary); color:var(--text-primary); border:2px solid var(--accent);
+      border-radius:8px; padding:2px 8px; outline:none; }
     .km-linking { outline:2px dashed var(--accent); outline-offset:-2px; }
     /* 발표 모드 — 그림을 가리지 않게 아래에만 얹는다. */
     /* ★ 발표 줄은 **판 위에 떠야 한다.** z-index 를 안 주면(auto) 캔버스 svg 가 그 위에 깔려
@@ -2423,6 +2428,74 @@ import {
     };
 
     q<HTMLButtonElement>('fit').onclick = () => { canvas?.fitView(); showZoom(); };
+
+    /* ── 카드 이름을 그 자리에서 (TASK-KL-235) ─────────────────────────────────
+       옆 패널까지 가야 이름을 고칠 수 있었다 — 보는 자리와 고치는 자리가 달랐다.
+       카드 두 번 누르기는 여태 **아무 일도 안 하던 자리**라 관례대로 이름 고치기에 준다
+       (파고들기는 예전부터 패널의 제 단추가 맡고 있어 뺏을 것이 없다). */
+    let inlineEl: HTMLInputElement | null = null;
+    function closeInline(save: boolean): void {
+      const el = inlineEl;
+      if (!el) return;
+      inlineEl = null;
+      const id = el.dataset.nodeId ?? '';
+      const next = el.value;
+      el.remove();
+      if (!save) return;
+      const node = spec.nodes.find((n) => n.id === id);
+      if (!node || node.label === next) return;
+      // 저장은 옆 패널 이름 칸과 **같은 길**로 — 두 길이 생기면 언젠가 갈라진다.
+      node.label = next;
+      resize(node);
+      canvas?.render();
+      canvas?.setSelectedNode(node.id);
+      persistStructure();
+      renderSide();
+    }
+    function openInline(nodeId: string): void {
+      if (!canvas || readOnly) return;
+      const node = spec.nodes.find((n) => n.id === nodeId);
+      const box = canvas.nodeScreenRect(nodeId);
+      if (!node || !box) return;
+      closeInline(false);
+      // ★ `nodeScreenRect` 는 **캔버스 안쪽 좌표**다(화면 좌표 아님) — 화면 좌표로 알고 빼면
+      //   편집칸이 카드 위쪽 엉뚱한 자리에 뜬다(실측 2026-08-12: 130px 어긋났다).
+      const el = document.createElement('input');
+      el.type = 'text';
+      el.className = 'km-inline';
+      el.dataset.nodeId = nodeId;
+      el.value = node.label;
+      el.style.left = `${Math.round(box.x)}px`;
+      el.style.top = `${Math.round(box.y)}px`;
+      el.style.width = `${Math.round(box.w)}px`;
+      el.style.height = `${Math.round(box.h)}px`;
+      el.style.fontSize = `${Math.max(11, Math.round(13 * (canvas.getScale() || 1)))}px`;
+      canvasEl.appendChild(el);
+      inlineEl = el;
+      el.focus();
+      el.select();
+      el.onkeydown = (ev) => {
+        if (ev.key === 'Enter') { ev.preventDefault(); ev.stopPropagation(); closeInline(true); }
+        else if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); closeInline(false); }
+        else ev.stopPropagation();   // 방향키·Delete 가 카드를 옮기거나 지우면 안 된다
+      };
+      el.onblur = () => closeInline(true);
+    }
+    canvasEl.addEventListener('dblclick', (ev) => {
+      const hit = (ev.target as Element | null)?.closest?.('.ck-node') as HTMLElement | null;
+      const id = hit?.dataset.id;
+      if (!id) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      openInline(id);
+    });
+    // 판이 움직이면 자리가 어긋난다 — 어긋난 채 떠 있는 것보다 닫는 편이 낫다.
+    for (const evName of ['wheel', 'pointerdown'] as const) {
+      canvasEl.addEventListener(evName, (ev) => {
+        if (inlineEl && ev.target !== inlineEl) closeInline(true);
+      }, true);
+    }
+    Toolbox.onDispose?.(() => closeInline(false));
 
     /* 배율 줄 — 휠·핀치를 모르는 사람에게도 확대·축소가 **보이는 자리**에 있어야 한다
        (레퍼런스 캔버스 도구들이 하나같이 구석에 이 줄을 두는 이유다). 숫자를 누르면 100% 로. */
