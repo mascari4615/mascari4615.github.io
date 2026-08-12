@@ -44,7 +44,7 @@ for (const id of TOOLS) {
   }
 }
 
-const out = await page.evaluate((tools) => {
+const out = await page.evaluate(async (tools) => {
   const small = [];
   let checked = 0;
   for (const id of tools) {
@@ -53,7 +53,12 @@ const out = await page.evaluate((tools) => {
     const host = document.createElement('div');
     host.className = 'tool-page';
     document.body.appendChild(host);
-    try { tool.tabs[0].build(host); } catch (e) { return { ok: false, why: id + " 화면을 못 만들었다: " + e.message }; }
+    try {
+      tool.tabs[0].build(host);
+      /* 그려질 때까지 기다린다 — 안 그러면 잰 것이 0 개인 채 「작은 게 없다」로 통과해 버린다
+         (실제로는 「안 봤다」다). 도구마다 말 묶음을 받아 온 뒤에 그린다. */
+      await window.__karmoWaitDrawn(host);
+    } catch (e) { return { ok: false, why: id + " 화면을 못 만들었다: " + e.message }; }
     for (const el of host.querySelectorAll('input[type=checkbox], input[type=radio]')) {
       const box = (el.closest('label') || el).getBoundingClientRect();
       if (!box.width) continue;
