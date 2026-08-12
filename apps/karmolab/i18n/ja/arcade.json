@@ -57,5 +57,9 @@
   "arcade.game.slide.desc": "同じ盤で先に揃えた人の勝ち。ひとりでも遊べる",
   "arcade.slide.win": "{who} — {n}回で揃えた",
   "arcade.slide.timeup": "時間切れ — 同じだけ残った",
-  "arcade.slide.closest": "{who} — 定位置{n}枚"
+  "arcade.slide.closest": "{who} — 定位置{n}枚",
+  "arcade.game.ultimate.name": "アルティメット三目",
+  "arcade.game.ultimate.desc": "打った場所が相手の盤を決める",
+  "arcade.ultimate.win": "{who} が大盤を取った",
+  "arcade.ultimate.draw": "大盤が埋まった — 引き分け"
 }
