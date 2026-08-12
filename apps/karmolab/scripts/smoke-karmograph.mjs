@@ -9,8 +9,18 @@
  */
 import { readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { serveRepo } from './lib/serve-static.mjs';
 
-const URL = `${process.env.URL || 'http://127.0.0.1:8813/apps/karmolab/index.html'}#karmograph`;
+/**
+ * ❄ 기본은 **이 판 전용 얼린 서버**다 (2026-08-12).
+ *
+ * 개발 서버(8813)를 쓰면 세션 여럿이 같은 나무를 고치는 이 작업공간에서 **검사 도중 다시
+ * 빌드**가 돈다. 같은 커밋으로 한 판은 통과, 다음 판은 6개 빨강이 났다. 흔들리는 게이트는
+ * 빨강을 무시하게 만든다 — 그래서 검사는 제 서버를 띄우고, 한 번 읽은 파일을 판 내내 고정한다.
+ * `URL=...` 을 주면 그쪽을 쓴다(배포된 사이트를 겨눌 때).
+ */
+const frozen = process.env.URL ? null : await serveRepo();
+const URL = `${process.env.URL || `${frozen.base}/apps/karmolab/index.html`}#karmograph`;
 const errors = [];
 const browser = await chromium.launch();
 const context0 = await browser.newContext({ viewport: { width: 1400, height: 900 } });
@@ -82,9 +92,16 @@ await step('툴바 버튼 전부 있다', async () => {
 await step('툴바가 한두 줄에 들어간다 (캔버스를 밀지 않는다)', async () => {
   // 셸 CSS 가 폼 요소를 통짜 너비로 깔면 항목이 한 줄에 하나씩 쌓여 세로 네 줄을 먹는다
   // (실서비스 화면에서 실제로 그랬다). 그만큼 그림이 밀린다.
+  // ★ 옆 걸음(캔버스 크기)과 같은 이유로 **자리가 잡힐 때까지 기다린다**: 뜬 직후에는 셸 CSS 가
+  //   아직 안 먹어 항목이 세로로 쌓여 있다(같은 코드로 45px 과 662px 이 번갈아 나왔다 — 실측).
+  //   끝내 안 접히면 그때는 진짜 빨강이다.
+  const settled = await page.waitForFunction(
+    () => (document.querySelector('.km-toolbar')?.getBoundingClientRect().height ?? 999) <= 120,
+    null, { timeout: 6000 },
+  ).then(() => true).catch(() => false);
   const bar = await page.locator('.km-toolbar').boundingBox();
   if (!bar) throw new Error('툴바가 없다');
-  if (bar.height > 120) throw new Error(`툴바가 ${Math.round(bar.height)}px — 여러 줄로 쌓였다`);
+  if (!settled) throw new Error(`툴바가 ${Math.round(bar.height)}px — 6초가 지나도 여러 줄로 쌓여 있다`);
 });
 await step('캔버스가 쓸 만한 크기다', async () => {
   // ★ 자리가 잡힐 때까지 기다린다 — `.km-root` 가 나타난 **직후**에 재면 아직 배치 전이라
@@ -1699,18 +1716,33 @@ await step('카드를 끌면 이웃 카드의 줄에 붙고, 맞춘 줄이 뜬�
     .nodes.map((n) => n.x));
 
   const [x0, x1] = await coords();
+  // 카드를 만들면 옆 패널이 열리며 **판이 좁아진다** — 자리를 재고 바로 안 누르면 그 사이에 어긋난다.
+  await m.waitForTimeout(700);
   const second = (await m.locator('.ck-node').nth(1).boundingBox());
   const first = (await m.locator('.ck-node').first().boundingBox());
+  // 누르는 자리는 **카드 한가운데** — 모서리 근처는 판이 조금만 움직여도 빗나간다.
+  const grab = { x: second.x + second.width / 2, y: second.y + second.height / 2 };
+  const onNode = await m.evaluate(([x, y]) => Boolean(document.elementFromPoint(x, y)?.closest('.ck-node')), [grab.x, grab.y]);
+  if (!onNode) throw new Error('누르려는 자리가 카드 위가 아니다 — 판이 움직였다');
   // 둘째 카드를 첫째 카드의 왼쪽 줄 **근처**(몇 px 어긋나게)로 끈다 — 붙어야 정확히 같은 줄이 된다.
   const offBy = 5;
-  await m.mouse.move(second.x + 30, second.y + 10);
+  await m.mouse.move(grab.x, grab.y);
   await m.mouse.down();
-  await m.mouse.move(first.x + 30 + offBy, second.y + 10, { steps: 10 });
-  const guides = await m.locator('.ck-guide').count();
+  await m.mouse.move(grab.x + (first.x - second.x) + offBy, grab.y, { steps: 10 });
+  // 줄은 **다음 프레임**에 그려진다(프레임당 한 번만 다시 그린다) — 바로 세면 0 이 나온다.
+  // ★ `waitForSelector` 의 「보인다」로 세면 안 된다: 세로선은 **폭이 0** 이라 안 보이는 것으로 친다(실측).
+  const guides = await m.waitForFunction(() => document.querySelectorAll('.ck-guide').length,
+    null, { timeout: 2000 }).then(() => 1).catch(() => 0);
   await m.mouse.up();
   await m.waitForTimeout(500);
 
-  if (guides < 1) throw new Error('끄는 동안 맞춤 줄이 안 뜬다');
+  if (guides < 1) {
+    const st = await m.evaluate(() => ({
+      nodes: [...document.querySelectorAll('.ck-node')].map((g) => g.getAttribute('transform')),
+      groupLayerKids: document.querySelector('.ck-groups')?.childElementCount ?? -1,
+    }));
+    throw new Error('끄는 동안 맞춤 줄이 안 뜬다: ' + JSON.stringify(st));
+  }
   const after = await coords();
   if (after[1] !== after[0]) throw new Error(`줄에 안 붙었다: ${after[0]} vs ${after[1]} (끌기 전 ${x0}/${x1})`);
   if (await m.locator('.ck-guide').count() !== 0) throw new Error('손을 뗐는데 맞춤 줄이 남아 있다');
@@ -1729,14 +1761,19 @@ await step('카드 크기가 자리와 같은 격자에 붙는다 (Alt = 자유)
   const box = await m.locator('.km-canvas').boundingBox();
   await m.mouse.dblclick(box.x + box.width * 0.4, box.y + box.height * 0.4);
   await m.waitForSelector('[data-km="edit-label"]', { timeout: 4000 });
+  // 카드를 만들면 **옆 패널 이름칸에 포커스가 가 있다.** 그 상태에서 손잡이를 누르면 첫 누름이
+  // 「칸에서 빠져나오기」로 먹혀 크기가 안 바뀐다(실측 — 판마다 다르게 나던 헛빨강의 정체).
+  await m.keyboard.press('Escape');
   await m.locator('.ck-node').first().click();
-  await m.waitForSelector('.ck-size-handle', { timeout: 4000 });
+  const grip = () => m.waitForSelector('.ck-size-handle', { state: 'attached', timeout: 2500 });
+  await grip().catch(async () => { await m.locator('.ck-node').first().click(); await grip(); });
 
   const sizes = () => m.evaluate(() => JSON.parse(localStorage.getItem(
     'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId))
     .nodes.map((n) => [n.w, n.h]));
 
   const drag = async (dx, dy, alt) => {
+    await m.waitForTimeout(250);   // 갓 그려진 손잡이는 자리를 한 번 더 잡는다
     const grip = await m.locator('.ck-size-handle').first().boundingBox();
     await m.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
     await m.mouse.down();
@@ -1747,11 +1784,29 @@ await step('카드 크기가 자리와 같은 격자에 붙는다 (Alt = 자유)
     await m.waitForTimeout(400);
   };
 
+  /** 저장은 조금 늦게 떨어진다 — 「바뀔 때까지」 본다(고정 대기는 판마다 다른 답을 낸다). */
+  const widthChangedFrom = async (w0) => m.waitForFunction((prev) => {
+    const idx = JSON.parse(localStorage.getItem('karmograph.index'));
+    return JSON.parse(localStorage.getItem('karmograph.map.' + idx.activeId)).nodes[0].w !== prev;
+  }, w0, { timeout: 3000 }).then(() => true).catch(() => false);
+
+  const before = (await sizes())[0][0];
   await drag(37, 21, false);
+  // 손잡이를 못 잡았는데 「격자에 안 붙었다」로 읽으면 엉뚱한 데를 판다 — 갈라서 말한다.
+  if (!(await widthChangedFrom(before))) {
+    const g = await m.locator('.ck-size-handle').first().boundingBox().catch(() => null);
+    const at = g ? await m.evaluate(([x, y]) => {
+      const el = document.elementFromPoint(x, y);
+      return el ? el.tagName + '|' + el.getAttribute('class') : 'none';
+    }, [g.x + g.width / 2, g.y + g.height / 2]) : '손잡이없음';
+    const live = await m.evaluate(() => document.querySelector('.ck-node rect')?.getAttribute('width'));
+    throw new Error(`크기가 안 바뀌었다 (저장 ${before} · 화면 ${live} · 손잡이 ${JSON.stringify(g)} · 그 자리엔 ${at})`);
+  }
   const [w1, h1] = (await sizes())[0];
   if (w1 % 8 !== 0 || h1 % 8 !== 0) throw new Error(`크기가 격자에 안 붙었다: ${w1}x${h1}`);
 
   await drag(11, 0, true);   // Alt = 격자 무시 — 8의 배수에서 벗어날 수 있어야 한다
+  await widthChangedFrom(w1);
   const [w2] = (await sizes())[0];
   if (w2 === w1) throw new Error('Alt 로 끌었는데 크기가 그대로다');
   if (w2 % 8 === 0) throw new Error(`Alt 인데도 격자에 붙었다: ${w2}`);
@@ -1985,6 +2040,12 @@ await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널
 });
 
 await browser.close();
+if (frozen) {
+  // 그래도 흔들렸다면 **누가 흔들었는지**를 남긴다 — 「이상하다」로 끝나지 않게.
+  const moved = frozen.drift();
+  if (moved.length) console.log(`  ⚠ 판 도중 옆에서 바뀐 파일 ${moved.length}개 (내준 건 처음 읽은 것): ${moved.slice(0, 5).join(' · ')}`);
+  frozen.close();
+}
 
 console.log(errors.length ? `\nRESULT: FAIL (${errors.length})\n - ` + errors.join('\n - ') : '\nRESULT: PASS — 콘솔 에러 0');
 process.exit(errors.length ? 1 : 0);

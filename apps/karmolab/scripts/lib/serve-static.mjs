@@ -80,23 +80,51 @@ export async function serveRepo(options = {}) {
   if (!fs.existsSync(landmark)) {
     throw new Error(`[serve-static] 뿌리가 틀렸다 — ${landmark} 가 없다. 빈 화면을 재면 무엇이든 통과한다.`);
   }
+  /**
+   * ❄ **한 판 안에서는 내용이 안 변한다** (2026-08-12).
+   *
+   * 이 작업공간은 세션 여럿이 **같은 나무**를 고친다. 검사가 도는 20~40초 사이에 옆 세션이
+   * 빌드를 돌리면, 같은 검사가 같은 코드로 판마다 다른 답을 낸다 — 실제로 한 판은 통과,
+   * 다음 판은 6개 빨강이 났다(같은 커밋). **흔들리는 게이트는 빨강을 무시하게 만들어
+   * 게이트 자체를 죽인다.**
+   *
+   * 그래서 한 번 읽은 파일은 그 판 내내 **그때 읽은 것**을 내준다. 도중에 바뀐 파일은
+   * `drift()` 로 이름을 남겨, 「왜 이상하지」가 아니라 「옆에서 바꿨다」로 읽히게 한다.
+   */
+  const frozen = new Map();
+  const drifted = new Set();
   const server = http.createServer((req, res) => {
     let target = decodeURIComponent(req.url.split('?')[0]);
     if (target.endsWith('/')) target += 'index.html';
     const file = path.join(root, target.replace(/^\//, ''));
     // 뿌리 밖으로 나가는 주소는 거절한다 — 검사용이라도 열어 두면 안 된다.
-    if (!file.startsWith(root) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
-      res.writeHead(404).end('not found');
-      return;
+    if (!file.startsWith(root)) { res.writeHead(404).end('not found'); return; }
+
+    const had = frozen.get(file);
+    if (!had) {
+      if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+        res.writeHead(404).end('not found');
+        return;
+      }
+      let body = fs.readFileSync(file);
+      const ext = path.extname(file);
+      if (ext === '.html') body = Buffer.from(stripJekyll(String(body)), 'utf8');
+      frozen.set(file, { body, type: MIME[ext] || 'application/octet-stream', mtime: fs.statSync(file).mtimeMs });
+    } else if (fs.existsSync(file) && fs.statSync(file).mtimeMs !== had.mtime) {
+      drifted.add(path.relative(root, file));   // 내주는 것은 처음 읽은 그것 — 이름만 남긴다
     }
-    let body = fs.readFileSync(file);
-    const ext = path.extname(file);
-    if (ext === '.html') body = Buffer.from(stripJekyll(String(body)), 'utf8');
-    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' }).end(body);
+    const hit = frozen.get(file);
+    res.writeHead(200, { 'Content-Type': hit.type }).end(hit.body);
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const { port } = server.address();
-  return { base: `http://127.0.0.1:${port}`, port, close: () => server.close() };
+  return {
+    base: `http://127.0.0.1:${port}`,
+    port,
+    close: () => server.close(),
+    /** 판 도중 옆에서 바뀐 파일들 — 빨강의 원인을 가리키는 증거. */
+    drift: () => [...drifted],
+  };
 }
 
 /**
