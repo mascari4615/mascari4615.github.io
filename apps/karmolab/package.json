@@ -235,7 +235,8 @@
     "smoke:calcshell": "node scripts/smoke-calc-shell.mjs",
     "test:calc": "node scripts/test-calc.mjs",
     "smoke:timeshell": "node scripts/smoke-time-shell.mjs",
-    "test:when": "node scripts/test-when.mjs"
+    "test:when": "node scripts/test-when.mjs",
+    "smoke:vidshell": "node scripts/smoke-video-shell.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

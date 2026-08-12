@@ -5,5 +5,17 @@
   "videotool.part.videocompress": "容量を減らす",
   "videotool.part.video2img": "写真を抜く",
   "videotool.part.video2audio": "音を取り出す",
-  "videotool.part.screenrec": "画面録画"
+  "videotool.part.screenrec": "画面録画",
+  "videotool.tab": "動画",
+  "videotool.group.cut": "切る・小さくする",
+  "videotool.group.out": "取り出す",
+  "videotool.group.make": "つくる",
+  "videotool.drop.title": "動画をここに置くか、押して選んでください",
+  "videotool.drop.hint": "動画はこのブラウザから出ません",
+  "videotool.btn.change": "変更",
+  "videotool.btn.back": "作業を選ぶ",
+  "videotool.btn.chain": "この結果で続ける",
+  "videotool.preview.fail": "この動画はプレビューできません",
+  "videotool.meta": "{time} · {w}×{h} · {size}",
+  "videotool.part.subtitle": "字幕"
 }
