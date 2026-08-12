@@ -219,9 +219,13 @@ jobs:
       # (브라우저는 위 「Build KarmoLab JavaScript」 단계에서 이미 받았다 — 그 단계의 검사들도
       #  브라우저가 있어야 돌기 때문이다. 여기서 또 받을 필요 없다.)
 
+      # 2026-08-12: 브라우저를 여기서 받는다. 앞 단계가 「산출물만 찍는다」로 바뀌면서 설치가
+      # 같이 사라졌고, 배포가 이 자리에서 Executable doesn't exist 로 섰다.
+
       - name: Prerender KarmoLab tool pages
         working-directory: apps/karmolab
         run: |
+          npx playwright install chromium
           npm run serve:gzip &
           for i in $(seq 1 30); do
             curl -fsS -o /dev/null http://127.0.0.1:8801/apps/blog/karmolab/t/ && break
