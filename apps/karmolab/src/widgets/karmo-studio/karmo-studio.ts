@@ -9,6 +9,7 @@ import { addAsset, hydrateAssets, importPortable, loadProject, portableProject, 
 import { ProjectHistory } from './history';
 import { KARMO_STUDIO_CSS } from './styles';
 import { KARMO_STUDIO_SHELL } from './shell';
+import { buildPianoView, initialScrollTop, PIANO_GEOMETRY } from './piano-view';
 import { analysePeak, applyGain, clampBuffer, exportRange, normalizeGain, type ExportRangeMode } from './export';
 import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type ClipRef, type NoteRef } from './selection';
 
@@ -132,7 +133,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     }
     function cutSelection(): void { const kind=selection?.type; if(!copySelection())return; deleteSelection(); status(kind==='note'?(clipboard?.type==='notes'&&clipboard.notes.length>1?`${clipboard.notes.length} notes cut`:'MIDI note cut'):(clipboard?.type==='clips'&&clipboard.items.length>1?`${clipboard.items.length} clips cut`:'Clip cut')); }
     function duplicateSelection(): void { if(selection?.type==='note'){const chosen=markedNotes();const clip=selectedClip();const track=selectedTrack();if(clip&&track&&chosen.length){const begin=Math.min(...chosen.map((item)=>item.note.beat));const end=Math.max(...chosen.map((item)=>item.note.beat+item.note.duration));const shift=snapBeat(Math.max(end-begin,project.snap),project.snap);const copies=chosen.map((item)=>{const copy={...item.note,id:studioId('note'),beat:Math.max(0,Math.min(clip.duration-item.note.duration,snapBeat(item.note.beat+shift,project.snap)))};clip.notes.push(copy);return copy;});noteSel.replace(copies.map((copy)=>({clipId:clip.id,noteId:copy.id})));selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copies[0].id};if(copies.length>1)status(`Duplicated ${copies.length} notes`);saveSoon();renderEditor();renderTracks();renderSide();}return;}const chosen=markedClips();if(!chosen.length)return;const span=chosen.reduce((end,item)=>Math.max(end,item.clip.start+item.clip.duration),0)-chosen.reduce((begin,item)=>Math.min(begin,item.clip.start),Infinity);const shift=snapBeat(Math.max(span,project.snap),project.snap);const copies=chosen.map((item)=>{const copy=cloneClip(item.clip,Math.max(0,snapBeat(item.clip.start+shift,project.snap)));item.track.clips.push(copy);return {trackId:item.track.id,clipId:copy.id};});marks.replace(copies);selection={type:'clip',trackId:copies[0].trackId,clipId:copies[0].clipId};if(copies.length>1)status(`Duplicated ${copies.length} clips`);saveSoon();renderAll(); }
-    function addPianoNote(event: MouseEvent): boolean { if(editTool==='select')return false;const target=event.target as HTMLElement;const piano=target.closest<HTMLElement>('[data-piano]');const clip=selectedClip();const track=selectedTrack();if(!piano||!clip||clip.kind!=='midi'||!track||target.closest('.ks-note,.ks-key,.ks-piano-ruler'))return false;const rect=piano.firstElementChild!.getBoundingClientRect();const pitch=Math.max(36,Math.min(84,84-Math.floor((event.clientY-rect.top-24)/16)));const beat=snapBeat((event.clientX-rect.left-68)/pianoPxPerBeat,project.snap);if(beat<0||beat>=clip.duration)return false;const existing=clip.notes.find((note)=>note.pitch===pitch&&Math.abs(note.beat-beat)<project.snap/2);if(existing){selection={type:'note',trackId:track.id,clipId:clip.id,noteId:existing.id};renderEditor();renderSide();return true;}const note={id:studioId('note'),beat,duration:Math.min(project.snap*2,clip.duration-beat),pitch,velocity:.8};clip.notes.push(note);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:note.id};void engine.preview(track,pitch);saveSoon();renderEditor();renderTracks();renderSide();return true; }
+    function addPianoNote(event: MouseEvent): boolean { if(editTool==='select')return false;const target=event.target as HTMLElement;const piano=target.closest<HTMLElement>('[data-piano]');const clip=selectedClip();const track=selectedTrack();if(!piano||!clip||clip.kind!=='midi'||!track||target.closest('.ks-note,.ks-key,.ks-piano-ruler'))return false;const rect=piano.firstElementChild!.getBoundingClientRect();const pitch=Math.max(PIANO_GEOMETRY.low,Math.min(PIANO_GEOMETRY.high,PIANO_GEOMETRY.high-Math.floor((event.clientY-rect.top-PIANO_GEOMETRY.rulerHeight)/PIANO_GEOMETRY.row)));const beat=snapBeat((event.clientX-rect.left-PIANO_GEOMETRY.keyWidth)/pianoPxPerBeat,project.snap);if(beat<0||beat>=clip.duration)return false;const existing=clip.notes.find((note)=>note.pitch===pitch&&Math.abs(note.beat-beat)<project.snap/2);if(existing){selection={type:'note',trackId:track.id,clipId:clip.id,noteId:existing.id};renderEditor();renderSide();return true;}const note={id:studioId('note'),beat,duration:Math.min(project.snap*2,clip.duration-beat),pitch,velocity:.8};clip.notes.push(note);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:note.id};void engine.preview(track,pitch);saveSoon();renderEditor();renderTracks();renderSide();return true; }
     function createMidiClip(track:StudioTrack,start:number,open=false):StudioClip { const snapped=snapBeat(start,project.snap);const existing=track.clips.find((clip)=>clip.kind==='midi'&&Math.abs(clip.start-snapped)<project.snap/2);if(existing){selection={type:'clip',trackId:track.id,clipId:existing.id};renderAll();if(open)setEditorExpanded(true);return existing;}const clip:StudioClip={id:studioId('clip'),trackId:track.id,kind:'midi',name:'MIDI Clip',start:snapped,duration:project.beatsPerBar,offset:0,notes:[],gain:1,fadeIn:0,fadeOut:0};track.clips.push(clip);selection={type:'clip',trackId:track.id,clipId:clip.id};saveSoon();renderAll();if(open)setEditorExpanded(true);return clip; }
     function hideContextMenu(): void { const menu=$<HTMLElement>('[data-role=context]');menu.hidden=true;menu.innerHTML=''; }
     /** 내보내기 판 — 범위·표본율·채널·정규화를 정하고 결과를 숫자로 보고한다. */
@@ -283,28 +284,16 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
         editor.innerHTML=`<div class="ks-editor-head"><strong>AUDIO CLIP · ${esc(clip.name)}</strong><span>${runtime?`${runtime.duration.toFixed(2)}s · ${Math.round((runtime.buffer?.sampleRate||0)/1000)}kHz`:'원본 음원을 찾을 수 없음'}</span><span class="ks-spacer"></span><span>더블클릭: 큰 편집 창</span><button class="ks-btn" data-act="toggle-editor">${editorExpanded?'작게':'크게 열기'}</button></div><div class="ks-audio-editor"><div class="ks-audio-wave"><i class="ks-audio-zero"></i>${waveformSvg(clip,'ks-wave-large')}</div><div class="ks-audio-controls">${field('START',`<input type="number" min="0" step="${project.snap}" value="${clip.start}" data-clip-ins="start">`)}${field('LENGTH',`<input type="number" min="${project.snap}" step="${project.snap}" value="${clip.duration}" data-clip-ins="duration">`)}${field('FADE IN',`<input type="number" min="0" step="${project.snap}" value="${clip.fadeIn}" data-clip-ins="fadeIn">`)}${field('FADE OUT',`<input type="number" min="0" step="${project.snap}" value="${clip.fadeOut}" data-clip-ins="fadeOut">`)}</div></div>`;
         return;
       }
-      const high = 84, low = 36, row = 16, keyWidth = 68, rulerHeight = 24;
-      pianoPxPerBeat = editorExpanded ? Math.max(pxPerBeat, Math.min(160, (window.innerWidth - 180) / Math.max(clip.duration, 8))) : pxPerBeat;
-      const width = Math.max(640, clip.duration * pianoPxPerBeat);
-      if (editorClipId !== clip.id) { editorClipId=clip.id;editorScrollLeft=0;const topPitch=clip.notes.length?Math.max(...clip.notes.map((note)=>note.pitch)):72;editorScrollTop=Math.max(0,(high-topPitch)*row-64); }
-      const names=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
-      let keys = ''; for (let pitch=high; pitch>=low; pitch--) { const black=[1,3,6,8,10].includes(pitch%12);keys += `<span class="ks-key${black?' is-black':''}" style="top:${rulerHeight+(high-pitch)*row}px">${names[pitch%12]}${Math.floor(pitch/12)-1}</span>`; }
-      let bars='';for(let beat=0;beat<=clip.duration;beat+=project.beatsPerBar)bars+=`<span class="ks-piano-bar" style="left:${beat*pianoPxPerBeat}px">${beat/project.beatsPerBar+1}</span>`;
       reconcileNotes();
-      const notes = clip.notes.map((note)=>`<i class="ks-note${noteSel.has({clipId:clip.id,noteId:note.id})||(selection?.type==='note'&&selection.noteId===note.id)?' is-selected':''}" title="${names[note.pitch%12]}${Math.floor(note.pitch/12)-1} · velocity ${Math.round(note.velocity*127)}" data-note="${note.id}" style="left:${keyWidth+note.beat*pianoPxPerBeat}px;top:${rulerHeight+(high-note.pitch)*row+Math.max(1,Math.round((1-note.velocity)*5))}px;width:${note.duration*pianoPxPerBeat}px;height:${Math.round(7+note.velocity*7)}px;opacity:${0.5+note.velocity*0.5}"><b class="ks-note-handle" data-note-resize="1"></b></i>`).join('');
-      const velocityBars = clip.notes.map((note)=>`<i class="ks-vel${noteSel.has({clipId:clip.id,noteId:note.id})?' is-selected':''}" data-vel="${note.id}" title="velocity ${Math.round(note.velocity*127)}" style="left:${keyWidth+note.beat*pianoPxPerBeat}px;width:${Math.max(4,Math.min(10,note.duration*pianoPxPerBeat))}px;height:${Math.max(3,Math.round(note.velocity*50))}px"></i>`).join('');
-      const pianoTools = `<div class="ks-piano-tools">
-        <button class="ks-btn" data-note-act="quantize" title="선택한 음(없으면 전부)을 격자에 붙인다">QUANTIZE</button>
-        <button class="ks-btn" data-note-act="quantize-half" title="격자까지 절반만 당긴다 — 사람 느낌 보존">Q 50%</button>
-        <button class="ks-btn" data-note-act="legato" title="앞 음의 끝을 다음 음 시작까지 늘린다">LEGATO</button>
-        <span class="ks-spacer"></span>
-        <button class="ks-btn" data-note-act="octave-down" title="한 옥타브 내림">−12</button>
-        <button class="ks-btn" data-note-act="down" title="반음 내림">−1</button>
-        <button class="ks-btn" data-note-act="up" title="반음 올림">+1</button>
-        <button class="ks-btn" data-note-act="octave-up" title="한 옥타브 올림">+12</button>
-        <label>VELOCITY <input class="ks-number" type="range" min="0.05" max="1" step="0.01" value="${(clip.notes.find((note)=>noteSel.has({clipId:clip.id,noteId:note.id}))||clip.notes[0])?.velocity??0.8}" data-note-velocity aria-label="선택한 음의 세기"></label>
-      </div>`;
-      editor.innerHTML = `<div class="ks-editor-head"><strong>PIANO ROLL · ${esc(clip.name)}</strong><span>세로=음높이 · 가로=시간 · 밝기=세기</span><span class="ks-spacer"></span><span>DRAW: 빈 칸 좌클릭으로 음 추가 · SELECT(E): 빈 칸 드래그로 여러 음 묶기 · Shift/Ctrl 클릭으로 더하기·빼기 · 드래그: 묶음 이동 · Delete: 묶음 삭제 · Ctrl+B: 묶음 복제</span><button class="ks-btn" data-act="toggle-editor">${editorExpanded?'작게':'크게 열기'}</button></div>${pianoTools}<div class="ks-piano" data-piano="1"><div style="position:relative;width:${keyWidth+width}px;height:${rulerHeight+(high-low+1)*row}px"><div class="ks-piano-ruler" style="width:${width}px">${bars}</div>${keys}${notes}<div class="ks-band" data-role="piano-band" hidden></div></div></div><div class="ks-velocity" data-velocity><div style="position:relative;width:${keyWidth+width}px;height:100%">${velocityBars}</div><div class="ks-velocity-scale">VEL</div></div>`;
+      const view = buildPianoView({
+        clip, beatsPerBar: project.beatsPerBar, expanded: editorExpanded, pxPerBeat,
+        viewportWidth: window.innerWidth,
+        isSelected: (noteId) => noteSel.has({ clipId: clip.id, noteId }) || (selection?.type === 'note' && selection.noteId === noteId),
+        esc
+      });
+      pianoPxPerBeat = view.pianoPxPerBeat;
+      if (editorClipId !== clip.id) { editorClipId = clip.id; editorScrollLeft = 0; editorScrollTop = initialScrollTop(clip); }
+      editor.innerHTML = view.html;
       const piano=editor.querySelector<HTMLElement>('.ks-piano');if(piano){piano.scrollTop=editorScrollTop;piano.scrollLeft=editorScrollLeft;}
     }
 
@@ -686,13 +675,13 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
         if(isResize)anchor.note.duration=Math.max(project.snap,Math.min(clip.duration-anchor.note.beat,snapBeat(anchor.duration+(moveEvent.clientX-startX)/pianoPxPerBeat,project.snap)));
         else{
           const step=snapBeat(Math.max(0,anchor.beat+(moveEvent.clientX-startX)/pianoPxPerBeat),project.snap)-anchor.beat;
-          const rows=Math.round((moveEvent.clientY-startY)/16);
+          const rows=Math.round((moveEvent.clientY-startY)/PIANO_GEOMETRY.row);
           for(const item of group){
             item.note.beat=Math.max(0,Math.min(clip.duration-item.note.duration,item.beat+step));
-            item.note.pitch=Math.max(36,Math.min(84,item.pitch-rows));
+            item.note.pitch=Math.max(PIANO_GEOMETRY.low,Math.min(PIANO_GEOMETRY.high,item.pitch-rows));
           }
         }
-        for(const item of group){if(!item.el)continue;item.el.style.left=`${68+item.note.beat*pianoPxPerBeat}px`;item.el.style.top=`${24+(84-item.note.pitch)*16+2}px`;item.el.style.width=`${item.note.duration*pianoPxPerBeat}px`;}
+        for(const item of group){if(!item.el)continue;item.el.style.left=`${PIANO_GEOMETRY.keyWidth+item.note.beat*pianoPxPerBeat}px`;item.el.style.top=`${PIANO_GEOMETRY.rulerHeight+(PIANO_GEOMETRY.high-item.note.pitch)*PIANO_GEOMETRY.row+2}px`;item.el.style.width=`${item.note.duration*pianoPxPerBeat}px`;}
       };
       const cleanup=()=>{noteEl.removeEventListener('pointermove',move);noteEl.removeEventListener('pointerup',up);noteEl.removeEventListener('pointercancel',cancel);noteEl.removeEventListener('lostpointercapture',cancel);cancelActiveGesture=null;};
       const up=()=>{cleanup();void engine.preview(track,anchor.note.pitch,anchor.note.velocity);saveSoon();renderEditor();renderTracks();};
