@@ -463,12 +463,16 @@
               "check": "내 코드의 복잡도를 말로 설명한다",
               "links": [
                 {
-                  "label": "백준 단계별로 풀기",
-                  "url": "https://www.acmicpc.net/step"
+                  "label": "백준 온라인 저지",
+                  "url": "https://www.acmicpc.net/"
                 },
                 {
                   "label": "NeetCode 로드맵",
                   "url": "https://neetcode.io/roadmap"
+                },
+                {
+                  "label": "프로그래머스 코딩 테스트 연습",
+                  "url": "https://school.programmers.co.kr/learn/challenges"
                 }
               ]
             },
@@ -513,8 +517,8 @@
               "check": "실행 계획을 읽고 인덱스를 고른다",
               "links": [
                 {
-                  "label": "Use The Index, Luke (한국어)",
-                  "url": "https://use-the-index-luke.com/ko"
+                  "label": "Use The Index, Luke",
+                  "url": "https://use-the-index-luke.com/"
                 }
               ]
             },
@@ -1169,8 +1173,8 @@
               "check": "가설을 셋 적고, 그중 무엇이 아닌지부터 지운다",
               "links": [
                 {
-                  "label": "Debugging (David Agans 9 규칙)",
-                  "url": "https://debuggingrules.com/"
+                  "label": "디버깅 자료 모음 (Julia Evans)",
+                  "url": "https://jvns.ca/blog/2019/06/23/a-few-debugging-resources/"
                 }
               ]
             },
@@ -1224,7 +1228,7 @@
               "links": [
                 {
                   "label": "똑똑하게 질문하는 법",
-                  "url": "https://github.com/ryanhanwu/How-To-Ask-Questions-The-Smart-Way/blob/main/README-ko.md"
+                  "url": "https://github.com/ryanhanwu/How-To-Ask-Questions-The-Smart-Way"
                 }
               ]
             },
@@ -1252,7 +1256,7 @@
               "links": [
                 {
                   "label": "뽀모도로 기법",
-                  "url": "https://francescocirillo.com/products/the-pomodoro-technique"
+                  "url": "https://www.pomodorotechnique.com/"
                 }
               ]
             }
@@ -1363,6 +1367,98 @@
                 {
                   "label": "Google Play 배포 문서",
                   "url": "https://developer.android.com/distribute"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scale",
+      "title": "분산 · 확장",
+      "emoji": "🛰",
+      "lead": "한 대로 버티던 것이 안 버틸 때 — 쪼개고 나면 생기는 새 문제들",
+      "stages": [
+        {
+          "id": "scale-a",
+          "title": "쪼개기 전에",
+          "nodes": [
+            {
+              "id": "scale-measure",
+              "title": "먼저 재라 — 부하 시험",
+              "why": "느린 곳을 짐작으로 고치면 엉뚱한 데를 세 번 고친다.",
+              "check": "초당 요청과 지연 분포(p50·p95)를 숫자로 말한다",
+              "links": [
+                {
+                  "label": "k6 부하 시험",
+                  "url": "https://grafana.com/docs/k6/latest/"
+                }
+              ]
+            },
+            {
+              "id": "scale-vertical",
+              "title": "한 대를 키우는 것도 답이다",
+              "why": "분산은 비용이다. 서버를 키워 해결되면 그게 더 싼 경우가 많다.",
+              "check": "수직 확장의 한계선을 숫자로 댄다",
+              "links": [
+                {
+                  "label": "Scalability 기초 (AWS)",
+                  "url": "https://aws.amazon.com/builders-library/"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "scale-b",
+          "title": "쪼갠 뒤",
+          "nodes": [
+            {
+              "id": "scale-lb",
+              "title": "로드 밸런서 · 무상태",
+              "why": "서버가 기억을 들고 있으면 두 대째부터 어긋난다.",
+              "check": "세션을 서버 밖으로 뺀다",
+              "links": [
+                {
+                  "label": "무상태 설계 (12factor)",
+                  "url": "https://12factor.net/ko/processes"
+                }
+              ]
+            },
+            {
+              "id": "scale-cap",
+              "title": "CAP · 결과적 일관성",
+              "why": "나뉜 순간 「항상 최신」과 「항상 응답」 중 하나를 골라야 한다.",
+              "check": "우리 서비스가 어느 쪽을 골랐는지 말한다",
+              "links": [
+                {
+                  "label": "Designing Data-Intensive Applications",
+                  "url": "https://dataintensive.net/"
+                }
+              ]
+            },
+            {
+              "id": "scale-shard",
+              "title": "샤딩 · 복제",
+              "why": "데이터를 나누는 기준이 곧 앞으로 못 하는 질의를 정한다.",
+              "check": "샤드 키를 고르고 그 대가를 설명한다",
+              "links": [
+                {
+                  "label": "MongoDB 샤딩 문서",
+                  "url": "https://www.mongodb.com/docs/manual/sharding/"
+                }
+              ]
+            },
+            {
+              "id": "scale-fail",
+              "title": "장애 전파 막기 — 타임아웃 · 서킷",
+              "why": "한 곳이 느려지면 전부 같이 죽는다. 실패를 빨리 끊는 게 방어다.",
+              "check": "의존 서비스가 죽어도 내 서비스가 응답한다",
+              "links": [
+                {
+                  "label": "Release It! 패턴 정리",
+                  "url": "https://learn.microsoft.com/ko-kr/azure/architecture/patterns/circuit-breaker"
                 }
               ]
             }
