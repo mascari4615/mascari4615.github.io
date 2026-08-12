@@ -13,6 +13,7 @@ const SCREEN_ONLY_SELECTORS = [
   '.ck-link-handle',   // 선을 뽑는 파란 점
   '.ck-link-temp',     // 끌고 있는 임시 선
   '.ck-size-handle',   // 카드 크기 손잡이
+  '.ck-guide',         // 끌 때 뜨는 맞춤 줄 — 화면에만 있는 것이다
   '.ck-edge-hit',      // 선 클릭용 두꺼운 투명 선
   '.ck-edge-grip',     // 선 휘기 손잡이
 ];

@@ -50,7 +50,8 @@ import { drainSaves, queueSave } from './canvas-save';
 import { pressIntent, readPressHits } from './canvas-press';
 import { canRewireTo, isDropOnNode, releaseIntent } from './canvas-release';
 import { curveFromPointer, labelPosFromPointer } from './canvas-edgedrag';
-import { groupDelta, resizedBox, snappedPoint, worldDelta } from './canvas-drag';
+import { groupDelta, resizedBox, sizeGrip, snappedPoint, worldDelta } from './canvas-drag';
+import { alignGuides, clearGuides, drawGuides, neighborBoxes, type GuideBox, type GuideLine } from './canvas-guides';
 import { minimapRects, minimapWorthIt, paintMinimap, worldFitsInView } from './canvas-minimap';
 import { DEFAULT_THEME } from './canvas-theme';
 import { nextOverlapping } from './canvas-pick';
@@ -147,6 +148,7 @@ export interface GraphCanvasOptions {
 const MINIMAP_W = 200;
 const MINIMAP_H = 150;
 const SAVE_DEBOUNCE_MS = 400;
+const GUIDE_TOL = 7;          // 이웃 줄에 붙는 거리 (화면 px — 배율로 나눠 쓴다)
 const GRID_SIZE = 8;         // 그리드 스냅 단위 (px)
 const BG_CELL = 32;          // 배경 무늬 한 칸 (= 스냅 4칸)
 /** 이 배율보다 작아지면 배경 무늬를 끈다 — 촘촘한 무늬는 축소하면 모아레(먼지)가 된다. */
@@ -175,6 +177,8 @@ export class GraphCanvas {
   private container: HTMLElement;
   private svg!: SVGSVGElement;
   private world!: SVGGElement;   // matrix transform group
+  private guideLines: GuideLine[] = [];   // 지금 그어 둔 줄
+  private dragNeighbors: GuideBox[] | null = null;   // 끌기 시작 때 한 번만 잰다 (300장에서 손이 무거워진다)
   private edgeLayer!: SVGGElement;
   private nodeLayer!: SVGGElement;
   private groupLayer!: SVGGElement;
@@ -298,6 +302,7 @@ export class GraphCanvas {
     this.renderEphemeralLayer();
     this.redrawEdges(this.dragTouched);
     this.redrawMinimap();
+    drawGuides(this.groupLayer, this.guideLines, this.theme.ephemeralText);   // 판을 지운 뒤 다시 긋는다
   });
 
   constructor(container: HTMLElement, options: GraphCanvasOptions = {}) {
@@ -684,8 +689,15 @@ export class GraphCanvas {
       if (this.dragging) {
         const d = worldDelta({ x: this.dragging.startMouseX, y: this.dragging.startMouseY },
           { x: e.clientX, y: e.clientY }, this.state.scale);
-        const { x: newX, y: newY } = snappedPoint(
-          this.dragging.startNodeX, this.dragging.startNodeY, d, (v) => this.snap(v));
+        const put = snappedPoint(this.dragging.startNodeX, this.dragging.startNodeY, d, (v) => this.snap(v));
+        const me = this.getNodeBox(this.dragging.nodeId);   // 격자는 대충까지 — 맞추려는 건 옆 카드다 (Alt = 자유)
+        const gl = (me && !e.altKey)
+          ? alignGuides({ id: this.dragging.nodeId, ...put, w: me.w, h: me.h },
+            (this.dragNeighbors ??= neighborBoxes(this.visibleNodes(), this.dragging.nodeId, (id) => this.getNodeBox(id))),
+            GUIDE_TOL / this.state.scale)
+          : { ...put, lines: [] };
+        const { x: newX, y: newY } = gl;
+        this.guideLines = gl.lines;
         this.nodeCoords.set(this.dragging.nodeId, { x: newX, y: newY });
         this.updateNodeTransform(this.dragging.nodeId, newX, newY);   // 손끝은 바로 따라간다
         this.dragTouched = new Set([this.dragging.nodeId]);
@@ -742,6 +754,7 @@ export class GraphCanvas {
 
     window.addEventListener('pointerup', (e) => {
       this.activePointers.delete(e.pointerId);
+      clearGuides(this.groupLayer); this.guideLines = []; this.dragNeighbors = null;   // 손 떼면 자국 0
       if (this.pinch) {
         // 손가락 하나가 떨어지면 핀치는 끝. 남은 손가락으로 이어서 끌지는 않는다
         // (핀치 도중 한 손가락이 뜨는 건 흔한데, 거기서 화면이 확 튀면 놀란다).
@@ -1794,21 +1807,8 @@ export class GraphCanvas {
       const has = g.querySelector('.ck-size-handle');
       if (id === only && !has && this.editable) {
         const n = this.spec?.nodes.find((x) => x.id === id);
-        if (n) {
-          const grip = document.createElementNS(SVG_NS, 'rect');
-          grip.setAttribute('class', 'ck-size-handle');
-          grip.dataset.sizeFor = id;
-          grip.setAttribute('x', String(n.w - 7));
-          grip.setAttribute('y', String(this.getNodeEffectiveH(n) - 7));
-          grip.setAttribute('width', '10');
-          grip.setAttribute('height', '10');
-          grip.setAttribute('rx', '2');
-          grip.setAttribute('fill', this.theme.nodeFill);
-          grip.setAttribute('stroke', this.colorForKind(n.kind));
-          grip.setAttribute('stroke-width', '1.5');
-          grip.setAttribute('cursor', 'nwse-resize');
-          g.appendChild(grip);
-        }
+        if (n) g.appendChild(sizeGrip(id, n.w, this.getNodeEffectiveH(n),
+          this.theme.nodeFill, this.colorForKind(n.kind)));
       } else if (id !== only && has) {
         has.remove();
       }

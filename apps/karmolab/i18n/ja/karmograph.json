@@ -621,5 +621,7 @@
   "karmograph.help.renameWhat": "その場で名前を直す",
   "karmograph.help.renameHow": "カードを二回押す（Enter 保存・Esc 取り消し）",
   "karmograph.help.resizeWhat": "カードの大きさを変える",
-  "karmograph.help.resizeHow": "右下の角をドラッグ（グリッドに吸着 · Alt = 自由）"
+  "karmograph.help.resizeHow": "右下の角をドラッグ（グリッドに吸着 · Alt = 自由）",
+  "karmograph.help.guideWhat": "隣のカードの線に合わせる",
+  "karmograph.help.guideHow": "ドラッグすると自動で吸着し、合った線が出る（Alt = 自由）"
 }

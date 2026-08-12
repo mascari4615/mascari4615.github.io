@@ -46,6 +46,7 @@ async function loadModules() {
     export * as release from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-release.ts'))};
     export * as edgedrag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-edgedrag.ts'))};
     export * as drag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-drag.ts'))};
+    export * as guides from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-guides.ts'))};
     export * as minimap from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-minimap.ts'))};
     export * as pick from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-pick.ts'))};
     export * as eph from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-ephemeral.ts'))};
@@ -495,6 +496,33 @@ const M = await loadModules();
   check(r4.w % 8 === 0, '격자 밖에 있던 카드도 손대는 순간 줄에 붙는다');
   check(MIN_NODE_W % 8 === 0 && MIN_NODE_H % 8 === 0,
     '최소 크기도 격자의 배수 — 제일 작은 카드만 줄이 어긋나면 안 된다');
+}
+
+/* 이웃 줄에 맞추기 (canvas-guides) — 격자가 못 맞추는 것을 맞춘다. */
+{
+  const { alignGuides, neighborBoxes } = M.guides;
+  const other = { id: 'b', x: 100, y: 300, w: 120, h: 40 };
+  const near = alignGuides({ id: 'a', x: 96, y: 0, w: 80, h: 40 }, [other], 7);
+  check(near.x === 100, '왼쪽 줄이 4px 안이면 이웃의 왼쪽 줄에 붙는다');
+  check(near.lines.some((l) => l.axis === 'v' && l.at === 100), '붙은 줄을 그어 보여 준다');
+  check(near.lines[0].from <= 0 && near.lines[0].to >= 340, '선이 두 카드를 함께 지나간다(어디에 맞췄는지 읽힌다)');
+
+  const far = alignGuides({ id: 'a', x: 40, y: 0, w: 30, h: 40 }, [other], 7);
+  check(far.x === 40 && far.lines.length === 0, '멀면 안 붙고 줄도 안 뜬다(격자 결과를 안 건드린다)');
+
+  // 폭이 제각각이면 가운데는 **격자 위에 없다** — 격자만으로는 영원히 못 맞추는 자리.
+  const mid = alignGuides({ id: 'a', x: 121, y: 0, w: 78, h: 40 }, [other], 7);
+  check(mid.x + 39 === 160, '가운데 줄에도 붙는다 (160 = 이웃의 가운데)');
+
+  const two = alignGuides({ id: 'a', x: 96, y: 296, w: 80, h: 40 }, [other], 7);
+  check(two.lines.length === 2, '가로·세로 각각 한 줄씩 — 축마다 하나만 잡는다');
+
+  const self = alignGuides({ id: 'b', x: 102, y: 300, w: 120, h: 40 }, [other], 7);
+  check(self.x === 102, '자기 자신에게는 안 붙는다');
+
+  const boxes = neighborBoxes([{ id: 'a' }, { id: 'b' }, { id: 'c' }], 'a',
+    (id) => (id === 'c' ? null : { x: 0, y: 0, w: 10, h: 10 }));
+  check(boxes.length === 1 && boxes[0].id === 'b', '끄는 자기 자신과 자리 없는 카드는 상대에서 빠진다');
 }
 
 // ---- 손바닥만 한 판 (canvas-minimap)
