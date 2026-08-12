@@ -8,6 +8,46 @@
     "git": {
       "title": "Git",
       "lead": "Not memorizing commands — seeing the graph. Once you see it, it stops being scary"
+    },
+    "cs": {
+      "title": "Computer science",
+      "lead": "The layer that does not follow trends — still true in ten years"
+    },
+    "shell": {
+      "title": "Linux & shell",
+      "lead": "While the black window scares you, the server belongs to someone else"
+    },
+    "devops": {
+      "title": "DevOps & cloud",
+      "lead": "The layer that lets other people use what you built — where it becomes a service"
+    },
+    "security": {
+      "title": "Security",
+      "lead": "You see where to defend only after you see how things break"
+    },
+    "ai": {
+      "title": "AI & LLM",
+      "lead": "Engineering on the using side — system design, not clever wording"
+    },
+    "data": {
+      "title": "Data",
+      "lead": "Easy to pile up, hard to get back out — design backwards from the reading side"
+    },
+    "game": {
+      "title": "Game development",
+      "lead": "Fun is a feeling, not a feature — the distance between running and enjoyable"
+    },
+    "craft": {
+      "title": "Developer craft",
+      "lead": "What separates people regardless of language — the part nobody teaches"
+    },
+    "mobile": {
+      "title": "Mobile",
+      "lead": "The screen in your hand plays by other rules — narrow, flaky, battery-powered"
+    },
+    "scale": {
+      "title": "Distribution & scale",
+      "lead": "When one machine stops being enough — and the new problems that splitting creates"
     }
   },
   "stages": {
@@ -17,7 +57,30 @@
     "git-a": "The mental model",
     "git-b": "Working alone",
     "git-c": "Working together",
-    "git-d": "Rescue tools"
+    "git-d": "Rescue tools",
+    "cs-a": "Close to the machine",
+    "cs-b": "Solving problems",
+    "cs-c": "Wiring things together",
+    "shell-a": "Finding your way",
+    "shell-b": "Piping things together",
+    "devops-a": "Run it on one box",
+    "devops-b": "Ship it automatically",
+    "devops-c": "Know when it dies",
+    "sec-a": "Locking up",
+    "sec-b": "Base fitness",
+    "ai-a": "What you are handling",
+    "ai-b": "Wiring it into a system",
+    "data-a": "The container",
+    "data-b": "Keeping it moving",
+    "game-a": "Making it run",
+    "game-b": "Making it fun",
+    "craft-a": "The power to fix",
+    "craft-b": "The power to leave something behind",
+    "mobile-a": "What to build it with",
+    "mobile-b": "Fit it to the hand",
+    "mobile-c": "Ship it",
+    "scale-a": "Before you split",
+    "scale-b": "After you split"
   },
   "nodes": {
     "web-html": {
@@ -220,6 +283,556 @@
       "check": "Tests run automatically before a push",
       "links": [
         "Git hooks"
+      ]
+    },
+    "cs-binary": {
+      "title": "Number bases, bits, floating point",
+      "why": "Not knowing why 0.1 + 0.2 looks like that is how money math goes wrong.",
+      "check": "You give an example of integer overflow and of float error",
+      "links": [
+        "Float exposed"
+      ],
+      "tool": "Base converter"
+    },
+    "cs-memory": {
+      "title": "Memory — stack, heap, references",
+      "why": "Not knowing copy from reference gives you the same bug in every language.",
+      "check": "You can draw when a value gets copied",
+      "links": [
+        "CS:APP course (CMU)"
+      ]
+    },
+    "cs-os": {
+      "title": "Operating systems — processes, threads, scheduling",
+      "why": "The eye that tells whether slow means CPU or I/O.",
+      "check": "You explain blocking vs non-blocking with an example",
+      "links": [
+        "OSTEP (free book)"
+      ]
+    },
+    "cs-ds": {
+      "title": "Data structures",
+      "why": "Change the structure and the algorithm often disappears entirely.",
+      "check": "You choose between array, hash and tree and say why",
+      "links": [
+        "VisuAlgo — structures you can watch"
+      ]
+    },
+    "cs-algo": {
+      "title": "Algorithms and complexity",
+      "why": "The moment where O(n²) has to become O(n log n) really does arrive.",
+      "check": "You state the complexity of your own code out loud",
+      "links": [
+        "Baekjoon Online Judge",
+        "NeetCode roadmap",
+        "Programmers coding test practice"
+      ]
+    },
+    "cs-concurrency": {
+      "title": "Concurrency — races and locks",
+      "why": "Home of the bug that fails only sometimes. This is why it will not reproduce.",
+      "check": "You cause a race condition on purpose",
+      "links": [
+        "OSTEP concurrency"
+      ]
+    },
+    "cs-net": {
+      "title": "Networking — IP, TCP, DNS, TLS",
+      "why": "Every web problem eventually lands on one of those four.",
+      "check": "You narrate what happens after you press enter in the address bar",
+      "links": [
+        "High Performance Browser Networking"
+      ],
+      "tool": "URL inspector"
+    },
+    "cs-db": {
+      "title": "Databases — indexes and transactions",
+      "why": "One slow query stops the whole service. An index is a data structure, not magic.",
+      "check": "You read a query plan and pick an index",
+      "links": [
+        "Use The Index, Luke"
+      ]
+    },
+    "cs-compiler": {
+      "title": "How a language runs — parser and runtime",
+      "why": "Build one and \"language\" stops being mystical.",
+      "check": "You write a small calculator interpreter",
+      "links": [
+        "Crafting Interpreters"
+      ]
+    },
+    "shell-fs": {
+      "title": "File system and paths",
+      "why": "Everything branches from that first slash. Confuse absolute and relative and every command is a gamble.",
+      "check": "With cd, ls and find alone you locate a log on someone else's server",
+      "links": [
+        "Linux Journey"
+      ]
+    },
+    "shell-perm": {
+      "title": "Permissions and ownership",
+      "why": "\"Permission denied\" is not an error, it is a design. You have to read why it stopped you.",
+      "check": "You convert between rwx and chmod numbers both ways",
+      "links": [
+        "chmod calculator"
+      ]
+    },
+    "shell-editor": {
+      "title": "Terminal editors (vim, nano)",
+      "why": "Your editor is not on the server. You should at least know how to get out.",
+      "check": "You edit one line of a config file, save it, and leave",
+      "links": [
+        "Vim Adventures (game)"
+      ]
+    },
+    "shell-pipe": {
+      "title": "Pipes, grep, sed, awk",
+      "why": "Chaining small tools is the whole of Unix. You stop needing to buy a log analyzer.",
+      "check": "You pull the top 10 errors from a log in one line",
+      "links": [
+        "The Missing Semester (MIT)"
+      ]
+    },
+    "shell-proc": {
+      "title": "Processes, ports, resources",
+      "why": "To answer \"the server feels slow\" you must see what holds CPU, memory and ports.",
+      "check": "You name the guilty process using ps, top and lsof",
+      "links": [
+        "Linux performance tools (Brendan Gregg)"
+      ]
+    },
+    "shell-ssh": {
+      "title": "SSH, keys, remote work",
+      "why": "While you are typing passwords, automation stays impossible.",
+      "check": "You log in with a key and open a remote screen through port forwarding",
+      "links": [
+        "Generating an SSH key (GitHub docs)"
+      ]
+    },
+    "shell-script": {
+      "title": "Shell scripts and cron",
+      "why": "Done twice, script it. Done daily, schedule it. By hand you will eventually skip it.",
+      "check": "Your backup runs as a script every day",
+      "links": [
+        "ShellCheck — script linting"
+      ],
+      "tool": "Cron expression reader"
+    },
+    "devops-container": {
+      "title": "Containers (Docker)",
+      "why": "The tool that ends \"works on my machine\". The environment becomes code.",
+      "check": "Your app becomes an image and runs the same on another machine",
+      "links": [
+        "Docker get started"
+      ]
+    },
+    "devops-env": {
+      "title": "Config and secrets",
+      "why": "The moment a token lands in the code, that repository is polluted for good.",
+      "check": "Values live outside the code, in env vars and a secret store",
+      "links": [
+        "The Twelve-Factor App"
+      ]
+    },
+    "devops-ci": {
+      "title": "CI — checks on every push",
+      "why": "A check people have to remember to run eventually stops running.",
+      "check": "Tests and lint run automatically on every PR",
+      "links": [
+        "GitHub Actions docs"
+      ]
+    },
+    "devops-cd": {
+      "title": "CD — deploy and rollback",
+      "why": "A deploy you cannot undo is a gamble, not a deploy.",
+      "check": "One command puts the previous version back",
+      "links": [
+        "Deployment strategies (Argo docs)"
+      ]
+    },
+    "devops-iac": {
+      "title": "Infrastructure as code",
+      "why": "Infrastructure built by clicking is infrastructure nobody can reproduce.",
+      "check": "You stand up one server from code and tear it down",
+      "links": [
+        "Terraform tutorials"
+      ]
+    },
+    "devops-obs": {
+      "title": "Logs, metrics, traces",
+      "why": "The worst outage is the one your users know about before you do.",
+      "check": "An alert reaches you when the error rate spikes",
+      "links": [
+        "Google SRE Book (free)"
+      ],
+      "tool": "Unix time converter"
+    },
+    "devops-postmortem": {
+      "title": "Incident response and postmortems",
+      "why": "The same outage twice is not an accident, it is a habit.",
+      "check": "You write cause and prevention without blaming a person",
+      "links": [
+        "Postmortem culture (SRE Book)"
+      ]
+    },
+    "sec-owasp": {
+      "title": "The common holes (OWASP Top 10)",
+      "why": "Most real incidents are not novel techniques — they are these ten.",
+      "check": "You point at where injection or XSS could land in your code",
+      "links": [
+        "OWASP Top 10"
+      ]
+    },
+    "sec-authn": {
+      "title": "Authentication is not authorization",
+      "why": "Mix up who you are with what you may do and other people's data shows up.",
+      "check": "You put someone else's id into your API and confirm it is refused",
+      "links": [
+        "OAuth 2.0 simplified"
+      ],
+      "tool": "JWT inspector"
+    },
+    "sec-secret": {
+      "title": "Handling secrets",
+      "why": "A token that entered git history stays there after you delete it.",
+      "check": "A check catches secrets before the commit",
+      "links": [
+        "gitleaks"
+      ],
+      "tool": "Password generator"
+    },
+    "sec-crypto": {
+      "title": "Crypto basics — hashing, symmetric, public key",
+      "why": "You need the principles if only to understand why not to roll your own.",
+      "check": "You explain why passwords are stored as a salted hash",
+      "links": [
+        "Crypto 101 (free)"
+      ],
+      "tool": "Hash generator"
+    },
+    "sec-supply": {
+      "title": "Supply chain — dependencies",
+      "why": "Code you never wrote runs inside your service.",
+      "check": "You receive dependency vulnerability alerts and act on them",
+      "links": [
+        "Dependabot docs"
+      ]
+    },
+    "sec-practice": {
+      "title": "Break something yourself",
+      "why": "Reading defense alone teaches little. Break in once and code looks different.",
+      "check": "You solve a wargame level on your own",
+      "links": [
+        "OverTheWire Bandit",
+        "PortSwigger Web Security Academy"
+      ]
+    },
+    "ai-token": {
+      "title": "Tokens, context window, cost",
+      "why": "Length, price and speed are all decided here. Skip it and the invoice teaches you.",
+      "check": "You compute the token count and cost of one request",
+      "links": [
+        "Anthropic docs — models and cost"
+      ]
+    },
+    "ai-prompt": {
+      "title": "A prompt is a spec",
+      "why": "Vague instructions produce vague output. Same as handing work to a person.",
+      "check": "You tighten the instruction until the same input stops wobbling",
+      "links": [
+        "Anthropic prompt engineering guide"
+      ]
+    },
+    "ai-limits": {
+      "title": "Hallucination and limits",
+      "why": "Models are bad at saying they do not know. The system has to cover that.",
+      "check": "You write down where wrong answers will appear and plan for it",
+      "links": [
+        "Anthropic — reduce hallucinations"
+      ]
+    },
+    "ai-rag": {
+      "title": "Adding retrieval (embeddings, RAG)",
+      "why": "The usual way to put your own data into a model that never saw it.",
+      "check": "You ask your document pile a question and get the source passage back",
+      "links": [
+        "Anthropic — contextual retrieval"
+      ]
+    },
+    "ai-tools": {
+      "title": "Tool use and agents",
+      "why": "Where the model stops talking and starts doing — and where safety design begins.",
+      "check": "You attach one tool and decide what happens when it fails",
+      "links": [
+        "Anthropic — tool use"
+      ]
+    },
+    "ai-eval": {
+      "title": "Evaluation — measuring the gain",
+      "why": "The feeling that a prompt got better is usually wrong.",
+      "check": "You score 20 fixed cases and compare",
+      "links": [
+        "Anthropic — building evals"
+      ]
+    },
+    "data-model": {
+      "title": "Modeling — how to split the tables",
+      "why": "A schema is the decision you cannot change later. Get it wrong and the code compensates forever.",
+      "check": "You normalize, and say where you deliberately break it",
+      "links": [
+        "Database design (after SQLBolt)"
+      ]
+    },
+    "data-sql": {
+      "title": "SQL — joins, aggregates, window functions",
+      "why": "The moment you pull it into the app and loop, you are doing the database's job slowly.",
+      "check": "You produce a report with three joins and a group by",
+      "links": [
+        "SQLBolt (hands-on)",
+        "PostgreSQL window functions"
+      ]
+    },
+    "data-tx": {
+      "title": "Transactions and isolation levels",
+      "why": "The bug where money leaves twice usually starts here.",
+      "check": "You give an example of a phantom read",
+      "links": [
+        "Designing Data-Intensive Applications"
+      ]
+    },
+    "data-cache": {
+      "title": "Cache — invalidation is the real work",
+      "why": "Adding a cache is easy. Without a rule for dropping it you serve wrong answers fast.",
+      "check": "You write the cache key and expiry rule before adding it",
+      "links": [
+        "Caching best practices (AWS)"
+      ]
+    },
+    "data-queue": {
+      "title": "Queues and async work",
+      "why": "Do slow work inside the request and the user waits. Push it aside and do it later.",
+      "check": "Failed jobs retry, but not forever",
+      "links": [
+        "Enterprise Integration Patterns"
+      ]
+    },
+    "data-format": {
+      "title": "Shapes on the wire — JSON, CSV, schema",
+      "why": "Most integration incidents are not algorithms, they are \"the shape differs\".",
+      "check": "You document the schema of the data you hand over",
+      "links": [
+        "JSON Schema"
+      ],
+      "tool": "CSV ↔ JSON converter"
+    },
+    "game-loop": {
+      "title": "Game loop and delta time",
+      "why": "A world that ticks per frame. Skip delta and characters teleport on a fast machine.",
+      "check": "Movement speed stays the same when the frame rate wobbles",
+      "links": [
+        "Game Programming Patterns (free)"
+      ]
+    },
+    "game-engine": {
+      "title": "One engine (Unity / Godot)",
+      "why": "The engine is a tool, not the goal. Finish with one and you can read the others.",
+      "check": "You build a moving character and a wall that stops it",
+      "links": [
+        "Unity Learn",
+        "Godot docs"
+      ]
+    },
+    "game-input": {
+      "title": "Input and state machines",
+      "why": "How a game feels comes down to when input is taken and when it lands.",
+      "check": "You turn overlaps like attacking mid-jump into explicit rules",
+      "links": [
+        "State pattern (GPP)"
+      ]
+    },
+    "game-feel": {
+      "title": "Game feel — effects and impact",
+      "why": "The same logic becomes a different game with shake, sound and one frozen frame.",
+      "check": "You toggle the effects off and on and describe the difference",
+      "links": [
+        "Juice it or lose it (video)"
+      ]
+    },
+    "game-balance": {
+      "title": "Numbers and balance",
+      "why": "Numbers in code turn tuning into a deploy. Pull them into a table and the game comes alive.",
+      "check": "You change values without rebuilding",
+      "links": [
+        "Game balancing basics (GDC)"
+      ]
+    },
+    "game-ship": {
+      "title": "Finishing and releasing",
+      "why": "One finished game teaches far more than ten half-built ones.",
+      "check": "Someone else installs it and plays to the end",
+      "links": [
+        "Publishing on itch.io"
+      ]
+    },
+    "craft-debug": {
+      "title": "Debugging is narrowing hypotheses",
+      "why": "A bug fixed by poking comes back. The procedure for narrowing is the skill.",
+      "check": "You write three hypotheses and start by ruling one out",
+      "links": [
+        "Debugging resources (Julia Evans)"
+      ]
+    },
+    "craft-read": {
+      "title": "Reading other people's code",
+      "why": "Most of the job is reading, not writing. Reading speed is your speed.",
+      "check": "You follow one feature through an unfamiliar repository",
+      "links": [
+        "Reading code (Google eng practices)"
+      ]
+    },
+    "craft-refactor": {
+      "title": "Refactoring — changing without breaking",
+      "why": "Refactoring without tests is just rewriting.",
+      "check": "You separate behavior-preserving changes from behavior-changing ones by commit",
+      "links": [
+        "Refactoring catalog"
+      ]
+    },
+    "craft-doc": {
+      "title": "Documentation and naming",
+      "why": "You in six months is a stranger. A name and one line save that person.",
+      "check": "Someone else runs it from the README alone",
+      "links": [
+        "Diátaxis — four kinds of docs"
+      ]
+    },
+    "craft-ask": {
+      "title": "How to ask",
+      "why": "A good question has already solved half of itself before the answer arrives.",
+      "check": "You bring repro steps, expected and actual",
+      "links": [
+        "How to ask questions the smart way"
+      ]
+    },
+    "craft-ai": {
+      "title": "Working with AI",
+      "why": "Take it without checking and you get wrong fast. It is about what to delegate and what to verify.",
+      "check": "You verify AI-written code with a test before committing",
+      "links": [
+        "Anthropic — Claude Code docs"
+      ]
+    },
+    "craft-focus": {
+      "title": "Focus and consistency",
+      "why": "This breaks before the technical skills do. Thirty minutes a day beats a weekend sprint.",
+      "check": "You sit down five times a week at a set time",
+      "links": [
+        "The Pomodoro Technique"
+      ],
+      "tool": "Pomodoro timer"
+    },
+    "mobile-choice": {
+      "title": "Native, cross-platform or web",
+      "why": "There is no answer to \"which is better\", only a choice of what to give up.",
+      "check": "You choose based on whether you need camera, notifications or offline",
+      "links": [
+        "PWA vs native (web.dev)"
+      ]
+    },
+    "mobile-pwa": {
+      "title": "PWA — the web that installs",
+      "why": "It reaches the home screen with no store review. The shortest path for a web developer.",
+      "check": "Your site installs and opens from an icon",
+      "links": [
+        "Make it installable"
+      ]
+    },
+    "mobile-touch": {
+      "title": "Touch and finger size",
+      "why": "Buttons designed for a mouse do not fit a thumb. 44px is a spec, not a taste.",
+      "check": "You finish the main action one-handed with your thumb",
+      "links": [
+        "Apple HIG — touch targets"
+      ]
+    },
+    "mobile-offline": {
+      "title": "Offline and slow networks",
+      "why": "It cuts out on the subway. What you show when it does is the quality of the app.",
+      "check": "It still shows something in airplane mode",
+      "links": [
+        "Service worker offline strategies"
+      ]
+    },
+    "mobile-perf": {
+      "title": "Battery and performance",
+      "why": "Costs invisible on a desktop all surface here.",
+      "check": "You measure first paint on a slow device (4x throttle)",
+      "links": [
+        "Core Web Vitals"
+      ]
+    },
+    "mobile-notify": {
+      "title": "Notifications — permission and manners",
+      "why": "An app that asks for everything up front gets deleted.",
+      "check": "You explain on screen why to enable it, then ask",
+      "links": [
+        "Permission UX (web.dev)"
+      ]
+    },
+    "mobile-store": {
+      "title": "Store release and review",
+      "why": "Between building and shipping sit signing, review and privacy labels.",
+      "check": "A test release installs on someone else's device",
+      "links": [
+        "Google Play distribution docs"
+      ]
+    },
+    "scale-measure": {
+      "title": "Measure first — load testing",
+      "why": "Guess at the slow part and you will fix the wrong thing three times.",
+      "check": "You state requests per second and latency spread (p50, p95)",
+      "links": [
+        "k6 load testing"
+      ]
+    },
+    "scale-vertical": {
+      "title": "Growing one machine is also an answer",
+      "why": "Distribution costs. If a bigger server solves it, that is usually cheaper.",
+      "check": "You give the ceiling of vertical scaling in numbers",
+      "links": [
+        "Scalability basics (AWS)"
+      ]
+    },
+    "scale-lb": {
+      "title": "Load balancers and statelessness",
+      "why": "If the server holds memory, everything drifts from the second machine on.",
+      "check": "You move sessions out of the server",
+      "links": [
+        "Stateless processes (12factor)"
+      ]
+    },
+    "scale-cap": {
+      "title": "CAP and eventual consistency",
+      "why": "Once it is partitioned you must pick between always current and always answering.",
+      "check": "You say which side your service chose",
+      "links": [
+        "Designing Data-Intensive Applications"
+      ]
+    },
+    "scale-shard": {
+      "title": "Sharding and replication",
+      "why": "How you split the data decides which queries you can no longer run.",
+      "check": "You choose a shard key and explain the price",
+      "links": [
+        "MongoDB sharding docs"
+      ]
+    },
+    "scale-fail": {
+      "title": "Containing failure — timeouts and circuit breakers",
+      "why": "One slow place drags everything down with it. Cutting failure early is the defense.",
+      "check": "Your service answers even when a dependency is dead",
+      "links": [
+        "Circuit breaker pattern"
       ]
     }
   }
