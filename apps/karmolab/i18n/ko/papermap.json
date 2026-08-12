@@ -1,0 +1,17 @@
+{
+  "papermap.tab": "지도",
+  "papermap.label.query": "논문 제목이나 낱말",
+  "papermap.btn.search": "찾기",
+  "papermap.btn.export": "캔버스로 내보내기",
+  "papermap.legend": "큰 것 = 많이 인용된 것(이 분야의 바닥) · 왼쪽 = 옛 논문",
+  "papermap.cited": "인용 {n}",
+  "papermap.map.title": "{n}편 위에 서 있습니다",
+  "papermap.status.idle": "논문을 찾아 보세요",
+  "papermap.status.searching": "찾는 중…",
+  "papermap.status.hits": "{n}편 찾았습니다 — 하나를 고르세요",
+  "papermap.status.none": "못 찾았습니다",
+  "papermap.status.loading": "이 논문이 딛고 선 것들을 받는 중…",
+  "papermap.status.norefs": "이 논문의 참고문헌이 공개돼 있지 않습니다",
+  "papermap.status.done": "지도를 그렸습니다",
+  "papermap.status.exported": "캔버스 파일로 내보냈습니다 — 카모그래프에서 열 수 있습니다"
+}

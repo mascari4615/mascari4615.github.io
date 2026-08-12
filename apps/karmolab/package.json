@@ -196,6 +196,8 @@
     "test:soundscape": "node scripts/test-soundscape-core.mjs",
     "test:shell": "node scripts/test-shell-explain.mjs",
     "test:burnnote": "node scripts/test-burnnote-core.mjs",
+    "test:papermap": "node scripts/test-papermap-core.mjs",
+    "smoke:papermap": "node scripts/smoke-papermap.mjs",
     "smoke:burnnote": "node scripts/smoke-burnnote.mjs",
     "smoke:shell": "node scripts/smoke-explainshell.mjs",
     "smoke:soundscape": "node scripts/smoke-soundscape.mjs",
