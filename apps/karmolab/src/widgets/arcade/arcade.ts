@@ -389,6 +389,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-fxc.ac-pick{outline:2px solid var(--accent);outline-offset:-2px}',
       '.ac-fxc.ac-can{background:color-mix(in srgb,var(--accent) 40%,var(--surface));cursor:pointer}',
       '.ac-fxc:not(:disabled){cursor:pointer}',
+      '.ac-pg{max-width:min(90vw,280px);margin:var(--space-lg) auto}',
+      '.ac-pg canvas{width:100%;display:block;border-radius:8px;touch-action:none;cursor:none}',
       '.ac-code{font-size:clamp(28px,8vw,48px);font-weight:800;letter-spacing:.18em;text-align:center;margin:var(--space-lg) 0}',
       '.ac-share{display:flex;gap:6px;margin:var(--space-lg) 0}',
       '.ac-share input{flex:1;min-width:0}'

@@ -271,5 +271,8 @@
   "arcade.fox.youFox": "あなたは 🦊 狐 — 向こう端に抜ければ勝ち",
   "arcade.fox.youHound": "あなたは 🐶 猟犬 — 前にしか進めない。狐を閉じ込めれば勝ち",
   "arcade.fox.foxWin": "{who} — 狐が抜けた",
-  "arcade.fox.houndWin": "{who} — 狐を閉じ込めた"
+  "arcade.fox.houndWin": "{who} — 狐を閉じ込めた",
+  "arcade.game.pong.name": "ピンポン",
+  "arcade.game.pong.desc": "ラケットは一直線。どこで受けるかが角度を決める",
+  "arcade.pong.win": "{who} — {a} 対 {b}"
 }
