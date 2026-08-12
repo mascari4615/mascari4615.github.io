@@ -18,6 +18,8 @@
  * 없으면 옛 방식으로 내려간다(세는 수가 조금 달라져도 화면이 죽지는 않는다).
  */
 
+import { graphemeCount } from '../../../core/charcount';
+
 export interface TextCount {
   /** 사람이 세는 글자 수 (자소 묶음) — 이모지 한 덩이는 1 */
   chars: number;
@@ -31,37 +33,13 @@ export interface TextCount {
   bytes: number;
 }
 
-/* `Intl.Segmenter` 는 이 판의 타입 목록에 아직 없다(브라우저에는 있다). 필요한 만큼만 적어 둔다 —
- * 타입 목록을 통째로 올리면 다른 파일들이 딸려 흔들린다. */
-interface GraphemeSegmenter {
-  segment: (input: string) => Iterable<{ segment: string }>;
-}
-type SegmenterCtor = new (locale?: string, opts?: { granularity: string }) => GraphemeSegmenter;
-
-let segmenter: GraphemeSegmenter | null | undefined;
-
-/** 자소 묶음으로 가른다. 못 쓰는 브라우저면 `null` — 부르는 쪽이 옛 방식으로 내려간다. */
-function graphemes(): GraphemeSegmenter | null {
-  if (segmenter === undefined) {
-    try {
-      const Ctor = (Intl as unknown as { Segmenter?: SegmenterCtor }).Segmenter;
-      segmenter = Ctor ? new Ctor(undefined, { granularity: 'grapheme' }) : null;
-    } catch {
-      segmenter = null;
-    }
-  }
-  return segmenter;
-}
-
-/** 사람이 세는 글자 수. */
-export function countChars(text: string): number {
-  if (!text) return 0;
-  const seg = graphemes();
-  if (!seg) return [...text].length;
-  let n = 0;
-  for (const _ of seg.segment(text)) n += 1;
-  return n;
-}
+/**
+ * 사람이 세는 글자 수 — **코어 것을 그대로 쓴다** (TASK-KL-276).
+ *
+ * 여기 한 벌 더 두면 「같은 글에 두 수」가 다시 생긴다. 실제로 그래서 화면은 9자, MCP 는 13자를
+ * 말하고 있었다. 세는 법은 `core/charcount` 하나뿐이어야 한다.
+ */
+export const countChars = graphemeCount;
 
 /**
  * 낱말 수.
@@ -105,12 +83,12 @@ export function escapeHtml(v: string): string {
  */
 export function head(text: string, max = 1200): string {
   if (text.length <= max) return text;
-  const seg = graphemes();
-  if (!seg) return text.slice(0, max);
+  /* 코드포인트 단위로 모은다 — 완전한 자소까지는 아니어도 **반 토막 난 서러게이트**는 안 남는다
+   * (`slice` 로 자르면 깨진 네모 「�」 가 보인다). 미리보기라 이 정도면 충분하다. */
   let out = '';
-  for (const part of seg.segment(text)) {
-    if (out.length + part.segment.length > max) break;
-    out += part.segment;
+  for (const ch of text) {
+    if (out.length + ch.length > max) break;
+    out += ch;
   }
   return out;
 }
