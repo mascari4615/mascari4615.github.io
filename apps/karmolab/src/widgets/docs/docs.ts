@@ -4,7 +4,14 @@
  * marked.js로 마크다운 렌더링, Prism.js로 코드 하이라이팅, ```mermaid 는 Mermaid 렌더.
  */
 import { t, loadNamespace } from '../../lib/i18n';
-import { collectHeadings, watchReading, bindTocClicks, highlightCode, addCopyButtons } from '../../lib/doc-view';
+import {
+  collectHeadings,
+  watchReading,
+  bindTocClicks,
+  highlightCode,
+  addCopyButtons,
+  mountDemos,
+} from '../../lib/doc-view';
 
 (function (): void {
   /** 동일 출처(Tracking Prevention 회피). CDN 금지.
@@ -490,6 +497,22 @@ import { collectHeadings, watchReading, bindTocClicks, highlightCode, addCopyBut
       const lang = block.className.match(/language-([\w-]+)/)?.[1];
       if (lang) block.className = 'language-' + lang;
     });
+    /* ```demo-html · demo-js · demo-shader 울타리는 실행되는 판으로 바꾼다(강의와 같은 모듈). */
+    body.querySelectorAll('pre code[class*="language-demo-"]').forEach((block: Element) => {
+      const kind = block.className.match(/language-demo-(html|js|shader)/)?.[1];
+      if (!kind) return;
+      const holder = document.createElement('div');
+      holder.setAttribute('data-demo', kind);
+      holder.textContent = block.textContent || '';
+      block.closest('pre')?.replaceWith(holder);
+    });
+    mountDemos(body, {
+      run: t('docs.demo.run'),
+      reset: t('docs.demo.reset'),
+      code: t('docs.demo.code'),
+      result: t('docs.demo.result'),
+    });
+
     void highlightCode(body);
     addCopyButtons(body, t('docs.copy'), t('docs.copied'));
 

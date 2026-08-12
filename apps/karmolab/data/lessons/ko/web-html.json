@@ -3,26 +3,87 @@
   "id": "web-html",
   "minutes": 12,
   "blocks": [
-    { "type": "p", "text": "화면을 만들 때 제일 먼저 정하는 건 색도 여백도 아니다. **이 덩어리가 무엇인가** 를 정하는 일이다. HTML 태그는 그 「무엇인가」를 적는 자리다." },
-    { "type": "p", "text": "div 만으로도 화면은 똑같이 그려진다. 그런데 화면을 보는 것은 사람만이 아니다 — 검색 엔진, 스크린리더, 키보드, 브라우저의 읽기 모드가 전부 태그를 읽고 뜻을 판단한다. 뜻이 없으면 그들에게는 빈 상자만 잔뜩 있는 화면이다." },
-
-    { "type": "h", "text": "1. 뜻이 있는 뼈대와 없는 뼈대" },
-    { "type": "code", "lang": "html", "label": "뜻이 없다 — 화면은 같지만 기계는 아무것도 모른다", "text": "<div class=\"top\">\n  <div class=\"big\">고양이 기르기</div>\n</div>\n<div class=\"body\">\n  <div class=\"title\">밥 주기</div>\n  <div>하루 두 번.</div>\n</div>" },
-    { "type": "code", "lang": "html", "label": "뜻이 있다 — 같은 화면, 읽히는 구조", "text": "<header>\n  <h1>고양이 기르기</h1>\n</header>\n<main>\n  <section>\n    <h2>밥 주기</h2>\n    <p>하루 두 번.</p>\n  </section>\n</main>" },
-    { "type": "note", "text": "제목은 h1 → h2 → h3 순서로만 내려간다. 크기가 마음에 안 들면 CSS 로 줄여라. 크기 때문에 h3 을 먼저 쓰면 목차가 어긋난다." },
-
-    { "type": "h", "text": "2. 자주 쓰는 것부터 — 목록 · 표 · 링크" },
-    { "type": "code", "lang": "html", "label": "순서가 없으면 ul, 있으면 ol", "text": "<ul>\n  <li>사료</li>\n  <li>물</li>\n</ul>\n\n<ol>\n  <li>그릇을 씻는다</li>\n  <li>사료를 붓는다</li>\n</ol>" },
-    { "type": "code", "lang": "html", "label": "표는 자료가 격자일 때만 — 배치 용도로 쓰지 X", "text": "<table>\n  <caption>급식 시간</caption>\n  <thead>\n    <tr><th scope=\"col\">때</th><th scope=\"col\">양</th></tr>\n  </thead>\n  <tbody>\n    <tr><td>아침</td><td>40g</td></tr>\n  </tbody>\n</table>" },
-    { "type": "p", "text": "링크와 단추는 자주 헷갈린다. **다른 곳으로 가면 `<a href>`, 그 자리에서 무언가를 하면 `<button>`** 이다. div 에 클릭을 붙이면 키보드로 못 누르고 스크린리더가 「단추」라고 알려 주지도 못한다." },
-
-    { "type": "h", "text": "3. 폼 — 라벨이 반이다" },
-    { "type": "code", "lang": "html", "label": "label 을 붙이면 글자를 눌러도 칸이 잡힌다", "text": "<label for=\"cat-name\">이름</label>\n<input id=\"cat-name\" name=\"catName\" type=\"text\" autocomplete=\"nickname\">\n\n<button type=\"submit\">등록</button>" },
-    { "type": "note", "text": "`name` 이 없으면 서버로 값이 안 간다. `type` 을 맞추면 휴대폰에서 알맞은 자판이 뜬다(email · tel · number)." },
-
-    { "type": "h", "text": "직접 해보기" },
-    { "type": "try", "text": "지금 만들고 있는 화면에서 `<div>` 로만 된 곳을 하나 골라 header · nav · main · section · footer 중 알맞은 것으로 바꿔라. 그리고 브라우저 개발자도구에서 **접근성 트리**(Accessibility 탭)를 열어 이름과 역할이 생겼는지 봐라." },
-    { "type": "try", "text": "키보드 Tab 만으로 그 화면을 처음부터 끝까지 지나가 봐라. 건너뛰어지는 조작 요소가 있으면, 그건 십중팔구 div 로 만든 단추다." }
+    {
+      "type": "p",
+      "text": "화면을 만들 때 제일 먼저 정하는 건 색도 여백도 아니다. **이 덩어리가 무엇인가** 를 정하는 일이다. HTML 태그는 그 「무엇인가」를 적는 자리다."
+    },
+    {
+      "type": "p",
+      "text": "div 만으로도 화면은 똑같이 그려진다. 그런데 화면을 보는 것은 사람만이 아니다 — 검색 엔진, 스크린리더, 키보드, 브라우저의 읽기 모드가 전부 태그를 읽고 뜻을 판단한다. 뜻이 없으면 그들에게는 빈 상자만 잔뜩 있는 화면이다."
+    },
+    {
+      "type": "h",
+      "text": "1. 뜻이 있는 뼈대와 없는 뼈대"
+    },
+    {
+      "type": "demo",
+      "kind": "html",
+      "label": "고쳐 보라 — div 를 button 으로 바꾸면 키보드로 눌린다",
+      "height": "200px",
+      "text": "<p>탭 키로 눌러 보라.</p>\n<div onclick=\"alert('div')\" style=\"padding:8px;border:1px solid #ccc;display:inline-block\">뜻 없는 상자</div>\n<button onclick=\"alert('button')\" style=\"padding:8px\">진짜 버튼</button>"
+    },
+    {
+      "type": "code",
+      "lang": "html",
+      "label": "뜻이 없다 — 화면은 같지만 기계는 아무것도 모른다",
+      "text": "<div class=\"top\">\n  <div class=\"big\">고양이 기르기</div>\n</div>\n<div class=\"body\">\n  <div class=\"title\">밥 주기</div>\n  <div>하루 두 번.</div>\n</div>"
+    },
+    {
+      "type": "code",
+      "lang": "html",
+      "label": "뜻이 있다 — 같은 화면, 읽히는 구조",
+      "text": "<header>\n  <h1>고양이 기르기</h1>\n</header>\n<main>\n  <section>\n    <h2>밥 주기</h2>\n    <p>하루 두 번.</p>\n  </section>\n</main>"
+    },
+    {
+      "type": "note",
+      "text": "제목은 h1 → h2 → h3 순서로만 내려간다. 크기가 마음에 안 들면 CSS 로 줄여라. 크기 때문에 h3 을 먼저 쓰면 목차가 어긋난다."
+    },
+    {
+      "type": "h",
+      "text": "2. 자주 쓰는 것부터 — 목록 · 표 · 링크"
+    },
+    {
+      "type": "code",
+      "lang": "html",
+      "label": "순서가 없으면 ul, 있으면 ol",
+      "text": "<ul>\n  <li>사료</li>\n  <li>물</li>\n</ul>\n\n<ol>\n  <li>그릇을 씻는다</li>\n  <li>사료를 붓는다</li>\n</ol>"
+    },
+    {
+      "type": "code",
+      "lang": "html",
+      "label": "표는 자료가 격자일 때만 — 배치 용도로 쓰지 X",
+      "text": "<table>\n  <caption>급식 시간</caption>\n  <thead>\n    <tr><th scope=\"col\">때</th><th scope=\"col\">양</th></tr>\n  </thead>\n  <tbody>\n    <tr><td>아침</td><td>40g</td></tr>\n  </tbody>\n</table>"
+    },
+    {
+      "type": "p",
+      "text": "링크와 단추는 자주 헷갈린다. **다른 곳으로 가면 `<a href>`, 그 자리에서 무언가를 하면 `<button>`** 이다. div 에 클릭을 붙이면 키보드로 못 누르고 스크린리더가 「단추」라고 알려 주지도 못한다."
+    },
+    {
+      "type": "h",
+      "text": "3. 폼 — 라벨이 반이다"
+    },
+    {
+      "type": "code",
+      "lang": "html",
+      "label": "label 을 붙이면 글자를 눌러도 칸이 잡힌다",
+      "text": "<label for=\"cat-name\">이름</label>\n<input id=\"cat-name\" name=\"catName\" type=\"text\" autocomplete=\"nickname\">\n\n<button type=\"submit\">등록</button>"
+    },
+    {
+      "type": "note",
+      "text": "`name` 이 없으면 서버로 값이 안 간다. `type` 을 맞추면 휴대폰에서 알맞은 자판이 뜬다(email · tel · number)."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "지금 만들고 있는 화면에서 `<div>` 로만 된 곳을 하나 골라 header · nav · main · section · footer 중 알맞은 것으로 바꿔라. 그리고 브라우저 개발자도구에서 **접근성 트리**(Accessibility 탭)를 열어 이름과 역할이 생겼는지 봐라."
+    },
+    {
+      "type": "try",
+      "text": "키보드 Tab 만으로 그 화면을 처음부터 끝까지 지나가 봐라. 건너뛰어지는 조작 요소가 있으면, 그건 십중팔구 div 로 만든 단추다."
+    }
   ],
   "quiz": [
     {
@@ -37,7 +98,11 @@
     },
     {
       "q": "「저장」을 눌렀을 때 같은 화면에서 값이 저장된다. 무엇으로 만들어야 하나?",
-      "choices": ["<a href=\"#\">", "<div onclick>", "<button type=\"button\">"],
+      "choices": [
+        "<a href=\"#\">",
+        "<div onclick>",
+        "<button type=\"button\">"
+      ],
       "answer": 2,
       "why": "다른 곳으로 이동하면 a, 그 자리에서 동작하면 button. div 로 만들면 키보드·스크린리더에서 단추로 취급되지 않는다."
     },

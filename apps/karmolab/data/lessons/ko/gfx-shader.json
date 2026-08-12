@@ -7,6 +7,13 @@
       "text": "셰이더는 **GPU 에서 수백만 번 동시에 도는 아주 작은 프로그램**이다. CPU 사고방식(반복문·분기·전역 상태)으로 쓰면 느리거나 아예 안 된다."
     },
     {
+      "type": "demo",
+      "kind": "shader",
+      "label": "프래그먼트 셰이더 — 숫자를 바꾸면 바로 반영된다",
+      "height": "240px",
+      "text": "void main() {\n  vec2 uv = gl_FragCoord.xy / u_resolution;\n  float d = length(uv - 0.5);\n  float ring = smoothstep(0.02, 0.0, abs(d - 0.25 - 0.05 * sin(u_time * 2.0)));\n  vec3 col = mix(vec3(0.05, 0.07, 0.12), vec3(0.4, 0.8, 1.0), ring);\n  col += 0.15 * vec3(uv.x, uv.y, 0.6);\n  gl_FragColor = vec4(col, 1.0);\n}"
+    },
+    {
       "type": "h",
       "text": "1. 두 종류"
     },

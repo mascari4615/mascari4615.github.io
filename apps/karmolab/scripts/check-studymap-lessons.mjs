@@ -19,7 +19,9 @@ const lessonsDir = path.join(dataDir, 'lessons');
 
 const map = JSON.parse(fs.readFileSync(path.join(dataDir, 'studymap.json'), 'utf8'));
 const nodeIds = new Set(map.tracks.flatMap((t) => t.stages.flatMap((s) => s.nodes.map((n) => n.id))));
-const BLOCK_TYPES = new Set(['p', 'h', 'code', 'note', 'try']);
+const BLOCK_TYPES = new Set(['p', 'h', 'code', 'note', 'try', 'demo']);
+/** demo 는 실제로 실행되는 판이라 어떤 판인지(kind)가 반드시 있어야 한다. */
+const DEMO_KINDS = new Set(['html', 'js', 'shader']);
 
 const fail = [];
 const index = {};
@@ -44,6 +46,9 @@ for (const locale of fs.existsSync(lessonsDir) ? fs.readdirSync(lessonsDir) : []
     for (const [at, block] of (lesson.blocks || []).entries()) {
       if (!BLOCK_TYPES.has(block.type)) fail.push(`${where}: blocks[${at}] 모르는 종류 「${block.type}」`);
       if (typeof block.text !== 'string' || block.text.trim() === '') fail.push(`${where}: blocks[${at}] 글이 비었다`);
+      if (block.type === 'demo' && !DEMO_KINDS.has(block.kind)) {
+        fail.push(`${where}: blocks[${at}] demo 는 kind 가 html·js·shader 중 하나여야 한다 (지금 「${block.kind}」)`);
+      }
     }
     for (const [at, item] of (lesson.quiz || []).entries()) {
       if (!Array.isArray(item.choices) || item.choices.length < 2) fail.push(`${where}: quiz[${at}] 선택지가 2개 미만`);

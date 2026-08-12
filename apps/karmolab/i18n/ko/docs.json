@@ -48,5 +48,9 @@
   "docs.t47": "[docs] manifest 로드 실패 (entity 그룹 없이 진행):",
   "docs.t48": "문서",
   "docs.copy": "복사",
-  "docs.copied": "복사됨"
+  "docs.copied": "복사됨",
+  "docs.demo.run": "다시 그리기",
+  "docs.demo.reset": "되돌리기",
+  "docs.demo.code": "예제 코드",
+  "docs.demo.result": "실행 결과"
 }

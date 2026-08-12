@@ -36,5 +36,9 @@
   "studymap.find": "Find",
   "studymap.lesson.toc": "Contents",
   "studymap.copy": "Copy",
-  "studymap.copied": "Copied"
+  "studymap.copied": "Copied",
+  "studymap.demo.run": "Run again",
+  "studymap.demo.reset": "Reset",
+  "studymap.demo.code": "Example code",
+  "studymap.demo.result": "Result"
 }

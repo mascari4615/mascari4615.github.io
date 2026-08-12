@@ -36,5 +36,9 @@
   "studymap.find": "検索",
   "studymap.lesson.toc": "目次",
   "studymap.copy": "コピー",
-  "studymap.copied": "コピーした"
+  "studymap.copied": "コピーした",
+  "studymap.demo.run": "再描画",
+  "studymap.demo.reset": "元に戻す",
+  "studymap.demo.code": "サンプルコード",
+  "studymap.demo.result": "実行結果"
 }
