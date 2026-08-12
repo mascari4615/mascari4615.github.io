@@ -13,6 +13,7 @@ import { addLayer, createDoc, isPaintable, mergeDown, moveLayer, removeLayer, ty
 import { applyBox, bounds, handleAt, hitTest, resizeBox, type Handle } from './geom';
 import { toSvg } from './svg';
 import { clampSlice, defaultSlice, sliceMeta, type Slice } from './slice';
+import { PARTS, defaultKnobs, type PartName } from './parts';
 import { injectBonStyles } from './styles';
 import { BonView } from './view';
 
@@ -22,7 +23,7 @@ declare const Toolbox: {
   onDispose?(fn: () => void): void;
 };
 
-type Tool = 'select' | 'rect' | 'ellipse' | 'slice';
+type Tool = 'select' | 'rect' | 'ellipse' | 'line' | 'slice';
 
 const esc = (v: unknown): string =>
   String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
@@ -31,9 +32,10 @@ const ICONS: Record<Tool, string> = {
   select: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M5 3l14 8-6 1.6L10 19z"/></svg>',
   rect: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="6" width="16" height="12" rx="2"/></svg>',
   ellipse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="12" cy="12" rx="8" ry="6"/></svg>',
+  line: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 19L20 5"/><circle cx="4" cy="19" r="1.8" fill="currentColor"/><circle cx="20" cy="5" r="1.8" fill="currentColor"/></svg>',
   slice: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M8 5v14M16 5v14M3 10h18M3 15h18" stroke-dasharray="2 2"/></svg>'
 };
-const TOOL_LABEL: Record<Tool, string> = { select: '고르기 (V)', rect: '사각형 (R)', ellipse: '타원 (E)', slice: '9-slice 경계 (S)' };
+const TOOL_LABEL: Record<Tool, string> = { select: '고르기 (V)', rect: '사각형 (R)', ellipse: '타원 (E)', line: '선 (L)', slice: '9-slice 경계 (S)' };
 
 function buildBon(container: HTMLElement): void {
   injectBonStyles();
@@ -63,11 +65,18 @@ function buildBon(container: HTMLElement): void {
       '</div>' +
       '<div class="bon-body">' +
         '<div class="bon-tools">' +
-          (['select', 'rect', 'ellipse', 'slice'] as Tool[]).map((t) =>
+          (['select', 'rect', 'ellipse', 'line', 'slice'] as Tool[]).map((t) =>
             '<button data-tool="' + t + '" title="' + esc(TOOL_LABEL[t]) + '" aria-label="' + esc(TOOL_LABEL[t]) + '">' + ICONS[t] + '</button>').join('') +
         '</div>' +
         '<div class="bon-canvas" data-canvas></div>' +
         '<div class="bon-side" data-side></div>' +
+      '</div>' +
+      '<div class="bon-foot">' +
+        '<span class="bon-foot-label">시작점</span>' +
+        '<button data-seed="button">버튼</button>' +
+        '<button data-seed="panel">패널</button>' +
+        '<button data-seed="gauge">게이지</button>' +
+        '<span class="bon-foot-hint">얹고 나서 손으로 고쳐라 — 정답이 아니라 출발점이다</span>' +
       '</div>' +
     '</div>';
 
@@ -222,7 +231,11 @@ function buildBon(container: HTMLElement): void {
     const y = snap > 0 ? Math.round(p.y / snap) * snap : p.y;
     const fresh: Node = tool === 'rect'
       ? { kind: 'rect', x, y, w: 0, h: 0, radius: 0, fill: { kind: 'solid', color: '#3b4a6b' } }
-      : { kind: 'ellipse', cx: x, cy: y, rx: 0, ry: 0, fill: { kind: 'solid', color: '#3b4a6b' } };
+      : tool === 'ellipse'
+        ? { kind: 'ellipse', cx: x, cy: y, rx: 0, ry: 0, fill: { kind: 'solid', color: '#3b4a6b' } }
+        // 선은 칠이 아니라 **테두리**로 보인다 — 채우기를 주면 두 점 사이가 메워져 안 보인다.
+        : { kind: 'path', d: 'M' + x + ' ' + y + 'L' + x + ' ' + y,
+            stroke: { paint: { kind: 'solid', color: '#8fa6d8' }, width: 2, align: 'center' } };
     const layer = doc.layers[activeLayer];
     layer.nodes.push(fresh);
     selected = { layer: activeLayer, index: layer.nodes.length - 1 };
@@ -232,6 +245,14 @@ function buildBon(container: HTMLElement): void {
   });
 
   view.root.addEventListener('pointermove', (event: PointerEvent) => {
+    if (drag && drag.kind === 'draw' && drag.node.kind === 'path') {
+      const p = view.toDoc(event);
+      const snap = view.grid;
+      const q = (v: number): number => (snap > 0 ? Math.round(v / snap) * snap : Math.round(v * 10) / 10);
+      drag.node.d = 'M' + drag.startDoc.x + ' ' + drag.startDoc.y + 'L' + q(p.x) + ' ' + q(p.y);
+      repaint();
+      return;
+    }
     if (sliceDrag) {
       const p = view.toDoc(event);
       const snap = view.grid;
@@ -266,7 +287,11 @@ function buildBon(container: HTMLElement): void {
     if (finished.kind === 'draw') {
       const b = bounds(finished.node);
       const layer = doc.layers[selected ? selected.layer : doc.layers.length - 1];
-      if (b.w < 1 || b.h < 1) {
+      // 선은 가로나 세로 한쪽이 0 일 수 있다(곧은 선). 길이로 본다.
+      const tooSmall = finished.node.kind === 'path'
+        ? Math.hypot(b.w, b.h) < 1
+        : b.w < 1 || b.h < 1;
+      if (tooSmall) {
         // 살짝 눌렀다 뗀 것 — 크기 0 짜리를 남기지 않는다(안 보이는데 목록에만 쌓인다).
         layer.nodes.pop();
         selected = null;
@@ -421,6 +446,26 @@ function buildBon(container: HTMLElement): void {
     repaint();
   });
 
+  /* ── 시작점 얹기 ────────────────────────────── */
+  const foot = container.querySelector('.bon-foot') as HTMLElement;
+  foot.addEventListener('click', (event) => {
+    const holder = (event.target as HTMLElement).closest<HTMLElement>('[data-seed]');
+    if (!holder) return;
+    const part = holder.dataset.seed as PartName;
+    // 판 크기에 맞춰 얹는다 — 판보다 큰 부품이 튀어나와 있으면 손대기 전에 헤맨다.
+    const knobs = { ...defaultKnobs(), w: doc.w, h: doc.h };
+    const node = PARTS[part](knobs);
+    const layer = doc.layers[activeLayer];
+    layer.nodes.push(node);
+    selected = { layer: activeLayer, index: layer.nodes.length - 1 };
+    history.push({
+      label: '시작점 얹기',
+      redo: () => { if (!layer.nodes.includes(node)) layer.nodes.push(node); },
+      undo: () => { const i = layer.nodes.indexOf(node); if (i >= 0) layer.nodes.splice(i, 1); }
+    });
+    repaint();
+  });
+
   /* ── 내보내기 ──────────────────────────────── */
   function download(blob: Blob, name: string): void {
     const url = URL.createObjectURL(blob);
@@ -514,6 +559,7 @@ function buildBon(container: HTMLElement): void {
     if (event.key === 'v') { tool = 'select'; repaint(); }
     else if (event.key === 'r') { tool = 'rect'; repaint(); }
     else if (event.key === 'e') { tool = 'ellipse'; repaint(); }
+    else if (event.key === 'l') { tool = 'line'; repaint(); }
     else if (event.key === 's') {
       tool = 'slice';
       view.sliceOn = true;

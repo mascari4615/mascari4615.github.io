@@ -94,6 +94,38 @@ export function resizeBox(b: Box, handle: Handle, dx: number, dy: number, snap =
   return { x, y, w, h };
 }
 
+
+/**
+ * 경로·무리를 통째로 민다. 네모를 적어 넣는 `applyBox` 로는 못 옮기는 것들 —
+ * 경로는 점이 여럿이고, 무리는 자식이 각자 자리를 들고 있다.
+ * 「끌어서 옮기기」가 이 둘에서만 안 먹던 것을 여기서 닫는다.
+ */
+export function translate(node: Node, dx: number, dy: number): void {
+  if (dx === 0 && dy === 0) return;
+  switch (node.kind) {
+    case 'rect':
+      node.x += dx; node.y += dy;
+      break;
+    case 'ellipse':
+      node.cx += dx; node.cy += dy;
+      break;
+    case 'path':
+      // 숫자쌍을 x·y 로 번갈아 읽어 민다. 명령 글자(M·L·C…)는 그대로 둔다.
+      {
+        let isX = true;
+        node.d = node.d.replace(/-?\d+(\.\d+)?/g, (raw) => {
+          const moved = Number(raw) + (isX ? dx : dy);
+          isX = !isX;
+          return String(Math.round(moved * 1000) / 1000);
+        });
+      }
+      break;
+    case 'group':
+      for (const child of node.children) translate(child, dx, dy);
+      break;
+  }
+}
+
 /** 새 네모를 도형에 적는다 — 도형 종류마다 담는 자리가 다르다. */
 export function applyBox(node: Node, box: Box): void {
   if (node.kind === 'rect') {
@@ -102,6 +134,9 @@ export function applyBox(node: Node, box: Box): void {
   } else if (node.kind === 'ellipse') {
     node.rx = box.w / 2; node.ry = box.h / 2;
     node.cx = box.x + node.rx; node.cy = box.y + node.ry;
+  } else {
+    // 경로·무리는 늘이지 않고 **민다**. 점마다 배율을 먹이면 선 굵기·모서리가 같이 일그러진다.
+    const b = bounds(node);
+    translate(node, box.x - b.x, box.y - b.y);
   }
-  // 경로·무리는 아직 안 옮긴다 — 옮기는 규칙(점 전부 밀기)은 다음 단계에서 붙인다.
 }

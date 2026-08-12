@@ -193,6 +193,41 @@ check('경계선을 끌면 움직인다', x1 > x0, x0 + ' → ' + x1);
 const guidesInArt = await page.evaluate(() => !!document.querySelector('.bon-art .bon-slice'));
 check('경계선도 그림에 안 섞인다', !guidesInArt);
 
+
+// ── 선 도구 ───────────────────────────────
+await page.keyboard.press('l');
+await page.waitForTimeout(100);
+const paths = () => page.evaluate(() => document.querySelectorAll('.bon-art svg path').length);
+const p0 = at(0.15, 0.15);
+const p1 = at(0.6, 0.15);   // 곧은 가로선 — 높이 0 이라 「크기 0」 판정에 걸리면 안 된다
+await page.mouse.move(p0.x, p0.y);
+await page.mouse.down();
+await page.mouse.move(p1.x, p1.y, { steps: 6 });
+await page.mouse.up();
+await page.waitForTimeout(200);
+check('곧은 가로선이 살아남는다', (await paths()) === 1, String(await paths()));
+
+// 그 선을 끌어서 옮긴다 — 경로는 네모로 못 옮기므로 따로 민다
+await page.keyboard.press('v');
+await page.waitForTimeout(100);
+const lineMid = at(0.375, 0.15);
+await page.mouse.move(lineMid.x, lineMid.y);
+await page.mouse.down();
+await page.mouse.move(lineMid.x, lineMid.y + 30, { steps: 6 });
+await page.mouse.up();
+await page.waitForTimeout(200);
+const yAfter = Number(await page.locator('.bon-side input[data-box="y"]').inputValue());
+check('선을 끌면 따라 움직인다', yAfter > 0, String(yAfter));
+
+// ── 시작점 ────────────────────────────────
+const shapesBeforeSeed = await shapes();
+await page.locator('.bon-foot [data-seed="button"]').click();
+await page.waitForTimeout(250);
+check('시작점을 얹으면 도형이 늘어난다', (await shapes()) > shapesBeforeSeed, (await shapes()) + ' vs ' + shapesBeforeSeed);
+await page.locator('.bon-bar [data-act="undo"]').click();
+await page.waitForTimeout(200);
+check('시작점도 되돌려진다', (await shapes()) === shapesBeforeSeed, String(await shapes()));
+
 if (SHOT) {
   fs.mkdirSync(path.join(here, 'tmp'), { recursive: true });
   await page.screenshot({ path: path.join(here, 'tmp', 'bon.png'), fullPage: false });
@@ -203,5 +238,5 @@ check('콘솔 오류 없음', errors.length === 0, errors.slice(0, 3).join(' | '
 
 await browser.close();
 server.close();
-console.log(problems.length ? `\n[smoke-bon] 실패 ${problems.length}건` : '\n[smoke-bon] ✓ 그리기 · 고르기 · 옮기기 · 숫자 반영 · 되돌리기 · 안내선 분리 · 레이어 · 9-slice');
+console.log(problems.length ? `\n[smoke-bon] 실패 ${problems.length}건` : '\n[smoke-bon] ✓ 그리기 · 고르기 · 옮기기 · 숫자 반영 · 되돌리기 · 안내선 분리 · 레이어 · 9-slice · 선 · 시작점');
 process.exit(problems.length ? 1 : 0);
