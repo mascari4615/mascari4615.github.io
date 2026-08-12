@@ -1,0 +1,106 @@
+name: "KarmoGraph 화면 검사"
+
+# 왜 따로 있나 (TASK-KL-202 / 2026-08-12)
+#
+# 2026-08-12, KarmoGraph 는 **앱에서 열면 아무것도 안 뜨는 상태**로 master 에 얹혀 있었다.
+# `packs.ts` 가 팩 라벨을 묶음 실행 시점에 `t()` 로 꺼냈고, 그 시점은 말 묶음이 오기 전이라
+# `t()` 가 던졌다 — 묶음이 통째로 죽어 `Toolbox.register` 까지 못 갔다. 그동안
+# typecheck·`test:karmograph`(브라우저 없는 알맹이 시험)·`audit-i18n-eager` 는 **전부 초록**이었다.
+# 「없는 것」은 검사할 대상이 없고, 알맹이 시험은 화면을 안 띄우기 때문이다.
+#
+# 그 자리를 실제로 잡는 검사(`scripts/smoke-karmograph.mjs`, 항목 60여 개)는 이미 있었다.
+# 다만 **아무 데서도 안 돌고 있었다** — 손으로 부를 때만 도는 검사는 없는 검사다. 그래서 여기 붙인다.
+#
+# 배포를 막지 않는다: 브라우저 설치가 배포를 느리게 하고, 배포 관문에 붙였다 빼낸 이력이 있다
+# (daily-browser-check.yml 과 같은 판단). 여기가 빨개도 사이트는 나간다 — 대신 반드시 보이게 둔다.
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - apps/karmolab/src/widgets/karmograph/**
+      - apps/karmolab/src/lib/graph/**
+      - apps/karmolab/i18n/*/karmograph.json
+      - apps/karmolab/scripts/smoke-karmograph.mjs
+      - .github/workflows/karmograph-browser-check.yml
+  # 캔버스는 셸·로더·i18n 바탕 위에 얹혀 있다. 그쪽이 바뀌어도 여기가 죽을 수 있으므로
+  # 하루 한 번은 무조건 띄워 본다 (이번 사고도 캔버스 파일 밖에서 시작됐다).
+  schedule:
+    - cron: "43 19 * * *" # 04:43 KST
+  workflow_dispatch:
+
+concurrency:
+  group: karmograph-browser-check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: apps/karmolab
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 의존 설치
+        run: npm ci --no-audit --no-fund
+
+      - name: 브라우저 캐시
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('apps/karmolab/package-lock.json') }}
+          restore-keys: playwright-${{ runner.os }}-
+
+      - name: 브라우저 준비
+        run: npx playwright install --with-deps chromium
+
+      # 이 앱은 두 공용 꾸러미를 **타입으로** 물고 있다. 새 체크아웃엔 `dist` 가 없어서
+      # 안 지으면 빌드가 「모듈을 못 찾겠다」로 선다 (karmolab-live-check.yml 이 같은 이유로
+      # 25판 연속 빨갰던 자리다 — 전제를 따로 들면 반드시 갈라진다).
+      - name: 공용 꾸러미 먼저 짓기 (karmolab-ai)
+        working-directory: packages/karmolab-ai
+        run: npm ci --no-audit --no-fund && npm run build
+
+      - name: 공용 꾸러미 먼저 짓기 (badapple)
+        working-directory: packages/badapple
+        run: npm ci --no-audit --no-fund && npm run build
+
+      # 개발 서버(`scripts/dev.mjs`)는 뜰 때 `build.mjs` 를 그대로 부른다 — 빌드와 서빙이
+      # 한 벌이라 두 벌로 적을 일이 없다. 말 묶음만 먼저 만들어 준다(js/i18n/*).
+      - name: 말 묶음 짓기
+        run: npm run build:i18n
+
+      - name: 서버 띄우기
+        run: |
+          node scripts/dev.mjs 8813 > /tmp/dev.log 2>&1 &
+          for i in $(seq 1 90); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8813/apps/karmolab/index.html || true)
+            if [ "$code" = "200" ]; then echo "서버 준비됨 (${i}초)"; exit 0; fi
+            sleep 1
+          done
+          echo "서버가 90초 안에 안 떴다"; cat /tmp/dev.log; exit 1
+
+      - name: 캔버스를 실제로 띄워서 만져 본다
+        env:
+          URL: http://127.0.0.1:8813/apps/karmolab/index.html
+        run: node scripts/smoke-karmograph.mjs
+
+      - name: 깨진 화면 남기기
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: karmograph-smoke-shots
+          path: |
+            apps/karmolab/*.png
+            apps/karmolab/tmp/**
+            /tmp/dev.log
+          if-no-files-found: ignore
