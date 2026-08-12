@@ -100,5 +100,13 @@
   "arcade.president.empty": "판이 비었다 — 아무거나 시작하세요",
   "arcade.president.play": "{n}장 내기",
   "arcade.president.pass": "넘기기",
-  "arcade.president.win": "{who} 이(가) 먼저 털었다 — 대부호"
+  "arcade.president.win": "{who} 이(가) 먼저 털었다 — 대부호",
+  "arcade.game.dominoes.name": "도미노",
+  "arcade.game.dominoes.desc": "양 끝 숫자를 맞춰 잇는다. 못 내면 더미에서",
+  "arcade.dominoes.empty": "줄이 비었다 — 아무거나 놓으세요",
+  "arcade.dominoes.left": "왼쪽에",
+  "arcade.dominoes.right": "오른쪽에",
+  "arcade.dominoes.draw": "더미에서",
+  "arcade.dominoes.pass": "넘기기",
+  "arcade.dominoes.win": "{who} 이(가) 먼저 털었다"
 }
