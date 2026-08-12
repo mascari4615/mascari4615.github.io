@@ -2,7 +2,13 @@
  * 지구가 지금 무슨 일을 겪고 있나 — 바깥에서 받아오는 것들 (TASK-KL-206)
  *
  * 채택 기준 딱 둘: **열쇠(API key)가 필요 없을 것**, **브라우저에서 바로 부를 수 있을 것**
- * (`Access-Control-Allow-Origin`). 이 위젯은 뒷단이 없다 — 정적 페이지 하나가 전부다.
+ * (`Access-Control-Allow-Origin`).
+ *
+ * **예외 둘 (2026-08-12, TASK-KL-241)**: 우주 관련 두 곳은 우리 서버를 거친다.
+ * `celestrak.org` 는 자동 접근을 아예 잠갔고(403 — 우리 서버에서 쳐도 마찬가지),
+ * `thespacedevs` 는 IP 당 한도라 **화면을 여는 사람마다 각자 부르는 구조 자체**가 한도를
+ * 넘긴다(429). 사람이 늘수록 반드시 터지는 모양이었다. 그래서 그 둘만 뒷단이 대신 받아
+ * 여럿이 나눠 쓴다 — 한도는 이제 사람 수가 아니라 서버 하나에만 걸린다.
  *
  * 이 기준을 *문서*가 아니라 *응답 헤더*로 확인했다. 실제로 한 곳(pocketworld.org)은
  * 문서에 「CORS 개방」이라 적어 두고도 응답에 그 헤더가 없었다. 그대로 믿고 붙였으면
@@ -11,6 +17,9 @@
  * 못 받아오는 것은 **조용히 없는 셈**으로 둔다. 지구본은 계속 돌아야 한다 — 창문 하나가
  * 안 열렸다고 방을 나가지는 않는다.
  */
+
+/** 우주 두 가지만 거쳐 가는 자리. 나머지는 여전히 브라우저가 바로 부른다. */
+const RELAY = 'https://yawnbot.mascari4615.com/kl/space';
 
 /** 한 번 받아온 것을 얼마 동안 다시 안 받나 (ms). */
 const TTL = {
@@ -177,11 +186,8 @@ interface LlLaunch {
  * 지구본 위 발사대에 표를 하나 꽂아 두는 용도라 열 건이면 충분하다.
  */
 export async function launches(): Promise<Launch[] | null> {
-  const d = await fetchJson<{ results: LlLaunch[] }>(
-    'launches',
-    'https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=10&mode=list',
-    TTL.launches
-  );
+  /* 뒷단 경유 — 여기서 바로 부르면 사람마다 한 번씩이라 곧 429 다(위 § 예외 둘). */
+  const d = await fetchJson<{ results: LlLaunch[] }>('launches', `${RELAY}/launches`, TTL.launches);
   if (!d?.results) return null;
   const out: Launch[] = [];
   for (const r of d.results) {
@@ -208,11 +214,9 @@ export async function launches(): Promise<Launch[] | null> {
  * (`orbit.ts`). 하루쯤 지나도 쓸 만해서 여섯 시간에 한 번이면 충분하다.
  */
 export async function issOmm(): Promise<import('./orbit').Omm | null> {
-  const rows = await fetchJson<import('./orbit').Omm[]>(
-    'omm-iss',
-    'https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=json',
-    TTL.omm
-  );
+  /* 뒷단 경유 — 원래 자리(CelesTrak)는 자동 접근을 잠갔다(403). 뒷단이 열린 곳에서 받아
+     **같은 모양**으로 돌려주므로 이 아래 코드는 그대로다. */
+  const rows = await fetchJson<import('./orbit').Omm[]>('omm-iss', `${RELAY}/iss`, TTL.omm);
   return rows && rows.length ? rows[0] : null;
 }
 
@@ -274,14 +278,14 @@ export async function catalog(): Promise<import('./orbit').Omm[] | null> {
   }
 
   /* CelesTrak 은 **두 시간 안에 같은 목록을 또 받으면 403** 을 준다 (실측 — 문서가 아니라
-     응답으로 확인했다). 담아 둔 것이 없는 첫 방문자가 하필 그 창에 걸리면 아무것도 못 본다.
-     그래서 무리(active)가 막히면 **밝은 것들(visual)** 로 내려간다 — 목록마다 셈이 따로다.
-     만 개가 아니라 백여 개지만, 「머리 위가 비어 있지 않다」는 것은 그것으로도 보인다. */
+     응답으로 확인했다). 화면마다 각자 부르면 서로를 막는 구조라, 이제 **뒷단이 대신 받아
+     나눠 준다**(TASK-KL-241). 무리(active)가 비면 밝은 것들(visual)로 내려가는 것은 그대로 —
+     목록마다 셈이 따로다. 만 개가 아니라 백여 개지만, 「머리 위가 비어 있지 않다」는 보인다. */
   const GROUPS = ['active', 'visual'];
   let rows: import('./orbit').Omm[] | null = null;
   for (const g of GROUPS) {
     try {
-      const res = await fetch(`https://celestrak.org/NORAD/elements/gp.php?GROUP=${g}&FORMAT=json`);
+      const res = await fetch(`${RELAY}/group/${g}`);
       if (!res.ok) continue;
       const got = (await res.json()) as import('./orbit').Omm[];
       if (Array.isArray(got) && got.length) {
