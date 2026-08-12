@@ -381,5 +381,7 @@
   "arcade.level.normal": "보통",
   "arcade.level.spicy": "매운맛",
   "arcade.level.note": "봇이 손을 내는 빠르기",
-  "arcade.level.aria": "봇 세기"
+  "arcade.level.aria": "봇 세기",
+  "arcade.today.title": "오늘의 세 판",
+  "arcade.today.streak": "{n}일째"
 }
