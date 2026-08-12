@@ -649,7 +649,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         '<div class="ac-todaystrip">' +
         picks
           .map((id) =>
-            '<button class="ac-todaycard' + (st.done.includes(id) ? ' ac-done' : '') + '" data-solo="' + id + '">' +
+            /* 표를 따로 쓴다 — `data-solo` 를 쓰면 「게임 몇 종인가」를 세는 자리가 셋만큼 샌다(실측 54종). */
+            '<button class="ac-todaycard' + (st.done.includes(id) ? ' ac-done' : '') + '" data-today="' + id + '">' +
             '<span>' + iconOf(id) + '</span>' + esc(t('arcade.game.' + id + '.name')) +
             (st.done.includes(id) ? ' ✓' : '') + '</button>')
           .join('') +
@@ -657,7 +658,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       container.querySelectorAll<HTMLButtonElement>('.ac-todaycard').forEach((b) => {
         b.onclick = (): void => {
           remember();
-          startSolo(String(b.dataset.solo));
+          startSolo(String(b.dataset.today));
         };
       });
     };
