@@ -20,12 +20,26 @@ const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
+/* ★ `/apps/karmolab/js/**` 는 디스크의 진짜 산출물로 준다 (2026-08-12) — 자매 검사들과 같은 처방.
+ *   위젯 build() 가 말 묶음을 받아 온 뒤에 그리므로, 껍데기만 주면 화면이 영영 안 그려진다. */
 await page.route('**/*', (route) => {
-  if (route.request().url().includes('pdfjs.worker')) {
+  const url = new URL(route.request().url());
+  if (url.href.includes('pdfjs.worker')) {
     return route.fulfill({ status: 200, contentType: 'text/javascript', body: read('js/vendor/pdfjs.worker.min.js') });
+  }
+  const rel = url.pathname.replace(/^\/apps\/karmolab\//, '');
+  if (rel !== url.pathname) {
+    try {
+      return route.fulfill({
+        status: 200,
+        contentType: rel.endsWith('.js') ? 'application/javascript; charset=utf-8' : 'application/json; charset=utf-8',
+        body: read(rel)
+      });
+    } catch { /* 없는 파일이면 아래 껍데기로 */ }
   }
   return route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' });
 });
+await page.addInitScript(() => { window.__KARMO_LOCALE = 'ko'; });
 await page.goto('http://localhost/');
 await page.addScriptTag({ content: read('js/vendor/pdf-lib.min.js') });
 await page.addScriptTag({ content: read('js/vendor/pdfjs.min.js') });
@@ -57,6 +71,7 @@ const result = await page.evaluate(async () => {
   document.body.appendChild(host);
   host.style.width = '900px'; // 미리보기 크기가 잡히도록 먼저 넓혀 둔다
   tool.tabs[0].build(host);
+  for (let i = 0; host.children.length === 0 && i < 320; i++) await new Promise((r) => setTimeout(r, 25));
 
   const wait = (test, ms, why) =>
     new Promise((res, rej) => {

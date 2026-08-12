@@ -20,12 +20,25 @@ const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
+/* ★ `/apps/karmolab/js/**` 는 디스크의 진짜 산출물로 준다 (2026-08-12) — 자매 검사들과 같은 처방. */
 await page.route('**/*', (route) => {
-  if (route.request().url().includes('jsqr')) {
+  const url = new URL(route.request().url());
+  if (url.href.includes('jsqr')) {
     return route.fulfill({ status: 200, contentType: 'text/javascript', body: read('js/vendor/jsqr.min.js') });
+  }
+  const rel = url.pathname.replace(/^\/apps\/karmolab\//, '');
+  if (rel !== url.pathname) {
+    try {
+      return route.fulfill({
+        status: 200,
+        contentType: rel.endsWith('.js') ? 'application/javascript; charset=utf-8' : 'application/json; charset=utf-8',
+        body: read(rel)
+      });
+    } catch { /* 없는 파일이면 아래 껍데기로 */ }
   }
   return route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' });
 });
+await page.addInitScript(() => { window.__KARMO_LOCALE = 'ko'; });
 await page.goto('http://localhost/');
 await page.evaluate(() => {
   window.__reg = {};
@@ -64,6 +77,11 @@ const result = await page.evaluate(async () => {
   const readHost = document.createElement('div');
   document.body.appendChild(readHost);
   reader.tabs[0].build(readHost);
+
+  /* 둘 다 그려질 때까지 기다린다 — build() 는 말 묶음을 받아 온 뒤에 그린다. */
+  for (let i = 0; (genHost.children.length === 0 || readHost.children.length === 0) && i < 320; i++) {
+    await new Promise((r) => setTimeout(r, 25));
+  }
 
   const wait = (test, ms, why) =>
     new Promise((res, rej) => {
