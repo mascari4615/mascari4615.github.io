@@ -122,16 +122,24 @@ export function mmss(sec: number): string {
  * 두는 개수에 한도가 있어서, 도구를 몇 번 오가면 조용히 소리가 안 난다.
  */
 
-let sharedCtx: AudioContext | null = null;
-
 /**
  * 소리틀은 **하나만** 쓴다. 브라우저는 이걸 무제한으로 안 열어 준다 —
- * 도구마다 새로 만들면 오가다 어느 순간부터 소리가 조용히 사라진다.
+ * 도구마다 새로 만들면 오가다 어느 순간부터 소리가 조용히 사라진다(오류도 안 뜬다).
+ *
+ * **창(window) 에 둔다. 모듈 변수로 두면 안 된다** (TASK-KL-271 에서 검사가 잡았다):
+ * 도구마다 꾸러미(bundle)를 따로 묶으므로 이 파일도 꾸러미마다 **복사본**이 된다 —
+ * 모듈 변수는 꾸러미마다 한 벌이라, 「하나만」이 실제로는 도구 수만큼이 된다.
+ * 검사에서 소리틀이 다섯 개 세어져 드러났다. 꾸러미를 넘는 하나는 창에만 둘 수 있다.
  */
 export function audioCtx(): AudioContext {
-  const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-  if (!sharedCtx || sharedCtx.state === 'closed') sharedCtx = new Ctor();
-  return sharedCtx;
+  const w = window as unknown as {
+    AudioContext: typeof AudioContext;
+    webkitAudioContext: typeof AudioContext;
+    __karmoAudioCtx?: AudioContext;
+  };
+  const Ctor = w.AudioContext || w.webkitAudioContext;
+  if (!w.__karmoAudioCtx || w.__karmoAudioCtx.state === 'closed') w.__karmoAudioCtx = new Ctor();
+  return w.__karmoAudioCtx;
 }
 
 /** 파일을 소리로 읽는다 — 여섯 곳이 각자 적던 세 줄. */

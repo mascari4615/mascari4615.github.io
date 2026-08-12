@@ -9,7 +9,7 @@
  *    입력 크기를 실시간으로 그린다. 조용하면 조용하다고 알려 준다.
  *  - 저장은 WAV. 다른 도구(오디오 자르기·잇기)에 바로 물릴 수 있고 품질 손실이 없다.
  */
-import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
+import { toWav, encodeAudio, fileSize as size, mmss, audioCtx } from './shared/media';
 import { AiGate } from '../../lib/ai-gate';
 import { loadEngine, webgpuAvailable } from '../../lib/ai-engine';
 import { MODEL_SIZE_MB, toModelAudio, toSrt, transcribe } from '../../lib/ai-transcribe';
@@ -211,8 +211,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               return;
             }
 
-            const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-            const ctx = new AC();
+            const ctx = audioCtx();
             const analyser = ctx.createAnalyser();
             analyser.fftSize = 1024;
             ctx.createMediaStreamSource(stream).connect(analyser);
@@ -247,7 +246,6 @@ import { t, loadNamespace } from '../../lib/i18n';
             } catch {
               buffer = null;
             }
-            void ctx.close();
 
             if (!buffer || buffer.duration < 0.05) {
               say(t('voicerec.err.empty'), 'error');

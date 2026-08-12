@@ -7,7 +7,7 @@
  * 주의: 브라우저가 해독하지 못하는 코덱이 있다(특히 일부 mkv·avi). 그때는 실패를 숨기지 않고
  * 어떤 파일이 되는지 알려 준다 — 「아무 일도 안 일어남」이 제일 나쁜 결과다.
  */
-import { encodeAudio, fileSize as size, mmss } from './shared/media';
+import { encodeAudio, fileSize as size, mmss, audioCtx } from './shared/media';
 import { download } from './shared/video';
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -74,17 +74,14 @@ import { t, loadNamespace } from '../../lib/i18n';
             buffer = null;
             stats.innerHTML = '';
             say(t('video2audio.say.looking', { name: f.name, size: size(f.size) }));
-            const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-            const ctx = new AC();
+            const ctx = audioCtx();
             try {
               buffer = await ctx.decodeAudioData(await f.arrayBuffer());
             } catch {
               // 코덱을 브라우저가 모르면 여기로 온다. 무엇이 되는지 알려 줘야 다음 행동이 생긴다.
               say(t('video2audio.err.decode'), 'error');
-              void ctx.close();
               return;
             }
-            void ctx.close();
             stats.innerHTML =
               stat(t('video2audio.stat.length'), mmss(buffer.duration), true) +
               stat(t('video2audio.stat.rate'), `${(buffer.sampleRate / 1000).toFixed(1)}kHz`) +

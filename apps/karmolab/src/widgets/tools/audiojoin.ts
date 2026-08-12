@@ -5,7 +5,7 @@
  * 그대로 이어 붙일 수 없다 — 44.1kHz 와 48kHz 를 섞으면 뒤쪽이 빨라지거나 느려진다.
  * 가장 높은 표본율에 맞추고 채널도 통일한 뒤 잇는다. 사이에 무음을 넣는 선택지도 둔다.
  */
-import { encodeAudio, fileSize as size, mmss, download } from './shared/media';
+import { encodeAudio, fileSize as size, mmss, download, audioCtx } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -99,8 +99,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           }
 
           async function add(list: FileList | File[]): Promise<void> {
-            const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-            const ctx = new AC();
+            const ctx = audioCtx();
             for (const f of Array.from(list)) {
               if (!f.type.startsWith('audio/')) continue;
               try {
@@ -109,7 +108,6 @@ import { t, loadNamespace } from '../../lib/i18n';
                 say(t('audiojoin.err.one', { name: f.name }), 'error');
               }
             }
-            void ctx.close();
             render();
             if (items.length) say(t('audiojoin.say.picked', { n: items.length }), 'ok');
             Toolbox.trackUse?.('add');
@@ -145,8 +143,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             const rate = Math.max(...items.map((i) => i.buffer.sampleRate));
             const ch = Math.max(...items.map((i) => i.buffer.numberOfChannels));
             const gapLen = Math.round((parseInt(gap.value, 10) / 10) * rate);
-            const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-            const ctx = new AC();
+            const ctx = audioCtx();
             const parts: AudioBuffer[] = [];
             for (let i = 0; i < items.length; i++) {
               say(t('audiojoin.say.matching', { i: i + 1, n: items.length }));
@@ -175,7 +172,6 @@ import { t, loadNamespace } from '../../lib/i18n';
               }
               off += part.length + (pi < parts.length - 1 ? gapLen : 0);
             }
-            void ctx.close();
             return out;
           }
 
