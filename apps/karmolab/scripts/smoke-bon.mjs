@@ -247,6 +247,54 @@ const stillWorks = await page.evaluate(() => !!document.querySelector('.bon-art 
 check('선반이 안 열려도 판은 살아 있다', stillWorks);
 await page.evaluate(() => { const s = document.querySelector('.bon-shelf'); if (s) s.hidden = true; });
 
+
+// ── 펜 ────────────────────────────────────
+await page.keyboard.press('p');
+await page.waitForTimeout(120);
+const pathCount = () => page.evaluate(() => document.querySelectorAll('.bon-art svg path').length);
+const beforePen = await pathCount();
+for (const [fx, fy] of [[0.2, 0.25], [0.5, 0.2], [0.55, 0.5]]) {
+  const pt = at(fx, fy);
+  await page.mouse.move(pt.x, pt.y);
+  await page.mouse.down();
+  await page.mouse.up();
+  await page.waitForTimeout(120);
+}
+check('누를 때마다 점이 붙는다(도형 하나로)', (await pathCount()) === beforePen + 1, String(await pathCount()));
+const dLen = await page.evaluate(() => {
+  const paths = [...document.querySelectorAll('.bon-art svg path')];
+  return (paths[paths.length - 1].getAttribute('d').match(/L/g) || []).length;
+});
+check('점 셋이면 이음선이 둘', dLen === 2, String(dLen));
+
+// Enter 로 마치기 — 열린 채로
+await page.keyboard.press('Enter');
+await page.waitForTimeout(200);
+check('Enter 로 마치면 도형이 남는다', (await pathCount()) === beforePen + 1, String(await pathCount()));
+const closedAfterEnter = await page.evaluate(() => {
+  const paths = [...document.querySelectorAll('.bon-art svg path')];
+  return paths[paths.length - 1].getAttribute('d').includes('Z');
+});
+check('Enter 는 안 닫는다', !closedAfterEnter);
+
+// 되돌리기 한 번으로 통째로 사라진다(점마다 쌓이지 않는다)
+await page.locator('.bon-bar [data-act="undo"]').click();
+await page.waitForTimeout(200);
+check('되돌리기 한 번에 통째로 사라진다', (await pathCount()) === beforePen, String(await pathCount()));
+
+// Esc 취소 — 짓던 것이 남지 않는다
+await page.keyboard.press('p');
+for (const [fx, fy] of [[0.7, 0.3], [0.8, 0.4]]) {
+  const pt = at(fx, fy);
+  await page.mouse.move(pt.x, pt.y);
+  await page.mouse.down();
+  await page.mouse.up();
+  await page.waitForTimeout(100);
+}
+await page.keyboard.press('Escape');
+await page.waitForTimeout(200);
+check('Esc 로 취소하면 짓던 것이 안 남는다', (await pathCount()) === beforePen, String(await pathCount()));
+
 if (SHOT) {
   fs.mkdirSync(path.join(here, 'tmp'), { recursive: true });
   await page.screenshot({ path: path.join(here, 'tmp', 'bon.png'), fullPage: false });
@@ -257,5 +305,5 @@ check('콘솔 오류 없음', errors.length === 0, errors.slice(0, 3).join(' | '
 
 await browser.close();
 server.close();
-console.log(problems.length ? `\n[smoke-bon] 실패 ${problems.length}건` : '\n[smoke-bon] ✓ 그리기 · 고르기 · 옮기기 · 숫자 반영 · 되돌리기 · 안내선 분리 · 레이어 · 9-slice · 선 · 시작점 · 선반');
+console.log(problems.length ? `\n[smoke-bon] 실패 ${problems.length}건` : '\n[smoke-bon] ✓ 그리기 · 고르기 · 옮기기 · 숫자 반영 · 되돌리기 · 안내선 분리 · 레이어 · 9-slice · 선 · 펜 · 시작점 · 선반');
 process.exit(problems.length ? 1 : 0);
