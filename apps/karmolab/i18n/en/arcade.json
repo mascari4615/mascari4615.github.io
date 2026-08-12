@@ -282,5 +282,9 @@
   "arcade.derby.running": "They're off",
   "arcade.derby.result": "{s} took it",
   "arcade.derby.win": "{who} — {n}",
-  "arcade.pong.draw": "{n} all — a draw"
+  "arcade.pong.draw": "{n} all — a draw",
+  "arcade.game.whack.name": "Whack-a-Mole",
+  "arcade.game.whack.desc": "Hit them as they pop. 💣 costs you",
+  "arcade.whack.bad": "💣 −2",
+  "arcade.whack.win": "{who} — {n} points"
 }
