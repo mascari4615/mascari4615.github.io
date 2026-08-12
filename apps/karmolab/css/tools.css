@@ -1415,7 +1415,9 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     padding: 3px 10px; font-size: var(--font-size-2xs);
     color: var(--text-secondary); border: 1px solid var(--border); border-radius: 999px;
 }
-.pl-chip b { color: var(--accent); }
+/* 고른 칩은 바탕이 강조색이다 — 거기서도 글자를 강조색으로 칠하면 **글자가 사라진다**
+   (대비 1.0, 실측 2026-08-12). 강조는 안 고른 칩에서만 한다. */
+.pl-chip:not(.on) b { color: var(--accent); }
 
 /* ── 타임캡슐 편지 (TASK-KL-134) ── */
 .tc-out { border: 1px solid var(--border); background: var(--bg-secondary); padding: 16px; margin-bottom: 12px; }
