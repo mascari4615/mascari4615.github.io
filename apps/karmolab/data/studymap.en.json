@@ -148,6 +148,10 @@
     "math": {
       "title": "Math for developers",
       "lead": "Not exam math — the math that quietly breaks your screen and your ledger"
+    },
+    "api": {
+      "title": "API design",
+      "lead": "Once someone else depends on it you cannot change it — so the first hour lasts for years"
     }
   },
   "stages": {
@@ -249,7 +253,10 @@
     "sync-c": "Making it trustworthy",
     "math-a": "Can you trust the numbers",
     "math-b": "Moving the screen",
-    "math-c": "Judging by numbers"
+    "math-c": "Judging by numbers",
+    "api-a": "Writing the contract",
+    "api-b": "Surviving the real world",
+    "api-c": "Lasting"
   },
   "nodes": {
     "web-html": {
@@ -2487,6 +2494,70 @@
       "check": "You measure p50, p95 and p99 and compare to the mean",
       "links": [
         "Brendan Gregg — latency heat maps"
+      ]
+    },
+    "api-resource": {
+      "title": "What actually gets exchanged",
+      "why": "Pretty URLs are not design; cut the resources wrong and every screen needs more round trips.",
+      "check": "You count the calls one screen needs and reduce them",
+      "links": [
+        "MDN — HTTP methods"
+      ]
+    },
+    "api-error": {
+      "title": "Make failures look like failures",
+      "why": "A 200 with a message string forces every caller to guess; the error shape is part of the contract.",
+      "check": "You return a status code plus a machine-readable error code",
+      "links": [
+        "RFC 9457 — problem details"
+      ]
+    },
+    "api-page": {
+      "title": "Lists — paging and sorting",
+      "why": "\"Give me everything\" always dies as data grows, and the paging style is hard to change later.",
+      "check": "Your list endpoint pages with a cursor",
+      "links": [
+        "GraphQL — pagination"
+      ]
+    },
+    "api-idempotent": {
+      "title": "Safe to retry — idempotency",
+      "why": "Networks drop, and \"I was charged twice\" is almost always born here.",
+      "check": "An idempotency key makes duplicate requests apply once",
+      "links": [
+        "Stripe — idempotent requests"
+      ]
+    },
+    "api-authz": {
+      "title": "Who you are, what you may do",
+      "why": "Authenticated but unauthorized is how other people’s data leaks — the most common real incident.",
+      "check": "Ownership checks are enforced structurally, not per handler",
+      "links": [
+        "OWASP — broken access control"
+      ]
+    },
+    "api-limit": {
+      "title": "Rate limits and quotas",
+      "why": "One runaway client can take everyone down, and limits also give callers predictability.",
+      "check": "You return 429 with accurate remaining-quota headers",
+      "links": [
+        "MDN — 429 Too Many Requests"
+      ]
+    },
+    "api-version": {
+      "title": "Changing, versioning, sunsetting",
+      "why": "Freedom ends the moment someone depends on you, so you need rules for changing safely.",
+      "check": "You classify changes as breaking or not and plan accordingly",
+      "links": [
+        "RFC 8594 — the Sunset header"
+      ]
+    },
+    "api-doc": {
+      "title": "The schema is the doc and the test",
+      "why": "Handwritten docs always rot; from a schema you generate docs, clients and validation.",
+      "check": "One schema file produces both docs and types",
+      "links": [
+        "OpenAPI specification"
       ]
     }
   }
