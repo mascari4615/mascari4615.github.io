@@ -2,6 +2,10 @@
   "$comment": "자동 생성 — check-studymap-lessons.mjs. 위젯이 「강의 있는 칸」을 표시하는 데 쓴다.",
   "lessons": {
     "ko": [
+      "ai-limits",
+      "ai-prompt",
+      "ai-rag",
+      "ai-token",
       "cs-algo",
       "cs-binary",
       "cs-compiler",
@@ -38,7 +42,10 @@
       "kl-project",
       "kl-trouble",
       "sec-authn",
+      "sec-crypto",
       "sec-owasp",
+      "sec-secret",
+      "sec-supply",
       "shell-fs",
       "shell-perm",
       "shell-pipe",
