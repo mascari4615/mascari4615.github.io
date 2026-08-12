@@ -1802,6 +1802,104 @@
           ]
         }
       ]
+    },
+    {
+      "id": "product",
+      "title": "제품 감각",
+      "emoji": "🧭",
+      "lead": "기술이 아니라 판단 — 무엇을 만들고 무엇을 안 만들지 정하는 쪽",
+      "stages": [
+        {
+          "id": "product-a",
+          "title": "무엇을 만들지",
+          "nodes": [
+            {
+              "id": "product-problem",
+              "title": "문제부터 — 해결책은 나중",
+              "why": "기능을 먼저 정하면, 아무도 안 겪는 문제를 아주 잘 푸는 물건이 나온다.",
+              "check": "만들기 전에 그 문제를 겪는 사람을 한 명 댄다",
+              "links": [
+                {
+                  "label": "The Mom Test (요약)",
+                  "url": "https://www.momtestbook.com/"
+                }
+              ]
+            },
+            {
+              "id": "product-scope",
+              "title": "범위 자르기",
+              "why": "끝내는 힘은 더하기가 아니라 빼기에서 나온다. 안 만들 목록이 곧 일정이다.",
+              "check": "이번 판에 안 넣을 것을 적어 둔다",
+              "links": [
+                {
+                  "label": "Shape Up (무료)",
+                  "url": "https://basecamp.com/shapeup"
+                }
+              ]
+            },
+            {
+              "id": "product-mvp",
+              "title": "가장 작은 확인",
+              "why": "반년 만들고 물어보는 대신, 일주일 만들고 묻는다.",
+              "check": "핵심 가정 하나를 확인할 최소한만 만든다",
+              "links": [
+                {
+                  "label": "MVP 를 다시 보기 (Henrik Kniberg)",
+                  "url": "https://blog.crisp.se/2016/01/25/henrikkniberg/making-sense-of-mvp"
+                }
+              ],
+              "prereq": [
+                "product-problem"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "product-b",
+          "title": "만든 뒤",
+          "nodes": [
+            {
+              "id": "product-metric",
+              "title": "지표 — 무엇을 보고 좋아졌다 하나",
+              "why": "느낌으로 판단하면 목소리 큰 한 명이 방향을 정한다.",
+              "check": "이 기능이 성공했는지 판단할 숫자를 미리 정한다",
+              "links": [
+                {
+                  "label": "Lean Analytics 정리",
+                  "url": "https://leananalyticsbook.com/"
+                }
+              ],
+              "prereq": [
+                "devops-obs"
+              ]
+            },
+            {
+              "id": "product-feedback",
+              "title": "피드백 받는 법",
+              "why": "「좋아요」는 정보가 아니다. 어디서 멈췄는지가 정보다.",
+              "check": "사용자가 막힌 지점을 하나 찾아 고친다",
+              "links": [
+                {
+                  "label": "사용성 테스트 5명 법칙 (NN/g)",
+                  "url": "https://www.nngroup.com/articles/why-you-only-need-to-test-with-5-users/"
+                }
+              ]
+            },
+            {
+              "id": "product-release",
+              "title": "릴리스 노트 · 알리기",
+              "why": "만든 걸 아무도 모르면 안 만든 것과 같다.",
+              "check": "무엇이 달라졌는지 사용자 말로 한 문단 쓴다",
+              "links": [
+                {
+                  "label": "Keep a Changelog",
+                  "url": "https://keepachangelog.com/ko/1.1.0/"
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
