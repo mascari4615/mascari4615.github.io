@@ -5133,6 +5133,149 @@
           ]
         }
       ]
+    },
+    {
+      "id": "oss",
+      "title": "오픈소스",
+      "emoji": "🌱",
+      "lead": "남의 코드에 손대는 법, 그리고 내 코드를 남에게 여는 법",
+      "stages": [
+        {
+          "id": "oss-a",
+          "title": "들어가기",
+          "nodes": [
+            {
+              "id": "oss-why",
+              "title": "왜 참여하나 — 실익부터",
+              "why": "「좋은 일」이라서가 아니라, 남의 코드베이스에서 배우는 속도가 압도적이라서다.",
+              "check": "참여로 얻고 싶은 것을 한 줄로 정한다",
+              "links": [
+                {
+                  "label": "Open Source Guides",
+                  "url": "https://opensource.guide/"
+                }
+              ],
+              "prereq": [
+                "legal-contribute"
+              ]
+            },
+            {
+              "id": "oss-pick",
+              "title": "살아 있는 저장소 고르기",
+              "why": "죽은 저장소에 PR 을 넣으면 6개월 뒤에도 답이 없다. 신호를 읽으면 5분에 판별된다.",
+              "check": "최근 활동·리뷰 속도·기여 문서를 보고 고른다",
+              "links": [
+                {
+                  "label": "기여 방법 안내",
+                  "url": "https://opensource.guide/how-to-contribute/"
+                }
+              ]
+            },
+            {
+              "id": "oss-issue",
+              "title": "이슈를 읽고 재현한다",
+              "why": "고치기 전에 재현이다. 재현 못 하면 고쳤는지도 모른다 — 기여의 절반이 여기서 끝난다.",
+              "check": "남의 이슈를 내 환경에서 재현해 낸다",
+              "links": [
+                {
+                  "label": "GitHub — 이슈 다루기",
+                  "url": "https://docs.github.com/en/issues"
+                }
+              ],
+              "prereq": [
+                "craft-debug"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "oss-b",
+          "title": "기여한다",
+          "nodes": [
+            {
+              "id": "oss-firstpr",
+              "title": "첫 PR — 작게, 규칙대로",
+              "why": "거절되는 PR 의 대부분은 코드가 나빠서가 아니라 크거나 합의 없이 시작해서다.",
+              "check": "CONTRIBUTING 을 따라 작은 PR 하나를 낸다",
+              "links": [
+                {
+                  "label": "GitHub — Pull Request",
+                  "url": "https://docs.github.com/en/pull-requests"
+                }
+              ],
+              "prereq": [
+                "git-pr"
+              ]
+            },
+            {
+              "id": "oss-review",
+              "title": "리뷰를 받는 태도와 기다림",
+              "why": "메인테이너는 자원봉사다. 재촉·방어는 통하지 않고, 기다림도 기술이다.",
+              "check": "리뷰 의견에 코드로 답하고 스레드를 정리한다",
+              "links": [
+                {
+                  "label": "오픈소스 에티켓",
+                  "url": "https://opensource.guide/how-to-contribute/#opening-a-pull-request"
+                }
+              ],
+              "prereq": [
+                "team-feedback"
+              ]
+            },
+            {
+              "id": "oss-nocode",
+              "title": "코드가 아닌 기여",
+              "why": "문서·번역·재현·분류가 실제로 더 급하다. 진입도 쉽고 환영도 크다.",
+              "check": "문서·번역·이슈 정리로 한 건 기여한다",
+              "links": [
+                {
+                  "label": "Write the Docs — 기여",
+                  "url": "https://www.writethedocs.org/guide/"
+                }
+              ],
+              "prereq": [
+                "write-readme"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "oss-c",
+          "title": "내 것을 연다",
+          "nodes": [
+            {
+              "id": "oss-maintain",
+              "title": "메인테이너의 일 — 거절도 관리다",
+              "why": "공개하면 요청이 온다. 「아니오」를 못 하면 프로젝트가 나를 잡아먹는다.",
+              "check": "범위를 문서로 밝히고 거절 문구를 준비한다",
+              "links": [
+                {
+                  "label": "Open Source — 좋은 관행",
+                  "url": "https://opensource.guide/best-practices/"
+                }
+              ],
+              "prereq": [
+                "legal-publish"
+              ]
+            },
+            {
+              "id": "oss-release",
+              "title": "버전과 릴리스 노트",
+              "why": "남이 의존하는 순간 버전 규칙이 계약이 된다. 깨는 변경을 몰래 내면 신뢰가 끝난다.",
+              "check": "유의적 버전으로 배포하고 변경 기록을 남긴다",
+              "links": [
+                {
+                  "label": "유의적 버전 (SemVer)",
+                  "url": "https://semver.org/lang/ko/"
+                }
+              ],
+              "prereq": [
+                "api-version"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

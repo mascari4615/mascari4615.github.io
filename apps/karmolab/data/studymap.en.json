@@ -160,6 +160,10 @@
     "write": {
       "title": "Technical writing",
       "lead": "Someone reads your code six months later — and that someone is usually you"
+    },
+    "oss": {
+      "title": "Open source",
+      "lead": "How to touch someone else’s code — and how to open yours to everyone"
     }
   },
   "stages": {
@@ -270,7 +274,10 @@
     "db-c": "Not losing it",
     "write-a": "Getting read",
     "write-b": "Leaving a record",
-    "write-c": "Staying useful"
+    "write-c": "Staying useful",
+    "oss-a": "Getting in",
+    "oss-b": "Contributing",
+    "oss-c": "Opening your own"
   },
   "nodes": {
     "web-html": {
@@ -2700,6 +2707,70 @@
       "check": "Docs carry an owner and a review date, checked automatically",
       "links": [
         "Google style — maintaining docs"
+      ]
+    },
+    "oss-why": {
+      "title": "Why bother — the selfish reasons",
+      "why": "Not because it is virtuous, but because learning inside someone else’s codebase is unmatched.",
+      "check": "You write one line about what you want out of it",
+      "links": [
+        "Open Source Guides"
+      ]
+    },
+    "oss-pick": {
+      "title": "Picking a living repository",
+      "why": "A pull request to a dead repo still sits there six months later; the signals take five minutes to read.",
+      "check": "You judge activity, review speed and contributor docs",
+      "links": [
+        "How to contribute"
+      ]
+    },
+    "oss-issue": {
+      "title": "Reading and reproducing an issue",
+      "why": "Reproduction comes before fixing; without it you cannot even tell that you fixed it.",
+      "check": "You reproduce someone else’s issue locally",
+      "links": [
+        "GitHub — issues"
+      ]
+    },
+    "oss-firstpr": {
+      "title": "First PR — small and by the rules",
+      "why": "Most rejected PRs fail for being large or unagreed, not for bad code.",
+      "check": "You follow CONTRIBUTING and open one small PR",
+      "links": [
+        "GitHub — pull requests"
+      ]
+    },
+    "oss-review": {
+      "title": "Taking review, and waiting",
+      "why": "Maintainers are volunteers; nagging and defensiveness do not work, and patience is a skill.",
+      "check": "You answer review comments with commits and resolve threads",
+      "links": [
+        "Open source etiquette"
+      ]
+    },
+    "oss-nocode": {
+      "title": "Contributions that are not code",
+      "why": "Docs, translation, triage and reproduction are often more urgent, and far easier to start with.",
+      "check": "You land one docs, translation or triage contribution",
+      "links": [
+        "Write the Docs — guide"
+      ]
+    },
+    "oss-maintain": {
+      "title": "Maintaining — saying no is the job",
+      "why": "Publishing invites requests, and without \"no\" the project consumes you.",
+      "check": "You publish a scope statement and prepared decline wording",
+      "links": [
+        "Open source best practices"
+      ]
+    },
+    "oss-release": {
+      "title": "Versions and release notes",
+      "why": "The moment others depend on you the version scheme becomes a contract.",
+      "check": "You ship semantic versions with a changelog",
+      "links": [
+        "Semantic Versioning"
       ]
     }
   }
