@@ -1049,6 +1049,8 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
     text-transform: uppercase; color: var(--text-tertiary); }
 .landing-pulse-line b { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
 
+/* 손가락으로 누를 만해야 한다 — 글자만 있는 단추라 높이가 22px 이었다(관문 검사 기준 32px).
+   생김새는 그대로 두고 **누를 자리만** 넓힌다 (실측 2026-08-12). */
 .landing-pulse-all { background:none; border:0; padding:5px 6px; margin:-5px -6px; font:inherit;
     min-height:32px; display:inline-flex; align-items:center;
     font-size:var(--font-size-xs); color:var(--accent); cursor:pointer; }
@@ -1737,6 +1739,11 @@ html[data-nav="sidebar"]:has(.sidebar:hover) .main-content:has(.tool-page.layout
 }
 
 .sidebar-dev-links:hover { color: var(--accent); background: var(--accent-subtle); }
+
+/* 다른 말 판으로 가는 진짜 링크 칸 (TASK-KL-244). 감싼 <div> 는 생성기가 안쪽만 갈아 끼우려고
+   두는 표식일 뿐이라, 배치에는 끼어들지 않게 한다 — 안의 <a> 가 옆 링크들과 같은 줄기로 선다. */
+.sidebar-lang-links { display: contents; }
+.sidebar-lang-link .sidebar-dev-links-icon { opacity: .75; }
 
 .sidebar-dev-links-icon {
     display: none;
