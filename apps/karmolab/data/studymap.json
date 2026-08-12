@@ -2553,6 +2553,145 @@
           ]
         }
       ]
+    },
+    {
+      "id": "i18n",
+      "title": "국제화 · 현지화",
+      "emoji": "🌏",
+      "lead": "「나중에 번역하면 되지」가 가장 비싼 말 — 글자를 바깥으로 빼는 일은 구조 문제다",
+      "stages": [
+        {
+          "id": "i18n-a",
+          "title": "글자를 다룬다",
+          "nodes": [
+            {
+              "id": "i18n-unicode",
+              "title": "유니코드 · 인코딩",
+              "why": "글자가 깨지고 길이가 이상한 이유는 대부분 여기 있다. 이모지 하나가 몇 글자인가?",
+              "check": "코드 포인트와 자소 묶음의 차이를 예로 설명한다",
+              "links": [
+                {
+                  "label": "개발자가 알아야 할 유니코드 (Joel)",
+                  "url": "https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/"
+                }
+              ],
+              "tool": {
+                "id": "charconv",
+                "label": "문자 변환기"
+              }
+            },
+            {
+              "id": "i18n-catalog",
+              "title": "말 묶음 · 키 설계",
+              "why": "문장을 코드에 박으면 번역이 시작조차 안 된다. 키를 잘못 잡으면 번역가가 문맥을 잃는다.",
+              "check": "화면 문구를 전부 키로 빼고 기본 언어로 돌린다",
+              "links": [
+                {
+                  "label": "i18next 문서",
+                  "url": "https://www.i18next.com/"
+                }
+              ]
+            },
+            {
+              "id": "i18n-plural",
+              "title": "복수형 · 성별 · 어순 (ICU)",
+              "why": "「3개의 항목」을 문자열 이어 붙이기로 만들면 언어마다 무너진다. 규칙이 언어마다 다르다.",
+              "check": "ICU 메시지로 복수형을 처리한다",
+              "links": [
+                {
+                  "label": "ICU MessageFormat",
+                  "url": "https://unicode-org.github.io/icu/userguide/format_parse/messages/"
+                }
+              ],
+              "prereq": [
+                "i18n-catalog"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "i18n-b",
+          "title": "형식과 화면",
+          "nodes": [
+            {
+              "id": "i18n-format",
+              "title": "날짜 · 숫자 · 통화 · 시간대",
+              "why": "2026-08-12 가 어떤 나라에서는 12월 8일이다. 직접 포맷하지 말고 표준 API 에 맡긴다.",
+              "check": "Intl 로 지역별 날짜·통화를 출력한다",
+              "links": [
+                {
+                  "label": "MDN Intl",
+                  "url": "https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Intl"
+                }
+              ],
+              "tool": {
+                "id": "worldclock",
+                "label": "세계 시계"
+              }
+            },
+            {
+              "id": "i18n-layout",
+              "title": "레이아웃 — 길이 팽창 · RTL",
+              "why": "독일어는 30% 길어지고 아랍어는 오른쪽에서 시작한다. 고정 폭 버튼이 깨지는 이유.",
+              "check": "가장 긴 번역으로도 화면이 안 깨진다",
+              "links": [
+                {
+                  "label": "MDN 논리적 속성",
+                  "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_logical_properties_and_values"
+                }
+              ],
+              "prereq": [
+                "web-css"
+              ]
+            },
+            {
+              "id": "i18n-content",
+              "title": "문화 — 이름 · 주소 · 색 · 이미지",
+              "why": "「성/이름」 두 칸이 세상의 절반에서 안 맞는다. 형식 가정이 곧 배제다.",
+              "check": "이름·주소 입력을 한 나라 가정 없이 설계한다",
+              "links": [
+                {
+                  "label": "이름에 대한 잘못된 통념",
+                  "url": "https://www.kalzumeus.com/2010/06/17/falsehoods-programmers-believe-about-names/"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "i18n-c",
+          "title": "운영한다",
+          "nodes": [
+            {
+              "id": "i18n-ops",
+              "title": "번역 운영 — 용어집 · 흐름",
+              "why": "번역은 한 번 하고 끝이 아니라 배포마다 도는 파이프라인이다.",
+              "check": "새 문구가 추가되면 번역 대상이 자동으로 드러난다",
+              "links": [
+                {
+                  "label": "Weblate (오픈소스 TMS)",
+                  "url": "https://weblate.org/"
+                }
+              ]
+            },
+            {
+              "id": "i18n-test",
+              "title": "현지화 테스트 — 의사 번역",
+              "why": "번역가를 기다리지 않고도 깨지는 화면을 미리 찾는 방법이 있다.",
+              "check": "의사 번역으로 잘림·하드코딩을 잡아낸다",
+              "links": [
+                {
+                  "label": "Pseudolocalization 소개",
+                  "url": "https://en.wikipedia.org/wiki/Pseudolocalization"
+                }
+              ],
+              "prereq": [
+                "i18n-layout"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

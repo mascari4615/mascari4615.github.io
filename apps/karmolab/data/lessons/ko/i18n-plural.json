@@ -1,0 +1,106 @@
+{
+  "id": "i18n-plural",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "「1개 / 2개」 두 가지면 된다고 생각하는 순간 러시아어·아랍어에서 무너진다. **복수형 규칙은 언어마다 다르다.**"
+    },
+    {
+      "type": "h",
+      "text": "1. 규칙의 다양함"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "언어별 복수 범주",
+      "text": "한국어·일본어 : other 하나\n영어          : one, other\n러시아어      : one, few, many, other\n아랍어        : zero, one, two, few, many, other\n\n그래서 「if (n === 1)」 은 영어 전용 코드다"
+    },
+    {
+      "type": "h",
+      "text": "2. ICU 메시지"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "규칙을 문자열 안에 담는다",
+      "text": "{count, plural,\n  =0 {장바구니가 비어 있습니다}\n  one {항목 {count}개}\n  other {항목 {count}개}\n}\n\n// 언어별 파일이 각자 필요한 범주만 채우면 된다"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "표준 API 로도 확인 가능",
+      "text": "new Intl.PluralRules('ru').select(2);   // 'few'\nnew Intl.PluralRules('ko').select(2);   // 'other'"
+    },
+    {
+      "type": "h",
+      "text": "3. 성별·선택"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "select 로 분기",
+      "text": "{gender, select,\n  female {그녀가 초대했습니다}\n  male {그가 초대했습니다}\n  other {누군가 초대했습니다}\n}"
+    },
+    {
+      "type": "h",
+      "text": "4. 어순과 자리 표시자"
+    },
+    {
+      "type": "note",
+      "text": "자리 표시자에 **이름을 붙여라**(`{name}` — `%s` 같은 위치 기반은 어순이 바뀌면 뒤섞인다). 번역가가 순서를 자유롭게 바꿀 수 있어야 자연스러운 문장이 나온다."
+    },
+    {
+      "type": "h",
+      "text": "5. 리치 텍스트"
+    },
+    {
+      "type": "p",
+      "text": "문장 중간에 링크·굵게가 들어가면 HTML 을 번역 문자열에 넣게 되는데, 위험하고 깨지기 쉽다. **컴포넌트 보간**(`<b>{name}</b>` 을 태그 자리 표시자로)을 지원하는 라이브러리 기능을 쓰라."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "`Intl.PluralRules` 로 ko·en·ru·ar 에서 0·1·2·5·11 이 어느 범주인지 출력해 보라."
+    },
+    {
+      "type": "try",
+      "text": "코드에서 `if (n === 1)` 로 복수형을 처리하는 곳을 찾아 ICU 메시지로 바꿔라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "`if (count === 1)` 로 복수형을 처리하면?",
+      "choices": [
+        "복수 범주가 더 많은 언어에서 틀린다",
+        "성능이 나쁘다",
+        "항상 안전하다"
+      ],
+      "answer": 0,
+      "why": "러시아어·아랍어는 범주가 여럿이다."
+    },
+    {
+      "q": "자리 표시자에 이름을 붙이는 이유는?",
+      "choices": [
+        "번역가가 어순을 바꿔도 값이 뒤섞이지 않게",
+        "가독성만",
+        "타입 안전"
+      ],
+      "answer": 0,
+      "why": "위치 기반은 어순 변경에 취약하다."
+    },
+    {
+      "q": "문장 중간의 링크·강조를 다루는 권장 방법은?",
+      "choices": [
+        "컴포넌트/태그 보간 기능 사용",
+        "번역 문자열에 HTML 을 직접 넣기",
+        "문장을 쪼개기"
+      ],
+      "answer": 0,
+      "why": "HTML 삽입은 위험하고 쪼개기는 어순을 깨뜨린다."
+    }
+  ]
+}
