@@ -9,6 +9,7 @@
 import type { EdgeStyle } from './spec';
 import { wobblePath, pointOnCubic } from './canvas-math';
 import type { Pt } from './canvas-math';
+import { TYPE } from './canvas-type';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -66,8 +67,8 @@ export function buildEdgeLabel(
   const label = text.trim();
   if (!label) return null;
   const at = pointOnCubic(g, Math.min(1, Math.max(0, opts.at ?? 0.5)));
-  const w = label.length * 7 + 12;
-  const h = 16;
+  const w = label.length * 8 + 14;
+  const h = 19;
 
   const wrap = document.createElementNS(SVG_NS, 'g') as SVGGElement;
   wrap.setAttribute('class', 'ck-edge-label');
@@ -88,10 +89,10 @@ export function buildEdgeLabel(
 
   const t = document.createElementNS(SVG_NS, 'text');
   t.setAttribute('x', String(at.x));
-  t.setAttribute('y', String(at.y + 3.5));
+  t.setAttribute('y', String(at.y + 4));
   t.setAttribute('text-anchor', 'middle');
   t.setAttribute('fill', opts.textColor);
-  t.setAttribute('font-size', '9.5');
+  t.setAttribute('font-size', String(TYPE.body));
   t.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
   t.textContent = label;
   wrap.appendChild(t);

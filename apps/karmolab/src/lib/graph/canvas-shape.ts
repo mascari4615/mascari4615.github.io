@@ -5,6 +5,7 @@
  * 상자 크기는 같다. 선을 잇는 셈법이 상자 크기만 보고 있기 때문이다.
  */
 import type { GraphNode, NodeShape } from './spec';
+import { TYPE } from './canvas-type';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -129,7 +130,7 @@ export function buildNoteCardBody(
   title.setAttribute('x', '10');
   title.setAttribute('y', '16');
   title.setAttribute('fill', theme.nodeText);
-  title.setAttribute('font-size', '10.5');
+  title.setAttribute('font-size', String(TYPE.body));
   title.setAttribute('font-weight', '600');
   title.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
   title.setAttribute('pointer-events', 'none');
@@ -141,7 +142,7 @@ export function buildNoteCardBody(
     row.setAttribute('x', '10');
     row.setAttribute('y', String(30 + i * NOTE_BODY_LINE_H));
     row.setAttribute('fill', theme.childText);
-    row.setAttribute('font-size', '9.5');
+    row.setAttribute('font-size', String(TYPE.meta));
     row.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
     row.setAttribute('pointer-events', 'none');
     row.textContent = ln;
