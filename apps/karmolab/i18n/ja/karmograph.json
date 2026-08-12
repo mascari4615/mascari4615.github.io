@@ -117,7 +117,7 @@
   "karmograph.t115": "接続を削除",
   "karmograph.t116": "線の上に書く言葉 (空なら出ません)",
   "karmograph.t117": "保存しました",
-  "karmograph.t118": "全体を見る",
+  "karmograph.t118": "まわり全部",
   "karmograph.opt.0": "選んだものだけ",
   "karmograph.opt.1": "1次",
   "karmograph.opt.2": "2次",
@@ -616,5 +616,6 @@
   "karmograph.help.selectAll": "見えているものを全部選ぶ（そろえる・まとめるにつながる）",
   "karmograph.find.count": "{n}件",
   "karmograph.find.none": "なし",
-  "karmograph.find.countTitle": "名前・ひとことに一致したカード数"
+  "karmograph.find.countTitle": "名前・ひとことに一致したカード数",
+  "karmograph.degree.pick": "カードを一つ選んでください"
 }

@@ -1938,6 +1938,15 @@ import {
       el.textContent = n === 0 ? t('karmograph.find.none') : t('karmograph.find.count', { n });
     }
 
+    /** 수가 아니라 **한 마디**를 같은 자리에 띄운다(모자란 것을 알려 줄 때). */
+    function showFindHint(msg: string | null): void {
+      const el = q<HTMLElement>('find-count');
+      if (!msg) { el.classList.add('hidden'); return; }
+      el.classList.remove('hidden');
+      el.classList.remove('is-none');
+      el.textContent = msg;
+    }
+
     /**
      * 지금 봐야 할 것 계산. 찾기 글자가 있으면 **이름이 맞는 노드**가 시작점,
      * 없으면 **고른 노드**가 시작점. 둘 다 없으면 포커스 해제.
@@ -1960,7 +1969,9 @@ import {
         showFindCount(null);
         starts = [selectedId];
       } else {
-        showFindCount(null);
+        /* 「고른 것만/1단계」를 골랐는데 고른 카드가 없으면 **아무 일도 안 일어난다.**
+           그때 화면이 가만있으면 고장으로 읽힌다 — 무엇이 모자란지 한 마디 적어 준다. */
+        showFindHint(degRaw !== '' ? t('karmograph.degree.pick') : null);
         canvas?.setFocus(null);
         return;
       }
