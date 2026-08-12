@@ -7,9 +7,11 @@
 import type { GameDef } from './types';
 import { reflex } from './games/reflex';
 import { gomoku } from './games/gomoku';
+import { four } from './games/four';
+import { memory } from './games/memory';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku];
+export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory];
 
 export const gameById = (id: string): GameDef<any, any> | undefined => GAMES.find((g) => g.id === id);
 

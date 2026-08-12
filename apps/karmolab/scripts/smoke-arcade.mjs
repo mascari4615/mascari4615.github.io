@@ -54,11 +54,39 @@ if (!cantRun) {
   }
 }
 
+let ids = [];
 if (!cantRun) {
   console.log('[arcade-ui] 로비');
   const cards = await page.locator('.ac-card').count();
   check('실험 카드가 뜬다', cards >= 2, `${cards}장`);
   check('혼자·같이 두 길이 다 있다', (await page.locator('[data-host]').count()) === cards);
+
+  /* **모든 게임을 한 번씩 열어 본다.** 51개가 되어도 이 고리가 알아서 늘어난다 —
+   * 새 게임을 넣을 때 화면 검사를 새로 짤 필요가 없다는 뜻이다.
+   * 깊은 검사(시계·판정)는 아래에서 두 게임만 본다. 여기서는 「뜨고, 자리가 차고, 뭔가 그려졌나」. */
+  console.log('[arcade-ui] 모든 게임 — 열어 보기');
+  ids = await page.$$eval('[data-solo]', (bs) => bs.map((b) => b.dataset.solo));
+  for (const id of ids) {
+    await page.click(`[data-solo="${id}"]`);
+    try {
+      await page.waitForFunction(
+        () => {
+          const v = document.querySelector('#acView');
+          const seats = document.querySelectorAll('#acSeats .ac-seat').length;
+          return !!v && v.children.length > 0 && seats >= 2;
+        },
+        null,
+        { timeout: 10000 }
+      );
+      const seats = await page.locator('#acSeats .ac-seat').allTextContents();
+      const hasBot = seats.some((t) => t.includes('🤖'));
+      check(`${id}: 혼자 열면 판이 뜨고 빈 자리에 봇이 앉는다`, hasBot, seats.join(' / '));
+    } catch (e) {
+      check(`${id}: 혼자 열면 판이 뜨고 빈 자리에 봇이 앉는다`, false, e.message.slice(0, 70));
+    }
+    await page.click('#acQuit');
+    await page.waitForSelector('[data-solo]', { timeout: 10000 });
+  }
 
   console.log('[arcade-ui] 반응 측정 — 혼자');
   await page.click('[data-solo="reflex"]');
@@ -127,4 +155,4 @@ if (failures.length) {
   console.log(`[arcade-ui] 실패 ${failures.length}건`);
   process.exit(1);
 }
-console.log('[arcade-ui] 화면 통과 — 로비 · 봇 착석 · 시계 · 다섯 판 · 오목 착수');
+console.log(`[arcade-ui] 화면 통과 — 게임 ${ids.length}종 전부 열림 · 봇 착석 · 시계 · 다섯 판 · 오목 착수`);

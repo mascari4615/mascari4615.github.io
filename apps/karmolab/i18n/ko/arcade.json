@@ -26,5 +26,13 @@
   "arcade.copy.done": "링크를 복사했다 — 붙여 넣으면 그 사람이 들어온다",
   "arcade.aria.url": "방 링크",
   "arcade.wait.host": "{n}명 — 다 모이면 시작하세요",
-  "arcade.wait.guest": "방에 들어왔습니다. 주인이 시작하면 판이 뜹니다"
+  "arcade.wait.guest": "방에 들어왔습니다. 주인이 시작하면 판이 뜹니다",
+  "arcade.game.four.name": "사목",
+  "arcade.game.four.desc": "떨어뜨려 넷을 잇는다",
+  "arcade.four.full": "판이 다 찼다 — 비겼다",
+  "arcade.four.win": "{who} 이(가) 넷을 이었다",
+  "arcade.game.memory.name": "짝 맞추기",
+  "arcade.game.memory.desc": "뒤집어 기억한다. 맞히면 한 번 더",
+  "arcade.memory.draw": "똑같이 가져갔다",
+  "arcade.memory.win": "{who} — {n}짝"
 }

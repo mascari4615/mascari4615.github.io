@@ -26,5 +26,13 @@
   "arcade.copy.done": "Link copied — paste it and they walk in",
   "arcade.aria.url": "Room link",
   "arcade.wait.host": "{n} here — start when everyone's in",
-  "arcade.wait.guest": "You're in. The round starts when the host begins"
+  "arcade.wait.guest": "You're in. The round starts when the host begins",
+  "arcade.game.four.name": "Four in a Row",
+  "arcade.game.four.desc": "Drop discs, connect four",
+  "arcade.four.full": "Board full — a draw",
+  "arcade.four.win": "{who} connected four",
+  "arcade.game.memory.name": "Matching",
+  "arcade.game.memory.desc": "Flip and remember. A match buys another turn",
+  "arcade.memory.draw": "An even split",
+  "arcade.memory.win": "{who} — {n} pairs"
 }
