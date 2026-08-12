@@ -54,7 +54,11 @@
                   "label": "이벤트 루프 시각화",
                   "url": "http://latentflip.com/loupe/"
                 }
-              ]
+              ],
+              "tool": {
+                "id": "regextest",
+                "label": "정규식 시험대"
+              }
             },
             {
               "id": "web-dom",
@@ -88,7 +92,11 @@
                   "label": "HTTP 캐시 (web.dev)",
                   "url": "https://web.dev/articles/http-cache"
                 }
-              ]
+              ],
+              "tool": {
+                "id": "httpstatus",
+                "label": "HTTP 상태코드 표"
+              }
             },
             {
               "id": "web-render",
@@ -112,7 +120,11 @@
                   "label": "MDN 접근성",
                   "url": "https://developer.mozilla.org/ko/docs/Learn/Accessibility"
                 }
-              ]
+              ],
+              "tool": {
+                "id": "contrast",
+                "label": "명도 대비 검사기"
+              }
             },
             {
               "id": "web-devtools",
@@ -224,7 +236,11 @@
                   "label": "Pro Git (한국어)",
                   "url": "https://git-scm.com/book/ko/v2"
                 }
-              ]
+              ],
+              "tool": {
+                "id": "gitcmd",
+                "label": "Git 명령어 사전"
+              }
             },
             {
               "id": "git-areas",
@@ -278,7 +294,11 @@
                   "label": "git reflog 문서",
                   "url": "https://git-scm.com/docs/git-reflog"
                 }
-              ]
+              ],
+              "tool": {
+                "id": "gitcmd",
+                "label": "Git 명령어 사전"
+              }
             }
           ]
         },
@@ -388,7 +408,11 @@
                   "label": "부동소수 눈으로 보기",
                   "url": "https://float.exposed/"
                 }
-              ]
+              ],
+              "tool": {
+                "id": "radix",
+                "label": "진법 변환기"
+              }
             },
             {
               "id": "cs-memory",
@@ -476,7 +500,11 @@
                   "label": "High Performance Browser Networking",
                   "url": "https://hpbn.co/"
                 }
-              ]
+              ],
+              "tool": {
+                "id": "urlparse",
+                "label": "URL 뜯어보기"
+              }
             },
             {
               "id": "cs-db",
@@ -604,7 +632,11 @@
                   "label": "ShellCheck — 스크립트 검사",
                   "url": "https://www.shellcheck.net/"
                 }
-              ]
+              ],
+              "tool": {
+                "id": "cron",
+                "label": "cron 식 읽기"
+              }
             }
           ]
         }
@@ -702,7 +734,11 @@
                   "label": "Google SRE Book (무료)",
                   "url": "https://sre.google/sre-book/table-of-contents/"
                 }
-              ]
+              ],
+              "tool": {
+                "id": "epoch",
+                "label": "유닉스 시간 변환"
+              }
             },
             {
               "id": "devops-postmortem",
@@ -752,7 +788,11 @@
                   "label": "OAuth 2.0 쉽게 (한국어 정리)",
                   "url": "https://www.oauth.com/"
                 }
-              ]
+              ],
+              "tool": {
+                "id": "jwt",
+                "label": "JWT 뜯어보기"
+              }
             },
             {
               "id": "sec-secret",
@@ -764,7 +804,11 @@
                   "label": "gitleaks",
                   "url": "https://github.com/gitleaks/gitleaks"
                 }
-              ]
+              ],
+              "tool": {
+                "id": "passgen",
+                "label": "비밀번호 만들기"
+              }
             }
           ]
         },
@@ -782,7 +826,11 @@
                   "label": "Crypto 101 (무료)",
                   "url": "https://www.crypto101.io/"
                 }
-              ]
+              ],
+              "tool": {
+                "id": "hashgen",
+                "label": "해시 만들기"
+              }
             },
             {
               "id": "sec-supply",
@@ -901,6 +949,310 @@
                 {
                   "label": "Anthropic — 평가 만들기",
                   "url": "https://docs.claude.com/en/docs/test-and-evaluate/develop-tests"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "데이터",
+      "emoji": "🗄",
+      "lead": "쌓기는 쉽고 꺼내기는 어렵다 — 꺼내는 쪽에서 거꾸로 설계하는 법",
+      "stages": [
+        {
+          "id": "data-a",
+          "title": "담는 그릇",
+          "nodes": [
+            {
+              "id": "data-model",
+              "title": "모델링 — 표를 나누는 기준",
+              "why": "스키마는 나중에 못 바꾸는 결정이다. 여기서 틀리면 코드가 평생 보정한다.",
+              "check": "정규화하고, 어디서 일부러 깰지 이유를 댄다",
+              "links": [
+                {
+                  "label": "데이터베이스 설계 (SQLBolt 이후)",
+                  "url": "https://sqlbolt.com/"
+                }
+              ]
+            },
+            {
+              "id": "data-sql",
+              "title": "SQL — 조인 · 집계 · 윈도우",
+              "why": "앱으로 끌어와 반복문 도는 순간, 데이터베이스가 해 줄 일을 내가 느리게 하는 것이다.",
+              "check": "조인 셋과 group by 로 리포트 한 장을 뽑는다",
+              "links": [
+                {
+                  "label": "SQLBolt (연습형)",
+                  "url": "https://sqlbolt.com/"
+                },
+                {
+                  "label": "PostgreSQL 윈도우 함수",
+                  "url": "https://www.postgresql.org/docs/current/tutorial-window.html"
+                }
+              ]
+            },
+            {
+              "id": "data-tx",
+              "title": "트랜잭션 · 격리 수준",
+              "why": "돈이 두 번 빠지는 사고는 대부분 여기서 난다.",
+              "check": "팬텀 리드가 무엇인지 예로 든다",
+              "links": [
+                {
+                  "label": "Designing Data-Intensive Applications (책)",
+                  "url": "https://dataintensive.net/"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "data-b",
+          "title": "흐르게 한다",
+          "nodes": [
+            {
+              "id": "data-cache",
+              "title": "캐시 — 무효화가 본체",
+              "why": "캐시를 넣는 건 쉽다. 언제 버릴지 못 정하면 틀린 값을 빠르게 보여 준다.",
+              "check": "캐시 키와 만료 규칙을 먼저 적고 넣는다",
+              "links": [
+                {
+                  "label": "Caching 전략 (AWS 백서)",
+                  "url": "https://aws.amazon.com/caching/best-practices/"
+                }
+              ]
+            },
+            {
+              "id": "data-queue",
+              "title": "큐 · 비동기 처리",
+              "why": "느린 일을 요청 안에서 하면 사용자가 기다린다. 밀어 두고 나중에 하는 구조.",
+              "check": "실패한 작업이 다시 시도되고, 무한 재시도는 안 된다",
+              "links": [
+                {
+                  "label": "Enterprise Integration Patterns",
+                  "url": "https://www.enterpriseintegrationpatterns.com/"
+                }
+              ]
+            },
+            {
+              "id": "data-format",
+              "title": "주고받는 모양 — JSON · CSV · 스키마",
+              "why": "연동 사고의 대부분은 알고리즘이 아니라 「모양이 다름」이다.",
+              "check": "남에게 줄 데이터의 스키마를 문서로 남긴다",
+              "tool": {
+                "id": "csvjson",
+                "label": "CSV ↔ JSON 변환기"
+              },
+              "links": [
+                {
+                  "label": "JSON Schema",
+                  "url": "https://json-schema.org/learn"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "game",
+      "title": "게임 개발",
+      "emoji": "🎮",
+      "lead": "재미는 기능이 아니라 감각이다 — 도는 것과 재밌는 것 사이의 거리",
+      "stages": [
+        {
+          "id": "game-a",
+          "title": "도는 것",
+          "nodes": [
+            {
+              "id": "game-loop",
+              "title": "게임 루프 · 델타 타임",
+              "why": "프레임마다 도는 세계. 델타를 안 쓰면 좋은 컴퓨터에서 캐릭터가 순간이동한다.",
+              "check": "프레임이 흔들려도 이동 속도가 같다",
+              "links": [
+                {
+                  "label": "Game Programming Patterns (무료)",
+                  "url": "https://gameprogrammingpatterns.com/"
+                }
+              ]
+            },
+            {
+              "id": "game-engine",
+              "title": "엔진 하나 (Unity / Godot)",
+              "why": "엔진은 도구지 목표가 아니다. 하나를 끝까지 써 봐야 다른 엔진도 읽힌다.",
+              "check": "움직이는 캐릭터와 충돌하는 벽까지 만든다",
+              "links": [
+                {
+                  "label": "Unity Learn",
+                  "url": "https://learn.unity.com/"
+                },
+                {
+                  "label": "Godot 문서",
+                  "url": "https://docs.godotengine.org/ko/4.x/"
+                }
+              ]
+            },
+            {
+              "id": "game-input",
+              "title": "입력 · 상태 기계",
+              "why": "조작감은 입력을 언제 받아 언제 반영하냐로 갈린다.",
+              "check": "점프 중 공격 같은 상태 겹침을 규칙으로 정리한다",
+              "links": [
+                {
+                  "label": "State 패턴 (GPP)",
+                  "url": "https://gameprogrammingpatterns.com/state.html"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "game-b",
+          "title": "재밌는 것",
+          "nodes": [
+            {
+              "id": "game-feel",
+              "title": "게임 필 — 연출 · 타격감",
+              "why": "같은 로직도 흔들림·소리·정지 한 프레임으로 완전히 다른 게임이 된다.",
+              "check": "이펙트를 뺐다 넣었다 하며 차이를 말로 설명한다",
+              "links": [
+                {
+                  "label": "Juice it or lose it (영상)",
+                  "url": "https://www.youtube.com/watch?v=Fy0aCDmgnxg"
+                }
+              ]
+            },
+            {
+              "id": "game-balance",
+              "title": "수치 · 밸런스",
+              "why": "숫자를 코드에 박으면 조정이 배포가 된다. 표로 빼는 순간 게임이 살아난다.",
+              "check": "수치를 데이터로 빼고 재빌드 없이 바꾼다",
+              "links": [
+                {
+                  "label": "게임 밸런싱 기초 (GDC 정리)",
+                  "url": "https://www.gdcvault.com/"
+                }
+              ]
+            },
+            {
+              "id": "game-ship",
+              "title": "완성 · 출시",
+              "why": "만들다 만 게임 열 개보다 끝낸 게임 하나가 훨씬 많이 가르친다.",
+              "check": "남이 설치해서 끝까지 플레이한다",
+              "links": [
+                {
+                  "label": "itch.io 에 올리기",
+                  "url": "https://itch.io/docs/creators/getting-started"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "craft",
+      "title": "개발자 크래프트",
+      "emoji": "🛠",
+      "lead": "언어와 무관하게 실력 차를 만드는 것들 — 아무도 안 가르쳐 주는 쪽",
+      "stages": [
+        {
+          "id": "craft-a",
+          "title": "고치는 힘",
+          "nodes": [
+            {
+              "id": "craft-debug",
+              "title": "디버깅 = 가설 좁히기",
+              "why": "찍어서 고친 버그는 다시 온다. 원인을 좁히는 절차가 실력이다.",
+              "check": "가설을 셋 적고, 그중 무엇이 아닌지부터 지운다",
+              "links": [
+                {
+                  "label": "Debugging (David Agans 9 규칙)",
+                  "url": "https://debuggingrules.com/"
+                }
+              ]
+            },
+            {
+              "id": "craft-read",
+              "title": "남의 코드 읽기",
+              "why": "실무의 대부분은 쓰기가 아니라 읽기다. 읽는 속도가 곧 속도다.",
+              "check": "처음 보는 저장소에서 기능 하나의 흐름을 따라간다",
+              "links": [
+                {
+                  "label": "Reading code (Google eng practices)",
+                  "url": "https://google.github.io/eng-practices/review/reviewer/"
+                }
+              ]
+            },
+            {
+              "id": "craft-refactor",
+              "title": "리팩터링 — 안 부수고 바꾸기",
+              "why": "테스트 없이 하는 리팩터링은 그냥 다시 쓰기다.",
+              "check": "동작을 안 바꾸는 변경과 바꾸는 변경을 커밋으로 나눈다",
+              "links": [
+                {
+                  "label": "Refactoring 카탈로그",
+                  "url": "https://refactoring.com/catalog/"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "craft-b",
+          "title": "남기는 힘",
+          "nodes": [
+            {
+              "id": "craft-doc",
+              "title": "문서화 · 이름 짓기",
+              "why": "반년 뒤의 나는 남이다. 이름과 한 줄 설명이 그때의 나를 살린다.",
+              "check": "README 만 보고 남이 실행한다",
+              "links": [
+                {
+                  "label": "Diátaxis — 문서 네 종류",
+                  "url": "https://diataxis.fr/"
+                }
+              ]
+            },
+            {
+              "id": "craft-ask",
+              "title": "질문하는 법",
+              "why": "좋은 질문은 답을 받기 전에 이미 절반을 푼다.",
+              "check": "재현 방법·기대·실제를 갖춰 묻는다",
+              "links": [
+                {
+                  "label": "똑똑하게 질문하는 법",
+                  "url": "https://github.com/ryanhanwu/How-To-Ask-Questions-The-Smart-Way/blob/main/README-ko.md"
+                }
+              ]
+            },
+            {
+              "id": "craft-ai",
+              "title": "AI 와 일하기",
+              "why": "검증 없이 받아 쓰면 빨리 틀린다. 무엇을 맡기고 무엇을 검사할지의 문제.",
+              "check": "AI 가 준 코드를 테스트로 검증한 뒤 커밋한다",
+              "links": [
+                {
+                  "label": "Anthropic — Claude Code 문서",
+                  "url": "https://docs.claude.com/en/docs/claude-code/overview"
+                }
+              ]
+            },
+            {
+              "id": "craft-focus",
+              "title": "집중 · 꾸준함",
+              "why": "기술보다 이게 먼저 무너진다. 하루 30분이 주말 몰아치기를 이긴다.",
+              "check": "한 주에 다섯 번, 정해진 시간에 앉는다",
+              "tool": {
+                "id": "timer",
+                "label": "뽀모도로 타이머"
+              },
+              "links": [
+                {
+                  "label": "뽀모도로 기법",
+                  "url": "https://francescocirillo.com/products/the-pomodoro-technique"
                 }
               ]
             }

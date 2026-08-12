@@ -13,7 +13,8 @@
 import { t, loadNamespace } from '../../lib/i18n';
 
 interface SmLink { label: string; url: string }
-interface SmNode { id: string; title: string; why: string; check?: string; links?: SmLink[] }
+interface SmTool { id: string; label: string }
+interface SmNode { id: string; title: string; why: string; check?: string; tool?: SmTool; links?: SmLink[] }
 interface SmStage { id: string; title: string; nodes: SmNode[] }
 interface SmTrack { id: string; title: string; emoji: string; lead: string; stages: SmStage[] }
 interface SmData { tracks: SmTrack[] }
@@ -102,6 +103,8 @@ interface SmData { tracks: SmTrack[] }
 .sm-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .sm-link { font-size: 11px; padding: 4px 9px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-secondary); text-decoration: none; transition: border-color .15s, color .15s; }
 .sm-link:hover { border-color: var(--accent); color: var(--accent); }
+.sm-tool { border-color: var(--accent); color: var(--accent); background: var(--accent-subtle); font-weight: 600; }
+.sm-tool:hover { background: var(--accent-dim); }
 .sm-next-tag { position: absolute; top: -8px; right: 12px; font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--bg-void); }
 
 .sm-empty { padding: 28px; text-align: center; color: var(--text-tertiary); font-size: var(--font-size-2xs); }
@@ -210,9 +213,15 @@ interface SmData { tracks: SmTrack[] }
             .map((n) => {
               const isDone = done.has(n.id);
               const isNext = !!next && n.id === next.id;
-              const links = (n.links || [])
-                .map((l) => `<a class="sm-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} ↗</a>`)
-                .join('');
+              /* 도구가 붙은 칸은 **여기서 바로 해 볼 수 있다** — 읽고 끝나면 안 남는다. */
+              const tool = n.tool
+                ? `<a class="sm-link sm-tool" href="#${esc(n.tool.id)}">▶ ${esc(n.tool.label)}</a>`
+                : '';
+              const links =
+                tool +
+                (n.links || [])
+                  .map((l) => `<a class="sm-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} ↗</a>`)
+                  .join('');
               return `<div class="sm-node${isDone ? ' is-done' : ''}${isNext ? ' is-next' : ''}">
                 ${isNext ? `<span class="sm-next-tag">${esc(t('studymap.next', undefined, '다음'))}</span>` : ''}
                 <input type="checkbox" class="sm-check" name="studymap-done-${esc(n.id)}" data-node="${esc(n.id)}" ${isDone ? 'checked' : ''}
