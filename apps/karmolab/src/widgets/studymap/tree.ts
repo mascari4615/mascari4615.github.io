@@ -17,6 +17,12 @@ export interface TreeNode {
   prereq: string[];
   /** 화면에 곁들일 짧은 글(갈래면 이모지, 칸이면 단계 이름) */
   tag?: string;
+  /**
+   * 층을 직접 정할 때. 안 주면 선수 사슬의 길이로 계산한다.
+   * 왜 필요한가: 한 갈래 안에서는 「단계」가 곧 층이다. 사슬로 깊이를 재면 칸이 한 줄로 늘어서서
+   * 지도가 아니라 목록이 된다(실제로 그렇게 나왔다).
+   */
+  depth?: number;
 }
 
 export interface TreePlaced extends TreeNode {
@@ -42,6 +48,11 @@ export function layoutTree(nodes: TreeNode[], gapX = 168, gapY = 118): TreeLayou
 
   const walk = (id: string, seen: Set<string>): number => {
     if (depth.has(id)) return depth.get(id) as number;
+    const fixed = byId.get(id)?.depth;
+    if (typeof fixed === 'number') {
+      depth.set(id, fixed);
+      return fixed;
+    }
     if (seen.has(id)) return 0; /* 순환 — 여기서 끊는다 */
     seen.add(id);
     const n = byId.get(id);

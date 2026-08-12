@@ -281,7 +281,10 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .sm-resume-track { font-size: 11px; color: var(--text-tertiary); margin-left: auto; }
 .sm-tree-head { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--text-tertiary); margin-bottom: 8px; }
 /* 캔버스가 자기 크기를 잡는다 — 우리는 자리만 내준다(가로 스크롤은 이제 캔버스 몫). */
+/* 캔버스는 자기 상자를 height:100% 로 채운다 — 그래서 **크기를 정하는 틀**을 하나 감싸 준다.
+   (안 감싸면 100% 가 auto 를 만나 상자가 한없이 커진다: 실측 910px.) */
 .sm-tree { height: min(62vh, 560px); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-secondary); }
+.sm-tree-in { width: 100%; height: 100%; }
 .tt-svg { display: block; max-width: none; }
 .tt-edge { fill: none; stroke: var(--border); stroke-width: 1.5; }
 .tt-edge.is-open { stroke: var(--secondary); opacity: .55; }
@@ -666,23 +669,26 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       });
     }
 
-    /** 한 갈래 안 칸 트리 — 선수 관계가 없는 칸은 같은 단계의 앞 칸을 부모로 삼아 줄을 세운다. */
+    /**
+     * 한 갈래 안 칸 트리 — **단계가 곧 층**이다.
+     * 앞 칸을 선수로 이어 붙이면 깊이가 계속 깊어져 한 줄로 늘어선다(그러면 지도가 아니라 목록이다).
+     * 그래서 층은 단계 번호로 고정하고, 선은 표에 적힌 진짜 선수 관계만 긋는다.
+     */
     function nodeTreeNodes(tr: SmTrack): TreeNode[] {
       const ids = new Set(nodesOf(tr).map((n) => n.id));
       const out: TreeNode[] = [];
-      for (const st of tr.stages) {
-        st.nodes.forEach((n, i) => {
-          const inside = (n.prereq || []).filter((p) => ids.has(p));
-          const chain = i > 0 && inside.length === 0 ? [st.nodes[i - 1].id] : inside;
+      tr.stages.forEach((st, depth) => {
+        for (const n of st.nodes) {
           out.push({
             id: n.id,
             title: n.title,
             ratio: done.has(n.id) ? 1 : 0,
-            prereq: chain,
+            prereq: (n.prereq || []).filter((p) => ids.has(p)),
             tag: done.has(n.id) ? '✓' : '',
+            depth,
           });
-        });
-      }
+        }
+      });
       return out;
     }
 
@@ -1076,7 +1082,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             ? `<div class="sm-tree-head">${esc(t('studymap.tree.tracks', undefined, '갈래 지도 — 눌러서 안으로'))}</div>`
             : `<div class="sm-tree-head"><button type="button" class="sm-crumb-btn" data-zoom="tracks">${esc(t('studymap.tree.up', undefined, '← 갈래 지도'))}</button><span>${esc(tr.emoji)} ${esc(tr.title)}</span></div>`;
 
-        elStages.innerHTML = `${review}${resume}${head}<div class="sm-tree" data-sm="treehost"></div>`;
+        elStages.innerHTML = `${review}${resume}${head}<div class="sm-tree"><div class="sm-tree-in" data-sm="treehost"></div></div>`;
         /* 그리기는 KarmoGraph 엔진에 맡긴다 — 확대·이동·미니맵·손가락 두 개가 공짜로 따라온다. */
         const host = elStages.querySelector('[data-sm="treehost"]');
         if (host instanceof HTMLElement) {
@@ -1096,6 +1102,8 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
           stopTree = mountTree(host, layer, {
             size: zoom === 'tracks' ? 68 : 60,
             focusId: zoom === 'tracks' ? current : next?.id,
+            /* 갈래 안은 칸이 적다 — 통째로 보여 주는 편이 「어디쯤인지」에 더 잘 답한다. */
+            fitAll: zoom === 'nodes',
             /* 띠 이름은 **깊이별로** 정한다 — 단계 순서와 깊이가 어긋날 수 있어서(선수 관계가 더 깊게 만든다). */
             laneLabels:
               zoom === 'tracks'
