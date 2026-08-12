@@ -1,0 +1,56 @@
+{
+  "id": "git-areas",
+  "minutes": 10,
+  "blocks": [
+    { "type": "p", "text": "`git add` 가 왜 따로 있는지 모르면, 커밋은 「전부 담기」밖에 안 된다. Git 은 파일이 있는 자리를 셋으로 나눈다 — 이 셋만 구분하면 status 출력이 갑자기 읽힌다." },
+
+    { "type": "h", "text": "1. 세 자리" },
+    { "type": "p", "text": "**작업 트리**(지금 편집기에 보이는 파일) → **인덱스**(다음 커밋에 담기로 한 것, staging area) → **HEAD**(마지막 커밋의 내용). `add` 는 작업 트리 → 인덱스, `commit` 은 인덱스 → 새 커밋이다." },
+    { "type": "code", "lang": "bash", "label": "지금 어디에 무엇이 있나", "text": "git status              # 사람이 읽는 요약\ngit status --porcelain  # 기계가 읽는 두 글자 (앞=인덱스, 뒤=작업트리)\n\ngit diff                # 작업 트리 vs 인덱스 (아직 안 담은 것)\ngit diff --staged       # 인덱스 vs HEAD   (담긴 것 = 커밋될 것)" },
+    { "type": "note", "text": "`git diff` 가 비었는데 커밋할 게 있다면, 이미 전부 **담겨** 있다는 뜻이다. 커밋 직전에는 `--staged` 를 보는 습관이 사고를 막는다." },
+
+    { "type": "h", "text": "2. 부분 커밋 — 인덱스가 있어서 되는 일" },
+    { "type": "p", "text": "한 파일에 두 가지 변경이 섞였을 때, 한쪽만 커밋할 수 있다. 커밋 하나에 한 가지 이야기만 담기는 힘이 여기서 나온다." },
+    { "type": "code", "lang": "bash", "label": "조각 단위로 골라 담기", "text": "git add -p src/app.ts\n#  y 담는다 / n 건너뛴다 / s 더 잘게 쪼갠다 / e 손으로 고른다 / q 그만\n\ngit diff --staged        # 담은 것만 다시 확인\ngit restore --staged src/app.ts   # 담기 취소(작업 내용은 그대로)" },
+
+    { "type": "h", "text": "3. 되돌리기 — 어느 자리를 되돌리는가" },
+    { "type": "code", "lang": "bash", "label": "헷갈리는 세 가지", "text": "git restore src/app.ts            # 작업 트리를 인덱스 상태로 (편집 내용 버림!)\ngit restore --staged src/app.ts   # 인덱스만 되돌림 (편집 내용은 남음)\ngit reset --soft HEAD~1           # 커밋만 풀고 인덱스에 그대로 둠" },
+    { "type": "note", "text": "`git restore <파일>` 은 **안 담은 편집을 지운다**. 되돌릴 수 없다(커밋도 stash 도 안 했으니 어디에도 없다). 지우기 전에 담아 두거나 복사해 두는 습관이 안전선이다." },
+
+    { "type": "h", "text": "4. 여럿이 같은 트리를 쓸 때" },
+    { "type": "p", "text": "다른 작업이 같은 폴더에서 돌고 있다면 `git add .` 은 남의 미완성 편집까지 담는다. 항상 **경로를 명시**해 담아라 — 커밋은 내 이야기만 담아야 한다." },
+    { "type": "code", "lang": "bash", "label": "내 것만", "text": "git add src/widgets/studymap/ data/studymap.json\ngit status --porcelain | head    # 담긴 목록을 눈으로 확인하고 커밋" },
+
+    { "type": "h", "text": "직접 해보기" },
+    { "type": "try", "text": "파일 하나에 서로 다른 두 곳을 고쳐라. `git add -p` 로 **한쪽만** 담고 `git diff --staged` 와 `git diff` 를 나란히 봐라. 두 diff 가 서로 다른 것이 이번 강의의 전부다." },
+    { "type": "try", "text": "`git status --porcelain` 을 찍고 두 글자의 앞·뒤가 각각 어느 자리를 말하는지 맞춰 봐라 (예: ` M` = 인덱스는 그대로, 작업 트리만 바뀜)." }
+  ],
+  "quiz": [
+    {
+      "q": "`git diff` 는 비었는데 `git diff --staged` 에는 내용이 있다. 무슨 상태인가?",
+      "choices": [
+        "변경이 전부 인덱스에 담겨 있어 커밋하면 그대로 들어간다",
+        "커밋할 것이 없다",
+        "충돌이 났다"
+      ],
+      "answer": 0,
+      "why": "git diff 는 작업 트리 vs 인덱스, --staged 는 인덱스 vs HEAD 를 본다."
+    },
+    {
+      "q": "한 파일에 섞인 두 변경 중 하나만 커밋하려면?",
+      "choices": ["git commit --amend", "git add -p 로 조각을 골라 담는다", "git stash"],
+      "answer": 1,
+      "why": "인덱스가 따로 있는 이유가 이것이다. 조각 단위로 담아 커밋 하나에 한 가지 이야기만 넣는다."
+    },
+    {
+      "q": "담지 않은 편집을 실수로 `git restore <파일>` 했다. 되찾을 수 있나?",
+      "choices": [
+        "reflog 로 복구할 수 있다",
+        "일반적으로 못 되찾는다 — 커밋도 stash 도 안 된 내용은 어디에도 없다",
+        "git fsck 로 항상 복구된다"
+      ],
+      "answer": 1,
+      "why": "reflog 는 커밋된 것만 기억한다. 그래서 위험한 명령 전에 담아 두거나 복사해 두는 습관이 필요하다."
+    }
+  ]
+}

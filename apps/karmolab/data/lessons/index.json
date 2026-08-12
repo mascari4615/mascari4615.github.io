@@ -1,0 +1,23 @@
+{
+  "$comment": "자동 생성 — check-studymap-lessons.mjs. 위젯이 「강의 있는 칸」을 표시하는 데 쓴다.",
+  "lessons": {
+    "ko": [
+      "cs-algo",
+      "cs-binary",
+      "git-areas",
+      "git-model",
+      "kl-architecture",
+      "kl-boundaries",
+      "kl-browser",
+      "kl-debugging",
+      "kl-events",
+      "kl-layout",
+      "kl-orientation",
+      "kl-project",
+      "kl-trouble",
+      "web-css",
+      "web-html",
+      "web-js"
+    ]
+  }
+}

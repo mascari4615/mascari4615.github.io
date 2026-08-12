@@ -167,6 +167,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-node-title { font-size: var(--font-size-2xs); font-weight: 650; line-height: 1.45; }
 .sm-open { display: block; width: 100%; text-align: left; background: none; border: none; padding: 0; color: inherit; font: inherit; font-weight: 650; cursor: pointer; }
 .sm-open:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.sm-has-lesson { display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px; margin-left: 7px; border-radius: 999px; background: var(--accent-dim); color: var(--accent); vertical-align: middle; }
 
 /* 강의 — 읽는 화면. 글줄은 68ch 를 안 넘긴다. */
 .sm-lesson { max-width: 68ch; }
@@ -351,7 +352,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
         <input type="checkbox" class="sm-check" name="studymap-done-${esc(n.id)}" data-node="${esc(n.id)}" ${isDone ? 'checked' : ''}
                aria-label="${esc(n.title)}">
         <div class="sm-node-body">
-          <button type="button" class="sm-node-title sm-open" data-open="${esc(n.id)}">${esc(n.title)}</button>
+          <button type="button" class="sm-node-title sm-open" data-open="${esc(n.id)}">${esc(n.title)}${hasLesson.has(n.id) ? `<span class="sm-has-lesson">${esc(t('studymap.lesson.tag', undefined, '강의'))}</span>` : ''}</button>
           <div class="sm-node-why">${esc(n.why)}</div>
           ${n.check ? `<div class="sm-node-check"><b>${esc(t('studymap.check', undefined, '넘어가도 될 때'))}</b> — ${esc(n.check)}</div>` : ''}
           ${prereq ? `<div class="sm-prereq"><span class="sm-prereq-label">${esc(t('studymap.prereq', undefined, '먼저'))}</span>${prereq}</div>` : ''}
@@ -387,6 +388,18 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
     /* 강의는 눌렀을 때 받아 온다 — 134편을 미리 받으면 첫 화면이 죽는다.
        한 번 받은 것은 이 화면이 열려 있는 동안 다시 안 받는다. */
     const lessonCache = new Map<string, SmLesson | null>();
+    let hasLesson = new Set<string>();
+    void fetch('/apps/karmolab/data/lessons/index.json')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((idx) => {
+        const ids = idx?.lessons?.[locale()] || [];
+        if (ids.length === 0) return;
+        hasLesson = new Set<string>(ids);
+        if (!query) paint();
+      })
+      .catch(() => {
+        /* 목록을 못 받아도 강의는 눌러서 열린다 — 표시만 안 붙는다 */
+      });
 
     async function openLesson(id: string): Promise<void> {
       const found = whereIs.get(id);
