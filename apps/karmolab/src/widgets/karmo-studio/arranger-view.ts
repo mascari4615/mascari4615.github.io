@@ -62,6 +62,19 @@ export interface ClipViewInput {
   esc: (value: unknown) => string;
 }
 
+/**
+ * 클립 속 미리보기는 몇 밀리미터짜리 그림이다. 폭보다 촘촘한 음은 겹쳐서 안 보이는데
+ * DOM 만 늘린다 — 폭에 맞춰 고르게 솎는다(4px 에 하나, 최소 8·최대 64).
+ */
+export function previewNotes<T>(notes: T[], widthPx: number): T[] {
+  const cap = Math.max(8, Math.min(64, Math.round(widthPx / 4)));
+  if (notes.length <= cap) return notes;
+  const step = notes.length / cap;
+  const out: T[] = [];
+  for (let index = 0; index < cap; index++) out.push(notes[Math.floor(index * step)]);
+  return out;
+}
+
 /** MIDI 클립은 음을 작게 깔고, 오디오 클립은 주입받은 속 그림을 쓴다. */
 export function clipHtml(input: ClipViewInput): string {
   const { track, clip, pxPerBeat, selected, audioBody, esc } = input;
@@ -70,7 +83,8 @@ export function clipHtml(input: ClipViewInput): string {
     const pitches = clip.notes.map((item) => item.pitch);
     const low = Math.min(...pitches);
     const high = Math.max(...pitches, low + 1);
-    body = `<div class="ks-midi-notes">${clip.notes.map((note) => `<i class="ks-midi-note" style="left:${note.beat / clip.duration * 100}%;width:${Math.max(1, note.duration / clip.duration * 100)}%;bottom:${(note.pitch - low) / (high - low) * 90}%"></i>`).join('')}</div>`;
+    const preview = previewNotes(clip.notes, clip.duration * pxPerBeat);
+    body = `<div class="ks-midi-notes">${preview.map((note) => `<i class="ks-midi-note" style="left:${note.beat / clip.duration * 100}%;width:${Math.max(1, note.duration / clip.duration * 100)}%;bottom:${(note.pitch - low) / (high - low) * 90}%"></i>`).join('')}</div>`;
   } else {
     body = audioBody();
   }
@@ -98,3 +112,19 @@ export function automationHtml(input: AutomationViewInput): string {
   const tag = points.length ? ` · ${points.length}점` : ' · 점 없음(트랙 볼륨 그대로)';
   return `<div class="ks-auto" data-auto="${trackId}" style="width:${width}px" title="빈 곳 클릭 = 점 추가 · 점 드래그 = 이동 · 우클릭 = 삭제"><svg viewBox="0 0 ${Math.max(1, projectBeats * pxPerBeat)} ${AUTOMATION_GEOMETRY.height}" preserveAspectRatio="none"><path d="${line}"></path></svg><span class="ks-auto-tag">VOLUME${tag}</span>${dots}</div>`;
 }
+
+/**
+ * 지금 화면에 걸리는 클립만 고른다. 화면 밖 클립까지 다 그리면 곡이 커질수록 편집 한 번이
+ * 통째로 멈춘다(16트랙×80클립에서 220ms 실측). 양옆 여유를 둬서 스크롤 중 빈칸이 안 보이게 한다.
+ */
+export function visibleClips<T extends { start: number; duration: number }>(
+  clips: T[],
+  fromBeat: number,
+  toBeat: number,
+  marginBeats = 0
+): T[] {
+  const from = Math.min(fromBeat, toBeat) - marginBeats;
+  const to = Math.max(fromBeat, toBeat) + marginBeats;
+  return clips.filter((clip) => clip.start + clip.duration > from && clip.start < to);
+}
+
