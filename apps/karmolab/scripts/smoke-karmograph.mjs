@@ -1459,6 +1459,16 @@ await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널
   const up = await m.locator('.km-side').boundingBox();
   if (!(up.y < down2.y - 40)) throw new Error('손잡이를 눌러도 시트가 안 올라온다');
 
+  // ★ 올라온 시트가 **그림을 통째로 덮으면 안 된다.** 시트 높이를 화면(vh) 기준으로 잡았더니
+  //    위젯이 화면보다 짧은 폰에서 시트가 위젯보다 커져, 카드를 고른 순간 그림이 한 조각도
+  //    안 보였다(실측 2026-08-12). 올라온 상태에서도 그림이 최소 3분의 1은 남아야 한다.
+  // 자리는 **지금** 다시 잰다 — 위에서 잡아 둔 값은 그 사이 스크롤·확대로 낡는다.
+  const bodyBox = await m.locator('.km-body').boundingBox();
+  const seen = Math.max(0, up.y - bodyBox.y);
+  if (seen < bodyBox.height * 0.33) {
+    throw new Error(`시트가 올라오면 그림이 ${Math.round(seen)}px 밖에 안 남는다(몸통 ${Math.round(bodyBox.height)}px)`);
+  }
+
   // 빈 곳을 누르면 다시 내려간다 — 손잡이를 찾아 누르게 하면 한 동작이 두 동작이 된다.
   const nowBox = await m.locator('.km-canvas').boundingBox();
   await m.touchscreen.tap(nowBox.x + nowBox.width * 0.12, nowBox.y + nowBox.height * 0.12);
