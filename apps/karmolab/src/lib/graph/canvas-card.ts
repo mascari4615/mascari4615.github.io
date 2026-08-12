@@ -10,6 +10,7 @@
 import type { GraphNode } from './spec';
 import { buildFieldRows } from './canvas-fields';
 import { cardTextX, faceGeometry } from './canvas-avatar';
+import { TYPE } from './canvas-type';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -32,7 +33,7 @@ export function buildCardText(
   text.setAttribute('fill', theme.nodeText);
   // 카드 이름은 **1:1 에서 읽히는 크기**여야 한다. 「전체 보기」가 100% 를 안 넘게 된 뒤로
   // 11px 은 부제와 함께 뭉개져 보였다(실측 2026-08-12). 13px = 본문 한 줄로 읽히는 최소.
-  text.setAttribute('font-size', '13');
+  text.setAttribute('font-size', String(TYPE.title));
   text.setAttribute('font-weight', '600');
   text.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
   text.setAttribute('pointer-events', 'none');
@@ -55,7 +56,7 @@ export function buildCardText(
     note.setAttribute('y', String(labelY + 15));
     if (centered) note.setAttribute('text-anchor', 'middle');
     note.setAttribute('fill', theme.childText);
-    note.setAttribute('font-size', '11');
+    note.setAttribute('font-size', String(TYPE.body));
     note.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
     note.setAttribute('pointer-events', 'none');
     const room = centered ? node.w - 16 : node.w - textX - 10;

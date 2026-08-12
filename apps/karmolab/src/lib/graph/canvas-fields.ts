@@ -5,6 +5,7 @@
  * 다만 카드가 표가 되면 그림이 안 읽히므로 **세 줄까지만**, 나머지는 `+N` 으로 접는다.
  */
 
+import { TYPE } from './canvas-type';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /** 칸 줄 높이·최대 줄 수. */
@@ -26,7 +27,7 @@ export function buildFieldRows(
     el.setAttribute('x', String(opts.x));
     el.setAttribute('y', String(opts.y + i * NODE_FIELD_ROW_H));
     el.setAttribute('fill', opts.color);
-    el.setAttribute('font-size', '9');
+    el.setAttribute('font-size', String(TYPE.meta));
     el.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
     el.setAttribute('pointer-events', 'none');
     if (opacity) el.setAttribute('opacity', opacity);

@@ -9,6 +9,7 @@
  * 크기·색만 있으면 그려진다 — 그런 것이 남아 있으면 본체가 계속 부풀 뿐이다.
  */
 import type { GraphNode } from './spec';
+import { TYPE } from './canvas-type';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -71,7 +72,7 @@ uid = 'km',
     t0.setAttribute('x', String(cx0));
     t0.setAttribute('y', String(cy0 + 4));
     t0.setAttribute('text-anchor', 'middle');
-    t0.setAttribute('font-size', '11');
+    t0.setAttribute('font-size', String(TYPE.body));
     t0.setAttribute('font-weight', '600');
     // 글자는 종류 색을 그대로 쓴다 — 옅은 바탕 위라 대비가 충분하고, 색이 곧 종류 표시가 된다.
     t0.setAttribute('fill', kindColor);

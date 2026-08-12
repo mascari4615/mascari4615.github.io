@@ -9,6 +9,7 @@
  * 표식이 늘 때마다 카드 그리기 본문이 길어지던 자리라, 한 파일로 모았다.
  */
 import type { GraphNode, GraphSpec } from './spec';
+import { TYPE } from './canvas-type';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -17,7 +18,7 @@ function badge(x: number, y: number, text: string, opacity: string): SVGTextElem
   el.setAttribute('x', String(x));
   el.setAttribute('y', String(y));
   el.setAttribute('text-anchor', 'middle');
-  el.setAttribute('font-size', '9');
+  el.setAttribute('font-size', String(TYPE.micro));
   el.setAttribute('opacity', opacity);
   el.setAttribute('pointer-events', 'none');
   el.textContent = text;

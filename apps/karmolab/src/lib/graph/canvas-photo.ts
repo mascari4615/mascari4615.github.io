@@ -8,6 +8,7 @@
  * **한쪽 사진이 통째로 안 보인다**.
  */
 
+import { TYPE } from './canvas-type';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /** 이름 띠 높이 · 글자 기준선 — 카드 크기와 무관하게 고정(작은 카드에서도 이름은 같은 크기로 읽혀야 한다). */
@@ -59,7 +60,7 @@ export function buildPhotoCard(
   nameEl.setAttribute('y', String(effH - 9));
   nameEl.setAttribute('text-anchor', 'middle');
   nameEl.setAttribute('fill', '#fff');
-  nameEl.setAttribute('font-size', '11');
+  nameEl.setAttribute('font-size', String(TYPE.title));
   nameEl.setAttribute('font-weight', '600');
   nameEl.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
   nameEl.setAttribute('pointer-events', 'none');
