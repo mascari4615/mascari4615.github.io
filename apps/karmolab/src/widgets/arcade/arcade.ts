@@ -27,6 +27,7 @@ import { seedFrom } from './rng';
 import { iconOf, kindOf, KINDS, type Kind } from './meta';
 import { viewById } from './view-registry';
 import { makeCode, inviteLink } from '../../lib/room';
+import { blip, soundOn, setSoundOn } from '../../lib/blip';
 import type { Render } from './views';
 import { connect, type Net, type Peer, type Json } from './net';
 
@@ -558,6 +559,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<div class="tool-status" id="acStatus"></div>' +
       '<div style="display:flex;gap:6px;margin-top:var(--space-lg)">' +
       '<button class="btn btn-ghost" id="acQuit">' + esc(t('arcade.btn.quit')) + '</button>' +
+      '<button class="btn btn-ghost" id="acSound" aria-pressed="true" title="' + esc(t('arcade.btn.sound')) + '">🔊</button>' +
       '<button class="btn btn-primary" id="acAgain" style="display:none">' + esc(t('arcade.btn.again')) + '</button>' +
       '</div></div>';
 
@@ -642,6 +644,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     let peers: Peer[] = [];
     /** 주인이 정한 자리 지도 — 손님은 여기서 제 자리를 찾는다. */
     let seatOf: Record<string, number> = {};
+    /** 이번 판의 끝소리를 이미 울렸나 — 매 프레임 울리면 소리가 아니라 경적이 된다. */
+    let ended = false;
+    /** 마지막으로 소리를 낸 판 번호 */
+    let soundedRound = -1;
+
     /** 손님 쪽엔 커널이 없다. 주인이 보낸 판을 들고 그린다. */
     let shadow: { v: MatchView<unknown>; now: number; at: number } | null = null;
 
@@ -671,9 +678,18 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           'ok'
         );
         againBtn.style.display = net && !net.host ? 'none' : '';
+        if (!ended) {
+          ended = true;
+          const mine = v.seats[mySeat]?.score ?? 0;
+          blip(win.length === v.seats.length ? 'good' : mine === top ? 'win' : 'lose');
+        }
       } else if (v.note) {
         say(t(v.note.key, v.note.params));
       } else {
+        if (v.round !== soundedRound) {
+          soundedRound = v.round;
+          blip('start');
+        }
         say(t('arcade.status.round', { n: String(v.round + 1), of: String(v.rounds) }));
       }
     }
@@ -720,6 +736,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
 
     function sendAct(a: unknown): void {
+      /* 놀이마다 소리를 붙이지 않는다 — **손이 지나가는 자리가 여기 하나**라, 여기서 울리면
+         51개가 한꺼번에 소리를 얻는다(게임 파일은 소리를 몰라도 된다). */
+      blip('tap');
       if (match) match.dispatch(mySeat, a);
       else net?.act({ a: a as Json });
     }
@@ -729,6 +748,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (!g) return;
       gameId = id;
       mySeat = 0;
+      ended = false;
+      soundedRound = -1;
       match = new Match(g, seed, seats) as Match<unknown, unknown>;
       shadow = null;
       mountView(id);
@@ -855,6 +876,19 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       show('lobby');
     };
     $<HTMLButtonElement>('#acQuit').onclick = quit;
+
+    /* 소리 끄기 — 껐다 켠 것은 이 브라우저에만 남는다. */
+    const soundBtn = $<HTMLButtonElement>('#acSound');
+    const paintSound = (): void => {
+      soundBtn.textContent = soundOn() ? '🔊' : '🔇';
+      soundBtn.setAttribute('aria-pressed', soundOn() ? 'true' : 'false');
+    };
+    paintSound();
+    soundBtn.onclick = () => {
+      setSoundOn(!soundOn());
+      paintSound();
+      if (soundOn()) blip('good');
+    };
     $<HTMLButtonElement>('#acWaitQuit').onclick = quit;
 
     againBtn.onclick = (): void => {
