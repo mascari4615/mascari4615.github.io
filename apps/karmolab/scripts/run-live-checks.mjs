@@ -52,7 +52,10 @@ const results = [];
 for (const check of todo) {
   const started = Date.now();
   console.log(`\n──── ${check.name}${check.live ? ' (실주소)' : ''} ────`);
-  const code = run(check.cmd);
+  /* 실주소를 보는 검사만 「배포에 밟혔으면 다시」 껍데기를 씌운다 — 근거 있을 때만 재시도한다
+     (그 껍데기가 스스로 서빙 커밋을 견준다). 목록에 손으로 적던 것을 여기로 옮겼다. */
+  const cmd = check.live ? ['node', 'scripts/retry-if-redeployed.mjs', ...check.cmd] : check.cmd;
+  const code = run(cmd);
   results.push({ ...check, code, sec: Math.round((Date.now() - started) / 1000) });
 }
 
