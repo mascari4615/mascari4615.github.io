@@ -34,6 +34,13 @@ permissions:
   contents: read
   issues: write # 점검이 실패하면 이슈로 알린다 (아래 마지막 단계)
 
+# ★ **겹쳐 돌지 않는다** (2026-08-12). 이 판은 매시 시계 + 배포마다 두 갈래로 불린다.
+#   한 판이 17분이라 배포가 몰리는 시간대에는 서로 겹쳐, 같은 라이브를 여러 판이 동시에
+#   재고 같은 이슈를 여러 번 연다. 라이브는 하나뿐이므로 **가장 나중 것 하나면 된다**.
+concurrency:
+  group: karmolab-live-check
+  cancel-in-progress: true
+
 jobs:
   check:
     # 배포가 성공했을 때만 의미가 있다. 실패한 배포 뒤에 도는 것은 옛 화면을 재는 셈이다.
@@ -52,6 +59,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/karmolab/package-lock.json
 
       - name: 의존 설치
         run: npm ci --no-audit --no-fund

@@ -58,6 +58,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 45  # 멈춘 판이 6시간 도는 것을 막는다 (기본값 360분)
     env:
       HUSKY: "0"
 
@@ -350,6 +351,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    timeout-minutes: 45  # 멈춘 판이 6시간 도는 것을 막는다 (기본값 360분)
     needs: build
     steps:
       # (같은 커밋에서 브라우저 설치 단계도 빠졌다 — 도구 동작 시험을 test:behavior 로 갈라낸 뒤
