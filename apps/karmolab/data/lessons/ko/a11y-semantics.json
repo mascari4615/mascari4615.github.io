@@ -1,0 +1,102 @@
+{
+  "id": "a11y-semantics",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "**ARIA 제1규칙: 안 쓰는 게 낫다.** 표준 요소로 되는 것을 굳이 흉내 내면, 대개 원본보다 못한 것이 나온다."
+    },
+    {
+      "type": "h",
+      "text": "1. 표준 요소가 주는 것"
+    },
+    {
+      "type": "note",
+      "text": "`<button>` 하나에 딸려 오는 것: 포커스 · Enter/Space 동작 · 역할·상태 노출 · 비활성 처리 · 폼 제출 · 모바일 터치 대응. div 로 만들면 이 목록을 전부 손으로 짜야 하고, 대개 절반은 빠뜨린다."
+    },
+    {
+      "type": "h",
+      "text": "2. ARIA 를 쓸 때의 규칙"
+    },
+    {
+      "type": "code",
+      "lang": "html",
+      "label": "역할을 붙였으면 상태·키보드까지 책임진다",
+      "text": "<div role=\"tablist\">\n  <button role=\"tab\" aria-selected=\"true\" aria-controls=\"p1\" id=\"t1\">개요</button>\n  <button role=\"tab\" aria-selected=\"false\" aria-controls=\"p2\" id=\"t2\">설정</button>\n</div>\n<div role=\"tabpanel\" id=\"p1\" aria-labelledby=\"t1\">…</div>\n<!-- 좌우 화살표 이동까지 구현해야 「탭」의 약속을 지킨 것이다 -->"
+    },
+    {
+      "type": "note",
+      "text": "`role` 만 붙이고 키보드 동작을 안 만들면 **거짓말**이 된다 — 스크린리더는 탭이라고 알리는데 실제로는 화살표가 안 먹는다."
+    },
+    {
+      "type": "h",
+      "text": "3. 자주 쓰는 속성"
+    },
+    {
+      "type": "p",
+      "text": "`aria-label`(이름) · `aria-labelledby`/`aria-describedby`(다른 요소를 이름·설명으로) · `aria-expanded`(펼침) · `aria-current`(현재 위치) · `aria-hidden=\"true\"`(보조기기에서 감춤 — **포커스 가능한 요소에는 쓰지 말 것**)."
+    },
+    {
+      "type": "h",
+      "text": "4. 폼은 특히 표준으로"
+    },
+    {
+      "type": "code",
+      "lang": "html",
+      "label": "오류 표시까지 연결",
+      "text": "<label for=\"email\">이메일</label>\n<input id=\"email\" name=\"email\" type=\"email\" aria-describedby=\"email-err\" aria-invalid=\"true\">\n<p id=\"email-err\">이메일 형식이 아닙니다</p>"
+    },
+    {
+      "type": "h",
+      "text": "5. 검증"
+    },
+    {
+      "type": "note",
+      "text": "개발자도구의 **접근성 트리**에서 역할·이름·상태를 눈으로 확인하라. 이름이 비었거나 역할이 「generic」이면 그 요소는 보조기기에 존재하지 않는 것과 같다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "커스텀 컴포넌트 하나(드롭다운·탭·모달)를 골라 접근성 트리에서 역할·이름·상태를 확인하고, 빠진 것을 채워라."
+    },
+    {
+      "type": "try",
+      "text": "div 로 만든 조작 요소를 표준 요소로 바꿔라. 지울 수 있는 코드가 얼마나 되는지 세어 보라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "ARIA 제1규칙은?",
+      "choices": [
+        "표준 HTML 로 되는 것은 ARIA 를 쓰지 않는다",
+        "모든 요소에 role 을 붙인다",
+        "aria-label 을 항상 쓴다"
+      ],
+      "answer": 0,
+      "why": "표준 요소는 동작과 의미를 이미 갖고 있다."
+    },
+    {
+      "q": "`role=\"tab\"` 을 붙였다면 함께 구현해야 하는 것은?",
+      "choices": [
+        "화살표 키 이동 등 그 역할의 키보드 규약",
+        "색상 대비",
+        "애니메이션"
+      ],
+      "answer": 0,
+      "why": "역할만 붙이고 동작이 없으면 사용자를 속이는 것이다."
+    },
+    {
+      "q": "`aria-hidden=\"true\"` 를 쓰면 안 되는 곳은?",
+      "choices": [
+        "포커스를 받을 수 있는 요소",
+        "장식 아이콘",
+        "중복 텍스트"
+      ],
+      "answer": 0,
+      "why": "보이지 않는데 포커스가 가는 유령 요소가 된다."
+    }
+  ]
+}

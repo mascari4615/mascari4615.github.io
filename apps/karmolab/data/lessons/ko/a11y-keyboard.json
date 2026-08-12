@@ -1,0 +1,104 @@
+{
+  "id": "a11y-keyboard",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "키보드만으로 못 쓰는 화면은 대개 **구조도 없는 화면**이다. 그래서 키보드 점검은 접근성의 시작이자 가장 빠른 자가 진단이다."
+    },
+    {
+      "type": "h",
+      "text": "1. 무엇이 포커스를 받나"
+    },
+    {
+      "type": "note",
+      "text": "기본으로 받는 것: `a[href]` · `button` · `input`·`select`·`textarea` · `details`. div·span 은 **안 받는다**. 그래서 div 로 만든 버튼은 Tab 순서에서 사라진다."
+    },
+    {
+      "type": "code",
+      "lang": "html",
+      "label": "굳이 만들어야 한다면",
+      "text": "<div role=\"button\" tabindex=\"0\"\n     onclick=\"save()\"\n     onkeydown=\"if(event.key==='Enter'||event.key===' '){event.preventDefault();save();}\">저장</div>\n\n<!-- 이 모든 게 <button>save</button> 한 줄이면 공짜다 -->"
+    },
+    {
+      "type": "h",
+      "text": "2. 순서는 DOM 순서"
+    },
+    {
+      "type": "p",
+      "text": "CSS 로 위치를 바꿔도 Tab 순서는 **DOM 순서**를 따른다. 시각적 순서와 어긋나면 키보드 사용자는 화면을 튀어 다닌다. `tabindex` 에 양수를 쓰는 것은 거의 항상 나쁜 신호다(0 과 -1 만 쓴다)."
+    },
+    {
+      "type": "h",
+      "text": "3. 포커스 표시"
+    },
+    {
+      "type": "code",
+      "lang": "css",
+      "label": "지우지 말고 다듬어라",
+      "text": ":focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }\n/* outline: none 만 쓰고 대체 표시가 없으면 키보드 사용자는 길을 잃는다 */"
+    },
+    {
+      "type": "h",
+      "text": "4. 가둬야 할 때와 풀어야 할 때"
+    },
+    {
+      "type": "note",
+      "text": "모달을 열면 **포커스를 그 안에 가두고**(focus trap), 닫으면 열었던 버튼으로 되돌린다. 반대로 화면 밖으로 밀어낸 요소(숨긴 메뉴)는 `inert`·`display:none` 으로 **포커스에서 빼야** 한다 — 안 그러면 보이지 않는 곳에 포커스가 간다."
+    },
+    {
+      "type": "h",
+      "text": "5. 건너뛰기 링크"
+    },
+    {
+      "type": "code",
+      "lang": "html",
+      "label": "메뉴 30개를 매번 지나가지 않게",
+      "text": "<a class=\"skip\" href=\"#main\">본문으로 건너뛰기</a>\n<!-- 평소엔 숨기고 포커스 받으면 보이게 -->"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "마우스를 뽑고 내 화면의 주요 흐름을 Tab·Enter·Esc 만으로 끝내라. 못 가는 곳·안 보이는 포커스를 목록으로 적어라."
+    },
+    {
+      "type": "try",
+      "text": "모달을 열어 Tab 을 계속 눌러 보라. 뒤쪽 배경으로 포커스가 빠져나가면 트랩이 없는 것이다."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "div 로 만든 버튼의 문제는?",
+      "choices": [
+        "포커스를 못 받고 Enter/Space 동작이 없다",
+        "색이 다르다",
+        "느리다"
+      ],
+      "answer": 0,
+      "why": "button 을 쓰면 전부 공짜로 따라온다."
+    },
+    {
+      "q": "Tab 순서를 결정하는 것은?",
+      "choices": [
+        "DOM 순서",
+        "CSS 위치",
+        "z-index"
+      ],
+      "answer": 0,
+      "why": "시각 순서와 어긋나지 않게 DOM 을 정리해야 한다."
+    },
+    {
+      "q": "모달을 열었을 때 필요한 처리는?",
+      "choices": [
+        "포커스를 모달 안에 가두고 닫을 때 원래 요소로 되돌린다",
+        "배경을 흐리게",
+        "스크롤을 잠근다만"
+      ],
+      "answer": 0,
+      "why": "트랩이 없으면 키보드 사용자가 배경으로 새어 나간다."
+    }
+  ]
+}
