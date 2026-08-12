@@ -51,5 +51,8 @@
   "studymap.review.tag": "복습",
   "studymap.review.count": "{n}칸 밀림",
   "studymap.review.set": "다 맞혔다 — 다음 복습은 {when}",
-  "studymap.nohit.clear": "찾기 지우고 지도로"
+  "studymap.nohit.clear": "찾기 지우고 지도로",
+  "studymap.done.quiz": "문제 통과",
+  "studymap.done.self": "직접 표시",
+  "studymap.rule": "다 맞히면 이 칸이 끝난 것으로 표시되고, 복습 날짜가 잡힌다."
 }

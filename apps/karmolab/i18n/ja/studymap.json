@@ -51,5 +51,8 @@
   "studymap.review.tag": "復習",
   "studymap.review.count": "{n}件たまっている",
   "studymap.review.set": "全問正解 — 次の復習は {when}",
-  "studymap.nohit.clear": "検索を消して地図へ"
+  "studymap.nohit.clear": "検索を消して地図へ",
+  "studymap.done.quiz": "問題を通過",
+  "studymap.done.self": "自分で表示",
+  "studymap.rule": "全問正解するとこの枠は完了になり、復習日が設定される。"
 }

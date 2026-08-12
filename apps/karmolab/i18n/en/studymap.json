@@ -51,5 +51,8 @@
   "studymap.review.tag": "Review",
   "studymap.review.count": "{n} due",
   "studymap.review.set": "All correct — next review {when}",
-  "studymap.nohit.clear": "Clear search and go back"
+  "studymap.nohit.clear": "Clear search and go back",
+  "studymap.done.quiz": "Passed the quiz",
+  "studymap.done.self": "Marked by you",
+  "studymap.rule": "Answer all of them correctly and this node is marked done, with a review date set."
 }

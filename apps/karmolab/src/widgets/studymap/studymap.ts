@@ -257,6 +257,9 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .sm-resume.is-review { border-color: var(--secondary); background: var(--secondary-subtle, var(--bg-tertiary)); }
 .sm-resume.is-review .sm-resume-tag { color: var(--secondary); }
 .sm-node.is-review { border-color: var(--secondary); }
+.sm-how { display: inline-block; margin-top: 8px; font-size: 10px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-tertiary); }
+.sm-how.is-quiz { border-color: var(--success-subtle); color: var(--success); }
+.sm-rule { font-size: 11px; color: var(--text-tertiary); margin: -4px 0 10px; }
 .sm-review-tag { position: absolute; top: 8px; right: 10px; font-size: 12px; }
 .sm-resume-track { font-size: 11px; color: var(--text-tertiary); margin-left: auto; }
 .sm-tree-head { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--text-tertiary); margin-bottom: 8px; }
@@ -488,6 +491,30 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
      * 간격 반복 — 한 번 맞혔다고 아는 게 아니다. 맞힐수록 사이를 벌리고, 틀리면 다시 좁힌다.
      * 상자(box) 0~4 에 따라 다음에 볼 날이 정해진다: 1일 · 3일 · 7일 · 16일 · 35일.
      */
+    /**
+     * 「끝냄」이 어디서 왔는지 — 확인 문제를 통과해서(quiz)인지, 손으로 표시해서(self)인지.
+     * 전에는 둘이 섞여 규칙이 안 보였다. 이제 칸마다 근거가 붙는다.
+     */
+    const SRC_KEY = 'karmolab-studymap-done-src';
+    type DoneSrc = Record<string, 'quiz' | 'self'>;
+    function readSrc(): DoneSrc {
+      try {
+        return (JSON.parse(localStorage.getItem(SRC_KEY) || '{}') as DoneSrc) || {};
+      } catch {
+        return {};
+      }
+    }
+    function markSrc(id: string, how: 'quiz' | 'self' | null): void {
+      const map = readSrc();
+      if (how) map[id] = how;
+      else delete map[id];
+      try {
+        localStorage.setItem(SRC_KEY, JSON.stringify(map));
+      } catch {
+        /* 못 적어도 진도 자체는 남는다 */
+      }
+    }
+
     const REVIEW_KEY = 'karmolab-studymap-review';
     const STEPS_DAY = [1, 3, 7, 16, 35];
     interface ReviewCard { box: number; due: number; miss: number }
@@ -641,8 +668,9 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       return out;
     }
 
-    /** 지금 복습할 때가 된 칸 — 그릴 때마다 한 번만 계산한다. */
+    /** 지금 복습할 때가 된 칸 · 끝냄의 근거 — 그릴 때마다 한 번만 읽는다. */
     let dueSet = new Set<string>();
+    let doneSrc: DoneSrc = {};
 
     /** 칸 한 장. 찾기 결과에서도 같은 카드를 쓴다 — 두 벌로 그리면 곧 어긋난다. */
     function cardHtml(n: SmNode, nextId: string | null): string {
@@ -653,6 +681,15 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
        * 지도는 훑는 화면이라 카드마다 링크가 붙으면 눈이 갈 곳을 잃고, 링크를 누르면 사이트 밖으로 나간다.
        */
       const needsReview = dueSet.has(n.id);
+      /* 끝냄의 근거를 카드에 적는다 — 「문제를 풀어서」와 「내가 눌러서」는 무게가 다르다. */
+      const how = isDone ? doneSrc[n.id] || 'self' : '';
+      const howTag = how
+        ? `<span class="sm-how is-${how}">${esc(
+            how === 'quiz'
+              ? t('studymap.done.quiz', undefined, '문제 통과')
+              : t('studymap.done.self', undefined, '직접 표시'),
+          )}</span>`
+        : '';
       return `<div class="sm-node${isDone ? ' is-done' : ''}${isNext ? ' is-next' : ''}${needsReview ? ' is-review' : ''}" data-id="${esc(n.id)}">
         ${needsReview ? `<span class="sm-review-tag" title="${esc(t('studymap.review.tag', undefined, '복습'))}">🔁</span>` : ''}
         ${isNext ? `<span class="sm-next-tag">${esc(t('studymap.next', undefined, '다음'))}</span>` : ''}
@@ -661,6 +698,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         <div class="sm-node-body">
           <button type="button" class="sm-node-title sm-open" data-open="${esc(n.id)}">${esc(n.title)}${hasLesson.has(n.id) ? `<span class="sm-has-lesson">${esc(t('studymap.lesson.tag', undefined, '강의'))}</span>` : ''}</button>
           <div class="sm-node-why">${esc(n.why)}</div>
+          ${howTag}
         </div>
       </div>`;
     }
@@ -853,7 +891,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         ${prereqBlock}
         ${body}
         ${checkBlock}
-        ${quiz ? `<h4>${esc(t('studymap.lesson.quiz', undefined, '확인 문제'))}</h4><div class="sm-quiz" data-lesson="${esc(id)}">${quiz}</div>` : ''}
+        ${quiz ? `<h4>${esc(t('studymap.lesson.quiz', undefined, '확인 문제'))}</h4><p class="sm-rule">${esc(t('studymap.rule', undefined, '다 맞히면 이 칸이 끝난 것으로 표시되고, 복습 날짜가 잡힌다.'))}</p><div class="sm-quiz" data-lesson="${esc(id)}">${quiz}</div>` : ''}
         <div class="sm-links" style="margin-top:18px">${linkRow}</div>
         ${pager}
       </article></div>`;
@@ -928,6 +966,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
           if (cleared && !done.has(id)) {
             done.add(id);
             writeDone(done);
+            markSrc(id, 'quiz');
             paintTracks();
             if (typeof Mdd !== 'undefined' && Mdd.linePreset) {
               Mdd.linePreset('success', { msg: t('studymap.mdd.step', undefined, '한 칸 나아갔어요.') });
@@ -970,6 +1009,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       /* 「다음 한 칸」 = 아직 안 한 첫 노드. 지도를 열자마자 할 일이 하나 보여야 한다. */
       const next = all.find((n) => !done.has(n.id));
       dueSet = new Set(dueList());
+      doneSrc = readSrc();
 
       if (query) {
         elStages.innerHTML = searchHtml();
@@ -1148,8 +1188,13 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       const box = e.target as HTMLInputElement;
       const id = box.dataset?.node;
       if (!id) return;
-      if (box.checked) done.add(id);
-      else done.delete(id);
+      if (box.checked) {
+        done.add(id);
+        markSrc(id, 'self');
+      } else {
+        done.delete(id);
+        markSrc(id, null);
+      }
       writeDone(done);
       paint();
       /* 다시 그리면 방금 누른 자리가 어디였는지 사라진다 — 그 카드만 잠깐 반짝여 눈을 붙잡는다. */
