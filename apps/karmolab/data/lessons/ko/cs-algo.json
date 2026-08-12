@@ -1,137 +1,766 @@
 {
   "id": "cs-algo",
-  "minutes": 15,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "알고리즘 공부는 대회용이 아니다. 실무에서 이게 필요한 순간은 딱 하나 — **데이터가 늘었더니 갑자기 느려졌을 때**. 그때 「왜」를 말할 수 있으면 고칠 수 있다."
-    },
-    {
-      "type": "h",
-      "text": "1. 복잡도는 「입력이 두 배면 시간이 몇 배?」"
-    },
-    {
-      "type": "demo",
-      "kind": "js",
-      "label": "정렬을 눈으로 — 크기와 속도를 밀어 보라",
-      "height": "230px",
-      "controls": [
+      "id": "1",
+      "title": "복잡도 — 커질 때 무슨 일이 생기나",
+      "minutes": 9,
+      "blocks": [
         {
-          "id": "n",
-          "label": "막대 수",
-          "type": "range",
-          "min": 8,
-          "max": 80,
-          "step": 2,
-          "value": 30
+          "type": "p",
+          "text": "복잡도 표기는 「빠르기」가 아니라 **커질 때의 기울기**를 적은 것이다. n이 10일 때는 아무 차이도 안 나고, n이 100만일 때 O(n)과 O(n²)는 **하루와 3만 년**의 차이가 된다."
         },
         {
-          "id": "ms",
-          "label": "한 걸음(ms)",
-          "type": "range",
-          "min": 1,
-          "max": 60,
-          "step": 1,
-          "value": 12
+          "type": "demo",
+          "kind": "html",
+          "label": "n 을 밀어 보라 — 선이 갈라지는 지점을 보라",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now(); fn(); ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 값 목록을 막대로 — 정렬·탐색 그림에 공통으로 쓴다. */\n  function bars(vals, mark) {\n    ctx.clearRect(0, 0, 440, 190);\n    const w = Math.max(2, 420 / vals.length - 1);\n    const max = Math.max(...vals, 1);\n    vals.forEach((v, i) => {\n      const h = (v / max) * 150;\n      ctx.fillStyle = (mark || {})[i] || '#1e40af';\n      ctx.fillRect(12 + i * (w + 1), 165 - h, w, h);\n    });\n  }\n</script>\n<script>\n  const N = {{n}};\n  const fns = [\n    ['O(1)', () => 1, '#64748b'],\n    ['O(log n)', (x) => Math.log2(x), '#22c55e'],\n    ['O(n)', (x) => x, '#60a5fa'],\n    ['O(n log n)', (x) => x * Math.log2(x), '#f59e0b'],\n    ['O(n^2)', (x) => x * x, '#ef4444'],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  const maxY = N * N;\n  fns.forEach(([name, f, color]) => {\n    ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath();\n    for (let i = 1; i <= 100; i++) {\n      const x = (i / 100) * N;\n      const y = f(x);\n      const px = 14 + (i / 100) * 410;\n      const py = 168 - Math.min(1, y / maxY) * 150;\n      i === 1 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);\n    }\n    ctx.stroke();\n  });\n  ctx.font = '10px system-ui';\n  fns.forEach(([name, , color], i) => { ctx.fillStyle = color; ctx.fillText(name, 16 + i * 78, 14); });\n  const at = (f) => Math.round(f(N)).toLocaleString();\n  app.innerHTML = '<div class=\"hint\">n = ' + N.toLocaleString() + ' 일 때 필요한 「걸음 수」</div>';\n  show('O(1)         ' + at(fns[0][1]) + '\\n'\n     + 'O(log n)     ' + at(fns[1][1]) + '\\n'\n     + 'O(n)         ' + at(fns[2][1]) + '\\n'\n     + 'O(n log n)   ' + at(fns[3][1]) + '\\n'\n     + 'O(n^2)       ' + at(fns[4][1]) + '\\n\\n'\n     + '한 걸음이 1나노초라면 O(n^2) 는 ' + (N * N / 1e9).toFixed(N * N / 1e9 < 10 ? 2 : 0) + '초.');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "n",
+              "type": "range",
+              "min": 10,
+              "max": 100000,
+              "step": 10,
+              "value": 1000
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "표기법을 읽는 요령은 **상수와 낮은 항을 버리는 것**이다. `3n² + 100n + 5` 는 O(n²) 다. n이 충분히 커지면 n² 이 나머지를 압도하기 때문이고, 「충분히 커지면」이 이 표기의 전제다."
+        },
+        {
+          "type": "note",
+          "text": "그래서 **작은 n 에서는 O(n²) 가 더 빠를 수 있다.** 실제 정렬 라이브러리도 부분 배열이 짧아지면 삽입 정렬로 갈아탄다. 복잡도는 「규모가 커질 때의 방향」을 말할 뿐, 지금 이 코드의 속도를 말하지 않는다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "복잡도를 눈으로 읽는 법",
+          "text": "for (const a of list)            // n\n  for (const b of list)          // x n  →  O(n^2)\n    if (a.id === b.parentId) …\n\n// 중첩이 안 보여도 안에 숨어 있을 수 있다\nfor (const a of list)\n  if (other.includes(a.id)) …    // includes 가 O(n)  →  O(n^2)\n\n// 반씩 줄면 log\nwhile (lo < hi) { const mid = (lo + hi) >> 1; … }   // O(log n)"
+        },
+        {
+          "type": "try",
+          "text": "n 을 10 → 1000 → 100000 으로 올리며 O(n²) 선이 언제 화면 밖으로 나가는지 보라. 그리고 내 코드에서 「목록 안에서 목록을 또 도는」 자리를 하나 찾아 보라."
         }
       ],
-      "text": "const N = {{n}}, MS = {{ms}};\nconst a = Array.from({ length: N }, () => Math.random());\nlet i = 0, j = 0;\nfunction draw(hl) {\n  ctx.clearRect(0, 0, W(), H());\n  const w = W() / a.length;\n  a.forEach((v, k) => {\n    ctx.fillStyle = k === hl ? '#f59e0b' : '#60a5fa';\n    ctx.fillRect(k * w, H() - v * (H() - 20), w - 1, v * (H() - 20));\n  });\n}\nfunction step() {\n  if (i < a.length) {\n    if (j < a.length - i - 1) {\n      if (a[j] > a[j + 1]) { const t = a[j]; a[j] = a[j + 1]; a[j + 1] = t; }\n      j++;\n    } else { j = 0; i++; }\n    draw(j);\n    setTimeout(step, MS);\n  } else draw(-1);\n}\nstep();"
+      "quiz": [
+        {
+          "q": "`3n² + 100n + 5` 의 복잡도는?",
+          "choices": [
+            "O(n)",
+            "O(n²)",
+            "O(3n²)",
+            "O(100n)"
+          ],
+          "answer": 1,
+          "why": "상수와 낮은 항은 버린다."
+        },
+        {
+          "q": "복잡도 표기가 말해 주지 **않는** 것은?",
+          "choices": [
+            "커질 때의 기울기",
+            "지금 이 코드의 실제 속도",
+            "중첩 반복의 영향",
+            "규모 확장성"
+          ],
+          "answer": 1,
+          "why": "상수를 버렸으므로 실제 속도는 재 봐야 안다."
+        },
+        {
+          "q": "반복문 안의 `includes` 가 만드는 복잡도는?",
+          "choices": [
+            "O(n)",
+            "O(n log n)",
+            "O(n²)",
+            "O(log n)"
+          ],
+          "answer": 2,
+          "why": "숨은 O(n)이 곱해진다."
+        }
+      ]
     },
     {
-      "type": "p",
-      "text": "O(n) 은 두 배 → 두 배. O(n²) 은 두 배 → **네 배**. O(log n) 은 두 배 → 한 걸음 늘어난다. 상수와 잔가지는 버리고 성장 속도만 본다."
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "같은 일, 다른 성장",
-      "text": "// O(n²) — 목록 안에서 또 목록을 돈다\nconst dup1 = list.filter((x, i) => list.indexOf(x) !== i);\n\n// O(n) — 한 번 훑으며 본 것을 기억한다\nconst seen = new Set(), dup2 = [];\nfor (const x of list) { if (seen.has(x)) dup2.push(x); else seen.add(x); }"
-    },
-    {
-      "type": "note",
-      "text": "실무에서 가장 자주 만나는 O(n²) 은 **반복문 안의 `indexOf`·`find`·`includes`**, 그리고 **반복문 안의 쿼리**(N+1 문제)다. 이 둘만 잡아도 대부분의 「갑자기 느려짐」이 사라진다."
-    },
-    {
-      "type": "h",
-      "text": "2. 자료구조를 바꾸면 알고리즘이 사라진다"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "찾기 비용을 O(n) → O(1) 로",
-      "text": "// 느림: 주문마다 사용자 목록을 뒤진다 (O(주문 × 사용자))\norders.map((o) => users.find((u) => u.id === o.userId));\n\n// 빠름: 색인을 한 번 만든다 (O(사용자 + 주문))\nconst byId = new Map(users.map((u) => [u.id, u]));\norders.map((o) => byId.get(o.userId));"
-    },
-    {
-      "type": "p",
-      "text": "정렬은 O(n log n), 정렬된 것에서 찾기는 O(log n)(이분 탐색). 한 번 정렬해 두고 여러 번 찾는 상황이면 정렬이 이득이다 — **몇 번 쓸 것인가**로 판단한다."
-    },
-    {
-      "type": "h",
-      "text": "3. 재귀와 메모"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "같은 계산을 다시 하지 않는다",
-      "text": "const memo = new Map();\nfunction fib(n) {\n  if (n < 2) return n;\n  if (memo.has(n)) return memo.get(n);\n  const v = fib(n - 1) + fib(n - 2);\n  memo.set(n, v);\n  return v;\n}\n// 메모 없이 O(2^n) → 메모하면 O(n)"
-    },
-    {
-      "type": "h",
-      "text": "4. 재기 전에 세지 마라"
-    },
-    {
-      "type": "p",
-      "text": "복잡도는 **어디를 볼지** 알려 주고, 실제로 느린 곳은 **재 봐야** 안다. 상수가 큰 O(n) 이 작은 O(n log n) 보다 느린 경우도 흔하다."
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "브라우저에서 바로 재기",
-      "text": "console.time('slow'); slowVersion(data); console.timeEnd('slow');\nconsole.time('fast'); fastVersion(data); console.timeEnd('fast');\n// 데이터 크기를 10배로 늘려 두 번 재면 성장 곡선이 보인다"
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "1만 개짜리 배열로 위 `dup1`(indexOf)과 `dup2`(Set)를 각각 재 보라. 그리고 10만 개로 늘려 다시 재라 — 시간이 몇 배로 늘었는지가 곧 복잡도다."
-    },
-    {
-      "type": "try",
-      "text": "내가 쓴 코드에서 반복문 안의 `find`·`includes` 를 하나 찾아 Map·Set 으로 바꿔 보라. 바꾸기 전후를 `console.time` 으로 재서 숫자로 적어 둬라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "O(n²) 알고리즘에서 입력이 2배가 되면 시간은 대략 몇 배인가?",
-      "choices": [
-        "2배",
-        "4배",
-        "그대로"
+      "id": "2",
+      "title": "이진 탐색 — 반씩 버리는 힘",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "100만 개에서 하나를 찾는 데 **20번**이면 된다. 매번 절반을 버리기 때문이다. 조건은 하나 — **정렬돼 있어야 한다.** 그 조건이 이진 탐색의 값이자 한계다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "찾을 값을 바꿔 보라 — 몇 번 만에 닿나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now(); fn(); ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 값 목록을 막대로 — 정렬·탐색 그림에 공통으로 쓴다. */\n  function bars(vals, mark) {\n    ctx.clearRect(0, 0, 440, 190);\n    const w = Math.max(2, 420 / vals.length - 1);\n    const max = Math.max(...vals, 1);\n    vals.forEach((v, i) => {\n      const h = (v / max) * 150;\n      ctx.fillStyle = (mark || {})[i] || '#1e40af';\n      ctx.fillRect(12 + i * (w + 1), 165 - h, w, h);\n    });\n  }\n</script>\n<script>\n  const TARGET = {{t}};\n  const N = 64;\n  const arr = Array.from({ length: N }, (_, i) => i * 2);\n  let lo = 0, hi = N - 1, steps = 0, found = -1;\n  const log = [];\n  const mark = {};\n  while (lo <= hi) {\n    const mid = (lo + hi) >> 1;\n    steps++;\n    log.push(steps + '. 범위 [' + lo + '..' + hi + ']  가운데 arr[' + mid + '] = ' + arr[mid] +\n             (arr[mid] === TARGET ? '  -> 찾음' : arr[mid] < TARGET ? '  -> 오른쪽' : '  -> 왼쪽'));\n    mark[mid] = '#f59e0b';\n    if (arr[mid] === TARGET) { found = mid; mark[mid] = '#22c55e'; break; }\n    if (arr[mid] < TARGET) lo = mid + 1; else hi = mid - 1;\n  }\n  bars(arr, mark);\n  app.innerHTML = '<div class=\"hint\">0,2,4,…,126 짜리 정렬 배열에서 ' + TARGET + ' 찾기</div>';\n  show(log.join('\\n') + '\\n\\n'\n     + (found >= 0 ? '찾았다: arr[' + found + ']' : '없다') + '  ·  ' + steps + '번 비교\\n'\n     + '앞에서부터 찾았다면 최대 ' + N + '번. log2(' + N + ') = 6');\n</script>",
+          "controls": [
+            {
+              "id": "t",
+              "label": "찾을 값",
+              "type": "range",
+              "min": 0,
+              "max": 126,
+              "step": 2,
+              "value": 90
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "실수하기 쉬운 세 자리",
+          "text": "function bsearch(arr, x) {\n  let lo = 0, hi = arr.length - 1;          // hi 를 length 로 두면 범위 밖 접근\n  while (lo <= hi) {                        // < 로 두면 마지막 하나를 안 본다\n    const mid = lo + ((hi - lo) >> 1);      // (lo+hi)/2 는 큰 수에서 넘칠 수 있다\n    if (arr[mid] === x) return mid;\n    if (arr[mid] < x) lo = mid + 1;\n    else hi = mid - 1;\n  }\n  return -1;                                 // 못 찾음 (0 과 헷갈리지 말 것)\n}"
+        },
+        {
+          "type": "note",
+          "text": "이진 탐색은 「값 찾기」보다 **경계 찾기**에 더 많이 쓴다 — 「조건을 만족하는 첫 번째 자리」. 성능 튜닝에서 「몇 개까지 한 번에 보내면 안 터지나」를 찾을 때도 같은 꼴이다(파라메트릭 서치)."
+        },
+        {
+          "type": "p",
+          "text": "정렬 비용을 잊지 마라. 한 번 찾자고 정렬하면 O(n log n) + O(log n) 이라 그냥 훑는 O(n) 보다 느리다. **여러 번 찾을 때만** 정렬이 값을 한다 — 자료구조 고르기와 같은 계산이다."
+        },
+        {
+          "type": "try",
+          "text": "위 데모에서 값을 0, 126, 63(없는 값)으로 바꿔 보라. 없는 값일 때 몇 번 만에 포기하는지 세어 보라 — 그것도 log n 이다."
+        }
       ],
-      "answer": 1,
-      "why": "제곱이므로 (2n)² = 4n². 입력이 조금만 늘어도 급격히 느려진다."
+      "quiz": [
+        {
+          "q": "이진 탐색의 전제 조건은?",
+          "choices": [
+            "중복이 없어야 한다",
+            "정렬돼 있어야 한다",
+            "숫자여야 한다",
+            "길이가 2의 거듭제곱"
+          ],
+          "answer": 1,
+          "why": "순서가 있어야 반을 버릴 수 있다."
+        },
+        {
+          "q": "`(lo + hi) / 2` 대신 `lo + ((hi-lo)>>1)` 을 쓰는 이유는?",
+          "choices": [
+            "빨라서",
+            "큰 수에서 넘침을 피하려고",
+            "소수를 피하려고",
+            "관습"
+          ],
+          "answer": 1,
+          "why": "유명한 오버플로 버그."
+        },
+        {
+          "q": "한 번만 찾는데 정렬부터 하면?",
+          "choices": [
+            "더 빠르다",
+            "O(n log n) 이라 그냥 훑는 것보다 느리다",
+            "같다",
+            "메모리만 는다"
+          ],
+          "answer": 1,
+          "why": "여러 번 찾을 때만 이득."
+        }
+      ]
     },
     {
-      "q": "반복문 안에서 `users.find(...)` 를 호출하고 있다. 가장 효과적인 개선은?",
-      "choices": [
-        "Map 으로 색인을 한 번 만들어 O(1) 로 찾는다",
-        "for 문을 forEach 로 바꾼다",
-        "변수 이름을 짧게 한다"
+      "id": "3",
+      "title": "정렬 — 무엇을 쓰고, 왜 n log n 인가",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "비교로 정렬하는 한 **O(n log n)보다 빠를 수 없다**. n개의 순서 경우의 수가 n! 이고, 비교 한 번이 답을 절반으로 줄이므로 최소 log₂(n!) ≈ n log n 번이 필요하다. 이건 알고리즘이 아니라 **정보량의 한계**다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "두 방식을 실제로 재 보라 — 기울기가 다르다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now(); fn(); ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 값 목록을 막대로 — 정렬·탐색 그림에 공통으로 쓴다. */\n  function bars(vals, mark) {\n    ctx.clearRect(0, 0, 440, 190);\n    const w = Math.max(2, 420 / vals.length - 1);\n    const max = Math.max(...vals, 1);\n    vals.forEach((v, i) => {\n      const h = (v / max) * 150;\n      ctx.fillStyle = (mark || {})[i] || '#1e40af';\n      ctx.fillRect(12 + i * (w + 1), 165 - h, w, h);\n    });\n  }\n</script>\n<script>\n  hideCanvas();\n  const N = {{n}};\n  const src = Array.from({ length: N }, () => Math.random());\n  const bubble = (a) => {\n    a = a.slice();\n    for (let i = 0; i < a.length; i++)\n      for (let j = 0; j < a.length - 1 - i; j++)\n        if (a[j] > a[j + 1]) { const t = a[j]; a[j] = a[j + 1]; a[j + 1] = t; }\n    return a;\n  };\n  const b = bench(() => bubble(src), 3);\n  const s = bench(() => src.slice().sort((x, y) => x - y), 3);\n  app.innerHTML = '<div class=\"hint\">무작위 ' + N + '개를 정렬한다</div>';\n  show('버블 정렬 O(n^2)    ' + b.toFixed(2) + 'ms\\n'\n     + '내장 sort O(n log n) ' + s.toFixed(2) + 'ms\\n'\n     + '배수                 ' + (s > 0 ? (b / s).toFixed(0) : '—') + '배\\n\\n'\n     + 'n 을 두 배로 올려 보라. 버블은 4배, 내장은 2배 남짓 늘어난다 — 그게 기울기의 차이다.');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "개수",
+              "type": "range",
+              "min": 500,
+              "max": 4000,
+              "step": 500,
+              "value": 1500
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "실제 언어들은 **하이브리드**를 쓴다. V8 의 `Array.sort` 는 TimSort — 이미 정렬된 구간(run)을 찾아 이어 붙이고, 짧은 구간은 삽입 정렬로 처리한다. 그래서 「거의 정렬된 자료」에서는 거의 O(n) 이 나온다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "쓸 때 걸리는 자리",
+          "text": "[10, 9, 1].sort();               // [1, 10, 9] — 기본은 문자열 비교!\n[10, 9, 1].sort((a, b) => a - b); // [1, 9, 10]\n\narr.sort(…);        // 원본을 고친다\narr.toSorted(…);    // 새 배열 (최신 브라우저)\n\n// 여러 기준으로 정렬 — 앞이 같을 때만 뒤를 본다\nrows.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));"
+        },
+        {
+          "type": "note",
+          "text": "**안정 정렬(stable)** 이란 값이 같을 때 원래 순서를 지키는 성질이다. 「이름순으로 정렬한 뒤 점수순으로 다시 정렬」이 뜻대로 되려면 안정 정렬이어야 한다. 요즘 `Array.sort` 는 안정성이 보장된다."
+        },
+        {
+          "type": "try",
+          "text": "위 데모에서 n 을 500 → 1000 → 2000 으로 올리며 버블 쪽 시간을 적어라. 4배씩 늘어나면 O(n²) 를 손으로 확인한 것이다."
+        }
       ],
-      "answer": 0,
-      "why": "반복문 × 선형 탐색 = O(n²). 색인을 한 번 만들면 전체가 선형으로 내려간다."
+      "quiz": [
+        {
+          "q": "비교 기반 정렬의 하한이 n log n 인 이유는?",
+          "choices": [
+            "구현 한계",
+            "n! 가지 순서를 비교로 가려내려면 그만큼 필요해서",
+            "메모리 때문",
+            "캐시 때문"
+          ],
+          "answer": 1,
+          "why": "정보량의 한계다."
+        },
+        {
+          "q": "`[10, 9, 1].sort()` 의 결과는?",
+          "choices": [
+            "[1,9,10]",
+            "[1,10,9]",
+            "[10,9,1]",
+            "오류"
+          ],
+          "answer": 1,
+          "why": "기본 비교는 문자열 기준."
+        },
+        {
+          "q": "안정 정렬이 필요한 상황은?",
+          "choices": [
+            "숫자 정렬",
+            "여러 기준으로 이어서 정렬할 때",
+            "역순 정렬",
+            "큰 배열"
+          ],
+          "answer": 1,
+          "why": "앞 기준의 순서가 보존돼야 한다."
+        }
+      ]
     },
     {
-      "q": "복잡도를 계산했는데도 실제로 재 봐야 하는 이유는?",
-      "choices": [
-        "복잡도는 성장 속도만 말하고 상수·캐시·실제 데이터 분포는 말하지 않기 때문",
-        "복잡도 계산은 대체로 틀리기 때문",
-        "브라우저마다 복잡도가 다르기 때문"
+      "id": "4",
+      "title": "두 포인터와 슬라이딩 윈도우",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "O(n²)로 보이는 문제가 **한 번 훑기**로 풀리는 경우가 많다. 열쇠는 「이미 본 것을 다시 보지 않는」 배치다 — 양 끝에서 좁혀 오거나(두 포인터), 창을 밀며 안쪽 합을 갱신하거나(슬라이딩 윈도우)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "창을 밀어 보라 — 합을 매번 다시 더하지 않는다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now(); fn(); ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 값 목록을 막대로 — 정렬·탐색 그림에 공통으로 쓴다. */\n  function bars(vals, mark) {\n    ctx.clearRect(0, 0, 440, 190);\n    const w = Math.max(2, 420 / vals.length - 1);\n    const max = Math.max(...vals, 1);\n    vals.forEach((v, i) => {\n      const h = (v / max) * 150;\n      ctx.fillStyle = (mark || {})[i] || '#1e40af';\n      ctx.fillRect(12 + i * (w + 1), 165 - h, w, h);\n    });\n  }\n</script>\n<script>\n  const K = {{k}};\n  const arr = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8];\n  let sum = 0, best = -Infinity, bestAt = 0;\n  const log = [];\n  for (let i = 0; i < arr.length; i++) {\n    sum += arr[i];\n    if (i >= K) sum -= arr[i - K];        /* 나간 것만 빼고 들어온 것만 더한다 */\n    if (i >= K - 1) {\n      log.push('창 [' + (i - K + 1) + '..' + i + '] = ' + sum);\n      if (sum > best) { best = sum; bestAt = i - K + 1; }\n    }\n  }\n  const mark = {};\n  for (let i = bestAt; i < bestAt + K; i++) mark[i] = '#22c55e';\n  bars(arr, mark);\n  app.innerHTML = '<div class=\"hint\">길이 ' + K + ' 짜리 창에서 합이 가장 큰 구간</div>';\n  show(log.join('\\n') + '\\n\\n최대 ' + best + '  (자리 ' + bestAt + '부터)\\n\\n'\n     + '매 창마다 다시 더하면 O(n*K). 나간 것만 빼면 O(n).');\n</script>",
+          "controls": [
+            {
+              "id": "k",
+              "label": "창 크기",
+              "type": "range",
+              "min": 2,
+              "max": 6,
+              "step": 1,
+              "value": 3
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "두 포인터 — 정렬된 배열에서 합이 target 인 쌍",
+          "text": "let lo = 0, hi = arr.length - 1;\nwhile (lo < hi) {\n  const s = arr[lo] + arr[hi];\n  if (s === target) return [lo, hi];\n  if (s < target) lo++;      // 더 큰 값이 필요하다\n  else hi--;                  // 더 작은 값이 필요하다\n}\n// O(n) — 이중 반복 O(n^2) 를 대신한다"
+        },
+        {
+          "type": "note",
+          "text": "이 두 기법이 통하는 조건이 있다. 두 포인터는 **정렬**(또는 단조성)이 필요하고, 슬라이딩 윈도우는 **창을 넓히면 값이 한 방향으로만 변하는** 성질이 필요하다. 조건이 없으면 못 쓴다 — 「한 번 훑기로 되겠지」는 추측이다."
+        },
+        {
+          "type": "p",
+          "text": "정렬이 안 된 배열에서 합이 target 인 쌍을 찾는다면? 그때는 **해시**다 — 지금까지 본 값을 Set 에 담고 `target - x` 가 있었는지 묻는다. 한 번 훑기로 끝난다. **자료구조가 알고리즘을 만든다**는 앞 칸의 문장이 여기서 다시 나온다."
+        },
+        {
+          "type": "try",
+          "text": "창 크기를 바꿔 가며 로그를 읽어라. 창이 한 칸 움직일 때 계산이 「덧셈 1번 + 뺄셈 1번」뿐임을 확인하라."
+        }
       ],
-      "answer": 0,
-      "why": "어디를 볼지는 복잡도가, 지금 무엇이 느린지는 측정이 답한다."
+      "quiz": [
+        {
+          "q": "슬라이딩 윈도우가 O(n) 이 되는 이유는?",
+          "choices": [
+            "정렬돼서",
+            "창이 움직일 때 나간 것만 빼고 들어온 것만 더해서",
+            "메모리를 써서",
+            "재귀라서"
+          ],
+          "answer": 1,
+          "why": "매번 전체를 다시 더하지 않는다."
+        },
+        {
+          "q": "두 포인터 기법의 전제는?",
+          "choices": [
+            "정렬(또는 단조성)",
+            "중복 없음",
+            "양수만",
+            "길이가 짝수"
+          ],
+          "answer": 0,
+          "why": "한쪽을 움직이는 판단이 서야 한다."
+        },
+        {
+          "q": "정렬 안 된 배열에서 합이 target 인 쌍을 O(n) 으로 찾으려면?",
+          "choices": [
+            "두 포인터",
+            "해시(Set)로 본 값 기억",
+            "이진 탐색",
+            "정렬 후 탐색"
+          ],
+          "answer": 1,
+          "why": "target - x 를 물어본다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "재귀와 메모이제이션 — 같은 일을 두 번 하지 않기",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "재귀는 「자기와 같은 모양의 더 작은 문제」로 줄이는 방법이다. 문제는 그 작은 문제들이 **겹칠 때** 생긴다 — 같은 계산을 수천 번 반복하게 된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "n 을 올려 보라 — 호출 횟수가 폭발한다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now(); fn(); ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 값 목록을 막대로 — 정렬·탐색 그림에 공통으로 쓴다. */\n  function bars(vals, mark) {\n    ctx.clearRect(0, 0, 440, 190);\n    const w = Math.max(2, 420 / vals.length - 1);\n    const max = Math.max(...vals, 1);\n    vals.forEach((v, i) => {\n      const h = (v / max) * 150;\n      ctx.fillStyle = (mark || {})[i] || '#1e40af';\n      ctx.fillRect(12 + i * (w + 1), 165 - h, w, h);\n    });\n  }\n</script>\n<script>\n  hideCanvas();\n  const N = {{n}}, memo = {{memo}};\n  let calls = 0;\n  const cache = new Map();\n  function fib(k) {\n    calls++;\n    if (k <= 1) return k;\n    if (memo && cache.has(k)) return cache.get(k);\n    const v = fib(k - 1) + fib(k - 2);\n    if (memo) cache.set(k, v);\n    return v;\n  }\n  const t0 = performance.now();\n  const v = fib(N);\n  const ms = performance.now() - t0;\n  app.innerHTML = '<div class=\"hint\">fib(' + N + ') ' + (memo ? '· 캐시 켬' : '· 캐시 끔') + '</div>';\n  show('결과       ' + v + '\\n'\n     + '함수 호출  ' + calls.toLocaleString() + '회\\n'\n     + '시간       ' + ms.toFixed(2) + 'ms\\n\\n'\n     + (memo ? '캐시가 있으면 각 k 를 한 번만 계산한다 -> O(n)'\n             : '캐시가 없으면 fib(k-1) 과 fib(k-2) 가 같은 것을 계속 다시 센다 -> O(2^n)') + '\\n'\n     + 'n 을 5만 올려 보라. 캐시가 없으면 호출 수가 10배 넘게 뛴다.');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "n",
+              "type": "range",
+              "min": 10,
+              "max": 30,
+              "step": 1,
+              "value": 25
+            },
+            {
+              "id": "memo",
+              "label": "캐시 사용",
+              "type": "toggle",
+              "value": false
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "메모이제이션은 **「이미 푼 문제는 적어 둔다」** 한 줄이다. 이것만으로 지수 시간이 선형이 된다. 그리고 이 발상을 아래에서 위로 뒤집으면 **동적 계획법**이 된다 — 작은 답부터 표를 채워 올라가는 것."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "세 가지 모양, 같은 생각",
+          "text": "// ① 순수 재귀 — O(2^n)\nconst fib = (n) => (n <= 1 ? n : fib(n - 1) + fib(n - 2));\n\n// ② 메모이제이션(위에서 아래로) — O(n)\nconst memo = new Map();\nconst fib2 = (n) => n <= 1 ? n : memo.get(n) ?? (memo.set(n, fib2(n-1) + fib2(n-2)), memo.get(n));\n\n// ③ 반복(아래에서 위로) — O(n), 스택도 안 쓴다\nfunction fib3(n) {\n  let a = 0, b = 1;\n  for (let i = 0; i < n; i++) [a, b] = [b, a + b];\n  return a;\n}"
+        },
+        {
+          "type": "note",
+          "text": "재귀는 **호출 스택**을 쓴다. 깊이가 수만이 되면 stack overflow 가 난다(브라우저는 대략 1만 언저리). 깊은 재귀는 반복문 + 명시적 스택으로 바꾸거나, 꼬리 재귀 형태로 고쳐라 — 다만 JavaScript 엔진은 꼬리 호출 최적화를 거의 지원하지 않는다."
+        },
+        {
+          "type": "try",
+          "text": "캐시를 끄고 n=30 을 눌러 보라(호출 260만 회). 그다음 캐시를 켜고 같은 n 을 보라 — 호출이 60회 밑으로 떨어진다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "순수 재귀 피보나치가 느린 이유는?",
+          "choices": [
+            "함수 호출이 느려서",
+            "같은 하위 문제를 계속 다시 계산해서",
+            "스택 때문",
+            "숫자가 커서"
+          ],
+          "answer": 1,
+          "why": "겹치는 부분 문제."
+        },
+        {
+          "q": "메모이제이션이 바꾸는 복잡도는?",
+          "choices": [
+            "O(2^n) → O(n)",
+            "O(n) → O(1)",
+            "O(n²) → O(n log n)",
+            "안 바뀐다"
+          ],
+          "answer": 0,
+          "why": "각 값을 한 번만 계산한다."
+        },
+        {
+          "q": "깊은 재귀에서 나는 오류는?",
+          "choices": [
+            "메모리 누수",
+            "stack overflow",
+            "무한 루프",
+            "타입 오류"
+          ],
+          "answer": 1,
+          "why": "호출 스택에 프레임이 쌓인다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "그래프 탐색 — BFS 와 DFS",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「연결된 것들」을 다루는 문제는 전부 그래프다 — 미로, 친구 관계, 의존성, 파일 트리, 라우팅. 그리고 훑는 방법은 크게 둘뿐이다. **가까운 것부터**(BFS, 큐) 또는 **끝까지 가 보고 돌아오기**(DFS, 스택)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "방식을 바꿔 보라 — 퍼지는 모양이 다르다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now(); fn(); ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 값 목록을 막대로 — 정렬·탐색 그림에 공통으로 쓴다. */\n  function bars(vals, mark) {\n    ctx.clearRect(0, 0, 440, 190);\n    const w = Math.max(2, 420 / vals.length - 1);\n    const max = Math.max(...vals, 1);\n    vals.forEach((v, i) => {\n      const h = (v / max) * 150;\n      ctx.fillStyle = (mark || {})[i] || '#1e40af';\n      ctx.fillRect(12 + i * (w + 1), 165 - h, w, h);\n    });\n  }\n</script>\n<script>\n  const mode = '{{mode}}', STEP = {{step}};\n  const W = 21, H = 9;\n  const wall = (x, y) => (x % 4 === 2 && y !== 4) || (y % 4 === 2 && x % 7 === 5);\n  const key = (x, y) => y * W + x;\n  const seen = new Set([key(0, 4)]);\n  const order = [];\n  const q = [[0, 4]];\n  while (q.length) {\n    const [x, y] = mode === 'bfs' ? q.shift() : q.pop();\n    order.push([x, y]);\n    for (const [dx, dy] of [[1,0],[0,1],[-1,0],[0,-1]]) {\n      const nx = x + dx, ny = y + dy;\n      if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;\n      if (wall(nx, ny) || seen.has(key(nx, ny))) continue;\n      seen.add(key(nx, ny));\n      q.push([nx, ny]);\n    }\n  }\n  const upto = Math.round((STEP / 100) * order.length);\n  ctx.clearRect(0, 0, 440, 190);\n  const cell = 20;\n  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {\n    ctx.fillStyle = wall(x, y) ? '#1e293b' : '#111c33';\n    ctx.fillRect(8 + x * cell, 8 + y * cell, cell - 2, cell - 2);\n  }\n  order.slice(0, upto).forEach(([x, y], i) => {\n    const t = i / Math.max(1, upto);\n    ctx.fillStyle = mode === 'bfs' ? 'hsl(' + (200 - t * 80) + ',80%,55%)' : 'hsl(' + (30 + t * 60) + ',80%,55%)';\n    ctx.fillRect(8 + x * cell, 8 + y * cell, cell - 2, cell - 2);\n  });\n  app.innerHTML = '<div class=\"hint\">' + (mode === 'bfs' ? 'BFS — 큐' : 'DFS — 스택') + ' · 왼쪽 가운데에서 출발</div>';\n  show('방문한 칸 ' + upto + ' / ' + order.length + '\\n\\n'\n     + (mode === 'bfs'\n        ? 'BFS 는 동심원처럼 퍼진다. 그래서 「가중치 없는 최단 경로」를 그냥 얻는다.'\n        : 'DFS 는 한 방향으로 끝까지 갔다가 되돌아온다. 최단 경로는 보장하지 않는다.') + '\\n'\n     + '코드 차이는 한 글자다: shift() vs pop()');\n</script>",
+          "controls": [
+            {
+              "id": "mode",
+              "label": "방식",
+              "type": "select",
+              "value": "bfs",
+              "options": [
+                {
+                  "value": "bfs",
+                  "label": "BFS (큐)"
+                },
+                {
+                  "value": "dfs",
+                  "label": "DFS (스택)"
+                }
+              ]
+            },
+            {
+              "id": "step",
+              "label": "진행(%)",
+              "type": "range",
+              "min": 10,
+              "max": 100,
+              "step": 10,
+              "value": 60
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**방문 표시(`seen`)를 먼저 하라.** 꺼낼 때 표시하면 같은 칸이 큐에 여러 번 들어가 느려지고, 그래프에 순환이 있으면 무한 루프가 된다. 「넣을 때 표시」가 규칙이다."
+        },
+        {
+          "type": "p",
+          "text": "가중치가 있으면(도로 길이, 지연 시간) BFS 로는 안 된다 — 그때가 **다익스트라**이고, 큐 대신 **힙**을 쓴다. 앞 칸에서 배운 힙이 여기서 쓰인다. 알고리즘은 대개 이렇게 자료구조 하나를 갈아 끼우며 확장된다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "코드는 거의 같다",
+          "text": "const q = [start], seen = new Set([start]);\nwhile (q.length) {\n  const cur = q.shift();        // BFS  ·  q.pop() 이면 DFS\n  for (const next of neighbors(cur)) {\n    if (seen.has(next)) continue;\n    seen.add(next);             // 넣을 때 표시 — 꺼낼 때가 아니다\n    q.push(next);\n  }\n}"
+        },
+        {
+          "type": "try",
+          "text": "진행을 30%에 두고 두 방식을 번갈아 보라. BFS 는 출발점 주변이 고르게 칠해지고 DFS 는 한 줄기가 길게 뻗는다 — 이 그림이 두 알고리즘의 전부다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "가중치 없는 최단 경로를 주는 것은?",
+          "choices": [
+            "DFS",
+            "BFS",
+            "둘 다",
+            "둘 다 아니다"
+          ],
+          "answer": 1,
+          "why": "가까운 것부터 퍼지기 때문."
+        },
+        {
+          "q": "BFS 를 DFS 로 바꾸려면?",
+          "choices": [
+            "큐를 스택으로 (shift → pop)",
+            "정렬을 추가",
+            "재귀 제거",
+            "seen 제거"
+          ],
+          "answer": 0,
+          "why": "꺼내는 순서가 전부다."
+        },
+        {
+          "q": "방문 표시를 「꺼낼 때」 하면?",
+          "choices": [
+            "문제 없다",
+            "같은 칸이 여러 번 큐에 들어가고 순환에서 무한 루프",
+            "더 빠르다",
+            "메모리가 준다"
+          ],
+          "answer": 1,
+          "why": "넣을 때 표시가 규칙."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "탐욕과 동적 계획 — 지금 최선이 전체 최선인가",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "탐욕법은 **매 순간 가장 좋아 보이는 것**을 고른다. 빠르고 코드가 짧지만, 전체 최선을 보장하지 않는다. 보장되려면 문제에 특별한 성질이 있어야 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "동전 종류를 바꿔 보라 — 탐욕이 틀리는 순간",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now(); fn(); ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 값 목록을 막대로 — 정렬·탐색 그림에 공통으로 쓴다. */\n  function bars(vals, mark) {\n    ctx.clearRect(0, 0, 440, 190);\n    const w = Math.max(2, 420 / vals.length - 1);\n    const max = Math.max(...vals, 1);\n    vals.forEach((v, i) => {\n      const h = (v / max) * 150;\n      ctx.fillStyle = (mark || {})[i] || '#1e40af';\n      ctx.fillRect(12 + i * (w + 1), 165 - h, w, h);\n    });\n  }\n</script>\n<script>\n  hideCanvas();\n  const set = '{{coins}}', TARGET = {{amount}};\n  const coins = set === 'krw' ? [500, 100, 50, 10] : [4, 3, 1];\n  /* 탐욕: 큰 것부터 */\n  let rest = TARGET; const greedy = [];\n  for (const c of coins) while (rest >= c) { rest -= c; greedy.push(c); }\n  /* 동적 계획: 작은 금액부터 표를 채운다 */\n  const dp = Array(TARGET + 1).fill(Infinity); dp[0] = 0;\n  const from = Array(TARGET + 1).fill(-1);\n  for (let v = 1; v <= TARGET; v++)\n    for (const c of coins)\n      if (v >= c && dp[v - c] + 1 < dp[v]) { dp[v] = dp[v - c] + 1; from[v] = c; }\n  const best = []; let v = TARGET;\n  while (v > 0 && from[v] > 0) { best.push(from[v]); v -= from[v]; }\n  const same = greedy.length === best.length;\n  app.innerHTML = '<div class=\"hint\">동전 [' + coins.join(', ') + '] 으로 ' + TARGET + ' 만들기</div>';\n  show('탐욕(큰 것부터)  ' + greedy.length + '개  ' + JSON.stringify(greedy) + (rest ? '  (남음 ' + rest + ')' : '') + '\\n'\n     + '동적 계획(최적)  ' + best.length + '개  ' + JSON.stringify(best) + '\\n\\n'\n     + (same ? '이 동전 체계에서는 탐욕이 맞는다 (한국 동전은 그런 성질을 가진다).'\n             : '탐욕이 틀렸다. [4,3,1] 로 6 을 만들면 4+1+1(3개)를 고르지만 3+3(2개)이 답이다.'));\n</script>",
+          "controls": [
+            {
+              "id": "coins",
+              "label": "동전 체계",
+              "type": "select",
+              "value": "weird",
+              "options": [
+                {
+                  "value": "krw",
+                  "label": "500·100·50·10 (한국)"
+                },
+                {
+                  "value": "weird",
+                  "label": "4·3·1 (탐욕이 깨지는 예)"
+                }
+              ]
+            },
+            {
+              "id": "amount",
+              "label": "만들 금액",
+              "type": "range",
+              "min": 6,
+              "max": 60,
+              "step": 2,
+              "value": 6
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "동적 계획법은 **작은 답을 적어 두고 그것들로 큰 답을 만든다.** 앞 장의 메모이제이션과 같은 생각이고 방향만 반대다(아래에서 위로). 필요한 조건은 둘 — 겹치는 부분 문제, 그리고 「작은 문제의 최적해로 큰 문제의 최적해가 만들어짐」."
+        },
+        {
+          "type": "note",
+          "text": "실무에서 탐욕이 잘 먹히는 자리는 정해져 있다 — 회의실 배정(끝나는 시간 순), 허프만 부호, 최소 신장 트리. 공통점은 **바꿔치기 논증**이 성립한다는 것: 최적해에서 내 선택으로 바꿔도 나빠지지 않음을 증명할 수 있다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "DP 는 표를 채우는 일이다",
+          "text": "// dp[v] = v 를 만드는 최소 동전 수\nconst dp = Array(target + 1).fill(Infinity);\ndp[0] = 0;\nfor (let v = 1; v <= target; v++)\n  for (const c of coins)\n    if (v >= c) dp[v] = Math.min(dp[v], dp[v - c] + 1);\n\n// O(target x coins) — 「금액」이 커지면 이것도 커진다(의사 다항)"
+        },
+        {
+          "type": "try",
+          "text": "동전을 [4,3,1] 로 두고 금액을 6, 10, 14 로 바꿔 보라. 탐욕과 DP 의 개수가 갈리는 금액을 찾아 적어라 — 반례를 스스로 만드는 연습이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "탐욕법이 항상 최적인가?",
+          "choices": [
+            "그렇다",
+            "문제에 특별한 성질이 있을 때만",
+            "동전 문제에서만",
+            "절대 아니다"
+          ],
+          "answer": 1,
+          "why": "[4,3,1] 로 6 을 만들면 깨진다."
+        },
+        {
+          "q": "동적 계획법의 두 조건은?",
+          "choices": [
+            "정렬과 이진 탐색",
+            "겹치는 부분 문제 + 최적 부분 구조",
+            "재귀와 스택",
+            "해시와 캐시"
+          ],
+          "answer": 1,
+          "why": "둘 다 있어야 표를 채워 올라갈 수 있다."
+        },
+        {
+          "q": "메모이제이션과 DP 의 관계는?",
+          "choices": [
+            "전혀 다르다",
+            "같은 생각을 위→아래 / 아래→위로 적은 것",
+            "DP 가 더 느리다",
+            "메모이제이션은 캐시일 뿐"
+          ],
+          "answer": 1,
+          "why": "방향만 다르다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "실전 — 무엇을 최적화할 것인가",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "복잡도를 배우면 모든 것을 최적화하고 싶어진다. 그런데 실제로 시간을 잡아먹는 자리는 **재 보기 전에는 모른다.** 그리고 대개 알고리즘이 아니라 **N 이 큰 곳 하나**다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "어느 쪽을 고칠지 골라 보라 — 전체 시간이 어떻게 변하나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now(); fn(); ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 값 목록을 막대로 — 정렬·탐색 그림에 공통으로 쓴다. */\n  function bars(vals, mark) {\n    ctx.clearRect(0, 0, 440, 190);\n    const w = Math.max(2, 420 / vals.length - 1);\n    const max = Math.max(...vals, 1);\n    vals.forEach((v, i) => {\n      const h = (v / max) * 150;\n      ctx.fillStyle = (mark || {})[i] || '#1e40af';\n      ctx.fillRect(12 + i * (w + 1), 165 - h, w, h);\n    });\n  }\n</script>\n<script>\n  hideCanvas();\n  const fix = '{{fix}}';\n  /* 가상의 프로파일: 세 구간이 전체 시간을 나눠 갖는다 */\n  const parts = [\n    ['목록 그리기 (O(n), n=200)', 8],\n    ['중복 검사 (O(n^2), n=2000)', 180],\n    ['날짜 포매팅 (O(n), n=200)', 12],\n  ];\n  const before = parts.reduce((s, p) => s + p[1], 0);\n  const after = parts.map(([name, ms], i) => {\n    if (fix === 'a' && i === 0) return [name + ' -> 2배 빠르게', ms / 2];\n    if (fix === 'b' && i === 1) return [name + ' -> Set 으로 O(n)', 3];\n    if (fix === 'c' && i === 2) return [name + ' -> 캐시', 2];\n    return [name, ms];\n  });\n  const total = after.reduce((s, p) => s + p[1], 0);\n  app.innerHTML = '<div class=\"hint\">프로파일 결과 (전체 ' + before + 'ms)</div>';\n  show(after.map(([n, ms]) => '  ' + String(Math.round(ms)).padStart(4) + 'ms  ' + n).join('\\n') +\n     '\\n\\n전체 ' + before + 'ms -> ' + Math.round(total) + 'ms   (' + (before / total).toFixed(2) + '배)\\n\\n' +\n     (fix === 'b'\n      ? '가장 큰 덩어리를 고쳤다. 나머지를 아무리 다듬어도 여기를 못 이긴다.'\n      : '작은 덩어리를 고쳤다 — 전체는 거의 안 변한다(암달의 법칙).'));\n</script>",
+          "controls": [
+            {
+              "id": "fix",
+              "label": "고칠 곳",
+              "type": "select",
+              "value": "a",
+              "options": [
+                {
+                  "value": "a",
+                  "label": "목록 그리기 (8ms)"
+                },
+                {
+                  "value": "b",
+                  "label": "중복 검사 (180ms)"
+                },
+                {
+                  "value": "c",
+                  "label": "날짜 포매팅 (12ms)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "**암달의 법칙**을 한 줄로 줄이면 — 전체의 5%를 차지하는 코드를 무한히 빠르게 만들어도 전체는 5%밖에 안 빨라진다. 그래서 순서는 언제나 ① 재기 ② 가장 큰 덩어리 찾기 ③ 그것만 고치기 다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "재는 법",
+          "text": "console.time('중복검사'); dedupe(rows); console.timeEnd('중복검사');\n\n// 구간에 이름을 붙여 성능 탭에서 보기\nperformance.mark('a');\nheavy();\nperformance.measure('heavy', 'a');\n\n// 브라우저: 개발자도구 Performance 탭 → 불꽃 그래프에서 가장 넓은 막대\n// Node:     node --cpu-prof app.js"
+        },
+        {
+          "type": "note",
+          "text": "그리고 **N 을 줄이는 것이 알고리즘을 바꾸는 것보다 자주 옳다.** 화면에 1000줄을 그리는 대신 보이는 30줄만 그리면(가상 스크롤), O(n) 을 O(1) 로 만든 셈이 된다. 서버라면 페이지네이션·인덱스·캐시가 같은 일을 한다."
+        },
+        {
+          "type": "try",
+          "text": "내 화면에서 가장 느린 상호작용 하나를 골라 Performance 탭으로 녹화하라. 가장 넓은 막대의 이름을 적어라 — 그 이름이 오늘 고칠 것이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "최적화의 첫 단계는?",
+          "choices": [
+            "알고리즘 교체",
+            "재서 가장 큰 덩어리를 찾기",
+            "캐시 추가",
+            "라이브러리 교체"
+          ],
+          "answer": 1,
+          "why": "느린 자리는 추측으로 못 찾는다."
+        },
+        {
+          "q": "전체의 5%를 차지하는 코드를 두 배 빠르게 하면?",
+          "choices": [
+            "전체가 두 배",
+            "전체는 2.5% 개선",
+            "변화 없음",
+            "50% 개선"
+          ],
+          "answer": 1,
+          "why": "암달의 법칙."
+        },
+        {
+          "q": "알고리즘을 바꾸는 것보다 자주 옳은 것은?",
+          "choices": [
+            "N 자체를 줄이기(가상 스크롤·페이지네이션)",
+            "언어 바꾸기",
+            "병렬화",
+            "캐시 무효화"
+          ],
+          "answer": 0,
+          "why": "안 하는 일이 가장 빠르다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "알고리즘 지식이 실제로 쓰이는 순간은 「이거 나중에 느려지겠다」를 알아보는 때다. 코드를 읽을 때 이 목록을 훑어라."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "느려질 자리 · 고치는 방향",
+          "text": "[ ] 중첩 반복 · 반복문 안 includes/find      -> 해시(Set/Map)로 한 번 훑기 (1·4장)\n[ ] 매번 전체를 다시 계산                    -> 슬라이딩 윈도우 · 누적합 (4장)\n[ ] 같은 인자로 같은 함수를 반복 호출        -> 메모이제이션 (5장)\n[ ] 한 번 찾자고 정렬                        -> 그냥 훑기 (2장)\n[ ] 여러 번 찾는데 매번 훑기                 -> 정렬+이진 탐색 또는 Map (2장)\n[ ] 전부 정렬해 앞의 몇 개만 사용            -> 힙 (상위 K)\n[ ] 최단 경로인데 DFS                        -> BFS(가중치 없음) · 다익스트라(있음) (6장)\n[ ] 탐욕으로 풀고 반례를 안 찾아봤다          -> 작은 반례를 손으로 만들어 보기 (7장)\n[ ] 재 보지 않고 최적화 중                    -> 프로파일 먼저 (8장)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 실제로 재서 확인한다",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now(); fn(); ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n  /** 값 목록을 막대로 — 정렬·탐색 그림에 공통으로 쓴다. */\n  function bars(vals, mark) {\n    ctx.clearRect(0, 0, 440, 190);\n    const w = Math.max(2, 420 / vals.length - 1);\n    const max = Math.max(...vals, 1);\n    vals.forEach((v, i) => {\n      const h = (v / max) * 150;\n      ctx.fillStyle = (mark || {})[i] || '#1e40af';\n      ctx.fillRect(12 + i * (w + 1), 165 - h, w, h);\n    });\n  }\n</script>\n<script>\n  hideCanvas();\n  const N = 3000;\n  const rows = Array.from({ length: N }, (_, i) => ({ id: i }));\n  const ids = rows.map((r) => r.id);\n  const idSet = new Set(ids);\n  const probe = Array.from({ length: 1200 }, (_, i) => (i * 7919) % N);\n  const slow = bench(() => { let c = 0; for (const p of probe) if (ids.includes(p)) c++; }, 3);\n  const fast = bench(() => { let c = 0; for (const p of probe) if (idSet.has(p)) c++; }, 3);\n  let calls = 0;\n  const f = (k) => { calls++; return k <= 1 ? k : f(k - 1) + f(k - 2); };\n  f(24);\n  const cache = new Map();\n  let calls2 = 0;\n  const g = (k) => { calls2++; if (k <= 1) return k; if (cache.has(k)) return cache.get(k); const v = g(k-1) + g(k-2); cache.set(k, v); return v; };\n  g(24);\n  app.innerHTML = '<div class=\"hint\">이 기계에서 방금 잰 값이다</div>';\n  show('중첩 검색  includes ' + slow.toFixed(2) + 'ms   vs   Set ' + fast.toFixed(2) + 'ms   -> ' +\n       (fast > 0 ? (slow / fast).toFixed(0) : '—') + '배\\n' +\n       'fib(24)    캐시 없음 ' + calls.toLocaleString() + '회 호출   vs   캐시 ' + calls2 + '회   -> ' +\n       Math.round(calls / calls2) + '배\\n\\n' +\n       '두 줄이 이 칸의 요약이다 — 자료구조 하나, 캐시 한 줄.');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸은 동시성이다. 여기까지가 「한 사람이 얼마나 적게 일하나」였다면, 다음은 **여럿이 동시에 일할 때 생기는 문제**다. 빠르게 만드는 방향이 하나 더 생기지만, 그 대가로 순서가 사라진다."
+        },
+        {
+          "type": "try",
+          "text": "위 아홉 줄로 내 코드를 훑어라. 걸리는 자리가 있으면 **먼저 재고**, 고친 뒤 다시 재라. 두 숫자가 있어야 고쳤다고 말할 수 있다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "「나중에 느려질 코드」의 대표 신호는?",
+          "choices": [
+            "함수가 길다",
+            "반복문 안에서 목록을 또 훑는다",
+            "변수가 많다",
+            "재귀를 쓴다"
+          ],
+          "answer": 1,
+          "why": "O(n²)의 전형."
+        },
+        {
+          "q": "고쳤다고 말하려면 필요한 것은?",
+          "choices": [
+            "코드 리뷰",
+            "고치기 전후의 측정값 두 개",
+            "테스트 통과",
+            "복잡도 표기"
+          ],
+          "answer": 1,
+          "why": "재지 않은 최적화는 추측이다."
+        }
+      ]
     }
   ]
 }
