@@ -847,6 +847,10 @@ await step('카드 모서리를 끌면 크기가 바뀌고, 이름을 고쳐도 
   // 손으로 맞춘 판이 타자 한 번에 도로 튀는 것이 가장 짜증나는 일이다 — 그 되돌아감까지 검사한다.
   const rbox = await page.locator('.km-canvas').boundingBox();
   await page.mouse.dblclick(rbox.x + rbox.width * 0.45, rbox.y + rbox.height * 0.8);
+  // 카드를 만들면 **그 자리에서 이름부터 받는다**(카드를 덮는다) — 넣고 닫아야 손잡이가 잡힌다.
+  await page.waitForSelector('.km-inline', { timeout: 4000 });
+  await page.keyboard.type('크기카드');
+  await page.keyboard.press('Enter');
   await page.waitForSelector('.ck-size-handle', { timeout: 4000 });
   const grip = await page.locator('.ck-size-handle').first().boundingBox();
   const widthOf = () => page.evaluate(
@@ -1690,14 +1694,21 @@ await step('카드를 끌면 이웃 카드의 줄에 붙고, 맞춘 줄이 뜬�
   await m.reload({ waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: 8000 });
   const box = await m.locator('.km-canvas').boundingBox();
+  // 카드를 만들면 이름칸이 **다음 프레임에** 카드를 덮으며 뜬다 — 뜬 것을 보고 닫아야 한다
+  // (바로 Escape 를 치면 아직 없어서 그대로 남고, 그 뒤 누르기가 전부 그 칸에 먹힌다).
+  const shutInline = async () => {
+    await m.waitForSelector('.km-inline', { timeout: 4000 }).catch(() => {});
+    await m.keyboard.press('Escape');
+    await m.waitForFunction(() => !document.querySelector('.km-inline'), null, { timeout: 4000 }).catch(() => {});
+  };
   await m.mouse.dblclick(box.x + box.width * 0.35, box.y + box.height * 0.3);
-  await m.waitForSelector('[data-km="edit-label"]', { timeout: 4000 });
-  await m.keyboard.press('Escape');
+  await shutInline();
   await m.mouse.click(box.x + box.width * 0.8, box.y + box.height * 0.85);
   // 두 번 누르기의 첫 눌림이 「고른 것 풀기」로 먹히는 판이 있다 — 한 번은 다시 눌러 본다.
   const two = () => m.locator('.ck-node').count().then((n) => n >= 2);
   await m.mouse.dblclick(box.x + box.width * 0.55, box.y + box.height * 0.6);
-  await m.waitForTimeout(600);
+  await shutInline();
+  await m.waitForTimeout(400);
   if (!(await two())) await m.mouse.dblclick(box.x + box.width * 0.55, box.y + box.height * 0.6);
   try {
     await m.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 2, null, { timeout: 4000 });
@@ -1760,10 +1771,11 @@ await step('카드 크기가 자리와 같은 격자에 붙는다 (Alt = 자유)
   await m.waitForSelector('.km-canvas', { timeout: 8000 });
   const box = await m.locator('.km-canvas').boundingBox();
   await m.mouse.dblclick(box.x + box.width * 0.4, box.y + box.height * 0.4);
-  await m.waitForSelector('[data-km="edit-label"]', { timeout: 4000 });
-  // 카드를 만들면 **옆 패널 이름칸에 포커스가 가 있다.** 그 상태에서 손잡이를 누르면 첫 누름이
-  // 「칸에서 빠져나오기」로 먹혀 크기가 안 바뀐다(실측 — 판마다 다르게 나던 헛빨강의 정체).
-  await m.keyboard.press('Escape');
+  // 카드를 만들면 **그 자리에서 이름부터 받는다** — 그 칸이 카드를 덮으므로 이름을 넣고 닫는다.
+  await m.waitForSelector('.km-inline', { timeout: 4000 });
+  await m.keyboard.type('크기잴카드');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => !document.querySelector('.km-inline'), null, { timeout: 4000 });
   await m.locator('.ck-node').first().click();
   const grip = () => m.waitForSelector('.ck-size-handle', { state: 'attached', timeout: 2500 });
   await grip().catch(async () => { await m.locator('.ck-node').first().click(); await grip(); });
@@ -1883,6 +1895,38 @@ await step('되돌리기 구멍 감사 — 고친 것마다 Ctrl+Z 로 원래대
   });
 
   if (holes.length > 0) throw new Error('되돌리기 구멍: ' + holes.join(' · '));
+  await ctx.close();
+});
+
+await step('카드를 만들면 **그 자리에서 바로** 이름을 친다 (옆 패널 안 봐도 된다)', async () => {
+  // 처음 쓰는 사람 검토에서 나온 자리(2026-08-12): 두 번 눌러 만든 카드가 **빈 상자**로 남았다.
+  // 포커스는 옆 패널 이름칸에 있었는데 눈은 판을 보고 있었기 때문이다.
+  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+
+  const box = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(box.x + box.width * 0.4, box.y + box.height * 0.4);
+  // 만들자마자 **카드 위에** 이름칸이 떠 있어야 한다 — 옆 패널은 안 건드린다.
+  await m.waitForSelector('.km-inline', { timeout: 4000 });
+  await m.keyboard.type('바로친이름');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => [...document.querySelectorAll('.ck-node text')]
+    .some((t) => (t.textContent || '').includes('바로친이름')), null, { timeout: 4000 });
+  const saved = await m.evaluate(() => JSON.parse(localStorage.getItem(
+    'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId)).nodes[0].label);
+  if (saved !== '바로친이름') throw new Error(`저장본 이름이 다르다: ${JSON.stringify(saved)}`);
+
+  // 그리고 **포커스가 판으로 돌아와야** 한다 — 안 그러면 `?`(도움말)가 이름에 「?」로 박힌다(실측).
+  await m.keyboard.press('?');
+  await m.waitForSelector('[data-km="help-close"]', { timeout: 4000 });
+  const stillName = await m.evaluate(() => JSON.parse(localStorage.getItem(
+    'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId)).nodes[0].label);
+  if (stillName !== '바로친이름') throw new Error(`? 가 이름에 박혔다: ${JSON.stringify(stillName)}`);
   await ctx.close();
 });
 

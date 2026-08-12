@@ -1455,6 +1455,9 @@ import {
 
       // 이름 편집 — 입력할 때마다 반영 (폭도 같이 조정)
       const labelInput = sideEl.querySelector('[data-km="edit-label"]') as HTMLInputElement;
+      // 판 위 편집칸이 떠 있는 채로 옆 패널에서 고치면, 그 칸이 닫힐 때 **옛 글자로 되돌린다.**
+      // 두 입구가 같은 값을 들고 있으면 늦게 닫히는 쪽이 이긴다 — 그래서 여기로 오면 그쪽을 접는다.
+      labelInput.onfocus = () => closeInline(false);
       labelInput.oninput = () => {
         node.label = labelInput.value;
         resize(node);
@@ -1870,10 +1873,12 @@ import {
       persistStructure();
       selectedId = node.id;
       renderSide();
-      if (!label) {
-        const input = sideEl.querySelector('[data-km="edit-label"]') as HTMLInputElement | null;
-        input?.focus();
-      }
+      // ★ 이름은 **카드 위에서** 받는다 (2026-08-12 사용자 검토).
+      //   예전에는 옆 패널 이름칸에 포커스를 줬다. 그런데 보고 있는 눈은 판에 있어서,
+      //   빈 상자만 서너 개 만들고 끝나는 일이 실제로 났다. 게다가 포커스가 판 밖에 있으니
+      //   `?`(도움말)는 이름에 「?」로 박히고, 크기 손잡이 첫 누름은 「칸에서 빠져나오기」로 먹혔다.
+      //   만든 자리에서 바로 타자 = 그 셋이 한꺼번에 없어진다.
+      if (!label) requestAnimationFrame(() => openInline(node.id));
     }
 
 
