@@ -12,7 +12,7 @@
  * 그때 불러온다(`import()`). 그래야 이 위젯 하나 때문에 첫 화면이 무거워지지 않는다.
  */
 import { MAX_STEPS, parseSteps, runChain, type Step } from '../../core/chain';
-import { CORES } from '../../core/registry.generated';
+import { CORE_OPS } from '../../core/registry-lazy.generated';
 import { spec as chainSpec } from '../../core/chain';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -30,12 +30,43 @@ import { t, loadNamespace } from '../../lib/i18n';
    * 부를 수 있는 도구 표는 **빌드가 찍는다**(`scripts/gen-core-tools.mjs`). 손으로 적으면
    * 도구를 옮길 때마다 여기가 조용히 낡아 멀쩡한 도구를 「모른다」고 답한다.
    */
-  const known = CORES;
+  /* ★ **알맹이는 쓸 때 받는다** (2026-08-13, TASK-KL-205 빚 갚기).
+     예전에는 정적 표(`registry.generated`)를 들여서 **도구 서른다섯 개의 알맹이 전부**가 이
+     묶음에 실렸다 — 250KB(gzip 87.7KB)로 위젯 천장 64KB 의 1.4배였다. 정작 한 사람이 쓰는 것은
+     자기가 적은 단계에 나오는 도구 두어 개다. 그래서 「무엇을 부를 수 있나」(ops)만 늘 들고,
+     알맹이는 **그 도구가 실제로 불릴 때** 받아 온다(`loadCores` 가 돌리기 직전에 채운다). */
+  const known: Record<string, { run: (op: string, args: Record<string, unknown>, deps: Record<string, unknown>) => unknown; ops: string[] }> = {};
+
+  /** 이번 판에 나오는 도구들의 알맹이만 받아 둔다 — 없는 이름은 여기서 조용히 넘기고 아래가 말한다.
+   *  파일 하나가 알맹이 하나다(`js/core/<id>.js`, 대개 1KB 안팎) — 이 묶음은 IIFE 라 `import()`
+   *  로는 안 쪼개져서, 이 저장소가 원래 쓰는 「그때 붙이는 스크립트」 방식으로 받는다. */
+  async function loadCores(ids: string[]): Promise<void> {
+    const bag = window as unknown as { __KARMO_CORES?: Record<string, { run: never }> };
+    await Promise.all(
+      [...new Set(ids)].map(
+        (id) =>
+          new Promise<void>((resolve) => {
+            if (known[id] || CORE_OPS[id] === undefined) return resolve();
+            const put = (): void => {
+              const got = bag.__KARMO_CORES?.[id];
+              if (got) known[id] = { run: got.run as never, ops: CORE_OPS[id] ?? [] };
+              resolve();
+            };
+            if (bag.__KARMO_CORES?.[id]) return put();
+            const s = document.createElement('script');
+            s.src = `/apps/karmolab/core/${id}.js`;
+            s.onload = put;
+            s.onerror = () => resolve(); // 못 받으면 아래에서 「모르는 도구」로 말한다
+            document.head.appendChild(s);
+          })
+      )
+    );
+  }
 
   function callTool(toolId: string, op: string, args: Record<string, unknown>): string {
     const entry = known[toolId];
     if (entry === undefined) {
-      throw new Error(t('chain.unknownTool', { id: toolId, known: Object.keys(known).slice(0, 8).join(' · ') }));
+      throw new Error(t('chain.unknownTool', { id: toolId, known: Object.keys(CORE_OPS).slice(0, 8).join(' · ') }));
     }
     if (entry.ops.includes(op) === false) {
       throw new Error(t('chain.unknownOp', { id: toolId, op, ops: entry.ops.join(' · ') }));
@@ -118,13 +149,20 @@ import { t, loadNamespace } from '../../lib/i18n';
               .join('');
           };
 
-          const go = (): void => {
+          const go = async (): Promise<void> => {
             $('#chOut').innerHTML = '';
             let parsed: Step[];
             try {
               parsed = parseSteps(steps.value);
             } catch (e) {
               say((e as Error).message, 'error');
+              return;
+            }
+            /* 이번 판에 나오는 도구의 알맹이만 먼저 받아 둔다 — 그 뒤는 예전처럼 곧바로 돈다. */
+            try {
+              await loadCores(parsed.map((p) => p.tool));
+            } catch {
+              say(t('chain.err.02'), 'error');
               return;
             }
             try {
@@ -140,7 +178,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             }
           };
 
-          $<HTMLButtonElement>('#chRun').onclick = () => go();
+          $<HTMLButtonElement>('#chRun').onclick = () => { void go(); };
           $<HTMLButtonElement>('#chExample').onclick = () => {
             steps.value = example();
             say(t('chain.say.07'));

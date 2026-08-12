@@ -65,6 +65,36 @@ const ts = [
 ].join('\n');
 fs.writeFileSync(path.join(root, 'src/core/registry.generated.ts'), ts);
 
+/*
+ * ★ **늦게 받는 표도 같이 찍는다** (2026-08-13).
+ *
+ * 위 정적 표는 알맹이 **전부**를 한 덩이로 끌고 온다. 그래서 묶어 쓰기(chain) 하나가
+ * 250KB(gzip 87.7KB)가 됐다 — 위젯 천장 64KB 의 1.4배로, 오래된 빚이었다(TASK-KL-205).
+ * 정작 사람이 쓰는 것은 자기가 적은 단계에 나오는 도구 두어 개뿐이다.
+ *
+ * 그래서 「무엇을 부를 수 있나」(ops — 글자 몇 줄)와 「그 알맹이」(코드)를 **떼어 놓는다**.
+ * 앞의 것은 늘 들고 있어도 가볍고, 뒤의 것은 그 도구가 실제로 불릴 때 받는다.
+ */
+const lazyTs = [
+  '/* 자동 생성 — `node scripts/gen-core-tools.mjs`. 손으로 고치지 마라. */',
+  '/* 「무엇을 부를 수 있나」만 든 가벼운 표 + 알맹이를 그때 받는 손. 정적 표(registry.generated)와',
+  '   달리 이 파일은 알맹이를 끌고 오지 않는다 — 묶어 쓰기가 이걸 쓴다. */',
+  "import type { ToolRunner } from './types';",
+  '',
+  'export const CORE_OPS: Record<string, string[]> = {',
+  ...ids.map((id) => `  ${id}: ${JSON.stringify(out[id].ops)},`),
+  '};',
+  '',
+  'type Loaded = { run: ToolRunner };',
+  '',
+  '/** 그 도구의 알맹이를 **그때** 받아 온다. 같은 것을 두 번 받지는 않는다(브라우저가 묶음을 캐시한다). */',
+  'export const CORE_LOADERS: Record<string, () => Promise<Loaded>> = {',
+  ...ids.map((id) => `  ${id}: () => import('./${id}').then((m) => ({ run: m.run })),`),
+  '};',
+  ''
+].join(String.fromCharCode(10));
+fs.writeFileSync(path.join(root, 'src/core/registry-lazy.generated.ts'), lazyTs);
+
 console.log(
   `[gen-core-tools] 도구 ${ids.length}개 · 연산 ${Object.values(out).reduce((a, t) => a + t.ops.length, 0)}개 ` +
     '→ data/core-tools.json · src/core/registry.generated.ts'
