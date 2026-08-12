@@ -100,9 +100,14 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
    사라진다. 조작부는 그대로 띠 아래에 둔다(가려지면 누를 수 없다). */
 .bm-wrap{--bm-head:52px;position:relative;width:100%;
   margin-top:calc(var(--bm-head) * -1);
-  height:calc(clamp(460px,92svh,1200px) + var(--bm-head));max-height:calc(1200px + var(--bm-head));
+  height:100svh;max-height:100svh;
   display:flex;flex-direction:column;
   border-radius:var(--radius-md,12px);overflow:hidden;background:#04060d;}
+/* 머리띠는 비치는 유리라 지구가 그대로 보인다 — 그 위의 글자가 묻히지 않게 **띠 높이만큼**
+   옅은 그늘을 깐다(지구는 여전히 보이고, 글자만 또렷해진다). */
+.bm-scrim{position:absolute;top:0;left:0;right:0;height:calc(var(--bm-head) + 28px);z-index:1;
+  pointer-events:none;background:linear-gradient(to bottom,rgba(2,4,10,.66),rgba(2,4,10,0));}
+.bm-wrap:fullscreen .bm-scrim{display:none;}
 .bm-canvas{flex:1;display:block;width:100%;height:100%;touch-action:none;cursor:grab;}
 .bm-canvas.bm-drag{cursor:grabbing;}
 /* 첫 화면은 **조용해야 한다** — 지구와 한 줄. 조작부는 「⋯」 뒤에 접어 둔다.
@@ -140,10 +145,10 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
 .bm-sun[hidden]{display:none;}
 .bm-wrap.bm-ambient .bm-sun{opacity:.8;}
 @media (max-width:520px){.bm-sun{width:64px;height:64px;bottom:88px}}
-.bm-body{position:absolute;top:10px;right:52px;z-index:4;}
-.bm-link{position:absolute;top:10px;right:126px;z-index:4;}
-.bm-card{position:absolute;top:10px;right:214px;z-index:4;}
-.bm-day{position:absolute;top:44px;right:214px;z-index:4;background:rgba(8,12,22,.85);color:#eaf2ff;
+.bm-body{position:absolute;top:calc(10px + var(--bm-head));right:52px;z-index:4;}
+.bm-link{position:absolute;top:calc(10px + var(--bm-head));right:126px;z-index:4;}
+.bm-card{position:absolute;top:calc(10px + var(--bm-head));right:214px;z-index:4;}
+.bm-day{position:absolute;top:calc(44px + var(--bm-head));right:214px;z-index:4;background:rgba(8,12,22,.85);color:#eaf2ff;
   border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:5px 8px;font-size:11px;
   font-family:var(--font-mono,ui-monospace,monospace);display:none;}
 .bm-day.bm-show{display:block;}
@@ -157,7 +162,7 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
 .bm-apod:hover{opacity:1;transform:translateY(-2px);}
 .bm-apod[hidden]{display:none;}
 @media (max-width:520px){.bm-apod{width:92px;bottom:88px}}
-.bm-fs{position:absolute;top:10px;right:10px;z-index:4;appearance:none;border:1px solid rgba(255,255,255,.16);
+.bm-fs{position:absolute;top:calc(10px + var(--bm-head));right:10px;z-index:4;appearance:none;border:1px solid rgba(255,255,255,.16);
   background:rgba(8,12,22,.55);color:rgba(255,255,255,.6);font-size:13px;line-height:1;padding:7px 9px;
   border-radius:999px;cursor:pointer;backdrop-filter:blur(6px);}
 .bm-wrap.bm-ambient .bm-fs{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
@@ -203,6 +208,8 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
           wrap.className = 'bm-wrap';
           const canvas = document.createElement('canvas');
           canvas.className = 'bm-canvas';
+          const scrim = document.createElement('div');
+          scrim.className = 'bm-scrim';
           const menuBtn = document.createElement('button');
           menuBtn.type = 'button';
           menuBtn.className = 'bm-menu';
@@ -263,7 +270,7 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
           fsBtn.type = 'button';
           fsBtn.className = 'bm-fs';
           fsBtn.textContent = '⛶';
-          wrap.append(canvas, menuBtn, chips, cardBtn, dayInput, linkBtn, bodyBtn, sunImg, apodImg, fsBtn, timeBar, ticker);
+          wrap.append(canvas, scrim, menuBtn, chips, cardBtn, dayInput, linkBtn, bodyBtn, sunImg, apodImg, fsBtn, timeBar, ticker);
           container.appendChild(wrap);
 
           const ctx = canvas.getContext('2d');
@@ -810,27 +817,28 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
             if (a <= 0.01) return;
             const c = ctx!;
             c.save();
-            /* 글씨는 지구보다 **넓어야** 한다 — 지구 안에 들어가면 통째로 가려져 아무것도 안 보인다. */
-            let size = Math.min(W * 0.115, H * 0.2);
             c.textAlign = 'center';
             c.textBaseline = 'middle';
             try {
-              (c as unknown as { letterSpacing: string }).letterSpacing = '0.34em';
+              (c as unknown as { letterSpacing: string }).letterSpacing = '0.3em';
             } catch {
               /* 이 손잡이가 없는 브라우저는 자간 없이 나온다 — 못 읽을 정도는 아니다 */
             }
-            c.font = `200 ${size}px var(--font-sans, ui-sans-serif, system-ui, sans-serif)`;
+            /* 캔버스는 **CSS 변수를 못 읽는다** — `var(--font-sans)` 를 넣으면 글꼴 지정 자체가
+               버려지고 10px 기본값으로 그려진다(2026-08-12: 「제목이 안 보인다」의 정체). */
+            const FACE = 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
             const label = 'BLUE MARBLE';
-            // 화면을 넘치면 줄인다(폰 세로에서 글자가 잘려 나가면 제목이 아니라 사고다)
-            const want = W * 0.94;
-            const got = c.measureText(label).width;
-            if (got > want) {
-              size *= want / got;
-              c.font = `200 ${size}px var(--font-sans, ui-sans-serif, system-ui, sans-serif)`;
-            }
-            c.fillStyle = `rgba(255,255,255,${0.92 * a})`;
-            c.shadowColor = `rgba(120,180,255,${0.5 * a})`;
-            c.shadowBlur = size * 0.5;
+            /* 화면 폭에 **맞춰 키운다.** 한 번 재고 그 비율로 되돌리면 폰이든 넓은 화면이든
+               같은 크기로 꽉 찬다(어림잡아 고르면 어느 한쪽에서 반드시 어긋난다). */
+            const want = W * 0.92;
+            c.font = `200 100px ${FACE}`;
+            const unit = c.measureText(label).width / 100;
+            let size = want / unit;
+            size = Math.min(size, H * 0.34); // 세로로도 넘치지 않게
+            c.font = `200 ${size}px ${FACE}`;
+            c.fillStyle = `rgba(255,255,255,${0.94 * a})`;
+            c.shadowColor = `rgba(120,180,255,${0.55 * a})`;
+            c.shadowBlur = size * 0.34;
             c.fillText(label, cx, cy);
             c.restore();
           }
