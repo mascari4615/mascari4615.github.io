@@ -9,5 +9,19 @@
   "pdf.part.pdf2text": "PDF → 文字",
   "pdf.part.text2pdf": "文章 → PDF",
   "pdf.part.pdf2img": "PDF → 画像",
-  "pdf.part.img2pdf": "画像 → PDF"
+  "pdf.part.img2pdf": "画像 → PDF",
+  "pdf.tab": "PDF",
+  "pdf.group.pages": "ページ",
+  "pdf.group.stamp": "重ねる",
+  "pdf.group.hide": "隠す",
+  "pdf.group.convert": "変換",
+  "pdf.drop.title": "PDF をここに置くか、押して選んでください",
+  "pdf.drop.hint": "書類はこのブラウザから出ません",
+  "pdf.btn.change": "変える",
+  "pdf.btn.back": "作業を選ぶ",
+  "pdf.preview.empty": "プレビュー",
+  "pdf.preview.fail": "この書類はプレビューできません",
+  "pdf.meta": "{n}ページ · {size}",
+  "pdf.meta.unreadable": "プレビューを描けませんでした",
+  "pdf.err.mount": "この作業を読み込めませんでした"
 }
