@@ -2,3 +2,4 @@
 export { createDoc, addLayer, countNodes, cloneDoc, nextId } from './model';
 export { toSvg } from './svg';
 export { PARTS, defaultKnobs, variants, button, panel, gauge } from './parts';
+export { bounds, hitTest, handleAt, handlePoints, resizeBox, applyBox, inBox } from './geom';
