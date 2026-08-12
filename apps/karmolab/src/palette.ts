@@ -918,13 +918,27 @@ const KarmoPalette = (() => {
         root.classList.add('kp-collapsed');
         input.setAttribute('aria-expanded', 'false');
       };
+      /* 뜬 목록이 **화면 밖으로 자라지 않게** 아래 남은 자리를 재서 알려 준다.
+       * 목록은 이제 흐름 밖에 떠 있어서(첫 화면이 안 밀리는 대신) 길어지면 그냥 화면 밖으로
+       * 나간다 — 실측: 1440×900 에서 8줄이 178px 삐져나갔다. CSS 만으로는 「입력칸 아래 남은
+       * 높이」를 알 수 없으므로(vh 는 화면 전체다) 여기서 재서 `--kp-space` 로 넘긴다.
+       * 배율을 올리면 남는 자리가 줄고, 그만큼 목록이 안에서 굴러간다. */
+      const measure = (): void => {
+        const bottom = root.getBoundingClientRect().bottom;
+        const room = Math.max(120, window.innerHeight - bottom - 24);
+        root.style.setProperty('--kp-space', room + 'px');
+      };
       const expand = (): void => {
         root.classList.remove('kp-collapsed');
         input.setAttribute('aria-expanded', 'true');
+        measure();
       };
       collapse();
       input.addEventListener('focus', expand);
       input.addEventListener('blur', collapse);
+      window.addEventListener('resize', () => {
+        if (!root.classList.contains('kp-collapsed')) measure();
+      });
       /* 목록을 누를 때 입력에서 포커스가 빠지면 **접히면서 클릭이 사라진다**.
        * 누르는 순간의 기본 동작(포커스 이동)만 막으면 포커스는 입력에 남고 클릭은 그대로 간다. */
       list.addEventListener('mousedown', (e) => e.preventDefault());
