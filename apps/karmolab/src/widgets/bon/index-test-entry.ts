@@ -2,5 +2,5 @@
 export { createDoc, addLayer, countNodes, cloneDoc, nextId, removeLayer, moveLayer, mergeDown, isPaintable } from './model';
 export { toSvg } from './svg';
 export { PARTS, defaultKnobs, variants, button, panel, gauge } from './parts';
-export { bounds, hitTest, handleAt, handlePoints, resizeBox, applyBox, inBox, translate } from './geom';
+export { bounds, hitTest, handleAt, handlePoints, resizeBox, applyBox, inBox, translate, alignTo, fitToDoc } from './geom';
 export { defaultSlice, clampSlice, slicePieces, stretch, sliceMeta } from './slice';

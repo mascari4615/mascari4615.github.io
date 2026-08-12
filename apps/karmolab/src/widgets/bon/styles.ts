@@ -117,6 +117,8 @@ export function injectBonStyles(): void {
       padding-top:8px; border-top:1px solid var(--border); }
     .bon-foot-label { color:var(--text-secondary); font-size:11px; letter-spacing:.06em; }
     .bon-foot-hint { color:var(--text-tertiary, var(--text-secondary)); font-size:11px; margin-left:6px; }
+    .bon-align { gap:3px; }
+    .bon-align button { flex:1; padding:5px 0; font-size:13px; line-height:1; }
     .bon-empty { color:var(--text-secondary); font-size:var(--font-size-xs); padding:6px 2px; }
 `;
   document.head.append(style);
