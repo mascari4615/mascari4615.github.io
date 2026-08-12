@@ -98,6 +98,8 @@ export interface StudioProject {
   assets: StudioAsset[];
   /** 구간 이름표 — 곡의 어디쯤인지 표시하고 그 자리로 건너뛴다. */
   markers: StudioMarker[];
+  /** 스윙 0~0.6 — 뒷박을 얼마나 늦게 칠지. 0 이면 정박. */
+  swing: number;
   updatedAt: string;
 }
 
@@ -157,7 +159,7 @@ export function newProject(): StudioProject {
   midi.clips.push(clip);
   return {
     version: 1, id: studioId('project'), name: 'Untitled Song', bpm: 120, beatsPerBar: 4,
-    masterVolume: 0.86, loop: true, loopStart: 0, loopEnd: 8, snap: 0.25,
+    masterVolume: 0.86, loop: true, loopStart: 0, loopEnd: 8, snap: 0.25, swing: 0,
     tracks: [midi, newTrack('audio', 2)], assets: [], markers: [], updatedAt: new Date().toISOString()
   };
 }
@@ -217,6 +219,7 @@ export function normalizeProject(input: unknown): StudioProject {
     masterVolume: Math.max(0, Math.min(1, Number(value.masterVolume) || 0.86)),
     loop: Boolean(value.loop), loopStart: Math.max(0, Number(value.loopStart) || 0),
     loopEnd: Math.max(1, Number(value.loopEnd) || 8), snap: Math.max(0.0625, Number(value.snap) || 0.25),
+    swing: Math.max(0, Math.min(0.6, Number(value.swing) || 0)),
     tracks: [], assets: Array.isArray(value.assets) ? value.assets : [],
     markers: Array.isArray(value.markers)
       ? sortMarkers(value.markers
@@ -439,5 +442,24 @@ export function selectionRange(clips: { start: number; duration: number }[]): { 
   const from = Math.max(0, Math.min(...clips.map((clip) => clip.start)));
   const to = Math.max(...clips.map((clip) => clip.start + clip.duration));
   return { from, to: Math.max(from + 0.0625, to) };
+}
+
+/**
+ * 스윙 — 격자의 **뒷칸**을 뒤로 민다. `unit` 은 스윙을 먹일 칸(기본 8분음표 = 0.5박).
+ * 앞칸은 그대로 두고 뒷칸만 미는 게 사람이 치는 느낌에 가깝다.
+ */
+export function swingBeat(beat: number, swing: number, unit = 0.5): number {
+  const amount = Math.max(0, Math.min(0.6, swing));
+  if (!amount || unit <= 0) return beat;
+  const pair = unit * 2;
+  const base = Math.floor(beat / pair) * pair;
+  const within = beat - base;
+  if (within < unit - 1e-9) return beat;
+  /* 뒷칸 [unit, pair) 을 [unit + unit*amount, pair) 로 **눌러서** 옮긴다.
+     전부 같은 양만큼 밀면 뒷칸 끝이 다음 앞칸을 넘어 순서가 뒤집힌다(스윙 60%에서 실측). */
+  const shifted = unit + unit * amount;
+  const room = pair - shifted;
+  const ratio = room <= 0 ? 0 : (within - unit) / unit;
+  return base + shifted + ratio * room;
 }
 

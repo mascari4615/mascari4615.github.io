@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Date, JSON, crypto });
-const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT, nextClipColor, CLIP_COLORS, tapTempo, selectionRange } = module.exports;
+const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT, nextClipColor, CLIP_COLORS, tapTempo, selectionRange, swingBeat } = module.exports;
 
 const note = (beat, pitch = 60, duration = 0.5, velocity = 0.8) => ({ id: `n${beat}-${pitch}`, beat, duration, pitch, velocity });
 
@@ -252,4 +252,32 @@ const negative = selectionRange([{ start: -3, duration: 2 }]);
 assert.equal(negative.from, 0, '음수 시작은 0 으로');
 assert.ok(negative.to > negative.from, '끝이 시작보다 앞설 수 없다');
 
-console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘 · 구간 이름표 · 줄 높이 · 클립 잠금·색 · TAP·선택구간');
+// 스윙 — 뒷칸만 민다
+assert.equal(swingBeat(0, 0.3), 0, '앞칸은 그대로');
+assert.equal(swingBeat(1, 0.3), 1, '다음 앞칸도 그대로');
+assert.equal(Number(swingBeat(0.5, 0.3).toFixed(4)), 0.65, '뒷칸은 뒤로');
+assert.equal(Number(swingBeat(1.5, 0.3).toFixed(4)), 1.65);
+assert.equal(swingBeat(0.5, 0), 0.5, '0 이면 정박');
+assert.ok(swingBeat(0.5, 9) < 1, '아무리 세게 줘도 다음 앞칸을 안 넘는다');
+assert.equal(swingBeat(0.5, -1), 0.5, '음수는 무시');
+assert.equal(swingBeat(0.25, 0.3), 0.25, '앞칸 안쪽은 그대로');
+// 16분 단위로도 쓸 수 있다
+assert.equal(Number(swingBeat(0.25, 0.4, 0.25).toFixed(4)), 0.35);
+// 순서가 절대 뒤집히지 않는다
+for (const swing of [0, 0.15, 0.3, 0.45, 0.6]) {
+  let previous = -1;
+  for (let beat = 0; beat < 4; beat += 0.25) {
+    const shifted = swingBeat(beat, swing);
+    assert.ok(shifted > previous, `스윙 ${swing} 에서 순서가 뒤집혔다 (${beat})`);
+    previous = shifted;
+  }
+}
+// 저장 왕복
+const swung = newProject();
+swung.swing = 0.3;
+assert.equal(normalizeProject(JSON.parse(JSON.stringify(swung))).swing, 0.3);
+const legacySwing = JSON.parse(JSON.stringify(swung));
+delete legacySwing.swing;
+assert.equal(normalizeProject(legacySwing).swing, 0, '옛 저장본은 정박');
+
+console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘 · 구간 이름표 · 줄 높이 · 클립 잠금·색 · TAP·선택구간 · 스윙');

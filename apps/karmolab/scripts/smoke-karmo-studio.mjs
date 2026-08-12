@@ -220,6 +220,13 @@ await page.keyboard.press('Alt+ArrowRight');await page.waitForTimeout(120);
 const playheadAfterMarkerKey=await page.locator('[data-role=playhead]').evaluate((element)=>parseFloat(element.style.left));
 await page.locator('[data-marker]').first().click({button:'right'});await page.waitForTimeout(140);
 const markerCountAfterDelete=await page.locator('[data-marker]').count();
+/* 스윙 — 고르면 저장에 남고, 껐다 켜면 정박으로 돌아온다(위치는 안 건드린다). */
+const noteBeatsBeforeSwing=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null');return raw?raw.tracks.flatMap((t)=>t.clips).flatMap((c)=>c.notes||[]).map((n)=>n.beat).join(','):'';});
+await page.selectOption('[data-bind=swing]','0.3');await page.waitForTimeout(450);
+const swingSaved=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null');return raw?raw.swing:-1;});
+const noteBeatsAfterSwing=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null');return raw?raw.tracks.flatMap((t)=>t.clips).flatMap((c)=>c.notes||[]).map((n)=>n.beat).join(','):'';});
+await page.selectOption('[data-bind=swing]','0');await page.waitForTimeout(450);
+const swingOff=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null');return raw?raw.swing:-1;});
 /* TAP 으로 BPM · 선택 구간 반복 재생 · Space 두 번이면 처음으로. */
 const bpmBefore=await page.locator('[data-bind=bpm]').inputValue();
 for(const gap of [0,400,400,400,400]){await page.waitForTimeout(gap);await page.click('[data-act=tap]');}
@@ -349,6 +356,9 @@ const after=await page.evaluate(()=>{const saved=JSON.parse(localStorage.getItem
 if(initial.tracks<2||initial.clips<1||initial.notes<4)problems.push(`기본 프로젝트가 비었다 (${JSON.stringify(initial)})`);
 if(clipStartAfterContext!==clipStartBeforeContext||!contextLabels.includes('편집기 열기'))problems.push(`우클릭 입력 격리 실패 (${clipStartBeforeContext}→${clipStartAfterContext}, ${contextLabels.join(', ')})`);
 if(selectTool!=='select'||drawTool!=='draw')problems.push(`FL식 tool 단축키 실패 (${selectTool}, ${drawTool})`);
+if(swingSaved!==0.3)problems.push(`스윙이 저장에 안 남았다 (${swingSaved})`);
+if(noteBeatsAfterSwing!==noteBeatsBeforeSwing)problems.push('스윙이 음의 저장 위치를 건드렸다 — 소리 낼 때만 밀어야 한다');
+if(swingOff!==0)problems.push(`스윙 끄기가 안 된다 (${swingOff})`);
 if(!(bpmAfterTap>=130&&bpmAfterTap<=170))problems.push(`TAP 이 BPM 을 못 맞춘다 (${bpmBefore}→${bpmAfterTap}, 0.4초 간격이면 150 근처)`);
 if(!loopOnDuringSelection)problems.push('선택 구간 재생인데 LOOP 가 안 켜졌다');
 if(loopDuringSelection.width===loopBeforeSelection.width&&loopDuringSelection.left===loopBeforeSelection.left)problems.push('선택 구간이 loop 로 안 잡힌다');
