@@ -220,6 +220,22 @@ await page.keyboard.press('Alt+ArrowRight');await page.waitForTimeout(120);
 const playheadAfterMarkerKey=await page.locator('[data-role=playhead]').evaluate((element)=>parseFloat(element.style.left));
 await page.locator('[data-marker]').first().click({button:'right'});await page.waitForTimeout(140);
 const markerCountAfterDelete=await page.locator('[data-marker]').count();
+/* 클립 잠금 — 다 짠 부분을 실수로 못 건드리게. */
+await page.locator('.ks-clip.is-selected').first().click({button:'right'});await page.waitForSelector('.ks-context:not([hidden])');
+await page.locator('.ks-context [role=menuitem]').filter({hasText:'잠금'}).first().click();await page.waitForTimeout(160);
+const lockedCount=await page.locator('.ks-clip.is-locked').count();
+const lockedBox=await page.locator('.ks-clip.is-locked').first().boundingBox();
+const lockedLeftBefore=await page.locator('.ks-clip.is-locked').first().evaluate((element)=>parseFloat(element.style.left));
+const lockedGrabX=await page.evaluate(([left,right,y])=>{for(let x=left+6;x<right-14;x+=4){const el=document.elementFromPoint(x,y);if(el&&el.closest('.ks-clip'))return x;}return left+18;},[lockedBox.x,lockedBox.x+lockedBox.width,lockedBox.y+lockedBox.height/2]);
+await page.mouse.move(lockedGrabX,lockedBox.y+lockedBox.height/2);await page.mouse.down();
+await page.mouse.move(lockedGrabX+80,lockedBox.y+lockedBox.height/2,{steps:4});await page.mouse.up();await page.waitForTimeout(160);
+const lockedLeftAfter=await page.locator('.ks-clip.is-locked').first().evaluate((element)=>parseFloat(element.style.left));
+const clipsBeforeLockedDelete=await page.locator('.ks-clip').count();
+await page.keyboard.press('Delete');await page.waitForTimeout(160);
+const clipsAfterLockedDelete=await page.locator('.ks-clip').count();
+await page.locator('.ks-clip.is-locked').first().click({button:'right'});await page.waitForSelector('.ks-context:not([hidden])');
+await page.locator('.ks-context [role=menuitem]').filter({hasText:'잠금'}).first().click();await page.waitForTimeout(160);
+const lockedAfterUnlock=await page.locator('.ks-clip.is-locked').count();
 /* 트랙 접기·순서 바꾸기 — 곡이 길어지면 세로가 모자란다. */
 const laneHeightBefore=await page.locator('.ks-track-row').first().locator('.ks-lane').evaluate((element)=>element.getBoundingClientRect().height);
 await page.locator('[data-track-act=fold]').first().click();await page.waitForTimeout(120);
@@ -321,6 +337,10 @@ const after=await page.evaluate(()=>{const saved=JSON.parse(localStorage.getItem
 if(initial.tracks<2||initial.clips<1||initial.notes<4)problems.push(`기본 프로젝트가 비었다 (${JSON.stringify(initial)})`);
 if(clipStartAfterContext!==clipStartBeforeContext||!contextLabels.includes('편집기 열기'))problems.push(`우클릭 입력 격리 실패 (${clipStartBeforeContext}→${clipStartAfterContext}, ${contextLabels.join(', ')})`);
 if(selectTool!=='select'||drawTool!=='draw')problems.push(`FL식 tool 단축키 실패 (${selectTool}, ${drawTool})`);
+if(lockedCount<1)problems.push(`클립 잠금이 화면에 안 보인다 (${lockedCount})`);
+if(Math.abs(lockedLeftAfter-lockedLeftBefore)>0.6)problems.push(`잠긴 클립이 움직였다 (${lockedLeftBefore}→${lockedLeftAfter})`);
+if(clipsAfterLockedDelete!==clipsBeforeLockedDelete)problems.push(`잠긴 클립이 지워졌다 (${clipsBeforeLockedDelete}→${clipsAfterLockedDelete})`);
+if(lockedAfterUnlock!==0)problems.push(`잠금 풀기가 안 된다 (${lockedAfterUnlock})`);
 if(mutedCount<1)problems.push(`클립 소리 끄기가 화면에 안 보인다 (${mutedCount})`);
 if(mutedSaved<1)problems.push(`클립 소리 끔이 저장에 안 남았다 (${mutedSaved})`);
 if(mutedAfterToggle!==0)problems.push(`다시 눌러도 안 켜진다 (${mutedAfterToggle})`);

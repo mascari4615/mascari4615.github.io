@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Date, JSON, crypto });
-const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT } = module.exports;
+const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT, nextClipColor, CLIP_COLORS } = module.exports;
 
 const note = (beat, pitch = 60, duration = 0.5, velocity = 0.8) => ({ id: `n${beat}-${pitch}`, beat, duration, pitch, velocity });
 
@@ -204,4 +204,26 @@ const legacyHeight = JSON.parse(JSON.stringify(tall));
 delete legacyHeight.tracks[0].height;
 assert.equal(normalizeProject(legacyHeight).tracks[0].height, TRACK_HEIGHT.default, '옛 저장본은 기본 높이');
 
-console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘 · 구간 이름표 · 줄 높이');
+// 클립 색 — 한 칸씩 돌다가 트랙 색으로 되돌아온다
+assert.equal(nextClipColor(undefined), CLIP_COLORS[0], '트랙 색을 따르던 것은 첫 색부터');
+assert.equal(nextClipColor(CLIP_COLORS[0]), CLIP_COLORS[1]);
+assert.equal(nextClipColor(CLIP_COLORS[CLIP_COLORS.length - 1]), undefined, '한 바퀴 돌면 트랙 색으로');
+assert.equal(nextClipColor('#nope'), CLIP_COLORS[0], '모르는 색은 첫 색부터');
+
+// 잠금·색이 저장 왕복에서 산다
+const locked = newProject();
+locked.tracks[0].clips[0].locked = true;
+locked.tracks[0].clips[0].color = CLIP_COLORS[2];
+const back = normalizeProject(JSON.parse(JSON.stringify(locked))).tracks[0].clips[0];
+assert.equal(back.locked, true);
+assert.equal(back.color, CLIP_COLORS[2]);
+const legacyClip = JSON.parse(JSON.stringify(locked));
+delete legacyClip.tracks[0].clips[0].locked;
+delete legacyClip.tracks[0].clips[0].color;
+delete legacyClip.tracks[0].clips[0].mute;
+const old = normalizeProject(legacyClip).tracks[0].clips[0];
+assert.equal(old.locked, false, '옛 저장본은 안 잠김');
+assert.equal(old.mute, false, '옛 저장본은 소리 켜짐');
+assert.equal(old.color, undefined, '옛 저장본은 트랙 색');
+
+console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘 · 구간 이름표 · 줄 높이 · 클립 잠금·색');
