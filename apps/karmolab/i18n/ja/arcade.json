@@ -116,5 +116,13 @@
   "arcade.curling.throw": "投げる (残り{n})",
   "arcade.curling.sliding": "滑走中",
   "arcade.curling.win": "{who} — ハウス内 {n}個",
-  "arcade.curling.none": "ハウスに入った石がない"
+  "arcade.curling.none": "ハウスに入った石がない",
+  "arcade.game.bowling.name": "ボウリング",
+  "arcade.game.bowling.desc": "10本を倒す。3フレーム、本物の計算",
+  "arcade.bowling.aim": "左右",
+  "arcade.bowling.power": "強さ",
+  "arcade.bowling.roll": "投げる",
+  "arcade.bowling.rolling": "転がり中",
+  "arcade.bowling.win": "{who} — {n}点",
+  "arcade.bowling.draw": "{n}点で同じ"
 }

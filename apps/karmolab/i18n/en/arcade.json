@@ -116,5 +116,13 @@
   "arcade.curling.throw": "Throw ({n} left)",
   "arcade.curling.sliding": "Sliding",
   "arcade.curling.win": "{who} — {n} in the house",
-  "arcade.curling.none": "Nothing in the house"
+  "arcade.curling.none": "Nothing in the house",
+  "arcade.game.bowling.name": "Bowling",
+  "arcade.game.bowling.desc": "Knock down ten. Three frames, real scoring",
+  "arcade.bowling.aim": "Line",
+  "arcade.bowling.power": "Speed",
+  "arcade.bowling.roll": "Roll",
+  "arcade.bowling.rolling": "Rolling",
+  "arcade.bowling.win": "{who} — {n} points",
+  "arcade.bowling.draw": "Tied at {n}"
 }

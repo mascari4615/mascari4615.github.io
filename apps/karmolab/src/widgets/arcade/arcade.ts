@@ -233,6 +233,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-clbar label{display:flex;align-items:center;gap:8px;font-size:var(--font-size-xs);color:var(--text-secondary)}',
       '.ac-clbar label span{min-width:52px}',
       '.ac-clbar input[type=range]{flex:1}',
+      '.ac-bw{max-width:min(92vw,380px);margin:var(--space-lg) auto}',
+      '.ac-bw canvas{width:100%;height:300px;display:block;border:1px solid var(--border);border-radius:8px;background:linear-gradient(#0f172a,#1e293b)}',
+      '.ac-bwscore{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:var(--space-lg) 0}',
+      '.ac-bws{padding:4px 10px;border:1px solid var(--border);border-radius:999px;font-size:var(--font-size-xs)}',
+      '.ac-bws.ac-me{border-color:var(--accent)}',
       '.ac-code{font-size:clamp(28px,8vw,48px);font-weight:800;letter-spacing:.18em;text-align:center;margin:var(--space-lg) 0}',
       '.ac-share{display:flex;gap:6px;margin:var(--space-lg) 0}',
       '.ac-share input{flex:1;min-width:0}'

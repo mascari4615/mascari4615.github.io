@@ -116,5 +116,13 @@
   "arcade.curling.throw": "던지기 ({n}개 남음)",
   "arcade.curling.sliding": "미끄러지는 중",
   "arcade.curling.win": "{who} — 하우스 안 {n}개",
-  "arcade.curling.none": "하우스에 든 돌이 없다"
+  "arcade.curling.none": "하우스에 든 돌이 없다",
+  "arcade.game.bowling.name": "볼링",
+  "arcade.game.bowling.desc": "열 개를 쓰러뜨린다. 세 프레임, 진짜 셈법",
+  "arcade.bowling.aim": "좌우",
+  "arcade.bowling.power": "세기",
+  "arcade.bowling.roll": "굴리기",
+  "arcade.bowling.rolling": "굴러가는 중",
+  "arcade.bowling.win": "{who} — {n}점",
+  "arcade.bowling.draw": "{n}점으로 똑같다"
 }
