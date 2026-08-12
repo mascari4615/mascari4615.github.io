@@ -155,5 +155,8 @@
   "arcade.highlow.nopot": "Call one to start",
   "arcade.highlow.left": "{n} left",
   "arcade.highlow.win": "{who} — {n} points",
-  "arcade.highlow.draw": "Tied at {n}"
+  "arcade.highlow.draw": "Tied at {n}",
+  "arcade.game.nim.name": "Nim",
+  "arcade.game.nim.desc": "Take any number from one row. Take the last and you lose",
+  "arcade.nim.win": "{who} left the last one"
 }

@@ -155,5 +155,8 @@
   "arcade.highlow.nopot": "한 장 골라 시작",
   "arcade.highlow.left": "{n}판 남음",
   "arcade.highlow.win": "{who} — {n}점",
-  "arcade.highlow.draw": "{n}점으로 똑같다"
+  "arcade.highlow.draw": "{n}점으로 똑같다",
+  "arcade.game.nim.name": "돌 가져가기",
+  "arcade.game.nim.desc": "한 줄에서 원하는 만큼. 마지막을 가져가면 진다",
+  "arcade.nim.win": "{who} 이(가) 마지막을 넘겼다"
 }
