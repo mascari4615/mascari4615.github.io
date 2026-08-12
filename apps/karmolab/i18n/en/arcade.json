@@ -84,5 +84,15 @@
   "arcade.game.checkers.name": "Checkers",
   "arcade.game.checkers.desc": "Jump to capture; reach the back row to crown",
   "arcade.checkers.win": "{who} swept the board",
-  "arcade.checkers.stale": "Long stretch with nothing happening — a draw"
+  "arcade.checkers.stale": "Long stretch with nothing happening — a draw",
+  "arcade.game.blackjack.name": "Blackjack",
+  "arcade.game.blackjack.desc": "Get close to 21. Go over and you're out",
+  "arcade.blackjack.hit": "Hit",
+  "arcade.blackjack.stand": "Stand",
+  "arcade.blackjack.bust": "Bust",
+  "arcade.blackjack.mine": "You {n}",
+  "arcade.blackjack.dealer": "Dealer {n}",
+  "arcade.blackjack.dealerHidden": "Dealer — one still down",
+  "arcade.blackjack.win": "{who} beat the dealer ({n})",
+  "arcade.blackjack.house": "Dealer {n} — house takes it"
 }
