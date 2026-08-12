@@ -72,7 +72,8 @@ interface SmData { tracks: SmTrack[] }
 
 /* 단계 = 왼쪽 등뼈 한 줄. 세로로 이어지는 게 「지도」의 뼈대다. */
 .sm-stage { position: relative; padding-left: 26px; }
-.sm-stage::before { content: ''; position: absolute; left: 7px; top: 6px; bottom: -18px; width: 2px; background: linear-gradient(180deg, var(--border-hover), transparent); }
+.sm-stage::before { content: ''; position: absolute; left: 7px; top: 6px; bottom: -18px; width: 2px; background: linear-gradient(180deg, var(--secondary), var(--border)); opacity: .5; }
+.sm-stage.is-clear::before { background: linear-gradient(180deg, var(--success), var(--border)); opacity: .6; }
 .sm-stage:last-child::before { bottom: 12px; }
 .sm-stage-dot { position: absolute; left: 0; top: 3px; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border-hover); background: var(--bg-primary); }
 .sm-stage.is-clear .sm-stage-dot { border-color: var(--success); background: var(--success); }

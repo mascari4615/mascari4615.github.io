@@ -17,7 +17,12 @@
               "title": "HTML — 뜻으로 짜는 뼈대",
               "why": "div 로만 짜면 검색·스크린리더·키보드가 전부 눈을 감는다. 태그는 장식이 아니라 뜻이다.",
               "check": "제목·목록·표·폼을 태그 이름만 보고 고를 수 있다",
-              "links": [{ "label": "MDN HTML 안내서", "url": "https://developer.mozilla.org/ko/docs/Learn/HTML" }]
+              "links": [
+                {
+                  "label": "MDN HTML 안내서",
+                  "url": "https://developer.mozilla.org/ko/docs/Learn/HTML"
+                }
+              ]
             },
             {
               "id": "web-css",
@@ -25,8 +30,14 @@
               "why": "레이아웃이 깨지는 이유는 대부분 박스 모델과 흐름을 안 그려봤기 때문이다.",
               "check": "flex 와 grid 중 어느 쪽을 쓸지 이유를 대며 고른다",
               "links": [
-                { "label": "MDN CSS 레이아웃", "url": "https://developer.mozilla.org/ko/docs/Learn/CSS/CSS_layout" },
-                { "label": "Flexbox 놀이 (Froggy)", "url": "https://flexboxfroggy.com/#ko" }
+                {
+                  "label": "MDN CSS 레이아웃",
+                  "url": "https://developer.mozilla.org/ko/docs/Learn/CSS/CSS_layout"
+                },
+                {
+                  "label": "Flexbox 놀이 (Froggy)",
+                  "url": "https://flexboxfroggy.com/#ko"
+                }
               ]
             },
             {
@@ -35,8 +46,14 @@
               "why": "값·스코프·비동기 셋만 잡으면 프레임워크는 문법 문제로 줄어든다.",
               "check": "클로저와 이벤트 루프를 그림으로 설명한다",
               "links": [
-                { "label": "javascript.info (한국어)", "url": "https://ko.javascript.info/" },
-                { "label": "이벤트 루프 시각화", "url": "http://latentflip.com/loupe/" }
+                {
+                  "label": "javascript.info (한국어)",
+                  "url": "https://ko.javascript.info/"
+                },
+                {
+                  "label": "이벤트 루프 시각화",
+                  "url": "http://latentflip.com/loupe/"
+                }
               ]
             },
             {
@@ -44,7 +61,12 @@
               "title": "DOM · 이벤트",
               "why": "프레임워크가 대신 해 주는 일이 정확히 이것이다. 손으로 한 번 해 본 사람만 프레임워크를 의심할 수 있다.",
               "check": "라이브러리 없이 할 일 목록을 만든다 (추가·삭제·필터)",
-              "links": [{ "label": "MDN 클라이언트 사이드 웹 API", "url": "https://developer.mozilla.org/ko/docs/Learn/JavaScript/Client-side_web_APIs" }]
+              "links": [
+                {
+                  "label": "MDN 클라이언트 사이드 웹 API",
+                  "url": "https://developer.mozilla.org/ko/docs/Learn/JavaScript/Client-side_web_APIs"
+                }
+              ]
             }
           ]
         },
@@ -58,8 +80,14 @@
               "why": "느리다·안 바뀐다·로그인이 풀린다 — 셋 다 여기서 끝난다.",
               "check": "네트워크 탭에서 304 와 200(from cache) 를 구분해 설명한다",
               "links": [
-                { "label": "MDN HTTP", "url": "https://developer.mozilla.org/ko/docs/Web/HTTP" },
-                { "label": "HTTP 캐시 (web.dev)", "url": "https://web.dev/articles/http-cache" }
+                {
+                  "label": "MDN HTTP",
+                  "url": "https://developer.mozilla.org/ko/docs/Web/HTTP"
+                },
+                {
+                  "label": "HTTP 캐시 (web.dev)",
+                  "url": "https://web.dev/articles/http-cache"
+                }
               ]
             },
             {
@@ -67,21 +95,36 @@
               "title": "렌더링 파이프라인",
               "why": "스크롤이 끊기는 건 코드가 많아서가 아니라 레이아웃을 다시 계산해서다.",
               "check": "reflow 를 일으키는 속성과 아닌 속성을 구분한다",
-              "links": [{ "label": "렌더링 성능 (web.dev)", "url": "https://web.dev/articles/rendering-performance" }]
+              "links": [
+                {
+                  "label": "렌더링 성능 (web.dev)",
+                  "url": "https://web.dev/articles/rendering-performance"
+                }
+              ]
             },
             {
               "id": "web-a11y",
               "title": "접근성 · 폼",
               "why": "키보드로 못 쓰는 화면은 절반이 안 만들어진 화면이다.",
               "check": "마우스를 뽑고 내 화면을 끝까지 쓴다",
-              "links": [{ "label": "MDN 접근성", "url": "https://developer.mozilla.org/ko/docs/Learn/Accessibility" }]
+              "links": [
+                {
+                  "label": "MDN 접근성",
+                  "url": "https://developer.mozilla.org/ko/docs/Learn/Accessibility"
+                }
+              ]
             },
             {
               "id": "web-devtools",
               "title": "개발자도구로 파고들기",
               "why": "찍어보기 대신 보는 습관. 이게 없으면 뒤 단계가 전부 추측이 된다.",
               "check": "브레이크포인트로 값이 언제 바뀌는지 잡아낸다",
-              "links": [{ "label": "Chrome DevTools 문서", "url": "https://developer.chrome.com/docs/devtools" }]
+              "links": [
+                {
+                  "label": "Chrome DevTools 문서",
+                  "url": "https://developer.chrome.com/docs/devtools"
+                }
+              ]
             }
           ]
         },
@@ -94,7 +137,12 @@
               "title": "TypeScript",
               "why": "타입은 문서다. 반년 뒤의 나에게 남기는 유일한 문서.",
               "check": "any 없이 남의 API 응답을 다룬다",
-              "links": [{ "label": "TypeScript 핸드북", "url": "https://www.typescriptlang.org/docs/handbook/intro.html" }]
+              "links": [
+                {
+                  "label": "TypeScript 핸드북",
+                  "url": "https://www.typescriptlang.org/docs/handbook/intro.html"
+                }
+              ]
             },
             {
               "id": "web-framework",
@@ -102,8 +150,14 @@
               "why": "고르는 게 중요한 게 아니라, 상태가 화면으로 흐르는 한 방향을 몸에 넣는 게 중요하다.",
               "check": "상태를 어디에 둘지(지역·전역·서버) 이유를 대고 정한다",
               "links": [
-                { "label": "React 공식 학습", "url": "https://ko.react.dev/learn" },
-                { "label": "Svelte 튜토리얼", "url": "https://svelte.dev/tutorial" }
+                {
+                  "label": "React 공식 학습",
+                  "url": "https://ko.react.dev/learn"
+                },
+                {
+                  "label": "Svelte 튜토리얼",
+                  "url": "https://svelte.dev/tutorial"
+                }
               ]
             },
             {
@@ -111,7 +165,12 @@
               "title": "번들러 · 모듈",
               "why": "빌드가 무엇을 하는지 모르면 빌드가 깨졌을 때 할 수 있는 게 없다.",
               "check": "번들 결과에서 무거운 의존성을 찾아낸다",
-              "links": [{ "label": "Vite 안내서", "url": "https://ko.vite.dev/guide/" }]
+              "links": [
+                {
+                  "label": "Vite 안내서",
+                  "url": "https://ko.vite.dev/guide/"
+                }
+              ]
             },
             {
               "id": "web-test",
@@ -119,8 +178,14 @@
               "why": "고쳤다는 걸 증명하는 방법. 회귀는 기억력으로 막을 수 없다.",
               "check": "버그를 재현하는 실패 테스트를 먼저 쓴다",
               "links": [
-                { "label": "Vitest", "url": "https://vitest.dev/guide/" },
-                { "label": "Playwright", "url": "https://playwright.dev/docs/intro" }
+                {
+                  "label": "Vitest",
+                  "url": "https://vitest.dev/guide/"
+                },
+                {
+                  "label": "Playwright",
+                  "url": "https://playwright.dev/docs/intro"
+                }
               ]
             },
             {
@@ -128,7 +193,12 @@
               "title": "배포 · 관측",
               "why": "내 컴퓨터에서 되는 것은 아직 아무것도 아니다.",
               "check": "푸시 한 번으로 실제 주소가 바뀌고, 깨지면 알림이 온다",
-              "links": [{ "label": "GitHub Actions 시작하기", "url": "https://docs.github.com/ko/actions/quickstart" }]
+              "links": [
+                {
+                  "label": "GitHub Actions 시작하기",
+                  "url": "https://docs.github.com/ko/actions/quickstart"
+                }
+              ]
             }
           ]
         }
@@ -149,14 +219,24 @@
               "title": "커밋은 스냅샷, 브랜치는 포스트잇",
               "why": "차이(diff)를 저장한다고 오해하면 rebase·cherry-pick 이 영원히 마법으로 남는다.",
               "check": "커밋·트리·블롭·부모를 그림으로 그린다",
-              "links": [{ "label": "Pro Git (한국어)", "url": "https://git-scm.com/book/ko/v2" }]
+              "links": [
+                {
+                  "label": "Pro Git (한국어)",
+                  "url": "https://git-scm.com/book/ko/v2"
+                }
+              ]
             },
             {
               "id": "git-areas",
               "title": "작업트리 · 인덱스 · HEAD",
               "why": "add 가 왜 따로 있는지 여기서 끝난다. 부분 커밋의 자리이기도 하다.",
               "check": "status 출력만 보고 파일이 어느 칸에 있는지 말한다",
-              "links": [{ "label": "git add 문서", "url": "https://git-scm.com/docs/git-add" }]
+              "links": [
+                {
+                  "label": "git add 문서",
+                  "url": "https://git-scm.com/docs/git-add"
+                }
+              ]
             }
           ]
         },
@@ -169,21 +249,36 @@
               "title": "브랜치 · 병합",
               "why": "브랜치는 비싸지 않다. 겁내면 한 줄기에 전부 쌓여 되돌릴 수 없어진다.",
               "check": "충돌을 손으로 풀고 결과를 설명한다",
-              "links": [{ "label": "Learn Git Branching (놀이형)", "url": "https://learngitbranching.js.org/?locale=ko" }]
+              "links": [
+                {
+                  "label": "Learn Git Branching (놀이형)",
+                  "url": "https://learngitbranching.js.org/?locale=ko"
+                }
+              ]
             },
             {
               "id": "git-rebase",
               "title": "rebase · 커밋 다시 쓰기",
               "why": "역사를 읽히게 만드는 도구. 남이 이미 받은 커밋에 쓰면 사고가 되는 도구이기도 하다.",
               "check": "커밋 셋을 하나로 합치고, 순서를 바꾸고, 중간 하나만 고친다",
-              "links": [{ "label": "Pro Git — 히스토리 단장하기", "url": "https://git-scm.com/book/ko/v2" }]
+              "links": [
+                {
+                  "label": "Pro Git — 히스토리 단장하기",
+                  "url": "https://git-scm.com/book/ko/v2"
+                }
+              ]
             },
             {
               "id": "git-undo",
               "title": "되돌리기 — reset · revert · reflog",
               "why": "Git 에서 진짜로 잃는 건 거의 없다. reflog 를 아는 순간 손이 자유로워진다.",
               "check": "하드 리셋으로 날린 커밋을 되찾는다",
-              "links": [{ "label": "git reflog 문서", "url": "https://git-scm.com/docs/git-reflog" }]
+              "links": [
+                {
+                  "label": "git reflog 문서",
+                  "url": "https://git-scm.com/docs/git-reflog"
+                }
+              ]
             }
           ]
         },
@@ -196,21 +291,36 @@
               "title": "리모트 · fetch · pull · push",
               "why": "pull 이 사실 fetch + merge 라는 걸 알면 이상한 병합 커밋이 사라진다.",
               "check": "origin/main 과 main 이 어떻게 다른지 설명한다",
-              "links": [{ "label": "Pro Git — 리모트 브랜치", "url": "https://git-scm.com/book/ko/v2" }]
+              "links": [
+                {
+                  "label": "Pro Git — 리모트 브랜치",
+                  "url": "https://git-scm.com/book/ko/v2"
+                }
+              ]
             },
             {
               "id": "git-pr",
               "title": "PR · 코드 리뷰 · 커밋 메시지",
               "why": "코드는 한 번 쓰고 여러 번 읽힌다. 읽는 쪽을 위한 포장이 리뷰다.",
               "check": "왜 고쳤는지가 메시지 첫 줄에 담긴다",
-              "links": [{ "label": "좋은 커밋 메시지 쓰기", "url": "https://cbea.ms/git-commit/" }]
+              "links": [
+                {
+                  "label": "좋은 커밋 메시지 쓰기",
+                  "url": "https://cbea.ms/git-commit/"
+                }
+              ]
             },
             {
               "id": "git-flow",
               "title": "협업 전략 (트렁크 · 릴리스 · 태그)",
               "why": "규칙이 없으면 사람 수만큼 규칙이 생긴다.",
               "check": "우리 팀이 왜 이 전략인지 한 문단으로 쓴다",
-              "links": [{ "label": "Trunk Based Development", "url": "https://trunkbaseddevelopment.com/" }]
+              "links": [
+                {
+                  "label": "Trunk Based Development",
+                  "url": "https://trunkbaseddevelopment.com/"
+                }
+              ]
             }
           ]
         },
@@ -223,21 +333,36 @@
               "title": "bisect — 범인 커밋 찾기",
               "why": "언제부터 깨졌나를 추측 대신 이분탐색으로 찾는다.",
               "check": "재현 스크립트를 붙여 자동으로 돌린다",
-              "links": [{ "label": "git bisect 문서", "url": "https://git-scm.com/docs/git-bisect" }]
+              "links": [
+                {
+                  "label": "git bisect 문서",
+                  "url": "https://git-scm.com/docs/git-bisect"
+                }
+              ]
             },
             {
               "id": "git-worktree",
               "title": "worktree · stash",
               "why": "하던 일을 안 부수고 다른 가지를 여는 법. 여러 작업이 겹칠 때 필수.",
               "check": "브랜치 둘을 동시에 열어 둔 채 작업한다",
-              "links": [{ "label": "git worktree 문서", "url": "https://git-scm.com/docs/git-worktree" }]
+              "links": [
+                {
+                  "label": "git worktree 문서",
+                  "url": "https://git-scm.com/docs/git-worktree"
+                }
+              ]
             },
             {
               "id": "git-hooks",
               "title": "훅 · 자동 검사",
               "why": "규칙은 사람이 아니라 기계가 지켜야 남는다.",
               "check": "푸시 전에 테스트가 자동으로 돈다",
-              "links": [{ "label": "Git Hooks", "url": "https://git-scm.com/docs/githooks" }]
+              "links": [
+                {
+                  "label": "Git Hooks",
+                  "url": "https://git-scm.com/docs/githooks"
+                }
+              ]
             }
           ]
         }
@@ -258,21 +383,36 @@
               "title": "진법 · 비트 · 부동소수",
               "why": "0.1 + 0.2 가 왜 그 모양인지 모르면 돈 계산에서 사고가 난다.",
               "check": "정수 오버플로와 부동소수 오차를 예로 든다",
-              "links": [{ "label": "부동소수 눈으로 보기", "url": "https://float.exposed/" }]
+              "links": [
+                {
+                  "label": "부동소수 눈으로 보기",
+                  "url": "https://float.exposed/"
+                }
+              ]
             },
             {
               "id": "cs-memory",
               "title": "메모리 — 스택 · 힙 · 참조",
               "why": "복사인지 참조인지 모르면 언어가 무엇이든 같은 버그를 낸다.",
               "check": "값이 언제 복사되는지 그림으로 그린다",
-              "links": [{ "label": "CS:APP 강의 (CMU)", "url": "https://www.cs.cmu.edu/~213/" }]
+              "links": [
+                {
+                  "label": "CS:APP 강의 (CMU)",
+                  "url": "https://www.cs.cmu.edu/~213/"
+                }
+              ]
             },
             {
               "id": "cs-os",
               "title": "운영체제 — 프로세스 · 스레드 · 스케줄링",
               "why": "느린 이유가 CPU 인지 I/O 인지 구분하는 눈.",
               "check": "블로킹과 논블로킹을 예로 설명한다",
-              "links": [{ "label": "OSTEP (무료 교재)", "url": "https://pages.cs.wisc.edu/~remzi/OSTEP/" }]
+              "links": [
+                {
+                  "label": "OSTEP (무료 교재)",
+                  "url": "https://pages.cs.wisc.edu/~remzi/OSTEP/"
+                }
+              ]
             }
           ]
         },
@@ -285,7 +425,12 @@
               "title": "자료구조",
               "why": "자료구조를 바꾸면 알고리즘이 통째로 사라지는 경우가 많다.",
               "check": "배열·해시·트리 중 하나를 이유를 대고 고른다",
-              "links": [{ "label": "VisuAlgo — 눈으로 보는 자료구조", "url": "https://visualgo.net/ko" }]
+              "links": [
+                {
+                  "label": "VisuAlgo — 눈으로 보는 자료구조",
+                  "url": "https://visualgo.net/ko"
+                }
+              ]
             },
             {
               "id": "cs-algo",
@@ -293,8 +438,14 @@
               "why": "O(n²) 를 O(n log n) 으로 바꾸는 순간이 실제로 온다.",
               "check": "내 코드의 복잡도를 말로 설명한다",
               "links": [
-                { "label": "백준 단계별로 풀기", "url": "https://www.acmicpc.net/step" },
-                { "label": "NeetCode 로드맵", "url": "https://neetcode.io/roadmap" }
+                {
+                  "label": "백준 단계별로 풀기",
+                  "url": "https://www.acmicpc.net/step"
+                },
+                {
+                  "label": "NeetCode 로드맵",
+                  "url": "https://neetcode.io/roadmap"
+                }
               ]
             },
             {
@@ -302,7 +453,12 @@
               "title": "동시성 — 경쟁 상태 · 락",
               "why": "가끔 실패하는 버그의 고향. 재현이 안 되는 이유가 여기 있다.",
               "check": "경쟁 상태를 일부러 만들어 본다",
-              "links": [{ "label": "OSTEP 병행성 편", "url": "https://pages.cs.wisc.edu/~remzi/OSTEP/" }]
+              "links": [
+                {
+                  "label": "OSTEP 병행성 편",
+                  "url": "https://pages.cs.wisc.edu/~remzi/OSTEP/"
+                }
+              ]
             }
           ]
         },
@@ -315,21 +471,438 @@
               "title": "네트워크 — IP · TCP · DNS · TLS",
               "why": "웹의 모든 문제는 결국 이 네 글자 중 하나로 내려간다.",
               "check": "주소창 엔터 후 벌어지는 일을 순서대로 말한다",
-              "links": [{ "label": "High Performance Browser Networking", "url": "https://hpbn.co/" }]
+              "links": [
+                {
+                  "label": "High Performance Browser Networking",
+                  "url": "https://hpbn.co/"
+                }
+              ]
             },
             {
               "id": "cs-db",
               "title": "데이터베이스 — 인덱스 · 트랜잭션",
               "why": "느린 쿼리 하나가 서비스 전체를 세운다. 인덱스는 마법이 아니라 자료구조다.",
               "check": "실행 계획을 읽고 인덱스를 고른다",
-              "links": [{ "label": "Use The Index, Luke (한국어)", "url": "https://use-the-index-luke.com/ko" }]
+              "links": [
+                {
+                  "label": "Use The Index, Luke (한국어)",
+                  "url": "https://use-the-index-luke.com/ko"
+                }
+              ]
             },
             {
               "id": "cs-compiler",
               "title": "언어가 도는 방식 — 파서 · 런타임",
               "why": "직접 만들어 보면 「언어」가 신비하지 않게 된다.",
               "check": "작은 계산기 인터프리터를 만든다",
-              "links": [{ "label": "Crafting Interpreters", "url": "https://craftinginterpreters.com/" }]
+              "links": [
+                {
+                  "label": "Crafting Interpreters",
+                  "url": "https://craftinginterpreters.com/"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shell",
+      "title": "리눅스 · 셸",
+      "emoji": "🐧",
+      "lead": "검은 창이 무서우면 서버는 영원히 남의 것이다 — 손에 쥐는 순서",
+      "stages": [
+        {
+          "id": "shell-a",
+          "title": "길 찾기",
+          "nodes": [
+            {
+              "id": "shell-fs",
+              "title": "파일 시스템 · 경로",
+              "why": "/ 하나에서 전부 갈라진다. 절대·상대 경로가 헷갈리면 모든 명령이 도박이 된다.",
+              "check": "cd · ls · find 만으로 남의 서버에서 로그를 찾아낸다",
+              "links": [
+                {
+                  "label": "Linux Journey (기초)",
+                  "url": "https://linuxjourney.com/"
+                }
+              ]
+            },
+            {
+              "id": "shell-perm",
+              "title": "권한 · 소유자",
+              "why": "「Permission denied」 는 에러가 아니라 설계다. 왜 막혔는지 읽을 줄 알아야 한다.",
+              "check": "rwx 세 자리와 chmod 숫자를 서로 바꿔 말한다",
+              "links": [
+                {
+                  "label": "chmod 계산기로 감 잡기",
+                  "url": "https://chmod-calculator.com/"
+                }
+              ]
+            },
+            {
+              "id": "shell-editor",
+              "title": "터미널 편집기 (vim · nano)",
+              "why": "서버에는 내 에디터가 없다. 나가는 법이라도 알아야 한다.",
+              "check": "설정 파일 한 줄을 고치고 저장해서 나온다",
+              "links": [
+                {
+                  "label": "Vim Adventures (놀이)",
+                  "url": "https://vim-adventures.com/"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "shell-b",
+          "title": "이어 붙이기",
+          "nodes": [
+            {
+              "id": "shell-pipe",
+              "title": "파이프 · grep · sed · awk",
+              "why": "작은 도구를 이어 붙이는 게 유닉스의 전부다. 로그 분석 도구를 따로 살 필요가 없어진다.",
+              "check": "로그에서 상위 에러 10개를 한 줄로 뽑는다",
+              "links": [
+                {
+                  "label": "The Missing Semester (MIT)",
+                  "url": "https://missing.csail.mit.edu/"
+                }
+              ]
+            },
+            {
+              "id": "shell-proc",
+              "title": "프로세스 · 포트 · 자원",
+              "why": "「서버가 느려요」 에 답하려면 무엇이 CPU·메모리·포트를 물고 있는지 봐야 한다.",
+              "check": "ps · top · lsof 로 범인 프로세스를 짚는다",
+              "links": [
+                {
+                  "label": "Linux 성능 도구 지도 (Brendan Gregg)",
+                  "url": "https://www.brendangregg.com/linuxperf.html"
+                }
+              ]
+            },
+            {
+              "id": "shell-ssh",
+              "title": "SSH · 키 · 원격 작업",
+              "why": "비밀번호를 치고 있으면 자동화가 영원히 안 된다.",
+              "check": "키로 로그인하고, 포트 포워딩으로 원격 화면을 내 브라우저에서 연다",
+              "links": [
+                {
+                  "label": "SSH 키 만들기 (GitHub 문서)",
+                  "url": "https://docs.github.com/ko/authentication/connecting-to-github-with-ssh"
+                }
+              ]
+            },
+            {
+              "id": "shell-script",
+              "title": "셸 스크립트 · cron",
+              "why": "두 번 한 일은 스크립트로, 매일 할 일은 예약으로. 손으로 하면 언젠가 빠뜨린다.",
+              "check": "백업을 매일 도는 스크립트로 만든다",
+              "links": [
+                {
+                  "label": "ShellCheck — 스크립트 검사",
+                  "url": "https://www.shellcheck.net/"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "devops",
+      "title": "DevOps · 클라우드",
+      "emoji": "🚢",
+      "lead": "만든 것을 남이 쓰게 만드는 층 — 여기부터가 「서비스」다",
+      "stages": [
+        {
+          "id": "devops-a",
+          "title": "한 대에 띄운다",
+          "nodes": [
+            {
+              "id": "devops-container",
+              "title": "컨테이너 (Docker)",
+              "why": "「제 컴퓨터에선 됩니다」 를 끝내는 도구. 환경을 코드로 적는다.",
+              "check": "내 앱을 이미지로 만들어 남의 기계에서 그대로 돌린다",
+              "links": [
+                {
+                  "label": "Docker 시작하기",
+                  "url": "https://docs.docker.com/get-started/"
+                }
+              ]
+            },
+            {
+              "id": "devops-env",
+              "title": "설정 · 비밀값",
+              "why": "토큰을 코드에 박는 순간 그 저장소는 평생 오염된다.",
+              "check": "환경변수와 시크릿 저장소로 값을 밖에 둔다",
+              "links": [
+                {
+                  "label": "The Twelve-Factor App",
+                  "url": "https://12factor.net/ko/"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "devops-b",
+          "title": "자동으로 나간다",
+          "nodes": [
+            {
+              "id": "devops-ci",
+              "title": "CI — 밀 때마다 검사",
+              "why": "사람이 기억해서 돌리는 검사는 결국 안 돌아간다.",
+              "check": "PR 마다 테스트·린트가 자동으로 돈다",
+              "links": [
+                {
+                  "label": "GitHub Actions 문서",
+                  "url": "https://docs.github.com/ko/actions"
+                }
+              ]
+            },
+            {
+              "id": "devops-cd",
+              "title": "CD — 배포 · 롤백",
+              "why": "되돌릴 수 없는 배포는 배포가 아니라 도박이다.",
+              "check": "한 번의 명령으로 이전 판으로 되돌린다",
+              "links": [
+                {
+                  "label": "배포 전략 정리 (Argo 문서)",
+                  "url": "https://argo-rollouts.readthedocs.io/en/stable/concepts/"
+                }
+              ]
+            },
+            {
+              "id": "devops-iac",
+              "title": "인프라를 코드로",
+              "why": "클릭으로 만든 인프라는 아무도 재현할 수 없다.",
+              "check": "서버 한 대를 코드로 세우고 지운다",
+              "links": [
+                {
+                  "label": "Terraform 튜토리얼",
+                  "url": "https://developer.hashicorp.com/terraform/tutorials"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "devops-c",
+          "title": "죽었는지 안다",
+          "nodes": [
+            {
+              "id": "devops-obs",
+              "title": "로그 · 지표 · 추적",
+              "why": "장애를 사용자보다 늦게 아는 게 제일 나쁘다.",
+              "check": "에러율이 튀면 알림이 온다",
+              "links": [
+                {
+                  "label": "Google SRE Book (무료)",
+                  "url": "https://sre.google/sre-book/table-of-contents/"
+                }
+              ]
+            },
+            {
+              "id": "devops-postmortem",
+              "title": "장애 대응 · 회고",
+              "why": "같은 장애가 두 번 나면 그건 사고가 아니라 습관이다.",
+              "check": "원인·재발 방지책을 사람 탓 없이 적는다",
+              "links": [
+                {
+                  "label": "Postmortem 문화 (SRE Book)",
+                  "url": "https://sre.google/sre-book/postmortem-culture/"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "security",
+      "title": "보안",
+      "emoji": "🔐",
+      "lead": "뚫리는 방식을 알아야 막는 자리가 보인다 — 공격자 눈으로 한 바퀴",
+      "stages": [
+        {
+          "id": "sec-a",
+          "title": "문단속",
+          "nodes": [
+            {
+              "id": "sec-owasp",
+              "title": "흔한 구멍 (OWASP Top 10)",
+              "why": "실제 사고의 대부분은 새로운 기법이 아니라 이 열 개다.",
+              "check": "내 코드에서 인젝션·XSS 가 날 자리를 짚는다",
+              "links": [
+                {
+                  "label": "OWASP Top 10",
+                  "url": "https://owasp.org/www-project-top-ten/"
+                }
+              ]
+            },
+            {
+              "id": "sec-authn",
+              "title": "인증과 인가는 다르다",
+              "why": "누구인지(인증)와 뭘 해도 되는지(인가)를 섞으면 남의 데이터가 보인다.",
+              "check": "내 API 에서 남의 id 를 넣어 보고 막히는지 확인한다",
+              "links": [
+                {
+                  "label": "OAuth 2.0 쉽게 (한국어 정리)",
+                  "url": "https://www.oauth.com/"
+                }
+              ]
+            },
+            {
+              "id": "sec-secret",
+              "title": "비밀값 관리",
+              "why": "깃 히스토리에 한 번 들어간 토큰은 지워도 남아 있다.",
+              "check": "커밋 전에 비밀값을 잡는 검사가 돈다",
+              "links": [
+                {
+                  "label": "gitleaks",
+                  "url": "https://github.com/gitleaks/gitleaks"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sec-b",
+          "title": "기초 체력",
+          "nodes": [
+            {
+              "id": "sec-crypto",
+              "title": "암호 기초 — 해시 · 대칭 · 공개키",
+              "why": "직접 만들면 안 되는 이유를 알기 위해서라도 원리는 알아야 한다.",
+              "check": "비밀번호 저장에 왜 해시 + 솔트인지 설명한다",
+              "links": [
+                {
+                  "label": "Crypto 101 (무료)",
+                  "url": "https://www.crypto101.io/"
+                }
+              ]
+            },
+            {
+              "id": "sec-supply",
+              "title": "공급망 — 의존성",
+              "why": "내가 안 쓴 코드가 내 서비스 안에서 돈다.",
+              "check": "의존성 취약점 알림을 받고 갱신한다",
+              "links": [
+                {
+                  "label": "Dependabot 문서",
+                  "url": "https://docs.github.com/ko/code-security/dependabot"
+                }
+              ]
+            },
+            {
+              "id": "sec-practice",
+              "title": "직접 뚫어 보기",
+              "why": "방어만 읽으면 안 늘어난다. 한 번 뚫어 보면 코드가 다르게 보인다.",
+              "check": "워게임 한 단계를 스스로 푼다",
+              "links": [
+                {
+                  "label": "OverTheWire Bandit",
+                  "url": "https://overthewire.org/wargames/bandit/"
+                },
+                {
+                  "label": "PortSwigger 웹 보안 아카데미",
+                  "url": "https://portswigger.net/web-security"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ai",
+      "title": "AI · LLM",
+      "emoji": "🤖",
+      "lead": "모델을 쓰는 쪽의 공학 — 「말 잘 걸기」가 아니라 시스템 설계다",
+      "stages": [
+        {
+          "id": "ai-a",
+          "title": "무엇을 다루는지",
+          "nodes": [
+            {
+              "id": "ai-token",
+              "title": "토큰 · 문맥창 · 비용",
+              "why": "길이·값·속도가 전부 여기서 정해진다. 모르면 요금 고지서로 배운다.",
+              "check": "내 요청 한 번의 토큰 수와 값을 계산한다",
+              "links": [
+                {
+                  "label": "Anthropic 문서 — 토큰·비용",
+                  "url": "https://docs.claude.com/en/docs/about-claude/models"
+                }
+              ]
+            },
+            {
+              "id": "ai-prompt",
+              "title": "프롬프트 = 사양서",
+              "why": "애매한 지시는 애매한 결과를 만든다. 사람에게 일을 주는 것과 같다.",
+              "check": "같은 입력에 결과가 흔들리지 않게 지시를 조인다",
+              "links": [
+                {
+                  "label": "Anthropic 프롬프트 가이드",
+                  "url": "https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview"
+                }
+              ]
+            },
+            {
+              "id": "ai-limits",
+              "title": "환각 · 한계",
+              "why": "모델은 모른다고 말하는 데 약하다. 그걸 시스템이 막아야 한다.",
+              "check": "틀린 답이 나올 자리를 미리 적고 대비한다",
+              "links": [
+                {
+                  "label": "Anthropic — 환각 줄이기",
+                  "url": "https://docs.claude.com/en/docs/test-and-evaluate/strengthen-guardrails/reduce-hallucinations"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ai-b",
+          "title": "시스템으로 붙인다",
+          "nodes": [
+            {
+              "id": "ai-rag",
+              "title": "검색 붙이기 (임베딩 · RAG)",
+              "why": "모델에 없는 우리 데이터를 넣는 가장 흔한 방법.",
+              "check": "내 문서 더미에 질문하고 근거 문단을 같이 받는다",
+              "links": [
+                {
+                  "label": "Anthropic — 문맥 검색",
+                  "url": "https://www.anthropic.com/news/contextual-retrieval"
+                }
+              ]
+            },
+            {
+              "id": "ai-tools",
+              "title": "도구 호출 · 에이전트",
+              "why": "모델이 말만 하지 않고 무언가를 하게 만드는 지점. 여기서 안전 설계가 시작된다.",
+              "check": "도구 하나를 붙이고 실패했을 때의 길을 정한다",
+              "links": [
+                {
+                  "label": "Anthropic — 도구 사용",
+                  "url": "https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview"
+                }
+              ]
+            },
+            {
+              "id": "ai-eval",
+              "title": "평가 — 좋아졌는지 재기",
+              "why": "프롬프트를 고친 뒤 좋아졌다는 느낌은 대체로 착각이다.",
+              "check": "고정 문제 20개로 점수를 매겨 비교한다",
+              "links": [
+                {
+                  "label": "Anthropic — 평가 만들기",
+                  "url": "https://docs.claude.com/en/docs/test-and-evaluate/develop-tests"
+                }
+              ]
             }
           ]
         }
