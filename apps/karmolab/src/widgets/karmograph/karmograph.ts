@@ -271,8 +271,12 @@ import {
       /* 폰에서는 캔버스가 **높이를 뺏기면 안 된다** — 옆 패널을 아래에 쌓으면 그림이 손바닥만 해진다.
          그래서 패널을 캔버스 위에 얹는 **시트**로 만든다(기본은 접힘, 손잡이로 올린다). */
       .km-canvas { min-height:0; height:100%; }
+      /* ★ 시트 높이는 **화면**이 아니라 **위젯** 기준이다. 64vh 로 두면 위젯이 화면보다
+         짧을 때(폰에서 늘 그렇다 — 위에 머리말·탭이 있다) 시트가 위젯보다 커져 캔버스를
+         통째로 덮는다. 실측 2026-08-12: 카드를 고르면 그림이 한 조각도 안 보였다.
+         위젯 몸통의 60% — 그림이 최소 40% 는 남는다. */
       .km-side { position:absolute; left:0; right:0; bottom:0; width:auto; z-index:18;
-        max-height:64vh; border-left:none; border-top:1px solid var(--border);
+        max-height:60%; border-left:none; border-top:1px solid var(--border);
         border-radius:14px 14px 0 0; box-shadow:0 -8px 24px rgba(0,0,0,.35);
         /* 접혔을 때 내다보이는 만큼 = **손잡이 높이 그대로**. 손잡이만 키우면 그 아래가 화면 밖으로 나가 안 눌린다. */
         transform:translateY(calc(100% - 44px)); transition:transform .18s ease; padding-top:44px; }
