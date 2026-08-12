@@ -252,5 +252,9 @@
   "arcade.tanks.power": "強さ",
   "arcade.tanks.fire": "撃つ",
   "arcade.tanks.flying": "飛行中",
-  "arcade.tanks.win": "{who} — 残り{n}"
+  "arcade.tanks.win": "{who} — 残り{n}",
+  "arcade.game.mancala.name": "マンカラ",
+  "arcade.game.mancala.desc": "種を一粒ずつ蒔いて回る。最後の一粒が全てを決める",
+  "arcade.man.win": "{who} — {a} 対 {b}",
+  "arcade.man.draw": "{n} 対 {n} — 引き分け"
 }
