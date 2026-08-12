@@ -293,5 +293,10 @@
   "arcade.tug.hint": "Find the rhythm",
   "arcade.tug.tooFast": "Too fast — no grip",
   "arcade.tug.win": "{who} dragged it over",
-  "arcade.tug.draw": "Time — a draw"
+  "arcade.tug.draw": "Time — a draw",
+  "arcade.game.capturego.name": "Capture Go",
+  "arcade.game.capturego.desc": "No territory counting. First to capture five wins",
+  "arcade.go.pass": "Pass",
+  "arcade.go.win": "{who} — {n} captured",
+  "arcade.go.draw": "{n} all — a draw"
 }

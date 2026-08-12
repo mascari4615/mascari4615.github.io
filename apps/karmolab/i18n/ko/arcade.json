@@ -293,5 +293,10 @@
   "arcade.tug.hint": "박자를 맞춰 당기세요",
   "arcade.tug.tooFast": "너무 빠르다 — 헛심",
   "arcade.tug.win": "{who} 이(가) 끌어갔다",
-  "arcade.tug.draw": "시간이 다 됐다 — 비겼다"
+  "arcade.tug.draw": "시간이 다 됐다 — 비겼다",
+  "arcade.game.capturego.name": "따내기 바둑",
+  "arcade.game.capturego.desc": "집은 안 센다. 먼저 다섯 점을 잡으면 이긴다",
+  "arcade.go.pass": "거르기",
+  "arcade.go.win": "{who} — {n}점 잡음",
+  "arcade.go.draw": "{n} 대 {n} — 비겼다"
 }
