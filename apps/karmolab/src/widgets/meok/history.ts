@@ -1,127 +1,19 @@
 /**
- * 「먹」 — 되돌리기 (TASK-KL-240 · 1단계)
+ * 「먹」 — 되돌리기 중 **그림에만 있는 부분** (TASK-KL-240 · 1단계 / KL-254 에서 분리)
  *
- * 지금까지의 되돌리기는 **화면 통짜 스냅샷**이었다. 4000×3000 한 장이 48MB 이므로 몇 단계
- * 못 쌓고, 「레이어 이름만 바꿨는데 48MB」 같은 낭비가 생긴다. 그래서 커맨드로 바꾼다:
- * 각 동작이 **자기가 무엇을 되돌리는지** 안다.
- *
- * 픽셀 편집은 여기에 더해 **더러워진 사각형만** 저장한다(`pixelPatch`). 1024² 판에 점 하나를
- * 찍으면 4MB 가 아니라 4바이트다. 획이 끝날 때 딱 한 번 굳히므로, 붓질 중에는 아무것도 안 쌓인다.
+ * 커맨드 스택 자체는 `lib/history` 로 옮겼다 — 그림이든 도형이든 똑같은 일이기 때문이다.
+ * 여기 남은 것은 픽셀 판을 알아야만 할 수 있는 것: **더러워진 사각형만** 담기(`pixelPatch`).
+ * 1024² 판에 점 하나를 찍으면 4MB 가 아니라 4바이트다. 획이 끝날 때 딱 한 번 굳히므로
+ * 붓질 중에는 아무것도 안 쌓인다.
  *
  * 브라우저를 모른다 — 화면 없이 검사한다.
  */
 
 import { type Surface } from './doc';
+import { type Command } from '../../lib/history';
 
-export interface Command {
-  label: string;
-  redo(): void;
-  undo(): void;
-  /**
-   * 같은 열쇠가 이어지면 한 동작으로 묶는다(슬라이더를 끄는 동안 100단계가 쌓이지 않게).
-   * 묶을 때 새 커맨드의 `redo` 만 살아남고, 되돌리기는 **처음 것**으로 돌아간다.
-   */
-  coalesceKey?: string;
-}
-
-export interface HistoryEntry {
-  label: string;
-  at: number;
-}
-
-export class History {
-  private done: Command[] = [];
-  private undone: Command[] = [];
-  private limit: number;
-  private lastKey = '';
-  private lastAt = 0;
-  /** 묶는 시간 창(ms). 이보다 오래 쉬면 같은 열쇠라도 새 단계. */
-  private mergeWindow: number;
-  private listeners: Array<() => void> = [];
-
-  constructor(limit = 200, mergeWindow = 900) {
-    this.limit = Math.max(1, limit);
-    this.mergeWindow = mergeWindow;
-  }
-
-  onChange(fn: () => void): () => void {
-    this.listeners.push(fn);
-    return () => { this.listeners = this.listeners.filter(l => l !== fn); };
-  }
-
-  private emit(): void { this.listeners.forEach(fn => fn()); }
-
-  /**
-   * 이미 **적용된** 동작을 기록한다(다시 실행하지 않는다 — 화면은 벌써 그렇게 돼 있다).
-   * 새 동작이 들어오면 앞으로가기(redo) 가지는 버린다.
-   */
-  push(command: Command, now = Date.now()): void {
-    const key = command.coalesceKey;
-    const merged = !!key
-      && key === this.lastKey
-      && now - this.lastAt <= this.mergeWindow
-      && this.done.length > 0;
-    if (merged) {
-      /* 되돌리기는 처음 것으로, 다시하기는 마지막 것으로 — 둘을 한 커맨드로 꿰맨다. */
-      const first = this.done[this.done.length - 1];
-      this.done[this.done.length - 1] = {
-        label: command.label,
-        coalesceKey: key,
-        redo: () => command.redo(),
-        undo: () => first.undo()
-      };
-    } else {
-      this.done.push(command);
-      if (this.done.length > this.limit) this.done.shift();
-    }
-    this.undone.length = 0;
-    this.lastKey = key || '';
-    this.lastAt = now;
-    this.emit();
-  }
-
-  /** 만들면서 바로 실행한다 — 「하기」와 「기록」을 두 번 안 적게. */
-  run(command: Command, now = Date.now()): void {
-    command.redo();
-    this.push(command, now);
-  }
-
-  get canUndo(): boolean { return this.done.length > 0; }
-  get canRedo(): boolean { return this.undone.length > 0; }
-  /** 다음에 되돌릴 동작 이름 — 「되돌리기: 붓」처럼 화면에 보여 준다. */
-  get undoLabel(): string { return this.done.length ? this.done[this.done.length - 1].label : ''; }
-  get redoLabel(): string { return this.undone.length ? this.undone[this.undone.length - 1].label : ''; }
-  get depth(): number { return this.done.length; }
-
-  undo(): boolean {
-    const command = this.done.pop();
-    if (!command) return false;
-    command.undo();
-    this.undone.push(command);
-    this.lastKey = '';
-    this.emit();
-    return true;
-  }
-
-  redo(): boolean {
-    const command = this.undone.pop();
-    if (!command) return false;
-    command.redo();
-    this.done.push(command);
-    this.lastKey = '';
-    this.emit();
-    return true;
-  }
-
-  clear(): void {
-    this.done.length = 0;
-    this.undone.length = 0;
-    this.lastKey = '';
-    this.emit();
-  }
-}
-
-/* ===== 픽셀 편집 — 더러워진 사각형만 ===== */
+// 쓰던 곳들이 계속 이 파일 하나만 보면 되게 다시 내보낸다(부르는 자리를 흔들지 않는다).
+export { History, fieldChange, type Command, type HistoryEntry } from '../../lib/history';
 
 export interface Rect { x: number; y: number; w: number; h: number }
 
@@ -184,22 +76,5 @@ export function pixelPatch(
     coalesceKey,
     redo: () => pasteRect(surface, rect, newPixels),
     undo: () => pasteRect(surface, rect, oldPixels)
-  };
-}
-
-/** 값 하나 바꾸기(이름·불투명도·블렌드…) — 되돌릴 것이 옛 값 하나뿐일 때. */
-export function fieldChange<T, K extends keyof T>(
-  target: T,
-  key: K,
-  next: T[K],
-  label: string,
-  coalesceKey?: string
-): Command {
-  const previous = target[key];
-  return {
-    label,
-    coalesceKey,
-    redo: () => { target[key] = next; },
-    undo: () => { target[key] = previous; }
   };
 }
