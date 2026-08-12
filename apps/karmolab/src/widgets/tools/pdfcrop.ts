@@ -12,30 +12,10 @@
  */
 import { fileSize as size } from './shared/media';
 import { t, loadNamespace } from '../../lib/i18n';
+import { download, openForEdit, openForRead, pdfBlob, suffixName, type PdfJsDoc } from './shared/pdf';
 import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
 
 (function (): void {
-  interface PdfPage {
-    getViewport: (o: { scale: number }) => { width: number; height: number };
-    render: (o: { canvasContext: CanvasRenderingContext2D; viewport: unknown }) => { promise: Promise<void> };
-  }
-  interface PdfDoc { numPages: number; getPage: (n: number) => Promise<PdfPage> }
-  interface PdfJs {
-    getDocument: (o: { data: ArrayBuffer }) => { promise: Promise<PdfDoc> };
-    GlobalWorkerOptions: { workerSrc: string };
-  }
-  interface PDFLib {
-    PDFDocument: {
-      load: (b: ArrayBuffer, o?: { ignoreEncryption?: boolean }) => Promise<{
-        getPages: () => Array<{
-          getSize: () => { width: number; height: number };
-          setCropBox: (x: number, y: number, w: number, h: number) => void;
-        }>;
-        save: () => Promise<Uint8Array>;
-      }>;
-    };
-  }
-
   /** 그려 낸 페이지에서 내용이 실제로 있는 범위를 찾는다 (0~1 비율) */
   function inkBounds(ctx: CanvasRenderingContext2D, w: number, h: number, tolerance: number): null | { l: number; t: number; r: number; b: number } {
     const d = ctx.getImageData(0, 0, w, h).data;
@@ -131,7 +111,7 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
           const runBtn = $<HTMLButtonElement>('#pcRun');
 
           let file: File | null = null;
-          let doc: PdfDoc | null = null;
+          let doc: PdfJsDoc | null = null;
           let bounds: Array<{ l: number; t: number; r: number; b: number } | null> = [];
 
           const say = (m: string, kind = ''): void => {
@@ -242,15 +222,8 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
             runBtn.disabled = true;
             bounds = [];
             say(t('pdfcrop.say.opening'));
-            await Toolbox.ensureScript?.('vendor/pdfjs.min');
-            const lib = (window as unknown as { pdfjsLib: PdfJs }).pdfjsLib;
-            if (!lib) {
-              say(t('pdfcrop.err.lib'), 'error');
-              return;
-            }
-            lib.GlobalWorkerOptions.workerSrc = '/apps/karmolab/js/vendor/pdfjs.worker.min.js';
             try {
-              doc = await lib.getDocument({ data: (await f.arrayBuffer()).slice(0) }).promise;
+              doc = await openForRead(f);
             } catch {
               say(t('pdfcrop.err.open'), 'error');
               return;
@@ -264,9 +237,7 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
             runBtn.disabled = true;
             say(t('pdfcrop.say.cropping'));
             try {
-              await Toolbox.ensureScript?.('vendor/pdf-lib.min');
-              const L = (window as unknown as { PDFLib: PDFLib }).PDFLib;
-              const out = await L.PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+              const out = await openForEdit(file);
               const pages = out.getPages();
               let cropped = 0;
               pages.forEach((page, i) => {
@@ -281,17 +252,14 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
                 page.setCropBox(x, y, w, h);
                 cropped++;
               });
-              const blob = new Blob([(await out.save()) as unknown as BlobPart], { type: 'application/pdf' });
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download =
-                (file.name || t('pdfcrop.file.fallback')).replace(/\.[^.]+$/, '') +
-                t('pdfcrop.file.suffix') +
-                '.pdf';
-              a.click();
+              const blob = pdfBlob(await out.save());
+              const name = suffixName(
+                file.name || t('pdfcrop.file.fallback'),
+                t('pdfcrop.file.suffix').replace(/^-|\.pdf$/gi, '')
+              );
+              download(blob, name);
               // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-              Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'pdfcrop' });
-              setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+              Toolbox.offerNext?.(status, { blob: blob, name, from: 'pdfcrop' });
               say(t('pdfcrop.say.done', { n: cropped, size: size(blob.size) }), 'ok');
               Toolbox.trackUse?.('crop');
             } catch (e) {
