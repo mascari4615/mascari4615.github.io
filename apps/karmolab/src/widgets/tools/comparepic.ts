@@ -12,7 +12,7 @@
  * ③ 지금 보이는 그대로 PNG 로 저장 — 자랑하려면 그림 한 장이 있어야 한다
  */
 import { t, loadNamespace } from '../../lib/i18n';
-import { download } from './shared/image';
+import { download, loadImage } from './shared/image';
 
 (function (): void {
   const esc = (v: unknown): string =>
@@ -89,12 +89,19 @@ import { download } from './shared/image';
             handle.setAttribute('aria-valuenow', String(Math.round(split * 100)));
           };
 
-          const load = (file: File, side: 'left' | 'right'): void => {
-            const img = new Image();
-            img.onload = () => {
+          /** 공용 `loadImage` 로 (TASK-KL-280). 여기선 주소를 **바로 거두고** 있었는데, 그러면
+           *  그림을 다시 그릴 때 쓸 수 없다 — 공용 쪽이 한참 뒤에 거둔다. */
+          const load = async (file: File, side: 'left' | 'right'): Promise<void> => {
+            let img: HTMLImageElement;
+            try {
+              img = await loadImage(file);
+            } catch {
+              say(t('comparepic.say.06'), 'error');
+              return;
+            }
+            {
               if (side === 'left') left = img;
               else right = img;
-              URL.revokeObjectURL(img.src);
               $<HTMLButtonElement>('#cpSave').disabled = left === null || right === null;
               draw();
               if (left !== null && right !== null) {
@@ -110,18 +117,16 @@ import { download } from './shared/image';
               } else {
                 say(t('comparepic.say.05'));
               }
-            };
-            img.onerror = () => say(t('comparepic.say.06'), 'error');
-            img.src = URL.createObjectURL(file);
+            }
           };
 
           $<HTMLInputElement>('#cpA').onchange = (e) => {
             const f = (e.target as HTMLInputElement).files?.[0];
-            if (f) load(f, 'left');
+            if (f) void load(f, 'left');
           };
           $<HTMLInputElement>('#cpB').onchange = (e) => {
             const f = (e.target as HTMLInputElement).files?.[0];
-            if (f) load(f, 'right');
+            if (f) void load(f, 'right');
           };
 
           /* 손가락·마우스 한 벌로 (pointer). 마우스만 받으면 폰에서는 없는 기능이 된다. */
