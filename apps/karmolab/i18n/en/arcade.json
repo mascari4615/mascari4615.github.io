@@ -100,5 +100,13 @@
   "arcade.president.empty": "Pile is empty — lead anything",
   "arcade.president.play": "Play {n}",
   "arcade.president.pass": "Pass",
-  "arcade.president.win": "{who} went out first — President"
+  "arcade.president.win": "{who} went out first — President",
+  "arcade.game.dominoes.name": "Dominoes",
+  "arcade.game.dominoes.desc": "Match the open ends. Can't play — draw",
+  "arcade.dominoes.empty": "Line is empty — lay anything",
+  "arcade.dominoes.left": "Left end",
+  "arcade.dominoes.right": "Right end",
+  "arcade.dominoes.draw": "Draw",
+  "arcade.dominoes.pass": "Pass",
+  "arcade.dominoes.win": "{who} went out first"
 }

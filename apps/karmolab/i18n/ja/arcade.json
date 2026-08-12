@@ -100,5 +100,13 @@
   "arcade.president.empty": "場が空いた — 好きに出せます",
   "arcade.president.play": "{n}枚出す",
   "arcade.president.pass": "パス",
-  "arcade.president.win": "{who} が先に上がった — 大富豪"
+  "arcade.president.win": "{who} が先に上がった — 大富豪",
+  "arcade.game.dominoes.name": "ドミノ",
+  "arcade.game.dominoes.desc": "両端の数を合わせてつなぐ。出せなければ山から",
+  "arcade.dominoes.empty": "場が空いた — 好きに置けます",
+  "arcade.dominoes.left": "左端に",
+  "arcade.dominoes.right": "右端に",
+  "arcade.dominoes.draw": "山から引く",
+  "arcade.dominoes.pass": "パス",
+  "arcade.dominoes.win": "{who} が先に出し切った"
 }
