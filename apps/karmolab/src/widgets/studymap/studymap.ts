@@ -101,7 +101,17 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-stage-find::before { display: none; }
 .sm-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--secondary), var(--accent)); transition: width .35s cubic-bezier(.2,.8,.2,1); }
 
+.sm-body { display: grid; grid-template-columns: 1fr; gap: 20px; }
+@media (min-width: 900px) { .sm-body { grid-template-columns: 216px minmax(0, 1fr); gap: 28px; align-items: start; } }
+.sm-main { min-width: 0; }
 .sm-tracks { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (min-width: 900px) {
+  /* 갈래 17개를 알약으로 깔면 첫 화면이 목록에 덮인다 — 넓은 화면에선 옆으로 세운다. */
+  .sm-tracks { position: sticky; top: 12px; flex-direction: column; flex-wrap: nowrap; gap: 2px; max-height: calc(100vh - 40px); overflow-y: auto; padding-right: 4px; }
+  .sm-track-btn { width: 100%; justify-content: flex-start; border-color: transparent; background: none; border-radius: var(--radius-lg); padding: 7px 10px; }
+  .sm-track-btn .sm-count { margin-left: auto; }
+  .sm-track-btn.is-on { background: var(--accent-subtle); border-color: var(--accent); }
+}
 .sm-track-btn { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; font: inherit; font-size: var(--font-size-2xs); transition: border-color .15s, color .15s, background .15s; }
 .sm-track-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
 .sm-track-btn.is-on { border-color: var(--accent); color: var(--text-primary); background: var(--accent-subtle); }
@@ -213,11 +223,13 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
             <div class="sm-meter-all" data-sm="pall"></div>
           </div>
         </div>
-        <div class="sm-tracks" data-sm="tracks"></div>
         <input class="sm-search" type="search" name="studymap-search" data-sm="search"
                placeholder="${esc(t('studymap.search', undefined, '주제 찾기 — 예: rebase, 인덱스, 캐시'))}"
                aria-label="${esc(t('studymap.search', undefined, '주제 찾기 — 예: rebase, 인덱스, 캐시'))}">
-        <div data-sm="stages"></div>
+        <div class="sm-body">
+          <nav class="sm-tracks" data-sm="tracks" aria-label="${esc(t('studymap.tracks', undefined, '갈래'))}"></nav>
+          <div class="sm-main" data-sm="stages"></div>
+        </div>
         <div class="sm-foot">
           <button type="button" class="sm-reset" data-sm="export">${esc(t('studymap.export', undefined, '진도 내보내기'))}</button>
           <button type="button" class="sm-reset" data-sm="import">${esc(t('studymap.import', undefined, '진도 가져오기'))}</button>

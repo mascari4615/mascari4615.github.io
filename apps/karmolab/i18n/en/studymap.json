@@ -20,5 +20,6 @@
   "studymap.export.empty": "Nothing is checked yet.",
   "studymap.import.ask": "Paste the exported progress. (It is added to what you have now)",
   "studymap.import.bad": "Nothing recognizable in there. Only text made by Export works.",
-  "studymap.import.done": "Imported {n} topics."
+  "studymap.import.done": "Imported {n} topics.",
+  "studymap.tracks": "Tracks"
 }
