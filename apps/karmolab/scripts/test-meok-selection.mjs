@@ -3,7 +3,7 @@
  *
  * 선택은 도구가 아니라 **바탕**이다 — 붓·채우기가 이걸 곱해서 쓴다. 그래서 여기서는
  * 「고르는 것」만이 아니라 「고른 밖으로 안 새는 것」까지 본다.
- * 사용: node scripts/test-imageedit-selection.mjs
+ * 사용: node scripts/test-meok-selection.mjs
  */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -11,7 +11,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import ts from 'typescript';
 
-const dir = path.resolve('src/widgets/imageedit');
+const dir = path.resolve('src/widgets/meok');
 const cache = new Map();
 function load(name) {
   if (cache.has(name)) return cache.get(name);
@@ -164,4 +164,4 @@ const at = (selection, x, y) => selection.mask[y * selection.w + x];
   assert.equal(S.edgePixels(S.createSelection(4, 4)).length, 0, '아무것도 안 골랐으면 테두리도 없다');
 }
 
-console.log('[test-imageedit-selection] ✓ 사각/타원/올가미/마술봉 · 더하기·빼기·교집합·뒤집기 · feather · 붓·채우기가 밖으로 안 샘 · 오려내기');
+console.log('[test-meok-selection] ✓ 사각/타원/올가미/마술봉 · 더하기·빼기·교집합·뒤집기 · feather · 붓·채우기가 밖으로 안 샘 · 오려내기');

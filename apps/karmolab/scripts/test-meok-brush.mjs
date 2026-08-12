@@ -4,7 +4,7 @@
  * 붓에서 눈으로 잡기 어려운 것 둘을 여기서 잠근다:
  *  ① 반투명 붓으로 천천히 그어도 **한 겹**이어야 한다(도장 겹침이 안 진해진다)
  *  ② 빠르게 그어도 점선이 안 된다(도장 사이가 채워진다)
- * 사용: node scripts/test-imageedit-brush.mjs
+ * 사용: node scripts/test-meok-brush.mjs
  */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -12,7 +12,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import ts from 'typescript';
 
-const dir = path.resolve('src/widgets/imageedit');
+const dir = path.resolve('src/widgets/meok');
 const cache = new Map();
 
 function load(name) {
@@ -206,4 +206,4 @@ const alphaAt = (surface, x, y) => surface.data[(y * surface.w + x) * 4 + 3];
   assert.equal(cel.data[((3 * 8) * 128 + 3 * 8) * 4 + 3], 0, '옆 칸은 안 건드린다');
 }
 
-console.log('[test-imageedit-brush] ✓ 한 획 한 겹 · 빈틈 없음 · 지우개 · 흐름 · 필압 · 픽셀 격자 · 채우기 · ditherdeck 왕복');
+console.log('[test-meok-brush] ✓ 한 획 한 겹 · 빈틈 없음 · 지우개 · 흐름 · 필압 · 픽셀 격자 · 채우기 · ditherdeck 왕복');

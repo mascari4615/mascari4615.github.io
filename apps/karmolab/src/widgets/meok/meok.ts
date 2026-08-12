@@ -1,5 +1,5 @@
 /**
- * 이미지 스튜디오 — 화면 (TASK-KL-240 · 2b)
+ * 「먹」 — 그림 화면 (TASK-KL-240 · 2b)
  *
  * 문서 모델(`doc`)·합성(`composite`)·붓(`brush`)·픽셀(`pixel`)을 사람 손에 잇는 자리.
  * 여기서만 DOM 을 안다 — 아래 파일들은 계속 브라우저를 모른다.
@@ -37,7 +37,7 @@ type ToolId = 'brush' | 'eraser' | 'fill' | 'pick' | 'pan' | 'marquee' | 'lasso'
 const esc = (value: unknown): string =>
   String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch] as string));
 
-const T = (key: string, fallback: string): string => t('imageedit.' + key, undefined, fallback);
+const T = (key: string, fallback: string): string => t('meok.' + key, undefined, fallback);
 
 /** 도구 단추 하나 — 아이콘은 글리프가 아니라 선 그림이다(글꼴 따라 안 달라진다). */
 const toolButton = (id: string, hotkey: string, label: string, path: string, active = false): string =>
@@ -84,7 +84,7 @@ const safeName = (name: string): string => name.trim().replace(/[^a-z0-9가-힣_
 
 /* ===== 화면 ===== */
 
-function buildStudio(container: HTMLElement): void {
+function buildMeok(container: HTMLElement): void {
   let doc: Doc = createDoc(1024, 1024, T('untitled', '새 그림'));
   const history = new History(300);
   let brush: BrushSettings = defaultBrush();
@@ -102,25 +102,25 @@ function buildStudio(container: HTMLElement): void {
   let ants = 0;
 
   container.innerHTML =
-    '<div class="ies">' +
-    '<header class="ies-bar">' +
-      '<strong class="ies-logo">STUDIO</strong>' +
-      '<input class="ies-name" data-name aria-label="' + esc(T('docName', '그림 이름')) + '">' +
-      '<span class="ies-sep"></span>' +
+    '<div class="meok">' +
+    '<header class="meok-bar">' +
+      '<strong class="meok-logo">먹</strong>' +
+      '<input class="meok-name" data-name aria-label="' + esc(T('docName', '그림 이름')) + '">' +
+      '<span class="meok-sep"></span>' +
       '<button data-act="new" title="' + esc(T('newHelp', '빈 그림을 새로 시작한다')) + '">' + esc(T('new', '새로')) + '</button>' +
       '<button data-act="new-pixel" title="' + esc(T('newPixelHelp', '격자에 붙는 픽셀 그림 — 도트 애니메이션용')) + '">' + esc(T('newPixel', '픽셀')) + '</button>' +
-      '<label class="ies-file">' + esc(T('open', '열기')) +
+      '<label class="meok-file">' + esc(T('open', '열기')) +
         '<input data-open type="file" accept="image/*,application/json,.json,.ditherdeck.json" hidden></label>' +
       '<button data-act="undo" data-hot="Ctrl+Z">' + esc(T('undo', '되돌리기')) + '</button>' +
       '<button data-act="redo" data-hot="Ctrl+Shift+Z">' + esc(T('redo', '다시')) + '</button>' +
-      '<span class="ies-sep"></span>' +
+      '<span class="meok-sep"></span>' +
       '<button data-act="save-png">' + esc(T('savePng', 'PNG')) + '</button>' +
       '<button data-act="save-sheet">' + esc(T('saveSheet', '시트')) + '</button>' +
       '<button data-act="save-project">' + esc(T('saveProject', '프로젝트')) + '</button>' +
-      '<span class="ies-status" data-status></span>' +
+      '<span class="meok-status" data-status></span>' +
     '</header>' +
-    '<div class="ies-body">' +
-      '<aside class="ies-tools">' +
+    '<div class="meok-body">' +
+      '<aside class="meok-tools">' +
         toolButton('brush', 'B', T('toolBrush', '붓'), '<path d="M4 20c2.5.4 4.6-.6 5.4-2.6.5-1.3 0-2.6-1-3.3-1.2-.8-2.8-.5-3.5.8C4 16.4 4.2 18.3 4 20z"/><path d="M10.5 14.8 19.2 5.4a1.7 1.7 0 0 0-2.4-2.4L7.3 11.6"/>', true) +
         toolButton('eraser', 'E', T('toolEraser', '지우개'), '<path d="m5.5 15.5 6-6a2 2 0 0 1 2.8 0l3.7 3.7a2 2 0 0 1 0 2.8l-4 4H8l-2.5-2.5a2 2 0 0 1 0-2z"/><path d="M9.5 20h10"/>') +
         toolButton('fill', 'F', T('toolFill', '채우기'), '<path d="m10 3 8.2 8.2a1.4 1.4 0 0 1 0 2L12 19.4a1.4 1.4 0 0 1-2 0l-6.2-6.2a1.4 1.4 0 0 1 0-2L10 5"/><path d="M20.5 15.5c1 1.4 1.5 2.4 1.5 3a1.5 1.5 0 1 1-3 0c0-.6.5-1.6 1.5-3z" fill="currentColor"/>') +
@@ -131,53 +131,53 @@ function buildStudio(container: HTMLElement): void {
         toolButton('pan', 'Space', T('toolPan', '이동'), '<path d="M12 3v18M3 12h18M12 3 9.5 5.8M12 3l2.5 2.8M12 21l-2.5-2.8M12 21l2.5-2.8M3 12l2.8-2.5M3 12l2.8 2.5M21 12l-2.8-2.5M21 12l-2.8 2.5"/>') +
         '<hr>' +
         '<input data-color type="color" value="#18202c" aria-label="' + esc(T('color', '색')) + '">' +
-        '<div class="ies-palette" data-palette></div>' +
-        '<button data-act="pick-palette" class="ies-mini">' + esc(T('paletteFromArt', '그림에서 색 뽑기')) + '</button>' +
+        '<div class="meok-palette" data-palette></div>' +
+        '<button data-act="pick-palette" class="meok-mini">' + esc(T('paletteFromArt', '그림에서 색 뽑기')) + '</button>' +
       '</aside>' +
-      '<section class="ies-stage">' +
-        '<div class="ies-brush">' +
+      '<section class="meok-stage">' +
+        '<div class="meok-brush">' +
           '<label>' + esc(T('size', '굵기')) + '<input data-brush="size" type="range" min="1" max="200" step="1"><b data-out="size"></b></label>' +
           '<label>' + esc(T('hardness', '단단함')) + '<input data-brush="hardness" type="range" min="0" max="1" step="0.01"><b data-out="hardness"></b></label>' +
           '<label>' + esc(T('opacity', '짙기')) + '<input data-brush="opacity" type="range" min="0" max="1" step="0.01"><b data-out="opacity"></b></label>' +
           '<label>' + esc(T('flow', '흐름')) + '<input data-brush="flow" type="range" min="0.02" max="1" step="0.01"><b data-out="flow"></b></label>' +
           '<label>' + esc(T('smoothing', '손떨림')) + '<input data-brush="smoothing" type="range" min="0" max="0.95" step="0.01"><b data-out="smoothing"></b></label>' +
-          '<span class="ies-selbar">' +
-            '<button data-act="deselect" data-needs-selection class="ies-mini" title="Ctrl+D">' + esc(T('deselect', '선택 풀기')) + '</button>' +
-            '<button data-act="feather-selection" data-needs-selection class="ies-mini">' + esc(T('featherEdge', '가장자리 부드럽게')) + '</button>' +
-            '<button data-act="clear-selection" data-needs-selection class="ies-mini" title="Delete">' + esc(T('clearSelection', '고른 자리 지우기')) + '</button>' +
+          '<span class="meok-selbar">' +
+            '<button data-act="deselect" data-needs-selection class="meok-mini" title="Ctrl+D">' + esc(T('deselect', '선택 풀기')) + '</button>' +
+            '<button data-act="feather-selection" data-needs-selection class="meok-mini">' + esc(T('featherEdge', '가장자리 부드럽게')) + '</button>' +
+            '<button data-act="clear-selection" data-needs-selection class="meok-mini" title="Delete">' + esc(T('clearSelection', '고른 자리 지우기')) + '</button>' +
           '</span>' +
-          '<span class="ies-zoom" data-zoom></span>' +
-          '<button data-act="fit" class="ies-mini">' + esc(T('fit', '맞춤')) + '</button>' +
+          '<span class="meok-zoom" data-zoom></span>' +
+          '<button data-act="fit" class="meok-mini">' + esc(T('fit', '맞춤')) + '</button>' +
         '</div>' +
-        '<div class="ies-canvas" data-canvas-wrap><canvas data-canvas></canvas></div>' +
-        '<div class="ies-timeline">' +
+        '<div class="meok-canvas" data-canvas-wrap><canvas data-canvas></canvas></div>' +
+        '<div class="meok-timeline">' +
           '<button data-act="play">▶</button>' +
           '<label>' + esc(T('fps', '초당')) + '<input data-fps type="number" min="1" max="60" value="12"></label>' +
-          '<label class="ies-onion"><input data-onion type="checkbox"> ' + esc(T('onion', '어니언스킨')) + '</label>' +
-          '<div class="ies-frames" data-frames></div>' +
+          '<label class="meok-onion"><input data-onion type="checkbox"> ' + esc(T('onion', '어니언스킨')) + '</label>' +
+          '<div class="meok-frames" data-frames></div>' +
           '<button data-act="add-frame" title="' + esc(T('addFrameHelp', '지금 프레임을 복사해 뒤에 끼운다')) + '">＋</button>' +
           '<button data-act="del-frame">－</button>' +
         '</div>' +
       '</section>' +
-      '<aside class="ies-layers">' +
-        '<div class="ies-layer-head">' +
+      '<aside class="meok-layers">' +
+        '<div class="meok-layer-head">' +
           '<b>' + esc(T('layers', '레이어')) + '</b>' +
           '<button data-act="add-layer" title="' + esc(T('addLayerHelp', '위에 새 레이어')) + '">＋</button>' +
           '<button data-act="merge-layer" title="' + esc(T('mergeHelp', '아래 레이어에 눌러 붙인다')) + '">⇩</button>' +
           '<button data-act="del-layer">🗑</button>' +
         '</div>' +
-        '<div class="ies-layer-props">' +
+        '<div class="meok-layer-props">' +
           '<label>' + esc(T('layerOpacity', '불투명도')) + '<input data-layer="opacity" type="range" min="0" max="1" step="0.01"></label>' +
           '<label>' + esc(T('blend', '섞기')) + '<select data-layer="blend"></select></label>' +
-          '<label class="ies-check"><input data-layer="clip" type="checkbox"> ' + esc(T('clip', '아래에 끼우기')) + '</label>' +
+          '<label class="meok-check"><input data-layer="clip" type="checkbox"> ' + esc(T('clip', '아래에 끼우기')) + '</label>' +
         '</div>' +
-        '<div class="ies-layer-list" data-layers></div>' +
+        '<div class="meok-layer-list" data-layers></div>' +
       '</aside>' +
     '</div></div>';
 
   injectStyles();
 
-  const root = container.querySelector('.ies') as HTMLElement;
+  const root = container.querySelector('.meok') as HTMLElement;
   const pick = <T extends HTMLElement>(selector: string): T => root.querySelector(selector) as T;
   const canvas = pick<HTMLCanvasElement>('[data-canvas]');
   const wrap = pick<HTMLElement>('[data-canvas-wrap]');
@@ -241,29 +241,29 @@ function buildStudio(container: HTMLElement): void {
     /* 목록 뒤가 화면 위 — 사람이 보는 순서는 반대다. */
     [...doc.layers].reverse().forEach(layer => {
       const row = document.createElement('div');
-      row.className = 'ies-layer' + (layer.id === doc.activeLayer ? ' active' : '');
+      row.className = 'meok-layer' + (layer.id === doc.activeLayer ? ' active' : '');
       row.innerHTML =
-        '<button class="ies-eye" title="' + esc(T('toggleVisible', '보이기/숨기기')) + '">' + (layer.visible ? '●' : '○') + '</button>' +
-        '<canvas class="ies-thumb" width="40" height="40"></canvas>' +
-        '<span class="ies-layer-name" title="' + esc(T('renameHelp', '두 번 누르면 이름 고치기')) + '">' + esc(layer.name) + '</span>' +
-        '<button class="ies-lock" title="' + esc(T('toggleLock', '잠그기')) + '">' + (layer.locked ? '🔒' : '○') + '</button>';
+        '<button class="meok-eye" title="' + esc(T('toggleVisible', '보이기/숨기기')) + '">' + (layer.visible ? '●' : '○') + '</button>' +
+        '<canvas class="meok-thumb" width="40" height="40"></canvas>' +
+        '<span class="meok-layer-name" title="' + esc(T('renameHelp', '두 번 누르면 이름 고치기')) + '">' + esc(layer.name) + '</span>' +
+        '<button class="meok-lock" title="' + esc(T('toggleLock', '잠그기')) + '">' + (layer.locked ? '🔒' : '○') + '</button>';
       const thumb = row.querySelector('canvas') as HTMLCanvasElement;
       const cel = celAt(layer, doc.activeFrame);
       if (cel) {
         const ctx = thumb.getContext('2d') as CanvasRenderingContext2D;
         ctx.drawImage(surfaceToCanvas(cel), 0, 0, 40, 40);
       }
-      (row.querySelector('.ies-eye') as HTMLElement).onclick = (event) => {
+      (row.querySelector('.meok-eye') as HTMLElement).onclick = (event) => {
         event.stopPropagation();
         history.run(fieldChange(layer, 'visible', !layer.visible, T('toggleVisible', '보이기/숨기기')));
         renderLayers(); repaint();
       };
-      (row.querySelector('.ies-lock') as HTMLElement).onclick = (event) => {
+      (row.querySelector('.meok-lock') as HTMLElement).onclick = (event) => {
         event.stopPropagation();
         layer.locked = !layer.locked;
         renderLayers();
       };
-      const nameEl = row.querySelector('.ies-layer-name') as HTMLElement;
+      const nameEl = row.querySelector('.meok-layer-name') as HTMLElement;
       nameEl.ondblclick = (event) => {
         event.stopPropagation();
         const next = prompt(T('renamePrompt', '레이어 이름'), layer.name);
@@ -315,7 +315,7 @@ function buildStudio(container: HTMLElement): void {
     strip.innerHTML = '';
     for (let f = 0; f < doc.frames; f += 1) {
       const button = document.createElement('button');
-      button.className = 'ies-frame' + (f === doc.activeFrame ? ' active' : '');
+      button.className = 'meok-frame' + (f === doc.activeFrame ? ' active' : '');
       const held = doc.layers.every(layer => isHold(layer, f));
       button.innerHTML = '<canvas width="34" height="34"></canvas><small>' + (f + 1) + (held && f > 0 ? '·' : '') + '</small>';
       const thumb = button.querySelector('canvas') as HTMLCanvasElement;
@@ -331,7 +331,7 @@ function buildStudio(container: HTMLElement): void {
     box.innerHTML = '';
     doc.palette.forEach(color => {
       const swatch = document.createElement('button');
-      swatch.className = 'ies-swatch';
+      swatch.className = 'meok-swatch';
       swatch.style.background = color;
       swatch.title = color;
       swatch.onclick = () => {
@@ -649,7 +649,7 @@ function buildStudio(container: HTMLElement): void {
     'pick-palette': () => {
       doc.palette = extractPalette(flat, 16);
       renderPalette();
-      say(t('imageedit.paletteTaken', { n: String(doc.palette.length) }, '그림에서 색 {n}개를 뽑았다'));
+      say(t('meok.paletteTaken', { n: String(doc.palette.length) }, '그림에서 색 {n}개를 뽑았다'));
     },
     'save-png': () => {
       surfaceToCanvas(composite(doc, doc.activeFrame)).toBlob(blob => {
@@ -758,63 +758,63 @@ function buildStudio(container: HTMLElement): void {
 }
 
 function injectStyles(): void {
-  if (document.getElementById('imagestudio-style')) return;
+  if (document.getElementById('meok-style')) return;
   const style = document.createElement('style');
-  style.id = 'imagestudio-style';
+  style.id = 'meok-style';
   style.textContent = [
-    '.ies{--ies-gap:8px;display:flex;flex-direction:column;height:min(78vh,820px);min-height:520px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;font-size:12px}',
-    '.ies *{box-sizing:border-box}',
-    '.ies button{border:1px solid var(--border);background:var(--bg-tertiary);color:var(--text-primary);border-radius:6px;padding:5px 8px;cursor:pointer;font-size:12px}',
-    '.ies button:hover{border-color:var(--accent,#4f7cff)}',
-    '.ies button.active{border-color:var(--accent,#4f7cff);background:color-mix(in srgb,var(--accent,#4f7cff) 18%,transparent)}',
-    '.ies-bar{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--bg-secondary);border-bottom:1px solid var(--border);flex-wrap:wrap}',
-    '.ies-logo{letter-spacing:.18em;font-size:11px;color:var(--text-tertiary)}',
-    '.ies-name{flex:0 1 180px;min-width:90px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:5px 7px}',
-    '.ies-sep{width:1px;height:20px;background:var(--border)}',
-    '.ies-file{border:1px solid var(--border);background:var(--bg-tertiary);border-radius:6px;padding:5px 8px;cursor:pointer}',
-    '.ies-status{margin-left:auto;color:var(--text-tertiary);font-size:11px}',
-    '.ies-body{flex:1;display:grid;grid-template-columns:76px minmax(0,1fr) 216px;min-height:0}',
-    '.ies-tools{display:flex;flex-direction:column;gap:5px;padding:8px;background:var(--bg-secondary);border-right:1px solid var(--border);overflow:auto}',
-    '.ies-tools button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;line-height:1.1}',
-    '.ies-tools small{font-size:9px;color:var(--text-tertiary);white-space:nowrap}',
-    '.ies-tools svg{width:19px;height:19px}',
-    '.ies-tools button.active svg{color:var(--accent,#4f7cff)}',
-    '.ies-tools hr{width:100%;border:0;border-top:1px solid var(--border);margin:4px 0}',
-    '.ies-tools input[type=color]{width:100%;height:30px;padding:0;border:1px solid var(--border);border-radius:6px;background:none}',
-    '.ies-palette{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}',
-    '.ies-swatch{aspect-ratio:1;padding:0;border-radius:4px}',
-    '.ies-mini{font-size:10px!important;padding:5px 4px!important;line-height:1.25;white-space:normal}',
-    '.ies-stage{display:flex;flex-direction:column;min-width:0;min-height:0}',
-    '.ies-brush{display:flex;align-items:center;gap:10px;padding:6px 10px;border-bottom:1px solid var(--border);background:var(--bg-secondary);flex-wrap:wrap}',
-    '.ies-brush label{display:flex;align-items:center;gap:5px;color:var(--text-secondary)}',
-    '.ies-brush input[type=range]{width:74px}',
-    '.ies-brush b{min-width:26px;color:var(--text-tertiary);font-weight:500}',
-    '.ies-zoom{margin-left:auto;color:var(--text-tertiary)}',
-    '.ies-selbar{display:flex;gap:4px}',
-    '.ies-selbar button[disabled]{opacity:.35;cursor:default}',
-    '.ies-canvas{flex:1;min-height:0;position:relative;overflow:hidden;background:var(--bg-primary);background-image:radial-gradient(circle at 1px 1px,color-mix(in srgb,var(--border) 60%,transparent) 1px,transparent 0);background-size:18px 18px}',
-    '.ies-canvas canvas{position:absolute;inset:0;touch-action:none}',
-    '.ies-timeline{display:flex;align-items:center;gap:8px;padding:6px 10px;border-top:1px solid var(--border);background:var(--bg-secondary)}',
-    '.ies-timeline label{display:flex;align-items:center;gap:4px;color:var(--text-secondary)}',
-    '.ies-timeline input[type=number]{width:52px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:5px;padding:3px 5px}',
-    '.ies-frames{flex:1;display:flex;gap:5px;overflow-x:auto;padding:2px}',
-    '.ies-frame{padding:2px;display:flex;flex-direction:column;align-items:center;gap:1px}',
-    '.ies-frame canvas{width:34px;height:34px;image-rendering:pixelated;background:#fff;border-radius:3px}',
-    '.ies-frame small{font-size:9px;color:var(--text-tertiary)}',
-    '.ies-layers{display:flex;flex-direction:column;background:var(--bg-secondary);border-left:1px solid var(--border);min-height:0}',
-    '.ies-layer-head{display:flex;align-items:center;gap:4px;padding:8px}',
-    '.ies-layer-head b{flex:1;font-size:11px;letter-spacing:.1em;color:var(--text-tertiary)}',
-    '.ies-layer-props{display:flex;flex-direction:column;gap:5px;padding:0 8px 8px;border-bottom:1px solid var(--border)}',
-    '.ies-layer-props label{display:flex;align-items:center;gap:6px;color:var(--text-secondary)}',
-    '.ies-layer-props input[type=range]{flex:1}',
-    '.ies-layer-props select{flex:1;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:5px;padding:3px}',
-    '.ies-layer-list{flex:1;overflow:auto;padding:6px}',
-    '.ies-layer{display:flex;align-items:center;gap:5px;padding:4px;border:1px solid transparent;border-radius:6px;cursor:pointer}',
-    '.ies-layer.active{border-color:var(--accent,#4f7cff);background:color-mix(in srgb,var(--accent,#4f7cff) 12%,transparent)}',
-    '.ies-layer canvas{width:34px;height:34px;background:#fff;border-radius:4px;image-rendering:pixelated}',
-    '.ies-layer-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-    '.ies-eye,.ies-lock{padding:2px 3px!important;border-color:transparent!important;background:none!important;font-size:10px;color:var(--text-tertiary);opacity:.8}',
-    '@media(max-width:860px){.ies-body{grid-template-columns:60px minmax(0,1fr)}.ies-layers{grid-column:1/-1;border-left:0;border-top:1px solid var(--border);max-height:210px}.ies{height:auto}}'
+    '.meok{--meok-gap:8px;display:flex;flex-direction:column;height:min(78vh,820px);min-height:520px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;font-size:12px}',
+    '.meok *{box-sizing:border-box}',
+    '.meok button{border:1px solid var(--border);background:var(--bg-tertiary);color:var(--text-primary);border-radius:6px;padding:5px 8px;cursor:pointer;font-size:12px}',
+    '.meok button:hover{border-color:var(--accent,#4f7cff)}',
+    '.meok button.active{border-color:var(--accent,#4f7cff);background:color-mix(in srgb,var(--accent,#4f7cff) 18%,transparent)}',
+    '.meok-bar{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--bg-secondary);border-bottom:1px solid var(--border);flex-wrap:wrap}',
+    '.meok-logo{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--text-primary);color:var(--bg-primary);font-size:13px;font-weight:700;flex:0 0 auto}',
+    '.meok-name{flex:0 1 180px;min-width:90px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:5px 7px}',
+    '.meok-sep{width:1px;height:20px;background:var(--border)}',
+    '.meok-file{border:1px solid var(--border);background:var(--bg-tertiary);border-radius:6px;padding:5px 8px;cursor:pointer}',
+    '.meok-status{margin-left:auto;color:var(--text-tertiary);font-size:11px}',
+    '.meok-body{flex:1;display:grid;grid-template-columns:76px minmax(0,1fr) 216px;min-height:0}',
+    '.meok-tools{display:flex;flex-direction:column;gap:5px;padding:8px;background:var(--bg-secondary);border-right:1px solid var(--border);overflow:auto}',
+    '.meok-tools button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;line-height:1.1}',
+    '.meok-tools small{font-size:9px;color:var(--text-tertiary);white-space:nowrap}',
+    '.meok-tools svg{width:19px;height:19px}',
+    '.meok-tools button.active svg{color:var(--accent,#4f7cff)}',
+    '.meok-tools hr{width:100%;border:0;border-top:1px solid var(--border);margin:4px 0}',
+    '.meok-tools input[type=color]{width:100%;height:30px;padding:0;border:1px solid var(--border);border-radius:6px;background:none}',
+    '.meok-palette{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}',
+    '.meok-swatch{aspect-ratio:1;padding:0;border-radius:4px}',
+    '.meok-mini{font-size:10px!important;padding:5px 4px!important;line-height:1.25;white-space:normal}',
+    '.meok-stage{display:flex;flex-direction:column;min-width:0;min-height:0}',
+    '.meok-brush{display:flex;align-items:center;gap:10px;padding:6px 10px;border-bottom:1px solid var(--border);background:var(--bg-secondary);flex-wrap:wrap}',
+    '.meok-brush label{display:flex;align-items:center;gap:5px;color:var(--text-secondary)}',
+    '.meok-brush input[type=range]{width:74px}',
+    '.meok-brush b{min-width:26px;color:var(--text-tertiary);font-weight:500}',
+    '.meok-zoom{margin-left:auto;color:var(--text-tertiary)}',
+    '.meok-selbar{display:flex;gap:4px}',
+    '.meok-selbar button[disabled]{opacity:.35;cursor:default}',
+    '.meok-canvas{flex:1;min-height:0;position:relative;overflow:hidden;background:var(--bg-primary);background-image:radial-gradient(circle at 1px 1px,color-mix(in srgb,var(--border) 60%,transparent) 1px,transparent 0);background-size:18px 18px}',
+    '.meok-canvas canvas{position:absolute;inset:0;touch-action:none}',
+    '.meok-timeline{display:flex;align-items:center;gap:8px;padding:6px 10px;border-top:1px solid var(--border);background:var(--bg-secondary)}',
+    '.meok-timeline label{display:flex;align-items:center;gap:4px;color:var(--text-secondary)}',
+    '.meok-timeline input[type=number]{width:52px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:5px;padding:3px 5px}',
+    '.meok-frames{flex:1;display:flex;gap:5px;overflow-x:auto;padding:2px}',
+    '.meok-frame{padding:2px;display:flex;flex-direction:column;align-items:center;gap:1px}',
+    '.meok-frame canvas{width:34px;height:34px;image-rendering:pixelated;background:#fff;border-radius:3px}',
+    '.meok-frame small{font-size:9px;color:var(--text-tertiary)}',
+    '.meok-layers{display:flex;flex-direction:column;background:var(--bg-secondary);border-left:1px solid var(--border);min-height:0}',
+    '.meok-layer-head{display:flex;align-items:center;gap:4px;padding:8px}',
+    '.meok-layer-head b{flex:1;font-size:11px;letter-spacing:.1em;color:var(--text-tertiary)}',
+    '.meok-layer-props{display:flex;flex-direction:column;gap:5px;padding:0 8px 8px;border-bottom:1px solid var(--border)}',
+    '.meok-layer-props label{display:flex;align-items:center;gap:6px;color:var(--text-secondary)}',
+    '.meok-layer-props input[type=range]{flex:1}',
+    '.meok-layer-props select{flex:1;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:5px;padding:3px}',
+    '.meok-layer-list{flex:1;overflow:auto;padding:6px}',
+    '.meok-layer{display:flex;align-items:center;gap:5px;padding:4px;border:1px solid transparent;border-radius:6px;cursor:pointer}',
+    '.meok-layer.active{border-color:var(--accent,#4f7cff);background:color-mix(in srgb,var(--accent,#4f7cff) 12%,transparent)}',
+    '.meok-layer canvas{width:34px;height:34px;background:#fff;border-radius:4px;image-rendering:pixelated}',
+    '.meok-layer-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+    '.meok-eye,.meok-lock{padding:2px 3px!important;border-color:transparent!important;background:none!important;font-size:10px;color:var(--text-tertiary);opacity:.8}',
+    '@media(max-width:860px){.meok-body{grid-template-columns:60px minmax(0,1fr)}.meok-layers{grid-column:1/-1;border-left:0;border-top:1px solid var(--border);max-height:210px}.meok{height:auto}}'
   ].join('');
   document.head.append(style);
 }
@@ -825,16 +825,16 @@ function injectStyles(): void {
     + '<path d="M7 15l3.2-4.2 2.4 3 2-2.4L18 15" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>'
     + '<circle cx="9" cy="8" r="1.4" fill="currentColor"/>';
   Toolbox.register({
-    ...(Toolbox.getLazyWidgetPublicMeta?.('imagestudio') || {}),
-    id: 'imagestudio',
+    ...(Toolbox.getLazyWidgetPublicMeta?.('meok') || {}),
+    id: 'meok',
     category: 'tool',
     layout: 'full',
     icon,
     tabs: [{
-      id: 'imagestudio-main',
-      label: t('imageedit.tab.studio', undefined, '스튜디오'),
+      id: 'meok-main',
+      label: t('meok.tab.meok', undefined, '먹'),
       build(container: HTMLElement): void {
-        void loadNamespace('imageedit').then(() => buildStudio(container));
+        void loadNamespace('meok').then(() => buildMeok(container));
       }
     }]
   });

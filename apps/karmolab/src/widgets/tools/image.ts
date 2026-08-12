@@ -11,7 +11,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   /* 부품 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const parts = (): Array<[string, string]> => [
     ['imageedit', t('image.part.imgbatch', undefined, '편집 · 변환')],
-    ['imagestudio', t('image.part.studio', undefined, '스튜디오')],
+    ['meok', t('image.part.meok', undefined, '먹')],
 
     ['text2img', t('image.part.text2img', undefined, '글자 카드')],
     ['imgresize', t('image.part.imgresize', undefined, '크기 맞추기')],
