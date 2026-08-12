@@ -88,6 +88,10 @@
     "i18n": {
       "title": "Internationalization",
       "lead": "\"We will translate it later\" is the most expensive sentence — pulling text out is a structural change"
+    },
+    "legal": {
+      "title": "Licensing & law",
+      "lead": "Code is a copyrighted work — using it blindly creates places you cannot undo later"
     }
   },
   "stages": {
@@ -144,7 +148,10 @@
     "audio-c": "Inside the program",
     "i18n-a": "Handling text",
     "i18n-b": "Formats and layout",
-    "i18n-c": "Running it"
+    "i18n-c": "Running it",
+    "legal-a": "Using other people’s work",
+    "legal-b": "Publishing your own",
+    "legal-c": "Taking users"
   },
   "nodes": {
     "web-html": {
@@ -1420,6 +1427,71 @@
       "check": "Pseudo-locale reveals truncation and hardcoded strings",
       "links": [
         "Pseudolocalization"
+      ]
+    },
+    "legal-license": {
+      "title": "Reading licenses — MIT, Apache, GPL",
+      "why": "\"It is open source so anything goes\" is false; ignoring the terms makes distribution itself unlawful.",
+      "check": "You state the duty difference between MIT and GPL in one line",
+      "links": [
+        "Choose a License",
+        "tl;drLegal"
+      ]
+    },
+    "legal-deps": {
+      "title": "Managing dependency licenses",
+      "why": "One AGPL package among hundreds can affect your whole service.",
+      "check": "You generate the license list of your project automatically",
+      "links": [
+        "license-checker"
+      ]
+    },
+    "legal-assets": {
+      "title": "Assets — fonts, images, audio",
+      "why": "More incidents come from assets than code, and fonts have separate web-embedding terms.",
+      "check": "Every asset has its source and license recorded",
+      "links": [
+        "Creative Commons licenses"
+      ]
+    },
+    "legal-publish": {
+      "title": "Publishing your project",
+      "why": "With no license the default is \"all rights reserved\" — nobody may use it.",
+      "check": "You pick a LICENSE and add README and a code of conduct",
+      "links": [
+        "Open Source Guides"
+      ]
+    },
+    "legal-contribute": {
+      "title": "Contributing to open source",
+      "why": "Sending a PR to someone else’s repo has rules too — DCO, CLA, contribution guides.",
+      "check": "You land one small PR following the project rules",
+      "links": [
+        "First Contributions"
+      ]
+    },
+    "legal-ai": {
+      "title": "AI output and copyright",
+      "why": "Rights and liability for generated code and images are still settling; using it blindly is hard to unwind.",
+      "check": "You check the policy and record provenance",
+      "links": [
+        "GitHub Copilot docs"
+      ]
+    },
+    "legal-privacy": {
+      "title": "Privacy — collect less, delete on time",
+      "why": "\"Collect everything for now\" is the most expensive choice: collecting creates duties.",
+      "check": "Every collected field has a reason and a retention period",
+      "links": [
+        "Privacy portal (KR)"
+      ]
+    },
+    "legal-terms": {
+      "title": "Terms of service and liability",
+      "why": "A service needs rules — read what you are promising before copying someone else’s terms.",
+      "check": "You separate what your service promises from what it does not",
+      "links": [
+        "Terms of Service; Didn’t Read"
       ]
     }
   }

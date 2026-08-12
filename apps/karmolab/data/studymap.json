@@ -2692,6 +2692,138 @@
           ]
         }
       ]
+    },
+    {
+      "id": "legal",
+      "title": "라이선스 · 법",
+      "emoji": "⚖",
+      "lead": "코드는 저작물이다 — 모르고 쓰면 나중에 되돌릴 수 없는 자리",
+      "stages": [
+        {
+          "id": "legal-a",
+          "title": "남의 것을 쓸 때",
+          "nodes": [
+            {
+              "id": "legal-license",
+              "title": "라이선스 읽는 법 — MIT · Apache · GPL",
+              "why": "「오픈소스니까 마음대로」가 아니다. 조건을 안 지키면 배포 자체가 불법이 된다.",
+              "check": "MIT 와 GPL 의 의무 차이를 한 줄로 설명한다",
+              "links": [
+                {
+                  "label": "Choose a License",
+                  "url": "https://choosealicense.com/"
+                },
+                {
+                  "label": "tl;drLegal",
+                  "url": "https://www.tldrlegal.com/"
+                }
+              ]
+            },
+            {
+              "id": "legal-deps",
+              "title": "의존성 라이선스 관리",
+              "why": "수백 개 패키지 중 하나가 AGPL 이면 서비스 전체가 영향을 받을 수 있다.",
+              "check": "내 프로젝트의 라이선스 목록을 자동으로 뽑는다",
+              "links": [
+                {
+                  "label": "license-checker",
+                  "url": "https://github.com/davglass/license-checker"
+                }
+              ],
+              "prereq": [
+                "legal-license"
+              ]
+            },
+            {
+              "id": "legal-assets",
+              "title": "에셋 — 폰트 · 이미지 · 음원",
+              "why": "코드보다 에셋에서 사고가 더 난다. 폰트는 특히 웹 임베딩 조건이 따로 있다.",
+              "check": "쓰는 에셋마다 출처·라이선스를 기록해 둔다",
+              "links": [
+                {
+                  "label": "Creative Commons 라이선스 안내",
+                  "url": "https://creativecommons.org/licenses/"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "legal-b",
+          "title": "내 것을 낼 때",
+          "nodes": [
+            {
+              "id": "legal-publish",
+              "title": "내 프로젝트 공개하기",
+              "why": "라이선스가 없으면 「전부 금지」가 기본값이다 — 아무도 못 쓴다.",
+              "check": "LICENSE 를 고르고 README·CoC 까지 갖춘다",
+              "links": [
+                {
+                  "label": "Open Source Guides",
+                  "url": "https://opensource.guide/ko/"
+                }
+              ]
+            },
+            {
+              "id": "legal-contribute",
+              "title": "오픈소스에 기여하기",
+              "why": "남의 저장소에 PR 을 넣는 데도 규칙이 있다 — DCO·CLA·기여 가이드.",
+              "check": "작은 PR 하나를 규칙에 맞춰 올린다",
+              "links": [
+                {
+                  "label": "First Contributions",
+                  "url": "https://github.com/firstcontributions/first-contributions"
+                }
+              ],
+              "prereq": [
+                "git-pr"
+              ]
+            },
+            {
+              "id": "legal-ai",
+              "title": "AI 생성물과 저작권",
+              "why": "생성 코드·이미지의 권리와 책임이 아직 정리 중이다. 모르고 쓰면 회수가 어렵다.",
+              "check": "회사·프로젝트 정책을 확인하고 출처를 기록한다",
+              "links": [
+                {
+                  "label": "GitHub Copilot 문서",
+                  "url": "https://docs.github.com/ko/copilot"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "legal-c",
+          "title": "사용자를 받을 때",
+          "nodes": [
+            {
+              "id": "legal-privacy",
+              "title": "개인정보 — 최소 수집과 삭제",
+              "why": "「일단 다 모으자」가 가장 비싼 선택이다. 모으면 지킬 의무가 생긴다.",
+              "check": "수집 항목마다 이유와 보관 기간을 적는다",
+              "links": [
+                {
+                  "label": "개인정보보호 포털",
+                  "url": "https://www.privacy.go.kr/"
+                }
+              ]
+            },
+            {
+              "id": "legal-terms",
+              "title": "약관 · 책임 제한",
+              "why": "서비스에는 규칙이 필요하다. 베끼기 전에 무엇을 약속하는지 읽어야 한다.",
+              "check": "내 서비스가 약속하는 것과 안 하는 것을 구분해 적는다",
+              "links": [
+                {
+                  "label": "Terms of Service; Didn’t Read",
+                  "url": "https://tosdr.org/"
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
