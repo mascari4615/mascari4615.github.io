@@ -1,4 +1,8 @@
 {
+  "arcade": {
+    "narrow": 6212,
+    "wide": 2697
+  },
   "ascii": {
     "narrow": 8254,
     "wide": 972
@@ -295,6 +299,10 @@
     "narrow": 584,
     "wide": 472
   },
+  "mesh3d": {
+    "narrow": 730,
+    "wide": 765
+  },
   "moon": {
     "narrow": 478,
     "wide": 586
@@ -426,6 +434,10 @@
   "specialchar": {
     "narrow": 6597,
     "wide": 972
+  },
+  "studymap": {
+    "narrow": 1499,
+    "wide": 1453
   },
   "subtitle": {
     "narrow": 1178,
