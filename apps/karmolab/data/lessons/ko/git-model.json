@@ -1,57 +1,773 @@
 {
   "id": "git-model",
-  "minutes": 10,
-  "blocks": [
-    { "type": "p", "text": "Git 명령이 어려운 게 아니라, **머릿속 모형이 틀려서** 어렵다. 가장 흔한 오해 하나만 고치면 rebase·cherry-pick·reset 이 한꺼번에 쉬워진다." },
-    { "type": "note", "text": "오해: 「커밋은 변경분(diff)을 저장한다」 → 사실: **커밋은 그 순간 프로젝트 전체의 사진(스냅샷)** 이다. 화면에 보이는 diff 는 앞 커밋과 비교해 그때그때 계산한 결과다." },
-
-    { "type": "h", "text": "1. 커밋 안에 뭐가 들어 있나" },
-    { "type": "p", "text": "커밋 하나는 네 가지를 들고 있다: **트리**(그 순간의 파일 전체 목록), **부모 커밋**(하나 또는 둘), 작성자·시각, 메시지. 파일 내용 자체는 블롭으로 따로 저장되고, 같은 내용이면 하나만 저장된다." },
-    { "type": "code", "lang": "bash", "label": "직접 열어 보기 — 커밋은 그냥 작은 글이다", "text": "git cat-file -p HEAD\n# tree  9f2b...      <- 그 순간의 파일 전체\n# parent 4a1c...     <- 앞 커밋\n# author ...\n#\n# fix: 로그인 실패 시 메시지\n\ngit cat-file -p HEAD^{tree}   # 그 사진에 담긴 파일 목록" },
-
-    { "type": "h", "text": "2. 브랜치는 포스트잇" },
-    { "type": "p", "text": "브랜치는 커밋 더미가 아니라 **커밋 하나를 가리키는 이름표**다. 파일 한 줄짜리다. 그래서 브랜치를 만들고 지우는 게 값싸다 — 사진은 그대로 있고 이름표만 붙였다 뗀다." },
-    { "type": "code", "lang": "bash", "label": "이름표의 정체", "text": "cat .git/refs/heads/main      # 커밋 해시 한 줄\ncat .git/HEAD                 # ref: refs/heads/main  <- 지금 붙어 있는 이름표" },
-    { "type": "note", "text": "HEAD = 「지금 내가 서 있는 곳」. 보통 브랜치 이름을 가리키고, 커밋을 직접 가리키면 그게 detached HEAD 다(이름표 없이 사진 위에 서 있는 상태)." },
-
-    { "type": "h", "text": "3. 이 모형이면 저절로 풀리는 것들" },
-    { "type": "p", "text": "**rebase** = 내 커밋들을 다른 커밋 위에 **다시 만든다**(복사본이라 해시가 바뀐다). **cherry-pick** = 그중 한 개만 다시 만든다. **reset** = 이름표를 다른 커밋으로 옮긴다(--soft 는 이름표만, --hard 는 작업 파일까지 그 사진으로)." },
-    { "type": "note", "text": "그래서 남이 이미 받아 간 커밋을 rebase 하면 사고가 된다 — 그 사람이 가진 커밋과 내 새 복사본이 서로 다른 사진이 되기 때문이다." },
-
-    { "type": "h", "text": "직접 해보기" },
-    { "type": "try", "text": "빈 폴더에서 `git init` → 파일 하나 만들고 커밋 세 번. 그리고 `git log --graph --oneline --all` 로 사진들이 줄로 이어진 모습을 봐라." },
-    { "type": "try", "text": "`git branch temp` 로 이름표를 하나 더 붙였다가 `git branch -d temp` 로 떼 봐라. 커밋(사진)은 그대로인지 로그로 확인." }
-  ],
-  "quiz": [
+  "parts": [
     {
-      "q": "커밋이 저장하는 것은?",
-      "choices": [
-        "앞 커밋과의 변경분(diff)",
-        "그 순간 프로젝트 전체의 스냅샷",
-        "브랜치 이름과 작성자만"
+      "id": "1",
+      "title": "커밋은 스냅샷이다 — 「변경분」이 아니라",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "git 을 「변경분(diff)을 쌓는 도구」로 배우면 나중에 전부 어긋난다. **커밋은 그 순간 프로젝트 전체의 사진**이고, 사진마다 「내 앞 사진은 이것」이라는 손가락(부모)이 하나 달려 있다. 우리가 화면에서 보는 diff 는 두 사진을 비교해 **그때그때 계산한 결과**일 뿐이다."
+        },
+        {
+          "type": "p",
+          "text": "커밋 하나에 들어 있는 것은 네 가지다 — 그 순간의 파일 묶음(트리), 부모 커밋, 지은이·시각, 메시지. 이 넷을 합쳐 해시를 낸 것이 `a1c2d3…` 이다. 그래서 **내용이 1바이트라도 다르면 다른 커밋**이고, 부모가 바뀌어도 다른 커밋이다(6장에서 이게 rebase 의 전부가 된다)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "단계를 밀어 보라 — 커밋마다 손가락이 하나씩 뒤로 이어진다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);   /* 선명하게 */\n  const COL = { done:'#22c55e', head:'#f59e0b', ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 상태 하나 = { commits:[{id,parents,lane,msg,ghost}], refs:{name:commitId}, head:'ref이름' | {detach:id} } */\n  function draw(state) {\n    const W = 440, H = 210;\n    ctx.clearRect(0, 0, W, H);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    /* 선 먼저 — 점 뒤로 깔린다 */\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    /* 점 */\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af';\n      ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8';\n      ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    /* 이름표 — 브랜치·태그 */\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#cbd5e1';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n    /* 분리된 HEAD */\n    if (state.head && state.head.detach && pos[state.head.detach]) {\n      const p = pos[state.head.detach];\n      ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillStyle = '#ef4444';\n      ctx.beginPath(); ctx.roundRect(p.x - 34, p.y + 34, 68, 18, 5); ctx.fill();\n      ctx.fillStyle = '#fff'; ctx.fillText('HEAD(분리)', p.x, p.y + 47);\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\nconst base = [\n    { id:'a1c', parents:[], lane:0, msg:'첫 커밋' },\n    { id:'b2d', parents:['a1c'], lane:0, msg:'로그인' },\n    { id:'c3e', parents:['b2d'], lane:0, msg:'검색' },\n  ];\n  const step = {{step}};\n  const commits = base.slice(0, step);\n  const refs = step ? { main: commits[commits.length - 1].id } : {};\n  draw({ commits, refs, head: 'main' });\n  const msgs = ['(아직 아무것도 없다)', 'git commit -m \"첫 커밋\"', 'git commit -m \"로그인\"', 'git commit -m \"검색\"'];\n  say(msgs[step], step ? '커밋 ' + step + '개 · 각각 자기 앞 커밋을 가리킨다. main 은 늘 마지막을 가리킨다.' : '');\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "커밋 수",
+              "type": "range",
+              "min": 1,
+              "max": 3,
+              "step": 1,
+              "value": 3
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "커밋 해시는 **부모까지 포함해서** 계산된다. 그래서 옛 커밋 하나를 고치면 그 뒤 커밋의 해시가 전부 바뀐다 — 「역사를 고쳤다」가 물리적으로 무슨 뜻인지가 여기서 나온다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "직접 들여다보기",
+          "text": "git log --oneline --graph          # 점과 선으로 보기\ngit cat-file -p HEAD               # 커밋 안을 그대로 출력 (tree·parent·author)\ngit cat-file -p HEAD^{tree}        # 그 순간의 파일 목록"
+        },
+        {
+          "type": "try",
+          "text": "아무 저장소에서 `git cat-file -p HEAD` 를 쳐 보라. `parent` 줄이 몇 개인지 세어 보라 — 0개면 첫 커밋, 2개면 병합 커밋이다."
+        }
       ],
-      "answer": 1,
-      "why": "스냅샷이다. diff 는 보여 줄 때 두 커밋을 비교해 계산한다."
+      "quiz": [
+        {
+          "q": "커밋이 담고 있는 것은?",
+          "choices": [
+            "직전 커밋과의 변경분",
+            "그 순간 프로젝트 전체의 스냅샷",
+            "브랜치 이름",
+            "파일 이름 목록만"
+          ],
+          "answer": 1,
+          "why": "diff 는 두 스냅샷을 비교해 그때 계산한다."
+        },
+        {
+          "q": "커밋 해시가 바뀌는 경우가 **아닌** 것은?",
+          "choices": [
+            "메시지를 고쳤다",
+            "부모가 달라졌다",
+            "지은이 시각이 달라졌다",
+            "브랜치 이름을 바꿨다"
+          ],
+          "answer": 3,
+          "why": "브랜치는 커밋 바깥의 이름표라 해시에 안 들어간다."
+        },
+        {
+          "q": "첫 커밋의 부모 수는?",
+          "choices": [
+            "0개",
+            "1개",
+            "2개",
+            "정해져 있지 않다"
+          ],
+          "answer": 0,
+          "why": "부모가 둘이면 병합 커밋이다."
+        }
+      ]
     },
     {
-      "q": "브랜치를 하나 만들면 저장소에서 무슨 일이 벌어지나?",
-      "choices": [
-        "커밋 전체가 복사된다",
-        "커밋 하나를 가리키는 이름표(파일 한 줄)가 생긴다",
-        "새 폴더가 만들어진다"
+      "id": "2",
+      "title": "세 구역 — 작업트리 · 인덱스 · HEAD",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「add 를 왜 해야 하지」가 안 풀리면 git 은 계속 미신으로 남는다. 자리가 셋이기 때문이다 — **작업트리**(지금 편집기에서 보는 파일), **인덱스**(다음 커밋에 담을 사진의 초안), **HEAD**(마지막으로 찍은 사진)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "명령을 골라 보라 — 파일이 어느 칸에 있나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);   /* 선명하게 */\n  const COL = { done:'#22c55e', head:'#f59e0b', ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 상태 하나 = { commits:[{id,parents,lane,msg,ghost}], refs:{name:commitId}, head:'ref이름' | {detach:id} } */\n  function draw(state) {\n    const W = 440, H = 210;\n    ctx.clearRect(0, 0, W, H);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    /* 선 먼저 — 점 뒤로 깔린다 */\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    /* 점 */\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af';\n      ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8';\n      ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    /* 이름표 — 브랜치·태그 */\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#cbd5e1';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n    /* 분리된 HEAD */\n    if (state.head && state.head.detach && pos[state.head.detach]) {\n      const p = pos[state.head.detach];\n      ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillStyle = '#ef4444';\n      ctx.beginPath(); ctx.roundRect(p.x - 34, p.y + 34, 68, 18, 5); ctx.fill();\n      ctx.fillStyle = '#fff'; ctx.fillText('HEAD(분리)', p.x, p.y + 47);\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\n  const at = '{{at}}';\n  const cells = [\n    ['작업트리', '지금 편집기에서 보이는 파일'],\n    ['인덱스(staging)', '다음 커밋에 담기로 정해 둔 사진의 초안'],\n    ['HEAD', '마지막으로 찍힌 사진'],\n  ];\n  const state = { edit: [1,0,0], add: [1,1,0], commit: [1,1,1] }[at] || [0,0,0];\n  const W = 440;\n  ctx.clearRect(0,0,W,210);\n  cells.forEach(([name, desc], i) => {\n    const x = 16, y = 18 + i * 62;\n    ctx.fillStyle = state[i] ? '#14351f' : '#111c33';\n    ctx.strokeStyle = state[i] ? '#22c55e' : '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, 408, 50, 8); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left';\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '13px system-ui';\n    ctx.fillText(name, x + 14, y + 21);\n    ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui';\n    ctx.fillText(desc, x + 14, y + 38);\n    ctx.fillStyle = state[i] ? '#22c55e' : '#475569'; ctx.font = '12px ui-monospace, monospace';\n    ctx.textAlign = 'right';\n    ctx.fillText(state[i] ? '새 내용 있음' : '옛 내용', x + 394, y + 30);\n  });\n  const t = { edit: ['(편집기에서 파일을 고쳤다)', 'git status -> 「Changes not staged」'],\n              add: ['git add file.txt', '인덱스에 옮겨 담았다. status -> 「Changes to be committed」'],\n              commit: ['git commit -m \"…\"', '인덱스의 내용이 그대로 사진이 됐다. 셋이 같아졌다 = 깨끗한 상태'] }[at];\n  say(t[0], t[1]);\n</script>",
+          "controls": [
+            {
+              "id": "at",
+              "label": "지금 한 일",
+              "type": "select",
+              "value": "edit",
+              "options": [
+                {
+                  "value": "edit",
+                  "label": "파일을 고쳤다"
+                },
+                {
+                  "value": "add",
+                  "label": "git add"
+                },
+                {
+                  "value": "commit",
+                  "label": "git commit"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "인덱스가 따로 있는 덕분에 **고친 것 중 일부만 골라 담을 수 있다.** 한 파일 안에서도 조각 단위로 고를 수 있다 — `git add -p`. 「한 커밋에 한 주제」를 지키게 해 주는 도구가 이것이다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "세 구역 사이를 오가는 명령",
+          "text": "git status                # 지금 어디에 무엇이 있나\ngit diff                  # 작업트리 vs 인덱스 (아직 안 담은 것)\ngit diff --staged         # 인덱스 vs HEAD  (담아 둔 것)\ngit add -p                # 조각 단위로 골라 담기\ngit restore --staged f    # 인덱스에서 내리기 (작업트리는 그대로)\ngit restore f             # 작업트리를 인덱스 내용으로 되돌리기 (고친 것 버림)"
+        },
+        {
+          "type": "note",
+          "text": "`git diff` 가 아무것도 안 보여 주는데 커밋할 게 있다면, 이미 **인덱스에 담긴** 것이다 — 그때는 `git diff --staged` 다. 두 명령이 보는 칸이 다르다."
+        },
+        {
+          "type": "try",
+          "text": "파일 두 곳을 고친 뒤 `git add -p` 로 **한 곳만** 담아라. 그리고 `git diff` 와 `git diff --staged` 를 나란히 보라. 두 화면이 서로 다른 것이 정상이다."
+        }
       ],
-      "answer": 1,
-      "why": "브랜치는 ref 파일 한 줄이다. 그래서 만들고 지우는 비용이 거의 없다."
+      "quiz": [
+        {
+          "q": "`git diff` 가 보여 주는 것은?",
+          "choices": [
+            "작업트리 vs 인덱스",
+            "인덱스 vs HEAD",
+            "HEAD vs 리모트",
+            "브랜치 사이"
+          ],
+          "answer": 0,
+          "why": "담아 둔 것과의 차이는 --staged."
+        },
+        {
+          "q": "인덱스가 따로 있는 덕분에 가능한 일은?",
+          "choices": [
+            "더 빠른 커밋",
+            "고친 것 중 일부만 골라 담기",
+            "브랜치 만들기",
+            "원격 저장"
+          ],
+          "answer": 1,
+          "why": "git add -p 로 조각 단위 선택이 된다."
+        },
+        {
+          "q": "`git restore --staged f` 가 하는 일은?",
+          "choices": [
+            "고친 내용을 버린다",
+            "인덱스에서만 내린다(작업트리는 그대로)",
+            "커밋을 지운다",
+            "파일을 지운다"
+          ],
+          "answer": 1,
+          "why": "작업트리까지 되돌리는 것은 git restore f."
+        }
+      ]
     },
     {
-      "q": "이미 push 해서 남이 받아 간 커밋을 rebase 하면 왜 문제가 되나?",
-      "choices": [
-        "커밋이 삭제되기 때문",
-        "다시 만든 커밋은 해시가 다른 별개의 사진이라, 상대가 가진 것과 갈라지기 때문",
-        "rebase 는 원격에서 금지된 명령이라서"
+      "id": "3",
+      "title": "브랜치는 포스트잇이다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "브랜치는 폴더도, 복사본도 아니다. **커밋 하나를 가리키는 40바이트짜리 이름표**다. 그래서 만드는 데 시간이 안 걸리고, 지워도 커밋은 안 사라진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "단계를 밀어 보라 — 이름표가 어떻게 따라 움직이나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);   /* 선명하게 */\n  const COL = { done:'#22c55e', head:'#f59e0b', ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 상태 하나 = { commits:[{id,parents,lane,msg,ghost}], refs:{name:commitId}, head:'ref이름' | {detach:id} } */\n  function draw(state) {\n    const W = 440, H = 210;\n    ctx.clearRect(0, 0, W, H);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    /* 선 먼저 — 점 뒤로 깔린다 */\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    /* 점 */\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af';\n      ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8';\n      ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    /* 이름표 — 브랜치·태그 */\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#cbd5e1';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n    /* 분리된 HEAD */\n    if (state.head && state.head.detach && pos[state.head.detach]) {\n      const p = pos[state.head.detach];\n      ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillStyle = '#ef4444';\n      ctx.beginPath(); ctx.roundRect(p.x - 34, p.y + 34, 68, 18, 5); ctx.fill();\n      ctx.fillStyle = '#fff'; ctx.fillText('HEAD(분리)', p.x, p.y + 47);\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\nconst base = [\n    { id:'a1c', parents:[], lane:0, msg:'첫 커밋' },\n    { id:'b2d', parents:['a1c'], lane:0, msg:'로그인' },\n    { id:'c3e', parents:['b2d'], lane:0, msg:'검색' },\n  ];\n  const step = {{step}};\n  let commits = base.slice();\n  let refs = { main: 'c3e' }, head = 'main';\n  let cmd = '', note = '';\n  if (step >= 1) { refs.feature = 'c3e'; cmd = 'git branch feature'; note = '이름표만 하나 더 붙었다. 파일은 아무것도 안 바뀐다.'; }\n  if (step >= 2) { head = 'feature'; cmd = 'git switch feature'; note = 'HEAD 가 feature 를 가리킨다 — 앞으로의 커밋은 이 이름표를 민다.'; }\n  if (step >= 3) { commits.push({ id:'d4f', parents:['c3e'], lane:1, msg:'폼 추가' }); refs.feature = 'd4f'; cmd = 'git commit -m \"폼 추가\"'; note = 'feature 만 앞으로 갔다. main 은 그 자리에 남아 있다.'; }\n  if (step >= 4) { commits.push({ id:'e5a', parents:['c3e'], lane:0, msg:'오타' }); refs.main = 'e5a'; head='main'; cmd = 'git switch main && git commit -m \"오타\"'; note = '두 갈래가 생겼다. 이게 「갈라졌다(diverged)」의 정확한 뜻이다.'; }\n  if (step === 0) { cmd = '(브랜치 하나뿐)'; }\n  draw({ commits, refs, head });\n  say(cmd, note);\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 4,
+              "step": 1,
+              "value": 4
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "핵심 규칙 하나 — **커밋하면 지금 HEAD 가 붙어 있는 이름표만 앞으로 옮겨진다.** 다른 이름표는 가만히 있는다. 「브랜치가 갈라진다」는 이 규칙의 결과일 뿐이다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "이름표를 다루는 명령",
+          "text": "git branch feature          # 이름표를 붙인다 (옮겨 가지는 않는다)\ngit switch feature          # HEAD 를 그 이름표로 옮긴다\ngit switch -c feature       # 둘을 한 번에\ngit branch -d feature       # 이름표만 뗀다 (커밋은 남는다)\ngit branch -f main c3e      # 이름표를 다른 커밋으로 강제로 옮긴다"
+        },
+        {
+          "type": "note",
+          "text": "`git branch -d` 가 「병합 안 됐다」며 거부하는 것은 커밋이 아까워서가 아니라, **그 이름표를 떼면 그 커밋들을 부를 이름이 없어지기 때문**이다. 도달할 수 없는 커밋은 나중에 청소된다(8장)."
+        },
+        {
+          "type": "try",
+          "text": "`git branch feature` 만 하고 `git log --oneline --graph --all` 을 보라. 그림이 하나도 안 바뀐다 — 이름표만 늘었기 때문이다."
+        }
       ],
-      "answer": 1,
-      "why": "rebase 는 옮기는 게 아니라 다시 만드는 것이다. 상대의 역사와 내 역사가 서로 다른 커밋을 갖게 된다."
+      "quiz": [
+        {
+          "q": "브랜치의 정체는?",
+          "choices": [
+            "파일 복사본",
+            "커밋 하나를 가리키는 이름표",
+            "폴더",
+            "변경 목록"
+          ],
+          "answer": 1,
+          "why": "그래서 만들기·지우기가 즉시 끝난다."
+        },
+        {
+          "q": "커밋했을 때 앞으로 움직이는 것은?",
+          "choices": [
+            "모든 브랜치",
+            "HEAD 가 붙어 있는 브랜치 하나",
+            "main 만",
+            "아무것도 안 움직인다"
+          ],
+          "answer": 1,
+          "why": "그래서 갈래가 생긴다."
+        },
+        {
+          "q": "`git branch -d` 로 브랜치를 지우면 커밋은?",
+          "choices": [
+            "함께 지워진다",
+            "남는다 — 다만 부를 이름이 없어진다",
+            "리모트로 옮겨진다",
+            "인덱스로 간다"
+          ],
+          "answer": 1,
+          "why": "도달 불가가 되고, 나중에 청소 대상이 된다."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "HEAD — 「지금 나는 어디에 서 있나」",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "HEAD 는 **지금 보고 있는 자리**를 가리키는 화살표다. 보통은 브랜치 이름표를 가리키고(`ref: refs/heads/main`), 가끔 커밋을 직접 가리킨다 — 그것이 **분리된 HEAD**다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "상태를 골라 보라 — 커밋하면 무엇이 따라오나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);   /* 선명하게 */\n  const COL = { done:'#22c55e', head:'#f59e0b', ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 상태 하나 = { commits:[{id,parents,lane,msg,ghost}], refs:{name:commitId}, head:'ref이름' | {detach:id} } */\n  function draw(state) {\n    const W = 440, H = 210;\n    ctx.clearRect(0, 0, W, H);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    /* 선 먼저 — 점 뒤로 깔린다 */\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    /* 점 */\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af';\n      ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8';\n      ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    /* 이름표 — 브랜치·태그 */\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#cbd5e1';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n    /* 분리된 HEAD */\n    if (state.head && state.head.detach && pos[state.head.detach]) {\n      const p = pos[state.head.detach];\n      ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillStyle = '#ef4444';\n      ctx.beginPath(); ctx.roundRect(p.x - 34, p.y + 34, 68, 18, 5); ctx.fill();\n      ctx.fillStyle = '#fff'; ctx.fillText('HEAD(분리)', p.x, p.y + 47);\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\nconst base = [\n    { id:'a1c', parents:[], lane:0, msg:'첫 커밋' },\n    { id:'b2d', parents:['a1c'], lane:0, msg:'로그인' },\n    { id:'c3e', parents:['b2d'], lane:0, msg:'검색' },\n  ];\n  const mode = '{{mode}}';\n  let commits = base.slice();\n  let refs = { main: 'c3e' };\n  let head = 'main', cmd = 'git switch main', note = 'HEAD -> main -> c3e. 커밋하면 main 이 따라 온다.';\n  if (mode === 'detach') {\n    head = { detach: 'b2d' };\n    cmd = 'git switch --detach b2d';\n    note = 'HEAD 가 커밋을 직접 가리킨다. 여기서 커밋하면 아무 이름표도 안 따라온다.';\n  } else if (mode === 'detach-commit') {\n    commits.push({ id:'x9z', parents:['b2d'], lane:1, msg:'실험' });\n    head = { detach: 'x9z' };\n    cmd = 'git switch --detach b2d && git commit -m \"실험\"';\n    note = 'x9z 를 부를 이름이 없다. 여기서 switch main 하면 길을 잃는다(reflog 로만 찾는다).';\n  } else if (mode === 'rescue') {\n    commits.push({ id:'x9z', parents:['b2d'], lane:1, msg:'실험' });\n    refs.exp = 'x9z'; head = 'exp';\n    cmd = 'git switch -c exp';\n    note = '이름표를 붙이는 순간 안전해진다. 분리된 HEAD 에서 뭔가 만들었으면 이것부터 하라.';\n  }\n  draw({ commits, refs, head });\n  say(cmd, note);\n</script>",
+          "controls": [
+            {
+              "id": "mode",
+              "label": "상태",
+              "type": "select",
+              "value": "normal",
+              "options": [
+                {
+                  "value": "normal",
+                  "label": "보통 (HEAD -> 브랜치)"
+                },
+                {
+                  "value": "detach",
+                  "label": "분리된 HEAD"
+                },
+                {
+                  "value": "detach-commit",
+                  "label": "분리된 채로 커밋"
+                },
+                {
+                  "value": "rescue",
+                  "label": "이름표를 붙여 구하기"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "HEAD 를 기준으로 세는 법",
+          "text": "HEAD          # 지금 자리\nHEAD~1        # 한 세대 위(첫 부모를 따라)\nHEAD^2        # 병합 커밋의 두 번째 부모\nHEAD@{2}      # reflog 기준 「두 번 전에 있던 자리」 (시간 기준, 조상 아님)"
+        },
+        {
+          "type": "note",
+          "text": "`~` 는 **세대**, `^` 는 **부모 번호**다. 병합 커밋이 아니면 `HEAD~1` 과 `HEAD^1` 은 같은 것을 가리킨다 — 그래서 헷갈리는 채로도 대개 잘 돌아가고, 병합을 만나는 날 처음 문제가 된다."
+        },
+        {
+          "type": "try",
+          "text": "`git switch --detach HEAD~2` 로 과거로 가 보고 `git status` 를 읽어라. 경고문에 무엇을 하라고 적혀 있는지 그대로 읽는 연습이 곧 실력이다. 돌아올 때는 `git switch -` 다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "분리된 HEAD 에서 커밋하면?",
+          "choices": [
+            "main 이 따라온다",
+            "아무 브랜치도 안 따라와 이름 없는 커밋이 된다",
+            "커밋이 안 된다",
+            "자동으로 브랜치가 생긴다"
+          ],
+          "answer": 1,
+          "why": "그래서 switch 로 떠나면 reflog 로만 찾을 수 있다."
+        },
+        {
+          "q": "`HEAD~1` 의 뜻은?",
+          "choices": [
+            "한 세대 위 커밋",
+            "두 번째 부모",
+            "reflog 한 칸 전",
+            "직전 브랜치"
+          ],
+          "answer": 0,
+          "why": "^2 가 두 번째 부모, @{1} 이 reflog 기준."
+        },
+        {
+          "q": "분리된 HEAD 에서 만든 작업을 지키려면?",
+          "choices": [
+            "git add",
+            "git switch -c 이름 (이름표 붙이기)",
+            "git stash",
+            "git fetch"
+          ],
+          "answer": 1,
+          "why": "부를 이름이 생기면 도달 가능해진다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "병합 — 두 갈래를 한 사진으로",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "병합에는 모양이 둘뿐이다. 갈라진 적이 없으면 **이름표만 앞으로 미는**(fast-forward) 것으로 끝나고, 진짜로 갈라졌으면 **부모가 둘인 커밋**이 하나 생긴다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "경우를 골라 보라 — 새 커밋이 생기나 안 생기나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);   /* 선명하게 */\n  const COL = { done:'#22c55e', head:'#f59e0b', ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 상태 하나 = { commits:[{id,parents,lane,msg,ghost}], refs:{name:commitId}, head:'ref이름' | {detach:id} } */\n  function draw(state) {\n    const W = 440, H = 210;\n    ctx.clearRect(0, 0, W, H);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    /* 선 먼저 — 점 뒤로 깔린다 */\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    /* 점 */\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af';\n      ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8';\n      ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    /* 이름표 — 브랜치·태그 */\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#cbd5e1';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n    /* 분리된 HEAD */\n    if (state.head && state.head.detach && pos[state.head.detach]) {\n      const p = pos[state.head.detach];\n      ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillStyle = '#ef4444';\n      ctx.beginPath(); ctx.roundRect(p.x - 34, p.y + 34, 68, 18, 5); ctx.fill();\n      ctx.fillStyle = '#fff'; ctx.fillText('HEAD(분리)', p.x, p.y + 47);\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\n  const kind = '{{kind}}';\n  let commits, refs, head = 'main', cmd, note;\n  if (kind === 'ff') {\n    commits = [\n      { id:'a1c', parents:[], lane:0, msg:'첫 커밋' },\n      { id:'b2d', parents:['a1c'], lane:0, msg:'로그인' },\n      { id:'d4f', parents:['b2d'], lane:0, msg:'폼 추가' },\n    ];\n    refs = { main: 'd4f', feature: 'd4f' };\n    cmd = 'git merge feature   # fast-forward';\n    note = 'main 이 갈라진 적이 없다 — 이름표만 앞으로 밀면 끝. 새 커밋은 안 생긴다.';\n  } else if (kind === '3way') {\n    commits = [\n      { id:'a1c', parents:[], lane:0, msg:'첫 커밋' },\n      { id:'b2d', parents:['a1c'], lane:0, msg:'로그인' },\n      { id:'d4f', parents:['b2d'], lane:1, msg:'폼' },\n      { id:'e5a', parents:['b2d'], lane:0, msg:'오타' },\n      { id:'m6b', parents:['e5a','d4f'], lane:0, msg:'병합' },\n    ];\n    refs = { main: 'm6b', feature: 'd4f' };\n    cmd = 'git merge feature   # 부모가 둘인 커밋이 생긴다';\n    note = '공통 조상(b2d)과 양쪽 끝, 셋을 비교해 합친다 = 3-way merge.';\n  } else {\n    commits = [\n      { id:'a1c', parents:[], lane:0, msg:'첫 커밋' },\n      { id:'b2d', parents:['a1c'], lane:0, msg:'로그인' },\n      { id:'d4f', parents:['b2d'], lane:1, msg:'폼(같은 줄 고침)' },\n      { id:'e5a', parents:['b2d'], lane:0, msg:'오타(같은 줄 고침)' },\n    ];\n    refs = { main: 'e5a', feature: 'd4f' };\n    cmd = 'git merge feature   # CONFLICT (content): app.js';\n    note = '양쪽이 같은 줄을 고쳤다 -> git 은 고르지 않고 멈춘다. 고른 뒤 add 하고 commit 하면 병합 커밋이 완성된다.';\n  }\n  draw({ commits, refs, head });\n  say(cmd, note);\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "경우",
+              "type": "select",
+              "value": "3way",
+              "options": [
+                {
+                  "value": "ff",
+                  "label": "fast-forward"
+                },
+                {
+                  "value": "3way",
+                  "label": "3-way 병합"
+                },
+                {
+                  "value": "conflict",
+                  "label": "충돌"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "충돌은 사고가 아니라 **질문**이다. git 이 「이 줄은 내가 못 고르겠다」고 멈춘 것이고, 표식(`<<<<<<<`)은 그 질문지다. 답하고 `git add` 하면 「골랐다」는 뜻이 되고, `git commit` 으로 병합이 끝난다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "충돌을 만났을 때",
+          "text": "git status                 # 어떤 파일이 답을 기다리나\ngit diff                   # 양쪽 안을 나란히\n# … 파일을 고쳐 표식을 지우고\ngit add app.js             # 「이 파일은 답했다」\ngit commit                 # 병합 완성 (메시지는 미리 채워져 있다)\n\ngit merge --abort          # 없던 일로 (병합 시작 전으로)"
+        },
+        {
+          "type": "note",
+          "text": "`--no-ff` 를 쓰면 fast-forward 가 가능해도 일부러 병합 커밋을 만든다. 「이 묶음이 하나의 기능이었다」는 사실을 역사에 남기려는 선택이다 — 팀이 정할 문제이지 옳고 그름이 아니다."
+        },
+        {
+          "type": "try",
+          "text": "일부러 충돌을 만들어 보라. 브랜치 둘에서 같은 줄을 다르게 고치고 병합한 뒤, `git status` 가 시키는 대로만 따라가 끝내라. 한 번 해 보면 무서움이 사라진다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "fast-forward 병합에서 새 커밋은?",
+          "choices": [
+            "생긴다",
+            "안 생긴다 — 이름표만 옮긴다",
+            "두 개 생긴다",
+            "부모가 셋이다"
+          ],
+          "answer": 1,
+          "why": "갈라진 적이 없으므로 합칠 것이 없다."
+        },
+        {
+          "q": "병합 커밋의 부모 수는?",
+          "choices": [
+            "0",
+            "1",
+            "2 (이상)",
+            "브랜치 수만큼 항상 3"
+          ],
+          "answer": 2,
+          "why": "양쪽 끝을 모두 가리킨다."
+        },
+        {
+          "q": "충돌 표식을 고친 뒤 「골랐다」고 알리는 명령은?",
+          "choices": [
+            "git commit",
+            "git add",
+            "git merge --continue 만",
+            "git restore"
+          ],
+          "answer": 1,
+          "why": "add 가 해결 표시다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "역사를 다시 쓰기 — rebase 와 amend",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "1장의 규칙을 기억하라 — **커밋 해시는 부모까지 포함해 계산된다.** 그래서 「옛 커밋을 고친다」는 것은 물리적으로 불가능하다. 실제로 일어나는 일은 **비슷한 내용의 새 커밋을 만들고 이름표를 그쪽으로 옮기는 것**이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "전후를 비교하라 — 옛 커밋은 지워지지 않는다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);   /* 선명하게 */\n  const COL = { done:'#22c55e', head:'#f59e0b', ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 상태 하나 = { commits:[{id,parents,lane,msg,ghost}], refs:{name:commitId}, head:'ref이름' | {detach:id} } */\n  function draw(state) {\n    const W = 440, H = 210;\n    ctx.clearRect(0, 0, W, H);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    /* 선 먼저 — 점 뒤로 깔린다 */\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    /* 점 */\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af';\n      ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8';\n      ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    /* 이름표 — 브랜치·태그 */\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#cbd5e1';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n    /* 분리된 HEAD */\n    if (state.head && state.head.detach && pos[state.head.detach]) {\n      const p = pos[state.head.detach];\n      ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillStyle = '#ef4444';\n      ctx.beginPath(); ctx.roundRect(p.x - 34, p.y + 34, 68, 18, 5); ctx.fill();\n      ctx.fillStyle = '#fff'; ctx.fillText('HEAD(분리)', p.x, p.y + 47);\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\n  const after = {{after}};\n  const commits = [\n    { id:'a1c', parents:[], lane:0, msg:'첫 커밋' },\n    { id:'b2d', parents:['a1c'], lane:0, msg:'로그인' },\n    { id:'e5a', parents:['b2d'], lane:0, msg:'오타' },\n    { id:'d4f', parents:['b2d'], lane:1, msg:'폼', ghost: !!after },\n  ];\n  const refs = { main: 'e5a' };\n  if (after) {\n    commits.push({ id:'d4f\\'', parents:['e5a'], lane:1, msg:'폼(새 해시)' });\n    refs.feature = \"d4f'\";\n  } else {\n    refs.feature = 'd4f';\n  }\n  draw({ commits, refs, head: 'feature' });\n  say(after ? 'git rebase main   # feature 를 main 끝으로 옮겨 적었다'\n            : '(rebase 하기 전)',\n      after ? '내용은 같지만 부모가 달라져 해시가 바뀌었다. 옛 d4f 는 흐리게 — 아직 있지만 아무도 안 가리킨다.'\n            : 'feature 가 b2d 에서 갈라져 나와 있다.');\n</script>",
+          "controls": [
+            {
+              "id": "after",
+              "label": "rebase 후",
+              "type": "toggle",
+              "value": true
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "그래서 rebase 뒤에는 **선이 하나로 곧게** 남는다(병합 커밋이 없다). 대신 옛 커밋과 새 커밋은 **다른 물건**이다 — 이미 남에게 보낸 커밋을 rebase 하면, 그 사람의 역사와 내 역사가 서로 모르는 사이가 된다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "다시 쓰는 세 가지",
+          "text": "git commit --amend            # 마지막 커밋을 고쳐 새로 만든다 (해시 바뀜)\ngit rebase main               # 내 커밋들을 main 끝으로 옮겨 적는다\ngit rebase -i HEAD~3          # 최근 셋을 합치기·순서 바꾸기·메시지 고치기\n\ngit push --force-with-lease   # 다시 쓴 역사를 올릴 때 (--force 말고 이쪽)"
+        },
+        {
+          "type": "note",
+          "text": "황금률 — **남과 공유한 브랜치는 다시 쓰지 않는다.** 내 것(아직 안 올렸거나 나만 쓰는 PR 브랜치)은 얼마든지 다듬어라. 올려야 한다면 `--force` 가 아니라 `--force-with-lease` 다 — 그 사이 남이 올린 것이 있으면 멈춰 준다."
+        },
+        {
+          "type": "try",
+          "text": "실험용 브랜치에서 커밋 세 개를 만든 뒤 `git rebase -i HEAD~3` 으로 둘을 `squash` 해 하나로 합쳐라. 합치기 전후의 `git log --oneline` 을 나란히 적어 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "rebase 후 옮겨진 커밋의 해시는?",
+          "choices": [
+            "그대로다",
+            "부모가 바뀌었으므로 달라진다",
+            "짧아진다",
+            "브랜치 이름에 따라 다르다"
+          ],
+          "answer": 1,
+          "why": "해시는 부모를 포함해 계산된다."
+        },
+        {
+          "q": "다시 쓴 역사를 올릴 때 권하는 것은?",
+          "choices": [
+            "git push --force",
+            "git push --force-with-lease",
+            "git push -u",
+            "git push --tags"
+          ],
+          "answer": 1,
+          "why": "그 사이 남이 올린 것이 있으면 멈춰 준다."
+        },
+        {
+          "q": "rebase 를 피해야 할 때는?",
+          "choices": [
+            "내 로컬 브랜치",
+            "아직 안 올린 커밋",
+            "남과 공유 중인 브랜치",
+            "PR 올리기 전"
+          ],
+          "answer": 2,
+          "why": "상대의 역사와 어긋난다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "되돌리기 — reset · revert · restore",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "되돌리는 명령이 셋인 이유는 **되돌릴 대상이 셋**이기 때문이다(2장의 세 구역). `restore` 는 파일을, `reset` 은 이름표를, `revert` 는 「반대 내용의 새 커밋」을 다룬다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "모드를 골라 보라 — reset 이 무엇을 어디까지 되돌리나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);   /* 선명하게 */\n  const COL = { done:'#22c55e', head:'#f59e0b', ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 상태 하나 = { commits:[{id,parents,lane,msg,ghost}], refs:{name:commitId}, head:'ref이름' | {detach:id} } */\n  function draw(state) {\n    const W = 440, H = 210;\n    ctx.clearRect(0, 0, W, H);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    /* 선 먼저 — 점 뒤로 깔린다 */\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    /* 점 */\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af';\n      ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8';\n      ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    /* 이름표 — 브랜치·태그 */\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#cbd5e1';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n    /* 분리된 HEAD */\n    if (state.head && state.head.detach && pos[state.head.detach]) {\n      const p = pos[state.head.detach];\n      ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillStyle = '#ef4444';\n      ctx.beginPath(); ctx.roundRect(p.x - 34, p.y + 34, 68, 18, 5); ctx.fill();\n      ctx.fillStyle = '#fff'; ctx.fillText('HEAD(분리)', p.x, p.y + 47);\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\n  const m = '{{mode}}';\n  const rows = [['HEAD(이름표)','옮긴다'],['인덱스',''],['작업트리','']];\n  const state = { soft:[1,0,0], mixed:[1,1,0], hard:[1,1,1], revert:[0,0,0] }[m];\n  ctx.clearRect(0,0,440,210);\n  ctx.textAlign='left';\n  rows.forEach(([name], i) => {\n    const y = 16 + i * 50;\n    const hit = state[i];\n    ctx.fillStyle = hit ? '#3b1d1d' : '#111c33';\n    ctx.strokeStyle = hit ? '#ef4444' : '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(16, y, 408, 40, 8); ctx.fill(); ctx.stroke();\n    ctx.fillStyle = '#e2e8f0'; ctx.font='13px system-ui';\n    ctx.fillText(name, 30, y + 25);\n    ctx.fillStyle = hit ? '#fca5a5' : '#64748b'; ctx.font='12px system-ui'; ctx.textAlign='right';\n    ctx.fillText(hit ? '되돌아간다' : '그대로', 410, y + 25);\n    ctx.textAlign='left';\n  });\n  const t = {\n    soft: ['git reset --soft HEAD~1', '커밋만 취소. 고친 내용은 인덱스에 그대로 남는다 — 메시지를 다시 쓰고 싶을 때.'],\n    mixed: ['git reset HEAD~1   (기본값 --mixed)', '커밋과 add 를 취소. 파일은 그대로 — 다시 골라 담을 수 있다.'],\n    hard: ['git reset --hard HEAD~1', '고친 내용까지 버린다. 커밋 안 한 작업은 reflog 로도 못 찾는다 — 유일하게 진짜 위험한 명령.'],\n    revert: ['git revert <커밋>', '아무것도 되돌리지 않는다. 반대 내용의 새 커밋을 앞에 붙인다 — 이미 공유한 역사에는 이것.'],\n  }[m];\n  say(t[0], t[1]);\n</script>",
+          "controls": [
+            {
+              "id": "mode",
+              "label": "명령",
+              "type": "select",
+              "value": "mixed",
+              "options": [
+                {
+                  "value": "soft",
+                  "label": "reset --soft"
+                },
+                {
+                  "value": "mixed",
+                  "label": "reset (--mixed)"
+                },
+                {
+                  "value": "hard",
+                  "label": "reset --hard"
+                },
+                {
+                  "value": "revert",
+                  "label": "revert"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "고르는 기준은 **남에게 보냈나**다. 아직 내 것이면 `reset` 으로 깔끔히 지우고, 이미 공유했으면 `revert` 로 「취소했다」는 사실까지 역사에 남긴다. 남의 역사에서 커밋을 빼앗을 수는 없다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "자주 쓰는 조합",
+          "text": "git restore f                 # 파일 하나 되돌리기 (커밋과 무관)\ngit restore --source=HEAD~2 f # 두 세대 전 내용으로 그 파일만\ngit reset --soft HEAD~1       # 커밋만 취소 (메시지 다시 쓰기)\ngit revert HEAD               # 마지막 커밋을 취소하는 새 커밋\ngit revert -m 1 <병합커밋>    # 병합을 되돌릴 때는 어느 쪽을 남길지 지정"
+        },
+        {
+          "type": "note",
+          "text": "`--hard` 만 진짜로 위험하다. 커밋된 것은 reflog 로 돌아올 수 있지만, **커밋 안 한 작업**은 어디에도 안 적혀 있어 사라진다. 불안하면 먼저 `git stash` 나 아무 커밋 하나를 만들어 두라 — 커밋해 두면 8장의 그물이 받아 준다."
+        },
+        {
+          "type": "try",
+          "text": "실험용 저장소에서 `reset --soft`, `--mixed`, `--hard` 를 차례로 해 보고 매번 `git status` 를 읽어라. 세 화면이 어떻게 다른지가 이 장의 전부다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "커밋만 취소하고 고친 내용은 담긴 채로 두려면?",
+          "choices": [
+            "reset --hard",
+            "reset --soft",
+            "revert",
+            "restore"
+          ],
+          "answer": 1,
+          "why": "인덱스가 그대로라 바로 다시 커밋할 수 있다."
+        },
+        {
+          "q": "이미 공유한 커밋을 되돌릴 때는?",
+          "choices": [
+            "reset --hard 후 force push",
+            "revert",
+            "amend",
+            "branch -d"
+          ],
+          "answer": 1,
+          "why": "남의 역사를 깨지 않고 취소 사실을 남긴다."
+        },
+        {
+          "q": "reflog 로도 못 찾는 것은?",
+          "choices": [
+            "reset 으로 밀려난 커밋",
+            "삭제된 브랜치의 커밋",
+            "커밋한 적 없는 작업트리 변경",
+            "amend 전 커밋"
+          ],
+          "answer": 2,
+          "why": "커밋되지 않은 것은 어디에도 안 적힌다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "잃어버렸을 때 — 도달 가능성과 reflog",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "3장에서 「도달할 수 없는 커밋」이라는 말이 나왔다. git 은 **이름표에서 부모를 따라가며 닿는 커밋**만 살아 있다고 본다. 닿지 않는 커밋은 곧바로 사라지지는 않지만, 부를 이름이 없다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "사고를 골라 보라 — 커밋은 아직 거기 있다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);   /* 선명하게 */\n  const COL = { done:'#22c55e', head:'#f59e0b', ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 상태 하나 = { commits:[{id,parents,lane,msg,ghost}], refs:{name:commitId}, head:'ref이름' | {detach:id} } */\n  function draw(state) {\n    const W = 440, H = 210;\n    ctx.clearRect(0, 0, W, H);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    /* 선 먼저 — 점 뒤로 깔린다 */\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    /* 점 */\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af';\n      ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8';\n      ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    /* 이름표 — 브랜치·태그 */\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#cbd5e1';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n    /* 분리된 HEAD */\n    if (state.head && state.head.detach && pos[state.head.detach]) {\n      const p = pos[state.head.detach];\n      ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillStyle = '#ef4444';\n      ctx.beginPath(); ctx.roundRect(p.x - 34, p.y + 34, 68, 18, 5); ctx.fill();\n      ctx.fillStyle = '#fff'; ctx.fillText('HEAD(분리)', p.x, p.y + 47);\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\n  const case_ = '{{case}}';\n  const commits = [\n    { id:'a1c', parents:[], lane:0, msg:'첫 커밋' },\n    { id:'b2d', parents:['a1c'], lane:0, msg:'로그인' },\n    { id:'c3e', parents:['b2d'], lane:0, msg:'검색' },\n    { id:'d4f', parents:['c3e'], lane:0, msg:'중요한 작업', ghost: case_ !== 'found' },\n  ];\n  const refs = case_ === 'found' ? { main: 'd4f' } : { main: 'c3e' };\n  draw({ commits, refs, head: 'main' });\n  const t = {\n    lost: ['git reset --hard HEAD~1', 'main 이 뒤로 갔다. d4f 는 흐리게 = 아직 있지만 아무도 안 가리킨다.'],\n    reflog: ['git reflog\\n  c3e HEAD@{0}: reset: moving to HEAD~1\\n  d4f HEAD@{1}: commit: 중요한 작업', 'reflog 는 HEAD 가 거쳐 간 자리를 전부 적어 둔다 — 여기서 해시를 찾는다.'],\n    found: ['git reset --hard d4f   (또는 git branch rescue d4f)', '이름표를 다시 붙였다. 돌아왔다.'],\n  }[case_];\n  say(t[0], t[1]);\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "상황",
+              "type": "select",
+              "value": "lost",
+              "options": [
+                {
+                  "value": "lost",
+                  "label": "reset --hard 로 날렸다"
+                },
+                {
+                  "value": "reflog",
+                  "label": "reflog 로 찾는다"
+                },
+                {
+                  "value": "found",
+                  "label": "이름표를 다시 붙인다"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "**reflog 는 HEAD 가 거쳐 간 자리의 일지다.** 브랜치를 지웠든, reset 으로 밀었든, rebase 로 다시 썼든 — HEAD 가 한 번이라도 그 커밋에 서 있었다면 여기에 남는다. 기본 90일 보관."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "구조 순서",
+          "text": "git reflog                    # HEAD 가 거쳐 간 자리들\ngit reflog show feature       # 특정 브랜치의 일지\ngit branch rescue d4f2c9a     # 찾은 해시에 이름표를 붙인다 (제일 안전)\ngit fsck --lost-found         # reflog 에도 없을 때 (분리된 HEAD 사고 등)"
+        },
+        {
+          "type": "note",
+          "text": "그래서 실무 규칙은 **「불안하면 일단 커밋」**이다. 커밋된 것은 거의 언제나 돌아올 수 있다. 안 커밋한 것만이 진짜로 사라진다."
+        },
+        {
+          "type": "try",
+          "text": "실험용 저장소에서 커밋 하나를 만들고 `git reset --hard HEAD~1` 로 날린 뒤 `git reflog` 로 되찾아 보라. 한 번 해 두면 실제 사고 때 손이 먼저 움직인다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "「도달할 수 없는 커밋」이란?",
+          "choices": [
+            "디스크에서 지워진 커밋",
+            "어떤 이름표에서도 부모를 따라 닿을 수 없는 커밋",
+            "충돌한 커밋",
+            "병합 커밋"
+          ],
+          "answer": 1,
+          "why": "아직 존재하지만 부를 이름이 없다."
+        },
+        {
+          "q": "reflog 가 적어 두는 것은?",
+          "choices": [
+            "파일 변경 내역",
+            "HEAD 가 거쳐 간 자리들",
+            "리모트 목록",
+            "충돌 기록"
+          ],
+          "answer": 1,
+          "why": "그래서 reset·rebase·브랜치 삭제 후 복구에 쓴다."
+        },
+        {
+          "q": "사고에 가장 강한 습관은?",
+          "choices": [
+            "자주 stash",
+            "불안하면 일단 커밋",
+            "브랜치 안 만들기",
+            "force push"
+          ],
+          "answer": 1,
+          "why": "커밋된 것은 reflog 가 받아 준다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "git 에서 막히면 대개 「지금 어디에 있고, 무엇이 어느 칸에 있나」를 모르는 상태다. 명령을 외우기 전에 이 순서로 물어라."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "막혔을 때 묻는 순서",
+          "text": "1. 나는 어디에 서 있나?        git status  ·  git log --oneline --graph --all\n2. 내 변경은 어느 칸에 있나?    작업트리 / 인덱스 / 커밋  (git diff · git diff --staged)\n3. 무엇을 되돌리려는 건가?\n     파일 내용   -> git restore\n     커밋만      -> git reset --soft / --mixed\n     이미 공유함 -> git revert\n4. 남과 공유한 역사인가?        예 -> rebase·amend·force 금지\n5. 잃어버렸나?                  git reflog -> git branch rescue <해시>\n6. 불안한 작업을 시작하나?      먼저 커밋하거나 브랜치를 하나 파 두라"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 여섯 문항",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.6 system-ui, sans-serif; margin: 0; color: #e2e8f0; background: transparent; }\n  .wrap { background:#0b1220; border-radius:10px; padding:10px; }\n  canvas { width: 100%; height: 210px; display: block; }\n  .cmd { font: 12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; margin-top:6px; }\n  .note { font-size: 12.5px; color:#94a3b8; margin-top:4px; }\n</style>\n<div class=\"wrap\">\n  <canvas id=\"c\" width=\"880\" height=\"420\"></canvas>\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div class=\"note\" id=\"note\"></div>\n</div>\n<script>\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);   /* 선명하게 */\n  const COL = { done:'#22c55e', head:'#f59e0b', ghost:'#475569', line:'#334155', text:'#e2e8f0' };\n\n  /* 상태 하나 = { commits:[{id,parents,lane,msg,ghost}], refs:{name:commitId}, head:'ref이름' | {detach:id} } */\n  function draw(state) {\n    const W = 440, H = 210;\n    ctx.clearRect(0, 0, W, H);\n    const cs = state.commits;\n    const pos = {};\n    cs.forEach((c, i) => { pos[c.id] = { x: 46 + i * 62, y: 150 - (c.lane || 0) * 58 }; });\n\n    /* 선 먼저 — 점 뒤로 깔린다 */\n    ctx.strokeStyle = COL.line; ctx.lineWidth = 2;\n    for (const c of cs) for (const p of c.parents) {\n      if (!pos[p]) continue;\n      ctx.beginPath();\n      ctx.moveTo(pos[p].x + 11, pos[p].y);\n      ctx.lineTo(pos[c.id].x - 11, pos[c.id].y);\n      ctx.stroke();\n    }\n    /* 점 */\n    for (const c of cs) {\n      const p = pos[c.id];\n      ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);\n      ctx.fillStyle = c.ghost ? '#1e293b' : '#1e40af';\n      ctx.fill();\n      ctx.strokeStyle = c.ghost ? COL.ghost : '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n      ctx.fillStyle = c.ghost ? COL.ghost : COL.text;\n      ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillText(c.id, p.x, p.y + 3.5);\n      ctx.fillStyle = c.ghost ? COL.ghost : '#94a3b8';\n      ctx.font = '10px system-ui';\n      ctx.fillText(c.msg || '', p.x, p.y + 26);\n    }\n    /* 이름표 — 브랜치·태그 */\n    const at = {};\n    for (const [name, id] of Object.entries(state.refs)) { (at[id] = at[id] || []).push(name); }\n    for (const [id, names] of Object.entries(at)) {\n      if (!pos[id]) continue;\n      names.forEach((name, k) => {\n        const p = pos[id];\n        const isHead = state.head === name;\n        const y = p.y - 26 - k * 20;\n        ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n        const w = ctx.measureText(name).width + 12;\n        ctx.fillStyle = isHead ? '#f59e0b' : '#334155';\n        ctx.beginPath(); ctx.roundRect(p.x - w / 2, y - 11, w, 18, 5); ctx.fill();\n        ctx.fillStyle = isHead ? '#0b1220' : '#cbd5e1';\n        ctx.fillText(name, p.x, y + 2);\n        if (isHead) {\n          ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;\n          ctx.beginPath(); ctx.moveTo(p.x, y + 8); ctx.lineTo(p.x, p.y - 12); ctx.stroke();\n        }\n      });\n    }\n    /* 분리된 HEAD */\n    if (state.head && state.head.detach && pos[state.head.detach]) {\n      const p = pos[state.head.detach];\n      ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'center';\n      ctx.fillStyle = '#ef4444';\n      ctx.beginPath(); ctx.roundRect(p.x - 34, p.y + 34, 68, 18, 5); ctx.fill();\n      ctx.fillStyle = '#fff'; ctx.fillText('HEAD(분리)', p.x, p.y + 47);\n    }\n  }\n  const say = (cmd, note) => {\n    document.getElementById('cmd').textContent = cmd;\n    document.getElementById('note').textContent = note || '';\n  };\n</script>\n<script>\n  const q = [\n    ['커밋은 변경분이 아니라 스냅샷이다', true],\n    ['브랜치를 지우면 커밋도 바로 지워진다', false],\n    ['rebase 하면 커밋 해시가 바뀐다', true],\n    ['reset --hard 로 날린 커밋은 reflog 로 찾을 수 있다', true],\n    ['커밋 안 한 작업도 reflog 로 찾을 수 있다', false],\n    ['fast-forward 병합은 새 커밋을 만든다', false],\n  ];\n  ctx.clearRect(0,0,440,210);\n  ctx.textAlign='left'; ctx.font='12px system-ui';\n  q.forEach(([text, ans], i) => {\n    const y = 18 + i * 32;\n    ctx.fillStyle = ans ? '#22c55e' : '#ef4444';\n    ctx.fillText(ans ? 'O' : 'X', 18, y + 4);\n    ctx.fillStyle = '#cbd5e1';\n    ctx.fillText(text, 38, y + 4);\n  });\n  say('여섯 문항 · O/X', '틀린 것이 있으면 그 장으로 돌아가라 — 1장(스냅샷) 3장(이름표) 6장(해시) 8장(reflog)');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸들은 이 모형 위에서 도는 명령들이다 — 브랜치·병합, rebase, 되돌리기, 리모트. 명령이 헷갈릴 때마다 여기로 돌아와 **점과 이름표 그림**을 먼저 그려라. 그림이 그려지면 명령은 거의 저절로 골라진다."
+        },
+        {
+          "type": "try",
+          "text": "빈 폴더에서 `git init` 하고, 커밋 3개 · 브랜치 2개 · 병합 1개를 만든 뒤 `git log --oneline --graph --all` 이 이 장의 그림과 같은 모양인지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "막혔을 때 가장 먼저 칠 명령은?",
+          "choices": [
+            "git push",
+            "git status",
+            "git reset --hard",
+            "git clone"
+          ],
+          "answer": 1,
+          "why": "지금 어디에 서 있고 무엇이 어느 칸에 있는지부터."
+        },
+        {
+          "q": "불안한 작업을 시작하기 전 습관은?",
+          "choices": [
+            "stash 로 숨기기",
+            "먼저 커밋하거나 브랜치를 파 두기",
+            "force push",
+            "브랜치 지우기"
+          ],
+          "answer": 1,
+          "why": "커밋된 것은 되찾을 수 있다."
+        }
+      ]
     }
   ]
 }
