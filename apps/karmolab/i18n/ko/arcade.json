@@ -350,5 +350,11 @@
   "arcade.yut.gae": "개",
   "arcade.yut.geol": "걸",
   "arcade.yut.yut": "윷",
-  "arcade.yut.mo": "모"
+  "arcade.yut.mo": "모",
+  "arcade.game.jegi.name": "제기차기",
+  "arcade.game.jegi.desc": "내려오는 순간에만 발이 닿는다 · 찰수록 빨라진다",
+  "arcade.jegi.kick": "차기",
+  "arcade.jegi.dropped": "떨어뜨렸다",
+  "arcade.jegi.hint": "제기가 아래 띠에 들어오면 차라",
+  "arcade.jegi.win": "{who} · {n}번"
 }

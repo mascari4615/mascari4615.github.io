@@ -350,5 +350,11 @@
   "arcade.yut.gae": "ケ(2)",
   "arcade.yut.geol": "コル(3)",
   "arcade.yut.yut": "ユッ(4)",
-  "arcade.yut.mo": "モ(5)"
+  "arcade.yut.mo": "モ(5)",
+  "arcade.game.jegi.name": "チェギチャギ",
+  "arcade.game.jegi.desc": "落ちてくる瞬間だけ足が届く · 蹴るほど速くなる",
+  "arcade.jegi.kick": "蹴る",
+  "arcade.jegi.dropped": "落とした",
+  "arcade.jegi.hint": "下の帯に入ったら蹴る",
+  "arcade.jegi.win": "{who} · {n}回"
 }
