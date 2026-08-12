@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Float32Array });
-const { analysePeak, normalizeGain, applyGain, clampBuffer, exportRange, toDbfs } = module.exports;
+const { analysePeak, normalizeGain, applyGain, clampBuffer, exportRange, toDbfs, stemFileName, uniqueNames } = module.exports;
 
 const pcm = (channels) => ({
   numberOfChannels: channels.length,
@@ -67,4 +67,18 @@ assert.deepEqual({ ...exportRange('selection', song, loop, []) }, { from: 0, to:
 assert.deepEqual({ ...exportRange('loop', song, { from: 9, to: 3 }, []) }, { from: 3, to: 9 }, '뒤집혀 들어와도 바로 세운다');
 assert.deepEqual({ ...exportRange('loop', song, { from: 5, to: 5 }, []) }, { from: 5, to: 6 }, '길이 0 짜리 파일은 안 만든다');
 
-console.log('[test-karmo-studio-export] ✓ 피크·클리핑 · 정규화 · clamp · 구간');
+// 트랙별 파일 이름
+assert.equal(stemFileName('Drums', 0), '01-Drums.wav');
+assert.equal(stemFileName('Lead', 9), '10-Lead.wav', '두 자리로 맞춘다');
+assert.equal(stemFileName('a/b:c*d?e"f<g>h|i', 0), '01-abcdefghi.wav', '못 쓰는 글자를 뺀다');
+assert.equal(stemFileName('   ', 2), '03-track.wav', '이름이 비면 대신 쓴다');
+assert.equal(stemFileName(null, 0), '01-track.wav');
+assert.ok(stemFileName('x'.repeat(200), 0).length < 70, '너무 긴 이름은 자른다');
+
+// 같은 이름이 겹치면 번호를 붙인다 — 안 그러면 ZIP 안에서 덮어써진다
+assert.deepEqual(uniqueNames(['a.wav', 'b.wav']), ['a.wav', 'b.wav']);
+assert.deepEqual(uniqueNames(['a.wav', 'a.wav', 'a.wav']), ['a.wav', 'a (2).wav', 'a (3).wav']);
+assert.deepEqual(uniqueNames(['noext', 'noext']), ['noext', 'noext (2)']);
+assert.deepEqual(uniqueNames([]), []);
+
+console.log('[test-karmo-studio-export] ✓ 피크·클리핑 · 정규화 · clamp · 구간 · 트랙별 파일 이름');

@@ -13,7 +13,7 @@ import { GestureHost } from './gesture';
 import { shortcutsHtml } from './shortcuts';
 import { buildPianoView, initialScrollTop, PIANO_GEOMETRY } from './piano-view';
 import { automationHtml, automationValue, clipHtml, laneHint, visibleClips, waveformPath, waveformSvg, waveMissing } from './arranger-view';
-import { analysePeak, applyGain, clampBuffer, exportRange, normalizeGain, type ExportRangeMode } from './export';
+import { analysePeak, applyGain, clampBuffer, exportRange, normalizeGain, stemFileName, uniqueNames, type ExportRangeMode } from './export';
 import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type ClipRef, type NoteRef } from './selection';
 
 (function (): void {
@@ -35,7 +35,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     let playhead = 0; let pxPerBeat = 72; let sideMode: 'inspector' | 'mixer' = 'inspector';let editTool:'draw'|'select'|'slice'='draw'; let assets = new Map<string, StudioAssetRuntime>();
     let raf: number | undefined; let saveTimer: number | undefined; let recording: MediaRecorder | null = null; let recordChunks: Blob[] = []; let recordStart = 0;
     let armedTrackId=''; let taps:number[]=[]; let metronome=false; let countIn=false; const autoLanes=new Map<string,AutomationParam>();
-    let exportOptions={range:'song' as ExportRangeMode,sampleRate:44100,mono:false,normalize:true};
+    let exportOptions={range:'song' as ExportRangeMode,sampleRate:44100,mono:false,normalize:true,stems:false};
     let editorExpanded = false; let editorScrollTop = 0; let editorScrollLeft = 0; let editorClipId = ''; let pianoPxPerBeat = pxPerBeat;
     let editorReturnFocus: HTMLElement | null = null;
     /** 끌기는 언제나 한 판만 산다 — 겹치면 앞 판이 취소된다. */
@@ -164,11 +164,41 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
           <option value="1"${exportOptions.mono?' selected':''}>모노</option>
         </select></label>
         <label>피크 맞추기 (-1 dBFS) <input type="checkbox" data-export="normalize"${exportOptions.normalize?' checked':''}></label>
+        <label>트랙별로 따로 (ZIP) <input type="checkbox" data-export="stems"${exportOptions.stems?' checked':''}></label>
         <p class="ks-export-note" data-role="export-note">끄면 1 을 넘는 표본은 깎인다. 켜면 가장 큰 소리를 -1 dBFS 에 맞춘다.</p>
         <div class="ks-export-actions"><button class="ks-btn" data-export-act="cancel">취소</button><button class="ks-btn" data-export-act="go">내보내기</button></div>
       </div>`;
       $<HTMLElement>('[data-role=backdrop]').classList.add('is-open');
       host.querySelector<HTMLElement>('[data-export-act=go]')?.focus();
+    }
+    /** 트랙별로 한 벌씩 내서 ZIP 하나로 묶는다. 한 트랙만 남기고 나머지를 죽여 렌더한다. */
+    async function runStemExport(range:{from:number;to:number}, note: HTMLElement | null): Promise<void> {
+      const live=project.tracks.filter((track)=>track.clips.length);
+      if(!live.length){status('내보낼 트랙이 없다');if(note)note.textContent='클립이 있는 트랙이 없다';return;}
+      await Toolbox.ensureScript?.('vendor/jszip.min');
+      const JSZipCtor=(window as unknown as {JSZip?:new()=>{file(name:string,data:Blob):void;generateAsync(options:{type:'blob'}):Promise<Blob>}}).JSZip;
+      if(!JSZipCtor){status('ZIP 도구를 못 불러왔다');if(note)note.textContent='ZIP 도구를 못 불러왔다';return;}
+      const zip=new JSZipCtor();
+      const names=uniqueNames(live.map((track,index)=>stemFileName(track.name,index)));
+      let loudest=-Infinity;
+      for(let index=0;index<live.length;index++){
+        const track=live[index];
+        if(note)note.textContent=`${index+1}/${live.length} · ${track.name}`;
+        status(`Rendering ${index+1}/${live.length} · ${track.name}`);
+        /* 솔로·뮤트를 손대지 않고 **이번 렌더용 사본**만 만든다 — 사용자의 믹서 상태는 그대로 둔다. */
+        const only={...project,tracks:project.tracks.map((item)=>({...item,mute:item.id!==track.id,solo:false}))};
+        const rendered=await renderProject(only,assets,range.from,range.to,exportOptions.sampleRate,exportOptions.mono?1:2);
+        const before=analysePeak(rendered);
+        if(exportOptions.normalize)applyGain(rendered,normalizeGain(before.peak,-1));
+        else clampBuffer(rendered);
+        loudest=Math.max(loudest,analysePeak(rendered).dbfs);
+        zip.file(names[index],toWav(rendered));
+      }
+      if(note)note.textContent='묶는 중…';
+      const blob=await zip.generateAsync({type:'blob'});
+      download(blob,`${project.name||'Karmo Studio'}-stems.zip`);
+      status(`트랙 ${live.length}개 · ${(blob.size/1048576).toFixed(1)} MB · 최대 peak ${loudest.toFixed(1)} dBFS`);
+      closeExport();
     }
     async function runExport(): Promise<void> {
       stop();
@@ -177,6 +207,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       const range=exportRange(exportOptions.range,{from:0,to:projectLength(project)},{from:project.loopStart,to:project.loopEnd},marked);
       status('Rendering WAV…');if(note)note.textContent='렌더 중…';
       try {
+        if(exportOptions.stems){await runStemExport(range,note);return;}
         const rendered=await renderProject(project,assets,range.from,range.to,exportOptions.sampleRate,exportOptions.mono?1:2);
         const before=analysePeak(rendered);
         if(exportOptions.normalize)applyGain(rendered,normalizeGain(before.peak,-1));
@@ -468,6 +499,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       else if(key==='sampleRate')exportOptions.sampleRate=Number(field.value);
       else if(key==='mono')exportOptions.mono=field.value==='1';
       else if(key==='normalize')exportOptions.normalize=(field as HTMLInputElement).checked;
+      else if(key==='stems')exportOptions.stems=(field as HTMLInputElement).checked;
     });
     root.addEventListener('input',(event)=>{
       const input=event.target as HTMLInputElement;
