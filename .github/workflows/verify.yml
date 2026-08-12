@@ -97,21 +97,13 @@ jobs:
           key: cargo-${{ runner.os }}-${{ hashFiles('apps/karmolab-tauri/src-tauri/Cargo.lock') }}
           restore-keys: cargo-${{ runner.os }}-
 
-      - name: Install karmolab deps
-        run: cd apps/karmolab && npm ci
-
-      - name: Install karmolab-ai deps
-        run: cd packages/karmolab-ai && npm ci
-
-      - name: Install karmolab-mcp deps
-        run: cd packages/karmolab-mcp && npm ci
-
-      # `apps/karmolab` 이 `file:../../packages/badapple` 로 물고 있다. 그 패키지는 **타입을
-      # 빌드해야 생긴다** — CI 는 새 체크아웃이라 `dist` 가 없고, 그러면 typecheck 이
-      # 「모듈을 못 찾겠다」로 선다. 로컬에는 예전 `dist` 가 남아 있어 이 사고가 안 보였다
-      # (전형적인 「내 기계에선 초록」). karmolab-ai 와 같은 대우를 해 준다.
-      - name: Build badapple (apps/karmolab 이 타입을 물고 있다)
-        run: cd packages/badapple && npm ci && npm run build
+      # ★ **짓기 전 채비는 한 곳에서** (2026-08-13). 아래 contrast 잡·배포·라이브 점검이
+      #   같은 목록을 각자 들고 있다가 갈라졌다(mcp 가 배포에만 빠져 한 달 정체, badapple 이
+      #   라이브 점검에만 빠져 25판 연속 빨강). Rust·블로그는 이 잡만 쓰므로 여기 남긴다.
+      - uses: ./.github/actions/setup-karmolab
+        with:
+          node-version: '20'
+          chromium: 'true'
 
       - name: Install blog deps
         run: cd apps/blog && npm ci
@@ -119,15 +111,6 @@ jobs:
       # 화면을 실제로 열어 보는 검사들(성능 예산·커버리지·뒷정리·쉬는가)이 build 체인에 있다.
       # `npm ci` 는 playwright 패키지만 깔고 **브라우저는 안 깐다** — 없으면 그 검사들이
       # 「못 돌림」으로 빠져서, 조용히 아무것도 안 재는 CI 가 된다 (TASK-KL-201).
-      - name: Install chromium (화면 여는 검사용)
-        run: cd apps/karmolab && npx playwright install --with-deps chromium
-
-      - name: Build karmolab-ai
-        run: cd packages/karmolab-ai && npm run build
-
-      - name: Build karmolab-mcp
-        run: cd packages/karmolab-mcp && npm run build
-
       - name: Build karmolab
         run: cd apps/karmolab && npm run build
 
