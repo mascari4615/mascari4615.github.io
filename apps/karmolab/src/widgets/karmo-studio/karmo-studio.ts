@@ -1,7 +1,7 @@
 /** Karmo Studio — KarmoLab 안에서 곡을 끝까지 만드는 브라우저 DAW (TASK-KL-220). */
 import { KarmoStudioEngine, renderProject, type StudioAssetRuntime } from './audio-engine';
 import {
-  automationValueAt, cloneClip, findClip, findTrack, legatoNotes, newProject, newTrack, normalizeProject, projectLength, putAutomationPoint, quantizeNotes, setNoteVelocity, snapBeat, splitClip, studioId, transposeNotes,
+  automationValueAt, cloneClip, findClip, findTrack, legatoNotes, moveTrack, newProject, newTrack, normalizeProject, projectLength, putAutomationPoint, quantizeNotes, setNoteVelocity, snapBeat, splitClip, studioId, transposeNotes,
   type StudioClip, type StudioProject, type StudioSelection, type StudioTrack
 } from './model';
 import { toWav } from '../tools/shared/media';
@@ -255,9 +255,9 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     let paintedRange = { from: 0, to: Number.POSITIVE_INFINITY };
     /** 트랙 한 줄. 문자열이 그대로면 그 줄은 안 건드린다 — 바뀐 줄만 갈아 끼우려고 뗐다. */
     function trackRowHtml(track: StudioTrack, width: number, view: { from: number; to: number; margin: number }): string {
-      return `<div class="ks-track-row" data-track-row="${track.id}" style="width:${172 + width}px">
-        <div class="ks-track-head"><div class="ks-track-title"><span class="ks-track-color" style="background:${track.color}"></span><input data-track-name="${track.id}" value="${esc(track.name)}" aria-label="트랙 이름"></div>
-        <div class="ks-track-actions"><button class="ks-mini${track.mute?' is-on':''}" data-track-act="mute" data-track="${track.id}">M</button><button class="ks-mini${track.solo?' is-on':''}" data-track-act="solo" data-track="${track.id}">S</button><button class="ks-mini${autoLanes.has(track.id)?' is-on':''}" data-track-act="auto" data-track="${track.id}" title="볼륨 자동화 줄 보이기">A</button><button class="ks-mini${armedTrackId===track.id?' is-on':''}" data-track-act="arm" data-track="${track.id}" title="${track.kind==='audio'?'녹음 대상으로 지정':'오디오 트랙만 녹음 대상이 된다'}"${track.kind==='audio'?'':' disabled'}>●</button><button class="ks-mini" data-track-act="delete" data-track="${track.id}">×</button></div>
+      return `<div class="ks-track-row${track.folded?' is-folded':''}" data-track-row="${track.id}" style="width:${172 + width}px">
+        <div class="ks-track-head"><div class="ks-track-title"><span class="ks-track-grip" data-track-grip="${track.id}" title="끌어서 순서 바꾸기">⣿</span><span class="ks-track-color" style="background:${track.color}"></span><input data-track-name="${track.id}" value="${esc(track.name)}" aria-label="트랙 이름"></div>
+        <div class="ks-track-actions"><button class="ks-mini${track.mute?' is-on':''}" data-track-act="mute" data-track="${track.id}">M</button><button class="ks-mini${track.solo?' is-on':''}" data-track-act="solo" data-track="${track.id}">S</button><button class="ks-mini${track.folded?' is-on':''}" data-track-act="fold" data-track="${track.id}" title="접기/펼치기">${track.folded?'▸':'▾'}</button><button class="ks-mini${autoLanes.has(track.id)?' is-on':''}" data-track-act="auto" data-track="${track.id}" title="볼륨 자동화 줄 보이기">A</button><button class="ks-mini${armedTrackId===track.id?' is-on':''}" data-track-act="arm" data-track="${track.id}" title="${track.kind==='audio'?'녹음 대상으로 지정':'오디오 트랙만 녹음 대상이 된다'}"${track.kind==='audio'?'':' disabled'}>●</button><button class="ks-mini" data-track-act="delete" data-track="${track.id}">×</button></div>
         <input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-track-volume="${track.id}" aria-label="${esc(track.name)} 볼륨"></div>
         <div class="ks-lane" data-lane="${track.id}" data-kind="${track.kind}" style="width:${width}px">${visibleClips(track.clips,view.from,view.to,view.margin).map((clip)=>trackClipHtml(track,clip)).join('')}</div>${trackAutomationHtml(track,width)}</div>`;
     }
@@ -399,7 +399,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
 
     root.addEventListener('click',(event)=>{ const raw=event.target as HTMLElement;const exportAct=raw.closest<HTMLElement>('[data-export-act]')?.dataset.exportAct;if(exportAct){if(exportAct==='cancel')closeExport();else void runExport();return;}if(addPianoNote(event))return;const contextAct=raw.closest<HTMLElement>('[data-context-act]')?.dataset.contextAct;if(contextAct){hideContextMenu();if(contextAct==='open-editor')setEditorExpanded(true);else if(contextAct==='copy')copySelection();else if(contextAct==='cut')cutSelection();else if(contextAct==='duplicate')root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();else if(contextAct==='duplicate-note'&&selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const note=clip?.notes.find((item)=>item.id===noteId);const track=selectedTrack();if(clip&&note&&track){const copy={...note,id:studioId('note'),beat:Math.min(clip.duration-note.duration,snapBeat(note.beat+project.snap,project.snap))};clip.notes.push(copy);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copy.id};saveSoon();renderEditor();renderTracks();}}else if(contextAct==='split')root.querySelector<HTMLElement>('[data-act=split]')?.click();else if(contextAct==='delete')deleteSelection();return;}const meterReset=raw.closest<HTMLElement>('[data-meter-reset]')?.dataset.meterReset;if(meterReset){meterClipped.delete(meterReset);paintMeters();status('Clip indicator cleared');return;}const noteAct=raw.closest<HTMLElement>('[data-note-act]')?.dataset.noteAct;if(noteAct){applyNoteTool(noteAct);return;}const tool=raw.closest<HTMLElement>('.ks-btn[data-tool]')?.dataset.tool;if(tool){editTool=tool as typeof editTool;renderAll();status(`${tool.toUpperCase()} tool`);return;} const target=raw.closest<HTMLElement>('[data-act],[data-side],[data-track-act]'); if(!target){hideContextMenu();return;}
       if(target.dataset.side){sideMode=target.dataset.side as typeof sideMode;renderSide();return;}
-      const trackAct=target.dataset.trackAct; if(trackAct){const track=findTrack(project,target.dataset.track||'');if(!track)return;if(trackAct==='mute')track.mute=!track.mute;else if(trackAct==='solo')track.solo=!track.solo;else if(trackAct==='auto'){if(autoLanes.has(track.id))autoLanes.delete(track.id);else autoLanes.add(track.id);renderTracks();status(autoLanes.has(track.id)?`${track.name} 자동화 줄 열림`:'자동화 줄 닫힘');return;} else if(trackAct==='arm'){if(track.kind!=='audio'){status('Only audio tracks can be armed');return;}armedTrackId=armedTrackId===track.id?'':track.id;status(armedTrackId?`Armed ${track.name}`:'Disarmed');renderAll();return;}else if(trackAct==='delete'&&confirm(`Delete ${track.name}?`)){project.tracks=project.tracks.filter((item)=>item.id!==track.id);selection=null;}saveSoon();renderAll();return;}
+      const trackAct=target.dataset.trackAct; if(trackAct){const track=findTrack(project,target.dataset.track||'');if(!track)return;if(trackAct==='mute')track.mute=!track.mute;else if(trackAct==='solo')track.solo=!track.solo;else if(trackAct==='fold'){track.folded=!track.folded;saveSoon('fold');renderTracks();status(track.folded?`${track.name} 접음`:`${track.name} 펼침`);return;} else if(trackAct==='auto'){if(autoLanes.has(track.id))autoLanes.delete(track.id);else autoLanes.add(track.id);renderTracks();status(autoLanes.has(track.id)?`${track.name} 자동화 줄 열림`:'자동화 줄 닫힘');return;} else if(trackAct==='arm'){if(track.kind!=='audio'){status('Only audio tracks can be armed');return;}armedTrackId=armedTrackId===track.id?'':track.id;status(armedTrackId?`Armed ${track.name}`:'Disarmed');renderAll();return;}else if(trackAct==='delete'&&confirm(`Delete ${track.name}?`)){project.tracks=project.tracks.filter((item)=>item.id!==track.id);selection=null;}saveSoon();renderAll();return;}
       const act=target.dataset.act;
       if(act==='play')engine.isPlaying()?stop():play(); else if(act==='stop')stop(); else if(act==='back'){stop();playhead=0;updatePlayhead();} else if(act==='loop'){project.loop=!project.loop;saveSoon();renderAll();} else if(act==='metronome'){metronome=!metronome;engine.metronome=metronome;renderToggles();status(metronome?'Metronome on':'Metronome off');} else if(act==='count-in'){countIn=!countIn;renderToggles();status(countIn?'Count-in: one bar before recording':'Count-in off');}
       else if(act==='audio'||act==='midi'){const track=newTrack(act,project.tracks.length+1);project.tracks.push(track);selection={type:'track',trackId:track.id};saveSoon();renderAll();}
@@ -616,6 +616,42 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
     scroll.addEventListener('click',(event)=>{if(event.button!==0||editTool!=='draw')return;const target=event.target as HTMLElement;if(target.closest('.ks-clip'))return;const lane=target.closest<HTMLElement>('.ks-lane');if(!lane||lane.dataset.kind!=='midi')return;const track=findTrack(project,lane.dataset.lane||'');if(track)createMidiClip(track,(event.clientX-lane.getBoundingClientRect().left)/pxPerBeat);});
     scroll.addEventListener('dblclick',(event)=>{if(event.button!==0)return;event.preventDefault();const target=event.target as HTMLElement;const clipElement=target.closest<HTMLElement>('.ks-clip');if(clipElement){const trackId=clipElement.dataset.track||'',clipId=clipElement.dataset.clip||'';const clip=findClip(project,trackId,clipId);if(clip){selection={type:'clip',trackId,clipId};renderTracks();renderSide();setEditorExpanded(true);}return;}const lane=target.closest<HTMLElement>('.ks-lane');if(!lane||lane.dataset.kind!=='midi')return;const track=findTrack(project,lane.dataset.lane||'');if(track)createMidiClip(track,(event.clientX-lane.getBoundingClientRect().left)/pxPerBeat,true);});
 
+    /** 트랙 머리의 손잡이를 끌어 순서를 바꾼다. 놓을 자리를 줄 위/아래 선으로 보여 준다. */
+    root.addEventListener('pointerdown',(event)=>{
+      if(event.button!==0||!event.isPrimary)return;
+      const grip=(event.target as HTMLElement).closest<HTMLElement>('[data-track-grip]');
+      if(!grip)return;
+      const fromIndex=project.tracks.findIndex((track)=>track.id===grip.dataset.trackGrip);
+      if(fromIndex<0)return;
+      event.preventDefault();
+      const rows=[...root.querySelectorAll<HTMLElement>('.ks-track-row')];
+      const dragged=rows[fromIndex];
+      dragged?.classList.add('is-dragging');
+      let target=fromIndex;
+      const clearMarks=():void=>rows.forEach((row)=>row.classList.remove('is-drop-before','is-drop-after'));
+      const move=(moveEvent:PointerEvent):void=>{
+        let next=fromIndex;
+        for(let index=0;index<rows.length;index++){
+          const box=rows[index].getBoundingClientRect();
+          if(moveEvent.clientY>=box.top&&moveEvent.clientY<=box.bottom){next=moveEvent.clientY<box.top+box.height/2?index:index+(index>fromIndex?0:1);break;}
+          if(moveEvent.clientY<box.top){next=index;break;}
+          next=rows.length-1;
+        }
+        target=Math.max(0,Math.min(project.tracks.length-1,next));
+        clearMarks();
+        const marker=rows[Math.min(target,rows.length-1)];
+        if(marker&&target!==fromIndex)marker.classList.add(target<fromIndex?'is-drop-before':'is-drop-after');
+      };
+      const finish=(commit:boolean):void=>{
+        clearMarks();dragged?.classList.remove('is-dragging');
+        if(!commit||target===fromIndex){renderTracks();return;}
+        const name=project.tracks[fromIndex].name;
+        project.tracks=moveTrack(project.tracks,fromIndex,target);
+        engine.updateProject(project);saveSoon('track-order');renderTracks();renderSide();
+        status(`${name} → ${target+1}번째`);
+      };
+      gestures.begin({ move, commit:()=>finish(true), cancel:()=>finish(false) });
+    });
     /** 자동화 줄 조작 — 빈 곳 클릭은 점 추가, 점 드래그는 이동, 우클릭은 삭제. */
     root.addEventListener('pointerdown',(event)=>{
       if(event.button!==0||!event.isPrimary)return;

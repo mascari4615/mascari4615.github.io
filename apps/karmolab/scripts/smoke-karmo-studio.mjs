@@ -196,6 +196,19 @@ await page.click('[data-act=play]');await page.waitForTimeout(700);await page.cl
 const clicksAfter=await page.evaluate(()=>window.__ksOsc);
 await page.click('[data-act=metronome]');await page.waitForTimeout(80);
 const metronomeOff=await page.locator('[data-act=metronome]').evaluate((element)=>element.classList.contains('is-on'));
+/* 트랙 접기·순서 바꾸기 — 곡이 길어지면 세로가 모자란다. */
+const laneHeightBefore=await page.locator('.ks-track-row').first().locator('.ks-lane').evaluate((element)=>element.getBoundingClientRect().height);
+await page.locator('[data-track-act=fold]').first().click();await page.waitForTimeout(120);
+const laneHeightFolded=await page.locator('.ks-track-row').first().locator('.ks-lane').evaluate((element)=>element.getBoundingClientRect().height);
+await page.locator('[data-track-act=fold]').first().click();await page.waitForTimeout(120);
+const laneHeightUnfolded=await page.locator('.ks-track-row').first().locator('.ks-lane').evaluate((element)=>element.getBoundingClientRect().height);
+const namesBeforeReorder=await page.locator('[data-track-name]').evaluateAll((elements)=>elements.map((element)=>element.value));
+const gripBox=await page.locator('[data-track-grip]').first().boundingBox();
+const lastRowBox=await page.locator('.ks-track-row').last().boundingBox();
+await page.mouse.move(gripBox.x+5,gripBox.y+7);await page.mouse.down();
+await page.mouse.move(gripBox.x+5,lastRowBox.y+lastRowBox.height-6,{steps:6});
+await page.mouse.up();await page.waitForTimeout(160);
+const namesAfterReorder=await page.locator('[data-track-name]').evaluateAll((elements)=>elements.map((element)=>element.value));
 /* 볼륨 자동화 줄 — A 로 열고, 빈 곳을 눌러 점을 놓고, 우클릭으로 지운다. */
 await page.locator('[data-track-act=auto]').first().click();await page.waitForTimeout(120);
 const autoLaneOpen=await page.locator('[data-auto]').count();
@@ -309,6 +322,10 @@ if(armedOff)problems.push('녹음 대상 해제가 안 된다');
 if(armedLaneClipsBefore<1)problems.push('오디오 트랙에 클립이 없다 — 무장 대상 검사가 무의미');
 if(!metronomeOn||metronomeOff)problems.push(`박자 소리 토글이 상태를 안 바꾼다 (${metronomeOn}→${metronomeOff})`);
 if(clicksAfter<=clicksBefore)problems.push(`박자 소리가 안 난다 (oscillator ${clicksBefore}→${clicksAfter})`);
+if(!(laneHeightFolded<laneHeightBefore-10))problems.push(`트랙 접기가 안 된다 (${laneHeightBefore}→${laneHeightFolded})`);
+if(Math.abs(laneHeightUnfolded-laneHeightBefore)>2)problems.push(`펼치기가 원래 높이로 안 돌아온다 (${laneHeightBefore}→${laneHeightUnfolded})`);
+if(namesAfterReorder.length!==namesBeforeReorder.length||namesAfterReorder[0]===namesBeforeReorder[0])problems.push(`트랙 순서 바꾸기 실패 (${namesBeforeReorder.join(',')}→${namesAfterReorder.join(',')})`);
+if(namesAfterReorder[namesAfterReorder.length-1]!==namesBeforeReorder[0])problems.push(`끌어 내린 트랙이 맨 아래로 안 갔다 (${namesAfterReorder.join(',')})`);
 if(autoLaneOpen<1)problems.push('A 를 눌러도 자동화 줄이 안 열린다');
 if(autoPointCount<2)problems.push(`자동화 점이 안 찍힌다 (${autoPointCount})`);
 if(!autoPathBefore||autoPathBefore.split('L').length<3)problems.push(`자동화 선이 점을 안 잇는다 (${autoPathBefore})`);

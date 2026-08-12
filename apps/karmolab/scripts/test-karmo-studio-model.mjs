@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Date, JSON, crypto });
-const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject } = module.exports;
+const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack } = module.exports;
 
 const note = (beat, pitch = 60, duration = 0.5, velocity = 0.8) => ({ id: `n${beat}-${pitch}`, beat, duration, pitch, velocity });
 
@@ -118,4 +118,24 @@ const broken = JSON.parse(JSON.stringify(project));
 broken.tracks[0].volumeAutomation = [{ beat: 'x', value: 0.5 }, { beat: 1, value: 0.5 }];
 assert.equal(normalizeProject(broken).tracks[0].volumeAutomation.length, 1, '숫자가 아닌 점은 버린다');
 
-console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장');
+// 트랙 순서 바꾸기
+const order = (list) => list.map((item) => item.id).join('');
+const four = [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }];
+assert.equal(order(moveTrack(four, 0, 2)), 'bcad', '위에서 아래로');
+assert.equal(order(moveTrack(four, 3, 1)), 'adbc', '아래에서 위로');
+assert.equal(order(moveTrack(four, 1, 1)), 'abcd', '제자리면 그대로');
+assert.equal(moveTrack(four, 1, 1), four, '제자리면 새 배열도 안 만든다');
+assert.equal(order(moveTrack(four, 0, 99)), 'bcda', '범위를 넘으면 맨 끝');
+assert.equal(order(moveTrack(four, 3, -5)), 'dabc', '음수면 맨 앞');
+assert.equal(moveTrack(four, 9, 0), four, '없는 자리는 무시');
+assert.equal(order(four), 'abcd', '원본은 안 바뀐다');
+
+// 접힘도 저장 왕복에서 산다
+const folded = newProject();
+folded.tracks[0].folded = true;
+assert.equal(normalizeProject(JSON.parse(JSON.stringify(folded))).tracks[0].folded, true);
+const legacyFold = JSON.parse(JSON.stringify(folded));
+delete legacyFold.tracks[0].folded;
+assert.equal(normalizeProject(legacyFold).tracks[0].folded, false, '옛 저장본은 펼친 상태');
+
+console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘');
