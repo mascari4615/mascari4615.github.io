@@ -1,50 +1,40 @@
-/* ═══════════════════════════════════════════════════════════
-   KarmoLab — Observatory
-   관측실 톤 · 별빛 액센트 · 종이/잉크 다크 베이스
-   ═══════════════════════════════════════════════════════════ */
-
-/* ── Design Tokens ── */
-
+/* 이 파일은 `scripts/split-css.mjs` 가 `css/toolbox.css` 에서 뽑아 만든다 — 손으로 고치지 마라.
+   고칠 곳은 `css/toolbox.css` 다 (TASK-KL-128). 이 벌: 첫 그림에 필요한 것 — 화면 그리기를 막고 기다린다 */
 :root {
-    /* 브라우저가 직접 그리는 것들(날짜 선택 달력 아이콘·숫자 증감 화살표·기본 스크롤바)에게
-       지금 테마를 알려 준다. 안 알려 주면 어두운 화면에 검은 아이콘이 얹혀 안 보인다. */
+
     color-scheme: dark;
 
-    /* 밤의 종이 — body는 보라 기운의 어두움, 카드/패널은 paper/ink 톤 유지 (TASK-KL-097) */
-    --bg-void: #0f1016;        /* quiet night */
-    --bg-primary: #171821;     /* work surface */
-    --bg-secondary: #1d1e28;   /* raised surface */
-    --bg-tertiary: #292a36;    /* divider */
-    --bg-hover: #343542;       /* hover surface */
-    --bg-active: #424352;      /* active surface */
+    --bg-void: #0f1016;
+    --bg-primary: #171821;
+    --bg-secondary: #1d1e28;
+    --bg-tertiary: #292a36;
+    --bg-hover: #343542;
+    --bg-active: #424352;
 
     --glass: rgba(23, 24, 33, 0.97);
     --glass-hover: rgba(29, 30, 40, 0.98);
     --glass-strong: rgba(15, 16, 22, 0.99);
-    /* 유리를 옅게 열어 둘수록 흐림이 세야 「유리」로 읽힌다 — 약하면 그냥 반투명 판이다. */
+
     --glass-blur: blur(16px) saturate(115%);
 
-    --text-primary: #f2f2ee;   /* ink */
-    --text-secondary: #9a9a94; /* ink-2 */
-    /* 흐린 라벨("키 (cm)" 같은 것)이 카드 위에서 2.1:1 까지 떨어져 56곳이 읽기 힘들었다.
-       흐림은 유지하되 읽히는 선까지만 올린다. */
-    --text-tertiary: #7a7a75;  /* ink-3 */
+    --text-primary: #f2f2ee;
+    --text-secondary: #9a9a94;
 
-    /* Typography tokens */
+    --text-tertiary: #7a7a75;
+
     --font-size-2xs: 12px;
     --font-size-xs: 14px;
     --font-size-sm: 16px;
     --font-size-md: 18px;
     --font-size-lg: 22px;
 
-    /* 브랜드 = 연보라 (TASK-KL-097). 황동 금색은 폐기 — 두 테마가 같은 색을 공유한다. */
-    --accent: #a79bef;         /* quiet lavender */
+    --accent: #a79bef;
     --accent-hover: #bdb4f4;
     --accent-dim: rgba(167, 155, 239, 0.14);
     --accent-subtle: rgba(167, 155, 239, 0.07);
     --accent-glow: rgba(167, 155, 239, 0.20);
 
-    --secondary: #8292ad;      /* muted blue */
+    --secondary: #8292ad;
     --secondary-hover: #9aa8be;
     --secondary-subtle: rgba(130, 146, 173, 0.08);
     --secondary-glow: rgba(130, 146, 173, 0.16);
@@ -60,7 +50,6 @@
     --border-hover: rgba(242, 242, 238, 0.12);
     --border-strong: rgba(169, 155, 245, 0.4);
 
-    /* Observatory: 직각에 가까운 라디우스 (종이/도감 톤) */
     --radius-sm: 4px;
     --radius-md: 6px;
     --radius-lg: 8px;
@@ -73,42 +62,20 @@
     --space-xl: 32px;
     --space-2xl: 48px;
 
-    /* 위젯 내부 툴 사이드바 폭 (이미지 편집 등; 앱 메인 내비와 무관) */
     --sidebar-width: 224px;
     --sidebar-collapsed-width: 56px;
     --transition: 180ms ease;
     --transition-fast: 100ms ease;
     --transition-slow: 350ms ease;
 
-    /* Inter 를 뺐다(TASK-KL-089). 앞의 'KarmoSans' 이 영문·숫자까지 덮어 도달하지 않는
-       자리였고, 웹글꼴도 더 이상 부르지 않는다. 남겨 두면 Inter 가 설치된 기기에서만
-       다른 글씨체로 보여 사람마다 화면이 갈린다. */
-    /* 이름이 Karmo* 인 것은 **우리가 구운 글꼴**이다 (TASK-KL-128, `scripts/gen-fonts.py`).
-       담지 않은 글자는 그 다음 후보로 흘러간다 — 그래서 뒤의 컴퓨터 글꼴 목록을 그대로 둔다. */
-    /* 후보를 **짧게** 둔다 (TASK-KL-128 ⑳).
-     * 우리 글꼴에 없는 글자는 이 목록을 하나씩 짚어 내려간다 — 그리고 그 값이 크다.
-     * 실측(도구 화면·기기 4배 느리게): 후보를 하나로 줄이면 글자 모양내기 429 → 282ms,
-     * 첫 배치 한 번이 395 → 311ms. 사슬이 **첫 그림의 34%** 였다.
-     * 예전 목록의 `-apple-system`·`BlinkMacSystemFont`·`Segoe UI`·`Roboto` 는 결국 전부
-     * 「그 기계의 기본 글꼴」을 가리킨다 — `system-ui` 한 단어가 같은 일을 한 걸음에 한다.
-     * 한글은 `system-ui` 가 안 덮는 기계가 있어 맑은 고딕만 남긴다. */
     --font-sans: 'KarmoSans', system-ui, 'Malgun Gothic', sans-serif;
     --font-serif: 'KarmoSerif', Georgia, serif;
     --font-mono: 'KarmoMono', ui-monospace, Consolas, monospace;
 
-    /* 격자 두 겹 — 굵은 칸은 또렷하게, 가는 칸은 아주 옅게 (모눈 종이) */
     --grid-color: rgba(191, 187, 220, 0.045);
     --grid-color-fine: rgba(191, 187, 220, 0.018);
-    --vignette: rgba(0, 0, 0, 0.38);   /* 바닥 가장자리 어둠 */
+    --vignette: rgba(0, 0, 0, 0.38);
 
-    /* Y2K 그라데이션 (TASK-KL-097) — **토큰으로만** 낸다.
-       곳곳에 그라데이션 문자열을 박으면 다음 톤 조정 때 전부 찾아 고쳐야 한다.
-       ① holo-sweep = 보라→분홍→청록이 화면을 **대각으로** 가로지르는 홀로그램 쓸기.
-          띠 한 겹으로 뒀더니 색이 멈추는 선이 보였다 — 대각으로 화면을 다 덮으면 경계가 없다.
-       ② holo-bloom = 위쪽에서 번지는 빛. 쓸기 혼자면 위아래가 허전하다.
-       ③ chrome-grad = 로고·주요 버튼 같은 **작은 면적**에만.
-       주의: 이 넷은 라이트 블록에도 같은 이름으로 있어야 한다. 한쪽만 있으면 그 테마에서
-       배경이 통째로 안 그려지고 버튼이 투명해진다(실제로 다크가 그렇게 깨져 있었다). */
     --holo-sweep: linear-gradient(112deg,
         rgba(126, 113, 190, 0.16) 0%,
         rgba(155, 111, 153, 0.09) 18%,
@@ -122,15 +89,12 @@
     --brand-edge: rgba(242, 242, 238, 0.34);
     --brand-shadow: rgba(0, 0, 0, 0.48);
 
-    /* 첫 화면 장식이 쓰는 색. 어두운 바탕에서는 밝게 떠야 보인다.
-       (밝은 테마는 아래에서 더 짙은 값으로 덮는다 — 흰 종이 위에서 이 값들은 씻겨 사라진다.) */
     --decor-a: #a97999;
     --decor-b: #9188c4;
     --decor-c: #6d9da7;
     --decor-d: #aa8ca8;
     --decor-e: #756ca8;
 
-    /* 넓게 칠하는 버튼 전용. 다크에선 강조색 그대로가 가장 밝게 빛난다. */
     --fill-strong: var(--accent);
     --fill-strong-hover: var(--accent-hover);
     --fill-strong-ink: var(--bg-void);
@@ -138,23 +102,18 @@
     --glow-box: none;
     --shadow-float: 0 1px 0 rgba(0, 0, 0, 0.25);
 
-    /* 헤더 줄 + 메가메뉴 패널 동일 표면 (토스형: 위아래 한 장의 글래스) */
     --header-shell-glass: color-mix(in srgb, var(--glass) 35%, transparent);
-    /* 메가 패널 max-height와 헤더 ::after 확장 높이를 반드시 동일하게 */
+
     --header-mega-max-h: min(44vh, 320px);
 }
-
-/* ── Light Theme ── */
 
 [data-theme="light"] {
     color-scheme: light;
 
-    /* 흰 종이 — 사무실 복사지. 따뜻한 회색을 전부 걷어냈다(R−B 편차 0 또는 보라 쪽).
-       예전 값은 R이 B보다 4~13 높아 「누리끼리」로 읽혔다 (TASK-KL-097). */
-    --bg-void: #ffffff;        /* 백지 바닥 */
-    --bg-primary: #ffffff;     /* paper */
-    --bg-secondary: #ffffff;   /* 카드도 같은 백지 — 계층은 그림자와 선이 만든다 */
-    --bg-tertiary: #e9e7f2;    /* divider — 연보라 기운의 회색 */
+    --bg-void: #ffffff;
+    --bg-primary: #ffffff;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #e9e7f2;
     --bg-hover: #e2dff0;
     --bg-active: #d4cfe8;
 
@@ -162,17 +121,17 @@
     --glass-hover: rgba(255, 255, 255, 0.92);
     --glass-strong: rgba(255, 255, 255, 0.96);
 
-    --text-primary: #1a1a1f;   /* ink — 중성에서 살짝 차갑게 */
-    --text-secondary: #64626f; /* ink-2 */
-    --text-tertiary: #918fa0;  /* ink-3 */
+    --text-primary: #1a1a1f;
+    --text-secondary: #64626f;
+    --text-tertiary: #918fa0;
 
-    --accent: #6d5bd0;         /* 연보라 잉크 — 다크(#a99bf5)와 같은 hue, 흰 위에서 읽히게 어둡게 */
+    --accent: #6d5bd0;
     --accent-hover: #5a48bd;
     --accent-dim: rgba(109, 91, 208, 0.14);
     --accent-subtle: rgba(109, 91, 208, 0.07);
     --accent-glow: rgba(109, 91, 208, 0.22);
 
-    --secondary: #3f6285;      /* 별빛 블루 잉크 */
+    --secondary: #3f6285;
     --secondary-hover: #4f779f;
     --secondary-subtle: rgba(63, 98, 133, 0.08);
     --secondary-glow: rgba(63, 98, 133, 0.22);
@@ -190,10 +149,9 @@
 
     --grid-color: rgba(109, 91, 208, 0.105);
     --grid-color-fine: rgba(109, 91, 208, 0.045);
-    /* 다크의 50% 검정 vignette 를 그대로 쓰면 흰 바닥 가장자리가 때 탄 회색이 된다 */
+
     --vignette: rgba(109, 91, 208, 0.06);
 
-    /* 홀로그램 쓸기 — 흰 종이 위라 다크보다 옅게 깐다. 진하면 카드가 물든다. */
     --holo-sweep: linear-gradient(112deg,
         rgba(150, 132, 246, 0.30) 0%,
         rgba(215, 168, 240, 0.22) 18%,
@@ -202,32 +160,26 @@
         rgba(160, 215, 240, 0.20) 74%,
         rgba(140, 120, 245, 0.26) 100%);
     --holo-bloom: radial-gradient(ellipse 120% 60% at 50% -20%, rgba(160, 142, 248, 0.28), transparent 70%);
-    /* 장식 색을 짙게. 어두운 화면용 밝은 값을 흰 종이에 그대로 쓰면 씻겨서 「있는 둥 마는 둥」이 된다
-       — 하프톤이 옅다는 지적의 진짜 원인이 점 크기가 아니라 이 색이었다. */
+
     --decor-a: #c2185b;
     --decor-b: #6d3fd4;
     --decor-c: #0e8fa8;
     --decor-d: #b247c9;
     --decor-e: #4a35a8;
 
-    /* 흰 바탕에서는 크롬을 밝게 두면 글자가 안 읽힌다 — 중간 톤에서 흰 하이라이트만 스친다. */
     --chrome-grad: linear-gradient(135deg, #8a7ae8 0%, #6d5bd0 30%, #b9a8f0 52%, #6d5bd0 76%, #5847bb 100%);
     --chrome-grad-hover: linear-gradient(135deg, #9b8cf0 0%, #7b69dc 30%, #cdc0f7 52%, #7b69dc 76%, #6d5bd0 100%);
     --brand-edge: rgba(26, 26, 31, 0.30);
     --brand-shadow: rgba(255, 255, 255, 0.72);
 
-    /* 연보라를 넓게 칠하면 흰 종이 위에서 탁해진다. 넓은 면은 잉크로 칠하고
-       보라는 글자·테두리·선택 표시 같은 작은 면적에 남긴다. */
     --fill-strong: #2a2735;
     --fill-strong-hover: #3d3950;
     --fill-strong-ink: #ffffff;
     --glow-text: none;
     --glow-box: none;
-    /* 라이트에선 카드와 바닥이 둘 다 순백이므로 그림자와 선이 계층을 통째로 맡는다 */
+
     --shadow-float: 0 1px 2px rgba(26, 26, 31, 0.06), 0 6px 16px -6px rgba(45, 35, 90, 0.16);
 
-    /* 예전엔 거의 불투명한 종이(94%)로 덮었다 — 그때 바탕이 얼룩덜룩해서 비치면 지저분했다.
-       지금 바탕은 매끈한 홀로그램 한 장이라 그 이유가 사라졌다. 비치게 열어 둔다 (KL-097). */
     --header-shell-glass: color-mix(in srgb, var(--glass) 52%, transparent);
 }
 [data-theme="light"] .spinner { border-color: rgba(0,0,0,0.08); border-top-color: var(--accent); }
@@ -238,24 +190,15 @@
 [data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.1); }
 [data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.18); }
 
-/* ── Reset ── */
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
 
-/* ── Body & Layout ── */
-
-/* 넘겨 스크롤(바운스)하면 body 밖이 잠깐 보인다. html 에 색이 없으면 브라우저가 제 기본색을
-   칠하는데, 이 앱은 어두운 화면이 기본이라 알려 뒀으므로 밝은 테마에서도 **검은 띠**가 번쩍인다.
-   바탕색은 화면 전체의 것이니 html 이 갖는 게 맞다 (TASK-KL-101). */
 html { background-color: var(--bg-void); }
 
 body {
     font-family: var(--font-sans);
     font-size: var(--font-size-md);
-    /* 바탕색은 html 만 갖는다. body 에도 주면 **판때기를 덮는다** — 뒤로 깐 것(z-index:-1)은
-       그리는 순서상 body 의 바탕색보다 먼저 칠해지기 때문이다. 실제로 격자가 통째로
-       사라졌다 (TASK-KL-101). */
+
     color: var(--text-primary);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -264,54 +207,31 @@ body {
     min-height: 100vh;
 }
 
-/* 스크롤 잠금은 **앱 껍데기가 있는 문서에만**.
-   .app-layout 은 position:fixed inset:0 이라 스크롤을 자기가 갖는다 — 그때만 문서 스크롤을
-   막는 게 맞다. 이걸 맨 body 에 걸어 뒀더니, 껍데기 없이 글만 있는 문서(/karmolab/t/ 도구
-   전체 목록)가 데스크톱에서 스크롤 자체가 막혀 첫 화면 밑이 통째로 안 보였다.
-   (폰은 아래 반응형에서 문서 스크롤로 되돌린다.) */
 body:has(> .app-layout) {
     overflow: hidden;
 }
 
-/* 배경 테마: 관측실 (기본) — 그리드 + 어두운 vignette만 (채도 0, 최소 톤) */
-/* 관측실이 **바닥값**이다 — 고른 배경이 없거나 모르는 값이어도 이게 남는다.
-   예전엔 `:not([data-bg])` 와 `="observatory"` 둘만 받았다. 그래서 값이 한 번
-   `undefined` 로 적히자 어느 쪽에도 안 걸려 **배경이 통째로 사라졌다** — 다크는 검은
-   순색, 라이트는 흰 순색. 아래 다른 테마들이 이 위에 덮는다 (TASK-KL-101). */
 .app-bg,
 .bg-swatch {
-    /* 배경은 **화면에 딱 맞는 판때기 한 장**에 그린다 (TASK-KL-101).
-       예전엔 body 에 attachment:fixed 로 붙이고 높이를 화면 단위(svh/lvh)로 적었다.
-       그건 「화면이 이만할 것」이라는 추측이고, 폰은 주소창이 접혔다 펴졌다 하며 그
-       추측을 계속 배신한다 — 모자라면 검은 띠, 넘치면 스크롤 중 출렁임. 두 번 다 겪었다.
-       position:fixed + inset:0 은 추측이 아니라 **브라우저가 재 준 화면 그 자체**다.
-       그래서 크기를 비율(100%)로만 적을 수 있고, 화면 단위가 한 개도 안 남는다.
-       판때기는 셸(index.html)에 있으므로 도구 목록·상세 페이지도 그대로 따라온다. */
+
     position: fixed;
     inset: 0;
-    /* -1 = 다른 모든 것의 **뒤**. 0 으로 두면 자리를 잡은 요소라서, 껍데기 없이 글만 있는
-       문서(도구 상세)에서는 글 위로 올라와 화면을 덮는다. */
+
     z-index: -1;
     pointer-events: none;
-    /* 격자는 두 겹이다 — 굵은 칸(48px) 안에 가는 칸(12px). 모눈 종이·제도 용지가 그렇게
-       생겼고, 한 겹만 있으면 「무늬」로 보이지 「종이」로 안 보인다 (TASK-KL-097). */
+
     background-image:
         linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
         linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px),
         linear-gradient(to right, var(--grid-color-fine) 1px, transparent 1px),
         linear-gradient(to bottom, var(--grid-color-fine) 1px, transparent 1px),
         radial-gradient(ellipse at 50% 50%, transparent 20%, var(--vignette) 100%);
-    /* 판때기가 곧 화면이므로 비율로 적으면 된다 — 화면 단위(vh/svh/lvh) 없음이 핵심이다. */
+
     background-size: 48px 48px, 48px 48px, 12px 12px, 12px 12px, auto;
     background-repeat: repeat, repeat, repeat, repeat, no-repeat;
     background-position: 0 0, 0 0, 0 0, 0 0, center;
 }
 
-/* 분위기층은 **따로 겹친다** (TASK-KL-101).
-   예전엔 격자와 분위기를 한 규칙에 쌓아 두고, 테마마다 그림 목록만 갈아 끼웠다. 그런데
-   크기·반복 목록은 그대로 남아서 층 수가 어긋났다 — 오로라는 화면만 한 타원이 48px 로
-   잘려 바둑판처럼 깔렸고, 격자는 테마마다 통째로 사라졌다. 사실상 관측실 말고는 다 고장.
-   층을 갈라 두면 테마는 **자기 그림과 자기 크기만** 적으면 되고, 격자는 늘 남는다. */
 .app-bg::before,
 .bg-swatch::before {
     content: '';
@@ -323,9 +243,6 @@ body:has(> .app-layout) {
     background-position: center;
 }
 
-/* 아래 테마들은 **분위기층만** 바꾼다. 격자·vignette 는 위에서 늘 깔린다. */
-
-/* 배경 테마: 블루 매젠타 */
 html[data-bg="blue-magenta"] .app-bg::before,
 .bg-swatch[data-bg="blue-magenta"]::before {
     background-image:
@@ -336,7 +253,6 @@ html[data-bg="blue-magenta"] .app-bg::before,
     background-size: 100% 100%;
 }
 
-/* 배경 테마: 메쉬 도트 — 유일하게 **되풀이되는** 분위기층이라 크기를 제가 적는다 */
 html[data-bg="mesh-dots"] .app-bg::before,
 .bg-swatch[data-bg="mesh-dots"]::before {
     background-image:
@@ -348,7 +264,6 @@ html[data-bg="mesh-dots"] .app-bg::before,
     background-position: 0 0;
 }
 
-/* 배경 테마: 오로라 */
 html[data-bg="aurora"] .app-bg::before,
 .bg-swatch[data-bg="aurora"]::before {
     background-image:
@@ -358,7 +273,6 @@ html[data-bg="aurora"] .app-bg::before,
     background-size: 100% 100%;
 }
 
-/* 배경 테마: 은은한 */
 html[data-bg="subtle"] .app-bg::before,
 .bg-swatch[data-bg="subtle"]::before {
     background-image:
@@ -366,7 +280,6 @@ html[data-bg="subtle"] .app-bg::before,
     background-size: 100% 100%;
 }
 
-/* 배경 테마: 미니멀 — 분위기도 격자도 없이 종이만 */
 html[data-bg="minimal"] .app-bg::before,
 .bg-swatch[data-bg="minimal"]::before { background-image: none; }
 html[data-bg="minimal"] .app-bg,
@@ -377,9 +290,6 @@ html[data-bg="minimal"] .app-bg,
     background-position: center;
 }
 
-/* 배경 견본 — 위 규칙을 그대로 물려받아 **진짜 배경과 같은 그림**을 보여 준다.
-   값을 두 벌 적지 않는 것이 핵심이다: 테마를 손보면 견본도 같이 바뀐다.
-   물려받은 「화면에 붙어라」만 여기서 되돌린다 (TASK-KL-101). */
 .bg-swatch {
     position: relative;
     inset: auto;
@@ -424,30 +334,19 @@ html[data-bg="minimal"] .app-bg,
 .app-body { flex: 1; display: flex; min-height: 0; overflow: hidden; }
 .main-content { margin-left: 0; }
 
-/* ═══════════════════════════════════════
-   INTRO OVERLAY
-   ═══════════════════════════════════════ */
-
 .intro-overlay {
-    /* **화면 기준**이어야 한다 (TASK-KL-101).
-       내용 상자 기준(absolute)이면 상자가 자라는 만큼 덮개도 자란다 — 폰에서는 앱이 문서처럼
-       흐르므로 내용이 그려지는 순간 상자가 664 → 1282px 로 늘고, 가운데 있던 제목이 화면
-       한참 아래로 내려간다. 실제로 「가운데 나왔다가 아래로 튀는」 것으로 보였다.
-       덮개는 화면을 덮는 물건이므로 처음부터 화면에 못 박는 것이 맞다. */
+
     position: fixed;
     inset: 0;
-    /* 폰 주소창이 접히면 화면 높이가 바뀐다. inset:0 만 두면 그때 덮개가 늘어나고 가운데가
-       같이 내려가 **살짝 튄다**. svh(주소창이 보일 때의 높이)로 못 박으면 접히든 펴지든
-       그대로다. 지원 안 하는 브라우저는 위의 inset:0 이 그대로 받는다 (TASK-KL-101). */
+
     height: 100svh;
     z-index: 100;
     display: flex;
     align-items: center;
     justify-content: center;
-    /* 바탕을 단색으로 두면 첫 화면과 다른 세계가 됐다가 갑자기 바뀐다.
-       같은 홀로그램을 깔아 두면 인트로가 「다른 화면」이 아니라 「이 화면의 시작」이 된다. */
+
     background: var(--holo-sweep), var(--holo-bloom), var(--bg-void);
-    /* 걷히는 방식: 위로 쓸어 올린다. 그냥 사라지면 「꺼졌다」이고, 걷히면 「열렸다」가 된다. */
+
     clip-path: inset(0 0 0 0);
     transition: clip-path 0.55s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.55s ease;
     pointer-events: none;
@@ -458,7 +357,7 @@ html[data-bg="minimal"] .app-bg,
     pointer-events: none;
 }
 .intro-overlay.hidden,
-/* 도구를 보던 사람에게는 인트로를 아예 안 켠다 — 부트 스크립트가 첫 그림 전에 정한다 */
+
 html[data-intro="off"] .intro-overlay {
     display: none;
 }
@@ -467,8 +366,7 @@ html[data-intro="off"] .intro-overlay {
     color: var(--text-primary);
     white-space: pre;
 }
-/* 글자 하나씩 흐림에서 걸어 나온다 (레퍼런스 공통 문법 — 가짜 진행률 표시는 안 쓴다.
-   이 앱은 실제로 빨리 뜨는데 퍼센트를 보여 주면 없는 기다림을 지어내는 것이다). */
+
 .intro-letter {
     display: inline-block;
     opacity: 0;
@@ -480,16 +378,12 @@ html[data-intro="off"] .intro-overlay {
     60%  { opacity: 1; filter: blur(0);    transform: translateY(0)    scale(1.02); }
     100% { opacity: 1; filter: blur(0);    transform: translateY(0)    scale(1); }
 }
-/* 움직임을 줄여 달라고 한 사람에겐 걷기·와이프 없이 그냥 뜨고 사라진다 */
+
 @media (prefers-reduced-motion: reduce) {
     .intro-overlay { transition: opacity 0.3s ease; clip-path: none; }
     .intro-overlay.done { clip-path: none; }
     .intro-letter { animation: none; opacity: 1; }
 }
-
-/* ═══════════════════════════════════════
-   HEADER NAV — 토스/금융앱형 상단 메가메뉴 (호버로 전체 폭 패널)
-   ═══════════════════════════════════════ */
 
 .header-bar-left {
     display: flex;
@@ -499,7 +393,6 @@ html[data-intro="off"] .intro-overlay {
     min-width: 0;
 }
 
-/* overflow-x: auto는 세로 overflow까지 잘라 드롭다운이 안 보임 → 스크롤은 .header-nav-scroll에서만 (또는 생략) */
 .header-nav {
     display: flex;
     align-items: center;
@@ -565,9 +458,6 @@ html[data-intro="off"] .intro-overlay {
     display: block;
 }
 
-/*
- * 메가 패널: 배경·블러 없음 — 실제 글래스는 .header-bar::after 한 겹만 (뒤 픽셀이 달라도 색이 같게 보임)
- */
 .header-nav-panel--mega {
     position: fixed;
     top: 52px;
@@ -638,8 +528,6 @@ html[data-intro="off"] .intro-overlay {
     opacity: 0.78;
 }
 
-/* 폰 전용 도구 목록 입구 — 폰 미디어쿼리에서만 켠다 (PC 는 사이드바가 그 역할).
-   손가락 기준 최소 40px 을 여기서 확보한다 (미디어쿼리는 display 만 뒤집는다). */
 .header-tools-link {
     display: none;
     align-items: center;
@@ -654,12 +542,7 @@ html[data-intro="off"] .intro-overlay {
     border-radius: var(--radius-sm);
     transition: color var(--transition), border-color var(--transition), background var(--transition);
 }
-/* ★ **도구 목록으로 가는 길은 접히지 않는다** (2026-08-12).
-   PC 에서는 옆줄이 그 역할이라는 전제로 이 링크들을 폰에서만 켰다. 그런데 첫 화면 꾸미기가
-   기본을 「머리띠 차림 + 갈 곳 카드 접힘」으로 바꾸면서, **처음 온 사람의 PC 화면에 도구 목록으로
-   가는 보이는 링크가 0개**가 됐다(실측: /karmolab/t/ 링크 4개가 전부 접힌 칸 안에 있었다).
-   길은 취향이 아니다 — 꾸미기로 접는 칸 **밖**에 하나는 늘 서 있어야 한다.
-   나머지 넷(봇·오늘의·커뮤니티·광장)은 그대로 폰 전용이다: PC 머리띠가 붐비지 않게 둔다. */
+
 .header-tools-link[href="/karmolab/t/"] { display: inline-flex; }
 
 .header-tools-link:hover,
@@ -728,10 +611,6 @@ html[data-intro="off"] .intro-overlay {
     text-overflow: ellipsis;
 }
 
-/* ═══════════════════════════════════════
-   HEADER BAR (글래스 배경, 좌측 로고·우측 액션)
-   ═══════════════════════════════════════ */
-
 .header-bar {
     position: fixed;
     top: 0;
@@ -751,7 +630,6 @@ html[data-intro="off"] .intro-overlay {
     border-bottom: none;
 }
 
-/* 단일 글래스 레이어: 헤더 줄 + 열린 메가 영역까지 동일 backdrop (패널에 또 깔면 뒤가 달라져 색이 어긋남) */
 .header-bar::after {
     content: '';
     position: fixed;
@@ -763,8 +641,7 @@ html[data-intro="off"] .intro-overlay {
     background: var(--header-shell-glass);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: blur(22px) saturate(160%);
-    /* 유리 아래끝 = 단색 선 대신 빛이 맺힌 가장자리 (KL-097).
-       옅게 열어 두면 단색 1px 선이 유리에 얹힌 자국처럼 겉돈다. */
+
     border-bottom: 1px solid transparent;
     border-image: linear-gradient(90deg,
         transparent 0%, var(--accent-dim) 22%, var(--accent-glow) 50%, var(--accent-dim) 78%, transparent 100%) 1;
@@ -772,8 +649,7 @@ html[data-intro="off"] .intro-overlay {
 }
 .header-bar:has(.header-nav-group.is-open)::after {
     height: calc(52px + var(--header-mega-max-h));
-    /* 메뉴를 열었을 때만 표면을 한 단계 더 세워 글자와 아이콘을 보호한다.
-       닫힌 헤더의 가벼운 투명감은 유지하고, 열린 메뉴는 읽기 우선으로 처리한다. */
+
     background: color-mix(in srgb, var(--glass-strong) 88%, transparent);
     box-shadow: 0 14px 32px rgba(0, 0, 0, 0.24);
 }
@@ -816,9 +692,6 @@ html[data-intro="off"] .intro-overlay {
     user-select: none;
 }
 
-/* 판 표식 배지 (TASK-KL-192) — 웹·앱 공통. 「지금 이 화면이 어느 판인가」를 항상 말한다.
-   브랜드 글자 옆에 붙지만 눈을 뺏으면 안 된다: 흐린 글씨 + 테두리 없음이 기본이고,
-   서버에 더 새 판이 있을 때만(`.is-stale`) 색이 올라온다. */
 .karmolab-version-badge {
     font-family: var(--font-mono);
     font-size: var(--font-size-2xs);
@@ -849,7 +722,7 @@ html[data-intro="off"] .intro-overlay {
 }
 
 .header-logo {
-    /* 글꼴·굵기·자간은 브랜드 글자 규칙(.header-logo-text)이 정한다 — 여기서 또 적으면 갈라진다 */
+
     font-size: var(--font-size-sm);
     color: var(--text-primary);
     background: none;
@@ -890,10 +763,6 @@ html[data-intro="off"] .intro-overlay {
     display: none;
 }
 
-/* ── 계정 캡슐 = 「내 정보」 단추 (TASK-KL-139) ──────────────────────────
-   화면(index.html)에 기본 캡슐이 박혀 있고 js/account.js 가 로그인 상태면 아바타·이름으로
-   갈아 끼운다. 그래서 모양은 **셸 CSS 인 여기**에 있어야 한다 — 스크립트 안에 두면
-   account.js 가 오기 전까지 맨몸 단추로 보인다. */
 .header-account { display: flex; align-items: center; position: relative; }
 .header-account-btn {
     display: flex; align-items: center; gap: 7px;
@@ -928,7 +797,6 @@ html[data-intro="off"] .intro-overlay {
 .header-account-menu .header-account-menu-out { color: #dc2626; }
 html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #fca5a5; }
 
-/* 아직 안 써 본 것 (TASK-KL-183 E) — 첫 화면 아래 한 줄. 없으면 아예 안 그려진다. */
 .landing-suggest { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 18px; }
 .landing-suggest:empty { display: none; }
 .landing-suggest-label { font-size: 12px; color: var(--text-tertiary); }
@@ -972,9 +840,6 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
 [data-theme="dark"] .theme-toggle .sun, [data-theme="light"] .theme-toggle .moon { display: none; }
 [data-theme="light"] .theme-toggle .sun, [data-theme="dark"] .theme-toggle .moon { display: block; }
 
-/* ── 윈도우 컨트롤 (카모랩 데스크톱 전용) ─────────────────────────────────
-   Tauri decorations:false로 OS 헤더를 끄고 헤더 우측에 minimize/maximize/close 직접 표시.
-   브라우저에서는 display:none. 데스크톱일 때만 toolbox.ts가 unhide. */
 .window-controls {
     display: none;
     align-items: stretch;
@@ -1017,8 +882,6 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
     box-shadow: 0 0 8px var(--accent-dim);
 }
 
-/* ── Breadcrumb (Discord-style) ── */
-
 .breadcrumb {
     display: flex; align-items: center; gap: 6px;
     font-size: var(--font-size-xs); color: var(--text-tertiary);
@@ -1035,10 +898,6 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
 .breadcrumb-link:hover { color: var(--accent); }
 .breadcrumb-current { color: var(--text-secondary); font-weight: 600; }
 
-/* ═══════════════════════════════════════
-   MAIN CONTENT
-   ═══════════════════════════════════════ */
-
 .main-content { flex: 1; overflow-y: auto; display: flex; flex-direction: column; position: relative; min-height: 0; }
 .content-body {
     padding: var(--space-lg) var(--space-xl) var(--space-2xl);
@@ -1048,7 +907,6 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
     padding-top: calc(52px + var(--space-lg));
 }
 
-/* layout-full 페이지가 활성화되면 스크롤 비활성화 및 flex fill 모드로 전환 */
 .main-content:has(.tool-page.layout-full.active) {
     overflow: hidden;
 }
@@ -1056,40 +914,29 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
     flex: 1;
     min-height: 0;
     padding: 0;
-    padding-top: 52px; /* 헤더바 높이만 */
+    padding-top: 52px;
 }
-
-/* ═══════════════════════════════════════
-   LANDING PAGE
-   ═══════════════════════════════════════ */
 
 .landing-page {
     display: none; flex-direction: column;
     padding: var(--space-xl) var(--space-2xl) var(--space-2xl);
     flex: 1 1 auto;
-    /* 화면 한 장을 채우되 **넘치면 늘어난다** — 예전엔 `calc(100svh - 52px)` 로 못 박혀
-       있어서, 글씨 배율을 올리면 안쪽이 그 높이를 넘어가고 바깥은 `overflow: hidden`
-       이라 아래가 통째로 잘렸다(굴릴 수도 없었다). 100% = 위 칸이 정한 만큼. */
+
     min-height: 100%;
     max-width: 960px; margin: 0 auto; width: 100%;
-    /* `safe` = 넘칠 때는 가운데 정렬을 포기하고 위부터 쌓는다. 안 그러면 넘친 만큼 위아래로
-       똑같이 삐져나가 **머리(제목)가 굴려도 안 나오는 자리**로 올라간다. */
+
     justify-content: center;
     justify-content: safe center;
 }
 .content-body:has(.landing-page.active) {
     flex: 1;
     min-height: 0;
-    /* 넘치면 굴린다(예전 `hidden` = 배율 올리면 아래가 잘려 안 보임). */
+
     overflow-y: auto;
 }
 .landing-page.active { display: flex; }
 [data-block][hidden] { display: none !important; }
 
-/* ── Hero ── */
-
-/* 찾는 칸이 주인공이다 (TASK-KL-136) — 머리 부분은 이름 한 줄 + 한 마디로 줄이고,
-   그 밑에 바로 칸이 온다. 예전엔 머리 아래 밑줄 장식까지 있어 칸이 한참 아래였다. */
 .landing-hero {
     padding: var(--space-2xl) 0 var(--space-md);
     margin-bottom: var(--space-md);
@@ -1104,9 +951,6 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
 }
 .landing-title .accent { color: var(--accent); }
 
-/* ── 브랜드 글자 = 한 곳에서만 정한다 (TASK-KL-097) ──
-   머리띠 로고 · 첫 화면 제목 · 인트로 제목이 각자 다른 글꼴·굵기를 갖고 있었다.
-   같은 이름이 자리마다 다르게 생기면 그건 로고가 아니다. 크기만 자리별로 다르다. */
 .header-logo-text,
 .landing-title,
 .intro-title {
@@ -1116,25 +960,8 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
     line-height: 1;
 }
 
-/* ── 첫 화면 장식 (Y2K 하프톤 도형, TASK-KL-097) ──
-   누를 수 없게 두고 글보다 뒤에 깐다 — 장식이 버튼을 가로채면 그건 고장이다.
-   도형·자리·크기·움직임은 toolbox.ts 가 열 때마다 새로 뽑는다. */
-/* 도형 자리는 이 상자의 **비율**로 잡혀 있다. 그래서 상자가 화면을 그대로 따라가면(inset:0)
-   폰에서 주소창이 접힐 때마다 상자가 늘고 도형이 **뚝 하고 옮겨 간다**. 눈에 그대로 보인다.
-   배경 판때기와 반대로, 이쪽은 「딱 맞음」보다 「안 흔들림」이 중요하다 — 화면이 가장 클 때의
-   높이(lvh)로 못 박으면 주소창이 접히든 펴지든 자리가 그대로다. 주소창이 보일 때는 아래가
-   조금 잘릴 뿐인데, 어차피 가려져 있던 자리다 (TASK-KL-101). */
 .home-decor { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100lvh; pointer-events: none; z-index: 0; overflow: hidden; }
-/* 도구 화면에서는 한 겹 물러난다. 지우지 않는 이유: 화면을 옮길 때마다 세계가 바뀌면
-   앱이 아니라 문서 여러 장이 된다. 흐리게 두면 이어지면서도 글을 안 방해한다.
-   옅어지기만 하면 **같은 자리에서 색만 빠진** 것으로 보인다 — 물러났다는 말은 거리다.
-   그래서 무대를 화면 한가운데 기준으로 줄인다: 모든 도형이 가운데로 모이며 작아진다
-   = 카메라가 뒤로 빠진 그림. 홈으로 오면 1 로 돌아오고, 자리 값 자체는 손대지 않으므로
-   되돌릴 상태가 없다 (KL-149).
-   **왜 무대(안쪽 상자)냐** — ① 도형 각각은 transform 을 이미 두 겹 쓴다(시차·떠다니기),
-   거기 얹으면 서로 덮어써서 아무 일도 안 일어난다. ② 바깥 상자는 화면을 잘라 내는 틀이라
-   같이 줄이면 **잘리는 선이 화면 안쪽으로 들어와** 도형이 허공에서 직선으로 잘린다.
-   틀은 화면에 고정, 무대만 물러난다. */
+
 html[data-view="tool"] .home-decor { opacity: 0.35; transition: opacity .45s ease; }
 html[data-view="home"] .home-decor { opacity: 0.72; transition: opacity .45s ease; }
 .home-decor-stage {
@@ -1146,35 +973,26 @@ html[data-view="home"] .home-decor { opacity: 0.72; transition: opacity .45s eas
 }
 html[data-view="tool"] .home-decor-stage { transform: scale(0.84); }
 html[data-view="home"] .home-decor-stage { transform: scale(1); }
-/* 움직임을 줄여 달라고 한 사람에게는 미끄러지지 않고 바로 놓인다 */
+
 @media (prefers-reduced-motion: reduce) { .home-decor-stage { transition: none; } }
-/* 바깥 = 시차(손가락·커서), 안쪽 = 떠다니기. 둘 다 transform 이라 한 요소에 겹치면
-   서로 덮어쓴다 — 나눠 놓는 것이 핵심이다 (TASK-KL-101). */
+
 .home-decor-item {
     position: absolute;
     will-change: transform;
-    /* 자리는 **JS 가 완성된 값으로** 쓴다 (home-scene.ts 의 place()).
-       예전에는 여기서 `calc(var(--px)*var(--depth)+var(--ox))` 로 풀었는데, 변수 하나가
-       바뀔 때마다 하위 전체 스타일을 다시 계산하고 합성기가 그 transform 을 못 맡았다 —
-       마우스를 움직이는 동안 CPU 의 77%가 이 장식이었다(실측 2026-08-08). */
+
     transform: translate3d(0, 0, 0);
-    /* 부드러움은 CSS 전환이 아니라 계산 쪽에서 만든다 — 밀림 값이 매 프레임 들어오므로
-       전환을 걸면 두 번 미끄러져 흐물거린다 (TASK-KL-101). */
+
 }
 .home-decor-float { will-change: transform; }
 .landing-hero, .landing-cta { position: relative; z-index: 1; }
-/* 떠다니는 움직임은 **안쪽 상자**에 걸려 있다 (`.home-decor-float`). 바깥 상자만 껐던
-   탓에 「움직임 줄이기」를 켠 사람에게도 배경이 계속 흘렀다 — 규칙이 죽어 있었다. */
+
 @media (prefers-reduced-motion: reduce) {
     .home-decor-item, .home-decor-float { animation: none !important; }
 }
 @media (max-width: 768px) {
-    /* 크기는 만들 때 줄인다(toolbox.ts) — 여기서 transform 을 걸면 떠다니는 움직임에 덮인다 */
+
 }
 
-/* 로고와 큰 제목에만 크롬 그라데이션 (TASK-KL-097).
-   @supports 로 감싼 이유: 글자에 배경을 오려 넣는 방식이라, 안 되는 브라우저에서 색을
-   투명으로 두면 **제목이 통째로 사라진다**. 되는 곳에서만 투명으로 바꾼다. */
 @supports (background-clip: text) or (-webkit-background-clip: text) {
     .header-logo-text {
         background: var(--chrome-grad);
@@ -1188,7 +1006,7 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
         background-clip: text;
         color: transparent;
     }
-    /* 크롬을 오려 넣으면 그 안의 강조 글자도 같이 투명해진다 — 원래 색을 되돌린다 */
+
     .landing-title .accent {
         -webkit-background-clip: initial;
         background-clip: initial;
@@ -1204,22 +1022,12 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
     text-shadow: 0 1px 7px var(--brand-shadow);
 }
 
-/* ── 첫 화면 — 찾는 칸이 주인공, 카드는 그 아래 한 줄 (TASK-KL-099 → KL-136) ──
-   순서: 이름 → **찾는 칸** → 갈 곳 카드 한 줄 → 방문 수(Today/Total).
-   카드는 아이콘+이름 한 줄짜리로 줄였다 — 설명 줄을 달면 다섯 장이 두 줄을 먹고, 그만큼
-   찾는 칸이 아래로 밀린다. 각 카드가 무엇인지는 들어가면 그 화면이 스스로 말한다. */
-
 .landing-palette {
     display: flex; justify-content: center;
     width: 100%;
-    /* z-index 4 = 아래 줄(카드·오늘의 판, 전부 1)보다 위. 펼쳐진 목록이 **떠 있는 판**이
-       되면서(아래 `.kp-inline .kp-list`) 뒤 순서인 카드에 가리면 안 된다. */
+
     position: relative; z-index: 4;
-    /* **자리를 미리 잡아 둔다** (TASK-KL-201 후속).
-       찾는 칸은 도구 목록이 실린 뒤에 제 모습이 된다 — 그 순간 45px 에서 65px 로 자라며
-       아래 있는 카드·글을 통째로 밀어낸다. 실측: 그 밀림 하나로 CLS 가 0.02 ↔ 0.097 사이를
-       오갔다(회차마다 목록이 언제 오느냐에 따라). 미리 그만큼 비워 두면 자라도 안 민다.
-       폰에서는 두 줄로 접히므로(실측 57→65) 같은 값으로 덮인다. */
+
     min-height: 65px;
 }
 
@@ -1227,15 +1035,11 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
     display: flex; flex-direction: column; align-items: center; gap: var(--space-md);
     padding: var(--space-lg) 0 0; text-align: center;
 }
-/* 첫 화면의 방문 수 (TASK-KL-098 → KL-136) — 블로그와 같은 Today / Total 두 칸.
-   값이 없으면 자리 자체가 안 생긴다 (`:empty`) — 「0번」이 떠 있으면 죽은 화면으로 읽힌다. */
+
 .landing-pulse { max-width: 620px; margin: var(--space-lg) auto 0;
     position: relative; z-index: 1; }
 .landing-pulse:empty { display: none; }
-/* 「지금 이만큼 쓰였어요」 한 줄도 **서버 대답을 기다렸다가** 들어온다 (TASK-KL-201, 2026-08-09).
-   그 순간 아래가 23px 내려간다 — 실사이트 밀림 0.042 가 이것이었다. 우리 기계에서는 이 요청이
-   막혀(다른 출처) 칸이 비어 있어서 **로컬에서는 영영 안 보이는 종류**였다. 진짜 사이트에서 재야 보인다.
-   폭이 좁아져도 한 줄이라 값이 안 변한다(360~1280px 전부 23px — 직접 재서 확인). */
+
 .landing-pulse[data-reserving] { display: block; min-height: 23px; }
 .landing-pulse-line { margin: 0; display: flex; flex-wrap: wrap; align-items: center;
     justify-content: center; gap: var(--space-md);
@@ -1250,17 +1054,10 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
     min-height:32px; display:inline-flex; align-items:center;
     font-size:var(--font-size-xs); color:var(--accent); cursor:pointer; }
 
-/* 오늘의 판 (TASK-KL-194) — 찾는 칸 바로 아래. 못 읽으면 자리 자체가 안 생긴다(`:empty`):
-   빈 상자가 떠 있으면 「오늘은 아무것도 없다」로 읽힌다. */
 .landing-today { max-width: 620px; margin: var(--space-md) auto 0; position: relative; z-index: 1;
     display: flex; flex-direction: column; gap: var(--space-sm); }
 .landing-today:empty { display: none; }
-/* 오늘의 판이 **도착하기 전에 자리를 잡아 둔다** (TASK-KL-201, 2026-08-09).
-   안 잡아 두면 조각이 붙는 순간 아래 카드 줄이 통째로 내려간다 — 실측 ↓73px, 밀림 0.016.
-   높이는 폭마다 다르다(머리줄이 좁을수록 여러 줄로 접힌다). 실측한 경계 그대로 적는다:
-       ~415px 138px · 416~663px 97px · 664px~ 65px
-   `[data-reserving]` 이 붙어 있는 동안만 = 데려오는 중에만. 못 데려오면 JS 가 떼고, 그러면
-   `:empty` 가 다시 이겨 자리 자체가 없어진다(그게 원래 설계다). */
+
 .landing-today[data-reserving] { display: block; min-height: 138px; }
 @media (min-width: 416px) { .landing-today[data-reserving] { min-height: 97px; } }
 @media (min-width: 664px) { .landing-today[data-reserving] { min-height: 65px; } }
@@ -1284,18 +1081,13 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
     font-size: var(--font-size-xs); color: var(--text-secondary); text-decoration: none;
     transition: border-color var(--transition), background var(--transition), color var(--transition); }
 .lt-chip:hover { background: var(--bg-tertiary); border-color: var(--text-tertiary); color: var(--accent); }
-/* 끝낸 칸은 **색이 아니라 표식**으로도 말한다 — 색만으로 구분하면 못 보는 사람이 있다. */
+
 .lt-chip.is-done { color: var(--text-tertiary); border-color: transparent; background: transparent; }
 .lt-chip.is-done::after { content: '✓'; color: var(--accent); font-weight: 700; }
 
 .landing-live { max-width: 620px; margin: var(--space-md) auto 0; position: relative; z-index: 1; }
 .landing-live:empty { display: none; }
-/* 「같이 보는 중」도 **데려오는 동안 자리를 잡아 둔다** (TASK-KL-201, 2026-08-10).
-   실사이트 실측: 이 칸이 0 → 129px 로 생기면서 아래가 통째로 내려갔다(밀림 0.038).
-   폭마다 줄 수가 달라 값이 셋이다 — 직접 재서 경계까지 확인:
-       ~479px 129px · 480~899px 92px · 900px~ 56px
-   못 데려오거나 아무도 없으면 JS 가 표를 떼고 `:empty` 가 다시 이겨 자리가 없어진다
-   (「지금 0명」은 북적임이 아니라 죽은 화면이라 그 설계는 그대로 지킨다). */
+
 .landing-live[data-reserving] { display: block; min-height: 129px; }
 @media (min-width: 480px) { .landing-live[data-reserving] { min-height: 92px; } }
 @media (min-width: 900px) { .landing-live[data-reserving] { min-height: 56px; } }
@@ -1311,12 +1103,8 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
 .lv-chip:hover { color: var(--accent); border-color: var(--accent); }
 .lv-chip span { font-size: 10px; color: var(--text-tertiary); }
 
-/* 나만의 첫 화면 (TASK-KL-196 H) */
 .landing-hi { margin-top: 6px; font-size: var(--font-size-sm); color: var(--accent); }
-/* 꾸미기 단추가 들어올 **자리**를 첫 그림부터 잡아 둔다 (TASK-KL-201, 2026-08-10).
-   이 단추는 꾸미기 조각이 온 뒤에 붙는다 — 그때 31px 가 생기며 아래가 내려갔다.
-   자리를 먼저 만들어 두고 그 안에 넣으면 아무것도 안 움직인다. 위 여백까지 함께 잡는다
-   (단추가 제 여백을 갖고 있어서, 키만 잡으면 그 여백만큼 또 밀린다). */
+
 .hp-slot { min-height: calc(31px + var(--space-lg)); }
 .hp-open { position: fixed; right: max(var(--space-lg), env(safe-area-inset-right));
     bottom: max(var(--space-lg), env(safe-area-inset-bottom)); z-index: 90;
@@ -1365,7 +1153,7 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
     gap: 8px;
     white-space: nowrap;
     position: relative;
-    /* 알약 말고 네모 (사용자 요청, KL-136). 위 찾는 칸·아래 칩과 각을 맞춘다. */
+
     border-radius: var(--radius-sm);
     font-family: inherit;
     appearance: none;
@@ -1393,361 +1181,26 @@ a.landing-cta-card:hover { color: inherit; }
     letter-spacing: 0.01em;
 }
 
-/* ═══════ 첫 화면 자리잡기 — 늦게 와도 안 튀게 (TASK-KL-201) ═══════
-   **이 구역은 절대 뒤로 빼지 마라** — 색이 아니라 *자리* 다.
-   접힘 감추기·아이콘 크기가 늦게 오면 첫 화면이 465px→65px 로 접히며 밀림 0.24 가 난다.
-   (왜·실측값 = scripts/split-css.mjs 머리말) */
 .kp-inline.kp-collapsed .kp-list,
 .kp-inline.kp-collapsed .kp-live { display: none; }
-/* 접힌 팔레트의 키 = 입력 한 줄. 늦은 스타일이 정하는 값(18px 패딩 + 테두리)과 같은 값을
-   여기서 미리 잡아 둔다. 둘이 어긋나면 그만큼 튀므로, 고칠 때는 같이 고쳐라. */
-/* 펼쳐진 목록은 **흐름 밖에 뜬다** (사용자 요청 — 「검색창 누르면 로고까지 움직인다」).
-   첫 화면은 세로 가운데 정렬이라, 목록이 자리를 차지하면 그만큼 위아래가 다시 나뉘어
-   제목·로고가 위로 밀려 올라갔다. 입력 칸 아래에 떠 있게 하면 접히든 펼쳐지든 자리 값이
-   같아서 아무것도 안 움직인다(덤: 접힘/펼침 밀림도 구조적으로 0). */
+
 .kp-inline { position: relative; }
-/* 목록이 밖으로 떠야 하므로 상자는 안 자른다 — 자르면 뜬 목록이 잘려 사라진다. */
+
 .kp-inline .kp-box { display: flex; flex-direction: column; overflow: visible; }
 .kp-inline .kp-list {
     position: absolute; top: calc(100% + 8px); left: 0; right: 0;
     z-index: 30;
 }
 .kp-inline .kp-input-wrap { display: flex; align-items: center; }
-/* 돋보기 그림에 크기를 안 주면 **줄 높이만큼 늘어난다** — 실측 122px. 아이콘 하나가 상자를
-   두 배로 키우고 있었다. 크기는 자리이므로 여기, 색은 뒤에. */
+
 .kp-inline .kp-input-icon { width: 18px; height: 18px; flex: 0 0 auto; }
 .kp-inline .kp-kbd { flex: 0 0 auto; }
 .kp-inline input.kp-input { flex: 1 1 auto; min-width: 0; padding: 12px 0; font-size: var(--font-size-md); }
-/* 껍데기(바탕·테두리·그림자)를 여기서도 지운다 (2026-08-12).
-   `.kp-box input.kp-input` 쪽에는 이 초기화가 있는데 **이 줄은 그 구역 밖**이라(첫 화면에
-   박히는 인라인 팔레트는 앞 구역에 산다) 앱의 일반 `input` 차림이 되살아났다 — 상자 안에
-   네모가 하나 더 보이는 모양이다. 눈으로는 흘려보내기 쉬워 검사가 계산된 값으로 잡는다. */
+
 .kp-inline input.kp-input,
 .kp-inline input.kp-input:focus {
     background: none; border: none; outline: none; box-shadow: none;
 }
-
-/* ═══════ 명령 팔레트 (TASK-KL-099) ═══════
-   한 벌의 규칙이 두 자리를 칠한다 — 첫 화면에 박힌 것(.kp-inline)과 ⌘K 로 뜨는 것
-   (.kp-overlay). 차이는 껍데기(그림자·너비·최대 높이)뿐이고 줄 모양은 같다. 그래야
-   두 번째로 만났을 때 「아까 그것」으로 읽힌다. */
-
-/* 첫 화면의 팔레트는 화면 폭을 다 쓰지 않는다. 가로로 늘어나면 아이콘·이름·설명이
-   서로 멀어져 한 줄로 안 읽히고, 「찾는 칸」이 아니라 「입력 양식」처럼 보인다.
-   떠오르는 창과 같은 폭으로 맞춰 둘이 같은 것으로 읽히게 한다. */
-.kp { width: 100%; max-width: 640px; margin: 0 auto; }
-.kp-box {
-    display: flex; flex-direction: column;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-}
-.kp-inline .kp-box {
-    box-shadow: 0 1px 0 var(--border);
-}
-/* 입력을 쥐고 있는 동안 테두리가 살아난다 — 지금 여기에 치면 된다는 표시. */
-.kp-box:focus-within {
-    border-color: var(--border-strong);
-    box-shadow: 0 0 0 3px var(--accent-subtle);
-}
-
-.kp-input-wrap {
-    display: flex; align-items: center; gap: var(--space-sm);
-    padding: 0 var(--space-md);
-    border-bottom: 1px solid var(--border);
-}
-.kp-input-icon { width: 18px; height: 18px; flex: 0 0 auto; color: var(--text-tertiary); }
-/* 태그 이름까지 적는다: 아래쪽의 `input[type="text"]` 공통 규칙이 클래스 하나보다
-   힘이 세서, 그냥 `.kp-input` 으로는 테두리·바탕이 되살아난다 (실제로 그렇게 나왔다 —
-   찾는 칸 안에 또 네모난 칸이 그려졌다). */
-.kp-box input.kp-input {
-    flex: 1 1 auto; min-width: 0; width: auto;
-    background: none; border: none; outline: none;
-    box-shadow: none;
-    color: var(--text-primary);
-    font-family: inherit;
-    font-size: var(--font-size-md);
-    /* 16px 미만이면 iOS 가 입력에 닿는 순간 화면을 확대한다 — 그러면 목록이 밖으로 밀린다. */
-    padding: 12px 0;
-    letter-spacing: 0.01em;
-}
-/* 포커스 표시는 바깥 상자(.kp-box:focus-within)가 이미 한다. 공통 규칙이 여기에 또
-   테두리·바탕을 얹으면 상자 안에 네모가 하나 더 생긴다 — 그것을 되돌린다.
-   `.kp-box` 를 앞에 붙인 이유: 공통 규칙이 이 파일 **뒤쪽**에 있어서, 힘이 같으면
-   그쪽이 이긴다. 실제로 그래서 포커스만 주면 입력 줄에 밝은 띠가 다시 생겼다. */
-.kp-box input.kp-input:focus {
-    background: none;
-    border: none;
-    box-shadow: none;
-}
-.kp-input::placeholder { color: var(--text-tertiary); }
-.kp-kbd {
-    flex: 0 0 auto;
-    font-family: var(--font-mono);
-    font-size: var(--font-size-2xs);
-    color: var(--text-tertiary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 3px 7px;
-    letter-spacing: 0.04em;
-}
-/* 손가락으로 쓰는 화면에는 그 키가 없다. 없는 것을 알려 주면 거짓말이 된다. */
-@media (hover: none) { .kp-kbd { display: none; } }
-
-/* 찾기 닫기 (TASK-KL-101) — 폰에는 Esc 가 없다. 누르는 크기부터 확보한다. */
-.kp-close {
-    flex-shrink: 0;
-    width: 40px; height: 40px;
-    margin-right: -6px;
-    display: inline-flex; align-items: center; justify-content: center;
-    border: none; background: none; cursor: pointer;
-    color: var(--text-tertiary);
-    border-radius: var(--radius-md);
-    transition: color var(--transition), background var(--transition);
-}
-.kp-close svg { width: 18px; height: 18px; }
-.kp-close:hover, .kp-close:focus-visible { color: var(--text-primary); background: var(--bg-hover); }
-
-.kp-list { overflow-y: auto; overscroll-behavior: contain; }
-/* 첫 화면에 박힌 칸은 **스크롤이 없다** (TASK-KL-136, 사용자 요청). 높이로 자르는 대신
-   줄 수를 palette.ts 가 자른다 — 자르고 안에서 또 스크롤하면 잘린 줄은 보지도 못한 채
-   화면만 길어진다. 갈래 펼치기·결과 전부 보기는 ⌘K 창이 받는다(그쪽은 스크롤 OK). */
-/* 뜬 목록은 제 껍데기를 갖는다 — 상자 밖으로 나왔으니 바탕·테두리가 없으면 뒤 글자와 겹친다. */
-.kp-inline .kp-list {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 12px 32px var(--brand-shadow, rgba(0, 0, 0, 0.28));
-    /* 줄 수는 palette.ts 가 자른다(8줄). 높이는 **입력칸 아래 실제로 남은 자리**로 자른다 —
-       `--kp-space` 는 palette.ts 가 열 때(그리고 창 크기가 바뀔 때) 재서 넣는다. 값이 아직
-       없을 때만 vh 로 어림잡는다. 배율을 올리면 남는 자리가 줄고, 안에서 굴러간다. */
-    max-height: min(var(--kp-space, 46vh), 560px);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-}
-/* 첫 화면에서는 누르기 전까지 접혀 있다 (TASK-KL-129) — 아직 안 물어본 답이 화면 절반을
-   차지하지 않게. 누르면 그 자리에서 펼쳐진다. */
-.kp-inline.kp-collapsed .kp-list,
-.kp-inline.kp-collapsed .kp-live { display: none; }
-.kp-overlay .kp-list { max-height: min(60vh, 520px); }
-
-.kp-section {
-    padding: var(--space-sm) var(--space-md) 4px;
-    font-family: var(--font-mono);
-    font-size: var(--font-size-2xs);
-    color: var(--text-tertiary);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-}
-
-.kp-row {
-    display: flex; align-items: center; gap: var(--space-md);
-    /* 자식 줄의 세로 이음선이 이 줄을 기준으로 그려진다 (.kp-row-child::before) */
-    position: relative;
-    /* 손가락 표적 44px — 좁히면 옆줄이 눌린다. */
-    padding: 11px var(--space-md);
-    min-height: 44px;
-    cursor: pointer;
-    border-left: 2px solid transparent;
-}
-/* 하이라이트는 진짜 포커스가 아니라 표시다 (입력이 포커스를 계속 쥔다).
-   그래서 :hover 가 아니라 클래스로 칠한다 — 키보드와 마우스가 같은 줄을 가리켜야 한다. */
-.kp-row.is-active {
-    background: var(--accent-subtle);
-    border-left-color: var(--accent);
-}
-.kp-icon {
-    width: 18px; height: 18px; flex: 0 0 auto;
-    color: var(--text-tertiary);
-}
-.kp-icon svg { width: 100%; height: 100%; }
-.kp-row.is-active .kp-icon { color: var(--accent); }
-.kp-row-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
-.kp-row-title {
-    font-size: var(--font-size-xs);
-    color: var(--text-primary);
-    font-weight: 500;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.kp-row-desc {
-    font-size: var(--font-size-2xs);
-    color: var(--text-tertiary);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    line-height: 1.4;
-}
-/* 어디가 걸렸는지 눈으로 확인시켜 준다. 배경을 칠하면 줄 강조와 싸우므로 글자만 세운다. */
-.kp-mark {
-    background: none;
-    color: var(--accent);
-    font-weight: 700;
-}
-/* 답 줄 — 값이 주인공이라 이름표보다 크게 놓는다 (TASK-KL-110) */
-.kp-row-answer .kp-icon { color: var(--accent); }
-.kp-answer-value {
-    font-family: var(--font-mono);
-    font-size: var(--font-size-sm);
-    font-weight: 700;
-    color: var(--text-primary);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.kp-row-answer.is-active .kp-answer-value { color: var(--accent); }
-
-.kp-row-badge {
-    flex: 0 0 auto;
-    font-family: var(--font-mono);
-    font-size: var(--font-size-2xs);
-    color: var(--text-tertiary);
-}
-
-.kp-empty { padding: var(--space-lg) var(--space-md); text-align: center; }
-.kp-empty p { font-size: var(--font-size-xs); color: var(--text-secondary); margin-bottom: var(--space-sm); }
-.kp-ask { display: block; margin: 0 auto var(--space-sm); padding: 7px 14px; font: inherit;
-    font-size: var(--font-size-xs); color: var(--accent); background: none;
-    border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; }
-.kp-ask:hover { border-color: var(--accent); }
-.kp-ask[disabled] { color: var(--text-tertiary); cursor: default; }
-.kp-ask-hit { display: flex; flex-direction: column; gap: 3px; width: 100%; margin-bottom: var(--space-sm);
-    padding: 10px 12px; text-align: left; font: inherit; cursor: pointer;
-    background: var(--bg-secondary); border: 1px solid var(--accent); border-radius: var(--radius-sm); }
-.kp-ask-hit b { font-size: var(--font-size-sm); color: var(--text-primary); }
-.kp-ask-hit span { font-size: var(--font-size-2xs); color: var(--text-tertiary); }
-.kp-ask-none { font-size: var(--font-size-2xs); color: var(--text-tertiary); margin-bottom: var(--space-sm); }
-.kp-empty-link { font-size: var(--font-size-2xs); color: var(--accent); text-decoration: none; }
-.kp-empty-link:hover { text-decoration: underline; }
-
-/* 아직 아무것도 안 써 본 사람이 보는 자리 — 「여기에 이만큼 있다」 */
-.kp-browse {
-    display: flex; flex-wrap: wrap; gap: var(--space-sm);
-    padding: var(--space-sm) var(--space-md) var(--space-md);
-}
-.kp-browse-chip {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 7px 14px;
-    color: var(--text-secondary);
-    font-family: inherit;
-    font-size: var(--font-size-2xs);
-    cursor: pointer;
-    transition: border-color var(--transition), color var(--transition);
-}
-.kp-browse-chip:hover { border-color: var(--border-strong); color: var(--text-primary); }
-.kp-browse-n { font-family: var(--font-mono); color: var(--text-tertiary); }
-/* 이번 주에 많이 쓴 도구 (TASK-KL-136) — 갈래 칩과 같은 모양이되 도구로 바로 간다.
-   줄(row)로 냈으면 44px × 6 = 264px 를 먹는다. 칩이면 한 줄이다. */
-.kp-browse-tools .kp-browse-chip { border-color: var(--accent-dim); color: var(--text-primary); }
-.kp-browse-tools .kp-browse-chip:hover { border-color: var(--accent); }
-
-/* 잘라낸 결과가 있다고 알리는 줄 (TASK-KL-136). 누르면 ⌘K 창이 같은 검색어로 열린다. */
-.kp-more {
-    display: block; width: 100%;
-    background: none; border: none;
-    border-top: 1px solid var(--border);
-    padding: 10px var(--space-md);
-    color: var(--accent);
-    font-family: inherit;
-    font-size: var(--font-size-2xs);
-    cursor: pointer;
-    text-align: center;
-}
-.kp-more:hover { background: var(--bg-hover); }
-
-/* 갈래를 펼친 뒤 되돌아가는 줄. 이게 없으면 한 번 들어간 사람이 갇힌다. */
-.kp-back {
-    display: flex; align-items: center; gap: 6px;
-    width: 100%;
-    background: none; border: none;
-    border-bottom: 1px solid var(--border);
-    padding: 10px var(--space-md);
-    color: var(--text-tertiary);
-    font-family: inherit;
-    font-size: var(--font-size-2xs);
-    cursor: pointer;
-    text-align: left;
-}
-.kp-back:hover { color: var(--accent); }
-
-/* 묶음 안의 탭 — 부모 바로 밑에 한 칸 들여 붙는다. 한 덩어리로 읽히게. */
-.kp-row-child {
-    padding-left: calc(var(--space-md) + 22px);
-}
-.kp-row-child .kp-row-title { font-weight: 400; color: var(--text-secondary); }
-.kp-row-child .kp-icon { opacity: 0.55; }
-/* 부모와 이어져 있다는 표시 — 들여쓰기만으로는 목록이 그냥 어긋나 보인다. */
-.kp-row-child::before {
-    content: '';
-    position: absolute;
-    left: calc(var(--space-md) + 8px);
-    top: 0; bottom: 0;
-    border-left: 1px solid var(--border);
-}
-
-/* 화면 낭독기에만 읽히는 줄 — 결과 수가 바뀐 것을 알린다. */
-.kp-live {
-    position: absolute; width: 1px; height: 1px;
-    margin: -1px; padding: 0; overflow: hidden;
-    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
-}
-
-/* ── ⌘K 로 뜨는 껍데기 ── */
-.kp-scrim {
-    position: fixed; inset: 0; z-index: 3000;
-    background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(3px);
-    display: flex; align-items: flex-start; justify-content: center;
-    /* 화면 한가운데보다 조금 위 — 목록이 아래로 자라날 자리를 미리 비워 둔다. */
-    padding: 12vh var(--space-md) var(--space-md);
-}
-.kp-overlay { max-width: 640px; }
-.kp-overlay .kp-box {
-    background: var(--glass-strong);
-    backdrop-filter: var(--glass-blur);
-    border-color: var(--border-hover);
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-    .kp-overlay { animation: kp-rise 140ms ease-out; }
-    @keyframes kp-rise {
-        from { opacity: 0; transform: translateY(-8px); }
-        to { opacity: 1; transform: none; }
-    }
-}
-
-/* 좁은 화면에서는 화면을 통째로 쓴다 — 작은 창을 띄우면 키보드가 그것을 덮는다. */
-@media (max-width: 640px) {
-    .kp-scrim { padding: 0; }
-    .kp-overlay { max-width: none; width: 100%; height: 100%; }
-    .kp-overlay .kp-box { height: 100%; border: none; border-radius: 0; }
-    .kp-overlay .kp-list { max-height: none; flex: 1 1 auto; }
-}
-.landing-dev-links {
-    margin-top: var(--space-md);
-    font-size: var(--font-size-2xs);
-    color: var(--text-tertiary);
-}
-.landing-dev-link-btn {
-    background: none;
-    border: none;
-    padding: 0;
-    font: inherit;
-    color: var(--text-secondary);
-    cursor: pointer;
-    text-decoration: none;
-}
-.landing-dev-link-btn:hover {
-    color: var(--accent);
-    text-decoration: underline;
-}
-
-/* 마스코트 크기는 설정(환경 설정 → 마스코트)이 정한다. 화면마다 다르게 주면
-   설정에서 고른 값이 홈에서만 안 먹는 것처럼 보인다 — 값의 주인은 하나다. */
-
-/* ═══════════════════════════════════════
-   TOAST
-   ═══════════════════════════════════════ */
 
 .status-toast {
     position: fixed;
@@ -1774,7 +1227,7 @@ a.landing-cta-card:hover { color: inherit; }
 }
 .status-toast.has-detail { cursor: default; pointer-events: auto; padding: 8px 12px; max-width: 90vw; display: flex; align-items: center; gap: 8px; }
 .status-toast-copy {
-    /* 흰색 반투명은 라이트에서 사라진다 — 토스트 글자색을 따라가게 한다 */
+
     flex-shrink: 0; padding: 4px 8px; font-size: 12px; background: color-mix(in srgb, currentColor 12%, transparent);
     border: 1px solid color-mix(in srgb, currentColor 28%, transparent); border-radius: 4px; cursor: pointer;
     color: inherit; font-family: inherit;
@@ -1787,14 +1240,6 @@ a.landing-cta-card:hover { color: inherit; }
 }
 .status-toast-detail.open { display: block; }
 
-/* ═══════════════════════════════════════
-   TOOL PAGES
-   ═══════════════════════════════════════ */
-
-/* 도구 화면의 머리는 **작아야 한다** (TASK-KL-133).
-   제목·설명·횟수가 첫 화면의 4분의 1을 먹고 있었다. 도구를 쓰러 온 사람에게 첫 화면은
-   「입력칸이 어디냐」이지 「이 도구 이름이 무엇이냐」가 아니다 — 이름은 이미 알고 눌러서 왔다.
-   그래서 브랜드 제목(첫 화면)과 달리 여기서는 크기를 줄이고 여백을 좁힌다. */
 .tool-page-hero {
     text-align: center;
     padding: var(--space-md) 0 var(--space-sm);
@@ -1809,8 +1254,7 @@ a.landing-cta-card:hover { color: inherit; }
 .tool-page-hero-desc {
     font-size: var(--font-size-sm); color: var(--text-tertiary); letter-spacing: 0.01em;
 }
-/* 도구를 다 쓴 사람에게 다음 자리 (TASK-KL-098). 도구 상세는 검색으로 들어오는 정문인데
-   거기서 사이트의 나머지로 가는 길이 하나도 없었다. 맨 아래에만 둔다 — 위는 도구의 자리다. */
+
 .tool-page-next { margin: var(--space-xl) 0 var(--space-md); padding-top: var(--space-md);
     border-top: 1px solid var(--border); }
 .tool-page-next-head { font-size: 11px; font-weight: 700; color: var(--text-tertiary); margin-bottom: 10px; }
@@ -1823,19 +1267,12 @@ a.landing-cta-card:hover { color: inherit; }
 .tool-page-next-link b { font-size: var(--font-size-sm); color: var(--text-primary); }
 .tool-page-next-link span { font-size: 11px; color: var(--text-tertiary); }
 
-/* `layout-full` 은 도구가 화면 끝까지 쓰라고 바깥 여백을 0 으로 만든다(`.content-body` padding 0).
-   그런데 그 아래 붙는 이 안내까지 여백을 잃어 **화면 가장자리에 딱 붙었다** — 도구 몸통과
-   엉겨 잘린 것처럼 보인다. 재 보니 `full` 도구 10개가 전부 왼·오른 0 이었다
-   (`npm run audit:footer`, 2026-08-09). 패널은 그대로 두고 이 안내에만 여백을 돌려준다.
-   `flex: 0 0 auto` 도 함께 — 안 그러면 짧은 창에서 눌려 글자가 서로 포갠다. */
 .tool-page.layout-full > .tool-page-next {
     flex: 0 0 auto;
     margin: 0;
     padding: var(--space-md) var(--space-xl) var(--space-lg);
 }
 
-/* 도구 이름 밑의 「지금까지 N번 열렸어요」 (TASK-KL-098).
-   아직 아무도 안 연 도구에는 글자가 안 들어가므로, 그때는 자리도 없어야 한다. */
 .tool-page-hero-count { margin: 6px 0 0; font-size: 11px; color: var(--text-tertiary); }
 .tool-page-hero-count:empty { display: none; }
 .tool-page-hero-count b { color: var(--text-secondary); font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -1871,16 +1308,13 @@ a.landing-cta-card:hover { color: inherit; }
 .tool-page.layout-wide { max-width: 1200px; margin: 0 auto var(--space-2xl); width: 100%; }
 .tool-page.layout-wide .tool-page-hero { margin-bottom: var(--space-xl); }
 
-/* ── Tabs ── */
-
 .tab-row {
     display: flex; gap: 2px;
     border-bottom: 1px solid var(--border);
     margin-bottom: var(--space-lg);
     padding: 0 var(--space-xs);
     position: relative;
-    /* 여러 도구를 탭으로 묶으면서 탭이 8개까지 늘었다. 좁은 화면에서 줄바꿈되면 글자가
-       세로로 쪼개지고, 그냥 두면 뒤쪽 탭이 잘려 손이 닿지 않는다 → 옆으로 밀어서 본다. */
+
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
@@ -1913,7 +1347,6 @@ a.landing-cta-card:hover { color: inherit; }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
-/* ── 탭 다수: 세로 목록 (문서 위젯 `tabLayout: 'sidebar'`) ── */
 .tool-tab-sidebar-layout {
     display: flex;
     gap: var(--space-lg);
@@ -2002,12 +1435,6 @@ a.landing-cta-card:hover { color: inherit; }
     }
 }
 
-/* ═══════════════════════════════════════
-   FORMS
-   ═══════════════════════════════════════ */
-
-/* 항목 하나에 카드 하나 + 큰 여백이라 세로가 한없이 길어졌다 — QR 만들기는 결과가
-   첫 화면 밖으로 밀려나 있었다. 카드는 유지하되 숨 쉬는 정도만 남긴다 (TASK-KL-133). */
 .field-group {
     margin-bottom: var(--space-sm);
     padding: 12px 14px;
@@ -2027,9 +1454,6 @@ a.landing-cta-card:hover { color: inherit; }
 }
 .field-row { display: flex; align-items: center; justify-content: space-between; }
 
-/* number·date·url·search 가 빠져 있어서 그 칸들만 브라우저 기본 모양(밝은 배경·낮은 높이)으로
-   튀었다. :not() 으로 뒤집으면 특이도가 부풀어 위젯의 클래스 규칙(폭 지정 등)을 이겨 버리므로,
-   타입을 그대로 열거해 특이도를 유지한다. 새 타입을 쓰면 여기 한 줄 추가. */
 textarea,
 input[type="text"], input[type="password"], input[type="number"], input[type="search"],
 input[type="url"], input[type="email"], input[type="tel"],
@@ -2084,7 +1508,6 @@ select option { background: var(--bg-secondary); color: var(--text-primary); }
 
 input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
 
-/* 즐겨찾기 검색창 너비 제한 */
 .fav-top-row .landing-search-wrap {
     flex: none !important;
     width: 220px !important;
@@ -2095,10 +1518,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
     font-variant-numeric: tabular-nums; font-family: var(--font-mono);
 }
 
-/* ═══════════════════════════════════════
-   BUTTONS
-   ═══════════════════════════════════════ */
-
 .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     padding: 8px 16px; font-size: var(--font-size-xs); font-weight: 600; font-family: inherit;
@@ -2107,18 +1526,14 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
     letter-spacing: 0.02em;
 }
 .btn:active { transform: scale(0.97); }
-/* 못 누르는 단추는 **못 누르게 생겨야 한다**. 여태 기본 단추에만 흐림이 걸려 있어서, 곁들이
-   단추(내려받기 등)는 비활성일 때도 멀쩡한 글자로 보였다 — 눌러 보고서야 안 되는 걸 안다.
-   (TASK-KL-133) */
+
 .btn:disabled, .btn[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 .btn:disabled:active { transform: none; }
 
 .btn-primary {
-    /* 폭은 **도구가 정한다.** 공통에서 좁혀 봤더니(2026-08-08 실측) 어떤 도구는 나아지고
-       어떤 도구는 실행 단추가 곁들이 단추들과 한 줄에 뒤섞여 되레 나빠졌다 — 배치는 도구마다
-       다르므로 여기서 일괄로 정할 일이 아니다 (TASK-KL-133). */
+
     width: 100%;
-    /* 누르는 것에만 크롬감 (TASK-KL-097) — 넓은 면은 그대로 종이로 둔다 */
+
     background: var(--chrome-grad);
     color: var(--fill-strong-ink);
     padding: 12px 18px; margin-top: var(--space-md);
@@ -2161,8 +1576,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
 }
 .btn-secondary:hover { background: var(--secondary-hover); }
 
-/* ── Collapsible ── */
-
 .collapsible-trigger {
     display: flex; align-items: center; gap: 6px;
     font-size: var(--font-size-2xs); font-weight: 700; color: var(--text-tertiary);
@@ -2190,8 +1603,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
     margin-left: 8px; padding-left: 12px;
 }
 .collapsible-body.open { display: block; }
-
-/* ── Result Box ── */
 
 .result-box {
     margin-top: var(--space-lg);
@@ -2231,27 +1642,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
 }
 .mono-input { font-family: var(--font-mono); font-size: var(--font-size-xs); }
 
-
-/* ═══════════════════════════════════════
-   ANIMATIONS
-   ═══════════════════════════════════════ */
-
-/* 화면을 옮길 때 **브라우저가** 이어 준다 (TASK-KL-128 ②, View Transitions).
- *
- * 지금까지 도구 화면 사이 이동은 흰 화면이 한 번 스쳤다 — 문서가 통째로 바뀌기 때문이다.
- * 그걸 안 보이게 하려고 앱을 한 장짜리로 만드는 것이 흔한 수인데, 그러면 그 한 장이
- * 무거워진다(지금 도구 화면이 앱 셸을 통째로 싣는 이유가 그것이다).
- * 브라우저가 대신 해 준다: 두 문서에 이 한 줄씩만 있으면 떠나는 화면과 오는 화면을
- * 스스로 찍어서 이어 붙인다. 자바스크립트는 한 줄도 안 든다.
- *
- * 머리띠에는 이름을 준다 — 이름이 있는 것은 **같은 것**으로 보고 자리를 이어 준다.
- * 안 주면 머리띠까지 같이 흐려졌다 나타나서, 옮길 때마다 화면이 통째로 깜빡인다.
- * 이름은 한 화면에 하나뿐이어야 한다(둘이면 전환이 통째로 취소된다).
- */
 @view-transition { navigation: auto; }
 .header-bar { view-transition-name: karmolab-header; }
 
-/* 움직임을 줄여 달라고 한 사람에게는 잇는 그림만 끄고, 이동 자체는 그대로 둔다. */
 @media (prefers-reduced-motion: reduce) {
     ::view-transition-group(*),
     ::view-transition-old(*),
@@ -2263,7 +1656,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
 
-
 .spinner {
     width: 14px; height: 14px;
     border: 2px solid rgba(124, 58, 237, 0.1);
@@ -2271,10 +1663,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
 }
-
-/* ═══════════════════════════════════════
-   SIDEBAR NAV (data-nav="sidebar" 모드)
-   ═══════════════════════════════════════ */
 
 .sidebar { display: none; }
 
@@ -2284,7 +1672,7 @@ html[data-nav="sidebar"] .header-bar-right { grid-column: 3; }
 html[data-nav="sidebar"] .sidebar {
     display: flex;
     position: fixed;
-    top: 52px; /* header-bar 높이 */
+    top: 52px;
     left: 0;
     bottom: 0;
     width: var(--sidebar-collapsed-width);
@@ -2325,9 +1713,6 @@ html[data-nav="sidebar"]:has(.sidebar:hover) .main-content:has(.tool-page.layout
     overflow-x: hidden;
 }
 
-/* 아래 링크는 5개다 — 세로로 쌓는다.
-   예전엔 링크마다 position:absolute 로 같은 자리(left:9px, top:50%)에 놓여서
-   다섯 개가 통째로 포개져 있었다 (옆줄을 펼치면 글자가 겹쳐 보였다). */
 .sidebar-footer {
     flex-shrink: 0;
     padding: var(--space-sm);
@@ -2346,8 +1731,7 @@ html[data-nav="sidebar"]:has(.sidebar:hover) .main-content:has(.tool-page.layout
     align-items: center;
     gap: 6px;
     white-space: nowrap;
-    /* 아이콘 중심을 위쪽 nav-icon 열(옆줄 왼쪽에서 28px)과 같은 세로선에:
-       footer padding 8px + 9px + 아이콘 22px/2 = 28px */
+
     padding: 3px 4px 3px 9px;
     border-radius: 4px;
     overflow: hidden;
@@ -2420,7 +1804,6 @@ html[data-nav="sidebar"]:has(.sidebar:hover) .main-content:has(.tool-page.layout
 .sidebar-group-body { display: none; overflow: hidden; }
 .sidebar-group-body.open { display: block; }
 
-/* 텍스트는 항상 한 줄 — 사이드바 overflow:hidden 이 클리핑 담당 */
 html[data-nav="sidebar"] .sidebar .nav-item-text,
 html[data-nav="sidebar"] .sidebar .sidebar-group-label {
     white-space: nowrap;
@@ -2430,14 +1813,12 @@ html[data-nav="sidebar"] .sidebar .sidebar-group-label {
     transition: opacity var(--transition-slow);
 }
 
-/* 접힌 상태: opacity로만 숨김 (width 조작 없음 → reflow/줄바꿈 없음) */
 html[data-nav="sidebar"] .sidebar:not(:hover) .sidebar-group-label,
 html[data-nav="sidebar"] .sidebar:not(:hover) .nav-item-text {
     opacity: 0;
     pointer-events: none;
 }
 
-/* 펼친 상태: 텍스트 페이드인 */
 html[data-nav="sidebar"] .sidebar:hover .sidebar-group-label,
 html[data-nav="sidebar"] .sidebar:hover .nav-item-text {
     opacity: 1;
@@ -2453,26 +1834,13 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     html[data-nav="sidebar"] .main-content { margin-left: 0; }
 }
 
-/* ── Scrollbar ── */
-
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(124, 58, 237, 0.08); }
 ::-webkit-scrollbar-thumb:hover { background: rgba(124, 58, 237, 0.18); }
 
-/* ═══════════════════════════════════════
-   RESPONSIVE
-   ═══════════════════════════════════════ */
-
 @media (max-width: 768px) {
-    /* ── 폰: 앱 셸 고정을 풀고 문서처럼 스크롤 (TASK-KL-088) ──
-       데스크톱은 화면을 꽉 채운 앱이 맞지만, 폰에서 position:fixed + 내부 스크롤이면
-       ① 주소창이 자동으로 숨지 않아 화면을 계속 잡아먹고 ② 스크롤 관성·당겨서 새로고침이
-       어색하며 ③ iOS 100vh 문제를 그대로 맞는다. 폰에서는 문서 스크롤이 표준이다.
-       layout-full(화면 점유형) 도 폰에서는 예외 없이 문서 스크롤로 둔다 — 예외를 두었더니
-       그 위젯들이 폰에서 아예 스크롤 불가로 갇혔다 (내부 스크롤 컨테이너가 없는 경우).
-       주의: position:fixed 는 폭도 함께 묶고 있었다. 그냥 static 으로 바꾸면 flex 자식들이
-       내용 폭까지 벌어져 가로가 폭발한다 — min-width:0 / max-width:100% 를 같이 줘야 한다. */
+
     .app-layout {
         position: static;
         height: auto;
@@ -2503,7 +1871,6 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
         min-width: 0;
     }
 
-    /* 화면 점유형 위젯도 폰에서는 세로로 흐르게 (갇힘 방지) */
     .main-content:has(.tool-page.layout-full.active) { overflow: visible; padding-top: 0; }
     .content-body:has(.tool-page.layout-full.active) {
         padding: var(--space-md);
@@ -2513,54 +1880,33 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     .tool-page.layout-full.active { display: block; }
     .tool-page.layout-full.active > .tab-panel.active { display: block; min-height: 55vh; }
 
-    /* 폰 헤더에는 **로고와 아이콘만** 둔다 (TASK-KL-101).
-       예전엔 바깥 링크를 전부 켰다(`display:inline-flex !important`). 링크가 하나씩 늘어
-       넷이 되자 390px 폭에서 로고 **위에 포개졌다** — 브랜드가 뭉개진 채로 나가고 있었다.
-       링크는 사라지지 않는다: toolbox 가 이것들을 읽어 폰 내비 줄로 옮겨 놓는다. */
     .header-tools-link { display: none !important; }
     .header-dev-link { display: none !important; }
-    /* 아이콘 둘만 남으므로 오른쪽 묶음이 로고를 밀 일이 없다. 그래도 밀리지 않게 못을 박는다. */
+
     .header-bar { padding: 0 var(--space-sm); }
     .header-bar-left { min-width: 0; }
     .header-bar-right { gap: 2px; }
     .header-logo-text { white-space: nowrap; }
 
-    /* 마스코트가 화면 우하단에 고정이라 폰에서는 마지막 요소를 덮는다.
-       마스코트를 치우는 대신(브랜드 요소) 콘텐츠 아래에 그만큼 여백을 준다. */
     .content-body { padding-bottom: 120px; }
 
-    /* 문서 스크롤로 전환했으니 body 의 overflow:hidden 을 반드시 풀어야 한다.
-       이게 남아 있으면 폰 브라우저에서 손가락 스크롤이 통째로 막힌다 (헤드리스는 JS 스크롤을
-       허용해 측정에 안 걸린다 — 실제 스크롤을 시도해서 잡은 문제). */
     html, body { overflow: visible; overflow-x: hidden; height: auto; }
-    /* 위 규칙은 `body` 한 글자라, :has 로 좁힌 잠금(body:has(> .app-layout))보다 약하다.
-       같은 세기로 한 번 더 풀어 주지 않으면 폰에서 그대로 잠긴다. */
+
     body:has(> .app-layout) { overflow: visible; overflow-x: hidden; }
 
-    /* 폰에서 제일 작은 글씨를 한 단 올린다 (TASK-KL-101).
-       클래스마다 고치지 않고 **토큰 한 곳**에서 올린다 — 이 값을 쓰는 자리가 서른 곳이 넘어
-       하나씩 고치면 반드시 몇 개가 남는다(첫 화면 부제·카드 설명·목록 분류 이름·도구 통계
-       라벨이 전부 12px 로 남아 있었다). 데스크톱은 그대로다. */
     :root { --font-size-2xs: 13px; }
 
-    /* 헤더 아이콘과 폰 내비 항목도 누르는 크기를 받는다. 「작지만 예쁜」 자리라 빠뜨리기 쉬운데,
-       폰에서 제일 자주 빗나가는 것이 이 둘이다. */
     .header-btn, .theme-toggle, .header-logo { min-width: 40px; min-height: 40px; }
-    /* 글자가 한 자면(「홈」·「봇」) 폭이 33px 로 좁아진다 — 높이만 채워선 안 되고 폭도 받쳐야 한다.
-       `flex: 0 0 auto` 가 핵심이다: 이게 없으면 항목이 줄어들어 **상자는 안 겹치는데 글자가
-       넘쳐** 서로 침범한다. 상자 좌표만 재면 「겹침 0」으로 통과하므로 눈으로만 보이던 문제다.
-       줄은 원래 가로로 넘치게 돼 있으니(overflow-x:auto) 안 줄여도 된다. */
+
     .mobile-nav .nav-item {
         flex: 0 0 auto;
         min-width: 40px; min-height: 40px;
         display: inline-flex; align-items: center; justify-content: center;
         padding: 5px 12px;
     }
-    /* 다른 세션이 얹은 것들도 같은 기준을 받는다 — 폰에서 누르는 크기는 만든 사람이 아니라
-       화면이 정한다. 세로만 모자랐다(계정 30px · 팔레트 칩 35px). */
+
     .header-account-signin, .kp-browse-chip { min-height: 40px; }
 
-    /* 손가락으로 누르는 크기 확보 — 30px 짜리 버튼은 폰에서 자주 빗나간다 */
     .btn { min-height: 40px; padding: 9px 14px; }
     .tool-chip { min-height: 38px; padding: 9px 14px; }
     .header-logo { min-height: 40px; }
@@ -2574,12 +1920,7 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
         grid-template-columns: auto 1fr;
         gap: var(--space-sm);
     }
-    /* 폰 내비 줄은 고정 헤더 **아래**에서 시작해야 한다. 안 밀어 주면 유리 헤더 뒤에 깔려
-       로고 옆에 글자가 비쳐 보인다 (실제로 그렇게 나가고 있었다, TASK-KL-101). */
-    /* 줄은 **JS 가 채운다** — 그 전까지 높이가 0이라, 채워지는 순간 아래 본문이 통째로 밀렸다.
-       도구 목록 폰 밀림 0.105 중 0.117(사건 둘 합)이 이것이었다(실측·기준 0.1).
-       채워진 높이(55px, 실측)를 미리 잡아 두면 채워져도 아무것도 안 움직인다.
-       한 줄짜리 가로 스크롤이라 항목이 몇 개든 이 높이는 그대로다. */
+
     .mobile-nav { display: flex !important; margin-top: 52px; min-height: 55px; }
     .content-body { padding: var(--space-md); }
     .landing-page { padding: var(--space-md); }
@@ -2605,20 +1946,16 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     white-space: nowrap; font-size: var(--font-size-xs); padding: 5px 10px;
     border-left: none;
 }
-/* 「찾기」는 이 줄의 다른 항목과 다른 일을 한다 (도구로 가는 게 아니라 창을 연다) —
-   그래서 다르게 생겨야 한다. 맨 앞에 붙박이로 두어 옆으로 밀려 사라지지 않게 한다.
-   (TASK-KL-099) */
+
 .mobile-nav .nav-item-find {
     position: sticky; left: 0; z-index: 1;
     background: var(--accent-dim);
     color: var(--accent);
     border-radius: var(--radius-sm);
     font-weight: 700;
-    /* 붙박이라 뒤 항목이 그 밑을 지나간다 — 배경을 불투명하게 덮어야 겹쳐 보이지 않는다. */
+
     box-shadow: 6px 0 6px -4px var(--bg-primary);
 }
-
-/* ── 랜덤 생성기 Wide 레이아웃 ── */
 
 .randomgen-wide {
     display: flex;
@@ -3209,7 +2546,6 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     font-size: var(--font-size-sm);
 }
 
-/* ── 생성 버튼 (작게) ── */
 .randomgen-gen-btn {
     width: auto !important;
     padding: 8px 20px !important;
@@ -3296,8 +2632,6 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     }
 }
 
-/* ── Lightbox ── */
-
 .tb-lightbox-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.94);
@@ -3359,9 +2693,7 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
 .karmolab-update-banner-restart {
     background: var(--success, #22c55e);
 }
-/* 닫는 단추도 손가락으로 눌러야 한다 (TASK-KL-129).
-   24px 라 폰에서 정확히 짚기 어려웠다 — 새로고침 안내를 못 닫으면 그 줄이 화면에 남는다.
-   보이는 크기(글자·바탕)는 그대로 두고 **눌리는 자리만** 넓힌다. */
+
 .karmolab-update-banner-close {
     flex-shrink: 0; align-self: flex-start;
     width: 32px; height: 32px;
@@ -3409,9 +2741,6 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
 }
 .karmolab-update-completed-toast-close:hover { background: var(--bg-tertiary); color: var(--text-primary); }
 
-/* 창 전체를 놓는 자리로 (도구 품질 — 전 도구 공통).
-   파일을 끌어오면 이 막이 뜨고, 놓으면 지금 도구의 파일 칸이 받는다.
-   자기 자리를 이미 가진 도구는 그쪽이 먼저 잡으므로 이 막은 뜨기만 하고 비켜 준다. */
 .kl-dropzone {
     position: fixed; inset: 0; z-index: 9000; pointer-events: none;
     display: flex; align-items: center; justify-content: center;
