@@ -68,164 +68,164 @@ const groupLabel = (packId: string, groupId: string) => t(`karmograph.pack.${pac
 
 const WORLDVIEW: CanvasPack = {
   id: 'worldview',
-  label: packLabel('worldview'),
+  get label() { return packLabel('worldview'); },
   icon: '🌍',
-  hint: packHint('worldview'),
+  get hint() { return packHint('worldview'); },
   nodeKinds: [
-    { id: 'character', label: nodeLabel('worldview', 'character'), icon: '👤', color: '#f472b6', fields: nodeFields('worldview', 'character', ['origin', 'faction', 'firstAppearance']) },
-    { id: 'place', label: nodeLabel('worldview', 'place'), icon: '🗺', color: '#34d399', fields: nodeFields('worldview', 'place', ['where', 'rule']) },
-    { id: 'item', label: nodeLabel('worldview', 'item'), icon: '🔮', color: '#fbbf24', fields: nodeFields('worldview', 'item', ['owner', 'power']) },
-    { id: 'event', label: nodeLabel('worldview', 'event'), icon: '⚡', color: '#60a5fa', fields: nodeFields('worldview', 'event', ['when', 'where', 'result']) },
-    { id: 'concept', label: nodeLabel('worldview', 'concept'), icon: '💭', color: '#a78bfa' },
+    { id: 'character', get label() { return nodeLabel('worldview', 'character'); }, icon: '👤', color: '#f472b6', get fields() { return nodeFields('worldview', 'character', ['origin', 'faction', 'firstAppearance']); } },
+    { id: 'place', get label() { return nodeLabel('worldview', 'place'); }, icon: '🗺', color: '#34d399', get fields() { return nodeFields('worldview', 'place', ['where', 'rule']); } },
+    { id: 'item', get label() { return nodeLabel('worldview', 'item'); }, icon: '🔮', color: '#fbbf24', get fields() { return nodeFields('worldview', 'item', ['owner', 'power']); } },
+    { id: 'event', get label() { return nodeLabel('worldview', 'event'); }, icon: '⚡', color: '#60a5fa', get fields() { return nodeFields('worldview', 'event', ['when', 'where', 'result']); } },
+    { id: 'concept', get label() { return nodeLabel('worldview', 'concept'); }, icon: '💭', color: '#a78bfa' },
   ],
   edgeKinds: [
-    { id: 'relates', label: edgeLabel('worldview', 'relates'), color: '#94a3b8', style: 'solid', arrow: false },
-    { id: 'parent', label: edgeLabel('worldview', 'parent'), color: '#a78bfa', style: 'solid', arrow: true },
-    { id: 'contains', label: edgeLabel('worldview', 'contains'), color: '#34d399', style: 'dashed', arrow: true },
-    { id: 'opposes', label: edgeLabel('worldview', 'opposes'), color: '#f87171', style: 'dotted', arrow: false },
-    { id: 'before-after', label: edgeLabel('worldview', 'before-after'), color: '#60a5fa', style: 'solid', arrow: true },
+    { id: 'relates', get label() { return edgeLabel('worldview', 'relates'); }, color: '#94a3b8', style: 'solid', arrow: false },
+    { id: 'parent', get label() { return edgeLabel('worldview', 'parent'); }, color: '#a78bfa', style: 'solid', arrow: true },
+    { id: 'contains', get label() { return edgeLabel('worldview', 'contains'); }, color: '#34d399', style: 'dashed', arrow: true },
+    { id: 'opposes', get label() { return edgeLabel('worldview', 'opposes'); }, color: '#f87171', style: 'dotted', arrow: false },
+    { id: 'before-after', get label() { return edgeLabel('worldview', 'before-after'); }, color: '#60a5fa', style: 'solid', arrow: true },
   ],
   groupPresets: [
-    { label: groupLabel('worldview', 'faction'), color: '#a78bfa' },
-    { label: groupLabel('worldview', 'region'), color: '#34d399' },
-    { label: groupLabel('worldview', 'era'), color: '#60a5fa' },
+    { get label() { return groupLabel('worldview', 'faction'); }, color: '#a78bfa' },
+    { get label() { return groupLabel('worldview', 'region'); }, color: '#34d399' },
+    { get label() { return groupLabel('worldview', 'era'); }, color: '#60a5fa' },
   ],
 };
 
 /** 三角関係ジェネレーター 계열 — 팬이 최애 관계도를 그리는 용도. */
 const RELATION: CanvasPack = {
   id: 'relation',
-  label: packLabel('relation'),
+  get label() { return packLabel('relation'); },
   icon: '💞',
-  hint: packHint('relation'),
+  get hint() { return packHint('relation'); },
   nodeKinds: [
-    { id: 'rel-person', label: nodeLabel('relation', 'rel-person'), icon: '👤', color: '#f472b6', fields: nodeFields('relation', 'rel-person', ['hook', 'firstAppearance']) },
-    { id: 'rel-group', label: nodeLabel('relation', 'rel-group'), icon: '👥', color: '#f59e0b' },
-    { id: 'rel-stage', label: nodeLabel('relation', 'rel-stage'), icon: '🏙', color: '#34d399' },
-    { id: 'rel-note', label: nodeLabel('relation', 'rel-note'), icon: '💬', color: '#94a3b8' },
+    { id: 'rel-person', get label() { return nodeLabel('relation', 'rel-person'); }, icon: '👤', color: '#f472b6', get fields() { return nodeFields('relation', 'rel-person', ['hook', 'firstAppearance']); } },
+    { id: 'rel-group', get label() { return nodeLabel('relation', 'rel-group'); }, icon: '👥', color: '#f59e0b' },
+    { id: 'rel-stage', get label() { return nodeLabel('relation', 'rel-stage'); }, icon: '🏙', color: '#34d399' },
+    { id: 'rel-note', get label() { return nodeLabel('relation', 'rel-note'); }, icon: '💬', color: '#94a3b8' },
   ],
   edgeKinds: [
-    { id: 'rel-like', label: edgeLabel('relation', 'rel-like'), color: '#fb7185', style: 'solid', arrow: true, width: 2.2 },
-    { id: 'rel-hate', label: edgeLabel('relation', 'rel-hate'), color: '#64748b', style: 'dotted', arrow: true },
-    { id: 'rel-rival', label: edgeLabel('relation', 'rel-rival'), color: '#f59e0b', style: 'solid', arrow: true, arrowStart: true },
-    { id: 'rel-trust', label: edgeLabel('relation', 'rel-trust'), color: '#38bdf8', style: 'solid', arrow: true },
-    { id: 'rel-curious', label: edgeLabel('relation', 'rel-curious'), color: '#a78bfa', style: 'wavy', arrow: true },
-    { id: 'rel-family', label: edgeLabel('relation', 'rel-family'), color: '#34d399', style: 'solid', arrow: true, arrowStart: true },
-    { id: 'rel-broken', label: edgeLabel('relation', 'rel-broken'), color: '#ef4444', style: 'crack', arrow: false },
+    { id: 'rel-like', get label() { return edgeLabel('relation', 'rel-like'); }, color: '#fb7185', style: 'solid', arrow: true, width: 2.2 },
+    { id: 'rel-hate', get label() { return edgeLabel('relation', 'rel-hate'); }, color: '#64748b', style: 'dotted', arrow: true },
+    { id: 'rel-rival', get label() { return edgeLabel('relation', 'rel-rival'); }, color: '#f59e0b', style: 'solid', arrow: true, arrowStart: true },
+    { id: 'rel-trust', get label() { return edgeLabel('relation', 'rel-trust'); }, color: '#38bdf8', style: 'solid', arrow: true },
+    { id: 'rel-curious', get label() { return edgeLabel('relation', 'rel-curious'); }, color: '#a78bfa', style: 'wavy', arrow: true },
+    { id: 'rel-family', get label() { return edgeLabel('relation', 'rel-family'); }, color: '#34d399', style: 'solid', arrow: true, arrowStart: true },
+    { id: 'rel-broken', get label() { return edgeLabel('relation', 'rel-broken'); }, color: '#ef4444', style: 'crack', arrow: false },
   ],
   groupPresets: [
-    { label: groupLabel('relation', 'family'), color: '#fbcfe8' },
-    { label: groupLabel('relation', 'school'), color: '#bfdbfe' },
-    { label: groupLabel('relation', 'work'), color: '#bbf7d0' },
-    { label: groupLabel('relation', 'rivals'), color: '#fecaca' },
+    { get label() { return groupLabel('relation', 'family'); }, color: '#fbcfe8' },
+    { get label() { return groupLabel('relation', 'school'); }, color: '#bfdbfe' },
+    { get label() { return groupLabel('relation', 'work'); }, color: '#bbf7d0' },
+    { get label() { return groupLabel('relation', 'rivals'); }, color: '#fecaca' },
   ],
 };
 
 /** カードゲーム展開ジェネレーター 계열 — 콤보·전개 루트 정리. */
 const CARDGAME: CanvasPack = {
   id: 'cardgame',
-  label: packLabel('cardgame'),
+  get label() { return packLabel('cardgame'); },
   icon: '🃏',
-  hint: packHint('cardgame'),
+  get hint() { return packHint('cardgame'); },
   nodeKinds: [
-    { id: 'cg-card', label: nodeLabel('cardgame', 'cg-card'), icon: '🃏', color: '#60a5fa' },
-    { id: 'cg-branch', label: nodeLabel('cardgame', 'cg-branch'), icon: '◈', color: '#f59e0b' },
-    { id: 'cg-token', label: nodeLabel('cardgame', 'cg-token'), icon: '🔸', color: '#34d399' },
-    { id: 'cg-note', label: nodeLabel('cardgame', 'cg-note'), icon: '📝', color: '#94a3b8' },
+    { id: 'cg-card', get label() { return nodeLabel('cardgame', 'cg-card'); }, icon: '🃏', color: '#60a5fa' },
+    { id: 'cg-branch', get label() { return nodeLabel('cardgame', 'cg-branch'); }, icon: '◈', color: '#f59e0b' },
+    { id: 'cg-token', get label() { return nodeLabel('cardgame', 'cg-token'); }, icon: '🔸', color: '#34d399' },
+    { id: 'cg-note', get label() { return nodeLabel('cardgame', 'cg-note'); }, icon: '📝', color: '#94a3b8' },
   ],
   edgeKinds: [
-    { id: 'cg-summon', label: edgeLabel('cardgame', 'cg-summon'), color: '#fbbf24', style: 'solid', arrow: true },
-    { id: 'cg-special', label: edgeLabel('cardgame', 'cg-special'), color: '#a78bfa', style: 'solid', arrow: true },
-    { id: 'cg-effect', label: edgeLabel('cardgame', 'cg-effect'), color: '#38bdf8', style: 'solid', arrow: true },
-    { id: 'cg-search', label: edgeLabel('cardgame', 'cg-search'), color: '#34d399', style: 'dashed', arrow: true },
-    { id: 'cg-revive', label: edgeLabel('cardgame', 'cg-revive'), color: '#f472b6', style: 'dashed', arrow: true },
-    { id: 'cg-attack', label: edgeLabel('cardgame', 'cg-attack'), color: '#ef4444', style: 'solid', arrow: true },
-    { id: 'cg-destroy', label: edgeLabel('cardgame', 'cg-destroy'), color: '#64748b', style: 'crack', arrow: true },
-    { id: 'cg-cost', label: edgeLabel('cardgame', 'cg-cost'), color: '#f59e0b', style: 'dotted', arrow: true },
+    { id: 'cg-summon', get label() { return edgeLabel('cardgame', 'cg-summon'); }, color: '#fbbf24', style: 'solid', arrow: true },
+    { id: 'cg-special', get label() { return edgeLabel('cardgame', 'cg-special'); }, color: '#a78bfa', style: 'solid', arrow: true },
+    { id: 'cg-effect', get label() { return edgeLabel('cardgame', 'cg-effect'); }, color: '#38bdf8', style: 'solid', arrow: true },
+    { id: 'cg-search', get label() { return edgeLabel('cardgame', 'cg-search'); }, color: '#34d399', style: 'dashed', arrow: true },
+    { id: 'cg-revive', get label() { return edgeLabel('cardgame', 'cg-revive'); }, color: '#f472b6', style: 'dashed', arrow: true },
+    { id: 'cg-attack', get label() { return edgeLabel('cardgame', 'cg-attack'); }, color: '#ef4444', style: 'solid', arrow: true },
+    { id: 'cg-destroy', get label() { return edgeLabel('cardgame', 'cg-destroy'); }, color: '#64748b', style: 'crack', arrow: true },
+    { id: 'cg-cost', get label() { return edgeLabel('cardgame', 'cg-cost'); }, color: '#f59e0b', style: 'dotted', arrow: true },
   ],
   groupPresets: [
-    { label: groupLabel('cardgame', 'hand'), color: '#bfdbfe' },
-    { label: groupLabel('cardgame', 'field'), color: '#bbf7d0' },
-    { label: groupLabel('cardgame', 'graveyard'), color: '#e5e7eb' },
-    { label: groupLabel('cardgame', 'deck'), color: '#ddd6fe' },
-    { label: groupLabel('cardgame', 'banished'), color: '#fed7aa' },
+    { get label() { return groupLabel('cardgame', 'hand'); }, color: '#bfdbfe' },
+    { get label() { return groupLabel('cardgame', 'field'); }, color: '#bbf7d0' },
+    { get label() { return groupLabel('cardgame', 'graveyard'); }, color: '#e5e7eb' },
+    { get label() { return groupLabel('cardgame', 'deck'); }, color: '#ddd6fe' },
+    { get label() { return groupLabel('cardgame', 'banished'); }, color: '#fed7aa' },
   ],
 };
 
 /** 전문가가 개념·논증을 설명하는 용도. */
 const CONCEPT: CanvasPack = {
   id: 'concept',
-  label: packLabel('concept'),
+  get label() { return packLabel('concept'); },
   icon: '🧠',
-  hint: packHint('concept'),
+  get hint() { return packHint('concept'); },
   nodeKinds: [
-    { id: 'cn-concept', label: nodeLabel('concept', 'cn-concept'), icon: '💡', color: '#a78bfa' },
-    { id: 'cn-example', label: nodeLabel('concept', 'cn-example'), icon: '📌', color: '#34d399' },
-    { id: 'cn-evidence', label: nodeLabel('concept', 'cn-evidence'), icon: '📖', color: '#60a5fa' },
-    { id: 'cn-counter', label: nodeLabel('concept', 'cn-counter'), icon: '⚖', color: '#f87171' },
-    { id: 'cn-result', label: nodeLabel('concept', 'cn-result'), icon: '🎯', color: '#fbbf24' },
+    { id: 'cn-concept', get label() { return nodeLabel('concept', 'cn-concept'); }, icon: '💡', color: '#a78bfa' },
+    { id: 'cn-example', get label() { return nodeLabel('concept', 'cn-example'); }, icon: '📌', color: '#34d399' },
+    { id: 'cn-evidence', get label() { return nodeLabel('concept', 'cn-evidence'); }, icon: '📖', color: '#60a5fa' },
+    { id: 'cn-counter', get label() { return nodeLabel('concept', 'cn-counter'); }, icon: '⚖', color: '#f87171' },
+    { id: 'cn-result', get label() { return nodeLabel('concept', 'cn-result'); }, icon: '🎯', color: '#fbbf24' },
   ],
   edgeKinds: [
-    { id: 'cn-leads', label: edgeLabel('concept', 'cn-leads'), color: '#60a5fa', style: 'solid', arrow: true },
-    { id: 'cn-supports', label: edgeLabel('concept', 'cn-supports'), color: '#34d399', style: 'solid', arrow: true },
-    { id: 'cn-contrast', label: edgeLabel('concept', 'cn-contrast'), color: '#f59e0b', style: 'wavy', arrow: false },
-    { id: 'cn-refutes', label: edgeLabel('concept', 'cn-refutes'), color: '#f87171', style: 'dotted', arrow: true },
-    { id: 'cn-partof', label: edgeLabel('concept', 'cn-partof'), color: '#94a3b8', style: 'dashed', arrow: true },
+    { id: 'cn-leads', get label() { return edgeLabel('concept', 'cn-leads'); }, color: '#60a5fa', style: 'solid', arrow: true },
+    { id: 'cn-supports', get label() { return edgeLabel('concept', 'cn-supports'); }, color: '#34d399', style: 'solid', arrow: true },
+    { id: 'cn-contrast', get label() { return edgeLabel('concept', 'cn-contrast'); }, color: '#f59e0b', style: 'wavy', arrow: false },
+    { id: 'cn-refutes', get label() { return edgeLabel('concept', 'cn-refutes'); }, color: '#f87171', style: 'dotted', arrow: true },
+    { id: 'cn-partof', get label() { return edgeLabel('concept', 'cn-partof'); }, color: '#94a3b8', style: 'dashed', arrow: true },
   ],
   groupPresets: [
-    { label: groupLabel('concept', 'topic'), color: '#bfdbfe' },
-    { label: groupLabel('concept', 'thesis'), color: '#ddd6fe' },
-    { label: groupLabel('concept', 'counterpoint'), color: '#fecaca' },
+    { get label() { return groupLabel('concept', 'topic'); }, color: '#bfdbfe' },
+    { get label() { return groupLabel('concept', 'thesis'); }, color: '#ddd6fe' },
+    { get label() { return groupLabel('concept', 'counterpoint'); }, color: '#fecaca' },
   ],
 };
 
 /** 새로 만들려는 것을 구상할 때. */
 const IDEA: CanvasPack = {
   id: 'idea',
-  label: packLabel('idea'),
+  get label() { return packLabel('idea'); },
   icon: '✨',
-  hint: packHint('idea'),
+  get hint() { return packHint('idea'); },
   nodeKinds: [
-    { id: 'id-idea', label: nodeLabel('idea', 'id-idea'), icon: '✨', color: '#fbbf24' },
-    { id: 'id-ask', label: nodeLabel('idea', 'id-ask'), icon: '❓', color: '#60a5fa' },
-    { id: 'id-todo', label: nodeLabel('idea', 'id-todo'), icon: '☑', color: '#34d399' },
-    { id: 'id-memo', label: nodeLabel('idea', 'id-memo'), icon: '📝', color: '#94a3b8' },
-    { id: 'id-risk', label: nodeLabel('idea', 'id-risk'), icon: '⚠', color: '#f87171' },
+    { id: 'id-idea', get label() { return nodeLabel('idea', 'id-idea'); }, icon: '✨', color: '#fbbf24' },
+    { id: 'id-ask', get label() { return nodeLabel('idea', 'id-ask'); }, icon: '❓', color: '#60a5fa' },
+    { id: 'id-todo', get label() { return nodeLabel('idea', 'id-todo'); }, icon: '☑', color: '#34d399' },
+    { id: 'id-memo', get label() { return nodeLabel('idea', 'id-memo'); }, icon: '📝', color: '#94a3b8' },
+    { id: 'id-risk', get label() { return nodeLabel('idea', 'id-risk'); }, icon: '⚠', color: '#f87171' },
   ],
   edgeKinds: [
-    { id: 'id-derives', label: edgeLabel('idea', 'id-derives'), color: '#fbbf24', style: 'solid', arrow: true },
-    { id: 'id-relates', label: edgeLabel('idea', 'id-relates'), color: '#94a3b8', style: 'solid', arrow: false },
-    { id: 'id-blocks', label: edgeLabel('idea', 'id-blocks'), color: '#f87171', style: 'crack', arrow: true },
-    { id: 'id-then', label: edgeLabel('idea', 'id-then'), color: '#60a5fa', style: 'dashed', arrow: true },
+    { id: 'id-derives', get label() { return edgeLabel('idea', 'id-derives'); }, color: '#fbbf24', style: 'solid', arrow: true },
+    { id: 'id-relates', get label() { return edgeLabel('idea', 'id-relates'); }, color: '#94a3b8', style: 'solid', arrow: false },
+    { id: 'id-blocks', get label() { return edgeLabel('idea', 'id-blocks'); }, color: '#f87171', style: 'crack', arrow: true },
+    { id: 'id-then', get label() { return edgeLabel('idea', 'id-then'); }, color: '#60a5fa', style: 'dashed', arrow: true },
   ],
   groupPresets: [
-    { label: groupLabel('idea', 'now'), color: '#bbf7d0' },
-    { label: groupLabel('idea', 'later'), color: '#e5e7eb' },
-    { label: groupLabel('idea', 'blocked'), color: '#fecaca' },
+    { get label() { return groupLabel('idea', 'now'); }, color: '#bbf7d0' },
+    { get label() { return groupLabel('idea', 'later'); }, color: '#e5e7eb' },
+    { get label() { return groupLabel('idea', 'blocked'); }, color: '#fecaca' },
   ],
 };
 
 /** 사람·팀·산출물 배치. */
 const ORG: CanvasPack = {
   id: 'org',
-  label: packLabel('org'),
+  get label() { return packLabel('org'); },
   icon: '🏢',
-  hint: packHint('org'),
+  get hint() { return packHint('org'); },
   nodeKinds: [
-    { id: 'og-person', label: nodeLabel('org', 'og-person'), icon: '🧑', color: '#f472b6' },
-    { id: 'og-team', label: nodeLabel('org', 'og-team'), icon: '🏢', color: '#60a5fa' },
-    { id: 'og-role', label: nodeLabel('org', 'og-role'), icon: '🎽', color: '#a78bfa' },
-    { id: 'og-output', label: nodeLabel('org', 'og-output'), icon: '📦', color: '#34d399' },
+    { id: 'og-person', get label() { return nodeLabel('org', 'og-person'); }, icon: '🧑', color: '#f472b6' },
+    { id: 'og-team', get label() { return nodeLabel('org', 'og-team'); }, icon: '🏢', color: '#60a5fa' },
+    { id: 'og-role', get label() { return nodeLabel('org', 'og-role'); }, icon: '🎽', color: '#a78bfa' },
+    { id: 'og-output', get label() { return nodeLabel('org', 'og-output'); }, icon: '📦', color: '#34d399' },
   ],
   edgeKinds: [
-    { id: 'og-reports', label: edgeLabel('org', 'og-reports'), color: '#60a5fa', style: 'solid', arrow: true },
-    { id: 'og-owns', label: edgeLabel('org', 'og-owns'), color: '#a78bfa', style: 'solid', arrow: true },
-    { id: 'og-works', label: edgeLabel('org', 'og-works'), color: '#94a3b8', style: 'dashed', arrow: true, arrowStart: true },
-    { id: 'og-makes', label: edgeLabel('org', 'og-makes'), color: '#34d399', style: 'solid', arrow: true },
+    { id: 'og-reports', get label() { return edgeLabel('org', 'og-reports'); }, color: '#60a5fa', style: 'solid', arrow: true },
+    { id: 'og-owns', get label() { return edgeLabel('org', 'og-owns'); }, color: '#a78bfa', style: 'solid', arrow: true },
+    { id: 'og-works', get label() { return edgeLabel('org', 'og-works'); }, color: '#94a3b8', style: 'dashed', arrow: true, arrowStart: true },
+    { id: 'og-makes', get label() { return edgeLabel('org', 'og-makes'); }, color: '#34d399', style: 'solid', arrow: true },
   ],
   groupPresets: [
-    { label: groupLabel('org', 'hq'), color: '#bfdbfe' },
-    { label: groupLabel('org', 'remote'), color: '#fed7aa' },
+    { get label() { return groupLabel('org', 'hq'); }, color: '#bfdbfe' },
+    { get label() { return groupLabel('org', 'remote'); }, color: '#fed7aa' },
   ],
 };
 
@@ -266,10 +266,20 @@ export const ALL_KIND_ICONS: Record<string, string> = Object.fromEntries(
   PACKS.flatMap((p) => p.nodeKinds.map((k) => [k.id, k.icon] as const))
 );
 
-/** 전 팩의 노드 종류 라벨 합본. */
-export const ALL_KIND_LABELS: Record<string, string> = Object.fromEntries(
-  PACKS.flatMap((p) => p.nodeKinds.map((k) => [k.id, k.label] as const))
-);
+/**
+ * 전 팩의 노드 종류 라벨 합본.
+ *
+ * ★ 표를 **모듈이 읽힐 때 만들면 안 된다**. 라벨은 말 묶음(`loadNamespace('karmograph')`)이
+ * 들어온 뒤에야 값이 있는데, 묶음이 실행되는 시점은 그 전이다 — 실측 2026-08-12: 이 표가
+ * 라벨을 당겨 읽는 바람에 `t()` 가 없는 열쇠로 **던졌고**, 위젯이 통째로 등록되지 않아
+ * 화면이 「장비 꺼내는 중」에서 멈췄다. 그래서 **처음 물어볼 때** 만들고 그때부터 기억한다.
+ */
+let kindLabelTable: Record<string, string> | null = null;
+export function allKindLabels(): Record<string, string> {
+  return (kindLabelTable ??= Object.fromEntries(
+    PACKS.flatMap((p) => p.nodeKinds.map((k) => [k.id, k.label] as const))
+  ));
+}
 
 /** 전 팩의 선 정의 합본 — 캔버스가 `_edge_kinds` 로 받는다. */
 export const ALL_EDGE_KIND_DEFS: Record<string, EdgeKindDef> = Object.fromEntries(
@@ -281,7 +291,10 @@ export const ALL_EDGE_KIND_DEFS: Record<string, EdgeKindDef> = Object.fromEntrie
   )
 );
 
-/** 전 팩의 선 라벨 합본. */
-export const ALL_EDGE_LABELS: Record<string, string> = Object.fromEntries(
-  PACKS.flatMap((p) => p.edgeKinds.map((e) => [e.id, e.label] as const))
-);
+/** 전 팩의 선 라벨 합본 — 노드 쪽과 같은 이유로 처음 물어볼 때 만든다. */
+let edgeLabelTable: Record<string, string> | null = null;
+export function allEdgeLabels(): Record<string, string> {
+  return (edgeLabelTable ??= Object.fromEntries(
+    PACKS.flatMap((p) => p.edgeKinds.map((e) => [e.id, e.label] as const))
+  ));
+}
