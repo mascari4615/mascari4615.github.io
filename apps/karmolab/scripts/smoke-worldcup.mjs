@@ -49,8 +49,17 @@ if (packCount > 0) {
   if (await eight.count()) await eight.first().click();
 
   await page.click('#wcStart');
-  await page.waitForSelector('#wcPlay:not([hidden])', { timeout: 30000 }).catch(() => {
-    problems.push('시작을 눌렀는데 판이 안 열린다');
+  await page.waitForSelector('#wcPlay:not([hidden])', { timeout: 30000 }).catch(async () => {
+    /* 왜 안 열렸는지 같이 남긴다 — 「안 열린다」만으로는 표를 못 받은 것인지, 라운드가 없는
+       것인지, 화면이 아직인지 구분할 수 없다(실측 2026-08-13: 이것 때문에 세 판을 헤맸다). */
+    const why = await page.evaluate(() => ({
+      고른표: document.querySelector('#wcPacks button[aria-pressed="true"]')?.textContent?.trim().slice(0, 20)
+        || document.querySelector('#wcPacks button')?.textContent?.trim().slice(0, 20),
+      말: (document.getElementById('wcPackMsg')?.textContent || '').trim().slice(0, 60),
+      라운드: [...document.querySelectorAll('#wcRounds button')].map((b) => b.textContent.trim()).join(','),
+      시작막힘: document.getElementById('wcStart')?.hasAttribute('disabled')
+    })).catch(() => null);
+    problems.push(`시작을 눌렀는데 판이 안 열린다 — ${JSON.stringify(why)}`);
   });
 
   // 매 판 왼쪽을 고른다. 판이 끝나거나(결과 화면) 너무 오래 돌면 멈춘다.
