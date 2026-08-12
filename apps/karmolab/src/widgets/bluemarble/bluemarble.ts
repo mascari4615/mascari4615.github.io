@@ -96,18 +96,22 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
 /* 높이를 **부모에게 안 묻는다**. 폰에서 부모가 높이를 안 정해 주면 height 100% 가
    내용 높이로 풀려, 캔버스가 87,000px 짜리로 자랐다(실측 — 프레임 1166ms). 화면 기준으로
    스스로 정한다: 작은 화면에서도 420px 는 되고, 커도 900px 를 안 넘는다. */
-.bm-wrap{position:relative;width:100%;height:clamp(420px,78svh,900px);max-height:900px;
+/* 위쪽 띠(헤더)는 비치는 유리다 — 지구를 그 **뒤까지** 올리면 위 칸만 배경색으로 남던 어색함이
+   사라진다. 조작부는 그대로 띠 아래에 둔다(가려지면 누를 수 없다). */
+.bm-wrap{--bm-head:52px;position:relative;width:100%;
+  margin-top:calc(var(--bm-head) * -1);
+  height:calc(clamp(460px,92svh,1200px) + var(--bm-head));max-height:calc(1200px + var(--bm-head));
   display:flex;flex-direction:column;
   border-radius:var(--radius-md,12px);overflow:hidden;background:#04060d;}
 .bm-canvas{flex:1;display:block;width:100%;height:100%;touch-action:none;cursor:grab;}
 .bm-canvas.bm-drag{cursor:grabbing;}
 /* 첫 화면은 **조용해야 한다** — 지구와 한 줄. 조작부는 「⋯」 뒤에 접어 둔다.
    (칩이 12개가 되자 화면이 창문이 아니라 계기판이 됐다.) */
-.bm-menu{position:absolute;top:10px;left:10px;z-index:4;appearance:none;border:1px solid rgba(255,255,255,.16);
+.bm-menu{position:absolute;top:calc(10px + var(--bm-head));left:10px;z-index:4;appearance:none;border:1px solid rgba(255,255,255,.16);
   background:rgba(8,12,22,.55);color:rgba(255,255,255,.6);font-size:13px;line-height:1;padding:7px 11px;
   border-radius:999px;cursor:pointer;backdrop-filter:blur(6px);}
 .bm-menu[aria-expanded="true"]{color:#eaf2ff;border-color:rgba(150,190,255,.5);}
-.bm-chips{position:absolute;top:46px;left:10px;right:104px;display:flex;flex-wrap:wrap;gap:6px;z-index:2;
+.bm-chips{position:absolute;top:calc(46px + var(--bm-head));left:10px;right:104px;display:flex;flex-wrap:wrap;gap:6px;z-index:2;
   opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .28s ease,transform .28s ease;}
 .bm-wrap.bm-panel .bm-chips{opacity:1;pointer-events:auto;transform:none;}
 .bm-wrap.bm-ambient .bm-menu{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
@@ -127,6 +131,7 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
   transition:opacity 1.2s ease;}
 .bm-wrap.bm-ambient .bm-sub{opacity:0;transition:opacity 1.2s ease;}
 .bm-wrap.bm-ambient{border-radius:0;}
+.bm-wrap:fullscreen{--bm-head:0px;margin-top:0;height:100%;max-height:none;}
 /* 해 — 지구를 보는 창 옆에 붙은 **두 번째 창**. SDO 가 30초마다 새로 찍는 실사다.
    픽셀을 읽지 않으므로 교차 출처 허가가 필요 없다(그냥 그림으로 붙인다). */
 .bm-sun{position:absolute;right:14px;bottom:96px;width:96px;height:96px;border-radius:50%;z-index:3;
@@ -181,6 +186,9 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
     title: 'Blue Marble',
     category: 'lab',
     layout: 'full',
+    /* 이 위젯은 **창문**이다 — 제목·설명·방문수·「여기도 있어요」가 붙으면 창문이 아니라
+       도구 상세 페이지가 된다. 이름은 지구 뒤에서 한 번 지나가는 것으로 충분하다. */
+    noHero: true,
     icon: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3.5 10h17M4.2 15h15.6" stroke="currentColor" stroke-width="1.1" opacity=".5" fill="none"/><path d="M12 3c3 3.6 3 13.4 0 18M12 3C9 6.6 9 16.4 12 21" stroke="currentColor" stroke-width="1.1" opacity=".5" fill="none"/>',
     ...(Toolbox.getLazyWidgetPublicMeta ? Toolbox.getLazyWidgetPublicMeta('bluemarble') : {}),
     tabs: [
@@ -351,6 +359,16 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
             live: null as Spot | null,
             since: 0
           };
+          /* 소리 내는 요소는 **창문 안에** 붙인다. 떠 있는 객체로 두면 위젯이 닫혀도 남을 수 있고,
+             무엇보다 밖에서 「지금 울리고 있나」를 볼 수 없다(검사도 사람도). */
+          const makeAudio = (url: string): HTMLAudioElement => {
+            const el = new Audio();
+            el.preload = 'none';
+            el.src = url;
+            el.style.display = 'none';
+            wrap.appendChild(el);
+            return el;
+          };
           const player = new RadioPlayer((st: RadioState) => {
             if (!alive) return;
             if (st.kind === 'playing') {
@@ -369,7 +387,23 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
               radio.live = null;
               sound.duck(false);
             }
-          });
+          }, 6000, makeAudio);
+
+          /**
+           * 아무 데나 한 곳을 틀고 그리로 날아간다.
+           *
+           * 겹을 켜 놓고 「이제 뭘 하지」가 되면 그 기능은 없는 것과 같다 — 켜자마자 소리가 나야
+           * 「아, 이게 라디오구나」가 된다. 고른 자리로 카메라도 옮긴다: 소리만 나고 화면이
+           * 그대로면 어디 것인지 알 길이 없다.
+           */
+          function tuneSomewhere(): void {
+            if (!radio.spots.length) return;
+            /* 앞쪽(방송국이 많은 자리)에서 고른다 — 완전 무작위는 꺼진 서버를 뽑을 확률이 높다. */
+            const pool = Math.min(radio.spots.length, 220);
+            const spot = radio.spots[Math.floor(Math.random() * pool)];
+            flyTo(spot.lat, spot.lon, 2200);
+            player.play(spot);
+          }
 
           /** 저기는 지금 몇 시인가 — 경도만으로 낸다(시간대 표를 들고 올 만큼 정확할 일이 아니다). */
           function localClock(lon: number): string {
@@ -379,6 +413,8 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
           }
           let raf: number | undefined;
           let alive = true;
+          /** 창문을 처음 연 시각 — 제목이 한 번 지나가는 데만 쓴다. */
+          const introAt = performance.now();
 
           /* 표면 판 — 화면 해상도로 안 그린다. 작은 판에 그린 뒤 늘여 덮는다
              (한 점마다 asin·atan2 가 드니, 계산량을 화면 크기에서 떼어 놓는다).
@@ -687,6 +723,10 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
             c.arc(cx, cy, R * 1.16, 0, Math.PI * 2);
             c.fill();
 
+            /* 이름은 여기서 한 번만 지나간다 — **지구를 그리기 전에** 찍으므로 가운데가 가려지고
+               양 끝만 남는다. 제목이 지구 뒤에 있는 것처럼 보이는 건 정말로 뒤에 있기 때문이다. */
+            drawIntro(now);
+
             /* 표면 — 땅·바다·구름·도시 불빛·명암을 한 번에. 픽셀마다 구면 위 한 점을 되짚는다.
                (자를 것이 없으므로 「돌리면 땅이 화면을 덮는」 사고가 원리적으로 안 생긴다) */
             ensureSurface();
@@ -759,6 +799,40 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
 
           function lumAt(v: [number, number, number], S: [number, number, number]): number {
             return dot(v, ex) * S[0] + dot(v, ey) * S[1] + dot(v, ez) * S[2];
+          }
+
+          /** 처음 들어온 순간에만. 6.5초에 걸쳐 떴다 진다 — 두 번째부터는 창문이 조용해야 한다. */
+          function drawIntro(now: number): void {
+            const age = now - introAt;
+            if (age > 6500) return;
+            // 1.4초 동안 떠오르고, 4초 머물고, 남은 동안 잦아든다
+            const a = age < 1400 ? age / 1400 : age > 4600 ? Math.max(0, 1 - (age - 4600) / 1900) : 1;
+            if (a <= 0.01) return;
+            const c = ctx!;
+            c.save();
+            /* 글씨는 지구보다 **넓어야** 한다 — 지구 안에 들어가면 통째로 가려져 아무것도 안 보인다. */
+            let size = Math.min(W * 0.115, H * 0.2);
+            c.textAlign = 'center';
+            c.textBaseline = 'middle';
+            try {
+              (c as unknown as { letterSpacing: string }).letterSpacing = '0.34em';
+            } catch {
+              /* 이 손잡이가 없는 브라우저는 자간 없이 나온다 — 못 읽을 정도는 아니다 */
+            }
+            c.font = `200 ${size}px var(--font-sans, ui-sans-serif, system-ui, sans-serif)`;
+            const label = 'BLUE MARBLE';
+            // 화면을 넘치면 줄인다(폰 세로에서 글자가 잘려 나가면 제목이 아니라 사고다)
+            const want = W * 0.94;
+            const got = c.measureText(label).width;
+            if (got > want) {
+              size *= want / got;
+              c.font = `200 ${size}px var(--font-sans, ui-sans-serif, system-ui, sans-serif)`;
+            }
+            c.fillStyle = `rgba(255,255,255,${0.92 * a})`;
+            c.shadowColor = `rgba(120,180,255,${0.5 * a})`;
+            c.shadowBlur = size * 0.5;
+            c.fillText(label, cx, cy);
+            c.restore();
           }
 
           /* 한 프레임에 그리는 고리 수 상한. 자리가 3,200 개가 넘는데 전부 그리면
@@ -1830,6 +1904,14 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
                 }
                 if (l.id === 'radio') {
                   if (turningOn) {
+                    /* 도는 지구는 못 누른다. 라디오는 **찍어서 고르는** 겹이므로 자전을 세운다
+                       (2026-08-12 실사용: 「지 혼자 막 돌아서 뭐가 되는 건지 모르겠다」). */
+                    spin = false;
+                    save();
+                    renderChips();
+                    /* **이 클릭 안에서** 그릇을 잡는다 — 목록을 받아 온 뒤에 만들면
+                       브라우저가 「제스처 밖의 소리」로 보고 막는다(2026-08-12 실측). */
+                    player.unlock();
                     if (!radio.loaded) {
                       radio.loaded = true;
                       say(t('bluemarble.radio.loading'));
@@ -1837,14 +1919,15 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
                         if (!alive) return;
                         /* 방송국이 많은 자리를 앞에 둔다 — 고리 상한에 걸려도 큰 자리부터 남는다. */
                         radio.spots = toSpots(list).sort((a2, b2) => b2.stations.length - a2.stations.length);
-                        say(
-                          radio.spots.length
-                            ? t('bluemarble.radio.ready', { n: radio.spots.length })
-                            : t('bluemarble.radio.fail')
-                        );
+                        if (!radio.spots.length) {
+                          say(t('bluemarble.radio.fail'));
+                          return;
+                        }
+                        say(t('bluemarble.radio.ready', { n: radio.spots.length }));
+                        tuneSomewhere();
                       });
                     } else if (radio.spots.length) {
-                      say(t('bluemarble.radio.hint'));
+                      tuneSomewhere();
                     }
                   } else {
                     player.stop();

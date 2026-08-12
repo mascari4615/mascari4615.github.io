@@ -69,9 +69,9 @@
   "bluemarble.card.saved": "카드를 저장했습니다.",
   "bluemarble.layer.radio": "라디오",
   "bluemarble.radio.loading": "방송국 목록을 받는 중…",
-  "bluemarble.radio.ready": "세계 {n}곳에서 방송 중 — 고리를 눌러 보세요",
+  "bluemarble.radio.ready": "세계 {n}곳에서 방송 중 — 아무 데나 하나 틀었습니다. 다른 고리를 누르면 그 동네로",
   "bluemarble.radio.fail": "방송국 목록을 못 받았습니다",
-  "bluemarble.radio.hint": "고리를 누르면 그 동네 방송이 나옵니다",
+  "bluemarble.radio.hint": "고리를 누르면 그 동네 방송이 나옵니다 (같은 고리를 다시 누르면 옆 방송국)",
   "bluemarble.radio.on": "{name} · {where} · 그곳은 {time}",
   "bluemarble.radio.dead": "그 자리는 지금 아무도 방송하지 않습니다"
 }

@@ -39,19 +39,23 @@ async function load() {
   return mod;
 }
 
-/** 진짜 `Audio` 대신 끼우는 가짜 — 이벤트를 손으로 쏘아 실패/성공을 만든다. */
+/** 진짜 `Audio` 대신 끼우는 가짜 — 이벤트를 손으로 쏘아 실패/성공을 만든다.
+    진짜와 같이 **요소 하나를 계속 쓰므로** 가짜도 하나만 만들어진다. */
 function fakeAudio() {
   const made = [];
   const make = (url) => {
     const listeners = {};
     const el = {
-      url,
       paused: true,
       currentTime: 0,
       src: url,
       addEventListener: (k, fn) => {
         (listeners[k] || (listeners[k] = [])).push(fn);
       },
+      removeAttribute: () => {
+        el.src = '';
+      },
+      remove: () => undefined,
       pause: () => {
         el.paused = true;
       },
@@ -59,17 +63,23 @@ function fakeAudio() {
         el.paused = false;
         return { catch: () => undefined };
       },
-      /* 검사용 손잡이 */
       fire: (k) => (listeners[k] || []).forEach((fn) => fn()),
       succeed: () => {
         el.currentTime = 1;
+        el.paused = false;
         el.fire('playing');
       }
     };
     made.push(el);
     return el;
   };
-  return { make, made };
+  return {
+    make,
+    made,
+    get el() {
+      return made[0];
+    }
+  };
 }
 
 const st = (i, lat, lon) => ({
@@ -133,12 +143,14 @@ async function main() {
   {
     const seen = [];
     const fa = fakeAudio();
-    const p = new R.RadioPlayer((s) => seen.push(s), 50, fa.make);
+    const p = new R.RadioPlayer((s2) => seen.push(s2), 50, fa.make);
     p.play(spot);
     eq(seen[0].kind, 'tuning', '누르면 먼저 맞추는 중');
-    fa.made[0].fire('error'); // 첫 국이 죽었다
+    eq(fa.made.length, 1, '소리 그릇은 하나만 만든다(제스처 밖에서 새로 만들면 브라우저가 막는다)');
+    fa.el.fire('error');
     eq(seen[seen.length - 1].station.name, 'Station 2', '죽으면 말없이 다음 국으로');
-    fa.made[1].succeed();
+    eq(fa.made.length, 1, '다음 국으로 가도 그릇은 그대로 — 주소만 갈아 끼운다');
+    fa.el.succeed();
     eq(seen[seen.length - 1].kind, 'playing', '소리가 나면 재생 중');
     eq(p.current.name, 'Station 2', '지금 나오는 국을 안다');
     p.stop();
@@ -148,29 +160,54 @@ async function main() {
   {
     const seen = [];
     const fa = fakeAudio();
-    const p = new R.RadioPlayer((s) => seen.push(s), 50, fa.make);
+    const p = new R.RadioPlayer((s2) => seen.push(s2), 50, fa.make);
     p.play(spot);
-    fa.made[0].fire('error');
-    fa.made[1].fire('error');
-    fa.made[2].fire('error');
+    fa.el.fire('error');
+    fa.el.fire('error');
+    fa.el.fire('error');
     eq(seen[seen.length - 1].kind, 'dead', '한 바퀴 다 돌면 그 자리는 죽은 것');
+    check(fa.el.paused, '죽은 자리에서는 소리를 멈춘다');
   }
 
   {
     const seen = [];
     const fa = fakeAudio();
-    const p = new R.RadioPlayer((s) => seen.push(s), 50, fa.make);
+    const p = new R.RadioPlayer((s2) => seen.push(s2), 50, fa.make);
     p.play(spot);
-    fa.made[0].succeed();
-    p.play(spot); // 같은 자리를 다시 누름
+    fa.el.succeed();
+    p.play(spot);
     eq(p.current.name, 'Station 2', '같은 자리를 다시 누르면 그 안에서 다음 방송국');
-    check(fa.made[0].paused, '앞 방송은 멈춘다 — 둘이 겹쳐 울리면 안 된다');
+  }
+
+  {
+    /* 지난 시도의 메아리 — 앞 주소가 낸 실패가 다음 방송이 시작된 뒤 도착해도 죽이면 안 된다. */
+    const seen = [];
+    const fa = fakeAudio();
+    const p = new R.RadioPlayer((s2) => seen.push(s2), 50, fa.make);
+    p.unlock();
+    check(fa.el.src.startsWith('data:audio'), '허락을 받을 때는 빈 주소가 아니라 무음 조각을 쓴다');
+    p.play(spot);
+    const stale = fa.el.src;
+    fa.el.src = 'https://s9.example/other'; // 지난 주소에서 온 알림인 척
+    fa.el.fire('error');
+    eq(p.current.name, 'Station 1', '지난 주소의 실패는 지금 방송을 넘기지 않는다');
+    fa.el.src = stale;
+  }
+
+  {
+    const fa = fakeAudio();
+    const p = new R.RadioPlayer(() => undefined, 50, fa.make);
+    p.unlock();
+    eq(fa.made.length, 1, '누른 순간 소리 그릇을 미리 만든다');
+    p.play(spot);
+    eq(fa.made.length, 1, '나중에 틀 때는 그 그릇을 그대로 쓴다');
+    eq(fa.el.src, 'https://s1.example/stream', '미리 잡아 둔 그릇에 주소만 끼운다');
   }
 
   {
     const seen = [];
     const fa = fakeAudio();
-    const p = new R.RadioPlayer((s) => seen.push(s), 20, fa.make);
+    const p = new R.RadioPlayer((s2) => seen.push(s2), 20, fa.make);
     p.play(spot);
     await new Promise((r) => setTimeout(r, 35));
     eq(seen[seen.length - 1].station.name, 'Station 2', '조용히 안 끊는 서버는 시간 초과로 넘어간다');

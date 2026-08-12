@@ -69,9 +69,9 @@
   "bluemarble.card.saved": "Card saved.",
   "bluemarble.layer.radio": "Radio",
   "bluemarble.radio.loading": "Fetching stations…",
-  "bluemarble.radio.ready": "On air in {n} places — tap a ring",
+  "bluemarble.radio.ready": "On air in {n} places — tuned one at random. Tap another ring for that town",
   "bluemarble.radio.fail": "Could not fetch the station list",
-  "bluemarble.radio.hint": "Tap a ring to hear that town",
+  "bluemarble.radio.hint": "Tap a ring to hear that town (tap it again for the next station)",
   "bluemarble.radio.on": "{name} · {where} · it is {time} there",
   "bluemarble.radio.dead": "Nobody is on air there right now"
 }
