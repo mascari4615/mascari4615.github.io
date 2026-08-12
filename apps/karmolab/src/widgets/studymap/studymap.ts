@@ -19,6 +19,11 @@ interface SmStage { id: string; title: string; nodes: SmNode[] }
 interface SmTrack { id: string; title: string; emoji: string; lead: string; stages: SmStage[] }
 interface SmData { tracks: SmTrack[] }
 
+/** 강의 한 편 — `data/lessons/<언어>/<칸id>.json`. 위젯은 그리기만 하고 내용은 표에 있다. */
+interface SmBlock { type: 'p' | 'h' | 'code' | 'note' | 'try'; text: string; lang?: string; label?: string }
+interface SmQuiz { q: string; choices: string[]; answer: number; why?: string }
+interface SmLesson { id: string; minutes?: number; blocks: SmBlock[]; quiz?: SmQuiz[] }
+
 /** 다른 언어 덧씌우기 표 — id 로만 짝을 짓는다(순서·구조를 다시 적지 않는다). */
 interface SmOverlay {
   tracks?: Record<string, { title?: string; lead?: string }>;
@@ -58,6 +63,15 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 (function (): void {
   const DONE_KEY = 'karmolab-studymap-done';
   const TRACK_KEY = 'karmolab-studymap-track';
+
+  /** 본문의 **굵게** 만 살린다. 그 외는 전부 글자로 — 표에 태그를 열어 두면 그게 구멍이 된다. */
+  const strong = (text: string): string =>
+    String(text ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
 
   const esc = (v: unknown): string =>
     String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -146,6 +160,34 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 
 .sm-node-body { min-width: 0; flex: 1; }
 .sm-node-title { font-size: var(--font-size-2xs); font-weight: 650; line-height: 1.45; }
+.sm-open { display: block; width: 100%; text-align: left; background: none; border: none; padding: 0; color: inherit; font: inherit; font-weight: 650; cursor: pointer; }
+.sm-open:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+/* 강의 — 읽는 화면. 글줄은 68ch 를 안 넘긴다. */
+.sm-lesson { max-width: 68ch; }
+.sm-back { background: none; border: 1px solid var(--border); color: var(--text-secondary); font: inherit; font-size: 11px; padding: 6px 12px; border-radius: 999px; cursor: pointer; margin-bottom: 18px; }
+.sm-back:hover { border-color: var(--accent); color: var(--accent); }
+.sm-lesson h3 { font-size: var(--font-size-md); margin: 0 0 4px; }
+.sm-lesson-meta { font-size: 11px; color: var(--text-tertiary); margin-bottom: 20px; }
+.sm-lesson h4 { font-size: var(--font-size-xs); margin: 28px 0 10px; padding-top: 14px; border-top: 1px solid var(--border); }
+.sm-lesson p { font-size: var(--font-size-2xs); line-height: 1.8; color: var(--text-primary); margin: 0 0 14px; }
+.sm-lesson b { color: var(--accent); font-weight: 650; }
+.sm-code { margin: 0 0 16px; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-void); }
+.sm-code-label { font-size: 11px; color: var(--text-tertiary); padding: 7px 12px; border-bottom: 1px solid var(--border); background: var(--bg-secondary); }
+.sm-code pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-size: 12px; line-height: 1.7; }
+.sm-callout { border-left: 3px solid var(--secondary); background: var(--secondary-subtle); padding: 12px 14px; border-radius: 0 var(--radius-md) var(--radius-md) 0; margin: 0 0 16px; font-size: 12px; line-height: 1.75; }
+.sm-callout.is-try { border-color: var(--accent); background: var(--accent-subtle); }
+.sm-callout .sm-callout-tag { display: block; font-size: 10px; letter-spacing: .05em; color: var(--text-tertiary); margin-bottom: 4px; }
+
+.sm-quiz { margin-top: 12px; }
+.sm-qbox { border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 14px 16px; margin-bottom: 12px; background: var(--bg-secondary); }
+.sm-qtext { font-size: var(--font-size-2xs); font-weight: 600; margin-bottom: 10px; line-height: 1.6; }
+.sm-choice { display: flex; gap: 9px; align-items: flex-start; padding: 8px 10px; border-radius: var(--radius-md); cursor: pointer; font-size: 12px; line-height: 1.6; }
+.sm-choice:hover { background: var(--bg-hover); }
+.sm-choice.is-right { background: var(--success-subtle); }
+.sm-choice.is-wrong { background: var(--error-subtle); }
+.sm-why { font-size: 11px; color: var(--text-secondary); line-height: 1.7; margin-top: 10px; padding-left: 10px; border-left: 2px solid var(--border-hover); }
+.sm-quiz-done { font-size: var(--font-size-2xs); color: var(--success); margin-top: 8px; }
 .sm-node-why { font-size: 12px; color: var(--text-secondary); line-height: 1.65; margin-top: 6px; }
 .sm-node-check { font-size: 11px; color: var(--text-tertiary); line-height: 1.6; margin-top: 8px; padding-left: 10px; border-left: 2px solid var(--border-hover); }
 .sm-node-check b { color: var(--secondary); font-weight: 600; }
@@ -298,7 +340,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
         <input type="checkbox" class="sm-check" name="studymap-done-${esc(n.id)}" data-node="${esc(n.id)}" ${isDone ? 'checked' : ''}
                aria-label="${esc(n.title)}">
         <div class="sm-node-body">
-          <div class="sm-node-title">${esc(n.title)}</div>
+          <button type="button" class="sm-node-title sm-open" data-open="${esc(n.id)}">${esc(n.title)}</button>
           <div class="sm-node-why">${esc(n.why)}</div>
           ${n.check ? `<div class="sm-node-check"><b>${esc(t('studymap.check', undefined, '넘어가도 될 때'))}</b> — ${esc(n.check)}</div>` : ''}
           ${prereq ? `<div class="sm-prereq"><span class="sm-prereq-label">${esc(t('studymap.prereq', undefined, '먼저'))}</span>${prereq}</div>` : ''}
@@ -329,6 +371,118 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
           )
           .join('')
       );
+    }
+
+    /* 강의는 눌렀을 때 받아 온다 — 134편을 미리 받으면 첫 화면이 죽는다.
+       한 번 받은 것은 이 화면이 열려 있는 동안 다시 안 받는다. */
+    const lessonCache = new Map<string, SmLesson | null>();
+
+    async function openLesson(id: string): Promise<void> {
+      const found = whereIs.get(id);
+      if (!found) return;
+      const node = found.node;
+      elStages.innerHTML = `<div class="sm-empty">${esc(t('studymap.lesson.loading', undefined, '강의를 펴는 중…'))}</div>`;
+
+      let lesson = lessonCache.get(id);
+      if (lesson === undefined) {
+        lesson = await fetch(`/apps/karmolab/data/lessons/${locale()}/${id}.json`)
+          .then((r) => (r.ok ? (r.json() as Promise<SmLesson>) : null))
+          .catch(() => null);
+        lessonCache.set(id, lesson ?? null);
+      }
+
+      const back = `<button type="button" class="sm-back" data-back="1">← ${esc(t('studymap.lesson.back', undefined, '지도로'))}</button>`;
+      const linkRow = (node.links || [])
+        .map((l) => `<a class="sm-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} ↗</a>`)
+        .join('');
+
+      /* 아직 안 쓴 강의 — 없는 척하지 말고 「없다」고 말한다. 카드에 있던 것은 그대로 보인다. */
+      if (!lesson) {
+        elStages.innerHTML = `<div class="sm-lesson">${back}
+          <h3>${esc(node.title)}</h3>
+          <div class="sm-lesson-meta">${esc(t('studymap.lesson.none', undefined, '이 칸의 강의는 아직 준비 중이다. 아래 자료로 먼저 시작하라.'))}</div>
+          <p>${esc(node.why)}</p>
+          ${node.check ? `<div class="sm-callout"><span class="sm-callout-tag">${esc(t('studymap.check', undefined, '넘어가도 될 때'))}</span>${esc(node.check)}</div>` : ''}
+          <div class="sm-links">${linkRow}</div>
+        </div>`;
+        return;
+      }
+
+      const body = lesson.blocks
+        .map((blk) => {
+          if (blk.type === 'h') return `<h4>${esc(blk.text)}</h4>`;
+          if (blk.type === 'code') {
+            return `<div class="sm-code">${blk.label ? `<div class="sm-code-label">${esc(blk.label)}</div>` : ''}<pre><code>${esc(blk.text)}</code></pre></div>`;
+          }
+          if (blk.type === 'note' || blk.type === 'try') {
+            const tag = blk.type === 'try' ? t('studymap.lesson.try', undefined, '직접 해보기') : t('studymap.lesson.note', undefined, '기억할 것');
+            return `<div class="sm-callout${blk.type === 'try' ? ' is-try' : ''}"><span class="sm-callout-tag">${esc(tag)}</span>${strong(blk.text)}</div>`;
+          }
+          return `<p>${strong(blk.text)}</p>`;
+        })
+        .join('');
+
+      const quiz = (lesson.quiz || [])
+        .map(
+          (item, at) => `<div class="sm-qbox" data-quiz="${at}">
+            <div class="sm-qtext">${at + 1}. ${esc(item.q)}</div>
+            ${item.choices
+              .map(
+                (choice, ci) => `<label class="sm-choice">
+                  <input type="radio" name="studymap-quiz-${esc(id)}-${at}" value="${ci}">
+                  <span>${esc(choice)}</span>
+                </label>`,
+              )
+              .join('')}
+            <div class="sm-why" hidden></div>
+          </div>`,
+        )
+        .join('');
+
+      elStages.innerHTML = `<div class="sm-lesson">${back}
+        <h3>${esc(node.title)}</h3>
+        <div class="sm-lesson-meta">${esc(trackOf(found.trackId).title)}${lesson.minutes ? ` · ${esc(t('studymap.lesson.minutes', { n: lesson.minutes }, '약 {n}분'))}` : ''}</div>
+        ${body}
+        ${quiz ? `<h4>${esc(t('studymap.lesson.quiz', undefined, '확인 문제'))}</h4><div class="sm-quiz" data-lesson="${esc(id)}">${quiz}</div>` : ''}
+        <div class="sm-links" style="margin-top:18px">${linkRow}</div>
+      </div>`;
+
+      /* 채점은 고르는 즉시. 다 맞히면 그 칸은 저절로 체크된다 — 「읽었다」가 아니라 「됐다」가 기준. */
+      const quizRoot = elStages.querySelector('[data-lesson]');
+      const items = lesson.quiz || [];
+      if (quizRoot instanceof HTMLElement && items.length > 0) {
+        quizRoot.addEventListener('change', (e) => {
+          const input = e.target as HTMLInputElement;
+          const box = input.closest('[data-quiz]') as HTMLElement | null;
+          if (!box) return;
+          const item = items[Number(box.dataset.quiz)];
+          const picked = Number(input.value);
+          box.querySelectorAll('.sm-choice').forEach((el, ci) => {
+            el.classList.toggle('is-right', ci === item.answer);
+            el.classList.toggle('is-wrong', ci === picked && picked !== item.answer);
+          });
+          const why = box.querySelector('.sm-why');
+          if (why instanceof HTMLElement && item.why) {
+            why.textContent = item.why;
+            why.hidden = false;
+          }
+          const cleared = [...quizRoot.querySelectorAll('[data-quiz]')].every((qb) => {
+            const chosen = qb.querySelector('input:checked') as HTMLInputElement | null;
+            return chosen !== null && Number(chosen.value) === items[Number((qb as HTMLElement).dataset.quiz)].answer;
+          });
+          if (cleared && !done.has(id)) {
+            done.add(id);
+            writeDone(done);
+            const msg = document.createElement('div');
+            msg.className = 'sm-quiz-done';
+            msg.textContent = t('studymap.lesson.cleared', undefined, '다 맞혔다 — 이 칸은 끝난 것으로 표시했다.');
+            quizRoot.appendChild(msg);
+            if (typeof Mdd !== 'undefined' && Mdd.linePreset) {
+              Mdd.linePreset('success', { msg: t('studymap.mdd.step', undefined, '한 칸 나아갔어요.') });
+            }
+          }
+        });
+      }
     }
 
     function paint(): void {
@@ -388,7 +542,17 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
     });
 
     elStages.addEventListener('click', (e) => {
-      const btn = (e.target as HTMLElement).closest('[data-goto]') as HTMLElement | null;
+      const target = e.target as HTMLElement;
+      const open = target.closest('[data-open]') as HTMLElement | null;
+      if (open) {
+        void openLesson(open.dataset.open || '');
+        return;
+      }
+      if (target.closest('[data-back]')) {
+        paint();
+        return;
+      }
+      const btn = target.closest('[data-goto]') as HTMLElement | null;
       if (!btn) return;
       const id = btn.dataset.goto || '';
       const found = whereIs.get(id);

@@ -21,5 +21,13 @@
   "studymap.import.ask": "내보낸 진도를 붙여 넣어라. (지금 진도에 더해진다)",
   "studymap.import.bad": "알아볼 수 있는 칸이 없다. 내보내기로 만든 글만 된다.",
   "studymap.import.done": "{n}칸을 가져왔다.",
-  "studymap.tracks": "갈래"
+  "studymap.tracks": "갈래",
+  "studymap.lesson.loading": "강의를 펴는 중…",
+  "studymap.lesson.back": "지도로",
+  "studymap.lesson.none": "이 칸의 강의는 아직 준비 중이다. 아래 자료로 먼저 시작하라.",
+  "studymap.lesson.try": "직접 해보기",
+  "studymap.lesson.note": "기억할 것",
+  "studymap.lesson.quiz": "확인 문제",
+  "studymap.lesson.minutes": "약 {n}분",
+  "studymap.lesson.cleared": "다 맞혔다 — 이 칸은 끝난 것으로 표시했다."
 }

@@ -21,5 +21,13 @@
   "studymap.import.ask": "書き出した進捗を貼り付けてください。（今の進捗に足されます）",
   "studymap.import.bad": "読み取れる項目がありません。書き出しで作った文だけ使えます。",
   "studymap.import.done": "{n} 項目を読み込みました。",
-  "studymap.tracks": "分野"
+  "studymap.tracks": "分野",
+  "studymap.lesson.loading": "レッスンを開いています…",
+  "studymap.lesson.back": "地図に戻る",
+  "studymap.lesson.none": "この項目のレッスンはまだ準備中です。下の資料から始めてください。",
+  "studymap.lesson.try": "やってみる",
+  "studymap.lesson.note": "覚えておくこと",
+  "studymap.lesson.quiz": "確認問題",
+  "studymap.lesson.minutes": "約 {n} 分",
+  "studymap.lesson.cleared": "全問正解 — この項目を完了にしました。"
 }
