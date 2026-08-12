@@ -84,6 +84,10 @@
     "audio": {
       "title": "Sound & audio",
       "lead": "The most underrated half — mute it and the same screen becomes a different thing"
+    },
+    "i18n": {
+      "title": "Internationalization",
+      "lead": "\"We will translate it later\" is the most expensive sentence — pulling text out is a structural change"
     }
   },
   "stages": {
@@ -137,7 +141,10 @@
     "kl-c": "Fix it and finish it",
     "audio-a": "Know the sound",
     "audio-b": "Make it and bring it in",
-    "audio-c": "Inside the program"
+    "audio-c": "Inside the program",
+    "i18n-a": "Handling text",
+    "i18n-b": "Formats and layout",
+    "i18n-c": "Running it"
   },
   "nodes": {
     "web-html": {
@@ -1347,6 +1354,72 @@
       "check": "You play after a user gesture and control volume",
       "links": [
         "MDN Web Audio API"
+      ]
+    },
+    "i18n-unicode": {
+      "title": "Unicode and encodings",
+      "why": "Most mojibake and weird length bugs live here. How many characters is one emoji?",
+      "check": "You explain code points vs grapheme clusters with an example",
+      "links": [
+        "The absolute minimum about Unicode (Joel)"
+      ],
+      "tool": "Character converter"
+    },
+    "i18n-catalog": {
+      "title": "Message catalogs and key design",
+      "why": "Strings hardcoded in the code cannot even start being translated, and bad keys strip the translator of context.",
+      "check": "All UI text lives in keys and the app still runs in the base language",
+      "links": [
+        "i18next docs"
+      ]
+    },
+    "i18n-plural": {
+      "title": "Plurals, gender, word order (ICU)",
+      "why": "Build \"3 items\" by string concatenation and it collapses in other languages — the rules differ per language.",
+      "check": "You handle plurals with an ICU message",
+      "links": [
+        "ICU MessageFormat"
+      ]
+    },
+    "i18n-format": {
+      "title": "Dates, numbers, currency, time zones",
+      "why": "2026-08-12 is December 8th somewhere. Do not format by hand; hand it to the standard API.",
+      "check": "You render locale-aware dates and currency with Intl",
+      "links": [
+        "MDN Intl"
+      ],
+      "tool": "World clock"
+    },
+    "i18n-layout": {
+      "title": "Layout — text expansion and RTL",
+      "why": "German runs ~30% longer and Arabic starts from the right. That is why fixed-width buttons break.",
+      "check": "The longest translation still does not break the screen",
+      "links": [
+        "MDN logical properties"
+      ]
+    },
+    "i18n-content": {
+      "title": "Culture — names, addresses, colors, images",
+      "why": "A \"first name / last name\" pair does not fit half the world. Assuming a format is excluding people.",
+      "check": "You design name and address input without assuming one country",
+      "links": [
+        "Falsehoods programmers believe about names"
+      ]
+    },
+    "i18n-ops": {
+      "title": "Translation operations — glossary and flow",
+      "why": "Translation is not a one-off; it is a pipeline that runs on every release.",
+      "check": "New strings automatically show up as pending translation",
+      "links": [
+        "Weblate (open-source TMS)"
+      ]
+    },
+    "i18n-test": {
+      "title": "Localization testing — pseudolocalization",
+      "why": "There is a way to find broken screens before any translator is involved.",
+      "check": "Pseudo-locale reveals truncation and hardcoded strings",
+      "links": [
+        "Pseudolocalization"
       ]
     }
   }

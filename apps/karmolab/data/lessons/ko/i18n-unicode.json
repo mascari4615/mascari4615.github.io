@@ -1,0 +1,102 @@
+{
+  "id": "i18n-unicode",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "「글자」는 생각보다 복잡하다. 그리고 그 복잡함이 **길이 계산·자르기·정렬**에서 조용히 사고를 낸다."
+    },
+    {
+      "type": "h",
+      "text": "1. 세 개의 층"
+    },
+    {
+      "type": "note",
+      "text": "**바이트**(저장·전송) → **코드 포인트**(유니코드 번호) → **자소 묶음**(사람이 보는 한 글자). 이모지 👨‍👩‍👧 하나는 코드 포인트 5개, UTF-8 바이트 18개, 사람 눈엔 1글자다."
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "길이가 세 가지",
+      "text": "const s = '👨‍👩‍👧';\ns.length;                                   // 8  (UTF-16 코드 유닛)\n[...s].length;                              // 5  (코드 포인트)\n[...new Intl.Segmenter('ko', { granularity: 'grapheme' }).segment(s)].length;  // 1"
+    },
+    {
+      "type": "h",
+      "text": "2. 인코딩"
+    },
+    {
+      "type": "p",
+      "text": "**UTF-8 을 쓴다**(파일·DB·HTTP 전부). 한글이 깨진다면 대개 어딘가에서 EUC-KR·CP949 로 읽고 있는 것이다. BOM 은 대체로 넣지 않는 편이 안전하다(스크립트가 깨진다)."
+    },
+    {
+      "type": "h",
+      "text": "3. 정규화"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "보이는 것이 같아도 다를 수 있다",
+      "text": "const a = '한';           // 완성형 (NFC)\nconst b = 'ᄒ' + 'ᅡ' + 'ᆫ';  // 조합형 (NFD)\na === b;                   // false!\na.normalize('NFC') === b.normalize('NFC');   // true\n\n// macOS 파일명은 NFD 경향 → 검색·비교 전에 NFC 로 통일"
+    },
+    {
+      "type": "h",
+      "text": "4. 자르기와 정렬"
+    },
+    {
+      "type": "note",
+      "text": "`slice(0, 10)` 은 이모지·한글 조합을 반토막 낸다 — `Intl.Segmenter` 로 자소 단위로 잘라라. 정렬은 `localeCompare`(또는 `Intl.Collator`)를 써야 언어별 규칙이 맞는다 — 단순 코드 포인트 정렬은 사람 기준과 다르다."
+    },
+    {
+      "type": "h",
+      "text": "5. 대소문자와 검색"
+    },
+    {
+      "type": "p",
+      "text": "터키어의 i, 독일어 ß 처럼 대소문자 변환이 언어에 따라 다르다. 검색 비교는 `toLocaleLowerCase(locale)` + 정규화 + `Intl.Collator(locale, { sensitivity: 'base' })` 조합이 안전하다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "콘솔에서 이모지와 한글 조합 문자의 세 가지 길이를 재 보라. 그리고 `slice` 로 잘라 깨뜨려 보라."
+    },
+    {
+      "type": "try",
+      "text": "KarmoLab **문자 변환기**로 같은 글자의 NFC/NFD 를 비교하고, 코드에서 `normalize()` 전후 동등 비교를 확인하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "`'👨‍👩‍👧'.length` 가 8 인 이유는?",
+      "choices": [
+        "JS 문자열 길이는 UTF-16 코드 유닛 수이기 때문",
+        "이모지가 8글자라서",
+        "버그"
+      ],
+      "answer": 0,
+      "why": "사람이 보는 글자 수는 Intl.Segmenter 로 세야 한다."
+    },
+    {
+      "q": "보이는 글자가 같은데 `===` 가 false 인 흔한 원인은?",
+      "choices": [
+        "유니코드 정규화 형태(NFC/NFD)가 다름",
+        "공백 차이",
+        "인코딩 오류"
+      ],
+      "answer": 0,
+      "why": "normalize() 로 통일한 뒤 비교한다."
+    },
+    {
+      "q": "문자열 정렬을 사람 기준에 맞추려면?",
+      "choices": [
+        "localeCompare / Intl.Collator 사용",
+        "sort() 기본값",
+        "코드 포인트 정렬"
+      ],
+      "answer": 0,
+      "why": "언어별 정렬 규칙이 다르다."
+    }
+  ]
+}

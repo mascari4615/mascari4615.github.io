@@ -1,0 +1,100 @@
+{
+  "id": "i18n-format",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "`2026-08-12` 를 미국에서는 8월 12일, 유럽에서는 12월 8일로 읽는다. **직접 포맷하지 말고 표준 API 에 맡겨라.**"
+    },
+    {
+      "type": "h",
+      "text": "1. Intl 이 대부분을 해 준다"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "지역이 알아서 정한다",
+      "text": "new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long', timeStyle: 'short' }).format(new Date());\n// 2026년 8월 12일 오후 6:30\n\nnew Intl.NumberFormat('de-DE').format(1234567.89);          // 1.234.567,89\nnew Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(1200);  // ￥1,200\nnew Intl.RelativeTimeFormat('ko').format(-3, 'day');        // 3일 전\nnew Intl.ListFormat('ko').format(['사과', '배', '감']);      // 사과, 배 및 감"
+    },
+    {
+      "type": "h",
+      "text": "2. 저장은 기계 형식으로"
+    },
+    {
+      "type": "note",
+      "text": "**저장·전송은 ISO 8601 + UTC**(`2026-08-12T09:30:00Z`), 표시할 때만 지역 변환. 「사용자 지역 시간을 그대로 저장」하면 나중에 시간대를 알 수 없어 복구가 불가능하다."
+    },
+    {
+      "type": "h",
+      "text": "3. 시간대의 함정"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "자주 물리는 것",
+      "text": "· 「하루」의 경계가 지역마다 다르다 → 일별 집계가 어긋난다\n· 서머타임 때문에 하루가 23/25시간인 날이 있다\n· 오프셋(+09:00)과 시간대(Asia/Seoul)는 다르다 — 규칙이 바뀌면 오프셋은 틀린다\n· 「매일 오전 9시 알림」은 사용자의 시간대로 계산해야 한다"
+    },
+    {
+      "type": "h",
+      "text": "4. 통화와 숫자"
+    },
+    {
+      "type": "p",
+      "text": "통화는 **금액과 통화 코드를 함께** 저장한다(1200 + 'JPY'). 소수 자릿수도 통화마다 다르다(JPY 0, KRW 0, USD 2). 그리고 표시 형식(₩1,200 vs 1 200 ₩)은 지역이 정한다."
+    },
+    {
+      "type": "h",
+      "text": "5. 정렬과 검색"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "지역 규칙으로 정렬",
+      "text": "['가', 'B', '나', 'a'].sort(new Intl.Collator('ko').compare);\n// 코드 포인트 정렬과 결과가 다르다"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "같은 Date 를 ko-KR · en-US · de-DE · ar-EG 로 출력해 비교하라. 숫자·통화도 같이 해 보라."
+    },
+    {
+      "type": "try",
+      "text": "코드에서 `toLocaleDateString()` 없이 손으로 자른 날짜 포맷을 찾아 Intl 로 바꿔라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "날짜·시각의 저장 방식으로 권장되는 것은?",
+      "choices": [
+        "ISO 8601 + UTC 로 저장하고 표시할 때 변환",
+        "사용자 지역 시간 문자열",
+        "유닉스 초만"
+      ],
+      "answer": 0,
+      "why": "지역 시간만 저장하면 시간대 정보를 잃는다."
+    },
+    {
+      "q": "오프셋(+09:00)과 시간대(Asia/Seoul)의 차이는?",
+      "choices": [
+        "시간대는 규칙(서머타임 등)을 포함하고 오프셋은 그 순간의 값일 뿐",
+        "같은 말",
+        "오프셋이 더 정확"
+      ],
+      "answer": 0,
+      "why": "예약·반복 일정에는 시간대가 필요하다."
+    },
+    {
+      "q": "금액을 저장할 때 함께 저장해야 하는 것은?",
+      "choices": [
+        "통화 코드",
+        "표시 형식",
+        "사용자 언어"
+      ],
+      "answer": 0,
+      "why": "소수 자릿수와 표시가 통화에 따라 달라진다."
+    }
+  ]
+}
