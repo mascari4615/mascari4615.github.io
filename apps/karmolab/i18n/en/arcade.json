@@ -326,5 +326,12 @@
   "arcade.nunchi.clash": "— clashed",
   "arcade.nunchi.left": "{n}s left",
   "arcade.nunchi.win": "{who} survived",
-  "arcade.nunchi.none": "everyone is out"
+  "arcade.nunchi.none": "everyone is out",
+  "arcade.game.fleet.name": "Fleet Hunt",
+  "arcade.game.fleet.desc": "Knock on a board you can't see · a hit buys another shot",
+  "arcade.fleet.mine": "your waters",
+  "arcade.fleet.your": "Pick a square to hit",
+  "arcade.fleet.wait": "{who}'s turn",
+  "arcade.fleet.win": "only {who}'s fleet is left",
+  "arcade.fleet.none": "everything sank"
 }
