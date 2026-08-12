@@ -128,7 +128,13 @@ import {
     .km-body { flex:1; display:flex; min-height:0; position:relative; }
         /* ★ 캔버스 최소 높이 — 툴바가 줄바꿈으로 커지면 flex 가 캔버스부터 깎는다.
        실측 2026-08-09: 툴바가 커지며 캔버스가 156px 로 눌려 더블클릭이 화면 밖으로 나갔다. */
-    .km-canvas { flex:1; position:relative; z-index:1; min-width:0; min-height:420px; background:var(--bg-tertiary); }
+    /* ★ 판은 **불투명한 바탕**이어야 한다. 캔버스는 제 배경을 인라인으로 --ck-canvas-bg (기본
+       transparent)로 깔기 때문에 여기 적은 background 선언은 지고 있었고, 그 틈으로 앱 배경의
+       성운 장식이 그대로 비쳐 선·글씨 위에 얼룩이 졌다(실측 2026-08-12 — 안내 글이 글로우에
+       묻혀 안 읽혔다). 셸보다 한 단 **내려앉은** 색을 줘서 판이 파여 보이게 한다.
+       토큰이라 밝은 테마에서도 같이 뒤집힌다. */
+    .km-canvas { flex:1; position:relative; z-index:1; min-width:0; min-height:420px;
+      --ck-canvas-bg: var(--bg-primary); background:var(--bg-primary); }
     /* 고른 것 옆에 뜨는 작은 도구 줄 — 자주 쓰는 네 가지를 옆 패널까지 안 가고 누르게 (Whimsical 계보). */
     .km-mini { position:absolute; z-index:15; display:flex; gap:2px; padding:2px;
       background:var(--bg-secondary); border:1px solid var(--border); border-radius:8px;
