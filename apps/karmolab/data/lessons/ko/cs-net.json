@@ -1,0 +1,112 @@
+{
+  "id": "cs-net",
+  "minutes": 15,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "주소창에 엔터를 치면 무슨 일이 벌어지는가 — 이 질문이 면접 단골인 이유는, 답하려면 네트워크의 층을 전부 지나가야 하기 때문이다."
+    },
+    {
+      "type": "h",
+      "text": "1. 이름에서 주소로 — DNS"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "실제로 물어보기",
+      "text": "dig +short example.com          # A 레코드(IPv4)\ndig +trace example.com | tail   # 어디를 거쳐 답이 왔나\nnslookup example.com 1.1.1.1    # 특정 DNS 서버에 직접"
+    },
+    {
+      "type": "note",
+      "text": "DNS 는 **캐시가 여러 겹**이다(브라우저·OS·공유기·ISP). 배포 후 「나만 옛날 화면」의 흔한 원인이고, TTL 이 지나야 정리된다."
+    },
+    {
+      "type": "h",
+      "text": "2. 연결 — TCP 와 손잡기"
+    },
+    {
+      "type": "p",
+      "text": "TCP 는 순서와 도착을 보장한다(대신 왕복이 필요). HTTPS 면 TLS 손잡기가 한 번 더 붙는다. 그래서 **첫 연결이 가장 비싸고**, 연결 재사용(keep-alive)이 성능에 크게 기여한다."
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "어디서 시간이 가는지 나눠 보기",
+      "text": "curl -w 'dns %{time_namelookup}\\ntcp %{time_connect}\\ntls %{time_appconnect}\\nttfb %{time_starttransfer}\\ntotal %{time_total}\\n' -o /dev/null -s https://example.com"
+    },
+    {
+      "type": "h",
+      "text": "3. 지연과 대역폭은 다르다"
+    },
+    {
+      "type": "note",
+      "text": "대역폭은 「굵기」, 지연(RTT)은 「거리」다. 파일을 키우면 대역폭 문제, 요청 수가 많으면 지연 문제다. 모바일·해외 사용자의 체감은 대부분 **지연**에서 온다 — 요청 수를 줄이는 게 먼저다."
+    },
+    {
+      "type": "h",
+      "text": "4. TLS — 무엇을 보장하나"
+    },
+    {
+      "type": "p",
+      "text": "① 엿보기 방지(암호화) ② 변조 감지 ③ **상대가 그 도메인이 맞는지**(인증서). 인증서 오류를 무시하는 순간 세 번째가 사라진다."
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "인증서 확인",
+      "text": "openssl s_client -connect example.com:443 -servername example.com </dev/null 2>/dev/null | openssl x509 -noout -dates -subject"
+    },
+    {
+      "type": "h",
+      "text": "5. 막혔을 때 순서"
+    },
+    {
+      "type": "note",
+      "text": "이름이 안 풀리나(DNS) → 연결이 되나(TCP: `nc -vz host 443`) → TLS 가 되나 → HTTP 응답이 오나. 이 네 계단을 순서대로 짚으면 「인터넷이 안 돼요」가 한 문장으로 좁혀진다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "자주 쓰는 사이트에 위 curl 타이밍을 재고, 국내 사이트와 해외 사이트를 비교하라. 어느 구간이 차이를 만드는지 적어라."
+    },
+    {
+      "type": "try",
+      "text": "`dig +trace` 로 도메인 하나가 루트에서부터 어떻게 풀리는지 따라가 보라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "배포 후 나만 옛 화면이 보인다. 네트워크 쪽 흔한 원인은?",
+      "choices": [
+        "DNS 또는 브라우저·중간 캐시",
+        "TCP 재전송",
+        "TLS 버전"
+      ],
+      "answer": 0,
+      "why": "캐시는 여러 겹이라 TTL 이 지나야 정리된다."
+    },
+    {
+      "q": "요청 수가 많아 느린 상황에서 효과가 큰 개선은?",
+      "choices": [
+        "파일 압축률 높이기",
+        "요청 수 줄이기·연결 재사용(지연이 병목)",
+        "서버 CPU 증설"
+      ],
+      "answer": 1,
+      "why": "지연은 왕복 횟수에 비례한다. 굵기를 늘려도 왕복은 줄지 않는다."
+    },
+    {
+      "q": "TLS 인증서 검증을 끄면 잃는 것은?",
+      "choices": [
+        "암호화",
+        "상대가 그 도메인이 맞는지에 대한 보증",
+        "압축"
+      ],
+      "answer": 1,
+      "why": "암호화는 되지만 중간자가 끼어도 알 수 없게 된다."
+    }
+  ]
+}

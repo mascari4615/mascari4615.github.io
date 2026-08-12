@@ -1,0 +1,106 @@
+{
+  "id": "cs-db",
+  "minutes": 15,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "느린 쿼리 하나가 서비스 전체를 세운다. 인덱스는 마법이 아니라 **정렬된 사본**이고, 그래서 규칙이 있다."
+    },
+    {
+      "type": "h",
+      "text": "1. 인덱스 = 책 뒤의 색인"
+    },
+    {
+      "type": "p",
+      "text": "색인은 정렬돼 있어 원하는 항목으로 바로 간다. 대신 **본문이 바뀔 때마다 색인도 고쳐야** 한다 — 인덱스가 많으면 쓰기가 느려지는 이유다."
+    },
+    {
+      "type": "code",
+      "lang": "sql",
+      "label": "가장 자주 하는 실수",
+      "text": "-- 인덱스를 못 쓴다: 열에 함수를 씌우면 정렬 순서가 깨진다\nWHERE DATE(created_at) = '2026-08-12'\n\n-- 쓸 수 있다: 범위로 바꾼다\nWHERE created_at >= '2026-08-12' AND created_at < '2026-08-13'"
+    },
+    {
+      "type": "h",
+      "text": "2. 복합 인덱스는 순서가 전부"
+    },
+    {
+      "type": "code",
+      "lang": "sql",
+      "label": "왼쪽부터 이어져야 쓴다",
+      "text": "CREATE INDEX idx ON orders (user_id, created_at);\n\nWHERE user_id = 7                        -- 사용 O\nWHERE user_id = 7 AND created_at > ?     -- 사용 O (정렬까지 공짜)\nWHERE created_at > ?                     -- 사용 X (왼쪽이 빠졌다)"
+    },
+    {
+      "type": "h",
+      "text": "3. 실행 계획을 읽는다"
+    },
+    {
+      "type": "code",
+      "lang": "sql",
+      "label": "짐작하지 말고 물어본다",
+      "text": "EXPLAIN ANALYZE SELECT * FROM orders WHERE user_id = 7 ORDER BY created_at DESC LIMIT 20;\n-- Seq Scan / Full Table Scan 이 보이면 인덱스를 못 쓰고 있다\n-- rows 추정치와 실제가 크게 다르면 통계가 낡았다"
+    },
+    {
+      "type": "h",
+      "text": "4. N+1 — 앱에서 만드는 느림"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "반복문 안의 쿼리",
+      "text": "// 나쁨: 주문 100개면 쿼리 101번\nfor (const o of orders) o.user = await db.user(o.userId);\n\n// 좋음: 한 번에\nconst users = await db.usersByIds([...new Set(orders.map((o) => o.userId))]);"
+    },
+    {
+      "type": "h",
+      "text": "5. 트랜잭션 — 전부 되거나 전부 안 되거나"
+    },
+    {
+      "type": "note",
+      "text": "돈·재고처럼 **여러 표를 함께 바꿔야** 하는 일은 트랜잭션으로 묶는다. 격리 수준이 낮으면 중간 상태가 남에게 보일 수 있다(더티 리드·팬텀 리드). 기본값이 무엇인지 알고 쓰는 것이 시작이다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "느린 쿼리 하나에 `EXPLAIN ANALYZE` 를 돌리고, 인덱스를 추가한 뒤 다시 돌려 실행 시간과 계획이 어떻게 바뀌는지 적어라."
+    },
+    {
+      "type": "try",
+      "text": "코드에서 반복문 안의 쿼리를 하나 찾아 한 번의 IN 쿼리로 바꾸고, 쿼리 수를 로그로 세어 비교하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "`WHERE DATE(created_at) = ?` 가 인덱스를 못 쓰는 이유는?",
+      "choices": [
+        "열에 함수를 적용하면 인덱스의 정렬 순서를 쓸 수 없기 때문",
+        "날짜 타입이라서",
+        "LIMIT 이 없어서"
+      ],
+      "answer": 0,
+      "why": "범위 조건으로 바꾸거나 함수 인덱스를 따로 만들어야 한다."
+    },
+    {
+      "q": "복합 인덱스 (a, b) 가 있을 때 인덱스를 못 쓰는 조건은?",
+      "choices": [
+        "WHERE a = ?",
+        "WHERE a = ? AND b > ?",
+        "WHERE b > ?"
+      ],
+      "answer": 2,
+      "why": "왼쪽 열부터 이어져야 한다. b 만으로는 정렬 순서를 이용할 수 없다."
+    },
+    {
+      "q": "N+1 문제의 전형적인 모습은?",
+      "choices": [
+        "반복문 안에서 매번 쿼리를 날린다",
+        "인덱스가 너무 많다",
+        "트랜잭션이 길다"
+      ],
+      "answer": 0,
+      "why": "한 번의 IN 쿼리나 조인으로 묶으면 사라진다."
+    }
+  ]
+}

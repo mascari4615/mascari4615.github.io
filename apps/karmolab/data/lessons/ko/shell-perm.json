@@ -1,0 +1,102 @@
+{
+  "id": "shell-perm",
+  "minutes": 11,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "「Permission denied」는 에러가 아니라 **설계**다. 왜 막혔는지 읽을 줄 알면 대충 `sudo` 를 붙이는 습관에서 벗어난다."
+    },
+    {
+      "type": "h",
+      "text": "1. 세 사람 × 세 권한"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "ls -l 읽기",
+      "text": "-rw-r--r--  1 masca staff  1.2K app.js\n│└┬┘└┬┘└┬┘   │     │\n│ │  │  └ 그 외(others) : r--\n│ │  └── 그룹(group)   : r--\n│ └───── 소유자(user)  : rw-\n└─────── 종류(- 파일, d 폴더, l 링크)"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "숫자와 글자는 같은 말",
+      "text": "chmod 644 app.js     # rw- r-- r--\nchmod 755 run.sh     # rwx r-x r-x (실행 가능)\nchmod +x run.sh      # 실행 권한만 추가\nchown user:group f   # 소유자·그룹 변경 (보통 sudo 필요)"
+    },
+    {
+      "type": "h",
+      "text": "2. 폴더의 x 는 「들어가기」"
+    },
+    {
+      "type": "note",
+      "text": "폴더에서 `r` 은 목록 보기, `x` 는 **그 안으로 들어가기**다. `x` 없이 `r` 만 있으면 이름은 보이는데 열 수는 없다 — 「분명 있는데 안 열린다」의 정체."
+    },
+    {
+      "type": "h",
+      "text": "3. sudo 를 붙이기 전에"
+    },
+    {
+      "type": "p",
+      "text": "먼저 물어라: **내가 그 파일을 만질 자격이 있나?** 로그·설정처럼 시스템 소유인 것은 그렇다. 하지만 내 프로젝트 폴더에서 sudo 가 필요하다면, 대개 이전에 sudo 로 만든 파일이 남아 소유자가 root 가 된 것이다 — `chown` 으로 되돌리는 편이 근본이다."
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "root 소유가 섞였을 때",
+      "text": "ls -l | grep root\nsudo chown -R \"$USER\" .     # 내 프로젝트 폴더를 내 것으로"
+    },
+    {
+      "type": "h",
+      "text": "4. 비밀 파일"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "키는 나만 읽게",
+      "text": "chmod 600 ~/.ssh/id_ed25519     # 다른 사람이 읽을 수 있으면 ssh 가 거부한다\nchmod 700 ~/.ssh"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "연습 파일을 만들어 `chmod 000` 으로 막고 열어 보라. 그 다음 400 · 600 · 700 으로 바꾸며 무엇이 되고 안 되는지 확인하라."
+    },
+    {
+      "type": "try",
+      "text": "폴더에서 `x` 만 빼고(`chmod 600 dir`) 안으로 들어가 보라. 목록과 진입의 차이를 몸으로 확인하는 연습이다."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "`chmod 755 run.sh` 의 의미는?",
+      "choices": [
+        "소유자 rwx, 그룹·그 외 r-x",
+        "모두 읽기 전용",
+        "소유자만 읽기"
+      ],
+      "answer": 0,
+      "why": "7=rwx, 5=r-x. 실행 가능한 스크립트의 흔한 권한이다."
+    },
+    {
+      "q": "폴더에 r 은 있고 x 가 없으면?",
+      "choices": [
+        "이름 목록은 보이지만 안으로 들어갈 수 없다",
+        "아무것도 안 보인다",
+        "쓰기만 가능하다"
+      ],
+      "answer": 0,
+      "why": "폴더의 x 는 진입 권한이다."
+    },
+    {
+      "q": "내 프로젝트 폴더에서 sudo 가 자꾸 필요하다면 가장 먼저 볼 것은?",
+      "choices": [
+        "디스크 용량",
+        "이전에 sudo 로 만든 root 소유 파일이 섞였는지",
+        "셸 종류"
+      ],
+      "answer": 1,
+      "why": "chown 으로 소유자를 되돌리는 것이 근본 해결이다."
+    }
+  ]
+}

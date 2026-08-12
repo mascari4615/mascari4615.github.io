@@ -1,0 +1,100 @@
+{
+  "id": "cs-compiler",
+  "minutes": 13,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "언어를 하나 만들어 보면 「언어」가 신비하지 않게 된다. 그리고 정규식·설정 파일·템플릿처럼 **작은 문법을 다루는 일**이 갑자기 쉬워진다."
+    },
+    {
+      "type": "h",
+      "text": "1. 세 단계"
+    },
+    {
+      "type": "p",
+      "text": "**토큰 나누기**(글자 → 의미 있는 조각) → **구문 분석**(조각 → 트리) → **실행**(트리를 걸어 다니며 계산). 컴파일러는 마지막을 기계어 생성으로 바꾼 것뿐이다."
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "토큰 나누기",
+      "text": "function tokenize(src) {\n  return src.match(/\\d+\\.?\\d*|[-+*/()]/g) ?? [];\n}\ntokenize('1 + 2 * (3 - 1)');  // ['1','+','2','*','(','3','-','1',')']"
+    },
+    {
+      "type": "h",
+      "text": "2. 우선순위는 함수의 계층으로"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "재귀 하강 파서 — 20줄 계산기",
+      "text": "function parse(tokens) {\n  let i = 0;\n  const peek = () => tokens[i];\n  const eat = (t) => { if (peek() !== t) throw new Error(`기대: ${t}, 실제: ${peek()}`); i++; };\n\n  function expr() {                       // + -\n    let node = term();\n    while (peek() === '+' || peek() === '-') { const op = tokens[i++]; node = { op, left: node, right: term() }; }\n    return node;\n  }\n  function term() {                       // * /  (더 세게 묶인다)\n    let node = factor();\n    while (peek() === '*' || peek() === '/') { const op = tokens[i++]; node = { op, left: node, right: factor() }; }\n    return node;\n  }\n  function factor() {\n    if (peek() === '(') { eat('('); const n = expr(); eat(')'); return n; }\n    return { num: Number(tokens[i++]) };\n  }\n  return expr();\n}"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "트리를 걸어 다니며 계산",
+      "text": "function evalNode(n) {\n  if ('num' in n) return n.num;\n  const a = evalNode(n.left), b = evalNode(n.right);\n  return { '+': a + b, '-': a - b, '*': a * b, '/': a / b }[n.op];\n}\nevalNode(parse(tokenize('1 + 2 * (3 - 1)')));   // 5"
+    },
+    {
+      "type": "h",
+      "text": "3. 이 감각이 쓰이는 곳"
+    },
+    {
+      "type": "note",
+      "text": "설정 DSL, 검색 쿼리 문법, 템플릿 엔진, 마크다운 파서, 게임의 대사 스크립트… **직접 만든 작은 문법**은 정규식으로 억지로 짜는 것보다 훨씬 안 깨진다."
+    },
+    {
+      "type": "h",
+      "text": "4. 오류 메시지가 품질이다"
+    },
+    {
+      "type": "p",
+      "text": "어디서 틀렸는지(줄·칸), 무엇을 기대했는지, 무엇이 왔는지 — 이 셋을 말해 주는 파서가 좋은 파서다. 자기 언어를 쓰는 사람이 자기 자신뿐이어도 마찬가지다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "위 계산기를 그대로 옮겨 실행하고, 거듭제곱(`^`, 오른쪽 결합)을 추가해 봐라. 우선순위 계층을 하나 더 만드는 연습이다."
+    },
+    {
+      "type": "try",
+      "text": "오류 메시지에 위치(몇 번째 토큰)를 넣어 보라. 그 한 줄이 디버깅을 얼마나 바꾸는지 체감된다."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "인터프리터의 일반적인 세 단계는?",
+      "choices": [
+        "토큰 나누기 → 구문 분석(트리) → 실행",
+        "압축 → 전송 → 해제",
+        "컴파일 → 링크 → 로드"
+      ],
+      "answer": 0,
+      "why": "컴파일러는 마지막 단계를 코드 생성으로 바꾼 것이다."
+    },
+    {
+      "q": "재귀 하강 파서에서 연산자 우선순위를 표현하는 방법은?",
+      "choices": [
+        "정규식 옵션",
+        "우선순위마다 함수 계층을 만든다(expr → term → factor)",
+        "토큰을 정렬한다"
+      ],
+      "answer": 1,
+      "why": "더 세게 묶이는 연산일수록 안쪽 함수에서 처리한다."
+    },
+    {
+      "q": "작은 문법을 정규식 대신 파서로 만드는 이점은?",
+      "choices": [
+        "중첩·우선순위를 다룰 수 있고 오류 위치를 말해 줄 수 있다",
+        "항상 더 빠르다",
+        "코드가 항상 짧다"
+      ],
+      "answer": 0,
+      "why": "정규식은 중첩 구조에 약하고 오류 설명을 못 한다."
+    }
+  ]
+}

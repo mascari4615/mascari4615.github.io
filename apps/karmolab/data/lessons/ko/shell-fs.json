@@ -1,0 +1,102 @@
+{
+  "id": "shell-fs",
+  "minutes": 11,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "터미널이 무서운 이유의 절반은 **지금 어디에 있는지 모른다**는 것이다. 경로 감각만 잡히면 나머지는 명령 몇 개다."
+    },
+    {
+      "type": "h",
+      "text": "1. 지금 어디, 무엇이"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "이 세 줄이 기본",
+      "text": "pwd                # 지금 폴더\nls -alh            # 숨김 포함 · 자세히 · 사람이 읽는 크기\ncd -               # 직전 폴더로 돌아가기"
+    },
+    {
+      "type": "note",
+      "text": "`/` 로 시작하면 절대 경로, 아니면 지금 폴더 기준 상대 경로다. `~` 는 내 홈, `.` 은 지금, `..` 은 한 칸 위. 스크립트에서는 되도록 절대 경로를 쓰면 「어디서 실행했나」에 안 흔들린다."
+    },
+    {
+      "type": "h",
+      "text": "2. 찾기"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "find 는 조건, grep 은 내용",
+      "text": "find . -name '*.log' -mtime -1        # 하루 안에 바뀐 로그\nfind . -type d -name node_modules -prune -o -name '*.ts' -print\ngrep -rn 'TODO' src/ --include='*.ts'"
+    },
+    {
+      "type": "h",
+      "text": "3. 옮기고 지우기 — 되돌릴 수 없는 것들"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "먼저 보고 실행한다",
+      "text": "cp -r src src.bak            # 복사(백업)\nmv old.txt new.txt           # 이름 바꾸기 = 옮기기\n\nrm -rf build/                # 되돌릴 수 없다 — 경로를 두 번 읽어라\nfind . -name '*.tmp' -print  # 지우기 전에 목록부터"
+    },
+    {
+      "type": "note",
+      "text": "`rm -rf` 앞에 변수를 쓰면(`rm -rf $DIR/`) 변수가 비었을 때 루트를 지운다. 스크립트에서는 `set -u`(빈 변수 금지)와 `${DIR:?}` 같은 방어를 걸어라."
+    },
+    {
+      "type": "h",
+      "text": "4. 용량과 링크"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "어디가 디스크를 먹나",
+      "text": "du -sh * | sort -h | tail    # 이 폴더에서 큰 것 순\ndf -h                        # 디스크 전체\nln -s /real/path link        # 심볼릭 링크(바로가기)"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "홈 폴더에서 `du -sh * | sort -h | tail` 로 가장 큰 디렉터리 셋을 찾아라. 무엇이 그렇게 크게 자랐는지 확인하라."
+    },
+    {
+      "type": "try",
+      "text": "`find` 로 30일 이상 안 바뀐 `.log` 파일 목록을 뽑고(지우지 말고 출력만), 명령을 파일로 저장해 두라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "스크립트에서 상대 경로 대신 절대 경로를 권하는 이유는?",
+      "choices": [
+        "더 짧아서",
+        "어디서 실행하든 같은 곳을 가리키기 때문",
+        "권한 때문에"
+      ],
+      "answer": 1,
+      "why": "실행 위치에 따라 동작이 달라지는 스크립트는 언젠가 엉뚱한 곳을 지운다."
+    },
+    {
+      "q": "`rm -rf $DIR/` 이 위험한 이유는?",
+      "choices": [
+        "DIR 이 비면 루트를 지울 수 있어서",
+        "rm 이 느려서",
+        "-r 이 재귀라서"
+      ],
+      "answer": 0,
+      "why": "set -u 와 ${DIR:?} 같은 방어가 필요하다."
+    },
+    {
+      "q": "지우기 전 권장되는 습관은?",
+      "choices": [
+        "먼저 find 로 목록만 출력해 확인한다",
+        "sudo 를 붙인다",
+        "한 번에 지운다"
+      ],
+      "answer": 0,
+      "why": "되돌릴 수 없는 명령은 항상 눈으로 먼저 확인한다."
+    }
+  ]
+}
