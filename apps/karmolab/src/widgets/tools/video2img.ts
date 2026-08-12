@@ -13,6 +13,7 @@ import { fileSize as size, mmss, download } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
 
 import { seekTo, downloadUrl } from './shared/video';
+import { encode } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -144,13 +145,10 @@ import { t, loadNamespace } from '../../lib/i18n';
             if (!ctx) throw new Error(t('video2img.err.canvas'));
             await seekTo(video, time);
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const blob = await new Promise<Blob>((resolve, reject) => {
-              canvas.toBlob(
-                (b) => (b ? resolve(b) : reject(new Error(t('video2img.err.shot')))),
-                $<HTMLSelectElement>('#viFormat').value,
-                0.92
-              );
-            });
+            /* 내보내기는 공용 것으로 (TASK-KL-272) — JPG 는 투명을 못 담아, 그림이 아직 안 그려진
+             * 자리가 있으면 **검게** 나온다. 공용 쪽이 흰 바탕을 먼저 깔아 준다. */
+            const fmt = $<HTMLSelectElement>('#viFormat').value;
+            const blob = await encode(canvas, fmt === 'image/jpeg' ? 'jpeg' : fmt === 'image/webp' ? 'webp' : 'png', 0.92);
             return { time: video.currentTime, blob, url: URL.createObjectURL(blob) };
           }
 
