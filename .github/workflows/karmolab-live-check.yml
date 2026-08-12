@@ -153,27 +153,27 @@ jobs:
         run: npm run audit:data
 
       - name: 화면이 뜨는지 (전 도구)
-        run: npm run test:live -- ${{ github.event.inputs.tools }}
+        run: node scripts/retry-if-redeployed.mjs npm run test:live -- ${{ github.event.inputs.tools }}
 
       # 놀이는 붙인 조각이 많은데(표 고르기·라운드·진행·결과·그림) 빌드는 그중 **하나도**
       # 안 눌러 본다. 실주소에서 한 판을 끝까지 눌러 봐야 「배포는 초록인데 못 논다」가 잡힌다.
       - name: 이상형 월드컵 한 판이 실제로 끝나는지
         if: always()
-        run: node scripts/smoke-worldcup.mjs
+        run: node scripts/retry-if-redeployed.mjs node scripts/smoke-worldcup.mjs
 
       # 오늘의 판(TASK-KL-194)은 첫 화면에서 **매일 달라지는 유일한 자리**다. 값은 각 놀이가
       # 브라우저에 남긴 것을 읽어 나오므로, 저장 모양이 하나만 어긋나도 단위 시험은 전부
       # 초록인데 화면은 영원히 「0 / 5」가 된다. 서버를 끊고 본다 — 로그인·노트북 없이도 떠야 한다.
       - name: 오늘의 판이 첫 화면에 뜨고 세는지
         if: always()
-        run: npm run test:today
+        run: node scripts/retry-if-redeployed.mjs npm run test:today
 
       # 자랑 카드는 **그림**이라 단위 시험으로는 「Blob 이 나왔다」까지밖에 못 본다.
       # 글꼴이 폴백으로 찍히거나 바탕이 검게 나가도 아무 검사도 안 걸린다 — 실제로 그려서
       # 크기·바탕색·글자 화소를 잰다 (TASK-KL-195).
       - name: 자랑 카드가 실제로 그려지는지
         if: always()
-        run: npm run test:brag
+        run: node scripts/retry-if-redeployed.mjs npm run test:brag
 
       # 도감의 값은 **다른 곳에서 찍힌 도장**을 읽어 나온다(도구를 열 때 account.ts 가 찍는다).
       # 그 두 자리가 어긋나면 단위 시험은 초록인데 도감만 영원히 0칸이다 (TASK-KL-196).
