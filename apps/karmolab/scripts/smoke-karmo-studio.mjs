@@ -51,6 +51,13 @@ const bandTop=Math.min(...multiClipBoxes.map((box)=>box.top))+3;
 const bandBottom=Math.max(...multiClipBoxes.map((box)=>box.bottom))-3;
 await page.mouse.move(bandRight,bandTop);await page.mouse.down();await page.mouse.move(bandLeft,bandBottom,{steps:6});await page.mouse.up();await page.waitForTimeout(80);
 const boxSelected=await page.locator('.ks-lane[data-kind=midi]').first().locator('.ks-clip.is-selected').count();
+/* 클립 소리 끄기 — 트랙 전체를 끄지 않고 한 부분만 빼 본다. */
+await page.keyboard.press('m');await page.waitForTimeout(140);
+const mutedCount=await page.locator('.ks-clip.is-muted').count();
+await page.waitForTimeout(400);
+const mutedSaved=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null');return raw?raw.tracks.reduce((sum,track)=>sum+track.clips.filter((clip)=>clip.mute).length,0):-1;});
+await page.keyboard.press('m');await page.waitForTimeout(140);
+const mutedAfterToggle=await page.locator('.ks-clip.is-muted').count();
 /* 묶음 clipboard — 선택한 clip 전부가 재생 헤드 기준으로 상대 간격을 지킨 채 붙는다. */
 const clipCountBeforeMultiCopy=await page.locator('.ks-clip').count();
 await page.keyboard.press('Control+c');await page.keyboard.press('Control+v');await page.waitForTimeout(140);
@@ -306,6 +313,9 @@ const after=await page.evaluate(()=>{const saved=JSON.parse(localStorage.getItem
 if(initial.tracks<2||initial.clips<1||initial.notes<4)problems.push(`기본 프로젝트가 비었다 (${JSON.stringify(initial)})`);
 if(clipStartAfterContext!==clipStartBeforeContext||!contextLabels.includes('편집기 열기'))problems.push(`우클릭 입력 격리 실패 (${clipStartBeforeContext}→${clipStartAfterContext}, ${contextLabels.join(', ')})`);
 if(selectTool!=='select'||drawTool!=='draw')problems.push(`FL식 tool 단축키 실패 (${selectTool}, ${drawTool})`);
+if(mutedCount<1)problems.push(`클립 소리 끄기가 화면에 안 보인다 (${mutedCount})`);
+if(mutedSaved<1)problems.push(`클립 소리 끔이 저장에 안 남았다 (${mutedSaved})`);
+if(mutedAfterToggle!==0)problems.push(`다시 눌러도 안 켜진다 (${mutedAfterToggle})`);
 if(clipCountAfterMultiPaste!==clipCountBeforeMultiCopy*2)problems.push(`묶음 clip 붙여넣기 실패 (${clipCountBeforeMultiCopy}→${clipCountAfterMultiPaste})`);
 if(clipCountAfterMultiPasteUndo!==clipCountBeforeMultiCopy)problems.push(`붙여넣은 묶음 삭제 실패 (${clipCountAfterMultiPaste}→${clipCountAfterMultiPasteUndo})`);
 if(boxSelected<2)problems.push(`box drag 다중 선택 실패 (${boxSelected} selected)`);

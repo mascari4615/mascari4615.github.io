@@ -17,6 +17,8 @@ export interface StudioClip {
   duration: number;
   offset: number;
   assetId?: string;
+  /** 이 클립만 소리를 끈다 — 트랙 전체를 끄지 않고 한 부분만 빼 보려고. */
+  mute: boolean;
   notes: StudioNote[];
   gain: number;
   fadeIn: number;
@@ -120,7 +122,7 @@ export function newProject(): StudioProject {
   const midi = newTrack('midi', 1);
   const clip: StudioClip = {
     id: studioId('clip'), trackId: midi.id, kind: 'midi', name: 'First idea', start: 0, duration: 4,
-    offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, notes: [60, 64, 67, 72].map((pitch, index) => ({
+    offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, mute: false, notes: [60, 64, 67, 72].map((pitch, index) => ({
       id: studioId('note'), beat: index, duration: 0.8, pitch, velocity: 0.78
     }))
   };
@@ -219,7 +221,7 @@ export function normalizeProject(input: unknown): StudioProject {
         id: typeof clip.id === 'string' ? clip.id : studioId('clip'), trackId: track.id, kind: track.kind,
         name: typeof clip.name === 'string' ? clip.name : 'Clip', start: Math.max(0, Number(clip.start) || 0),
         duration: Math.max(0.0625, Number(clip.duration) || 1), offset: Math.max(0, Number(clip.offset) || 0),
-        assetId: clip.assetId, gain: Math.max(0, Math.min(2, Number(clip.gain) || 1)),
+        assetId: clip.assetId, mute: clip.mute === true, gain: Math.max(0, Math.min(2, Number(clip.gain) || 1)),
         fadeIn: Math.max(0, Number(clip.fadeIn) || 0), fadeOut: Math.max(0, Number(clip.fadeOut) || 0),
         notes: Array.isArray(clip.notes) ? clip.notes.map((note) => ({ ...note })) : []
       };
