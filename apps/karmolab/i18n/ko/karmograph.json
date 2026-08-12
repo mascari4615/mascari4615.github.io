@@ -625,5 +625,8 @@
   "karmograph.help.guideWhat": "이웃 카드의 줄에 맞추기",
   "karmograph.help.guideHow": "끌면 저절로 붙고 맞춘 줄이 뜬다 (Alt = 자유롭게)",
   "karmograph.side.more": "설명·코멘트·모양·얼굴 더 보기",
-  "karmograph.side.less": "접기"
+  "karmograph.side.less": "접기",
+  "karmograph.btn.fit": "전체 보기",
+  "karmograph.btn.story": "발표",
+  "karmograph.btn.up": "위로"
 }
