@@ -1932,6 +1932,34 @@ await step('카드를 만들면 **그 자리에서 바로** 이름을 친다 (�
 
 // ── 폰 화면 ──────────────────────────────────────────────────────────────────
 // 관계도는 **보는 일**이 폰에서 훨씬 많다(링크 받아 열기). 그런데 지금까지 폰 크기는 한 번도 안 봤다.
+await step('폰 첫 화면 — 안내가 시트에 안 잘리고, 툴바에 「더 있다」 표시가 뜬다', async () => {
+  // 사용자 검토(2026-08-12): 폰 첫 화면에서 안내 넉 줄이 아래 시트와 겹쳐 문장 중간에서 끊겼고,
+  // 툴바는 옆으로 밀리는데 **밀린다는 표시가 없었다**(스크롤막대는 폰에서 안 보인다).
+  const ph = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const m = await ph.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.waitForTimeout(1200);
+
+  const gap = await m.evaluate(() => {
+    const hint = document.querySelector('.km-empty-in');
+    const sheet = document.querySelector('.km-side');
+    if (!hint || !sheet) return null;
+    return Math.round(sheet.getBoundingClientRect().top - hint.getBoundingClientRect().bottom);
+  });
+  if (gap === null) throw new Error('첫 화면 안내나 시트를 못 찾았다');
+  if (gap < 0) throw new Error(`첫 화면 안내가 시트에 ${-gap}px 잘린다`);
+
+  const bar = await m.evaluate(() => {
+    const el = document.querySelector('.km-toolbar');
+    return { over: el.scrollWidth - el.clientWidth, fade: el.classList.contains('km-more-right') };
+  });
+  if (bar.over > 4 && !bar.fade) throw new Error(`툴바가 ${bar.over}px 더 있는데 표시가 없다`);
+  await ph.close();
+});
 await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널은 아래 시트로 뜬다', async () => {
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const m = await phone.newPage();

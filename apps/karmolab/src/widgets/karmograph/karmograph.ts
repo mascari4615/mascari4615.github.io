@@ -337,6 +337,10 @@ import {
       .km-toolbar { gap:6px; padding:8px; flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden;
         scrollbar-width:none; -webkit-overflow-scrolling:touch; }
       .km-toolbar::-webkit-scrollbar { display:none; }
+      /* ★ 옆으로 밀리는데 **밀린다는 표시가 없었다** — 스크롤막대를 감췄으니(폰에서는 원래 안 보인다)
+         오른쪽 끝을 흐리게 해서 「더 있다」를 눈에 보이게 한다. 끝까지 밀면 흐림도 사라진다. */
+      .km-toolbar.km-more-right { -webkit-mask-image:linear-gradient(to right, #000 88%, transparent);
+        mask-image:linear-gradient(to right, #000 88%, transparent); }
       .km-toolbar > * { flex:0 0 auto; }
       .km-toolbar input[type=text] { min-width:110px; }
       .km-toolbar .btn { padding:6px 10px; }
@@ -818,9 +822,23 @@ import {
     window.addEventListener('orientationchange', syncViewportFit);
     const fitObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(syncViewportFit) : null;
     fitObserver?.observe(document.body);
+
+    /* 툴바가 폰에서 옆으로 밀리는데 **밀린다는 표시가 없었다**(스크롤막대는 폰에서 안 보인다).
+       오른쪽에 남은 것이 있으면 끝을 흐린다 — 끝까지 밀면 흐림이 사라져 「끝」도 같이 말해 준다. */
+    // 툴바는 이 지점에 아직 없을 수 있다 — **부를 때마다 찾는다**(한 번 잡아 두면 null 로 굳는다).
+    const syncToolbarFade = (): void => {
+      const el = root.querySelector('.km-toolbar') as HTMLElement | null;
+      if (!el || el.clientWidth === 0) return;   // 아직 자리를 안 잡았으면 판단하지 않는다
+      el.classList.toggle('km-more-right', el.scrollWidth - el.clientWidth - el.scrollLeft > 2);
+    };
+    requestAnimationFrame(syncToolbarFade);
+    setTimeout(syncToolbarFade, 300);
+    root.addEventListener('scroll', syncToolbarFade, { passive: true, capture: true });
+    window.addEventListener('resize', syncToolbarFade);
     Toolbox.onDispose?.(() => {
       window.removeEventListener('resize', syncViewportFit);
       window.removeEventListener('orientationchange', syncViewportFit);
+      window.removeEventListener('resize', syncToolbarFade);
       fitObserver?.disconnect();
     });
 
@@ -922,11 +940,13 @@ import {
          손가락은 두드리고, 옆 패널은 아래에서 올라오는 시트다. 첫 화면 안내가 없는 곳을
          가리키면 처음 여는 사람은 첫 걸음부터 막힌다(실측 2026-08-12, 폰 첫 화면). */
       const touch = window.matchMedia('(max-width: 720px)').matches;
+      /* ★ 폰에서는 **두 줄까지**다 (2026-08-12 사용자 검토). 넉 줄이면 아래 시트(시작 갈래)와
+         겹쳐 문장이 중간에서 잘리고, 잘린 안내는 안 읽는다 — 실측: 「…고를 수 있어」에서 끊겼다.
+         선 잇는 법은 시트를 올리면 나오는 시작 갈래와 도움말(?)이 맡는다. */
       el.innerHTML = '<div class="km-empty-in">' +
         t('karmograph.t169') +
         t(touch ? 'karmograph.t170.touch' : 'karmograph.t170') +
-        t('karmograph.t171') +
-        t(touch ? 'karmograph.t172.touch' : 'karmograph.t172') +
+        (touch ? '' : t('karmograph.t171') + t('karmograph.t172')) +
         '</div>';
 
       // 안내는 클릭을 통과시키지만(pointer-events:none) 버튼만은 눌려야 한다.
