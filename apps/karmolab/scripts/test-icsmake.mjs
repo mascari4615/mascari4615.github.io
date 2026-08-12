@@ -22,7 +22,11 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
 const browser = await chromium.launch();
-const page = await browser.newPage();
+/* ★ 시간대를 못 박는다 (2026-08-12). 이 도구는 **보는 사람의 시간대**로 계산한다(설계).
+ *   그래서 검사가 「한국 19시 → UTC 10시」를 확인하려면 창이 한국이어야 한다 —
+ *   내 기계는 한국이라 초록, CI(UTC)에서만 빨갰다. 기계에 기대지 않는다. */
+const context = await browser.newContext({ timezoneId: 'Asia/Seoul' });
+const page = await context.newPage();
 await serveAppAssets(page, root);
 await page.goto('http://localhost/');
 await page.evaluate(() => {
