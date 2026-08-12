@@ -85,6 +85,14 @@ if (!(await page.locator('.meok:visible').isVisible().catch(() => false))) {
   await page.waitForTimeout(2500);
 }
 try {
+  // ★ **첫 진입에도 탭을 눌러야 한다** (2026-08-12). 아래 새로고침 자리에는 이미 그렇게 돼
+  //   있는데 여기만 빠져 있었다 — 먹은 「이미지」 묶음의 탭이라 주소만으로는 안 만들어진다.
+  //   그래서 이 검사는 매 판 첫 20초를 헛되이 기다리다 「화면이 안 떴다」로 죽었다(master 실측).
+  await page.waitForTimeout(2000);
+  await page.evaluate(() => {
+    const button = [...document.querySelectorAll('button')].find((b) => (b.textContent || '').trim() === '먹');
+    if (button) button.click();
+  });
   // ★ 붙어 있기(attached)만 기다린다 — 「보이기」로 기다리면 **숨은 첫 판**을 붙들고 시간이 다 간다.
   //   실제로 보이는지는 바로 아래에서 크기로 판정한다(그게 사람이 보는 것과 같은 뜻이다).
   await page.waitForSelector('.meok', { state: 'attached', timeout: 20000 });
