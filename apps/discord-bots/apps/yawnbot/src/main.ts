@@ -37,6 +37,7 @@ import { registerKarmolabApi } from './bot/karmolab-api';
 import { registerWellRoutes } from './bot/karmolab-wells-api';
 import { registerTodayRoutes } from './bot/karmolab-today-api';
 import { registerBragRoutes } from './bot/karmolab-brag-api';
+import { registerSpaceRoutes } from './bot/karmolab-space-api';
 import { registerCollectionRoutes } from './bot/karmolab-collection-api';
 import { registerRouteRoutes } from './bot/karmolab-route-api';
 import { registerLiveRoutes } from './bot/karmolab-live-api';
@@ -379,6 +380,9 @@ registerWellRoutes(app);
 registerTodayRoutes(app);
 /* TASK-KL-195 — 자랑 카드 주소. 그림 주소를 그대로 붙이면 그림만 뜨고 들어올 문이 없다. */
 registerBragRoutes(app);
+/* 우주 데이터는 **여기가 대신 받아** 여럿이 나눠 쓴다 — 화면마다 바깥에 붙으면
+   상대 서버가 사람 수만큼 맞고 곧 429·403 으로 문을 닫는다 (TASK-KL-241). */
+registerSpaceRoutes(app);
 /* TASK-KL-196 — 도감. 서버는 이미 가진 발자국을 읽기만 한다(새 원장 X). */
 registerCollectionRoutes(app);
 /* TASK-KL-196 E — 말로 부리기. 찾는 칸이 0건일 때만 불린다(그래서 평소엔 안 돈다). */
