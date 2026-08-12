@@ -256,5 +256,14 @@
   "arcade.game.mancala.name": "Mancala",
   "arcade.game.mancala.desc": "Sow one seed per pit. The last seed decides everything",
   "arcade.man.win": "{who} — {a} to {b}",
-  "arcade.man.draw": "{n} all — a draw"
+  "arcade.man.draw": "{n} all — a draw",
+  "arcade.game.shellgame.name": "Shell Game",
+  "arcade.game.shellgame.desc": "Track the cup with the ball. Faster each round",
+  "arcade.shell.watch": "Watch closely",
+  "arcade.shell.pick": "Which cup?",
+  "arcade.shell.waiting": "Waiting for the others",
+  "arcade.shell.right": "Got it",
+  "arcade.shell.wrong": "Lost it",
+  "arcade.shell.win": "{who} — {n} right",
+  "arcade.shell.perfect": "{who} — all of them"
 }
