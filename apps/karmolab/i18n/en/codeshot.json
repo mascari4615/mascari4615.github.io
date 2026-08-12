@@ -1,0 +1,23 @@
+{
+  "codeshot.tab": "Code → Image",
+  "codeshot.label.code": "Code",
+  "codeshot.label.lang": "Language",
+  "codeshot.label.frame": "Frame",
+  "codeshot.label.file": "File name (optional)",
+  "codeshot.label.size": "Font size",
+  "codeshot.label.preview": "Preview",
+  "codeshot.opt.numbers": "Line numbers",
+  "codeshot.btn.save": "Save PNG",
+  "codeshot.btn.copy": "Copy to clipboard",
+  "codeshot.status.idle": "Paste code and it draws right away",
+  "codeshot.status.ready": "Done",
+  "codeshot.status.saved": "Saved",
+  "codeshot.status.copied": "Copied to clipboard",
+  "codeshot.status.noclip": "This browser blocks image copy — use Save",
+  "codeshot.stat.lines": "Lines",
+  "codeshot.stat.size": "Image size",
+  "codeshot.frame.specimen": "Lab specimen",
+  "codeshot.frame.terminal": "Terminal",
+  "codeshot.frame.paper": "Printed paper",
+  "codeshot.frame.bare": "Bare"
+}

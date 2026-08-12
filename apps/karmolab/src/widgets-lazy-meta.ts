@@ -1481,6 +1481,16 @@ window.KARMOLAB_LAZY_META = [
   },
 
   {
+    id: 'codeshot',
+    get title() { return t('widgets.codeshot.title', undefined, "코드 사진"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.codeshot.desc', undefined, "코드를 붙여넣으면 문법 색칠된 이미지로 만듭니다. 껍데기를 골라 쓰며 파일이 브라우저를 벗어나지 않습니다"); },
+    layout: 'wide',
+    icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9 10l-2 2 2 2M15 10l2 2-2 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    produces: ['image/*'],
+    lazyScriptPaths: ['tools/codeshot']
+  },
+  {
     id: 'text2img',
     hidden: true, // 「이미지 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -2070,6 +2080,20 @@ window.KARMOLAB_LAZY_META = [
     layout: 'full',
     icon: '<rect x="3" y="3" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/><rect x="15" y="3" width="6" height="6" rx="1" fill="currentColor" opacity=".35"/><rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/><rect x="3" y="15" width="6" height="6" rx="1" fill="currentColor" opacity=".35"/><rect x="15" y="15" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/>',
     lazyScriptPaths: ['garden/garden']
+  },
+
+  /* 멍 (TASK-KL-247) — 도구가 아니라 창문. 로고가 스스로 모여 더 큰 로고가 되고, 그
+     안으로 끝없이 빨려 들어간다. 이음매가 없어 언제 켜도 「처음부터」가 없다. */
+  {
+    id: 'meong',
+    get title() { return t('widgets.meong.title', undefined, "멍"); },
+    category: 'lab',
+    get desc() { return t('widgets-desc.meong.desc', undefined, "멍때리며 보는 화면 — 로고가 모여 더 큰 로고가 되고 끝없이 안으로 들어갑니다"); },
+    layout: 'full',
+    noHero: true,
+    produces: ['image/png'],
+    icon: '<path d="M3 5h13M3 11h9M3 17h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="15" cy="11" r="1.3" fill="currentColor"/><circle cx="12" cy="17" r="1.3" fill="currentColor"/><g opacity=".5"><path d="M17.6 15h4M17.6 18h2.7M17.6 21h1.7" stroke="currentColor" stroke-width="1" stroke-linecap="round" fill="none"/></g>',
+    lazyScriptPaths: ['meong/meong']
   },
 
   /* 오락실 (TASK-KL-242) — 실험실 안의 놀이터. 미니게임 여럿을 커널 하나가 굴린다.
