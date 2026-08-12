@@ -274,5 +274,13 @@
   "arcade.fox.houndWin": "{who} — 여우를 가뒀다",
   "arcade.game.pong.name": "탁구",
   "arcade.game.pong.desc": "라켓 한 줄. 어디로 받느냐가 각도를 정한다",
-  "arcade.pong.win": "{who} — {a} 대 {b}"
+  "arcade.pong.win": "{who} — {a} 대 {b}",
+  "arcade.game.derby.name": "경마",
+  "arcade.game.derby.desc": "달리는 건 말, 고르는 건 나. 얕본 말을 찾아라",
+  "arcade.derby.amount": "걸 돈",
+  "arcade.derby.waiting": "다른 사람이 거는 중",
+  "arcade.derby.running": "달리는 중",
+  "arcade.derby.result": "{s} 가 들어왔다",
+  "arcade.derby.win": "{who} — {n}",
+  "arcade.pong.draw": "{n} 대 {n} — 비겼다"
 }
