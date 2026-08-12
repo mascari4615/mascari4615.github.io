@@ -123,13 +123,17 @@ export function watchReading(
     requestAnimationFrame(mark);
   };
 
-  const target: Window | HTMLElement = scroller || window;
-  target.addEventListener('scroll', onScroll, { passive: true });
+  /**
+   * 굴러가는 건 창이 아닐 수 있다 — KarmoLab 은 `.main-content` 안에서 굴린다.
+   * 창에만 귀를 대면 아무 소리도 안 들려 목차 표시가 첫 항목에 굳는다(실제로 그랬다).
+   * 그래서 **잡기 단계(capture)** 로 문서 전체의 스크롤을 듣는다 — 어느 상자가 굴러도 잡힌다.
+   */
+  document.addEventListener('scroll', onScroll, { passive: true, capture: true });
   window.addEventListener('resize', onScroll, { passive: true });
   mark();
 
   return () => {
-    target.removeEventListener('scroll', onScroll);
+    document.removeEventListener('scroll', onScroll, { capture: true } as EventListenerOptions);
     window.removeEventListener('resize', onScroll);
   };
 }
