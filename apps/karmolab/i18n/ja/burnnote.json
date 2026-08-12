@@ -1,0 +1,21 @@
+{
+  "burnnote.tab": "メモ",
+  "burnnote.label.text": "渡すもの",
+  "burnnote.ph.text": "パスワード、住所、一度だけ見せる言葉…",
+  "burnnote.btn.make": "リンクを作る",
+  "burnnote.label.link": "このリンクを渡してください",
+  "burnnote.btn.copy": "コピー",
+  "burnnote.note.once": "このリンクは一度だけ開きます。開いた瞬間にサーバーからも消えます。誰も開かなければ7日で消えます。",
+  "burnnote.label.got": "届いたメモ",
+  "burnnote.note.warn": "開くと消えます。書き写す準備ができてから押してください。",
+  "burnnote.btn.open": "開く（一度きり）",
+  "burnnote.how": "なぜこちらでも読めないか: 文はこのブラウザで施錠され、鍵はリンクの # の後ろに乗ります。ブラウザは # の後ろをサーバーに送りません。",
+  "burnnote.status.gone": "すでに開かれたか、消えています",
+  "burnnote.status.opened": "開きました — このメモはもうありません",
+  "burnnote.status.badkey": "鍵が合いません — リンクが切れている可能性があります",
+  "burnnote.status.empty": "渡すものを書いてください",
+  "burnnote.status.failed": "預けられませんでした — 少し後にもう一度",
+  "burnnote.status.made": "リンクを作りました",
+  "burnnote.status.copied": "コピーしました",
+  "burnnote.status.copyfail": "コピーが塞がれました — ご自身で選んでコピーしてください"
+}

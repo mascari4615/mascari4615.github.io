@@ -1,0 +1,21 @@
+{
+  "burnnote.tab": "Note",
+  "burnnote.label.text": "What to hand over",
+  "burnnote.ph.text": "A password, an address, something said once…",
+  "burnnote.btn.make": "Create link",
+  "burnnote.label.link": "Hand over this link",
+  "burnnote.btn.copy": "Copy",
+  "burnnote.note.once": "This link opens exactly once. It is deleted from the server the moment it opens. If nobody opens it, it disappears in 7 days.",
+  "burnnote.label.got": "A note for you",
+  "burnnote.note.warn": "Opening it destroys it. Press when you are ready to write it down.",
+  "burnnote.btn.open": "Open (once only)",
+  "burnnote.how": "Why we cannot read it: the text is locked in this browser, and the key rides after the # in the link. Browsers never send what follows # to the server.",
+  "burnnote.status.gone": "Already opened, or gone",
+  "burnnote.status.opened": "Opened — this note no longer exists",
+  "burnnote.status.badkey": "The key does not match — the link may have been cut short",
+  "burnnote.status.empty": "Write something to hand over",
+  "burnnote.status.failed": "Could not store it — try again shortly",
+  "burnnote.status.made": "Link created",
+  "burnnote.status.copied": "Copied",
+  "burnnote.status.copyfail": "Copying was blocked — please select and copy it yourself"
+}

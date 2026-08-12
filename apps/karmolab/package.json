@@ -195,6 +195,8 @@
     "test:codeshot": "node scripts/test-codeshot-core.mjs",
     "test:soundscape": "node scripts/test-soundscape-core.mjs",
     "test:shell": "node scripts/test-shell-explain.mjs",
+    "test:burnnote": "node scripts/test-burnnote-core.mjs",
+    "smoke:burnnote": "node scripts/smoke-burnnote.mjs",
     "smoke:shell": "node scripts/smoke-explainshell.mjs",
     "smoke:soundscape": "node scripts/smoke-soundscape.mjs",
     "smoke:codeshot": "node scripts/smoke-codeshot.mjs",

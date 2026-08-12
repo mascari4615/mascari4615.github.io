@@ -1,0 +1,21 @@
+{
+  "burnnote.tab": "쪽지",
+  "burnnote.label.text": "건넬 것",
+  "burnnote.ph.text": "비밀번호, 주소, 한 번만 보일 말…",
+  "burnnote.btn.make": "링크 만들기",
+  "burnnote.label.link": "이 링크를 건네세요",
+  "burnnote.btn.copy": "복사",
+  "burnnote.note.once": "이 링크는 딱 한 번 열립니다. 열리는 순간 서버에서도 지워집니다. 아무도 안 열면 7일 뒤 사라집니다.",
+  "burnnote.label.got": "받은 쪽지",
+  "burnnote.note.warn": "지금 열면 사라집니다. 옮겨 적을 준비가 됐을 때 누르세요.",
+  "burnnote.btn.open": "열기 (한 번뿐)",
+  "burnnote.how": "어떻게 우리도 못 보나: 글은 이 브라우저에서 잠기고, 여는 열쇠는 링크의 # 뒤에 담깁니다. 브라우저는 # 뒤를 서버로 보내지 않습니다.",
+  "burnnote.status.gone": "이미 열렸거나 사라진 쪽지입니다",
+  "burnnote.status.opened": "열었습니다 — 이 쪽지는 이제 없습니다",
+  "burnnote.status.badkey": "열쇠가 맞지 않습니다 — 링크가 잘렸을 수 있습니다",
+  "burnnote.status.empty": "건넬 것을 적어 주세요",
+  "burnnote.status.failed": "맡기지 못했습니다 — 잠시 뒤 다시",
+  "burnnote.status.made": "링크를 만들었습니다",
+  "burnnote.status.copied": "복사했습니다",
+  "burnnote.status.copyfail": "복사가 막혔습니다 — 직접 골라 복사해 주세요"
+}
