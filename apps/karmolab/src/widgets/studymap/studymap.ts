@@ -139,6 +139,19 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 @media (min-width: 900px) { .sm-body { grid-template-columns: 216px minmax(0, 1fr); gap: 28px; align-items: start; } }
 .sm-main { min-width: 0; }
 .sm-tracks { display: flex; flex-wrap: wrap; gap: 8px; }
+/* 좁은 화면 — 갈래 41개를 펼치면 지도가 화면 밖으로 밀린다. 한 줄 레일로 눕히고 옆으로 굴린다. */
+@media (max-width: 899px) {
+  .sm-body { display: flex; flex-direction: column; }
+  .sm-tracks { order: 2; flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+  .sm-main { order: 1; }
+  .sm-track-btn { flex: 0 0 auto; min-height: 44px; white-space: nowrap; }
+  .sm-scope-line { display: none; }
+  /* 손가락은 8px 알약을 못 누른다 — 최소 44px (iOS·안드로이드 공통 권고). */
+  .sm-find-btn, .doc-demo-btn, .sm-back, .sm-crumb-btn { min-height: 44px; padding-left: 14px; padding-right: 14px; }
+  .sm-check { width: 26px; height: 26px; }
+  .sm-pager { grid-template-columns: 1fr; }
+  .doc-demo-ctl input[type="range"] { width: 132px; height: 32px; }
+}
 @media (min-width: 900px) {
   /* 갈래 17개를 알약으로 깔면 첫 화면이 목록에 덮인다 — 넓은 화면에선 옆으로 세운다. */
   .sm-tracks { position: sticky; top: 12px; flex-direction: column; flex-wrap: nowrap; gap: 2px; max-height: calc(100vh - 40px); overflow-y: auto; padding-right: 4px; }
@@ -327,7 +340,20 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 @media (max-width: 600px) {
   .sm-nodes { grid-template-columns: 1fr; }
   .sm-stage { padding-left: 20px; }
-}`;
+}
+/* 모바일 마무리 — 위에서 정의한 기본값을 덮으려면 뒤에 와야 한다(같은 힘이면 나중 것이 이긴다). */
+@media (max-width: 899px) {
+  .sm-pager { grid-template-columns: 1fr; }
+  .sm-nav-btn { min-height: 56px; }
+  .sm-nav-btn.is-next { text-align: left; align-items: flex-start; }
+  .doc-toc { position: static; max-height: 220px; overflow-y: auto; }
+  .sm-lesson-wrap { display: block; }
+  .sm-resume { padding: 16px; }
+  .sm-node-title { min-height: 40px; }
+  /* 강의를 읽는 동안은 지도 머리를 접는다 — 첫 화면에 본문이 오게. */
+  .sm-wrap.is-reading .sm-head, .sm-wrap.is-reading .sm-findbar, .sm-wrap.is-reading .sm-tracks { display: none; }
+}
+`;
     document.head.appendChild(style);
   }
 
@@ -672,6 +698,8 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         }
       }
       lessonOpen = id;
+      /* 읽는 중에는 머리(제목·진도·찾기)를 접는다 — 좁은 화면에서 본문이 화면 밖으로 밀리던 것. */
+      container.querySelector('.sm-wrap')?.classList.add('is-reading');
       paintTracks();   /* 옆 목록에서 지금 읽는 칸이 눈에 띄게 */
       const node = found.node;
       elStages.innerHTML = `<div class="sm-empty">${esc(t('studymap.lesson.loading', undefined, '강의를 펴는 중…'))}</div>`;
@@ -870,6 +898,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
     function paint(): void {
       lessonOpen = null;
+      container.querySelector('.sm-wrap')?.classList.remove('is-reading');
       stopWatching?.();
       stopWatching = null;
       const tr = trackOf(current);
@@ -935,7 +964,12 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             </button>`
           : '';
 
-        const layer = zoom === 'tracks' ? layoutTree(trackTreeNodes()) : layoutTree(nodeTreeNodes(tr), 150, 104);
+        /* 좁은 화면에서는 사이를 좁힌다 — 손가락으로 굴리는 거리가 짧아야 길을 안 잃는다. */
+        const narrow = (elStages.clientWidth || window.innerWidth) < 700;
+        const layer =
+          zoom === 'tracks'
+            ? layoutTree(trackTreeNodes(), narrow ? 122 : 168, narrow ? 96 : 118)
+            : layoutTree(nodeTreeNodes(tr), narrow ? 116 : 150, narrow ? 88 : 104);
         const head =
           zoom === 'tracks'
             ? `<div class="sm-tree-head">${esc(t('studymap.tree.tracks', undefined, '갈래 지도 — 눌러서 안으로'))}</div>`
