@@ -292,8 +292,16 @@ export class Soundscape {
     }
   }
 
-  /** 겹 하나의 크기 (0~1). 꺼져 있어도 기억해 두었다가 켤 때 쓴다. */
+  /**
+   * 겹 하나의 크기 (0~1). 꺼져 있어도 기억해 두었다가 켤 때 쓴다.
+   *
+   * **안 고른 겹은 받지 않는다** (TASK-KL-279). 이 소리풍경은 만들 때 쓸 겹을 골라서 만든다
+   * (지구본은 여섯 겹만 쓴다 — 모닥불은 이 별의 소리가 아니다). 그런데 여기서 아무 이름이나
+   * 받아 두면, 소리는 안 나면서 **「지금 울리는 겹」 목록에는 들어간다** — 화면이 그 목록을 보고
+   * 「모닥불이 켜져 있다」고 말하게 된다. 검사에 「또는」이 붙어 있어 여태 안 걸렸다.
+   */
   set(id: LayerId, level: number): void {
+    if (!this.which.includes(id)) return;
     this.levels.set(id, Math.max(0, Math.min(1, level)));
     const g = this.gains.get(id);
     const ctx = this.ctx;

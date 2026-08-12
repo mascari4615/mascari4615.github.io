@@ -138,7 +138,9 @@ eq(S.levelToGain('없는겹', 1), 0, '모르는 겹은 소리가 안 난다');
   const s = new S.Soundscape(['drone', 'wave']);
   s.start();
   s.set('fire', 1);
-  check(!s.active().includes('fire') || s.get('fire') === 1, '고르지 않은 겹은 만들지 않는다');
+  /* 예전엔 「없거나, 있어도 값이 1이면 통과」였다 — 뒷줄이 **고장 난 경우를 그대로 통과**시켰다
+   * (안 고른 겹이 생기면 값이 1일 테니까). 조건 하나로 못 박는다. */
+  check(!s.active().includes('fire'), '고르지 않은 겹은 만들지 않는다');
   s.stop();
 }
 

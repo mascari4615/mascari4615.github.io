@@ -44,7 +44,8 @@ await page.waitForSelector('#pfFileBar:visible', { timeout: 15000 });
 await page.waitForFunction(() => !!document.querySelector('#txNums'), { timeout: 10000 }).catch(() => {});
 const nums = await page.locator('#txNums .tx-num strong').allInnerTexts();
 check(nums.length === 3, '글자·낱말·줄 세 숫자가 뜬다');
-check(nums[0] === CHARS.toLocaleString('en-US') || Number(nums[0].replace(/,/g, '')) === CHARS, `글자 수가 맞다 (기대 ${CHARS}, 지금 ${nums[0]})`);
+/* 숫자만 뽑아서 한 번만 견준다 — 「또는」으로 두 갈래를 두면 느슨한 쪽이 늘 이긴다 (KL-278). */
+check(Number(nums[0].replace(/,/g, '')) === CHARS, `글자 수가 맞다 (기대 ${CHARS}, 지금 ${nums[0]})`);
 check(Number(nums[2].replace(/,/g, '')) === 3, `줄 수가 맞다 (기대 3, 지금 ${nums[2]})`);
 check(/끝줄/.test(await page.locator('#txHead').innerText()), '앞머리에 실제 글이 보인다');
 
