@@ -4314,6 +4314,143 @@
           ]
         }
       ]
+    },
+    {
+      "id": "sys",
+      "title": "시스템 프로그래밍",
+      "emoji": "⚙",
+      "lead": "운영체제는 마법이 아니다 — 열어 보면 프로세스 · 파일 · 신호 몇 가지뿐",
+      "stages": [
+        {
+          "id": "sys-a",
+          "title": "프로그램이 도는 자리",
+          "nodes": [
+            {
+              "id": "sys-process",
+              "title": "프로세스 — 무엇의 묶음인가",
+              "why": "「프로그램이 안 죽어요」의 대부분은 프로세스가 무엇을 들고 있는지 몰라서 생긴다.",
+              "check": "실행 중인 프로세스의 부모·자식과 종료 코드를 읽는다",
+              "links": [
+                {
+                  "label": "man7 — credentials(7)",
+                  "url": "https://man7.org/linux/man-pages/man7/credentials.7.html"
+                }
+              ],
+              "prereq": [
+                "cs-os"
+              ]
+            },
+            {
+              "id": "sys-fd",
+              "title": "파일 디스크립터와 파이프",
+              "why": "리다이렉션·파이프·「너무 많은 파일 열림」 오류가 전부 이 번호 하나로 설명된다.",
+              "check": "프로세스가 연 파일 목록을 확인하고 출력을 파이프로 잇는다",
+              "links": [
+                {
+                  "label": "man7 — pipe(7)",
+                  "url": "https://man7.org/linux/man-pages/man7/pipe.7.html"
+                }
+              ],
+              "prereq": [
+                "shell-pipe"
+              ]
+            },
+            {
+              "id": "sys-signal",
+              "title": "시그널과 종료 예절",
+              "why": "배포 중 요청이 끊기는 사고의 정체 — 죽으라는 신호를 받고 곱게 죽는 법을 안 짰다.",
+              "check": "종료 신호를 받아 정리 후 종료하는 코드를 쓴다",
+              "links": [
+                {
+                  "label": "man7 — signal(7)",
+                  "url": "https://man7.org/linux/man-pages/man7/signal.7.html"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sys-b",
+          "title": "자원을 두고 다툰다",
+          "nodes": [
+            {
+              "id": "sys-mem",
+              "title": "가상 메모리와 OOM",
+              "why": "「메모리 사용량」이 왜 도구마다 다른지, 왜 갑자기 프로세스가 사라지는지가 여기 있다.",
+              "check": "RSS 와 가상 크기의 차이를 설명하고 OOM 기록을 찾는다",
+              "links": [
+                {
+                  "label": "man7 — mmap(2)",
+                  "url": "https://man7.org/linux/man-pages/man2/mmap.2.html"
+                }
+              ],
+              "prereq": [
+                "cs-memory"
+              ]
+            },
+            {
+              "id": "sys-sched",
+              "title": "스케줄러 — 누가 CPU 를 쓰나",
+              "why": "「CPU 100%」와 「느리다」는 다른 문제다. 기다리는 중인지 일하는 중인지 갈라야 한다.",
+              "check": "부하·대기·컨텍스트 스위치 수치를 읽는다",
+              "links": [
+                {
+                  "label": "Brendan Gregg — USE Method",
+                  "url": "https://www.brendangregg.com/usemethod.html"
+                }
+              ]
+            },
+            {
+              "id": "sys-syscall",
+              "title": "syscall 을 엿본다",
+              "why": "프로그램이 실제로 무엇을 하는지 소스 없이 아는 방법. 로그보다 정직하다.",
+              "check": "프로그램의 파일·네트워크 호출을 추적해 본다",
+              "links": [
+                {
+                  "label": "man7 — strace(1)",
+                  "url": "https://man7.org/linux/man-pages/man1/strace.1.html"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sys-c",
+          "title": "가두고 재고",
+          "nodes": [
+            {
+              "id": "sys-container",
+              "title": "컨테이너는 마법이 아니다",
+              "why": "namespace 와 cgroup 두 가지를 알면 컨테이너 문제의 대부분이 평범한 리눅스 문제가 된다.",
+              "check": "컨테이너 안에서 본 프로세스·네트워크가 왜 다른지 설명한다",
+              "links": [
+                {
+                  "label": "man7 — namespaces(7)",
+                  "url": "https://man7.org/linux/man-pages/man7/namespaces.7.html"
+                }
+              ],
+              "prereq": [
+                "devops-container"
+              ]
+            },
+            {
+              "id": "sys-profile",
+              "title": "프로파일링 — 시간이 어디로 갔나",
+              "why": "느린 원인을 눈으로 찍는다. 추측으로 최적화하면 대개 엉뚱한 데를 고친다.",
+              "check": "느린 작업 하나의 프로파일을 떠서 상위 구간을 지목한다",
+              "links": [
+                {
+                  "label": "Brendan Gregg — Flame Graphs",
+                  "url": "https://www.brendangregg.com/flamegraphs.html"
+                }
+              ],
+              "prereq": [
+                "scale-measure"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

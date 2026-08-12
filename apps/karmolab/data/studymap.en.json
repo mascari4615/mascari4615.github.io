@@ -136,6 +136,10 @@
     "plt": {
       "title": "Languages & tooling",
       "lead": "Once you can handle grammar yourself, you stop waiting for someone else to ship the tool"
+    },
+    "sys": {
+      "title": "Systems programming",
+      "lead": "The OS is not magic — open it up and it is processes, files and a few signals"
     }
   },
   "stages": {
@@ -228,7 +232,10 @@
     "qa-c": "All the way to the screen",
     "plt-a": "From characters to meaning",
     "plt-b": "Making it run",
-    "plt-c": "Applying it to other code"
+    "plt-c": "Applying it to other code",
+    "sys-a": "Where a program lives",
+    "sys-b": "Fighting over resources",
+    "sys-c": "Confining and measuring"
   },
   "nodes": {
     "web-html": {
@@ -2274,6 +2281,70 @@
       "check": "Your language shows at least syntax errors inside an editor",
       "links": [
         "Language Server Protocol"
+      ]
+    },
+    "sys-process": {
+      "title": "A process — a bundle of what",
+      "why": "Most \"it will not die\" problems come from not knowing what a process is holding.",
+      "check": "You read a process tree and its exit codes",
+      "links": [
+        "man7 — credentials(7)"
+      ]
+    },
+    "sys-fd": {
+      "title": "File descriptors and pipes",
+      "why": "Redirection, pipes and \"too many open files\" are all explained by this one number.",
+      "check": "You list a process’s open files and chain output through a pipe",
+      "links": [
+        "man7 — pipe(7)"
+      ]
+    },
+    "sys-signal": {
+      "title": "Signals and dying politely",
+      "why": "Requests dropped during a deploy usually mean nobody wrote the shutdown path.",
+      "check": "Your program catches the stop signal, cleans up, then exits",
+      "links": [
+        "man7 — signal(7)"
+      ]
+    },
+    "sys-mem": {
+      "title": "Virtual memory and the OOM killer",
+      "why": "It explains why every tool reports a different \"memory usage\" and why a process vanishes.",
+      "check": "You explain RSS versus virtual size and find an OOM record",
+      "links": [
+        "man7 — mmap(2)"
+      ]
+    },
+    "sys-sched": {
+      "title": "The scheduler — who gets the CPU",
+      "why": "\"CPU at 100%\" and \"slow\" are different problems; waiting and working must be told apart.",
+      "check": "You read load, wait time and context switch counts",
+      "links": [
+        "Brendan Gregg — USE method"
+      ]
+    },
+    "sys-syscall": {
+      "title": "Peeking at syscalls",
+      "why": "It is how you learn what a program really does without its source, and it lies less than logs.",
+      "check": "You trace a program’s file and network calls",
+      "links": [
+        "man7 — strace(1)"
+      ]
+    },
+    "sys-container": {
+      "title": "Containers are not magic",
+      "why": "With namespaces and cgroups, most container problems become ordinary Linux problems.",
+      "check": "You explain why processes and networking look different inside",
+      "links": [
+        "man7 — namespaces(7)"
+      ]
+    },
+    "sys-profile": {
+      "title": "Profiling — where the time went",
+      "why": "It points at the slow part; optimizing by guess usually fixes the wrong thing.",
+      "check": "You profile one slow task and name the top consumer",
+      "links": [
+        "Brendan Gregg — flame graphs"
       ]
     }
   }
