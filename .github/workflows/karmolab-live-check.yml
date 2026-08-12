@@ -100,8 +100,12 @@ jobs:
         working-directory: packages/karmolab-mcp
         run: npm ci --no-audit --no-fund
 
-      - name: 대조 기준 만들기 (빌드 산출물)
-        run: npm run build
+      # ★ **대조 기준은 산출물이지 판정이 아니다** (2026-08-12).
+      #   `npm run build` 를 부르면 게이트 31개가 딸려 온다 — verify 가 이미 돌린 그것이다.
+      #   이 판이 17분 걸린 이유의 대부분이 그 재판정이었다(실측 평균 17분). 여기서 필요한 것은
+      #   「지금 라이브와 견줄 산출물」뿐이므로 배포와 같은 `build:artifacts` 만 찍는다.
+      - name: 대조 기준 만들기 (빌드 산출물 — 게이트는 verify 몫)
+        run: npm run build:artifacts
 
       # GitHub Pages 는 배포 완료 신호 뒤에도 잠깐 옛 파일을 준다. 예전에는 45초를 그냥
       # 기다렸는데, 그건 **추측**이다 — 짧으면 옛 화면을 재고, 길면 그냥 느리다. 그리고 진짜
