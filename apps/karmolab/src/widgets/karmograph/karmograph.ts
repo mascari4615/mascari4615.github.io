@@ -141,6 +141,15 @@ import {
       background:var(--bg-secondary); border:1px solid var(--border); border-radius:8px;
       box-shadow:0 4px 14px rgba(0,0,0,0.28); }
     .km-mini.hidden { display:none; }
+    /* 배율 줄 — 판 오른쪽 아래, 작은 판(미니맵) 바로 밑. 캔버스 도구들이 다 그렇듯
+       **판 위에 얹힌 물건**으로 보이게 작은 판과 같은 결을 준다.
+       ★ 왼쪽 아래에 두면 안 된다 — 그 자리는 앱의 채팅 알약이 덮는다(실측 2026-08-12). */
+    .km-zoom { position:absolute; right:16px; bottom:14px; z-index:16; display:flex; align-items:center; gap:2px;
+      padding:2px; border-radius:999px; background:var(--glass-strong); border:1px solid var(--border);
+      box-shadow:0 8px 24px rgba(0,0,0,.32); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+    .km-zoom .btn { padding:3px 9px; font-size:13px; line-height:1.3; border-radius:999px; }
+    .km-zoom .km-zoom-val { min-width:56px; font-size:11px; color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+    .km-root.is-presenting .km-zoom { display:none; }
     .km-mini .btn { padding:2px 6px; font-size:12px; line-height:1.2; }
     .km-side { width:clamp(300px, 26vw, 420px); flex-shrink:0; position:relative; z-index:2;
       border-left:1px solid var(--border); background:var(--bg-secondary);
@@ -474,6 +483,11 @@ import {
               <button class="btn btn-ghost" data-km="mini-note" title="${esc(t('karmograph.t105'))}">🗒</button>
               <button class="btn btn-ghost" data-km="mini-copy" title="${esc(t('karmograph.t106'))}">⧉</button>
               <button class="btn btn-ghost" data-km="mini-del" title="${esc(t('karmograph.t107'))}">🗑</button>
+            </div>
+            <div class="km-zoom" data-km="zoom">
+              <button class="btn btn-ghost" data-km="zoom-out" title="${esc(t('karmograph.zoom.out'))}">−</button>
+              <button class="btn btn-ghost km-zoom-val" data-km="zoom-val" title="${esc(t('karmograph.zoom.reset'))}">100%</button>
+              <button class="btn btn-ghost" data-km="zoom-in" title="${esc(t('karmograph.zoom.in'))}">+</button>
             </div>
             <div class="km-stage hidden" data-km="stage">
               <div class="km-stage-strip" data-km="stage-strip"></div>
@@ -2284,7 +2298,27 @@ import {
       drawerEl.classList.add('hidden');
     };
 
-    q<HTMLButtonElement>('fit').onclick = () => canvas?.fitView();
+    q<HTMLButtonElement>('fit').onclick = () => { canvas?.fitView(); showZoom(); };
+
+    /* 배율 줄 — 휠·핀치를 모르는 사람에게도 확대·축소가 **보이는 자리**에 있어야 한다
+       (레퍼런스 캔버스 도구들이 하나같이 구석에 이 줄을 두는 이유다). 숫자를 누르면 100% 로. */
+    const zoomVal = q<HTMLButtonElement>('zoom-val');
+    const showZoom = (): void => {
+      const s = canvas?.getScale() ?? 1;
+      zoomVal.textContent = `${Math.round(s * 100)}%`;
+    };
+    q<HTMLButtonElement>('zoom-out').onclick = () => { canvas?.zoomBy(1 / 1.25); showZoom(); };
+    q<HTMLButtonElement>('zoom-in').onclick = () => { canvas?.zoomBy(1.25); showZoom(); };
+    zoomVal.onclick = () => {
+      const s = canvas?.getScale() ?? 1;
+      if (s !== 1) canvas?.zoomBy(1 / s);
+      showZoom();
+    };
+    /* 휠·핀치·「전체 보기」로 바뀐 배율도 따라 적어야 한다 — 숫자가 거짓이면 없느니만 못하다.
+       시계로 계속 물어보는 대신 **배율이 바뀔 만한 동작 뒤에** 한 번씩 읽는다. */
+    for (const evName of ['wheel', 'pointerup', 'dblclick'] as const) {
+      canvasEl.addEventListener(evName, () => queueMicrotask(showZoom), { passive: true });
+    }
 
     // ── 그림으로 내보내기 (격차 G) ──────────────────────────────────────────
     // 레퍼런스들은 「UI 를 숨길 테니 직접 캡처하세요」에서 멈춘다. 우리 캔버스는 SVG 라

@@ -591,5 +591,8 @@
   "karmograph.t435": "つないでみる",
   "karmograph.t436": "[karmograph] 保存領域を測れませんでした",
   "karmograph.t437": "形",
-  "karmograph.t438": "傾き"
+  "karmograph.t438": "傾き",
+  "karmograph.zoom.out": "縮小",
+  "karmograph.zoom.in": "拡大",
+  "karmograph.zoom.reset": "倍率 — 押すと100%"
 }

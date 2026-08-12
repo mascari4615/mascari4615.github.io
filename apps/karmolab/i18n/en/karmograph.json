@@ -591,5 +591,8 @@
   "karmograph.t435": "Connect them",
   "karmograph.t436": "[karmograph] could not measure the storage",
   "karmograph.t437": "Shape",
-  "karmograph.t438": "Tilt"
+  "karmograph.t438": "Tilt",
+  "karmograph.zoom.out": "Zoom out",
+  "karmograph.zoom.in": "Zoom in",
+  "karmograph.zoom.reset": "Zoom level — click for 100%"
 }
