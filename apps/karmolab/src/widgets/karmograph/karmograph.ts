@@ -126,6 +126,11 @@ import {
     .km-toolbar input[type=text] { min-width:132px; max-width:176px; }
     .km-toolbar input[data-km="find"] { min-width:118px; }
     .km-sep { width:1px; align-self:stretch; background:var(--border); margin:0 2px; }
+    /* 찾은 수 — 흐려지는 것만으로는 「없다」와 「아직 안 쳤다」가 구별이 안 된다. */
+    .km-findcount { font-size:11px; color:var(--text-tertiary); padding:0 2px; white-space:nowrap;
+      font-variant-numeric:tabular-nums; }
+    .km-findcount.is-none { color:var(--danger, #f87171); }
+    .km-findcount.hidden { display:none; }
     .km-body { flex:1; display:flex; min-height:0; position:relative; }
         /* ★ 캔버스 최소 높이 — 툴바가 줄바꿈으로 커지면 flex 가 캔버스부터 깎는다.
        실측 2026-08-09: 툴바가 커지며 캔버스가 156px 로 눌려 더블클릭이 화면 밖으로 나갔다. */
@@ -447,6 +452,7 @@ import {
           <select data-km="new-kind" title="${esc(t('karmograph.t96'))}">${nodeKindOptions()}</select>
           <span class="km-sep"></span>
           <input type="text" data-km="find" placeholder="${esc(t('karmograph.t97'))}" />
+          <span class="km-findcount hidden" data-km="find-count" title="${esc(t('karmograph.find.countTitle'))}"></span>
           <select data-km="degree" title="${esc(t('karmograph.t98'))}">
             <option value="">${esc(t('karmograph.t118'))}</option>
             <option value="0">${esc(t('karmograph.opt.0'))}</option>
@@ -1910,6 +1916,19 @@ import {
     }
 
     /**
+     * 찾은 수를 찾기 칸 옆에 적는다. 흐려지는 것만으로는 「없다」와 「아직 안 쳤다」가
+     * 구별되지 않는다 — 아무것도 안 맞으면 판이 통째로 흐려지는데, 그게 「찾는 중」인지
+     * 「없다」인지 화면이 말해 주지 않았다(실측 2026-08-12).
+     */
+    function showFindCount(n: number | null): void {
+      const el = q<HTMLElement>('find-count');
+      if (n === null) { el.classList.add('hidden'); return; }
+      el.classList.remove('hidden');
+      el.classList.toggle('is-none', n === 0);
+      el.textContent = n === 0 ? t('karmograph.find.none') : t('karmograph.find.count', { n });
+    }
+
+    /**
      * 지금 봐야 할 것 계산. 찾기 글자가 있으면 **이름이 맞는 노드**가 시작점,
      * 없으면 **고른 노드**가 시작점. 둘 다 없으면 포커스 해제.
      */
@@ -1921,14 +1940,17 @@ import {
         starts = spec.nodes
           .filter((n) => n.label.toLowerCase().includes(q0) || (n.note ?? '').toLowerCase().includes(q0))
           .map((n) => n.id);
+        showFindCount(starts.length);
         if (starts.length === 0) {
           // 아무것도 안 맞으면 전부 흐려서 「없다」를 눈으로 보여 준다.
           canvas?.setFocus(new Set());
           return;
         }
       } else if (degRaw !== '' && selectedId) {
+        showFindCount(null);
         starts = [selectedId];
       } else {
+        showFindCount(null);
         canvas?.setFocus(null);
         return;
       }
