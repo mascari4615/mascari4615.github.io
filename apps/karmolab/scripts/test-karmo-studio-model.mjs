@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Date, JSON, crypto });
-const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker } = module.exports;
+const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT } = module.exports;
 
 const note = (beat, pitch = 60, duration = 0.5, velocity = 0.8) => ({ id: `n${beat}-${pitch}`, beat, duration, pitch, velocity });
 
@@ -189,4 +189,19 @@ assert.equal(fixed.length, 2, '숫자가 아닌 위치는 버린다');
 assert.ok(fixed.every((m) => m.name.trim()), '이름이 비면 기본값을 준다');
 assert.equal(sortMarkers(fixed).map((m) => m.beat).join(','), '1,2');
 
-console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘 · 구간 이름표');
+// 줄 높이 — 쓸 수 있는 범위로 접는다
+assert.equal(clampTrackHeight(120), 120);
+assert.equal(clampTrackHeight(5), TRACK_HEIGHT.min, '너무 낮으면 하한');
+assert.equal(clampTrackHeight(9999), TRACK_HEIGHT.max, '너무 높으면 상한');
+assert.equal(clampTrackHeight('abc'), TRACK_HEIGHT.default, '숫자가 아니면 기본값');
+assert.equal(clampTrackHeight(undefined), TRACK_HEIGHT.default);
+assert.equal(clampTrackHeight(NaN), TRACK_HEIGHT.default);
+assert.equal(clampTrackHeight(101.6), 102, '소수는 반올림');
+const tall = newProject();
+tall.tracks[0].height = 150;
+assert.equal(normalizeProject(JSON.parse(JSON.stringify(tall))).tracks[0].height, 150, '높이가 저장 왕복에서 산다');
+const legacyHeight = JSON.parse(JSON.stringify(tall));
+delete legacyHeight.tracks[0].height;
+assert.equal(normalizeProject(legacyHeight).tracks[0].height, TRACK_HEIGHT.default, '옛 저장본은 기본 높이');
+
+console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘 · 구간 이름표 · 줄 높이');

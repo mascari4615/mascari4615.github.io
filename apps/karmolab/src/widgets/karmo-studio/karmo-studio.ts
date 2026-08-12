@@ -1,8 +1,8 @@
 /** Karmo Studio — KarmoLab 안에서 곡을 끝까지 만드는 브라우저 DAW (TASK-KL-220). */
 import { KarmoStudioEngine, renderProject, type StudioAssetRuntime } from './audio-engine';
 import {
-  automationValueAt, cloneClip, findClip, findTrack, legatoNotes, moveTrack, newProject, newTrack, normalizeProject, projectLength, putAutomationPoint, putMarker, quantizeNotes, setNoteVelocity, snapBeat, sortMarkers, splitClip, stepMarker, studioId, transposeNotes,
-  type AutomationParam, type StudioClip, type StudioProject, type StudioSelection, type StudioTrack
+  automationValueAt, clampTrackHeight, cloneClip, findClip, findTrack, legatoNotes, moveTrack, newProject, newTrack, normalizeProject, projectLength, putAutomationPoint, putMarker, quantizeNotes, setNoteVelocity, snapBeat, sortMarkers, splitClip, stepMarker, studioId, transposeNotes,
+  TRACK_HEIGHT, type AutomationParam, type StudioClip, type StudioProject, type StudioSelection, type StudioTrack
 } from './model';
 import { toWav } from '../tools/shared/media';
 import { addAsset, hydrateAssets, importPortable, loadProject, portableProject, saveProject } from './storage';
@@ -259,10 +259,10 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     let paintedRange = { from: 0, to: Number.POSITIVE_INFINITY };
     /** 트랙 한 줄. 문자열이 그대로면 그 줄은 안 건드린다 — 바뀐 줄만 갈아 끼우려고 뗐다. */
     function trackRowHtml(track: StudioTrack, width: number, view: { from: number; to: number; margin: number }): string {
-      return `<div class="ks-track-row${track.folded?' is-folded':''}" data-track-row="${track.id}" style="width:${172 + width}px">
+      return `<div class="ks-track-row${track.folded?' is-folded':''}" data-track-row="${track.id}" style="width:${172 + width}px;--ks-row:${track.folded?22:track.height}px">
         <div class="ks-track-head"><div class="ks-track-title"><span class="ks-track-grip" data-track-grip="${track.id}" title="끌어서 순서 바꾸기">⣿</span><span class="ks-track-color" style="background:${track.color}"></span><input data-track-name="${track.id}" value="${esc(track.name)}" aria-label="트랙 이름"></div>
         <div class="ks-track-actions"><button class="ks-mini${track.mute?' is-on':''}" data-track-act="mute" data-track="${track.id}">M</button><button class="ks-mini${track.solo?' is-on':''}" data-track-act="solo" data-track="${track.id}">S</button><button class="ks-mini${track.folded?' is-on':''}" data-track-act="fold" data-track="${track.id}" title="접기/펼치기">${track.folded?'▸':'▾'}</button><button class="ks-mini${autoLanes.has(track.id)?' is-on':''}" data-track-act="auto" data-track="${track.id}" title="볼륨 자동화 줄 보이기">A</button><button class="ks-mini${armedTrackId===track.id?' is-on':''}" data-track-act="arm" data-track="${track.id}" title="${track.kind==='audio'?'녹음 대상으로 지정':'오디오 트랙만 녹음 대상이 된다'}"${track.kind==='audio'?'':' disabled'}>●</button><button class="ks-mini" data-track-act="delete" data-track="${track.id}">×</button></div>
-        <input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-track-volume="${track.id}" aria-label="${esc(track.name)} 볼륨"></div>
+        <input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-track-volume="${track.id}" aria-label="${esc(track.name)} 볼륨"><b class="ks-track-resize" data-track-resize="${track.id}" title="끌어서 줄 높이"></b></div>
         <div class="ks-lane" data-lane="${track.id}" data-kind="${track.kind}" style="width:${width}px">${visibleClips(track.clips,view.from,view.to,view.margin).map((clip)=>trackClipHtml(track,clip)).join('')}</div>${trackAutomationHtml(track,width)}</div>`;
     }
     /** 지난 판에 그린 줄 — 같은 문자열이면 DOM 을 안 만진다. */
@@ -657,6 +657,23 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
     scroll.addEventListener('click',(event)=>{if(event.button!==0||editTool!=='draw')return;const target=event.target as HTMLElement;if(target.closest('.ks-clip'))return;const lane=target.closest<HTMLElement>('.ks-lane');if(!lane||lane.dataset.kind!=='midi')return;const track=findTrack(project,lane.dataset.lane||'');if(track)createMidiClip(track,(event.clientX-lane.getBoundingClientRect().left)/pxPerBeat);});
     scroll.addEventListener('dblclick',(event)=>{if(event.button!==0)return;event.preventDefault();const target=event.target as HTMLElement;const clipElement=target.closest<HTMLElement>('.ks-clip');if(clipElement){const trackId=clipElement.dataset.track||'',clipId=clipElement.dataset.clip||'';const clip=findClip(project,trackId,clipId);if(clip){selection={type:'clip',trackId,clipId};renderTracks();renderSide();setEditorExpanded(true);}return;}const lane=target.closest<HTMLElement>('.ks-lane');if(!lane||lane.dataset.kind!=='midi')return;const track=findTrack(project,lane.dataset.lane||'');if(track)createMidiClip(track,(event.clientX-lane.getBoundingClientRect().left)/pxPerBeat,true);});
 
+    /** 트랙 머리 아래 모서리를 끌어 줄 높이를 바꾼다. */
+    root.addEventListener('pointerdown',(event)=>{
+      if(event.button!==0||!event.isPrimary)return;
+      const handle=(event.target as HTMLElement).closest<HTMLElement>('[data-track-resize]');
+      if(!handle)return;
+      const track=findTrack(project,handle.dataset.trackResize||'');
+      if(!track)return;
+      event.preventDefault();
+      const startY=event.clientY;const origin=track.height;
+      const row=handle.closest<HTMLElement>('.ks-track-row');
+      gestures.begin({
+        capture:handle,pointerId:event.pointerId,
+        move:(moveEvent)=>{ track.height=clampTrackHeight(origin+(moveEvent.clientY-startY)); if(row)row.style.setProperty('--ks-row',`${track.height}px`); },
+        commit:()=>{ saveSoon('track-height');renderTracks();status(`${track.name} 줄 높이 ${track.height}px`); },
+        cancel:()=>{ track.height=origin; if(row)row.style.setProperty('--ks-row',`${origin}px`); }
+      });
+    });
     /** 트랙 머리의 손잡이를 끌어 순서를 바꾼다. 놓을 자리를 줄 위/아래 선으로 보여 준다. */
     root.addEventListener('pointerdown',(event)=>{
       if(event.button!==0||!event.isPrimary)return;
