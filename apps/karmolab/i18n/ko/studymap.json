@@ -13,5 +13,12 @@
   "studymap.mdd.clear": "한 갈래를 끝까지 걸었어요. 다음 갈래 가 볼까요?",
   "studymap.found": "지도 전체에서 {n}칸 · {tracks}갈래",
   "studymap.all": "지도 전체 {done} / {total}",
-  "studymap.prereq": "먼저"
+  "studymap.prereq": "먼저",
+  "studymap.export": "진도 내보내기",
+  "studymap.import": "진도 가져오기",
+  "studymap.export.done": "진도를 복사했다. 다른 기기에서 「진도 가져오기」에 붙여 넣어라.",
+  "studymap.export.empty": "아직 체크한 칸이 없다.",
+  "studymap.import.ask": "내보낸 진도를 붙여 넣어라. (지금 진도에 더해진다)",
+  "studymap.import.bad": "알아볼 수 있는 칸이 없다. 내보내기로 만든 글만 된다.",
+  "studymap.import.done": "{n}칸을 가져왔다."
 }

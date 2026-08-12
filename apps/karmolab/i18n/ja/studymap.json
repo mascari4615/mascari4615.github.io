@@ -13,5 +13,12 @@
   "studymap.mdd.clear": "ひとつの分野を歩ききりました。次に行きますか？",
   "studymap.found": "地図全体で {n} 項目 ・ {tracks} 分野",
   "studymap.all": "地図全体 {done} / {total}",
-  "studymap.prereq": "先に"
+  "studymap.prereq": "先に",
+  "studymap.export": "進捗を書き出す",
+  "studymap.import": "進捗を読み込む",
+  "studymap.export.done": "進捗をコピーしました。別の端末の「進捗を読み込む」に貼り付けてください。",
+  "studymap.export.empty": "まだチェックした項目がありません。",
+  "studymap.import.ask": "書き出した進捗を貼り付けてください。（今の進捗に足されます）",
+  "studymap.import.bad": "読み取れる項目がありません。書き出しで作った文だけ使えます。",
+  "studymap.import.done": "{n} 項目を読み込みました。"
 }
