@@ -49,6 +49,7 @@ export const META: GameMeta[] = [
   { id: 'bowling', icon: '🎳', kind: 'sport' },
   { id: 'pool', icon: '🎱', kind: 'sport' },
   { id: 'darts', icon: '🎯', kind: 'sport' },
+  { id: 'fishing', icon: '🎣', kind: 'sport' },
 
   { id: 'memory', icon: '🃏', kind: 'puzzle' },
   { id: 'hitblow', icon: '🔢', kind: 'puzzle' },

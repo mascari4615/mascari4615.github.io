@@ -224,5 +224,14 @@
   "arcade.game.onestroke.desc": "Trace every line without lifting. Same figure, a race",
   "arcade.stroke.win": "{who} traced it all",
   "arcade.stroke.timeup": "Time — {who} with {n}",
-  "arcade.stroke.stuck": "Stuck"
+  "arcade.stroke.stuck": "Stuck",
+  "arcade.game.fishing.name": "Fishing",
+  "arcade.game.fishing.desc": "Wait, then pull on the bite. Big ones are rare",
+  "arcade.fish.kinds": "carp,catfish,bass,trout,pike",
+  "arcade.fish.cast": "Cast ({n} left)",
+  "arcade.fish.pull": "Pull",
+  "arcade.fish.done": "Out of casts",
+  "arcade.fish.empty": "Nothing yet",
+  "arcade.fish.missed": "It got away",
+  "arcade.fish.win": "{who} — {n}"
 }

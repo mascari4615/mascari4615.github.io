@@ -224,5 +224,14 @@
   "arcade.game.onestroke.desc": "붓을 떼지 않고 모든 선을 지난다. 같은 그림으로 경주",
   "arcade.stroke.win": "{who} 이(가) 다 그렸다",
   "arcade.stroke.timeup": "시간이 다 됐다 — {who} {n}획",
-  "arcade.stroke.stuck": "막혔다"
+  "arcade.stroke.stuck": "막혔다",
+  "arcade.game.fishing.name": "낚시",
+  "arcade.game.fishing.desc": "기다렸다가 입질에 당긴다. 큰 놈이 드물다",
+  "arcade.fish.kinds": "붕어,잉어,메기,가물치,쏘가리",
+  "arcade.fish.cast": "던지기 ({n}번 남음)",
+  "arcade.fish.pull": "당기기",
+  "arcade.fish.done": "다 썼다",
+  "arcade.fish.empty": "아직 아무것도",
+  "arcade.fish.missed": "놓쳤다",
+  "arcade.fish.win": "{who} — {n}"
 }
