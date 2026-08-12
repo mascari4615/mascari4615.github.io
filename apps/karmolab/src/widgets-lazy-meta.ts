@@ -1481,6 +1481,15 @@ window.KARMOLAB_LAZY_META = [
   },
 
   {
+    id: 'burnnote',
+    get title() { return t('widgets.burnnote.title', undefined, "사라지는 쪽지"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.burnnote.desc', undefined, "비밀번호 같은 것을 한 번만 열리는 링크로 건넵니다. 브라우저에서 잠그고 열쇠는 주소에만 담겨 서버는 내용을 볼 수 없습니다"); },
+    layout: 'wide',
+    icon: '<path d="M12 3l7 4v6c0 4-3 6.5-7 8-4-1.5-7-4-7-8V7z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M9.5 12l1.8 1.8L15 10" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/burnnote']
+  },
+  {
     id: 'explainshell',
     get title() { return t('widgets.explainshell.title', undefined, "명령줄 뜯어보기"); },
     category: 'tool',
