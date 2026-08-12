@@ -140,5 +140,10 @@
   "arcade.game.airhockey.name": "Air Hockey",
   "arcade.game.airhockey.desc": "Slide to block and score. First to five",
   "arcade.air.win": "{who} — {a} to {b}",
-  "arcade.air.draw": "{n} all — a draw"
+  "arcade.air.draw": "{n} all — a draw",
+  "arcade.kind.quick": "Short and fast",
+  "arcade.kind.board": "On a board",
+  "arcade.kind.card": "Cards and dice",
+  "arcade.kind.sport": "Toy sports",
+  "arcade.kind.puzzle": "Solo and thinking"
 }

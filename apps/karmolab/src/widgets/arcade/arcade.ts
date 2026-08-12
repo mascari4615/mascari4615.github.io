@@ -24,7 +24,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 import { GAMES, gameById } from './index';
 import { Match, type MatchView, type SeatSpec } from './kernel';
 import { seedFrom } from './rng';
-import { iconOf } from './meta';
+import { iconOf, kindOf, KINDS, type Kind } from './meta';
 import { viewById } from './view-registry';
 import type { Render } from './views';
 import { connect, type Net, type Peer, type Json } from './net';
@@ -247,6 +247,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-dts.ac-me{border-color:var(--accent)}',
       '.ac-ah{max-width:min(90vw,300px);margin:var(--space-lg) auto}',
       '.ac-ah canvas{width:100%;display:block;border-radius:8px;touch-action:none;cursor:none}',
+      '.ac-kind{margin:var(--space-lg) 0 6px;font-size:var(--font-size-sm);color:var(--text-secondary);font-weight:600;display:flex;align-items:center;gap:6px}',
+      '.ac-kind i{font-style:normal;font-size:var(--font-size-xs);opacity:.6}',
       '.ac-code{font-size:clamp(28px,8vw,48px);font-weight:800;letter-spacing:.18em;text-align:center;margin:var(--space-lg) 0}',
       '.ac-share{display:flex;gap:6px;margin:var(--space-lg) 0}',
       '.ac-share input{flex:1;min-width:0}'
@@ -269,7 +271,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     container.innerHTML =
       '<div id="acLobby">' +
       '<p class="tool-status">' + esc(t('arcade.lobby.hint')) + '</p>' +
-      '<div class="ac-grid" id="acGames"></div>' +
+      '<div id="acGames"></div>' +
       '<label style="display:flex;align-items:center;gap:6px;font-size:var(--font-size-xs);color:var(--text-secondary)">' +
       esc(t('arcade.label.name')) +
       '<input type="text" id="acName" maxlength="12" placeholder="' + esc(t('arcade.name.default')) +
@@ -317,8 +319,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       play.style.display = which === 'play' ? '' : 'none';
     };
 
-    /* ── 로비 ────────────────────────────────────────────────────── */
-    $<HTMLElement>('#acGames').innerHTML = GAMES.map((g) => {
+    /* ── 로비 ──────────────────────────────────────────────────────
+     *
+     * **갈래로 묶어 보여 준다.** 스물이 넘으면 나열은 목록이 아니라 벽이 된다.
+     * 갈래가 비어 있으면 제목 자체를 안 그린다 — 「없음」이 적힌 칸은 자리만 먹는다. */
+    const cardOf = (g: (typeof GAMES)[number]): string => {
       const [min, max] = g.seats;
       return (
         '<div class="ac-card"><span class="ac-emoji">' + iconOf(g.id) + '</span>' +
@@ -329,6 +334,15 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         '<button data-solo="' + g.id + '">' + esc(t('arcade.btn.solo')) + '</button>' +
         '<button data-host="' + g.id + '">' + esc(t('arcade.btn.together')) + '</button>' +
         '</span></div>'
+      );
+    };
+
+    $<HTMLElement>('#acGames').innerHTML = KINDS.map((kind: Kind) => {
+      const mine = GAMES.filter((g) => kindOf(g.id) === kind);
+      if (!mine.length) return '';
+      return (
+        '<h3 class="ac-kind">' + esc(t('arcade.kind.' + kind)) + ' <i>' + mine.length + '</i></h3>' +
+        '<div class="ac-grid">' + mine.map(cardOf).join('') + '</div>'
       );
     }).join('');
 

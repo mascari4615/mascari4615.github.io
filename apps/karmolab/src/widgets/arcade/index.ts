@@ -31,6 +31,7 @@ export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory, hi
 
 export const gameById = (id: string): GameDef<any, any> | undefined => GAMES.find((g) => g.id === id);
 
+export { META, KINDS, iconOf, kindOf } from './meta';
 export { Match } from './kernel';
 export { seedFrom, mulberry32 } from './rng';
 export type { GameDef, GameCtx, Seat, Outcome, BotMove, Note } from './types';

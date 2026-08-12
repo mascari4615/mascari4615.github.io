@@ -140,5 +140,10 @@
   "arcade.game.airhockey.name": "エアホッケー",
   "arcade.game.airhockey.desc": "指で滑らせて防ぎ、決める。先に5点",
   "arcade.air.win": "{who} — {a} 対 {b}",
-  "arcade.air.draw": "{n} 対 {n} — 引き分け"
+  "arcade.air.draw": "{n} 対 {n} — 引き分け",
+  "arcade.kind.quick": "短くて速い",
+  "arcade.kind.board": "盤の上で",
+  "arcade.kind.card": "カードとサイコロ",
+  "arcade.kind.sport": "おもちゃスポーツ",
+  "arcade.kind.puzzle": "ひとりでも、頭で"
 }
