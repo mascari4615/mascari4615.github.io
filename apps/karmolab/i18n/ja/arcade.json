@@ -333,5 +333,22 @@
   "arcade.fleet.your": "撃つマスを選ぼう",
   "arcade.fleet.wait": "{who} の番",
   "arcade.fleet.win": "{who} の艦隊だけが残った",
-  "arcade.fleet.none": "全部沈んだ"
+  "arcade.fleet.none": "全部沈んだ",
+  "arcade.game.yut.name": "ユンノリ",
+  "arcade.game.yut.desc": "角にちょうど止まれば近道 · 踏めば取ってもう一回",
+  "arcade.yut.throw": "投げる",
+  "arcade.yut.piece": "駒 {n}",
+  "arcade.yut.home": "家",
+  "arcade.yut.out": "あがり",
+  "arcade.yut.rolled": "{n}!",
+  "arcade.yut.caught": "取った!",
+  "arcade.yut.yourthrow": "投げる番",
+  "arcade.yut.yourmove": "どの駒?",
+  "arcade.yut.wait": "{who} の番",
+  "arcade.yut.win": "{who} が駒を全部あがらせた",
+  "arcade.yut.do": "ト(1)",
+  "arcade.yut.gae": "ケ(2)",
+  "arcade.yut.geol": "コル(3)",
+  "arcade.yut.yut": "ユッ(4)",
+  "arcade.yut.mo": "モ(5)"
 }

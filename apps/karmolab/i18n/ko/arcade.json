@@ -333,5 +333,22 @@
   "arcade.fleet.your": "두들길 곳을 고르자",
   "arcade.fleet.wait": "{who} 차례",
   "arcade.fleet.win": "{who} 의 함대만 남았다",
-  "arcade.fleet.none": "다 가라앉았다"
+  "arcade.fleet.none": "다 가라앉았다",
+  "arcade.game.yut.name": "윷놀이",
+  "arcade.game.yut.desc": "모서리에 딱 서면 지름길 · 밟으면 잡고 한 번 더",
+  "arcade.yut.throw": "윷 던지기",
+  "arcade.yut.piece": "말 {n}",
+  "arcade.yut.home": "집",
+  "arcade.yut.out": "났다",
+  "arcade.yut.rolled": "{n}!",
+  "arcade.yut.caught": "잡았다!",
+  "arcade.yut.yourthrow": "던질 차례",
+  "arcade.yut.yourmove": "어느 말을 쓸까",
+  "arcade.yut.wait": "{who} 차례",
+  "arcade.yut.win": "{who} 가 말을 다 뺐다",
+  "arcade.yut.do": "도",
+  "arcade.yut.gae": "개",
+  "arcade.yut.geol": "걸",
+  "arcade.yut.yut": "윷",
+  "arcade.yut.mo": "모"
 }
