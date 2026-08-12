@@ -196,6 +196,21 @@ await page.click('[data-act=play]');await page.waitForTimeout(700);await page.cl
 const clicksAfter=await page.evaluate(()=>window.__ksOsc);
 await page.click('[data-act=metronome]');await page.waitForTimeout(80);
 const metronomeOff=await page.locator('[data-act=metronome]').evaluate((element)=>element.classList.contains('is-on'));
+/* 믹서 미터 — 페이더 위치가 아니라 실제로 나는 소리를 그린다. */
+await page.click('[data-side=mixer]');await page.waitForTimeout(100);
+const meterCount=await page.locator('[data-meter]').count();
+const meterBeforePlay=await page.locator('[data-meter-db]').first().textContent();
+await page.click('[data-act=play]');
+let meterMoved=false,meterDbSeen='';
+for(let tick=0;tick<24;tick++){
+  await page.waitForTimeout(60);
+  const shot=await page.evaluate(()=>({widths:[...document.querySelectorAll('[data-meter] span')].map((element)=>parseFloat(element.style.width)||0),dbs:[...document.querySelectorAll('[data-meter-db]')].map((element)=>element.textContent)}));
+  const hot=shot.widths.findIndex((value)=>value>3);
+  if(hot>=0){meterMoved=true;meterDbSeen=shot.dbs[hot]||'';break;}
+}
+await page.click('[data-act=stop]');await page.waitForTimeout(120);
+const meterAfterStop=await page.locator('[data-meter] span').evaluateAll((elements)=>elements.map((element)=>parseFloat(element.style.width)||0));
+await page.click('[data-side=inspector]');await page.waitForTimeout(80);
 await page.fill('[data-bind=project-name]','Smoke Song');await page.locator('[data-bind=project-name]').press('Tab');await page.waitForTimeout(400);
 const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null'));
 const projectDownload=page.waitForEvent('download',{timeout:10000});await page.click('[data-act=save]');let projectDownloadEvent;try{projectDownloadEvent=await projectDownload;}catch(error){const state=await page.evaluate(()=>({expanded:document.querySelector('.ks-editor')?.className,status:document.querySelector('[data-role=status]')?.textContent,tool:document.querySelector('.ks-root')?.getAttribute('data-tool')}));throw new Error(`project download missing: ${JSON.stringify(state)} · ${errors.join(' | ')}`,{cause:error});}const portable=JSON.parse(fs.readFileSync(await projectDownloadEvent.path(),'utf8'));
@@ -281,6 +296,11 @@ if(armedOff)problems.push('녹음 대상 해제가 안 된다');
 if(armedLaneClipsBefore<1)problems.push('오디오 트랙에 클립이 없다 — 무장 대상 검사가 무의미');
 if(!metronomeOn||metronomeOff)problems.push(`박자 소리 토글이 상태를 안 바꾼다 (${metronomeOn}→${metronomeOff})`);
 if(clicksAfter<=clicksBefore)problems.push(`박자 소리가 안 난다 (oscillator ${clicksBefore}→${clicksAfter})`);
+if(meterCount<2)problems.push(`믹서 미터가 트랙 수만큼 없다 (${meterCount})`);
+if(meterBeforePlay!=='−∞')problems.push(`재생 전 미터가 0 이 아니다 (${meterBeforePlay})`);
+if(!meterMoved)problems.push('재생해도 미터가 안 움직인다 — 가짜 미터');
+if(meterDbSeen==='−∞')problems.push('미터가 움직였는데 dB 표시가 안 붙는다');
+if(meterAfterStop.some((value)=>value>0.5))problems.push(`정지 뒤에도 미터가 남아 있다 (${JSON.stringify(meterAfterStop)})`);
 if(saved?.name!=='Smoke Song'||saved.tracks.length!==after.tracks)problems.push('자동 저장 round-trip 실패');
 if(saved?.assets?.length!==1||!portable.assets?.[0]?.dataUrl?.startsWith('data:audio/wav'))problems.push('오디오 asset 또는 휴대용 프로젝트 저장 실패');
 if(reopened.name!=='Smoke Song'||reopened.tracks!==after.tracks||reopened.assets!==1)problems.push(`휴대용 프로젝트 다시 열기 실패 (${JSON.stringify(reopened)})`);

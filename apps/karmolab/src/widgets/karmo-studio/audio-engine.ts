@@ -15,6 +15,8 @@ interface TrackGraph {
   pan: StereoPannerNode;
   output: GainNode;
   reverbSend: GainNode;
+  /** 미터용 — 실제 소리 길에 끼지 않고 output 을 엿듣는다. */
+  analyser: AnalyserNode | null;
 }
 
 function noteFrequency(note: number): number {
@@ -46,7 +48,14 @@ function connectTrack(context: AudioContextLike, track: StudioTrack, destination
   const reverbSend = context.createGain(); reverbSend.gain.value = track.reverb;
   input.connect(low).connect(mid).connect(high).connect(compressor).connect(pan).connect(output).connect(destination);
   pan.connect(reverbSend).connect(reverb);
-  return { input, low, mid, high, compressor, pan, output, reverbSend };
+  /* 오프라인 렌더에는 미터가 필요 없다 — 표본을 읽는 노드를 달면 렌더만 느려진다. */
+  let analyser: AnalyserNode | null = null;
+  if (typeof (context as AudioContext).createAnalyser === 'function' && !('startRendering' in context)) {
+    analyser = (context as AudioContext).createAnalyser();
+    analyser.fftSize = 1024;
+    output.connect(analyser);
+  }
+  return { input, low, mid, high, compressor, pan, output, reverbSend, analyser };
 }
 
 function updateTrackGraph(graph: TrackGraph, track: StudioTrack, muted: boolean, at: number): void {
@@ -139,6 +148,21 @@ export class KarmoStudioEngine {
   metronome = false;
 
   setAssets(assets: Map<string, StudioAssetRuntime>): void { this.assets = assets; }
+  /** 트랙별 지금 소리 크기 — 0~1 의 peak/rms. 재생 중이 아니면 빈 값. */
+  levels(): Map<string, { peak: number; rms: number }> {
+    const out = new Map<string, { peak: number; rms: number }>();
+    if (!this.playing) return out;
+    for (const [id, graph] of this.graphs) {
+      const analyser = graph.analyser;
+      if (!analyser) continue;
+      const data = new Float32Array(analyser.fftSize);
+      analyser.getFloatTimeDomainData(data);
+      let peak = 0; let sum = 0;
+      for (let index = 0; index < data.length; index++) { const value = Math.abs(data[index]); if (value > peak) peak = value; sum += data[index] * data[index]; }
+      out.set(id, { peak, rms: Math.sqrt(sum / data.length) });
+    }
+    return out;
+  }
   isPlaying(): boolean { return this.playing; }
   updateProject(project: StudioProject): void {
     this.project=project;

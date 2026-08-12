@@ -98,8 +98,14 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     .ks-field { display:grid; grid-template-columns:82px minmax(0,1fr); align-items:center; gap:7px; margin:5px 0; font-size:11px; color:var(--text-secondary); }
     .ks-field input,.ks-field select { min-width:0; width:100%; margin:0; padding:5px; border:1px solid var(--border); border-radius:4px; background:var(--bg-primary); color:var(--text-primary); }
     .ks-field input[type=range] { padding:0; accent-color:var(--accent); }
-    .ks-meter { height:6px; background:var(--bg-tertiary); border-radius:5px; overflow:hidden; }
-    .ks-meter span { display:block; height:100%; background:var(--accent); }
+    .ks-meter { position:relative; height:9px; background:var(--bg-tertiary); border-radius:5px; overflow:hidden; }
+    .ks-meter span { position:absolute; left:0; top:0; bottom:0; width:0; background:linear-gradient(90deg,var(--accent),#e3c15a 78%,#ff6b76 100%); transition:width .05s linear; }
+    .ks-meter i { position:absolute; top:0; bottom:0; width:2px; background:white; opacity:.85; left:0; }
+    .ks-meter b { position:absolute; right:0; top:0; bottom:0; width:7px; background:#ff5d6c; opacity:0; }
+    .ks-meter.is-clipped b { opacity:1; }
+    .ks-meter-row { display:flex; align-items:center; gap:6px; }
+    .ks-meter-row .ks-meter { flex:1; }
+    .ks-meter-db { min-width:52px; text-align:right; font:9px var(--font-mono); color:var(--text-tertiary); }
     .ks-editor { flex:none; height:300px; border-top:1px solid var(--border); background:var(--bg-primary); display:flex; flex-direction:column; }
     .ks-editor.is-expanded { position:fixed; inset:5dvh 3vw; width:auto; height:auto; z-index:1000;
       border:1px solid var(--border-hover); border-radius:var(--radius-md); box-shadow:0 18px 70px rgba(0,0,0,.72); }
@@ -369,7 +375,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       root.querySelectorAll('[data-side]').forEach((button) => button.classList.toggle('is-on', (button as HTMLElement).dataset.side === sideMode));
       const side = $<HTMLElement>('[data-role=side]');
       if (sideMode === 'mixer') {
-        side.innerHTML = project.tracks.map((track) => `<section class="ks-section"><h4><span style="color:${track.color}">●</span> ${esc(track.name)}</h4>${field('VOLUME',`<input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-mix="volume" data-track="${track.id}">`)}${field('PAN',`<input type="range" min="-1" max="1" step="0.01" value="${track.pan}" data-mix="pan" data-track="${track.id}">`)}<div class="ks-meter"><span style="width:${Math.min(100,track.volume*83)}%"></span></div></section>`).join('') + `<section class="ks-section"><h4>MASTER</h4>${field('VOLUME',`<input type="range" min="0" max="1" step="0.01" value="${project.masterVolume}" data-master="volume">`)}</section>`; return;
+        side.innerHTML = project.tracks.map((track) => `<section class="ks-section"><h4><span style="color:${track.color}">●</span> ${esc(track.name)}</h4>${field('VOLUME',`<input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-mix="volume" data-track="${track.id}">`)}${field('PAN',`<input type="range" min="-1" max="1" step="0.01" value="${track.pan}" data-mix="pan" data-track="${track.id}">`)}<div class="ks-meter-row"><div class="ks-meter" data-meter="${track.id}" title="지금 나는 소리 — 흰 줄은 최근 최고치"><span></span><i></i><b></b></div><span class="ks-meter-db" data-meter-db="${track.id}">−∞</span></div><button class="ks-mini" data-meter-reset="${track.id}" title="넘침 표시 지우기">CLIP RESET</button></section>`).join('') + `<section class="ks-section"><h4>MASTER</h4>${field('VOLUME',`<input type="range" min="0" max="1" step="0.01" value="${project.masterVolume}" data-master="volume">`)}</section>`; return;
       }
       const track = selectedTrack(); const clip = selectedClip();
       if (!track) { side.innerHTML = '<div class="ks-empty">트랙이나 클립을 선택하세요.</div>'; return; }
@@ -423,9 +429,30 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       $<HTMLElement>('[data-role=playhead]').style.left = `${172 + playhead * pxPerBeat}px`;
       $<HTMLElement>('[data-role=time]').textContent = beatText(playhead);
     }
-    function transportLoop(): void { if (!engine.isPlaying()) return; playhead = engine.currentBeat(); updatePlayhead(); const scroll = $<HTMLElement>('[data-role=scroll]'); const x = 172 + playhead * pxPerBeat; if (x > scroll.scrollLeft + scroll.clientWidth - 80) scroll.scrollLeft = x - scroll.clientWidth * .45; raf = requestAnimationFrame(transportLoop); }
+    /** 미터 — 최근 최고치는 천천히 내려오고, 넘친 적이 있으면 표시가 걸린 채로 남는다. */
+    const meterHold = new Map<string, number>();
+    const meterClipped = new Set<string>();
+    function paintMeters(): void {
+      const levels = engine.levels();
+      root.querySelectorAll<HTMLElement>('[data-meter]').forEach((element)=>{
+        const id=element.dataset.meter||'';
+        const level=levels.get(id);
+        const peak=level?level.peak:0;
+        const rms=level?level.rms:0;
+        const hold=Math.max(peak,(meterHold.get(id)??0)-0.02);
+        meterHold.set(id,hold);
+        if(peak>=0.99)meterClipped.add(id);
+        element.classList.toggle('is-clipped',meterClipped.has(id));
+        const bar=element.querySelector<HTMLElement>('span');const tip=element.querySelector<HTMLElement>('i');
+        if(bar)bar.style.width=`${Math.min(100,rms*140)}%`;
+        if(tip)tip.style.left=`${Math.min(99,hold*100)}%`;
+        const label=root.querySelector<HTMLElement>(`[data-meter-db="${id}"]`);
+        if(label)label.textContent=hold>0.0005?`${(20*Math.log10(hold)).toFixed(1)} dB`:'−∞';
+      });
+    }
+    function transportLoop(): void { if (!engine.isPlaying()) { paintMeters(); return; } paintMeters(); playhead = engine.currentBeat(); updatePlayhead(); const scroll = $<HTMLElement>('[data-role=scroll]'); const x = 172 + playhead * pxPerBeat; if (x > scroll.scrollLeft + scroll.clientWidth - 80) scroll.scrollLeft = x - scroll.clientWidth * .45; raf = requestAnimationFrame(transportLoop); }
     function play(): void { engine.setAssets(assets); engine.metronome=metronome; engine.play(project, playhead); root.querySelector('[data-act=play]')?.classList.add('is-on'); if (raf!==undefined)cancelAnimationFrame(raf); transportLoop(); }
-    function stop(): void { engine.stop(); root.querySelector('[data-act=play]')?.classList.remove('is-on'); if(raf!==undefined)cancelAnimationFrame(raf); raf=undefined; }
+    function stop(): void { engine.stop(); root.querySelector('[data-act=play]')?.classList.remove('is-on'); if(raf!==undefined)cancelAnimationFrame(raf); raf=undefined; meterHold.clear(); paintMeters(); }
     engine.onEnded = () => { root.querySelector('[data-act=play]')?.classList.remove('is-on'); };
 
     async function refreshAssets(): Promise<void> { const AC=window.AudioContext||(window as Window & {webkitAudioContext?:typeof AudioContext}).webkitAudioContext; const context=new AC(); assets=await hydrateAssets(project,context); await context.close(); engine.setAssets(assets); }
@@ -467,7 +494,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     }
     const download = (blob: Blob, name: string): void => { const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000); };
 
-    root.addEventListener('click',(event)=>{ const raw=event.target as HTMLElement;const exportAct=raw.closest<HTMLElement>('[data-export-act]')?.dataset.exportAct;if(exportAct){if(exportAct==='cancel')closeExport();else void runExport();return;}if(addPianoNote(event))return;const contextAct=raw.closest<HTMLElement>('[data-context-act]')?.dataset.contextAct;if(contextAct){hideContextMenu();if(contextAct==='open-editor')setEditorExpanded(true);else if(contextAct==='copy')copySelection();else if(contextAct==='cut')cutSelection();else if(contextAct==='duplicate')root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();else if(contextAct==='duplicate-note'&&selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const note=clip?.notes.find((item)=>item.id===noteId);const track=selectedTrack();if(clip&&note&&track){const copy={...note,id:studioId('note'),beat:Math.min(clip.duration-note.duration,snapBeat(note.beat+project.snap,project.snap))};clip.notes.push(copy);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copy.id};saveSoon();renderEditor();renderTracks();}}else if(contextAct==='split')root.querySelector<HTMLElement>('[data-act=split]')?.click();else if(contextAct==='delete')deleteSelection();return;}const noteAct=raw.closest<HTMLElement>('[data-note-act]')?.dataset.noteAct;if(noteAct){applyNoteTool(noteAct);return;}const tool=raw.closest<HTMLElement>('.ks-btn[data-tool]')?.dataset.tool;if(tool){editTool=tool as typeof editTool;renderAll();status(`${tool.toUpperCase()} tool`);return;} const target=raw.closest<HTMLElement>('[data-act],[data-side],[data-track-act]'); if(!target){hideContextMenu();return;}
+    root.addEventListener('click',(event)=>{ const raw=event.target as HTMLElement;const exportAct=raw.closest<HTMLElement>('[data-export-act]')?.dataset.exportAct;if(exportAct){if(exportAct==='cancel')closeExport();else void runExport();return;}if(addPianoNote(event))return;const contextAct=raw.closest<HTMLElement>('[data-context-act]')?.dataset.contextAct;if(contextAct){hideContextMenu();if(contextAct==='open-editor')setEditorExpanded(true);else if(contextAct==='copy')copySelection();else if(contextAct==='cut')cutSelection();else if(contextAct==='duplicate')root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();else if(contextAct==='duplicate-note'&&selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const note=clip?.notes.find((item)=>item.id===noteId);const track=selectedTrack();if(clip&&note&&track){const copy={...note,id:studioId('note'),beat:Math.min(clip.duration-note.duration,snapBeat(note.beat+project.snap,project.snap))};clip.notes.push(copy);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copy.id};saveSoon();renderEditor();renderTracks();}}else if(contextAct==='split')root.querySelector<HTMLElement>('[data-act=split]')?.click();else if(contextAct==='delete')deleteSelection();return;}const meterReset=raw.closest<HTMLElement>('[data-meter-reset]')?.dataset.meterReset;if(meterReset){meterClipped.delete(meterReset);paintMeters();status('Clip indicator cleared');return;}const noteAct=raw.closest<HTMLElement>('[data-note-act]')?.dataset.noteAct;if(noteAct){applyNoteTool(noteAct);return;}const tool=raw.closest<HTMLElement>('.ks-btn[data-tool]')?.dataset.tool;if(tool){editTool=tool as typeof editTool;renderAll();status(`${tool.toUpperCase()} tool`);return;} const target=raw.closest<HTMLElement>('[data-act],[data-side],[data-track-act]'); if(!target){hideContextMenu();return;}
       if(target.dataset.side){sideMode=target.dataset.side as typeof sideMode;renderSide();return;}
       const trackAct=target.dataset.trackAct; if(trackAct){const track=findTrack(project,target.dataset.track||'');if(!track)return;if(trackAct==='mute')track.mute=!track.mute;else if(trackAct==='solo')track.solo=!track.solo;else if(trackAct==='arm'){if(track.kind!=='audio'){status('Only audio tracks can be armed');return;}armedTrackId=armedTrackId===track.id?'':track.id;status(armedTrackId?`Armed ${track.name}`:'Disarmed');renderAll();return;}else if(trackAct==='delete'&&confirm(`Delete ${track.name}?`)){project.tracks=project.tracks.filter((item)=>item.id!==track.id);selection=null;}saveSoon();renderAll();return;}
       const act=target.dataset.act;
