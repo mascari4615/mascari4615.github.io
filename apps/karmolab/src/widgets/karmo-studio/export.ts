@@ -99,3 +99,22 @@ export function exportRange(
   const to = Math.max(from + 1, Math.max(range.from, range.to));
   return { from, to };
 }
+
+/** 파일 이름에 못 쓰는 글자를 걸러 낸다. 빈 이름이면 자리 번호로 대신한다. */
+export function stemFileName(trackName: string, index: number): string {
+  const clean = String(trackName ?? '').replace(/[\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim().slice(0, 48);
+  return `${String(index + 1).padStart(2, '0')}-${clean || 'track'}.wav`;
+}
+
+/** 같은 이름이 겹치면 뒤에 번호를 붙인다 — ZIP 안에서 덮어써지면 트랙이 조용히 사라진다. */
+export function uniqueNames(names: string[]): string[] {
+  const used = new Map<string, number>();
+  return names.map((name) => {
+    const seen = used.get(name) ?? 0;
+    used.set(name, seen + 1);
+    if (!seen) return name;
+    const dot = name.lastIndexOf('.');
+    return dot < 0 ? `${name} (${seen + 1})` : `${name.slice(0, dot)} (${seen + 1})${name.slice(dot)}`;
+  });
+}
+

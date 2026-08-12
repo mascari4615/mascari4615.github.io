@@ -351,7 +351,19 @@ const portableNoteCount=portable.tracks.flatMap((track)=>track.clips).flatMap((c
 await page.locator('[data-file=project]').setInputFiles({name:'roundtrip.karmo.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(portable))});await page.waitForTimeout(500);
 const reopened=await page.evaluate(()=>({name:document.querySelector('[data-bind=project-name]').value,tracks:document.querySelectorAll('.ks-track-row').length,assets:JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null')?.assets?.length}));
 /* 내보내기 판 — 범위·표본율·채널·정규화를 정하고 나간다. */
+/* 트랙별 내보내기 — ZIP 하나로 묶여 나온다. */
 await page.click('[data-act=export-wav]');await page.waitForSelector('.ks-export');
+await page.locator('[data-export=stems]').check();
+const stemsDownload=page.waitForEvent('download',{timeout:60000});
+await page.click('[data-export-act=go]');
+let stemsFile=null;
+try{const got=await stemsDownload;stemsFile={name:got.suggestedFilename(),size:fs.statSync(await got.path()).size};}
+catch(error){problems.push('트랙별 내보내기가 안 나왔다: '+(await page.locator('[data-role=export-note]').textContent().catch(()=>'-')));}
+await page.waitForTimeout(200);
+const stemsStatus=await page.locator('[data-role=status]').textContent();
+
+await page.click('[data-act=export-wav]');await page.waitForSelector('.ks-export');
+await page.locator('[data-export=stems]').uncheck();
 const exportRangeOptions=await page.locator('[data-export=range] option').allTextContents();
 await page.selectOption('[data-export=sampleRate]','22050');
 await page.selectOption('[data-export=mono]','1');
@@ -483,6 +495,9 @@ if(meterAfterStop.some((value)=>value>0.5))problems.push(`정지 뒤에도 미�
 if(saved?.name!=='Smoke Song'||saved.tracks.length!==after.tracks)problems.push('자동 저장 round-trip 실패');
 if(saved?.assets?.length!==1||!portable.assets?.[0]?.dataUrl?.startsWith('data:audio/wav'))problems.push('오디오 asset 또는 휴대용 프로젝트 저장 실패');
 if(reopened.name!=='Smoke Song'||reopened.tracks!==after.tracks||reopened.assets!==1)problems.push(`휴대용 프로젝트 다시 열기 실패 (${JSON.stringify(reopened)})`);
+if(stemsFile&&!/\.zip$/.test(stemsFile.name))problems.push(`트랙별 내보내기가 ZIP 이 아니다 (${stemsFile.name})`);
+if(stemsFile&&stemsFile.size<2000)problems.push(`트랙별 ZIP 이 너무 작다 (${stemsFile.size}B)`);
+if(!/트랙 \d+개/.test(stemsStatus||''))problems.push(`트랙별 내보내기 보고가 없다 (${stemsStatus})`);
 if(!exportRangeOptions.some((text)=>/LOOP/.test(text))||!exportRangeOptions.some((text)=>/고른 클립/.test(text)))problems.push(`내보내기 범위 선택지가 없다 (${exportRangeOptions.join(' / ')})`);
 if(!exportClosed)problems.push('내보낸 뒤 판이 안 닫힌다');
 if(!/peak .* dBFS/.test(exportStatus||''))problems.push(`내보내기 결과에 피크 보고가 없다 (${exportStatus})`);
