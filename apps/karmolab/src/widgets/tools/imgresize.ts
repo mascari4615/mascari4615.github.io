@@ -11,7 +11,7 @@
  *  - 원본보다 커지는 일이 없게 한다 — 「줄이려고 눌렀는데 커졌다」는 배신이다.
  */
 import { fileSize as size } from './shared/media';
-import { download, encode } from './shared/image';
+import { download, encode, loadImage } from './shared/image';
 
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -177,10 +177,16 @@ import { t, loadNamespace } from '../../lib/i18n';
           const stat = (l: string, v: string, primary = false): string =>
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
-          function load(file: File): void {
-            const url = URL.createObjectURL(file);
-            const im = new Image();
-            im.onload = () => {
+          /** 공용 `loadImage` 를 쓴다 (TASK-KL-280) — 주소 만들고 거두는 네 줄이 도구마다 있었다. */
+          async function load(file: File): Promise<void> {
+            let im: HTMLImageElement;
+            try {
+              im = await loadImage(file);
+            } catch {
+              say(t('imgresize.err.open'), 'error');
+              return;
+            }
+            {
               img = im;
               originalSize = file.size;
               baseName = (file.name || t('imgresize.default.name')).replace(/\.[^.]+$/, '');
@@ -193,13 +199,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 stat(t('imgresize.stat.srcSize'), `${im.naturalWidth}×${im.naturalHeight}`, true) +
                 stat(t('imgresize.stat.srcBytes'), size(file.size));
               say(t('imgresize.say.ready'), 'ok');
-              URL.revokeObjectURL(url);
-            };
-            im.onerror = () => {
-              say(t('imgresize.err.open'), 'error');
-              URL.revokeObjectURL(url);
-            };
-            im.src = url;
+            }
           }
 
           /** 긴 변 목표에 맞춘 크기 (비율은 지킨다) */
@@ -297,13 +297,13 @@ import { t, loadNamespace } from '../../lib/i18n';
           const fileInput = $<HTMLInputElement>('#irFile');
           drop.onclick = () => fileInput.click();
           fileInput.onchange = () => {
-            if (fileInput.files?.[0]) load(fileInput.files[0]);
+            if (fileInput.files?.[0]) void load(fileInput.files[0]);
           };
 
           /* 옆 도구가 방금 만든 그림이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
            * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
-              Toolbox.onHandoff?.('imgresize', (f: File) => load(f));
+              Toolbox.onHandoff?.('imgresize', (f: File) => void load(f));
           }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -314,7 +314,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             e.preventDefault();
             drop.classList.remove('over');
             const f = e.dataTransfer?.files?.[0];
-            if (f) load(f);
+            if (f) void load(f);
           });
 
           container.querySelectorAll('#irMode .tool-chip').forEach((chip) => {

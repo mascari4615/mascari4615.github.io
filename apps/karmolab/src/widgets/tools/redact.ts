@@ -11,7 +11,7 @@
  *    고르면 그 사실을 말해 준다. 「가린 줄 알았는데 아니었다」가 이 도구에서 가장 나쁜 결과다.
  */
 import { acceptPastedFiles } from './shared/paste';
-import { download } from './shared/image';
+import { download, loadImage } from './shared/image';
 import { fileSize as size } from './shared/media';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -196,10 +196,16 @@ import { t, loadNamespace } from '../../lib/i18n';
             };
           }
 
-          function load(file: File): void {
-            const url = URL.createObjectURL(file);
-            const im = new Image();
-            im.onload = () => {
+          /** 공용 `loadImage` 를 쓴다 (TASK-KL-280) — 주소 만들고 거두는 네 줄이 도구마다 있었다. */
+          async function load(file: File): Promise<void> {
+            let im: HTMLImageElement;
+            try {
+              im = await loadImage(file);
+            } catch {
+              say(t('redact.err.open'), 'error');
+              return;
+            }
+            {
               img = im;
               boxes = [];
               canvas.width = im.naturalWidth;
@@ -209,13 +215,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               $<HTMLElement>('#rdControls').style.display = '';
               redraw();
               say(t('redact.say.loaded'), 'ok');
-              URL.revokeObjectURL(url);
-            };
-            im.onerror = () => {
-              say(t('redact.err.open'), 'error');
-              URL.revokeObjectURL(url);
-            };
-            im.src = url;
+            }
           }
 
           canvas.addEventListener('pointerdown', (e) => {
@@ -252,7 +252,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           drop.onclick = () => fileInput.click();
           fileInput.onchange = () => {
-            if (fileInput.files?.[0]) load(fileInput.files[0]);
+            if (fileInput.files?.[0]) void load(fileInput.files[0]);
           };
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -263,11 +263,11 @@ import { t, loadNamespace } from '../../lib/i18n';
             e.preventDefault();
             drop.classList.remove('over');
             const f = e.dataTransfer?.files?.[0];
-            if (f) load(f);
+            if (f) void load(f);
           });
           // 캡처는 대개 클립보드에 있다 — 붙여넣기가 가장 빠른 길이다
           acceptPastedFiles(container, (files) => {
-            if (files[0]) load(files[0]);
+            if (files[0]) void load(files[0]);
           }, (f) => f.type.startsWith('image/'));
 
           const setMode = (next: 'fill' | 'pixel'): void => {
