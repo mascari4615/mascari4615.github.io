@@ -66,9 +66,9 @@ import {
   packById,
   ALL_KIND_COLORS,
   ALL_KIND_ICONS,
-  ALL_KIND_LABELS,
+  allKindLabels,
   ALL_EDGE_KIND_DEFS,
-  ALL_EDGE_LABELS,
+  allEdgeLabels,
   allNodeKindGroups,
   allEdgeKindGroups,
   type CanvasPack,
@@ -86,7 +86,9 @@ import {
   /** 얼굴 사진은 이 픽셀로 줄여 넣는다 — 원본을 그대로 넣으면 localStorage 가 몇 장에 터진다. */
   const AVATAR_PX = 96;
 
-  const SHAPES: { id: NodeShape; label: string; icon: string }[] = [
+  /* ★ 모양 이름은 **불릴 때** 꺼낸다. 이 자리(묶음이 읽히는 순간)는 말 묶음이 아직 안 들어온
+     시점이라 `t()` 가 없는 열쇠로 던진다 — 그러면 위젯이 등록조차 안 된다(실측 2026-08-12). */
+  const shapes = (): { id: NodeShape; label: string; icon: string }[] => [
     { id: 'rect', label: t('karmograph.t155'), icon: '▭' },
     { id: 'circle', label: t('karmograph.t156'), icon: '◯' },
     { id: 'bubble', label: t('karmograph.t157'), icon: '💬' },
@@ -334,9 +336,9 @@ import {
     const kindIcon = (id: string): string =>
       terms.nodeKinds.find((k) => k.id === id)?.icon ?? ALL_KIND_ICONS[id] ?? '·';
     const kindLabel = (id: string): string =>
-      terms.nodeKinds.find((k) => k.id === id)?.label ?? ALL_KIND_LABELS[id] ?? id;
+      terms.nodeKinds.find((k) => k.id === id)?.label ?? allKindLabels()[id] ?? id;
     const edgeLabel = (id: string): string =>
-      terms.edgeKinds.find((k) => k.id === id)?.label ?? ALL_EDGE_LABELS[id] ?? id;
+      terms.edgeKinds.find((k) => k.id === id)?.label ?? allEdgeLabels()[id] ?? id;
     /** 캔버스에 넘길 색표·선 정의 — 팩 전체 + 내 용어. */
     const kindColorsNow = (): Record<string, string> => ({
       ...ALL_KIND_COLORS,
@@ -1277,7 +1279,7 @@ import {
         ${docFieldHtml(panelCtx, node)}
         <div data-km="link-sections">${renderLinkSections(panelCtx, node)}</div>
         ${membershipFieldHtml(panelCtx, node)}
-        ${shapeFieldHtml(panelCtx, node, SHAPES)}
+        ${shapeFieldHtml(panelCtx, node, shapes())}
         ${attachFieldHtml(panelCtx, node)}
         ${tiltFieldHtml(panelCtx, node)}
         ${avatarFieldHtml(panelCtx, node)}
