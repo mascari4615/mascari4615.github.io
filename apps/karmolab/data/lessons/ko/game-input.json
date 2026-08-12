@@ -1,0 +1,100 @@
+{
+  "id": "game-input",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "조작감은 그래픽이 아니라 **입력을 언제 받아 언제 반영하느냐**에서 갈린다."
+    },
+    {
+      "type": "h",
+      "text": "1. 누른 순간 · 누르고 있음 · 뗀 순간"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "세 가지를 구분해 저장한다",
+      "text": "const down = new Set(), pressed = new Set(), released = new Set();\naddEventListener('keydown', (e) => { if (!down.has(e.code)) pressed.add(e.code); down.add(e.code); });\naddEventListener('keyup',   (e) => { down.delete(e.code); released.add(e.code); });\n\nfunction endFrame() { pressed.clear(); released.clear(); }   // 매 프레임 끝에 비운다"
+    },
+    {
+      "type": "h",
+      "text": "2. 상태 기계로 겹침을 정리"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "「점프 중 공격」 같은 문제",
+      "text": "const rules = {\n  idle:    { move: 'run', jump: 'air', attack: 'attack' },\n  run:     { stop: 'idle', jump: 'air', attack: 'attack' },\n  air:     { land: 'idle', attack: 'airAttack' },\n  attack:  { done: 'idle' },      // 공격 중에는 이동 입력을 무시\n};\nstate = rules[state]?.[event] ?? state;"
+    },
+    {
+      "type": "note",
+      "text": "if 문이 다섯 개를 넘어가면 상태 기계로 바꿀 때다. **어떤 상태에서 어떤 입력이 무엇이 되는지**를 표로 적으면 버그가 눈에 보인다."
+    },
+    {
+      "type": "h",
+      "text": "3. 조작감을 만드는 작은 장치들"
+    },
+    {
+      "type": "note",
+      "text": "**입력 버퍼**(착지 직전 점프를 눌러도 착지하면 점프) · **코요테 타임**(발판을 벗어난 뒤 0.1초까지 점프 허용) · **선입력 취소**. 이 셋만 넣어도 「반응이 좋다」는 평이 바뀐다."
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "입력 버퍼와 코요테 타임",
+      "text": "if (pressed.has('Space')) jumpBuffer = 0.12;\njumpBuffer -= dt; coyote = grounded ? 0.1 : coyote - dt;\nif (jumpBuffer > 0 && coyote > 0) { jump(); jumpBuffer = 0; coyote = 0; }"
+    },
+    {
+      "type": "h",
+      "text": "4. 여러 장치"
+    },
+    {
+      "type": "p",
+      "text": "키보드·패드·터치를 **추상 액션**(move, jump, attack)으로 묶어라. 장치별 코드가 게임 로직에 섞이면 나중에 하나를 추가할 때 전부 손봐야 한다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "점프에 입력 버퍼와 코요테 타임을 넣고 끄고 켜며 플레이해 보라. 숫자를 0.05 / 0.1 / 0.2 로 바꿔 감각 차이를 적어라."
+    },
+    {
+      "type": "try",
+      "text": "캐릭터 상태를 표로 그린 뒤(상태 × 입력) 빈칸을 채워라. 빈칸이 곧 미정의 동작이다."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "「누른 순간」과 「누르고 있음」을 구분해야 하는 이유는?",
+      "choices": [
+        "한 번만 실행할 동작과 계속할 동작이 다르기 때문",
+        "메모리 때문",
+        "입력 지연 때문"
+      ],
+      "answer": 0,
+      "why": "점프는 누른 순간, 이동은 누르고 있는 동안이다."
+    },
+    {
+      "q": "코요테 타임이 하는 일은?",
+      "choices": [
+        "발판을 살짝 벗어난 뒤에도 짧게 점프를 허용해 조작감을 높인다",
+        "점프 높이를 올린다",
+        "중력을 줄인다"
+      ],
+      "answer": 0,
+      "why": "사람의 반응 오차를 관대하게 흡수한다."
+    },
+    {
+      "q": "조건문이 계속 늘어나는 캐릭터 동작을 정리하는 방법은?",
+      "choices": [
+        "상태 기계로 상태 × 입력 표를 만든다",
+        "함수 이름을 짧게",
+        "전역 변수로 통합"
+      ],
+      "answer": 0,
+      "why": "표로 만들면 미정의 조합이 드러난다."
+    }
+  ]
+}
