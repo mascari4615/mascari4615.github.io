@@ -111,6 +111,9 @@ const round = normalizeProject(JSON.parse(JSON.stringify(project)));
 assert.equal(round.tracks[0].automation.volume.length, 1, '자동화가 저장 왕복에서 안 사라진다');
 assert.equal(round.tracks[0].automation.volume[0].value, 0.4);
 assert.equal(round.tracks[0].automation.pan[0].value, -0.7, '팬은 음수도 산다');
+assert.equal(putAutomationPoint([], 0, 5, 'reverb')[0].value, 1, '리버브 상한 1');
+assert.equal(putAutomationPoint([], 0, -1, 'reverb')[0].value, 0, '리버브는 음수로 안 간다');
+assert.equal(normalizeProject(JSON.parse(JSON.stringify(project))).tracks[0].automation.reverb.length, 0, '리버브 자동화 자리가 늘 있다');
 // 팬은 -1~1, 볼륨은 0~1.2 로 접힌다
 assert.equal(putAutomationPoint([], 0, 5, 'pan')[0].value, 1, '팬 상한');
 assert.equal(putAutomationPoint([], 0, -5, 'pan')[0].value, -1, '팬 하한');
