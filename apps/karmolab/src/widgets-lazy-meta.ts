@@ -2035,19 +2035,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['laptop']
   },
 
-  /* 흥 — 곡을 만드는 자리 (TASK-KL-220) — 녹음·편곡·믹싱·WAV 출력을 한 프로젝트에서 닫는 DAW. */
-  {
-    id: 'heung',
-    title: '흥',
-    category: 'lab',
-    desc: '멀티트랙 녹음·MIDI 편곡·믹싱·WAV 출력을 한 프로젝트에서 완성하는 브라우저 DAW',
-    layout: 'full',
-    noHero: true,
-    accepts: ['audio/*', 'application/json'],
-    produces: ['audio/wav', 'application/json'],
-    icon: '<path d="M3 17V7M7 20V4M11 15V9M15 19V5M19 14V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M2 12h20" stroke="currentColor" stroke-width="1" opacity=".35"/>',
-    lazyScriptPaths: ['heung/heung']
-  },
 
   /* ORBITA (TASK-KL-193) — 순서를 줄이 아니라 궤도로 적는 시퀀서. 색이 곧 음이다. */
   {
