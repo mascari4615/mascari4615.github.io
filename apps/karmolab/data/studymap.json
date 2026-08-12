@@ -4859,6 +4859,140 @@
           ]
         }
       ]
+    },
+    {
+      "id": "db",
+      "title": "데이터베이스 운영",
+      "emoji": "🗄",
+      "lead": "느려지는 것도, 멈추는 것도, 되살리는 것도 여기서 갈린다",
+      "stages": [
+        {
+          "id": "db-a",
+          "title": "왜 느린가",
+          "nodes": [
+            {
+              "id": "db-index",
+              "title": "인덱스 — 책 뒤의 찾아보기",
+              "why": "느린 쿼리의 8할은 인덱스 문제다. 그리고 인덱스를 아무 데나 붙이면 쓰기가 느려진다.",
+              "check": "느린 조회에 맞는 인덱스를 만들어 시간을 줄인다",
+              "links": [
+                {
+                  "label": "PostgreSQL — 인덱스",
+                  "url": "https://www.postgresql.org/docs/current/indexes.html"
+                }
+              ],
+              "prereq": [
+                "data-sql"
+              ]
+            },
+            {
+              "id": "db-explain",
+              "title": "실행 계획을 읽는다",
+              "why": "추측 대신 DB 가 스스로 「어떻게 찾을지」를 말해 준다. 이걸 읽으면 최적화가 도박이 아니다.",
+              "check": "EXPLAIN 으로 전체 스캔과 인덱스 사용을 구분한다",
+              "links": [
+                {
+                  "label": "PostgreSQL — EXPLAIN 사용법",
+                  "url": "https://www.postgresql.org/docs/current/using-explain.html"
+                }
+              ]
+            },
+            {
+              "id": "db-nplus1",
+              "title": "N+1 과 쿼리 폭발",
+              "why": "ORM 이 조용히 쿼리 200개를 날린다. 코드는 깔끔한데 화면만 느린 전형적 사고.",
+              "check": "한 요청이 날린 쿼리 수를 세고 줄인다",
+              "links": [
+                {
+                  "label": "PostgreSQL — pg_stat_statements",
+                  "url": "https://www.postgresql.org/docs/current/pgstatstatements.html"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "db-b",
+          "title": "멈추지 않게",
+          "nodes": [
+            {
+              "id": "db-lock",
+              "title": "락과 데드락",
+              "why": "「가끔 응답이 안 와요」의 정체. 트랜잭션을 길게 잡으면 남이 줄을 선다.",
+              "check": "지금 무엇이 무엇을 기다리는지 조회한다",
+              "links": [
+                {
+                  "label": "PostgreSQL — 명시적 잠금",
+                  "url": "https://www.postgresql.org/docs/current/explicit-locking.html"
+                }
+              ],
+              "prereq": [
+                "data-tx"
+              ]
+            },
+            {
+              "id": "db-pool",
+              "title": "커넥션 풀 — 연결은 비싸다",
+              "why": "연결 수를 늘릴수록 빨라지지 않는다. 어느 지점부터는 오히려 전부 느려진다.",
+              "check": "풀 크기를 정하고 대기 시간을 관측한다",
+              "links": [
+                {
+                  "label": "PostgreSQL — 연결 설정",
+                  "url": "https://www.postgresql.org/docs/current/runtime-config-connection.html"
+                }
+              ]
+            },
+            {
+              "id": "db-migrate",
+              "title": "무중단 스키마 변경",
+              "why": "컬럼 하나 추가가 서비스를 멈추게 할 수 있다. 순서를 알면 안 멈춘다.",
+              "check": "확장 → 이행 → 정리 순서로 변경을 나눈다",
+              "links": [
+                {
+                  "label": "Martin Fowler — Evolutionary Database Design",
+                  "url": "https://martinfowler.com/articles/evodb.html"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "db-c",
+          "title": "잃지 않게",
+          "nodes": [
+            {
+              "id": "db-backup",
+              "title": "백업은 복구 훈련이다",
+              "why": "백업이 있다는 것과 되살릴 수 있다는 것은 다르다. 대부분 사고 당일에 알게 된다.",
+              "check": "실제로 복구해 보고 걸린 시간을 잰다",
+              "links": [
+                {
+                  "label": "PostgreSQL — 백업과 복구",
+                  "url": "https://www.postgresql.org/docs/current/backup.html"
+                }
+              ],
+              "prereq": [
+                "devops-postmortem"
+              ]
+            },
+            {
+              "id": "db-grow",
+              "title": "커지는 데이터 — 보관과 분할",
+              "why": "테이블이 억 단위가 되면 지우는 것조차 어려워진다. 커지기 전에 정하는 게 싸다.",
+              "check": "보관 기간과 분할 기준을 정한다",
+              "links": [
+                {
+                  "label": "PostgreSQL — 파티셔닝",
+                  "url": "https://www.postgresql.org/docs/current/ddl-partitioning.html"
+                }
+              ],
+              "prereq": [
+                "scale-shard"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

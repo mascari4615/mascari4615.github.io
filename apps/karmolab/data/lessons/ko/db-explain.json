@@ -1,0 +1,112 @@
+{
+  "id": "db-explain",
+  "minutes": 11,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "「이 쿼리 왜 느리지?」의 답은 추측할 필요가 없다. **DB 에게 물어보면 된다.**"
+    },
+    {
+      "type": "h",
+      "text": "1. 두 가지 EXPLAIN"
+    },
+    {
+      "type": "code",
+      "lang": "sql",
+      "label": "계획만 vs 실제로 돌려 보기",
+      "text": "EXPLAIN SELECT ...;              -- 계획만 (실행 안 함, 추정치)\nEXPLAIN ANALYZE SELECT ...;      -- 실제 실행 + 실측 시간  ★ 이걸 봐라\nEXPLAIN (ANALYZE, BUFFERS) ...;  -- 디스크/캐시 읽기량까지\n\n※ ANALYZE 는 진짜로 실행한다 — UPDATE/DELETE 에 쓸 땐 트랜잭션 열고 롤백"
+    },
+    {
+      "type": "h",
+      "text": "2. 무엇부터 볼 것인가"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "세 가지만 보면 된다",
+      "text": "① Seq Scan (전체 훑기) 이 큰 테이블에 있나\n     작은 테이블이면 정상 — 오히려 인덱스보다 빠르다\n② 추정 행 수(rows) vs 실제 행 수(actual rows) 가 크게 다른가\n     10배 이상 차이 = 통계가 낡았다 → ANALYZE 실행\n     계획이 틀린 근본 원인이 대개 여기\n③ 어느 단계에서 시간이 가장 많이 갔나 (안쪽부터 읽는다)"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "읽는 예",
+      "text": "Limit  (cost=... rows=20) (actual time=812.3..812.4 rows=20 loops=1)\n  ->  Sort  (actual time=812.3..812.3 rows=20 loops=1)\n        Sort Method: external merge  Disk: 24MB     ← 디스크 정렬! 메모리 부족 신호\n        ->  Seq Scan on posts  (actual time=0.1..690.2 rows=980341)\n              Filter: (user_id = 42)\n              Rows Removed by Filter: 979341        ← 98만 행을 읽고 버렸다\n\n진단: user_id 인덱스가 없다 → 만들면 Seq Scan 과 Sort 가 동시에 사라진다"
+    },
+    {
+      "type": "note",
+      "text": "**「Rows Removed by Filter」가 크면 거의 항상 인덱스 문제**다. 읽은 것의 대부분을 버리고 있다는 뜻이니까. 이 한 줄만 봐도 절반은 진단된다."
+    },
+    {
+      "type": "h",
+      "text": "3. 조인 방식"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "이름만 알아 두면 된다",
+      "text": "Nested Loop   한쪽이 작을 때 유리 · 큰 것끼리면 재앙\nHash Join     큰 것끼리 같음 조인에 좋다 (메모리 필요)\nMerge Join    양쪽이 정렬돼 있을 때\n\nDB 가 잘못 고르는 경우 대부분 = 행 수 추정이 틀려서\n→ 통계 갱신이 첫 처방이지 힌트 강제가 아니다"
+    },
+    {
+      "type": "h",
+      "text": "4. 느린 쿼리 찾기"
+    },
+    {
+      "type": "code",
+      "lang": "sql",
+      "label": "전체에서 범인 찾기",
+      "text": "-- 총 소모 시간 상위 (pg_stat_statements 확장)\nSELECT calls, mean_exec_time, total_exec_time, query\n  FROM pg_stat_statements ORDER BY total_exec_time DESC LIMIT 10;\n\n-- ★ mean 이 아니라 total 로 정렬하라\n--   1ms × 100만번 이 2초 × 1번 보다 훨씬 큰 문제다"
+    },
+    {
+      "type": "h",
+      "text": "5. 운영에서"
+    },
+    {
+      "type": "p",
+      "text": "느린 쿼리 로그를 켜 두고(예: 500ms 이상), **문턱을 넘긴 쿼리만** 기록하라. 그리고 배포 전후로 상위 목록이 바뀌었는지 보면 회귀를 조기에 잡는다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "느린 쿼리 하나에 EXPLAIN ANALYZE 를 돌려 추정 행 수와 실제 행 수를 비교하라."
+    },
+    {
+      "type": "try",
+      "text": "총 소모 시간 상위 10개 쿼리를 뽑고, 1위가 「가끔 느린 것」인지 「자주 부르는 것」인지 판정하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "EXPLAIN 에서 추정 행 수와 실제 행 수가 크게 다르면?",
+      "choices": [
+        "통계가 낡았다 — ANALYZE 를 실행한다",
+        "인덱스를 지운다",
+        "무시한다"
+      ],
+      "answer": 0,
+      "why": "잘못된 계획의 근본 원인이다."
+    },
+    {
+      "q": "Rows Removed by Filter 가 매우 크면?",
+      "choices": [
+        "적절한 인덱스가 없다",
+        "메모리가 부족하다",
+        "조인이 잘못됐다"
+      ],
+      "answer": 0,
+      "why": "읽은 것 대부분을 버리고 있다."
+    },
+    {
+      "q": "느린 쿼리 목록은 무엇으로 정렬해야 하나?",
+      "choices": [
+        "총 소모 시간",
+        "평균 시간",
+        "호출 수"
+      ],
+      "answer": 0,
+      "why": "작지만 잦은 쿼리가 더 큰 문제일 수 있다."
+    }
+  ]
+}

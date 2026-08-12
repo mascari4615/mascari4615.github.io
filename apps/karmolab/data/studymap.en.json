@@ -152,6 +152,10 @@
     "api": {
       "title": "API design",
       "lead": "Once someone else depends on it you cannot change it — so the first hour lasts for years"
+    },
+    "db": {
+      "title": "Running a database",
+      "lead": "Getting slow, getting stuck, getting your data back — it is all decided here"
     }
   },
   "stages": {
@@ -256,7 +260,10 @@
     "math-c": "Judging by numbers",
     "api-a": "Writing the contract",
     "api-b": "Surviving the real world",
-    "api-c": "Lasting"
+    "api-c": "Lasting",
+    "db-a": "Why it is slow",
+    "db-b": "Keeping it moving",
+    "db-c": "Not losing it"
   },
   "nodes": {
     "web-html": {
@@ -2558,6 +2565,70 @@
       "check": "One schema file produces both docs and types",
       "links": [
         "OpenAPI specification"
+      ]
+    },
+    "db-index": {
+      "title": "Indexes — the book’s back matter",
+      "why": "Most slow queries are an index problem, and adding them everywhere makes writes slow instead.",
+      "check": "You add the right index and watch the query time drop",
+      "links": [
+        "PostgreSQL — indexes"
+      ]
+    },
+    "db-explain": {
+      "title": "Reading the query plan",
+      "why": "The database will tell you how it plans to search, which turns tuning from gambling into reading.",
+      "check": "You tell a sequential scan from an index scan in EXPLAIN",
+      "links": [
+        "PostgreSQL — using EXPLAIN"
+      ]
+    },
+    "db-nplus1": {
+      "title": "N+1 and query explosions",
+      "why": "An ORM quietly fires two hundred queries; the code looks clean and only the screen is slow.",
+      "check": "You count the queries one request makes and cut them",
+      "links": [
+        "PostgreSQL — pg_stat_statements"
+      ]
+    },
+    "db-lock": {
+      "title": "Locks and deadlocks",
+      "why": "This is what \"sometimes it just hangs\" really is — a long transaction makes everyone queue.",
+      "check": "You query who is currently waiting on whom",
+      "links": [
+        "PostgreSQL — explicit locking"
+      ]
+    },
+    "db-pool": {
+      "title": "Connection pools — connections cost",
+      "why": "More connections stop helping and then start hurting everyone at once.",
+      "check": "You size the pool and watch wait time",
+      "links": [
+        "PostgreSQL — connection settings"
+      ]
+    },
+    "db-migrate": {
+      "title": "Schema changes without downtime",
+      "why": "Adding one column can stop a service; knowing the order means it does not.",
+      "check": "You split changes into expand, migrate and contract",
+      "links": [
+        "Martin Fowler — evolutionary database design"
+      ]
+    },
+    "db-backup": {
+      "title": "A backup is a restore drill",
+      "why": "Having backups and being able to restore are different things, usually learned on the worst day.",
+      "check": "You actually restore one and time it",
+      "links": [
+        "PostgreSQL — backup and restore"
+      ]
+    },
+    "db-grow": {
+      "title": "Growing data — retention and partitions",
+      "why": "Past a hundred million rows even deleting is hard, so deciding early is the cheap option.",
+      "check": "You set a retention window and a partition key",
+      "links": [
+        "PostgreSQL — partitioning"
       ]
     }
   }
