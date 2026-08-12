@@ -66,5 +66,12 @@
   "bluemarble.card.button": "Earth that day",
   "bluemarble.card.title": "Earth on {date}",
   "bluemarble.card.credit": "NASA Blue Marble · GIBS · USGS · NOAA — KarmoLab Blue Marble",
-  "bluemarble.card.saved": "Card saved."
+  "bluemarble.card.saved": "Card saved.",
+  "bluemarble.layer.radio": "Radio",
+  "bluemarble.radio.loading": "Fetching stations…",
+  "bluemarble.radio.ready": "On air in {n} places — tap a ring",
+  "bluemarble.radio.fail": "Could not fetch the station list",
+  "bluemarble.radio.hint": "Tap a ring to hear that town",
+  "bluemarble.radio.on": "{name} · {where} · it is {time} there",
+  "bluemarble.radio.dead": "Nobody is on air there right now"
 }

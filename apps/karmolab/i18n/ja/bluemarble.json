@@ -66,5 +66,12 @@
   "bluemarble.card.button": "その日の地球",
   "bluemarble.card.title": "{date} の地球",
   "bluemarble.card.credit": "NASA Blue Marble · GIBS · USGS · NOAA — KarmoLab ブルーマーブル",
-  "bluemarble.card.saved": "カードを保存しました。"
+  "bluemarble.card.saved": "カードを保存しました。",
+  "bluemarble.layer.radio": "ラジオ",
+  "bluemarble.radio.loading": "放送局リストを取得中…",
+  "bluemarble.radio.ready": "世界{n}か所で放送中 — 輪をタップ",
+  "bluemarble.radio.fail": "放送局リストを取得できませんでした",
+  "bluemarble.radio.hint": "輪をタップするとその町の放送が流れます",
+  "bluemarble.radio.on": "{name} · {where} · 現地は{time}",
+  "bluemarble.radio.dead": "そこは今どこも放送していません"
 }

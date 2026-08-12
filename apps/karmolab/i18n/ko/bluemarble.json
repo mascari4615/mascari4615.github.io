@@ -66,5 +66,12 @@
   "bluemarble.card.button": "그날의 지구",
   "bluemarble.card.title": "{date}의 지구",
   "bluemarble.card.credit": "NASA Blue Marble · GIBS · USGS · NOAA — KarmoLab 블루마블",
-  "bluemarble.card.saved": "카드를 저장했습니다."
+  "bluemarble.card.saved": "카드를 저장했습니다.",
+  "bluemarble.layer.radio": "라디오",
+  "bluemarble.radio.loading": "방송국 목록을 받는 중…",
+  "bluemarble.radio.ready": "세계 {n}곳에서 방송 중 — 고리를 눌러 보세요",
+  "bluemarble.radio.fail": "방송국 목록을 못 받았습니다",
+  "bluemarble.radio.hint": "고리를 누르면 그 동네 방송이 나옵니다",
+  "bluemarble.radio.on": "{name} · {where} · 그곳은 {time}",
+  "bluemarble.radio.dead": "그 자리는 지금 아무도 방송하지 않습니다"
 }
