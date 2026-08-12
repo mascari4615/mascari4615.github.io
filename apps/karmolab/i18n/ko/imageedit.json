@@ -378,5 +378,14 @@
   "imageedit.blend.hard-light": "하드 라이트",
   "imageedit.blend.soft-light": "소프트 라이트",
   "imageedit.blend.difference": "차이",
-  "imageedit.blend.exclusion": "제외"
+  "imageedit.blend.exclusion": "제외",
+  "imageedit.toolMarquee": "사각 선택",
+  "imageedit.toolLasso": "올가미",
+  "imageedit.toolWand": "마술봉",
+  "imageedit.selected": "골랐다",
+  "imageedit.selectedNone": "고른 것이 없다",
+  "imageedit.clearSelection": "고른 자리 지우기",
+  "imageedit.feathered": "가장자리를 부드럽게 했다",
+  "imageedit.deselect": "선택 풀기",
+  "imageedit.featherEdge": "가장자리 부드럽게"
 }

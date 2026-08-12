@@ -66,7 +66,7 @@
     "test:workdays": "node scripts/test-workdays.mjs",
     "test:t2i": "node scripts/test-text2img.mjs",
     "test:core": "node scripts/test-core.mjs",
-    "test:imageedit": "node scripts/test-imageedit-doc.mjs && node scripts/test-imageedit-brush.mjs",
+    "test:imageedit": "node scripts/test-imageedit-doc.mjs && node scripts/test-imageedit-brush.mjs && node scripts/test-imageedit-selection.mjs",
     "test:imagestudio": "node scripts/smoke-imagestudio.mjs",
     "test:tool-url": "node scripts/smoke-tool-url.mjs",
     "test:parity": "node scripts/smoke-core-parity.mjs",

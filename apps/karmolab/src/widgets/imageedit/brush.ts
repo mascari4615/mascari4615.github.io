@@ -74,11 +74,15 @@ export class Stroke {
   private carry = 0;
   private minX = Infinity; private minY = Infinity; private maxX = -Infinity; private maxY = -Infinity;
 
-  constructor(surface: Surface, settings: BrushSettings) {
+  /** 고른 자리 밖에는 안 그린다(픽셀당 0..255). 없으면 판 전체가 대상. */
+  private selection: Uint8Array | null;
+
+  constructor(surface: Surface, settings: BrushSettings, selection?: Uint8Array | null) {
     this.surface = surface;
     this.base = cloneSurface(surface);
     this.settings = { ...settings };
     this.mask = new Float32Array(surface.w * surface.h);
+    this.selection = selection && selection.length === surface.w * surface.h ? selection : null;
   }
 
   /** 이 획이 건드린 사각형. 아무것도 안 그렸으면 null. */
@@ -186,6 +190,11 @@ export class Stroke {
         }
         if (cover <= 0) continue;
         const index = y * this.surface.w + x;
+        /* 선택영역 밖은 붓이 안 닿는다 — 가장자리가 부드러운 선택이면 그만큼만 묻는다. */
+        if (this.selection) {
+          cover *= this.selection[index] / 255;
+          if (cover <= 0) continue;
+        }
         const next = Math.max(this.mask[index], cover * flow);
         if (next === this.mask[index]) continue;
         this.mask[index] = next;
