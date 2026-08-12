@@ -18,18 +18,6 @@ if (typeof document !== 'undefined') {
 
 window.KARMOLAB_LAZY_META = [
   {
-    id: 'ditherdeck',
-    title: 'Ditherdeck',
-    category: 'tool',
-    desc: 'Frame-by-frame pixel animation workspace with onion skinning, playback, and sprite-sheet export',
-    layout: 'full',
-    noHero: true,
-    accepts: ['application/json'],
-    produces: ['image/png', 'application/json'],
-    icon: '<rect x="3" y="3" width="7" height="7" fill="currentColor"/><rect x="14" y="3" width="7" height="7" fill="currentColor" opacity=".45"/><rect x="3" y="14" width="7" height="7" fill="currentColor" opacity=".45"/><path d="M14 14h7v7h-7zM17.5 12v11M12 17.5h11" stroke="currentColor" stroke-width="1.4"/>',
-    lazyScriptPaths: ['ditherdeck/ditherdeck']
-  },
-  {
     id: 'life',
     get title() { return t('widgets.life.title', undefined, "Life 채널"); },
     category: 'tool',
@@ -2035,6 +2023,19 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['laptop']
   },
 
+  /* 흥 — 곡을 만드는 자리 (TASK-KL-220) — 녹음·편곡·믹싱·WAV 출력을 한 프로젝트에서 닫는 DAW. */
+  {
+    id: 'heung',
+    title: '흥',
+    category: 'lab',
+    desc: '멀티트랙 녹음·MIDI 편곡·믹싱·WAV 출력을 한 프로젝트에서 완성하는 브라우저 DAW',
+    layout: 'full',
+    noHero: true,
+    accepts: ['audio/*', 'application/json'],
+    produces: ['audio/wav', 'application/json'],
+    icon: '<path d="M3 17V7M7 20V4M11 15V9M15 19V5M19 14V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M2 12h20" stroke="currentColor" stroke-width="1" opacity=".35"/>',
+    lazyScriptPaths: ['heung/heung']
+  },
 
   /* ORBITA (TASK-KL-193) — 순서를 줄이 아니라 궤도로 적는 시퀀서. 색이 곧 음이다. */
   {
@@ -2069,6 +2070,20 @@ window.KARMOLAB_LAZY_META = [
     layout: 'full',
     icon: '<rect x="3" y="3" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/><rect x="15" y="3" width="6" height="6" rx="1" fill="currentColor" opacity=".35"/><rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/><rect x="3" y="15" width="6" height="6" rx="1" fill="currentColor" opacity=".35"/><rect x="15" y="15" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/>',
     lazyScriptPaths: ['garden/garden']
+  },
+
+  /* 멍 (TASK-KL-221) — 도구가 아니라 창문. 로고가 스스로 모여 더 큰 로고가 되고, 그
+     안으로 끝없이 빨려 들어간다. 이음매가 없어 언제 켜도 「처음부터」가 없다. */
+  {
+    id: 'meong',
+    get title() { return t('widgets.meong.title', undefined, "멍"); },
+    category: 'lab',
+    get desc() { return t('widgets-desc.meong.desc', undefined, "멍때리며 보는 화면 — 로고가 모여 더 큰 로고가 되고 끝없이 안으로 들어갑니다"); },
+    layout: 'full',
+    noHero: true,
+    produces: ['image/png'],
+    icon: '<path d="M3 5h13M3 11h9M3 17h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="15" cy="11" r="1.3" fill="currentColor"/><circle cx="12" cy="17" r="1.3" fill="currentColor"/><g opacity=".5"><path d="M17.6 15h4M17.6 18h2.7M17.6 21h1.7" stroke="currentColor" stroke-width="1" stroke-linecap="round" fill="none"/></g>',
+    lazyScriptPaths: ['meong/meong']
   },
 
   /* 오락실 (TASK-KL-242) — 실험실 안의 놀이터. 미니게임 여럿을 커널 하나가 굴린다.
