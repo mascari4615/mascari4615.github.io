@@ -8,24 +8,12 @@
  */
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
+import { download, openForEdit, pdfBlob, loadPdfLib, suffixName, type PDFLib } from './shared/pdf';
 
 (function (): void {
   const esc = (v: string): string =>
     v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  interface PDFLib {
-    PDFDocument: {
-      load: (b: ArrayBuffer, o?: { ignoreEncryption?: boolean }) => Promise<{
-        getPages: () => Array<{
-          getSize: () => { width: number; height: number };
-          drawImage: (img: unknown, o: { x: number; y: number; width: number; height: number; opacity: number; rotate?: unknown }) => void;
-        }>;
-        embedPng: (b: ArrayBuffer | Uint8Array) => Promise<{ width: number; height: number }>;
-        save: () => Promise<Uint8Array>;
-      }>;
-    };
-    degrees: (n: number) => unknown;
-  }
 
   /** 글자를 캔버스에 그려 PNG 로 — PDF 기본 글꼴은 한글을 담지 못한다. */
   function textToPng(text: string, color: string, fontSize: number): Promise<Uint8Array> {
@@ -117,35 +105,26 @@ import { t, loadNamespace } from '../../lib/i18n';
           const fileInput = $<HTMLInputElement>('#pwFile');
           const status = $<HTMLElement>('#pwStatus');
           let file: File | null = null;
-          let lib: PDFLib | null = null;
 
           const say = (m: string, kind = ''): void => {
             status.textContent = m;
             status.className = 'tool-status' + (kind ? ' ' + kind : '');
           };
 
-          async function loadLib(): Promise<PDFLib> {
-            if (lib) return lib;
-            say(t('pdfwatermark.say.loadingLib'));
-            await Toolbox.ensureScript?.('vendor/pdf-lib.min');
-            lib = (window as unknown as { PDFLib: PDFLib }).PDFLib;
-            if (!lib) throw new Error(t('pdfwatermark.err.lib'));
-            return lib;
-          }
-
           async function run(): Promise<void> {
             if (!file) {
               say(t('pdfwatermark.err.noFile'), 'error');
               return;
             }
-            const L = await loadLib();
+            say(t('pdfwatermark.say.loadingLib'));
+            const L: PDFLib = await loadPdfLib();
             const text = $<HTMLInputElement>('#pwText').value.trim();
             if (!text) {
               say(t('pdfwatermark.err.noText'), 'error');
               return;
             }
             try {
-              const doc = await L.PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+              const doc = await openForEdit(file);
               const pngBytes = await textToPng(text, $<HTMLInputElement>('#pwColor').value || '#e02020', 96);
               const img = await doc.embedPng(pngBytes);
               const opacity = parseInt($<HTMLInputElement>('#pwOpacity').value, 10) / 100;
@@ -168,15 +147,12 @@ import { t, loadNamespace } from '../../lib/i18n';
                 });
               });
 
-              const blob = new Blob([(await doc.save()) as unknown as BlobPart], { type: 'application/pdf' });
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download = file.name.replace(/\.pdf$/i, '') + t('pdfwatermark.file.suffix');
-              a.click();
-              setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+              const blob = pdfBlob(await doc.save());
+              const name = suffixName(file.name, t('pdfwatermark.file.suffix').replace(/^-|\.pdf$/gi, ''));
+              download(blob, name);
               say(t('pdfwatermark.say.done'), 'ok');
               // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
-              Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'pdfwatermark' });
+              Toolbox.offerNext?.(status, { blob: blob, name, from: 'pdfwatermark' });
               Toolbox.trackUse?.('watermark');
             } catch (e) {
               say(t('pdfwatermark.err.run') + (e as Error).message, 'error');

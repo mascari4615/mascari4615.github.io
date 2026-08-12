@@ -7,23 +7,11 @@
  */
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
+import { openForRead, renderPage } from './shared/pdf';
 
 (function (): void {
   const esc = (v: string): string =>
     v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-  interface PdfPage {
-    getViewport: (o: { scale: number }) => { width: number; height: number };
-    render: (o: { canvasContext: CanvasRenderingContext2D; viewport: unknown }) => { promise: Promise<void> };
-  }
-  interface PdfDoc {
-    numPages: number;
-    getPage: (n: number) => Promise<PdfPage>;
-  }
-  interface PdfJs {
-    getDocument: (o: { data: ArrayBuffer }) => { promise: Promise<PdfDoc> };
-    GlobalWorkerOptions: { workerSrc: string };
-  }
 
   function parseRange(spec: string, total: number): number[] {
     const out: number[] = [];
@@ -101,55 +89,32 @@ import { t, loadNamespace } from '../../lib/i18n';
           const status = $<HTMLElement>('#p2Status');
           const scale = $<HTMLInputElement>('#p2Scale');
           let file: File | null = null;
-          let pdfjs: PdfJs | null = null;
 
           const say = (m: string, kind = ''): void => {
             status.textContent = m;
             status.className = 'tool-status' + (kind ? ' ' + kind : '');
           };
 
-          async function loadLib(): Promise<PdfJs> {
-            if (pdfjs) return pdfjs;
-            say(t('pdf2img.say.loadingLib'));
-            await Toolbox.ensureScript?.('vendor/pdfjs.min');
-            const g = (window as unknown as { pdfjsLib: PdfJs }).pdfjsLib;
-            if (!g) throw new Error(t('pdf2img.err.lib'));
-            // 워커도 같은 자리에서 받아야 한다 (CDN 을 따로 두면 버전이 어긋난다)
-            g.GlobalWorkerOptions.workerSrc = '/apps/karmolab/js/vendor/pdfjs.worker.min.js';
-            pdfjs = g;
-            return g;
-          }
-
           async function run(): Promise<void> {
             if (!file) {
               say(t('pdf2img.err.noFile'), 'error');
               return;
             }
-            const lib = await loadLib();
+            say(t('pdf2img.say.loadingLib'));
             const format = $<HTMLSelectElement>('#p2Format').value;
             const ext = format === 'image/png' ? 'png' : 'jpg';
             const s = parseFloat(scale.value);
             out.innerHTML = '';
             try {
-              const doc = await lib.getDocument({ data: await file.arrayBuffer() }).promise;
+              const doc = await openForRead(file);
               const pages = $<HTMLInputElement>('#p2Range').value.trim()
                 ? parseRange($<HTMLInputElement>('#p2Range').value, doc.numPages)
                 : Array.from({ length: doc.numPages }, (_, i) => i + 1);
               say(t('pdf2img.say.drawing', { n: pages.length }));
               for (const n of pages) {
                 const page = await doc.getPage(n);
-                const viewport = page.getViewport({ scale: s });
-                const canvas = document.createElement('canvas');
-                canvas.width = Math.floor(viewport.width);
-                canvas.height = Math.floor(viewport.height);
-                const ctx = canvas.getContext('2d');
-                if (!ctx) continue;
-                if (format === 'image/jpeg') {
-                  // JPG 는 투명을 못 담아 검게 나온다 — 흰 바탕을 먼저 깐다
-                  ctx.fillStyle = '#fff';
-                  ctx.fillRect(0, 0, canvas.width, canvas.height);
-                }
-                await page.render({ canvasContext: ctx, viewport }).promise;
+                // JPG 는 투명을 못 담아 검게 나온다 — 흰 바탕을 먼저 깔아 달라고 시킨다
+                const { canvas } = await renderPage(page, s, format === 'image/jpeg' ? '#fff' : undefined);
                 const url = canvas.toDataURL(format, 0.92);
                 const cell = document.createElement('a');
                 cell.className = 'p2-cell';
