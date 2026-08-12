@@ -549,7 +549,6 @@ import {
               <button class="btn btn-ghost" data-km="storage">${esc(t('karmograph.t120'))}</button>
               <div class="km-drawer-h">${esc(t('karmograph.drawer.g.map'))}</div>
               <button class="btn btn-ghost" data-km="map-copy">${esc(t('karmograph.t136'))}</button>
-              <button class="btn btn-ghost" data-km="map-rename">${esc(t('karmograph.t137'))}</button>
               <button class="btn btn-ghost" data-km="map-del">${esc(t('karmograph.t138'))}</button>
               <hr />
               <button class="btn btn-danger" data-km="clear">${esc(t('karmograph.t139'))}</button>
@@ -3008,7 +3007,7 @@ import {
       library = renameMap(library, library.activeId, name);
       renderMapList();
     };
-    q<HTMLButtonElement>('map-rename').onclick = renameActiveMap;
+    // 판 이름은 **이름 옆 ✎** 하나로만 바꾼다 — 서랍 안 같은 단추는 걷어냈다 (KL-271 P3).
     q<HTMLButtonElement>('map-rename2').onclick = renameActiveMap;
 
     q<HTMLButtonElement>('map-del').onclick = () => {
