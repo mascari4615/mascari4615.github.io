@@ -130,7 +130,7 @@ export const KARMO_STUDIO_CSS = `
       background:transparent; color:var(--text-primary); text-align:left; font:11px var(--font-mono); cursor:pointer; }
     .ks-context button:hover,.ks-context button:focus-visible { background:var(--bg-hover); outline:none; }
     .ks-editor-head { height:30px; display:flex; align-items:center; gap:8px; padding:4px 8px; border-bottom:1px solid var(--border); font:11px var(--font-mono); }
-    .ks-piano { flex:1 1 0; min-height:96px; overflow:auto; position:relative; background:repeating-linear-gradient(to bottom,var(--bg-secondary) 0 15px,var(--border) 16px),repeating-linear-gradient(to right,transparent 0 calc(var(--ks-beat) / 4 - 1px),var(--border) calc(var(--ks-beat) / 4)); }
+    .ks-piano { flex:1 1 0; min-height:96px; overflow:auto; position:relative; background:repeating-linear-gradient(to bottom,var(--bg-secondary) 0 15px,var(--border) 16px),repeating-linear-gradient(to right,transparent 0 calc(var(--ks-grid, calc(var(--ks-beat) / 4)) - 1px),var(--border) var(--ks-grid, calc(var(--ks-beat) / 4))); }
     .ks-key { position:absolute; left:0; width:68px; height:16px; border:1px solid var(--border); border-top:0;
       background:#e8e8e4; color:#25252b; font:9px var(--font-mono); padding:2px 5px; z-index:4; }
     .ks-key.is-black { width:45px; background:#25252b; color:#d8d8d3; border-color:#111; z-index:5; }

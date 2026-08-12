@@ -220,6 +220,14 @@ await page.keyboard.press('Alt+ArrowRight');await page.waitForTimeout(120);
 const playheadAfterMarkerKey=await page.locator('[data-role=playhead]').evaluate((element)=>parseFloat(element.style.left));
 await page.locator('[data-marker]').first().click({button:'right'});await page.waitForTimeout(140);
 const markerCountAfterDelete=await page.locator('[data-marker]').count();
+/* 셋잇단 격자 — 고르면 화면 눈금도 같이 바뀐다(격자와 음이 어긋나면 못 쓴다). */
+const gridBefore=await page.locator('.ks-root').evaluate((element)=>getComputedStyle(element).getPropertyValue('--ks-grid').trim());
+await page.selectOption('[data-bind=snap]','0.3333333333333333');await page.waitForTimeout(200);
+const gridTriplet=await page.locator('.ks-root').evaluate((element)=>getComputedStyle(element).getPropertyValue('--ks-grid').trim());
+await page.waitForTimeout(400);
+const snapSaved=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null');return raw?raw.snap:-1;});
+await page.selectOption('[data-bind=snap]','0.25');await page.waitForTimeout(200);
+const gridBack=await page.locator('.ks-root').evaluate((element)=>getComputedStyle(element).getPropertyValue('--ks-grid').trim());
 /* 스윙 — 고르면 저장에 남고, 껐다 켜면 정박으로 돌아온다(위치는 안 건드린다). */
 const noteBeatsBeforeSwing=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null');return raw?raw.tracks.flatMap((t)=>t.clips).flatMap((c)=>c.notes||[]).map((n)=>n.beat).join(','):'';});
 await page.selectOption('[data-bind=swing]','0.3');await page.waitForTimeout(450);
@@ -356,6 +364,9 @@ const after=await page.evaluate(()=>{const saved=JSON.parse(localStorage.getItem
 if(initial.tracks<2||initial.clips<1||initial.notes<4)problems.push(`기본 프로젝트가 비었다 (${JSON.stringify(initial)})`);
 if(clipStartAfterContext!==clipStartBeforeContext||!contextLabels.includes('편집기 열기'))problems.push(`우클릭 입력 격리 실패 (${clipStartBeforeContext}→${clipStartAfterContext}, ${contextLabels.join(', ')})`);
 if(selectTool!=='select'||drawTool!=='draw')problems.push(`FL식 tool 단축키 실패 (${selectTool}, ${drawTool})`);
+if(!gridBefore||gridBefore===gridTriplet)problems.push(`셋잇단으로 바꿔도 눈금이 그대로다 (${gridBefore}→${gridTriplet})`);
+if(Math.abs(snapSaved-1/3)>0.001)problems.push(`셋잇단 격자가 저장에 안 남았다 (${snapSaved})`);
+if(gridBack!==gridBefore)problems.push(`격자를 되돌려도 눈금이 안 돌아온다 (${gridBefore}→${gridBack})`);
 if(swingSaved!==0.3)problems.push(`스윙이 저장에 안 남았다 (${swingSaved})`);
 if(noteBeatsAfterSwing!==noteBeatsBeforeSwing)problems.push('스윙이 음의 저장 위치를 건드렸다 — 소리 낼 때만 밀어야 한다');
 if(swingOff!==0)problems.push(`스윙 끄기가 안 된다 (${swingOff})`);
