@@ -326,5 +326,12 @@
   "arcade.nunchi.clash": "— 겹쳤다",
   "arcade.nunchi.left": "{n}초 남음",
   "arcade.nunchi.win": "{who} 이(가) 살아남았다",
-  "arcade.nunchi.none": "다 나갔다"
+  "arcade.nunchi.none": "다 나갔다",
+  "arcade.game.fleet.name": "함대 찾기",
+  "arcade.game.fleet.desc": "안 보이는 판을 두들겨 배를 찾는다 · 맞히면 한 번 더",
+  "arcade.fleet.mine": "내 판",
+  "arcade.fleet.your": "두들길 곳을 고르자",
+  "arcade.fleet.wait": "{who} 차례",
+  "arcade.fleet.win": "{who} 의 함대만 남았다",
+  "arcade.fleet.none": "다 가라앉았다"
 }

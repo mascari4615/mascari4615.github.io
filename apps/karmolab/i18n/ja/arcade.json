@@ -326,5 +326,12 @@
   "arcade.nunchi.clash": "— 重なった",
   "arcade.nunchi.left": "残り{n}秒",
   "arcade.nunchi.win": "{who} が生き残った",
-  "arcade.nunchi.none": "全員脱落"
+  "arcade.nunchi.none": "全員脱落",
+  "arcade.game.fleet.name": "艦隊さがし",
+  "arcade.game.fleet.desc": "見えない盤を叩いて船を探す · 当たればもう一回",
+  "arcade.fleet.mine": "自分の海",
+  "arcade.fleet.your": "撃つマスを選ぼう",
+  "arcade.fleet.wait": "{who} の番",
+  "arcade.fleet.win": "{who} の艦隊だけが残った",
+  "arcade.fleet.none": "全部沈んだ"
 }
