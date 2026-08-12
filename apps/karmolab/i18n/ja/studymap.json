@@ -8,7 +8,9 @@
   "studymap.reset.confirm": "この分野のチェックをすべて消します。続けますか？",
   "studymap.next": "次",
   "studymap.check": "先へ進める目安",
-  "studymap.nohit": "この分野にそのトピックはありません。別の分野を見てください。",
+  "studymap.nohit": "地図のどこにもそのトピックはありません。別の言葉で探してください。",
   "studymap.mdd.step": "一歩進みました。",
-  "studymap.mdd.clear": "ひとつの分野を歩ききりました。次に行きますか？"
+  "studymap.mdd.clear": "ひとつの分野を歩ききりました。次に行きますか？",
+  "studymap.found": "地図全体で {n} 項目 ・ {tracks} 分野",
+  "studymap.all": "地図全体 {done} / {total}"
 }

@@ -8,7 +8,9 @@
   "studymap.reset.confirm": "이 갈래의 체크를 전부 지운다. 계속할까?",
   "studymap.next": "다음",
   "studymap.check": "넘어가도 될 때",
-  "studymap.nohit": "이 갈래에는 그런 주제가 없다. 다른 갈래를 눌러 보라.",
+  "studymap.nohit": "지도 어디에도 그런 주제가 없다. 다른 말로 찾아 보라.",
   "studymap.mdd.step": "한 칸 나아갔어요.",
-  "studymap.mdd.clear": "한 갈래를 끝까지 걸었어요. 다음 갈래 가 볼까요?"
+  "studymap.mdd.clear": "한 갈래를 끝까지 걸었어요. 다음 갈래 가 볼까요?",
+  "studymap.found": "지도 전체에서 {n}칸 · {tracks}갈래",
+  "studymap.all": "지도 전체 {done} / {total}"
 }

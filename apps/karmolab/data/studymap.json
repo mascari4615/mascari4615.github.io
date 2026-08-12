@@ -1259,6 +1259,116 @@
           ]
         }
       ]
+    },
+    {
+      "id": "mobile",
+      "title": "모바일",
+      "emoji": "📱",
+      "lead": "손 안의 화면은 규칙이 다르다 — 좁고, 끊기고, 배터리가 있다",
+      "stages": [
+        {
+          "id": "mobile-a",
+          "title": "무엇으로 만들까",
+          "nodes": [
+            {
+              "id": "mobile-choice",
+              "title": "네이티브 · 크로스플랫폼 · 웹",
+              "why": "「어느 쪽이 좋냐」에 답은 없고, 무엇을 포기할지의 선택만 있다.",
+              "check": "내 앱이 카메라·알림·오프라인 중 무엇을 쓰는지로 고른다",
+              "links": [
+                {
+                  "label": "PWA vs 네이티브 (web.dev)",
+                  "url": "https://web.dev/explore/progressive-web-apps"
+                }
+              ]
+            },
+            {
+              "id": "mobile-pwa",
+              "title": "PWA — 설치되는 웹",
+              "why": "스토어 심사 없이 홈 화면에 들어간다. 웹을 하는 사람의 가장 짧은 길.",
+              "check": "내 사이트가 설치되고 아이콘으로 열린다",
+              "links": [
+                {
+                  "label": "설치 가능하게 만들기",
+                  "url": "https://web.dev/articles/install-criteria"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "mobile-b",
+          "title": "손에 맞춘다",
+          "nodes": [
+            {
+              "id": "mobile-touch",
+              "title": "터치 · 손가락 크기",
+              "why": "마우스 기준으로 만든 버튼은 손가락에 안 맞는다. 44px 은 취향이 아니라 규격이다.",
+              "check": "한 손으로 엄지만 써서 주요 동작을 끝낸다",
+              "links": [
+                {
+                  "label": "Apple HIG — 터치 대상",
+                  "url": "https://developer.apple.com/design/human-interface-guidelines/layout"
+                }
+              ]
+            },
+            {
+              "id": "mobile-offline",
+              "title": "오프라인 · 느린 망",
+              "why": "지하철에서 끊긴다. 끊겼을 때 무엇을 보여 줄지가 앱의 품질이다.",
+              "check": "비행기 모드에서 열어도 화면이 남아 있다",
+              "links": [
+                {
+                  "label": "Service Worker 오프라인 전략",
+                  "url": "https://web.dev/learn/pwa/serving"
+                }
+              ]
+            },
+            {
+              "id": "mobile-perf",
+              "title": "배터리 · 성능",
+              "why": "데스크톱에서 안 보이던 비용이 여기서 전부 드러난다.",
+              "check": "느린 기기(4배 감속)로 첫 화면을 재 본다",
+              "links": [
+                {
+                  "label": "Core Web Vitals",
+                  "url": "https://web.dev/articles/vitals"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "mobile-c",
+          "title": "내보낸다",
+          "nodes": [
+            {
+              "id": "mobile-notify",
+              "title": "알림 — 권한과 예의",
+              "why": "권한을 처음에 다 물어보는 앱은 지워진다. 필요할 때 이유와 함께 물어야 한다.",
+              "check": "알림을 왜 켜야 하는지 화면에 적고 나서 묻는다",
+              "links": [
+                {
+                  "label": "권한 UX (web.dev)",
+                  "url": "https://web.dev/articles/push-notifications-permissions-ux"
+                }
+              ]
+            },
+            {
+              "id": "mobile-store",
+              "title": "스토어 배포 · 심사",
+              "why": "만든 것과 내보내는 것 사이에 서명·심사·개인정보 표시가 있다.",
+              "check": "테스트 배포로 남의 기기에 설치된다",
+              "links": [
+                {
+                  "label": "Google Play 배포 문서",
+                  "url": "https://developer.android.com/distribute"
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
