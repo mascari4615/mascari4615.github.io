@@ -204,18 +204,6 @@
       "developer roadmap",
       "learning path"
     ],
-    "karmo-studio": "daw 작곡 음악만들기 곡만들기 미디 midi 피아노롤 편곡 믹싱 시퀀서 비트만들기 음악제작 녹음",
-    "ditherdeck": [
-      "픽셀 애니메이션",
-      "도트 애니메이션",
-      "디더링",
-      "어니언 스킨",
-      "한 장씩 그리기",
-      "pixel animation",
-      "dithering",
-      "onion skin",
-      "spritesheet"
-    ],
     "image": [
       "이미지 도구",
       "사진 편집",
@@ -259,6 +247,32 @@
       "idle screen",
       "zoom loop",
       "fractal logo"
+    ],
+    "heung": "daw 작곡 음악만들기 곡만들기 미디 midi 피아노롤 편곡 믹싱 시퀀서 비트만들기 음악제작 녹음 흥 karmo studio 카모스튜디오",
+    "meok": [
+      "animation",
+      "ditherdeck",
+      "dithering",
+      "draw",
+      "layers",
+      "onion skin",
+      "paint",
+      "pixel animation",
+      "pixel art",
+      "spritesheet",
+      "그리기",
+      "그림",
+      "도트",
+      "도트 애니메이션",
+      "디더링",
+      "레이어",
+      "먹",
+      "스프라이트",
+      "어니언 스킨",
+      "페인트",
+      "픽셀 애니메이션",
+      "픽셀아트",
+      "한 장씩 그리기"
     ]
   }
 }
