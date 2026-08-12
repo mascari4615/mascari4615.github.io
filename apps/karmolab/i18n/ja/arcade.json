@@ -237,5 +237,13 @@
   "arcade.game.minishogi.name": "5五将棋",
   "arcade.game.minishogi.desc": "取った駒は自分の駒になる。王を取れば勝ち",
   "arcade.shogi.win": "{who} が王を取った",
-  "arcade.shogi.stale": "長引いた — 引き分け"
+  "arcade.shogi.stale": "長引いた — 引き分け",
+  "arcade.game.hanafuda.name": "花札あわせ",
+  "arcade.game.hanafuda.desc": "同じ月どうしを取る。合わなければ捨てる",
+  "arcade.hana.floor": "場",
+  "arcade.hana.mine": "手札",
+  "arcade.hana.drop": "捨てる",
+  "arcade.hana.hint": "手札を選ぶと合う札が光ります",
+  "arcade.hana.waiting": "順番待ち",
+  "arcade.hana.win": "{who} — {n}枚"
 }

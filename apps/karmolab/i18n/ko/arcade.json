@@ -237,5 +237,13 @@
   "arcade.game.minishogi.name": "작은 쇼기",
   "arcade.game.minishogi.desc": "잡은 말이 내 말이 된다. 왕을 잡으면 끝",
   "arcade.shogi.win": "{who} 이(가) 왕을 잡았다",
-  "arcade.shogi.stale": "오래 끌었다 — 비겼다"
+  "arcade.shogi.stale": "오래 끌었다 — 비겼다",
+  "arcade.game.hanafuda.name": "화투 짝맞추기",
+  "arcade.game.hanafuda.desc": "같은 달끼리 가져온다. 짝이 없으면 버린다",
+  "arcade.hana.floor": "바닥",
+  "arcade.hana.mine": "내 패",
+  "arcade.hana.drop": "버리기",
+  "arcade.hana.hint": "내 패를 고르면 짝이 밝아집니다",
+  "arcade.hana.waiting": "차례를 기다리는 중",
+  "arcade.hana.win": "{who} — {n}장"
 }
