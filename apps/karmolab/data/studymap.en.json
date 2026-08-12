@@ -120,6 +120,10 @@
     "dataeng": {
       "title": "Data engineering",
       "lead": "Analysis needs pipes in front of it — the side that runs quietly every day"
+    },
+    "video": {
+      "title": "Video & media",
+      "lead": "The triangle of size, quality and compatibility — gaining one costs another"
     }
   },
   "stages": {
@@ -200,7 +204,10 @@
     "search-c": "Making it better",
     "dataeng-a": "Move and store",
     "dataeng-b": "Make it trustworthy",
-    "dataeng-c": "Run it for years"
+    "dataeng-c": "Run it for years",
+    "video-a": "What it is made of",
+    "video-b": "Shipping it",
+    "video-c": "Reaching everyone"
   },
   "nodes": {
     "web-html": {
@@ -1990,6 +1997,70 @@
       "check": "You trace one metric back to the raw source",
       "links": [
         "OpenLineage"
+      ]
+    },
+    "video-container": {
+      "title": "Containers are not codecs",
+      "why": ".mp4 is the box; the codec inside decides whether it plays — the answer to \"why will this not open\".",
+      "check": "You explain how mp4, H.264 and AAC relate",
+      "links": [
+        "MDN media containers"
+      ]
+    },
+    "video-quality": {
+      "title": "Resolution, frame rate, bitrate",
+      "why": "To fix \"it looks bad\" you must know which of the three is the cause.",
+      "check": "You compare the same clip with only bitrate changed",
+      "links": [
+        "FFmpeg H.264 encoding guide"
+      ]
+    },
+    "video-ffmpeg": {
+      "title": "ffmpeg — the media swiss knife",
+      "why": "Cutting, joining and converting are one-liners, which makes the whole thing automatable.",
+      "check": "You trim, convert and make a GIF from the command line",
+      "links": [
+        "FFmpeg wiki (recipes)"
+      ]
+    },
+    "video-transcode": {
+      "title": "Transcoding pipeline",
+      "why": "Uploads come in every shape; converting server-side is what guarantees playback.",
+      "check": "Upload, convert and store run through a queue",
+      "links": [
+        "FFmpeg scaling"
+      ]
+    },
+    "video-stream": {
+      "title": "Streaming — HLS and adaptive bitrate",
+      "why": "Downloading one huge file stalls on mobile; chunk it and match quality to the network.",
+      "check": "You produce an HLS playlist with several renditions",
+      "links": [
+        "Live streaming web video (MDN)"
+      ]
+    },
+    "video-thumb": {
+      "title": "Thumbnails, previews, metadata",
+      "why": "Perceived quality of a list comes from thumbnails — and rotation metadata is what lays photos sideways.",
+      "check": "You extract a thumbnail at a chosen time and honor rotation",
+      "links": [
+        "FFmpeg thumbnails"
+      ]
+    },
+    "video-caption": {
+      "title": "Captions and accessibility",
+      "why": "Not only for people who cannot hear — more people watch muted on a train.",
+      "check": "You attach a caption file and toggle it in the player",
+      "links": [
+        "WebVTT (MDN)"
+      ]
+    },
+    "video-rights": {
+      "title": "Size, cost and rights",
+      "why": "Video is expensive to store and serve, and one music track can take a channel down.",
+      "check": "You estimate storage and egress cost and verify asset rights",
+      "links": [
+        "Creative Commons licenses"
       ]
     }
   }
