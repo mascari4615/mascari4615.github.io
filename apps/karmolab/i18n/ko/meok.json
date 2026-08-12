@@ -114,5 +114,14 @@
   "meok.savedFile": "파일로 내보냈다",
   "meok.openedMeok": "그리던 그림을 열었다",
   "meok.restored": "지난번에 그리던 그림을 되살렸다",
-  "meok.restoreFailed": "지난 그림을 되살리지 못했다 — 새 판으로 시작한다"
+  "meok.restoreFailed": "지난 그림을 되살리지 못했다 — 새 판으로 시작한다",
+  "meok.maskFromSelection": "가림막",
+  "meok.maskFromSelectionHelp": "고른 자리만 보이게 가림막을 만든다 — 그림은 안 지운다",
+  "meok.maskInvert": "뒤집기",
+  "meok.maskInvertHelp": "보이는 자리와 가린 자리를 맞바꾼다",
+  "meok.maskApply": "굳히기",
+  "meok.maskApplyHelp": "가림막대로 그림을 실제로 지운다",
+  "meok.maskClear": "없애기",
+  "meok.needSelectionMask": "먼저 보일 자리를 골라라",
+  "meok.hasMask": "가림막이 걸려 있다"
 }

@@ -114,5 +114,14 @@
   "meok.savedFile": "ファイルに書き出した",
   "meok.openedMeok": "描いていた作品を開いた",
   "meok.restored": "前回描いていたものを復元した",
-  "meok.restoreFailed": "前回の作品を復元できなかった — 新規で始める"
+  "meok.restoreFailed": "前回の作品を復元できなかった — 新規で始める",
+  "meok.maskFromSelection": "マスク",
+  "meok.maskFromSelectionHelp": "選択範囲だけ見せる — 絵は消さない",
+  "meok.maskInvert": "反転",
+  "meok.maskInvertHelp": "見える所と隠す所を入れ替える",
+  "meok.maskApply": "確定",
+  "meok.maskApplyHelp": "マスク通りに実際に消す",
+  "meok.maskClear": "削除",
+  "meok.needSelectionMask": "先に見せたい範囲を選ぶ",
+  "meok.hasMask": "このレイヤーにマスクあり"
 }

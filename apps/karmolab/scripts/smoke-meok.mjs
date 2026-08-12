@@ -264,25 +264,75 @@ page.once('dialog', dialog => dialog.accept());
 await page.click('.meok [data-act="new"]');
 await page.waitForTimeout(400);
 const saveArt = await artRect();
+await page.click('.meok [data-tool="brush"]');
 await page.mouse.move(saveArt.x + saveArt.w * 0.3, saveArt.y + saveArt.h * 0.3);
 await page.mouse.down();
 await page.mouse.move(saveArt.x + saveArt.w * 0.7, saveArt.y + saveArt.h * 0.7, { steps: 10 });
 await page.mouse.up();
+/* 표시를 **획이 끝난 뒤에** 지우고 기다린다. 그리기 전에 지우면, 그리는 도중에 밀려 있던
+   저장이 끝나며 뜬 표시를 보고 곧장 새로고침해 「획이 반만 남았다」는 거짓 빨강이 난다
+   (실제로 그랬다 — 화면을 보고서야 알았다). */
+await page.evaluate(() => { const el = document.querySelector('.meok [data-status]'); if (el) el.textContent = ''; });
 /* 쉬는 순간에 한 번만 쓴다 — 그 순간을 기다린다. */
 await page.waitForFunction(() => /저장됨|Saved|保存/.test(document.querySelector('.meok [data-status]')?.textContent || ''), null, { timeout: 8000 })
   .catch(() => problems.push('자동 저장 표시가 안 뜬다'));
-const inkBeforeReload = await canvasInk();
+/* 잉크를 **화면 픽셀 수**로 재면 확대율이 조금만 달라져도 몇 배씩 튄다(획 굵기가 확대율을
+   따라가므로). 그림이 차지한 넓이로 나눠 **밀도**로 재면 확대율과 무관해진다. */
+const inkDensity = async () => {
+  const rect = await artRect();
+  return (await canvasInk()) / Math.max(1, rect.w * rect.h);
+};
+const densityBefore = await inkDensity();
 
 await page.reload({ waitUntil: 'load' });
 await page.waitForSelector('.meok', { timeout: 20000 });
-await page.waitForTimeout(1200);
-const inkAfterReload = await canvasInk();
-if (Math.abs(inkAfterReload - inkBeforeReload) > Math.max(60, inkBeforeReload * 0.25)) {
-  problems.push('새로고침하니 그림이 달라졌다 (' + inkBeforeReload + ' → ' + inkAfterReload + ')');
+/* 되살리기는 창고(IndexedDB)를 거치므로 화면이 뜬 뒤에 온다 — 말이 뜰 때까지 기다린다. */
+await page.waitForFunction(() => /되살렸|Restored|復元/.test(document.querySelector('.meok [data-status]')?.textContent || ''), null, { timeout: 10000 })
+  .catch(() => problems.push('새로고침 뒤 되살렸다는 말이 안 뜬다'));
+await page.waitForTimeout(500);
+const densityAfter = await inkDensity();
+if (densityAfter < densityBefore * 0.6 || densityAfter > densityBefore * 1.6) {
+  problems.push('새로고침하니 그림이 달라졌다 (밀도 ' + densityBefore.toFixed(4) + ' → ' + densityAfter.toFixed(4) + ')');
 }
-if (inkAfterReload < 100) problems.push('새로고침 뒤 그림이 사라졌다 (' + inkAfterReload + ')');
+if (densityAfter < 0.0005) problems.push('새로고침 뒤 그림이 사라졌다');
 
-/* ⑩ 화면이 넘치지 않는다(가로 스크롤). */
+/* ⑩ 가림막 — 고른 자리만 보이고, 그림 자체는 안 지워진다(되돌리면 다 돌아온다). */
+page.once('dialog', dialog => dialog.accept());
+await page.click('.meok [data-act="new"]');
+await page.waitForTimeout(400);
+const maskArt = await artRect();
+await page.click('.meok [data-tool="brush"]');
+await page.mouse.move(maskArt.x + maskArt.w * 0.15, maskArt.y + maskArt.h * 0.5);
+await page.mouse.down();
+await page.mouse.move(maskArt.x + maskArt.w * 0.85, maskArt.y + maskArt.h * 0.5, { steps: 14 });
+await page.mouse.up();
+await page.waitForTimeout(300);
+const inkFull = await canvasInk();
+
+await page.click('.meok [data-tool="marquee"]');
+await page.mouse.move(maskArt.x + maskArt.w * 0.05, maskArt.y + maskArt.h * 0.2);
+await page.mouse.down();
+await page.mouse.move(maskArt.x + maskArt.w * 0.45, maskArt.y + maskArt.h * 0.8, { steps: 6 });
+await page.mouse.up();
+await page.waitForTimeout(200);
+await page.click('.meok [data-act="mask-from-selection"]');
+await page.waitForTimeout(400);
+const inkMasked = await canvasInk();
+if (inkMasked >= inkFull * 0.8) problems.push('가림막을 걸었는데 화면이 그대로다 (' + inkFull + ' → ' + inkMasked + ')');
+if (!(await page.locator('.meok .meok-maskmark').count())) problems.push('레이어 줄에 가림막 표식이 없다');
+
+await page.click('.meok [data-act="mask-invert"]');
+await page.waitForTimeout(350);
+const inkInverted = await canvasInk();
+if (Math.abs(inkInverted + inkMasked - inkFull) > inkFull * 0.35) {
+  problems.push('가림막 뒤집기가 반대쪽을 안 보여준다 (' + inkMasked + ' + ' + inkInverted + ' ≠ ' + inkFull + ')');
+}
+
+await page.click('.meok [data-act="mask-clear"]');
+await page.waitForTimeout(350);
+if ((await canvasInk()) < inkFull * 0.8) problems.push('가림막을 없앴는데 그림이 안 돌아온다 — 픽셀이 지워졌다는 뜻');
+
+/* ⑪ 화면이 넘치지 않는다(가로 스크롤). */
 const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 if (overflow > 2) problems.push('가로로 ' + overflow + 'px 넘친다');
 
@@ -301,4 +351,4 @@ if (problems.length) {
   console.error('[smoke-meok] ✗\n - ' + problems.join('\n - '));
   process.exit(1);
 }
-console.log('[smoke-meok] ✓ 붓·되돌리기·레이어(숨김 반영)·프레임·픽셀 모드·선택영역(밖으로 안 샘)·고치기(필터·보정·회전)·자동 저장(새로고침 생존) — 실제 브라우저');
+console.log('[smoke-meok] ✓ 붓·되돌리기·레이어(숨김 반영)·프레임·픽셀 모드·선택영역(밖으로 안 샘)·고치기(필터·보정·회전)·자동 저장(새로고침 생존)·가림막 — 실제 브라우저');

@@ -114,5 +114,14 @@
   "meok.savedFile": "Exported to a file",
   "meok.openedMeok": "Opened your artwork",
   "meok.restored": "Restored what you were drawing last time",
-  "meok.restoreFailed": "Could not restore the last artwork — starting fresh"
+  "meok.restoreFailed": "Could not restore the last artwork — starting fresh",
+  "meok.maskFromSelection": "Mask",
+  "meok.maskFromSelectionHelp": "Show only the selected area — the pixels stay",
+  "meok.maskInvert": "Invert",
+  "meok.maskInvertHelp": "Swap what is shown and hidden",
+  "meok.maskApply": "Apply",
+  "meok.maskApplyHelp": "Bake the mask — hidden pixels are erased",
+  "meok.maskClear": "Remove",
+  "meok.needSelectionMask": "Select what should stay visible first",
+  "meok.hasMask": "This layer has a mask"
 }
