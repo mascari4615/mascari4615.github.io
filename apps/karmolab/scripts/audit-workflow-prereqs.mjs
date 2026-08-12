@@ -53,6 +53,16 @@ if (files.length === 0) {
 	process.exit(2);
 }
 
+/* 모아 둔 채비(composite action)가 **실제로** 어떤 꾸러미를 짓는지 읽어 둔다 —
+   「쓴다고 적혀 있으니 되겠지」가 아니라 그 파일이 정말 짓는지 본다. */
+const setupPath = join(repoRoot, '.github', 'actions', 'setup-karmolab', 'action.yml');
+const setupText = existsSync(setupPath) ? readFileSync(setupPath, 'utf8') : '';
+const setupBuilds = new Set(
+	/* 자리를 어떻게 적든(`cd packages/x` · `working-directory: packages/x` ·
+	   `cd "$GITHUB_WORKSPACE/packages/x"`) 같은 뜻이다 — 글자 모양이 아니라 **어느 꾸러미냐**를 본다. */
+	[...setupText.matchAll(/packages\/([a-z0-9-]+)/g)].map((m) => `packages/${m[1]}`)
+);
+
 const problems = [];
 let looked = 0;
 
@@ -78,8 +88,15 @@ for (const f of files) {
 	if (!thisApp || !builds) continue;
 	looked += 1;
 
+	/* ★ **한 곳에 모아 둔 채비도 인정한다** (2026-08-13).
+	   전제를 워크플로마다 따로 적던 것이 사고였고(그 문장이 아래 안내에 있다), 그래서
+	   `.github/actions/setup-karmolab` 하나로 모았다. 그런데 이 검사는 **워크플로 글자만** 보다가
+	   「짓는 단계가 없다」고 했다 — 고쳤더니 검사가 거짓 빨강을 낸 셈이다. 모아 둔 곳도 본다. */
+	const usesSetup = lines.some((l) => l.includes('uses: ./.github/actions/setup-karmolab'));
+
 	for (const p of required) {
 		// 같은 이유로 두 방식 다 인정한다(verify.yml 은 `cd packages/badapple && …` 로 짓는다).
+		if (usesSetup && setupBuilds.has(p.dir)) continue;
 		if (lines.some((l) => l === `working-directory: ${p.dir}`)) continue;
 		if (code.some((l) => l.includes(`cd ${p.dir}`))) continue;
 		problems.push(`${f}: ${p.name}(${p.dir}) 를 먼저 짓는 단계가 없다 — 새 체크아웃엔 dist 가 없어 typecheck 이 「모듈을 못 찾겠다」로 선다`);
