@@ -15,9 +15,10 @@ import { dots } from './games/dots';
 import { speed } from './games/speed';
 import { slide } from './games/slide';
 import { ultimate } from './games/ultimate';
+import { yacht } from './games/yacht';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory, hitblow, reversi, dots, speed, slide, ultimate];
+export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory, hitblow, reversi, dots, speed, slide, ultimate, yacht];
 
 export const gameById = (id: string): GameDef<any, any> | undefined => GAMES.find((g) => g.id === id);
 

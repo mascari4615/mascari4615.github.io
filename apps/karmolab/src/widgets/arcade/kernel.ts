@@ -47,10 +47,13 @@ export class Match<S, A> {
   /** 봇이 두기로 예약해 둔 수 */
   private pending: Array<{ seat: number; action: A; at: number }> = [];
   private listeners: Array<(v: MatchView<S>) => void> = [];
+  /** 이번 판의 난수. 판이 바뀔 때만 새로 만든다 */
+  private rand: () => number;
 
   constructor(game: GameDef<S, A>, seed: number, seats: SeatSpec[]) {
     this.game = game;
     this.seed = seed;
+    this.rand = mulberry32(seed);
     const [min, max] = game.seats;
     const filled = seats.slice(0, max);
     /* 사람이 모자란 자리는 봇이 앉는다 — 이 한 줄이 「싱글 모드」를 없앤다. */
@@ -59,9 +62,15 @@ export class Match<S, A> {
     this.state = game.init(this.ctx());
   }
 
-  /** 라운드마다 씨앗을 갈라 준다 — 안 그러면 5판이 전부 같은 문제다. */
+  /**
+   * 라운드마다 씨앗을 갈라 준다 — 안 그러면 5판이 전부 같은 문제다.
+   *
+   * **난수는 판마다 하나를 만들어 계속 이어 쓴다.** 부를 때마다 새로 만들면 씨앗이 같으니
+   * 늘 같은 값이 나온다 — 판을 시작할 때만 뽑는 게임은 몰라도, **주사위처럼 판 중에 굴리는
+   * 게임은 영원히 같은 눈**이 나온다. 그래서 rng 는 상태다.
+   */
   private ctx(): GameCtx {
-    return { seats: this.seats, rng: mulberry32(this.seed + this.round * 0x9e3779b9), now: this.now, round: this.round };
+    return { seats: this.seats, rng: this.rand, now: this.now, round: this.round };
   }
 
   view(): MatchView<S> {
@@ -174,6 +183,7 @@ export class Match<S, A> {
       this.finished = true;
       return;
     }
+    this.rand = mulberry32(this.seed + this.round * 0x9e3779b9);
     this.state = this.game.init(this.ctx());
     this.scheduleBots();
   }
