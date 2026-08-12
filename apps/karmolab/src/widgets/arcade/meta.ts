@@ -27,6 +27,7 @@ export const META: GameMeta[] = [
   { id: 'wordchain', icon: '🗣️', kind: 'quick' },
   { id: 'lineup', icon: '👥', kind: 'quick' },
   { id: 'twenty', icon: '❓', kind: 'quick' },
+  { id: 'snake', icon: '🐍', kind: 'quick' },
 
   { id: 'gomoku', icon: '⚫', kind: 'board' },
   { id: 'four', icon: '🔴', kind: 'board' },
