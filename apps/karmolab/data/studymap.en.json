@@ -72,6 +72,10 @@
     "design": {
       "title": "Design & architecture",
       "lead": "The craft of staying changeable — code is cheap, structural fit is expensive"
+    },
+    "lang": {
+      "title": "Languages & paradigms",
+      "lead": "Ways of thinking, not syntax — the real study starts with your second language"
     }
   },
   "stages": {
@@ -117,7 +121,9 @@
     "a11y-a": "Experience it first",
     "a11y-b": "Keep it while building",
     "design-a": "What is stuck to what",
-    "design-b": "Holding up under change"
+    "design-b": "Holding up under change",
+    "lang-a": "Frames of thought",
+    "lang-b": "What the language guarantees"
   },
   "nodes": {
     "web-html": {
@@ -1159,6 +1165,62 @@
       "check": "You order decisions by whether they are reversible",
       "links": [
         "Martin Fowler — evolutionary design"
+      ]
+    },
+    "lang-second": {
+      "title": "A second language — from another family",
+      "why": "Learn a similar one and you gain syntax; learn a different family and your first language looks new.",
+      "check": "You explain in the new language a concept your current one lacks",
+      "links": [
+        "Exercism (practice across languages)"
+      ]
+    },
+    "lang-fp": {
+      "title": "Functional — stop mutating",
+      "why": "A large share of bugs is \"who changed this\". Do not change it and the question disappears.",
+      "check": "You rewrite one loop with map, filter and fold",
+      "links": [
+        "Professor Frisby (functional JS)"
+      ]
+    },
+    "lang-oop": {
+      "title": "Objects — composition over inheritance",
+      "why": "Inheritance is fast at first and impossible to change later.",
+      "check": "You convert one inheritance chain into composition",
+      "links": [
+        "Composition over inheritance"
+      ]
+    },
+    "lang-types": {
+      "title": "Types — rules the compiler reads for you",
+      "why": "A machine catches the class of mistakes tests miss. The price is expressive constraint.",
+      "check": "You make invalid states impossible to construct",
+      "links": [
+        "Parse, don’t validate"
+      ]
+    },
+    "lang-memory": {
+      "title": "Memory model — GC or ownership",
+      "why": "One of the real criteria for picking a language: can you afford the pauses?",
+      "check": "You state the price of GC and of Rust-style ownership",
+      "links": [
+        "Rust Book — ownership"
+      ]
+    },
+    "lang-concurrency": {
+      "title": "Concurrency models — threads, async, actors",
+      "why": "Every language solves the same problem differently. Know the model and its idioms read easily.",
+      "check": "You pick threads, async or message passing for a given problem",
+      "links": [
+        "Go concurrency patterns"
+      ]
+    },
+    "lang-pick": {
+      "title": "Choosing a language — the ecosystem is part of it",
+      "why": "Pretty syntax does not help when libraries, hiring and tooling are missing.",
+      "check": "You write three lines on why this language for this project",
+      "links": [
+        "Stack Overflow developer survey"
       ]
     }
   }
