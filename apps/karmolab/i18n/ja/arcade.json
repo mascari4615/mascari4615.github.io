@@ -202,5 +202,19 @@
   "arcade.liars.call": "うそだ",
   "arcade.liars.waiting": "順番待ち",
   "arcade.liars.real": "実際 {n}個",
-  "arcade.liars.win": "{who} が最後まで残った"
+  "arcade.liars.win": "{who} が最後まで残った",
+  "arcade.game.twenty.name": "20の質問",
+  "arcade.game.twenty.desc": "はい/いいえで絞る。一人が答えを持ち、残りが尋ねる",
+  "arcade.twenty.words": "ねこ|くるま|りんご|かさ|ギター|うみ|き|とけい|ひこうき|いす|ほのお|ほん",
+  "arcade.twenty.questions": "生きていますか?|人が作りましたか?|家の中にありますか?|手に持てますか?|食べられますか?|動きますか?|水に浮きますか?|音がしますか?|色が多いですか?|外で見ますか?",
+  "arcade.twenty.facts": "1001010110|0100011001|1001100000|0101000010|0100011010|1000010111|1000001011|0101001000|0100011001|0101000000|0000011110|0101000010",
+  "arcade.twenty.yes": "はい",
+  "arcade.twenty.no": "いいえ",
+  "arcade.twenty.youKeep": "あなたが答えを持っています",
+  "arcade.twenty.asking": "残り{n}回",
+  "arcade.twenty.waitAnswer": "答えを待っています",
+  "arcade.twenty.waitAsk": "質問を待っています",
+  "arcade.twenty.missed": "当ててみたが違った",
+  "arcade.twenty.found": "{who} が{n}回で当てた",
+  "arcade.twenty.kept": "{who} は最後までばれなかった"
 }

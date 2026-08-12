@@ -202,5 +202,19 @@
   "arcade.liars.call": "거짓말이다",
   "arcade.liars.waiting": "차례를 기다리는 중",
   "arcade.liars.real": "실제 {n}개",
-  "arcade.liars.win": "{who} 이(가) 마지막까지 남았다"
+  "arcade.liars.win": "{who} 이(가) 마지막까지 남았다",
+  "arcade.game.twenty.name": "스무고개",
+  "arcade.game.twenty.desc": "예/아니오로 좁힌다. 한 사람은 답을 쥐고 나머지는 묻는다",
+  "arcade.twenty.words": "고양이|자동차|사과|우산|기타|바다|나무|시계|비행기|의자|불꽃|책",
+  "arcade.twenty.questions": "살아 있나요?|사람이 만들었나요?|집 안에 있나요?|손에 들 수 있나요?|먹을 수 있나요?|움직이나요?|물에 뜨나요?|소리가 나나요?|색이 여럿인가요?|바깥에서 보나요?",
+  "arcade.twenty.facts": "1001010110|0100011001|1001100000|0101000010|0100011010|1000010111|1000001011|0101001000|0100011001|0101000000|0000011110|0101000010",
+  "arcade.twenty.yes": "예",
+  "arcade.twenty.no": "아니오",
+  "arcade.twenty.youKeep": "당신이 답을 쥐었습니다",
+  "arcade.twenty.asking": "{n}번 남음",
+  "arcade.twenty.waitAnswer": "답을 기다리는 중",
+  "arcade.twenty.waitAsk": "질문을 기다리는 중",
+  "arcade.twenty.missed": "찍었지만 아니었다",
+  "arcade.twenty.found": "{who} 이(가) {n}번 만에 맞혔다",
+  "arcade.twenty.kept": "{who} 이(가) 끝까지 안 들켰다"
 }
