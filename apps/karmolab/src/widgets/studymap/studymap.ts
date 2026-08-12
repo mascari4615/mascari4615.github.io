@@ -217,7 +217,23 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-has-lesson { display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px; margin-left: 7px; border-radius: 999px; background: var(--accent-dim); color: var(--accent); vertical-align: middle; }
 
 /* 강의 — 읽는 화면. 글줄은 68ch 를 안 넘긴다. */
-.sm-lesson { max-width: 68ch; }
+/**
+ * 읽는 화면의 글 리듬. 재 보니 본문 12px 인데 코드가 18px 이었다 — 위계가 뒤집혀 있었다.
+ * 문서 사이트 기준으로 다시 잡는다: 본문이 가장 크고, 코드는 그보다 한 단 작게, 줄높이는 한글에 맞춰 넉넉히.
+ */
+.sm-lesson { max-width: 70ch; font-size: 15px; line-height: 1.85; }
+.sm-lesson p { font-size: 15px; line-height: 1.85; margin: 0 0 18px; }
+.sm-lesson h3 { font-size: 25px; line-height: 1.35; letter-spacing: -0.01em; }
+.sm-lesson h4 { font-size: 17px; line-height: 1.5; font-weight: 700; margin: 36px 0 12px; letter-spacing: -0.005em; }
+.sm-lesson b { font-weight: 700; }
+.sm-lesson .sm-callout { font-size: 14px; line-height: 1.8; padding: 14px 16px; margin: 18px 0; }
+.sm-lesson .sm-code { margin: 18px 0; }
+.sm-lesson .sm-code pre { font-size: 13.5px; line-height: 1.75; padding: 14px 16px; }
+.sm-lesson .sm-code-label { font-size: 11px; }
+.sm-lesson .sm-qtext { font-size: 14.5px; line-height: 1.7; }
+.sm-lesson .sm-choice { font-size: 14px; line-height: 1.7; }
+.sm-lesson .sm-why { font-size: 13px; line-height: 1.8; }
+.sm-lesson .sm-links { margin-top: 22px; }
 .sm-code pre { position: relative; }
 /* 살아 있는 예제 — 결과가 위, 고칠 코드가 아래. 결과를 먼저 봐야 코드를 읽을 마음이 생긴다. */
 .sm-demo { margin: 14px 0; }
@@ -292,10 +308,10 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .sm-track-node.is-current { background: var(--accent-subtle); color: var(--text-primary); font-weight: 600; }
 .sm-back { background: none; border: 1px solid var(--border); color: var(--text-secondary); font: inherit; font-size: 11px; padding: 6px 12px; border-radius: 999px; cursor: pointer; margin-bottom: 18px; }
 .sm-back:hover { border-color: var(--accent); color: var(--accent); }
-.sm-lesson h3 { font-size: var(--font-size-md); margin: 0 0 4px; }
+.sm-lesson h3 { margin: 0 0 6px; }
 .sm-lesson-meta { font-size: 11px; color: var(--text-tertiary); margin-bottom: 20px; }
-.sm-lesson h4 { font-size: var(--font-size-xs); margin: 28px 0 10px; padding-top: 14px; border-top: 1px solid var(--border); }
-.sm-lesson p { font-size: var(--font-size-2xs); line-height: 1.8; color: var(--text-primary); margin: 0 0 14px; }
+.sm-lesson h4 { padding-top: 16px; border-top: 1px solid var(--border); }
+.sm-lesson p { color: var(--text-primary); }
 .sm-lesson b { color: var(--accent); font-weight: 650; }
 .sm-code { margin: 0 0 16px; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-void); }
 .sm-code-label { font-size: 11px; color: var(--text-tertiary); padding: 7px 12px; border-bottom: 1px solid var(--border); background: var(--bg-secondary); }
