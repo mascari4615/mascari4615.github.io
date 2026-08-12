@@ -94,5 +94,11 @@
   "arcade.blackjack.dealer": "ディーラー {n}",
   "arcade.blackjack.dealerHidden": "ディーラー — 一枚は伏せたまま",
   "arcade.blackjack.win": "{who} がディーラー({n})に勝った",
-  "arcade.blackjack.house": "ディーラー {n} — 誰も勝てなかった"
+  "arcade.blackjack.house": "ディーラー {n} — 誰も勝てなかった",
+  "arcade.game.president.name": "大富豪",
+  "arcade.game.president.desc": "同じ数を同じ枚数で、より高く。2が最強",
+  "arcade.president.empty": "場が空いた — 好きに出せます",
+  "arcade.president.play": "{n}枚出す",
+  "arcade.president.pass": "パス",
+  "arcade.president.win": "{who} が先に上がった — 大富豪"
 }

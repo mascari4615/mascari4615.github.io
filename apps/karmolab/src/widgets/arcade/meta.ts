@@ -22,7 +22,8 @@ export const META: GameMeta[] = [
   { id: 'ultimate', icon: '⊞' },
   { id: 'yacht', icon: '🎲' },
   { id: 'checkers', icon: '🔶' },
-  { id: 'blackjack', icon: '🂡' }
+  { id: 'blackjack', icon: '🂡' },
+  { id: 'president', icon: '👑' }
 ];
 
 export const iconOf = (id: string): string => META.find((m) => m.id === id)?.icon ?? '🎲';

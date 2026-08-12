@@ -94,5 +94,11 @@
   "arcade.blackjack.dealer": "Dealer {n}",
   "arcade.blackjack.dealerHidden": "Dealer — one still down",
   "arcade.blackjack.win": "{who} beat the dealer ({n})",
-  "arcade.blackjack.house": "Dealer {n} — house takes it"
+  "arcade.blackjack.house": "Dealer {n} — house takes it",
+  "arcade.game.president.name": "President",
+  "arcade.game.president.desc": "Same rank, same count, higher. The 2 beats everything",
+  "arcade.president.empty": "Pile is empty — lead anything",
+  "arcade.president.play": "Play {n}",
+  "arcade.president.pass": "Pass",
+  "arcade.president.win": "{who} went out first — President"
 }

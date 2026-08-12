@@ -114,8 +114,16 @@ if (!cantRun) {
   try {
     await page.waitForSelector('#acAgain:visible', { timeout: 60000 });
     check('다섯 판이 끝까지 굴러 결과가 뜬다', true);
-  } catch (e) {
-    check('다섯 판이 끝까지 굴러 결과가 뜬다', false, e.message);
+  } catch {
+    /* 못 끝났으면 **화면이 그때 뭐라고 하고 있었는지**를 남긴다 — 「시간 초과」만 적어 두면
+       판이 안 굴렀는지, 굴렀는데 단추가 안 떴는지 구분이 안 된다. */
+    const dump = await page.evaluate(() => ({
+      status: document.querySelector('#acStatus')?.textContent,
+      again: (document.querySelector('#acAgain'))?.style.display,
+      play: (document.querySelector('#acPlay'))?.style.display,
+      choices: document.querySelectorAll('.ac-choice').length
+    }));
+    check('다섯 판이 끝까지 굴러 결과가 뜬다', false, JSON.stringify(dump));
   }
 
   console.log('[arcade-ui] 오목 — 혼자');

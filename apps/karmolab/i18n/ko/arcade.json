@@ -94,5 +94,11 @@
   "arcade.blackjack.dealer": "딜러 {n}",
   "arcade.blackjack.dealerHidden": "딜러 — 한 장은 아직",
   "arcade.blackjack.win": "{who} 이(가) 딜러({n})를 이겼다",
-  "arcade.blackjack.house": "딜러 {n} — 아무도 못 이겼다"
+  "arcade.blackjack.house": "딜러 {n} — 아무도 못 이겼다",
+  "arcade.game.president.name": "대부호",
+  "arcade.game.president.desc": "같은 수를 같은 장수로, 더 높게. 2가 제일 세다",
+  "arcade.president.empty": "판이 비었다 — 아무거나 시작하세요",
+  "arcade.president.play": "{n}장 내기",
+  "arcade.president.pass": "넘기기",
+  "arcade.president.win": "{who} 이(가) 먼저 털었다 — 대부호"
 }
