@@ -201,5 +201,5 @@
   "widgets-desc.livecount.desc": "その日からの経過時間が秒単位で増えていきます — 「1日◯回」からのおおよその回数も",
   "widgets-desc.mesh3d.desc": "STL・OBJ を開いて回して見られます — 三角形の数やサイズも。ファイルは端末の外へ出ません",
   "widgets-desc.studymap.desc": "ウェブ・Git・コンピュータサイエンスを順番に — なぜ学ぶのか、どこまでやれば次へ進めるのかまで書いた学習マップ（進捗を保存）",
-  "widgets-desc.imagestudio.desc": "レイヤー・ブラシ・コマで描く — ドットアニメまで一画面で"
+  "widgets-desc.meok.desc": "磨って塗り、コマで動かす — レイヤー・ブラシ・ドットアニメ"
 }

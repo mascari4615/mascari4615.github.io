@@ -5,7 +5,7 @@
  * 「눌러서 그어도 아무 일도 안 일어난다」가 얼마든지 가능하다(좌표 변환·포인터 이벤트·
  * 캔버스 크기). 그래서 여기서는 마우스로 실제로 긋고, 캔버스 픽셀이 달라졌는지 본다.
  *
- * 사용: node scripts/smoke-imagestudio.mjs [--shot]
+ * 사용: node scripts/smoke-meok.mjs [--shot]
  */
 import http from 'node:http';
 import fs from 'node:fs';
@@ -16,9 +16,9 @@ import { stripJekyll } from './lib/serve-static.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
-const bundle = path.join(root, 'js/widgets/imageedit/studio.js');
+const bundle = path.join(root, 'js/widgets/meok/meok.js');
 if (!fs.existsSync(bundle)) {
-  console.error('[smoke-imagestudio] 묶음이 없다 — 먼저 node build.mjs');
+  console.error('[smoke-meok] 묶음이 없다 — 먼저 node build.mjs');
   process.exit(1);
 }
 
@@ -53,18 +53,18 @@ page.on('console', message => {
 });
 
 const problems = [];
-await page.goto(base + '/apps/karmolab/index.html#imagestudio', { waitUntil: 'load', timeout: 30000 });
+await page.goto(base + '/apps/karmolab/index.html#meok', { waitUntil: 'load', timeout: 30000 });
 try {
-  await page.waitForSelector('.ies', { timeout: 20000 });
+  await page.waitForSelector('.meok', { timeout: 20000 });
 } catch (error) {
-  console.error('[smoke-imagestudio] 화면이 안 떴다', errors);
+  console.error('[smoke-meok] 화면이 안 떴다', errors);
   throw error;
 }
 await page.waitForTimeout(600);
 
 /** 캔버스 한가운데 언저리 픽셀 — 그림이 실제로 들어갔는지 본다. */
 const canvasInk = () => page.evaluate(() => {
-  const canvas = document.querySelector('.ies [data-canvas]');
+  const canvas = document.querySelector('.meok [data-canvas]');
   const ctx = canvas.getContext('2d');
   const box = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
   let dark = 0;
@@ -79,9 +79,9 @@ const canvasInk = () => page.evaluate(() => {
  * 되고, 검사는 그걸 기능 고장으로 잘못 읽는다(실제로 한 번 그랬다).
  */
 const artRect = async () => {
-  const box = await page.locator('.ies [data-canvas]').boundingBox();
+  const box = await page.locator('.meok [data-canvas]').boundingBox();
   const inner = await page.evaluate(() => {
-    const canvas = document.querySelector('.ies [data-canvas]');
+    const canvas = document.querySelector('.meok [data-canvas]');
     const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
     let minX = canvas.width, minY = canvas.height, maxX = -1, maxY = -1;
     for (let y = 0; y < canvas.height; y += 2) {
@@ -115,44 +115,44 @@ const painted = await canvasInk();
 if (painted <= before + 200) problems.push('붓으로 그었는데 화면이 안 바뀐다 (' + before + ' → ' + painted + ')');
 
 /* ② 되돌리기 — 획 하나가 한 단계로 사라진다. */
-await page.click('.ies [data-act="undo"]');
+await page.click('.meok [data-act="undo"]');
 await page.waitForTimeout(250);
 const undone = await canvasInk();
 if (undone > before + 200) problems.push('되돌렸는데 획이 남아 있다 (' + undone + ')');
-await page.click('.ies [data-act="redo"]');
+await page.click('.meok [data-act="redo"]');
 await page.waitForTimeout(250);
 const redone = await canvasInk();
 if (redone <= before + 200) problems.push('다시 하기가 획을 되살리지 못했다');
 
 /* ③ 레이어 — 늘고, 고른 것이 바뀐다. */
-const layersBefore = await page.locator('.ies .ies-layer').count();
-await page.click('.ies [data-act="add-layer"]');
+const layersBefore = await page.locator('.meok .meok-layer').count();
+await page.click('.meok [data-act="add-layer"]');
 await page.waitForTimeout(120);
-const layersAfter = await page.locator('.ies .ies-layer').count();
+const layersAfter = await page.locator('.meok .meok-layer').count();
 if (layersAfter !== layersBefore + 1) problems.push('레이어가 안 늘었다 (' + layersBefore + ' → ' + layersAfter + ')');
-if (!(await page.locator('.ies .ies-layer.active').count())) problems.push('고른 레이어 표시가 없다');
+if (!(await page.locator('.meok .meok-layer.active').count())) problems.push('고른 레이어 표시가 없다');
 
 /* ④ 숨기면 화면에서 사라진다 — 합성이 화면까지 이어져 있는가. */
-await page.locator('.ies .ies-layer').nth(1).locator('.ies-eye').click();
+await page.locator('.meok .meok-layer').nth(1).locator('.meok-eye').click();
 await page.waitForTimeout(250);
 const hidden = await canvasInk();
 if (hidden > before + 200) problems.push('레이어를 숨겼는데 그림이 그대로다 (' + hidden + ')');
-await page.locator('.ies .ies-layer').nth(1).locator('.ies-eye').click();
+await page.locator('.meok .meok-layer').nth(1).locator('.meok-eye').click();
 await page.waitForTimeout(200);
 
 /* ⑤ 프레임 — 늘고, 눌러서 옮겨 간다. */
-const framesBefore = await page.locator('.ies .ies-frame').count();
-await page.click('.ies [data-act="add-frame"]');
+const framesBefore = await page.locator('.meok .meok-frame').count();
+await page.click('.meok [data-act="add-frame"]');
 await page.waitForTimeout(200);
-const framesAfter = await page.locator('.ies .ies-frame').count();
+const framesAfter = await page.locator('.meok .meok-frame').count();
 if (framesAfter !== framesBefore + 1) problems.push('프레임이 안 늘었다 (' + framesBefore + ' → ' + framesAfter + ')');
-await page.locator('.ies .ies-frame').first().click();
+await page.locator('.meok .meok-frame').first().click();
 await page.waitForTimeout(150);
-if (!(await page.locator('.ies .ies-frame.active').first().isVisible())) problems.push('고른 프레임 표시가 없다');
+if (!(await page.locator('.meok .meok-frame.active').first().isVisible())) problems.push('고른 프레임 표시가 없다');
 
 /* ⑥ 픽셀 모드 — 격자에 붙는 도트 그림으로 갈아탄다. */
 page.once('dialog', dialog => dialog.accept());
-await page.click('.ies [data-act="new-pixel"]');
+await page.click('.meok [data-act="new-pixel"]');
 await page.waitForTimeout(400);
 const pixelBox = await artRect();
 await page.mouse.move(pixelBox.x + pixelBox.width * 0.5, pixelBox.y + pixelBox.height * 0.5);
@@ -164,27 +164,27 @@ if (dotted < 20) problems.push('픽셀 모드에서 한 칸도 안 찍힌다 (' 
 
 /* ⑦ 선택영역 — 골라 놓으면 붓이 그 밖으로 안 샌다. */
 page.once('dialog', dialog => dialog.accept());
-await page.click('.ies [data-act="new"]');
+await page.click('.meok [data-act="new"]');
 await page.waitForTimeout(400);
 const art = await artRect();
 const ax = (f) => art.x + art.w * f;
 const ay = (f) => art.y + art.h * f;
 
-await page.click('.ies [data-tool="marquee"]');
+await page.click('.meok [data-tool="marquee"]');
 await page.mouse.move(ax(0.10), ay(0.20));
 await page.mouse.down();
 await page.mouse.move(ax(0.45), ay(0.80), { steps: 6 });
 await page.mouse.up();
 await page.waitForTimeout(250);
-if (!(await page.locator('.ies [data-act="deselect"]').isEnabled())) {
+if (!(await page.locator('.meok [data-act="deselect"]').isEnabled())) {
   problems.push('사각형을 골랐는데 「선택 풀기」가 안 켜진다 (= 선택이 안 잡혔다)');
 }
 
-const canvasBox = await page.locator('.ies [data-canvas]').boundingBox();
+const canvasBox = await page.locator('.meok [data-canvas]').boundingBox();
 /** 그림의 오른쪽 절반에 묻은 잉크 — 고른 자리(왼쪽) 밖이다. */
 const rightHalf = { x: art.x - canvasBox.x + art.w * 0.55, w: art.w * 0.42 };
 const inkRightHalf = () => page.evaluate((rect) => {
-  const canvas = document.querySelector('.ies [data-canvas]');
+  const canvas = document.querySelector('.meok [data-canvas]');
   const dpr = canvas.width / parseFloat(canvas.style.width);
   const x0 = Math.round(rect.x * dpr);
   const width = Math.max(1, Math.round(rect.w * dpr));
@@ -195,7 +195,7 @@ const inkRightHalf = () => page.evaluate((rect) => {
 }, rightHalf);
 
 const outsideBefore = await inkRightHalf();
-await page.click('.ies [data-tool="brush"]');
+await page.click('.meok [data-tool="brush"]');
 await page.mouse.move(ax(0.20), ay(0.50));
 await page.mouse.down();
 await page.mouse.move(ax(0.92), ay(0.50), { steps: 14 });
@@ -206,7 +206,7 @@ if (outsideAfter > outsideBefore + 30) problems.push('고른 자리 밖으로 �
 if ((await canvasInk()) < 200) problems.push('고른 자리 안에도 안 그려졌다');
 
 /* 선택을 풀면 다시 온 판에 그려진다. */
-await page.click('.ies [data-act="deselect"]');
+await page.click('.meok [data-act="deselect"]');
 await page.waitForTimeout(200);
 await page.mouse.move(ax(0.62), ay(0.75));
 await page.mouse.down();
@@ -221,9 +221,9 @@ if (overflow > 2) problems.push('가로로 ' + overflow + 'px 넘친다');
 
 if (process.argv.includes('--shot')) {
   fs.mkdirSync(path.join(root, 'tmp'), { recursive: true });
-  const shot = path.join(root, 'tmp/imagestudio.png');
-  await page.locator('.ies').screenshot({ path: shot });
-  console.log('[smoke-imagestudio] 사진 ' + shot);
+  const shot = path.join(root, 'tmp/meok.png');
+  await page.locator('.meok').screenshot({ path: shot });
+  console.log('[smoke-meok] 사진 ' + shot);
 }
 
 await browser.close();
@@ -231,7 +231,7 @@ server.close();
 
 if (errors.length) problems.push('콘솔 오류 ' + errors.length + '건: ' + errors.slice(0, 3).join(' | '));
 if (problems.length) {
-  console.error('[smoke-imagestudio] ✗\n - ' + problems.join('\n - '));
+  console.error('[smoke-meok] ✗\n - ' + problems.join('\n - '));
   process.exit(1);
 }
-console.log('[smoke-imagestudio] ✓ 붓·되돌리기·레이어(숨김 반영)·프레임·픽셀 모드·선택영역(밖으로 안 샘) — 실제 브라우저');
+console.log('[smoke-meok] ✓ 붓·되돌리기·레이어(숨김 반영)·프레임·픽셀 모드·선택영역(밖으로 안 샘) — 실제 브라우저');

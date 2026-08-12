@@ -411,7 +411,7 @@ window.KARMOLAB_LAZY_META = [
     /* 이 묶음이 내놓는 것 (TASK-KL-183 A) — 흐름을 만들 때 「이어지는 도구」를 위로 올리는 근거.
        숨긴 도구(imagegen 등)에 적어 봐야 목록에 안 뜨므로, **보이는 대표**에 적는다. */
     produces: ['image/*'],
-    lazyScriptPaths: ['root/gemini', 'ref/reftable', 'imageconvert/imageconvert', 'imageedit', 'imageedit/studio', 'tools/text2img', 'tools/imgresize', 'tools/redact', 'tools/gifenc', 'tools/asciiart', 'world/world', 'world/parse-md', 'world/load-characters-from-wiki', 'imagegen/presets', 'imagegen/config', 'imagegen/styles', 'imagegen/core', 'imagegen/imagegen', 'imagelib', 'tools/image']
+    lazyScriptPaths: ['root/gemini', 'ref/reftable', 'imageconvert/imageconvert', 'imageedit', 'meok/meok', 'tools/text2img', 'tools/imgresize', 'tools/redact', 'tools/gifenc', 'tools/asciiart', 'world/world', 'world/parse-md', 'world/load-characters-from-wiki', 'imagegen/presets', 'imagegen/config', 'imagegen/styles', 'imagegen/core', 'imagegen/imagegen', 'imagelib', 'tools/image']
   },
   {
     id: 'imageedit',
@@ -426,17 +426,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['root/gemini', 'imageconvert/imageconvert', 'imageedit']
   },
   {
-    id: 'imagestudio',
+    id: 'meok',
     hidden: true, // 「이미지」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    get title() { return t('widgets.imagestudio.title', undefined, "이미지 스튜디오"); },
+    get title() { return t('widgets.meok.title', undefined, "먹"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.imagestudio.desc', undefined, "레이어·붓·프레임으로 그린다 — 도트 애니메이션까지 한 화면에서"); },
+    get desc() { return t('widgets-desc.meok.desc', undefined, "갈아서 칠하고 칸으로 움직인다 — 레이어·붓·도트 애니메이션"); },
     layout: 'full',
     icon: '<rect x="3" y="3" width="18" height="18" rx="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 15l3.2-4.2 2.4 3 2-2.4L18 15" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><circle cx="9" cy="8" r="1.4" fill="currentColor"/>',
     accepts: ['image/*', 'application/json'],
     produces: ['image/png', 'application/json'],
-    lazyScriptPaths: ['imageedit/studio']
+    lazyScriptPaths: ['meok/meok']
   },
   {
     id: 'imagelib',

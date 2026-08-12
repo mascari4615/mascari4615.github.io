@@ -2,7 +2,7 @@
  * 이미지 편집기 기반 검사 — 문서 모델 · 합성 · 되돌리기 (TASK-KL-240)
  *
  * 화면을 안 띄운다. 이 세 파일이 브라우저를 모른다는 것 자체가 성질이므로, 여기서 잠근다.
- * 사용: node scripts/test-imageedit-doc.mjs
+ * 사용: node scripts/test-meok-doc.mjs
  */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -10,7 +10,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import ts from 'typescript';
 
-const dir = path.resolve('src/widgets/imageedit');
+const dir = path.resolve('src/widgets/meok');
 const cache = new Map();
 
 /** `./doc` 같은 상대 import 를 그 자리에서 물려 주며 TS 를 그대로 돌린다. */
@@ -237,7 +237,7 @@ const solid = (doc, layer, rgba) => {
   assert.equal(history.depth, 3);
 }
 
-console.log('[test-imageedit-doc] ✓ 레이어 · 셀 hold · 블렌드 12 · 마스크 · 클리핑 · 어니언 · 시트 · 커맨드 되돌리기');
+console.log('[test-meok-doc] ✓ 레이어 · 셀 hold · 블렌드 12 · 마스크 · 클리핑 · 어니언 · 시트 · 커맨드 되돌리기');
 
 /* ===== 부분 갱신 — 붓질 자리만 다시 섞는다 ===== */
 {
@@ -262,4 +262,4 @@ console.log('[test-imageedit-doc] ✓ 레이어 · 셀 hold · 블렌드 12 · �
   /* 판 밖으로 나간 사각형은 잘린다(터지지 않는다). */
   C.composite(doc, 0, undefined, { rect: { x: 3, y: 3, w: 99, h: 99 }, into: flat });
 }
-console.log('[test-imageedit-doc] ✓ 부분 갱신(rect·into)');
+console.log('[test-meok-doc] ✓ 부분 갱신(rect·into)');
