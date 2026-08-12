@@ -44,9 +44,20 @@ permissions:
 #   묶여 있어, 「지금 결과가 보고 싶다」고 눌러 놓으면 다음 푸시가 그것을 취소했다 —
 #   실측: 오늘 판정을 받으려고 부른 판이 그대로 cancelled 로 끝났다. 사람이 명시적으로 부른
 #   실행이 조용히 사라지면 그 게이트는 「물어볼 수 없는 게이트」가 된다.
+# ★ **master 는 커밋마다 판정을 남긴다** (2026-08-12, 실측으로 뒤집음).
+#   위 규칙대로 접었더니 최근 master 판 40개가 **취소 29 · 빨강 13 · 초록 0** 이 되었다.
+#   세션 여섯이 3분 간격으로 미는데 검사는 5분이라, 앞판은 늘 다음 push 에 접힌다 —
+#   「최신 것만 보면 된다」가 성립하려면 최신 판이 끝까지 가야 하는데 그게 영영 안 온다.
+#   그래서 master push 만 **판마다 제 그룹**(sha)을 갖고 접히지 않는다. 접는 것은 가지·PR 뿐이다.
+#   비용: 판이 겹쳐 돈다. 그 값으로 「이 커밋이 초록인가」에 답할 수 있게 된다.
 concurrency:
-  group: verify-${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'nightwatch' || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+  group: >-
+    verify-${{
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'nightwatch'
+      || (github.event_name == 'push' && github.ref == 'refs/heads/master') && github.sha
+      || github.ref
+    }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref != 'refs/heads/master') }}
 
 jobs:
   verify:
