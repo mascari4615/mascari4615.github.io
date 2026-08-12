@@ -1,0 +1,106 @@
+{
+  "id": "devops-container",
+  "minutes": 13,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "컨테이너는 가상 머신이 아니다. **같은 커널 위에서 격리된 프로세스**일 뿐이라 가볍고 빠르다. 그리고 「제 컴퓨터에선 됩니다」를 끝낸다 — 환경이 코드가 되니까."
+    },
+    {
+      "type": "h",
+      "text": "1. 이미지와 컨테이너"
+    },
+    {
+      "type": "p",
+      "text": "이미지는 **설계도**(읽기 전용 층들의 쌓임), 컨테이너는 그 설계도로 띄운 **실행 중인 것**. 이미지를 고치는 게 아니라 새로 굽는다."
+    },
+    {
+      "type": "code",
+      "lang": "dockerfile",
+      "label": "층 순서가 곧 빌드 속도",
+      "text": "FROM node:20-slim\nWORKDIR /app\n\n# 의존성 층 — package.json 이 안 바뀌면 이 층은 캐시된다\nCOPY package*.json ./\nRUN npm ci --omit=dev\n\n# 소스 층 — 자주 바뀌므로 뒤에\nCOPY . .\nCMD [\"node\", \"server.js\"]"
+    },
+    {
+      "type": "note",
+      "text": "`COPY . .` 를 맨 앞에 두면 파일 하나만 바뀌어도 `npm ci` 부터 다시 돈다. **덜 바뀌는 것부터 위로** — 이 한 가지가 빌드 시간을 몇 배로 가른다."
+    },
+    {
+      "type": "h",
+      "text": "2. 작게 굽기"
+    },
+    {
+      "type": "code",
+      "lang": "dockerfile",
+      "label": "멀티 스테이지 — 빌드 도구는 남기지 않는다",
+      "text": "FROM node:20 AS build\nWORKDIR /app\nCOPY . .\nRUN npm ci && npm run build\n\nFROM nginx:alpine\nCOPY --from=build /app/dist /usr/share/nginx/html"
+    },
+    {
+      "type": "h",
+      "text": "3. 밖과 잇는 두 가지"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "포트와 볼륨",
+      "text": "docker run -p 8080:80 myapp          # 내 8080 → 컨테이너 80\ndocker run -v \"$PWD/data:/data\" myapp # 폴더 연결(컨테이너는 지워도 데이터는 남는다)\ndocker run --env-file .env myapp      # 설정은 밖에서 주입"
+    },
+    {
+      "type": "note",
+      "text": "컨테이너 안에 데이터를 쌓으면 **컨테이너를 지우는 순간 함께 사라진다**. 남아야 하는 것은 볼륨이나 외부 저장소로 뺀다."
+    },
+    {
+      "type": "h",
+      "text": "4. 디버깅"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "안에서 무슨 일이",
+      "text": "docker ps\ndocker logs -f <컨테이너>\ndocker exec -it <컨테이너> sh     # 안으로 들어가기\ndocker image ls                  # 크기 확인"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "내 앱을 이미지로 굽고 다른 기계(또는 지운 뒤 다시 받은 상태)에서 그대로 돌려라. 소스 한 줄만 바꿔 다시 굽고 **캐시 덕에 얼마나 빨라지는지** 재라."
+    },
+    {
+      "type": "try",
+      "text": "멀티 스테이지로 바꿔 이미지 크기가 얼마나 줄었는지 `docker image ls` 로 비교하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "Dockerfile 에서 `COPY package*.json` → `RUN npm ci` 를 소스 복사보다 앞에 두는 이유는?",
+      "choices": [
+        "의존성 층을 캐시해 소스만 바뀔 때 재설치를 피하려고",
+        "문법상 필수라서",
+        "보안 때문에"
+      ],
+      "answer": 0,
+      "why": "덜 바뀌는 것을 위층에 두면 캐시가 오래 산다."
+    },
+    {
+      "q": "컨테이너를 지워도 남아야 하는 데이터는?",
+      "choices": [
+        "컨테이너 안에 저장한다",
+        "볼륨이나 외부 저장소에 둔다",
+        "이미지에 굽는다"
+      ],
+      "answer": 1,
+      "why": "컨테이너 파일 시스템은 임시로 봐야 한다."
+    },
+    {
+      "q": "멀티 스테이지 빌드의 목적은?",
+      "choices": [
+        "빌드 도구를 최종 이미지에서 빼 크기·공격면을 줄인다",
+        "병렬 빌드",
+        "캐시 비활성화"
+      ],
+      "answer": 0,
+      "why": "결과물만 실행 이미지로 옮긴다."
+    }
+  ]
+}

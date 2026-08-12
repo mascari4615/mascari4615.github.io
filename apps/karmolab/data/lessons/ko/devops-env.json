@@ -1,0 +1,104 @@
+{
+  "id": "devops-env",
+  "minutes": 11,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "토큰을 코드에 박는 순간 그 저장소는 오염된다 — 지워도 git 역사에 남기 때문이다. 설정을 밖으로 빼는 것은 취향이 아니라 되돌릴 수 없는 사고를 막는 일이다."
+    },
+    {
+      "type": "h",
+      "text": "1. 코드와 설정을 가른다"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "읽는 자리는 한 곳",
+      "text": "// config.js — 흩어져 있으면 무엇이 필요한지 아무도 모른다\nexport const config = {\n  apiUrl: process.env.API_URL ?? 'http://localhost:3000',\n  token: required('API_TOKEN'),\n};\n\nfunction required(name) {\n  const v = process.env[name];\n  if (!v) throw new Error(`환경변수 ${name} 이 없습니다`);   // 조용히 undefined 로 도는 것보다 낫다\n  return v;\n}"
+    },
+    {
+      "type": "note",
+      "text": "**시작할 때 한 번에 검증**하라. 없는 값을 나중에 발견하면 이미 반쯤 동작한 상태에서 터진다."
+    },
+    {
+      "type": "h",
+      "text": "2. 어디에 두나"
+    },
+    {
+      "type": "p",
+      "text": "로컬은 `.env`(반드시 gitignore), CI 는 저장소 secret, 서버는 환경변수나 비밀 저장소(Vault·클라우드 Secret Manager). **한 곳에서만** 관리하고 나머지는 주입받는다."
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "예시는 커밋하고 값은 커밋하지 않는다",
+      "text": "cat .env.example\n# API_URL=http://localhost:3000\n# API_TOKEN=여기에_토큰\n\necho '.env' >> .gitignore"
+    },
+    {
+      "type": "h",
+      "text": "3. 새어 나갔을 때"
+    },
+    {
+      "type": "note",
+      "text": "**먼저 토큰을 폐기(rotate)하라.** 역사에서 지우는 것은 그 다음이다 — 이미 클론한 사람이 있다면 지워도 소용없다. 순서를 반대로 하면 시간만 버린다."
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "미리 잡는 검사",
+      "text": "npx gitleaks detect --no-git      # 지금 작업 트리\nnpx gitleaks detect                # git 역사까지"
+    },
+    {
+      "type": "h",
+      "text": "4. 환경별 차이"
+    },
+    {
+      "type": "p",
+      "text": "개발·스테이징·운영의 차이는 **값**이어야지 코드 분기가 아니다. `if (env === \"prod\")` 가 늘어나면, 운영에서만 도는 경로가 테스트되지 않는다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "내 프로젝트에서 하드코딩된 URL·키를 하나 골라 환경변수로 빼고, 없을 때 **시작 즉시 실패**하게 만들어라."
+    },
+    {
+      "type": "try",
+      "text": "`gitleaks detect` 를 돌려라. 걸리는 것이 있으면 폐기 → 교체 → 역사 정리 순서로 처리하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "비밀값이 git 에 올라간 것을 발견했다. 가장 먼저 할 일은?",
+      "choices": [
+        "역사에서 지운다",
+        "해당 토큰을 폐기하고 새로 발급한다",
+        "저장소를 비공개로 바꾼다"
+      ],
+      "answer": 1,
+      "why": "이미 노출된 값은 지워도 누군가 가지고 있을 수 있다."
+    },
+    {
+      "q": "환경변수 검증을 시작 시점에 하는 이유는?",
+      "choices": [
+        "성능",
+        "없는 값으로 반쯤 동작하다 나중에 터지는 것을 막으려고",
+        "문법 요구사항"
+      ],
+      "answer": 1,
+      "why": "실패는 빠르고 명확할수록 싸다."
+    },
+    {
+      "q": "환경별 차이를 다루는 권장 방식은?",
+      "choices": [
+        "코드에서 if (env === \"prod\") 로 분기",
+        "값(설정)으로 다루고 코드는 같게 유지",
+        "환경마다 브랜치를 나눈다"
+      ],
+      "answer": 1,
+      "why": "분기가 늘면 운영 전용 경로가 검증되지 않는다."
+    }
+  ]
+}
