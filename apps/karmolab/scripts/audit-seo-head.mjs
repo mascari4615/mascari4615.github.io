@@ -119,7 +119,12 @@ function inspect(label, html, expectUrl) {
   }
   if (alias) {
     const text = html.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ').toLowerCase();
-    const missing = alias.split(/\s+/).filter((w) => w && !text.includes(w.toLowerCase()));
+    /* 한 줄 글월로도, 낱말 배열로도 적힌다 — 「도구 사슬」처럼 **띄어쓰기가 든 이름**은
+       글월 한 줄로는 못 적으므로 배열이 옳은 쪽이다. 생성기(`gen-tool-pages`)·낱말 뽑기
+       (`gen-word-pool`)는 이미 둘 다 받는데 여기만 안 받아 `alias.split is not a function`
+       으로 이 검사가 통째로 죽었다(2026-08-12). 모양 하나가 다르다고 검사가 멈추면 안 된다. */
+    const list = Array.isArray(alias) ? alias : String(alias).split(/\s+/);
+    const missing = list.filter((w) => w && !text.includes(String(w).toLowerCase()));
     if (missing.length) problems.push(`${label}: 달리 부르는 이름이 페이지에 없다 — ${missing.join(', ')}`);
   }
 
