@@ -640,23 +640,29 @@ import {
      * 배율은 안 건드린다 — 지금 보이는 범위를 그대로 아래로 옮겨 담으면 **밀기**가 된다
      * (`fitToWorldRect` 는 준 사각형을 화면에 맞추므로, 크기가 같으면 배율도 그대로다).
      */
+    /* ★ **왜 안 밀렸는지 화면에 남긴다** (2026-08-12).
+       이 함수는 조건 넷 중 하나만 어긋나도 조용히 아무것도 안 한다 — 그래서 CI 에서는 늘
+       가려지는데 내 기계에서는 늘 통과하는, 원인을 물어볼 수 없는 상태가 됐다.
+       빠져나간 자리를 판에 적어 두면 검사가 그걸 그대로 읽어 말해 준다. */
     function keepPickedCardVisible(): void {
-      if (!canvas || !selectedId) return;
+      if (!canvas || !selectedId) { root.dataset.kmPan = 'no-selection'; return; }
       requestAnimationFrame(() => {
         const rect = canvas?.nodeScreenRect(selectedId ?? '');
         const sheet = sideEl.getBoundingClientRect();
-        if (!rect || sheet.height <= 0) return;
+        if (!rect) { root.dataset.kmPan = 'no-rect'; return; }
+        if (sheet.height <= 0) { root.dataset.kmPan = 'sheet-h0'; return; }
         /* ★ 시트는 0.18초에 걸쳐 **미끄러져 올라온다**. 그 중간에 자리를 재면 아직 아래에
            있어서 「안 가렸다」로 나온다(실측 2026-08-12 — 그래서 한 번도 안 밀렸다).
            그러니 다 올라왔을 때의 자리를 **셈으로** 구한다: 판 아래끝 − 시트 높이. */
         const sheetTop = canvasEl.getBoundingClientRect().bottom - sheet.height;
         const margin = 12;
         const over = rect.y + rect.h + margin - sheetTop;
-        if (over <= 0) return;
+        if (over <= 0) { root.dataset.kmPan = `no-need(${Math.round(over)})`; return; }
         const scale = canvas?.getScale() ?? 1;
         const view = canvas?.viewRectWorld();
-        if (!view || scale <= 0) return;
+        if (!view || scale <= 0) { root.dataset.kmPan = 'no-view'; return; }
         canvas?.fitToWorldRect({ x: view.x, y: view.y + over / scale, w: view.w, h: view.h }, 0, true);
+        root.dataset.kmPan = `panned(${Math.round(over)})`;
       });
     }
     const fileEl = q<HTMLInputElement>('file');

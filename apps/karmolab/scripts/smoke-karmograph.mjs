@@ -2269,10 +2269,14 @@ await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널
     const s = document.querySelector('.km-side');
     if (!n) return null;
     const nr = n.getBoundingClientRect(); const sr = s.getBoundingClientRect();
-    return { bottom: Math.round(nr.bottom), sheetTop: Math.round(sr.top) };
+    /* 위젯이 「왜 안 밀었는지」를 판에 적어 둔다 — 그 한 마디가 없으면 CI 에서만 나는
+       이 실패의 원인을 물어볼 수가 없다 (실측 2026-08-12: 내 기계는 늘 통과했다). */
+    const why = document.querySelector('[data-km-pan]')?.getAttribute('data-km-pan')
+      || document.querySelector('.km-root')?.dataset?.kmPan || '(표시 없음)';
+    return { bottom: Math.round(nr.bottom), sheetTop: Math.round(sr.top), sheetH: Math.round(sr.height), why };
   });
   if (cover && cover.bottom > cover.sheetTop + 4) {
-    throw new Error(`고른 카드가 시트에 가려졌다 — 카드 아래끝 ${cover.bottom} · 시트 위끝 ${cover.sheetTop}`);
+    throw new Error(`고른 카드가 시트에 가려졌다 — 카드 아래끝 ${cover.bottom} · 시트 위끝 ${cover.sheetTop} · 시트높이 ${cover.sheetH} · 안 민 까닭 ${cover.why}`);
   }
   await m.locator('[data-km="sheet-grip"]').click();
   await m.waitForTimeout(300);
