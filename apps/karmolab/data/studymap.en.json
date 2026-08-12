@@ -1,0 +1,226 @@
+{
+  "$comment": "English overlay for the study map. Korean (studymap.json) is canonical; anything missing here falls back to Korean. Match by id only — never restate structure or URLs here.",
+  "tracks": {
+    "web": {
+      "title": "Web",
+      "lead": "From one line in the address bar to pixels on screen — everything in between"
+    },
+    "git": {
+      "title": "Git",
+      "lead": "Not memorizing commands — seeing the graph. Once you see it, it stops being scary"
+    }
+  },
+  "stages": {
+    "web-a": "A screen appears",
+    "web-b": "How the browser moves",
+    "web-c": "Build it properly",
+    "git-a": "The mental model",
+    "git-b": "Working alone",
+    "git-c": "Working together",
+    "git-d": "Rescue tools"
+  },
+  "nodes": {
+    "web-html": {
+      "title": "HTML — structure that means something",
+      "why": "Build it all out of divs and search engines, screen readers and keyboards all go blind. Tags are meaning, not decoration.",
+      "check": "You pick heading, list, table and form tags by name alone",
+      "links": [
+        "MDN HTML guide"
+      ]
+    },
+    "web-css": {
+      "title": "CSS — boxes and flow",
+      "why": "Layouts break mostly because nobody drew the box model and the flow first.",
+      "check": "You choose flex or grid and can say why",
+      "links": [
+        "MDN CSS layout",
+        "Flexbox Froggy (game)"
+      ]
+    },
+    "web-js": {
+      "title": "JavaScript fundamentals",
+      "why": "Values, scope and async — hold those three and frameworks shrink to syntax.",
+      "check": "You can draw closures and the event loop",
+      "links": [
+        "javascript.info",
+        "Event loop visualizer"
+      ],
+      "tool": "Regex tester"
+    },
+    "web-dom": {
+      "title": "DOM and events",
+      "why": "This is exactly what a framework does for you. Only someone who did it by hand can question the framework.",
+      "check": "You build a todo list with no library (add, delete, filter)",
+      "links": [
+        "MDN client-side web APIs"
+      ]
+    },
+    "web-http": {
+      "title": "HTTP, cache, cookies",
+      "why": "Slow, stale, logged out — all three end here.",
+      "check": "You explain the difference between 304 and 200 (from cache) in the network tab",
+      "links": [
+        "MDN HTTP",
+        "HTTP caching (web.dev)"
+      ],
+      "tool": "HTTP status codes"
+    },
+    "web-render": {
+      "title": "The rendering pipeline",
+      "why": "Scrolling stutters not because there is a lot of code but because layout is recomputed.",
+      "check": "You tell apart properties that cause reflow from those that do not",
+      "links": [
+        "Rendering performance (web.dev)"
+      ]
+    },
+    "web-a11y": {
+      "title": "Accessibility and forms",
+      "why": "A screen you cannot use with a keyboard is a screen that is half built.",
+      "check": "You unplug the mouse and still get through your own screen",
+      "links": [
+        "MDN accessibility"
+      ],
+      "tool": "Contrast checker"
+    },
+    "web-devtools": {
+      "title": "Digging in with DevTools",
+      "why": "Looking instead of guessing. Without this every later step is guesswork.",
+      "check": "You catch when a value changes using a breakpoint",
+      "links": [
+        "Chrome DevTools docs"
+      ]
+    },
+    "web-ts": {
+      "title": "TypeScript",
+      "why": "Types are documentation — the only kind you actually leave for yourself six months out.",
+      "check": "You handle someone else's API response without any",
+      "links": [
+        "TypeScript handbook"
+      ]
+    },
+    "web-framework": {
+      "title": "One framework (React / Svelte / Vue)",
+      "why": "Which one matters less than getting the one-way flow from state to screen into your hands.",
+      "check": "You decide where state lives (local, global, server) and say why",
+      "links": [
+        "Learn React",
+        "Svelte tutorial"
+      ]
+    },
+    "web-build": {
+      "title": "Bundlers and modules",
+      "why": "If you do not know what the build does, you can do nothing when it breaks.",
+      "check": "You find the heavy dependency in a bundle report",
+      "links": [
+        "Vite guide"
+      ]
+    },
+    "web-test": {
+      "title": "Testing (unit and browser)",
+      "why": "How you prove a fix. Memory does not stop regressions.",
+      "check": "You write the failing test that reproduces the bug first",
+      "links": [
+        "Vitest",
+        "Playwright"
+      ]
+    },
+    "web-deploy": {
+      "title": "Deploy and observe",
+      "why": "Working on your machine is still nothing.",
+      "check": "One push changes the real URL, and something alerts you when it breaks",
+      "links": [
+        "GitHub Actions quickstart"
+      ]
+    },
+    "git-model": {
+      "title": "Commits are snapshots, branches are sticky notes",
+      "why": "Believe it stores diffs and rebase and cherry-pick stay magic forever.",
+      "check": "You can draw commit, tree, blob and parent",
+      "links": [
+        "Pro Git"
+      ],
+      "tool": "Git command reference"
+    },
+    "git-areas": {
+      "title": "Working tree, index, HEAD",
+      "why": "This is why add exists as its own step — and where partial commits live.",
+      "check": "From status output alone you say which area each file is in",
+      "links": [
+        "git add docs"
+      ]
+    },
+    "git-branch": {
+      "title": "Branching and merging",
+      "why": "Branches are cheap. Fear them and everything piles onto one line you cannot unwind.",
+      "check": "You resolve a conflict by hand and explain the result",
+      "links": [
+        "Learn Git Branching (game)"
+      ]
+    },
+    "git-rebase": {
+      "title": "Rebase — rewriting commits",
+      "why": "The tool that makes history readable — and an accident when used on commits others already pulled.",
+      "check": "You squash three commits, reorder them, and edit just the middle one",
+      "links": [
+        "Pro Git — rewriting history"
+      ]
+    },
+    "git-undo": {
+      "title": "Undo — reset, revert, reflog",
+      "why": "Git almost never truly loses anything. Learn reflog and your hands get free.",
+      "check": "You recover a commit destroyed by a hard reset",
+      "links": [
+        "git reflog docs"
+      ],
+      "tool": "Git command reference"
+    },
+    "git-remote": {
+      "title": "Remotes — fetch, pull, push",
+      "why": "Once you know pull is fetch plus merge, the weird merge commits stop.",
+      "check": "You explain how origin/main differs from main",
+      "links": [
+        "Pro Git — remote branches"
+      ]
+    },
+    "git-pr": {
+      "title": "Pull requests, review, commit messages",
+      "why": "Code is written once and read many times. Review is the packaging for the reader.",
+      "check": "The first line of your message says why, not what",
+      "links": [
+        "How to write a Git commit message"
+      ]
+    },
+    "git-flow": {
+      "title": "Collaboration strategy (trunk, release, tags)",
+      "why": "With no rule you get one rule per person.",
+      "check": "You can write a paragraph on why your team picked this one",
+      "links": [
+        "Trunk Based Development"
+      ]
+    },
+    "git-bisect": {
+      "title": "Bisect — finding the guilty commit",
+      "why": "Find when it broke by binary search instead of guessing.",
+      "check": "You attach a reproduction script and let it run automatically",
+      "links": [
+        "git bisect docs"
+      ]
+    },
+    "git-worktree": {
+      "title": "Worktree and stash",
+      "why": "How to open another branch without breaking what you were doing. Essential once work overlaps.",
+      "check": "You keep two branches open at the same time",
+      "links": [
+        "git worktree docs"
+      ]
+    },
+    "git-hooks": {
+      "title": "Hooks and automated checks",
+      "why": "A rule survives only when a machine keeps it, not a person.",
+      "check": "Tests run automatically before a push",
+      "links": [
+        "Git hooks"
+      ]
+    }
+  }
+}

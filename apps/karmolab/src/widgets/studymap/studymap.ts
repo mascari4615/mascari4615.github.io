@@ -10,7 +10,7 @@
  * 진도는 이 브라우저에만 남는다(localStorage). 로그인·서버 없음 —
  * 「체크하려고 가입」이 지도를 안 열게 만드는 가장 흔한 이유라서.
  */
-import { t, loadNamespace } from '../../lib/i18n';
+import { t, loadNamespace, locale } from '../../lib/i18n';
 
 interface SmLink { label: string; url: string }
 interface SmTool { id: string; label: string }
@@ -18,6 +18,42 @@ interface SmNode { id: string; title: string; why: string; check?: string; tool?
 interface SmStage { id: string; title: string; nodes: SmNode[] }
 interface SmTrack { id: string; title: string; emoji: string; lead: string; stages: SmStage[] }
 interface SmData { tracks: SmTrack[] }
+
+/** 다른 언어 덧씌우기 표 — id 로만 짝을 짓는다(순서·구조를 다시 적지 않는다). */
+interface SmOverlay {
+  tracks?: Record<string, { title?: string; lead?: string }>;
+  stages?: Record<string, string>;
+  nodes?: Record<string, { title?: string; why?: string; check?: string; links?: string[]; tool?: string }>;
+}
+
+function applyOverlay(data: SmData, over: SmOverlay): SmData {
+  const tracks = data.tracks.map((track) => {
+    const tOver = over.tracks?.[track.id];
+    return {
+      ...track,
+      title: tOver?.title ?? track.title,
+      lead: tOver?.lead ?? track.lead,
+      stages: track.stages.map((stage) => ({
+        ...stage,
+        title: over.stages?.[stage.id] ?? stage.title,
+        nodes: stage.nodes.map((node) => {
+          const nOver = over.nodes?.[node.id];
+          if (!nOver) return node;
+          return {
+            ...node,
+            title: nOver.title ?? node.title,
+            why: nOver.why ?? node.why,
+            check: nOver.check ?? node.check,
+            tool: node.tool && nOver.tool ? { ...node.tool, label: nOver.tool } : node.tool,
+            /* 링크 이름만 바꾼다 — 주소는 정본 한 곳에서만 관리한다(둘로 갈리면 죽은 주소가 숨는다). */
+            links: node.links?.map((link, at) => ({ ...link, label: nOver.links?.[at] ?? link.label })),
+          };
+        }),
+      })),
+    };
+  });
+  return { ...data, tracks };
+}
 
 (function (): void {
   const DONE_KEY = 'karmolab-studymap-done';
@@ -126,9 +162,20 @@ interface SmData { tracks: SmTrack[] }
     injectStyles();
     container.innerHTML = `<div class="sm-empty">${esc(t('studymap.loading', undefined, '지도를 펴는 중…'))}</div>`;
 
-    fetch('/apps/karmolab/data/studymap.json')
-      .then((r) => r.json())
-      .then((data: SmData) => render(container, data))
+    /* 내용 정본은 한국어 한 벌(`studymap.json`)이고, 다른 언어는 **덧씌우는 표**로 온다
+       (`studymap.<언어>.json`). 아직 안 옮긴 칸은 한국어가 그대로 보인다 — 빈 칸보다 낫고,
+       무엇이 안 옮겨졌는지도 그 자리에서 드러난다. */
+    const code = locale();
+    const base = fetch('/apps/karmolab/data/studymap.json').then((r) => r.json());
+    const over =
+      code === 'ko'
+        ? Promise.resolve(null)
+        : fetch(`/apps/karmolab/data/studymap.${code}.json`)
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => null);
+
+    Promise.all([base, over])
+      .then(([data, overlay]: [SmData, SmOverlay | null]) => render(container, overlay ? applyOverlay(data, overlay) : data))
       .catch(() => {
         container.innerHTML = `<div class="sm-empty">${esc(t('studymap.failed', undefined, '지도를 못 불러왔다. 새로고침해 보라.'))}</div>`;
       });
