@@ -160,6 +160,17 @@ const noteCountBeforePaste=await page.locator('.ks-note').count();await page.key
 /* 확장 편집기가 열려 있을 때만 접는다 — 무조건 toggle 하면 오히려 열려서 툴바를 덮는다. */
 if(await page.locator('.ks-editor.is-expanded').count())await page.click('[data-act=toggle-editor]');
 const arrangerScrollBefore=await page.locator('[data-role=scroll]').evaluate((element)=>{element.scrollLeft=300;return element.scrollLeft;});await page.click('[data-act=zoom-in]');const arrangerScrollAfter=await page.locator('[data-role=scroll]').evaluate((element)=>element.scrollLeft);
+/* ruler — 클릭은 재생 헤드, 빈 곳 드래그는 새 loop 구간, 손잡이는 경계 이동. */
+const rulerBox=await page.locator('[data-role=ruler]').boundingBox();
+const rulerY=rulerBox.y+15;
+await page.mouse.click(rulerBox.x+260,rulerY);await page.waitForTimeout(100);
+const playheadAfterRulerClick=await page.locator('[data-role=playhead]').evaluate((element)=>parseFloat(element.style.left));
+await page.mouse.move(rulerBox.x+320,rulerY);await page.mouse.down();await page.mouse.move(rulerBox.x+520,rulerY,{steps:5});await page.mouse.up();await page.waitForTimeout(120);
+const loopAfterDrag=await page.locator('.ks-loop').evaluate((element)=>({left:parseFloat(element.style.left),width:parseFloat(element.style.width)}));
+await page.locator('[data-loop-edge=end]').hover({force:true});
+const loopGripHit=await page.evaluate(()=>{const grip=document.querySelector('[data-loop-edge=end]').getBoundingClientRect();const x=grip.left+grip.width/2,y=grip.top+grip.height/2;const el=document.elementFromPoint(x,y);return {x,y,edge:el?.dataset?.loopEdge||null};});
+await page.mouse.move(loopGripHit.x,loopGripHit.y);await page.mouse.down();await page.mouse.move(loopGripHit.x+120,loopGripHit.y,{steps:4});await page.mouse.up();await page.waitForTimeout(120);
+const loopAfterGrip=await page.locator('.ks-loop').evaluate((element)=>({left:parseFloat(element.style.left),width:parseFloat(element.style.width)}));
 await page.click('[data-act=back]');await page.locator('[data-project-ins=loopEnd]').fill('0.25');await page.locator('[data-project-ins=loopEnd]').press('Tab');await page.waitForTimeout(800);const engineBefore=await page.evaluate(()=>({close:window.__ksClose,param:window.__ksParamUpdates}));await page.click('[data-act=play]');await page.waitForTimeout(180);await page.locator('[data-track-volume]').first().evaluate((element)=>{element.value='0.42';element.dispatchEvent(new Event('input',{bubbles:true}));});await page.waitForTimeout(520);const engineDuring=await page.evaluate(()=>({close:window.__ksClose,param:window.__ksParamUpdates}));await page.click('[data-act=stop]');
 await page.fill('[data-bind=project-name]','Smoke Song');await page.locator('[data-bind=project-name]').press('Tab');await page.waitForTimeout(400);
 const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null'));
@@ -222,6 +233,9 @@ if(!/Quantized|grid/.test(quantizeStatus||''))problems.push(`quantize 결과 보
 if(noteCountAfterPaste!==noteCountBeforePaste+1)problems.push(`MIDI note copy/paste 실패 (${noteCountBeforePaste}→${noteCountAfterPaste})`);
 if(arrangerScrollBefore>5&&arrangerScrollAfter<arrangerScrollBefore-5)problems.push(`타임라인 재렌더 뒤 스크롤 초기화 (${arrangerScrollBefore}→${arrangerScrollAfter})`);
 if(!mobile&&(laneCountsBeforeCross.length<2||laneCountsAfterCross[0]!==laneCountsBeforeCross[0]-1||laneCountsAfterCross[laneCountsAfterCross.length-1]!==laneCountsBeforeCross[laneCountsBeforeCross.length-1]+1))problems.push(`트랙 간 클립 이동 실패 (${JSON.stringify(laneCountsBeforeCross)}→${JSON.stringify(laneCountsAfterCross)})`);
+if(Math.abs(playheadAfterRulerClick-(172+260-0))>40)problems.push(`ruler 클릭이 재생 헤드를 옮기지 않았다 (${playheadAfterRulerClick})`);
+if(!(loopAfterDrag.width>60))problems.push(`ruler 드래그가 loop 구간을 만들지 않았다 (${JSON.stringify(loopAfterDrag)})`);
+if(!(loopAfterGrip.width>loopAfterDrag.width+40))problems.push(`loop 끝 손잡이가 구간을 늘리지 않았다 (${loopAfterDrag.width}→${loopAfterGrip.width}, hit=${JSON.stringify(loopGripHit)})`);
 if(after.tracks!==initial.tracks+1)problems.push(`MIDI 트랙 추가 실패 (${initial.tracks}→${after.tracks})`);
 /* 피아노롤 DOM 은 선택한 클립 하나만 그린다. 기본 클립의 4음은 새 클립을 고르면 화면에서
    빠지는 게 정상이라, 새 클립 안에 방금 찍은 음이 하나 보이는지를 센다. */

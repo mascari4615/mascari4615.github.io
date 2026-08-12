@@ -34,6 +34,10 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     .ks-arranger { min-width:0; min-height:0; display:flex; flex-direction:column; }
     .ks-scroll { position:relative; overflow:auto; min-height:0; flex:1; background:var(--bg-tertiary); }
     .ks-ruler { position:sticky; top:0; z-index:7; height:30px; min-width:100%; background:var(--bg-secondary); border-bottom:1px solid var(--border); }
+    .ks-ruler { cursor:text; }
+    .ks-loop { cursor:grab; }
+    .ks-loop-grip { position:absolute; top:0; bottom:0; width:7px; left:0; cursor:ew-resize; background:var(--accent); opacity:.85; border-radius:2px; }
+    .ks-loop-grip.is-end { left:auto; right:0; }
     .ks-ruler-head { position:sticky; left:0; z-index:2; width:var(--ks-head); height:30px; border-right:1px solid var(--border); background:var(--bg-secondary); }
     .ks-mark { position:absolute; top:0; height:30px; border-left:1px solid var(--border); color:var(--text-tertiary); font:10px var(--font-mono); padding:5px; }
     .ks-track-row { display:grid; grid-template-columns:var(--ks-head) auto; min-height:84px; border-bottom:1px solid var(--border); }
@@ -264,7 +268,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       ruler.style.width = `${172 + trackWidth()}px`;
       let html = '<div class="ks-ruler-head"></div>';
       for (let beat = 0; beat <= length; beat += project.beatsPerBar) html += `<div class="ks-mark" style="left:${172 + beat * pxPerBeat}px">${beat / project.beatsPerBar + 1}</div>`;
-      html += `<div class="ks-loop" style="left:${172 + project.loopStart * pxPerBeat}px;width:${(project.loopEnd - project.loopStart) * pxPerBeat}px"></div>`; ruler.innerHTML = html;
+      html += `<div class="ks-loop" data-loop style="left:${172 + project.loopStart * pxPerBeat}px;width:${(project.loopEnd - project.loopStart) * pxPerBeat}px"><b class="ks-loop-grip" data-loop-edge="start"></b><b class="ks-loop-grip is-end" data-loop-edge="end"></b></div>`; ruler.innerHTML = html;
     }
 
     function waveformSvg(clip: StudioClip, className = ''): string {
@@ -540,6 +544,41 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
       const cancel=()=>{for(const item of movers){item.clip.start=item.start;item.clip.duration=item.duration;}trackShift=0;root.querySelectorAll<HTMLElement>('.ks-lane').forEach((element)=>element.classList.remove('is-drop'));discardClone();cleanup();renderAll();};
       cancelActiveGesture=cancel;
       clipEl.addEventListener('pointermove',move);clipEl.addEventListener('pointerup',up,{once:true});clipEl.addEventListener('pointercancel',cancel,{once:true});clipEl.addEventListener('lostpointercapture',cancel,{once:true});
+    });
+    /** ruler 조작 — 클릭은 재생 헤드, 빈 곳 드래그는 새 loop 구간, 손잡이·구간 드래그는 이동. */
+    $<HTMLElement>('[data-role=ruler]').addEventListener('pointerdown',(event)=>{
+      if(event.button!==0||!event.isPrimary)return;
+      const ruler=event.currentTarget as HTMLElement;
+      const target=event.target as HTMLElement;
+      if(target.closest('.ks-ruler-head'))return;
+      event.preventDefault();hideContextMenu();
+      const beatAt=(clientX:number):number=>snapBeat((clientX-ruler.getBoundingClientRect().left-172)/pxPerBeat,project.snap);
+      const edge=target.closest<HTMLElement>('[data-loop-edge]')?.dataset.loopEdge;
+      const inside=Boolean(target.closest('[data-loop]'))&&!edge;
+      const originStart=project.loopStart,originEnd=project.loopEnd;
+      const anchorBeat=beatAt(event.clientX);
+      let moved=false;
+      const move=(moveEvent:PointerEvent):void=>{
+        const beat=beatAt(moveEvent.clientX);
+        if(Math.abs(moveEvent.clientX-event.clientX)>2)moved=true;
+        if(edge==='start')project.loopStart=Math.max(0,Math.min(beat,project.loopEnd-project.snap));
+        else if(edge==='end')project.loopEnd=Math.max(project.loopStart+project.snap,beat);
+        else if(inside){const shift=beat-anchorBeat;project.loopStart=Math.max(0,originStart+shift);project.loopEnd=project.loopStart+(originEnd-originStart);}
+        else if(moved){project.loopStart=Math.min(anchorBeat,beat);project.loopEnd=Math.max(anchorBeat+project.snap,Math.max(anchorBeat,beat));}
+        else return;
+        renderRuler();renderSide();
+      };
+      const cleanup=():void=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',abort);cancelActiveGesture=null;};
+      const up=():void=>{
+        cleanup();
+        if(!moved&&!edge&&!inside){playhead=anchorBeat;updatePlayhead();status(`Playhead ${beatText(playhead)}`);return;}
+        if(!moved){renderRuler();return;}
+        project.loop=true;saveSoon('loop-range');renderRuler();renderSide();
+        status(`Loop ${beatText(project.loopStart)} → ${beatText(project.loopEnd)}`);
+      };
+      const abort=():void=>{project.loopStart=originStart;project.loopEnd=originEnd;cleanup();renderRuler();renderSide();};
+      cancelActiveGesture=abort;
+      window.addEventListener('pointermove',move);window.addEventListener('pointerup',up,{once:true});window.addEventListener('pointercancel',abort,{once:true});
     });
     scroll.addEventListener('click',(event)=>{if(event.button!==0||editTool!=='draw')return;const target=event.target as HTMLElement;if(target.closest('.ks-clip'))return;const lane=target.closest<HTMLElement>('.ks-lane');if(!lane||lane.dataset.kind!=='midi')return;const track=findTrack(project,lane.dataset.lane||'');if(track)createMidiClip(track,(event.clientX-lane.getBoundingClientRect().left)/pxPerBeat);});
     scroll.addEventListener('dblclick',(event)=>{if(event.button!==0)return;event.preventDefault();const target=event.target as HTMLElement;const clipElement=target.closest<HTMLElement>('.ks-clip');if(clipElement){const trackId=clipElement.dataset.track||'',clipId=clipElement.dataset.clip||'';const clip=findClip(project,trackId,clipId);if(clip){selection={type:'clip',trackId,clipId};renderTracks();renderSide();setEditorExpanded(true);}return;}const lane=target.closest<HTMLElement>('.ks-lane');if(!lane||lane.dataset.kind!=='midi')return;const track=findTrack(project,lane.dataset.lane||'');if(track)createMidiClip(track,(event.clientX-lane.getBoundingClientRect().left)/pxPerBeat,true);});
