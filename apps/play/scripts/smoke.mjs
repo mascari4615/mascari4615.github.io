@@ -102,8 +102,28 @@ async function common(page, id, label) {
   /* KarmoLab 값 — 바탕 #0e0d14, 브랜드 #a99bf5.
    * 바탕은 body 가 아니라 **문서 뿌리**가 칠한다: 앱이 화면에 딱 붙는 깔개를 따로 두면서
    * body 는 투명이 됐다(폰 주소창이 접힐 때 검은 띠가 나던 것을 고치며 그렇게 됐다). */
-  say(r.바탕 === 'rgb(14, 13, 20)', `${id}: 바탕색이 KarmoLab 값이 아니다 (${r.바탕})`);
+  const brand = await brandBg(page);
+  say(!brand || r.바탕 === brand, `${id}: 바탕색이 KarmoLab 값이 아니다 (${r.바탕} · 선언된 값 ${brand})`);
   say(r.켜진칩 === 'rgb(169, 155, 245)', `${id}: 켜진 칩이 브랜드색이 아니다 (${r.켜진칩})`);
+}
+
+
+/* ★ **바탕색은 숫자로 박지 않는다** (2026-08-12).
+ *   여기에 `rgb(14, 13, 20)` 을 적어 두었더니, 셸 테마가 정당하게 바뀐 뒤(#0e0d14 → 지금 값)
+ *   놀이 세 판이 통째로 빨개졌다 — 놀이는 멀쩡하고 **적어 둔 숫자만 낡은** 상태다.
+ *   보려던 것은 「놀이 화면이 KarmoLab 과 같은 바탕인가」이므로, 그 값을 화면이 선언한
+ *   토큰(`--bg-void` — 화면 뿌리를 칠하는 그 값)에서 그때그때 읽어 견준다. 테마를 바꿔도 뜻이 그대로 산다. */
+async function brandBg(page) {
+  return page.evaluate(() => {
+    const raw = getComputedStyle(document.documentElement).getPropertyValue('--bg-void').trim();
+    if (!raw) return null;
+    const probe = document.createElement('div');
+    probe.style.cssText = `background:${raw};position:absolute;left:-9999px`;
+    document.body.appendChild(probe);
+    const rgb = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return rgb;
+  });
 }
 
 /* ── 높은 쪽 고르기 ── */
@@ -121,7 +141,8 @@ async function common(page, id, label) {
       제목카드: !!document.querySelector('#page-higher .tool-hero')
     }));
     say(frame.헤더, 'higher: 앱 틀 밖에 있다 — 커뮤니티와 같은 자리여야 한다');
-    say(frame.바탕 === 'rgb(14, 13, 20)', `higher: 바탕색이 KarmoLab 값이 아니다 (${frame.바탕})`);
+    const brandH = await brandBg(page);
+    say(!brandH || frame.바탕 === brandH, `higher: 바탕색이 KarmoLab 값이 아니다 (${frame.바탕} · 선언된 값 ${brandH})`);
     say(!frame.제목카드, 'higher: 도구 제목 카드가 딸려 왔다 — 놀이가 글에 파묻힌다');
   }
   const r = await page.evaluate(() => {
@@ -225,7 +246,8 @@ async function common(page, id, label) {
       제목카드: !!document.querySelector('#page-quest .tool-hero')
     }));
     say(frame.헤더, 'quest: 앱 틀 밖에 있다 — 커뮤니티와 같은 자리여야 한다');
-    say(frame.바탕 === 'rgb(14, 13, 20)', `quest: 바탕색이 KarmoLab 값이 아니다 (${frame.바탕})`);
+    const brandQ = await brandBg(page);
+    say(!brandQ || frame.바탕 === brandQ, `quest: 바탕색이 KarmoLab 값이 아니다 (${frame.바탕} · 선언된 값 ${brandQ})`);
     say(!frame.제목카드, 'quest: 도구 제목 카드가 딸려 왔다');
   }
   const q = await page.evaluate(() => ({ 문제: document.getElementById('qsQ').textContent.trim(), 도구단추: !!document.getElementById('qsTool') }));
@@ -324,6 +346,11 @@ async function common(page, id, label) {
   // 내 표 — UGC 가 이 놀이들의 재료다. 만들고 곧바로 놀이 목록에 서는지까지 본다.
   await page.goto(`${BASE}/karmolab/#packs`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1400);
+  /* ★ **「하나뿐인가」가 아니라 「하나 늘었는가」** (2026-08-12).
+     전에는 만든 뒤 표가 딱 1개여야 통과였다. 그 사이 화면에 기본 표 넷(포켓몬·도구 월드컵·
+     원신·롤)이 딸려 오면서, 표는 멀쩡히 만들어지는데 검사만 빨개졌다(실측 5개).
+     보려던 것은 「내가 만든 표가 목록에 선다」이므로 **늘어난 수**로 본다. */
+  const 처음개수 = await page.evaluate(() => document.querySelectorAll('.pk-item').length);
   await page.click('#pkSample');
   await page.click('#pkSave');
   await page.waitForTimeout(500);
@@ -331,7 +358,8 @@ async function common(page, id, label) {
     말: (document.getElementById('pkMsg')?.textContent || '').trim(),
     개수: document.querySelectorAll('.pk-item').length
   }));
-  say(made.개수 === 1 && /만들었습니다/.test(made.말), `packs: 표가 안 만들어졌다 (${made.말})`);
+  say(made.개수 === 처음개수 + 1 && /만들었습니다/.test(made.말),
+    `packs: 표가 안 만들어졌다 (${made.말} · 표 ${처음개수}→${made.개수})`);
   await page.click('.pk-item [data-go=twenty]');
   await page.waitForTimeout(1600);
   const mine = await page.evaluate(() => ({
