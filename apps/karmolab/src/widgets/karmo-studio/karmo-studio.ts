@@ -68,6 +68,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     .ks-audio-controls .ks-field { grid-template-columns:70px minmax(0,1fr); }
     .ks-handle { position:absolute; top:0; right:0; width:8px; height:100%; cursor:ew-resize; background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--clip) 70%,white)); }
     .ks-playhead { position:absolute; top:30px; bottom:0; width:1px; background:#ff5d6c; z-index:6; pointer-events:none; box-shadow:0 0 5px #ff5d6c; }
+    .ks-lane.is-drop { box-shadow:inset 0 0 0 2px var(--accent); }
     .ks-band { position:absolute; z-index:7; pointer-events:none; border:1px solid var(--accent); background:color-mix(in srgb, var(--accent) 18%, transparent); border-radius:2px; }
     .ks-playhead::before { content:""; position:absolute; top:-5px; left:-4px; border:5px solid transparent; border-top-color:#ff5d6c; }
     .ks-loop { position:absolute; top:0; height:4px; background:var(--accent); opacity:.8; z-index:3; }
@@ -122,7 +123,11 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     let raf: number | undefined; let saveTimer: number | undefined; let recording: MediaRecorder | null = null; let recordChunks: Blob[] = []; let recordStart = 0;
     let editorExpanded = false; let editorScrollTop = 0; let editorScrollLeft = 0; let editorClipId = ''; let pianoPxPerBeat = pxPerBeat;
     let editorReturnFocus: HTMLElement | null = null; let cancelActiveGesture: (()=>void) | null = null;
-    let clipboard: {type:'clip';sourceTrackId:string;clip:StudioClip}|{type:'note';note:StudioClip['notes'][number]}|null=null;
+    /** 묶음 clipboard — 상대 간격을 보존하려고 기준점(origin)을 함께 들고 있는다. */
+    let clipboard:
+      |{type:'clips';origin:number;items:{sourceTrackId:string;kind:StudioTrack['kind'];clip:StudioClip}[]}
+      |{type:'notes';origin:number;notes:StudioClip['notes']}
+      |null=null;
     const engine = new KarmoStudioEngine();
     const history = new ProjectHistory(project, normalizeProject);
     const marks = clipMarks();
@@ -162,9 +167,51 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
 
     function selectedTrack(): StudioTrack | undefined { return selection ? findTrack(project, selection.trackId) : undefined; }
     function selectedClip(): StudioClip | undefined { return selection?.type === 'clip' || selection?.type === 'note' ? findClip(project, selection.trackId, selection.clipId) : undefined; }
-    function copySelection(): boolean { const chosen=selection;if(!chosen)return false;if(chosen.type==='note'){const clip=findClip(project,chosen.trackId,chosen.clipId);const note=clip?.notes.find((item)=>item.id===chosen.noteId);if(!note)return false;clipboard={type:'note',note:{...note}};status('MIDI note copied');return true;}if(chosen.type==='clip'){const clip=findClip(project,chosen.trackId,chosen.clipId);if(!clip)return false;clipboard={type:'clip',sourceTrackId:chosen.trackId,clip:cloneClip(clip,clip.start)};status('Clip copied');return true;}return false; }
-    function pasteClipboard(): boolean { if(!clipboard){status('Clipboard is empty');return false;}if(clipboard.type==='clip'){const selected=selectedTrack();const source=findTrack(project,clipboard.sourceTrackId);const target=selected?.kind===clipboard.clip.kind?selected:source;if(!target){status('Compatible track not found');return false;}const copy=cloneClip(clipboard.clip,snapBeat(playhead,project.snap));copy.trackId=target.id;target.clips.push(copy);selection={type:'clip',trackId:target.id,clipId:copy.id};status(`Pasted clip at ${beatText(copy.start)}`);}else{const clip=selectedClip();const track=selectedTrack();if(!clip||clip.kind!=='midi'||!track){status('Select a MIDI clip before pasting a note');return false;}const source=clipboard.note;const beat=Math.max(0,Math.min(clip.duration-source.duration,snapBeat(playhead-clip.start,project.snap)));const note={...source,id:studioId('note'),beat};clip.notes.push(note);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:note.id};status(`Pasted note at ${beatText(clip.start+beat)}`);}saveSoon();renderAll();return true; }
-    function cutSelection(): void { if(!copySelection())return;deleteSelection();status(clipboard?.type==='note'?'MIDI note cut':'Clip cut'); }
+    function copySelection(): boolean {
+      if(selection?.type==='note'){
+        const chosen=markedNotes();if(!chosen.length)return false;
+        const notes=chosen.map((item)=>({...item.note}));
+        clipboard={type:'notes',origin:Math.min(...notes.map((note)=>note.beat)),notes};
+        status(notes.length>1?`${notes.length} notes copied`:'MIDI note copied');return true;
+      }
+      if(selection?.type==='clip'){
+        const chosen=markedClips();if(!chosen.length)return false;
+        const items=chosen.map((item)=>({sourceTrackId:item.track.id,kind:item.track.kind,clip:cloneClip(item.clip,item.clip.start)}));
+        clipboard={type:'clips',origin:Math.min(...items.map((item)=>item.clip.start)),items};
+        status(items.length>1?`${items.length} clips copied`:'Clip copied');return true;
+      }
+      return false;
+    }
+    function pasteClipboard(): boolean {
+      if(!clipboard){status('Clipboard is empty');return false;}
+      const at=snapBeat(playhead,project.snap);
+      if(clipboard.type==='clips'){
+        const selected=selectedTrack();const pasted:ClipRef[]=[];
+        for(const item of clipboard.items){
+          const source=findTrack(project,item.sourceTrackId);
+          const target=selected?.kind===item.kind?selected:source;
+          if(!target)continue;
+          const copy=cloneClip(item.clip,Math.max(0,at+(item.clip.start-clipboard.origin)));
+          copy.trackId=target.id;target.clips.push(copy);pasted.push({trackId:target.id,clipId:copy.id});
+        }
+        if(!pasted.length){status('Compatible track not found');return false;}
+        marks.replace(pasted);selection={type:'clip',trackId:pasted[0].trackId,clipId:pasted[0].clipId};
+        status(pasted.length>1?`Pasted ${pasted.length} clips at ${beatText(at)}`:`Pasted clip at ${beatText(at)}`);
+      } else {
+        const clip=selectedClip();const track=selectedTrack();
+        if(!clip||clip.kind!=='midi'||!track){status('Select a MIDI clip before pasting a note');return false;}
+        const base=Math.max(0,snapBeat(at-clip.start,project.snap));const pasted:NoteRef[]=[];
+        for(const source of clipboard.notes){
+          const beat=Math.max(0,Math.min(clip.duration-source.duration,base+(source.beat-clipboard.origin)));
+          const note={...source,id:studioId('note'),beat};clip.notes.push(note);pasted.push({clipId:clip.id,noteId:note.id});
+        }
+        if(!pasted.length)return false;
+        noteSel.replace(pasted);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:pasted[0].noteId};
+        status(pasted.length>1?`Pasted ${pasted.length} notes at ${beatText(clip.start+base)}`:`Pasted note at ${beatText(clip.start+base)}`);
+      }
+      saveSoon();renderAll();return true;
+    }
+    function cutSelection(): void { const kind=selection?.type; if(!copySelection())return; deleteSelection(); status(kind==='note'?(clipboard?.type==='notes'&&clipboard.notes.length>1?`${clipboard.notes.length} notes cut`:'MIDI note cut'):(clipboard?.type==='clips'&&clipboard.items.length>1?`${clipboard.items.length} clips cut`:'Clip cut')); }
     function duplicateSelection(): void { if(selection?.type==='note'){const chosen=markedNotes();const clip=selectedClip();const track=selectedTrack();if(clip&&track&&chosen.length){const begin=Math.min(...chosen.map((item)=>item.note.beat));const end=Math.max(...chosen.map((item)=>item.note.beat+item.note.duration));const shift=snapBeat(Math.max(end-begin,project.snap),project.snap);const copies=chosen.map((item)=>{const copy={...item.note,id:studioId('note'),beat:Math.max(0,Math.min(clip.duration-item.note.duration,snapBeat(item.note.beat+shift,project.snap)))};clip.notes.push(copy);return copy;});noteSel.replace(copies.map((copy)=>({clipId:clip.id,noteId:copy.id})));selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copies[0].id};if(copies.length>1)status(`Duplicated ${copies.length} notes`);saveSoon();renderEditor();renderTracks();renderSide();}return;}const chosen=markedClips();if(!chosen.length)return;const span=chosen.reduce((end,item)=>Math.max(end,item.clip.start+item.clip.duration),0)-chosen.reduce((begin,item)=>Math.min(begin,item.clip.start),Infinity);const shift=snapBeat(Math.max(span,project.snap),project.snap);const copies=chosen.map((item)=>{const copy=cloneClip(item.clip,Math.max(0,snapBeat(item.clip.start+shift,project.snap)));item.track.clips.push(copy);return {trackId:item.track.id,clipId:copy.id};});marks.replace(copies);selection={type:'clip',trackId:copies[0].trackId,clipId:copies[0].clipId};if(copies.length>1)status(`Duplicated ${copies.length} clips`);saveSoon();renderAll(); }
     function addPianoNote(event: MouseEvent): boolean { if(editTool==='select')return false;const target=event.target as HTMLElement;const piano=target.closest<HTMLElement>('[data-piano]');const clip=selectedClip();const track=selectedTrack();if(!piano||!clip||clip.kind!=='midi'||!track||target.closest('.ks-note,.ks-key,.ks-piano-ruler'))return false;const rect=piano.firstElementChild!.getBoundingClientRect();const pitch=Math.max(36,Math.min(84,84-Math.floor((event.clientY-rect.top-24)/16)));const beat=snapBeat((event.clientX-rect.left-68)/pianoPxPerBeat,project.snap);if(beat<0||beat>=clip.duration)return false;const existing=clip.notes.find((note)=>note.pitch===pitch&&Math.abs(note.beat-beat)<project.snap/2);if(existing){selection={type:'note',trackId:track.id,clipId:clip.id,noteId:existing.id};renderEditor();renderSide();return true;}const note={id:studioId('note'),beat,duration:Math.min(project.snap*2,clip.duration-beat),pitch,velocity:.8};clip.notes.push(note);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:note.id};void engine.preview(track,pitch);saveSoon();renderEditor();renderTracks();renderSide();return true; }
     function createMidiClip(track:StudioTrack,start:number,open=false):StudioClip { const snapped=snapBeat(start,project.snap);const existing=track.clips.find((clip)=>clip.kind==='midi'&&Math.abs(clip.start-snapped)<project.snap/2);if(existing){selection={type:'clip',trackId:track.id,clipId:existing.id};renderAll();if(open)setEditorExpanded(true);return existing;}const clip:StudioClip={id:studioId('clip'),trackId:track.id,kind:'midi',name:'MIDI Clip',start:snapped,duration:project.beatsPerBar,offset:0,notes:[],gain:1,fadeIn:0,fadeOut:0};track.clips.push(clip);selection={type:'clip',trackId:track.id,clipId:clip.id};saveSoon();renderAll();if(open)setEditorExpanded(true);return clip; }
@@ -373,20 +420,45 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       root.querySelectorAll<HTMLElement>('.ks-clip').forEach((element)=>element.classList.toggle('is-selected',markedKeys.has(`${element.dataset.track} ${element.dataset.clip}`)));
       renderSide();renderEditor();
       if(marks.size>1&&!isClone)status(`${marks.size} clips selected`);
-      const startX=event.clientX;let moved=false;
+      const startX=event.clientX,startY=event.clientY;let moved=false;
       const discardClone=()=>{for(const item of clones)item.track.clips=item.track.clips.filter((entry)=>entry.id!==item.clip.id);if(clones.length){marks.replace([{trackId,clipId}]);selection={type:'clip',trackId,clipId:source.id};}};
       if(!clipEl.isConnected){discardClone();return;}
       try{clipEl.setPointerCapture(event.pointerId);}catch(_){discardClone();return;}
+      /** 세로로 끌면 같은 종류의 트랙으로 옮긴다. 실제 이동은 pointerup 에 한 번만(DOM 재부모화 회피). */
+      let trackShift=0;
+      const laneIndex=(id:string):number=>project.tracks.findIndex((item)=>item.id===id);
+      const highlightTarget=():void=>{
+        root.querySelectorAll<HTMLElement>('.ks-lane').forEach((element)=>element.classList.remove('is-drop'));
+        if(!trackShift)return;
+        for(const item of movers){const next=project.tracks[laneIndex(item.track.id)+trackShift];if(next)root.querySelector<HTMLElement>(`.ks-lane[data-lane="${next.id}"]`)?.classList.add('is-drop');}
+      };
       const move=(moveEvent:PointerEvent)=>{
         const delta=(moveEvent.clientX-startX)/pxPerBeat;
-        if(Math.abs(moveEvent.clientX-startX)>2)moved=true;
+        if(Math.abs(moveEvent.clientX-startX)>2||Math.abs(moveEvent.clientY-startY)>2)moved=true;
         if(isResize)anchor.clip.duration=Math.max(project.snap,snapBeat(anchor.duration+delta,project.snap));
-        else{const step=snapBeat(anchor.start+delta,project.snap)-anchor.start;for(const item of movers)item.clip.start=Math.max(0,item.start+step);}
+        else{
+          const step=snapBeat(anchor.start+delta,project.snap)-anchor.start;
+          for(const item of movers)item.clip.start=Math.max(0,item.start+step);
+          const under=document.elementFromPoint(moveEvent.clientX,moveEvent.clientY)?.closest<HTMLElement>('.ks-lane');
+          const wanted=under?laneIndex(under.dataset.lane||'')-laneIndex(anchor.track.id):0;
+          const ok=wanted!==0&&movers.every((item)=>{const next=project.tracks[laneIndex(item.track.id)+wanted];return Boolean(next)&&next.kind===item.clip.kind;});
+          const nextShift=ok?wanted:0;
+          if(nextShift!==trackShift){trackShift=nextShift;highlightTarget();}
+        }
         for(const item of movers){if(!item.el)continue;item.el.style.left=`${item.clip.start*pxPerBeat}px`;item.el.style.width=`${item.clip.duration*pxPerBeat}px`;}
       };
+      const applyTrackShift=():void=>{
+        if(!trackShift)return;
+        const moves=movers.map((item)=>({item,target:project.tracks[laneIndex(item.track.id)+trackShift]}));
+        if(moves.some((entry)=>!entry.target||entry.target.kind!==entry.item.clip.kind))return;
+        for(const entry of moves){entry.item.track.clips=entry.item.track.clips.filter((clip)=>clip.id!==entry.item.clip.id);entry.item.clip.trackId=entry.target.id;entry.target.clips.push(entry.item.clip);entry.item.track=entry.target;}
+        marks.replace(movers.map((item)=>({trackId:item.track.id,clipId:item.clip.id})));
+        selection={type:'clip',trackId:anchor.track.id,clipId:anchor.clip.id};
+        status(movers.length>1?`Moved ${movers.length} clips to another track`:'Moved clip to another track');
+      };
       const cleanup=()=>{clipEl.removeEventListener('pointermove',move);clipEl.removeEventListener('pointerup',up);clipEl.removeEventListener('pointercancel',cancel);clipEl.removeEventListener('lostpointercapture',cancel);cancelActiveGesture=null;};
-      const up=()=>{cleanup();if(!moved){discardClone();renderAll();return;}saveSoon();renderAll();if(movers.length>1)status(`Moved ${movers.length} clips`);};
-      const cancel=()=>{for(const item of movers){item.clip.start=item.start;item.clip.duration=item.duration;}discardClone();cleanup();renderAll();};
+      const up=()=>{cleanup();root.querySelectorAll<HTMLElement>('.ks-lane').forEach((element)=>element.classList.remove('is-drop'));if(!moved){discardClone();renderAll();return;}const crossed=trackShift!==0;applyTrackShift();saveSoon();renderAll();if(!crossed&&movers.length>1)status(`Moved ${movers.length} clips`);};
+      const cancel=()=>{for(const item of movers){item.clip.start=item.start;item.clip.duration=item.duration;}trackShift=0;root.querySelectorAll<HTMLElement>('.ks-lane').forEach((element)=>element.classList.remove('is-drop'));discardClone();cleanup();renderAll();};
       cancelActiveGesture=cancel;
       clipEl.addEventListener('pointermove',move);clipEl.addEventListener('pointerup',up,{once:true});clipEl.addEventListener('pointercancel',cancel,{once:true});clipEl.addEventListener('lostpointercapture',cancel,{once:true});
     });
