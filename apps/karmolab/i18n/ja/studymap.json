@@ -40,5 +40,7 @@
   "studymap.demo.run": "再描画",
   "studymap.demo.reset": "元に戻す",
   "studymap.demo.code": "サンプルコード",
-  "studymap.demo.result": "実行結果"
+  "studymap.demo.result": "実行結果",
+  "studymap.lesson.prev": "前へ",
+  "studymap.lesson.next": "次へ"
 }

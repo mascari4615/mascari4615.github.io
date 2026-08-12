@@ -40,5 +40,7 @@
   "studymap.demo.run": "다시 그리기",
   "studymap.demo.reset": "되돌리기",
   "studymap.demo.code": "예제 코드",
-  "studymap.demo.result": "실행 결과"
+  "studymap.demo.result": "실행 결과",
+  "studymap.lesson.prev": "이전",
+  "studymap.lesson.next": "다음"
 }

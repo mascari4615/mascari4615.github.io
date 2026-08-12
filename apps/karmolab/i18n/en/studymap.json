@@ -40,5 +40,7 @@
   "studymap.demo.run": "Run again",
   "studymap.demo.reset": "Reset",
   "studymap.demo.code": "Example code",
-  "studymap.demo.result": "Result"
+  "studymap.demo.result": "Result",
+  "studymap.lesson.prev": "Previous",
+  "studymap.lesson.next": "Next"
 }
