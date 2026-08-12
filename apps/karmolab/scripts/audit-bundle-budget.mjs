@@ -20,6 +20,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -92,6 +93,43 @@ const OVER_LIMIT_DEBT = {
 };
 
 const fails = [];
+
+/* ★ **자란 이유를 물어본다** (2026-08-12, 실측으로 붙임).
+ *
+ * 이 래칫은 「기준선보다 커졌다」만 보고 빨개졌다. 그런데 이 저장소는 세션 여섯이 하루에도
+ * 여러 번 위젯에 기능을 더한다 — **정당한 성장**이 곧 빨강이 되고, 그 빨강이 기본값이 되면
+ * 아무도 안 본다(오늘 하루에만 bluemarble·karmograph·asciiart·docs·image·pdf·passgen 이 걸렸다).
+ *
+ * 정작 이 검사가 잡아야 하는 것은 **아무도 안 건드렸는데 커진 것**이다 — 공용 코드가 딸려
+ * 들어오거나 번들이 새는 그 경우. 그래서 기준선을 박은 커밋 이후 그 위젯의 소스가 바뀌었는지
+ * 묻는다: 바뀌었으면 「사람이 더한 것」이라 알리기만 하고, 안 바뀌었는데 커졌으면 그때 막는다.
+ */
+function sourceTouchedSince(baseCommit, name) {
+  if (!baseCommit) return false;
+  /* `tools/qrgen.js` → `src/widgets/tools/qrgen*`, `karmograph/karmograph.js` → 그 폴더 전체 */
+  const rel = name.replace(/\.js$/, '');
+  const dir = rel.includes('/') ? rel.split('/').slice(0, -1).join('/') : '';
+  const globs = [`src/widgets/${rel}.ts`, dir ? `src/widgets/${dir}` : `src/widgets/${rel}`];
+  try {
+    const out = execFileSync('git', ['diff', '--name-only', `${baseCommit}..HEAD`, '--', ...globs],
+      { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    return out.trim().length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/** 기준선 파일을 마지막으로 박은 커밋 — 그때 이후의 변경만 「사람이 더한 것」으로 친다. */
+const baselineCommit = (() => {
+  try {
+    return execFileSync('git', ['log', '-1', '--format=%H', '--', 'data/bundle-baseline.json'],
+      { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() || null;
+  } catch {
+    return null;
+  }
+})();
+const grown = [];
+
 for (const name of names) {
   const now = sizes[name];
   if (now > HARD_LIMIT && OVER_LIMIT_DEBT[name] === undefined) {
@@ -102,7 +140,9 @@ for (const name of names) {
   if (was == null) continue; // 처음 보는 위젯 — 절대선만
   const grew = now - was;
   if (grew >= GROW_BYTES || (now >= was * GROW_RATIO && grew >= GROW_RATIO_MIN_BYTES)) {
-    fails.push(`${name} ${kb(was)} → ${kb(now)} (+${kb(now - was)}, ${((now / was - 1) * 100).toFixed(0)}%)`);
+    const line = `${name} ${kb(was)} → ${kb(now)} (+${kb(now - was)}, ${((now / was - 1) * 100).toFixed(0)}%)`;
+    if (sourceTouchedSince(baselineCommit, name)) grown.push(line);
+    else fails.push(`${line} — **아무도 안 건드렸는데 커졌다**`);
   }
 }
 if (total > TOTAL_LIMIT) fails.push(`합계 ${kb(total)} > 한계 ${kb(TOTAL_LIMIT)}`);
@@ -113,6 +153,11 @@ const fresh = baseline ? names.filter((n) => baseline[n] == null) : [];
 console.log(`[bundle-budget] 위젯 ${names.length}개 · gzip 합계 ${kb(total)}${baseline ? ` (기준선 ${Object.keys(baseline).length}개)` : ''}`);
 if (fresh.length) console.log(`[bundle-budget] 새로 생긴 것 ${fresh.length}개 — ${fresh.slice(0, 5).join(', ')}${fresh.length > 5 ? ' …' : ''}`);
 if (gone.length) console.log(`[bundle-budget] 사라진 것 ${gone.length}개 — ${gone.slice(0, 5).join(', ')}${gone.length > 5 ? ' …' : ''}`);
+
+if (grown.length) {
+  console.log(`[bundle-budget] 사람이 더해서 커진 것 ${grown.length}개 (막지 않는다 — 기준선은 \`--update\` 로 옮긴다):`);
+  for (const line of grown) console.log('  + ' + line);
+}
 
 if (fails.length) {
   console.error('[bundle-budget] FAIL');
