@@ -3778,6 +3778,146 @@
           ]
         }
       ]
+    },
+    {
+      "id": "video",
+      "title": "영상 · 미디어",
+      "emoji": "🎬",
+      "lead": "용량·품질·호환의 삼각형 — 하나를 얻으면 하나를 내준다",
+      "stages": [
+        {
+          "id": "video-a",
+          "title": "무엇으로 되어 있나",
+          "nodes": [
+            {
+              "id": "video-container",
+              "title": "컨테이너와 코덱은 다르다",
+              "why": ".mp4 는 상자 이름이고 안에 든 코덱이 재생 여부를 정한다. 「왜 안 열리지」의 답.",
+              "check": "mp4·H.264·AAC 의 관계를 설명한다",
+              "links": [
+                {
+                  "label": "MDN 미디어 컨테이너",
+                  "url": "https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Containers"
+                }
+              ],
+              "prereq": [
+                "audio-format"
+              ]
+            },
+            {
+              "id": "video-quality",
+              "title": "해상도 · 프레임 · 비트레이트",
+              "why": "「화질이 나쁘다」의 원인이 셋 중 무엇인지 가려야 고칠 수 있다.",
+              "check": "같은 영상을 비트레이트만 바꿔 비교한다",
+              "links": [
+                {
+                  "label": "FFmpeg 인코딩 가이드 (H.264)",
+                  "url": "https://trac.ffmpeg.org/wiki/Encode/H.264"
+                }
+              ]
+            },
+            {
+              "id": "video-ffmpeg",
+              "title": "ffmpeg — 미디어의 스위스 나이프",
+              "why": "자르고 붙이고 바꾸는 거의 모든 일이 명령 한 줄이다. GUI 없이 자동화된다.",
+              "check": "자르기·변환·GIF 만들기를 명령으로 한다",
+              "links": [
+                {
+                  "label": "FFmpeg 위키 (실전 예제)",
+                  "url": "https://trac.ffmpeg.org/wiki"
+                }
+              ],
+              "prereq": [
+                "shell-script"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "video-b",
+          "title": "내보낸다",
+          "nodes": [
+            {
+              "id": "video-transcode",
+              "title": "트랜스코딩 파이프라인",
+              "why": "사용자가 올린 파일은 제각각이다. 서버에서 표준 형식으로 바꿔야 재생이 보장된다.",
+              "check": "업로드 → 변환 → 저장 흐름을 큐로 돌린다",
+              "links": [
+                {
+                  "label": "FFmpeg 스케일링",
+                  "url": "https://trac.ffmpeg.org/wiki/Scaling"
+                }
+              ],
+              "prereq": [
+                "data-queue"
+              ]
+            },
+            {
+              "id": "video-stream",
+              "title": "스트리밍 — HLS 와 적응 비트레이트",
+              "why": "큰 파일을 통째로 받게 하면 모바일에서 멈춘다. 조각내고 화질을 상황에 맞춘다.",
+              "check": "여러 화질의 HLS 재생 목록을 만든다",
+              "links": [
+                {
+                  "label": "HLS 개요 (MDN)",
+                  "url": "https://developer.mozilla.org/en-US/docs/Web/Guide/Audio_and_video_delivery/Live_streaming_web_audio_and_video"
+                }
+              ],
+              "prereq": [
+                "web-http"
+              ]
+            },
+            {
+              "id": "video-thumb",
+              "title": "썸네일 · 미리보기 · 메타데이터",
+              "why": "목록 화면의 체감 품질은 썸네일이 만든다. 그리고 회전 메타데이터가 사진을 눕힌다.",
+              "check": "지정 시점 썸네일을 뽑고 회전 정보를 반영한다",
+              "links": [
+                {
+                  "label": "FFmpeg 썸네일 만들기",
+                  "url": "https://trac.ffmpeg.org/wiki/Create%20a%20thumbnail%20image%20every%20X%20seconds%20of%20the%20video"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "video-c",
+          "title": "모두에게 닿게",
+          "nodes": [
+            {
+              "id": "video-caption",
+              "title": "자막 · 접근성",
+              "why": "소리를 못 듣는 사람만의 문제가 아니다 — 지하철에서 무음으로 보는 사람이 더 많다.",
+              "check": "자막 파일을 붙이고 재생기에서 켠다",
+              "links": [
+                {
+                  "label": "WebVTT (MDN)",
+                  "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API"
+                }
+              ],
+              "prereq": [
+                "a11y-sr"
+              ]
+            },
+            {
+              "id": "video-rights",
+              "title": "용량 · 비용 · 권리",
+              "why": "영상은 저장·전송비가 크고, 음악 한 곡이 채널을 정지시킨다.",
+              "check": "저장·전송 비용을 계산하고 소재 권리를 확인한다",
+              "links": [
+                {
+                  "label": "Creative Commons 라이선스",
+                  "url": "https://creativecommons.org/licenses/"
+                }
+              ],
+              "prereq": [
+                "legal-assets"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

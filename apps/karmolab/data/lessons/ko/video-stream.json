@@ -1,0 +1,98 @@
+{
+  "id": "video-stream",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "큰 파일을 통째로 받게 하면 **모바일에서 멈춘다**. 조각내서 보내고, 화질을 회선에 맞추는 것이 스트리밍이다."
+    },
+    {
+      "type": "h",
+      "text": "1. HLS 의 구조"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "재생 목록 + 조각들",
+      "text": "master.m3u8         ← 화질 목록 (1080p·720p·480p)\n  ├ 1080p.m3u8      ← 그 화질의 조각 목록\n  │   ├ 000.ts  (약 4~6초)\n  │   ├ 001.ts\n  └ 720p.m3u8 …\n\n재생기는 회선 상황을 보고 조각마다 화질을 바꾼다(ABR)"
+    },
+    {
+      "type": "h",
+      "text": "2. 만들기"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "ffmpeg 한 번으로",
+      "text": "ffmpeg -i in.mp4 \\\n  -filter_complex \"[0:v]split=2[v1][v2];[v1]scale=w=1280:h=720[v1out];[v2]scale=w=854:h=480[v2out]\" \\\n  -map \"[v1out]\" -c:v:0 libx264 -b:v:0 2500k -map \"[v2out]\" -c:v:1 libx264 -b:v:1 1000k \\\n  -map a:0 -map a:0 -c:a aac -b:a 128k \\\n  -f hls -hls_time 4 -hls_playlist_type vod \\\n  -master_pl_name master.m3u8 -var_stream_map \"v:0,a:0 v:1,a:1\" out_%v.m3u8"
+    },
+    {
+      "type": "h",
+      "text": "3. 왜 CDN 인가"
+    },
+    {
+      "type": "note",
+      "text": "조각 파일은 **정적 파일**이라 CDN 이 잘 캐시한다. 영상은 전송량이 크므로 CDN 없이 자체 서버로 서비스하면 대역폭 비용이 폭발한다."
+    },
+    {
+      "type": "h",
+      "text": "4. 재생기"
+    },
+    {
+      "type": "p",
+      "text": "Safari 는 HLS 를 기본 지원하고, 다른 브라우저는 **hls.js** 같은 라이브러리가 필요하다. 자막·화질 선택·재생 속도 같은 UI 도 재생기가 담당한다."
+    },
+    {
+      "type": "h",
+      "text": "5. 라이브는 다른 문제"
+    },
+    {
+      "type": "note",
+      "text": "**지연(latency)** 이 핵심이다 — 일반 HLS 는 10~30초 지연. 낮추려면 LL-HLS·WebRTC 를 쓰지만 복잡도와 비용이 크게 오른다. 「몇 초 지연까지 괜찮은가」를 먼저 정하라."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "영상 하나를 2개 화질 HLS 로 만들고 로컬 서버로 재생하라. 개발자도구에서 조각(.ts) 요청을 관찰하라."
+    },
+    {
+      "type": "try",
+      "text": "네트워크를 느리게 제한하고 재생해 화질이 자동으로 낮아지는지 확인하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "HLS 가 큰 파일 직접 전송보다 나은 이유는?",
+      "choices": [
+        "조각 단위 전송으로 빠르게 시작하고 회선에 맞춰 화질을 바꾼다",
+        "용량이 작아서",
+        "화질이 좋아서"
+      ],
+      "answer": 0,
+      "why": "ABR 이 핵심이다."
+    },
+    {
+      "q": "HLS 조각을 CDN 으로 서비스하는 이유는?",
+      "choices": [
+        "정적 파일이라 캐시가 잘 되고 대역폭 비용을 줄인다",
+        "보안 때문",
+        "변환 속도 때문"
+      ],
+      "answer": 0,
+      "why": "영상은 전송량이 크다."
+    },
+    {
+      "q": "라이브 스트리밍에서 먼저 정할 것은?",
+      "choices": [
+        "허용 가능한 지연 시간",
+        "해상도",
+        "자막 여부"
+      ],
+      "answer": 0,
+      "why": "지연 요구가 기술과 비용을 결정한다."
+    }
+  ]
+}

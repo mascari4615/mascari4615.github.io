@@ -1,0 +1,98 @@
+{
+  "id": "video-container",
+  "minutes": 11,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "「mp4 인데 왜 안 열리지?」의 답은 하나다 — **.mp4 는 상자 이름**이고, 재생 여부는 안에 든 **코덱**이 정한다."
+    },
+    {
+      "type": "h",
+      "text": "1. 상자와 내용물"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "컨테이너 ≠ 코덱",
+      "text": "컨테이너: mp4 · webm · mkv · mov   ← 여러 트랙(영상·음성·자막)을 담는 포장\n영상 코덱: H.264(AVC) · H.265(HEVC) · VP9 · AV1\n음성 코덱: AAC · Opus · MP3\n\n같은 .mp4 라도 안이 HEVC 면 어떤 브라우저에서는 안 열린다"
+    },
+    {
+      "type": "h",
+      "text": "2. 무엇을 쓸까"
+    },
+    {
+      "type": "note",
+      "text": "**가장 안전한 조합: mp4 + H.264 + AAC**. 거의 모든 기기에서 재생된다. 용량을 줄이려면 VP9·AV1(webm)이 좋지만 **인코딩이 느리고 지원이 갈린다** — 대체본을 함께 두는 것이 실무다."
+    },
+    {
+      "type": "h",
+      "text": "3. 확인하는 법"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "안을 들여다본다",
+      "text": "ffprobe -v error -show_streams -show_format input.mp4 | head -30\n# codec_name · width/height · r_frame_rate · bit_rate · duration\n\nffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 input.mp4"
+    },
+    {
+      "type": "h",
+      "text": "4. faststart"
+    },
+    {
+      "type": "p",
+      "text": "웹에서 mp4 를 재생하려면 메타데이터(moov)가 **파일 앞쪽**에 있어야 바로 재생된다. 없으면 전체를 받아야 시작한다 — `-movflags +faststart` 한 줄로 해결된다."
+    },
+    {
+      "type": "h",
+      "text": "5. 라이선스"
+    },
+    {
+      "type": "note",
+      "text": "H.264·HEVC 는 **특허 라이선스** 문제가 있고(특히 HEVC), AV1·VP9 는 로열티 프리를 지향한다. 상용 배포·하드웨어 제품이라면 확인이 필요하다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "가진 영상 3개를 `ffprobe` 로 확인해 컨테이너·코덱·비트레이트를 표로 적어라."
+    },
+    {
+      "type": "try",
+      "text": "faststart 없이/있이 만든 mp4 를 웹에서 재생해 시작 시점을 비교하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": ".mp4 파일이 특정 브라우저에서 안 열리는 흔한 이유는?",
+      "choices": [
+        "내부 코덱(예: HEVC)이 지원되지 않아서",
+        "확장자가 틀려서",
+        "용량이 커서"
+      ],
+      "answer": 0,
+      "why": "컨테이너와 코덱은 다른 층이다."
+    },
+    {
+      "q": "가장 호환성이 높은 조합은?",
+      "choices": [
+        "mp4 + H.264 + AAC",
+        "mkv + AV1 + Opus",
+        "mov + ProRes"
+      ],
+      "answer": 0,
+      "why": "거의 모든 기기에서 재생된다."
+    },
+    {
+      "q": "`-movflags +faststart` 가 하는 일은?",
+      "choices": [
+        "메타데이터를 앞으로 옮겨 즉시 재생되게 한다",
+        "용량을 줄인다",
+        "화질을 높인다"
+      ],
+      "answer": 0,
+      "why": "웹 재생의 기본 옵션이다."
+    }
+  ]
+}
