@@ -44,7 +44,7 @@ const page = await context.newPage();
 const errors = [];
 page.on('pageerror', (error) => errors.push(String(error)));
 page.on('console', (message) => {
-  if (message.type() === 'error' && !/CORS|ERR_FAILED|Failed to load resource|yawnbot/.test(message.text())) errors.push(message.text());
+  if (message.type() === 'error' && !/CORS|ERR_FAILED|Failed to load resource|yawnbot|laptop\.mascari4615|선반/.test(message.text())) errors.push(message.text());
 });
 
 const problems = [];
@@ -228,6 +228,25 @@ await page.locator('.bon-bar [data-act="undo"]').click();
 await page.waitForTimeout(200);
 check('시작점도 되돌려진다', (await shapes()) === shapesBeforeSeed, String(await shapes()));
 
+
+// ── 선반 ──────────────────────────────────
+// 서버 없이도 화면 쪽 규칙은 지켜져야 한다: 열쇠가 없으면 넣는 자리를 먼저 보여 준다.
+await page.evaluate(() => localStorage.removeItem('karmolab_foundry_token'));
+await page.locator('.bon-bar [data-act="shelf"]').click();
+await page.waitForTimeout(200);
+const askedToken = await page.evaluate(() => !!document.querySelector('.bon-shelf [data-shelf-token]'));
+check('열쇠가 없으면 넣는 자리를 먼저 보여 준다', askedToken);
+await page.locator('.bon-shelf [data-shelf="close"]').click();
+await page.waitForTimeout(150);
+check('닫으면 선반이 사라진다', await page.evaluate(() => document.querySelector('.bon-shelf').hidden));
+
+// 선반이 안 열려도 도구는 계속 돈다 (서버가 죽어 있어도 그림은 그려져야 한다)
+await page.locator('.bon-bar [data-act="shelf-open"]').click();
+await page.waitForTimeout(1200);
+const stillWorks = await page.evaluate(() => !!document.querySelector('.bon-art svg'));
+check('선반이 안 열려도 판은 살아 있다', stillWorks);
+await page.evaluate(() => { const s = document.querySelector('.bon-shelf'); if (s) s.hidden = true; });
+
 if (SHOT) {
   fs.mkdirSync(path.join(here, 'tmp'), { recursive: true });
   await page.screenshot({ path: path.join(here, 'tmp', 'bon.png'), fullPage: false });
@@ -238,5 +257,5 @@ check('콘솔 오류 없음', errors.length === 0, errors.slice(0, 3).join(' | '
 
 await browser.close();
 server.close();
-console.log(problems.length ? `\n[smoke-bon] 실패 ${problems.length}건` : '\n[smoke-bon] ✓ 그리기 · 고르기 · 옮기기 · 숫자 반영 · 되돌리기 · 안내선 분리 · 레이어 · 9-slice · 선 · 시작점');
+console.log(problems.length ? `\n[smoke-bon] 실패 ${problems.length}건` : '\n[smoke-bon] ✓ 그리기 · 고르기 · 옮기기 · 숫자 반영 · 되돌리기 · 안내선 분리 · 레이어 · 9-slice · 선 · 시작점 · 선반');
 process.exit(problems.length ? 1 : 0);
