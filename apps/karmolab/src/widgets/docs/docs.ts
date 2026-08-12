@@ -4,6 +4,7 @@
  * marked.js로 마크다운 렌더링, Prism.js로 코드 하이라이팅, ```mermaid 는 Mermaid 렌더.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { collectHeadings, watchReading, bindTocClicks } from '../../lib/doc-view';
 
 (function (): void {
   /** 동일 출처(Tracking Prevention 회피). CDN 금지.
@@ -321,21 +322,23 @@ import { t, loadNamespace } from '../../lib/i18n';
     return null;
   }
 
+  let docsStopWatching: (() => void) | null = null;
+
   function applyDocsAnchors(
     root: HTMLElement,
     tocEl: HTMLElement | null
   ): Array<{ id: string; text: string; level: number }> {
     const used = new Set<string>();
-    const headings = Array.from(root.querySelectorAll('h1, h2, h3'));
-    const toc: Array<{ id: string; text: string; level: number }> = [];
+    /* 제목 찾기·id 박기는 공용 모듈이 한다(SSOT) — id 규칙만 예전 그대로 넘겨 기존 앵커 링크를 살린다. */
+    const toc = collectHeadings(root, {
+      selector: 'h1, h2, h3',
+      min: 1,
+      idFrom: (text) => docsEnsureUniqueId(docsSlugify(text), used),
+    });
 
-    headings.forEach(function (h) {
-      const el = h as HTMLElement;
-      const level = el.tagName === 'H1' ? 1 : el.tagName === 'H2' ? 2 : 3;
-      const text = (el.textContent || '').trim();
-      if (!text) return;
-      const id = docsEnsureUniqueId(docsSlugify(text), used);
-      el.id = el.id || id;
+    toc.forEach(function (item) {
+      const el = root.querySelector('#' + CSS.escape(item.id)) as HTMLElement | null;
+      if (!el) return;
       el.classList.add('docs-heading');
 
       const a = document.createElement('span');
@@ -369,7 +372,6 @@ import { t, loadNamespace } from '../../lib/i18n';
       });
       el.prepend(a);
 
-      toc.push({ id: el.id, text, level });
     });
 
     if (tocEl && toc.length >= 2) {
@@ -397,55 +399,25 @@ import { t, loadNamespace } from '../../lib/i18n';
     return toc;
   }
 
-  function wireDocsTocActive(tocWrap: HTMLElement, docWrap: HTMLElement, scrollRoot: Element | null): void {
-    const links = Array.from(tocWrap.querySelectorAll('.docs-toc-a'));
-    if (!links.length) return;
-
-    const headings = Array.from(docWrap.querySelectorAll('h1, h2, h3')).filter(function (h) {
-      return !!h.id;
-    });
-    const ioRoot = scrollRoot ?? null;
-    const obs = new IntersectionObserver(
-      function (entries) {
-        const visible = entries
-          .filter(function (e) {
-            return e.isIntersecting;
-          })
-          .sort(function (a, b) {
-            return a.boundingClientRect.top - b.boundingClientRect.top;
-          });
-        if (!visible.length) return;
-        const id = visible[0].target.id;
-        links.forEach(function (a) {
-          a.classList.toggle('active', a.getAttribute('href') === '#' + id);
-        });
-      },
-      { root: ioRoot, threshold: [0.12, 0.35, 0.55] }
-    );
-    headings.forEach(function (h) {
-      obs.observe(h);
-    });
-
-    links.forEach(function (a) {
-      a.addEventListener('click', function () {
-        const href = a.getAttribute('href');
-        const id = href && href.startsWith('#') ? href.slice(1) : '';
-        let target: HTMLElement | null = null;
-        try {
-          target = id ? (docWrap.querySelector('#' + CSS.escape(id)) as HTMLElement | null) : null;
-        } catch {
-          target = null;
-        }
-        if (!target) return;
-        const root = scrollRoot;
-        if (root instanceof HTMLElement) {
-          const top = target.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop - 10;
-          root.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-        } else {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      });
-    });
+  /**
+   * 목차의 「지금 읽는 곳」 표시와 클릭 이동 — 공용 모듈(`lib/doc-view`)에 맡긴다.
+   * 예전에는 IntersectionObserver 로 판단해 제목이 여럿 보일 때 표시가 흔들렸다.
+   * 지금은 스터디 맵 강의와 같은 규칙(위에서 지나온 마지막 제목)을 쓴다.
+   */
+  function wireDocsTocActive(
+    tocWrap: HTMLElement,
+    docWrap: HTMLElement,
+    scrollRoot: Element | null,
+    headings: Array<{ id: string; text: string; level: number }>
+  ): () => void {
+    const opts = {
+      scrollRoot: scrollRoot instanceof HTMLElement ? scrollRoot : null,
+      activeClass: 'active',
+      linkSelector: '.docs-toc-a',
+      idOf: (a: HTMLElement) => (a.getAttribute('href') || '').replace(/^#/, ''),
+    };
+    bindTocClicks(tocWrap, docWrap, opts);
+    return watchReading(docWrap, tocWrap, headings, opts);
   }
 
   /** 레포 루트 기준 Markdown 경로를 GitHub raw로 불러와 본문 위에 출처 블록을 붙여 렌더 */
@@ -525,7 +497,13 @@ import { t, loadNamespace } from '../../lib/i18n';
     if (tocMeta.length < 2) {
       layout.classList.add('docs-md-layout--no-toc');
     } else {
-      wireDocsTocActive(tocNav, body, findDocsScrollRoot(layout));
+      /* 문서를 갈아 끼울 때마다 예전 감시를 푼다 — 안 그러면 사라진 화면을 계속 재려 든다. */
+      docsStopWatching?.();
+      docsStopWatching = wireDocsTocActive(tocNav, body, findDocsScrollRoot(layout), tocMeta);
+      Toolbox.onDispose?.(function () {
+        docsStopWatching?.();
+        docsStopWatching = null;
+      });
     }
 
     const mermaidEls = body.querySelectorAll('.mermaid');
