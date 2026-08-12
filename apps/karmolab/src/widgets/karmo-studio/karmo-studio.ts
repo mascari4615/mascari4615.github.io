@@ -198,6 +198,8 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     function renderAll(): void {
       const scrollElement=root.querySelector<HTMLElement>('[data-role=scroll]');const arrangerLeft=scrollElement?.scrollLeft||0;const arrangerTop=scrollElement?.scrollTop||0;
       root.style.setProperty('--ks-beat', `${pxPerBeat}px`);
+      /* 눈금은 지금 스냅을 따라간다 — 셋잇단으로 바꿔도 격자와 음이 안 어긋난다. */
+      root.style.setProperty('--ks-grid', `${Math.max(4, project.snap * pxPerBeat)}px`);
       root.dataset.tool=editTool;root.querySelectorAll('[data-tool]').forEach((button)=>button.classList.toggle('is-on',(button as HTMLElement).dataset.tool===editTool));
       $<HTMLInputElement>('[data-bind=project-name]').value = project.name; $<HTMLInputElement>('[data-bind=bpm]').value = String(project.bpm); $<HTMLSelectElement>('[data-bind=meter]').value = String(project.beatsPerBar); $<HTMLSelectElement>('[data-bind=snap]').value = String(project.snap); $<HTMLSelectElement>('[data-bind=swing]').value = String(project.swing);
       root.querySelector('[data-act=loop]')?.classList.toggle('is-on', project.loop);

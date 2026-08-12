@@ -280,4 +280,17 @@ const legacySwing = JSON.parse(JSON.stringify(swung));
 delete legacySwing.swing;
 assert.equal(normalizeProject(legacySwing).swing, 0, '옛 저장본은 정박');
 
-console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘 · 구간 이름표 · 줄 높이 · 클립 잠금·색 · TAP·선택구간 · 스윙');
+// 셋잇단·점음표 격자에서도 붙이기가 맞는다
+const third = 1 / 3;
+assert.equal(Number(snapBeat(0.3, third).toFixed(6)), Number(third.toFixed(6)), '0.3 은 1/3 로');
+assert.equal(Number(snapBeat(0.7, third).toFixed(6)), Number((third * 2).toFixed(6)), '0.7 은 2/3 로');
+assert.equal(Number(snapBeat(0.9, third).toFixed(6)), 1, '0.9 는 1 로');
+assert.equal(Number(snapBeat(1.6, 0.375).toFixed(6)), 1.5, '점8분 격자');
+// 셋잇단 격자에 quantize 하면 셋잇단 자리로 간다
+const triplets = [note(0.3), note(0.7), note(1.05)];
+quantizeNotes(triplets, third);
+assert.deepEqual(triplets.map((item) => Number(item.beat.toFixed(4))), [0.3333, 0.6667, 1]);
+// 격자가 아무리 작아도 0 으로 안 나눈다
+assert.equal(snapBeat(1.2, 0), 1.25, '0 격자는 기본 1/4');
+
+console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘 · 구간 이름표 · 줄 높이 · 클립 잠금·색 · TAP·선택구간 · 스윙 · 셋잇단/점음표 격자');
