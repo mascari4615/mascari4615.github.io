@@ -537,9 +537,11 @@ await step('찾기 → 포커스가 걸린다', async () => {
     const el = document.querySelector('[data-km="find-count"]');
     return el && el.classList.contains('is-none');
   }, null, { timeout: 4000 });
+  /* 비우는 순서가 있다 — 「몇 다리까지」가 켜져 있는데 고른 카드가 없으면 그 자리에
+     「카드를 하나 고르세요」가 들어앉는다(그것도 이 자리의 일이다). 둘 다 풀어야 사라진다. */
+  await page.selectOption('[data-km="degree"]', '');
   await page.fill('[data-km="find"]', '');
   await page.waitForFunction(() => document.querySelector('[data-km="find-count"]')?.classList.contains('hidden'), null, { timeout: 4000 });
-  await page.selectOption('[data-km="degree"]', '');
 });
 /* ★ 발표 줄 단추는 **진짜 클릭**으로 누른다(`dispatchEvent` X).
    `dispatchEvent` 는 「그 자리에 뭐가 덮여 있나」를 안 본다 — 그래서 캔버스 svg 가 발표 줄을

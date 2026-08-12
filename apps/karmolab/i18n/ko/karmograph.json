@@ -117,7 +117,7 @@
   "karmograph.t115": "연결 삭제",
   "karmograph.t116": "선 위에 쓸 말 (비우면 안 보임)",
   "karmograph.t117": "저장됨",
-  "karmograph.t118": "전체 보기",
+  "karmograph.t118": "이웃 전체",
   "karmograph.opt.0": "고른 것만",
   "karmograph.opt.1": "1다리",
   "karmograph.opt.2": "2다리",
@@ -616,5 +616,6 @@
   "karmograph.help.selectAll": "보이는 것 전부 고르기 (나란히 놓기·묶음 넣기로 이어짐)",
   "karmograph.find.count": "{n}개",
   "karmograph.find.none": "없음",
-  "karmograph.find.countTitle": "이름·한마디에서 맞은 카드 수"
+  "karmograph.find.countTitle": "이름·한마디에서 맞은 카드 수",
+  "karmograph.degree.pick": "카드를 하나 고르세요"
 }

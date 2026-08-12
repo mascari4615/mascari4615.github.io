@@ -117,7 +117,7 @@
   "karmograph.t115": "Delete the connection",
   "karmograph.t116": "Words to write on the line (empty to hide)",
   "karmograph.t117": "Saved",
-  "karmograph.t118": "Show everything",
+  "karmograph.t118": "All neighbours",
   "karmograph.opt.0": "Only the chosen",
   "karmograph.opt.1": "1 hop",
   "karmograph.opt.2": "2 hops",
@@ -616,5 +616,6 @@
   "karmograph.help.selectAll": "Select everything visible (leads into line-up / grouping)",
   "karmograph.find.count": "{n}",
   "karmograph.find.none": "none",
-  "karmograph.find.countTitle": "Cards matching name or one-liner"
+  "karmograph.find.countTitle": "Cards matching name or one-liner",
+  "karmograph.degree.pick": "Pick a card first"
 }
