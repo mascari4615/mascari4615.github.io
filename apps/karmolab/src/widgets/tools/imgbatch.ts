@@ -6,6 +6,7 @@
  * 원본보다 커지는 경우가 있어(작은 PNG 를 JPG 로 바꿀 때) 전후 용량을 나란히 보여준다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { loadImage, toCanvas, encode } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -126,45 +127,27 @@ import { t, loadNamespace } from '../../lib/i18n';
               .join('');
           }
 
-          function convert(file: File): Promise<Result> {
-            return new Promise((resolve, reject) => {
-              const url = URL.createObjectURL(file);
-              const img = new Image();
-              img.onload = () => {
-                const max = parseInt(maxEl.value, 10);
-                const scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
-                const w = Math.max(1, Math.round(img.naturalWidth * scale));
-                const h = Math.max(1, Math.round(img.naturalHeight * scale));
-                const cv = document.createElement('canvas');
-                cv.width = w;
-                cv.height = h;
-                const ctx = cv.getContext('2d');
-                if (!ctx) return reject(new Error(t('imgbatch.err.canvas')));
-                const format = $<HTMLSelectElement>('#ibFormat').value;
-                if (format !== 'image/png') {
-                  // 투명한 부분이 검게 나오는 걸 막는다
-                  ctx.fillStyle = '#fff';
-                  ctx.fillRect(0, 0, w, h);
-                }
-                ctx.imageSmoothingQuality = 'high';
-                ctx.drawImage(img, 0, 0, w, h);
-                cv.toBlob(
-                  (blob) => {
-                    URL.revokeObjectURL(url);
-                    if (!blob) return reject(new Error(t('imgbatch.err.convert')));
-                    const ext = format === 'image/png' ? 'png' : format === 'image/webp' ? 'webp' : 'jpg';
-                    resolve({ name: file.name.replace(/\.[^.]+$/, '') + '.' + ext, blob, before: file.size, w, h });
-                  },
-                  format,
-                  parseInt(qualityEl.value, 10) / 100
-                );
-              };
-              img.onerror = () => {
-                URL.revokeObjectURL(url);
-                reject(new Error(t('imgbatch.err.open')));
-              };
-              img.src = url;
-            });
+          /**
+           * 한 장을 바꾼다. 읽기·줄이기·내보내기를 **전부 공용 것으로** (TASK-KL-280).
+           *
+           * 흰 바탕 깔기도 공용 `encode` 가 한다 — 여기 손으로 적어 두면 다음 도구가 또 잊는다
+           * (실제로 「사진 크기 맞추기」가 잊어서 투명한 데가 검게 나왔다, [[TASK-KL-272]]).
+           */
+          async function convert(file: File): Promise<Result> {
+            const img = await loadImage(file);
+            const max = parseInt(maxEl.value, 10);
+            const cv = toCanvas(img, { w: max, h: max });
+            const format = $<HTMLSelectElement>('#ibFormat').value;
+            const kind = format === 'image/png' ? 'png' : format === 'image/webp' ? 'webp' : 'jpeg';
+            const blob = await encode(cv, kind, parseInt(qualityEl.value, 10) / 100);
+            const ext = kind === 'jpeg' ? 'jpg' : kind;
+            return {
+              name: file.name.replace(/\.[^.]+$/, '') + '.' + ext,
+              blob,
+              before: file.size,
+              w: cv.width,
+              h: cv.height
+            };
           }
 
           async function run(): Promise<void> {
