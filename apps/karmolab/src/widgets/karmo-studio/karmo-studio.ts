@@ -9,6 +9,7 @@ import { addAsset, hydrateAssets, importPortable, loadProject, portableProject, 
 import { ProjectHistory } from './history';
 import { KARMO_STUDIO_CSS } from './styles';
 import { KARMO_STUDIO_SHELL } from './shell';
+import { GestureHost } from './gesture';
 import { buildPianoView, initialScrollTop, PIANO_GEOMETRY } from './piano-view';
 import { automationHtml, AUTOMATION_GEOMETRY, clipHtml, waveformPath, waveformSvg, waveMissing } from './arranger-view';
 import { analysePeak, applyGain, clampBuffer, exportRange, normalizeGain, type ExportRangeMode } from './export';
@@ -35,7 +36,9 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     let armedTrackId=''; let metronome=false; let countIn=false; const autoLanes=new Set<string>();
     let exportOptions={range:'song' as ExportRangeMode,sampleRate:44100,mono:false,normalize:true};
     let editorExpanded = false; let editorScrollTop = 0; let editorScrollLeft = 0; let editorClipId = ''; let pianoPxPerBeat = pxPerBeat;
-    let editorReturnFocus: HTMLElement | null = null; let cancelActiveGesture: (()=>void) | null = null;
+    let editorReturnFocus: HTMLElement | null = null;
+    /** 끌기는 언제나 한 판만 산다 — 겹치면 앞 판이 취소된다. */
+    const gestures = new GestureHost(window as unknown as { addEventListener(t:string,f:(e:PointerEvent)=>void):void; removeEventListener(t:string,f:(e:PointerEvent)=>void):void });
     /** 묶음 clipboard — 상대 간격을 보존하려고 기준점(origin)을 함께 들고 있는다. */
     let clipboard:
       |{type:'clips';origin:number;items:{sourceTrackId:string;kind:StudioTrack['kind'];clip:StudioClip}[]}
@@ -423,13 +426,12 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       const original=note.velocity;
       const set=(clientY:number):void=>{note.velocity=Math.max(0.05,Math.min(1,(rect.bottom-clientY)/Math.max(1,rect.height)));paintVelocity();};
       set(event.clientY);
-      try{bar.setPointerCapture(event.pointerId);}catch(_){/* capture 없이도 이어서 받는다 */}
-      const move=(moveEvent:PointerEvent):void=>set(moveEvent.clientY);
-      const cleanup=():void=>{bar.removeEventListener('pointermove',move);bar.removeEventListener('pointerup',up);bar.removeEventListener('pointercancel',abort);bar.removeEventListener('lostpointercapture',abort);cancelActiveGesture=null;};
-      const up=():void=>{cleanup();void engine.preview(selectedTrack()||project.tracks[0],note.pitch,note.velocity);saveSoon('note-velocity');renderEditor();};
-      const abort=():void=>{note.velocity=original;cleanup();renderEditor();};
-      cancelActiveGesture=abort;
-      bar.addEventListener('pointermove',move);bar.addEventListener('pointerup',up,{once:true});bar.addEventListener('pointercancel',abort,{once:true});bar.addEventListener('lostpointercapture',abort,{once:true});
+      gestures.begin({
+        capture:bar,pointerId:event.pointerId,
+        move:(moveEvent)=>set(moveEvent.clientY),
+        commit:()=>{void engine.preview(selectedTrack()||project.tracks[0],note.pitch,note.velocity);saveSoon('note-velocity');renderEditor();},
+        cancel:()=>{note.velocity=original;renderEditor();}
+      });
     });
 const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.onchange=()=>{const file=projectInput.files?.[0];if(!file)return;void file.text().then(importPortable).then(async(next)=>{stop();project=next;history.reset(project);await refreshAssets();selection=project.tracks[0]?{type:'track',trackId:project.tracks[0].id}:null;playhead=0;renderAll();status(`Opened ${file.name}`);}).catch((error:Error)=>status(`Open failed: ${error.message}`));projectInput.value='';};
 
@@ -454,17 +456,14 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
           root.querySelectorAll<HTMLElement>('.ks-clip').forEach((element)=>element.classList.toggle('is-selected',keys.has(`${element.dataset.track} ${element.dataset.clip}`)));
         };
         const finish=(committed:boolean):void=>{
-          window.removeEventListener('pointermove',paint);window.removeEventListener('pointerup',done);window.removeEventListener('pointercancel',abort);
-          band.hidden=true;cancelActiveGesture=null;
+          band.hidden=true;
           if(!boxed){marks.replace(before);if(committed){selection={type:'track',trackId:lane.dataset.lane||''};playhead=snapBeat((startX-lane.getBoundingClientRect().left)/pxPerBeat,project.snap);updatePlayhead();renderSide();}return;}
           if(!committed){marks.replace(before);renderTracks();return;}
           const chosen=marks.list();
           selection=chosen.length?{type:'clip',trackId:chosen[0].trackId,clipId:chosen[0].clipId}:{type:'track',trackId:lane.dataset.lane||''};
           renderTracks();renderSide();renderEditor();status(chosen.length?`${chosen.length} clip${chosen.length>1?'s':''} selected`:'Selection cleared');
         };
-        const done=():void=>finish(true);const abort=():void=>finish(false);
-        cancelActiveGesture=abort;
-        window.addEventListener('pointermove',paint);window.addEventListener('pointerup',done,{once:true});window.addEventListener('pointercancel',abort,{once:true});
+        gestures.begin({ move:paint, commit:()=>finish(true), cancel:()=>finish(false) });
         return;
       }
       if(!clipEl)return;
@@ -499,8 +498,6 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
       if(marks.size>1&&!isClone)status(`${marks.size} clips selected`);
       const startX=event.clientX,startY=event.clientY;let moved=false;
       const discardClone=()=>{for(const item of clones)item.track.clips=item.track.clips.filter((entry)=>entry.id!==item.clip.id);if(clones.length){marks.replace([{trackId,clipId}]);selection={type:'clip',trackId,clipId:source.id};}};
-      if(!clipEl.isConnected){discardClone();return;}
-      try{clipEl.setPointerCapture(event.pointerId);}catch(_){discardClone();return;}
       /** 세로로 끌면 같은 종류의 트랙으로 옮긴다. 실제 이동은 pointerup 에 한 번만(DOM 재부모화 회피). */
       let trackShift=0;
       const laneIndex=(id:string):number=>project.tracks.findIndex((item)=>item.id===id);
@@ -533,11 +530,9 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
         selection={type:'clip',trackId:anchor.track.id,clipId:anchor.clip.id};
         status(movers.length>1?`Moved ${movers.length} clips to another track`:'Moved clip to another track');
       };
-      const cleanup=()=>{clipEl.removeEventListener('pointermove',move);clipEl.removeEventListener('pointerup',up);clipEl.removeEventListener('pointercancel',cancel);clipEl.removeEventListener('lostpointercapture',cancel);cancelActiveGesture=null;};
-      const up=()=>{cleanup();root.querySelectorAll<HTMLElement>('.ks-lane').forEach((element)=>element.classList.remove('is-drop'));if(!moved){discardClone();renderAll();return;}const crossed=trackShift!==0;applyTrackShift();saveSoon();renderAll();if(!crossed&&movers.length>1)status(`Moved ${movers.length} clips`);};
-      const cancel=()=>{for(const item of movers){item.clip.start=item.start;item.clip.duration=item.duration;}trackShift=0;root.querySelectorAll<HTMLElement>('.ks-lane').forEach((element)=>element.classList.remove('is-drop'));discardClone();cleanup();renderAll();};
-      cancelActiveGesture=cancel;
-      clipEl.addEventListener('pointermove',move);clipEl.addEventListener('pointerup',up,{once:true});clipEl.addEventListener('pointercancel',cancel,{once:true});clipEl.addEventListener('lostpointercapture',cancel,{once:true});
+      const up=()=>{root.querySelectorAll<HTMLElement>('.ks-lane').forEach((element)=>element.classList.remove('is-drop'));if(!moved){discardClone();renderAll();return;}const crossed=trackShift!==0;applyTrackShift();saveSoon();renderAll();if(!crossed&&movers.length>1)status(`Moved ${movers.length} clips`);};
+      const cancel=()=>{for(const item of movers){item.clip.start=item.start;item.clip.duration=item.duration;}trackShift=0;root.querySelectorAll<HTMLElement>('.ks-lane').forEach((element)=>element.classList.remove('is-drop'));discardClone();renderAll();};
+      if(!gestures.begin({capture:clipEl,pointerId:event.pointerId,move,commit:up,cancel:cancel})){discardClone();return;}
     });
     /** ruler 조작 — 클릭은 재생 헤드, 빈 곳 드래그는 새 loop 구간, 손잡이·구간 드래그는 이동. */
     $<HTMLElement>('[data-role=ruler]').addEventListener('pointerdown',(event)=>{
@@ -562,17 +557,14 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
         else return;
         renderRuler();renderSide();
       };
-      const cleanup=():void=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',abort);cancelActiveGesture=null;};
       const up=():void=>{
-        cleanup();
         if(!moved&&!edge&&!inside){playhead=anchorBeat;updatePlayhead();status(`Playhead ${beatText(playhead)}`);return;}
         if(!moved){renderRuler();return;}
         project.loop=true;saveSoon('loop-range');renderRuler();renderSide();
         status(`Loop ${beatText(project.loopStart)} → ${beatText(project.loopEnd)}`);
       };
-      const abort=():void=>{project.loopStart=originStart;project.loopEnd=originEnd;cleanup();renderRuler();renderSide();};
-      cancelActiveGesture=abort;
-      window.addEventListener('pointermove',move);window.addEventListener('pointerup',up,{once:true});window.addEventListener('pointercancel',abort,{once:true});
+      const abort=():void=>{project.loopStart=originStart;project.loopEnd=originEnd;renderRuler();renderSide();};
+      gestures.begin({ move, commit:up, cancel:abort });
     });
     scroll.addEventListener('click',(event)=>{if(event.button!==0||editTool!=='draw')return;const target=event.target as HTMLElement;if(target.closest('.ks-clip'))return;const lane=target.closest<HTMLElement>('.ks-lane');if(!lane||lane.dataset.kind!=='midi')return;const track=findTrack(project,lane.dataset.lane||'');if(track)createMidiClip(track,(event.clientX-lane.getBoundingClientRect().left)/pxPerBeat);});
     scroll.addEventListener('dblclick',(event)=>{if(event.button!==0)return;event.preventDefault();const target=event.target as HTMLElement;const clipElement=target.closest<HTMLElement>('.ks-clip');if(clipElement){const trackId=clipElement.dataset.track||'',clipId=clipElement.dataset.clip||'';const clip=findClip(project,trackId,clipId);if(clip){selection={type:'clip',trackId,clipId};renderTracks();renderSide();setEditorExpanded(true);}return;}const lane=target.closest<HTMLElement>('.ks-lane');if(!lane||lane.dataset.kind!=='midi')return;const track=findTrack(project,lane.dataset.lane||'');if(track)createMidiClip(track,(event.clientX-lane.getBoundingClientRect().left)/pxPerBeat,true);});
@@ -602,11 +594,11 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
         track.volumeAutomation=[...track.volumeAutomation].sort((a,b)=>a.beat-b.beat);
         renderTracks();
       };
-      const cleanup=():void=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',abort);cancelActiveGesture=null;};
-      const up=():void=>{cleanup();saveSoon('automation');engine.updateProject(project);status(`볼륨 ${Math.round(held.value*100)}% @ ${beatText(held.beat)}`);};
-      const abort=():void=>{held.beat=originBeat;held.value=originValue;cleanup();renderTracks();};
-      cancelActiveGesture=abort;
-      window.addEventListener('pointermove',move);window.addEventListener('pointerup',up,{once:true});window.addEventListener('pointercancel',abort,{once:true});
+      gestures.begin({
+        move,
+        commit:()=>{saveSoon('automation');engine.updateProject(project);status(`볼륨 ${Math.round(held.value*100)}% @ ${beatText(held.beat)}`);},
+        cancel:()=>{held.beat=originBeat;held.value=originValue;renderTracks();}
+      });
     });
     /** piano roll box selection — 빈 칸에서 끌면 지나간 음을 묶는다. */
     root.addEventListener('pointerdown',(event)=>{
@@ -634,17 +626,14 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
         piano.querySelectorAll<HTMLElement>('.ks-note').forEach((element)=>element.classList.toggle('is-selected',keys.has(element.dataset.note||'')));
       };
       const finish=(committed:boolean):void=>{
-        window.removeEventListener('pointermove',paint);window.removeEventListener('pointerup',done);window.removeEventListener('pointercancel',abort);
-        band.hidden=true;cancelActiveGesture=null;
+        band.hidden=true;
         if(!boxed)return;
         if(!committed){noteSel.replace(before);renderEditor();return;}
         const chosen=noteSel.list();const track=selectedTrack();
         if(chosen.length&&track)selection={type:'note',trackId:track.id,clipId:clip.id,noteId:chosen[0].noteId};
         renderEditor();renderSide();status(chosen.length?`${chosen.length} note${chosen.length>1?'s':''} selected`:'Selection cleared');
       };
-      const done=():void=>finish(true);const abort=():void=>finish(false);
-      cancelActiveGesture=abort;
-      window.addEventListener('pointermove',paint);window.addEventListener('pointerup',done,{once:true});window.addEventListener('pointercancel',abort,{once:true});
+      gestures.begin({ move:paint, commit:()=>finish(true), cancel:()=>finish(false) });
     });
     root.addEventListener('pointerdown',(event)=>{
       if(event.button!==0||!event.isPrimary)return;
@@ -665,8 +654,6 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
       renderSide();
       if(group.length>1&&!isResize)status(`${group.length} notes selected`);
       const startX=event.clientX,startY=event.clientY;
-      if(!noteEl.isConnected)return;
-      try{noteEl.setPointerCapture(event.pointerId);}catch(_){return;}
       const move=(moveEvent:PointerEvent)=>{
         if(isResize)anchor.note.duration=Math.max(project.snap,Math.min(clip.duration-anchor.note.beat,snapBeat(anchor.duration+(moveEvent.clientX-startX)/pianoPxPerBeat,project.snap)));
         else{
@@ -679,11 +666,11 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
         }
         for(const item of group){if(!item.el)continue;item.el.style.left=`${PIANO_GEOMETRY.keyWidth+item.note.beat*pianoPxPerBeat}px`;item.el.style.top=`${PIANO_GEOMETRY.rulerHeight+(PIANO_GEOMETRY.high-item.note.pitch)*PIANO_GEOMETRY.row+2}px`;item.el.style.width=`${item.note.duration*pianoPxPerBeat}px`;}
       };
-      const cleanup=()=>{noteEl.removeEventListener('pointermove',move);noteEl.removeEventListener('pointerup',up);noteEl.removeEventListener('pointercancel',cancel);noteEl.removeEventListener('lostpointercapture',cancel);cancelActiveGesture=null;};
-      const up=()=>{cleanup();void engine.preview(track,anchor.note.pitch,anchor.note.velocity);saveSoon();renderEditor();renderTracks();};
-      const cancel=()=>{for(const item of group){item.note.beat=item.beat;item.note.pitch=item.pitch;item.note.duration=item.duration;}cleanup();renderEditor();renderTracks();};
-      cancelActiveGesture=cancel;
-      noteEl.addEventListener('pointermove',move);noteEl.addEventListener('pointerup',up,{once:true});noteEl.addEventListener('pointercancel',cancel,{once:true});noteEl.addEventListener('lostpointercapture',cancel,{once:true});
+      gestures.begin({
+        capture:noteEl,pointerId:event.pointerId,move,
+        commit:()=>{void engine.preview(track,anchor.note.pitch,anchor.note.velocity);saveSoon();renderEditor();renderTracks();},
+        cancel:()=>{for(const item of group){item.note.beat=item.beat;item.note.pitch=item.pitch;item.note.duration=item.duration;}renderEditor();renderTracks();}
+      });
     });
     root.addEventListener('contextmenu',(event)=>{const target=event.target as HTMLElement;const dot=target.closest<HTMLElement>('[data-auto-point]');if(dot){event.preventDefault();const track=findTrack(project,dot.dataset.track||'');if(track){track.volumeAutomation=track.volumeAutomation.filter((point)=>point.id!==dot.dataset.autoPoint);saveSoon('automation');engine.updateProject(project);renderTracks();status('자동화 점 삭제');}return;}const clipEl=target.closest<HTMLElement>('.ks-clip');const noteEl=target.closest<HTMLElement>('.ks-note');const lane=target.closest<HTMLElement>('.ks-lane');if(!clipEl&&!noteEl&&!lane)return;event.preventDefault();event.stopPropagation();if(noteEl){const clip=selectedClip();const track=selectedTrack();const note=clip?.notes.find((item)=>item.id===noteEl.dataset.note);if(clip&&track&&note){clip.notes=clip.notes.filter((item)=>item.id!==note.id);selection={type:'clip',trackId:track.id,clipId:clip.id};saveSoon();renderEditor();renderTracks();renderSide();status('Right-click · deleted MIDI note');}}else if(clipEl){const trackId=clipEl.dataset.track||'',clipId=clipEl.dataset.clip||'';selection={type:'clip',trackId,clipId};renderSide();renderEditor();showContextMenu(event.clientX,event.clientY,[['open-editor','편집기 열기'],['copy','클립 복사'],['cut','클립 잘라내기'],['duplicate','클립 복제'],['split','재생 헤드에서 분할'],['delete','클립 삭제']]);}else if(lane){selection={type:'track',trackId:lane.dataset.lane||''};renderSide();showContextMenu(event.clientX,event.clientY,[['open-editor','클립을 더블클릭해 편집']]);}});
     function deleteSelection():void{
@@ -691,7 +678,7 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
       if(chosen.type==='note'){const doomed=markedNotes();const clip=findClip(project,chosen.trackId,chosen.clipId);if(clip&&doomed.length){const ids=new Set(doomed.map((item)=>item.note.id));clip.notes=clip.notes.filter((note)=>!ids.has(note.id));noteSel.clear();if(doomed.length>1)status(`Deleted ${doomed.length} notes`);}selection={type:'clip',trackId:chosen.trackId,clipId:chosen.clipId};saveSoon();renderAll();return;}
       else if(chosen.type==='clip'){const doomed=markedClips();for(const item of doomed)item.track.clips=item.track.clips.filter((clip)=>clip.id!==item.clip.id);marks.clear();if(doomed.length>1)status(`Deleted ${doomed.length} clips`);}
       selection={type:'track',trackId:track.id};saveSoon();renderAll();}
-    const keydown=(event:KeyboardEvent)=>{if(!root.isConnected)return;if(event.key==='Escape'){event.preventDefault();cancelActiveGesture?.();hideContextMenu();if($<HTMLElement>('[data-role=export]').innerHTML){closeExport();return;}if(editorExpanded)setEditorExpanded(false);return;}const command=event.ctrlKey||event.metaKey;if(command&&event.key.toLowerCase()==='z'){event.preventDefault();restoreHistory(event.shiftKey?'redo':'undo');return;}if(command&&event.key.toLowerCase()==='y'){event.preventDefault();restoreHistory('redo');return;}const tag=(event.target as HTMLElement).tagName;if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;if(!command&&['p','e','c'].includes(event.key.toLowerCase())){editTool=event.key.toLowerCase()==='p'?'draw':event.key.toLowerCase()==='e'?'select':'slice';renderAll();status(`${editTool.toUpperCase()} tool`);return;}if(command&&event.key.toLowerCase()==='c'){event.preventDefault();copySelection();return;}if(command&&event.key.toLowerCase()==='x'){event.preventDefault();cutSelection();return;}if(command&&event.key.toLowerCase()==='v'){event.preventDefault();pasteClipboard();return;}if(event.code==='Space'){event.preventDefault();engine.isPlaying()?stop():play();}else if(event.key==='Delete'||event.key==='Backspace'){event.preventDefault();deleteSelection();}else if(command&&event.key.toLowerCase()==='b'){event.preventDefault();root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();}};document.addEventListener('keydown',keydown);
+    const keydown=(event:KeyboardEvent)=>{if(!root.isConnected)return;if(event.key==='Escape'){event.preventDefault();gestures.cancel();hideContextMenu();if($<HTMLElement>('[data-role=export]').innerHTML){closeExport();return;}if(editorExpanded)setEditorExpanded(false);return;}const command=event.ctrlKey||event.metaKey;if(command&&event.key.toLowerCase()==='z'){event.preventDefault();restoreHistory(event.shiftKey?'redo':'undo');return;}if(command&&event.key.toLowerCase()==='y'){event.preventDefault();restoreHistory('redo');return;}const tag=(event.target as HTMLElement).tagName;if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;if(!command&&['p','e','c'].includes(event.key.toLowerCase())){editTool=event.key.toLowerCase()==='p'?'draw':event.key.toLowerCase()==='e'?'select':'slice';renderAll();status(`${editTool.toUpperCase()} tool`);return;}if(command&&event.key.toLowerCase()==='c'){event.preventDefault();copySelection();return;}if(command&&event.key.toLowerCase()==='x'){event.preventDefault();cutSelection();return;}if(command&&event.key.toLowerCase()==='v'){event.preventDefault();pasteClipboard();return;}if(event.code==='Space'){event.preventDefault();engine.isPlaying()?stop():play();}else if(event.key==='Delete'||event.key==='Backspace'){event.preventDefault();deleteSelection();}else if(command&&event.key.toLowerCase()==='b'){event.preventDefault();root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();}};document.addEventListener('keydown',keydown);
     $<HTMLElement>('[data-role=backdrop]').addEventListener('click',()=>{if($<HTMLElement>('[data-role=export]').innerHTML){closeExport();return;}setEditorExpanded(false);});
     Toolbox.onHandoff?.('karmo-studio',(file: File)=>{if(file.type.startsWith('audio/'))void importAudio([file]);else if(file.type==='application/json')void file.text().then(importPortable).then((next: StudioProject)=>{project=next;history.reset(project);return refreshAssets();}).then(()=>renderAll());});
     Toolbox.onDispose?.(()=>{stop();engine.dispose();if(countInTimer!==undefined)clearInterval(countInTimer);document.removeEventListener('keydown',keydown);if(saveTimer!==undefined)clearTimeout(saveTimer);if(recording)recording.stop();});
