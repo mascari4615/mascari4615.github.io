@@ -202,5 +202,6 @@
   "widgets.mesh3d.title": "3D viewer",
   "widgets.studymap.title": "Developer study map",
   "widgets.meong.title": "Meong",
-  "widgets.bon.title": "Bon"
+  "widgets.bon.title": "Bon",
+  "widgets.foundry.title": "Shelf"
 }
