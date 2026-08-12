@@ -368,6 +368,9 @@ import {
     /** 오른쪽 패널이 무엇을 보여주는가 — 고른 노드냐, 묶음 목록이냐. */
     type SideMode = 'node' | 'groups' | 'terms' | 'filter' | 'many' | 'text' | 'sna' | 'storage' | 'notes' | 'stamps' | 'edge' | 'help';
     let sideMode: SideMode = 'node';
+    /* 옆 패널의 「더 적기」가 펼쳐져 있나 — 카드마다가 아니라 **판 전체로 하나**다.
+       카드를 옮겨 다닐 때마다 다시 펼치게 하면, 자세히 적는 사람에게는 그게 더 큰 짐이다. */
+    let moreOpen = false;
     /** Shift+드래그로 한 번에 고른 노드들. */
     let selectedMany: string[] = [];
     /** 지금 고른 선. 선에도 이야기가 붙는다(격차 Z). */
@@ -1411,6 +1414,12 @@ import {
       canvas?.setSelectedNode(node.id);
       sideEl.classList.remove('hidden');
 
+      /** 접어 둔 칸에 **이미 적힌 것**이 있나 — 있으면 열어 둔다(숨은 내 글 = 잃어버린 글). */
+      const showMore = (n: GraphNode): boolean => moreOpen || nodeHasExtras(n);
+      const nodeHasExtras = (n: GraphNode): boolean => Boolean(
+        n.group || n.groups?.length || n.shape || n.attachedTo || n.rotate || n.avatar
+        || n.doc || n.docRef || spec.comments?.some((c) => c.on === n.id),
+      );
       const related = spec.edges.filter((e) => e.from === node.id || e.to === node.id);
       const labelOf = (id: string): string => spec.nodes.find((n) => n.id === id)?.label ?? id;
 
@@ -1432,16 +1441,31 @@ import {
           <label>${esc(t('karmograph.t150'))}</label>
           <input type="text" data-km="edit-note" value="${escapeAttr(node.note ?? '')}" placeholder="${esc(t('karmograph.t113'))}" />
         </div>
+        <!-- ★ 첫 카드부터 칸을 열다섯 개 펼쳐 놓으면 **한 줄 적으려던 사람이 지친다**
+             (2026-08-12 사용자 검토: 이름 하나 넣으려는데 꼬리표·칸 3개·코멘트·설명이 한꺼번에 열렸다).
+             자주 쓰는 셋(이름·종류·한마디)만 남기고 나머지는 **접어 둔다.**
+             이미 적힌 것이 하나라도 있으면 열어 둔다 — 접힌 자리에 내 글이 숨으면 그건 잃어버린 것이다. -->
         ${tagsFieldHtml(panelCtx, node)}
         ${fieldsSectionHtml(panelCtx, node)}
-        ${commentsSectionHtml(panelCtx, node.id)}
-        ${docFieldHtml(panelCtx, node)}
+        <!-- ★ **적는 칸**(꼬리표·칸·코멘트·설명)은 그대로 두고, **꾸미는 칸**만 접는다.
+             모양·얼굴·기울기·소속·붙이기는 처음 30분에 한 번도 안 쓰는데 자리는 제일 많이 먹었다
+             (2026-08-12 사용자 검토: 한 줄 적으려던 사람이 칸 열다섯을 만난다).
+             이미 꾸며 둔 카드는 펼쳐 둔다 — 접힌 자리에 내가 한 것이 숨으면 그건 잃어버린 것이다. -->
+        <!-- ★ 보기 전용(공유 링크)에서는 **코멘트가 유일하게 할 수 있는 일**이다 — 접으면 안 된다.
+             받은 사람에게 남길 말조차 「더 보기」 뒤에 있으면 공유가 일방적인 그림 던지기가 된다. -->
+        ${readOnly ? commentsSectionHtml(panelCtx, node.id) : ''}
+        <button class="btn btn-ghost" data-km="more-toggle">${
+          showMore(node) ? t('karmograph.side.less') : t('karmograph.side.more')}</button>
+        ${!showMore(node) ? '' : `
+          ${readOnly ? '' : commentsSectionHtml(panelCtx, node.id)}
+          ${docFieldHtml(panelCtx, node)}
+          ${membershipFieldHtml(panelCtx, node)}
+          ${shapeFieldHtml(panelCtx, node, shapes())}
+          ${attachFieldHtml(panelCtx, node)}
+          ${tiltFieldHtml(panelCtx, node)}
+          ${avatarFieldHtml(panelCtx, node)}
+        `}
         <div data-km="link-sections">${renderLinkSections(panelCtx, node)}</div>
-        ${membershipFieldHtml(panelCtx, node)}
-        ${shapeFieldHtml(panelCtx, node, shapes())}
-        ${attachFieldHtml(panelCtx, node)}
-        ${tiltFieldHtml(panelCtx, node)}
-        ${avatarFieldHtml(panelCtx, node)}
         <div class="km-field">
           <label>${esc(t('karmograph.t151'))}</label>
           <select data-km="link-kind">${edgeKindOptions()}</select>
@@ -1497,10 +1521,10 @@ import {
 
       bindTagsField(panelCtx, node);
       bindFieldsSection(panelCtx, node, touch);
-      bindCommentsSection(panelCtx, node.id, touch);
+      if (showMore(node) || readOnly) bindCommentsSection(panelCtx, node.id, touch);
 
       // 링크 목록만 다시 그린다 — 패널 전체를 다시 그리면 타자 치던 커서가 날아간다.
-      bindDocField(panelCtx, node, touch, () => {
+      if (showMore(node)) bindDocField(panelCtx, node, touch, () => {
         const holder = sideEl.querySelector('[data-km="link-sections"]');
         if (holder) {
           holder.innerHTML = renderLinkSections(panelCtx, node);
@@ -1508,15 +1532,20 @@ import {
         }
       });
 
+      // 「더 적기」 — 첫 카드부터 칸 열다섯을 펼치지 않는다(사용자 검토 2026-08-12).
+      const moreBtn = sideEl.querySelector('[data-km="more-toggle"]') as HTMLButtonElement | null;
+      if (moreBtn) moreBtn.onclick = () => { moreOpen = !showMore(node); renderSide(); };
+
       const noteInput = sideEl.querySelector('[data-km="edit-note"]') as HTMLInputElement;
       noteInput.oninput = () => {
         node.note = noteInput.value.trim() || undefined;
         touch(false);
       };
 
-      bindMembershipField(panelCtx, node);
-
-      bindAttachField(panelCtx, node, touch);
+      if (showMore(node)) {
+        bindMembershipField(panelCtx, node);
+        bindAttachField(panelCtx, node, touch);
+      }
 
       // 파고들기 — 한 판에 다 그리면 곧 못 읽는다. 카드 하나를 **그 안의 판**으로 열어 층을 나눈다.
       // 처음 누르면 그 이름으로 새 판을 만들고, 다음부터는 그 판으로 간다(카드에는 ⤵ 가 붙는다).
@@ -1576,9 +1605,9 @@ import {
         renderSide();
       };
 
-      bindLookFields(panelCtx, node, touch);
+      if (showMore(node)) bindLookFields(panelCtx, node, touch);
 
-      bindAvatarField(panelCtx, node, touch);
+      if (showMore(node)) bindAvatarField(panelCtx, node, touch);
 
       // 타이핑하면 목록이 좁아진다. 고르는 값은 그대로 두고 **보이는 것만** 줄인다 —
       // 걸러진 사이에 고른 값이 사라지면 「내가 뭘 골랐는지」를 잃는다.
