@@ -780,6 +780,18 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 }
 
 /* 아스키 아트 결과 */
+/* 영상 미리보기 — 글자판은 캔버스로 찍는다 (칸마다 span 이면 매 프레임 수천 개가 된다) */
+.aa-canvas {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+    margin: 0 0 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+}
+
 .aa-out {
     font-family: var(--font-mono);
     font-size: 7px;

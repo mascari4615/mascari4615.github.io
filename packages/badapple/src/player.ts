@@ -106,7 +106,10 @@ export class Player {
 		const frame: Frame = {
 			width: this.clip.width,
 			height: this.clip.height,
-			cells: this.clip.frame(index)
+			cells: this.clip.frame(index),
+			// 파일에 붙어 있을 때만 찬다. 표면 쪽은 있든 없든 같은 코드로 읽는다 (`Paint.hasLevel`).
+			levels: this.clip.levels?.(index) ?? null,
+			colors: this.clip.colors?.(index) ?? null
 		};
 		this.stage.present(frame);
 		return true;

@@ -30,6 +30,13 @@ export interface SampleOptions {
 	endSec?: number;
 	/** 한 장 뽑을 때마다. 오래 걸리는 작업이라 진행 상황을 보여 줄 수 있게. */
 	onProgress?: (done: number, total: number) => void;
+	/**
+	 * 밝기 평면(칸당 0~255)도 같이 뽑을지. 계조가 있어야 아스키 아트가 그림처럼 보인다.
+	 * 실루엣 표면은 이걸 몰라도 되므로 기본은 끔 — 파일이 커지기 때문이다.
+	 */
+	levels?: boolean;
+	/** 색 평면(칸당 R·G·B)도 같이 뽑을지. */
+	colors?: boolean;
 }
 
 /** 옮기고 도착할 때까지 기다린다. 이미 도착해 있으면 신호가 안 오므로 바로 넘어간다. */
@@ -55,6 +62,10 @@ export interface Sampled {
 	width: number;
 	height: number;
 	fps: number;
+	/** `levels: true` 로 뽑았을 때만. `encode` 에 그대로 넘기면 파일에 같이 담긴다. */
+	levels?: Uint8Array[];
+	/** `colors: true` 로 뽑았을 때만. */
+	colors?: Uint8Array[];
 }
 
 /**
@@ -81,22 +92,44 @@ export async function sampleVideo(video: HTMLVideoElement, options: SampleOption
 	const ctx = canvas.getContext('2d', { willReadFrequently: true });
 	if (!ctx) throw new Error('badapple: 그림판을 못 만들었다');
 
+	const wantLevels = options.levels === true;
+	const wantColors = options.colors === true;
+
 	const frames: Uint8Array[] = [];
+	const levels: Uint8Array[] = [];
+	const colors: Uint8Array[] = [];
 	for (let i = 0; i < total; i++) {
 		await seekTo(video, start + i / fps);
 		ctx.drawImage(video, 0, 0, width, height);
 		const data = ctx.getImageData(0, 0, width, height).data;
 
 		const cells = new Uint8Array(width * height);
+		const level = wantLevels ? new Uint8Array(width * height) : null;
+		const color = wantColors ? new Uint8Array(width * height * 3) : null;
 		for (let c = 0; c < cells.length; c++) {
 			const p = c * 4;
-			const bright = luma(data[p] ?? 0, data[p + 1] ?? 0, data[p + 2] ?? 0);
+			const red = data[p] ?? 0;
+			const green = data[p + 1] ?? 0;
+			const blue = data[p + 2] ?? 0;
+			const bright = luma(red, green, blue);
 			const on = invert ? bright < threshold : bright >= threshold;
 			cells[c] = on ? 1 : 0;
+			// 반전은 밝기에도 같이 먹인다 — 안 그러면 실루엣과 계조가 서로 반대로 그려진다.
+			if (level) level[c] = Math.max(0, Math.min(255, Math.round(invert ? 255 - bright : bright)));
+			if (color) {
+				color[c * 3] = invert ? 255 - red : red;
+				color[c * 3 + 1] = invert ? 255 - green : green;
+				color[c * 3 + 2] = invert ? 255 - blue : blue;
+			}
 		}
 		frames.push(cells);
+		if (level) levels.push(level);
+		if (color) colors.push(color);
 		options.onProgress?.(i + 1, total);
 	}
 
-	return { frames, width, height, fps };
+	const sampled: Sampled = { frames, width, height, fps };
+	if (wantLevels) sampled.levels = levels;
+	if (wantColors) sampled.colors = colors;
+	return sampled;
 }
