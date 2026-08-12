@@ -1,0 +1,61 @@
+{
+  "$comment": "project-atlas(TASK-KL-219) 8단원에서 옮겨 왔다. 원본 위젯은 폐기.",
+  "id": "kl-boundaries",
+  "minutes": 20,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "같은 화면에 들어오는 정적 JSON, 브라우저 저장소, 번역과 데스크톱 기능을 구분합니다."
+    },
+    {
+      "type": "note",
+      "text": "이 단원을 마치면: fetch와 localStorage 구분 · i18n catalog 위치 이해 · 웹판과 Tauri 기능 경계 이해"
+    },
+    {
+      "type": "h",
+      "text": "데이터의 주소"
+    },
+    {
+      "type": "p",
+      "text": "fetch는 URL의 JSON/문서를 읽고, localStorage는 현재 브라우저 origin에 작은 문자열을 남깁니다. 출처와 수명이 다릅니다."
+    },
+    {
+      "type": "h",
+      "text": "보이는 문구의 정본"
+    },
+    {
+      "type": "p",
+      "text": "화면 문구가 TS에 없으면 i18n/ko의 widget catalog나 공용 catalog를 찾습니다. key와 fallback을 구분합니다."
+    },
+    {
+      "type": "h",
+      "text": "Tauri는 별도 권한층"
+    },
+    {
+      "type": "p",
+      "text": "브라우저에서 불가능한 파일·프로세스 기능은 Tauri command를 통해 연결됩니다. 모든 위젯이 Tauri를 사용하는 것은 아닙니다."
+    },
+    {
+      "type": "code",
+      "label": "예제",
+      "text": "const response = await fetch(\"/apps/karmolab/data/example.json\");\nconst rows = await response.json();\nlocalStorage.setItem(\"my-key\", JSON.stringify(rows));\nconst title = t(\"widget.title\", undefined, \"기본 제목\");"
+    },
+    {
+      "type": "note",
+      "text": "볼 파일: data/ · i18n/ko/ · src/lib/i18n.ts · apps/karmolab-tauri/src-tauri/"
+    }
+  ],
+  "quiz": [
+    {
+      "q": "새로고침 후 현재 PC 브라우저에만 남아야 하는 작은 값은?",
+      "choices": [
+        "fetch URL",
+        "localStorage",
+        "i18n catalog",
+        "Tauri permission"
+      ],
+      "answer": 1,
+      "why": "localStorage는 같은 origin의 브라우저에 문자열을 보관합니다."
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "$comment": "project-atlas(TASK-KL-219) 8단원에서 옮겨 왔다. 원본 위젯은 폐기.",
+  "id": "kl-events",
+  "minutes": 20,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "클릭이 data 속성을 거쳐 상태를 바꾸고 화면을 다시 만드는 흐름을 실행합니다."
+    },
+    {
+      "type": "note",
+      "text": "이 단원을 마치면: event target 읽기 · dataset으로 의도 전달 · 상태와 DOM 갱신 구분 · listener 정리 필요성 이해"
+    },
+    {
+      "type": "h",
+      "text": "이벤트는 신호"
+    },
+    {
+      "type": "p",
+      "text": "버튼 클릭 자체에는 앱의 의미가 없습니다. data-action 같은 HTML 신호를 읽어 어떤 상태를 바꿀지 결정합니다."
+    },
+    {
+      "type": "h",
+      "text": "상태가 진실"
+    },
+    {
+      "type": "p",
+      "text": "화면 글자를 직접 여기저기 고치기보다 count 같은 상태를 바꾸고 render가 그 상태를 화면에 반영하게 합니다."
+    },
+    {
+      "type": "h",
+      "text": "정리도 기능"
+    },
+    {
+      "type": "p",
+      "text": "KarmoLab hot swap에서는 listener와 timer가 남을 수 있습니다. build에서 만든 장기 자원은 Toolbox.onDispose에 정리를 등록합니다."
+    },
+    {
+      "type": "code",
+      "label": "예제",
+      "text": "let count = 0;\ncontainer.addEventListener(\"click\", (event) => {\n  const button = (event.target as HTMLElement).closest(\"[data-add]\");\n  if (!button) return;\n  count += Number(button.dataset.add);\n  render();\n});"
+    },
+    {
+      "type": "note",
+      "text": "볼 파일: src/widgets/project-atlas/project-atlas.ts · src/toolbox.ts"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "콘솔에서 `document.addEventListener(\"click\", (e) => console.log(e.target.closest(\"[data-action]\")))` 를 걸고 화면을 눌러 봐라. 눌린 곳이 아니라 **의도를 담은 조상 요소**가 잡히는 것을 확인."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "클릭 후 상태는 바뀌는데 화면이 그대로라면 무엇을 확인하나요?",
+      "choices": [
+        "render 호출",
+        "CSS font",
+        "npm 버전",
+        "JSON 파일"
+      ],
+      "answer": 0,
+      "why": "상태 변경 뒤 DOM을 갱신하는 render 또는 직접 업데이트가 실행돼야 합니다."
+    }
+  ]
+}

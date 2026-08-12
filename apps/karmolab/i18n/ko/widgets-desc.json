@@ -18,7 +18,6 @@
   "widgets-desc.quest-log.desc": "memo TASK 정본을 읽어 프로젝트 진행도를 보여주는 개발용 작업 지도",
   "widgets-desc.wm.desc": "만들고 있는 게임 — 소개 · 하루 체험 · 세계 도감 · 이야기 · 소식 · 만드는 중",
   "widgets-desc.docs.desc": "KarmoLab 소개·로드맵·가이드 + 캐릭터·시스템 위키 — 사이드바 그룹 내비게이션, 본문 + 목차",
-  "widgets-desc.project-atlas.desc": "KarmoLab·WM·memo 구조를 C4식 지도로 보고, Web 초심자 눈높이로 수정 지점을 찾습니다",
   "widgets-desc.randomgen.desc": "창작용 키워드·주제를 랜덤으로 뽑습니다",
   "widgets-desc.passgen.desc": "안전한 비밀번호를 만들고, 쓰던 것이 얼마나 버티는지 확인합니다. 아무것도 전송하지 않습니다",
   "widgets-desc.devtool.desc": "JSON 포맷·JWT 디코드·정규식 테스트·해시·UUID·크론·URL·암호화를 한 곳에서",
@@ -202,5 +201,6 @@
   "widgets-desc.bluemarble.desc": "지금 이 순간의 지구 — 낮과 밤, 도시 불빛, 방금 난 지진, 머리 위의 ISS",
   "widgets-desc.garden.desc": "오늘의 규칙 하나로 스스로 자라는 격자 — 손대지 않고 지켜봅니다",
   "widgets-desc.collection.desc": "써 본 도구에 도장이 찍힌다 — 몇 칸이나 채웠나",
-  "widgets-desc.karmograph.desc": "관계도·세계관·카드 전개를 그리는 캔버스 — 어휘 팩을 갈아끼우면 쓰임새가 바뀐다"
+  "widgets-desc.karmograph.desc": "관계도·세계관·카드 전개를 그리는 캔버스 — 어휘 팩을 갈아끼우면 쓰임새가 바뀐다",
+  "widgets-desc.studymap.desc": "웹 · Git · 컴퓨터 과학을 순서대로 — 왜 배우는지와 어디까지 하면 넘어가도 되는지까지 붙은 학습 지도 (진도 저장)"
 }

@@ -317,7 +317,6 @@
     "src/core/livecount.ts": 19,
     "src/widgets/tools/livecount.ts": 4,
     "src/core/mesh3d.ts": 12,
-    "src/widgets/tools/mesh3d.ts": 3,
-    "src/widgets/project-atlas/project-atlas.ts": 185
+    "src/widgets/tools/mesh3d.ts": 3
   }
 }

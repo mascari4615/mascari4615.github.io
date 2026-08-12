@@ -1,0 +1,74 @@
+{
+  "id": "kl-trouble",
+  "minutes": 8,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "무엇이 잘못됐는지 모를 때, **증상 → 처음 볼 곳 → 다음 행동** 순서로 좁힌다. 아래는 KarmoLab 에서 실제로 자주 만나는 것들이다."
+    },
+    {
+      "type": "h",
+      "text": "node/npm 없음"
+    },
+    {
+      "type": "p",
+      "text": "Node.js 설치 후 VS Code와 터미널을 모두 다시 연다."
+    },
+    {
+      "type": "h",
+      "text": "package.json 없음"
+    },
+    {
+      "type": "p",
+      "text": "현재 경로가 apps/karmolab인지 확인한다."
+    },
+    {
+      "type": "h",
+      "text": "8813 사용 중"
+    },
+    {
+      "type": "p",
+      "text": "기존 개발 서버가 켜졌는지 URL을 먼저 연다."
+    },
+    {
+      "type": "h",
+      "text": "수정 미반영"
+    },
+    {
+      "type": "p",
+      "text": "src 확인 → 저장 → 개발 터미널 첫 오류 → 위젯 재진입 → 새로고침."
+    },
+    {
+      "type": "h",
+      "text": "TS 오류가 김"
+    },
+    {
+      "type": "p",
+      "text": "가장 위 error의 파일·줄·칸부터 읽는다."
+    },
+    {
+      "type": "h",
+      "text": "버튼 무반응"
+    },
+    {
+      "type": "p",
+      "text": "data-* → listener selector → 상태 변경 → render 순서로 본다."
+    },
+    {
+      "type": "h",
+      "text": "목록 비어 있음"
+    },
+    {
+      "type": "p",
+      "text": "Network status/response → JSON shape → empty/error UI 순서."
+    },
+    {
+      "type": "h",
+      "text": "안전한 복구"
+    },
+    {
+      "type": "p",
+      "text": "파일 전체 reset 대신 내가 바꾼 한 줄만 직접 원복한다."
+    }
+  ]
+}
