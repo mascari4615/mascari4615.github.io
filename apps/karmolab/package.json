@@ -233,7 +233,9 @@
     "smoke:datashell": "node scripts/smoke-data-shell.mjs",
     "test:sniff": "node scripts/test-sniff.mjs",
     "smoke:calcshell": "node scripts/smoke-calc-shell.mjs",
-    "test:calc": "node scripts/test-calc.mjs"
+    "test:calc": "node scripts/test-calc.mjs",
+    "smoke:timeshell": "node scripts/smoke-time-shell.mjs",
+    "test:when": "node scripts/test-when.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
