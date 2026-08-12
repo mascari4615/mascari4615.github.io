@@ -128,6 +128,10 @@
     "net": {
       "title": "Networking",
       "lead": "Half of \"works on my machine\" is decided here — follow the wire and the cause shows up"
+    },
+    "qa": {
+      "title": "Testing & quality",
+      "lead": "Tests exist to keep you fast — code you can change without fear is fast code"
     }
   },
   "stages": {
@@ -214,7 +218,10 @@
     "video-c": "Reaching everyone",
     "net-a": "How a packet travels",
     "net-b": "Names and safety",
-    "net-c": "Opening what is blocked"
+    "net-c": "Opening what is blocked",
+    "qa-a": "Why bother",
+    "qa-b": "Doing it well",
+    "qa-c": "All the way to the screen"
   },
   "nodes": {
     "web-html": {
@@ -2132,6 +2139,70 @@
       "check": "You break one slow request down hop by hop",
       "links": [
         "curl manual"
+      ]
+    },
+    "qa-why": {
+      "title": "Tests are a speed tool",
+      "why": "This is where \"no time to write tests\" flips over — without them you verify by hand every time.",
+      "check": "You name one moment where the lack of tests slowed you down",
+      "links": [
+        "Martin Fowler — Test Pyramid"
+      ]
+    },
+    "qa-pyramid": {
+      "title": "Unit, integration, end to end",
+      "why": "All end to end is slow and brittle; all unit misses the failures that actually happen.",
+      "check": "You sort your tests into the three kinds and count the ratio",
+      "links": [
+        "Google — test sizes"
+      ]
+    },
+    "qa-first": {
+      "title": "Write the failing test first",
+      "why": "It is the only proof that a test catches what you think; green that was never red is not trustworthy.",
+      "check": "You reproduce the bug in a test before fixing it",
+      "links": [
+        "Kent Beck — TDD"
+      ]
+    },
+    "qa-seam": {
+      "title": "Where to cut — seams",
+      "why": "Time, network and randomness baked into code make it untestable, so you plan the cut in advance.",
+      "check": "You inject the clock and the random source from outside",
+      "links": [
+        "Martin Fowler — test double"
+      ]
+    },
+    "qa-data": {
+      "title": "Test data and isolation",
+      "why": "Shared state between tests makes results depend on order, and that hunt costs days.",
+      "check": "Your suite is still green in random order",
+      "links": [
+        "Vitest — config and isolation"
+      ]
+    },
+    "qa-flaky": {
+      "title": "Handling flaky tests",
+      "why": "A sometimes-red test teaches the whole team to ignore the gate, and then red is the default.",
+      "check": "You measure a flake rate and find the cause",
+      "links": [
+        "Google — flaky tests"
+      ]
+    },
+    "qa-e2e": {
+      "title": "End to end and visual regression",
+      "why": "Every unit test can be green while the app does not even boot, so something must really run it.",
+      "check": "One critical flow passes under browser automation",
+      "links": [
+        "Playwright docs"
+      ]
+    },
+    "qa-gate": {
+      "title": "Gates and the coverage trap",
+      "why": "90% coverage is not quality; choosing what to block is the actual design work.",
+      "check": "You add one pre-commit gate and measure how long it survives",
+      "links": [
+        "Martin Fowler — continuous integration"
       ]
     }
   }
