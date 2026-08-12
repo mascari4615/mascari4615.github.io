@@ -46,6 +46,37 @@ const DIGIT = /[0-9]/;
  */
 export const chars = (text: string): string[] => [...text];
 
+/* `Intl.Segmenter` 는 이 판의 타입 목록에 아직 없다(브라우저·Node 에는 있다) — 필요한 만큼만 적는다. */
+interface GraphemeSegmenter {
+  segment: (input: string) => Iterable<{ segment: string }>;
+}
+let segmenter: GraphemeSegmenter | null | undefined;
+
+/**
+ * **사람이 세는 글자 수** (TASK-KL-276).
+ *
+ * `[...text]` 는 코드포인트라 가족 이모지 「👨‍👩‍👧」 를 **5**, 국기를 2, NFD 로 풀린 `é` 를 2 로 센다.
+ * 이 도구를 보는 이유가 트위터 글자수·이력서 자수 제한이라 **사람 눈과 다르면 쓸모가 없다**.
+ * (이 파일의 설명문은 이미 「사람이 보는 대로 센다」고 적어 두고 있었다 — 구현만 안 그랬다.)
+ *
+ * 못 쓰는 환경이면 옛 방식으로 내려간다 — 수가 조금 달라져도 멈추지는 않는다.
+ */
+export const graphemeCount = (text: string): number => {
+  if (!text) return 0;
+  if (segmenter === undefined) {
+    try {
+      const Ctor = (Intl as unknown as { Segmenter?: new (l?: string, o?: { granularity: string }) => GraphemeSegmenter }).Segmenter;
+      segmenter = Ctor ? new Ctor(undefined, { granularity: 'grapheme' }) : null;
+    } catch {
+      segmenter = null;
+    }
+  }
+  if (!segmenter) return [...text].length;
+  let n = 0;
+  for (const _ of segmenter.segment(text)) n += 1;
+  return n;
+};
+
 export function byteLength(s: string, encoding: 'utf8' | 'euckr' = 'utf8'): number {
   if (encoding === 'utf8') return new TextEncoder().encode(s).length;
   /* EUC-KR 근사: 한글·한자·전각 = 2바이트, ASCII = 1바이트.
@@ -111,8 +142,10 @@ export function count(text: string): Counts {
     else other++;
   }
   return {
-    withSpace: cs.length,
-    withoutSpace: chars(text.replace(/\s/g, '')).length,
+    /* 「글자 수」는 사람이 세는 덩이(자소) 수다. 아래 `hangul`·`latin` 갈래별 수는 **문자 하나하나**를
+     * 세므로 서로 안 맞을 수 있는데, 그게 맞다 — 묻는 것이 다르다. */
+    withSpace: graphemeCount(text),
+    withoutSpace: graphemeCount(text.replace(/\s/g, '')),
     words: text.trim() === '' ? 0 : text.trim().split(/\s+/).length,
     sentences: sentenceCount(text),
     lines: text === '' ? 0 : text.split('\n').length,
