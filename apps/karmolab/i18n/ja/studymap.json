@@ -42,5 +42,10 @@
   "studymap.demo.code": "サンプルコード",
   "studymap.demo.result": "実行結果",
   "studymap.lesson.prev": "前へ",
-  "studymap.lesson.next": "次へ"
+  "studymap.lesson.next": "次へ",
+  "studymap.resume": "続きから",
+  "studymap.view.tree": "ツリー",
+  "studymap.view.list": "一覧",
+  "studymap.tree.tracks": "分野マップ — 押して中へ",
+  "studymap.tree.up": "← 分野マップ"
 }

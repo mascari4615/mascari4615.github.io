@@ -42,5 +42,10 @@
   "studymap.demo.code": "예제 코드",
   "studymap.demo.result": "실행 결과",
   "studymap.lesson.prev": "이전",
-  "studymap.lesson.next": "다음"
+  "studymap.lesson.next": "다음",
+  "studymap.resume": "이어서",
+  "studymap.view.tree": "나무",
+  "studymap.view.list": "목록",
+  "studymap.tree.tracks": "갈래 지도 — 눌러서 안으로",
+  "studymap.tree.up": "← 갈래 지도"
 }

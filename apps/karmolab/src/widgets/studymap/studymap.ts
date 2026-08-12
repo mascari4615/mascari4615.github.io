@@ -11,6 +11,7 @@
  * 「체크하려고 가입」이 지도를 안 열게 만드는 가장 흔한 이유라서.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { layoutTree, treeSvg, type TreeNode } from './tree';
 import {
   collectHeadings,
   tocHtml,
@@ -228,6 +229,30 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
   .sm-lesson { min-width: 0; }
   .doc-toc { position: sticky; top: 12px; margin: 44px 0 0; max-height: calc(100vh - 80px); overflow-y: auto; }
 }
+/* ── 나무 눈 ── 관계를 보는 화면. 선은 「먼저 이것」을 뜻한다. */
+.sm-resume { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; width: 100%; text-align: left; margin-bottom: 16px; padding: 14px 18px; border: 1px solid var(--accent); border-radius: var(--radius-xl); background: var(--accent-subtle); color: var(--text-primary); font: inherit; cursor: pointer; }
+.sm-resume:hover { background: var(--accent-dim); }
+.sm-resume-tag { font-size: 10px; letter-spacing: .06em; color: var(--accent); }
+.sm-resume-title { font-size: var(--font-size-sm); font-weight: 600; }
+.sm-resume-track { font-size: 11px; color: var(--text-tertiary); margin-left: auto; }
+.sm-tree-head { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--text-tertiary); margin-bottom: 8px; }
+.sm-tree { overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: 6px; }
+.tt-svg { display: block; max-width: none; }
+.tt-edge { fill: none; stroke: var(--border); stroke-width: 1.5; }
+.tt-edge.is-open { stroke: var(--secondary); opacity: .55; }
+.tt-node { cursor: pointer; }
+.tt-ring-bg { fill: var(--bg-secondary); stroke: var(--border); stroke-width: 3; }
+.tt-ring { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
+.tt-node.is-done .tt-ring { stroke: var(--success); }
+.tt-node.is-done .tt-ring-bg { stroke: var(--success-subtle); }
+.tt-node:hover .tt-ring-bg { stroke: var(--accent); }
+.tt-node.is-next .tt-ring-bg, .tt-node.is-current .tt-ring-bg { fill: var(--accent-subtle); stroke: var(--accent); }
+.tt-emoji { font-size: 17px; fill: var(--text-primary); }
+.tt-label { font-size: 12px; fill: var(--text-secondary); }
+.tt-node.is-done .tt-label { fill: var(--text-tertiary); }
+.tt-node:hover .tt-label { fill: var(--text-primary); }
+.tt-node:focus-visible .tt-ring-bg { stroke: var(--accent); stroke-width: 4; }
+
 .sm-crumb { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-tertiary); margin-bottom: 14px; }
 .sm-crumb-btn { background: none; border: 0; padding: 0; font: inherit; font-size: 11px; color: var(--text-secondary); cursor: pointer; }
 .sm-crumb-btn:hover { color: var(--accent); text-decoration: underline; }
@@ -344,6 +369,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
           </div>
         </div>
         <div class="sm-findbar">
+          <button type="button" class="sm-find-btn" data-sm="viewbtn">🌳 ${esc(t('studymap.view.tree', undefined, '나무'))}</button>
           <button type="button" class="sm-find-btn" data-sm="findbtn" aria-expanded="false">🔎 ${esc(t('studymap.find', undefined, '찾기'))}</button>
           <input class="sm-search" type="search" name="studymap-search" data-sm="search" hidden
                  placeholder="${esc(t('studymap.search', undefined, '주제 찾기 — 예: rebase, 인덱스, 캐시'))}"
@@ -380,6 +406,18 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       tr.stages.flatMap((st) => st.nodes.map((n) => ({ id: n.id, title: n.title, trackId: tr.id, stageTitle: st.title }))),
     );
     const orderAt = new Map(flatOrder.map((x, i) => [x.id, i]));
+
+    /** 지도를 어떤 눈으로 보나 — 목록(읽기)과 나무(관계). 고른 것은 다음에도 기억한다. */
+    const VIEW_KEY = 'karmolab-studymap-view';
+    /** 나무 눈의 층 — 갈래 성좌인지, 한 갈래 안 칸 트리인지. */
+    let zoom: 'tracks' | 'nodes' = 'tracks';
+    let view: 'list' | 'tree' = (() => {
+      try {
+        return localStorage.getItem(VIEW_KEY) === 'list' ? 'list' : 'tree';
+      } catch {
+        return 'tree';
+      }
+    })();
 
     /** 마지막으로 연 강의 — 「이어서」의 근거. 화면을 닫아도 남는다. */
     const LAST_KEY = 'karmolab-studymap-last';
@@ -436,6 +474,55 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
           </button>${inner}`;
         })
         .join('');
+    }
+
+    /**
+     * 갈래끼리의 선수 관계는 **칸의 선수 관계에서 저절로 나온다** —
+     * A 갈래의 칸을 먼저 해야 하는 칸이 B 갈래에 있으면 A → B.
+     * 손으로 적은 갈래 순서표를 따로 두면 칸을 고칠 때마다 어긋난다.
+     */
+    function trackTreeNodes(): TreeNode[] {
+      const parents = new Map<string, Set<string>>();
+      for (const tr of tracks) parents.set(tr.id, new Set());
+      for (const tr of tracks) {
+        for (const n of nodesOf(tr)) {
+          for (const pid of n.prereq || []) {
+            const from = whereIs.get(pid)?.trackId;
+            if (from && from !== tr.id) (parents.get(tr.id) as Set<string>).add(from);
+          }
+        }
+      }
+      return tracks.map((tr) => {
+        const all = nodesOf(tr);
+        const d = all.filter((n) => done.has(n.id)).length;
+        return {
+          id: tr.id,
+          title: tr.title,
+          ratio: all.length ? d / all.length : 0,
+          prereq: [...(parents.get(tr.id) as Set<string>)],
+          tag: tr.emoji,
+        };
+      });
+    }
+
+    /** 한 갈래 안 칸 트리 — 선수 관계가 없는 칸은 같은 단계의 앞 칸을 부모로 삼아 줄을 세운다. */
+    function nodeTreeNodes(tr: SmTrack): TreeNode[] {
+      const ids = new Set(nodesOf(tr).map((n) => n.id));
+      const out: TreeNode[] = [];
+      for (const st of tr.stages) {
+        st.nodes.forEach((n, i) => {
+          const inside = (n.prereq || []).filter((p) => ids.has(p));
+          const chain = i > 0 && inside.length === 0 ? [st.nodes[i - 1].id] : inside;
+          out.push({
+            id: n.id,
+            title: n.title,
+            ratio: done.has(n.id) ? 1 : 0,
+            prereq: chain,
+            tag: done.has(n.id) ? '✓' : '',
+          });
+        });
+      }
+      return out;
     }
 
     /** 칸 한 장. 찾기 결과에서도 같은 카드를 쓴다 — 두 벌로 그리면 곧 어긋난다. */
@@ -739,6 +826,46 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         return;
       }
 
+      if (view === 'tree') {
+        /* 나무 눈 — 1층은 갈래 성좌, 갈래를 고르면 2층 칸 트리. 「이어서」가 맨 위에 온다. */
+        const lastId = readLast();
+        const lastWhere = lastId ? whereIs.get(lastId) : undefined;
+        const resume = lastWhere
+          ? `<button type="button" class="sm-resume" data-open="${esc(lastId)}">
+              <span class="sm-resume-tag">${esc(t('studymap.resume', undefined, '이어서'))}</span>
+              <span class="sm-resume-title">${esc(lastWhere.node.title)}</span>
+              <span class="sm-resume-track">${esc(trackOf(lastWhere.trackId).title)}</span>
+            </button>`
+          : next
+            ? `<button type="button" class="sm-resume" data-open="${esc(next.id)}">
+              <span class="sm-resume-tag">${esc(t('studymap.next', undefined, '다음'))}</span>
+              <span class="sm-resume-title">${esc(next.title)}</span>
+              <span class="sm-resume-track">${esc(tr.title)}</span>
+            </button>`
+            : '';
+
+        const layer = zoom === 'tracks' ? layoutTree(trackTreeNodes()) : layoutTree(nodeTreeNodes(tr), 150, 104);
+        const head =
+          zoom === 'tracks'
+            ? `<div class="sm-tree-head">${esc(t('studymap.tree.tracks', undefined, '갈래 지도 — 눌러서 안으로'))}</div>`
+            : `<div class="sm-tree-head"><button type="button" class="sm-crumb-btn" data-zoom="tracks">${esc(t('studymap.tree.up', undefined, '← 갈래 지도'))}</button><span>${esc(tr.emoji)} ${esc(tr.title)}</span></div>`;
+
+        elStages.innerHTML = `${resume}${head}<div class="sm-tree">${treeSvg(layer, {
+          currentId: zoom === 'tracks' ? current : '',
+          nextId: zoom === 'tracks' ? '' : next?.id || '',
+        })}</div>`;
+        paintTracks();
+        /* 지도가 화면보다 넓다 — 열자마자 「지금 자리」가 가운데 오게 굴려 둔다. */
+        const box = elStages.querySelector('.sm-tree');
+        const here = elStages.querySelector('.tt-node.is-next, .tt-node.is-current');
+        if (box instanceof HTMLElement && here instanceof SVGGElement) {
+          const bb = here.getBoundingClientRect();
+          const bx = box.getBoundingClientRect();
+          box.scrollLeft += bb.left - bx.left - bx.width / 2 + bb.width / 2;
+        }
+        return;
+      }
+
       elStages.innerHTML = tr.stages
         .map((st) => {
           const clear = st.nodes.every((n) => done.has(n.id));
@@ -791,6 +918,31 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
     elStages.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
+
+      /* 나무 눈 — 갈래를 누르면 그 갈래 안으로, 칸을 누르면 강의로. */
+      const up = target.closest('[data-zoom]') as HTMLElement | null;
+      if (up) {
+        zoom = 'tracks';
+        paint();
+        return;
+      }
+      const dot = target.closest('[data-node]') as HTMLElement | null;
+      if (dot) {
+        const id = dot.dataset.node || '';
+        if (zoom === 'tracks') {
+          current = id;
+          zoom = 'nodes';
+          try {
+            localStorage.setItem(TRACK_KEY, current);
+          } catch {
+            /* 저장 못 해도 이번 화면은 바뀐다 */
+          }
+          paint();
+        } else {
+          void openLesson(id);
+        }
+        return;
+      }
       const open = target.closest('[data-open]') as HTMLElement | null;
       if (open) {
         void openLesson(open.dataset.open || '');
@@ -837,6 +989,24 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         });
       }
     });
+
+    /* 목록 눈과 나무 눈을 오간다 — 읽을 때는 목록, 길을 볼 때는 나무. */
+    const elViewBtn = q<HTMLButtonElement>('viewbtn');
+    function paintViewBtn(): void {
+      elViewBtn.textContent = view === 'tree' ? `📋 ${t('studymap.view.list', undefined, '목록')}` : `🌳 ${t('studymap.view.tree', undefined, '나무')}`;
+    }
+    elViewBtn.addEventListener('click', () => {
+      view = view === 'tree' ? 'list' : 'tree';
+      zoom = 'tracks';
+      try {
+        localStorage.setItem(VIEW_KEY, view);
+      } catch {
+        /* 기억 못 해도 이번 화면은 바뀐다 */
+      }
+      paintViewBtn();
+      paint();
+    });
+    paintViewBtn();
 
     const elFindBtn = q<HTMLButtonElement>('findbtn');
     /* 접기·펴기. 펴면 바로 커서가 들어가고, 비운 채 접으면 지도로 돌아온다. */
