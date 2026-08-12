@@ -4722,6 +4722,143 @@
           ]
         }
       ]
+    },
+    {
+      "id": "api",
+      "title": "API 설계",
+      "emoji": "🔌",
+      "lead": "남이 쓰기 시작하면 못 고친다 — 그래서 처음 한 시간이 오래 간다",
+      "stages": [
+        {
+          "id": "api-a",
+          "title": "계약을 정한다",
+          "nodes": [
+            {
+              "id": "api-resource",
+              "title": "무엇을 주고받을 것인가",
+              "why": "URL 을 예쁘게 짓는 게 설계가 아니다. 자원 경계를 잘못 자르면 화면마다 요청이 늘어난다.",
+              "check": "화면 하나에 필요한 호출 수를 세고 줄인다",
+              "links": [
+                {
+                  "label": "MDN — HTTP 메서드",
+                  "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods"
+                }
+              ],
+              "prereq": [
+                "web-http"
+              ]
+            },
+            {
+              "id": "api-error",
+              "title": "오류를 오류답게",
+              "why": "실패 응답이 200 에 메시지 문자열이면, 쓰는 쪽은 매번 추측한다. 오류 형식도 계약이다.",
+              "check": "상태 코드와 기계가 읽을 오류 코드를 함께 낸다",
+              "links": [
+                {
+                  "label": "RFC 9457 — Problem Details",
+                  "url": "https://www.rfc-editor.org/rfc/rfc9457.html"
+                }
+              ]
+            },
+            {
+              "id": "api-page",
+              "title": "목록 — 페이지 나누기와 정렬",
+              "why": "「전부 주세요」는 데이터가 늘면 반드시 죽는다. 그리고 페이지 방식은 나중에 못 바꾼다.",
+              "check": "커서 방식으로 목록을 나눠 준다",
+              "links": [
+                {
+                  "label": "GraphQL — 페이지네이션",
+                  "url": "https://graphql.org/learn/pagination/"
+                }
+              ],
+              "prereq": [
+                "data-sql"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "api-b",
+          "title": "험한 세상에서",
+          "nodes": [
+            {
+              "id": "api-idempotent",
+              "title": "재시도해도 안전하게 — 멱등",
+              "why": "네트워크는 끊긴다. 「결제가 두 번 됐어요」는 대부분 여기서 생긴다.",
+              "check": "멱등 키로 중복 요청을 한 번만 처리한다",
+              "links": [
+                {
+                  "label": "Stripe — 멱등 요청",
+                  "url": "https://docs.stripe.com/api/idempotent_requests"
+                }
+              ],
+              "prereq": [
+                "sync-reconnect"
+              ]
+            },
+            {
+              "id": "api-authz",
+              "title": "누구인가 · 무엇을 할 수 있나",
+              "why": "인증은 됐는데 권한 검사를 빼먹으면 남의 데이터가 그대로 열린다. 가장 흔한 실사고.",
+              "check": "자원마다 소유자 검사를 강제하는 구조를 만든다",
+              "links": [
+                {
+                  "label": "OWASP — 접근 통제",
+                  "url": "https://owasp.org/Top10/A01_2021-Broken_Access_Control/"
+                }
+              ],
+              "prereq": [
+                "sec-authn"
+              ]
+            },
+            {
+              "id": "api-limit",
+              "title": "속도 제한과 몫 나누기",
+              "why": "한 사용자의 폭주가 전체를 죽인다. 제한은 방어이자 사용자에게 주는 예측 가능성이다.",
+              "check": "429 와 남은 몫 헤더를 정확히 돌려준다",
+              "links": [
+                {
+                  "label": "MDN — 429 Too Many Requests",
+                  "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "api-c",
+          "title": "오래 가게",
+          "nodes": [
+            {
+              "id": "api-version",
+              "title": "바꾸기 · 버전 · 폐기",
+              "why": "남이 쓰는 순간 자유가 끝난다. 깨지 않고 바꾸는 규칙을 미리 정해야 한다.",
+              "check": "호환을 깨는 변경과 아닌 것을 구분해 계획한다",
+              "links": [
+                {
+                  "label": "RFC 8594 — Sunset 헤더",
+                  "url": "https://www.rfc-editor.org/rfc/rfc8594.html"
+                }
+              ]
+            },
+            {
+              "id": "api-doc",
+              "title": "스키마가 문서고 테스트다",
+              "why": "손으로 쓴 문서는 반드시 낡는다. 스키마에서 문서·클라이언트·검증이 자동으로 나온다.",
+              "check": "스키마 파일 하나로 문서와 타입을 생성한다",
+              "links": [
+                {
+                  "label": "OpenAPI 명세",
+                  "url": "https://swagger.io/specification/"
+                }
+              ],
+              "prereq": [
+                "qa-gate"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
