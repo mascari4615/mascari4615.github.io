@@ -210,9 +210,13 @@ export function deferShellExtras(html) {
     `<script defer fetchpriority="low" src="/apps/karmolab/js/${file}"></script>`;
   /* `home-page.js` 는 미루는 게 아니라 **아예 안 싣는다** — 이 화면들에서는 한 번도 안 불린다
      (`init()` 이 `staticBody` 면 건너뛴다). 미룰 것과 달리 대신 세울 자리도 필요 없다. */
-  /* `widgets-lazy-meta.js` — 첫 화면은 옆줄을 바로 그리느라 전체 메타를 셸에서 받는다.
-     도구 한 장짜리 화면은 그 목록으로 하는 일이 없다(찾기창을 열 때 아래 shim 이 lite 를 부른다). */
-  for (const f of ['home-page.js', 'palette.js', 'widgets-lazy-meta.js', 'account.js']) {
+  /* `widgets-index.js` — 첫 화면은 이 가벼운 목록만 셸에서 받고, 아이콘·설명은 그린 뒤에
+     `widgets-meta-rest.js` 로 따라온다(KL-220). 도구 한 장짜리 화면은 그 목록으로 하는 일이
+     없다 — 찾기창을 열 때 아래 shim 이 그때 부른다.
+     ⚠ 여기 이름은 **셸에 실제로 있는 태그**여야 한다. 한동안 `widgets-lazy-meta.js` 라고 적혀
+     있었는데 셸이 그 사이 `widgets-index.js` 로 바뀌어, 도구 페이지 129장이 통째로 안 찍히고
+     배포가 섰다(2026-08-12). 못 찾으면 조용히 넘기지 말고 여기서 던지는 이유가 그것이다. */
+  for (const f of ['home-page.js', 'palette.js', 'widgets-index.js', 'account.js']) {
     if (!html.includes(tag(f))) throw new Error(`셸에서 ${f} 자리를 못 찾음 — index.html 확인`);
     html = html.replace(tag(f) + '\n', '').replace(tag(f), '');
   }
