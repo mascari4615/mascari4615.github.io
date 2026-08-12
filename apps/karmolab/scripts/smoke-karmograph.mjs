@@ -1520,6 +1520,30 @@ await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널
     throw new Error(`시트가 올라오면 그림이 ${Math.round(seen)}px 밖에 안 남는다(몸통 ${Math.round(bodyBox.height)}px)`);
   }
 
+  // ★ 고른 카드가 시트에 **가려지면 안 된다.** 폰에서는 카드를 고르면 시트가 저절로 올라오는데,
+  //    아래쪽 카드를 고르면 그 카드가 통째로 덮였다(실측 2026-08-12). 방금 고른 것이 안 보이면
+  //    고친 결과도 안 보인다 — 가려진 만큼 판이 위로 밀려야 한다.
+  if (await m.evaluate(() => document.querySelector('.km-root')?.classList.contains('is-sheet-up') === true)) {
+    await m.locator('[data-km="sheet-grip"]').click();   // 일단 내려놓고
+    await m.waitForTimeout(300);
+  }
+  const low = await m.locator('.km-canvas').boundingBox();
+  await m.touchscreen.tap(low.x + low.width * 0.5, low.y + low.height * 0.78);
+  await m.touchscreen.tap(low.x + low.width * 0.5, low.y + low.height * 0.78);
+  await m.waitForTimeout(900);
+  const cover = await m.evaluate(() => {
+    const n = document.querySelector('.ck-node.is-selected') || document.querySelector('.ck-node');
+    const s = document.querySelector('.km-side');
+    if (!n) return null;
+    const nr = n.getBoundingClientRect(); const sr = s.getBoundingClientRect();
+    return { bottom: Math.round(nr.bottom), sheetTop: Math.round(sr.top) };
+  });
+  if (cover && cover.bottom > cover.sheetTop + 4) {
+    throw new Error(`고른 카드가 시트에 가려졌다 — 카드 아래끝 ${cover.bottom} · 시트 위끝 ${cover.sheetTop}`);
+  }
+  await m.locator('[data-km="sheet-grip"]').click();
+  await m.waitForTimeout(300);
+
   // 빈 곳을 누르면 다시 내려간다 — 손잡이를 찾아 누르게 하면 한 동작이 두 동작이 된다.
   const nowBox = await m.locator('.km-canvas').boundingBox();
   await m.touchscreen.tap(nowBox.x + nowBox.width * 0.12, nowBox.y + nowBox.height * 0.12);

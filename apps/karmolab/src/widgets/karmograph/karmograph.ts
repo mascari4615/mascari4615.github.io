@@ -552,7 +552,37 @@ import {
       sideEl.appendChild(grip);
     }
     function raiseSheet(): void {
-      if (window.matchMedia('(max-width: 720px)').matches) root.classList.add('is-sheet-up');
+      if (!window.matchMedia('(max-width: 720px)').matches) return;
+      root.classList.add('is-sheet-up');
+      keepPickedCardVisible();
+    }
+
+    /**
+     * 폰에서 카드를 고르면 아래 시트가 저절로 올라온다 — 그런데 **고른 그 카드가 시트에
+     * 가려지는 일**이 생긴다(실측 2026-08-12: 아래쪽에 만든 카드가 통째로 덮였다).
+     * 방금 고른 것이 안 보이면 고친 결과도 안 보인다. 그래서 가려진 만큼 판을 위로 민다.
+     *
+     * 배율은 안 건드린다 — 지금 보이는 범위를 그대로 아래로 옮겨 담으면 **밀기**가 된다
+     * (`fitToWorldRect` 는 준 사각형을 화면에 맞추므로, 크기가 같으면 배율도 그대로다).
+     */
+    function keepPickedCardVisible(): void {
+      if (!canvas || !selectedId) return;
+      requestAnimationFrame(() => {
+        const rect = canvas?.nodeScreenRect(selectedId ?? '');
+        const sheet = sideEl.getBoundingClientRect();
+        if (!rect || sheet.height <= 0) return;
+        /* ★ 시트는 0.18초에 걸쳐 **미끄러져 올라온다**. 그 중간에 자리를 재면 아직 아래에
+           있어서 「안 가렸다」로 나온다(실측 2026-08-12 — 그래서 한 번도 안 밀렸다).
+           그러니 다 올라왔을 때의 자리를 **셈으로** 구한다: 판 아래끝 − 시트 높이. */
+        const sheetTop = canvasEl.getBoundingClientRect().bottom - sheet.height;
+        const margin = 12;
+        const over = rect.y + rect.h + margin - sheetTop;
+        if (over <= 0) return;
+        const scale = canvas?.getScale() ?? 1;
+        const view = canvas?.viewRectWorld();
+        if (!view || scale <= 0) return;
+        canvas?.fitToWorldRect({ x: view.x, y: view.y + over / scale, w: view.w, h: view.h }, 0, true);
+      });
     }
     const fileEl = q<HTMLInputElement>('file');
     const imgEl = q<HTMLInputElement>('img');
