@@ -1502,6 +1502,57 @@ await step('여럿 골라 나란히 놓기 — 왼쪽 맞춤이 실제로 한 �
   await ctx.close();
 });
 
+await step('큰 판에서도 끄는 손이 무겁지 않다 (300장)', async () => {
+  /* ★ **페이지 안에서** 잰다. 예전에 Playwright 로 마우스를 움직여 재 봤더니 600장에서
+     42ms/걸음이 나왔는데, 그 대부분이 브라우저 왕복이었다 — 같은 판을 안에서 재면 0.84ms 다
+     (실측 2026-08-12). 재는 자리가 틀리면 없는 병목을 쫓는다.
+     여기서 지키려는 것: 카드가 늘 때 끌기 비용이 **터지지 않는다**(O(n²) 방지). */
+  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.evaluate(() => {
+    const N = 300;
+    const nodes = Array.from({ length: N }, (_, i) => ({
+      id: 'p' + i, label: '인물' + i, kind: 'character',
+      x: 80 + (i % 20) * 230, y: 80 + Math.floor(i / 20) * 140, w: 180, h: 44,
+    }));
+    const edges = [];
+    for (let i = 1; i < N; i += 1) edges.push({ id: 'pe' + i, from: 'p' + (i % 23), to: 'p' + i, kind: 'relates' });
+    const spec = { version: 1, _meta: {}, groups: [], nodes, edges, ephemeral_anchors: [], _edge_kinds: {} };
+    const idx = JSON.parse(localStorage.getItem('karmograph.index') || 'null');
+    const id = idx?.activeId || 'perf';
+    localStorage.setItem('karmograph.map.' + id, JSON.stringify(spec));
+    if (!idx) localStorage.setItem('karmograph.index', JSON.stringify({ activeId: id, maps: [{ id, name: '큰 판' }] }));
+  });
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 300, null, { timeout: 20000 });
+
+  const per = await m.evaluate(() => {
+    const node = document.querySelector('.ck-node');
+    const r = node.getBoundingClientRect();
+    const cx = r.x + r.width / 2;
+    const cy = r.y + r.height / 2;
+    node.dispatchEvent(new PointerEvent('pointerdown', {
+      bubbles: true, clientX: cx, clientY: cy, pointerId: 1, button: 0, buttons: 1, isPrimary: true }));
+    const t0 = performance.now();
+    for (let i = 1; i <= 30; i += 1) {
+      window.dispatchEvent(new PointerEvent('pointermove', {
+        bubbles: true, clientX: cx + i * 4, clientY: cy + i * 2, pointerId: 1, buttons: 1, isPrimary: true }));
+    }
+    const took = performance.now() - t0;
+    window.dispatchEvent(new PointerEvent('pointerup', {
+      bubbles: true, clientX: cx + 120, clientY: cy + 60, pointerId: 1, isPrimary: true }));
+    return took / 30;
+  });
+  // 로컬 실측 0.3~0.9ms. CI 기계는 느리므로 넉넉히 — 잡으려는 것은 「몇 배로 터졌나」다.
+  if (per > 5) throw new Error(`300장에서 끌기 한 번에 ${per.toFixed(2)}ms — 너무 무겁다(상한 5ms)`);
+  await ctx.close();
+});
+
 // ── 폰 화면 ──────────────────────────────────────────────────────────────────
 // 관계도는 **보는 일**이 폰에서 훨씬 많다(링크 받아 열기). 그런데 지금까지 폰 크기는 한 번도 안 봤다.
 await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널은 아래 시트로 뜬다', async () => {
