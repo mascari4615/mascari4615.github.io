@@ -2035,10 +2035,10 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['laptop']
   },
 
-  /* Karmo Studio (TASK-KL-220) — 녹음·편곡·믹싱·WAV 출력을 한 프로젝트에서 닫는 DAW. */
+  /* 흥 — 곡을 만드는 자리 (TASK-KL-220) — 녹음·편곡·믹싱·WAV 출력을 한 프로젝트에서 닫는 DAW. */
   {
-    id: 'karmo-studio',
-    title: 'Karmo Studio',
+    id: 'heung',
+    title: '흥',
     category: 'lab',
     desc: '멀티트랙 녹음·MIDI 편곡·믹싱·WAV 출력을 한 프로젝트에서 완성하는 브라우저 DAW',
     layout: 'full',
@@ -2046,7 +2046,7 @@ window.KARMOLAB_LAZY_META = [
     accepts: ['audio/*', 'application/json'],
     produces: ['audio/wav', 'application/json'],
     icon: '<path d="M3 17V7M7 20V4M11 15V9M15 19V5M19 14V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M2 12h20" stroke="currentColor" stroke-width="1" opacity=".35"/>',
-    lazyScriptPaths: ['karmo-studio/karmo-studio']
+    lazyScriptPaths: ['heung/heung']
   },
 
   /* ORBITA (TASK-KL-193) — 순서를 줄이 아니라 궤도로 적는 시퀀서. 색이 곧 음이다. */
@@ -2097,19 +2097,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['arcade/arcade']
   },
 
-  /* 멍 (TASK-KL-221) — 도구가 아니라 창문. 로고가 스스로 모여 더 큰 로고가 되고, 그
-     안으로 끝없이 빨려 들어간다. 이음매가 없어 언제 켜도 「처음부터」가 없다. */
-  {
-    id: 'meong',
-    get title() { return t('widgets.meong.title', undefined, "멍"); },
-    category: 'lab',
-    get desc() { return t('widgets-desc.meong.desc', undefined, "멍때리며 보는 화면 — 로고가 모여 더 큰 로고가 되고 끝없이 안으로 들어갑니다"); },
-    layout: 'full',
-    noHero: true,
-    produces: ['image/png'],
-    icon: '<path d="M3 5h13M3 11h9M3 17h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="15" cy="11" r="1.3" fill="currentColor"/><circle cx="12" cy="17" r="1.3" fill="currentColor"/><g opacity=".5"><path d="M17.6 15h4M17.6 18h2.7M17.6 21h1.7" stroke="currentColor" stroke-width="1" stroke-linecap="round" fill="none"/></g>',
-    lazyScriptPaths: ['meong/meong']
-  },
 
   /* 도감 (TASK-KL-196) — 써 본 도구에 도장이 찍힌다. 새로 만드는 것 없이 160개를 채울 것으로. */
   {
