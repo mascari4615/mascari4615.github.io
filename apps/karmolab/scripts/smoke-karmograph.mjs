@@ -1663,6 +1663,46 @@ await step('카드를 두 번 누르면 이름을 그 자리에서 고친다 (En
   await ctx.close();
 });
 
+await step('카드를 끌면 이웃 카드의 줄에 붙고, 맞춘 줄이 뜬다', async () => {
+  // 격자(8px)는 「대충 맞음」까지다. 폭이 제각각이면 가운데는 격자 위에 없어 영원히 안 맞는다 (TASK-KL-237).
+  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  const box = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(box.x + box.width * 0.35, box.y + box.height * 0.3);
+  await m.waitForSelector('[data-km="edit-label"]', { timeout: 4000 });
+  await m.keyboard.press('Escape');
+  await m.mouse.click(box.x + box.width * 0.8, box.y + box.height * 0.85);
+  await m.mouse.dblclick(box.x + box.width * 0.55, box.y + box.height * 0.6);
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 2, null, { timeout: 4000 });
+
+  const coords = () => m.evaluate(() => JSON.parse(localStorage.getItem(
+    'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId))
+    .nodes.map((n) => n.x));
+
+  const [x0, x1] = await coords();
+  const second = (await m.locator('.ck-node').nth(1).boundingBox());
+  const first = (await m.locator('.ck-node').first().boundingBox());
+  // 둘째 카드를 첫째 카드의 왼쪽 줄 **근처**(몇 px 어긋나게)로 끈다 — 붙어야 정확히 같은 줄이 된다.
+  const offBy = 5;
+  await m.mouse.move(second.x + 30, second.y + 10);
+  await m.mouse.down();
+  await m.mouse.move(first.x + 30 + offBy, second.y + 10, { steps: 10 });
+  const guides = await m.locator('.ck-guide').count();
+  await m.mouse.up();
+  await m.waitForTimeout(500);
+
+  if (guides < 1) throw new Error('끄는 동안 맞춤 줄이 안 뜬다');
+  const after = await coords();
+  if (after[1] !== after[0]) throw new Error(`줄에 안 붙었다: ${after[0]} vs ${after[1]} (끌기 전 ${x0}/${x1})`);
+  if (await m.locator('.ck-guide').count() !== 0) throw new Error('손을 뗐는데 맞춤 줄이 남아 있다');
+  await ctx.close();
+});
+
 await step('카드 크기가 자리와 같은 격자에 붙는다 (Alt = 자유)', async () => {
   // 자리는 8px 에 붙는데 크기만 1px 자유면 오른쪽 줄이 매번 어긋난다 (TASK-KL-236).
   const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });

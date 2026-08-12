@@ -72,3 +72,25 @@ export function resizedBox(
     h: Math.max(MIN_NODE_H, q(startH + d.dy)),
   };
 }
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+/**
+ * 카드 오른아래 **크기 손잡이**. 고른 카드 하나에만 붙는다 —
+ * 모든 카드에 붙이면 판이 손잡이 밭이 되고, 통째로 다시 그리면 타자 중에 화면이 튄다.
+ */
+export function sizeGrip(id: string, w: number, h: number, fill: string, stroke: string): SVGRectElement {
+  const grip = document.createElementNS(SVG_NS, 'rect');
+  grip.setAttribute('class', 'ck-size-handle');
+  grip.dataset.sizeFor = id;
+  grip.setAttribute('x', String(w - 7));
+  grip.setAttribute('y', String(h - 7));
+  grip.setAttribute('width', '10');
+  grip.setAttribute('height', '10');
+  grip.setAttribute('rx', '2');
+  grip.setAttribute('fill', fill);
+  grip.setAttribute('stroke', stroke);
+  grip.setAttribute('stroke-width', '1.5');
+  grip.setAttribute('cursor', 'nwse-resize');
+  return grip;
+}

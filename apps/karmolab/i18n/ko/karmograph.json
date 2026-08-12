@@ -621,5 +621,7 @@
   "karmograph.help.renameWhat": "이름 그 자리에서 고치기",
   "karmograph.help.renameHow": "카드를 두 번 누르기 (Enter 저장 · Esc 되돌리기)",
   "karmograph.help.resizeWhat": "카드 크기 바꾸기",
-  "karmograph.help.resizeHow": "오른아래 모서리 끌기 (격자에 붙는다 · Alt = 자유롭게)"
+  "karmograph.help.resizeHow": "오른아래 모서리 끌기 (격자에 붙는다 · Alt = 자유롭게)",
+  "karmograph.help.guideWhat": "이웃 카드의 줄에 맞추기",
+  "karmograph.help.guideHow": "끌면 저절로 붙고 맞춘 줄이 뜬다 (Alt = 자유롭게)"
 }

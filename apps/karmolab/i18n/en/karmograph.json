@@ -621,5 +621,7 @@
   "karmograph.help.renameWhat": "Rename on the card",
   "karmograph.help.renameHow": "Double-click the card (Enter saves, Esc cancels)",
   "karmograph.help.resizeWhat": "Resize a card",
-  "karmograph.help.resizeHow": "Drag the bottom-right corner (snaps to the grid · Alt = free)"
+  "karmograph.help.resizeHow": "Drag the bottom-right corner (snaps to the grid · Alt = free)",
+  "karmograph.help.guideWhat": "Line a card up with its neighbours",
+  "karmograph.help.guideHow": "Just drag — it snaps and shows the line it matched (Alt = free)"
 }
