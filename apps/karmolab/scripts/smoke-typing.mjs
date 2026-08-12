@@ -75,7 +75,16 @@ function snapshot(toolId) {
 
 async function checkOne(page, id) {
   await page.goto(`${BASE}/karmolab/t/${id}/`, { waitUntil: 'networkidle', timeout: 40000 });
-  await page.waitForTimeout(700);
+  /* ★ 고정 700ms 로는 부족하다 (2026-08-12). 위젯은 말 묶음(i18n)을 받아 온 **뒤에** 그린다 —
+   *   느린 판에서는 그 사이에 재게 되고, 그러면 「글자를 넣을 칸이 없다」로 제품을 탓하게 된다.
+   *   그려질 때까지 기다린다(그래도 안 그려지면 그건 진짜 고장이라 아래 검사가 잡는다). */
+  await page
+    .waitForFunction((toolId) => {
+      const el = document.getElementById('page-' + toolId);
+      return !!el && el.children.length > 0;
+    }, id, { timeout: 8000 })
+    .catch(() => {});
+  await page.waitForTimeout(300);
   if (needsFile.has(id) || needsPdf.has(id) || needsAudio.has(id) || needsVideo.has(id)) {
     const hasFileInput = await page.evaluate((toolId) => {
       const el = document.getElementById('page-' + toolId);
