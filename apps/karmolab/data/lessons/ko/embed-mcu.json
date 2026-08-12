@@ -1,0 +1,102 @@
+{
+  "id": "embed-mcu",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "코드로 전기를 만지는 첫 경험. LED 하나가 켜지면 그다음이 전부 열린다 — 센서·모터·통신이 결국 같은 원리다."
+    },
+    {
+      "type": "h",
+      "text": "1. 핀 하나의 두 방향"
+    },
+    {
+      "type": "code",
+      "lang": "cpp",
+      "label": "출력과 입력",
+      "text": "void setup() {\n  pinMode(LED_PIN, OUTPUT);\n  pinMode(BTN_PIN, INPUT_PULLUP);   // 내부 저항으로 기본값을 HIGH 로\n}\nvoid loop() {\n  bool pressed = digitalRead(BTN_PIN) == LOW;   // 눌리면 GND 로 떨어진다\n  digitalWrite(LED_PIN, pressed ? HIGH : LOW);\n}"
+    },
+    {
+      "type": "note",
+      "text": "입력 핀을 아무 데도 연결하지 않으면 값이 **떠다닌다**(floating). 내부 풀업/풀다운을 켜거나 저항을 다는 이유가 이것이다 — 이걸 모르면 「가끔 눌린 것처럼 동작하는」 버그를 만난다."
+    },
+    {
+      "type": "h",
+      "text": "2. 디지털과 아날로그"
+    },
+    {
+      "type": "p",
+      "text": "디지털은 0/1, 아날로그 입력(ADC)은 전압을 숫자로 읽는다. 출력에서 밝기·속도를 조절할 때는 **PWM**(빠르게 켜고 끄는 비율)을 쓴다 — 실제 전압이 변하는 게 아니다."
+    },
+    {
+      "type": "h",
+      "text": "3. 채터링(바운스)"
+    },
+    {
+      "type": "code",
+      "lang": "cpp",
+      "label": "기계 접점은 여러 번 튄다",
+      "text": "unsigned long lastChange = 0;\nbool stable = HIGH;\nvoid loop() {\n  bool now = digitalRead(BTN_PIN);\n  if (now != stable && millis() - lastChange > 30) {   // 30ms 안정화\n    stable = now; lastChange = millis();\n    if (stable == LOW) onPressed();\n  }\n}"
+    },
+    {
+      "type": "h",
+      "text": "4. delay 를 쓰지 않는 습관"
+    },
+    {
+      "type": "note",
+      "text": "`delay(1000)` 은 그 동안 **아무것도 못 한다**. `millis()` 로 「지난 시간」을 비교하는 방식으로 짜면 여러 일을 동시에 다룰 수 있다 — 임베디드판 이벤트 루프다."
+    },
+    {
+      "type": "h",
+      "text": "5. 안전"
+    },
+    {
+      "type": "note",
+      "text": "핀 하나가 감당하는 전류는 작다(수십 mA). 모터·릴레이·긴 LED 줄은 **드라이버·트랜지스터**를 거쳐야 하고, 전원 접지(GND)는 반드시 공통으로 묶는다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "버튼으로 LED 를 켜라. 그 다음 `delay` 없이 LED 를 깜빡이면서 동시에 버튼도 받게 고쳐라."
+    },
+    {
+      "type": "try",
+      "text": "디바운스를 빼고 눌러 보라 — 한 번 눌렀는데 여러 번 처리되는 것을 직접 확인한 뒤 다시 넣어라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "입력 핀에 풀업/풀다운이 필요한 이유는?",
+      "choices": [
+        "연결이 없으면 값이 떠다녀 잡음에 흔들리기 때문",
+        "전류를 늘리려고",
+        "속도 때문"
+      ],
+      "answer": 0,
+      "why": "기본 상태를 정해 주지 않으면 랜덤하게 읽힌다."
+    },
+    {
+      "q": "`delay()` 대신 `millis()` 비교를 쓰는 이유는?",
+      "choices": [
+        "대기 중에도 다른 일을 처리할 수 있기 때문",
+        "더 정확해서",
+        "메모리 절약"
+      ],
+      "answer": 0,
+      "why": "delay 는 그 시간 동안 프로그램을 멈춘다."
+    },
+    {
+      "q": "버튼 한 번에 여러 번 반응하는 현상의 원인은?",
+      "choices": [
+        "기계 접점의 채터링(바운스)",
+        "전원 부족",
+        "컴파일 최적화"
+      ],
+      "answer": 0,
+      "why": "수십 ms 안정화(디바운스)로 처리한다."
+    }
+  ]
+}
