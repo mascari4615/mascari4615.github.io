@@ -28,6 +28,7 @@ import { iconOf, kindOf, KINDS, type Kind } from './meta';
 import { viewById } from './view-registry';
 import { makeCode, inviteLink } from '../../lib/room';
 import { blip, soundOn, setSoundOn } from '../../lib/blip';
+import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
 import type { Render } from './views';
 import { connect, type Net, type Peer, type Json } from './net';
 
@@ -501,6 +502,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-yumsg{min-height:24px;font-size:var(--font-size-sm)}',
       '.ac-yuctl{display:flex;gap:8px;justify-content:center;margin:var(--space-md) 0}',
       '.ac-yuwho .ac-now{outline:1px solid var(--accent-color)}',
+      '.ac-level{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:var(--space-md) 0}',
+      '.ac-level button{padding:4px 10px;font-size:var(--font-size-xs);border:1px solid var(--border-color);border-radius:999px;background:var(--bg-secondary)}',
+      '.ac-level button.ac-on{background:var(--accent-color);color:#fff;border-color:var(--accent-color)}',
+      '.ac-level small{color:var(--text-secondary);font-size:11px}',
       '.ac-intro{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--bg-primary);text-align:center;padding:var(--space-lg)}',
       '.ac-introicon{font-size:44px}',
       '.ac-introname{font-size:var(--font-size-xl);font-weight:800}',
@@ -543,6 +548,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     container.innerHTML =
       '<div id="acLobby">' +
       '<p class="tool-status">' + esc(t('arcade.lobby.hint')) + '</p>' +
+      '<div class="ac-level" id="acLevel" role="group" aria-label="' + esc(t('arcade.level.aria')) + '">' +
+      ['mild', 'normal', 'spicy']
+        .map((v) => '<button data-level="' + v + '">' + esc(t('arcade.level.' + v)) + '</button>')
+        .join('') +
+      '<small>' + esc(t('arcade.level.note')) + '</small></div>' +
       '<div id="acGames"></div>' +
       '<label style="display:flex;align-items:center;gap:6px;font-size:var(--font-size-xs);color:var(--text-secondary)">' +
       esc(t('arcade.label.name')) +
@@ -659,6 +669,18 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     let peers: Peer[] = [];
     /** 주인이 정한 자리 지도 — 손님은 여기서 제 자리를 찾는다. */
     let seatOf: Record<string, number> = {};
+    /** 봇 세기 — 고른 것은 이 브라우저에만 남는다. */
+    const LEVEL_KEY = 'karmolab.arcade.level';
+    const levelNow = (): BotLevel => {
+      try {
+        const v = localStorage.getItem(LEVEL_KEY);
+        if (v === 'mild' || v === 'spicy' || v === 'normal') return v;
+      } catch {
+        /* 못 읽으면 보통 */
+      }
+      return 'normal';
+    };
+
     /** 이번 판의 끝소리를 이미 울렸나 — 매 프레임 울리면 소리가 아니라 경적이 된다. */
     let ended = false;
     /** 마지막으로 소리를 낸 판 번호 */
@@ -765,7 +787,16 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       mySeat = 0;
       ended = false;
       soundedRound = -1;
-      match = new Match(g, seed, seats) as Match<unknown, unknown>;
+      /* 빈 자리를 **이름 있는 사람**으로 채운다 (TASK-KL-264). 커널이 채우면 「봇 1」이 되는데,
+         그건 자리를 채운 것이지 같이 논 것이 아니다. 손버릇도 여기서 정해 판 내내 지킨다. */
+      const need = Math.max(0, g.seats[0] - seats.length);
+      const crew = pickBots(need);
+      const personas: Record<number, BotPersona> = {};
+      crew.forEach((b, i) => {
+        personas[seats.length + i] = b;
+      });
+      const withCrew: SeatSpec[] = [...seats, ...crew.map((b) => ({ name: b.name, bot: true }))];
+      match = new Match(withBotLevel(g, levelNow(), personas), seed, withCrew) as Match<unknown, unknown>;
       shadow = null;
       mountView(id);
       againBtn.style.display = 'none';
@@ -948,6 +979,27 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       show('lobby');
     };
     $<HTMLButtonElement>('#acQuit').onclick = quit;
+
+    /* 봇 세기 고르기 — 판을 시작할 때 규칙 겉에 씌운다. */
+    const paintLevel = (): void => {
+      const now = levelNow();
+      container.querySelectorAll<HTMLButtonElement>('[data-level]').forEach((b) => {
+        b.setAttribute('aria-pressed', b.dataset.level === now ? 'true' : 'false');
+        b.className = b.dataset.level === now ? 'ac-on' : '';
+      });
+    };
+    container.querySelectorAll<HTMLButtonElement>('[data-level]').forEach((b) => {
+      b.onclick = () => {
+        try {
+          localStorage.setItem(LEVEL_KEY, String(b.dataset.level));
+        } catch {
+          /* 못 적어도 이 판에는 적용된다 */
+        }
+        paintLevel();
+        blip('tap');
+      };
+    });
+    paintLevel();
 
     /* 소리 끄기 — 껐다 켠 것은 이 브라우저에만 남는다. */
     const soundBtn = $<HTMLButtonElement>('#acSound');
