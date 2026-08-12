@@ -1677,8 +1677,22 @@ await step('카드를 끌면 이웃 카드의 줄에 붙고, 맞춘 줄이 뜬�
   await m.waitForSelector('[data-km="edit-label"]', { timeout: 4000 });
   await m.keyboard.press('Escape');
   await m.mouse.click(box.x + box.width * 0.8, box.y + box.height * 0.85);
+  // 두 번 누르기의 첫 눌림이 「고른 것 풀기」로 먹히는 판이 있다 — 한 번은 다시 눌러 본다.
+  const two = () => m.locator('.ck-node').count().then((n) => n >= 2);
   await m.mouse.dblclick(box.x + box.width * 0.55, box.y + box.height * 0.6);
-  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 2, null, { timeout: 4000 });
+  await m.waitForTimeout(600);
+  if (!(await two())) await m.mouse.dblclick(box.x + box.width * 0.55, box.y + box.height * 0.6);
+  try {
+    await m.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 2, null, { timeout: 4000 });
+  } catch {
+    const why = await m.evaluate(() => ({
+      nodes: document.querySelectorAll('.ck-node').length,
+      focus: document.activeElement?.tagName + '|' + (document.activeElement?.dataset?.km ?? ''),
+      inline: document.querySelectorAll('.km-inline').length,
+      overlay: (document.elementFromPoint(innerWidth * 0.4, innerHeight * 0.6)?.className ?? '') + '',
+    }));
+    throw new Error('둘째 카드가 안 생겼다: ' + JSON.stringify(why));
+  }
 
   const coords = () => m.evaluate(() => JSON.parse(localStorage.getItem(
     'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId))

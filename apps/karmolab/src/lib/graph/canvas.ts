@@ -37,7 +37,8 @@ import { buildNodeBackground, buildNoteCardBody } from './canvas-shape';
 import { chooseAnchors, edgeCurve, boundsOf, zoomAt, rectFromPoints, rectHits } from './canvas-math';
 import { cameraForRect } from './canvas-camera';
 import { frameCoalesced } from './canvas-raf';
-import { buildEdgePath, buildEdgeLabel, buildLeaderLine, applyEdgeFlow } from './canvas-edge';
+import { buildEdgePath, buildEdgeLabel, applyEdgeFlow } from './canvas-edge';
+import { renderLeaders } from './canvas-leaders';
 import { renderGroups, computeGroupBox } from './canvas-group';
 import { nodeBadges } from './canvas-badges';
 import { buildChildCard } from './canvas-children';
@@ -1342,37 +1343,13 @@ export class GraphCanvas {
    */
   private renderLeaders(): void {
     if (!this.spec) return;
-    const shownForLeaders = this.visibleNodeIds();
-    for (const n of this.spec.nodes) {
-      const targetId = n.attachedTo;
-      if (!targetId) continue;
-      if (!shownForLeaders.has(n.id)) continue;
-      const from = this.getNodeBox(n.id);
-      if (!from) continue;
-
-      let tx: number;
-      let ty: number;
-      const targetNode = this.getNodeBox(this.parseNodeRef(targetId));
-      if (targetNode) {
-        tx = targetNode.x + targetNode.w / 2;
-        ty = targetNode.y + targetNode.h / 2;
-      } else {
-        const targetEdge = this.spec.edges.find((x) => x.id === targetId);
-        const g = targetEdge ? this.edgeGeom(targetEdge) : null;
-        if (!g) continue;
-        const mid = this.pointOnEdge(g, targetEdge?.labelPos ?? 0.5);
-        tx = mid.x;
-        ty = mid.y;
-      }
-
-      const line = buildLeaderLine(
-        { x: from.x + from.w / 2, y: from.y + from.h / 2 },
-        { x: tx, y: ty },
-        this.colorForKind(n.kind),
-      );
-      this.edgeLayer.insertBefore(line, this.edgeLayer.firstChild);
-    }
+    renderLeaders(this.spec.nodes, {
+      shown: this.visibleNodeIds(), box: (id) => this.getNodeBox(id), nodeRef: (r) => this.parseNodeRef(r),
+      edges: this.spec.edges, color: (k) => this.colorForKind(k), layer: this.edgeLayer,
+      edgePoint: (edge, t) => { const g = this.edgeGeom(edge); return g ? this.pointOnEdge(g, t) : null; },
+    });
   }
+
 
   /** 선 위 라벨 — 베지어 중앙(t=0.5)에 판을 깔고 글자를 얹는다. */
   private buildEdgeLabel(edge: GraphEdge): SVGGElement | null {
