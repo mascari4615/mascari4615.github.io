@@ -1,0 +1,104 @@
+{
+  "id": "web-build",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "빌드가 무엇을 하는지 모르면 빌드가 깨졌을 때 할 수 있는 게 없다. 하는 일은 넷이다: **모듈 잇기 · 문법 낮추기 · 줄이기 · 이름 붙이기**."
+    },
+    {
+      "type": "h",
+      "text": "1. 모듈 — import 가 하나의 파일이 되기까지"
+    },
+    {
+      "type": "p",
+      "text": "브라우저는 수백 개 파일을 각각 받으면 느리다. 번들러는 `import` 를 따라가며 실제로 쓰이는 것만 모아 한(또는 몇) 파일로 만든다. 안 쓰는 코드를 떼는 것이 **트리 셰이킹**이다."
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "떼어낼 수 있게 쓰는 법",
+      "text": "// 좋음: 이름 단위로 가져오면 안 쓰는 것은 안 들어간다\nimport { debounce } from 'lodash-es';\n\n// 나쁨: 통째로 가져오면 전부 들어간다\nimport _ from 'lodash';"
+    },
+    {
+      "type": "h",
+      "text": "2. 나누기 — 첫 화면만 먼저"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "동적 import 로 지연 로드",
+      "text": "button.addEventListener('click', async () => {\n  const { openEditor } = await import('./editor.js');   // 누를 때 받는다\n  openEditor();\n});"
+    },
+    {
+      "type": "note",
+      "text": "첫 화면에서 안 쓰는 무거운 것(에디터·차트·PDF)은 지연 로드가 거의 항상 이득이다. **부팅 목록에 있는데 한 번도 안 그려지는 것**이 있는지부터 확인하라."
+    },
+    {
+      "type": "h",
+      "text": "3. 캐시와 이름"
+    },
+    {
+      "type": "p",
+      "text": "파일 이름에 내용 해시를 넣으면(`app.9f2b.js`) 내용이 바뀔 때만 이름이 바뀐다. 그래서 그 파일은 영구 캐시로 두고, 이름을 참조하는 HTML 만 캐시하지 않는다."
+    },
+    {
+      "type": "h",
+      "text": "4. 무거운 것 찾기"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "무엇이 번들을 먹는지",
+      "text": "npx vite-bundle-visualizer      # 또는 rollup-plugin-visualizer\nnpx source-map-explorer dist/assets/*.js"
+    },
+    {
+      "type": "note",
+      "text": "흔한 범인: moment(=날짜) · 전체 아이콘 세트 · lodash 통짜 · polyfill 과다. 대체품이 있거나 필요한 부분만 가져오면 수십 KB 가 사라진다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "내 프로젝트를 빌드하고 시각화 도구로 상위 5개 덩어리를 적어라. 그중 첫 화면에 정말 필요한 것이 몇 개인지 판단하라."
+    },
+    {
+      "type": "try",
+      "text": "가장 무거운 화면 하나를 동적 import 로 바꿔 첫 화면 번들이 얼마나 줄었는지 숫자로 남겨라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "트리 셰이킹이 잘 되게 하려면?",
+      "choices": [
+        "기본 export 로 통째 가져온다",
+        "필요한 이름만 named import 한다",
+        "모든 코드를 한 파일에 넣는다"
+      ],
+      "answer": 1,
+      "why": "무엇을 쓰는지 정적으로 보여야 안 쓰는 부분을 뗄 수 있다."
+    },
+    {
+      "q": "첫 화면에서 안 쓰는 무거운 모듈을 다루는 표준 방법은?",
+      "choices": [
+        "동적 import 로 필요할 때 받는다",
+        "CSS 로 숨긴다",
+        "압축률을 높인다"
+      ],
+      "answer": 0,
+      "why": "받지 않는 것이 가장 빠르다."
+    },
+    {
+      "q": "정적 파일 이름에 내용 해시를 넣는 이유는?",
+      "choices": [
+        "보안 때문에",
+        "내용이 바뀔 때만 이름이 바뀌어 영구 캐시가 가능해서",
+        "파일 크기가 줄어서"
+      ],
+      "answer": 1,
+      "why": "이름이 그대로면 캐시를 계속 쓰고, 바뀌면 새로 받는다."
+    }
+  ]
+}

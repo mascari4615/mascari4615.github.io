@@ -1,0 +1,96 @@
+{
+  "id": "git-bisect",
+  "minutes": 10,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "「언제부터 깨졌지?」를 눈으로 찾지 마라. 커밋이 200개여도 **8번**이면 범인을 찾는다 — 이분 탐색이니까."
+    },
+    {
+      "type": "h",
+      "text": "1. 기본 흐름"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "좋은 지점과 나쁜 지점만 알려 주면 된다",
+      "text": "git bisect start\ngit bisect bad                  # 지금(깨짐)\ngit bisect good v1.3.0          # 이때는 됐다\n\n# Git 이 가운데 커밋으로 옮겨 준다. 확인 후\ngit bisect good     # 또는 git bisect bad\n# … 반복 …\n# 마지막에 「<sha> is the first bad commit」\n\ngit bisect reset                # 원래 자리로"
+    },
+    {
+      "type": "h",
+      "text": "2. 자동으로 돌리기"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "재현 스크립트를 붙이면 손이 필요 없다",
+      "text": "git bisect start HEAD v1.3.0\ngit bisect run npm test -- path/to/failing.test.ts\n# 종료 코드 0 = good, 1~124 = bad"
+    },
+    {
+      "type": "note",
+      "text": "재현 스크립트는 **빠르고 확실해야** 한다. 가끔 실패하는 테스트로 bisect 를 돌리면 엉뚱한 커밋을 범인으로 지목한다."
+    },
+    {
+      "type": "h",
+      "text": "3. 못 도는 커밋 건너뛰기"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "빌드가 아예 안 되는 지점",
+      "text": "git bisect skip        # 판단 불가 → 다른 후보로"
+    },
+    {
+      "type": "h",
+      "text": "4. 찾은 다음"
+    },
+    {
+      "type": "p",
+      "text": "범인을 찾으면 그 커밋의 diff 를 읽고 **왜 그때는 문제가 안 보였는지**를 본다. 대개 테스트가 그 경로를 안 지나가고 있었다는 뜻이므로, 고치면서 회귀 테스트를 함께 넣는다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "연습 저장소에서 커밋 10개를 만들고 중간 하나에 버그를 심어라. `git bisect run` 으로 몇 번 만에 찾는지 세어 봐라."
+    },
+    {
+      "type": "try",
+      "text": "실제 프로젝트에서 「예전엔 됐는데」 싶은 동작을 하나 골라 bisect 를 걸어 보라. 없으면 성능(느려짐)으로도 할 수 있다 — 스크립트가 시간 임계값을 판정하면 된다."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "bisect 가 빠른 이유는?",
+      "choices": [
+        "커밋을 병렬로 검사해서",
+        "이분 탐색이라 후보가 매번 절반으로 줄어서",
+        "캐시를 써서"
+      ],
+      "answer": 1,
+      "why": "200개도 약 8번이면 좁혀진다."
+    },
+    {
+      "q": "`git bisect run` 에 넘기는 스크립트의 조건은?",
+      "choices": [
+        "종료 코드로 good/bad 를 알려 주고, 빠르고 확실해야 한다",
+        "반드시 npm 명령이어야 한다",
+        "항상 성공해야 한다"
+      ],
+      "answer": 0,
+      "why": "결과가 흔들리면 엉뚱한 커밋이 범인으로 지목된다."
+    },
+    {
+      "q": "빌드가 아예 안 되는 커밋을 만났을 때는?",
+      "choices": [
+        "git bisect skip",
+        "git bisect reset",
+        "강제로 good 이라고 한다"
+      ],
+      "answer": 0,
+      "why": "skip 은 판단 불가로 표시하고 다른 후보로 넘어간다."
+    }
+  ]
+}

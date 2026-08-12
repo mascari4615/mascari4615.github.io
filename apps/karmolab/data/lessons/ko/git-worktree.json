@@ -1,0 +1,90 @@
+{
+  "id": "git-worktree",
+  "minutes": 10,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "급한 수정 요청이 왔는데 지금 작업이 반쯤 벌어져 있다. `stash` 로 밀어 넣는 대신, **폴더를 하나 더 여는** 방법이 있다."
+    },
+    {
+      "type": "h",
+      "text": "1. worktree — 같은 저장소, 다른 폴더"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "두 브랜치를 동시에 열어 둔다",
+      "text": "git worktree add ../proj-hotfix -b hotfix/login origin/main\ncd ../proj-hotfix        # 여기서 급한 수정\n# 끝나면\ngit worktree remove ../proj-hotfix\ngit worktree list"
+    },
+    {
+      "type": "note",
+      "text": "저장소(.git)는 하나를 공유하므로 디스크도 덜 먹고, 커밋·브랜치가 즉시 서로 보인다. 다만 **같은 브랜치를 두 곳에서 체크아웃할 수는 없다**."
+    },
+    {
+      "type": "h",
+      "text": "2. stash — 잠깐 치워 두기"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "짧게 쓸 때만",
+      "text": "git stash push -m '작업중 폼 검증'\ngit stash list\ngit stash pop            # 꺼내면서 목록에서 제거\ngit stash apply stash@{1}  # 꺼내되 남겨 둠"
+    },
+    {
+      "type": "note",
+      "text": "stash 는 **잊히기 쉽다**. 며칠 지나면 무엇을 넣었는지 아무도 모른다. 하루를 넘길 것 같으면 임시 브랜치에 커밋해 두는 편이 안전하다."
+    },
+    {
+      "type": "h",
+      "text": "3. 여럿이 한 폴더를 쓸 때"
+    },
+    {
+      "type": "p",
+      "text": "작업 트리를 여러 사람(또는 여러 세션)이 공유하면 `git add .` 이 남의 미완성 편집을 담는다. 이럴 때 worktree 로 **내 작업만의 폴더**를 여는 것이 근본 해결이다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "지금 저장소에 worktree 를 하나 열어 다른 브랜치를 체크아웃하고, 두 폴더에서 `git log --oneline -1` 을 각각 찍어 서로 다른 커밋을 가리키는 것을 확인하라."
+    },
+    {
+      "type": "try",
+      "text": "stash 를 하나 만들어 두고 `git stash list` 로 이름이 얼마나 도움이 되는지 확인하라 — 메시지 없이 넣으면 나중에 알아볼 수 없다."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "worktree 의 장점은?",
+      "choices": [
+        "저장소를 복제해 완전히 독립시킨다",
+        "같은 저장소를 공유하면서 다른 브랜치를 다른 폴더에서 동시에 연다",
+        "커밋을 자동으로 합친다"
+      ],
+      "answer": 1,
+      "why": ".git 을 공유하므로 가볍고, 커밋이 서로 즉시 보인다."
+    },
+    {
+      "q": "stash 를 오래 두면 안 되는 이유는?",
+      "choices": [
+        "용량을 많이 먹어서",
+        "무엇을 넣었는지 잊히고 추적이 안 되기 때문",
+        "자동으로 삭제돼서"
+      ],
+      "answer": 1,
+      "why": "오래 보관할 것은 임시 브랜치에 커밋하는 편이 안전하다."
+    },
+    {
+      "q": "여러 세션이 한 작업 트리를 공유할 때 안전한 방법은?",
+      "choices": [
+        "git add . 를 쓴다",
+        "내 작업만의 worktree 를 열거나 경로를 명시해 담는다",
+        "reset --hard 로 정리한다"
+      ],
+      "answer": 1,
+      "why": "공유 트리에서 전체 add·reset 은 남의 작업을 삼킨다."
+    }
+  ]
+}

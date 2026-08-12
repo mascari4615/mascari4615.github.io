@@ -1,0 +1,104 @@
+{
+  "id": "web-deploy",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "내 컴퓨터에서 되는 것은 아직 아무것도 아니다. **남이 열 수 있는 주소**가 생기고, 깨졌을 때 내가 먼저 아는 상태까지가 배포다."
+    },
+    {
+      "type": "h",
+      "text": "1. 한 번의 push 로 나가게"
+    },
+    {
+      "type": "code",
+      "lang": "yaml",
+      "label": "정적 사이트라면 이 정도로 시작",
+      "text": "on:\n  push:\n    branches: [main]\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: npm ci && npm run build\n      - uses: actions/deploy-pages@v4"
+    },
+    {
+      "type": "note",
+      "text": "손으로 올리는 단계가 하나라도 남아 있으면 언젠가 그 단계를 빠뜨린다. 「무엇을 손으로 하고 있나」를 적어 두고 하나씩 없애라."
+    },
+    {
+      "type": "h",
+      "text": "2. 되돌릴 수 있어야 배포다"
+    },
+    {
+      "type": "p",
+      "text": "배포가 잘못됐을 때의 계획이 없으면 그건 도박이다. 이전 판으로 돌아가는 방법(재배포·이전 아티팩트 복구·revert push)을 **미리 한 번 해 보라**."
+    },
+    {
+      "type": "h",
+      "text": "3. 환경값과 비밀"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "코드에 박지 않는다",
+      "text": "# 저장소 Settings → Secrets 에 넣고\nAPI_TOKEN: ${{ secrets.API_TOKEN }}\n\n# 로컬은 .env (반드시 .gitignore)\necho '.env' >> .gitignore"
+    },
+    {
+      "type": "h",
+      "text": "4. 나간 뒤를 본다"
+    },
+    {
+      "type": "p",
+      "text": "배포 성공 ≠ 서비스 정상. 배포 뒤 **실제 주소를 찔러 보는 확인**을 자동화하라 — 첫 화면 200, 핵심 API 200, 버전 문자열이 새 것인지."
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "가장 싼 상태 확인",
+      "text": "curl -sS -o /dev/null -w '%{http_code}\\n' https://example.com/\ncurl -s https://example.com/version.json | grep \"$GIT_SHA\""
+    },
+    {
+      "type": "note",
+      "text": "깨졌을 때 **사용자보다 내가 먼저 아는가**가 관측의 기준이다. 알림이 없으면 그 배포 파이프라인은 절반이다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "지금 프로젝트를 push 한 번으로 나가게 만들어라. 이미 그렇다면, **일부러 깨진 것을 배포**해 알림이 오는지 확인하고 되돌려라."
+    },
+    {
+      "type": "try",
+      "text": "배포 후 상태 확인 한 줄(curl)을 워크플로 마지막 단계로 추가하라. 실패하면 워크플로가 빨강이 되게."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "「배포 성공」 표시만으로 안심할 수 없는 이유는?",
+      "choices": [
+        "빌드가 성공해도 실제 서비스가 정상인지는 별개이기 때문",
+        "배포 로그가 느려서",
+        "캐시 때문에"
+      ],
+      "answer": 0,
+      "why": "나간 뒤 실제 주소를 찔러 보는 확인이 있어야 초록이 사실이 된다."
+    },
+    {
+      "q": "비밀 토큰을 다루는 올바른 방법은?",
+      "choices": [
+        "코드에 상수로 둔다",
+        "CI 의 secret 저장소·환경변수로 주입하고 .env 는 gitignore",
+        "주석 처리해 둔다"
+      ],
+      "answer": 1,
+      "why": "git 역사에 한 번 들어간 토큰은 지워도 남는다."
+    },
+    {
+      "q": "배포 설계에서 반드시 미리 연습해 둘 것은?",
+      "choices": [
+        "롤백(이전 판으로 돌아가기)",
+        "로그 색 바꾸기",
+        "빌드 캐시 삭제"
+      ],
+      "answer": 0,
+      "why": "되돌릴 수 없는 배포는 사고가 났을 때 선택지가 없다."
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "id": "git-rebase",
+  "minutes": 13,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "rebase 는 커밋을 **옮기는** 것이 아니라 **다시 만드는** 것이다. 이 한 문장을 붙잡고 있으면 나머지는 전부 따라온다."
+    },
+    {
+      "type": "h",
+      "text": "1. 왜 쓰나 — 읽히는 역사"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "내 커밋을 최신 main 위로",
+      "text": "git switch feat/login\ngit fetch origin\ngit rebase origin/main       # 내 커밋들을 origin/main 끝에 다시 얹는다\n\n# 충돌이 나면 고치고\ngit add <파일> && git rebase --continue\n# 꼬이면 언제든\ngit rebase --abort"
+    },
+    {
+      "type": "h",
+      "text": "2. 커밋 다듬기 — interactive"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "합치고 · 순서 바꾸고 · 메시지 고치기",
+      "text": "git rebase -i HEAD~3\n\n# pick   그대로\n# reword 메시지만 고침\n# squash 앞 커밋에 합치고 메시지도 합침\n# fixup  앞 커밋에 합치되 메시지는 버림\n# drop   버림"
+    },
+    {
+      "type": "note",
+      "text": "작업 중에는 `wip` 커밋을 마음껏 쌓고, 올리기 직전에 `rebase -i` 로 정리하는 흐름이 편하다 — **읽는 사람에게는 결과만 보인다.**"
+    },
+    {
+      "type": "h",
+      "text": "3. 위험한 자리"
+    },
+    {
+      "type": "note",
+      "text": "**남이 이미 받아 간 커밋을 rebase 하지 마라.** 해시가 바뀌므로 상대의 역사와 갈라지고, 그 사람이 pull 하면 같은 변경이 두 번 나타난다. 공유 브랜치는 revert 로 되돌린다."
+    },
+    {
+      "type": "h",
+      "text": "4. 되돌리기"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "rebase 도 되돌릴 수 있다",
+      "text": "git reflog\n# 4a1c... HEAD@{5}: rebase (start): checkout origin/main\ngit reset --hard HEAD@{6}    # rebase 직전 자리로"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "연습 저장소에서 커밋 세 개를 만들고 `rebase -i` 로 하나로 합쳐라. 그 다음 reflog 로 합치기 전 상태를 되살려 봐라."
+    },
+    {
+      "type": "try",
+      "text": "main 에 새 커밋이 있는 상태에서 `git merge main` 과 `git rebase main` 을 각각 해 보고 `git log --graph` 를 비교하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "rebase 가 하는 일을 정확히 말하면?",
+      "choices": [
+        "커밋을 다른 위치로 이동시킨다",
+        "커밋을 새로 만들어 다시 얹는다(해시가 바뀐다)",
+        "브랜치 이름을 바꾼다"
+      ],
+      "answer": 1,
+      "why": "복사본이 만들어지므로 이미 공유된 커밋에 쓰면 역사가 갈라진다."
+    },
+    {
+      "q": "작업 중 쌓인 wip 커밋 셋을 하나로 합치려면?",
+      "choices": [
+        "git rebase -i HEAD~3 에서 squash/fixup",
+        "git merge --squash 만",
+        "git reset --hard"
+      ],
+      "answer": 0,
+      "why": "interactive rebase 가 커밋을 합치고 순서를 바꾸는 표준 도구다."
+    },
+    {
+      "q": "rebase 중 상황이 꼬였을 때 가장 안전한 행동은?",
+      "choices": [
+        "git rebase --abort",
+        "git push --force",
+        "rm -rf .git"
+      ],
+      "answer": 0,
+      "why": "abort 는 rebase 시작 전 상태로 완전히 되돌린다."
+    }
+  ]
+}
