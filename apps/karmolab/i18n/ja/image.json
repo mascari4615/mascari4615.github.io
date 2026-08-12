@@ -5,5 +5,6 @@
   "image.part.redact": "隠す",
   "image.part.asciiart": "アスキーアート",
   "image.part.aigen": "AI 生成",
-  "image.part.store": "保管庫"
+  "image.part.store": "保管庫",
+  "image.part.studio": "スタジオ"
 }

@@ -38,6 +38,8 @@ const BLEND: Record<BlendMode, Blend> = {
   'exclusion': (b, s) => b + s - 2 * b * s
 };
 
+export interface CompositeRect { x: number; y: number; w: number; h: number }
+
 export interface CompositeOptions {
   /** 어니언스킨 — 앞/뒤 몇 프레임을 얼마나 옅게 깔지. 0 = 끔. */
   onionBefore?: number;
@@ -47,11 +49,20 @@ export interface CompositeOptions {
   soloLayer?: string | null;
   /** 합성에서 뺄 레이어(그리는 중인 획을 따로 얹을 때). */
   skipLayer?: string | null;
+  /**
+   * 이 사각형만 다시 섞는다. 붓질 한 번에 4000×3000 전체를 다시 섞으면 손이 끊긴다 —
+   * 실제로 더러워진 자리는 붓 크기만 하다.
+   */
+  rect?: CompositeRect;
+  /** 결과를 새로 만들지 말고 이 판의 그 자리에 덮어쓴다(화면 갱신용). */
+  into?: Surface;
 }
 
-/** 한 장을 아래 그림(dst, 미리 곱해진 0..1 buffer) 위에 섞어 얹는다. */
+/** 한 장을 아래 그림(dst, 미리 곱해진 0..1 buffer) 위에 섞어 얹는다. 사각형 안만 손댄다. */
 function drawLayerInto(
   dst: Float32Array,
+  width: number,
+  rect: CompositeRect,
   layer: Layer,
   cel: Surface,
   alphaScale: number,
@@ -60,35 +71,39 @@ function drawLayerInto(
   const blend = BLEND[layer.blend] || BLEND.normal;
   const src = cel.data;
   const mask = layer.mask;
-  const count = dst.length / 4;
-  for (let p = 0; p < count; p += 1) {
-    const i = p * 4;
-    let as = (src[i + 3] / 255) * layer.opacity * alphaScale;
-    if (mask) as *= mask[p] / 255;
-    if (clipAlpha) as *= clipAlpha[p];
-    if (as <= 0) continue;
+  for (let y = rect.y; y < rect.y + rect.h; y += 1) {
+    for (let x = rect.x; x < rect.x + rect.w; x += 1) {
+      const p = y * width + x;
+      const i = p * 4;
+      let as = (src[i + 3] / 255) * layer.opacity * alphaScale;
+      if (mask) as *= mask[p] / 255;
+      if (clipAlpha) as *= clipAlpha[p];
+      if (as <= 0) continue;
 
-    const ab = dst[i + 3];
-    const ao = as + ab * (1 - as);
-    for (let c = 0; c < 3; c += 1) {
-      const cs = src[i + c] / 255;
-      /* 아래 색은 미리 곱해져 있으므로 풀어서 본다 — 알파 0 이면 섞을 색 자체가 없다. */
-      const cb = ab > 0 ? dst[i + c] / ab : 0;
-      const mixed = as * (1 - ab) * cs + as * ab * blend(cb, cs) + (1 - as) * ab * cb;
-      dst[i + c] = mixed;
+      const ab = dst[i + 3];
+      const ao = as + ab * (1 - as);
+      for (let c = 0; c < 3; c += 1) {
+        const cs = src[i + c] / 255;
+        /* 아래 색은 미리 곱해져 있으므로 풀어서 본다 — 알파 0 이면 섞을 색 자체가 없다. */
+        const cb = ab > 0 ? dst[i + c] / ab : 0;
+        dst[i + c] = as * (1 - ab) * cs + as * ab * blend(cb, cs) + (1 - as) * ab * cb;
+      }
+      dst[i + 3] = ao;
     }
-    dst[i + 3] = ao;
   }
 }
 
 /** 그 레이어가 화면에 내는 알파만 따로 뽑는다 — 클리핑 밑판을 만들 때 쓴다. */
-function alphaOf(layer: Layer, cel: Surface, out: Float32Array): void {
+function alphaOf(layer: Layer, cel: Surface, width: number, rect: CompositeRect, out: Float32Array): void {
   const src = cel.data;
   const mask = layer.mask;
-  for (let p = 0; p < out.length; p += 1) {
-    let a = (src[p * 4 + 3] / 255) * layer.opacity;
-    if (mask) a *= mask[p] / 255;
-    out[p] = a;
+  for (let y = rect.y; y < rect.y + rect.h; y += 1) {
+    for (let x = rect.x; x < rect.x + rect.w; x += 1) {
+      const p = y * width + x;
+      let a = (src[p * 4 + 3] / 255) * layer.opacity;
+      if (mask) a *= mask[p] / 255;
+      out[p] = a;
+    }
   }
 }
 
@@ -97,9 +112,18 @@ function alphaOf(layer: Layer, cel: Surface, out: Float32Array): void {
  * `only` 를 주면 그 레이어들만(순서 그대로) — `mergeDown` 이 두 장만 합칠 때 쓴다.
  */
 export function composite(doc: Doc, frame: number, only?: Layer[], opts: CompositeOptions = {}): Surface {
-  const out = createSurface(doc.w, doc.h);
+  const out = opts.into && opts.into.w === doc.w && opts.into.h === doc.h ? opts.into : createSurface(doc.w, doc.h);
   const count = doc.w * doc.h;
   const buf = new Float32Array(count * 4);
+  /* 손댈 자리 — 안 주면 판 전체. 판 밖으로 나가지 않게 잘라 둔다. */
+  const rx = Math.max(0, Math.min(doc.w - 1, opts.rect ? opts.rect.x | 0 : 0));
+  const ry = Math.max(0, Math.min(doc.h - 1, opts.rect ? opts.rect.y | 0 : 0));
+  const rect: CompositeRect = {
+    x: rx, y: ry,
+    w: Math.max(0, Math.min(doc.w - rx, opts.rect ? opts.rect.w | 0 : doc.w)),
+    h: Math.max(0, Math.min(doc.h - ry, opts.rect ? opts.rect.h | 0 : doc.h))
+  };
+  if (rect.w <= 0 || rect.h <= 0) return out;
 
   const layers = only || doc.layers;
   const onionBefore = only ? 0 : Math.max(0, opts.onionBefore || 0);
@@ -125,11 +149,11 @@ export function composite(doc: Doc, frame: number, only?: Layer[], opts: Composi
       if (!cel) return;
       if (layer.clip) {
         /* 끼워 붙인 레이어 — 밑판 모양 밖은 안 보인다. 밑판이 없으면 그냥 보통 레이어. */
-        drawLayerInto(buf, layer, cel, alphaScale, clipAlpha);
+        drawLayerInto(buf, doc.w, rect, layer, cel, alphaScale, clipAlpha);
       } else {
-        drawLayerInto(buf, layer, cel, alphaScale, null);
+        drawLayerInto(buf, doc.w, rect, layer, cel, alphaScale, null);
         clipAlpha = new Float32Array(count);
-        alphaOf(layer, cel, clipAlpha);
+        alphaOf(layer, cel, doc.w, rect, clipAlpha);
       }
     });
   };
@@ -137,15 +161,21 @@ export function composite(doc: Doc, frame: number, only?: Layer[], opts: Composi
   ghosts.forEach(g => paint(g.frame, g.alpha));
   paint(frame, 1);
 
-  /* 미리 곱해진 값을 되돌려 8비트로 굳힌다. */
-  for (let p = 0; p < count; p += 1) {
-    const i = p * 4;
-    const a = buf[i + 3];
-    if (a <= 0) continue;
-    out.data[i] = Math.round((buf[i] / a) * 255);
-    out.data[i + 1] = Math.round((buf[i + 1] / a) * 255);
-    out.data[i + 2] = Math.round((buf[i + 2] / a) * 255);
-    out.data[i + 3] = Math.round(a * 255);
+  /* 미리 곱해진 값을 되돌려 8비트로 굳힌다. 넘겨받은 판이면 그 자리를 **덮어쓴다** —
+     지운 자리가 옛 그림으로 남으면 안 되므로 알파 0 도 그대로 쓴다. */
+  for (let y = rect.y; y < rect.y + rect.h; y += 1) {
+    for (let x = rect.x; x < rect.x + rect.w; x += 1) {
+      const i = (y * doc.w + x) * 4;
+      const a = buf[i + 3];
+      if (a <= 0) {
+        out.data[i] = 0; out.data[i + 1] = 0; out.data[i + 2] = 0; out.data[i + 3] = 0;
+        continue;
+      }
+      out.data[i] = Math.round((buf[i] / a) * 255);
+      out.data[i + 1] = Math.round((buf[i + 1] / a) * 255);
+      out.data[i + 2] = Math.round((buf[i + 2] / a) * 255);
+      out.data[i + 3] = Math.round(a * 255);
+    }
   }
   return out;
 }

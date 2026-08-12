@@ -202,5 +202,6 @@
   "widgets-desc.garden.desc": "오늘의 규칙 하나로 스스로 자라는 격자 — 손대지 않고 지켜봅니다",
   "widgets-desc.collection.desc": "써 본 도구에 도장이 찍힌다 — 몇 칸이나 채웠나",
   "widgets-desc.karmograph.desc": "관계도·세계관·카드 전개를 그리는 캔버스 — 어휘 팩을 갈아끼우면 쓰임새가 바뀐다",
-  "widgets-desc.studymap.desc": "웹 · Git · 컴퓨터 과학을 순서대로 — 왜 배우는지와 어디까지 하면 넘어가도 되는지까지 붙은 학습 지도 (진도 저장)"
+  "widgets-desc.studymap.desc": "웹 · Git · 컴퓨터 과학을 순서대로 — 왜 배우는지와 어디까지 하면 넘어가도 되는지까지 붙은 학습 지도 (진도 저장)",
+  "widgets-desc.imagestudio.desc": "레이어·붓·프레임으로 그린다 — 도트 애니메이션까지 한 화면에서"
 }
