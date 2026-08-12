@@ -1067,14 +1067,21 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
     display: none; flex-direction: column;
     padding: var(--space-xl) var(--space-2xl) var(--space-2xl);
     flex: 1 1 auto;
-    min-height: calc(100svh - 52px);
+    /* 화면 한 장을 채우되 **넘치면 늘어난다** — 예전엔 `calc(100svh - 52px)` 로 못 박혀
+       있어서, 글씨 배율을 올리면 안쪽이 그 높이를 넘어가고 바깥은 `overflow: hidden`
+       이라 아래가 통째로 잘렸다(굴릴 수도 없었다). 100% = 위 칸이 정한 만큼. */
+    min-height: 100%;
     max-width: 960px; margin: 0 auto; width: 100%;
+    /* `safe` = 넘칠 때는 가운데 정렬을 포기하고 위부터 쌓는다. 안 그러면 넘친 만큼 위아래로
+       똑같이 삐져나가 **머리(제목)가 굴려도 안 나오는 자리**로 올라간다. */
     justify-content: center;
+    justify-content: safe center;
 }
 .content-body:has(.landing-page.active) {
     flex: 1;
     min-height: 0;
-    overflow: hidden;
+    /* 넘치면 굴린다(예전 `hidden` = 배율 올리면 아래가 잘려 안 보임). */
+    overflow-y: auto;
 }
 .landing-page.active { display: flex; }
 [data-block][hidden] { display: none !important; }
@@ -1205,7 +1212,9 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
 .landing-palette {
     display: flex; justify-content: center;
     width: 100%;
-    position: relative; z-index: 1;
+    /* z-index 4 = 아래 줄(카드·오늘의 판, 전부 1)보다 위. 펼쳐진 목록이 **떠 있는 판**이
+       되면서(아래 `.kp-inline .kp-list`) 뒤 순서인 카드에 가리면 안 된다. */
+    position: relative; z-index: 4;
     /* **자리를 미리 잡아 둔다** (TASK-KL-201 후속).
        찾는 칸은 도구 목록이 실린 뒤에 제 모습이 된다 — 그 순간 45px 에서 65px 로 자라며
        아래 있는 카드·글을 통째로 밀어낸다. 실측: 그 밀림 하나로 CLS 가 0.02 ↔ 0.097 사이를
@@ -1389,7 +1398,17 @@ a.landing-cta-card:hover { color: inherit; }
 .kp-inline.kp-collapsed .kp-live { display: none; }
 /* 접힌 팔레트의 키 = 입력 한 줄. 늦은 스타일이 정하는 값(18px 패딩 + 테두리)과 같은 값을
    여기서 미리 잡아 둔다. 둘이 어긋나면 그만큼 튀므로, 고칠 때는 같이 고쳐라. */
-.kp-inline .kp-box { display: flex; flex-direction: column; overflow: hidden; }
+/* 펼쳐진 목록은 **흐름 밖에 뜬다** (사용자 요청 — 「검색창 누르면 로고까지 움직인다」).
+   첫 화면은 세로 가운데 정렬이라, 목록이 자리를 차지하면 그만큼 위아래가 다시 나뉘어
+   제목·로고가 위로 밀려 올라갔다. 입력 칸 아래에 떠 있게 하면 접히든 펼쳐지든 자리 값이
+   같아서 아무것도 안 움직인다(덤: 접힘/펼침 밀림도 구조적으로 0). */
+.kp-inline { position: relative; }
+/* 목록이 밖으로 떠야 하므로 상자는 안 자른다 — 자르면 뜬 목록이 잘려 사라진다. */
+.kp-inline .kp-box { display: flex; flex-direction: column; overflow: visible; }
+.kp-inline .kp-list {
+    position: absolute; top: calc(100% + 8px); left: 0; right: 0;
+    z-index: 30;
+}
 .kp-inline .kp-input-wrap { display: flex; align-items: center; }
 /* 돋보기 그림에 크기를 안 주면 **줄 높이만큼 늘어난다** — 실측 122px. 아이콘 하나가 상자를
    두 배로 키우고 있었다. 크기는 자리이므로 여기, 색은 뒤에. */
@@ -1491,7 +1510,19 @@ a.landing-cta-card:hover { color: inherit; }
 /* 첫 화면에 박힌 칸은 **스크롤이 없다** (TASK-KL-136, 사용자 요청). 높이로 자르는 대신
    줄 수를 palette.ts 가 자른다 — 자르고 안에서 또 스크롤하면 잘린 줄은 보지도 못한 채
    화면만 길어진다. 갈래 펼치기·결과 전부 보기는 ⌘K 창이 받는다(그쪽은 스크롤 OK). */
-.kp-inline .kp-list { max-height: none; overflow: visible; }
+/* 뜬 목록은 제 껍데기를 갖는다 — 상자 밖으로 나왔으니 바탕·테두리가 없으면 뒤 글자와 겹친다. */
+.kp-inline .kp-list {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 32px var(--brand-shadow, rgba(0, 0, 0, 0.28));
+    /* 줄 수는 palette.ts 가 자른다(8줄). 높이는 **입력칸 아래 실제로 남은 자리**로 자른다 —
+       `--kp-space` 는 palette.ts 가 열 때(그리고 창 크기가 바뀔 때) 재서 넣는다. 값이 아직
+       없을 때만 vh 로 어림잡는다. 배율을 올리면 남는 자리가 줄고, 안에서 굴러간다. */
+    max-height: min(var(--kp-space, 46vh), 560px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
 /* 첫 화면에서는 누르기 전까지 접혀 있다 (TASK-KL-129) — 아직 안 물어본 답이 화면 절반을
    차지하지 않게. 누르면 그 자리에서 펼쳐진다. */
 .kp-inline.kp-collapsed .kp-list,
