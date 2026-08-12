@@ -22,13 +22,28 @@ const page = await browser.newPage();
 // 위젯이 무거운 처리기를 부를 때 쓰는 길(ensureScript)을 우리가 대신 채워 준다.
 // pdf.js 는 별도 일꾼 파일을 반드시 받아 간다 — 없으면 PDF 를 아예 못 연다.
 // 네트워크는 안 쓰되, 그 경로만은 진짜 파일을 돌려준다.
+/* ★ `/apps/karmolab/js/**` 는 디스크의 진짜 산출물로 준다 (2026-08-12).
+ *   위젯 build() 가 말 묶음(i18n)을 받아 온 뒤에 그리므로, 껍데기만 주면 `#pcFile` 이 null 이라
+ *   「Cannot set properties of null」로 죽는다 — 제품이 아니라 검사가 굶긴 것이다.
+ *   (자매 검사들과 같은 처방. 여기는 pdfjs 일꾼을 따로 먹여야 해서 공용 하네스 대신 직접 적는다.) */
 await page.route('**/*', (route) => {
-  const url = route.request().url();
-  if (url.includes('pdfjs.worker')) {
+  const url = new URL(route.request().url());
+  if (url.href.includes('pdfjs.worker')) {
     return route.fulfill({ status: 200, contentType: 'text/javascript', body: read('js/vendor/pdfjs.worker.min.js') });
+  }
+  const rel = url.pathname.replace(/^\/apps\/karmolab\//, '');
+  if (rel !== url.pathname) {
+    try {
+      return route.fulfill({
+        status: 200,
+        contentType: rel.endsWith('.js') ? 'application/javascript; charset=utf-8' : 'application/json; charset=utf-8',
+        body: read(rel)
+      });
+    } catch { /* 없는 파일이면 아래 껍데기로 */ }
   }
   return route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' });
 });
+await page.addInitScript(() => { window.__KARMO_LOCALE = 'ko'; });
 await page.goto('http://localhost/');
 
 const pdfLibSrc = read('js/vendor/pdf-lib.min.js');
@@ -85,6 +100,17 @@ const result = await page.evaluate(async () => {
   const host = document.createElement('div');
   document.body.appendChild(host);
   tool.tabs[0].build(host);
+
+  /* build() 는 말 묶음을 받아 온 뒤에 그린다 — 그려질 때까지 기다린다(sleep 아님). */
+  const waitDrawn = async (ms = 8000) => {
+    const until = Date.now() + ms;
+    for (;;) {
+      if (host.children.length > 0) return;
+      if (Date.now() > until) throw new Error('build() 뒤 아무것도 안 그려졌다 — 기다리는 말 묶음이 안 온다');
+      await new Promise((r) => setTimeout(r, 25));
+    }
+  };
+  await waitDrawn();
 
   const input = host.querySelector('#pcFile');
   const dt = new DataTransfer();
