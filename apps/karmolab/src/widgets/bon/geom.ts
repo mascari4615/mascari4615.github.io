@@ -153,6 +153,49 @@ export function fitToDoc(node: Node, docW: number, docH: number, margin = 0): vo
   applyBox(node, inner);
 }
 
+
+/**
+ * 경로의 점들 — 「M12 8L20 30Z」 같은 글에서 좌표만 뽑는다.
+ * 점을 하나씩 잡아 옮기려면 먼저 어디에 몇 개가 있는지 알아야 한다.
+ */
+export function pathPoints(d: string): { x: number; y: number }[] {
+  const nums = (d.match(/-?\d+(\.\d+)?/g) || []).map(Number);
+  const out: { x: number; y: number }[] = [];
+  for (let i = 0; i + 1 < nums.length; i += 2) out.push({ x: nums[i], y: nums[i + 1] });
+  return out;
+}
+
+/** 점들을 다시 글로. 닫힌 것(Z)은 닫힌 채로 둔다 — 편집하다 열리면 채우기가 사라진다. */
+export function pathFrom(points: { x: number; y: number }[], closed: boolean): string {
+  if (points.length === 0) return '';
+  const round = (v: number): number => Math.round(v * 1000) / 1000;
+  const head = 'M' + round(points[0].x) + ' ' + round(points[0].y);
+  const rest = points.slice(1).map((p) => 'L' + round(p.x) + ' ' + round(p.y)).join('');
+  return head + rest + (closed ? 'Z' : '');
+}
+
+export const isClosedPath = (d: string): boolean => /[Zz]\s*$/.test(d.trim());
+
+/** 어느 점을 잡았나. 없으면 -1. 여러 개가 겹치면 **가장 가까운 것**을 준다. */
+export function pointAt(d: string, x: number, y: number, slop: number): number {
+  const points = pathPoints(d);
+  let best = -1;
+  let bestDist = Infinity;
+  points.forEach((p, i) => {
+    const dist = Math.hypot(p.x - x, p.y - y);
+    if (dist <= slop && dist < bestDist) { best = i; bestDist = dist; }
+  });
+  return best;
+}
+
+/** 점 하나를 옮긴다. 나머지는 그대로 — 이게 「모양을 고친다」와 「통째로 민다」의 차이다. */
+export function movePoint(d: string, index: number, x: number, y: number): string {
+  const points = pathPoints(d);
+  if (index < 0 || index >= points.length) return d;
+  points[index] = { x, y };
+  return pathFrom(points, isClosedPath(d));
+}
+
 /** 새 네모를 도형에 적는다 — 도형 종류마다 담는 자리가 다르다. */
 export function applyBox(node: Node, box: Box): void {
   if (node.kind === 'rect') {

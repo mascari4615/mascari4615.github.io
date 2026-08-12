@@ -10,7 +10,7 @@
 
 import { History } from '../../lib/history';
 import { addLayer, createDoc, isPaintable, mergeDown, moveLayer, removeLayer, type Doc, type Node } from './model';
-import { alignTo, applyBox, bounds, fitToDoc, handleAt, hitTest, resizeBox, type Align, type Handle } from './geom';
+import { alignTo, applyBox, bounds, fitToDoc, handleAt, hitTest, movePoint, pointAt, resizeBox, type Align, type Handle } from './geom';
 import { toSvg } from './svg';
 import { clampSlice, defaultSlice, sliceMeta, type Slice } from './slice';
 import { PARTS, defaultKnobs, type PartName } from './parts';
@@ -24,7 +24,7 @@ declare const Toolbox: {
   onDispose?(fn: () => void): void;
 };
 
-type Tool = 'select' | 'rect' | 'ellipse' | 'line' | 'pen' | 'slice';
+type Tool = 'select' | 'rect' | 'ellipse' | 'line' | 'pen' | 'node' | 'slice';
 
 const esc = (v: unknown): string =>
   String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
@@ -35,9 +35,10 @@ const ICONS: Record<Tool, string> = {
   ellipse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="12" cy="12" rx="8" ry="6"/></svg>',
   line: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 19L20 5"/><circle cx="4" cy="19" r="1.8" fill="currentColor"/><circle cx="20" cy="5" r="1.8" fill="currentColor"/></svg>',
   pen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 18l5-11 5 7 6-9"/><circle cx="4" cy="18" r="1.6" fill="currentColor"/><circle cx="9" cy="7" r="1.6" fill="currentColor"/><circle cx="14" cy="14" r="1.6" fill="currentColor"/></svg>',
+  node: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 17l7-10 7 6"/><rect x="3" y="15" width="4" height="4"/><rect x="10" y="5" width="4" height="4"/><rect x="17" y="11" width="4" height="4"/></svg>',
   slice: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M8 5v14M16 5v14M3 10h18M3 15h18" stroke-dasharray="2 2"/></svg>'
 };
-const TOOL_LABEL: Record<Tool, string> = { select: '고르기 (V)', rect: '사각형 (R)', ellipse: '타원 (E)', line: '선 (L)', pen: '펜 (P) — 눌러서 점, 두 번 눌러 마침', slice: '9-slice 경계 (S)' };
+const TOOL_LABEL: Record<Tool, string> = { select: '고르기 (V)', rect: '사각형 (R)', ellipse: '타원 (E)', line: '선 (L)', pen: '펜 (P) — 눌러서 점, 두 번 눌러 마침', node: '점 고치기 (N) — 경로의 점을 잡아 옮긴다', slice: '9-slice 경계 (S)' };
 
 function buildBon(container: HTMLElement): void {
   injectBonStyles();
@@ -69,7 +70,7 @@ function buildBon(container: HTMLElement): void {
       '</div>' +
       '<div class="bon-body">' +
         '<div class="bon-tools">' +
-          (['select', 'rect', 'ellipse', 'line', 'pen', 'slice'] as Tool[]).map((t) =>
+          (['select', 'rect', 'ellipse', 'line', 'pen', 'node', 'slice'] as Tool[]).map((t) =>
             '<button data-tool="' + t + '" title="' + esc(TOOL_LABEL[t]) + '" aria-label="' + esc(TOOL_LABEL[t]) + '">' + ICONS[t] + '</button>').join('') +
         '</div>' +
         '<div class="bon-canvas" data-canvas></div>' +
@@ -262,6 +263,8 @@ function buildBon(container: HTMLElement): void {
 
   /** 지금 잡고 있는 9-slice 선. */
   let sliceDrag: keyof Slice | null = null;
+  /** 잡고 있는 경로의 점. */
+  let nodeDrag: null | { node: Node & { kind: 'path' }; index: number; before: string } = null;
 
   view.root.addEventListener('pointerdown', (event: PointerEvent) => {
     const p = view.toDoc(event);
@@ -269,6 +272,30 @@ function buildBon(container: HTMLElement): void {
 
     if (tool === 'pen') {
       penAdd(p);
+      return;
+    }
+
+    if (tool === 'node') {
+      // 고른 것이 없으면 먼저 경로를 하나 고른다 — 점만 잡으려 들면 「아무 일도 안 일어남」이 된다.
+      const current = activeNode();
+      if (!current || current.kind !== 'path') {
+        const hit = hitTest(doc, p.x, p.y);
+        selected = hit;
+        if (hit) activeLayer = hit.layer;
+        repaint();
+        return;
+      }
+      const index = pointAt(current.d, p.x, p.y, view.slop(7));
+      if (index >= 0) {
+        nodeDrag = { node: current, index, before: current.d };
+        view.root.setPointerCapture(event.pointerId);
+        return;
+      }
+      // 점이 아니라 빈 곳을 눌렀다 = 다른 도형을 고르려는 뜻이다.
+      const hit = hitTest(doc, p.x, p.y);
+      selected = hit;
+      if (hit) activeLayer = hit.layer;
+      repaint();
       return;
     }
     if (tool === 'slice') {
@@ -330,6 +357,14 @@ function buildBon(container: HTMLElement): void {
   });
 
   view.root.addEventListener('pointermove', (event: PointerEvent) => {
+    if (nodeDrag) {
+      const p = view.toDoc(event);
+      const snap = view.grid;
+      const q = (v: number): number => (snap > 0 ? Math.round(v / snap) * snap : Math.round(v * 10) / 10);
+      nodeDrag.node.d = movePoint(nodeDrag.node.d, nodeDrag.index, q(p.x), q(p.y));
+      repaint();
+      return;
+    }
     if (drag && drag.kind === 'draw' && drag.node.kind === 'path') {
       const p = view.toDoc(event);
       const snap = view.grid;
@@ -359,6 +394,21 @@ function buildBon(container: HTMLElement): void {
   });
 
   view.root.addEventListener('pointerup', (event: PointerEvent) => {
+    if (nodeDrag) {
+      const { node, before } = nodeDrag;
+      const after = node.d;
+      nodeDrag = null;
+      try { view.root.releasePointerCapture(event.pointerId); } catch { /* 이미 놓았다 */ }
+      if (after !== before) {
+        history.push({
+          label: '점 옮기기',
+          redo: () => { node.d = after; },
+          undo: () => { node.d = before; }
+        });
+      }
+      repaint();
+      return;
+    }
     if (sliceDrag) {
       sliceDrag = null;
       try { view.root.releasePointerCapture(event.pointerId); } catch { /* 이미 놓았다 */ }
@@ -773,6 +823,7 @@ function buildBon(container: HTMLElement): void {
       if (pen) penFinish(false);   // 짓던 것을 놓고 가면 화면에 붙어 다닌다
       tool = button.dataset.tool as Tool;
       view.sliceOn = tool === 'slice';
+      view.nodesOn = tool === 'node';
       if (view.sliceOn && view.slice.left + view.slice.right + view.slice.top + view.slice.bottom === 0) {
         view.slice = defaultSlice(doc.w, doc.h);   // 처음 켤 때만 자리를 잡아 준다
       }
@@ -784,11 +835,12 @@ function buildBon(container: HTMLElement): void {
     if (!container.isConnected) return;
     const target = event.target as HTMLElement;
     if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
-    if (event.key === 'v') { tool = 'select'; repaint(); }
-    else if (event.key === 'r') { tool = 'rect'; repaint(); }
-    else if (event.key === 'e') { tool = 'ellipse'; repaint(); }
-    else if (event.key === 'l') { tool = 'line'; repaint(); }
+    if (event.key === 'v') { tool = 'select'; view.nodesOn = false; repaint(); }
+    else if (event.key === 'r') { tool = 'rect'; view.nodesOn = false; repaint(); }
+    else if (event.key === 'e') { tool = 'ellipse'; view.nodesOn = false; repaint(); }
+    else if (event.key === 'l') { tool = 'line'; view.nodesOn = false; repaint(); }
     else if (event.key === 'p') { tool = 'pen'; repaint(); }
+    else if (event.key === 'n') { tool = 'node'; view.nodesOn = true; repaint(); }
     else if (event.key === 'Enter' && pen) { event.preventDefault(); penFinish(false); }
     else if (event.key === 'Escape' && pen) {
       // 취소 — 짓던 것을 통째로 버린다(되돌리기에 담기 전이라 남는 게 없다).
