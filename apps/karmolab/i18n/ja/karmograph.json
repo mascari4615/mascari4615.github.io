@@ -628,5 +628,6 @@
   "karmograph.side.less": "折りたたむ",
   "karmograph.btn.fit": "全体",
   "karmograph.btn.story": "発表",
-  "karmograph.btn.up": "上へ"
+  "karmograph.btn.up": "上へ",
+  "karmograph.savedHere": "このブラウザに保存"
 }
