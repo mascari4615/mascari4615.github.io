@@ -31,6 +31,33 @@
       "text": "3. 재현율로 다룬다"
     },
     {
+      "type": "demo",
+      "kind": "js",
+      "label": "재현율을 밀어 보라 — 「가끔」이 몇 번에 한 번인지",
+      "height": "210px",
+      "controls": [
+        {
+          "id": "p",
+          "label": "실패 확률(%)",
+          "type": "range",
+          "min": 1,
+          "max": 50,
+          "step": 1,
+          "value": 4
+        },
+        {
+          "id": "runs",
+          "label": "돌린 횟수",
+          "type": "range",
+          "min": 10,
+          "max": 300,
+          "step": 10,
+          "value": 50
+        }
+      ],
+      "text": "const P = {{p}} / 100, N = {{runs}};\nlet fail = 0;\nctx.clearRect(0, 0, W(), H());\nfor (let i = 0; i < N; i++) {\n  const bad = Math.random() < P;\n  if (bad) fail++;\n  const x = 16 + (i % 25) * 22, y = 46 + Math.floor(i / 25) * 22;\n  ctx.fillStyle = bad ? '#f87171' : '#1f2937';\n  ctx.fillRect(x, y, 18, 18);\n}\nctx.fillStyle = '#eee'; ctx.font = '14px system-ui';\nctx.fillText('실패 ' + fail + '/' + N + ' — 재현율 ' + ((fail / N) * 100).toFixed(1) + '%', 16, 28);\nctx.fillStyle = '#9ca3af'; ctx.font = '12px system-ui';\nctx.fillText('고쳤다고 말하려면 같은 횟수에서 0 이 나와야 한다', 16, H() - 12);"
+    },
+    {
       "type": "code",
       "lang": "bash",
       "label": "「가끔」을 숫자로 만든다",

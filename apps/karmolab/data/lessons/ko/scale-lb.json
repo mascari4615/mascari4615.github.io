@@ -11,6 +11,44 @@
       "text": "1. 무엇이 상태인가"
     },
     {
+      "type": "demo",
+      "kind": "js",
+      "label": "나누는 방식을 골라 보라 — 한쪽만 터지는지",
+      "height": "220px",
+      "controls": [
+        {
+          "id": "mode",
+          "label": "분배 방식",
+          "type": "select",
+          "value": "rr",
+          "options": [
+            {
+              "value": "rr",
+              "label": "차례대로"
+            },
+            {
+              "value": "rand",
+              "label": "무작위"
+            },
+            {
+              "value": "least",
+              "label": "한가한 곳으로"
+            }
+          ]
+        },
+        {
+          "id": "n",
+          "label": "요청 수",
+          "type": "range",
+          "min": 20,
+          "max": 400,
+          "step": 20,
+          "value": 120
+        }
+      ],
+      "text": "const MODE = '{{mode}}', N = {{n}};\nconst load = [0, 0, 0, 0];\nfor (let i = 0; i < N; i++) {\n  const cost = 1 + Math.floor(Math.random() * 4);   // 요청마다 무게가 다르다\n  let k = 0;\n  if (MODE === 'rr') k = i % 4;\n  else if (MODE === 'rand') k = Math.floor(Math.random() * 4);\n  else k = load.indexOf(Math.min(...load));\n  load[k] += cost;\n}\nctx.clearRect(0, 0, W(), H());\nconst max = Math.max(...load);\nload.forEach((v, k) => {\n  const h = (v / max) * (H() - 80);\n  ctx.fillStyle = v === max ? '#f87171' : '#60a5fa';\n  ctx.fillRect(30 + k * 90, H() - 34 - h, 60, h);\n  ctx.fillStyle = '#eee'; ctx.font = '12px system-ui';\n  ctx.fillText('서버 ' + (k + 1) + ': ' + v, 30 + k * 90, H() - 14);\n});\nctx.fillStyle = '#9ca3af'; ctx.font = '13px system-ui';\nctx.fillText('가장 무거운 곳 ' + max + ' · 가장 가벼운 곳 ' + Math.min(...load) + ' — 차이가 곧 위험', 16, 24);"
+    },
+    {
       "type": "note",
       "text": "세션 · 업로드된 파일 · 메모리 캐시 · 진행 중 작업 · 스케줄러 · 웹소켓 연결. 이것들이 특정 서버에 묶여 있으면 그 서버가 죽을 때 함께 사라진다."
     },

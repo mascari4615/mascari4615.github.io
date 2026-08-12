@@ -11,6 +11,35 @@
       "text": "1. 해시 — 되돌릴 수 없는 지문"
     },
     {
+      "type": "demo",
+      "kind": "html",
+      "label": "글자 하나만 바꿔 보라 — 해시가 통째로 달라진다",
+      "height": "220px",
+      "controls": [
+        {
+          "id": "txt",
+          "label": "넣을 말",
+          "type": "select",
+          "value": "karmolab",
+          "options": [
+            {
+              "value": "karmolab",
+              "label": "karmolab"
+            },
+            {
+              "value": "karmolaB",
+              "label": "karmolaB (끝만 대문자)"
+            },
+            {
+              "value": "karmolab ",
+              "label": "karmolab + 공백"
+            }
+          ]
+        }
+      ],
+      "text": "<div style=\"font:13px ui-monospace,monospace;line-height:1.9\">\n  <div>입력: <b>「{{txt}}」</b></div>\n  <div id=\"h\" style=\"word-break:break-all;color:#2563eb\"></div>\n  <div id=\"d\" style=\"color:#64748b\"></div>\n</div>\n<script>\n  (async () => {\n    const enc = new TextEncoder();\n    const one = async (s) => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode(s))))\n      .map((b) => b.toString(16).padStart(2, '0')).join('');\n    const a = await one('{{txt}}');\n    const b = await one('karmolab');\n    document.getElementById('h').textContent = a;\n    let same = 0;\n    for (let i = 0; i < a.length; i++) if (a[i] === b[i]) same++;\n    document.getElementById('d').textContent =\n      'karmolab 의 해시와 같은 자리 ' + same + '/' + a.length + ' — 한 글자 차이인데 거의 안 겹친다';\n  })();\n</script>"
+    },
+    {
       "type": "p",
       "text": "같은 입력 → 같은 지문, 지문 → 입력은 불가능. 무결성 확인(파일이 안 바뀌었나)과 비밀번호 저장에 쓴다. 단 **비밀번호에는 느린 해시**(bcrypt·argon2)를 쓴다 — 빠른 SHA 는 무차별 대입에 유리하다."
     },

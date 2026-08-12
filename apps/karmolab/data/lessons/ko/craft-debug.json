@@ -19,6 +19,24 @@
       "text": "2. 가설을 셋 적고 지운다"
     },
     {
+      "type": "demo",
+      "kind": "js",
+      "label": "커밋 수를 밀어 보라 — 이분 탐색이 몇 번 만에 찾나",
+      "height": "200px",
+      "controls": [
+        {
+          "id": "n",
+          "label": "커밋 수",
+          "type": "range",
+          "min": 10,
+          "max": 5000,
+          "step": 10,
+          "value": 1000
+        }
+      ],
+      "text": "const N = {{n}};\nconst bad = Math.floor(Math.random() * N);\nlet lo = 0, hi = N - 1, steps = 0;\nconst marks = [];\nwhile (lo < hi) {\n  const mid = (lo + hi) >> 1;\n  steps++;\n  marks.push(mid);\n  if (mid >= bad) hi = mid; else lo = mid + 1;\n}\nctx.clearRect(0, 0, W(), H());\nctx.fillStyle = '#1f2937'; ctx.fillRect(16, 60, W() - 32, 16);\nctx.fillStyle = '#f87171'; ctx.fillRect(16 + (bad / N) * (W() - 32), 56, 3, 24);\nmarks.forEach((m, i) => {\n  ctx.fillStyle = 'rgba(96,165,250,' + (0.3 + (i / marks.length) * 0.7) + ')';\n  ctx.fillRect(16 + (m / N) * (W() - 32), 84 + i * 3, 2, 2);\n});\nctx.fillStyle = '#eee'; ctx.font = '15px system-ui';\nctx.fillText('커밋 ' + N.toLocaleString() + '개 · 범인을 ' + steps + '번 만에 좁혔다', 16, 34);\nctx.fillStyle = '#9ca3af'; ctx.font = '12px system-ui';\nctx.fillText('하나씩 보면 평균 ' + Math.round(N / 2).toLocaleString() + '번 — 그래서 bisect 를 쓴다', 16, H() - 14);"
+    },
+    {
       "type": "code",
       "lang": "text",
       "label": "반증 가능한 형태로",

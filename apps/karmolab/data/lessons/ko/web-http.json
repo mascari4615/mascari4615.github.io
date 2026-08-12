@@ -25,6 +25,33 @@
       "text": "2. 캐시 — 「왜 안 바뀌지?」"
     },
     {
+      "type": "demo",
+      "kind": "js",
+      "label": "캐시 수명을 밀어 보라 — 서버까지 몇 번 가나",
+      "height": "210px",
+      "controls": [
+        {
+          "id": "ttl",
+          "label": "캐시 수명(초)",
+          "type": "range",
+          "min": 0,
+          "max": 60,
+          "step": 5,
+          "value": 20
+        },
+        {
+          "id": "gap",
+          "label": "방문 간격(초)",
+          "type": "range",
+          "min": 1,
+          "max": 30,
+          "step": 1,
+          "value": 6
+        }
+      ],
+      "text": "const TTL = {{ttl}}, GAP = {{gap}};\nlet t = 0, cachedUntil = -1, hits = 0, miss = 0;\nconst marks = [];\nfor (let i = 0; i < 40; i++) {\n  if (t <= cachedUntil) { hits++; marks.push(1); }\n  else { miss++; cachedUntil = t + TTL; marks.push(0); }\n  t += GAP;\n}\nctx.clearRect(0, 0, W(), H());\nmarks.forEach((m, i) => {\n  ctx.fillStyle = m ? '#4ade80' : '#f87171';\n  ctx.fillRect(16 + (i % 20) * 26, 54 + Math.floor(i / 20) * 30, 22, 22);\n});\nctx.fillStyle = '#eee'; ctx.font = '14px system-ui';\nctx.fillText('40번 방문 — 캐시로 해결 ' + hits + ' · 서버까지 ' + miss, 16, 30);\nctx.fillStyle = '#9ca3af'; ctx.font = '12px system-ui';\nctx.fillText('초록 = 캐시 적중 · 빨강 = 서버 왕복 (수명 ' + TTL + '초 · 간격 ' + GAP + '초)', 16, H() - 14);"
+    },
+    {
       "type": "code",
       "lang": "http",
       "label": "두 가지 방식",
