@@ -14,7 +14,7 @@
  *  - `window.__KARMO_LOCALE` + 그 언어의 `site` 묶음 인라인 — 앱이 뜨자마자 제 말로 시작한다
  *    (여기서 안 박으면 앱이 주소를 보고 다시 정하고, 그 사이 한 번 한국어로 번쩍인다)
  */
-import { LOCALES, DEFAULT_LOCALE, meta, localizedPath, hreflangTags, catalog, tr } from './locales.mjs';
+import { LOCALES, DEFAULT_LOCALE, meta, localizedPath, hreflangTags, withLangLinks, catalog, tr } from './locales.mjs';
 
 /**
  * 언어 판을 찍는 장들 — **찍는 쪽과 검사하는 쪽이 같은 목록을 본다** (TASK-KL-203 S6).
@@ -104,6 +104,8 @@ export function toLocalePage(html, { code, bare, site, codes, namespaces = ['sit
   html = html.replace(/\n\s*<!-- 언어 판 왕복 표시[\s\S]*?-->/, '');
   html = html.replace(/\n\s*<link rel="alternate" hreflang="[^"]*" href="[^"]*">/g, '');
   html = html.replace('</head>', hreflangTags(bare, site, codes) + '\n</head>');
+  /* 같은 자리에 길도 낸다 — 화면의 언어 단추는 JS 라 HTML 에 `<a>` 가 없다 (TASK-KL-244). */
+  html = withLangLinks(html, { bare, current: code, codes });
 
   /* ④ 공유 카드의 언어. */
   html = setMeta(html, 'property', 'og:locale', m.ogLocale);
@@ -180,5 +182,7 @@ set:function(a){v=a;if(Array.isArray(a))for(var i=0;i<a.length;i++){var m=M[a[i]
 /** 원본(기본 언어) 장에도 같은 왕복 표시를 박는다 — 한쪽만 있으면 통째로 무시된다. */
 export function addAlternatesToSource(html, { bare, site, codes }) {
   html = html.replace(/\n\s*<link rel="alternate" hreflang="[^"]*" href="[^"]*">/g, '');
-  return html.replace('</head>', hreflangTags(bare, site, codes) + '\n</head>');
+  html = html.replace('</head>', hreflangTags(bare, site, codes) + '\n</head>');
+  /* 짝 표시는 **말**이고, 크롤러가 타고 갈 것은 **길**이다 — 같은 인자로 `<a>` 도 박는다 (TASK-KL-244). */
+  return withLangLinks(html, { bare, current: DEFAULT_LOCALE, codes });
 }

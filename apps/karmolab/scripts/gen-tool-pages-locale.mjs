@@ -26,10 +26,9 @@ import {
   SOURCE_LOCALE,
   tr,
   pageAvailable,
-  localizedPath,
-  hreflangTags
+  localizedPath
 } from './lib/locales.mjs';
-import { toLocalePage } from './lib/locale-page.mjs';
+import { toLocalePage, addAlternatesToSource } from './lib/locale-page.mjs';
 import { toLocaleHub } from './lib/locale-hub.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -99,9 +98,19 @@ function makeLocalizer(ids) {
     /** 그 언어 판이 있으면 앞머리를 붙인 주소, 없으면 원래 주소. */
     href: (bare, code) => (localized.has(bare) ? localizedPath(bare, code) : bare),
     apply(html, code) {
-      return html.replace(/href="(\/karmolab[^"]*)"/g, (whole, bare) =>
-        localized.has(bare) ? `href="${localizedPath(bare, code)}"` : whole
-      );
+      /* **언어 링크는 건드리지 않는다** (TASK-KL-244). 이 함수는 `/karmolab/...` 주소에
+         이 장의 언어 앞머리를 붙이는데, 「한국어로 보기」 링크에까지 붙이면 그 링크가
+         자기 자신을 가리키게 된다 — 영어 장의 한국어 단추가 영어 장으로 가는 상태가 됐었다.
+         `hreflang` 이 붙은 `<a>` = 어느 말로 갈지 이미 정해진 링크라는 뜻이므로 통과시킨다. */
+      return html.replace(/<a\s[^>]*>|href="(\/karmolab[^"]*)"/g, (whole, bare) => {
+        if (whole.startsWith('<a')) {
+          if (/hreflang=/.test(whole)) return whole;
+          return whole.replace(/href="(\/karmolab[^"]*)"/, (w, b) =>
+            localized.has(b) ? `href="${localizedPath(b, code)}"` : w
+          );
+        }
+        return localized.has(bare) ? `href="${localizedPath(bare, code)}"` : whole;
+      });
     }
   };
 }
@@ -379,9 +388,14 @@ if (targets.length) {
     if (!fs.existsSync(file)) continue;
     const id = rel;
     const html = fs.readFileSync(file, 'utf8');
-    const block = hreflangTags(id ? `/karmolab/t/${id}/` : '/karmolab/t/', SITE, codes);
-    const stripped = html.replace(/\n\s*<link rel="alternate" hreflang="[^"]*" href="[^"]*">/g, '');
-    const next = stripped.replace('</head>', block + '\n</head>');
+    /* 같은 일을 여기서 또 적지 않는다 — 짝 표시·언어 링크를 박는 규칙은 `locale-page.mjs`
+       한 곳에만 있다. 예전엔 이 자리에 같은 코드가 베껴져 있었고, 그래서 저쪽에 언어 링크를
+       더해도 한국어 원본 138장에는 안 붙었다(그게 지금 고치는 그것이다). */
+    const next = addAlternatesToSource(html, {
+      bare: id ? `/karmolab/t/${id}/` : '/karmolab/t/',
+      site: SITE,
+      codes
+    });
     if (next === html) continue;
     if (CHECK) {
       missing.push(`${id || '목록'} (원본 장에 짝 표시 없음)`);

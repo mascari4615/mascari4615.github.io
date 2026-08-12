@@ -123,3 +123,34 @@ export function hreflangTags(bare, site, codes) {
   rows.push(`    <link rel="alternate" hreflang="x-default" href="${site}${localizedPath(bare, DEFAULT_LOCALE)}">`);
   return rows.join('\n');
 }
+
+/* ── 눈에 보이는 언어 링크 (TASK-KL-244) ─────────────
+ *
+ * hreflang 은 「이 장의 다른 말 판은 저기」라고 **말해 줄 뿐**, 크롤러가 타고 갈 길은 아니다.
+ * 화면의 언어 단추(`#langBtn`)는 JS 가 목록을 만들어서 HTML 에 `<a>` 가 한 개도 없었다 —
+ * 그래서 en/ja 274장이 sitemap 에만 있고 **내부 링크 0** 인 고아 상태였다(2026-08-13 실측).
+ * 여기서 찍는 `<a>` 가 그 길이다. 단추는 그대로 두고 나란히 둔다(사람은 단추, 크롤러는 링크).
+ *
+ * hreflang 과 **같은 인자**(bare·codes)로 만든다 — 둘이 갈라지면 없느니만 못하므로 한 함수에서.
+ */
+export function langLinksHtml(bare, current, codes) {
+  return alternates(bare)
+    .filter((a) => (!codes || codes.includes(a.code)) && a.code !== current)
+    .map((a) => {
+      const m = meta(a.code);
+      return (
+        `<a href="${a.path}" class="sidebar-dev-links sidebar-lang-link" hreflang="${m.htmlLang}" lang="${m.htmlLang}" title="${m.endonym}">` +
+        `<span class="sidebar-dev-links-icon" aria-hidden="true">◐</span>` +
+        `<span class="sidebar-dev-links-text">${m.endonym}</span></a>`
+      );
+    })
+    .join('');
+}
+
+/** 셸에 박아 둔 언어 링크 칸을 **이 장의** 링크로 갈아 끼운다. 칸이 없으면 던진다 —
+ *  조용히 안 바뀌면 274장이 다시 고아가 되고, 아무도 몇 달 동안 모른다. */
+export function withLangLinks(html, { bare, current, codes }) {
+  const re = /(<div class="sidebar-lang-links"[^>]*>)[\s\S]*?(<\/div>)/;
+  if (!re.test(html)) throw new Error(`[lang-links] 언어 링크 칸을 못 찾았다 — ${bare} (index.html 의 .sidebar-lang-links 확인)`);
+  return html.replace(re, `$1${langLinksHtml(bare, current, codes)}$2`);
+}
