@@ -219,5 +219,10 @@
   "arcade.twenty.kept": "{who} was never found out",
   "arcade.game.snake.name": "Snake Race",
   "arcade.game.snake.desc": "Swipe to turn. Everyone's trail is a wall",
-  "arcade.snake.win": "{who} — {n} eaten"
+  "arcade.snake.win": "{who} — {n} eaten",
+  "arcade.game.onestroke.name": "One Stroke",
+  "arcade.game.onestroke.desc": "Trace every line without lifting. Same figure, a race",
+  "arcade.stroke.win": "{who} traced it all",
+  "arcade.stroke.timeup": "Time — {who} with {n}",
+  "arcade.stroke.stuck": "Stuck"
 }
