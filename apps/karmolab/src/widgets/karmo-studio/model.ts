@@ -411,3 +411,33 @@ export function stepMarker(markers: StudioMarker[], beat: number, direction: 1 |
   return null;
 }
 
+/**
+ * 손으로 두드린 시각들에서 BPM 을 낸다. 오래된 두드림과 튀는 간격은 빼고 평균을 쓴다.
+ * 두 번 미만이면 `null` — 아직 셀 수 없다.
+ */
+export function tapTempo(times: number[], maxGapMs = 2500): number | null {
+  if (times.length < 2) return null;
+  const ordered = [...times].sort((a, b) => a - b);
+  const gaps: number[] = [];
+  for (let index = 1; index < ordered.length; index++) {
+    const gap = ordered[index] - ordered[index - 1];
+    if (gap > 0 && gap <= maxGapMs) gaps.push(gap);
+  }
+  if (!gaps.length) return null;
+  /* 한 번 크게 어긋난 두드림이 전체를 끌고 가지 않게 가운데값을 기준으로 걸러 낸다. */
+  const sorted = [...gaps].sort((a, b) => a - b);
+  const middle = sorted[Math.floor(sorted.length / 2)];
+  const kept = gaps.filter((gap) => Math.abs(gap - middle) <= middle * 0.4);
+  const use = kept.length ? kept : gaps;
+  const average = use.reduce((sum, gap) => sum + gap, 0) / use.length;
+  return Math.max(30, Math.min(300, Math.round(60000 / average)));
+}
+
+/** 고른 클립들이 덮는 구간. 고른 게 없으면 `null`. */
+export function selectionRange(clips: { start: number; duration: number }[]): { from: number; to: number } | null {
+  if (!clips.length) return null;
+  const from = Math.max(0, Math.min(...clips.map((clip) => clip.start)));
+  const to = Math.max(...clips.map((clip) => clip.start + clip.duration));
+  return { from, to: Math.max(from + 0.0625, to) };
+}
+

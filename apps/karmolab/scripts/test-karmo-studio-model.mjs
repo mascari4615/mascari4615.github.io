@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Date, JSON, crypto });
-const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT, nextClipColor, CLIP_COLORS } = module.exports;
+const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker, clampTrackHeight, TRACK_HEIGHT, nextClipColor, CLIP_COLORS, tapTempo, selectionRange } = module.exports;
 
 const note = (beat, pitch = 60, duration = 0.5, velocity = 0.8) => ({ id: `n${beat}-${pitch}`, beat, duration, pitch, velocity });
 
@@ -229,4 +229,27 @@ assert.equal(old.locked, false, '옛 저장본은 안 잠김');
 assert.equal(old.mute, false, '옛 저장본은 소리 켜짐');
 assert.equal(old.color, undefined, '옛 저장본은 트랙 색');
 
-console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘 · 구간 이름표 · 줄 높이 · 클립 잠금·색');
+// 두드려서 BPM — 한 번은 셀 수 없다
+assert.equal(tapTempo([]), null);
+assert.equal(tapTempo([1000]), null, '한 번은 못 센다');
+assert.equal(tapTempo([0, 500, 1000, 1500]), 120, '0.5초 간격 = 120');
+assert.equal(tapTempo([0, 1000, 2000]), 60);
+// 한 번 크게 어긋난 두드림이 전체를 끌고 가지 않는다
+assert.equal(tapTempo([0, 500, 1000, 2400, 2900, 3400]), 120, '튀는 간격은 뺀다');
+// 너무 오래 쉰 것은 아예 안 센다
+assert.equal(tapTempo([0, 9000]), null, '3초 넘게 쉬면 새로 시작');
+// 범위를 벗어난 속도는 접는다
+assert.ok(tapTempo([0, 10]) <= 300, '너무 빠르면 상한');
+assert.ok(tapTempo([0, 2400]) >= 30, '너무 느리면 하한');
+// 순서가 뒤섞여 들어와도 같은 답
+assert.equal(tapTempo([1000, 0, 500]), 120);
+
+// 고른 구간
+assert.equal(selectionRange([]), null, '고른 게 없으면 null');
+assert.deepEqual({ ...selectionRange([{ start: 8, duration: 4 }, { start: 2, duration: 2 }]) }, { from: 2, to: 12 });
+assert.deepEqual({ ...selectionRange([{ start: 5, duration: 0 }]) }, { from: 5, to: 5.0625 }, '길이 0 이어도 구간이 생긴다');
+const negative = selectionRange([{ start: -3, duration: 2 }]);
+assert.equal(negative.from, 0, '음수 시작은 0 으로');
+assert.ok(negative.to > negative.from, '끝이 시작보다 앞설 수 없다');
+
+console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘 · 구간 이름표 · 줄 높이 · 클립 잠금·색 · TAP·선택구간');

@@ -220,6 +220,18 @@ await page.keyboard.press('Alt+ArrowRight');await page.waitForTimeout(120);
 const playheadAfterMarkerKey=await page.locator('[data-role=playhead]').evaluate((element)=>parseFloat(element.style.left));
 await page.locator('[data-marker]').first().click({button:'right'});await page.waitForTimeout(140);
 const markerCountAfterDelete=await page.locator('[data-marker]').count();
+/* TAP 으로 BPM · 선택 구간 반복 재생 · Space 두 번이면 처음으로. */
+const bpmBefore=await page.locator('[data-bind=bpm]').inputValue();
+for(const gap of [0,400,400,400,400]){await page.waitForTimeout(gap);await page.click('[data-act=tap]');}
+await page.waitForTimeout(150);
+const bpmAfterTap=Number(await page.locator('[data-bind=bpm]').inputValue());
+const loopBeforeSelection=await page.locator('.ks-loop').evaluate((element)=>({left:parseFloat(element.style.left),width:parseFloat(element.style.width)}));
+await page.click('[data-act=play-selection]');await page.waitForTimeout(60);
+const loopOnDuringSelection=await page.locator('[data-act=loop]').evaluate((element)=>element.classList.contains('is-on'));
+const loopDuringSelection=await page.locator('.ks-loop').evaluate((element)=>({left:parseFloat(element.style.left),width:parseFloat(element.style.width)}));
+await page.waitForTimeout(180);
+await page.click('[data-act=stop]');await page.waitForTimeout(150);
+const loopAfterSelection=await page.locator('.ks-loop').evaluate((element)=>({left:parseFloat(element.style.left),width:parseFloat(element.style.width)}));
 /* 클립 잠금 — 다 짠 부분을 실수로 못 건드리게. */
 await page.locator('.ks-clip.is-selected').first().click({button:'right'});await page.waitForSelector('.ks-context:not([hidden])');
 await page.locator('.ks-context [role=menuitem]').filter({hasText:'잠금'}).first().click();await page.waitForTimeout(160);
@@ -337,6 +349,10 @@ const after=await page.evaluate(()=>{const saved=JSON.parse(localStorage.getItem
 if(initial.tracks<2||initial.clips<1||initial.notes<4)problems.push(`기본 프로젝트가 비었다 (${JSON.stringify(initial)})`);
 if(clipStartAfterContext!==clipStartBeforeContext||!contextLabels.includes('편집기 열기'))problems.push(`우클릭 입력 격리 실패 (${clipStartBeforeContext}→${clipStartAfterContext}, ${contextLabels.join(', ')})`);
 if(selectTool!=='select'||drawTool!=='draw')problems.push(`FL식 tool 단축키 실패 (${selectTool}, ${drawTool})`);
+if(!(bpmAfterTap>=130&&bpmAfterTap<=170))problems.push(`TAP 이 BPM 을 못 맞춘다 (${bpmBefore}→${bpmAfterTap}, 0.4초 간격이면 150 근처)`);
+if(!loopOnDuringSelection)problems.push('선택 구간 재생인데 LOOP 가 안 켜졌다');
+if(loopDuringSelection.width===loopBeforeSelection.width&&loopDuringSelection.left===loopBeforeSelection.left)problems.push('선택 구간이 loop 로 안 잡힌다');
+if(Math.abs(loopAfterSelection.left-loopBeforeSelection.left)>1||Math.abs(loopAfterSelection.width-loopBeforeSelection.width)>1)problems.push(`멈춘 뒤 원래 loop 로 안 돌아왔다 (${JSON.stringify(loopBeforeSelection)}→${JSON.stringify(loopAfterSelection)})`);
 if(lockedCount<1)problems.push(`클립 잠금이 화면에 안 보인다 (${lockedCount})`);
 if(Math.abs(lockedLeftAfter-lockedLeftBefore)>0.6)problems.push(`잠긴 클립이 움직였다 (${lockedLeftBefore}→${lockedLeftAfter})`);
 if(clipsAfterLockedDelete!==clipsBeforeLockedDelete)problems.push(`잠긴 클립이 지워졌다 (${clipsBeforeLockedDelete}→${clipsAfterLockedDelete})`);
