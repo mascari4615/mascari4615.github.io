@@ -4,5 +4,19 @@
   "sound.part.audiolevel": "Level",
   "sound.part.audiospeed": "Speed",
   "sound.part.audiofade": "Fade",
-  "sound.part.audiojoin": "Join"
+  "sound.part.audiojoin": "Join",
+  "sound.tab": "Sound",
+  "sound.group.edit": "Edit",
+  "sound.group.join": "Join & convert",
+  "sound.group.make": "Create",
+  "sound.drop.title": "Drop an audio file here, or click to pick one",
+  "sound.drop.hint": "Your file never leaves this browser",
+  "sound.btn.change": "Change",
+  "sound.btn.back": "Pick a job",
+  "sound.btn.chain": "Continue with this result",
+  "sound.preview.fail": "This audio can't be previewed",
+  "sound.meta": "{time} · {ch}ch · {khz}kHz · {size}",
+  "sound.part.video2audio": "Pull sound from video",
+  "sound.part.soundscape": "Ambience",
+  "sound.part.morse": "Morse"
 }

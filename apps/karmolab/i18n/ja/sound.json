@@ -4,5 +4,19 @@
   "sound.part.audiolevel": "音量をそろえる",
   "sound.part.audiospeed": "速さ",
   "sound.part.audiofade": "フェード",
-  "sound.part.audiojoin": "つなげる"
+  "sound.part.audiojoin": "つなげる",
+  "sound.tab": "音",
+  "sound.group.edit": "整える",
+  "sound.group.join": "つなぐ・変換",
+  "sound.group.make": "つくる",
+  "sound.drop.title": "音声ファイルをここに置くか、押して選んでください",
+  "sound.drop.hint": "ファイルはこのブラウザから出ません",
+  "sound.btn.change": "変更",
+  "sound.btn.back": "作業を選ぶ",
+  "sound.btn.chain": "この結果で続ける",
+  "sound.preview.fail": "この音はプレビューできません",
+  "sound.meta": "{time} · {ch}ch · {khz}kHz · {size}",
+  "sound.part.video2audio": "動画から音を取り出す",
+  "sound.part.soundscape": "環境音",
+  "sound.part.morse": "モールス"
 }
