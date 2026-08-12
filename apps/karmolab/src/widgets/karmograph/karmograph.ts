@@ -408,7 +408,7 @@ import {
       <div class="km-root">
         <div class="km-toolbar">
           <select data-km="maps" title="${esc(t('karmograph.t92'))}"></select>
-          <button class="btn btn-ghost hidden" data-km="map-up" title="${esc(t('karmograph.t93'))}">⤴</button>
+          <button class="btn btn-ghost hidden" data-km="map-up" title="${esc(t('karmograph.t93'))}">↑</button>
           <span class="km-saved hidden" data-km="saved" title="${esc(t('karmograph.t94'))}">${esc(t('karmograph.t117'))}</span>
           <button class="btn btn-ghost" data-km="map-new" title="${esc(t('karmograph.t95'))}">+</button>
           <select data-km="new-kind" title="${esc(t('karmograph.t96'))}">${nodeKindOptions()}</select>
@@ -495,6 +495,25 @@ import {
 
     const root = container.querySelector('.km-root') as HTMLElement;
     const q = <T extends HTMLElement>(name: string): T => root.querySelector(`[data-km="${name}"]`) as T;
+
+    /**
+     * 그림 하나만 있는 단추에 **읽어 줄 이름**을 붙인다.
+     *
+     * 툴바·서랍의 단추 30여 개가 「↶」 「⤢」 「🗑」 처럼 글자 하나뿐이라, 화면을 읽어 주는
+     * 프로그램은 그 기호 이름(「위로 굽은 화살표」)만 읽어 준다 — 무슨 단추인지 알 수 없다.
+     * 이름은 이미 `title` 에 번역돼 들어 있으므로 그대로 옮긴다. 단추마다 손으로 적지 않는 이유:
+     * 새 단추가 생길 때마다 빠뜨리기 때문이다. 여기 한 줄이 그릴 때마다 전부 훑는다.
+     */
+    const nameIconButtons = (scope: ParentNode): void => {
+      for (const el of scope.querySelectorAll<HTMLElement>('[title]')) {
+        if (el.getAttribute('aria-label')) continue;
+        const label = (el.textContent ?? '').trim();
+        // 글자로 된 이름이 이미 보이면 그것이 곧 이름이다 — 덧붙이면 두 번 읽힌다.
+        if (label.length > 2) continue;
+        el.setAttribute('aria-label', el.getAttribute('title') ?? '');
+      }
+    };
+    nameIconButtons(root);
 
     const canvasEl = q<HTMLElement>('canvas');
     const sideEl = q<HTMLElement>('side');
@@ -1137,6 +1156,8 @@ import {
       // 패널을 다시 그릴 때마다 고른 것이 바뀌었을 수 있다 — 작은 도구 줄도 따라 움직인다.
       queueMicrotask(placeMini);
       renderSideBody();
+      // 패널은 통째로 다시 그려지므로 읽어 줄 이름도 그때마다 다시 붙인다.
+      nameIconButtons(sideEl);
       // 패널이 비어 있어도(고른 것 없음) 탭은 남긴다 — 탭이 사라지면 갈 곳이 안 보인다.
       if (sideEl.classList.contains('hidden')) {
         sideEl.classList.remove('hidden');
@@ -2516,7 +2537,9 @@ import {
     };
 
     /**
-     * ⤴ 위 판으로 — 지금 판을 **담고 있는 카드**를 찾아 그리로 돌아간다.
+     * ↑ 위 판으로 — 지금 판을 **담고 있는 카드**를 찾아 그리로 돌아간다.
+     *   (단추 글자는 ↑ 이다. ⤴ 는 기본이 **이모지 표현**이라 단색 툴바에서 혼자 파란 칩으로
+     *   떴다 — 이형 선택자를 붙여도 브라우저가 이모지 글꼴을 계속 골랐다. 실측 2026-08-12.)
      * 들어가는 길만 있고 나오는 길이 없으면 층이 미로가 된다(맵 고르개에서 이름으로 찾게 하는 건 길이 아니다).
      */
     function findParentOfCurrent(): { mapId: string; nodeId: string } | null {
