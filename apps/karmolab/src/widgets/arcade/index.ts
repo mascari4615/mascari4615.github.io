@@ -49,9 +49,10 @@ import { tug } from './games/tug';
 import { capturego } from './games/capturego';
 import { rps } from './games/rps';
 import { simon } from './games/simon';
+import { sudoku } from './games/sudoku';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory, hitblow, reversi, dots, speed, slide, ultimate, yacht, checkers, blackjack, president, dominoes, curling, bowling, pool, darts, airhockey, highlow, nim, hanabi, wordchain, lineup, minesweeper, liars, twenty, snake, onestroke, fishing, minishogi, hanafuda, tanks, mancala, shellgame, foxhounds, pong, derby, whack, tug, capturego, rps, simon];
+export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory, hitblow, reversi, dots, speed, slide, ultimate, yacht, checkers, blackjack, president, dominoes, curling, bowling, pool, darts, airhockey, highlow, nim, hanabi, wordchain, lineup, minesweeper, liars, twenty, snake, onestroke, fishing, minishogi, hanafuda, tanks, mancala, shellgame, foxhounds, pong, derby, whack, tug, capturego, rps, simon, sudoku];
 
 export const gameById = (id: string): GameDef<any, any> | undefined => GAMES.find((g) => g.id === id);
 
