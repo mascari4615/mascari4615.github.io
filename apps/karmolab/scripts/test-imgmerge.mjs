@@ -38,6 +38,7 @@ const result = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
+  await window.__karmoWaitDrawn(host);
   const solid = (w, h, color) =>
     new Promise((r) => {
       const cv = document.createElement('canvas');

@@ -35,6 +35,7 @@ const result = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
+  await window.__karmoWaitDrawn(host);
   // 색이 뚜렷한 시험 로고
   const cv = document.createElement('canvas');
   cv.width = 400; cv.height = 400;

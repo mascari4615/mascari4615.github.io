@@ -37,6 +37,7 @@ const result = await page.evaluate(async () => {
   document.body.appendChild(makeHost);
   tool.tabs[0].build(makeHost);
 
+  await window.__karmoWaitDrawn(makeHost);
   const setLen = (n) => {
     makeHost.querySelector('#pgLen').value = String(n);
     makeHost.querySelector('#pgLen').dispatchEvent(new Event('input'));

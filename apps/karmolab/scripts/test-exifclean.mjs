@@ -97,6 +97,7 @@ const result = await page.evaluate(async (b64) => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
+  await window.__karmoWaitDrawn(host);
   const input = await window.__karmoWaitIn(host, '#exFile');
   const dt = new DataTransfer();
   dt.items.add(file);

@@ -38,6 +38,7 @@ const out = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
+  await window.__karmoWaitDrawn(host);
   const set = (id, v) => {
     const el = host.querySelector(id);
     if (el.type === 'checkbox') el.checked = v;

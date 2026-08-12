@@ -34,6 +34,7 @@ const result = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
+  await window.__karmoWaitDrawn(host);
   const set = (text) => {
     host.querySelector('#tiText').value = text;
     host.querySelector('#tiText').dispatchEvent(new Event('input'));

@@ -85,6 +85,7 @@ const out = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
+  await window.__karmoWaitDrawn(host);
   const input = await window.__karmoWaitIn(host, '#prFile');
   const dt = new DataTransfer();
   dt.items.add(new File([srcBytes], '문서.pdf', { type: 'application/pdf' }));

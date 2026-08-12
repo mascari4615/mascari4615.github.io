@@ -38,6 +38,7 @@ const out = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
+  await window.__karmoWaitDrawn(host);
   const canvas = await window.__karmoWaitIn(host, '#bcCanvas');
   const setKind = (k) => host.querySelector(`#bcKind [data-kind="${k}"]`).click();
   const setValue = (v) => {

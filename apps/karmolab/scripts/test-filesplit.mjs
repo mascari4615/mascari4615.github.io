@@ -36,6 +36,7 @@ const result = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
+  await window.__karmoWaitDrawn(host);
   const digestOf = async (blob) =>
     Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', await blob.arrayBuffer())))
       .map((b) => b.toString(16).padStart(2, '0'))

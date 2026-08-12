@@ -51,6 +51,19 @@ export async function serveAppAssets(page, root, options = {}) {
     /* `build()` 가 말 묶음을 받아 온 **뒤에** 그리므로, 그려질 때까지 기다린다(sleep 아님).
        안 나타나면 조용히 멈추지 않고 그 사실을 말하고 죽는다 — 검사가 굶었는지 제품이
        깨졌는지는 그 한 줄로 갈린다. */
+    /* `build(host)` 바로 뒤에 한 번 부르면 된다 — 그 안이 무엇으로 그려지든, **뭔가 그려질
+       때까지** 기다린다. 칸 이름마다 기다리는 것보다 부르는 자리가 하나라 안 샌다. */
+    window.__karmoWaitDrawn = async (host, ms = 8000) => {
+      const until = Date.now() + ms;
+      for (;;) {
+        if (host.children.length > 0) return host;
+        if (Date.now() > until) {
+          throw new Error(`build() 뒤 ${ms}ms 가 지나도 아무것도 안 그려졌다 — 기다리는 말 묶음이 안 온다`);
+        }
+        await new Promise((r) => setTimeout(r, 25));
+      }
+    };
+
     window.__karmoWaitIn = async (host, selector, ms = 8000) => {
       const until = Date.now() + ms;
       for (;;) {
