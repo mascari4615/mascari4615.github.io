@@ -30,8 +30,9 @@ import { nimView } from './games/nim-view';
 import { hanabiView } from './games/hanabi-view';
 import { wordchainView } from './games/wordchain-view';
 import { lineupView } from './games/lineup-view';
+import { minesweeperView } from './games/minesweeper-view';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const VIEWS: Array<GameView<any, any>> = [reflexView, gomokuView, fourView, memoryView, hitblowView, reversiView, dotsView, speedView, slideView, ultimateView, yachtView, checkersView, blackjackView, presidentView, dominoesView, curlingView, bowlingView, poolView, dartsView, airhockeyView, highlowView, nimView, hanabiView, wordchainView, lineupView];
+export const VIEWS: Array<GameView<any, any>> = [reflexView, gomokuView, fourView, memoryView, hitblowView, reversiView, dotsView, speedView, slideView, ultimateView, yachtView, checkersView, blackjackView, presidentView, dominoesView, curlingView, bowlingView, poolView, dartsView, airhockeyView, highlowView, nimView, hanabiView, wordchainView, lineupView, minesweeperView];
 
 export const viewById = (id: string): GameView<any, any> | undefined => VIEWS.find((v) => v.id === id);

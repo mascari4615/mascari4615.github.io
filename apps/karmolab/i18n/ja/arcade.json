@@ -189,5 +189,9 @@
   "arcade.lineup.send": "この順で",
   "arcade.lineup.undo": "ひとつ戻す",
   "arcade.lineup.sent": "出した — みんなを待つ",
-  "arcade.lineup.win": "{who} — {n}点"
+  "arcade.lineup.win": "{who} — {n}点",
+  "arcade.game.minesweeper.name": "マインスイーパ",
+  "arcade.game.minesweeper.desc": "同じ盤で競争。踏んだ人だけ終わり",
+  "arcade.mine.win": "{who} — {n}マス",
+  "arcade.mine.dead": "踏んだ"
 }

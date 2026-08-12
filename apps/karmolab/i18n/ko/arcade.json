@@ -189,5 +189,9 @@
   "arcade.lineup.send": "이 순서로",
   "arcade.lineup.undo": "하나 무르기",
   "arcade.lineup.sent": "냈다 — 다들 낼 때까지",
-  "arcade.lineup.win": "{who} — {n}점"
+  "arcade.lineup.win": "{who} — {n}점",
+  "arcade.game.minesweeper.name": "지뢰 찾기",
+  "arcade.game.minesweeper.desc": "같은 밭을 놓고 경주. 밟으면 그 사람만 끝",
+  "arcade.mine.win": "{who} — {n}칸",
+  "arcade.mine.dead": "밟았다"
 }

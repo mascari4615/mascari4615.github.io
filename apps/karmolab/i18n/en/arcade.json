@@ -189,5 +189,9 @@
   "arcade.lineup.send": "This order",
   "arcade.lineup.undo": "Undo one",
   "arcade.lineup.sent": "Sent — waiting for the rest",
-  "arcade.lineup.win": "{who} — {n} points"
+  "arcade.lineup.win": "{who} — {n} points",
+  "arcade.game.minesweeper.name": "Minesweeper",
+  "arcade.game.minesweeper.desc": "Same field, a race. Step on one and only you are out",
+  "arcade.mine.win": "{who} — {n} cells",
+  "arcade.mine.dead": "Stepped on one"
 }

@@ -292,6 +292,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-lup{padding:8px 14px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:inherit;cursor:pointer}',
       '.ac-luline{display:flex;flex-direction:column;gap:4px;align-items:center;margin:var(--space-lg) 0}',
       '.ac-luline span{padding:4px 12px;border:1px solid var(--border);border-radius:8px;font-size:var(--font-size-sm)}',
+      '.ac-ms{max-width:min(92vw,340px);margin:var(--space-lg) auto}',
+      '.ac-msgrid{display:grid;grid-template-columns:repeat(var(--w),1fr);gap:2px}',
+      '.ac-mc{aspect-ratio:1;border:1px solid var(--border);border-radius:3px;background:color-mix(in srgb,var(--accent) 14%,var(--surface));font-size:min(3.6vw,15px);font-weight:700;padding:0;cursor:pointer;touch-action:none}',
+      '.ac-mc.ac-open{background:var(--surface);cursor:default}',
+      '.ac-mc.ac-flag{color:#ef4444}',
+      '.ac-msbar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:var(--space-lg)}',
       '.ac-code{font-size:clamp(28px,8vw,48px);font-weight:800;letter-spacing:.18em;text-align:center;margin:var(--space-lg) 0}',
       '.ac-share{display:flex;gap:6px;margin:var(--space-lg) 0}',
       '.ac-share input{flex:1;min-width:0}'
