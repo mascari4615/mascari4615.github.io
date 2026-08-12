@@ -49,5 +49,8 @@
   "arcade.game.dots.name": "점과 상자",
   "arcade.game.dots.desc": "선을 그어 칸을 닫는다. 닫으면 한 번 더",
   "arcade.dots.win": "{who} — {n}칸",
-  "arcade.dots.draw": "똑같이 나눠 가졌다"
+  "arcade.dots.draw": "똑같이 나눠 가졌다",
+  "arcade.game.speed.name": "스피드",
+  "arcade.game.speed.desc": "차례 없음. 한 끗 위아래면 먼저 내는 사람이 임자",
+  "arcade.speed.win": "{who} 이(가) 먼저 털었다"
 }

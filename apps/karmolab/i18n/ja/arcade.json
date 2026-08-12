@@ -49,5 +49,8 @@
   "arcade.game.dots.name": "点と四角",
   "arcade.game.dots.desc": "線を引いて四角を閉じる。閉じたらもう一回",
   "arcade.dots.win": "{who} — {n}マス",
-  "arcade.dots.draw": "同じだけ分けた"
+  "arcade.dots.draw": "同じだけ分けた",
+  "arcade.game.speed.name": "スピード",
+  "arcade.game.speed.desc": "手番なし。1つ上か下なら早い者勝ち",
+  "arcade.speed.win": "{who} が先に出し切った"
 }

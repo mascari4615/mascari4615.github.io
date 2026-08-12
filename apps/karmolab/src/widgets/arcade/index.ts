@@ -12,9 +12,10 @@ import { memory } from './games/memory';
 import { hitblow } from './games/hitblow';
 import { reversi } from './games/reversi';
 import { dots } from './games/dots';
+import { speed } from './games/speed';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory, hitblow, reversi, dots];
+export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory, hitblow, reversi, dots, speed];
 
 export const gameById = (id: string): GameDef<any, any> | undefined => GAMES.find((g) => g.id === id);
 

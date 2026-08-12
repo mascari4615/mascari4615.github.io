@@ -49,5 +49,8 @@
   "arcade.game.dots.name": "Dots and Boxes",
   "arcade.game.dots.desc": "Draw lines, close boxes. A box buys another turn",
   "arcade.dots.win": "{who} — {n} boxes",
-  "arcade.dots.draw": "Split evenly"
+  "arcade.dots.draw": "Split evenly",
+  "arcade.game.speed.name": "Speed",
+  "arcade.game.speed.desc": "No turns. One rank up or down — first hand wins it",
+  "arcade.speed.win": "{who} emptied first"
 }
