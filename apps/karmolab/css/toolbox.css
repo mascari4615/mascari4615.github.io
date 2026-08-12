@@ -1388,6 +1388,14 @@ a.landing-cta-card:hover { color: inherit; }
 .kp-inline .kp-input-icon { width: 18px; height: 18px; flex: 0 0 auto; }
 .kp-inline .kp-kbd { flex: 0 0 auto; }
 .kp-inline input.kp-input { flex: 1 1 auto; min-width: 0; padding: 12px 0; font-size: var(--font-size-md); }
+/* 껍데기(바탕·테두리·그림자)를 여기서도 지운다 (2026-08-12).
+   `.kp-box input.kp-input` 쪽에는 이 초기화가 있는데 **이 줄은 그 구역 밖**이라(첫 화면에
+   박히는 인라인 팔레트는 앞 구역에 산다) 앱의 일반 `input` 차림이 되살아났다 — 상자 안에
+   네모가 하나 더 보이는 모양이다. 눈으로는 흘려보내기 쉬워 검사가 계산된 값으로 잡는다. */
+.kp-inline input.kp-input,
+.kp-inline input.kp-input:focus {
+    background: none; border: none; outline: none; box-shadow: none;
+}
 
 /* ═══════ 명령 팔레트 (TASK-KL-099) ═══════
    한 벌의 규칙이 두 자리를 칠한다 — 첫 화면에 박힌 것(.kp-inline)과 ⌘K 로 뜨는 것
