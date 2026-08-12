@@ -100,6 +100,10 @@
     "team": {
       "title": "Team & collaboration",
       "lead": "Going fast alone and going far together are different skills"
+    },
+    "career": {
+      "title": "Career & growth",
+      "lead": "The part skill alone does not cover — being seen, and lasting"
     }
   },
   "stages": {
@@ -165,7 +169,10 @@
     "ml-c": "After it ships",
     "team-a": "Let words flow",
     "team-b": "Let work move",
-    "team-c": "Let people stay"
+    "team-c": "Let people stay",
+    "career-a": "Make it visible",
+    "career-b": "Move and negotiate",
+    "career-c": "Keep going"
   },
   "nodes": {
     "web-html": {
@@ -1634,6 +1641,70 @@
       "check": "Sharing a mistake visibly carries no penalty",
       "links": [
         "Google Project Aristotle"
+      ]
+    },
+    "career-portfolio": {
+      "title": "Portfolio — one finished thing",
+      "why": "One running project beats saying \"I can do it\", and tutorial clones send a weak signal.",
+      "check": "You have one project someone else can actually run",
+      "links": [
+        "GitHub profile README guide"
+      ]
+    },
+    "career-resume": {
+      "title": "Resume — results, not duties",
+      "why": "\"Was responsible for\" carries no information; write what changed and by how much.",
+      "check": "Every entry has problem, action and a measurable result",
+      "links": [
+        "Awesome resume resources"
+      ]
+    },
+    "career-writing": {
+      "title": "Writing and speaking — leaving traces",
+      "why": "Writing introduces you while you sleep, and it organizes your own thinking.",
+      "check": "You publish one thing you learned",
+      "links": [
+        "Julia Evans — blogging myths"
+      ]
+    },
+    "career-interview": {
+      "title": "Interviews — coding and design",
+      "why": "Coding tests, system design and behavioral questions each need different preparation.",
+      "check": "You solve problems while thinking out loud",
+      "links": [
+        "NeetCode roadmap"
+      ]
+    },
+    "career-offer": {
+      "title": "Compensation and negotiation",
+      "why": "Simply not naming a number first changes outcomes — it is an information game.",
+      "check": "You research the market range and argue from evidence",
+      "links": [
+        "levels.fyi"
+      ]
+    },
+    "career-network": {
+      "title": "People — relationships where help flows",
+      "why": "Good opportunities usually arrive through people, not postings — and it is contribution, not sales.",
+      "check": "You have a few relationships where you helped first",
+      "links": [
+        "Open Source Guides — how to contribute"
+      ]
+    },
+    "career-growth": {
+      "title": "Growth path — senior and beyond",
+      "why": "Level comes from the size of uncertainty you handle, not from years served.",
+      "check": "You can state the behaviors expected at the next level",
+      "links": [
+        "StaffEng archive"
+      ]
+    },
+    "career-burnout": {
+      "title": "Burnout and sustainability",
+      "why": "It comes less from doing a lot and more from seeing no end — lasting requires structure.",
+      "check": "Rest is actually in the plan",
+      "links": [
+        "WHO — burnout definition"
       ]
     }
   }
