@@ -286,5 +286,12 @@
   "arcade.game.whack.name": "Whack-a-Mole",
   "arcade.game.whack.desc": "Hit them as they pop. 💣 costs you",
   "arcade.whack.bad": "💣 −2",
-  "arcade.whack.win": "{who} — {n} points"
+  "arcade.whack.win": "{who} — {n} points",
+  "arcade.game.tug.name": "Tug of War",
+  "arcade.game.tug.desc": "Pull to drag the rope. Too fast and it slips",
+  "arcade.tug.pull": "Pull",
+  "arcade.tug.hint": "Find the rhythm",
+  "arcade.tug.tooFast": "Too fast — no grip",
+  "arcade.tug.win": "{who} dragged it over",
+  "arcade.tug.draw": "Time — a draw"
 }

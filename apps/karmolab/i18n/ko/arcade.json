@@ -286,5 +286,12 @@
   "arcade.game.whack.name": "두더지 잡기",
   "arcade.game.whack.desc": "나오는 대로 두드린다. 💣 는 치면 깎인다",
   "arcade.whack.bad": "💣 −2",
-  "arcade.whack.win": "{who} — {n}점"
+  "arcade.whack.win": "{who} — {n}점",
+  "arcade.game.tug.name": "줄다리기",
+  "arcade.game.tug.desc": "누르는 만큼 끌려온다. 다만 너무 빠르면 헛심",
+  "arcade.tug.pull": "당기기",
+  "arcade.tug.hint": "박자를 맞춰 당기세요",
+  "arcade.tug.tooFast": "너무 빠르다 — 헛심",
+  "arcade.tug.win": "{who} 이(가) 끌어갔다",
+  "arcade.tug.draw": "시간이 다 됐다 — 비겼다"
 }
