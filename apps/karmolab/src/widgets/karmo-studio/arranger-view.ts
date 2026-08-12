@@ -147,3 +147,10 @@ export function visibleClips<T extends { start: number; duration: number }>(
   return clips.filter((clip) => clip.start + clip.duration > from && clip.start < to);
 }
 
+/** 빈 lane 에 뭘 하면 되는지 — 지금 든 도구에 따라 다르게 말한다. */
+export function laneHint(tool: 'draw' | 'select' | 'slice', kind: 'audio' | 'midi'): string {
+  if (tool === 'select') return '끌어서 여러 개 고르기';
+  if (tool === 'slice') return '클립을 눌러 자르기';
+  return kind === 'midi' ? '눌러서 MIDI 클립 만들기' : 'IMPORT AUDIO 로 음원 넣기';
+}
+

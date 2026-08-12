@@ -12,7 +12,7 @@ const module = { exports: {} };
 const modelStub = { AUTOMATION_RANGE: { volume: { min: 0, max: 1.2 }, pan: { min: -1, max: 1 }, reverb: { min: 0, max: 1 } } };
 vm.runInNewContext(`(function(exports,module,require){${compiled}
 })(module.exports,module,()=>modelStub);`, { module, console, Math, modelStub });
-const { automationY, automationValue, AUTOMATION_GEOMETRY, waveformPath, waveformSvg, waveMissing, clipHtml, automationHtml, visibleClips, previewNotes } = module.exports;
+const { automationY, automationValue, AUTOMATION_GEOMETRY, waveformPath, waveformSvg, waveMissing, clipHtml, automationHtml, visibleClips, previewNotes, laneHint } = module.exports;
 
 const esc = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const track = { id: 't1', kind: 'midi', name: 'Inst', color: '#8b7cf6', volume: 0.8, pan: 0, mute: false, solo: false, eqLow: 0, eqMid: 0, eqHigh: 0, compressor: 0, reverb: 0, instrument: 'saw', clips: [], automation: { volume: [], pan: [] }, folded: false };
@@ -124,4 +124,15 @@ assert.ok(reverbLane.includes('data-auto-kind="reverb"'));
 assert.ok(reverbLane.includes('data-auto-param="reverb"') && reverbLane.includes('data-auto-param="vol'.concat('ume"')), '항목 단추가 셋');
 assert.ok(reverbLane.includes('50%'), '값은 퍼센트로 읽는다');
 
-console.log('[test-karmo-studio-arranger-view] ✓ 자동화 좌표 · 파형 96칸 · 클립 본문 분기 · 이스케이프 · 자동화 선 · 화면 밖 걸러내기');
+// 빈 줄 안내는 지금 든 도구를 따라간다
+assert.ok(laneHint('draw', 'midi').includes('MIDI'), '그리기 + MIDI');
+assert.ok(laneHint('draw', 'audio').includes('음원'), '그리기 + 오디오는 음원 넣기');
+assert.ok(laneHint('select', 'midi').includes('고르기'), '고르기 도구');
+assert.ok(laneHint('slice', 'audio').includes('자르기'), '자르기 도구');
+for (const tool of ['draw', 'select', 'slice']) {
+  for (const kind of ['midi', 'audio']) {
+    assert.ok(laneHint(tool, kind).trim().length > 4, `${tool}/${kind} 안내가 비었다`);
+  }
+}
+
+console.log('[test-karmo-studio-arranger-view] ✓ 자동화 좌표 · 파형 96칸 · 클립 본문 분기 · 이스케이프 · 자동화 선 · 화면 밖 걸러내기 · 빈 줄 안내');
