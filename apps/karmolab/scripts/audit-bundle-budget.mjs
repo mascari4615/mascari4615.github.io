@@ -104,8 +104,22 @@ const fails = [];
  * 들어오거나 번들이 새는 그 경우. 그래서 기준선을 박은 커밋 이후 그 위젯의 소스가 바뀌었는지
  * 묻는다: 바뀌었으면 「사람이 더한 것」이라 알리기만 하고, 안 바뀌었는데 커졌으면 그때 막는다.
  */
+/* ★ **모르면 「안 건드렸다」고 하지 않는다** (2026-08-12, CI 에서 바로 되받았다).
+ *   CI 체크아웃은 기본이 **커밋 하나짜리**(shallow)라 과거를 물어볼 수가 없다. 그런데 첫 판은
+ *   물어보지 못한 것을 `false`(= 아무도 안 건드렸다)로 읽어, 정당한 성장 넷을 전부 막았다.
+ *   못 물어보는 상태는 「아니오」가 아니라 **모름**이다 — 모르면 막지 않고 알리기만 한다. */
+const historyReachable = (() => {
+  try {
+    const shallow = execFileSync('git', ['rev-parse', '--is-shallow-repository'],
+      { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    return shallow === 'false';
+  } catch {
+    return false;
+  }
+})();
+
 function sourceTouchedSince(baseCommit, name) {
-  if (!baseCommit) return false;
+  if (!baseCommit || !historyReachable) return true; // 모름 → 막지 않는다
   /* `tools/qrgen.js` → `src/widgets/tools/qrgen*`, `karmograph/karmograph.js` → 그 폴더 전체 */
   const rel = name.replace(/\.js$/, '');
   const dir = rel.includes('/') ? rel.split('/').slice(0, -1).join('/') : '';
@@ -141,7 +155,7 @@ for (const name of names) {
   const grew = now - was;
   if (grew >= GROW_BYTES || (now >= was * GROW_RATIO && grew >= GROW_RATIO_MIN_BYTES)) {
     const line = `${name} ${kb(was)} → ${kb(now)} (+${kb(now - was)}, ${((now / was - 1) * 100).toFixed(0)}%)`;
-    if (sourceTouchedSince(baselineCommit, name)) grown.push(line);
+    if (sourceTouchedSince(baselineCommit, name)) grown.push(line + (historyReachable ? '' : ' (지난 기록을 못 봐서 이유는 모름)'));
     else fails.push(`${line} — **아무도 안 건드렸는데 커졌다**`);
   }
 }
