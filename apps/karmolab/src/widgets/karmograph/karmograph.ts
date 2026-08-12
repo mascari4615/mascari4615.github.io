@@ -230,6 +230,12 @@ import {
       border-radius:10px; background:var(--bg-secondary); box-shadow:0 12px 32px rgba(0,0,0,.4);
       max-height:calc(100dvh - 170px); overflow-y:auto; overscroll-behavior:contain; }
     .km-drawer.hidden { display:none; }
+    /* ★ 구를 수 있다는 **표시**가 없었다 (TASK-KL-271). 972px 중 728px 만 보이는데 손잡이가
+       안 보여서, 잘려 있는 줄 알고 아래쪽 항목을 아예 없는 것으로 여긴다 — 실측 후 확인. */
+    .km-drawer { scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+    .km-drawer::-webkit-scrollbar { width:8px; }
+    .km-drawer::-webkit-scrollbar-thumb { background:var(--border); border-radius:99px;
+      border:2px solid transparent; background-clip:content-box; }
     .km-drawer label { display:flex; flex-direction:column; gap:4px; font-size:11px; color:var(--text-secondary); }
     /* 이름표 — 묶음의 머리. 얇고 작게, 대신 위에 숨 쉴 자리를 준다. */
     .km-drawer-h { font-size:10px; letter-spacing:.06em; color:var(--text-tertiary);
@@ -281,8 +287,11 @@ import {
       display:flex; gap:8px; align-items:center; padding:6px 10px; border-radius:999px;
       background:var(--bg-secondary); border:1px solid var(--border); font-size:12px; }
     /* 저장 표시 — 조용히 왔다 사라진다. 늘 떠 있으면 그것대로 잔소리가 된다. */
-    .km-saved { font-size:11px; color:var(--text-tertiary); padding:0 4px; opacity:.9; }
+    .km-saved { position:absolute; left:16px; bottom:16px; z-index:16; font-size:11px;
+      color:var(--text-secondary); padding:3px 9px; border-radius:999px; pointer-events:none;
+      background:var(--bg-secondary); border:1px solid var(--border); opacity:.94; }
     .km-saved.hidden { display:none; }
+    .km-root.is-presenting .km-saved { display:none; }
     /* 카드 위에 그 자리에서 뜨는 이름 칸 (TASK-KL-235). 카드와 **같은 크기·같은 글자**로 떠야
        「고치는 중」이 딴 창처럼 안 보인다. 판이 움직이면 닫는다 — 떠 있는 채 어긋나면 더 나쁘다. */
     .km-inline { position:absolute; z-index:20; box-sizing:border-box; font-weight:600;
@@ -481,7 +490,6 @@ import {
             aria-label="${esc(t('karmograph.t137'))}">✎</button>
           <button class="btn btn-ghost hidden" data-km="map-up" title="${esc(t('karmograph.t93'))}">↑<span
             class="km-btn-name">${esc(t('karmograph.btn.up'))}</span></button>
-          <span class="km-saved hidden" data-km="saved" title="${esc(t('karmograph.t94'))}">${esc(t('karmograph.savedHere'))}</span>
           <!-- 시작 갈래(작품 관계도·내 세계관·개념 설명)로 **돌아가는 유일한 길**이 이 단추다
                (빈 판에서만 그 고르개가 뜬다). 이름이 없으면 그 길이 안 보인다 — 2026-08-12 검토. -->
           <button class="btn btn-ghost" data-km="map-new" title="${esc(t('karmograph.t95'))}">+<span
@@ -564,6 +572,10 @@ import {
               <button class="btn btn-ghost km-zoom-val" data-km="zoom-val" title="${esc(t('karmograph.zoom.reset'))}">100%</button>
               <button class="btn btn-ghost" data-km="zoom-in" title="${esc(t('karmograph.zoom.in'))}">+</button>
             </div>
+            <!-- ★ 저장 표시는 **툴바 밖**에 산다 (TASK-KL-271 F3). 툴바 흐름 안에 있던 동안엔
+                 뜰 때마다 오른쪽 것들을 밀어서 「+ 새 판」이 208px → 318px 로 움직였다(실측).
+                 눌리는 자리가 스스로 움직이면 손이 헛간다 — 판 위 제 자리에서 왔다 사라진다. -->
+            <span class="km-saved hidden" data-km="saved" title="${esc(t('karmograph.t94'))}">${esc(t('karmograph.savedHere'))}</span>
             <div class="km-stage hidden" data-km="stage">
               <div class="km-stage-strip" data-km="stage-strip"></div>
               <div class="km-stage-title" data-km="stage-title"></div>
