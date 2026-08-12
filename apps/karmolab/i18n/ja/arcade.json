@@ -193,5 +193,14 @@
   "arcade.game.minesweeper.name": "マインスイーパ",
   "arcade.game.minesweeper.desc": "同じ盤で競争。踏んだ人だけ終わり",
   "arcade.mine.win": "{who} — {n}マス",
-  "arcade.mine.dead": "踏んだ"
+  "arcade.mine.dead": "踏んだ",
+  "arcade.game.liars.name": "ライアーダイス",
+  "arcade.game.liars.desc": "自分の目だけ見て場全体を宣言。本当でなくていい",
+  "arcade.liars.bid": "{n}個以上 {f}",
+  "arcade.liars.nobid": "好きに宣言して開始",
+  "arcade.liars.mine": "自分のサイコロ",
+  "arcade.liars.call": "うそだ",
+  "arcade.liars.waiting": "順番待ち",
+  "arcade.liars.real": "実際 {n}個",
+  "arcade.liars.win": "{who} が最後まで残った"
 }
