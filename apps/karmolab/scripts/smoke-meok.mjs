@@ -332,7 +332,42 @@ await page.click('.meok [data-act="mask-clear"]');
 await page.waitForTimeout(350);
 if ((await canvasInk()) < inkFull * 0.8) problems.push('가림막을 없앴는데 그림이 안 돌아온다 — 픽셀이 지워졌다는 뜻');
 
-/* ⑪ 화면이 넘치지 않는다(가로 스크롤). */
+/* ⑪ 글자 · 붓 담기 · 기울여 돌리기 */
+const layersBeforeText = await page.locator('.meok .meok-layer').count();
+page.once('dialog', dialog => dialog.accept('먹 테스트'));
+await page.click('.meok [data-act="add-text"]');
+await page.waitForTimeout(500);
+if ((await page.locator('.meok .meok-layer').count()) !== layersBeforeText + 1) {
+  problems.push('글자를 넣었는데 레이어가 안 늘었다');
+}
+const inkWithText = await canvasInk();
+if (inkWithText < 200) problems.push('글자가 화면에 안 그려졌다 (' + inkWithText + ')');
+
+page.once('dialog', dialog => dialog.accept('검사용 붓'));
+await page.click('.meok [data-act="brush-save"]');
+await page.waitForTimeout(300);
+if (!(await page.locator('.meok .meok-presets button', { hasText: '검사용 붓' }).count())) {
+  problems.push('담아 둔 붓이 목록에 안 뜬다');
+}
+
+/* 「고치기」는 접혀 있을 수 있다(새로고침하면 닫힌 채로 뜬다) — 열고 나서 누른다. */
+await page.evaluate(() => { const box = document.querySelector('.meok-fix'); if (box) box.open = true; });
+await page.waitForTimeout(150);
+/* 판이 커졌는지는 **화면 크기**로 재면 안 된다 — 커진 판을 화면에 맞춰 다시 줄이므로
+   정사각 그림은 화면 위 크기가 그대로다. 대신 「몇 %로 보고 있나」가 내려간다. */
+const zoomText = () => page.locator('.meok [data-zoom]').textContent();
+const zoomBefore = parseFloat((await zoomText()) || '0');
+page.once('dialog', dialog => dialog.accept('30'));
+await page.click('.meok [data-act="rotate-free"]');
+await page.waitForTimeout(700);
+const zoomAfter = parseFloat((await zoomText()) || '0');
+if (!(zoomAfter < zoomBefore * 0.95)) {
+  problems.push('기울여 돌렸는데 판이 안 커졌다 — 모서리가 잘렸다는 뜻 (' + zoomBefore + '% → ' + zoomAfter + '%)');
+}
+await page.click('.meok [data-act="undo"]');
+await page.waitForTimeout(500);
+
+/* ⑫ 화면이 넘치지 않는다(가로 스크롤). */
 const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 if (overflow > 2) problems.push('가로로 ' + overflow + 'px 넘친다');
 
@@ -351,4 +386,4 @@ if (problems.length) {
   console.error('[smoke-meok] ✗\n - ' + problems.join('\n - '));
   process.exit(1);
 }
-console.log('[smoke-meok] ✓ 붓·되돌리기·레이어(숨김 반영)·프레임·픽셀 모드·선택영역(밖으로 안 샘)·고치기(필터·보정·회전)·자동 저장(새로고침 생존)·가림막 — 실제 브라우저');
+console.log('[smoke-meok] ✓ 붓·되돌리기·레이어(숨김 반영)·프레임·픽셀 모드·선택영역(밖으로 안 샘)·고치기(필터·보정·회전)·자동 저장(새로고침 생존)·가림막·글자·붓 담기·기울여 돌리기 — 실제 브라우저');

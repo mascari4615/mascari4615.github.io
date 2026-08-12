@@ -103,6 +103,31 @@ const paint = (s, x, y, rgba) => s.data.set(rgba, (y * s.w + x) * 4);
   assert.deepEqual(px(fy, 0, 1), [1, 2, 3, 255], '상하 뒤집기');
 }
 
+/* 자유 각도 — 판이 커지고, 되돌려 돌리면 그림이 제자리로 온다 */
+{
+  const s = D.createSurface(10, 4, [0, 0, 0, 255]);
+  const tilted = O.rotateFree(s, 45);
+  assert.ok(tilted.w > 9 && tilted.h > 9, '45도면 판이 커진다 — 모서리가 안 잘린다 (' + tilted.w + '×' + tilted.h + ')');
+  assert.equal(px(tilted, 0, 0)[3], 0, '새로 생긴 모서리는 비어 있다');
+  assert.ok(px(tilted, Math.floor(tilted.w / 2), Math.floor(tilted.h / 2))[3] > 200, '한가운데는 그림이 있다');
+
+  /* 0도는 그대로. */
+  const same = O.rotateFree(s, 0);
+  assert.equal(same.w, 10);
+  assert.deepEqual(px(same, 5, 2), [0, 0, 0, 255]);
+
+  /* 투명 가장자리에 검정이 안 배어난다. */
+  const edge = D.createSurface(8, 8);
+  for (let y = 2; y < 6; y += 1) for (let x = 2; x < 6; x += 1) paint(edge, x, y, [255, 255, 255, 255]);
+  const spun = O.rotateFree(edge, 30);
+  let stained = 0;
+  for (let p = 0; p < spun.w * spun.h; p += 1) {
+    const a = spun.data[p * 4 + 3];
+    if (a > 8 && a < 250 && spun.data[p * 4] < 120) stained += 1;
+  }
+  assert.equal(stained, 0, '반투명 가장자리가 어두워지지 않는다 (' + stained + '곳)');
+}
+
 /* ===== 보정 ===== */
 {
   const s = D.createSurface(2, 1, [100, 100, 100, 255]);
@@ -182,4 +207,4 @@ const paint = (s, x, y, rgba) => s.data.set(rgba, (y * s.w + x) * 4);
   assert.equal(O.contentBounds(D.createSurface(4, 4)), null, '빈 판은 null');
 }
 
-console.log('[test-meok-ops] ✓ 자르기(넓히기 포함) · 크기(미리곱한 알파·픽셀아트) · 회전·뒤집기 · 보정 5종 · 필터 8종 · 선택영역 밖 불변');
+console.log('[test-meok-ops] ✓ 자르기(넓히기 포함) · 크기(미리곱한 알파·픽셀아트) · 회전(90도·자유 각도)·뒤집기 · 보정 5종 · 필터 8종 · 선택영역 밖 불변');
