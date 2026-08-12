@@ -95,7 +95,11 @@ jobs:
           done
           echo "서버가 90초 안에 안 떴다"; cat /tmp/dev.log; exit 1
 
+      # ★ 이 단계에 **따로 상한**을 둔다. 판정 없이 잘린 판이 있었다(2026-08-12: 한 항목에
+      #   20분 넘게 매달려 있다가 job 째로 끊겼고, 로그는 단계가 끝나야 나와서 아무것도 못 봤다).
+      #   검사 안에도 항목별 상한이 있으니(STEP_LIMIT_MS) 보통은 그쪽이 먼저 말해 준다.
       - name: 캔버스를 실제로 띄워서 만져 본다
+        timeout-minutes: 12
         env:
           URL: http://127.0.0.1:8813/apps/karmolab/index.html
         run: node scripts/smoke-karmograph.mjs

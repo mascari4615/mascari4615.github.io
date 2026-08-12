@@ -30,8 +30,22 @@ await page.goto(URL, { waitUntil: 'domcontentloaded' });
 await page.evaluate(() => { localStorage.clear(); });
 await page.reload({ waitUntil: 'domcontentloaded' });
 
+/**
+ * 어느 항목에서 멈췄나 — **멈춘 검사는 빨강도 초록도 아니라서 신호가 아니다.**
+ * 이 검사가 CI 에서 20분 넘게 한 항목에 매달려 판정 없이 잘린 적이 있다(2026-08-12).
+ * 항목마다 시간 상한을 두고, 넘으면 그 이름과 함께 빨강으로 끝낸다.
+ */
+const STEP_LIMIT_MS = Number(process.env.STEP_LIMIT_MS || 90_000);
+const withLimit = (name, fn) => Promise.race([
+  fn(),
+  new Promise((_, reject) => setTimeout(
+    () => reject(new Error(`${Math.round(STEP_LIMIT_MS / 1000)}초 안에 안 끝났다 — 여기서 멈춰 있었다`)),
+    STEP_LIMIT_MS,
+  ).unref?.()),
+]);
+
 const step = async (name, fn) => {
-  try { await fn(); console.log(`  OK   ${name}`); }
+  try { await withLimit(name, fn); console.log(`  OK   ${name}`); }
   catch (e) {
     console.log(`  FAIL ${name} — ${e.message.split(`\n`)[0]}`);
     errors.push(`${name}: ${e.message.split(`\n`)[0]}`);
