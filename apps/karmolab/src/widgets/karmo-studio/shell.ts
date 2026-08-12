@@ -1,0 +1,18 @@
+/** Karmo Studio 화면 뼈대 — 값이 안 들어가는 고정 마크업 (TASK-KL-220). 동작은 없다. */
+export const KARMO_STUDIO_SHELL = `<div class="ks-root">
+      <div class="ks-toolbar">
+        <span class="ks-brand">KARMO STUDIO</span><button class="ks-btn" data-act="new">NEW</button><button class="ks-btn" data-act="open">OPEN</button><button class="ks-btn" data-act="save">SAVE</button><button class="ks-btn" data-act="undo" title="실행 취소 (Ctrl+Z)">↶</button><button class="ks-btn" data-act="redo" title="다시 실행 (Ctrl+Y)">↷</button>
+        <input class="ks-project-name" data-bind="project-name" aria-label="프로젝트 이름">
+        <button class="ks-btn" data-act="back" aria-label="처음으로">|◀</button><button class="ks-btn" data-act="play" aria-label="재생">▶</button><button class="ks-btn" data-act="stop" aria-label="정지">■</button><button class="ks-btn" data-act="record" aria-label="마이크 녹음">● REC</button><button class="ks-btn" data-act="metronome" title="박자 소리 (마디 첫 박은 높게)">🎵 CLICK</button><button class="ks-btn" data-act="count-in" title="녹음 전에 한 마디 세어 준다">COUNT-IN</button>
+        <span class="ks-time" data-role="time">1.1.00</span><label>BPM <input class="ks-number" data-bind="bpm" type="number" min="30" max="300"></label><label>METER <select class="ks-number" data-bind="meter"><option value="3">3/4</option><option value="4">4/4</option><option value="5">5/4</option><option value="6">6/4</option><option value="7">7/4</option></select></label>
+        <label>SNAP <select class="ks-number" data-bind="snap"><option value="1">1</option><option value="0.5">1/2</option><option value="0.25">1/4</option><option value="0.125">1/8</option><option value="0.0625">1/16</option></select></label>
+        <button class="ks-btn is-on" data-tool="draw" title="그리기 (P)">✎ DRAW</button><button class="ks-btn" data-tool="select" title="선택 (E)">□ SELECT</button><button class="ks-btn" data-tool="slice" title="자르기 (C)">╱ SLICE</button>
+        <button class="ks-btn" data-act="loop">LOOP</button><button class="ks-btn" data-act="audio">+ AUDIO</button><button class="ks-btn" data-act="midi">+ MIDI</button><button class="ks-btn" data-act="import-audio">IMPORT AUDIO</button>
+        <button class="ks-btn" data-act="cut" title="잘라내기 (Ctrl+X)">CUT</button><button class="ks-btn" data-act="copy" title="복사 (Ctrl+C)">COPY</button><button class="ks-btn" data-act="paste" title="붙여넣기 (Ctrl+V)">PASTE</button>
+        <span class="ks-spacer"></span><button class="ks-btn" data-act="zoom-out">−</button><button class="ks-btn" data-act="zoom-in">＋</button><button class="ks-btn" data-act="export-wav">EXPORT WAV</button><span class="ks-status" data-role="status">Ready</span>
+      </div>
+      <div class="ks-work"><div class="ks-arranger"><div class="ks-scroll" data-role="scroll"><div class="ks-ruler" data-role="ruler"></div><div data-role="tracks"></div><div class="ks-playhead" data-role="playhead"></div><div class="ks-band" data-role="band" hidden></div></div><div class="ks-editor" data-role="editor"></div></div>
+      <aside class="ks-side"><div class="ks-side-tabs"><button class="ks-btn is-on" data-side="inspector">INSPECTOR</button><button class="ks-btn" data-side="mixer">MIXER</button></div><div class="ks-side-body" data-role="side"></div></aside></div>
+      <div class="ks-modal-backdrop" data-role="backdrop"></div><div data-role="export"></div><div class="ks-context" data-role="context" role="menu" hidden></div>
+      <input type="file" data-file="audio" accept="audio/*" multiple hidden><input type="file" data-file="project" accept="application/json,.json" hidden>
+    </div>`;
