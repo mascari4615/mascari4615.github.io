@@ -241,6 +241,10 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .sm-resume:hover { background: var(--accent-dim); }
 .sm-resume-tag { font-size: 10px; letter-spacing: .06em; color: var(--accent); }
 .sm-resume-title { font-size: var(--font-size-sm); font-weight: 600; }
+.sm-resume.is-review { border-color: var(--secondary); background: var(--secondary-subtle, var(--bg-tertiary)); }
+.sm-resume.is-review .sm-resume-tag { color: var(--secondary); }
+.sm-node.is-review { border-color: var(--secondary); }
+.sm-review-tag { position: absolute; top: 8px; right: 10px; font-size: 12px; }
 .sm-resume-track { font-size: 11px; color: var(--text-tertiary); margin-left: auto; }
 .sm-tree-head { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--text-tertiary); margin-bottom: 8px; }
 .sm-tree { overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: 6px; }
@@ -426,6 +430,57 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       }
     })();
 
+    /**
+     * 간격 반복 — 한 번 맞혔다고 아는 게 아니다. 맞힐수록 사이를 벌리고, 틀리면 다시 좁힌다.
+     * 상자(box) 0~4 에 따라 다음에 볼 날이 정해진다: 1일 · 3일 · 7일 · 16일 · 35일.
+     */
+    const REVIEW_KEY = 'karmolab-studymap-review';
+    const STEPS_DAY = [1, 3, 7, 16, 35];
+    interface ReviewCard { box: number; due: number; miss: number }
+    type ReviewMap = Record<string, ReviewCard>;
+
+    function readReview(): ReviewMap {
+      try {
+        const raw = JSON.parse(localStorage.getItem(REVIEW_KEY) || '{}');
+        return raw && typeof raw === 'object' ? (raw as ReviewMap) : {};
+      } catch {
+        return {};
+      }
+    }
+    function writeReview(map: ReviewMap): void {
+      try {
+        localStorage.setItem(REVIEW_KEY, JSON.stringify(map));
+      } catch {
+        /* 못 적어도 이번 학습은 된다 — 복습 일정만 안 남는다 */
+      }
+    }
+    /** 맞히면 사이를 벌리고, 틀리면 오늘 안에 다시 본다(10분 뒤). */
+    function gradeReview(id: string, ok: boolean): ReviewCard {
+      const map = readReview();
+      const card = map[id] || { box: 0, due: 0, miss: 0 };
+      const day = 24 * 60 * 60 * 1000;
+      if (ok) {
+        card.box = Math.min(STEPS_DAY.length - 1, card.box + 1);
+        card.due = Date.now() + STEPS_DAY[card.box] * day;
+      } else {
+        card.box = Math.max(0, card.box - 1);
+        card.miss += 1;
+        card.due = Date.now() + 10 * 60 * 1000;
+      }
+      map[id] = card;
+      writeReview(map);
+      return card;
+    }
+    /** 지금 볼 때가 된 칸들 — 가장 오래 밀린 것부터. */
+    function dueList(): string[] {
+      const map = readReview();
+      const now = Date.now();
+      return Object.entries(map)
+        .filter(([id, c]) => c.due <= now && whereIs.has(id))
+        .sort((a, b) => a[1].due - b[1].due)
+        .map(([id]) => id);
+    }
+
     /** 마지막으로 연 강의 — 「이어서」의 근거. 화면을 닫아도 남는다. */
     const LAST_KEY = 'karmolab-studymap-last';
     const readLast = (): string => {
@@ -532,6 +587,9 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       return out;
     }
 
+    /** 지금 복습할 때가 된 칸 — 그릴 때마다 한 번만 계산한다. */
+    let dueSet = new Set<string>();
+
     /** 칸 한 장. 찾기 결과에서도 같은 카드를 쓴다 — 두 벌로 그리면 곧 어긋난다. */
     function cardHtml(n: SmNode, nextId: string | null): string {
       const isDone = done.has(n.id);
@@ -540,7 +598,9 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
        * 카드는 **제목과 한 줄 이유**까지만 — 넘어갈 기준·먼저 볼 칸·바깥 자료는 전부 강의 안으로 옮겼다.
        * 지도는 훑는 화면이라 카드마다 링크가 붙으면 눈이 갈 곳을 잃고, 링크를 누르면 사이트 밖으로 나간다.
        */
-      return `<div class="sm-node${isDone ? ' is-done' : ''}${isNext ? ' is-next' : ''}" data-id="${esc(n.id)}">
+      const needsReview = dueSet.has(n.id);
+      return `<div class="sm-node${isDone ? ' is-done' : ''}${isNext ? ' is-next' : ''}${needsReview ? ' is-review' : ''}" data-id="${esc(n.id)}">
+        ${needsReview ? `<span class="sm-review-tag" title="${esc(t('studymap.review.tag', undefined, '복습'))}">🔁</span>` : ''}
         ${isNext ? `<span class="sm-next-tag">${esc(t('studymap.next', undefined, '다음'))}</span>` : ''}
         <input type="checkbox" class="sm-check" name="studymap-done-${esc(n.id)}" data-node="${esc(n.id)}" ${isDone ? 'checked' : ''}
                aria-label="${esc(n.title)}">
@@ -781,13 +841,25 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             const chosen = qb.querySelector('input:checked') as HTMLInputElement | null;
             return chosen !== null && Number(chosen.value) === items[Number((qb as HTMLElement).dataset.quiz)].answer;
           });
+          /* 하나라도 틀리면 그 자리에서 복습 간격을 좁힌다 — 「맞힐 때까지」가 아니라 「또 볼 때까지」. */
+          const missed = picked !== item.answer;
+          if (missed) gradeReview(id, false);
+
+          if (cleared) {
+            const card = gradeReview(id, true);
+            const when = new Date(card.due).toLocaleDateString();
+            let note = quizRoot.querySelector('.sm-quiz-done');
+            if (!note) {
+              note = document.createElement('div');
+              note.className = 'sm-quiz-done';
+              quizRoot.appendChild(note);
+            }
+            note.textContent = t('studymap.review.set', { when }, '다 맞혔다 — 다음 복습은 {when}');
+          }
           if (cleared && !done.has(id)) {
             done.add(id);
             writeDone(done);
-            const msg = document.createElement('div');
-            msg.className = 'sm-quiz-done';
-            msg.textContent = t('studymap.lesson.cleared', undefined, '다 맞혔다 — 이 칸은 끝난 것으로 표시했다.');
-            quizRoot.appendChild(msg);
+            paintTracks();
             if (typeof Mdd !== 'undefined' && Mdd.linePreset) {
               Mdd.linePreset('success', { msg: t('studymap.mdd.step', undefined, '한 칸 나아갔어요.') });
             }
@@ -827,6 +899,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
       /* 「다음 한 칸」 = 아직 안 한 첫 노드. 지도를 열자마자 할 일이 하나 보여야 한다. */
       const next = all.find((n) => !done.has(n.id));
+      dueSet = new Set(dueList());
 
       if (query) {
         elStages.innerHTML = searchHtml();
@@ -852,13 +925,23 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             </button>`
             : '';
 
+        /* 복습이 밀려 있으면 「이어서」보다 먼저 보여 준다 — 새로 배우는 것보다 잊는 것이 빠르다. */
+        const due = dueList();
+        const review = due.length
+          ? `<button type="button" class="sm-resume is-review" data-open="${esc(due[0])}">
+              <span class="sm-resume-tag">${esc(t('studymap.review.tag', undefined, '복습'))}</span>
+              <span class="sm-resume-title">${esc(whereIs.get(due[0])?.node.title || '')}</span>
+              <span class="sm-resume-track">${esc(t('studymap.review.count', { n: due.length }, '{n}칸 밀림'))}</span>
+            </button>`
+          : '';
+
         const layer = zoom === 'tracks' ? layoutTree(trackTreeNodes()) : layoutTree(nodeTreeNodes(tr), 150, 104);
         const head =
           zoom === 'tracks'
             ? `<div class="sm-tree-head">${esc(t('studymap.tree.tracks', undefined, '갈래 지도 — 눌러서 안으로'))}</div>`
             : `<div class="sm-tree-head"><button type="button" class="sm-crumb-btn" data-zoom="tracks">${esc(t('studymap.tree.up', undefined, '← 갈래 지도'))}</button><span>${esc(tr.emoji)} ${esc(tr.title)}</span></div>`;
 
-        elStages.innerHTML = `${resume}${head}<div class="sm-tree">${treeSvg(layer, {
+        elStages.innerHTML = `${review}${resume}${head}<div class="sm-tree">${treeSvg(layer, {
           currentId: zoom === 'tracks' ? current : '',
           nextId: zoom === 'tracks' ? '' : next?.id || '',
         })}</div>`;

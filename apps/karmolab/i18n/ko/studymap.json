@@ -47,5 +47,8 @@
   "studymap.view.tree": "나무",
   "studymap.view.list": "목록",
   "studymap.tree.tracks": "갈래 지도 — 눌러서 안으로",
-  "studymap.tree.up": "← 갈래 지도"
+  "studymap.tree.up": "← 갈래 지도",
+  "studymap.review.tag": "복습",
+  "studymap.review.count": "{n}칸 밀림",
+  "studymap.review.set": "다 맞혔다 — 다음 복습은 {when}"
 }
