@@ -108,6 +108,10 @@
     "desktop": {
       "title": "Desktop apps",
       "lead": "What appears the moment web tech opens a window — files, permissions, updates, signing"
+    },
+    "pay": {
+      "title": "Payments & billing",
+      "lead": "Code that moves money — mistakes hurt users and are hard to undo"
     }
   },
   "stages": {
@@ -179,7 +183,10 @@
     "career-c": "Keep going",
     "desktop-a": "What to build it with",
     "desktop-b": "Make it feel native",
-    "desktop-c": "Keep it usable"
+    "desktop-c": "Keep it usable",
+    "pay-a": "Know the flow",
+    "pay-b": "Protect the money",
+    "pay-c": "Make it a business"
   },
   "nodes": {
     "web-html": {
@@ -1777,6 +1784,70 @@
       "check": "External links open in the system browser and permissions stay minimal",
       "links": [
         "Electron security checklist"
+      ]
+    },
+    "pay-flow": {
+      "title": "The life of one payment",
+      "why": "After the button, authorization, capture and settlement happen over days — that gap is where bugs live.",
+      "check": "You name authorization, capture, settlement and cancellation in order",
+      "links": [
+        "Stripe payment intents"
+      ]
+    },
+    "pay-idem": {
+      "title": "Idempotency — click twice, charge once",
+      "why": "Double charging is the most common and most painful incident; the network can always deliver twice.",
+      "check": "Sending the same request twice creates only one charge",
+      "links": [
+        "Stripe idempotent requests"
+      ]
+    },
+    "pay-webhook": {
+      "title": "Webhooks — the truth arrives later",
+      "why": "The success screen is only a hint; the server confirms state through webhooks.",
+      "check": "You verify webhook signatures and handle re-delivery",
+      "links": [
+        "Stripe webhooks"
+      ]
+    },
+    "pay-security": {
+      "title": "Never touch card data",
+      "why": "Storing it yourself pulls you into PCI scope; tokenization keeps it off your servers.",
+      "check": "No card number exists anywhere in your logs",
+      "links": [
+        "PCI DSS overview"
+      ]
+    },
+    "pay-money": {
+      "title": "Handling amounts — integers and currency",
+      "why": "Floating point money drifts by cents, and decimal places differ per currency.",
+      "check": "You store minor-unit integers together with a currency code",
+      "links": [
+        "ISO 4217 currency codes"
+      ]
+    },
+    "pay-refund": {
+      "title": "Refunds, disputes, cancellation",
+      "why": "A payment system without a reversal path is unfinished; partial refunds and proration are the tricky parts.",
+      "check": "You handle partial refunds and cancellations in code",
+      "links": [
+        "Stripe disputes"
+      ]
+    },
+    "pay-sub": {
+      "title": "Subscriptions — renewal and failure",
+      "why": "Cards expire and balances run out; recovering failed payments (dunning) is a large share of revenue.",
+      "check": "Retries and notices run automatically on renewal failure",
+      "links": [
+        "Stripe subscriptions"
+      ]
+    },
+    "pay-tax": {
+      "title": "Tax, receipts, settlement",
+      "why": "VAT and digital service taxes differ per country, and receipts are a legal requirement.",
+      "check": "There is a path for tax handling and receipt issuance",
+      "links": [
+        "Tax authority e-invoicing (KR)"
       ]
     }
   }
