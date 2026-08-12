@@ -15,18 +15,20 @@ name: "KarmoGraph 화면 검사"
 # (daily-browser-check.yml 과 같은 판단). 여기가 빨개도 사이트는 나간다 — 대신 반드시 보이게 둔다.
 
 on:
+  # ★ **push 마다 돌리지 않는다** (2026-08-12 에 push 트리거로 바꿔 봤다가 되돌린 자리).
+  #   이 저장소는 몇 분 간격으로 push 가 들어오는데, 이 검사는 브라우저를 깔고 앱을 지어
+  #   화면을 띄우느라 10분 대다. 러너 차례를 기다리는 판이 쌓이면서 **여섯 판 연속 판정이
+  #   안 났다** — 초록도 빨강도 아닌 것은 신호가 아니다. 시계로 돌려서 반드시 끝나게 한다.
+  #   (검사 자체를 고칠 때는 아래 push 트리거가 그 판을 바로 돌려 준다.)
   push:
     branches: [main, master]
     paths:
-      - apps/karmolab/src/widgets/karmograph/**
-      - apps/karmolab/src/lib/graph/**
-      - apps/karmolab/i18n/*/karmograph.json
       - apps/karmolab/scripts/smoke-karmograph.mjs
       - .github/workflows/karmograph-browser-check.yml
   # 캔버스는 셸·로더·i18n 바탕 위에 얹혀 있다. 그쪽이 바뀌어도 여기가 죽을 수 있으므로
-  # 하루 한 번은 무조건 띄워 본다 (이번 사고도 캔버스 파일 밖에서 시작됐다).
+  # 한 시간에 한 번 무조건 띄워 본다 (이번 사고도 캔버스 파일 밖에서 시작됐다).
   schedule:
-    - cron: "43 19 * * *" # 04:43 KST
+    - cron: "23 * * * *"
   workflow_dispatch:
 
 # ★ 앞 실행을 **취소하지 않는다** (2026-08-12).
