@@ -32,5 +32,7 @@
   "studymap.lesson.cleared": "다 맞혔다 — 이 칸은 끝난 것으로 표시했다.",
   "studymap.scope.personal": "내 것 — 이 저장소 이야기",
   "studymap.scope.badge": "내 것",
-  "studymap.lesson.tag": "강의"
+  "studymap.lesson.tag": "강의",
+  "studymap.find": "찾기",
+  "studymap.lesson.toc": "목차"
 }

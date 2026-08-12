@@ -32,5 +32,7 @@
   "studymap.lesson.cleared": "All correct — this topic is marked done.",
   "studymap.scope.personal": "Mine — about this repository",
   "studymap.scope.badge": "mine",
-  "studymap.lesson.tag": "lesson"
+  "studymap.lesson.tag": "lesson",
+  "studymap.find": "Find",
+  "studymap.lesson.toc": "Contents"
 }
