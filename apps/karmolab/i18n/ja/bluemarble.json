@@ -73,5 +73,6 @@
   "bluemarble.radio.fail": "放送局リストを取得できませんでした",
   "bluemarble.radio.hint": "輪をタップするとその町の放送（同じ輪をもう一度で次の局）",
   "bluemarble.radio.on": "{name} · {where} · 現地は{time}",
-  "bluemarble.radio.dead": "そこは今どこも放送していません"
+  "bluemarble.radio.dead": "そこは今どこも放送していません",
+  "bluemarble.intro.title": "ブルーマーブル"
 }

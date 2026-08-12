@@ -279,7 +279,11 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
           /* ── 상태 ─────────────────────────────────────────────────────── */
           let camLon = 126; // 처음 보이는 곳 = 우리가 있는 자리
           let camLat = 20;
-          let zoom = 1;
+          /* 처음엔 **작은 파란 구슬**이다 — 이름 그대로. 꽉 찬 지구는 「지구본」이 아니라
+             「땅 사진」이 된다(2026-08-12: 「지구 너무 커서 잘 안 보이네」). */
+          /** 얼마나 멀리 물러날 수 있나. 작을수록 구슬이 작아진다(0.2 = 화면 짧은 변의 20%). */
+          const MIN_ZOOM = 0.2;
+          let zoom = 0.4;
           let spin = prefs.spin;
           let W = 0;
           let H = 0;
@@ -816,29 +820,33 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
             const a = age < 1400 ? age / 1400 : age > 4600 ? Math.max(0, 1 - (age - 4600) / 1900) : 1;
             if (a <= 0.01) return;
             const c = ctx!;
+            /* 이름은 읽는 사람의 말로 적는다 — 한국어로 보고 있는데 라틴 글자만 뜨면 그건 남의 창문이다. */
+            const label = t('bluemarble.intro.title', undefined, 'BLUE MARBLE');
+            const hangul = /[가-힣㄰-㆏]/.test(label);
             c.save();
             c.textAlign = 'center';
             c.textBaseline = 'middle';
             try {
-              (c as unknown as { letterSpacing: string }).letterSpacing = '0.3em';
+              // 한글은 자간을 벌리면 낱자가 흩어져 보인다 — 라틴만 넓게
+              (c as unknown as { letterSpacing: string }).letterSpacing = hangul ? '0.08em' : '0.28em';
             } catch {
               /* 이 손잡이가 없는 브라우저는 자간 없이 나온다 — 못 읽을 정도는 아니다 */
             }
             /* 캔버스는 **CSS 변수를 못 읽는다** — `var(--font-sans)` 를 넣으면 글꼴 지정 자체가
-               버려지고 10px 기본값으로 그려진다(2026-08-12: 「제목이 안 보인다」의 정체). */
-            const FACE = 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
-            const label = 'BLUE MARBLE';
+               버려지고 10px 기본값으로 그려진다(2026-08-12: 「제목이 안 보인다」의 정체).
+               `KarmoSans` 는 100~900 을 담은 한 벌이라 **가장 두꺼운 900** 을 그대로 쓸 수 있다. */
+            const FACE = 'KarmoSans, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif';
             /* 화면 폭에 **맞춰 키운다.** 한 번 재고 그 비율로 되돌리면 폰이든 넓은 화면이든
                같은 크기로 꽉 찬다(어림잡아 고르면 어느 한쪽에서 반드시 어긋난다). */
             const want = W * 0.92;
-            c.font = `200 100px ${FACE}`;
+            c.font = `900 100px ${FACE}`;
             const unit = c.measureText(label).width / 100;
-            let size = want / unit;
+            let size = unit > 0 ? want / unit : W * 0.1;
             size = Math.min(size, H * 0.34); // 세로로도 넘치지 않게
-            c.font = `200 ${size}px ${FACE}`;
-            c.fillStyle = `rgba(255,255,255,${0.94 * a})`;
-            c.shadowColor = `rgba(120,180,255,${0.55 * a})`;
-            c.shadowBlur = size * 0.34;
+            c.font = `900 ${size}px ${FACE}`;
+            c.fillStyle = `rgba(255,255,255,${0.95 * a})`;
+            c.shadowColor = `rgba(120,180,255,${0.5 * a})`;
+            c.shadowBlur = size * 0.3;
             c.fillText(label, cx, cy);
             c.restore();
           }
@@ -1441,7 +1449,7 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
               if (!Number.isFinite(a) || !Number.isFinite(b)) return false;
               camLat = Math.max(-85, Math.min(85, a));
               camLon = ((((b + 180) % 360) + 360) % 360) - 180;
-              zoom = Number.isFinite(c) ? Math.max(0.75, Math.min(420, c)) : 2.4;
+              zoom = Number.isFinite(c) ? Math.max(MIN_ZOOM, Math.min(420, c)) : 2.4;
               return true;
             } catch (_) {
               return false;
@@ -1857,7 +1865,7 @@ import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioS
             (e: WheelEvent) => {
               e.preventDefault();
               // 위쪽 한계 = 담아 둔 그림이 아니라 위성 타일의 한계(250m/px)까지 간다
-              zoom = Math.max(0.75, Math.min(420, zoom * (e.deltaY < 0 ? 1.18 : 0.847)));
+              zoom = Math.max(MIN_ZOOM, Math.min(420, zoom * (e.deltaY < 0 ? 1.18 : 0.847)));
               idleAt = performance.now();
               scheduleRegion();
             },
