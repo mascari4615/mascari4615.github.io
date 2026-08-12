@@ -22,6 +22,11 @@ export interface DocTocOptions {
   prefix?: string;
   /** 이 개수 미만이면 목차를 만들지 않는다 — 짧은 글에 목차는 소음이다. */
   min?: number;
+  /**
+   * id 를 직접 짓고 싶을 때. 문서 위젯은 제목 글자에서 뽑은 id 로 **밖에 링크가 이미 걸려 있어서**
+   * 번호를 붙이는 기본 방식으로 바꾸면 그 링크들이 깨진다 — 그래서 여는 구멍.
+   */
+  idFrom?: (text: string, at: number) => string;
 }
 
 /** 제목 글자를 id 로. 한글을 살린다(로마자 변환은 오히려 못 읽는 id 를 만든다). */
@@ -46,7 +51,7 @@ export function collectHeadings(root: HTMLElement, opts: DocTocOptions = {}): Do
   root.querySelectorAll<HTMLElement>(selector).forEach((el, at) => {
     const text = (el.textContent || '').trim();
     if (!text) return;
-    if (!el.id) el.id = slug(text, at, prefix);
+    if (!el.id) el.id = opts.idFrom ? opts.idFrom(text, at) : slug(text, at, prefix);
     found.push({ id: el.id, text, level: Number(el.tagName.slice(1)) });
   });
   const min = opts.min ?? 3;
@@ -75,15 +80,34 @@ export function tocHtml(headings: DocHeading[], label: string, cls = 'doc-toc'):
  *
  * @returns 정리 함수 — 화면을 갈아엎을 때 부르면 감시를 푼다.
  */
-export function watchReading(root: HTMLElement, tocRoot: HTMLElement, headings: DocHeading[]): () => void {
+export interface DocWatchOptions {
+  /** 글이 창이 아니라 안쪽 상자에서 굴러갈 때 그 상자. 없으면 창 스크롤로 본다. */
+  scrollRoot?: HTMLElement | null;
+  /** 현재 항목에 붙일 클래스. 화면마다 이름이 달라 열어 둔다. */
+  activeClass?: string;
+  /** 목차 링크 선택자·id 를 읽는 방법(기본은 data-toc-to). */
+  linkSelector?: string;
+  idOf?: (link: HTMLElement) => string;
+}
+
+export function watchReading(
+  root: HTMLElement,
+  tocRoot: HTMLElement,
+  headings: DocHeading[],
+  opts: DocWatchOptions = {},
+): () => void {
   if (headings.length === 0) return () => {};
+  const activeClass = opts.activeClass || 'is-here';
+  const scroller = opts.scrollRoot || null;
+  const idOf = opts.idOf || ((a: HTMLElement) => a.dataset.tocTo || '');
   const links = new Map<string, HTMLElement>();
-  tocRoot.querySelectorAll<HTMLElement>('[data-toc-to]').forEach((a) => links.set(a.dataset.tocTo || '', a));
+  tocRoot.querySelectorAll<HTMLElement>(opts.linkSelector || '[data-toc-to]').forEach((a) => links.set(idOf(a), a));
 
   let ticking = false;
   const mark = (): void => {
     ticking = false;
-    const line = 96; /* 화면 위쪽 이만큼을 「읽는 줄」로 본다 */
+    /* 화면(또는 상자) 위쪽 이만큼을 「읽는 줄」로 본다 */
+    const line = (scroller ? scroller.getBoundingClientRect().top : 0) + 96;
     let here = headings[0].id;
     for (const h of headings) {
       const el = root.querySelector<HTMLElement>(`#${CSS.escape(h.id)}`);
@@ -91,7 +115,7 @@ export function watchReading(root: HTMLElement, tocRoot: HTMLElement, headings: 
       if (el.getBoundingClientRect().top - line <= 0) here = h.id;
       else break;
     }
-    links.forEach((a, id) => a.classList.toggle('is-here', id === here));
+    links.forEach((a, id) => a.classList.toggle(activeClass, id === here));
   };
   const onScroll = (): void => {
     if (ticking) return;
@@ -99,23 +123,38 @@ export function watchReading(root: HTMLElement, tocRoot: HTMLElement, headings: 
     requestAnimationFrame(mark);
   };
 
-  window.addEventListener('scroll', onScroll, { passive: true });
+  const target: Window | HTMLElement = scroller || window;
+  target.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll, { passive: true });
   mark();
 
   return () => {
-    window.removeEventListener('scroll', onScroll);
+    target.removeEventListener('scroll', onScroll);
     window.removeEventListener('resize', onScroll);
   };
 }
 
-/** 목차 클릭 — 부드럽게 이동하고 주소는 안 건드린다(뒤로가기가 강의 밖으로 나가지 않게). */
-export function bindTocClicks(tocRoot: HTMLElement, root: HTMLElement): void {
+/** 목차 클릭 — 부드럽게 이동하고 주소는 안 건드린다(뒤로가기가 글 밖으로 나가지 않게). */
+export function bindTocClicks(tocRoot: HTMLElement, root: HTMLElement, opts: DocWatchOptions = {}): void {
+  const sel = opts.linkSelector || '[data-toc-to]';
+  const idOf = opts.idOf || ((a: HTMLElement) => a.dataset.tocTo || '');
+  const scroller = opts.scrollRoot || null;
   tocRoot.addEventListener('click', (e) => {
-    const a = (e.target as HTMLElement).closest('[data-toc-to]') as HTMLElement | null;
+    const a = (e.target as HTMLElement).closest(sel) as HTMLElement | null;
     if (!a) return;
     e.preventDefault();
-    const el = root.querySelector<HTMLElement>(`#${CSS.escape(a.dataset.tocTo || '')}`);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    let el: HTMLElement | null = null;
+    try {
+      el = root.querySelector<HTMLElement>(`#${CSS.escape(idOf(a))}`);
+    } catch {
+      el = null;
+    }
+    if (!el) return;
+    if (scroller) {
+      const top = el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - 10;
+      scroller.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    } else {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   });
 }
