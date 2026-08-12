@@ -148,6 +148,15 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-track-btn.is-on { border-color: var(--accent); color: var(--text-primary); background: var(--accent-subtle); }
 .sm-track-btn .sm-count { font-variant-numeric: tabular-nums; opacity: .7; font-size: 11px; }
 .sm-track-btn.is-personal { border-style: dashed; }
+/* 펼친 갈래의 속 — 단계 이름은 작게, 칸 제목은 누를 수 있게. */
+.sm-track-open { display: none; }
+@media (min-width: 900px) {
+  .sm-track-open { display: block; margin: 2px 0 8px; padding-left: 10px; border-left: 1px solid var(--border); }
+  .sm-track-stage { font-size: 10px; letter-spacing: .04em; color: var(--text-tertiary); margin: 8px 0 3px; }
+  .sm-track-node { display: block; width: 100%; text-align: left; font: inherit; font-size: 11px; line-height: 1.5; padding: 3px 8px; border: 0; border-radius: var(--radius-sm); background: none; color: var(--text-secondary); cursor: pointer; }
+  .sm-track-node:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .sm-track-node.is-done { color: var(--text-tertiary); text-decoration: line-through; }
+}
 .sm-track-btn.is-personal.is-on { border-style: solid; }
 .sm-scope-line { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-size: 10px; color: var(--text-tertiary); margin: 10px 0 2px; }
 .sm-scope-line::after { content: ''; flex: 1; height: 1px; background: var(--border); }
@@ -369,9 +378,26 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
           }
           const all = nodesOf(tr);
           const d = all.filter((n) => done.has(n.id)).length;
-          return `${divider}<button type="button" class="sm-track-btn${tr.id === current ? ' is-on' : ''}${tr.scope === 'personal' ? ' is-personal' : ''}" data-track="${esc(tr.id)}"${tr.id === current ? ' aria-current="true"' : ''}>
+          /**
+           * 고른 갈래는 **그 자리에서 펼친다** — 단계와 칸 제목이 옆 목록에 그대로 보인다.
+           * 지도의 어디쯤 있는지 보면서 옮겨 다니게 하려는 것(고를 때마다 본문만 갈아 끼우면 길을 잃는다).
+           */
+          const open = tr.id === current;
+          const inner = open
+            ? `<div class="sm-track-open">${tr.stages
+                .map(
+                  (st) => `<div class="sm-track-stage">${esc(st.title)}</div>${st.nodes
+                    .map(
+                      (n) =>
+                        `<button type="button" class="sm-track-node${done.has(n.id) ? ' is-done' : ''}" data-goto="${esc(n.id)}">${esc(n.title)}</button>`,
+                    )
+                    .join('')}`,
+                )
+                .join('')}</div>`
+            : '';
+          return `${divider}<button type="button" class="sm-track-btn${open ? ' is-on' : ''}${tr.scope === 'personal' ? ' is-personal' : ''}" data-track="${esc(tr.id)}"${open ? ' aria-current="true"' : ''} aria-expanded="${open}">
             <span>${esc(tr.emoji)}</span><span>${esc(tr.title)}</span><span class="sm-count">${d}/${all.length}</span>
-          </button>`;
+          </button>${inner}`;
         })
         .join('');
     }
@@ -675,6 +701,18 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     }
 
     elTracks.addEventListener('click', (e) => {
+      /* 펼쳐진 목록의 칸을 누르면 본문에서 그 칸을 비춘다 — 지도 안에서 길을 잃지 않게. */
+      const goto = (e.target as HTMLElement).closest('[data-goto]') as HTMLElement | null;
+      if (goto) {
+        const id = goto.dataset.goto || '';
+        const card = elStages.querySelector(`[data-id="${CSS.escape(id)}"]`);
+        if (card instanceof HTMLElement) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.classList.add('is-flash');
+          setTimeout(() => card.classList.remove('is-flash'), 1500);
+        }
+        return;
+      }
       const btn = (e.target as HTMLElement).closest('[data-track]') as HTMLElement | null;
       if (!btn) return;
       current = btn.dataset.track || current;

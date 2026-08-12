@@ -103,5 +103,6 @@
   "settings.t58": "마스코트 기록 초기화 완료",
   "settings.tab.display": "표시 · API",
   "settings.tab.mascot": "마스코트",
-  "settings.tab.data": "이 브라우저에 저장된 것"
+  "settings.tab.data": "이 브라우저에 저장된 것",
+  "settings.label.setNextLinks": "도구 아래 「여기도 있어요」"
 }
