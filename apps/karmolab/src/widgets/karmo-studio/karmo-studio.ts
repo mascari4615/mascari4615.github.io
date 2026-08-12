@@ -10,6 +10,7 @@ import { ProjectHistory } from './history';
 import { KARMO_STUDIO_CSS } from './styles';
 import { KARMO_STUDIO_SHELL } from './shell';
 import { buildPianoView, initialScrollTop, PIANO_GEOMETRY } from './piano-view';
+import { automationHtml, AUTOMATION_GEOMETRY, clipHtml, waveformPath, waveformSvg, waveMissing } from './arranger-view';
 import { analysePeak, applyGain, clampBuffer, exportRange, normalizeGain, type ExportRangeMode } from './export';
 import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type ClipRef, type NoteRef } from './selection';
 
@@ -215,34 +216,29 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       html += `<div class="ks-loop" data-loop style="left:${172 + project.loopStart * pxPerBeat}px;width:${(project.loopEnd - project.loopStart) * pxPerBeat}px"><b class="ks-loop-grip" data-loop-edge="start"></b><b class="ks-loop-grip is-end" data-loop-edge="end"></b></div>`; ruler.innerHTML = html;
     }
 
-    function waveformSvg(clip: StudioClip, className = ''): string {
-      const runtime=clip.assetId?assets.get(clip.assetId):undefined;const buffer=runtime?.buffer;if(!buffer)return `<div class="ks-wave-missing">${runtime?'DECODING…':'AUDIO MISSING'}</div>`;
-      const data=buffer.getChannelData(0);const secondsPerBeat=60/project.bpm;const start=Math.max(0,Math.floor(clip.offset*secondsPerBeat*buffer.sampleRate));const end=Math.min(data.length,Math.ceil((clip.offset+clip.duration)*secondsPerBeat*buffer.sampleRate));const columns=96;let path='';
-      for(let column=0;column<columns;column++){const from=Math.floor(start+(end-start)*column/columns);const to=Math.max(from+1,Math.floor(start+(end-start)*(column+1)/columns));let low=1,high=-1;for(let index=from;index<to;index++){const value=data[index]||0;if(value<low)low=value;if(value>high)high=value;}const x=column/(columns-1)*100;path+=`M${x.toFixed(2)} ${(16-high*14).toFixed(2)}L${x.toFixed(2)} ${(16-low*14).toFixed(2)}`;}
-      return `<svg class="ks-wave-svg ${className}" viewBox="0 0 100 32" preserveAspectRatio="none" aria-label="${esc(runtime?.name||clip.name)} 파형"><path d="${path}"></path></svg>`;
+    /** 오디오 클립 속 그림 — 표본 읽기만 여기서 하고 그리기는 arranger-view 가 한다. */
+    function audioBody(clip: StudioClip, className = ''): string {
+      const runtime = clip.assetId ? assets.get(clip.assetId) : undefined;
+      const buffer = runtime?.buffer;
+      if (!buffer) return waveMissing(Boolean(runtime));
+      const data = buffer.getChannelData(0);
+      const secondsPerBeat = 60 / project.bpm;
+      const start = Math.max(0, Math.floor(clip.offset * secondsPerBeat * buffer.sampleRate));
+      const end = Math.min(data.length, Math.ceil((clip.offset + clip.duration) * secondsPerBeat * buffer.sampleRate));
+      return waveformSvg(waveformPath({ data, start, end }), esc(runtime?.name || clip.name), className);
     }
 
-    function clipHtml(track: StudioTrack, clip: StudioClip): string {
+    function trackClipHtml(track: StudioTrack, clip: StudioClip): string {
       const selected = marks.has({ trackId: track.id, clipId: clip.id }) || ((selection?.type === 'clip' || selection?.type === 'note') && selection.clipId === clip.id);
-      const notes = clip.notes.length ? `<div class="ks-midi-notes">${clip.notes.map((note) => {
-        const pitches = clip.notes.map((item) => item.pitch); const low = Math.min(...pitches); const high = Math.max(...pitches, low + 1);
-        return `<i class="ks-midi-note" style="left:${note.beat / clip.duration * 100}%;width:${Math.max(1,note.duration / clip.duration * 100)}%;bottom:${(note.pitch-low)/(high-low)*90}%"></i>`;
-      }).join('')}</div>` : waveformSvg(clip);
-      return `<div class="ks-clip${selected ? ' is-selected' : ''}" data-clip="${clip.id}" data-track="${track.id}" style="--clip:${track.color};left:${clip.start * pxPerBeat}px;width:${clip.duration * pxPerBeat}px"><div class="ks-clip-name">${esc(clip.name)}</div>${notes}<div class="ks-handle" data-resize="1"></div></div>`;
+      return clipHtml({ track, clip, pxPerBeat, selected, audioBody: () => audioBody(clip), esc });
     }
 
-    /** 볼륨 자동화 줄 — 점을 잇는 선 하나와 점들. 화면 높이 46px 안에서 0~1.2 를 그린다. */
-    const AUTO_HEIGHT=46, AUTO_MAX=1.2;
-    function automationY(value: number): number { return AUTO_HEIGHT-(Math.max(0,Math.min(AUTO_MAX,value))/AUTO_MAX)*AUTO_HEIGHT; }
-    function automationHtml(track: StudioTrack, width: number): string {
-      if(!autoLanes.has(track.id))return '';
-      const points=[...track.volumeAutomation].sort((a,b)=>a.beat-b.beat);
-      const length=Math.max(projectLength(project),1);
-      const line=points.length
-        ? `M0,${automationY(points[0].value)} `+points.map((point)=>`L${point.beat*pxPerBeat},${automationY(point.value)}`).join(' ')+` L${width},${automationY(points[points.length-1].value)}`
-        : `M0,${automationY(track.volume)} L${width},${automationY(track.volume)}`;
-      const dots=points.map((point)=>`<i data-auto-point="${point.id}" data-track="${track.id}" style="left:${point.beat*pxPerBeat}px;top:${automationY(point.value)}px" title="${beatText(point.beat)} · ${Math.round(point.value*100)}%"></i>`).join('');
-      return `<div class="ks-auto" data-auto="${track.id}" style="width:${width}px" title="빈 곳 클릭 = 점 추가 · 점 드래그 = 이동 · 우클릭 = 삭제"><svg viewBox="0 0 ${Math.max(1,length*pxPerBeat)} ${AUTO_HEIGHT}" preserveAspectRatio="none"><path d="${line}"></path></svg><span class="ks-auto-tag">VOLUME${points.length?` · ${points.length}점`:' · 점 없음(트랙 볼륨 그대로)'}</span>${dots}</div>`;
+    function trackAutomationHtml(track: StudioTrack, width: number): string {
+      if (!autoLanes.has(track.id)) return '';
+      return automationHtml({
+        trackId: track.id, points: track.volumeAutomation, fallback: track.volume,
+        pxPerBeat, width, projectBeats: Math.max(projectLength(project), 1), beatLabel: beatText
+      });
     }
     function renderTracks(): void {
       reconcileMarks();
@@ -251,7 +247,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
         <div class="ks-track-head"><div class="ks-track-title"><span class="ks-track-color" style="background:${track.color}"></span><input data-track-name="${track.id}" value="${esc(track.name)}" aria-label="트랙 이름"></div>
         <div class="ks-track-actions"><button class="ks-mini${track.mute?' is-on':''}" data-track-act="mute" data-track="${track.id}">M</button><button class="ks-mini${track.solo?' is-on':''}" data-track-act="solo" data-track="${track.id}">S</button><button class="ks-mini${autoLanes.has(track.id)?' is-on':''}" data-track-act="auto" data-track="${track.id}" title="볼륨 자동화 줄 보이기">A</button><button class="ks-mini${armedTrackId===track.id?' is-on':''}" data-track-act="arm" data-track="${track.id}" title="${track.kind==='audio'?'녹음 대상으로 지정':'오디오 트랙만 녹음 대상이 된다'}"${track.kind==='audio'?'':' disabled'}>●</button><button class="ks-mini" data-track-act="delete" data-track="${track.id}">×</button></div>
         <input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-track-volume="${track.id}" aria-label="${esc(track.name)} 볼륨"></div>
-        <div class="ks-lane" data-lane="${track.id}" data-kind="${track.kind}" style="width:${width}px">${track.clips.map((clip)=>clipHtml(track,clip)).join('')}</div>${automationHtml(track,width)}</div>`).join('');
+        <div class="ks-lane" data-lane="${track.id}" data-kind="${track.kind}" style="width:${width}px">${track.clips.map((clip)=>trackClipHtml(track,clip)).join('')}</div>${trackAutomationHtml(track,width)}</div>`).join('');
     }
 
     const field = (label: string, input: string): string => `<label class="ks-field"><span>${label}</span>${input}</label>`;
@@ -281,7 +277,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       if (!track || !clip) { editorExpanded=false;editor.classList.remove('is-expanded');$<HTMLElement>('[data-role=backdrop]').classList.remove('is-open');editor.innerHTML = `<div class="ks-editor-head">CLIP EDITOR</div><div class="ks-empty">클립을 선택하면 편집기가 열립니다.<br>클립을 더블클릭하면 큰 전용 편집 창으로 봅니다.</div>`; return; }
       if (clip.kind === 'audio') {
         const runtime=clip.assetId?assets.get(clip.assetId):undefined;
-        editor.innerHTML=`<div class="ks-editor-head"><strong>AUDIO CLIP · ${esc(clip.name)}</strong><span>${runtime?`${runtime.duration.toFixed(2)}s · ${Math.round((runtime.buffer?.sampleRate||0)/1000)}kHz`:'원본 음원을 찾을 수 없음'}</span><span class="ks-spacer"></span><span>더블클릭: 큰 편집 창</span><button class="ks-btn" data-act="toggle-editor">${editorExpanded?'작게':'크게 열기'}</button></div><div class="ks-audio-editor"><div class="ks-audio-wave"><i class="ks-audio-zero"></i>${waveformSvg(clip,'ks-wave-large')}</div><div class="ks-audio-controls">${field('START',`<input type="number" min="0" step="${project.snap}" value="${clip.start}" data-clip-ins="start">`)}${field('LENGTH',`<input type="number" min="${project.snap}" step="${project.snap}" value="${clip.duration}" data-clip-ins="duration">`)}${field('FADE IN',`<input type="number" min="0" step="${project.snap}" value="${clip.fadeIn}" data-clip-ins="fadeIn">`)}${field('FADE OUT',`<input type="number" min="0" step="${project.snap}" value="${clip.fadeOut}" data-clip-ins="fadeOut">`)}</div></div>`;
+        editor.innerHTML=`<div class="ks-editor-head"><strong>AUDIO CLIP · ${esc(clip.name)}</strong><span>${runtime?`${runtime.duration.toFixed(2)}s · ${Math.round((runtime.buffer?.sampleRate||0)/1000)}kHz`:'원본 음원을 찾을 수 없음'}</span><span class="ks-spacer"></span><span>더블클릭: 큰 편집 창</span><button class="ks-btn" data-act="toggle-editor">${editorExpanded?'작게':'크게 열기'}</button></div><div class="ks-audio-editor"><div class="ks-audio-wave"><i class="ks-audio-zero"></i>${audioBody(clip,'ks-wave-large')}</div><div class="ks-audio-controls">${field('START',`<input type="number" min="0" step="${project.snap}" value="${clip.start}" data-clip-ins="start">`)}${field('LENGTH',`<input type="number" min="${project.snap}" step="${project.snap}" value="${clip.duration}" data-clip-ins="duration">`)}${field('FADE IN',`<input type="number" min="0" step="${project.snap}" value="${clip.fadeIn}" data-clip-ins="fadeIn">`)}${field('FADE OUT',`<input type="number" min="0" step="${project.snap}" value="${clip.fadeOut}" data-clip-ins="fadeOut">`)}</div></div>`;
         return;
       }
       reconcileNotes();
@@ -590,7 +586,7 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
       const track=findTrack(project,lane.dataset.auto||'');if(!track)return;
       event.preventDefault();
       const rect=lane.getBoundingClientRect();
-      const valueAt=(clientY:number):number=>Math.max(0,Math.min(AUTO_MAX,(1-(clientY-rect.top)/Math.max(1,rect.height))*AUTO_MAX));
+      const valueAt=(clientY:number):number=>Math.max(0,Math.min(AUTOMATION_GEOMETRY.max,(1-(clientY-rect.top)/Math.max(1,rect.height))*AUTOMATION_GEOMETRY.max));
       const beatAt=(clientX:number):number=>snapBeat((clientX-rect.left)/pxPerBeat,project.snap);
       const dot=target.closest<HTMLElement>('[data-auto-point]');
       let point=track.volumeAutomation.find((item)=>item.id===dot?.dataset.autoPoint);
