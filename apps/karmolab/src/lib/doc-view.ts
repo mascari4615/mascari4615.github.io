@@ -321,6 +321,41 @@ function demoPage(kind: DemoKind, code: string): string {
  * `[data-demo]` 가 붙은 자리(강의 블록·문서의 ```demo-… 울타리)를 살아 있는 판으로 바꾼다.
  * 코드는 그 자리에서 고칠 수 있고, 멈추면 다시 그린다.
  */
+/** 예제에 붙는 손잡이 — 코드를 안 읽어도 값을 밀어 볼 수 있게. */
+export interface DemoControl {
+  id: string;
+  label: string;
+  type: 'range' | 'toggle' | 'select';
+  min?: number;
+  max?: number;
+  step?: number;
+  value?: string | number | boolean;
+  options?: Array<{ value: string; label: string }>;
+}
+
+/** 코드 안의 `{{id}}` 를 지금 값으로 바꾼다 — 예제 코드가 손잡이를 그대로 쓸 수 있게. */
+function fill(code: string, values: Record<string, string>): string {
+  return code.replace(/\{\{\s*([\w-]+)\s*\}\}/g, (whole, key) => (key in values ? values[key] : whole));
+}
+
+function controlsHtml(controls: DemoControl[], values: Record<string, string>): string {
+  return controls
+    .map((c) => {
+      const v = values[c.id];
+      if (c.type === 'toggle') {
+        return `<label class="doc-demo-ctl"><input type="checkbox" data-ctl="${c.id}"${v === 'true' ? ' checked' : ''}><span>${c.label}</span></label>`;
+      }
+      if (c.type === 'select') {
+        const opts = (c.options || []).map((o) => `<option value="${o.value}"${o.value === v ? ' selected' : ''}>${o.label}</option>`).join('');
+        return `<label class="doc-demo-ctl"><span>${c.label}</span><select data-ctl="${c.id}">${opts}</select></label>`;
+      }
+      return `<label class="doc-demo-ctl"><span>${c.label}</span>
+        <input type="range" data-ctl="${c.id}" min="${c.min ?? 0}" max="${c.max ?? 100}" step="${c.step ?? 1}" value="${v}">
+        <output data-out="${c.id}">${v}</output></label>`;
+    })
+    .join('');
+}
+
 export function mountDemos(root: HTMLElement, labels: Partial<typeof DEMO_LABELS> = {}): void {
   const L = { ...DEMO_LABELS, ...labels };
   root.querySelectorAll<HTMLElement>('[data-demo]').forEach((host) => {
@@ -343,6 +378,23 @@ export function mountDemos(root: HTMLElement, labels: Partial<typeof DEMO_LABELS
     editor.value = source;
     editor.setAttribute('aria-label', L.code);
 
+    /**
+     * 손잡이(슬라이더·토글·고르기) — 있으면 **코드 위에** 둔다.
+     * 처음 만나는 사람은 코드를 고치기 전에 값을 밀어 본다. 그 한 번이 이해의 대부분이다.
+     */
+    let controls: DemoControl[] = [];
+    try {
+      controls = host.dataset.demoControls ? (JSON.parse(host.dataset.demoControls) as DemoControl[]) : [];
+    } catch {
+      controls = [];
+    }
+    const values: Record<string, string> = {};
+    for (const c of controls) values[c.id] = String(c.value ?? (c.type === 'toggle' ? false : c.min ?? 0));
+
+    const knobs = document.createElement('div');
+    knobs.className = 'doc-demo-knobs';
+    if (controls.length) knobs.innerHTML = controlsHtml(controls, values);
+
     const bar = document.createElement('div');
     bar.className = 'doc-demo-bar';
     const run = document.createElement('button');
@@ -356,8 +408,20 @@ export function mountDemos(root: HTMLElement, labels: Partial<typeof DEMO_LABELS
     bar.append(run, reset);
 
     const draw = (): void => {
-      frame.srcdoc = demoPage(kind, editor.value);
+      frame.srcdoc = demoPage(kind, fill(editor.value, values));
     };
+    let knobTimer = 0;
+    knobs.addEventListener('input', (e) => {
+      const el = e.target as HTMLInputElement | HTMLSelectElement;
+      const key = (el as HTMLElement).dataset.ctl;
+      if (!key) return;
+      values[key] = el instanceof HTMLInputElement && el.type === 'checkbox' ? String(el.checked) : String(el.value);
+      const out = knobs.querySelector(`[data-out="${key}"]`);
+      if (out) out.textContent = values[key];
+      /* 미는 동안 계속 다시 그리면 버벅인다 — 아주 짧게 묶는다(밀고 있다는 느낌은 남게). */
+      window.clearTimeout(knobTimer);
+      knobTimer = window.setTimeout(draw, 90);
+    });
     let timer = 0;
     /* 타자 칠 때마다 다시 그리면 어지럽다 — 손이 멈춘 뒤에 한 번. */
     editor.addEventListener('input', () => {
@@ -370,7 +434,8 @@ export function mountDemos(root: HTMLElement, labels: Partial<typeof DEMO_LABELS
       draw();
     });
 
-    host.append(frame, editor, bar);
+    if (controls.length) host.append(frame, knobs, editor, bar);
+    else host.append(frame, editor, bar);
     draw();
   });
 }

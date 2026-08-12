@@ -21,6 +21,24 @@
       "text": "2. 비교는 이렇게"
     },
     {
+      "type": "demo",
+      "kind": "js",
+      "label": "0.1 을 몇 번 더하면 얼마가 되나",
+      "height": "190px",
+      "controls": [
+        {
+          "id": "n",
+          "label": "더한 횟수",
+          "type": "range",
+          "min": 10,
+          "max": 2000,
+          "step": 10,
+          "value": 1000
+        }
+      ],
+      "text": "const N = {{n}};\nlet sum = 0;\nfor (let i = 0; i < N; i++) sum += 0.1;\nconst want = N * 0.1;\nctx.fillStyle = '#eee'; ctx.font = '15px ui-monospace, monospace';\nctx.fillText('0.1 을 ' + N + '번 더하면', 16, 34);\nctx.fillStyle = '#f87171'; ctx.fillText(sum.toFixed(12), 16, 64);\nctx.fillStyle = '#9ca3af'; ctx.font = '13px ui-monospace, monospace';\nctx.fillText('기대값 ' + want.toFixed(12), 16, 92);\nctx.fillStyle = sum === want ? '#4ade80' : '#fbbf24';\nctx.fillText('차이 ' + Math.abs(sum - want).toExponential(3), 16, 118);\nctx.fillText('=== 로 같나? ' + (sum === want), 16, 144);"
+    },
+    {
       "type": "code",
       "lang": "js",
       "label": "같음 대신 「충분히 가까움」",

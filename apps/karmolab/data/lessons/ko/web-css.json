@@ -9,9 +9,45 @@
     {
       "type": "demo",
       "kind": "html",
-      "label": "숫자를 바꿔 보라 — flex 값과 gap",
-      "height": "220px",
-      "text": "<style>\n  .row { display: flex; gap: 8px; }\n  .row div { padding: 14px; border-radius: 8px; background: #dbeafe; text-align: center; }\n  .a { flex: 1 }\n  .b { flex: 2 }\n  .c { flex: 1 }\n</style>\n<div class=\"row\"><div class=\"a\">1</div><div class=\"b\">2 (두 배)</div><div class=\"c\">1</div></div>"
+      "label": "손잡이를 밀어 보라 — 값이 바뀌면 상자가 움직인다",
+      "height": "210px",
+      "controls": [
+        {
+          "id": "grow",
+          "label": "가운데 flex",
+          "type": "range",
+          "min": 1,
+          "max": 5,
+          "step": 1,
+          "value": 2
+        },
+        {
+          "id": "gap",
+          "label": "틈(px)",
+          "type": "range",
+          "min": 0,
+          "max": 40,
+          "step": 2,
+          "value": 8
+        },
+        {
+          "id": "dir",
+          "label": "방향",
+          "type": "select",
+          "value": "row",
+          "options": [
+            {
+              "value": "row",
+              "label": "가로"
+            },
+            {
+              "value": "column",
+              "label": "세로"
+            }
+          ]
+        }
+      ],
+      "text": "<style>\n  .row { display: flex; flex-direction: {{dir}}; gap: {{gap}}px; }\n  .row div { padding: 14px; border-radius: 8px; background: #dbeafe; text-align: center; }\n  .b { flex: {{grow}} }\n</style>\n<div class=\"row\"><div>1</div><div class=\"b\">가운데 (flex {{grow}})</div><div>1</div></div>"
     },
     {
       "type": "h",

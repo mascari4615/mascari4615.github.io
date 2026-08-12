@@ -23,9 +23,29 @@
     {
       "type": "demo",
       "kind": "js",
-      "label": "내적으로 시야각 판정 — 각도를 바꿔 보라",
+      "label": "시야각을 밀어 보라 — 초록이면 보인다",
       "height": "220px",
-      "text": "const 시야각 = 60; // 도\nlet mx = 200, my = 90;\naddEventListener('mousemove', (e) => { mx = e.clientX; my = e.clientY; });\nfunction frame(now) {\n  ctx.clearRect(0, 0, W(), H());\n  const cx = W() / 2, cy = H() / 2;\n  const dir = { x: Math.cos(now / 900), y: Math.sin(now / 900) };\n  const to = { x: mx - cx, y: my - cy };\n  const len = Math.hypot(to.x, to.y) || 1;\n  const dot = (dir.x * to.x + dir.y * to.y) / len;\n  const 보인다 = dot > Math.cos((시야각 / 2) * Math.PI / 180);\n  ctx.strokeStyle = '#666'; ctx.beginPath(); ctx.moveTo(cx, cy);\n  ctx.lineTo(cx + dir.x * 70, cy + dir.y * 70); ctx.stroke();\n  ctx.fillStyle = 보인다 ? '#4ade80' : '#f87171';\n  ctx.beginPath(); ctx.arc(mx, my, 8, 0, Math.PI * 2); ctx.fill();\n  ctx.fillStyle = '#eee'; ctx.font = '13px system-ui';\n  ctx.fillText(보인다 ? '시야 안 (dot ' + dot.toFixed(2) + ')' : '시야 밖 (dot ' + dot.toFixed(2) + ')', 14, 22);\n  requestAnimationFrame(frame);\n}\nrequestAnimationFrame(frame);"
+      "controls": [
+        {
+          "id": "fov",
+          "label": "시야각(도)",
+          "type": "range",
+          "min": 10,
+          "max": 300,
+          "step": 10,
+          "value": 60
+        },
+        {
+          "id": "spin",
+          "label": "고개 도는 속도",
+          "type": "range",
+          "min": 0,
+          "max": 5,
+          "step": 1,
+          "value": 2
+        }
+      ],
+      "text": "const FOV = {{fov}}, SPIN = {{spin}};\nlet mx = 220, my = 90;\naddEventListener('mousemove', (e) => { mx = e.clientX; my = e.clientY; });\nfunction frame(now) {\n  ctx.clearRect(0, 0, W(), H());\n  const cx = W() / 2, cy = H() / 2;\n  const a = (now / 1200) * SPIN;\n  const dir = { x: Math.cos(a), y: Math.sin(a) };\n  const to = { x: mx - cx, y: my - cy };\n  const len = Math.hypot(to.x, to.y) || 1;\n  const dot = (dir.x * to.x + dir.y * to.y) / len;\n  const seen = dot > Math.cos((FOV / 2) * Math.PI / 180);\n  ctx.strokeStyle = '#888'; ctx.lineWidth = 2;\n  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + dir.x * 70, cy + dir.y * 70); ctx.stroke();\n  ctx.fillStyle = seen ? '#4ade80' : '#f87171';\n  ctx.beginPath(); ctx.arc(mx, my, 8, 0, Math.PI * 2); ctx.fill();\n  ctx.fillStyle = '#eee'; ctx.font = '13px system-ui';\n  ctx.fillText((seen ? '시야 안' : '시야 밖') + ' · dot ' + dot.toFixed(2) + ' · 문턱 ' + Math.cos((FOV/2)*Math.PI/180).toFixed(2), 14, 22);\n  requestAnimationFrame(frame);\n}\nrequestAnimationFrame(frame);"
     },
     {
       "type": "code",
