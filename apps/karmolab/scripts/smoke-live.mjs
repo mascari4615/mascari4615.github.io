@@ -21,6 +21,13 @@ const open = async (live) => {
   await context.route('**/kl/**', (route) =>
     route.request().url().includes('/kl/live') ? route.fallback() : route.abort()
   );
+  /* ★ 실황 칸은 이제 **켜야 보인다** (`21c1a19e3` — 첫 화면 꾸미기가 today·live·cta 를 기본으로
+   *   접었다). 그 뒤로 이 검사는 `#homeLive` 를 기다리다 죽었다 — 제품이 아니라 **켠 사람의
+   *   화면**을 보러 온 검사가 안 켜고 들어온 것이다. 사람이 꾸미기에서 켠 것과 같은 값을 넣는다.
+   *   (자매 검사 smoke-today.mjs · smoke-brag.mjs 와 같은 처방. 기본값은 디자인 결정이라 안 건드린다.) */
+  await context.addInitScript(() => {
+    localStorage.setItem('karmolab_home_prefs', JSON.stringify({ version: 2, order: [], hidden: [], name: '' }));
+  });
   const page = await context.newPage();
   page.on('pageerror', (e) => problems.push(`페이지 스크립트가 죽었다: ${e.message}`));
   await page.goto(`${URL_TARGET}#home`, { waitUntil: 'networkidle', timeout: 30000 });
