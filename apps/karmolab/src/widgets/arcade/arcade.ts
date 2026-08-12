@@ -651,6 +651,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     let shadow: { v: MatchView<unknown>; now: number; at: number } | null = null;
 
     function paint(v: MatchView<unknown>, now: number): void {
+      /* 지금 이 창이 **들고 있는 판**을 밖에서 볼 수 있게 둔다 (TASK-KL-264).
+         감추기가 새는지는 화면으로 못 잡는다 — 화면은 남의 배를 애초에 안 그리므로,
+         새어도 그림은 똑같다(일부러 새게 해 보고 검사가 안 빨개지는 것을 확인했다).
+         새는 자리는 「보낸 값」이라 받은 값을 직접 읽어야 한다. 이 창이 이미 가진 것이므로
+         내보낸다고 더 알려지는 것은 없다. */
+      (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state };
       seatsEl.innerHTML = v.seats
         .map(
           (s, i) =>
