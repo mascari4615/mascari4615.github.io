@@ -6,7 +6,7 @@
 import * as esbuild from 'esbuild';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { execFileSync } from 'node:child_process';
 import { discoverEntryPoints } from './scripts/entry-points.mjs';
@@ -207,6 +207,55 @@ for (const rel of entryPoints) {
   );
   const kb = (s) => (Buffer.byteLength(s) / 1024).toFixed(1) + 'KB';
   console.log(`[build] 위젯 메타 ${full.length}개 — 전체 ${kb(src)} · 가벼운 것 ${kb(readFileSync(join(root, 'js/widgets-index.js'), 'utf8'))} · 나머지 ${kb(readFileSync(join(root, 'js/widgets-meta-rest.js'), 'utf8'))}`);
+}
+
+/*
+ * ★ **묶어 쓰기용 알맹이는 도구마다 한 파일** (2026-08-13, TASK-KL-205 빚 갚기).
+ *
+ * 묶어 쓰기(chain)는 「도구를 이어서 돌리는」 화면이라 서른다섯 알맹이를 **부를 수 있어야**
+ * 한다. 예전에는 정적 표를 들여 전부를 자기 묶음에 실었다 — 250KB(gzip 87.7KB)로 위젯
+ * 천장 64KB 의 1.4배였다. 그런데 이 저장소의 위젯 묶음은 IIFE 라 `import()` 를 써도 쪼개지지
+ * 않고 그대로 안에 눌러 담긴다(실측: 바꿔 봤더니 92.9KB 로 오히려 늘었다).
+ *
+ * 그래서 이 저장소가 원래 쓰는 방식대로 **파일을 나눈다**: 알맹이 하나가 파일 하나가 되고,
+ * 화면은 자기가 적은 단계에 나오는 것만 그때 받아 붙인다. 두어 개면 몇 KB 다.
+ */
+{
+  const coreDir = join(root, 'src/core');
+  const skip = new Set(['types.ts', 'registry.generated.ts', 'registry-lazy.generated.ts']);
+  /* `run` 을 내놓는 것만 알맹이다 — 표(han-table.generated 같은 자료)는 부를 수 있는 것이 아니다. */
+  console.log('[DEBUG-c3a1] 파일수', readdirSync(coreDir).length, '샘플', readdirSync(coreDir).slice(0,3));
+  const coreFiles = existsSync(coreDir)
+    ? readdirSync(coreDir)
+        .filter((f) => f.endsWith('.ts') && !f.endsWith('.d.ts') && !skip.has(f))
+        .filter((f) => /export\s+(async\s+)?function\s+run|export\s+const\s+run/.test(readFileSync(join(coreDir, f), 'utf8')))
+    : [];
+  for (const f of coreFiles) {
+    const id = f.replace(/\.ts$/, '');
+    await esbuild.build({
+      stdin: {
+        contents:
+          `import { run } from './src/core/${id}';
+` +
+          `const w = window;
+` +
+          `w.__KARMO_CORES = w.__KARMO_CORES || {};
+` +
+          `w.__KARMO_CORES[${JSON.stringify(id)}] = { run };
+`,
+        resolveDir: root,
+        loader: 'ts'
+      },
+      outfile: join(root, `core/${id}.js`),
+      ...FULL_MINIFY,
+      bundle: true,
+      format: 'iife',
+      platform: 'browser',
+      target: ['es2020'],
+      logLevel: 'silent'
+    });
+  }
+  if (coreFiles.length) console.log(`[build] 알맹이 ${coreFiles.length}개 → core/*.js (묶어 쓰기가 그때 받는다)`);
 }
 
 const worldEntryPoints = [

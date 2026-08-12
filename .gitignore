@@ -47,6 +47,9 @@ apps/karmolab/world/*.js
 apps/karmolab/js/**/*.js
 !apps/karmolab/js/vendor/**
 !apps/karmolab/js/split_script.cjs
+# 묶어 쓰기가 그때 받는 알맹이들 — `build.mjs` 가 찍는다 (TASK-KL-205, 2026-08-13).
+# 도구마다 한 파일이라 서른여덟 개가 생긴다. 소스는 `src/core/*.ts` 하나뿐이다.
+apps/karmolab/core/*.js
 apps/karmolab/sw.js
 
 # 글꼴 원본 (TASK-KL-128) — 34MB 짜리 통짜 글꼴이다. `scripts/gen-fonts.py` 가 필요할 때 받아 온다.

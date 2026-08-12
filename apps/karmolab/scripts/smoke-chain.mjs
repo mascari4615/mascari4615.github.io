@@ -35,7 +35,18 @@ try {
   process.exit(1);
 }
 const page = await browser.newPage();
-await page.route('**/*', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8">' }));
+/* ★ **알맹이는 진짜 파일로 준다** (2026-08-13). 묶어 쓰기는 이제 자기가 쓸 알맹이만
+   `/apps/karmolab/core/<id>.js` 로 그때 받아 온다(묶음 87.7KB → 4.7KB). 여기서 모든 요청에
+   빈 HTML 을 돌려주면 그 손이 끊겨 「도구를 모른다」가 된다 — 검사가 제품을 헐뜯게 된다.
+   그래서 그 자리만 디스크에서 실제로 읽어 준다. */
+await page.route('**/*', (r) => {
+  const m = /\/apps\/karmolab\/core\/([a-z0-9-]+)\.js$/.exec(new URL(r.request().url()).pathname);
+  const file = m ? path.join(root, 'core', `${m[1]}.js`) : null;
+  if (file && fs.existsSync(file)) {
+    return r.fulfill({ status: 200, contentType: 'application/javascript', body: fs.readFileSync(file) });
+  }
+  return r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8">' });
+});
 await page.goto('http://localhost/');
 /*
  * 말 묶음을 미리 박는다 — **진짜 페이지가 하는 그대로**다(`window.__KARMO_I18N`, 머리말에 박힘).
