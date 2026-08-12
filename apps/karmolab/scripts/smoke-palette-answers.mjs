@@ -67,9 +67,15 @@ async function askPalette(q) {
 /** 그 도구를 열어 값을 넣고 화면에 나온 글을 통째로 읽는다. */
 async function askTool(toolId, fills) {
   await page.goto(`${BASE}/karmolab/t/${toolId}/`, { waitUntil: 'networkidle', timeout: 30000 });
-  await page.waitForTimeout(900);
+  /* ★ 고정 900ms 로는 부족하다 (2026-08-12). 위젯은 말 묶음(i18n)을 받아 온 **뒤에** 그린다 —
+   *   느린 판에서는 그 사이에 값을 넣게 되고, `.catch(() => {})` 가 그 실패를 삼켜
+   *   「도구 화면에 그 값이 없다」로 팔레트를 탓했다(실주소 CI 에서만 빨갰다).
+   *   칸이 생길 때까지 기다리고, 그래도 없으면 삼키지 말고 말한다. */
+  for (const [sel] of fills) {
+    await page.waitForSelector(sel, { timeout: 15000 });
+  }
   for (const [sel, val] of fills) {
-    await page.fill(sel, val).catch(() => {});
+    await page.fill(sel, val);
   }
   await page.waitForTimeout(700);
   return page.evaluate(() => document.body.innerText.replace(/\s+/g, ' '));
