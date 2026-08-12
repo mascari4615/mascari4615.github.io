@@ -4993,6 +4993,146 @@
           ]
         }
       ]
+    },
+    {
+      "id": "write",
+      "title": "기술 글쓰기",
+      "emoji": "✍",
+      "lead": "코드는 6개월 뒤 남이 읽는다 — 그 남이 대개 나다",
+      "stages": [
+        {
+          "id": "write-a",
+          "title": "읽히게 쓴다",
+          "nodes": [
+            {
+              "id": "write-reader",
+              "title": "아무도 정독하지 않는다",
+              "why": "읽는 사람은 훑는다. 그 전제로 쓰지 않으면 아무리 정확해도 안 읽힌다.",
+              "check": "결론을 맨 앞에 두고 훑어도 되게 고쳐 쓴다",
+              "links": [
+                {
+                  "label": "Google 개발자 문서 스타일 가이드",
+                  "url": "https://developers.google.com/style"
+                }
+              ],
+              "prereq": [
+                "craft-doc"
+              ]
+            },
+            {
+              "id": "write-readme",
+              "title": "README — 처음 5분",
+              "why": "첫 5분에 한 번 성공시키지 못하면 아무도 두 번째 화면을 안 본다.",
+              "check": "설치부터 첫 성공까지를 명령 세 줄로 만든다",
+              "links": [
+                {
+                  "label": "GitHub — README 안내",
+                  "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes"
+                }
+              ]
+            },
+            {
+              "id": "write-types",
+              "title": "네 종류를 섞지 마라",
+              "why": "튜토리얼과 레퍼런스를 한 문서에 섞으면 배우는 사람도 찾는 사람도 못 쓴다.",
+              "check": "문서를 네 종류로 나눠 목차를 다시 짠다",
+              "links": [
+                {
+                  "label": "Diátaxis — 문서의 네 종류",
+                  "url": "https://diataxis.fr/"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "write-b",
+          "title": "남길 것을 남긴다",
+          "nodes": [
+            {
+              "id": "write-adr",
+              "title": "결정을 기록한다 (ADR)",
+              "why": "「왜 이렇게 했지」를 아무도 모르면, 6개월 뒤 같은 논쟁을 처음부터 다시 한다.",
+              "check": "최근 결정 하나를 한 쪽짜리 기록으로 남긴다",
+              "links": [
+                {
+                  "label": "ADR — 아키텍처 결정 기록",
+                  "url": "https://adr.github.io/"
+                }
+              ],
+              "prereq": [
+                "design-record"
+              ]
+            },
+            {
+              "id": "write-incident",
+              "title": "장애 보고서 — 사람 말고 시스템을",
+              "why": "누구 잘못인지 적는 순간 다음 사고는 숨겨진다. 배움이 남는 형식이 따로 있다.",
+              "check": "사고 하나를 비난 없는 형식으로 정리한다",
+              "links": [
+                {
+                  "label": "Google SRE — 포스트모템 문화",
+                  "url": "https://sre.google/sre-book/postmortem-culture/"
+                }
+              ],
+              "prereq": [
+                "devops-postmortem"
+              ]
+            },
+            {
+              "id": "write-async",
+              "title": "글로 하는 제안 — 읽고 결정하게",
+              "why": "회의를 하나 없애는 가장 확실한 방법은 결정 가능한 글 한 장이다.",
+              "check": "제안서를 배경·선택지·추천 형식으로 쓴다",
+              "links": [
+                {
+                  "label": "Write the Docs — 안내서",
+                  "url": "https://www.writethedocs.org/guide/"
+                }
+              ],
+              "prereq": [
+                "team-async"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "write-c",
+          "title": "오래 쓸모 있게",
+          "nodes": [
+            {
+              "id": "write-plain",
+              "title": "쉬운 말로 — 전문용어 다루기",
+              "why": "어려운 글은 똑똑해 보이려다 독자를 잃는다. 그리고 번역·검색에서 더 큰 손해를 본다.",
+              "check": "한 문단을 전문용어 없이 다시 쓴다",
+              "links": [
+                {
+                  "label": "Plain Language 지침",
+                  "url": "https://www.plainlanguage.gov/guidelines/"
+                }
+              ],
+              "prereq": [
+                "i18n-content"
+              ]
+            },
+            {
+              "id": "write-rot",
+              "title": "문서가 낡지 않게",
+              "why": "틀린 문서는 없는 문서보다 나쁘다. 낡음을 사람 의지로 막을 수는 없다.",
+              "check": "문서에 소유자·점검일을 붙이고 자동 검사를 건다",
+              "links": [
+                {
+                  "label": "Google 스타일 — 문서 유지",
+                  "url": "https://developers.google.com/style/accessibility"
+                }
+              ],
+              "prereq": [
+                "write-types"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
