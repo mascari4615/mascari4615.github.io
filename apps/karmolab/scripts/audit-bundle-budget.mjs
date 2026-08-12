@@ -90,6 +90,10 @@ if (!baseline) {
 const OVER_LIMIT_DEBT = {
   'tools/chain.js': 'TASK-KL-205 — 도구 사슬. 단계별 조각으로 쪼갤 것',
   'karmograph/karmograph.js': 'TASK-KL-202 — 캔버스. 그리기/편집 조각 분리할 것',
+  /* 오락실은 놀이를 계속 더하는 중이라 천장을 넘겼다(65.3KB, 2026-08-12). 놀이별로 늦게
+     받도록 쪼개는 것이 답이고 그건 만드는 사람 몫이라, 그때까지 **빚으로 적어 둔다** —
+     적어 두면 매 판 이름이 불리고, 안 적으면 전원이 멈춘다. */
+  'arcade/arcade.js': 'TASK-KL-242 — 오락실. 놀이별 조각으로 늦게 받게 쪼갤 것',
 };
 
 const fails = [];
