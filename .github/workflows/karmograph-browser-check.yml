@@ -54,33 +54,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      # ★ **짓기 전 채비는 한 곳에서** (2026-08-13, `.github/actions/setup-karmolab`).
+      #   같은 목록을 워크플로 넷이 각자 들고 있었고, 한쪽만 고친 값이 25판 연속 빨강이었다.
+      - uses: ./.github/actions/setup-karmolab
         with:
-          node-version: "22"
-
-      - name: 의존 설치
-        run: npm ci --no-audit --no-fund
-
-      - name: 브라우저 캐시
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('apps/karmolab/package-lock.json') }}
-          restore-keys: playwright-${{ runner.os }}-
-
-      - name: 브라우저 준비
-        run: npx playwright install --with-deps chromium
-
-      # 이 앱은 두 공용 꾸러미를 **타입으로** 물고 있다. 새 체크아웃엔 `dist` 가 없어서
-      # 안 지으면 빌드가 「모듈을 못 찾겠다」로 선다 (karmolab-live-check.yml 이 같은 이유로
-      # 25판 연속 빨갰던 자리다 — 전제를 따로 들면 반드시 갈라진다).
-      - name: 공용 꾸러미 먼저 짓기 (karmolab-ai)
-        working-directory: packages/karmolab-ai
-        run: npm ci --no-audit --no-fund && npm run build
-
-      - name: 공용 꾸러미 먼저 짓기 (badapple)
-        working-directory: packages/badapple
-        run: npm ci --no-audit --no-fund && npm run build
+          chromium: 'true'
 
       - name: 말 묶음 짓기
         run: npm run build:i18n
