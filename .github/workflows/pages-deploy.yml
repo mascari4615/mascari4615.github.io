@@ -116,25 +116,14 @@ jobs:
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
 
-      - name: Build karmolab-ai (shared package — apps/karmolab dependency)
-        working-directory: packages/karmolab-ai
-        run: |
-          npm ci
-          npm run build
-
-      # apps/karmolab 의 `npm run build` 사슬 안에 `test:mcp` 가 들어 있고, 그 검사는 이 꾸러미의
-      # 의존성(pdf-lib)을 **여기 node_modules 에서** 찾는다. verify 잡에는 이 설치가 있었는데
-      # 배포 잡에만 없어서, 2026-07 중순부터 배포가 `Cannot find module 'pdf-lib'` 로 계속 섰다.
-      # 실주소가 28일째 낡아 있던 진짜 이유가 이것이다 (daily 지난문제 표가 20648일에서 멈춤).
-      - name: Install karmolab-mcp deps (apps/karmolab build 사슬의 test:mcp 가 문다)
-        working-directory: packages/karmolab-mcp
-        run: npm ci
-
-      # 이 꾸러미는 자기 개발 의존성도 잠금 파일도 없다 (`npm ci` 로는 못 짓는다).
-      # 짓지 않으면 앱 쪽에서 「모듈을 못 찾는다」로 배포가 통째로 선다 — 실제로 섰다.
-      - name: Build badapple (shared package - apps/karmolab dependency)
-        working-directory: packages/badapple
-        run: npx -y -p typescript@5 tsc -p tsconfig.json
+      # ★ **짓기 전 채비는 한 곳에서** (2026-08-13, `.github/actions/setup-karmolab`).
+      #   karmolab-ai · badapple · karmolab-mcp 를 여기서 따로 적어 두었더니 워크플로마다 갈라졌다 —
+      #   mcp 설치가 이 배포 잡에만 빠져 **7월 중순부터 배포가 계속 섰고**(실주소 28일 정체),
+      #   badapple 이 라이브 점검에만 빠져 25판 연속 죽었다. 목록이 하나면 그 사고가 안 난다.
+      #   (badapple 은 이제 잠금 파일이 있어 `npm ci` 로 지어진다 — 옛 주석의 전제는 끝났다.)
+      - uses: ./.github/actions/setup-karmolab
+        with:
+          node-version: '20'
 
       - name: Build KarmoLab JavaScript (TypeScript)
         working-directory: apps/karmolab
