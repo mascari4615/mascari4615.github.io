@@ -259,7 +259,30 @@ if (Math.abs(ratioBefore - 1) > 0.05 && Math.abs(ratioAfter - 1 / ratioBefore) >
 await page.click('.meok [data-act="undo"]');
 await page.waitForTimeout(400);
 
-/* ⑨ 화면이 넘치지 않는다(가로 스크롤). */
+/* ⑨ 자동 저장 — 새로고침해도 그리던 게 남아 있다(이 도구의 제일 아픈 구멍이었다). */
+page.once('dialog', dialog => dialog.accept());
+await page.click('.meok [data-act="new"]');
+await page.waitForTimeout(400);
+const saveArt = await artRect();
+await page.mouse.move(saveArt.x + saveArt.w * 0.3, saveArt.y + saveArt.h * 0.3);
+await page.mouse.down();
+await page.mouse.move(saveArt.x + saveArt.w * 0.7, saveArt.y + saveArt.h * 0.7, { steps: 10 });
+await page.mouse.up();
+/* 쉬는 순간에 한 번만 쓴다 — 그 순간을 기다린다. */
+await page.waitForFunction(() => /저장됨|Saved|保存/.test(document.querySelector('.meok [data-status]')?.textContent || ''), null, { timeout: 8000 })
+  .catch(() => problems.push('자동 저장 표시가 안 뜬다'));
+const inkBeforeReload = await canvasInk();
+
+await page.reload({ waitUntil: 'load' });
+await page.waitForSelector('.meok', { timeout: 20000 });
+await page.waitForTimeout(1200);
+const inkAfterReload = await canvasInk();
+if (Math.abs(inkAfterReload - inkBeforeReload) > Math.max(60, inkBeforeReload * 0.25)) {
+  problems.push('새로고침하니 그림이 달라졌다 (' + inkBeforeReload + ' → ' + inkAfterReload + ')');
+}
+if (inkAfterReload < 100) problems.push('새로고침 뒤 그림이 사라졌다 (' + inkAfterReload + ')');
+
+/* ⑩ 화면이 넘치지 않는다(가로 스크롤). */
 const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 if (overflow > 2) problems.push('가로로 ' + overflow + 'px 넘친다');
 
@@ -278,4 +301,4 @@ if (problems.length) {
   console.error('[smoke-meok] ✗\n - ' + problems.join('\n - '));
   process.exit(1);
 }
-console.log('[smoke-meok] ✓ 붓·되돌리기·레이어(숨김 반영)·프레임·픽셀 모드·선택영역(밖으로 안 샘)·고치기(필터·보정·회전) — 실제 브라우저');
+console.log('[smoke-meok] ✓ 붓·되돌리기·레이어(숨김 반영)·프레임·픽셀 모드·선택영역(밖으로 안 샘)·고치기(필터·보정·회전)·자동 저장(새로고침 생존) — 실제 브라우저');

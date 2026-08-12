@@ -25,6 +25,7 @@ import {
   magicWand, selectAll, selectNone, selectPolygon, selectRect,
   type SelectMode, type Selection
 } from './selection';
+import { isStoredDoc, packDoc, unpackDoc, type StoredDoc } from './storage';
 import { CanvasView } from './view';
 
 declare const Toolbox: {
@@ -83,6 +84,50 @@ function download(blob: Blob, name: string): void {
 
 const safeName = (name: string): string => name.trim().replace(/[^a-z0-9가-힣_-]+/gi, '-') || 'artwork';
 
+/* ===== 자동 저장 창고 =====
+ *
+ * localStorage 는 5MB 언저리라 그림 한 장에도 넘친다. IndexedDB 에 접은 문서를 그대로 넣는다.
+ * 판 하나(`last`)만 쓴다 — 「이 브라우저에서 마지막에 그리던 것」이 다음에 열 때 그대로 뜨는 것,
+ * 그게 여기서 필요한 전부다(여러 판 관리는 파일로 내보내는 쪽이 정직하다).
+ */
+
+const DB_NAME = 'meok';
+const STORE = 'docs';
+
+function openDb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(STORE)) request.result.createObjectStore(STORE);
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function saveLast(stored: StoredDoc): Promise<void> {
+  const db = await openDb();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put(stored, 'last');
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
+}
+
+async function loadLast(): Promise<StoredDoc | null> {
+  const db = await openDb();
+  const value = await new Promise<unknown>((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const request = tx.objectStore(STORE).get('last');
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  db.close();
+  return isStoredDoc(value) ? (value as StoredDoc) : null;
+}
+
 /* ===== 화면 ===== */
 
 function buildMeok(container: HTMLElement): void {
@@ -111,12 +156,13 @@ function buildMeok(container: HTMLElement): void {
       '<button data-act="new" title="' + esc(T('newHelp', '빈 그림을 새로 시작한다')) + '">' + esc(T('new', '새로')) + '</button>' +
       '<button data-act="new-pixel" title="' + esc(T('newPixelHelp', '격자에 붙는 픽셀 그림 — 도트 애니메이션용')) + '">' + esc(T('newPixel', '픽셀')) + '</button>' +
       '<label class="meok-file">' + esc(T('open', '열기')) +
-        '<input data-open type="file" accept="image/*,application/json,.json,.ditherdeck.json" hidden></label>' +
+        '<input data-open type="file" accept="image/*,application/json,.json,.meok,.ditherdeck.json" hidden></label>' +
       '<button data-act="undo" data-hot="Ctrl+Z">' + esc(T('undo', '되돌리기')) + '</button>' +
       '<button data-act="redo" data-hot="Ctrl+Shift+Z">' + esc(T('redo', '다시')) + '</button>' +
       '<span class="meok-sep"></span>' +
       '<button data-act="save-png">' + esc(T('savePng', 'PNG')) + '</button>' +
       '<button data-act="save-sheet">' + esc(T('saveSheet', '시트')) + '</button>' +
+      '<button data-act="save-meok" title="' + esc(T('saveMeokHelp', '레이어·프레임까지 그대로 담은 파일')) + '">' + esc(T('saveMeok', '.meok')) + '</button>' +
       '<button data-act="save-project">' + esc(T('saveProject', '프로젝트')) + '</button>' +
       '<span class="meok-status" data-status></span>' +
     '</header>' +
@@ -422,6 +468,7 @@ function buildMeok(container: HTMLElement): void {
         if (patch) history.push(patch);
         renderLayers();
         repaint();
+        touched();
       }
       return;
     }
@@ -515,6 +562,7 @@ function buildMeok(container: HTMLElement): void {
     strokeBase = null;
     renderLayers();
     renderFrames();
+    touched();
   };
   canvas.addEventListener('pointerup', (event: PointerEvent) => endStroke(event));
   canvas.addEventListener('pointercancel', (event: PointerEvent) => endStroke(event));
@@ -607,6 +655,30 @@ function buildMeok(container: HTMLElement): void {
     }
   });
 
+  /* ===== 자동 저장 =====
+   * 손을 뗄 때마다 바로 쓰면 큰 그림에서 화면이 끊긴다. **쉬는 순간**에 한 번만 쓴다.
+   */
+  let saveTimer = 0;
+  let saving = false;
+  function touched(): void {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = window.setTimeout(() => {
+      saveTimer = 0;
+      if (saving) return;
+      saving = true;
+      void saveLast(packDoc(doc))
+        .then(() => { savedMark(); })
+        .catch(() => { say(T('saveFailed', '자동 저장이 막혔다 — 파일로 내보내 두는 게 좋다')); })
+        .then(() => { saving = false; });
+    }, 1200);
+  }
+  const savedMark = (): void => {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    say(t('meok.savedAt', { time: hh + ':' + mm }, '{time} 에 저장됨'));
+  };
+
   /* ===== 고치기 ===== */
 
   /**
@@ -638,6 +710,7 @@ function buildMeok(container: HTMLElement): void {
       selectionChanged();
       view.fit();
       renderLayers(); renderFrames(); repaint();
+      touched();
     };
     history.run({
       label,
@@ -657,6 +730,7 @@ function buildMeok(container: HTMLElement): void {
     const patch = pixelPatch(cel, before, label);
     if (patch) history.push(patch);
     renderLayers(); renderFrames(); repaint();
+    touched();
   }
 
   /** 보정 슬라이더 지금 값. */
@@ -701,10 +775,10 @@ function buildMeok(container: HTMLElement): void {
       history.clear();
       reflowDoc();
     },
-    'undo': () => { if (history.undo()) { renderLayers(); renderFrames(); repaint(); } },
-    'redo': () => { if (history.redo()) { renderLayers(); renderFrames(); repaint(); } },
+    'undo': () => { if (history.undo()) { renderLayers(); renderFrames(); repaint(); touched(); } },
+    'redo': () => { if (history.redo()) { renderLayers(); renderFrames(); repaint(); touched(); } },
     'fit': () => { view.fit(); pick<HTMLElement>('[data-zoom]').textContent = Math.round(view.scale * 100) + '%'; view.invalidate(); },
-    'add-layer': () => { addLayer(doc); renderLayers(); repaint(); },
+    'add-layer': () => { addLayer(doc); renderLayers(); repaint(); touched(); },
     'del-layer': () => {
       if (doc.activeLayer && removeLayer(doc, doc.activeLayer)) { renderLayers(); repaint(); }
       else say(T('lastLayer', '마지막 한 장은 못 지운다'));
@@ -717,7 +791,7 @@ function buildMeok(container: HTMLElement): void {
     'add-frame': () => {
       insertFrame(doc, doc.activeFrame + 1, true);
       setFrameCount(doc, doc.frames);
-      renderFrames(); renderLayers(); repaint();
+      renderFrames(); renderLayers(); repaint(); touched();
     },
     'del-frame': () => {
       if (removeFrame(doc, doc.activeFrame)) { renderFrames(); renderLayers(); repaint(); }
@@ -813,6 +887,11 @@ function buildMeok(container: HTMLElement): void {
         if (blob) download(blob, safeName(doc.name) + '-' + doc.frames + 'f.png');
       }, 'image/png');
     },
+    'save-meok': () => {
+      const stored = packDoc(doc);
+      download(new Blob([JSON.stringify(stored)], { type: 'application/json' }), safeName(doc.name) + '.meok');
+      say(T('savedFile', '파일로 내보냈다'));
+    },
     'save-project': () => {
       /* 픽셀 그림은 옛 Ditherdeck 형식으로도 내보낸다 — 그 도구로도 계속 열린다. */
       if (doc.grid > 0) {
@@ -857,6 +936,13 @@ function buildMeok(container: HTMLElement): void {
     try {
       if (/json$/i.test(file.name)) {
         const raw = JSON.parse(await file.text());
+        if (isStoredDoc(raw)) {
+          doc = unpackDoc(raw as StoredDoc);
+          history.clear();
+          reflowDoc();
+          say(T('openedMeok', '그리던 그림을 열었다'));
+          return;
+        }
         if (!isDitherdeckProject(raw)) { say(T('badProject', '읽을 수 없는 파일이다')); return; }
         doc = docFromDitherdeck(raw, 24);
         history.clear();
@@ -917,7 +1003,24 @@ function buildMeok(container: HTMLElement): void {
   observer.observe(wrap);
 
   canvas.style.cursor = 'crosshair';
-  requestAnimationFrame(() => { fitViewport(); reflowDoc(); pick<HTMLElement>('[data-zoom]').textContent = Math.round(view.scale * 100) + '%'; });
+  requestAnimationFrame(() => {
+    fitViewport();
+    reflowDoc();
+    pick<HTMLElement>('[data-zoom]').textContent = Math.round(view.scale * 100) + '%';
+    /* 지난번에 그리던 것을 되살린다 — 새로고침 한 번에 다 날아가는 게 이 도구의 제일 아픈 구멍이었다. */
+    void loadLast().then(stored => {
+      if (!stored || !root.isConnected) return;
+      try {
+        doc = unpackDoc(stored);
+        history.clear();
+        reflowDoc();
+        pick<HTMLElement>('[data-zoom]').textContent = Math.round(view.scale * 100) + '%';
+        say(T('restored', '지난번에 그리던 그림을 되살렸다'));
+      } catch {
+        say(T('restoreFailed', '지난 그림을 되살리지 못했다 — 새 판으로 시작한다'));
+      }
+    }).catch(() => undefined);
+  });
 
   Toolbox.onDispose?.(() => {
     if (playing) clearInterval(playing);

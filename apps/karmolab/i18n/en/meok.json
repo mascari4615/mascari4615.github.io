@@ -106,5 +106,13 @@
   "meok.filter.sharpen": "Sharpen",
   "meok.filter.edge": "Edges",
   "meok.filter.emboss": "Emboss",
-  "meok.filter.posterize": "Posterize"
+  "meok.filter.posterize": "Posterize",
+  "meok.saveFailed": "Autosave was blocked — export a file to be safe",
+  "meok.savedAt": "Saved at {time}",
+  "meok.saveMeok": ".meok",
+  "meok.saveMeokHelp": "A file that keeps layers and frames as they are",
+  "meok.savedFile": "Exported to a file",
+  "meok.openedMeok": "Opened your artwork",
+  "meok.restored": "Restored what you were drawing last time",
+  "meok.restoreFailed": "Could not restore the last artwork — starting fresh"
 }

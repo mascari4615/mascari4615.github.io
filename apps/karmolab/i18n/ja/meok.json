@@ -106,5 +106,13 @@
   "meok.filter.sharpen": "シャープ",
   "meok.filter.edge": "輪郭",
   "meok.filter.emboss": "エンボス",
-  "meok.filter.posterize": "ポスタリゼーション"
+  "meok.filter.posterize": "ポスタリゼーション",
+  "meok.saveFailed": "自動保存がブロックされた — ファイル書き出し推奨",
+  "meok.savedAt": "{time} に保存",
+  "meok.saveMeok": ".meok",
+  "meok.saveMeokHelp": "レイヤーとコマをそのまま保つファイル",
+  "meok.savedFile": "ファイルに書き出した",
+  "meok.openedMeok": "描いていた作品を開いた",
+  "meok.restored": "前回描いていたものを復元した",
+  "meok.restoreFailed": "前回の作品を復元できなかった — 新規で始める"
 }

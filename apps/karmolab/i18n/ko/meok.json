@@ -106,5 +106,13 @@
   "meok.filter.sharpen": "선명하게",
   "meok.filter.edge": "윤곽",
   "meok.filter.emboss": "돋을새김",
-  "meok.filter.posterize": "포스터"
+  "meok.filter.posterize": "포스터",
+  "meok.saveFailed": "자동 저장이 막혔다 — 파일로 내보내 두는 게 좋다",
+  "meok.savedAt": "{time} 에 저장됨",
+  "meok.saveMeok": ".meok",
+  "meok.saveMeokHelp": "레이어·프레임까지 그대로 담은 파일",
+  "meok.savedFile": "파일로 내보냈다",
+  "meok.openedMeok": "그리던 그림을 열었다",
+  "meok.restored": "지난번에 그리던 그림을 되살렸다",
+  "meok.restoreFailed": "지난 그림을 되살리지 못했다 — 새 판으로 시작한다"
 }
