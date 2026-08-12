@@ -675,7 +675,11 @@ import {
         const scale = canvas.getScale() || 1;
         const view = canvas.viewRectWorld();
         if (!view || scale <= 0) { root.dataset.kmPan = 'no-view'; return; }
-        canvas.fitToWorldRect({ x: view.x, y: view.y + over / scale, w: view.w, h: view.h }, 0, true);
+        /* ★ **곧바로 옮긴다 — 애니메이션으로 부탁하지 않는다** (2026-08-12, 계측 두 번째).
+           `animate=true` 는 「그 자리로 미끄러져 가라」는 예약이다. 이 되풀이는 프레임마다
+           다시 부르므로, 매번 예약이 새로 걸려 **한 발짝도 못 가고 제자리**였다
+           (실측: 밀었다고 적힌 합계 709px, 실제 이동 0). 되풀이가 곧 부드러움을 맡는다. */
+        canvas.fitToWorldRect({ x: view.x, y: view.y + over / scale, w: view.w, h: view.h }, 0, false);
         moved += over;
         if (performance.now() < deadline) requestAnimationFrame(step);
         else root.dataset.kmPan = `panned(${Math.round(moved)})·시간초과`;
