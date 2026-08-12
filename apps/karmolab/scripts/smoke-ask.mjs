@@ -63,7 +63,16 @@ if (!/#/.test(page.url()) || /#home$/.test(page.url())) {
 }
 
 // ④ 조각이 **실제로 만들어져 있어야** 한다 — 부르는 모양이 바뀌면 파일이 안 만들어진다.
-if (missing.length) problems.push(`받아야 할 조각이 없다(404): ${missing.join(', ')}`);
+/* ★ 한 번 더 확인하고 말한다 (2026-08-12). 이 검사는 배포 직후에 도는데, 그 사이 **다음
+ *   배포가 자산을 갈아 끼우면** 이름에 해시가 붙은 조각이 잠깐 404 가 된다 — 제품이 깨진 게
+ *   아니라 사이트가 교체 중인 순간을 잰 것이다(실측: perf.<해시>.js 가 그렇게 빨갰고,
+ *   같은 주소를 곧바로 다시 부르니 200 이었다). 진짜로 없는 조각은 다시 불러도 없다. */
+const stillMissing = [];
+for (const url of missing) {
+  const again = await fetch(url).then((r) => r.status).catch(() => 0);
+  if (again !== 200) stillMissing.push(url);
+}
+if (stillMissing.length) problems.push(`받아야 할 조각이 없다(404): ${stillMissing.join(', ')}`);
 
 // ⑤ 결과가 있는 물음에서는 이 자리가 아예 없어야 한다 — 있으면 매번 모델을 부르게 된다.
 /* 앱은 마지막에 보던 화면을 기억한다 — 그냥 첫 주소로 가면 도구 화면이 다시 열려
