@@ -30,11 +30,12 @@ export interface StudioClip {
 }
 
 /** 자동화할 수 있는 값. 눈금 범위가 달라서 뷰·엔진이 이 이름으로 갈라진다. */
-export type AutomationParam = 'volume' | 'pan';
+export type AutomationParam = 'volume' | 'pan' | 'reverb';
 
 export const AUTOMATION_RANGE: Record<AutomationParam, { min: number; max: number }> = {
   volume: { min: 0, max: 1.2 },
-  pan: { min: -1, max: 1 }
+  pan: { min: -1, max: 1 },
+  reverb: { min: 0, max: 1 }
 };
 
 export interface AutomationPoint {
@@ -141,7 +142,7 @@ export function newTrack(kind: TrackKind, index: number): StudioTrack {
     id: studioId('track'), kind, name: kind === 'audio' ? `Audio ${index}` : `Instrument ${index}`,
     color: COLORS[(index - 1) % COLORS.length], volume: 0.82, pan: 0, mute: false, solo: false,
     eqLow: 0, eqMid: 0, eqHigh: 0, compressor: 0.25, reverb: 0.08,
-    instrument: kind === 'midi' ? 'sawtooth' : 'sine', clips: [], automation: { volume: [], pan: [] }, folded: false, height: TRACK_HEIGHT.default
+    instrument: kind === 'midi' ? 'sawtooth' : 'sine', clips: [], automation: { volume: [], pan: [], reverb: [] }, folded: false, height: TRACK_HEIGHT.default
   };
 }
 
@@ -241,7 +242,8 @@ export function normalizeProject(input: unknown): StudioProject {
     const storedAutomation = (source as { automation?: Partial<Record<AutomationParam, unknown>> }).automation;
     track.automation = {
       volume: cleanAutomation(storedAutomation?.volume ?? legacyVolume, 'volume'),
-      pan: cleanAutomation(storedAutomation?.pan, 'pan')
+      pan: cleanAutomation(storedAutomation?.pan, 'pan'),
+      reverb: cleanAutomation(storedAutomation?.reverb, 'reverb')
     };
     track.clips = Array.isArray(source.clips) ? source.clips.map((rawClip) => {
       const clip = rawClip as Partial<StudioClip>;

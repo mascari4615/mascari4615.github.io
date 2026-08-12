@@ -243,7 +243,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       if (!param) return '';
       return automationHtml({
         trackId: track.id, param, points: track.automation[param],
-        fallback: param === 'pan' ? track.pan : track.volume,
+        fallback: param === 'pan' ? track.pan : param === 'reverb' ? track.reverb : track.volume,
         pxPerBeat, width, projectBeats: Math.max(projectLength(project), 1), beatLabel: beatText
       });
     }
@@ -723,7 +723,7 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
       const param=(lane.dataset.autoKind as AutomationParam)||'volume';
       /* 항목 고르기 단추는 끌기가 아니라 전환이다. */
       const pick=target.closest<HTMLElement>('[data-auto-param]')?.dataset.autoParam as AutomationParam|undefined;
-      if(pick){autoLanes.set(track.id,pick);renderTracks();status(`${track.name} · ${pick==='pan'?'팬':'볼륨'} 자동화`);return;}
+      if(pick){autoLanes.set(track.id,pick);renderTracks();status(`${track.name} · ${pick==='pan'?'팬':pick==='reverb'?'리버브':'볼륨'} 자동화`);return;}
       event.preventDefault();
       const rect=lane.getBoundingClientRect();
       const valueAt=(clientY:number):number=>automationValue((clientY-rect.top)/Math.max(1,rect.height),param);

@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 /* model 은 값 범위 상수만 쓴다 — 뷰가 모델 전체를 안 끌어오는지도 여기서 드러난다. */
-const modelStub = { AUTOMATION_RANGE: { volume: { min: 0, max: 1.2 }, pan: { min: -1, max: 1 } } };
+const modelStub = { AUTOMATION_RANGE: { volume: { min: 0, max: 1.2 }, pan: { min: -1, max: 1 }, reverb: { min: 0, max: 1 } } };
 vm.runInNewContext(`(function(exports,module,require){${compiled}
 })(module.exports,module,()=>modelStub);`, { module, console, Math, modelStub });
 const { automationY, automationValue, AUTOMATION_GEOMETRY, waveformPath, waveformSvg, waveMissing, clipHtml, automationHtml, visibleClips, previewNotes } = module.exports;
@@ -113,5 +113,15 @@ assert.ok(panLane.includes('L50'), '왼쪽 값은 L 로 읽는다');
 assert.ok(panLane.includes('가운데'), '0 은 가운데');
 assert.ok(panLane.includes('data-auto-kind="pan"'), '어느 항목인지 DOM 에 남긴다');
 assert.ok(panLane.includes('data-auto-param="volume"') && panLane.includes('data-auto-param="pan"'), '항목 고르는 단추가 둘');
+
+// 리버브 줄 — 0~1 이라 볼륨과 눈금이 다르다
+assert.equal(automationY(1, 'reverb'), 0, '리버브 최대는 맨 위');
+assert.equal(automationY(0, 'reverb'), AUTOMATION_GEOMETRY.height);
+assert.ok(automationY(0.5, 'reverb') !== automationY(0.5, 'volume'), '볼륨과 눈금이 다르다');
+const reverbLane = automationHtml({ trackId: 't1', param: 'reverb', points: [{ id: 'r1', beat: 2, value: 0.5 }], fallback: 0.08, pxPerBeat: 72, width: 900, projectBeats: 16, beatLabel: (beat) => `b${beat}` });
+assert.ok(reverbLane.includes('>REVERB'), '이름이 REVERB');
+assert.ok(reverbLane.includes('data-auto-kind="reverb"'));
+assert.ok(reverbLane.includes('data-auto-param="reverb"') && reverbLane.includes('data-auto-param="vol'.concat('ume"')), '항목 단추가 셋');
+assert.ok(reverbLane.includes('50%'), '값은 퍼센트로 읽는다');
 
 console.log('[test-karmo-studio-arranger-view] ✓ 자동화 좌표 · 파형 96칸 · 클립 본문 분기 · 이스케이프 · 자동화 선 · 화면 밖 걸러내기');
