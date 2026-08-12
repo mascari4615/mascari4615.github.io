@@ -1,0 +1,104 @@
+{
+  "id": "pay-idem",
+  "minutes": 11,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "중복 결제는 **가장 흔하고 가장 아픈** 사고다. 그리고 네트워크는 언제나 같은 요청을 두 번 배달할 수 있다."
+    },
+    {
+      "type": "h",
+      "text": "1. 왜 두 번 오나"
+    },
+    {
+      "type": "note",
+      "text": "사용자가 버튼을 두 번 누름 · 타임아웃 후 재시도(첫 요청은 사실 성공) · 웹훅 재전송 · 큐의 최소 한 번 전달. **모두 정상 동작**이므로 막는 것이 아니라 흡수해야 한다."
+    },
+    {
+      "type": "h",
+      "text": "2. 멱등 키"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "같은 키 = 같은 결과",
+      "text": "const key = `order-${orderId}`;   // 클라이언트가 만들고 재시도 시 동일하게\nawait pg.charge({ amount, currency }, { idempotencyKey: key });\n// PG 가 같은 키의 두 번째 요청에 「첫 결과」를 그대로 돌려준다"
+    },
+    {
+      "type": "h",
+      "text": "3. 내 서버도 멱등하게"
+    },
+    {
+      "type": "code",
+      "lang": "sql",
+      "label": "DB 제약이 최후의 방어선",
+      "text": "-- 주문당 결제 한 건만 허용\nCREATE UNIQUE INDEX ON payments (order_id) WHERE status <> 'failed';\n\n-- 또는 멱등 키 테이블\nINSERT INTO idem_keys (key) VALUES ($1) ON CONFLICT DO NOTHING;\n-- 0 행이면 이미 처리한 요청"
+    },
+    {
+      "type": "note",
+      "text": "애플리케이션 로직만으로 막으면 **동시 요청**에서 뚫린다. 유니크 제약이나 잠금을 반드시 두라."
+    },
+    {
+      "type": "h",
+      "text": "4. 화면에서도"
+    },
+    {
+      "type": "p",
+      "text": "버튼을 누르는 즉시 **비활성화 + 진행 표시**. 그리고 결과가 올 때까지 재요청을 막아라. 사용자가 두 번 누르는 이유는 대개 **반응이 없어서**다."
+    },
+    {
+      "type": "h",
+      "text": "5. 웹훅 재전송"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "이벤트 id 로 중복 차단",
+      "text": "const seen = await db.markWebhookSeen(event.id);   // 이미 있으면 false\nif (!seen) return res.sendStatus(200);            // 조용히 성공 응답\nawait handle(event);"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "결제 요청을 `Promise.all` 로 두 번 동시에 보내라. 결제가 두 건 생기면 유니크 제약을 추가하라."
+    },
+    {
+      "type": "try",
+      "text": "같은 웹훅 이벤트를 두 번 보내고, 재고나 포인트가 두 번 반영되는지 확인하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "멱등 키의 역할은?",
+      "choices": [
+        "같은 키의 재요청에 첫 결과를 그대로 돌려주게 한다",
+        "요청을 차단한다",
+        "속도를 높인다"
+      ],
+      "answer": 0,
+      "why": "재시도가 안전해진다."
+    },
+    {
+      "q": "애플리케이션 검사만으로 중복을 막으면?",
+      "choices": [
+        "동시 요청에서 뚫린다",
+        "충분하다",
+        "성능이 좋다"
+      ],
+      "answer": 0,
+      "why": "유니크 제약·잠금이 필요하다."
+    },
+    {
+      "q": "웹훅 재전송을 다루는 방법은?",
+      "choices": [
+        "이벤트 id 를 기록해 두 번째는 무시하고 200 응답",
+        "무시하고 재처리",
+        "오류 반환"
+      ],
+      "answer": 0,
+      "why": "오류를 반환하면 계속 재전송된다."
+    }
+  ]
+}

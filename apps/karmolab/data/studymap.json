@@ -3367,6 +3367,143 @@
           ]
         }
       ]
+    },
+    {
+      "id": "pay",
+      "title": "결제 · 과금",
+      "emoji": "💳",
+      "lead": "돈이 오가는 코드 — 틀리면 사용자가 아프고, 되돌리기도 어렵다",
+      "stages": [
+        {
+          "id": "pay-a",
+          "title": "흐름을 안다",
+          "nodes": [
+            {
+              "id": "pay-flow",
+              "title": "결제 한 건의 흐름",
+              "why": "「결제하기」를 누른 뒤 승인·매입·정산이 며칠에 걸쳐 일어난다. 그 시차가 버그의 자리다.",
+              "check": "승인·매입·정산·취소를 순서대로 말한다",
+              "links": [
+                {
+                  "label": "Stripe 결제 흐름 문서",
+                  "url": "https://docs.stripe.com/payments/payment-intents"
+                }
+              ]
+            },
+            {
+              "id": "pay-idem",
+              "title": "멱등성 — 두 번 눌러도 한 번만",
+              "why": "중복 결제는 가장 흔하고 가장 아픈 사고다. 네트워크는 언제나 두 번 도착할 수 있다.",
+              "check": "같은 요청을 두 번 보내도 결제가 하나만 생긴다",
+              "links": [
+                {
+                  "label": "Stripe 멱등 키",
+                  "url": "https://docs.stripe.com/api/idempotent_requests"
+                }
+              ],
+              "prereq": [
+                "data-queue"
+              ]
+            },
+            {
+              "id": "pay-webhook",
+              "title": "웹훅 — 진실은 나중에 온다",
+              "why": "화면의 「성공」은 신호일 뿐이다. 상태는 서버가 웹훅으로 확인해야 확정된다.",
+              "check": "웹훅 서명을 검증하고 재전송에 대비한다",
+              "links": [
+                {
+                  "label": "Stripe 웹훅",
+                  "url": "https://docs.stripe.com/webhooks"
+                }
+              ],
+              "prereq": [
+                "web-http"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "pay-b",
+          "title": "돈을 지킨다",
+          "nodes": [
+            {
+              "id": "pay-security",
+              "title": "카드 정보를 만지지 않는다",
+              "why": "직접 저장하는 순간 PCI 부담이 생긴다. 토큰화로 **내 서버를 지나가지 않게** 만든다.",
+              "check": "카드 번호가 내 서버 로그 어디에도 없다",
+              "links": [
+                {
+                  "label": "PCI DSS 개요",
+                  "url": "https://www.pcisecuritystandards.org/"
+                }
+              ],
+              "prereq": [
+                "sec-secret"
+              ]
+            },
+            {
+              "id": "pay-money",
+              "title": "금액 다루기 — 정수와 통화",
+              "why": "부동소수로 돈을 세면 1원씩 어긋난다. 통화마다 소수 자릿수도 다르다.",
+              "check": "최소 단위 정수 + 통화 코드로 저장한다",
+              "links": [
+                {
+                  "label": "ISO 4217 통화 코드",
+                  "url": "https://www.iso.org/iso-4217-currency-codes.html"
+                }
+              ],
+              "prereq": [
+                "cs-binary"
+              ]
+            },
+            {
+              "id": "pay-refund",
+              "title": "환불 · 분쟁 · 취소",
+              "why": "취소 경로 없는 결제 시스템은 미완성이다. 부분 환불·기간 계산이 특히 까다롭다.",
+              "check": "부분 환불과 취소를 코드로 처리한다",
+              "links": [
+                {
+                  "label": "Stripe 분쟁(chargeback)",
+                  "url": "https://docs.stripe.com/disputes"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "pay-c",
+          "title": "사업으로 만든다",
+          "nodes": [
+            {
+              "id": "pay-sub",
+              "title": "구독 — 갱신과 실패",
+              "why": "카드가 만료되고 잔액이 부족하다. 결제 실패 복구(dunning)가 매출의 큰 부분이다.",
+              "check": "갱신 실패 시 재시도와 안내가 자동으로 돈다",
+              "links": [
+                {
+                  "label": "Stripe 구독",
+                  "url": "https://docs.stripe.com/billing/subscriptions/overview"
+                }
+              ]
+            },
+            {
+              "id": "pay-tax",
+              "title": "세금 · 영수증 · 정산",
+              "why": "나라마다 부가세·디지털 서비스세가 다르고, 영수증은 법적 요구다.",
+              "check": "세금 처리와 영수증 발급 경로가 있다",
+              "links": [
+                {
+                  "label": "국세청 전자세금계산서",
+                  "url": "https://www.nts.go.kr/"
+                }
+              ],
+              "prereq": [
+                "legal-terms"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
