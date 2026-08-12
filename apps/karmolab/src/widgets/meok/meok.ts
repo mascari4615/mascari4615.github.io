@@ -28,6 +28,7 @@ import {
 import { removeBackground } from './rembg';
 import { isStoredDoc, packDoc, unpackDoc, type StoredDoc } from './storage';
 import { CanvasView } from './view';
+import { canUpload, setFoundryToken, uploadToFoundry } from '../../lib/foundry';
 
 declare const Toolbox: {
   register(spec: unknown): void;
@@ -192,6 +193,7 @@ function buildMeok(container: HTMLElement): void {
       '<button data-act="redo" data-hot="Ctrl+Shift+Z">' + esc(T('redo', '다시')) + '</button>' +
       '<span class="meok-sep"></span>' +
       '<button data-act="save-png">' + esc(T('savePng', 'PNG')) + '</button>' +
+      '<button data-act="to-shelf" title="' + esc(T('toShelfHelp', '만든 것을 선반에 올린다 (CC0)')) + '">' + esc(T('toShelf', '선반')) + '</button>' +
       '<button data-act="save-sheet">' + esc(T('saveSheet', '시트')) + '</button>' +
       '<button data-act="save-meok" title="' + esc(T('saveMeokHelp', '레이어·프레임까지 그대로 담은 파일')) + '">' + esc(T('saveMeok', '.meok')) + '</button>' +
       '<button data-act="save-project">' + esc(T('saveProject', '프로젝트')) + '</button>' +
@@ -1085,6 +1087,28 @@ function buildMeok(container: HTMLElement): void {
     'save-png': () => {
       surfaceToCanvas(composite(doc, doc.activeFrame)).toBlob(blob => {
         if (blob) download(blob, safeName(doc.name) + '.png');
+      }, 'image/png');
+    },
+    'to-shelf': () => {
+      // 선반은 남의 기계(노트북)가 받는다. 열쇠가 없으면 넣는 자리를 먼저 알려 준다 —
+      // 눌렀다가 「권한 없음」을 보는 것보다 낫다(「본」과 같은 결).
+      if (!canUpload()) {
+        const key = window.prompt(T('shelfKeyAsk', '선반 열쇠 (이 브라우저에만 남는다)'), '') ?? '';
+        if (!key.trim()) return;
+        setFoundryToken(key.trim());
+      }
+      surfaceToCanvas(composite(doc, doc.activeFrame)).toBlob(blob => {
+        if (!blob) return;
+        say(T('shelfSending', '선반에 올리는 중…'));
+        void blob.arrayBuffer()
+          .then(buffer => uploadToFoundry({
+            tool: 'meok',
+            title: doc.name || T('untitled', '새 그림'),
+            mime: 'image/png',
+            bytes: new Uint8Array(buffer)
+          }))
+          .then(item => say(T('shelfDone', '선반에 올렸다') + ' — ' + item.title))
+          .catch(error => say(String(error instanceof Error ? error.message : error)));
       }, 'image/png');
     },
     'save-sheet': () => {

@@ -144,5 +144,10 @@
   "meok.rembgStart": "Removing the background — the first run downloads a model",
   "meok.rembgProgress": "Removing background {percent}%",
   "meok.rembgDone": "Background removed",
-  "meok.rembgFailed": "Could not remove the background — try again"
+  "meok.rembgFailed": "Could not remove the background — try again",
+  "meok.toShelf": "Shelf",
+  "meok.toShelfHelp": "Put what you made on the shelf (CC0)",
+  "meok.shelfKeyAsk": "Shelf key (stays in this browser)",
+  "meok.shelfSending": "Sending to the shelf…",
+  "meok.shelfDone": "Put on the shelf"
 }

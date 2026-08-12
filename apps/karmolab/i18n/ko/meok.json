@@ -144,5 +144,10 @@
   "meok.rembgStart": "배경을 지우는 중 — 처음 한 번은 모델을 받느라 오래 걸린다",
   "meok.rembgProgress": "배경 지우는 중 {percent}%",
   "meok.rembgDone": "배경을 지웠다",
-  "meok.rembgFailed": "배경을 못 지웠다 — 잠시 뒤 다시"
+  "meok.rembgFailed": "배경을 못 지웠다 — 잠시 뒤 다시",
+  "meok.toShelf": "선반",
+  "meok.toShelfHelp": "만든 것을 선반에 올린다 (CC0)",
+  "meok.shelfKeyAsk": "선반 열쇠 (이 브라우저에만 남는다)",
+  "meok.shelfSending": "선반에 올리는 중…",
+  "meok.shelfDone": "선반에 올렸다"
 }

@@ -144,5 +144,10 @@
   "meok.rembgStart": "背景を消している — 初回はモデル取得で時間がかかる",
   "meok.rembgProgress": "背景処理中 {percent}%",
   "meok.rembgDone": "背景を消した",
-  "meok.rembgFailed": "背景を消せなかった — 少し後でもう一度"
+  "meok.rembgFailed": "背景を消せなかった — 少し後でもう一度",
+  "meok.toShelf": "棚",
+  "meok.toShelfHelp": "つくったものを棚に上げる (CC0)",
+  "meok.shelfKeyAsk": "棚の鍵（このブラウザにだけ残る）",
+  "meok.shelfSending": "棚に上げている…",
+  "meok.shelfDone": "棚に上げた"
 }
