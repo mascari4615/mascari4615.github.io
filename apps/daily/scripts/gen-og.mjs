@@ -15,7 +15,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const app = join(dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = join(app, 'img/og');
-const mod = await import(pathToFileURL(join(app, '../karmolab/node_modules/playwright/index.js')).href);
+/* 이웃 앱(apps/karmolab)의 playwright 를 빌려 쓴다 — 이 앱은 의존성 0 을 지킨다.
+ * CI 에는 그 이웃이 없으므로 어디 있는지 `DAILY_PLAYWRIGHT` 로 알려 준다
+ * (자매 스크립트 smoke.mjs · smoke-live.mjs 와 같은 규약. 여기만 경로가 박혀 있어
+ *  「표 새로 받기」 워크플로가 마지막 단계에서 모듈을 못 찾고 죽었다 — 2026-08-10). */
+const pwRel = process.env.DAILY_PLAYWRIGHT || '../karmolab/node_modules/playwright/index.js';
+const mod = await import(pathToFileURL(join(app, pwRel)).href);
 const pw = mod.chromium ? mod : mod.default;
 
 const topics = readdirSync(join(app, 'data'))
