@@ -2072,20 +2072,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['garden/garden']
   },
 
-  /* 멍 (TASK-KL-221) — 도구가 아니라 창문. 로고가 스스로 모여 더 큰 로고가 되고, 그
-     안으로 끝없이 빨려 들어간다. 이음매가 없어 언제 켜도 「처음부터」가 없다. */
-  {
-    id: 'meong',
-    get title() { return t('widgets.meong.title', undefined, "멍"); },
-    category: 'lab',
-    get desc() { return t('widgets-desc.meong.desc', undefined, "멍때리며 보는 화면 — 로고가 모여 더 큰 로고가 되고 끝없이 안으로 들어갑니다"); },
-    layout: 'full',
-    noHero: true,
-    produces: ['image/png'],
-    icon: '<path d="M3 5h13M3 11h9M3 17h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="15" cy="11" r="1.3" fill="currentColor"/><circle cx="12" cy="17" r="1.3" fill="currentColor"/><g opacity=".5"><path d="M17.6 15h4M17.6 18h2.7M17.6 21h1.7" stroke="currentColor" stroke-width="1" stroke-linecap="round" fill="none"/></g>',
-    lazyScriptPaths: ['meong/meong']
-  },
-
   /* 오락실 (TASK-KL-242) — 실험실 안의 놀이터. 미니게임 여럿을 커널 하나가 굴린다.
      사람이 모자란 자리는 봇이 앉아서 「혼자」와 「같이」가 같은 코드다. */
   {
