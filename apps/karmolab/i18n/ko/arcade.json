@@ -366,5 +366,13 @@
   "arcade.auction.tie": "같은 값이 겹쳤다 — 아무도 못 가져간다",
   "arcade.auction.sold": "{who} 가 {paid} 에 가져갔다 (+{n}점)",
   "arcade.auction.tally": "{p}점 · {m}원",
-  "arcade.auction.win": "{who} · {n}점"
+  "arcade.auction.win": "{who} · {n}점",
+  "arcade.game.tuho.name": "투호",
+  "arcade.game.tuho.desc": "항아리에 화살 넣기 · 아가리 2점, 귀에 걸치면 1점",
+  "arcade.tuho.aim": "좌우",
+  "arcade.tuho.power": "세기",
+  "arcade.tuho.throw": "던지기",
+  "arcade.tuho.flying": "날아간다",
+  "arcade.tuho.left": "화살 {n}",
+  "arcade.tuho.win": "{who} · {n}점"
 }
