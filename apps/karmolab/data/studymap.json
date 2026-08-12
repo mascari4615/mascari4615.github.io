@@ -3638,6 +3638,146 @@
           ]
         }
       ]
+    },
+    {
+      "id": "dataeng",
+      "title": "데이터 엔지니어링",
+      "emoji": "🏗",
+      "lead": "분석이 굴러가려면 그 앞에 파이프가 있어야 한다 — 매일 조용히 도는 쪽",
+      "stages": [
+        {
+          "id": "dataeng-a",
+          "title": "옮기고 쌓는다",
+          "nodes": [
+            {
+              "id": "dataeng-why",
+              "title": "왜 파이프라인인가",
+              "why": "운영 DB 에서 직접 집계하면 서비스가 느려지고, 손으로 뽑으면 매번 숫자가 달라진다.",
+              "check": "운영계와 분석계를 나눠야 하는 이유를 댄다",
+              "links": [
+                {
+                  "label": "dbt — 분석 엔지니어링 소개",
+                  "url": "https://docs.getdbt.com/docs/introduction"
+                }
+              ],
+              "prereq": [
+                "cs-db"
+              ]
+            },
+            {
+              "id": "dataeng-batch",
+              "title": "배치와 스트리밍",
+              "why": "「매일 새벽」과 「즉시」는 비용도 복잡도도 다르다. 대부분은 배치로 충분하다.",
+              "check": "이 데이터에 필요한 지연을 숫자로 정한다",
+              "links": [
+                {
+                  "label": "Kafka 소개",
+                  "url": "https://kafka.apache.org/intro"
+                }
+              ],
+              "prereq": [
+                "data-queue"
+              ]
+            },
+            {
+              "id": "dataeng-warehouse",
+              "title": "ETL · ELT · 웨어하우스",
+              "why": "요즘은 먼저 싣고 나중에 변환한다(ELT). 웨어하우스가 그 변환을 감당할 만큼 세졌다.",
+              "check": "원본·정제·집계 층을 나눠 설계한다",
+              "links": [
+                {
+                  "label": "dbt 프로젝트 구조 가이드",
+                  "url": "https://docs.getdbt.com/best-practices/how-we-structure/1-guide-overview"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "dataeng-b",
+          "title": "믿을 수 있게",
+          "nodes": [
+            {
+              "id": "dataeng-contract",
+              "title": "스키마 진화 · 데이터 계약",
+              "why": "앱이 컬럼 하나 바꾸면 대시보드 열 개가 조용히 틀린다. 그래서 계약이 필요하다.",
+              "check": "변경 시 깨지는 하류를 미리 안다",
+              "links": [
+                {
+                  "label": "Schema Registry 개념",
+                  "url": "https://docs.confluent.io/platform/current/schema-registry/index.html"
+                }
+              ],
+              "prereq": [
+                "data-format"
+              ]
+            },
+            {
+              "id": "dataeng-orchestrate",
+              "title": "오케스트레이션 — 의존과 재실행",
+              "why": "cron 만으로는 「앞 단계가 실패했는데 뒤가 돌았다」를 못 막는다.",
+              "check": "실패한 구간만 다시 돌린다",
+              "links": [
+                {
+                  "label": "Airflow 개념",
+                  "url": "https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/index.html"
+                }
+              ],
+              "prereq": [
+                "shell-script"
+              ]
+            },
+            {
+              "id": "dataeng-quality",
+              "title": "데이터 품질 검사",
+              "why": "조용히 틀린 데이터가 가장 비싸다 — 아무도 모른 채 의사결정이 나간다.",
+              "check": "행 수·중복·널·범위 검사가 파이프라인 안에서 돈다",
+              "links": [
+                {
+                  "label": "Great Expectations",
+                  "url": "https://greatexpectations.io/"
+                }
+              ],
+              "prereq": [
+                "analytics-clean"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "dataeng-c",
+          "title": "오래 굴린다",
+          "nodes": [
+            {
+              "id": "dataeng-cost",
+              "title": "파티셔닝 · 비용",
+              "why": "클라우드 웨어하우스는 스캔한 만큼 돈이다. 한 줄 쿼리가 몇 만 원이 되기도 한다.",
+              "check": "파티션·클러스터링으로 스캔량을 줄인다",
+              "links": [
+                {
+                  "label": "BigQuery 파티셔닝",
+                  "url": "https://cloud.google.com/bigquery/docs/partitioned-tables"
+                }
+              ]
+            },
+            {
+              "id": "dataeng-lineage",
+              "title": "계보 · 카탈로그",
+              "why": "「이 숫자 어디서 왔어요?」에 답할 수 없으면 아무도 그 대시보드를 믿지 않는다.",
+              "check": "지표 하나의 출처를 원본까지 따라간다",
+              "links": [
+                {
+                  "label": "OpenLineage",
+                  "url": "https://openlineage.io/"
+                }
+              ],
+              "prereq": [
+                "craft-doc"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -116,6 +116,10 @@
     "search": {
       "title": "Search",
       "lead": "Not \"found it\" but \"the right one is on top\" — LIKE cannot do that"
+    },
+    "dataeng": {
+      "title": "Data engineering",
+      "lead": "Analysis needs pipes in front of it — the side that runs quietly every day"
     }
   },
   "stages": {
@@ -193,7 +197,10 @@
     "pay-c": "Make it a business",
     "search-a": "How things are found",
     "search-b": "What goes on top",
-    "search-c": "Making it better"
+    "search-c": "Making it better",
+    "dataeng-a": "Move and store",
+    "dataeng-b": "Make it trustworthy",
+    "dataeng-c": "Run it for years"
   },
   "nodes": {
     "web-html": {
@@ -1919,6 +1926,70 @@
       "check": "Your empty state offers a next action",
       "links": [
         "NN/g search UX"
+      ]
+    },
+    "dataeng-why": {
+      "title": "Why a pipeline at all",
+      "why": "Aggregating on the production DB slows the service, and hand-pulled numbers differ every time.",
+      "check": "You explain why operational and analytical systems are separated",
+      "links": [
+        "dbt — analytics engineering"
+      ]
+    },
+    "dataeng-batch": {
+      "title": "Batch and streaming",
+      "why": "\"Every night\" and \"instantly\" differ in cost and complexity — batch is enough for most cases.",
+      "check": "You state the latency this data actually needs, as a number",
+      "links": [
+        "Kafka introduction"
+      ]
+    },
+    "dataeng-warehouse": {
+      "title": "ETL, ELT and the warehouse",
+      "why": "Modern practice loads first and transforms later, because warehouses got strong enough.",
+      "check": "You separate raw, cleaned and aggregated layers",
+      "links": [
+        "dbt project structure guide"
+      ]
+    },
+    "dataeng-contract": {
+      "title": "Schema evolution and data contracts",
+      "why": "One column rename in the app silently breaks ten dashboards — hence contracts.",
+      "check": "You know which downstream breaks before you change something",
+      "links": [
+        "Schema Registry"
+      ]
+    },
+    "dataeng-orchestrate": {
+      "title": "Orchestration — dependencies and reruns",
+      "why": "Plain cron cannot stop \"the upstream failed but the downstream ran anyway\".",
+      "check": "You can rerun only the failed segment",
+      "links": [
+        "Airflow core concepts"
+      ]
+    },
+    "dataeng-quality": {
+      "title": "Data quality checks",
+      "why": "Silently wrong data is the most expensive kind — decisions ship while nobody notices.",
+      "check": "Row count, duplicate, null and range checks run inside the pipeline",
+      "links": [
+        "Great Expectations"
+      ]
+    },
+    "dataeng-cost": {
+      "title": "Partitioning and cost",
+      "why": "Cloud warehouses bill by bytes scanned; one careless query can cost real money.",
+      "check": "You cut scanned bytes with partitioning and clustering",
+      "links": [
+        "BigQuery partitioning"
+      ]
+    },
+    "dataeng-lineage": {
+      "title": "Lineage and catalog",
+      "why": "If you cannot answer \"where did this number come from\", nobody trusts the dashboard.",
+      "check": "You trace one metric back to the raw source",
+      "links": [
+        "OpenLineage"
       ]
     }
   }
