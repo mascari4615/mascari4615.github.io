@@ -13,7 +13,7 @@ import { GestureHost } from './gesture';
 import { shortcutsHtml } from './shortcuts';
 import { describeInputs, parseMidiMessage } from './midi';
 import { buildPianoView, initialScrollTop, PIANO_GEOMETRY } from './piano-view';
-import { automationHtml, automationValue, clipHtml, laneHint, visibleClips, waveformPath, waveformSvg, waveMissing } from './arranger-view';
+import { automationHtml, automationPickerHtml, automationValue, clipHtml, laneHint, visibleClips, waveformPath, waveformSvg, waveMissing } from './arranger-view';
 import { analysePeak, applyGain, clampBuffer, exportRange, normalizeGain, stemFileName, uniqueNames, type ExportRangeMode } from './export';
 import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type ClipRef, type NoteRef } from './selection';
 
@@ -302,7 +302,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       return `<div class="ks-track-row${track.folded?' is-folded':''}" data-track-row="${track.id}" style="width:${172 + width}px;--ks-row:${track.folded?22:track.height}px">
         <div class="ks-track-head"><div class="ks-track-title"><span class="ks-track-grip" data-track-grip="${track.id}" title="끌어서 순서 바꾸기">⣿</span><span class="ks-track-color" style="background:${track.color}"></span><input data-track-name="${track.id}" value="${esc(track.name)}" aria-label="트랙 이름"></div>
         <div class="ks-track-actions"><button class="ks-mini${track.mute?' is-on':''}" data-track-act="mute" data-track="${track.id}">M</button><button class="ks-mini${track.solo?' is-on':''}" data-track-act="solo" data-track="${track.id}">S</button><button class="ks-mini${track.folded?' is-on':''}" data-track-act="fold" data-track="${track.id}" title="접기/펼치기">${track.folded?'▸':'▾'}</button><button class="ks-mini${autoLanes.has(track.id)?' is-on':''}" data-track-act="auto" data-track="${track.id}" title="볼륨 자동화 줄 보이기">A</button><button class="ks-mini${armedTrackId===track.id?' is-on':''}" data-track-act="arm" data-track="${track.id}" title="${track.kind==='audio'?'녹음 대상으로 지정':'오디오 트랙만 녹음 대상이 된다'}"${track.kind==='audio'?'':' disabled'}>●</button><button class="ks-mini" data-track-act="delete" data-track="${track.id}">×</button></div>
-        <input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-track-volume="${track.id}" aria-label="${esc(track.name)} 볼륨"><b class="ks-track-resize" data-track-resize="${track.id}" title="끌어서 줄 높이"></b></div>
+        <input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-track-volume="${track.id}" aria-label="${esc(track.name)} 볼륨">${autoLanes.has(track.id)?automationPickerHtml(track.id,autoLanes.get(track.id) as AutomationParam):''}<b class="ks-track-resize" data-track-resize="${track.id}" title="끌어서 줄 높이"></b></div>
         <div class="ks-lane" data-lane="${track.id}" data-kind="${track.kind}" style="width:${width}px">${visibleClips(track.clips,view.from,view.to,view.margin).map((clip)=>trackClipHtml(track,clip)).join('')}${track.clips.length?'':`<span class="ks-lane-hint">${esc(laneHint(editTool,track.kind))}</span>`}</div>${trackAutomationHtml(track,width)}</div>`;
     }
     /** 지난 판에 그린 줄 — 같은 문자열이면 DOM 을 안 만진다. */
@@ -353,6 +353,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       const editor = $<HTMLElement>('[data-role=editor]'); const previousPiano = editor.querySelector<HTMLElement>('.ks-piano');
       if (previousPiano) { editorScrollTop = previousPiano.scrollTop; editorScrollLeft = previousPiano.scrollLeft; }
       const track = selectedTrack(); const clip = selectedClip(); editor.classList.toggle('is-expanded', editorExpanded);
+      editor.classList.toggle('is-empty',!track||!clip);
       if (!track || !clip) { editorExpanded=false;editor.classList.remove('is-expanded');$<HTMLElement>('[data-role=backdrop]').classList.remove('is-open');editor.innerHTML = `<div class="ks-editor-head">CLIP EDITOR</div><div class="ks-empty">클립을 선택하면 편집기가 열립니다.<br>클립을 더블클릭하면 큰 전용 편집 창으로 봅니다.</div>`; return; }
       if (clip.kind === 'audio') {
         const runtime=clip.assetId?assets.get(clip.assetId):undefined;
@@ -487,7 +488,9 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       else if(contextAct==='mute'){const chosen=markedClips();const focus=selectedClip()||chosen[0]?.clip;if(chosen.length&&focus){const next=!focus.mute;for(const item of chosen)item.clip.mute=next;engine.updateProject(project);saveSoon('clip-mute');renderAll();status(next?`${chosen.length}개 소리 끔`:`${chosen.length}개 소리 켬`);}}
       else if(contextAct==='lock'){const chosen=markedClips();const focus=selectedClip()||chosen[0]?.clip;if(chosen.length&&focus){const next=!focus.locked;for(const item of chosen)item.clip.locked=next;saveSoon('clip-lock');renderAll();status(next?`${chosen.length}개 잠금`:`${chosen.length}개 잠금 풀기`);}}
       else if(contextAct==='color'){const chosen=markedClips();const focus=selectedClip()||chosen[0]?.clip;if(chosen.length&&focus){const next=nextClipColor(focus.color);for(const item of chosen)item.clip.color=next;saveSoon('clip-color');renderAll();status(next?`색 ${next}`:'트랙 색으로');}}
-      else if(contextAct==='delete')deleteSelection();return;}const meterReset=raw.closest<HTMLElement>('[data-meter-reset]')?.dataset.meterReset;if(meterReset){meterClipped.delete(meterReset);paintMeters();status('Clip indicator cleared');return;}const noteAct=raw.closest<HTMLElement>('[data-note-act]')?.dataset.noteAct;if(noteAct){applyNoteTool(noteAct);return;}const tool=raw.closest<HTMLElement>('.ks-btn[data-tool]')?.dataset.tool;if(tool){editTool=tool as typeof editTool;renderAll();status(`${tool.toUpperCase()} tool`);return;} const target=raw.closest<HTMLElement>('[data-act],[data-side],[data-track-act]'); if(!target){hideContextMenu();return;}
+      else if(contextAct==='delete')deleteSelection();return;}const pickEl=raw.closest<HTMLElement>('[data-auto-param]');
+      if(pickEl){const track=findTrack(project,pickEl.dataset.track||'');const pick=pickEl.dataset.autoParam as AutomationParam;if(track&&pick){autoLanes.set(track.id,pick);renderTracks();status(`${track.name} · ${pick==='pan'?'팬':pick==='reverb'?'리버브':'볼륨'} 자동화`);}return;}
+      const meterReset=raw.closest<HTMLElement>('[data-meter-reset]')?.dataset.meterReset;if(meterReset){meterClipped.delete(meterReset);paintMeters();status('Clip indicator cleared');return;}const noteAct=raw.closest<HTMLElement>('[data-note-act]')?.dataset.noteAct;if(noteAct){applyNoteTool(noteAct);return;}const tool=raw.closest<HTMLElement>('.ks-btn[data-tool]')?.dataset.tool;if(tool){editTool=tool as typeof editTool;renderAll();status(`${tool.toUpperCase()} tool`);return;} const target=raw.closest<HTMLElement>('[data-act],[data-side],[data-track-act]'); if(!target){hideContextMenu();return;}
       if(target.dataset.side){sideMode=target.dataset.side as typeof sideMode;renderSide();return;}
       const trackAct=target.dataset.trackAct; if(trackAct){const track=findTrack(project,target.dataset.track||'');if(!track)return;if(trackAct==='mute')track.mute=!track.mute;else if(trackAct==='solo')track.solo=!track.solo;else if(trackAct==='fold'){track.folded=!track.folded;saveSoon('fold');renderTracks();status(track.folded?`${track.name} 접음`:`${track.name} 펼침`);return;} else if(trackAct==='auto'){if(autoLanes.has(track.id))autoLanes.delete(track.id);else autoLanes.set(track.id,'volume');renderTracks();status(autoLanes.has(track.id)?`${track.name} 자동화 줄 열림`:'자동화 줄 닫힘');return;} else if(trackAct==='arm'){if(track.kind!=='audio'){status('Only audio tracks can be armed');return;}armedTrackId=armedTrackId===track.id?'':track.id;status(armedTrackId?`Armed ${track.name}`:'Disarmed');renderAll();return;}else if(trackAct==='delete'&&confirm(`Delete ${track.name}?`)){project.tracks=project.tracks.filter((item)=>item.id!==track.id);selection=null;}saveSoon();renderAll();return;}
       const act=target.dataset.act;
@@ -806,9 +809,6 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
       if(!lane)return;
       const track=findTrack(project,lane.dataset.auto||'');if(!track)return;
       const param=(lane.dataset.autoKind as AutomationParam)||'volume';
-      /* 항목 고르기 단추는 끌기가 아니라 전환이다. */
-      const pick=target.closest<HTMLElement>('[data-auto-param]')?.dataset.autoParam as AutomationParam|undefined;
-      if(pick){autoLanes.set(track.id,pick);renderTracks();status(`${track.name} · ${pick==='pan'?'팬':pick==='reverb'?'리버브':'볼륨'} 자동화`);return;}
       event.preventDefault();
       const rect=lane.getBoundingClientRect();
       const valueAt=(clientY:number):number=>automationValue((clientY-rect.top)/Math.max(1,rect.height),param);
