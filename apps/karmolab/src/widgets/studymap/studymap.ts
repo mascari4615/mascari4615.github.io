@@ -168,6 +168,11 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-reset { background: none; border: 1px solid var(--border); color: var(--text-tertiary); font: inherit; font-size: 11px; padding: 6px 12px; border-radius: 999px; cursor: pointer; }
 .sm-reset:hover { border-color: var(--error); color: var(--error); }
 
+@media (prefers-reduced-motion: reduce) {
+  .sm-node, .sm-bar i, .sm-track-btn, .sm-check { transition: none; }
+  .sm-node.is-flash { animation: none; border-color: var(--accent); }
+}
+
 @media (max-width: 600px) {
   .sm-nodes { grid-template-columns: 1fr; }
   .sm-stage { padding-left: 20px; }
@@ -219,7 +224,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
           </div>
           <div class="sm-meter">
             <div class="sm-meter-top"><span>${esc(t('studymap.progress', undefined, '이 갈래 진도'))}</span><span><b data-sm="pdone">0</b> / <span data-sm="ptotal">0</span></span></div>
-            <div class="sm-bar"><i data-sm="pbar" style="width:0%"></i></div>
+            <div class="sm-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-sm="pmeter"><i data-sm="pbar" style="width:0%"></i></div>
             <div class="sm-meter-all" data-sm="pall"></div>
           </div>
         </div>
@@ -228,7 +233,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
                aria-label="${esc(t('studymap.search', undefined, '주제 찾기 — 예: rebase, 인덱스, 캐시'))}">
         <div class="sm-body">
           <nav class="sm-tracks" data-sm="tracks" aria-label="${esc(t('studymap.tracks', undefined, '갈래'))}"></nav>
-          <div class="sm-main" data-sm="stages"></div>
+          <div class="sm-main" data-sm="stages" aria-live="polite"></div>
         </div>
         <div class="sm-foot">
           <button type="button" class="sm-reset" data-sm="export">${esc(t('studymap.export', undefined, '진도 내보내기'))}</button>
@@ -259,7 +264,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
         .map((tr) => {
           const all = nodesOf(tr);
           const d = all.filter((n) => done.has(n.id)).length;
-          return `<button type="button" class="sm-track-btn${tr.id === current ? ' is-on' : ''}" data-track="${esc(tr.id)}">
+          return `<button type="button" class="sm-track-btn${tr.id === current ? ' is-on' : ''}" data-track="${esc(tr.id)}"${tr.id === current ? ' aria-current="true"' : ''}>
             <span>${esc(tr.emoji)}</span><span>${esc(tr.title)}</span><span class="sm-count">${d}/${all.length}</span>
           </button>`;
         })
@@ -283,7 +288,8 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
           const found = whereIs.get(id);
           if (!found) return '';
           const d = done.has(id);
-          return `<button type="button" class="sm-prereq-btn${d ? ' is-done' : ''}" data-goto="${esc(id)}">${esc(found.node.title)}</button>`;
+          const label = `${t('studymap.prereq', undefined, '먼저')}: ${found.node.title}`;
+          return `<button type="button" class="sm-prereq-btn${d ? ' is-done' : ''}" data-goto="${esc(id)}" aria-label="${esc(label)}">${esc(found.node.title)}</button>`;
         })
         .join('');
 
@@ -337,7 +343,11 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
       q<HTMLElement>('lead').textContent = tr.lead;
       q<HTMLElement>('pdone').textContent = String(d);
       q<HTMLElement>('ptotal').textContent = String(all.length);
-      q<HTMLElement>('pbar').style.width = all.length ? `${Math.round((d / all.length) * 100)}%` : '0%';
+      const pct = all.length ? Math.round((d / all.length) * 100) : 0;
+      q<HTMLElement>('pbar').style.width = `${pct}%`;
+      const meter = q<HTMLElement>('pmeter');
+      meter.setAttribute('aria-valuenow', String(pct));
+      meter.setAttribute('aria-label', t('studymap.progress', undefined, '이 갈래 진도'));
       q<HTMLElement>('pall').textContent = t('studymap.all', { done: everyDone, total: everyNode.length }, '지도 전체 {done} / {total}');
 
       /* 「다음 한 칸」 = 아직 안 한 첫 노드. 지도를 열자마자 할 일이 하나 보여야 한다. */
