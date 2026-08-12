@@ -124,5 +124,12 @@
   "arcade.bowling.roll": "投げる",
   "arcade.bowling.rolling": "転がり中",
   "arcade.bowling.win": "{who} — {n}点",
-  "arcade.bowling.draw": "{n}点で同じ"
+  "arcade.bowling.draw": "{n}点で同じ",
+  "arcade.game.pool.name": "ビリヤード",
+  "arcade.game.pool.desc": "手玉で穴へ。入れたらもう一回",
+  "arcade.pool.aim": "角度",
+  "arcade.pool.power": "強さ",
+  "arcade.pool.hit": "打つ",
+  "arcade.pool.rolling": "転がり中",
+  "arcade.pool.win": "{who} — {n}個"
 }

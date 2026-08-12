@@ -124,5 +124,12 @@
   "arcade.bowling.roll": "굴리기",
   "arcade.bowling.rolling": "굴러가는 중",
   "arcade.bowling.win": "{who} — {n}점",
-  "arcade.bowling.draw": "{n}점으로 똑같다"
+  "arcade.bowling.draw": "{n}점으로 똑같다",
+  "arcade.game.pool.name": "당구",
+  "arcade.game.pool.desc": "흰 공으로 쳐서 구멍에. 넣으면 한 번 더",
+  "arcade.pool.aim": "각도",
+  "arcade.pool.power": "세기",
+  "arcade.pool.hit": "치기",
+  "arcade.pool.rolling": "굴러가는 중",
+  "arcade.pool.win": "{who} — {n}개"
 }
