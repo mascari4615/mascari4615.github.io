@@ -23,7 +23,7 @@ await build({
   entryPoints: ['src/widgets/arcade/index.ts'],
   bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent'
 });
-const { Match, GAMES, gameById, seedFrom } = await import(pathToFileURL(out).href);
+const { Match, GAMES, gameById, seedFrom, META } = await import(pathToFileURL(out).href);
 
 let fails = 0;
 const ok = (cond, name, detail = '') => {
@@ -47,6 +47,15 @@ console.log('[arcade] 명부');
 ok(GAMES.length >= 2, `게임 ${GAMES.length}개 등록`);
 ok(GAMES.every((g) => g.id && g.seats[0] >= 1 && g.rounds >= 1), '모든 게임이 id·자리수·판수를 갖췄다');
 ok(new Set(GAMES.map((g) => g.id)).size === GAMES.length, 'id 가 겹치지 않는다');
+{
+  /* 갈래 명패가 빠진 게임은 **로비에서 통째로 사라진다**(갈래별로 묶어 그리기 때문).
+     타입은 안 잡아 주고 화면 검사도 「없는 것」은 못 본다 — 그래서 여기서 센다. */
+  const metaIds = new Set(META.map((m) => m.id));
+  const missing = GAMES.map((g) => g.id).filter((id) => !metaIds.has(id));
+  ok(missing.length === 0, '모든 게임이 갈래 명패를 갖는다', missing.join(', '));
+  const orphan = META.map((m) => m.id).filter((id) => !GAMES.some((g) => g.id === id));
+  ok(orphan.length === 0, '명패에 없는 게임이 안 남아 있다', orphan.join(', '));
+}
 
 /**
  * **모든 게임이 지켜야 하는 것.** 게임을 51개까지 늘려도 여기에 자동으로 걸린다 —
