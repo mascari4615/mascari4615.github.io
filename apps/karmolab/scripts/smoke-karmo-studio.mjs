@@ -220,6 +220,17 @@ await page.keyboard.press('Alt+ArrowRight');await page.waitForTimeout(120);
 const playheadAfterMarkerKey=await page.locator('[data-role=playhead]').evaluate((element)=>parseFloat(element.style.left));
 await page.locator('[data-marker]').first().click({button:'right'});await page.waitForTimeout(140);
 const markerCountAfterDelete=await page.locator('[data-marker]').count();
+/* 처음 여는 사람 안내 — 한 번 닫으면 다시 안 뜬다. */
+const guideVisible=await page.locator('[data-role=guide]:not([hidden])').count();
+await page.click('[data-act=guide-close]');await page.waitForTimeout(120);
+const guideAfterClose=await page.locator('[data-role=guide]:not([hidden])').count();
+const guideRemembered=await page.evaluate(()=>localStorage.getItem('karmolab_karmo_studio_guide_v1'));
+/* 빈 줄 안내는 지금 든 도구를 따라간다. */
+await page.keyboard.press('p');await page.waitForTimeout(120);
+const hintDraw=await page.locator('.ks-lane-hint').first().textContent().catch(()=>'');
+await page.keyboard.press('e');await page.waitForTimeout(120);
+const hintSelect=await page.locator('.ks-lane-hint').first().textContent().catch(()=>'');
+await page.keyboard.press('p');await page.waitForTimeout(120);
 /* 단축키 도움말 — ? 로 열고 Escape 로 닫는다. */
 await page.locator('.ks-root').click({position:{x:5,y:5}});
 await page.keyboard.press('?');await page.waitForTimeout(160);
@@ -375,6 +386,10 @@ const after=await page.evaluate(()=>{const saved=JSON.parse(localStorage.getItem
 if(initial.tracks<2||initial.clips<1||initial.notes<4)problems.push(`기본 프로젝트가 비었다 (${JSON.stringify(initial)})`);
 if(clipStartAfterContext!==clipStartBeforeContext||!contextLabels.includes('편집기 열기'))problems.push(`우클릭 입력 격리 실패 (${clipStartBeforeContext}→${clipStartAfterContext}, ${contextLabels.join(', ')})`);
 if(selectTool!=='select'||drawTool!=='draw')problems.push(`FL식 tool 단축키 실패 (${selectTool}, ${drawTool})`);
+if(guideVisible!==1)problems.push(`처음 안내가 안 뜬다 (${guideVisible})`);
+if(guideAfterClose!==0)problems.push('처음 안내가 안 닫힌다');
+if(guideRemembered!=='1')problems.push('처음 안내를 닫은 걸 기억 안 한다');
+if(hintDraw&&hintSelect&&hintDraw===hintSelect)problems.push(`빈 줄 안내가 도구를 안 따라간다 (${hintDraw})`);
 if(helpKeys<15)problems.push(`단축키 도움말이 비었다 (${helpKeys}개)`);
 if(helpDialog!==1)problems.push('도움말이 큰 창 규약(role=dialog)을 안 지킨다');
 if(helpAfterEscape!==0)problems.push('Escape 로 도움말이 안 닫힌다');

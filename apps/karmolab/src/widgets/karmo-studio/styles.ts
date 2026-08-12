@@ -61,6 +61,13 @@ export const KARMO_STUDIO_CSS = `
     .ks-audio-controls .ks-field { grid-template-columns:70px minmax(0,1fr); }
     .ks-handle { position:absolute; top:0; right:0; width:8px; height:100%; cursor:ew-resize; background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--clip) 70%,white)); }
     .ks-playhead { position:absolute; top:30px; bottom:0; width:1px; background:#ff5d6c; z-index:6; pointer-events:none; box-shadow:0 0 5px #ff5d6c; }
+    .ks-guide { display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:7px 10px; border-bottom:1px solid var(--border); background:color-mix(in srgb,var(--accent) 12%,var(--bg-secondary)); color:var(--text-secondary); font:11px var(--font-mono); }
+    .ks-guide[hidden] { display:none; }
+    .ks-guide b { color:var(--accent); letter-spacing:.06em; }
+    .ks-guide em { font-style:normal; color:var(--text-primary); }
+    .ks-lane-hint { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-tertiary); font:10px var(--font-mono); opacity:.62; pointer-events:none; white-space:nowrap; }
+    .ks-lane { position:relative; }
+    .ks-track-row.is-folded .ks-lane-hint { display:none; }
     .ks-track-row.is-folded { min-height:22px; }
     .ks-track-row.is-folded .ks-track-resize { display:none; }
     .ks-track-row.is-folded .ks-track-head { padding:2px 7px; overflow:hidden; }
