@@ -596,5 +596,11 @@
   "karmograph.zoom.in": "拡大",
   "karmograph.zoom.reset": "倍率 — 押すと100%",
   "karmograph.t170.touch": "<b>空いた所を二回タップ</b> — その場にカードができます。<br>",
-  "karmograph.t172.touch": "<span style=\"opacity:.75\">下の取っ手を上げると<b>始める盤</b>を選べます</span>"
+  "karmograph.t172.touch": "<span style=\"opacity:.75\">下の取っ手を上げると<b>始める盤</b>を選べます</span>",
+  "karmograph.drawer.g.view": "表示",
+  "karmograph.drawer.g.tidy": "並べる",
+  "karmograph.drawer.g.make": "作る",
+  "karmograph.drawer.g.out": "書き出し",
+  "karmograph.drawer.g.share": "共有",
+  "karmograph.drawer.g.map": "この盤"
 }

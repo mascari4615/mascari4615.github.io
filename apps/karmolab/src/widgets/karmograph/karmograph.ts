@@ -210,11 +210,20 @@ import {
       color:var(--text-primary); border-radius:var(--radius-sm); padding:8px; font-size:12px;
       font-family:var(--font-mono, ui-monospace, monospace); line-height:1.6; resize:vertical; margin-bottom:10px; }
     .km-more { position:relative; }
-    .km-drawer { position:absolute; right:0; top:calc(100% + 6px); z-index:20; min-width:190px;
-      display:flex; flex-direction:column; gap:4px; padding:8px; border:1px solid var(--border);
-      border-radius:var(--radius-sm); background:var(--bg-secondary); box-shadow:0 8px 24px rgba(0,0,0,.35); }
+    /* 이름표로 묶고 나니 세로가 1020px 까지 자랐다 — 창보다 길면 아래쪽 항목은 **없는 것**이 된다.
+       메뉴답게 제 안에서 구른다(툴바와 달리 여기는 스크롤이 맞다). 폭도 조금 넓혀 줄바꿈을 줄인다. */
+    .km-drawer { position:absolute; right:0; top:calc(100% + 6px); z-index:20; min-width:212px;
+      display:flex; flex-direction:column; gap:3px; padding:8px; border:1px solid var(--border);
+      border-radius:10px; background:var(--bg-secondary); box-shadow:0 12px 32px rgba(0,0,0,.4);
+      max-height:calc(100dvh - 170px); overflow-y:auto; overscroll-behavior:contain; }
     .km-drawer.hidden { display:none; }
     .km-drawer label { display:flex; flex-direction:column; gap:4px; font-size:11px; color:var(--text-secondary); }
+    /* 이름표 — 묶음의 머리. 얇고 작게, 대신 위에 숨 쉴 자리를 준다. */
+    .km-drawer-h { font-size:10px; letter-spacing:.06em; color:var(--text-tertiary);
+      margin:6px 2px 1px; text-transform:uppercase; }
+    .km-drawer-h:first-child { margin-top:0; }
+    /* 메뉴는 **왼쪽 정렬**이다. 가운데 정렬이면 눈이 매 줄 시작점을 새로 찾는다. */
+    .km-drawer .btn { justify-content:flex-start; text-align:left; padding:5px 8px; }
     .km-drawer hr { border:none; border-top:1px solid var(--border); margin:4px 0; }
     .km-check { display:flex; align-items:center; gap:6px; padding:2px 0; color:var(--text-primary); cursor:pointer; }
     .km-check input { width:auto; }
@@ -447,7 +456,10 @@ import {
           <button class="btn btn-ghost" data-km="story" title="${esc(t('karmograph.t102'))}">▶</button>
           <div class="km-more">
             <button class="btn btn-ghost" data-km="more" title="${esc(t('karmograph.t103'))}">⋯</button>
+            <!-- ★ 20개를 한 줄기로 늘어놓으면 **찾는 데가 아니라 훑는 데**가 된다(높이 845px 였다).
+                 하는 일끼리 묶고 이름표를 단다 — 왼쪽 정렬이라 눈이 한 줄로 내려간다. -->
             <div class="km-drawer hidden" data-km="drawer">
+              <div class="km-drawer-h">${esc(t('karmograph.drawer.g.view'))}</div>
               <label>${esc(t('karmograph.t119'))}
                 <select data-km="bg">
                   <option value="dots">${esc(t('karmograph.opt.dots'))}</option>
@@ -456,15 +468,15 @@ import {
                   <option value="none">${esc(t('karmograph.opt.none'))}</option>
                 </select>
               </label>
-              <button class="btn btn-ghost" data-km="storage">${esc(t('karmograph.t120'))}</button>
-              <button class="btn btn-ghost" data-km="share">${esc(t('karmograph.t121'))}</button>
-              <button class="btn btn-ghost" data-km="share-view">${esc(t('karmograph.t122'))}</button>
+              <div class="km-drawer-h">${esc(t('karmograph.drawer.g.tidy'))}</div>
               <button class="btn btn-ghost" data-km="tidy">${esc(t('karmograph.t123'))}</button>
               <button class="btn btn-ghost" data-km="lay-circle">${esc(t('karmograph.t124'))}</button>
               <button class="btn btn-ghost" data-km="lay-tree">${esc(t('karmograph.t125'))}</button>
               <button class="btn btn-ghost" data-km="lay-time">${esc(t('karmograph.t126'))}</button>
+              <div class="km-drawer-h">${esc(t('karmograph.drawer.g.make'))}</div>
               <button class="btn btn-ghost" data-km="from-text">${esc(t('karmograph.t127'))}</button>
               <button class="btn btn-ghost" data-km="stamps">${esc(t('karmograph.t128'))}</button>
+              <div class="km-drawer-h">${esc(t('karmograph.drawer.g.out'))}</div>
               <button class="btn btn-ghost" data-km="png">${esc(t('karmograph.t129'))}</button>
               <button class="btn btn-ghost" data-km="svg">${esc(t('karmograph.t130'))}</button>
               <button class="btn btn-ghost" data-km="svg-story">${esc(t('karmograph.t131'))}</button>
@@ -472,7 +484,11 @@ import {
               <button class="btn btn-ghost" data-km="import">${esc(t('karmograph.t133'))}</button>
               <button class="btn btn-ghost" data-km="canvas-out">${esc(t('karmograph.t134'))}</button>
               <button class="btn btn-ghost" data-km="mermaid">${esc(t('karmograph.t135'))}</button>
-              <hr />
+              <div class="km-drawer-h">${esc(t('karmograph.drawer.g.share'))}</div>
+              <button class="btn btn-ghost" data-km="share">${esc(t('karmograph.t121'))}</button>
+              <button class="btn btn-ghost" data-km="share-view">${esc(t('karmograph.t122'))}</button>
+              <button class="btn btn-ghost" data-km="storage">${esc(t('karmograph.t120'))}</button>
+              <div class="km-drawer-h">${esc(t('karmograph.drawer.g.map'))}</div>
               <button class="btn btn-ghost" data-km="map-copy">${esc(t('karmograph.t136'))}</button>
               <button class="btn btn-ghost" data-km="map-rename">${esc(t('karmograph.t137'))}</button>
               <button class="btn btn-ghost" data-km="map-del">${esc(t('karmograph.t138'))}</button>

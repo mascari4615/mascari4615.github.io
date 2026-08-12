@@ -596,5 +596,11 @@
   "karmograph.zoom.in": "확대",
   "karmograph.zoom.reset": "배율 — 눌러서 100%",
   "karmograph.t170.touch": "<b>빈 곳을 두 번 두드리기</b> — 그 자리에 카드가 생깁니다.<br>",
-  "karmograph.t172.touch": "<span style=\"opacity:.75\">아래 손잡이를 올리면 <b>시작할 판</b>을 고를 수 있어요</span>"
+  "karmograph.t172.touch": "<span style=\"opacity:.75\">아래 손잡이를 올리면 <b>시작할 판</b>을 고를 수 있어요</span>",
+  "karmograph.drawer.g.view": "보기",
+  "karmograph.drawer.g.tidy": "놓기",
+  "karmograph.drawer.g.make": "만들기",
+  "karmograph.drawer.g.out": "내보내기",
+  "karmograph.drawer.g.share": "나누기",
+  "karmograph.drawer.g.map": "이 맵"
 }
