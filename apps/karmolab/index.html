@@ -438,7 +438,13 @@ permalink: /karmolab/
     <!-- KL-131: 평소엔 아무 일도 안 한다. 켜면 지금 화면에 있는 것들이 그대로 액정이 된다. -->
     <!-- KL-054: gemini.js eager 제거 → chatbot/imagegen/imageedit/imagelib(lazyScriptPaths)
          · user(ensureScript) 가 첫 사용 시 로드. -->
-    <script defer fetchpriority="low" src="/apps/karmolab/js/widgets-index.js"></script>
+    <!-- ★ 첫 화면은 **전체 메타 한 벌만** 받는다 (2026-08-12).
+         여기서 가벼운 목록(widgets-index.js)을 받으면 그것이 `KARMOLAB_META_LITE` 표식을 세우고,
+         아래 「한가할 때 전체로 올리기」 대목이 곧바로 전체(135KB)를 또 받아 왔다 = 31KB 이중 수령.
+         이 화면은 옆줄(아이콘·설명)을 바로 그리므로 어차피 전체가 필요하다 — 한 번에 받는다.
+         가벼운 목록은 그것이 진짜로 이득인 곳(도구 한 장짜리 화면의 찾기창)에서만 쓰인다:
+         `scripts/lib/shell-page.mjs` 가 이 줄을 빼고, 찾기창을 열 때 lite 를 따로 부른다. -->
+    <script defer fetchpriority="low" src="/apps/karmolab/js/widgets-lazy-meta.js"></script>
     <script defer src="/apps/karmolab/js/widgets-manifest.js"></script>
     <script defer fetchpriority="low" src="/apps/karmolab/js/widgets-loader.js"></script>
     <!-- 마스코트·액정놀이는 **화면을 다 그린 뒤에** 부른다 (TASK-KL-128 런타임).
@@ -540,27 +546,11 @@ permalink: /karmolab/
       else addEventListener('load', function () { idle(pullRest); });
     })();
     </script>
-    <!-- 도구 한 장짜리 화면은 처음에 **가벼운 목록**만 받는다 (TASK-KL-128 ③) — 위젯 171개의
-         이름·분류·불러올 곳만, 93KB 대신 26KB. 아이콘 그림과 설명은 옆줄·찾기창이 실제로
-         그려질 때 필요한 것이라, 화면이 다 그려지고 한가해진 뒤에 따라온다.
-         첫 화면(대시보드)은 옆줄을 바로 그리므로 처음부터 전체를 받는다 — 그때는 이 대목이 안 돈다. -->
-    <script>
-    (function () {
-      function pull() {
-        /* 이 판단은 **여기서** 해야 한다. 이 스크립트는 화면을 읽는 도중에 바로 도는데,
-           표식을 세우는 가벼운 목록은 `defer` 라 그보다 늦게 돈다 — 위에서 물으면 늘 「아니오」다.
-           실제로 그렇게 돼서 아이콘 72자리가 빈 채로 남았다. */
-        if (!window.KARMOLAB_META_LITE) return;
-        var s = document.createElement('script');
-        s.src = '/apps/karmolab/js/widgets-lazy-meta.js';
-        s.onload = function () { try { Toolbox.upgradeMeta(); } catch (e) { /* 없으면 그냥 둔다 */ } };
-        document.body.appendChild(s);
-      }
-      var idle = window.requestIdleCallback || function (f) { setTimeout(f, 300); };
-      if (document.readyState === 'complete') idle(pull);
-      else addEventListener('load', function () { idle(pull); });
-    })();
-    </script>
+    <!-- 「한가해지면 가벼운 목록을 전체로 올린다」 대목은 없앴다 (2026-08-12).
+         첫 화면은 위에서 전체를 바로 받고, 도구 한 장짜리 화면은 애초에 목록을 안 받는다
+         (찾기창을 열 때만 lite 를 부른다 — `shell-page.mjs`). 그래서 이 자리는 늘
+         **전체를 한 벌 더 받는 일**밖에 안 했다. `Toolbox.upgradeMeta()` 는 그대로 남겨 둔다
+         (부르는 곳이 없어졌을 뿐, 나중에 다시 필요할 수 있는 손잡이다). -->
     {% if jekyll.environment == 'production' and site.pwa.enabled and site.pwa.cache.enabled %}
     <!-- Chirpy SW는 루트(/sw.min.js)에 있으나 layout:none 페이지는 app.min.js를 쓰지 않아 등록되지 않았음 → 방문 시 동일 출처·허용 URL을 런타임 캐시(오프라인/앱용). -->
     <script>
