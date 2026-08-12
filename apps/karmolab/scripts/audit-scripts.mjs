@@ -37,7 +37,11 @@ for (const [name, body] of Object.entries(scripts)) {
 /* 배포 후 확인이 부르는 이름 — 아래 두 곳에서 쓴다. */
 const wfPath = path.join(root, '../../.github/workflows/karmolab-live-check.yml');
 const wfCalled = fs.existsSync(wfPath)
-  ? [...fs.readFileSync(wfPath, 'utf8').matchAll(/run:\s*npm run ([a-z0-9:_-]+)/g)].map((m) => m[1])
+  /* ★ **껍데기를 씌워 불러도 부른 것이다** (2026-08-13). 배포에 밟히면 다시 재도록
+     `retry-if-redeployed.mjs` 로 감쌌더니, `run: npm run …` 모양만 찾던 이 검사가
+     「실제 사이트에서는 안 돈다」고 말했다 — 부르는 방식이 바뀌었을 뿐 검사는 그대로 돈다.
+     그래서 줄 어디에 있든 `npm run <이름>` 을 찾는다. */
+  ? [...fs.readFileSync(wfPath, 'utf8').matchAll(/npm run ([a-z0-9:_-]+)/g)].map((m) => m[1])
   : [];
 
 /* 파일이 **저장소에 들어 있는가** — 내 컴퓨터에 있는 것과 다르다.
