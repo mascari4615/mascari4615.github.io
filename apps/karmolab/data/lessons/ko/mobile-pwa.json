@@ -1,0 +1,98 @@
+{
+  "id": "mobile-pwa",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "PWA 는 「설치되는 웹」이다. 스토어 심사 없이 홈 화면에 들어가고, 오프라인에서도 열린다 — 웹을 하는 사람에게 가장 짧은 모바일 진입로다."
+    },
+    {
+      "type": "h",
+      "text": "1. 설치 조건 세 가지"
+    },
+    {
+      "type": "note",
+      "text": "① HTTPS ② **매니페스트**(이름·아이콘·시작 URL·표시 모드) ③ **서비스 워커** 등록. 이 셋이 갖춰지면 브라우저가 설치를 제안한다."
+    },
+    {
+      "type": "code",
+      "lang": "json",
+      "label": "manifest.webmanifest",
+      "text": "{\n  \"name\": \"KarmoLab\",\n  \"short_name\": \"KarmoLab\",\n  \"start_url\": \"/\",\n  \"display\": \"standalone\",\n  \"background_color\": \"#171821\",\n  \"theme_color\": \"#a79bef\",\n  \"icons\": [\n    { \"src\": \"/icon-192.png\", \"sizes\": \"192x192\", \"type\": \"image/png\" },\n    { \"src\": \"/icon-512.png\", \"sizes\": \"512x512\", \"type\": \"image/png\", \"purpose\": \"maskable\" }\n  ]\n}"
+    },
+    {
+      "type": "h",
+      "text": "2. 서비스 워커 — 조심해서 다룬다"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "가장 안전한 기본 전략",
+      "text": "// 정적 자산: 캐시 우선 / HTML: 네트워크 우선(낡은 화면 방지)\nself.addEventListener('fetch', (e) => {\n  const req = e.request;\n  if (req.mode === 'navigate') {\n    e.respondWith(fetch(req).catch(() => caches.match('/offline.html')));\n    return;\n  }\n  e.respondWith(caches.match(req).then((hit) => hit ?? fetch(req)));\n});"
+    },
+    {
+      "type": "note",
+      "text": "서비스 워커는 **낡은 화면을 붙잡는 흔한 범인**이다. 새 버전 배포 시 `skipWaiting` + 사용자에게 「새 버전」 안내를 넣고, 캐시 이름에 버전을 넣어 옛 캐시를 지워라."
+    },
+    {
+      "type": "h",
+      "text": "3. 오프라인 설계"
+    },
+    {
+      "type": "p",
+      "text": "전부 오프라인으로 만들 필요는 없다. **끊겼을 때 무엇을 보여 줄지**만 정하면 된다 — 최근 본 목록, 읽던 글, 「연결되면 자동으로 보냄」 안내."
+    },
+    {
+      "type": "h",
+      "text": "4. 한계도 알고 쓴다"
+    },
+    {
+      "type": "note",
+      "text": "iOS 는 푸시·백그라운드에 제약이 있고, 설치 흐름도 브라우저마다 다르다. 결제·딥링크·위젯이 핵심이면 네이티브 검토가 필요하다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "내 사이트에 매니페스트와 최소 서비스 워커를 붙여 **설치**해 보라. 홈 화면 아이콘으로 열었을 때 주소창이 사라지는지 확인하라."
+    },
+    {
+      "type": "try",
+      "text": "비행기 모드에서 열어 보고, 무엇을 보여 줄지 정한 뒤 오프라인 화면을 만들어라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "PWA 설치에 필요한 조건이 아닌 것은?",
+      "choices": [
+        "HTTPS",
+        "매니페스트",
+        "앱 스토어 심사"
+      ],
+      "answer": 2,
+      "why": "심사 없이 홈 화면에 설치되는 것이 PWA 의 장점이다."
+    },
+    {
+      "q": "HTML 문서에 「네트워크 우선」을 권하는 이유는?",
+      "choices": [
+        "캐시된 낡은 화면이 계속 뜨는 것을 막으려고",
+        "속도가 항상 빨라서",
+        "용량 때문"
+      ],
+      "answer": 0,
+      "why": "정적 자산은 캐시 우선, 진입 문서는 네트워크 우선이 무난하다."
+    },
+    {
+      "q": "「배포했는데 옛 화면이 뜬다」의 흔한 범인은?",
+      "choices": [
+        "서비스 워커 캐시",
+        "CSS 우선순위",
+        "DNS"
+      ],
+      "answer": 0,
+      "why": "버전 캐시 이름과 갱신 안내로 다뤄야 한다."
+    }
+  ]
+}
