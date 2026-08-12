@@ -178,5 +178,16 @@
   "arcade.chain.aria": "이을 낱말",
   "arcade.chain.hint": "{c} (으)로 시작하는 말",
   "arcade.chain.waiting": "차례를 기다리는 중",
-  "arcade.chain.win": "{who} 이(가) 마지막까지 남았다 — {n}개"
+  "arcade.chain.win": "{who} 이(가) 마지막까지 남았다 — {n}개",
+  "arcade.game.lineup.name": "한 줄 서기",
+  "arcade.game.lineup.desc": "몰래 숫자를 내고, 남들 순서를 맞힌다",
+  "arcade.lineup.questions": "얼마나 매운 걸 잘 먹나|하루에 폰을 얼마나 보나|아침형인가 (100이 아침형)|모르는 사람에게 말을 얼마나 잘 거나|계획을 얼마나 세우나|무서운 걸 얼마나 잘 보나|얼마나 잘 참나|새로운 걸 얼마나 좋아하나",
+  "arcade.lineup.fallback": "얼마나?",
+  "arcade.lineup.lock": "이걸로",
+  "arcade.lineup.locked": "{n} 로 냈다 — 다들 낼 때까지",
+  "arcade.lineup.orderHint": "작은 쪽부터 차례로 누르세요",
+  "arcade.lineup.send": "이 순서로",
+  "arcade.lineup.undo": "하나 무르기",
+  "arcade.lineup.sent": "냈다 — 다들 낼 때까지",
+  "arcade.lineup.win": "{who} — {n}점"
 }

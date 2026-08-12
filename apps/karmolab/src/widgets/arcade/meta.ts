@@ -25,6 +25,7 @@ export const META: GameMeta[] = [
   { id: 'speed', icon: '⚡', kind: 'quick' },
   { id: 'airhockey', icon: '🏒', kind: 'quick' },
   { id: 'wordchain', icon: '🗣️', kind: 'quick' },
+  { id: 'lineup', icon: '👥', kind: 'quick' },
 
   { id: 'gomoku', icon: '⚫', kind: 'board' },
   { id: 'four', icon: '🔴', kind: 'board' },
