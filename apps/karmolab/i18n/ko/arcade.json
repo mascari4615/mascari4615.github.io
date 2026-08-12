@@ -170,5 +170,13 @@
   "arcade.hanabi.pickHint": "내 카드를 고르거나, 남의 카드를 눌러 알려 주세요",
   "arcade.hanabi.waiting": "차례를 기다리는 중",
   "arcade.hanabi.score": "{n} / {max} 쌓았다",
-  "arcade.hanabi.perfect": "다 쌓았다 — 완벽"
+  "arcade.hanabi.perfect": "다 쌓았다 — 완벽",
+  "arcade.game.wordchain.name": "끝말잇기",
+  "arcade.game.wordchain.desc": "앞 낱말의 끝 글자로 시작. 못 대면 떨어진다",
+  "arcade.chain.words": "사과,과일,일기,기차,차선,선물,물감,감자,자연,연필,필통,통조림,림보,보리,리본,본색,색종이,이불,불꽃,꽃병,병아리,리듬,음악,악기,기린,인형,형광,광장,장미,미소,소나기,기자,자전거,거울,울음,음식,식탁,탁구,구름,음료,요리,이야기,기억,억새,새벽,벽돌,돌고래,래시,시계,계단,단추,추억,억지,지도,도시,시장,장난,난로,로켓,켓치",
+  "arcade.chain.go": "내기",
+  "arcade.chain.aria": "이을 낱말",
+  "arcade.chain.hint": "{c} (으)로 시작하는 말",
+  "arcade.chain.waiting": "차례를 기다리는 중",
+  "arcade.chain.win": "{who} 이(가) 마지막까지 남았다 — {n}개"
 }
