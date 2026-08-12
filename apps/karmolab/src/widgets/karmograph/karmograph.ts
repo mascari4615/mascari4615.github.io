@@ -158,6 +158,9 @@ import {
       border-bottom:1px solid var(--border); position:sticky; top:-12px; background:var(--bg-secondary); z-index:2; }
     .km-tab { padding:4px 7px; font-size:13px; opacity:.55; }
     .km-tab.is-on { opacity:1; background:var(--bg-tertiary); }
+    /* 펴진 이름은 아이콘 옆에 붙는다. 이름이 길면 잘라 — 탭 줄이 두 줄로 접히면 그림이 밀린다. */
+    .km-tab-name { margin-left:5px; font-size:11px; max-width:96px; overflow:hidden;
+      text-overflow:ellipsis; white-space:nowrap; vertical-align:middle; }
     .km-side.hidden { display:none; }
     .km-side h4 { margin:0 0 8px; font-size:var(--font-size-sm); color:var(--text-primary); }
     .km-field { margin-bottom:10px; display:flex; flex-direction:column; gap:4px; }
@@ -1186,9 +1189,13 @@ import {
     function prependTabs(): void {
       const bar = document.createElement('div');
       bar.className = 'km-tabs';
+      /* ★ **지금 보고 있는 탭만 이름을 편다.** 그림 여덟 개만 늘어놓으면 「내가 어디에 있나」가
+         안 읽힌다 — 그렇다고 여덟 개 다 이름을 달면 좁은 패널에서 두 줄로 접힌다.
+         고른 것 하나만 펴는 방식은 폰 탭바에서 오래 쓰인 손이다. */
       bar.innerHTML = SIDE_TABS.map(
         (tb0) => `<button class="btn btn-ghost km-tab${sideMode === tb0.id ? ' is-on' : ''}"
-          data-km="tab" data-key="${tb0.id}" title="${tb0.title}">${tb0.icon}</button>`
+          data-km="tab" data-key="${tb0.id}" title="${tb0.title}" aria-label="${tb0.title}"
+          >${tb0.icon}${sideMode === tb0.id ? `<span class="km-tab-name">${tb0.title}</span>` : ''}</button>`
       ).join('');
       sideEl.insertBefore(bar, sideEl.firstChild);
       bar.querySelectorAll('[data-km="tab"]').forEach((el) => {

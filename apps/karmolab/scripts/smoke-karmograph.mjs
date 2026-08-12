@@ -1400,7 +1400,9 @@ await step('「전체 보기」가 판을 화면 **가운데**에 놓는다', as
     if (!idx) localStorage.setItem('karmograph.index', JSON.stringify({ activeId: id, maps: [{ id, name: '넓은 판' }] }));
   });
   await m.reload({ waitUntil: 'domcontentloaded' });
-  await m.waitForSelector('.ck-node', { timeout: 8000 });
+  // ★ **딱 12장이 될 때까지** 기다린다. 「하나라도 보이면」으로 두면 견본이 함께 깔린 판을
+  //    재다가 엉뚱한 수치가 나온다(실측: 배율이 최저치로 눌려 위 38·아래 744 로 읽혔다).
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 12, null, { timeout: 8000 });
   await m.click('[data-km="fit"]');
   await m.waitForTimeout(500);
 
@@ -1409,7 +1411,10 @@ await step('「전체 보기」가 판을 화면 **가운데**에 놓는다', as
     const boxes = [...document.querySelectorAll('.ck-node')].map((n) => n.getBoundingClientRect());
     const top = Math.min(...boxes.map((b) => b.top)) - c.top;
     const bottom = c.bottom - Math.max(...boxes.map((b) => b.bottom));
-    return { top: Math.round(top), bottom: Math.round(bottom), h: Math.round(c.height) };
+    const g = [...document.querySelectorAll('.km-canvas svg g')]
+      .find((el) => (el.getAttribute('transform') || '').startsWith('matrix('));
+    return { top: Math.round(top), bottom: Math.round(bottom), h: Math.round(c.height),
+      n: boxes.length, m: g?.getAttribute('transform') };
   });
   // 위아래로 남는 자리가 비슷해야 가운데다. 한쪽이 다른 쪽의 세 배를 넘으면 쏠린 것이다.
   const lo = Math.min(gap.top, gap.bottom);
