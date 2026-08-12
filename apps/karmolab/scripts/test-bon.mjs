@@ -74,6 +74,44 @@ check('채움 1 을 넘겨도 밖으로 안 삐져나온다', !over.includes(`wi
 const hidden = toSvg({ w: 10, h: 10, layers: [{ id: 'h', name: 'h', visible: false, opacity: 1, nodes: [PARTS.button(k)] }] });
 check('숨긴 레이어는 안 나온다', !hidden.includes('<rect'));
 
+
+/* ── 고르기·끌기의 셈 (2단계) ─────────────── */
+const { bounds, hitTest, handleAt, resizeBox, applyBox } = mod;
+
+const grouped = PARTS.button(k);                 // 무리(group)
+const gb = bounds(grouped);
+check('무리의 네모가 자식들을 감싼다', gb.w >= k.w - 1 && gb.h >= k.h - 1, JSON.stringify(gb));
+
+const doc2 = createDoc(300, 200);
+doc2.layers[0].nodes.push({ kind: 'rect', x: 10, y: 10, w: 50, h: 50, radius: 0 });
+doc2.layers[0].nodes.push({ kind: 'rect', x: 30, y: 30, w: 50, h: 50, radius: 0 });
+check('겹친 곳은 위에 그린 것이 잡힌다', hitTest(doc2, 40, 40).index === 1);
+check('빈 곳은 아무것도 안 잡힌다', hitTest(doc2, 200, 180) === null);
+doc2.layers[0].visible = false;
+check('숨긴 레이어는 안 잡힌다', hitTest(doc2, 40, 40) === null);
+doc2.layers[0].visible = true;
+
+const box = { x: 10, y: 10, w: 50, h: 50 };
+check('손잡이를 잡는다', handleAt(box, 60, 60, 4) === 'se');
+check('가운데는 손잡이가 아니다', handleAt(box, 35, 35, 4) === null);
+check('옮기면 크기는 그대로', (() => { const n = resizeBox(box, 'move', 5, -5); return n.x === 15 && n.y === 5 && n.w === 50 && n.h === 50; })());
+check('오른쪽 아래를 끌면 커진다', resizeBox(box, 'se', 10, 10).w === 60);
+check('왼쪽을 오른쪽 끝 너머로 끌어도 안 뒤집힌다', (() => { const n = resizeBox(box, 'w', 200, 0); return n.w === 0 && n.h === 50; })(), JSON.stringify(resizeBox(box, 'w', 200, 0)));
+// 격자에 붙는 것은 **모서리 좌표**다(폭이 아니다) — 왼쪽이 10 이면 폭은 8 의 배수가 아니게 된다.
+{
+  const snapped = resizeBox(box, 'se', 7, 7, 8);
+  check('오른쪽 끝이 격자에 붙는다', (snapped.x + snapped.w) % 8 === 0, JSON.stringify(snapped));
+  const moved = resizeBox(box, 'move', 7, 7, 8);
+  check('옮길 때 왼쪽 위가 격자에 붙는다', moved.x % 8 === 0 && moved.y % 8 === 0, JSON.stringify(moved));
+}
+
+const rect = { kind: 'rect', x: 0, y: 0, w: 100, h: 100, radius: 40 };
+applyBox(rect, { x: 5, y: 5, w: 20, h: 20 });
+check('작아지면 둥글기도 따라 줄어든다', rect.radius <= 10, String(rect.radius));
+const el = { kind: 'ellipse', cx: 0, cy: 0, rx: 1, ry: 1 };
+applyBox(el, { x: 10, y: 20, w: 40, h: 60 });
+check('타원은 가운데·반지름으로 옮겨 담는다', el.cx === 30 && el.cy === 50 && el.rx === 20 && el.ry === 30);
+
 rmSync(out, { recursive: true, force: true });
 console.log(failed ? `\n[test-bon] 실패 ${failed}건` : '\n[test-bon] ✓ 문서 · 부품 3종 · 손잡이 반응 · 변형 묶음 · SVG 정합 · 극단값');
 process.exit(failed ? 1 : 0);
