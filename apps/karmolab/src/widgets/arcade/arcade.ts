@@ -29,6 +29,7 @@ import { viewById } from './view-registry';
 import { makeCode, inviteLink } from '../../lib/room';
 import { blip, soundOn, setSoundOn } from '../../lib/blip';
 import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
+import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
 import type { Render } from './views';
 import { connect, type Net, type Peer, type Json } from './net';
 
@@ -502,6 +503,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-yumsg{min-height:24px;font-size:var(--font-size-sm)}',
       '.ac-yuctl{display:flex;gap:8px;justify-content:center;margin:var(--space-md) 0}',
       '.ac-yuwho .ac-now{outline:1px solid var(--accent-color)}',
+      '.ac-today{margin:var(--space-md) 0}',
+      '.ac-todaystrip{display:flex;gap:8px;flex-wrap:wrap}',
+      '.ac-todaycard{display:flex;align-items:center;gap:6px;padding:10px 14px;border:1px solid var(--accent-color);border-radius:10px;background:var(--bg-secondary);font-size:var(--font-size-sm)}',
+      '.ac-todaycard span{font-size:20px}',
+      '.ac-todaycard.ac-done{opacity:.55;border-color:var(--border-color)}',
+      '.ac-streak{margin-left:8px;font-size:var(--font-size-xs);color:var(--accent-color)}',
       '.ac-level{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:var(--space-md) 0}',
       '.ac-level button{padding:4px 10px;font-size:var(--font-size-xs);border:1px solid var(--border-color);border-radius:999px;background:var(--bg-secondary)}',
       '.ac-level button.ac-on{background:var(--accent-color);color:#fff;border-color:var(--accent-color)}',
@@ -548,6 +555,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     container.innerHTML =
       '<div id="acLobby">' +
       '<p class="tool-status">' + esc(t('arcade.lobby.hint')) + '</p>' +
+      '<div class="ac-today" id="acToday"></div>' +
       '<div class="ac-level" id="acLevel" role="group" aria-label="' + esc(t('arcade.level.aria')) + '">' +
       ['mild', 'normal', 'spicy']
         .map((v) => '<button data-level="' + v + '">' + esc(t('arcade.level.' + v)) + '</button>')
@@ -628,6 +636,32 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         '</span></div>'
       );
     };
+
+    /* 오늘의 세 판 — 51개 앞에서 「뭘 하지」를 대신 정해 준다 (TASK-KL-264). */
+    const picks = todayPicks(GAMES.map((g) => ({ id: g.id, kind: kindOf(g.id) })));
+    const paintToday = (): void => {
+      const st = dailyState();
+      $<HTMLElement>('#acToday').innerHTML =
+        '<h3 class="ac-kind">' + esc(t('arcade.today.title')) +
+        ' <i>' + st.done.length + '/' + PICKS + '</i>' +
+        (st.streak > 0 ? '<b class="ac-streak">🔥 ' + esc(t('arcade.today.streak', { n: String(st.streak) })) + '</b>' : '') +
+        '</h3>' +
+        '<div class="ac-todaystrip">' +
+        picks
+          .map((id) =>
+            '<button class="ac-todaycard' + (st.done.includes(id) ? ' ac-done' : '') + '" data-solo="' + id + '">' +
+            '<span>' + iconOf(id) + '</span>' + esc(t('arcade.game.' + id + '.name')) +
+            (st.done.includes(id) ? ' ✓' : '') + '</button>')
+          .join('') +
+        '</div>';
+      container.querySelectorAll<HTMLButtonElement>('.ac-todaycard').forEach((b) => {
+        b.onclick = (): void => {
+          remember();
+          startSolo(String(b.dataset.solo));
+        };
+      });
+    };
+    paintToday();
 
     $<HTMLElement>('#acGames').innerHTML = KINDS.map((kind: Kind) => {
       const mine = GAMES.filter((g) => kindOf(g.id) === kind);
@@ -717,6 +751,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         againBtn.style.display = net && !net.host ? 'none' : '';
         if (!ended) {
           ended = true;
+          /* 이긴 판만 세지 않는다 — 이겨야 세면 봇 세기를 순한맛으로 낮추는 놀이가 된다. */
+          markPlayed(gameId, picks);
+          paintToday();
           const mine = v.seats[mySeat]?.score ?? 0;
           blip(win.length === v.seats.length ? 'good' : mine === top ? 'win' : 'lose');
         }

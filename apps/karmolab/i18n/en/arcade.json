@@ -381,5 +381,7 @@
   "arcade.level.normal": "normal",
   "arcade.level.spicy": "hot",
   "arcade.level.note": "how fast the bots move",
-  "arcade.level.aria": "bot strength"
+  "arcade.level.aria": "bot strength",
+  "arcade.today.title": "Today's three",
+  "arcade.today.streak": "{n} days"
 }

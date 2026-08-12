@@ -381,5 +381,7 @@
   "arcade.level.normal": "ふつう",
   "arcade.level.spicy": "からくち",
   "arcade.level.note": "ボットの手の速さ",
-  "arcade.level.aria": "ボットの強さ"
+  "arcade.level.aria": "ボットの強さ",
+  "arcade.today.title": "今日の三番",
+  "arcade.today.streak": "{n}日連続"
 }
