@@ -108,7 +108,9 @@ const largeAudioWave=await page.locator('.ks-editor.is-expanded .ks-audio-wave p
 await page.click('[data-act=midi]');
 const afterAddTrack=await page.locator('.ks-track-row').count();await page.click('[data-act=undo]');const afterUndoTrack=await page.locator('.ks-track-row').count();await page.click('[data-act=redo]');const afterRedoTrack=await page.locator('.ks-track-row').count();
 await page.keyboard.press('p');
-const lane=page.locator('.ks-lane[data-kind=midi]').last();const laneBox=await lane.boundingBox();await page.mouse.dblclick(laneBox.x+180,laneBox.y+35);await page.waitForTimeout(100);
+const lane=page.locator('.ks-lane[data-kind=midi]').last();
+/* 좌표 hit-test 는 sticky head·눈금자·가로 스크롤에 흔들린다 — 요소에 직접 이벤트를 준다 (clientX=0 → beat 0). */
+await lane.dispatchEvent('dblclick',{button:0});await page.waitForTimeout(140);
 const piano=page.locator('[data-piano]');
 await piano.dblclick({position:{x:180,y:120}});await page.waitForTimeout(120);
 const noteCountBeforeFlDuplicate=await page.locator('.ks-note').count();await page.keyboard.press('Control+b');await page.waitForTimeout(80);const noteCountAfterFlDuplicate=await page.locator('.ks-note').count();
@@ -163,15 +165,37 @@ const arrangerScrollBefore=await page.locator('[data-role=scroll]').evaluate((el
 /* ruler — 클릭은 재생 헤드, 빈 곳 드래그는 새 loop 구간, 손잡이는 경계 이동. */
 const rulerBox=await page.locator('[data-role=ruler]').boundingBox();
 const rulerY=rulerBox.y+15;
-await page.mouse.click(rulerBox.x+260,rulerY);await page.waitForTimeout(100);
+/* 눈금자 왼쪽 172px 은 sticky 머리라 눌러도 안 먹는다 — 실제로 눈금이 드러난 x 를 찾는다. */
+const rulerX=await page.evaluate(([y])=>{const ruler=document.querySelector('[data-role=ruler]');const box=ruler.getBoundingClientRect();for(let x=Math.max(2,box.left)+4;x<Math.min(window.innerWidth-4,box.right);x+=6){const el=document.elementFromPoint(x,y);if(el===ruler||(el&&el.closest('[data-role=ruler]')&&!el.closest('.ks-ruler-head')))return x;}return box.left+200;},[rulerY]);
+const playheadBeforeRulerClick=await page.locator('[data-role=playhead]').evaluate((element)=>parseFloat(element.style.left));
+await page.mouse.click(rulerX,rulerY);await page.waitForTimeout(120);
 const playheadAfterRulerClick=await page.locator('[data-role=playhead]').evaluate((element)=>parseFloat(element.style.left));
-await page.mouse.move(rulerBox.x+320,rulerY);await page.mouse.down();await page.mouse.move(rulerBox.x+520,rulerY,{steps:5});await page.mouse.up();await page.waitForTimeout(120);
+const rulerExpected=await page.evaluate(([x])=>{const box=document.querySelector('[data-role=ruler]').getBoundingClientRect();return 172+(x-box.left-172);},[rulerX]);
+await page.mouse.move(rulerX+20,rulerY);await page.mouse.down();await page.mouse.move(Math.min(rulerX+220,(page.viewportSize().width)-6),rulerY,{steps:5});await page.mouse.up();await page.waitForTimeout(120);
 const loopAfterDrag=await page.locator('.ks-loop').evaluate((element)=>({left:parseFloat(element.style.left),width:parseFloat(element.style.width)}));
 await page.locator('[data-loop-edge=end]').hover({force:true});
 const loopGripHit=await page.evaluate(()=>{const grip=document.querySelector('[data-loop-edge=end]').getBoundingClientRect();const x=grip.left+grip.width/2,y=grip.top+grip.height/2;const el=document.elementFromPoint(x,y);return {x,y,edge:el?.dataset?.loopEdge||null};});
 await page.mouse.move(loopGripHit.x,loopGripHit.y);await page.mouse.down();await page.mouse.move(loopGripHit.x+120,loopGripHit.y,{steps:4});await page.mouse.up();await page.waitForTimeout(120);
 const loopAfterGrip=await page.locator('.ks-loop').evaluate((element)=>({left:parseFloat(element.style.left),width:parseFloat(element.style.width)}));
 await page.click('[data-act=back]');await page.locator('[data-project-ins=loopEnd]').fill('0.25');await page.locator('[data-project-ins=loopEnd]').press('Tab');await page.waitForTimeout(800);const engineBefore=await page.evaluate(()=>({close:window.__ksClose,param:window.__ksParamUpdates}));await page.click('[data-act=play]');await page.waitForTimeout(180);await page.locator('[data-track-volume]').first().evaluate((element)=>{element.value='0.42';element.dispatchEvent(new Event('input',{bubbles:true}));});await page.waitForTimeout(520);const engineDuring=await page.evaluate(()=>({close:window.__ksClose,param:window.__ksParamUpdates}));await page.click('[data-act=stop]');
+/* 녹음 대상(●)·박자 소리 — 죽어 있던 단추가 실제 상태를 갖는다. */
+const armButtons=page.locator('[data-track-act=arm]');
+const armDisabledOnMidi=await armButtons.first().isDisabled();
+const audioArm=page.locator('.ks-track-row').filter({has:page.locator('.ks-lane[data-kind=audio]')}).locator('[data-track-act=arm]').first();
+await audioArm.click();await page.waitForTimeout(100);
+const armedOn=await audioArm.evaluate((element)=>element.classList.contains('is-on'));
+const armStatus=await page.locator('[data-role=status]').textContent();
+/* 무장한 오디오 트랙에 음원을 넣으면 그 트랙으로 들어간다. */
+const armedLaneClipsBefore=await page.locator('.ks-lane[data-kind=audio]').last().locator('.ks-clip').count();
+await audioArm.click();await page.waitForTimeout(80);
+const armedOff=await audioArm.evaluate((element)=>element.classList.contains('is-on'));
+await page.click('[data-act=metronome]');await page.waitForTimeout(80);
+const metronomeOn=await page.locator('[data-act=metronome]').evaluate((element)=>element.classList.contains('is-on'));
+const clicksBefore=await page.evaluate(()=>window.__ksOsc);
+await page.click('[data-act=play]');await page.waitForTimeout(700);await page.click('[data-act=stop]');
+const clicksAfter=await page.evaluate(()=>window.__ksOsc);
+await page.click('[data-act=metronome]');await page.waitForTimeout(80);
+const metronomeOff=await page.locator('[data-act=metronome]').evaluate((element)=>element.classList.contains('is-on'));
 await page.fill('[data-bind=project-name]','Smoke Song');await page.locator('[data-bind=project-name]').press('Tab');await page.waitForTimeout(400);
 const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null'));
 const projectDownload=page.waitForEvent('download',{timeout:10000});await page.click('[data-act=save]');let projectDownloadEvent;try{projectDownloadEvent=await projectDownload;}catch(error){const state=await page.evaluate(()=>({expanded:document.querySelector('.ks-editor')?.className,status:document.querySelector('[data-role=status]')?.textContent,tool:document.querySelector('.ks-root')?.getAttribute('data-tool')}));throw new Error(`project download missing: ${JSON.stringify(state)} · ${errors.join(' | ')}`,{cause:error});}const portable=JSON.parse(fs.readFileSync(await projectDownloadEvent.path(),'utf8'));
@@ -233,7 +257,7 @@ if(!/Quantized|grid/.test(quantizeStatus||''))problems.push(`quantize 결과 보
 if(noteCountAfterPaste!==noteCountBeforePaste+1)problems.push(`MIDI note copy/paste 실패 (${noteCountBeforePaste}→${noteCountAfterPaste})`);
 if(arrangerScrollBefore>5&&arrangerScrollAfter<arrangerScrollBefore-5)problems.push(`타임라인 재렌더 뒤 스크롤 초기화 (${arrangerScrollBefore}→${arrangerScrollAfter})`);
 if(!mobile&&(laneCountsBeforeCross.length<2||laneCountsAfterCross[0]!==laneCountsBeforeCross[0]-1||laneCountsAfterCross[laneCountsAfterCross.length-1]!==laneCountsBeforeCross[laneCountsBeforeCross.length-1]+1))problems.push(`트랙 간 클립 이동 실패 (${JSON.stringify(laneCountsBeforeCross)}→${JSON.stringify(laneCountsAfterCross)})`);
-if(Math.abs(playheadAfterRulerClick-(172+260-0))>40)problems.push(`ruler 클릭이 재생 헤드를 옮기지 않았다 (${playheadAfterRulerClick})`);
+if(Math.abs(playheadAfterRulerClick-rulerExpected)>40||playheadAfterRulerClick===playheadBeforeRulerClick)problems.push(`ruler 클릭이 재생 헤드를 옮기지 않았다 (${playheadBeforeRulerClick}→${playheadAfterRulerClick}, 기대 ${rulerExpected})`);
 if(!(loopAfterDrag.width>60))problems.push(`ruler 드래그가 loop 구간을 만들지 않았다 (${JSON.stringify(loopAfterDrag)})`);
 if(!(loopAfterGrip.width>loopAfterDrag.width+40))problems.push(`loop 끝 손잡이가 구간을 늘리지 않았다 (${loopAfterDrag.width}→${loopAfterGrip.width}, hit=${JSON.stringify(loopGripHit)})`);
 if(after.tracks!==initial.tracks+1)problems.push(`MIDI 트랙 추가 실패 (${initial.tracks}→${after.tracks})`);
@@ -243,6 +267,12 @@ if(after.clips<initial.clips+2||(!mobile&&portableNoteCount<initial.notes+1))pro
 if(after.osc<(mobile?2:4))problems.push(`신스 재생 실패 (oscillator ${after.osc})`);
 if(engineDuring.close!==engineBefore.close)problems.push(`loop에서 AudioContext를 재생성했다 (close ${engineBefore.close}→${engineDuring.close})`);
 if(engineDuring.param<=engineBefore.param)problems.push(`재생 중 mixer parameter가 graph에 반영되지 않았다 (${engineBefore.param}→${engineDuring.param})`);
+if(!armDisabledOnMidi)problems.push('MIDI 트랙의 녹음 대상 단추가 잠겨 있지 않다');
+if(!armedOn||!/Armed/.test(armStatus||''))problems.push(`녹음 대상 지정이 안 된다 (${armedOn}, ${armStatus})`);
+if(armedOff)problems.push('녹음 대상 해제가 안 된다');
+if(armedLaneClipsBefore<1)problems.push('오디오 트랙에 클립이 없다 — 무장 대상 검사가 무의미');
+if(!metronomeOn||metronomeOff)problems.push(`박자 소리 토글이 상태를 안 바꾼다 (${metronomeOn}→${metronomeOff})`);
+if(clicksAfter<=clicksBefore)problems.push(`박자 소리가 안 난다 (oscillator ${clicksBefore}→${clicksAfter})`);
 if(saved?.name!=='Smoke Song'||saved.tracks.length!==after.tracks)problems.push('자동 저장 round-trip 실패');
 if(saved?.assets?.length!==1||!portable.assets?.[0]?.dataUrl?.startsWith('data:audio/wav'))problems.push('오디오 asset 또는 휴대용 프로젝트 저장 실패');
 if(reopened.name!=='Smoke Song'||reopened.tracks!==after.tracks||reopened.assets!==1)problems.push(`휴대용 프로젝트 다시 열기 실패 (${JSON.stringify(reopened)})`);

@@ -135,6 +135,8 @@ export class KarmoStudioEngine {
   private assets = new Map<string, StudioAssetRuntime>();
   private scheduled = new Set<string>();
   onEnded: (() => void) | null = null;
+  /** 박자 소리 — 녹음·연습용. 마디 첫 박은 높게 친다. */
+  metronome = false;
 
   setAssets(assets: Map<string, StudioAssetRuntime>): void { this.assets = assets; }
   isPlaying(): boolean { return this.playing; }
@@ -180,7 +182,25 @@ export class KarmoStudioEngine {
     if(beat>=endBeat-.001){if(project.loop){for(const source of this.sources){try{source.stop();}catch(_){}}this.sources=[];this.scheduled.clear();this.startedBeat=project.loopStart;this.startedAt=context.currentTime+0.012;this.scheduledThroughBeat=project.loopStart;}else{this.stop();this.onEnded?.();return;}}
     const secondsPerBeat=60/project.bpm;const horizonBeat=Math.min(endBeat,this.currentBeat()+0.24/secondsPerBeat);const from=Math.max(this.scheduledThroughBeat,this.currentBeat());if(horizonBeat<=from)return;const fromTime=this.startedAt+(from-this.startedBeat)*secondsPerBeat;
     for(const track of project.tracks){const graph=this.graphs.get(track.id);if(!graph)continue;for(const clip of track.clips){if(clip.kind==='audio'){const key=`audio:${clip.id}`;if(this.scheduled.has(key)||clip.start+clip.duration<=from||clip.start>=horizonBeat)continue;this.scheduled.add(key);scheduleAudio(context,graph.input,clip,clip.assetId?this.assets.get(clip.assetId):undefined,from,endBeat,fromTime,secondsPerBeat,this.sources);}else for(const note of clip.notes){const absolute=clip.start+note.beat;const key=`note:${clip.id}:${note.id}`;if(this.scheduled.has(key)||absolute+note.duration<=from||absolute>=horizonBeat)continue;this.scheduled.add(key);scheduleMidi(context,graph.input,track,{...clip,notes:[note]},from,endBeat,fromTime,secondsPerBeat,this.sources);}}}
+    if(this.metronome){
+      for(let beat=Math.ceil(from-1e-6);beat<horizonBeat;beat++){
+        const key=`click:${beat}`;if(this.scheduled.has(key))continue;this.scheduled.add(key);
+        this.click(context,fromTime+(beat-from)*secondsPerBeat,beat%Math.max(1,project.beatsPerBar)===0);
+      }
+    }
     this.scheduledThroughBeat=horizonBeat;
+  }
+
+  /** 짧은 딸깍 — 트랙 그래프를 안 거치고 마스터로 바로 간다 (믹서에 안 섞인다). */
+  private click(context: AudioContext, when: number, accent: boolean): void {
+    const osc=context.createOscillator();const gain=context.createGain();
+    osc.type='square';osc.frequency.value=accent?1600:1000;
+    gain.gain.setValueAtTime(0.0001,when);
+    gain.gain.exponentialRampToValueAtTime(accent?0.32:0.18,when+0.002);
+    gain.gain.exponentialRampToValueAtTime(0.0001,when+0.055);
+    osc.connect(gain);gain.connect(this.master||context.destination);
+    osc.start(when);osc.stop(when+0.07);
+    this.sources.push(osc);
   }
 
   private endBeat(project: StudioProject): number {

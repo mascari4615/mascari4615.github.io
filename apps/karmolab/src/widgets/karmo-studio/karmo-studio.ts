@@ -131,6 +131,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     let selection: StudioSelection = { type: 'clip', trackId: project.tracks[0].id, clipId: project.tracks[0].clips[0].id };
     let playhead = 0; let pxPerBeat = 72; let sideMode: 'inspector' | 'mixer' = 'inspector';let editTool:'draw'|'select'|'slice'='draw'; let assets = new Map<string, StudioAssetRuntime>();
     let raf: number | undefined; let saveTimer: number | undefined; let recording: MediaRecorder | null = null; let recordChunks: Blob[] = []; let recordStart = 0;
+    let armedTrackId=''; let metronome=false; let countIn=false;
     let editorExpanded = false; let editorScrollTop = 0; let editorScrollLeft = 0; let editorClipId = ''; let pianoPxPerBeat = pxPerBeat;
     let editorReturnFocus: HTMLElement | null = null; let cancelActiveGesture: (()=>void) | null = null;
     /** 묶음 clipboard — 상대 간격을 보존하려고 기준점(origin)을 함께 들고 있는다. */
@@ -178,7 +179,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       <div class="ks-toolbar">
         <span class="ks-brand">KARMO STUDIO</span><button class="ks-btn" data-act="new">NEW</button><button class="ks-btn" data-act="open">OPEN</button><button class="ks-btn" data-act="save">SAVE</button><button class="ks-btn" data-act="undo" title="실행 취소 (Ctrl+Z)">↶</button><button class="ks-btn" data-act="redo" title="다시 실행 (Ctrl+Y)">↷</button>
         <input class="ks-project-name" data-bind="project-name" aria-label="프로젝트 이름">
-        <button class="ks-btn" data-act="back" aria-label="처음으로">|◀</button><button class="ks-btn" data-act="play" aria-label="재생">▶</button><button class="ks-btn" data-act="stop" aria-label="정지">■</button><button class="ks-btn" data-act="record" aria-label="마이크 녹음">● REC</button>
+        <button class="ks-btn" data-act="back" aria-label="처음으로">|◀</button><button class="ks-btn" data-act="play" aria-label="재생">▶</button><button class="ks-btn" data-act="stop" aria-label="정지">■</button><button class="ks-btn" data-act="record" aria-label="마이크 녹음">● REC</button><button class="ks-btn" data-act="metronome" title="박자 소리 (마디 첫 박은 높게)">🎵 CLICK</button><button class="ks-btn" data-act="count-in" title="녹음 전에 한 마디 세어 준다">COUNT-IN</button>
         <span class="ks-time" data-role="time">1.1.00</span><label>BPM <input class="ks-number" data-bind="bpm" type="number" min="30" max="300"></label><label>METER <select class="ks-number" data-bind="meter"><option value="3">3/4</option><option value="4">4/4</option><option value="5">5/4</option><option value="6">6/4</option><option value="7">7/4</option></select></label>
         <label>SNAP <select class="ks-number" data-bind="snap"><option value="1">1</option><option value="0.5">1/2</option><option value="0.25">1/4</option><option value="0.125">1/8</option><option value="0.0625">1/16</option></select></label>
         <button class="ks-btn is-on" data-tool="draw" title="그리기 (P)">✎ DRAW</button><button class="ks-btn" data-tool="select" title="선택 (E)">□ SELECT</button><button class="ks-btn" data-tool="slice" title="자르기 (C)">╱ SLICE</button>
@@ -259,10 +260,16 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       root.dataset.tool=editTool;root.querySelectorAll('[data-tool]').forEach((button)=>button.classList.toggle('is-on',(button as HTMLElement).dataset.tool===editTool));
       $<HTMLInputElement>('[data-bind=project-name]').value = project.name; $<HTMLInputElement>('[data-bind=bpm]').value = String(project.bpm); $<HTMLSelectElement>('[data-bind=meter]').value = String(project.beatsPerBar); $<HTMLSelectElement>('[data-bind=snap]').value = String(project.snap);
       root.querySelector('[data-act=loop]')?.classList.toggle('is-on', project.loop);
-      renderRuler(); renderTracks(); renderSide(); renderEditor(); updatePlayhead();
+      renderRuler(); renderTracks(); renderSide(); renderEditor(); updatePlayhead(); renderToggles();
       if(scrollElement){scrollElement.scrollLeft=arrangerLeft;scrollElement.scrollTop=arrangerTop;}
     }
 
+    /** 켜짐 표시만 갱신 — 전체 재렌더 없이. */
+    function renderToggles(): void {
+      root.querySelector('[data-act=metronome]')?.classList.toggle('is-on',metronome);
+      root.querySelector('[data-act=count-in]')?.classList.toggle('is-on',countIn);
+      root.querySelector('[data-act=loop]')?.classList.toggle('is-on',project.loop);
+    }
     function renderRuler(): void {
       const ruler = $<HTMLElement>('[data-role=ruler]'); const length = Math.ceil(projectLength(project));
       ruler.style.width = `${172 + trackWidth()}px`;
@@ -292,7 +299,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       const tracks = $<HTMLElement>('[data-role=tracks]'); const width = trackWidth();
       tracks.innerHTML = project.tracks.map((track) => `<div class="ks-track-row" data-track-row="${track.id}" style="width:${172 + width}px">
         <div class="ks-track-head"><div class="ks-track-title"><span class="ks-track-color" style="background:${track.color}"></span><input data-track-name="${track.id}" value="${esc(track.name)}" aria-label="트랙 이름"></div>
-        <div class="ks-track-actions"><button class="ks-mini${track.mute?' is-on':''}" data-track-act="mute" data-track="${track.id}">M</button><button class="ks-mini${track.solo?' is-on':''}" data-track-act="solo" data-track="${track.id}">S</button><button class="ks-mini" data-track-act="arm" data-track="${track.id}">●</button><button class="ks-mini" data-track-act="delete" data-track="${track.id}">×</button></div>
+        <div class="ks-track-actions"><button class="ks-mini${track.mute?' is-on':''}" data-track-act="mute" data-track="${track.id}">M</button><button class="ks-mini${track.solo?' is-on':''}" data-track-act="solo" data-track="${track.id}">S</button><button class="ks-mini${armedTrackId===track.id?' is-on':''}" data-track-act="arm" data-track="${track.id}" title="${track.kind==='audio'?'녹음 대상으로 지정':'오디오 트랙만 녹음 대상이 된다'}"${track.kind==='audio'?'':' disabled'}>●</button><button class="ks-mini" data-track-act="delete" data-track="${track.id}">×</button></div>
         <input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-track-volume="${track.id}" aria-label="${esc(track.name)} 볼륨"></div>
         <div class="ks-lane" data-lane="${track.id}" data-kind="${track.kind}" style="width:${width}px">${track.clips.map((clip)=>clipHtml(track,clip)).join('')}</div></div>`).join('');
     }
@@ -357,31 +364,54 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       $<HTMLElement>('[data-role=time]').textContent = beatText(playhead);
     }
     function transportLoop(): void { if (!engine.isPlaying()) return; playhead = engine.currentBeat(); updatePlayhead(); const scroll = $<HTMLElement>('[data-role=scroll]'); const x = 172 + playhead * pxPerBeat; if (x > scroll.scrollLeft + scroll.clientWidth - 80) scroll.scrollLeft = x - scroll.clientWidth * .45; raf = requestAnimationFrame(transportLoop); }
-    function play(): void { engine.setAssets(assets); engine.play(project, playhead); root.querySelector('[data-act=play]')?.classList.add('is-on'); if (raf!==undefined)cancelAnimationFrame(raf); transportLoop(); }
+    function play(): void { engine.setAssets(assets); engine.metronome=metronome; engine.play(project, playhead); root.querySelector('[data-act=play]')?.classList.add('is-on'); if (raf!==undefined)cancelAnimationFrame(raf); transportLoop(); }
     function stop(): void { engine.stop(); root.querySelector('[data-act=play]')?.classList.remove('is-on'); if(raf!==undefined)cancelAnimationFrame(raf); raf=undefined; }
     engine.onEnded = () => { root.querySelector('[data-act=play]')?.classList.remove('is-on'); };
 
     async function refreshAssets(): Promise<void> { const AC=window.AudioContext||(window as Window & {webkitAudioContext?:typeof AudioContext}).webkitAudioContext; const context=new AC(); assets=await hydrateAssets(project,context); await context.close(); engine.setAssets(assets); }
     async function importAudio(files: File[]): Promise<void> {
+      const armed = armedTrackId ? findTrack(project, armedTrackId) : undefined;
       const selectedAudioTrack = selectedTrack();
-      const audioTrack: StudioTrack = selectedAudioTrack?.kind === 'audio'
+      /* 녹음 대상(●)이 있으면 그 트랙이 이긴다 — 없을 때만 고른 트랙 → 첫 오디오 트랙 순. */
+      const audioTrack: StudioTrack = armed?.kind === 'audio'
+        ? armed
+        : selectedAudioTrack?.kind === 'audio'
         ? selectedAudioTrack
         : project.tracks.find((track) => track.kind === 'audio') || (() => { const track = newTrack('audio', project.tracks.length + 1); project.tracks.push(track); return track; })();
       const AC=window.AudioContext||(window as Window & {webkitAudioContext?:typeof AudioContext}).webkitAudioContext; const context=new AC();
       for (const file of files) { try { const bytes=await file.arrayBuffer(); const buffer=await context.decodeAudioData(bytes.slice(0)); const asset:StudioAssetRuntime={id:studioId('asset'),name:file.name,type:file.type||'audio/wav',duration:buffer.duration,buffer}; await addAsset(new Blob([bytes],{type:asset.type}),asset); assets.set(asset.id,asset); project.assets.push(asset); const duration=buffer.duration/(60/project.bpm); const clip:StudioClip={id:studioId('clip'),trackId:audioTrack.id,kind:'audio',name:file.name.replace(/\.[^.]+$/,''),start:snapBeat(playhead,project.snap),duration,offset:0,assetId:asset.id,notes:[],gain:1,fadeIn:0.02/(60/project.bpm),fadeOut:0.02/(60/project.bpm)}; audioTrack.clips.push(clip); selection={type:'clip',trackId:audioTrack.id,clipId:clip.id}; status(`Imported ${file.name}`); } catch(error){status(`Could not decode ${file.name}`);} }
       await context.close(); saveSoon(); renderAll();
     }
+    /** 카운트인 — 한 마디를 세어 준 뒤 녹음을 시작한다. 취소하면 세다가 멈춘다. */
+    let countInTimer: number | undefined;
+    function runCountIn(): Promise<void> {
+      const bar=project.beatsPerBar;const secondsPerBeat=60/project.bpm;
+      status(`Count-in · ${bar}`);
+      engine.metronome=true;engine.setAssets(assets);engine.play({...project,tracks:[],loop:false},0);
+      return new Promise((resolve)=>{
+        let left=bar;
+        countInTimer=window.setInterval(()=>{
+          left--;
+          if(left>0){status(`Count-in · ${left}`);return;}
+          window.clearInterval(countInTimer);countInTimer=undefined;
+          engine.stop();engine.metronome=metronome;
+          resolve();
+        },secondsPerBeat*1000);
+      });
+    }
     async function startRecording(): Promise<void> {
       if (recording) { recording.stop(); return; }
+      if (countInTimer!==undefined) { window.clearInterval(countInTimer); countInTimer=undefined; engine.stop(); engine.metronome=metronome; status('Count-in cancelled'); return; }
+      if (countIn) { root.querySelector('[data-act=record]')?.classList.add('is-recording'); await runCountIn(); }
       try { const stream=await navigator.mediaDevices.getUserMedia({audio:true}); recordChunks=[]; recording=new MediaRecorder(stream); recordStart=playhead; recording.ondataavailable=(event)=>{if(event.data.size)recordChunks.push(event.data);}; recording.onstop=()=>{const blob=new Blob(recordChunks,{type:recording?.mimeType||'audio/webm'});stream.getTracks().forEach((track)=>track.stop());recording=null;root.querySelector('[data-act=record]')?.classList.remove('is-recording');playhead=recordStart;void importAudio([new File([blob],`Recording ${new Date().toLocaleTimeString()}.webm`,{type:blob.type})]);}; recording.start(); root.querySelector('[data-act=record]')?.classList.add('is-recording'); if(!engine.isPlaying())play(); status('Recording microphone…'); } catch(_){status('Microphone permission was not granted');}
     }
     const download = (blob: Blob, name: string): void => { const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000); };
 
     root.addEventListener('click',(event)=>{ const raw=event.target as HTMLElement;if(addPianoNote(event))return;const contextAct=raw.closest<HTMLElement>('[data-context-act]')?.dataset.contextAct;if(contextAct){hideContextMenu();if(contextAct==='open-editor')setEditorExpanded(true);else if(contextAct==='copy')copySelection();else if(contextAct==='cut')cutSelection();else if(contextAct==='duplicate')root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();else if(contextAct==='duplicate-note'&&selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const note=clip?.notes.find((item)=>item.id===noteId);const track=selectedTrack();if(clip&&note&&track){const copy={...note,id:studioId('note'),beat:Math.min(clip.duration-note.duration,snapBeat(note.beat+project.snap,project.snap))};clip.notes.push(copy);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copy.id};saveSoon();renderEditor();renderTracks();}}else if(contextAct==='split')root.querySelector<HTMLElement>('[data-act=split]')?.click();else if(contextAct==='delete')deleteSelection();return;}const noteAct=raw.closest<HTMLElement>('[data-note-act]')?.dataset.noteAct;if(noteAct){applyNoteTool(noteAct);return;}const tool=raw.closest<HTMLElement>('.ks-btn[data-tool]')?.dataset.tool;if(tool){editTool=tool as typeof editTool;renderAll();status(`${tool.toUpperCase()} tool`);return;} const target=raw.closest<HTMLElement>('[data-act],[data-side],[data-track-act]'); if(!target){hideContextMenu();return;}
       if(target.dataset.side){sideMode=target.dataset.side as typeof sideMode;renderSide();return;}
-      const trackAct=target.dataset.trackAct; if(trackAct){const track=findTrack(project,target.dataset.track||'');if(!track)return;if(trackAct==='mute')track.mute=!track.mute;else if(trackAct==='solo')track.solo=!track.solo;else if(trackAct==='delete'&&confirm(`Delete ${track.name}?`)){project.tracks=project.tracks.filter((item)=>item.id!==track.id);selection=null;}saveSoon();renderAll();return;}
+      const trackAct=target.dataset.trackAct; if(trackAct){const track=findTrack(project,target.dataset.track||'');if(!track)return;if(trackAct==='mute')track.mute=!track.mute;else if(trackAct==='solo')track.solo=!track.solo;else if(trackAct==='arm'){if(track.kind!=='audio'){status('Only audio tracks can be armed');return;}armedTrackId=armedTrackId===track.id?'':track.id;status(armedTrackId?`Armed ${track.name}`:'Disarmed');renderAll();return;}else if(trackAct==='delete'&&confirm(`Delete ${track.name}?`)){project.tracks=project.tracks.filter((item)=>item.id!==track.id);selection=null;}saveSoon();renderAll();return;}
       const act=target.dataset.act;
-      if(act==='play')engine.isPlaying()?stop():play(); else if(act==='stop')stop(); else if(act==='back'){stop();playhead=0;updatePlayhead();} else if(act==='loop'){project.loop=!project.loop;saveSoon();renderAll();}
+      if(act==='play')engine.isPlaying()?stop():play(); else if(act==='stop')stop(); else if(act==='back'){stop();playhead=0;updatePlayhead();} else if(act==='loop'){project.loop=!project.loop;saveSoon();renderAll();} else if(act==='metronome'){metronome=!metronome;engine.metronome=metronome;renderToggles();status(metronome?'Metronome on':'Metronome off');} else if(act==='count-in'){countIn=!countIn;renderToggles();status(countIn?'Count-in: one bar before recording':'Count-in off');}
       else if(act==='audio'||act==='midi'){const track=newTrack(act,project.tracks.length+1);project.tracks.push(track);selection={type:'track',trackId:track.id};saveSoon();renderAll();}
       else if(act==='import-audio')$<HTMLInputElement>('[data-file=audio]').click(); else if(act==='open')$<HTMLInputElement>('[data-file=project]').click();
       else if(act==='new'&&confirm('Start a new project? Export the current one first if you need it.')){stop();project=newProject();assets.clear();selection={type:'clip',trackId:project.tracks[0].id,clipId:project.tracks[0].clips[0].id};playhead=0;saveSoon();renderAll();}
@@ -669,7 +699,7 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
     const keydown=(event:KeyboardEvent)=>{if(!root.isConnected)return;if(event.key==='Escape'){event.preventDefault();cancelActiveGesture?.();hideContextMenu();if(editorExpanded)setEditorExpanded(false);return;}const command=event.ctrlKey||event.metaKey;if(command&&event.key.toLowerCase()==='z'){event.preventDefault();restoreHistory(event.shiftKey?'redo':'undo');return;}if(command&&event.key.toLowerCase()==='y'){event.preventDefault();restoreHistory('redo');return;}const tag=(event.target as HTMLElement).tagName;if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;if(!command&&['p','e','c'].includes(event.key.toLowerCase())){editTool=event.key.toLowerCase()==='p'?'draw':event.key.toLowerCase()==='e'?'select':'slice';renderAll();status(`${editTool.toUpperCase()} tool`);return;}if(command&&event.key.toLowerCase()==='c'){event.preventDefault();copySelection();return;}if(command&&event.key.toLowerCase()==='x'){event.preventDefault();cutSelection();return;}if(command&&event.key.toLowerCase()==='v'){event.preventDefault();pasteClipboard();return;}if(event.code==='Space'){event.preventDefault();engine.isPlaying()?stop():play();}else if(event.key==='Delete'||event.key==='Backspace'){event.preventDefault();deleteSelection();}else if(command&&event.key.toLowerCase()==='b'){event.preventDefault();root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();}};document.addEventListener('keydown',keydown);
     $<HTMLElement>('[data-role=backdrop]').addEventListener('click',()=>setEditorExpanded(false));
     Toolbox.onHandoff?.('karmo-studio',(file: File)=>{if(file.type.startsWith('audio/'))void importAudio([file]);else if(file.type==='application/json')void file.text().then(importPortable).then((next: StudioProject)=>{project=next;history.reset(project);return refreshAssets();}).then(()=>renderAll());});
-    Toolbox.onDispose?.(()=>{stop();engine.dispose();document.removeEventListener('keydown',keydown);if(saveTimer!==undefined)clearTimeout(saveTimer);if(recording)recording.stop();});
+    Toolbox.onDispose?.(()=>{stop();engine.dispose();if(countInTimer!==undefined)clearInterval(countInTimer);document.removeEventListener('keydown',keydown);if(saveTimer!==undefined)clearTimeout(saveTimer);if(recording)recording.stop();});
     renderAll(); void refreshAssets().then(()=>{renderAll();status('Ready · autosave on');}); Mdd.linePreset('tool_run',{mood:'idle',msg:'Karmo Studio — 편곡부터 WAV까지 한 프로젝트에서.'});
   }
 })();
