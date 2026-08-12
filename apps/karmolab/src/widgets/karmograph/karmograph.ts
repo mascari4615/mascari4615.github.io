@@ -177,6 +177,10 @@ import {
     .km-tcell { font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:72px; }
     .km-tdim { color:var(--text-tertiary); }
     .km-trow .btn { padding:2px 6px; }
+    /* ★ 옆 패널 버튼은 **글자를 안 접는다**. 줄 안에서 버튼이 마지막이라 flex 가 여기부터 깎았고,
+       그 결과 「추가」가 「추 / 가」로, 「남기기」가 「남기 / 기」로 세로로 쪼개져 찍혔다
+       (실측 2026-08-12, 노드 패널). 좁으면 입력칸이 줄어야지 버튼 글자가 접혀선 안 된다. */
+    .km-side .btn { white-space:nowrap; flex:0 0 auto; }
     .km-tagbar { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
     .km-tagchip { padding:2px 8px; font-size:11px; border-radius:999px; }
     .km-link-row { display:flex; gap:6px; align-items:center; margin-bottom:4px; }
