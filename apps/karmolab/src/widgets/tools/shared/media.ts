@@ -113,3 +113,79 @@ export function mmss(sec: number): string {
   const s = Number.isFinite(sec) ? Math.max(0, Math.floor(sec)) : 0;
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
+
+/* ── 2026-08-13 에 모은 것 (TASK-KL-269) ─────────────────────────────
+ *
+ * 소리 도구 일곱을 재 보니 여전히 각자 하고 있었다: `AudioContext` 만들기 6/7 ·
+ * `decodeAudioData` 6/7 · 주소 만들기 6/7 · 내려주기 6/7 · 끌어다 놓기 5/7.
+ * 특히 **소리틀(AudioContext) 을 도구마다 새로 만드는 것**이 나빴다 — 브라우저가 동시에 열어
+ * 두는 개수에 한도가 있어서, 도구를 몇 번 오가면 조용히 소리가 안 난다.
+ */
+
+let sharedCtx: AudioContext | null = null;
+
+/**
+ * 소리틀은 **하나만** 쓴다. 브라우저는 이걸 무제한으로 안 열어 준다 —
+ * 도구마다 새로 만들면 오가다 어느 순간부터 소리가 조용히 사라진다.
+ */
+export function audioCtx(): AudioContext {
+  const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+  if (!sharedCtx || sharedCtx.state === 'closed') sharedCtx = new Ctor();
+  return sharedCtx;
+}
+
+/** 파일을 소리로 읽는다 — 여섯 곳이 각자 적던 세 줄. */
+export async function loadAudio(file: File | Blob): Promise<AudioBuffer> {
+  const bytes = await file.arrayBuffer();
+  /* 사본을 넘긴다 — `decodeAudioData` 는 받은 통을 자기 것으로 삼아 비운다.
+   * 안 그러면 같은 파일을 두 번째로 읽을 때 빈손이 된다(PDF 쪽과 같은 함정). */
+  return await audioCtx().decodeAudioData(bytes.slice(0));
+}
+
+/**
+ * **파형** — 초당 수만 개인 표본을 화면 폭만큼의 칸으로 줄인다.
+ *
+ * 칸마다 그 구간의 **가장 큰 값**을 남긴다(평균이 아니다). 평균을 내면 큰 소리가 뭉개져
+ * 「여기가 말하는 데」인지 「여기가 조용한 데」인지가 안 보인다 — 자를 자리를 찾는 게 목적이므로
+ * 봉우리가 살아야 한다. AudioMass 가 보여 주는 그 그림이다.
+ */
+export function peaks(buffer: AudioBuffer, buckets = 240): number[] {
+  const ch = buffer.getChannelData(0);
+  const per = Math.max(1, Math.floor(ch.length / buckets));
+  const out: number[] = [];
+  for (let i = 0; i < buckets; i++) {
+    let max = 0;
+    const from = i * per;
+    const to = Math.min(ch.length, from + per);
+    for (let j = from; j < to; j++) {
+      const v = Math.abs(ch[j]);
+      if (v > max) max = v;
+    }
+    out.push(max);
+  }
+  return out;
+}
+
+/** 파형을 캔버스에 그린다. 가운데를 0 으로 두고 위아래로 뻗는다. */
+export function drawWave(canvas: HTMLCanvasElement, values: number[], color = '#6aa9ff'): void {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const { width: w, height: h } = canvas;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = color;
+  const bw = w / values.length;
+  for (let i = 0; i < values.length; i++) {
+    /* 아주 작은 소리도 한 픽셀은 남긴다 — 안 그리면 「빈 파일인가」로 읽힌다 */
+    const bh = Math.max(1, values[i] * h * 0.92);
+    ctx.fillRect(i * bw, (h - bh) / 2, Math.max(1, bw - 1), bh);
+  }
+}
+
+/** 내려주기 — 여섯 곳이 각자 적던 네 줄. */
+export function download(blob: Blob, filename: string): void {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+}

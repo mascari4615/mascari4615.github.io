@@ -4,5 +4,19 @@
   "sound.part.audiolevel": "크기 맞추기",
   "sound.part.audiospeed": "속도",
   "sound.part.audiofade": "페이드",
-  "sound.part.audiojoin": "잇기"
+  "sound.part.audiojoin": "잇기",
+  "sound.tab": "소리",
+  "sound.group.edit": "다듬기",
+  "sound.group.join": "붙이기·바꾸기",
+  "sound.group.make": "만들기",
+  "sound.drop.title": "소리 파일을 여기에 놓거나 눌러서 고르세요",
+  "sound.drop.hint": "파일이 이 브라우저를 벗어나지 않습니다",
+  "sound.btn.change": "바꾸기",
+  "sound.btn.back": "할 일 고르기",
+  "sound.btn.chain": "이 결과로 이어서",
+  "sound.preview.fail": "이 소리는 미리 못 봅니다",
+  "sound.meta": "{time} · {ch}채널 · {khz}kHz · {size}",
+  "sound.part.video2audio": "영상에서 소리 뽑기",
+  "sound.part.soundscape": "환경음",
+  "sound.part.morse": "모스 부호"
 }
