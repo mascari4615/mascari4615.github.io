@@ -30,6 +30,7 @@ export const META: GameMeta[] = [
   { id: 'rps', icon: '✌️', kind: 'quick' },
   { id: 'yut', icon: '🏯', kind: 'board' },
   { id: 'fleet', icon: '🚢', kind: 'board' },
+  { id: 'auction', icon: '🔨', kind: 'card' },
   { id: 'jegi', icon: '🥋', kind: 'quick' },
   { id: 'nunchi', icon: '👀', kind: 'quick' },
   { id: 'wordchain', icon: '🗣️', kind: 'quick' },

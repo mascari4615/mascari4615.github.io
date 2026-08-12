@@ -54,9 +54,10 @@ import { nunchi } from './games/nunchi';
 import { fleet } from './games/fleet';
 import { yut } from './games/yut';
 import { jegi } from './games/jegi';
+import { auction } from './games/auction';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory, hitblow, reversi, dots, speed, slide, ultimate, yacht, checkers, blackjack, president, dominoes, curling, bowling, pool, darts, airhockey, highlow, nim, hanabi, wordchain, lineup, minesweeper, liars, twenty, snake, onestroke, fishing, minishogi, hanafuda, tanks, mancala, shellgame, foxhounds, pong, derby, whack, tug, capturego, rps, simon, sudoku, nunchi, fleet, yut, jegi];
+export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory, hitblow, reversi, dots, speed, slide, ultimate, yacht, checkers, blackjack, president, dominoes, curling, bowling, pool, darts, airhockey, highlow, nim, hanabi, wordchain, lineup, minesweeper, liars, twenty, snake, onestroke, fishing, minishogi, hanafuda, tanks, mancala, shellgame, foxhounds, pong, derby, whack, tug, capturego, rps, simon, sudoku, nunchi, fleet, yut, jegi, auction];
 
 export const gameById = (id: string): GameDef<any, any> | undefined => GAMES.find((g) => g.id === id);
 
