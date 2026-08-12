@@ -136,6 +136,70 @@ export function flip(surface: Surface, axis: 'x' | 'y'): Surface {
   return out;
 }
 
+/**
+ * 자유 각도 회전. 판이 잘리지 않게 **커진 판**에 담는다(45도로 돌리면 모서리가 삐져나온다).
+ * 뒤에서 앞으로(목적지 → 원본) 훑어 구멍이 안 뚫리게 하고, 알파는 미리 곱해 섞어
+ * 투명한 가장자리에 검정이 배어나지 않게 한다.
+ */
+export function rotateFree(surface: Surface, degrees: number, smooth = true): Surface {
+  const rad = (degrees * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const w = Math.ceil(Math.abs(surface.w * cos) + Math.abs(surface.h * sin));
+  const h = Math.ceil(Math.abs(surface.w * sin) + Math.abs(surface.h * cos));
+  const out = createSurface(w, h);
+  const cx = surface.w / 2;
+  const cy = surface.h / 2;
+  const ox = w / 2;
+  const oy = h / 2;
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) {
+      /* 목적지 점을 반대로 돌려 원본 어디서 왔는지 찾는다. */
+      const dx = x + 0.5 - ox;
+      const dy = y + 0.5 - oy;
+      const sx = cx + dx * cos + dy * sin;
+      const sy = cy - dx * sin + dy * cos;
+      if (sx < -0.5 || sy < -0.5 || sx > surface.w - 0.5 || sy > surface.h - 0.5) continue;
+      const to = (y * w + x) * 4;
+      if (!smooth) {
+        const px = Math.min(surface.w - 1, Math.max(0, Math.round(sx - 0.5)));
+        const py = Math.min(surface.h - 1, Math.max(0, Math.round(sy - 0.5)));
+        const from = (py * surface.w + px) * 4;
+        out.data[to] = surface.data[from];
+        out.data[to + 1] = surface.data[from + 1];
+        out.data[to + 2] = surface.data[from + 2];
+        out.data[to + 3] = surface.data[from + 3];
+        continue;
+      }
+      const fx = sx - 0.5; const fy = sy - 0.5;
+      const x0 = Math.floor(fx); const y0 = Math.floor(fy);
+      const tx = fx - x0; const ty = fy - y0;
+      let r = 0; let g = 0; let b = 0; let a = 0;
+      for (let ky = 0; ky <= 1; ky += 1) {
+        for (let kx = 0; kx <= 1; kx += 1) {
+          const px = Math.min(surface.w - 1, Math.max(0, x0 + kx));
+          const py = Math.min(surface.h - 1, Math.max(0, y0 + ky));
+          const weight = (kx ? tx : 1 - tx) * (ky ? ty : 1 - ty);
+          if (weight <= 0) continue;
+          const from = (py * surface.w + px) * 4;
+          const alpha = surface.data[from + 3] / 255;
+          r += surface.data[from] * alpha * weight;
+          g += surface.data[from + 1] * alpha * weight;
+          b += surface.data[from + 2] * alpha * weight;
+          a += alpha * weight;
+        }
+      }
+      out.data[to + 3] = Math.round(a * 255);
+      if (a > 0) {
+        out.data[to] = Math.round(r / a);
+        out.data[to + 1] = Math.round(g / a);
+        out.data[to + 2] = Math.round(b / a);
+      }
+    }
+  }
+  return out;
+}
+
 /* ===== 색을 바꾸는 연산 — 자리는 그대로 ===== */
 
 export interface Adjust {
