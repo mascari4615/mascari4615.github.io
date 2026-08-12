@@ -233,5 +233,9 @@
   "arcade.fish.done": "使い切った",
   "arcade.fish.empty": "まだ何も",
   "arcade.fish.missed": "逃した",
-  "arcade.fish.win": "{who} — {n}"
+  "arcade.fish.win": "{who} — {n}",
+  "arcade.game.minishogi.name": "5五将棋",
+  "arcade.game.minishogi.desc": "取った駒は自分の駒になる。王を取れば勝ち",
+  "arcade.shogi.win": "{who} が王を取った",
+  "arcade.shogi.stale": "長引いた — 引き分け"
 }

@@ -233,5 +233,9 @@
   "arcade.fish.done": "Out of casts",
   "arcade.fish.empty": "Nothing yet",
   "arcade.fish.missed": "It got away",
-  "arcade.fish.win": "{who} — {n}"
+  "arcade.fish.win": "{who} — {n}",
+  "arcade.game.minishogi.name": "Mini Shogi",
+  "arcade.game.minishogi.desc": "Captured pieces become yours. Take the king to win",
+  "arcade.shogi.win": "{who} took the king",
+  "arcade.shogi.stale": "Dragged on — a draw"
 }
