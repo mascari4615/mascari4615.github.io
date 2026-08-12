@@ -34,5 +34,7 @@
   "studymap.scope.badge": "내 것",
   "studymap.lesson.tag": "강의",
   "studymap.find": "찾기",
-  "studymap.lesson.toc": "목차"
+  "studymap.lesson.toc": "목차",
+  "studymap.copy": "복사",
+  "studymap.copied": "복사됨"
 }

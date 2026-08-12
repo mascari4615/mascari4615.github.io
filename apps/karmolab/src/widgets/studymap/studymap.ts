@@ -11,7 +11,7 @@
  * 「체크하려고 가입」이 지도를 안 열게 만드는 가장 흔한 이유라서.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
-import { collectHeadings, tocHtml, bindTocClicks, watchReading } from '../../lib/doc-view';
+import { collectHeadings, tocHtml, bindTocClicks, watchReading, highlightCode, addCopyButtons } from '../../lib/doc-view';
 
 interface SmLink { label: string; url: string }
 interface SmTool { id: string; label: string }
@@ -177,6 +177,10 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 
 /* 강의 — 읽는 화면. 글줄은 68ch 를 안 넘긴다. */
 .sm-lesson { max-width: 68ch; }
+.sm-code pre { position: relative; }
+.doc-copy { position: absolute; top: 6px; right: 6px; font: inherit; font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-tertiary); cursor: pointer; opacity: 0; transition: opacity .15s; }
+pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
+.doc-copy:hover { color: var(--accent); border-color: var(--accent); }
 /* 목차 — 좁은 화면에선 접힌 채로 위에, 넓은 화면에선 글 옆에 붙어 따라온다. */
 .sm-lesson-wrap { display: block; }
 .doc-toc { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px 14px; margin: 0 0 18px; background: var(--bg-secondary); }
@@ -480,7 +484,9 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
         .map((blk) => {
           if (blk.type === 'h') return `<h4>${esc(blk.text)}</h4>`;
           if (blk.type === 'code') {
-            return `<div class="sm-code">${blk.label ? `<div class="sm-code-label">${esc(blk.label)}</div>` : ''}<pre><code>${esc(blk.text)}</code></pre></div>`;
+            /* 언어를 표에 적어 둔 그대로 넘긴다 — 강조는 공용 모듈이 Prism 으로 한다. */
+            const lang = /^[\w-]+$/.test(blk.lang || '') ? (blk.lang as string) : 'text';
+            return `<div class="sm-code">${blk.label ? `<div class="sm-code-label">${esc(blk.label)}</div>` : ''}<pre><code class="language-${esc(lang)}">${esc(blk.text)}</code></pre></div>`;
           }
           if (blk.type === 'note' || blk.type === 'try') {
             const tag = blk.type === 'try' ? t('studymap.lesson.try', undefined, '직접 해보기') : t('studymap.lesson.note', undefined, '기억할 것');
@@ -516,6 +522,13 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
         ${quiz ? `<h4>${esc(t('studymap.lesson.quiz', undefined, '확인 문제'))}</h4><div class="sm-quiz" data-lesson="${esc(id)}">${quiz}</div>` : ''}
         <div class="sm-links" style="margin-top:18px">${linkRow}</div>
       </article></div>`;
+
+      /* 코드 강조·복사도 문서 위젯과 같은 모듈로 — 강의는 코드가 본체다. */
+      const lessonBody = elStages.querySelector('.sm-lesson');
+      if (lessonBody instanceof HTMLElement) {
+        addCopyButtons(lessonBody, t('studymap.copy', undefined, '복사'), t('studymap.copied', undefined, '복사됨'));
+        void highlightCode(lessonBody);
+      }
 
       /* 목차는 공용 모듈이 만든다 — 문서 위젯과 같은 규칙을 쓰려고(SSOT). */
       const article = elStages.querySelector('.sm-lesson');

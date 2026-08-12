@@ -46,5 +46,7 @@
   "docs.t45": "*entity failed to load: ",
   "docs.t46": "*unknown item key: ",
   "docs.t47": "[docs] manifest failed to load (continuing without the entity group):",
-  "docs.t48": "Documents"
+  "docs.t48": "Documents",
+  "docs.copy": "Copy",
+  "docs.copied": "Copied"
 }

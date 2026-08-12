@@ -4,7 +4,7 @@
  * marked.js로 마크다운 렌더링, Prism.js로 코드 하이라이팅, ```mermaid 는 Mermaid 렌더.
  */
 import { t, loadNamespace } from '../../lib/i18n';
-import { collectHeadings, watchReading, bindTocClicks } from '../../lib/doc-view';
+import { collectHeadings, watchReading, bindTocClicks, highlightCode, addCopyButtons } from '../../lib/doc-view';
 
 (function (): void {
   /** 동일 출처(Tracking Prevention 회피). CDN 금지.
@@ -485,13 +485,13 @@ import { collectHeadings, watchReading, bindTocClicks } from '../../lib/doc-view
 
     replaceMermaidCodeBlocksFallback(body);
 
+    /* 언어 표기가 없으면 예전엔 javascript 로 칠했다 — 셸·설정 파일이 엉뚱하게 물들어서 그대로 둔다. */
     body.querySelectorAll('pre code').forEach((block: Element) => {
-      const lang = block.className.match(/language-(\w+)/)?.[1] || 'javascript';
-      block.className = 'language-' + lang;
-      if (typeof Prism !== 'undefined') {
-        Prism.highlightElement(block);
-      }
+      const lang = block.className.match(/language-([\w-]+)/)?.[1];
+      if (lang) block.className = 'language-' + lang;
     });
+    void highlightCode(body);
+    addCopyButtons(body, t('docs.copy'), t('docs.copied'));
 
     const tocMeta = applyDocsAnchors(body, tocNav);
     if (tocMeta.length < 2) {

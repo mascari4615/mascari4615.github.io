@@ -34,5 +34,7 @@
   "studymap.scope.badge": "mine",
   "studymap.lesson.tag": "lesson",
   "studymap.find": "Find",
-  "studymap.lesson.toc": "Contents"
+  "studymap.lesson.toc": "Contents",
+  "studymap.copy": "Copy",
+  "studymap.copied": "Copied"
 }
