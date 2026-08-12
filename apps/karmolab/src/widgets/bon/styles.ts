@@ -88,6 +88,10 @@ export function injectBonStyles(): void {
     .bon-eye:hover { color:var(--text-primary); }
     .bon-layer-acts { gap:4px; margin-top:4px; }
     .bon-layer-acts button { flex:1; padding:4px 2px; font-size:11px; }
+    .bon-foot { display:flex; align-items:center; gap:7px; flex-shrink:0;
+      padding-top:8px; border-top:1px solid var(--border); }
+    .bon-foot-label { color:var(--text-secondary); font-size:11px; letter-spacing:.06em; }
+    .bon-foot-hint { color:var(--text-tertiary, var(--text-secondary)); font-size:11px; margin-left:6px; }
     .bon-empty { color:var(--text-secondary); font-size:var(--font-size-xs); padding:6px 2px; }
 `;
   document.head.append(style);
