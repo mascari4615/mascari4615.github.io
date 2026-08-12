@@ -193,5 +193,14 @@
   "arcade.game.minesweeper.name": "Minesweeper",
   "arcade.game.minesweeper.desc": "Same field, a race. Step on one and only you are out",
   "arcade.mine.win": "{who} — {n} cells",
-  "arcade.mine.dead": "Stepped on one"
+  "arcade.mine.dead": "Stepped on one",
+  "arcade.game.liars.name": "Liar's Dice",
+  "arcade.game.liars.desc": "Call the whole table from your own dice. It need not be true",
+  "arcade.liars.bid": "{n} or more {f}",
+  "arcade.liars.nobid": "Open with any call",
+  "arcade.liars.mine": "Your dice",
+  "arcade.liars.call": "Liar",
+  "arcade.liars.waiting": "Waiting for your turn",
+  "arcade.liars.real": "actually {n}",
+  "arcade.liars.win": "{who} was last standing"
 }

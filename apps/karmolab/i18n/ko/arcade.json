@@ -193,5 +193,14 @@
   "arcade.game.minesweeper.name": "지뢰 찾기",
   "arcade.game.minesweeper.desc": "같은 밭을 놓고 경주. 밟으면 그 사람만 끝",
   "arcade.mine.win": "{who} — {n}칸",
-  "arcade.mine.dead": "밟았다"
+  "arcade.mine.dead": "밟았다",
+  "arcade.game.liars.name": "거짓말 주사위",
+  "arcade.game.liars.desc": "내 주사위만 보고 판 전체를 부른다. 참일 필요는 없다",
+  "arcade.liars.bid": "{n}개 이상 {f}",
+  "arcade.liars.nobid": "아무 말이나 걸어 시작",
+  "arcade.liars.mine": "내 주사위",
+  "arcade.liars.call": "거짓말이다",
+  "arcade.liars.waiting": "차례를 기다리는 중",
+  "arcade.liars.real": "실제 {n}개",
+  "arcade.liars.win": "{who} 이(가) 마지막까지 남았다"
 }
