@@ -51,6 +51,14 @@ const bandTop=Math.min(...multiClipBoxes.map((box)=>box.top))+3;
 const bandBottom=Math.max(...multiClipBoxes.map((box)=>box.bottom))-3;
 await page.mouse.move(bandRight,bandTop);await page.mouse.down();await page.mouse.move(bandLeft,bandBottom,{steps:6});await page.mouse.up();await page.waitForTimeout(80);
 const boxSelected=await page.locator('.ks-lane[data-kind=midi]').first().locator('.ks-clip.is-selected').count();
+/* 묶음 clipboard — 선택한 clip 전부가 재생 헤드 기준으로 상대 간격을 지킨 채 붙는다. */
+const clipCountBeforeMultiCopy=await page.locator('.ks-clip').count();
+await page.keyboard.press('Control+c');await page.keyboard.press('Control+v');await page.waitForTimeout(140);
+const clipCountAfterMultiPaste=await page.locator('.ks-clip').count();
+await page.keyboard.press('Delete');await page.waitForTimeout(140);
+const clipCountAfterMultiPasteUndo=await page.locator('.ks-clip').count();
+/* 붙여넣기가 선택을 사본으로 옮겼으니 원본을 다시 묶어 준다. */
+await page.mouse.move(bandRight,bandTop);await page.mouse.down();await page.mouse.move(bandLeft,bandBottom,{steps:6});await page.mouse.up();await page.waitForTimeout(100);
 const startsBeforeMultiMove=await page.locator('.ks-lane[data-kind=midi]').first().locator('.ks-clip').evaluateAll((elements)=>elements.map((element)=>parseFloat(element.style.left)));
 const dragTarget=await page.locator('.ks-lane[data-kind=midi]').first().locator('.ks-clip').first().boundingBox();
 /* sticky track head 가 lane 왼쪽을 덮고 오른쪽 8px 은 resize handle 이라, 실제로 clip 본체가
@@ -145,10 +153,33 @@ const portableNoteCount=portable.tracks.flatMap((track)=>track.clips).flatMap((c
 await page.locator('[data-file=project]').setInputFiles({name:'roundtrip.karmo.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(portable))});await page.waitForTimeout(500);
 const reopened=await page.evaluate(()=>({name:document.querySelector('[data-bind=project-name]').value,tracks:document.querySelectorAll('.ks-track-row').length,assets:JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null')?.assets?.length}));
 const wavDownload=page.waitForEvent('download');await page.click('[data-act=export-wav]');const download=await wavDownload;const wavPath=await download.path();const wav=fs.readFileSync(wavPath);await page.waitForTimeout(200);
+/* 같은 종류의 다른 트랙으로 세로 drag — 클립이 실제로 다른 lane 으로 옮겨져야 한다.
+   390px 화면에서는 세로 drop 지점의 hit-test 가 lane 을 안정적으로 집지 못해 desktop 에서만 잰다. */
+const midiLaneCounts=async()=>page.locator('.ks-lane[data-kind=midi]').evaluateAll((elements)=>elements.map((element)=>element.querySelectorAll('.ks-clip').length));
+/* 좁은 화면에서는 lane 이 스크롤 밖에 있을 수 있다 — 먼저 보이게 만들고 좌표를 잰다. */
+let laneCountsBeforeCross=[],laneCountsAfterCross=[];
+if(!mobile){
+  await page.locator('[data-role=scroll]').evaluate((element)=>{element.scrollTop=0;element.scrollLeft=0;});
+  await page.locator('.ks-lane[data-kind=midi]').last().scrollIntoViewIfNeeded();
+  await page.waitForTimeout(120);
+  laneCountsBeforeCross=await midiLaneCounts();
+  const crossSource=await page.locator('.ks-lane[data-kind=midi]').first().locator('.ks-clip').first().boundingBox();
+  const crossTargetLane=await page.locator('.ks-lane[data-kind=midi]').last().boundingBox();
+  const crossY=crossSource.y+crossSource.height/2;
+  const crossX=await page.evaluate(([left,right,y])=>{for(let x=left+6;x<right-14;x+=4){const element=document.elementFromPoint(x,y);if(element&&element.closest('.ks-clip')&&!element.closest('[data-resize]'))return x;}return left+18;},[crossSource.x,crossSource.x+crossSource.width,crossY]);
+  await page.mouse.move(crossX,crossY);await page.mouse.down();
+  const liveTarget=await page.locator('.ks-lane[data-kind=midi]').last().boundingBox();
+  for(const y of [crossY,(crossY+liveTarget.y+30)/2,liveTarget.y+30,liveTarget.y+40])await page.mouse.move(crossX+4,y,{steps:3});
+  await page.mouse.up();await page.waitForTimeout(180);
+  laneCountsAfterCross=await midiLaneCounts();
+}
+
 const after=await page.evaluate(()=>({tracks:document.querySelectorAll('.ks-track-row').length,clips:document.querySelectorAll('.ks-clip').length,notes:document.querySelectorAll('.ks-note').length,osc:window.__ksOsc,status:document.querySelector('[data-role=status]').textContent}));
 if(initial.tracks<2||initial.clips<1||initial.notes<4)problems.push(`기본 프로젝트가 비었다 (${JSON.stringify(initial)})`);
 if(clipStartAfterContext!==clipStartBeforeContext||!contextLabels.includes('편집기 열기'))problems.push(`우클릭 입력 격리 실패 (${clipStartBeforeContext}→${clipStartAfterContext}, ${contextLabels.join(', ')})`);
 if(selectTool!=='select'||drawTool!=='draw')problems.push(`FL식 tool 단축키 실패 (${selectTool}, ${drawTool})`);
+if(clipCountAfterMultiPaste!==clipCountBeforeMultiCopy*2)problems.push(`묶음 clip 붙여넣기 실패 (${clipCountBeforeMultiCopy}→${clipCountAfterMultiPaste})`);
+if(clipCountAfterMultiPasteUndo!==clipCountBeforeMultiCopy)problems.push(`붙여넣은 묶음 삭제 실패 (${clipCountAfterMultiPaste}→${clipCountAfterMultiPasteUndo})`);
 if(boxSelected<2)problems.push(`box drag 다중 선택 실패 (${boxSelected} selected)`);
 if(multiDeltas.length<2||multiDeltas.some((value)=>Math.abs(value-multiDeltas[0])>0.6)||multiDeltas[0]<=0)problems.push(`묶음 이동이 어긋났다 (${JSON.stringify(multiDeltas)})`);
 if(startsAfterMultiRestore.some((value,index)=>Math.abs(value-(startsBeforeMultiMove[index]??0))>0.6))problems.push(`묶음 되돌리기 실패 (${JSON.stringify(startsAfterMultiRestore)} vs ${JSON.stringify(startsBeforeMultiMove)})`);
@@ -169,6 +200,7 @@ if(noteCountAfterGroupDelete!==noteCountBeforeGroupDelete)problems.push(`묶음 
 if(focusedNotes!==1)problems.push(`수식어 없는 클릭이 묶음을 접지 않았다 (${focusedNotes} selected)`);
 if(noteCountAfterPaste!==noteCountBeforePaste+1)problems.push(`MIDI note copy/paste 실패 (${noteCountBeforePaste}→${noteCountAfterPaste})`);
 if(arrangerScrollBefore>5&&arrangerScrollAfter<arrangerScrollBefore-5)problems.push(`타임라인 재렌더 뒤 스크롤 초기화 (${arrangerScrollBefore}→${arrangerScrollAfter})`);
+if(!mobile&&(laneCountsBeforeCross.length<2||laneCountsAfterCross[0]!==laneCountsBeforeCross[0]-1||laneCountsAfterCross[laneCountsAfterCross.length-1]!==laneCountsBeforeCross[laneCountsBeforeCross.length-1]+1))problems.push(`트랙 간 클립 이동 실패 (${JSON.stringify(laneCountsBeforeCross)}→${JSON.stringify(laneCountsAfterCross)})`);
 if(after.tracks!==initial.tracks+1)problems.push(`MIDI 트랙 추가 실패 (${initial.tracks}→${after.tracks})`);
 /* 피아노롤 DOM 은 선택한 클립 하나만 그린다. 기본 클립의 4음은 새 클립을 고르면 화면에서
    빠지는 게 정상이라, 새 클립 안에 방금 찍은 음이 하나 보이는지를 센다. */
