@@ -92,6 +92,10 @@
     "legal": {
       "title": "Licensing & law",
       "lead": "Code is a copyrighted work — using it blindly creates places you cannot undo later"
+    },
+    "ml": {
+      "title": "Machine learning basics",
+      "lead": "The building side, not the using side — teaching by examples instead of writing rules"
     }
   },
   "stages": {
@@ -151,7 +155,10 @@
     "i18n-c": "Running it",
     "legal-a": "Using other people’s work",
     "legal-b": "Publishing your own",
-    "legal-c": "Taking users"
+    "legal-c": "Taking users",
+    "ml-a": "What this work is",
+    "ml-b": "Build and measure",
+    "ml-c": "After it ships"
   },
   "nodes": {
     "web-html": {
@@ -1492,6 +1499,70 @@
       "check": "You separate what your service promises from what it does not",
       "links": [
         "Terms of Service; Didn’t Read"
+      ]
+    },
+    "ml-what": {
+      "title": "Examples instead of rules",
+      "why": "Use it when the rule cannot be written as if-statements; otherwise plain code wins.",
+      "check": "You judge with reasons whether this problem needs ML at all",
+      "links": [
+        "Google — Rules of ML"
+      ]
+    },
+    "ml-data": {
+      "title": "Splitting data and overfitting",
+      "why": "Score on the training data and you get 100% — that is memorizing, not learning.",
+      "check": "You split train/validation/test and prevent leakage",
+      "links": [
+        "scikit-learn user guide"
+      ]
+    },
+    "ml-features": {
+      "title": "Features and preprocessing",
+      "why": "Features decide the outcome more than the model does. Garbage in, garbage out.",
+      "check": "You handle categories, missing values and scaling in a pipeline",
+      "links": [
+        "scikit-learn preprocessing"
+      ]
+    },
+    "ml-model": {
+      "title": "Choosing a model — linear, trees, neural nets",
+      "why": "Reaching for deep learning on a small table is the most common waste.",
+      "check": "You choose the first model from data size and shape",
+      "links": [
+        "scikit-learn model map"
+      ]
+    },
+    "ml-train": {
+      "title": "Training — loss, gradient descent, learning rate",
+      "why": "\"It will not train\" is usually learning rate, scaling, or labels.",
+      "check": "You read a learning curve and tell overfitting from underfitting",
+      "links": [
+        "3Blue1Brown neural networks (video)"
+      ]
+    },
+    "ml-eval": {
+      "title": "Evaluation — the accuracy trap",
+      "why": "99% accuracy can be worthless, especially on imbalanced data.",
+      "check": "You judge with precision, recall and a confusion matrix",
+      "links": [
+        "Google ML crash course — accuracy"
+      ]
+    },
+    "ml-deploy": {
+      "title": "Deployment and drift",
+      "why": "A model starts aging the moment it ships; when the world shifts, yesterday’s answer is wrong today.",
+      "check": "You watch input distribution and performance continuously",
+      "links": [
+        "Hidden technical debt in ML systems"
+      ]
+    },
+    "ml-ethics": {
+      "title": "Bias and responsibility",
+      "why": "A model learns the discrimination present in the data — and scales it up.",
+      "check": "You measure and record performance per group",
+      "links": [
+        "Model Cards"
       ]
     }
   }
