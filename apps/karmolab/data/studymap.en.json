@@ -96,6 +96,10 @@
     "ml": {
       "title": "Machine learning basics",
       "lead": "The building side, not the using side — teaching by examples instead of writing rules"
+    },
+    "team": {
+      "title": "Team & collaboration",
+      "lead": "Going fast alone and going far together are different skills"
     }
   },
   "stages": {
@@ -158,7 +162,10 @@
     "legal-c": "Taking users",
     "ml-a": "What this work is",
     "ml-b": "Build and measure",
-    "ml-c": "After it ships"
+    "ml-c": "After it ships",
+    "team-a": "Let words flow",
+    "team-b": "Let work move",
+    "team-c": "Let people stay"
   },
   "nodes": {
     "web-html": {
@@ -1563,6 +1570,70 @@
       "check": "You measure and record performance per group",
       "links": [
         "Model Cards"
+      ]
+    },
+    "team-async": {
+      "title": "Async communication — write it down",
+      "why": "Said out loud, it never happened for anyone who was not there — even more so across time zones.",
+      "check": "Decisions are written down and referenced by link",
+      "links": [
+        "GitLab all-remote handbook"
+      ]
+    },
+    "team-meeting": {
+      "title": "Meetings — remove the ones you do not need",
+      "why": "A meeting is the most expensive tool (people × time), and aimless ones drain the team.",
+      "check": "You only hold meetings that leave an agenda, decisions and next actions",
+      "links": [
+        "The 6-pager culture"
+      ]
+    },
+    "team-onboard": {
+      "title": "Onboarding — a commit in the first week",
+      "why": "Time a newcomer spends lost is a cost to the whole team, and docs are never fixed better than right then.",
+      "check": "A newcomer runs the environment and lands a first PR within a day",
+      "links": [
+        "Open Source Guides — building community"
+      ]
+    },
+    "team-estimate": {
+      "title": "Estimation and planning",
+      "why": "How you answer \"when will it be done\" — not accurate prediction but handling uncertainty.",
+      "check": "You slice the scope and resolve the uncertain parts first",
+      "links": [
+        "Shape Up (free)"
+      ]
+    },
+    "team-review": {
+      "title": "Code review culture",
+      "why": "Review is knowledge transfer, not policing, and tone alone shapes the team.",
+      "check": "You separate taste from defects and reply within a day",
+      "links": [
+        "Google code review guide"
+      ]
+    },
+    "team-knowledge": {
+      "title": "Sharing knowledge — lower the bus factor",
+      "why": "A system only one person understands stops the day that person is away.",
+      "check": "Every critical area is understood by at least two people",
+      "links": [
+        "ADR introduction"
+      ]
+    },
+    "team-feedback": {
+      "title": "Feedback and conflict",
+      "why": "What goes unsaid is the most expensive, and there is a point where a technical debate turns personal.",
+      "check": "You talk about behavior and impact, not the person",
+      "links": [
+        "Radical Candor"
+      ]
+    },
+    "team-safety": {
+      "title": "Psychological safety — can you say \"I do not know\"?",
+      "why": "A team where \"I was wrong\" is never said finds its problems late.",
+      "check": "Sharing a mistake visibly carries no penalty",
+      "links": [
+        "Google Project Aristotle"
       ]
     }
   }
