@@ -253,16 +253,36 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     }
     /** 마지막으로 그려 둔 박 구간 — 이 안에서 움직이는 스크롤은 다시 그릴 필요가 없다. */
     let paintedRange = { from: 0, to: Number.POSITIVE_INFINITY };
+    /** 트랙 한 줄. 문자열이 그대로면 그 줄은 안 건드린다 — 바뀐 줄만 갈아 끼우려고 뗐다. */
+    function trackRowHtml(track: StudioTrack, width: number, view: { from: number; to: number; margin: number }): string {
+      return `<div class="ks-track-row" data-track-row="${track.id}" style="width:${172 + width}px">
+        <div class="ks-track-head"><div class="ks-track-title"><span class="ks-track-color" style="background:${track.color}"></span><input data-track-name="${track.id}" value="${esc(track.name)}" aria-label="트랙 이름"></div>
+        <div class="ks-track-actions"><button class="ks-mini${track.mute?' is-on':''}" data-track-act="mute" data-track="${track.id}">M</button><button class="ks-mini${track.solo?' is-on':''}" data-track-act="solo" data-track="${track.id}">S</button><button class="ks-mini${autoLanes.has(track.id)?' is-on':''}" data-track-act="auto" data-track="${track.id}" title="볼륨 자동화 줄 보이기">A</button><button class="ks-mini${armedTrackId===track.id?' is-on':''}" data-track-act="arm" data-track="${track.id}" title="${track.kind==='audio'?'녹음 대상으로 지정':'오디오 트랙만 녹음 대상이 된다'}"${track.kind==='audio'?'':' disabled'}>●</button><button class="ks-mini" data-track-act="delete" data-track="${track.id}">×</button></div>
+        <input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-track-volume="${track.id}" aria-label="${esc(track.name)} 볼륨"></div>
+        <div class="ks-lane" data-lane="${track.id}" data-kind="${track.kind}" style="width:${width}px">${visibleClips(track.clips,view.from,view.to,view.margin).map((clip)=>trackClipHtml(track,clip)).join('')}</div>${trackAutomationHtml(track,width)}</div>`;
+    }
+    /** 지난 판에 그린 줄 — 같은 문자열이면 DOM 을 안 만진다. */
+    const paintedRows = new Map<string, string>();
     function renderTracks(): void {
       reconcileMarks();
       const view = viewBeats();
       paintedRange = { from: view.from - view.margin, to: view.to + view.margin };
       const tracks = $<HTMLElement>('[data-role=tracks]'); const width = trackWidth();
-      tracks.innerHTML = project.tracks.map((track) => `<div class="ks-track-row" data-track-row="${track.id}" style="width:${172 + width}px">
-        <div class="ks-track-head"><div class="ks-track-title"><span class="ks-track-color" style="background:${track.color}"></span><input data-track-name="${track.id}" value="${esc(track.name)}" aria-label="트랙 이름"></div>
-        <div class="ks-track-actions"><button class="ks-mini${track.mute?' is-on':''}" data-track-act="mute" data-track="${track.id}">M</button><button class="ks-mini${track.solo?' is-on':''}" data-track-act="solo" data-track="${track.id}">S</button><button class="ks-mini${autoLanes.has(track.id)?' is-on':''}" data-track-act="auto" data-track="${track.id}" title="볼륨 자동화 줄 보이기">A</button><button class="ks-mini${armedTrackId===track.id?' is-on':''}" data-track-act="arm" data-track="${track.id}" title="${track.kind==='audio'?'녹음 대상으로 지정':'오디오 트랙만 녹음 대상이 된다'}"${track.kind==='audio'?'':' disabled'}>●</button><button class="ks-mini" data-track-act="delete" data-track="${track.id}">×</button></div>
-        <input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-track-volume="${track.id}" aria-label="${esc(track.name)} 볼륨"></div>
-        <div class="ks-lane" data-lane="${track.id}" data-kind="${track.kind}" style="width:${width}px">${visibleClips(track.clips,view.from,view.to,view.margin).map((clip)=>trackClipHtml(track,clip)).join('')}</div>${trackAutomationHtml(track,width)}</div>`).join('');
+      const wanted = project.tracks.map((track) => ({ id: track.id, html: trackRowHtml(track, width, view) }));
+      const sameOrder = tracks.children.length === wanted.length
+        && wanted.every((row, index) => (tracks.children[index] as HTMLElement).dataset.trackRow === row.id);
+      if (!sameOrder) {
+        tracks.innerHTML = wanted.map((row) => row.html).join('');
+        paintedRows.clear();
+        for (const row of wanted) paintedRows.set(row.id, row.html);
+        return;
+      }
+      for (let index = 0; index < wanted.length; index++) {
+        const row = wanted[index];
+        if (paintedRows.get(row.id) === row.html) continue;
+        (tracks.children[index] as HTMLElement).outerHTML = row.html;
+        paintedRows.set(row.id, row.html);
+      }
     }
 
     const field = (label: string, input: string): string => `<label class="ks-field"><span>${label}</span>${input}</label>`;
@@ -396,6 +416,9 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       else if(act==='delete-clip'){deleteSelection();}
     });
 
+    /* 입력칸 값은 렌더 밖에서 사람이 바꾼다 — 그러면 「지난 판 문자열」이 화면과 어긋나서
+       같은 문자열을 만나도 건너뛰면 안 된다. 손이 닿은 순간 캐시를 버린다. */
+    root.addEventListener('input',()=>paintedRows.clear(),true);
     root.addEventListener('input',(event)=>{const input=event.target as HTMLInputElement; if(input.dataset.bind==='project-name')project.name=input.value;else if(input.dataset.bind==='bpm')project.bpm=Math.max(30,Math.min(300,Number(input.value)||120));else if(input.dataset.bind==='meter')project.beatsPerBar=Number(input.value);else if(input.dataset.bind==='snap')project.snap=Number(input.value);else if(input.dataset.projectIns){const key=input.dataset.projectIns;const value=Math.max(0,Number(input.value));if(key==='loopStart')project.loopStart=Math.min(value,project.loopEnd-project.snap);else project.loopEnd=Math.max(project.loopStart+project.snap,value);}else if(input.dataset.trackName){const track=findTrack(project,input.dataset.trackName);if(track)track.name=input.value;}else if(input.dataset.trackVolume){const track=findTrack(project,input.dataset.trackVolume);if(track)track.volume=Number(input.value);}else if(input.dataset.mix){const track=findTrack(project,input.dataset.track||'');if(track)(track as unknown as Record<string,unknown>)[input.dataset.mix]=Number(input.value);}else if(input.dataset.master)project.masterVolume=Number(input.value);else if(input.dataset.ins){const track=selectedTrack();if(track){const key=input.dataset.ins;if(key==='track-name')track.name=input.value;else if(key==='color')track.color=input.value;else if(key==='instrument')track.instrument=input.value as OscillatorType;else (track as unknown as Record<string,unknown>)[key]=Number(input.value);}}else if(input.dataset.clipIns){const clip=selectedClip();if(clip){const key=input.dataset.clipIns;if(key==='name')clip.name=input.value;else (clip as unknown as Record<string,unknown>)[key]=Math.max(key==='start'||key==='fadeIn'||key==='fadeOut'?0:0.0625,Number(input.value));}}else if(input.dataset.noteIns&&selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const note=clip?.notes.find((item)=>item.id===noteId);if(note){const key=input.dataset.noteIns;const value=Number(input.value);if(key==='pitch')note.pitch=Math.max(0,Math.min(127,value));else if(key==='beat')note.beat=Math.max(0,Math.min((clip?.duration||1)-note.duration,value));else if(key==='duration')note.duration=Math.max(project.snap,Math.min((clip?.duration||1)-note.beat,value));else note.velocity=Math.max(.05,Math.min(1,value));}}const historyKey=`input:${input.dataset.bind||input.dataset.projectIns||input.dataset.trackName||input.dataset.trackVolume||input.dataset.mix||input.dataset.master||input.dataset.ins||input.dataset.clipIns||input.dataset.noteIns||'field'}`;saveSoon(historyKey); if(event.type==='change')renderAll();});
     root.addEventListener('change',(event)=>{const input=event.target as HTMLInputElement;if(input.dataset.bind||input.dataset.projectIns||input.dataset.ins||input.dataset.clipIns||input.dataset.noteIns||input.dataset.mix||input.dataset.master||input.dataset.trackName)renderAll();});
 
