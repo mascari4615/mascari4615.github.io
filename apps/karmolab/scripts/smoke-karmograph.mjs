@@ -642,8 +642,15 @@ await step('빈 캔버스에서 예시를 넣으면 그림이 생긴다', async 
   await page.click('[data-km="tab"][data-key="node"]');
   await page.waitForSelector('[data-km="intent"]', { timeout: 4000 });
   await page.locator('[data-km="intent"]').first().click();
-  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 5, null, { timeout: 5000 });
+  // 견본은 **이름이 같으면 한 장**이다(KL-271 P8) — 예전엔 「소꿉친구」·「라이벌」이 두 장씩이라 6장이었다.
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 4, null, { timeout: 5000 });
   if (await page.locator('.ck-edge').count() === 0) throw new Error('선이 하나도 안 생겼다');
+  const dupes = await page.evaluate(() => {
+    const key = Object.keys(localStorage).find((k) => k.startsWith('karmograph.map.'));
+    const names = JSON.parse(localStorage.getItem(key)).nodes.map((n) => n.label);
+    return names.filter((n, i) => names.indexOf(n) !== i);
+  });
+  if (dupes.length > 0) throw new Error(`견본에 같은 이름이 두 장: ${dupes.join(', ')}`);
 });
 await step('공용 글 — 승격하면 목록에 뜨고, 둘째 자리에 붙이면 2곳이 된다', async () => {
   // 글이 노드 안에 갇혀 있으면 같은 설정을 둘에게 붙일 수 없다. 승격 → 불러 쓰기까지가 한 몸이라
