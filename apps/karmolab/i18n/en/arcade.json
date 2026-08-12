@@ -274,5 +274,13 @@
   "arcade.fox.houndWin": "{who} — the fox is cornered",
   "arcade.game.pong.name": "Pong",
   "arcade.game.pong.desc": "One line to move. Where you meet the ball sets the angle",
-  "arcade.pong.win": "{who} — {a} to {b}"
+  "arcade.pong.win": "{who} — {a} to {b}",
+  "arcade.game.derby.name": "Derby",
+  "arcade.game.derby.desc": "The horses run, you pick. Find the one they underrate",
+  "arcade.derby.amount": "Stake",
+  "arcade.derby.waiting": "Others are betting",
+  "arcade.derby.running": "They're off",
+  "arcade.derby.result": "{s} took it",
+  "arcade.derby.win": "{who} — {n}",
+  "arcade.pong.draw": "{n} all — a draw"
 }

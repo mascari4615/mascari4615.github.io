@@ -274,5 +274,13 @@
   "arcade.fox.houndWin": "{who} — 狐を閉じ込めた",
   "arcade.game.pong.name": "ピンポン",
   "arcade.game.pong.desc": "ラケットは一直線。どこで受けるかが角度を決める",
-  "arcade.pong.win": "{who} — {a} 対 {b}"
+  "arcade.pong.win": "{who} — {a} 対 {b}",
+  "arcade.game.derby.name": "競馬",
+  "arcade.game.derby.desc": "走るのは馬、選ぶのは自分。見くびられた馬を探せ",
+  "arcade.derby.amount": "賭け金",
+  "arcade.derby.waiting": "ほかの人が賭けています",
+  "arcade.derby.running": "発走",
+  "arcade.derby.result": "{s} が来た",
+  "arcade.derby.win": "{who} — {n}",
+  "arcade.pong.draw": "{n} 対 {n} — 引き分け"
 }

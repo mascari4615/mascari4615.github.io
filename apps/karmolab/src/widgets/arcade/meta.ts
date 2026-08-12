@@ -50,6 +50,7 @@ export const META: GameMeta[] = [
   { id: 'hanabi', icon: '🎆', kind: 'card' },
   { id: 'liars', icon: '🎲', kind: 'card' },
   { id: 'hanafuda', icon: '🌸', kind: 'card' },
+  { id: 'derby', icon: '🐎', kind: 'card' },
 
   { id: 'curling', icon: '🥌', kind: 'sport' },
   { id: 'bowling', icon: '🎳', kind: 'sport' },

@@ -16,9 +16,18 @@ const PAD_T = 2;
 const BALL = 1.6;
 const TARGET = 5;
 const MAX_V = 2.6;
+/**
+ * 판 시간 상한.
+ *
+ * 랠리가 길수록 공을 빠르게 했는데 **상한에 걸리면 거기서 평형**이 된다 — 잘 받는 둘이 붙으면
+ * 영영 주고받는다(봇끼리 붙였더니 안 끝났다). 시간이 다 되면 점수가 앞선 쪽이 이긴다.
+ */
+const LIMIT_MS = 150000;
 
 export interface PongState {
   ball: { x: number; y: number; vx: number; vy: number };
+  /** 이 시각을 넘기면 끝 */
+  endsAt: number;
   /** 자리별 라켓 가운데 x */
   pad: number[];
   score: number[];
@@ -43,6 +52,7 @@ export const pong: GameDef<PongState, PongAction> = {
       ball: serve(ctx.rng() < 0.5 ? 1 : -1, ctx.rng),
       pad: [W / 2, W / 2],
       score: [0, 0],
+      endsAt: ctx.now + LIMIT_MS,
       over: false
     };
   },
@@ -57,8 +67,9 @@ export const pong: GameDef<PongState, PongAction> = {
     return { ...s, pad: s.pad.map((v, i) => (i === seat ? x : v)) };
   },
 
-  tick(s) {
+  tick(s, ctx) {
     if (s.over) return s;
+    if (ctx.now >= s.endsAt) return { ...s, over: true };
     const b = { ...s.ball };
     b.x += b.vx;
     b.y += b.vy;
@@ -102,6 +113,9 @@ export const pong: GameDef<PongState, PongAction> = {
 
   outcome(s, ctx): Outcome {
     if (!s.over) return { over: false };
+    if (s.score[0] === s.score[1]) {
+      return { over: true, scores: [0, 0], note: { key: 'arcade.pong.draw', params: { n: String(s.score[0]) } } };
+    }
     const win = s.score[0] > s.score[1] ? 0 : 1;
     return {
       over: true,
