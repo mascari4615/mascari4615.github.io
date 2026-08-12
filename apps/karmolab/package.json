@@ -187,6 +187,7 @@
     "serve:static": "node scripts/serve-static.mjs",
     "test:karmograph": "node scripts/test-karmograph-core.mjs",
     "test:radio": "node scripts/test-radio-core.mjs",
+    "smoke:radio": "node scripts/smoke-radio.mjs",
     "test:region": "node scripts/smoke-region.mjs",
     "verify:quality": "node scripts/run-gates.mjs audit:boot test:perf test:perf:budget test:leak",
     "test:mcp:install": "node scripts/smoke-mcp-install.mjs",

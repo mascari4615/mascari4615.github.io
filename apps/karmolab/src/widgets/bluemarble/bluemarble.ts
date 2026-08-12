@@ -27,6 +27,7 @@ import { loadRegion, levelFor, fitLevel, regionKey, type BBox } from './tiles';
 import { elementsFrom, propagate, propagateAll, nextPass, EARTH_RADIUS_KM, type Elements, type Pass } from './orbit';
 import { fromTimezone, askPrecise, type Me } from './me';
 import { EarthSound } from './sound';
+import { loadStations, toSpots, nearestSpot, RadioPlayer, type Spot, type RadioState } from './radio';
 
 (function (): void {
   if (typeof Toolbox === 'undefined') return;
@@ -42,13 +43,14 @@ import { EarthSound } from './sound';
     return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/data/' + name;
   }
 
-  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'sun' | 'clock' | 'apod' | 'tour' | 'dusk' | 'deep' | 'together';
+  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'radio' | 'sun' | 'clock' | 'apod' | 'tour' | 'dusk' | 'deep' | 'together';
   /** `earthOnly` = 지구에서만 뜻이 있는 겹. 달·화성에선 단추 자체를 감춘다 —
       눌러도 아무 일이 없는 단추가 남아 있으면 그건 고장으로 보인다. */
   const LAYERS: Array<{ id: LayerId; glyph: string; earthOnly?: boolean }> = [
     { id: 'me', earthOnly: true, glyph: '◉' },
     { id: 'sats', earthOnly: true, glyph: '⁘' },
     { id: 'sound', glyph: '♪' },
+    { id: 'radio', earthOnly: true, glyph: '⌾' },
     { id: 'sun', glyph: '☀' },
     { id: 'clock', earthOnly: true, glyph: '◷' },
     { id: 'apod', glyph: '✧' },
@@ -73,7 +75,7 @@ import { EarthSound } from './sound';
     panel: boolean;
   }
   function loadPrefs(): Prefs {
-    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, sun: true, clock: true, apod: true, tour: false, dusk: false, deep: false, together: true }, spin: true, panel: false };
+    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, radio: false, sun: true, clock: true, apod: true, tour: false, dusk: false, deep: false, together: true }, spin: true, panel: false };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return base;
@@ -338,6 +340,43 @@ import { EarthSound } from './sound';
           let body: Body = 'earth';
           const bodyTex: Record<Body, Tex | null> = { earth: null, moon: null, mars: null };
           const sound = new EarthSound();
+
+          /* ── 사람의 소리 (TASK-KL-241) ─────────────────────────────────
+             이 별의 소리(`sound`)와 나란히 선다. 목록은 겹을 켤 때 한 번만 받아 두고,
+             재생은 `RadioPlayer` 가 혼자 책임진다 — 여기서는 **그리기와 말하기**만 한다. */
+          const radio = {
+            spots: [] as Spot[],
+            loaded: false,
+            /* 지금 울리는 자리. 기둥은 언제나 하나뿐이라 지구를 돌려도 어디를 틀었는지 안 잃는다. */
+            live: null as Spot | null,
+            since: 0
+          };
+          const player = new RadioPlayer((st: RadioState) => {
+            if (!alive) return;
+            if (st.kind === 'playing') {
+              radio.live = st.spot;
+              radio.since = performance.now();
+              sound.duck(true);
+              const where = nearestCity(st.spot.lat, st.spot.lon, 320);
+              say(t('bluemarble.radio.on', { name: st.station.name, where: where || st.station.cc, time: localClock(st.spot.lon) }));
+            } else if (st.kind === 'tuning') {
+              radio.live = st.spot;
+            } else if (st.kind === 'dead') {
+              radio.live = null;
+              sound.duck(false);
+              say(t('bluemarble.radio.dead'));
+            } else {
+              radio.live = null;
+              sound.duck(false);
+            }
+          });
+
+          /** 저기는 지금 몇 시인가 — 경도만으로 낸다(시간대 표를 들고 올 만큼 정확할 일이 아니다). */
+          function localClock(lon: number): string {
+            const ms = clockMs() + Math.round((lon / 15) * 3600) * 1000;
+            const d = new Date(ms);
+            return String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0');
+          }
           let raf: number | undefined;
           let alive = true;
 
@@ -691,8 +730,11 @@ import { EarthSound } from './sound';
             if (live && prefs.on.quake) drawQuakes(now);
             if (live && prefs.on.launch && !isPast()) drawLaunches();
             if (live && prefs.on.me) drawMe(now);
+            if (live && prefs.on.radio) drawRadioRings(now);
             c.restore();
 
+            /* 소리 기둥과 ISS 는 지구 밖이라 자르기 밖에서 그린다 */
+            if (live && prefs.on.radio) drawRadioBeam(now);
             /* ISS 는 지구 밖(궤도 위)이라 자르기 밖에서 그린다 */
             if (live && prefs.on.iss && !isPast()) drawIss();
             if (live && prefs.on.sats && !isPast()) drawSats(now);
@@ -717,6 +759,75 @@ import { EarthSound } from './sound';
 
           function lumAt(v: [number, number, number], S: [number, number, number]): number {
             return dot(v, ex) * S[0] + dot(v, ey) * S[1] + dot(v, ez) * S[2];
+          }
+
+          /* 한 프레임에 그리는 고리 수 상한. 자리가 3,200 개가 넘는데 전부 그리면
+             폰에서 이 한 겹이 프레임을 먹는다 — 방송국이 많은 자리부터 채운다. */
+          const RING_MAX = 460;
+
+          /** 평소 — 도시 불빛 위에 얹는 얇은 고리. 크기는 그 자리에 묶인 방송국 수를 말한다. */
+          function drawRadioRings(now: number): void {
+            if (!radio.spots.length) return;
+            const c = ctx!;
+            c.save();
+            c.lineWidth = 1;
+            let drawn = 0;
+            for (const spot of radio.spots) {
+              if (drawn >= RING_MAX) break;
+              const p = project(spot.lat, spot.lon);
+              if (p.z <= 0.02) continue; // 지구 반대편
+              drawn += 1;
+              const rr = 2 + Math.min(5.5, Math.sqrt(spot.stations.length) * 1.6);
+              const lit = spot === radio.live;
+              /* 가장자리로 갈수록 옅어진다 — 안 그러면 지구 테두리가 고리로 뒤덮인다 */
+              const a = (lit ? 0.95 : 0.34) * Math.min(1, p.z * 2.2);
+              c.strokeStyle = lit ? `rgba(255,236,190,${a})` : `rgba(180,225,255,${a})`;
+              c.beginPath();
+              c.arc(p.x, p.y, rr, 0, Math.PI * 2);
+              c.stroke();
+              if (lit) {
+                // 맥박 — 2.6초에 한 번 퍼진다. 「지금 이걸 듣는다」
+                const ph = ((now - radio.since) % 2600) / 2600;
+                c.strokeStyle = `rgba(255,236,190,${(1 - ph) * 0.55})`;
+                c.beginPath();
+                c.arc(p.x, p.y, rr + ph * 26, 0, Math.PI * 2);
+                c.stroke();
+              }
+            }
+            c.restore();
+          }
+
+          /** 듣는 중 — 그 자리에서만 빛기둥이 지구 밖으로 솟는다. 언제나 한 개뿐이다. */
+          function drawRadioBeam(now: number): void {
+            const spot = radio.live;
+            if (!spot) return;
+            const p = project(spot.lat, spot.lon);
+            if (p.z <= 0) return;
+            const c = ctx!;
+            /* 뻗는 쪽 = 지구 중심에서 바깥. 다만 화면 한가운데(정면)에서는 그 방향이 사라지므로
+               위쪽으로 부드럽게 넘긴다 — 방향이 흔들리는 기둥은 기둥으로 안 보인다. */
+            let dx = p.x - cx;
+            let dy = p.y - cy;
+            const len = Math.hypot(dx, dy) || 1;
+            const edge = Math.min(1, len / (R * 0.45));
+            dx = (dx / len) * edge;
+            dy = (dy / len) * edge + (1 - edge) * -1;
+            const k = Math.hypot(dx, dy) || 1;
+            dx /= k;
+            dy /= k;
+            const h = R * 0.3 * (0.86 + 0.14 * Math.sin(now / 620));
+            const g = c.createLinearGradient(p.x, p.y, p.x + dx * h, p.y + dy * h);
+            g.addColorStop(0, 'rgba(255,236,190,.72)');
+            g.addColorStop(1, 'rgba(255,236,190,0)');
+            c.save();
+            c.strokeStyle = g;
+            c.lineWidth = 2;
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(p.x, p.y);
+            c.lineTo(p.x + dx * h, p.y + dy * h);
+            c.stroke();
+            c.restore();
           }
 
           function drawAurora(S: [number, number, number]): void {
@@ -1638,7 +1749,26 @@ import { EarthSound } from './sound';
             drag = null;
             canvas.classList.remove('bm-drag');
           };
-          canvas.addEventListener('pointerup', endDrag);
+          /** 끌지 않고 톡 눌렀을 때만 자리를 고른다 — 지구를 돌리다 손을 떼면 소리가 나면 안 된다. */
+          function pickAt(e: PointerEvent): void {
+            if (!prefs.on.radio || !drag || body !== 'earth' || !radio.spots.length) return;
+            if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) return;
+            const rect = canvas.getBoundingClientRect();
+            const hit = unproject(
+              (e.clientX - rect.left) * (canvas.width / rect.width) / dpr,
+              (e.clientY - rect.top) * (canvas.height / rect.height) / dpr
+            );
+            if (!hit) return;
+            /* 잡이 범위는 화면 기준으로 일정해야 한다 — 확대할수록 좁게 집을 수 있어야
+               나란한 도시 둘을 갈라 고를 수 있다. */
+            const spot = nearestSpot(radio.spots, hit.lat, hit.lon, 9 / zoom);
+            if (!spot) return;
+            player.play(spot); // 이 클릭 안에서 — 브라우저가 제스처 밖의 소리를 막는다
+          }
+          canvas.addEventListener('pointerup', (e: PointerEvent) => {
+            pickAt(e);
+            endDrag();
+          });
           canvas.addEventListener('pointercancel', endDrag);
           canvas.addEventListener(
             'wheel',
@@ -1697,6 +1827,28 @@ import { EarthSound } from './sound';
                   tourIdx = -1;
                   tourAt = turningOn ? 0 : performance.now();
                   if (!turningOn) zoom = 1;
+                }
+                if (l.id === 'radio') {
+                  if (turningOn) {
+                    if (!radio.loaded) {
+                      radio.loaded = true;
+                      say(t('bluemarble.radio.loading'));
+                      void loadStations().then((list) => {
+                        if (!alive) return;
+                        /* 방송국이 많은 자리를 앞에 둔다 — 고리 상한에 걸려도 큰 자리부터 남는다. */
+                        radio.spots = toSpots(list).sort((a2, b2) => b2.stations.length - a2.stations.length);
+                        say(
+                          radio.spots.length
+                            ? t('bluemarble.radio.ready', { n: radio.spots.length })
+                            : t('bluemarble.radio.fail')
+                        );
+                      });
+                    } else if (radio.spots.length) {
+                      say(t('bluemarble.radio.hint'));
+                    }
+                  } else {
+                    player.stop();
+                  }
                 }
                 if (l.id === 'sound') {
                   // **이 클릭 안에서** 시작해야 한다 — 브라우저가 제스처 밖의 소리를 막는다
@@ -2041,6 +2193,7 @@ import { EarthSound } from './sound';
             alive = false;
             offRoomOp?.();
             sound.stop();
+            player.stop();
             document.removeEventListener('fullscreenchange', onFsChange);
             exitAmbient();
             stop();
