@@ -305,5 +305,12 @@
   "arcade.rps.noLock": "nothing locked yet",
   "arcade.rps.round": "round {n}/5",
   "arcade.rps.win": "{who} — {a} to {b}",
-  "arcade.rps.draw": "{n} all — a draw"
+  "arcade.rps.draw": "{n} all — a draw",
+  "arcade.game.simon.name": "Memory Sequence",
+  "arcade.game.simon.desc": "Repeat what you saw. One longer each round",
+  "arcade.simon.watch": "Watching — {n}",
+  "arcade.simon.repeat": "Now repeat it",
+  "arcade.simon.dead": "Missed — watching",
+  "arcade.simon.win": "{who} — reached {n}",
+  "arcade.simon.out": "everyone missed at {n}"
 }

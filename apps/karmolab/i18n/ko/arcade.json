@@ -305,5 +305,12 @@
   "arcade.rps.noLock": "아직 다 낼 수 있음",
   "arcade.rps.round": "{n}/5 판",
   "arcade.rps.win": "{who} — {a} 대 {b}",
-  "arcade.rps.draw": "{n} 대 {n} — 비겼다"
+  "arcade.rps.draw": "{n} 대 {n} — 비겼다",
+  "arcade.game.simon.name": "기억 순서",
+  "arcade.game.simon.desc": "보여 준 차례를 그대로. 한 칸씩 길어진다",
+  "arcade.simon.watch": "보는 중 — {n}칸",
+  "arcade.simon.repeat": "그대로 따라 누르세요",
+  "arcade.simon.dead": "틀렸다 — 구경",
+  "arcade.simon.win": "{who} — {n}칸까지",
+  "arcade.simon.out": "{n}칸에서 다 틀렸다"
 }
