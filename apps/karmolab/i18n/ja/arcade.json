@@ -158,5 +158,17 @@
   "arcade.highlow.draw": "{n}点で同じ",
   "arcade.game.nim.name": "石取り",
   "arcade.game.nim.desc": "一列から好きなだけ。最後を取ったら負け",
-  "arcade.nim.win": "{who} が最後を残した"
+  "arcade.nim.win": "{who} が最後を残した",
+  "arcade.game.hanabi.name": "花火",
+  "arcade.game.hanabi.desc": "自分の手札だけ見えない。教え合って一緒に積む",
+  "arcade.hanabi.hints": "ヒント {n}",
+  "arcade.hanabi.fuses": "導火線 {n}",
+  "arcade.hanabi.deck": "山 {n}",
+  "arcade.hanabi.mine": "自分の手札 (見えない)",
+  "arcade.hanabi.play": "出す",
+  "arcade.hanabi.drop": "捨てる",
+  "arcade.hanabi.pickHint": "自分の札を選ぶか、相手の札を押して教えてください",
+  "arcade.hanabi.waiting": "順番待ち",
+  "arcade.hanabi.score": "{n} / {max} 積んだ",
+  "arcade.hanabi.perfect": "全部積んだ — 完璧"
 }

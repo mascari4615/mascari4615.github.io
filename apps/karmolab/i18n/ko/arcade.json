@@ -158,5 +158,17 @@
   "arcade.highlow.draw": "{n}점으로 똑같다",
   "arcade.game.nim.name": "돌 가져가기",
   "arcade.game.nim.desc": "한 줄에서 원하는 만큼. 마지막을 가져가면 진다",
-  "arcade.nim.win": "{who} 이(가) 마지막을 넘겼다"
+  "arcade.nim.win": "{who} 이(가) 마지막을 넘겼다",
+  "arcade.game.hanabi.name": "불꽃놀이",
+  "arcade.game.hanabi.desc": "내 패만 안 보인다. 서로 알려 주며 같이 쌓는다",
+  "arcade.hanabi.hints": "알림 {n}",
+  "arcade.hanabi.fuses": "폭죽 {n}",
+  "arcade.hanabi.deck": "더미 {n}",
+  "arcade.hanabi.mine": "내 패 (안 보인다)",
+  "arcade.hanabi.play": "내기",
+  "arcade.hanabi.drop": "버리기",
+  "arcade.hanabi.pickHint": "내 카드를 고르거나, 남의 카드를 눌러 알려 주세요",
+  "arcade.hanabi.waiting": "차례를 기다리는 중",
+  "arcade.hanabi.score": "{n} / {max} 쌓았다",
+  "arcade.hanabi.perfect": "다 쌓았다 — 완벽"
 }

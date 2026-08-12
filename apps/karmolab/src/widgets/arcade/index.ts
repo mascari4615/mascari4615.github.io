@@ -27,9 +27,10 @@ import { darts } from './games/darts';
 import { airhockey } from './games/airhockey';
 import { highlow } from './games/highlow';
 import { nim } from './games/nim';
+import { hanabi } from './games/hanabi';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory, hitblow, reversi, dots, speed, slide, ultimate, yacht, checkers, blackjack, president, dominoes, curling, bowling, pool, darts, airhockey, highlow, nim];
+export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory, hitblow, reversi, dots, speed, slide, ultimate, yacht, checkers, blackjack, president, dominoes, curling, bowling, pool, darts, airhockey, highlow, nim, hanabi];
 
 export const gameById = (id: string): GameDef<any, any> | undefined => GAMES.find((g) => g.id === id);
 
