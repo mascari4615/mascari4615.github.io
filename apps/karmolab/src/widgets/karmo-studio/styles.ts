@@ -91,6 +91,13 @@ export const KARMO_STUDIO_CSS = `
     .ks-clip.is-locked .ks-handle { display:none; }
     .ks-clip.is-muted .ks-clip-name::before { content:'🔇 '; }
     .ks-btn, .ks-mini { white-space:nowrap; }
+    /* 셸이 상태줄 옆에 붙이는 「이어서」 줄. 다섯 단추가 390px 를 넘겨 화면 밖으로 나갔다 —
+       내 판 안에 들어온 것이니 여기서 접거나 굴러가게 한다. */
+    .ks-root .tool-next-row { max-width:100%; overflow-x:auto; flex-wrap:nowrap; }
+    .ks-root .tool-next-btn { flex:none; }
+    /* 트랙 이름칸은 좁은 머리에서 늘 길다 — 최소폭을 풀어 머리 안에 들어오게 한다. */
+    .ks-track-title { min-width:0; }
+    .ks-track-title input { min-width:0; width:100%; }
     .ks-auto-pick { display:flex; gap:3px; margin-top:4px; }
     .ks-auto-tag { position:sticky; float:left; left:6px; top:2px; width:max-content; font:9px var(--font-mono); color:var(--text-tertiary); pointer-events:none; }
     .ks-lane.is-drop { box-shadow:inset 0 0 0 2px var(--accent); }
@@ -156,5 +163,5 @@ export const KARMO_STUDIO_CSS = `
     .ks-note.is-selected { outline:1px solid white; }
     .ks-empty { padding:18px 8px; text-align:center; color:var(--text-tertiary); font-size:11px; line-height:1.6; }
     .ks-status { margin-left:auto; max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-tertiary); font:10px var(--font-mono); }
-    @media(max-width:850px) { .ks-root{height:auto;min-height:720px;--ks-head:104px}.ks-track-head{padding:5px 4px}.ks-track-head input[type=range]{height:12px}.ks-track-title input{font-size:10px}.ks-editor.is-empty{height:96px}.ks-work{grid-template-columns:1fr}.ks-side{border-left:0;border-top:1px solid var(--border);max-height:250px}.ks-scroll{height:420px}.ks-editor{height:290px}.ks-editor.is-expanded{inset:2dvh 2vw;height:auto}.ks-audio-controls{grid-template-columns:1fr 1fr}.ks-toolbar .ks-status{display:none} }
+    @media(max-width:850px) { .ks-root{height:auto;min-height:720px;--ks-head:116px}.ks-track-head{padding:5px 4px}.ks-track-head input[type=range]{height:12px}.ks-track-title input{font-size:10px}.ks-editor.is-empty{height:96px}.ks-work{grid-template-columns:1fr}.ks-side{border-left:0;border-top:1px solid var(--border);max-height:250px}.ks-scroll{height:420px}.ks-editor{height:290px}.ks-editor.is-expanded{inset:2dvh 2vw;height:auto}.ks-audio-controls{grid-template-columns:1fr 1fr}.ks-toolbar .ks-status{display:none} }
 `;

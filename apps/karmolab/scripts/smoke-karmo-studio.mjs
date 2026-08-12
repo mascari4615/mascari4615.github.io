@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { stripJekyll } from './lib/serve-static.mjs';
+import { auditLayout, describeLayout } from './lib/layout-audit.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
@@ -531,6 +532,12 @@ if(wav.readUInt32LE(24)!==22050)problems.push(`표본율 선택이 안 먹었다
 if(wav.subarray(0,4).toString()!=='RIFF'||wav.subarray(8,12).toString()!=='WAVE'||wav.length<10000)problems.push(`WAV 출력 실패 (${wav.length} bytes)`);
 if(initial.layout!=='grid')problems.push(`작업공간 레이아웃 오류 (${initial.layout})`);
 if(errors.length)problems.push(`브라우저 오류: ${errors.slice(0,3).join(' | ')}`);
+/* 눈 게이트 — 잘리고 튀어나온 것을 브라우저 안에서 직접 잰다 (33회차 교훈).
+   검사가 전부 초록인 채로 BPM 칸이 잘려 있었다. */
+const layout=await auditLayout(page,'.ks-root',{ignore:['.ks-help','.ks-export','[data-role=context]','.ks-track-title']});
+if(!layout.ok)problems.push('눈 게이트를 못 돌렸다 — .ks-root 를 못 찾음');
+else for(const line of describeLayout(layout))problems.push(`화면 ${mobile?'(모바일)':'(데스크톱)'} · ${line}`);
+
 const shotIndex=process.argv.indexOf('--shot');if(shotIndex>0&&process.argv[shotIndex+1])await page.screenshot({path:process.argv[shotIndex+1],fullPage:true});
 await browser.close();server.close();
 console.log(`[smoke-karmo-studio] tracks ${initial.tracks}→${after.tracks} · clips ${initial.clips}→${after.clips} · notes ${initial.notes}→${after.notes} · synth ${after.osc} · WAV ${wav.length}B`);
