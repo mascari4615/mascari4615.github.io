@@ -29,9 +29,15 @@ on:
     - cron: "43 19 * * *" # 04:43 KST
   workflow_dispatch:
 
+# ★ 앞 실행을 **취소하지 않는다** (2026-08-12).
+#   이 검사는 브라우저를 깔고 화면을 띄우느라 20분 가까이 걸린다. 그런데 몇 분 간격으로
+#   푸시가 들어오는 저장소라, 취소 규칙을 켜 두면 **끝까지 간 판이 한 번도 없다** — 실측:
+#   최근 다섯 판이 전부 취소, 「판정된 적 없음」. 게이트 수명 검사가 이걸 방치로 집어냈다.
+#   초록도 빨강도 아닌 것은 신호가 아니다. 몇 초짜리 idempotent 검사(memo 의 repo gates)와
+#   달리, 여기서는 **늦게라도 한 판을 끝내는 쪽**이 옳다. 줄을 세운다.
 concurrency:
   group: karmograph-browser-check-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read
