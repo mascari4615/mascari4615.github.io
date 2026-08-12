@@ -12,6 +12,7 @@
  * 사용: node scripts/check-input-names.mjs
  */
 import fs from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -60,7 +61,26 @@ for (const name of fs.readdirSync(dir)) {
  */
 if (offenders.length) {
   console.error(`[check-input-names] 이름 없는 입력칸 ${offenders.length}개 — 화면낭독기는 「편집란」으로만 읽습니다`);
-  offenders.slice(0, 15).forEach((o) => console.error('  - ' + o));
+  /* ★ **내 사본이 낡아서 나는 빨강인지 말해 준다** (2026-08-13).
+     이 나무는 세션 여섯이 함께 쓴다 — 남이 편집 중인 파일이 내 자리에서는 **옛 판**일 수 있다.
+     실측: 이름을 이미 붙여 올린 파일이 여기서는 그대로라, 고쳐 놓고도 빨강을 다시 쫓았다.
+     그 파일이 origin 과 다르면 그렇다고 적어 둔다 — 없는 버그를 쫓는 시간이 제일 아깝다. */
+  const stale = new Set();
+  for (const o of offenders) {
+    const file = String(o).split(':')[0].trim();
+    if (!file || stale.has(file)) continue;
+    try {
+      const rel = path.join(dir, file);
+      const mine = fs.readFileSync(rel, 'utf8');
+      const theirs = execFileSync('git', ['show', `origin/master:./${path.relative(root, rel).split(path.sep).join('/')}`],
+        { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+      if (mine !== theirs) stale.add(file);
+    } catch { /* 물어볼 수 없으면 아무 말도 안 한다 */ }
+  }
+  offenders.slice(0, 15).forEach((o) => {
+    const file = String(o).split(':')[0].trim();
+    console.error('  - ' + o + (stale.has(file) ? '   ← 내 사본이 origin 과 다르다 (남이 편집 중일 수 있다)' : ''));
+  });
   if (offenders.length > 15) console.error(`  … 그 밖 ${offenders.length - 15}개`);
   console.error('  고치는 법: 그 칸에 aria-label="눈에 보이는 그 설명" 을 붙이거나 <label for> 로 이어 주세요.');
   process.exit(1);
