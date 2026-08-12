@@ -37,9 +37,13 @@ permissions:
 # ★ **겹쳐 돌지 않는다** (2026-08-12). 이 판은 매시 시계 + 배포마다 두 갈래로 불린다.
 #   한 판이 17분이라 배포가 몰리는 시간대에는 서로 겹쳐, 같은 라이브를 여러 판이 동시에
 #   재고 같은 이슈를 여러 번 연다. 라이브는 하나뿐이므로 **가장 나중 것 하나면 된다**.
+#   ★ **시계로 부른 판은 접지 않는다** (2026-08-12, 붙이자마자 실측으로 교정).
+#   한 그룹에 다 몰아넣었더니 배포가 1분 간격으로 나는 시간대에 **여섯 판 연속 취소**가 났다 —
+#   최신 것만 남기는 규칙이 「끝까지 가는 판이 하나도 없음」이 되는, verify 에서 이미 겪은 그 모양이다.
+#   배포 꼬리로 부른 판은 접어도 되지만(다음 배포가 곧 다시 부른다), 시계 판은 **바닥**이라 접지 않는다.
 concurrency:
-  group: karmolab-live-check
-  cancel-in-progress: true
+  group: karmolab-live-check-${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'floor' || 'deploy' }}
+  cancel-in-progress: ${{ github.event_name == 'workflow_run' }}
 
 jobs:
   check:
