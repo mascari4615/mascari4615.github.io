@@ -118,6 +118,14 @@ jobs:
           npm ci
           npm run build
 
+      # apps/karmolab 의 `npm run build` 사슬 안에 `test:mcp` 가 들어 있고, 그 검사는 이 꾸러미의
+      # 의존성(pdf-lib)을 **여기 node_modules 에서** 찾는다. verify 잡에는 이 설치가 있었는데
+      # 배포 잡에만 없어서, 2026-07 중순부터 배포가 `Cannot find module 'pdf-lib'` 로 계속 섰다.
+      # 실주소가 28일째 낡아 있던 진짜 이유가 이것이다 (daily 지난문제 표가 20648일에서 멈춤).
+      - name: Install karmolab-mcp deps (apps/karmolab build 사슬의 test:mcp 가 문다)
+        working-directory: packages/karmolab-mcp
+        run: npm ci
+
       # 이 꾸러미는 자기 개발 의존성도 잠금 파일도 없다 (`npm ci` 로는 못 짓는다).
       # 짓지 않으면 앱 쪽에서 「모듈을 못 찾는다」로 배포가 통째로 선다 — 실제로 섰다.
       - name: Build badapple (shared package - apps/karmolab dependency)
