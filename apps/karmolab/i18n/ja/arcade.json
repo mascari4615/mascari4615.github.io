@@ -26,5 +26,13 @@
   "arcade.copy.done": "リンクをコピーしました — 貼れば入ってこられます",
   "arcade.aria.url": "部屋のリンク",
   "arcade.wait.host": "{n}人 — 揃ったら開始してください",
-  "arcade.wait.guest": "部屋に入りました。ホストが始めると画面が出ます"
+  "arcade.wait.guest": "部屋に入りました。ホストが始めると画面が出ます",
+  "arcade.game.four.name": "四目並べ",
+  "arcade.game.four.desc": "落として四つ並べる",
+  "arcade.four.full": "盤が埋まった — 引き分け",
+  "arcade.four.win": "{who} が四つ並べた",
+  "arcade.game.memory.name": "神経衰弱",
+  "arcade.game.memory.desc": "めくって覚える。当たればもう一回",
+  "arcade.memory.draw": "同じだけ取った",
+  "arcade.memory.win": "{who} — {n}組"
 }

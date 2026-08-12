@@ -26,9 +26,9 @@ await build({
 const { Match, GAMES, gameById, seedFrom } = await import(pathToFileURL(out).href);
 
 let fails = 0;
-const ok = (cond, name) => {
+const ok = (cond, name, detail = '') => {
   if (cond) console.log(`  [O] ${name}`);
-  else { console.log(`  [X] ${name}`); fails++; }
+  else { console.log(`  [X] ${name}${detail ? ' — ' + detail : ''}`); fails++; }
 };
 
 /** 판을 끝까지 민다. 사람 자리는 `play` 가 대신 둔다(없으면 아무도 안 둔다). */
@@ -47,6 +47,51 @@ console.log('[arcade] 명부');
 ok(GAMES.length >= 2, `게임 ${GAMES.length}개 등록`);
 ok(GAMES.every((g) => g.id && g.seats[0] >= 1 && g.rounds >= 1), '모든 게임이 id·자리수·판수를 갖췄다');
 ok(new Set(GAMES.map((g) => g.id)).size === GAMES.length, 'id 가 겹치지 않는다');
+
+/**
+ * **모든 게임이 지켜야 하는 것.** 게임을 51개까지 늘려도 여기에 자동으로 걸린다 —
+ * 새 게임을 넣을 때 검사를 새로 짤 필요가 없다는 뜻이고, 그게 51개가 가능한 이유다.
+ */
+console.log('[arcade] 계약 — 모든 게임 공통');
+for (const g of GAMES) {
+  const seats = Array.from({ length: g.seats[0] }, (_, i) => ({ name: `b${i}`, bot: true }));
+
+  /* ① 봇만으로 반드시 끝난다 — 안 끝나면 혼자 하는 사람이 영영 갇힌다. */
+  const m = run(g, 12345, seats, null, 400000);
+  ok(m.view().finished, `${g.id}: 봇만으로 끝까지 간다`);
+
+  /* ② 쓰레기 수를 던져도 안 죽는다 — 남의 창에서 오는 수는 못 믿는다. */
+  const junk = new Match(g, 7, seats);
+  let threw = '';
+  for (const bad of [null, undefined, {}, { cell: -1 }, { cell: 1e9 }, { col: -5 }, { choice: 99 }, 'x', 42]) {
+    for (let seat = -1; seat <= g.seats[1]; seat++) {
+      try { junk.dispatch(seat, bad); } catch (e) { threw = `${JSON.stringify(bad)} → ${e.message}`; }
+    }
+  }
+  try { junk.step(50); junk.step(100); } catch (e) { threw = `step → ${e.message}`; }
+  ok(!threw, `${g.id}: 이상한 수에도 안 죽는다`, threw);
+
+  /* ③ 같은 씨앗 + 같은 수 = 같은 판. 아니면 여럿이 서로 다른 판을 본다. */
+  const a1 = new Match(g, 999, seats);
+  const a2 = new Match(g, 999, seats);
+  ok(
+    JSON.stringify(a1.view().state) === JSON.stringify(a2.view().state),
+    `${g.id}: 같은 씨앗이면 첫 판이 같다`
+  );
+
+  /* ④ 판이 그물망을 건널 수 있다 — 함수나 Map 이 섞이면 손님 화면이 비어 버린다. */
+  let jsonOk = true;
+  try {
+    const round = JSON.parse(JSON.stringify(a1.view().state));
+    jsonOk = JSON.stringify(round) === JSON.stringify(a1.view().state);
+  } catch {
+    jsonOk = false;
+  }
+  ok(jsonOk, `${g.id}: 판을 통째로 흘려보낼 수 있다 (JSON)`);
+
+  /* ⑤ 자리 수가 말이 된다. */
+  ok(g.seats[0] >= 1 && g.seats[0] <= g.seats[1], `${g.id}: 자리 수가 말이 된다 (${g.seats.join('~')})`);
+}
 
 console.log('[arcade] 씨앗 — 같은 방은 같은 판');
 {

@@ -11,7 +11,9 @@ export interface GameMeta {
 
 export const META: GameMeta[] = [
   { id: 'reflex', icon: '⚡' },
-  { id: 'gomoku', icon: '⚫' }
+  { id: 'gomoku', icon: '⚫' },
+  { id: 'four', icon: '🔴' },
+  { id: 'memory', icon: '🃏' }
 ];
 
 export const iconOf = (id: string): string => META.find((m) => m.id === id)?.icon ?? '🎲';

@@ -88,8 +88,15 @@ export class Match<S, A> {
     for (const fn of this.listeners) fn(v);
   }
 
-  /** 한 수 둔다. 못 두는 자리·때면 조용히 흘린다(예외 X — 남의 창에서 오는 수다). */
+  /**
+   * 한 수 둔다. 못 두는 자리·때면 조용히 흘린다(예외 X — 남의 창에서 오는 수다).
+   *
+   * **없는 수는 여기서 막는다.** 그물망 너머에서 `null` 이 오는 것은 사고가 아니라 정상이고,
+   * 그때마다 게임 51개가 각자 `a?.cell` 을 쓰게 하면 한 곳만 빠져도 판이 통째로 죽는다.
+   * 신뢰 경계는 커널이다 — 게임은 「무엇이 온다」만 알면 된다.
+   */
   dispatch(seat: number, action: A): void {
+    if (action === null || action === undefined) return;
     if (this.finished || this.roundOverAt !== null) return;
     if (seat < 0 || seat >= this.seats.length) return;
     if (this.game.canAct && !this.game.canAct(this.state, seat)) return;
