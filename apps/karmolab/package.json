@@ -196,7 +196,8 @@
     "test:daily": "node scripts/smoke-daily.mjs",
     "test:compare": "node scripts/smoke-compare-count.mjs",
     "check:live-tools": "node scripts/check-live-tools.mjs",
-    "audit:play-urls": "node scripts/audit-play-urls.mjs"
+    "audit:play-urls": "node scripts/audit-play-urls.mjs",
+    "test:studymap": "node scripts/check-studymap-links.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
