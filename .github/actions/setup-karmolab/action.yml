@@ -35,9 +35,11 @@ runs:
     # 안 지으면 typecheck 이 「모듈을 못 찾겠다」로 서고, 그 뒤 검사들은 없는 기준과 대조한다.
     - name: 공용 꾸러미 짓기 (karmolab-ai · badapple)
       shell: bash
+      # 자리를 **또박또박** 적는다 — `cd ../badapple` 처럼 상대로 적으면 사람도 검사도
+      # 「어느 꾸러미를 짓는지」를 못 읽는다(실측: 전제 감사가 badapple 을 못 보고 빨강).
       run: |
         cd packages/karmolab-ai && npm ci --no-audit --no-fund && npm run build
-        cd ../badapple && npm ci --no-audit --no-fund && npm run build
+        cd "$GITHUB_WORKSPACE/packages/badapple" && npm ci --no-audit --no-fund && npm run build
 
     # build 사슬 안의 test:mcp 가 이 꾸러미의 의존(pdf-lib)을 여기서 찾는다.
     # 짓기까지 해 둔다 — karmolab build 가 이 dist 를 불러오는 자리가 있다.
