@@ -58,6 +58,16 @@ export const KARMO_STUDIO_CSS = `
     .ks-audio-controls .ks-field { grid-template-columns:70px minmax(0,1fr); }
     .ks-handle { position:absolute; top:0; right:0; width:8px; height:100%; cursor:ew-resize; background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--clip) 70%,white)); }
     .ks-playhead { position:absolute; top:30px; bottom:0; width:1px; background:#ff5d6c; z-index:6; pointer-events:none; box-shadow:0 0 5px #ff5d6c; }
+    .ks-track-row.is-folded { min-height:22px; }
+    .ks-track-row.is-folded .ks-track-head { padding:2px 7px; overflow:hidden; }
+    .ks-track-row.is-folded .ks-track-head input[type=range] { display:none; }
+    .ks-track-row.is-folded .ks-lane { height:20px; }
+    .ks-track-row.is-folded .ks-clip { height:20px; }
+    .ks-track-row.is-folded .ks-clip-name, .ks-track-row.is-folded .ks-midi-notes, .ks-track-row.is-folded .ks-wave-svg, .ks-track-row.is-folded .ks-wave-missing { display:none; }
+    .ks-track-row.is-dragging { opacity:.45; }
+    .ks-track-row.is-drop-before { box-shadow:inset 0 2px 0 var(--accent); }
+    .ks-track-row.is-drop-after { box-shadow:inset 0 -2px 0 var(--accent); }
+    .ks-track-grip { cursor:grab; padding:0 3px; color:var(--text-tertiary); font:11px var(--font-mono); }
     .ks-auto { position:relative; height:46px; border-top:1px dashed var(--border); background:color-mix(in srgb,var(--bg-secondary) 60%,transparent); cursor:crosshair; }
     .ks-auto svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
     .ks-auto path { fill:none; stroke:var(--accent); stroke-width:1.5; }

@@ -48,6 +48,8 @@ export interface StudioTrack {
   clips: StudioClip[];
   /** 시간에 따라 움직이는 볼륨. 점이 0개면 트랙 볼륨을 그대로 쓴다. */
   volumeAutomation: AutomationPoint[];
+  /** 접으면 클립 미리보기 대신 얇은 띠만 남는다 — 곡이 길어지면 세로가 부족해진다. */
+  folded: boolean;
 }
 
 export interface StudioAsset {
@@ -94,7 +96,7 @@ export function newTrack(kind: TrackKind, index: number): StudioTrack {
     id: studioId('track'), kind, name: kind === 'audio' ? `Audio ${index}` : `Instrument ${index}`,
     color: COLORS[(index - 1) % COLORS.length], volume: 0.82, pan: 0, mute: false, solo: false,
     eqLow: 0, eqMid: 0, eqHigh: 0, compressor: 0.25, reverb: 0.08,
-    instrument: kind === 'midi' ? 'sawtooth' : 'sine', clips: [], volumeAutomation: []
+    instrument: kind === 'midi' ? 'sawtooth' : 'sine', clips: [], volumeAutomation: [], folded: false
   };
 }
 
@@ -175,6 +177,7 @@ export function normalizeProject(input: unknown): StudioProject {
   project.tracks = value.tracks.map((raw, index) => {
     const source = raw as Partial<StudioTrack>;
     const track = { ...newTrack(source.kind === 'audio' ? 'audio' : 'midi', index + 1), ...source } as StudioTrack;
+    track.folded = source.folded === true;
     track.volumeAutomation = Array.isArray(source.volumeAutomation)
       ? sortAutomation(source.volumeAutomation
           .filter((point) => point && Number.isFinite(Number((point as AutomationPoint).beat)))
@@ -294,5 +297,19 @@ export function putAutomationPoint(points: AutomationPoint[], beat: number, valu
   if (existing) { existing.value = level; return sortAutomation(points); }
   points.push({ id: studioId('auto'), beat: clean, value: level });
   return sortAutomation(points);
+}
+
+/**
+ * 트랙 순서 바꾸기 — 잡은 자리에서 놓은 자리로 옮긴다.
+ * 범위를 벗어난 자리는 양 끝으로 접고, 제자리면 원래 배열을 그대로 돌려준다.
+ */
+export function moveTrack(tracks: StudioTrack[], from: number, to: number): StudioTrack[] {
+  if (from < 0 || from >= tracks.length) return tracks;
+  const target = Math.max(0, Math.min(tracks.length - 1, to));
+  if (target === from) return tracks;
+  const next = [...tracks];
+  const [moved] = next.splice(from, 1);
+  next.splice(target, 0, moved);
+  return next;
 }
 
