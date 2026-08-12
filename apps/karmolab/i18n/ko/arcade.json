@@ -317,5 +317,14 @@
   "arcade.game.sudoku.desc": "같은 문제를 놓고 먼저 채우기. 6×6",
   "arcade.sudoku.hint": "칸을 고르고 숫자를 누르세요",
   "arcade.sudoku.win": "{who} 이(가) 먼저 채웠다",
-  "arcade.sudoku.timeup": "시간이 다 됐다 — {who} {n}칸"
+  "arcade.sudoku.timeup": "시간이 다 됐다 — {who} {n}칸",
+  "arcade.game.nunchi.name": "눈치 게임",
+  "arcade.game.nunchi.desc": "아무 때나 외치되, 겹치면 둘 다 나간다",
+  "arcade.nunchi.call": "{n} !",
+  "arcade.nunchi.called": "{n} 외침",
+  "arcade.nunchi.dead": "나갔다",
+  "arcade.nunchi.clash": "— 겹쳤다",
+  "arcade.nunchi.left": "{n}초 남음",
+  "arcade.nunchi.win": "{who} 이(가) 살아남았다",
+  "arcade.nunchi.none": "다 나갔다"
 }
