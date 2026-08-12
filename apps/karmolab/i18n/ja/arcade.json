@@ -145,5 +145,15 @@
   "arcade.kind.board": "盤の上で",
   "arcade.kind.card": "カードとサイコロ",
   "arcade.kind.sport": "おもちゃスポーツ",
-  "arcade.kind.puzzle": "ひとりでも、頭で"
+  "arcade.kind.puzzle": "ひとりでも、頭で",
+  "arcade.game.highlow.name": "ハイアンドロー",
+  "arcade.game.highlow.desc": "次は上か下か。続けば倍、外せば0",
+  "arcade.highlow.high": "上",
+  "arcade.highlow.low": "下",
+  "arcade.highlow.bank": "確保 ({n})",
+  "arcade.highlow.pot": "たまり {n}",
+  "arcade.highlow.nopot": "一枚選んで開始",
+  "arcade.highlow.left": "残り{n}回",
+  "arcade.highlow.win": "{who} — {n}点",
+  "arcade.highlow.draw": "{n}点で同じ"
 }

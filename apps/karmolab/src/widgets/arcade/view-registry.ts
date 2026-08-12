@@ -25,8 +25,9 @@ import { bowlingView } from './games/bowling-view';
 import { poolView } from './games/pool-view';
 import { dartsView } from './games/darts-view';
 import { airhockeyView } from './games/airhockey-view';
+import { highlowView } from './games/highlow-view';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const VIEWS: Array<GameView<any, any>> = [reflexView, gomokuView, fourView, memoryView, hitblowView, reversiView, dotsView, speedView, slideView, ultimateView, yachtView, checkersView, blackjackView, presidentView, dominoesView, curlingView, bowlingView, poolView, dartsView, airhockeyView];
+export const VIEWS: Array<GameView<any, any>> = [reflexView, gomokuView, fourView, memoryView, hitblowView, reversiView, dotsView, speedView, slideView, ultimateView, yachtView, checkersView, blackjackView, presidentView, dominoesView, curlingView, bowlingView, poolView, dartsView, airhockeyView, highlowView];
 
 export const viewById = (id: string): GameView<any, any> | undefined => VIEWS.find((v) => v.id === id);
