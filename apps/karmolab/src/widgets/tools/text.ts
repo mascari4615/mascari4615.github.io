@@ -12,6 +12,7 @@
  * 지금 뭐가 들어 있나」에서 갈린다(ConvertCase 도 결과 칸을 늘 띄워 둔다).
  */
 import { materialShell, type MaterialGroup } from './shared/material-shell';
+import { countText, head as clip } from './shared/text';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -108,11 +109,9 @@ import { t, loadNamespace } from '../../lib/i18n';
   async function drawStats(file: File, box: HTMLElement, alive: () => boolean): Promise<string> {
     const v = await file.text();
     if (!alive()) return '';
-    const chars = [...v].length;
-    /* 낱말은 공백으로 가른다 — 한국어에는 완벽하지 않지만, 여기서 필요한 건 **어림**이다
-     * (정확한 셈은 「글자수」 도구가 한다. 이 칸은 판단용 눈금이다). */
-    const words = v.trim() ? v.trim().split(/\s+/).length : 0;
-    const lines = v ? v.split(/\r?\n/).length : 0;
+    /* 세는 법은 「글자수」 도구와 **같은 것**을 쓴다 (TASK-KL-275) — 두 화면이 서로 다른 수를
+     * 말하면 어느 쪽을 믿어야 할지 알 수 없다. 이모지 한 덩이는 한 자로 센다. */
+    const { chars, words, lines } = countText(v);
 
     const nums = document.createElement('div');
     nums.className = 'tx-nums';
@@ -137,7 +136,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     const head = document.createElement('pre');
     head.className = 'tx-head';
     head.id = 'txHead';
-    head.textContent = v.slice(0, 1200);
+    head.textContent = clip(v, 1200);
     box.appendChild(head);
 
     return t('text.meta', { chars, lines }, `${chars.toLocaleString()}자 · ${lines.toLocaleString()}줄`);
