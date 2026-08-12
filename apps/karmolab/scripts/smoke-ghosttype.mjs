@@ -52,10 +52,16 @@ async function open(url) {
 
 /** 지금 화면의 글을 한 글자씩 친다. perChar 를 크게 주면 느리게 친 판이 된다. */
 async function typeAll(perChar) {
-  const target = await page.evaluate(() => document.querySelector('#gtText')?.textContent || '');
+  /* ★ 칠 글은 **치기 직전에** 읽는다 (2026-08-12). 위젯이 말 묶음을 받아 온 뒤 화면을 다시
+   *   그리면서 글이 바뀌는 순간이 있다 — 먼저 읽어 둔 옛 글을 치면 끝까지 쳐도 「다 쳤다」가
+   *   안 되고, 검사는 `#gtUrl` 을 20초 기다리다 죽는다(실주소에서 그렇게 빨갰다).
+   *   한 글자 칠 때마다 지금 글과 견주고, 글이 바뀌면 그 자리에서 다시 시작한다. */
+  let target = await page.evaluate(() => document.querySelector('#gtText')?.textContent || '');
   if (!target) throw new Error('칠 글이 화면에 없다');
-  for (const ch of target) {
-    await page.fill('#gtInput', (await page.inputValue('#gtInput')) + ch);
+  for (let i = 0; i < target.length; i += 1) {
+    const now = await page.evaluate(() => document.querySelector('#gtText')?.textContent || '');
+    if (now !== target) { target = now; i = -1; await page.fill('#gtInput', ''); continue; }
+    await page.fill('#gtInput', target.slice(0, i + 1));
     if (perChar > 0) await page.waitForTimeout(perChar);
   }
   await page.waitForSelector('#gtUrl', { timeout: 20000 });
