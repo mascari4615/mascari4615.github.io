@@ -136,5 +136,9 @@
   "arcade.game.darts.desc": "Stop the swinging aim. Take 101 down to exactly zero",
   "arcade.darts.throw": "Throw ({n})",
   "arcade.darts.wait": "Waiting",
-  "arcade.darts.win": "{who} checked out"
+  "arcade.darts.win": "{who} checked out",
+  "arcade.game.airhockey.name": "Air Hockey",
+  "arcade.game.airhockey.desc": "Slide to block and score. First to five",
+  "arcade.air.win": "{who} — {a} to {b}",
+  "arcade.air.draw": "{n} all — a draw"
 }
