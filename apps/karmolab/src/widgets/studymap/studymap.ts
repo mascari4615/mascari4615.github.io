@@ -1081,9 +1081,36 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         const host = elStages.querySelector('[data-sm="treehost"]');
         if (host instanceof HTMLElement) {
           stopTree?.();
+          /* 추천 경로 = 다음 한 칸까지 가는 선수 사슬. 41갈래 앞에서 「뭐부터」에 답한다. */
+          const pathTo = (id: string | undefined): string[] => {
+            if (!id) return [];
+            const seen = new Set<string>();
+            const walk = (x: string): void => {
+              if (seen.has(x)) return;
+              seen.add(x);
+              for (const p of layer.nodes.find((n) => n.id === x)?.prereq || []) walk(p);
+            };
+            walk(id);
+            return [...seen];
+          };
           stopTree = mountTree(host, layer, {
             size: zoom === 'tracks' ? 68 : 60,
             focusId: zoom === 'tracks' ? current : next?.id,
+            /* 띠 이름은 **깊이별로** 정한다 — 단계 순서와 깊이가 어긋날 수 있어서(선수 관계가 더 깊게 만든다). */
+            laneLabels:
+              zoom === 'tracks'
+                ? []
+                : (() => {
+                    const stageOf = new Map<string, string>();
+                    for (const st of tr.stages) for (const n of st.nodes) stageOf.set(n.id, st.title);
+                    const byDepth: string[] = [];
+                    for (const n of layer.nodes) {
+                      const name = stageOf.get(n.id);
+                      if (name && !byDepth[n.depth]) byDepth[n.depth] = name;
+                    }
+                    return byDepth;
+                  })(),
+            pathIds: zoom === 'tracks' ? pathTo(current) : pathTo(next?.id),
             onPick: (id) => {
               if (zoom === 'tracks') {
                 current = id;

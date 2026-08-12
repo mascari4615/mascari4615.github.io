@@ -9,6 +9,16 @@
 const STYLE_ID = 'kl-graph-canvas-styles';
 
 export const GRAPH_CANVAS_CSS = `
+/* ── 단계 띠 ─────────────────────────────────────────────────────────────────
+   배경이라 아무것도 가리면 안 된다: 색은 아주 옅게, 글자는 작게, 클릭은 통과시킨다. */
+.ck-lane { pointer-events: none; }
+.ck-lane-label {
+  font-size: 11px;
+  fill: currentColor;
+  opacity: .45;
+  letter-spacing: .04em;
+}
+
 /* ── 노드 활성 하이라이트 ──────────────────────────────────────────────────── */
 .ck-node.is-active > .ck-node-bg {
   stroke: #22d3ee !important;

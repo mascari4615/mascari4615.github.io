@@ -8,13 +8,17 @@
  * 이 파일이 하는 일은 번역 하나뿐: `TreeLayout` → `GraphSpec`.
  */
 import { GraphCanvas } from '../../lib/graph/canvas';
-import type { GraphSpec, GraphNode, GraphEdge } from '../../lib/graph/spec';
+import type { GraphSpec, GraphNode, GraphEdge, LaneDef } from '../../lib/graph/spec';
 import type { TreeLayout } from './tree';
 
 /** 칸의 상태 — 색과 아이콘이 여기서 갈린다. */
 export type TreeState = 'done' | 'going' | 'open' | 'locked';
 
 export interface TreeViewOptions {
+  /** 단계 띠 이름 — 깊이 순서대로. 없으면 띠를 안 그린다. */
+  laneLabels?: string[];
+  /** 추천 경로 — 이 칸들에 불이 들어온다(다음 한 칸까지 가는 길). */
+  pathIds?: string[];
   /** 노드를 눌렀을 때. 갈래면 그 갈래로, 칸이면 강의로. */
   onPick: (id: string) => void;
   /** 지금 자리 — 열자마자 여기로 화면을 맞춘다. */
@@ -41,7 +45,7 @@ export function stateOf(ratio: number, prereqDone: boolean): TreeState {
  * 자리 계산 결과를 엔진이 읽는 표로 옮긴다.
  * 노드는 **동그라미**(shape: 'circle'), 선은 위→아래로 흐르는 곡선.
  */
-export function toGraphSpec(layout: TreeLayout, size = 64): GraphSpec {
+export function toGraphSpec(layout: TreeLayout, size = 64, laneLabels: string[] = []): GraphSpec {
   const byId = new Map(layout.nodes.map((n) => [n.id, n]));
   const doneOf = (id: string): boolean => (byId.get(id)?.ratio ?? 0) >= 1;
 
@@ -74,10 +78,22 @@ export function toGraphSpec(layout: TreeLayout, size = 64): GraphSpec {
     curve: 0,
   }));
 
+  /* 같은 깊이는 같은 단계 — 띠로 깔아 「지금 몇 번째인지」를 배경이 말하게 한다. */
+  const depths = [...new Set(layout.nodes.map((n) => n.depth))].sort((a, b) => a - b);
+  const lanes: LaneDef[] = laneLabels.length
+    ? depths.map((d) => {
+        const rows = layout.nodes.filter((n) => n.depth === d);
+        const top = Math.min(...rows.map((n) => n.y)) - size;
+        const bottom = Math.max(...rows.map((n) => n.y)) + size;
+        return { id: `lane-${d}`, label: laneLabels[d] ?? `${d + 1}단계`, y: Math.round(top), h: Math.round(bottom - top) };
+      })
+    : [];
+
   return {
     version: 1,
     _meta: {},
     groups: [],
+    lanes,
     nodes,
     edges,
     ephemeral_anchors: [],
@@ -99,8 +115,37 @@ export function mountTree(host: HTMLElement, layout: TreeLayout, opts: TreeViewO
     defaultKindColor: KIND_COLORS.open,
     onNodeClick: (id) => opts.onPick(id),
   });
-  canvas.setSpec(toGraphSpec(layout, opts.size ?? 64));
+  canvas.setSpec(toGraphSpec(layout, opts.size ?? 64, opts.laneLabels ?? []));
   canvas.render();
+
+  /* 추천 경로에 불을 켠다 — 엔진의 활성 집합을 그대로 쓴다(같은 장치를 두 벌 만들지 않는다). */
+  if (opts.pathIds?.length) {
+    const ids = new Set(opts.pathIds);
+    canvas.setActiveSets({
+      node_ids_active: ids,
+      edge_ids_animated: new Set(
+        layout.edges
+          .map((e, i) => ({ id: `e${i}`, e }))
+          .filter(({ e }) => ids.has(e.from) && ids.has(e.to))
+          .map(({ id }) => id),
+      ),
+    });
+  }
+
+  /**
+   * 열자마자 지금 자리로 화면을 맞춘다.
+   * 다만 **한 노드에 맞추면 안 된다** — 그러면 배율이 튀어 글자가 커지고 주변이 안 보인다(실측).
+   * 그래서 그 노드를 가운데 둔 **일정한 크기의 창**을 잡는다: 배율은 늘 비슷하고, 이웃이 함께 보인다.
+   */
+  const focus = opts.focusId ? layout.nodes.find((n) => n.id === opts.focusId) : undefined;
+  if (focus) {
+    const w = 1080;
+    const h = 620;
+    canvas.fitToWorldRect({ x: focus.x - w / 2, y: focus.y - h / 2, w, h }, 20);
+  } else {
+    canvas.fitToNodes(layout.nodes.map((n) => n.id), 60);
+  }
+
   return () => {
     host.innerHTML = '';
   };
