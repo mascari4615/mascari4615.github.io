@@ -216,5 +216,8 @@
   "arcade.twenty.waitAsk": "Waiting for a question",
   "arcade.twenty.missed": "A guess, and it was wrong",
   "arcade.twenty.found": "{who} got it in {n}",
-  "arcade.twenty.kept": "{who} was never found out"
+  "arcade.twenty.kept": "{who} was never found out",
+  "arcade.game.snake.name": "Snake Race",
+  "arcade.game.snake.desc": "Swipe to turn. Everyone's trail is a wall",
+  "arcade.snake.win": "{who} — {n} eaten"
 }

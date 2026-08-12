@@ -216,5 +216,8 @@
   "arcade.twenty.waitAsk": "질문을 기다리는 중",
   "arcade.twenty.missed": "찍었지만 아니었다",
   "arcade.twenty.found": "{who} 이(가) {n}번 만에 맞혔다",
-  "arcade.twenty.kept": "{who} 이(가) 끝까지 안 들켰다"
+  "arcade.twenty.kept": "{who} 이(가) 끝까지 안 들켰다",
+  "arcade.game.snake.name": "뱀 경주",
+  "arcade.game.snake.desc": "쓸어서 방향을 바꾼다. 남이 지나간 자리가 벽이다",
+  "arcade.snake.win": "{who} — {n}개"
 }

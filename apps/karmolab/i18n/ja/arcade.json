@@ -216,5 +216,8 @@
   "arcade.twenty.waitAsk": "質問を待っています",
   "arcade.twenty.missed": "当ててみたが違った",
   "arcade.twenty.found": "{who} が{n}回で当てた",
-  "arcade.twenty.kept": "{who} は最後までばれなかった"
+  "arcade.twenty.kept": "{who} は最後までばれなかった",
+  "arcade.game.snake.name": "スネークレース",
+  "arcade.game.snake.desc": "スワイプで曲がる。通った跡が壁になる",
+  "arcade.snake.win": "{who} — {n}個"
 }
