@@ -60,6 +60,12 @@ export interface StudioTrack {
   compressor: number;
   reverb: number;
   instrument: OscillatorType;
+  /** 소리의 모양 — 붙는 속도·줄어드는 속도·버티는 크기·꼬리 길이(초). */
+  envelope: { attack: number; decay: number; sustain: number; release: number };
+  /** 저역 통과 필터 — 자르는 지점(Hz)과 음을 칠 때 열리는 정도(배). */
+  filter: { cutoff: number; envelope: number };
+  /** 살짝 어긋난 두 번째 오실레이터로 두툼하게 (0 = 끔, 센트). */
+  detune: number;
   clips: StudioClip[];
   /** 시간에 따라 움직이는 값들. 점이 0개인 항목은 트랙의 고정값을 그대로 쓴다. */
   automation: Record<AutomationParam, AutomationPoint[]>;
@@ -144,7 +150,10 @@ export function newTrack(kind: TrackKind, index: number): StudioTrack {
     id: studioId('track'), kind, name: kind === 'audio' ? `Audio ${index}` : `Instrument ${index}`,
     color: COLORS[(index - 1) % COLORS.length], volume: 0.82, pan: 0, mute: false, solo: false,
     eqLow: 0, eqMid: 0, eqHigh: 0, compressor: 0.25, reverb: 0.08,
-    instrument: kind === 'midi' ? 'sawtooth' : 'sine', clips: [], automation: { volume: [], pan: [], reverb: [] }, folded: false, height: TRACK_HEIGHT.default
+    instrument: kind === 'midi' ? 'sawtooth' : 'sine',
+    envelope: { attack: 0.01, decay: 0.12, sustain: 0.68, release: 0.12 },
+    filter: { cutoff: 6800, envelope: 1.6 }, detune: 8,
+    clips: [], automation: { volume: [], pan: [], reverb: [] }, folded: false, height: TRACK_HEIGHT.default
   };
 }
 
@@ -238,6 +247,20 @@ export function normalizeProject(input: unknown): StudioProject {
   project.tracks = value.tracks.map((raw, index) => {
     const source = raw as Partial<StudioTrack>;
     const track = { ...newTrack(source.kind === 'audio' ? 'audio' : 'midi', index + 1), ...source } as StudioTrack;
+    const clamp = (value: unknown, low: number, high: number, fallback: number): number => {
+      const number = Number(value);
+      return Number.isFinite(number) ? Math.max(low, Math.min(high, number)) : fallback;
+    };
+    const envelope = (source as { envelope?: Partial<StudioTrack['envelope']> }).envelope;
+    track.envelope = {
+      attack: clamp(envelope?.attack, 0, 2, 0.01),
+      decay: clamp(envelope?.decay, 0, 3, 0.12),
+      sustain: clamp(envelope?.sustain, 0, 1, 0.68),
+      release: clamp(envelope?.release, 0.01, 4, 0.12)
+    };
+    const filter = (source as { filter?: Partial<StudioTrack['filter']> }).filter;
+    track.filter = { cutoff: clamp(filter?.cutoff, 120, 18000, 6800), envelope: clamp(filter?.envelope, 0, 6, 1.6) };
+    track.detune = clamp((source as { detune?: unknown }).detune, 0, 60, 8);
     track.folded = source.folded === true;
     track.height = source.height === undefined ? TRACK_HEIGHT.default : clampTrackHeight(source.height);
     /* 옛 저장본은 볼륨 자동화를 `volumeAutomation` 한 줄로 들고 있었다 — 새 자리로 옮겨 담는다. */
