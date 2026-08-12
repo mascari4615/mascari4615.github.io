@@ -21,6 +21,35 @@
       "text": "2. 30줄짜리 토크나이저"
     },
     {
+      "type": "demo",
+      "kind": "js",
+      "label": "식을 골라 보라 — 낱말로 어떻게 쪼개지나",
+      "height": "200px",
+      "controls": [
+        {
+          "id": "src",
+          "label": "입력",
+          "type": "select",
+          "value": "1 + 2*(x - 3)",
+          "options": [
+            {
+              "value": "1 + 2*(x - 3)",
+              "label": "1 + 2*(x - 3)"
+            },
+            {
+              "value": "age >= 18",
+              "label": "age >= 18"
+            },
+            {
+              "value": "3.14 * r * r",
+              "label": "3.14 * r * r"
+            }
+          ]
+        }
+      ],
+      "text": "const SRC = '{{src}}';\nconst out = [];\nlet i = 0;\nwhile (i < SRC.length) {\n  const c = SRC[i];\n  if (/\\s/.test(c)) { i++; continue; }\n  if (/[0-9]/.test(c)) { let s = i; while (i < SRC.length && /[0-9.]/.test(SRC[i])) i++; out.push(['수', SRC.slice(s, i)]); continue; }\n  if (/[a-zA-Z_]/.test(c)) { let s = i; while (i < SRC.length && /[a-zA-Z0-9_]/.test(SRC[i])) i++; out.push(['이름', SRC.slice(s, i)]); continue; }\n  if (SRC.slice(i, i + 2) === '>=') { out.push(['연산', '>=']); i += 2; continue; }\n  out.push(['기호', c]); i++;\n}\nctx.clearRect(0, 0, W(), H());\nctx.fillStyle = '#eee'; ctx.font = '15px ui-monospace, monospace';\nctx.fillText(SRC, 16, 28);\nout.forEach(([kind, v], k) => {\n  const x = 16 + (k % 6) * 92, y = 60 + Math.floor(k / 6) * 52;\n  ctx.fillStyle = kind === '수' ? '#1d4ed8' : kind === '이름' ? '#166534' : '#7c2d12';\n  ctx.fillRect(x, y, 84, 34);\n  ctx.fillStyle = '#fff'; ctx.font = '14px ui-monospace, monospace';\n  ctx.fillText(v.slice(0, 7), x + 8, y + 16);\n  ctx.font = '10px system-ui'; ctx.fillText(kind, x + 8, y + 29);\n});"
+    },
+    {
       "type": "code",
       "lang": "js",
       "label": "한 글자씩 보며 묶는다",

@@ -21,6 +21,35 @@
       "text": "2. 왜 합쳐지나 — 세 성질"
     },
     {
+      "type": "demo",
+      "kind": "js",
+      "label": "순서를 바꿔 합쳐 보라 — 결과가 같은가",
+      "height": "220px",
+      "controls": [
+        {
+          "id": "order",
+          "label": "합치는 순서",
+          "type": "select",
+          "value": "abc",
+          "options": [
+            {
+              "value": "abc",
+              "label": "A → B → C"
+            },
+            {
+              "value": "cba",
+              "label": "C → B → A"
+            },
+            {
+              "value": "bac",
+              "label": "B → A → C"
+            }
+          ]
+        }
+      ],
+      "text": "const ORDER = '{{order}}';\nconst ops = { a: { 제목: { v: '초안', t: 3, by: 'A' } }, b: { 제목: { v: '2차 수정', t: 7, by: 'B' } }, c: { 본문: { v: '내용', t: 5, by: 'C' } } };\nconst merge = (x, y) => {\n  const r = { ...x };\n  for (const [k, v] of Object.entries(y)) {\n    const old = r[k];\n    r[k] = !old || v.t > old.t || (v.t === old.t && v.by > old.by) ? v : old;\n  }\n  return r;\n};\nlet state = {};\nfor (const ch of ORDER) state = merge(state, ops[ch]);\nctx.clearRect(0, 0, W(), H());\nctx.fillStyle = '#eee'; ctx.font = '14px system-ui';\nctx.fillText('합친 순서: ' + ORDER.toUpperCase().split('').join(' → '), 16, 28);\nlet y = 64;\nfor (const [k, v] of Object.entries(state)) {\n  ctx.fillStyle = '#60a5fa'; ctx.font = '15px ui-monospace, monospace';\n  ctx.fillText(k + ' = ' + v.v, 16, y);\n  ctx.fillStyle = '#9ca3af'; ctx.font = '12px ui-monospace, monospace';\n  ctx.fillText('(시각 ' + v.t + ' · ' + v.by + ')', 200, y);\n  y += 30;\n}\nctx.fillStyle = '#4ade80'; ctx.font = '13px system-ui';\nctx.fillText('순서를 바꿔도 결과가 같다 — 그게 CRDT 의 조건', 16, H() - 16);"
+    },
+    {
       "type": "code",
       "lang": "text",
       "label": "이 셋이면 순서를 안 따져도 된다",

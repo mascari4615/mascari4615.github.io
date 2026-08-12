@@ -31,6 +31,33 @@
       "text": "3. 나누기 — 1원이 사라지는 지점"
     },
     {
+      "type": "demo",
+      "kind": "js",
+      "label": "금액과 인원을 밀어 보라 — 1원이 어디로 가나",
+      "height": "200px",
+      "controls": [
+        {
+          "id": "amt",
+          "label": "총액(원)",
+          "type": "range",
+          "min": 1000,
+          "max": 100000,
+          "step": 1000,
+          "value": 10000
+        },
+        {
+          "id": "ppl",
+          "label": "인원",
+          "type": "range",
+          "min": 2,
+          "max": 9,
+          "step": 1,
+          "value": 3
+        }
+      ],
+      "text": "const AMT = {{amt}}, PPL = {{ppl}};\nconst q = Math.floor(AMT / PPL), rest = AMT - q * PPL;\nconst share = Array.from({ length: PPL }, (_, i) => q + (i < rest ? 1 : 0));\nconst naive = Array.from({ length: PPL }, () => q);\nctx.clearRect(0, 0, W(), H());\nctx.fillStyle = '#eee'; ctx.font = '14px system-ui';\nctx.fillText(AMT.toLocaleString() + '원을 ' + PPL + '명에게', 16, 26);\nctx.font = '13px ui-monospace, monospace';\nctx.fillStyle = '#4ade80';\nctx.fillText('나머지 분배: ' + share.join(' / ') + '  합계 ' + share.reduce((a, b) => a + b, 0).toLocaleString(), 16, 62);\nctx.fillStyle = '#f87171';\nctx.fillText('그냥 버림: ' + naive.join(' / ') + '  합계 ' + naive.reduce((a, b) => a + b, 0).toLocaleString(), 16, 92);\nctx.fillStyle = '#9ca3af'; ctx.font = '13px system-ui';\nctx.fillText('버리면 ' + (AMT - naive.reduce((a, b) => a + b, 0)) + '원이 증발한다', 16, 126);"
+    },
+    {
       "type": "code",
       "lang": "js",
       "label": "3명이 10,000원을 나눈다",

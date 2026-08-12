@@ -21,6 +21,33 @@
       "text": "2. 토큰 버킷 — 짧은 폭주를 허용한다"
     },
     {
+      "type": "demo",
+      "kind": "js",
+      "label": "누르면 요청 하나 — 통이 비면 429",
+      "height": "220px",
+      "controls": [
+        {
+          "id": "rate",
+          "label": "초당 채움",
+          "type": "range",
+          "min": 1,
+          "max": 10,
+          "step": 1,
+          "value": 3
+        },
+        {
+          "id": "burst",
+          "label": "통 크기",
+          "type": "range",
+          "min": 1,
+          "max": 20,
+          "step": 1,
+          "value": 6
+        }
+      ],
+      "text": "const RATE = {{rate}}, BURST = {{burst}};\nlet tokens = BURST, last = performance.now(), ok = 0, no = 0, flash = 0, flashOk = true;\naddEventListener('click', () => {\n  if (tokens >= 1) { tokens -= 1; ok++; flashOk = true; } else { no++; flashOk = false; }\n  flash = 1;\n});\nfunction frame(now) {\n  tokens = Math.min(BURST, tokens + ((now - last) / 1000) * RATE); last = now;\n  flash *= 0.92;\n  ctx.clearRect(0, 0, W(), H());\n  for (let i = 0; i < BURST; i++) {\n    ctx.fillStyle = i < Math.floor(tokens) ? '#4ade80' : '#374151';\n    ctx.fillRect(16 + i * 26, 60, 20, 34);\n  }\n  ctx.fillStyle = '#eee'; ctx.font = '14px system-ui';\n  ctx.fillText('화면을 눌러 요청 — 통과 ' + ok + ' · 429 ' + no, 16, 30);\n  ctx.globalAlpha = flash;\n  ctx.fillStyle = flashOk ? '#4ade80' : '#f87171';\n  ctx.fillRect(0, H() - 8, W(), 8);\n  ctx.globalAlpha = 1;\n  requestAnimationFrame(frame);\n}\nrequestAnimationFrame(frame);"
+    },
+    {
       "type": "code",
       "lang": "js",
       "label": "고정 창(fixed window)의 경계 문제를 피한다",

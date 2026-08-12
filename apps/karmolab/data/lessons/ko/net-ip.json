@@ -17,6 +17,24 @@
       "text": "10.0.0.0/8        사설\n172.16.0.0/12     사설\n192.168.0.0/16    사설  ← 집 공유기가 주는 것\n127.0.0.1         나 자신\n169.254.x.x       주소를 못 받았다는 신호 (DHCP 실패)"
     },
     {
+      "type": "demo",
+      "kind": "js",
+      "label": "/ 뒤 숫자를 밀어 보라 — 대역이 얼마나 넓어지나",
+      "height": "200px",
+      "controls": [
+        {
+          "id": "cidr",
+          "label": "접두 길이(/n)",
+          "type": "range",
+          "min": 8,
+          "max": 32,
+          "step": 1,
+          "value": 24
+        }
+      ],
+      "text": "const CIDR = {{cidr}};\nconst ip = [192, 168, 3, 77];\nconst bits = ip.map((o) => o.toString(2).padStart(8, '0')).join('');\nconst net = bits.slice(0, CIDR).padEnd(32, '0');\nconst bc = bits.slice(0, CIDR).padEnd(32, '1');\nconst toIp = (s) => [0, 1, 2, 3].map((i) => parseInt(s.slice(i * 8, i * 8 + 8), 2)).join('.');\nctx.clearRect(0, 0, W(), H());\nctx.font = '14px ui-monospace, monospace';\nbits.split('').forEach((b, i) => {\n  ctx.fillStyle = i < CIDR ? '#60a5fa' : '#374151';\n  ctx.fillRect(14 + i * 11, 26, 9, 18);\n});\nctx.fillStyle = '#eee'; ctx.font = '14px system-ui';\nctx.fillText('주소 ' + ip.join('.') + '/' + CIDR, 14, 20);\nctx.fillText('네트워크 ' + toIp(net) + '  ~  ' + toIp(bc), 14, 70);\nctx.fillStyle = '#9ca3af'; ctx.font = '13px system-ui';\nctx.fillText('쓸 수 있는 주소 ' + Math.max(0, 2 ** (32 - CIDR) - 2).toLocaleString() + '개 (파랑 = 고정 부분)', 14, 96);"
+    },
+    {
       "type": "h",
       "text": "2. CIDR 읽기"
     },
