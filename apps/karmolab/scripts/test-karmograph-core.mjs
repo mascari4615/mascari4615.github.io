@@ -487,8 +487,14 @@ const M = await loadModules();
   check(gapBefore === gapAfter, '끄는 내내 멤버끼리 간격이 한 픽셀도 안 변한다(모양이 안 뭉개진다)');
   const r = resizedBox(200, 100, { dx: -500, dy: -500 });
   check(r.w === MIN_NODE_W && r.h === MIN_NODE_H, '아무리 줄여도 최소 크기에서 멈춘다(지운 것처럼 보이지 않게)');
-  const r2 = resizedBox(200, 100, { dx: 33.4, dy: 10.6 });
-  check(r2.w === 233 && r2.h === 111, '크기는 정수로 떨어진다');
+  const r2 = resizedBox(200, 100, { dx: 33.4, dy: 10.6 }, 1);
+  check(r2.w === 233 && r2.h === 111, 'Alt(격자 없음)면 1px 단위로 정수로 떨어진다');
+  const r3 = resizedBox(200, 100, { dx: 33.4, dy: 10.6 });
+  check(r3.w === 232 && r3.h === 112, '크기가 8px 격자에 붙는다 — 자리와 같은 격자');
+  const r4 = resizedBox(203, 100, { dx: 0, dy: 0 });
+  check(r4.w % 8 === 0, '격자 밖에 있던 카드도 손대는 순간 줄에 붙는다');
+  check(MIN_NODE_W % 8 === 0 && MIN_NODE_H % 8 === 0,
+    '최소 크기도 격자의 배수 — 제일 작은 카드만 줄이 어긋나면 안 된다');
 }
 
 // ---- 손바닥만 한 판 (canvas-minimap)

@@ -619,5 +619,7 @@
   "karmograph.find.countTitle": "名前・ひとことに一致したカード数",
   "karmograph.degree.pick": "カードを一つ選んでください",
   "karmograph.help.renameWhat": "その場で名前を直す",
-  "karmograph.help.renameHow": "カードを二回押す（Enter 保存・Esc 取り消し）"
+  "karmograph.help.renameHow": "カードを二回押す（Enter 保存・Esc 取り消し）",
+  "karmograph.help.resizeWhat": "カードの大きさを変える",
+  "karmograph.help.resizeHow": "右下の角をドラッグ（グリッドに吸着 · Alt = 自由）"
 }

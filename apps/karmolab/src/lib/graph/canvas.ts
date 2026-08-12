@@ -673,7 +673,7 @@ export class GraphCanvas {
         if (n) {
           const d = worldDelta({ x: this.sizing.startX, y: this.sizing.startY },
             { x: e.clientX, y: e.clientY }, this.state.scale);
-          const box = resizedBox(this.sizing.startW, this.sizing.startH, d);
+          const box = resizedBox(this.sizing.startW, this.sizing.startH, d, e.altKey ? 1 : GRID_SIZE);  // Alt = 격자 무시
           n.w = box.w;
           n.h = box.h;
           n.sized = true;   // 이제부터 이 카드는 **사람 것**이다 — 자동 맞춤이 손대지 않는다.
