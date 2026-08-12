@@ -134,9 +134,19 @@ jobs:
       - name: Run verify (master invariant)
         run: npm run verify
 
-      - name: Typos check
+      # ★ **두 번 시도한다** (2026-08-12). 이 단계는 검사 프로그램을 깃허브 릴리스에서 **내려받아**
+      #   쓴다 — 그 내려받기가 실패해 exit 8 로 master 가 빨개졌다(코드에는 오타가 없었다).
+      #   못 받은 것을 「오타가 있다」로 읽으면 안 되고, 그렇다고 넘기면 게이트가 사라진다.
+      #   그래서 첫 판은 실패해도 넘기고, 곧바로 한 번 더 받아 본다 — 둘 다 실패하면 그때 빨강이다.
+      - name: Typos check (1차)
+        id: typos1
+        continue-on-error: true
         # strict 게이트 (TASK-KL-032). _typos.toml 이 false-positive 정의 + 데이터/외부 라이브러리 exclude.
         # 진짜 typo 일 가능성 큰 단어들도 임시 false-positive 등록 — 점진 fix 는 KL-032 backlog.
+        uses: crate-ci/typos@master
+
+      - name: Typos check (다시)
+        if: steps.typos1.outcome == 'failure'
         uses: crate-ci/typos@master
 
   contrast:
