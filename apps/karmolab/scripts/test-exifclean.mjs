@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { serveAppAssets } from './lib/widget-harness.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
@@ -62,9 +63,7 @@ function buildJpegWithGps(baseJpeg, lat, lon) {
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
-await page.route('**/*', (route) =>
-  route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' })
-);
+await serveAppAssets(page, root);
 await page.goto('http://localhost/');
 await page.evaluate(() => {
   window.__reg = {};
@@ -98,7 +97,7 @@ const result = await page.evaluate(async (b64) => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
-  const input = host.querySelector('#exFile');
+  const input = await window.__karmoWaitIn(host, '#exFile');
   const dt = new DataTransfer();
   dt.items.add(file);
   input.files = dt.files;

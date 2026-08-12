@@ -11,15 +11,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { serveAppAssets } from './lib/widget-harness.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
-await page.route('**/*', (route) =>
-  route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' })
-);
+await serveAppAssets(page, root);
 await page.goto('http://localhost/');
 await page.evaluate(() => {
   window.__reg = {};
@@ -50,7 +49,7 @@ const result = await page.evaluate(async () => {
   const longFont = fontOf(longStats);
 
   // 그려진 잉크가 위아래 여백을 넘지 않는지 — 넘치면 잘린 것이다
-  const canvas = host.querySelector('#tiCanvas');
+  const canvas = await window.__karmoWaitIn(host, '#tiCanvas');
   const ctx = canvas.getContext('2d');
   const d = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
   const rowHasInk = (y) => {

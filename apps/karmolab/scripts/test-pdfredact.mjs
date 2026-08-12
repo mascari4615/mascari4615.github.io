@@ -16,6 +16,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { serveAppAssets } from './lib/widget-harness.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
@@ -25,9 +26,7 @@ const page = await browser.newPage();
 page.on('console', (m) => {
   if (m.type() === 'error') console.log('    [브라우저]', m.text().slice(0, 120));
 });
-await page.route('**/*', (route) =>
-  route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' })
-);
+await serveAppAssets(page, root);
 // 일꾼 파일은 진짜 것을 내준다 (나중에 등록한 규칙이 먼저 걸린다)
 await page.route('**/pdfjs.worker.min.js', (route) =>
   route.fulfill({ status: 200, contentType: 'text/javascript', body: read('js/vendor/pdfjs.worker.min.js') })
@@ -86,7 +85,7 @@ const out = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
-  const input = host.querySelector('#prFile');
+  const input = await window.__karmoWaitIn(host, '#prFile');
   const dt = new DataTransfer();
   dt.items.add(new File([srcBytes], '문서.pdf', { type: 'application/pdf' }));
   input.files = dt.files;

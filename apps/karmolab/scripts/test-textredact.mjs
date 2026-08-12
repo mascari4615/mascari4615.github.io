@@ -13,15 +13,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { serveAppAssets } from './lib/widget-harness.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
-await page.route('**/*', (route) =>
-  route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' })
-);
+await serveAppAssets(page, root);
 await page.goto('http://localhost/');
 await page.evaluate(() => {
   window.__reg = {};
@@ -59,7 +58,7 @@ const out = await page.evaluate(async () => {
     MUST_GO.map(([k, v]) => `${k}: ${v}`).join('\n') + '\n' +
     MUST_STAY.map(([k, v]) => `${k}: ${v}`).join('\n');
 
-  const inEl = host.querySelector('#txIn');
+  const inEl = await window.__karmoWaitIn(host, '#txIn');
   inEl.value = text;
   inEl.dispatchEvent(new Event('input'));
   const result = host.querySelector('#txOut').value;
