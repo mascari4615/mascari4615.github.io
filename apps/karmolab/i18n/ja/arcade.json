@@ -376,5 +376,10 @@
   "arcade.tuho.left": "残り{n}",
   "arcade.tuho.win": "{who} · {n}点",
   "arcade.btn.sound": "音のオン・オフ",
-  "arcade.intro.skip": "押してすぐ開始"
+  "arcade.intro.skip": "押してすぐ開始",
+  "arcade.level.mild": "あまくち",
+  "arcade.level.normal": "ふつう",
+  "arcade.level.spicy": "からくち",
+  "arcade.level.note": "ボットの手の速さ",
+  "arcade.level.aria": "ボットの強さ"
 }
