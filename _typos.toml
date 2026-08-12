@@ -33,6 +33,9 @@ Neet = "Neet"            # NeetCode — 코딩 문제 학습 사이트 이름 (s
 Trak = "Trak"            # CelesTrak — 위성 궤도 데이터 제공처 이름 (bluemarble 위젯)
 metalness = "metalness"  # PBR 표준 용어 (금속성) — studymap.en.json 의 그래픽스 단원
 adn = "adn"              # pulse 코드 식별자: adnominal(관형사형) 줄임 — 한국어 문법 용어
+Mosquitto = "Mosquitto"  # MQTT 브로커 제품 이름 (embed-net 강의) — 모기(mosquito) 아님
+mosquitto = "mosquitto"  # 같은 이름의 명령줄 도구 (mosquitto_sub)
+MAPE = "MAPE"            # Mean Absolute Percentage Error — 예측 오차 지표 (ml-eval 강의)
 
 # 의도된 약어 / 외국어 / 고유명사 / 식별자
 # typos action 이 master log 로 발견한 false-positive (TASK-KL-032 시드).
