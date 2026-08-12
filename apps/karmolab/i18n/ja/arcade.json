@@ -108,5 +108,13 @@
   "arcade.dominoes.right": "右端に",
   "arcade.dominoes.draw": "山から引く",
   "arcade.dominoes.pass": "パス",
-  "arcade.dominoes.win": "{who} が先に出し切った"
+  "arcade.dominoes.win": "{who} が先に出し切った",
+  "arcade.game.curling.name": "カーリング",
+  "arcade.game.curling.desc": "中心に近づける。弾き出してもいい",
+  "arcade.curling.aim": "左右",
+  "arcade.curling.power": "強さ",
+  "arcade.curling.throw": "投げる (残り{n})",
+  "arcade.curling.sliding": "滑走中",
+  "arcade.curling.win": "{who} — ハウス内 {n}個",
+  "arcade.curling.none": "ハウスに入った石がない"
 }

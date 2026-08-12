@@ -227,6 +227,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-dmt.ac-can{opacity:1;border-color:var(--accent);cursor:pointer}',
       '.ac-dmt.ac-pick{outline:2px solid var(--accent);outline-offset:2px}',
       '.ac-dmbar{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}',
+      '.ac-cl{max-width:min(92vw,360px);margin:var(--space-lg) auto}',
+      '.ac-cl canvas{width:100%;display:block;border:1px solid var(--border);border-radius:8px;background:#eef4fb}',
+      '.ac-clbar{display:flex;flex-direction:column;gap:8px;margin-top:var(--space-lg)}',
+      '.ac-clbar label{display:flex;align-items:center;gap:8px;font-size:var(--font-size-xs);color:var(--text-secondary)}',
+      '.ac-clbar label span{min-width:52px}',
+      '.ac-clbar input[type=range]{flex:1}',
       '.ac-code{font-size:clamp(28px,8vw,48px);font-weight:800;letter-spacing:.18em;text-align:center;margin:var(--space-lg) 0}',
       '.ac-share{display:flex;gap:6px;margin:var(--space-lg) 0}',
       '.ac-share input{flex:1;min-width:0}'
