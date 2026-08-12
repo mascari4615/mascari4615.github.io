@@ -1,0 +1,106 @@
+{
+  "id": "sys-signal",
+  "minutes": 11,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "배포할 때마다 요청 몇 개가 사라진다면 코드 버그가 아니다 — **죽으라는 신호를 받고 곱게 죽는 법**을 안 짠 것이다."
+    },
+    {
+      "type": "h",
+      "text": "1. 알아야 할 신호 넷"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "이게 사실상 전부",
+      "text": "SIGTERM (15)  \"정리하고 끝내라\"   ← 배포·컨테이너 중지가 먼저 보낸다. 잡을 수 있다\nSIGINT  (2)   Ctrl+C              잡을 수 있다\nSIGKILL (9)   즉사                 ★ 잡을 수 없다. 정리 기회 없음\nSIGHUP  (1)   터미널이 끊김 / 설정 다시 읽기 관습"
+    },
+    {
+      "type": "h",
+      "text": "2. 실제 종료 순서"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "유예 시간이 있다",
+      "text": "docker stop / kubernetes 종료\n  1) SIGTERM 발송\n  2) 기다린다 (기본 10초 · 30초)\n  3) 아직 살아 있으면 SIGKILL\n\n→ 유예 안에 못 끝내면 진행 중 요청이 잘린다\n→ 유예보다 긴 작업이 있다면 유예 시간을 늘려야 한다"
+    },
+    {
+      "type": "h",
+      "text": "3. 곱게 죽는 코드"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "순서가 중요하다",
+      "text": "let 종료중 = false;\n\nasync function shutdown(sig) {\n  if (종료중) return;                 // 두 번 눌러도 한 번만\n  종료중 = true;\n  console.log(`${sig} 받음 — 정리 시작`);\n\n  server.close();                     // 1) 새 요청 그만 받기\n  await 진행중요청끝나기(5000);        // 2) 하던 것 마무리 (상한 필수)\n  await db.end();                     // 3) 연결 정리\n  process.exit(0);\n}\n\nprocess.on('SIGTERM', () => shutdown('SIGTERM'));\nprocess.on('SIGINT', () => shutdown('SIGINT'));"
+    },
+    {
+      "type": "note",
+      "text": "**1번(새 요청 차단)을 먼저** 하지 않으면 정리하는 동안 계속 새 일이 들어와 끝나지 않는다. 그리고 상한 없는 대기는 결국 SIGKILL 로 끝난다 — 스스로 시간을 정해라."
+    },
+    {
+      "type": "h",
+      "text": "4. 컨테이너의 함정 — 1번 프로세스"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "신호가 내 앱까지 안 온다",
+      "text": "CMD [\"sh\", \"-c\", \"node app.js\"]     ← sh 가 1번, node 는 자식\n  → SIGTERM 은 sh 가 받고 node 는 못 받는다 → 항상 강제 종료됨\n\nCMD [\"node\", \"app.js\"]              ← ✅ node 가 직접 1번\n또는 --init 옵션으로 신호를 전달하는 최소 init 사용"
+    },
+    {
+      "type": "h",
+      "text": "5. 확인하는 법"
+    },
+    {
+      "type": "p",
+      "text": "「짰다」와 「된다」는 다르다. 로컬에서 프로세스에 직접 종료 신호를 보내 **정리 로그가 순서대로 찍히는지** 눈으로 확인하라. 이걸 안 하면 배포 날 처음 알게 된다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "내 서버에 종료 처리를 붙이고, 요청을 보내는 중에 종료 신호를 보내 그 요청이 끝까지 응답되는지 확인하라."
+    },
+    {
+      "type": "try",
+      "text": "Dockerfile 의 CMD 형식을 확인하고, 신호가 앱까지 도달하는지 시험하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "잡을 수 없는 신호는?",
+      "choices": [
+        "SIGKILL",
+        "SIGTERM",
+        "SIGINT"
+      ],
+      "answer": 0,
+      "why": "정리 기회 없이 즉시 종료된다."
+    },
+    {
+      "q": "종료 처리에서 가장 먼저 할 일은?",
+      "choices": [
+        "새 요청 받기를 멈춘다",
+        "DB 를 닫는다",
+        "로그를 남긴다"
+      ],
+      "answer": 0,
+      "why": "안 그러면 정리 중에 일이 계속 들어온다."
+    },
+    {
+      "q": "CMD 를 sh -c 로 감싸면 생기는 문제는?",
+      "choices": [
+        "종료 신호가 앱까지 전달되지 않는다",
+        "빌드가 느려진다",
+        "환경변수가 사라진다"
+      ],
+      "answer": 0,
+      "why": "sh 가 1번 프로세스가 되어 신호를 삼킨다."
+    }
+  ]
+}

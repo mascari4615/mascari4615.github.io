@@ -1,0 +1,106 @@
+{
+  "id": "sys-container",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "컨테이너는 가상 머신이 아니다. **그냥 리눅스 프로세스**인데, 보이는 세상이 좁혀져 있고 쓸 자원에 상한이 걸려 있을 뿐이다."
+    },
+    {
+      "type": "h",
+      "text": "1. 두 부품"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "이 둘이 컨테이너의 전부다",
+      "text": "namespace  \"무엇이 보이나\" 를 가른다\n   pid   → 내가 1번 프로세스로 보인다 (호스트의 다른 프로세스는 안 보임)\n   net   → 내 네트워크 인터페이스만 보인다\n   mnt   → 내 파일 트리만 보인다\n   user  → 안에서는 root, 밖에서는 일반 사용자\n\ncgroup     \"얼마나 쓸 수 있나\" 를 정한다\n   메모리 상한 · CPU 몫과 상한 · 디스크 I/O"
+    },
+    {
+      "type": "h",
+      "text": "2. 그래서 설명되는 것들"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "「왜 이래?」의 답",
+      "text": "· 안에서 ps 하면 프로세스가 몇 개 안 보인다        → pid namespace\n· localhost 로 다른 컨테이너에 못 붙는다            → net namespace (각자 다른 localhost)\n· 안에서 free 를 보면 호스트 램이 나온다            → /proc 은 호스트 것, 상한은 cgroup\n· 갑자기 137 로 죽는다                              → cgroup 메모리 상한\n· 파일 권한이 이상하다 (호스트에서 root 소유)      → user namespace 매핑"
+    },
+    {
+      "type": "note",
+      "text": "「컨테이너 안에서 메모리를 재면 호스트 값이 나온다」는 것이 여러 런타임 사고의 근원이다. 최근 런타임은 cgroup 을 보지만, 옛 버전은 호스트 램 기준으로 힙을 잡아 상한을 넘겨 죽는다."
+    },
+    {
+      "type": "h",
+      "text": "3. 이미지 = 파일 트리 + 레이어"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "레이어가 캐시 단위다",
+      "text": "FROM node:22          ← 레이어 1\nCOPY package.json .   ← 레이어 2\nRUN npm ci            ← 레이어 3   (2가 안 바뀌면 통째로 캐시)\nCOPY . .              ← 레이어 4\n\n소스를 먼저 COPY 하면 매번 npm ci 가 다시 돈다 — 순서가 곧 빌드 시간"
+    },
+    {
+      "type": "h",
+      "text": "4. 안에서 들여다보기"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "평범한 리눅스로 다룬다",
+      "text": "docker exec -it <id> sh\ncat /sys/fs/cgroup/memory.max        # 실제 메모리 상한 (cgroup v2)\ncat /proc/self/cgroup\nnsenter -t <호스트pid> -n ip addr     # 호스트에서 컨테이너 네트워크 보기\n\n디버깅 도구가 없는 이미지라면\ndocker run --rm -it --pid=container:<id> --net=container:<id> nicolaka/netshoot"
+    },
+    {
+      "type": "h",
+      "text": "5. 실무 규칙"
+    },
+    {
+      "type": "p",
+      "text": "**root 로 돌리지 말 것**(USER 지정) · 이미지는 작게(공격면·전송비) · 상한을 항상 명시 · 로그는 파일이 아니라 표준 출력으로. 이 넷만 지켜도 사고의 절반이 사라진다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "컨테이너 안에서 `ps` 와 `cat /sys/fs/cgroup/memory.max` 를 실행해 밖과 무엇이 다른지 적어라."
+    },
+    {
+      "type": "try",
+      "text": "Dockerfile 의 COPY 순서를 바꿔 빌드 캐시가 어떻게 달라지는지 시간으로 비교하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "컨테이너를 이루는 두 리눅스 기능은?",
+      "choices": [
+        "namespace 와 cgroup",
+        "가상화와 하이퍼바이저",
+        "이미지와 볼륨"
+      ],
+      "answer": 0,
+      "why": "보이는 범위와 쓸 수 있는 양을 각각 정한다."
+    },
+    {
+      "q": "컨테이너 안에서 free 가 호스트 램을 보여 주는 이유는?",
+      "choices": [
+        "/proc 은 호스트 것이고 상한은 cgroup 에 있다",
+        "버그다",
+        "권한 때문"
+      ],
+      "answer": 0,
+      "why": "런타임이 cgroup 을 봐야 정확하다."
+    },
+    {
+      "q": "Dockerfile 에서 소스를 먼저 COPY 하면?",
+      "choices": [
+        "의존성 설치 캐시가 매번 깨진다",
+        "이미지가 커진다",
+        "보안이 나빠진다"
+      ],
+      "answer": 0,
+      "why": "레이어 순서가 캐시 적중을 결정한다."
+    }
+  ]
+}
