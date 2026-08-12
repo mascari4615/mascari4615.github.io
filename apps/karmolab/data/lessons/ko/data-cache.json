@@ -1,0 +1,94 @@
+{
+  "id": "data-cache",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "캐시를 넣는 것은 쉽다. 어려운 것은 **언제 버릴지** 정하는 일이고, 못 정하면 틀린 값을 아주 빠르게 보여 주게 된다."
+    },
+    {
+      "type": "h",
+      "text": "1. 넣기 전에 정할 세 가지"
+    },
+    {
+      "type": "note",
+      "text": "① **열쇠**(무엇 단위로 캐시하나 — 사용자별? 언어별? 권한별?) ② **수명**(TTL) ③ **무효화**(무엇이 바뀌면 지우나). 이 셋을 못 적으면 아직 캐시를 넣을 때가 아니다."
+    },
+    {
+      "type": "h",
+      "text": "2. 전형적인 패턴"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "cache-aside — 가장 흔하다",
+      "text": "async function getUser(id) {\n  const hit = await cache.get(`user:${id}`);\n  if (hit) return JSON.parse(hit);\n  const user = await db.user(id);\n  await cache.set(`user:${id}`, JSON.stringify(user), { ex: 300 });   // 5분\n  return user;\n}\n\n// 갱신 시\nasync function updateUser(id, patch) {\n  await db.update(id, patch);\n  await cache.del(`user:${id}`);      // 지운다(갱신보다 지우기가 안전하다)\n}"
+    },
+    {
+      "type": "h",
+      "text": "3. 자주 밟는 함정"
+    },
+    {
+      "type": "note",
+      "text": "**권한이 다른 사용자에게 같은 캐시**를 주는 것(가장 위험) · 열쇠에 언어·지역이 빠져 다른 언어 화면이 나가는 것 · 캐시 폭주(같은 열쇠가 동시에 만료돼 DB 로 몰림) · 캐시에 남은 낡은 값이 「왜 안 바뀌지」의 원인."
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "동시 만료 완화",
+      "text": "const ttl = 300 + Math.floor(Math.random() * 60);   // 만료 시각을 흩뜨린다"
+    },
+    {
+      "type": "h",
+      "text": "4. 어디에 두나"
+    },
+    {
+      "type": "p",
+      "text": "브라우저 캐시(HTTP 헤더) · CDN · 애플리케이션 메모리 · 공용 캐시(Redis). **가장 바깥에서 막을수록 싸다** — 서버까지 오지 않는 요청이 가장 빠르다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "느린 조회 하나에 cache-aside 를 붙이되, 붙이기 전에 열쇠·TTL·무효화 세 줄을 먼저 적어라."
+    },
+    {
+      "type": "try",
+      "text": "일부러 데이터를 바꾸고 화면이 언제 갱신되는지 재라. 기대한 TTL 과 맞는지 확인하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "캐시를 넣기 전에 반드시 정해야 하는 것은?",
+      "choices": [
+        "열쇠·수명·무효화 조건",
+        "캐시 서버 위치",
+        "압축 방식"
+      ],
+      "answer": 0,
+      "why": "무효화 규칙 없는 캐시는 틀린 값을 빠르게 제공한다."
+    },
+    {
+      "q": "데이터 갱신 시 캐시 처리로 더 안전한 쪽은?",
+      "choices": [
+        "캐시를 지운다(다음 조회에서 다시 채움)",
+        "캐시를 새 값으로 덮어쓴다",
+        "아무것도 안 한다"
+      ],
+      "answer": 0,
+      "why": "덮어쓰기는 경합 시 낡은 값이 남을 수 있다."
+    },
+    {
+      "q": "사용자별 권한이 다른 데이터를 캐시할 때 가장 중요한 것은?",
+      "choices": [
+        "열쇠에 사용자·권한 구분을 포함한다",
+        "TTL 을 늘린다",
+        "압축한다"
+      ],
+      "answer": 0,
+      "why": "열쇠가 겹치면 남의 데이터가 노출된다."
+    }
+  ]
+}

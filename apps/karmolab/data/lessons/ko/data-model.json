@@ -1,0 +1,98 @@
+{
+  "id": "data-model",
+  "minutes": 13,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "스키마는 나중에 바꾸기 가장 어려운 결정이다. 여기서 어긋나면 코드가 평생 그 어긋남을 보정한다."
+    },
+    {
+      "type": "h",
+      "text": "1. 정규화 — 사실을 한 곳에만"
+    },
+    {
+      "type": "p",
+      "text": "같은 사실이 두 곳에 있으면 언젠가 서로 달라진다. 사용자 이름을 주문 표에도 복사해 두면, 이름을 바꿨을 때 옛 주문에는 옛 이름이 남는다 — 그게 **틀린 것인지 의도한 것인지**를 먼저 정해야 한다."
+    },
+    {
+      "type": "code",
+      "lang": "sql",
+      "label": "관계로 표현",
+      "text": "CREATE TABLE users  (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL);\nCREATE TABLE orders (\n  id BIGSERIAL PRIMARY KEY,\n  user_id BIGINT NOT NULL REFERENCES users(id),\n  created_at TIMESTAMPTZ NOT NULL DEFAULT now()\n);"
+    },
+    {
+      "type": "note",
+      "text": "**영수증처럼 그 시점을 박제해야 하는 값**(결제 당시 가격·주소)은 일부러 복사해 둔다. 이건 비정규화가 아니라 **다른 사실**이다 — 「지금 가격」과 「그때 가격」은 서로 다른 데이터다."
+    },
+    {
+      "type": "h",
+      "text": "2. 제약은 데이터베이스에 건다"
+    },
+    {
+      "type": "code",
+      "lang": "sql",
+      "label": "앱 코드만 믿지 않는다",
+      "text": "ALTER TABLE orders ADD CONSTRAINT qty_positive CHECK (quantity > 0);\nCREATE UNIQUE INDEX ON users (lower(email));\n-- NOT NULL · FK · UNIQUE · CHECK 은 마지막 방어선이다"
+    },
+    {
+      "type": "h",
+      "text": "3. 이름과 타입"
+    },
+    {
+      "type": "note",
+      "text": "시간은 **타임존 포함**(timestamptz)으로 저장하고 표시할 때 변환한다. 돈은 정수(최소 단위) 또는 decimal — float 금지. 불리언보다 상태 열거형이 나은 경우가 많다(`is_deleted` 보다 `status`)."
+    },
+    {
+      "type": "h",
+      "text": "4. 바꿀 수 있게 만들기"
+    },
+    {
+      "type": "p",
+      "text": "스키마 변경은 **마이그레이션 파일**로 남긴다(손으로 콘솔에서 고치지 않는다). 컬럼 추가는 쉽고, 이름 변경·삭제는 어렵다 — 「추가 → 양쪽 지원 → 정리」 순서로 나눈다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "지금 프로젝트의 표 하나를 골라, 같은 사실이 두 곳에 저장돼 있는지 찾아라. 있다면 의도한 박제인지 실수인지 판단하라."
+    },
+    {
+      "type": "try",
+      "text": "NOT NULL·UNIQUE·CHECK 중 빠진 제약을 하나 추가해 보라. 기존 데이터가 걸리면, 그것이 이미 있던 오염이다."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "주문에 「결제 당시 가격」을 복사해 두는 것은?",
+      "choices": [
+        "비정규화 실수",
+        "지금 가격과 다른 별개의 사실이므로 올바른 설계",
+        "항상 금지"
+      ],
+      "answer": 1,
+      "why": "시점을 박제해야 하는 값은 복사가 아니라 다른 데이터다."
+    },
+    {
+      "q": "제약(NOT NULL·FK·CHECK)을 DB 에 거는 이유는?",
+      "choices": [
+        "앱 버그·다른 경로의 쓰기에도 데이터가 지켜지기 때문",
+        "쿼리가 빨라져서",
+        "문서화 때문"
+      ],
+      "answer": 0,
+      "why": "DB 는 마지막 방어선이다."
+    },
+    {
+      "q": "시간 컬럼 저장으로 권장되는 것은?",
+      "choices": [
+        "문자열",
+        "타임존 포함 타임스탬프(timestamptz)",
+        "로컬 시간 문자열"
+      ],
+      "answer": 1,
+      "why": "표시할 때 변환하면 되고, 지역이 섞여도 정확하다."
+    }
+  ]
+}

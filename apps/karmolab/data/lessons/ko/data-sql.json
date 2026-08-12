@@ -1,0 +1,98 @@
+{
+  "id": "data-sql",
+  "minutes": 14,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "앱으로 끌어와 반복문을 도는 순간, 데이터베이스가 훨씬 잘하는 일을 내가 느리게 하는 것이다."
+    },
+    {
+      "type": "h",
+      "text": "1. 조인 — 관계를 따라간다"
+    },
+    {
+      "type": "code",
+      "lang": "sql",
+      "label": "INNER 와 LEFT 의 차이가 결과 수를 바꾼다",
+      "text": "SELECT u.name, o.id, o.total\nFROM users u\nJOIN orders o ON o.user_id = u.id;        -- 주문 있는 사용자만\n\nSELECT u.name, COUNT(o.id) AS cnt\nFROM users u\nLEFT JOIN orders o ON o.user_id = u.id     -- 주문 없는 사용자도 (cnt = 0)\nGROUP BY u.name;"
+    },
+    {
+      "type": "h",
+      "text": "2. 집계와 HAVING"
+    },
+    {
+      "type": "code",
+      "lang": "sql",
+      "label": "WHERE 는 행을, HAVING 은 그룹을 거른다",
+      "text": "SELECT user_id, SUM(total) AS sum_total\nFROM orders\nWHERE created_at >= now() - interval '30 days'   -- 먼저 행을 줄이고\nGROUP BY user_id\nHAVING SUM(total) > 100000                        -- 묶은 뒤 거른다\nORDER BY sum_total DESC\nLIMIT 20;"
+    },
+    {
+      "type": "h",
+      "text": "3. 윈도우 함수 — 묶지 않고 계산"
+    },
+    {
+      "type": "code",
+      "lang": "sql",
+      "label": "사용자별 최근 주문 3건",
+      "text": "SELECT * FROM (\n  SELECT o.*, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC) AS rn\n  FROM orders o\n) t WHERE rn <= 3;\n\n-- 누적 합계\nSELECT created_at, total, SUM(total) OVER (ORDER BY created_at) AS running FROM orders;"
+    },
+    {
+      "type": "note",
+      "text": "이런 「그룹마다 상위 N개」를 앱에서 반복문으로 풀면 N+1 이 된다. **한 번의 쿼리로 끝나는지** 먼저 생각하는 습관이 성능의 절반이다."
+    },
+    {
+      "type": "h",
+      "text": "4. NULL 의 함정"
+    },
+    {
+      "type": "code",
+      "lang": "sql",
+      "label": "NULL 은 값이 아니라 「모름」",
+      "text": "WHERE status != 'done'      -- status 가 NULL 인 행은 안 걸린다!\nWHERE status IS DISTINCT FROM 'done'   -- NULL 도 포함\n\nCOUNT(*) 와 COUNT(col) 은 다르다 — 후자는 NULL 을 안 센다"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "앱에서 반복문으로 만들던 통계 하나를 GROUP BY 한 방으로 바꿔라. 결과가 같은지 비교하고 시간을 재라."
+    },
+    {
+      "type": "try",
+      "text": "「사용자별 최근 주문 3건」을 윈도우 함수로 뽑아 보라. 앱에서 자르던 코드가 사라지는 것을 확인하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "WHERE 와 HAVING 의 차이는?",
+      "choices": [
+        "WHERE 는 그룹 전, HAVING 은 그룹 후를 거른다",
+        "같다",
+        "HAVING 이 더 빠르다"
+      ],
+      "answer": 0,
+      "why": "먼저 행을 줄이고(WHERE) 묶은 뒤 조건(HAVING)을 건다."
+    },
+    {
+      "q": "`WHERE status != 'done'` 이 NULL 행을 놓치는 이유는?",
+      "choices": [
+        "NULL 은 「모름」이라 비교 결과가 참이 아니기 때문",
+        "인덱스 때문",
+        "문자열이라서"
+      ],
+      "answer": 0,
+      "why": "IS DISTINCT FROM 이나 OR status IS NULL 로 처리한다."
+    },
+    {
+      "q": "「그룹마다 상위 N개」를 뽑는 SQL 도구는?",
+      "choices": [
+        "윈도우 함수(ROW_NUMBER OVER PARTITION BY)",
+        "LIMIT 만",
+        "DISTINCT"
+      ],
+      "answer": 0,
+      "why": "앱 반복문 대신 한 번의 쿼리로 끝난다."
+    }
+  ]
+}
