@@ -81,8 +81,8 @@ export interface RoomOptions {
   appId: string;
   code: string;
   host: boolean;
-  /** 남에게 보일 이름 */
-  name: string;
+  /** 남에게 보일 이름. 이름을 안 보여 주는 놀이는 안 줘도 된다. */
+  name?: string;
   /** 사람이 들고 날 때 */
   onPeers?(peers: Peer[]): void;
 }
@@ -105,7 +105,7 @@ export function openRoom(opts: RoomOptions): Room {
 
   /* 새로 온 사람에게 곧장 내 이름을 건다 — 통째로 뿌리면 이미 아는 사람에게도 다시 간다. */
   room.onPeerJoin = (peerId: string): void => {
-    hello.send({ name: opts.name }, { target: peerId });
+    hello.send({ name: opts.name || '누군가' }, { target: peerId });
   };
   room.onPeerLeave = (peerId: string): void => {
     names.delete(peerId);

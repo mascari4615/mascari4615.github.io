@@ -18,7 +18,7 @@
 import { loadPacks, type Pack, type PackItem } from './pack-store';
 import { listShared, adoptShared, type SharedPackSummary } from '../lib/shared-packs';
 import { onPageActive, takePick } from './pack-pick';
-import { joinRoom, selfId } from 'trystero/nostr';
+import { openRoom, makeCode, type Room } from '../lib/room';
 import { agreement, roundChoices, seededRandom, shuffled, type Match, type Runner } from '../lib/tournament';
 import { copyResultCard } from '../lib/result-card';
 import { t, loadNamespace, locale } from '../lib/i18n';
@@ -471,7 +471,7 @@ const BUILTIN = [
            * 서버는 없다(트리스테로). 우리 쪽에 방도 기록도 안 남는다.
            */
           const APP_ID = 'karmolab-worldcup';
-          let room: ReturnType<typeof joinRoom> | null = null;
+          let room: Room | null = null;
           let sendResult: ((data: unknown) => void) | null = null;
           let together: { seed: number; size: number; packKey: string } | null = null;
           let myPath: Match[] | null = null;
@@ -499,41 +499,43 @@ const BUILTIN = [
 
           function connect(code: string, host: boolean): void {
             closeRoom();
-            const r = joinRoom({ appId: APP_ID }, code);
-            room = r;
-            // 받는 자리를 만들 때 같이 건다 (트리스테로 0.25 부터 이 모양이다 — duel.ts 와 같은 길).
-            let pendingSetup: { seed: number; size: number; packKey: string } | null = null;
-            const setupChannel = r.makeAction('setup', {
-              onMessage: (data: unknown) => {
-                const d = data as { seed?: number; size?: number; packKey?: string };
-                if (typeof d?.seed !== 'number' || typeof d.size !== 'number' || !d.packKey) return;
-                pendingSetup = { seed: d.seed, size: d.size, packKey: d.packKey };
-                applySetup(pendingSetup);
+            /* 방 열기·이름 알리기·사람 들고 남은 `lib/room.ts` 한 곳에 있다 (TASK-KL-264).
+               여기 남는 것은 이 놀이만의 통로 둘 — 대진(setup)·결과(result). */
+            let started = false;
+            const r = openRoom({
+              appId: APP_ID,
+              code,
+              host,
+              onPeers: (list) => {
+                if (!host || !list.length || started) return;
+                if (!picked) {
+                  $('wcTogetherMsg').textContent = t('worldcup.t26');
+                  return;
+                }
+                started = true;
+                together = { seed: Math.floor(Math.random() * 2 ** 31), size, packKey: picked.key };
+                sendSetup(together);
+                $('wcTogetherMsg').textContent = t('worldcup.t27');
+                void start();
               }
+            });
+            room = r;
+            const setupChannel = r.channel('setup', (data: unknown) => {
+              const d = data as { seed?: number; size?: number; packKey?: string };
+              if (typeof d?.seed !== 'number' || typeof d.size !== 'number' || !d.packKey) return;
+              applySetup({ seed: d.seed, size: d.size, packKey: d.packKey });
             });
             const sendSetup = setupChannel.send as (data: unknown) => void;
 
-            const resultChannel = r.makeAction('result', {
-              onMessage: (data: unknown) => {
-                const d = data as { champion?: string; path?: Match[] };
-                if (!d || !Array.isArray(d.path) || typeof d.champion !== 'string') return;
-                compare({ champion: d.champion, path: d.path });
-              }
+            const resultChannel = r.channel('result', (data: unknown) => {
+              const d = data as { champion?: string; path?: Match[] };
+              if (!d || !Array.isArray(d.path) || typeof d.champion !== 'string') return;
+              compare({ champion: d.champion, path: d.path });
             });
             sendResult = resultChannel.send as (data: unknown) => void;
 
             if (host) {
               $('wcTogetherMsg').textContent = t('worldcup.roomWaiting', { code });
-              r.onPeerJoin = (): void => {
-                if (!picked) {
-                  $('wcTogetherMsg').textContent = t('worldcup.t26');
-                  return;
-                }
-                together = { seed: Math.floor(Math.random() * 2 ** 31), size, packKey: picked.key };
-                sendSetup(together);
-                $('wcTogetherMsg').textContent = t('worldcup.t27');
-                void start();
-              };
               return;
             }
 
@@ -559,7 +561,7 @@ const BUILTIN = [
               $('wcTogetherMsg').textContent = t('worldcup.t30');
               return;
             }
-            const code = 'wc' + selfId.slice(0, 6) + Math.random().toString(36).slice(2, 5);
+            const code = makeCode();
             void navigator.clipboard.writeText(code).catch(() => undefined);
             connect(code, true);
             $('wcTogetherMsg').textContent = t('worldcup.roomCopied', { code });
@@ -568,7 +570,7 @@ const BUILTIN = [
           $('wcJoinRoom').addEventListener('click', () => {
             const code = prompt(t('worldcup.t31'));
             if (!code) return;
-            connect(code.trim(), false);
+            connect(code.trim().toUpperCase(), false);
           });
 
           $('wcA').addEventListener('click', () => choose(0));
