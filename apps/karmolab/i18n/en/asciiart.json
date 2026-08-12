@@ -50,5 +50,11 @@
   "asciiart.err.gif": "Could not build the GIF. Try fewer frames.",
   "asciiart.btn.ansi": "Copy for terminal (ANSI)",
   "asciiart.copy.ansi": "Copied with color — paste it into a terminal",
-  "asciiart.copy.ansiPlain": "Copied — turn color on and the terminal gets color too"
+  "asciiart.copy.ansiPlain": "Copied — turn color on and the terminal gets color too",
+  "asciiart.label.effect": "Effect",
+  "asciiart.effect.none": "None",
+  "asciiart.effect.neon": "Neon (glow)",
+  "asciiart.effect.crt": "CRT (scanlines)",
+  "asciiart.effect.bloom": "Bloom",
+  "asciiart.effect.ink": "Ink"
 }

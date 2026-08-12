@@ -51,6 +51,30 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
   const toDarkFirst = (ramp: string): string => [...ramp].reverse().join('');
 
   /**
+   * 글자에 먹이는 효과.
+   *
+   * **CSS 가 아니라 캔버스에 먹인다** — 문법은 같지만(`filter`) 자리가 다르다. CSS 로 걸면
+   * 화면만 빛나고 내보낸 GIF·PNG 는 맨숭맨숭해서, 「보이는 것」과 「저장한 것」이 갈린다.
+   * 캔버스에 걸면 그림 자체에 구워지므로 둘이 항상 같다.
+   *
+   * 글자로 그린 그림이라 효과가 잘 먹는다 — 획이 가늘고 사이가 비어 있어서, 번짐이 글자
+   * 모양을 따라 퍼진다(사진에 걸면 그냥 뿌예진다). ASCILINE 이 내세운 것도 이 지점이다.
+   */
+  interface Effect {
+    /** 글자를 찍는 동안 걸어 둘 `ctx.filter`. */
+    filter?: (accent: string) => string;
+    /** 글자 위에 한 겹 더 — 주사선 같은 것. */
+    overlay?: 'scanline';
+  }
+  const EFFECTS: Record<string, Effect> = {
+    none: {},
+    neon: { filter: (accent) => `drop-shadow(0 0 3px ${accent}) drop-shadow(0 0 9px ${accent}) saturate(1.5)` },
+    crt: { filter: (accent) => `drop-shadow(0 0 2px ${accent}) contrast(1.15)`, overlay: 'scanline' },
+    bloom: { filter: () => 'blur(0.6px) brightness(1.25) contrast(1.3)' },
+    ink: { filter: () => 'grayscale(1) contrast(2)' }
+  };
+
+  /**
    * 글자판 + 칸 색 → 터미널이 색으로 읽는 글 (24비트 ANSI).
    *
    * 왜 넣나: 이 그림의 원래 자리는 터미널이다. `.txt` 로 내보내면 색이 통째로 사라지고,
@@ -128,6 +152,16 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                     t('asciiart.value.chars', { n: 100 })
                   )}</span></div>
                   <input type="range" id="aaWidth" aria-label="${esc(t('asciiart.label.width'))}" min="20" max="300" step="2" value="100">
+                </div>
+                <div>
+                  <div class="tool-sublabel">${esc(t('asciiart.label.effect'))}</div>
+                  <select id="aaEffect" aria-label="${esc(t('asciiart.label.effect'))}">
+                    <option value="none">${esc(t('asciiart.effect.none'))}</option>
+                    <option value="neon">${esc(t('asciiart.effect.neon'))}</option>
+                    <option value="crt">${esc(t('asciiart.effect.crt'))}</option>
+                    <option value="bloom">${esc(t('asciiart.effect.bloom'))}</option>
+                    <option value="ink">${esc(t('asciiart.effect.ink'))}</option>
+                  </select>
                 </div>
                 <div>
                   <div class="tool-sublabel">${esc(t('asciiart.label.ramp'))}</div>
@@ -230,6 +264,17 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
            * 아스키 한 장을 캔버스에 찍는다. 같은 색이 이어지는 동안 붓을 안 바꾼다 —
            * 붓 교체가 글자 찍기보다 훨씬 비싸서, 이 한 줄이 색을 켠 재생을 살린다.
            */
+          /** 글자를 찍어 둘 투명한 겹. 크기가 그대로면 쓰던 것을 다시 쓴다. */
+          let glyphCanvas: HTMLCanvasElement | null = null;
+          function glyphLayer(width: number, height: number): CanvasRenderingContext2D | null {
+            if (!glyphCanvas) glyphCanvas = document.createElement('canvas');
+            if (glyphCanvas.width !== width || glyphCanvas.height !== height) {
+              glyphCanvas.width = width;
+              glyphCanvas.height = height;
+            }
+            return glyphCanvas.getContext('2d');
+          }
+
           function paintCanvas(frame: AsciiFrame): void {
             const size = Math.max(6, Math.min(16, Math.floor(1100 / Math.max(1, frame.cols))));
             const charWidth = size * 0.6;
@@ -243,28 +288,57 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             const ctx = stageCanvas.getContext('2d');
             if (!ctx) return;
             const invert = $<HTMLInputElement>('#aaInvert').checked;
+            ctx.filter = 'none';
             ctx.fillStyle = invert ? '#fff' : '#0b0d12';
             ctx.fillRect(0, 0, width, height);
             ctx.font = `${size}px ui-monospace, monospace`;
             ctx.textBaseline = 'top';
 
+            const plain = invert ? '#0b0d12' : '#e8ecf4';
+            const effect = EFFECTS[$<HTMLSelectElement>('#aaEffect').value] ?? EFFECTS.none;
+
+            // 글자는 **투명한 딴 겹**에 먼저 찍고, 그 겹을 한 번에 옮겨 그리면서 효과를 건다.
+            // 글자마다 거는 방법도 되긴 되는데 한 장에 필터 연산이 수천 번이라 재생이 기어간다
+            // (실측: 재생이 멈춘 것처럼 보일 만큼). 한 겹으로 모으면 한 장에 딱 한 번이고,
+            // 번짐이 글자 모양을 따라 퍼지는 결과는 오히려 이쪽이 맞다 — 이웃 글자의 빛이
+            // 서로 겹쳐야 진짜 발광처럼 보인다.
+            const layer = effect.filter ? glyphLayer(width, height) : null;
+            const paintTo = layer ?? ctx;
+            if (layer) {
+              layer.clearRect(0, 0, width, height);
+              layer.font = ctx.font;
+              layer.textBaseline = 'top';
+            }
+
             const lines = frame.text.split(String.fromCharCode(10));
             if (!frame.colors) {
-              ctx.fillStyle = invert ? '#0b0d12' : '#e8ecf4';
-              lines.forEach((line, y) => ctx.fillText(line, 0, y * lineHeight));
-              return;
-            }
-            let brush = -1;
-            for (let y = 0; y < lines.length; y++) {
-              const line = lines[y] ?? '';
-              for (let x = 0; x < line.length; x++) {
-                const color = frame.colors[y * frame.cols + x] ?? 0;
-                if (color !== brush) {
-                  brush = color;
-                  ctx.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
+              paintTo.fillStyle = plain;
+              lines.forEach((line, y) => paintTo.fillText(line, 0, y * lineHeight));
+            } else {
+              let brush = -1;
+              for (let y = 0; y < lines.length; y++) {
+                const line = lines[y] ?? '';
+                for (let x = 0; x < line.length; x++) {
+                  const color = frame.colors[y * frame.cols + x] ?? 0;
+                  if (color !== brush) {
+                    brush = color;
+                    paintTo.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
+                  }
+                  paintTo.fillText(line[x] ?? ' ', x * charWidth, y * lineHeight);
                 }
-                ctx.fillText(line[x] ?? ' ', x * charWidth, y * lineHeight);
               }
+            }
+
+            if (layer && effect.filter) {
+              ctx.filter = effect.filter(plain);
+              ctx.drawImage(layer.canvas, 0, 0);
+            }
+
+            ctx.filter = 'none';
+            if (effect.overlay === 'scanline') {
+              // 한 줄 걸러 한 줄 어둡게. 옛 브라운관의 주사선 — 글자 그림과 유난히 잘 맞는다.
+              ctx.fillStyle = 'rgba(0,0,0,0.28)';
+              for (let y = 0; y < height; y += 2) ctx.fillRect(0, y, width, 1);
             }
           }
 
@@ -463,6 +537,23 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
 
             plainText = lines.join('\n');
             cellColors = tones;
+            // 효과를 고르면 글자판도 캔버스로 그린다. `<pre>` 에 CSS 로 걸 수도 있지만 그러면
+            // 화면과 저장한 PNG 가 갈린다 — 같은 그리는 길을 쓰면 갈릴 자리가 없다.
+            const wantEffect = ($<HTMLSelectElement>('#aaEffect').value ?? 'none') !== 'none';
+            if (wantEffect) {
+              out.hidden = true;
+              stageCanvas.hidden = false;
+              paintCanvas({ cols, rows, text: plainText, colors: tones });
+              status.textContent = t('asciiart.status.done', {
+                cols,
+                rows,
+                chars: plainText.length.toLocaleString(locale())
+              });
+              status.className = 'tool-status ok';
+              return;
+            }
+            out.hidden = false;
+            stageCanvas.hidden = true;
             if (colorize) {
               out.innerHTML = colorLines.join('\n');
             } else {
@@ -596,6 +687,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
               // 이미 구운 게 있으면 글자 수·램프·색은 **다시 굽지 않고** 표면만 갈아 끼우면 된다.
               // 초당 장수·구간은 파일 자체를 바꾸므로 그때만 다시 굽는다.
               if (baked) mount(baked);
+              // 영상이 멈춰 있으면 다시 칠할 사람이 없다 — 지금 장을 그대로 한 번 더 찍는다.
+              if (current && !raf) paintCanvas(current);
               render();
             });
             el.addEventListener('change', render);
@@ -638,8 +731,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             setTimeout(() => URL.revokeObjectURL(a.href), 1000);
           };
           $<HTMLButtonElement>('#aaPng').onclick = () => {
-            if (isVideoMode()) {
-              if (!current) return;
+            // 캔버스가 보이는 동안은 그게 곧 화면이다 (영상이거나, 효과를 건 이미지거나).
+            if (!stageCanvas.hidden) {
               const a = document.createElement('a');
               a.href = stageCanvas.toDataURL('image/png');
               a.download = 'ascii-frame.png';
