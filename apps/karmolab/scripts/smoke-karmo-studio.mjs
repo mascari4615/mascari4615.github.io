@@ -196,6 +196,23 @@ await page.click('[data-act=play]');await page.waitForTimeout(700);await page.cl
 const clicksAfter=await page.evaluate(()=>window.__ksOsc);
 await page.click('[data-act=metronome]');await page.waitForTimeout(80);
 const metronomeOff=await page.locator('[data-act=metronome]').evaluate((element)=>element.classList.contains('is-on'));
+/* 구간 이름표 — 눈금자 더블클릭으로 만들고, 눌러 그 자리로 가고, Alt+←/→ 로 건너뛴다. */
+page.once('dialog',(dialog)=>dialog.accept('Chorus'));
+const markerRuler=await page.locator('[data-role=ruler]').boundingBox();
+const markerX=await page.evaluate(([y])=>{const ruler=document.querySelector('[data-role=ruler]');const box=ruler.getBoundingClientRect();for(let x=Math.max(2,box.left)+4;x<Math.min(window.innerWidth-4,box.right);x+=6){const el=document.elementFromPoint(x,y);if(el&&el.closest('[data-role=ruler]')&&!el.closest('.ks-ruler-head')&&!el.closest('[data-marker]'))return x;}return box.left+240;},[markerRuler.y+15]);
+await page.mouse.dblclick(markerX,markerRuler.y+15);await page.waitForTimeout(200);
+const markerCount=await page.locator('[data-marker]').count();
+const markerText=await page.locator('[data-marker]').first().textContent();
+await page.click('[data-act=back]');await page.waitForTimeout(80);
+const playheadBeforeMarkerJump=await page.locator('[data-role=playhead]').evaluate((element)=>parseFloat(element.style.left));
+await page.locator('[data-marker]').first().click();await page.waitForTimeout(120);
+const playheadAfterMarkerJump=await page.locator('[data-role=playhead]').evaluate((element)=>parseFloat(element.style.left));
+await page.click('[data-act=back]');await page.waitForTimeout(80);
+await page.locator('.ks-root').click({position:{x:5,y:5}});
+await page.keyboard.press('Alt+ArrowRight');await page.waitForTimeout(120);
+const playheadAfterMarkerKey=await page.locator('[data-role=playhead]').evaluate((element)=>parseFloat(element.style.left));
+await page.locator('[data-marker]').first().click({button:'right'});await page.waitForTimeout(140);
+const markerCountAfterDelete=await page.locator('[data-marker]').count();
 /* 트랙 접기·순서 바꾸기 — 곡이 길어지면 세로가 모자란다. */
 const laneHeightBefore=await page.locator('.ks-track-row').first().locator('.ks-lane').evaluate((element)=>element.getBoundingClientRect().height);
 await page.locator('[data-track-act=fold]').first().click();await page.waitForTimeout(120);
@@ -322,6 +339,11 @@ if(armedOff)problems.push('녹음 대상 해제가 안 된다');
 if(armedLaneClipsBefore<1)problems.push('오디오 트랙에 클립이 없다 — 무장 대상 검사가 무의미');
 if(!metronomeOn||metronomeOff)problems.push(`박자 소리 토글이 상태를 안 바꾼다 (${metronomeOn}→${metronomeOff})`);
 if(clicksAfter<=clicksBefore)problems.push(`박자 소리가 안 난다 (oscillator ${clicksBefore}→${clicksAfter})`);
+if(markerCount!==1)problems.push(`구간 이름표 추가 실패 (${markerCount})`);
+if(!/Chorus/.test(markerText||''))problems.push(`이름표에 이름이 안 붙는다 (${markerText})`);
+if(!(playheadAfterMarkerJump>playheadBeforeMarkerJump+10))problems.push(`이름표를 눌러도 재생 헤드가 안 간다 (${playheadBeforeMarkerJump}→${playheadAfterMarkerJump})`);
+if(Math.abs(playheadAfterMarkerKey-playheadAfterMarkerJump)>1)problems.push(`Alt+→ 가 구간으로 안 간다 (${playheadAfterMarkerKey} vs ${playheadAfterMarkerJump})`);
+if(markerCountAfterDelete!==0)problems.push(`이름표 우클릭 삭제 실패 (${markerCountAfterDelete})`);
 if(!(laneHeightFolded<laneHeightBefore-10))problems.push(`트랙 접기가 안 된다 (${laneHeightBefore}→${laneHeightFolded})`);
 if(Math.abs(laneHeightUnfolded-laneHeightBefore)>2)problems.push(`펼치기가 원래 높이로 안 돌아온다 (${laneHeightBefore}→${laneHeightUnfolded})`);
 if(namesAfterReorder.length!==namesBeforeReorder.length||namesAfterReorder[0]===namesBeforeReorder[0])problems.push(`트랙 순서 바꾸기 실패 (${namesBeforeReorder.join(',')}→${namesAfterReorder.join(',')})`);

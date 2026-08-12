@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Date, JSON, crypto });
-const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack } = module.exports;
+const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject, moveTrack, sortMarkers, putMarker, stepMarker } = module.exports;
 
 const note = (beat, pitch = 60, duration = 0.5, velocity = 0.8) => ({ id: `n${beat}-${pitch}`, beat, duration, pitch, velocity });
 
@@ -138,4 +138,39 @@ const legacyFold = JSON.parse(JSON.stringify(folded));
 delete legacyFold.tracks[0].folded;
 assert.equal(normalizeProject(legacyFold).tracks[0].folded, false, '옛 저장본은 펼친 상태');
 
-console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘');
+// 구간 이름표
+let marks = [];
+marks = putMarker(marks, 8, 'Chorus');
+marks = putMarker(marks, 4, 'Verse');
+assert.equal(marks.map((m) => m.name).join(','), 'Verse,Chorus', '시간순으로 선다');
+marks = putMarker(marks, 4.02, 'Verse 1');
+assert.equal(marks.length, 2, '가까운 자리는 새로 안 만든다');
+assert.equal(marks[0].name, 'Verse 1', '이름만 바뀐다');
+marks = putMarker(marks, -3, 'Intro');
+assert.equal(marks[0].beat, 0, '음수 위치는 0');
+
+// 앞뒤로 건너뛰기 — 없으면 null (곡 끝으로 튕기지 않는다)
+assert.equal(stepMarker(marks, 0, 1).name, 'Verse 1');
+assert.equal(stepMarker(marks, 4, 1).name, 'Chorus');
+assert.equal(stepMarker(marks, 8, 1), null, '뒤에 없으면 null');
+assert.equal(stepMarker(marks, 8, -1).name, 'Verse 1', '바로 그 자리 이름표는 건너뛴다');
+assert.equal(stepMarker(marks, 0, -1), null, '앞에 없으면 null');
+assert.equal(stepMarker([], 4, 1), null, '이름표가 없으면 null');
+
+// 저장 왕복 · 옛 저장본 · 깨진 값
+const withMarks = newProject();
+withMarks.markers = putMarker([], 6, 'Bridge');
+const rounded = normalizeProject(JSON.parse(JSON.stringify(withMarks)));
+assert.equal(rounded.markers.length, 1);
+assert.equal(rounded.markers[0].name, 'Bridge');
+const legacyMarks = JSON.parse(JSON.stringify(withMarks));
+delete legacyMarks.markers;
+assert.equal(normalizeProject(legacyMarks).markers.length, 0, '옛 저장본은 이름표 0개');
+const brokenMarks = JSON.parse(JSON.stringify(withMarks));
+brokenMarks.markers = [{ beat: 'x', name: 'bad' }, { beat: 2 }, { beat: 1, name: '  ' }];
+const fixed = normalizeProject(brokenMarks).markers;
+assert.equal(fixed.length, 2, '숫자가 아닌 위치는 버린다');
+assert.ok(fixed.every((m) => m.name.trim()), '이름이 비면 기본값을 준다');
+assert.equal(sortMarkers(fixed).map((m) => m.beat).join(','), '1,2');
+
+console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘 · 구간 이름표');

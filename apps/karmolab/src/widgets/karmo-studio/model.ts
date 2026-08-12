@@ -60,6 +60,12 @@ export interface StudioAsset {
   dataUrl?: string;
 }
 
+export interface StudioMarker {
+  id: string;
+  beat: number;
+  name: string;
+}
+
 export interface StudioProject {
   version: 1;
   id: string;
@@ -73,6 +79,8 @@ export interface StudioProject {
   snap: number;
   tracks: StudioTrack[];
   assets: StudioAsset[];
+  /** 구간 이름표 — 곡의 어디쯤인지 표시하고 그 자리로 건너뛴다. */
+  markers: StudioMarker[];
   updatedAt: string;
 }
 
@@ -112,7 +120,7 @@ export function newProject(): StudioProject {
   return {
     version: 1, id: studioId('project'), name: 'Untitled Song', bpm: 120, beatsPerBar: 4,
     masterVolume: 0.86, loop: true, loopStart: 0, loopEnd: 8, snap: 0.25,
-    tracks: [midi, newTrack('audio', 2)], assets: [], updatedAt: new Date().toISOString()
+    tracks: [midi, newTrack('audio', 2)], assets: [], markers: [], updatedAt: new Date().toISOString()
   };
 }
 
@@ -172,6 +180,18 @@ export function normalizeProject(input: unknown): StudioProject {
     loop: Boolean(value.loop), loopStart: Math.max(0, Number(value.loopStart) || 0),
     loopEnd: Math.max(1, Number(value.loopEnd) || 8), snap: Math.max(0.0625, Number(value.snap) || 0.25),
     tracks: [], assets: Array.isArray(value.assets) ? value.assets : [],
+    markers: Array.isArray(value.markers)
+      ? sortMarkers(value.markers
+          .filter((marker) => marker && Number.isFinite(Number((marker as StudioMarker).beat)))
+          .map((marker) => {
+            const raw = marker as Partial<StudioMarker>;
+            return {
+              id: typeof raw.id === 'string' ? raw.id : studioId('marker'),
+              beat: Math.max(0, Number(raw.beat) || 0),
+              name: typeof raw.name === 'string' && raw.name.trim() ? raw.name : 'Section'
+            };
+          }))
+      : [],
     updatedAt: typeof value.updatedAt === 'string' ? value.updatedAt : new Date().toISOString()
   };
   project.tracks = value.tracks.map((raw, index) => {
@@ -311,5 +331,31 @@ export function moveTrack(tracks: StudioTrack[], from: number, to: number): Stud
   const [moved] = next.splice(from, 1);
   next.splice(target, 0, moved);
   return next;
+}
+
+export function sortMarkers(markers: StudioMarker[]): StudioMarker[] {
+  return [...markers].sort((a, b) => a.beat - b.beat);
+}
+
+/** 같은 자리에 겹쳐 놓지 않는다 — 가까우면 이름만 바꾼다. */
+export function putMarker(markers: StudioMarker[], beat: number, name: string, tolerance = 0.05): StudioMarker[] {
+  const at = Math.max(0, beat);
+  const existing = markers.find((marker) => Math.abs(marker.beat - at) <= tolerance);
+  if (existing) { existing.name = name; return sortMarkers(markers); }
+  markers.push({ id: studioId('marker'), beat: at, name });
+  return sortMarkers(markers);
+}
+
+/**
+ * 지금 자리에서 앞/뒤 이름표. 없으면 `null` — 곡 처음/끝으로 튕기지 않는다.
+ * 바로 그 자리에 있는 이름표는 「같은 자리」로 보고 건너뛴다.
+ */
+export function stepMarker(markers: StudioMarker[], beat: number, direction: 1 | -1, tolerance = 0.001): StudioMarker | null {
+  const sorted = sortMarkers(markers);
+  if (direction > 0) return sorted.find((marker) => marker.beat > beat + tolerance) ?? null;
+  for (let index = sorted.length - 1; index >= 0; index--) {
+    if (sorted[index].beat < beat - tolerance) return sorted[index];
+  }
+  return null;
 }
 
