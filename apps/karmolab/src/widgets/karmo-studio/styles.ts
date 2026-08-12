@@ -68,6 +68,8 @@ export const KARMO_STUDIO_CSS = `
     .ks-track-row.is-drop-before { box-shadow:inset 0 2px 0 var(--accent); }
     .ks-track-row.is-drop-after { box-shadow:inset 0 -2px 0 var(--accent); }
     .ks-track-grip { cursor:grab; padding:0 3px; color:var(--text-tertiary); font:11px var(--font-mono); }
+    .ks-marker { position:absolute; top:0; height:30px; z-index:8; display:flex; align-items:center; gap:3px; padding:0 5px 0 3px; border-left:2px solid #e3c15a; background:color-mix(in srgb,#e3c15a 22%,var(--bg-secondary)); color:var(--text-secondary); font:9px var(--font-mono); white-space:nowrap; cursor:grab; border-radius:0 3px 3px 0; }
+    .ks-marker:hover { background:color-mix(in srgb,#e3c15a 38%,var(--bg-secondary)); }
     .ks-auto { position:relative; height:46px; border-top:1px dashed var(--border); background:color-mix(in srgb,var(--bg-secondary) 60%,transparent); cursor:crosshair; }
     .ks-auto svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
     .ks-auto path { fill:none; stroke:var(--accent); stroke-width:1.5; }
