@@ -93,11 +93,16 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             const cols = Math.max(...rows.map((r) => r.length));
             const ragged = rows.some((r) => r.length !== cols);
+            /* 알맹이가 주는 `kind` 는 **기계가 쓰는 이름**이다('Excel paste' · 'Markdown table' · 'CSV').
+               그대로 찍으면 한국어 화면에 「알아본 형식 Excel paste」처럼 반쪽짜리 글이 나간다.
+               알맹이는 그 이름을 바꾸면 안 되고(다른 곳이 그걸 보고 갈린다), 사람에게 보일 말은
+               화면이 고른다 — 묶음에 없으면 원래 이름이 그대로 나가 빈칸은 안 생긴다. */
+            const kindLabel = kind ? t('tableconv.kind.' + kind.toLowerCase().replace(/[^a-z0-9]+/g, '_'), undefined, kind) : kind;
             stats.innerHTML =
-              stat(t('tableconv.stat.kind'), kind, true) + stat(t('tableconv.stat.rows'), t('tableconv.value.rows', { n: rows.length })) + stat(t('tableconv.stat.cols'), t('tableconv.value.cols', { n: cols }));
+              stat(t('tableconv.stat.kind'), kindLabel, true) + stat(t('tableconv.stat.rows'), t('tableconv.value.rows', { n: rows.length })) + stat(t('tableconv.stat.cols'), t('tableconv.value.cols', { n: cols }));
             // 줄마다 칸 수가 다르면 대개 붙여넣기가 잘린 것이다 — 결과는 나오지만 내용이 어긋난다
             if (ragged) say(t('tableconv.warn.ragged'), 'error');
-            else say(t('tableconv.say.detected', { kind }), 'ok');
+            else say(t('tableconv.say.detected', { kind: kindLabel }), 'ok');
             Toolbox.trackUse?.('convert');
           }
 

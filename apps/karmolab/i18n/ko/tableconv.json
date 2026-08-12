@@ -18,5 +18,8 @@
   "tableconv.value.rows": "{n}줄",
   "tableconv.value.cols": "{n}칸",
   "tableconv.say.detected": "{kind} 로 알아봤어요. 복사해서 쓰세요.",
-  "tableconv.tab": "표 바꾸기"
+  "tableconv.tab": "표 바꾸기",
+  "tableconv.kind.excel_paste": "엑셀 붙여넣기",
+  "tableconv.kind.markdown_table": "마크다운 표",
+  "tableconv.kind.csv": "CSV"
 }
