@@ -50,7 +50,7 @@ import { pressIntent, readPressHits } from './canvas-press';
 import { canRewireTo, isDropOnNode, releaseIntent } from './canvas-release';
 import { curveFromPointer, labelPosFromPointer } from './canvas-edgedrag';
 import { groupDelta, resizedBox, snappedPoint, worldDelta } from './canvas-drag';
-import { minimapRects, minimapWorthIt, paintMinimap } from './canvas-minimap';
+import { minimapRects, minimapWorthIt, paintMinimap, worldFitsInView } from './canvas-minimap';
 import { nextOverlapping } from './canvas-pick';
 import { buildEphemeralNode } from './canvas-ephemeral';
 import { buildLinkHandle, buildPhotoCard, buildSizeHandle } from './canvas-photo';
@@ -1419,13 +1419,13 @@ export class GraphCanvas {
 
   private redrawMinimap(): void {
     if (!this.spec) return;
-    // 카드가 두엇뿐이면 미니맵은 **길잡이가 아니라 검은 상자**다(빈 판에서 특히 그렇게 보인다).
-    const worthIt = minimapWorthIt(this.spec.nodes.length);
+    const bounds = this.worldBounds();   // 띄울 값어치 판단 = canvas-minimap.ts 의 두 함수
+    const worthIt = minimapWorthIt(this.spec.nodes.length, worldFitsInView(bounds, {
+      w: this.svg.clientWidth || 1, h: this.svg.clientHeight || 1,
+      scale: this.state.scale, tx: this.state.tx, ty: this.state.ty,
+    }));
     this.minimapSvg.style.display = worthIt ? '' : 'none';
-    if (!worthIt) return;
-
-    const bounds = this.worldBounds();
-    if (bounds.w <= 0 || bounds.h <= 0) return;
+    if (!worthIt || bounds.w <= 0 || bounds.h <= 0) return;
     const proj = fitProjection(bounds, { w: MINIMAP_W, h: MINIMAP_H });
     if (proj.scale <= 0) return;
 

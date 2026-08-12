@@ -15,8 +15,33 @@ export const MINIMAP_MIN_NODES = 4;
 /** 축소해도 이보다 작게는 안 그린다 — 0.4px 짜리는 안 보인다. */
 export const MINIMAP_MIN_PX = 2;
 
-export function minimapWorthIt(nodeCount: number): boolean {
-  return nodeCount >= MINIMAP_MIN_NODES;
+/**
+ * 작은 판을 띄울 값어치가 있나.
+ *
+ * ★ 카드 수만 보면 안 된다. 카드 여섯 장이 화면에 **전부 보이는데도** 구석에 축소판이 떠서,
+ * 큼직한 색 덩어리 몇 개가 로딩 자리표시자처럼 보였다(실측 2026-08-12). 작은 판이 하는 일은
+ * 「화면 밖에 뭐가 더 있는지」 알려 주는 것 하나뿐이다 — **밖에 아무것도 없으면 뺀다**.
+ */
+/**
+ * 판 전체가 지금 화면 안에 다 들어와 있나. 순수 셈이라 브라우저 없이 시험한다.
+ * `view` 는 **화면 픽셀** 기준(폭·높이·배율·평행이동) — 세계 좌표로 되돌려 비교한다.
+ */
+export function worldFitsInView(
+  bounds: { minX: number; minY: number; w: number; h: number },
+  view: { w: number; h: number; scale: number; tx: number; ty: number },
+): boolean {
+  if (bounds.w <= 0 || bounds.h <= 0 || view.scale <= 0) return false;
+  const vw = view.w / view.scale;
+  const vh = view.h / view.scale;
+  const vx = -view.tx / view.scale;
+  const vy = -view.ty / view.scale;
+  return bounds.minX >= vx && bounds.minY >= vy
+    && bounds.minX + bounds.w <= vx + vw && bounds.minY + bounds.h <= vy + vh;
+}
+
+export function minimapWorthIt(nodeCount: number, worldFitsInView = false): boolean {
+  if (nodeCount < MINIMAP_MIN_NODES) return false;
+  return !worldFitsInView;
 }
 
 export interface Box {
@@ -67,7 +92,7 @@ export function minimapRects(
       x: p.x, y: p.y,
       w: Math.max(MINIMAP_MIN_PX, n.w * ms),
       h: Math.max(MINIMAP_MIN_PX, n.h * ms),
-      fill: n.color + '60', rx: 1,
+      fill: n.color + '70', rx: 2,
     });
   }
   for (const e of model.ephemeral) {
@@ -76,7 +101,7 @@ export function minimapRects(
       x: p.x, y: p.y,
       w: Math.max(MINIMAP_MIN_PX, e.w * ms),
       h: Math.max(MINIMAP_MIN_PX, e.h * ms),
-      fill: EPHEMERAL_FILL, rx: 1,
+      fill: EPHEMERAL_FILL, rx: 2,
     });
   }
   return out;

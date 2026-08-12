@@ -114,17 +114,26 @@ export function buildCanvasDom(
 
     // 미니맵
     const minimapSvg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
+    /* 작은 판은 **판 위에 얹힌 물건**처럼 보여야 한다. 예전엔 모서리 4px 에 그림자도 없어서
+       구석에 박힌 남의 창처럼 떠 있었다(실측 2026-08-12). 둥글게 깎고 살짝 띄우고 뒤를 흐려
+       — 판이 비쳐 보이면 「이건 판의 축소판」이 눈으로 읽힌다. */
     minimapSvg.style.cssText = `
       position:absolute; bottom:16px; right:16px;
       width:${MINIMAP_W}px; height:${MINIMAP_H}px;
       background:${theme.minimapBg}; border:1px solid ${theme.minimapBorder};
-      border-radius:4px; pointer-events:all; cursor:pointer;
+      border-radius:12px; overflow:hidden; pointer-events:all; cursor:pointer;
+      box-shadow:0 8px 24px rgba(0,0,0,.32); backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px);
     `;
     container.appendChild(minimapSvg);
     const minimapViewport = document.createElementNS(SVG_NS, 'rect') as SVGRectElement;
-    minimapViewport.setAttribute('fill', 'rgba(100,160,255,0.1)');
-    minimapViewport.setAttribute('stroke', 'rgba(100,160,255,0.5)');
-    minimapViewport.setAttribute('stroke-width', '1');
+    // 「지금 보는 곳」 — 파랑을 못 박으면 테마를 갈아도 혼자 파랗다. 판의 강조색을 따라간다.
+    // ★ 색은 **style 로** 준다. `fill="var(--x)"` 처럼 속성에 적으면 변수가 안 풀린다
+    //   (표현 속성은 var() 를 안 받는다) — 그러면 상자가 통째로 검게 칠해진다.
+    minimapViewport.style.fill = 'var(--accent-dim, rgba(169,155,245,0.15))';
+    minimapViewport.style.stroke = 'var(--accent, rgba(169,155,245,0.65))';
+    minimapViewport.setAttribute('stroke-width', '1.5');
+    minimapViewport.setAttribute('rx', '3');
     minimapSvg.appendChild(minimapViewport);
     return { svg, world, groupLayer, edgeLayer, nodeLayer, bgRect, minimapSvg, minimapViewport };
 }

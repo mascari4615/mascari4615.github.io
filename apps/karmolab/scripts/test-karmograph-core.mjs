@@ -497,6 +497,7 @@ const M = await loadModules();
   const { fitProjection } = M.cmath;
   check(minimapWorthIt(0) === false && minimapWorthIt(3) === false, '카드가 서넛뿐이면 미니맵은 안 띄운다(검은 상자로 보인다)');
   check(minimapWorthIt(4) === true, '길을 잃을 만큼 커지면 띄운다');
+  check(minimapWorthIt(40, true) === false, '판 전체가 화면에 다 들어와 있으면 안 띄운다(길잡이가 할 일이 없다)');
   const bounds = { minX: 0, minY: 0, w: 4000, h: 3000 };
   const proj = fitProjection(bounds, { w: 160, h: 100 });
   const rects = minimapRects({
