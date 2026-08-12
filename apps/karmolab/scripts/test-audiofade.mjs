@@ -13,15 +13,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { serveAppAssets } from './lib/widget-harness.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
 const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
 const page = await browser.newPage();
-await page.route('**/*', (route) =>
-  route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' })
-);
+await serveAppAssets(page, root);
 await page.goto('http://localhost/');
 await page.evaluate(() => {
   window.__reg = {};
@@ -50,7 +49,7 @@ const out = await page.evaluate(async () => {
   dv.setUint32(24, SR, true); dv.setUint32(28, SR * 2, true); dv.setUint16(32, 2, true);
   dv.setUint16(34, 16, true); put(36, 'data'); dv.setUint32(40, pcm.byteLength, true);
 
-  const input = host.querySelector('#afFile');
+  const input = await window.__karmoWaitIn(host, '#afFile');
   const dt = new DataTransfer();
   dt.items.add(new File([new Blob([head, pcm])], '시험음.wav', { type: 'audio/wav' }));
   input.files = dt.files;

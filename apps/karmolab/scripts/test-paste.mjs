@@ -13,15 +13,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { serveAppAssets } from './lib/widget-harness.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
-await page.route('**/*', (route) =>
-  route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' })
-);
+await serveAppAssets(page, root);
 await page.goto('http://localhost/');
 await page.evaluate(() => {
   window.__reg = {};
@@ -58,7 +57,7 @@ const result = await page.evaluate(async () => {
   const afterPaste = listCount();
 
   // 글자를 적는 중에는 가로채면 안 된다
-  const input = host.querySelector('#imBg');
+  const input = await window.__karmoWaitIn(host, '#imBg');
   input.focus();
   paste(new File([await solid('#00ff00')], 'b.png', { type: 'image/png' }));
   await new Promise((r) => setTimeout(r, 400));

@@ -15,15 +15,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { serveAppAssets } from './lib/widget-harness.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
-await page.route('**/*', (route) =>
-  route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' })
-);
+await serveAppAssets(page, root);
 await page.goto('http://localhost/');
 await page.evaluate(() => {
   window.__reg = {};
@@ -55,7 +54,7 @@ const out = await page.evaluate(async () => {
   const file = new File([blob], '캡처.png', { type: 'image/png' });
 
   // 파일 고르기 경로를 그대로 탄다
-  const input = host.querySelector('#rdFile');
+  const input = await window.__karmoWaitIn(host, '#rdFile');
   const dt = new DataTransfer();
   dt.items.add(file);
   input.files = dt.files;
