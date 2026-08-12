@@ -21,5 +21,13 @@
   "studymap.import.ask": "Paste the exported progress. (It is added to what you have now)",
   "studymap.import.bad": "Nothing recognizable in there. Only text made by Export works.",
   "studymap.import.done": "Imported {n} topics.",
-  "studymap.tracks": "Tracks"
+  "studymap.tracks": "Tracks",
+  "studymap.lesson.loading": "Opening the lesson…",
+  "studymap.lesson.back": "Back to the map",
+  "studymap.lesson.none": "No lesson for this topic yet. Start from the links below.",
+  "studymap.lesson.try": "Try it",
+  "studymap.lesson.note": "Remember",
+  "studymap.lesson.quiz": "Check yourself",
+  "studymap.lesson.minutes": "about {n} min",
+  "studymap.lesson.cleared": "All correct — this topic is marked done."
 }
