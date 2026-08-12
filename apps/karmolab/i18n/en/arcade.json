@@ -245,5 +245,12 @@
   "arcade.hana.drop": "Discard",
   "arcade.hana.hint": "Pick a card and its match lights up",
   "arcade.hana.waiting": "Waiting for your turn",
-  "arcade.hana.win": "{who} — {n} cards"
+  "arcade.hana.win": "{who} — {n} cards",
+  "arcade.game.tanks.name": "Tanks",
+  "arcade.game.tanks.desc": "Lob shells over the hill. Watch where they land and adjust",
+  "arcade.tanks.angle": "Angle",
+  "arcade.tanks.power": "Power",
+  "arcade.tanks.fire": "Fire",
+  "arcade.tanks.flying": "In flight",
+  "arcade.tanks.win": "{who} — {n} hearts left"
 }

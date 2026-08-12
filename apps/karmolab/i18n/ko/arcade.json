@@ -245,5 +245,12 @@
   "arcade.hana.drop": "버리기",
   "arcade.hana.hint": "내 패를 고르면 짝이 밝아집니다",
   "arcade.hana.waiting": "차례를 기다리는 중",
-  "arcade.hana.win": "{who} — {n}장"
+  "arcade.hana.win": "{who} — {n}장",
+  "arcade.game.tanks.name": "탱크",
+  "arcade.game.tanks.desc": "언덕 너머로 포를 쏜다. 빗나간 자리를 보고 고쳐 쏜다",
+  "arcade.tanks.angle": "각도",
+  "arcade.tanks.power": "세기",
+  "arcade.tanks.fire": "쏘기",
+  "arcade.tanks.flying": "날아가는 중",
+  "arcade.tanks.win": "{who} — 목숨 {n} 남기고"
 }

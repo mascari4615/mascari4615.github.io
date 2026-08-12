@@ -245,5 +245,12 @@
   "arcade.hana.drop": "捨てる",
   "arcade.hana.hint": "手札を選ぶと合う札が光ります",
   "arcade.hana.waiting": "順番待ち",
-  "arcade.hana.win": "{who} — {n}枚"
+  "arcade.hana.win": "{who} — {n}枚",
+  "arcade.game.tanks.name": "タンク",
+  "arcade.game.tanks.desc": "丘の向こうへ撃つ。着弾を見て調整する",
+  "arcade.tanks.angle": "角度",
+  "arcade.tanks.power": "強さ",
+  "arcade.tanks.fire": "撃つ",
+  "arcade.tanks.flying": "飛行中",
+  "arcade.tanks.win": "{who} — 残り{n}"
 }
