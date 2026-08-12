@@ -1758,6 +1758,79 @@ await step('카드 크기가 자리와 같은 격자에 붙는다 (Alt = 자유)
   await ctx.close();
 });
 
+await step('되돌리기 구멍 감사 — 고친 것마다 Ctrl+Z 로 원래대로 (크기·자리·이름·나란히)', async () => {
+  // 「고칠 수 있다」와 「되돌릴 수 있다」는 따로 논다. 새 편집 기능을 넣을 때마다 되돌리기에
+  // 걸었는지 **한자리에서 전수로** 본다 — 항목이 늘면 여기 한 줄만 는다.
+  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+
+  const box = await m.locator('.km-canvas').boundingBox();
+  for (const [fx, fy] of [[0.3, 0.3], [0.6, 0.65]]) {
+    await m.mouse.dblclick(box.x + box.width * fx, box.y + box.height * fy);
+    await m.waitForTimeout(500);
+    await m.keyboard.press('Escape');
+    await m.mouse.click(box.x + box.width * 0.9, box.y + box.height * 0.15);
+  }
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 2, null, { timeout: 6000 });
+
+  /** 저장본의 알맹이 — 자리·크기·이름만 본다(고른 카드 같은 화면 상태는 되돌리기 대상이 아니다). */
+  const shot = () => m.evaluate(() => JSON.stringify(JSON.parse(localStorage.getItem(
+    'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId))
+    .nodes.map((n) => [n.id, n.x, n.y, n.w, n.h, n.label])));
+
+  const holes = [];
+  const round = async (name, act) => {
+    const before = await shot();
+    await act();
+    await m.waitForTimeout(700);
+    if (await shot() === before) { holes.push(name + ': 고쳐지지도 않았다'); return; }
+    await m.keyboard.press('Control+z');
+    await m.waitForTimeout(700);
+    if (await shot() !== before) holes.push(name + ': Ctrl+Z 로 안 돌아온다');
+  };
+
+  await round('크기', async () => {
+    await m.locator('.ck-node').first().click();
+    await m.waitForSelector('.ck-size-handle', { timeout: 4000 });
+    const grip = await m.locator('.ck-size-handle').first().boundingBox();
+    await m.mouse.move(grip.x + 5, grip.y + 5);
+    await m.mouse.down();
+    await m.mouse.move(grip.x + 85, grip.y + 45, { steps: 6 });
+    await m.mouse.up();
+  });
+
+  await round('자리', async () => {
+    const n = await m.locator('.ck-node').first().boundingBox();
+    await m.mouse.move(n.x + 25, n.y + 12);
+    await m.mouse.down();
+    await m.mouse.move(n.x + 25, n.y + 170, { steps: 8 });
+    await m.mouse.up();
+  });
+
+  await round('이름', async () => {
+    await m.locator('.ck-node').first().dblclick();
+    await m.waitForSelector('.km-inline', { timeout: 4000 });
+    await m.keyboard.press('Control+a');
+    await m.keyboard.type('되돌릴이름');
+    await m.keyboard.press('Enter');
+  });
+
+  await round('나란히 놓기', async () => {
+    await m.locator('.km-canvas').click({ position: { x: 8, y: 8 } });
+    await m.keyboard.press('Control+a');
+    await m.waitForSelector('[data-km="al"]', { timeout: 4000 });
+    await m.locator('[data-km="al"][data-how="left"]').click();
+  });
+
+  if (holes.length > 0) throw new Error('되돌리기 구멍: ' + holes.join(' · '));
+  await ctx.close();
+});
+
 // ── 폰 화면 ──────────────────────────────────────────────────────────────────
 // 관계도는 **보는 일**이 폰에서 훨씬 많다(링크 받아 열기). 그런데 지금까지 폰 크기는 한 번도 안 봤다.
 await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널은 아래 시트로 뜬다', async () => {
