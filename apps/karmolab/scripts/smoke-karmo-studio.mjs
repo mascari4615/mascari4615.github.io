@@ -99,12 +99,43 @@ const audioEditorShotIndex=process.argv.indexOf('--audio-editor-shot');if(audioE
 const largeAudioWave=await page.locator('.ks-editor.is-expanded .ks-audio-wave path').getAttribute('d');await page.keyboard.press('Escape');
 await page.click('[data-act=midi]');
 const afterAddTrack=await page.locator('.ks-track-row').count();await page.click('[data-act=undo]');const afterUndoTrack=await page.locator('.ks-track-row').count();await page.click('[data-act=redo]');const afterRedoTrack=await page.locator('.ks-track-row').count();
+await page.keyboard.press('p');
 const lane=page.locator('.ks-lane[data-kind=midi]').last();const laneBox=await lane.boundingBox();await page.mouse.dblclick(laneBox.x+180,laneBox.y+35);await page.waitForTimeout(100);
-const piano=page.locator('[data-piano]');const pianoBox=await piano.boundingBox();await page.mouse.dblclick(pianoBox.x+180,pianoBox.y+120);await page.waitForTimeout(100);
+const piano=page.locator('[data-piano]');
+await piano.dblclick({position:{x:180,y:120}});await page.waitForTimeout(120);
 const noteCountBeforeFlDuplicate=await page.locator('.ks-note').count();await page.keyboard.press('Control+b');await page.waitForTimeout(80);const noteCountAfterFlDuplicate=await page.locator('.ks-note').count();
 const resizeHandle=page.locator('.ks-note-handle').last();const resizeBox=await resizeHandle.boundingBox();const noteWidthBefore=await resizeHandle.locator('..').evaluate((element)=>element.getBoundingClientRect().width);await page.mouse.move(resizeBox.x+2,resizeBox.y+3);await page.mouse.down();await page.mouse.move(resizeBox.x+70,resizeBox.y+3,{steps:3});await page.mouse.up();await page.waitForTimeout(80);const noteWidthAfter=await page.locator('.ks-note').last().evaluate((element)=>element.getBoundingClientRect().width);
+/* piano roll 다중 선택 — 빈 칸 box drag 로 음을 묶고, 하나를 끌면 전부 같이 간다. */
+await page.keyboard.press('e');
+const pianoSurface=await page.locator('[data-piano]').boundingBox();
+const noteBoxes=await page.locator('.ks-note').evaluateAll((elements)=>elements.map((element)=>{const box=element.getBoundingClientRect();return {left:box.left,top:box.top,right:box.right,bottom:box.bottom};}));
+const noteBandLeft=Math.max(pianoSurface.x+70,Math.min(...noteBoxes.map((box)=>box.left))-6);
+const noteBandRight=Math.min(pianoSurface.x+pianoSurface.width-2,Math.max(...noteBoxes.map((box)=>box.right))+6);
+const noteBandTop=Math.max(pianoSurface.y+2,Math.min(...noteBoxes.map((box)=>box.top))-8);
+const noteBandBottom=Math.min(pianoSurface.y+pianoSurface.height-2,Math.max(...noteBoxes.map((box)=>box.bottom))+8);
+await page.mouse.move(noteBandRight,noteBandBottom);await page.mouse.down();await page.mouse.move(noteBandLeft,noteBandTop,{steps:6});await page.mouse.up();await page.waitForTimeout(100);
+const notesBoxSelected=await page.locator('.ks-note.is-selected').count();
+const noteTopsBefore=await page.locator('.ks-note').evaluateAll((elements)=>elements.map((element)=>parseFloat(element.style.top)));
+const noteGrabY=(noteBoxes[0].top+noteBoxes[0].bottom)/2;
+const noteGrabX=await page.evaluate(([left,right,y])=>{for(let x=left+3;x<right-9;x+=3){const element=document.elementFromPoint(x,y);if(element&&element.closest('.ks-note')&&!element.closest('[data-note-resize]'))return x;}return left+3;},[noteBoxes[0].left,noteBoxes[0].right,noteGrabY]);
+await page.mouse.move(noteGrabX,noteGrabY);await page.mouse.down();await page.mouse.move(noteGrabX,noteGrabY-32,{steps:4});await page.mouse.up();await page.waitForTimeout(120);
+const noteTopsAfter=await page.locator('.ks-note').evaluateAll((elements)=>elements.map((element)=>parseFloat(element.style.top)));
+const noteDeltas=noteTopsAfter.map((value,index)=>value-(noteTopsBefore[index]??0));
+const noteCountBeforeGroupDelete=await page.locator('.ks-note').count();
+await page.keyboard.press('Control+b');await page.waitForTimeout(140);
+const noteCountAfterGroupDuplicate=await page.locator('.ks-note').count();
+await page.keyboard.press('Delete');await page.waitForTimeout(140);
+const noteCountAfterGroupDelete=await page.locator('.ks-note').count();
+/* 이후 검사는 note 한 개 선택 상태를 전제한다 — 수식어 없이 하나를 눌러 묶음을 접는다. */
+await page.keyboard.press('p');
+const focusBox=await page.locator('.ks-note').first().boundingBox();
+const focusY=focusBox.y+focusBox.height/2;
+const focusX=await page.evaluate(([left,right,y])=>{for(let x=left+3;x<right-9;x+=3){const element=document.elementFromPoint(x,y);if(element&&element.closest('.ks-note')&&!element.closest('[data-note-resize]'))return x;}return left+3;},[focusBox.x,focusBox.x+focusBox.width,focusY]);
+await page.mouse.click(focusX,focusY);await page.waitForTimeout(100);
+const focusedNotes=await page.locator('.ks-note.is-selected').count();
 const noteCountBeforePaste=await page.locator('.ks-note').count();await page.keyboard.press('Control+c');await page.keyboard.press('Control+v');await page.waitForTimeout(80);const noteCountAfterPaste=await page.locator('.ks-note').count();
-await page.click('[data-act=toggle-editor]');
+/* 확장 편집기가 열려 있을 때만 접는다 — 무조건 toggle 하면 오히려 열려서 툴바를 덮는다. */
+if(await page.locator('.ks-editor.is-expanded').count())await page.click('[data-act=toggle-editor]');
 const arrangerScrollBefore=await page.locator('[data-role=scroll]').evaluate((element)=>{element.scrollLeft=300;return element.scrollLeft;});await page.click('[data-act=zoom-in]');const arrangerScrollAfter=await page.locator('[data-role=scroll]').evaluate((element)=>element.scrollLeft);
 await page.click('[data-act=back]');await page.locator('[data-project-ins=loopEnd]').fill('0.25');await page.locator('[data-project-ins=loopEnd]').press('Tab');await page.waitForTimeout(800);const engineBefore=await page.evaluate(()=>({close:window.__ksClose,param:window.__ksParamUpdates}));await page.click('[data-act=play]');await page.waitForTimeout(180);await page.locator('[data-track-volume]').first().evaluate((element)=>{element.value='0.42';element.dispatchEvent(new Event('input',{bubbles:true}));});await page.waitForTimeout(520);const engineDuring=await page.evaluate(()=>({close:window.__ksClose,param:window.__ksParamUpdates}));await page.click('[data-act=stop]');
 await page.fill('[data-bind=project-name]','Smoke Song');await page.locator('[data-bind=project-name]').press('Tab');await page.waitForTimeout(400);
@@ -131,6 +162,11 @@ if(!audioWave||audioWave.length<100||!largeAudioWave||largeAudioWave.length<100)
 if(afterAddTrack!==3||afterUndoTrack!==2||afterRedoTrack!==3)problems.push(`undo/redo 실패 (${afterAddTrack}→${afterUndoTrack}→${afterRedoTrack})`);
 if(noteWidthAfter<=noteWidthBefore)problems.push(`MIDI 노트 길이 조절 실패 (${noteWidthBefore}→${noteWidthAfter})`);
 if(noteCountAfterFlDuplicate!==noteCountBeforeFlDuplicate+1)problems.push(`FL식 Ctrl+B note 복제 실패 (${noteCountBeforeFlDuplicate}→${noteCountAfterFlDuplicate})`);
+if(notesBoxSelected<2)problems.push(`piano roll box 다중 선택 실패 (${notesBoxSelected} selected)`);
+if(noteDeltas.length<2||noteDeltas.some((value)=>Math.abs(value-noteDeltas[0])>0.6)||noteDeltas[0]>=0)problems.push(`묶음 note 이동이 어긋났다 (${JSON.stringify(noteDeltas)})`);
+if(noteCountAfterGroupDuplicate!==noteCountBeforeGroupDelete*2)problems.push(`묶음 note 복제 실패 (${noteCountBeforeGroupDelete}→${noteCountAfterGroupDuplicate})`);
+if(noteCountAfterGroupDelete!==noteCountBeforeGroupDelete)problems.push(`묶음 note 삭제 실패 (${noteCountAfterGroupDuplicate}→${noteCountAfterGroupDelete})`);
+if(focusedNotes!==1)problems.push(`수식어 없는 클릭이 묶음을 접지 않았다 (${focusedNotes} selected)`);
 if(noteCountAfterPaste!==noteCountBeforePaste+1)problems.push(`MIDI note copy/paste 실패 (${noteCountBeforePaste}→${noteCountAfterPaste})`);
 if(arrangerScrollBefore>5&&arrangerScrollAfter<arrangerScrollBefore-5)problems.push(`타임라인 재렌더 뒤 스크롤 초기화 (${arrangerScrollBefore}→${arrangerScrollAfter})`);
 if(after.tracks!==initial.tracks+1)problems.push(`MIDI 트랙 추가 실패 (${initial.tracks}→${after.tracks})`);
