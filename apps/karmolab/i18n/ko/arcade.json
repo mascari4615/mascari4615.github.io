@@ -233,5 +233,9 @@
   "arcade.fish.done": "다 썼다",
   "arcade.fish.empty": "아직 아무것도",
   "arcade.fish.missed": "놓쳤다",
-  "arcade.fish.win": "{who} — {n}"
+  "arcade.fish.win": "{who} — {n}",
+  "arcade.game.minishogi.name": "작은 쇼기",
+  "arcade.game.minishogi.desc": "잡은 말이 내 말이 된다. 왕을 잡으면 끝",
+  "arcade.shogi.win": "{who} 이(가) 왕을 잡았다",
+  "arcade.shogi.stale": "오래 끌었다 — 비겼다"
 }
