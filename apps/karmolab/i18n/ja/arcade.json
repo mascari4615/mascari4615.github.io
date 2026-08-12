@@ -293,5 +293,10 @@
   "arcade.tug.hint": "リズムを合わせて",
   "arcade.tug.tooFast": "速すぎる — 空回り",
   "arcade.tug.win": "{who} が引き寄せた",
-  "arcade.tug.draw": "時間切れ — 引き分け"
+  "arcade.tug.draw": "時間切れ — 引き分け",
+  "arcade.game.capturego.name": "取囲碁",
+  "arcade.game.capturego.desc": "地は数えない。先に5子取れば勝ち",
+  "arcade.go.pass": "パス",
+  "arcade.go.win": "{who} — {n}子",
+  "arcade.go.draw": "{n} 対 {n} — 引き分け"
 }
