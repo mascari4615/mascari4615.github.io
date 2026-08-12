@@ -14,6 +14,7 @@ import { applyBox, bounds, handleAt, hitTest, resizeBox, type Handle } from './g
 import { toSvg } from './svg';
 import { clampSlice, defaultSlice, sliceMeta, type Slice } from './slice';
 import { PARTS, defaultKnobs, type PartName } from './parts';
+import { canUpload, listFoundry, setFoundryToken, uploadToFoundry, type FoundryItem } from '../../lib/foundry';
 import { injectBonStyles } from './styles';
 import { BonView } from './view';
 
@@ -62,6 +63,8 @@ function buildBon(container: HTMLElement): void {
         '<button data-act="svg">SVG</button>' +
         '<button data-act="png">PNG</button>' +
         '<button data-act="pack" title="SVG + PNG + 9-slice 값">9-slice 묶음</button>' +
+        '<button data-act="shelf" title="만든 것을 선반에 올린다 (CC0)">선반에 올리기</button>' +
+        '<button data-act="shelf-open" title="선반 구경하기">선반</button>' +
       '</div>' +
       '<div class="bon-body">' +
         '<div class="bon-tools">' +
@@ -518,6 +521,111 @@ function buildBon(container: HTMLElement): void {
     download(new Blob([JSON.stringify(meta, null, 2)], { type: 'application/json' }), 'bon.9slice.json');
   }
 
+  /* ── 선반 ────────────────────────────────── */
+  const shelf = document.createElement('div');
+  shelf.className = 'bon-shelf';
+  shelf.hidden = true;
+  container.querySelector('.bon-wrap')?.append(shelf);
+
+  function shelfMessage(text: string, bad = false): void {
+    shelf.hidden = false;
+    shelf.innerHTML = '<div class="bon-shelf-msg' + (bad ? ' bad' : '') + '">' + esc(text) +
+      '<button data-shelf="close">닫기</button></div>';
+  }
+
+  /** 올리기 — 열쇠가 없으면 넣는 자리를 먼저 보여 준다(눌렀다가 「권한 없음」을 보는 것보다 낫다). */
+  async function putOnShelf(): Promise<void> {
+    if (!canUpload()) {
+      shelf.hidden = false;
+      shelf.innerHTML =
+        '<div class="bon-shelf-msg">선반에 올리려면 열쇠가 든다. 이 브라우저에만 남는다.' +
+          '<input type="password" data-shelf-token placeholder="선반 열쇠" autocomplete="off">' +
+          '<button data-shelf="save-token">넣기</button><button data-shelf="close">닫기</button></div>';
+      return;
+    }
+    const title = window.prompt('선반에 올릴 이름', '부품') ?? '';
+    if (!title.trim()) return;
+    shelfMessage('올리는 중…');
+    try {
+      const svg = toSvg(doc);
+      const item = await uploadToFoundry({
+        tool: 'bon',
+        title: title.trim(),
+        mime: 'image/svg+xml',
+        bytes: new TextEncoder().encode(svg),
+        // 다시 열 수 있게 문서와 9-slice 값을 함께 담는다 — 그림만 남으면 고칠 수가 없다.
+        recipe: { doc: JSON.parse(JSON.stringify(doc)) as unknown, slice: view.slice }
+      });
+      shelfMessage('올렸다 — ' + item.title + ' (CC0, 아무나 가져다 쓴다)');
+    } catch (error) {
+      shelfMessage(String(error instanceof Error ? error.message : error), true);
+    }
+  }
+
+  /** 구경하기 — 남이 올린 것도 함께 보인다. 누르면 그 설정 그대로 내 판에 열린다. */
+  async function openShelf(): Promise<void> {
+    shelfMessage('선반을 여는 중…');
+    try {
+      const { items, total } = await listFoundry({ limit: 40 });
+      if (items.length === 0) {
+        shelfMessage('선반이 비었다. 먼저 하나 올려 보라.');
+        return;
+      }
+      shelf.innerHTML =
+        '<div class="bon-shelf-head">선반 <small>' + total + '개 · CC0</small>' +
+          '<button data-shelf="close">닫기</button></div>' +
+        '<div class="bon-shelf-grid">' +
+          items.map((item) =>
+            '<figure class="bon-shelf-card" data-shelf-id="' + esc(item.id) + '">' +
+              '<img src="' + esc(item.url) + '" alt="' + esc(item.title) + '" loading="lazy">' +
+              '<figcaption>' + esc(item.title) + '<small>' + esc(item.tool) + '</small></figcaption>' +
+              (item.recipe ? '<button data-shelf="open" data-id="' + esc(item.id) + '">이대로 열기</button>' : '') +
+            '</figure>').join('') +
+        '</div>';
+      shelf.hidden = false;
+      shelfItems = items;
+    } catch (error) {
+      shelfMessage(String(error instanceof Error ? error.message : error), true);
+    }
+  }
+
+  let shelfItems: FoundryItem[] = [];
+
+  shelf.addEventListener('click', (event) => {
+    const el = (event.target as HTMLElement).closest<HTMLElement>('[data-shelf]');
+    if (!el) return;
+    const what = el.dataset.shelf;
+    if (what === 'close') { shelf.hidden = true; return; }
+    if (what === 'save-token') {
+      const input = shelf.querySelector<HTMLInputElement>('[data-shelf-token]');
+      setFoundryToken(input?.value.trim() ?? '');
+      shelf.hidden = true;
+      void putOnShelf();
+      return;
+    }
+    if (what === 'open') {
+      const item = shelfItems.find((x) => x.id === el.dataset.id);
+      const recipe = item?.recipe as { doc?: Doc; slice?: typeof view.slice } | undefined;
+      if (!recipe?.doc) { shelfMessage('이 항목엔 다시 열 설정이 없다', true); return; }
+      // 판을 통째로 갈아 끼운다. 되돌리기 한 번으로 원래 것으로 돌아갈 수 있게 옛 모습을 들고 간다.
+      const before = JSON.stringify({ w: doc.w, h: doc.h, layers: doc.layers });
+      const after = JSON.stringify(recipe.doc);
+      const apply = (text: string): void => {
+        const next = JSON.parse(text) as Doc;
+        doc.w = next.w; doc.h = next.h;
+        doc.layers.length = 0;
+        doc.layers.push(...next.layers);
+        selected = null;
+        activeLayer = 0;
+      };
+      apply(after);
+      if (recipe.slice) view.slice = recipe.slice;
+      history.push({ label: '선반에서 열기', redo: () => apply(after), undo: () => apply(before) });
+      shelf.hidden = true;
+      repaint();
+    }
+  });
+
   /* ── 위쪽 막대 ──────────────────────────────── */
   const bar = container.querySelector('.bon-bar') as HTMLElement;
 
@@ -529,6 +637,8 @@ function buildBon(container: HTMLElement): void {
     else if (act === 'svg') download(new Blob([toSvg(doc)], { type: 'image/svg+xml' }), 'bon.svg');
     else if (act === 'png') void exportPng();
     else if (act === 'pack') void exportPack();
+    else if (act === 'shelf') void putOnShelf();
+    else if (act === 'shelf-open') void openShelf();
   });
 
   bar.addEventListener('input', (event) => {

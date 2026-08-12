@@ -5,6 +5,7 @@ export function injectBonStyles(): void {
   style.id = 'bon-style';
   style.textContent = `
 .bon-wrap {
+      position:relative;   /* 선반이 판 위에 겹쳐 뜬다 */
       display:flex; flex-direction:column; gap:10px;
       /* 먹과 같은 결 — 창 높이에 맞춰 접히되 너무 납작해지지 않는다. */
       height:min(78vh, 820px); min-height:520px;
@@ -88,6 +89,30 @@ export function injectBonStyles(): void {
     .bon-eye:hover { color:var(--text-primary); }
     .bon-layer-acts { gap:4px; margin-top:4px; }
     .bon-layer-acts button { flex:1; padding:4px 2px; font-size:11px; }
+    /* 선반 — 판 위에 겹쳐 뜬다 */
+    .bon-shelf { position:absolute; inset:0; z-index:5; background:var(--bg-primary);
+      border-radius:var(--radius-md); padding:14px; overflow-y:auto;
+      display:flex; flex-direction:column; gap:12px; }
+    .bon-shelf[hidden] { display:none; }
+    .bon-shelf-head { display:flex; align-items:center; gap:10px; font-size:14px; font-weight:600; }
+    .bon-shelf-head small { font-weight:400; color:var(--text-secondary); }
+    .bon-shelf-head button, .bon-shelf-msg button { margin-left:auto; }
+    .bon-shelf-msg { display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12px; }
+    .bon-shelf-msg.bad { color:#ff6b6b; }
+    .bon-shelf-msg input { flex:1; min-width:150px; background:var(--bg-tertiary);
+      color:var(--text-primary); border:1px solid var(--border); border-radius:6px; padding:5px 7px; }
+    .bon-shelf-grid { display:grid; gap:10px;
+      grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); }
+    .bon-shelf-card { margin:0; border:1px solid var(--border); border-radius:8px; padding:8px;
+      display:flex; flex-direction:column; gap:6px; background:var(--bg-secondary); }
+    .bon-shelf-card img { width:100%; height:88px; object-fit:contain;
+      background-color:#fff;
+      background-image:linear-gradient(45deg,#e2e2e2 25%,transparent 25%,transparent 75%,#e2e2e2 75%),
+                       linear-gradient(45deg,#e2e2e2 25%,transparent 25%,transparent 75%,#e2e2e2 75%);
+      background-size:12px 12px; background-position:0 0,6px 6px; border-radius:5px; }
+    .bon-shelf-card figcaption { display:flex; flex-direction:column; gap:2px; font-size:12px;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .bon-shelf-card figcaption small { color:var(--text-secondary); font-size:11px; }
     .bon-foot { display:flex; align-items:center; gap:7px; flex-shrink:0;
       padding-top:8px; border-top:1px solid var(--border); }
     .bon-foot-label { color:var(--text-secondary); font-size:11px; letter-spacing:.06em; }
