@@ -48,6 +48,13 @@ export interface MaterialShellOpts {
    * @returns 파일 줄에 쓸 한 마디(「12쪽 · 2.4MB」 · 「1920×1080 · 340KB」)
    */
   preview: (file: File, box: HTMLElement, alive: () => boolean) => Promise<string>;
+  /**
+   * **들고 온 것을 보고 할 일을 짚어 준다** (TASK-KL-263 — JSON Crack·JSON Hero 를 보고).
+   *
+   * 붙여넣은 것이 JSON 이면 「보기 좋게」·「타입 뽑기」가, JWT 면 「뜯어보기」가 맞다.
+   * 열여섯 개를 다 읽게 하지 말고 **맞는 것을 앞에 띄운다**. 짚는 것뿐이라 나머지도 그대로 눌린다.
+   */
+  suggest?: (file: File) => Promise<{ ids: string[]; why: string }>;
 }
 
 /** 도구의 글 칸 — 읽기 전용(결과 칸)은 건너뛴다. 첫 칸이 늘 입력이다. */
@@ -89,6 +96,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
       </div>
       <div class="pf-right">
         <div class="pf-jobs" id="pfJobs">
+          <div class="pf-tip" id="pfTip" hidden></div>
           ${o
             .groups()
             .map(
@@ -141,6 +149,19 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
       const meta = await o.preview(f, preview, () => mine === token);
       if (mine !== token) return;
       $('#pfMeta').textContent = meta || fileSize(f.size);
+      if (o.suggest) {
+        const hit = await o.suggest(f);
+        if (mine !== token) return;
+        container.querySelectorAll('.pf-job').forEach((b) => b.classList.remove('pf-hot'));
+        const tip = $('#pfTip');
+        if (hit.ids.length) {
+          hit.ids.forEach((id) => container.querySelector(`.pf-job[data-job="${id}"]`)?.classList.add('pf-hot'));
+          tip.textContent = hit.why;
+          tip.hidden = false;
+        } else {
+          tip.hidden = true;
+        }
+      }
     } catch {
       if (mine !== token) return;
       $('#pfMeta').textContent = fileSize(f.size);
@@ -221,9 +242,20 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
         return;
       }
       void file.text().then((v) => {
-        box.value = v;
-        box.dispatchEvent(new Event('input', { bubbles: true }));
-        box.dispatchEvent(new Event('change', { bubbles: true }));
+        const put = (): void => {
+          box.value = v;
+          box.dispatchEvent(new Event('input', { bubbles: true }));
+          box.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+        put();
+        /* **도구가 늦게 덮어쓴다** (TASK-KL-263 에서 잡음). 도구 화면은 말 묶음을 받은 뒤에
+         * 그려지는데(`loadNamespace(...).then`), 그중 몇은 그때 **보기 글을 채운다**
+         * (정규식 도구가 예제 문장을 넣는 식). 우리가 먼저 넣어도 그 뒤에 지워졌다.
+         * 그래서 한 박자 뒤 한 번 확인하고, 우리 것이 아니면 다시 넣는다.
+         * 0.4초는 사람이 뭘 고쳐 쓰기 전이다 — 사람 입력을 덮을 걱정은 없다. */
+        window.setTimeout(() => {
+          if (box.isConnected && box.value !== v) put();
+        }, 400);
       });
       return;
     }
@@ -327,6 +359,9 @@ function injectStyles(): void {
 .pf-job{appearance:none;text-align:left;padding:14px;border-radius:10px;cursor:pointer;
   border:1px solid rgba(128,128,128,.28);background:transparent;font-size:14px;}
 .pf-job:hover{background:rgba(128,160,255,.12);border-color:rgba(128,160,255,.5);}
+.pf-job.pf-hot{border-color:rgba(120,200,140,.75);background:rgba(120,200,140,.12);font-weight:600;}
+.pf-tip{font-size:12px;margin-bottom:10px;padding:8px 12px;border-radius:10px;
+  border:1px solid rgba(120,200,140,.45);background:rgba(120,200,140,.09);}
 .pf-back{appearance:none;background:transparent;border:0;cursor:pointer;padding:4px 0;
   font-size:13px;opacity:.7;margin-bottom:10px;}
 .pf-back:hover{opacity:1;}
