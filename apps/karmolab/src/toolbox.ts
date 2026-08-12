@@ -694,10 +694,20 @@ const Toolbox = (() => {
         /* 가벼운 목록을 먼저 받은 화면은 **나머지(아이콘·설명)만** 따로 받는다. 전체를 한 벌 더
            받으면 전송량이 그만큼 늘어난다. 전체를 통째로 받은 화면은 아래 `full` 쪽으로 들어온다. */
         const rest = (typeof window !== 'undefined' && (window as unknown as { KARMOLAB_META_REST?: Record<string, { icon?: string; desc?: string }> }).KARMOLAB_META_REST) || null;
-        const source = full.map((m) => {
-            if (!m || !m.id || !rest || !rest[m.id]) return m;
-            return { ...m, icon: m.icon || rest[m.id].icon, desc: m.desc || rest[m.id].desc };
-        });
+        /* ★ **원본에 그대로 꽂는다** (2026-08-12). 예전에는 합친 결과를 새 배열에만 담아
+         *   아래 `tools`(이미 등록된 위젯)와 `byId` 만 고쳤다. 그런데 목록·찾기창은
+         *   `KARMOLAB_LAZY_META` 를 그대로 읽는데, 거기엔 아이콘이 끝내 안 들어갔다 —
+         *   그래서 **그 위젯을 한 번 열어야만** 아이콘이 생겼다(열면 그 묶음이 자기 아이콘을
+         *   들고 온다). 실측: 메타 204개 중 아이콘 꽂힌 것 0개.
+         *   합친 값을 원본 항목에 직접 써 주면 읽는 쪽이 어디든 같은 것을 본다. */
+        if (rest) {
+            for (const m of full) {
+                if (!m || !m.id || !rest[m.id]) continue;
+                if (!m.icon && rest[m.id].icon) m.icon = rest[m.id].icon;
+                if (!m.desc && rest[m.id].desc) m.desc = rest[m.id].desc;
+            }
+        }
+        const source = full;
         for (const m of source) {
             if (!m || !m.id) continue;
             const tool = tools.find(x => x.id === m.id);
@@ -710,6 +720,15 @@ const Toolbox = (() => {
                 if (m.desc) byId[m.id].desc = m.desc;
             }
         }
+        /* ★ 이미 만들어진 목록도 다시 그린다 (2026-08-12). 찾기창은 열 때가 아니라 **처음 한 번**
+         *   목록을 짜 두는데, 아이콘은 그보다 늦게 온다 — 그래서 아이콘이 붙어도 찾기창은
+         *   옛 목록을 그대로 보여 줬다(그 도구를 한 번 열어야 생기는 것처럼 보인 이유).
+         *   정본은 여전히 한 곳이고, 여기서는 「다시 읽어라」만 알린다. */
+        try {
+            const palette = (window as unknown as { KarmoPalette?: { refresh?: () => void } }).KarmoPalette;
+            if (palette && palette.refresh) palette.refresh();
+        } catch (_) { /* 찾기창이 아직 없으면 그만이다 */ }
+
         document.querySelectorAll('.nav-item[data-page]').forEach(function (a) {
             const el = a as HTMLElement;
             const tool = tools.find(x => x.id === el.dataset.page);
