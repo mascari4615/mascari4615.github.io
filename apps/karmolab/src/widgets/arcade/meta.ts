@@ -31,6 +31,7 @@ export const META: GameMeta[] = [
   { id: 'dots', icon: '⬜', kind: 'board' },
   { id: 'ultimate', icon: '⊞', kind: 'board' },
   { id: 'checkers', icon: '🔶', kind: 'board' },
+  { id: 'nim', icon: '⚪', kind: 'board' },
 
   { id: 'blackjack', icon: '♠️', kind: 'card' },
   { id: 'president', icon: '👑', kind: 'card' },

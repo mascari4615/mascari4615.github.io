@@ -155,5 +155,8 @@
   "arcade.highlow.nopot": "一枚選んで開始",
   "arcade.highlow.left": "残り{n}回",
   "arcade.highlow.win": "{who} — {n}点",
-  "arcade.highlow.draw": "{n}点で同じ"
+  "arcade.highlow.draw": "{n}点で同じ",
+  "arcade.game.nim.name": "石取り",
+  "arcade.game.nim.desc": "一列から好きなだけ。最後を取ったら負け",
+  "arcade.nim.win": "{who} が最後を残した"
 }
