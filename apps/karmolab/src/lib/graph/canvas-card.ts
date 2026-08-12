@@ -22,7 +22,7 @@ export function buildCardText(
   const out: SVGElement[] = [];
   const hasNote = Boolean(node.note && node.note.trim());
   const textX = cardTextX(node, effH, centered);
-  const baseY = centered && faceGeometry(node, effH, centered) ? effH / 2 + 18 : effH / 2 + 4;
+  const baseY = centered && faceGeometry(node, effH, centered) ? effH / 2 + 18 : effH / 2 + 5;
   const labelY = hasNote ? baseY - 6 : baseY;
 
   const text = document.createElementNS(SVG_NS, 'text');
@@ -30,7 +30,10 @@ export function buildCardText(
   text.setAttribute('y', String(labelY));
   if (centered) text.setAttribute('text-anchor', 'middle');
   text.setAttribute('fill', theme.nodeText);
-  text.setAttribute('font-size', '11');
+  // 카드 이름은 **1:1 에서 읽히는 크기**여야 한다. 「전체 보기」가 100% 를 안 넘게 된 뒤로
+  // 11px 은 부제와 함께 뭉개져 보였다(실측 2026-08-12). 13px = 본문 한 줄로 읽히는 최소.
+  text.setAttribute('font-size', '13');
+  text.setAttribute('font-weight', '600');
   text.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
   text.setAttribute('pointer-events', 'none');
   text.textContent = node.label;
@@ -40,7 +43,7 @@ export function buildCardText(
   if (!centered) {
     out.push(...buildFieldRows(node.fields, {
       x: textX,
-      y: labelY + (hasNote ? 26 : 15),
+      y: labelY + (hasNote ? 29 : 17),
       width: node.w,
       color: theme.childText,
     }));
@@ -49,14 +52,14 @@ export function buildCardText(
   if (hasNote) {
     const note = document.createElementNS(SVG_NS, 'text');
     note.setAttribute('x', String(textX));
-    note.setAttribute('y', String(labelY + 13));
+    note.setAttribute('y', String(labelY + 15));
     if (centered) note.setAttribute('text-anchor', 'middle');
     note.setAttribute('fill', theme.childText);
-    note.setAttribute('font-size', '9.5');
+    note.setAttribute('font-size', '11');
     note.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
     note.setAttribute('pointer-events', 'none');
     const room = centered ? node.w - 16 : node.w - textX - 10;
-    const maxChars = Math.max(4, Math.floor(room / 5.4));
+    const maxChars = Math.max(4, Math.floor(room / 6.2));
     const raw = node.note ?? '';
     note.textContent = raw.length > maxChars ? `${raw.slice(0, maxChars - 1)}…` : raw;
     out.push(note);
