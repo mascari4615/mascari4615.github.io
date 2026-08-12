@@ -97,18 +97,43 @@ function scheduleMidi(context: AudioContextLike, input: AudioNode, track: Studio
     if (absoluteBeat + note.duration <= fromBeat || absoluteBeat >= toBeat) continue;
     const audibleStart = Math.max(absoluteBeat, fromBeat);
     const audibleEnd = Math.min(absoluteBeat + note.duration, toBeat);
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = track.instrument;
-    oscillator.frequency.value = noteFrequency(note.pitch);
     const at = startTime + (audibleStart - fromBeat) * secondsPerBeat;
     const end = startTime + (audibleEnd - fromBeat) * secondsPerBeat;
+    const gain = context.createGain();
+    /* 저역 통과 — 음을 칠 때 잠깐 열렸다 닫히면서 「띵」 하는 결이 생긴다. */
+    const filter = context.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.Q.value = 0.9;
+    const base = Math.max(120, Math.min(18000, track.filter.cutoff));
+    const open = Math.max(120, Math.min(18000, base * (1 + track.filter.envelope * note.velocity)));
+    filter.frequency.setValueAtTime(open, at);
+    filter.frequency.exponentialRampToValueAtTime(base, at + Math.max(0.02, track.envelope.decay));
+    /* 두툼하게 — 살짝 어긋난 두 목소리. 0 이면 하나만 쓴다(옛 소리 그대로). */
+    const voices: OscillatorNode[] = [];
+    for (const cents of track.detune > 0 ? [-track.detune, track.detune] : [0]) {
+      const oscillator = context.createOscillator();
+      oscillator.type = track.instrument;
+      oscillator.frequency.value = noteFrequency(note.pitch);
+      oscillator.detune.value = cents;
+      voices.push(oscillator);
+    }
+    const peak = Math.max(0.001, note.velocity * clip.gain * 0.18 / voices.length);
+    const hold = Math.max(0.001, peak * Math.max(0.05, track.envelope.sustain));
+    const attackEnd = at + Math.max(0.002, track.envelope.attack);
+    const decayEnd = attackEnd + Math.max(0.005, track.envelope.decay);
     gain.gain.setValueAtTime(0.0001, at);
-    gain.gain.exponentialRampToValueAtTime(Math.max(0.001, note.velocity * clip.gain * 0.18), at + 0.008);
-    gain.gain.setValueAtTime(Math.max(0.001, note.velocity * clip.gain * 0.13), Math.max(at + 0.01, end - 0.04));
-    gain.gain.exponentialRampToValueAtTime(0.0001, end);
-    oscillator.connect(gain).connect(input);
-    oscillator.start(at); oscillator.stop(end + 0.01); sources.push(oscillator);
+    gain.gain.exponentialRampToValueAtTime(peak, Math.min(attackEnd, Math.max(at + 0.002, end - 0.005)));
+    gain.gain.exponentialRampToValueAtTime(hold, Math.min(decayEnd, Math.max(attackEnd + 0.005, end - 0.002)));
+    gain.gain.setValueAtTime(hold, Math.max(at + 0.006, end));
+    gain.gain.exponentialRampToValueAtTime(0.0001, end + Math.max(0.01, track.envelope.release));
+    gain.connect(filter).connect(input);
+    const tail = end + Math.max(0.01, track.envelope.release) + 0.01;
+    for (const voice of voices) {
+      voice.connect(gain);
+      voice.start(at);
+      voice.stop(tail);
+      sources.push(voice);
+    }
   }
 }
 

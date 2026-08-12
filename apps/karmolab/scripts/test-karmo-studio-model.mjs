@@ -313,4 +313,34 @@ assert.equal(isPianoKey('m'), true);
 assert.equal(isPianoKey('p'), false, 'p 는 안 겹친다');
 assert.equal(isPianoKey('9'), false);
 
-console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘 · 구간 이름표 · 줄 높이 · 클립 잠금·색 · TAP·선택구간 · 스윙 · 셋잇단/점음표 격자 · 자판 건반');
+// 소리 모양(ADSR·필터·두툼함) — 저장 왕복과 이상한 값 방어
+const shaped = newProject();
+shaped.tracks[0].envelope = { attack: 0.3, decay: 0.4, sustain: 0.2, release: 1.1 };
+shaped.tracks[0].filter = { cutoff: 900, envelope: 3 };
+shaped.tracks[0].detune = 20;
+const shapedBack = normalizeProject(JSON.parse(JSON.stringify(shaped))).tracks[0];
+assert.equal(shapedBack.envelope.attack, 0.3);
+assert.equal(shapedBack.filter.cutoff, 900);
+assert.equal(shapedBack.detune, 20);
+// 옛 저장본은 기본 소리로 열린다
+const plain = JSON.parse(JSON.stringify(shaped));
+delete plain.tracks[0].envelope; delete plain.tracks[0].filter; delete plain.tracks[0].detune;
+const plainBack = normalizeProject(plain).tracks[0];
+assert.ok(plainBack.envelope.attack > 0 && plainBack.envelope.sustain > 0, '옛 저장본도 소리가 난다');
+assert.ok(plainBack.filter.cutoff > 1000);
+// 말도 안 되는 값은 접는다 — 0 으로 나누거나 안 들리는 소리를 만들지 않는다
+const wild = JSON.parse(JSON.stringify(shaped));
+wild.tracks[0].envelope = { attack: -5, decay: 99, sustain: 9, release: 0 };
+wild.tracks[0].filter = { cutoff: 999999, envelope: -3 };
+wild.tracks[0].detune = 500;
+const wildBack = normalizeProject(wild).tracks[0];
+assert.equal(wildBack.envelope.attack, 0);
+assert.equal(wildBack.envelope.sustain, 1);
+assert.ok(wildBack.envelope.release >= 0.01, '꼬리가 0 이면 뚝 끊긴다');
+assert.ok(wildBack.filter.cutoff <= 18000 && wildBack.filter.envelope >= 0);
+assert.ok(wildBack.detune <= 60);
+const notNumber = JSON.parse(JSON.stringify(shaped));
+notNumber.tracks[0].envelope = { attack: 'x' };
+assert.ok(normalizeProject(notNumber).tracks[0].envelope.attack >= 0, '숫자가 아니면 기본값');
+
+console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘 · 구간 이름표 · 줄 높이 · 클립 잠금·색 · TAP·선택구간 · 스윙 · 셋잇단/점음표 격자 · 자판 건반 · 소리 모양');
