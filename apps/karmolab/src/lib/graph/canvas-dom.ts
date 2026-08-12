@@ -118,7 +118,8 @@ export function buildCanvasDom(
        구석에 박힌 남의 창처럼 떠 있었다(실측 2026-08-12). 둥글게 깎고 살짝 띄우고 뒤를 흐려
        — 판이 비쳐 보이면 「이건 판의 축소판」이 눈으로 읽힌다. */
     minimapSvg.style.cssText = `
-      position:absolute; bottom:16px; right:16px;
+      /* 오른쪽 아래는 **배율 줄과 함께 쓰는 자리**다 — 그 줄(높이 ~34px) 위로 올라앉는다. */
+      position:absolute; bottom:58px; right:16px;
       width:${MINIMAP_W}px; height:${MINIMAP_H}px;
       background:${theme.minimapBg}; border:1px solid ${theme.minimapBorder};
       border-radius:12px; overflow:hidden; pointer-events:all; cursor:pointer;

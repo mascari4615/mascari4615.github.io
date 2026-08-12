@@ -591,5 +591,8 @@
   "karmograph.t435": "이어 주기",
   "karmograph.t436": "[karmograph] 저장 공간을 재지 못했다",
   "karmograph.t437": "모양",
-  "karmograph.t438": "기울기"
+  "karmograph.t438": "기울기",
+  "karmograph.zoom.out": "축소",
+  "karmograph.zoom.in": "확대",
+  "karmograph.zoom.reset": "배율 — 눌러서 100%"
 }

@@ -1875,20 +1875,23 @@ export class GraphCanvas {
     Object.assign(this.state, target); this.applyTransform();
   }
   fitView(): void {
-    const bounds = this.worldBounds();
-    if (bounds.w <= 0 || bounds.h <= 0) return;
-    const svgW = this.svg.clientWidth || 800;
-    const svgH = this.svg.clientHeight || 600;
-    const pad = 60;
-    const scaleX = (svgW - pad * 2) / bounds.w;
-    const scaleY = (svgH - pad * 2) / bounds.h;
-    const s = Math.max(0.1, Math.min(2, Math.min(scaleX, scaleY)));
-    this.state.scale = s;
-    /* ★ 남는 자리는 **양쪽으로 나눈다**. 예전엔 왼쪽 위에 붙였는데, 판이 옆으로 넓으면
-       배율이 가로에 걸려 세로가 남고 그 남은 자리가 전부 **아래에 뭉쳤다** — 40장짜리 판에서
-       그림이 화면 위쪽 40% 에만 몰렸다(실측 2026-08-12). 「전체 보기」는 가운데 놓는 것이다. */
-    this.state.tx = (svgW - bounds.w * s) / 2 - bounds.minX * s;
-    this.state.ty = (svgH - bounds.h * s) / 2 - bounds.minY * s;
+    const b = this.worldBounds();
+    if (b.w <= 0 || b.h <= 0) return;
+    // 셈은 `cameraForRect` 하나만 안다 — 여기서 또 세면 「전체 보기」와 발표 카메라가 갈라진다.
+    Object.assign(this.state, cameraForRect({ x: b.minX, y: b.minY, w: b.w, h: b.h },
+      this.svg.clientWidth || 800, this.svg.clientHeight || 600, 60));
     this.applyTransform();
+  }
+
+  /** 화면 **가운데를 붙잡고** 확대·축소. 단추로 누를 때 쓰는 길이다(휠은 커서 자리를 붙잡는다). */
+  zoomBy(factor: number): void {
+    const at = { x: (this.svg.clientWidth || 800) / 2, y: (this.svg.clientHeight || 600) / 2 };
+    Object.assign(this.state, zoomAt(this.state, factor, at));
+    this.applyTransform();
+  }
+
+  /** 지금 배율. 화면에 「100%」로 보여 주려면 필요하다. */
+  getScale(): number {
+    return this.state.scale;
   }
 }
