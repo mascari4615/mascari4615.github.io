@@ -112,6 +112,12 @@ export interface AutomationViewInput {
   beatLabel: (beat: number) => string;
 }
 
+/** 항목 고르는 단추는 **트랙 머리**에 둔다 — lane 안에 두면 그 자리의 점을 덮는다. */
+export function automationPickerHtml(trackId: string, param: AutomationParam): string {
+  const SHORT: Record<AutomationParam, string> = { volume: 'VOL', pan: 'PAN', reverb: 'REV' };
+  return `<span class="ks-auto-pick">${(['volume', 'pan', 'reverb'] as AutomationParam[]).map((option) => `<button class="ks-mini${option === param ? ' is-on' : ''}" data-auto-param="${option}" data-track="${trackId}" title="${SHORT[option]} 자동화">${SHORT[option]}</button>`).join('')}</span>`;
+}
+
 export function automationHtml(input: AutomationViewInput): string {
   const { trackId, param, fallback, pxPerBeat, width, projectBeats, beatLabel } = input;
   const y = (value: number): number => automationY(value, param);
@@ -127,9 +133,8 @@ export function automationHtml(input: AutomationViewInput): string {
   const dots = points.map((point) => `<i data-auto-point="${point.id}" data-track="${trackId}" style="left:${point.beat * pxPerBeat}px;top:${y(point.value)}px" title="${beatLabel(point.beat)} · ${label(point.value)}"></i>`).join('');
   const name = NAMES[param];
   const tag = points.length ? ` · ${points.length}점` : ` · 점 없음(트랙 ${KOREAN[param]} 그대로)`;
-  const SHORT: Record<AutomationParam, string> = { volume: 'VOL', pan: 'PAN', reverb: 'REV' };
-  const pick = (['volume', 'pan', 'reverb'] as AutomationParam[]).map((option) => `<button class="ks-mini${option === param ? ' is-on' : ''}" data-auto-param="${option}" data-track="${trackId}">${SHORT[option]}</button>`).join('');
-  return `<div class="ks-auto" data-auto="${trackId}" data-auto-kind="${param}" style="width:${width}px" title="빈 곳 클릭 = 점 추가 · 점 드래그 = 이동 · 우클릭 = 삭제"><svg viewBox="0 0 ${Math.max(1, projectBeats * pxPerBeat)} ${AUTOMATION_GEOMETRY.height}" preserveAspectRatio="none"><path d="${line}"></path></svg><span class="ks-auto-tag">${name}${tag}</span><span class="ks-auto-pick">${pick}</span>${dots}</div>`;
+
+  return `<div class="ks-auto" data-auto="${trackId}" data-auto-kind="${param}" style="width:${width}px" title="빈 곳 클릭 = 점 추가 · 점 드래그 = 이동 · 우클릭 = 삭제"><svg viewBox="0 0 ${Math.max(1, projectBeats * pxPerBeat)} ${AUTOMATION_GEOMETRY.height}" preserveAspectRatio="none"><path d="${line}"></path></svg><span class="ks-auto-tag">${name}${tag}</span>${dots}</div>`;
 }
 
 /**

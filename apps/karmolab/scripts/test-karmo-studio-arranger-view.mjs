@@ -12,7 +12,7 @@ const module = { exports: {} };
 const modelStub = { AUTOMATION_RANGE: { volume: { min: 0, max: 1.2 }, pan: { min: -1, max: 1 }, reverb: { min: 0, max: 1 } } };
 vm.runInNewContext(`(function(exports,module,require){${compiled}
 })(module.exports,module,()=>modelStub);`, { module, console, Math, modelStub });
-const { automationY, automationValue, AUTOMATION_GEOMETRY, waveformPath, waveformSvg, waveMissing, clipHtml, automationHtml, visibleClips, previewNotes, laneHint } = module.exports;
+const { automationY, automationValue, AUTOMATION_GEOMETRY, waveformPath, waveformSvg, waveMissing, clipHtml, automationHtml, automationPickerHtml, visibleClips, previewNotes, laneHint } = module.exports;
 
 const esc = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const track = { id: 't1', kind: 'midi', name: 'Inst', color: '#8b7cf6', volume: 0.8, pan: 0, mute: false, solo: false, eqLow: 0, eqMid: 0, eqHigh: 0, compressor: 0, reverb: 0, instrument: 'saw', clips: [], automation: { volume: [], pan: [] }, folded: false };
@@ -112,7 +112,12 @@ assert.ok(panLane.includes('>PAN'), '이름이 PAN');
 assert.ok(panLane.includes('L50'), '왼쪽 값은 L 로 읽는다');
 assert.ok(panLane.includes('가운데'), '0 은 가운데');
 assert.ok(panLane.includes('data-auto-kind="pan"'), '어느 항목인지 DOM 에 남긴다');
-assert.ok(panLane.includes('data-auto-param="volume"') && panLane.includes('data-auto-param="pan"'), '항목 고르는 단추가 둘');
+assert.ok(!panLane.includes('data-auto-param'), '항목 단추는 lane 안에 없다 — 점을 덮는다');
+const picker = automationPickerHtml('t1', 'pan');
+assert.equal((picker.match(/data-auto-param=/g) || []).length, 3, '고를 항목이 셋');
+assert.ok(picker.includes('data-auto-param="pan" data-track="t1"'), '어느 트랙인지 들고 있다');
+assert.equal((picker.match(/is-on/g) || []).length, 1, '지금 항목 하나만 켜져 보인다');
+assert.ok(automationPickerHtml('t1', 'reverb').includes('data-auto-param="reverb" data-track="t1"'));
 
 // 리버브 줄 — 0~1 이라 볼륨과 눈금이 다르다
 assert.equal(automationY(1, 'reverb'), 0, '리버브 최대는 맨 위');
@@ -121,7 +126,7 @@ assert.ok(automationY(0.5, 'reverb') !== automationY(0.5, 'volume'), '볼륨과 
 const reverbLane = automationHtml({ trackId: 't1', param: 'reverb', points: [{ id: 'r1', beat: 2, value: 0.5 }], fallback: 0.08, pxPerBeat: 72, width: 900, projectBeats: 16, beatLabel: (beat) => `b${beat}` });
 assert.ok(reverbLane.includes('>REVERB'), '이름이 REVERB');
 assert.ok(reverbLane.includes('data-auto-kind="reverb"'));
-assert.ok(reverbLane.includes('data-auto-param="reverb"') && reverbLane.includes('data-auto-param="vol'.concat('ume"')), '항목 단추가 셋');
+assert.ok(!reverbLane.includes('data-auto-param'), 'lane 은 깨끗하다');
 assert.ok(reverbLane.includes('50%'), '값은 퍼센트로 읽는다');
 
 // 빈 줄 안내는 지금 든 도구를 따라간다
