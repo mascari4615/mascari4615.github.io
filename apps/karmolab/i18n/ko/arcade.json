@@ -136,5 +136,9 @@
   "arcade.game.darts.desc": "흔들리는 겨눔을 멈춰 던진다. 101을 딱 0으로",
   "arcade.darts.throw": "던지기 ({n}점)",
   "arcade.darts.wait": "기다리는 중",
-  "arcade.darts.win": "{who} 이(가) 딱 맞췄다"
+  "arcade.darts.win": "{who} 이(가) 딱 맞췄다",
+  "arcade.game.airhockey.name": "에어하키",
+  "arcade.game.airhockey.desc": "손가락으로 밀어 막고 넣는다. 먼저 다섯 골",
+  "arcade.air.win": "{who} — {a} 대 {b}",
+  "arcade.air.draw": "{n} 대 {n} — 비겼다"
 }

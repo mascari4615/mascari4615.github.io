@@ -56,9 +56,24 @@ console.log('[arcade] 계약 — 모든 게임 공통');
 for (const g of GAMES) {
   const seats = Array.from({ length: g.seats[0] }, (_, i) => ({ name: `b${i}`, bot: true }));
 
-  /* ① 봇만으로 반드시 끝난다 — 안 끝나면 혼자 하는 사람이 영영 갇힌다. */
+  /* ① 봇만으로 반드시 끝난다 — 안 끝나면 혼자 하는 사람이 영영 갇힌다.
+   *
+   * 안 끝났을 때 **판이 그때 어떤 모양이었는지**를 같이 적는다. 이 검사에 네 번 걸렸는데
+   * (조각 맞추기·체커·당구·볼링) 매번 「안 끝난다」만 보고 원인을 손으로 파야 했다.
+   * 마지막 상태를 보면 대개 한눈에 보인다 — 칠 공이 없다거나, 아무도 못 두는 자리라거나. */
   const m = run(g, 12345, seats, null, 400000);
-  ok(m.view().finished, `${g.id}: 봇만으로 끝까지 간다`);
+  const dump = () => {
+    const v = m.view();
+    const st = v.state ?? {};
+    const brief = Object.fromEntries(
+      Object.entries(st).slice(0, 8).map(([k, val]) => [
+        k,
+        Array.isArray(val) ? `[${val.length}]` : typeof val === 'object' && val ? '{…}' : val
+      ])
+    );
+    return `판 ${v.round + 1}/${v.rounds} · ${JSON.stringify(brief)}`;
+  };
+  ok(m.view().finished, `${g.id}: 봇만으로 끝까지 간다`, m.view().finished ? '' : dump());
 
   /* ② 쓰레기 수를 던져도 안 죽는다 — 남의 창에서 오는 수는 못 믿는다. */
   const junk = new Match(g, 7, seats);

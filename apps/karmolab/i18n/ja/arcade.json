@@ -136,5 +136,9 @@
   "arcade.game.darts.desc": "揺れる狙いを止めて投げる。101をちょうど0に",
   "arcade.darts.throw": "投げる ({n}点)",
   "arcade.darts.wait": "待機中",
-  "arcade.darts.win": "{who} がぴったり上がった"
+  "arcade.darts.win": "{who} がぴったり上がった",
+  "arcade.game.airhockey.name": "エアホッケー",
+  "arcade.game.airhockey.desc": "指で滑らせて防ぎ、決める。先に5点",
+  "arcade.air.win": "{who} — {a} 対 {b}",
+  "arcade.air.draw": "{n} 対 {n} — 引き分け"
 }
