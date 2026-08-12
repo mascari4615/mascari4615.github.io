@@ -1,15 +1,37 @@
 /**
- * 이미지 → 아스키 아트 (TASK-KL-088)
+ * 이미지·영상 → 아스키 아트 (TASK-KL-088 / 영상 = TASK-KL-244)
  *
  * 캔버스로 축소 → 픽셀 밝기를 글자 농도에 매핑. 두 가지가 결과를 좌우한다:
  *  1) 글자는 세로로 길다 — 가로:세로 비를 보정하지 않으면 그림이 위아래로 늘어난다 (CHAR_ASPECT)
  *  2) 밝기 = 단순 평균이 아니라 시감 가중(0.299/0.587/0.114). 평균을 쓰면 초록이 지나치게 밝게 잡힌다
+ *
+ * 영상을 넣으면 `badapple` 묶음으로 넘어간다 — 거기에 이미 「영상 → 격자 → 한 파일 → 재생」이
+ * 다 있고, 여기서 다시 짜면 두 벌이 된다. 이 도구가 더하는 것은 **계조와 색**이다(평면 확장).
+ * 굽는 것도 트는 것도 브라우저 안에서만 돈다 — 영상은 아무 데도 안 올라간다.
+ *
+ * 영상 미리보기가 `<pre>` 가 아니라 캔버스인 이유: 색을 켜면 칸마다 `<span>` 이 필요한데
+ * 100×40 이면 4천 개다. 그걸 매 프레임 새로 만들면 브라우저가 못 따라온다. 캔버스는 같은
+ * 색이 이어지는 동안 붓을 안 바꾸므로 실제로 색이 몇 개 안 되는 아스키 그림에 잘 맞는다.
  */
+import { AsciiSurface, decode, encode, Player, sampleVideo, type AsciiFrame } from 'badapple';
+
 import { acceptPastedFiles } from './shared/paste';
 
 import { t, loadNamespace, locale } from '../../lib/i18n';
 
 (function (): void {
+  /** 이미 있는 GIF 인코더(`tools/gifenc`)를 그대로 쓴다 — 두 벌 짜지 않는다. */
+  interface GifApi {
+    encodeAsync: (o: {
+      width: number;
+      height: number;
+      frames: Array<{ data: Uint8ClampedArray; delayMs: number }>;
+      maxColors?: number;
+      dither?: boolean;
+      onProgress?: (ratio: number) => void;
+    }) => Promise<Blob>;
+  }
+
   /** 진한 → 옅은 순. 폭이 넓을수록 계조가 부드럽다. */
   const RAMPS: Record<string, string> = {
     detail: '@%#*+=-:. ',
@@ -20,6 +42,13 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
   };
   /** 고정폭 글자 한 칸의 가로/세로 비 — 이 값으로 세로 샘플 수를 줄인다 */
   const CHAR_ASPECT = 0.5;
+
+  /**
+   * 위 램프는 **진한 것부터**인데 `AsciiSurface` 규약은 **어두운 것부터**다. 뒤집어 넘긴다.
+   * 안 뒤집어도 그림은 그럴듯하게 나오고 밝고 어두움만 반대가 된다 — 그래서 눈으로는
+   * 한참 못 잡는다. 변환을 한 군데로 몰아 둔다.
+   */
+  const toDarkFirst = (ramp: string): string => [...ramp].reverse().join('');
 
   Toolbox.register({
     id: 'asciiart',
@@ -53,7 +82,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           container.innerHTML = `
             <div class="field-group">
               <div id="aaDrop" class="tool-drop">
-                <input type="file" id="aaFile" accept="image/*" style="display:none;">
+                <input type="file" id="aaFile" accept="image/*,video/*" style="display:none;">
                 <div>${esc(t('asciiart.drop'))} <button class="btn btn-ghost" id="aaPick" type="button">${esc(
                   t('asciiart.btn.pick')
                 )}</button> ${esc(t('asciiart.drop.paste'))}</div>
@@ -100,14 +129,35 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
               </div>
             </div>
 
+            <div class="field-group" id="aaVideoBox" hidden>
+              <div class="tool-grid-2">
+                <div>
+                  <div class="tool-sublabel">${esc(t('asciiart.label.fps'))} <span id="aaFpsVal" class="range-value">12</span></div>
+                  <input type="range" id="aaFps" aria-label="${esc(t('asciiart.label.fps'))}" min="4" max="30" step="1" value="12">
+                </div>
+                <div>
+                  <div class="tool-sublabel">${esc(t('asciiart.label.span'))} <span id="aaSpanVal" class="range-value">10s</span></div>
+                  <input type="range" id="aaSpan" aria-label="${esc(t('asciiart.label.span'))}" min="1" max="60" step="1" value="10">
+                </div>
+              </div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+                <button class="btn btn-primary" id="aaBake">${esc(t('asciiart.btn.bake'))}</button>
+                <button class="btn btn-secondary" id="aaPlay" disabled>${esc(t('asciiart.btn.play'))}</button>
+                <input type="range" id="aaSeek" aria-label="${esc(t('asciiart.label.seek'))}" min="0" max="0" value="0" style="flex:1; min-width:140px;" disabled>
+              </div>
+            </div>
+
             <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:var(--space-md);">
               <button class="btn btn-primary" id="aaCopy">${esc(t('asciiart.btn.copy'))}</button>
               <button class="btn btn-secondary" id="aaTxt">${esc(t('asciiart.btn.txt'))}</button>
               <button class="btn btn-secondary" id="aaPng">${esc(t('asciiart.btn.png'))}</button>
+              <button class="btn btn-secondary" id="aaGif" hidden>${esc(t('asciiart.btn.gif'))}</button>
+              <button class="btn btn-ghost" id="aaBab" hidden>${esc(t('asciiart.btn.bab'))}</button>
               <button class="btn btn-ghost" id="aaSample">${esc(t('asciiart.btn.sample'))}</button>
             </div>
 
             <pre id="aaOut" class="aa-out">${esc(t('asciiart.out.empty'))}</pre>
+            <canvas id="aaCanvas" class="aa-canvas" hidden></canvas>
             <div class="tool-status" id="aaStatus">${esc(t('asciiart.status.idle'))}</div>
           `;
 
@@ -118,8 +168,176 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const out = $<HTMLElement>('#aaOut');
           const status = $<HTMLElement>('#aaStatus');
           const widthInput = $<HTMLInputElement>('#aaWidth');
+          const stageCanvas = $<HTMLCanvasElement>('#aaCanvas');
+          const videoBox = $<HTMLElement>('#aaVideoBox');
+          const bakeBtn = $<HTMLButtonElement>('#aaBake');
+          const playBtn = $<HTMLButtonElement>('#aaPlay');
+          const seek = $<HTMLInputElement>('#aaSeek');
+          const gifBtn = $<HTMLButtonElement>('#aaGif');
+          const babBtn = $<HTMLButtonElement>('#aaBab');
           let image: HTMLImageElement | null = null;
           let plainText = '';
+
+          // ── 영상 ─────────────────────────────────────────────────────────
+          /** 고른 영상. 아직 안 구웠어도 여기 들어 있다. */
+          let video: HTMLVideoElement | null = null;
+          let player: Player | null = null;
+          let raf = 0;
+          let clipFrames = 0;
+          /** 마지막으로 그려진 한 장 — 복사·저장은 「지금 화면」을 낸다. */
+          let current: AsciiFrame | null = null;
+          let baking = false;
+          /** 구운 클립의 초당 장수 — 재생 위치를 장 번호로 바꿀 때 쓴다. */
+          let clipFps = 12;
+
+          const isVideoMode = (): boolean => video !== null;
+
+          /**
+           * 아스키 한 장을 캔버스에 찍는다. 같은 색이 이어지는 동안 붓을 안 바꾼다 —
+           * 붓 교체가 글자 찍기보다 훨씬 비싸서, 이 한 줄이 색을 켠 재생을 살린다.
+           */
+          function paintCanvas(frame: AsciiFrame): void {
+            const size = Math.max(6, Math.min(16, Math.floor(1100 / Math.max(1, frame.cols))));
+            const charWidth = size * 0.6;
+            const lineHeight = size;
+            const width = Math.ceil(frame.cols * charWidth);
+            const height = frame.rows * lineHeight;
+            if (stageCanvas.width !== width || stageCanvas.height !== height) {
+              stageCanvas.width = width;
+              stageCanvas.height = height;
+            }
+            const ctx = stageCanvas.getContext('2d');
+            if (!ctx) return;
+            const invert = $<HTMLInputElement>('#aaInvert').checked;
+            ctx.fillStyle = invert ? '#fff' : '#0b0d12';
+            ctx.fillRect(0, 0, width, height);
+            ctx.font = `${size}px ui-monospace, monospace`;
+            ctx.textBaseline = 'top';
+
+            const lines = frame.text.split(String.fromCharCode(10));
+            if (!frame.colors) {
+              ctx.fillStyle = invert ? '#0b0d12' : '#e8ecf4';
+              lines.forEach((line, y) => ctx.fillText(line, 0, y * lineHeight));
+              return;
+            }
+            let brush = -1;
+            for (let y = 0; y < lines.length; y++) {
+              const line = lines[y] ?? '';
+              for (let x = 0; x < line.length; x++) {
+                const color = frame.colors[y * frame.cols + x] ?? 0;
+                if (color !== brush) {
+                  brush = color;
+                  ctx.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
+                }
+                ctx.fillText(line[x] ?? ' ', x * charWidth, y * lineHeight);
+              }
+            }
+          }
+
+          /** 구운 클립을 재생기에 걸고 화면을 영상 모드로 바꾼다. */
+          function mount(bytes: Uint8Array): void {
+            stopLoop();
+            player?.dispose();
+            const clip = decode(bytes);
+            clipFrames = clip.frameCount;
+            clipFps = clip.fps;
+            player = new Player(clip, { loop: true });
+            const cols = parseInt(widthInput.value, 10);
+            const rows = Math.max(1, Math.round((cols * clip.height) / clip.width));
+            player.stage.add(
+              new AsciiSurface({
+                cols,
+                rows,
+                ramp: toDarkFirst(RAMPS[$<HTMLSelectElement>('#aaRamp').value] || RAMPS.detail),
+                color: $<HTMLInputElement>('#aaColor').checked,
+                write: (frame) => {
+                  current = frame;
+                  plainText = frame.text;
+                  paintCanvas(frame);
+                }
+              })
+            );
+            out.hidden = true;
+            stageCanvas.hidden = false;
+            seek.max = String(Math.max(0, clip.frameCount - 1));
+            seek.value = '0';
+            seek.disabled = false;
+            playBtn.disabled = false;
+            gifBtn.hidden = false;
+            babBtn.hidden = false;
+            // 첫 장을 바로 보여 준다 — 굽고 나서 검은 화면이면 실패한 줄 안다.
+            player.seek(0, performance.now());
+            player.play(performance.now());
+            startLoop();
+            status.textContent = t('asciiart.status.baked', {
+              cols,
+              rows,
+              frames: clip.frameCount,
+              fps: clip.fps,
+              kb: Math.max(1, Math.round(bytes.length / 1024)).toLocaleString(locale())
+            });
+            status.className = 'tool-status ok';
+          }
+
+          function startLoop(): void {
+            if (raf) return;
+            const tick = (now: number): void => {
+              raf = requestAnimationFrame(tick);
+              if (!player) return;
+              if (player.tick(now)) seek.value = String(Math.min(clipFrames - 1, Math.floor(player.positionSec * clipFps)));
+            };
+            raf = requestAnimationFrame(tick);
+            playBtn.textContent = t('asciiart.btn.pause');
+          }
+
+          function stopLoop(): void {
+            if (raf) cancelAnimationFrame(raf);
+            raf = 0;
+            playBtn.textContent = t('asciiart.btn.play');
+          }
+
+          /** 영상 → 격자 → 한 파일. 오래 걸리므로 진행 상황을 그대로 적는다. */
+          async function bake(): Promise<void> {
+            if (!video || baking) return;
+            baking = true;
+            bakeBtn.disabled = true;
+            const cols = parseInt(widthInput.value, 10);
+            const rows = Math.max(1, Math.round((cols * video.videoHeight) / Math.max(1, video.videoWidth) * CHAR_ASPECT));
+            const fps = parseInt($<HTMLInputElement>('#aaFps').value, 10);
+            const span = parseInt($<HTMLInputElement>('#aaSpan').value, 10);
+            try {
+              const sampled = await sampleVideo(video, {
+                width: cols,
+                height: rows,
+                fps,
+                endSec: span,
+                invert: $<HTMLInputElement>('#aaInvert').checked,
+                levels: true,
+                colors: $<HTMLInputElement>('#aaColor').checked,
+                onProgress: (done, total) => {
+                  status.textContent = t('asciiart.status.baking', { done, total });
+                  status.className = 'tool-status';
+                }
+              });
+              const bytes = encode(
+                sampled.frames,
+                { width: sampled.width, height: sampled.height, fps: sampled.fps },
+                { levels: sampled.levels, colors: sampled.colors }
+              );
+              baked = bytes;
+              Toolbox.trackUse?.('convert');
+              mount(bytes);
+            } catch {
+              status.textContent = t('asciiart.err.bake');
+              status.className = 'tool-status err';
+            } finally {
+              baking = false;
+              bakeBtn.disabled = false;
+            }
+          }
+
+          /** 마지막으로 구운 파일 — `.bab` 저장에 쓴다. */
+          let baked: Uint8Array | null = null;
 
           /**
            * 재생이 켜지면 이 도구도 **자기 문자 세트로** 한 조각을 그린다 (TASK-KL-131).
@@ -130,7 +348,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const idlePlaceholder = out.textContent ?? '';
           const stopDrawing = window.KarmoLabBadApple?.add({
             measure: () => {
-              if (image) return null; // 쓰는 중 — 이번 판은 빠진다
+              if (image || isVideoMode()) return null; // 쓰는 중 — 이번 판은 빠진다
               const cols = Math.max(20, Math.min(160, parseInt(widthInput.value, 10) || 100));
               return { cols, rows: Math.max(8, Math.round(cols * CHAR_ASPECT * 0.75)) };
             },
@@ -150,7 +368,11 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
               if (!image) out.textContent = idlePlaceholder;
             }
           });
-          Toolbox.onDispose?.(() => stopDrawing?.());
+          Toolbox.onDispose?.(() => {
+            stopDrawing?.();
+            // 화면 갱신 고리와 영상 주소는 위젯이 사라져도 안 죽는다 — 직접 걷는다.
+            resetVideo();
+          });
 
           function render(): void {
             if (!image) return;
@@ -230,13 +452,72 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           }
 
           function loadFile(file: File): void {
-            if (!file.type.startsWith('image/')) {
-              nameEl.textContent = t('asciiart.err.notImage');
+            if (file.type.startsWith('video/')) {
+              loadVideo(file);
               return;
             }
+            if (!file.type.startsWith('image/')) {
+              nameEl.textContent = t('asciiart.err.notMedia');
+              return;
+            }
+            resetVideo();
             const reader = new FileReader();
             reader.onload = () => load(String(reader.result), file.name);
             reader.readAsDataURL(file);
+          }
+
+          /** 영상 모드에서 이미지로 돌아올 때 — 틀어 놓은 것과 캔버스를 걷는다. */
+          function resetVideo(): void {
+            stopLoop();
+            player?.dispose();
+            player = null;
+            current = null;
+            baked = null;
+            if (video) URL.revokeObjectURL(video.src);
+            video = null;
+            videoBox.hidden = true;
+            stageCanvas.hidden = true;
+            out.hidden = false;
+            seek.disabled = true;
+            playBtn.disabled = true;
+            gifBtn.hidden = true;
+            babBtn.hidden = true;
+          }
+
+          /**
+           * 영상은 파일을 통째로 글자로 바꾸지 않고 **주소만** 만들어 건다 —
+           * 몇십 MB 짜리를 base64 로 펴면 그 자리에서 탭이 죽는다.
+           */
+          function loadVideo(file: File): void {
+            resetVideo();
+            image = null;
+            const element = document.createElement('video');
+            element.muted = true;
+            element.playsInline = true;
+            element.preload = 'auto';
+            element.src = URL.createObjectURL(file);
+            element.addEventListener('loadedmetadata', () => {
+              video = element;
+              videoBox.hidden = false;
+              const seconds = Number.isFinite(element.duration) ? element.duration : 0;
+              const span = $<HTMLInputElement>('#aaSpan');
+              // 구간 상한을 영상 길이에 맞춘다 — 없는 뒤쪽을 굽겠다고 하면 빈 장이 나온다.
+              span.max = String(Math.max(1, Math.ceil(seconds)));
+              span.value = String(Math.max(1, Math.min(10, Math.floor(seconds) || 1)));
+              $<HTMLElement>('#aaSpanVal').textContent = t('asciiart.value.seconds', { n: span.value });
+              nameEl.textContent = t('asciiart.name.video', {
+                name: file.name,
+                w: element.videoWidth,
+                h: element.videoHeight,
+                sec: seconds.toFixed(1)
+              });
+              out.textContent = t('asciiart.out.bakeFirst');
+              status.textContent = t('asciiart.status.videoIdle');
+              status.className = 'tool-status';
+            });
+            element.addEventListener('error', () => {
+              nameEl.textContent = t('asciiart.err.video');
+            });
           }
 
           $<HTMLButtonElement>('#aaPick').onclick = () => fileInput.click();
@@ -256,7 +537,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             if (f) loadFile(f);
           });
           // 파일을 바로 붙여넣는 것이 잦다
-          acceptPastedFiles(container, (files) => { loadFile(files[0]); }, (f) => f.type.startsWith('image/'));
+          acceptPastedFiles(container, (files) => { loadFile(files[0]); }, (f) => f.type.startsWith('image/') || f.type.startsWith('video/'));
           document.addEventListener('paste', (e) => {
             const page = container.closest('.tool-page');
             if (page && !page.classList.contains('active')) return;
@@ -270,9 +551,37 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
               $<HTMLElement>('#aaWidthVal').textContent = t('asciiart.value.chars', { n: widthInput.value });
               $<HTMLElement>('#aaBrightVal').textContent = $<HTMLInputElement>('#aaBright').value;
               $<HTMLElement>('#aaContrastVal').textContent = $<HTMLInputElement>('#aaContrast').value;
+              $<HTMLElement>('#aaFpsVal').textContent = $<HTMLInputElement>('#aaFps').value;
+              $<HTMLElement>('#aaSpanVal').textContent = t('asciiart.value.seconds', { n: $<HTMLInputElement>('#aaSpan').value });
+              // 이미 구운 게 있으면 글자 수·램프·색은 **다시 굽지 않고** 표면만 갈아 끼우면 된다.
+              // 초당 장수·구간은 파일 자체를 바꾸므로 그때만 다시 굽는다.
+              if (baked) mount(baked);
               render();
             });
             el.addEventListener('change', render);
+          });
+
+          bakeBtn.onclick = () => void bake();
+          playBtn.onclick = () => {
+            if (!player) return;
+            if (raf) {
+              player.pause(performance.now());
+              stopLoop();
+            } else {
+              player.play(performance.now());
+              startLoop();
+            }
+          };
+          seek.addEventListener('input', () => {
+            if (!player) return;
+            player.seek(parseInt(seek.value, 10) / Math.max(1, clipFps), performance.now());
+            // 멈춰 있어도 그 자리 한 장은 보여 준다 — 안 그러면 끌어도 화면이 안 변한다.
+            const wasStopped = raf === 0;
+            if (wasStopped) {
+              player.play(performance.now());
+              player.tick(performance.now());
+              player.pause(performance.now());
+            }
           });
 
           $<HTMLButtonElement>('#aaCopy').onclick = async () => {
@@ -289,6 +598,15 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             setTimeout(() => URL.revokeObjectURL(a.href), 1000);
           };
           $<HTMLButtonElement>('#aaPng').onclick = () => {
+            if (isVideoMode()) {
+              if (!current) return;
+              const a = document.createElement('a');
+              a.href = stageCanvas.toDataURL('image/png');
+              a.download = 'ascii-frame.png';
+              Toolbox.trackUse?.('save-png');
+              a.click();
+              return;
+            }
             if (!plainText) return;
             const lines = plainText.split('\n');
             const fontSize = 10;
@@ -312,7 +630,79 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             Toolbox.trackUse?.('save-png');
             a.click();
           };
+          function save(blob: Blob, name: string): void {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = name;
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+          }
+
+          babBtn.onclick = () => {
+            if (!baked) return;
+            Toolbox.trackUse?.('save-bab');
+            save(new Blob([baked.slice().buffer as ArrayBuffer], { type: 'application/octet-stream' }), 'ascii-video.bab');
+          };
+
+          /**
+           * 구운 것을 GIF 한 장으로. **글자판을 다시 그리지 않고** 재생기를 한 장씩 몰아
+           * 화면에 나오는 그림 그대로를 걷는다 — 화면과 저장물이 어긋날 자리를 안 만든다.
+           */
+          gifBtn.onclick = async () => {
+            const gif = (window as unknown as { KarmoGif?: GifApi }).KarmoGif;
+            if (!player || !gif || clipFrames <= 0) {
+              status.textContent = t('asciiart.err.gif');
+              status.className = 'tool-status err';
+              return;
+            }
+            const wasPlaying = raf !== 0;
+            stopLoop();
+            gifBtn.disabled = true;
+            try {
+              const ctx = stageCanvas.getContext('2d');
+              if (!ctx) throw new Error('no ctx');
+              const delayMs = Math.round(1000 / Math.max(1, clipFps));
+              const frames: Array<{ data: Uint8ClampedArray; delayMs: number }> = [];
+              const now = performance.now();
+              for (let i = 0; i < clipFrames; i++) {
+                player.seek(i / Math.max(1, clipFps), now);
+                player.play(now);
+                player.tick(now);
+                player.pause(now);
+                frames.push({ data: ctx.getImageData(0, 0, stageCanvas.width, stageCanvas.height).data, delayMs });
+                if (i % 8 === 7) {
+                  status.textContent = t('asciiart.status.gifFrames', { done: i + 1, total: clipFrames });
+                  await new Promise((r) => setTimeout(r, 0));
+                }
+              }
+              const blob = await gif.encodeAsync({
+                width: stageCanvas.width,
+                height: stageCanvas.height,
+                frames,
+                onProgress: (ratio) => {
+                  status.textContent = t('asciiart.status.gifPacking', { pct: Math.round(ratio * 100) });
+                }
+              });
+              save(blob, 'ascii-video.gif');
+              Toolbox.trackUse?.('save-gif');
+              status.textContent = t('asciiart.status.gifDone', {
+                kb: Math.max(1, Math.round(blob.size / 1024)).toLocaleString(locale())
+              });
+              status.className = 'tool-status ok';
+            } catch {
+              status.textContent = t('asciiart.err.gif');
+              status.className = 'tool-status err';
+            } finally {
+              gifBtn.disabled = false;
+              if (wasPlaying && player) {
+                player.play(performance.now());
+                startLoop();
+              }
+            }
+          };
+
           $<HTMLButtonElement>('#aaSample').onclick = () => {
+            resetVideo();
             // 외부 요청 0 — 캔버스로 그린 도형을 샘플로 쓴다.
             const c = document.createElement('canvas');
             c.width = 240;

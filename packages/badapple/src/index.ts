@@ -14,7 +14,7 @@
  * 모르고 지나간다 — 그게 이 구조의 목적이다.
  */
 
-export { decode, encode, MAGIC, type Clip, type ClipMeta, type EncodeOptions } from './format.js';
+export { decode, encode, FLAG_COLORS, FLAG_LEVELS, MAGIC, type Clip, type ClipMeta, type EncodeOptions } from './format.js';
 export { Player, type PlayerOptions } from './player.js';
 export { Stage, type Frame } from './stage.js';
 export { Registry } from './registry.js';
@@ -23,6 +23,7 @@ export type { Paint, Rect, Surface, SurfaceShape } from './surface.js';
 export { DomTilesSurface, type DomTilesOptions } from './surfaces/dom-tiles.js';
 export { measureCandidates, pickTileGroup, pickTileGroups, type DiscoverOptions, type Measured } from './surfaces/discover.js';
 export { TextSurface, type TextSurfaceOptions } from './surfaces/text.js';
+export { AsciiSurface, type AsciiFrame, type AsciiSurfaceOptions } from './surfaces/ascii.js';
 export {
 	bandFor,
 	busyBurn,

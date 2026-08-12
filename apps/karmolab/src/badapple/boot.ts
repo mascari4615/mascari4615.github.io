@@ -14,7 +14,7 @@
  * 남의 영상을 담아 두지 않는다.
  */
 import { decode, DomTilesSurface, Player, Registry, TextSurface, type Surface } from 'badapple';
-import { CLIP_STORAGE_KEY } from './shared';
+import { clearClip, loadClip as loadStoredClip } from './shared';
 
 /**
  * 도구가 「나도 그릴게」 하고 신고하는 창구.
@@ -52,21 +52,10 @@ const KONAMI = [
 	let raf = 0;
 	let progress = 0;
 
-	function base64ToBytes(text: string): Uint8Array {
-		const binary = atob(text);
-		const bytes = new Uint8Array(binary.length);
-		for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-		return bytes;
-	}
-
 	/** 구운 게 있으면 그것, 없으면 기본 도형. 둘 다 실패하면 조용히 포기한다(장난이 사이트를 막으면 안 된다). */
 	async function loadClip(): Promise<Uint8Array | null> {
-		try {
-			const stored = localStorage.getItem(CLIP_STORAGE_KEY);
-			if (stored) return base64ToBytes(stored);
-		} catch {
-			// 저장 공간을 막아 둔 브라우저 — 기본 클립으로 간다.
-		}
+		const stored = await loadStoredClip();
+		if (stored) return stored;
 		try {
 			const response = await fetch('/apps/karmolab/data/badapple/demo.bab');
 			if (!response.ok) return null;
@@ -96,11 +85,7 @@ const KONAMI = [
 			clip = decode(bytes);
 		} catch {
 			// 저장된 것이 깨졌으면 지우고 만다 — 다음엔 기본 클립이 뜬다.
-			try {
-				localStorage.removeItem(CLIP_STORAGE_KEY);
-			} catch {
-				/* 지울 수 없어도 그냥 넘어간다 */
-			}
+			void clearClip();
 			return;
 		}
 

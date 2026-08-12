@@ -8,7 +8,7 @@
  * 동시에 나눠 그린다」다. 글자판 하나만 보여 주면 그냥 아스키 아트 도구로 보인다.
  */
 import { decode, encode, Player, sampleVideo, TextSurface, DomTilesSurface } from 'badapple';
-import { CLIP_STORAGE_KEY } from './shared';
+import { saveClip } from './shared';
 import { t, loadNamespace } from '../lib/i18n';
 
 /* 위젯이 아니라 셸·라이브러리 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
@@ -27,21 +27,13 @@ if (typeof document !== 'undefined') void loadNamespace('badapple');
 	}
 
 	/**
-	 * 구운 것을 홈이 이어받을 자리에 놓는다.
+	 * 구운 것을 홈이 이어받을 자리에 놓는다 (`shared.ts` — 바이트를 그대로 받는 자리).
 	 *
-	 * 저장 공간에는 한도가 있고(보통 5MB), 글자로 바꿔 담으면 3분의 4 로 불어난다.
-	 * 넘치면 브라우저가 **오류를 던지고 아무것도 안 담는다** — 그걸 안 잡으면 굽기 자체가 실패한
-	 * 것처럼 보인다. 그래서 못 담아도 굽는 것은 계속되고, 화면에 사실대로 적는다.
+	 * 담을 자리가 없어도 **굽는 것은 계속된다.** 못 담은 것을 굽기 실패로 보이게 하면,
+	 * 방금 만든 것이 눈앞에 있는데 화면은 실패라고 말하는 상태가 된다. 사실대로 적는다.
 	 */
-	function handOverToHome(bytes: Uint8Array): boolean {
-		try {
-			let binary = '';
-			for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i] as number);
-			localStorage.setItem(CLIP_STORAGE_KEY, btoa(binary));
-			return true;
-		} catch {
-			return false;
-		}
+	async function handOverToHome(bytes: Uint8Array): Promise<boolean> {
+		return saveClip(bytes);
 	}
 
 	function stop(): void {
@@ -118,7 +110,7 @@ if (typeof document !== 'undefined') void loadNamespace('badapple');
 
 		baked = encode(sampled.frames, { width: sampled.width, height: sampled.height, fps: sampled.fps });
 		const raw = sampled.frames.length * Math.ceil((width * height) / 8);
-		const handed = handOverToHome(baked);
+		const handed = await handOverToHome(baked);
 		status(
 			t('badapple.baked', { size: (baked.length / 1024).toFixed(1), raw: (raw / 1024).toFixed(1) }) +
 				(handed ? t('badapple.t03') : t('badapple.t04'))

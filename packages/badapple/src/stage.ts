@@ -29,6 +29,10 @@ export interface Frame {
 	height: number;
 	/** `width*height` 길이의 0/1. */
 	cells: Uint8Array;
+	/** `width*height` 길이의 밝기 0~255. 파일에 붙어 있을 때만. */
+	levels?: Uint8Array | null;
+	/** `width*height*3` 길이의 R·G·B. 파일에 붙어 있을 때만. */
+	colors?: Uint8Array | null;
 }
 
 /** 원본의 어떤 구역을, 표면의 격자 크기로 줄여서 답하는 `Paint`. */
@@ -38,8 +42,16 @@ function makePaint(frame: Frame, region: Rect, cols: number, rows: number): Pain
 	const sx = region.width / cols;
 	const sy = region.height / rows;
 
+	// 실루엣은 「하나라도 켜지면 켬」(위 설명), 밝기·색은 **평균**이다. 계조가 있는 그림에서
+	// 최댓값을 쓰면 한 칸에 밝은 점 하나만 걸려도 그 칸이 통째로 하얘져서, 축소할수록 그림이
+	// 하얗게 타 버린다. 평균은 축소가 곧 흐림이 되어 원본 느낌을 지킨다.
+	const hasLevel = !!frame.levels && frame.levels.length >= frame.width * frame.height;
+	const hasColor = !!frame.colors && frame.colors.length >= frame.width * frame.height * 3;
+
 	let lit = 0;
 	const cache = new Uint8Array(cols * rows);
+	const levelCache = hasLevel ? new Uint8Array(cols * rows) : null;
+	const colorCache = hasColor ? new Uint8Array(cols * rows * 3) : null;
 	for (let gy = 0; gy < rows; gy++) {
 		const y0 = Math.floor(region.y + gy * sy);
 		const y1 = Math.max(y0 + 1, Math.ceil(region.y + (gy + 1) * sy));
@@ -47,29 +59,72 @@ function makePaint(frame: Frame, region: Rect, cols: number, rows: number): Pain
 			const x0 = Math.floor(region.x + gx * sx);
 			const x1 = Math.max(x0 + 1, Math.ceil(region.x + (gx + 1) * sx));
 			let on = 0;
-			for (let y = y0; y < y1 && !on; y++) {
+			let levelSum = 0;
+			let redSum = 0;
+			let greenSum = 0;
+			let blueSum = 0;
+			let taken = 0;
+			// 평면이 없으면 켜진 칸 하나만 찾으면 끝 — 예전처럼 일찍 빠져나온다.
+			const needAverage = levelCache !== null || colorCache !== null;
+			for (let y = y0; y < y1; y++) {
 				if (y < 0 || y >= frame.height) continue;
+				if (on && !needAverage) break;
 				const row = y * frame.width;
 				for (let x = x0; x < x1; x++) {
 					if (x < 0 || x >= frame.width) continue;
-					if (frame.cells[row + x]) {
-						on = 1;
-						break;
+					if (frame.cells[row + x]) on = 1;
+					if (on && !needAverage) break;
+					if (levelCache) levelSum += frame.levels?.[row + x] ?? 0;
+					if (colorCache) {
+						const at = (row + x) * 3;
+						redSum += frame.colors?.[at] ?? 0;
+						greenSum += frame.colors?.[at + 1] ?? 0;
+						blueSum += frame.colors?.[at + 2] ?? 0;
 					}
+					taken += 1;
 				}
 			}
-			cache[gy * cols + gx] = on;
+			const cell = gy * cols + gx;
+			cache[cell] = on;
 			lit += on;
+			const divisor = Math.max(1, taken);
+			if (levelCache) levelCache[cell] = Math.round(levelSum / divisor);
+			if (colorCache) {
+				colorCache[cell * 3] = Math.round(redSum / divisor);
+				colorCache[cell * 3 + 1] = Math.round(greenSum / divisor);
+				colorCache[cell * 3 + 2] = Math.round(blueSum / divisor);
+			}
 		}
 	}
+
+	const inside = (x: number, y: number): boolean => x >= 0 && y >= 0 && x < cols && y < rows;
 
 	return {
 		cols,
 		rows,
 		lit,
+		hasLevel,
+		hasColor,
 		at(x: number, y: number): boolean {
-			if (x < 0 || y < 0 || x >= cols || y >= rows) return false;
+			if (!inside(x, y)) return false;
 			return cache[y * cols + x] === 1;
+		},
+		level(x: number, y: number): number {
+			if (!inside(x, y)) return 0;
+			const cell = y * cols + x;
+			if (levelCache) return levelCache[cell] ?? 0;
+			return cache[cell] ? 255 : 0;
+		},
+		rgb(x: number, y: number): number {
+			if (!inside(x, y)) return 0;
+			const cell = y * cols + x;
+			if (colorCache) {
+				return (
+					((colorCache[cell * 3] ?? 0) << 16) | ((colorCache[cell * 3 + 1] ?? 0) << 8) | (colorCache[cell * 3 + 2] ?? 0)
+				);
+			}
+			const value = levelCache ? (levelCache[cell] ?? 0) : cache[cell] ? 255 : 0;
+			return (value << 16) | (value << 8) | value;
 		}
 	};
 }

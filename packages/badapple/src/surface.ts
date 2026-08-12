@@ -36,7 +36,14 @@ export interface SurfaceShape {
 	rect?: Rect;
 }
 
-/** 표면에 건네지는 「지금 이 프레임에서 네가 켤 칸」. */
+/**
+ * 표면에 건네지는 「지금 이 프레임에서 네가 켤 칸」.
+ *
+ * `at` 이 이 계약의 몸통이다 — 표면은 **이것만 읽어도 완전히 동작한다.** 밝기·색은 파일에
+ * 붙어 있을 때만 값이 차는 덤이고(`hasLevel`/`hasColor`), 없으면 켜짐/꺼짐에서 되돌려 준다.
+ * 그래서 파비콘·기계 부하처럼 색을 못 쓰는 표면은 이 확장을 몰라도 되고, 아스키 아트처럼
+ * 계조가 필요한 표면만 더 읽는다 (TASK-KL-244).
+ */
 export interface Paint {
 	/** 이 표면의 가로 칸 수 (신고한 값). */
 	cols: number;
@@ -46,6 +53,14 @@ export interface Paint {
 	at(x: number, y: number): boolean;
 	/** 켜진 칸 수 — 「몇 칸 켜졌는지」만 필요한 표면(부하 그리기 등)이 훑지 않아도 되게. */
 	lit: number;
+	/** 진짜 밝기 값이 실려 있나. 아니면 `level` 은 켜짐/꺼짐을 0·255 로 돌려준다. */
+	hasLevel: boolean;
+	/** 진짜 색이 실려 있나. 아니면 `rgb` 는 흑백으로 돌려준다. */
+	hasColor: boolean;
+	/** (x, y) 칸의 밝기 0~255. 범위 밖이면 0. */
+	level(x: number, y: number): number;
+	/** (x, y) 칸의 색 `0xRRGGBB`. 범위 밖이면 0. */
+	rgb(x: number, y: number): number;
 }
 
 export interface Surface {
