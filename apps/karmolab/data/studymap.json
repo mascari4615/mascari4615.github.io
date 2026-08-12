@@ -2958,6 +2958,140 @@
           ]
         }
       ]
+    },
+    {
+      "id": "team",
+      "title": "팀 · 협업",
+      "emoji": "🤝",
+      "lead": "혼자 빨리 가는 것과 같이 멀리 가는 것은 다른 기술이다",
+      "stages": [
+        {
+          "id": "team-a",
+          "title": "말이 오가게",
+          "nodes": [
+            {
+              "id": "team-async",
+              "title": "비동기 소통 — 글로 남기기",
+              "why": "말로 하면 그 자리에 없던 사람에게는 없던 일이 된다. 시차가 있으면 더 그렇다.",
+              "check": "결정은 글로 남기고 링크로 부른다",
+              "links": [
+                {
+                  "label": "GitLab 원격 가이드",
+                  "url": "https://handbook.gitlab.com/handbook/company/culture/all-remote/"
+                }
+              ]
+            },
+            {
+              "id": "team-meeting",
+              "title": "회의 — 안 해도 되는 회의 없애기",
+              "why": "회의는 가장 비싼 도구다(인원 × 시간). 목적 없는 회의가 팀을 갉아먹는다.",
+              "check": "안건·결정 사항·다음 행동이 남는 회의만 연다",
+              "links": [
+                {
+                  "label": "Amazon 6-pager 문화 정리",
+                  "url": "https://www.inc.com/carmine-gallo/jeff-bezos-bans-powerpoint-in-meetings-his-replacement-is-brilliant.html"
+                }
+              ]
+            },
+            {
+              "id": "team-onboard",
+              "title": "온보딩 — 첫 주에 커밋까지",
+              "why": "새 사람이 헤매는 시간은 팀 전체의 비용이다. 문서는 그때 가장 잘 고쳐진다.",
+              "check": "새 사람이 하루 안에 환경을 띄우고 첫 PR 을 올린다",
+              "links": [
+                {
+                  "label": "Open Source Guides — 커뮤니티 키우기",
+                  "url": "https://opensource.guide/ko/building-community/"
+                }
+              ],
+              "prereq": [
+                "craft-doc"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "team-b",
+          "title": "일이 굴러가게",
+          "nodes": [
+            {
+              "id": "team-estimate",
+              "title": "추정과 계획",
+              "why": "「언제 끝나요?」에 답하는 기술. 정확한 예측이 아니라 **불확실성을 다루는 법**이다.",
+              "check": "범위를 쪼개고 불확실한 것을 먼저 확인한다",
+              "links": [
+                {
+                  "label": "Shape Up (무료)",
+                  "url": "https://basecamp.com/shapeup"
+                }
+              ],
+              "prereq": [
+                "product-scope"
+              ]
+            },
+            {
+              "id": "team-review",
+              "title": "코드 리뷰 문화",
+              "why": "리뷰는 검열이 아니라 **지식 전파**다. 톤 하나로 팀 분위기가 갈린다.",
+              "check": "취향과 결함을 구분해 말하고, 하루 안에 답한다",
+              "links": [
+                {
+                  "label": "Google 코드 리뷰 가이드",
+                  "url": "https://google.github.io/eng-practices/review/"
+                }
+              ],
+              "prereq": [
+                "git-pr"
+              ]
+            },
+            {
+              "id": "team-knowledge",
+              "title": "지식 공유 — 버스 팩터 줄이기",
+              "why": "한 사람만 아는 시스템은 그 사람이 쉬는 순간 멈춘다.",
+              "check": "핵심 영역마다 아는 사람이 둘 이상이다",
+              "links": [
+                {
+                  "label": "ADR 소개",
+                  "url": "https://adr.github.io/"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "team-c",
+          "title": "사람이 남게",
+          "nodes": [
+            {
+              "id": "team-feedback",
+              "title": "피드백과 갈등",
+              "why": "말 안 하고 쌓이는 것이 가장 비싸다. 기술 논쟁이 감정 싸움이 되는 지점이 있다.",
+              "check": "사람이 아니라 행동·영향으로 말한다",
+              "links": [
+                {
+                  "label": "Radical Candor 요약",
+                  "url": "https://www.radicalcandor.com/our-approach/"
+                }
+              ]
+            },
+            {
+              "id": "team-safety",
+              "title": "심리적 안전 — 모른다고 말할 수 있는가",
+              "why": "「모르겠다」와 「제가 틀렸어요」가 안 나오는 팀은 사고를 늦게 발견한다.",
+              "check": "실수를 공유해도 불이익이 없다는 것이 행동으로 보인다",
+              "links": [
+                {
+                  "label": "Google Project Aristotle",
+                  "url": "https://rework.withgoogle.com/print/guides/5721312655835136/"
+                }
+              ],
+              "prereq": [
+                "devops-postmortem"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
