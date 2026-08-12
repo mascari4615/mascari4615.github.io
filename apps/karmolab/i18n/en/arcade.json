@@ -350,5 +350,11 @@
   "arcade.yut.gae": "Gae (2)",
   "arcade.yut.geol": "Geol (3)",
   "arcade.yut.yut": "Yut (4)",
-  "arcade.yut.mo": "Mo (5)"
+  "arcade.yut.mo": "Mo (5)",
+  "arcade.game.jegi.name": "Jegi Kick",
+  "arcade.game.jegi.desc": "Your foot only reaches it on the way down · it speeds up as you go",
+  "arcade.jegi.kick": "Kick",
+  "arcade.jegi.dropped": "you dropped it",
+  "arcade.jegi.hint": "kick when the jegi enters the band at the bottom",
+  "arcade.jegi.win": "{who} · {n} kicks"
 }
