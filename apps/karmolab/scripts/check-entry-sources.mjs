@@ -27,6 +27,11 @@ import { discoverEntryPoints } from './entry-points.mjs';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SPECIAL = new Set(['src/mdd.ts', 'src/gemini.ts', 'src/toolbox.ts', 'src/sw.ts']);
 
+/* 어느 커밋을 보나 — 훅이 알려 준 「지금 밀려는 커밋」, 없으면 로컬 HEAD.
+ * ★ 검사 **전부**가 이 하나를 써야 한다 (2026-08-12). 한 칸만 HEAD 로 굳어 있었더니,
+ *   격리된 자리에서 만든 커밋으로 그 파일을 **고치는 push** 를 자기 게이트가 막았다. */
+const REF = process.env.KL_PUSH_SHA || 'HEAD';
+
 let tracked;
 try {
   tracked = new Set(
@@ -38,7 +43,7 @@ try {
      *   알려 주면 그걸 본다. 로컬 HEAD 만 보면, 격리된 자리에서 커밋을 만들어 미는 방식
      *   (`commit-isolated.mjs`)에서 방금 넣은 소스가 로컬 HEAD 에 없어 멀쩡한 push 가 막힌다.
      *   훅 밖에서 손으로 돌릴 때는 HEAD 가 맞다. */
-    execFileSync('git', ['ls-tree', '-r', '--name-only', process.env.KL_PUSH_SHA || 'HEAD', 'src'], { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 })
+    execFileSync('git', ['ls-tree', '-r', '--name-only', REF, 'src'], { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 })
       .split('\n')
       .map((line) => line.trim())
       .filter(Boolean)
@@ -94,7 +99,7 @@ if (fs.existsSync(metaPath)) {
     const catalogRel = `i18n/${SOURCE}/${ns}.json`;
     if (!fs.existsSync(path.join(root, catalogRel))) continue; // 아예 안 만든 것은 다른 검사 몫
     try {
-      execFileSync('git', ['ls-tree', '-r', '--name-only', 'HEAD', catalogRel], { cwd: root, encoding: 'utf8' })
+      execFileSync('git', ['ls-tree', '-r', '--name-only', REF, catalogRel], { cwd: root, encoding: 'utf8' })
         .trim() || missing.push(`${catalogRel} (${ns} 위젯이 쓰는 한국어 말 묶음)`);
     } catch { /* 못 물어보면 넘어간다 */ }
   }
