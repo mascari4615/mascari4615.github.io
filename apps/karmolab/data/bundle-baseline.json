@@ -1,6 +1,6 @@
 {
  "note": "gzip 바이트. audit-bundle-budget.mjs --update 로만 갱신한다.",
- "at": "2026-08-12T13:31:13.530Z",
+ "at": "2026-08-12T13:44:17.578Z",
  "sizes": {
   "activity.js": 7886,
   "adventure/adventure.js": 13323,
@@ -114,7 +114,7 @@
   "tierlist/tierlist.js": 556,
   "tierlist/ui.js": 670,
   "toast.js": 1367,
-  "tools/asciiart.js": 3799,
+  "tools/asciiart.js": 11890,
   "tools/aspect.js": 1861,
   "tools/audiocut.js": 3879,
   "tools/audiofade.js": 3553,
@@ -222,7 +222,7 @@
   "tools/videorotate.js": 3130,
   "tools/videotool.js": 577,
   "tools/videotrim.js": 3552,
-  "tools/voicerec.js": 3618,
+  "tools/voicerec.js": 6828,
   "tools/wordfreq.js": 3956,
   "tools/workdays.js": 5628,
   "tools/worldclock.js": 3415,

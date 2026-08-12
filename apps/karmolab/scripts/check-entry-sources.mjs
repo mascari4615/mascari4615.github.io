@@ -60,10 +60,36 @@ if (tracked.size < 50) {
 
 const missing = [];
 
+/* ★ **부르는 쪽도 올라간 것만 본다** (2026-08-12 세 번째).
+ *   부르는 목록은 디스크에서 뽑는데(빌드와 같은 코드), 세션이 여섯인 이 저장소의 디스크에는
+ *   **남이 아직 안 올린 등록**이 섞여 있다. 그걸 그대로 재면, 옆 사람이 새 위젯을 등록해 둔
+ *   순간부터 **나와 무관한 push 가 전부 막힌다**(실측: burnnote). 새 체크아웃이 겪는 일만
+ *   막으면 되므로, 밀려는 커밋의 등록 파일에 그 이름이 있을 때만 따진다. */
+const registryAtRef = (() => {
+  const files = ['src/widgets-lazy-meta.ts', 'src/widgets-manifest.ts', 'index.html'];
+  let joined = '';
+  for (const f of files) {
+    try {
+      /* `./` 를 붙여야 **지금 폴더 기준**으로 읽는다 — 없으면 저장소 뿌리 기준이라 전부 실패하고,
+         그러면 「아무것도 안 부른다」가 되어 이 검사가 통째로 무력해진다(조용히 초록). */
+      joined += execFileSync('git', ['show', `${REF}:./${f}`], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 32 * 1024 * 1024 });
+    } catch { /* 그 커밋에 없는 파일은 건너뛴다 */ }
+  }
+  if (joined.length < 1000) {
+    console.error(`[entry-sources] CANNOT-RUN — ${REF} 의 등록 파일을 못 읽었다(${joined.length}자). 무력한 초록을 내지 않는다.`);
+    process.exit(2);
+  }
+  return joined;
+})();
+/** 밀려는 커밋이 이 이름을 실제로 부르나 (안 부르면 새 체크아웃도 안 부른다) */
+const calledAtRef = (name) => registryAtRef.includes(name);
+
 /* ① 셸이 부르는 것 */
 const { entryPoints } = discoverEntryPoints(root, SPECIAL);
 for (const rel of entryPoints) {
-  if (!tracked.has(rel)) missing.push(`${rel} (셸이 부른다)`);
+  if (tracked.has(rel)) continue;
+  if (!calledAtRef(path.basename(rel, '.ts'))) continue; // 남이 아직 안 올린 등록
+  missing.push(`${rel} (셸이 부른다)`);
 }
 
 /* ② 위젯 메타가 가리키는 것 — `lazyScriptPaths: ['heung/heung', …]` */
@@ -76,7 +102,8 @@ if (fs.existsSync(metaPath)) {
       /* 형식이 다른 앞머리는 각자 자리에서 산다 — 여기서는 위젯 소스만 본다. */
       if (raw.startsWith('vendor/') || raw.startsWith('root/') || raw.startsWith('world/')) continue;
       const rel = `src/widgets/${raw}.ts`;
-      if (!tracked.has(rel)) missing.push(`${rel} (위젯 메타가 부른다)`);
+      if (tracked.has(rel) || !calledAtRef(raw)) continue;
+      missing.push(`${rel} (위젯 메타가 부른다)`);
     }
   }
 }
@@ -94,6 +121,7 @@ if (fs.existsSync(metaPath)) {
     const ns = m[1];
     if (seen.has(ns)) continue;
     seen.add(ns);
+    if (!tracked.has(rel)) continue; // 위젯 자체가 안 올라갔으면 ①②가 말한다(또는 남의 것이다)
     const src = fs.existsSync(path.join(root, rel)) ? fs.readFileSync(path.join(root, rel), 'utf8') : '';
     if (!src.includes(`t('${ns}.`)) continue; // 그 묶음을 안 쓰면 없어도 된다
     const catalogRel = `i18n/${SOURCE}/${ns}.json`;
