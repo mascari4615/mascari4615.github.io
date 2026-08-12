@@ -34,5 +34,12 @@
   "arcade.game.memory.name": "神経衰弱",
   "arcade.game.memory.desc": "めくって覚える。当たればもう一回",
   "arcade.memory.draw": "同じだけ取った",
-  "arcade.memory.win": "{who} — {n}組"
+  "arcade.memory.win": "{who} — {n}組",
+  "arcade.game.hitblow.name": "数当て",
+  "arcade.game.hitblow.desc": "隠れた3桁を10回以内に",
+  "arcade.hitblow.throw": "当てる",
+  "arcade.hitblow.aria": "3桁の数",
+  "arcade.hitblow.solved": "{who} が{n}回目で当てた",
+  "arcade.hitblow.none": "誰も当てられなかった",
+  "arcade.hitblow.closest": "{who} が一番近かった"
 }

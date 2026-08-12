@@ -34,5 +34,12 @@
   "arcade.game.memory.name": "짝 맞추기",
   "arcade.game.memory.desc": "뒤집어 기억한다. 맞히면 한 번 더",
   "arcade.memory.draw": "똑같이 가져갔다",
-  "arcade.memory.win": "{who} — {n}짝"
+  "arcade.memory.win": "{who} — {n}짝",
+  "arcade.game.hitblow.name": "숫자 야구",
+  "arcade.game.hitblow.desc": "감춘 세 자리를 열 번 안에",
+  "arcade.hitblow.throw": "던지기",
+  "arcade.hitblow.aria": "세 자리 수",
+  "arcade.hitblow.solved": "{who} 이(가) {n}번째에 맞혔다",
+  "arcade.hitblow.none": "아무도 못 맞혔다",
+  "arcade.hitblow.closest": "{who} 이(가) 제일 가까웠다"
 }

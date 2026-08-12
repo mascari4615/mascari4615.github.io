@@ -30,6 +30,9 @@ export interface Peer {
   name: string;
 }
 
+/** 지금 방에 있는 사람들 — 자리마다 다른 판을 보낼 때 쓴다. */
+export type PeerId = string;
+
 export interface NetHooks {
   /** 사람이 들고 남 — 주인 쪽이 자리를 다시 짠다 */
   onPeers(peers: Peer[]): void;
@@ -43,7 +46,8 @@ export interface Net {
   readonly selfId: string;
   readonly host: boolean;
   act(action: Payload): void;
-  sync(payload: Payload): void;
+  /** 받는 사람을 정하면 그 사람에게만 간다 — 감춘 것이 있는 게임은 자리마다 다른 판을 받는다. */
+  sync(payload: Payload, target?: string): void;
   leave(): void;
 }
 
@@ -89,8 +93,8 @@ export function connect(roomId: string, host: boolean, myName: string, hooks: Ne
     act: (action) => {
       if (!host) actAction.send(action);
     },
-    sync: (payload) => {
-      if (host) syncAction.send(payload);
+    sync: (payload, target) => {
+      if (host) syncAction.send(payload, target ? { target } : undefined);
     },
     leave: () => {
       try {
