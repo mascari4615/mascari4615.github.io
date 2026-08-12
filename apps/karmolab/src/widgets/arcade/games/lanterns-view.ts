@@ -1,17 +1,17 @@
 /**
- * 불꽃놀이 화면 (TASK-KL-242)
+ * 등불 잇기 화면 (TASK-KL-242)
  *
  * **내 패는 뒷면**으로, 남의 패는 앞면으로 그린다 — 이 놀이의 전부가 그 뒤집힘이다.
  * 남의 카드를 누르면 그 숫자를 알려 준다. 내 카드를 고르면 내거나 버린다.
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
-import type { HanabiState, HanabiAction } from './hanabi';
+import type { LanternsState, LanternsAction } from './lanterns';
 
 const HUE = ['#ef4444', '#22c55e', '#3b82f6'];
 
-export const hanabiView: GameView<HanabiState, HanabiAction> = {
-  id: 'hanabi',
+export const lanternsView: GameView<LanternsState, LanternsAction> = {
+  id: 'lanterns',
   mount(el, act) {
     el.innerHTML =
       '<div class="ac-hb2">' +
@@ -42,11 +42,11 @@ export const hanabiView: GameView<HanabiState, HanabiAction> = {
         .join('');
 
       metaEl.textContent =
-        t('arcade.hanabi.hints', { n: String(s.hints) }) +
+        t('arcade.lanterns.hints', { n: String(s.hints) }) +
         ' · ' +
-        t('arcade.hanabi.fuses', { n: String(s.fuses) }) +
+        t('arcade.lanterns.fuses', { n: String(s.fuses) }) +
         ' · ' +
-        t('arcade.hanabi.deck', { n: String(s.deck.length) });
+        t('arcade.lanterns.deck', { n: String(s.deck.length) });
 
       othersEl.innerHTML = v.seats
         .map((seat, i) => {
@@ -67,7 +67,7 @@ export const hanabiView: GameView<HanabiState, HanabiAction> = {
         .join('');
 
       mineEl.innerHTML =
-        '<small>' + t('arcade.hanabi.mine') + '</small><div>' +
+        '<small>' + t('arcade.lanterns.mine') + '</small><div>' +
         (s.hands[mySeat] ?? [])
           .map((_, j) => {
             const told = s.told[mySeat]?.[j];
@@ -100,9 +100,9 @@ export const hanabiView: GameView<HanabiState, HanabiAction> = {
 
       const canAct = picked >= 0 && myTurn;
       actEl.innerHTML = canAct
-        ? '<button class="btn btn-primary" id="acHbPlay">' + t('arcade.hanabi.play') + '</button>' +
-          '<button class="btn btn-ghost" id="acHbDrop">' + t('arcade.hanabi.drop') + '</button>'
-        : '<small>' + (myTurn ? t('arcade.hanabi.pickHint') : t('arcade.hanabi.waiting')) + '</small>';
+        ? '<button class="btn btn-primary" id="acHbPlay">' + t('arcade.lanterns.play') + '</button>' +
+          '<button class="btn btn-ghost" id="acHbDrop">' + t('arcade.lanterns.drop') + '</button>'
+        : '<small>' + (myTurn ? t('arcade.lanterns.pickHint') : t('arcade.lanterns.waiting')) + '</small>';
 
       const play = actEl.querySelector('#acHbPlay') as HTMLButtonElement | null;
       const drop = actEl.querySelector('#acHbDrop') as HTMLButtonElement | null;

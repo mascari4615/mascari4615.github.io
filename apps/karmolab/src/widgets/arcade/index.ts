@@ -1,67 +1,18 @@
 /**
- * 오락실 명부 (TASK-KL-242)
+ * 오락실 입구 (TASK-KL-242 · SSOT 정리 = TASK-KL-264)
  *
- * 게임을 늘리는 곳은 **여기 한 줄**이다. 커널도 화면도 게임 이름을 모른다 —
- * 51개가 되어도 커널은 그대로다.
+ * 게임 목록은 여기 없다 — **정본은 `catalog.ts` 한 곳**이고 이 파일은 그 그림자다.
+ * 전에는 여기·화면 명부·명패 세 곳에 같은 이름을 적었고, 세 곳은 언젠가 갈라진다.
  */
 import type { GameDef } from './types';
-import { reflex } from './games/reflex';
-import { gomoku } from './games/gomoku';
-import { four } from './games/four';
-import { memory } from './games/memory';
-import { hitblow } from './games/hitblow';
-import { reversi } from './games/reversi';
-import { dots } from './games/dots';
-import { speed } from './games/speed';
-import { slide } from './games/slide';
-import { ultimate } from './games/ultimate';
-import { yacht } from './games/yacht';
-import { checkers } from './games/checkers';
-import { blackjack } from './games/blackjack';
-import { president } from './games/president';
-import { dominoes } from './games/dominoes';
-import { curling } from './games/curling';
-import { bowling } from './games/bowling';
-import { pool } from './games/pool';
-import { darts } from './games/darts';
-import { airhockey } from './games/airhockey';
-import { highlow } from './games/highlow';
-import { nim } from './games/nim';
-import { hanabi } from './games/hanabi';
-import { wordchain } from './games/wordchain';
-import { lineup } from './games/lineup';
-import { minesweeper } from './games/minesweeper';
-import { liars } from './games/liars';
-import { twenty } from './games/twenty';
-import { snake } from './games/snake';
-import { onestroke } from './games/onestroke';
-import { fishing } from './games/fishing';
-import { minishogi } from './games/minishogi';
-import { hanafuda } from './games/hanafuda';
-import { tanks } from './games/tanks';
-import { mancala } from './games/mancala';
-import { shellgame } from './games/shell';
-import { foxhounds } from './games/foxhounds';
-import { pong } from './games/pong';
-import { derby } from './games/derby';
-import { whack } from './games/whack';
-import { tug } from './games/tug';
-import { capturego } from './games/capturego';
-import { rps } from './games/rps';
-import { simon } from './games/simon';
-import { sudoku } from './games/sudoku';
-import { nunchi } from './games/nunchi';
-import { fleet } from './games/fleet';
-import { yut } from './games/yut';
-import { jegi } from './games/jegi';
-import { auction } from './games/auction';
-import { tuho } from './games/tuho';
+import { CATALOG } from './catalog';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory, hitblow, reversi, dots, speed, slide, ultimate, yacht, checkers, blackjack, president, dominoes, curling, bowling, pool, darts, airhockey, highlow, nim, hanabi, wordchain, lineup, minesweeper, liars, twenty, snake, onestroke, fishing, minishogi, hanafuda, tanks, mancala, shellgame, foxhounds, pong, derby, whack, tug, capturego, rps, simon, sudoku, nunchi, fleet, yut, jegi, auction, tuho];
+export const GAMES: Array<GameDef<any, any>> = CATALOG.map((e) => e.def);
 
 export const gameById = (id: string): GameDef<any, any> | undefined => GAMES.find((g) => g.id === id);
 
+export { CATALOG } from './catalog';
 export { META, KINDS, iconOf, kindOf } from './meta';
 export { Match } from './kernel';
 export { seedFrom, mulberry32 } from './rng';
