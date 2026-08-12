@@ -691,7 +691,14 @@ const Toolbox = (() => {
     function upgradeMeta() {
         const full = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META) || [];
         const byId = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID) || null;
-        for (const m of full) {
+        /* 가벼운 목록을 먼저 받은 화면은 **나머지(아이콘·설명)만** 따로 받는다. 전체를 한 벌 더
+           받으면 전송량이 그만큼 늘어난다. 전체를 통째로 받은 화면은 아래 `full` 쪽으로 들어온다. */
+        const rest = (typeof window !== 'undefined' && (window as unknown as { KARMOLAB_META_REST?: Record<string, { icon?: string; desc?: string }> }).KARMOLAB_META_REST) || null;
+        const source = full.map((m) => {
+            if (!m || !m.id || !rest || !rest[m.id]) return m;
+            return { ...m, icon: m.icon || rest[m.id].icon, desc: m.desc || rest[m.id].desc };
+        });
+        for (const m of source) {
             if (!m || !m.id) continue;
             const tool = tools.find(x => x.id === m.id);
             if (tool) {

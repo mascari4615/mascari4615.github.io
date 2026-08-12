@@ -182,8 +182,24 @@ for (const rel of entryPoints) {
       'window.KARMOLAB_LAZY_META=' + JSON.stringify(lite) + ';window.KARMOLAB_META_LITE=1;' + NL,
     'utf8'
   );
+  /* 가벼운 것을 먼저 받은 화면이 **나머지만** 이어 받게 한다. 전체를 한 벌 더 받으면
+     첫 그림은 빨라져도 전송량이 그만큼 늘어난다(실측 +31KB). 아이콘·설명만 담아 그걸 없앤다. */
+  const rest = {};
+  for (const item of full) {
+    if (!item || !item.id) continue;
+    const only = {};
+    if (item.icon) only.icon = item.icon;
+    if (item.desc) only.desc = item.desc;
+    if (Object.keys(only).length) rest[item.id] = only;
+  }
+  writeFileSync(
+    join(root, 'js/widgets-meta-rest.js'),
+    '/* `build.mjs` 가 만든다 — 가벼운 목록(widgets-index.js)에서 빠진 아이콘·설명만. 손으로 고치지 마라. */' + NL +
+      'window.KARMOLAB_META_REST=' + JSON.stringify(rest) + ';' + NL,
+    'utf8'
+  );
   const kb = (s) => (Buffer.byteLength(s) / 1024).toFixed(1) + 'KB';
-  console.log(`[build] 위젯 메타 ${full.length}개 — 전체 ${kb(src)} · 가벼운 것 ${kb(readFileSync(join(root, 'js/widgets-index.js'), 'utf8'))}`);
+  console.log(`[build] 위젯 메타 ${full.length}개 — 전체 ${kb(src)} · 가벼운 것 ${kb(readFileSync(join(root, 'js/widgets-index.js'), 'utf8'))} · 나머지 ${kb(readFileSync(join(root, 'js/widgets-meta-rest.js'), 'utf8'))}`);
 }
 
 const worldEntryPoints = [

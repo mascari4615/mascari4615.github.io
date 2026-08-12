@@ -29,8 +29,9 @@ permalink: /karmolab/
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="KarmoLab">
-    <!-- KAR-115 PWA + KL-088 갱신 안내 — 등록·업데이트 배너는 js/pwa-update.js 가 담당 -->
-    <script defer fetchpriority="low" src="/apps/karmolab/js/pwa-update.js"></script>
+    <!-- KAR-115 PWA + KL-088 갱신 안내 — 등록·업데이트 배너는 js/pwa-update.js 가 담당.
+         첫 그림에는 안 쓰인다(SW 등록과 「새 버전 있어요」 배너뿐) — 아래 `pullRest` 가 한가할 때 받는다.
+         부팅 예산 40KB 를 지키려고 뺐다: 여기 두면 2.0KB(gz) 가 첫 그림을 막는다. -->
     <!-- 언어 단추·안내 띠 (TASK-KL-203). 첫 그림에는 필요 없다 — 단추 자체는 HTML 에 이미 있고
          글자도 찍을 때 박히므로, 이 파일은 누를 때와 안내를 띄울 때만 쓰인다.
          **그런데 첫 그림 앞에 있었다**(3.6KB gz) — 부팅 예산 천장을 함께 넘기고 있었다.
@@ -438,13 +439,15 @@ permalink: /karmolab/
     <!-- KL-131: 평소엔 아무 일도 안 한다. 켜면 지금 화면에 있는 것들이 그대로 액정이 된다. -->
     <!-- KL-054: gemini.js eager 제거 → chatbot/imagegen/imageedit/imagelib(lazyScriptPaths)
          · user(ensureScript) 가 첫 사용 시 로드. -->
-    <!-- ★ 첫 화면은 **전체 메타 한 벌만** 받는다 (2026-08-12).
-         여기서 가벼운 목록(widgets-index.js)을 받으면 그것이 `KARMOLAB_META_LITE` 표식을 세우고,
-         아래 「한가할 때 전체로 올리기」 대목이 곧바로 전체(135KB)를 또 받아 왔다 = 31KB 이중 수령.
-         이 화면은 옆줄(아이콘·설명)을 바로 그리므로 어차피 전체가 필요하다 — 한 번에 받는다.
-         가벼운 목록은 그것이 진짜로 이득인 곳(도구 한 장짜리 화면의 찾기창)에서만 쓰인다:
-         `scripts/lib/shell-page.mjs` 가 이 줄을 빼고, 찾기창을 열 때 lite 를 따로 부른다. -->
-    <script defer fetchpriority="low" src="/apps/karmolab/js/widgets-lazy-meta.js"></script>
+    <!-- ★ 첫 그림 전에는 **가벼운 목록만** 받는다 (2026-08-12, 부팅 예산 복구).
+         전체 메타는 아이콘 SVG 와 설명까지 들어 25.3KB(gz) 였고, 그것 하나로 첫 화면 JS 가
+         천장 40KB 를 넘겨 `verify` 가 빨강이었다(실측 60.8KB).
+         이름·분류·불러올 자리만 있는 `widgets-index.js` 는 5KB 다 — 첫 그림에 필요한 건 그게 전부고,
+         아이콘·설명은 옆줄이 그려진 **뒤에** 따라와도 화면이 안 흔들린다(`Toolbox.upgradeMeta`).
+         그래서 아래 `pullRest` 가 한가할 때 **나머지(아이콘·설명)만** 받아 제자리에 꽂는다.
+         전체를 한 벌 더 받으면 첫 그림만 빨라지고 전송량은 31KB 늘어난다 — 그래서 나머지만 낸다.
+         도구 한 장짜리 화면은 여기 없이도 돌아간다(찾기창 열 때만 lite 를 부른다: `shell-page.mjs`). -->
+    <script defer fetchpriority="low" src="/apps/karmolab/js/widgets-index.js"></script>
     <script defer src="/apps/karmolab/js/widgets-manifest.js"></script>
     <script defer fetchpriority="low" src="/apps/karmolab/js/widgets-loader.js"></script>
     <!-- 마스코트·액정놀이는 **화면을 다 그린 뒤에** 부른다 (TASK-KL-128 런타임).
@@ -470,6 +473,17 @@ permalink: /karmolab/
       window.Mdd = stub;
 
       function pullRest() {
+        var pwa = document.createElement('script');
+        pwa.src = '/apps/karmolab/js/pwa-update.js';
+        document.body.appendChild(pwa);
+        if (window.KARMOLAB_META_LITE) {
+          var meta = document.createElement('script');
+          meta.src = '/apps/karmolab/js/widgets-meta-rest.js';
+          meta.onload = function () {
+            try { if (window.Toolbox && window.Toolbox.upgradeMeta) window.Toolbox.upgradeMeta(); } catch (e) { /* 못 꽂아도 이름·분류는 이미 있다 */ }
+          };
+          document.body.appendChild(meta);
+        }
         var mdd = document.createElement('script');
         mdd.src = '/apps/karmolab/js/mdd.js';
         mdd.onload = function () {
@@ -546,11 +560,9 @@ permalink: /karmolab/
       else addEventListener('load', function () { idle(pullRest); });
     })();
     </script>
-    <!-- 「한가해지면 가벼운 목록을 전체로 올린다」 대목은 없앴다 (2026-08-12).
-         첫 화면은 위에서 전체를 바로 받고, 도구 한 장짜리 화면은 애초에 목록을 안 받는다
-         (찾기창을 열 때만 lite 를 부른다 — `shell-page.mjs`). 그래서 이 자리는 늘
-         **전체를 한 벌 더 받는 일**밖에 안 했다. `Toolbox.upgradeMeta()` 는 그대로 남겨 둔다
-         (부르는 곳이 없어졌을 뿐, 나중에 다시 필요할 수 있는 손잡이다). -->
+    <!-- 아이콘·설명은 첫 그림 뒤에 따라온다 — 위 `widgets-index.js`(가벼운 목록) 다음에
+         전체를 받아 `Toolbox.upgradeMeta()` 로 제자리에 꽂는다. 이미 그려진 아이콘 자리는
+         비어 있으므로 DOM 을 다시 그리지 않는다(화면이 안 흔들린다). -->
     {% if jekyll.environment == 'production' and site.pwa.enabled and site.pwa.cache.enabled %}
     <!-- Chirpy SW는 루트(/sw.min.js)에 있으나 layout:none 페이지는 app.min.js를 쓰지 않아 등록되지 않았음 → 방문 시 동일 출처·허용 URL을 런타임 캐시(오프라인/앱용). -->
     <script>
