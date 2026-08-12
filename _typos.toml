@@ -41,6 +41,8 @@ Mosquitto = "Mosquitto"  # MQTT 브로커 제품 이름 (embed-net 강의) — �
 mosquitto = "mosquitto"  # 같은 이름의 명령줄 도구 (mosquitto_sub)
 MAPE = "MAPE"            # Mean Absolute Percentage Error — 예측 오차 지표 (ml-eval 강의)
 RTO = "RTO"              # Recovery Time Objective — 복구 목표 시간 (db-backup 강의). RPO 와 짝
+gae = "gae"              # 윷놀이 「개」의 로마자 (arcade.yut.gae) — game 오타 아님
+Gae = "Gae"              # 같은 이름의 대문자 케이스
 
 # 의도된 약어 / 외국어 / 고유명사 / 식별자
 # typos action 이 master log 로 발견한 false-positive (TASK-KL-032 시드).
