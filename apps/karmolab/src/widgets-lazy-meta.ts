@@ -411,7 +411,7 @@ window.KARMOLAB_LAZY_META = [
     /* 이 묶음이 내놓는 것 (TASK-KL-183 A) — 흐름을 만들 때 「이어지는 도구」를 위로 올리는 근거.
        숨긴 도구(imagegen 등)에 적어 봐야 목록에 안 뜨므로, **보이는 대표**에 적는다. */
     produces: ['image/*'],
-    lazyScriptPaths: ['root/gemini', 'ref/reftable', 'imageconvert/imageconvert', 'imageedit', 'imageedit/studio', 'tools/text2img', 'tools/imgresize', 'tools/redact', 'tools/asciiart', 'world/world', 'world/parse-md', 'world/load-characters-from-wiki', 'imagegen/presets', 'imagegen/config', 'imagegen/styles', 'imagegen/core', 'imagegen/imagegen', 'imagelib', 'tools/image']
+    lazyScriptPaths: ['root/gemini', 'ref/reftable', 'imageconvert/imageconvert', 'imageedit', 'imageedit/studio', 'tools/text2img', 'tools/imgresize', 'tools/redact', 'tools/gifenc', 'tools/asciiart', 'world/world', 'world/parse-md', 'world/load-characters-from-wiki', 'imagegen/presets', 'imagegen/config', 'imagegen/styles', 'imagegen/core', 'imagegen/imagegen', 'imagelib', 'tools/image']
   },
   {
     id: 'imageedit',
@@ -1537,7 +1537,7 @@ window.KARMOLAB_LAZY_META = [
     get desc() { return t('widgets-desc.asciiart.desc', undefined, "사진이나 그림을 글자로 그린 아스키 아트로 바꿉니다. 폭·문자 세트·반전 조절"); },
     layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 9h3M6 12h6M6 15h4M14 9h4M15 12h3M13 15h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/asciiart']
+    lazyScriptPaths: ['tools/gifenc', 'tools/asciiart'] // 압축기가 먼저 있어야 GIF 로 뽑는다
   },
   {
     id: 'radix',
