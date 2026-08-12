@@ -1367,6 +1367,43 @@ await step('「이 카드로 오는 링크」로 열면 그 카드가 골라져 
   if (await fork.count() > 0) await fork.click();
   await page.waitForSelector('.km-root:not(.is-readonly)', { timeout: 4000 });
 });
+await step('「전체 보기」가 판을 화면 **가운데**에 놓는다', async () => {
+  // 예전엔 왼쪽 위에 붙였다 — 판이 옆으로 넓으면 배율이 가로에 걸려 세로가 남고, 그 남은
+  // 자리가 전부 아래에 뭉쳤다(실측 2026-08-12, 40장짜리 판: 그림이 화면 위쪽 40% 에만 몰렸다).
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  // 옆으로 넓은 판을 하나 심는다 — 세로가 남는 상황을 만들어야 이 검사가 뜻이 있다.
+  await m.evaluate(() => {
+    const nodes = Array.from({ length: 12 }, (_, i) => ({
+      id: 'w' + i, label: '가' + i, kind: 'character', x: 100 + i * 260, y: 100 + (i % 2) * 90, w: 180, h: 44,
+    }));
+    const spec = { version: 1, _meta: {}, groups: [], nodes, edges: [], ephemeral_anchors: [], _edge_kinds: {} };
+    const idx = JSON.parse(localStorage.getItem('karmograph.index') || 'null');
+    const id = idx?.activeId || 'wide';
+    localStorage.setItem('karmograph.map.' + id, JSON.stringify(spec));
+    if (!idx) localStorage.setItem('karmograph.index', JSON.stringify({ activeId: id, maps: [{ id, name: '넓은 판' }] }));
+  });
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.ck-node', { timeout: 8000 });
+  await m.click('[data-km="fit"]');
+  await m.waitForTimeout(500);
+
+  const gap = await m.evaluate(() => {
+    const c = document.querySelector('.km-canvas').getBoundingClientRect();
+    const boxes = [...document.querySelectorAll('.ck-node')].map((n) => n.getBoundingClientRect());
+    const top = Math.min(...boxes.map((b) => b.top)) - c.top;
+    const bottom = c.bottom - Math.max(...boxes.map((b) => b.bottom));
+    return { top: Math.round(top), bottom: Math.round(bottom), h: Math.round(c.height) };
+  });
+  // 위아래로 남는 자리가 비슷해야 가운데다. 한쪽이 다른 쪽의 세 배를 넘으면 쏠린 것이다.
+  const lo = Math.min(gap.top, gap.bottom);
+  const hi = Math.max(gap.top, gap.bottom);
+  if (hi > lo * 3 + 40) throw new Error(`「전체 보기」가 한쪽으로 쏠렸다 — 위 ${gap.top}px · 아래 ${gap.bottom}px (판 ${gap.h}px)`);
+  await ctx.close();
+});
+
 // ── 폰 화면 ──────────────────────────────────────────────────────────────────
 // 관계도는 **보는 일**이 폰에서 훨씬 많다(링크 받아 열기). 그런데 지금까지 폰 크기는 한 번도 안 봤다.
 await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널은 아래 시트로 뜬다', async () => {
