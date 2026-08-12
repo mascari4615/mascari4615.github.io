@@ -11,6 +11,42 @@
       "text": "1. sRGB 와 선형"
     },
     {
+      "type": "demo",
+      "kind": "html",
+      "label": "색을 밀어 보라 — 같은 밝기라도 눈에는 다르게 보인다",
+      "height": "210px",
+      "controls": [
+        {
+          "id": "h",
+          "label": "색상",
+          "type": "range",
+          "min": 0,
+          "max": 360,
+          "step": 5,
+          "value": 220
+        },
+        {
+          "id": "s",
+          "label": "채도(%)",
+          "type": "range",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "value": 70
+        },
+        {
+          "id": "l",
+          "label": "밝기(%)",
+          "type": "range",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "value": 50
+        }
+      ],
+      "text": "<style>.sw{display:flex;gap:10px;align-items:center}.chip{width:96px;height:96px;border-radius:12px}p{font:13px ui-monospace;color:#334155}</style>\n<div class=\"sw\">\n  <div class=\"chip\" style=\"background:hsl({{h}} {{s}}% {{l}}%)\"></div>\n  <div class=\"chip\" style=\"background:hsl({{h}} {{s}}% {{l}}%);filter:grayscale(1)\"></div>\n  <div>\n    <p>hsl({{h}} {{s}}% {{l}}%)</p>\n    <p>오른쪽 = 색을 빼고 밝기만 — 대비는 여기서 결정된다</p>\n  </div>\n</div>"
+    },
+    {
       "type": "note",
       "text": "모니터와 이미지 파일은 **sRGB**(사람 눈에 맞춰 휘어진 값)를 쓴다. 그런데 빛 계산(더하기·곱하기)은 **선형** 공간에서 해야 물리적으로 맞다. 그래서 「읽을 때 선형으로 펴고, 출력할 때 다시 휘게」가 원칙이다."
     },

@@ -11,6 +11,24 @@
       "text": "1. 루프의 뼈대"
     },
     {
+      "type": "demo",
+      "kind": "js",
+      "label": "dt 를 곱하지 않으면 어떻게 되나 — 화면 주사율을 흉내 내 보라",
+      "height": "210px",
+      "controls": [
+        {
+          "id": "fps",
+          "label": "가짜 주사율",
+          "type": "range",
+          "min": 15,
+          "max": 144,
+          "step": 1,
+          "value": 60
+        }
+      ],
+      "text": "const FPS = {{fps}};\nlet a = 20, b = 20, last = performance.now();\nsetInterval(() => {\n  const now = performance.now();\n  const dt = (now - last) / 1000; last = now;\n  a += 120 * dt;              // dt 를 곱한다 — 주사율과 무관\n  b += 2;                     // 프레임마다 고정 — 주사율에 끌려간다\n  if (a > W()) a = 0; if (b > W()) b = 0;\n  ctx.clearRect(0, 0, W(), H());\n  ctx.fillStyle = '#4ade80'; ctx.fillRect(a, 40, 26, 26);\n  ctx.fillStyle = '#f87171'; ctx.fillRect(b, 100, 26, 26);\n  ctx.fillStyle = '#eee'; ctx.font = '13px system-ui';\n  ctx.fillText('초록 = dt 곱함 · 빨강 = 프레임 고정 · 지금 ' + FPS + 'fps 흉내', 16, 20);\n}, 1000 / FPS);"
+    },
+    {
       "type": "code",
       "lang": "js",
       "label": "입력 → 갱신 → 그리기",

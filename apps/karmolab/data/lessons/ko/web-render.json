@@ -11,6 +11,31 @@
       "text": "1. 한 프레임의 순서"
     },
     {
+      "type": "demo",
+      "kind": "html",
+      "label": "무엇을 바꾸면 다시 그리나 — 애니메이션 방식을 골라 보라",
+      "height": "220px",
+      "controls": [
+        {
+          "id": "prop",
+          "label": "움직이는 방법",
+          "type": "select",
+          "value": "transform",
+          "options": [
+            {
+              "value": "transform",
+              "label": "transform (합성만)"
+            },
+            {
+              "value": "left",
+              "label": "left (배치부터 다시)"
+            }
+          ]
+        }
+      ],
+      "text": "<style>\n  .track{position:relative;height:60px;background:#eef2ff;border-radius:8px;overflow:hidden}\n  .ball{position:absolute;top:14px;left:0;width:32px;height:32px;border-radius:50%;background:#4f46e5}\n  .go{animation: move-{{prop}} 1.4s ease-in-out infinite alternate}\n  @keyframes move-transform{to{transform:translateX(240px)}}\n  @keyframes move-left{to{left:240px}}\n</style>\n<div class=\"track\"><div class=\"ball go\"></div></div>\n<p style=\"font:12px system-ui;color:#555\">지금: <b>{{prop}}</b> — 개발자도구 Performance 로 재보면 차이가 숫자로 나온다.</p>"
+    },
+    {
       "type": "p",
       "text": "JS 실행 → **스타일 계산** → **레이아웃**(어디에 얼마나) → **페인트**(색칠) → **합성**(층 합치기). 뒤로 갈수록 싸다. 그래서 앞 단계를 다시 돌게 만드는 변경이 비싸다."
     },

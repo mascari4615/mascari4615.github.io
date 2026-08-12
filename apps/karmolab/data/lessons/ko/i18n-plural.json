@@ -11,6 +11,48 @@
       "text": "1. 규칙의 다양함"
     },
     {
+      "type": "demo",
+      "kind": "html",
+      "label": "언어와 개수를 바꿔 보라 — 규칙이 다르다",
+      "height": "190px",
+      "controls": [
+        {
+          "id": "n",
+          "label": "개수",
+          "type": "range",
+          "min": 0,
+          "max": 25,
+          "step": 1,
+          "value": 1
+        },
+        {
+          "id": "loc",
+          "label": "언어",
+          "type": "select",
+          "value": "en",
+          "options": [
+            {
+              "value": "ko",
+              "label": "한국어"
+            },
+            {
+              "value": "en",
+              "label": "English"
+            },
+            {
+              "value": "ru",
+              "label": "Русский"
+            },
+            {
+              "value": "ar",
+              "label": "العربية"
+            }
+          ]
+        }
+      ],
+      "text": "<div style=\"font:15px system-ui;line-height:2\">\n  <div>개수: <b>{{n}}</b> · 언어: <b>{{loc}}</b></div>\n  <div id=\"rule\"></div>\n  <div id=\"fmt\"></div>\n</div>\n<script>\n  const n = {{n}}, loc = '{{loc}}';\n  document.getElementById('rule').textContent =\n    '복수형 갈래: ' + new Intl.PluralRules(loc).select(n);\n  document.getElementById('fmt').textContent =\n    '숫자 표기: ' + new Intl.NumberFormat(loc).format(n * 1234.5);\n</script>"
+    },
+    {
       "type": "code",
       "lang": "text",
       "label": "언어별 복수 범주",

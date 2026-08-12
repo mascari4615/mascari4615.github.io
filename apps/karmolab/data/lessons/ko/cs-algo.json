@@ -2,32 +2,114 @@
   "id": "cs-algo",
   "minutes": 15,
   "blocks": [
-    { "type": "p", "text": "알고리즘 공부는 대회용이 아니다. 실무에서 이게 필요한 순간은 딱 하나 — **데이터가 늘었더니 갑자기 느려졌을 때**. 그때 「왜」를 말할 수 있으면 고칠 수 있다." },
-
-    { "type": "h", "text": "1. 복잡도는 「입력이 두 배면 시간이 몇 배?」" },
-    { "type": "p", "text": "O(n) 은 두 배 → 두 배. O(n²) 은 두 배 → **네 배**. O(log n) 은 두 배 → 한 걸음 늘어난다. 상수와 잔가지는 버리고 성장 속도만 본다." },
-    { "type": "code", "lang": "js", "label": "같은 일, 다른 성장", "text": "// O(n²) — 목록 안에서 또 목록을 돈다\nconst dup1 = list.filter((x, i) => list.indexOf(x) !== i);\n\n// O(n) — 한 번 훑으며 본 것을 기억한다\nconst seen = new Set(), dup2 = [];\nfor (const x of list) { if (seen.has(x)) dup2.push(x); else seen.add(x); }" },
-    { "type": "note", "text": "실무에서 가장 자주 만나는 O(n²) 은 **반복문 안의 `indexOf`·`find`·`includes`**, 그리고 **반복문 안의 쿼리**(N+1 문제)다. 이 둘만 잡아도 대부분의 「갑자기 느려짐」이 사라진다." },
-
-    { "type": "h", "text": "2. 자료구조를 바꾸면 알고리즘이 사라진다" },
-    { "type": "code", "lang": "js", "label": "찾기 비용을 O(n) → O(1) 로", "text": "// 느림: 주문마다 사용자 목록을 뒤진다 (O(주문 × 사용자))\norders.map((o) => users.find((u) => u.id === o.userId));\n\n// 빠름: 색인을 한 번 만든다 (O(사용자 + 주문))\nconst byId = new Map(users.map((u) => [u.id, u]));\norders.map((o) => byId.get(o.userId));" },
-    { "type": "p", "text": "정렬은 O(n log n), 정렬된 것에서 찾기는 O(log n)(이분 탐색). 한 번 정렬해 두고 여러 번 찾는 상황이면 정렬이 이득이다 — **몇 번 쓸 것인가**로 판단한다." },
-
-    { "type": "h", "text": "3. 재귀와 메모" },
-    { "type": "code", "lang": "js", "label": "같은 계산을 다시 하지 않는다", "text": "const memo = new Map();\nfunction fib(n) {\n  if (n < 2) return n;\n  if (memo.has(n)) return memo.get(n);\n  const v = fib(n - 1) + fib(n - 2);\n  memo.set(n, v);\n  return v;\n}\n// 메모 없이 O(2^n) → 메모하면 O(n)" },
-
-    { "type": "h", "text": "4. 재기 전에 세지 마라" },
-    { "type": "p", "text": "복잡도는 **어디를 볼지** 알려 주고, 실제로 느린 곳은 **재 봐야** 안다. 상수가 큰 O(n) 이 작은 O(n log n) 보다 느린 경우도 흔하다." },
-    { "type": "code", "lang": "js", "label": "브라우저에서 바로 재기", "text": "console.time('slow'); slowVersion(data); console.timeEnd('slow');\nconsole.time('fast'); fastVersion(data); console.timeEnd('fast');\n// 데이터 크기를 10배로 늘려 두 번 재면 성장 곡선이 보인다" },
-
-    { "type": "h", "text": "직접 해보기" },
-    { "type": "try", "text": "1만 개짜리 배열로 위 `dup1`(indexOf)과 `dup2`(Set)를 각각 재 보라. 그리고 10만 개로 늘려 다시 재라 — 시간이 몇 배로 늘었는지가 곧 복잡도다." },
-    { "type": "try", "text": "내가 쓴 코드에서 반복문 안의 `find`·`includes` 를 하나 찾아 Map·Set 으로 바꿔 보라. 바꾸기 전후를 `console.time` 으로 재서 숫자로 적어 둬라." }
+    {
+      "type": "p",
+      "text": "알고리즘 공부는 대회용이 아니다. 실무에서 이게 필요한 순간은 딱 하나 — **데이터가 늘었더니 갑자기 느려졌을 때**. 그때 「왜」를 말할 수 있으면 고칠 수 있다."
+    },
+    {
+      "type": "h",
+      "text": "1. 복잡도는 「입력이 두 배면 시간이 몇 배?」"
+    },
+    {
+      "type": "demo",
+      "kind": "js",
+      "label": "정렬을 눈으로 — 크기와 속도를 밀어 보라",
+      "height": "230px",
+      "controls": [
+        {
+          "id": "n",
+          "label": "막대 수",
+          "type": "range",
+          "min": 8,
+          "max": 80,
+          "step": 2,
+          "value": 30
+        },
+        {
+          "id": "ms",
+          "label": "한 걸음(ms)",
+          "type": "range",
+          "min": 1,
+          "max": 60,
+          "step": 1,
+          "value": 12
+        }
+      ],
+      "text": "const N = {{n}}, MS = {{ms}};\nconst a = Array.from({ length: N }, () => Math.random());\nlet i = 0, j = 0;\nfunction draw(hl) {\n  ctx.clearRect(0, 0, W(), H());\n  const w = W() / a.length;\n  a.forEach((v, k) => {\n    ctx.fillStyle = k === hl ? '#f59e0b' : '#60a5fa';\n    ctx.fillRect(k * w, H() - v * (H() - 20), w - 1, v * (H() - 20));\n  });\n}\nfunction step() {\n  if (i < a.length) {\n    if (j < a.length - i - 1) {\n      if (a[j] > a[j + 1]) { const t = a[j]; a[j] = a[j + 1]; a[j + 1] = t; }\n      j++;\n    } else { j = 0; i++; }\n    draw(j);\n    setTimeout(step, MS);\n  } else draw(-1);\n}\nstep();"
+    },
+    {
+      "type": "p",
+      "text": "O(n) 은 두 배 → 두 배. O(n²) 은 두 배 → **네 배**. O(log n) 은 두 배 → 한 걸음 늘어난다. 상수와 잔가지는 버리고 성장 속도만 본다."
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "같은 일, 다른 성장",
+      "text": "// O(n²) — 목록 안에서 또 목록을 돈다\nconst dup1 = list.filter((x, i) => list.indexOf(x) !== i);\n\n// O(n) — 한 번 훑으며 본 것을 기억한다\nconst seen = new Set(), dup2 = [];\nfor (const x of list) { if (seen.has(x)) dup2.push(x); else seen.add(x); }"
+    },
+    {
+      "type": "note",
+      "text": "실무에서 가장 자주 만나는 O(n²) 은 **반복문 안의 `indexOf`·`find`·`includes`**, 그리고 **반복문 안의 쿼리**(N+1 문제)다. 이 둘만 잡아도 대부분의 「갑자기 느려짐」이 사라진다."
+    },
+    {
+      "type": "h",
+      "text": "2. 자료구조를 바꾸면 알고리즘이 사라진다"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "찾기 비용을 O(n) → O(1) 로",
+      "text": "// 느림: 주문마다 사용자 목록을 뒤진다 (O(주문 × 사용자))\norders.map((o) => users.find((u) => u.id === o.userId));\n\n// 빠름: 색인을 한 번 만든다 (O(사용자 + 주문))\nconst byId = new Map(users.map((u) => [u.id, u]));\norders.map((o) => byId.get(o.userId));"
+    },
+    {
+      "type": "p",
+      "text": "정렬은 O(n log n), 정렬된 것에서 찾기는 O(log n)(이분 탐색). 한 번 정렬해 두고 여러 번 찾는 상황이면 정렬이 이득이다 — **몇 번 쓸 것인가**로 판단한다."
+    },
+    {
+      "type": "h",
+      "text": "3. 재귀와 메모"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "같은 계산을 다시 하지 않는다",
+      "text": "const memo = new Map();\nfunction fib(n) {\n  if (n < 2) return n;\n  if (memo.has(n)) return memo.get(n);\n  const v = fib(n - 1) + fib(n - 2);\n  memo.set(n, v);\n  return v;\n}\n// 메모 없이 O(2^n) → 메모하면 O(n)"
+    },
+    {
+      "type": "h",
+      "text": "4. 재기 전에 세지 마라"
+    },
+    {
+      "type": "p",
+      "text": "복잡도는 **어디를 볼지** 알려 주고, 실제로 느린 곳은 **재 봐야** 안다. 상수가 큰 O(n) 이 작은 O(n log n) 보다 느린 경우도 흔하다."
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "브라우저에서 바로 재기",
+      "text": "console.time('slow'); slowVersion(data); console.timeEnd('slow');\nconsole.time('fast'); fastVersion(data); console.timeEnd('fast');\n// 데이터 크기를 10배로 늘려 두 번 재면 성장 곡선이 보인다"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "1만 개짜리 배열로 위 `dup1`(indexOf)과 `dup2`(Set)를 각각 재 보라. 그리고 10만 개로 늘려 다시 재라 — 시간이 몇 배로 늘었는지가 곧 복잡도다."
+    },
+    {
+      "type": "try",
+      "text": "내가 쓴 코드에서 반복문 안의 `find`·`includes` 를 하나 찾아 Map·Set 으로 바꿔 보라. 바꾸기 전후를 `console.time` 으로 재서 숫자로 적어 둬라."
+    }
   ],
   "quiz": [
     {
       "q": "O(n²) 알고리즘에서 입력이 2배가 되면 시간은 대략 몇 배인가?",
-      "choices": ["2배", "4배", "그대로"],
+      "choices": [
+        "2배",
+        "4배",
+        "그대로"
+      ],
       "answer": 1,
       "why": "제곱이므로 (2n)² = 4n². 입력이 조금만 늘어도 급격히 느려진다."
     },

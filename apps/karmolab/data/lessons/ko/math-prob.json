@@ -21,6 +21,33 @@
       "text": "2. 분산 — 기복의 크기"
     },
     {
+      "type": "demo",
+      "kind": "js",
+      "label": "확률을 밀어 보라 — 뭉침이 눈에 보인다",
+      "height": "230px",
+      "controls": [
+        {
+          "id": "p",
+          "label": "성공 확률(%)",
+          "type": "range",
+          "min": 5,
+          "max": 95,
+          "step": 5,
+          "value": 20
+        },
+        {
+          "id": "n",
+          "label": "시도 수",
+          "type": "range",
+          "min": 20,
+          "max": 400,
+          "step": 20,
+          "value": 120
+        }
+      ],
+      "text": "const P = {{p}} / 100, N = {{n}};\nlet run = 0, worst = 0, hit = 0;\nconst cell = Math.max(6, Math.min(16, Math.floor(W() / 40)));\nctx.clearRect(0, 0, W(), H());\nfor (let i = 0; i < N; i++) {\n  const ok = Math.random() < P;\n  if (ok) { hit++; run = 0; } else { run++; worst = Math.max(worst, run); }\n  const x = 16 + (i % 30) * (cell + 3), y = 40 + Math.floor(i / 30) * (cell + 3);\n  ctx.fillStyle = ok ? '#4ade80' : '#374151';\n  ctx.fillRect(x, y, cell, cell);\n}\nctx.fillStyle = '#eee'; ctx.font = '14px system-ui';\nctx.fillText('성공 ' + hit + '/' + N + ' (' + Math.round((hit / N) * 100) + '%) · 최장 연속 실패 ' + worst + '번', 16, 26);"
+    },
+    {
       "type": "code",
       "lang": "js",
       "label": "시뮬레이션이 가장 정직하다",
