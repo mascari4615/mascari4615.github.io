@@ -305,6 +305,25 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
     b.onclick = (): void => openJobById(b.dataset.job as string);
   });
 
+  /* ── 찾아온 도구를 연다 (TASK-KL-273) ─────────────────────────────
+   *
+   * 도구들은 재료 묶음 안으로 들어갔지만 **자기 주소는 살아 있다**(검색으로 들어오는 길).
+   * 예전엔 묶음이 탭이라 `switchTab(도구id)` 로 열렸는데, 재료 화면을 한 판으로 바꾸면서
+   * 그 길이 끊겼다 — 찾아온 사람이 재료 첫 화면만 봤다. 껍데기가 직접 집어서 연다.
+   */
+  const jobIds = new Set(o.groups().flatMap((g) => g.jobs.map(([id]) => id)));
+  const openIfMine = (id: string | null | undefined): void => {
+    if (id && jobIds.has(id)) openJobById(id);
+  };
+  openIfMine(Toolbox.takeBundleRequest?.());
+  const onBundleOpen = (e: Event): void => {
+    const d = (e as CustomEvent).detail as { tool?: string } | undefined;
+    /* 이미 집어 갔으면 `take` 가 비어 있다 — 그래도 알림에 실린 이름으로 연다 */
+    openIfMine(d?.tool);
+  };
+  window.addEventListener('karmolab-open-in-bundle', onBundleOpen);
+  Toolbox.onDispose?.(() => window.removeEventListener('karmolab-open-in-bundle', onBundleOpen));
+
   function backToJobs(): void {
     openJob = null;
     $('#pfMount').hidden = true;

@@ -285,6 +285,8 @@ declare global {
     mountTool: (id: string, container: HTMLElement) => boolean;
     /** 이 도구가 들어간 묶음 위젯 id (없으면 null) */
     findBundleFor: (id: string) => string | null;
+    /** 묶음으로 옮겨 오며 원래 찾던 도구 id (한 번만 준다, TASK-KL-273) */
+    takeBundleRequest?: (bundleId?: string) => string | null;
     /** 갈래 목록 (id·label·icon) — 라벨의 단일 출처 */
     getCategories?: () => Array<{ id: string; label: string; icon: string }>;
     /**
