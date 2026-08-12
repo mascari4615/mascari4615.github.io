@@ -76,6 +76,30 @@ if (fs.existsSync(metaPath)) {
   }
 }
 
+/* ③ 위젯이 쓰는 **원본 언어 말 묶음**도 저장소에 있어야 한다 (2026-08-12).
+ *   위젯 소스만 보다가 `meong` 에서 또 당했다 — 코드는 올라갔는데 `i18n/ko/meong.json` 이
+ *   안 올라가, 새 체크아웃에서 「없는 열쇠 3개」로 배포가 섰다. 부르는 쪽과 불리는 쪽은
+ *   말 묶음에도 똑같이 있다. 원본 언어만 본다(다른 언어는 배포를 막지 않는 정책). */
+{
+  const SOURCE = 'ko';
+  const seen = new Set();
+  for (const rel of entryPoints) {
+    const m = /^src\/widgets\/(?:tools\/|ref\/)?([\w-]+)(?:\/[\w-]+)?\.ts$/.exec(rel);
+    if (!m) continue;
+    const ns = m[1];
+    if (seen.has(ns)) continue;
+    seen.add(ns);
+    const src = fs.existsSync(path.join(root, rel)) ? fs.readFileSync(path.join(root, rel), 'utf8') : '';
+    if (!src.includes(`t('${ns}.`)) continue; // 그 묶음을 안 쓰면 없어도 된다
+    const catalogRel = `i18n/${SOURCE}/${ns}.json`;
+    if (!fs.existsSync(path.join(root, catalogRel))) continue; // 아예 안 만든 것은 다른 검사 몫
+    try {
+      execFileSync('git', ['ls-tree', '-r', '--name-only', 'HEAD', catalogRel], { cwd: root, encoding: 'utf8' })
+        .trim() || missing.push(`${catalogRel} (${ns} 위젯이 쓰는 한국어 말 묶음)`);
+    } catch { /* 못 물어보면 넘어간다 */ }
+  }
+}
+
 if (missing.length) {
   console.error('[entry-sources] 부르는데 **저장소에 없는** 소스:');
   for (const line of [...new Set(missing)]) console.error(`  - ${line}`);
