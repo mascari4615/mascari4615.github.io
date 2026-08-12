@@ -20,5 +20,6 @@
   "studymap.export.empty": "まだチェックした項目がありません。",
   "studymap.import.ask": "書き出した進捗を貼り付けてください。（今の進捗に足されます）",
   "studymap.import.bad": "読み取れる項目がありません。書き出しで作った文だけ使えます。",
-  "studymap.import.done": "{n} 項目を読み込みました。"
+  "studymap.import.done": "{n} 項目を読み込みました。",
+  "studymap.tracks": "分野"
 }

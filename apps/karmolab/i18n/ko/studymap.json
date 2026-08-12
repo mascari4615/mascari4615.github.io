@@ -20,5 +20,6 @@
   "studymap.export.empty": "아직 체크한 칸이 없다.",
   "studymap.import.ask": "내보낸 진도를 붙여 넣어라. (지금 진도에 더해진다)",
   "studymap.import.bad": "알아볼 수 있는 칸이 없다. 내보내기로 만든 글만 된다.",
-  "studymap.import.done": "{n}칸을 가져왔다."
+  "studymap.import.done": "{n}칸을 가져왔다.",
+  "studymap.tracks": "갈래"
 }
