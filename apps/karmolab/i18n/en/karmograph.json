@@ -625,5 +625,8 @@
   "karmograph.help.guideWhat": "Line a card up with its neighbours",
   "karmograph.help.guideHow": "Just drag — it snaps and shows the line it matched (Alt = free)",
   "karmograph.side.more": "More: notes · comments · shape · face",
-  "karmograph.side.less": "Show less"
+  "karmograph.side.less": "Show less",
+  "karmograph.btn.fit": "Fit",
+  "karmograph.btn.story": "Present",
+  "karmograph.btn.up": "Up"
 }

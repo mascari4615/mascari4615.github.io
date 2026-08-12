@@ -164,6 +164,9 @@ import {
        두 줄로 접는다: 옆 패널의 세로 12px 이 「무엇인지 모르는 단추 아홉 개」보다 싸다. */
     .km-tabs { display:flex; flex-wrap:wrap; gap:2px; margin:-4px -4px 10px; padding-bottom:8px;
       border-bottom:1px solid var(--border); position:sticky; top:-12px; background:var(--bg-secondary); z-index:2; }
+    /* 아이콘 옆 이름 — 폰에서는 줄이 옆으로 밀리므로 그대로 두고(밀어 쓰면 된다), 아주 좁을 때만 접는다. */
+    .km-btn-name { margin-left:5px; font-size:11px; vertical-align:middle; }
+    @media (max-width: 420px) { .km-btn-name { display:none; } }
     .km-tab { padding:4px 7px; font-size:13px; opacity:.55; }
     .km-tab.is-on { opacity:1; background:var(--bg-tertiary); }
     .km-tab-name { margin-left:4px; font-size:11px; max-width:96px; overflow:hidden;
@@ -468,7 +471,8 @@ import {
       <div class="km-root">
         <div class="km-toolbar">
           <select data-km="maps" title="${esc(t('karmograph.t92'))}"></select>
-          <button class="btn btn-ghost hidden" data-km="map-up" title="${esc(t('karmograph.t93'))}">↑</button>
+          <button class="btn btn-ghost hidden" data-km="map-up" title="${esc(t('karmograph.t93'))}">↑<span
+            class="km-btn-name">${esc(t('karmograph.btn.up'))}</span></button>
           <span class="km-saved hidden" data-km="saved" title="${esc(t('karmograph.t94'))}">${esc(t('karmograph.t117'))}</span>
           <button class="btn btn-ghost" data-km="map-new" title="${esc(t('karmograph.t95'))}">+</button>
           <select data-km="new-kind" title="${esc(t('karmograph.t96'))}">${nodeKindOptions()}</select>
@@ -483,8 +487,13 @@ import {
           </select>
           <button class="btn btn-ghost" data-km="undo" title="${esc(t('karmograph.t99'))}" disabled>↶</button>
           <button class="btn btn-ghost" data-km="redo" title="${esc(t('karmograph.t100'))}" disabled>↷</button>
-          <button class="btn btn-ghost" data-km="fit" title="${esc(t('karmograph.t101'))}">⤢</button>
-          <button class="btn btn-ghost" data-km="story" title="${esc(t('karmograph.t102'))}">▶</button>
+          <!-- ★ 이 둘은 **이 도구에만 있는 기능**이라 그림만으로는 아무도 못 맞힌다
+               (2026-08-12 사용자 검토: ⤢ ▶ 가 무엇인지 화면에서 알 길이 없었다).
+               되돌리기 ↶ ↷ 는 어디서나 같은 그림이라 그대로 둔다 — 이름을 다 달면 그것대로 줄이 길어진다. -->
+          <button class="btn btn-ghost" data-km="fit" title="${esc(t('karmograph.t101'))}">⤢<span
+            class="km-btn-name">${esc(t('karmograph.btn.fit'))}</span></button>
+          <button class="btn btn-ghost" data-km="story" title="${esc(t('karmograph.t102'))}">▶<span
+            class="km-btn-name">${esc(t('karmograph.btn.story'))}</span></button>
           <div class="km-more">
             <button class="btn btn-ghost" data-km="more" title="${esc(t('karmograph.t103'))}">⋯</button>
             <!-- ★ 20개를 한 줄기로 늘어놓으면 **찾는 데가 아니라 훑는 데**가 된다(높이 845px 였다).

@@ -625,5 +625,8 @@
   "karmograph.help.guideWhat": "隣のカードの線に合わせる",
   "karmograph.help.guideHow": "ドラッグすると自動で吸着し、合った線が出る（Alt = 自由）",
   "karmograph.side.more": "説明・コメント・形・顔をもっと見る",
-  "karmograph.side.less": "折りたたむ"
+  "karmograph.side.less": "折りたたむ",
+  "karmograph.btn.fit": "全体",
+  "karmograph.btn.story": "発表",
+  "karmograph.btn.up": "上へ"
 }
