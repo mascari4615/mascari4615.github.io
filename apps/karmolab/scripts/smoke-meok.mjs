@@ -215,7 +215,51 @@ await page.mouse.up();
 await page.waitForTimeout(300);
 if ((await inkRightHalf()) <= outsideAfter + 20) problems.push('선택을 풀었는데도 밖에 안 그려진다');
 
-/* ⑧ 화면이 넘치지 않는다(가로 스크롤). */
+/* ⑧ 고치기 — 색 보정·필터가 화면에 닿고, 회전이 판 모양을 바꾼다. */
+await page.locator('.meok-fix summary').click();
+await page.waitForTimeout(150);
+
+/* 필터: 반전 — 어두운 획이 밝아지므로 「어두운 픽셀 수」가 확 준다. */
+const darkAll = () => page.evaluate(() => {
+  const canvas = document.querySelector('.meok [data-canvas]');
+  const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+  let dark = 0;
+  for (let i = 0; i < data.length; i += 4) if (data[i] < 120 && data[i + 3] > 200) dark += 1;
+  return dark;
+});
+const beforeInvert = await darkAll();
+await page.locator('.meok-filters button', { hasText: '반전' }).click();
+await page.waitForTimeout(300);
+const afterInvert = await darkAll();
+if (afterInvert >= beforeInvert) problems.push('반전 필터가 화면에 안 닿았다 (' + beforeInvert + ' → ' + afterInvert + ')');
+await page.click('.meok [data-act="undo"]');
+await page.waitForTimeout(250);
+if (Math.abs((await darkAll()) - beforeInvert) > 60) problems.push('필터 되돌리기가 원래대로 안 돌아온다');
+
+/* 보정: 밝기 슬라이더를 끌면 미리보기가 즉시 바뀐다 */
+await page.locator('.meok [data-adjust="brightness"]').fill('0.6');
+await page.locator('.meok [data-adjust="brightness"]').dispatchEvent('input');
+await page.waitForTimeout(300);
+const brightened = await darkAll();
+if (brightened >= beforeInvert) problems.push('밝기 미리보기가 안 걸린다 (' + beforeInvert + ' → ' + brightened + ')');
+await page.click('.meok [data-act="adjust-reset"]');
+await page.waitForTimeout(250);
+if (Math.abs((await darkAll()) - beforeInvert) > 60) problems.push('보정 되돌리기가 원래대로 안 돌아온다');
+
+/* 회전: 세로가 긴 판으로 만든 뒤 돌리면 가로세로가 바뀐다 */
+const shapeBefore = await artRect();
+await page.click('.meok [data-act="rot-right"]');
+await page.waitForTimeout(400);
+const shapeAfter = await artRect();
+const ratioBefore = shapeBefore.w / shapeBefore.h;
+const ratioAfter = shapeAfter.w / shapeAfter.h;
+if (Math.abs(ratioBefore - 1) > 0.05 && Math.abs(ratioAfter - 1 / ratioBefore) > 0.15) {
+  problems.push('90도 회전인데 판 비율이 안 뒤집혔다 (' + ratioBefore.toFixed(2) + ' → ' + ratioAfter.toFixed(2) + ')');
+}
+await page.click('.meok [data-act="undo"]');
+await page.waitForTimeout(400);
+
+/* ⑨ 화면이 넘치지 않는다(가로 스크롤). */
 const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 if (overflow > 2) problems.push('가로로 ' + overflow + 'px 넘친다');
 
@@ -234,4 +278,4 @@ if (problems.length) {
   console.error('[smoke-meok] ✗\n - ' + problems.join('\n - '));
   process.exit(1);
 }
-console.log('[smoke-meok] ✓ 붓·되돌리기·레이어(숨김 반영)·프레임·픽셀 모드·선택영역(밖으로 안 샘) — 실제 브라우저');
+console.log('[smoke-meok] ✓ 붓·되돌리기·레이어(숨김 반영)·프레임·픽셀 모드·선택영역(밖으로 안 샘)·고치기(필터·보정·회전) — 실제 브라우저');
