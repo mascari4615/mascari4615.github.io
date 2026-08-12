@@ -180,7 +180,13 @@ async function checkOne(page, id) {
     return;
   }
   const before = await page.evaluate(snapshot, id);
-  await page.fill('[data-probe]', target.type === 'number' ? '37' : target.type === 'date' ? '1990-05-15' : '테스트 abc 123');
+  /* ★ 아무 글자나 넣으면 안 되는 도구가 있다 (2026-08-12). 색 변환기는 「테스트 abc 123」을
+   *   받아도 바꿀 색이 없어 화면이 그대로다 — 그건 고장이 아니라 **넣은 값이 틀린 것**이다.
+   *   그 도구가 알아들을 수 있는 값을 여기 적어 둔다(도구가 늘면 한 줄씩). */
+  const TYPED = { colorconv: '#3366ff' };
+  const typed = TYPED[id]
+    ?? (target.type === 'number' ? '37' : target.type === 'date' ? '1990-05-15' : '테스트 abc 123');
+  await page.fill('[data-probe]', typed);
   /* 비밀번호 칸이 따로 있으면 그것도 채운다 (TASK-KL-089).
    * 암호 도구는 평문 말고 열쇠가 하나 더 필요하다. 비워 두고 누르면 **아무 말 없이**
    * 아무 일도 안 일어나서, 검사에는 「고장」으로 보였다(도구는 멀쩡했다). */
