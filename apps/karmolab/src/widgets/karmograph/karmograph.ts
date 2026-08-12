@@ -2687,13 +2687,54 @@ import {
       const s = canvas?.getScale() ?? 1;
       zoomVal.textContent = `${Math.round(s * 100)}%`;
     };
-    q<HTMLButtonElement>('zoom-out').onclick = () => { canvas?.zoomBy(1 / 1.25); showZoom(); };
-    q<HTMLButtonElement>('zoom-in').onclick = () => { canvas?.zoomBy(1.25); showZoom(); };
+    /** 사람이 손으로 배율을 정했나 — 정했으면 판이 넓어져도 마음대로 다시 맞추지 않는다. */
+    let zoomChosen = false;
+    q<HTMLButtonElement>('zoom-out').onclick = () => { zoomChosen = true; canvas?.zoomBy(1 / 1.25); showZoom(); };
+    q<HTMLButtonElement>('zoom-in').onclick = () => { zoomChosen = true; canvas?.zoomBy(1.25); showZoom(); };
     zoomVal.onclick = () => {
       const s = canvas?.getScale() ?? 1;
+      zoomChosen = true;
       if (s !== 1) canvas?.zoomBy(1 / s);
       showZoom();
     };
+    canvasEl.addEventListener('wheel', () => { zoomChosen = true; }, { passive: true });
+
+    /**
+     * 판 크기가 달라지면 **다시 맞춘다** (TASK-KL-271 M1).
+     *
+     * 폰에서 판이 우표만 하게 뜨는 일이 있었다 — 배율은 판이 처음 그려질 때 한 번 정해지는데,
+     * 그때는 아직 자리가 안 잡혀 있다(시트가 올라와 있거나 폭이 0). 실측: 390px 폰에서 저장본을
+     * 열면 카드 전체 폭이 **109px**(판 폭 358px)로 그려졌고 배율 표시는 100% 라고 거짓말했다.
+     * 사람이 손으로 배율을 정하기 전까지는, 폭·높이가 눈에 띄게 달라질 때마다 다시 맞춘다.
+     */
+    let lastFitW = 0;
+    let lastFitH = 0;
+    let refitTimer: ReturnType<typeof setTimeout> | null = null;
+    const refitIfNeeded = (): void => {
+      if (zoomChosen || !canvas || spec.nodes.length === 0) return;
+      const w = canvasEl.clientWidth;
+      const h = canvasEl.clientHeight;
+      if (w <= 0 || h <= 0) return;
+      // 1px 씩 흔들리는 것까지 따라가면 끌 때마다 판이 튄다 — 눈에 띄는 변화(8%)에만 움직인다.
+      const moved = Math.abs(w - lastFitW) > lastFitW * 0.08 || Math.abs(h - lastFitH) > lastFitH * 0.08;
+      if (!moved && lastFitW > 0) return;
+      lastFitW = w;
+      lastFitH = h;
+      canvas.fitView();
+      showZoom();
+    };
+    const queueRefit = (): void => {
+      if (refitTimer) clearTimeout(refitTimer);
+      refitTimer = setTimeout(refitIfNeeded, 120);
+    };
+    const refitObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(queueRefit) : null;
+    refitObserver?.observe(canvasEl);
+    window.addEventListener('orientationchange', queueRefit);
+    Toolbox.onDispose?.(() => {
+      if (refitTimer) clearTimeout(refitTimer);
+      refitObserver?.disconnect();
+      window.removeEventListener('orientationchange', queueRefit);
+    });
     /* 휠·핀치·「전체 보기」로 바뀐 배율도 따라 적어야 한다 — 숫자가 거짓이면 없느니만 못하다.
        시계로 계속 물어보는 대신 **배율이 바뀔 만한 동작 뒤에** 한 번씩 읽는다. */
     for (const evName of ['wheel', 'pointerup', 'dblclick'] as const) {
