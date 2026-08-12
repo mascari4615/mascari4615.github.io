@@ -65,7 +65,7 @@ export function applyDomStrings(html, code) {
     for (const [, attr, key] of tag.matchAll(/\bdata-i18n-([\w-]+)="([^"]+)"/g)) {
       const re = new RegExp(`\\b${attr}="[^"]*"`);
       /* 표식만 있고 바꿀 속성이 없으면 그대로 둔다 — 조용히 새 속성을 만들지 않는다
-         (오타 하나로 `titel="…"` 같은 게 생기면 아무도 못 찾는다). 그건 검사가 잡는다. */
+         (속성 이름이 한 글자만 어긋나도 아무도 못 찾는다). 그건 검사가 잡는다. */
       if (re.test(out)) out = out.replace(re, `${attr}="${esc(tr(code, key))}"`);
     }
     return out;
