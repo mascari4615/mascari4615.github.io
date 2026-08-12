@@ -26,6 +26,7 @@ import { Match, type MatchView, type SeatSpec } from './kernel';
 import { seedFrom } from './rng';
 import { iconOf, kindOf, KINDS, type Kind } from './meta';
 import { viewById } from './view-registry';
+import { makeCode, inviteLink } from '../../lib/room';
 import type { Render } from './views';
 import { connect, type Net, type Peer, type Json } from './net';
 
@@ -527,12 +528,6 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
   }
 
   /** 방 이름 — 짧고, 헷갈리는 글자(0/O, 1/I)는 뺀다. */
-  function roomCode(): string {
-    const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let s = '';
-    for (let i = 0; i < 5; i++) s += abc[Math.floor(Math.random() * abc.length)];
-    return s;
-  }
 
   function draw(container: HTMLElement): void {
     injectStyles();
@@ -767,11 +762,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
 
     function openRoom(id: string): void {
-      const code = roomCode();
+      const code = makeCode();
       gameId = id;
       peers = [];
       show('wait');
-      $<HTMLInputElement>('#acUrl').value = location.origin + '/karmolab/t/arcade/?r=' + code;
+      $<HTMLInputElement>('#acUrl').value = inviteLink('arcade', code);
       paintWait(code, true);
       net = connect(code, true, myName(), {
         onPeers: (list) => {
