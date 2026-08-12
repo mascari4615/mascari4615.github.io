@@ -72,12 +72,14 @@ export function toGraphSpec(layout: TreeLayout, size = 64, laneLabels: string[] 
     } as GraphNode;
   });
 
-  const edges: GraphEdge[] = layout.edges.map(({ from, to }, i) => ({
+  const edges: GraphEdge[] = layout.edges.map(({ from, to, weak }, i) => ({
     id: `e${i}`,
     from,
     to,
-    kind: doneOf(from) ? 'open' : 'need',
-    curve: 0,
+    /* 곁가지는 따로 부류를 준다 — 흐린 점선이라 형태를 안 흐린다. */
+    kind: weak ? 'also' : doneOf(from) ? 'open' : 'need',
+    /* 곁가지는 살짝 휘어 뼈대와 겹치지 않게. */
+    curve: weak ? 0.35 : 0,
   }));
 
   /* 같은 깊이는 같은 단계 — 띠로 깔아 「지금 몇 번째인지」를 배경이 말하게 한다. */
@@ -102,6 +104,7 @@ export function toGraphSpec(layout: TreeLayout, size = 64, laneLabels: string[] 
     _edge_kinds: {
       need: { color: '#475569', width: 1.4, style: 'solid', arrow: true },
       open: { color: '#22c55e', width: 1.6, style: 'solid', arrow: true },
+      also: { color: '#33415580', width: 1, style: 'dotted', arrow: false },
     },
   } as GraphSpec;
 }

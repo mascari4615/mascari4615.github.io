@@ -42,31 +42,53 @@ for (const locale of fs.existsSync(lessonsDir) ? fs.readdirSync(lessonsDir) : []
     }
     if (!nodeIds.has(id)) fail.push(`${where}: 지도에 없는 칸 id (studymap.json 과 짝이 안 맞는다)`);
     if (lesson.id !== id) fail.push(`${where}: 파일 이름과 안의 id 가 다르다 (${lesson.id})`);
-    if (!Array.isArray(lesson.blocks) || lesson.blocks.length === 0) fail.push(`${where}: blocks 가 비었다`);
-    for (const [at, block] of (lesson.blocks || []).entries()) {
-      if (!BLOCK_TYPES.has(block.type)) fail.push(`${where}: blocks[${at}] 모르는 종류 「${block.type}」`);
-      if (typeof block.text !== 'string' || block.text.trim() === '') fail.push(`${where}: blocks[${at}] 글이 비었다`);
+    /**
+     * 칸 하나가 **여러 장(章)** 일 수 있다. 장이 있으면 장을 검사하고, 없으면 옛 모양(blocks 하나)을 검사한다.
+     * 어느 쪽이든 아래 검사는 같으므로 「검사할 묶음들」로 펴서 한 번만 적는다.
+     */
+    const parts = Array.isArray(lesson.parts) && lesson.parts.length > 0 ? lesson.parts : null;
+    if (parts) {
+      const seen = new Set();
+      for (const [pi, part] of parts.entries()) {
+        if (!part || typeof part.id !== 'string' || part.id.trim() === '') fail.push(`${where}: parts[${pi}] id 가 없다`);
+        if (seen.has(part?.id)) fail.push(`${where}: parts[${pi}] id 「${part.id}」 가 겹친다`);
+        seen.add(part?.id);
+        if (typeof part?.title !== 'string' || part.title.trim() === '') fail.push(`${where}: parts[${pi}] 제목이 없다`);
+        /* 장마다 확인 문제가 있어야 「공부」가 된다 — 읽고 넘어가는 장을 못 만들게 막는다. */
+        if (!Array.isArray(part?.quiz) || part.quiz.length < 2) fail.push(`${where}: parts[${pi}] 확인 문제가 2개 미만`);
+      }
+    } else if (!Array.isArray(lesson.blocks) || lesson.blocks.length === 0) {
+      fail.push(`${where}: blocks 가 비었다`);
+    }
+    const chunks = parts ? parts.map((p, i) => [`parts[${i}].`, p]) : [['', lesson]];
+    for (const [tagPrefix, chunk] of chunks) {
+    const at0 = tagPrefix;
+    if (parts && (!Array.isArray(chunk.blocks) || chunk.blocks.length === 0)) fail.push(`${where}: ${at0}blocks 가 비었다`);
+    for (const [at, block] of (chunk.blocks || []).entries()) {
+      if (!BLOCK_TYPES.has(block.type)) fail.push(`${where}: ${at0}blocks[${at}] 모르는 종류 「${block.type}」`);
+      if (typeof block.text !== 'string' || block.text.trim() === '') fail.push(`${where}: ${at0}blocks[${at}] 글이 비었다`);
       if (block.type === 'demo' && Array.isArray(block.controls)) {
         for (const c of block.controls) {
           if (!c || !c.id || !c.label || !['range', 'toggle', 'select'].includes(c.type)) {
-            fail.push(`${where}: blocks[${at}] 손잡이는 id·label·type(range/toggle/select) 이 필요하다`);
+            fail.push(`${where}: ${at0}blocks[${at}] 손잡이는 id·label·type(range/toggle/select) 이 필요하다`);
           }
           /* 손잡이를 만들었는데 코드가 안 쓰면 아무 일도 안 일어난다 — 조용한 실패를 막는다. */
           if (c && c.id && !String(block.text).includes(`{{${c.id}}}`)) {
-            fail.push(`${where}: blocks[${at}] 손잡이 「${c.id}」 를 예제 코드가 안 쓴다 ({{${c.id}}} 자리 없음)`);
+            fail.push(`${where}: ${at0}blocks[${at}] 손잡이 「${c.id}」 를 예제 코드가 안 쓴다 ({{${c.id}}} 자리 없음)`);
           }
         }
       }
       if (block.type === 'demo' && !DEMO_KINDS.has(block.kind)) {
-        fail.push(`${where}: blocks[${at}] demo 는 kind 가 html·js·shader 중 하나여야 한다 (지금 「${block.kind}」)`);
+        fail.push(`${where}: ${at0}blocks[${at}] demo 는 kind 가 html·js·shader 중 하나여야 한다 (지금 「${block.kind}」)`);
       }
     }
-    for (const [at, item] of (lesson.quiz || []).entries()) {
-      if (!Array.isArray(item.choices) || item.choices.length < 2) fail.push(`${where}: quiz[${at}] 선택지가 2개 미만`);
+    for (const [at, item] of (chunk.quiz || []).entries()) {
+      if (!Array.isArray(item.choices) || item.choices.length < 2) fail.push(`${where}: ${at0}quiz[${at}] 선택지가 2개 미만`);
       if (!Number.isInteger(item.answer) || item.answer < 0 || item.answer >= (item.choices || []).length) {
-        fail.push(`${where}: quiz[${at}] 정답 번호가 선택지 범위 밖 (${item.answer})`);
+        fail.push(`${where}: ${at0}quiz[${at}] 정답 번호가 선택지 범위 밖 (${item.answer})`);
       }
-      if (typeof item.q !== 'string' || item.q.trim() === '') fail.push(`${where}: quiz[${at}] 질문이 비었다`);
+      if (typeof item.q !== 'string' || item.q.trim() === '') fail.push(`${where}: ${at0}quiz[${at}] 질문이 비었다`);
+    }
     }
     ids.push(id);
   }
