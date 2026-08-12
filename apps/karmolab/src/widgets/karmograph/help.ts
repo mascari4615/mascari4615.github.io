@@ -28,6 +28,7 @@ export const help = (): HelpSection[] => [
     title: t('karmograph.help.sec.draw'),
     items: [
       { what: t('karmograph.t02'), how: t('karmograph.t03') },
+      { what: t('karmograph.help.renameWhat'), how: t('karmograph.help.renameHow') },
       { what: t('karmograph.t04'), how: t('karmograph.t05') },
       { what: t('karmograph.t06'), how: t('karmograph.t07') },
       { what: t('karmograph.t08'), how: t('karmograph.t09') },

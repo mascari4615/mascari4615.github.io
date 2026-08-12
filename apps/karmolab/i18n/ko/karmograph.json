@@ -618,5 +618,6 @@
   "karmograph.find.none": "없음",
   "karmograph.find.countTitle": "이름·한마디에서 맞은 카드 수",
   "karmograph.degree.pick": "카드를 하나 고르세요",
-  "karmograph.inline.hint": "카드를 두 번 누르면 이름을 그 자리에서 고칩니다 (Enter 저장 · Esc 되돌리기)"
+  "karmograph.help.renameWhat": "이름 그 자리에서 고치기",
+  "karmograph.help.renameHow": "카드를 두 번 누르기 (Enter 저장 · Esc 되돌리기)"
 }
