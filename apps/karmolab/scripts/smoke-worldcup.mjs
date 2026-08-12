@@ -28,6 +28,11 @@ const context = await browser.newContext({ viewport: { width: 1280, height: 1000
 await context.grantPermissions(['clipboard-read', 'clipboard-write']).catch(() => undefined);
 const page = await context.newPage();
 page.on('pageerror', (e) => problems.push(`페이지 스크립트가 죽었다: ${e.message}`));
+/* ★ **너무 자주 물어보면 서버가 문을 닫는다** (2026-08-13). 표(1025장)를 받는 주소가 429 를
+   주면 라운드 칸도 안 생기고 판도 안 열린다 — 그건 **제품이 깨진 게 아니라 못 잰 것**이다.
+   그때는 「빨강」이 아니라 CANNOT-RUN 으로 물러선다(0 을 초록·빨강 어느 쪽으로도 안 적는다). */
+let rateLimited = false;
+page.on('response', (r) => { if (r.status() === 429) rateLimited = true; });
 
 const res = await page.goto(URL_TARGET, { waitUntil: 'domcontentloaded', timeout: 45000 });
 if (!res || res.status() !== 200) problems.push(`월드컵이 안 열린다 (http ${res && res.status()})`);
@@ -68,6 +73,12 @@ if (packCount > 0) {
     problems.push(`시작을 눌렀는데 판이 안 열린다 — ${JSON.stringify(why)}`);
   });
 
+  /* ★ **판이 그려질 때까지 기다렸다가 누른다** (2026-08-13). 시작 직후에는 `#wcPlay` 가 아직
+     감춰져 있어, 아래 고리가 첫 바퀴에 곧바로 빠져나가 「0번을 눌렀는데 안 끝났다」가 됐다
+     (실측: CI 에서만 났다 — 내 기계는 그 사이가 짧다). 사람도 그림이 뜬 뒤에 누른다. */
+  await page.waitForSelector('#wcPlay:not([hidden])', { timeout: 30000 }).catch(() => {});
+  await page.waitForSelector('#wcA img', { timeout: 30000 }).catch(() => {});
+
   // 매 판 왼쪽을 고른다. 판이 끝나거나(결과 화면) 너무 오래 돌면 멈춘다.
   let clicks = 0;
   while (clicks < 200) {
@@ -91,6 +102,11 @@ if (packCount > 0) {
 
   // ③ 우승자와 내가 고른 길
   const finished = await page.locator('#wcDone:not([hidden])').count();
+  if (!finished && rateLimited) {
+    console.log('[smoke-worldcup] CANNOT-RUN — 서버가 429(너무 잦은 요청)를 줘서 표를 못 받았다. 제품 판정 아님.');
+    await browser.close();
+    process.exit(0);
+  }
   if (!finished) {
     problems.push(`${clicks}번을 눌렀는데 판이 안 끝났다`);
   } else {
