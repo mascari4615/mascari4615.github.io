@@ -57,5 +57,9 @@
   "arcade.game.slide.desc": "Same scramble for everyone — first to solve takes it. Solo works too",
   "arcade.slide.win": "{who} — solved in {n} slides",
   "arcade.slide.timeup": "Time — dead even",
-  "arcade.slide.closest": "{who} — {n} tiles home"
+  "arcade.slide.closest": "{who} — {n} tiles home",
+  "arcade.game.ultimate.name": "Ultimate Tic-Tac-Toe",
+  "arcade.game.ultimate.desc": "Where you play decides where they must",
+  "arcade.ultimate.win": "{who} took the big board",
+  "arcade.ultimate.draw": "Big board full — a draw"
 }

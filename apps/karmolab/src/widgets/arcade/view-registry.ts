@@ -14,8 +14,9 @@ import { reversiView } from './games/reversi-view';
 import { dotsView } from './games/dots-view';
 import { speedView } from './games/speed-view';
 import { slideView } from './games/slide-view';
+import { ultimateView } from './games/ultimate-view';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const VIEWS: Array<GameView<any, any>> = [reflexView, gomokuView, fourView, memoryView, hitblowView, reversiView, dotsView, speedView, slideView];
+export const VIEWS: Array<GameView<any, any>> = [reflexView, gomokuView, fourView, memoryView, hitblowView, reversiView, dotsView, speedView, slideView, ultimateView];
 
 export const viewById = (id: string): GameView<any, any> | undefined => VIEWS.find((v) => v.id === id);

@@ -57,5 +57,9 @@
   "arcade.game.slide.desc": "같은 판을 놓고 먼저 맞추는 사람이 임자. 혼자도 된다",
   "arcade.slide.win": "{who} — {n}번 밀어 맞췄다",
   "arcade.slide.timeup": "시간이 다 됐다 — 똑같이 남았다",
-  "arcade.slide.closest": "{who} — 제자리 {n}조각"
+  "arcade.slide.closest": "{who} — 제자리 {n}조각",
+  "arcade.game.ultimate.name": "초월 틱택토",
+  "arcade.game.ultimate.desc": "내가 둔 칸이 상대의 판을 정한다",
+  "arcade.ultimate.win": "{who} 이(가) 큰 판을 가져갔다",
+  "arcade.ultimate.draw": "큰 판이 다 찼다 — 비겼다"
 }
