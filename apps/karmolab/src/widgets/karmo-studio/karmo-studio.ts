@@ -7,6 +7,7 @@ import {
 import { toWav } from '../tools/shared/media';
 import { addAsset, hydrateAssets, importPortable, loadProject, portableProject, saveProject } from './storage';
 import { ProjectHistory } from './history';
+import { clipMarks, dragRect, isBoxDrag, markMode, rectOverlaps, type ClipRef } from './selection';
 
 (function (): void {
   const esc = (value: unknown): string => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -67,6 +68,7 @@ import { ProjectHistory } from './history';
     .ks-audio-controls .ks-field { grid-template-columns:70px minmax(0,1fr); }
     .ks-handle { position:absolute; top:0; right:0; width:8px; height:100%; cursor:ew-resize; background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--clip) 70%,white)); }
     .ks-playhead { position:absolute; top:30px; bottom:0; width:1px; background:#ff5d6c; z-index:6; pointer-events:none; box-shadow:0 0 5px #ff5d6c; }
+    .ks-band { position:absolute; z-index:7; pointer-events:none; border:1px solid var(--accent); background:color-mix(in srgb, var(--accent) 18%, transparent); border-radius:2px; }
     .ks-playhead::before { content:""; position:absolute; top:-5px; left:-4px; border:5px solid transparent; border-top-color:#ff5d6c; }
     .ks-loop { position:absolute; top:0; height:4px; background:var(--accent); opacity:.8; z-index:3; }
     .ks-side { min-height:0; border-left:1px solid var(--border); background:var(--bg-secondary); display:flex; flex-direction:column; }
@@ -123,6 +125,11 @@ import { ProjectHistory } from './history';
     let clipboard: {type:'clip';sourceTrackId:string;clip:StudioClip}|{type:'note';note:StudioClip['notes'][number]}|null=null;
     const engine = new KarmoStudioEngine();
     const history = new ProjectHistory(project, normalizeProject);
+    const marks = clipMarks();
+    /** marks 는 arranger 에서 실제로 표시된 clip 묶음. focus(selection) 가 묶음 밖으로 나가면 그 하나로 접힌다. */
+    function reconcileMarks(): void { marks.prune((ref)=>Boolean(findClip(project,ref.trackId,ref.clipId))); if(selection&&(selection.type==='clip'||selection.type==='note')){const ref={trackId:selection.trackId,clipId:selection.clipId};if(!marks.has(ref))marks.replace([ref]);}else marks.clear(); }
+    function markedRefs(): ClipRef[] { reconcileMarks(); return marks.list(); }
+    function markedClips(): { track: StudioTrack; clip: StudioClip }[] { return markedRefs().flatMap((ref)=>{const track=findTrack(project,ref.trackId);const clip=findClip(project,ref.trackId,ref.clipId);return track&&clip?[{track,clip}]:[];}); }
 
     container.innerHTML = `<div class="ks-root">
       <div class="ks-toolbar">
@@ -136,7 +143,7 @@ import { ProjectHistory } from './history';
         <button class="ks-btn" data-act="cut" title="잘라내기 (Ctrl+X)">CUT</button><button class="ks-btn" data-act="copy" title="복사 (Ctrl+C)">COPY</button><button class="ks-btn" data-act="paste" title="붙여넣기 (Ctrl+V)">PASTE</button>
         <span class="ks-spacer"></span><button class="ks-btn" data-act="zoom-out">−</button><button class="ks-btn" data-act="zoom-in">＋</button><button class="ks-btn" data-act="export-wav">EXPORT WAV</button><span class="ks-status" data-role="status">Ready</span>
       </div>
-      <div class="ks-work"><div class="ks-arranger"><div class="ks-scroll" data-role="scroll"><div class="ks-ruler" data-role="ruler"></div><div data-role="tracks"></div><div class="ks-playhead" data-role="playhead"></div></div><div class="ks-editor" data-role="editor"></div></div>
+      <div class="ks-work"><div class="ks-arranger"><div class="ks-scroll" data-role="scroll"><div class="ks-ruler" data-role="ruler"></div><div data-role="tracks"></div><div class="ks-playhead" data-role="playhead"></div><div class="ks-band" data-role="band" hidden></div></div><div class="ks-editor" data-role="editor"></div></div>
       <aside class="ks-side"><div class="ks-side-tabs"><button class="ks-btn is-on" data-side="inspector">INSPECTOR</button><button class="ks-btn" data-side="mixer">MIXER</button></div><div class="ks-side-body" data-role="side"></div></aside></div>
       <div class="ks-modal-backdrop" data-role="backdrop"></div><div class="ks-context" data-role="context" role="menu" hidden></div>
       <input type="file" data-file="audio" accept="audio/*" multiple hidden><input type="file" data-file="project" accept="application/json,.json" hidden>
@@ -154,7 +161,7 @@ import { ProjectHistory } from './history';
     function copySelection(): boolean { const chosen=selection;if(!chosen)return false;if(chosen.type==='note'){const clip=findClip(project,chosen.trackId,chosen.clipId);const note=clip?.notes.find((item)=>item.id===chosen.noteId);if(!note)return false;clipboard={type:'note',note:{...note}};status('MIDI note copied');return true;}if(chosen.type==='clip'){const clip=findClip(project,chosen.trackId,chosen.clipId);if(!clip)return false;clipboard={type:'clip',sourceTrackId:chosen.trackId,clip:cloneClip(clip,clip.start)};status('Clip copied');return true;}return false; }
     function pasteClipboard(): boolean { if(!clipboard){status('Clipboard is empty');return false;}if(clipboard.type==='clip'){const selected=selectedTrack();const source=findTrack(project,clipboard.sourceTrackId);const target=selected?.kind===clipboard.clip.kind?selected:source;if(!target){status('Compatible track not found');return false;}const copy=cloneClip(clipboard.clip,snapBeat(playhead,project.snap));copy.trackId=target.id;target.clips.push(copy);selection={type:'clip',trackId:target.id,clipId:copy.id};status(`Pasted clip at ${beatText(copy.start)}`);}else{const clip=selectedClip();const track=selectedTrack();if(!clip||clip.kind!=='midi'||!track){status('Select a MIDI clip before pasting a note');return false;}const source=clipboard.note;const beat=Math.max(0,Math.min(clip.duration-source.duration,snapBeat(playhead-clip.start,project.snap)));const note={...source,id:studioId('note'),beat};clip.notes.push(note);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:note.id};status(`Pasted note at ${beatText(clip.start+beat)}`);}saveSoon();renderAll();return true; }
     function cutSelection(): void { if(!copySelection())return;deleteSelection();status(clipboard?.type==='note'?'MIDI note cut':'Clip cut'); }
-    function duplicateSelection(): void { if(selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const track=selectedTrack();const note=clip?.notes.find((item)=>item.id===noteId);if(clip&&track&&note){const copy={...note,id:studioId('note'),beat:Math.min(clip.duration-note.duration,snapBeat(note.beat+note.duration,project.snap))};clip.notes.push(copy);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copy.id};saveSoon();renderEditor();renderTracks();renderSide();}return;}const clip=selectedClip();const track=selectedTrack();if(clip&&track){const copy=cloneClip(clip,snapBeat(clip.start+clip.duration,project.snap));track.clips.push(copy);selection={type:'clip',trackId:track.id,clipId:copy.id};saveSoon();renderAll();} }
+    function duplicateSelection(): void { if(selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const track=selectedTrack();const note=clip?.notes.find((item)=>item.id===noteId);if(clip&&track&&note){const copy={...note,id:studioId('note'),beat:Math.min(clip.duration-note.duration,snapBeat(note.beat+note.duration,project.snap))};clip.notes.push(copy);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copy.id};saveSoon();renderEditor();renderTracks();renderSide();}return;}const chosen=markedClips();if(!chosen.length)return;const span=chosen.reduce((end,item)=>Math.max(end,item.clip.start+item.clip.duration),0)-chosen.reduce((begin,item)=>Math.min(begin,item.clip.start),Infinity);const shift=snapBeat(Math.max(span,project.snap),project.snap);const copies=chosen.map((item)=>{const copy=cloneClip(item.clip,Math.max(0,snapBeat(item.clip.start+shift,project.snap)));item.track.clips.push(copy);return {trackId:item.track.id,clipId:copy.id};});marks.replace(copies);selection={type:'clip',trackId:copies[0].trackId,clipId:copies[0].clipId};if(copies.length>1)status(`Duplicated ${copies.length} clips`);saveSoon();renderAll(); }
     function addPianoNote(event: MouseEvent): boolean { const target=event.target as HTMLElement;const piano=target.closest<HTMLElement>('[data-piano]');const clip=selectedClip();const track=selectedTrack();if(!piano||!clip||clip.kind!=='midi'||!track||target.closest('.ks-note,.ks-key,.ks-piano-ruler'))return false;const rect=piano.firstElementChild!.getBoundingClientRect();const pitch=Math.max(36,Math.min(84,84-Math.floor((event.clientY-rect.top-24)/16)));const beat=snapBeat((event.clientX-rect.left-68)/pianoPxPerBeat,project.snap);if(beat<0||beat>=clip.duration)return false;const existing=clip.notes.find((note)=>note.pitch===pitch&&Math.abs(note.beat-beat)<project.snap/2);if(existing){selection={type:'note',trackId:track.id,clipId:clip.id,noteId:existing.id};renderEditor();renderSide();return true;}const note={id:studioId('note'),beat,duration:Math.min(project.snap*2,clip.duration-beat),pitch,velocity:.8};clip.notes.push(note);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:note.id};void engine.preview(track,pitch);saveSoon();renderEditor();renderTracks();renderSide();return true; }
     function createMidiClip(track:StudioTrack,start:number,open=false):StudioClip { const snapped=snapBeat(start,project.snap);const existing=track.clips.find((clip)=>clip.kind==='midi'&&Math.abs(clip.start-snapped)<project.snap/2);if(existing){selection={type:'clip',trackId:track.id,clipId:existing.id};renderAll();if(open)setEditorExpanded(true);return existing;}const clip:StudioClip={id:studioId('clip'),trackId:track.id,kind:'midi',name:'MIDI Clip',start:snapped,duration:project.beatsPerBar,offset:0,notes:[],gain:1,fadeIn:0,fadeOut:0};track.clips.push(clip);selection={type:'clip',trackId:track.id,clipId:clip.id};saveSoon();renderAll();if(open)setEditorExpanded(true);return clip; }
     function hideContextMenu(): void { const menu=$<HTMLElement>('[data-role=context]');menu.hidden=true;menu.innerHTML=''; }
@@ -187,7 +194,7 @@ import { ProjectHistory } from './history';
     }
 
     function clipHtml(track: StudioTrack, clip: StudioClip): string {
-      const selected = (selection?.type === 'clip' || selection?.type === 'note') && selection.clipId === clip.id;
+      const selected = marks.has({ trackId: track.id, clipId: clip.id }) || ((selection?.type === 'clip' || selection?.type === 'note') && selection.clipId === clip.id);
       const notes = clip.notes.length ? `<div class="ks-midi-notes">${clip.notes.map((note) => {
         const pitches = clip.notes.map((item) => item.pitch); const low = Math.min(...pitches); const high = Math.max(...pitches, low + 1);
         return `<i class="ks-midi-note" style="left:${note.beat / clip.duration * 100}%;width:${Math.max(1,note.duration / clip.duration * 100)}%;bottom:${(note.pitch-low)/(high-low)*90}%"></i>`;
@@ -196,6 +203,7 @@ import { ProjectHistory } from './history';
     }
 
     function renderTracks(): void {
+      reconcileMarks();
       const tracks = $<HTMLElement>('[data-role=tracks]'); const width = trackWidth();
       tracks.innerHTML = project.tracks.map((track) => `<div class="ks-track-row" data-track-row="${track.id}" style="width:${172 + width}px">
         <div class="ks-track-head"><div class="ks-track-title"><span class="ks-track-color" style="background:${track.color}"></span><input data-track-name="${track.id}" value="${esc(track.name)}" aria-label="트랙 이름"></div>
@@ -298,17 +306,95 @@ import { ProjectHistory } from './history';
 
     const scroll=$<HTMLElement>('[data-role=scroll]'); scroll.addEventListener('pointerdown',(event)=>{if(event.button!==0||!event.isPrimary)return;hideContextMenu();const target=event.target as HTMLElement;const clipEl=target.closest<HTMLElement>('.ks-clip');const lane=target.closest<HTMLElement>('.ks-lane');if(!clipEl&&!lane)return;
       if(clipEl&&editTool==='slice'){const trackId=clipEl.dataset.track||'',clipId=clipEl.dataset.clip||'';const track=findTrack(project,trackId),clip=findClip(project,trackId,clipId);if(!track||!clip||!lane)return;const at=snapBeat((event.clientX-lane.getBoundingClientRect().left)/pxPerBeat,project.snap);const right=splitClip(clip,at);if(right){track.clips.push(right);selection={type:'clip',trackId,clipId:right.id};saveSoon();renderAll();status(`Split at ${beatText(at)}`);}else status('Click inside the clip to split');return;}
-      if(!clipEl&&lane){selection={type:'track',trackId:lane.dataset.lane||''};playhead=snapBeat((event.clientX-lane.getBoundingClientRect().left)/pxPerBeat,project.snap);updatePlayhead();renderSide();return;}
-      if(!clipEl)return;const trackId=clipEl.dataset.track||'',clipId=clipEl.dataset.clip||'';const track=findTrack(project,trackId);const source=findClip(project,trackId,clipId);if(!source||!track)return;const isResize=Boolean(target.closest('[data-resize]'));const isClone=event.altKey&&!isResize;const clip=isClone?cloneClip(source,source.start):source;if(isClone){track.clips.push(clip);selection={type:'clip',trackId,clipId:clip.id};status('Alt-drag · clone clip');}else selection={type:'clip',trackId,clipId};root.querySelectorAll('.ks-clip').forEach((element)=>element.classList.toggle('is-selected',element===clipEl));renderSide();renderEditor();const startX=event.clientX,originalStart=clip.start,originalDuration=clip.duration;let moved=false;if(!clipEl.isConnected)return;try{clipEl.setPointerCapture(event.pointerId);}catch(_){if(isClone)track.clips=track.clips.filter((item)=>item.id!==clip.id);return;}
-      const move=(moveEvent:PointerEvent)=>{const delta=(moveEvent.clientX-startX)/pxPerBeat;if(Math.abs(moveEvent.clientX-startX)>2)moved=true;if(isResize)clip.duration=Math.max(project.snap,snapBeat(originalDuration+delta,project.snap));else clip.start=snapBeat(originalStart+delta,project.snap);clipEl.style.left=`${clip.start*pxPerBeat}px`;clipEl.style.width=`${clip.duration*pxPerBeat}px`;};
-      const cleanup=()=>{clipEl.removeEventListener('pointermove',move);clipEl.removeEventListener('pointerup',up);clipEl.removeEventListener('pointercancel',cancel);clipEl.removeEventListener('lostpointercapture',cancel);cancelActiveGesture=null;};const discardClone=()=>{if(isClone)track.clips=track.clips.filter((item)=>item.id!==clip.id);};const up=()=>{cleanup();if(!moved){discardClone();if(isClone)selection={type:'clip',trackId,clipId:source.id};renderAll();return;}saveSoon();renderAll();};const cancel=()=>{clip.start=originalStart;clip.duration=originalDuration;discardClone();if(isClone)selection={type:'clip',trackId,clipId:source.id};cleanup();renderAll();};cancelActiveGesture=cancel;clipEl.addEventListener('pointermove',move);clipEl.addEventListener('pointerup',up,{once:true});clipEl.addEventListener('pointercancel',cancel,{once:true});clipEl.addEventListener('lostpointercapture',cancel,{once:true});
+      if(!clipEl&&lane){
+        const mode=markMode(event);
+        if(editTool!=='select'&&mode==='replace'){selection={type:'track',trackId:lane.dataset.lane||''};playhead=snapBeat((event.clientX-lane.getBoundingClientRect().left)/pxPerBeat,project.snap);updatePlayhead();renderSide();return;}
+        /** box selection — 빈 lane 에서 끌면 지나간 clip 을 묶는다. */
+        const band=$<HTMLElement>('[data-role=band]');const startX=event.clientX,startY=event.clientY;
+        const before=marks.list();let boxed=false;
+        const paint=(moveEvent:PointerEvent):void=>{
+          const rect=dragRect(startX,startY,moveEvent.clientX,moveEvent.clientY);
+          boxed=isBoxDrag(rect);band.hidden=!boxed;if(!boxed)return;
+          const surface=scroll.getBoundingClientRect();
+          band.style.left=`${rect.left-surface.left+scroll.scrollLeft}px`;band.style.top=`${rect.top-surface.top+scroll.scrollTop}px`;
+          band.style.width=`${rect.right-rect.left}px`;band.style.height=`${rect.bottom-rect.top}px`;
+          const hit:ClipRef[]=[];
+          root.querySelectorAll<HTMLElement>('.ks-clip').forEach((element)=>{const box=element.getBoundingClientRect();if(rectOverlaps(rect,{left:box.left,top:box.top,right:box.right,bottom:box.bottom}))hit.push({trackId:element.dataset.track||'',clipId:element.dataset.clip||''});});
+          marks.replace(mode==='replace'?hit:[...before,...hit]);
+          const keys=new Set(marks.list().map((ref)=>`${ref.trackId} ${ref.clipId}`));
+          root.querySelectorAll<HTMLElement>('.ks-clip').forEach((element)=>element.classList.toggle('is-selected',keys.has(`${element.dataset.track} ${element.dataset.clip}`)));
+        };
+        const finish=(committed:boolean):void=>{
+          window.removeEventListener('pointermove',paint);window.removeEventListener('pointerup',done);window.removeEventListener('pointercancel',abort);
+          band.hidden=true;cancelActiveGesture=null;
+          if(!boxed){marks.replace(before);if(committed){selection={type:'track',trackId:lane.dataset.lane||''};playhead=snapBeat((startX-lane.getBoundingClientRect().left)/pxPerBeat,project.snap);updatePlayhead();renderSide();}return;}
+          if(!committed){marks.replace(before);renderTracks();return;}
+          const chosen=marks.list();
+          selection=chosen.length?{type:'clip',trackId:chosen[0].trackId,clipId:chosen[0].clipId}:{type:'track',trackId:lane.dataset.lane||''};
+          renderTracks();renderSide();renderEditor();status(chosen.length?`${chosen.length} clip${chosen.length>1?'s':''} selected`:'Selection cleared');
+        };
+        const done=():void=>finish(true);const abort=():void=>finish(false);
+        cancelActiveGesture=abort;
+        window.addEventListener('pointermove',paint);window.addEventListener('pointerup',done,{once:true});window.addEventListener('pointercancel',abort,{once:true});
+        return;
+      }
+      if(!clipEl)return;
+      const trackId=clipEl.dataset.track||'',clipId=clipEl.dataset.clip||'';
+      const track=findTrack(project,trackId);const source=findClip(project,trackId,clipId);
+      if(!source||!track)return;
+      const isResize=Boolean(target.closest('[data-resize]'));const isClone=event.altKey&&!isResize;
+      reconcileMarks();
+      if(!isClone)marks.apply({trackId,clipId},markMode(event));
+      /** 이동 대상 한 묶음. resize 는 집은 clip 하나만, 그 외에는 표시된 clip 전부가 같이 간다. */
+      type Mover={track:StudioTrack;clip:StudioClip;el:HTMLElement|null;start:number;duration:number};
+      const elementFor=(refTrackId:string,refClipId:string):HTMLElement|null=>root.querySelector<HTMLElement>(`.ks-clip[data-track="${refTrackId}"][data-clip="${refClipId}"]`);
+      const clones:{track:StudioTrack;clip:StudioClip}[]=[];
+      let movers:Mover[];let anchor:Mover;
+      if(isClone){
+        const sources=marks.has({trackId,clipId})?markedClips():[{track,clip:source}];
+        movers=sources.map((item)=>{const copy=cloneClip(item.clip,item.clip.start);item.track.clips.push(copy);clones.push({track:item.track,clip:copy});return {track:item.track,clip:copy,el:elementFor(item.track.id,item.clip.id),start:copy.start,duration:copy.duration};});
+        marks.replace(clones.map((item)=>({trackId:item.track.id,clipId:item.clip.id})));
+        anchor=movers.find((item)=>item.track.id===trackId)||movers[0];
+        selection={type:'clip',trackId:anchor.track.id,clipId:anchor.clip.id};
+        status(clones.length>1?`Alt-drag · cloned ${clones.length} clips`:'Alt-drag · clone clip');
+      } else {
+        selection={type:'clip',trackId,clipId};
+        const chosen=isResize?[{track,clip:source}]:markedClips();
+        movers=chosen.map((item)=>({track:item.track,clip:item.clip,el:elementFor(item.track.id,item.clip.id),start:item.clip.start,duration:item.clip.duration}));
+        anchor=movers.find((item)=>item.clip.id===clipId)||movers[0];
+      }
+      if(!movers.length)return;
+      const markedKeys=new Set(marks.list().map((ref)=>`${ref.trackId} ${ref.clipId}`));
+      root.querySelectorAll<HTMLElement>('.ks-clip').forEach((element)=>element.classList.toggle('is-selected',markedKeys.has(`${element.dataset.track} ${element.dataset.clip}`)));
+      renderSide();renderEditor();
+      if(marks.size>1&&!isClone)status(`${marks.size} clips selected`);
+      const startX=event.clientX;let moved=false;
+      const discardClone=()=>{for(const item of clones)item.track.clips=item.track.clips.filter((entry)=>entry.id!==item.clip.id);if(clones.length){marks.replace([{trackId,clipId}]);selection={type:'clip',trackId,clipId:source.id};}};
+      if(!clipEl.isConnected){discardClone();return;}
+      try{clipEl.setPointerCapture(event.pointerId);}catch(_){discardClone();return;}
+      const move=(moveEvent:PointerEvent)=>{
+        const delta=(moveEvent.clientX-startX)/pxPerBeat;
+        if(Math.abs(moveEvent.clientX-startX)>2)moved=true;
+        if(isResize)anchor.clip.duration=Math.max(project.snap,snapBeat(anchor.duration+delta,project.snap));
+        else{const step=snapBeat(anchor.start+delta,project.snap)-anchor.start;for(const item of movers)item.clip.start=Math.max(0,item.start+step);}
+        for(const item of movers){if(!item.el)continue;item.el.style.left=`${item.clip.start*pxPerBeat}px`;item.el.style.width=`${item.clip.duration*pxPerBeat}px`;}
+      };
+      const cleanup=()=>{clipEl.removeEventListener('pointermove',move);clipEl.removeEventListener('pointerup',up);clipEl.removeEventListener('pointercancel',cancel);clipEl.removeEventListener('lostpointercapture',cancel);cancelActiveGesture=null;};
+      const up=()=>{cleanup();if(!moved){discardClone();renderAll();return;}saveSoon();renderAll();if(movers.length>1)status(`Moved ${movers.length} clips`);};
+      const cancel=()=>{for(const item of movers){item.clip.start=item.start;item.clip.duration=item.duration;}discardClone();cleanup();renderAll();};
+      cancelActiveGesture=cancel;
+      clipEl.addEventListener('pointermove',move);clipEl.addEventListener('pointerup',up,{once:true});clipEl.addEventListener('pointercancel',cancel,{once:true});clipEl.addEventListener('lostpointercapture',cancel,{once:true});
     });
     scroll.addEventListener('click',(event)=>{if(event.button!==0||editTool!=='draw')return;const target=event.target as HTMLElement;if(target.closest('.ks-clip'))return;const lane=target.closest<HTMLElement>('.ks-lane');if(!lane||lane.dataset.kind!=='midi')return;const track=findTrack(project,lane.dataset.lane||'');if(track)createMidiClip(track,(event.clientX-lane.getBoundingClientRect().left)/pxPerBeat);});
     scroll.addEventListener('dblclick',(event)=>{if(event.button!==0)return;event.preventDefault();const target=event.target as HTMLElement;const clipElement=target.closest<HTMLElement>('.ks-clip');if(clipElement){const trackId=clipElement.dataset.track||'',clipId=clipElement.dataset.clip||'';const clip=findClip(project,trackId,clipId);if(clip){selection={type:'clip',trackId,clipId};renderTracks();renderSide();setEditorExpanded(true);}return;}const lane=target.closest<HTMLElement>('.ks-lane');if(!lane||lane.dataset.kind!=='midi')return;const track=findTrack(project,lane.dataset.lane||'');if(track)createMidiClip(track,(event.clientX-lane.getBoundingClientRect().left)/pxPerBeat,true);});
 
     root.addEventListener('pointerdown',(event)=>{if(event.button!==0||!event.isPrimary)return;const target=event.target as HTMLElement;const noteEl=target.closest<HTMLElement>('.ks-note');const clip=selectedClip();const track=selectedTrack();if(!noteEl||!clip||!track)return;const note=clip.notes.find((item)=>item.id===noteEl.dataset.note);if(!note)return;selection={type:'note',trackId:track.id,clipId:clip.id,noteId:note.id};const startX=event.clientX,startY=event.clientY,beat=note.beat,pitch=note.pitch,duration=note.duration,isResize=Boolean(target.closest('[data-note-resize]'));if(!noteEl.isConnected)return;try{noteEl.setPointerCapture(event.pointerId);}catch(_){return;}const move=(moveEvent:PointerEvent)=>{if(isResize){note.duration=Math.max(project.snap,Math.min(clip.duration-note.beat,snapBeat(duration+(moveEvent.clientX-startX)/pianoPxPerBeat,project.snap)));noteEl.style.width=`${note.duration*pianoPxPerBeat}px`;}else{note.beat=Math.max(0,Math.min(clip.duration-note.duration,snapBeat(beat+(moveEvent.clientX-startX)/pianoPxPerBeat,project.snap)));note.pitch=Math.max(36,Math.min(84,pitch-Math.round((moveEvent.clientY-startY)/16)));noteEl.style.left=`${68+note.beat*pianoPxPerBeat}px`;noteEl.style.top=`${24+(84-note.pitch)*16+2}px`;}};const cleanup=()=>{noteEl.removeEventListener('pointermove',move);noteEl.removeEventListener('pointerup',up);noteEl.removeEventListener('pointercancel',cancel);noteEl.removeEventListener('lostpointercapture',cancel);cancelActiveGesture=null;};const up=()=>{cleanup();void engine.preview(track,note.pitch,note.velocity);saveSoon();renderEditor();renderTracks();};const cancel=()=>{note.beat=beat;note.pitch=pitch;note.duration=duration;cleanup();renderEditor();renderTracks();};cancelActiveGesture=cancel;noteEl.addEventListener('pointermove',move);noteEl.addEventListener('pointerup',up,{once:true});noteEl.addEventListener('pointercancel',cancel,{once:true});noteEl.addEventListener('lostpointercapture',cancel,{once:true});});
     root.addEventListener('contextmenu',(event)=>{const target=event.target as HTMLElement;const clipEl=target.closest<HTMLElement>('.ks-clip');const noteEl=target.closest<HTMLElement>('.ks-note');const lane=target.closest<HTMLElement>('.ks-lane');if(!clipEl&&!noteEl&&!lane)return;event.preventDefault();event.stopPropagation();if(noteEl){const clip=selectedClip();const track=selectedTrack();const note=clip?.notes.find((item)=>item.id===noteEl.dataset.note);if(clip&&track&&note){clip.notes=clip.notes.filter((item)=>item.id!==note.id);selection={type:'clip',trackId:track.id,clipId:clip.id};saveSoon();renderEditor();renderTracks();renderSide();status('Right-click · deleted MIDI note');}}else if(clipEl){const trackId=clipEl.dataset.track||'',clipId=clipEl.dataset.clip||'';selection={type:'clip',trackId,clipId};renderSide();renderEditor();showContextMenu(event.clientX,event.clientY,[['open-editor','편집기 열기'],['copy','클립 복사'],['cut','클립 잘라내기'],['duplicate','클립 복제'],['split','재생 헤드에서 분할'],['delete','클립 삭제']]);}else if(lane){selection={type:'track',trackId:lane.dataset.lane||''};renderSide();showContextMenu(event.clientX,event.clientY,[['open-editor','클립을 더블클릭해 편집']]);}});
-    function deleteSelection():void{const chosen=selection;if(!chosen)return;const track=findTrack(project,chosen.trackId);if(!track)return;if(chosen.type==='note'){const clip=findClip(project,chosen.trackId,chosen.clipId);if(clip)clip.notes=clip.notes.filter((note)=>note.id!==chosen.noteId);}else if(chosen.type==='clip')track.clips=track.clips.filter((clip)=>clip.id!==chosen.clipId);selection={type:'track',trackId:track.id};saveSoon();renderAll();}
+    function deleteSelection():void{
+      const chosen=selection;if(!chosen)return;const track=findTrack(project,chosen.trackId);if(!track)return;
+      if(chosen.type==='note'){const clip=findClip(project,chosen.trackId,chosen.clipId);if(clip)clip.notes=clip.notes.filter((note)=>note.id!==chosen.noteId);}
+      else if(chosen.type==='clip'){const doomed=markedClips();for(const item of doomed)item.track.clips=item.track.clips.filter((clip)=>clip.id!==item.clip.id);marks.clear();if(doomed.length>1)status(`Deleted ${doomed.length} clips`);}
+      selection={type:'track',trackId:track.id};saveSoon();renderAll();}
     const keydown=(event:KeyboardEvent)=>{if(!root.isConnected)return;if(event.key==='Escape'){event.preventDefault();cancelActiveGesture?.();hideContextMenu();if(editorExpanded)setEditorExpanded(false);return;}const command=event.ctrlKey||event.metaKey;if(command&&event.key.toLowerCase()==='z'){event.preventDefault();restoreHistory(event.shiftKey?'redo':'undo');return;}if(command&&event.key.toLowerCase()==='y'){event.preventDefault();restoreHistory('redo');return;}const tag=(event.target as HTMLElement).tagName;if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;if(!command&&['p','e','c'].includes(event.key.toLowerCase())){editTool=event.key.toLowerCase()==='p'?'draw':event.key.toLowerCase()==='e'?'select':'slice';renderAll();status(`${editTool.toUpperCase()} tool`);return;}if(command&&event.key.toLowerCase()==='c'){event.preventDefault();copySelection();return;}if(command&&event.key.toLowerCase()==='x'){event.preventDefault();cutSelection();return;}if(command&&event.key.toLowerCase()==='v'){event.preventDefault();pasteClipboard();return;}if(event.code==='Space'){event.preventDefault();engine.isPlaying()?stop():play();}else if(event.key==='Delete'||event.key==='Backspace'){event.preventDefault();deleteSelection();}else if(command&&event.key.toLowerCase()==='b'){event.preventDefault();root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();}};document.addEventListener('keydown',keydown);
     $<HTMLElement>('[data-role=backdrop]').addEventListener('click',()=>setEditorExpanded(false));
     Toolbox.onHandoff?.('karmo-studio',(file: File)=>{if(file.type.startsWith('audio/'))void importAudio([file]);else if(file.type==='application/json')void file.text().then(importPortable).then((next: StudioProject)=>{project=next;history.reset(project);return refreshAssets();}).then(()=>renderAll());});

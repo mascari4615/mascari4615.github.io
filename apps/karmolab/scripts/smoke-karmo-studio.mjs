@@ -37,6 +37,40 @@ const clipStartAfterContext=await page.locator('.ks-clip').first().evaluate((ele
 await page.keyboard.press('Escape');
 await page.keyboard.press('e');const selectTool=await page.locator('.ks-root').getAttribute('data-tool');await page.keyboard.press('p');const drawTool=await page.locator('.ks-root').getAttribute('data-tool');await page.keyboard.press('e');
 await page.keyboard.press('Control+c');const firstLaneBox=await page.locator('.ks-lane[data-kind=midi]').first().boundingBox();await page.mouse.click(firstLaneBox.x+420,firstLaneBox.y+38);await page.keyboard.press('Control+v');await page.waitForTimeout(80);const clipCountAfterPaste=await page.locator('.ks-clip').count();
+/* 다중 선택 — box drag 로 묶고, 한 clip 을 끌면 묶음 전체가 같은 거리만큼 간다. */
+await page.keyboard.press('e');
+/* 좁은 화면에서도 두 clip 이 한 화면에 들어오도록 먼저 축소한다 (mobile 390px). */
+for(let step=0;step<4;step++)await page.click('[data-act=zoom-out]');
+await page.waitForTimeout(80);
+const multiClipBoxes=await page.locator('.ks-lane[data-kind=midi]').first().locator('.ks-clip').evaluateAll((elements)=>elements.map((element)=>{const box=element.getBoundingClientRect();return {left:box.left,top:box.top,right:box.right,bottom:box.bottom};}));
+const viewport=page.viewportSize();
+const multiLaneBox=await page.locator('.ks-lane[data-kind=midi]').first().boundingBox();
+const bandLeft=Math.max(multiLaneBox.x+2,Math.min(...multiClipBoxes.map((box)=>box.left))-8);
+const bandRight=Math.min(viewport.width-2,multiLaneBox.x+multiLaneBox.width-2,Math.max(...multiClipBoxes.map((box)=>box.right))+8);
+const bandTop=Math.min(...multiClipBoxes.map((box)=>box.top))+3;
+const bandBottom=Math.max(...multiClipBoxes.map((box)=>box.bottom))-3;
+await page.mouse.move(bandRight,bandTop);await page.mouse.down();await page.mouse.move(bandLeft,bandBottom,{steps:6});await page.mouse.up();await page.waitForTimeout(80);
+const boxSelected=await page.locator('.ks-lane[data-kind=midi]').first().locator('.ks-clip.is-selected').count();
+const startsBeforeMultiMove=await page.locator('.ks-lane[data-kind=midi]').first().locator('.ks-clip').evaluateAll((elements)=>elements.map((element)=>parseFloat(element.style.left)));
+const dragTarget=await page.locator('.ks-lane[data-kind=midi]').first().locator('.ks-clip').first().boundingBox();
+/* sticky track head 가 lane 왼쪽을 덮고 오른쪽 8px 은 resize handle 이라, 실제로 clip 본체가
+   드러나는 x 를 화면에서 직접 찾는다. */
+const grabY=dragTarget.y+22;
+const grabX=await page.evaluate(([left,right,y])=>{for(let x=left+6;x<right-14;x+=4){const element=document.elementFromPoint(x,y);if(element&&element.closest('.ks-clip')&&!element.closest('[data-resize]'))return x;}return left+18;},[dragTarget.x,dragTarget.x+dragTarget.width,grabY]);
+await page.mouse.move(grabX,grabY);await page.mouse.down();await page.mouse.move(grabX+72,grabY,{steps:4});await page.mouse.up();await page.waitForTimeout(120);
+const startsAfterMultiMove=await page.locator('.ks-lane[data-kind=midi]').first().locator('.ks-clip').evaluateAll((elements)=>elements.map((element)=>parseFloat(element.style.left)));
+const multiDeltas=startsAfterMultiMove.map((value,index)=>value-(startsBeforeMultiMove[index]??0));
+/* 되돌려 놓는다 — 이후 검사(짧은 loop 재생)가 clip 위치에 의존한다. */
+const dragBack=await page.locator('.ks-lane[data-kind=midi]').first().locator('.ks-clip').first().boundingBox();
+const backX=await page.evaluate(([left,right,y])=>{for(let x=left+6;x<right-14;x+=4){const element=document.elementFromPoint(x,y);if(element&&element.closest('.ks-clip')&&!element.closest('[data-resize]'))return x;}return left+18;},[dragBack.x,dragBack.x+dragBack.width,dragBack.y+22]);
+await page.mouse.move(backX,dragBack.y+22);await page.mouse.down();await page.mouse.move(backX-72,dragBack.y+22,{steps:4});await page.mouse.up();await page.waitForTimeout(120);
+const startsAfterMultiRestore=await page.locator('.ks-lane[data-kind=midi]').first().locator('.ks-clip').evaluateAll((elements)=>elements.map((element)=>parseFloat(element.style.left)));
+const clipCountBeforeMultiDuplicate=await page.locator('.ks-clip').count();
+await page.keyboard.press('Control+b');await page.waitForTimeout(120);
+const clipCountAfterMultiDuplicate=await page.locator('.ks-clip').count();
+await page.keyboard.press('Delete');await page.waitForTimeout(120);
+const clipCountAfterMultiDelete=await page.locator('.ks-clip').count();
+for(let step=0;step<4;step++)await page.click('[data-act=zoom-in]');await page.waitForTimeout(80);
 const volume=page.locator('[data-track-volume]').first();const volumeBefore=Number(await volume.inputValue());await volume.evaluate((element)=>{for(const value of ['0.2','0.35','0.5']){element.value=value;element.dispatchEvent(new Event('input',{bubbles:true}));}});await page.keyboard.press('Control+z');const volumeAfterMergedUndo=Number(await page.locator('[data-track-volume]').first().inputValue());await page.keyboard.press('Control+y');const volumeAfterMergedRedo=Number(await page.locator('[data-track-volume]').first().inputValue());
 await page.locator('.ks-clip').last().dispatchEvent('dblclick',{button:0});await page.waitForSelector('.ks-editor.is-expanded');await page.click('[data-act=toggle-editor]');
 /* 선택하면서 타임라인을 다시 그린 뒤 이미 제거된 요소에 pointer capture를 걸었던 회귀를 직접 밟는다. */
@@ -84,6 +118,11 @@ const after=await page.evaluate(()=>({tracks:document.querySelectorAll('.ks-trac
 if(initial.tracks<2||initial.clips<1||initial.notes<4)problems.push(`기본 프로젝트가 비었다 (${JSON.stringify(initial)})`);
 if(clipStartAfterContext!==clipStartBeforeContext||!contextLabels.includes('편집기 열기'))problems.push(`우클릭 입력 격리 실패 (${clipStartBeforeContext}→${clipStartAfterContext}, ${contextLabels.join(', ')})`);
 if(selectTool!=='select'||drawTool!=='draw')problems.push(`FL식 tool 단축키 실패 (${selectTool}, ${drawTool})`);
+if(boxSelected<2)problems.push(`box drag 다중 선택 실패 (${boxSelected} selected)`);
+if(multiDeltas.length<2||multiDeltas.some((value)=>Math.abs(value-multiDeltas[0])>0.6)||multiDeltas[0]<=0)problems.push(`묶음 이동이 어긋났다 (${JSON.stringify(multiDeltas)})`);
+if(startsAfterMultiRestore.some((value,index)=>Math.abs(value-(startsBeforeMultiMove[index]??0))>0.6))problems.push(`묶음 되돌리기 실패 (${JSON.stringify(startsAfterMultiRestore)} vs ${JSON.stringify(startsBeforeMultiMove)})`);
+if(clipCountAfterMultiDuplicate!==clipCountBeforeMultiDuplicate*2)problems.push(`묶음 복제 실패 (${clipCountBeforeMultiDuplicate}→${clipCountAfterMultiDuplicate})`);
+if(clipCountAfterMultiDelete!==clipCountBeforeMultiDuplicate)problems.push(`묶음 삭제 실패 (${clipCountAfterMultiDuplicate}→${clipCountAfterMultiDelete})`);
 if(clipCountAfterPaste!==initial.clips+1)problems.push(`클립 copy/paste 실패 (${initial.clips}→${clipCountAfterPaste})`);
 if(Math.abs(volumeAfterMergedUndo-volumeBefore)>.001||Math.abs(volumeAfterMergedRedo-.5)>.001)problems.push(`연속 입력 history 병합 실패 (${volumeBefore}→${volumeAfterMergedUndo}→${volumeAfterMergedRedo})`);
 if(selectedTextAfterDoubleClick||!editorClosedByEscape)problems.push(`더블클릭/모달 수명주기 실패 (selection=${JSON.stringify(selectedTextAfterDoubleClick)}, escape=${editorClosedByEscape})`);
