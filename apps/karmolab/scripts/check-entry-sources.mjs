@@ -30,7 +30,11 @@ const SPECIAL = new Set(['src/mdd.ts', 'src/gemini.ts', 'src/toolbox.ts', 'src/s
 let tracked;
 try {
   tracked = new Set(
-    execFileSync('git', ['ls-files', 'src'], { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 })
+    /* ★ **인덱스가 아니라 커밋을 본다** (2026-08-12). `git ls-files` 는 지금 인덱스를 읽는데,
+     *   세션이 여럿인 이 저장소에서는 남이 편집 중인 파일이 인덱스에 「삭제」로 잠깐 박혀 있다 —
+     *   그 순간을 재면 멀쩡히 올라가 있는 파일을 「없다」고 말한다(실측: 남의 작업 중 위젯).
+     *   push 로 나갈 것은 **커밋(HEAD)** 이므로 그것을 본다. */
+    execFileSync('git', ['ls-tree', '-r', '--name-only', 'HEAD', 'src'], { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 })
       .split('\n')
       .map((line) => line.trim())
       .filter(Boolean)
