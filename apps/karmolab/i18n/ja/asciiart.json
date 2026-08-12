@@ -47,5 +47,8 @@
   "asciiart.status.gifFrames": "GIFを作っています… {done}/{total}枚",
   "asciiart.status.gifPacking": "GIFを圧縮中… {pct}%",
   "asciiart.status.gifDone": "GIFを保存しました · {kb}KB",
-  "asciiart.err.gif": "GIFを作れませんでした。枚数を減らしてみてください。"
+  "asciiart.err.gif": "GIFを作れませんでした。枚数を減らしてみてください。",
+  "asciiart.btn.ansi": "ターミナル用にコピー (ANSI)",
+  "asciiart.copy.ansi": "色ごとコピーしました — ターミナルに貼ると色が出ます",
+  "asciiart.copy.ansiPlain": "コピーしました — 色をつけるとターミナルでも色が出ます"
 }

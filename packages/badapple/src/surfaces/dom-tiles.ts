@@ -29,8 +29,16 @@ export interface DomTilesOptions {
 	 * 칸이 다섯 개뿐인 화면과 백 개인 화면이 같은 값을 쓰면 한쪽은 반드시 뭉갠다.
 	 */
 	subdivide?: { cols: number; rows: number };
-	/** 켜진 칸 색. 기본은 글자색을 따라간다 (어두운/밝은 테마 양쪽에서 보이게). */
+	/**
+	 * 켜진 칸 색. 기본은 글자색을 따라간다 (어두운/밝은 테마 양쪽에서 보이게).
+	 * **주면 클립에 색이 실려 있어도 이 색으로 고정된다** — 한 가지 색으로 보고 싶다는 뜻이므로.
+	 */
 	onColor?: string;
+	/**
+	 * 클립에 색이 실려 있으면 칸마다 그 색으로 칠할지 (TASK-KL-244). 기본 켜짐.
+	 * 색이 없는 클립이면 아무 차이도 없다 — 그때는 `Paint` 가 흑백을 돌려준다.
+	 */
+	color?: boolean;
 	/** 꺼진 칸 색. 기본 투명. */
 	offColor?: string;
 	/** 덮는 층을 어디에 넣을지. 기본 `document.body`. */
@@ -154,8 +162,14 @@ export class DomTilesSurface implements Surface {
 		// 기준 자리는 잴 때 구해 둔 것을 쓴다 — 칠할 때마다 다시 구할 이유가 없다.
 		const { left, top, width: boundsWidth, height: boundsHeight } = this.span;
 
+		// 색이 실려 있으면 칸마다 그 색으로 칠한다. 색을 못 쓰는 클립이면 `Paint` 가 흑백을
+		// 돌려주므로, 여기서 갈래를 나누는 것은 **한 번에 얼마나 칠하느냐**뿐이다.
+		const useColor = paint.hasColor && !this.options.onColor && this.options.color !== false;
+
 		// 칸을 하나씩 칠하지 않는다. 실루엣은 켜진 칸이 가로로 길게 이어져서, **이어진 만큼
 		// 한 번에** 칠하면 그리기 호출이 몇 배로 줄어든다 (같은 그림, 같은 결과).
+		// 색을 쓸 때도 같다 — 색이 바뀌는 자리에서만 끊는다. 줄어든 그림은 이웃 칸 색이 거의
+		// 같아서, 칸마다 붓을 바꾸는 것보다 눈에 띄게 싸다.
 		ctx.fillStyle = on;
 		for (const cell of this.cells) {
 			const startCol = Math.floor(((cell.rect.x - left) / boundsWidth) * paint.cols);
@@ -165,10 +179,14 @@ export class DomTilesSurface implements Surface {
 
 			for (let gy = 0; gy < cell.rows; gy++) {
 				let runStart = -1;
+				let runColor = -1;
 				for (let gx = 0; gx <= cell.cols; gx++) {
 					const lit = gx < cell.cols && paint.at(startCol + gx, startRow + gy);
-					if (lit && runStart < 0) runStart = gx;
-					else if (!lit && runStart >= 0) {
+					const tone = lit && useColor ? paint.rgb(startCol + gx, startRow + gy) : -1;
+					// 이어지던 구간이 끝나는 자리 = 꺼졌거나, 색이 달라졌거나, 줄이 끝났거나
+					const breaks = runStart >= 0 && (!lit || tone !== runColor);
+					if (breaks) {
+						if (useColor && runColor >= 0) ctx.fillStyle = `#${runColor.toString(16).padStart(6, '0')}`;
 						ctx.fillRect(
 							cell.rect.x + runStart * cellWidth,
 							cell.rect.y + gy * cellHeight,
@@ -176,6 +194,10 @@ export class DomTilesSurface implements Surface {
 							Math.ceil(cellHeight)
 						);
 						runStart = -1;
+					}
+					if (lit && runStart < 0) {
+						runStart = gx;
+						runColor = tone;
 					}
 				}
 			}

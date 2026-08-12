@@ -57,12 +57,16 @@ const baked = await studio.evaluate(async () => {
   await new Promise((done) => {
     const draw = () => {
       const t = (performance.now() - started) / 1000;
-      ctx2.fillStyle = '#000';
+      // 색을 보려는 시험이므로 **색이 있는 영상**이어야 한다. 흑백 도형으로 재면
+      // 「색이 안 나온다」가 항상 참이 되어, 고장이 아닌데 빨개진다(한 번 그렇게 나왔다).
+      ctx2.fillStyle = '#101038';
       ctx2.fillRect(0, 0, 120, 90);
-      ctx2.fillStyle = '#fff';
+      ctx2.fillStyle = '#ffcc33';
       ctx2.beginPath();
       ctx2.arc(60 + Math.sin(t * 5) * 30, 45, 22, 0, Math.PI * 2);
       ctx2.fill();
+      ctx2.fillStyle = '#33ddcc';
+      ctx2.fillRect(0, 66, 120, 14);
       if (t >= 1.5) {
         recorder.stop();
         done();
@@ -77,6 +81,8 @@ const baked = await studio.evaluate(async () => {
   const file = new File(chunks, 'blob.webm', { type: 'video/webm' });
   const transfer = new DataTransfer();
   transfer.items.add(file);
+  // 색까지 담아 굽는다 — 홈 액정이 실제로 색으로 칠해지는지 보려면 파일에 색이 있어야 한다.
+  document.getElementById('baColor').checked = true;
   const input = document.getElementById('baFile');
   input.files = transfer.files;
   input.dispatchEvent(new Event('change', { bubbles: true }));
@@ -119,7 +125,27 @@ const picked = await home.evaluate(async () => {
   } catch {
     leftover = 0;
   }
-  return { titles: new Set(seen).size, storedBytes, leftover };
+
+  // 덮는 층이 **색으로** 칠해졌나. 회색만 나오면 세 채널이 거의 같다 — 그걸 「색이 없다」로 본다.
+  // (화면 글자색 하나로 통째 칠하던 예전 동작이 그대로면 여기서 0 이 나온다.)
+  let colored = 0;
+  const layer = document.querySelector('canvas[aria-hidden="true"]');
+  if (layer) {
+    const lctx = layer.getContext('2d', { willReadFrequently: true });
+    for (let i = 0; i < 12 && colored === 0; i++) {
+      const px = lctx.getImageData(0, 0, layer.width, layer.height).data;
+      for (let p = 0; p < px.length; p += 4 * 53) {
+        if (px[p + 3] < 40) continue;
+        const r = px[p];
+        const g = px[p + 1];
+        const b = px[p + 2];
+        if (Math.max(r, g, b) - Math.min(r, g, b) > 30) colored += 1;
+      }
+      await sleep(140);
+    }
+  }
+
+  return { titles: new Set(seen).size, storedBytes, leftover, colored, hasLayer: Boolean(layer) };
 });
 
 await browser.close();
@@ -132,6 +158,8 @@ if (!/\d+/.test(baked)) fail.push(`굽는 화면이 아무 숫자도 안 적었�
 if (picked.storedBytes <= 0) fail.push('구웠는데 저장 자리에 아무것도 안 담겼다');
 if (picked.leftover > 0) fail.push('옛 자리(localStorage)에 사본이 남았다 — 어느 쪽이 최신인지 알 수 없게 된다');
 if (picked.titles < 2) fail.push(`홈에서 재생이 안 돈다 (탭 제목이 ${picked.titles}가지)`);
+if (!picked.hasLayer) fail.push('홈에 덮는 층이 안 생겼다');
+if (picked.colored === 0) fail.push('색까지 담아 구웠는데 홈 액정이 회색으로만 칠해진다');
 if (errors.length) fail.push(`화면에서 오류가 났다: ${errors.slice(0, 2).join(' | ')}`);
 
 console.log('[badapple-handoff]', JSON.stringify({ baked, ...picked }));

@@ -47,5 +47,8 @@
   "asciiart.status.gifFrames": "Building the GIF… {done}/{total} frames",
   "asciiart.status.gifPacking": "Packing the GIF… {pct}%",
   "asciiart.status.gifDone": "GIF saved · {kb}KB",
-  "asciiart.err.gif": "Could not build the GIF. Try fewer frames."
+  "asciiart.err.gif": "Could not build the GIF. Try fewer frames.",
+  "asciiart.btn.ansi": "Copy for terminal (ANSI)",
+  "asciiart.copy.ansi": "Copied with color — paste it into a terminal",
+  "asciiart.copy.ansiPlain": "Copied — turn color on and the terminal gets color too"
 }
