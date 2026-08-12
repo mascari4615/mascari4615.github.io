@@ -2352,6 +2352,19 @@ import {
       const key = ev.key.toLowerCase();
       if (key === 'z' && !ev.shiftKey) { ev.preventDefault(); restoreTo(histIndex - 1); }
       else if (key === 'y' || (key === 'z' && ev.shiftKey)) { ev.preventDefault(); restoreTo(histIndex + 1); }
+      else if (key === 'a') {
+        /* 전부 고르기 — 나란히 놓기·묶음 넣기·한꺼번에 종류 바꾸기가 전부 「여럿 고름」에 있는데,
+           고르는 길이 Shift+드래그 하나뿐이라 넓은 판에서는 그것부터 일이었다.
+           **보이는 것만** 고른다 — 거르기로 감춘 것까지 고르면 안 보이는 것이 함께 움직인다. */
+        const ids = [...(canvas?.visibleNodeIds() ?? new Set<string>())];
+        if (ids.length === 0) return;
+        ev.preventDefault();
+        canvas?.setSelectedNodes(ids);
+        selectedMany = ids;
+        selectedId = ids.length === 1 ? ids[0] : null;
+        sideMode = ids.length > 1 ? 'many' : 'node';
+        renderSide();
+      }
     }
     document.addEventListener('keydown', onKeyDown);
     Toolbox.onDispose?.(() => document.removeEventListener('keydown', onKeyDown));
