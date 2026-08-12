@@ -158,50 +158,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      # ★ **짓기 전 채비는 한 곳에서** (2026-08-13, `.github/actions/setup-karmolab`).
+      #   같은 목록이 워크플로 넷에 복사돼 있었고, 한쪽만 고친 값이 25판 연속 빨강이었다.
+      - uses: ./.github/actions/setup-karmolab
         with:
           node-version: '20'
-          cache: npm
-          cache-dependency-path: |
-            apps/karmolab/package-lock.json
-            packages/karmolab-ai/package-lock.json
-            packages/karmolab-mcp/package-lock.json
-
-      - name: Install karmolab deps
-        run: cd apps/karmolab && npm ci
-
-      - name: Install karmolab-ai deps
-        run: cd packages/karmolab-ai && npm ci
-
-      - name: Install karmolab-mcp deps
-        run: cd packages/karmolab-mcp && npm ci
-
-      # `apps/karmolab` 이 `file:../../packages/badapple` 로 물고 있다. 그 패키지는 **타입을
-      # 빌드해야 생긴다** — CI 는 새 체크아웃이라 `dist` 가 없고, 그러면 typecheck 이
-      # 「모듈을 못 찾겠다」로 선다. 로컬에는 예전 `dist` 가 남아 있어 이 사고가 안 보였다
-      # (전형적인 「내 기계에선 초록」). karmolab-ai 와 같은 대우를 해 준다.
-      - name: Build badapple (apps/karmolab 이 타입을 물고 있다)
-        run: cd packages/badapple && npm ci && npm run build
-
-      - name: Build karmolab-ai (karmolab build 가 이 dist 를 불러온다)
-        run: cd packages/karmolab-ai && npm run build
-
-      - name: Build karmolab-mcp (karmolab build 가 이 dist 를 불러온다)
-        run: cd packages/karmolab-mcp && npm run build
-
-      # 브라우저 내려받기는 매 실행 50초 넘게 먹는다(2026-08-07 실측: 54초).
-      # 잠금파일이 그대로면 같은 버전이므로 캐시로 건너뛴다. 시스템 라이브러리(--with-deps)는
-      # 캐시 대상이 아니라 매번 깔리지만 그쪽은 짧다.
-      - name: 브라우저 캐시
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('apps/karmolab/package-lock.json') }}
-          restore-keys: playwright-${{ runner.os }}-
-
-      - name: Install Chromium
-        run: cd apps/karmolab && npx playwright install --with-deps chromium
+          chromium: 'true'
 
       # ★ 여기서는 **찍어 내기만** 한다 (2026-08-12).
       #   예전엔 `npm run build` 를 불렀는데, 그 사슬 안에는 게이트 31개가 통째로 들어 있다 —
