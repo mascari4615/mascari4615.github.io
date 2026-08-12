@@ -629,5 +629,10 @@
   "karmograph.btn.fit": "전체 보기",
   "karmograph.btn.story": "발표",
   "karmograph.btn.up": "위로",
-  "karmograph.savedHere": "이 브라우저에 저장됨"
+  "karmograph.savedHere": "이 브라우저에 저장됨",
+  "karmograph.next.one": "카드를 하나 더 만들어 보세요 — 빈 곳을 두 번 클릭.",
+  "karmograph.next.oneTouch": "카드를 하나 더 만들어 보세요 — 빈 곳을 두 번 두드리기.",
+  "karmograph.next.link": "이제 이어 보세요 — 카드 오른쪽 점을 끌어 다른 카드에 놓습니다.",
+  "karmograph.next.linkTouch": "이제 이어 보세요 — 카드 오른쪽 점을 끌어 다른 카드에 놓습니다.",
+  "karmograph.btn.newMap": "새 판"
 }

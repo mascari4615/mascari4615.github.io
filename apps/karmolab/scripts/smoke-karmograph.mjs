@@ -2026,6 +2026,48 @@ await step('처음 저장될 때 **어디에** 저장됐는지 말해 준다', a
   await ctx.close();
 });
 
+await step('첫 카드를 만든 뒤에도 **다음 걸음**이 한 줄 남는다 (다 익히면 사라진다)', async () => {
+  // 사용자 검토(2026-08-12): 빈 판에는 안내가 있는데 카드를 하나 만드는 순간 통째로 사라졌다.
+  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  const box = await m.locator('.km-canvas').boundingBox();
+
+  const make = async (fx, fy, name) => {
+    await m.mouse.dblclick(box.x + box.width * fx, box.y + box.height * fy);
+    await m.waitForSelector('.km-inline', { timeout: 4000 });
+    await m.keyboard.type(name);
+    await m.keyboard.press('Enter');
+    await m.waitForFunction(() => !document.querySelector('.km-inline'), null, { timeout: 4000 });
+  };
+
+  await make(0.3, 0.25, '가');
+  await m.waitForSelector('.km-next', { state: 'attached', timeout: 4000 });
+  const one = await m.locator('.km-next').textContent();
+  if (!/하나 더|more card|もう1枚/.test(one)) throw new Error(`첫 장 다음 안내가 이상하다: ${one}`);
+
+  await make(0.62, 0.55, '나');
+  await m.waitForFunction(() => /이어|connect|つない/.test(document.querySelector('.km-next')?.textContent || ''),
+    null, { timeout: 4000 });
+
+  // 선을 그으면 **스스로 사라진다** — 다 배운 사람에게 계속 남으면 그건 잔소리다.
+  await m.evaluate(() => {
+    const key = 'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId;
+    const spec = JSON.parse(localStorage.getItem(key));
+    spec.edges.push({ id: 'edge-1', from: spec.nodes[0].id, to: spec.nodes[1].id, kind: spec.edges[0]?.kind || '' });
+    localStorage.setItem(key, JSON.stringify(spec));
+  });
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.waitForTimeout(900);
+  if (await m.locator('.km-next').count() !== 0) throw new Error('선을 이었는데도 다음 걸음 안내가 남아 있다');
+  await ctx.close();
+});
+
 // ── 폰 화면 ──────────────────────────────────────────────────────────────────
 // 관계도는 **보는 일**이 폰에서 훨씬 많다(링크 받아 열기). 그런데 지금까지 폰 크기는 한 번도 안 봤다.
 await step('폰 첫 화면 — 안내가 시트에 안 잘리고, 툴바에 「더 있다」 표시가 뜬다', async () => {
