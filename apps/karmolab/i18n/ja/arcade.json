@@ -52,5 +52,10 @@
   "arcade.dots.draw": "同じだけ分けた",
   "arcade.game.speed.name": "スピード",
   "arcade.game.speed.desc": "手番なし。1つ上か下なら早い者勝ち",
-  "arcade.speed.win": "{who} が先に出し切った"
+  "arcade.speed.win": "{who} が先に出し切った",
+  "arcade.game.slide.name": "スライドパズル",
+  "arcade.game.slide.desc": "同じ盤で先に揃えた人の勝ち。ひとりでも遊べる",
+  "arcade.slide.win": "{who} — {n}回で揃えた",
+  "arcade.slide.timeup": "時間切れ — 同じだけ残った",
+  "arcade.slide.closest": "{who} — 定位置{n}枚"
 }

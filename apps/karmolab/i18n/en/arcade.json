@@ -52,5 +52,10 @@
   "arcade.dots.draw": "Split evenly",
   "arcade.game.speed.name": "Speed",
   "arcade.game.speed.desc": "No turns. One rank up or down — first hand wins it",
-  "arcade.speed.win": "{who} emptied first"
+  "arcade.speed.win": "{who} emptied first",
+  "arcade.game.slide.name": "Sliding Puzzle",
+  "arcade.game.slide.desc": "Same scramble for everyone — first to solve takes it. Solo works too",
+  "arcade.slide.win": "{who} — solved in {n} slides",
+  "arcade.slide.timeup": "Time — dead even",
+  "arcade.slide.closest": "{who} — {n} tiles home"
 }

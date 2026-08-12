@@ -162,6 +162,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-spcard{width:52px;height:72px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);font-size:20px;font-weight:700;cursor:default;opacity:.5}',
       '.ac-spcard.ac-can{opacity:1;color:inherit;border-color:var(--accent);cursor:pointer}',
       '.ac-spcard.ac-pick{outline:2px solid var(--accent);outline-offset:2px}',
+      '.ac-sl{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:4px;max-width:min(86vw,320px);margin:var(--space-lg) auto;aspect-ratio:1}',
+      '.ac-slt{aspect-ratio:1;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);font-size:min(6vw,22px);font-weight:700;padding:0;cursor:default}',
+      '.ac-slt.ac-hole{border-color:transparent;background:none}',
+      '.ac-slt.ac-home{color:var(--text-primary)}',
+      '.ac-slt.ac-can{cursor:pointer;border-color:var(--accent);color:inherit}',
       '.ac-code{font-size:clamp(28px,8vw,48px);font-weight:800;letter-spacing:.18em;text-align:center;margin:var(--space-lg) 0}',
       '.ac-share{display:flex;gap:6px;margin:var(--space-lg) 0}',
       '.ac-share input{flex:1;min-width:0}'
