@@ -13,7 +13,7 @@ export function renderGroupsPanel(ctx: PanelCtx): void {
   ctx.canvas()?.setSelectedNode(null);
   side.innerHTML = `
     <h4>🫧 묶음</h4>
-    <div class="km-hint">노드를 고른 뒤 「묶음」에서 넣으세요. 묶음 머리를 끌면 안에 든 노드가 같이 움직입니다.</div>
+    <div class="km-hint">카드를 고른 뒤 「묶음」에서 넣으세요. 묶음 머리를 끌면 안에 든 카드가 같이 움직입니다.</div>
     <div class="km-field">
       ${
         ctx.spec().groups.length === 0
