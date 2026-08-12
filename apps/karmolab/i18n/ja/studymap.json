@@ -1,0 +1,14 @@
+{
+  "studymap.tab": "学習マップ",
+  "studymap.loading": "地図を広げています…",
+  "studymap.failed": "地図を読み込めませんでした。再読み込みしてください。",
+  "studymap.progress": "この分野の進み具合",
+  "studymap.search": "トピックを探す — 例: rebase, インデックス, キャッシュ",
+  "studymap.reset": "この分野のチェックを消す",
+  "studymap.reset.confirm": "この分野のチェックをすべて消します。続けますか？",
+  "studymap.next": "次",
+  "studymap.check": "先へ進める目安",
+  "studymap.nohit": "この分野にそのトピックはありません。別の分野を見てください。",
+  "studymap.mdd.step": "一歩進みました。",
+  "studymap.mdd.clear": "ひとつの分野を歩ききりました。次に行きますか？"
+}
