@@ -41,5 +41,13 @@
   "arcade.hitblow.aria": "세 자리 수",
   "arcade.hitblow.solved": "{who} 이(가) {n}번째에 맞혔다",
   "arcade.hitblow.none": "아무도 못 맞혔다",
-  "arcade.hitblow.closest": "{who} 이(가) 제일 가까웠다"
+  "arcade.hitblow.closest": "{who} 이(가) 제일 가까웠다",
+  "arcade.game.reversi.name": "뒤집기",
+  "arcade.game.reversi.desc": "사이에 낀 돌이 전부 내 것이 된다",
+  "arcade.reversi.win": "{who} — {a} 대 {b}",
+  "arcade.reversi.draw": "{n} 대 {n} — 비겼다",
+  "arcade.game.dots.name": "점과 상자",
+  "arcade.game.dots.desc": "선을 그어 칸을 닫는다. 닫으면 한 번 더",
+  "arcade.dots.win": "{who} — {n}칸",
+  "arcade.dots.draw": "똑같이 나눠 가졌다"
 }
