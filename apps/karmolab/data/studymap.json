@@ -4055,6 +4055,137 @@
           ]
         }
       ]
+    },
+    {
+      "id": "qa",
+      "title": "테스트 · 품질",
+      "emoji": "🧪",
+      "lead": "테스트는 느려지지 않으려고 쓴다 — 겁 없이 고칠 수 있는 코드가 빠른 코드다",
+      "stages": [
+        {
+          "id": "qa-a",
+          "title": "왜 쓰는가",
+          "nodes": [
+            {
+              "id": "qa-why",
+              "title": "테스트는 속도를 위한 것",
+              "why": "「시간 없어서 테스트 못 쓴다」가 뒤집히는 지점. 없으면 손으로 매번 확인하게 된다.",
+              "check": "테스트가 없어서 느려진 순간을 하나 지목한다",
+              "links": [
+                {
+                  "label": "Martin Fowler — Test Pyramid",
+                  "url": "https://martinfowler.com/articles/practical-test-pyramid.html"
+                }
+              ],
+              "prereq": [
+                "web-test"
+              ]
+            },
+            {
+              "id": "qa-pyramid",
+              "title": "단위 · 통합 · E2E 의 비율",
+              "why": "전부 E2E 로 짜면 느리고 잘 깨지고, 전부 단위면 진짜 사고를 못 잡는다.",
+              "check": "내 프로젝트 테스트를 세 종류로 분류하고 비율을 센다",
+              "links": [
+                {
+                  "label": "Google — Test Sizes",
+                  "url": "https://testing.googleblog.com/2010/12/test-sizes.html"
+                }
+              ]
+            },
+            {
+              "id": "qa-first",
+              "title": "실패하는 테스트를 먼저",
+              "why": "테스트가 진짜로 무엇을 잡는지 증명하는 유일한 방법 — 빨강을 본 적 없는 초록은 못 믿는다.",
+              "check": "고치기 전에 실패를 재현하는 테스트를 쓴다",
+              "links": [
+                {
+                  "label": "Kent Beck — TDD",
+                  "url": "https://www.agilealliance.org/glossary/tdd/"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "qa-b",
+          "title": "잘 쓰는 법",
+          "nodes": [
+            {
+              "id": "qa-seam",
+              "title": "어디를 자를 것인가 — 이음매",
+              "why": "시간·네트워크·랜덤을 코드에 박으면 테스트가 불가능해진다. 자를 자리를 미리 만든다.",
+              "check": "시간·랜덤 의존을 밖에서 주입하도록 바꾼다",
+              "links": [
+                {
+                  "label": "Martin Fowler — Test Double",
+                  "url": "https://martinfowler.com/bliki/TestDouble.html"
+                }
+              ]
+            },
+            {
+              "id": "qa-data",
+              "title": "테스트 데이터와 격리",
+              "why": "테스트끼리 상태를 공유하면 순서가 바뀔 때마다 결과가 바뀐다. 원인 찾기에 며칠 쓴다.",
+              "check": "테스트를 무작위 순서로 돌려도 초록인지 확인한다",
+              "links": [
+                {
+                  "label": "Vitest — 설정과 격리",
+                  "url": "https://vitest.dev/config/"
+                }
+              ]
+            },
+            {
+              "id": "qa-flaky",
+              "title": "깜빡이는 테스트를 다루는 법",
+              "why": "가끔 빨간 테스트는 팀 전체가 게이트를 무시하게 만든다. 빨강이 기본값이 되면 끝이다.",
+              "check": "깜빡이는 테스트를 재현율로 측정해 원인을 잡는다",
+              "links": [
+                {
+                  "label": "Google — Flaky Tests",
+                  "url": "https://testing.googleblog.com/2016/05/flaky-tests-at-google-and-how-we.html"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "qa-c",
+          "title": "실제 화면까지",
+          "nodes": [
+            {
+              "id": "qa-e2e",
+              "title": "E2E 와 시각 회귀",
+              "why": "단위가 전부 초록인데 앱이 안 뜨는 일이 실제로 있다. 진짜로 띄워 보는 칸이 필요하다.",
+              "check": "핵심 흐름 하나를 브라우저 자동화로 통과시킨다",
+              "links": [
+                {
+                  "label": "Playwright 문서",
+                  "url": "https://playwright.dev/docs/intro"
+                }
+              ],
+              "prereq": [
+                "devops-ci"
+              ]
+            },
+            {
+              "id": "qa-gate",
+              "title": "게이트와 커버리지의 함정",
+              "why": "커버리지 90% 가 품질을 뜻하지 않는다. 무엇을 막을지 고르는 것이 설계다.",
+              "check": "커밋 전에 도는 게이트를 하나 세우고 수명을 잰다",
+              "links": [
+                {
+                  "label": "Martin Fowler — Continuous Integration",
+                  "url": "https://martinfowler.com/articles/continuousIntegration.html"
+                }
+              ],
+              "prereq": [
+                "qa-flaky"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
