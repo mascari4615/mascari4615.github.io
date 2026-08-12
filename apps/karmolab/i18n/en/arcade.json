@@ -124,5 +124,12 @@
   "arcade.bowling.roll": "Roll",
   "arcade.bowling.rolling": "Rolling",
   "arcade.bowling.win": "{who} — {n} points",
-  "arcade.bowling.draw": "Tied at {n}"
+  "arcade.bowling.draw": "Tied at {n}",
+  "arcade.game.pool.name": "Pool",
+  "arcade.game.pool.desc": "Cue ball into pockets. Sink one, shoot again",
+  "arcade.pool.aim": "Angle",
+  "arcade.pool.power": "Power",
+  "arcade.pool.hit": "Shoot",
+  "arcade.pool.rolling": "Rolling",
+  "arcade.pool.win": "{who} — {n} sunk"
 }
