@@ -617,5 +617,6 @@
   "karmograph.find.count": "{n}",
   "karmograph.find.none": "none",
   "karmograph.find.countTitle": "Cards matching name or one-liner",
-  "karmograph.degree.pick": "Pick a card first"
+  "karmograph.degree.pick": "Pick a card first",
+  "karmograph.inline.hint": "Double-click a card to rename it right there (Enter saves, Esc cancels)"
 }

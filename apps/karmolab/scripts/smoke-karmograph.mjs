@@ -1623,6 +1623,46 @@ await step('보이는 단추는 전부 **실제로 눌리는 자리**에 있다'
   await ctx.close();
 });
 
+await step('카드를 두 번 누르면 이름을 그 자리에서 고친다 (Enter 저장 · Esc 되돌리기)', async () => {
+  // 옆 패널까지 가야 이름을 고칠 수 있으면 보는 자리와 고치는 자리가 갈린다 (TASK-KL-235).
+  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  const box = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(box.x + box.width * 0.4, box.y + box.height * 0.4);
+  await m.waitForSelector('[data-km="edit-label"]', { timeout: 4000 });
+  await m.fill('[data-km="edit-label"]', '고칠카드');
+  await m.waitForFunction(() => [...document.querySelectorAll('.ck-node text')]
+    .some((t) => (t.textContent || '').includes('고칠카드')), null, { timeout: 4000 });
+
+  const labels = () => m.evaluate(() => JSON.parse(localStorage.getItem(
+    'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId)).nodes.map((n) => n.label));
+
+  await m.locator('.ck-node').first().dblclick();
+  await m.waitForSelector('.km-inline', { timeout: 4000 });
+  await m.keyboard.press('Control+a');
+  await m.keyboard.type('그자리이름');
+  await m.keyboard.press('Enter');
+  await m.waitForTimeout(500);
+  if (!(await labels()).includes('그자리이름')) throw new Error('그 자리에서 고친 이름이 저장본에 없다');
+  if (await m.locator('.km-inline').count() !== 0) throw new Error('Enter 를 눌렀는데 편집칸이 안 닫힌다');
+
+  await m.locator('.ck-node').first().dblclick();
+  await m.waitForSelector('.km-inline', { timeout: 4000 });
+  await m.keyboard.press('Control+a');
+  await m.keyboard.type('버릴이름');
+  await m.keyboard.press('Escape');
+  await m.waitForTimeout(400);
+  const after = await labels();
+  if (after.includes('버릴이름')) throw new Error('Esc 로 되돌렸는데 저장됐다: ' + after.join(','));
+  if (!after.includes('그자리이름')) throw new Error('Esc 가 원래 이름까지 지웠다: ' + after.join(','));
+  await ctx.close();
+});
+
 // ── 폰 화면 ──────────────────────────────────────────────────────────────────
 // 관계도는 **보는 일**이 폰에서 훨씬 많다(링크 받아 열기). 그런데 지금까지 폰 크기는 한 번도 안 봤다.
 await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널은 아래 시트로 뜬다', async () => {
