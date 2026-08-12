@@ -13,21 +13,10 @@
 import { fileSize as size } from './shared/media';
 
 import { t, loadNamespace } from '../../lib/i18n';
+import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
 import { spec as pdfPageNumberCoreSpec } from '../../core/pdfpagenum';
 
 (function (): void {
-  interface PDFLib {
-    PDFDocument: {
-      load: (b: ArrayBuffer, o?: { ignoreEncryption?: boolean }) => Promise<{
-        getPages: () => Array<{
-          getSize: () => { width: number; height: number };
-          drawImage: (img: unknown, o: { x: number; y: number; width: number; height: number }) => void;
-        }>;
-        embedPng: (b: ArrayBuffer | Uint8Array) => Promise<{ width: number; height: number }>;
-        save: () => Promise<Uint8Array>;
-      }>;
-    };
-  }
 
   /** 글자를 그림으로 — PDF 기본 글꼴은 한글을 담지 못해 「3쪽」이 깨진다 */
   function textToPng(text: string, color: string): Promise<Uint8Array> {
@@ -174,8 +163,7 @@ import { spec as pdfPageNumberCoreSpec } from '../../core/pdfpagenum';
 
           async function load(f: File): Promise<void> {
             say(t('pdfpagenum.say.opening'));
-            await Toolbox.ensureScript?.('vendor/pdf-lib.min');
-            const L = (window as unknown as { PDFLib: PDFLib }).PDFLib;
+            const L = await loadPdfLib();
             if (!L) {
               say(t('pdfpagenum.err.engine'), 'error');
               return;
@@ -200,8 +188,7 @@ import { spec as pdfPageNumberCoreSpec } from '../../core/pdfpagenum';
             runBtn.disabled = true;
             say(t('pdfpagenum.say.numbering'));
             try {
-              await Toolbox.ensureScript?.('vendor/pdf-lib.min');
-              const L = (window as unknown as { PDFLib: PDFLib }).PDFLib;
+              const L = await loadPdfLib();
               const doc = await L.PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
               const pages = doc.getPages();
               const skip = parseInt($<HTMLInputElement>('#pnSkip').value, 10);
@@ -225,7 +212,7 @@ import { spec as pdfPageNumberCoreSpec } from '../../core/pdfpagenum';
                 page.drawImage(png, { x, y, width: w, height: h });
               }
 
-              const blob = new Blob([(await doc.save()) as unknown as BlobPart], { type: 'application/pdf' });
+              const blob = pdfBlob(await doc.save());
               const a = document.createElement('a');
               a.href = URL.createObjectURL(blob);
               a.download =

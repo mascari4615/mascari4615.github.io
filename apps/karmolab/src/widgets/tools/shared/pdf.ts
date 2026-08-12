@@ -20,7 +20,9 @@
 export interface PdfPage {
   getViewport: (o: { scale: number }) => { width: number; height: number };
   render: (o: { canvasContext: CanvasRenderingContext2D; viewport: unknown }) => { promise: Promise<void> };
-  getTextContent?: () => Promise<{ items: Array<{ str?: string; transform?: number[] }> }>;
+  /** 글자 뽑기. `str` 은 늘 온다(빈 문자열일 수는 있어도 없지는 않다) — 부르는 쪽마다
+   *  물음표를 달지 않게 여기서 그렇게 못 박는다. */
+  getTextContent: () => Promise<{ items: Array<{ str: string; transform: number[]; width?: number; height?: number }> }>;
 }
 
 export interface PdfJsDoc {
@@ -40,7 +42,7 @@ export interface PdfLibPage {
   setRotation: (d: unknown) => void;
   getRotation: () => { angle: number };
   drawImage: (img: unknown, o: { x: number; y: number; width: number; height: number; opacity?: number; rotate?: unknown }) => void;
-  drawRectangle?: (o: { x: number; y: number; width: number; height: number; color?: unknown; opacity?: number }) => void;
+  drawRectangle: (o: { x: number; y: number; width: number; height: number; color?: unknown; opacity?: number }) => void;
 }
 
 export interface PdfLibDoc {
@@ -50,7 +52,7 @@ export interface PdfLibDoc {
   addPage: (p?: unknown) => PdfLibPage;
   removePage: (i: number) => void;
   embedPng: (b: ArrayBuffer | Uint8Array) => Promise<{ width: number; height: number }>;
-  embedJpg?: (b: ArrayBuffer | Uint8Array) => Promise<{ width: number; height: number }>;
+  embedJpg: (b: ArrayBuffer | Uint8Array) => Promise<{ width: number; height: number }>;
   save: () => Promise<Uint8Array>;
 }
 

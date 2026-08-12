@@ -10,6 +10,7 @@
  */
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
 import { rebuildTextItems as rebuild } from '../../core/pdf2text';
 
 (function (): void {
@@ -17,17 +18,6 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
     str?: string;
     transform?: number[];
     width?: number;
-  }
-  interface PdfPage {
-    getTextContent: () => Promise<{ items: TextItem[] }>;
-  }
-  interface PdfDoc {
-    numPages: number;
-    getPage: (n: number) => Promise<PdfPage>;
-  }
-  interface PdfJs {
-    getDocument: (o: { data: ArrayBuffer }) => { promise: Promise<PdfDoc> };
-    GlobalWorkerOptions: { workerSrc: string };
   }
 
   /**
@@ -147,7 +137,7 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
           const saveBtn = $<HTMLButtonElement>('#ptSave');
 
           let fileName = '';
-          let doc: PdfDoc | null = null;
+          let doc: PdfJsDoc | null = null;
           let pdfjs: PdfJs | null = null;
 
           const say = (m: string, kind = ''): void => {
@@ -179,8 +169,7 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
           async function loadLib(): Promise<PdfJs> {
             if (pdfjs) return pdfjs;
             say(t('pdf2text.say.loadingLib'));
-            await Toolbox.ensureScript?.('vendor/pdfjs.min');
-            const g = (window as unknown as { pdfjsLib: PdfJs }).pdfjsLib;
+            const g = await loadPdfJs();
             if (!g) throw new Error(t('pdf2text.err.lib'));
             g.GlobalWorkerOptions.workerSrc = '/apps/karmolab/js/vendor/pdfjs.worker.min.js';
             pdfjs = g;

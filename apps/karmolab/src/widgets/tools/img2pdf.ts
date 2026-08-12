@@ -7,24 +7,13 @@
  */
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
+import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
 import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
 
 (function (): void {
   const esc = (v: string): string =>
     v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  interface PDFLib {
-    PDFDocument: {
-      create: () => Promise<{
-        addPage: (size: [number, number]) => {
-          drawImage: (img: unknown, o: { x: number; y: number; width: number; height: number }) => void;
-        };
-        embedJpg: (b: ArrayBuffer) => Promise<{ width: number; height: number }>;
-        embedPng: (b: ArrayBuffer) => Promise<{ width: number; height: number }>;
-        save: () => Promise<Uint8Array>;
-      }>;
-    };
-  }
 
   /** 종이 크기 (pt) */
   const PAPER: Record<string, [number, number]> = {
@@ -107,9 +96,7 @@ import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
           async function loadLib(): Promise<PDFLib> {
             if (lib) return lib;
             say(t('img2pdf.say.loadingLib'));
-            await Toolbox.ensureScript?.('vendor/pdf-lib.min');
-            lib = (window as unknown as { PDFLib: PDFLib }).PDFLib;
-            if (!lib) throw new Error(t('img2pdf.err.lib'));
+            lib = await loadPdfLib();
             return lib;
           }
 
@@ -153,7 +140,7 @@ import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
                 const page = doc.addPage([pw, ph]);
                 page.drawImage(img, { x: (pw - w) / 2, y: (ph - h) / 2, width: w, height: h });
               }
-              const blob = new Blob([(await doc.save()) as unknown as BlobPart], { type: 'application/pdf' });
+              const blob = pdfBlob(await doc.save());
               const a = document.createElement('a');
               a.href = URL.createObjectURL(blob);
               a.download = t('img2pdf.file.name');
