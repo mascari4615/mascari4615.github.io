@@ -271,5 +271,8 @@
   "arcade.fox.youFox": "당신은 🦊 여우 — 아래 끝줄까지 빠져나가면 이깁니다",
   "arcade.fox.youHound": "당신은 🐶 사냥개 — 앞으로만 갑니다. 여우를 가두면 이깁니다",
   "arcade.fox.foxWin": "{who} — 여우가 빠져나갔다",
-  "arcade.fox.houndWin": "{who} — 여우를 가뒀다"
+  "arcade.fox.houndWin": "{who} — 여우를 가뒀다",
+  "arcade.game.pong.name": "탁구",
+  "arcade.game.pong.desc": "라켓 한 줄. 어디로 받느냐가 각도를 정한다",
+  "arcade.pong.win": "{who} — {a} 대 {b}"
 }
