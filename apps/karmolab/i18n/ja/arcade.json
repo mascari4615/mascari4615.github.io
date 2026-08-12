@@ -286,5 +286,12 @@
   "arcade.game.whack.name": "モグラたたき",
   "arcade.game.whack.desc": "出たら叩く。💣 を叩くと減る",
   "arcade.whack.bad": "💣 −2",
-  "arcade.whack.win": "{who} — {n}点"
+  "arcade.whack.win": "{who} — {n}点",
+  "arcade.game.tug.name": "綱引き",
+  "arcade.game.tug.desc": "押した分だけ引ける。速すぎると空回り",
+  "arcade.tug.pull": "引く",
+  "arcade.tug.hint": "リズムを合わせて",
+  "arcade.tug.tooFast": "速すぎる — 空回り",
+  "arcade.tug.win": "{who} が引き寄せた",
+  "arcade.tug.draw": "時間切れ — 引き分け"
 }

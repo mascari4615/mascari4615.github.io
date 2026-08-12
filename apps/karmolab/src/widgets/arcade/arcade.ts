@@ -411,6 +411,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-wkh.ac-bad{border-color:#ef4444}',
       '.ac-wkh span{line-height:1}',
       '.ac-wkwho{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}',
+      '.ac-tg{max-width:360px;margin:var(--space-lg) auto;text-align:center}',
+      '.ac-tgline{position:relative;height:34px;border-radius:17px;background:color-mix(in srgb,#a16207 18%,var(--surface));margin:var(--space-lg) 0}',
+      '.ac-tgline i{position:absolute;top:5px;width:24px;height:24px;margin-left:-12px;border-radius:50%;background:var(--accent);transition:left .12s}',
+      '.ac-tgmsg{min-height:1.5em;font-size:var(--font-size-sm);color:var(--text-secondary)}',
+      '.ac-tgmsg.ac-warn{color:#ef4444;font-weight:700}',
+      '.ac-tgbtn{width:100%;margin-top:var(--space-lg);font-size:var(--font-size-lg);padding:14px}',
       '.ac-code{font-size:clamp(28px,8vw,48px);font-weight:800;letter-spacing:.18em;text-align:center;margin:var(--space-lg) 0}',
       '.ac-share{display:flex;gap:6px;margin:var(--space-lg) 0}',
       '.ac-share input{flex:1;min-width:0}'
