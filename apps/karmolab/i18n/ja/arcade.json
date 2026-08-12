@@ -224,5 +224,14 @@
   "arcade.game.onestroke.desc": "筆を離さず全ての線をなぞる。同じ図形で競争",
   "arcade.stroke.win": "{who} が全部なぞった",
   "arcade.stroke.timeup": "時間切れ — {who} {n}本",
-  "arcade.stroke.stuck": "詰まった"
+  "arcade.stroke.stuck": "詰まった",
+  "arcade.game.fishing.name": "釣り",
+  "arcade.game.fishing.desc": "待って、あたりで引く。大物はめったに来ない",
+  "arcade.fish.kinds": "フナ,コイ,ナマズ,ライギョ,ケツギョ",
+  "arcade.fish.cast": "投げる (残り{n})",
+  "arcade.fish.pull": "引く",
+  "arcade.fish.done": "使い切った",
+  "arcade.fish.empty": "まだ何も",
+  "arcade.fish.missed": "逃した",
+  "arcade.fish.win": "{who} — {n}"
 }
