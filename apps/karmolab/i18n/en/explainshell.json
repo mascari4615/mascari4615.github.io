@@ -1,0 +1,14 @@
+{
+  "explainshell.tab": "Explain",
+  "explainshell.label.line": "Command line",
+  "explainshell.status.local": "What you paste never leaves this browser",
+  "explainshell.unknown": "Not in the dictionary",
+  "explainshell.danger.head": "Careful",
+  "explainshell.seg": "Command {n}",
+  "explainshell.kind.command": "command",
+  "explainshell.kind.flag": "flag",
+  "explainshell.kind.value": "value",
+  "explainshell.kind.operator": "operator",
+  "explainshell.kind.redirect": "redirect",
+  "explainshell.kind.subshell": "subshell"
+}

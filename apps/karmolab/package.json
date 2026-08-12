@@ -194,6 +194,8 @@
     "smoke:bm": "node scripts/smoke-bluemarble-frame.mjs",
     "test:codeshot": "node scripts/test-codeshot-core.mjs",
     "test:soundscape": "node scripts/test-soundscape-core.mjs",
+    "test:shell": "node scripts/test-shell-explain.mjs",
+    "smoke:shell": "node scripts/smoke-explainshell.mjs",
     "smoke:soundscape": "node scripts/smoke-soundscape.mjs",
     "smoke:codeshot": "node scripts/smoke-codeshot.mjs",
     "test:region": "node scripts/smoke-region.mjs",
