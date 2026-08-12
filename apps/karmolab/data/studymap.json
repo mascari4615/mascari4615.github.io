@@ -1900,6 +1900,194 @@
           ]
         }
       ]
+    },
+    {
+      "id": "analytics",
+      "title": "데이터 분석",
+      "emoji": "📊",
+      "lead": "숫자로 답을 만드는 쪽 — 틀린 답을 예쁘게 그리지 않기 위해",
+      "stages": [
+        {
+          "id": "analytics-a",
+          "title": "묻는 법",
+          "nodes": [
+            {
+              "id": "analytics-question",
+              "title": "질문 먼저 — 데이터는 그 다음",
+              "why": "데이터부터 들여다보면, 이미 믿고 있던 것만 눈에 들어온다.",
+              "check": "분석 전에 「무엇이 나오면 생각을 바꿀지」를 적는다",
+              "links": [
+                {
+                  "label": "Google 데이터 분석 기초",
+                  "url": "https://developers.google.com/machine-learning/guides/rules-of-ml"
+                }
+              ]
+            },
+            {
+              "id": "analytics-stats",
+              "title": "통계 기초 — 평균의 함정",
+              "why": "평균 하나로 요약하면 절반이 사라진다. 분포와 이상치가 진짜 이야기다.",
+              "check": "평균·중앙값·분포를 함께 보고 결론을 낸다",
+              "links": [
+                {
+                  "label": "Seeing Theory (시각 교재)",
+                  "url": "https://seeing-theory.brown.edu/"
+                }
+              ]
+            },
+            {
+              "id": "analytics-clean",
+              "title": "데이터 정리 — 대부분의 시간",
+              "why": "분석의 8할은 씻는 일이다. 결측·중복·단위가 결과를 통째로 뒤집는다.",
+              "check": "결측치를 어떻게 다뤘는지 남긴다",
+              "links": [
+                {
+                  "label": "Tidy Data (Hadley Wickham)",
+                  "url": "https://vita.had.co.nz/papers/tidy-data.pdf"
+                }
+              ],
+              "prereq": [
+                "data-sql"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "analytics-b",
+          "title": "보여 주는 법",
+          "nodes": [
+            {
+              "id": "analytics-viz",
+              "title": "시각화 — 도형이 곧 주장",
+              "why": "막대와 선을 잘못 고르면, 맞는 데이터로 틀린 말을 하게 된다.",
+              "check": "이 그림이 무슨 질문에 답하는지 한 줄로 쓴다",
+              "links": [
+                {
+                  "label": "From Data to Viz",
+                  "url": "https://www.data-to-viz.com/"
+                }
+              ]
+            },
+            {
+              "id": "analytics-ab",
+              "title": "실험 — A/B 와 인과",
+              "why": "올라간 숫자가 내 변경 때문인지 계절 때문인지 가르는 유일한 방법.",
+              "check": "표본 크기를 미리 정하고, 중간에 안 멈춘다",
+              "links": [
+                {
+                  "label": "Trustworthy Online Controlled Experiments",
+                  "url": "https://experimentguide.com/"
+                }
+              ],
+              "prereq": [
+                "analytics-stats"
+              ]
+            },
+            {
+              "id": "analytics-repro",
+              "title": "재현 가능한 분석",
+              "why": "노트북 셀을 위아래로 뛰며 만든 결론은 아무도(나조차) 다시 못 만든다.",
+              "check": "처음부터 끝까지 한 번에 돌려 같은 숫자가 나온다",
+              "links": [
+                {
+                  "label": "Ten Simple Rules for Reproducible Research",
+                  "url": "https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003285"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a11y",
+      "title": "접근성",
+      "emoji": "♿",
+      "lead": "못 쓰는 사람이 있으면 그건 취향 문제가 아니라 결함이다",
+      "stages": [
+        {
+          "id": "a11y-a",
+          "title": "먼저 겪어 본다",
+          "nodes": [
+            {
+              "id": "a11y-keyboard",
+              "title": "키보드만으로 다 하기",
+              "why": "마우스를 못 쓰는 사람만의 이야기가 아니다 — 포커스가 없는 화면은 대개 구조도 없다.",
+              "check": "Tab 만으로 주요 흐름을 끝내고, 지금 어디인지 늘 보인다",
+              "links": [
+                {
+                  "label": "MDN 키보드 접근성",
+                  "url": "https://developer.mozilla.org/ko/docs/Learn/Accessibility/HTML"
+                }
+              ],
+              "prereq": [
+                "web-a11y"
+              ]
+            },
+            {
+              "id": "a11y-sr",
+              "title": "스크린리더로 들어 보기",
+              "why": "읽어 주는 소리를 한 번 들으면, 의미 없는 태그가 얼마나 시끄러운지 안다.",
+              "check": "내 화면을 눈 감고 끝까지 들어 본다",
+              "links": [
+                {
+                  "label": "NVDA (무료 스크린리더)",
+                  "url": "https://www.nvaccess.org/download/"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "a11y-b",
+          "title": "만들 때 지킨다",
+          "nodes": [
+            {
+              "id": "a11y-semantics",
+              "title": "먼저 시맨틱, ARIA 는 최후",
+              "why": "ARIA 를 잘못 쓰면 없느니만 못하다. 버튼은 button 이면 끝난다.",
+              "check": "div 로 만든 조작 요소를 표준 요소로 바꾼다",
+              "links": [
+                {
+                  "label": "ARIA 사용 규칙",
+                  "url": "https://www.w3.org/TR/using-aria/"
+                }
+              ]
+            },
+            {
+              "id": "a11y-contrast",
+              "title": "대비 · 글자 크기 · 모션",
+              "why": "햇빛 아래·노안·멀미 — 모두가 겪는 조건이지, 소수의 예외가 아니다.",
+              "check": "본문 대비 4.5:1 을 넘기고, 움직임 줄이기 설정을 존중한다",
+              "links": [
+                {
+                  "label": "WCAG 빠른 참조",
+                  "url": "https://www.w3.org/WAI/WCAG22/quickref/"
+                }
+              ],
+              "tool": {
+                "id": "contrast",
+                "label": "명도 대비 검사기"
+              }
+            },
+            {
+              "id": "a11y-test",
+              "title": "자동 검사 + 사람 확인",
+              "why": "자동 도구는 문제의 3분의 1만 잡는다. 나머지는 써 봐야 안다.",
+              "check": "axe 같은 도구를 붙이고, 손으로도 한 바퀴 돈다",
+              "links": [
+                {
+                  "label": "axe DevTools",
+                  "url": "https://www.deque.com/axe/devtools/"
+                }
+              ],
+              "prereq": [
+                "web-test"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
