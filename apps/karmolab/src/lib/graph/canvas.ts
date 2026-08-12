@@ -1882,9 +1882,13 @@ export class GraphCanvas {
     const pad = 60;
     const scaleX = (svgW - pad * 2) / bounds.w;
     const scaleY = (svgH - pad * 2) / bounds.h;
-    this.state.scale = Math.max(0.1, Math.min(2, Math.min(scaleX, scaleY)));
-    this.state.tx = pad - bounds.minX * this.state.scale;
-    this.state.ty = pad - bounds.minY * this.state.scale;
+    const s = Math.max(0.1, Math.min(2, Math.min(scaleX, scaleY)));
+    this.state.scale = s;
+    /* ★ 남는 자리는 **양쪽으로 나눈다**. 예전엔 왼쪽 위에 붙였는데, 판이 옆으로 넓으면
+       배율이 가로에 걸려 세로가 남고 그 남은 자리가 전부 **아래에 뭉쳤다** — 40장짜리 판에서
+       그림이 화면 위쪽 40% 에만 몰렸다(실측 2026-08-12). 「전체 보기」는 가운데 놓는 것이다. */
+    this.state.tx = (svgW - bounds.w * s) / 2 - bounds.minX * s;
+    this.state.ty = (svgH - bounds.h * s) / 2 - bounds.minY * s;
     this.applyTransform();
   }
 }
