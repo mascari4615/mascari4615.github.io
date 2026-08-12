@@ -11,6 +11,7 @@
  * 「체크하려고 가입」이 지도를 안 열게 만드는 가장 흔한 이유라서.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { collectHeadings, tocHtml, bindTocClicks, watchReading } from '../../lib/doc-view';
 
 interface SmLink { label: string; url: string }
 interface SmTool { id: string; label: string }
@@ -136,7 +137,12 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-scope-line::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 .sm-badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 999px; border: 1px dashed var(--border-strong); color: var(--secondary); margin-left: 8px; vertical-align: middle; }
 
-.sm-search { width: 100%; padding: 10px 14px; border-radius: var(--radius-lg); border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); font: inherit; font-size: var(--font-size-2xs); }
+/* 찾기는 평소엔 접혀 있다 — 지도를 훑는 게 기본 동작이고, 찾기는 목적이 생겼을 때만 쓴다. */
+.sm-findbar { display: flex; align-items: center; gap: 8px; }
+.sm-find-btn { border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-secondary); font: inherit; font-size: 11px; padding: 5px 11px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.sm-find-btn:hover { border-color: var(--accent); color: var(--accent); }
+.sm-findbar .sm-search { padding: 6px 12px; border-radius: var(--radius-lg); border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); font: inherit; font-size: var(--font-size-2xs); }
+.sm-search { width: 100%; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); font: inherit; font-size: 11px; }
 .sm-search:focus { outline: none; border-color: var(--accent); }
 
 /* 단계 = 왼쪽 등뼈 한 줄. 세로로 이어지는 게 「지도」의 뼈대다. */
@@ -171,6 +177,19 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 
 /* 강의 — 읽는 화면. 글줄은 68ch 를 안 넘긴다. */
 .sm-lesson { max-width: 68ch; }
+/* 목차 — 좁은 화면에선 접힌 채로 위에, 넓은 화면에선 글 옆에 붙어 따라온다. */
+.sm-lesson-wrap { display: block; }
+.doc-toc { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px 14px; margin: 0 0 18px; background: var(--bg-secondary); }
+.doc-toc-title { font-size: 10px; letter-spacing: .05em; color: var(--text-tertiary); margin-bottom: 8px; }
+.doc-toc-list { display: flex; flex-direction: column; gap: 2px; }
+.doc-toc-a { font-size: 11px; color: var(--text-secondary); text-decoration: none; padding: 3px 6px; border-radius: var(--radius-sm); border-left: 2px solid transparent; line-height: 1.5; }
+.doc-toc-a:hover { background: var(--bg-hover); color: var(--text-primary); }
+.doc-toc-a.is-here { color: var(--accent); border-left-color: var(--accent); background: var(--accent-dim); }
+@media (min-width: 1100px) {
+  .sm-lesson-wrap { display: grid; grid-template-columns: 1fr 220px; gap: 28px; align-items: start; }
+  .sm-lesson { min-width: 0; }
+  .doc-toc { position: sticky; top: 12px; margin: 44px 0 0; max-height: calc(100vh - 80px); overflow-y: auto; }
+}
 .sm-back { background: none; border: 1px solid var(--border); color: var(--text-secondary); font: inherit; font-size: 11px; padding: 6px 12px; border-radius: 999px; cursor: pointer; margin-bottom: 18px; }
 .sm-back:hover { border-color: var(--accent); color: var(--accent); }
 .sm-lesson h3 { font-size: var(--font-size-md); margin: 0 0 4px; }
@@ -276,9 +295,12 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
             <div class="sm-meter-all" data-sm="pall"></div>
           </div>
         </div>
-        <input class="sm-search" type="search" name="studymap-search" data-sm="search"
-               placeholder="${esc(t('studymap.search', undefined, '주제 찾기 — 예: rebase, 인덱스, 캐시'))}"
-               aria-label="${esc(t('studymap.search', undefined, '주제 찾기 — 예: rebase, 인덱스, 캐시'))}">
+        <div class="sm-findbar">
+          <button type="button" class="sm-find-btn" data-sm="findbtn" aria-expanded="false">🔎 ${esc(t('studymap.find', undefined, '찾기'))}</button>
+          <input class="sm-search" type="search" name="studymap-search" data-sm="search" hidden
+                 placeholder="${esc(t('studymap.search', undefined, '주제 찾기 — 예: rebase, 인덱스, 캐시'))}"
+                 aria-label="${esc(t('studymap.search', undefined, '주제 찾기 — 예: rebase, 인덱스, 캐시'))}">
+        </div>
         <div class="sm-body">
           <nav class="sm-tracks" data-sm="tracks" aria-label="${esc(t('studymap.tracks', undefined, '갈래'))}"></nav>
           <div class="sm-main" data-sm="stages" aria-live="polite"></div>
@@ -329,24 +351,10 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
     function cardHtml(n: SmNode, nextId: string | null): string {
       const isDone = done.has(n.id);
       const isNext = n.id === nextId;
-      /* 도구가 붙은 칸은 **여기서 바로 해 볼 수 있다** — 읽고 끝나면 안 남는다. */
-      const tool = n.tool ? `<a class="sm-link sm-tool" href="#${esc(n.tool.id)}">▶ ${esc(n.tool.label)}</a>` : '';
-      const links =
-        tool +
-        (n.links || [])
-          .map((l) => `<a class="sm-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} ↗</a>`)
-          .join('');
-      /* 「먼저 이것」 — 못 하면 여기서 막힌다는 뜻이 아니라, 막혔을 때 돌아갈 자리를 알려 준다. */
-      const prereq = (n.prereq || [])
-        .map((id) => {
-          const found = whereIs.get(id);
-          if (!found) return '';
-          const d = done.has(id);
-          const label = `${t('studymap.prereq', undefined, '먼저')}: ${found.node.title}`;
-          return `<button type="button" class="sm-prereq-btn${d ? ' is-done' : ''}" data-goto="${esc(id)}" aria-label="${esc(label)}">${esc(found.node.title)}</button>`;
-        })
-        .join('');
-
+      /**
+       * 카드는 **제목과 한 줄 이유**까지만 — 넘어갈 기준·먼저 볼 칸·바깥 자료는 전부 강의 안으로 옮겼다.
+       * 지도는 훑는 화면이라 카드마다 링크가 붙으면 눈이 갈 곳을 잃고, 링크를 누르면 사이트 밖으로 나간다.
+       */
       return `<div class="sm-node${isDone ? ' is-done' : ''}${isNext ? ' is-next' : ''}" data-id="${esc(n.id)}">
         ${isNext ? `<span class="sm-next-tag">${esc(t('studymap.next', undefined, '다음'))}</span>` : ''}
         <input type="checkbox" class="sm-check" name="studymap-done-${esc(n.id)}" data-node="${esc(n.id)}" ${isDone ? 'checked' : ''}
@@ -354,9 +362,6 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
         <div class="sm-node-body">
           <button type="button" class="sm-node-title sm-open" data-open="${esc(n.id)}">${esc(n.title)}${hasLesson.has(n.id) ? `<span class="sm-has-lesson">${esc(t('studymap.lesson.tag', undefined, '강의'))}</span>` : ''}</button>
           <div class="sm-node-why">${esc(n.why)}</div>
-          ${n.check ? `<div class="sm-node-check"><b>${esc(t('studymap.check', undefined, '넘어가도 될 때'))}</b> — ${esc(n.check)}</div>` : ''}
-          ${prereq ? `<div class="sm-prereq"><span class="sm-prereq-label">${esc(t('studymap.prereq', undefined, '먼저'))}</span>${prereq}</div>` : ''}
-          ${links ? `<div class="sm-links">${links}</div>` : ''}
         </div>
       </div>`;
     }
@@ -401,9 +406,27 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
         /* 목록을 못 받아도 강의는 눌러서 열린다 — 표시만 안 붙는다 */
       });
 
-    async function openLesson(id: string): Promise<void> {
+    /**
+     * 강의를 열면 브라우저 방문 기록에 한 칸을 쌓는다.
+     * 마우스 「뒤로」가 강의를 닫고 지도로 돌아오게 하려는 것 —
+     * 안 그러면 뒤로 버튼이 사이트 밖(홈)으로 나가 버린다.
+     * 주소는 그대로 둔다(pushState 에 url 안 넘김) — 다른 위젯의 해시와 안 싸운다.
+     */
+    let lessonOpen: string | null = null;
+    /* 목차 감시는 화면을 갈아엎을 때마다 푼다 — 안 그러면 죽은 화면을 계속 재려 든다. */
+    let stopWatching: (() => void) | null = null;
+
+    async function openLesson(id: string, viaHistory = false): Promise<void> {
       const found = whereIs.get(id);
       if (!found) return;
+      if (!viaHistory) {
+        try {
+          history.pushState({ smLesson: id }, '');
+        } catch {
+          /* 기록을 못 쌓아도 강의는 열린다 — 뒤로가기만 예전처럼 동작한다 */
+        }
+      }
+      lessonOpen = id;
       const node = found.node;
       elStages.innerHTML = `<div class="sm-empty">${esc(t('studymap.lesson.loading', undefined, '강의를 펴는 중…'))}</div>`;
 
@@ -416,9 +439,29 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
       }
 
       const back = `<button type="button" class="sm-back" data-back="1">← ${esc(t('studymap.lesson.back', undefined, '지도로'))}</button>`;
-      const linkRow = (node.links || [])
-        .map((l) => `<a class="sm-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} ↗</a>`)
+      /* 도구가 붙은 칸은 **여기서 바로 해 볼 수 있다** — 읽고 끝나면 안 남는다. */
+      const toolRow = node.tool ? `<a class="sm-link sm-tool" href="#${esc(node.tool.id)}">▶ ${esc(node.tool.label)}</a>` : '';
+      const linkRow =
+        toolRow +
+        (node.links || [])
+          .map((l) => `<a class="sm-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} ↗</a>`)
+          .join('');
+      /* 「먼저 이것」 — 못 하면 막힌다는 뜻이 아니라, 막혔을 때 돌아갈 자리를 알려 준다. */
+      const prereqRow = (node.prereq || [])
+        .map((pid) => {
+          const p = whereIs.get(pid);
+          if (!p) return '';
+          const d = done.has(pid);
+          const label = `${t('studymap.prereq', undefined, '먼저')}: ${p.node.title}`;
+          return `<button type="button" class="sm-prereq-btn${d ? ' is-done' : ''}" data-goto="${esc(pid)}" aria-label="${esc(label)}">${esc(p.node.title)}</button>`;
+        })
         .join('');
+      const prereqBlock = prereqRow
+        ? `<div class="sm-prereq"><span class="sm-prereq-label">${esc(t('studymap.prereq', undefined, '먼저'))}</span>${prereqRow}</div>`
+        : '';
+      const checkBlock = node.check
+        ? `<div class="sm-callout"><span class="sm-callout-tag">${esc(t('studymap.check', undefined, '넘어가도 될 때'))}</span>${esc(node.check)}</div>`
+        : '';
 
       /* 아직 안 쓴 강의 — 없는 척하지 말고 「없다」고 말한다. 카드에 있던 것은 그대로 보인다. */
       if (!lesson) {
@@ -426,7 +469,8 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
           <h3>${esc(node.title)}</h3>
           <div class="sm-lesson-meta">${esc(t('studymap.lesson.none', undefined, '이 칸의 강의는 아직 준비 중이다. 아래 자료로 먼저 시작하라.'))}</div>
           <p>${esc(node.why)}</p>
-          ${node.check ? `<div class="sm-callout"><span class="sm-callout-tag">${esc(t('studymap.check', undefined, '넘어가도 될 때'))}</span>${esc(node.check)}</div>` : ''}
+          ${prereqBlock}
+          ${checkBlock}
           <div class="sm-links">${linkRow}</div>
         </div>`;
         return;
@@ -463,13 +507,31 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
         )
         .join('');
 
-      elStages.innerHTML = `<div class="sm-lesson">${back}
+      elStages.innerHTML = `<div class="sm-lesson-wrap"><article class="sm-lesson">${back}
         <h3>${esc(node.title)}</h3>
         <div class="sm-lesson-meta">${esc(trackOf(found.trackId).title)}${lesson.minutes ? ` · ${esc(t('studymap.lesson.minutes', { n: lesson.minutes }, '약 {n}분'))}` : ''}</div>
+        ${prereqBlock}
         ${body}
+        ${checkBlock}
         ${quiz ? `<h4>${esc(t('studymap.lesson.quiz', undefined, '확인 문제'))}</h4><div class="sm-quiz" data-lesson="${esc(id)}">${quiz}</div>` : ''}
         <div class="sm-links" style="margin-top:18px">${linkRow}</div>
-      </div>`;
+      </article></div>`;
+
+      /* 목차는 공용 모듈이 만든다 — 문서 위젯과 같은 규칙을 쓰려고(SSOT). */
+      const article = elStages.querySelector('.sm-lesson');
+      const wrap = elStages.querySelector('.sm-lesson-wrap');
+      if (article instanceof HTMLElement && wrap instanceof HTMLElement) {
+        const heads = collectHeadings(article, { selector: 'h4', prefix: `sm-${id}-`, min: 3 });
+        if (heads.length > 0) {
+          wrap.insertAdjacentHTML('beforeend', tocHtml(heads, t('studymap.lesson.toc', undefined, '목차')));
+          const tocRoot = wrap.querySelector('.doc-toc');
+          if (tocRoot instanceof HTMLElement) {
+            bindTocClicks(tocRoot, article);
+            stopWatching?.();
+            stopWatching = watchReading(article, tocRoot, heads);
+          }
+        }
+      }
 
       /* 채점은 고르는 즉시. 다 맞히면 그 칸은 저절로 체크된다 — 「읽었다」가 아니라 「됐다」가 기준. */
       const quizRoot = elStages.querySelector('[data-lesson]');
@@ -510,6 +572,9 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
     }
 
     function paint(): void {
+      lessonOpen = null;
+      stopWatching?.();
+      stopWatching = null;
       const tr = trackOf(current);
       const all = nodesOf(tr);
       const d = all.filter((n) => done.has(n.id)).length;
@@ -572,6 +637,16 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
       paint();
     });
 
+    /* 뒤로/앞으로 — 우리가 쌓은 칸이면 강의를 열고 닫는다. 남의 기록이면 손대지 않는다. */
+    window.addEventListener('popstate', (e) => {
+      const st = e.state as { smLesson?: string } | null;
+      if (st?.smLesson) {
+        if (st.smLesson !== lessonOpen) void openLesson(st.smLesson, true);
+        return;
+      }
+      if (lessonOpen) paint();
+    });
+
     elStages.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
       const open = target.closest('[data-open]') as HTMLElement | null;
@@ -580,7 +655,9 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
         return;
       }
       if (target.closest('[data-back]')) {
-        paint();
+        /* 화면의 「지도로」도 뒤로가기와 같은 길로 — 기록에 빈 칸이 남지 않게 */
+        if (lessonOpen && (history.state as { smLesson?: string } | null)?.smLesson) history.back();
+        else paint();
         return;
       }
       const btn = target.closest('[data-goto]') as HTMLElement | null;
@@ -617,6 +694,23 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
             : t('studymap.mdd.step', undefined, '한 칸 나아갔어요.'),
         });
       }
+    });
+
+    const elFindBtn = q<HTMLButtonElement>('findbtn');
+    /* 접기·펴기. 펴면 바로 커서가 들어가고, 비운 채 접으면 지도로 돌아온다. */
+    function showSearch(on: boolean): void {
+      elSearch.hidden = !on;
+      elFindBtn.setAttribute('aria-expanded', String(on));
+      if (on) elSearch.focus();
+      else if (query) {
+        query = '';
+        elSearch.value = '';
+        paint();
+      }
+    }
+    elFindBtn.addEventListener('click', () => showSearch(elSearch.hidden));
+    elSearch.addEventListener('keydown', (e) => {
+      if ((e as KeyboardEvent).key === 'Escape') showSearch(false);
     });
 
     elSearch.addEventListener('input', () => {

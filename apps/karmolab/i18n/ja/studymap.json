@@ -32,5 +32,7 @@
   "studymap.lesson.cleared": "全問正解 — この項目を完了にしました。",
   "studymap.scope.personal": "自分のもの — このリポジトリの話",
   "studymap.scope.badge": "自分用",
-  "studymap.lesson.tag": "講義"
+  "studymap.lesson.tag": "講義",
+  "studymap.find": "検索",
+  "studymap.lesson.toc": "目次"
 }
