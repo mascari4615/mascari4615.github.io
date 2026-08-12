@@ -156,6 +156,10 @@
     "db": {
       "title": "Running a database",
       "lead": "Getting slow, getting stuck, getting your data back — it is all decided here"
+    },
+    "write": {
+      "title": "Technical writing",
+      "lead": "Someone reads your code six months later — and that someone is usually you"
     }
   },
   "stages": {
@@ -263,7 +267,10 @@
     "api-c": "Lasting",
     "db-a": "Why it is slow",
     "db-b": "Keeping it moving",
-    "db-c": "Not losing it"
+    "db-c": "Not losing it",
+    "write-a": "Getting read",
+    "write-b": "Leaving a record",
+    "write-c": "Staying useful"
   },
   "nodes": {
     "web-html": {
@@ -2629,6 +2636,70 @@
       "check": "You set a retention window and a partition key",
       "links": [
         "PostgreSQL — partitioning"
+      ]
+    },
+    "write-reader": {
+      "title": "Nobody reads it start to finish",
+      "why": "People scan, and writing that ignores this stays unread no matter how correct it is.",
+      "check": "You put the conclusion first and make it scannable",
+      "links": [
+        "Google developer documentation style guide"
+      ]
+    },
+    "write-readme": {
+      "title": "README — the first five minutes",
+      "why": "If the first five minutes do not produce one success, nobody reaches the second screen.",
+      "check": "Install to first success fits in three commands",
+      "links": [
+        "GitHub — about READMEs"
+      ]
+    },
+    "write-types": {
+      "title": "Do not mix the four kinds",
+      "why": "A tutorial welded to a reference serves neither the learner nor the looker-up.",
+      "check": "You split your docs into the four kinds and redo the index",
+      "links": [
+        "Diátaxis — four kinds of documentation"
+      ]
+    },
+    "write-adr": {
+      "title": "Record the decision (ADR)",
+      "why": "When nobody remembers why, the same argument restarts from zero six months later.",
+      "check": "You capture one recent decision on a single page",
+      "links": [
+        "ADR — architecture decision records"
+      ]
+    },
+    "write-incident": {
+      "title": "Incident reports — blame the system",
+      "why": "Name a culprit and the next incident gets hidden; there is a format that leaves learning instead.",
+      "check": "You write up one incident blamelessly",
+      "links": [
+        "Google SRE — postmortem culture"
+      ]
+    },
+    "write-async": {
+      "title": "Proposals people can decide on",
+      "why": "The surest way to delete a meeting is one page someone can approve by reading.",
+      "check": "You write context, options and a recommendation",
+      "links": [
+        "Write the Docs — guide"
+      ]
+    },
+    "write-plain": {
+      "title": "Plain words and jargon",
+      "why": "Hard writing loses readers while trying to look smart, and costs even more in translation and search.",
+      "check": "You rewrite a paragraph without jargon",
+      "links": [
+        "Plain language guidelines"
+      ]
+    },
+    "write-rot": {
+      "title": "Keeping docs from rotting",
+      "why": "Wrong docs are worse than none, and willpower does not stop rot.",
+      "check": "Docs carry an owner and a review date, checked automatically",
+      "links": [
+        "Google style — maintaining docs"
       ]
     }
   }

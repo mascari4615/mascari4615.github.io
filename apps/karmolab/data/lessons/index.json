@@ -296,7 +296,15 @@
       "web-js",
       "web-render",
       "web-test",
-      "web-ts"
+      "web-ts",
+      "write-adr",
+      "write-async",
+      "write-incident",
+      "write-plain",
+      "write-reader",
+      "write-readme",
+      "write-rot",
+      "write-types"
     ]
   }
 }
