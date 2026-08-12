@@ -140,6 +140,30 @@ const report = await page.evaluate(async () => {
     await sleep(140);
   }
 
+  // 효과 — 화면과 저장물이 같아야 한다는 게 요점이므로 **캔버스 픽셀**로 잰다.
+  // 켜기 전/후로 픽셀이 달라지지 않으면 CSS 로만 걸린 것이거나 아예 안 걸린 것이다.
+  // 「밝은 칸 수」로 재면 안 된다 — 빛번짐이 더하는 빛은 옅어서 문턱을 못 넘고, 세어 보면
+  // 켜기 전과 똑같이 나온다(실제로 그렇게 나왔다). 화면 전체가 머금은 **빛의 양**으로 잰다.
+  const brightness = () => {
+    const px = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    let sum = 0;
+    for (let p = 0; p < px.length; p += 4 * 11) sum += px[p] + px[p + 1] + px[p + 2];
+    return sum;
+  };
+  const beforeInk = brightness();
+  const effect = $('aaEffect');
+  if (!effect) {
+    return {
+      diag: '효과 고르는 칸을 못 찾았다',
+      ids: ['aaOut', 'aaVideoBox', 'aaEffect', 'aaSpan', 'aaCanvas', 'aaAnsi'].filter((id) => !document.getElementById(id)),
+      pages: [...document.querySelectorAll('.tool-page')].map((el) => el.id || el.className).slice(0, 6)
+    };
+  }
+  effect.value = 'neon';
+  effect.dispatchEvent(new Event('input', { bubbles: true }));
+  await sleep(400);
+  const afterInk = brightness();
+
   const text = document.getElementById('aaOut');
   const status = document.getElementById('aaStatus').textContent;
 
@@ -187,6 +211,18 @@ const report = await page.evaluate(async () => {
   HTMLAnchorElement.prototype.click = clickBlocked;
   URL.createObjectURL = originalCreate;
 
+  // 정지 이미지에서도 같은 효과가 걸리나 — 여기가 갈리면 「화면과 저장물이 같다」가 깨진다.
+  effect.value = 'none';
+  effect.dispatchEvent(new Event('input', { bubbles: true }));
+  await sleep(200);
+  $('aaSample').click();
+  for (let i = 0; i < 60 && $('aaOut').hidden; i++) await sleep(100);
+  const stillPlain = !$('aaOut').hidden && canvas.hidden;
+  effect.value = 'crt';
+  effect.dispatchEvent(new Event('input', { bubbles: true }));
+  await sleep(400);
+  const stillOnCanvas = $('aaOut').hidden && !canvas.hidden;
+
   return {
     videoBoxOpen,
     canvasShown,
@@ -200,6 +236,10 @@ const report = await page.evaluate(async () => {
     gifHeader,
     babBytes: babBlob ? babBlob.size : 0,
     babHeader,
+    beforeInk,
+    afterInk,
+    stillPlain,
+    stillOnCanvas,
     ansiLen: ansi.length,
     ansiHasColor: ansi.includes(String.fromCharCode(27) + '[38;2;'),
     ansiResets: ansi.split(String.fromCharCode(27) + '[0m').length - 1
@@ -216,12 +256,21 @@ if (!report.textHidden) fail.push('영상 모드인데 이미지용 <pre> 가 �
 if (Math.max(0, ...report.inks) === 0) fail.push('글자판이 통째로 비었다 — 아무것도 안 그려졌다');
 if (report.distinct < 2) fail.push(`트는 동안 그림이 안 바뀐다 (서로 다른 장 ${report.distinct}개)`);
 if (report.colored === 0) fail.push('색을 켰는데 회색만 나온다');
+// 빛번짐은 글자 둘레를 밝히므로 화면이 머금은 빛이 **늘어난다**. 안 늘면 안 구워진 것이다.
+// (1% 문턱 — 장이 넘어가며 생기는 잔떨림을 효과로 잘못 읽지 않게.)
+if (report.afterInk <= report.beforeInk * 1.01) fail.push(`효과가 그림에 안 구워졌다 (빛의 양 ${report.beforeInk} → ${report.afterInk})`);
+if (!report.stillPlain) fail.push('효과가 없을 때 정지 이미지가 글자판(<pre>)으로 안 나온다');
+if (!report.stillOnCanvas) fail.push('정지 이미지에 효과를 걸었는데 캔버스로 안 넘어간다 — 화면과 저장물이 갈린다');
 if (!report.ansiHasColor) fail.push(`ANSI 로 복사했는데 색 코드가 없다 (${report.ansiLen}자)`);
 if (report.ansiResets < 2) fail.push('ANSI 줄 끝 초기화가 없다 — 붙여넣은 뒤 프롬프트까지 물든다');
 if (report.babHeader !== 'BAB1') fail.push(`.bab 로 안 뽑힌다 (머리 ${JSON.stringify(report.babHeader)})`);
 if (report.gifHeader !== 'GIF89a') fail.push(`GIF 로 안 뽑힌다 (머리 ${JSON.stringify(report.gifHeader)})`);
 if (errors.length) fail.push(`화면에서 오류가 났다: ${errors.slice(0, 2).join(' | ')}`);
 
+if (report.diag) {
+  console.error('[asciiart-video] ' + report.diag, JSON.stringify(report));
+  process.exit(1);
+}
 console.log('[asciiart-video]', JSON.stringify(report, null, 1));
 if (fail.length) {
   for (const line of fail) console.error('[asciiart-video] ' + line);

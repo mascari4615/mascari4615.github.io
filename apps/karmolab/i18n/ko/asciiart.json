@@ -50,5 +50,11 @@
   "asciiart.err.gif": "GIF 를 만들지 못했어요. 장수를 줄여보세요.",
   "asciiart.btn.ansi": "터미널용 복사 (ANSI)",
   "asciiart.copy.ansi": "색까지 담아 복사했어요 — 터미널에 붙여넣으면 색이 나옵니다",
-  "asciiart.copy.ansiPlain": "복사했어요 — 색을 켜면 터미널에서도 색이 나옵니다"
+  "asciiart.copy.ansiPlain": "복사했어요 — 색을 켜면 터미널에서도 색이 나옵니다",
+  "asciiart.label.effect": "효과",
+  "asciiart.effect.none": "없음",
+  "asciiart.effect.neon": "네온 (빛번짐)",
+  "asciiart.effect.crt": "브라운관 (주사선)",
+  "asciiart.effect.bloom": "몽롱",
+  "asciiart.effect.ink": "먹"
 }
