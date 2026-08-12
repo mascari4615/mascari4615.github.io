@@ -1,56 +1,786 @@
 {
   "id": "web-js",
-  "minutes": 16,
-  "blocks": [
-    { "type": "p", "text": "JavaScript 를 「문법이 헷갈리는 언어」로 배우면 오래 걸린다. 실제로 사람을 걸어 넘어뜨리는 것은 셋뿐이다: **값이 복사되는가 참조되는가**, **이 이름이 어디까지 보이는가**, **이 코드가 언제 도는가**." },
-
-    { "type": "h", "text": "1. 값과 참조" },
-    { "type": "code", "lang": "js", "label": "숫자·문자열은 복사, 객체·배열은 참조", "text": "let a = 1, b = a;  b = 2;\nconsole.log(a);            // 1  (복사)\n\nconst x = { n: 1 };\nconst y = x;  y.n = 2;\nconsole.log(x.n);          // 2  (같은 것을 가리킨다)\n\nconst z = { ...x };  z.n = 3;\nconsole.log(x.n);          // 2  (얕은 복사)" },
-    { "type": "note", "text": "`const` 는 **다시 대입하지 못하게** 할 뿐, 내용이 안 바뀌는 게 아니다. `const arr = []` 에 push 는 된다. 「안 바뀌는 값」이 필요하면 복사해서 새로 만들어라." },
-
-    { "type": "h", "text": "2. 스코프와 클로저" },
-    { "type": "p", "text": "함수는 자기가 **만들어진 자리**의 변수를 기억한다. 이걸 클로저라고 부르는데, 이름이 어려울 뿐 매일 쓰고 있다." },
-    { "type": "code", "lang": "js", "label": "만들어진 자리를 기억한다", "text": "function counter() {\n  let count = 0;             // 밖에서 못 만진다\n  return () => ++count;      // 이 함수가 count 를 계속 들고 있다\n}\nconst next = counter();\nnext(); next();              // 2\n\n// 흔한 함정: var 는 블록을 모른다\nfor (var i = 0; i < 3; i++) setTimeout(() => console.log(i));  // 3 3 3\nfor (let j = 0; j < 3; j++) setTimeout(() => console.log(j));  // 0 1 2" },
-
-    { "type": "h", "text": "3. 언제 도는가 — 이벤트 루프" },
-    { "type": "p", "text": "브라우저의 JavaScript 는 한 줄씩, 한 사람이 돈다. 오래 걸리는 일을 그 자리에서 하면 화면이 통째로 멈춘다. 그래서 기다림은 **나중에 부를 함수**로 넘긴다." },
-    { "type": "code", "lang": "js", "label": "순서를 맞혀 보라", "text": "console.log('1');\nsetTimeout(() => console.log('2'), 0);\nPromise.resolve().then(() => console.log('3'));\nconsole.log('4');\n\n// 1 4 3 2\n// 지금 하던 일 → 미세 작업(Promise) → 큰 작업(setTimeout)" },
-    { "type": "code", "lang": "js", "label": "async/await 는 then 의 다른 표기", "text": "async function load() {\n  try {\n    const res = await fetch('/api/items');\n    if (!res.ok) throw new Error(`HTTP ${res.status}`);\n    return await res.json();\n  } catch (err) {\n    console.warn('불러오기 실패', err);\n    return [];                 // 화면이 죽지 않게 기본값\n  }\n}" },
-    { "type": "note", "text": "`await` 는 **그 함수만** 멈춘다. 화면은 계속 돈다. 반대로 `for` 안에서 await 를 줄줄이 걸면 요청이 한 줄로 서니, 동시에 해도 되는 것은 `Promise.all` 로 묶어라." },
-
-    { "type": "h", "text": "4. 자주 쓰는 손버릇" },
-    { "type": "code", "lang": "js", "label": "배열 세 가지면 대부분 끝난다", "text": "const items = [{ price: 3 }, { price: 5 }];\nitems.map((it) => it.price);                 // [3, 5]  모양 바꾸기\nitems.filter((it) => it.price > 3);          // 고르기\nitems.reduce((sum, it) => sum + it.price, 0); // 8  합치기\n\nconst { price = 0 } = items[0] ?? {};        // 구조 분해 + 기본값\nconst name = user?.profile?.name ?? '이름 없음';" },
-
-    { "type": "h", "text": "직접 해보기" },
-    { "type": "try", "text": "콘솔에서 위 「순서를 맞혀 보라」 코드를 먼저 **종이에 예상**을 적고 실행해 비교하라. 틀렸다면 어디서 갈렸는지가 이번 강의의 핵심이다." },
-    { "type": "try", "text": "`counter()` 를 두 번 불러 `next1`, `next2` 를 만들고 번갈아 호출해 봐라. 두 카운터가 서로 다른 숫자를 세는 이유를 한 줄로 설명해 보라." }
-  ],
-  "quiz": [
+  "parts": [
     {
-      "q": "`const list = [1,2]; list.push(3);` 이 오류가 아닌 이유는?",
-      "choices": [
-        "const 는 재대입만 막고, 배열 내용 변경은 막지 않기 때문",
-        "배열은 원래 상수가 될 수 없기 때문",
-        "push 는 새 배열을 만들기 때문"
+      "id": "1",
+      "title": "값과 참조 — 복사되는 것과 가리키는 것",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "JavaScript 를 「문법이 헷갈리는 언어」로 배우면 오래 걸린다. 실제로 사람을 걸어 넘어뜨리는 것은 문법이 아니라 **값이 어떻게 놓이고 언제 도는가** 두 가지다. 첫 번째부터 본다."
+        },
+        {
+          "type": "p",
+          "text": "숫자·문자열·불리언 같은 **원시값**은 대입할 때 복사된다. 객체·배열·함수는 복사되지 않고 **같은 것을 가리키는 이름이 하나 더 생긴다.** 여기서 갈리는 사고가 전체의 절반이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "고쳐 보라 — 원본이 같이 바뀌나",
+          "height": "240px",
+          "text": "<style>\n  body { font: 13.5px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0; }\n  pre { margin: 0; padding: 12px; background: #0b1220; color: #e2e8f0; border-radius: 10px; white-space: pre-wrap; }\n  .k { color: #7dd3fc; } .v { color: #fde68a; } .x { color: #fca5a5; } .o { color: #86efac; }\n</style>\n<pre id=\"out\"></pre>\n<script>\n  const lines = [];\n  const log = (...a) => lines.push(a.map((v) => typeof v === 'string' ? v : JSON.stringify(v)).join(' '));\n  const flush = () => { document.getElementById('out').textContent = lines.join('\\n'); };\n  let a = 1, b = a;\n  b = 2;\n  log('원시값  a =', a, ' b =', b);\n\n  const o1 = { n: 1 };\n  const o2 = o1;\n  o2.n = 2;\n  log('객체    o1.n =', o1.n, ' o2.n =', o2.n, '  <- 같은 것을 가리킨다');\n\n  const copy = { ...o1 };\n  copy.n = 99;\n  log('얕은 복사 o1.n =', o1.n, ' copy.n =', copy.n);\n\n  const deep = { inner: { n: 1 } };\n  const shallow = { ...deep };\n  shallow.inner.n = 42;\n  log('얕은 복사의 한계 deep.inner.n =', deep.inner.n, '  <- 안쪽은 여전히 공유');\n\n  const real = structuredClone(deep);\n  real.inner.n = 7;\n  log('structuredClone deep.inner.n =', deep.inner.n, ' real.inner.n =', real.inner.n);\n  flush();\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "`const` 는 **다시 대입하지 못하게** 할 뿐, 내용이 안 바뀌는 게 아니다. `const arr = []` 에 `arr.push(1)` 은 된다. 내용까지 얼리려면 `Object.freeze` 다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "바꾸지 말고 새로 만들기 — React·상태 관리의 기본 규칙",
+          "text": "// 나쁨: 원본을 고친다 (누가 보고 있는지 알 수 없다)\nitems.push(newItem);\nuser.name = '새 이름';\n\n// 좋음: 새 값을 만든다\nconst nextItems = [...items, newItem];\nconst nextUser = { ...user, name: '새 이름' };"
+        },
+        {
+          "type": "try",
+          "text": "콘솔에서 `const a = [1,2]; const b = a; b.push(3); console.log(a)` 를 예상해 적고 실행하라. 틀렸다면 이 장을 다시 읽어라 — 여기서 틀리면 나중에 「왜 갑자기 바뀌었지」를 하루 종일 쫓게 된다."
+        }
       ],
-      "answer": 0,
-      "why": "const 는 이름이 다른 값을 가리키지 못하게 할 뿐이다. 내용 고정이 필요하면 복사하거나 Object.freeze 를 쓴다."
+      "quiz": [
+        {
+          "q": "`const o = {n:1}; const p = o; p.n = 2;` 이후 `o.n` 은?",
+          "choices": [
+            "1",
+            "2",
+            "오류",
+            "undefined"
+          ],
+          "answer": 1,
+          "why": "o 와 p 는 같은 객체를 가리킨다. const 는 재대입만 막는다."
+        },
+        {
+          "q": "`{...obj}` 로 복사했을 때 함께 복사되지 않는 것은?",
+          "choices": [
+            "숫자 속성",
+            "문자열 속성",
+            "안쪽에 든 객체",
+            "불리언 속성"
+          ],
+          "answer": 2,
+          "why": "얕은 복사는 한 겹만 뜬다. 안쪽은 여전히 공유된다."
+        },
+        {
+          "q": "상태를 다룰 때 권하는 방식은?",
+          "choices": [
+            "원본을 직접 고친다",
+            "새 값을 만들어 바꾼다",
+            "전역 변수로 둔다",
+            "const 를 안 쓴다"
+          ],
+          "answer": 1,
+          "why": "누가 그 객체를 보고 있는지 알 수 없으므로, 바뀐 사실을 새 값으로 알린다."
+        }
+      ]
     },
     {
-      "q": "`console.log('1'); setTimeout(()=>console.log('2'),0); Promise.resolve().then(()=>console.log('3')); console.log('4');` 의 출력 순서는?",
-      "choices": ["1 2 3 4", "1 4 3 2", "1 4 2 3"],
-      "answer": 1,
-      "why": "지금 하던 일이 끝나고 → Promise 같은 미세 작업 → setTimeout 같은 큰 작업 순서로 돈다."
+      "id": "2",
+      "title": "타입 — 헷갈리는 자리만 골라서",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "JavaScript 의 타입 규칙은 대부분 상식적이다. 사람을 무는 자리는 셋뿐이다 — **느슨한 비교(`==`)**, **truthy/falsy**, **`||` 와 `??`**."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "값을 골라 보라 — 세 규칙이 어떻게 갈리나",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0; }\n  pre { margin: 0; padding: 12px; background: #0b1220; color: #e2e8f0; border-radius: 10px; white-space: pre-wrap; }\n  .k { color: #7dd3fc; } .v { color: #fde68a; } .x { color: #fca5a5; } .o { color: #86efac; }\n</style>\n<pre id=\"out\"></pre>\n<script>\n  const lines = [];\n  const log = (...a) => lines.push(a.map((v) => typeof v === 'string' ? v : JSON.stringify(v)).join(' '));\n  const flush = () => { document.getElementById('out').textContent = lines.join('\\n'); };\n  const raw = '{{val}}';\n  const v = raw === 'zero' ? 0 : raw === 'empty' ? '' : raw === 'null' ? null\n          : raw === 'undef' ? undefined : raw === 'nan' ? NaN : raw === 'false' ? false : [];\n  const show = (x) => (typeof x === 'number' && Number.isNaN(x)) ? 'NaN' : JSON.stringify(x);\n\n  log('고른 값 =', show(v), ' (typeof ' + typeof v + ')');\n  log('');\n  log('v == 0     ->', v == 0);\n  log('v === 0    ->', v === 0);\n  log('if (v)     ->', v ? '참으로 친다' : '거짓으로 친다');\n  log('v || \"기본\" ->', show(v || '기본'), '  <- falsy 면 전부 대체');\n  log('v ?? \"기본\" ->', show(v ?? '기본'), '  <- null·undefined 일 때만 대체');\n  flush();\n</script>",
+          "controls": [
+            {
+              "id": "val",
+              "label": "값 고르기",
+              "type": "select",
+              "value": "zero",
+              "options": [
+                {
+                  "value": "zero",
+                  "label": "0"
+                },
+                {
+                  "value": "empty",
+                  "label": "빈 문자열"
+                },
+                {
+                  "value": "null",
+                  "label": "null"
+                },
+                {
+                  "value": "undef",
+                  "label": "undefined"
+                },
+                {
+                  "value": "nan",
+                  "label": "NaN"
+                },
+                {
+                  "value": "false",
+                  "label": "false"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "falsy 는 **여섯 개뿐**이다: `false`, `0`, `''`, `null`, `undefined`, `NaN`. 나머지는 전부 참이다 — 빈 배열 `[]` 도, 빈 객체 `{}` 도, 문자열 `'0'` 도 참이다."
+        },
+        {
+          "type": "note",
+          "text": "「0 이 들어오면 기본값으로 바뀌어 버리는」 사고가 `||` 의 대표 함정이다. 개수·좌표·가격처럼 **0 이 정당한 값**인 자리에는 `??` 를 써라. 0 과 빈 문자열을 살리고 싶다는 뜻이 코드에 드러난다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "옵셔널 체이닝과 짝지어 쓴다",
+          "text": "const count = res?.data?.count ?? 0;   // 없으면 0, 0 이면 0 그대로\nconst name  = user.name || '이름 없음';  // 빈 문자열도 대체하고 싶을 때는 이쪽이 맞다"
+        },
+        {
+          "type": "try",
+          "text": "내 코드에서 `|| 0` 과 `|| ''` 를 전부 찾아라. 0 이나 빈 문자열이 정당한 입력인 자리면 `??` 로 바꿔라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "falsy 가 **아닌** 것은?",
+          "choices": [
+            "빈 배열 []",
+            "빈 문자열 ''",
+            "NaN",
+            "0"
+          ],
+          "answer": 0,
+          "why": "빈 배열·빈 객체는 참이다. falsy 는 여섯 개뿐."
+        },
+        {
+          "q": "`0 ?? 5` 의 결과는?",
+          "choices": [
+            "5",
+            "0",
+            "undefined",
+            "오류"
+          ],
+          "answer": 1,
+          "why": "?? 는 null·undefined 일 때만 오른쪽을 쓴다."
+        },
+        {
+          "q": "개수처럼 0 이 정당한 값일 때 기본값을 줄 연산자는?",
+          "choices": [
+            "||",
+            "??",
+            "&&",
+            "=="
+          ],
+          "answer": 1,
+          "why": "|| 는 0 을 falsy 로 보고 갈아치운다."
+        }
+      ]
     },
     {
-      "q": "요청 세 개가 서로 독립인데 화면이 느리다. 무엇을 고치나?",
-      "choices": [
-        "for 문 안의 await 를 없애고 Promise.all 로 동시에 보낸다",
-        "setTimeout 으로 감싼다",
-        "await 를 두 번 겹쳐 쓴다"
+      "id": "3",
+      "title": "스코프와 클로저 — 함수가 기억하는 자리",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "함수는 자기가 **만들어진 자리**의 변수를 기억한다. 이걸 클로저라고 부르는데, 이름이 어려울 뿐 하는 일은 「주머니를 하나 들고 다닌다」에 가깝다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "반복문 안에서 함수를 만들면 — var 와 let 이 갈리는 자리",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0; }\n  pre { margin: 0; padding: 12px; background: #0b1220; color: #e2e8f0; border-radius: 10px; white-space: pre-wrap; }\n  .k { color: #7dd3fc; } .v { color: #fde68a; } .x { color: #fca5a5; } .o { color: #86efac; }\n</style>\n<pre id=\"out\"></pre>\n<script>\n  const lines = [];\n  const log = (...a) => lines.push(a.map((v) => typeof v === 'string' ? v : JSON.stringify(v)).join(' '));\n  const flush = () => { document.getElementById('out').textContent = lines.join('\\n'); };\n  const kind = '{{kind}}';\n  const fns = [];\n  if (kind === 'var') {\n    for (var i = 0; i < 3; i++) fns.push(() => i);\n  } else {\n    for (let i = 0; i < 3; i++) fns.push(() => i);\n  }\n  log(kind + ' 로 만든 함수 세 개를 호출하면:');\n  log('  ->', fns.map((f) => f()).join(', '));\n  log('');\n  log(kind === 'var'\n    ? 'var 는 반복문 전체가 한 주머니 — 셋이 같은 i 를 본다(끝난 뒤의 3).'\n    : 'let 은 회전마다 새 주머니 — 각자 자기 i 를 기억한다.');\n\n  function counter() {\n    let n = 0;\n    return () => ++n;\n  }\n  const a = counter(), b = counter();\n  log('');\n  log('counter() 를 두 번 만들면 주머니도 둘:');\n  log('  a:', a(), a(), a(), ' b:', b());\n  flush();\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "변수 선언",
+              "type": "select",
+              "value": "var",
+              "options": [
+                {
+                  "value": "var",
+                  "label": "var"
+                },
+                {
+                  "value": "let",
+                  "label": "let"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "이 차이가 실제로 무는 자리는 반복문 안에서 콜백을 만들 때다 — 타이머, 이벤트 리스너, 배열 순회. `let` 을 쓰면 회전마다 새 변수가 생겨서 각 함수가 자기 값을 기억한다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "클로저로 상태를 숨긴다",
+          "text": "function makeStore(initial) {\n  let value = initial;                 // 밖에서 직접 못 만진다\n  return {\n    get: () => value,\n    set: (v) => { value = v; },\n  };\n}\nconst store = makeStore(1);\nstore.set(5);\nstore.get();   // 5   ·   store.value 는 undefined"
+        },
+        {
+          "type": "note",
+          "text": "클로저는 기억하는 만큼 **붙잡고 있다**. 큰 배열을 참조하는 콜백을 이벤트 리스너로 걸어 두고 안 떼면 그 배열은 안 사라진다 — 브라우저 메모리 누수의 흔한 형태다. 뗄 때는 `removeEventListener` 나 `AbortController` 를 써라."
+        },
+        {
+          "type": "try",
+          "text": "`counter()` 를 두 번 불러 `next1`, `next2` 를 만들고 번갈아 호출해 보라. 숫자가 섞이지 않으면 「주머니가 둘」이 몸에 들어온 것이다."
+        }
       ],
-      "answer": 0,
-      "why": "순차 await 는 요청을 한 줄로 세운다. 독립적인 일은 동시에 보내고 한 번에 기다린다."
+      "quiz": [
+        {
+          "q": "`for (var i…)` 로 만든 콜백 셋을 나중에 부르면?",
+          "choices": [
+            "0,1,2",
+            "3,3,3",
+            "오류",
+            "undefined 셋"
+          ],
+          "answer": 1,
+          "why": "var 는 반복문 전체가 한 스코프라 셋이 같은 i(끝난 뒤 3)를 본다."
+        },
+        {
+          "q": "클로저를 한 줄로 말하면?",
+          "choices": [
+            "함수를 복사하는 것",
+            "함수가 만들어진 자리의 변수를 기억하는 것",
+            "비동기 처리",
+            "객체 상속"
+          ],
+          "answer": 1,
+          "why": "그래서 상태를 숨기거나 카운터를 만들 수 있다."
+        },
+        {
+          "q": "클로저와 메모리 누수의 관계는?",
+          "choices": [
+            "관계 없다",
+            "기억하는 값을 붙잡고 있어 안 사라질 수 있다",
+            "항상 누수를 막는다",
+            "GC 가 알아서 다 지운다"
+          ],
+          "answer": 1,
+          "why": "리스너를 떼지 않으면 참조가 남는다."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "this 와 화살표 함수",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`this` 는 「어디서 정의됐나」가 아니라 **어떻게 불렸나**로 정해진다. 딱 이 한 줄이 전부이고, 나머지는 그 결과다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "호출 방식을 바꿔 보라 — this 가 따라 달라진다",
+          "height": "270px",
+          "text": "<style>\n  body { font: 13.5px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0; }\n  pre { margin: 0; padding: 12px; background: #0b1220; color: #e2e8f0; border-radius: 10px; white-space: pre-wrap; }\n  .k { color: #7dd3fc; } .v { color: #fde68a; } .x { color: #fca5a5; } .o { color: #86efac; }\n</style>\n<pre id=\"out\"></pre>\n<script>\n  const lines = [];\n  const log = (...a) => lines.push(a.map((v) => typeof v === 'string' ? v : JSON.stringify(v)).join(' '));\n  const flush = () => { document.getElementById('out').textContent = lines.join('\\n'); };\n  const how = '{{how}}';\n  const obj = {\n    name: '고양이',\n    normal() { return this?.name; },\n    arrow: () => (typeof this === 'undefined' ? undefined : this?.name),\n  };\n\n  if (how === 'method') {\n    log('obj.normal()  ->', String(obj.normal()), '  <- 점 앞의 것이 this');\n    log('obj.arrow()   ->', String(obj.arrow()), '  <- 화살표는 자기 this 가 없다');\n  } else if (how === 'detach') {\n    const f = obj.normal;\n    log('const f = obj.normal; f() ->', String(f()), '  <- 점 앞이 사라졌다');\n    log('떼어 낸 순간 this 를 잃는다. 콜백으로 넘길 때 늘 생기는 일.');\n  } else {\n    const f = obj.normal.bind(obj);\n    log('obj.normal.bind(obj)() ->', String(f()), '  <- bind 로 다시 묶었다');\n    log('요즘은 bind 대신 () => obj.normal() 로 감싸는 쪽을 더 많이 쓴다.');\n  }\n  flush();\n</script>",
+          "controls": [
+            {
+              "id": "how",
+              "label": "부르는 방식",
+              "type": "select",
+              "value": "method",
+              "options": [
+                {
+                  "value": "method",
+                  "label": "obj.normal() — 메서드로"
+                },
+                {
+                  "value": "detach",
+                  "label": "떼어 내서 f()"
+                },
+                {
+                  "value": "bind",
+                  "label": "bind 로 묶어서"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "화살표 함수는 자기 `this` 를 만들지 않고 **바깥의 것을 그대로 쓴다.** 그래서 콜백 안에서 바깥 `this` 를 쓰고 싶을 때 편하고, 반대로 객체의 메서드로 쓰면 안 된다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "고르는 기준",
+          "text": "// 콜백 — 바깥 this 를 그대로 쓰고 싶다 → 화살표\nbutton.addEventListener('click', () => this.open());\n\n// 이벤트 대상(event.currentTarget)을 this 로 받고 싶다 → 일반 함수\nbutton.addEventListener('click', function () { this.classList.toggle('on'); });\n\n// 객체 메서드 → 일반 함수(단축 문법)\nconst api = { url: '/x', load() { return fetch(this.url); } };"
+        },
+        {
+          "type": "note",
+          "text": "클래스 메서드를 콜백으로 넘길 때 `this` 가 사라지는 것이 가장 흔한 사고다. 필드 문법 `handle = () => {…}` 으로 정의하거나, 넘길 때 화살표로 감싸라."
+        },
+        {
+          "type": "try",
+          "text": "`const f = obj.method; f()` 를 콘솔에서 해 보고 무엇이 undefined 가 되는지 확인하라. 그리고 `obj.method.bind(obj)` 로 고쳐 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`this` 를 정하는 것은?",
+          "choices": [
+            "함수가 정의된 위치",
+            "함수가 불린 방식",
+            "파일 이름",
+            "선언 순서"
+          ],
+          "answer": 1,
+          "why": "점 앞의 것이 this 가 되고, 떼어 내면 잃는다."
+        },
+        {
+          "q": "화살표 함수의 `this` 는?",
+          "choices": [
+            "항상 전역",
+            "바깥 스코프의 것을 그대로 쓴다",
+            "호출한 객체",
+            "undefined 고정"
+          ],
+          "answer": 1,
+          "why": "자기 this 를 만들지 않는다."
+        },
+        {
+          "q": "객체 메서드로 쓰면 안 되는 것은?",
+          "choices": [
+            "일반 함수",
+            "단축 메서드 문법",
+            "화살표 함수",
+            "async 함수"
+          ],
+          "answer": 2,
+          "why": "화살표는 객체를 this 로 받지 못한다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "언제 도는가 — 이벤트 루프",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "브라우저의 JavaScript 는 **한 줄씩, 한 사람이** 돈다. 그래서 오래 걸리는 일을 그 자리에서 하면 화면 전체가 멈춘다. 대신 「나중에 할 일」을 줄에 세워 두고 지금 할 일을 마친다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "순서를 맞혀 보라 — 종이에 먼저 적고 실행하라",
+          "height": "230px",
+          "text": "<style>\n  body { font: 13.5px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0; }\n  pre { margin: 0; padding: 12px; background: #0b1220; color: #e2e8f0; border-radius: 10px; white-space: pre-wrap; }\n  .k { color: #7dd3fc; } .v { color: #fde68a; } .x { color: #fca5a5; } .o { color: #86efac; }\n</style>\n<pre id=\"out\"></pre>\n<script>\n  const lines = [];\n  const log = (...a) => lines.push(a.map((v) => typeof v === 'string' ? v : JSON.stringify(v)).join(' '));\n  const flush = () => { document.getElementById('out').textContent = lines.join('\\n'); };\n  log('1  (동기)');\n  setTimeout(() => { log('4  (setTimeout — 매크로태스크)'); flush(); }, 0);\n  Promise.resolve().then(() => { log('3  (프라미스 — 마이크로태스크)'); flush(); });\n  log('2  (동기)');\n  log('');\n  log('규칙: 지금 할 일(동기) 전부 -> 마이크로태스크 전부 -> 매크로태스크 하나');\n  flush();\n</script>"
+        },
+        {
+          "type": "p",
+          "text": "줄이 두 개다. **마이크로태스크**(프라미스 `.then`, `await` 뒤)는 지금 하던 일이 끝나자마자 **전부** 처리된다. **매크로태스크**(`setTimeout`, 이벤트, 네트워크 응답)는 그다음에 **하나씩** 처리되고, 그 사이에 브라우저가 화면을 다시 그린다."
+        },
+        {
+          "type": "note",
+          "text": "`setTimeout(fn, 0)` 은 「0ms 뒤」가 아니라 **「지금 줄의 맨 뒤」**라는 뜻이다. 그래서 무거운 반복문을 잘게 쪼갤 때 쓰지만, 화면 그리기와 맞추려면 `requestAnimationFrame` 이 맞다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "무거운 일을 그 자리에서 하면 — 화면이 멈춘다",
+          "height": "230px",
+          "text": "<style>\n  body { font: 13.5px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0; }\n  pre { margin: 0; padding: 12px; background: #0b1220; color: #e2e8f0; border-radius: 10px; white-space: pre-wrap; }\n  .k { color: #7dd3fc; } .v { color: #fde68a; } .x { color: #fca5a5; } .o { color: #86efac; }\n</style>\n<pre id=\"out\"></pre>\n<script>\n  const lines = [];\n  const log = (...a) => lines.push(a.map((v) => typeof v === 'string' ? v : JSON.stringify(v)).join(' '));\n  const flush = () => { document.getElementById('out').textContent = lines.join('\\n'); };\n  const ms = {{busy}};\n  const bar = document.createElement('div');\n  bar.style.cssText = 'height:14px;width:0;background:#22c55e;border-radius:7px;margin-bottom:8px;transition:width .2s';\n  document.body.prepend(bar);\n  requestAnimationFrame(() => { bar.style.width = '100%'; });\n\n  log('막힘 ' + ms + 'ms 동안 위 막대가 안 움직인다 (같은 한 사람이 붙잡고 있어서)');\n  flush();\n  const t0 = performance.now();\n  while (performance.now() - t0 < ms) { /* 일부러 붙잡는다 */ }\n  log('풀렸다. 실제로 붙잡은 시간 ' + Math.round(performance.now() - t0) + 'ms');\n  flush();\n</script>",
+          "controls": [
+            {
+              "id": "busy",
+              "label": "붙잡는 시간(ms)",
+              "type": "range",
+              "min": 0,
+              "max": 1200,
+              "step": 100,
+              "value": 600
+            }
+          ]
+        },
+        {
+          "type": "try",
+          "text": "위 막대에서 붙잡는 시간을 1200ms 로 올려 보라. 애니메이션이 아예 시작을 못 한다 — 「느린 게 아니라 멈춘 것」이 무엇인지 눈으로 익혀라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`console.log('1'); setTimeout(()=>log('2'),0); Promise.resolve().then(()=>log('3')); console.log('4');` 의 출력 순서는?",
+          "choices": [
+            "1 2 3 4",
+            "1 4 3 2",
+            "1 4 2 3",
+            "1 3 4 2"
+          ],
+          "answer": 1,
+          "why": "동기 전부 → 마이크로태스크(프라미스) → 매크로태스크(setTimeout)."
+        },
+        {
+          "q": "`setTimeout(fn, 0)` 의 뜻은?",
+          "choices": [
+            "즉시 실행",
+            "지금 줄의 맨 뒤에 세운다",
+            "0ms 정확히 뒤",
+            "다음 프레임"
+          ],
+          "answer": 1,
+          "why": "지연 시간이 아니라 순서의 문제다."
+        },
+        {
+          "q": "화면이 멈추는 이유는?",
+          "choices": [
+            "메모리 부족",
+            "같은 한 사람이 오래 걸리는 일을 붙잡고 있어서",
+            "네트워크 지연",
+            "CSS 문제"
+          ],
+          "answer": 1,
+          "why": "그리기도 같은 줄에서 처리된다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "프라미스와 async/await — 순서와 병렬",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`await` 는 **그 함수만** 멈춘다. 화면은 계속 돈다. 그런데 이 성질 때문에 자주 생기는 손해가 있다 — 서로 상관없는 요청을 `for` 안에서 하나씩 기다리는 것."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "한 줄로 기다리기 vs 한꺼번에 — 시간을 재 보라",
+          "height": "260px",
+          "text": "<style>\n  body { font: 13.5px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0; }\n  pre { margin: 0; padding: 12px; background: #0b1220; color: #e2e8f0; border-radius: 10px; white-space: pre-wrap; }\n  .k { color: #7dd3fc; } .v { color: #fde68a; } .x { color: #fca5a5; } .o { color: #86efac; }\n</style>\n<pre id=\"out\"></pre>\n<script>\n  const lines = [];\n  const log = (...a) => lines.push(a.map((v) => typeof v === 'string' ? v : JSON.stringify(v)).join(' '));\n  const flush = () => { document.getElementById('out').textContent = lines.join('\\n'); };\n  const mode = '{{mode}}';\n  const N = {{n}};\n  const wait = (ms) => new Promise((r) => setTimeout(r, ms));\n  const fake = (i) => wait(200).then(() => i);\n\n  (async () => {\n    const t0 = performance.now();\n    let got;\n    if (mode === 'serial') {\n      got = [];\n      for (let i = 0; i < N; i++) got.push(await fake(i));   // 하나 끝나야 다음\n    } else {\n      got = await Promise.all(Array.from({ length: N }, (_, i) => fake(i)));\n    }\n    const ms = Math.round(performance.now() - t0);\n    log(mode === 'serial' ? 'for 안에서 await (한 줄로 기다림)' : 'Promise.all (한꺼번에 보냄)');\n    log('요청 ' + N + '개 · 각 200ms');\n    log('걸린 시간: ' + ms + 'ms');\n    log('');\n    log(mode === 'serial' ? '-> 200ms x ' + N + ' 만큼 쌓인다' : '-> 가장 느린 하나만큼(약 200ms)');\n    flush();\n  })();\n  flush();\n</script>",
+          "controls": [
+            {
+              "id": "mode",
+              "label": "방식",
+              "type": "select",
+              "value": "serial",
+              "options": [
+                {
+                  "value": "serial",
+                  "label": "for 안에서 await"
+                },
+                {
+                  "value": "all",
+                  "label": "Promise.all"
+                }
+              ]
+            },
+            {
+              "id": "n",
+              "label": "요청 수",
+              "type": "range",
+              "min": 2,
+              "max": 8,
+              "step": 1,
+              "value": 4
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "정말 순서가 필요할 때만 한 줄로",
+          "text": "// 서로 상관없다 → 한꺼번에\nconst [user, posts] = await Promise.all([getUser(), getPosts()]);\n\n// 하나라도 실패해도 나머지를 쓰고 싶다\nconst results = await Promise.allSettled([getUser(), getPosts()]);\n\n// 앞의 결과가 있어야 다음을 부를 수 있다 → 이때만 순서대로\nconst user2 = await getUser();\nconst posts2 = await getPosts(user2.id);"
+        },
+        {
+          "type": "note",
+          "text": "`async` 함수는 **항상 프라미스를 돌려준다.** 그래서 `await` 없이 부르면 결과가 아니라 프라미스가 잡히고, 그 안에서 난 오류는 `try/catch` 를 그냥 지나쳐 「조용한 실패」가 된다."
+        },
+        {
+          "type": "try",
+          "text": "내 코드에서 `for` 안의 `await` 를 찾아라. 각 회전이 앞 결과에 의존하지 않으면 `Promise.all` 로 바꾸고 시간을 재 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "각 200ms 짜리 요청 4개를 `for` 안에서 await 하면?",
+          "choices": [
+            "약 200ms",
+            "약 800ms",
+            "약 400ms",
+            "즉시"
+          ],
+          "answer": 1,
+          "why": "하나씩 기다리므로 시간이 쌓인다. Promise.all 이면 약 200ms."
+        },
+        {
+          "q": "`async` 함수의 반환값은?",
+          "choices": [
+            "값 그대로",
+            "항상 프라미스",
+            "undefined",
+            "콜백"
+          ],
+          "answer": 1,
+          "why": "그래서 부르는 쪽도 await 하거나 .then 해야 한다."
+        },
+        {
+          "q": "일부 실패를 허용하고 나머지를 쓰려면?",
+          "choices": [
+            "Promise.all",
+            "Promise.allSettled",
+            "Promise.race",
+            "for await"
+          ],
+          "answer": 1,
+          "why": "all 은 하나만 실패해도 전부 거부된다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "배열과 객체 — 손버릇",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "실무 코드의 대부분은 「목록을 걸러서 모양을 바꾸고 하나로 합치는」 일이다. `filter` → `map` → `reduce` 세 개면 반복문을 거의 안 쓰게 된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "연산을 골라 보라 — 같은 자료가 어떻게 변하나",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0; }\n  pre { margin: 0; padding: 12px; background: #0b1220; color: #e2e8f0; border-radius: 10px; white-space: pre-wrap; }\n  .k { color: #7dd3fc; } .v { color: #fde68a; } .x { color: #fca5a5; } .o { color: #86efac; }\n</style>\n<pre id=\"out\"></pre>\n<script>\n  const lines = [];\n  const log = (...a) => lines.push(a.map((v) => typeof v === 'string' ? v : JSON.stringify(v)).join(' '));\n  const flush = () => { document.getElementById('out').textContent = lines.join('\\n'); };\n  const op = '{{op}}';\n  const items = [\n    { name: '사료', price: 32000, cat: '먹이', qty: 2 },\n    { name: '모래', price: 12000, cat: '화장실', qty: 3 },\n    { name: '간식', price: 4000, cat: '먹이', qty: 5 },\n  ];\n  log('원본:');\n  items.forEach((i) => log('  ' + i.name + ' ' + i.price + '원 x' + i.qty + ' (' + i.cat + ')'));\n  log('');\n\n  if (op === 'filter') {\n    log(\"filter(i => i.cat === '먹이')\");\n    log('  ->', items.filter((i) => i.cat === '먹이').map((i) => i.name).join(', '));\n  } else if (op === 'map') {\n    log('map(i => ({...i, total: i.price * i.qty}))');\n    items.map((i) => ({ ...i, total: i.price * i.qty })).forEach((i) => log('  ' + i.name + ' -> ' + i.total));\n  } else if (op === 'reduce') {\n    log('reduce((s, i) => s + i.price * i.qty, 0)');\n    log('  ->', items.reduce((s, i) => s + i.price * i.qty, 0) + '원');\n  } else {\n    log('Object.groupBy(items, i => i.cat)  (없으면 reduce 로 같은 일)');\n    const g = items.reduce((acc, i) => { (acc[i.cat] ||= []).push(i.name); return acc; }, {});\n    Object.entries(g).forEach(([k, v]) => log('  ' + k + ': ' + v.join(', ')));\n  }\n  flush();\n</script>",
+          "controls": [
+            {
+              "id": "op",
+              "label": "연산",
+              "type": "select",
+              "value": "filter",
+              "options": [
+                {
+                  "value": "filter",
+                  "label": "filter — 고르기"
+                },
+                {
+                  "value": "map",
+                  "label": "map — 모양 바꾸기"
+                },
+                {
+                  "value": "reduce",
+                  "label": "reduce — 하나로 합치기"
+                },
+                {
+                  "value": "group",
+                  "label": "묶기"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "`sort` 와 `reverse` 는 **원본을 고친다**. 목록을 화면에 정렬해 보여줄 때 원본이 같이 뒤집혀 다른 화면이 깨지는 사고가 흔하다. 요즘은 `toSorted()`·`toReversed()` 가 새 배열을 돌려준다 — 예전 브라우저를 받쳐야 하면 `[...items].sort()`."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "찾을 때 헷갈리는 셋",
+          "text": "items.find((i) => i.id === 3);      // 값 하나 (없으면 undefined)\nitems.findIndex((i) => i.id === 3); // 자리 번호 (없으면 -1)\nitems.some((i) => i.price > 1e4);   // 하나라도 있나 → true/false\nitems.every((i) => i.price > 0);    // 전부 그런가 → true/false"
+        },
+        {
+          "type": "note",
+          "text": "`findIndex` 가 없을 때 돌려주는 `-1` 을 `if (idx)` 로 검사하면 **0번째를 못 찾은 것으로 친다.** 반드시 `idx !== -1` 로 비교하라 — 조용히 첫 항목만 빠지는 버그가 된다."
+        },
+        {
+          "type": "try",
+          "text": "내 코드의 `for` 반복문 하나를 골라 `filter`·`map`·`reduce` 조합으로 바꿔 보라. 줄이 늘어난다면 원래 반복문이 맞는 자리다 — 억지로 바꾸지 마라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "원본 배열을 고치는 것은?",
+          "choices": [
+            "map",
+            "filter",
+            "sort",
+            "slice"
+          ],
+          "answer": 2,
+          "why": "sort·reverse·splice·push 는 원본을 고친다. toSorted 는 새 배열."
+        },
+        {
+          "q": "`findIndex` 결과를 검사하는 올바른 방법은?",
+          "choices": [
+            "if (idx)",
+            "if (idx !== -1)",
+            "if (idx > 1)",
+            "if (idx != null)"
+          ],
+          "answer": 1,
+          "why": "0 은 유효한 자리인데 falsy 라서 if (idx) 는 첫 항목을 놓친다."
+        },
+        {
+          "q": "합계를 구할 때 쓰는 것은?",
+          "choices": [
+            "map",
+            "reduce",
+            "some",
+            "find"
+          ],
+          "answer": 1,
+          "why": "여러 값을 하나로 접는 연산이 reduce."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "오류 — 조용히 실패하지 않게",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "제일 나쁜 오류는 터지는 오류가 아니라 **아무 일도 안 일어나는 오류**다. JavaScript 에는 조용해지는 자리가 몇 군데 정해져 있다 — 그 자리만 알면 된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "자리를 골라 보라 — 어디서 오류가 새는가",
+          "height": "280px",
+          "text": "<style>\n  body { font: 13.5px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0; }\n  pre { margin: 0; padding: 12px; background: #0b1220; color: #e2e8f0; border-radius: 10px; white-space: pre-wrap; }\n  .k { color: #7dd3fc; } .v { color: #fde68a; } .x { color: #fca5a5; } .o { color: #86efac; }\n</style>\n<pre id=\"out\"></pre>\n<script>\n  const lines = [];\n  const log = (...a) => lines.push(a.map((v) => typeof v === 'string' ? v : JSON.stringify(v)).join(' '));\n  const flush = () => { document.getElementById('out').textContent = lines.join('\\n'); };\n  const kind = '{{kind}}';\n  const fail = () => { throw new Error('터졌다'); };\n\n  if (kind === 'sync') {\n    try { fail(); } catch (e) { log('잡혔다:', e.message); }\n    log('-> 동기 코드는 try/catch 로 잡힌다');\n  } else if (kind === 'timer') {\n    try { setTimeout(fail, 0); } catch (e) { log('잡혔다:', e.message); }\n    log('setTimeout 안의 오류는 이 try/catch 를 지나간다');\n    log('-> 콜백은 나중에, 다른 자리에서 돈다. 콜백 안에서 try 하라');\n    window.addEventListener('error', () => { log('전역 error 로만 알 수 있다'); flush(); });\n  } else if (kind === 'promise') {\n    try { Promise.reject(new Error('거부')); } catch (e) { log('잡혔다'); }\n    log('await 없는 프라미스 거부도 지나간다 (unhandledrejection)');\n    window.addEventListener('unhandledrejection', (e) => { log('-> unhandledrejection:', e.reason.message); e.preventDefault(); flush(); });\n  } else {\n    (async () => {\n      try { await Promise.reject(new Error('거부')); }\n      catch (e) { log('await + try/catch 로 잡혔다:', e.message); flush(); }\n    })();\n    log('-> 프라미스는 await 해야 try/catch 안으로 들어온다');\n  }\n  flush();\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "오류가 나는 자리",
+              "type": "select",
+              "value": "sync",
+              "options": [
+                {
+                  "value": "sync",
+                  "label": "동기 코드"
+                },
+                {
+                  "value": "timer",
+                  "label": "setTimeout 콜백 안"
+                },
+                {
+                  "value": "promise",
+                  "label": "await 없는 프라미스"
+                },
+                {
+                  "value": "await",
+                  "label": "await + try/catch"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "fetch 는 404 에 오류를 던지지 않는다",
+          "text": "const res = await fetch(url);\nif (!res.ok) throw new Error(`HTTP ${res.status}`);   // 이 줄이 없으면 404 를 성공으로 읽는다\nconst data = await res.json();"
+        },
+        {
+          "type": "note",
+          "text": "`catch (e) {}` 로 비워 두지 마라. 삼키려면 **왜 삼키는지**를 한 줄 적어라 — 나중에 「분명 되던 게 안 되는데 로그가 없는」 상황의 절반이 빈 catch 다."
+        },
+        {
+          "type": "try",
+          "text": "브라우저 콘솔에 `window.addEventListener('unhandledrejection', e => console.warn('샌 프라미스', e.reason))` 를 붙이고 내 화면을 써 보라. 조용히 새고 있던 것이 있으면 지금 보인다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`try { setTimeout(fail, 0) } catch {}` 가 오류를 못 잡는 이유는?",
+          "choices": [
+            "문법 오류라서",
+            "콜백은 나중에 다른 차례에 돌아서",
+            "setTimeout 이 오류를 삼켜서",
+            "0ms 라서"
+          ],
+          "answer": 1,
+          "why": "try 블록은 이미 끝난 뒤에 콜백이 돈다."
+        },
+        {
+          "q": "`fetch` 가 404 를 받으면?",
+          "choices": [
+            "예외를 던진다",
+            "정상 응답으로 오고 res.ok 가 false",
+            "null 을 준다",
+            "재시도한다"
+          ],
+          "answer": 1,
+          "why": "네트워크 자체가 실패해야 예외다. 상태 코드는 직접 봐야 한다."
+        },
+        {
+          "q": "프라미스 거부를 try/catch 로 잡으려면?",
+          "choices": [
+            "await 를 붙인다",
+            "async 를 붙인다",
+            "then 을 쓴다",
+            "불가능하다"
+          ],
+          "answer": 0,
+          "why": "await 해야 그 함수의 예외로 바뀐다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 막혔을 때 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "JavaScript 에서 막히는 자리는 앞의 여덟 장에 거의 다 있다. 값이 이상하면 1·2·7장, 순서가 이상하면 5·6장, 아무 일도 안 일어나면 8장이다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "「왜 이렇게 되지」 점검 순서",
+          "text": "값이 이상하다\n  [ ] 객체·배열을 복사한 줄 알았는데 같은 것을 가리키고 있나 (1장)\n  [ ] || 가 0·빈 문자열을 갈아치웠나 -> ?? (2장)\n  [ ] sort/reverse 가 원본을 뒤집었나 (7장)\n  [ ] findIndex 의 -1 을 if (idx) 로 검사했나 (7장)\n순서가 이상하다\n  [ ] 동기 -> 마이크로태스크 -> 매크로태스크 순서를 그려 봤나 (5장)\n  [ ] for 안의 await 가 시간을 쌓고 있나 -> Promise.all (6장)\n아무 일도 안 일어난다\n  [ ] 콜백·프라미스 안의 오류가 try/catch 를 지나갔나 (8장)\n  [ ] fetch 의 res.ok 를 봤나 (8장)\n  [ ] catch 가 비어 있나 (8장)\nthis 가 undefined 다\n  [ ] 메서드를 떼어 내 콜백으로 넘겼나 -> 화살표로 감싸기 (4장)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 여덟 문항을 한 번에 돌려 본다",
+          "height": "280px",
+          "text": "<style>\n  body { font: 13.5px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0; }\n  pre { margin: 0; padding: 12px; background: #0b1220; color: #e2e8f0; border-radius: 10px; white-space: pre-wrap; }\n  .k { color: #7dd3fc; } .v { color: #fde68a; } .x { color: #fca5a5; } .o { color: #86efac; }\n</style>\n<pre id=\"out\"></pre>\n<script>\n  const lines = [];\n  const log = (...a) => lines.push(a.map((v) => typeof v === 'string' ? v : JSON.stringify(v)).join(' '));\n  const flush = () => { document.getElementById('out').textContent = lines.join('\\n'); };\n  const cases = [\n    ['const o={n:1}; const p=o; p.n=2; o.n', (() => { const o = { n: 1 }; const p = o; p.n = 2; return o.n; })(), 2],\n    ['0 ?? 5', 0 ?? 5, 0],\n    ['0 || 5', 0 || 5, 5],\n    ['Boolean([])', Boolean([]), true],\n    ['[3,1,2].toSorted()[0] (원본 보존)', [3, 1, 2].toSorted ? [3, 1, 2].toSorted()[0] : [...[3, 1, 2]].sort()[0], 1],\n    ['[1,2].findIndex(x=>x===1)', [1, 2].findIndex((x) => x === 1), 0],\n    ['typeof (async()=>{})()', typeof (async () => {})().then, 'function'],\n    ['NaN === NaN', NaN === NaN, false],\n  ];\n  let ok = 0;\n  for (const [label, got, want] of cases) {\n    const pass = JSON.stringify(got) === JSON.stringify(want);\n    if (pass) ok++;\n    log((pass ? '  O  ' : '  X  ') + label + '  ->  ' + JSON.stringify(got));\n  }\n  log('');\n  log('맞은 것 ' + ok + '/' + cases.length + ' — 값이 예상과 다른 줄이 있으면 그 장으로 돌아가라');\n  flush();\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸은 DOM·이벤트다. 여기까지가 「값과 시간」이었다면, 다음은 그것을 **화면에 붙이는** 일이다. 프레임워크가 대신 해 주는 일이 정확히 거기서 시작한다."
+        },
+        {
+          "type": "try",
+          "text": "위 여덟 줄 중 예상과 달랐던 것을 골라, 해당 장의 데모를 다시 열고 손잡이를 바꿔 가며 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "「아무 일도 안 일어난다」에서 가장 먼저 볼 곳은?",
+          "choices": [
+            "CSS",
+            "콜백·프라미스 안의 오류가 새고 있는지",
+            "네트워크 속도",
+            "브라우저 버전"
+          ],
+          "answer": 1,
+          "why": "조용한 실패의 대부분은 오류가 다른 차례에서 났기 때문이다."
+        },
+        {
+          "q": "요청 여러 개가 느릴 때 볼 것은?",
+          "choices": [
+            "for 안의 await",
+            "변수 이름",
+            "들여쓰기",
+            "세미콜론"
+          ],
+          "answer": 0,
+          "why": "상관없는 요청은 Promise.all 로 한꺼번에."
+        }
+      ]
     }
   ]
 }
