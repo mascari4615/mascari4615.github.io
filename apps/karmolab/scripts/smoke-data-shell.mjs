@@ -64,7 +64,13 @@ check(!(await page.locator('#pfTip').isVisible()), '짚을 게 없으면 안내�
 await page.locator('.pf-job[data-job="charcount"], .pf-job[data-job="regextest"]').first().click();
 await page.waitForSelector('#pfMount:visible', { timeout: 15000 });
 check(await page.locator('#pfFileBar').isVisible(), '고른 뒤에도 붙여넣은 것 줄은 남는다');
-await page.waitForFunction(() => !!document.querySelector('#pfHost textarea'), { timeout: 15000 }).catch(() => {});
+await page.waitForFunction(
+  () => {
+    const el = document.querySelector('#pfHost textarea');
+    return !!el && el.value.includes('점심');
+  },
+  { timeout: 15000 }
+).catch(() => {});
 const got = await page.evaluate(() => {
   const el = document.querySelector('#pfHost textarea');
   return el ? el.value : '';

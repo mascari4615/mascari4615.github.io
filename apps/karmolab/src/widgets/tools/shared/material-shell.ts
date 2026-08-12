@@ -32,6 +32,11 @@ export interface MaterialShellOpts {
    * 도구에 건네는 자리도 다르다(파일 칸이 아니라 글 칸).
    */
   intake?: 'file' | 'text';
+  /**
+   * 쓰는 대로 곧바로 (TASK-KL-264). 셈 공책은 **치는 동안** 답이 서야 한다 —
+   * 0.4초를 기다리면 계산기가 아니라 제출 양식이 된다. 칸도 더 크게 연다.
+   */
+  live?: boolean;
   /** `<input accept>` — 무엇을 받나 (`intake: 'file'` 일 때) */
   accept: string;
   /** 할 일 — 갈래별로 묶어 격자에 놓는다 */
@@ -74,7 +79,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
       ${
         o.intake === 'text'
           ? `<div class="pf-paste" id="pfDrop">
-               <textarea id="pfText" rows="6" spellcheck="false" placeholder="${esc(o.drop.title)}"></textarea>
+               <textarea id="pfText" rows="${o.live ? 12 : 6}" spellcheck="false" placeholder="${esc(o.drop.title)}"></textarea>
                <span class="pf-paste-hint">${esc(o.drop.hint)}</span>
              </div>`
           : `<div class="pf-drop" id="pfDrop">
@@ -140,7 +145,8 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
 
   async function setFile(f: File): Promise<void> {
     file = f;
-    $('#pfDrop').hidden = true;
+    /* 셈 공책은 쓰는 칸이 **계속 보여야** 한다 — 한 줄 치고 칸이 사라지면 이어 쓸 수가 없다 */
+    $('#pfDrop').hidden = !o.live;
     $('#pfFileBar').hidden = false;
     $('#pfName').textContent = asText ? o.labels.pasted || f.name : f.name;
     const mine = ++token;
@@ -183,7 +189,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
         const v = box.value;
         if (!v.trim()) return;
         void setFile(new File([v], o.labels.pasted || 'text.txt', { type: 'text/plain' }));
-      }, 400);
+      }, o.live ? 70 : 400);
     });
     Toolbox.onDispose?.(() => window.clearTimeout(timer));
     $('#pfChange').onclick = (): void => {
@@ -251,11 +257,15 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
         /* **도구가 늦게 덮어쓴다** (TASK-KL-263 에서 잡음). 도구 화면은 말 묶음을 받은 뒤에
          * 그려지는데(`loadNamespace(...).then`), 그중 몇은 그때 **보기 글을 채운다**
          * (정규식 도구가 예제 문장을 넣는 식). 우리가 먼저 넣어도 그 뒤에 지워졌다.
-         * 그래서 한 박자 뒤 한 번 확인하고, 우리 것이 아니면 다시 넣는다.
-         * 0.4초는 사람이 뭘 고쳐 쓰기 전이다 — 사람 입력을 덮을 걱정은 없다. */
-        window.setTimeout(() => {
-          if (box.isConnected && box.value !== v) put();
-        }, 400);
+         *
+         * 한 번만 확인했더니 **덮어쓰는 시점이 기계마다 달라** 어떤 판에서는 늦어서 놓쳤다
+         * (검사가 간헐로 빨개졌다 — 잡음이 아니라 진짜 경합이다). 그래서 세 번 본다.
+         * 사람이 0.7초 안에 고쳐 쓸 일은 없으니 사람 입력을 덮을 걱정은 없다. */
+        for (const at of [140, 350, 700]) {
+          window.setTimeout(() => {
+            if (box.isConnected && box.value !== v) put();
+          }, at);
+        }
       });
       return;
     }
