@@ -131,6 +131,13 @@ if (missing.length) {
   console.error('[build] 부르는데 소스가 없는 파일:\n  - ' + missing.join('\n  - '));
   process.exit(1);
 }
+/* ★ `src/widgets-lazy-meta.ts` 는 **셸이 안 부르지만 반드시 지어야 한다** (2026-08-12).
+ *   아래 메타 가르기가 그 산출물(`js/widgets-lazy-meta.js`)을 읽어 가벼운 목록과 아이콘·설명을
+ *   따로 낸다. KL-220 이 셸에서 그 script 태그를 빼자 「화면이 부르는 곳」에서 사라져 컴파일
+ *   대상에서 빠졌고, 새 체크아웃에서는 그 파일이 없어 **배포가 ENOENT 로 죽었다**
+ *   (내 기계에는 옛 산출물이 남아 있어 초록이었다 — 전형적인 「내 기계에선 된다」).
+ *   부르는 곳이 화면이 아니라 **빌드**인 파일은 이렇게 손으로 붙여 둔다. */
+if (!entryPoints.includes('src/widgets-lazy-meta.ts')) entryPoints.push('src/widgets-lazy-meta.ts');
 console.log(`[build] 자동으로 찾은 묶음 대상 ${entryPoints.length}개`);
 
 for (const rel of entryPoints) {
