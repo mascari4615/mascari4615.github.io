@@ -50,5 +50,6 @@
   "studymap.tree.up": "← 갈래 지도",
   "studymap.review.tag": "복습",
   "studymap.review.count": "{n}칸 밀림",
-  "studymap.review.set": "다 맞혔다 — 다음 복습은 {when}"
+  "studymap.review.set": "다 맞혔다 — 다음 복습은 {when}",
+  "studymap.nohit.clear": "찾기 지우고 지도로"
 }

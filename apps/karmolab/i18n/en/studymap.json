@@ -50,5 +50,6 @@
   "studymap.tree.up": "← Track map",
   "studymap.review.tag": "Review",
   "studymap.review.count": "{n} due",
-  "studymap.review.set": "All correct — next review {when}"
+  "studymap.review.set": "All correct — next review {when}",
+  "studymap.nohit.clear": "Clear search and go back"
 }

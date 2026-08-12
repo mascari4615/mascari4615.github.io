@@ -327,6 +327,31 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .sm-tool:hover { background: var(--accent-dim); }
 .sm-next-tag { position: absolute; top: -8px; right: 12px; font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--bg-void); }
 
+/* ── 기다림·비어 있음·손이 닿는 자리 ── 화면이 「지금 무슨 상태인지」 스스로 말하게 한다. */
+.sm-skel { max-width: 68ch; }
+.sm-skel-line { height: 13px; border-radius: 6px; margin: 10px 0; background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-hover) 37%, var(--bg-tertiary) 63%); background-size: 400% 100%; animation: sm-shimmer 1.4s ease infinite; }
+.sm-skel-line.is-crumb { width: 42%; height: 10px; }
+.sm-skel-line.is-title { width: 62%; height: 24px; margin: 18px 0 8px; }
+.sm-skel-line.is-meta { width: 26%; height: 10px; margin-bottom: 22px; }
+.sm-skel-line.is-short { width: 68%; }
+.sm-skel-box { height: 150px; border-radius: var(--radius-lg); margin: 18px 0; background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-hover) 37%, var(--bg-tertiary) 63%); background-size: 400% 100%; animation: sm-shimmer 1.4s ease infinite; }
+@keyframes sm-shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+
+.doc-demo-view { background: var(--bg-tertiary); }
+.doc-demo::after { content: ''; }
+.sm-empty-art { font-size: 26px; display: block; margin-bottom: 8px; opacity: .8; }
+
+/* 키보드로 오는 사람에게도 지금 어디인지 보이게 — 초점 테두리를 한 규칙으로 묶는다. */
+.sm-node-title:focus-visible, .sm-track-btn:focus-visible, .sm-track-node:focus-visible,
+.sm-nav-btn:focus-visible, .sm-resume:focus-visible, .sm-find-btn:focus-visible,
+.doc-demo-btn:focus-visible, .doc-toc-a:focus-visible, .sm-crumb-btn:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--radius-md);
+}
+/* 눌리는 느낌 — 누르는 순간 살짝 들어간다(0.06초). */
+.sm-track-btn:active, .sm-nav-btn:active, .sm-resume:active, .doc-demo-btn:active, .sm-find-btn:active { transform: translateY(1px); }
+.sm-node.is-just-done { animation: sm-pop .5s ease; }
+@keyframes sm-pop { 0% { box-shadow: 0 0 0 0 var(--success-subtle); } 60% { box-shadow: 0 0 0 10px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+
 .sm-empty { padding: 28px; text-align: center; color: var(--text-tertiary); font-size: var(--font-size-2xs); }
 .sm-foot { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
 .sm-reset { background: none; border: 1px solid var(--border); color: var(--text-tertiary); font: inherit; font-size: 11px; padding: 6px 12px; border-radius: 999px; cursor: pointer; }
@@ -334,6 +359,9 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
   .sm-node, .sm-bar i, .sm-track-btn, .sm-check { transition: none; }
+  .sm-skel-line, .sm-skel-box { animation: none; }
+  .sm-node.is-just-done { animation: none; outline: 2px solid var(--success); }
+  .sm-track-btn:active, .sm-nav-btn:active, .sm-resume:active, .doc-demo-btn:active, .sm-find-btn:active { transform: none; }
   .sm-node.is-flash { animation: none; border-color: var(--accent); }
 }
 
@@ -643,7 +671,12 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         .map((tr) => ({ tr, found: nodesOf(tr).filter(hits) }))
         .filter((g) => g.found.length > 0);
       if (groups.length === 0) {
-        return `<div class="sm-empty">${esc(t('studymap.nohit', undefined, '지도 어디에도 그런 주제가 없다. 다른 말로 찾아 보라.'))}</div>`;
+        /* 빈 화면도 화면이다 — 왜 비었는지와 다음에 뭘 할지를 같이 준다. */
+        return `<div class="sm-empty"><span class="sm-empty-art">🔍</span>${esc(
+          t('studymap.nohit', undefined, '지도 어디에도 그런 주제가 없다. 다른 말로 찾아 보라.'),
+        )}<div style="margin-top:10px"><button type="button" class="sm-find-btn" data-clear="1">${esc(
+          t('studymap.nohit.clear', undefined, '찾기 지우고 지도로'),
+        )}</button></div></div>`;
       }
       const total = groups.reduce((s, g) => s + g.found.length, 0);
       return (
@@ -702,7 +735,15 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       container.querySelector('.sm-wrap')?.classList.add('is-reading');
       paintTracks();   /* 옆 목록에서 지금 읽는 칸이 눈에 띄게 */
       const node = found.node;
-      elStages.innerHTML = `<div class="sm-empty">${esc(t('studymap.lesson.loading', undefined, '강의를 펴는 중…'))}</div>`;
+      /* 글자 한 줄 대신 **올 모양**을 미리 그린다 — 화면이 덜 튄다(레이아웃이 미리 자리를 잡는다). */
+      elStages.innerHTML = `<div class="sm-skel" aria-label="${esc(t('studymap.lesson.loading', undefined, '강의를 펴는 중…'))}" aria-busy="true">
+        <div class="sm-skel-line is-crumb"></div>
+        <div class="sm-skel-line is-title"></div>
+        <div class="sm-skel-line is-meta"></div>
+        <div class="sm-skel-line"></div><div class="sm-skel-line"></div><div class="sm-skel-line is-short"></div>
+        <div class="sm-skel-box"></div>
+        <div class="sm-skel-line"></div><div class="sm-skel-line is-short"></div>
+      </div>`;
 
       let lesson = lessonCache.get(id);
       if (lesson === undefined) {
@@ -1079,6 +1120,13 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         else paint();
         return;
       }
+      if (target.closest('[data-clear]')) {
+        query = '';
+        elSearch.value = '';
+        showSearch(false);
+        paint();
+        return;
+      }
       const btn = target.closest('[data-goto]') as HTMLElement | null;
       if (!btn) return;
       const id = btn.dataset.goto || '';
@@ -1104,6 +1152,14 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       else done.delete(id);
       writeDone(done);
       paint();
+      /* 다시 그리면 방금 누른 자리가 어디였는지 사라진다 — 그 카드만 잠깐 반짝여 눈을 붙잡는다. */
+      if (box.checked) {
+        const again = elStages.querySelector(`[data-id="${CSS.escape(id)}"]`);
+        if (again instanceof HTMLElement) {
+          again.classList.add('is-just-done');
+          setTimeout(() => again.classList.remove('is-just-done'), 600);
+        }
+      }
       if (box.checked && typeof Mdd !== 'undefined' && Mdd.linePreset) {
         const all = nodesOf(trackOf(current));
         const cleared = all.every((n) => done.has(n.id));
