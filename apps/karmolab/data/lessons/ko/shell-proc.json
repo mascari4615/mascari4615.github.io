@@ -1,0 +1,106 @@
+{
+  "id": "shell-proc",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "「서버가 느려요」에 답하려면 **무엇이 CPU·메모리·포트를 물고 있는지** 봐야 한다. 도구 네 개면 충분하다."
+    },
+    {
+      "type": "h",
+      "text": "1. 지금 무엇이 도나"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "top / htop 읽는 법",
+      "text": "top\n# load average: 2.31, 1.90, 1.50   ← 1분/5분/15분 평균 대기 작업 수\n#   코어 수보다 크게·지속적으로 높으면 과부하\n# %CPU 는 코어 1개 기준 (400% = 4코어 풀가동)\n# 상태 S: 자는 중 · R: 실행 중 · D: I/O 대기(못 죽인다) · Z: 좀비"
+    },
+    {
+      "type": "note",
+      "text": "load 가 높은데 CPU 는 한가하면 **I/O 대기**(D 상태)다 — 디스크나 네트워크를 기다리는 것이므로 CPU 를 늘려도 소용없다."
+    },
+    {
+      "type": "h",
+      "text": "2. 누가 포트를 쓰나"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "8080 이 이미 사용 중일 때",
+      "text": "ss -tlnp | grep 8080          # 리스닝 소켓과 PID\nlsof -i :8080                  # 같은 일 (macOS 에서도)\nkill <PID>                     # 정중히 종료(SIGTERM)\nkill -9 <PID>                  # 최후의 수단(정리 없이 죽는다)"
+    },
+    {
+      "type": "h",
+      "text": "3. 메모리"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "free 의 함정",
+      "text": "free -h\n# used 가 높아도 buff/cache 는 언제든 회수된다 — available 을 봐라\n# available 이 바닥나면 스왑 → 그 순간 성능이 절벽처럼 떨어진다\n\ndmesg | grep -i 'killed process'   # OOM 킬러가 뭘 죽였나"
+    },
+    {
+      "type": "h",
+      "text": "4. 무엇을 기다리나"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "한 프로세스를 깊이 보기",
+      "text": "ps -o pid,ppid,stat,etime,cmd -p <PID>\ncat /proc/<PID>/status | head -20\nstrace -p <PID> -f -e trace=network   # 어떤 시스템 콜에서 멈춰 있나 (있으면)"
+    },
+    {
+      "type": "h",
+      "text": "5. 정리"
+    },
+    {
+      "type": "note",
+      "text": "**부모가 죽어 좀비가 남는 것**, 로그가 디스크를 채우는 것, 재시작 루프(서비스가 계속 죽고 다시 뜨는 것)를 확인하라 — `systemctl status <서비스>` 와 `journalctl -u <서비스> -f` 가 첫 창이다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "무거운 스크립트를 돌려 놓고 `top` 에서 %CPU 와 load 를 관찰하라. 그 다음 큰 파일을 읽게 해 D 상태(I/O 대기)를 만들어 보라."
+    },
+    {
+      "type": "try",
+      "text": "개발 서버 포트를 하나 띄우고 `ss -tlnp` 로 PID 를 찾아 정중히 종료해 보라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "load 는 높은데 CPU 사용률은 낮다. 무엇을 의심하나?",
+      "choices": [
+        "I/O 대기",
+        "CPU 부족",
+        "메모리 누수"
+      ],
+      "answer": 0,
+      "why": "디스크·네트워크 대기 중인 프로세스가 load 를 올린다."
+    },
+    {
+      "q": "`free -h` 에서 실제 여유를 보려면?",
+      "choices": [
+        "available 값",
+        "free 값만",
+        "used 값"
+      ],
+      "answer": 0,
+      "why": "buff/cache 는 필요 시 회수된다."
+    },
+    {
+      "q": "포트를 이미 쓰고 있는 프로세스를 찾는 명령은?",
+      "choices": [
+        "ss -tlnp / lsof -i :포트",
+        "ps aux",
+        "df -h"
+      ],
+      "answer": 0,
+      "why": "소켓과 PID 를 함께 보여 준다."
+    }
+  ]
+}

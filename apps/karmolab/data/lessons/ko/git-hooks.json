@@ -1,0 +1,104 @@
+{
+  "id": "git-hooks",
+  "minutes": 10,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "규칙은 사람이 아니라 **기계가 지켜야** 남는다. 훅은 그 규칙을 손 옆에 두는 가장 싼 방법이다."
+    },
+    {
+      "type": "h",
+      "text": "1. 어디에 무엇을"
+    },
+    {
+      "type": "note",
+      "text": "**pre-commit**: 빠른 것만(포맷·린트·비밀값 검사, 5초 안쪽). **pre-push**: 타입 검사·단위 테스트(30초 안쪽). **무거운 것은 CI**. 훅이 느리면 사람들이 `--no-verify` 를 배우고, 그 순간 방어가 사라진다."
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": ".husky/pre-commit",
+      "text": "npx lint-staged            # 담긴 파일만 검사한다 (전체 X)\nnpx gitleaks protect --staged --redact"
+    },
+    {
+      "type": "h",
+      "text": "2. 담긴 것만 본다"
+    },
+    {
+      "type": "code",
+      "lang": "json",
+      "label": "lint-staged 설정",
+      "text": "{\n  \"lint-staged\": {\n    \"*.{ts,tsx}\": [\"eslint --fix\", \"prettier --write\"],\n    \"*.{json,md}\": [\"prettier --write\"]\n  }\n}"
+    },
+    {
+      "type": "h",
+      "text": "3. 공유하는 법"
+    },
+    {
+      "type": "p",
+      "text": "`.git/hooks` 는 저장소에 안 들어간다. 그래서 husky·lefthook 처럼 **설치 스크립트로 배포**하거나 `core.hooksPath` 를 설정한다. 새 팀원이 clone 만 해도 켜져야 의미가 있다."
+    },
+    {
+      "type": "h",
+      "text": "4. 서버 쪽 훅"
+    },
+    {
+      "type": "note",
+      "text": "로컬 훅은 우회 가능하다. 진짜 강제는 **CI 와 브랜치 보호 규칙**(필수 검사 통과·리뷰 승인)에서 한다. 로컬 훅은 「빨리 알려 주는 친절」, 서버는 「막는 문」."
+    },
+    {
+      "type": "h",
+      "text": "5. 무엇을 넣을까"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "효과 큰 순서",
+      "text": "1) 비밀값 검사 (되돌릴 수 없는 사고를 막는다)\n2) 포매터 (리뷰에서 형식 논쟁이 사라진다)\n3) 커밋 메시지 형식 (commit-msg 훅)\n4) 타입 검사 (pre-push)"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "husky + lint-staged 를 붙이고, 일부러 형식이 틀린 파일을 커밋해 자동 수정되는지 확인하라."
+    },
+    {
+      "type": "try",
+      "text": "훅 실행 시간을 재라. 5초를 넘으면 무엇을 CI 로 옮길지 정하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "pre-commit 훅에 무거운 테스트를 넣으면 생기는 문제는?",
+      "choices": [
+        "느려서 --no-verify 로 우회하게 된다",
+        "커밋이 실패한다",
+        "저장소가 커진다"
+      ],
+      "answer": 0,
+      "why": "빠른 것만 손 옆에, 무거운 것은 CI 로."
+    },
+    {
+      "q": "로컬 훅만으로 규칙을 강제할 수 없는 이유는?",
+      "choices": [
+        "우회할 수 있으므로 CI·브랜치 보호가 필요하다",
+        "설치가 어려워서",
+        "속도 때문"
+      ],
+      "answer": 0,
+      "why": "훅은 친절, 서버 검사가 문이다."
+    },
+    {
+      "q": "훅을 팀에 공유하는 방법은?",
+      "choices": [
+        "husky 등 설치 스크립트나 core.hooksPath 설정",
+        ".git/hooks 를 커밋",
+        "문서로 안내만"
+      ],
+      "answer": 0,
+      "why": ".git/hooks 는 저장소에 포함되지 않는다."
+    }
+  ]
+}

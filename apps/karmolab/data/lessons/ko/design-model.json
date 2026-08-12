@@ -1,0 +1,102 @@
+{
+  "id": "design-model",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "기획이 쓰는 말과 코드의 이름이 다르면 **회의마다 번역 비용**이 든다. 그리고 번역은 언제나 조금씩 틀린다."
+    },
+    {
+      "type": "h",
+      "text": "1. 같은 말을 쓴다"
+    },
+    {
+      "type": "note",
+      "text": "「주문」·「예약」·「정산」을 코드에서도 `Order`·`Reservation`·`Settlement` 로 쓴다. 이것이 **유비쿼터스 언어**다. 회의에서 나온 단어가 코드에 없으면, 그 개념이 아직 모델에 없다는 신호다."
+    },
+    {
+      "type": "h",
+      "text": "2. 개념에 이름을 준다"
+    },
+    {
+      "type": "code",
+      "lang": "ts",
+      "label": "원시 타입에 숨은 개념 꺼내기",
+      "text": "// 전: 무엇이든 들어간다\nfunction charge(amount: number, currency: string) {}\n\n// 후: 규칙이 타입 안으로 들어온다\nclass Money {\n  private constructor(readonly amount: number, readonly currency: Currency) {}\n  static won(v: number) {\n    if (!Number.isInteger(v)) throw new Error('원 단위는 정수');\n    return new Money(v, 'KRW');\n  }\n  plus(o: Money) { assertSame(this.currency, o.currency); return new Money(this.amount + o.amount, this.currency); }\n}"
+    },
+    {
+      "type": "h",
+      "text": "3. 값과 엔티티"
+    },
+    {
+      "type": "p",
+      "text": "**값 객체**는 값이 같으면 같은 것(돈·주소·기간) — 불변으로 만든다. **엔티티**는 id 로 구분되고 상태가 변한다(주문·사용자). 이 구분만 잡아도 코드가 정리된다."
+    },
+    {
+      "type": "h",
+      "text": "4. 규칙이 사는 곳"
+    },
+    {
+      "type": "note",
+      "text": "「배송 시작 후에는 취소 불가」 같은 규칙이 화면·API·배치에 흩어져 있으면 언젠가 한 곳이 빠진다. **규칙은 모델 안에** 두고, 밖에서는 그 메서드를 부른다."
+    },
+    {
+      "type": "code",
+      "lang": "ts",
+      "label": "규칙을 안으로",
+      "text": "class Order {\n  cancel(now: Date) {\n    if (this.status === 'shipped') throw new DomainError('배송 시작 후에는 취소할 수 없습니다');\n    this.status = 'canceled';\n  }\n}"
+    },
+    {
+      "type": "h",
+      "text": "5. 경계마다 다른 모델"
+    },
+    {
+      "type": "p",
+      "text": "같은 「상품」도 판매·물류·정산에서 필요한 속성이 다르다. 하나의 거대 모델로 만들려 하지 말고 **맥락(bounded context)마다** 알맞은 모델을 두는 편이 낫다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "최근 기획 문서에서 명사 10개를 뽑아 코드에서 같은 이름을 찾아라. 없는 것이 곧 빠진 개념이다."
+    },
+    {
+      "type": "try",
+      "text": "`number` 나 `string` 으로 다루던 개념 하나(돈·이메일·기간)를 값 객체로 만들어 규칙을 안으로 넣어라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "유비쿼터스 언어의 목적은?",
+      "choices": [
+        "기획·대화·코드가 같은 단어를 써 번역 비용을 없앤다",
+        "영어 통일",
+        "문서 표준화"
+      ],
+      "answer": 0,
+      "why": "번역이 있으면 조금씩 어긋난다."
+    },
+    {
+      "q": "값 객체의 특징은?",
+      "choices": [
+        "값이 같으면 동일하며 보통 불변",
+        "id 로 구분된다",
+        "항상 DB 테이블이 된다"
+      ],
+      "answer": 0,
+      "why": "돈·주소·기간이 대표적이다."
+    },
+    {
+      "q": "「배송 후 취소 불가」 같은 규칙을 두기 좋은 곳은?",
+      "choices": [
+        "도메인 모델 안",
+        "화면 코드",
+        "API 게이트웨이"
+      ],
+      "answer": 0,
+      "why": "밖에 흩어지면 언젠가 한 곳이 빠진다."
+    }
+  ]
+}

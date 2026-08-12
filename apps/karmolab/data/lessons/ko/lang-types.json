@@ -1,0 +1,104 @@
+{
+  "id": "lang-types",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "타입은 컴파일러가 대신 읽어 주는 **규칙**이다. 테스트가 못 잡는 종류의 실수를 기계가 먼저 잡는다."
+    },
+    {
+      "type": "h",
+      "text": "1. 잘못된 상태를 못 만들게"
+    },
+    {
+      "type": "code",
+      "lang": "ts",
+      "label": "가장 큰 이득이 나는 자리",
+      "text": "// 나쁨: 불가능한 조합이 타입상 허용된다\ninterface State { loading: boolean; data?: Data; error?: string }\n\n// 좋음: 셋 중 하나만 존재\ntype State =\n  | { kind: 'loading' }\n  | { kind: 'ready'; data: Data }\n  | { kind: 'failed'; error: string };"
+    },
+    {
+      "type": "h",
+      "text": "2. 경계에서 검증한다"
+    },
+    {
+      "type": "note",
+      "text": "타입은 **컴파일 때만** 존재한다. 외부에서 들어오는 것(API·폼·파일)은 런타임 검증이 필요하다 — zod·valibot 같은 스키마로 파싱해 **한 번만** 믿을 수 있는 타입으로 바꾼다(Parse, don’t validate)."
+    },
+    {
+      "type": "code",
+      "lang": "ts",
+      "label": "검증과 타입을 한 번에",
+      "text": "const Item = z.object({ id: z.string(), price: z.number().int().nonnegative() });\ntype Item = z.infer<typeof Item>;\nconst items = Item.array().parse(await res.json());   // 여기서 실패하면 이후는 안전"
+    },
+    {
+      "type": "h",
+      "text": "3. 원시 타입 강박에서 벗어나기"
+    },
+    {
+      "type": "code",
+      "lang": "ts",
+      "label": "문자열이 다 같은 문자열은 아니다",
+      "text": "type UserId = string & { readonly brand: unique symbol };\nconst asUserId = (s: string) => s as UserId;\n\nfunction load(id: UserId) {}\nload('order-1');            // 컴파일 오류 — 실수를 타입이 잡는다"
+    },
+    {
+      "type": "h",
+      "text": "4. 타입이 과할 때"
+    },
+    {
+      "type": "note",
+      "text": "읽을 수 없는 제네릭 곡예, 타입만 300줄인 파일, 컴파일 시간이 분 단위 — 이 지점부터는 **비용이 이득을 넘는다**. 타입은 사람을 돕는 도구이지 퍼즐이 아니다."
+    },
+    {
+      "type": "h",
+      "text": "5. 점진 도입"
+    },
+    {
+      "type": "p",
+      "text": "기존 코드가 크면 파일 단위로 옮기되, **새 코드는 처음부터 strict** 로. `any` 는 「지금은 모른다」는 표시로만 쓰고 TODO 를 남겨라."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "boolean·optional 조합으로 상태를 표현하는 곳을 판별 유니온으로 바꾸고, 화면 코드의 조건문이 얼마나 줄었는지 세어라."
+    },
+    {
+      "type": "try",
+      "text": "외부 API 응답 한 곳에 런타임 스키마 검증을 붙여라. 서버가 필드를 바꿨을 때 어디서 실패하는지 확인하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "타입이 가장 큰 이득을 주는 설계는?",
+      "choices": [
+        "불가능한 상태를 만들 수 없게 만드는 것",
+        "모든 변수에 타입을 적는 것",
+        "제네릭을 많이 쓰는 것"
+      ],
+      "answer": 0,
+      "why": "판별 유니온으로 조합 자체를 막는다."
+    },
+    {
+      "q": "외부 데이터에 런타임 검증이 필요한 이유는?",
+      "choices": [
+        "타입은 컴파일 시점에만 존재하기 때문",
+        "성능 때문",
+        "문서화를 위해"
+      ],
+      "answer": 0,
+      "why": "경계에서 파싱해 이후를 안전하게 만든다."
+    },
+    {
+      "q": "타입이 과하다는 신호는?",
+      "choices": [
+        "읽기 어려운 제네릭과 긴 컴파일 시간",
+        "테스트가 많음",
+        "any 가 없음"
+      ],
+      "answer": 0,
+      "why": "타입은 사람을 돕는 도구이지 퍼즐이 아니다."
+    }
+  ]
+}
