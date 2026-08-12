@@ -112,6 +112,10 @@
     "pay": {
       "title": "Payments & billing",
       "lead": "Code that moves money — mistakes hurt users and are hard to undo"
+    },
+    "search": {
+      "title": "Search",
+      "lead": "Not \"found it\" but \"the right one is on top\" — LIKE cannot do that"
     }
   },
   "stages": {
@@ -186,7 +190,10 @@
     "desktop-c": "Keep it usable",
     "pay-a": "Know the flow",
     "pay-b": "Protect the money",
-    "pay-c": "Make it a business"
+    "pay-c": "Make it a business",
+    "search-a": "How things are found",
+    "search-b": "What goes on top",
+    "search-c": "Making it better"
   },
   "nodes": {
     "web-html": {
@@ -1848,6 +1855,70 @@
       "check": "There is a path for tax handling and receipt issuance",
       "links": [
         "Tax authority e-invoicing (KR)"
+      ]
+    },
+    "search-why": {
+      "title": "Why LIKE is not enough",
+      "why": "Substring match cannot use indexes, cannot rank, and cannot handle typos or inflection.",
+      "check": "You judge when a search engine is actually needed",
+      "links": [
+        "PostgreSQL full-text search"
+      ]
+    },
+    "search-index": {
+      "title": "Inverted index — the heart of search",
+      "why": "Instead of scanning documents for a word, you look the word up and get documents — that is why it is fast.",
+      "check": "You can draw an inverted index by hand",
+      "links": [
+        "Elasticsearch documents and indices"
+      ]
+    },
+    "search-token": {
+      "title": "Tokenizers — why Korean is hard",
+      "why": "To treat inflected forms as the same word you need morphological analysis; splitting on spaces is not enough.",
+      "check": "You attach a Korean analyzer and inspect the tokens",
+      "links": [
+        "Nori Korean analyzer"
+      ]
+    },
+    "search-rank": {
+      "title": "Ranking — BM25 and field weights",
+      "why": "The value of search is in the order; a title hit should not weigh the same as a body hit.",
+      "check": "You change result order by tuning field weights",
+      "links": [
+        "Practical BM25"
+      ]
+    },
+    "search-fuzzy": {
+      "title": "Typos, synonyms, autocomplete",
+      "why": "Users type it wrong, and treating \"iPhone\" and its local spelling as one is a design decision.",
+      "check": "You enable fuzziness and a synonym dictionary",
+      "links": [
+        "Elasticsearch synonyms"
+      ]
+    },
+    "search-vector": {
+      "title": "Vector search and hybrid",
+      "why": "Keyword search misses paraphrases; semantic search fills that gap.",
+      "check": "You blend keyword and vector results into one ranking",
+      "links": [
+        "Hybrid search"
+      ]
+    },
+    "search-quality": {
+      "title": "Measuring search quality",
+      "why": "Tuning by feel makes yesterday’s win today’s regression; numbers let improvements accumulate.",
+      "check": "You measure top-k hit rate against an evaluation set",
+      "links": [
+        "Rank Eval API"
+      ]
+    },
+    "search-ux": {
+      "title": "Search UI — empty states and filters",
+      "why": "Half of search is the interface, and a zero-result screen is where users leave.",
+      "check": "Your empty state offers a next action",
+      "links": [
+        "NN/g search UX"
       ]
     }
   }
