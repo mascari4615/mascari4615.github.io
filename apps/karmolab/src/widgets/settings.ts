@@ -65,6 +65,13 @@ import { t, loadNamespace } from '../lib/i18n';
             /* typeof 가드가 부재 시 안전 폴백 */
         }
 
+        /* ★ 묶음만 기다리면 반쪽이다 — **그 묶음이 쓸 말**도 와 있어야 한다 (2026-08-12).
+         *   `gemini.ts` 는 실려 오면서 `loadNamespace('gemini')` 를 던져 두기만 한다(기다리지 않는다).
+         *   그 사이 여기서 `buildApiKeyUI()` 를 부르면 `t('gemini.…')` 가 「없는 열쇠」로 죽고,
+         *   `test:i18n:lazy` 가 그때그때 다른 열쇠 이름으로 빨개졌다(t15 를 막으니 t02 가 나왔다 —
+         *   열쇠를 하나씩 막는 건 증상 추격이다). 부르기 전에 말이 와 있게 하는 것이 근본이다. */
+        await loadNamespace('gemini');
+
         const theme = Toolbox.getTheme?.() ?? 'dark';
         const prismTheme = Toolbox.getPrismTheme?.() ?? '';
         const prismThemes = Toolbox.getPrismThemes?.() ?? [];
