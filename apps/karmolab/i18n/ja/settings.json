@@ -69,8 +69,6 @@
   "settings.t24": "背景: ",
   "settings.t25": "一緒に使う: オン",
   "settings.t26": "一緒に使う: オフ",
-  "settings.t27": "テーマ (ライト/ダーク)",
-  "settings.t28": "ナビゲーションの配置 (上部/サイドバー)",
   "settings.t29": "サイドバーのグループの折りたたみ状態",
   "settings.t30": "コードハイライトのテーマ",
   "settings.t31": "最後に開いていたページ",
@@ -103,6 +101,5 @@
   "settings.t58": "マスコットの記録を初期化しました",
   "settings.tab.display": "表示 · API",
   "settings.tab.mascot": "マスコット",
-  "settings.tab.data": "このブラウザに保存されているもの",
-  "settings.label.setNextLinks": "ツール下部の「こちらも」"
+  "settings.tab.data": "このブラウザに保存されているもの"
 }

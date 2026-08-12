@@ -127,13 +127,6 @@ import { t, loadNamespace } from '../lib/i18n';
                 <div class="settings-section">
                     <h3>${esc(t('settings.t02'))}</h3>
                     <div class="settings-row">
-                        <label for="setNextLinks">${esc(t('settings.label.setNextLinks'))}</label>
-                        <select id="setNextLinks" class="settings-control">
-                            <option value="off">${esc(t('settings.opt.off'))}</option>
-                            <option value="on">${esc(t('settings.opt.on'))}</option>
-                        </select>
-                    </div>
-                    <div class="settings-row">
                         <label for="setCopresence">${esc(t('settings.label.setCopresence'))}</label>
                         <select id="setCopresence" class="settings-control">
                             <option value="on">${esc(t('settings.opt.on'))}</option>
@@ -182,16 +175,6 @@ import { t, loadNamespace } from '../lib/i18n';
             });
             Toolbox.showToast?.(t('settings.t24') + (bgThemes.find((t) => t.id === id)?.label || id));
         });
-
-        /* 도구 화면 맨 아래 「여기도 있어요」 — 기본은 꺼짐. 켠 사람만 본다. */
-        const nextLinks = container.querySelector<HTMLSelectElement>('#setNextLinks');
-        if (nextLinks) {
-            nextLinks.value = Toolbox.getPref?.('show_next_links', false) === true ? 'on' : 'off';
-            nextLinks.addEventListener('change', () => {
-                Toolbox.setPref?.('show_next_links', nextLinks.value === 'on');
-                Toolbox.showToast?.(nextLinks.value === 'on' ? t('settings.t27') : t('settings.t28'));
-            });
-        }
 
         const copresence = container.querySelector<HTMLSelectElement>('#setCopresence');
         if (copresence) {
