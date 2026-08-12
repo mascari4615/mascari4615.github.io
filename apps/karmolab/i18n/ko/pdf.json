@@ -9,5 +9,19 @@
   "pdf.part.pdf2text": "PDF → 글자",
   "pdf.part.text2pdf": "글 → PDF",
   "pdf.part.pdf2img": "PDF → 이미지",
-  "pdf.part.img2pdf": "이미지 → PDF"
+  "pdf.part.img2pdf": "이미지 → PDF",
+  "pdf.tab": "PDF",
+  "pdf.group.pages": "쪽 다루기",
+  "pdf.group.stamp": "얹기",
+  "pdf.group.hide": "가리기",
+  "pdf.group.convert": "바꾸기",
+  "pdf.drop.title": "PDF 를 여기에 놓거나 눌러서 고르세요",
+  "pdf.drop.hint": "문서는 이 브라우저를 벗어나지 않습니다",
+  "pdf.btn.change": "바꾸기",
+  "pdf.btn.back": "할 일 고르기",
+  "pdf.preview.empty": "미리보기",
+  "pdf.preview.fail": "이 문서는 미리 못 봅니다",
+  "pdf.meta": "{n}쪽 · {size}",
+  "pdf.meta.unreadable": "미리보기를 못 그렸습니다",
+  "pdf.err.mount": "이 할 일을 불러오지 못했습니다"
 }
