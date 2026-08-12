@@ -43,6 +43,7 @@ jobs:
     # 실패만. 성공·취소·건너뜀은 조용히 지나간다. (손으로 돌릴 때는 언제나 돈다.)
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'failure'
     runs-on: ubuntu-latest
+    timeout-minutes: 45  # 멈춘 판이 6시간 도는 것을 막는다 (기본값 360분)
     steps:
       - name: 어느 배포를 볼 것인가
         id: pick

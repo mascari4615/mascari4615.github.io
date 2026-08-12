@@ -63,6 +63,7 @@ jobs:
   verify:
     name: verify (master invariant)
     runs-on: ubuntu-latest
+    timeout-minutes: 45  # 멈춘 판이 6시간 도는 것을 막는다 (기본값 360분)
     steps:
       - uses: actions/checkout@v6
 
@@ -143,6 +144,7 @@ jobs:
     # verify 본체와 분리 — 브라우저 설치가 필요하고, 실패해도 원인이 색 하나로 뚜렷하다.
     name: contrast (theme readability)
     runs-on: ubuntu-latest
+    timeout-minutes: 45  # 멈춘 판이 6시간 도는 것을 막는다 (기본값 360분)
     steps:
       - uses: actions/checkout@v6
 
