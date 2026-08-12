@@ -14,7 +14,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
 
 interface SmLink { label: string; url: string }
 interface SmTool { id: string; label: string }
-interface SmNode { id: string; title: string; why: string; check?: string; tool?: SmTool; links?: SmLink[] }
+interface SmNode { id: string; title: string; why: string; check?: string; tool?: SmTool; links?: SmLink[]; prereq?: string[] }
 interface SmStage { id: string; title: string; nodes: SmNode[] }
 interface SmTrack { id: string; title: string; emoji: string; lead: string; stages: SmStage[] }
 interface SmData { tracks: SmTrack[] }
@@ -139,6 +139,13 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-node-why { font-size: 12px; color: var(--text-secondary); line-height: 1.65; margin-top: 6px; }
 .sm-node-check { font-size: 11px; color: var(--text-tertiary); line-height: 1.6; margin-top: 8px; padding-left: 10px; border-left: 2px solid var(--border-hover); }
 .sm-node-check b { color: var(--secondary); font-weight: 600; }
+.sm-prereq { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
+.sm-prereq-label { font-size: 10px; color: var(--text-tertiary); letter-spacing: .03em; }
+.sm-prereq-btn { font-size: 11px; padding: 3px 8px; border-radius: 999px; border: 1px dashed var(--border-hover); background: none; color: var(--text-secondary); cursor: pointer; font-family: inherit; }
+.sm-prereq-btn:hover { border-style: solid; border-color: var(--secondary); color: var(--secondary); }
+.sm-prereq-btn.is-done { border-color: var(--success-subtle); color: var(--text-tertiary); text-decoration: line-through; }
+.sm-node.is-flash { animation: sm-flash 1.4s ease-out; }
+@keyframes sm-flash { 0%,40% { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); } 100% { box-shadow: none; } }
 .sm-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .sm-link { font-size: 11px; padding: 4px 9px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-secondary); text-decoration: none; transition: border-color .15s, color .15s; }
 .sm-link:hover { border-color: var(--accent); color: var(--accent); }
@@ -219,6 +226,10 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
     const elStages = q<HTMLDivElement>('stages');
     const elSearch = q<HTMLInputElement>('search');
 
+    /* 선수 관계는 갈래를 넘는다 — id 하나로 어느 갈래의 어느 칸인지 바로 찾을 표를 만든다. */
+    const whereIs = new Map<string, { node: SmNode; trackId: string }>();
+    for (const tr of tracks) for (const st of tr.stages) for (const n of st.nodes) whereIs.set(n.id, { node: n, trackId: tr.id });
+
     const trackOf = (id: string): SmTrack => tracks.find((tr) => tr.id === id) || tracks[0];
     const nodesOf = (tr: SmTrack): SmNode[] => tr.stages.flatMap((s) => s.nodes);
     const hits = (n: SmNode): boolean => {
@@ -250,7 +261,17 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
         (n.links || [])
           .map((l) => `<a class="sm-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} ↗</a>`)
           .join('');
-      return `<div class="sm-node${isDone ? ' is-done' : ''}${isNext ? ' is-next' : ''}">
+      /* 「먼저 이것」 — 못 하면 여기서 막힌다는 뜻이 아니라, 막혔을 때 돌아갈 자리를 알려 준다. */
+      const prereq = (n.prereq || [])
+        .map((id) => {
+          const found = whereIs.get(id);
+          if (!found) return '';
+          const d = done.has(id);
+          return `<button type="button" class="sm-prereq-btn${d ? ' is-done' : ''}" data-goto="${esc(id)}">${esc(found.node.title)}</button>`;
+        })
+        .join('');
+
+      return `<div class="sm-node${isDone ? ' is-done' : ''}${isNext ? ' is-next' : ''}" data-id="${esc(n.id)}">
         ${isNext ? `<span class="sm-next-tag">${esc(t('studymap.next', undefined, '다음'))}</span>` : ''}
         <input type="checkbox" class="sm-check" name="studymap-done-${esc(n.id)}" data-node="${esc(n.id)}" ${isDone ? 'checked' : ''}
                aria-label="${esc(n.title)}">
@@ -258,6 +279,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
           <div class="sm-node-title">${esc(n.title)}</div>
           <div class="sm-node-why">${esc(n.why)}</div>
           ${n.check ? `<div class="sm-node-check"><b>${esc(t('studymap.check', undefined, '넘어가도 될 때'))}</b> — ${esc(n.check)}</div>` : ''}
+          ${prereq ? `<div class="sm-prereq"><span class="sm-prereq-label">${esc(t('studymap.prereq', undefined, '먼저'))}</span>${prereq}</div>` : ''}
           ${links ? `<div class="sm-links">${links}</div>` : ''}
         </div>
       </div>`;
@@ -337,6 +359,24 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
         /* 저장 못 해도 이번 화면은 바뀐다 */
       }
       paint();
+    });
+
+    elStages.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest('[data-goto]') as HTMLElement | null;
+      if (!btn) return;
+      const id = btn.dataset.goto || '';
+      const found = whereIs.get(id);
+      if (!found) return;
+      current = found.trackId;
+      query = '';
+      elSearch.value = '';
+      paint();
+      const card = elStages.querySelector(`[data-id="${CSS.escape(id)}"]`);
+      if (card instanceof HTMLElement) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('is-flash');
+        setTimeout(() => card.classList.remove('is-flash'), 1500);
+      }
     });
 
     elStages.addEventListener('change', (e) => {

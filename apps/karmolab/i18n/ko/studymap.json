@@ -12,5 +12,6 @@
   "studymap.mdd.step": "한 칸 나아갔어요.",
   "studymap.mdd.clear": "한 갈래를 끝까지 걸었어요. 다음 갈래 가 볼까요?",
   "studymap.found": "지도 전체에서 {n}칸 · {tracks}갈래",
-  "studymap.all": "지도 전체 {done} / {total}"
+  "studymap.all": "지도 전체 {done} / {total}",
+  "studymap.prereq": "먼저"
 }

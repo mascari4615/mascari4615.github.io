@@ -12,5 +12,6 @@
   "studymap.mdd.step": "One step further.",
   "studymap.mdd.clear": "You walked a whole track. Shall we start the next one?",
   "studymap.found": "{n} topics across {tracks} tracks",
-  "studymap.all": "Whole map {done} / {total}"
+  "studymap.all": "Whole map {done} / {total}",
+  "studymap.prereq": "First"
 }
