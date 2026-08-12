@@ -366,5 +366,13 @@
   "arcade.auction.tie": "tied bids — nobody takes it",
   "arcade.auction.sold": "{who} took it for {paid} (+{n})",
   "arcade.auction.tally": "{p} pts · {m} coin",
-  "arcade.auction.win": "{who} · {n} pts"
+  "arcade.auction.win": "{who} · {n} pts",
+  "arcade.game.tuho.name": "Pitch-Pot",
+  "arcade.game.tuho.desc": "Land arrows in the jar · 2 for the mouth, 1 for an ear",
+  "arcade.tuho.aim": "left/right",
+  "arcade.tuho.power": "strength",
+  "arcade.tuho.throw": "Throw",
+  "arcade.tuho.flying": "in the air",
+  "arcade.tuho.left": "{n} left",
+  "arcade.tuho.win": "{who} · {n} pts"
 }

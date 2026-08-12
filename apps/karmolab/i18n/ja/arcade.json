@@ -366,5 +366,13 @@
   "arcade.auction.tie": "同額 — 誰も取れない",
   "arcade.auction.sold": "{who} が {paid} で落札 (+{n})",
   "arcade.auction.tally": "{p}点 · {m}",
-  "arcade.auction.win": "{who} · {n}点"
+  "arcade.auction.win": "{who} · {n}点",
+  "arcade.game.tuho.name": "投壺",
+  "arcade.game.tuho.desc": "壺に矢を投げ入れる · 口は2点、耳は1点",
+  "arcade.tuho.aim": "左右",
+  "arcade.tuho.power": "強さ",
+  "arcade.tuho.throw": "投げる",
+  "arcade.tuho.flying": "飛んでいる",
+  "arcade.tuho.left": "残り{n}",
+  "arcade.tuho.win": "{who} · {n}点"
 }
