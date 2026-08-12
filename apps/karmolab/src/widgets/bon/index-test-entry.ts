@@ -3,3 +3,4 @@ export { createDoc, addLayer, countNodes, cloneDoc, nextId, removeLayer, moveLay
 export { toSvg } from './svg';
 export { PARTS, defaultKnobs, variants, button, panel, gauge } from './parts';
 export { bounds, hitTest, handleAt, handlePoints, resizeBox, applyBox, inBox } from './geom';
+export { defaultSlice, clampSlice, slicePieces, stretch, sliceMeta } from './slice';

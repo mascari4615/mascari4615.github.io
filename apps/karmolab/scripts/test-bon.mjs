@@ -140,6 +140,43 @@ const { removeLayer, moveLayer, mergeDown } = mod;
   check('맨 아래는 합칠 곳이 없다', mergeDown(d, 0) === false);
 }
 
+
+/* ── 9-slice (4단계) ───────────────────────── */
+const { defaultSlice, clampSlice, slicePieces, stretch, sliceMeta } = mod;
+{
+  const sl = { left: 12, right: 12, top: 8, bottom: 8 };
+  const { cols, rows } = slicePieces(sl, 100, 40);
+  check('아홉 칸이 판을 꽉 채운다', cols[0] + cols[1] + cols[2] === 100 && rows[0] + rows[1] + rows[2] === 40, JSON.stringify({ cols, rows }));
+
+  const crossed = clampSlice({ left: 80, right: 80, top: 5, bottom: 5 }, 100, 40);
+  check('마주 보는 선이 지나치지 않는다', crossed.left + crossed.right <= 100, JSON.stringify(crossed));
+  const crossedPieces = slicePieces({ left: 80, right: 80, top: 5, bottom: 5 }, 100, 40);
+  check('지나쳐도 가운데가 음수가 안 된다', crossedPieces.cols[1] >= 0, JSON.stringify(crossedPieces.cols));
+
+  const negative = clampSlice({ left: -10, right: 5, top: -1, bottom: 3 }, 100, 40);
+  check('음수는 0 으로 잡는다', negative.left === 0 && negative.top === 0);
+
+  // 늘렸을 때 — 이 도구의 존재 이유
+  const pieces = stretch(sl, 100, 40, 300, 40);
+  const corners = pieces.filter((x) => (x.sx === 0 || x.sx === 100 - 12) && (x.sy === 0 || x.sy === 40 - 8));
+  check('모서리 넷이 있다', corners.length === 4, String(corners.length));
+  check('모서리는 안 늘어난다', corners.every((c) => c.dw === c.sw && c.dh === c.sh), JSON.stringify(corners.map((c) => [c.sw, c.dw])));
+  const middle = pieces.find((x) => x.sx === 12 && x.sy === 8);
+  check('가운데만 늘어난다', middle.dw === 300 - 24, String(middle && middle.dw));
+  const total = pieces.filter((x) => x.sy === 0).reduce((sum, x) => sum + x.dw, 0);
+  check('늘린 폭이 딱 맞는다', total === 300, String(total));
+
+  // 원래보다 작게 — 가운데가 0 으로 줄 뿐, 뒤집히지 않는다
+  const tiny = stretch(sl, 100, 40, 10, 40);
+  check('작게 줄여도 음수 크기가 없다', tiny.every((x) => x.dw >= 0 && x.dh >= 0), JSON.stringify(tiny.map((x) => x.dw)));
+
+  const meta = sliceMeta(sl, 100, 40);
+  check('유니티 순서(왼·아래·오른·위)로 적는다', JSON.stringify(meta.unityBorder) === JSON.stringify([12, 8, 12, 8]), JSON.stringify(meta.unityBorder));
+
+  const d = defaultSlice(100, 40);
+  check('처음 값은 판 안에 있다', d.left + d.right <= 100 && d.top + d.bottom <= 40);
+}
+
 rmSync(out, { recursive: true, force: true });
 console.log(failed ? `\n[test-bon] 실패 ${failed}건` : '\n[test-bon] ✓ 문서 · 부품 3종 · 손잡이 반응 · 변형 묶음 · SVG 정합 · 극단값');
 process.exit(failed ? 1 : 0);

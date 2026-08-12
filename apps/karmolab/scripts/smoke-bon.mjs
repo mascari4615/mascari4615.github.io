@@ -167,6 +167,32 @@ await page.waitForTimeout(200);
 check('아래에 합치면 겹이 줄고 그림은 그대로', (await layerRows()) === 2 && (await shapes()) === shapesBefore,
   (await layerRows()) + ' / ' + (await shapes()));
 
+
+// ── 9-slice ───────────────────────────────
+await page.keyboard.press('s');
+await page.waitForTimeout(200);
+const sliceLines = () => page.evaluate(() => document.querySelectorAll('.bon-guides .bon-slice').length);
+check('9-slice 를 켜면 선 넷이 뜬다', (await sliceLines()) === 4, String(await sliceLines()));
+
+// 왼쪽 선을 잡아 오른쪽으로 끈다 — 선이 실제로 움직여야 한다
+const lineX = () => page.evaluate(() => {
+  const d = document.querySelector('.bon-guides .bon-slice').getAttribute('d');
+  return Number(d.match(/M([\d.]+)/)[1]);
+});
+const x0 = await lineX();
+const from = { x: stage.x + x0 * 2 + 1, y: stage.y + stage.height * 0.5 };
+const to = { x: from.x + 40, y: from.y };
+await page.mouse.move(from.x, from.y);
+await page.mouse.down();
+await page.mouse.move(to.x, to.y, { steps: 6 });
+await page.mouse.up();
+await page.waitForTimeout(200);
+const x1 = await lineX();
+check('경계선을 끌면 움직인다', x1 > x0, x0 + ' → ' + x1);
+
+const guidesInArt = await page.evaluate(() => !!document.querySelector('.bon-art .bon-slice'));
+check('경계선도 그림에 안 섞인다', !guidesInArt);
+
 if (SHOT) {
   fs.mkdirSync(path.join(here, 'tmp'), { recursive: true });
   await page.screenshot({ path: path.join(here, 'tmp', 'bon.png'), fullPage: false });
@@ -177,5 +203,5 @@ check('콘솔 오류 없음', errors.length === 0, errors.slice(0, 3).join(' | '
 
 await browser.close();
 server.close();
-console.log(problems.length ? `\n[smoke-bon] 실패 ${problems.length}건` : '\n[smoke-bon] ✓ 그리기 · 고르기 · 옮기기 · 숫자 반영 · 되돌리기 · 안내선 분리 · 레이어');
+console.log(problems.length ? `\n[smoke-bon] 실패 ${problems.length}건` : '\n[smoke-bon] ✓ 그리기 · 고르기 · 옮기기 · 숫자 반영 · 되돌리기 · 안내선 분리 · 레이어 · 9-slice');
 process.exit(problems.length ? 1 : 0);
