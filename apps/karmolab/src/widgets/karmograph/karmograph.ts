@@ -666,13 +666,19 @@ import {
         }
         /* 시트는 0.18초에 걸쳐 미끄러져 올라온다 — 올라오는 중에 위치를 재면 「안 가렸다」가
            나온다. 그래서 다 올라왔을 때의 자리를 셈으로 구한다: 판 아래끝 − 시트 높이. */
-        const sheetTop = canvasEl.getBoundingClientRect().bottom - sheet.height;
-        const over = rect.y + rect.h + margin - sheetTop;
+        /* ★ **두 자를 같은 자로 맞춘다** (2026-08-12, 계측 세 번째 — 이게 진짜 원인이었다).
+           `nodeScreenRect` 가 주는 값은 **판 안에서의 자리**(판 왼쪽 위가 0)이고, 시트·판의
+           `getBoundingClientRect` 는 **창 기준**이다. 두 자를 섞어 빼는 바람에 판이 화면에서
+           내려온 만큼(실측 282px) 늘 덜 밀었다 — 24px 만 밀고 「이제 안 가림」이라 멈췄고,
+           사람 눈에는 173px 이 그대로 가려져 있었다. 판 위끝을 더해 창 기준으로 맞춘다. */
+        const canvasRect = canvasEl.getBoundingClientRect();
+        const sheetTop = canvasRect.bottom - sheet.height;
+        const over = canvasRect.top + rect.y + rect.h + margin - sheetTop;
         if (over <= 1) {
           /* 검사가 재는 값과 여기서 재는 값이 갈리면 원인을 못 찾는다 — **내가 무엇을 보고
              그만뒀는지** 그대로 남긴다 (카드 아래끝 · 내가 셈한 시트 위끝). */
           root.dataset.kmPan =
-            `${moved ? `panned(${Math.round(moved)})` : 'no-need'}·카드끝${Math.round(rect.y + rect.h)}·시트위${Math.round(sheetTop)}`;
+            `${moved ? `panned(${Math.round(moved)})` : 'no-need'}·카드끝${Math.round(canvasRect.top + rect.y + rect.h)}·시트위${Math.round(sheetTop)}`;
           return;
         }
         const scale = canvas.getScale() || 1;
