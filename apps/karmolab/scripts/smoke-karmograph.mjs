@@ -54,6 +54,14 @@ const withLimit = (name, fn) => Promise.race([
   ).unref?.()),
 ]);
 
+
+/** 옆 패널의 **꾸미는 칸**(모양·얼굴·소속·붙이기)은 접혀 있다 — 필요한 걸음만 펼친다. */
+const openMore = async (p) => {
+  const btn = p.locator('[data-km="more-toggle"]');
+  if (await btn.count() === 0) return;
+  const label = (await btn.first().textContent()) || '';
+  if (label.includes('더 보기') || label.includes('More')) await btn.first().click();
+};
 const step = async (name, fn) => {
   try { await withLimit(name, fn); console.log(`  OK   ${name}`); }
   catch (e) {
@@ -211,6 +219,7 @@ await step('묶음에 노드를 넣으면 감싸는 윤곽이 그려진다', asy
     const n = page.locator(`.ck-node[data-id="${nid}"]`);
     if (await n.count() === 0) continue;
     await n.click({ position: { x: 10, y: 10 } });
+    await openMore(page);
     const boxes = page.locator('[data-km="in-group"]');
     if (await boxes.count() > 0) await boxes.first().check().catch(() => {});
   }
@@ -738,6 +747,7 @@ await step('글 안에 다른 공용 글 끼워 넣기 — 쪽지에 원본 글�
     null,
     { timeout: 4000 }
   );
+  await openMore(page);
   await page.selectOption('[data-km="edit-shape"]', 'note');
   await page.waitForFunction(
     () => {
@@ -1076,6 +1086,7 @@ await step('쪽지 모양 카드는 글이 카드 안에 보인다', async () =>
   await page.click('.ck-node');
   await page.waitForSelector('[data-km="edit-doc"]', { timeout: 4000 });
   await page.fill('[data-km="edit-doc"]', '마도서는 주인을 고른다');
+  await openMore(page);
   await page.selectOption('[data-km="edit-shape"]', 'note');
   await page.waitForFunction(
     () => [...document.querySelectorAll('.ck-node text')].some((t) => (t.textContent || '').includes('마도서는')),
@@ -1709,7 +1720,8 @@ await step('카드를 끌면 이웃 카드의 줄에 붙고, 맞춘 줄이 뜬�
   await m.mouse.dblclick(box.x + box.width * 0.55, box.y + box.height * 0.6);
   await shutInline();
   await m.waitForTimeout(400);
-  if (!(await two())) await m.mouse.dblclick(box.x + box.width * 0.55, box.y + box.height * 0.6);
+  // 두 번 누르기의 첫 눌림이 「고른 것 풀기」로 먹히는 판이 있다 — 다시 누르면 **이름칸도 다시 뜬다**.
+  if (!(await two())) { await m.mouse.dblclick(box.x + box.width * 0.55, box.y + box.height * 0.6); await shutInline(); }
   try {
     await m.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 2, null, { timeout: 4000 });
   } catch {
@@ -1732,14 +1744,38 @@ await step('카드를 끌면 이웃 카드의 줄에 붙고, 맞춘 줄이 뜬�
   const second = (await m.locator('.ck-node').nth(1).boundingBox());
   const first = (await m.locator('.ck-node').first().boundingBox());
   // 누르는 자리는 **카드 한가운데** — 모서리 근처는 판이 조금만 움직여도 빗나간다.
-  const grab = { x: second.x + second.width / 2, y: second.y + second.height / 2 };
-  const onNode = await m.evaluate(([x, y]) => Boolean(document.elementFromPoint(x, y)?.closest('.ck-node')), [grab.x, grab.y]);
-  if (!onNode) throw new Error('누르려는 자리가 카드 위가 아니다 — 판이 움직였다');
+  // 옆 패널이 열리고 닫히는 동안 판 너비가 바뀌므로, **잡기 직전에 다시 재고** 확인한다.
+  let second2 = second;
+  let grab = { x: 0, y: 0 };
+  let onNode = false;
+  for (let i = 0; i < 3 && !onNode; i += 1) {
+    second2 = await m.locator('.ck-node').nth(1).boundingBox();
+    grab = { x: second2.x + second2.width / 2, y: second2.y + second2.height / 2 };
+    onNode = await m.evaluate(([x, y]) => Boolean(document.elementFromPoint(x, y)?.closest('.ck-node')), [grab.x, grab.y]);
+    if (!onNode) await m.waitForTimeout(400);
+  }
+  if (!onNode) {
+    const why = await m.evaluate(([x, y]) => {
+      const el = document.elementFromPoint(x, y);
+      const cv = document.querySelector('.km-canvas').getBoundingClientRect();
+      return {
+        at: el ? el.tagName + '|' + String(el.getAttribute('class') || el.getAttribute('data-km') || '').slice(0, 24) : 'none',
+        point: [Math.round(x), Math.round(y)],
+        canvas: [Math.round(cv.x), Math.round(cv.y), Math.round(cv.width), Math.round(cv.height)],
+        inline: document.querySelectorAll('.km-inline').length,
+        nodes: [...document.querySelectorAll('.ck-node')].map((n) => {
+          const b = n.getBoundingClientRect();
+          return [Math.round(b.x), Math.round(b.y), Math.round(b.width)];
+        }),
+      };
+    }, [grab.x, grab.y]);
+    throw new Error('세 번 다시 재도 카드 위가 아니다: ' + JSON.stringify(why));
+  }
   // 둘째 카드를 첫째 카드의 왼쪽 줄 **근처**(몇 px 어긋나게)로 끈다 — 붙어야 정확히 같은 줄이 된다.
   const offBy = 5;
   await m.mouse.move(grab.x, grab.y);
   await m.mouse.down();
-  await m.mouse.move(grab.x + (first.x - second.x) + offBy, grab.y, { steps: 10 });
+  await m.mouse.move(grab.x + (first.x - second2.x) + offBy, grab.y, { steps: 10 });
   // 줄은 **다음 프레임**에 그려진다(프레임당 한 번만 다시 그린다) — 바로 세면 0 이 나온다.
   // ★ `waitForSelector` 의 「보인다」로 세면 안 된다: 세로선은 **폭이 0** 이라 안 보이는 것으로 친다(실측).
   const guides = await m.waitForFunction(() => document.querySelectorAll('.ck-guide').length,
@@ -1770,7 +1806,8 @@ await step('카드 크기가 자리와 같은 격자에 붙는다 (Alt = 자유)
   await m.reload({ waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: 8000 });
   const box = await m.locator('.km-canvas').boundingBox();
-  await m.mouse.dblclick(box.x + box.width * 0.4, box.y + box.height * 0.4);
+  // 판 아래쪽에 만들면 손잡이가 화면 맨 밑(떠 있는 것들 아래)으로 가 안 잡힌다 — 가운데 위쪽에 만든다.
+  await m.mouse.dblclick(box.x + box.width * 0.4, box.y + box.height * 0.3);
   // 카드를 만들면 **그 자리에서 이름부터 받는다** — 그 칸이 카드를 덮으므로 이름을 넣고 닫는다.
   await m.waitForSelector('.km-inline', { timeout: 4000 });
   await m.keyboard.type('크기잴카드');
@@ -1927,6 +1964,43 @@ await step('카드를 만들면 **그 자리에서 바로** 이름을 친다 (�
   const stillName = await m.evaluate(() => JSON.parse(localStorage.getItem(
     'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId)).nodes[0].label);
   if (stillName !== '바로친이름') throw new Error(`? 가 이름에 박혔다: ${JSON.stringify(stillName)}`);
+  await ctx.close();
+});
+
+await step('옆 패널이 첫 카드부터 다 펼쳐지지 않는다 (꾸미는 칸은 접혀 있다)', async () => {
+  // 사용자 검토(2026-08-12): 한 줄 적으려는데 칸 열다섯이 한꺼번에 열렸다.
+  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  const box = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(box.x + box.width * 0.4, box.y + box.height * 0.3);
+  await m.waitForSelector('.km-inline', { timeout: 4000 });
+  await m.keyboard.type('첫카드');
+  await m.keyboard.press('Enter');
+  await m.waitForTimeout(400);
+
+  // 접혀 있을 때: 꾸미는 칸은 **아예 없다**(감춘 것이 아니라 안 그린다 — 덮인 단추를 안 만든다).
+  if (await m.locator('[data-km="edit-shape"]').count() !== 0) throw new Error('모양 칸이 처음부터 펼쳐져 있다');
+  const fields = await m.locator('.km-side .km-field').count();
+  if (fields > 7) throw new Error(`첫 카드인데 칸이 ${fields}개 열려 있다`);
+
+  // 펼치면 나온다. 그리고 실제로 **먹는다**(그리기만 하고 안 붙은 배선은 없는 것과 같다).
+  await m.locator('[data-km="more-toggle"]').click();
+  await m.waitForSelector('[data-km="edit-shape"]', { timeout: 4000 });
+  await m.selectOption('[data-km="edit-shape"]', 'note');
+  await m.waitForFunction(() => JSON.parse(localStorage.getItem(
+    'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId))
+    .nodes[0].shape === 'note', null, { timeout: 4000 });
+
+  // 꾸며 둔 카드는 다음에 열 때 **펼쳐진 채**여야 한다 — 접힌 자리에 내가 한 것이 숨으면 잃어버린 것이다.
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.locator('.ck-node').first().click();
+  await m.waitForSelector('[data-km="edit-shape"]', { timeout: 4000 });
   await ctx.close();
 });
 
