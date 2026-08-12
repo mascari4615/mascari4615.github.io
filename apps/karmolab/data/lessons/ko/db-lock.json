@@ -1,0 +1,106 @@
+{
+  "id": "db-lock",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "「평소엔 빠른데 가끔 30초씩 멈춰요」 — CPU 도 한가하고 쿼리도 단순하다. 대개 **누군가를 기다리는 중**이다."
+    },
+    {
+      "type": "h",
+      "text": "1. 왜 기다리나"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "같은 행을 두 사람이 고칠 때",
+      "text": "A: BEGIN; UPDATE accounts SET balance=... WHERE id=1;   -- 락 획득\nA: (다른 일 하는 중... 외부 API 호출 3초)               -- ★ 락을 쥔 채로!\nB: UPDATE accounts ... WHERE id=1;                      -- A 가 끝날 때까지 대기\n\n트랜잭션 길이 = 남을 세우는 시간\n→ 트랜잭션 안에서 외부 호출·파일 처리·사용자 입력 대기 금지"
+    },
+    {
+      "type": "h",
+      "text": "2. 데드락"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "서로 상대의 것을 기다린다",
+      "text": "A: 1번 락 → 2번 요청\nB: 2번 락 → 1번 요청     → 영원히 대기 → DB 가 한쪽을 강제 종료\n\n해법: 항상 같은 순서로 잠근다 (예: id 오름차순)\n  UPDATE ... WHERE id IN (1,2) 를 정렬해서 처리\n데드락은 재시도 가능한 오류다 — 잡아서 한 번 재시도하는 것이 정석"
+    },
+    {
+      "type": "h",
+      "text": "3. 지금 무엇이 막혀 있나"
+    },
+    {
+      "type": "code",
+      "lang": "sql",
+      "label": "사고 중에 이걸 친다",
+      "text": "-- 대기 중인 것과 그 원인 (PostgreSQL)\nSELECT pid, wait_event_type, wait_event, state,\n       now() - query_start AS 경과, left(query, 80)\n  FROM pg_stat_activity\n WHERE state <> 'idle' ORDER BY 경과 DESC;\n\n-- 누가 누구를 막는지\nSELECT pg_blocking_pids(pid), pid, left(query,60) FROM pg_stat_activity\n WHERE cardinality(pg_blocking_pids(pid)) > 0;\n\n-- 최후: 특정 세션 종료\n-- SELECT pg_terminate_backend(12345);"
+    },
+    {
+      "type": "note",
+      "text": "**`idle in transaction` 이 오래 보이면 그게 범인**이다. 애플리케이션이 트랜잭션을 열어 두고 잊은 상태 — 락도 계속 쥐고 있고, 오래된 행 정리(vacuum)도 막는다. 타임아웃을 걸어라."
+    },
+    {
+      "type": "h",
+      "text": "4. 타임아웃을 걸어라"
+    },
+    {
+      "type": "code",
+      "lang": "sql",
+      "label": "무한 대기 금지",
+      "text": "SET lock_timeout = '3s';                  -- 락을 3초 넘게 기다리면 실패\nSET statement_timeout = '30s';            -- 쿼리 자체 상한\nSET idle_in_transaction_session_timeout = '60s';\n\n-- 실패가 대기보다 낫다: 대기는 연쇄적으로 번지지만 실패는 그 요청에서 끝난다"
+    },
+    {
+      "type": "h",
+      "text": "5. 낙관적 방식으로 피하기"
+    },
+    {
+      "type": "p",
+      "text": "행을 잠그는 대신 **버전 컬럼으로 충돌을 감지**하면 락 대기 자체가 없어진다(앞의 API/동기화 갈래와 같은 방식). 충돌이 드문 경우엔 거의 항상 이쪽이 낫다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "두 세션으로 같은 행을 동시에 수정해 대기를 만들고, 위 조회로 누가 막는지 확인하라."
+    },
+    {
+      "type": "try",
+      "text": "내 앱의 트랜잭션 안에 외부 호출이 있는지 찾아 밖으로 빼라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "트랜잭션 안에서 외부 API 를 부르면?",
+      "choices": [
+        "락을 쥔 채 대기해 다른 요청을 세운다",
+        "속도가 빨라진다",
+        "롤백이 안 된다"
+      ],
+      "answer": 0,
+      "why": "트랜잭션 길이가 곧 남의 대기 시간이다."
+    },
+    {
+      "q": "데드락을 예방하는 기본 규칙은?",
+      "choices": [
+        "항상 같은 순서로 잠근다",
+        "락을 안 쓴다",
+        "타임아웃을 없앤다"
+      ],
+      "answer": 0,
+      "why": "순환 대기가 생기지 않는다."
+    },
+    {
+      "q": "idle in transaction 세션이 오래 남으면?",
+      "choices": [
+        "락 유지와 정리 지연으로 사고가 된다",
+        "아무 문제 없다",
+        "성능이 좋아진다"
+      ],
+      "answer": 0,
+      "why": "타임아웃으로 끊어야 한다."
+    }
+  ]
+}
