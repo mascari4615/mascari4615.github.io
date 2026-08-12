@@ -10,7 +10,7 @@
 
 import { History } from '../../lib/history';
 import { addLayer, createDoc, isPaintable, mergeDown, moveLayer, removeLayer, type Doc, type Node } from './model';
-import { applyBox, bounds, handleAt, hitTest, resizeBox, type Handle } from './geom';
+import { alignTo, applyBox, bounds, fitToDoc, handleAt, hitTest, resizeBox, type Align, type Handle } from './geom';
 import { toSvg } from './svg';
 import { clampSlice, defaultSlice, sliceMeta, type Slice } from './slice';
 import { PARTS, defaultKnobs, type PartName } from './parts';
@@ -133,6 +133,18 @@ function buildBon(container: HTMLElement): void {
         '<div class="bon-row"><label>채우기</label><input type="color" data-fill value="' + esc(fill) + '"></div>' +
         rangeRow('테두리', strokeW, 0, 16, 'strokeW') +
         '<div class="bon-row"><label>선 색</label><input type="color" data-stroke-color value="' + esc(strokeC) + '"></div>' +
+      '</div>' +
+      '<div class="bon-card"><h4>자리</h4>' +
+        '<div class="bon-row bon-align">' +
+          '<button data-align="left" title="왼쪽">&#8676;</button>' +
+          '<button data-align="hcenter" title="가로 가운데">&#8596;</button>' +
+          '<button data-align="right" title="오른쪽">&#8677;</button>' +
+          '<button data-align="top" title="위">&#8679;</button>' +
+          '<button data-align="vcenter" title="세로 가운데">&#8597;</button>' +
+          '<button data-align="bottom" title="아래">&#8681;</button>' +
+        '</div>' +
+        '<div class="bon-row"><button data-fit="0">판에 꽉</button>' +
+          '<button data-fit="8">여백 8</button></div>' +
       '</div>' +
       '<div class="bon-card"><h4>차례</h4>' +
         '<div class="bon-row"><button data-act="up">앞으로</button><button data-act="down">뒤로</button>' +
@@ -429,7 +441,42 @@ function buildBon(container: HTMLElement): void {
   });
 
   side.addEventListener('click', (event) => {
-    const holder = (event.target as HTMLElement).closest<HTMLElement>('[data-act]');
+    const el = event.target as HTMLElement;
+    const node = activeNode();
+
+    const alignBtn = el.closest<HTMLElement>('[data-align]');
+    if (alignBtn && node) {
+      const before = JSON.stringify(node);
+      alignTo(node, doc.w, doc.h, alignBtn.dataset.align as Align);
+      const after = JSON.stringify(node);
+      if (before !== after) {
+        history.push({
+          label: '자리 맞추기',
+          redo: () => Object.assign(node, JSON.parse(after)),
+          undo: () => Object.assign(node, JSON.parse(before))
+        });
+      }
+      repaint();
+      return;
+    }
+
+    const fitBtn = el.closest<HTMLElement>('[data-fit]');
+    if (fitBtn && node) {
+      const before = JSON.stringify(node);
+      fitToDoc(node, doc.w, doc.h, Number(fitBtn.dataset.fit));
+      const after = JSON.stringify(node);
+      if (before !== after) {
+        history.push({
+          label: '판에 맞추기',
+          redo: () => Object.assign(node, JSON.parse(after)),
+          undo: () => Object.assign(node, JSON.parse(before))
+        });
+      }
+      repaint();
+      return;
+    }
+
+    const holder = el.closest<HTMLElement>('[data-act]');
     const act = holder ? holder.dataset.act : undefined;
     if (!act || !selected) return;
     const layer = doc.layers[selected.layer];

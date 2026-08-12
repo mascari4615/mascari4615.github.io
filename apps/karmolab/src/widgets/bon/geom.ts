@@ -126,6 +126,33 @@ export function translate(node: Node, dx: number, dy: number): void {
   }
 }
 
+
+/** 판 기준으로 어디에 붙일까. 「가운데」가 제일 많이 쓰이므로 한 번에 되게 둔다. */
+export type Align = 'left' | 'hcenter' | 'right' | 'top' | 'vcenter' | 'bottom';
+
+/**
+ * 도형을 판 기준으로 민다. **크기는 안 건드린다** — 정렬은 자리 옮기기지 늘이기가 아니다.
+ * (늘여 버리면 애써 맞춘 모서리 둥글기·테두리가 같이 일그러진다.)
+ */
+export function alignTo(node: Node, docW: number, docH: number, how: Align): void {
+  const b = bounds(node);
+  let dx = 0;
+  let dy = 0;
+  if (how === 'left') dx = -b.x;
+  else if (how === 'right') dx = docW - (b.x + b.w);
+  else if (how === 'hcenter') dx = (docW - b.w) / 2 - b.x;
+  else if (how === 'top') dy = -b.y;
+  else if (how === 'bottom') dy = docH - (b.y + b.h);
+  else if (how === 'vcenter') dy = (docH - b.h) / 2 - b.y;
+  translate(node, Math.round(dx), Math.round(dy));
+}
+
+/** 판에 꽉 채우기 — 여백을 남길 수 있다. 부품은 대개 판이 곧 부품 크기다. */
+export function fitToDoc(node: Node, docW: number, docH: number, margin = 0): void {
+  const inner = { x: margin, y: margin, w: Math.max(0, docW - margin * 2), h: Math.max(0, docH - margin * 2) };
+  applyBox(node, inner);
+}
+
 /** 새 네모를 도형에 적는다 — 도형 종류마다 담는 자리가 다르다. */
 export function applyBox(node: Node, box: Box): void {
   if (node.kind === 'rect') {

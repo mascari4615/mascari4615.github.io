@@ -177,6 +177,42 @@ const { defaultSlice, clampSlice, slicePieces, stretch, sliceMeta } = mod;
   check('처음 값은 판 안에 있다', d.left + d.right <= 100 && d.top + d.bottom <= 40);
 }
 
+
+/* ── 정렬·맞추기 (9단계) ────────────────────── */
+const { alignTo, fitToDoc } = mod;
+{
+  const mk = () => ({ kind: 'rect', x: 5, y: 7, w: 40, h: 20, radius: 6 });
+
+  const c = mk();
+  alignTo(c, 200, 100, 'hcenter');
+  check('가운데로 밀면 좌우 여백이 같다', Math.abs(c.x - (200 - 40) / 2) <= 1, String(c.x));
+  check('정렬은 크기를 안 건드린다', c.w === 40 && c.h === 20 && c.radius === 6);
+
+  const l = mk(); alignTo(l, 200, 100, 'left');
+  const r = mk(); alignTo(r, 200, 100, 'right');
+  const t = mk(); alignTo(t, 200, 100, 'top');
+  const bm = mk(); alignTo(bm, 200, 100, 'bottom');
+  check('왼쪽 끝에 붙는다', l.x === 0, String(l.x));
+  check('오른쪽 끝에 붙는다', r.x + r.w === 200, String(r.x + r.w));
+  check('위에 붙는다', t.y === 0, String(t.y));
+  check('아래에 붙는다', bm.y + bm.h === 100, String(bm.y + bm.h));
+
+  // 무리도 통째로 밀린다(자식이 각자 자리를 들고 있다)
+  const g = PARTS.button({ ...k, w: 60, h: 30 });
+  alignTo(g, 200, 100, 'right');
+  const gb = bounds(g);
+  check('무리도 통째로 밀린다', Math.abs(gb.x + gb.w - 200) <= 1, String(gb.x + gb.w));
+
+  const f = mk();
+  fitToDoc(f, 200, 100, 8);
+  check('여백을 남기고 꽉 채운다', f.x === 8 && f.y === 8 && f.w === 184 && f.h === 84, JSON.stringify(f));
+  check('꽉 채우면 둥글기가 반쪽을 안 넘는다', f.radius <= Math.min(f.w, f.h) / 2);
+
+  const tight = mk();
+  fitToDoc(tight, 10, 10, 20);   // 여백이 판보다 크다
+  check('여백이 판보다 커도 음수 크기가 안 나온다', tight.w >= 0 && tight.h >= 0, JSON.stringify(tight));
+}
+
 rmSync(out, { recursive: true, force: true });
 console.log(failed ? `\n[test-bon] 실패 ${failed}건` : '\n[test-bon] ✓ 문서 · 부품 3종 · 손잡이 반응 · 변형 묶음 · SVG 정합 · 극단값');
 process.exit(failed ? 1 : 0);

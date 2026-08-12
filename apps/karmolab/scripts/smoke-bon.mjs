@@ -248,6 +248,53 @@ check('선반이 안 열려도 판은 살아 있다', stillWorks);
 await page.evaluate(() => { const s = document.querySelector('.bon-shelf'); if (s) s.hidden = true; });
 
 
+
+// ── 정렬 ──────────────────────────────────
+// 선반이 열린 채면 판을 눌러도 도형이 안 생긴다(선반이 위를 덮는다) — 먼저 확실히 닫는다.
+await page.evaluate(() => { const shelf = document.querySelector('.bon-shelf'); if (shelf) shelf.hidden = true; });
+await page.keyboard.press('r');
+const a1 = at(0.1, 0.1);
+const a2 = at(0.4, 0.5);
+await page.mouse.move(a1.x, a1.y);
+await page.mouse.down();
+await page.mouse.move(a2.x, a2.y, { steps: 6 });
+await page.mouse.up();
+await page.waitForTimeout(250);
+check('정렬 검사용 도형이 골라져 있다', await page.evaluate(() => !!document.querySelector('.bon-side input[data-box="x"]')));
+
+const readBox = async () => ({
+  x: Number(await page.locator('.bon-side input[data-box="x"]').inputValue()),
+  w: Number(await page.locator('.bon-side input[data-box="w"]').inputValue())
+});
+const docW = Number(await page.locator('.bon-bar input[data-doc-w]').inputValue());
+
+await page.locator('.bon-side [data-align="right"]').click();
+await page.waitForTimeout(200);
+let box = await readBox();
+check('오른쪽에 붙인다', Math.abs(box.x + box.w - docW) <= 1, JSON.stringify(box) + ' 판 ' + docW);
+
+const wBefore = box.w;
+await page.locator('.bon-side [data-align="hcenter"]').click();
+await page.waitForTimeout(200);
+box = await readBox();
+check('가운데로 옮겨도 크기는 그대로', box.w === wBefore, box.w + ' vs ' + wBefore);
+check('가운데면 좌우가 같다', Math.abs(box.x - (docW - box.w) / 2) <= 1, JSON.stringify(box));
+
+await page.locator('.bon-side [data-fit="8"]').click();
+await page.waitForTimeout(200);
+box = await readBox();
+check('여백 8 로 꽉 채운다', box.x === 8 && box.w === docW - 16, JSON.stringify(box));
+
+// 되돌리면 고른 것이 풀려 오른쪽 패널이 빈다 — 그림 쪽에서 확인한다.
+const lastRectWidth = () => page.evaluate(() => {
+  const rects = [...document.querySelectorAll('.bon-art svg rect')];
+  return rects.length ? Number(rects[rects.length - 1].getAttribute('width')) : -1;
+});
+const fitted = await lastRectWidth();
+await page.locator('.bon-bar [data-act="undo"]').click();
+await page.waitForTimeout(250);
+check('맞추기도 되돌려진다', (await lastRectWidth()) !== fitted, fitted + ' → ' + (await lastRectWidth()));
+
 // ── 펜 ────────────────────────────────────
 await page.keyboard.press('p');
 await page.waitForTimeout(120);
@@ -305,5 +352,5 @@ check('콘솔 오류 없음', errors.length === 0, errors.slice(0, 3).join(' | '
 
 await browser.close();
 server.close();
-console.log(problems.length ? `\n[smoke-bon] 실패 ${problems.length}건` : '\n[smoke-bon] ✓ 그리기 · 고르기 · 옮기기 · 숫자 반영 · 되돌리기 · 안내선 분리 · 레이어 · 9-slice · 선 · 펜 · 시작점 · 선반');
+console.log(problems.length ? `\n[smoke-bon] 실패 ${problems.length}건` : '\n[smoke-bon] ✓ 그리기 · 고르기 · 옮기기 · 숫자 반영 · 되돌리기 · 안내선 분리 · 레이어 · 9-slice · 선 · 펜 · 시작점 · 정렬 · 선반');
 process.exit(problems.length ? 1 : 0);
