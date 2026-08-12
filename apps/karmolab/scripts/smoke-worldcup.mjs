@@ -46,8 +46,14 @@ if (packCount > 0) {
 
   // ② 8강으로 — 라운드 칸이 있으면 8강을 고른다(오늘의 월드컵은 라운드가 고정이라 칸이 없다).
   const eight = page.locator('#wcRounds button', { hasText: '8강' });
-  if (await eight.count()) await eight.first().click();
+  /* ★ **주소가 바뀌는 클릭은 기다리지 않는다** (2026-08-13). 이 칩을 누르면 주소에 `#worldcup`
+     이 붙는데, 그러면 Playwright 가 「화면 이동이 끝나기」를 기다리다 시간 초과로 죽는다 —
+     칩은 멀쩡히 눌렸고 판도 그대로다(실측: 로그에 「navigated to …#worldcup」만 남고 끝). */
+  if (await eight.count()) await eight.first().click({ noWaitAfter: true }).catch(() => {});
 
+  /* 표를 받아야 라운드 칸이 생긴다 — 그 전에 누르면 아무 일도 안 난 것처럼 보인다.
+     사람도 그렇게 겪으므로 화면에는 「받는 중」을 띄우게 했고, 검사는 준비될 때까지 기다린다. */
+  await page.waitForSelector('#wcRounds button', { timeout: 30000 }).catch(() => {});
   await page.click('#wcStart');
   await page.waitForSelector('#wcPlay:not([hidden])', { timeout: 30000 }).catch(async () => {
     /* 왜 안 열렸는지 같이 남긴다 — 「안 열린다」만으로는 표를 못 받은 것인지, 라운드가 없는

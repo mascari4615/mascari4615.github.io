@@ -435,8 +435,13 @@ const BUILTIN = [
 
           async function start(): Promise<void> {
             if (!picked) return;
+            /* ★ **받는 동안 아무 말이 없으면 고장으로 보인다** (2026-08-13).
+               표(1025장짜리도 있다)를 받아 오는 사이 화면은 그대로고 단추만 눌리지 않는다 —
+               실측으로 「시작을 눌렀는데 아무 일도 안 난다」가 됐다. 받는 중이라고 말해 준다. */
             $('wcStart').setAttribute('disabled', 'true');
+            $('wcPackMsg').textContent = t('worldcup.loading', undefined, '표를 받는 중입니다…');
             const all = await runnersFor(picked);
+            $('wcPackMsg').textContent = '';
             $('wcStart').removeAttribute('disabled');
             if (all.length < 4) {
               $('wcPackMsg').textContent = t('worldcup.t22');
