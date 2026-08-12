@@ -1765,6 +1765,21 @@ const Toolbox = (() => {
      * 도구 상세 페이지에서는 그 도구만 로드되고 묶음이 없으므로, 여기서 나온 묶음이
      * 실제로 로드돼 있을 때만 옮긴다.
      */
+    /** 묶음으로 옮겨 가며 「원래 찾던 도구」 — 껍데기가 그려질 때 집어 간다 (TASK-KL-273) */
+    let bundleRequest = null;
+
+    /**
+     * 찾아온 도구를 집어 간다. **한 번만 준다** — 두 번 열면 사람이 뒤로 갔다가 돌아왔을 때
+     * 안 고른 도구가 저 혼자 열린다.
+     */
+    function takeBundleRequest(bundleId = '') {
+        if (!bundleRequest) return null;
+        if (bundleId && bundleRequest.bundle !== bundleId) return null;
+        const wanted = bundleRequest.tool;
+        bundleRequest = null;
+        return wanted;
+    }
+
     function findBundleFor(id) {
         const meta = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID) || {};
         const bundleId = meta[id] && meta[id].bundle;
@@ -1803,6 +1818,16 @@ const Toolbox = (() => {
             // 뒤이은 묶음 호출은 안 적게 막는다.
             window.KarmoPalette?.noteOpen(pageId);
             switchPage(bundleId, { ...opts, skipRecent: true });
+            /* 재료 화면(PDF·이미지·글·데이터·수·때·영상·소리)은 **탭이 아니라 할 일 격자**다
+             * (TASK-KL-273). 그래서 아래 `switchTab(도구id)` 가 찾을 탭이 없다 — 찾아온 도구가
+             * 조용히 안 열리고 재료 첫 화면만 남는다(검사 일곱 개가 전부 빨갰다).
+             * 누가 무엇을 찾아왔는지를 여기 적어 두고 알린다. 껍데기가 그려질 때 집어 간다. */
+            bundleRequest = { bundle: bundleId, tool: pageId };
+            try {
+                window.dispatchEvent(new CustomEvent('karmolab-open-in-bundle', { detail: bundleRequest }));
+            } catch (_) {
+                /* 알림 한 번 못 쏜 것과 안 열린 것은 다른 무게다 — 적어 둔 것으로 충분하다 */
+            }
             /* 그 탭이 **아직 없을 수 있다** (TASK-KL-133).
              * 묶음 위젯은 열 때 받아 오므로, 주소로 바로 들어온 경우 여기서 탭 단추가 아직
              * 안 그려져 있다 — 그러면 이 호출이 조용히 아무 일도 안 하고 첫 탭이 열린 채로
@@ -2582,6 +2607,7 @@ const Toolbox = (() => {
 
     return {
         register, registerDeferred, init, initTheme, switchPage, switchTab, getTools, mountTool, findBundleFor,
+        takeBundleRequest,
         onDispose,
         // 결과를 옆 도구로 넘기기 (TASK-KL-133)
         offerNext, result, offerResult, takeResult, peekResult, toolsAccepting, onHandoff,
