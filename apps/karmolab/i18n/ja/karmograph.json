@@ -117,10 +117,10 @@
   "karmograph.t115": "接続を削除",
   "karmograph.t116": "線の上に書く言葉 (空なら出ません)",
   "karmograph.t117": "保存しました",
-  "karmograph.t118": "まわり全部",
-  "karmograph.opt.0": "選んだものだけ",
-  "karmograph.opt.1": "1次",
-  "karmograph.opt.2": "2次",
+  "karmograph.t118": "表示: 隣接すべて",
+  "karmograph.opt.0": "表示: 選んだものだけ",
+  "karmograph.opt.1": "表示: 1ホップ",
+  "karmograph.opt.2": "表示: 2ホップ",
   "karmograph.t119": "背景の模様",
   "karmograph.opt.dots": "· 点",
   "karmograph.opt.grid": "▦ 方眼",
@@ -634,5 +634,12 @@
   "karmograph.next.oneTouch": "カードをもう1枚 — 空いた所をダブルタップ。",
   "karmograph.next.link": "つないでみましょう — カード右の点を別のカードへドラッグ。",
   "karmograph.next.linkTouch": "つないでみましょう — カード右の点を別のカードへドラッグ。",
-  "karmograph.btn.newMap": "新しい板"
+  "karmograph.btn.newMap": "新しい板",
+  "karmograph.undoWhat": "元に戻す: {what} (Ctrl+Z)",
+  "karmograph.redoWhat": "やり直す: {what} (Ctrl+Y)",
+  "karmograph.act.edit": "編集",
+  "karmograph.act.move": "移動",
+  "karmograph.act.clear": "全消去",
+  "karmograph.act.add": "カード追加",
+  "karmograph.act.rename": "名前変更"
 }

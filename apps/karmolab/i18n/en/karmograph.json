@@ -117,10 +117,10 @@
   "karmograph.t115": "Delete the connection",
   "karmograph.t116": "Words to write on the line (empty to hide)",
   "karmograph.t117": "Saved",
-  "karmograph.t118": "All neighbours",
-  "karmograph.opt.0": "Only the chosen",
-  "karmograph.opt.1": "1 hop",
-  "karmograph.opt.2": "2 hops",
+  "karmograph.t118": "Show: all neighbours",
+  "karmograph.opt.0": "Show: selected only",
+  "karmograph.opt.1": "Show: 1 hop",
+  "karmograph.opt.2": "Show: 2 hops",
   "karmograph.t119": "Background pattern",
   "karmograph.opt.dots": "· dots",
   "karmograph.opt.grid": "▦ grid",
@@ -634,5 +634,12 @@
   "karmograph.next.oneTouch": "Add one more card — double-tap empty space.",
   "karmograph.next.link": "Now connect them — drag the dot on a card onto another card.",
   "karmograph.next.linkTouch": "Now connect them — drag the dot on a card onto another card.",
-  "karmograph.btn.newMap": "New map"
+  "karmograph.btn.newMap": "New map",
+  "karmograph.undoWhat": "Undo: {what} (Ctrl+Z)",
+  "karmograph.redoWhat": "Redo: {what} (Ctrl+Y)",
+  "karmograph.act.edit": "edit",
+  "karmograph.act.move": "move",
+  "karmograph.act.clear": "clear all",
+  "karmograph.act.add": "add card",
+  "karmograph.act.rename": "rename"
 }

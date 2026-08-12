@@ -117,10 +117,10 @@
   "karmograph.t115": "연결 삭제",
   "karmograph.t116": "선 위에 쓸 말 (비우면 안 보임)",
   "karmograph.t117": "저장됨",
-  "karmograph.t118": "이웃 전체",
-  "karmograph.opt.0": "고른 것만",
-  "karmograph.opt.1": "1다리",
-  "karmograph.opt.2": "2다리",
+  "karmograph.t118": "보기: 이웃 전체",
+  "karmograph.opt.0": "보기: 고른 것만",
+  "karmograph.opt.1": "보기: 1다리까지",
+  "karmograph.opt.2": "보기: 2다리까지",
   "karmograph.t119": "배경 무늬",
   "karmograph.opt.dots": "· 점",
   "karmograph.opt.grid": "▦ 모눈",
@@ -634,5 +634,12 @@
   "karmograph.next.oneTouch": "카드를 하나 더 만들어 보세요 — 빈 곳을 두 번 두드리기.",
   "karmograph.next.link": "이제 이어 보세요 — 카드 오른쪽 점을 끌어 다른 카드에 놓습니다.",
   "karmograph.next.linkTouch": "이제 이어 보세요 — 카드 오른쪽 점을 끌어 다른 카드에 놓습니다.",
-  "karmograph.btn.newMap": "새 판"
+  "karmograph.btn.newMap": "새 판",
+  "karmograph.undoWhat": "되돌리기: {what} (Ctrl+Z)",
+  "karmograph.redoWhat": "다시 하기: {what} (Ctrl+Y)",
+  "karmograph.act.edit": "고침",
+  "karmograph.act.move": "옮기기",
+  "karmograph.act.clear": "전체 삭제",
+  "karmograph.act.add": "카드 만들기",
+  "karmograph.act.rename": "이름 바꾸기"
 }

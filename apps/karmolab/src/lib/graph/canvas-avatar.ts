@@ -25,9 +25,10 @@ export function faceGeometry(
   node: GraphNode,
   effH: number,
   centered: boolean,
+  kindIcon = '',
 ): { cx: number; cy: number; r: number } | null {
   const hasAvatar = Boolean(node.avatar);
-  const hasInitial = !hasAvatar && Boolean((node.label ?? '').trim().slice(0, 1));
+  const hasInitial = !hasAvatar && Boolean(kindIcon || (node.label ?? '').trim().slice(0, 1));
   if (!hasAvatar && !hasInitial) return null;
   const r = hasAvatar ? 12 : 11;
   const cx = centered ? node.w / 2 : hasAvatar ? 22 : 21;
@@ -50,14 +51,20 @@ centered: boolean,
 theme: { nodeText: string },
 /** 잘라내기 모양 id 앞머리 — 한 페이지에 캔버스가 둘이면 id 가 부딪힌다. */
 uid = 'km',
+/**
+ * 이 종류의 그림(이모지). 있으면 **이름 첫 글자 대신** 이걸 넣는다 —
+ * 첫 글자는 「누구」는 말해도 「무엇(인물·장소·사건)」은 말하지 않는다. 종류가 색으로만
+ * 구분되던 자리다(2026-08-12 사용자 검토: 색맹·흑백 인쇄·작은 화면에서 전부 같아 보인다).
+ */
+kindIcon = '',
 ): SVGGElement | null {
   const avatar = node.avatar;
   // 얼굴을 안 정했으면 **이름 첫 글자**를 옅은 원에 넣는다. 아무것도 없는 자리보다
   // 「누구인지」가 훨씬 빨리 읽힌다(빈 상태도 설계 대상이다).
   if (!avatar) {
-    const initial = (node.label ?? '').trim().slice(0, 1);
+    const initial = kindIcon || (node.label ?? '').trim().slice(0, 1);
     if (!initial) return null;
-    const { cx: cx0, cy: cy0, r: r0 } = faceGeometry(node, effH, centered)!;
+    const { cx: cx0, cy: cy0, r: r0 } = faceGeometry(node, effH, centered, kindIcon)!;
     const g0 = document.createElementNS(SVG_NS, 'g') as SVGGElement;
     g0.setAttribute('pointer-events', 'none');
     const disc0 = document.createElementNS(SVG_NS, 'circle');

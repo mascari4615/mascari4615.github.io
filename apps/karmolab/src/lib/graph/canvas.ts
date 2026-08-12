@@ -108,6 +108,8 @@ export interface GraphCanvasOptions {
   persistAdapter?: GraphPersistAdapter;
   /** node.kind → 색. 미지정 kind 는 defaultKindColor. */
   kindColors?: Record<string, string>;
+  /** 종류별 그림(이모지) — 얼굴을 안 정한 카드의 동그라미에 들어간다. */
+  kindIcons?: Record<string, string>;
   defaultKindColor?: string;
   /** spec._edge_kinds 에 없는 edge.kind 의 fallback 정의. */
   edgeKinds?: Record<string, EdgeKindDef>;
@@ -231,6 +233,7 @@ export class GraphCanvas {
   // ── 주입된 seam ────────────────────────────────────────────────────────────
   private persist: GraphPersistAdapter;
   private kindColors: Record<string, string>;
+  private kindIcons: Record<string, string>;
   private defaultKindColor: string;
   private edgeKindFallback: Record<string, EdgeKindDef>;
   private theme: Required<GraphCanvasTheme>;
@@ -310,6 +313,7 @@ export class GraphCanvas {
     this.container = container;
     this.persist = options.persistAdapter ?? NULL_PERSIST_ADAPTER;
     this.kindColors = options.kindColors ?? {};
+    this.kindIcons = options.kindIcons ?? {};
     this.defaultKindColor = options.defaultKindColor ?? DEFAULT_KIND_COLOR;
     this.edgeKindFallback = options.edgeKinds ?? {};
     this.theme = { ...DEFAULT_THEME, ...(options.theme ?? {}) };
@@ -1160,7 +1164,7 @@ export class GraphCanvas {
    * clip id 는 캔버스 uid + 노드 id 로 만든다 — 한 페이지에 캔버스가 둘 이상 떠도 안 섞이게.
    */
   private buildNodeAvatar(node: GraphNode, effH: number, kindColor: string, centered: boolean): SVGGElement | null {
-    return buildNodeAvatar(node, effH, kindColor, centered, this.theme, this.uid);
+    return buildNodeAvatar(node, effH, kindColor, centered, this.theme, this.uid, this.kindIcons[node.kind] ?? '');
   }
 
   private renderEphemeralLayer(): void {

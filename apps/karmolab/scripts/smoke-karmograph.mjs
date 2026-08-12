@@ -146,7 +146,8 @@ await step('저장되면 「저장됨」이 잠깐 뜬다', async () => {
 });
 await step('이름 입력이 노드에 반영', async () => {
   await page.fill('[data-km="edit-label"]', '욘');
-  await page.waitForFunction(() => document.querySelector('.ck-node text')?.textContent === '욘', null, { timeout: 4000 });
+  await page.waitForFunction(() => [...document.querySelectorAll('.ck-node text')]
+    .some((t) => t.textContent === '욘'), null, { timeout: 4000 });
 });
 await step('두 번째 노드 + 손잡이 드래그로 선 잇기', async () => {
   const box = await page.locator('.km-canvas').boundingBox();
@@ -248,14 +249,19 @@ await step('내 용어 패널에서 관계 종류 추가', async () => {
   await page.waitForSelector('[data-term-edge]', { timeout: 4000 });
   await page.click('[data-km="t-close"]');
 });
-await step('얼굴을 안 정해도 첫 글자가 보인다', async () => {
+await step('얼굴을 안 정한 카드는 **종류 그림**을 단다 (색만으로는 안 갈린다)', async () => {
+  // 예전에는 이름 첫 글자를 넣었다. 그런데 이름은 **바로 옆에 글자로** 있고, 종류는 색 말고는
+  // 어디에도 없었다 — 색맹·흑백 인쇄·작은 화면에서 인물·장소·사건이 전부 같아 보인다
+  // (2026-08-12 사용자 검토). 그래서 동그라미는 「무엇인지」를 맡는다.
   await page.waitForFunction(() => {
     const g = document.querySelector('.ck-node');
     if (!g) return false;
-    const label = g.querySelector('text');
-    const first = (label?.textContent || '').trim().slice(0, 1);
-    if (!first) return false;
-    return [...g.querySelectorAll('text')].some((t) => t.textContent === first && t.getAttribute('text-anchor') === 'middle');
+    const mid = [...g.querySelectorAll('text')].find((t) => t.getAttribute('text-anchor') === 'middle');
+    const name = (g.querySelector('text')?.textContent || '').trim();
+    if (!mid) return false;
+    const icon = (mid.textContent || '').trim();
+    // 이름 첫 글자가 아니라 **그림**이어야 한다(이름이 「욘」이면 「욘」이 아니어야 한다).
+    return Boolean(icon) && icon !== name.slice(0, 1);
   }, null, { timeout: 4000 });
 });
 await step('설명을 적으면 카드에 📄 가 붙는다', async () => {
@@ -1717,11 +1723,12 @@ await step('카드를 끌면 이웃 카드의 줄에 붙고, 맞춘 줄이 뜬�
   await m.mouse.click(box.x + box.width * 0.8, box.y + box.height * 0.85);
   // 두 번 누르기의 첫 눌림이 「고른 것 풀기」로 먹히는 판이 있다 — 한 번은 다시 눌러 본다.
   const two = () => m.locator('.ck-node').count().then((n) => n >= 2);
-  await m.mouse.dblclick(box.x + box.width * 0.55, box.y + box.height * 0.6);
+  // 판 아래쪽에 만들면 카드가 화면 맨 밑(떠 있는 것들 아래)으로 가 안 잡힌다 — 위쪽에 만든다.
+  await m.mouse.dblclick(box.x + box.width * 0.55, box.y + box.height * 0.45);
   await shutInline();
   await m.waitForTimeout(400);
   // 두 번 누르기의 첫 눌림이 「고른 것 풀기」로 먹히는 판이 있다 — 다시 누르면 **이름칸도 다시 뜬다**.
-  if (!(await two())) { await m.mouse.dblclick(box.x + box.width * 0.55, box.y + box.height * 0.6); await shutInline(); }
+  if (!(await two())) { await m.mouse.dblclick(box.x + box.width * 0.55, box.y + box.height * 0.45); await shutInline(); }
   try {
     await m.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 2, null, { timeout: 4000 });
   } catch {
@@ -2065,6 +2072,36 @@ await step('첫 카드를 만든 뒤에도 **다음 걸음**이 한 줄 남는�
   await m.waitForSelector('.km-canvas', { timeout: 8000 });
   await m.waitForTimeout(900);
   if (await m.locator('.km-next').count() !== 0) throw new Error('선을 이었는데도 다음 걸음 안내가 남아 있다');
+  await ctx.close();
+});
+
+await step('되돌리기 단추가 **무엇을** 되돌리는지 말하고, 판 이름은 이름 옆에서 바꾼다', async () => {
+  // 사용자 검토(2026-08-12): 화살표만 있으면 무엇이 되돌아가는지 모른 채 눌러야 한다 — 그래서 안 누른다.
+  // 판 이름 바꾸기는 ⋯ 서랍 안에만 있어 이름을 보면서는 못 찾았다.
+  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  const box = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(box.x + box.width * 0.4, box.y + box.height * 0.3);
+  await m.waitForSelector('.km-inline', { timeout: 4000 });
+  await m.keyboard.type('되돌릴카드');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => {
+    const el = document.querySelector('[data-km="undo"]');
+    return el && !el.disabled && /:/.test(el.title || '');
+  }, null, { timeout: 5000 });
+  const tip = await m.locator('[data-km="undo"]').getAttribute('title');
+  if (!/이름|만들기|고침|rename|add|edit/.test(String(tip))) throw new Error(`되돌리기 단추가 대상을 안 말한다: ${tip}`);
+
+  // 판 이름 바꾸기 — 이름 옆 ✎ 가 서랍의 그것과 **같은 길**이어야 한다.
+  m.once('dialog', (d) => d.accept('바뀐 판 이름'));
+  await m.locator('[data-km="map-rename2"]').click();
+  await m.waitForFunction(() => [...document.querySelectorAll('[data-km="maps"] option')]
+    .some((o) => o.textContent.includes('바뀐 판 이름')), null, { timeout: 4000 });
   await ctx.close();
 });
 
