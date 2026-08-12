@@ -1,0 +1,17 @@
+{
+  "papermap.tab": "Map",
+  "papermap.label.query": "Title or keywords",
+  "papermap.btn.search": "Search",
+  "papermap.btn.export": "Export to canvas",
+  "papermap.legend": "Bigger = more cited (the ground of the field) · Left = older",
+  "papermap.cited": "{n} citations",
+  "papermap.map.title": "Standing on {n} papers",
+  "papermap.status.idle": "Search for a paper",
+  "papermap.status.searching": "Searching…",
+  "papermap.status.hits": "Found {n} — pick one",
+  "papermap.status.none": "Nothing found",
+  "papermap.status.loading": "Fetching what it stands on…",
+  "papermap.status.norefs": "This paper has no public reference list",
+  "papermap.status.done": "Map drawn",
+  "papermap.status.exported": "Exported as a canvas file — open it in KarmoGraph"
+}

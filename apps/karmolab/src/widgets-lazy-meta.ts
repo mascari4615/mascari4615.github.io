@@ -1481,6 +1481,15 @@ window.KARMOLAB_LAZY_META = [
   },
 
   {
+    id: 'papermap',
+    get title() { return t('widgets.papermap.title', undefined, "논문 지도"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.papermap.desc', undefined, "논문 하나가 무엇 위에 서 있는지 지도로 봅니다. 크기가 인용 수, 왼쪽이 옛 논문이라 무엇부터 읽을지가 한눈에 보입니다"); },
+    layout: 'wide',
+    icon: '<circle cx="12" cy="6" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="5" cy="18" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="18" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="19" cy="18" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 9v6M11 8.6L6.3 15.8M13 8.6l4.7 7.2" stroke="currentColor" stroke-width="1.4" fill="none"/>',
+    lazyScriptPaths: ['tools/papermap']
+  },
+  {
     id: 'burnnote',
     get title() { return t('widgets.burnnote.title', undefined, "사라지는 쪽지"); },
     category: 'tool',

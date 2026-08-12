@@ -1,0 +1,17 @@
+{
+  "papermap.tab": "地図",
+  "papermap.label.query": "論文タイトルや語",
+  "papermap.btn.search": "探す",
+  "papermap.btn.export": "キャンバスへ書き出す",
+  "papermap.legend": "大きい = よく引用された（分野の土台）· 左 = 古い論文",
+  "papermap.cited": "引用 {n}",
+  "papermap.map.title": "{n}編の上に立っています",
+  "papermap.status.idle": "論文を探してみてください",
+  "papermap.status.searching": "探しています…",
+  "papermap.status.hits": "{n}編見つかりました — 一つ選んでください",
+  "papermap.status.none": "見つかりませんでした",
+  "papermap.status.loading": "土台になった論文を取得中…",
+  "papermap.status.norefs": "この論文の参考文献は公開されていません",
+  "papermap.status.done": "地図を描きました",
+  "papermap.status.exported": "キャンバスファイルに書き出しました — カルモグラフで開けます"
+}
