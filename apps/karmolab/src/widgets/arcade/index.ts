@@ -10,9 +10,11 @@ import { gomoku } from './games/gomoku';
 import { four } from './games/four';
 import { memory } from './games/memory';
 import { hitblow } from './games/hitblow';
+import { reversi } from './games/reversi';
+import { dots } from './games/dots';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory, hitblow];
+export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory, hitblow, reversi, dots];
 
 export const gameById = (id: string): GameDef<any, any> | undefined => GAMES.find((g) => g.id === id);
 

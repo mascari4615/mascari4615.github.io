@@ -41,5 +41,13 @@
   "arcade.hitblow.aria": "Three digits",
   "arcade.hitblow.solved": "{who} cracked it on try {n}",
   "arcade.hitblow.none": "Nobody cracked it",
-  "arcade.hitblow.closest": "{who} came closest"
+  "arcade.hitblow.closest": "{who} came closest",
+  "arcade.game.reversi.name": "Renegade",
+  "arcade.game.reversi.desc": "Everything you bracket turns yours",
+  "arcade.reversi.win": "{who} — {a} to {b}",
+  "arcade.reversi.draw": "{n} all — a draw",
+  "arcade.game.dots.name": "Dots and Boxes",
+  "arcade.game.dots.desc": "Draw lines, close boxes. A box buys another turn",
+  "arcade.dots.win": "{who} — {n} boxes",
+  "arcade.dots.draw": "Split evenly"
 }
