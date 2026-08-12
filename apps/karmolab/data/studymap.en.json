@@ -80,6 +80,10 @@
     "karmolab": {
       "title": "My project (KarmoLab)",
       "lead": "Not general knowledge — this repository: from first look to changing it yourself"
+    },
+    "audio": {
+      "title": "Sound & audio",
+      "lead": "The most underrated half — mute it and the same screen becomes a different thing"
     }
   },
   "stages": {
@@ -130,7 +134,10 @@
     "lang-b": "What the language guarantees",
     "kl-a": "Getting in",
     "kl-b": "How KarmoLab is built",
-    "kl-c": "Fix it and finish it"
+    "kl-c": "Fix it and finish it",
+    "audio-a": "Know the sound",
+    "audio-b": "Make it and bring it in",
+    "audio-c": "Inside the program"
   },
   "nodes": {
     "web-html": {
@@ -1277,6 +1284,70 @@
       "title": "08. Finish one small widget",
       "why": "From reading to changing: one line, save, typecheck, bundle — the whole lap.",
       "check": "Your change is on screen and the checks are green"
+    },
+    "audio-basics": {
+      "title": "Waveform, frequency, decibels",
+      "why": "To turn \"it sounds wrong\" into words you need a minimum vocabulary.",
+      "check": "You describe a problem separating pitch from loudness",
+      "links": [
+        "Ableton Learning Synths"
+      ]
+    },
+    "audio-digital": {
+      "title": "Digital audio — sample rate and bit depth",
+      "why": "Once you know what 44.1kHz/16-bit means, crackles and clipping stop being mysterious.",
+      "check": "You tell aliasing from clipping",
+      "links": [
+        "Digital audio primer (video)"
+      ]
+    },
+    "audio-format": {
+      "title": "Formats and compression — wav, ogg, mp3",
+      "why": "Size, latency and quality trade against each other, and games and the web choose differently.",
+      "check": "You pick different formats for SFX and music, with reasons",
+      "links": [
+        "MDN audio codec guide"
+      ]
+    },
+    "audio-record": {
+      "title": "Recording, microphones, noise",
+      "why": "90% of good sound is decided while recording. Fixing it later is expensive.",
+      "check": "You record one clean take yourself",
+      "links": [
+        "Audacity manual"
+      ]
+    },
+    "audio-loudness": {
+      "title": "Levels, loudness, basic mastering",
+      "why": "\"Too quiet / too loud\" is usually loudness, not peak level.",
+      "check": "You measure LUFS and hit a target",
+      "links": [
+        "Loudness standard (EBU R128)"
+      ]
+    },
+    "audio-music": {
+      "title": "The minimum music theory",
+      "why": "Even without composing, key, tempo and repetition let you choose and cut assets.",
+      "check": "You cut a loop on bar boundaries so it repeats seamlessly",
+      "links": [
+        "Ableton Learning Music"
+      ]
+    },
+    "audio-game": {
+      "title": "Game audio — mix, 3D, repetition fatigue",
+      "why": "The same SFX repeated tires the ear first. Hence randomization and mix groups.",
+      "check": "You randomize pitch/volume slightly and split volume by group",
+      "links": [
+        "Unity Audio Mixer"
+      ]
+    },
+    "audio-web": {
+      "title": "Web Audio API",
+      "why": "The browser standard for sound — with an autoplay policy that silently blocks the first sound.",
+      "check": "You play after a user gesture and control volume",
+      "links": [
+        "MDN Web Audio API"
+      ]
     }
   }
 }

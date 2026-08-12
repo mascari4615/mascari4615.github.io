@@ -1,0 +1,104 @@
+{
+  "id": "audio-web",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "브라우저에서 소리를 다루는 표준. 가장 먼저 만나는 벽은 기술이 아니라 **자동 재생 정책**이다."
+    },
+    {
+      "type": "h",
+      "text": "1. 사용자 제스처 이후에"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "첫 소리는 클릭 뒤에",
+      "text": "let ctx;\nbutton.addEventListener('click', async () => {\n  ctx ??= new AudioContext();\n  if (ctx.state === 'suspended') await ctx.resume();   // 정책 때문에 멈춰 있다\n  play();\n});"
+    },
+    {
+      "type": "note",
+      "text": "「소리가 안 나요」의 대부분이 이것이다. `AudioContext` 가 `suspended` 상태인지 먼저 확인하라."
+    },
+    {
+      "type": "h",
+      "text": "2. 노드를 잇는다"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "소스 → 처리 → 출력",
+      "text": "const res = await fetch('/sfx/hit.ogg');\nconst buf = await ctx.decodeAudioData(await res.arrayBuffer());\n\nconst src = ctx.createBufferSource();\nsrc.buffer = buf;\nsrc.playbackRate.value = 0.95 + Math.random() * 0.1;   // 피치 랜덤화\n\nconst gain = ctx.createGain();\ngain.gain.value = 0.8;\n\nsrc.connect(gain).connect(ctx.destination);\nsrc.start();"
+    },
+    {
+      "type": "h",
+      "text": "3. 정확한 타이밍"
+    },
+    {
+      "type": "p",
+      "text": "`setTimeout` 은 리듬용으로 부정확하다. **`ctx.currentTime` 기준으로 미리 예약**하라 — `src.start(ctx.currentTime + 0.5)`. 시퀀서는 「조금 앞서 예약하는 루프」로 만든다."
+    },
+    {
+      "type": "h",
+      "text": "4. 볼륨은 부드럽게"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "값을 즉시 바꾸면 「툭」 소리가 난다",
+      "text": "gain.gain.setTargetAtTime(0, ctx.currentTime, 0.02);   // 20ms 로 부드럽게 페이드\n// linearRampToValueAtTime · exponentialRampToValueAtTime 도 자주 쓴다"
+    },
+    {
+      "type": "h",
+      "text": "5. 실무 주의점"
+    },
+    {
+      "type": "note",
+      "text": "`BufferSource` 는 **한 번 쓰면 끝**이라 재생마다 새로 만든다 · 탭이 숨으면 컨텍스트를 멈춰 배터리 절약 · 모바일에서는 무음 스위치·이어폰 분리 상황을 고려 · 큰 파일은 `<audio>` 스트리밍이 낫다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "버튼 클릭으로 효과음을 재생하고, 피치를 랜덤화해 10번 눌러 보라. 자동 재생 정책 때문에 첫 소리가 막히는지도 확인하라."
+    },
+    {
+      "type": "try",
+      "text": "`ctx.currentTime` 으로 4박 메트로놈을 만들어라. `setTimeout` 버전과 흔들림을 비교하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "브라우저에서 첫 소리가 안 나는 흔한 원인은?",
+      "choices": [
+        "사용자 제스처 전이라 AudioContext 가 suspended",
+        "코덱 미지원",
+        "볼륨 0"
+      ],
+      "answer": 0,
+      "why": "클릭 등 제스처 이후 resume() 해야 한다."
+    },
+    {
+      "q": "정확한 리듬 타이밍을 위해 써야 하는 기준은?",
+      "choices": [
+        "ctx.currentTime 기준 예약",
+        "setTimeout",
+        "requestAnimationFrame"
+      ],
+      "answer": 0,
+      "why": "오디오 클럭이 훨씬 정확하다."
+    },
+    {
+      "q": "볼륨을 즉시 0 으로 바꾸면 생기는 현상은?",
+      "choices": [
+        "클릭(툭) 잡음이 난다",
+        "지연이 생긴다",
+        "음질이 좋아진다"
+      ],
+      "answer": 0,
+      "why": "짧은 페이드로 부드럽게 바꾼다."
+    }
+  ]
+}
