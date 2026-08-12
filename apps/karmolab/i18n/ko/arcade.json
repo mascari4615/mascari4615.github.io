@@ -256,5 +256,14 @@
   "arcade.game.mancala.name": "만칼라",
   "arcade.game.mancala.desc": "씨를 한 알씩 뿌리며 돈다. 마지막 알이 규칙을 정한다",
   "arcade.man.win": "{who} — {a} 대 {b}",
-  "arcade.man.draw": "{n} 대 {n} — 비겼다"
+  "arcade.man.draw": "{n} 대 {n} — 비겼다",
+  "arcade.game.shellgame.name": "컵 옮기기",
+  "arcade.game.shellgame.desc": "공이 든 컵을 눈으로 쫓는다. 판마다 빨라진다",
+  "arcade.shell.watch": "잘 보세요",
+  "arcade.shell.pick": "어느 컵일까요",
+  "arcade.shell.waiting": "다른 사람을 기다리는 중",
+  "arcade.shell.right": "맞혔다",
+  "arcade.shell.wrong": "놓쳤다",
+  "arcade.shell.win": "{who} — {n}번 맞힘",
+  "arcade.shell.perfect": "{who} — 다 맞혔다"
 }

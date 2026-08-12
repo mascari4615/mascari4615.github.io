@@ -256,5 +256,14 @@
   "arcade.game.mancala.name": "マンカラ",
   "arcade.game.mancala.desc": "種を一粒ずつ蒔いて回る。最後の一粒が全てを決める",
   "arcade.man.win": "{who} — {a} 対 {b}",
-  "arcade.man.draw": "{n} 対 {n} — 引き分け"
+  "arcade.man.draw": "{n} 対 {n} — 引き分け",
+  "arcade.game.shellgame.name": "カップ当て",
+  "arcade.game.shellgame.desc": "玉の入ったカップを目で追う。回ごとに速くなる",
+  "arcade.shell.watch": "よく見て",
+  "arcade.shell.pick": "どのカップ?",
+  "arcade.shell.waiting": "ほかの人を待っています",
+  "arcade.shell.right": "当たり",
+  "arcade.shell.wrong": "はずれ",
+  "arcade.shell.win": "{who} — {n}回正解",
+  "arcade.shell.perfect": "{who} — 全部当てた"
 }
