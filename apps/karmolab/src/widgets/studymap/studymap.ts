@@ -11,7 +11,8 @@
  * 「체크하려고 가입」이 지도를 안 열게 만드는 가장 흔한 이유라서.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
-import { layoutTree, treeSvg, type TreeNode } from './tree';
+import { layoutTree, type TreeNode } from './tree';
+import { mountTree } from './graph-view';
 import {
   collectHeadings,
   tocHtml,
@@ -279,7 +280,8 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .sm-review-tag { position: absolute; top: 8px; right: 10px; font-size: 12px; }
 .sm-resume-track { font-size: 11px; color: var(--text-tertiary); margin-left: auto; }
 .sm-tree-head { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--text-tertiary); margin-bottom: 8px; }
-.sm-tree { overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: 6px; }
+/* 캔버스가 자기 크기를 잡는다 — 우리는 자리만 내준다(가로 스크롤은 이제 캔버스 몫). */
+.sm-tree { height: min(62vh, 560px); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-secondary); }
 .tt-svg { display: block; max-width: none; }
 .tt-edge { fill: none; stroke: var(--border); stroke-width: 1.5; }
 .tt-edge.is-open { stroke: var(--secondary); opacity: .55; }
@@ -773,6 +775,8 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     let lessonOpen: string | null = null;
     /* 목차 감시는 화면을 갈아엎을 때마다 푼다 — 안 그러면 죽은 화면을 계속 재려 든다. */
     let stopWatching: (() => void) | null = null;
+    /** 캔버스 정리 — 화면을 갈아엎을 때 옛 캔버스를 걷는다. */
+    let stopTree: (() => void) | null = null;
 
     async function openLesson(id: string, viaHistory = false): Promise<void> {
       const found = whereIs.get(id);
@@ -1072,19 +1076,31 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             ? `<div class="sm-tree-head">${esc(t('studymap.tree.tracks', undefined, '갈래 지도 — 눌러서 안으로'))}</div>`
             : `<div class="sm-tree-head"><button type="button" class="sm-crumb-btn" data-zoom="tracks">${esc(t('studymap.tree.up', undefined, '← 갈래 지도'))}</button><span>${esc(tr.emoji)} ${esc(tr.title)}</span></div>`;
 
-        elStages.innerHTML = `${review}${resume}${head}<div class="sm-tree">${treeSvg(layer, {
-          currentId: zoom === 'tracks' ? current : '',
-          nextId: zoom === 'tracks' ? '' : next?.id || '',
-        })}</div>`;
-        paintTracks();
-        /* 지도가 화면보다 넓다 — 열자마자 「지금 자리」가 가운데 오게 굴려 둔다. */
-        const box = elStages.querySelector('.sm-tree');
-        const here = elStages.querySelector('.tt-node.is-next, .tt-node.is-current');
-        if (box instanceof HTMLElement && here instanceof SVGGElement) {
-          const bb = here.getBoundingClientRect();
-          const bx = box.getBoundingClientRect();
-          box.scrollLeft += bb.left - bx.left - bx.width / 2 + bb.width / 2;
+        elStages.innerHTML = `${review}${resume}${head}<div class="sm-tree" data-sm="treehost"></div>`;
+        /* 그리기는 KarmoGraph 엔진에 맡긴다 — 확대·이동·미니맵·손가락 두 개가 공짜로 따라온다. */
+        const host = elStages.querySelector('[data-sm="treehost"]');
+        if (host instanceof HTMLElement) {
+          stopTree?.();
+          stopTree = mountTree(host, layer, {
+            size: zoom === 'tracks' ? 68 : 60,
+            focusId: zoom === 'tracks' ? current : next?.id,
+            onPick: (id) => {
+              if (zoom === 'tracks') {
+                current = id;
+                zoom = 'nodes';
+                try {
+                  localStorage.setItem(TRACK_KEY, current);
+                } catch {
+                  /* 저장 못 해도 이번 화면은 바뀐다 */
+                }
+                paint();
+              } else {
+                void openLesson(id);
+              }
+            },
+          });
         }
+        paintTracks();
         return;
       }
 
