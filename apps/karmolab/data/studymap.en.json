@@ -124,6 +124,10 @@
     "video": {
       "title": "Video & media",
       "lead": "The triangle of size, quality and compatibility — gaining one costs another"
+    },
+    "net": {
+      "title": "Networking",
+      "lead": "Half of \"works on my machine\" is decided here — follow the wire and the cause shows up"
     }
   },
   "stages": {
@@ -207,7 +211,10 @@
     "dataeng-c": "Run it for years",
     "video-a": "What it is made of",
     "video-b": "Shipping it",
-    "video-c": "Reaching everyone"
+    "video-c": "Reaching everyone",
+    "net-a": "How a packet travels",
+    "net-b": "Names and safety",
+    "net-c": "Opening what is blocked"
   },
   "nodes": {
     "web-html": {
@@ -2061,6 +2068,70 @@
       "check": "You estimate storage and egress cost and verify asset rights",
       "links": [
         "Creative Commons licenses"
+      ]
+    },
+    "net-layers": {
+      "title": "Layers — why bother splitting",
+      "why": "Narrowing a problem to one layer cuts the suspects tenfold; it is the first cut in diagnosis.",
+      "check": "You hear a symptom and place it on a layer",
+      "links": [
+        "Cloudflare — OSI model"
+      ]
+    },
+    "net-ip": {
+      "title": "IP addresses, subnets, routing",
+      "why": "Without private vs public, ranges and gateways you cannot move past \"it will not connect\".",
+      "check": "You read CIDR notation and tell whether two hosts share a range",
+      "links": [
+        "Cloudflare — what is an IP address"
+      ]
+    },
+    "net-tcp-udp": {
+      "title": "TCP and UDP — what each gives up",
+      "why": "Ordering and retransmission cost latency, which is why games and calls pick UDP.",
+      "check": "You choose one for your feature and justify it",
+      "links": [
+        "Cloudflare — what is UDP"
+      ]
+    },
+    "net-dns": {
+      "title": "DNS — from name to address",
+      "why": "The usual suspect when a deploy is done but nothing shows; misreading TTL makes you wait wrong.",
+      "check": "You tell A, CNAME and TXT apart and watch propagation yourself",
+      "links": [
+        "Cloudflare — what is DNS"
+      ]
+    },
+    "net-tls": {
+      "title": "The TLS handshake and certificates",
+      "why": "\"Your connection is not private\" is almost always expiry, chain or name mismatch.",
+      "check": "You query a certificate and read expiry, issuer and SAN",
+      "links": [
+        "Cloudflare — TLS handshake"
+      ]
+    },
+    "net-http-versions": {
+      "title": "HTTP/1.1, 2 and 3 — what got faster",
+      "why": "Old advice like \"reduce request count\" is already wrong on newer versions.",
+      "check": "You check which version your site actually serves",
+      "links": [
+        "Cloudflare — what is HTTP/3"
+      ]
+    },
+    "net-nat": {
+      "title": "NAT, firewalls, ports",
+      "why": "It explains at once why your home box is invisible from outside and why tunnels exist.",
+      "check": "You verify whether a port is open and expose a service through a tunnel",
+      "links": [
+        "Cloudflare — what is NAT"
+      ]
+    },
+    "net-diag": {
+      "title": "Diagnosis — ping, traceroute, dig, tcpdump",
+      "why": "Measure instead of guess; seeing where it breaks ends the argument.",
+      "check": "You break one slow request down hop by hop",
+      "links": [
+        "curl manual"
       ]
     }
   }

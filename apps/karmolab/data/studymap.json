@@ -3918,6 +3918,143 @@
           ]
         }
       ]
+    },
+    {
+      "id": "net",
+      "title": "네트워크",
+      "emoji": "🛰",
+      "lead": "「내 컴에선 되는데」의 절반은 여기서 갈린다 — 선을 따라가면 원인이 보인다",
+      "stages": [
+        {
+          "id": "net-a",
+          "title": "패킷이 가는 길",
+          "nodes": [
+            {
+              "id": "net-layers",
+              "title": "계층 — 왜 굳이 나눴나",
+              "why": "문제를 「어느 층」으로 좁히면 후보가 10분의 1이 된다. 진단의 첫 칼질.",
+              "check": "증상을 듣고 어느 계층 문제인지 가른다",
+              "links": [
+                {
+                  "label": "Cloudflare — OSI 모델",
+                  "url": "https://www.cloudflare.com/learning/ddos/glossary/open-systems-interconnection-model-osi/"
+                }
+              ],
+              "prereq": [
+                "cs-net"
+              ]
+            },
+            {
+              "id": "net-ip",
+              "title": "IP 주소 · 서브넷 · 라우팅",
+              "why": "사설/공인, 대역, 게이트웨이를 모르면 「연결이 안 된다」에서 한 발도 못 나간다.",
+              "check": "CIDR 표기를 읽고 같은 대역인지 판단한다",
+              "links": [
+                {
+                  "label": "Cloudflare — IP 주소란",
+                  "url": "https://www.cloudflare.com/learning/dns/glossary/what-is-my-ip-address/"
+                }
+              ]
+            },
+            {
+              "id": "net-tcp-udp",
+              "title": "TCP 와 UDP — 무엇을 포기했나",
+              "why": "순서·재전송을 보장받으면 지연을 낸다. 게임·통화가 UDP 를 쓰는 이유가 여기 있다.",
+              "check": "내 기능에 어느 쪽이 맞는지 근거를 대고 고른다",
+              "links": [
+                {
+                  "label": "Cloudflare — UDP 란",
+                  "url": "https://www.cloudflare.com/learning/ddos/glossary/user-datagram-protocol-udp/"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "net-b",
+          "title": "이름과 안전",
+          "nodes": [
+            {
+              "id": "net-dns",
+              "title": "DNS — 이름이 주소가 되기까지",
+              "why": "배포는 끝났는데 안 보이는 사고의 단골 범인. TTL 을 모르면 기다림을 오판한다.",
+              "check": "A·CNAME·TXT 를 구분하고 전파를 직접 확인한다",
+              "links": [
+                {
+                  "label": "Cloudflare — DNS 란",
+                  "url": "https://www.cloudflare.com/learning/dns/what-is-dns/"
+                }
+              ],
+              "prereq": [
+                "net-ip"
+              ]
+            },
+            {
+              "id": "net-tls",
+              "title": "TLS 손잡기와 인증서",
+              "why": "「이 연결은 안전하지 않습니다」의 진짜 원인은 대개 만료·체인·이름 불일치 셋 중 하나다.",
+              "check": "인증서를 직접 조회해 만료·발급자·SAN 을 읽는다",
+              "links": [
+                {
+                  "label": "Cloudflare — TLS 핸드셰이크",
+                  "url": "https://www.cloudflare.com/learning/ssl/what-happens-in-a-tls-handshake/"
+                }
+              ],
+              "prereq": [
+                "sec-crypto"
+              ]
+            },
+            {
+              "id": "net-http-versions",
+              "title": "HTTP/1.1 · 2 · 3 — 무엇이 빨라졌나",
+              "why": "「요청 수를 줄여라」 같은 옛 조언은 버전에 따라 이미 틀렸다.",
+              "check": "개발자 도구에서 내 사이트가 쓰는 버전을 확인한다",
+              "links": [
+                {
+                  "label": "Cloudflare — HTTP/3 란",
+                  "url": "https://www.cloudflare.com/learning/performance/what-is-http3/"
+                }
+              ],
+              "prereq": [
+                "web-http"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "net-c",
+          "title": "막히면 연다",
+          "nodes": [
+            {
+              "id": "net-nat",
+              "title": "NAT · 방화벽 · 포트",
+              "why": "집 컴퓨터가 밖에서 안 보이는 이유, 그리고 터널이 왜 필요한지가 한 번에 풀린다.",
+              "check": "포트 개방 여부를 확인하고 터널로 외부 노출을 만든다",
+              "links": [
+                {
+                  "label": "Cloudflare — NAT 란",
+                  "url": "https://www.cloudflare.com/learning/network-layer/what-is-nat/"
+                }
+              ]
+            },
+            {
+              "id": "net-diag",
+              "title": "진단 — ping · traceroute · dig · tcpdump",
+              "why": "추측 대신 계측. 어느 구간에서 끊기는지 눈으로 보는 순간 논쟁이 끝난다.",
+              "check": "느린 요청 하나를 도구로 구간별 분해한다",
+              "links": [
+                {
+                  "label": "curl 매뉴얼",
+                  "url": "https://curl.se/docs/manpage.html"
+                }
+              ],
+              "prereq": [
+                "shell-script"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
