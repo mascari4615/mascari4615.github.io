@@ -2419,6 +2419,140 @@
           ]
         }
       ]
+    },
+    {
+      "id": "audio",
+      "title": "사운드 · 오디오",
+      "emoji": "🔊",
+      "lead": "가장 저평가된 절반 — 소리를 끄면 같은 화면이 다른 물건이 된다",
+      "stages": [
+        {
+          "id": "audio-a",
+          "title": "소리를 안다",
+          "nodes": [
+            {
+              "id": "audio-basics",
+              "title": "파형 · 주파수 · 데시벨",
+              "why": "「소리가 이상하다」를 말로 옮기려면 최소한의 어휘가 필요하다.",
+              "check": "주파수와 음량을 구분해 문제를 설명한다",
+              "links": [
+                {
+                  "label": "소리의 물리 (Ableton Learning Synths)",
+                  "url": "https://learningsynths.ableton.com/"
+                }
+              ]
+            },
+            {
+              "id": "audio-digital",
+              "title": "디지털 오디오 — 샘플레이트 · 비트 깊이",
+              "why": "44.1kHz·16bit 가 무슨 뜻인지 알면 지직거림·클리핑의 원인이 보인다.",
+              "check": "에일리어싱과 클리핑을 구분해 설명한다",
+              "links": [
+                {
+                  "label": "Digital Audio Primer (영상)",
+                  "url": "https://www.youtube.com/watch?v=cIQ9IXSUzuM"
+                }
+              ],
+              "prereq": [
+                "audio-basics"
+              ]
+            },
+            {
+              "id": "audio-format",
+              "title": "포맷과 압축 — wav · ogg · mp3",
+              "why": "용량과 지연과 품질은 서로 맞바꾸는 관계다. 게임과 웹에서 고르는 기준이 다르다.",
+              "check": "효과음과 배경음악에 서로 다른 포맷을 이유를 대고 고른다",
+              "links": [
+                {
+                  "label": "MDN 오디오 코덱 안내",
+                  "url": "https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Audio_codecs"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "audio-b",
+          "title": "만들고 넣는다",
+          "nodes": [
+            {
+              "id": "audio-record",
+              "title": "녹음 · 마이크 · 소음 제거",
+              "why": "좋은 소리의 90%는 녹음 단계에서 정해진다. 나중에 고치는 것은 비싸다.",
+              "check": "잡음이 적은 한 트랙을 직접 녹음한다",
+              "links": [
+                {
+                  "label": "Audacity 매뉴얼",
+                  "url": "https://manual.audacityteam.org/"
+                }
+              ]
+            },
+            {
+              "id": "audio-loudness",
+              "title": "레벨 · 라우드니스 · 마스터링 기초",
+              "why": "「소리가 작아요/커요」의 대부분은 피크가 아니라 라우드니스 문제다.",
+              "check": "LUFS 를 재고 목표 값에 맞춘다",
+              "links": [
+                {
+                  "label": "라우드니스 표준 정리 (EBU R128)",
+                  "url": "https://tech.ebu.ch/publications/r128"
+                }
+              ],
+              "prereq": [
+                "audio-digital"
+              ]
+            },
+            {
+              "id": "audio-music",
+              "title": "최소한의 음악 이론",
+              "why": "작곡을 안 해도, 조성·박자·반복 구조를 알면 에셋을 고르고 자를 수 있다.",
+              "check": "루프가 자연스럽게 이어지도록 마디 단위로 자른다",
+              "links": [
+                {
+                  "label": "Ableton Learning Music",
+                  "url": "https://learningmusic.ableton.com/"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "audio-c",
+          "title": "프로그램 안에서",
+          "nodes": [
+            {
+              "id": "audio-game",
+              "title": "게임 오디오 — 믹스 · 3D · 반복 피로",
+              "why": "같은 효과음이 반복되면 귀가 먼저 지친다. 그래서 랜덤화와 믹스 그룹이 필요하다.",
+              "check": "피치·볼륨을 살짝 랜덤화하고 그룹별 음량을 나눈다",
+              "links": [
+                {
+                  "label": "Unity 오디오 믹서",
+                  "url": "https://docs.unity3d.com/Manual/AudioMixer.html"
+                }
+              ],
+              "prereq": [
+                "game-feel"
+              ]
+            },
+            {
+              "id": "audio-web",
+              "title": "Web Audio API",
+              "why": "브라우저에서 소리를 다루는 표준. 자동 재생 정책 때문에 첫 소리가 안 나는 함정이 있다.",
+              "check": "사용자 제스처 이후 소리를 재생하고 볼륨을 조절한다",
+              "links": [
+                {
+                  "label": "MDN Web Audio API",
+                  "url": "https://developer.mozilla.org/ko/docs/Web/API/Web_Audio_API"
+                }
+              ],
+              "prereq": [
+                "web-js"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
