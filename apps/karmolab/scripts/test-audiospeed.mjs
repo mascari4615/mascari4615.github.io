@@ -42,7 +42,6 @@ const out = await page.evaluate(async () => {
   const host = document.createElement('div');
   document.body.appendChild(host);
   tool.tabs[0].build(host);
-
   await window.__karmoWaitDrawn(host);
   // 440Hz 사인파를 WAV 로 만들어 넣는다 (도구가 파일에서 읽는 길을 그대로 탄다)
   const n = SR * SECONDS;

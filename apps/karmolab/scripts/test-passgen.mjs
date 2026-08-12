@@ -36,7 +36,6 @@ const result = await page.evaluate(async () => {
   const makeHost = document.createElement('div');
   document.body.appendChild(makeHost);
   tool.tabs[0].build(makeHost);
-
   await window.__karmoWaitDrawn(makeHost);
   const setLen = (n) => {
     makeHost.querySelector('#pgLen').value = String(n);
@@ -57,6 +56,7 @@ const result = await page.evaluate(async () => {
   const checkHost = document.createElement('div');
   document.body.appendChild(checkHost);
   tool.tabs[1].build(checkHost);
+  await window.__karmoWaitDrawn(checkHost);
   const judge = (pw) => {
     const input = checkHost.querySelector('#pcIn');
     input.value = pw;

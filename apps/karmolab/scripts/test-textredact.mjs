@@ -34,7 +34,6 @@ const out = await page.evaluate(async () => {
   const host = document.createElement('div');
   document.body.appendChild(host);
   tool.tabs[0].build(host);
-
   await window.__karmoWaitDrawn(host);
   // 지워져야 하는 것들
   const MUST_GO = [

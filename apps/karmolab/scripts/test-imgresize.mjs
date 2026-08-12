@@ -35,7 +35,6 @@ const out = await page.evaluate(async () => {
   const host = document.createElement('div');
   document.body.appendChild(host);
   tool.tabs[0].build(host);
-
   await window.__karmoWaitDrawn(host);
   /** 잘 안 눌리는(용량 큰) 사진을 만든다 — 매끈한 그림은 몇 KB 라 용량 시험이 안 된다 */
   const makePhoto = async (w, h) => {

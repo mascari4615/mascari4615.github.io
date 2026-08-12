@@ -36,7 +36,6 @@ const out = await page.evaluate(async () => {
   const host = document.createElement('div');
   document.body.appendChild(host);
   tool.tabs[0].build(host);
-
   await window.__karmoWaitDrawn(host);
   // 가로 320 × 세로 180, 왼쪽 위에만 빨간 표식이 있는 영상을 만든다
   const src = document.createElement('canvas');

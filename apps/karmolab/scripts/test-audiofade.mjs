@@ -36,7 +36,6 @@ const out = await page.evaluate(async () => {
   const host = document.createElement('div');
   document.body.appendChild(host);
   tool.tabs[0].build(host);
-
   await window.__karmoWaitDrawn(host);
   // 시작·끝이 최댓값인 사각파에 가까운 소리 — 「툭」이 확실히 나는 최악의 경우
   const n = SR * SECONDS;
