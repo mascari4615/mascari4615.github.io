@@ -1,0 +1,102 @@
+{
+  "id": "mobile-offline",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "지하철에서 끊긴다. 엘리베이터에서 끊긴다. **끊겼을 때 무엇을 보여 주느냐**가 모바일 앱의 품질을 가른다."
+    },
+    {
+      "type": "h",
+      "text": "1. 온라인/오프라인은 이분법이 아니다"
+    },
+    {
+      "type": "note",
+      "text": "실제로는 **느림 · 간헐적 끊김 · 완전 단절**이 섞인다. `navigator.onLine` 은 「랜선이 꽂혔나」 수준이라 믿을 수 없다 — **실제 요청의 성공/실패**로 판단하라."
+    },
+    {
+      "type": "h",
+      "text": "2. 읽기: 마지막으로 본 것을 보여 준다"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "stale-while-revalidate",
+      "text": "const cached = await store.get(key);\nif (cached) render(cached, { stale: true });     // 먼저 보여 주고\ntry {\n  const fresh = await api.get(key);\n  await store.set(key, fresh);\n  render(fresh);                                 // 오면 갱신\n} catch {\n  showBanner('오프라인 — 마지막으로 받은 내용입니다');\n}"
+    },
+    {
+      "type": "h",
+      "text": "3. 쓰기: 큐에 넣고 나중에"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "낙관적 UI + 재전송 큐",
+      "text": "async function postComment(text) {\n  const temp = { id: `tmp-${Date.now()}`, text, pending: true };\n  addToUI(temp);                       // 먼저 화면에\n  await outbox.add({ type: 'comment', text, key: temp.id });   // 저장(IndexedDB)\n  void flushOutbox();                  // 연결되면 보낸다\n}"
+    },
+    {
+      "type": "note",
+      "text": "재전송은 **멱등 열쇠**와 함께 보내라 — 같은 요청이 두 번 도착해도 서버가 한 번만 처리하게. 그리고 실패한 항목은 사용자에게 보여 줘야 한다(조용히 사라지면 신뢰가 무너진다)."
+    },
+    {
+      "type": "h",
+      "text": "4. 충돌"
+    },
+    {
+      "type": "p",
+      "text": "오프라인 편집이 겹치면 충돌은 필연이다. 규칙을 미리 정하라 — 마지막이 이김(단순) · 필드 단위 병합 · 사용자에게 선택. **정하지 않으면 조용히 데이터가 사라진다.**"
+    },
+    {
+      "type": "h",
+      "text": "5. 저장 공간"
+    },
+    {
+      "type": "note",
+      "text": "브라우저 저장소는 무한하지 않고 **정리될 수 있다**. 중요한 것은 서버에도 있어야 하고, 로컬에는 용량 상한과 오래된 것 정리를 두어라."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "비행기 모드로 앱을 열어 보라. 흰 화면이면 마지막 데이터를 보여 주는 경로를 만들어라."
+    },
+    {
+      "type": "try",
+      "text": "오프라인에서 글을 하나 쓰고, 연결을 켰을 때 자동으로 전송되는지 확인하라. 두 번 눌러 중복이 생기는지도 보라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "`navigator.onLine` 을 신뢰할 수 없는 이유는?",
+      "choices": [
+        "연결됨을 보고해도 실제 요청은 실패할 수 있기 때문",
+        "오래된 API 라서",
+        "모바일에서 지원 안 돼서"
+      ],
+      "answer": 0,
+      "why": "실제 요청 결과로 판단하는 것이 정확하다."
+    },
+    {
+      "q": "오프라인 쓰기를 다루는 표준 구조는?",
+      "choices": [
+        "로컬 큐(outbox)에 저장하고 연결되면 재전송",
+        "요청을 즉시 버린다",
+        "화면을 잠근다"
+      ],
+      "answer": 0,
+      "why": "멱등 열쇠와 함께 보내 중복 처리를 막는다."
+    },
+    {
+      "q": "오프라인 편집 충돌에 대해 반드시 해야 할 일은?",
+      "choices": [
+        "해결 규칙을 미리 정한다",
+        "무시한다",
+        "항상 서버를 우선한다고만 문서화"
+      ],
+      "answer": 0,
+      "why": "규칙이 없으면 데이터가 조용히 사라진다."
+    }
+  ]
+}
