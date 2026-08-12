@@ -27,11 +27,11 @@ extend-exclude = [
   "apps/blog/_site/**",
 ]
 
+[default.extend-words]
 # === 2026-08-12: 새로 든 파일들이 낸 false-positive (verify 를 세우고 있었다) ===
 metalness = "metalness"  # PBR 표준 용어 (금속성) — studymap.en.json 의 그래픽스 단원
 adn = "adn"              # pulse 코드 식별자: adnominal(관형사형) 줄임 — 한국어 문법 용어
 
-[default.extend-words]
 # 의도된 약어 / 외국어 / 고유명사 / 식별자
 # typos action 이 master log 로 발견한 false-positive (TASK-KL-032 시드).
 
