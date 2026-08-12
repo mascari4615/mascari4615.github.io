@@ -19,3 +19,29 @@ export function cameraForRect(
     ty: screenHeight / 2 - (rect.y + height / 2) * scale,
   };
 }
+
+/**
+ * 「이 상자가 화면 안에 들어오게」 살짝 밀 만큼 — **얼마나 밀지**만 셈한다 (2026-08-13).
+ *
+ * canvas.ts 에 있던 열 몇 줄을 여기로 옮겼다. 그 파일은 2865줄짜리 한 덩이를 조각내는 중이고
+ * 자물쇠(1900줄)가 걸려 있다 — 기능이 하나 늘 때마다 그만큼 조각을 떼어 내야 자물쇠가 산다.
+ * 카메라를 어떻게 움직일지는 원래 이 파일이 아는 일이기도 하다.
+ */
+export function nudgeIntoView(
+  box: { x: number; y: number; w: number; h: number },
+  view: { w: number; h: number },
+  state: { scale: number; tx: number; ty: number },
+  pad = 40
+): { tx: number; ty: number } {
+  const s = state.scale;
+  const left = box.x * s + state.tx;
+  const top = box.y * s + state.ty;
+  const right = left + box.w * s;
+  const bottom = top + box.h * s;
+  let { tx, ty } = state;
+  if (left < pad) tx += pad - left;
+  else if (right > view.w - pad) tx -= right - (view.w - pad);
+  if (top < pad) ty += pad - top;
+  else if (bottom > view.h - pad) ty -= bottom - (view.h - pad);
+  return { tx, ty };
+}
