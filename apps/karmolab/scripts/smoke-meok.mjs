@@ -345,7 +345,12 @@ if (densityAfter < 0.0005) problems.push('새로고침 뒤 그림이 사라졌�
 page.once('dialog', dialog => dialog.accept());
 await page.click('.meok:visible [data-act="new"]');
 await page.waitForTimeout(400);
-const maskArt = await artRect();
+// ★ 방금 「새로」를 눌러 판이 **비어 있다** — 그림 기준(`artRect`)으로 자리를 잡으면
+//   잡을 그림이 없다. 빈 판에서는 캔버스 자체가 기준이고, 가운데 쪽 안전한 자리만 쓴다.
+//   (여기서 그림 기준을 쓰다가 붓질이 판 밖으로 나가 잉크가 0 → 0 이 됐다 — 2026-08-13.)
+const maskCanvas = await page.locator('.meok:visible [data-canvas]').boundingBox();
+const maskArt = { x: maskCanvas.x + maskCanvas.width * 0.2, y: maskCanvas.y + maskCanvas.height * 0.2,
+  w: maskCanvas.width * 0.6, h: maskCanvas.height * 0.6 };
 await page.click('.meok:visible [data-tool="brush"]');
 await page.mouse.move(maskArt.x + maskArt.w * 0.15, maskArt.y + maskArt.h * 0.5);
 await page.mouse.down();
