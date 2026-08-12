@@ -158,5 +158,11 @@
   "imagegen.t63": "キューの作業がすべて完了しました!",
   "imagegen.genFailed": "生成に失敗",
   "imagegen.imageFailed": "画像の生成に失敗",
-  "imagegen.queueDone": "キュー完了: {n}枚 生成しました"
+  "imagegen.queueDone": "キュー完了: {n}枚 生成しました",
+  "imagegen.shelf": "棚",
+  "imagegen.shelfHelp": "つくったものを棚に上げる (CC0)",
+  "imagegen.shelfKeyAsk": "棚の鍵（このブラウザにだけ残る）",
+  "imagegen.shelfSending": "棚に上げている…",
+  "imagegen.shelfDone": "棚に上げた",
+  "imagegen.shelfUntitled": "名もない絵"
 }
