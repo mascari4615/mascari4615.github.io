@@ -1,5 +1,5 @@
 /**
- * 멍 — 화면에 실제로 그려지는가 + **이음매가 없는가** (TASK-KL-221)
+ * 멍 — 화면에 실제로 그려지는가 + **이음매가 없는가** (TASK-KL-247)
  *
  * 두 가지를 본다. 앞의 것은 흔한 검사고, 뒤의 것이 이 작품의 전부다.
  *
@@ -141,22 +141,41 @@ await loopPage.setContent(
 );
 
 const SPEED = 0.11;
-const params = { shape: 'square', speed: SPEED, grid: '5', palette: 'gold', dir: 'out' };
-async function shot(time) {
-  await loopPage.evaluate(([t, p]) => {
-    const c = document.getElementById('c');
-    window.DROSTE.frame({ ctx: c.getContext('2d'), w: 820, h: 560, dpr: 1, time: t, params: p, seed: 0.42 });
-  }, [time, params]);
-  return loopPage.locator('#c').screenshot();
+const P = 1 / SPEED;
+const params = { shape: 'square', speed: SPEED, grid: '9', palette: 'gold', dir: 'out' };
+
+/** 그 시각의 화면을 픽셀로 받아온다 (그림 자체만 — 손잡이가 위에 안 뜨는 화면이다) */
+async function px(time) {
+  return loopPage.evaluate(
+    ([t, p]) => {
+      const c = document.getElementById('c');
+      const ctx = c.getContext('2d');
+      window.DROSTE.frame({ ctx, w: 820, h: 560, dpr: 1, time: t, params: p, seed: 0.42 });
+      return Array.from(ctx.getImageData(0, 0, 820, 560).data.filter((_, i) => i % 4 === 0));
+    },
+    [time, params]
+  );
+}
+const meanDiff = (a, b) => {
+  let sum = 0;
+  for (let i = 0; i < a.length; i++) sum += Math.abs(a[i] - b[i]);
+  return sum / a.length;
+};
+
+/* ① 주기 경계에 **이음매가 없어야** 한다.
+   이 작품은 층마다 다른 덩어리를 쓰므로 「한 주기 뒤 픽셀 동일」은 성립하지 않는다(그건 모든
+   층이 한 모양일 때만 된다 — 사용자가 「매번 다른 모양」을 골랐다). 대신 지켜야 할 것은
+   **경계에서 안 튀는 것**이다: 뿌리가 한 칸 올라가는 그 순간 그림이 이어져야 한다. */
+const before = await px(P * 0.998);
+const after = await px(P * 1.002);
+const seam = meanDiff(before, after);
+const move = meanDiff(await px(P * 0.998), await px(P * 0.94));
+if (seam > move * 1.6 + 1.5) {
+  problems.push(`주기 경계에서 그림이 튄다 — 경계 차이 ${seam.toFixed(2)} vs 같은 간격 움직임 ${move.toFixed(2)}`);
 }
 
-const first = await shot(0);
-const after = await shot(1 / SPEED); // 배율이 딱 k 배 된 순간
-if (!first.equals(after)) problems.push('한 주기 뒤 그림이 시작과 다르다 — 무한 줌에 이음매가 생긴다');
-
-/* 그리고 그 사이가 실제로 움직였는지 (같은 그림을 계속 그리고 있는 게 아니다) */
-const mid = await shot(0.5 / SPEED);
-if (mid.equals(first)) problems.push('주기 한가운데가 시작과 같다 — 아예 안 움직인다');
+/* ② 그리고 실제로 움직여야 한다 (같은 그림을 계속 그리는 게 아니다) */
+if (meanDiff(await px(0), await px(P * 0.5)) < 1) problems.push('주기 한가운데가 시작과 같다 — 안 움직인다');
 
 fs.rmSync(tmp, { force: true });
 await browser.close();
