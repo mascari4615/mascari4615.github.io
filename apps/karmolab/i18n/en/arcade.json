@@ -42,7 +42,7 @@
   "arcade.hitblow.solved": "{who} cracked it on try {n}",
   "arcade.hitblow.none": "Nobody cracked it",
   "arcade.hitblow.closest": "{who} came closest",
-  "arcade.game.reversi.name": "Renegade",
+  "arcade.game.reversi.name": "Reversi",
   "arcade.game.reversi.desc": "Everything you bracket turns yours",
   "arcade.reversi.win": "{who} — {a} to {b}",
   "arcade.reversi.draw": "{n} all — a draw",
