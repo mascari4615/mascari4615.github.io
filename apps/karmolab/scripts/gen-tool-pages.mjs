@@ -747,29 +747,34 @@ function hubModified() {
  * 묶음 정의는 위젯 소스에서 읽는다 (여기 손으로 적으면 갈라진다).
  */
 function groupIds() {
+  /* ★ 묶음은 **메타 한 곳**에서 읽는다 (2026-08-12).
+   *   예전에는 위젯 소스에서 `const PARTS: Array<[string, string]> = [...]` 를 긁었는데,
+   *   그 배열이 `widgets-lazy-meta.ts` 의 `bundle:` 로 이사하면서 **하나도 안 걸렸다** —
+   *   그러면 묶음이 0개가 되고 목록이 「그 밖에」 한 덩어리로 쏟아진다(137개가 한 줄로).
+   *   화면은 멀쩡해 보여 눈으로는 안 잡히고, 목록 검사만 「분류 묶음이 2개뿐이다」로 말했다.
+   *   메타는 이 저장소가 정한 단일 출처다 — 거기서 읽으면 다시 갈라지지 않는다. */
+  const byBundle = new Map();
+  for (const w of widgets) {
+    if (!w || !w.id || !w.bundle) continue;
+    if (!ids.includes(w.id)) continue;
+    if (!byBundle.has(w.bundle)) byBundle.set(w.bundle, []);
+    byBundle.get(w.bundle).push(w.id);
+  }
+
+  const titleOf = (bundleId) => {
+    const meta = widgets.find((w) => w && w.id === bundleId);
+    return (meta && meta.title) || (seo[bundleId] && heading(bundleId)) || bundleId;
+  };
+
   const bundles = [];
   const claimed = new Set();
-  for (const dir of ['tools', 'ref']) {
-    for (const file of fs.readdirSync(path.join(root, 'src/widgets', dir))) {
-      if (!file.endsWith('.ts')) continue;
-      const bundleId = file.slice(0, -3);
-      const src = fs
-        .readFileSync(path.join(root, 'src/widgets', dir, file), 'utf8')
-        .split(String.fromCharCode(13, 10))
-        .join(String.fromCharCode(10));
-      const raw = src.match(/const (?:PARTS|TABS): Array<\[string, string\]> = \[([\s\S]*?)\n  \];/);
-      if (!raw) continue;
-      const parts = [...raw[1].matchAll(/\['([^']+)', '[^']*'\]/g)]
-        .map((m) => m[1])
-        .filter((x) => ids.includes(x));
-      if (parts.length < 2) continue;
-      const title = src.match(/\n    title: '([^']+)'/);
-      bundles.push({ title: title ? title[1] : bundleId, parts, bundleId });
-      parts.forEach((x) => claimed.add(x));
-    }
+  for (const [bundleId, parts] of byBundle) {
+    if (parts.length < 2) continue;
+    bundles.push({ title: titleOf(bundleId), parts, bundleId: ids.includes(bundleId) ? bundleId : null });
+    parts.forEach((x) => claimed.add(x));
+    claimed.add(bundleId);
   }
-  // 묶음 자신이 페이지를 가지면 소제목이 그 링크가 된다 → 낱개 목록에서는 뺀다.
-  bundles.forEach((b) => claimed.add(b.bundleId));
+
   const rest = ids.filter((id) => !claimed.has(id));
   bundles.sort((a, b) => b.parts.length - a.parts.length);
   if (rest.length) bundles.push({ title: '그 밖에', parts: rest, bundleId: null });
