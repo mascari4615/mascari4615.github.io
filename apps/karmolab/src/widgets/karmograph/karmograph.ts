@@ -644,26 +644,43 @@ import {
        이 함수는 조건 넷 중 하나만 어긋나도 조용히 아무것도 안 한다 — 그래서 CI 에서는 늘
        가려지는데 내 기계에서는 늘 통과하는, 원인을 물어볼 수 없는 상태가 됐다.
        빠져나간 자리를 판에 적어 두면 검사가 그걸 그대로 읽어 말해 준다. */
+    /* ★ **한 번 재고 끝내지 않는다** (2026-08-12, 계측으로 밝혀짐).
+       한 프레임 뒤에 딱 한 번 재던 판은 `panned(24)` 를 남기고 끝났는데, 정작 사람 눈에는
+       173px 이 가려져 있었다 — 그 시점의 시트는 아직 다 자라지 않았고(최종 336) 카드도
+       제자리가 아니었다. **언제 자리가 잡히는지 맞히는 것**이 애초에 틀린 접근이다.
+       그래서 잠깐 동안(≈0.6초) 되풀이해 재고, 가림이 사라지면 스스로 멈춘다.
+       자리가 언제 잡히든 결과가 같아진다 — 내 기계와 CI 가 갈리던 이유가 이것이었다. */
     function keepPickedCardVisible(): void {
       if (!canvas || !selectedId) { root.dataset.kmPan = 'no-selection'; return; }
-      requestAnimationFrame(() => {
-        const rect = canvas?.nodeScreenRect(selectedId ?? '');
+      const margin = 12;
+      const deadline = performance.now() + 600;
+      let moved = 0;
+      const step = (): void => {
+        if (!canvas || !selectedId) return;
+        const rect = canvas.nodeScreenRect(selectedId);
         const sheet = sideEl.getBoundingClientRect();
-        if (!rect) { root.dataset.kmPan = 'no-rect'; return; }
-        if (sheet.height <= 0) { root.dataset.kmPan = 'sheet-h0'; return; }
-        /* ★ 시트는 0.18초에 걸쳐 **미끄러져 올라온다**. 그 중간에 자리를 재면 아직 아래에
-           있어서 「안 가렸다」로 나온다(실측 2026-08-12 — 그래서 한 번도 안 밀렸다).
-           그러니 다 올라왔을 때의 자리를 **셈으로** 구한다: 판 아래끝 − 시트 높이. */
+        if (!rect || sheet.height <= 0) {
+          if (performance.now() < deadline) { requestAnimationFrame(step); return; }
+          root.dataset.kmPan = rect ? 'sheet-h0' : 'no-rect';
+          return;
+        }
+        /* 시트는 0.18초에 걸쳐 미끄러져 올라온다 — 올라오는 중에 위치를 재면 「안 가렸다」가
+           나온다. 그래서 다 올라왔을 때의 자리를 셈으로 구한다: 판 아래끝 − 시트 높이. */
         const sheetTop = canvasEl.getBoundingClientRect().bottom - sheet.height;
-        const margin = 12;
         const over = rect.y + rect.h + margin - sheetTop;
-        if (over <= 0) { root.dataset.kmPan = `no-need(${Math.round(over)})`; return; }
-        const scale = canvas?.getScale() ?? 1;
-        const view = canvas?.viewRectWorld();
+        if (over <= 1) {
+          root.dataset.kmPan = moved ? `panned(${Math.round(moved)})` : `no-need(${Math.round(over)})`;
+          return;
+        }
+        const scale = canvas.getScale() || 1;
+        const view = canvas.viewRectWorld();
         if (!view || scale <= 0) { root.dataset.kmPan = 'no-view'; return; }
-        canvas?.fitToWorldRect({ x: view.x, y: view.y + over / scale, w: view.w, h: view.h }, 0, true);
-        root.dataset.kmPan = `panned(${Math.round(over)})`;
-      });
+        canvas.fitToWorldRect({ x: view.x, y: view.y + over / scale, w: view.w, h: view.h }, 0, true);
+        moved += over;
+        if (performance.now() < deadline) requestAnimationFrame(step);
+        else root.dataset.kmPan = `panned(${Math.round(moved)})·시간초과`;
+      };
+      requestAnimationFrame(step);
     }
     const fileEl = q<HTMLInputElement>('file');
     const imgEl = q<HTMLInputElement>('img');
