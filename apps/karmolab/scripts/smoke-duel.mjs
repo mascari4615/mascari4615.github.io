@@ -113,11 +113,13 @@ try {
   await a.click('#duMake');
   await a.waitForSelector('#duUrl', { timeout: 15000 });
   const url = await a.inputValue('#duUrl');
-  check('대결 링크', /#r=/.test(url), `링크: ${url}`);
+  check('대결 링크', /\?r=/.test(url), `링크: ${url}`);
 
-  // ② 링크를 다른 창에서 열면 붙는다 (검사에서는 뿌리가 다를 수 있어 해시만 옮겨 붙인다)
-  const hash = url.slice(url.indexOf('#'));
-  await b.goto(TOOL + hash, { waitUntil: 'domcontentloaded' });
+  /* ② 링크를 다른 창에서 열면 붙는다 (검사에서는 뿌리가 다를 수 있어 방 코드만 옮겨 붙인다).
+     방 이름은 **물음표 뒤**다 — 해시 뒤는 셸이 화면 이름으로 덮어쓰는 자리라 링크가 죽는다
+     (`lib/room.ts`, TASK-KL-264). 옛 링크(`#r=`)도 아직 받아 준다. */
+  const query = url.slice(url.indexOf('?r='));
+  await b.goto(TOOL + query, { waitUntil: 'domcontentloaded' });
   await waitHydrated(b, '#duName');
   await b.fill('#duName', '나');
 

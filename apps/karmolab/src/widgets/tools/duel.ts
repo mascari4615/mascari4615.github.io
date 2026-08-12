@@ -15,7 +15,7 @@
  * 판정은 방을 만든 쪽이 맡는다 — 양쪽이 각자 재면 시계가 달라 승부가 갈리지 않는다.
  * P2P 라 마음먹으면 속일 수 있다. 캐주얼 놀이라 감수한다(순위표가 없으니 속일 값도 없다).
  */
-import { joinRoom, selfId } from 'trystero/nostr';
+import { openRoom, quickMatch, makeCode, inviteLink, codeFromUrl, type Room } from '../../lib/room';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -236,7 +236,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             status.className = 'tool-status' + (kind ? ' ' + kind : '');
           };
 
-          let room: ReturnType<typeof joinRoom> | null = null;
+          let room: Room | null = null;
           let host = false;
           let foe = '';
           let myScore = 0;
@@ -254,7 +254,6 @@ import { t, loadNamespace } from '../../lib/i18n';
           let sendPlan: Send | null = null;
           let sendResult: Send | null = null;
           let sendScore: Send | null = null;
-          let sendHello: Send | null = null;
 
           /** 입력칸이 비어 있으면 적어 둔 이름이라도 쓴다. */
           function 내이름(): string {
@@ -382,60 +381,53 @@ import { t, loadNamespace } from '../../lib/i18n';
               /* 못 적어도 그만 */
             }
             say(asHost ? t('duel.status.waiting') : t('duel.status.joining'));
-            const r0 = joinRoom({ appId: APP_ID }, roomId);
-            room = r0;
-            // 받는 자리를 만들 때 같이 건다 (트리스테로 0.25 부터 이 모양이다).
-            sendHello = r0.makeAction('hello', {
-              onMessage: (data) => {
-                foe = String((data as { name?: string }).name || t('duel.who.foe')).slice(0, 10);
+            /* 방을 여는 일·이름 알리기·사람 들고 남은 `lib/room.ts` 가 맡는다 (TASK-KL-264).
+               여기 남는 것은 이 놀이만의 통로 셋 — 판(plan)·기록(res)·점수(score). */
+            const r0 = openRoom({
+              appId: APP_ID,
+              code: roomId,
+              host: asHost,
+              name: 내이름(),
+              onPeers: (list) => {
+                const first = list[0];
+                if (!first) return;
+                foe = (first.name || t('duel.who.foe')).slice(0, 10);
                 $<HTMLElement>('#duFoeName').textContent = foe;
-              }
-            }).send as Send;
-            sendPlan = r0.makeAction('plan', {
-              onMessage: (data) => {
-                const d = data as unknown as { round: number; r?: Round };
-                if (d.round < 0 || !d.r) {
-                  finish();
+                if (roundIndex >= 0) return;
+                if (!asHost) {
+                  say(t('duel.status.metGuest'));
                   return;
                 }
-                roundIndex = d.round;
-                paintScores();
-                showRound(d.r);
+                say(t('duel.status.metHost'));
+                $<HTMLElement>('#duShare').style.display = 'none';
+                roundIndex = -1;
+                myScore = 0;
+                foeScore = 0;
+                window.setTimeout(nextRound, 3000);
               }
-            }).send as Send;
-            sendResult = r0.makeAction('res', {
-              onMessage: (data) => {
-                foeResult = data as unknown as { ok: boolean; ms: number };
-                if (host) settle();
-              }
-            }).send as Send;
-            sendScore = r0.makeAction('score', {
-              onMessage: (data) => {
-                const d = data as unknown as { me: number; foe: number };
-                myScore = d.me;
-                foeScore = d.foe;
-                paintScores();
-              }
-            }).send as Send;
-
-            r0.onPeerJoin = (): void => {
-              sendHello?.({ name: 내이름() });
-              if (!asHost) {
-                say(t('duel.status.metGuest'));
+            });
+            room = r0;
+            sendPlan = r0.channel('plan', 
+(data) => {
+              const d = data as unknown as { round: number; r?: Round };
+              if (d.round < 0 || !d.r) {
+                finish();
                 return;
               }
-              say(t('duel.status.metHost'));
-              $<HTMLElement>('#duShare').style.display = 'none';
-              roundIndex = -1;
-              myScore = 0;
-              foeScore = 0;
-              window.setTimeout(nextRound, 3000);
-            };
-            r0.onPeerLeave = (): void => {
-              say(t('duel.status.left'));
-              clearTimeout(timer);
-              cancelAnimationFrame(raf);
-            };
+              roundIndex = d.round;
+              paintScores();
+              showRound(d.r);
+            }).send as Send;
+            sendResult = r0.channel('res', (data) => {
+              foeResult = data as unknown as { ok: boolean; ms: number };
+              if (host) settle();
+            }).send as Send;
+            sendScore = r0.channel('score', (data) => {
+              const d = data as unknown as { me: number; foe: number };
+              myScore = d.me;
+              foeScore = d.foe;
+              paintScores();
+            }).send as Send;
 
             // 공개망을 거쳐 붙는다 — 통신망에 따라 아예 안 붙는 자리가 있다. 조용히 기다리게 두지 않는다.
             window.setTimeout(() => {
@@ -460,11 +452,11 @@ import { t, loadNamespace } from '../../lib/i18n';
             }
           });
 
-          const joined = location.hash.match(/r=([A-Za-z0-9_-]{6,})/);
+          const joined = codeFromUrl();
           if (joined) {
             $<HTMLElement>('#duMake').style.display = 'none';
             $<HTMLElement>('#duMatch').style.display = 'none';
-            connect(joined[1], false);
+            connect(joined, false);
           }
 
           /* 「아무나랑」 — 대기방에 들어가 처음 만난 사람과 짝을 짓고, **둘만의 방으로 옮긴다.**
@@ -477,14 +469,10 @@ import { t, loadNamespace } from '../../lib/i18n';
             $<HTMLElement>('#duMake').style.display = 'none';
             $<HTMLElement>('#duMatch').style.display = 'none';
             say(t('duel.status.searching'));
-            const lobby = joinRoom({ appId: APP_ID }, 'lobby');
-            lobby.onPeerJoin = (peerId: string): void => {
-              if (짝지음) return;
+            quickMatch(APP_ID, (방, 내가주인) => {
               짝지음 = true;
-              const 방 = 'p' + [selfId, peerId].sort().join('').replace(/[^A-Za-z0-9]/g, '').slice(0, 24);
-              void lobby.leave();
-              connect(방, selfId < peerId); // 번호가 앞선 쪽이 판을 돌린다 — 양쪽이 같은 답을 낸다
-            };
+              connect(방, 내가주인); // 주인 뽑기·방 이름 계산은 `lib/room.ts` 한 곳에서
+            });
             // 아무도 없으면 계속 기다린다. 얼마나 기다렸는지는 말해 준다.
             window.setTimeout(() => {
               if (!짝지음) say(t('duel.status.lonely'));
@@ -512,8 +500,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           $<HTMLButtonElement>('#duMatch').onclick = 아무나랑;
 
           $<HTMLButtonElement>('#duMake').onclick = () => {
-            const roomId = selfId.slice(0, 10) + Math.random().toString(36).slice(2, 6);
-            const url = `${location.origin}/karmolab/t/duel/#r=${roomId}`;
+            const roomId = makeCode();
+            const url = inviteLink('duel', roomId);
             $<HTMLInputElement>('#duUrl').value = url;
             $<HTMLElement>('#duShare').style.display = '';
             $<HTMLElement>('#duMake').style.display = 'none';
