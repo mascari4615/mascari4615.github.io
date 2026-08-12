@@ -8,6 +8,7 @@
  * 날아가는 것**(임시 보관)과 **바이트가 진짜 맞는 것**(옛 인코딩에 못 담기는 글자 경고)을 더한다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { countChars, countWords } from './shared/text';
 import { inRegion } from '../../lib/region';
 
 import { byteLength, euckrUnsafe, manuscriptSheets, sentenceCount, spec } from '../../core/charcount';
@@ -181,10 +182,12 @@ import { readInvocation } from '../../lib/tool-url';
 
           function render(): void {
             const text = input.value;
-            const chars = [...text];
-            const withSpace = chars.length;
-            const withoutSpace = [...text.replace(/\s/g, '')].length;
-            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            /* **사람이 세는 대로** 센다 (TASK-KL-275). 전에는 코드포인트로 셌는데,
+             * 그러면 가족 이모지 「👨‍👩‍👧」 하나가 **5자**, 국기가 2자, NFD 로 풀린 é 가 2자였다.
+             * 이 도구를 보는 이유가 트위터 글자수·이력서 자수 제한이라, 사람 눈과 다르면 쓸모없다. */
+            const withSpace = countChars(text);
+            const withoutSpace = countChars(text.replace(/\s/g, ''));
+            const words = countWords(text);
             const lines = text ? text.split(/\n/).length : 0;
             /* 마지막 문장에 마침표가 없어도 문장이다 — 자소서 마지막 줄이 늘 그렇다. */
             /* 마지막에 마침표가 없어도 문장이다 — 판단은 알맹이가 한다 (TASK-KL-205). */
@@ -194,8 +197,11 @@ import { readInvocation } from '../../lib/tool-url';
             const utf8 = byteLength(text, 'utf8');
             const euckr = byteLength(text, 'euckr');
 
+            /* 갈래별 세기(한글·영문·숫자)는 **글자 하나하나**를 봐야 하므로 코드포인트로 훑는다.
+             * 위의 「글자 수」와 수가 안 맞을 수 있는데 그게 맞다 — 저건 사람이 세는 덩이 수,
+             * 이건 어떤 문자가 몇 개인지다. */
             let ko = 0, en = 0, num = 0, space = 0, etc = 0;
-            for (const ch of chars) {
+            for (const ch of [...text]) {
               if (/\s/.test(ch)) space++;
               else if (한글.test(ch)) ko++;
               else if (영문.test(ch)) en++;
