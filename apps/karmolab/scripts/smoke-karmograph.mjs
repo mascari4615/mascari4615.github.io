@@ -1557,6 +1557,70 @@ await step('큰 판에서도 끄는 손이 무겁지 않다 (300장)', async () 
   await ctx.close();
 });
 
+await step('보이는 단추는 전부 **실제로 눌리는 자리**에 있다', async () => {
+  /* 발표 줄 사고(캔버스가 단추를 덮고 있는데 검사는 초록)를 한 번 더 당하지 않으려고,
+     상태마다 보이는 단추를 훑어 **그 한가운데를 찍으면 그 단추가 잡히는지** 본다.
+     항목마다 눌러 보는 검사와 다르다 — 이건 「덮였나」만 싼값에 전수로 본다. */
+  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: 8000 });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: 8000 });
+
+  const covered = async (label) => m.evaluate((where) => {
+    const bad = [];
+    for (const el of document.querySelectorAll('.km-root button, .km-root [data-km="tab"]')) {
+      const r = el.getBoundingClientRect();
+      if (r.width < 4 || r.height < 4) continue;                       // 안 보이는 것은 건너뛴다
+      if (el.closest('.hidden')) continue;                              // 접혀 있는 묶음 안도 건너뛴다
+      /* 제 안에서 구르는 상자(서랍·옆 패널) 안에서 **스크롤 밖으로 나간 것**은 건너뛴다 —
+         그건 덮인 게 아니라 굴려서 보는 것이다(굴리면 눌린다). */
+      let box = el.parentElement;
+      let clipped = false;
+      while (box && box !== document.body) {
+        const ov = getComputedStyle(box).overflowY;
+        if (ov === 'auto' || ov === 'scroll') {
+          const br = box.getBoundingClientRect();
+          const cy2 = r.y + r.height / 2;
+          if (cy2 < br.top || cy2 > br.bottom) clipped = true;
+          break;
+        }
+        box = box.parentElement;
+      }
+      if (clipped) continue;
+      if (r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) continue;
+      const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+      if (top && (top === el || el.contains(top) || top.contains(el))) continue;
+      bad.push(`${where}:${el.dataset.km || (el.textContent || '').trim().slice(0, 8)}`
+        + `←${top ? (top.tagName + '.' + String(top.getAttribute('class') || '').slice(0, 14)) : '없음'}`);
+    }
+    return bad;
+  }, label);
+
+  // 첫 그림이 자리를 잡기 전에 재면 아직 안 놓인 것들이 「덮였다」로 나온다.
+  await m.waitForTimeout(900);
+  const found = [];
+  found.push(...await covered('첫화면'));
+  const intent = await m.$('.km-intent button');
+  if (intent) { await intent.click(); await m.waitForTimeout(900); }
+  found.push(...await covered('견본'));
+  await m.locator('.ck-node').first().click();
+  await m.waitForTimeout(400);
+  found.push(...await covered('고른뒤'));
+  await m.locator('[data-km="more"]').click();
+  await m.waitForTimeout(300);
+  found.push(...await covered('서랍'));
+  await m.keyboard.press('Escape');
+  await m.locator('[data-km="story"]').click();
+  await m.waitForTimeout(600);
+  found.push(...await covered('발표'));
+
+  if (found.length > 0) throw new Error('덮여서 못 누르는 단추: ' + found.slice(0, 6).join(' · '));
+  await ctx.close();
+});
+
 // ── 폰 화면 ──────────────────────────────────────────────────────────────────
 // 관계도는 **보는 일**이 폰에서 훨씬 많다(링크 받아 열기). 그런데 지금까지 폰 크기는 한 번도 안 봤다.
 await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널은 아래 시트로 뜬다', async () => {
