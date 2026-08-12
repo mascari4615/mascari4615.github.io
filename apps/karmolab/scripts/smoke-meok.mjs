@@ -356,6 +356,12 @@ await page.waitForTimeout(400);
 // ★ 방금 「새로」를 눌러 판이 **비어 있다** — 그림 기준(`artRect`)으로 자리를 잡으면
 //   잡을 그림이 없다. 빈 판에서는 캔버스 자체가 기준이고, 가운데 쪽 안전한 자리만 쓴다.
 //   (여기서 그림 기준을 쓰다가 붓질이 판 밖으로 나가 잉크가 0 → 0 이 됐다 — 2026-08-13.)
+/* ★ **화면 밖에 있는 자리에는 붓이 안 닿는다** (2026-08-13, KL-254 가 남긴 그 줄).
+   먹이 묶음 탭 안으로 들어가면서 판이 아래로 내려갔다 — 잰 자리(y 638 + 높이 531)가
+   창(1000px) 밖으로 나가, 붓질 좌표가 허공에 찍히고 잉크가 0 이었다. 그림 영역을 먼저
+   화면 안으로 끌어온 **뒤에** 자리를 잰다. (실측: 이 두 줄로 잉크 0 → 1179) */
+await page.locator('.meok:visible [data-canvas]').scrollIntoViewIfNeeded();
+await page.waitForTimeout(200);
 const maskCanvas = await page.locator('.meok:visible [data-canvas]').boundingBox();
 const maskArt = { x: maskCanvas.x + maskCanvas.width * 0.2, y: maskCanvas.y + maskCanvas.height * 0.2,
   w: maskCanvas.width * 0.6, h: maskCanvas.height * 0.6 };
