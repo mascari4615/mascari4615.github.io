@@ -8,7 +8,9 @@
   "studymap.reset.confirm": "This clears every check in this track. Continue?",
   "studymap.next": "next",
   "studymap.check": "Move on when",
-  "studymap.nohit": "No topic like that in this track. Try another one.",
+  "studymap.nohit": "No such topic anywhere on the map. Try different wording.",
   "studymap.mdd.step": "One step further.",
-  "studymap.mdd.clear": "You walked a whole track. Shall we start the next one?"
+  "studymap.mdd.clear": "You walked a whole track. Shall we start the next one?",
+  "studymap.found": "{n} topics across {tracks} tracks",
+  "studymap.all": "Whole map {done} / {total}"
 }

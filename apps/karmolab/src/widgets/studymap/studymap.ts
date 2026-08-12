@@ -60,6 +60,9 @@ interface SmData { tracks: SmTrack[] }
 .sm-meter-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: var(--font-size-2xs); color: var(--text-secondary); margin-bottom: 6px; }
 .sm-meter-top b { color: var(--accent); font-size: var(--font-size-sm); font-variant-numeric: tabular-nums; }
 .sm-bar { height: 6px; border-radius: 999px; background: var(--bg-tertiary); overflow: hidden; }
+.sm-meter-all { margin-top: 6px; text-align: right; font-size: 11px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+.sm-found { font-size: var(--font-size-2xs); color: var(--text-secondary); margin-bottom: 14px; }
+.sm-stage-find::before { display: none; }
 .sm-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--secondary), var(--accent)); transition: width .35s cubic-bezier(.2,.8,.2,1); }
 
 .sm-tracks { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -153,6 +156,7 @@ interface SmData { tracks: SmTrack[] }
           <div class="sm-meter">
             <div class="sm-meter-top"><span>${esc(t('studymap.progress', undefined, '이 갈래 진도'))}</span><span><b data-sm="pdone">0</b> / <span data-sm="ptotal">0</span></span></div>
             <div class="sm-bar"><i data-sm="pbar" style="width:0%"></i></div>
+            <div class="sm-meter-all" data-sm="pall"></div>
           </div>
         </div>
         <div class="sm-tracks" data-sm="tracks"></div>
@@ -188,10 +192,60 @@ interface SmData { tracks: SmTrack[] }
         .join('');
     }
 
+    /** 칸 한 장. 찾기 결과에서도 같은 카드를 쓴다 — 두 벌로 그리면 곧 어긋난다. */
+    function cardHtml(n: SmNode, nextId: string | null): string {
+      const isDone = done.has(n.id);
+      const isNext = n.id === nextId;
+      /* 도구가 붙은 칸은 **여기서 바로 해 볼 수 있다** — 읽고 끝나면 안 남는다. */
+      const tool = n.tool ? `<a class="sm-link sm-tool" href="#${esc(n.tool.id)}">▶ ${esc(n.tool.label)}</a>` : '';
+      const links =
+        tool +
+        (n.links || [])
+          .map((l) => `<a class="sm-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} ↗</a>`)
+          .join('');
+      return `<div class="sm-node${isDone ? ' is-done' : ''}${isNext ? ' is-next' : ''}">
+        ${isNext ? `<span class="sm-next-tag">${esc(t('studymap.next', undefined, '다음'))}</span>` : ''}
+        <input type="checkbox" class="sm-check" name="studymap-done-${esc(n.id)}" data-node="${esc(n.id)}" ${isDone ? 'checked' : ''}
+               aria-label="${esc(n.title)}">
+        <div class="sm-node-body">
+          <div class="sm-node-title">${esc(n.title)}</div>
+          <div class="sm-node-why">${esc(n.why)}</div>
+          ${n.check ? `<div class="sm-node-check"><b>${esc(t('studymap.check', undefined, '넘어가도 될 때'))}</b> — ${esc(n.check)}</div>` : ''}
+          ${links ? `<div class="sm-links">${links}</div>` : ''}
+        </div>
+      </div>`;
+    }
+
+    /** 찾기는 **지도 전체**를 본다. 갈래 안에서만 찾으면 「없다」는 답이 거짓말이 된다. */
+    function searchHtml(): string {
+      const groups = tracks
+        .map((tr) => ({ tr, found: nodesOf(tr).filter(hits) }))
+        .filter((g) => g.found.length > 0);
+      if (groups.length === 0) {
+        return `<div class="sm-empty">${esc(t('studymap.nohit', undefined, '지도 어디에도 그런 주제가 없다. 다른 말로 찾아 보라.'))}</div>`;
+      }
+      const total = groups.reduce((s, g) => s + g.found.length, 0);
+      return (
+        `<div class="sm-found">${esc(t('studymap.found', { n: total, tracks: groups.length }, '지도 전체에서 {n}칸 · {tracks}갈래'))}</div>` +
+        groups
+          .map(
+            (g) => `<section class="sm-stage sm-stage-find">
+              <span class="sm-stage-dot"></span>
+              <div class="sm-stage-name">${esc(g.tr.emoji)} ${esc(g.tr.title)}</div>
+              <div class="sm-stage-sub">${g.found.filter((n) => done.has(n.id)).length} / ${g.found.length}</div>
+              <div class="sm-nodes">${g.found.map((n) => cardHtml(n, null)).join('')}</div>
+            </section>`,
+          )
+          .join('')
+      );
+    }
+
     function paint(): void {
       const tr = trackOf(current);
       const all = nodesOf(tr);
       const d = all.filter((n) => done.has(n.id)).length;
+      const everyNode = tracks.flatMap(nodesOf);
+      const everyDone = everyNode.filter((n) => done.has(n.id)).length;
 
       q<HTMLElement>('emoji').textContent = tr.emoji;
       q<HTMLElement>('title').textContent = tr.title;
@@ -199,42 +253,22 @@ interface SmData { tracks: SmTrack[] }
       q<HTMLElement>('pdone').textContent = String(d);
       q<HTMLElement>('ptotal').textContent = String(all.length);
       q<HTMLElement>('pbar').style.width = all.length ? `${Math.round((d / all.length) * 100)}%` : '0%';
+      q<HTMLElement>('pall').textContent = t('studymap.all', { done: everyDone, total: everyNode.length }, '지도 전체 {done} / {total}');
 
       /* 「다음 한 칸」 = 아직 안 한 첫 노드. 지도를 열자마자 할 일이 하나 보여야 한다. */
       const next = all.find((n) => !done.has(n.id));
 
-      const html = tr.stages
+      if (query) {
+        elStages.innerHTML = searchHtml();
+        paintTracks();
+        return;
+      }
+
+      elStages.innerHTML = tr.stages
         .map((st) => {
-          const shown = st.nodes.filter(hits);
-          if (shown.length === 0) return '';
           const clear = st.nodes.every((n) => done.has(n.id));
           const sd = st.nodes.filter((n) => done.has(n.id)).length;
-          const cards = shown
-            .map((n) => {
-              const isDone = done.has(n.id);
-              const isNext = !!next && n.id === next.id;
-              /* 도구가 붙은 칸은 **여기서 바로 해 볼 수 있다** — 읽고 끝나면 안 남는다. */
-              const tool = n.tool
-                ? `<a class="sm-link sm-tool" href="#${esc(n.tool.id)}">▶ ${esc(n.tool.label)}</a>`
-                : '';
-              const links =
-                tool +
-                (n.links || [])
-                  .map((l) => `<a class="sm-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} ↗</a>`)
-                  .join('');
-              return `<div class="sm-node${isDone ? ' is-done' : ''}${isNext ? ' is-next' : ''}">
-                ${isNext ? `<span class="sm-next-tag">${esc(t('studymap.next', undefined, '다음'))}</span>` : ''}
-                <input type="checkbox" class="sm-check" name="studymap-done-${esc(n.id)}" data-node="${esc(n.id)}" ${isDone ? 'checked' : ''}
-                       aria-label="${esc(n.title)}">
-                <div class="sm-node-body">
-                  <div class="sm-node-title">${esc(n.title)}</div>
-                  <div class="sm-node-why">${esc(n.why)}</div>
-                  ${n.check ? `<div class="sm-node-check"><b>${esc(t('studymap.check', undefined, '넘어가도 될 때'))}</b> — ${esc(n.check)}</div>` : ''}
-                  ${links ? `<div class="sm-links">${links}</div>` : ''}
-                </div>
-              </div>`;
-            })
-            .join('');
+          const cards = st.nodes.map((n) => cardHtml(n, next ? next.id : null)).join('');
           return `<section class="sm-stage${clear ? ' is-clear' : ''}">
             <span class="sm-stage-dot"></span>
             <div class="sm-stage-name">${esc(st.title)}</div>
@@ -243,9 +277,6 @@ interface SmData { tracks: SmTrack[] }
           </section>`;
         })
         .join('');
-
-      elStages.innerHTML =
-        html || `<div class="sm-empty">${esc(t('studymap.nohit', undefined, '이 갈래에는 그런 주제가 없다. 다른 갈래를 눌러 보라.'))}</div>`;
       paintTracks();
     }
 
