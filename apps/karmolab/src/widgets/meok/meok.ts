@@ -18,6 +18,7 @@ import {
   setFrameCount, type BlendMode, type Doc, type Layer, type Surface
 } from './doc';
 import { History, fieldChange, pixelPatch } from './history';
+import { adjust, contentBounds, crop, filter as applyFilter, flip, resize, rotateQuarter, type Adjust, type FilterName } from './ops';
 import { createPixelDoc, ditherdeckFromDoc, docFromDitherdeck, extractPalette, floodFill, isDitherdeckProject, parseHex, toHex } from './pixel';
 import {
   clearInside, createSelection, edgePixels, feather, invert as invertSelection, isEmpty,
@@ -172,6 +173,28 @@ function buildMeok(container: HTMLElement): void {
           '<label class="meok-check"><input data-layer="clip" type="checkbox"> ' + esc(T('clip', '아래에 끼우기')) + '</label>' +
         '</div>' +
         '<div class="meok-layer-list" data-layers></div>' +
+        '<details class="meok-fix"><summary>' + esc(T('fix', '고치기')) + '</summary>' +
+          '<div class="meok-fix-row">' +
+            '<button data-act="crop-selection" data-needs-selection title="' + esc(T('cropToSelection', '고른 자리로 자르기')) + '">' + esc(T('cropShort', '고른 자리')) + '</button>' +
+            '<button data-act="trim" title="' + esc(T('trim', '여백 자르기')) + '">' + esc(T('trimShort', '여백')) + '</button>' +
+            '<button data-act="resize">' + esc(T('resizeDoc', '크기…')) + '</button>' +
+          '</div>' +
+          '<div class="meok-fix-row">' +
+            '<button data-act="rot-left" title="' + esc(T('rotLeft', '왼쪽으로 90도')) + '">↺</button>' +
+            '<button data-act="rot-right" title="' + esc(T('rotRight', '오른쪽으로 90도')) + '">↻</button>' +
+            '<button data-act="flip-x" title="' + esc(T('flipX', '좌우 뒤집기')) + '">⇋</button>' +
+            '<button data-act="flip-y" title="' + esc(T('flipY', '상하 뒤집기')) + '">⇅</button>' +
+          '</div>' +
+          '<label>' + esc(T('brightness', '밝기')) + '<input data-adjust="brightness" type="range" min="-1" max="1" step="0.01" value="0"></label>' +
+          '<label>' + esc(T('contrast', '대비')) + '<input data-adjust="contrast" type="range" min="-0.9" max="0.9" step="0.01" value="0"></label>' +
+          '<label>' + esc(T('saturation', '채도')) + '<input data-adjust="saturation" type="range" min="-1" max="1" step="0.01" value="0"></label>' +
+          '<label>' + esc(T('hue', '색조')) + '<input data-adjust="hue" type="range" min="-180" max="180" step="1" value="0"></label>' +
+          '<div class="meok-fix-row">' +
+            '<button data-act="adjust-apply">' + esc(T('applyAdjust', '보정 굳히기')) + '</button>' +
+            '<button data-act="adjust-reset">' + esc(T('resetAdjust', '되돌리기')) + '</button>' +
+          '</div>' +
+          '<div class="meok-filters" data-filters></div>' +
+        '</details>' +
       '</aside>' +
     '</div></div>';
 
@@ -584,6 +607,87 @@ function buildMeok(container: HTMLElement): void {
     }
   });
 
+  /* ===== 고치기 ===== */
+
+  /**
+   * 크기가 바뀌는 연산은 **문서 전체**에 건다 — 레이어마다 크기가 다르면 합성이 성립하지 않는다.
+   * 되돌리기는 셀 배열을 통째로 들고 있는다(자르기 한 번 = 판 한 장 값. 붓질과 달리 드물다).
+   */
+  function transformDoc(label: string, fn: (surface: Surface) => Surface, size: (w: number, h: number) => [number, number]): void {
+    const oldW = doc.w; const oldH = doc.h;
+    const [nextW, nextH] = size(oldW, oldH);
+    const before = doc.layers.map(layer => layer.cels.slice());
+    const beforeMasks = doc.layers.map(layer => layer.mask);
+    const after = doc.layers.map(layer => layer.cels.map(cel => (cel ? fn(cel) : null)));
+    /* 레이어 마스크도 같이 옮긴다 — 안 그러면 판만 잘리고 가림막은 옛 크기로 남아 어긋난다. */
+    const afterMasks = doc.layers.map((layer, index) => {
+      if (!layer.mask) return null;
+      const wrapped = createSurface(oldW, oldH);
+      for (let p = 0; p < layer.mask.length; p += 1) wrapped.data[p * 4 + 3] = layer.mask[p];
+      const moved = fn(wrapped);
+      const out = new Uint8ClampedArray(moved.w * moved.h);
+      for (let p = 0; p < out.length; p += 1) out[p] = moved.data[p * 4 + 3];
+      return index >= 0 ? out : null;
+    });
+    const put = (cels: Array<Array<Surface | null>>, masks: Array<Uint8ClampedArray | null>, w: number, h: number): void => {
+      doc.w = w; doc.h = h;
+      doc.layers.forEach((layer, index) => { layer.cels = cels[index].slice(); layer.mask = masks[index]; });
+      selection = createSelection(doc.w, doc.h);
+      flat = createSurface(doc.w, doc.h);
+      view.resizeDoc(doc.w, doc.h);
+      selectionChanged();
+      view.fit();
+      renderLayers(); renderFrames(); repaint();
+    };
+    history.run({
+      label,
+      redo: () => put(after, afterMasks, nextW, nextH),
+      undo: () => put(before, beforeMasks, oldW, oldH)
+    });
+  }
+
+  /** 색만 바꾸는 연산은 **활성 레이어의 지금 셀**에만 건다(선택영역이 있으면 그 안만). */
+  function paintOp(label: string, fn: (surface: Surface) => Surface): void {
+    const layer = canDraw();
+    if (!layer) return;
+    const cel = ensureCel(doc, layer, doc.activeFrame);
+    const before = cloneSurface(cel);
+    const next = fn(cel);
+    cel.data.set(next.data);
+    const patch = pixelPatch(cel, before, label);
+    if (patch) history.push(patch);
+    renderLayers(); renderFrames(); repaint();
+  }
+
+  /** 보정 슬라이더 지금 값. */
+  const adjustValues = (): Adjust => ({
+    brightness: Number(pick<HTMLInputElement>('[data-adjust="brightness"]').value),
+    contrast: Number(pick<HTMLInputElement>('[data-adjust="contrast"]').value),
+    saturation: Number(pick<HTMLInputElement>('[data-adjust="saturation"]').value),
+    hue: Number(pick<HTMLInputElement>('[data-adjust="hue"]').value)
+  });
+  const noAdjust = (values: Adjust): boolean =>
+    !values.brightness && !values.contrast && !values.saturation && !values.hue;
+  /** 미리보기 — 굳히기 전까지는 원본을 안 건드린다. */
+  let adjustBase: { layerId: string; frame: number; surface: Surface } | null = null;
+
+  function previewAdjust(): void {
+    const layer = activeLayer(doc);
+    if (!layer) return;
+    const cel = ensureCel(doc, layer, doc.activeFrame);
+    if (!adjustBase || adjustBase.layerId !== layer.id || adjustBase.frame !== doc.activeFrame) {
+      adjustBase = { layerId: layer.id, frame: doc.activeFrame, surface: cloneSurface(cel) };
+    }
+    const values = adjustValues();
+    const next = noAdjust(values) ? adjustBase.surface : adjust(adjustBase.surface, values, selectionMask());
+    cel.data.set(next.data);
+    repaint();
+  }
+
+  function resetAdjustSliders(): void {
+    root.querySelectorAll<HTMLInputElement>('[data-adjust]').forEach(input => { input.value = '0'; });
+  }
+
   const actions: Record<string, () => void> = {
     'new': () => {
       if (!confirm(T('confirmNew', '지금 그림을 버리고 새로 시작할까?'))) return;
@@ -646,6 +750,53 @@ function buildMeok(container: HTMLElement): void {
       say(T('feathered', '가장자리를 부드럽게 했다'));
     },
     'deselect': () => { selectNone(selection); selectionChanged(); },
+    'crop-selection': () => {
+      const bounds = selection.bounds;
+      if (!bounds) { say(T('needSelection', '먼저 자를 자리를 골라라')); return; }
+      transformDoc(T('cropToSelection', '고른 자리로 자르기'), surface => crop(surface, bounds), () => [bounds.w, bounds.h]);
+    },
+    'trim': () => {
+      const bounds = contentBounds(flat);
+      if (!bounds) { say(T('nothingToTrim', '자를 여백이 없다 — 판이 비었다')); return; }
+      if (bounds.w === doc.w && bounds.h === doc.h) { say(T('noMargin', '여백이 없다')); return; }
+      transformDoc(T('trim', '여백 자르기'), surface => crop(surface, bounds), () => [bounds.w, bounds.h]);
+    },
+    'resize': () => {
+      const answer = prompt(T('resizePrompt', '새 가로 크기(px). 세로는 비율대로 따라간다'), String(doc.w));
+      const nextW = Math.round(Number(answer));
+      if (!answer || !isFinite(nextW) || nextW < 1 || nextW > 8000) return;
+      const nextH = Math.max(1, Math.round(doc.h * (nextW / doc.w)));
+      const smooth = doc.grid <= 0;   /* 픽셀 그림은 부드럽게 하면 도트가 죽는다 */
+      transformDoc(T('resizeDoc', '크기…'), surface => resize(surface, nextW, nextH, smooth), () => [nextW, nextH]);
+    },
+    'rot-left': () => transformDoc(T('rotLeft', '왼쪽으로 90도'), surface => rotateQuarter(surface, 3), (w, h) => [h, w]),
+    'rot-right': () => transformDoc(T('rotRight', '오른쪽으로 90도'), surface => rotateQuarter(surface, 1), (w, h) => [h, w]),
+    'flip-x': () => transformDoc(T('flipX', '좌우 뒤집기'), surface => flip(surface, 'x'), (w, h) => [w, h]),
+    'flip-y': () => transformDoc(T('flipY', '상하 뒤집기'), surface => flip(surface, 'y'), (w, h) => [w, h]),
+    'adjust-apply': () => {
+      const values = adjustValues();
+      if (noAdjust(values)) { say(T('nothingToAdjust', '움직인 손잡이가 없다')); return; }
+      const base = adjustBase;
+      /* 미리보기로 이미 화면이 바뀌어 있다 — 원본을 되돌린 뒤 한 단계로 굳힌다. */
+      const layer = activeLayer(doc);
+      if (base && layer) {
+        const cel = ensureCel(doc, layer, doc.activeFrame);
+        cel.data.set(base.surface.data);
+      }
+      adjustBase = null;
+      paintOp(T('adjustLabel', '색 보정'), surface => adjust(surface, values, selectionMask()));
+      resetAdjustSliders();
+    },
+    'adjust-reset': () => {
+      const layer = activeLayer(doc);
+      if (adjustBase && layer) {
+        const cel = ensureCel(doc, layer, doc.activeFrame);
+        cel.data.set(adjustBase.surface.data);
+      }
+      adjustBase = null;
+      resetAdjustSliders();
+      renderLayers(); repaint();
+    },
     'pick-palette': () => {
       doc.palette = extractPalette(flat, 16);
       renderPalette();
@@ -673,6 +824,27 @@ function buildMeok(container: HTMLElement): void {
       say(T('projectPixelOnly', '지금은 픽셀 그림만 프로젝트로 저장된다 — 그림은 PNG 로'));
     }
   };
+  /* 필터 — 이름만 있으면 되므로 표로 그린다. 세기는 반씩(약하게 두 번 = 사람이 쓰는 법). */
+  const FILTERS: Array<[FilterName, string, string]> = [
+    ['grayscale', '흑백', '1'], ['sepia', '세피아', '1'], ['invert', '반전', '1'],
+    ['blur', '흐리게', '1'], ['sharpen', '선명하게', '1'], ['edge', '윤곽', '1'],
+    ['emboss', '돋을새김', '1'], ['posterize', '포스터', '0.5']
+  ];
+  const filterBox = pick<HTMLElement>('[data-filters]');
+  FILTERS.forEach(entry => {
+    const button = document.createElement('button');
+    button.textContent = T('filter.' + entry[0], entry[1]);
+    button.onclick = () => paintOp(
+      T('filter.' + entry[0], entry[1]),
+      surface => applyFilter(surface, entry[0], Number(entry[2]), selectionMask())
+    );
+    filterBox.append(button);
+  });
+
+  root.querySelectorAll<HTMLInputElement>('[data-adjust]').forEach(input => {
+    input.oninput = previewAdjust;
+  });
+
   root.querySelectorAll<HTMLButtonElement>('[data-act]').forEach(button => {
     button.onclick = () => actions[button.dataset.act || '']?.();
   });
@@ -801,14 +973,23 @@ function injectStyles(): void {
     '.meok-frame{padding:2px;display:flex;flex-direction:column;align-items:center;gap:1px}',
     '.meok-frame canvas{width:34px;height:34px;image-rendering:pixelated;background:#fff;border-radius:3px}',
     '.meok-frame small{font-size:9px;color:var(--text-tertiary)}',
-    '.meok-layers{display:flex;flex-direction:column;background:var(--bg-secondary);border-left:1px solid var(--border);min-height:0}',
+    '.meok-layers{display:flex;flex-direction:column;background:var(--bg-secondary);border-left:1px solid var(--border);min-height:0;overflow:hidden}',
     '.meok-layer-head{display:flex;align-items:center;gap:4px;padding:8px}',
     '.meok-layer-head b{flex:1;font-size:11px;letter-spacing:.1em;color:var(--text-tertiary)}',
     '.meok-layer-props{display:flex;flex-direction:column;gap:5px;padding:0 8px 8px;border-bottom:1px solid var(--border)}',
     '.meok-layer-props label{display:flex;align-items:center;gap:6px;color:var(--text-secondary)}',
     '.meok-layer-props input[type=range]{flex:1}',
     '.meok-layer-props select{flex:1;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:5px;padding:3px}',
-    '.meok-layer-list{flex:1;overflow:auto;padding:6px}',
+    '.meok-layer-list{flex:0 1 auto;min-height:74px;max-height:38%;overflow:auto;padding:6px}',
+    '.meok-fix{border-top:1px solid var(--border);padding:6px 8px 10px;flex:1;min-height:0;overflow:auto}',
+    '.meok-fix summary{cursor:pointer;font-size:11px;letter-spacing:.1em;color:var(--text-tertiary);padding:2px 0}',
+    '.meok-fix label{display:flex;align-items:center;gap:6px;margin:4px 0;color:var(--text-secondary)}',
+    '.meok-fix label input{flex:1}',
+    '.meok-fix-row{display:flex;gap:4px;margin:5px 0;flex-wrap:wrap}',
+    '.meok-fix-row button{flex:1 1 0;min-width:0;font-size:10.5px;padding:5px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.meok-fix-row button[disabled]{opacity:.35;cursor:default}',
+    '.meok-filters{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px}',
+    '.meok-filters button{font-size:11px;padding:5px 4px}',
     '.meok-layer{display:flex;align-items:center;gap:5px;padding:4px;border:1px solid transparent;border-radius:6px;cursor:pointer}',
     '.meok-layer.active{border-color:var(--accent,#4f7cff);background:color-mix(in srgb,var(--accent,#4f7cff) 12%,transparent)}',
     '.meok-layer canvas{width:34px;height:34px;background:#fff;border-radius:4px;image-rendering:pixelated}',
