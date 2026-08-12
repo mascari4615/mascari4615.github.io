@@ -178,5 +178,16 @@
   "arcade.chain.aria": "Your word",
   "arcade.chain.hint": "a word starting with {c}",
   "arcade.chain.waiting": "Waiting for your turn",
-  "arcade.chain.win": "{who} was last standing — {n} words"
+  "arcade.chain.win": "{who} was last standing — {n} words",
+  "arcade.game.lineup.name": "Line Up",
+  "arcade.game.lineup.desc": "Answer in secret, then guess everyone's order",
+  "arcade.lineup.questions": "How well do you handle spicy food|How much screen time a day|Morning person (100 = morning)|How easily you talk to strangers|How much you plan ahead|How well you handle horror|How patient you are|How much you like new things",
+  "arcade.lineup.fallback": "How much?",
+  "arcade.lineup.lock": "Lock it in",
+  "arcade.lineup.locked": "Locked {n} — waiting for the rest",
+  "arcade.lineup.orderHint": "Tap from lowest to highest",
+  "arcade.lineup.send": "This order",
+  "arcade.lineup.undo": "Undo one",
+  "arcade.lineup.sent": "Sent — waiting for the rest",
+  "arcade.lineup.win": "{who} — {n} points"
 }

@@ -178,5 +178,16 @@
   "arcade.chain.aria": "つなぐ言葉",
   "arcade.chain.hint": "{c} で始まる言葉",
   "arcade.chain.waiting": "順番待ち",
-  "arcade.chain.win": "{who} が最後まで残った — {n}語"
+  "arcade.chain.win": "{who} が最後まで残った — {n}語",
+  "arcade.game.lineup.name": "並べ替え",
+  "arcade.game.lineup.desc": "こっそり数を出して、みんなの順番を当てる",
+  "arcade.lineup.questions": "辛いものにどれだけ強いか|一日にスマホをどれだけ見るか|朝型か (100が朝型)|知らない人にどれだけ話しかけるか|どれだけ計画を立てるか|ホラーにどれだけ強いか|どれだけ我慢できるか|新しいものがどれだけ好きか",
+  "arcade.lineup.fallback": "どれくらい?",
+  "arcade.lineup.lock": "これで",
+  "arcade.lineup.locked": "{n} で出した — みんなを待つ",
+  "arcade.lineup.orderHint": "小さい方から順に押してください",
+  "arcade.lineup.send": "この順で",
+  "arcade.lineup.undo": "ひとつ戻す",
+  "arcade.lineup.sent": "出した — みんなを待つ",
+  "arcade.lineup.win": "{who} — {n}点"
 }

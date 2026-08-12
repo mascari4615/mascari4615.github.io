@@ -113,11 +113,22 @@ for (const g of GAMES) {
   }
   ok(jsonOk, `${g.id}: 판을 통째로 흘려보낼 수 있다 (JSON)`);
 
-  /* ⑤ 감출 것이 있는 게임은 **손님에게 갈 판에 그것이 없어야** 한다. 화면이 안 그려도 값은 간다. */
+  /* ⑤ 감출 것이 있는 게임은 **손님에게 갈 판에 그것이 없어야** 한다. 화면이 안 그려도 값은 간다.
+   *
+   * 판을 좀 굴린 뒤에 본다 — 시작하자마자는 아직 감출 것이 없는 게임이 있다(아무도 안 냈으니까).
+   * 첫 판만 보고 「안 지운다」고 하면 검사가 이름값을 못 한다. */
   if (g.redact) {
-    const before = JSON.stringify(a1.view().state);
-    const safe = JSON.stringify(g.redact(a1.view().state, 0));
-    ok(before !== safe, `${g.id}: 감춘 것이 손님 판에서 지워진다`);
+    const warm = new Match(g, 999, seats);
+    for (let now = 0; now < 30000; now += 50) {
+      warm.step(now);
+      if (warm.view().finished) break;
+      if (JSON.stringify(g.redact(warm.view().state, 0)) !== JSON.stringify(warm.view().state)) break;
+    }
+    const st = warm.view().state;
+    ok(
+      JSON.stringify(g.redact(st, 0)) !== JSON.stringify(st),
+      `${g.id}: 감춘 것이 손님 판에서 지워진다`
+    );
   }
 
   /* ⑥ 자리 수가 말이 된다. */
