@@ -1,0 +1,110 @@
+{
+  "id": "web-http",
+  "minutes": 14,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "「느리다 · 안 바뀐다 · 로그인이 풀린다」 — 웹에서 사람을 제일 많이 괴롭히는 셋은 전부 HTTP 에서 끝난다."
+    },
+    {
+      "type": "h",
+      "text": "1. 요청 한 번의 구조"
+    },
+    {
+      "type": "code",
+      "lang": "http",
+      "label": "헤더가 절반이다",
+      "text": "GET /api/items?page=2 HTTP/1.1\nHost: example.com\nAccept: application/json\nCookie: session=abc\n\nHTTP/1.1 200 OK\nContent-Type: application/json\nCache-Control: max-age=60\nETag: \"v3\""
+    },
+    {
+      "type": "p",
+      "text": "상태 코드는 **누구 잘못인지**를 말한다. 2xx 됐다 · 3xx 다른 데로 가라 · 4xx 요청이 잘못됐다 · 5xx 서버가 잘못됐다. 401(누군지 모름)과 403(누군지는 알지만 권한 없음)의 구분이 특히 자주 틀린다."
+    },
+    {
+      "type": "h",
+      "text": "2. 캐시 — 「왜 안 바뀌지?」"
+    },
+    {
+      "type": "code",
+      "lang": "http",
+      "label": "두 가지 방식",
+      "text": "# 1) 기간제 — 그 시간 동안은 아예 안 물어본다\nCache-Control: max-age=31536000, immutable\n\n# 2) 확인제 — 물어보고 안 바뀌었으면 304\nETag: \"v3\"\nIf-None-Match: \"v3\"   →   304 Not Modified (본문 없음)"
+    },
+    {
+      "type": "note",
+      "text": "파일 이름에 해시를 넣고(`app.9f2b.js`) 그 파일은 영구 캐시, HTML 은 캐시 안 함 — 이 조합이 표준 답이다. 「배포했는데 안 바뀐다」의 대부분은 HTML 이나 진입 스크립트가 캐시된 경우다."
+    },
+    {
+      "type": "h",
+      "text": "3. 쿠키와 세션"
+    },
+    {
+      "type": "code",
+      "lang": "http",
+      "label": "로그인이 자꾸 풀린다면 이 셋을 본다",
+      "text": "Set-Cookie: session=abc; HttpOnly; Secure; SameSite=Lax; Max-Age=1209600; Path=/"
+    },
+    {
+      "type": "p",
+      "text": "`HttpOnly` 는 JS 에서 못 읽게(탈취 방지), `Secure` 는 https 에서만, `SameSite` 는 다른 사이트에서 온 요청에 실을지 정한다. 프런트가 다른 도메인이면 `SameSite=None; Secure` + 서버의 CORS 허용이 함께 필요하다."
+    },
+    {
+      "type": "h",
+      "text": "4. 브라우저에서 확인하는 법"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "실패를 삼키지 않는 fetch",
+      "text": "const res = await fetch('/api/items', { headers: { Accept: 'application/json' } });\nif (!res.ok) throw new Error(`HTTP ${res.status}`);   // fetch 는 4xx·5xx 에 예외를 안 던진다\nconst data = await res.json();"
+    },
+    {
+      "type": "note",
+      "text": "개발자도구 Network 에서 Size 칸이 `(from disk cache)` 면 요청 자체를 안 보낸 것이고, 상태가 `304` 면 물어보고 안 바뀌었다는 답을 받은 것이다. 이 둘을 구분하는 것이 캐시 디버깅의 시작이다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "아무 사이트나 열고 새로고침 → 강력 새로고침(Ctrl+Shift+R)을 하며 Network 탭의 Size·Status 변화를 봐라. 어떤 파일이 캐시에서 오고 어떤 파일이 매번 오는지 목록을 적어라."
+    },
+    {
+      "type": "try",
+      "text": "내 사이트의 응답 헤더에서 `Cache-Control` 을 찾아라. 없다면 무엇이 기본값으로 동작하는지 확인하고, 해시가 붙은 정적 파일에 긴 max-age 를 줄 수 있는지 살펴봐라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "Network 탭에서 상태가 304 다. 무슨 뜻인가?",
+      "choices": [
+        "서버가 새 내용을 보냈다",
+        "물어봤고 안 바뀌었다고 답이 와서 본문을 안 받았다",
+        "요청이 실패했다"
+      ],
+      "answer": 1,
+      "why": "304 는 검증 요청의 결과다. 본문 없이 「그대로 써라」는 답이다."
+    },
+    {
+      "q": "로그인 세션 쿠키에 HttpOnly 를 붙이는 이유는?",
+      "choices": [
+        "용량을 줄이려고",
+        "JavaScript 에서 읽지 못하게 해 탈취를 막으려고",
+        "캐시를 늘리려고"
+      ],
+      "answer": 1,
+      "why": "XSS 가 나더라도 스크립트가 쿠키 값을 읽어 가지 못한다."
+    },
+    {
+      "q": "fetch 로 받은 응답이 404 인데 catch 로 안 들어온다. 왜?",
+      "choices": [
+        "fetch 는 네트워크 실패에만 예외를 던지고 4xx·5xx 는 정상 응답으로 준다",
+        "await 를 빠뜨려서",
+        "JSON 이 아니라서"
+      ],
+      "answer": 0,
+      "why": "res.ok 나 res.status 를 직접 확인해야 한다."
+    }
+  ]
+}

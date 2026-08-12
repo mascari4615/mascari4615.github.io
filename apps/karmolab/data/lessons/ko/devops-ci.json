@@ -1,0 +1,104 @@
+{
+  "id": "devops-ci",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "사람이 기억해서 돌리는 검사는 결국 안 돌아간다. CI 의 값어치는 「검사를 자동으로 돌린다」가 아니라 **안 돌릴 수 없게 만든다**에 있다."
+    },
+    {
+      "type": "h",
+      "text": "1. 최소 한 판"
+    },
+    {
+      "type": "code",
+      "lang": "yaml",
+      "label": ".github/workflows/ci.yml",
+      "text": "name: CI\non:\n  pull_request:\n  push:\n    branches: [main]\n\njobs:\n  check:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with: { node-version: 20, cache: npm }\n      - run: npm ci\n      - run: npm run typecheck\n      - run: npm test"
+    },
+    {
+      "type": "note",
+      "text": "`npm ci` 는 lock 파일 그대로 설치한다(`npm install` 은 lock 을 바꿀 수 있다). CI 에서 「내 컴퓨터에선 됐는데」가 나는 흔한 원인이 이 한 글자 차이다."
+    },
+    {
+      "type": "h",
+      "text": "2. 빨라야 돌아간다"
+    },
+    {
+      "type": "p",
+      "text": "10분이 넘어가면 사람들이 결과를 안 기다리고 머지한다. 캐시·병렬·빠른 것 먼저(린트 → 타입 → 단위 → 브라우저) 순으로 배치하라."
+    },
+    {
+      "type": "code",
+      "lang": "yaml",
+      "label": "느린 것은 나눠서 동시에",
+      "text": "  test:\n    strategy:\n      matrix:\n        shard: [1, 2, 3]\n    steps:\n      - run: npx playwright test --shard=${{ matrix.shard }}/3"
+    },
+    {
+      "type": "h",
+      "text": "3. 초록이 거짓이면 없느니만 못하다"
+    },
+    {
+      "type": "note",
+      "text": "가끔 실패하는(flaky) 검사를 방치하면 사람들이 빨강을 무시하기 시작한다. 그 순간부터 CI 는 소음이다. flaky 는 **재현율을 올려 원인을 찾거나, 아니면 지워라**."
+    },
+    {
+      "type": "p",
+      "text": "또 하나 — 검사가 **아무것도 안 보는데 초록**인 경우가 있다(대상 0개, 조건 미충족으로 건너뜀). 「0건 통과」는 실패로 취급하는 것이 안전하다."
+    },
+    {
+      "type": "h",
+      "text": "4. push 전에도 한 겹"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "CI 만 있으면 늦다",
+      "text": "# .husky/pre-push\nnpm run typecheck && npm run test:unit\n# 무거운 것은 CI 에, 30초 안쪽은 손 옆에"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "내 저장소에 위 최소 워크플로를 넣고 일부러 타입 오류가 있는 PR 을 올려 **빨강을 확인**하라. 초록만 보고 끝내면 그 검사가 진짜 도는지 알 수 없다."
+    },
+    {
+      "type": "try",
+      "text": "CI 한 판의 소요 시간을 재고, 가장 오래 걸리는 단계를 적어라. 캐시나 분할로 줄일 수 있는지 판단해 보라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "CI 에서 npm install 대신 npm ci 를 쓰는 이유는?",
+      "choices": [
+        "더 빠르기만 하다",
+        "lock 파일 그대로 설치해 환경이 재현되기 때문",
+        "캐시를 안 쓰기 때문"
+      ],
+      "answer": 1,
+      "why": "install 은 lock 을 갱신할 수 있어 CI 와 로컬이 다른 의존성으로 돌 수 있다."
+    },
+    {
+      "q": "가끔 실패하는 테스트를 방치하면 생기는 가장 큰 문제는?",
+      "choices": [
+        "CI 요금이 늘어난다",
+        "사람들이 빨강을 무시하게 되어 진짜 실패도 지나친다",
+        "커버리지가 떨어진다"
+      ],
+      "answer": 1,
+      "why": "신호가 소음이 되는 순간 게이트는 없는 것과 같다."
+    },
+    {
+      "q": "검사가 대상 0건인데 초록으로 끝났다. 올바른 처리는?",
+      "choices": [
+        "정상이므로 둔다",
+        "0건 통과는 실패로 취급해 설정 오류를 드러낸다",
+        "경고만 남긴다"
+      ],
+      "answer": 1,
+      "why": "아무것도 안 본 초록은 거짓 안심이다."
+    }
+  ]
+}
