@@ -1,5 +1,4 @@
 {
-  "widgets.ditherdeck.title": "Ditherdeck",
   "widgets.life.title": "Life 채널",
   "widgets.user.title": "내 정보",
   "widgets.usertool.title": "만든 도구",
@@ -35,6 +34,7 @@
   "widgets.imagegen.title": "이미지 생성",
   "widgets.image.title": "이미지",
   "widgets.imageedit.title": "이미지 편집",
+  "widgets.meok.title": "먹",
   "widgets.imagelib.title": "이미지 라이브러리",
   "widgets.tierlist.title": "티어리스트",
   "widgets.postgraph.title": "글 그래프",
@@ -196,12 +196,13 @@
   "widgets.ytdownloader.title": "유튜브 다운로드",
   "widgets.stash.title": "잡동사니",
   "widgets.laptop.title": "노트북",
-  "widgets.karmo-studio.title": "Karmo Studio",
+  "widgets.heung.title": "흥",
   "widgets.orbita.title": "ORBITA",
   "widgets.bluemarble.title": "블루마블",
   "widgets.garden.title": "정원",
+  "widgets.meong.title": "멍",
+  "widgets.arcade.title": "오락실",
   "widgets.collection.title": "도감",
   "widgets.karmograph.title": "KarmoGraph",
-  "widgets.studymap.title": "개발자 스터디 맵",
-  "widgets.meok.title": "먹"
+  "widgets.studymap.title": "개발자 스터디 맵"
 }
