@@ -669,7 +669,10 @@ import {
         const sheetTop = canvasEl.getBoundingClientRect().bottom - sheet.height;
         const over = rect.y + rect.h + margin - sheetTop;
         if (over <= 1) {
-          root.dataset.kmPan = moved ? `panned(${Math.round(moved)})` : `no-need(${Math.round(over)})`;
+          /* 검사가 재는 값과 여기서 재는 값이 갈리면 원인을 못 찾는다 — **내가 무엇을 보고
+             그만뒀는지** 그대로 남긴다 (카드 아래끝 · 내가 셈한 시트 위끝). */
+          root.dataset.kmPan =
+            `${moved ? `panned(${Math.round(moved)})` : 'no-need'}·카드끝${Math.round(rect.y + rect.h)}·시트위${Math.round(sheetTop)}`;
           return;
         }
         const scale = canvas.getScale() || 1;
