@@ -4585,6 +4585,143 @@
           ]
         }
       ]
+    },
+    {
+      "id": "math",
+      "title": "개발자 수학",
+      "emoji": "📐",
+      "lead": "시험용 수학 말고, 화면과 잔고를 틀리게 만드는 그 수학",
+      "stages": [
+        {
+          "id": "math-a",
+          "title": "숫자를 믿을 수 있나",
+          "nodes": [
+            {
+              "id": "math-float",
+              "title": "0.1 + 0.2 는 왜 0.3 이 아닌가",
+              "why": "컴퓨터의 소수는 근사값이다. 이걸 모르면 합계가 1원씩 어긋나는 버그를 평생 쫓는다.",
+              "check": "오차가 생기는 계산을 재현하고 안전하게 비교한다",
+              "links": [
+                {
+                  "label": "부동소수점 안내",
+                  "url": "https://floating-point-gui.de/"
+                }
+              ],
+              "prereq": [
+                "cs-binary"
+              ]
+            },
+            {
+              "id": "math-money",
+              "title": "돈 계산과 반올림",
+              "why": "금액을 소수로 다루면 언젠가 1원이 사라진다. 세금·할인·나누기에서 반드시 터진다.",
+              "check": "정수 단위로 금액을 다루고 반올림 규칙을 정한다",
+              "links": [
+                {
+                  "label": "MDN — Intl.NumberFormat",
+                  "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat"
+                }
+              ]
+            },
+            {
+              "id": "math-random",
+              "title": "난수 — 시드와 공정함",
+              "why": "재현 안 되는 난수는 버그를 못 잡는다. 그리고 사람이 느끼는 「공정함」은 진짜 확률과 다르다.",
+              "check": "시드 고정으로 같은 결과를 재현한다",
+              "links": [
+                {
+                  "label": "MDN — Math.random()",
+                  "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "math-b",
+          "title": "화면을 움직인다",
+          "nodes": [
+            {
+              "id": "math-vector",
+              "title": "벡터 — 방향과 거리",
+              "why": "「적이 내 뒤에 있나」, 「얼마나 멀지」가 전부 내적과 길이 하나로 풀린다.",
+              "check": "내적으로 앞뒤를 판정하고 정규화를 쓴다",
+              "links": [
+                {
+                  "label": "Red Blob Games — 게임 수학 시각 자료",
+                  "url": "https://www.redblobgames.com/"
+                }
+              ],
+              "prereq": [
+                "gfx-space"
+              ]
+            },
+            {
+              "id": "math-matrix",
+              "title": "행렬 — 이동 · 회전 · 크기",
+              "why": "변환이 왜 순서에 따라 달라지는지 알면 「모델이 이상한 데로 날아가는」 문제가 풀린다.",
+              "check": "이동·회전 순서를 바꿔 결과 차이를 설명한다",
+              "links": [
+                {
+                  "label": "MDN — CSS transform",
+                  "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/transform"
+                }
+              ]
+            },
+            {
+              "id": "math-easing",
+              "title": "보간과 이징 — 자연스러움의 정체",
+              "why": "좋은 UI 움직임은 감이 아니라 곡선이다. 선형 보간 하나로 화면이 살아난다.",
+              "check": "같은 동작을 세 가지 곡선으로 바꿔 비교한다",
+              "links": [
+                {
+                  "label": "Easing Functions",
+                  "url": "https://easings.net/"
+                }
+              ],
+              "prereq": [
+                "web-css"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "math-c",
+          "title": "숫자로 판단한다",
+          "nodes": [
+            {
+              "id": "math-prob",
+              "title": "확률과 기댓값 — 밸런스의 언어",
+              "why": "「치명타 20%」가 실제로 어떤 경험을 만드는지 계산으로 안다. 감으로 조절하면 무너진다.",
+              "check": "기댓값과 분산을 계산해 밸런스를 조정한다",
+              "links": [
+                {
+                  "label": "Red Blob Games — Damage rolls",
+                  "url": "https://www.redblobgames.com/articles/probability/damage-rolls.html"
+                }
+              ],
+              "prereq": [
+                "game-balance"
+              ]
+            },
+            {
+              "id": "math-stats",
+              "title": "평균의 거짓말 — 백분위로 보라",
+              "why": "평균 응답 200ms 라도 상위 1% 사용자는 5초를 기다린다. 평균은 사고를 가린다.",
+              "check": "p50 · p95 · p99 를 재고 평균과 비교한다",
+              "links": [
+                {
+                  "label": "Brendan Gregg — Latency 히트맵",
+                  "url": "https://www.brendangregg.com/HeatMaps/latency.html"
+                }
+              ],
+              "prereq": [
+                "analytics-stats"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
