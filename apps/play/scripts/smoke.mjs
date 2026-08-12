@@ -79,6 +79,10 @@ const say = (ok, what) => {
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+/* ★ **찬 러너는 느리다** (2026-08-13). 기본 30초로는 CI 에서 `.hi-side` 를 못 기다려
+   놀이가 멀쩡한데 검사만 죽었다(손으로 같은 자리를 열면 곧바로 뜬다). 넉넉히 준다 —
+   못 기다려서 나는 거짓 빨강이 기다림보다 비싸다. */
+ctx.setDefaultTimeout(60000);
 // 남의 서버 그림은 안 부른다 — 검사가 그쪽 사정에 흔들리면 안 된다.
 await ctx.route('**/*.{png,jpg,jpeg,gif,webp}', (r) => r.abort());
 
