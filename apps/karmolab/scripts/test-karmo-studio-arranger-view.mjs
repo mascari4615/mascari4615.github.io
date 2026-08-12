@@ -8,18 +8,29 @@ const sourcePath = path.resolve('src/widgets/karmo-studio/arranger-view.ts');
 const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
-vm.runInNewContext(`(function(exports,module,require){${compiled}\n})(module.exports,module,()=>({}));`, { module, console, Math });
-const { automationY, AUTOMATION_GEOMETRY, waveformPath, waveformSvg, waveMissing, clipHtml, automationHtml, visibleClips, previewNotes } = module.exports;
+/* model 은 값 범위 상수만 쓴다 — 뷰가 모델 전체를 안 끌어오는지도 여기서 드러난다. */
+const modelStub = { AUTOMATION_RANGE: { volume: { min: 0, max: 1.2 }, pan: { min: -1, max: 1 } } };
+vm.runInNewContext(`(function(exports,module,require){${compiled}
+})(module.exports,module,()=>modelStub);`, { module, console, Math, modelStub });
+const { automationY, automationValue, AUTOMATION_GEOMETRY, waveformPath, waveformSvg, waveMissing, clipHtml, automationHtml, visibleClips, previewNotes } = module.exports;
 
 const esc = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-const track = { id: 't1', kind: 'midi', name: 'Inst', color: '#8b7cf6', volume: 0.8, pan: 0, mute: false, solo: false, eqLow: 0, eqMid: 0, eqHigh: 0, compressor: 0, reverb: 0, instrument: 'saw', clips: [], volumeAutomation: [] };
+const track = { id: 't1', kind: 'midi', name: 'Inst', color: '#8b7cf6', volume: 0.8, pan: 0, mute: false, solo: false, eqLow: 0, eqMid: 0, eqHigh: 0, compressor: 0, reverb: 0, instrument: 'saw', clips: [], automation: { volume: [], pan: [] }, folded: false };
 const clip = (notes = [], extra = {}) => ({ id: 'c1', trackId: 't1', kind: 'midi', name: 'A', start: 2, duration: 4, offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, notes, ...extra });
 
-// 자동화 y 좌표 — 위가 최대, 아래가 0
-assert.equal(automationY(AUTOMATION_GEOMETRY.max), 0, '최대값은 맨 위');
-assert.equal(automationY(0), AUTOMATION_GEOMETRY.height, '0 은 맨 아래');
-assert.equal(automationY(99), 0, '범위를 넘어도 화면 밖으로 안 나간다');
-assert.equal(automationY(-99), AUTOMATION_GEOMETRY.height);
+// 자동화 y 좌표 — 항목마다 범위가 다르다
+assert.equal(automationY(1.2, 'volume'), 0, '볼륨 최대는 맨 위');
+assert.equal(automationY(0, 'volume'), AUTOMATION_GEOMETRY.height, '볼륨 0 은 맨 아래');
+assert.equal(automationY(99, 'volume'), 0, '범위를 넘어도 화면 밖으로 안 나간다');
+assert.equal(automationY(-99, 'volume'), AUTOMATION_GEOMETRY.height);
+assert.equal(automationY(0, 'pan'), AUTOMATION_GEOMETRY.height / 2, '팬 가운데는 줄 한가운데');
+assert.equal(automationY(1, 'pan'), 0, '팬 오른쪽 끝은 맨 위');
+assert.equal(automationY(-1, 'pan'), AUTOMATION_GEOMETRY.height, '팬 왼쪽 끝은 맨 아래');
+// 화면 y → 값은 정확히 되돌아온다
+for (const [param, value] of [['volume', 0.6], ['pan', -0.4]]) {
+  const back = automationValue(automationY(value, param) / AUTOMATION_GEOMETRY.height, param);
+  assert.ok(Math.abs(back - value) < 1e-9, `${param} 왕복`);
+}
 
 // 파형 — 표본이 없으면 빈 문자열, 있으면 96칸
 assert.equal(waveformPath({ data: [], start: 0, end: 0 }), '', '빈 구간은 빈 path');
@@ -59,13 +70,13 @@ const evil = clipHtml({ track, clip: clip([], { name: '<script>x</script>' }), p
 assert.ok(!evil.includes('<script>'), '클립 이름의 태그가 살아 나가지 않는다');
 
 // 자동화 줄 — 점이 없으면 평평한 선 하나
-const flat = automationHtml({ trackId: 't1', points: [], fallback: 0.6, pxPerBeat: 72, width: 900, projectBeats: 16, beatLabel: (beat) => `b${beat}` });
+const flat = automationHtml({ trackId: 't1', param: 'volume', points: [], fallback: 0.6, pxPerBeat: 72, width: 900, projectBeats: 16, beatLabel: (beat) => `b${beat}` });
 assert.ok(flat.includes('점 없음'), '점이 없으면 그렇게 말한다');
 assert.equal((flat.match(/data-auto-point/g) || []).length, 0);
-assert.ok(flat.includes(`M0,${automationY(0.6)} L900,${automationY(0.6)}`), '트랙 볼륨 높이로 평평하게');
+assert.ok(flat.includes(`M0,${automationY(0.6, 'volume')} L900,${automationY(0.6, 'volume')}`), '트랙 볼륨 높이로 평평하게');
 
 // 점이 있으면 시간순으로 잇고 양 끝까지 연장한다
-const ramped = automationHtml({ trackId: 't1', points: [{ id: 'p2', beat: 4, value: 0.2 }, { id: 'p1', beat: 1, value: 1 }], fallback: 0.6, pxPerBeat: 72, width: 900, projectBeats: 16, beatLabel: (beat) => `b${beat}` });
+const ramped = automationHtml({ trackId: 't1', param: 'volume', points: [{ id: 'p2', beat: 4, value: 0.2 }, { id: 'p1', beat: 1, value: 1 }], fallback: 0.6, pxPerBeat: 72, width: 900, projectBeats: 16, beatLabel: (beat) => `b${beat}` });
 assert.equal((ramped.match(/data-auto-point/g) || []).length, 2);
 assert.ok(ramped.indexOf('L72,') < ramped.indexOf('L288,'), '점을 시간순으로 잇는다');
 assert.ok(ramped.includes('L900,'), '마지막 점 뒤로 끝까지 연장');
@@ -94,5 +105,13 @@ assert.equal(thinned.length, 10);
 assert.equal(thinned[0], 0, '첫 음은 남는다');
 assert.ok(thinned.every((value, index) => index === 0 || value > thinned[index - 1]), '순서를 지킨 채 솎는다');
 assert.equal(previewNotes([], 288).length, 0, '빈 클립도 죽지 않는다');
+
+// 팬 줄은 이름과 값 표기가 다르다
+const panLane = automationHtml({ trackId: 't1', param: 'pan', points: [{ id: 'p1', beat: 2, value: -0.5 }, { id: 'p2', beat: 6, value: 0 }], fallback: 0, pxPerBeat: 72, width: 900, projectBeats: 16, beatLabel: (beat) => `b${beat}` });
+assert.ok(panLane.includes('>PAN'), '이름이 PAN');
+assert.ok(panLane.includes('L50'), '왼쪽 값은 L 로 읽는다');
+assert.ok(panLane.includes('가운데'), '0 은 가운데');
+assert.ok(panLane.includes('data-auto-kind="pan"'), '어느 항목인지 DOM 에 남긴다');
+assert.ok(panLane.includes('data-auto-param="volume"') && panLane.includes('data-auto-param="pan"'), '항목 고르는 단추가 둘');
 
 console.log('[test-karmo-studio-arranger-view] ✓ 자동화 좌표 · 파형 96칸 · 클립 본문 분기 · 이스케이프 · 자동화 선 · 화면 밖 걸러내기');

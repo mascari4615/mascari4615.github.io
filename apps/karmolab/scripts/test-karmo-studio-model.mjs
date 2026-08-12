@@ -105,18 +105,34 @@ assert.equal(points[0].value, 0);
 
 // 저장 왕복 — 자동화가 살아남는다
 const project = newProject();
-project.tracks[0].volumeAutomation = putAutomationPoint([], 2, 0.4);
+project.tracks[0].automation.volume = putAutomationPoint([], 2, 0.4, 'volume');
+project.tracks[0].automation.pan = putAutomationPoint([], 1, -0.7, 'pan');
 const round = normalizeProject(JSON.parse(JSON.stringify(project)));
-assert.equal(round.tracks[0].volumeAutomation.length, 1, '자동화가 저장 왕복에서 안 사라진다');
-assert.equal(round.tracks[0].volumeAutomation[0].value, 0.4);
-// 낡은 프로젝트(자동화 없음)도 열린다
+assert.equal(round.tracks[0].automation.volume.length, 1, '자동화가 저장 왕복에서 안 사라진다');
+assert.equal(round.tracks[0].automation.volume[0].value, 0.4);
+assert.equal(round.tracks[0].automation.pan[0].value, -0.7, '팬은 음수도 산다');
+// 팬은 -1~1, 볼륨은 0~1.2 로 접힌다
+assert.equal(putAutomationPoint([], 0, 5, 'pan')[0].value, 1, '팬 상한');
+assert.equal(putAutomationPoint([], 0, -5, 'pan')[0].value, -1, '팬 하한');
+assert.equal(putAutomationPoint([], 0, -5, 'volume')[0].value, 0, '볼륨은 음수로 안 간다');
+// 옛 저장본의 volumeAutomation 한 줄이 새 자리로 옮겨진다
 const legacy = JSON.parse(JSON.stringify(project));
-delete legacy.tracks[0].volumeAutomation;
-assert.equal(normalizeProject(legacy).tracks[0].volumeAutomation.length, 0, '옛 저장본은 빈 자동화로 열린다');
+delete legacy.tracks[0].automation;
+legacy.tracks[0].volumeAutomation = [{ id: 'p1', beat: 3, value: 0.9 }];
+const migrated = normalizeProject(legacy).tracks[0].automation;
+assert.equal(migrated.volume.length, 1, '옛 volumeAutomation 이 새 자리로 옮겨진다');
+assert.equal(migrated.volume[0].value, 0.9);
+assert.equal(migrated.pan.length, 0, '옛 저장본에 팬은 없다');
+// 자동화가 아예 없던 저장본
+const older = JSON.parse(JSON.stringify(project));
+delete older.tracks[0].automation;
+assert.equal(normalizeProject(older).tracks[0].automation.volume.length, 0, '자동화가 없던 저장본은 빈 채로');
 // 깨진 점은 버린다
 const broken = JSON.parse(JSON.stringify(project));
-broken.tracks[0].volumeAutomation = [{ beat: 'x', value: 0.5 }, { beat: 1, value: 0.5 }];
-assert.equal(normalizeProject(broken).tracks[0].volumeAutomation.length, 1, '숫자가 아닌 점은 버린다');
+broken.tracks[0].automation = { volume: [{ beat: 'x', value: 0.5 }, { beat: 1, value: 0.5 }], pan: 'nope' };
+const fixedAuto = normalizeProject(broken).tracks[0].automation;
+assert.equal(fixedAuto.volume.length, 1, '숫자가 아닌 점은 버린다');
+assert.equal(fixedAuto.pan.length, 0, '배열이 아니면 빈 배열');
 
 // 트랙 순서 바꾸기
 const order = (list) => list.map((item) => item.id).join('');

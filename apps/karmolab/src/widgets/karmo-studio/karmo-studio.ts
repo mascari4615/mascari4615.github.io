@@ -2,7 +2,7 @@
 import { KarmoStudioEngine, renderProject, type StudioAssetRuntime } from './audio-engine';
 import {
   automationValueAt, cloneClip, findClip, findTrack, legatoNotes, moveTrack, newProject, newTrack, normalizeProject, projectLength, putAutomationPoint, putMarker, quantizeNotes, setNoteVelocity, snapBeat, sortMarkers, splitClip, stepMarker, studioId, transposeNotes,
-  type StudioClip, type StudioProject, type StudioSelection, type StudioTrack
+  type AutomationParam, type StudioClip, type StudioProject, type StudioSelection, type StudioTrack
 } from './model';
 import { toWav } from '../tools/shared/media';
 import { addAsset, hydrateAssets, importPortable, loadProject, portableProject, saveProject } from './storage';
@@ -11,7 +11,7 @@ import { KARMO_STUDIO_CSS } from './styles';
 import { KARMO_STUDIO_SHELL } from './shell';
 import { GestureHost } from './gesture';
 import { buildPianoView, initialScrollTop, PIANO_GEOMETRY } from './piano-view';
-import { automationHtml, AUTOMATION_GEOMETRY, clipHtml, visibleClips, waveformPath, waveformSvg, waveMissing } from './arranger-view';
+import { automationHtml, automationValue, clipHtml, visibleClips, waveformPath, waveformSvg, waveMissing } from './arranger-view';
 import { analysePeak, applyGain, clampBuffer, exportRange, normalizeGain, type ExportRangeMode } from './export';
 import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type ClipRef, type NoteRef } from './selection';
 
@@ -33,7 +33,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     let selection: StudioSelection = { type: 'clip', trackId: project.tracks[0].id, clipId: project.tracks[0].clips[0].id };
     let playhead = 0; let pxPerBeat = 72; let sideMode: 'inspector' | 'mixer' = 'inspector';let editTool:'draw'|'select'|'slice'='draw'; let assets = new Map<string, StudioAssetRuntime>();
     let raf: number | undefined; let saveTimer: number | undefined; let recording: MediaRecorder | null = null; let recordChunks: Blob[] = []; let recordStart = 0;
-    let armedTrackId=''; let metronome=false; let countIn=false; const autoLanes=new Set<string>();
+    let armedTrackId=''; let metronome=false; let countIn=false; const autoLanes=new Map<string,AutomationParam>();
     let exportOptions={range:'song' as ExportRangeMode,sampleRate:44100,mono:false,normalize:true};
     let editorExpanded = false; let editorScrollTop = 0; let editorScrollLeft = 0; let editorClipId = ''; let pianoPxPerBeat = pxPerBeat;
     let editorReturnFocus: HTMLElement | null = null;
@@ -239,9 +239,11 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     }
 
     function trackAutomationHtml(track: StudioTrack, width: number): string {
-      if (!autoLanes.has(track.id)) return '';
+      const param = autoLanes.get(track.id);
+      if (!param) return '';
       return automationHtml({
-        trackId: track.id, points: track.volumeAutomation, fallback: track.volume,
+        trackId: track.id, param, points: track.automation[param],
+        fallback: param === 'pan' ? track.pan : track.volume,
         pxPerBeat, width, projectBeats: Math.max(projectLength(project), 1), beatLabel: beatText
       });
     }
@@ -401,7 +403,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
 
     root.addEventListener('click',(event)=>{ const raw=event.target as HTMLElement;const exportAct=raw.closest<HTMLElement>('[data-export-act]')?.dataset.exportAct;if(exportAct){if(exportAct==='cancel')closeExport();else void runExport();return;}if(addPianoNote(event))return;const contextAct=raw.closest<HTMLElement>('[data-context-act]')?.dataset.contextAct;if(contextAct){hideContextMenu();if(contextAct==='open-editor')setEditorExpanded(true);else if(contextAct==='copy')copySelection();else if(contextAct==='cut')cutSelection();else if(contextAct==='duplicate')root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();else if(contextAct==='duplicate-note'&&selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const note=clip?.notes.find((item)=>item.id===noteId);const track=selectedTrack();if(clip&&note&&track){const copy={...note,id:studioId('note'),beat:Math.min(clip.duration-note.duration,snapBeat(note.beat+project.snap,project.snap))};clip.notes.push(copy);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copy.id};saveSoon();renderEditor();renderTracks();}}else if(contextAct==='split')root.querySelector<HTMLElement>('[data-act=split]')?.click();else if(contextAct==='delete')deleteSelection();return;}const meterReset=raw.closest<HTMLElement>('[data-meter-reset]')?.dataset.meterReset;if(meterReset){meterClipped.delete(meterReset);paintMeters();status('Clip indicator cleared');return;}const noteAct=raw.closest<HTMLElement>('[data-note-act]')?.dataset.noteAct;if(noteAct){applyNoteTool(noteAct);return;}const tool=raw.closest<HTMLElement>('.ks-btn[data-tool]')?.dataset.tool;if(tool){editTool=tool as typeof editTool;renderAll();status(`${tool.toUpperCase()} tool`);return;} const target=raw.closest<HTMLElement>('[data-act],[data-side],[data-track-act]'); if(!target){hideContextMenu();return;}
       if(target.dataset.side){sideMode=target.dataset.side as typeof sideMode;renderSide();return;}
-      const trackAct=target.dataset.trackAct; if(trackAct){const track=findTrack(project,target.dataset.track||'');if(!track)return;if(trackAct==='mute')track.mute=!track.mute;else if(trackAct==='solo')track.solo=!track.solo;else if(trackAct==='fold'){track.folded=!track.folded;saveSoon('fold');renderTracks();status(track.folded?`${track.name} 접음`:`${track.name} 펼침`);return;} else if(trackAct==='auto'){if(autoLanes.has(track.id))autoLanes.delete(track.id);else autoLanes.add(track.id);renderTracks();status(autoLanes.has(track.id)?`${track.name} 자동화 줄 열림`:'자동화 줄 닫힘');return;} else if(trackAct==='arm'){if(track.kind!=='audio'){status('Only audio tracks can be armed');return;}armedTrackId=armedTrackId===track.id?'':track.id;status(armedTrackId?`Armed ${track.name}`:'Disarmed');renderAll();return;}else if(trackAct==='delete'&&confirm(`Delete ${track.name}?`)){project.tracks=project.tracks.filter((item)=>item.id!==track.id);selection=null;}saveSoon();renderAll();return;}
+      const trackAct=target.dataset.trackAct; if(trackAct){const track=findTrack(project,target.dataset.track||'');if(!track)return;if(trackAct==='mute')track.mute=!track.mute;else if(trackAct==='solo')track.solo=!track.solo;else if(trackAct==='fold'){track.folded=!track.folded;saveSoon('fold');renderTracks();status(track.folded?`${track.name} 접음`:`${track.name} 펼침`);return;} else if(trackAct==='auto'){if(autoLanes.has(track.id))autoLanes.delete(track.id);else autoLanes.set(track.id,'volume');renderTracks();status(autoLanes.has(track.id)?`${track.name} 자동화 줄 열림`:'자동화 줄 닫힘');return;} else if(trackAct==='arm'){if(track.kind!=='audio'){status('Only audio tracks can be armed');return;}armedTrackId=armedTrackId===track.id?'':track.id;status(armedTrackId?`Armed ${track.name}`:'Disarmed');renderAll();return;}else if(trackAct==='delete'&&confirm(`Delete ${track.name}?`)){project.tracks=project.tracks.filter((item)=>item.id!==track.id);selection=null;}saveSoon();renderAll();return;}
       const act=target.dataset.act;
       if(act==='play')engine.isPlaying()?stop():play(); else if(act==='stop')stop(); else if(act==='back'){stop();playhead=0;updatePlayhead();} else if(act==='loop'){project.loop=!project.loop;saveSoon();renderAll();} else if(act==='metronome'){metronome=!metronome;engine.metronome=metronome;renderToggles();status(metronome?'Metronome on':'Metronome off');} else if(act==='count-in'){countIn=!countIn;renderToggles();status(countIn?'Count-in: one bar before recording':'Count-in off');}
       else if(act==='audio'||act==='midi'){const track=newTrack(act,project.tracks.length+1);project.tracks.push(track);selection={type:'track',trackId:track.id};saveSoon();renderAll();}
@@ -696,22 +698,26 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
       const lane=target.closest<HTMLElement>('[data-auto]');
       if(!lane)return;
       const track=findTrack(project,lane.dataset.auto||'');if(!track)return;
+      const param=(lane.dataset.autoKind as AutomationParam)||'volume';
+      /* 항목 고르기 단추는 끌기가 아니라 전환이다. */
+      const pick=target.closest<HTMLElement>('[data-auto-param]')?.dataset.autoParam as AutomationParam|undefined;
+      if(pick){autoLanes.set(track.id,pick);renderTracks();status(`${track.name} · ${pick==='pan'?'팬':'볼륨'} 자동화`);return;}
       event.preventDefault();
       const rect=lane.getBoundingClientRect();
-      const valueAt=(clientY:number):number=>Math.max(0,Math.min(AUTOMATION_GEOMETRY.max,(1-(clientY-rect.top)/Math.max(1,rect.height))*AUTOMATION_GEOMETRY.max));
+      const valueAt=(clientY:number):number=>automationValue((clientY-rect.top)/Math.max(1,rect.height),param);
       const beatAt=(clientX:number):number=>snapBeat((clientX-rect.left)/pxPerBeat,project.snap);
       const dot=target.closest<HTMLElement>('[data-auto-point]');
-      let point=track.volumeAutomation.find((item)=>item.id===dot?.dataset.autoPoint);
+      let point=track.automation[param].find((item)=>item.id===dot?.dataset.autoPoint);
       if(!point){
-        track.volumeAutomation=putAutomationPoint(track.volumeAutomation,beatAt(event.clientX),valueAt(event.clientY));
-        point=track.volumeAutomation.find((item)=>Math.abs(item.beat-beatAt(event.clientX))<=0.05);
+        track.automation[param]=putAutomationPoint(track.automation[param],beatAt(event.clientX),valueAt(event.clientY),param);
+        point=track.automation[param].find((item)=>Math.abs(item.beat-beatAt(event.clientX))<=0.05);
         renderTracks();
         if(!point){saveSoon('automation');return;}
       }
       const held=point;const originBeat=held.beat,originValue=held.value;
       const move=(moveEvent:PointerEvent):void=>{
         held.beat=beatAt(moveEvent.clientX);held.value=valueAt(moveEvent.clientY);
-        track.volumeAutomation=[...track.volumeAutomation].sort((a,b)=>a.beat-b.beat);
+        track.automation[param]=[...track.automation[param]].sort((a,b)=>a.beat-b.beat);
         renderTracks();
       };
       gestures.begin({
@@ -792,7 +798,7 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
         cancel:()=>{for(const item of group){item.note.beat=item.beat;item.note.pitch=item.pitch;item.note.duration=item.duration;}renderEditor();renderTracks();}
       });
     });
-    root.addEventListener('contextmenu',(event)=>{const target=event.target as HTMLElement;const markerEl=target.closest<HTMLElement>('[data-marker]');if(markerEl){event.preventDefault();const gone=project.markers.find((item)=>item.id===markerEl.dataset.marker);project.markers=project.markers.filter((item)=>item.id!==markerEl.dataset.marker);saveSoon('marker');renderRuler();status(gone?`${gone.name} 지움`:'구간 지움');return;}const dot=target.closest<HTMLElement>('[data-auto-point]');if(dot){event.preventDefault();const track=findTrack(project,dot.dataset.track||'');if(track){track.volumeAutomation=track.volumeAutomation.filter((point)=>point.id!==dot.dataset.autoPoint);saveSoon('automation');engine.updateProject(project);renderTracks();status('자동화 점 삭제');}return;}const clipEl=target.closest<HTMLElement>('.ks-clip');const noteEl=target.closest<HTMLElement>('.ks-note');const lane=target.closest<HTMLElement>('.ks-lane');if(!clipEl&&!noteEl&&!lane)return;event.preventDefault();event.stopPropagation();if(noteEl){const clip=selectedClip();const track=selectedTrack();const note=clip?.notes.find((item)=>item.id===noteEl.dataset.note);if(clip&&track&&note){clip.notes=clip.notes.filter((item)=>item.id!==note.id);selection={type:'clip',trackId:track.id,clipId:clip.id};saveSoon();renderEditor();renderTracks();renderSide();status('Right-click · deleted MIDI note');}}else if(clipEl){const trackId=clipEl.dataset.track||'',clipId=clipEl.dataset.clip||'';selection={type:'clip',trackId,clipId};renderSide();renderEditor();showContextMenu(event.clientX,event.clientY,[['open-editor','편집기 열기'],['copy','클립 복사'],['cut','클립 잘라내기'],['duplicate','클립 복제'],['split','재생 헤드에서 분할'],['delete','클립 삭제']]);}else if(lane){selection={type:'track',trackId:lane.dataset.lane||''};renderSide();showContextMenu(event.clientX,event.clientY,[['open-editor','클립을 더블클릭해 편집']]);}});
+    root.addEventListener('contextmenu',(event)=>{const target=event.target as HTMLElement;const markerEl=target.closest<HTMLElement>('[data-marker]');if(markerEl){event.preventDefault();const gone=project.markers.find((item)=>item.id===markerEl.dataset.marker);project.markers=project.markers.filter((item)=>item.id!==markerEl.dataset.marker);saveSoon('marker');renderRuler();status(gone?`${gone.name} 지움`:'구간 지움');return;}const dot=target.closest<HTMLElement>('[data-auto-point]');if(dot){event.preventDefault();const track=findTrack(project,dot.dataset.track||'');const kind=(dot.closest<HTMLElement>('[data-auto]')?.dataset.autoKind as AutomationParam)||'volume';if(track){track.automation[kind]=track.automation[kind].filter((point)=>point.id!==dot.dataset.autoPoint);saveSoon('automation');engine.updateProject(project);renderTracks();status('자동화 점 삭제');}return;}const clipEl=target.closest<HTMLElement>('.ks-clip');const noteEl=target.closest<HTMLElement>('.ks-note');const lane=target.closest<HTMLElement>('.ks-lane');if(!clipEl&&!noteEl&&!lane)return;event.preventDefault();event.stopPropagation();if(noteEl){const clip=selectedClip();const track=selectedTrack();const note=clip?.notes.find((item)=>item.id===noteEl.dataset.note);if(clip&&track&&note){clip.notes=clip.notes.filter((item)=>item.id!==note.id);selection={type:'clip',trackId:track.id,clipId:clip.id};saveSoon();renderEditor();renderTracks();renderSide();status('Right-click · deleted MIDI note');}}else if(clipEl){const trackId=clipEl.dataset.track||'',clipId=clipEl.dataset.clip||'';selection={type:'clip',trackId,clipId};renderSide();renderEditor();showContextMenu(event.clientX,event.clientY,[['open-editor','편집기 열기'],['copy','클립 복사'],['cut','클립 잘라내기'],['duplicate','클립 복제'],['split','재생 헤드에서 분할'],['delete','클립 삭제']]);}else if(lane){selection={type:'track',trackId:lane.dataset.lane||''};renderSide();showContextMenu(event.clientX,event.clientY,[['open-editor','클립을 더블클릭해 편집']]);}});
     function deleteSelection():void{
       const chosen=selection;if(!chosen)return;const track=findTrack(project,chosen.trackId);if(!track)return;
       if(chosen.type==='note'){const doomed=markedNotes();const clip=findClip(project,chosen.trackId,chosen.clipId);if(clip&&doomed.length){const ids=new Set(doomed.map((item)=>item.note.id));clip.notes=clip.notes.filter((note)=>!ids.has(note.id));noteSel.clear();if(doomed.length>1)status(`Deleted ${doomed.length} notes`);}selection={type:'clip',trackId:chosen.trackId,clipId:chosen.clipId};saveSoon();renderAll();return;}
