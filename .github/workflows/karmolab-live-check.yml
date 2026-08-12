@@ -94,6 +94,12 @@ jobs:
         working-directory: packages/badapple
         run: npm ci --no-audit --no-fund && npm run build
 
+      # `npm run build` 사슬 안의 `test:mcp` 가 이 꾸러미의 의존성(pdf-lib)을 여기서 찾는다.
+      # 이 설치가 없어 「Cannot find module 'pdf-lib'」로 이 검사가 계속 섰다 (배포 잡도 같은 구멍이었다).
+      - name: karmolab-mcp 의존 설치 (build 사슬의 test:mcp 가 문다)
+        working-directory: packages/karmolab-mcp
+        run: npm ci --no-audit --no-fund
+
       - name: 대조 기준 만들기 (빌드 산출물)
         run: npm run build
 
