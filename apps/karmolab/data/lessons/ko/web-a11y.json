@@ -1,0 +1,110 @@
+{
+  "id": "web-a11y",
+  "minutes": 13,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "접근성은 「장애인용 기능」이 아니라 **화면이 제대로 만들어졌는지의 검사**다. 키보드로 못 쓰는 화면은 대개 구조도 없다."
+    },
+    {
+      "type": "h",
+      "text": "1. 키보드 — 가장 빠른 자가 진단"
+    },
+    {
+      "type": "code",
+      "lang": "css",
+      "label": "포커스 표시를 지우지 마라",
+      "text": "/* 이런 코드를 본 적 있다면 지금 지워라 */\n*:focus { outline: none; }\n\n/* 대신 보기 좋게 */\n:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }"
+    },
+    {
+      "type": "p",
+      "text": "Tab 으로 지나갈 수 없거나, 지금 어디인지 안 보이면 그 화면은 절반이 안 만들어진 것이다. div 로 만든 단추는 Tab 순서에 아예 없다."
+    },
+    {
+      "type": "h",
+      "text": "2. 이름 — 스크린리더가 읽을 것"
+    },
+    {
+      "type": "code",
+      "lang": "html",
+      "label": "아이콘 단추에 이름 주기",
+      "text": "<!-- 나쁨: \"버튼\" 이라고만 읽힌다 -->\n<button><svg>…</svg></button>\n\n<!-- 좋음 -->\n<button aria-label=\"닫기\"><svg aria-hidden=\"true\">…</svg></button>\n\n<!-- 입력은 label 이 정답 -->\n<label for=\"q\">검색어</label>\n<input id=\"q\" name=\"q\">"
+    },
+    {
+      "type": "h",
+      "text": "3. 시맨틱 먼저, ARIA 는 최후"
+    },
+    {
+      "type": "note",
+      "text": "**ARIA 제1규칙: 안 쓰는 게 낫다.** `role=\"button\"` 을 붙인 div 보다 `<button>` 이 언제나 낫다 — 키보드·포커스·엔터키가 공짜로 따라온다. ARIA 는 표준 요소로 표현할 수 없을 때만 쓴다."
+    },
+    {
+      "type": "h",
+      "text": "4. 상태 알리기"
+    },
+    {
+      "type": "code",
+      "lang": "html",
+      "label": "변한 것을 소리로도",
+      "text": "<div aria-live=\"polite\" id=\"status\"></div>\n<!-- 저장 완료 · 검색 결과 3건 같은 알림을 여기에 넣으면 읽어 준다 -->\n\n<button aria-pressed=\"true\">굵게</button>\n<nav><a href=\"/docs\" aria-current=\"page\">문서</a></nav>"
+    },
+    {
+      "type": "h",
+      "text": "5. 색과 움직임"
+    },
+    {
+      "type": "code",
+      "lang": "css",
+      "label": "움직임을 줄여 달라는 요청 존중",
+      "text": "@media (prefers-reduced-motion: reduce) {\n  * { animation: none !important; transition: none !important; }\n}"
+    },
+    {
+      "type": "p",
+      "text": "본문 대비는 4.5:1 이상. 색만으로 상태를 표시하면(빨강=오류) 색각 이상인 사람에게는 아무 정보가 아니다 — 아이콘이나 글자를 함께 둔다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "마우스를 뽑고 내 화면을 처음부터 끝까지 Tab 만으로 써 봐라. 못 가는 곳·안 보이는 포커스를 목록으로 적어라."
+    },
+    {
+      "type": "try",
+      "text": "개발자도구의 Accessibility(접근성 트리) 패널에서 아이콘 단추 하나를 골라 **이름과 역할**을 확인하라. 이름이 비어 있으면 aria-label 을 붙여라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "`*:focus { outline: none }` 가 문제인 이유는?",
+      "choices": [
+        "성능이 나빠서",
+        "키보드 사용자가 지금 어디에 있는지 알 수 없게 되어서",
+        "스타일 우선순위 때문"
+      ],
+      "answer": 1,
+      "why": "포커스 표시는 키보드 사용자의 커서다. 없애려면 대체 표시를 반드시 줘야 한다."
+    },
+    {
+      "q": "아이콘만 있는 단추에 필요한 것은?",
+      "choices": [
+        "aria-label 같은 접근 가능한 이름",
+        "title 속성만",
+        "z-index"
+      ],
+      "answer": 0,
+      "why": "이름이 없으면 스크린리더는 \"버튼\" 이라고만 읽는다."
+    },
+    {
+      "q": "ARIA 의 제1규칙은?",
+      "choices": [
+        "가능하면 표준 HTML 요소를 쓰고 ARIA 는 쓰지 않는다",
+        "모든 요소에 role 을 붙인다",
+        "aria-hidden 을 기본으로 쓴다"
+      ],
+      "answer": 0,
+      "why": "표준 요소는 키보드·포커스·의미를 이미 갖고 있다. 잘못 쓴 ARIA 는 없느니만 못하다."
+    }
+  ]
+}

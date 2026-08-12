@@ -1,0 +1,102 @@
+{
+  "id": "git-remote",
+  "minutes": 11,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "`pull` 이 사실 **fetch + merge** 라는 것만 알아도, 이상한 병합 커밋과 「왜 내 커밋이 사라졌지」의 절반이 사라진다."
+    },
+    {
+      "type": "h",
+      "text": "1. 세 개의 이름"
+    },
+    {
+      "type": "p",
+      "text": "`main`(내 브랜치) · `origin/main`(내가 마지막으로 받아 온 원격의 상태) · 실제 원격. `origin/main` 은 **원격이 아니라 사본**이다 — `fetch` 해야 갱신된다."
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "받아만 오고 합치지 않기",
+      "text": "git fetch origin              # 사본만 갱신 (내 작업은 안 건드림)\ngit log --oneline main..origin/main   # 내가 아직 안 받은 커밋\ngit log --oneline origin/main..main   # 내가 아직 안 올린 커밋"
+    },
+    {
+      "type": "h",
+      "text": "2. pull 의 두 가지 성격"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "병합이냐 재적용이냐",
+      "text": "git pull                 # = fetch + merge (병합 커밋이 생길 수 있다)\ngit pull --rebase        # = fetch + rebase (내 커밋을 원격 위에 다시 얹는다)\n\ngit config pull.rebase true   # 기본값을 정해 두면 매번 안 헷갈린다"
+    },
+    {
+      "type": "h",
+      "text": "3. push 가 거부될 때"
+    },
+    {
+      "type": "note",
+      "text": "`rejected (non-fast-forward)` 는 **내가 모르는 커밋이 원격에 있다**는 뜻이다. `--force` 는 그 커밋을 지운다 — 공유 브랜치에서는 절대 금지. 먼저 `git pull --rebase` 로 받아 얹고 다시 push 하라."
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "굳이 강제해야 한다면 이것만",
+      "text": "git push --force-with-lease   # 내가 본 상태와 원격이 같을 때만 강제 (남의 새 커밋이 있으면 거부)"
+    },
+    {
+      "type": "h",
+      "text": "4. 추적 관계"
+    },
+    {
+      "type": "code",
+      "lang": "bash",
+      "label": "어느 원격 브랜치를 따르나",
+      "text": "git push -u origin feat/login   # 처음 올릴 때 추적 설정\ngit branch -vv                  # [origin/feat/login: ahead 2] 처럼 보인다"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "`git fetch` 만 하고 `git log --oneline main..origin/main` 을 찍어 봐라. 받아 오기 전과 후의 `origin/main` 이 어떻게 달라지는지 확인하라."
+    },
+    {
+      "type": "try",
+      "text": "연습 저장소에서 push 거부를 일부러 만들어라(다른 클론에서 커밋 후 push). `--force` 대신 `pull --rebase` 로 푸는 흐름을 손에 익혀라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "`origin/main` 은 무엇인가?",
+      "choices": [
+        "원격 서버의 실시간 상태",
+        "마지막 fetch 시점의 원격 사본",
+        "내 로컬 브랜치의 별명"
+      ],
+      "answer": 1,
+      "why": "fetch 하기 전까지는 갱신되지 않는 스냅샷이다."
+    },
+    {
+      "q": "push 가 non-fast-forward 로 거부됐다. 올바른 처리는?",
+      "choices": [
+        "--force 로 밀어 넣는다",
+        "pull --rebase 로 원격 커밋 위에 내 커밋을 얹고 다시 push",
+        "브랜치를 지운다"
+      ],
+      "answer": 1,
+      "why": "force 는 남의 커밋을 지운다. 공유 브랜치에서는 받아서 얹는 것이 정답이다."
+    },
+    {
+      "q": "`--force-with-lease` 가 `--force` 보다 안전한 이유는?",
+      "choices": [
+        "백업을 만든다",
+        "내가 마지막으로 본 원격 상태와 다르면 거부하기 때문",
+        "느리게 동작해서"
+      ],
+      "answer": 1,
+      "why": "내가 모르는 새 커밋이 올라와 있으면 밀어 넣지 않는다."
+    }
+  ]
+}

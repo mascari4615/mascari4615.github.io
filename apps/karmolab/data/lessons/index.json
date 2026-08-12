@@ -5,10 +5,13 @@
       "cs-algo",
       "cs-binary",
       "cs-ds",
+      "cs-os",
       "devops-ci",
       "git-areas",
       "git-branch",
       "git-model",
+      "git-pr",
+      "git-remote",
       "git-undo",
       "kl-architecture",
       "kl-boundaries",
@@ -19,13 +22,18 @@
       "kl-orientation",
       "kl-project",
       "kl-trouble",
+      "sec-owasp",
       "shell-pipe",
+      "web-a11y",
       "web-css",
+      "web-devtools",
       "web-dom",
       "web-html",
       "web-http",
       "web-js",
-      "web-test"
+      "web-render",
+      "web-test",
+      "web-ts"
     ]
   }
 }
