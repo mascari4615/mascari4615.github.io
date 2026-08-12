@@ -7,6 +7,9 @@
  *  ② 용량 맞추기: 1MB 기준 → 결과가 1MB 이하
  *  ③ 원본보다 키우지 않기: 작은 사진에 4000px 를 걸어도 커지지 않는가
  *     — 「줄이려고 눌렀는데 커졌다」가 이 도구에서 가장 나쁜 결과다
+ *  ④ 투명한 PNG 를 JPG 로 저장하면 **흰 바탕**이어야 한다 (TASK-KL-272)
+ *     — JPG 는 투명을 못 담는다. 바탕을 안 깔면 투명하던 데가 **새까맣게** 나온다.
+ *       「크기를 줄였을 뿐인데 그림이 검게 됐다」는 조용한 고장이라 눈으로만 보면 놓친다.
  *
  * 사용: node scripts/test-imgresize.mjs
  */
@@ -98,12 +101,44 @@ const out = await page.evaluate(async () => {
   const noUp = await runAndMeasure();
   const noUpOk = noUp.w === 200 && noUp.h === 150;
 
+  // ④ 투명 PNG → JPG: 투명하던 데가 검으면 안 된다
+  const clear = await (async () => {
+    const cv = document.createElement('canvas');
+    cv.width = 100; cv.height = 100;
+    const ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, 100, 100);            // 왼쪽 위는 완전 투명
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(50, 50, 50, 50);             // 오른쪽 아래만 빨강
+    const b = await new Promise((r) => cv.toBlob(r, 'image/png'));
+    return new File([b], '투명.png', { type: 'image/png' });
+  })();
+  await feed(clear);
+  host.querySelector('#irType').value = 'image/jpeg';
+  host.querySelector('#irType').dispatchEvent(new Event('change'));
+  host.querySelector('#irMode [data-mode="side"]').click();
+  host.querySelector('#irSide').value = '100';
+  host.querySelector('#irSide').dispatchEvent(new Event('input'));
+  host.querySelector('#irPreview').style.display = 'none';
+  await runAndMeasure();
+  const corner = await (async () => {
+    const blob = await (await fetch(host.querySelector('#irPreview').src)).blob();
+    const bmp = await createImageBitmap(blob);
+    const cv = document.createElement('canvas');
+    cv.width = bmp.width; cv.height = bmp.height;
+    const ctx = cv.getContext('2d');
+    ctx.drawImage(bmp, 0, 0);
+    const d = ctx.getImageData(5, 5, 1, 1).data;   // 투명하던 자리
+    return [d[0], d[1], d[2]];
+  })();
+  const clearOk = corner[0] > 200 && corner[1] > 200 && corner[2] > 200;
+
   return {
-    ok: sideOk && bytesOk && noUpOk,
+    ok: sideOk && bytesOk && noUpOk && clearOk,
     why:
       `긴 변 640 → ${side.w}x${side.h} ${sideOk ? '✓' : '✗'} · ` +
       `1MB 기준 → ${(bytes.bytes / 1048576).toFixed(2)}MB ${bytesOk ? '✓' : '✗'} · ` +
-      `작은 사진에 4000px → ${noUp.w}x${noUp.h} (안 커져야) ${noUpOk ? '✓' : '✗'}`
+      `작은 사진에 4000px → ${noUp.w}x${noUp.h} (안 커져야) ${noUpOk ? '✓' : '✗'} · ` +
+      `투명 PNG → JPG 바탕 rgb(${corner.join(',')}) (흰색이어야) ${clearOk ? '✓' : '✗'}`
   };
 });
 

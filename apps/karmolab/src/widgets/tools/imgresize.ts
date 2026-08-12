@@ -11,7 +11,7 @@
  *  - 원본보다 커지는 일이 없게 한다 — 「줄이려고 눌렀는데 커졌다」는 배신이다.
  */
 import { fileSize as size } from './shared/media';
-import { download } from './shared/image';
+import { download, encode } from './shared/image';
 
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -50,8 +50,15 @@ import { t, loadNamespace } from '../../lib/i18n';
     return out;
   }
 
+  /**
+   * 내보내기는 `shared/image` 의 것을 쓴다 (TASK-KL-272).
+   *
+   * 전에는 여기서 `cv.toBlob(r, type, q)` 를 그냥 불렀다. 그런데 **JPG 는 투명을 못 담는다** —
+   * 투명하던 자리가 **새까맣게** 나왔다. 「크기만 줄였는데 그림이 검게 됐다」는 조용한 고장이라
+   * 눈으로만 보면 놓친다. 공용 쪽은 JPG 일 때 흰 바탕을 먼저 깔고 그린다.
+   */
   const toBlob = (cv: HTMLCanvasElement, type: string, q: number): Promise<Blob | null> =>
-    new Promise((r) => cv.toBlob(r, type, q));
+    encode(cv, type === 'image/jpeg' ? 'jpeg' : type === 'image/webp' ? 'webp' : 'png', q).catch(() => null);
 
   Toolbox.register({
     id: 'imgresize',
