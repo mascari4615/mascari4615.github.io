@@ -10,7 +10,7 @@
  *  - 페이드 모양은 **귀에 맞춘 곡선**을 쓴다. 소리 크기를 곧게 줄이면 중간이 갑자기 조용해진 듯
  *    들린다 — 사람 귀는 소리 세기를 곧게 느끼지 않는다.
  */
-import { encodeAudio, fileSize as size, mmss, download, audioCtx } from './shared/media';
+import { encodeAudio, fileSize as size, mmss, download, audioCtx, loadAudio } from './shared/media';
 
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -155,9 +155,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           async function load(file: File): Promise<void> {
             runBtn.disabled = true;
             say(t('audiofade.say.reading'));
-            const ctx = audioCtx();
             try {
-              buffer = await ctx.decodeAudioData(await file.arrayBuffer());
+              buffer = await loadAudio(file);
             } catch {
               say(t('audiofade.err.decode'), 'error');
               return;
