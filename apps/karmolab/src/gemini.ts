@@ -1041,7 +1041,7 @@ const Gemini = (() => {
                 <div style="font-size:var(--font-size-2xs);margin-top:4px;color:var(--text-tertiary);">
                     ${esc(t('gemini.t04'))} <a href="${DOC_URL_AI_STUDIO_API_KEY}" target="_blank" rel="noopener" style="color:var(--accent);">${esc(t('gemini.t05'))}</a>
                 </div>
-                <div style="font-size:var(--font-size-2xs);margin-top:4px;color:#facc15;">
+                <div style="font-size:var(--font-size-2xs);margin-top:4px;color:var(--warning);">
                     ${esc(t('gemini.t06'))}
                 </div>
             </div>

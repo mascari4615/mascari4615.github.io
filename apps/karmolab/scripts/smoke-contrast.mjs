@@ -66,6 +66,10 @@ const CHECK = (minRatio) => {
     if (rect.width < 4 || rect.height < 4) continue;
     const cs = getComputedStyle(el);
     if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity < 0.15) continue;
+    // 꺼 둔 단추는 **일부러 흐리다** — 「지금은 못 누른다」가 흐림 그 자체로 보이는 것이라,
+    // 여기서 잡으면 고치는 방법이 「꺼진 티를 없애라」가 된다(막는 자리가 답을 더 나쁘게 만든다).
+    // 접근성 기준(WCAG 1.4.3)도 못 쓰는 컨트롤은 대비 대상에서 뺀다.
+    if (el.closest('[disabled], [aria-disabled="true"]')) continue;
     const fg = parse(cs.color);
     if (!fg || fg.a < 0.15) continue;
 
