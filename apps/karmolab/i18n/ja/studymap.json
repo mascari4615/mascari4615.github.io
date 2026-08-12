@@ -12,5 +12,6 @@
   "studymap.mdd.step": "一歩進みました。",
   "studymap.mdd.clear": "ひとつの分野を歩ききりました。次に行きますか？",
   "studymap.found": "地図全体で {n} 項目 ・ {tracks} 分野",
-  "studymap.all": "地図全体 {done} / {total}"
+  "studymap.all": "地図全体 {done} / {total}",
+  "studymap.prereq": "先に"
 }
