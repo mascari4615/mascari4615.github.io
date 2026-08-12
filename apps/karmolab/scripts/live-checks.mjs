@@ -13,8 +13,8 @@
  * 각 줄: { name: 사람 말, cmd: [실행할 것], live: true 면 실주소를 본다 }
  */
 
-/** 실주소를 여는 검사는 배포에 밟히면 다시 잰다 — 근거 있을 때만 (retry-if-redeployed.mjs). */
-const retry = (...cmd) => ['node', 'scripts/retry-if-redeployed.mjs', ...cmd];
+/* 실주소를 여는 검사(`live: true`)는 **러너가** 자동으로 `retry-if-redeployed.mjs` 를 씌운다 —
+   목록에 껍데기를 손으로 적으면 새 줄에서 빠뜨린다(실제로 넷만 씌워져 있었다). */
 
 export const PREP = [
   { name: '대조 기준 만들기 (빌드 산출물 — 게이트는 verify 몫)', cmd: ['npm', 'run', 'build:artifacts'] },
@@ -29,10 +29,10 @@ export const CHECKS = [
   { name: '부르는 이름이 실제로 있는지', cmd: ['npm', 'run', 'audit:scripts'] },
   { name: 'WM 페이지 배선이 이어져 있는지', cmd: ['npm', 'run', 'audit:wm'] },
   { name: '도구마다 딸린 것이 채워졌는지', cmd: ['npm', 'run', 'audit:data'] },
-  { name: '화면이 뜨는지 (전 도구)', cmd: retry('npm', 'run', 'test:live') },
-  { name: '이상형 월드컵 한 판이 실제로 끝나는지', cmd: retry('node', 'scripts/smoke-worldcup.mjs'), live: true },
-  { name: '오늘의 판이 첫 화면에 뜨고 세는지', cmd: retry('npm', 'run', 'test:today') },
-  { name: '자랑 카드가 실제로 그려지는지', cmd: retry('npm', 'run', 'test:brag') },
+  { name: '화면이 뜨는지 (전 도구)', cmd: ['npm', 'run', 'test:live'], live: true },
+  { name: '이상형 월드컵 한 판이 실제로 끝나는지', cmd: ['node', 'scripts/smoke-worldcup.mjs'], live: true },
+  { name: '오늘의 판이 첫 화면에 뜨고 세는지', cmd: ['npm', 'run', 'test:today'], live: true },
+  { name: '자랑 카드가 실제로 그려지는지', cmd: ['npm', 'run', 'test:brag'], live: true },
   { name: '도감에 도장이 찍히는지', cmd: ['npm', 'run', 'test:collection'] },
   { name: '숨긴 것이 실제로 찾아지는지', cmd: ['npm', 'run', 'test:secrets'] },
   { name: '말로 부리기가 도구까지 데려가는지', cmd: ['npm', 'run', 'test:ask'] },
