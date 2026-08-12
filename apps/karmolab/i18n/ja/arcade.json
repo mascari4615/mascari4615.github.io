@@ -84,5 +84,15 @@
   "arcade.game.checkers.name": "チェッカー",
   "arcade.game.checkers.desc": "飛び越えて取り、最奥列でキングに",
   "arcade.checkers.win": "{who} が盤を制した",
-  "arcade.checkers.stale": "何も起きないまま長引いた — 引き分け"
+  "arcade.checkers.stale": "何も起きないまま長引いた — 引き分け",
+  "arcade.game.blackjack.name": "ブラックジャック",
+  "arcade.game.blackjack.desc": "21に近づける。超えたら負け",
+  "arcade.blackjack.hit": "もう一枚",
+  "arcade.blackjack.stand": "やめる",
+  "arcade.blackjack.bust": "バースト",
+  "arcade.blackjack.mine": "自分 {n}",
+  "arcade.blackjack.dealer": "ディーラー {n}",
+  "arcade.blackjack.dealerHidden": "ディーラー — 一枚は伏せたまま",
+  "arcade.blackjack.win": "{who} がディーラー({n})に勝った",
+  "arcade.blackjack.house": "ディーラー {n} — 誰も勝てなかった"
 }

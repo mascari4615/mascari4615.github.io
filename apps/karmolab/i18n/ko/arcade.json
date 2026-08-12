@@ -84,5 +84,15 @@
   "arcade.game.checkers.name": "체커",
   "arcade.game.checkers.desc": "뛰어넘어 잡고, 끝줄에 닿으면 왕",
   "arcade.checkers.win": "{who} 이(가) 판을 쓸었다",
-  "arcade.checkers.stale": "아무 일도 안 일어난 채 오래 끌었다 — 비겼다"
+  "arcade.checkers.stale": "아무 일도 안 일어난 채 오래 끌었다 — 비겼다",
+  "arcade.game.blackjack.name": "블랙잭",
+  "arcade.game.blackjack.desc": "21에 가깝게. 넘으면 죽는다",
+  "arcade.blackjack.hit": "한 장 더",
+  "arcade.blackjack.stand": "그만",
+  "arcade.blackjack.bust": "죽었다",
+  "arcade.blackjack.mine": "내 패 {n}",
+  "arcade.blackjack.dealer": "딜러 {n}",
+  "arcade.blackjack.dealerHidden": "딜러 — 한 장은 아직",
+  "arcade.blackjack.win": "{who} 이(가) 딜러({n})를 이겼다",
+  "arcade.blackjack.house": "딜러 {n} — 아무도 못 이겼다"
 }

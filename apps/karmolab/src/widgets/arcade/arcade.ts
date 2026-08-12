@@ -202,6 +202,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-ckc.ac-can i{width:28%;background:var(--accent);opacity:.6}',
       '.ac-ckc.ac-last{outline:1px dashed var(--accent);outline-offset:-3px}',
       '.ac-ckc:not(:disabled){cursor:pointer}',
+      '.ac-bj{max-width:380px;margin:var(--space-lg) auto;text-align:center}',
+      '.ac-bjrow{margin:var(--space-lg) 0}',
+      '.ac-bjrow small{display:block;color:var(--text-secondary);font-size:var(--font-size-xs);margin-bottom:6px}',
+      '.ac-bjrow>div{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}',
+      '.ac-bjc{width:44px;height:62px;border-radius:8px;border:1px solid var(--border);background:var(--surface);display:grid;place-items:center;font-size:20px;font-weight:700}',
+      '.ac-bjc.ac-back{background:color-mix(in srgb,var(--accent) 22%,var(--surface));color:var(--text-secondary)}',
+      '.ac-bjbar{display:flex;gap:8px;justify-content:center}',
       '.ac-code{font-size:clamp(28px,8vw,48px);font-weight:800;letter-spacing:.18em;text-align:center;margin:var(--space-lg) 0}',
       '.ac-share{display:flex;gap:6px;margin:var(--space-lg) 0}',
       '.ac-share input{flex:1;min-width:0}'
