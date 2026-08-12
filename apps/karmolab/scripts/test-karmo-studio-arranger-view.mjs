@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module,require){${compiled}\n})(module.exports,module,()=>({}));`, { module, console, Math });
-const { automationY, AUTOMATION_GEOMETRY, waveformPath, waveformSvg, waveMissing, clipHtml, automationHtml } = module.exports;
+const { automationY, AUTOMATION_GEOMETRY, waveformPath, waveformSvg, waveMissing, clipHtml, automationHtml, visibleClips, previewNotes } = module.exports;
 
 const esc = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const track = { id: 't1', kind: 'midi', name: 'Inst', color: '#8b7cf6', volume: 0.8, pan: 0, mute: false, solo: false, eqLow: 0, eqMid: 0, eqHigh: 0, compressor: 0, reverb: 0, instrument: 'saw', clips: [], volumeAutomation: [] };
@@ -72,4 +72,27 @@ assert.ok(ramped.includes('L900,'), '마지막 점 뒤로 끝까지 연장');
 assert.ok(ramped.includes('· 2점'));
 assert.ok(ramped.includes('b1') && ramped.includes('b4'), '점 설명에 위치를 쓴다');
 
-console.log('[test-karmo-studio-arranger-view] ✓ 자동화 좌표 · 파형 96칸 · 클립 본문 분기 · 이스케이프 · 자동화 선');
+// 화면에 걸리는 클립만 고른다 — 큰 곡에서 편집 한 번이 통째로 멈추던 원인
+const many = Array.from({ length: 40 }, (_, index) => ({ start: index * 4, duration: 4 }));
+assert.equal(visibleClips(many, 0, 20).length, 5, '0~20박이면 5개');
+assert.equal(visibleClips(many, 0, 20, 20).length, 10, '여유 20박이면 양옆까지 10개');
+assert.equal(visibleClips(many, -100, -50).length, 0, '화면 밖이면 0개');
+assert.equal(visibleClips(many, 20, 0).length, 5, '거꾸로 들어와도 같은 구간');
+// 경계에 걸친 클립은 포함된다 (반만 보이는 것도 그려야 한다)
+assert.equal(visibleClips([{ start: 8, duration: 4 }], 10, 20).length, 1, '왼쪽으로 반쯤 걸친 클립');
+assert.equal(visibleClips([{ start: 18, duration: 4 }], 10, 20).length, 1, '오른쪽으로 반쯤 걸친 클립');
+assert.equal(visibleClips([{ start: 20, duration: 4 }], 10, 20).length, 0, '딱 붙어 시작하면 밖');
+assert.equal(visibleClips([{ start: 6, duration: 4 }], 10, 20).length, 0, '딱 끝나면 밖');
+assert.equal(visibleClips(many, 0, Number.POSITIVE_INFINITY).length, 40, '한계가 없으면 전부');
+
+// 미리보기 음 솎기 — 폭에 맞춰 고르게
+assert.equal(previewNotes([1, 2, 3], 288).length, 3, '적으면 그대로');
+assert.equal(previewNotes(Array.from({ length: 400 }, (_, i) => i), 288).length, 64, '넓어도 상한 64');
+assert.equal(previewNotes(Array.from({ length: 400 }, (_, i) => i), 8).length, 8, '아주 좁아도 하한 8');
+const thinned = previewNotes(Array.from({ length: 100 }, (_, i) => i), 40);
+assert.equal(thinned.length, 10);
+assert.equal(thinned[0], 0, '첫 음은 남는다');
+assert.ok(thinned.every((value, index) => index === 0 || value > thinned[index - 1]), '순서를 지킨 채 솎는다');
+assert.equal(previewNotes([], 288).length, 0, '빈 클립도 죽지 않는다');
+
+console.log('[test-karmo-studio-arranger-view] ✓ 자동화 좌표 · 파형 96칸 · 클립 본문 분기 · 이스케이프 · 자동화 선 · 화면 밖 걸러내기');

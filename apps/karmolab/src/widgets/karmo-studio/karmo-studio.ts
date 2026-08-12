@@ -11,7 +11,7 @@ import { KARMO_STUDIO_CSS } from './styles';
 import { KARMO_STUDIO_SHELL } from './shell';
 import { GestureHost } from './gesture';
 import { buildPianoView, initialScrollTop, PIANO_GEOMETRY } from './piano-view';
-import { automationHtml, AUTOMATION_GEOMETRY, clipHtml, waveformPath, waveformSvg, waveMissing } from './arranger-view';
+import { automationHtml, AUTOMATION_GEOMETRY, clipHtml, visibleClips, waveformPath, waveformSvg, waveMissing } from './arranger-view';
 import { analysePeak, applyGain, clampBuffer, exportRange, normalizeGain, type ExportRangeMode } from './export';
 import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type ClipRef, type NoteRef } from './selection';
 
@@ -243,14 +243,26 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
         pxPerBeat, width, projectBeats: Math.max(projectLength(project), 1), beatLabel: beatText
       });
     }
+    /** 지금 화면에 걸리는 박 구간 — 여유 한 화면씩 더 그려 스크롤 중 빈칸을 막는다. */
+    function viewBeats(): { from: number; to: number; margin: number } {
+      const scrollEl = root.querySelector<HTMLElement>('[data-role=scroll]');
+      if (!scrollEl || !scrollEl.clientWidth) return { from: 0, to: Number.POSITIVE_INFINITY, margin: 0 };
+      const from = Math.max(0, (scrollEl.scrollLeft - 172) / pxPerBeat);
+      const to = from + scrollEl.clientWidth / pxPerBeat;
+      return { from, to, margin: scrollEl.clientWidth / pxPerBeat };
+    }
+    /** 마지막으로 그려 둔 박 구간 — 이 안에서 움직이는 스크롤은 다시 그릴 필요가 없다. */
+    let paintedRange = { from: 0, to: Number.POSITIVE_INFINITY };
     function renderTracks(): void {
       reconcileMarks();
+      const view = viewBeats();
+      paintedRange = { from: view.from - view.margin, to: view.to + view.margin };
       const tracks = $<HTMLElement>('[data-role=tracks]'); const width = trackWidth();
       tracks.innerHTML = project.tracks.map((track) => `<div class="ks-track-row" data-track-row="${track.id}" style="width:${172 + width}px">
         <div class="ks-track-head"><div class="ks-track-title"><span class="ks-track-color" style="background:${track.color}"></span><input data-track-name="${track.id}" value="${esc(track.name)}" aria-label="트랙 이름"></div>
         <div class="ks-track-actions"><button class="ks-mini${track.mute?' is-on':''}" data-track-act="mute" data-track="${track.id}">M</button><button class="ks-mini${track.solo?' is-on':''}" data-track-act="solo" data-track="${track.id}">S</button><button class="ks-mini${autoLanes.has(track.id)?' is-on':''}" data-track-act="auto" data-track="${track.id}" title="볼륨 자동화 줄 보이기">A</button><button class="ks-mini${armedTrackId===track.id?' is-on':''}" data-track-act="arm" data-track="${track.id}" title="${track.kind==='audio'?'녹음 대상으로 지정':'오디오 트랙만 녹음 대상이 된다'}"${track.kind==='audio'?'':' disabled'}>●</button><button class="ks-mini" data-track-act="delete" data-track="${track.id}">×</button></div>
         <input type="range" min="0" max="1.2" step="0.01" value="${track.volume}" data-track-volume="${track.id}" aria-label="${esc(track.name)} 볼륨"></div>
-        <div class="ks-lane" data-lane="${track.id}" data-kind="${track.kind}" style="width:${width}px">${track.clips.map((clip)=>trackClipHtml(track,clip)).join('')}</div>${trackAutomationHtml(track,width)}</div>`).join('');
+        <div class="ks-lane" data-lane="${track.id}" data-kind="${track.kind}" style="width:${width}px">${visibleClips(track.clips,view.from,view.to,view.margin).map((clip)=>trackClipHtml(track,clip)).join('')}</div>${trackAutomationHtml(track,width)}</div>`).join('');
     }
 
     const field = (label: string, input: string): string => `<label class="ks-field"><span>${label}</span>${input}</label>`;
@@ -435,7 +447,19 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     });
 const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.onchange=()=>{const file=projectInput.files?.[0];if(!file)return;void file.text().then(importPortable).then(async(next)=>{stop();project=next;history.reset(project);await refreshAssets();selection=project.tracks[0]?{type:'track',trackId:project.tracks[0].id}:null;playhead=0;renderAll();status(`Opened ${file.name}`);}).catch((error:Error)=>status(`Open failed: ${error.message}`));projectInput.value='';};
 
-    const scroll=$<HTMLElement>('[data-role=scroll]'); scroll.addEventListener('pointerdown',(event)=>{if(event.button!==0||!event.isPrimary)return;hideContextMenu();const target=event.target as HTMLElement;const clipEl=target.closest<HTMLElement>('.ks-clip');const lane=target.closest<HTMLElement>('.ks-lane');if(!clipEl&&!lane)return;
+    const scroll=$<HTMLElement>('[data-role=scroll]'); 
+    /* 화면 밖 클립은 안 그리므로 스크롤로 새로 드러난 구간을 채운다. 단 **이미 그려 둔 범위
+       안이면 다시 그리지 않는다** — 매 스크롤마다 갈아엎으면 요소가 계속 바뀌어 클릭조차 안 붙는다. */
+    let scrollPaint: number | undefined;
+    scroll.addEventListener('scroll',()=>{
+      if(scrollPaint!==undefined)return;
+      scrollPaint=requestAnimationFrame(()=>{
+        scrollPaint=undefined;
+        const view=viewBeats();
+        if(view.from>=paintedRange.from&&view.to<=paintedRange.to)return;
+        renderTracks();
+      });
+    }); scroll.addEventListener('pointerdown',(event)=>{if(event.button!==0||!event.isPrimary)return;hideContextMenu();const target=event.target as HTMLElement;const clipEl=target.closest<HTMLElement>('.ks-clip');const lane=target.closest<HTMLElement>('.ks-lane');if(!clipEl&&!lane)return;
       if(clipEl&&editTool==='slice'){const trackId=clipEl.dataset.track||'',clipId=clipEl.dataset.clip||'';const track=findTrack(project,trackId),clip=findClip(project,trackId,clipId);if(!track||!clip||!lane)return;const at=snapBeat((event.clientX-lane.getBoundingClientRect().left)/pxPerBeat,project.snap);const right=splitClip(clip,at);if(right){track.clips.push(right);selection={type:'clip',trackId,clipId:right.id};saveSoon();renderAll();status(`Split at ${beatText(at)}`);}else status('Click inside the clip to split');return;}
       if(!clipEl&&lane){
         const mode=markMode(event);
