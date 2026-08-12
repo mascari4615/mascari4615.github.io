@@ -131,5 +131,10 @@
   "arcade.pool.power": "強さ",
   "arcade.pool.hit": "打つ",
   "arcade.pool.rolling": "転がり中",
-  "arcade.pool.win": "{who} — {n}個"
+  "arcade.pool.win": "{who} — {n}個",
+  "arcade.game.darts.name": "ダーツ",
+  "arcade.game.darts.desc": "揺れる狙いを止めて投げる。101をちょうど0に",
+  "arcade.darts.throw": "投げる ({n}点)",
+  "arcade.darts.wait": "待機中",
+  "arcade.darts.win": "{who} がぴったり上がった"
 }

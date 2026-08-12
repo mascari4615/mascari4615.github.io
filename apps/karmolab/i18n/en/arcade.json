@@ -131,5 +131,10 @@
   "arcade.pool.power": "Power",
   "arcade.pool.hit": "Shoot",
   "arcade.pool.rolling": "Rolling",
-  "arcade.pool.win": "{who} — {n} sunk"
+  "arcade.pool.win": "{who} — {n} sunk",
+  "arcade.game.darts.name": "Darts",
+  "arcade.game.darts.desc": "Stop the swinging aim. Take 101 down to exactly zero",
+  "arcade.darts.throw": "Throw ({n})",
+  "arcade.darts.wait": "Waiting",
+  "arcade.darts.win": "{who} checked out"
 }

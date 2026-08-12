@@ -21,6 +21,13 @@ const FRICTION = 0.985;
 const STOP_V = 0.03;
 /** 이만큼 넣으면 이긴다 */
 const TARGET = 5;
+/**
+ * 판 전체가 이만큼 치면 끝난다.
+ *
+ * **끝나는 조건이 「다 넣기」뿐이면 안 끝나는 판이 생긴다** — 공이 서로 막고 앉으면 아무도 못
+ * 넣고 무한히 친다(봇끼리 붙였더니 실제로 안 끝났다). 조각 맞추기·체커에서 겪은 것과 같은 자리다.
+ */
+const MAX_SHOTS = 40;
 
 export interface Ball {
   x: number;
@@ -40,6 +47,8 @@ export interface PoolState {
   potted: number[];
   moving: boolean;
   won: number;
+  /** 지금까지 친 횟수 */
+  shots: number;
 }
 
 export type PoolAction = { aim: number; power: number };
@@ -119,7 +128,7 @@ export const pool: GameDef<PoolState, PoolAction> = {
   realtime: true,
 
   init(ctx) {
-    return { balls: rack(ctx), turn: 0, potted: ctx.seats.map(() => 0), moving: false, won: -1 };
+    return { balls: rack(ctx), turn: 0, potted: ctx.seats.map(() => 0), moving: false, won: -1, shots: 0 };
   },
 
   canAct(s, seat) {
@@ -139,7 +148,7 @@ export const pool: GameDef<PoolState, PoolAction> = {
     const balls = s.balls.map((b) =>
       b === cue ? { ...b, vx: Math.sin(aim) * speed, vy: -Math.cos(aim) * speed } : { ...b }
     );
-    return { ...s, balls, moving: true };
+    return { ...s, balls, moving: true, shots: s.shots + 1 };
   },
 
   tick(s, ctx) {
@@ -161,23 +170,29 @@ export const pool: GameDef<PoolState, PoolAction> = {
     const potted = gained ? s.potted.map((v, i) => (i === s.turn ? v + gained : v)) : s.potted;
     if (moving) return { ...s, balls, potted };
 
-    /* 흰 공이 빠졌으면 다시 놓고 넘긴다 — 원래 놀이의 파울 자리. */
+    /* 흰 공이 빠졌으면 다시 놓고 넘긴다 — 원래 놀이의 파울 자리.
+     *
+     * `scratch` 플래그만 보지 않고 **판 위에 흰 공이 있나**로 판단한다. 한 tick 안에서 여러 걸음을
+     * 밟기 때문에 빠진 사실이 플래그에 안 남는 경우가 있고, 그러면 칠 공이 없어 판이 영영 안 끝난다
+     * (봇 단독 검사에서 가끔 안 끝났다 — 「가끔」이 곧 이 자리였다). */
+    const cueGone = !balls.some((b) => b.cue && !b.in);
     let next = balls;
-    if (scratch) {
+    if (scratch || cueGone) {
       next = balls.map((b) => (b.cue ? { ...b, x: W / 2, y: H - 40, vx: 0, vy: 0, in: false } : b));
     }
     const won = potted.findIndex((n) => n >= TARGET);
     /* 넣었으면 한 번 더. 못 넣었거나 파울이면 다음 사람. */
-    const keep = gained > 0 && !scratch;
+    const keep = gained > 0 && !scratch && !cueGone;
     const turn = keep ? s.turn : (s.turn + 1) % ctx.seats.length;
-    return { balls: next, potted, moving: false, turn, won };
+    return { ...s, balls: next, potted, moving: false, turn, won };
   },
 
   outcome(s, ctx): Outcome {
     if (s.won === -1) {
-      /* 칠 공이 없으면 그때까지 많이 넣은 쪽. */
+      /* 칠 공이 없거나 오래 쳤으면 그때까지 많이 넣은 쪽. */
       const left = s.balls.filter((b) => !b.cue && !b.in).length;
-      if (left > 0) return { over: false };
+      if (left > 0 && s.shots < MAX_SHOTS) return { over: false };
+      if (s.moving) return { over: false };
       const top = Math.max(...s.potted);
       const winners = ctx.seats.filter((_, i) => s.potted[i] === top);
       return {
