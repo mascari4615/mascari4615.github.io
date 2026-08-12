@@ -287,15 +287,20 @@ import {
          짧을 때(폰에서 늘 그렇다 — 위에 머리말·탭이 있다) 시트가 위젯보다 커져 캔버스를
          통째로 덮는다. 실측 2026-08-12: 카드를 고르면 그림이 한 조각도 안 보였다.
          위젯 몸통의 60% — 그림이 최소 40% 는 남는다. */
-      .km-side { position:absolute; left:0; right:0; bottom:0; width:auto; z-index:18;
+      /* ★ 폰에서 시트는 앱의 떠 있는 것들(채팅 알약 등)보다 **위**여야 한다. 아래에 두었더니
+         시트 안 첫 줄 단추가 채팅 알약에 가려 안 눌렸다(실측 2026-08-12, 갈래 고르기). */
+      .km-side { position:absolute; left:0; right:0; bottom:0; width:auto; z-index:960;
         max-height:60%; border-left:none; border-top:1px solid var(--border);
         border-radius:14px 14px 0 0; box-shadow:0 -8px 24px rgba(0,0,0,.35);
         /* 접혔을 때 내다보이는 만큼 = **손잡이 높이 그대로**. 손잡이만 키우면 그 아래가 화면 밖으로 나가 안 눌린다. */
         transform:translateY(calc(100% - 44px)); transition:transform .18s ease; padding-top:44px; }
       .km-root.is-sheet-up .km-side { transform:translateY(0); }
       /* 손잡이 — 폰에서 시트를 올리고 내리는 유일한 자리라 **크게**(44px 규격) 잡는다. */
-      .km-sheet-grip { position:absolute; left:0; right:0; top:0; height:44px; display:flex;
-        align-items:center; justify-content:center; cursor:grab; }
+      /* ★ 손잡이는 **가운데 120px 만** 차지한다. 예전엔 가로 전체를 덮어서, 시트가 올라온 순간
+         맨 윗줄 단추들이 손잡이 밑에 깔려 **눌리지 않았다**(실측 2026-08-12: 갈래 고르기 단추가
+         손잡이에 가로채였다). 손가락 규격(120×44)은 그대로 지키면서 양옆을 비워 준다. */
+      .km-sheet-grip { position:absolute; left:50%; transform:translateX(-50%); top:0;
+        width:120px; height:44px; display:flex; align-items:center; justify-content:center; cursor:grab; }
       .km-sheet-grip::before { content:''; width:44px; height:4px; border-radius:999px; background:var(--border); }
       /* 폰에서 툴바가 **줄바꿈으로 부풀면** 그림이 그만큼 밀려난다(실측: 화면 절반을 먹었다).
          한 줄로 눕히고 옆으로 밀어 쓰게 한다 — 세로 공간이 폰에서 가장 비싼 자원이다. */
@@ -875,11 +880,15 @@ import {
       // 캔버스 위에는 **글자만** 둔다. 큰 버튼을 캔버스에 얹으면 「빈 곳 두 번 클릭」을 잡아먹어
       // 처음 여는 사람이 첫 동작부터 막힌다(실제로 검사가 그렇게 걸렸다). 고르는 자리는 옆 패널이다.
       // 한 줄에 한 가지만. 전에는 둘째 줄이 길어 「이어집니다.」 넉 자만 셋째 줄로 떨어졌다(실서비스 첫 화면).
+      /* ★ 폰에서는 **말이 달라야 한다.** 「두 번 클릭」도 「오른쪽에서」도 폰에는 없는 말이다 —
+         손가락은 두드리고, 옆 패널은 아래에서 올라오는 시트다. 첫 화면 안내가 없는 곳을
+         가리키면 처음 여는 사람은 첫 걸음부터 막힌다(실측 2026-08-12, 폰 첫 화면). */
+      const touch = window.matchMedia('(max-width: 720px)').matches;
       el.innerHTML = '<div class="km-empty-in">' +
         t('karmograph.t169') +
-        t('karmograph.t170') +
+        t(touch ? 'karmograph.t170.touch' : 'karmograph.t170') +
         t('karmograph.t171') +
-        t('karmograph.t172') +
+        t(touch ? 'karmograph.t172.touch' : 'karmograph.t172') +
         '</div>';
 
       // 안내는 클릭을 통과시키지만(pointer-events:none) 버튼만은 눌려야 한다.
@@ -1223,6 +1232,9 @@ import {
         // 그 아래로 밀려 안 보인다(고를 것이 아직 하나도 없는데 고르라는 안내가 먼저 나온다).
         const pickHint = t('karmograph.t184');
         const empty = spec.nodes.length === 0 && intents.length > 0;
+        // 폰에서는 갈래 고르기가 **접힌 시트 안**에 있어 첫 화면에서 아예 안 보였다.
+        // 빈 판이면 시트를 올려 둔다 — 덮을 그림도 아직 없다.
+        if (empty) raiseSheet();
         sideEl.innerHTML = (empty ? '' : pickHint) +
           (!empty ? '' : `
             <div class="km-field">

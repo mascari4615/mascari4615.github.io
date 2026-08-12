@@ -594,5 +594,7 @@
   "karmograph.t438": "Tilt",
   "karmograph.zoom.out": "Zoom out",
   "karmograph.zoom.in": "Zoom in",
-  "karmograph.zoom.reset": "Zoom level — click for 100%"
+  "karmograph.zoom.reset": "Zoom level — click for 100%",
+  "karmograph.t170.touch": "<b>Double-tap an empty spot</b> — a card appears there.<br>",
+  "karmograph.t172.touch": "<span style=\"opacity:.75\">Pull up the handle below to pick a <b>starting board</b></span>"
 }
