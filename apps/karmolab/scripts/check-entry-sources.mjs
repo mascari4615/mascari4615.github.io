@@ -32,6 +32,18 @@ const SPECIAL = new Set(['src/mdd.ts', 'src/gemini.ts', 'src/toolbox.ts', 'src/s
  *   격리된 자리에서 만든 커밋으로 그 파일을 **고치는 push** 를 자기 게이트가 막았다. */
 const REF = process.env.KL_PUSH_SHA || 'HEAD';
 
+/* ★ **훅이 물려준 git 환경을 벗고 본다** (2026-08-12 네 번째).
+ *   훅 안에서는 `GIT_DIR`·`GIT_WORK_TREE`·`GIT_INDEX_FILE` 이 박혀 있다. 그 상태로 상대 경로
+ *   (`src`)를 주면 git 은 **다른 자리 기준**으로 읽어 「올라간 파일 0개」를 돌려준다 —
+ *   격리된 자리에서 미는 push 가 그래서 통째로 막혔다. 여기서는 늘 `cwd` 만 기준이면 된다. */
+const gitEnv = { ...process.env };
+delete gitEnv.GIT_DIR;
+delete gitEnv.GIT_WORK_TREE;
+delete gitEnv.GIT_INDEX_FILE;
+delete gitEnv.GIT_PREFIX;
+const git = (args, extra = {}) =>
+  execFileSync('git', args, { cwd: root, env: gitEnv, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, ...extra });
+
 let tracked;
 try {
   tracked = new Set(
@@ -43,7 +55,7 @@ try {
      *   알려 주면 그걸 본다. 로컬 HEAD 만 보면, 격리된 자리에서 커밋을 만들어 미는 방식
      *   (`commit-isolated.mjs`)에서 방금 넣은 소스가 로컬 HEAD 에 없어 멀쩡한 push 가 막힌다.
      *   훅 밖에서 손으로 돌릴 때는 HEAD 가 맞다. */
-    execFileSync('git', ['ls-tree', '-r', '--name-only', REF, 'src'], { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 })
+    git(['ls-tree', '-r', '--name-only', REF, 'src'])
       .split('\n')
       .map((line) => line.trim())
       .filter(Boolean)
@@ -72,7 +84,7 @@ const registryAtRef = (() => {
     try {
       /* `./` 를 붙여야 **지금 폴더 기준**으로 읽는다 — 없으면 저장소 뿌리 기준이라 전부 실패하고,
          그러면 「아무것도 안 부른다」가 되어 이 검사가 통째로 무력해진다(조용히 초록). */
-      joined += execFileSync('git', ['show', `${REF}:./${f}`], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 32 * 1024 * 1024 });
+      joined += git(['show', `${REF}:./${f}`], { stdio: ['ignore', 'pipe', 'ignore'] });
     } catch { /* 그 커밋에 없는 파일은 건너뛴다 */ }
   }
   if (joined.length < 1000) {
@@ -127,7 +139,7 @@ if (fs.existsSync(metaPath)) {
     const catalogRel = `i18n/${SOURCE}/${ns}.json`;
     if (!fs.existsSync(path.join(root, catalogRel))) continue; // 아예 안 만든 것은 다른 검사 몫
     try {
-      execFileSync('git', ['ls-tree', '-r', '--name-only', REF, catalogRel], { cwd: root, encoding: 'utf8' })
+      git(['ls-tree', '-r', '--name-only', REF, catalogRel])
         .trim() || missing.push(`${catalogRel} (${ns} 위젯이 쓰는 한국어 말 묶음)`);
     } catch { /* 못 물어보면 넘어간다 */ }
   }
