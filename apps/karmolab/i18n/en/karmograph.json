@@ -628,5 +628,6 @@
   "karmograph.side.less": "Show less",
   "karmograph.btn.fit": "Fit",
   "karmograph.btn.story": "Present",
-  "karmograph.btn.up": "Up"
+  "karmograph.btn.up": "Up",
+  "karmograph.savedHere": "Saved in this browser"
 }

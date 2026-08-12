@@ -473,7 +473,7 @@ import {
           <select data-km="maps" title="${esc(t('karmograph.t92'))}"></select>
           <button class="btn btn-ghost hidden" data-km="map-up" title="${esc(t('karmograph.t93'))}">↑<span
             class="km-btn-name">${esc(t('karmograph.btn.up'))}</span></button>
-          <span class="km-saved hidden" data-km="saved" title="${esc(t('karmograph.t94'))}">${esc(t('karmograph.t117'))}</span>
+          <span class="km-saved hidden" data-km="saved" title="${esc(t('karmograph.t94'))}">${esc(t('karmograph.savedHere'))}</span>
           <button class="btn btn-ghost" data-km="map-new" title="${esc(t('karmograph.t95'))}">+</button>
           <select data-km="new-kind" title="${esc(t('karmograph.t96'))}">${nodeKindOptions()}</select>
           <span class="km-sep"></span>
@@ -808,10 +808,14 @@ import {
      * 「저장 버튼이 어디 있지?」로 불안해하다가 창을 안 닫는다. 저장할 때마다 잠깐 「저장됨」을 켠다.
      */
     let savedTimer: ReturnType<typeof setTimeout> | null = null;
+    let savedCount = 0;   // 처음 몇 번만 「이 브라우저에」까지 말한다 — 매번이면 소음이 된다
     function flashSaved(): void {
       const el = root.querySelector('[data-km="saved"]') as HTMLElement | null;
       if (!el) return;
-      el.textContent = t('karmograph.t117');
+      // ★ 「저장됨」만으로는 **어디에** 저장됐는지 모른다 — 방문기록을 지우면 사라지는 것을
+      //   모른 채 몇 달을 쓰게 된다(2026-08-12 사용자 검토). 처음 몇 번은 자리까지 말해 준다.
+      savedCount += 1;
+      el.textContent = savedCount <= 3 ? t('karmograph.savedHere') : t('karmograph.t117');
       el.classList.remove('hidden');
       if (savedTimer) clearTimeout(savedTimer);
       savedTimer = setTimeout(() => el.classList.add('hidden'), 1400);

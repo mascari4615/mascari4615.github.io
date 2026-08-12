@@ -2004,6 +2004,28 @@ await step('옆 패널이 첫 카드부터 다 펼쳐지지 않는다 (꾸미는
   await ctx.close();
 });
 
+await step('처음 저장될 때 **어디에** 저장됐는지 말해 준다', async () => {
+  // 사용자 검토(2026-08-12): 「저장됨」만 떠서, 방문기록을 지우면 사라진다는 걸 모른 채 쓰게 된다.
+  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  const box = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(box.x + box.width * 0.4, box.y + box.height * 0.3);
+  await m.waitForSelector('.km-inline', { timeout: 4000 });
+  await m.keyboard.type('저장확인');
+  await m.keyboard.press('Enter');
+  const said = await m.waitForFunction(() => {
+    const el = document.querySelector('[data-km="saved"]');
+    return el && !el.classList.contains('hidden') ? el.textContent : null;
+  }, null, { timeout: 4000 }).then((h) => h.jsonValue()).catch(() => '');
+  if (!/브라우저|browser|ブラウザ/.test(String(said))) throw new Error(`저장 표시가 자리를 안 말한다: ${said}`);
+  await ctx.close();
+});
+
 // ── 폰 화면 ──────────────────────────────────────────────────────────────────
 // 관계도는 **보는 일**이 폰에서 훨씬 많다(링크 받아 열기). 그런데 지금까지 폰 크기는 한 번도 안 봤다.
 await step('폰 첫 화면 — 안내가 시트에 안 잘리고, 툴바에 「더 있다」 표시가 뜬다', async () => {
