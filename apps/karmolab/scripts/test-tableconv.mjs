@@ -36,6 +36,7 @@ const result = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
+  await window.__karmoWaitDrawn(host);
   const convert = (text, to) => {
     host.querySelector('#tcIn').value = text;
     host.querySelector('#tcTo').value = to;

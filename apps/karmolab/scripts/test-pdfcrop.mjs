@@ -42,6 +42,7 @@ const out = await page.evaluate(async () => {
   const host = document.createElement('div');
   document.body.appendChild(host);
   tool.tabs[0].build(host);
+  await window.__karmoWaitDrawn(host);
   window.pdfjsLib.GlobalWorkerOptions.workerSrc = '/apps/karmolab/js/vendor/pdfjs.worker.min.js';
 
   /** 여백이 넓은 문서 / 꽉 찬 문서를 만든다 */

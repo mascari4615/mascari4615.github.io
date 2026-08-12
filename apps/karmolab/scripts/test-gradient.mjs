@@ -36,6 +36,7 @@ const result = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
+  await window.__karmoWaitDrawn(host);
   const set = (from, to) => {
     host.querySelector('#grFrom').value = from;
     host.querySelector('#grFrom').dispatchEvent(new Event('input'));

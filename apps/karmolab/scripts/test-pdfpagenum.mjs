@@ -43,6 +43,7 @@ const out = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
+  await window.__karmoWaitDrawn(host);
   // 3장짜리 빈 문서 (아래쪽은 비어 있어야 대조가 성립한다)
   const src = await window.PDFLib.PDFDocument.create();
   for (let i = 0; i < 3; i++) src.addPage([400, 500]);

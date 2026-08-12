@@ -38,6 +38,7 @@ const out = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
+  await window.__karmoWaitDrawn(host);
   // 비밀 색(왼쪽 위 60×60)과 그대로 남아야 할 색(오른쪽 아래)을 가진 그림을 만든다
   const SECRET = [255, 0, 128];
   const KEEP = [0, 200, 64];
