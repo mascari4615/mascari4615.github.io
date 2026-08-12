@@ -1444,6 +1444,29 @@ await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널
   const canvas = await m.locator('.km-canvas').boundingBox();
   if (!canvas || canvas.height < 300) throw new Error(`폰에서 캔버스가 ${Math.round(canvas?.height ?? 0)}px — 그림이 손바닥만 하다`);
 
+  /* 시트는 기본으로 **접혀** 있어야 한다 — 그림부터 보여야 하니까.
+     ★ 단 **빈 판은 예외**다. 폰에서 갈래 고르기(무엇을 만들 건가요)가 접힌 시트 안에 있어서
+     첫 화면에서 아예 안 보였다(실측 2026-08-12). 덮을 그림도 없으니 그때는 올려 둔다. */
+  const emptyBoard = await m.evaluate(() => document.querySelectorAll('.ck-node').length === 0);
+  const side = await m.locator('.km-side').boundingBox();
+  const down = side.y > canvas.y + canvas.height * 0.6;
+  if (emptyBoard) {
+    if (down) throw new Error('빈 판인데 갈래 고르기가 접힌 시트 안에 숨어 있다');
+    const pick = await m.locator('.km-intent button').first().boundingBox();
+    if (!pick) throw new Error('빈 판인데 갈래 고르기 단추가 없다');
+    const covered = await m.evaluate(({ x, y }) => {
+      const el = document.elementFromPoint(x, y);
+      return el ? !el.closest('.km-side') : true;
+    }, { x: pick.x + pick.width / 2, y: pick.y + pick.height / 2 });
+    if (covered) throw new Error('갈래 고르기 단추가 다른 것에 가려 안 눌린다');
+    // 재 보고 나서 원래대로 접어 둔다 — 아래 검사들은 접힌 상태를 전제로 한다.
+    await m.locator('[data-km="sheet-grip"]').click();
+    await m.waitForTimeout(320);
+  } else if (!down) {
+    throw new Error('옆 패널이 폰에서 접혀 있지 않다');
+  }
+
+
   // 두 손가락 확대 — 폰에서 관계도를 읽는 가장 기본 동작인데 여태 한 번도 안 재 봤다.
   // Playwright 에는 핀치 도우미가 없어 **CDP 로 손가락 두 개를 직접 그린다**.
   const cdp = await phone.newCDPSession(m);
@@ -1468,11 +1491,6 @@ await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널
   await m.waitForTimeout(400);
   const zoom1 = await scaleOf();
   if (!(zoom1 > zoom0 * 1.15)) throw new Error(`두 손가락으로 벌려도 안 커진다: ${zoom0} → ${zoom1}`);
-
-  // 시트는 기본으로 **접혀** 있어야 한다(그림부터 보여야 한다).
-  const side = await m.locator('.km-side').boundingBox();
-  const down = side.y > canvas.y + canvas.height * 0.6;
-  if (!down) throw new Error('옆 패널이 폰에서 접혀 있지 않다');
 
   // 손잡이로 올라온다 — 폰에서 시트를 여는 유일한 자리.
   // 툴바가 여러 줄로 부풀면 그림이 그만큼 밀린다 — **한 줄**이어야 한다(높이로 잡는다).
