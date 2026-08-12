@@ -208,9 +208,9 @@ export class KarmoStudioEngine {
   }
 }
 
-export async function renderProject(project: StudioProject, assets: Map<string, StudioAssetRuntime>, fromBeat: number, toBeat: number, sampleRate = 44100): Promise<AudioBuffer> {
+export async function renderProject(project: StudioProject, assets: Map<string, StudioAssetRuntime>, fromBeat: number, toBeat: number, sampleRate = 44100, channels = 2): Promise<AudioBuffer> {
   const duration = Math.max(0.1, (toBeat - fromBeat) * (60 / project.bpm) + 1.8);
-  const context = new OfflineAudioContext(2, Math.ceil(duration * sampleRate), sampleRate);
+  const context = new OfflineAudioContext(Math.max(1, Math.min(2, channels)), Math.ceil(duration * sampleRate), sampleRate);
   scheduleProject(context, project, assets, fromBeat, toBeat, 0, context.destination);
   return context.startRendering();
 }

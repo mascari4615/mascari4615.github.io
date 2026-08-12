@@ -7,6 +7,7 @@ import {
 import { toWav } from '../tools/shared/media';
 import { addAsset, hydrateAssets, importPortable, loadProject, portableProject, saveProject } from './storage';
 import { ProjectHistory } from './history';
+import { analysePeak, applyGain, clampBuffer, exportRange, normalizeGain, type ExportRangeMode } from './export';
 import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type ClipRef, type NoteRef } from './selection';
 
 (function (): void {
@@ -73,6 +74,12 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     .ks-handle { position:absolute; top:0; right:0; width:8px; height:100%; cursor:ew-resize; background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--clip) 70%,white)); }
     .ks-playhead { position:absolute; top:30px; bottom:0; width:1px; background:#ff5d6c; z-index:6; pointer-events:none; box-shadow:0 0 5px #ff5d6c; }
     .ks-lane.is-drop { box-shadow:inset 0 0 0 2px var(--accent); }
+    .ks-export { position:fixed; left:50%; top:12%; transform:translateX(-50%); z-index:1000; width:min(420px,92vw); padding:14px; border:1px solid var(--border-hover); border-radius:8px; background:var(--bg-secondary); box-shadow:0 18px 40px rgba(0,0,0,.45); display:grid; gap:8px; }
+    .ks-export h4 { margin:0; font:12px var(--font-mono); color:var(--text-secondary); letter-spacing:.08em; }
+    .ks-export label { display:flex; align-items:center; justify-content:space-between; gap:10px; font:11px var(--font-mono); color:var(--text-tertiary); }
+    .ks-export select, .ks-export input { font:11px var(--font-mono); }
+    .ks-export-note { font:10px var(--font-mono); color:var(--text-tertiary); line-height:1.5; }
+    .ks-export-actions { display:flex; gap:6px; justify-content:flex-end; }
     .ks-piano-tools { flex:none; display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:4px 8px; border-bottom:1px solid var(--border); background:var(--bg-secondary); }
     .ks-piano-tools label { display:flex; align-items:center; gap:4px; color:var(--text-tertiary); font:10px var(--font-mono); }
     .ks-velocity { position:relative; height:56px; border-top:1px solid var(--border); background:var(--bg-tertiary); overflow:hidden; flex:none; }
@@ -132,6 +139,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     let playhead = 0; let pxPerBeat = 72; let sideMode: 'inspector' | 'mixer' = 'inspector';let editTool:'draw'|'select'|'slice'='draw'; let assets = new Map<string, StudioAssetRuntime>();
     let raf: number | undefined; let saveTimer: number | undefined; let recording: MediaRecorder | null = null; let recordChunks: Blob[] = []; let recordStart = 0;
     let armedTrackId=''; let metronome=false; let countIn=false;
+    let exportOptions={range:'song' as ExportRangeMode,sampleRate:44100,mono:false,normalize:true};
     let editorExpanded = false; let editorScrollTop = 0; let editorScrollLeft = 0; let editorClipId = ''; let pianoPxPerBeat = pxPerBeat;
     let editorReturnFocus: HTMLElement | null = null; let cancelActiveGesture: (()=>void) | null = null;
     /** 묶음 clipboard — 상대 간격을 보존하려고 기준점(origin)을 함께 들고 있는다. */
@@ -189,7 +197,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       </div>
       <div class="ks-work"><div class="ks-arranger"><div class="ks-scroll" data-role="scroll"><div class="ks-ruler" data-role="ruler"></div><div data-role="tracks"></div><div class="ks-playhead" data-role="playhead"></div><div class="ks-band" data-role="band" hidden></div></div><div class="ks-editor" data-role="editor"></div></div>
       <aside class="ks-side"><div class="ks-side-tabs"><button class="ks-btn is-on" data-side="inspector">INSPECTOR</button><button class="ks-btn" data-side="mixer">MIXER</button></div><div class="ks-side-body" data-role="side"></div></aside></div>
-      <div class="ks-modal-backdrop" data-role="backdrop"></div><div class="ks-context" data-role="context" role="menu" hidden></div>
+      <div class="ks-modal-backdrop" data-role="backdrop"></div><div data-role="export"></div><div class="ks-context" data-role="context" role="menu" hidden></div>
       <input type="file" data-file="audio" accept="audio/*" multiple hidden><input type="file" data-file="project" accept="application/json,.json" hidden>
     </div>`;
     const root = container.querySelector('.ks-root') as HTMLElement;
@@ -251,6 +259,58 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     function addPianoNote(event: MouseEvent): boolean { if(editTool==='select')return false;const target=event.target as HTMLElement;const piano=target.closest<HTMLElement>('[data-piano]');const clip=selectedClip();const track=selectedTrack();if(!piano||!clip||clip.kind!=='midi'||!track||target.closest('.ks-note,.ks-key,.ks-piano-ruler'))return false;const rect=piano.firstElementChild!.getBoundingClientRect();const pitch=Math.max(36,Math.min(84,84-Math.floor((event.clientY-rect.top-24)/16)));const beat=snapBeat((event.clientX-rect.left-68)/pianoPxPerBeat,project.snap);if(beat<0||beat>=clip.duration)return false;const existing=clip.notes.find((note)=>note.pitch===pitch&&Math.abs(note.beat-beat)<project.snap/2);if(existing){selection={type:'note',trackId:track.id,clipId:clip.id,noteId:existing.id};renderEditor();renderSide();return true;}const note={id:studioId('note'),beat,duration:Math.min(project.snap*2,clip.duration-beat),pitch,velocity:.8};clip.notes.push(note);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:note.id};void engine.preview(track,pitch);saveSoon();renderEditor();renderTracks();renderSide();return true; }
     function createMidiClip(track:StudioTrack,start:number,open=false):StudioClip { const snapped=snapBeat(start,project.snap);const existing=track.clips.find((clip)=>clip.kind==='midi'&&Math.abs(clip.start-snapped)<project.snap/2);if(existing){selection={type:'clip',trackId:track.id,clipId:existing.id};renderAll();if(open)setEditorExpanded(true);return existing;}const clip:StudioClip={id:studioId('clip'),trackId:track.id,kind:'midi',name:'MIDI Clip',start:snapped,duration:project.beatsPerBar,offset:0,notes:[],gain:1,fadeIn:0,fadeOut:0};track.clips.push(clip);selection={type:'clip',trackId:track.id,clipId:clip.id};saveSoon();renderAll();if(open)setEditorExpanded(true);return clip; }
     function hideContextMenu(): void { const menu=$<HTMLElement>('[data-role=context]');menu.hidden=true;menu.innerHTML=''; }
+    /** 내보내기 판 — 범위·표본율·채널·정규화를 정하고 결과를 숫자로 보고한다. */
+    function closeExport(): void { $<HTMLElement>('[data-role=export]').innerHTML=''; $<HTMLElement>('[data-role=backdrop]').classList.toggle('is-open',editorExpanded); }
+    function openExport(): void {
+      const host=$<HTMLElement>('[data-role=export]');
+      const marked=markedClips().map((item)=>item.clip);
+      host.innerHTML=`<div class="ks-export" role="dialog" aria-modal="true" aria-label="WAV 내보내기">
+        <h4>EXPORT WAV</h4>
+        <label>범위 <select data-export="range">
+          <option value="song"${exportOptions.range==='song'?' selected':''}>곡 전체</option>
+          <option value="loop"${exportOptions.range==='loop'?' selected':''}>LOOP 구간 (${beatText(project.loopStart)} → ${beatText(project.loopEnd)})</option>
+          <option value="selection"${exportOptions.range==='selection'?' selected':''}>고른 클립 ${marked.length}개</option>
+        </select></label>
+        <label>표본율 <select data-export="sampleRate">
+          ${[22050,44100,48000].map((rate)=>`<option value="${rate}"${exportOptions.sampleRate===rate?' selected':''}>${rate} Hz</option>`).join('')}
+        </select></label>
+        <label>채널 <select data-export="mono">
+          <option value="0"${exportOptions.mono?'':' selected'}>스테레오</option>
+          <option value="1"${exportOptions.mono?' selected':''}>모노</option>
+        </select></label>
+        <label>피크 맞추기 (-1 dBFS) <input type="checkbox" data-export="normalize"${exportOptions.normalize?' checked':''}></label>
+        <p class="ks-export-note" data-role="export-note">끄면 1 을 넘는 표본은 깎인다. 켜면 가장 큰 소리를 -1 dBFS 에 맞춘다.</p>
+        <div class="ks-export-actions"><button class="ks-btn" data-export-act="cancel">취소</button><button class="ks-btn" data-export-act="go">내보내기</button></div>
+      </div>`;
+      $<HTMLElement>('[data-role=backdrop]').classList.add('is-open');
+      host.querySelector<HTMLElement>('[data-export-act=go]')?.focus();
+    }
+    async function runExport(): Promise<void> {
+      stop();
+      const note=$<HTMLElement>('[data-role=export-note]');
+      const marked=markedClips().map((item)=>({start:item.clip.start,duration:item.clip.duration}));
+      const range=exportRange(exportOptions.range,{from:0,to:projectLength(project)},{from:project.loopStart,to:project.loopEnd},marked);
+      status('Rendering WAV…');if(note)note.textContent='렌더 중…';
+      try {
+        const rendered=await renderProject(project,assets,range.from,range.to,exportOptions.sampleRate,exportOptions.mono?1:2);
+        const before=analysePeak(rendered);
+        if(exportOptions.normalize)applyGain(rendered,normalizeGain(before.peak,-1));
+        const clamped=exportOptions.normalize?0:clampBuffer(rendered);
+        const after=analysePeak(rendered);
+        const blob=toWav(rendered);
+        const suffix=exportOptions.range==='song'?'':`-${exportOptions.range}`;
+        download(blob,`${project.name||'Karmo Studio'}${suffix}.wav`);
+        Toolbox.offerNext?.($('[data-role=status]'),{blob,name:`${project.name}${suffix}.wav`,from:'karmo-studio'});
+        const headroom=`peak ${after.dbfs.toFixed(1)} dBFS`;
+        const warn=clamped?` · 깎인 표본 ${clamped}개`:before.clipped&&exportOptions.normalize?` · 원래 ${before.clipped}개가 넘쳤는데 맞춰서 내렸다`:'';
+        status(`WAV ready · ${(blob.size/1048576).toFixed(1)} MB · ${headroom}${warn}`);
+        closeExport();
+      } catch (error) {
+        const message=(error as Error).message;
+        status(`Render failed: ${message}`);
+        if(note)note.textContent=`실패: ${message}`;
+      }
+    }
     function setEditorExpanded(next: boolean): void { const editor=$<HTMLElement>('[data-role=editor]');if(next&&!editorExpanded)editorReturnFocus=document.activeElement instanceof HTMLElement?document.activeElement:null;editorExpanded=next;editor.classList.toggle('is-expanded',next);editor.toggleAttribute('role',next);editor.toggleAttribute('aria-modal',next);if(next){editor.setAttribute('role','dialog');editor.setAttribute('aria-modal','true');editor.tabIndex=-1;}else{editor.removeAttribute('role');editor.removeAttribute('aria-modal');editor.removeAttribute('tabindex');} $<HTMLElement>('[data-role=backdrop]').classList.toggle('is-open',next);renderEditor();if(next)editor.focus({preventScroll:true});else editorReturnFocus?.focus({preventScroll:true}); }
     function showContextMenu(x:number,y:number,items:Array<[string,string]>):void{const menu=$<HTMLElement>('[data-role=context]');menu.innerHTML=items.map(([act,label])=>`<button type="button" role="menuitem" data-context-act="${act}">${label}</button>`).join('');menu.hidden=false;menu.style.left=`${Math.min(x,window.innerWidth-200)}px`;menu.style.top=`${Math.min(y,window.innerHeight-menu.offsetHeight-8)}px`;menu.querySelector<HTMLElement>('button')?.focus({preventScroll:true});}
 
@@ -407,7 +467,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     }
     const download = (blob: Blob, name: string): void => { const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000); };
 
-    root.addEventListener('click',(event)=>{ const raw=event.target as HTMLElement;if(addPianoNote(event))return;const contextAct=raw.closest<HTMLElement>('[data-context-act]')?.dataset.contextAct;if(contextAct){hideContextMenu();if(contextAct==='open-editor')setEditorExpanded(true);else if(contextAct==='copy')copySelection();else if(contextAct==='cut')cutSelection();else if(contextAct==='duplicate')root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();else if(contextAct==='duplicate-note'&&selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const note=clip?.notes.find((item)=>item.id===noteId);const track=selectedTrack();if(clip&&note&&track){const copy={...note,id:studioId('note'),beat:Math.min(clip.duration-note.duration,snapBeat(note.beat+project.snap,project.snap))};clip.notes.push(copy);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copy.id};saveSoon();renderEditor();renderTracks();}}else if(contextAct==='split')root.querySelector<HTMLElement>('[data-act=split]')?.click();else if(contextAct==='delete')deleteSelection();return;}const noteAct=raw.closest<HTMLElement>('[data-note-act]')?.dataset.noteAct;if(noteAct){applyNoteTool(noteAct);return;}const tool=raw.closest<HTMLElement>('.ks-btn[data-tool]')?.dataset.tool;if(tool){editTool=tool as typeof editTool;renderAll();status(`${tool.toUpperCase()} tool`);return;} const target=raw.closest<HTMLElement>('[data-act],[data-side],[data-track-act]'); if(!target){hideContextMenu();return;}
+    root.addEventListener('click',(event)=>{ const raw=event.target as HTMLElement;const exportAct=raw.closest<HTMLElement>('[data-export-act]')?.dataset.exportAct;if(exportAct){if(exportAct==='cancel')closeExport();else void runExport();return;}if(addPianoNote(event))return;const contextAct=raw.closest<HTMLElement>('[data-context-act]')?.dataset.contextAct;if(contextAct){hideContextMenu();if(contextAct==='open-editor')setEditorExpanded(true);else if(contextAct==='copy')copySelection();else if(contextAct==='cut')cutSelection();else if(contextAct==='duplicate')root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();else if(contextAct==='duplicate-note'&&selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const note=clip?.notes.find((item)=>item.id===noteId);const track=selectedTrack();if(clip&&note&&track){const copy={...note,id:studioId('note'),beat:Math.min(clip.duration-note.duration,snapBeat(note.beat+project.snap,project.snap))};clip.notes.push(copy);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copy.id};saveSoon();renderEditor();renderTracks();}}else if(contextAct==='split')root.querySelector<HTMLElement>('[data-act=split]')?.click();else if(contextAct==='delete')deleteSelection();return;}const noteAct=raw.closest<HTMLElement>('[data-note-act]')?.dataset.noteAct;if(noteAct){applyNoteTool(noteAct);return;}const tool=raw.closest<HTMLElement>('.ks-btn[data-tool]')?.dataset.tool;if(tool){editTool=tool as typeof editTool;renderAll();status(`${tool.toUpperCase()} tool`);return;} const target=raw.closest<HTMLElement>('[data-act],[data-side],[data-track-act]'); if(!target){hideContextMenu();return;}
       if(target.dataset.side){sideMode=target.dataset.side as typeof sideMode;renderSide();return;}
       const trackAct=target.dataset.trackAct; if(trackAct){const track=findTrack(project,target.dataset.track||'');if(!track)return;if(trackAct==='mute')track.mute=!track.mute;else if(trackAct==='solo')track.solo=!track.solo;else if(trackAct==='arm'){if(track.kind!=='audio'){status('Only audio tracks can be armed');return;}armedTrackId=armedTrackId===track.id?'':track.id;status(armedTrackId?`Armed ${track.name}`:'Disarmed');renderAll();return;}else if(trackAct==='delete'&&confirm(`Delete ${track.name}?`)){project.tracks=project.tracks.filter((item)=>item.id!==track.id);selection=null;}saveSoon();renderAll();return;}
       const act=target.dataset.act;
@@ -416,7 +476,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       else if(act==='import-audio')$<HTMLInputElement>('[data-file=audio]').click(); else if(act==='open')$<HTMLInputElement>('[data-file=project]').click();
       else if(act==='new'&&confirm('Start a new project? Export the current one first if you need it.')){stop();project=newProject();assets.clear();selection={type:'clip',trackId:project.tracks[0].id,clipId:project.tracks[0].clips[0].id};playhead=0;saveSoon();renderAll();}
       else if(act==='save'){void portableProject(project).then((json)=>download(new Blob([json],{type:'application/json'}),`${project.name||'Karmo Studio'}.karmo.json`));}
-      else if(act==='export-wav'){stop();status('Rendering WAV…');const from=project.loop?project.loopStart:0;const to=project.loop?project.loopEnd:projectLength(project);void renderProject(project,assets,from,to).then((buffer)=>{const blob=toWav(buffer);download(blob,`${project.name||'Karmo Studio'}.wav`);Toolbox.offerNext?.($('[data-role=status]'),{blob,name:`${project.name}.wav`,from:'karmo-studio'});status(`WAV ready · ${(blob.size/1048576).toFixed(1)} MB`);}).catch((error:Error)=>status(`Render failed: ${error.message}`));}
+      else if(act==='export-wav'){openExport();}
       else if(act==='zoom-in'||act==='zoom-out'){pxPerBeat=Math.max(28,Math.min(180,pxPerBeat*(act==='zoom-in'?1.25:.8)));renderAll();}
       else if(act==='record')void startRecording(); else if(act==='duplicate')duplicateSelection();
       else if(act==='copy')copySelection();else if(act==='cut')cutSelection();else if(act==='paste')pasteClipboard();
@@ -440,6 +500,15 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
         if(element){element.style.height=`${Math.round(7+note.velocity*7)}px`;element.style.opacity=`${0.5+note.velocity*0.5}`;}
       }
     }
+    root.addEventListener('change',(event)=>{
+      const field=(event.target as HTMLElement).closest<HTMLSelectElement|HTMLInputElement>('[data-export]');
+      if(!field)return;
+      const key=field.dataset.export;
+      if(key==='range')exportOptions.range=field.value as ExportRangeMode;
+      else if(key==='sampleRate')exportOptions.sampleRate=Number(field.value);
+      else if(key==='mono')exportOptions.mono=field.value==='1';
+      else if(key==='normalize')exportOptions.normalize=(field as HTMLInputElement).checked;
+    });
     root.addEventListener('input',(event)=>{
       const input=event.target as HTMLInputElement;
       if(!('noteVelocity' in input.dataset))return;
@@ -696,8 +765,8 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
       if(chosen.type==='note'){const doomed=markedNotes();const clip=findClip(project,chosen.trackId,chosen.clipId);if(clip&&doomed.length){const ids=new Set(doomed.map((item)=>item.note.id));clip.notes=clip.notes.filter((note)=>!ids.has(note.id));noteSel.clear();if(doomed.length>1)status(`Deleted ${doomed.length} notes`);}selection={type:'clip',trackId:chosen.trackId,clipId:chosen.clipId};saveSoon();renderAll();return;}
       else if(chosen.type==='clip'){const doomed=markedClips();for(const item of doomed)item.track.clips=item.track.clips.filter((clip)=>clip.id!==item.clip.id);marks.clear();if(doomed.length>1)status(`Deleted ${doomed.length} clips`);}
       selection={type:'track',trackId:track.id};saveSoon();renderAll();}
-    const keydown=(event:KeyboardEvent)=>{if(!root.isConnected)return;if(event.key==='Escape'){event.preventDefault();cancelActiveGesture?.();hideContextMenu();if(editorExpanded)setEditorExpanded(false);return;}const command=event.ctrlKey||event.metaKey;if(command&&event.key.toLowerCase()==='z'){event.preventDefault();restoreHistory(event.shiftKey?'redo':'undo');return;}if(command&&event.key.toLowerCase()==='y'){event.preventDefault();restoreHistory('redo');return;}const tag=(event.target as HTMLElement).tagName;if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;if(!command&&['p','e','c'].includes(event.key.toLowerCase())){editTool=event.key.toLowerCase()==='p'?'draw':event.key.toLowerCase()==='e'?'select':'slice';renderAll();status(`${editTool.toUpperCase()} tool`);return;}if(command&&event.key.toLowerCase()==='c'){event.preventDefault();copySelection();return;}if(command&&event.key.toLowerCase()==='x'){event.preventDefault();cutSelection();return;}if(command&&event.key.toLowerCase()==='v'){event.preventDefault();pasteClipboard();return;}if(event.code==='Space'){event.preventDefault();engine.isPlaying()?stop():play();}else if(event.key==='Delete'||event.key==='Backspace'){event.preventDefault();deleteSelection();}else if(command&&event.key.toLowerCase()==='b'){event.preventDefault();root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();}};document.addEventListener('keydown',keydown);
-    $<HTMLElement>('[data-role=backdrop]').addEventListener('click',()=>setEditorExpanded(false));
+    const keydown=(event:KeyboardEvent)=>{if(!root.isConnected)return;if(event.key==='Escape'){event.preventDefault();cancelActiveGesture?.();hideContextMenu();if($<HTMLElement>('[data-role=export]').innerHTML){closeExport();return;}if(editorExpanded)setEditorExpanded(false);return;}const command=event.ctrlKey||event.metaKey;if(command&&event.key.toLowerCase()==='z'){event.preventDefault();restoreHistory(event.shiftKey?'redo':'undo');return;}if(command&&event.key.toLowerCase()==='y'){event.preventDefault();restoreHistory('redo');return;}const tag=(event.target as HTMLElement).tagName;if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;if(!command&&['p','e','c'].includes(event.key.toLowerCase())){editTool=event.key.toLowerCase()==='p'?'draw':event.key.toLowerCase()==='e'?'select':'slice';renderAll();status(`${editTool.toUpperCase()} tool`);return;}if(command&&event.key.toLowerCase()==='c'){event.preventDefault();copySelection();return;}if(command&&event.key.toLowerCase()==='x'){event.preventDefault();cutSelection();return;}if(command&&event.key.toLowerCase()==='v'){event.preventDefault();pasteClipboard();return;}if(event.code==='Space'){event.preventDefault();engine.isPlaying()?stop():play();}else if(event.key==='Delete'||event.key==='Backspace'){event.preventDefault();deleteSelection();}else if(command&&event.key.toLowerCase()==='b'){event.preventDefault();root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();}};document.addEventListener('keydown',keydown);
+    $<HTMLElement>('[data-role=backdrop]').addEventListener('click',()=>{if($<HTMLElement>('[data-role=export]').innerHTML){closeExport();return;}setEditorExpanded(false);});
     Toolbox.onHandoff?.('karmo-studio',(file: File)=>{if(file.type.startsWith('audio/'))void importAudio([file]);else if(file.type==='application/json')void file.text().then(importPortable).then((next: StudioProject)=>{project=next;history.reset(project);return refreshAssets();}).then(()=>renderAll());});
     Toolbox.onDispose?.(()=>{stop();engine.dispose();if(countInTimer!==undefined)clearInterval(countInTimer);document.removeEventListener('keydown',keydown);if(saveTimer!==undefined)clearTimeout(saveTimer);if(recording)recording.stop();});
     renderAll(); void refreshAssets().then(()=>{renderAll();status('Ready · autosave on');}); Mdd.linePreset('tool_run',{mood:'idle',msg:'Karmo Studio — 편곡부터 WAV까지 한 프로젝트에서.'});

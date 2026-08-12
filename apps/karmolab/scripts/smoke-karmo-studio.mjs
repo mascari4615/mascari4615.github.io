@@ -202,7 +202,15 @@ const projectDownload=page.waitForEvent('download',{timeout:10000});await page.c
 const portableNoteCount=portable.tracks.flatMap((track)=>track.clips).flatMap((clip)=>clip.notes||[]).length;
 await page.locator('[data-file=project]').setInputFiles({name:'roundtrip.karmo.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(portable))});await page.waitForTimeout(500);
 const reopened=await page.evaluate(()=>({name:document.querySelector('[data-bind=project-name]').value,tracks:document.querySelectorAll('.ks-track-row').length,assets:JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null')?.assets?.length}));
-const wavDownload=page.waitForEvent('download');await page.click('[data-act=export-wav]');const download=await wavDownload;const wavPath=await download.path();const wav=fs.readFileSync(wavPath);await page.waitForTimeout(200);
+/* 내보내기 판 — 범위·표본율·채널·정규화를 정하고 나간다. */
+await page.click('[data-act=export-wav]');await page.waitForSelector('.ks-export');
+const exportRangeOptions=await page.locator('[data-export=range] option').allTextContents();
+await page.selectOption('[data-export=sampleRate]','22050');
+await page.selectOption('[data-export=mono]','1');
+const wavDownload=page.waitForEvent('download');await page.click('[data-export-act=go]');let download;try{download=await wavDownload;}catch(e){throw new Error('export 실패: '+await page.locator('[data-role=status]').textContent()+' | note='+(await page.locator('[data-role=export-note]').textContent().catch(()=>'-'))+' | errors='+errors.slice(0,2).join(' ~ '));}
+const exportStatus=await page.locator('[data-role=status]').textContent();
+await page.waitForTimeout(200);
+const exportClosed=await page.locator('.ks-export').count()===0;const wavPath=await download.path();const wav=fs.readFileSync(wavPath);await page.waitForTimeout(200);
 /* 같은 종류의 다른 트랙으로 세로 drag — 클립이 실제로 다른 lane 으로 옮겨져야 한다.
    390px 화면에서는 세로 drop 지점의 hit-test 가 lane 을 안정적으로 집지 못해 desktop 에서만 잰다. */
 const midiLaneCounts=async()=>page.locator('.ks-lane[data-kind=midi]').evaluateAll((elements)=>elements.map((element)=>element.querySelectorAll('.ks-clip').length));
@@ -276,6 +284,11 @@ if(clicksAfter<=clicksBefore)problems.push(`박자 소리가 안 난다 (oscilla
 if(saved?.name!=='Smoke Song'||saved.tracks.length!==after.tracks)problems.push('자동 저장 round-trip 실패');
 if(saved?.assets?.length!==1||!portable.assets?.[0]?.dataUrl?.startsWith('data:audio/wav'))problems.push('오디오 asset 또는 휴대용 프로젝트 저장 실패');
 if(reopened.name!=='Smoke Song'||reopened.tracks!==after.tracks||reopened.assets!==1)problems.push(`휴대용 프로젝트 다시 열기 실패 (${JSON.stringify(reopened)})`);
+if(!exportRangeOptions.some((text)=>/LOOP/.test(text))||!exportRangeOptions.some((text)=>/고른 클립/.test(text)))problems.push(`내보내기 범위 선택지가 없다 (${exportRangeOptions.join(' / ')})`);
+if(!exportClosed)problems.push('내보낸 뒤 판이 안 닫힌다');
+if(!/peak .* dBFS/.test(exportStatus||''))problems.push(`내보내기 결과에 피크 보고가 없다 (${exportStatus})`);
+if(wav.readUInt16LE(22)!==1)problems.push(`모노로 골랐는데 채널이 ${wav.readUInt16LE(22)}개다`);
+if(wav.readUInt32LE(24)!==22050)problems.push(`표본율 선택이 안 먹었다 (${wav.readUInt32LE(24)})`);
 if(wav.subarray(0,4).toString()!=='RIFF'||wav.subarray(8,12).toString()!=='WAVE'||wav.length<10000)problems.push(`WAV 출력 실패 (${wav.length} bytes)`);
 if(initial.layout!=='grid')problems.push(`작업공간 레이아웃 오류 (${initial.layout})`);
 if(errors.length)problems.push(`브라우저 오류: ${errors.slice(0,3).join(' | ')}`);
