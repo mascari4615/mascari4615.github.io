@@ -31,9 +31,21 @@ export interface TreePlaced extends TreeNode {
   depth: number;
 }
 
+export interface TreeEdge {
+  from: string;
+  to: string;
+  /**
+   * 뼈대가 아닌 곁가지.
+   * 왜 나누나: 선수 관계를 **전부** 실선으로 그으면 그물이 된다(갈래 41개에 선 100개 — 트리로 안 보인다).
+   * 사람이 지도에서 읽고 싶은 것은 「어디서 왔나」 한 줄이다. 그래서 부모 하나만 뼈대로 남기고
+   * 나머지는 흐린 점선으로 밀어 둔다 — 정보는 버리지 않되, 형태는 트리로 돌아온다.
+   */
+  weak?: boolean;
+}
+
 export interface TreeLayout {
   nodes: TreePlaced[];
-  edges: Array<{ from: string; to: string }>;
+  edges: TreeEdge[];
   width: number;
   height: number;
 }
@@ -99,8 +111,18 @@ export function layoutTree(nodes: TreeNode[], gapX = 168, gapY = 118): TreeLayou
     row.forEach((n) => (n.x += shift));
   }
 
-  const edges: Array<{ from: string; to: string }> = [];
-  nodes.forEach((n) => (n.prereq || []).forEach((p) => byId.has(p) && edges.push({ from: p, to: n.id })));
+  /**
+   * 뼈대 고르기 — 부모 중 **가장 깊은 하나**만 실선.
+   * 가장 깊은 부모 = 바로 앞에 배운 것이므로, 그 한 줄이 곧 「방금 어디서 왔나」가 된다.
+   */
+  const edges: TreeEdge[] = [];
+  nodes.forEach((n) => {
+    const parents = (n.prereq || []).filter((p) => byId.has(p));
+    if (!parents.length) return;
+    let spine = parents[0];
+    for (const p of parents) if ((depth.get(p) ?? 0) > (depth.get(spine) ?? 0)) spine = p;
+    parents.forEach((p) => edges.push({ from: p, to: n.id, weak: p !== spine }));
+  });
 
   return { nodes: [...placed.values()], edges, width, height: (maxDepth + 1) * gapY };
 }

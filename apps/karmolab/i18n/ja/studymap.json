@@ -54,5 +54,9 @@
   "studymap.nohit.clear": "検索を消して地図へ",
   "studymap.done.quiz": "問題を通過",
   "studymap.done.self": "自分で表示",
-  "studymap.rule": "全問正解するとこの枠は完了になり、復習日が設定される。"
+  "studymap.rule": "全問正解するとこの枠は完了になり、復習日が設定される。",
+  "studymap.lesson.parts": "章の一覧",
+  "studymap.lesson.partno": "{n}/{all}章",
+  "studymap.lesson.prevpart": "前の章",
+  "studymap.lesson.nextpart": "次の章"
 }

@@ -54,5 +54,9 @@
   "studymap.nohit.clear": "Clear search and go back",
   "studymap.done.quiz": "Passed the quiz",
   "studymap.done.self": "Marked by you",
-  "studymap.rule": "Answer all of them correctly and this node is marked done, with a review date set."
+  "studymap.rule": "Answer all of them correctly and this node is marked done, with a review date set.",
+  "studymap.lesson.parts": "Chapters",
+  "studymap.lesson.partno": "Ch. {n}/{all}",
+  "studymap.lesson.prevpart": "Previous chapter",
+  "studymap.lesson.nextpart": "Next chapter"
 }

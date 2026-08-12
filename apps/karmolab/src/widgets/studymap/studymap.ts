@@ -43,7 +43,21 @@ interface SmBlock {
   controls?: Array<{ id: string; label: string; type: 'range' | 'toggle' | 'select'; min?: number; max?: number; step?: number; value?: string | number | boolean; options?: Array<{ value: string; label: string }> }>;
 }
 interface SmQuiz { q: string; choices: string[]; answer: number; why?: string }
-interface SmLesson { id: string; minutes?: number; blocks: SmBlock[]; quiz?: SmQuiz[] }
+/**
+ * 한 칸(주제) 안의 **한 장(章)**.
+ * 왜 나누나: 「HTML」 같은 주제를 글 한 편으로 끝내면 공부가 안 된다 — 읽을거리지 강의가 아니다.
+ * 바깥 세상의 좋은 과정도 한 주제를 여러 장으로 쪼갠다(web.dev Learn HTML = 21장, MDN 은 모듈 안에
+ * 여러 편 + 「기술 시험」). 그래서 칸 = 장들의 묶음으로 두고, 장마다 확인 문제를 붙인다.
+ */
+interface SmPart { id: string; title: string; minutes?: number; blocks: SmBlock[]; quiz?: SmQuiz[] }
+/** 옛 모양(장 없이 blocks 하나)도 그대로 읽는다 — 아직 안 쪼갠 칸이 대부분이다. */
+interface SmLesson { id: string; minutes?: number; blocks?: SmBlock[]; quiz?: SmQuiz[]; parts?: SmPart[] }
+
+/** 어느 모양으로 적혔든 **장의 목록**으로 만들어 준다. 화면은 이 한 가지 모양만 안다. */
+function partsOf(lesson: SmLesson, fallbackTitle: string): SmPart[] {
+  if (lesson.parts?.length) return lesson.parts;
+  return [{ id: '1', title: fallbackTitle, minutes: lesson.minutes, blocks: lesson.blocks || [], quiz: lesson.quiz }];
+}
 
 /** 다른 언어 덧씌우기 표 — id 로만 짝을 짓는다(순서·구조를 다시 적지 않는다). */
 interface SmOverlay {
@@ -83,6 +97,8 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 
 (function (): void {
   const DONE_KEY = 'karmolab-studymap-done';
+  /** 장별 통과 기록 — `칸id#장id`. 칸 하나가 여러 장이면 **전부** 통과해야 칸이 끝난다. */
+  const PART_KEY = 'karmolab-studymap-parts';
   const TRACK_KEY = 'karmolab-studymap-track';
 
   /** 본문의 **굵게** 만 살린다. 그 외는 전부 글자로 — 표에 태그를 열어 두면 그게 구멍이 된다. */
@@ -106,6 +122,22 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
       return new Set();
     }
   }
+  function readParts(): Set<string> {
+    try {
+      const raw = JSON.parse(localStorage.getItem(PART_KEY) || '[]');
+      return new Set(Array.isArray(raw) ? raw.map(String) : []);
+    } catch {
+      return new Set();
+    }
+  }
+  function writeParts(v: Set<string>): void {
+    try {
+      localStorage.setItem(PART_KEY, JSON.stringify([...v]));
+    } catch {
+      /* 진도만 안 남는다 */
+    }
+  }
+
   function writeDone(done: Set<string>): void {
     try {
       localStorage.setItem(DONE_KEY, JSON.stringify([...done]));
@@ -325,6 +357,16 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .sm-callout.is-try { border-color: var(--accent); background: var(--accent-subtle); }
 .sm-callout .sm-callout-tag { display: block; font-size: 10px; letter-spacing: .05em; color: var(--text-tertiary); margin-bottom: 4px; }
 
+.sm-parts { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 6px; }
+.sm-part-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text-muted);
+  font-size: var(--font-size-2xs); cursor: pointer; }
+.sm-part-btn:hover { border-color: var(--accent); color: var(--text); }
+.sm-part-btn.is-current { border-color: var(--accent); background: var(--accent-subtle); color: var(--text); font-weight: 600; }
+.sm-part-btn.is-done .sm-part-no { background: var(--success); color: #04120a; }
+.sm-part-no { display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%;
+  background: var(--border); color: var(--text-muted); font-size: 10px; font-weight: 700; }
+.sm-part-title { margin-top: 10px !important; }
 .sm-quiz { margin-top: 12px; }
 .sm-qbox { border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 14px 16px; margin-bottom: 12px; background: var(--bg-secondary); }
 .sm-qtext { font-size: var(--font-size-2xs); font-weight: 600; margin-bottom: 10px; line-height: 1.6; }
@@ -779,22 +821,25 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
      * 주소는 그대로 둔다(pushState 에 url 안 넘김) — 다른 위젯의 해시와 안 싸운다.
      */
     let lessonOpen: string | null = null;
+    /** 지금 읽는 장. 칸이 여러 장이면 뒤로가기·다음장이 이 값을 따라간다. */
+    let partOpen: string | null = null;
     /* 목차 감시는 화면을 갈아엎을 때마다 푼다 — 안 그러면 죽은 화면을 계속 재려 든다. */
     let stopWatching: (() => void) | null = null;
     /** 캔버스 정리 — 화면을 갈아엎을 때 옛 캔버스를 걷는다. */
     let stopTree: (() => void) | null = null;
 
-    async function openLesson(id: string, viaHistory = false): Promise<void> {
+    async function openLesson(id: string, viaHistory = false, wantPart?: string): Promise<void> {
       const found = whereIs.get(id);
       if (!found) return;
       if (!viaHistory) {
         try {
-          history.pushState({ smLesson: id }, '');
+          history.pushState({ smLesson: id, smPart: wantPart }, '');
         } catch {
           /* 기록을 못 쌓아도 강의는 열린다 — 뒤로가기만 예전처럼 동작한다 */
         }
       }
       lessonOpen = id;
+      partOpen = wantPart ?? null;
       /* 읽는 중에는 머리(제목·진도·찾기)를 접는다 — 좁은 화면에서 본문이 화면 밖으로 밀리던 것. */
       container.querySelector('.sm-wrap')?.classList.add('is-reading');
       paintTracks();   /* 옆 목록에서 지금 읽는 칸이 눈에 띄게 */
@@ -833,7 +878,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
           <span class="sm-nav-title">${esc(x.title)}</span>
         </button>`;
       };
-      const pager = `<nav class="sm-pager">${near(-1)}${near(1)}</nav>`;
+      /* 페이저 조립은 장을 고른 뒤에 한다(아래) — 다음이 「다음 장」일 수도, 「다음 칸」일 수도 있어서. */
       /* 도구가 붙은 칸은 **여기서 바로 해 볼 수 있다** — 읽고 끝나면 안 남는다. */
       const toolRow = node.tool ? `<a class="sm-link sm-tool" href="#${esc(node.tool.id)}">▶ ${esc(node.tool.label)}</a>` : '';
       const linkRow =
@@ -860,6 +905,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
       /* 아직 안 쓴 강의 — 없는 척하지 말고 「없다」고 말한다. 카드에 있던 것은 그대로 보인다. */
       if (!lesson) {
+        const pager = `<nav class="sm-pager">${near(-1)}${near(1)}</nav>`;
         elStages.innerHTML = `<div class="sm-lesson">${back}
           <h3>${esc(node.title)}</h3>
           <div class="sm-lesson-meta">${esc(t('studymap.lesson.none', undefined, '이 칸의 강의는 아직 준비 중이다. 아래 자료로 먼저 시작하라.'))}</div>
@@ -872,7 +918,27 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         return;
       }
 
-      const body = lesson.blocks
+      /* 장 고르기 — 지정이 없으면 **아직 통과 못 한 첫 장**부터. 공부는 이어서 하는 것이다. */
+      const parts = partsOf(lesson, node.title);
+      const partDone = readParts();
+      const isPartDone = (pid: string): boolean => partDone.has(`${id}#${pid}`);
+      let pIdx = wantPart ? parts.findIndex((p) => p.id === wantPart) : -1;
+      if (pIdx < 0) pIdx = Math.max(0, parts.findIndex((p) => !isPartDone(p.id)));
+      const part = parts[pIdx];
+      partOpen = part.id;
+
+      /* 장 목록 — 몇 장짜리인지, 지금 몇 장째인지, 어디까지 통과했는지가 한눈에. */
+      const partRail =
+        parts.length > 1
+          ? `<nav class="sm-parts" aria-label="${esc(t('studymap.lesson.parts', undefined, '장 목록'))}">${parts
+              .map(
+                (pp, i) =>
+                  `<button type="button" class="sm-part-btn${i === pIdx ? ' is-current' : ''}${isPartDone(pp.id) ? ' is-done' : ''}" data-part="${esc(pp.id)}"><span class="sm-part-no">${i + 1}</span>${esc(pp.title)}</button>`,
+              )
+              .join('')}</nav>`
+          : '';
+
+      const body = part.blocks
         .map((blk) => {
           if (blk.type === 'h') return `<h4>${esc(blk.text)}</h4>`;
           if (blk.type === 'code') {
@@ -894,7 +960,19 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         })
         .join('');
 
-      const quiz = (lesson.quiz || [])
+      /** 장 사이 이동이 먼저, 칸 경계는 그다음 — 읽던 흐름이 끊기지 않게. */
+      const step = (dir: -1 | 1): string => {
+        const nx = parts[pIdx + dir];
+        if (!nx) return near(dir);
+        const label = dir < 0 ? t('studymap.lesson.prevpart', undefined, '이전 장') : t('studymap.lesson.nextpart', undefined, '다음 장');
+        return `<button type="button" class="sm-nav-btn${dir < 0 ? '' : ' is-next'}" data-part="${esc(nx.id)}">
+          <span class="sm-nav-dir">${dir < 0 ? '‹' : ''} ${esc(label)} ${dir < 0 ? '' : '›'}</span>
+          <span class="sm-nav-title">${esc(nx.title)}</span>
+        </button>`;
+      };
+      const pager = `<nav class="sm-pager">${step(-1)}${step(1)}</nav>`;
+
+      const quiz = (part.quiz || [])
         .map(
           (item, at) => `<div class="sm-qbox" data-quiz="${at}">
             <div class="sm-qtext">${at + 1}. ${esc(item.q)}</div>
@@ -913,8 +991,10 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
       elStages.innerHTML = `<div class="sm-lesson-wrap"><article class="sm-lesson">${back}
         <h3>${esc(node.title)}</h3>
-        <div class="sm-lesson-meta">${esc(trackOf(found.trackId).title)}${lesson.minutes ? ` · ${esc(t('studymap.lesson.minutes', { n: lesson.minutes }, '약 {n}분'))}` : ''}</div>
+        <div class="sm-lesson-meta">${esc(trackOf(found.trackId).title)}${parts.length > 1 ? ` · ${esc(t('studymap.lesson.partno', { n: pIdx + 1, all: parts.length }, '{n}/{all}장'))}` : ''}${part.minutes ? ` · ${esc(t('studymap.lesson.minutes', { n: part.minutes }, '약 {n}분'))}` : ''}</div>
         ${prereqBlock}
+        ${partRail}
+        ${parts.length > 1 ? `<h4 class="sm-part-title">${esc(part.title)}</h4>` : ''}
         ${body}
         ${checkBlock}
         ${quiz ? `<h4>${esc(t('studymap.lesson.quiz', undefined, '확인 문제'))}</h4><p class="sm-rule">${esc(t('studymap.rule', undefined, '다 맞히면 이 칸이 끝난 것으로 표시되고, 복습 날짜가 잡힌다.'))}</p><div class="sm-quiz" data-lesson="${esc(id)}">${quiz}</div>` : ''}
@@ -953,7 +1033,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
       /* 채점은 고르는 즉시. 다 맞히면 그 칸은 저절로 체크된다 — 「읽었다」가 아니라 「됐다」가 기준. */
       const quizRoot = elStages.querySelector('[data-lesson]');
-      const items = lesson.quiz || [];
+      const items = part.quiz || [];
       if (quizRoot instanceof HTMLElement && items.length > 0) {
         quizRoot.addEventListener('change', (e) => {
           const input = e.target as HTMLInputElement;
@@ -989,7 +1069,15 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             }
             note.textContent = t('studymap.review.set', { when }, '다 맞혔다 — 다음 복습은 {when}');
           }
-          if (cleared && !done.has(id)) {
+          if (cleared) {
+            /* 이 장은 통과. 칸이 끝나는 것은 **모든 장**을 통과했을 때다. */
+            partDone.add(`${id}#${part.id}`);
+            writeParts(partDone);
+            const rail = elStages.querySelector(`.sm-part-btn[data-part="${CSS.escape(part.id)}"]`);
+            rail?.classList.add('is-done');
+          }
+          const allParts = cleared && parts.every((pp) => partDone.has(`${id}#${pp.id}`));
+          if (allParts && !done.has(id)) {
             done.add(id);
             writeDone(done);
             markSrc(id, 'quiz');
@@ -1181,9 +1269,9 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
     /* 뒤로/앞으로 — 우리가 쌓은 칸이면 강의를 열고 닫는다. 남의 기록이면 손대지 않는다. */
     window.addEventListener('popstate', (e) => {
-      const st = e.state as { smLesson?: string } | null;
+      const st = e.state as { smLesson?: string; smPart?: string } | null;
       if (st?.smLesson) {
-        if (st.smLesson !== lessonOpen) void openLesson(st.smLesson, true);
+        if (st.smLesson !== lessonOpen || (st.smPart ?? null) !== partOpen) void openLesson(st.smLesson, true, st.smPart);
         return;
       }
       if (lessonOpen) paint();
@@ -1214,6 +1302,12 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         } else {
           void openLesson(id);
         }
+        return;
+      }
+      /* 장 이동 — 같은 칸 안이므로 기록도 한 칸 쌓는다(뒤로가기가 장 단위로 돌아간다). */
+      const jump = target.closest('[data-part]') as HTMLElement | null;
+      if (jump && lessonOpen) {
+        void openLesson(lessonOpen, false, jump.dataset.part || undefined);
         return;
       }
       const open = target.closest('[data-open]') as HTMLElement | null;
