@@ -260,7 +260,14 @@ if (state.firstHref) {
     const smallTap = [...document.querySelectorAll('a.tool-hub-card, .tool-hub-toc a, button, input')]
       .filter(near)
       .filter((e) => { const b = e.getBoundingClientRect(); return Math.min(b.width, b.height) < 32; })
-      .map((e) => `${(e.className || e.tagName).toString().split(' ')[0].slice(0, 18)}`);
+      /* 이름 없는 단추는 「BUTTON」으로만 찍혀 **무엇인지 알 수가 없다** — 실측 2026-08-13:
+         그 한 줄 때문에 어느 자리인지 못 찾아 세 판을 헤맸다. 글자·id·크기를 같이 남긴다. */
+      .map((e) => {
+        const b = e.getBoundingClientRect();
+        const label = (e.textContent || e.getAttribute('aria-label') || '').trim().slice(0, 14);
+        return `${(e.className || e.tagName).toString().split(' ')[0].slice(0, 18)}${e.id ? '#' + e.id : ''}`
+          + ` ${Math.round(b.width)}x${Math.round(b.height)}${label ? ` "${label}"` : ''}`;
+      });
     const tinyText = [];
     const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     const seen = new Set();
