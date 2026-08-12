@@ -171,7 +171,7 @@
     "test:perf:self": "node scripts/smoke-perf.mjs --regress",
     "test:orbita": "node scripts/smoke-orbita.mjs",
     "test:garden": "node scripts/smoke-garden-sims.mjs",
-    "test:karmo-studio": "node scripts/test-karmo-studio-history.mjs && node scripts/test-karmo-studio-selection.mjs && node scripts/smoke-karmo-studio.mjs",
+    "test:karmo-studio": "node scripts/test-karmo-studio-history.mjs && node scripts/test-karmo-studio-selection.mjs && node scripts/test-karmo-studio-model.mjs && node scripts/smoke-karmo-studio.mjs",
     "test:pulse": "node scripts/smoke-pulse.mjs",
     "test:lang": "node scripts/smoke-lang-switch.mjs",
     "test:i18n:source": "node scripts/audit-i18n-source.mjs",

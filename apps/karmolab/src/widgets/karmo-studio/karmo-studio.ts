@@ -1,7 +1,7 @@
 /** Karmo Studio — KarmoLab 안에서 곡을 끝까지 만드는 브라우저 DAW (TASK-KL-220). */
 import { KarmoStudioEngine, renderProject, type StudioAssetRuntime } from './audio-engine';
 import {
-  cloneClip, findClip, findTrack, newProject, newTrack, normalizeProject, projectLength, snapBeat, splitClip, studioId,
+  cloneClip, findClip, findTrack, legatoNotes, newProject, newTrack, normalizeProject, projectLength, quantizeNotes, setNoteVelocity, snapBeat, splitClip, studioId, transposeNotes,
   type StudioClip, type StudioProject, type StudioSelection, type StudioTrack
 } from './model';
 import { toWav } from '../tools/shared/media';
@@ -69,6 +69,12 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     .ks-handle { position:absolute; top:0; right:0; width:8px; height:100%; cursor:ew-resize; background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--clip) 70%,white)); }
     .ks-playhead { position:absolute; top:30px; bottom:0; width:1px; background:#ff5d6c; z-index:6; pointer-events:none; box-shadow:0 0 5px #ff5d6c; }
     .ks-lane.is-drop { box-shadow:inset 0 0 0 2px var(--accent); }
+    .ks-piano-tools { flex:none; display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:4px 8px; border-bottom:1px solid var(--border); background:var(--bg-secondary); }
+    .ks-piano-tools label { display:flex; align-items:center; gap:4px; color:var(--text-tertiary); font:10px var(--font-mono); }
+    .ks-velocity { position:relative; height:56px; border-top:1px solid var(--border); background:var(--bg-tertiary); overflow:hidden; flex:none; }
+    .ks-velocity-scale { position:absolute; left:0; top:0; bottom:0; width:68px; border-right:1px solid var(--border); color:var(--text-tertiary); font:9px var(--font-mono); padding:3px 5px; pointer-events:none; }
+    .ks-vel { position:absolute; bottom:0; width:6px; background:var(--accent); opacity:.55; cursor:ns-resize; border-radius:2px 2px 0 0; }
+    .ks-vel.is-selected { opacity:1; outline:1px solid white; }
     .ks-band { position:absolute; z-index:7; pointer-events:none; border:1px solid var(--accent); background:color-mix(in srgb, var(--accent) 18%, transparent); border-radius:2px; }
     .ks-playhead::before { content:""; position:absolute; top:-5px; left:-4px; border:5px solid transparent; border-top-color:#ff5d6c; }
     .ks-loop { position:absolute; top:0; height:4px; background:var(--accent); opacity:.8; z-index:3; }
@@ -83,7 +89,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     .ks-field input[type=range] { padding:0; accent-color:var(--accent); }
     .ks-meter { height:6px; background:var(--bg-tertiary); border-radius:5px; overflow:hidden; }
     .ks-meter span { display:block; height:100%; background:var(--accent); }
-    .ks-editor { flex:none; height:210px; border-top:1px solid var(--border); background:var(--bg-primary); display:flex; flex-direction:column; }
+    .ks-editor { flex:none; height:300px; border-top:1px solid var(--border); background:var(--bg-primary); display:flex; flex-direction:column; }
     .ks-editor.is-expanded { position:fixed; inset:5dvh 3vw; width:auto; height:auto; z-index:1000;
       border:1px solid var(--border-hover); border-radius:var(--radius-md); box-shadow:0 18px 70px rgba(0,0,0,.72); }
     .ks-modal-backdrop { display:none; position:fixed; inset:0; z-index:999; background:rgba(0,0,0,.64); }
@@ -95,7 +101,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       background:transparent; color:var(--text-primary); text-align:left; font:11px var(--font-mono); cursor:pointer; }
     .ks-context button:hover,.ks-context button:focus-visible { background:var(--bg-hover); outline:none; }
     .ks-editor-head { height:30px; display:flex; align-items:center; gap:8px; padding:4px 8px; border-bottom:1px solid var(--border); font:11px var(--font-mono); }
-    .ks-piano { flex:1; overflow:auto; position:relative; background:repeating-linear-gradient(to bottom,var(--bg-secondary) 0 15px,var(--border) 16px),repeating-linear-gradient(to right,transparent 0 calc(var(--ks-beat) / 4 - 1px),var(--border) calc(var(--ks-beat) / 4)); }
+    .ks-piano { flex:1 1 0; min-height:96px; overflow:auto; position:relative; background:repeating-linear-gradient(to bottom,var(--bg-secondary) 0 15px,var(--border) 16px),repeating-linear-gradient(to right,transparent 0 calc(var(--ks-beat) / 4 - 1px),var(--border) calc(var(--ks-beat) / 4)); }
     .ks-key { position:absolute; left:0; width:68px; height:16px; border:1px solid var(--border); border-top:0;
       background:#e8e8e4; color:#25252b; font:9px var(--font-mono); padding:2px 5px; z-index:4; }
     .ks-key.is-black { width:45px; background:#25252b; color:#d8d8d3; border-color:#111; z-index:5; }
@@ -106,7 +112,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     .ks-note.is-selected { outline:1px solid white; }
     .ks-empty { padding:18px 8px; text-align:center; color:var(--text-tertiary); font-size:11px; line-height:1.6; }
     .ks-status { margin-left:auto; max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-tertiary); font:10px var(--font-mono); }
-    @media(max-width:850px) { .ks-root{height:auto;min-height:720px}.ks-work{grid-template-columns:1fr}.ks-side{border-left:0;border-top:1px solid var(--border);max-height:250px}.ks-scroll{height:420px}.ks-editor{height:190px}.ks-editor.is-expanded{inset:2dvh 2vw;height:auto}.ks-audio-controls{grid-template-columns:1fr 1fr}.ks-toolbar .ks-status{display:none} }
+    @media(max-width:850px) { .ks-root{height:auto;min-height:720px}.ks-work{grid-template-columns:1fr}.ks-side{border-left:0;border-top:1px solid var(--border);max-height:250px}.ks-scroll{height:420px}.ks-editor{height:290px}.ks-editor.is-expanded{inset:2dvh 2vw;height:auto}.ks-audio-controls{grid-template-columns:1fr 1fr}.ks-toolbar .ks-status{display:none} }
   `);
 
   Toolbox.register({
@@ -139,6 +145,30 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     /** piano roll 은 clip 하나만 그린다 — 편집 중인 clip 밖의 note 표시는 살려 둘 이유가 없다. */
     function reconcileNotes(): void { const clip=selectedClip(); noteSel.prune((ref)=>Boolean(clip&&ref.clipId===clip.id&&clip.notes.some((note)=>note.id===ref.noteId))); if(selection?.type==='note'){const ref={clipId:selection.clipId,noteId:selection.noteId};if(!noteSel.has(ref))noteSel.replace([ref]);}else noteSel.clear(); }
     function markedNotes(): { clip: StudioClip; note: StudioClip['notes'][number] }[] { reconcileNotes(); const clip=selectedClip(); if(!clip)return []; return noteSel.list().flatMap((ref)=>{const note=clip.notes.find((item)=>item.id===ref.noteId);return note?[{clip,note}]:[];}); }
+    /** 도구가 손댈 음 — 고른 게 있으면 그것만, 없으면 클립 전체. */
+    function noteTargets(): { clip: StudioClip; notes: StudioClip['notes'] } | null {
+      const clip=selectedClip();if(!clip||clip.kind!=='midi')return null;
+      const marked=markedNotes().map((item)=>item.note);
+      return { clip, notes: marked.length?marked:clip.notes };
+    }
+    function applyNoteTool(act: string): void {
+      const target=noteTargets();
+      if(!target||!target.notes.length){status('Open a MIDI clip first');return;}
+      const { clip, notes }=target;const scope=notes.length===clip.notes.length?'clip':`${notes.length} notes`;
+      if(act==='quantize'||act==='quantize-half'){
+        const moved=quantizeNotes(notes,project.snap,act==='quantize'?1:0.5);
+        status(moved?`Quantized ${moved} of ${scope}`:'Already on the grid');
+      } else if(act==='legato'){
+        const changed=legatoNotes(notes,clip.duration);
+        status(changed?`Legato · ${changed} notes`:'Nothing to stretch');
+      } else {
+        const step=act==='up'?1:act==='down'?-1:act==='octave-up'?12:-12;
+        const moved=transposeNotes(notes,step,36,84);
+        status(moved?`Transposed ${scope} by ${moved > 0?'+':''}${moved}`:'Pitch range reached');
+      }
+      for(const note of notes)note.beat=Math.max(0,Math.min(clip.duration-note.duration,note.beat));
+      saveSoon(`note-tool:${act}`);renderEditor();renderTracks();renderSide();
+    }
 
     container.innerHTML = `<div class="ks-root">
       <div class="ks-toolbar">
@@ -302,7 +332,19 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       let bars='';for(let beat=0;beat<=clip.duration;beat+=project.beatsPerBar)bars+=`<span class="ks-piano-bar" style="left:${beat*pianoPxPerBeat}px">${beat/project.beatsPerBar+1}</span>`;
       reconcileNotes();
       const notes = clip.notes.map((note)=>`<i class="ks-note${noteSel.has({clipId:clip.id,noteId:note.id})||(selection?.type==='note'&&selection.noteId===note.id)?' is-selected':''}" title="${names[note.pitch%12]}${Math.floor(note.pitch/12)-1} · velocity ${Math.round(note.velocity*127)}" data-note="${note.id}" style="left:${keyWidth+note.beat*pianoPxPerBeat}px;top:${rulerHeight+(high-note.pitch)*row+Math.max(1,Math.round((1-note.velocity)*5))}px;width:${note.duration*pianoPxPerBeat}px;height:${Math.round(7+note.velocity*7)}px;opacity:${0.5+note.velocity*0.5}"><b class="ks-note-handle" data-note-resize="1"></b></i>`).join('');
-      editor.innerHTML = `<div class="ks-editor-head"><strong>PIANO ROLL · ${esc(clip.name)}</strong><span>세로=음높이 · 가로=시간 · 밝기=세기</span><span class="ks-spacer"></span><span>DRAW: 빈 칸 좌클릭으로 음 추가 · SELECT(E): 빈 칸 드래그로 여러 음 묶기 · Shift/Ctrl 클릭으로 더하기·빼기 · 드래그: 묶음 이동 · Delete: 묶음 삭제 · Ctrl+B: 묶음 복제</span><button class="ks-btn" data-act="toggle-editor">${editorExpanded?'작게':'크게 열기'}</button></div><div class="ks-piano" data-piano="1"><div style="position:relative;width:${keyWidth+width}px;height:${rulerHeight+(high-low+1)*row}px"><div class="ks-piano-ruler" style="width:${width}px">${bars}</div>${keys}${notes}<div class="ks-band" data-role="piano-band" hidden></div></div></div>`;
+      const velocityBars = clip.notes.map((note)=>`<i class="ks-vel${noteSel.has({clipId:clip.id,noteId:note.id})?' is-selected':''}" data-vel="${note.id}" title="velocity ${Math.round(note.velocity*127)}" style="left:${keyWidth+note.beat*pianoPxPerBeat}px;width:${Math.max(4,Math.min(10,note.duration*pianoPxPerBeat))}px;height:${Math.max(3,Math.round(note.velocity*50))}px"></i>`).join('');
+      const pianoTools = `<div class="ks-piano-tools">
+        <button class="ks-btn" data-note-act="quantize" title="선택한 음(없으면 전부)을 격자에 붙인다">QUANTIZE</button>
+        <button class="ks-btn" data-note-act="quantize-half" title="격자까지 절반만 당긴다 — 사람 느낌 보존">Q 50%</button>
+        <button class="ks-btn" data-note-act="legato" title="앞 음의 끝을 다음 음 시작까지 늘린다">LEGATO</button>
+        <span class="ks-spacer"></span>
+        <button class="ks-btn" data-note-act="octave-down" title="한 옥타브 내림">−12</button>
+        <button class="ks-btn" data-note-act="down" title="반음 내림">−1</button>
+        <button class="ks-btn" data-note-act="up" title="반음 올림">+1</button>
+        <button class="ks-btn" data-note-act="octave-up" title="한 옥타브 올림">+12</button>
+        <label>VELOCITY <input class="ks-number" type="range" min="0.05" max="1" step="0.01" value="${(clip.notes.find((note)=>noteSel.has({clipId:clip.id,noteId:note.id}))||clip.notes[0])?.velocity??0.8}" data-note-velocity aria-label="선택한 음의 세기"></label>
+      </div>`;
+      editor.innerHTML = `<div class="ks-editor-head"><strong>PIANO ROLL · ${esc(clip.name)}</strong><span>세로=음높이 · 가로=시간 · 밝기=세기</span><span class="ks-spacer"></span><span>DRAW: 빈 칸 좌클릭으로 음 추가 · SELECT(E): 빈 칸 드래그로 여러 음 묶기 · Shift/Ctrl 클릭으로 더하기·빼기 · 드래그: 묶음 이동 · Delete: 묶음 삭제 · Ctrl+B: 묶음 복제</span><button class="ks-btn" data-act="toggle-editor">${editorExpanded?'작게':'크게 열기'}</button></div>${pianoTools}<div class="ks-piano" data-piano="1"><div style="position:relative;width:${keyWidth+width}px;height:${rulerHeight+(high-low+1)*row}px"><div class="ks-piano-ruler" style="width:${width}px">${bars}</div>${keys}${notes}<div class="ks-band" data-role="piano-band" hidden></div></div></div><div class="ks-velocity" data-velocity><div style="position:relative;width:${keyWidth+width}px;height:100%">${velocityBars}</div><div class="ks-velocity-scale">VEL</div></div>`;
       const piano=editor.querySelector<HTMLElement>('.ks-piano');if(piano){piano.scrollTop=editorScrollTop;piano.scrollLeft=editorScrollLeft;}
     }
 
@@ -331,7 +373,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     }
     const download = (blob: Blob, name: string): void => { const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000); };
 
-    root.addEventListener('click',(event)=>{ const raw=event.target as HTMLElement;if(addPianoNote(event))return;const contextAct=raw.closest<HTMLElement>('[data-context-act]')?.dataset.contextAct;if(contextAct){hideContextMenu();if(contextAct==='open-editor')setEditorExpanded(true);else if(contextAct==='copy')copySelection();else if(contextAct==='cut')cutSelection();else if(contextAct==='duplicate')root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();else if(contextAct==='duplicate-note'&&selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const note=clip?.notes.find((item)=>item.id===noteId);const track=selectedTrack();if(clip&&note&&track){const copy={...note,id:studioId('note'),beat:Math.min(clip.duration-note.duration,snapBeat(note.beat+project.snap,project.snap))};clip.notes.push(copy);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copy.id};saveSoon();renderEditor();renderTracks();}}else if(contextAct==='split')root.querySelector<HTMLElement>('[data-act=split]')?.click();else if(contextAct==='delete')deleteSelection();return;}const tool=raw.closest<HTMLElement>('.ks-btn[data-tool]')?.dataset.tool;if(tool){editTool=tool as typeof editTool;renderAll();status(`${tool.toUpperCase()} tool`);return;} const target=raw.closest<HTMLElement>('[data-act],[data-side],[data-track-act]'); if(!target){hideContextMenu();return;}
+    root.addEventListener('click',(event)=>{ const raw=event.target as HTMLElement;if(addPianoNote(event))return;const contextAct=raw.closest<HTMLElement>('[data-context-act]')?.dataset.contextAct;if(contextAct){hideContextMenu();if(contextAct==='open-editor')setEditorExpanded(true);else if(contextAct==='copy')copySelection();else if(contextAct==='cut')cutSelection();else if(contextAct==='duplicate')root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();else if(contextAct==='duplicate-note'&&selection?.type==='note'){const noteId=selection.noteId;const clip=selectedClip();const note=clip?.notes.find((item)=>item.id===noteId);const track=selectedTrack();if(clip&&note&&track){const copy={...note,id:studioId('note'),beat:Math.min(clip.duration-note.duration,snapBeat(note.beat+project.snap,project.snap))};clip.notes.push(copy);selection={type:'note',trackId:track.id,clipId:clip.id,noteId:copy.id};saveSoon();renderEditor();renderTracks();}}else if(contextAct==='split')root.querySelector<HTMLElement>('[data-act=split]')?.click();else if(contextAct==='delete')deleteSelection();return;}const noteAct=raw.closest<HTMLElement>('[data-note-act]')?.dataset.noteAct;if(noteAct){applyNoteTool(noteAct);return;}const tool=raw.closest<HTMLElement>('.ks-btn[data-tool]')?.dataset.tool;if(tool){editTool=tool as typeof editTool;renderAll();status(`${tool.toUpperCase()} tool`);return;} const target=raw.closest<HTMLElement>('[data-act],[data-side],[data-track-act]'); if(!target){hideContextMenu();return;}
       if(target.dataset.side){sideMode=target.dataset.side as typeof sideMode;renderSide();return;}
       const trackAct=target.dataset.trackAct; if(trackAct){const track=findTrack(project,target.dataset.track||'');if(!track)return;if(trackAct==='mute')track.mute=!track.mute;else if(trackAct==='solo')track.solo=!track.solo;else if(trackAct==='delete'&&confirm(`Delete ${track.name}?`)){project.tracks=project.tracks.filter((item)=>item.id!==track.id);selection=null;}saveSoon();renderAll();return;}
       const act=target.dataset.act;
@@ -354,7 +396,44 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     root.addEventListener('change',(event)=>{const input=event.target as HTMLInputElement;if(input.dataset.bind||input.dataset.projectIns||input.dataset.ins||input.dataset.clipIns||input.dataset.noteIns||input.dataset.mix||input.dataset.master||input.dataset.trackName)renderAll();});
 
     const audioInput=$<HTMLInputElement>('[data-file=audio]');audioInput.onchange=()=>{if(audioInput.files)void importAudio(Array.from(audioInput.files));audioInput.value='';};
-    const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.onchange=()=>{const file=projectInput.files?.[0];if(!file)return;void file.text().then(importPortable).then(async(next)=>{stop();project=next;history.reset(project);await refreshAssets();selection=project.tracks[0]?{type:'track',trackId:project.tracks[0].id}:null;playhead=0;renderAll();status(`Opened ${file.name}`);}).catch((error:Error)=>status(`Open failed: ${error.message}`));projectInput.value='';};
+        /** 세기 막대 높이만 제자리 갱신 — 드래그 중 전체 재렌더로 슬라이더 포커스를 잃지 않는다. */
+    function paintVelocity(): void {
+      const clip=selectedClip();if(!clip)return;
+      for(const note of clip.notes){
+        const bar=root.querySelector<HTMLElement>(`.ks-vel[data-vel="${note.id}"]`);
+        if(bar){bar.style.height=`${Math.max(3,Math.round(note.velocity*50))}px`;bar.title=`velocity ${Math.round(note.velocity*127)}`;}
+        const element=root.querySelector<HTMLElement>(`.ks-note[data-note="${note.id}"]`);
+        if(element){element.style.height=`${Math.round(7+note.velocity*7)}px`;element.style.opacity=`${0.5+note.velocity*0.5}`;}
+      }
+    }
+    root.addEventListener('input',(event)=>{
+      const input=event.target as HTMLInputElement;
+      if(!('noteVelocity' in input.dataset))return;
+      const target=noteTargets();if(!target)return;
+      setNoteVelocity(target.notes,Number(input.value));
+      saveSoon('note-velocity');paintVelocity();
+    });
+    /** 세기 막대를 세로로 끌어 그 음의 세기를 바꾼다. */
+    root.addEventListener('pointerdown',(event)=>{
+      if(event.button!==0||!event.isPrimary)return;
+      const bar=(event.target as HTMLElement).closest<HTMLElement>('.ks-vel');
+      const lane=(event.target as HTMLElement).closest<HTMLElement>('[data-velocity]');
+      if(!bar||!lane)return;
+      const clip=selectedClip();const note=clip?.notes.find((item)=>item.id===bar.dataset.vel);
+      if(!clip||!note)return;
+      const rect=lane.getBoundingClientRect();
+      const original=note.velocity;
+      const set=(clientY:number):void=>{note.velocity=Math.max(0.05,Math.min(1,(rect.bottom-clientY)/Math.max(1,rect.height)));paintVelocity();};
+      set(event.clientY);
+      try{bar.setPointerCapture(event.pointerId);}catch(_){/* capture 없이도 이어서 받는다 */}
+      const move=(moveEvent:PointerEvent):void=>set(moveEvent.clientY);
+      const cleanup=():void=>{bar.removeEventListener('pointermove',move);bar.removeEventListener('pointerup',up);bar.removeEventListener('pointercancel',abort);bar.removeEventListener('lostpointercapture',abort);cancelActiveGesture=null;};
+      const up=():void=>{cleanup();void engine.preview(selectedTrack()||project.tracks[0],note.pitch,note.velocity);saveSoon('note-velocity');renderEditor();};
+      const abort=():void=>{note.velocity=original;cleanup();renderEditor();};
+      cancelActiveGesture=abort;
+      bar.addEventListener('pointermove',move);bar.addEventListener('pointerup',up,{once:true});bar.addEventListener('pointercancel',abort,{once:true});bar.addEventListener('lostpointercapture',abort,{once:true});
+    });
+const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.onchange=()=>{const file=projectInput.files?.[0];if(!file)return;void file.text().then(importPortable).then(async(next)=>{stop();project=next;history.reset(project);await refreshAssets();selection=project.tracks[0]?{type:'track',trackId:project.tracks[0].id}:null;playhead=0;renderAll();status(`Opened ${file.name}`);}).catch((error:Error)=>status(`Open failed: ${error.message}`));projectInput.value='';};
 
     const scroll=$<HTMLElement>('[data-role=scroll]'); scroll.addEventListener('pointerdown',(event)=>{if(event.button!==0||!event.isPrimary)return;hideContextMenu();const target=event.target as HTMLElement;const clipEl=target.closest<HTMLElement>('.ks-clip');const lane=target.closest<HTMLElement>('.ks-lane');if(!clipEl&&!lane)return;
       if(clipEl&&editTool==='slice'){const trackId=clipEl.dataset.track||'',clipId=clipEl.dataset.clip||'';const track=findTrack(project,trackId),clip=findClip(project,trackId,clipId);if(!track||!clip||!lane)return;const at=snapBeat((event.clientX-lane.getBoundingClientRect().left)/pxPerBeat,project.snap);const right=splitClip(clip,at);if(right){track.clips.push(right);selection={type:'clip',trackId,clipId:right.id};saveSoon();renderAll();status(`Split at ${beatText(at)}`);}else status('Click inside the clip to split');return;}
