@@ -41,7 +41,17 @@ const wfCalled = fs.existsSync(wfPath)
      `retry-if-redeployed.mjs` 로 감쌌더니, `run: npm run …` 모양만 찾던 이 검사가
      「실제 사이트에서는 안 돈다」고 말했다 — 부르는 방식이 바뀌었을 뿐 검사는 그대로 돈다.
      그래서 줄 어디에 있든 `npm run <이름>` 을 찾는다. */
-  ? [...fs.readFileSync(wfPath, 'utf8').matchAll(/npm run ([a-z0-9:_-]+)/g)].map((m) => m[1])
+  ? (() => {
+      /* ★ **목록은 이제 `live-checks.mjs` 에 있다** (2026-08-13). 워크플로는 그 목록을 도는
+         `npm run verify:live` 한 줄만 부른다 — YAML 만 읽으면 「검사 열일곱이 안 돈다」는
+         거짓 빨강이 난다(리팩터 직후 실제로 그랬다). 부르는 곳이 옮겨졌으면 **옮겨진 곳**을 읽는다. */
+      const wf = fs.readFileSync(wfPath, 'utf8');
+      const inWorkflow = [...wf.matchAll(/npm run ([a-z0-9:_-]+)/g)].map((m) => m[1]);
+      const listPath = path.join(root, 'scripts/live-checks.mjs');
+      if (!wf.includes('verify:live') || !fs.existsSync(listPath)) return inWorkflow;
+      const list = fs.readFileSync(listPath, 'utf8');
+      return [...inWorkflow, ...[...list.matchAll(/'npm',\s*'run',\s*'([a-z0-9:_-]+)'/g)].map((m) => m[1])];
+    })()
   : [];
 
 /* 파일이 **저장소에 들어 있는가** — 내 컴퓨터에 있는 것과 다르다.
