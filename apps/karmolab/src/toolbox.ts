@@ -2552,8 +2552,28 @@ const Toolbox = (() => {
     function mountTool(id, container) {
         const tool = tools.find((t) => t.id === id);
         const tab = tool && tool.tabs && tool.tabs[0];
-        if (!tab) {
+        const fail = () => {
             container.innerHTML = '<div class="tool-status error">「' + id + '」 를 불러오지 못했어요.</div>';
+        };
+        /* **아직 안 받은 도구**다 (TASK-KL-261).
+         *
+         * 지연 위젯도 `tabs` 를 하나 갖고 있다 — 「불러오는 중…」 을 그리는 자리표다. 여기서
+         * 그것을 그대로 그리면 화면이 **영영 그 자리에 멈춘다**(아무도 스크립트를 안 받으니).
+         * 묶음 화면(PDF·이미지…)이 자기 묶음 **밖** 도구를 부르기 시작하면서 드러났다:
+         * 「색 뽑기」를 눌러도 마스코트만 기다리고 있었다. 받아 온 뒤에 진짜를 그린다. */
+        if (tool && tool._deferred) {
+            if (tab) runBuild(id, () => tab.build(container), container); // 기다리는 그림
+            void kickLazyLoad(id).then(() => {
+                const t2 = tools.find((x) => x.id === id);
+                const tab2 = t2 && !t2._deferred && t2.tabs && t2.tabs[0];
+                if (!tab2) return fail();
+                container.innerHTML = '';
+                runBuild(id, () => tab2.build(container), container);
+            }).catch(fail);
+            return true;
+        }
+        if (!tab) {
+            fail();
             return false;
         }
         runBuild(id, () => tab.build(container), container);
