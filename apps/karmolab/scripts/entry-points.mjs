@@ -131,6 +131,12 @@ export function discoverEntryPoints(root, skip = new Set()) {
     }
   }
 
+  /* `widgets-lazy-meta.ts` 는 **단일 출처**다 — `build.mjs` 가 이걸 읽어 가벼운 목록과 나머지를
+   * 갈라낸다. 그런데 첫 화면이 이제 가벼운 목록만 부르므로(2026-08-12 부팅 예산) 화면 어디에도
+   * `<script>` 로 안 적힐 수 있고, 그러면 이 파일이 아예 안 만들어져 **빌드가 그걸 읽다 죽는다**.
+   * 부르는 곳이 있든 없든 항상 만든다. */
+  rels.add('src/widgets-lazy-meta.ts');
+
   /* 빌드가 **만들어 내는** 파일은 소스가 없는 게 정상이다 (TASK-KL-128).
    * `widgets-index.js` 는 `build.mjs` 가 `widgets-lazy-meta.js` 에서 아이콘·설명을 빼서 만든다.
    * 이 예외가 없으면 「부르는데 소스가 없다」로 빌드가 선다 — 그런데 그건 진짜 사고가 아니다. */
