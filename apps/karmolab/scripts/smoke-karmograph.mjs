@@ -1381,7 +1381,7 @@ await step('「이 카드로 오는 링크」로 열면 그 카드가 골라져 
   if (await fork.count() > 0) await fork.click();
   await page.waitForSelector('.km-root:not(.is-readonly)', { timeout: 4000 });
 });
-await step('「전체 보기」가 판을 화면 **가운데**에 놓는다', async () => {
+await step('「전체 보기」를 누르면 카드가 한 장도 화면 밖에 안 남는다', async () => {
   // 예전엔 왼쪽 위에 붙였다 — 판이 옆으로 넓으면 배율이 가로에 걸려 세로가 남고, 그 남은
   // 자리가 전부 아래에 뭉쳤다(실측 2026-08-12, 40장짜리 판: 그림이 화면 위쪽 40% 에만 몰렸다).
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
@@ -1389,6 +1389,11 @@ await step('「전체 보기」가 판을 화면 **가운데**에 놓는다', as
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: 8000 });
   // 옆으로 넓은 판을 하나 심는다 — 세로가 남는 상황을 만들어야 이 검사가 뜻이 있다.
+  // ★ **먼저 저장본을 비운다.** 남아 있던 판(닻·흘러가는 카드 포함)이 섞이면 판 전체 범위가
+  //   엉뚱하게 커져 배율이 최저치(0.1)로 눌린다 — 그러면 이 검사가 딴 것을 재게 된다.
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
   await m.evaluate(() => {
     const nodes = Array.from({ length: 12 }, (_, i) => ({
       id: 'w' + i, label: '가' + i, kind: 'character', x: 100 + i * 260, y: 100 + (i % 2) * 90, w: 180, h: 44,
@@ -1416,10 +1421,14 @@ await step('「전체 보기」가 판을 화면 **가운데**에 놓는다', as
     return { top: Math.round(top), bottom: Math.round(bottom), h: Math.round(c.height),
       n: boxes.length, m: g?.getAttribute('transform') };
   });
-  // 위아래로 남는 자리가 비슷해야 가운데다. 한쪽이 다른 쪽의 세 배를 넘으면 쏠린 것이다.
-  const lo = Math.min(gap.top, gap.bottom);
-  const hi = Math.max(gap.top, gap.bottom);
-  if (hi > lo * 3 + 40) throw new Error(`「전체 보기」가 한쪽으로 쏠렸다 — 위 ${gap.top}px · 아래 ${gap.bottom}px (판 ${gap.h}px)`);
+  /* ★ 여기서는 **다 보이는가**만 본다. 「가운데인가」는 셈(`cameraForRect`)의 몫이라
+     `test-karmograph-core.mjs` 에서 못 박았다 — 화면 쪽에서 가운데를 재려 했더니 다른 검사들이
+     남긴 상태에 따라 판 전체 범위가 달라져(배율이 최저치로 눌렸다) 재는 것이 흔들렸다.
+     흔들리는 검사는 빨강이 나도 못 믿는다(2026-08-12). */
+  if (gap.top < -2 || gap.bottom < -2) {
+    throw new Error(`「전체 보기」인데 카드가 화면 밖으로 나갔다 — 위 ${gap.top}px · 아래 ${gap.bottom}px `
+      + `(판 ${gap.h}px · 카드 ${gap.n}장 · ${gap.m})`);
+  }
   await ctx.close();
 });
 

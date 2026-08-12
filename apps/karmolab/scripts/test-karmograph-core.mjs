@@ -562,6 +562,18 @@ const M = await loadModules();
   eq(target.tx, -200, '장면 카메라는 world 중심을 화면 중심에 둔다(x)');
   eq(target.ty, 0, '장면 카메라는 world 중심을 화면 중심에 둔다(y)');
   eq(M.camera.cameraForRect({ x: 0, y: 0, w: 10000, h: 10000 }, 100, 100).scale, 0.1, '카메라 최소 배율');
+  /* 「전체 보기」는 곧 **가운데 놓기**다. 옆으로 넓은 판(가로에 배율이 걸려 세로가 남는 판)에서
+     남는 자리를 한쪽에 몰아 두면 그림이 화면 위쪽에만 붙는다 — 실측 2026-08-12, 40장짜리 판에서
+     아래 636px 이 텅 비었다. 셈이 여기 있으므로 여기서 못 박는다(TASK-KL-234 계열). */
+  {
+    const wide = M.camera.cameraForRect({ x: 0, y: 0, w: 3000, h: 200 }, 900, 800, 60);
+    const top = wide.ty;                       // 화면 위끝 ~ 그림 위끝
+    const bottom = 800 - (wide.ty + 200 * wide.scale);
+    check(Math.abs(top - bottom) < 1, `옆으로 넓은 판도 위아래 가운데 (위 ${Math.round(top)} · 아래 ${Math.round(bottom)})`);
+    const left = wide.tx;
+    const right = 900 - (wide.tx + 3000 * wide.scale);
+    check(Math.abs(left - right) < 1, `좌우도 가운데 (왼 ${Math.round(left)} · 오른 ${Math.round(right)})`);
+  }
 }
 
 // 되돌아가지 않게: **캔버스 크기 자물쇠**.
