@@ -108,10 +108,11 @@ check(inBundle, '소리 묶음 안에서 「자르기」가 열린다');
 const soundGot = await page
   .waitForFunction(
     () => {
-      const el = document.querySelector('#acPanel, #acStatus');
+      /* **판이 펴졌는지만** 본다 (2026-08-13). 처음엔 상태 글씨도 같이 봤는데, 그 글씨는
+       * 아무것도 안 받았을 때도 「0:00」 을 달고 있어서 **넘겨받지 않아도 초록**이었다
+       * (게이트를 일부러 망가뜨려 보고 잡았다 — `rules/quality.md § 설명문이 거짓말이면`). */
       const panel = document.querySelector('#acPanel');
-      if (panel && panel.style.display !== 'none') return true;
-      return /0:0|1초|길이/.test((el && el.textContent) || '');
+      return !!panel && panel.style.display !== 'none';
     },
     { timeout: 20000 }
   )
