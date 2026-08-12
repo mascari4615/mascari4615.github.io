@@ -26,7 +26,10 @@ export const KARMO_STUDIO_CSS = `
     .ks-loop-grip.is-end { left:auto; right:0; }
     .ks-ruler-head { position:sticky; left:0; z-index:2; width:var(--ks-head); height:30px; border-right:1px solid var(--border); background:var(--bg-secondary); }
     .ks-mark { position:absolute; top:0; height:30px; border-left:1px solid var(--border); color:var(--text-tertiary); font:10px var(--font-mono); padding:5px; }
-    .ks-track-row { display:grid; grid-template-columns:var(--ks-head) auto; min-height:84px; border-bottom:1px solid var(--border); }
+    .ks-track-row { display:grid; grid-template-columns:var(--ks-head) auto; min-height:var(--ks-row,84px); border-bottom:1px solid var(--border); }
+    .ks-track-head { position:relative; }
+    .ks-track-resize { position:absolute; left:0; right:0; bottom:-3px; height:7px; cursor:ns-resize; z-index:6; }
+    .ks-track-resize:hover { background:color-mix(in srgb,var(--accent) 55%,transparent); }
     .ks-track-head { position:sticky; left:0; z-index:5; padding:7px; border-right:1px solid var(--border); background:var(--bg-secondary); }
     .ks-track-title { display:flex; align-items:center; gap:5px; }
     .ks-track-color { width:9px; height:9px; border-radius:50%; flex:none; }
@@ -59,6 +62,7 @@ export const KARMO_STUDIO_CSS = `
     .ks-handle { position:absolute; top:0; right:0; width:8px; height:100%; cursor:ew-resize; background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--clip) 70%,white)); }
     .ks-playhead { position:absolute; top:30px; bottom:0; width:1px; background:#ff5d6c; z-index:6; pointer-events:none; box-shadow:0 0 5px #ff5d6c; }
     .ks-track-row.is-folded { min-height:22px; }
+    .ks-track-row.is-folded .ks-track-resize { display:none; }
     .ks-track-row.is-folded .ks-track-head { padding:2px 7px; overflow:hidden; }
     .ks-track-row.is-folded .ks-track-head input[type=range] { display:none; }
     .ks-track-row.is-folded .ks-lane { height:20px; }

@@ -60,6 +60,8 @@ export interface StudioTrack {
   automation: Record<AutomationParam, AutomationPoint[]>;
   /** 접으면 클립 미리보기 대신 얇은 띠만 남는다 — 곡이 길어지면 세로가 부족해진다. */
   folded: boolean;
+  /** 줄 높이(px). 드럼처럼 촘촘한 트랙은 키우고 배경은 줄인다. */
+  height: number;
 }
 
 export interface StudioAsset {
@@ -100,6 +102,16 @@ export type StudioSelection =
   | { type: 'note'; trackId: string; clipId: string; noteId: string }
   | null;
 
+/** 줄 높이 규칙 — 뷰·제스처가 같은 숫자를 본다. */
+export const TRACK_HEIGHT = { min: 44, max: 260, default: 84 } as const;
+
+/** 저장본·드래그에서 온 값을 쓸 수 있는 높이로 접는다. 숫자가 아니면 기본값. */
+export function clampTrackHeight(value: unknown): number {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return TRACK_HEIGHT.default;
+  return Math.max(TRACK_HEIGHT.min, Math.min(TRACK_HEIGHT.max, Math.round(number)));
+}
+
 const COLORS = ['#8b7cf6', '#42b9a8', '#ed8b55', '#e15d8a', '#5d9cec', '#c5a34e'];
 
 export function studioId(prefix: string): string {
@@ -114,7 +126,7 @@ export function newTrack(kind: TrackKind, index: number): StudioTrack {
     id: studioId('track'), kind, name: kind === 'audio' ? `Audio ${index}` : `Instrument ${index}`,
     color: COLORS[(index - 1) % COLORS.length], volume: 0.82, pan: 0, mute: false, solo: false,
     eqLow: 0, eqMid: 0, eqHigh: 0, compressor: 0.25, reverb: 0.08,
-    instrument: kind === 'midi' ? 'sawtooth' : 'sine', clips: [], automation: { volume: [], pan: [] }, folded: false
+    instrument: kind === 'midi' ? 'sawtooth' : 'sine', clips: [], automation: { volume: [], pan: [] }, folded: false, height: TRACK_HEIGHT.default
   };
 }
 
@@ -208,6 +220,7 @@ export function normalizeProject(input: unknown): StudioProject {
     const source = raw as Partial<StudioTrack>;
     const track = { ...newTrack(source.kind === 'audio' ? 'audio' : 'midi', index + 1), ...source } as StudioTrack;
     track.folded = source.folded === true;
+    track.height = source.height === undefined ? TRACK_HEIGHT.default : clampTrackHeight(source.height);
     /* 옛 저장본은 볼륨 자동화를 `volumeAutomation` 한 줄로 들고 있었다 — 새 자리로 옮겨 담는다. */
     const legacyVolume = (raw as { volumeAutomation?: unknown }).volumeAutomation;
     const storedAutomation = (source as { automation?: Partial<Record<AutomationParam, unknown>> }).automation;

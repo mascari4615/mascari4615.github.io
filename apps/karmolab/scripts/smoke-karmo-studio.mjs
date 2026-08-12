@@ -226,6 +226,14 @@ await page.locator('[data-track-act=fold]').first().click();await page.waitForTi
 const laneHeightFolded=await page.locator('.ks-track-row').first().locator('.ks-lane').evaluate((element)=>element.getBoundingClientRect().height);
 await page.locator('[data-track-act=fold]').first().click();await page.waitForTimeout(120);
 const laneHeightUnfolded=await page.locator('.ks-track-row').first().locator('.ks-lane').evaluate((element)=>element.getBoundingClientRect().height);
+/* 줄 높이 — 촘촘한 트랙은 키운다. */
+const rowHeightBefore=await page.locator('.ks-track-row').first().evaluate((element)=>element.getBoundingClientRect().height);
+const resizeGrip=await page.locator('[data-track-resize]').first().boundingBox();
+await page.mouse.move(resizeGrip.x+resizeGrip.width/2,resizeGrip.y+3);await page.mouse.down();
+await page.mouse.move(resizeGrip.x+resizeGrip.width/2,resizeGrip.y+63,{steps:5});await page.mouse.up();await page.waitForTimeout(160);
+const rowHeightAfter=await page.locator('.ks-track-row').first().evaluate((element)=>element.getBoundingClientRect().height);
+await page.waitForTimeout(400);
+const rowHeightSaved=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_karmo_studio_project_v1')||'null');return raw?raw.tracks[0].height:-1;});
 const namesBeforeReorder=await page.locator('[data-track-name]').evaluateAll((elements)=>elements.map((element)=>element.value));
 const gripBox=await page.locator('[data-track-grip]').first().boundingBox();
 const lastRowBox=await page.locator('.ks-track-row').last().boundingBox();
@@ -366,6 +374,8 @@ if(!/Chorus/.test(markerText||''))problems.push(`이름표에 이름이 안 붙�
 if(!(playheadAfterMarkerJump>playheadBeforeMarkerJump+10))problems.push(`이름표를 눌러도 재생 헤드가 안 간다 (${playheadBeforeMarkerJump}→${playheadAfterMarkerJump})`);
 if(Math.abs(playheadAfterMarkerKey-playheadAfterMarkerJump)>1)problems.push(`Alt+→ 가 구간으로 안 간다 (${playheadAfterMarkerKey} vs ${playheadAfterMarkerJump})`);
 if(markerCountAfterDelete!==0)problems.push(`이름표 우클릭 삭제 실패 (${markerCountAfterDelete})`);
+if(!(rowHeightAfter>rowHeightBefore+30))problems.push(`줄 높이 조절 실패 (${rowHeightBefore}→${rowHeightAfter})`);
+if(!(rowHeightSaved>100))problems.push(`줄 높이가 저장에 안 남았다 (${rowHeightSaved})`);
 if(!(laneHeightFolded<laneHeightBefore-10))problems.push(`트랙 접기가 안 된다 (${laneHeightBefore}→${laneHeightFolded})`);
 if(Math.abs(laneHeightUnfolded-laneHeightBefore)>2)problems.push(`펼치기가 원래 높이로 안 돌아온다 (${laneHeightBefore}→${laneHeightUnfolded})`);
 if(namesAfterReorder.length!==namesBeforeReorder.length||namesAfterReorder[0]===namesBeforeReorder[0])problems.push(`트랙 순서 바꾸기 실패 (${namesBeforeReorder.join(',')}→${namesAfterReorder.join(',')})`);
