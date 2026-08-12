@@ -34,6 +34,14 @@ export type Node =
   | { kind: 'path'; d: string; fill?: Paint; stroke?: Stroke; opacity?: number }
   | { kind: 'group'; children: Node[]; opacity?: number };
 
+
+/**
+ * 칠할 수 있는 도형 — 무리(group)는 자기 색이 없다(자식이 각자 든다).
+ * 화면이 「채우기·테두리」를 만질 때 이걸로 먼저 걸러야 무리에 없는 자리를 안 건드린다.
+ */
+export type PaintableNode = Exclude<Node, { kind: 'group' }>;
+export const isPaintable = (node: Node): node is PaintableNode => node.kind !== 'group';
+
 export interface Layer {
   id: string;
   name: string;

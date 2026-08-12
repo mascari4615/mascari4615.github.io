@@ -201,5 +201,6 @@
   "widgets.livecount.title": "Elapsed time counter",
   "widgets.mesh3d.title": "3D viewer",
   "widgets.studymap.title": "Developer study map",
-  "widgets.meong.title": "Meong"
+  "widgets.meong.title": "Meong",
+  "widgets.bon.title": "Bon"
 }

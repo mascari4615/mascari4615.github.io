@@ -414,6 +414,16 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['root/gemini', 'imageconvert/imageconvert', 'imageedit']
   },
   {
+    id: 'bon',
+    get title() { return t('widgets.bon.title', undefined, "본"); },
+    category: 'tool',
+    get desc() { return t('widgets-desc.bon.desc', undefined, "게임 화면에 쓰는 부품을 만든다 — 도형·모서리·테두리를 직접 잡고 SVG 로"); },
+    layout: 'full',
+    icon: '<rect x="3" y="7" width="18" height="10" rx="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="3" cy="7" r="1.6" fill="currentColor"/><circle cx="21" cy="17" r="1.6" fill="currentColor"/>',
+    produces: ['image/svg+xml'],
+    lazyScriptPaths: ['bon/bon']
+  },
+  {
     id: 'meok',
     hidden: true, // 「이미지」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
