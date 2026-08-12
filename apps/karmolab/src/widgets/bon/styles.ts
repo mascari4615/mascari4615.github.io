@@ -73,6 +73,20 @@ export function injectBonStyles(): void {
     .bon-row input[type=number] { width:62px; }
     .bon-row output { width:38px; text-align:right; font-variant-numeric:tabular-nums;
       color:var(--text-secondary); }
+
+    /* 레이어 — 위가 앞이다 */
+    .bon-layers { gap:3px; }
+    .bon-layer { display:flex; align-items:center; gap:7px; padding:5px 7px;
+      border:1px solid transparent; border-radius:5px; cursor:pointer; font-size:12px; }
+    .bon-layer:hover { background:var(--bg-tertiary); }
+    .bon-layer.active { border-color:var(--accent); background:var(--bg-tertiary); }
+    .bon-layer-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .bon-layer-count { color:var(--text-secondary); font-variant-numeric:tabular-nums; font-size:11px; }
+    .bon-eye { width:22px; height:22px; padding:0; display:flex; align-items:center; justify-content:center;
+      background:transparent; border:none; color:var(--text-secondary); font-size:11px; }
+    .bon-eye:hover { color:var(--text-primary); }
+    .bon-layer-acts { gap:4px; margin-top:4px; }
+    .bon-layer-acts button { flex:1; padding:4px 2px; font-size:11px; }
     .bon-empty { color:var(--text-secondary); font-size:var(--font-size-xs); padding:6px 2px; }
 `;
   document.head.append(style);

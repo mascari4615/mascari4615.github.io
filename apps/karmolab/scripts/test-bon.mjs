@@ -112,6 +112,34 @@ const el = { kind: 'ellipse', cx: 0, cy: 0, rx: 1, ry: 1 };
 applyBox(el, { x: 10, y: 20, w: 40, h: 60 });
 check('타원은 가운데·반지름으로 옮겨 담는다', el.cx === 30 && el.cy === 50 && el.rx === 20 && el.ry === 30);
 
+
+/* ── 레이어 다루기 (3단계) ─────────────────── */
+const { removeLayer, moveLayer, mergeDown } = mod;
+{
+  const d = createDoc(100, 100);
+  addLayer(d, '둘');
+  addLayer(d, '셋');
+  check('레이어 셋', d.layers.length === 3);
+
+  d.layers[0].nodes.push({ kind: 'rect', x: 0, y: 0, w: 10, h: 10, radius: 0 });
+  d.layers[1].nodes.push({ kind: 'rect', x: 5, y: 5, w: 10, h: 10, radius: 0 });
+
+  check('자리를 옮긴다', moveLayer(d, 0, 2) && d.layers[2].nodes.length === 1);
+  check('같은 자리로 옮기면 아무 일도 안 한다', moveLayer(d, 1, 1) === false);
+  check('없는 자리는 거절한다', moveLayer(d, 0, 9) === false);
+
+  const before = d.layers.length;
+  check('지운다', removeLayer(d, 0) !== null && d.layers.length === before - 1);
+
+  const merged = d.layers.length;
+  const total = d.layers[0].nodes.length + d.layers[1].nodes.length;
+  check('아래에 합치면 도형이 다 살아 있다', mergeDown(d, 1) && d.layers.length === merged - 1 && d.layers[0].nodes.length === total);
+
+  while (d.layers.length > 1) d.layers.pop();
+  check('마지막 하나는 안 지운다', removeLayer(d, 0) === null && d.layers.length === 1);
+  check('맨 아래는 합칠 곳이 없다', mergeDown(d, 0) === false);
+}
+
 rmSync(out, { recursive: true, force: true });
 console.log(failed ? `\n[test-bon] 실패 ${failed}건` : '\n[test-bon] ✓ 문서 · 부품 3종 · 손잡이 반응 · 변형 묶음 · SVG 정합 · 극단값');
 process.exit(failed ? 1 : 0);

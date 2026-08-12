@@ -131,6 +131,42 @@ check('다시 하면 되살아난다', (await shapes()) === 1, String(await shap
 const artHasGuides = await page.evaluate(() => !!document.querySelector('.bon-art .bon-handle, .bon-art .bon-grid'));
 check('안내선은 그림에 안 섞인다', !artHasGuides);
 
+
+// ── 레이어 ────────────────────────────────
+const layerRows = () => page.evaluate(() => document.querySelectorAll('.bon-layers .bon-layer').length);
+check('레이어가 둘 보인다', (await layerRows()) === 2, String(await layerRows()));
+
+await page.locator('.bon-layers [data-lact="add"]').click();
+await page.waitForTimeout(150);
+check('레이어를 더 만든다', (await layerRows()) === 3, String(await layerRows()));
+
+// 새 겹에 그리면 그 겹에 들어간다
+await page.keyboard.press('r');
+const r1 = at(0.2, 0.6);
+const r2 = at(0.45, 0.9);
+await page.mouse.move(r1.x, r1.y);
+await page.mouse.down();
+await page.mouse.move(r2.x, r2.y, { steps: 6 });
+await page.mouse.up();
+await page.waitForTimeout(200);
+const counts = await page.evaluate(() => [...document.querySelectorAll('.bon-layers .bon-layer-count')].map((n) => Number(n.textContent)));
+check('새 도형은 고른 겹에 들어간다', counts[0] === 1, JSON.stringify(counts));
+
+// 숨기면 화면에서 사라진다
+const shapesBefore = await shapes();
+await page.locator('.bon-layers .bon-eye').first().click();
+await page.waitForTimeout(200);
+check('겹을 숨기면 그림에서 빠진다', (await shapes()) === shapesBefore - 1, String(await shapes()));
+await page.locator('.bon-layers .bon-eye').first().click();
+await page.waitForTimeout(150);
+check('다시 보이면 돌아온다', (await shapes()) === shapesBefore, String(await shapes()));
+
+// 합치기
+await page.locator('.bon-layers [data-lact="merge"]').click();
+await page.waitForTimeout(200);
+check('아래에 합치면 겹이 줄고 그림은 그대로', (await layerRows()) === 2 && (await shapes()) === shapesBefore,
+  (await layerRows()) + ' / ' + (await shapes()));
+
 if (SHOT) {
   fs.mkdirSync(path.join(here, 'tmp'), { recursive: true });
   await page.screenshot({ path: path.join(here, 'tmp', 'bon.png'), fullPage: false });
@@ -141,5 +177,5 @@ check('콘솔 오류 없음', errors.length === 0, errors.slice(0, 3).join(' | '
 
 await browser.close();
 server.close();
-console.log(problems.length ? `\n[smoke-bon] 실패 ${problems.length}건` : '\n[smoke-bon] ✓ 그리기 · 고르기 · 옮기기 · 숫자 반영 · 되돌리기 · 안내선 분리');
+console.log(problems.length ? `\n[smoke-bon] 실패 ${problems.length}건` : '\n[smoke-bon] ✓ 그리기 · 고르기 · 옮기기 · 숫자 반영 · 되돌리기 · 안내선 분리 · 레이어');
 process.exit(problems.length ? 1 : 0);

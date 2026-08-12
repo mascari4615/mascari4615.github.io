@@ -73,6 +73,33 @@ export function addLayer(doc: Doc, name?: string): Layer {
   return layer;
 }
 
+
+/** 레이어 지우기. **마지막 하나는 안 지운다** — 도형을 놓을 자리가 없어지면 그리기가 조용히 죽는다. */
+export function removeLayer(doc: Doc, index: number): Layer | null {
+  if (doc.layers.length <= 1) return null;
+  if (index < 0 || index >= doc.layers.length) return null;
+  return doc.layers.splice(index, 1)[0];
+}
+
+/** 레이어 자리 옮기기. 배열 끝이 위에 그려지므로 `+1` 이 「앞으로」다. */
+export function moveLayer(doc: Doc, from: number, to: number): boolean {
+  if (from === to) return false;
+  if (from < 0 || from >= doc.layers.length) return false;
+  if (to < 0 || to >= doc.layers.length) return false;
+  doc.layers.splice(to, 0, doc.layers.splice(from, 1)[0]);
+  return true;
+}
+
+/** 아래 레이어에 합치기. 위 것이 나중에 그려지도록 **뒤에** 붙인다(그림 순서가 안 바뀐다). */
+export function mergeDown(doc: Doc, index: number): boolean {
+  if (index <= 0 || index >= doc.layers.length) return false;
+  const upper = doc.layers[index];
+  const lower = doc.layers[index - 1];
+  lower.nodes.push(...upper.nodes);
+  doc.layers.splice(index, 1);
+  return true;
+}
+
 /** 도형 개수 — 무리 안까지 센다(검사에서 「정말 들어갔나」를 볼 때 쓴다). */
 export function countNodes(nodes: Node[]): number {
   return nodes.reduce((sum, n) => sum + (n.kind === 'group' ? countNodes(n.children) : 1), 0);

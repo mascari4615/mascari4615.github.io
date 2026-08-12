@@ -9,7 +9,7 @@
  */
 
 import { History } from '../../lib/history';
-import { addLayer, createDoc, isPaintable, type Doc, type Node } from './model';
+import { addLayer, createDoc, isPaintable, mergeDown, moveLayer, removeLayer, type Doc, type Node } from './model';
 import { applyBox, bounds, handleAt, hitTest, resizeBox, type Handle } from './geom';
 import { toSvg } from './svg';
 import { injectBonStyles } from './styles';
@@ -40,6 +40,8 @@ function buildBon(container: HTMLElement): void {
   const history = new History();
   let tool: Tool = 'rect';
   let selected: { layer: number; index: number } | null = null;
+  /** 새 도형이 놓일 레이어. 고른 도형이 있으면 그 도형이 사는 레이어를 따라간다. */
+  let activeLayer = 0;
 
   container.innerHTML =
     '<div class="bon-wrap">' +
@@ -67,6 +69,8 @@ function buildBon(container: HTMLElement): void {
 
   const canvasHost = container.querySelector('[data-canvas]') as HTMLElement;
   const side = container.querySelector('[data-side]') as HTMLElement;
+  const layerBox = document.createElement('div');
+  layerBox.className = 'bon-card bon-layers';
   const view = new BonView(canvasHost);
 
   const activeNode = (): Node | null =>
@@ -118,10 +122,39 @@ function buildBon(container: HTMLElement): void {
         '<button data-act="del">지우기</button></div></div>';
   }
 
+  /** 레이어 목록 — 위가 앞이다(배열은 뒤가 위라 뒤집어 보인다). */
+  function drawLayers(): void {
+    const rows: string[] = [];
+    for (let i = doc.layers.length - 1; i >= 0; i -= 1) {
+      const layer = doc.layers[i];
+      const active = i === activeLayer ? ' active' : '';
+      rows.push(
+        '<div class="bon-layer' + active + '" data-layer="' + i + '">' +
+          '<button class="bon-eye" data-layer-eye="' + i + '" title="' + (layer.visible ? '숨기기' : '보이기') + '">' +
+            (layer.visible ? '&#9679;' : '&#9675;') + '</button>' +
+          '<span class="bon-layer-name">' + esc(layer.name) + '</span>' +
+          '<span class="bon-layer-count">' + layer.nodes.length + '</span>' +
+        '</div>'
+      );
+    }
+    layerBox.innerHTML =
+      '<h4>레이어</h4>' + rows.join('') +
+      '<div class="bon-row bon-layer-acts">' +
+        '<button data-lact="add" title="새 레이어">새로</button>' +
+        '<button data-lact="up" title="앞으로">&#9650;</button>' +
+        '<button data-lact="down" title="뒤로">&#9660;</button>' +
+        '<button data-lact="merge" title="아래에 합치기">합치기</button>' +
+        '<button data-lact="del" title="지우기">지우기</button>' +
+      '</div>';
+  }
+
   /* ── 다시 그리기 — 하나뿐인 길 ───────────────────── */
   function repaint(): void {
+    if (activeLayer >= doc.layers.length) activeLayer = doc.layers.length - 1;
     view.draw(doc, selected);
     drawSide();
+    side.append(layerBox);   // 오른쪽을 다시 만들어도 레이어 상자는 그대로 이어 붙인다
+    drawLayers();
     container.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach((b) => {
       b.classList.toggle('active', b.dataset.tool === tool);
     });
@@ -153,6 +186,7 @@ function buildBon(container: HTMLElement): void {
       }
       const hit = hitTest(doc, p.x, p.y);
       selected = hit;
+      if (hit) activeLayer = hit.layer;
       if (hit) {
         const target = doc.layers[hit.layer].nodes[hit.index];
         drag = { kind: 'move', handle: 'move', startDoc: p, startBox: bounds(target), node: target, before: JSON.stringify(target) };
@@ -168,9 +202,9 @@ function buildBon(container: HTMLElement): void {
     const fresh: Node = tool === 'rect'
       ? { kind: 'rect', x, y, w: 0, h: 0, radius: 0, fill: { kind: 'solid', color: '#3b4a6b' } }
       : { kind: 'ellipse', cx: x, cy: y, rx: 0, ry: 0, fill: { kind: 'solid', color: '#3b4a6b' } };
-    const layer = doc.layers[doc.layers.length - 1];
+    const layer = doc.layers[activeLayer];
     layer.nodes.push(fresh);
-    selected = { layer: doc.layers.length - 1, index: layer.nodes.length - 1 };
+    selected = { layer: activeLayer, index: layer.nodes.length - 1 };
     drag = { kind: 'draw', handle: 'se', startDoc: { x, y }, startBox: { x, y, w: 0, h: 0 }, node: fresh, before: '' };
     view.root.setPointerCapture(event.pointerId);
     repaint();
@@ -277,6 +311,73 @@ function buildBon(container: HTMLElement): void {
     } else if (act === 'down' && i > 0) {
       layer.nodes.splice(i - 1, 0, layer.nodes.splice(i, 1)[0]);
       selected = { layer: selected.layer, index: i - 1 };
+    }
+    repaint();
+  });
+
+  /* ── 레이어 상자 ──────────────────────────────── */
+  layerBox.addEventListener('click', (event) => {
+    const el = event.target as HTMLElement;
+
+    const eye = el.closest<HTMLElement>('[data-layer-eye]');
+    if (eye) {
+      const i = Number(eye.dataset.layerEye);
+      const layer = doc.layers[i];
+      const was = layer.visible;
+      layer.visible = !was;
+      history.push({ label: '레이어 숨김', redo: () => { layer.visible = !was; }, undo: () => { layer.visible = was; } });
+      repaint();
+      return;
+    }
+
+    const pick = el.closest<HTMLElement>('[data-layer]');
+    if (pick) {
+      activeLayer = Number(pick.dataset.layer);
+      selected = null;   // 다른 겹으로 옮겨 갔으니 고른 것은 놓는다
+      repaint();
+      return;
+    }
+
+    const act = el.closest<HTMLElement>('[data-lact]')?.dataset.lact;
+    if (!act) return;
+    const at = activeLayer;
+
+    if (act === 'add') {
+      const layer = addLayer(doc);
+      activeLayer = doc.layers.length - 1;
+      history.push({
+        label: '레이어 만들기',
+        redo: () => { if (!doc.layers.includes(layer)) doc.layers.push(layer); },
+        undo: () => { const i = doc.layers.indexOf(layer); if (i >= 0) doc.layers.splice(i, 1); }
+      });
+    } else if (act === 'del') {
+      const removed = removeLayer(doc, at);
+      if (!removed) return;   // 마지막 하나는 안 지운다
+      activeLayer = Math.max(0, at - 1);
+      selected = null;
+      history.push({
+        label: '레이어 지우기',
+        redo: () => { const i = doc.layers.indexOf(removed); if (i >= 0) doc.layers.splice(i, 1); },
+        undo: () => doc.layers.splice(at, 0, removed)
+      });
+    } else if (act === 'up' || act === 'down') {
+      const to = act === 'up' ? at + 1 : at - 1;
+      if (!moveLayer(doc, at, to)) return;
+      activeLayer = to;
+      selected = null;
+      history.push({ label: '레이어 옮기기', redo: () => moveLayer(doc, at, to), undo: () => moveLayer(doc, to, at) });
+    } else if (act === 'merge') {
+      // 합치기는 되돌리려면 옛 모습이 통째로 필요하다 — 겹이 사라지므로 자리만으론 못 되돌린다.
+      const before = JSON.stringify(doc.layers);
+      if (!mergeDown(doc, at)) return;
+      const after = JSON.stringify(doc.layers);
+      activeLayer = Math.max(0, at - 1);
+      selected = null;
+      history.push({
+        label: '레이어 합치기',
+        redo: () => { doc.layers.length = 0; doc.layers.push(...JSON.parse(after)); },
+        undo: () => { doc.layers.length = 0; doc.layers.push(...JSON.parse(before)); }
+      });
     }
     repaint();
   });
