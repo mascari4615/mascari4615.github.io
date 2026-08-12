@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Date, JSON, crypto });
-const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat } = module.exports;
+const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, snapBeat, automationValueAt, putAutomationPoint, sortAutomation, normalizeProject, newProject } = module.exports;
 
 const note = (beat, pitch = 60, duration = 0.5, velocity = 0.8) => ({ id: `n${beat}-${pitch}`, beat, duration, pitch, velocity });
 
@@ -79,4 +79,43 @@ assert.equal(splitClip(clip, 0), null, '클립 끝에서는 안 잘린다');
 
 assert.equal(snapBeat(-5, 0.25), 0, '음수 위치는 0 으로 접힌다');
 
-console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split');
+// 자동화 — 점 사이는 직선, 양 끝은 유지
+const flat = [];
+assert.equal(automationValueAt(flat, 3, 0.82), 0.82, '점이 없으면 트랙 볼륨 그대로');
+const ramp = [{ id: 'a', beat: 4, value: 0.2 }, { id: 'b', beat: 0, value: 1 }];
+assert.equal(automationValueAt(ramp, -2, 0.5), 1, '첫 점 앞은 첫 점 값');
+assert.equal(automationValueAt(ramp, 99, 0.5), 0.2, '마지막 점 뒤는 마지막 점 값');
+assert.equal(Number(automationValueAt(ramp, 2, 0.5).toFixed(4)), 0.6, '가운데는 직선 보간');
+assert.equal(sortAutomation(ramp).map((p) => p.beat).join(','), '0,4', '읽기 전에 시간순으로 선다');
+// 같은 박에 두 점이 겹쳐도 죽지 않는다
+const doubled = [{ id: 'a', beat: 2, value: 0.3 }, { id: 'b', beat: 2, value: 0.9 }];
+assert.ok(automationValueAt(doubled, 2, 0.5) >= 0.3, '겹친 점에서 0 으로 나누지 않는다');
+
+// 점 놓기 — 가까우면 값만 바꾼다
+let points = [];
+points = putAutomationPoint(points, 1, 0.5);
+points = putAutomationPoint(points, 1.02, 0.9);
+assert.equal(points.length, 1, '가까운 자리는 새 점을 안 만든다');
+assert.equal(points[0].value, 0.9);
+points = putAutomationPoint(points, 3, 2);
+assert.equal(points[1].value, 1.2, '범위를 넘는 값은 접힌다');
+points = putAutomationPoint(points, -5, -1);
+assert.equal(points[0].beat, 0, '음수 위치는 0');
+assert.equal(points[0].value, 0);
+
+// 저장 왕복 — 자동화가 살아남는다
+const project = newProject();
+project.tracks[0].volumeAutomation = putAutomationPoint([], 2, 0.4);
+const round = normalizeProject(JSON.parse(JSON.stringify(project)));
+assert.equal(round.tracks[0].volumeAutomation.length, 1, '자동화가 저장 왕복에서 안 사라진다');
+assert.equal(round.tracks[0].volumeAutomation[0].value, 0.4);
+// 낡은 프로젝트(자동화 없음)도 열린다
+const legacy = JSON.parse(JSON.stringify(project));
+delete legacy.tracks[0].volumeAutomation;
+assert.equal(normalizeProject(legacy).tracks[0].volumeAutomation.length, 0, '옛 저장본은 빈 자동화로 열린다');
+// 깨진 점은 버린다
+const broken = JSON.parse(JSON.stringify(project));
+broken.tracks[0].volumeAutomation = [{ beat: 'x', value: 0.5 }, { beat: 1, value: 0.5 }];
+assert.equal(normalizeProject(broken).tracks[0].volumeAutomation.length, 1, '숫자가 아닌 점은 버린다');
+
+console.log('[test-karmo-studio-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장');

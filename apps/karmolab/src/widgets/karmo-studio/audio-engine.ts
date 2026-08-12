@@ -1,4 +1,5 @@
 import type { StudioAsset, StudioClip, StudioProject, StudioTrack } from './model';
+import { automationValueAt } from './model';
 
 type AudioContextLike = AudioContext | OfflineAudioContext;
 
@@ -58,14 +59,31 @@ function connectTrack(context: AudioContextLike, track: StudioTrack, destination
   return { input, low, mid, high, compressor, pan, output, reverbSend, analyser };
 }
 
+/**
+ * 볼륨 자동화를 그래프에 그린다. 구간 안의 점마다 직선으로 잇고, 구간 시작값은 보간으로 채운다.
+ * 점이 없으면 아무것도 안 한다 — 트랙 볼륨이 그대로 산다.
+ */
+function scheduleAutomation(graph: TrackGraph, track: StudioTrack, fromBeat: number, toBeat: number, fromTime: number, secondsPerBeat: number, muted: boolean): void {
+  const points = track.volumeAutomation;
+  if (!points.length || muted) return;
+  const gain = graph.output.gain;
+  gain.cancelScheduledValues(fromTime);
+  gain.setValueAtTime(automationValueAt(points, fromBeat, track.volume), fromTime);
+  for (const point of [...points].sort((a, b) => a.beat - b.beat)) {
+    if (point.beat <= fromBeat || point.beat > toBeat) continue;
+    gain.linearRampToValueAtTime(point.value, fromTime + (point.beat - fromBeat) * secondsPerBeat);
+  }
+}
+
 function updateTrackGraph(graph: TrackGraph, track: StudioTrack, muted: boolean, at: number): void {
+  /* 자동화가 있는 트랙의 출력 볼륨은 scheduleAutomation 이 쥐고 있다 — 여기서 덮으면 자동화가 죽는다. */
   graph.low.gain.setTargetAtTime(track.eqLow, at, 0.015);
   graph.mid.gain.setTargetAtTime(track.eqMid, at, 0.015);
   graph.high.gain.setTargetAtTime(track.eqHigh, at, 0.015);
   graph.compressor.threshold.setTargetAtTime(-6-track.compressor*30, at, 0.015);
   graph.compressor.ratio.setTargetAtTime(1+track.compressor*11, at, 0.015);
   graph.pan.pan.setTargetAtTime(track.pan, at, 0.015);
-  graph.output.gain.setTargetAtTime(muted?0:track.volume, at, 0.01);
+  if(!track.volumeAutomation.length||muted)graph.output.gain.setTargetAtTime(muted?0:track.volume, at, 0.01);
   graph.reverbSend.gain.setTargetAtTime(track.reverb, at, 0.015);
 }
 
@@ -120,7 +138,9 @@ function scheduleProject(context: AudioContextLike, project: StudioProject, asse
   const reverb = context.createConvolver(); reverb.buffer = makeImpulse(context); reverb.connect(master);
   const anySolo = project.tracks.some((track) => track.solo);
   for (const track of project.tracks) {
-    const graph = connectTrack(context, { ...track, mute: track.mute || (anySolo && !track.solo) }, master, reverb);
+    const muted = track.mute || (anySolo && !track.solo);
+    const graph = connectTrack(context, { ...track, mute: muted }, master, reverb);
+    scheduleAutomation(graph, track, fromBeat, toBeat, startTime, secondsPerBeat, muted);
     for (const clip of track.clips) {
       if (clip.kind === 'midi') scheduleMidi(context, graph.input, track, clip, fromBeat, toBeat, startTime, secondsPerBeat, sources);
       else scheduleAudio(context, graph.input, clip, clip.assetId ? assets.get(clip.assetId) : undefined, fromBeat, toBeat, startTime, secondsPerBeat, sources);
@@ -206,6 +226,7 @@ export class KarmoStudioEngine {
     if(beat>=endBeat-.001){if(project.loop){for(const source of this.sources){try{source.stop();}catch(_){}}this.sources=[];this.scheduled.clear();this.startedBeat=project.loopStart;this.startedAt=context.currentTime+0.012;this.scheduledThroughBeat=project.loopStart;}else{this.stop();this.onEnded?.();return;}}
     const secondsPerBeat=60/project.bpm;const horizonBeat=Math.min(endBeat,this.currentBeat()+0.24/secondsPerBeat);const from=Math.max(this.scheduledThroughBeat,this.currentBeat());if(horizonBeat<=from)return;const fromTime=this.startedAt+(from-this.startedBeat)*secondsPerBeat;
     for(const track of project.tracks){const graph=this.graphs.get(track.id);if(!graph)continue;for(const clip of track.clips){if(clip.kind==='audio'){const key=`audio:${clip.id}`;if(this.scheduled.has(key)||clip.start+clip.duration<=from||clip.start>=horizonBeat)continue;this.scheduled.add(key);scheduleAudio(context,graph.input,clip,clip.assetId?this.assets.get(clip.assetId):undefined,from,endBeat,fromTime,secondsPerBeat,this.sources);}else for(const note of clip.notes){const absolute=clip.start+note.beat;const key=`note:${clip.id}:${note.id}`;if(this.scheduled.has(key)||absolute+note.duration<=from||absolute>=horizonBeat)continue;this.scheduled.add(key);scheduleMidi(context,graph.input,track,{...clip,notes:[note]},from,endBeat,fromTime,secondsPerBeat,this.sources);}}}
+    for(const track of project.tracks){const graph=this.graphs.get(track.id);if(!graph||!track.volumeAutomation.length)continue;const anySolo=project.tracks.some((item)=>item.solo);scheduleAutomation(graph,track,from,horizonBeat,fromTime,secondsPerBeat,track.mute||(anySolo&&!track.solo));}
     if(this.metronome){
       for(let beat=Math.ceil(from-1e-6);beat<horizonBeat;beat++){
         const key=`click:${beat}`;if(this.scheduled.has(key))continue;this.scheduled.add(key);

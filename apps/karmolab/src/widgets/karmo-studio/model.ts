@@ -23,6 +23,13 @@ export interface StudioClip {
   fadeOut: number;
 }
 
+export interface AutomationPoint {
+  id: string;
+  beat: number;
+  /** 0~1.2 — 트랙 볼륨과 같은 눈금. */
+  value: number;
+}
+
 export interface StudioTrack {
   id: string;
   kind: TrackKind;
@@ -39,6 +46,8 @@ export interface StudioTrack {
   reverb: number;
   instrument: OscillatorType;
   clips: StudioClip[];
+  /** 시간에 따라 움직이는 볼륨. 점이 0개면 트랙 볼륨을 그대로 쓴다. */
+  volumeAutomation: AutomationPoint[];
 }
 
 export interface StudioAsset {
@@ -85,7 +94,7 @@ export function newTrack(kind: TrackKind, index: number): StudioTrack {
     id: studioId('track'), kind, name: kind === 'audio' ? `Audio ${index}` : `Instrument ${index}`,
     color: COLORS[(index - 1) % COLORS.length], volume: 0.82, pan: 0, mute: false, solo: false,
     eqLow: 0, eqMid: 0, eqHigh: 0, compressor: 0.25, reverb: 0.08,
-    instrument: kind === 'midi' ? 'sawtooth' : 'sine', clips: []
+    instrument: kind === 'midi' ? 'sawtooth' : 'sine', clips: [], volumeAutomation: []
   };
 }
 
@@ -166,6 +175,18 @@ export function normalizeProject(input: unknown): StudioProject {
   project.tracks = value.tracks.map((raw, index) => {
     const source = raw as Partial<StudioTrack>;
     const track = { ...newTrack(source.kind === 'audio' ? 'audio' : 'midi', index + 1), ...source } as StudioTrack;
+    track.volumeAutomation = Array.isArray(source.volumeAutomation)
+      ? sortAutomation(source.volumeAutomation
+          .filter((point) => point && Number.isFinite(Number((point as AutomationPoint).beat)))
+          .map((point) => {
+            const raw = point as Partial<AutomationPoint>;
+            return {
+              id: typeof raw.id === 'string' ? raw.id : studioId('auto'),
+              beat: Math.max(0, Number(raw.beat) || 0),
+              value: Math.max(0, Math.min(1.2, Number(raw.value) ?? 1))
+            };
+          }))
+      : [];
     track.clips = Array.isArray(source.clips) ? source.clips.map((rawClip) => {
       const clip = rawClip as Partial<StudioClip>;
       return {
@@ -237,5 +258,41 @@ export function legatoNotes(notes: StudioNote[], limit: number): number {
     note.duration = duration;
   }
   return changed;
+}
+
+/** 점을 시간순으로 세운다 — 편집이 어디에 점을 놓든 읽는 쪽은 정렬을 전제한다. */
+export function sortAutomation(points: AutomationPoint[]): AutomationPoint[] {
+  return [...points].sort((a, b) => a.beat - b.beat);
+}
+
+/**
+ * 어느 박에서의 값. 점 사이는 직선으로 잇고, 양 끝은 가장 가까운 점 값을 유지한다.
+ * 점이 없으면 `fallback`(트랙 볼륨) 을 그대로 돌려준다.
+ */
+export function automationValueAt(points: AutomationPoint[], beat: number, fallback: number): number {
+  if (!points.length) return fallback;
+  const sorted = sortAutomation(points);
+  if (beat <= sorted[0].beat) return sorted[0].value;
+  const last = sorted[sorted.length - 1];
+  if (beat >= last.beat) return last.value;
+  for (let index = 1; index < sorted.length; index++) {
+    const right = sorted[index];
+    if (beat > right.beat) continue;
+    const left = sorted[index - 1];
+    const span = right.beat - left.beat;
+    if (span <= 0) return right.value;
+    return left.value + (right.value - left.value) * ((beat - left.beat) / span);
+  }
+  return last.value;
+}
+
+/** 같은 자리에 점을 겹쳐 놓지 않는다 — 가까우면 그 점의 값을 바꾼다. */
+export function putAutomationPoint(points: AutomationPoint[], beat: number, value: number, tolerance = 0.05): AutomationPoint[] {
+  const clean = Math.max(0, beat);
+  const level = Math.max(0, Math.min(1.2, value));
+  const existing = points.find((point) => Math.abs(point.beat - clean) <= tolerance);
+  if (existing) { existing.value = level; return sortAutomation(points); }
+  points.push({ id: studioId('auto'), beat: clean, value: level });
+  return sortAutomation(points);
 }
 
