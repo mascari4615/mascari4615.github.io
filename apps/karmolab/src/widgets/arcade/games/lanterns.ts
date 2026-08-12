@@ -1,5 +1,5 @@
 /**
- * 불꽃놀이 — 서로 이기는 게 아니라 같이 이긴다 (TASK-KL-242)
+ * 등불 잇기 — 서로 이기는 게 아니라 같이 이긴다 (TASK-KL-242)
  *
  * 스물두 개가 전부 **누가 이기나**였다. 이건 처음으로 **다 같이 이기거나 다 같이 진다.**
  * 커널의 점수는 자리별인데, 여기서는 모두에게 같은 값을 준다 — 「협동」은 새 기능이 아니라
@@ -9,7 +9,7 @@
  * 그게 이 놀이의 전부다 — 내가 못 보는 것을 남이 말해 준다.
  *
  * 간추린 규칙: 색 셋(🔴🟢🔵) × 숫자 1~5. 색마다 1부터 차례로 쌓는다. 알려 주기는 힌트 토큰을
- * 쓰고, 잘못 내면 폭죽이 하나 터진다. 셋 다 터지면 끝. 다 쌓으면(15장) 이긴다.
+ * 쓰고, 잘못 걸면 등불이 하나 꺼진다. 셋 다 터지면 끝. 다 쌓으면(15장) 이긴다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
 import { shuffle } from '../rng';
@@ -27,7 +27,7 @@ export interface Card {
   rank: number;
 }
 
-export interface HanabiState {
+export interface LanternsState {
   /** 자리별 손패 (내 것만 `redact` 가 지운다) */
   hands: Card[][];
   /** 색마다 어디까지 쌓았나 (0 = 아직) */
@@ -44,7 +44,7 @@ export interface HanabiState {
   last: { kind: 'play' | 'fail' | 'hint' | 'drop'; who: number; text: string } | null;
 }
 
-export type HanabiAction =
+export type LanternsAction =
   | { kind: 'play'; index: number }
   | { kind: 'drop'; index: number }
   | { kind: 'hint'; seat: number; color?: number; rank?: number };
@@ -61,8 +61,8 @@ function freshDeck(rng: () => number): Card[] {
   return shuffle(rng, cards);
 }
 
-export const hanabi: GameDef<HanabiState, HanabiAction> = {
-  id: 'hanabi',
+export const lanterns: GameDef<LanternsState, LanternsAction> = {
+  id: 'lanterns',
   seats: [2, 3],
   rounds: 1,
 
@@ -186,12 +186,12 @@ export const hanabi: GameDef<HanabiState, HanabiAction> = {
       scores: ctx.seats.map(() => score),
       note:
         score === COLORS * RANKS
-          ? { key: 'arcade.hanabi.perfect' }
-          : { key: 'arcade.hanabi.score', params: { n: String(score), max: String(COLORS * RANKS) } }
+          ? { key: 'arcade.lanterns.perfect' }
+          : { key: 'arcade.lanterns.score', params: { n: String(score), max: String(COLORS * RANKS) } }
     };
   },
 
-  bot(s, seat, ctx): BotMove<HanabiAction> | null {
+  bot(s, seat, ctx): BotMove<LanternsAction> | null {
     if (s.over || s.turn !== seat) return null;
     const mine = s.told[seat] ?? [];
     const hand = s.hands[seat] ?? [];

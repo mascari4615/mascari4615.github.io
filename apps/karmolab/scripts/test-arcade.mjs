@@ -12,7 +12,7 @@
  * `npm run test:arcade`
  */
 import { build } from 'esbuild';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, readdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -23,7 +23,8 @@ await build({
   entryPoints: ['src/widgets/arcade/index.ts'],
   bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent'
 });
-const { Match, GAMES, gameById, seedFrom, META } = await import(pathToFileURL(out).href);
+const { Match, GAMES, gameById, seedFrom, META, CATALOG } = await import(pathToFileURL(out).href);
+const VIEWS = CATALOG.map((e) => e.view);
 
 let fails = 0;
 const ok = (cond, name, detail = '') => {
@@ -277,6 +278,32 @@ console.log('[arcade] 오목 — 차례·보드');
   /* 사람이 하나면 남은 자리는 봇이 앉는다 — 「싱글 모드」 없이 혼자 놀 수 있다 */
   const m = new Match(gameById('gomoku'), 2, [{ name: '나', bot: false }]);
   ok(m.seats.length === 2 && m.seats[1].bot, '모자란 자리는 봇이 채운다');
+}
+
+{
+  /* ── 단일 정본(SSOT) 검사 (TASK-KL-264) ─────────────────────────
+     명부가 세 곳이던 시절엔 「규칙은 있는데 로비에 안 뜨는 게임」이 조용히 생겼다.
+     이제 정본은 `catalog.ts` 하나 — 그러니 **규칙 파일이 있는데 카탈로그에 없는 것**과
+     **말 묶음이 빠진 것**만 막으면 갈라질 자리가 없다. */
+  const files = readdirSync('src/widgets/arcade/games')
+    .filter((f) => f.endsWith('.ts') && !f.endsWith('-view.ts'))
+    .map((f) => f.replace(/\.ts$/, ''));
+  const listed = new Set(GAMES.map((g) => g.id));
+  /* 파일 이름과 게임 이름이 다른 것 하나(shell → shellgame)는 여기서만 안다 */
+  const fileAlias = { shell: 'shellgame' };
+  const orphans = files.filter((f) => !listed.has(fileAlias[f] ?? f));
+  ok(orphans.length === 0, '규칙 파일이 전부 카탈로그에 있다', orphans.join(', '));
+  ok(GAMES.length === VIEWS.length && GAMES.length === META.length,
+    '규칙·화면·명패 수가 같다', `${GAMES.length}/${VIEWS.length}/${META.length}`);
+  const mismatched = GAMES.filter((g, i) => VIEWS[i].id !== g.id).map((g) => g.id);
+  ok(mismatched.length === 0, '같은 줄의 규칙과 화면이 같은 게임이다', mismatched.join(', '));
+
+  for (const loc of ['ko', 'en', 'ja']) {
+    const dict = JSON.parse(readFileSync(`i18n/${loc}/arcade.json`, 'utf8'));
+    const missing = GAMES.flatMap((g) =>
+      [`arcade.game.${g.id}.name`, `arcade.game.${g.id}.desc`].filter((k) => !dict[k]));
+    ok(missing.length === 0, `${loc}: 모든 게임에 이름과 설명이 있다`, missing.join(', '));
+  }
 }
 
 console.log(fails ? `[arcade] 실패 ${fails}건` : '[arcade] 커널 통과 — 씨앗·실시간·차례·봇·못 두는 수');
