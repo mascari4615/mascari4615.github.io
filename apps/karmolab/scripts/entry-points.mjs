@@ -134,7 +134,9 @@ export function discoverEntryPoints(root, skip = new Set()) {
   /* 빌드가 **만들어 내는** 파일은 소스가 없는 게 정상이다 (TASK-KL-128).
    * `widgets-index.js` 는 `build.mjs` 가 `widgets-lazy-meta.js` 에서 아이콘·설명을 빼서 만든다.
    * 이 예외가 없으면 「부르는데 소스가 없다」로 빌드가 선다 — 그런데 그건 진짜 사고가 아니다. */
-  const GENERATED = new Set(['src/widgets-index.ts']);
+  /* `widgets-meta-rest.js` 도 같은 부류다 — `build.mjs` 가 무거운 쪽(아이콘·설명)만 따로 낸다.
+   * 이 줄이 빠져 있어서 2026-08-12 에 **빌드가 초입에서 죽었다**(그 뒤 단계가 하나도 안 돌았다). */
+  const GENERATED = new Set(['src/widgets-index.ts', 'src/widgets-meta-rest.ts']);
 
   const found = [];
   const missing = [];
