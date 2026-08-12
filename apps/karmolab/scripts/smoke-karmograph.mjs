@@ -1663,6 +1663,47 @@ await step('카드를 두 번 누르면 이름을 그 자리에서 고친다 (En
   await ctx.close();
 });
 
+await step('카드 크기가 자리와 같은 격자에 붙는다 (Alt = 자유)', async () => {
+  // 자리는 8px 에 붙는데 크기만 1px 자유면 오른쪽 줄이 매번 어긋난다 (TASK-KL-236).
+  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  const box = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(box.x + box.width * 0.4, box.y + box.height * 0.4);
+  await m.waitForSelector('[data-km="edit-label"]', { timeout: 4000 });
+  await m.locator('.ck-node').first().click();
+  await m.waitForSelector('.ck-size-handle', { timeout: 4000 });
+
+  const sizes = () => m.evaluate(() => JSON.parse(localStorage.getItem(
+    'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId))
+    .nodes.map((n) => [n.w, n.h]));
+
+  const drag = async (dx, dy, alt) => {
+    const grip = await m.locator('.ck-size-handle').first().boundingBox();
+    await m.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
+    await m.mouse.down();
+    if (alt) await m.keyboard.down('Alt');
+    await m.mouse.move(grip.x + grip.width / 2 + dx, grip.y + grip.height / 2 + dy, { steps: 8 });
+    await m.mouse.up();
+    if (alt) await m.keyboard.up('Alt');
+    await m.waitForTimeout(400);
+  };
+
+  await drag(37, 21, false);
+  const [w1, h1] = (await sizes())[0];
+  if (w1 % 8 !== 0 || h1 % 8 !== 0) throw new Error(`크기가 격자에 안 붙었다: ${w1}x${h1}`);
+
+  await drag(11, 0, true);   // Alt = 격자 무시 — 8의 배수에서 벗어날 수 있어야 한다
+  const [w2] = (await sizes())[0];
+  if (w2 === w1) throw new Error('Alt 로 끌었는데 크기가 그대로다');
+  if (w2 % 8 === 0) throw new Error(`Alt 인데도 격자에 붙었다: ${w2}`);
+  await ctx.close();
+});
+
 // ── 폰 화면 ──────────────────────────────────────────────────────────────────
 // 관계도는 **보는 일**이 폰에서 훨씬 많다(링크 받아 열기). 그런데 지금까지 폰 크기는 한 번도 안 봤다.
 await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널은 아래 시트로 뜬다', async () => {

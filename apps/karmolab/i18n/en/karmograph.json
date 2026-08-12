@@ -619,5 +619,7 @@
   "karmograph.find.countTitle": "Cards matching name or one-liner",
   "karmograph.degree.pick": "Pick a card first",
   "karmograph.help.renameWhat": "Rename on the card",
-  "karmograph.help.renameHow": "Double-click the card (Enter saves, Esc cancels)"
+  "karmograph.help.renameHow": "Double-click the card (Enter saves, Esc cancels)",
+  "karmograph.help.resizeWhat": "Resize a card",
+  "karmograph.help.resizeHow": "Drag the bottom-right corner (snaps to the grid · Alt = free)"
 }

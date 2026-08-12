@@ -46,6 +46,7 @@ export const help = (): HelpSection[] => [
       { what: t('karmograph.t23'), how: t('karmograph.t24') },
       { what: t('karmograph.t25'), how: 'Tab / Shift+Tab' },
       { what: t('karmograph.help.selectAll'), how: 'Ctrl+A' },
+      { what: t('karmograph.help.resizeWhat'), how: t('karmograph.help.resizeHow') },
       { what: t('karmograph.t26'), how: t('karmograph.t27') },
       { what: t('karmograph.t28'), how: 'Enter' },
       { what: t('karmograph.t29'), how: 'Delete' },

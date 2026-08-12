@@ -48,17 +48,27 @@ export function groupDelta(
   return { d: { dx: gx - startGroupX, dy: gy - startGroupY }, origin: { x: gx, y: gy } };
 }
 
-/** 카드 최소 크기 — 이보다 작으면 글자도 손잡이도 안 들어가 「지운 것」처럼 보인다. */
-export const MIN_NODE_W = 60;
+/**
+ * 카드 최소 크기 — 이보다 작으면 글자도 손잡이도 안 들어가 「지운 것」처럼 보인다.
+ * **격자의 배수**여야 한다 — 아니면 제일 작게 줄인 카드만 줄이 어긋난다.
+ */
+export const MIN_NODE_W = 64;
 export const MIN_NODE_H = 32;
 
+/**
+ * 크기도 자리와 **같은 격자**에 붙는다 (TASK-KL-236).
+ * 자리는 8px 에 붙는데 크기만 1px 자유면, 왼쪽 줄은 맞고 오른쪽 줄은 매번 어긋난다 —
+ * 손으로 맞추려 해도 안 맞는다(그게 격자의 뜻이다). `grid <= 1` 이면 붙이지 않는다(Alt).
+ */
 export function resizedBox(
   startW: number,
   startH: number,
   d: Delta,
+  grid = 8,
 ): { w: number; h: number } {
+  const q = (v: number): number => (grid > 1 ? Math.round(v / grid) * grid : Math.round(v));
   return {
-    w: Math.max(MIN_NODE_W, Math.round(startW + d.dx)),
-    h: Math.max(MIN_NODE_H, Math.round(startH + d.dy)),
+    w: Math.max(MIN_NODE_W, q(startW + d.dx)),
+    h: Math.max(MIN_NODE_H, q(startH + d.dy)),
   };
 }
