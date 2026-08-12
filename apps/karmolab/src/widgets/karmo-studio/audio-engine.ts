@@ -144,6 +144,7 @@ function scheduleProject(context: AudioContextLike, project: StudioProject, asse
     const graph = connectTrack(context, { ...track, mute: muted }, master, reverb);
     scheduleAutomation(graph, track, fromBeat, toBeat, startTime, secondsPerBeat, muted);
     for (const clip of track.clips) {
+      if (clip.mute) continue;
       if (clip.kind === 'midi') scheduleMidi(context, graph.input, track, clip, fromBeat, toBeat, startTime, secondsPerBeat, sources);
       else scheduleAudio(context, graph.input, clip, clip.assetId ? assets.get(clip.assetId) : undefined, fromBeat, toBeat, startTime, secondsPerBeat, sources);
     }
@@ -216,7 +217,7 @@ export class KarmoStudioEngine {
   async preview(track: StudioTrack, pitch: number, velocity = 0.8): Promise<void> {
     const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     const context = new AC();
-    const clip: StudioClip = { id: 'preview', trackId: track.id, kind: 'midi', name: '', start: 0, duration: 1, offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, notes: [{ id: 'note', beat: 0, duration: 0.35, pitch, velocity }] };
+    const clip: StudioClip = { id: 'preview', trackId: track.id, kind: 'midi', name: '', start: 0, duration: 1, offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, mute: false, notes: [{ id: 'note', beat: 0, duration: 0.35, pitch, velocity }] };
     scheduleProject(context, { ...({} as StudioProject), bpm: 120, masterVolume: 0.8, tracks: [{ ...track, clips: [clip] }] }, new Map(), 0, 1, context.currentTime + 0.01, context.destination);
     window.setTimeout(() => void context.close(), 700);
   }
@@ -227,7 +228,7 @@ export class KarmoStudioEngine {
     const beat=this.currentBeat();const endBeat=this.endBeat(project);
     if(beat>=endBeat-.001){if(project.loop){for(const source of this.sources){try{source.stop();}catch(_){}}this.sources=[];this.scheduled.clear();this.startedBeat=project.loopStart;this.startedAt=context.currentTime+0.012;this.scheduledThroughBeat=project.loopStart;}else{this.stop();this.onEnded?.();return;}}
     const secondsPerBeat=60/project.bpm;const horizonBeat=Math.min(endBeat,this.currentBeat()+0.24/secondsPerBeat);const from=Math.max(this.scheduledThroughBeat,this.currentBeat());if(horizonBeat<=from)return;const fromTime=this.startedAt+(from-this.startedBeat)*secondsPerBeat;
-    for(const track of project.tracks){const graph=this.graphs.get(track.id);if(!graph)continue;for(const clip of track.clips){if(clip.kind==='audio'){const key=`audio:${clip.id}`;if(this.scheduled.has(key)||clip.start+clip.duration<=from||clip.start>=horizonBeat)continue;this.scheduled.add(key);scheduleAudio(context,graph.input,clip,clip.assetId?this.assets.get(clip.assetId):undefined,from,endBeat,fromTime,secondsPerBeat,this.sources);}else for(const note of clip.notes){const absolute=clip.start+note.beat;const key=`note:${clip.id}:${note.id}`;if(this.scheduled.has(key)||absolute+note.duration<=from||absolute>=horizonBeat)continue;this.scheduled.add(key);scheduleMidi(context,graph.input,track,{...clip,notes:[note]},from,endBeat,fromTime,secondsPerBeat,this.sources);}}}
+    for(const track of project.tracks){const graph=this.graphs.get(track.id);if(!graph)continue;for(const clip of track.clips){if(clip.mute)continue;if(clip.kind==='audio'){const key=`audio:${clip.id}`;if(this.scheduled.has(key)||clip.start+clip.duration<=from||clip.start>=horizonBeat)continue;this.scheduled.add(key);scheduleAudio(context,graph.input,clip,clip.assetId?this.assets.get(clip.assetId):undefined,from,endBeat,fromTime,secondsPerBeat,this.sources);}else for(const note of clip.notes){const absolute=clip.start+note.beat;const key=`note:${clip.id}:${note.id}`;if(this.scheduled.has(key)||absolute+note.duration<=from||absolute>=horizonBeat)continue;this.scheduled.add(key);scheduleMidi(context,graph.input,track,{...clip,notes:[note]},from,endBeat,fromTime,secondsPerBeat,this.sources);}}}
     for(const track of project.tracks){const graph=this.graphs.get(track.id);if(!graph||(!track.automation.volume.length&&!track.automation.pan.length))continue;const anySolo=project.tracks.some((item)=>item.solo);scheduleAutomation(graph,track,from,horizonBeat,fromTime,secondsPerBeat,track.mute||(anySolo&&!track.solo));}
     if(this.metronome){
       for(let beat=Math.ceil(from-1e-6);beat<horizonBeat;beat++){

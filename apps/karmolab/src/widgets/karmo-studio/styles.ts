@@ -74,6 +74,8 @@ export const KARMO_STUDIO_CSS = `
     .ks-auto svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
     .ks-auto path { fill:none; stroke:var(--accent); stroke-width:1.5; }
     .ks-auto i { position:absolute; width:9px; height:9px; margin:-5px 0 0 -5px; border-radius:50%; background:var(--accent); border:1px solid var(--bg-primary); cursor:grab; }
+    .ks-clip.is-muted { opacity:.4; filter:saturate(.3); }
+    .ks-clip.is-muted .ks-clip-name::before { content:'🔇 '; }
     .ks-auto-pick { position:absolute; right:4px; top:2px; display:flex; gap:3px; z-index:2; }
     .ks-auto-tag { position:absolute; left:4px; top:2px; font:9px var(--font-mono); color:var(--text-tertiary); pointer-events:none; }
     .ks-lane.is-drop { box-shadow:inset 0 0 0 2px var(--accent); }

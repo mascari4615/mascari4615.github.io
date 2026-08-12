@@ -97,7 +97,7 @@ export function clipHtml(input: ClipViewInput): string {
   } else {
     body = audioBody();
   }
-  return `<div class="ks-clip${selected ? ' is-selected' : ''}" data-clip="${clip.id}" data-track="${track.id}" style="--clip:${track.color};left:${clip.start * pxPerBeat}px;width:${clip.duration * pxPerBeat}px"><div class="ks-clip-name">${esc(clip.name)}</div>${body}<div class="ks-handle" data-resize="1"></div></div>`;
+  return `<div class="ks-clip${selected ? ' is-selected' : ''}${clip.mute ? ' is-muted' : ''}" data-clip="${clip.id}" data-track="${track.id}" style="--clip:${track.color};left:${clip.start * pxPerBeat}px;width:${clip.duration * pxPerBeat}px"><div class="ks-clip-name">${esc(clip.name)}</div>${body}<div class="ks-handle" data-resize="1"></div></div>`;
 }
 
 export interface AutomationViewInput {
