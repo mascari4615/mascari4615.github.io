@@ -1,0 +1,114 @@
+{
+  "id": "mobile-touch",
+  "minutes": 11,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "마우스 기준으로 만든 화면은 손가락에 안 맞는다. **손가락은 포인터보다 굵고, 화면을 가린다**는 두 가지 사실에서 대부분의 규칙이 나온다."
+    },
+    {
+      "type": "h",
+      "text": "1. 크기와 간격"
+    },
+    {
+      "type": "note",
+      "text": "누르는 대상은 최소 **44×44pt(안드로이드 48dp)**. 작아 보여도 **누르는 영역만 키우면** 된다 — 시각적 크기와 히트 영역은 달라도 된다."
+    },
+    {
+      "type": "code",
+      "lang": "css",
+      "label": "보이는 크기는 그대로, 누르는 곳만 넓힌다",
+      "text": ".icon-btn { position: relative; width: 24px; height: 24px; }\n.icon-btn::after {\n  content: ''; position: absolute; inset: -12px;   /* 48px 영역 */\n}"
+    },
+    {
+      "type": "h",
+      "text": "2. 엄지의 사정거리"
+    },
+    {
+      "type": "p",
+      "text": "한 손으로 잡으면 화면 위쪽은 멀다. **주요 동작은 아래쪽**에 두는 것이 요즘 앱의 흐름이다(하단 탭·하단 시트). 파괴적 동작을 엄지 근처에 두면 오터치가 늘어난다."
+    },
+    {
+      "type": "h",
+      "text": "3. 터치 지연과 반응"
+    },
+    {
+      "type": "code",
+      "lang": "css",
+      "label": "오래된 300ms 지연·더블탭 확대 막기",
+      "text": "html { touch-action: manipulation; }\n\n/* 스크롤되는 영역이면 명시 */\n.scroller { touch-action: pan-y; overscroll-behavior: contain; }"
+    },
+    {
+      "type": "note",
+      "text": "누른 즉시 **시각 반응**을 줘라(눌림 상태·리플). 네트워크를 기다리는 동안 아무 반응이 없으면 사용자는 두 번 누른다 — 그래서 중복 제출이 생긴다."
+    },
+    {
+      "type": "h",
+      "text": "4. 입력 폼"
+    },
+    {
+      "type": "code",
+      "lang": "html",
+      "label": "키보드를 알맞게 띄운다",
+      "text": "<input type=\"email\" inputmode=\"email\" autocomplete=\"email\">\n<input type=\"tel\" inputmode=\"numeric\" autocomplete=\"one-time-code\">\n<input type=\"number\" inputmode=\"decimal\">"
+    },
+    {
+      "type": "p",
+      "text": "`font-size` 가 16px 미만이면 iOS 가 입력 시 화면을 확대한다. 그리고 키보드가 올라오면 화면 절반이 사라지므로, **중요한 버튼이 키보드에 가리지 않는지** 실기기에서 확인해야 한다."
+    },
+    {
+      "type": "h",
+      "text": "5. 안전 영역"
+    },
+    {
+      "type": "code",
+      "lang": "css",
+      "label": "노치·홈 인디케이터 피하기",
+      "text": ".bottom-bar { padding-bottom: max(12px, env(safe-area-inset-bottom)); }"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "한 손·엄지만으로 내 화면의 주요 흐름을 끝내 보라. 손이 닿기 힘든 버튼을 목록으로 적어라."
+    },
+    {
+      "type": "try",
+      "text": "실기기에서 입력창을 눌러 키보드를 띄우고, 확인 버튼이 가려지는지 확인하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "아이콘 버튼이 작아 보여야 하는데 누르기 쉬워야 한다면?",
+      "choices": [
+        "시각 크기는 두고 히트 영역만 넓힌다",
+        "아이콘을 키운다",
+        "z-index 를 올린다"
+      ],
+      "answer": 0,
+      "why": "보이는 크기와 누르는 영역은 분리할 수 있다."
+    },
+    {
+      "q": "입력창 글자 크기를 16px 이상으로 두는 이유는?",
+      "choices": [
+        "iOS 가 자동 확대하는 것을 막으려고",
+        "가독성만",
+        "접근성 규격"
+      ],
+      "answer": 0,
+      "why": "자동 확대는 레이아웃을 흔들고 사용자를 놀라게 한다."
+    },
+    {
+      "q": "버튼을 눌렀는데 아무 반응이 없으면 생기는 실제 문제는?",
+      "choices": [
+        "사용자가 다시 눌러 중복 요청이 발생",
+        "메모리 누수",
+        "캐시 무효화"
+      ],
+      "answer": 0,
+      "why": "즉시 시각 반응 + 중복 방지 가드가 함께 필요하다."
+    }
+  ]
+}

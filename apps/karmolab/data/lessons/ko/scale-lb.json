@@ -1,0 +1,108 @@
+{
+  "id": "scale-lb",
+  "minutes": 11,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "서버가 기억을 들고 있으면 두 대째부터 어긋난다. 수평 확장의 첫 관문은 **무상태**다."
+    },
+    {
+      "type": "h",
+      "text": "1. 무엇이 상태인가"
+    },
+    {
+      "type": "note",
+      "text": "세션 · 업로드된 파일 · 메모리 캐시 · 진행 중 작업 · 스케줄러 · 웹소켓 연결. 이것들이 특정 서버에 묶여 있으면 그 서버가 죽을 때 함께 사라진다."
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "세션을 밖으로",
+      "text": "// 나쁨: 프로세스 메모리\nconst sessions = new Map();\n\n// 좋음: 공용 저장소\nawait redis.set(`sess:${id}`, JSON.stringify(data), { EX: 1209600 });"
+    },
+    {
+      "type": "h",
+      "text": "2. 로드 밸런서가 하는 일"
+    },
+    {
+      "type": "p",
+      "text": "트래픽 분배 + **상태 확인**(health check)으로 죽은 인스턴스 제외 + TLS 종료 + 재시도. 무상태이면 라운드로빈으로 충분하고, sticky session 은 최후의 수단이다(확장을 다시 방해한다)."
+    },
+    {
+      "type": "h",
+      "text": "3. 헬스체크를 제대로"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "두 가지를 나눈다",
+      "text": "app.get('/livez',  (_, res) => res.send('ok'));            // 프로세스가 살아 있나 (가볍게)\napp.get('/readyz', async (_, res) => {                      // 트래픽 받을 준비가 됐나\n  try { await db.ping(); res.send('ok'); }\n  catch { res.status(503).send('db down'); }\n});"
+    },
+    {
+      "type": "note",
+      "text": "readiness 에 DB 를 넣으면 DB 가 흔들릴 때 **모든 인스턴스가 동시에 빠져** 서비스가 통째로 멈출 수 있다. 의존성 확인은 신중하게, 실패 임계값과 함께."
+    },
+    {
+      "type": "h",
+      "text": "4. 우아한 종료"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "배포 중 요청을 흘리지 않기",
+      "text": "process.on('SIGTERM', async () => {\n  server.close();                 // 새 요청 그만 받기\n  await drainInFlight();          // 처리 중인 것 끝내기\n  await db.end();\n  process.exit(0);\n});"
+    },
+    {
+      "type": "h",
+      "text": "5. 웹소켓·장기 연결"
+    },
+    {
+      "type": "p",
+      "text": "연결이 특정 인스턴스에 붙으므로 배포 때 끊긴다. **클라이언트 자동 재연결**과 서버 간 메시지 브로커(Redis pub/sub 등)를 함께 둬야 한다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "앱을 두 개 띄우고 앞에 로드 밸런서를 둬라. 세션이 서버에 묶여 있으면 로그인이 풀리는 것을 직접 보라 — 그 다음 공용 저장소로 옮겨라."
+    },
+    {
+      "type": "try",
+      "text": "`/livez` 와 `/readyz` 를 나누고, DB 를 잠시 내렸을 때 어떤 일이 생기는지 관찰하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "수평 확장의 첫 조건은?",
+      "choices": [
+        "서버를 무상태로 만들기",
+        "더 큰 인스턴스",
+        "CDN 도입"
+      ],
+      "answer": 0,
+      "why": "상태가 특정 서버에 묶이면 대수를 늘릴 수 없다."
+    },
+    {
+      "q": "liveness 와 readiness 를 나누는 이유는?",
+      "choices": [
+        "「살아 있음」과 「트래픽 받을 준비」는 다른 판단이기 때문",
+        "문서 요구사항",
+        "성능 때문"
+      ],
+      "answer": 0,
+      "why": "섞으면 재시작 폭풍이나 전체 이탈이 생긴다."
+    },
+    {
+      "q": "배포 중 요청이 끊기지 않게 하려면?",
+      "choices": [
+        "SIGTERM 에서 새 요청을 막고 처리 중인 것을 마친 뒤 종료",
+        "즉시 kill",
+        "헬스체크를 끈다"
+      ],
+      "answer": 0,
+      "why": "우아한 종료가 없으면 배포마다 오류가 튄다."
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "id": "mobile-notify",
+  "minutes": 11,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "권한을 처음부터 다 물어보는 앱은 지워진다. 알림은 **가치를 보여 준 뒤에** 요청해야 승낙률도, 유지율도 오른다."
+    },
+    {
+      "type": "h",
+      "text": "1. 언제 묻나"
+    },
+    {
+      "type": "note",
+      "text": "앱을 켜자마자 X. **사용자가 그 가치를 원하는 순간**에 묻는다 — 「이 상품 재입고되면 알려 드릴까요?」처럼 맥락 안에서. 거절당하면 다시 묻기 매우 어렵다는 것을 기억하라."
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "사전 안내(프라이밍) 후 요청",
+      "text": "async function askNotify() {\n  const ok = await showPrimer();          // 내 화면에서 이유를 설명하고 예/아니오\n  if (!ok) return;                        // 여기서 거절 = OS 권한은 아직 안 씀\n  const perm = await Notification.requestPermission();\n  if (perm === 'granted') await subscribePush();\n}"
+    },
+    {
+      "type": "h",
+      "text": "2. 무엇을 보낼까"
+    },
+    {
+      "type": "p",
+      "text": "기준은 하나다 — **받는 사람에게 지금 필요한가**. 마케팅 알림이 늘면 전체 알림이 꺼진다. 유형별로 켜고 끌 수 있게 하고, 기본값은 보수적으로."
+    },
+    {
+      "type": "h",
+      "text": "3. 만드는 법"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "웹 푸시 뼈대",
+      "text": "const reg = await navigator.serviceWorker.ready;\nconst sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: VAPID_PUBLIC });\nawait api.saveSubscription(sub);\n\n// 서비스 워커에서\nself.addEventListener('push', (e) => {\n  const d = e.data.json();\n  e.waitUntil(self.registration.showNotification(d.title, { body: d.body, data: { url: d.url } }));\n});"
+    },
+    {
+      "type": "h",
+      "text": "4. 조용한 규칙"
+    },
+    {
+      "type": "note",
+      "text": "시간대 고려(새벽 금지) · 묶어 보내기(10건을 1건으로) · **누르면 정확한 화면으로**(딥링크) · 읽은 것은 지우기. 이 넷이 「알림 잘하는 앱」의 공통점이다."
+    },
+    {
+      "type": "h",
+      "text": "5. 지표"
+    },
+    {
+      "type": "p",
+      "text": "전송 수가 아니라 **열람률·해제율**을 봐라. 해제율이 오르는 알림은 성공이 아니라 미래의 손실이다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "권한 요청 전에 이유를 설명하는 화면을 넣고, 넣기 전후의 승낙률을 비교하라."
+    },
+    {
+      "type": "try",
+      "text": "알림을 눌렀을 때 홈이 아니라 해당 화면으로 가게 딥링크를 붙여라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "알림 권한을 요청하기 좋은 시점은?",
+      "choices": [
+        "사용자가 그 가치를 원하는 맥락 안에서",
+        "앱 첫 실행 즉시",
+        "결제 직후 항상"
+      ],
+      "answer": 0,
+      "why": "거절당하면 되돌리기 어렵기 때문에 타이밍이 중요하다."
+    },
+    {
+      "q": "사전 안내(프라이밍) 화면을 두는 이유는?",
+      "choices": [
+        "거절이 OS 권한 거부로 굳는 것을 피하려고",
+        "디자인 통일성",
+        "법적 요구"
+      ],
+      "answer": 0,
+      "why": "내 화면에서의 거절은 나중에 다시 물을 수 있다."
+    },
+    {
+      "q": "알림 성과를 볼 때 핵심 지표는?",
+      "choices": [
+        "열람률과 해제율",
+        "전송 건수",
+        "평균 길이"
+      ],
+      "answer": 0,
+      "why": "해제율 상승은 미래 채널을 잃는 신호다."
+    }
+  ]
+}
