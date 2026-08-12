@@ -116,3 +116,19 @@ export function buildLeaderLine(from: Pt, to: Pt, color: string): SVGPathElement
   line.setAttribute('pointer-events', 'none');
   return line;
 }
+
+
+/**
+ * 흐르는 선 표시를 지금 상태에 맞춘다 — **요소를 새로 만들지 않고** 클래스만 갈아 준다.
+ * (본체에서 떼어 낸 이유: 선을 부분만 다시 그릴 때도 그대로 부를 수 있어야 해서.)
+ */
+export function applyEdgeFlow(layer: SVGGElement, animated: Set<string>, only?: Set<string>): void {
+  // ★ `only` 가 있으면 **그 선들만** 훑는다. 없으면 선 전부를 훑는데, 카드 600장짜리 판에서
+  //   그건 끄는 동안 매 프레임 1800개 요소를 다시 뒤지는 일이 된다(실측 2026-08-12).
+  const sel = only ? [...only].map((id) => `.ck-edge[data-edge-id="${CSS.escape(id)}"]`).join(',') : '.ck-edge';
+  if (!sel) return;
+  layer.querySelectorAll(sel).forEach((el) => {
+    const path = el as SVGPathElement;
+    path.classList.toggle('is-flowing', animated.has(path.dataset.edgeId ?? ''));
+  });
+}

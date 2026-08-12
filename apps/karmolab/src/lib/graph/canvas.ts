@@ -37,7 +37,7 @@ import { buildNodeBackground, buildNoteCardBody } from './canvas-shape';
 import { chooseAnchors, edgeCurve, boundsOf, zoomAt, rectFromPoints, rectHits } from './canvas-math';
 import { cameraForRect } from './canvas-camera';
 import { frameCoalesced } from './canvas-raf';
-import { buildEdgePath, buildEdgeLabel, buildLeaderLine } from './canvas-edge';
+import { buildEdgePath, buildEdgeLabel, buildLeaderLine, applyEdgeFlow } from './canvas-edge';
 import { renderGroups, computeGroupBox } from './canvas-group';
 import { nodeBadges } from './canvas-badges';
 import { buildChildCard } from './canvas-children';
@@ -288,13 +288,15 @@ export class GraphCanvas {
   /** 누른 지점 — 뗄 때 이동량으로 클릭/드래그를 가른다. */
   private pressOrigin: { x: number; y: number; nodeId: string | null } | null = null;
 
+  /** 지금 끌고 있는 카드들 — 여기 닿은 선만 다시 그린다(TASK-KL-234). */
+  private dragTouched: Set<string> | undefined;
   /** 끄는 동안의 무거운 다시 그리기(선·묶음·작은 판) — 프레임당 한 번으로 모은다. */
   private paintDragged = frameCoalesced(() => {
     this.groupLayer.innerHTML = '';
     this.renderGroups();
     this.renderAnchors();
     this.renderEphemeralLayer();
-    this.redrawEdges();
+    this.redrawEdges(this.dragTouched);
     this.redrawMinimap();
   });
 
@@ -686,6 +688,7 @@ export class GraphCanvas {
           this.dragging.startNodeX, this.dragging.startNodeY, d, (v) => this.snap(v));
         this.nodeCoords.set(this.dragging.nodeId, { x: newX, y: newY });
         this.updateNodeTransform(this.dragging.nodeId, newX, newY);   // 손끝은 바로 따라간다
+        this.dragTouched = new Set([this.dragging.nodeId]);
         this.paintDragged();                                          // 나머지는 프레임당 한 번
         this.scheduleSave(this.dragging.nodeId);
       } else if (this.draggingGroup) {
@@ -728,6 +731,7 @@ export class GraphCanvas {
           grp.bbox.y = snappedGY;
           this.scheduleSaveRaw(dg.groupId, grp.bbox.x, grp.bbox.y, 'group');
         }
+        this.dragTouched = new Set(dg.startNodeCoords.keys());
         this.paintDragged();   // 묶음·닻·흘러가는 카드·선·작은 판 — 프레임당 한 번
       } else if (this.panning) {
         this.state.tx = this.panning.startTx + (e.clientX - this.panning.startMouseX);
@@ -1157,21 +1161,26 @@ export class GraphCanvas {
 
   // ── 엣지 렌더 ────────────────────────────────────────────────────────────────
 
-  private redrawEdges(): void {
+  /** `only` 를 주면 **그 카드에 닿은 선만** 다시 만든다 — 큰 판에서 끄는 손이 무겁던 이유(TASK-KL-234). */
+  private redrawEdges(only?: Set<string>): void {
     if (!this.spec) return;
-    this.edgeLayer.innerHTML = '';
-
+    if (!only) this.edgeLayer.innerHTML = '';
+    const touched = new Set<string>();
     const shown = this.visibleNodeIds();
     for (const edge of this.spec.edges) {
-      // 종류가 걸러졌거나, 양끝 중 하나가 화면에 없으면 선도 안 그린다 —
-      // 한쪽만 남은 선은 허공으로 뻗은 것처럼 보인다.
+      const from = this.parseNodeRef(edge.from);
+      const to = this.parseNodeRef(edge.to);
+      if (only && !only.has(from) && !only.has(to)) continue;
+      // 부분 갱신은 그 선의 옛 요소를 먼저 걷어 낸다(통짜 갱신은 위에서 이미 비웠다).
+      if (only) this.edgeLayer.querySelectorAll(`[data-edge-id="${CSS.escape(edge.id)}"]`).forEach((el) => el.remove());
+      // 걸러졌거나 한쪽 끝이 화면에 없으면 안 그린다 — 허공으로 뻗은 선처럼 보인다.
       if (this.filter.edgeKinds.has(edge.kind)) continue;
-      if (!shown.has(this.parseNodeRef(edge.from)) || !shown.has(this.parseNodeRef(edge.to))) continue;
+      if (!shown.has(from) || !shown.has(to)) continue;
       const parts = this.buildEdgeElements(edge);
       if (parts) parts.forEach((el) => this.edgeLayer.appendChild(el));
+      if (only) touched.add(edge.id);
     }
-    // highlight 재적용
-    this.applyEdgeHighlights();
+    applyEdgeFlow(this.edgeLayer, this.activeSets.edge_ids_animated, only ? touched : undefined);
     // 선을 다시 그리면 흐림 표시도 함께 날아간다 — 여기서 되살린다.
     if (this.focusIds) this.applyFocus();
   }
@@ -1383,15 +1392,7 @@ export class GraphCanvas {
   }
 
   private applyEdgeHighlights(): void {
-    this.edgeLayer.querySelectorAll('.ck-edge').forEach((el) => {
-      const path = el as SVGPathElement;
-      const id = path.dataset.edgeId ?? '';
-      if (this.activeSets.edge_ids_animated.has(id)) {
-        path.classList.add('is-flowing');
-      } else {
-        path.classList.remove('is-flowing');
-      }
-    });
+    applyEdgeFlow(this.edgeLayer, this.activeSets.edge_ids_animated);
   }
 
   // ── 미니맵 ───────────────────────────────────────────────────────────────────
