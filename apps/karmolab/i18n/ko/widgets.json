@@ -202,5 +202,6 @@
   "widgets.garden.title": "정원",
   "widgets.collection.title": "도감",
   "widgets.karmograph.title": "KarmoGraph",
-  "widgets.studymap.title": "개발자 스터디 맵"
+  "widgets.studymap.title": "개발자 스터디 맵",
+  "widgets.imagestudio.title": "이미지 스튜디오"
 }

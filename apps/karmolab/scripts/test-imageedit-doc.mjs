@@ -238,3 +238,28 @@ const solid = (doc, layer, rgba) => {
 }
 
 console.log('[test-imageedit-doc] ✓ 레이어 · 셀 hold · 블렌드 12 · 마스크 · 클리핑 · 어니언 · 시트 · 커맨드 되돌리기');
+
+/* ===== 부분 갱신 — 붓질 자리만 다시 섞는다 ===== */
+{
+  const doc = D.createDoc(4, 4);
+  const back = doc.layers[0];
+  solid(doc, back, [10, 20, 30, 255]);
+  const flat = C.composite(doc, 0);
+  /* 한 칸만 바꾼 뒤 그 칸만 다시 섞어도 같은 답이 나와야 한다. */
+  const cel = D.celAt(back, 0);
+  cel.data.set([200, 100, 50, 255], (1 * 4 + 2) * 4);
+  C.composite(doc, 0, undefined, { rect: { x: 2, y: 1, w: 1, h: 1 }, into: flat });
+  assert.deepEqual([...flat.data.slice((1 * 4 + 2) * 4, (1 * 4 + 2) * 4 + 4)], [200, 100, 50, 255], '그 자리는 새로 섞인다');
+  assert.deepEqual([...flat.data.slice(0, 4)], [10, 20, 30, 255], '밖은 그대로 남는다');
+  const full = C.composite(doc, 0);
+  assert.deepEqual([...flat.data], [...full.data], '부분 갱신 결과 = 전체 합성 결과');
+
+  /* 지운 자리가 옛 그림으로 남지 않는다. */
+  cel.data.set([0, 0, 0, 0], (1 * 4 + 2) * 4);
+  C.composite(doc, 0, undefined, { rect: { x: 2, y: 1, w: 1, h: 1 }, into: flat });
+  assert.equal(flat.data[(1 * 4 + 2) * 4 + 3], 0, '지운 자리는 비워진다');
+
+  /* 판 밖으로 나간 사각형은 잘린다(터지지 않는다). */
+  C.composite(doc, 0, undefined, { rect: { x: 3, y: 3, w: 99, h: 99 }, into: flat });
+}
+console.log('[test-imageedit-doc] ✓ 부분 갱신(rect·into)');

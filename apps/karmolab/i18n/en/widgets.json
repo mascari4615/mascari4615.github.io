@@ -200,5 +200,6 @@
   "widgets.comparepic.title": "Comparison slider",
   "widgets.livecount.title": "Elapsed time counter",
   "widgets.mesh3d.title": "3D viewer",
-  "widgets.studymap.title": "Developer study map"
+  "widgets.studymap.title": "Developer study map",
+  "widgets.imagestudio.title": "Image Studio"
 }

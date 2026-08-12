@@ -200,5 +200,6 @@
   "widgets.comparepic.title": "比較スライダー",
   "widgets.livecount.title": "経過時間カウンター",
   "widgets.mesh3d.title": "3D ビューア",
-  "widgets.studymap.title": "開発者 学習マップ"
+  "widgets.studymap.title": "開発者 学習マップ",
+  "widgets.imagestudio.title": "イメージスタジオ"
 }
