@@ -237,5 +237,13 @@
   "arcade.game.minishogi.name": "Mini Shogi",
   "arcade.game.minishogi.desc": "Captured pieces become yours. Take the king to win",
   "arcade.shogi.win": "{who} took the king",
-  "arcade.shogi.stale": "Dragged on — a draw"
+  "arcade.shogi.stale": "Dragged on — a draw",
+  "arcade.game.hanafuda.name": "Flower Match",
+  "arcade.game.hanafuda.desc": "Take pairs of the same month. No pair — discard",
+  "arcade.hana.floor": "Table",
+  "arcade.hana.mine": "Your hand",
+  "arcade.hana.drop": "Discard",
+  "arcade.hana.hint": "Pick a card and its match lights up",
+  "arcade.hana.waiting": "Waiting for your turn",
+  "arcade.hana.win": "{who} — {n} cards"
 }
