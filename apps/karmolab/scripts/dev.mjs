@@ -26,7 +26,12 @@ import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(path.dirname(fileURLToPath(import.meta.url)));   // apps/karmolab
 const REPO = path.dirname(path.dirname(here));                            // 저장소 뿌리
-const PORT = Number(process.argv[2] || 8813);
+// ★ 포트는 **인자로도 환경변수로도** 받는다 (2026-08-12).
+//   `session-lane.ps1` 은 세션마다 다른 포트를 `PORT` 환경변수로 넘겨 왔는데 여기서는 인자만
+//   읽고 있었다 — 그래서 lane 의 개발 서버는 전부 8813 으로 뜨려다 이미 물린 자리에 부딪혀
+//   죽었고, 창이 최소화라 **아무도 죽은 걸 몰랐다**. 「화면 보며 고치기」가 안 되니 다들 공유
+//   작업 폴더로 돌아왔고, 08-08 에 만든 격리는 실제로 가동된 적이 없다(오늘 lane 을 띄워 보고 알았다).
+const PORT = Number(process.argv[2] || process.env.PORT || 8813);
 
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css',
