@@ -1,7 +1,7 @@
 /** Karmo Studio — KarmoLab 안에서 곡을 끝까지 만드는 브라우저 DAW (TASK-KL-220). */
 import { KarmoStudioEngine, renderProject, type StudioAssetRuntime } from './audio-engine';
 import {
-  automationValueAt, clampTrackHeight, cloneClip, nextClipColor, findClip, findTrack, legatoNotes, moveTrack, newProject, newTrack, normalizeProject, projectLength, putAutomationPoint, putMarker, quantizeNotes, setNoteVelocity, selectionRange, snapBeat, sortMarkers, splitClip, stepMarker, tapTempo, studioId, transposeNotes,
+  automationValueAt, clampTrackHeight, cloneClip, nextClipColor, findClip, findTrack, legatoNotes, moveTrack, newProject, newTrack, normalizeProject, projectLength, keyToPitch, putAutomationPoint, putMarker, quantizeNotes, setNoteVelocity, selectionRange, snapBeat, sortMarkers, splitClip, stepMarker, tapTempo, studioId, transposeNotes,
   TRACK_HEIGHT, type AutomationParam, type StudioClip, type StudioProject, type StudioSelection, type StudioTrack
 } from './model';
 import { toWav } from '../tools/shared/media';
@@ -34,7 +34,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     let selection: StudioSelection = { type: 'clip', trackId: project.tracks[0].id, clipId: project.tracks[0].clips[0].id };
     let playhead = 0; let pxPerBeat = 72; let sideMode: 'inspector' | 'mixer' = 'inspector';let editTool:'draw'|'select'|'slice'='draw'; let assets = new Map<string, StudioAssetRuntime>();
     let raf: number | undefined; let saveTimer: number | undefined; let recording: MediaRecorder | null = null; let recordChunks: Blob[] = []; let recordStart = 0;
-    let armedTrackId=''; let taps:number[]=[]; let metronome=false; let countIn=false; const autoLanes=new Map<string,AutomationParam>();
+    let armedTrackId=''; let taps:number[]=[]; let stepMode=false; let stepOctave=4; let stepBeat=0; let stepAdded:string[]=[]; let metronome=false; let countIn=false; const autoLanes=new Map<string,AutomationParam>();
     let exportOptions={range:'song' as ExportRangeMode,sampleRate:44100,mono:false,normalize:true,stems:false};
     let editorExpanded = false; let editorScrollTop = 0; let editorScrollLeft = 0; let editorClipId = ''; let pianoPxPerBeat = pxPerBeat;
     let editorReturnFocus: HTMLElement | null = null;
@@ -66,6 +66,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       const target=noteTargets();
       if(!target||!target.notes.length){status('Open a MIDI clip first');return;}
       const { clip, notes }=target;const scope=notes.length===clip.notes.length?'clip':`${notes.length} notes`;
+      if(act==='step'){stepMode=!stepMode;stepBeat=0;stepAdded=[];renderEditor();status(stepMode?'자판 건반 켬 — Z~M 아랫줄 · Q~I 윗줄 · ←→ 자리 이동 · Backspace 지우기':'자판 건반 끔');return;}
       if(act==='quantize'||act==='quantize-half'){
         const moved=quantizeNotes(notes,project.snap,act==='quantize'?1:0.5);
         status(moved?`Quantized ${moved} of ${scope}`:'Already on the grid');
@@ -358,7 +359,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       }
       reconcileNotes();
       const view = buildPianoView({
-        clip, beatsPerBar: project.beatsPerBar, expanded: editorExpanded, pxPerBeat,
+        clip, beatsPerBar: project.beatsPerBar, expanded: editorExpanded, pxPerBeat, step: stepMode,
         viewportWidth: window.innerWidth,
         isSelected: (noteId) => noteSel.has({ clipId: clip.id, noteId }) || (selection?.type === 'note' && selection.noteId === noteId),
         esc
@@ -877,7 +878,28 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
       if(chosen.type==='note'){const doomed=markedNotes();const clip=findClip(project,chosen.trackId,chosen.clipId);if(clip&&doomed.length){const ids=new Set(doomed.map((item)=>item.note.id));clip.notes=clip.notes.filter((note)=>!ids.has(note.id));noteSel.clear();if(doomed.length>1)status(`Deleted ${doomed.length} notes`);}selection={type:'clip',trackId:chosen.trackId,clipId:chosen.clipId};saveSoon();renderAll();return;}
       else if(chosen.type==='clip'){const all=markedClips();const doomed=all.filter((item)=>!item.clip.locked);const kept=all.length-doomed.length;for(const item of doomed)item.track.clips=item.track.clips.filter((clip)=>clip.id!==item.clip.id);marks.clear();if(kept)status(doomed.length?`${doomed.length}개 삭제 · 잠긴 ${kept}개는 남김`:`잠겨 있어 안 지운다 (${kept}개)`);else if(doomed.length>1)status(`Deleted ${doomed.length} clips`);}
       selection={type:'track',trackId:track.id};saveSoon();renderAll();}
-    const keydown=(event:KeyboardEvent)=>{if(!root.isConnected)return;if(event.key==='Escape'){event.preventDefault();gestures.cancel();hideContextMenu();if($<HTMLElement>('[data-role=help]').innerHTML){closeHelp();return;}if($<HTMLElement>('[data-role=export]').innerHTML){closeExport();return;}if(editorExpanded)setEditorExpanded(false);return;}const command=event.ctrlKey||event.metaKey;if(command&&event.key.toLowerCase()==='z'){event.preventDefault();restoreHistory(event.shiftKey?'redo':'undo');return;}if(command&&event.key.toLowerCase()==='y'){event.preventDefault();restoreHistory('redo');return;}const tag=(event.target as HTMLElement).tagName;if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;if(event.key==='?'||(event.shiftKey&&event.key==='/')){event.preventDefault();if($<HTMLElement>('[data-role=help]').innerHTML)closeHelp();else openHelp();return;}if(!command&&event.key.toLowerCase()==='m'&&selection?.type==='clip'){event.preventDefault();const chosen=markedClips();const focus=selectedClip()||chosen[0]?.clip;if(chosen.length&&focus){const next=!focus.mute;for(const item of chosen)item.clip.mute=next;engine.updateProject(project);saveSoon('clip-mute');renderAll();status(next?`${chosen.length}개 소리 끔`:`${chosen.length}개 소리 켬`);}return;}
+    const keydown=(event:KeyboardEvent)=>{if(!root.isConnected)return;if(event.key==='Escape'){event.preventDefault();gestures.cancel();hideContextMenu();if($<HTMLElement>('[data-role=help]').innerHTML){closeHelp();return;}if($<HTMLElement>('[data-role=export]').innerHTML){closeExport();return;}if(editorExpanded)setEditorExpanded(false);return;}const command=event.ctrlKey||event.metaKey;if(command&&event.key.toLowerCase()==='z'){event.preventDefault();restoreHistory(event.shiftKey?'redo':'undo');return;}if(command&&event.key.toLowerCase()==='y'){event.preventDefault();restoreHistory('redo');return;}const tag=(event.target as HTMLElement).tagName;if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;if(event.key==='?'||(event.shiftKey&&event.key==='/')){event.preventDefault();if($<HTMLElement>('[data-role=help]').innerHTML)closeHelp();else openHelp();return;}if(stepMode&&!command&&!event.altKey){
+        const clip=selectedClip();const track=selectedTrack();
+        if(clip&&track&&clip.kind==='midi'){
+          if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();stepBeat=Math.max(0,Math.min(clip.duration,stepBeat+(event.key==='ArrowRight'?project.snap:-project.snap)));status(`자리 ${beatText(clip.start+stepBeat)}`);return;}
+          if(event.key==='ArrowUp'||event.key==='ArrowDown'){event.preventDefault();stepOctave=Math.max(0,Math.min(8,stepOctave+(event.key==='ArrowUp'?1:-1)));status(`옥타브 ${stepOctave}`);return;}
+          if(event.key==='Backspace'){event.preventDefault();const last=stepAdded.pop();if(last){const gone=clip.notes.find((note)=>note.id===last);if(gone)stepBeat=gone.beat;clip.notes=clip.notes.filter((note)=>note.id!==last);saveSoon('step');renderEditor();renderTracks();status(`되돌림 · 자리 ${beatText(clip.start+stepBeat)}`);}else{stepBeat=Math.max(0,stepBeat-project.snap);status(`자리 ${beatText(clip.start+stepBeat)}`);}return;}
+          const pitch=keyToPitch(event.key,stepOctave,PIANO_GEOMETRY.low,PIANO_GEOMETRY.high);
+          if(pitch!==null){
+            event.preventDefault();
+            if(stepBeat>=clip.duration){status('클립 끝이다 — 길이를 늘려라');return;}
+            const note={id:studioId('note'),beat:stepBeat,duration:Math.min(project.snap,clip.duration-stepBeat),pitch,velocity:0.8};
+            clip.notes.push(note);stepAdded.push(note.id);
+            noteSel.replace([{clipId:clip.id,noteId:note.id}]);
+            selection={type:'note',trackId:track.id,clipId:clip.id,noteId:note.id};
+            void engine.preview(track,pitch);
+            stepBeat=Math.min(clip.duration,stepBeat+project.snap);
+            saveSoon('step');renderEditor();renderTracks();renderSide();
+            return;
+          }
+        }
+      }
+      if(!command&&event.key.toLowerCase()==='m'&&selection?.type==='clip'){event.preventDefault();const chosen=markedClips();const focus=selectedClip()||chosen[0]?.clip;if(chosen.length&&focus){const next=!focus.mute;for(const item of chosen)item.clip.mute=next;engine.updateProject(project);saveSoon('clip-mute');renderAll();status(next?`${chosen.length}개 소리 끔`:`${chosen.length}개 소리 켬`);}return;}
       if(!command&&['p','e','c'].includes(event.key.toLowerCase())){editTool=event.key.toLowerCase()==='p'?'draw':event.key.toLowerCase()==='e'?'select':'slice';renderAll();status(`${editTool.toUpperCase()} tool`);return;}if(command&&event.key.toLowerCase()==='c'){event.preventDefault();copySelection();return;}if(command&&event.key.toLowerCase()==='x'){event.preventDefault();cutSelection();return;}if(command&&event.key.toLowerCase()==='v'){event.preventDefault();pasteClipboard();return;}if(event.altKey&&(event.key==='ArrowLeft'||event.key==='ArrowRight')){event.preventDefault();const marker=stepMarker(project.markers,playhead,event.key==='ArrowRight'?1:-1);if(!marker){status(event.key==='ArrowRight'?'뒤에 구간이 없다':'앞에 구간이 없다');return;}playhead=marker.beat;updatePlayhead();status(`${marker.name} · ${beatText(marker.beat)}`);return;}if(event.code==='Space'){event.preventDefault();if(event.shiftKey){engine.isPlaying()?stop():playSelection();return;}if(engine.isPlaying()){stop();return;}if(playhead>0){playhead=0;updatePlayhead();status('처음으로');return;}play();}else if(event.key==='Delete'||event.key==='Backspace'){event.preventDefault();deleteSelection();}else if(command&&event.key.toLowerCase()==='b'){event.preventDefault();root.querySelector<HTMLElement>('[data-act=duplicate]')?.click();}};document.addEventListener('keydown',keydown);
     $<HTMLElement>('[data-role=backdrop]').addEventListener('click',()=>{if($<HTMLElement>('[data-role=help]').innerHTML){closeHelp();return;}if($<HTMLElement>('[data-role=export]').innerHTML){closeExport();return;}setEditorExpanded(false);});
     Toolbox.onHandoff?.('karmo-studio',(file: File)=>{if(file.type.startsWith('audio/'))void importAudio([file]);else if(file.type==='application/json')void file.text().then(importPortable).then((next: StudioProject)=>{project=next;history.reset(project);return refreshAssets();}).then(()=>renderAll());});

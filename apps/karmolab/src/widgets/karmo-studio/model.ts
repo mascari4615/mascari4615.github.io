@@ -463,3 +463,24 @@ export function swingBeat(beat: number, swing: number, unit = 0.5): number {
   return base + shifted + ratio * room;
 }
 
+/**
+ * 컴퓨터 자판을 건반으로 — 트래커 배열. 아랫줄이 낮은 옥타브, 윗줄이 한 옥타브 위.
+ * 모르는 자판은 `null` (그 키는 원래 하던 일을 계속한다).
+ */
+const KEY_ROWS: Record<string, number> = {
+  z: 0, s: 1, x: 2, d: 3, c: 4, v: 5, g: 6, b: 7, h: 8, n: 9, j: 10, m: 11, ',': 12,
+  q: 12, '2': 13, w: 14, '3': 15, e: 16, r: 17, '5': 18, t: 19, '6': 20, y: 21, '7': 22, u: 23, i: 24
+};
+
+export function keyToPitch(key: string, octave: number, low = 0, high = 127): number | null {
+  const offset = KEY_ROWS[String(key).toLowerCase()];
+  if (offset === undefined) return null;
+  const pitch = (octave + 1) * 12 + offset;
+  return pitch < low || pitch > high ? null : pitch;
+}
+
+/** 자판 건반이 덮는 키인지 — 도구 단축키와 겹치는지 미리 알아야 한다. */
+export function isPianoKey(key: string): boolean {
+  return KEY_ROWS[String(key).toLowerCase()] !== undefined;
+}
+
