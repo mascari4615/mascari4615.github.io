@@ -480,7 +480,12 @@ permalink: /karmolab/
           var meta = document.createElement('script');
           meta.src = '/apps/karmolab/js/widgets-meta-rest.js';
           meta.onload = function () {
-            try { if (window.Toolbox && window.Toolbox.upgradeMeta) window.Toolbox.upgradeMeta(); } catch (e) { /* 못 꽂아도 이름·분류는 이미 있다 */ }
+            /* ★ `window.Toolbox` 가 아니라 **맨 이름**으로 부른다 (2026-08-12).
+             *   셸은 `const Toolbox = …` 라 window 에 안 붙는다 — `window.Toolbox` 는 늘 undefined 라
+             *   이 줄이 **매번 조용히 건너뛰어졌다**. 그 결과 아이콘·설명이 목록·찾기창에 영영 안 꽂혀,
+             *   그 도구를 한 번 열어야만 아이콘이 생겼다(실측: 메타 204개 중 아이콘 0개 → 부르면 187개).
+             *   나머지 코드가 전부 쓰는 방식(typeof 가드 + 맨 이름)으로 맞춘다. */
+            try { if (typeof Toolbox !== 'undefined' && Toolbox.upgradeMeta) Toolbox.upgradeMeta(); } catch (e) { /* 못 꽂아도 이름·분류는 이미 있다 */ }
           };
           document.body.appendChild(meta);
         }
