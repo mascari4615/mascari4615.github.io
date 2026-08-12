@@ -198,7 +198,16 @@ import {
     .km-help-how { color:var(--text-tertiary); font-size:11px; text-align:right; flex-shrink:0; max-width:58%; }
     .km-meter { height:8px; border-radius:999px; background:var(--bg-tertiary); overflow:hidden; }
     .km-meter-fill { height:100%; transition:width .2s ease; }
-    .km-kind-find { margin-bottom:4px; }
+    /* ★ 종류 칸 — 값을 정하는 곳은 **하나**다 (TASK-KL-271 P2).
+       거르는 칸이 값 칸과 같은 크기·같은 모양으로 위아래 붙어 있어서, 같은 값을 정하는 상자가
+       둘로 보였다(사용자 「중복」 지적의 그 자리). 거르는 칸은 이름표 줄로 올려 **작게** 붙이고,
+       값 칸만 아래 한 줄로 남긴다 — 27가지 6묶음이라 거르는 일 자체는 여전히 필요하다. */
+    .km-kindrow { display:flex; align-items:baseline; gap:6px; }
+    .km-kindrow label { flex:1; min-width:0; }
+    .km-field input.km-kind-find { width:auto; flex:0 0 124px; font-size:11px; padding:2px 9px;
+      background:var(--bg-tertiary); border:1px solid var(--border); border-radius:999px;
+      text-overflow:ellipsis; }
+    .km-field input.km-kind-find:focus { border-color:var(--accent); }
     .km-h4btn { float:right; padding:2px 8px; font-size:11px; }
     .km-table { display:flex; flex-direction:column; gap:3px; max-height:220px; overflow-y:auto; }
     .km-trow { display:flex; gap:4px; align-items:center; }
@@ -1515,9 +1524,11 @@ import {
           <input type="text" data-km="edit-label" value="${escapeAttr(node.label)}" />
         </div>
         <div class="km-field">
-          <label>${esc(t('karmograph.t149'))}</label>
-          <input type="text" class="km-kind-find" data-km="kind-find" placeholder="${esc(t('karmograph.t112'))}"
-            aria-controls="km-kind-list" />
+          <div class="km-kindrow">
+            <label for="km-kind-list">${esc(t('karmograph.t149'))}</label>
+            <input type="text" class="km-kind-find" data-km="kind-find" placeholder="${esc(t('karmograph.t112'))}"
+              aria-controls="km-kind-list" />
+          </div>
           <select id="km-kind-list" data-km="edit-kind">${nodeKindOptions(node.kind)}</select>
         </div>
         <div class="km-field">
