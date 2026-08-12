@@ -265,5 +265,11 @@
   "arcade.shell.right": "Got it",
   "arcade.shell.wrong": "Lost it",
   "arcade.shell.win": "{who} — {n} right",
-  "arcade.shell.perfect": "{who} — all of them"
+  "arcade.shell.perfect": "{who} — all of them",
+  "arcade.game.foxhounds.name": "Fox and Hounds",
+  "arcade.game.foxhounds.desc": "Four hounds corner one fox. Each side wins differently",
+  "arcade.fox.youFox": "You are the 🦊 fox — reach the far row to win",
+  "arcade.fox.youHound": "You are the 🐶 hounds — forward only. Corner the fox to win",
+  "arcade.fox.foxWin": "{who} — the fox slipped through",
+  "arcade.fox.houndWin": "{who} — the fox is cornered"
 }
