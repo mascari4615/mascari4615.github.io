@@ -11,6 +11,24 @@
       "text": "1. 언제 쓰이나"
     },
     {
+      "type": "demo",
+      "kind": "js",
+      "label": "행 수를 밀어 보라 — 훑기와 찾아보기의 차이",
+      "height": "210px",
+      "controls": [
+        {
+          "id": "rows",
+          "label": "행 수",
+          "type": "range",
+          "min": 1000,
+          "max": 500000,
+          "step": 1000,
+          "value": 100000
+        }
+      ],
+      "text": "const N = {{rows}};\nconst rows = Array.from({ length: N }, (_, i) => ({ id: i, v: (i * 2654435761) % N }));\nconst index = new Map(rows.map((r) => [r.v, r]));\nconst key = rows[(N / 2) | 0].v;\nlet t0 = performance.now();\nrows.find((r) => r.v === key);\nconst scan = performance.now() - t0;\nt0 = performance.now();\nindex.get(key);\nconst seek = performance.now() - t0;\nctx.clearRect(0, 0, W(), H());\nctx.fillStyle = '#eee'; ctx.font = '15px system-ui';\nctx.fillText(N.toLocaleString() + '행에서 한 건 찾기', 16, 30);\nconst bar = (y, ms, label, col) => {\n  const w = Math.max(3, Math.min(W() - 170, ms * 60));\n  ctx.fillStyle = col; ctx.fillRect(16, y, w, 22);\n  ctx.fillStyle = '#eee'; ctx.font = '13px ui-monospace, monospace';\n  ctx.fillText(label + ' ' + ms.toFixed(3) + 'ms', 24 + w, y + 17);\n};\nbar(56, scan, '전체 훑기', '#f87171');\nbar(92, seek, '인덱스', '#4ade80');\nctx.fillStyle = '#9ca3af'; ctx.font = '12px system-ui';\nctx.fillText('행이 늘수록 훑기만 느려진다 — 인덱스는 거의 그대로', 16, 140);"
+    },
+    {
       "type": "code",
       "lang": "sql",
       "label": "조건·정렬·조인에 쓰인다",

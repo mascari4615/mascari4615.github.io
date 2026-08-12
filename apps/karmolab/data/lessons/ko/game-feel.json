@@ -11,6 +11,33 @@
       "text": "1. 타격감의 재료"
     },
     {
+      "type": "demo",
+      "kind": "js",
+      "label": "손맛 — 흔들림과 되돌아오는 속도를 밀어 보라",
+      "height": "220px",
+      "controls": [
+        {
+          "id": "shake",
+          "label": "흔들림",
+          "type": "range",
+          "min": 0,
+          "max": 20,
+          "step": 1,
+          "value": 8
+        },
+        {
+          "id": "spring",
+          "label": "되돌아오는 힘",
+          "type": "range",
+          "min": 2,
+          "max": 30,
+          "step": 1,
+          "value": 12
+        }
+      ],
+      "text": "const SHAKE = {{shake}}, SPRING = {{spring}};\nlet hit = 0, y = 0, vy = 0;\naddEventListener('click', () => { hit = 1; vy = -6; });\nfunction frame() {\n  hit *= 0.9;\n  vy += (0 - y) * (SPRING / 100) - vy * 0.12;\n  y += vy;\n  const sx = (Math.random() - 0.5) * SHAKE * hit;\n  const sy = (Math.random() - 0.5) * SHAKE * hit;\n  ctx.clearRect(0, 0, W(), H());\n  ctx.save(); ctx.translate(sx, sy);\n  ctx.fillStyle = '#f59e0b';\n  ctx.fillRect(W() / 2 - 30, H() / 2 - 20 + y * 4, 60, 40);\n  ctx.restore();\n  ctx.fillStyle = '#eee'; ctx.font = '13px system-ui';\n  ctx.fillText('화면을 눌러 보라', 16, 22);\n  requestAnimationFrame(frame);\n}\nframe();"
+    },
+    {
       "type": "note",
       "text": "**히트스톱**(맞는 순간 0.05초 정지) · **화면 흔들림**(짧고 작게) · **넉백** · **파티클·플래시**(맞은 쪽을 흰색으로 1~2프레임) · **소리**(가장 저평가된 요소) · **UI 반응**(체력바가 늦게 따라오기)."
     },

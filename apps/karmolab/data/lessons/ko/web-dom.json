@@ -11,6 +11,31 @@
       "text": "1. 찾기 — 화면에서 조각 집어 오기"
     },
     {
+      "type": "demo",
+      "kind": "html",
+      "label": "이벤트가 어디서 어디로 흐르나 — 안쪽 상자를 눌러 보라",
+      "height": "230px",
+      "controls": [
+        {
+          "id": "phase",
+          "label": "잡는 단계",
+          "type": "select",
+          "value": "false",
+          "options": [
+            {
+              "value": "false",
+              "label": "거품(위로)"
+            },
+            {
+              "value": "true",
+              "label": "잡기(아래로)"
+            }
+          ]
+        }
+      ],
+      "text": "<style>div{padding:14px;border:1px solid #bbb;border-radius:8px}#log{font:12px ui-monospace;margin-top:8px;white-space:pre}</style>\n<div id=\"a\">할아버지\n  <div id=\"b\">아버지\n    <div id=\"c\">나 (눌러 보라)</div>\n  </div>\n</div>\n<div id=\"log\"></div>\n<script>\n  const log = document.getElementById('log');\n  ['a','b','c'].forEach((id) => document.getElementById(id).addEventListener('click',\n    (e) => { log.textContent += id + ' 가 받음\\n'; }, {{phase}}));\n</script>"
+    },
+    {
       "type": "code",
       "lang": "js",
       "label": "선택자는 CSS 와 같다",

@@ -11,6 +11,24 @@
       "text": "1. 배열 — 순서와 위치"
     },
     {
+      "type": "demo",
+      "kind": "js",
+      "label": "배열 한가운데 넣기 vs 끝에 넣기 — 크기를 밀어 보라",
+      "height": "200px",
+      "controls": [
+        {
+          "id": "n",
+          "label": "원소 수",
+          "type": "range",
+          "min": 1000,
+          "max": 200000,
+          "step": 1000,
+          "value": 50000
+        }
+      ],
+      "text": "const N = {{n}};\nconst a = Array.from({ length: N }, (_, i) => i);\nlet t0 = performance.now();\nfor (let k = 0; k < 200; k++) a.push(k);\nconst end = performance.now() - t0;\nt0 = performance.now();\nfor (let k = 0; k < 200; k++) a.splice(0, 0, k);\nconst front = performance.now() - t0;\nctx.fillStyle = '#eee'; ctx.font = '15px system-ui';\nctx.fillText('원소 ' + N.toLocaleString() + '개에 200번 넣기', 16, 32);\nconst bar = (y, ms, label, col) => {\n  const w = Math.min(W() - 150, ms * 12 + 4);\n  ctx.fillStyle = col; ctx.fillRect(16, y, w, 22);\n  ctx.fillStyle = '#eee'; ctx.font = '13px ui-monospace, monospace';\n  ctx.fillText(label + ' ' + ms.toFixed(2) + 'ms', 24 + w, y + 17);\n};\nbar(56, end, '끝에 push', '#4ade80');\nbar(92, front, '앞에 splice', '#f87171');\nctx.fillStyle = '#9ca3af'; ctx.font = '12px system-ui';\nctx.fillText('앞에 넣으면 뒤의 것을 전부 밀어야 한다 — 크기에 비례해 느려진다', 16, 140);"
+    },
+    {
       "type": "p",
       "text": "위치로 꺼내기 O(1), 값으로 찾기 O(n), 가운데 넣고 빼기 O(n). 순서가 의미 있고 주로 훑는다면 배열이 맞다."
     },

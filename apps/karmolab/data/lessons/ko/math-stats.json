@@ -11,6 +11,33 @@
       "text": "1. 백분위로 보라"
     },
     {
+      "type": "demo",
+      "kind": "js",
+      "label": "꼬리를 밀어 보라 — 평균은 그대로인데 체감은 무너진다",
+      "height": "230px",
+      "controls": [
+        {
+          "id": "tail",
+          "label": "느린 요청 비율(%)",
+          "type": "range",
+          "min": 0,
+          "max": 20,
+          "step": 1,
+          "value": 3
+        },
+        {
+          "id": "slow",
+          "label": "느린 정도(ms)",
+          "type": "range",
+          "min": 300,
+          "max": 6000,
+          "step": 100,
+          "value": 3000
+        }
+      ],
+      "text": "const TAIL = {{tail}} / 100, SLOW = {{slow}};\nconst data = Array.from({ length: 2000 }, () => (Math.random() < TAIL ? SLOW * (0.6 + Math.random() * 0.8) : 60 + Math.random() * 120));\ndata.sort((a, b) => a - b);\nconst pick = (q) => data[Math.floor(q * (data.length - 1))];\nconst mean = data.reduce((s, v) => s + v, 0) / data.length;\nctx.clearRect(0, 0, W(), H());\nconst max = data[data.length - 1];\ndata.forEach((v, i) => {\n  if (i % 4) return;\n  const x = 16 + (i / data.length) * (W() - 32);\n  const h = (v / max) * (H() - 90);\n  ctx.fillStyle = v > 1000 ? '#f87171' : '#60a5fa';\n  ctx.fillRect(x, H() - 30 - h, 2, h);\n});\nctx.fillStyle = '#eee'; ctx.font = '14px system-ui';\nctx.fillText('평균 ' + Math.round(mean) + 'ms  ·  p50 ' + Math.round(pick(0.5)) + '  ·  p95 ' + Math.round(pick(0.95)) + '  ·  p99 ' + Math.round(pick(0.99)), 16, 24);\nctx.fillStyle = '#9ca3af'; ctx.font = '12px system-ui';\nctx.fillText('빨간 막대가 사람들이 화내는 그 요청이다', 16, 46);"
+    },
+    {
       "type": "code",
       "lang": "text",
       "label": "같은 데이터, 다른 이야기",

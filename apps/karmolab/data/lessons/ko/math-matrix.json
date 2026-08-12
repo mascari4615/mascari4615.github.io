@@ -21,6 +21,33 @@
       "text": "2. 순서가 결과를 바꾼다"
     },
     {
+      "type": "demo",
+      "kind": "html",
+      "label": "순서를 바꿔 보라 — 같은 값인데 자리가 다르다",
+      "height": "250px",
+      "controls": [
+        {
+          "id": "deg",
+          "label": "회전(도)",
+          "type": "range",
+          "min": 0,
+          "max": 180,
+          "step": 5,
+          "value": 45
+        },
+        {
+          "id": "move",
+          "label": "이동(px)",
+          "type": "range",
+          "min": 0,
+          "max": 160,
+          "step": 10,
+          "value": 100
+        }
+      ],
+      "text": "<style>\n  .stage{display:flex;gap:24px}\n  .cell{position:relative;width:200px;height:150px;background:#f1f5f9;border-radius:10px;overflow:hidden}\n  .box{position:absolute;left:10px;top:56px;width:40px;height:40px;background:#4f46e5;border-radius:6px}\n  .r-then-t{transform:rotate({{deg}}deg) translateX({{move}}px)}\n  .t-then-r{transform:translateX({{move}}px) rotate({{deg}}deg)}\n  p{font:12px system-ui;margin:6px 0 0;color:#334155}\n</style>\n<div class=\"stage\">\n  <div><div class=\"cell\"><div class=\"box r-then-t\"></div></div><p>rotate → translateX</p></div>\n  <div><div class=\"cell\"><div class=\"box t-then-r\"></div></div><p>translateX → rotate</p></div>\n</div>"
+    },
+    {
       "type": "code",
       "lang": "css",
       "label": "직접 눈으로 확인되는 예",
