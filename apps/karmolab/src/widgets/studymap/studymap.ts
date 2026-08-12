@@ -154,7 +154,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-next-tag { position: absolute; top: -8px; right: 12px; font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--bg-void); }
 
 .sm-empty { padding: 28px; text-align: center; color: var(--text-tertiary); font-size: var(--font-size-2xs); }
-.sm-foot { display: flex; justify-content: flex-end; }
+.sm-foot { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
 .sm-reset { background: none; border: 1px solid var(--border); color: var(--text-tertiary); font: inherit; font-size: 11px; padding: 6px 12px; border-radius: 999px; cursor: pointer; }
 .sm-reset:hover { border-color: var(--error); color: var(--error); }
 
@@ -218,7 +218,11 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
                placeholder="${esc(t('studymap.search', undefined, '주제 찾기 — 예: rebase, 인덱스, 캐시'))}"
                aria-label="${esc(t('studymap.search', undefined, '주제 찾기 — 예: rebase, 인덱스, 캐시'))}">
         <div data-sm="stages"></div>
-        <div class="sm-foot"><button type="button" class="sm-reset" data-sm="reset">${esc(t('studymap.reset', undefined, '이 갈래 진도 지우기'))}</button></div>
+        <div class="sm-foot">
+          <button type="button" class="sm-reset" data-sm="export">${esc(t('studymap.export', undefined, '진도 내보내기'))}</button>
+          <button type="button" class="sm-reset" data-sm="import">${esc(t('studymap.import', undefined, '진도 가져오기'))}</button>
+          <button type="button" class="sm-reset" data-sm="reset">${esc(t('studymap.reset', undefined, '이 갈래 진도 지우기'))}</button>
+        </div>
       </div>`;
 
     const q = <T extends HTMLElement>(key: string): T => container.querySelector(`[data-sm="${key}"]`) as T;
@@ -401,6 +405,36 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
     elSearch.addEventListener('input', () => {
       query = elSearch.value.trim().toLowerCase();
       paint();
+    });
+
+    /* 진도는 이 브라우저에만 있다 — 기기를 바꾸면 사라진다. 서버를 두는 대신
+       **한 줄로 들고 다니게** 한다(가입 없이 옮기는 가장 싼 방법). */
+    q<HTMLButtonElement>('export').addEventListener('click', () => {
+      const code = [...done].join(' ');
+      if (!code) {
+        alert(t('studymap.export.empty', undefined, '아직 체크한 칸이 없다.'));
+        return;
+      }
+      if (typeof Toolbox !== 'undefined' && Toolbox.copyText) {
+        Toolbox.copyText(code, { message: t('studymap.export.done', undefined, '진도를 복사했다. 다른 기기에서 「진도 가져오기」에 붙여 넣어라.') });
+        return;
+      }
+      prompt(t('studymap.export.done', undefined, '진도를 복사했다. 다른 기기에서 「진도 가져오기」에 붙여 넣어라.'), code);
+    });
+
+    q<HTMLButtonElement>('import').addEventListener('click', () => {
+      const raw = prompt(t('studymap.import.ask', undefined, '내보낸 진도를 붙여 넣어라. (지금 진도에 더해진다)'));
+      if (raw == null) return;
+      const known = new Set(tracks.flatMap(nodesOf).map((n) => n.id));
+      const ids = raw.split(/[\s,]+/).map((v) => v.trim()).filter((v) => known.has(v));
+      if (ids.length === 0) {
+        alert(t('studymap.import.bad', undefined, '알아볼 수 있는 칸이 없다. 내보내기로 만든 글만 된다.'));
+        return;
+      }
+      ids.forEach((id) => done.add(id));
+      writeDone(done);
+      paint();
+      alert(t('studymap.import.done', { n: ids.length }, '{n}칸을 가져왔다.'));
     });
 
     q<HTMLButtonElement>('reset').addEventListener('click', () => {

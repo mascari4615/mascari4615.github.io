@@ -13,5 +13,12 @@
   "studymap.mdd.clear": "You walked a whole track. Shall we start the next one?",
   "studymap.found": "{n} topics across {tracks} tracks",
   "studymap.all": "Whole map {done} / {total}",
-  "studymap.prereq": "First"
+  "studymap.prereq": "First",
+  "studymap.export": "Export progress",
+  "studymap.import": "Import progress",
+  "studymap.export.done": "Progress copied. Paste it into Import progress on the other device.",
+  "studymap.export.empty": "Nothing is checked yet.",
+  "studymap.import.ask": "Paste the exported progress. (It is added to what you have now)",
+  "studymap.import.bad": "Nothing recognizable in there. Only text made by Export works.",
+  "studymap.import.done": "Imported {n} topics."
 }
