@@ -378,5 +378,14 @@
   "imageedit.blend.hard-light": "Hard light",
   "imageedit.blend.soft-light": "Soft light",
   "imageedit.blend.difference": "Difference",
-  "imageedit.blend.exclusion": "Exclusion"
+  "imageedit.blend.exclusion": "Exclusion",
+  "imageedit.toolMarquee": "Marquee",
+  "imageedit.toolLasso": "Lasso",
+  "imageedit.toolWand": "Magic wand",
+  "imageedit.selected": "Selected",
+  "imageedit.selectedNone": "Nothing selected",
+  "imageedit.clearSelection": "Clear selection",
+  "imageedit.feathered": "Edges feathered",
+  "imageedit.deselect": "Deselect",
+  "imageedit.featherEdge": "Feather edge"
 }

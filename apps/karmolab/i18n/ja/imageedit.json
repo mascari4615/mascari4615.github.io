@@ -378,5 +378,14 @@
   "imageedit.blend.hard-light": "ハードライト",
   "imageedit.blend.soft-light": "ソフトライト",
   "imageedit.blend.difference": "差の絶対値",
-  "imageedit.blend.exclusion": "除外"
+  "imageedit.blend.exclusion": "除外",
+  "imageedit.toolMarquee": "矩形選択",
+  "imageedit.toolLasso": "投げ縄",
+  "imageedit.toolWand": "自動選択",
+  "imageedit.selected": "選択した",
+  "imageedit.selectedNone": "選択なし",
+  "imageedit.clearSelection": "選択範囲を消す",
+  "imageedit.feathered": "境界をぼかした",
+  "imageedit.deselect": "選択解除",
+  "imageedit.featherEdge": "境界をぼかす"
 }

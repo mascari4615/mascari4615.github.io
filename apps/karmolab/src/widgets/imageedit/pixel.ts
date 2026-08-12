@@ -52,6 +52,8 @@ function difference(data: Uint8ClampedArray, a: number, b: number): number {
 export interface FillOptions {
   /** 0 = 똑같은 색만, 1 = 전부. */
   tolerance?: number;
+  /** 고른 자리(픽셀당 0..255). 주면 그 밖으로는 안 번진다. */
+  selection?: Uint8Array | null;
   /** false = 판 전체에서 같은 색을 한꺼번에(이어져 있지 않아도). */
   contiguous?: boolean;
   /** 격자에 맞춰 칸 단위로 채운다(픽셀 모드). */
@@ -103,8 +105,10 @@ export function floodFill(
   }
 
   let changed = 0;
+  const selection = options.selection && options.selection.length === hit.length ? options.selection : null;
   for (let p = 0; p < hit.length; p += 1) {
     if (!hit[p]) continue;
+    if (selection && selection[p] < 128) continue;
     const i = p * 4;
     if (data[i] === color[0] && data[i + 1] === color[1] && data[i + 2] === color[2] && data[i + 3] === color[3]) continue;
     data[i] = color[0]; data[i + 1] = color[1]; data[i + 2] = color[2]; data[i + 3] = color[3];

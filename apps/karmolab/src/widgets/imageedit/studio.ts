@@ -19,6 +19,11 @@ import {
 } from './doc';
 import { History, fieldChange, pixelPatch } from './history';
 import { createPixelDoc, ditherdeckFromDoc, docFromDitherdeck, extractPalette, floodFill, isDitherdeckProject, parseHex, toHex } from './pixel';
+import {
+  clearInside, createSelection, edgePixels, feather, invert as invertSelection, isEmpty,
+  magicWand, selectAll, selectNone, selectPolygon, selectRect,
+  type SelectMode, type Selection
+} from './selection';
 import { CanvasView } from './view';
 
 declare const Toolbox: {
@@ -27,7 +32,7 @@ declare const Toolbox: {
   onDispose?(fn: () => void): void;
 };
 
-type ToolId = 'brush' | 'eraser' | 'fill' | 'pick' | 'pan';
+type ToolId = 'brush' | 'eraser' | 'fill' | 'pick' | 'pan' | 'marquee' | 'lasso' | 'wand';
 
 const esc = (value: unknown): string =>
   String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch] as string));
@@ -91,6 +96,10 @@ function buildStudio(container: HTMLElement): void {
   let strokeBase: Surface | null = null;
   let panning: { x: number; y: number } | null = null;
   let spaceDown = false;
+  let selection: Selection = createSelection(doc.w, doc.h);
+  /* 고르는 중인 몸짓 — 사각형은 시작점, 올가미는 지나온 점들. */
+  let picking: { from: { x: number; y: number }; points: Array<{ x: number; y: number }> } | null = null;
+  let ants = 0;
 
   container.innerHTML =
     '<div class="ies">' +
@@ -116,6 +125,9 @@ function buildStudio(container: HTMLElement): void {
         toolButton('eraser', 'E', T('toolEraser', '지우개'), '<path d="m5.5 15.5 6-6a2 2 0 0 1 2.8 0l3.7 3.7a2 2 0 0 1 0 2.8l-4 4H8l-2.5-2.5a2 2 0 0 1 0-2z"/><path d="M9.5 20h10"/>') +
         toolButton('fill', 'F', T('toolFill', '채우기'), '<path d="m10 3 8.2 8.2a1.4 1.4 0 0 1 0 2L12 19.4a1.4 1.4 0 0 1-2 0l-6.2-6.2a1.4 1.4 0 0 1 0-2L10 5"/><path d="M20.5 15.5c1 1.4 1.5 2.4 1.5 3a1.5 1.5 0 1 1-3 0c0-.6.5-1.6 1.5-3z" fill="currentColor"/>') +
         toolButton('pick', 'I', T('toolPick', '스포이드'), '<path d="m13.5 7.5 3 3M4 20l1-3.2 8-8 2.2 2.2-8 8z"/><path d="M15 4.6a2 2 0 0 1 2.8 0l1.6 1.6a2 2 0 0 1 0 2.8l-1.5 1.5-4.4-4.4z"/>') +
+        toolButton('marquee', 'M', T('toolMarquee', '사각 선택'), '<rect x="3.5" y="5.5" width="17" height="13" rx="1" stroke-dasharray="3 2.5"/>') +
+        toolButton('lasso', 'L', T('toolLasso', '올가미'), '<path d="M12 4.5c4.4 0 8 2.5 8 5.6 0 3-3.6 5.5-8 5.5-1.3 0-2.6-.2-3.7-.6-1.4 1.2-1.6 2.6-1 4.5-2-1.3-2.6-3.4-1.6-5.5C4.4 13 4 11.6 4 10.1c0-3.1 3.6-5.6 8-5.6z"/>') +
+        toolButton('wand', 'W', T('toolWand', '마술봉'), '<path d="m4 20 9.5-9.5M15 4l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9zM19.5 12.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z"/>') +
         toolButton('pan', 'Space', T('toolPan', '이동'), '<path d="M12 3v18M3 12h18M12 3 9.5 5.8M12 3l2.5 2.8M12 21l-2.5-2.8M12 21l2.5-2.8M3 12l2.8-2.5M3 12l2.8 2.5M21 12l-2.8-2.5M21 12l-2.8 2.5"/>') +
         '<hr>' +
         '<input data-color type="color" value="#18202c" aria-label="' + esc(T('color', '색')) + '">' +
@@ -129,6 +141,11 @@ function buildStudio(container: HTMLElement): void {
           '<label>' + esc(T('opacity', '짙기')) + '<input data-brush="opacity" type="range" min="0" max="1" step="0.01"><b data-out="opacity"></b></label>' +
           '<label>' + esc(T('flow', '흐름')) + '<input data-brush="flow" type="range" min="0.02" max="1" step="0.01"><b data-out="flow"></b></label>' +
           '<label>' + esc(T('smoothing', '손떨림')) + '<input data-brush="smoothing" type="range" min="0" max="0.95" step="0.01"><b data-out="smoothing"></b></label>' +
+          '<span class="ies-selbar">' +
+            '<button data-act="deselect" data-needs-selection class="ies-mini" title="Ctrl+D">' + esc(T('deselect', '선택 풀기')) + '</button>' +
+            '<button data-act="feather-selection" data-needs-selection class="ies-mini">' + esc(T('featherEdge', '가장자리 부드럽게')) + '</button>' +
+            '<button data-act="clear-selection" data-needs-selection class="ies-mini" title="Delete">' + esc(T('clearSelection', '고른 자리 지우기')) + '</button>' +
+          '</span>' +
           '<span class="ies-zoom" data-zoom></span>' +
           '<button data-act="fit" class="ies-mini">' + esc(T('fit', '맞춤')) + '</button>' +
         '</div>' +
@@ -186,9 +203,26 @@ function buildStudio(container: HTMLElement): void {
     view.invalidate();
   }
 
+  /** 고른 자리가 바뀌면 테두리와 개미 시계가 따라온다 — 한 길로만 지나가게 묶어 둔다. */
+  function selectionChanged(): void {
+    view.setSelectionEdges(edgePixels(selection));
+    if (ants) { clearInterval(ants); ants = 0; }
+    if (view.hasSelectionEdges) {
+      ants = window.setInterval(() => { view.antPhase += 1; view.invalidate(); }, 120);
+    }
+    const empty = isEmpty(selection);
+    root.querySelectorAll<HTMLButtonElement>('[data-needs-selection]').forEach(button => { button.disabled = empty; });
+    view.invalidate();
+  }
+
+  /** 지금 붓이 지켜야 할 자리. 아무것도 안 골랐으면 판 전체다(= null). */
+  const selectionMask = (): Uint8Array | null => (isEmpty(selection) ? null : selection.mask);
+
   function reflowDoc(): void {
     view.resizeDoc(doc.w, doc.h);
     view.grid = doc.grid;
+    selection = createSelection(doc.w, doc.h);
+    selectionChanged();
     flat = createSurface(doc.w, doc.h);
     pick<HTMLInputElement>('[data-name]').value = doc.name;
     pick<HTMLInputElement>('[data-fps]').value = String(doc.fps);
@@ -332,6 +366,17 @@ function buildStudio(container: HTMLElement): void {
       panning = { x: event.clientX, y: event.clientY };
       return;
     }
+    if (tool === 'marquee' || tool === 'lasso') {
+      /* Shift = 더하기, Alt = 빼기 — 포토샵과 같은 손버릇. */
+      picking = { from: point, points: [point] };
+      return;
+    }
+    if (tool === 'wand') {
+      magicWand(selection, flat, point.x, point.y, 0.14, !event.altKey, pickMode(event));
+      selectionChanged();
+      say(isEmpty(selection) ? T('selectedNone', '고른 것이 없다') : T('selected', '골랐다'));
+      return;
+    }
     if (tool === 'pick') {
       const color = pickColor(flat, point.x, point.y);
       if (color) {
@@ -347,7 +392,7 @@ function buildStudio(container: HTMLElement): void {
     if (tool === 'fill') {
       const before = cloneSurface(cel);
       const changed = floodFill(cel, point.x, point.y, [brush.color[0], brush.color[1], brush.color[2], 255], {
-        tolerance: 0.06, grid: doc.grid || 1
+        tolerance: 0.06, grid: doc.grid || 1, selection: selectionMask()
       });
       if (changed) {
         const patch = pixelPatch(cel, before, T('toolFill', '채우기'));
@@ -364,7 +409,7 @@ function buildStudio(container: HTMLElement): void {
       mode: tool === 'eraser' ? 'erase' : 'paint',
       pixel: doc.grid > 0,
       grid: doc.grid || 1
-    });
+    }, selectionMask());
     stroke.begin({ x: point.x, y: point.y, pressure: event.pressure || 0.5 });
     repaint(stroke.dirty || undefined);
   });
@@ -376,6 +421,14 @@ function buildStudio(container: HTMLElement): void {
       view.invalidate();
       return;
     }
+    if (picking) {
+      const point = toDoc(event);
+      if (tool === 'lasso') picking.points.push(point);
+      else picking.points = [point];
+      /* 끄는 동안 보이는 테두리 — 아직 확정 아니다(놓을 때 굳는다). */
+      previewSelection(event);
+      return;
+    }
     if (!stroke) return;
     const point = toDoc(event);
     const previous = stroke.dirty;
@@ -385,8 +438,48 @@ function buildStudio(container: HTMLElement): void {
     if (now) repaint(previous ? union(previous, now) : now);
   });
 
-  const endStroke = (): void => {
+  /** Shift = 더하기 · Alt = 빼기 · 둘 다 = 교집합. */
+  const pickMode = (event: { shiftKey: boolean; altKey: boolean }): SelectMode =>
+    (event.shiftKey && event.altKey) ? 'intersect' : event.shiftKey ? 'add' : event.altKey ? 'subtract' : 'replace';
+
+  /** 끄는 중 미리보기 — 확정과 같은 함수를 쓰되 되돌리기에는 안 쌓는다. */
+  function previewSelection(event: PointerEvent): void {
+    if (!picking) return;
+    const backup = selection;
+    selection = createSelection(doc.w, doc.h);
+    selection.mask.set(backup.mask);
+    selection.bounds = backup.bounds;
+    applyPicking(event);
+    view.setSelectionEdges(edgePixels(selection));
+    view.invalidate();
+    selection = backup;
+  }
+
+  function applyPicking(event: PointerEvent): void {
+    if (!picking) return;
+    const mode = pickMode(event);
+    if (tool === 'lasso') {
+      selectPolygon(selection, picking.points, mode);
+      return;
+    }
+    const to = picking.points[picking.points.length - 1];
+    const rect = {
+      x: Math.min(picking.from.x, to.x), y: Math.min(picking.from.y, to.y),
+      w: Math.abs(to.x - picking.from.x), h: Math.abs(to.y - picking.from.y)
+    };
+    /* 톡 누르기만 하면 선택을 푼다 — 「밖을 눌러 해제」가 몸에 배어 있다. */
+    if (rect.w < 1 || rect.h < 1) selectNone(selection);
+    else selectRect(selection, rect, mode);
+  }
+
+  const endStroke = (event?: PointerEvent): void => {
     panning = null;
+    if (picking) {
+      if (event) applyPicking(event);
+      picking = null;
+      selectionChanged();
+      return;
+    }
     if (!stroke || !strokeBase) { stroke = null; strokeBase = null; return; }
     const layer = activeLayer(doc);
     const cel = layer ? layer.cels[doc.activeFrame] : null;
@@ -400,8 +493,8 @@ function buildStudio(container: HTMLElement): void {
     renderLayers();
     renderFrames();
   };
-  canvas.addEventListener('pointerup', endStroke);
-  canvas.addEventListener('pointercancel', endStroke);
+  canvas.addEventListener('pointerup', (event: PointerEvent) => endStroke(event));
+  canvas.addEventListener('pointercancel', (event: PointerEvent) => endStroke(event));
   canvas.addEventListener('contextmenu', event => event.preventDefault());
 
   canvas.addEventListener('wheel', (event: WheelEvent) => {
@@ -536,6 +629,23 @@ function buildStudio(container: HTMLElement): void {
         repaint();
       }, 1000 / doc.fps);
     },
+    'clear-selection': () => {
+      const layer = canDraw();
+      if (!layer) return;
+      const cel = ensureCel(doc, layer, doc.activeFrame);
+      const before = cloneSurface(cel);
+      clearInside(cel, selection);
+      const patch = pixelPatch(cel, before, T('clearSelection', '고른 자리 지우기'));
+      if (patch) history.push(patch);
+      renderLayers(); renderFrames(); repaint();
+    },
+    'feather-selection': () => {
+      if (isEmpty(selection)) return;
+      feather(selection, 3);
+      selectionChanged();
+      say(T('feathered', '가장자리를 부드럽게 했다'));
+    },
+    'deselect': () => { selectNone(selection); selectionChanged(); },
     'pick-palette': () => {
       doc.palette = extractPalette(flat, 16);
       renderPalette();
@@ -607,7 +717,11 @@ function buildStudio(container: HTMLElement): void {
       actions[event.shiftKey ? 'redo' : 'undo']();
       return;
     }
-    const map: Record<string, ToolId> = { b: 'brush', e: 'eraser', f: 'fill', i: 'pick' };
+    if ((event.ctrlKey || event.metaKey) && key === 'a') { event.preventDefault(); selectAll(selection); selectionChanged(); return; }
+    if ((event.ctrlKey || event.metaKey) && key === 'd') { event.preventDefault(); selectNone(selection); selectionChanged(); return; }
+    if ((event.ctrlKey || event.metaKey) && key === 'i') { event.preventDefault(); invertSelection(selection); selectionChanged(); return; }
+    if (key === 'delete' || key === 'backspace') { event.preventDefault(); actions['clear-selection'](); return; }
+    const map: Record<string, ToolId> = { b: 'brush', e: 'eraser', f: 'fill', i: 'pick', m: 'marquee', l: 'lasso', w: 'wand' };
     if (map[key]) {
       tool = map[key];
       root.querySelectorAll<HTMLElement>('[data-tool]').forEach(button => button.classList.toggle('active', button.dataset.tool === tool));
@@ -635,6 +749,7 @@ function buildStudio(container: HTMLElement): void {
 
   Toolbox.onDispose?.(() => {
     if (playing) clearInterval(playing);
+    if (ants) clearInterval(ants);
     observer.disconnect();
     view.dispose();
     document.removeEventListener('keydown', keydown);
@@ -675,6 +790,8 @@ function injectStyles(): void {
     '.ies-brush input[type=range]{width:74px}',
     '.ies-brush b{min-width:26px;color:var(--text-tertiary);font-weight:500}',
     '.ies-zoom{margin-left:auto;color:var(--text-tertiary)}',
+    '.ies-selbar{display:flex;gap:4px}',
+    '.ies-selbar button[disabled]{opacity:.35;cursor:default}',
     '.ies-canvas{flex:1;min-height:0;position:relative;overflow:hidden;background:var(--bg-primary);background-image:radial-gradient(circle at 1px 1px,color-mix(in srgb,var(--border) 60%,transparent) 1px,transparent 0);background-size:18px 18px}',
     '.ies-canvas canvas{position:absolute;inset:0;touch-action:none}',
     '.ies-timeline{display:flex;align-items:center;gap:8px;padding:6px 10px;border-top:1px solid var(--border);background:var(--bg-secondary)}',

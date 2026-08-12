@@ -72,7 +72,35 @@ const canvasInk = () => page.evaluate(() => {
   return dark;
 });
 
-const box = await page.locator('.ies [data-canvas]').boundingBox();
+
+/**
+ * 그림이 화면 어느 사각형에 놓였나 — 캔버스 밖은 아예 비어 있으므로(투명) 그걸로 잰다.
+ * 이걸 안 쓰고 캔버스 비율로 찍으면 창 모양에 따라 **그림 밖**을 눌러 「아무 일도 안 일어남」이
+ * 되고, 검사는 그걸 기능 고장으로 잘못 읽는다(실제로 한 번 그랬다).
+ */
+const artRect = async () => {
+  const box = await page.locator('.ies [data-canvas]').boundingBox();
+  const inner = await page.evaluate(() => {
+    const canvas = document.querySelector('.ies [data-canvas]');
+    const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+    let minX = canvas.width, minY = canvas.height, maxX = -1, maxY = -1;
+    for (let y = 0; y < canvas.height; y += 2) {
+      for (let x = 0; x < canvas.width; x += 2) {
+        if (data[(y * canvas.width + x) * 4 + 3] > 8) {
+          if (x < minX) minX = x; if (x > maxX) maxX = x;
+          if (y < minY) minY = y; if (y > maxY) maxY = y;
+        }
+      }
+    }
+    const dpr = canvas.width / parseFloat(canvas.style.width);
+    return maxX < 0 ? null : { x: minX / dpr, y: minY / dpr, w: (maxX - minX) / dpr, h: (maxY - minY) / dpr };
+  });
+  if (!inner) throw new Error('그림이 화면에 없다');
+  /* width/height 로도 읽히게 둔다 — boundingBox() 를 받던 자리들이 그대로 쓴다. */
+  return { x: box.x + inner.x, y: box.y + inner.y, w: inner.w, h: inner.h, width: inner.w, height: inner.h };
+};
+
+const box = await artRect();
 const before = await canvasInk();
 
 /* ① 붓 — 눌러서 긋는다. */
@@ -126,7 +154,7 @@ if (!(await page.locator('.ies .ies-frame.active').first().isVisible())) problem
 page.once('dialog', dialog => dialog.accept());
 await page.click('.ies [data-act="new-pixel"]');
 await page.waitForTimeout(400);
-const pixelBox = await page.locator('.ies [data-canvas]').boundingBox();
+const pixelBox = await artRect();
 await page.mouse.move(pixelBox.x + pixelBox.width * 0.5, pixelBox.y + pixelBox.height * 0.5);
 await page.mouse.down();
 await page.mouse.up();
@@ -134,7 +162,60 @@ await page.waitForTimeout(250);
 const dotted = await canvasInk();
 if (dotted < 20) problems.push('픽셀 모드에서 한 칸도 안 찍힌다 (' + dotted + ')');
 
-/* ⑦ 화면이 넘치지 않는다(가로 스크롤). */
+/* ⑦ 선택영역 — 골라 놓으면 붓이 그 밖으로 안 샌다. */
+page.once('dialog', dialog => dialog.accept());
+await page.click('.ies [data-act="new"]');
+await page.waitForTimeout(400);
+const art = await artRect();
+const ax = (f) => art.x + art.w * f;
+const ay = (f) => art.y + art.h * f;
+
+await page.click('.ies [data-tool="marquee"]');
+await page.mouse.move(ax(0.10), ay(0.20));
+await page.mouse.down();
+await page.mouse.move(ax(0.45), ay(0.80), { steps: 6 });
+await page.mouse.up();
+await page.waitForTimeout(250);
+if (!(await page.locator('.ies [data-act="deselect"]').isEnabled())) {
+  problems.push('사각형을 골랐는데 「선택 풀기」가 안 켜진다 (= 선택이 안 잡혔다)');
+}
+
+const canvasBox = await page.locator('.ies [data-canvas]').boundingBox();
+/** 그림의 오른쪽 절반에 묻은 잉크 — 고른 자리(왼쪽) 밖이다. */
+const rightHalf = { x: art.x - canvasBox.x + art.w * 0.55, w: art.w * 0.42 };
+const inkRightHalf = () => page.evaluate((rect) => {
+  const canvas = document.querySelector('.ies [data-canvas]');
+  const dpr = canvas.width / parseFloat(canvas.style.width);
+  const x0 = Math.round(rect.x * dpr);
+  const width = Math.max(1, Math.round(rect.w * dpr));
+  const data = canvas.getContext('2d').getImageData(x0, 0, width, canvas.height).data;
+  let dark = 0;
+  for (let i = 0; i < data.length; i += 4) if (data[i] < 120 && data[i + 3] > 200) dark += 1;
+  return dark;
+}, rightHalf);
+
+const outsideBefore = await inkRightHalf();
+await page.click('.ies [data-tool="brush"]');
+await page.mouse.move(ax(0.20), ay(0.50));
+await page.mouse.down();
+await page.mouse.move(ax(0.92), ay(0.50), { steps: 14 });
+await page.mouse.up();
+await page.waitForTimeout(300);
+const outsideAfter = await inkRightHalf();
+if (outsideAfter > outsideBefore + 30) problems.push('고른 자리 밖으로 붓이 샜다 (' + outsideBefore + ' → ' + outsideAfter + ')');
+if ((await canvasInk()) < 200) problems.push('고른 자리 안에도 안 그려졌다');
+
+/* 선택을 풀면 다시 온 판에 그려진다. */
+await page.click('.ies [data-act="deselect"]');
+await page.waitForTimeout(200);
+await page.mouse.move(ax(0.62), ay(0.75));
+await page.mouse.down();
+await page.mouse.move(ax(0.90), ay(0.78), { steps: 8 });
+await page.mouse.up();
+await page.waitForTimeout(300);
+if ((await inkRightHalf()) <= outsideAfter + 20) problems.push('선택을 풀었는데도 밖에 안 그려진다');
+
+/* ⑧ 화면이 넘치지 않는다(가로 스크롤). */
 const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 if (overflow > 2) problems.push('가로로 ' + overflow + 'px 넘친다');
 
@@ -153,4 +234,4 @@ if (problems.length) {
   console.error('[smoke-imagestudio] ✗\n - ' + problems.join('\n - '));
   process.exit(1);
 }
-console.log('[smoke-imagestudio] ✓ 붓·되돌리기·레이어(숨김 반영)·프레임·픽셀 모드 — 실제 브라우저');
+console.log('[smoke-imagestudio] ✓ 붓·되돌리기·레이어(숨김 반영)·프레임·픽셀 모드·선택영역(밖으로 안 샘) — 실제 브라우저');

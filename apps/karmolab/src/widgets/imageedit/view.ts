@@ -29,6 +29,16 @@ export class CanvasView {
   grid = 0;
   private dpr = 1;
   private frame = 0;
+  /** 고른 자리의 경계 픽셀 — 「달리는 개미」 테두리를 그린다. */
+  private selectionEdges: Array<[number, number]> = [];
+  /** 개미가 흐르는 위치. 올릴 때마다 점선이 한 칸씩 움직인다. */
+  antPhase = 0;
+
+  setSelectionEdges(edges: Array<[number, number]>): void {
+    this.selectionEdges = edges;
+  }
+
+  get hasSelectionEdges(): boolean { return this.selectionEdges.length > 0; }
 
   constructor(canvas: HTMLCanvasElement, w: number, h: number) {
     this.canvas = canvas;
@@ -169,6 +179,20 @@ export class CanvasView {
       }
       ctx.stroke();
       ctx.restore();
+    }
+
+    /* 고른 자리 테두리 — 「달리는 개미」. 점선이 흐르는 것 자체가 「여기까지만 손댄다」는 신호다.
+       경계 픽셀만 그린다(안쪽은 안 칠한다 — 그림이 가려지면 고른 의미가 없다). */
+    if (this.selectionEdges.length) {
+      const step = Math.max(1, Math.ceil(this.selectionEdges.length / 30000));
+      const size = Math.max(1, this.scale);
+      for (let i = 0; i < this.selectionEdges.length; i += step) {
+        const point = this.selectionEdges[i];
+        const sx = this.offsetX + point[0] * this.scale;
+        const sy = this.offsetY + point[1] * this.scale;
+        ctx.fillStyle = ((point[0] + point[1] + this.antPhase) % 8) < 4 ? '#101418' : '#f4f7ff';
+        ctx.fillRect(sx, sy, size, size);
+      }
     }
 
     /* 그림 테두리 — 흰 배경 위 흰 그림도 어디까지가 판인지 보이게. */
