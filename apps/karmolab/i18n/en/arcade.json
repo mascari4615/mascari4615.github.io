@@ -356,5 +356,15 @@
   "arcade.jegi.kick": "Kick",
   "arcade.jegi.dropped": "you dropped it",
   "arcade.jegi.hint": "kick when the jegi enters the band at the bottom",
-  "arcade.jegi.win": "{who} · {n} kicks"
+  "arcade.jegi.win": "{who} · {n} kicks",
+  "arcade.game.auction.name": "Auction",
+  "arcade.game.auction.desc": "Everyone sees the value, nobody sees the bids · a tie means nobody wins it",
+  "arcade.auction.lot": "lot {i}/{n} · worth",
+  "arcade.auction.send": "Bid this much",
+  "arcade.auction.sent": "bid placed",
+  "arcade.auction.hint": "avoid the round numbers everyone else likes",
+  "arcade.auction.tie": "tied bids — nobody takes it",
+  "arcade.auction.sold": "{who} took it for {paid} (+{n})",
+  "arcade.auction.tally": "{p} pts · {m} coin",
+  "arcade.auction.win": "{who} · {n} pts"
 }

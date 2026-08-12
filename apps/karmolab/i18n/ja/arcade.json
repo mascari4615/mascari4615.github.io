@@ -356,5 +356,15 @@
   "arcade.jegi.kick": "蹴る",
   "arcade.jegi.dropped": "落とした",
   "arcade.jegi.hint": "下の帯に入ったら蹴る",
-  "arcade.jegi.win": "{who} · {n}回"
+  "arcade.jegi.win": "{who} · {n}回",
+  "arcade.game.auction.name": "競り",
+  "arcade.game.auction.desc": "価値は全員に見え、付け値は誰にも見えない · 同額なら誰も取れない",
+  "arcade.auction.lot": "品 {i}/{n} · 価値",
+  "arcade.auction.send": "この値で付ける",
+  "arcade.auction.sent": "付けた",
+  "arcade.auction.hint": "みんなが選びそうな数は避けよう",
+  "arcade.auction.tie": "同額 — 誰も取れない",
+  "arcade.auction.sold": "{who} が {paid} で落札 (+{n})",
+  "arcade.auction.tally": "{p}点 · {m}",
+  "arcade.auction.win": "{who} · {n}点"
 }

@@ -54,8 +54,9 @@ import { nunchiView } from './games/nunchi-view';
 import { fleetView } from './games/fleet-view';
 import { yutView } from './games/yut-view';
 import { jegiView } from './games/jegi-view';
+import { auctionView } from './games/auction-view';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const VIEWS: Array<GameView<any, any>> = [reflexView, gomokuView, fourView, memoryView, hitblowView, reversiView, dotsView, speedView, slideView, ultimateView, yachtView, checkersView, blackjackView, presidentView, dominoesView, curlingView, bowlingView, poolView, dartsView, airhockeyView, highlowView, nimView, hanabiView, wordchainView, lineupView, minesweeperView, liarsView, twentyView, snakeView, onestrokeView, fishingView, minishogiView, hanafudaView, tanksView, mancalaView, shellgameView, foxhoundsView, pongView, derbyView, whackView, tugView, capturegoView, rpsView, simonView, sudokuView, nunchiView, fleetView, yutView, jegiView];
+export const VIEWS: Array<GameView<any, any>> = [reflexView, gomokuView, fourView, memoryView, hitblowView, reversiView, dotsView, speedView, slideView, ultimateView, yachtView, checkersView, blackjackView, presidentView, dominoesView, curlingView, bowlingView, poolView, dartsView, airhockeyView, highlowView, nimView, hanabiView, wordchainView, lineupView, minesweeperView, liarsView, twentyView, snakeView, onestrokeView, fishingView, minishogiView, hanafudaView, tanksView, mancalaView, shellgameView, foxhoundsView, pongView, derbyView, whackView, tugView, capturegoView, rpsView, simonView, sudokuView, nunchiView, fleetView, yutView, jegiView, auctionView];
 
 export const viewById = (id: string): GameView<any, any> | undefined => VIEWS.find((v) => v.id === id);

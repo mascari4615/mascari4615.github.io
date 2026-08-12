@@ -356,5 +356,15 @@
   "arcade.jegi.kick": "차기",
   "arcade.jegi.dropped": "떨어뜨렸다",
   "arcade.jegi.hint": "제기가 아래 띠에 들어오면 차라",
-  "arcade.jegi.win": "{who} · {n}번"
+  "arcade.jegi.win": "{who} · {n}번",
+  "arcade.game.auction.name": "경매",
+  "arcade.game.auction.desc": "값어치는 다 보이고 부른 값은 아무도 못 본다 · 겹치면 아무도 못 가져간다",
+  "arcade.auction.lot": "물건 {i}/{n} · 값어치",
+  "arcade.auction.send": "이 값으로 부르기",
+  "arcade.auction.sent": "불렀다",
+  "arcade.auction.hint": "남들이 쓸 만한 숫자는 피하는 게 좋다",
+  "arcade.auction.tie": "같은 값이 겹쳤다 — 아무도 못 가져간다",
+  "arcade.auction.sold": "{who} 가 {paid} 에 가져갔다 (+{n}점)",
+  "arcade.auction.tally": "{p}점 · {m}원",
+  "arcade.auction.win": "{who} · {n}점"
 }
