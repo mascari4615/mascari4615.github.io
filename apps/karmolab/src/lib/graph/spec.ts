@@ -273,10 +273,27 @@ export interface DecorRule {
   scale?: number;
 }
 
+/**
+ * 가로 띠 — 「이 줄은 같은 단계」를 배경으로 말해 준다.
+ * 기술 트리·로드맵처럼 **위에서 아래로 흐르는 그림**에서 단계를 읽게 하는 장치다.
+ * 묶음(group)과 다르다: 묶음은 어느 노드가 속하는지를 적지만, 띠는 **자리(y 범위)** 만 안다.
+ */
+export interface LaneDef {
+  id: string;
+  label: string;
+  /** 월드 좌표 기준 세로 범위. */
+  y: number;
+  h: number;
+  /** 없으면 캔버스 기본 띠 색. */
+  color?: string;
+}
+
 export interface GraphSpec {
   version: number;
   _meta: Record<string, string>;
   groups: GroupDef[];
+  /** 단계 띠. 없으면 안 그린다(대부분의 맵은 안 쓴다). */
+  lanes?: LaneDef[];
   nodes: GraphNode[];
   edges: GraphEdge[];
   ephemeral_anchors: EphemeralAnchor[];

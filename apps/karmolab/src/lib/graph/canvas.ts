@@ -40,6 +40,7 @@ import { frameCoalesced } from './canvas-raf';
 import { buildEdgePath, buildEdgeLabel, applyEdgeFlow } from './canvas-edge';
 import { renderLeaders } from './canvas-leaders';
 import { renderGroups, computeGroupBox } from './canvas-group';
+import { renderLanes } from './canvas-lane';
 import { nodeBadges } from './canvas-badges';
 import { buildChildCard } from './canvas-children';
 import { buildCardText } from './canvas-card';
@@ -1050,7 +1051,26 @@ export class GraphCanvas {
     return roundedHullPath(convexHull(pts));
   }
 
+  /**
+   * 단계 띠 — 묶음보다 **뒤에** 깔린다(배경이라 아무것도 가리면 안 된다).
+   * 가로 범위는 노드 전체를 덮도록 자동으로 잰다: 띠 폭을 손으로 적게 하면 노드를 옮길 때마다 어긋난다.
+   */
+  private renderLanes(): void {
+    if (!this.spec) return;
+    const lanes = this.spec.lanes ?? [];
+    if (lanes.length === 0) {
+      this.groupLayer.querySelectorAll('.ck-lane').forEach((el) => el.remove());
+      return;
+    }
+    const xs = this.spec.nodes.map((n) => this.nodeCoords.get(n.id)?.x ?? n.x);
+    const rights = this.spec.nodes.map((n) => (this.nodeCoords.get(n.id)?.x ?? n.x) + n.w);
+    const left = xs.length ? Math.min(...xs) - 60 : 0;
+    const right = rights.length ? Math.max(...rights) + 60 : 0;
+    renderLanes(lanes, { layer: this.groupLayer, x: left, w: Math.max(120, right - left) });
+  }
+
   private renderGroups(): void {
+    this.renderLanes();
     if (!this.spec) return;
     // 「어떻게 그리나」는 canvas-group 이 안다 — 여기서는 **무엇을 그릴지**와 자리 계산만 준다.
     renderGroups(this.spec.groups.filter((g) => !g.hidden), {
