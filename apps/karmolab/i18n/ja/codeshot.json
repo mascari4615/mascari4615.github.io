@@ -1,0 +1,23 @@
+{
+  "codeshot.tab": "コード → 画像",
+  "codeshot.label.code": "コード",
+  "codeshot.label.lang": "言語",
+  "codeshot.label.frame": "外枠",
+  "codeshot.label.file": "ファイル名（任意）",
+  "codeshot.label.size": "文字サイズ",
+  "codeshot.label.preview": "プレビュー",
+  "codeshot.opt.numbers": "行番号",
+  "codeshot.btn.save": "PNG 保存",
+  "codeshot.btn.copy": "クリップボードへ",
+  "codeshot.status.idle": "コードを貼るとすぐ描きます",
+  "codeshot.status.ready": "描けました",
+  "codeshot.status.saved": "保存しました",
+  "codeshot.status.copied": "クリップボードに入れました",
+  "codeshot.status.noclip": "このブラウザは画像コピーを塞いでいます — 保存をお使いください",
+  "codeshot.stat.lines": "行",
+  "codeshot.stat.size": "画像サイズ",
+  "codeshot.frame.specimen": "実験室の標本",
+  "codeshot.frame.terminal": "ターミナル",
+  "codeshot.frame.paper": "印刷した紙",
+  "codeshot.frame.bare": "素のまま"
+}

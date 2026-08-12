@@ -34,7 +34,11 @@ try {
      *   세션이 여럿인 이 저장소에서는 남이 편집 중인 파일이 인덱스에 「삭제」로 잠깐 박혀 있다 —
      *   그 순간을 재면 멀쩡히 올라가 있는 파일을 「없다」고 말한다(실측: 남의 작업 중 위젯).
      *   push 로 나갈 것은 **커밋(HEAD)** 이므로 그것을 본다. */
-    execFileSync('git', ['ls-tree', '-r', '--name-only', 'HEAD', 'src'], { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 })
+    /* ★ 어느 커밋을 보나 (2026-08-12 두 번째). 훅이 `KL_PUSH_SHA` 로 **지금 밀려는 커밋**을
+     *   알려 주면 그걸 본다. 로컬 HEAD 만 보면, 격리된 자리에서 커밋을 만들어 미는 방식
+     *   (`commit-isolated.mjs`)에서 방금 넣은 소스가 로컬 HEAD 에 없어 멀쩡한 push 가 막힌다.
+     *   훅 밖에서 손으로 돌릴 때는 HEAD 가 맞다. */
+    execFileSync('git', ['ls-tree', '-r', '--name-only', process.env.KL_PUSH_SHA || 'HEAD', 'src'], { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 })
       .split('\n')
       .map((line) => line.trim())
       .filter(Boolean)

@@ -1,0 +1,23 @@
+{
+  "codeshot.tab": "코드 → 그림",
+  "codeshot.label.code": "코드",
+  "codeshot.label.lang": "언어",
+  "codeshot.label.frame": "껍데기",
+  "codeshot.label.file": "파일 이름 (선택)",
+  "codeshot.label.size": "글자 크기",
+  "codeshot.label.preview": "미리보기",
+  "codeshot.opt.numbers": "줄 번호",
+  "codeshot.btn.save": "PNG 저장",
+  "codeshot.btn.copy": "클립보드로",
+  "codeshot.status.idle": "코드를 붙여넣으면 바로 그려집니다",
+  "codeshot.status.ready": "다 그렸습니다",
+  "codeshot.status.saved": "저장했습니다",
+  "codeshot.status.copied": "클립보드에 넣었습니다",
+  "codeshot.status.noclip": "이 브라우저는 그림 복사를 막습니다 — 저장을 쓰세요",
+  "codeshot.stat.lines": "줄",
+  "codeshot.stat.size": "그림 크기",
+  "codeshot.frame.specimen": "실험실 표본",
+  "codeshot.frame.terminal": "터미널 창",
+  "codeshot.frame.paper": "인쇄된 종이",
+  "codeshot.frame.bare": "민짜"
+}
