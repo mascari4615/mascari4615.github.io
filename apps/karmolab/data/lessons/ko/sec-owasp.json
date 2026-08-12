@@ -1,0 +1,104 @@
+{
+  "id": "sec-owasp",
+  "minutes": 14,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "실제 사고의 대부분은 신기한 기법이 아니라 **같은 몇 가지**다. 이름을 알고 나면 코드에서 그 자리가 보인다."
+    },
+    {
+      "type": "h",
+      "text": "1. 인젝션 — 데이터가 명령이 될 때"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "문자열로 쿼리를 만들지 마라",
+      "text": "// 취약: 이름에 ' OR 1=1 -- 가 오면?\ndb.query(`SELECT * FROM users WHERE name = '${name}'`);\n\n// 안전: 값은 값으로 전달한다(파라미터 바인딩)\ndb.query('SELECT * FROM users WHERE name = ?', [name]);"
+    },
+    {
+      "type": "p",
+      "text": "같은 원리가 셸(`exec(\"rm \" + path)`), NoSQL, LDAP 에도 적용된다. **문자열 이어 붙이기로 명령을 만들면** 거기가 구멍이다."
+    },
+    {
+      "type": "h",
+      "text": "2. XSS — 남의 글이 내 페이지에서 실행됨"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "넣는 자리에서 막는다",
+      "text": "el.textContent = userInput;        // 안전 (글자로 들어간다)\nel.innerHTML = userInput;          // 위험\n\n// 꼭 HTML 을 받아야 하면 정화기(sanitizer)를 거친다"
+    },
+    {
+      "type": "note",
+      "text": "방어는 한 겹으로 끝내지 않는다: 넣을 때 이스케이프 + `Content-Security-Policy` 헤더 + 쿠키에 `HttpOnly`. 하나가 뚫려도 피해가 남지 않게."
+    },
+    {
+      "type": "h",
+      "text": "3. 접근 제어 — 가장 흔하고 가장 아프다"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "id 를 믿지 마라",
+      "text": "// 취약: 남의 주문 id 를 넣으면 남의 주문이 보인다\napp.get('/orders/:id', (req, res) => res.json(findOrder(req.params.id)));\n\n// 안전: 「이 사람의 것인가」를 서버에서 확인\napp.get('/orders/:id', (req, res) => {\n  const order = findOrder(req.params.id);\n  if (!order || order.userId !== req.user.id) return res.sendStatus(404);\n  res.json(order);\n});"
+    },
+    {
+      "type": "p",
+      "text": "화면에서 버튼을 숨기는 것은 보안이 아니다. **모든 판단은 서버에서** 한 번 더 한다."
+    },
+    {
+      "type": "h",
+      "text": "4. 나머지 자주 나오는 것들"
+    },
+    {
+      "type": "note",
+      "text": "설정 실수(디버그 모드·기본 비밀번호·열린 버킷) · 낡은 의존성 · 약한 인증(무제한 로그인 시도) · 민감정보 로그 남김 · 검증 없는 파일 업로드. 화려하지 않지만 사고의 대부분이 여기서 난다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "내 API 하나를 골라 **남의 id** 를 넣어 호출해 보라. 200 이 오면 그 자리가 접근 제어 결함이다."
+    },
+    {
+      "type": "try",
+      "text": "사용자 입력이 화면에 그려지는 곳을 grep 으로 찾아라(`innerHTML`). 각각이 textContent 로 바뀔 수 있는지 검토하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "SQL 인젝션을 막는 근본 방법은?",
+      "choices": [
+        "따옴표를 직접 제거한다",
+        "파라미터 바인딩으로 값과 명령을 분리한다",
+        "입력 길이를 제한한다"
+      ],
+      "answer": 1,
+      "why": "값이 명령으로 해석될 여지를 없애는 것이 근본이다. 필터링은 우회된다."
+    },
+    {
+      "q": "사용자 입력을 화면에 넣는 가장 안전한 기본값은?",
+      "choices": [
+        "innerHTML",
+        "textContent",
+        "document.write"
+      ],
+      "answer": 1,
+      "why": "textContent 는 태그를 글자로 취급해 스크립트가 실행되지 않는다."
+    },
+    {
+      "q": "「버튼을 숨겼으니 안전하다」가 틀린 이유는?",
+      "choices": [
+        "서버 API 를 직접 호출하면 그만이기 때문",
+        "버튼은 숨길 수 없기 때문",
+        "CSS 는 캐시되기 때문"
+      ],
+      "answer": 0,
+      "why": "권한 판단은 반드시 서버에서 한다. 화면은 편의일 뿐이다."
+    }
+  ]
+}

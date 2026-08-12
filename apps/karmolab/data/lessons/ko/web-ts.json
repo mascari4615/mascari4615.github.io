@@ -1,0 +1,102 @@
+{
+  "id": "web-ts",
+  "minutes": 14,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "타입은 **반년 뒤의 나에게 남기는 문서**다. 그리고 그 문서는 기계가 검사해 준다는 점에서 주석보다 낫다."
+    },
+    {
+      "type": "h",
+      "text": "1. any 를 쓰는 순간 계약이 사라진다"
+    },
+    {
+      "type": "code",
+      "lang": "ts",
+      "label": "경계에서 모양을 정한다",
+      "text": "interface Item { id: number; name: string; price: number }\n\nasync function loadItems(): Promise<Item[]> {\n  const res = await fetch('/api/items');\n  if (!res.ok) throw new Error(`HTTP ${res.status}`);\n  return (await res.json()) as Item[];   // 여기서 한 번만 단언\n}"
+    },
+    {
+      "type": "note",
+      "text": "`as` 는 「내가 책임진다」는 뜻이지 검사가 아니다. 남의 API 라면 zod 같은 검증기로 **실제로 확인**하는 편이 안전하다 — 서버가 바뀌면 화면이 조용히 깨지기 때문."
+    },
+    {
+      "type": "h",
+      "text": "2. 잘못된 상태를 만들 수 없게"
+    },
+    {
+      "type": "code",
+      "lang": "ts",
+      "label": "유니온으로 불가능을 표현한다",
+      "text": "// 나쁨: loading 이면서 data 도 있는 상태가 만들어진다\ninterface Bad { loading: boolean; data?: Item[]; error?: string }\n\n// 좋음: 셋 중 하나만 존재한다\ntype State =\n  | { kind: 'loading' }\n  | { kind: 'ready'; data: Item[] }\n  | { kind: 'failed'; error: string };\n\nfunction render(s: State) {\n  if (s.kind === 'ready') return list(s.data);   // 여기서 data 는 반드시 있다\n}"
+    },
+    {
+      "type": "h",
+      "text": "3. 자주 쓰는 도구 몇 개"
+    },
+    {
+      "type": "code",
+      "lang": "ts",
+      "label": "외우지 말고 필요할 때",
+      "text": "type Id = Item['id'];              // 뽑아 쓰기\ntype Draft = Omit<Item, 'id'>;     // 빼기\ntype Patch = Partial<Item>;        // 전부 선택적\nconst KINDS = ['a', 'b'] as const; // 리터럴 고정\ntype Kind = (typeof KINDS)[number]; // 'a' | 'b'"
+    },
+    {
+      "type": "h",
+      "text": "4. 엄격 모드가 본체"
+    },
+    {
+      "type": "code",
+      "lang": "json",
+      "label": "tsconfig — 이 두 줄이 절반",
+      "text": "{\n  \"compilerOptions\": {\n    \"strict\": true,\n    \"noUncheckedIndexedAccess\": true\n  }\n}"
+    },
+    {
+      "type": "note",
+      "text": "`strict: false` 로 두면 타입이 있는데도 null 사고가 그대로 난다. 기존 코드가 커서 한 번에 못 켜면 파일 단위로 옮기되, **새 코드는 처음부터 strict** 로 쓴다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "내 코드에서 `any` 를 하나 골라 실제 모양을 적은 interface 로 바꿔라. 그러면 어디가 빨개지는지가 바로 「몰랐던 계약」이다."
+    },
+    {
+      "type": "try",
+      "text": "loading/data/error 를 boolean·optional 로 들고 있는 상태가 있다면 위처럼 유니온으로 바꿔 보고, 화면 코드에서 조건문이 얼마나 줄어드는지 확인하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "`as Item[]` 이 하는 일은?",
+      "choices": [
+        "런타임에 모양을 검사한다",
+        "컴파일러에게 「이 타입이라고 믿어라」라고 말할 뿐 검사는 없다",
+        "JSON 을 파싱한다"
+      ],
+      "answer": 1,
+      "why": "단언은 검사가 아니다. 외부 데이터는 별도 검증이 필요하다."
+    },
+    {
+      "q": "loading·data·error 를 각각 optional 필드로 두면 생기는 문제는?",
+      "choices": [
+        "불가능한 조합(로딩 중인데 데이터도 있음)이 타입상 허용된다",
+        "번들이 커진다",
+        "타입 추론이 안 된다"
+      ],
+      "answer": 0,
+      "why": "판별 유니온으로 표현하면 불가능한 상태를 애초에 만들 수 없다."
+    },
+    {
+      "q": "strict 모드를 켜는 가장 큰 이유는?",
+      "choices": [
+        "빌드가 빨라져서",
+        "null·undefined 관련 실수를 컴파일 때 잡아 주기 때문",
+        "번들 크기 때문"
+      ],
+      "answer": 1,
+      "why": "strictNullChecks 없이는 타입이 있어도 null 사고가 그대로 난다."
+    }
+  ]
+}

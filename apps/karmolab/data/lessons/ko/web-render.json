@@ -1,0 +1,100 @@
+{
+  "id": "web-render",
+  "minutes": 13,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "스크롤이 끊기는 이유는 코드가 많아서가 아니다. **한 프레임(16.6ms) 안에 못 끝나는 일**을 시켰기 때문이다. 브라우저가 화면 한 장을 만드는 순서를 알면 무엇을 시키면 안 되는지가 보인다."
+    },
+    {
+      "type": "h",
+      "text": "1. 한 프레임의 순서"
+    },
+    {
+      "type": "p",
+      "text": "JS 실행 → **스타일 계산** → **레이아웃**(어디에 얼마나) → **페인트**(색칠) → **합성**(층 합치기). 뒤로 갈수록 싸다. 그래서 앞 단계를 다시 돌게 만드는 변경이 비싸다."
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "같은 이동, 다른 비용",
+      "text": "// 비싸다 — 레이아웃부터 다시\nel.style.left = x + 'px';\n\n// 싸다 — 합성만 (GPU 가 옮긴다)\nel.style.transform = `translateX(${x}px)`;\n\n// 투명도도 합성 단계\nel.style.opacity = '0.5';"
+    },
+    {
+      "type": "h",
+      "text": "2. 레이아웃 스래싱 — 읽고 쓰기를 번갈아"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "이 반복문이 프레임을 죽인다",
+      "text": "// 나쁨: 읽기(offsetWidth)가 매번 강제 레이아웃을 일으킨다\nfor (const el of items) el.style.width = el.offsetWidth + 10 + 'px';\n\n// 좋음: 먼저 전부 읽고, 그 다음 전부 쓴다\nconst widths = items.map((el) => el.offsetWidth);\nitems.forEach((el, i) => { el.style.width = widths[i] + 10 + 'px'; });"
+    },
+    {
+      "type": "note",
+      "text": "`offsetTop`·`getBoundingClientRect`·`scrollHeight` 처럼 **위치를 묻는 값**을 쓰기 직후에 읽으면 브라우저는 어쩔 수 없이 그 자리에서 레이아웃을 계산한다. 읽기와 쓰기를 묶어 나누면 사라진다."
+    },
+    {
+      "type": "h",
+      "text": "3. 긴 작업 쪼개기"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "5천 개를 한 번에 그리지 않는다",
+      "text": "function chunked(items, draw) {\n  let i = 0;\n  (function step() {\n    const end = Math.min(i + 200, items.length);\n    for (; i < end; i++) draw(items[i]);\n    if (i < items.length) requestAnimationFrame(step);\n  })();\n}"
+    },
+    {
+      "type": "h",
+      "text": "4. 어디를 볼까"
+    },
+    {
+      "type": "note",
+      "text": "Performance 탭에서 **긴 보라색 막대 = 레이아웃**, 초록 = 페인트, 노랑 = 스크립트. 프레임 위의 빨간 삼각형이 「이 프레임 늦었다」는 표시다. 짐작 대신 이 그림부터 본다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "카드 1000개를 그리는 페이지에서 `left` 로 움직이는 애니메이션과 `transform` 으로 움직이는 애니메이션을 각각 만들고 Performance 로 녹화해 비교하라."
+    },
+    {
+      "type": "try",
+      "text": "위 「나쁨」 반복문을 그대로 돌려 보고, 읽기/쓰기를 나눈 뒤 다시 재라. 프레임 시간이 얼마나 줄었는지 숫자로 적어라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "요소를 움직일 때 레이아웃을 다시 계산하지 않는 속성은?",
+      "choices": [
+        "left/top",
+        "transform",
+        "margin"
+      ],
+      "answer": 1,
+      "why": "transform·opacity 는 합성 단계에서 처리돼 레이아웃·페인트를 건너뛴다."
+    },
+    {
+      "q": "반복문 안에서 offsetWidth 를 읽고 곧바로 style 을 쓰면 생기는 문제는?",
+      "choices": [
+        "레이아웃이 매번 강제로 계산돼 느려진다(스래싱)",
+        "메모리 누수",
+        "값이 항상 0 이 된다"
+      ],
+      "answer": 0,
+      "why": "쓰기 뒤의 읽기는 브라우저에게 즉시 레이아웃을 요구한다. 읽기와 쓰기를 나눠 묶으면 없어진다."
+    },
+    {
+      "q": "스크롤이 끊길 때 가장 먼저 열 도구는?",
+      "choices": [
+        "Performance 탭 녹화",
+        "Console 로그",
+        "Network 탭"
+      ],
+      "answer": 0,
+      "why": "어느 단계(스크립트·레이아웃·페인트)가 프레임을 먹는지 그림으로 보인다."
+    }
+  ]
+}
