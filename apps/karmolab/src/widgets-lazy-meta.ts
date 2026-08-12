@@ -2115,5 +2115,19 @@ window.KARMOLAB_LAZY_META = [
       '<circle cx="12" cy="17" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
       '<path d="M8.4 8.4 10.6 15M15.9 7.6 13.4 15M8.5 6.6h7" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".7"/>',
     lazyScriptPaths: ['karmograph/karmograph']
+  },
+
+  /* 스터디 맵 — 웹·Git·컴퓨터 과학을 「왜 배우나 / 언제 넘어가나」까지 붙여 그린다.
+   * 내용은 `data/studymap.json` 한 곳 — 주제를 늘릴 때 코드는 안 건드린다. */
+  {
+    id: 'studymap',
+    get title() { return t('widgets.studymap.title', undefined, "개발자 스터디 맵"); },
+    category: 'ref',
+    get desc() { return t('widgets-desc.studymap.desc', undefined, "웹 · Git · 컴퓨터 과학을 순서대로 — 왜 배우는지와 어디까지 하면 넘어가도 되는지까지 붙은 학습 지도 (진도 저장)"); },
+    layout: 'wide',
+    icon:
+      '<path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>' +
+      '<path d="M9 4v13.5M15 6.5V20" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".7"/>',
+    lazyScriptPaths: ['studymap/studymap']
   }
 ] as KarmoLabLazyWidgetStub[];

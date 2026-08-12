@@ -1,0 +1,14 @@
+{
+  "studymap.tab": "Study map",
+  "studymap.loading": "Unfolding the map…",
+  "studymap.failed": "Could not load the map. Try reloading.",
+  "studymap.progress": "Progress in this track",
+  "studymap.search": "Find a topic — e.g. rebase, index, cache",
+  "studymap.reset": "Clear this track",
+  "studymap.reset.confirm": "This clears every check in this track. Continue?",
+  "studymap.next": "next",
+  "studymap.check": "Move on when",
+  "studymap.nohit": "No topic like that in this track. Try another one.",
+  "studymap.mdd.step": "One step further.",
+  "studymap.mdd.clear": "You walked a whole track. Shall we start the next one?"
+}
