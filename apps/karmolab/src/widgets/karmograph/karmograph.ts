@@ -159,12 +159,14 @@ import {
     .km-side { width:clamp(300px, 26vw, 420px); flex-shrink:0; position:relative; z-index:2;
       border-left:1px solid var(--border); background:var(--bg-secondary);
       padding:10px; overflow-y:auto; font-size:var(--font-size-xs); }
-    .km-tabs { display:flex; gap:2px; margin:-4px -4px 10px; padding-bottom:8px;
+    /* ★ 탭은 **전부 이름을 단다** (2026-08-12 사용자 검토: 🔗 💾 🔍 만 보고는 공유·내보내기가
+       어디인지 알 수 없었다 — 아이콘은 아는 사람에게만 이름이다). 아홉 개가 한 줄에 안 들어가므로
+       두 줄로 접는다: 옆 패널의 세로 12px 이 「무엇인지 모르는 단추 아홉 개」보다 싸다. */
+    .km-tabs { display:flex; flex-wrap:wrap; gap:2px; margin:-4px -4px 10px; padding-bottom:8px;
       border-bottom:1px solid var(--border); position:sticky; top:-12px; background:var(--bg-secondary); z-index:2; }
     .km-tab { padding:4px 7px; font-size:13px; opacity:.55; }
     .km-tab.is-on { opacity:1; background:var(--bg-tertiary); }
-    /* 펴진 이름은 아이콘 옆에 붙는다. 이름이 길면 잘라 — 탭 줄이 두 줄로 접히면 그림이 밀린다. */
-    .km-tab-name { margin-left:5px; font-size:11px; max-width:96px; overflow:hidden;
+    .km-tab-name { margin-left:4px; font-size:11px; max-width:96px; overflow:hidden;
       text-overflow:ellipsis; white-space:nowrap; vertical-align:middle; }
     .km-side.hidden { display:none; }
     .km-side h4 { margin:0 0 8px; font-size:var(--font-size-sm); color:var(--text-primary); }
@@ -1265,7 +1267,7 @@ import {
       bar.innerHTML = SIDE_TABS.map(
         (tb0) => `<button class="btn btn-ghost km-tab${sideMode === tb0.id ? ' is-on' : ''}"
           data-km="tab" data-key="${tb0.id}" title="${tb0.title}" aria-label="${tb0.title}"
-          >${tb0.icon}${sideMode === tb0.id ? `<span class="km-tab-name">${tb0.title}</span>` : ''}</button>`
+          >${tb0.icon}<span class="km-tab-name">${tb0.title}</span></button>`
       ).join('');
       sideEl.insertBefore(bar, sideEl.firstChild);
       bar.querySelectorAll('[data-km="tab"]').forEach((el) => {
