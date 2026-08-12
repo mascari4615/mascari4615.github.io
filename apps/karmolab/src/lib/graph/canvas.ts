@@ -36,6 +36,7 @@ import { buildNodeAvatar } from './canvas-avatar';
 import { buildNodeBackground, buildNoteCardBody } from './canvas-shape';
 import { chooseAnchors, edgeCurve, boundsOf, zoomAt, rectFromPoints, rectHits } from './canvas-math';
 import { cameraForRect } from './canvas-camera';
+import { frameCoalesced } from './canvas-raf';
 import { buildEdgePath, buildEdgeLabel, buildLeaderLine } from './canvas-edge';
 import { renderGroups, computeGroupBox } from './canvas-group';
 import { nodeBadges } from './canvas-badges';
@@ -286,6 +287,16 @@ export class GraphCanvas {
 
   /** 누른 지점 — 뗄 때 이동량으로 클릭/드래그를 가른다. */
   private pressOrigin: { x: number; y: number; nodeId: string | null } | null = null;
+
+  /** 끄는 동안의 무거운 다시 그리기(선·묶음·작은 판) — 프레임당 한 번으로 모은다. */
+  private paintDragged = frameCoalesced(() => {
+    this.groupLayer.innerHTML = '';
+    this.renderGroups();
+    this.renderAnchors();
+    this.renderEphemeralLayer();
+    this.redrawEdges();
+    this.redrawMinimap();
+  });
 
   constructor(container: HTMLElement, options: GraphCanvasOptions = {}) {
     this.container = container;
@@ -674,12 +685,8 @@ export class GraphCanvas {
         const { x: newX, y: newY } = snappedPoint(
           this.dragging.startNodeX, this.dragging.startNodeY, d, (v) => this.snap(v));
         this.nodeCoords.set(this.dragging.nodeId, { x: newX, y: newY });
-        this.updateNodeTransform(this.dragging.nodeId, newX, newY);
-        this.groupLayer.innerHTML = '';
-        this.renderGroups();
-        this.renderAnchors();
-        this.redrawEdges();
-        this.redrawMinimap();
+        this.updateNodeTransform(this.dragging.nodeId, newX, newY);   // 손끝은 바로 따라간다
+        this.paintDragged();                                          // 나머지는 프레임당 한 번
         this.scheduleSave(this.dragging.nodeId);
       } else if (this.draggingGroup) {
         const dg = this.draggingGroup;
@@ -721,13 +728,7 @@ export class GraphCanvas {
           grp.bbox.y = snappedGY;
           this.scheduleSaveRaw(dg.groupId, grp.bbox.x, grp.bbox.y, 'group');
         }
-        // 전체 재렌더 (anchor + ephemeral + edges + minimap)
-        this.groupLayer.innerHTML = '';
-        this.renderGroups();
-        this.renderAnchors();
-        this.renderEphemeralLayer();
-        this.redrawEdges();
-        this.redrawMinimap();
+        this.paintDragged();   // 묶음·닻·흘러가는 카드·선·작은 판 — 프레임당 한 번
       } else if (this.panning) {
         this.state.tx = this.panning.startTx + (e.clientX - this.panning.startMouseX);
         this.state.ty = this.panning.startTy + (e.clientY - this.panning.startMouseY);
