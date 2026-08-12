@@ -11,6 +11,7 @@ import { KARMO_STUDIO_CSS } from './styles';
 import { KARMO_STUDIO_SHELL } from './shell';
 import { GestureHost } from './gesture';
 import { shortcutsHtml } from './shortcuts';
+import { describeInputs, parseMidiMessage } from './midi';
 import { buildPianoView, initialScrollTop, PIANO_GEOMETRY } from './piano-view';
 import { automationHtml, automationValue, clipHtml, laneHint, visibleClips, waveformPath, waveformSvg, waveMissing } from './arranger-view';
 import { analysePeak, applyGain, clampBuffer, exportRange, normalizeGain, stemFileName, uniqueNames, type ExportRangeMode } from './export';
@@ -34,7 +35,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
     let selection: StudioSelection = { type: 'clip', trackId: project.tracks[0].id, clipId: project.tracks[0].clips[0].id };
     let playhead = 0; let pxPerBeat = 72; let sideMode: 'inspector' | 'mixer' = 'inspector';let editTool:'draw'|'select'|'slice'='draw'; let assets = new Map<string, StudioAssetRuntime>();
     let raf: number | undefined; let saveTimer: number | undefined; let recording: MediaRecorder | null = null; let recordChunks: Blob[] = []; let recordStart = 0;
-    let armedTrackId=''; let taps:number[]=[]; let stepMode=false; let stepOctave=4; let stepBeat=0; let stepAdded:string[]=[]; let metronome=false; let countIn=false; const autoLanes=new Map<string,AutomationParam>();
+    let armedTrackId=''; let taps:number[]=[]; let stepMode=false; let stepOctave=4; let stepBeat=0; let stepAdded:string[]=[]; let midiOn=false; let midiLabel='MIDI 건반 연결'; let metronome=false; let countIn=false; const autoLanes=new Map<string,AutomationParam>();
     let exportOptions={range:'song' as ExportRangeMode,sampleRate:44100,mono:false,normalize:true,stems:false};
     let editorExpanded = false; let editorScrollTop = 0; let editorScrollLeft = 0; let editorClipId = ''; let pianoPxPerBeat = pxPerBeat;
     let editorReturnFocus: HTMLElement | null = null;
@@ -66,6 +67,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       const target=noteTargets();
       if(!target||!target.notes.length){status('Open a MIDI clip first');return;}
       const { clip, notes }=target;const scope=notes.length===clip.notes.length?'clip':`${notes.length} notes`;
+      if(act==='midi'){void connectMidi();return;}
       if(act==='step'){stepMode=!stepMode;stepBeat=0;stepAdded=[];renderEditor();status(stepMode?'자판 건반 켬 — Z~M 아랫줄 · Q~I 윗줄 · ←→ 자리 이동 · Backspace 지우기':'자판 건반 끔');return;}
       if(act==='quantize'||act==='quantize-half'){
         const moved=quantizeNotes(notes,project.snap,act==='quantize'?1:0.5);
@@ -359,7 +361,7 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       }
       reconcileNotes();
       const view = buildPianoView({
-        clip, beatsPerBar: project.beatsPerBar, expanded: editorExpanded, pxPerBeat, step: stepMode,
+        clip, beatsPerBar: project.beatsPerBar, expanded: editorExpanded, pxPerBeat, step: stepMode, midi: midiOn, midiLabel,
         viewportWidth: window.innerWidth,
         isSelected: (noteId) => noteSel.has({ clipId: clip.id, noteId }) || (selection?.type === 'note' && selection.noteId === noteId),
         esc
@@ -396,6 +398,37 @@ import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type
       });
     }
     function transportLoop(): void { if (!engine.isPlaying()) { paintMeters(); return; } paintMeters(); playhead = engine.currentBeat(); updatePlayhead(); const scroll = $<HTMLElement>('[data-role=scroll]'); const x = 172 + playhead * pxPerBeat; if (x > scroll.scrollLeft + scroll.clientWidth - 80) scroll.scrollLeft = x - scroll.clientWidth * .45; raf = requestAnimationFrame(transportLoop); }
+    /** MIDI 건반 — 붙이면 누르는 대로 소리가 나고, STEP 이 켜져 있으면 그대로 찍힌다. */
+    let midiAccess: { inputs: { values(): Iterable<{ name?: string | null; onmidimessage: ((event: { data: Uint8Array }) => void) | null }> } } | null = null;
+    async function connectMidi(): Promise<void> {
+      const request=(navigator as Navigator & { requestMIDIAccess?: () => Promise<typeof midiAccess> }).requestMIDIAccess;
+      if(!request){midiLabel='이 브라우저는 MIDI 를 지원 안 한다';status(midiLabel);renderEditor();return;}
+      try{
+        midiAccess=await request.call(navigator);
+        const inputs=[...(midiAccess?.inputs.values() ?? [])];
+        midiOn=inputs.length>0;
+        midiLabel=describeInputs(inputs.map((input)=>input.name));
+        for(const input of inputs)input.onmidimessage=(event)=>handleMidi(event.data);
+        status(midiOn?`MIDI · ${midiLabel}`:'연결된 건반이 없다');
+        renderEditor();
+      }catch(_){midiOn=false;midiLabel='MIDI 를 못 열었다 (권한 확인)';status(midiLabel);renderEditor();}
+    }
+    function handleMidi(data: Uint8Array): void {
+      const event=parseMidiMessage(data);
+      if(event.kind!=='on')return;
+      const track=selectedTrack();
+      if(!track)return;
+      void engine.preview(track,event.pitch,Math.max(0.05,event.velocity));
+      if(!stepMode)return;
+      const clip=selectedClip();
+      if(!clip||clip.kind!=='midi'||stepBeat>=clip.duration)return;
+      const note={id:studioId('note'),beat:stepBeat,duration:Math.min(project.snap,clip.duration-stepBeat),pitch:event.pitch,velocity:Math.max(0.05,event.velocity)};
+      clip.notes.push(note);stepAdded.push(note.id);
+      noteSel.replace([{clipId:clip.id,noteId:note.id}]);
+      selection={type:'note',trackId:track.id,clipId:clip.id,noteId:note.id};
+      stepBeat=Math.min(clip.duration,stepBeat+project.snap);
+      saveSoon('step');renderEditor();renderTracks();renderSide();
+    }
     /** 고른 클립 구간만 반복 재생 — 없으면 그냥 재생. 원래 loop 설정은 멈출 때 되돌린다. */
     let loopBefore: { on: boolean; from: number; to: number } | null = null;
     function playSelection(): void {

@@ -38,6 +38,9 @@ export function initialScrollTop(clip: StudioClip): number {
 export interface PianoViewInput {
   /** 자판 건반 모드가 켜져 있나 — 도구 단축키와 겹쳐서 모드로 가른다. */
   step?: boolean;
+  /** MIDI 건반이 붙어 있나 + 무엇이 붙었는지. */
+  midi?: boolean;
+  midiLabel?: string;
   clip: StudioClip;
   beatsPerBar: number;
   expanded: boolean;
@@ -82,6 +85,7 @@ export function buildPianoView(input: PianoViewInput): PianoView {
         <button class="ks-btn" data-note-act="quantize-half" title="격자까지 절반만 당긴다 — 사람 느낌 보존">Q 50%</button>
         <button class="ks-btn" data-note-act="legato" title="앞 음의 끝을 다음 음 시작까지 늘린다">LEGATO</button>
         <button class="ks-btn${step ? ' is-on' : ''}" data-note-act="step" title="자판을 건반으로 — Z~M 아랫줄, Q~I 윗줄. 켜면 도구 단축키는 쉰다">⌨ STEP</button>
+        <button class="ks-btn${input.midi ? ' is-on' : ''}" data-note-act="midi" title="${esc(input.midiLabel || 'MIDI 건반 연결')}">🎹 MIDI</button>
         <span class="ks-spacer"></span>
         <button class="ks-btn" data-note-act="octave-down" title="한 옥타브 내림">−12</button>
         <button class="ks-btn" data-note-act="down" title="반음 내림">−1</button>
