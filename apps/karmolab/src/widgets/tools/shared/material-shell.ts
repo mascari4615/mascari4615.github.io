@@ -24,7 +24,15 @@ export interface MaterialGroup {
 }
 
 export interface MaterialShellOpts {
-  /** `<input accept>` — 무엇을 받나 */
+  /**
+   * 무엇을 들고 오나 (TASK-KL-262).
+   *
+   * `file` = 파일을 놓는다(PDF·이미지·영상·소리). `text` = **붙여넣는다**(글).
+   * 글은 파일로 오지 않는다 — 사람은 글을 복사해서 온다. 그래서 받는 칸이 다르고,
+   * 도구에 건네는 자리도 다르다(파일 칸이 아니라 글 칸).
+   */
+  intake?: 'file' | 'text';
+  /** `<input accept>` — 무엇을 받나 (`intake: 'file'` 일 때) */
   accept: string;
   /** 할 일 — 갈래별로 묶어 격자에 놓는다 */
   groups: () => MaterialGroup[];
@@ -33,13 +41,19 @@ export interface MaterialShellOpts {
   /** 이어받을 결과의 형식 — 이 재료로 못 받는 결과는 무시한다 */
   accepts: RegExp;
   drop: { title: string; hint: string };
-  labels: { change: string; back: string; chain: string; fail: string };
+  labels: { change: string; back: string; chain: string; fail: string; pasted?: string };
   /**
    * 왼쪽 칸을 그린다. **이 함수만 재료를 안다.**
    * @param alive 파일이 그새 바뀌었으면 `false` — 옛 그림을 붙이지 않게 매번 확인한다
    * @returns 파일 줄에 쓸 한 마디(「12쪽 · 2.4MB」 · 「1920×1080 · 340KB」)
    */
   preview: (file: File, box: HTMLElement, alive: () => boolean) => Promise<string>;
+}
+
+/** 도구의 글 칸 — 읽기 전용(결과 칸)은 건너뛴다. 첫 칸이 늘 입력이다. */
+function textBoxIn(host: HTMLElement): HTMLTextAreaElement | null {
+  const all = Array.from(host.querySelectorAll('textarea'));
+  return all.find((x) => !x.readOnly && !x.disabled) || all[0] || null;
 }
 
 export function materialShell(container: HTMLElement, o: MaterialShellOpts): void {
@@ -50,11 +64,18 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
 
   container.innerHTML = `
     <div class="pf-head" id="pfHead">
-      <div class="pf-drop" id="pfDrop">
-        <strong>${esc(o.drop.title)}</strong>
-        <span>${esc(o.drop.hint)}</span>
-        <input type="file" id="pfFile" accept="${esc(o.accept)}" hidden>
-      </div>
+      ${
+        o.intake === 'text'
+          ? `<div class="pf-paste" id="pfDrop">
+               <textarea id="pfText" rows="6" spellcheck="false" placeholder="${esc(o.drop.title)}"></textarea>
+               <span class="pf-paste-hint">${esc(o.drop.hint)}</span>
+             </div>`
+          : `<div class="pf-drop" id="pfDrop">
+               <strong>${esc(o.drop.title)}</strong>
+               <span>${esc(o.drop.hint)}</span>
+               <input type="file" id="pfFile" accept="${esc(o.accept)}" hidden>
+             </div>`
+      }
       <div class="pf-file" id="pfFileBar" hidden>
         <span class="pf-name" id="pfName"></span>
         <span class="pf-meta" id="pfMeta"></span>
@@ -99,6 +120,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
   `;
 
   const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
+  const asText = o.intake === 'text';
   const fileInput = $<HTMLInputElement>('#pfFile');
   const preview = $<HTMLElement>('#pfPreview');
   const host = $<HTMLElement>('#pfHost');
@@ -112,7 +134,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
     file = f;
     $('#pfDrop').hidden = true;
     $('#pfFileBar').hidden = false;
-    $('#pfName').textContent = f.name;
+    $('#pfName').textContent = asText ? o.labels.pasted || f.name : f.name;
     const mine = ++token;
     preview.textContent = '';
     try {
@@ -128,12 +150,34 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
     if (openJob) handOver();
   }
 
-  fileInput.onchange = (): void => {
-    const f = fileInput.files?.[0];
-    if (f) void setFile(f);
-  };
-  $('#pfDrop').onclick = (): void => fileInput.click();
-  $('#pfChange').onclick = (): void => fileInput.click();
+  if (asText) {
+    /* 글은 **붙여넣기**가 기본이다 (TASK-KL-262). 파일 줄에 이름 대신 「붙여넣은 글」이 서고,
+     * 「바꾸기」를 누르면 다시 붙여넣는 칸으로 돌아간다. 타이핑마다 다시 재면 시끄러우니
+     * 0.4초 쉬면 그때 센다. */
+    const box = $<HTMLTextAreaElement>('#pfText');
+    let timer = 0;
+    box.addEventListener('input', () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        const v = box.value;
+        if (!v.trim()) return;
+        void setFile(new File([v], o.labels.pasted || 'text.txt', { type: 'text/plain' }));
+      }, 400);
+    });
+    Toolbox.onDispose?.(() => window.clearTimeout(timer));
+    $('#pfChange').onclick = (): void => {
+      $('#pfDrop').hidden = false;
+      $('#pfFileBar').hidden = true;
+      box.focus();
+    };
+  } else {
+    fileInput.onchange = (): void => {
+      const f = fileInput.files?.[0];
+      if (f) void setFile(f);
+    };
+    $('#pfDrop').onclick = (): void => fileInput.click();
+    $('#pfChange').onclick = (): void => fileInput.click();
+  }
 
   const head = $('#pfHead');
   head.addEventListener('dragover', (e) => {
@@ -147,6 +191,17 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
     const f = (e as DragEvent).dataTransfer?.files?.[0];
     if (f) void setFile(f);
   });
+  /* 글 모드에서 파일을 떨어뜨렸으면 **읽어서 칸에 넣는다** — 글은 파일로도 온다(로그·csv) */
+  if (asText) {
+    head.addEventListener('drop', (e) => {
+      const f = (e as DragEvent).dataTransfer?.files?.[0];
+      if (!f) return;
+      void f.text().then((v) => {
+        const box = container.querySelector<HTMLTextAreaElement>('#pfText');
+        if (box) box.value = v;
+      });
+    });
+  }
 
   /**
    * 들고 있는 파일을 **그 도구의 파일 칸에 넣어 준다.**
@@ -157,6 +212,21 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
    */
   function handOver(tries = 12): void {
     if (!file) return;
+    if (asText) {
+      /* 글은 **글 칸**에 넣는다. 도구는 사람이 타이핑한 것과 똑같이 받는다
+       * (`input` 을 울려야 실시간으로 세는 도구들이 반응한다). */
+      const box = textBoxIn(host);
+      if (!box) {
+        if (tries > 0) setTimeout(() => handOver(tries - 1), 120);
+        return;
+      }
+      void file.text().then((v) => {
+        box.value = v;
+        box.dispatchEvent(new Event('input', { bubbles: true }));
+        box.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      return;
+    }
     const input = host.querySelector<HTMLInputElement>('input[type=file]');
     if (!input) {
       /* 아직 안 그려졌다 — 묶음 밖 도구는 스크립트를 **받아 온 다음** 그려진다(KL-261).
@@ -237,6 +307,10 @@ function injectStyles(): void {
 .pf-drop{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;
   padding:26px 16px;border:1px dashed rgba(128,128,128,.4);border-radius:12px;cursor:pointer;text-align:center;}
 .pf-drop:hover{background:rgba(128,128,128,.06);}
+.pf-paste{display:flex;flex-direction:column;gap:6px;}
+.pf-paste textarea{width:100%;min-height:110px;resize:vertical;font-family:inherit;
+  padding:12px 14px;border-radius:12px;border:1px solid rgba(128,128,128,.35);background:transparent;}
+.pf-paste-hint{font-size:12px;opacity:.6;}
 .pf-drop span{font-size:12px;opacity:.6;}
 .pf-file{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   padding:10px 14px;border:1px solid rgba(128,128,128,.28);border-radius:12px;}
