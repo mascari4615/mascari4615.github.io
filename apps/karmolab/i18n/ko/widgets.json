@@ -18,7 +18,6 @@
   "widgets.quest-log.title": "Quest Log",
   "widgets.wm.title": "Witch-Mendokusai",
   "widgets.docs.title": "문서",
-  "widgets.project-atlas.title": "Project Atlas",
   "widgets.randomgen.title": "랜덤 생성기",
   "widgets.passgen.title": "비밀번호 만들기·확인",
   "widgets.devtool.title": "개발 도구",
@@ -202,5 +201,6 @@
   "widgets.bluemarble.title": "블루마블",
   "widgets.garden.title": "정원",
   "widgets.collection.title": "도감",
-  "widgets.karmograph.title": "KarmoGraph"
+  "widgets.karmograph.title": "KarmoGraph",
+  "widgets.studymap.title": "개발자 스터디 맵"
 }

@@ -1,0 +1,69 @@
+{
+  "$comment": "project-atlas(TASK-KL-219) 8단원에서 옮겨 왔다. 원본 위젯은 폐기.",
+  "id": "kl-layout",
+  "minutes": 18,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "같은 HTML에 flex와 grid를 적용하고 gap·padding의 차이를 직접 확인합니다."
+    },
+    {
+      "type": "note",
+      "text": "이 단원을 마치면: 부모 layout 규칙 이해 · gap과 padding 구분 · 반응형 전환 이해"
+    },
+    {
+      "type": "h",
+      "text": "부모가 배치를 결정"
+    },
+    {
+      "type": "p",
+      "text": "Unity Layout Group처럼 CSS에서도 자식을 하나씩 밀기보다 부모에 flex나 grid 규칙을 줍니다."
+    },
+    {
+      "type": "h",
+      "text": "서로 다른 두 간격"
+    },
+    {
+      "type": "p",
+      "text": "padding은 부모 테두리와 내용 사이, gap은 자식과 자식 사이입니다. 둘을 같은 여백으로 생각하면 레이아웃 수정이 꼬입니다."
+    },
+    {
+      "type": "h",
+      "text": "반응형"
+    },
+    {
+      "type": "p",
+      "text": "화면 폭이 줄면 media query가 열 수나 방향을 바꿉니다. 넓은 화면만 확인하면 모바일 회귀를 놓칩니다."
+    },
+    {
+      "type": "code",
+      "label": "예제",
+      "text": ".parent {\n  display: grid;\n  grid-template-columns: repeat(3, 1fr);\n  gap: 16px;\n  padding: 20px;\n}"
+    },
+    {
+      "type": "note",
+      "text": "볼 파일: src/widgets/project-atlas/styles.ts · src/widgets/README.md"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "개발자도구에서 카드 목록의 부모 요소를 고르고 `display` 를 flex ↔ grid 로, `gap` 을 8 ↔ 24px 로 바꿔 봐라. 자식을 하나도 안 건드렸는데 배치가 바뀌는 것이 요점이다."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "카드 사이의 거리만 넓히려면 무엇을 바꾸나요?",
+      "choices": [
+        "padding",
+        "gap",
+        "font-size",
+        "innerHTML"
+      ],
+      "answer": 1,
+      "why": "gap은 자식 사이, padding은 부모 안쪽 가장자리의 여백입니다."
+    }
+  ]
+}

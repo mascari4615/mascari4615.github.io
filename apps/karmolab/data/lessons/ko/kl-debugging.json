@@ -1,0 +1,69 @@
+{
+  "$comment": "project-atlas(TASK-KL-219) 8단원에서 옮겨 왔다. 원본 위젯은 폐기.",
+  "id": "kl-debugging",
+  "minutes": 22,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "증상에서 시작해 터미널·Console·Network·DOM 중 어디를 볼지 결정합니다."
+    },
+    {
+      "type": "note",
+      "text": "이 단원을 마치면: 첫 오류 읽기 · 화면/동작/데이터 문제 분류 · DevTools 도구 선택 · 재현과 확인 구분"
+    },
+    {
+      "type": "h",
+      "text": "첫 오류부터"
+    },
+    {
+      "type": "p",
+      "text": "터미널 오류가 길어도 가장 위의 파일 경로와 줄·칸을 먼저 봅니다. 뒤의 오류는 첫 실패에서 연쇄된 것일 수 있습니다."
+    },
+    {
+      "type": "h",
+      "text": "관측 도구 선택"
+    },
+    {
+      "type": "p",
+      "text": "Console은 실행 오류, Network는 파일·JSON 요청, Elements는 실제 DOM과 적용 CSS를 보여줍니다."
+    },
+    {
+      "type": "h",
+      "text": "검사는 서로 다름"
+    },
+    {
+      "type": "p",
+      "text": "typecheck 통과는 타입 계약 증거입니다. 클릭과 레이아웃은 실제 브라우저에서 따로 확인해야 합니다."
+    },
+    {
+      "type": "code",
+      "label": "예제",
+      "text": "화면이 안 뜸 → Network에서 bundle 요청\n버튼이 안 됨 → Console + data-* + listener\n간격이 이상함 → Elements의 부모 computed style\n목록이 비었음 → Network response + JSON shape"
+    },
+    {
+      "type": "note",
+      "text": "볼 파일: package.json · build.mjs · 브라우저 DevTools"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "일부러 고장을 하나 내라 — 위젯 파일에서 `querySelector` 의 이름을 틀리게 바꾸고 화면을 열어라. 콘솔·Network·Elements 중 어디에 증상이 처음 보이는지 적어 두고 되돌려라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "JSON 목록이 비었을 때 가장 먼저 볼 곳은?",
+      "choices": [
+        "폰트 설정",
+        "Network 응답",
+        "git log",
+        "CSS radius"
+      ],
+      "answer": 1,
+      "why": "요청 상태와 실제 응답을 확인해야 URL 문제와 parsing/UI 문제를 구분할 수 있습니다."
+    }
+  ]
+}

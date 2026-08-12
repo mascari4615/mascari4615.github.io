@@ -16,7 +16,7 @@ interface SmLink { label: string; url: string }
 interface SmTool { id: string; label: string }
 interface SmNode { id: string; title: string; why: string; check?: string; tool?: SmTool; links?: SmLink[]; prereq?: string[] }
 interface SmStage { id: string; title: string; nodes: SmNode[] }
-interface SmTrack { id: string; title: string; emoji: string; lead: string; stages: SmStage[] }
+interface SmTrack { id: string; title: string; emoji: string; lead: string; scope?: 'personal'; stages: SmStage[] }
 interface SmData { tracks: SmTrack[] }
 
 /** 강의 한 편 — `data/lessons/<언어>/<칸id>.json`. 위젯은 그리기만 하고 내용은 표에 있다. */
@@ -130,6 +130,11 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-track-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
 .sm-track-btn.is-on { border-color: var(--accent); color: var(--text-primary); background: var(--accent-subtle); }
 .sm-track-btn .sm-count { font-variant-numeric: tabular-nums; opacity: .7; font-size: 11px; }
+.sm-track-btn.is-personal { border-style: dashed; }
+.sm-track-btn.is-personal.is-on { border-style: solid; }
+.sm-scope-line { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-size: 10px; color: var(--text-tertiary); margin: 10px 0 2px; }
+.sm-scope-line::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.sm-badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 999px; border: 1px dashed var(--border-strong); color: var(--secondary); margin-left: 8px; vertical-align: middle; }
 
 .sm-search { width: 100%; padding: 10px 14px; border-radius: var(--radius-lg); border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); font: inherit; font-size: var(--font-size-2xs); }
 .sm-search:focus { outline: none; border-color: var(--accent); }
@@ -302,11 +307,17 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
     };
 
     function paintTracks(): void {
+      let scopeMarked = false;
       elTracks.innerHTML = tracks
         .map((tr) => {
+          let divider = '';
+          if (tr.scope === 'personal' && !scopeMarked) {
+            scopeMarked = true;
+            divider = `<div class="sm-scope-line">${esc(t('studymap.scope.personal', undefined, '내 것 — 이 저장소 이야기'))}</div>`;
+          }
           const all = nodesOf(tr);
           const d = all.filter((n) => done.has(n.id)).length;
-          return `<button type="button" class="sm-track-btn${tr.id === current ? ' is-on' : ''}" data-track="${esc(tr.id)}"${tr.id === current ? ' aria-current="true"' : ''}>
+          return `${divider}<button type="button" class="sm-track-btn${tr.id === current ? ' is-on' : ''}${tr.scope === 'personal' ? ' is-personal' : ''}" data-track="${esc(tr.id)}"${tr.id === current ? ' aria-current="true"' : ''}>
             <span>${esc(tr.emoji)}</span><span>${esc(tr.title)}</span><span class="sm-count">${d}/${all.length}</span>
           </button>`;
         })
@@ -493,7 +504,14 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
       const everyDone = everyNode.filter((n) => done.has(n.id)).length;
 
       q<HTMLElement>('emoji').textContent = tr.emoji;
-      q<HTMLElement>('title').textContent = tr.title;
+      const titleEl = q<HTMLElement>('title');
+      titleEl.textContent = tr.title;
+      if (tr.scope === 'personal') {
+        const badge = document.createElement('span');
+        badge.className = 'sm-badge';
+        badge.textContent = t('studymap.scope.badge', undefined, '내 것');
+        titleEl.appendChild(badge);
+      }
       q<HTMLElement>('lead').textContent = tr.lead;
       q<HTMLElement>('pdone').textContent = String(d);
       q<HTMLElement>('ptotal').textContent = String(all.length);

@@ -29,5 +29,7 @@
   "studymap.lesson.note": "Remember",
   "studymap.lesson.quiz": "Check yourself",
   "studymap.lesson.minutes": "about {n} min",
-  "studymap.lesson.cleared": "All correct — this topic is marked done."
+  "studymap.lesson.cleared": "All correct — this topic is marked done.",
+  "studymap.scope.personal": "Mine — about this repository",
+  "studymap.scope.badge": "mine"
 }

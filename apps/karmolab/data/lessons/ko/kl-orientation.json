@@ -1,0 +1,61 @@
+{
+  "$comment": "project-atlas(TASK-KL-219) 8단원에서 옮겨 왔다. 원본 위젯은 폐기.",
+  "id": "kl-orientation",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "편집기·터미널·개발 서버의 역할을 구분하고 기존 변경을 지키는 법을 배웁니다."
+    },
+    {
+      "type": "note",
+      "text": "이 단원을 마치면: VS Code와 터미널의 역할 구분 · 개발 서버를 직접 열기 · src 원본과 생성 js 구분 · 내가 바꾼 한 줄만 복구"
+    },
+    {
+      "type": "h",
+      "text": "세 개의 창"
+    },
+    {
+      "type": "p",
+      "text": "VS Code는 파일을 고치고, 터미널은 검사와 서버를 실행하며, 브라우저는 결과와 오류를 보여줍니다. 셋은 같은 일을 하지 않습니다."
+    },
+    {
+      "type": "h",
+      "text": "가장 중요한 안전선"
+    },
+    {
+      "type": "p",
+      "text": "이 작업공간에는 다른 미커밋 변경이 있을 수 있습니다. 파일 전체 checkout/reset 대신 내가 바꾼 문자열만 직접 원래대로 고칩니다."
+    },
+    {
+      "type": "h",
+      "text": "첫 실행"
+    },
+    {
+      "type": "p",
+      "text": "karmoddrine에서 KarmoLab 폴더로 이동해 npm run dev를 실행하고, 브라우저 주소창에 127.0.0.1:8813/apps/karmolab/index.html을 입력합니다."
+    },
+    {
+      "type": "code",
+      "label": "예제",
+      "text": "node --version\nnpm --version\ncd Mascari4615.github.io/apps/karmolab\nnpm run dev"
+    },
+    {
+      "type": "note",
+      "text": "볼 파일: AGENTS.md · apps/karmolab/package.json · apps/karmolab/src/widgets/README.md"
+    }
+  ],
+  "quiz": [
+    {
+      "q": "사람이 직접 수정해야 하는 것은 어느 쪽인가요?",
+      "choices": [
+        "js/widgets의 번들",
+        "src의 TypeScript 원본",
+        "브라우저 DOM",
+        "service worker cache"
+      ],
+      "answer": 1,
+      "why": "src가 정본입니다. js/widgets는 build가 다시 만드는 결과입니다."
+    }
+  ]
+}

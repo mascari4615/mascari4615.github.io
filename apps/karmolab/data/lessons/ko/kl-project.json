@@ -1,0 +1,69 @@
+{
+  "$comment": "project-atlas(TASK-KL-219) 8단원에서 옮겨 왔다. 원본 위젯은 폐기.",
+  "id": "kl-project",
+  "minutes": 35,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "배운 구조·스타일·이벤트·검증을 합쳐 개인 카운터 위젯의 설계를 완성합니다."
+    },
+    {
+      "type": "note",
+      "text": "이 단원을 마치면: 변경 범위 설계 · register/build/render 구성 · 이벤트와 dispose 적용 · 검증 체크리스트 작성"
+    },
+    {
+      "type": "h",
+      "text": "먼저 범위"
+    },
+    {
+      "type": "p",
+      "text": "버튼 두 개와 숫자 하나만 있는 counter를 목표로 합니다. 저장이나 Tauri 같은 기능은 첫 버전에 넣지 않습니다."
+    },
+    {
+      "type": "h",
+      "text": "완성 조건"
+    },
+    {
+      "type": "p",
+      "text": "메뉴에서 열리고, +1/-1이 작동하고, 모바일에서 넘치지 않으며, typecheck와 실제 클릭 검증을 통과해야 합니다."
+    },
+    {
+      "type": "h",
+      "text": "스스로 설명"
+    },
+    {
+      "type": "p",
+      "text": "어떤 파일이 주소록이고, 어떤 값이 상태이며, 어떤 이벤트가 상태를 바꾸는지 설명할 수 있어야 끝입니다."
+    },
+    {
+      "type": "code",
+      "label": "예제",
+      "text": "// src/widgets/my-counter/my-counter.ts\nlet count = 0;\nfunction render(container: HTMLElement): void {\n  container.innerHTML = `<output>${count}</output>\n    <button data-delta=\"-1\">-1</button>\n    <button data-delta=\"1\">+1</button>`;\n}\n// register → build → listener → render 순서로 완성"
+    },
+    {
+      "type": "note",
+      "text": "볼 파일: src/widgets/README.md · src/widgets-lazy-meta.ts · src/widgets/my-counter/my-counter.ts · build.mjs"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "`npm run dev` 를 띄운 채 아무 위젯 파일의 글자 하나를 고쳐 저장하고, 화면이 새로고침 없이 바뀌는지 봐라. 그 다음 `npx tsc --noEmit` 로 타입 검사, `node build.mjs` 로 묶음까지 한 바퀴 돌려라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "최종 프로젝트의 행동 검증으로 가장 적절한 것은?",
+      "choices": [
+        "파일이 존재한다",
+        "typecheck만 통과한다",
+        "버튼 클릭 후 숫자와 모바일 화면을 확인한다",
+        "주석을 많이 쓴다"
+      ],
+      "answer": 2,
+      "why": "타입 검사와 사용자 관측 행동은 별개입니다. 실제 클릭과 레이아웃까지 확인해야 합니다."
+    }
+  ]
+}

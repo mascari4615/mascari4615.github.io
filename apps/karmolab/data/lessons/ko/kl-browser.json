@@ -1,0 +1,69 @@
+{
+  "$comment": "project-atlas(TASK-KL-219) 8단원에서 옮겨 왔다. 원본 위젯은 폐기.",
+  "id": "kl-browser",
+  "minutes": 15,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "HTML·CSS·TypeScript·DOM이 한 화면에 합쳐지는 순서를 봅니다."
+    },
+    {
+      "type": "note",
+      "text": "이 단원을 마치면: HTML/CSS/TS 역할 구분 · DOM의 의미 이해 · 파일과 실행 중 화면 구분"
+    },
+    {
+      "type": "h",
+      "text": "HTML은 구조"
+    },
+    {
+      "type": "p",
+      "text": "제목, 버튼, 목록처럼 무엇이 존재하고 서로 어떤 부모·자식 관계인지 정합니다. KarmoLab에서는 TS의 template string 안에 자주 있습니다."
+    },
+    {
+      "type": "h",
+      "text": "CSS는 규칙"
+    },
+    {
+      "type": "p",
+      "text": "class를 통해 크기, 간격, 색과 배치를 정합니다. HTML은 같아도 부모의 display만 바꾸면 화면이 달라집니다."
+    },
+    {
+      "type": "h",
+      "text": "TypeScript와 DOM"
+    },
+    {
+      "type": "p",
+      "text": "TypeScript가 실행되면 브라우저의 실제 화면 객체인 DOM을 만들고 찾고 바꿉니다. 타입 정보는 검사에 쓰이고 브라우저용 JS에는 남지 않습니다."
+    },
+    {
+      "type": "code",
+      "label": "예제",
+      "text": "container.innerHTML = `<button class=\"card\">열기</button>`;\n// HTML 구조       CSS가 찾는 이름\ncontainer.querySelector(\".card\"); // 실행 중 DOM 찾기"
+    },
+    {
+      "type": "note",
+      "text": "볼 파일: src/widgets/project-atlas/project-atlas.ts · src/widgets/project-atlas/styles.ts"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "KarmoLab 화면에서 아무 도구나 열고, 개발자도구 콘솔에 `document.querySelectorAll(\".tool-status\")` 를 쳐 봐라. 화면의 어느 조각이 잡히는지 눈으로 확인하고, `.textContent` 를 바꿔 화면이 즉시 바뀌는 것을 봐라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "버튼은 보이지만 간격만 이상하다면 어느 층부터 보나요?",
+      "choices": [
+        "HTML 문구",
+        "부모 CSS",
+        "fetch 응답",
+        "TypeScript 타입"
+      ],
+      "answer": 1,
+      "why": "배치와 간격은 CSS 문제일 가능성이 가장 높고, 특히 부모의 display/gap/padding부터 봅니다."
+    }
+  ]
+}

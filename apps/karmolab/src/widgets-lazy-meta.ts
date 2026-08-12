@@ -229,20 +229,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['docs/docs']
   },
   {
-    id: 'project-atlas',
-    get title() { return t('widgets.project-atlas.title', undefined, "Project Atlas"); },
-    category: 'lab',
-    get desc() { return t('widgets-desc.project-atlas.desc', undefined, "KarmoLab·WM·memo 구조를 C4식 지도로 보고, Web 초심자 눈높이로 수정 지점을 찾습니다"); },
-    layout: 'wide',
-    noHero: true,
-    icon:
-      '<rect x="3" y="4" width="7" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/>' +
-      '<rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/>' +
-      '<rect x="8" y="15" width="8" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/>' +
-      '<path d="M10 7h4M6.5 10v3.5M17.5 10v3.5M8 18H5.5M16 18h2.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>',
-    lazyScriptPaths: ['project-atlas/project-atlas']
-  },
-  {
     id: 'randomgen',
     get title() { return t('widgets.randomgen.title', undefined, "랜덤 생성기"); },
     category: 'play',

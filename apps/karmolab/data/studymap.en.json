@@ -76,6 +76,10 @@
     "lang": {
       "title": "Languages & paradigms",
       "lead": "Ways of thinking, not syntax — the real study starts with your second language"
+    },
+    "karmolab": {
+      "title": "My project (KarmoLab)",
+      "lead": "Not general knowledge — this repository: from first look to changing it yourself"
     }
   },
   "stages": {
@@ -123,7 +127,10 @@
     "design-a": "What is stuck to what",
     "design-b": "Holding up under change",
     "lang-a": "Frames of thought",
-    "lang-b": "What the language guarantees"
+    "lang-b": "What the language guarantees",
+    "kl-a": "Getting in",
+    "kl-b": "How KarmoLab is built",
+    "kl-c": "Fix it and finish it"
   },
   "nodes": {
     "web-html": {
@@ -1222,6 +1229,54 @@
       "links": [
         "Stack Overflow developer survey"
       ]
+    },
+    "kl-orientation": {
+      "title": "01. Workspace and the safety line",
+      "why": "Separate editor, terminal and dev server — and how not to break other uncommitted work.",
+      "check": "You run npm run dev and open the screen",
+      "links": [
+        "KarmoLab AGENTS.md"
+      ]
+    },
+    "kl-browser": {
+      "title": "02. How the browser builds the screen",
+      "why": "The order in which HTML, CSS, TypeScript and the DOM meet on one screen.",
+      "check": "From a symptom you pick which layer to open first"
+    },
+    "kl-layout": {
+      "title": "03. CSS layout by eye",
+      "why": "Put flex and grid on the same HTML and tell gap from padding.",
+      "check": "You fix spacing knowing gap from padding"
+    },
+    "kl-events": {
+      "title": "04. Event → state → render",
+      "why": "A click travels through a data attribute, changes state, and the screen is rebuilt.",
+      "check": "You read intent from a delegated click"
+    },
+    "kl-architecture": {
+      "title": "05. From menu to running widget",
+      "why": "lazy-meta → loader → register → build → dispose. Where one label in the menu comes from.",
+      "check": "You find where a given tool registers itself"
+    },
+    "kl-boundaries": {
+      "title": "06. Data, translation, Tauri boundaries",
+      "why": "Where the browser ends and desktop, data tables and message catalogs begin.",
+      "check": "You say where a new message catalog belongs"
+    },
+    "kl-debugging": {
+      "title": "07. Narrowing an error by layer",
+      "why": "Symptom → first tool to open → next action. Observation instead of guessing.",
+      "check": "You break something and know where it first shows"
+    },
+    "kl-trouble": {
+      "title": "Symptom dictionary — where to look first",
+      "why": "To get past \"it does not work\", every symptom needs a window to open first.",
+      "check": "You pick a symptom and name the first tool"
+    },
+    "kl-project": {
+      "title": "08. Finish one small widget",
+      "why": "From reading to changing: one line, save, typecheck, bundle — the whole lap.",
+      "check": "Your change is on screen and the checks are green"
     }
   }
 }

@@ -2317,6 +2317,108 @@
           ]
         }
       ]
+    },
+    {
+      "id": "karmolab",
+      "title": "내 프로젝트 (KarmoLab)",
+      "emoji": "🧰",
+      "scope": "personal",
+      "lead": "일반 지식이 아니라 이 저장소 이야기 — 처음 보는 사람이 KarmoLab 을 고칠 수 있게 되기까지",
+      "stages": [
+        {
+          "id": "kl-a",
+          "title": "들어가기",
+          "nodes": [
+            {
+              "id": "kl-orientation",
+              "title": "01. 작업 환경과 안전선",
+              "why": "편집기·터미널·개발 서버의 역할을 구분하고, 남의 미커밋 변경을 안 부수는 법.",
+              "check": "npm run dev 를 띄우고 화면을 연다",
+              "links": [
+                {
+                  "label": "KarmoLab AGENTS.md",
+                  "url": "https://github.com/Mascari4615/Mascari4615.github.io/blob/master/AGENTS.md"
+                }
+              ]
+            },
+            {
+              "id": "kl-browser",
+              "title": "02. 브라우저가 화면을 만드는 과정",
+              "why": "HTML·CSS·TypeScript·DOM 이 한 화면에 합쳐지는 순서.",
+              "check": "증상을 보고 어느 층부터 볼지 고른다",
+              "prereq": [
+                "web-dom"
+              ]
+            },
+            {
+              "id": "kl-layout",
+              "title": "03. CSS 레이아웃을 눈으로",
+              "why": "같은 HTML 에 flex 와 grid 를 걸어 보고 gap·padding 을 구분한다.",
+              "check": "gap 과 padding 을 구분해 고친다",
+              "prereq": [
+                "web-css"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "kl-b",
+          "title": "KarmoLab 구조",
+          "nodes": [
+            {
+              "id": "kl-events",
+              "title": "04. 이벤트 → 상태 → 렌더",
+              "why": "클릭이 data 속성을 거쳐 상태를 바꾸고 화면을 다시 만드는 흐름.",
+              "check": "위임된 클릭에서 의도를 읽는다",
+              "prereq": [
+                "web-dom"
+              ]
+            },
+            {
+              "id": "kl-architecture",
+              "title": "05. 메뉴에서 위젯 실행까지",
+              "why": "lazy-meta → 로더 → register → build → dispose. 이름 한 줄이 어디서 오는지.",
+              "check": "도구 하나의 등록 지점을 찾아낸다"
+            },
+            {
+              "id": "kl-boundaries",
+              "title": "06. 데이터 · 번역 · Tauri 경계",
+              "why": "어디까지가 브라우저이고 어디부터가 데스크톱·표·말 묶음인지.",
+              "check": "새 말 묶음을 어디에 넣을지 말한다"
+            }
+          ]
+        },
+        {
+          "id": "kl-c",
+          "title": "고치고 완성하기",
+          "nodes": [
+            {
+              "id": "kl-debugging",
+              "title": "07. 오류를 층별로 좁히기",
+              "why": "증상 → 처음 볼 도구 → 다음 행동. 추측 대신 관측.",
+              "check": "고장을 하나 내고 어디서 처음 보이는지 안다",
+              "prereq": [
+                "craft-debug"
+              ]
+            },
+            {
+              "id": "kl-trouble",
+              "title": "증상 사전 — 안 될 때 처음 볼 곳",
+              "why": "「안 돼요」에서 멈추지 않으려면, 증상마다 처음 볼 창이 정해져 있어야 한다.",
+              "check": "증상 하나를 골라 처음 볼 도구를 말한다"
+            },
+            {
+              "id": "kl-project",
+              "title": "08. 작은 위젯 하나 완성하기",
+              "why": "읽기에서 고치기로. 한 줄 고쳐 저장 → 타입 검사 → 묶음까지 한 바퀴.",
+              "check": "내 변경이 화면에 뜨고 검사가 초록이다",
+              "prereq": [
+                "kl-architecture"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
