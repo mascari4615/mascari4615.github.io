@@ -59,9 +59,31 @@ try {
   process.exit(1);
 }
 const page = await browser.newPage();
+/*
+ * ★ 말 묶음(i18n)은 **진짜 파일을 준다** (2026-08-12).
+ *   위젯의 `build()` 는 `loadNamespace()` 가 끝나야 그린다. 그 loader 는 `<script src>` 로 묶음을
+ *   받아 `window.__KARMO_I18N` 에 실리는지까지 확인하고, 안 실렸으면 **일부러 reject 한다**
+ *   (조용한 누락 금지). 그래서 여기서 아무 껍데기나 돌려주면 `.then(draw)` 가 영원히 안 오고
+ *   「5초 안에 안 그려졌다」로 죽는다 — 제품이 아니라 **검사가 굶긴 것**이다.
+ *   가짜 i18n 전역(window.i18next 등)을 넣는 것도 안 통한다. 위젯 번들은 그 모듈을 **안에 말아**
+ *   갖고 있어서 전역을 안 본다.
+ *   고치는 자리 = 요청을 디스크의 실제 산출물로 돌려주기. 화면이 진짜 쓰는 그 글로 검사한다.
+ */
+const servedFromDisk = [];
 await page.route('**/*', (route) => {
-  // JSON(번역 파일) 요청이면 빈 껍데기 JSON을 줘서 에러를 막는다.
-  if (route.request().url().endsWith('.json')) {
+  const url = new URL(route.request().url());
+  // `/apps/karmolab/js/...` = 이 앱의 산출물. 있으면 그대로 준다(없으면 아래 껍데기로).
+  const rel = url.pathname.replace(/^\/apps\/karmolab\//, '');
+  const onDisk = rel !== url.pathname ? path.join(root, rel) : null;
+  if (onDisk && fs.existsSync(onDisk)) {
+    servedFromDisk.push(rel);
+    return route.fulfill({
+      status: 200,
+      contentType: rel.endsWith('.js') ? 'application/javascript; charset=utf-8' : 'application/json; charset=utf-8',
+      body: fs.readFileSync(onDisk)
+    });
+  }
+  if (url.pathname.endsWith('.json')) {
     return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
   }
   return route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' });
@@ -71,11 +93,8 @@ await page.evaluate(() => {
   window.__reg = {};
   window.Toolbox = { register: (t) => { window.__reg[t.id] = t; }, trackUse() {}, copyText() {}, mountTool() { return true; } };
   window.Mdd = { linePreset() {} };
-  // i18n 무한 대기를 뚫기 위한 가짜 번역 객체 주입
-  window.i18next = { t: (k) => k, loadNamespaces: async () => {} };
-  window.i18n = { t: (k) => k, loadNamespace: async () => {} };
-  window.loadNamespace = async () => {};
-  window.t = (k) => k;
+  /* 언어를 못 박는다 — 러너 브라우저 취향(영어)에 따라 받아오는 묶음이 바뀌면 검사가 흔들린다. */
+  window.__KARMO_LOCALE = 'ko';
 });
 await page.addScriptTag({ content: read('js/vendor/crypto-js.min.js') });
 await page.addScriptTag({ content: read('js/widgets/tools/hashgen.js') });
@@ -118,6 +137,12 @@ const browserHashes = await page.evaluate(async (samples) => {
 }, SAMPLES);
 
 check(browserHashes.missing !== true, 'hashgen 위젯이 등록되지 않았다');
+/* 말 묶음을 **진짜로** 받아 갔나. 경로가 바뀌어 껍데기로 떨어지면 여기서 빨개진다
+   (안 그러면 「글 대신 열쇠가 나오는」 화면을 초록으로 통과시킨다). */
+check(
+  servedFromDisk.some((rel) => rel === 'js/i18n/ko/hashgen.js'),
+  `hashgen 말 묶음(js/i18n/ko/hashgen.js)을 아무도 안 받아 갔다 — 받아 간 것: ${servedFromDisk.join(' · ') || '(없음)'}`
+);
 check(browserHashes.timedOut !== true,
   `hashgen 이 5초 안에 안 그려졌다 (표본 ${browserHashes.sample}) — build() 가 기다리는 것(i18n 말 묶음)이 안 온다`);
 
