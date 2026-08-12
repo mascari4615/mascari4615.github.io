@@ -476,6 +476,9 @@ import {
       <div class="km-root">
         <div class="km-toolbar">
           <select data-km="maps" title="${esc(t('karmograph.t92'))}"></select>
+          <!-- 판 이름을 바꾸는 자리가 ⋯ 서랍 안에만 있었다 — **이름 옆**이 그 자리다 (2026-08-12 검토). -->
+          <button class="btn btn-ghost" data-km="map-rename2" title="${esc(t('karmograph.t137'))}"
+            aria-label="${esc(t('karmograph.t137'))}">✎</button>
           <button class="btn btn-ghost hidden" data-km="map-up" title="${esc(t('karmograph.t93'))}">↑<span
             class="km-btn-name">${esc(t('karmograph.btn.up'))}</span></button>
           <span class="km-saved hidden" data-km="saved" title="${esc(t('karmograph.t94'))}">${esc(t('karmograph.savedHere'))}</span>
@@ -758,17 +761,23 @@ import {
     // undo 를 따로 안 짜도 된다. 그 대신 스냅샷 상한을 둬서 메모리를 묶는다.
     const HISTORY_MAX = 60;
     const history: string[] = [];
+    /** 다음 저장이 「무엇을 한 것」인지 — 저장 직전에 아는 자리에서 적어 둔다. */
+    let lastAction = '';
+    /** 각 판이 「무엇을 한 뒤」인지 — 되돌리기 단추의 이름이 된다(빈 문자열이면 그냥 「되돌리기」). */
+    const histLabels: string[] = [];
     let histIndex = -1;
     /** 되돌리는 중에는 스냅샷을 찍지 않는다 — 안 그러면 되돌린 것이 다시 기록된다. */
     let restoring = false;
 
-    function snapshot(): void {
+    function snapshot(what = ''): void {
       if (restoring) return;
       const json = JSON.stringify(canvas?.getSpec() ?? spec);
       if (history[histIndex] === json) return;
       history.splice(histIndex + 1);   // 되돌린 뒤 새로 고치면 앞쪽 가지는 버린다
+      histLabels.splice(histIndex + 1);
       history.push(json);
-      if (history.length > HISTORY_MAX) history.shift();
+      histLabels.push(what);           // 「무엇을 한 판」인지 — 되돌리기 단추가 이걸 말한다
+      if (history.length > HISTORY_MAX) { history.shift(); histLabels.shift(); }
       histIndex = history.length - 1;
       syncHistoryButtons();
     }
@@ -791,6 +800,12 @@ import {
     function syncHistoryButtons(): void {
       undoEl.disabled = histIndex <= 0;
       redoEl.disabled = histIndex >= history.length - 1;
+      // ★ 화살표만 있으면 **무엇이 되돌아가는지** 모른 채 누른다 — 그래서 안 누른다
+      //   (2026-08-12 사용자 검토). 마지막으로 한 일을 이름으로 붙여 준다.
+      const back = histLabels[histIndex] ?? '';
+      const fwd = histLabels[histIndex + 1] ?? '';
+      undoEl.title = back ? t('karmograph.undoWhat', { what: back }) : t('karmograph.t99');
+      redoEl.title = fwd ? t('karmograph.redoWhat', { what: fwd }) : t('karmograph.t100');
     }
 
     // ── 저장 ────────────────────────────────────────────────────────────────
@@ -874,7 +889,8 @@ import {
       // 공용 글은 맵보다 오래 산다 — 저장할 때마다 사람 창고에도 같이 적어 둔다.
       mirrorToLibrary(spec, activeMapName());
       library = touchMap(library, library.activeId);
-      snapshot();
+      snapshot(lastAction || t('karmograph.act.edit'));
+      lastAction = '';
       warnStorageIfTight();
     }
 
@@ -1880,10 +1896,13 @@ import {
         load: () => store.load(),
         save: async (updates) => {
           await store.save(updates);
-          snapshot();
+          snapshot(t('karmograph.act.move'));
         },
       },
       kindColors: kindColorsNow(),
+      // 얼굴을 안 정한 카드의 동그라미에 **종류 그림**을 넣는다 — 색만으로는 인물·장소·사건이
+      // 구별되지 않았다(2026-08-12 사용자 검토). 이름 첫 글자는 「누구」만 말하고 「무엇」은 안 말한다.
+      kindIcons: ALL_KIND_ICONS,
       edgeKinds: edgeDefsNow(),
       // 판 색은 앱 테마에서 읽어 온다 — 안 그러면 밝은 테마에서 판만 까만 채로 남는다.
       theme: themeFromCss(canvasEl),
@@ -1961,6 +1980,7 @@ import {
         h: NODE_H,
         ports: [],
       };
+      lastAction = t('karmograph.act.add');
       seedFields(node);
       resize(node);
       lastNodeKind = kind;
@@ -2546,6 +2566,7 @@ import {
       const node = spec.nodes.find((n) => n.id === id);
       if (!node || node.label === next) return;
       // 저장은 옆 패널 이름 칸과 **같은 길**로 — 두 길이 생기면 언젠가 갈라진다.
+      lastAction = t('karmograph.act.rename');
       node.label = next;
       resize(node);
       canvas?.render();
@@ -2799,7 +2820,7 @@ import {
       applySpec();
       store.clear();
       renderSide();
-      snapshot();   // 「전체 삭제」도 되돌릴 수 있어야 한다 — 여기가 제일 아쉬운 자리다
+      snapshot(t('karmograph.act.clear'));   // 「전체 삭제」도 되돌릴 수 있어야 한다
     };
 
     // ── 맵 목록 (격차 H) ────────────────────────────────────────────────────
@@ -2931,13 +2952,16 @@ import {
       openActiveMap();
     };
 
-    q<HTMLButtonElement>('map-rename').onclick = () => {
+    // 이름 옆 ✎ 와 서랍의 「이름 바꾸기」는 **같은 길**을 쓴다 — 두 길이 생기면 언젠가 갈라진다.
+    const renameActiveMap = (): void => {
       const cur = library.maps.find((m) => m.id === library.activeId);
       const name = prompt(t('karmograph.t225'), cur?.name ?? '')?.trim();
       if (!name) return;
       library = renameMap(library, library.activeId, name);
       renderMapList();
     };
+    q<HTMLButtonElement>('map-rename').onclick = renameActiveMap;
+    q<HTMLButtonElement>('map-rename2').onclick = renameActiveMap;
 
     q<HTMLButtonElement>('map-del').onclick = () => {
       const cur = library.maps.find((m) => m.id === library.activeId);
