@@ -73,14 +73,20 @@ if (!cantRun) {
         () => {
           const v = document.querySelector('#acView');
           const seats = document.querySelectorAll('#acSeats .ac-seat').length;
-          return !!v && v.children.length > 0 && seats >= 2;
+          return !!v && v.children.length > 0 && seats >= 1;
         },
         null,
         { timeout: 10000 }
       );
       const seats = await page.locator('#acSeats .ac-seat').allTextContents();
+      /* 둘 이상이 필요한 게임만 봇이 앉는다 — 혼자서도 되는 게임(자리 최소 1)은 나 하나가 정상이다.
+       * 「봇이 있어야 한다」로 못 박으면 그 게임들이 틀린 것처럼 보인다. */
       const hasBot = seats.some((t) => t.includes('🤖'));
-      check(`${id}: 혼자 열면 판이 뜨고 빈 자리에 봇이 앉는다`, hasBot, seats.join(' / '));
+      check(
+        `${id}: 혼자 열면 판이 뜬다` + (seats.length > 1 ? ' + 빈 자리에 봇이 앉는다' : ' (혼자 하는 놀이)'),
+        seats.length === 1 || hasBot,
+        seats.join(' / ')
+      );
     } catch (e) {
       check(`${id}: 혼자 열면 판이 뜨고 빈 자리에 봇이 앉는다`, false, e.message.slice(0, 70));
     }
