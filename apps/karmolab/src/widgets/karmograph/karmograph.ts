@@ -1150,10 +1150,18 @@ import {
       });
       const takenN = new Set(spec.nodes.map((n) => n.id));
       const idMap = new Map<string, string>();
+      /* ★ **같은 이름은 같은 카드다** (TASK-KL-271 P8). 글에서 「소꿉친구」가 아래에 또 나오는 것은
+         새 사람이 아니라 그 사람에 대해 한 줄 더 적은 것이다. 예전에는 이름이 같아도 카드를 새로
+         만들어서, 첫 화면 견본에 「소꿉친구」와 「라이벌」이 두 장씩 놓였다(사용자 「중복」 지적의 그 자리). */
+      const byName = new Map<string, string>();
+      for (const n of spec.nodes) if (!byName.has(n.label)) byName.set(n.label, n.id);
       for (const p of parsed) {
+        const seen = byName.get(p.label);
+        if (seen) { idMap.set(p.id, seen); continue; }
         const id = nextId('node', takenN);
         takenN.add(id);
         idMap.set(p.id, id);
+        byName.set(p.label, id);
         const at = pos.get(p.id) ?? { x: center.x, y: center.y };
         const node: GraphNode = {
           id, kind: p.kind ?? kind, label: p.label, group: p.group ?? '',
@@ -1161,7 +1169,9 @@ import {
           w: widthFor(p.label), h: NODE_H, ports: [],
           groups: p.groups,
           shape: p.shape,
-          note: p.note ?? p.edgeLabel,
+          // 관계 이름은 **선에만** 적는다 — 카드 부제에 같은 말을 또 쓰면 첫 화면이 중복을
+          // 시범 보이게 된다(KL-271 P8). 부제는 글에서 `note=` 로 따로 적었을 때만 채운다.
+          note: p.note,
           tags: p.tags,
         };
         seedFields(node);
@@ -1175,6 +1185,7 @@ import {
         const from = idMap.get(p.parent);
         const to = idMap.get(p.id);
         if (!from || !to) continue;
+        if (from === to) continue;   // 이름이 같아 한 장으로 합쳐졌으면 제자리 선이 된다
         const id = nextId('edge', takenE);
         takenE.add(id);
         spec.edges.push({ id, from, to, kind: edgeKind, label: p.edgeLabel ?? edgeLabel(edgeKind) });
