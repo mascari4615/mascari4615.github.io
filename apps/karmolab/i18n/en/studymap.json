@@ -42,5 +42,10 @@
   "studymap.demo.code": "Example code",
   "studymap.demo.result": "Result",
   "studymap.lesson.prev": "Previous",
-  "studymap.lesson.next": "Next"
+  "studymap.lesson.next": "Next",
+  "studymap.resume": "Continue",
+  "studymap.view.tree": "Tree",
+  "studymap.view.list": "List",
+  "studymap.tree.tracks": "Track map — click to go in",
+  "studymap.tree.up": "← Track map"
 }
