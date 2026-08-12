@@ -612,5 +612,6 @@
   "karmograph.align.bottom": "Align bottom",
   "karmograph.align.spreadX": "Space evenly across",
   "karmograph.align.spreadY": "Space evenly down",
-  "karmograph.align.hint": "Ends stay put; only the gaps between are evened out."
+  "karmograph.align.hint": "Ends stay put; only the gaps between are evened out.",
+  "karmograph.help.selectAll": "Select everything visible (leads into line-up / grouping)"
 }

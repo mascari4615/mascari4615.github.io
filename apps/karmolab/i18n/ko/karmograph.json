@@ -612,5 +612,6 @@
   "karmograph.align.bottom": "아래 맞춤",
   "karmograph.align.spreadX": "가로로 고르게 벌리기",
   "karmograph.align.spreadY": "세로로 고르게 벌리기",
-  "karmograph.align.hint": "양끝은 그대로 두고 사이 간격만 고르게 합니다."
+  "karmograph.align.hint": "양끝은 그대로 두고 사이 간격만 고르게 합니다.",
+  "karmograph.help.selectAll": "보이는 것 전부 고르기 (나란히 놓기·묶음 넣기로 이어짐)"
 }

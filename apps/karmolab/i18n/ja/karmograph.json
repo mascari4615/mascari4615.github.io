@@ -612,5 +612,6 @@
   "karmograph.align.bottom": "下そろえ",
   "karmograph.align.spreadX": "横に等間隔",
   "karmograph.align.spreadY": "縦に等間隔",
-  "karmograph.align.hint": "両端はそのまま、間隔だけ均します。"
+  "karmograph.align.hint": "両端はそのまま、間隔だけ均します。",
+  "karmograph.help.selectAll": "見えているものを全部選ぶ（そろえる・まとめるにつながる）"
 }

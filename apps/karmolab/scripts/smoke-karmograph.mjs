@@ -62,6 +62,12 @@ const step = async (name, fn) => {
         `발표중=${document.querySelector(`.km-root`).classList.contains(`is-presenting`)}`].join(` · `);
     }).catch((err) => `상태 못 읽음`);
     console.log(`       ↳ ${dump}`);
+    /* ★ 넘어진 자리를 **치우고 다음으로 간다.** 한 항목이 페이지를 딴 데로 보내 놓고 죽으면
+       (보기 전용 링크처럼 주소를 갈아타는 항목이 그렇다) 뒤 항목이 줄줄이 같이 빨개진다 —
+       실측 2026-08-12: 한 번 미끄러지자 그 뒤 열 개가 「상태 못 읽음」으로 떨어졌다.
+       빨강 하나가 열 개로 불어나면 **어디가 진짜인지**를 못 읽는다. */
+    await page.goto(URL, { waitUntil: 'domcontentloaded' }).catch(() => {});
+    await page.waitForSelector('.km-root', { timeout: 8000 }).catch(() => {});
   }
 };
 
@@ -1456,6 +1462,12 @@ await step('여럿 골라 나란히 놓기 — 왼쪽 맞춤이 실제로 한 �
   });
   await m.reload({ waitUntil: 'domcontentloaded' });
   await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 3, null, { timeout: 8000 });
+
+  /* Ctrl+A 로도 전부 골라져야 한다 — 넓은 판에서 Shift+드래그 하나뿐이면 고르는 것부터 일이다. */
+  await m.locator('.km-canvas').click({ position: { x: 24, y: 24 } });
+  await m.keyboard.press('Control+a');
+  await m.waitForTimeout(400);
+  if (await m.locator('.ck-node.is-selected').count() !== 3) throw new Error('Ctrl+A 로 전부 안 골라진다');
 
   const cv = await m.locator('.km-canvas').boundingBox();
   await m.keyboard.down('Shift');
