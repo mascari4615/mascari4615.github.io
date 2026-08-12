@@ -12,32 +12,9 @@
  */
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
+import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
 
 (function (): void {
-  interface PdfPage {
-    getViewport: (o: { scale: number }) => { width: number; height: number };
-    render: (o: { canvasContext: CanvasRenderingContext2D; viewport: unknown }) => { promise: Promise<void> };
-  }
-  interface PdfDoc {
-    numPages: number;
-    getPage: (n: number) => Promise<PdfPage>;
-  }
-  interface PdfJs {
-    getDocument: (o: { data: ArrayBuffer }) => { promise: Promise<PdfDoc> };
-    GlobalWorkerOptions: { workerSrc: string };
-  }
-  interface PdfLib {
-    PDFDocument: {
-      load: (b: ArrayBuffer, o?: { ignoreEncryption?: boolean }) => Promise<{
-        getPages: () => Array<{
-          getSize: () => { width: number; height: number };
-          drawImage: (img: unknown, o: { x: number; y: number; width: number; height: number }) => void;
-        }>;
-        embedPng: (b: ArrayBuffer | Uint8Array) => Promise<{ width: number; height: number }>;
-        save: () => Promise<Uint8Array>;
-      }>;
-    };
-  }
 
   Toolbox.register({
     id: 'pdfsign',
@@ -125,7 +102,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           let file: File | null = null;
           let pdfjs: PdfJs | null = null;
-          let doc: PdfDoc | null = null;
+          let doc: PdfJsDoc | null = null;
           let signature: string | null = null; // data URL
           // 놓을 자리를 「쪽 크기 대비 비율」로 갖는다 — 미리보기 배율이 바뀌어도 자리가 안 틀어진다
           let spot: { x: number; y: number } | null = null;
@@ -213,8 +190,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           async function loadLib(): Promise<PdfJs> {
             if (pdfjs) return pdfjs;
             say(t('pdfsign.say.loadingLib'));
-            await Toolbox.ensureScript?.('vendor/pdfjs.min');
-            const g = (window as unknown as { pdfjsLib: PdfJs }).pdfjsLib;
+            const g = await loadPdfJs();
             if (!g) throw new Error(t('pdfsign.err.lib'));
             g.GlobalWorkerOptions.workerSrc = '/apps/karmolab/js/vendor/pdfjs.worker.min.js';
             pdfjs = g;
@@ -292,8 +268,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               say(t('pdfsign.err.noSpot'), 'error');
               return;
             }
-            await Toolbox.ensureScript?.('vendor/pdf-lib.min');
-            const lib = (window as unknown as { PDFLib: PdfLib }).PDFLib;
+            const lib = await loadPdfLib();
             if (!lib) throw new Error(t('pdfsign.err.libWrite'));
 
             const out = await lib.PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
@@ -313,7 +288,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               height: h
             });
 
-            const blob = new Blob([(await out.save()) as unknown as BlobPart], { type: 'application/pdf' });
+            const blob = pdfBlob(await out.save());
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = file.name.replace(/\.pdf$/i, '') + t('pdfsign.file.suffix') + '.pdf';

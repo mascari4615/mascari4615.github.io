@@ -11,32 +11,11 @@
 import { acceptPastedFiles } from './shared/paste';
 
 import { t, loadNamespace } from '../../lib/i18n';
+import { createPdf, download, loadPdfJs, loadPdfLib as loadPdfLibShared, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
 
 (function (): void {
   interface TextContent {
     items: Array<{ str?: string }>;
-  }
-  interface PdfPage {
-    getViewport: (o: { scale: number }) => { width: number; height: number };
-    render: (o: { canvasContext: CanvasRenderingContext2D; viewport: unknown }) => { promise: Promise<void> };
-    getTextContent: () => Promise<TextContent>;
-  }
-  interface PdfDoc {
-    numPages: number;
-    getPage: (n: number) => Promise<PdfPage>;
-  }
-  interface PdfJs {
-    getDocument: (o: { data: ArrayBuffer }) => { promise: Promise<PdfDoc> };
-    GlobalWorkerOptions: { workerSrc: string };
-  }
-  interface PdfLib {
-    PDFDocument: {
-      create: () => Promise<{
-        addPage: (size: [number, number]) => { drawImage: (img: unknown, o: { x: number; y: number; width: number; height: number }) => void };
-        embedJpg: (b: ArrayBuffer | Uint8Array) => Promise<unknown>;
-        save: () => Promise<Uint8Array>;
-      }>;
-    };
   }
 
   const size = (n: number): string =>
@@ -131,8 +110,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           let file: File | null = null;
           let pdfjs: PdfJs | null = null;
-          let pdflib: PdfLib | null = null;
-          let doc: PdfDoc | null = null;
+          let doc: PdfJsDoc | null = null;
           let made: Blob | null = null;
           let hasText = false;
 
@@ -146,20 +124,10 @@ import { t, loadNamespace } from '../../lib/i18n';
           async function loadPdfjs(): Promise<PdfJs> {
             if (pdfjs) return pdfjs;
             say(t('pdfcompress.status.loadingReader'));
-            await Toolbox.ensureScript?.('vendor/pdfjs.min');
-            const g = (window as unknown as { pdfjsLib: PdfJs }).pdfjsLib;
+            const g = await loadPdfJs();
             if (!g) throw new Error(t('pdfcompress.error.readerFailed'));
             g.GlobalWorkerOptions.workerSrc = '/apps/karmolab/js/vendor/pdfjs.worker.min.js';
             pdfjs = g;
-            return g;
-          }
-
-          async function loadPdfLib(): Promise<PdfLib> {
-            if (pdflib) return pdflib;
-            await Toolbox.ensureScript?.('vendor/pdf-lib.min');
-            const g = (window as unknown as { PDFLib: PdfLib }).PDFLib;
-            if (!g) throw new Error(t('pdfcompress.error.writerFailed'));
-            pdflib = g;
             return g;
           }
 
@@ -249,7 +217,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               say(t('pdfcompress.status.needFile'), 'error');
               return;
             }
-            const maker = await loadPdfLib();
+            const maker = await loadPdfLibShared();
             const outDoc = await maker.PDFDocument.create();
             for (let n = 1; n <= doc.numPages; n++) {
               say(t('pdfcompress.status.working', { n, total: doc.numPages }));

@@ -10,22 +10,12 @@
  * 한글·이모지·한자가 전부 나온다. 대신 글자를 선택·검색할 수는 없다(그 사실을 숨기지 않는다).
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
 
 (function (): void {
   const esc = (v: string): string =>
     v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  interface PdfLib {
-    PDFDocument: {
-      create: () => Promise<{
-        addPage: (size: [number, number]) => {
-          drawImage: (img: unknown, o: { x: number; y: number; width: number; height: number }) => void;
-        };
-        embedPng: (b: ArrayBuffer | Uint8Array) => Promise<{ width: number; height: number }>;
-        save: () => Promise<Uint8Array>;
-      }>;
-    };
-  }
 
   // A4 를 화면 점으로 (72dpi 기준). 인쇄 규격을 지켜야 출력이 어긋나지 않는다.
   const A4 = { w: 595, h: 842 };
@@ -203,8 +193,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             }
 
             say(t('text2pdf.say.building'));
-            await Toolbox.ensureScript?.('vendor/pdf-lib.min');
-            const lib = (window as unknown as { PDFLib: PdfLib }).PDFLib;
+            const lib = await loadPdfLib();
             if (!lib) throw new Error(t('text2pdf.err.lib'));
             const doc = await lib.PDFDocument.create();
             for (const cv of pages) {
@@ -214,7 +203,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
               const img = await doc.embedPng(await blob.arrayBuffer());
               doc.addPage([A4.w, A4.h]).drawImage(img, { x: 0, y: 0, width: A4.w, height: A4.h });
             }
-            const out = new Blob([(await doc.save()) as unknown as BlobPart], { type: 'application/pdf' });
+            const out = pdfBlob(await doc.save());
             const a = document.createElement('a');
             a.href = URL.createObjectURL(out);
             a.download = t('text2pdf.file.name');

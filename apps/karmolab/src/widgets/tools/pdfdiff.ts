@@ -10,6 +10,7 @@
  *   그림  : 글자가 없어도(스캔·도장·표 이동) 잡힌다. 대신 「무엇이」는 못 말한다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
 
 (function (): void {
   const MAX_PAGES = 30; // 이보다 길면 브라우저가 오래 잡힌다 — 자르고 그 사실을 말한다
@@ -19,19 +20,6 @@ import { t, loadNamespace } from '../../lib/i18n';
   interface TextItem {
     str: string;
     transform: number[];
-  }
-  interface PdfPage {
-    getViewport: (o: { scale: number }) => { width: number; height: number };
-    render: (o: { canvasContext: CanvasRenderingContext2D; viewport: unknown }) => { promise: Promise<void> };
-    getTextContent: () => Promise<{ items: TextItem[] }>;
-  }
-  interface PdfDoc {
-    numPages: number;
-    getPage: (n: number) => Promise<PdfPage>;
-  }
-  interface PdfJs {
-    getDocument: (o: { data: ArrayBuffer }) => { promise: Promise<PdfDoc> };
-    GlobalWorkerOptions: { workerSrc: string };
   }
 
   type Box = { x: number; y: number; w: number; h: number };
@@ -272,8 +260,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           async function loadLib(): Promise<PdfJs> {
             if (pdfjs) return pdfjs;
             say(t('pdfdiff.say.engine'));
-            await Toolbox.ensureScript?.('vendor/pdfjs.min');
-            const g = (window as unknown as { pdfjsLib: PdfJs }).pdfjsLib;
+            const g = await loadPdfJs();
             if (!g) throw new Error(t('pdfdiff.err.engine'));
             // 워커도 같은 자리에서 받아야 한다 (CDN 을 따로 두면 버전이 어긋난다)
             g.GlobalWorkerOptions.workerSrc = '/apps/karmolab/js/vendor/pdfjs.worker.min.js';

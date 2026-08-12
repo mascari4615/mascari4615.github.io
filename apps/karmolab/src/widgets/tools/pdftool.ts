@@ -7,24 +7,10 @@
  */
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
+import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
 import { parsePages } from '../../core/pdftool';
 
 (function (): void {
-  interface PDFLib {
-    PDFDocument: {
-      create: () => Promise<PDFDoc>;
-      load: (bytes: ArrayBuffer, opts?: { ignoreEncryption?: boolean }) => Promise<PDFDoc>;
-    };
-    degrees: (n: number) => unknown;
-  }
-  interface PDFDoc {
-    getPageCount: () => number;
-    getPages: () => Array<{ setRotation: (d: unknown) => void; getRotation: () => { angle: number } }>;
-    copyPages: (src: PDFDoc, idx: number[]) => Promise<unknown[]>;
-    addPage: (p: unknown) => void;
-    removePage: (i: number) => void;
-    save: () => Promise<Uint8Array>;
-  }
 
   /** "1-3,5,8-" → [0,1,2,4,7,...] (1부터 세는 사람 표기를 0부터 세는 색인으로) */
   function parseRange(spec: string, total: number): number[] {
@@ -151,9 +137,7 @@ import { parsePages } from '../../core/pdftool';
           async function loadLib(): Promise<PDFLib> {
             if (lib) return lib;
             say(t('pdftool.say.loadingLib'));
-            await Toolbox.ensureScript?.('vendor/pdf-lib.min');
-            lib = (window as unknown as { PDFLib: PDFLib }).PDFLib;
-            if (!lib) throw new Error(t('pdftool.err.lib'));
+            lib = await loadPdfLib();
             return lib;
           }
 

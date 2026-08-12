@@ -13,28 +13,11 @@
 import { fileSize as size } from './shared/media';
 
 import { t, loadNamespace } from '../../lib/i18n';
+import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
 
 (function (): void {
   interface Box { page: number; x: number; y: number; w: number; h: number }
 
-  interface PdfPage {
-    getViewport: (o: { scale: number }) => { width: number; height: number };
-    render: (o: { canvasContext: CanvasRenderingContext2D; viewport: unknown }) => { promise: Promise<void> };
-  }
-  interface PdfDoc { numPages: number; getPage: (n: number) => Promise<PdfPage> }
-  interface PdfJs {
-    getDocument: (o: { data: ArrayBuffer }) => { promise: Promise<PdfDoc> };
-    GlobalWorkerOptions: { workerSrc: string };
-  }
-  interface PdfLib {
-    PDFDocument: {
-      create: () => Promise<{
-        addPage: (size: [number, number]) => { drawImage: (img: unknown, o: { x: number; y: number; width: number; height: number }) => void };
-        embedPng: (b: ArrayBuffer) => Promise<{ width: number; height: number }>;
-        save: () => Promise<Uint8Array>;
-      }>;
-    };
-  }
 
   Toolbox.register({
     id: 'pdfredact',
@@ -116,7 +99,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           const undoBtn = $<HTMLButtonElement>('#prUndo');
 
           let bytes: ArrayBuffer | null = null;
-          let doc: PdfDoc | null = null;
+          let doc: PdfJsDoc | null = null;
           let boxes: Box[] = [];
           let cur = 1;
           let baseName = t('pdfredact.file.base');
@@ -195,8 +178,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           async function load(file: File): Promise<void> {
             say(t('pdfredact.say.opening'));
-            await Toolbox.ensureScript?.('vendor/pdfjs.min');
-            const lib = (window as unknown as { pdfjsLib: PdfJs }).pdfjsLib;
+            const lib = await loadPdfJs();
             if (!lib) {
               say(t('pdfredact.err.engine'), 'error');
               return;
@@ -305,8 +287,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             saveBtn.disabled = true;
             try {
               say(t('pdfredact.say.baking'));
-              await Toolbox.ensureScript?.('vendor/pdf-lib.min');
-              const L = (window as unknown as { PDFLib: PdfLib }).PDFLib;
+              const L = await loadPdfLib();
               if (!L) throw new Error(t('pdfredact.err.maker'));
 
               const outDoc = await L.PDFDocument.create();
