@@ -35,7 +35,7 @@ import { exportSvgString } from './canvas-export';
 import { buildNodeAvatar } from './canvas-avatar';
 import { buildNodeBackground, buildNoteCardBody } from './canvas-shape';
 import { chooseAnchors, edgeCurve, boundsOf, zoomAt, rectFromPoints, rectHits } from './canvas-math';
-import { cameraForRect } from './canvas-camera';
+import { cameraForRect, nudgeIntoView } from './canvas-camera';
 import { frameCoalesced } from './canvas-raf';
 import { buildEdgePath, buildEdgeLabel, applyEdgeFlow } from './canvas-edge';
 import { renderLeaders } from './canvas-leaders';
@@ -1782,18 +1782,10 @@ export class GraphCanvas {
   private fitIntoView(nodeId: string): void {
     const b = this.getNodeBox(nodeId);
     if (!b) return;
-    const svgW = this.svg.clientWidth || 800;
-    const svgH = this.svg.clientHeight || 600;
-    const s = this.state.scale;
-    const left = b.x * s + this.state.tx;
-    const top = b.y * s + this.state.ty;
-    const right = left + b.w * s;
-    const bottom = top + b.h * s;
-    const pad = 40;
-    if (left < pad) this.state.tx += pad - left;
-    else if (right > svgW - pad) this.state.tx -= right - (svgW - pad);
-    if (top < pad) this.state.ty += pad - top;
-    else if (bottom > svgH - pad) this.state.ty -= bottom - (svgH - pad);
+    /* 얼마나 밀지는 canvas-camera 가 안다 — 여기는 그 값을 받아 적용만 한다. */
+    const moved = nudgeIntoView(b, { w: this.svg.clientWidth || 800, h: this.svg.clientHeight || 600 }, this.state);
+    this.state.tx = moved.tx;
+    this.state.ty = moved.ty;
     this.applyTransform();
   }
 

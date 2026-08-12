@@ -414,25 +414,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['root/gemini', 'imageconvert/imageconvert', 'imageedit']
   },
   {
-    id: 'foundry',
-    get title() { return t('widgets.foundry.title', undefined, "선반"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.foundry.desc', undefined, "여기 도구로 만든 것이 쌓인다 — 전부 CC0, 로그인 없이 가져다 쓴다"); },
-    layout: 'full',
-    icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 8h18M3 14h18" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="11" r="1.2" fill="currentColor"/><circle cx="7" cy="17" r="1.2" fill="currentColor"/>',
-    lazyScriptPaths: ['foundry/foundry']
-  },
-  {
-    id: 'bon',
-    get title() { return t('widgets.bon.title', undefined, "본"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.bon.desc', undefined, "게임 화면에 쓰는 부품을 만든다 — 도형·모서리·테두리를 직접 잡고 SVG 로"); },
-    layout: 'full',
-    icon: '<rect x="3" y="7" width="18" height="10" rx="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="3" cy="7" r="1.6" fill="currentColor"/><circle cx="21" cy="17" r="1.6" fill="currentColor"/>',
-    produces: ['image/svg+xml'],
-    lazyScriptPaths: ['bon/bon']
-  },
-  {
     id: 'meok',
     hidden: true, // 「이미지」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -1677,7 +1658,7 @@ window.KARMOLAB_LAZY_META = [
     get title() { return t('widgets.calc.title', undefined, "계산기"); },
     category: 'tool',
     get desc() { return t('widgets-desc.calc.desc', undefined, "퍼센트·이자·BMI·단위·진법 계산을 한 곳에서"); },
-    layout: 'form',
+    layout: 'wide',
     icon: '<rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 7h8M8 12h2M12 12h2M16 12h1M8 16h2M12 16h2M16 16h1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/percent', 'tools/interest', 'tools/bmi', 'tools/unitconv', 'tools/radix', 'tools/numword', 'tools/aspect', 'tools/grade', 'tools/vat', 'tools/bytesize', 'tools/bizno', 'tools/loan', 'tools/cssunit', 'tools/calc']
   },
