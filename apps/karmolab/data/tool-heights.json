@@ -8,8 +8,8 @@
     "wide": 972
   },
   "asciiart": {
-    "narrow": 886,
-    "wide": 768
+    "narrow": 1171,
+    "wide": 1333
   },
   "aspect": {
     "narrow": 1053,
@@ -204,8 +204,8 @@
     "wide": 794
   },
   "hashgen": {
-    "narrow": 843,
-    "wide": 901
+    "narrow": 1754,
+    "wide": 968
   },
   "htmlentity": {
     "narrow": 3133,
@@ -260,8 +260,8 @@
     "wide": 414
   },
   "keycode": {
-    "narrow": 453,
-    "wide": 522
+    "narrow": 496,
+    "wide": 557
   },
   "ladder": {
     "narrow": 1069,
