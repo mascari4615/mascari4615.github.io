@@ -654,6 +654,14 @@ html[data-intro="off"] .intro-overlay {
     border-radius: var(--radius-sm);
     transition: color var(--transition), border-color var(--transition), background var(--transition);
 }
+/* ★ **도구 목록으로 가는 길은 접히지 않는다** (2026-08-12).
+   PC 에서는 옆줄이 그 역할이라는 전제로 이 링크들을 폰에서만 켰다. 그런데 첫 화면 꾸미기가
+   기본을 「머리띠 차림 + 갈 곳 카드 접힘」으로 바꾸면서, **처음 온 사람의 PC 화면에 도구 목록으로
+   가는 보이는 링크가 0개**가 됐다(실측: /karmolab/t/ 링크 4개가 전부 접힌 칸 안에 있었다).
+   길은 취향이 아니다 — 꾸미기로 접는 칸 **밖**에 하나는 늘 서 있어야 한다.
+   나머지 넷(봇·오늘의·커뮤니티·광장)은 그대로 폰 전용이다: PC 머리띠가 붐비지 않게 둔다. */
+.header-tools-link[href="/karmolab/t/"] { display: inline-flex; }
+
 .header-tools-link:hover,
 .header-tools-link:active {
     color: var(--accent);
