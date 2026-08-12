@@ -1588,6 +1588,220 @@
           ]
         }
       ]
+    },
+    {
+      "id": "gfx",
+      "title": "그래픽스 · 셰이더",
+      "emoji": "🎨",
+      "lead": "화면의 한 점이 왜 그 색인가 — 삼각형과 빛의 규칙",
+      "stages": [
+        {
+          "id": "gfx-a",
+          "title": "그려지는 순서",
+          "nodes": [
+            {
+              "id": "gfx-pipeline",
+              "title": "렌더 파이프라인 — 정점에서 픽셀까지",
+              "why": "「무거워요」의 원인이 정점인지 픽셀인지 모르면 최적화가 전부 도박이다.",
+              "check": "드로우콜·정점·프래그먼트 단계를 순서대로 말한다",
+              "links": [
+                {
+                  "label": "LearnOpenGL",
+                  "url": "https://learnopengl.com/"
+                }
+              ]
+            },
+            {
+              "id": "gfx-space",
+              "title": "좌표계 · 행렬",
+              "why": "물체가 사라지거나 뒤집히는 사고의 99%는 어느 공간인지 헷갈려서다.",
+              "check": "모델·뷰·투영 변환을 순서대로 설명한다",
+              "links": [
+                {
+                  "label": "3Blue1Brown 선형대수 (영상)",
+                  "url": "https://www.3blue1brown.com/topics/linear-algebra"
+                }
+              ],
+              "prereq": [
+                "cs-memory"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "gfx-b",
+          "title": "색을 정한다",
+          "nodes": [
+            {
+              "id": "gfx-shader",
+              "title": "셰이더 — GPU 에서 도는 작은 프로그램",
+              "why": "CPU 사고방식으로 쓰면 느리다. 수백만 번 동시에 돈다는 걸 몸에 넣는 단계.",
+              "check": "색을 시간에 따라 바꾸는 프래그먼트 셰이더를 직접 쓴다",
+              "links": [
+                {
+                  "label": "The Book of Shaders",
+                  "url": "https://thebookofshaders.com/?lan=kr"
+                }
+              ],
+              "prereq": [
+                "gfx-pipeline"
+              ]
+            },
+            {
+              "id": "gfx-light",
+              "title": "빛과 재질 (PBR)",
+              "why": "같은 모델이 게임마다 달라 보이는 이유. 물리 기반이라 규칙이 있다.",
+              "check": "거칠기·금속성을 바꿔 보고 결과를 예측한다",
+              "links": [
+                {
+                  "label": "LearnOpenGL PBR",
+                  "url": "https://learnopengl.com/PBR/Theory"
+                }
+              ],
+              "prereq": [
+                "gfx-shader"
+              ]
+            },
+            {
+              "id": "gfx-color",
+              "title": "색 공간 · 감마",
+              "why": "「왜 유니티에서만 뿌옇지」의 답. 선형과 sRGB 를 섞으면 색이 무너진다.",
+              "check": "선형 워크플로가 왜 필요한지 설명한다",
+              "links": [
+                {
+                  "label": "감마 보정 (LearnOpenGL)",
+                  "url": "https://learnopengl.com/Advanced-Lighting/Gamma-Correction"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "gfx-c",
+          "title": "빠르게 만든다",
+          "nodes": [
+            {
+              "id": "gfx-perf",
+              "title": "프로파일링 — 무엇이 프레임을 먹나",
+              "why": "눈으로 짐작한 병목은 대개 틀린다. GPU 는 특히 그렇다.",
+              "check": "CPU 병목과 GPU 병목을 도구로 구분한다",
+              "links": [
+                {
+                  "label": "RenderDoc",
+                  "url": "https://renderdoc.org/"
+                }
+              ],
+              "prereq": [
+                "gfx-pipeline"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "embed",
+      "title": "임베디드 · IoT",
+      "emoji": "🔌",
+      "lead": "화면 밖의 컴퓨터 — 메모리가 킬로바이트고, 멈추면 사람이 가서 뽑아야 한다",
+      "stages": [
+        {
+          "id": "embed-a",
+          "title": "작은 기계",
+          "nodes": [
+            {
+              "id": "embed-mcu",
+              "title": "MCU · GPIO — 핀 하나 흔들기",
+              "why": "전기를 코드로 만지는 첫 경험. LED 하나가 켜지면 그 다음이 전부 열린다.",
+              "check": "버튼 입력으로 LED 를 켠다",
+              "links": [
+                {
+                  "label": "Arduino 시작하기",
+                  "url": "https://docs.arduino.cc/learn/"
+                }
+              ]
+            },
+            {
+              "id": "embed-limit",
+              "title": "자원 한계 — 메모리 · 전력",
+              "why": "킬로바이트와 배터리가 설계를 정한다. PC 감각이 여기서 전부 깨진다.",
+              "check": "동적 할당을 왜 피하는지 설명한다",
+              "links": [
+                {
+                  "label": "Embedded Rust 책",
+                  "url": "https://docs.rust-embedded.org/book/"
+                }
+              ],
+              "prereq": [
+                "cs-memory"
+              ]
+            },
+            {
+              "id": "embed-rt",
+              "title": "인터럽트 · 실시간",
+              "why": "「가끔 멈춘다」는 대개 인터럽트 안에서 오래 머물러서다.",
+              "check": "인터럽트에서 하면 안 되는 일을 든다",
+              "links": [
+                {
+                  "label": "FreeRTOS 문서",
+                  "url": "https://www.freertos.org/Documentation/RTOS_book.html"
+                }
+              ],
+              "prereq": [
+                "cs-os"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "embed-b",
+          "title": "바깥과 잇는다",
+          "nodes": [
+            {
+              "id": "embed-bus",
+              "title": "통신 — UART · I2C · SPI",
+              "why": "센서가 말을 안 들을 때, 배선인지 프로토콜인지 가르는 눈.",
+              "check": "로직 애널라이저로 신호를 읽는다",
+              "links": [
+                {
+                  "label": "SparkFun I2C 튜토리얼",
+                  "url": "https://learn.sparkfun.com/tutorials/i2c/all"
+                }
+              ]
+            },
+            {
+              "id": "embed-net",
+              "title": "IoT — MQTT · 무선",
+              "why": "끊기고, 배터리가 있고, 신뢰할 수 없는 망. 웹의 가정이 여기선 안 통한다.",
+              "check": "연결이 끊겼다 붙어도 데이터가 안 사라진다",
+              "links": [
+                {
+                  "label": "MQTT 소개",
+                  "url": "https://mqtt.org/getting-started/"
+                }
+              ],
+              "prereq": [
+                "cs-net"
+              ]
+            },
+            {
+              "id": "embed-ota",
+              "title": "펌웨어 업데이트 (OTA)",
+              "why": "못 고치는 기계는 창고에 쌓인다. 업데이트 실패 시 벽돌이 되는 것도 여기서 막는다.",
+              "check": "업데이트가 중간에 끊겨도 되살아난다",
+              "links": [
+                {
+                  "label": "ESP-IDF OTA",
+                  "url": "https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/ota.html"
+                }
+              ],
+              "prereq": [
+                "devops-cd"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
