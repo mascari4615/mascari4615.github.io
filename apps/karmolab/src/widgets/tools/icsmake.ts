@@ -14,8 +14,13 @@
 import { t, loadNamespace, locale } from '../../lib/i18n';
 
 (function (): void {
-  /** .ics 규칙: 쉼표·세미콜론·역슬래시는 이스케이프, 줄바꿈은 \n 글자로 */
-  const esc = (s: string): string =>
+  /** .ics 규칙: 쉼표·세미콜론·역슬래시는 이스케이프, 줄바꿈은 \n 글자로.
+   *
+   * ★ 이름이 `esc` 였다 (2026-08-12). 아래 `draw()` 안에 **같은 이름의 HTML 이스케이프**가
+   *   있어 파일을 만드는 자리(`SUMMARY:${esc(title)}`)가 조용히 그쪽을 썼다. 그 결과
+   *   「모임, 3회차; 준비물」이 이스케이프 없이 나가 달력 앱이 파일을 통째로 거부한다 —
+   *   컴파일도 통과하고 화면도 멀쩡하다. 이름을 갈라 두면 다시 안 겹친다. */
+  const icsEsc = (s: string): string =>
     s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
 
   /** 한국 시간 문자열 → UTC 기준 `YYYYMMDDTHHMMSSZ` */
@@ -199,16 +204,16 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
               allDay
                 ? `DTEND;VALUE=DATE:${dayStamp(end, 1)}` // 끝 날짜는 하루 뒤여야 그 날까지 잡힌다
                 : `DTEND:${toUtcStamp(end)}`,
-              `SUMMARY:${esc(title)}`
+              `SUMMARY:${icsEsc(title)}`
             ];
             const place = $<HTMLInputElement>('#icPlace').value.trim();
-            if (place) lines.push(`LOCATION:${esc(place)}`);
+            if (place) lines.push(`LOCATION:${icsEsc(place)}`);
             const note = $<HTMLTextAreaElement>('#icNote').value.trim();
-            if (note) lines.push(`DESCRIPTION:${esc(note)}`);
+            if (note) lines.push(`DESCRIPTION:${icsEsc(note)}`);
             const rep = $<HTMLSelectElement>('#icRepeat').value;
             if (rep) lines.push(`RRULE:${rep}`);
             if ($<HTMLInputElement>('#icAlarm').checked && !allDay) {
-              lines.push('BEGIN:VALARM', 'TRIGGER:-PT30M', 'ACTION:DISPLAY', `DESCRIPTION:${esc(title)}`, 'END:VALARM');
+              lines.push('BEGIN:VALARM', 'TRIGGER:-PT30M', 'ACTION:DISPLAY', `DESCRIPTION:${icsEsc(title)}`, 'END:VALARM');
             }
             lines.push('END:VEVENT', 'END:VCALENDAR');
 
