@@ -10,5 +10,20 @@
   "calc.part.bytesize": "용량",
   "calc.part.bizno": "사업자번호",
   "calc.part.loan": "대출 상환",
-  "calc.part.cssunit": "CSS 단위"
+  "calc.part.cssunit": "CSS 단위",
+  "calc.tab": "셈 공책",
+  "calc.group.money": "돈",
+  "calc.group.convert": "바꾸기",
+  "calc.group.body": "몸·비율",
+  "calc.group.check": "따져보기",
+  "calc.drop.title": "한 줄씩 적으면 그 줄의 답이 옆에 섭니다",
+  "calc.drop.hint": "밥값 = 32000 · 앞 + 10% · 3km in mi · 25% of 400 · 합계",
+  "calc.btn.change": "지우고 새로",
+  "calc.btn.back": "할 일 고르기",
+  "calc.btn.chain": "이 결과로 이어서",
+  "calc.preview.fail": "이건 못 셉니다",
+  "calc.pasted": "셈 공책",
+  "calc.meta": "{n}줄 셈 · 마지막 {last}",
+  "calc.sum": "합",
+  "calc.part.pace": "달리기 페이스"
 }

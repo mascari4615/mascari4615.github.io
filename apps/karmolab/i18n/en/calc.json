@@ -10,5 +10,20 @@
   "calc.part.bytesize": "Data size",
   "calc.part.bizno": "Korean business no.",
   "calc.part.loan": "Loan repayment",
-  "calc.part.cssunit": "CSS units"
+  "calc.part.cssunit": "CSS units",
+  "calc.tab": "Notepad",
+  "calc.group.money": "Money",
+  "calc.group.convert": "Convert",
+  "calc.group.body": "Body & ratio",
+  "calc.group.check": "Check",
+  "calc.drop.title": "Write a line and its answer appears beside it",
+  "calc.drop.hint": "lunch = 32000 · prev + 10% · 3km in mi · 25% of 400 · sum",
+  "calc.btn.change": "Clear and restart",
+  "calc.btn.back": "Pick a job",
+  "calc.btn.chain": "Continue with this result",
+  "calc.preview.fail": "Can't compute this",
+  "calc.pasted": "Notepad",
+  "calc.meta": "{n} lines · last {last}",
+  "calc.sum": "sum",
+  "calc.part.pace": "Running pace"
 }
