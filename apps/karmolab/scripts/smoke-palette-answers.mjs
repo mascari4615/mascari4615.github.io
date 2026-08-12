@@ -76,7 +76,17 @@ async function askTool(toolId, fills) {
      도구는 멀쩡한데 검사만 「칸이 없다」로 죽었다(실측: 같은 자리를 손으로 열면 곧바로 뜬다).
      기다림은 **못 기다려서 나는 거짓 빨강**보다 싸다. */
   for (const [sel] of fills) {
-    await page.waitForSelector(sel, { timeout: 45000 });
+    await page.waitForSelector(sel, { timeout: 45000 }).catch(async (error) => {
+      /* CI 에서만 이 칸을 못 찾는다 — 기다림을 45초로 늘려도 같았다(느려서가 아니다).
+         그러니 **무엇이 안 왔는지** 화면에 물어 남긴다: 셸이 섰나 · 그 도구 자리가 생겼나 ·
+         페이지가 죽었나 (실측 2026-08-13, 세 판 연속 같은 자리). */
+      const why = await page.evaluate((id) => ({
+        셸: typeof Toolbox !== 'undefined',
+        자리: !!document.getElementById(`page-${id}`),
+        본문: document.body.innerText.replace(/\s+/g, ' ').slice(0, 80)
+      }), toolId).catch(() => null);
+      throw new Error(`${toolId}: ${String(error.message).slice(0, 60)} — ${JSON.stringify(why)}`);
+    });
   }
   for (const [sel, val] of fills) {
     await page.fill(sel, val);
