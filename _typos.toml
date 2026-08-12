@@ -18,10 +18,18 @@ extend-exclude = [
   "apps/karmolab/data/changelog.json",
   "apps/karmolab/changes.xml",
 
+  # 한자 병음 표 — 병음 음절(nin·beng·neng…)이 영어 오타로 읽힌다. 값이 전부 발음이라
+  # 단어를 하나씩 허용해 봐야 다음 글자에서 또 난다 — 파일째 뺀다 (2026-08-12).
+  "apps/karmolab/data/han-pinyin.json",
+
   # Jekyll 빌드 산출물 (gitignored 지만 typos 가 untracked 도 봄)
   "_site/**",
   "apps/blog/_site/**",
 ]
+
+# === 2026-08-12: 새로 든 파일들이 낸 false-positive (verify 를 세우고 있었다) ===
+metalness = "metalness"  # PBR 표준 용어 (금속성) — studymap.en.json 의 그래픽스 단원
+adn = "adn"              # pulse 코드 식별자: adnominal(관형사형) 줄임 — 한국어 문법 용어
 
 [default.extend-words]
 # 의도된 약어 / 외국어 / 고유명사 / 식별자
