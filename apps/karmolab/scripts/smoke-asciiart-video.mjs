@@ -46,15 +46,23 @@ await page.goto(`${base}/apps/karmolab/`);
 await page.waitForFunction(() => typeof Toolbox !== 'undefined' && typeof Toolbox.switchPage === 'function', {
   timeout: 20000
 });
-await page.evaluate(() => Toolbox.switchPage('asciiart'));
-await page.waitForFunction(
-  () => {
-    if (document.getElementById('aaVideoBox')) return true;
-    Toolbox.switchPage('asciiart');
-    return false;
-  },
-  { timeout: 20000, polling: 500 }
-);
+/* ★ **합쳐진 도구는 묶음 안의 탭으로 연다** (2026-08-12).
+   아스키 아트는 「이미지」 위젯의 탭으로 합쳐졌다(`widgets-lazy-meta.ts` 의 `bundle: 'image'`).
+   그런데 이 검사는 예전처럼 혼자 서 있는 화면을 열려 했고, 그 화면은 이제 안 생긴다 —
+   도구는 멀쩡한데 검사만 30초를 기다리다 죽었다(실측: `#page-asciiart` 자체가 없음).
+   묶음 id 는 메타에서 읽고, 탭은 사람이 누르는 그대로 눌러 연다. */
+const bundleId = await page.evaluate((id) => {
+  const meta = (window.KARMOLAB_LAZY_META || []).find((w) => w.id === id);
+  return meta?.bundle || id;
+}, 'asciiart');
+await page.evaluate((id) => Toolbox.switchPage(id), bundleId);
+await page.waitForSelector(`#page-${bundleId}`, { timeout: 20000 });
+if (!(await page.locator('#aaVideoBox').count())) {
+  const tab = page.locator(`#page-${bundleId} button`, { hasText: '아스키' }).first();
+  await tab.waitFor({ timeout: 20000 });
+  await tab.click();
+}
+await page.waitForSelector('#aaVideoBox', { timeout: 20000, state: 'attached' });
 
 const report = await page.evaluate(async () => {
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
