@@ -8,7 +8,7 @@
  * 나머지를 맞추고, 남는 자리는 배경색으로 채운다. 순서는 넣은 순서대로 두되 끌어서 바꿀 수 있다.
  */
 import { fileSize as size } from './shared/media';
-import { download } from './shared/image';
+import { download, loadImage } from './shared/image';
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -196,17 +196,13 @@ import { t, loadNamespace } from '../../lib/i18n';
           async function add(list: FileList | File[]): Promise<void> {
             for (const f of Array.from(list)) {
               if (!f.type.startsWith('image/')) continue;
-              const img = new Image();
-              const url = URL.createObjectURL(f);
-              await new Promise<void>((res) => {
-                img.onload = () => res();
-                img.onerror = () => {
-                  say(t('imgmerge.err.one', { name: f.name }), 'error');
-                  res();
-                };
-                img.src = url;
-              });
-              if (img.naturalWidth) shots.push({ name: f.name, img });
+              /* 공용 `loadImage` 로 (TASK-KL-280) — 주소 만들고 거두는 자리를 한 곳으로. */
+              try {
+                const img = await loadImage(f);
+                if (img.naturalWidth) shots.push({ name: f.name, img });
+              } catch {
+                say(t('imgmerge.err.one', { name: f.name }), 'error');
+              }
             }
             render();
             if (shots.length) say(t('imgmerge.say.picked', { n: shots.length }), 'ok');
