@@ -158,5 +158,11 @@
   "imagegen.t63": "Every queued job is done!",
   "imagegen.genFailed": "Generation failed",
   "imagegen.imageFailed": "The image could not be made",
-  "imagegen.queueDone": "Queue done: {n} images made"
+  "imagegen.queueDone": "Queue done: {n} images made",
+  "imagegen.shelf": "Shelf",
+  "imagegen.shelfHelp": "Put what you made on the shelf (CC0)",
+  "imagegen.shelfKeyAsk": "Shelf key (stays in this browser)",
+  "imagegen.shelfSending": "Sending to the shelf…",
+  "imagegen.shelfDone": "Put on the shelf",
+  "imagegen.shelfUntitled": "Untitled image"
 }

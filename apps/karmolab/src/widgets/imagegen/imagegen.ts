@@ -149,6 +149,7 @@ const esc = (v: unknown): string =>
         if (placeholder) placeholder.style.display = 'none';
         if (img) img.style.display = 'none';
         if (downloadBtn) downloadBtn.style.display = 'none';
+                    { const shelfBtn = document.getElementById('igShelfBtn') as HTMLButtonElement | null; if (shelfBtn) shelfBtn.style.display = 'none'; }
         if (tokenDisplay) tokenDisplay.textContent = '';
         if (loadingArea) loadingArea.style.display = 'flex';
         if (loadingText) loadingText.textContent = 'Dreaming...';
@@ -163,6 +164,7 @@ const esc = (v: unknown): string =>
         if (loadingArea) loadingArea.style.display = 'none';
         if (img) { img.src = item.url; img.style.display = ''; img.onclick = () => showLightbox(item.url); }
         if (downloadBtn) downloadBtn.style.display = '';
+                    { const shelfBtn = document.getElementById('igShelfBtn') as HTMLButtonElement | null; if (shelfBtn) shelfBtn.style.display = ''; }
         if (item.tokens && tokenDisplay) {
             tokenDisplay.textContent = `${item.tokens.toLocaleString()} tokens · ${item.elapsed}s`;
         }
@@ -218,6 +220,7 @@ const esc = (v: unknown): string =>
                 if (img) { img.src = item.url; img.style.display = ''; img.onclick = () => showLightbox(item.url); }
                 if (placeholder) placeholder.style.display = 'none';
                 if (downloadBtn) downloadBtn.style.display = '';
+                    { const shelfBtn = document.getElementById('igShelfBtn') as HTMLButtonElement | null; if (shelfBtn) shelfBtn.style.display = ''; }
                 el.querySelectorAll('.ig-thumb').forEach((t: any) => t.classList.remove('active'));
                 thumb.classList.add('active');
                 updateMetaDisplay();
@@ -632,6 +635,7 @@ const esc = (v: unknown): string =>
         generate,
         cancel,
         download,
+        toShelf,
         toggleCompare,
         toggleHistory,
         enhancePrompt,
@@ -686,6 +690,37 @@ const esc = (v: unknown): string =>
     function download() {
         if (!state.currentItem?.url) return;
         downloadImage(state.currentItem.url);
+    }
+
+    /**
+     * 선반에 올리기 (TASK-KL-254) — 만든 그림이 내려받기 폴더에서 끝나지 않게 하는 고리.
+     * 그림만 올리지 않는다. **어떤 말로 뽑았는지**를 함께 담아야 남이 「이대로 다시」를 할 수 있다.
+     */
+    async function toShelf() {
+        const item = state.currentItem;
+        if (!item?.url) return;
+        const { canUpload, setFoundryToken, uploadToFoundry } = await import('../../lib/foundry');
+        if (!canUpload()) {
+            // 열쇠가 없으면 먼저 물어본다 — 눌렀다가 「권한 없음」을 보는 것보다 낫다(먹·본과 같은 결).
+            const key = window.prompt(t('imagegen.shelfKeyAsk', undefined, '선반 열쇠 (이 브라우저에만 남는다)') as string, '') ?? '';
+            if (!key.trim()) return;
+            setFoundryToken(key.trim());
+        }
+        try {
+            Toolbox.showToast?.(t('imagegen.shelfSending', undefined, '선반에 올리는 중…') as string);
+            const response = await fetch(item.url);
+            const bytes = new Uint8Array(await response.arrayBuffer());
+            const uploaded = await uploadToFoundry({
+                tool: 'imagegen',
+                title: (item.prompt || t('imagegen.shelfUntitled', undefined, '이름 없는 그림') as string).slice(0, 60),
+                mime: response.headers.get('content-type') || 'image/png',
+                bytes,
+                recipe: { prompt: item.prompt, model: item.model }
+            });
+            Toolbox.showToast?.((t('imagegen.shelfDone', undefined, '선반에 올렸다') as string) + ' — ' + uploaded.title);
+        } catch (error) {
+            Toolbox.showToast?.(String(error instanceof Error ? error.message : error), 'error');
+        }
     }
 
     function toggleCompare() {
@@ -892,6 +927,7 @@ const esc = (v: unknown): string =>
                             <span id="igMetaDisplay" class="ig-meta-display"></span>
                             <button class="btn btn-ghost" id="igCompareBtn" style="display:none;font-size:var(--font-size-xs);" onclick="window._ig.toggleCompare()">${esc(t('imagegen.btn.igCompareBtn'))}</button>
                             <button class="btn btn-ghost" id="igDownloadBtn" style="display:none" onclick="window._ig.download()">${esc(t('imagegen.btn.igDownloadBtn'))}</button>
+                            <button class="btn btn-ghost" id="igShelfBtn" style="display:none" onclick="window._ig.toShelf()" title="${esc(t('imagegen.shelfHelp', undefined, '만든 것을 선반에 올린다 (CC0)'))}">${esc(t('imagegen.shelf', undefined, '선반'))}</button>
                             <button class="btn btn-ghost" style="font-size:var(--font-size-xs);" onclick="window._ig.showApiHistory()" title="${esc(t('imagegen.t04'))}">${esc(t('imagegen.t30'))}</button>
                             <span id="igTokenDisplay" class="ig-token-display"></span>
                         </div>
@@ -1015,6 +1051,7 @@ const esc = (v: unknown): string =>
                     if (img) { img.src = state.currentItem.url; img.style.display = ''; img.onclick = () => showLightbox(state.currentItem.url); }
                     if (placeholder) placeholder.style.display = 'none';
                     if (downloadBtn) downloadBtn.style.display = '';
+                    { const shelfBtn = document.getElementById('igShelfBtn') as HTMLButtonElement | null; if (shelfBtn) shelfBtn.style.display = ''; }
                     if (compareBtnR && state.sessionGallery.length >= 2) compareBtnR.style.display = '';
                     updateMetaDisplay();
                 }
