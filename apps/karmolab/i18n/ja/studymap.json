@@ -34,5 +34,7 @@
   "studymap.scope.badge": "自分用",
   "studymap.lesson.tag": "講義",
   "studymap.find": "検索",
-  "studymap.lesson.toc": "目次"
+  "studymap.lesson.toc": "目次",
+  "studymap.copy": "コピー",
+  "studymap.copied": "コピーした"
 }

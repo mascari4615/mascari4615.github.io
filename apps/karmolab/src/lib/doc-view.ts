@@ -158,3 +158,88 @@ export function bindTocClicks(tocRoot: HTMLElement, root: HTMLElement, opts: Doc
     }
   });
 }
+
+/* ─────────── 코드블록 — 문법 강조와 복사 ───────────
+ * 문서 위젯이 하던 것을 여기로 올린다. 강의도 코드가 본체라 같은 대접을 받아야 하고,
+ * 두 곳이 각자 Prism 을 부르면 언어 목록·복사 동작이 조용히 갈린다.
+ */
+
+type PrismLike = {
+  highlightElement: (el: Element) => void;
+  plugins?: { autoloader?: { languages_path?: string } };
+};
+/**
+ * Toolbox 는 **전역 스코프의 const** 라 `window.Toolbox` 로는 안 잡힌다(그렇게 찾다 Prism 로드가
+ * 조용히 실패했다). 다른 파일들과 같은 방식으로 이름 그대로 선언해 쓴다.
+ */
+declare const Toolbox: { ensureScript?: (path: string) => Promise<unknown> } | undefined;
+
+/** Prism 은 첫 사용 시에만 받는다(첫 화면을 무겁게 하지 않으려고 — KL-054 와 같은 결). */
+export async function ensurePrism(): Promise<PrismLike | null> {
+  const w = window as unknown as { Prism?: PrismLike };
+  if (w.Prism) return fixLanguagesPath(w.Prism);
+  try {
+    await Toolbox?.ensureScript?.('vendor/prism.min');
+    await Toolbox?.ensureScript?.('vendor/prism-autoloader.min');
+  } catch {
+    /* 못 받아도 코드는 글자 그대로 보인다 — 강조만 없다 */
+  }
+  const prism = w.Prism ?? null;
+  return prism ? fixLanguagesPath(prism) : null;
+}
+
+/** 언어 파일 위치를 바로잡는다. Prism 이 이미 떠 있었을 때도 반드시 거치게 따로 뺀다. */
+function fixLanguagesPath(prism: PrismLike): PrismLike {
+  /**
+   * 언어 파일을 어디서 받을지 여기서 정한다.
+   * 껍데기(index.html)는 DOMContentLoaded 에 이걸 정하는데, 그때 Prism 은 아직 없다(지연 로드).
+   * 그래서 실제로는 한 번도 안 잡혔고, 자동 로더가 바깥 CDN 을 찾다 막혀 **강조가 조용히 꺼져 있었다.**
+   * 부르는 자리에서 정하면 순서가 어긋날 일이 없다.
+   */
+  const auto = prism?.plugins?.autoloader;
+  /* 자동 로더가 스스로 정한 값(`js/vendor/components/`)은 틀렸다 — 언어 파일은 `prism/` 아래 있다.
+     그래서 비었을 때만이 아니라 **항상** 덮어쓴다. 안 그러면 bash·json 같은 언어가 조용히 안 칠해진다. */
+  if (auto) auto.languages_path = '/apps/karmolab/js/vendor/prism/components/';
+  return prism;
+}
+
+/**
+ * `pre code` 에 언어 클래스를 붙이고 강조한다.
+ * 언어를 못 정하면 강조하지 않는다 — 아무 언어로나 칠하면 오히려 잘못 읽힌다.
+ */
+export async function highlightCode(root: HTMLElement): Promise<void> {
+  const blocks = root.querySelectorAll<HTMLElement>('pre code');
+  if (blocks.length === 0) return;
+  const prism = await ensurePrism();
+  if (!prism) return;
+  blocks.forEach((block) => {
+    const lang = block.className.match(/language-([\w-]+)/)?.[1];
+    if (!lang || lang === 'text') return;
+    prism.highlightElement(block);
+  });
+}
+
+/** 코드블록마다 복사 단추. 붙였던 자리는 건너뛴다(다시 그릴 때 두 개 생기지 않게). */
+export function addCopyButtons(root: HTMLElement, label: string, doneLabel: string): void {
+  root.querySelectorAll<HTMLElement>('pre').forEach((pre) => {
+    if (pre.dataset.copyReady === '1') return;
+    pre.dataset.copyReady = '1';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'doc-copy';
+    btn.textContent = label;
+    btn.addEventListener('click', () => {
+      const text = pre.querySelector('code')?.textContent ?? pre.textContent ?? '';
+      void navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          btn.textContent = doneLabel;
+          setTimeout(() => (btn.textContent = label), 1200);
+        })
+        .catch(() => {
+          /* 권한이 없으면 아무 말도 하지 않는다 — 사용자는 그냥 긁어서 복사하면 된다 */
+        });
+    });
+    pre.appendChild(btn);
+  });
+}

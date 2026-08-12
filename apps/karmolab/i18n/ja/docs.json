@@ -46,5 +46,7 @@
   "docs.t45": "*entity の読み込みに失敗: ",
   "docs.t46": "*不明な項目キー: ",
   "docs.t47": "[docs] manifest の読み込みに失敗 (entity グループなしで続行):",
-  "docs.t48": "ドキュメント"
+  "docs.t48": "ドキュメント",
+  "docs.copy": "コピー",
+  "docs.copied": "コピーした"
 }

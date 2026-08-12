@@ -46,5 +46,7 @@
   "docs.t45": "*entity 로드 실패: ",
   "docs.t46": "*알 수 없는 항목 키: ",
   "docs.t47": "[docs] manifest 로드 실패 (entity 그룹 없이 진행):",
-  "docs.t48": "문서"
+  "docs.t48": "문서",
+  "docs.copy": "복사",
+  "docs.copied": "복사됨"
 }
