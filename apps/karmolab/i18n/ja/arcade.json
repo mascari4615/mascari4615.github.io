@@ -80,5 +80,9 @@
   "arcade.yacht.cat.fullhouse": "フルハウス",
   "arcade.yacht.cat.sstraight": "小ストレート",
   "arcade.yacht.cat.lstraight": "大ストレート",
-  "arcade.yacht.cat.yacht": "ヨット"
+  "arcade.yacht.cat.yacht": "ヨット",
+  "arcade.game.checkers.name": "チェッカー",
+  "arcade.game.checkers.desc": "飛び越えて取り、最奥列でキングに",
+  "arcade.checkers.win": "{who} が盤を制した",
+  "arcade.checkers.stale": "何も起きないまま長引いた — 引き分け"
 }
