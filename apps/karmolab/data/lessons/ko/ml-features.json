@@ -1,0 +1,104 @@
+{
+  "id": "ml-features",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "모델보다 **특징(feature)이 결과를 더 좌우한다**. 같은 알고리즘이라도 무엇을 넣느냐로 성능이 갈린다."
+    },
+    {
+      "type": "h",
+      "text": "1. 자주 쓰는 변환"
+    },
+    {
+      "type": "code",
+      "lang": "python",
+      "label": "기본 도구들",
+      "text": "# 범주형 → 숫자\nOneHotEncoder()          # 종류가 적을 때\nTargetEncoder()          # 종류가 많을 때(누수 주의)\n\n# 수치 스케일\nStandardScaler()         # 평균0 분산1 — 선형·신경망에 필요\nQuantileTransformer()    # 분포가 치우쳤을 때\n\n# 결측\nSimpleImputer(strategy='median')   # + 「결측이었음」 플래그 컬럼 추가"
+    },
+    {
+      "type": "note",
+      "text": "트리 계열(랜덤포레스트·부스팅)은 **스케일링이 필요 없다**. 선형·신경망·거리 기반(kNN·SVM)은 필요하다. 이 구분만 알아도 삽질이 준다."
+    },
+    {
+      "type": "h",
+      "text": "2. 파이프라인으로 묶는다"
+    },
+    {
+      "type": "code",
+      "lang": "python",
+      "label": "누수를 구조적으로 막는다",
+      "text": "from sklearn.pipeline import Pipeline\nfrom sklearn.compose import ColumnTransformer\n\npre = ColumnTransformer([\n    ('num', StandardScaler(), num_cols),\n    ('cat', OneHotEncoder(handle_unknown='ignore'), cat_cols),\n])\npipe = Pipeline([('pre', pre), ('model', model)])\npipe.fit(X_train, y_train)   # 학습 데이터 통계만 사용 — 누수 없음"
+    },
+    {
+      "type": "h",
+      "text": "3. 도메인 지식이 이긴다"
+    },
+    {
+      "type": "p",
+      "text": "「가입 후 경과일」·「최근 7일 접속 횟수」·「평균 대비 이번 주 사용량」처럼 **사람이 아는 것을 특징으로** 만들면 성능이 크게 오른다. 자동 특징 생성보다 이쪽이 대개 낫다."
+    },
+    {
+      "type": "h",
+      "text": "4. 시간 특징"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "자주 쓰는 변환",
+      "text": "· 요일·시간대(주기성은 sin/cos 로 인코딩)\n· 최근성(마지막 행동 이후 며칠)\n· 이동 평균·추세(지난 7일 대비 30일)\n· 반드시 「예측 시점까지의 정보만」 사용"
+    },
+    {
+      "type": "h",
+      "text": "5. 특징을 줄이는 것도 일이다"
+    },
+    {
+      "type": "note",
+      "text": "쓸모없는 특징은 잡음을 늘리고 과적합을 부른다. 중요도(permutation importance)를 보고 **아무 기여 없는 것은 빼라**. 특징이 적을수록 설명·운영이 쉬워진다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "기본 특징만으로 한 번, 도메인 지식 특징 3개를 추가해 한 번 학습해 성능을 비교하라."
+    },
+    {
+      "type": "try",
+      "text": "전처리를 파이프라인 안으로 넣고, 넣기 전후의 교차 검증 점수를 비교하라(누수가 있었다면 점수가 내려간다 — 그게 진짜 값이다)."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "스케일링이 특히 필요한 모델은?",
+      "choices": [
+        "선형·신경망·거리 기반",
+        "랜덤포레스트",
+        "그래디언트 부스팅"
+      ],
+      "answer": 0,
+      "why": "트리 계열은 분할 기준이라 스케일에 둔감하다."
+    },
+    {
+      "q": "전처리를 파이프라인 안에 넣는 이유는?",
+      "choices": [
+        "학습 데이터 통계만 쓰게 되어 누수를 막는다",
+        "속도 향상",
+        "코드가 짧아서"
+      ],
+      "answer": 0,
+      "why": "분할 전에 전체로 전처리하면 점수가 부풀려진다."
+    },
+    {
+      "q": "성능을 가장 크게 올리는 경우가 많은 것은?",
+      "choices": [
+        "도메인 지식을 반영한 특징 추가",
+        "모델 교체",
+        "학습률 조정"
+      ],
+      "answer": 0,
+      "why": "특징이 결과를 더 크게 좌우한다."
+    }
+  ]
+}

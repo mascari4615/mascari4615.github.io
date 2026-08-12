@@ -2824,6 +2824,140 @@
           ]
         }
       ]
+    },
+    {
+      "id": "ml",
+      "title": "머신러닝 기초",
+      "emoji": "📈",
+      "lead": "모델을 쓰는 쪽이 아니라 **만드는 쪽** — 규칙을 적는 대신 예시로 가르친다",
+      "stages": [
+        {
+          "id": "ml-a",
+          "title": "무엇을 하는 일인가",
+          "nodes": [
+            {
+              "id": "ml-what",
+              "title": "규칙 대신 예시로",
+              "why": "「if 문으로 못 적는 규칙」이 있을 때 쓴다. 그 반대라면 그냥 코드가 낫다.",
+              "check": "이 문제에 ML 이 필요한지 아닌지 이유를 대고 판단한다",
+              "links": [
+                {
+                  "label": "Google — Rules of ML",
+                  "url": "https://developers.google.com/machine-learning/guides/rules-of-ml"
+                }
+              ]
+            },
+            {
+              "id": "ml-data",
+              "title": "데이터 나누기 · 과적합",
+              "why": "학습에 쓴 데이터로 채점하면 100점이 나온다. 그건 외운 것이지 배운 게 아니다.",
+              "check": "학습·검증·시험 셋을 나누고 누수를 막는다",
+              "links": [
+                {
+                  "label": "scikit-learn 사용자 가이드",
+                  "url": "https://scikit-learn.org/stable/user_guide.html"
+                }
+              ],
+              "prereq": [
+                "analytics-clean"
+              ]
+            },
+            {
+              "id": "ml-features",
+              "title": "특징 만들기 · 전처리",
+              "why": "모델보다 특징이 결과를 더 좌우한다. 쓰레기를 넣으면 쓰레기가 나온다.",
+              "check": "범주형·결측·스케일을 파이프라인으로 처리한다",
+              "links": [
+                {
+                  "label": "scikit-learn 전처리",
+                  "url": "https://scikit-learn.org/stable/modules/preprocessing.html"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ml-b",
+          "title": "만들고 잰다",
+          "nodes": [
+            {
+              "id": "ml-model",
+              "title": "모델 고르기 — 선형 · 트리 · 신경망",
+              "why": "작은 표 데이터에 딥러닝을 꺼내는 것이 가장 흔한 낭비다.",
+              "check": "데이터 크기·형태로 첫 모델을 고른다",
+              "links": [
+                {
+                  "label": "scikit-learn 모델 선택 지도",
+                  "url": "https://scikit-learn.org/stable/machine_learning_map.html"
+                }
+              ],
+              "prereq": [
+                "ml-data"
+              ]
+            },
+            {
+              "id": "ml-train",
+              "title": "학습 과정 — 손실 · 경사하강 · 학습률",
+              "why": "「학습이 안 된다」의 원인은 대개 학습률·스케일·라벨 셋 중 하나다.",
+              "check": "학습 곡선을 보고 과적합·미적합을 구분한다",
+              "links": [
+                {
+                  "label": "3Blue1Brown 신경망 (영상)",
+                  "url": "https://www.3blue1brown.com/topics/neural-networks"
+                }
+              ]
+            },
+            {
+              "id": "ml-eval",
+              "title": "평가 — 정확도의 함정",
+              "why": "99% 정확도가 쓸모없을 수 있다. 불균형 데이터에서는 특히.",
+              "check": "정밀도·재현율·혼동행렬로 판단한다",
+              "links": [
+                {
+                  "label": "Google ML 평가 강의",
+                  "url": "https://developers.google.com/machine-learning/crash-course/classification/accuracy"
+                }
+              ],
+              "prereq": [
+                "analytics-stats"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ml-c",
+          "title": "내보낸 뒤",
+          "nodes": [
+            {
+              "id": "ml-deploy",
+              "title": "배포 · 드리프트",
+              "why": "모델은 배포 순간부터 낡는다. 세상이 바뀌면 어제의 정답이 오늘 틀린다.",
+              "check": "입력 분포와 성능을 계속 지켜본다",
+              "links": [
+                {
+                  "label": "Google — ML 시스템의 숨은 기술 부채",
+                  "url": "https://research.google/pubs/pub43146/"
+                }
+              ],
+              "prereq": [
+                "devops-obs"
+              ]
+            },
+            {
+              "id": "ml-ethics",
+              "title": "편향과 책임",
+              "why": "데이터에 있는 차별을 모델은 그대로 배우고, 규모를 키운다.",
+              "check": "집단별 성능 차이를 재고 기록한다",
+              "links": [
+                {
+                  "label": "Model Cards",
+                  "url": "https://modelcards.withgoogle.com/about"
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
