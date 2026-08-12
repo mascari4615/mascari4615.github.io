@@ -39,9 +39,10 @@ import { fishing } from './games/fishing';
 import { minishogi } from './games/minishogi';
 import { hanafuda } from './games/hanafuda';
 import { tanks } from './games/tanks';
+import { mancala } from './games/mancala';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory, hitblow, reversi, dots, speed, slide, ultimate, yacht, checkers, blackjack, president, dominoes, curling, bowling, pool, darts, airhockey, highlow, nim, hanabi, wordchain, lineup, minesweeper, liars, twenty, snake, onestroke, fishing, minishogi, hanafuda, tanks];
+export const GAMES: Array<GameDef<any, any>> = [reflex, gomoku, four, memory, hitblow, reversi, dots, speed, slide, ultimate, yacht, checkers, blackjack, president, dominoes, curling, bowling, pool, darts, airhockey, highlow, nim, hanabi, wordchain, lineup, minesweeper, liars, twenty, snake, onestroke, fishing, minishogi, hanafuda, tanks, mancala];
 
 export const gameById = (id: string): GameDef<any, any> | undefined => GAMES.find((g) => g.id === id);
 

@@ -252,5 +252,9 @@
   "arcade.tanks.power": "세기",
   "arcade.tanks.fire": "쏘기",
   "arcade.tanks.flying": "날아가는 중",
-  "arcade.tanks.win": "{who} — 목숨 {n} 남기고"
+  "arcade.tanks.win": "{who} — 목숨 {n} 남기고",
+  "arcade.game.mancala.name": "만칼라",
+  "arcade.game.mancala.desc": "씨를 한 알씩 뿌리며 돈다. 마지막 알이 규칙을 정한다",
+  "arcade.man.win": "{who} — {a} 대 {b}",
+  "arcade.man.draw": "{n} 대 {n} — 비겼다"
 }

@@ -252,5 +252,9 @@
   "arcade.tanks.power": "Power",
   "arcade.tanks.fire": "Fire",
   "arcade.tanks.flying": "In flight",
-  "arcade.tanks.win": "{who} — {n} hearts left"
+  "arcade.tanks.win": "{who} — {n} hearts left",
+  "arcade.game.mancala.name": "Mancala",
+  "arcade.game.mancala.desc": "Sow one seed per pit. The last seed decides everything",
+  "arcade.man.win": "{who} — {a} to {b}",
+  "arcade.man.draw": "{n} all — a draw"
 }
