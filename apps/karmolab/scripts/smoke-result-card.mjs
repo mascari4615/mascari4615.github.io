@@ -28,6 +28,16 @@ await page.goto(`${URL_TARGET}#bmi`, { waitUntil: 'networkidle', timeout: 30000 
 /* 도구는 **묶음 화면**으로 열린다(`#bmi` → 건강 묶음). 「활성 화면의 첫 입력칸」으로
    집으면 같은 묶음의 다른 도구(퍼센트) 칸을 잡는다 — 여기서 한 번 헛짚었다.
    이 도구의 제 id 로 집는다. */
+/* ★ **합쳐진 도구는 묶음 안의 탭을 눌러야 생긴다** (2026-08-13). BMI 는 「계산기」 묶음의
+   탭이 됐다(`widgets-lazy-meta.ts` 의 `bundle: 'calc'`). 주소만으로는 묶음 화면까지만 열리고
+   그 탭은 사람이 눌러야 그려진다 — 도구는 멀쩡한데 검사만 15초를 기다리다 죽었다.
+   (먹·아스키 아트도 같은 일을 겪었다. 탭이 언제 붙는지 맞히지 말고 보일 때까지 눌러 본다.) */
+for (let i = 0; i < 20; i += 1) {
+  if (await page.locator('#bmH').first().isVisible().catch(() => false)) break;
+  const tab = page.locator('button', { hasText: /BMI|체질량/ }).first();
+  if (await tab.count()) await tab.click({ timeout: 2000 }).catch(() => {});
+  await page.waitForTimeout(700);
+}
 await page.waitForSelector('#bmH', { timeout: 15000 });
 
 // ① 값을 넣기 전에는 단추가 없어야 한다 — 눌러도 아무 일 없는 단추가 제일 나쁘다.
