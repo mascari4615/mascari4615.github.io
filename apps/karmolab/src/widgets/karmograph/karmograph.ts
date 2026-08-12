@@ -122,7 +122,7 @@ import {
     .km-toolbar > * { flex:0 0 auto; width:auto; max-width:100%; }
     /* 폭을 못 박아 한 줄에 더 많이 들어가게 — 툴바가 세로로 자랄수록 그림이 밀린다. */
     .km-toolbar select[data-km="maps"] { max-width:138px; }
-    .km-toolbar select[data-km="new-kind"], .km-toolbar select[data-km="degree"] { max-width:102px; }
+    .km-toolbar select[data-km="degree"] { max-width:102px; }
     .km-toolbar input[type=text] { min-width:132px; max-width:176px; }
     .km-toolbar input[data-km="find"] { min-width:118px; }
     .km-sep { width:1px; align-self:stretch; background:var(--border); margin:0 2px; }
@@ -278,7 +278,6 @@ import {
     .km-root.is-readonly [data-km="add"],
     .km-root.is-readonly [data-km="undo"],
     .km-root.is-readonly [data-km="redo"],
-    .km-root.is-readonly [data-km="new-kind"],
     .km-root.is-readonly [data-km="map-new"],
     .km-root.is-readonly .km-mini { display:none !important; }
     /* 옆 패널은 **남긴다** — 통째로 숨기면 탭까지 사라져 「저장·발표·관계망 읽기」 같은
@@ -494,7 +493,6 @@ import {
                (빈 판에서만 그 고르개가 뜬다). 이름이 없으면 그 길이 안 보인다 — 2026-08-12 검토. -->
           <button class="btn btn-ghost" data-km="map-new" title="${esc(t('karmograph.t95'))}">+<span
             class="km-btn-name">${esc(t('karmograph.btn.newMap'))}</span></button>
-          <select data-km="new-kind" title="${esc(t('karmograph.t96'))}">${nodeKindOptions()}</select>
           <span class="km-sep"></span>
           <input type="text" data-km="find" placeholder="${esc(t('karmograph.t97'))}" />
           <span class="km-findcount hidden" data-km="find-count" title="${esc(t('karmograph.find.countTitle'))}"></span>
@@ -1106,7 +1104,6 @@ import {
         spec._edge_kinds[e.id] = { color: e.color, style: e.style, arrow: e.arrow, width: e.width };
       }
       canvas?.setKindColors(kindColorsNow());
-      newKindEl.innerHTML = nodeKindOptions();
       persistStructure();
     }
 
@@ -2006,14 +2003,21 @@ import {
     });
 
     // ── 툴바 ────────────────────────────────────────────────────────────────
-    const newKindEl = q<HTMLSelectElement>('new-kind');
+    /* ★ 「다음에 만들 카드의 종류」 드롭다운을 툴바에서 걷어냈다 (TASK-KL-271 P1).
+       아무도 그걸 「다음에 만들 종류」로 안 읽는다 — 고른 카드의 종류로 오해하고, 정작 종류를
+       바꾸는 자리는 옆 패널에 따로 있었다(같은 값에 문이 둘). 이제 새 카드는 **직전에 손으로 만든
+       종류**를 따라가고(`lastNodeKind`, 첫 값은 갈래의 첫 종류로 드롭다운의 첫 값과 같다),
+       바꾸는 일은 만든 그 자리에서 한다.
+       ※ 견본을 깔거나 저장본을 열 때 이 값을 판 내용에서 다시 뽑는 안은 **일부러 안 넣었다** —
+         카드가 태어날 때 그 종류의 칸이 함께 심기므로, 종류가 말없이 바뀌면 칸·거르기·연표가
+         줄줄이 어긋난다(2026-08-13 실측: 화면검사 1 → 14 빨강). 그건 따로 한 묶음으로 다룬다. */
 
     /**
      * 그 자리에 노드를 놓는다. 이름이 비면 빈 이름으로 만들고 오른쪽 이름 칸에 커서를 준다 —
      * 빈 곳을 두 번 눌러 바로 타이핑하는 흐름(Scapple·FigJam)이 이 길로 온다.
      */
     function spawnNodeAt(worldX: number, worldY: number, label: string): void {
-      const kind = newKindEl.value || lastNodeKind;
+      const kind = lastNodeKind;
       const taken = new Set(spec.nodes.map((n) => n.id));
       const w = widthFor(label);
       const node: GraphNode = {
@@ -2313,7 +2317,6 @@ import {
     function applyPack(id: string, persist: boolean): void {
       pack = packById(id);
       if (packEl) packEl.value = pack.id;
-      newKindEl.innerHTML = nodeKindOptions();
       spec._meta = { ...spec._meta, pack: pack.id };
       syncEmptyHint();
       renderSide();
