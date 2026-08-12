@@ -35,10 +35,21 @@ for (const id of tools) {
 
 /* 반대 방향도 본다 — 없어진 도구의 기록이 남아 있으면 쓰레기가 쌓이고,
  * 「몇 개 채워졌나」 같은 숫자가 조용히 틀어진다. */
+/* ★ **찾는 이름은 도구 페이지가 있는 것에만 붙는 게 아니다** (2026-08-12).
+ *   여기서 「없어진 도구」를 `tools-seo.json`(= 페이지가 있는 도구)만으로 판정했더니,
+ *   페이지 없이 화면으로만 사는 것들(perf·plaza·docs·localai·randomgen…)에 붙은 이름 48건이
+ *   통째로 「쓰레기」로 잡혔다 — 정작 그 이름들은 팔레트가 쓰는 **살아 있는 데이터**다.
+ *   그 빨강 때문에 진짜 쓰레기(존재하지 않는 id)가 묻혔다. 기준을 **등록된 위젯 전부**로 넓힌다. */
+const widgetIds = (() => {
+  const metaPath = path.join(root, 'src/widgets-lazy-meta.ts');
+  if (!fs.existsSync(metaPath)) return new Set();
+  return new Set([...fs.readFileSync(metaPath, 'utf8').matchAll(/id:\s*'([^']+)'/g)].map((m) => m[1]));
+})();
 const known = new Set(tools);
+const alive = new Set([...known, ...widgetIds]);
 const stale = [
-  ...Object.keys(aliases).filter((id) => !known.has(id)).map((id) => `이름(${id})`),
-  ...Object.keys(heights).filter((id) => !known.has(id)).map((id) => `자리(${id})`)
+  ...Object.keys(aliases).filter((id) => !alive.has(id)).map((id) => `이름(${id})`),
+  ...Object.keys(heights).filter((id) => !alive.has(id)).map((id) => `자리(${id})`)
 ];
 
 const problems = [];
