@@ -4186,6 +4186,134 @@
           ]
         }
       ]
+    },
+    {
+      "id": "plt",
+      "title": "언어 · 도구 만들기",
+      "emoji": "🔤",
+      "lead": "문법을 다루는 법을 알면, 남이 만든 도구를 기다릴 필요가 없어진다",
+      "stages": [
+        {
+          "id": "plt-a",
+          "title": "글자를 뜻으로",
+          "nodes": [
+            {
+              "id": "plt-why",
+              "title": "작은 언어가 문제를 줄인다",
+              "why": "설정 파일·수식·규칙표는 이미 작은 언어다. 그걸 안다는 것만으로 설계가 달라진다.",
+              "check": "내 프로젝트에서 작은 언어로 표현할 것을 하나 찾는다",
+              "links": [
+                {
+                  "label": "Crafting Interpreters",
+                  "url": "https://craftinginterpreters.com/"
+                }
+              ],
+              "prereq": [
+                "cs-compiler"
+              ]
+            },
+            {
+              "id": "plt-lexer",
+              "title": "토크나이저 — 글자를 낱말로",
+              "why": "문자열 처리에서 가장 자주 필요한 기술. 정규식으로 버티다 무너지는 지점을 넘긴다.",
+              "check": "수식 문자열을 토큰 배열로 바꾼다",
+              "links": [
+                {
+                  "label": "Crafting Interpreters — Scanning",
+                  "url": "https://craftinginterpreters.com/scanning.html"
+                }
+              ]
+            },
+            {
+              "id": "plt-parser",
+              "title": "파서와 AST — 낱말을 구조로",
+              "why": "괄호와 우선순위가 필요한 순간 정규식은 끝난다. 트리로 바꿔야 계산도 변환도 된다.",
+              "check": "연산자 우선순위를 지키는 파서를 직접 쓴다",
+              "links": [
+                {
+                  "label": "AST Explorer",
+                  "url": "https://astexplorer.net/"
+                }
+              ],
+              "prereq": [
+                "cs-ds"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "plt-b",
+          "title": "실행시킨다",
+          "nodes": [
+            {
+              "id": "plt-interp",
+              "title": "인터프리터 — 트리를 걷는다",
+              "why": "트리만 있으면 실행은 놀랄 만큼 짧다. 「언어를 만들었다」가 여기서 실감난다.",
+              "check": "변수와 조건이 있는 수식을 계산해 낸다",
+              "links": [
+                {
+                  "label": "Crafting Interpreters — Evaluating Expressions",
+                  "url": "https://craftinginterpreters.com/evaluating-expressions.html"
+                }
+              ]
+            },
+            {
+              "id": "plt-error",
+              "title": "좋은 오류 메시지가 언어의 절반",
+              "why": "「구문 오류」 네 글자는 아무 도움이 안 된다. 위치·기대·수정 제안이 실제 사용성이다.",
+              "check": "틀린 입력에 줄·열과 수정 제안을 보여 준다",
+              "links": [
+                {
+                  "label": "Rust — 오류 메시지 설계",
+                  "url": "https://rustc-dev-guide.rust-lang.org/diagnostics.html"
+                }
+              ]
+            },
+            {
+              "id": "plt-bytecode",
+              "title": "한 걸음 더 — 바이트코드",
+              "why": "트리를 매번 걷는 대신 명령 목록으로 바꾸면 왜 빨라지는지 몸으로 안다.",
+              "check": "수식을 스택 기계 명령으로 바꿔 실행한다",
+              "links": [
+                {
+                  "label": "Crafting Interpreters — A Virtual Machine",
+                  "url": "https://craftinginterpreters.com/a-virtual-machine.html"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "plt-c",
+          "title": "남의 코드에도 쓴다",
+          "nodes": [
+            {
+              "id": "plt-codemod",
+              "title": "코드모드 — 수백 파일을 안전하게 고친다",
+              "why": "찾아바꾸기는 문자열을 보고, 코드모드는 구조를 본다. 대규모 개편의 유일한 안전한 방법.",
+              "check": "AST 변환으로 API 하나를 전체 저장소에서 바꾼다",
+              "links": [
+                {
+                  "label": "Babel — 파서",
+                  "url": "https://babeljs.io/docs/babel-parser"
+                }
+              ]
+            },
+            {
+              "id": "plt-lsp",
+              "title": "에디터에 붙인다 — LSP",
+              "why": "자동완성·정의로 가기·오류 표시는 표준 프로토콜 하나로 모든 에디터에 붙는다.",
+              "check": "내 언어에 문법 검사만이라도 에디터에 띄운다",
+              "links": [
+                {
+                  "label": "Language Server Protocol",
+                  "url": "https://microsoft.github.io/language-server-protocol/"
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

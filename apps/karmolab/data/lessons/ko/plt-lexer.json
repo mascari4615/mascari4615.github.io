@@ -1,0 +1,96 @@
+{
+  "id": "plt-lexer",
+  "minutes": 11,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "토크나이저는 **글자를 낱말로 묶는** 일이다. `12+age` 를 `[12] [+] [age]` 로. 이것만으로 문자열 처리의 절반이 쉬워진다."
+    },
+    {
+      "type": "h",
+      "text": "1. 왜 정규식만으론 안 되나"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "중첩이 나오는 순간 끝난다",
+      "text": "정규식으로 되는 것: 전화번호 형식 확인, 단순 치환\n정규식으로 안 되는 것: 괄호 짝 맞추기, 우선순위, 중첩 구조\n\n\"(1 + (2 * 3))\" 의 짝을 정규식으로 세려 하지 마라 — 원리적으로 안 된다"
+    },
+    {
+      "type": "h",
+      "text": "2. 30줄짜리 토크나이저"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "한 글자씩 보며 묶는다",
+      "text": "function tokenize(src) {\n  const out = [];\n  let i = 0;\n  while (i < src.length) {\n    const c = src[i];\n    if (/\\s/.test(c)) { i++; continue; }                       // 공백 버림\n    if (/[0-9]/.test(c)) {                                     // 숫자\n      let s = i;\n      while (i < src.length && /[0-9.]/.test(src[i])) i++;\n      out.push({ type: 'num', value: Number(src.slice(s, i)), at: s });\n      continue;\n    }\n    if (/[a-zA-Z_]/.test(c)) {                                 // 이름\n      let s = i;\n      while (i < src.length && /[a-zA-Z0-9_]/.test(src[i])) i++;\n      out.push({ type: 'name', value: src.slice(s, i), at: s });\n      continue;\n    }\n    if ('+-*/()'.includes(c)) { out.push({ type: c, at: i }); i++; continue; }\n    throw new Error(`모르는 글자 '${c}' (위치 ${i})`);\n  }\n  out.push({ type: 'eof', at: src.length });                   // 끝 표시\n  return out;\n}"
+    },
+    {
+      "type": "note",
+      "text": "**위치(at)를 반드시 담아라.** 나중에 「3번째 줄 7번째 글자」 오류를 내려면 여기서 안 담은 정보는 되살릴 수 없다. 오류 메시지 품질이 여기서 결정된다."
+    },
+    {
+      "type": "h",
+      "text": "3. 끝 표시(eof)의 쓸모"
+    },
+    {
+      "type": "p",
+      "text": "파서가 「아직 남았나?」를 매번 길이로 검사하지 않아도 된다. 마지막에 `eof` 토큰 하나를 넣는 작은 습관이 파서 코드를 눈에 띄게 줄인다."
+    },
+    {
+      "type": "h",
+      "text": "4. 자주 걸리는 것"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "미리 정해 둘 것",
+      "text": "· 두 글자 연산자: >= 를 > 와 = 로 쪼개지 않기 (긴 것 먼저 시도)\n· 문자열 안의 공백·이스케이프: \"a b\\\"c\"\n· 주석 건너뛰기\n· 키워드 vs 이름: if 를 이름으로 읽고 나중에 승격하는 편이 단순하다"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "위 토크나이저를 그대로 옮겨 `1 + 2*(x - 3)` 을 넣고 토큰 배열을 출력하라. 그다음 `>=` 를 지원하도록 고쳐라."
+    },
+    {
+      "type": "try",
+      "text": "모르는 글자를 넣어 오류 메시지에 위치가 정확히 찍히는지 확인하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "정규식으로 원리적으로 못 하는 것은?",
+      "choices": [
+        "중첩된 괄호 짝 맞추기",
+        "숫자 형식 검사",
+        "단순 치환"
+      ],
+      "answer": 0,
+      "why": "중첩 구조는 파서가 필요하다."
+    },
+    {
+      "q": "토큰에 위치를 담아야 하는 이유는?",
+      "choices": [
+        "정확한 오류 메시지를 내기 위해",
+        "속도를 위해",
+        "메모리를 줄이려고"
+      ],
+      "answer": 0,
+      "why": "나중에 복원할 수 없는 정보다."
+    },
+    {
+      "q": "두 글자 연산자(>=) 처리의 요령은?",
+      "choices": [
+        "긴 것을 먼저 시도한다",
+        "짧은 것을 먼저",
+        "무시한다"
+      ],
+      "answer": 0,
+      "why": "먼저 > 를 뽑으면 = 가 떨어져 나간다."
+    }
+  ]
+}

@@ -132,6 +132,10 @@
     "qa": {
       "title": "Testing & quality",
       "lead": "Tests exist to keep you fast — code you can change without fear is fast code"
+    },
+    "plt": {
+      "title": "Languages & tooling",
+      "lead": "Once you can handle grammar yourself, you stop waiting for someone else to ship the tool"
     }
   },
   "stages": {
@@ -221,7 +225,10 @@
     "net-c": "Opening what is blocked",
     "qa-a": "Why bother",
     "qa-b": "Doing it well",
-    "qa-c": "All the way to the screen"
+    "qa-c": "All the way to the screen",
+    "plt-a": "From characters to meaning",
+    "plt-b": "Making it run",
+    "plt-c": "Applying it to other code"
   },
   "nodes": {
     "web-html": {
@@ -2203,6 +2210,70 @@
       "check": "You add one pre-commit gate and measure how long it survives",
       "links": [
         "Martin Fowler — continuous integration"
+      ]
+    },
+    "plt-why": {
+      "title": "A tiny language shrinks the problem",
+      "why": "Config files, formulas and rule tables already are little languages; knowing that changes your designs.",
+      "check": "You find one thing in your project worth a tiny language",
+      "links": [
+        "Crafting Interpreters"
+      ]
+    },
+    "plt-lexer": {
+      "title": "Tokenizer — characters into words",
+      "why": "The most reusable string-handling skill, and it carries you past where regex collapses.",
+      "check": "You turn an expression string into a token array",
+      "links": [
+        "Crafting Interpreters — scanning"
+      ]
+    },
+    "plt-parser": {
+      "title": "Parsers and the AST",
+      "why": "The moment you need parentheses and precedence, regex is over; a tree is what makes evaluation and rewriting possible.",
+      "check": "You write a parser that respects operator precedence",
+      "links": [
+        "AST Explorer"
+      ]
+    },
+    "plt-interp": {
+      "title": "Interpreter — walking the tree",
+      "why": "With a tree in hand execution is surprisingly short, and \"I made a language\" becomes real here.",
+      "check": "You evaluate expressions with variables and conditionals",
+      "links": [
+        "Crafting Interpreters — evaluating expressions"
+      ]
+    },
+    "plt-error": {
+      "title": "Good errors are half the language",
+      "why": "\"Syntax error\" helps nobody; position, expectation and a suggested fix are the actual usability.",
+      "check": "Bad input shows line, column and a suggestion",
+      "links": [
+        "Rust — diagnostics design"
+      ]
+    },
+    "plt-bytecode": {
+      "title": "One step further — bytecode",
+      "why": "Turning the tree into an instruction list shows you first-hand why it gets faster.",
+      "check": "You compile expressions to stack-machine instructions and run them",
+      "links": [
+        "Crafting Interpreters — a virtual machine"
+      ]
+    },
+    "plt-codemod": {
+      "title": "Codemods — changing hundreds of files safely",
+      "why": "Find-and-replace sees text, a codemod sees structure, which is the only safe way to do a large migration.",
+      "check": "You rewrite one API across a repo through AST transforms",
+      "links": [
+        "Babel parser"
+      ]
+    },
+    "plt-lsp": {
+      "title": "Plugging into editors — LSP",
+      "why": "Completion, go-to-definition and diagnostics reach every editor through one protocol.",
+      "check": "Your language shows at least syntax errors inside an editor",
+      "links": [
+        "Language Server Protocol"
       ]
     }
   }

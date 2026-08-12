@@ -1,0 +1,100 @@
+{
+  "id": "plt-codemod",
+  "minutes": 12,
+  "blocks": [
+    {
+      "type": "p",
+      "text": "이름 바꾸기 하나가 300 파일에 걸쳐 있을 때, 찾아바꾸기는 **문자열**을 보고 코드모드는 **구조**를 본다. 그 차이가 사고와 안전의 차이다."
+    },
+    {
+      "type": "h",
+      "text": "1. 찾아바꾸기가 지는 지점"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "전부 실제로 나는 사고",
+      "text": "· 주석·문자열 안까지 바뀐다        \"getUser 는 이제 …\"\n· 다른 뜻의 같은 이름까지 바뀐다   user.getUser vs admin.getUser\n· 인자 순서 변경은 아예 불가능      f(a, b) → f(b, a)\n· 여러 줄에 걸친 호출은 못 잡는다"
+    },
+    {
+      "type": "h",
+      "text": "2. 코드모드의 흐름"
+    },
+    {
+      "type": "code",
+      "lang": "js",
+      "label": "파싱 → 변환 → 출력",
+      "text": "import { parse } from '@babel/parser';\nimport traverse from '@babel/traverse';\nimport generate from '@babel/generator';\n\nconst ast = parse(src, { sourceType: 'module', plugins: ['typescript'] });\n\ntraverse(ast, {\n  CallExpression(path) {\n    const c = path.node.callee;\n    if (c.type === 'MemberExpression' && c.property.name === 'getUser') {\n      c.property.name = 'fetchUser';                 // 구조를 고친다\n      path.node.arguments.reverse();                 // 인자 순서까지\n    }\n  },\n});\n\nfs.writeFileSync(file, generate(ast, { retainLines: true }).code);"
+    },
+    {
+      "type": "h",
+      "text": "3. 먼저 탐색부터"
+    },
+    {
+      "type": "note",
+      "text": "**바꾸기 전에 세어라.** 같은 순회로 「몇 군데인가, 어떤 모양들인가」를 먼저 출력하면 예상 밖 패턴(옵셔널 체이닝·별칭 임포트·동적 호출)이 드러난다. 이 5분이 잘못된 일괄 수정을 막는다."
+    },
+    {
+      "type": "h",
+      "text": "4. 안전 규칙"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "순서를 지켜라",
+      "text": "1) git 이 깨끗한 상태에서 시작 (되돌릴 수 있게)\n2) 파일 3개에만 먼저 적용 → diff 를 눈으로 확인\n3) 전체 적용 → 빌드·테스트\n4) 포매터를 마지막에 한 번 돌린다 (출력 스타일 차이 흡수)\n5) 커밋을 코드모드만 따로 — 리뷰어가 \"기계 변환\" 임을 알게"
+    },
+    {
+      "type": "h",
+      "text": "5. AST 를 눈으로 보는 법"
+    },
+    {
+      "type": "p",
+      "text": "**astexplorer.net** 에 코드를 붙여 넣으면 노드 이름과 구조가 바로 보인다. 코드모드는 대부분 「이 노드 타입 이름이 뭐지?」 싸움이라, 이 도구 하나로 작업 시간이 절반이 된다."
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "astexplorer 에 내 코드 한 조각을 넣고, 바꾸고 싶은 부분이 어떤 노드 타입인지 확인하라."
+    },
+    {
+      "type": "try",
+      "text": "함수 이름 하나를 바꾸는 코드모드를 쓰되, 먼저 「몇 군데인지 세는 모드」로 돌려 결과를 보고 실행하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "찾아바꾸기 대신 코드모드를 쓰는 이유는?",
+      "choices": [
+        "구조를 보므로 문자열·주석 오염과 동명이인을 피한다",
+        "더 빠르다",
+        "설치가 쉽다"
+      ],
+      "answer": 0,
+      "why": "의미 단위로 정확히 고친다."
+    },
+    {
+      "q": "코드모드 실행 전에 권장되는 단계는?",
+      "choices": [
+        "대상 개수와 형태를 먼저 세어 본다",
+        "포매터를 먼저 돌린다",
+        "테스트를 지운다"
+      ],
+      "answer": 0,
+      "why": "예상 밖 패턴을 미리 드러낸다."
+    },
+    {
+      "q": "AST 노드 타입을 빠르게 확인하는 도구는?",
+      "choices": [
+        "astexplorer.net",
+        "DNS 조회",
+        "프로파일러"
+      ],
+      "answer": 0,
+      "why": "코드를 붙이면 구조가 바로 보인다."
+    }
+  ]
+}
