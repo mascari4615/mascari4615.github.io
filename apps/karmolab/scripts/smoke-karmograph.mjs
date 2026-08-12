@@ -524,7 +524,7 @@ await step('찾기 → 포커스가 걸린다', async () => {
 await step('발표 장을 담고 순서를 바꾼다', async () => {
   // prompt 가 두 번 뜬다(제목·설명) — 상시 핸들러로 받아 넘긴다. once 로 걸면 클릭이 대화상자에 물려 멈춘다.
   let n = 0;
-  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '장 ' + n : ''); };
+  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '장 ' + n : '').catch(() => {}); };
   page.on('dialog', onDlg);
   await page.locator('[data-km="story"]').dispatchEvent('click');
   await page.waitForSelector('.km-root.is-presenting', { timeout: 4000 });
@@ -824,7 +824,7 @@ await step('카드 모서리를 끌면 크기가 바뀌고, 이름을 고쳐도 
 await step('틀로 담은 장은 나중에 놓은 인물도 함께 데려간다', async () => {
   // 장면을 노드 목록으로 굳히면 새 인물이 영영 안 낀다 — 그래서 **담은 뒤에** 하나 더 놓고 센다.
   let n = 0;
-  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '틀 장' : ''); };
+  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '틀 장' : '').catch(() => {}); };
   page.on('dialog', onDlg);
   await page.locator('[data-km="story"]').dispatchEvent('click');
   await page.waitForSelector('.km-root.is-presenting', { timeout: 4000 });
@@ -864,7 +864,7 @@ await step('장을 넘기면 화면이 끊기지 않고 미끄러진다', async 
     return t;
   };
   let n = 0;
-  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '미끄럼 ' + n : ''); };
+  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '미끄럼 ' + n : '').catch(() => {}); };
   page.on('dialog', onDlg);
   await page.locator('[data-km="story"]').dispatchEvent('click');
   await page.waitForSelector('.km-root.is-presenting', { timeout: 4000 });
@@ -1139,7 +1139,7 @@ await step('코멘트는 여러 개 쌓이고 카드에 개수가 뜬다', async
 await step('발표를 SVG 한 장으로 — 브라우저만 있으면 도는 파일이 나온다', async () => {
   // 발표는 대개 남의 기계에서 열린다. 파일 이름이 아니라 **속**을 본다: 장면 목록·조작 스크립트.
   let n = 0;
-  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '한 장 ' + n : ''); };
+  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '한 장 ' + n : '').catch(() => {}); };
   page.on('dialog', onDlg);
   await page.locator('[data-km="story"]').dispatchEvent('click');
   await page.waitForSelector('.km-root.is-presenting', { timeout: 4000 });
@@ -1169,7 +1169,7 @@ await step('보기 전용 링크 — 손잡이가 사라지고, 「내 것으로
   await page.click('[data-km="more"]');
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
   let link = '';
-  page.once('dialog', (d) => { link = d.message() || ''; d.accept(); });
+  page.once('dialog', (d) => { link = d.message() || ''; d.accept().catch(() => {}); });
   await page.locator('[data-km="share-view"]').dispatchEvent('click');
   await page.waitForTimeout(900);
   if (!link) link = await page.evaluate(() => navigator.clipboard?.readText?.() ?? '').catch(() => '');
@@ -1365,7 +1365,7 @@ await step('「이 카드로 오는 링크」로 열면 그 카드가 골라져 
   // 기대게 되고, 그 기대가 틀리면 검사가 엉뚱한 카드를 가리킨다(실제로 그렇게 한 번 틀렸다).
   await page.waitForSelector('[data-km="node-link"]', { timeout: 4000 });
   let link = '';
-  page.once('dialog', (d) => { link = d.message() || ''; d.accept(); });
+  page.once('dialog', (d) => { link = d.message() || ''; d.accept().catch(() => {}); });
   await page.locator('[data-km="node-link"]').dispatchEvent('click');
   await page.waitForTimeout(900);
   if (!link) link = await page.evaluate(() => navigator.clipboard?.readText?.() ?? '').catch(() => '');

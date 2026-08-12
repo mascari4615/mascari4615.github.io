@@ -288,8 +288,8 @@ export class GraphCanvas {
   /** 누른 지점 — 뗄 때 이동량으로 클릭/드래그를 가른다. */
   private pressOrigin: { x: number; y: number; nodeId: string | null } | null = null;
 
-  /** 지금 끌고 있는 카드들 — 여기 닿은 선만 다시 그린다(TASK-KL-234). */
-  private dragTouched: Set<string> | undefined;
+  /** 끌기 중 캐시 — 닿은 카드(선 부분 갱신용) · 거르기 결과(매 프레임 다시 안 센다). KL-234 */
+  private dragTouched: Set<string> | undefined; private dragShown: Set<string> | undefined;
   /** 끄는 동안의 무거운 다시 그리기(선·묶음·작은 판) — 프레임당 한 번으로 모은다. */
   private paintDragged = frameCoalesced(() => {
     this.groupLayer.innerHTML = '';
@@ -1164,9 +1164,9 @@ export class GraphCanvas {
   /** `only` 를 주면 **그 카드에 닿은 선만** 다시 만든다 — 큰 판에서 끄는 손이 무겁던 이유(TASK-KL-234). */
   private redrawEdges(only?: Set<string>): void {
     if (!this.spec) return;
-    if (!only) this.edgeLayer.innerHTML = '';
+    if (!only) { this.edgeLayer.innerHTML = ''; this.dragShown = undefined; }
     const touched = new Set<string>();
-    const shown = this.visibleNodeIds();
+    const shown = only ? (this.dragShown ??= this.visibleNodeIds()) : this.visibleNodeIds();
     for (const edge of this.spec.edges) {
       const from = this.parseNodeRef(edge.from);
       const to = this.parseNodeRef(edge.to);
