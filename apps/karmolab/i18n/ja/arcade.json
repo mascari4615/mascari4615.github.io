@@ -374,5 +374,6 @@
   "arcade.tuho.throw": "投げる",
   "arcade.tuho.flying": "飛んでいる",
   "arcade.tuho.left": "残り{n}",
-  "arcade.tuho.win": "{who} · {n}点"
+  "arcade.tuho.win": "{who} · {n}点",
+  "arcade.btn.sound": "音のオン・オフ"
 }
