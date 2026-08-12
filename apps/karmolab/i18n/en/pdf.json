@@ -23,5 +23,8 @@
   "pdf.preview.fail": "This document cannot be previewed",
   "pdf.meta": "{n} pages · {size}",
   "pdf.meta.unreadable": "Could not draw a preview",
-  "pdf.err.mount": "Could not load this task"
+  "pdf.err.mount": "Could not load this task",
+  "pdf.btn.more": "Show more ({n} pages)",
+  "pdf.btn.chain": "Continue with this result",
+  "pdf.chain.ready": "Result \"{name}\""
 }

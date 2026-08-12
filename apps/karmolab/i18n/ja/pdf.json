@@ -23,5 +23,8 @@
   "pdf.preview.fail": "この書類はプレビューできません",
   "pdf.meta": "{n}ページ · {size}",
   "pdf.meta.unreadable": "プレビューを描けませんでした",
-  "pdf.err.mount": "この作業を読み込めませんでした"
+  "pdf.err.mount": "この作業を読み込めませんでした",
+  "pdf.btn.more": "もっと見る（{n}ページ）",
+  "pdf.btn.chain": "この結果で続ける",
+  "pdf.chain.ready": "結果「{name}」"
 }
