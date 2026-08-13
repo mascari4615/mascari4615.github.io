@@ -1,96 +1,775 @@
 {
   "id": "scale-vertical",
-  "minutes": 10,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "분산은 공짜가 아니다. 서버를 키워서 해결되면 **그게 대개 더 싸다** — 사람 시간까지 계산하면 특히."
-    },
-    {
-      "type": "h",
-      "text": "1. 수직 확장이 이기는 구간"
-    },
-    {
-      "type": "note",
-      "text": "요즘 한 대에 수백 GB 메모리와 수십 코어를 붙일 수 있다. 트래픽이 하루 수백만 요청 수준이면 **잘 튜닝된 한 대 + 읽기 복제본**으로 충분한 경우가 많다."
-    },
-    {
-      "type": "h",
-      "text": "2. 분산의 진짜 비용"
-    },
-    {
-      "type": "p",
-      "text": "네트워크 지연 · 부분 실패 · 데이터 일관성 · 배포 복잡도 · 디버깅 난이도 · 관측 도구. 코드가 아니라 **운영이 무거워진다**."
-    },
-    {
-      "type": "h",
-      "text": "3. 먼저 해야 할 값싼 개선"
-    },
-    {
-      "type": "note",
-      "text": "① 인덱스·쿼리(가장 큰 이득) ② 캐시 ③ N+1 제거 ④ 무거운 작업 큐로 ⑤ 정적 자산 CDN. 이걸 안 하고 서버를 늘리면 **비용만 늘고 문제는 그대로**다."
-    },
-    {
-      "type": "h",
-      "text": "4. 한계선을 숫자로 안다"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "이런 형태로 적어 둔다",
-      "text": "현재: 8vCPU / 32GB, 피크 CPU 45%, DB 커넥션 40/100\n예상 한계: CPU 기준 지금의 2배 트래픽\n다음 조치: 그 지점에서 읽기 복제본 추가 → 그다음 앱 수평 확장"
-    },
-    {
-      "type": "h",
-      "text": "5. 수평으로 갈 준비는 미리"
-    },
-    {
-      "type": "p",
-      "text": "지금 한 대로 가더라도 **무상태로 짜 두면**(세션·업로드 파일을 서버 밖으로) 나중에 옮기는 비용이 거의 0 이 된다. 이건 미리 해 둘 가치가 있는 몇 안 되는 준비다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "지금 서버의 피크 사용률을 재고 「몇 배까지 버티나」를 숫자로 적어라. 그 지점에서 무엇을 할지도 함께."
-    },
-    {
-      "type": "try",
-      "text": "세션·업로드 파일이 서버 로컬에 있는지 확인하라. 있다면 밖으로 빼는 작업을 목록에 넣어라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "분산 시스템의 가장 큰 추가 비용은?",
-      "choices": [
-        "운영·디버깅·일관성 등 복잡도",
-        "서버 대여료",
-        "코드 줄 수"
+      "id": "1",
+      "title": "분산은 공짜가 아니다 — 한 대 키우기가 대개 싸다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「확장」 하면 서버를 여러 대로 나누는 **분산**을 떠올리지만, 분산은 공짜가 아니다 — 네트워크 지연·부분 실패·일관성·운영 복잡도가 따라온다. 서버를 **키워서**(수직 확장) 해결되면 **그게 대개 더 싸다** — 특히 사람 시간까지 계산하면. 요즘 한 대에 수백 GB 메모리·수십 코어를 붙일 수 있어, 트래픽이 하루 수백만 요청 수준이면 **잘 튜닝된 한 대 + 읽기 복제본**으로 충분한 경우가 많다. 「분산부터」가 아니라 「한 대로 되나?」를 먼저 묻는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "수직 확장 vs 분산 — 비용",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .machines { display:flex; gap:6px; margin:8px 0; align-items:flex-end; }\n  .machines .m { border-radius:5px; background:#14263a; color:#7dd3fc; display:flex; align-items:center; justify-content:center; font:10px ui-monospace, monospace; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const machines = (list) => '<div class=\"machines\">' + list.map(([w, h, lab]) =>\n    '<div class=\"m\" style=\"width:' + w + 'px;height:' + h + 'px\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const way = '{{way}}';\n  if (way === 'distributed') {\n    render('바로 분산으로',\n      '  여러 서버로 나눔 → 네트워크·부분 실패·일관성·배포·디버깅 복잡도\\n' +\n      '  <span class=\\\"no\\\">코드보다 운영이 무거워짐 — 작은 규모엔 비용 > 이득.</span>',\n      '분산은 운영 복잡도(네트워크·부분실패·일관성)를 크게 더한다.',\n      steps([['여러 서버로 분산', 'on'],['네트워크 지연·부분 실패', 'bad'],['일관성·배포·디버깅·관측 복잡', 'bad'],['운영이 무거워짐', 'bad']]));\n  } else {\n    render('한 대를 키운다(수직)',\n      '  더 큰 서버 + 값싼 개선(인덱스·캐시) + 읽기 복제본\\n' +\n      '  <span class=\\\"ok\\\">운영 단순 · 대개 더 싸다(사람 시간 포함). 수백만 요청/일까지 충분한 경우 많음.</span>',\n      '한 대를 키우면 운영이 단순 — 대개 더 싸다. 먼저 이걸 고려.',\n      steps([['값싼 개선(인덱스·캐시·N+1)', 'good'],['필요하면 더 큰 서버(수직)', 'good'],['읽기 복제본으로 읽기 분산', 'good'],['운영 단순 유지', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "way",
+              "label": "접근",
+              "type": "select",
+              "value": "distributed",
+              "options": [
+                {
+                  "value": "distributed",
+                  "label": "바로 분산"
+                },
+                {
+                  "value": "vertical",
+                  "label": "한 대 키우기"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「확장 = 분산」이 아니다 — 한 대를 키우는 게(수직 확장) 대개 더 싸고 단순하다.** 분산(수평 확장)은 강력하지만 큰 비용을 부른다: 네트워크 지연·부분 실패(일부만 죽음)·데이터 일관성(scale-cap)·배포·디버깅·관측이 전부 어려워진다 — **코드가 아니라 운영이 무거워진다**(4장). 반면 수직 확장(더 큰 서버)은 코드를 거의 안 바꾸고 운영이 단순하다. 그리고 현대 하드웨어는 놀랍게 크다 — 한 대에 수백 GB 메모리·수십~수백 코어라, **잘 튜닝된 한 대 + 읽기 복제본**이 하루 수백만~수천만 요청을 처리하는 경우가 흔하다. 그래서 순서는 ① 값싼 개선(인덱스·캐시·N+1, 5장)으로 지금 서버를 효율화 ② 필요하면 더 큰 서버(수직) ③ 그래도 부족하면 분산(수평). 「트래픽 좀 늘 것 같으니 마이크로서비스로」가 아니라, 측정(scale-measure)으로 진짜 필요를 확인하고 가장 싼 방법부터 쓴다. 대부분의 서비스는 분산까지 안 가도 된다."
+        },
+        {
+          "type": "p",
+          "text": "**사람 시간이 진짜 비용이다 — 분산은 팀을 느리게 한다.** 서버 비용만 보면 분산이 싸 보일 수 있지만(작은 서버 여러 대 vs 큰 서버 한 대), 실제 비용의 큰 몫은 **엔지니어 시간**이다: 분산 시스템은 개발·디버깅·배포·장애 대응이 몇 배 어려워, 같은 기능을 만드는 데 더 오래 걸리고 사고도 잦다(design 의 「코드는 싸지 않다」의 시스템판). 그래서 「서버비 절약」을 위해 분산했다가 「개발 속도·안정성」을 잃는 경우가 많다 — 특히 작은 팀에서. 반대로 큰 서버 한 대는 비싸 보여도 팀이 빠르게 움직이고 사고가 적어 **총비용**이 낮을 수 있다. 「분산이 멋지다·확장성 있다」의 유혹보다 「이 규모에서 우리 팀에 무엇이 총비용이 싼가」를 본다(lang-pick 8장의 「설계·운영이 결과를 좌우」와 통함). 확장은 필요할 때 필요한 만큼, 가장 단순한 방법으로 한다."
+        },
+        {
+          "type": "try",
+          "text": "네 시스템이 분산돼 있거나 분산을 고려 중이면, 「한 대(더 큰 서버 + 값싼 개선)로 되나?」를 먼저 물어라. 서버 비용뿐 아니라 사람 시간(개발·디버깅·운영)까지 넣어 총비용을 비교하라."
+        }
       ],
-      "answer": 0,
-      "why": "사람 시간이 가장 비싸다."
+      "quiz": [
+        {
+          "q": "「확장」의 첫 고려는?",
+          "choices": [
+            "바로 분산",
+            "한 대를 키우기(수직) — 대개 더 싸고 단순",
+            "마이크로서비스",
+            "캐시만"
+          ],
+          "answer": 1,
+          "why": "분산은 공짜 아님."
+        },
+        {
+          "q": "분산이 무겁게 만드는 것은?",
+          "choices": [
+            "코드만",
+            "운영(네트워크·부분실패·일관성·배포·디버깅)",
+            "메모리만",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "운영 복잡도."
+        },
+        {
+          "q": "분산의 진짜 비용은?",
+          "choices": [
+            "서버비만",
+            "사람 시간(개발·디버깅·운영) — 팀을 느리게",
+            "전기",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "총비용."
+        }
+      ]
     },
     {
-      "q": "서버를 늘리기 전에 먼저 해야 할 것은?",
-      "choices": [
-        "인덱스·캐시·N+1 같은 값싼 개선",
-        "리전 추가",
-        "샤딩"
+      "id": "2",
+      "title": "수직 vs 수평 확장",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "확장은 두 방향이다: **수직(scale up)** — 서버 **한 대를 더 크게**(CPU·메모리·디스크 추가). 단순하지만 **한계**가 있고(한 대 최대 크기·비싼 고사양) 그 **한 대가 죽으면 전체 중단**. **수평(scale out)** — 서버를 **여러 대로**. 이론상 무한 확장·한 대 죽어도 살아남음(가용성)이지만, **분산 복잡도**(무상태·일관성·조율)가 따른다. 대개 **수직 먼저, 한계에 닿으면 수평**이다 — 수직이 단순하고 싸니까."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "수직 vs 수평",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .machines { display:flex; gap:6px; margin:8px 0; align-items:flex-end; }\n  .machines .m { border-radius:5px; background:#14263a; color:#7dd3fc; display:flex; align-items:center; justify-content:center; font:10px ui-monospace, monospace; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const machines = (list) => '<div class=\"machines\">' + list.map(([w, h, lab]) =>\n    '<div class=\"m\" style=\"width:' + w + 'px;height:' + h + 'px\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'up') {\n    render('수직(scale up) — 한 대를 크게',\n      '  2코어/8GB → 32코어/256GB\\n' +\n      '  <span class=\\\"ok\\\">단순(코드 그대로)</span> <span class=\\\"no\\\">한계 있음·그 한 대 죽으면 전체 중단.</span>',\n      '수직: 한 대를 크게 — 단순하나 한계·단일 장애점.',\n      machines([[100, 60, '큰 서버 1대']]));\n  } else {\n    render('수평(scale out) — 여러 대로',\n      '  작은 서버 여러 대 + 로드 밸런서\\n' +\n      '  <span class=\\\"ok\\\">무한 확장·한 대 죽어도 살아남음(가용성)</span> <span class=\\\"no\\\">분산 복잡도(무상태·일관성).</span>',\n      '수평: 여러 대로 — 무한 확장·가용성이나 분산 복잡도.',\n      machines([[40, 30, '1'],[40, 30, '2'],[40, 30, '3'],[40, 30, '4']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "방향",
+              "type": "select",
+              "value": "up",
+              "options": [
+                {
+                  "value": "up",
+                  "label": "수직(한 대 크게)"
+                },
+                {
+                  "value": "out",
+                  "label": "수평(여러 대)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "수직 vs 수평",
+          "text": "수직(scale up)   한 대를 더 크게 (CPU·메모리 추가)\n  + 단순(코드 그대로) · 대개 싸다(작은 규모)\n  - 한계 있음(한 대 최대) · 단일 장애점(그 한 대 죽으면 전체)\n\n수평(scale out)  여러 대로 (+ 로드 밸런서)\n  + 이론상 무한 확장 · 가용성(한 대 죽어도 삶)\n  - 분산 복잡도(무상태·일관성·조율·관측)\n\n대개: 수직 먼저 → 한계·가용성 필요하면 수평"
+        },
+        {
+          "type": "note",
+          "text": "**수직은 단순하나 한계·단일 장애점, 수평은 무한 확장·가용성이나 분산 복잡도 — 대개 수직 먼저다.** 수직 확장(더 큰 서버)의 장점은 코드를 안 바꿔도 되는 **단순함**이고, 단점은 ① 한 대에는 **최대 크기**가 있어 무한히 못 키우고 ② 초고사양은 가격이 **비선형으로** 비싸지고(2배 성능에 3배 값) ③ 그 한 대가 죽으면 **전체가 멈춘다**(단일 장애점). 수평 확장(여러 대)은 이론상 무한히 늘릴 수 있고 한 대가 죽어도 나머지가 살아남아 **가용성**이 높지만, **분산 복잡도**(무상태로 짜기 scale-lb, 일관성 scale-cap, 조율·관측)가 따른다. 그래서 대부분 **수직 먼저**(단순·저렴)로 가다, **수직의 한계에 닿거나**(한 대로 감당 안 됨) **가용성이 필요할 때**(한 대 장애를 못 견딤) 수평으로 간다(8장). 「멋지니까 처음부터 수평」이 아니라, 필요가 생길 때 넘어간다 — 단, 넘어가기 쉽게 **미리 무상태로 준비**해 둔다(7장)."
+        },
+        {
+          "type": "p",
+          "text": "**둘은 배타적이지 않다 — 흔히 섞어 쓴다.** 실무에선 수직과 수평을 조합한다: 각 서버를 **적당히 큰 크기**로(수직) 하되 **여러 대**(수평)를 두는 식 — 너무 작은 서버 많은 대는 오버헤드(대당 고정 비용·조율)가 크고, 한 대만 거대하면 단일 장애점이라, 중간이 대개 효율적이다. 그리고 **컴포넌트마다 다르게** 확장한다: 무상태 웹 서버는 수평으로 쉽게 늘리고(scale-lb), DB 는 수직으로 키우다 읽기 복제(수평 읽기)·샤딩(수평 쓰기, scale-shard)으로 가고, 캐시·큐는 각자 확장한다. 그래서 「수직이냐 수평이냐」는 시스템 전체가 아니라 **각 부분**에 대해 묻는다 — 어느 부분이 병목이고(scale-measure 4장), 그 부분에 무엇이 맞나. 대개 무상태 부분은 수평이 쉽고, 상태를 가진 부분(DB)이 확장의 어려운 지점이다(scale-shard). 「어느 부분을 어떻게 확장하나」로 구체화한다."
+        },
+        {
+          "type": "try",
+          "text": "네 시스템의 각 부분(웹 서버·DB·캐시·큐)이 지금 수직인지 수평인지, 병목인 부분은 어느 방향으로 확장할지 적어라. 무상태 부분(웹)과 상태 부분(DB)의 확장 난이도 차이를 확인하라."
+        }
       ],
-      "answer": 0,
-      "why": "기본 개선 없이 늘리면 비용만 커진다."
+      "quiz": [
+        {
+          "q": "수직 확장(scale up)이란?",
+          "choices": [
+            "여러 대로",
+            "한 대를 더 크게(CPU·메모리 추가)",
+            "샤딩",
+            "캐시"
+          ],
+          "answer": 1,
+          "why": "단순하나 한계."
+        },
+        {
+          "q": "수직 확장의 단점은?",
+          "choices": [
+            "복잡함",
+            "한계 있음 + 단일 장애점(그 한 대 죽으면 전체)",
+            "느림",
+            "비쌈만"
+          ],
+          "answer": 1,
+          "why": "수평은 가용성."
+        },
+        {
+          "q": "대개의 확장 순서는?",
+          "choices": [
+            "처음부터 수평",
+            "수직 먼저 → 한계·가용성 필요 시 수평",
+            "샤딩부터",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "단순·저렴 먼저."
+        }
+      ]
     },
     {
-      "q": "지금은 한 대로 가더라도 미리 해 둘 준비는?",
-      "choices": [
-        "무상태로 만들기(세션·파일을 밖으로)",
-        "샤딩 설계",
-        "멀티 리전 배포"
+      "id": "3",
+      "title": "먼저 할 값싼 개선",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "서버를 키우거나 늘리기 **전에** 할 값싼 개선들이 있다 — 이걸 안 하고 서버부터 늘리면 **비용만 늘고 병목은 그대로**다(scale-measure 1·4장). 순서(이득 큰 순): ① **인덱스·쿼리**(가장 큰 이득, db-index) ② **캐시**(data-cache) ③ **N+1 제거**(db-nplus1) ④ **무거운 작업 큐로**(data-queue) ⑤ **정적 자산 CDN**. 이들은 대개 코드 수정이라 서버 증설보다 훨씬 싸고, 같은 서버로 **몇 배**의 용량을 낸다. 「증설 전에 이 다섯을 했나?」를 먼저 확인한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "값싼 개선 — 증설 전에",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .machines { display:flex; gap:6px; margin:8px 0; align-items:flex-end; }\n  .machines .m { border-radius:5px; background:#14263a; color:#7dd3fc; display:flex; align-items:center; justify-content:center; font:10px ui-monospace, monospace; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const machines = (list) => '<div class=\"machines\">' + list.map(([w, h, lab]) =>\n    '<div class=\"m\" style=\"width:' + w + 'px;height:' + h + 'px\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const fix = '{{fix}}';\n  const cases = {\n    index:['① 인덱스·쿼리', '풀 스캔 → 인덱스 조회 (가장 큰 이득)', '느린 쿼리 하나가 전체를 잡아먹기도(db-index)'],\n    cache:['② 캐시', '반복 조회를 캐시로 → DB 부하↓', '자주 조회·안 바뀌는 것(data-cache)'],\n    nplus1:['③ N+1 제거', '반복 쿼리를 조인·일괄로 → 쿼리 수 상수', 'ORM 지연 로딩 주의(db-nplus1)'],\n    queue:['④ 무거운 작업 큐로', '느린 일을 요청에서 빼 워커로 → 응답 빠름', '메일·변환·집계(data-queue)'],\n    cdn:  ['⑤ 정적 자산 CDN', '이미지·JS·CSS 를 엣지에서 → 서버 안 거침', '가장 바깥에서 막을수록 싸다(data-cache 7장)'],\n  }[fix];\n  render('값싼 개선: ' + cases[0],\n    '  ' + cases[1] + '\\n  적용: ' + cases[2] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">코드 수정 — 증설보다 훨씬 싸고 같은 서버로 몇 배 용량.</span>',\n    '인덱스·캐시·N+1·큐·CDN — 증설 전에 할 값싼 개선(이득 순).',\n    box(cases[0], cases[1]));\n</script>",
+          "controls": [
+            {
+              "id": "fix",
+              "label": "개선",
+              "type": "select",
+              "value": "index",
+              "options": [
+                {
+                  "value": "index",
+                  "label": "① 인덱스·쿼리"
+                },
+                {
+                  "value": "cache",
+                  "label": "② 캐시"
+                },
+                {
+                  "value": "nplus1",
+                  "label": "③ N+1 제거"
+                },
+                {
+                  "value": "queue",
+                  "label": "④ 큐로"
+                },
+                {
+                  "value": "cdn",
+                  "label": "⑤ CDN"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**증설 전에 값싼 개선을 먼저 하라 — 안 하고 서버를 늘리면 비용만 늘고 병목은 그대로다.** 이득 큰 순서로: ① **인덱스·쿼리**(가장 큰 이득 — 인덱스 없는 느린 쿼리 하나가 전체 용량을 잡아먹는 경우가 흔하다, db-index·db-explain) ② **캐시**(자주 조회·안 바뀌는 것을 캐시해 DB 부하↓, data-cache) ③ **N+1 제거**(반복 쿼리를 조인·일괄로, db-nplus1) ④ **무거운 작업 큐로**(느린 일을 요청에서 떼어 응답 빠르게+부하 평탄화, data-queue) ⑤ **정적 자산 CDN**(이미지·JS·CSS 를 엣지에서, 서버 안 거침). 이들은 대부분 **코드 수정**이라 서버 증설보다 훨씬 싸고, 같은 하드웨어로 **몇 배**의 처리량을 낸다(리틀의 법칙 — 지연을 줄이면 처리량↑, scale-measure 8장). 그래서 「트래픽이 는다 → 서버 증설」이 아니라 「트래픽이 는다 → 측정해 병목 찾기 → 값싼 개선 → 그래도 부족하면 증설」이 순서다. 대개 이 다섯만으로 상당한 여유가 생겨, 수직·수평 확장을 미룰 수 있다."
+        },
+        {
+          "type": "p",
+          "text": "**값싼 개선이 확장보다 나은 이유 — 병목 자체를 없앤다.** 서버 증설은 병목을 **가리지** 못한다: DB 커넥션 풀이 병목인데 웹 서버를 늘리면 DB 를 더 세게 쳐 오히려 악화된다(scale-measure 4장). 반면 값싼 개선은 병목 **자체를 줄인다** — 인덱스로 쿼리가 빨라지면 DB 가 같은 시간에 더 많은 요청을 처리하고(연결이 빨리 반납, db-pool), 캐시로 DB 를 아예 안 치고, N+1 제거로 쿼리 수가 줄고, 큐로 무거운 작업이 요청에서 빠진다. 그래서 값싼 개선은 「같은 자원으로 더 많이」를 진짜로 달성한다(scale-measure 8장의 지연 개선=처리량 개선). 그리고 이 개선들은 확장 후에도 유효하다 — 비효율을 안고 확장하면 그 비효율까지 몇 배로 복제된다(느린 쿼리를 10대에서 도는 것). 그래서 **먼저 효율화하고 나서 확장**한다 — 「깨끗한 것을 확장」이 「비효율을 확장」보다 항상 싸다. 확장은 효율화 다음이다."
+        },
+        {
+          "type": "try",
+          "text": "네 시스템에 이 다섯(인덱스·캐시·N+1·큐·CDN) 중 안 한 게 있는지 점검하라. 가장 느린 쿼리에 인덱스가 있는지, N+1 이 있는지부터 보고, 증설을 고려하기 전에 이 값싼 개선으로 얼마나 여유가 생기는지 측정하라."
+        }
       ],
-      "answer": 0,
-      "why": "나중에 수평 확장할 때 비용이 거의 0 이 된다."
+      "quiz": [
+        {
+          "q": "증설 전에 먼저 할 값싼 개선의 1순위는?",
+          "choices": [
+            "서버 늘리기",
+            "인덱스·쿼리(가장 큰 이득)",
+            "캐시만",
+            "CDN"
+          ],
+          "answer": 1,
+          "why": "코드 수정, 몇 배 이득."
+        },
+        {
+          "q": "값싼 개선을 안 하고 서버만 늘리면?",
+          "choices": [
+            "해결",
+            "비용만 늘고 병목은 그대로(공유 자원이면 악화)",
+            "빠름",
+            "안전"
+          ],
+          "answer": 1,
+          "why": "병목을 못 가림."
+        },
+        {
+          "q": "효율화와 확장의 순서는?",
+          "choices": [
+            "확장 먼저",
+            "먼저 효율화 후 확장(비효율을 확장하면 몇 배 복제)",
+            "동시",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "깨끗한 것을 확장."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "분산의 진짜 비용",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "분산(수평 확장)으로 가면 **운영이 무거워진다** — 코드가 아니라. 비용 목록: **네트워크 지연**(로컬 호출이 원격 호출로) · **부분 실패**(일부만 죽거나 느림 — 전부 죽는 것보다 다루기 어려움) · **데이터 일관성**(여러 노드의 데이터를 맞춤, scale-cap) · **배포 복잡도**(여러 서비스·순서·호환) · **디버깅 난이도**(요청이 여러 서비스를 거침) · **관측 도구**(분산 트레이싱·중앙 로그 필요). 이걸 감당할 각오 없이 분산하면, 문제를 더 많이·더 어렵게 만든다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "분산 비용 — 무엇이 어려워지나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .machines { display:flex; gap:6px; margin:8px 0; align-items:flex-end; }\n  .machines .m { border-radius:5px; background:#14263a; color:#7dd3fc; display:flex; align-items:center; justify-content:center; font:10px ui-monospace, monospace; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const machines = (list) => '<div class=\"machines\">' + list.map(([w, h, lab]) =>\n    '<div class=\"m\" style=\"width:' + w + 'px;height:' + h + 'px\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const cost = '{{cost}}';\n  const cases = {\n    network:['네트워크 지연', '로컬 함수 호출(ns) → 원격 호출(ms)', '호출마다 지연·실패 가능 — 함수 하나가 네트워크 왕복'],\n    partial:['부분 실패', '일부 노드만 죽거나 느림', '전부 죽는 것보다 어려움 — 타임아웃·재시도·서킷(scale-fail)'],\n    consist:['데이터 일관성', '여러 노드 데이터를 맞춰야', 'CAP — 항상 최신 vs 항상 응답(scale-cap)'],\n    debug:['디버깅', '한 요청이 여러 서비스를 거침', '분산 트레이싱 없으면 어디서 실패했는지 모름'],\n    deploy:['배포·관측', '여러 서비스·순서·호환·중앙 로그', '운영 도구·인력이 더 필요'],\n  }[cost];\n  render('분산 비용: ' + cases[0],\n    '  ' + cases[1] + '\\n  어려움: <span class=\\\"no\\\">' + cases[2] + '</span>',\n    '네트워크·부분실패·일관성·디버깅·배포 — 코드보다 운영이 무거워진다.',\n    box(cases[0], cases[2], 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "cost",
+              "label": "비용",
+              "type": "select",
+              "value": "network",
+              "options": [
+                {
+                  "value": "network",
+                  "label": "네트워크 지연"
+                },
+                {
+                  "value": "partial",
+                  "label": "부분 실패"
+                },
+                {
+                  "value": "consist",
+                  "label": "일관성"
+                },
+                {
+                  "value": "debug",
+                  "label": "디버깅"
+                },
+                {
+                  "value": "deploy",
+                  "label": "배포·관측"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**분산의 비용은 코드가 아니라 운영에 있다 — 네트워크·부분 실패·일관성·디버깅이 어려워진다.** 한 대 안에서는 함수 호출이 즉각(나노초)이고 실패하면 전체가 명확히 실패하지만, 분산에서는: ① **네트워크 지연** — 로컬 호출이 원격 호출(밀리초)이 되고 호출마다 실패할 수 있다(net 트랙) ② **부분 실패** — 일부 노드만 죽거나 느린 상태가 「전부 죽음」보다 다루기 어렵다(어디까지 됐나? 재시도해도 되나?, scale-fail·pay-idem) ③ **데이터 일관성** — 여러 노드의 데이터를 맞추는 근본 난제(CAP, scale-cap) ④ **디버깅** — 한 요청이 여러 서비스를 거쳐 「어디서 실패했나」가 안 보인다(분산 트레이싱 필요, lang-concurrency 2장) ⑤ **배포·관측** — 여러 서비스의 배포 순서·호환·중앙 로그·모니터링이 필요하다. 이 모두가 **엔지니어 시간**을 먹는다(1장). 그래서 분산은 「필요할 때, 감당할 준비가 됐을 때」 하는 것 — 규모가 그만큼 크고, 팀이 이 복잡도를 다룰 도구·인력을 갖췄을 때. 「멋지니까·미래를 위해」 미리 분산하면 이 비용을 앞당겨 치른다."
+        },
+        {
+          "type": "p",
+          "text": "**「분산 컴퓨팅의 오류들」 — 분산이 숨기는 잘못된 가정.** 유명한 목록이 있다: 「네트워크는 신뢰할 수 있다·지연은 0·대역폭은 무한·네트워크는 안전하다·토폴로지는 안 바뀐다·관리자는 하나다·전송 비용은 0·네트워크는 균일하다」 — 이 여덟 가정이 **전부 틀렸다**는 게 분산의 어려움이다. 한 대 안에서는 이 가정들이 대체로 참이지만(로컬 호출은 빠르고 안 실패), 분산에서는 네트워크가 느리고·실패하고·비싸고·불안정하다. 그래서 분산 시스템 코드는 이 현실을 다뤄야 한다 — 모든 원격 호출에 타임아웃·재시도·서킷 브레이커(scale-fail), 멱등(pay-idem), 부분 실패 대비. 이게 「코드가 무거워지는」 게 아니라 「운영·설계가 무거워지는」 이유다. 그래서 수직 확장(한 대)이 이기는 구간에서는 이 모든 복잡도를 **피할 수 있다** — 한 대 안에서는 그 오류들이 문제가 안 되니까. 분산을 미루는 게 곧 이 복잡도를 미루는 것이다."
+        },
+        {
+          "type": "try",
+          "text": "네 시스템이 분산돼 있으면, 분산 비용(네트워크·부분 실패·일관성·디버깅·배포) 중 실제로 겪는 어려움을 적어라. 분산을 고려 중이면, 이 비용을 감당할 도구(트레이싱·중앙 로그·모니터링)와 인력이 있는지 점검하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "분산의 비용은 주로 어디에?",
+          "choices": [
+            "코드",
+            "운영(네트워크·부분실패·일관성·디버깅·배포)",
+            "메모리",
+            "CPU"
+          ],
+          "answer": 1,
+          "why": "운영이 무거워짐."
+        },
+        {
+          "q": "「부분 실패」가 어려운 이유는?",
+          "choices": [
+            "느려서",
+            "일부만 죽거나 느림 — 전부 죽는 것보다 다루기 어려움",
+            "빠름",
+            "메모리"
+          ],
+          "answer": 1,
+          "why": "타임아웃·재시도·멱등."
+        },
+        {
+          "q": "「분산 컴퓨팅의 오류들」이 말하는 것은?",
+          "choices": [
+            "분산이 쉽다",
+            "네트워크는 신뢰·빠름·무한이라는 가정이 다 틀림",
+            "코드만 어렵다",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "현실을 다뤄야."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "한계선을 숫자로 안다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "수직 확장으로 가더라도 **한계선을 숫자로 알아야** 한다 — 「지금 어디쯤이고, 몇 배까지 버티고, 그 지점에서 무엇을 할지」. 예: **「현재 8vCPU/32GB, 피크 CPU 45%, DB 커넥션 40/100. 예상 한계: CPU 기준 지금의 2배 트래픽. 다음 조치: 그 지점에서 인스턴스 상향 또는 읽기 복제」**. 이 숫자가 있으면 트래픽이 늘어도 당황하지 않고(언제 무엇을 할지 정해짐), 없으면 갑자기 무너지고 나서야 허둥댄다. scale-measure 로 잰 값을 「한계선 + 다음 조치」로 정리한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "한계선 — 지금·한계·다음 조치",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .machines { display:flex; gap:6px; margin:8px 0; align-items:flex-end; }\n  .machines .m { border-radius:5px; background:#14263a; color:#7dd3fc; display:flex; align-items:center; justify-content:center; font:10px ui-monospace, monospace; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const machines = (list) => '<div class=\"machines\">' + list.map(([w, h, lab]) =>\n    '<div class=\"m\" style=\"width:' + w + 'px;height:' + h + 'px\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const now = {{load}};\n  const limit = 90;\n  const headroom = (limit / now).toFixed(1);\n  render('현재 피크 CPU ' + now + '%',\n    '  한계선 ~' + limit + '% · 여유 배수 ≈ ' + headroom + '배 트래픽\\n\\n' +\n    (now < 50\n      ? '  <span class=\\\"ok\\\">여유 충분(' + headroom + '배). 다음 조치는 문서로만 준비.</span>'\n      : now < 75\n        ? '  <span class=\\\"warn\\\">여유 줄어듦(' + headroom + '배) — 다음 조치 준비·모니터링 강화.</span>'\n        : '  <span class=\\\"no\\\">한계 근처! 지금 조치(인스턴스 상향·읽기 복제·값싼 개선).</span>'),\n    '한계선을 숫자로: 지금·몇 배 여유·그 지점의 다음 조치. 당황하지 않는다.',\n    bars([['현재 부하', now, now+'%', now>75?'#ef4444':now>50?'#f59e0b':'#4ade80'],['한계선', limit, '~'+limit+'%', '#334155']]));\n</script>",
+          "controls": [
+            {
+              "id": "load",
+              "label": "현재 피크 CPU%",
+              "type": "range",
+              "min": 20,
+              "max": 90,
+              "step": 5,
+              "value": 45
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "한계선을 숫자로",
+          "text": "현재:   8vCPU / 32GB, 피크 CPU 45%, DB 커넥션 40/100\n예상 한계: CPU 기준 지금의 약 2배 트래픽 (피크 90%)\n다음 조치: 그 지점에서\n  1) 값싼 개선 재점검 (인덱스·캐시)\n  2) 인스턴스 상향 (수직)\n  3) 읽기 복제본 추가 (읽기 분산)\n\n→ 숫자가 있으면 트래픽이 늘어도 당황 안 함(언제 무엇을 할지 정해짐)"
+        },
+        {
+          "type": "note",
+          "text": "**한계선을 숫자로 알고 「다음 조치」를 미리 정해 두라 — 그래야 트래픽이 늘어도 당황하지 않는다.** scale-measure 로 잰 값을 「현재 상태 + 예상 한계 + 다음 조치」로 정리한다: ① **현재** — 지금 부하(피크 CPU·메모리·DB 커넥션·RPS)와 사용률 ② **예상 한계** — 가장 먼저 포화될 자원(첫 병목, scale-measure 4장) 기준으로 「몇 배 트래픽까지 버티나」 ③ **다음 조치** — 그 한계에 다가가면 무엇을 할지(값싼 개선 재점검·인스턴스 상향·읽기 복제·수평 전환) 미리 정함. 이 「한계선 + 다음 조치」가 있으면 트래픽이 늘어도 **정해진 대로** 대응하고(경보 임계에 다음 조치 발동), 없으면 갑자기 무너진 뒤에야 허둥댄다. 그리고 이 숫자를 **모니터링·경보**로 상시 추적한다 — 「피크 CPU 70% 넘으면 경보」처럼, 한계에 다가가는 걸 미리 안다. 「용량은 지금 얼마고, 언제 무엇을 하나」에 답할 수 있으면 확장을 통제하는 것이고, 답 못 하면 확장에 끌려다닌다."
+        },
+        {
+          "type": "p",
+          "text": "**여유(headroom)를 두고, 한계에 닿기 전에 조치한다.** 한계선의 100%까지 쓰다가 조치하면 늦다 — 사용률이 100%에 가까울수록 지연이 비선형으로 급증하고(sys-sched 6장·scale-measure 8장), 조치(인스턴스 상향·복제 추가)에도 시간이 걸린다(프로비저닝·데이터 복제). 그래서 **여유를 두고**(예: 피크 70~80% 목표) 그 지점에서 조치를 시작해, 한계에 닿기 전에 용량을 늘린다. 그리고 **트래픽 성장률**을 함께 본다 — 하루 1% 성장이면 여유가 많아도, 이벤트로 하루 만에 2배가 되면 지금 준비해야 한다. 오토스케일(수평)은 이 여유 관리를 자동화하지만(부하 늘면 자동 증설), 수직·상태 있는 부분(DB)은 수동 계획이 필요하다. 「한계선 + 여유 + 성장률 + 다음 조치」로 확장을 **예측 가능하게** 만드는 게 용량 계획의 핵심이다(scale-measure 8장과 이어짐). 갑작스러운 무너짐은 대개 이 준비가 없어서다."
+        },
+        {
+          "type": "try",
+          "text": "지금 서버의 피크 사용률(CPU·메모리·DB 커넥션)을 재고 「몇 배까지 버티나」를 숫자로 적어라. 그 한계 지점에서 무엇을 할지(값싼 개선·인스턴스 상향·읽기 복제·수평) 다음 조치도 함께 정하고, 한계에 다가가면 경보가 오게 하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "한계선을 숫자로 아는 이유는?",
+          "choices": [
+            "형식",
+            "트래픽이 늘어도 당황 안 함(언제 무엇을 할지 정해짐)",
+            "빠름",
+            "메모리"
+          ],
+          "answer": 1,
+          "why": "예측 가능."
+        },
+        {
+          "q": "한계선은 무엇으로 정리하나?",
+          "choices": [
+            "평균만",
+            "현재 상태 + 예상 한계(몇 배) + 다음 조치",
+            "최댓값",
+            "CPU만"
+          ],
+          "answer": 1,
+          "why": "scale-measure 정리."
+        },
+        {
+          "q": "한계의 100%까지 쓰다 조치하면?",
+          "choices": [
+            "효율적",
+            "늦다 — 지연 급증 + 조치에 시간, 여유 두고 미리",
+            "안전",
+            "빠름"
+          ],
+          "answer": 1,
+          "why": "headroom."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "수평으로 갈 준비를 미리",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "지금 한 대(수직)로 가더라도, **무상태(stateless)로 짜 두면** 나중에 수평으로 옮기는 비용이 거의 0 이 된다. 핵심은 **세션·업로드 파일·임시 상태를 서버 밖으로** 빼는 것: 세션은 Redis·JWT 로, 업로드 파일은 S3·오브젝트 스토리지로, 캐시는 공용 캐시로. 서버가 **기억을 안 들고 있으면** 요청이 어느 서버로 가도 되니(scale-lb), 그냥 서버를 복제해 로드 밸런서를 앞에 두면 수평 확장이 된다. 이건 **미리 해 둘 가치가 큰** 준비 — 나중에 급할 때 하면 어렵다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "무상태 준비 — 옮기기 쉽게",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .machines { display:flex; gap:6px; margin:8px 0; align-items:flex-end; }\n  .machines .m { border-radius:5px; background:#14263a; color:#7dd3fc; display:flex; align-items:center; justify-content:center; font:10px ui-monospace, monospace; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const machines = (list) => '<div class=\"machines\">' + list.map(([w, h, lab]) =>\n    '<div class=\"m\" style=\"width:' + w + 'px;height:' + h + 'px\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'stateful') {\n    render('상태 있음(stateful) — 옮기기 어려움',\n      '  세션·업로드 파일이 서버 로컬에\\n' +\n      '  <span class=\\\"no\\\">2대째 붙이면 어긋남(세션이 그 서버에만·파일이 그 서버에만).</span>',\n      '서버가 기억(세션·파일)을 들면 두 대째부터 어긋난다.',\n      steps([['세션이 서버 A 메모리에', 'bad'],['다음 요청이 서버 B 로 감', 'bad'],['B 엔 세션 없음 → 로그아웃·어긋남', 'bad']]));\n  } else {\n    render('무상태(stateless) — 옮기기 쉬움',\n      '  세션은 Redis·JWT · 파일은 S3 · 캐시는 공용\\n' +\n      '  <span class=\\\"ok\\\">서버가 기억 안 들음 → 어느 서버로 가도 됨 → 복제만 하면 수평 확장.</span>',\n      '상태를 서버 밖으로 → 서버는 무상태 → 복제해서 수평 확장이 쉬워진다.',\n      steps([['세션 → Redis·JWT(밖)', 'good'],['업로드 파일 → S3(밖)', 'good'],['서버는 무상태(기억 없음)', 'good'],['복제 + 로드 밸런서 = 수평 확장', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "상태",
+              "type": "select",
+              "value": "stateful",
+              "options": [
+                {
+                  "value": "stateful",
+                  "label": "상태 있음(어려움)"
+                },
+                {
+                  "value": "stateless",
+                  "label": "무상태(쉬움)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**무상태로 짜 두면 수평 확장이 거의 공짜가 된다 — 세션·파일·상태를 서버 밖으로.** 서버가 **상태를 로컬에 들고 있으면**(세션을 메모리에, 업로드 파일을 로컬 디스크에) 두 대째부터 어긋난다: 세션이 서버 A 에만 있어 요청이 B 로 가면 로그아웃되고, 파일이 A 에만 있어 B 는 못 찾는다(scale-lb). **무상태**로 만들면 — 세션은 공용 저장소(Redis·DB)나 클라이언트(JWT)로, 업로드 파일은 오브젝트 스토리지(S3)로, 캐시는 공용 캐시(Redis)로 — 서버가 기억을 안 들어, **어느 서버로 요청이 가도 똑같이 동작**한다. 그러면 수평 확장은 「서버를 복제하고 로드 밸런서를 앞에 두는」 단순 작업이 된다(다음 칸 scale-lb). 이건 **지금 한 대로 가더라도 미리 해 둘 가치가 크다** — 나중에 트래픽이 급증해 급히 수평으로 가야 할 때 무상태화까지 하려면 어렵고 위험하다. 무상태는 확장의 「미래를 위한 값싼 보험」이다(12-factor 의 무상태 프로세스, sys-process 6장)."
+        },
+        {
+          "type": "p",
+          "text": "**무상태는 확장뿐 아니라 복원력·배포도 쉽게 한다.** 서버가 무상태면 ① **확장** — 복제만으로 수평(위) ② **복원력** — 한 서버가 죽어도 다른 서버가 이어받아 처리(상태가 밖에 있으니 잃을 게 없음, scale-fail) ③ **배포** — 무중단 롤링 배포·재시작이 쉽다(서버를 언제든 죽이고 새로 띄워도 상태 유실 없음, 컨테이너의 「cattle not pet」, sys-container 7장) ④ **오토스케일** — 부하에 따라 자동으로 서버를 늘리고 줄일 수 있다(상태가 없으니 아무 때나 추가·제거). 그래서 무상태는 현대 클라우드·컨테이너 운영의 기본 전제다. 반대로 상태를 서버에 들면 이 모두가 어려워진다 — 그 서버는 「특별」해져서(그 세션·그 파일이 거기만 있음) 죽이거나 늘릴 수 없다(pet). 그래서 「상태를 어디에 두나」가 확장·운영의 핵심 설계 결정이다: **무상태 서버 + 상태는 전용 저장소(DB·오브젝트 스토리지·캐시)로** 분리하는 게 원칙이다. 상태를 가진 부분(DB)이 확장의 어려운 지점으로 남고(scale-shard), 나머지는 무상태로 쉽게 확장된다."
+        },
+        {
+          "type": "try",
+          "text": "네 서버의 세션·업로드 파일·임시 상태가 서버 로컬에 있는지 확인하라 — 있으면 밖으로 빼는(세션→Redis/JWT, 파일→오브젝트 스토리지) 작업을 목록에 넣어라. 지금 한 대여도 무상태화는 미리 해 둘 값싼 준비다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "수평 확장을 쉽게 하는 준비는?",
+          "choices": [
+            "샤딩",
+            "무상태로 짜기(세션·파일·상태를 서버 밖으로)",
+            "캐시",
+            "인덱스"
+          ],
+          "answer": 1,
+          "why": "어느 서버로 가도 됨."
+        },
+        {
+          "q": "서버가 상태(세션)를 로컬에 들면?",
+          "choices": [
+            "빠름",
+            "두 대째부터 어긋남(세션이 그 서버에만)",
+            "안전",
+            "무상태"
+          ],
+          "answer": 1,
+          "why": "밖으로 빼야."
+        },
+        {
+          "q": "무상태가 확장 외에 쉽게 하는 것은?",
+          "choices": [
+            "없음",
+            "복원력·무중단 배포·오토스케일",
+            "느려짐",
+            "메모리"
+          ],
+          "answer": 1,
+          "why": "cattle not pet."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "언제 수평으로 가나",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "수직(한 대)에서 **수평(여러 대)으로 넘어갈 때**: ① **수직의 한계** — 가장 큰 서버로도 트래픽을 못 감당 ② **가용성** — 한 대 장애를 견뎌야 함(단일 장애점 제거 — 여러 대면 하나 죽어도 삶) ③ **비용 역전** — 초고사양 한 대가 작은 여러 대보다 비싸지는 지점 ④ **지리적 분산** — 여러 지역에 서버가 필요(지연·규제). 이 중 하나라도 진짜로 닿으면 수평으로 간다 — 대개 **가용성**이 트래픽 한계보다 먼저 오는 이유(한 대는 그 한 대가 죽으면 전체 중단이니까)다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "수평 전환 신호",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .machines { display:flex; gap:6px; margin:8px 0; align-items:flex-end; }\n  .machines .m { border-radius:5px; background:#14263a; color:#7dd3fc; display:flex; align-items:center; justify-content:center; font:10px ui-monospace, monospace; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const machines = (list) => '<div class=\"machines\">' + list.map(([w, h, lab]) =>\n    '<div class=\"m\" style=\"width:' + w + 'px;height:' + h + 'px\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const trigger = '{{trigger}}';\n  const cases = {\n    limit:['수직 한계', '가장 큰 서버로도 트래픽 못 감당', '한 대 최대 크기 초과 → 나눌 수밖에'],\n    avail:['가용성', '한 대 장애를 못 견딤(단일 장애점)', '여러 대면 하나 죽어도 삶 — 대개 이게 먼저'],\n    cost:['비용 역전', '초고사양 한 대 > 작은 여러 대', '고사양은 비선형으로 비싸짐'],\n    geo: ['지리적 분산', '여러 지역에 서버 필요(지연·규제)', '사용자 근처·데이터 주권'],\n  }[trigger];\n  render('수평 전환 신호: ' + cases[0],\n    '  ' + cases[1] + '\\n  이유: ' + cases[2] + '\\n\\n' +\n    (trigger==='avail' ? '  <span class=\\\"warn\\\">★ 가용성이 트래픽 한계보다 먼저 오는 경우가 많다.</span>'\n      : '  <span class=\\\"ok\\\">이 신호가 진짜로 닿으면 수평으로.</span>'),\n    '수직 한계·가용성·비용 역전·지리 분산 — 이 중 하나가 진짜면 수평으로.',\n    box(cases[0], cases[1]));\n</script>",
+          "controls": [
+            {
+              "id": "trigger",
+              "label": "신호",
+              "type": "select",
+              "value": "avail",
+              "options": [
+                {
+                  "value": "limit",
+                  "label": "수직 한계"
+                },
+                {
+                  "value": "avail",
+                  "label": "가용성"
+                },
+                {
+                  "value": "cost",
+                  "label": "비용 역전"
+                },
+                {
+                  "value": "geo",
+                  "label": "지리 분산"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**수평으로 가는 신호: 수직 한계·가용성·비용 역전·지리 분산 — 대개 가용성이 먼저 온다.** 수직 확장을 오래 밀 수 있지만, 네 신호 중 하나가 진짜로 닿으면 수평으로 넘어간다: ① **수직 한계** — 가장 큰 서버로도 트래픽을 못 감당(순수 용량 한계) ② **가용성** — 한 대의 장애(하드웨어·재시작·배포)를 견뎌야 하면, 한 대는 그 자체가 **단일 장애점**이라 여러 대가 필요하다 ③ **비용 역전** — 초고사양 한 대가 작은 여러 대보다 비싸지는 지점(고사양은 비선형 가격) ④ **지리적 분산** — 여러 지역에 서버가 필요할 때(사용자 근처 지연·데이터 주권 규제). 흥미롭게도 **가용성이 트래픽 한계보다 먼저 오는** 경우가 많다 — 트래픽은 한 대로 충분해도, 「이 서비스가 한 대 죽었다고 멈추면 안 된다」는 요구가 여러 대(무상태+로드밸런서, scale-lb)를 부른다. 그래서 「트래픽이 넘쳐서」보다 「안정성이 필요해서」 수평으로 가는 경우가 흔하다. 어느 신호든, **미리 무상태로 준비**해 뒀으면(6장) 전환이 쉽다."
+        },
+        {
+          "type": "p",
+          "text": "**넘어갈 땐 「가장 쉬운 부분부터」 — 무상태 웹 계층 먼저, 상태(DB)는 나중.** 수평 전환은 전부를 한 번에 하는 게 아니다. **무상태 웹/앱 서버**는 수평이 쉽다(복제 + 로드 밸런서, scale-lb) — 여기부터 늘려 가용성·용량을 얻는다. **상태를 가진 DB** 는 어렵다 — 읽기는 읽기 복제본으로 분산하고(수평 읽기), 쓰기는 한 대(수직)로 버티다 정말 한계면 샤딩(scale-shard)으로 나눈다. 그래서 흔한 진화: ① 무상태 웹 서버 여러 대 + DB 한 대(수직) — 대부분 여기서 오래 감 ② DB 읽기 복제본 추가(읽기 분산) ③ 캐시·큐로 DB 부하↓ ④ 정말 한계면 DB 샤딩(가장 어려움, 최후). 즉 **쉬운 것(무상태)부터 수평, 어려운 것(상태)은 최대한 수직으로 버티다 최후에** 나눈다. 「전부 마이크로서비스·전부 샤딩」이 아니라, 병목인 부분만(scale-measure 4장) 필요한 만큼 나눈다. 확장은 단계적이고, 각 단계는 이전 것으로 충분한지 측정해 정한다."
+        },
+        {
+          "type": "try",
+          "text": "네 시스템이 수평으로 가야 할 신호(수직 한계·가용성·비용·지리) 중 무엇에 해당하는지 판단하라. 해당하면 가장 쉬운 부분(무상태 웹 서버)부터 수평화하고, DB 는 읽기 복제·캐시로 버티다 최후에 샤딩을 고려하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "수평으로 가는 신호가 아닌 것은?",
+          "choices": [
+            "수직 한계",
+            "가용성(단일 장애점 제거)",
+            "비용 역전",
+            "코드가 예뻐서"
+          ],
+          "answer": 3,
+          "why": "필요가 신호."
+        },
+        {
+          "q": "트래픽 한계보다 먼저 오는 경우가 많은 신호는?",
+          "choices": [
+            "비용",
+            "가용성(한 대 장애를 못 견딤)",
+            "지리",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "단일 장애점."
+        },
+        {
+          "q": "수평 전환의 순서는?",
+          "choices": [
+            "DB 먼저 샤딩",
+            "무상태 웹 먼저 → DB 는 복제·캐시로 버티다 최후 샤딩",
+            "전부 한 번에",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "쉬운 것부터."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "확장의 순서 — 한 그림",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "지금까지를 **한 순서**로: ① **측정**(병목·한계선, scale-measure) → ② **값싼 개선**(인덱스·캐시·N+1·큐·CDN, 3장) → ③ **수직 확장**(더 큰 서버, 단순·저렴) → ④ **무상태화**(미리, 7장) → ⑤ **수평 확장**(무상태 웹 먼저, 가용성·한계 시) → ⑥ **DB 확장**(읽기 복제 → 캐시 → 최후 샤딩). 각 단계는 이전 것으로 부족할 때만 다음으로 — 「필요할 때, 필요한 만큼, 가장 싼 방법으로」다. 대부분의 서비스는 이 사다리의 위쪽 몇 단에서 충분하다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "확장 사다리 — 어디까지 왔나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .machines { display:flex; gap:6px; margin:8px 0; align-items:flex-end; }\n  .machines .m { border-radius:5px; background:#14263a; color:#7dd3fc; display:flex; align-items:center; justify-content:center; font:10px ui-monospace, monospace; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const machines = (list) => '<div class=\"machines\">' + list.map(([w, h, lab]) =>\n    '<div class=\"m\" style=\"width:' + w + 'px;height:' + h + 'px\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const step = {{step}};\n  const ladder = [\n    '① 측정(병목·한계선)',\n    '② 값싼 개선(인덱스·캐시·N+1·큐·CDN)',\n    '③ 수직 확장(더 큰 서버)',\n    '④ 무상태화(미리 준비)',\n    '⑤ 수평 확장(무상태 웹 여러 대)',\n    '⑥ DB 확장(읽기 복제→캐시→최후 샤딩)',\n  ];\n  const rows = ladder.map((t, i) => [t, i < step ? 'good' : i === step ? 'on' : '']);\n  render('확장 사다리 · ' + step + '단까지',\n    '  ' + (step <= 3\n      ? '<span class=\\\"ok\\\">대부분의 서비스는 여기(측정·값싼 개선·수직)에서 충분.</span>'\n      : '<span class=\\\"warn\\\">수평·DB 확장 — 분산 복잡도 감수. 진짜 필요할 때.</span>'),\n    '측정 → 값싼 개선 → 수직 → 무상태화 → 수평 → DB. 부족할 때만 다음으로.',\n    steps(rows));\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "어디까지",
+              "type": "range",
+              "min": 0,
+              "max": 6,
+              "step": 1,
+              "value": 2
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**확장은 사다리다 — 측정 → 값싼 개선 → 수직 → 무상태화 → 수평 → DB 확장. 부족할 때만 다음 단으로.** 이 순서가 「필요할 때, 필요한 만큼, 가장 싼 방법으로」를 구현한다: ① 먼저 **측정**해 병목·한계선을 알고(scale-measure — 짐작 증설 금지) ② **값싼 개선**으로 같은 서버의 효율을 몇 배 높이고(인덱스·캐시·N+1·큐·CDN, 3장) ③ 그래도 부족하면 **수직 확장**(더 큰 서버 — 단순·저렴) ④ 지금 한 대여도 **무상태화**를 미리 해 두고(7장 — 나중 전환 대비) ⑤ 수직 한계·가용성이 필요하면 **수평 확장**(무상태 웹부터, scale-lb) ⑥ DB 는 **읽기 복제 → 캐시 → 최후 샤딩**(가장 어려움, scale-shard). 핵심은 **각 단계가 이전 것으로 부족할 때만** 다음으로 간다는 것 — 대부분의 서비스는 이 사다리의 **위쪽 몇 단**(측정·값싼 개선·수직)에서 충분하고, 아래쪽(분산·샤딩)은 진짜 큰 규모에서만 필요하다. 「처음부터 아래쪽(마이크로서비스·샤딩)」이 흔한 과잉 설계다 — 사다리를 위에서부터 밟으며, 각 단에서 측정으로 다음이 정말 필요한지 확인한다."
+        },
+        {
+          "type": "p",
+          "text": "**「필요할 때 확장한다」가 「미리 확장한다」보다 낫다 — YAGNI 의 시스템판.** 미래의 트래픽을 위해 지금 분산·샤딩을 하는 건, 오지 않을 수도 있는 규모를 위해 지금 큰 복잡도(4장)를 치르는 것이다 — 대부분의 서비스는 그 규모에 안 닿고, 닿더라도 그때 요구가 지금 예상과 다르다. 그래서 **지금 필요한 만큼만** 확장하고, 미래를 위해선 **무상태화 같은 값싼 준비**(7장)만 해 둔다(전환을 쉽게 하되 미리 전환하지는 않음). 이건 design 의 YAGNI·lang-pick 8장(과잉 설계 경계)·lang-fp/oop 의 「과하지 않게」와 같은 원리 — 확장도 도구지 목적이 아니다. 「우리 서비스는 확장성 있게 설계됐다(그런데 트래픽은 하루 1000)」는 대개 조기 최적화다. 측정으로 진짜 필요를 확인하고, 사다리를 필요한 만큼만 오른다. 확장의 지혜는 「어떻게 크게 만드나」만큼 「언제 안 하나」에 있다."
+        },
+        {
+          "type": "try",
+          "text": "네 시스템이 확장 사다리의 어느 단에 있는지, 다음 단이 정말 필요한지(측정으로 확인했나) 점검하라. 아직 안 밟은 값싼 단(값싼 개선·수직·무상태화)이 있으면 그것부터 하고, 분산·샤딩은 진짜 필요가 측정으로 확인될 때까지 미뤄라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "확장 사다리의 순서는?",
+          "choices": [
+            "샤딩부터",
+            "측정→값싼 개선→수직→무상태화→수평→DB",
+            "수평부터",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "부족할 때만 다음."
+        },
+        {
+          "q": "대부분의 서비스가 충분한 지점은?",
+          "choices": [
+            "샤딩까지",
+            "사다리 위쪽(측정·값싼 개선·수직)",
+            "마이크로서비스",
+            "전부"
+          ],
+          "answer": 1,
+          "why": "아래는 큰 규모만."
+        },
+        {
+          "q": "「미리 분산·샤딩」이 흔한 실수인 이유는?",
+          "choices": [
+            "느려서",
+            "오지 않을 규모를 위해 지금 큰 복잡도 치름(YAGNI)",
+            "비싸서만",
+            "빠름"
+          ],
+          "answer": 1,
+          "why": "필요할 때 확장."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — 수직·수평 확장",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "확장을 결정하거나 용량을 계획할 때 이 목록을 확인하라. 핵심은 「분산 전에 값싼 개선과 수직을, 무상태로 미리 준비, 필요할 때만 수평」이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .machines { display:flex; gap:6px; margin:8px 0; align-items:flex-end; }\n  .machines .m { border-radius:5px; background:#14263a; color:#7dd3fc; display:flex; align-items:center; justify-content:center; font:10px ui-monospace, monospace; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const machines = (list) => '<div class=\"machines\">' + list.map(([w, h, lab]) =>\n    '<div class=\"m\" style=\"width:' + w + 'px;height:' + h + 'px\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '분산은 공짜 아님 — 한 대 키우기가 대개 싸다(사람 시간)',\n    '수직/수평의 트레이드오프를 안다',\n    '증설 전에 값싼 개선(인덱스·캐시·N+1·큐·CDN)',\n    '분산의 진짜 비용(운영·부분실패·일관성)을 안다',\n    '한계선을 숫자로 + 다음 조치를 미리',\n    '무상태로 짜 둠(세션·파일을 서버 밖으로)',\n    '수평 신호(가용성·한계·비용·지리)를 안다',\n    '확장 사다리를 위에서부터·필요할 때만',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 필요한 만큼 가장 싼 방법으로 확장할 수 있다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '값싼 개선·수직 먼저 · 무상태로 준비 · 필요할 때만 수평.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 분산 전에 값싼 개선과 수직을, 무상태로 미리 준비, 필요할 때만 수평.** 분산은 공짜가 아니니 한 대 키우기가 대개 싸고(1장), 수직/수평의 트레이드오프를 알고(2장), 증설 전에 값싼 개선을 하고(3장), 분산의 진짜 비용(운영)을 알고(4장), 한계선을 숫자로 + 다음 조치를 미리 정하고(5장), 무상태로 짜 두고(7장), 수평 신호를 알고(8장의 언제), 확장 사다리를 위에서부터 필요한 만큼만 오른다(8장). 「확장 = 분산」이 아니라 「측정으로 병목을 찾아 가장 싼 방법으로 없애기」다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸의 연결.** 측정은 scale-measure, 무상태·로드밸런서는 scale-lb, 일관성은 scale-cap, DB 나누기는 scale-shard, 장애 전파는 scale-fail 로 이어진다. 값싼 개선은 db-index·db-nplus1·data-cache·data-queue, 무상태·복원력은 sys-container·sys-process, 과잉 설계 경계는 lang-pick·design(YAGNI) 과 통한다. **「분산의 유혹에 앞서 값싼 개선과 수직으로 버티되, 무상태로 미리 준비해 필요할 때 넘어가는 감각」이 확장의 실전**이다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개로 네 확장 계획을 점검하라. 「증설 전에 값싼 개선」과 「무상태로 미리 준비」 두 가지만 지켜도, 불필요한 분산 복잡도를 피하면서 필요할 때 쉽게 확장할 수 있다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "수직·수평 확장 장의 한 줄 요약은?",
+          "choices": [
+            "처음부터 분산",
+            "분산 전에 값싼 개선·수직·무상태 준비, 필요할 때만 수평",
+            "빠르게",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "가장 싼 방법."
+        },
+        {
+          "q": "먼저 지킬 두 가지는?",
+          "choices": [
+            "샤딩·마이크로서비스",
+            "증설 전에 값싼 개선 + 무상태로 미리 준비",
+            "전부 수평·전부 상태",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "복잡도 회피·전환 대비."
+        },
+        {
+          "q": "확장이 이어지는 주제는?",
+          "choices": [
+            "없음",
+            "scale-measure/lb/cap/shard/fail·db-index·design",
+            "문법",
+            "속도"
+          ],
+          "answer": 1,
+          "why": "확장의 실전."
+        }
+      ]
     }
   ]
 }
