@@ -230,6 +230,8 @@ import { t, loadNamespace } from '../../lib/i18n';
               shots.forEach((s, i) => z.file(`${String(i + 1).padStart(3, '0')}-${mmss(s.time).replace(':', 'm')}s.${ext}`, s.blob));
               const blob = await z.generateAsync({ type: 'blob' });
               download(blob, fileName.replace(/\.[^.]+$/, '') + t('video2img.file.zip'));
+              /* 만든 것을 **이어서 쓰게 내놓는다** (TASK-KL-298) — 받을 도구가 없으면 줄이 안 생긴다. */
+              Toolbox.offerNext?.(status, { blob: blob, name: fileName.replace(/\.[^.]+$/, '') + t('video2img.file.zip'), from: 'video2img' });
               say(t('video2img.say.zipped', { n: shots.length }), 'ok');
             })().catch((err: Error) => say(t('video2img.err.zip') + err.message, 'error'));
           };

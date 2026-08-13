@@ -293,6 +293,8 @@ import { t, loadNamespace } from '../../lib/i18n';
                 return;
               }
               download(blob, sourceName + t('redact.file.suffix') + '.png');
+              /* 만든 것을 **이어서 쓰게 내놓는다** (TASK-KL-298) — 받을 도구가 없으면 줄이 안 생긴다. */
+              Toolbox.offerNext?.(status, { blob: blob, name: sourceName + t('redact.file.suffix') + '.png', from: 'redact' });
               // 다시 그려 내보내므로 사진에 붙어 있던 위치·기기 정보도 함께 떨어진다
               say(t('redact.say.saved', { size: size(blob.size) }), 'ok');
               Toolbox.trackUse?.('save');

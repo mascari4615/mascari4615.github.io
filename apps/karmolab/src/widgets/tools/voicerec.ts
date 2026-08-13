@@ -9,7 +9,7 @@
  *    입력 크기를 실시간으로 그린다. 조용하면 조용하다고 알려 준다.
  *  - 저장은 WAV. 다른 도구(오디오 자르기·잇기)에 바로 물릴 수 있고 품질 손실이 없다.
  */
-import { toWav, encodeAudio, fileSize as size, mmss, audioCtx, loadAudio } from './shared/media';
+import { toWav, encodeAudio, fileSize as size, mmss, audioCtx, loadAudio, download } from './shared/media';
 import { statusLine } from './shared/say';
 import { AiGate } from '../../lib/ai-gate';
 import { loadEngine, webgpuAvailable } from '../../lib/ai-engine';
@@ -291,13 +291,14 @@ import { t, loadNamespace } from '../../lib/i18n';
             say(format === 'mp3' ? t('voicerec.say.encoding') : t('voicerec.say.saving'));
             void encodeAudio(recorded, format)
               .then((blob) => {
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
                 const stamp = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
-                a.download = `${t('voicerec.file.name')}-${stamp}.${format}`;
-                a.click();
-                setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+                const name = `${t('voicerec.file.name')}-${stamp}.${format}`;
+                download(blob, name);
                 say(t('voicerec.say.saved', { size: size(blob.size) }), 'ok');
+                /* **녹음한 것을 이어서 쓰게 내놓는다** (TASK-KL-298).
+                 * 녹음 다음에 하는 일은 거의 늘 「앞뒤 자르기」인데, 여태 그러려면 방금 받은 파일을
+                 * 다시 올려야 했다 — 사슬이 여기서 끊겨 있었다. */
+                Toolbox.offerNext?.(status, { blob, name, from: 'voicerec' });
               })
               .catch((err: Error) => say(t('voicerec.err.encode', { msg: err.message }), 'error'));
           };
