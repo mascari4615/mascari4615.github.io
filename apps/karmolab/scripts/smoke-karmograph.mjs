@@ -2862,6 +2862,53 @@ await step('판을 읽어 세는 곳도 시점을 따른다 (관계망)', async 
   await ctx.close();
 });
 
+await step('내보내기와 저장한 보기도 시점을 따른다', async () => {
+  // 글로 옮기는 것도 「지금 보고 있는 판」이다 — 2부를 보며 뽑았는데 1부가 나오면 내가 본 것과
+  // 다른 것이 문서에 박힌다. 보기에는 「언제를 보고 있었나」까지 담는다 (KL-271 X2).
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(900));
+  await m.locator('[data-km="intent"]').first().click();
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 4, null, { timeout: ms(5000) });
+  await m.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await m.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await m.waitForTimeout(ms(500));
+  await m.evaluate(() => {
+    const key = 'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId;
+    const s = JSON.parse(localStorage.getItem(key));
+    s.edges[0].at = { [s.times[1].id]: { label: '라이벌' } };
+    localStorage.setItem(key, JSON.stringify(s));
+  });
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(1200));
+  await m.evaluate(() => { window.__km_copy = ''; navigator.clipboard.writeText = async (s) => { window.__km_copy = s; }; });
+  await m.evaluate(() => document.querySelector('[data-km="mermaid"]').click());
+  await m.waitForFunction(() => (window.__km_copy || '').length > 0, null, { timeout: ms(6000) });
+  const mm = await m.evaluate(() => window.__km_copy);
+  if (!/라이벌/.test(mm)) throw new Error('2부를 보는데 글로 옮긴 것은 1부다');
+  // 보기에 시점까지 담기고, 되살리면 시점 줄도 따라온다.
+  await m.evaluate(() => document.querySelector('[data-km="tab"][data-key="filter"]').click());
+  await m.waitForSelector('[data-km="view-save"]', { timeout: ms(4000) });
+  await m.fill('[data-km="view-name"]', '2부만');
+  await m.locator('[data-km="view-save"]').click();
+  await m.waitForFunction(() => document.querySelectorAll('[data-km="view-go"]').length === 1,
+    null, { timeout: ms(4000) });
+  const second = await m.evaluate(() => document.querySelector('[data-km="time-go"].is-on').textContent.trim());
+  await m.evaluate(() => document.querySelector('[data-km="time-prev"]').click());
+  await m.waitForTimeout(ms(500));
+  await m.evaluate(() => document.querySelector('[data-km="view-go"]').click());
+  await m.waitForTimeout(ms(700));
+  const back = await m.evaluate(() => document.querySelector('[data-km="time-go"].is-on').textContent.trim());
+  if (back !== second) throw new Error(`보기를 되살렸는데 시점이 안 따라왔다 (${back} ≠ ${second})`);
+  await ctx.close();
+});
+
 await step('같은 자료를 표로도 본다 — 줄을 누르면 판에서 골라진다', async () => {
   // 판은 「누가 누구와 이어졌나」에 강하고 「빠짐없이 훑기」에 약하다(KL-271 L4 · Notion 뷰 계보).
   await openPanel(page, 'table');

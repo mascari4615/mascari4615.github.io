@@ -155,6 +155,8 @@ export interface SavedGraphView {
   fieldName: string;
   fieldValue: string;
   focus: string;
+  /** 어느 **시점**을 보고 있었나 (TASK-KL-271 X2). 시점을 안 쓰는 판이면 없음. */
+  time?: string;
 }
 
 export interface GroupDef {

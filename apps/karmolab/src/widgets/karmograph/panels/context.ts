@@ -66,6 +66,8 @@ export interface PanelCtx {
    */
   focusDegree: () => string;
   setFocusDegree: (v: string) => void;
+  /** 시점이 바뀌었다 — 판 아래 시점 줄을 다시 그린다 (KL-271 X2). */
+  timesChanged: () => void;
   /** 꾸미기 규칙을 캔버스에 반영. */
   applyDecorate: () => void;
   /** 지금 팩 + 내 용어의 종류 목록. */

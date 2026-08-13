@@ -24,6 +24,8 @@ export interface SavedView {
   fieldValue: string;
   /** 「고른 것 둘레 N다리만」 — 빈 문자열이면 전부 보기. */
   focus: string;
+  /** 어느 **시점**을 보고 있었나 (KL-271 X2). 시점을 안 쓰는 판이면 빈 문자열. */
+  time?: string;
 }
 
 export interface LiveFilter {
@@ -37,7 +39,9 @@ export interface LiveFilter {
 }
 
 /** 지금 화면 상태 → 저장할 꼴. */
-export function captureView(name: string, filter: LiveFilter, focus: string, id: string): SavedView {
+export function captureView(
+  name: string, filter: LiveFilter, focus: string, id: string, time = '',
+): SavedView {
   return {
     id,
     name: name.trim(),
@@ -49,6 +53,7 @@ export function captureView(name: string, filter: LiveFilter, focus: string, id:
     fieldName: filter.fieldName,
     fieldValue: filter.fieldValue,
     focus,
+    time,
   };
 }
 
