@@ -738,5 +738,9 @@
   "karmograph.help.face": "Paste an image as the card face",
   "karmograph.help.faceHow": "Select a card and press Ctrl+V",
   "karmograph.links.count": "{n} connections",
-  "karmograph.gap.shared": "{n} in common"
+  "karmograph.gap.shared": "{n} in common",
+  "karmograph.film.label": "🎬 The presentation as a video (webm)",
+  "karmograph.film.making": "Filming… {{sec}}s",
+  "karmograph.film.done": "Video saved ({{sec}}s)",
+  "karmograph.film.cant": "This browser cannot record video — try the single-SVG export"
 }

@@ -738,5 +738,9 @@
   "karmograph.help.face": "画像を貼り付けて顔にする",
   "karmograph.help.faceHow": "カードを選んで Ctrl+V",
   "karmograph.links.count": "つながり {n}件",
-  "karmograph.gap.shared": "共通 {n}"
+  "karmograph.gap.shared": "共通 {n}",
+  "karmograph.film.label": "🎬 発表を動画に (webm)",
+  "karmograph.film.making": "録画中… {{sec}}秒",
+  "karmograph.film.done": "動画ができました ({{sec}}秒)",
+  "karmograph.film.cant": "このブラウザは録画できません — SVG 一枚で書き出してください"
 }

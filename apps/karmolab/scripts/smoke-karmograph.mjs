@@ -7,7 +7,7 @@
  *
  * 사용: URL=http://127.0.0.1:8813/apps/karmolab/index.html node scripts/smoke-karmograph.mjs
  */
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
 
@@ -1589,6 +1589,33 @@ await step('코멘트는 여러 개 쌓이고 카드에 개수가 뜬다', async
     null,
     { timeout: ms(4000) }
   );
+});
+await step('발표를 영상으로 — 저절로 재생되는 파일이 나온다 (KL-271 O5)', async () => {
+  /* SVG 한 장도 결국 **눌러야** 돈다. 자랑하는 자리(디스코드·X·유튜브)는 못 누르는 곳이라
+     영상만 저절로 재생된다. 여기서 지키는 것: ① 장이 있으면 실제로 **파일이 나온다**
+     ② 이름이 판 이름 + .webm ③ 빈 파일이 아니다(굽는 길이 막히면 0바이트가 조용히 나간다). */
+  let n = 0;
+  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '영상 장 ' + n : '').catch(() => {}); };
+  page.on('dialog', onDlg);
+  await page.locator('[data-km="story"]').click();
+  await page.waitForSelector('.km-root.is-presenting', { timeout: ms(4000) });
+  await page.locator('[data-km="stage-add"]').click();
+  await page.waitForFunction(() => document.querySelectorAll('[data-km="stage-go"]').length >= 1, null, { timeout: ms(5000) });
+  await page.locator('[data-km="stage-exit"]').click();
+  await page.waitForSelector('.km-root:not(.is-presenting)', { timeout: ms(4000) });
+  page.off('dialog', onDlg);
+
+  await page.click('[data-km="more"]');
+  await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
+  const [dl] = await Promise.all([
+    page.waitForEvent('download', { timeout: ms(30000) }),
+    runCmd(page, 'film'),
+  ]);
+  if (!dl.suggestedFilename().endsWith('.webm')) {
+    throw new Error('영상 파일이 아니다: ' + dl.suggestedFilename());
+  }
+  const bytes = (await stat(await dl.path())).size;
+  if (bytes < 2000) throw new Error('영상이 사실상 비어 있다: ' + bytes + 'B');
 });
 await step('발표를 SVG 한 장으로 — 브라우저만 있으면 도는 파일이 나온다', async () => {
   // 발표는 대개 남의 기계에서 열린다. 파일 이름이 아니라 **속**을 본다: 장면 목록·조작 스크립트.
