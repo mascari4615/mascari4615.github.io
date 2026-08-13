@@ -37,6 +37,11 @@ export interface CommandGroup {
 /**
  * ⋯서랍의 차림표. **순서가 곧 화면 순서**다.
  *
+ * 묶음 이름은 **사람이 하려는 일**로 적는다 (TASK-KL-271 P7). 전에는 「내보내기」 하나에
+ * 아홉 줄이 평평하게 쏟아졌는데(PNG·SVG·발표SVG·JSON·JSON 가져오기·JSON Canvas·Mermaid·링크·
+ * 보기전용링크), 머릿속 갈래는 셋뿐이다 — **자랑할 그림 / 남이 열어보게 / 다른 앱으로**.
+ * 파일 형식으로 묶으면 「내가 뭘 골라야 하나」를 사람이 번역해야 한다.
+ *
  * 「보기」 묶음의 배경 무늬 고르개는 단추가 아니라 고르는 칸이라 화면 쪽에 남아 있다 —
  * 여기 목록은 **누르면 무슨 일이 일어나는 것**만 담는다.
  */
@@ -58,11 +63,23 @@ export const COMMAND_GROUPS: CommandGroup[] = [
     ],
   },
   {
-    title: () => t('karmograph.drawer.g.out'),
+    title: () => t('karmograph.drawer.g.brag'),
     items: [
       { hot: true, key: 'png', label: () => t('karmograph.png.label') },
       { key: 'svg', label: () => t('karmograph.svg.label') },
       { key: 'svg-story', label: () => t('karmograph.svgStory.label') },
+    ],
+  },
+  {
+    title: () => t('karmograph.drawer.g.open'),
+    items: [
+      { key: 'share', label: () => t('karmograph.share.label') },
+      { hot: true, key: 'share-view', label: () => t('karmograph.shareView.label') },
+    ],
+  },
+  {
+    title: () => t('karmograph.drawer.g.toApp'),
+    items: [
       { hot: true, key: 'export', label: () => t('karmograph.export.label') },
       { key: 'import', label: () => t('karmograph.import.label') },
       { key: 'canvas-out', label: () => t('karmograph.canvasOut.label') },
@@ -70,18 +87,11 @@ export const COMMAND_GROUPS: CommandGroup[] = [
     ],
   },
   {
-    title: () => t('karmograph.drawer.g.share'),
-    items: [
-      { key: 'share', label: () => t('karmograph.share.label') },
-      { hot: true, key: 'share-view', label: () => t('karmograph.shareView.label') },
-      { key: 'storage', label: () => t('karmograph.storage.label') },
-    ],
-  },
-  {
     title: () => t('karmograph.drawer.g.map'),
     items: [
       { hot: true, key: 'map-copy', label: () => t('karmograph.mapCopy.label') },
       { key: 'map-del', label: () => t('karmograph.mapDel.label') },
+      { key: 'storage', label: () => t('karmograph.storage.label') },
       { key: 'clear', label: () => t('karmograph.clear.label'), danger: true },
     ],
   },
