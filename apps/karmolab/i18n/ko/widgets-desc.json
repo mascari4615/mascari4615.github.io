@@ -34,8 +34,6 @@
   "widgets-desc.imagegen.desc": "AI로 이미지를 생성합니다",
   "widgets-desc.image.desc": "편집·형식 변환, 아스키 아트, AI 생성과 보관함을 한 곳에서",
   "widgets-desc.imageedit.desc": "편집·형식·해상도 변환(PNG·JPEG·WebP 등)을 한 화면에서",
-  "widgets-desc.foundry.desc": "여기 도구로 만든 것이 쌓인다 — 전부 CC0, 로그인 없이 가져다 쓴다",
-  "widgets-desc.bon.desc": "게임 화면에 쓰는 부품을 만든다 — 도형·모서리·테두리를 직접 잡고 SVG 로",
   "widgets-desc.meok.desc": "갈아서 칠하고 칸으로 움직인다 — 레이어·붓·도트 애니메이션",
   "widgets-desc.imagelib.desc": "생성한 이미지를 저장하고 관리합니다",
   "widgets-desc.tierlist.desc": "후보 풀(주제별 요소)에서 순위 인스턴스를 만들고, 블로그·로컬 JSON으로 주고받기 (개발 중)",
