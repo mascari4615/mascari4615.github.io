@@ -414,5 +414,8 @@
   "arcade.letter.friend": "상대",
   "arcade.btn.team": "편 갈라",
   "arcade.team.win": "{who} 편이 이겼다",
-  "arcade.team.draw": "편끼리 비겼다"
+  "arcade.team.draw": "편끼리 비겼다",
+  "arcade.best.card": "최고 {n}",
+  "arcade.best.new": "새 기록 {n} (지난 최고 {was})",
+  "arcade.best.was": "내 최고 {n}"
 }

@@ -414,5 +414,8 @@
   "arcade.letter.friend": "相手",
   "arcade.btn.team": "チーム戦",
   "arcade.team.win": "{who}チームの勝ち",
-  "arcade.team.draw": "引き分け"
+  "arcade.team.draw": "引き分け",
+  "arcade.best.card": "最高 {n}",
+  "arcade.best.new": "新記録 {n} (前は {was})",
+  "arcade.best.was": "自己最高 {n}"
 }

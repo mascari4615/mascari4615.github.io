@@ -414,5 +414,8 @@
   "arcade.letter.friend": "friend",
   "arcade.btn.team": "teams",
   "arcade.team.win": "team {who} takes it",
-  "arcade.team.draw": "the teams tie"
+  "arcade.team.draw": "the teams tie",
+  "arcade.best.card": "best {n}",
+  "arcade.best.new": "new best {n} (was {was})",
+  "arcade.best.was": "your best {n}"
 }
