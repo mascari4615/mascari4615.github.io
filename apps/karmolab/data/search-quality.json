@@ -1,0 +1,25 @@
+{
+  "$schema": "karmolab-search-quality-v1",
+  "defaultMaxRank": 1,
+  "documents": [
+    { "id": "image", "title": "이미지", "description": "이미지 편집과 형식 변환, 크기와 품질 조절", "initials": "ㅇㅁㅈ", "aliasKey": "image" },
+    { "id": "text", "title": "텍스트 도구", "description": "글자수 세기, 줄 정리, 두 글 비교, 표기법 변환, 한영타 되돌리기", "initials": "ㅌㅅㅌㄷㄱ", "aliases": "글자수 세기 글 정리 텍스트 변환" },
+    { "id": "pdf", "title": "PDF 도구", "description": "PDF 합치기 나누기 압축 서명 워터마크", "initials": "pdfㄷㄱ", "aliases": "pdf merge split compress 문서 합치기" }
+  ],
+  "cases": [
+    { "query": "이미지", "first": "image", "reason": "title" },
+    { "query": "이미지 압축", "first": "image" },
+    { "query": "사진 용량 줄이기", "first": "image", "reason": "aliases" },
+    { "query": "사진 형식 바꾸기", "first": "image" },
+    { "query": "dlalwl dkqcnr", "first": "image", "reason": "keyboard" },
+    { "query": "ㅌㅅㅌㄷㄱ", "first": "text", "reason": "initials" },
+    { "query": "글자수", "first": "text" },
+    { "query": "PDF 합치키", "first": "pdf", "reason": "fuzzy" },
+    { "query": "pdf merge", "first": "pdf" },
+    { "query": "문서 합치기", "first": "pdf", "maxRank": 2 }
+  ],
+  "reject": [
+    { "query": "이미지 존재하지않는말" },
+    { "query": "완전히없는검색어" }
+  ]
+}
