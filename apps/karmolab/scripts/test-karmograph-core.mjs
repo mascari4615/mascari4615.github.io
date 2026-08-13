@@ -52,6 +52,7 @@ async function loadModules() {
     export * as clusters from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/clusters.ts'))};
     export * as paste from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/paste-intent.ts'))};
     export * as bigBoard from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/big-board.ts'))};
+    export * as views from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/views.ts'))};
     export * as drag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-drag.ts'))};
     export * as guides from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-guides.ts'))};
     export * as minimap from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-minimap.ts'))};
@@ -910,6 +911,39 @@ const M = await loadModules();
   check(!shouldOfferFocus(CROWD_AT, false, true), '경계값에서는 아직 안 권한다');
   check(!shouldOfferFocus(999, true, true), '이미 둘레만 보는 중이면 또 안 권한다');
   check(!shouldOfferFocus(999, false, false), '고른 카드가 없으면 「무엇의 둘레」인지가 없다');
+}
+
+// -- 보기를 이름 붙여 저장 (TASK-KL-271 O2) ------------------------------------
+{
+  const { captureView, applyView, upsertView, isNameUsable } = M.views;
+  const live = () => ({
+    nodeKinds: new Set(['place']), edgeKinds: new Set(), tags: new Set(['비밀']),
+    hideOrphans: true, minDegree: 2, fieldName: '출신', fieldValue: '마계',
+  });
+  const v = captureView('  1부 시점  ', live(), '2', 'v1');
+  eq(v.name, '1부 시점', '이름 앞뒤 공백은 떼고 적는다');
+  eq(v.offNodeKinds.join(','), 'place', '뺀 종류를 글로 적을 수 있는 꼴로 담는다');
+  eq(v.focus, '2', '둘레 몇 다리까지 보는지도 함께');
+  const target = { nodeKinds: new Set(['x']), edgeKinds: new Set(['y']), tags: new Set(),
+    hideOrphans: false, minDegree: 0, fieldName: '', fieldValue: '' };
+  const focus = applyView(v, target);
+  eq(focus, '2', '되살리면 둘레도 같이 돌아온다');
+  eq([...target.nodeKinds].join(','), 'place', '옛 거르기는 지우고 저장본으로 갈아 끼운다');
+  eq([...target.edgeKinds].length, 0, '저장본에 없던 것은 남기지 않는다');
+  eq(target.minDegree, 2, '숫자도 그대로');
+  // 옛 저장본(없는 값)을 「참」으로 읽으면 카드가 말없이 사라진다 — 안 거른 상태로 되살린다.
+  const bare = applyView({ id: 'x', name: 'x' }, target);
+  eq(bare, '', '없는 값은 전부 보기로');
+  eq(target.hideOrphans, false, '없는 값은 거짓으로');
+  eq(target.minDegree, 0, '없는 숫자는 0 으로');
+  const one = upsertView([], v);
+  eq(one.length, 1, '새 이름은 뒤에 붙는다');
+  const same = upsertView(one, captureView('1부 시점', live(), '', 'v2'));
+  eq(same.length, 1, '같은 이름은 덮어쓴다 — 둘이면 고를 때 구분이 안 된다');
+  eq(same[0].id, 'v1', '덮어써도 그 자리의 id 는 지킨다');
+  eq(same[0].focus, '', '덮어쓴 내용은 새것');
+  check(!isNameUsable('   '), '이름이 비면 저장하지 않는다');
+  check(isNameUsable('적대만'), '이름이 있으면 저장한다');
 }
 
 process.stdout.write('\n');

@@ -689,5 +689,10 @@
   "karmograph.intent.idea.sub": "Lay out what came to mind and link it",
   "karmograph.intent.org.title": "Our team or guild",
   "karmograph.intent.org.sub": "Who does what, and who works with whom",
-  "karmograph.intent.more": "Show other kinds"
+  "karmograph.intent.more": "Show other kinds",
+  "karmograph.views.head": "Saved views",
+  "karmograph.views.hint": "Name the current filters and come back to them in one tap.",
+  "karmograph.views.ph": "e.g. Act 1",
+  "karmograph.views.save": "Save current",
+  "karmograph.views.del": "Delete this view"
 }

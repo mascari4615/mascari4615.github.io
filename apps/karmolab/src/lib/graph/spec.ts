@@ -137,6 +137,20 @@ export interface GraphEdge {
   tags?: string[];
 }
 
+/** 저장된 보기 한 개 — 자세한 규칙은 `widgets/karmograph/views.ts`. */
+export interface SavedGraphView {
+  id: string;
+  name: string;
+  offNodeKinds: string[];
+  offEdgeKinds: string[];
+  offTags: string[];
+  hideOrphans: boolean;
+  minDegree: number;
+  fieldName: string;
+  fieldValue: string;
+  focus: string;
+}
+
 export interface GroupDef {
   id: string;
   label: string;
@@ -304,6 +318,11 @@ export interface GraphSpec {
   comments?: GraphComment[];
   /** 여러 자리가 나눠 쓰는 글들. 없으면 공용 글을 아직 안 만든 맵. */
   notes?: GraphNote[];
+  /**
+   * 이름 붙여 저장한 **보기**들 (TASK-KL-271 O2). 한 판은 여러 얼굴을 가진다 —
+   * 「1부 시점」 「적대 관계만」. 없으면 아직 하나도 저장 안 한 판.
+   */
+  views?: SavedGraphView[];
   /** 발표 순서. 없으면 발표 모드 버튼이 「첫 장 담기」로 시작한다. */
   story?: StoryStep[];
 }
