@@ -18,6 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { withoutRetired } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
@@ -43,10 +44,17 @@ const keyOnly = new Set(list.keyOnly || []);
 const clickOnly = new Map((list.clickOnly || []).map((e) => (Array.isArray(e) ? [e[0], e[1]] : [e, null])));
 const SAMPLE_WAV = path.join(root, 'data/samples/sample.wav');
 const SAMPLE_WEBM = path.join(root, 'data/samples/sample.webm');
-const ids = process.argv.slice(2).length
-  ? process.argv.slice(2)
-  : [...list.tools, ...needsButton, ...needsFile, ...needsPdf, ...needsAudio, ...needsVideo, ...clickOnly.keys(), ...keyOnly];
-const allTools = Object.keys(JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools);
+const ids = withoutRetired(
+  process.argv.slice(2).length
+    ? process.argv.slice(2)
+    : [...list.tools, ...needsButton, ...needsFile, ...needsPdf, ...needsAudio, ...needsVideo, ...clickOnly.keys(), ...keyOnly]
+);
+/* 작업대로 합친 옛 도구는 이제 **작업대로 보내는 안내 한 장**이다 — 그 주소를 열면 안내가
+   뜨고 입력칸이 없다. 도구가 아닌 것을 「반응이 없다」로 세면 이 검사가 늘 빨갛다
+   (목록 정본은 lib/retired-operations.mjs). */
+const allTools = withoutRetired(
+  Object.keys(JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools)
+);
 
 const LANES = 4;
 const browser = await chromium.launch();
