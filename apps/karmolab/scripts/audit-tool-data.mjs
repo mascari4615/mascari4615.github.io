@@ -141,6 +141,28 @@ const problems = [];
   }
 }
 
+/* ★ **자리표시자가 남아 있는가** (TASK-KL-311).
+ *
+ * `npm run new:tool` 이 새 도구의 여섯 자리를 한 번에 만든다 — 그중 사람이 정해야 하는 글
+ * (상세 페이지 설명·달리 부르는 이름)은 `TODO:` 로 채워 둔다. 빈 칸으로 두면 다른 검사가
+ * 「없다」고 세우겠지만, 채워는 두고 안 고치면 **아무 데서도 안 걸린 채 검색 결과에 그대로
+ * 나간다** — 자리표시자가 사람 눈에 닿는 것이 빈 칸보다 나쁘다. 그래서 여기서 센다. */
+{
+  const todo = [];
+  for (const [id, entry] of Object.entries(read('data/tools-seo.json').tools)) {
+    if (JSON.stringify(entry).includes('TODO:')) todo.push(`설명(${id})`);
+  }
+  for (const [id, words] of Object.entries(aliases)) {
+    if (String(words).includes('TODO:')) todo.push(`이름(${id})`);
+  }
+  if (todo.length) {
+    problems.push(
+      `아직 자리표시자다 ${todo.length}건 — ${todo.slice(0, 8).join(', ')}` +
+        ' (new:tool 이 만든 TODO: 를 진짜 글로 바꿔라 — 그대로 두면 검색 결과에 나간다)'
+    );
+  }
+}
+
 for (const [what, list] of Object.entries(missing)) {
   if (list.length) problems.push(`${what} 없음 ${list.length}개 — ${list.slice(0, 10).join(', ')}${list.length > 10 ? ' …' : ''}`);
 }

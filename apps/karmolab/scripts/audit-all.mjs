@@ -17,6 +17,7 @@ import { spawnSync } from 'node:child_process';
 const CHECKS = [
   ['부르는 이름·파일이 실재하는지', 'audit:scripts'],
   ['도구마다 딸린 것이 채워졌는지', 'audit:data'],
+  ['커밋된 파생물이 지금 소스와 같은지', 'audit:generated'],
   ['화면이 뜨는지 (전 도구)', 'test:live'],
   ['도구 아닌 화면들 (광장·상태·커뮤니티·내 정보)', 'test:platform'],
   ['도구 목록이 성한지', 'test:hub'],
@@ -43,6 +44,12 @@ for (const [label, script] of CHECKS) {
   const r = spawnSync(npm, ['run', '--silent', script], { stdio: 'inherit', env: process.env, shell: process.platform === 'win32' });
   results.push({ label, script, ok: r.status === 0, sec: Math.round((Date.now() - started) / 1000) });
 }
+
+/* ★ 톱니 조이기 (TASK-KL-312) — 한 바퀴 돈 김에 **좋아진 만큼 기준선을 조인다.**
+ *   기준선 갱신(`-- --update`)은 사람 몫이었고, 잊으면 톱니가 옛 빚을 그대로 들고 있어
+ *   다시 늘어나도 그만큼은 안 걸린다. 나빠지는 방향이면 되돌리므로 여기서 도는 것이 안전하다.
+ *   (게이트가 아니다 — 조이기가 실패해도 검사 결과를 바꾸지 않는다.) */
+spawnSync(npm, ['run', '--silent', 'ratchet:tighten'], { stdio: 'inherit', env: process.env, shell: process.platform === 'win32' });
 
 const failed = results.filter((r) => !r.ok);
 console.log('');
