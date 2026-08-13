@@ -428,5 +428,6 @@
   "arcade.packs.none": "表を作るとハイロー・20の質問・トーナメントが一度に動きだす",
   "arcade.packs.new": "表を作る",
   "arcade.packs.more": "表をもっと作る",
-  "arcade.packs.well": "今日の表 — {table}"
+  "arcade.packs.well": "今日の表 — {table}",
+  "arcade.btn.full": "全画面"
 }
