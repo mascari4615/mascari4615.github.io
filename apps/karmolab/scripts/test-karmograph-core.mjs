@@ -51,6 +51,7 @@ async function loadModules() {
     export * as pick from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-pick.ts'))};
     export * as eph from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-ephemeral.ts'))};
     export * as share from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/share.ts'))};
+    export * as history from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/history.ts'))};
     export * as sna from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/sna.ts'))};
   `);
   const out = path.join(os.tmpdir(), `km-core-${Date.now()}.mjs`);
@@ -673,6 +674,20 @@ const M = await loadModules();
   eq(M.edgedrag.linkDropTarget(fake(''), 'node-1'), 'empty', '빈 곳에 놓으면 새 카드 자리다');
   eq(M.edgedrag.linkDropTarget(null, 'node-1'), 'empty', '아무것도 없는 자리도 빈 곳이다');
   eq(M.edgedrag.linkDropTarget(fake('node-1'), 'node-1'), null, '자기 자신 위에 놓으면 아무 일도 없다');
+}
+
+// ── 되돌리기 더미의 무게 (TASK-KL-271 M4) ───────────────────────────────────
+// 판 하나가 커지면 그대로 예순 배다 — 사진이 붙는 순간 탭이 죽는다. 수가 아니라 무게로 자른다.
+{
+  const { dropFromFront, HISTORY_MAX_STEPS, HISTORY_MAX_BYTES } = M.history;
+  eq(dropFromFront([100, 100, 100]), 0, '가벼우면 아무것도 안 버린다');
+  eq(dropFromFront(new Array(HISTORY_MAX_STEPS + 3).fill(10)), 3, '수가 넘치면 넘친 만큼만 버린다');
+  const heavy = new Array(6).fill(HISTORY_MAX_BYTES / 2);
+  check(dropFromFront(heavy) >= 4, `무거운 판은 앞에서 버린다 (버린 수 ${dropFromFront(heavy)})`);
+  eq(dropFromFront([HISTORY_MAX_BYTES * 3]), 0, '한 판뿐이면 그 판은 안 버린다 — 방금 한 일은 되돌아가야 한다');
+  const after = (sizes) => sizes.slice(dropFromFront(sizes)).reduce((a, b) => a + b, 0);
+  check(after(new Array(60).fill(HISTORY_MAX_BYTES / 4)) <= HISTORY_MAX_BYTES,
+    '버리고 나면 더미 전체가 상한 아래다');
 }
 
 process.stdout.write('\n');
