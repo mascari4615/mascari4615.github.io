@@ -1,7 +1,7 @@
 {
   "arcade": {
-    "narrow": 7537,
-    "wide": 2934
+    "narrow": 10333,
+    "wide": 3964
   },
   "ascii": {
     "narrow": 8254,
@@ -116,8 +116,8 @@
     "wide": 888
   },
   "crypto": {
-    "narrow": 54,
-    "wide": 146
+    "narrow": 507,
+    "wide": 658
   },
   "cssunit": {
     "narrow": 1313,
@@ -472,8 +472,8 @@
     "wide": 1144
   },
   "time": {
-    "narrow": 1425,
-    "wide": 1061
+    "narrow": 1560,
+    "wide": 1197
   },
   "timecalc": {
     "narrow": 1232,
