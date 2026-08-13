@@ -9,6 +9,7 @@
  * 그림을 그대로 베끼는 것이 아니다(그건 SVG 내보내기가 한다).
  */
 import type { GraphSpec } from '../../lib/graph/spec';
+import { t } from '../../lib/i18n';
 
 /** Mermaid 는 id 에 한글·공백·기호를 못 받는다 — 순서대로 짧은 딱지를 붙인다. */
 function idMapOf(spec: GraphSpec): Map<string, string> {
@@ -19,7 +20,7 @@ function idMapOf(spec: GraphSpec): Map<string, string> {
 
 /** 큰따옴표만 막으면 된다 — Mermaid 라벨은 `"..."` 안에서 대부분의 글자를 그대로 받는다. */
 function label(text: string): string {
-  return `"${(text || '(이름 없음)').replace(/"/g, "'")}"`;
+  return `"${(text || t('karmograph.noName')).replace(/"/g, "'")}"`;
 }
 
 export function toMermaid(spec: GraphSpec): string {

@@ -5,7 +5,7 @@
  * 종류·선 위에 쓸 말·긴 이야기·꼬리표·화살표 방향을 여기서 고친다.
  */
 import type { PanelCtx } from './context';
-import { docFieldHtml, bindDocField, EDGE_DOC_SKIN } from './doc-section';
+import { docFieldHtml, bindDocField, edgeDocSkin } from './doc-section';
 import { t, loadNamespace } from '../../../lib/i18n';
 import { setFace, edgeAt } from '../times';
 
@@ -33,14 +33,14 @@ export function renderEdgePanel(ctx: PanelCtx): void {
       <label>${esc(t('karmograph.nameOf.msg3'))}</label>
       <input type="text" data-km="ed-label" value="${esc(edge.label ?? '')}" placeholder="${esc(t('karmograph.edLabel.ph'))}" />
     </div>
-    ${docFieldHtml(ctx, edge, EDGE_DOC_SKIN)}
+    ${docFieldHtml(ctx, edge, edgeDocSkin())}
     <div class="km-field">
       <label>${esc(t('karmograph.nameOf.msg4'))}</label>
       <div class="km-hint">${t('karmograph.edgeBothViews', { em: `<b>${esc(t('karmograph.nameOf.msg5'))}</b>` })}</div>
       <input type="text" data-km="ed-view-from" value="${esc(edge.viewFrom ?? '')}"
-        placeholder="${esc(nameOf(edge.from))} 가 보는 ${esc(nameOf(edge.to))}" />
+        placeholder="${esc(t('karmograph.edgeView.ph', { a: nameOf(edge.from), b: nameOf(edge.to) }))}" />
       <input type="text" data-km="ed-view-to" value="${esc(edge.viewTo ?? '')}"
-        placeholder="${esc(nameOf(edge.to))} 가 보는 ${esc(nameOf(edge.from))}" />
+        placeholder="${esc(t('karmograph.edgeView.ph', { a: nameOf(edge.to), b: nameOf(edge.from) }))}" />
     </div>
     ${(() => {
       /* ★ **이 시점에서는** (TASK-KL-271 X2). 시점을 안 쓰는 판에는 아예 안 나온다.
@@ -90,7 +90,7 @@ export function renderEdgePanel(ctx: PanelCtx): void {
   bindDocField(ctx, edge, (redrawSide) => {
     ctx.persist();
     if (redrawSide) ctx.refresh();
-  }, () => {}, EDGE_DOC_SKIN);
+  }, () => {}, edgeDocSkin());
   // 두 마음은 이제 **선 위에도 그려진다**(KL-271 X1) — 적는 즉시 판이 따라가야 한다.
   // 예전엔 여기 적어도 화면이 그대로라, 적어 둔 사람만 아는 이야기가 됐다.
   (side.querySelector('[data-km="ed-view-from"]') as HTMLInputElement).oninput = (ev) => {

@@ -61,8 +61,12 @@ export function fieldsSectionHtml(ctx: PanelCtx, node: GraphNode): string {
         <datalist id="km-fld-suggest">${suggest.map((n) => `<option value="${esc(n)}"></option>`).join('')}</datalist>
         <button class="btn btn-ghost" data-km="fld-add">${esc(t('karmograph.fldAdd.label'))}</button>
       </div>
-      ${suggest.length === 0 ? '' : `<div class="km-hint">같은 종류가 쓰는 칸: ${suggest.slice(0, 6).map((n) => esc(n)).join(' · ')}</div>`}
-      ${template.length === 0 ? '' : `<button class="btn btn-ghost" data-km="fld-template">틀 한 벌 넣기: ${template.map((n) => esc(n)).join(' · ')}</button>`}
+      ${suggest.length === 0 ? '' : `<div class="km-hint">${esc(t('karmograph.fldSuggest.hint', {
+        list: suggest.slice(0, 6).join(' · '),
+      }))}</div>`}
+      ${template.length === 0 ? '' : `<button class="btn btn-ghost" data-km="fld-template">${esc(t('karmograph.fldTemplate.label', {
+        list: template.join(' · '),
+      }))}</button>`}
     </div>`;
 }
 

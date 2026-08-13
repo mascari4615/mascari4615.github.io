@@ -25,18 +25,25 @@ export interface DocFieldSkin {
   hint?: string;
 }
 
-export const NODE_DOC_SKIN: DocFieldSkin = {
-  label: t('karmograph.docSection.txt', undefined, "설명"),
-  placeholder: t('karmograph.docSection.txt2', undefined, '이 노드가 누구인지, 왜 중요한지 적어 두세요.'),
+/**
+ * ★ 겉모습은 **부를 때 만든다**(상수가 아니라 함수).
+ *
+ * 상수로 두면 `t()` 가 **파일을 읽어 들이는 순간** 돈다 — 말 묶음이 아직 안 온 시점이라
+ * 예전에는 한국어를 곁들여 두는 것으로 때웠고(그래서 한국어가 코드에 남았다), 그걸 걷어내자
+ * 위젯이 통째로 안 떴다(실측 2026-08-14). 그릴 때 부르면 두 문제가 함께 사라진다.
+ */
+export const nodeDocSkin = (): DocFieldSkin => ({
+  label: t('karmograph.docSection.txt'),
+  placeholder: t('karmograph.docSection.txt2'),
   key: 'edit-doc',
-  hint: t('karmograph.docSection.txt3', undefined, '[[다른 이름]]으로 링크하면 관계가 함께 보입니다.'),
-};
+  hint: t('karmograph.docSection.txt3'),
+});
 
-export const EDGE_DOC_SKIN: DocFieldSkin = {
-  label: t('karmograph.docSection.txt4', undefined, "이 관계의 이야기"),
-  placeholder: t('karmograph.docSection.txt5', undefined, '둘 사이의 사건, 감정, 규칙을 적어 두세요.'),
+export const edgeDocSkin = (): DocFieldSkin => ({
+  label: t('karmograph.docSection.txt4'),
+  placeholder: t('karmograph.docSection.txt5'),
   key: 'ed-doc',
-};
+});
 
 /**
  * 이 글을 쓰는 자리들 — **패널을 옮기지 않고 그 자리에서** 편다 (Roam 의 linked references).
@@ -65,7 +72,7 @@ function sharedUsersHtml(ctx: PanelCtx, noteId: string, key: string): string {
   </details>`;
 }
 
-export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin = NODE_DOC_SKIN): string {
+export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin = nodeDocSkin()): string {
   const esc = ctx.esc;
   const spec = ctx.spec();
   const shared = node.docRef ? notesOf(spec).find((n) => n.id === node.docRef) : undefined;
@@ -115,7 +122,7 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
           ${others.map((n) => `<option value="${esc(n.id)}">${esc(n.title || t('karmograph.noteLabel'))} ${esc(t('karmograph.docUsedIn', { n: noteUsers(spec, n.id) }))}</option>`).join('')}
         </optgroup>`}
         ${foreign.length === 0 ? '' : `<optgroup label="${esc(t('karmograph.docOtherMap'))}">
-          ${foreign.slice(0, 20).map((n) => `<option value="${esc(n.id)}">${esc(n.title || '메모')} — ${esc(n.from ?? t('karmograph.embedded.msg7'))}</option>`).join('')}
+          ${foreign.slice(0, 20).map((n) => `<option value="${esc(n.id)}">${esc(n.title || t('karmograph.noteLabel'))} — ${esc(n.from ?? t('karmograph.embedded.msg7'))}</option>`).join('')}
         </optgroup>`}
       </select>`}
     </div>`;
@@ -131,7 +138,7 @@ export function bindDocField(
   node: DocHolder,
   touch: (redrawSide: boolean) => void,
   redrawLinks: () => void = () => {},
-  skin: DocFieldSkin = NODE_DOC_SKIN,
+  skin: DocFieldSkin = nodeDocSkin(),
 ): void {
   const side = ctx.side;
   const spec = ctx.spec();

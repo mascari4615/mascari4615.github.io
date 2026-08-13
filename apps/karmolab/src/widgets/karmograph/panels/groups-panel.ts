@@ -4,6 +4,7 @@
  * 묶음은 **캔버스가 이미 그릴 줄 아는 것**이고(멤버를 감싸 자동으로 커진다), 이 패널은
  * 만들고·이름 붙이고·색 고르고·감추는 손잡이만 준다.
  */
+import { t } from '../../../lib/i18n';
 import type { GroupDef } from '../../../lib/graph/spec';
 import type { PanelCtx } from './context';
 
@@ -17,18 +18,18 @@ export function renderGroupsPanel(ctx: PanelCtx): void {
     <div class="km-field">
       ${
         ctx.spec().groups.length === 0
-          ? '<div class="km-hint">아직 묶음이 없습니다.</div>'
+          ? `<div class="km-hint">${esc(t('karmograph.groups.none'))}</div>`
           : ctx.spec().groups
               .map((g) => {
                 const count = ctx.spec().nodes.filter((n) => ctx.memberOf(n).includes(g.id)).length;
                 return `<div class="km-group-row" data-group="${esc(g.id)}">
-                  <input type="color" data-km="group-color" value="${esc(g.color)}" title="색" />
+                  <input type="color" data-km="group-color" value="${esc(g.color)}" title="${esc(t('karmograph.group.color'))}" />
                   <input type="text" data-km="group-label" value="${esc(g.label)}" />
                   <span class="km-group-count">${count}</span>
-                  <button class="btn btn-ghost" data-km="group-shape" title="테두리 모양 — 윤곽/네모">${(g.shape ?? 'box') === 'hull' ? '⬡' : '▭'}</button>
-                  <button class="btn btn-ghost" data-km="group-lock" title="잠그면 끌어도 안 움직입니다">${g.locked ? '🔒' : '🔓'}</button>
-                  <button class="btn btn-ghost" data-km="group-eye" title="상자 보이기/숨기기">${g.hidden ? '🚫' : '👁'}</button>
-                  <button class="btn btn-ghost" data-km="group-del" title="묶음 삭제">×</button>
+                  <button class="btn btn-ghost" data-km="group-shape" title="${esc(t('karmograph.group.shape'))}">${(g.shape ?? 'box') === 'hull' ? '⬡' : '▭'}</button>
+                  <button class="btn btn-ghost" data-km="group-lock" title="${esc(t('karmograph.group.lock'))}">${g.locked ? '🔒' : '🔓'}</button>
+                  <button class="btn btn-ghost" data-km="group-eye" title="${esc(t('karmograph.group.eye'))}">${g.hidden ? '🚫' : '👁'}</button>
+                  <button class="btn btn-ghost" data-km="group-del" title="${esc(t('karmograph.group.del'))}">×</button>
                 </div>`;
               })
               .join('')

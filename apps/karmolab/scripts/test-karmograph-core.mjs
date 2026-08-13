@@ -1214,17 +1214,28 @@ const M = await loadModules();
      판 지우기 되물음 둘 … 영어·일본어로 쓰는 사람에게는 갑자기 한국어가 튀어나온다.
      i18n 열쇠 검사(test:i18n:keys)는 **부른 열쇠가 있나**만 보지, 안 부른 글은 못 본다.
      `data-` 에 넣는 계측값(kmPan)은 사람이 읽는 글이 아니라 셈에서 뺀다. */
-  const src = fs.readFileSync(path.join(root, 'src/widgets/karmograph/karmograph.ts'), 'utf8');
+  /* 위젯 본체만 보다가 **패널 여덟 곳**에 스물아홉 줄이 남아 있는 걸 놓쳤다 (2026-08-14).
+     한 폴더를 통째로 본다 — 새 조각이 늘어도 저절로 걸린다. */
+  const dir = path.join(root, 'src/widgets/karmograph');
+  const kmFiles = [
+    ...fs.readdirSync(dir).filter((f) => f.endsWith('.ts')).map((f) => path.join(dir, f)),
+    ...fs.readdirSync(path.join(dir, 'panels')).filter((f) => f.endsWith('.ts'))
+      .map((f) => path.join(dir, 'panels', f)),
+  ];
+  const src = kmFiles.map((f) => fs.readFileSync(f, 'utf8')
+    .split(String.fromCharCode(10))
+    .map((l) => `${path.basename(f)}|${l}`).join(String.fromCharCode(10))).join(String.fromCharCode(10));
   const hangul = /[가-힣]/;
   const leaks = [];
-  src.split(String.fromCharCode(10)).forEach((line, i) => {
+  src.split(String.fromCharCode(10)).forEach((raw, i) => {
+    const line = raw.slice(raw.indexOf('|') + 1);
     const t0 = line.trim();
     if (t0.startsWith('//') || t0.startsWith('*') || t0.startsWith('/*') || t0.startsWith('<!--')) return;
     if (line.includes('dataset.kmPan') || line.includes('panned(')) return;   // 계측값(사람이 읽는 글 X)
     for (const q of ['"', "'", '`']) {
       const parts = line.split(q);
       if (parts.length >= 3 && parts.some((p, k) => k % 2 === 1 && hangul.test(p))) {
-        leaks.push(`${i + 1}: ${t0.slice(0, 60)}`);
+        leaks.push(`${raw.slice(0, raw.indexOf('|'))}: ${t0.slice(0, 50)}`);
         return;
       }
     }
