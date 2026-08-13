@@ -799,5 +799,6 @@
   "karmograph.many.delAll": "Delete all {n}",
   "karmograph.storage.used": "{used} / about {all} ({pct}%)",
   "karmograph.terms.nodeKinds": "My node kinds: {n}",
-  "karmograph.terms.edgeKinds": "My relation kinds: {n}"
+  "karmograph.terms.edgeKinds": "My relation kinds: {n}",
+  "karmograph.kind.unknown": "Unknown kind"
 }

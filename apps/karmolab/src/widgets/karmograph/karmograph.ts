@@ -614,12 +614,21 @@ import {
     //   팩은 고르는 문이 아니라 목록의 소제목일 뿐이다.
     const nodeKindsNow = (): typeof pack.nodeKinds => [...PACKS.flatMap((p0) => p0.nodeKinds), ...terms.nodeKinds];
     const edgeKindsNow = (): typeof pack.edgeKinds => [...PACKS.flatMap((p0) => p0.edgeKinds), ...terms.edgeKinds];
+    /**
+     * ★ **말은 언제나 글자로 돌려준다.**
+     *
+     * 종류가 안 적힌 카드가 있다(손으로 적은 파일·옛 판·남의 도구에서 온 것). 그때 이 함수가
+     * `undefined` 를 돌려주면, 그걸 받아 글자를 다듬던 자리에서 거르기 칸이 통째로 터졌다
+     * (실측 2026-08-14: 거친 판에서 거르기만 빨강). 모르면 **모른다고 적는다**.
+     */
     const kindIcon = (id: string): string =>
       terms.nodeKinds.find((k) => k.id === id)?.icon ?? ALL_KIND_ICONS[id] ?? '·';
     const kindLabel = (id: string): string =>
-      terms.nodeKinds.find((k) => k.id === id)?.label ?? allKindLabels()[id] ?? id;
+      terms.nodeKinds.find((k) => k.id === id)?.label ?? allKindLabels()[id]
+      ?? (id || t('karmograph.kind.unknown'));
     const edgeLabel = (id: string): string =>
-      terms.edgeKinds.find((k) => k.id === id)?.label ?? allEdgeLabels()[id] ?? id;
+      terms.edgeKinds.find((k) => k.id === id)?.label ?? allEdgeLabels()[id]
+      ?? (id || t('karmograph.kind.unknown'));
     /** 캔버스에 넘길 색표·선 정의 — 팩 전체 + 내 용어. */
     const kindColorsNow = (): Record<string, string> => ({
       ...ALL_KIND_COLORS,

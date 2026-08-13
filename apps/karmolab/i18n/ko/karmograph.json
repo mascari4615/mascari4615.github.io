@@ -799,5 +799,6 @@
   "karmograph.many.delAll": "{n}개 모두 삭제",
   "karmograph.storage.used": "{used} / 약 {all} ({pct}%)",
   "karmograph.terms.nodeKinds": "내 노드 종류 {n}개",
-  "karmograph.terms.edgeKinds": "내 관계 종류 {n}개"
+  "karmograph.terms.edgeKinds": "내 관계 종류 {n}개",
+  "karmograph.kind.unknown": "모르는 종류"
 }
