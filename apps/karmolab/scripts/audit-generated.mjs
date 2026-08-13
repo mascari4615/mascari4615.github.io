@@ -95,7 +95,7 @@ for (const item of 파생물) {
     return a.equals(b) === false;
   });
 
-  if (바뀐것.length > 0) 낡음.push({ npm: item.npm, files: 바뀐것, why: item.why });
+  if (바뀐것.length > 0) 낡음.push({ npm: item.npm, files: 바뀐것, why: item.why, nightly: item.nightly });
 
   /* 기본은 원상복구. `--update` 면 새로 구운 것을 남긴다(= 사람이 커밋한다). */
   if (!UPDATE) {

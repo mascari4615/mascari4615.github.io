@@ -24,6 +24,8 @@ import { run as livecountRun, spec as livecountSpec } from './livecount';
 import { run as loanRun, spec as loanSpec } from './loan';
 import { run as mesh3dRun, spec as mesh3dSpec } from './mesh3d';
 import { run as passgenRun, spec as passgenSpec } from './passgen';
+import { run as pdf2textRun, spec as pdf2textSpec } from './pdf2text';
+import { run as pdftoolRun, spec as pdftoolSpec } from './pdftool';
 import { run as qrgenRun, spec as qrgenSpec } from './qrgen';
 import { run as tableconvRun, spec as tableconvSpec } from './tableconv';
 import { run as timecalcRun, spec as timecalcSpec } from './timecalc';
@@ -33,6 +35,7 @@ import { run as vatRun, spec as vatSpec } from './vat';
 import { run as wordfreqRun, spec as wordfreqSpec } from './wordfreq';
 import { run as workdaysRun, spec as workdaysSpec } from './workdays';
 import { run as worldclockRun, spec as worldclockSpec } from './worldclock';
+import { run as ziptoolRun, spec as ziptoolSpec } from './ziptool';
 
 export interface CoreEntry {
   run: ToolRunner;
@@ -63,6 +66,8 @@ export const CORES: Record<string, CoreEntry> = {
   loan: { run: loanRun, ops: Object.keys(loanSpec.ops) },
   mesh3d: { run: mesh3dRun, ops: Object.keys(mesh3dSpec.ops) },
   passgen: { run: passgenRun, ops: Object.keys(passgenSpec.ops) },
+  pdf2text: { run: pdf2textRun, ops: Object.keys(pdf2textSpec.ops) },
+  pdftool: { run: pdftoolRun, ops: Object.keys(pdftoolSpec.ops) },
   qrgen: { run: qrgenRun, ops: Object.keys(qrgenSpec.ops) },
   tableconv: { run: tableconvRun, ops: Object.keys(tableconvSpec.ops) },
   timecalc: { run: timecalcRun, ops: Object.keys(timecalcSpec.ops) },
@@ -72,4 +77,5 @@ export const CORES: Record<string, CoreEntry> = {
   wordfreq: { run: wordfreqRun, ops: Object.keys(wordfreqSpec.ops) },
   workdays: { run: workdaysRun, ops: Object.keys(workdaysSpec.ops) },
   worldclock: { run: worldclockRun, ops: Object.keys(worldclockSpec.ops) },
+  ziptool: { run: ziptoolRun, ops: Object.keys(ziptoolSpec.ops) },
 };

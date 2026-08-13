@@ -134,6 +134,19 @@
       "strength"
     ]
   },
+  "pdf2text": {
+    "ops": [
+      "extract"
+    ]
+  },
+  "pdftool": {
+    "ops": [
+      "merge",
+      "pages",
+      "extract",
+      "rotate"
+    ]
+  },
   "qrgen": {
     "ops": [
       "svg",
@@ -184,6 +197,13 @@
     "ops": [
       "convert",
       "offset"
+    ]
+  },
+  "ziptool": {
+    "ops": [
+      "create",
+      "list",
+      "extract"
     ]
   }
 }
