@@ -90,19 +90,39 @@ for (const id of ids) {
     await page.goto(문, { waitUntil: 'load', timeout: 40000 });
     await page.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
     await page.evaluate((x) => Toolbox.switchPage(x), id);
-    await page.waitForTimeout(2500);
+    /* ★ **판이 뜰 때까지 기다린다 — 정해진 초를 세지 않는다** (2026-08-14).
+       2.5초만 세었더니 판이 늦게 뜨는 화면이 판마다 「앱 안 화면이 아님」으로 넘어갔다
+       (같은 화면이 어떤 판에서는 재어지고 어떤 판에서는 안 재어졌다). 그러면 **정말 죽은
+       화면이 건너뛴 것에 섞여** 조용히 지나갈 수 있다. 못 기다린 것만 넘긴다. */
+    await page.waitForSelector('#page-' + id, { timeout: 9000 }).catch(() => null);
+    await page.waitForTimeout(1200);
     const 판 = await page.evaluate((x) => {
       const el = document.getElementById('page-' + x);
-      return { 있나: !!el, 글: (el?.textContent || '').trim() };
+      /* ★ **건너뛰는 까닭을 갈라 적는다** (2026-08-14). 「판이 안 뜬다」를 한 통에 담으면
+         정말 죽은 화면이 「원래 화면이 아닌 것」 틈에 섞여 조용히 지나간다. 셋으로 가른다:
+         ① 애초에 위젯이 아닌 이름(말 묶음만 있는 것) ② 숨긴 위젯(다른 화면의 탭으로 합쳐진 것)
+         ③ **보이는 위젯인데 안 열린다** — 이건 고장이다. */
+      const meta = (window.KARMOLAB_LAZY_META || []).find((m) => m && m.id === x);
+      return {
+        있나: !!el,
+        글: (el?.textContent || '').trim(),
+        위젯: !!meta,
+        숨김: !!(meta && meta.hidden)
+      };
     }, id);
     const 말오류 = 오류.filter((t) => /\[i18n\]|MissingTranslation|CatalogLoad/.test(t));
     if (말오류.length) {
       빨강.push(`${id}: 말 묶음 오류 — ${말오류[0]}`);
     } else if (!판.있나) {
-      /* 앱 안 화면이 아닌 놀이도 있다(`/daily/` 처럼 제 주소로 사는 것). 그건 고장이 아니라
-         **여기서 볼 것이 아니다** — 다만 조용히 넘기지 않고 이름을 적어 둔다. */
-      건너뜀.push(id);
-      process.stdout.write('-');
+      if (판.위젯 && !판.숨김) {
+        /* 목록에 버젓이 있고 숨기지도 않았는데 안 열린다 = 사람이 눌러도 안 열린다. */
+        빨강.push(`${id}: 보이는 화면인데 안 열린다 (판이 안 생겼다)`);
+      } else {
+        /* 앱 안 화면이 아닌 것도 있다(`/daily/` 처럼 제 주소로 사는 것, 다른 화면의 탭으로
+           합쳐진 것). 고장이 아니라 **여기서 볼 것이 아니다** — 이름은 적어 둔다. */
+        건너뜀.push(`${id}(${판.위젯 ? '숨김' : '위젯 아님'})`);
+        process.stdout.write('-');
+      }
     } else if (!판.글 || (판.글.length < 60 && /꺼내는 중|불러오는 중|Loading/.test(판.글))) {
       /* 「불러오는 중」이 **화면의 전부**일 때만 멎은 것으로 본다. 다 지어진 화면 안에도
          그런 글자가 한 조각 있을 수 있다 — 서버 모니터가 그랬다(브라우저에서는 제 서버에
