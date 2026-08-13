@@ -51,7 +51,7 @@ import { visibleNodes, degreeMap } from './canvas-filter';
 import { drainSaves, queueSave } from './canvas-save';
 import { pressIntent, readPressHits } from './canvas-press';
 import { canRewireTo, isDropOnNode, releaseIntent } from './canvas-release';
-import { curveFromPointer, labelPosFromPointer } from './canvas-edgedrag';
+import { curveFromPointer, labelPosFromPointer, linkDropTarget } from './canvas-edgedrag';
 import { groupDelta, resizedBox, sizeGrip, snappedPoint, worldDelta } from './canvas-drag';
 import { alignGuides, clearGuides, drawGuides, neighborBoxes, type GuideBox, type GuideLine } from './canvas-guides';
 import { minimapRects, minimapWorthIt, paintMinimap, worldFitsInView } from './canvas-minimap';
@@ -132,6 +132,11 @@ export interface GraphCanvasOptions {
    * 안 주면 읽기 전용 뷰(cockpit)처럼 손잡이 자체가 없다.
    */
   onConnect?: (fromId: string, toId: string) => void;
+  /**
+   * 손잡이에서 끌어다 **빈 곳**에 놓았을 때 (TASK-KL-271 R1).
+   * 가장 흔한 동작(「여기서 뻗어 나가는 새 카드」)이 가장 짧아진다 — 안 주면 예전처럼 그냥 취소된다.
+   */
+  onConnectToEmpty?: (fromId: string, world: { x: number; y: number }) => void;
   /**
    * 선을 손으로 고쳤을 때(휘기·이름표 자리). 이 콜백을 주면 선에 손잡이가 생긴다 —
    * 캔버스가 `spec` 의 그 선을 직접 고치고, 저장은 위젯이 한다.
@@ -246,6 +251,7 @@ export class GraphCanvas {
   private onBackgroundClick?: () => void;
   private onBackgroundDoubleClick?: (world: { x: number; y: number }) => void;
   private onConnect?: (fromId: string, toId: string) => void;
+  private onConnectToEmpty?: (fromId: string, world: { x: number; y: number }) => void;
   private onEdgeChanged?: (edgeId: string) => void;
   private onEdgeClick?: (edgeId: string) => void;
   private onSelectMany?: (nodeIds: string[]) => void;
@@ -324,6 +330,7 @@ export class GraphCanvas {
     this.onBackgroundClick = options.onBackgroundClick;
     this.onBackgroundDoubleClick = options.onBackgroundDoubleClick;
     this.onConnect = options.onConnect;
+    this.onConnectToEmpty = options.onConnectToEmpty;
     this.onEdgeChanged = options.onEdgeChanged;
     this.onEdgeClick = options.onEdgeClick;
     this.onSelectMany = options.onSelectMany;
@@ -823,11 +830,10 @@ export class GraphCanvas {
         this.linking = null;
         temp.remove();
         this.clearTargetHint();
-        // 놓은 자리 아래에 있는 노드를 찾는다. 임시 선은 이미 지웠으니 가로막지 않는다.
-        const under = document.elementFromPoint(e.clientX, e.clientY);
-        const toEl = under?.closest?.('.ck-node') as SVGGElement | null;
-        const toId = toEl?.dataset.id ?? '';
-        if (toId && toId !== fromId) this.onConnect?.(fromId, toId);
+        // 놓은 자리가 무엇인지는 `canvas-edgedrag` 가 안다(임시 선은 이미 지웠으니 안 가로막는다).
+        const drop = linkDropTarget(document.elementFromPoint(e.clientX, e.clientY), fromId);
+        if (drop === 'empty') this.onConnectToEmpty?.(fromId, this.screenToWorld(e.clientX, e.clientY));
+        else if (drop) this.onConnect?.(fromId, drop.toId);
         this.svg.style.cursor = 'grab';
         return;
       }

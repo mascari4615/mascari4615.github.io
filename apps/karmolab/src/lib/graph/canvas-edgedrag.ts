@@ -45,3 +45,19 @@ export function labelPosFromPointer(p1: Pt, p2: Pt, w: Pt): number {
   const t = ((w.x - p1.x) * dx + (w.y - p1.y) * dy) / (len * len);
   return Number(Math.min(LABEL_MAX, Math.max(LABEL_MIN, t)).toFixed(3));
 }
+
+
+/**
+ * 손잡이를 놓은 자리가 **무엇인가** (TASK-KL-271 R1).
+ *
+ * 셋뿐이다: 다른 카드 위(`{ toId }`) · 빈 곳(`'empty'`) · 자기 자신 위(`null`, 아무 일도 없음).
+ * 캔버스 본체에서 if 세 겹으로 살던 판단인데, 「빈 곳에 놓으면 새 카드」가 붙으면서 규칙이
+ * 늘었다 — 규칙이 늘 자리는 **눈으로 볼 수 있는 순수 함수**여야 검사로 잠근다.
+ */
+export function linkDropTarget(under: Element | null | undefined, fromId: string):
+{ toId: string } | 'empty' | null {
+  const el = under?.closest?.('.ck-node') as HTMLElement | null;
+  const toId = el?.dataset?.id ?? '';
+  if (!toId) return 'empty';
+  return toId === fromId ? null : { toId };
+}

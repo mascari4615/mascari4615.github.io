@@ -494,6 +494,42 @@ await step('옆 패널 — 접힌 「다른 목록」으로 아홉 패널을 오
     );
   }
 });
+await step('점을 빈 곳으로 끌면 새 카드가 생기며 이어진다', async () => {
+  // 관계도에서 가장 흔한 동작은 「이 사람에게서 뻗어 나가는 또 한 사람」인데, 전에는
+  // 빈 곳 두 번 클릭 → 이름 → 다시 점 끌기 **세 걸음**이었다 (TASK-KL-271 R1).
+  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  const box = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(box.x + box.width * 0.25, box.y + box.height * 0.3);
+  await m.waitForSelector('.km-inline', { timeout: ms(4000) });
+  await m.keyboard.type('주인공');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => !document.querySelector('.km-inline'), null, { timeout: ms(4000) });
+  await m.locator('.ck-node').first().click();
+  await m.waitForSelector('.ck-link-handle', { timeout: ms(4000) });
+  const port = await m.locator('.ck-link-handle').first().boundingBox();
+  await m.mouse.move(port.x + port.width / 2, port.y + port.height / 2);
+  await m.mouse.down();
+  await m.mouse.move(box.x + box.width * 0.65, box.y + box.height * 0.62, { steps: 8 });
+  await m.mouse.up();
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 2, null, { timeout: ms(4000) })
+    .catch(async () => {
+      const n = await m.evaluate(() => document.querySelectorAll('.ck-node').length);
+      throw new Error(`빈 곳에 놓았는데 새 카드가 안 생겼다 (카드 ${n}장)`);
+    });
+  const edges = await m.evaluate(() => document.querySelectorAll('.ck-edge:not(.ck-link-temp)').length);
+  if (edges < 1) throw new Error('카드는 생겼는데 선이 안 이어졌다');
+  // 이름칸은 판을 **다시 그린 뒤에** 열린다(새 카드 자리를 재야 하므로) — 그 자리에서 바로 세면
+  // 이르다. 혼자 돌리면 다섯 판 다 초록인데 이 판에서만 빨갛던 이유가 이것이었다.
+  await m.waitForSelector('.km-inline', { timeout: ms(4000) })
+    .catch(() => { throw new Error('새 카드가 생겼는데 이름칸이 안 떴다 — 손이 한 번 더 가야 한다'); });
+  await ctx.close();
+});
 await step('도움말이 할 수 있는 일을 다 보여 준다', async () => {
   await openPanel(page, 'help');
   await page.waitForSelector('[data-km="help-close"]', { timeout: ms(4000) });
