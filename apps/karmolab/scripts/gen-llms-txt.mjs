@@ -18,13 +18,18 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { withoutRetired } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BLOG = path.resolve(root, '../blog');
 const SITE = 'https://blog.mascari4615.com';
 
 const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools;
-const ids = Object.keys(seo).sort();
+/* ★ **접은 도구는 빼고 적는다** (2026-08-14). 글 도구 열여섯은 작업대로 합쳐져 낱개 장이
+   넘김판(redirect)이 됐는데, 이 파일은 그 주소를 **기계에게 소개하는 목록**이라 그대로 두면
+   크롤러·모델에게 없는 도구를 열여섯 개 알려 준다(실측: `llms-full.txt` 에 전부 들어 있었다).
+   목록 정본 = `lib/retired-operations.mjs`. */
+const ids = withoutRetired(Object.keys(seo)).sort();
 
 /** MCP 서버가 실제로 내놓는 도구 = `src/core/` 에서 `spec` 을 가진 파일. 손으로 안 적는다. */
 const coreDir = path.join(root, 'src/core');
