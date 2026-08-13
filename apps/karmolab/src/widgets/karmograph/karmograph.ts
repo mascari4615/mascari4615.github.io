@@ -181,6 +181,12 @@ import {
     .km-tab.is-on { opacity:1; background:var(--bg-tertiary); }
     .km-tab-name { margin-left:4px; font-size:11px; max-width:96px; overflow:hidden;
       text-overflow:ellipsis; white-space:nowrap; vertical-align:middle; }
+    /* 빈 판에서 아직 쓸 데가 없는 손잡이는 접는다 (TASK-KL-271 F2). 되돌리기는 꺼진 채 남긴다 —
+       사라지면 「되돌릴 수 있다」는 사실 자체를 못 배운다. */
+    .km-toolbar.km-blank [data-km="find"],
+    .km-toolbar.km-blank [data-km="find-count"],
+    .km-toolbar.km-blank [data-km="fit"],
+    .km-toolbar.km-blank [data-km="story"] { display:none !important; }
     .km-side.hidden { display:none; }
     /* 패널 안에서 **성격이 다른 묶음**을 가르는 줄·이름표 (TASK-KL-271 P5). */
     .km-split { border:none; border-top:1px solid var(--border); margin:16px 0 10px; }
@@ -1042,6 +1048,13 @@ import {
 
     // ── 빈 상태 안내 ────────────────────────────────────────────────────────
     function syncEmptyHint(): void {
+      /* ★ **빈 판에서는 툴바도 접는다** (TASK-KL-271 F2 / S2).
+         카드가 0장인데 「전체 보기 · 발표 · 찾기」가 다 켜져 있었다 — 할 수 있는 게 하나뿐인
+         순간에 선택지를 열 개 보여 주면, 그 하나가 어느 것인지가 안 보인다. 카드가 생기면
+         저절로 돌아온다(지우는 게 아니라 아직 쓸 데가 없는 것을 접는 것). */
+      root.classList.toggle('km-blank', spec.nodes.length === 0);
+      // 툴바 자신에게도 표를 단다 — 위쪽 조상에 기대면 위젯이 두 번 얹힌 판에서 안 먹는다(실측).
+      root.querySelector('.km-toolbar')?.classList.toggle('km-blank', spec.nodes.length === 0);
       const existing = canvasEl.querySelector('.km-empty');
       if (spec.nodes.length > 0) {
         existing?.remove();
