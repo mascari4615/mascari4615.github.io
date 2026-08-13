@@ -1054,6 +1054,27 @@ const M = await loadModules();
   eq(forgetTime([timed], 't9')[0].at.t2.label, '라이벌', '없는 시점을 지워도 남은 것은 그대로');
 }
 
+// -- 이 시점의 얼굴 고치기 (TASK-KL-271 X2) ------------------------------------
+{
+  const { setFace, edgeAt, isTimed } = M.times;
+  const base = { label: '소꿉친구', kind: 'rel' };
+  const named = setFace(base, 't2', { label: '라이벌' });
+  eq(edgeAt(named, 't2').label, '라이벌', '이 시점의 이름을 적는다');
+  eq(edgeAt(named, 't1').label, '소꿉친구', '다른 시점은 그대로');
+  const back = setFace(named, 't2', { label: '   ' });
+  check(!isTimed(back), '이름을 비우면 자리째 지운다 — 빈 껍데기가 쌓이면 표시가 거짓이 된다');
+  eq(edgeAt(back, 't2').label, '소꿉친구', '지우면 원래대로');
+  const gone = setFace(base, 't1', { gone: true });
+  eq(edgeAt(gone, 't1'), null, '이 시점에는 없음');
+  const kindOnly = setFace(base, 't2', { kind: 'foe' });
+  eq(edgeAt(kindOnly, 't2').kind, 'foe', '색만 바꾸기');
+  eq(edgeAt(kindOnly, 't2').label, '소꿉친구', '이름은 원본을 따른다');
+  eq(setFace(base, '', { label: 'x' }).at, undefined, '시점이 없으면 아무 데도 안 적는다');
+  const two = setFace(setFace(base, 't1', { gone: true }), 't2', { label: '라이벌' });
+  eq(Object.keys(two.at).length, 2, '시점마다 따로 쌓인다');
+  eq(Object.keys(setFace(two, 't1', {}).at).length, 1, '한 시점만 지워도 나머지는 남는다');
+}
+
 process.stdout.write('\n');
 if (failures.length > 0) {
   console.error(`\nRESULT: FAIL (${failures.length})\n - ` + failures.join('\n - '));

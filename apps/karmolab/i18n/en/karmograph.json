@@ -713,5 +713,9 @@
   "karmograph.time.renameAsk": "What is this point in time called?",
   "karmograph.time.del": "Delete this point",
   "karmograph.time.delAsk": "Delete \"{name}\"? Relations written only for this point go too.",
-  "karmograph.time.delAct": "delete time"
+  "karmograph.time.delAct": "delete time",
+  "karmograph.face.head": "At this point ({name})",
+  "karmograph.face.hint": "Leave blank to fall back to the original — other points are untouched.",
+  "karmograph.face.same": "— same kind —",
+  "karmograph.face.gone": "This relation does not exist yet at this point"
 }
