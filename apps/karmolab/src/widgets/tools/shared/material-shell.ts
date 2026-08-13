@@ -373,6 +373,7 @@ function injectStyles(): void {
   padding:12px 14px;border-radius:12px;border:1px solid rgba(128,128,128,.35);background:transparent;}
 .pf-paste-hint{font-size:12px;opacity:.6;}
 .pf-drop span{font-size:12px;opacity:.6;}
+.pf-file[hidden]{display:none;}
 .pf-file{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   padding:10px 14px;border:1px solid rgba(128,128,128,.28);border-radius:12px;}
 .pf-name{font-weight:600;word-break:break-all;}

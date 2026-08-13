@@ -68,6 +68,10 @@ await page.addInitScript(() => {
 await page.goto(`${BASE}#sound`, { waitUntil: 'domcontentloaded' });
 await page.waitForSelector('#pfDrop', { timeout: 20000 });
 
+/* 아직 안 보이는 것도 잰다 (KL-283) */
+check(!(await page.locator('#pfFileBar').isVisible()), '소리를 올리기 전엔 파일 줄이 안 보인다');
+check(!(await page.locator('#pfChain').isVisible()), '결과가 없으면 「이어서」 줄도 안 보인다');
+
 /* ① 탭 줄이 없다 · 할 일은 격자로 */
 const tabs = await page.locator('.tool-page.active .tool-tabs button, .tool-page.active [role=tab]').count();
 check(tabs <= 1, `할 일이 탭 줄로 늘어서 있으면 안 된다 (지금 ${tabs}개)`);
