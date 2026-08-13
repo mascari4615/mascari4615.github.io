@@ -530,6 +530,36 @@ await step('점을 빈 곳으로 끌면 새 카드가 생기며 이어진다', a
     .catch(() => { throw new Error('새 카드가 생겼는데 이름칸이 안 떴다 — 손이 한 번 더 가야 한다'); });
   await ctx.close();
 });
+await step('빈 판에서는 툴바가 접힌다 (카드가 생기면 돌아온다)', async () => {
+  // 카드가 0장인데 「전체 보기 · 발표 · 찾기」가 다 켜져 있었다 — 할 수 있는 게 하나뿐인 순간에
+  // 선택지를 열 개 보여 주면 그 하나가 어느 것인지 안 보인다 (TASK-KL-271 F2 / S2).
+  const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  const shown = () => m.locator('.km-toolbar > button:visible, .km-toolbar > select:visible, .km-toolbar > input[type=text]:visible').count();
+  // 접히는 것은 판을 다 그린 **뒤**다 — 그 전에 세면 아직 안 접힌 수가 잡힌다.
+  await m.waitForSelector('.km-root.km-blank', { timeout: ms(4000) });
+  const blank = await shown();
+  if (blank > 7) {
+    const who = await m.evaluate(() => [...document.querySelectorAll('.km-toolbar > *')]
+      .filter((e) => e.offsetParent !== null)
+      .map((e) => `${e.tagName}:${e.dataset?.km ?? e.className}`));
+    throw new Error(`빈 판인데 툴바에 ${blank}개가 켜져 있다 — ${who.join(', ')}`);
+  }
+  const box = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(box.x + box.width * 0.3, box.y + box.height * 0.3);
+  await m.waitForSelector('.km-inline', { timeout: ms(4000) });
+  await m.keyboard.type('가');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 1, null, { timeout: ms(4000) });
+  const full = await shown();
+  if (full <= blank) throw new Error(`카드가 생겼는데 툴바가 안 돌아왔다 (${blank} -> ${full})`);
+  await ctx.close();
+});
 await step('도움말이 할 수 있는 일을 다 보여 준다', async () => {
   await openPanel(page, 'help');
   await page.waitForSelector('[data-km="help-close"]', { timeout: ms(4000) });
