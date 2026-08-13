@@ -215,6 +215,8 @@ import {
     .km-avatar-row .btn { padding:4px 8px; }
     .km-tilt-val { color:var(--text-tertiary); }
     .km-storage-warn { padding:6px 12px; background:#7f1d1d; color:#fecaca; font-size:var(--font-size-xs); }
+    .km-storage-warn.is-fail { display:flex; gap:8px; align-items:center; justify-content:space-between; }
+    .km-storage-warn.is-fail .btn { color:#fecaca; border-color:#fecaca; }
     .km-help-row { display:flex; gap:8px; align-items:baseline; padding:2px 0; }
     .km-help-how { color:var(--text-tertiary); font-size:11px; text-align:right; flex-shrink:0; max-width:58%; }
     .km-meter { height:8px; border-radius:999px; background:var(--bg-tertiary); overflow:hidden; }
@@ -440,6 +442,7 @@ import {
     // 맵 여러 장 — 목록은 항상 최소 한 장을 보장한다(격차 H).
     let library: LibraryIndex = loadLibrary();
     let store = new KarmoGraphLocalStorageAdapter(mapKey(library.activeId));
+    store.onWriteError = () => warnSaveFailed();
 
     let spec: GraphSpec = emptyGraphSpec();
     let canvas: GraphCanvas | null = null;
@@ -922,6 +925,25 @@ import {
     // ── 저장 ────────────────────────────────────────────────────────────────
     // 구조 변경은 즉시 전체 저장. 좌표 변경은 캔버스가 debounce 후 어댑터로.
     /** 저장이 실패하면 화면에 남는 표시를 띄운다 — alert 는 닫으면 흔적이 없다. */
+    /**
+     * 저장이 **실패했다** — 사람에게 지지 않는 표시로 알리고, **빠져나갈 길을 같이 준다**
+     * (TASK-KL-271). 저장이 안 되는 판에서 필요한 건 경고문이 아니라 「지금 파일로 빼기」다.
+     */
+    function warnSaveFailed(): void {
+      const old = root.querySelector('.km-storage-warn');
+      if (old?.classList.contains('is-fail')) return;
+      old?.remove();
+      const bar = document.createElement('div');
+      bar.className = 'km-storage-warn is-fail';
+      bar.innerHTML = `${esc(t('karmograph.saveFailed'))} `
+        + `<button class="btn btn-ghost" data-km="save-failed-export">${esc(t('karmograph.saveFailed.out'))}</button>`;
+      (bar.querySelector('[data-km="save-failed-export"]') as HTMLButtonElement).onclick = () => {
+        // 내보내기는 한 길뿐이다 — 그 단추를 눌러 준다(여기서 또 만들면 문이 둘이 된다).
+        (root.querySelector('[data-km="export"]') as HTMLButtonElement | null)?.click();
+      };
+      root.querySelector('.km-toolbar')?.insertAdjacentElement('afterend', bar);
+    }
+
     function warnStorageIfTight(): void {
       const rep = measureStorage();
       if (!rep.warn) return;
@@ -3189,6 +3211,7 @@ import {
 
     function openActiveMap(): void {
       store = new KarmoGraphLocalStorageAdapter(mapKey(library.activeId));
+      store.onWriteError = () => warnSaveFailed();
       history.length = 0;
       histIndex = -1;
       selectedId = null;
@@ -3316,6 +3339,7 @@ import {
         library = added.index;
         renderMapList();
         store = new KarmoGraphLocalStorageAdapter(mapKey(library.activeId));
+      store.onWriteError = () => warnSaveFailed();
         spec = {
           ...emptyGraphSpec(),
           ...incoming,

@@ -574,6 +574,39 @@ await step('빈 판에서는 툴바가 접힌다 (카드가 생기면 돌아온�
   if (full <= blank) throw new Error(`카드가 생겼는데 툴바가 안 돌아왔다 (${blank} -> ${full})`);
   await ctx.close();
 });
+await step('저장이 실패하면 지지 않는 표시 + 파일로 빼는 길이 함께 뜬다', async () => {
+  // 저장 칸이 차면 예전엔 한국어로 박힌 알림창 하나가 떴다 — 다른 말 쓰는 사람은 못 읽고,
+  // 닫으면 흔적이 없어 「저장된 줄 알고」 계속 고치다 통째로 잃었다 (TASK-KL-271).
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  let alerts = 0;
+  m.on('dialog', (d) => { alerts += 1; d.dismiss(); });
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  // 저장 칸이 찼다고 가장한다 — 진짜로 채우면 다른 검사까지 말려든다.
+  await m.evaluate(() => {
+    const real = Storage.prototype.setItem;
+    Storage.prototype.setItem = function setItem(k, v) {
+      if (String(k).startsWith('karmograph.map.')) {
+        const e = new Error('QuotaExceededError');
+        e.name = 'QuotaExceededError';
+        throw e;
+      }
+      return real.call(this, k, v);
+    };
+  });
+  const box = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(box.x + box.width * 0.7, box.y + box.height * 0.7);
+  await m.waitForSelector('.km-storage-warn.is-fail', { timeout: ms(4000) })
+    .catch(() => { throw new Error('저장이 실패했는데 화면에 남는 표시가 없다'); });
+  const hasOut = await m.locator('[data-km="save-failed-export"]').count();
+  if (!hasOut) throw new Error('실패 표시에 파일로 빼는 길이 없다');
+  if (alerts > 0) throw new Error(`알림창이 ${alerts}번 떴다 — 닫으면 흔적이 없다`);
+  await ctx.close();
+});
 await step('도움말이 할 수 있는 일을 다 보여 준다', async () => {
   await openPanel(page, 'help');
   await page.waitForSelector('[data-km="help-close"]', { timeout: ms(4000) });
