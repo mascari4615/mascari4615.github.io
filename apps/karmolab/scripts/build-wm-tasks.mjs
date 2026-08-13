@@ -69,9 +69,22 @@ async function main() {
     return;
   }
 
-  const files = (await fsp.readdir(TASKS_ROOT)).filter(
-    (f) => f.endsWith('.md') && f.toLowerCase() !== 'readme.md'
-  );
+  // ★ `done/` 아래도 읽는다 (2026-08-14).
+  //   끝난 TASK 는 `wm/tasks/done/` 으로 옮겨 활성 폴더를 비우는데, 여기서 평면으로만 읽으면
+  //   그 순간 사이트의 「끝남·닫힘」이 통째로 사라진다 — **웹이 폴더 배치에 묶여 있던 자리**다.
+  //   깊이 1 만 본다(그 아래로 더 파는 구조는 없다).
+  const entries = await fsp.readdir(TASKS_ROOT, { withFileTypes: true });
+  const files = [];
+  for (const e of entries) {
+    if (e.isDirectory()) {
+      if (e.name.startsWith('.')) continue;
+      for (const sub of await fsp.readdir(path.join(TASKS_ROOT, e.name))) {
+        if (sub.endsWith('.md') && sub.toLowerCase() !== 'readme.md') files.push(path.join(e.name, sub));
+      }
+      continue;
+    }
+    if (e.name.endsWith('.md') && e.name.toLowerCase() !== 'readme.md') files.push(e.name);
+  }
 
   const groups = new Map();
   let skipped = 0;
