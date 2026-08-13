@@ -395,5 +395,9 @@
   "arcade.len.mid": "medium",
   "arcade.len.long": "long",
   "arcade.len.secs": "about {n}s, bots vs bots",
-  "arcade.over.mine": "you won"
+  "arcade.over.mine": "you won",
+  "arcade.btn.swap": "another game",
+  "arcade.room.kept": "room open · {n} here — pick and everyone starts",
+  "arcade.room.close": "close room",
+  "arcade.room.picking": "the host is picking the next game"
 }

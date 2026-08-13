@@ -516,6 +516,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-todaycard span{font-size:20px}',
       '.ac-todaycard.ac-done{opacity:.55;border-color:var(--border-color)}',
       '.ac-tourbtn{align-self:center}',
+      '.ac-room{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;border:1px solid var(--accent);border-radius:10px;background:var(--bg-secondary);margin:var(--space-md) 0;font-size:var(--font-size-sm)}',
       '.ac-over{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:color-mix(in srgb, var(--bg-color) 88%, transparent);backdrop-filter:blur(2px);border-radius:12px;z-index:3;padding:var(--space-lg)}',
       '.ac-overhead{font-size:var(--font-size-xl);font-weight:700;text-align:center}',
       '.ac-overlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;min-width:200px;max-width:320px;width:100%}',
@@ -578,6 +579,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<p class="tool-status">' + esc(t('arcade.lobby.hint')) + '</p>' +
       '<input type="search" id="acFind" class="ac-find" placeholder="' + esc(t('arcade.find.hint')) +
       '" aria-label="' + esc(t('arcade.find.hint')) + '">' +
+      '<div class="ac-room" id="acRoom" style="display:none"></div>' +
       '<div class="ac-today" id="acToday"></div>' +
       '<div id="acPicks"></div>' +
       '<div class="ac-level" id="acLevel" role="group" aria-label="' + esc(t('arcade.level.aria')) + '">' +
@@ -622,6 +624,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<div style="display:flex;gap:6px;margin-top:var(--space-lg)">' +
       '<button class="btn btn-ghost" id="acQuit">' + esc(t('arcade.btn.quit')) + '</button>' +
       '<button class="btn btn-ghost" id="acSound" aria-pressed="true" title="' + esc(t('arcade.btn.sound')) + '">🔊</button>' +
+      '<button class="btn btn-ghost" id="acSwap" style="display:none">' + esc(t('arcade.btn.swap')) + '</button>' +
       '<button class="btn btn-primary" id="acAgain" style="display:none">' + esc(t('arcade.btn.again')) + '</button>' +
       '</div></div>';
 
@@ -633,6 +636,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     const viewEl = $<HTMLElement>('#acView');
     const statusEl = $<HTMLElement>('#acStatus');
     const againBtn = $<HTMLButtonElement>('#acAgain');
+    const swapBtn = $<HTMLButtonElement>('#acSwap');
     const startBtn = $<HTMLButtonElement>('#acStart');
     const nameInput = $<HTMLInputElement>('#acName');
     nameInput.value = storedName();
@@ -881,6 +885,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         const top = Math.max(...v.seats.map((s) => s.score));
         const win = v.seats.filter((s) => s.score === top);
         againBtn.style.display = net && !net.host ? 'none' : '';
+        /* 방을 든 주인에게는 「다른 게임」이 하나 더 뜬다 — 방을 닫지 않고 갈아탄다. */
+        swapBtn.style.display = net?.host ? '' : 'none';
         /* 끝난 판의 말은 **한 번만** 적는다. 매 프레임 다시 적으면 대회 점수판을 적어 놔도
            다음 프레임에 이겼다/졌다로 덮인다(실측 — 점수판이 안 보였다). */
         if (!ended) {
@@ -1029,6 +1035,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 지난 판의 결과와 「한 판 더」를 치운다 — 안 치우면 다음 판을 세는 동안 지난 판이
          아직 안 끝난 것처럼 보인다(대회에서 다음 판이 안 넘어가는 것처럼 보였다). */
       againBtn.style.display = 'none';
+      swapBtn.style.display = 'none';
       hideResult();
       say('');
       $<HTMLElement>('#acIntroSkip').textContent = t('arcade.intro.skip');
@@ -1108,6 +1115,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
 
     function openRoom(id: string): void {
+      /* 이미 방을 들고 있으면 새로 파지 않는다 — 그게 「방 유지」의 전부다. */
+      if (net?.host) {
+        startTogether(id);
+        return;
+      }
       const code = makeCode();
       gameId = id;
       peers = [];
@@ -1118,6 +1130,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         onPeers: (list) => {
           peers = list;
           paintWait(code, true);
+          paintRoom();
         },
         onAct: (peerId, data) => {
           const seat = seatOf[peerId];
@@ -1125,6 +1138,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         },
         onSync: () => {
           /* 주인은 남의 판을 안 받는다 */
+        },
+        onSay: () => {
+          /* 주인은 제 소식을 안 받는다 */
         }
       });
     }
@@ -1140,6 +1156,15 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         },
         onAct: () => {
           /* 손님은 남의 손을 안 받는다 */
+        },
+        onSay: (data) => {
+          /* 판 밖의 소식. 지금은 하나뿐 — 주인이 다음 판을 고르는 중이다.
+             `sync` 로는 못 알린다: 그 순간 보낼 판이 아예 없다. */
+          if ((data as { kind?: string })?.kind !== 'picking') return;
+          $<HTMLElement>('#acOverHead').textContent = '⏳ ' + t('arcade.room.picking');
+          $<HTMLElement>('#acOverList').innerHTML = '';
+          $<HTMLElement>('#acOverNote').textContent = '';
+          $<HTMLElement>('#acOver').style.display = '';
         },
         onSync: (data) => {
           const p = data as unknown as { game: string; now: number; seatOf: Record<string, number>; v: MatchView<unknown> };
@@ -1160,7 +1185,16 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
 
     /** 주인이 판을 연다 — 자리를 정하는 것은 주인 하나뿐이다. */
-    function startTogether(): void {
+    /**
+     * 방에 있는 사람들과 시작한다 — **판이 끝나도 방은 안 닫는다** (TASK-KL-264 D3).
+     *
+     * 전에는 「한 판 더」가 **같은 게임**만 다시 열었다. 다른 것을 하려면 방을 닫고, 링크를
+     * 다시 보내고, 다시 모여야 했다 — 모으는 비용이 노는 비용보다 커서 실제로는 한 판 하고 끝났다.
+     * 그래서 주인은 로비로 **방을 든 채** 돌아가 아무 게임이나 고를 수 있다. 손님 쪽은 이미
+     * 「받은 판의 게임이 바뀌면 갈아 끼운다」로 되어 있어서 따라오는 데 새 코드가 필요 없었다.
+     */
+    function startTogether(id?: string): void {
+      if (id) gameId = id;
       const g = gameById(gameId);
       if (!g) return;
       /* 자리를 정하는 것은 주인 하나다. 0 번은 주인, 그다음은 들어온 차례대로. */
@@ -1177,7 +1211,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       withIntro(gameId, () => beginMatch(gameId, seats, seedFrom(gameId + String(Date.now()))));
     }
 
-    startBtn.onclick = startTogether;
+    /* 단추는 마우스 사건을 넘긴다 — 그게 게임 이름 자리에 들어가면 안 된다. */
+    startBtn.onclick = (): void => startTogether();
 
     /* 링크로 들어온 사람은 곧장 손님이 된다.
      *
@@ -1191,6 +1226,47 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       void Toolbox.copyText?.($<HTMLInputElement>('#acUrl').value, { message: t('arcade.copy.done') });
     };
 
+    /**
+     * 로비 머리의 「방 유지 중」 띠. 방을 든 채 로비에 서 있다는 것을 **화면이 말해야 한다** —
+     * 안 그러면 게임을 고르는 순간 방이 닫혔는지 이어지는지 아무도 모른다.
+     */
+    function paintRoom(): void {
+      const box = $<HTMLElement>('#acRoom');
+      if (!net?.host) {
+        box.style.display = 'none';
+        return;
+      }
+      box.style.display = '';
+      box.innerHTML =
+        '<b>🔗 ' + esc(t('arcade.room.kept', { n: String(peers.length + 1) })) + '</b>' +
+        '<span style="flex:1"></span>' +
+        '<button class="btn btn-ghost" id="acRoomClose">' + esc(t('arcade.room.close')) + '</button>';
+      const close = container.querySelector<HTMLButtonElement>('#acRoomClose');
+      if (close) {
+        close.onclick = (): void => {
+          net?.leave();
+          net = null;
+          peers = [];
+          paintRoom();
+        };
+      }
+    }
+
+    /** 「다른 게임」 — 방을 든 채 로비로. 손님에게는 「고르는 중」이라고 알린다. */
+    swapBtn.onclick = (): void => {
+      if (!net?.host) return;
+      net.say({ kind: 'picking' });
+      cancelAnimationFrame(raf);
+      match = null;
+      render = null;
+      againBtn.style.display = 'none';
+      swapBtn.style.display = 'none';
+      hideResult();
+      paintRoom();
+      paintPicks();
+      show('lobby');
+    };
+
     const quit = (): void => {
       dropIntro?.();
       dropIntro = null;
@@ -1201,7 +1277,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       shadow = null;
       render = null;
       againBtn.style.display = 'none';
+      swapBtn.style.display = 'none';
       hideResult();
+      paintRoom();
       /* 방금 논 것이 추천에 바로 반영돼야 한다 — 안 그러면 나갔다 온 사람에게 같은 여섯이 뜬다. */
       paintPicks();
       show('lobby');

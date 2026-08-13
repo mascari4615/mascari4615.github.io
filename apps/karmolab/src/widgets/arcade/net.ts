@@ -6,6 +6,8 @@
  *
  *  - 손님은 **수만 보낸다** (`act`)
  *  - 주인은 커널에 넣고 **판 전체를 보낸다** (`sync`) — 감출 것이 있으면 자리마다 따로
+ *  - 주인은 **판 밖의 소식**도 보낸다 (`room`) — 「다음 판 고르는 중」 같은 것.
+ *    `sync` 로는 못 한다. 판이 없는 동안의 이야기라 보낼 판이 없기 때문이다.
  *
  * 판정은 방을 만든 쪽 하나가 맡는다. 커널을 각자 돌리면 봇의 주사위도 제한시간의 끝도 창마다
  * 달라져 승부가 안 갈린다(번개 대결에서 겪었다).
@@ -30,6 +32,8 @@ export interface NetHooks {
   onAct(peerId: string, action: Payload): void;
   /** 주인이 보낸 판 (손님만 받는다) */
   onSync(payload: Payload): void;
+  /** 주인이 보낸 판 밖의 소식 (손님만 받는다) */
+  onSay(payload: Payload): void;
 }
 
 export interface Net {
@@ -38,6 +42,8 @@ export interface Net {
   act(action: Payload): void;
   /** 받는 사람을 정하면 그 사람에게만 간다 — 감춘 것이 있는 게임은 자리마다 다른 판을 받는다. */
   sync(payload: Payload, target?: string): void;
+  /** 판 밖의 소식 — 판이 없는 동안에도 방은 살아 있다. */
+  say(payload: Payload): void;
   leave(): void;
 }
 
@@ -56,6 +62,9 @@ export function connect(roomId: string, host: boolean, myName: string, hooks: Ne
   const syncCh = room.channel<Payload>('sync', (data) => {
     if (!host) hooks.onSync(data);
   });
+  const sayCh = room.channel<Payload>('room', (data) => {
+    if (!host) hooks.onSay(data);
+  });
 
   return {
     selfId: room.selfId,
@@ -65,6 +74,9 @@ export function connect(roomId: string, host: boolean, myName: string, hooks: Ne
     },
     sync: (payload, target) => {
       if (host) syncCh.send(payload, target);
+    },
+    say: (payload) => {
+      if (host) sayCh.send(payload);
     },
     leave: () => room.leave()
   };
