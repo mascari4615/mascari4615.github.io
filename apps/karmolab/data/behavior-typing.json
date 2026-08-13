@@ -37,6 +37,7 @@
     "birth"
   ],
   "needsButton": [
+    "crypto",
     "colorconv",
     "textdiff",
     "lotto",
@@ -97,9 +98,6 @@
       "새로 만들기"
     ]
   ],
-  "knownBroken": {
-    "crypto": "「암호화」를 눌러도 세 방식(Base64·AES-256·URL) 모두 아무 일도 안 일어난다 — 라이브러리는 실려 있고 오류도 안 난다. 위젯 소스는 다른 세션 소유라 여기서 못 고친다."
-  },
   "keyOnly": [
     "keycode"
   ],
