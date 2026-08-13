@@ -5,6 +5,7 @@
  */
 import { computeSna, topBy, structuralGaps } from '../sna';
 import { snaLines, islandCount } from '../sna-words';
+import { fieldGaps } from '../field-gaps';
 import type { PanelCtx } from './context';
 import { t, loadNamespace } from '../../../lib/i18n';
 
@@ -53,12 +54,26 @@ export function renderSnaPanel(ctx: PanelCtx): void {
     .map((l) => `<div class="km-said-line">${t(`karmograph.said.${l.kind}`, l.vars as Record<string, string>)}</div>`)
     .join('')}</div>`;
 
+  /* ★ **아직 안 적은 칸** (TASK-KL-271 L6). 위의 「이어질 법한데 안 이어진 사이」와 짝이다 —
+     이건 **적힐 법한데 안 적힌 칸**. 카드를 하나씩 눌러 보지 않으면 알 수 없던 것이라
+     세계관을 짓는 사람이 가장 자주 하는 질문(「무엇을 더 채워야 하나」)에 도구가 처음 답한다. */
+  const holes = fieldGaps(live.nodes);
+  const holesHtml = holes.length === 0 ? '' : `<div class="km-field">
+      <label>${esc(t('karmograph.gapField.head'))}</label>
+      <div class="km-hint">${esc(t('karmograph.gapField.hint'))}</div>
+      ${holes.map((h) => `<div class="km-gap-line">${esc(t(
+        h.none ? 'karmograph.gapField.none' : 'karmograph.gapField.some',
+        { field: h.field, kind: ctx.kindLabel(h.kind), total: String(h.total), missing: String(h.missing) },
+      ))}</div>`).join('')}
+    </div>`;
+
   side.innerHTML = `
     <h4>${esc(t('karmograph.list.msg3'))}</h4>
     ${saidHtml}
     ${list(t('karmograph.list.msg4'), t('karmograph.list.msg5'), topBy(sna.degree, 5), 0)}
     ${list(t('karmograph.list.msg6'), t('karmograph.list.msg7'), topBy(sna.betweenness, 5), 1)}
     ${list(t('karmograph.list.msg8'), t('karmograph.list.msg9'), topBy(sna.closeness, 5), 3)}
+    ${holesHtml}
     ${gaps.length === 0 ? '' : `<div class="km-field">
       <label>${esc(t('karmograph.list.msg10'))}</label>
       <div class="km-hint">${esc(t('karmograph.list.msg11'))}</div>

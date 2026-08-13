@@ -954,6 +954,21 @@ await step('빈 캔버스에서 예시를 넣으면 그림이 생긴다', async 
   });
   if (dupes.length > 0) throw new Error(`견본에 같은 이름이 두 장: ${dupes.join(', ')}`);
 });
+await step('아직 안 적은 칸을 관계망 칸이 짚어 준다', async () => {
+  // 「무엇을 더 채워야 하나」는 세계관을 짓는 사람이 가장 자주 하는 질문인데, 카드를 하나씩
+  // 눌러 보지 않으면 알 수 없었다(KL-271 L6). 관계망의 「이어질 법한데 안 이어진 사이」의 짝이다.
+  await openPanel(page, 'sna');
+  await page.waitForFunction(
+    () => (document.querySelector('.km-side')?.textContent ?? '').includes('아직 안 적은 칸'),
+    null, { timeout: 4000 },
+  );
+  const said = await page.evaluate(() => document.querySelector('.km-side')?.textContent ?? '');
+  if (!/칸은 아직 아무도 안 적었어요/.test(said)) throw new Error('안 적은 칸을 말로 안 해 준다');
+  // 관계망 말줄(km-said-line)과 **섞이면 안 된다** — 섞이면 「몇 줄인가」를 서로 못 센다.
+  const mixed = await page.locator('.km-said-line').count();
+  if (mixed > 3) throw new Error(`관계망 말줄에 안 적은 칸이 섞였다: ${mixed}줄`);
+  await openPanel(page, 'node');
+});
 await step('양쪽이 서로를 어떻게 보는지가 **선 위에** 보인다', async () => {
   // 적는 칸은 진작 있었는데 그린 적이 없었다 — 선을 골라 패널을 열어야만 보였다(KL-271 X1).
   // 적어 둔 사람만 아는 이야기는 판에 없는 것과 같다.

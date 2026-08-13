@@ -664,5 +664,9 @@
   "karmograph.said.bridge": "<b>{name}</b> が橋渡しです — 抜けると道が切れます。",
   "karmograph.said.hub": "<b>{name}</b> が一番多くつながっています（{n}本）。",
   "karmograph.said.dense": "{n}枚が均等につながっています — 目立つ偏りはありません。",
-  "karmograph.intent.fromText": "すでに書いてありますか？ — 貼り付ければ盤になります"
+  "karmograph.intent.fromText": "すでに書いてありますか？ — 貼り付ければ盤になります",
+  "karmograph.gapField.head": "まだ書かれていない欄",
+  "karmograph.gapField.hint": "埋めると絞り込み・色分け・年表にすぐ使えます。",
+  "karmograph.gapField.none": "「{field}」はまだ誰も書いていません（{kind} {total}枚）",
+  "karmograph.gapField.some": "{kind} {total}枚のうち {missing}枚が「{field}」を書いていません"
 }

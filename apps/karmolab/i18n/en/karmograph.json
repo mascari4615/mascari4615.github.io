@@ -664,5 +664,9 @@
   "karmograph.said.bridge": "<b>{name}</b> is the bridge — remove it and the path breaks.",
   "karmograph.said.hub": "<b>{name}</b> has the most links ({n}).",
   "karmograph.said.dense": "{n} cards are evenly linked — nothing stands out.",
-  "karmograph.intent.fromText": "Already written it down? Paste your outline and get a map"
+  "karmograph.intent.fromText": "Already written it down? Paste your outline and get a map",
+  "karmograph.gapField.head": "Fields nobody filled in yet",
+  "karmograph.gapField.hint": "Fill them and you can filter, color and lay them on a timeline right away.",
+  "karmograph.gapField.none": "Nobody has written \"{field}\" yet ({kind}, {total} cards)",
+  "karmograph.gapField.some": "{missing} of {total} {kind} cards have no \"{field}\""
 }
