@@ -259,6 +259,10 @@ import {
       border-radius:10px; background:var(--bg-secondary); box-shadow:0 12px 32px rgba(0,0,0,.4);
       max-height:calc(100dvh - 170px); overflow-y:auto; overscroll-behavior:contain; }
     .km-drawer.hidden { display:none; }
+    /* 폰에서 툴바가 접은 것들의 대체 문. 데스크톱에서는 툴바에 그대로 있으므로 **안 보인다**
+       (보이면 같은 일에 문이 둘이 된다 — 이 작업이 없애려는 바로 그것). */
+    .km-drawer .km-phone-only { display:none; }
+    @media (max-width: 720px) { .km-drawer .km-phone-only { display:flex; } }
     /* 자주 안 쓰는 명령은 서랍에서 접는다 — 목록에서 사라지는 게 아니라 이름으로 부른다(Ctrl+K). */
     .km-drawer .km-cmd-rare { display:none; }
     /* ── 명령 팔레트 (TASK-KL-271 R3) ── 화면 한가운데 뜨는 한 칸. 치면 좁혀지고 Enter 로 실행. */
@@ -408,6 +412,18 @@ import {
       .km-toolbar > * { flex:0 0 auto; }
       .km-toolbar input[type=text] { min-width:110px; }
       .km-toolbar .btn { padding:6px 10px; }
+      /* ★ 폰에서는 툴바가 **반이 화면 밖**이었다 (실측: 필요한 폭 656px / 보이는 폭 358px).
+         가로로 밀어야 닿는 손잡이는 없는 것과 같다 — 자주 안 쓰는 넷은 ⋯ 안으로 접고,
+         그 자리를 ⋯ 서랍이 대신 연다(손잡이는 그대로, 문만 옮긴다). */
+      /* 찾기 칸이 폰 툴바의 절반을 먹고 있었다(176px / 358px 중). 눌러서 쓸 때만 넓어지면 된다. */
+      .km-toolbar input[data-km="find"] { min-width:0; flex:1 1 72px; max-width:96px; }
+      .km-toolbar input[data-km="find"]:focus { max-width:none; flex:1 1 160px; }
+      /* 판 이름은 폰에서 **짧게**. 이름이 길면 그것 하나가 툴바의 절반을 먹는다(실측 456px 중). */
+      .km-toolbar select[data-km="maps"] { max-width:104px; }
+      .km-toolbar [data-km="map-up"],
+      .km-toolbar [data-km="map-new"],
+      .km-toolbar [data-km="fit"],
+      .km-toolbar [data-km="story"] { display:none; }
     }
     /* 손가락에는 손가락 크기를 준다 (TASK-KL-202 방향④).
        실측: 폰에서 툴바 아이콘이 34×30px 이었다 — 애플 44pt · 머티리얼 48dp 권장의 절반 남짓이라
@@ -498,7 +514,14 @@ import {
         const anyHot = g.items.some((c) => c.hot);
         return (anyHot ? `<div class="km-drawer-h">${esc(g.title())}</div>` : '') + rows;
       }).join('');
-      return `${body}<hr /><button class="btn btn-ghost" data-km="palette-open">`
+      const phone = [
+        { key: 'map-up', label: t('karmograph.mapUp.title') },
+        { key: 'map-new', label: t('karmograph.mapNew.title') },
+        { key: 'fit', label: t('karmograph.fit.title') },
+        { key: 'story', label: t('karmograph.story.title') },
+      ].map((c) => `<button class="btn btn-ghost km-phone-only" data-km="tb-proxy"`
+        + ` data-key="${c.key}">${esc(c.label)}</button>`).join('');
+      return `${phone}${body}<hr /><button class="btn btn-ghost" data-km="palette-open">`
         + `${esc(t('karmograph.palette.open'))}</button>`;
     }
 
@@ -2603,6 +2626,11 @@ import {
     // 연달아 바꿔 보게 열어 둔다.
     drawerEl.onclick = (ev) => {
       ev.stopPropagation();
+      // 폰에서 접힌 툴바 손잡이의 대체 문 — 일하는 길은 그대로 하나다(그 단추를 눌러 준다).
+      const proxy = (ev.target as HTMLElement).closest('[data-km="tb-proxy"]') as HTMLElement | null;
+      if (proxy) {
+        (root.querySelector(`[data-km="${proxy.dataset.key}"]`) as HTMLButtonElement | null)?.click();
+      }
       if ((ev.target as HTMLElement).closest('button')) drawerEl.classList.add('hidden');
     };
     function closeDrawer(): void { drawerEl.classList.add('hidden'); }

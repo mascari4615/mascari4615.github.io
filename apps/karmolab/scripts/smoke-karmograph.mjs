@@ -542,7 +542,7 @@ await step('빈 판에서는 툴바가 접힌다 (카드가 생기면 돌아온�
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
   const shown = () => m.locator('.km-toolbar > button:visible, .km-toolbar > select:visible, .km-toolbar > input[type=text]:visible').count();
   // 접히는 것은 판을 다 그린 **뒤**다 — 그 전에 세면 아직 안 접힌 수가 잡힌다.
-  await m.waitForSelector('.km-root.km-blank', { timeout: ms(4000) });
+  await m.waitForSelector('.km-toolbar.km-blank', { timeout: ms(4000) });
   const blank = await shown();
   if (blank > 7) {
     const who = await m.evaluate(() => [...document.querySelectorAll('.km-toolbar > *')]
@@ -2356,6 +2356,20 @@ await step('폰 첫 화면 — 안내가 시트에 안 잘리고, 툴바에 「�
     return { over: el.scrollWidth - el.clientWidth, fade: el.classList.contains('km-more-right') };
   });
   if (bar.over > 4 && !bar.fade) throw new Error(`툴바가 ${bar.over}px 더 있는데 표시가 없다`);
+
+  /* ★ **판을 깔고 나서도 툴바가 화면 안에 들어와야 한다** (TASK-KL-271 M2).
+     실측 2026-08-13: 견본을 깔면 필요한 폭이 656px 인데 보이는 폭은 358px — 툴바의 **반이 화면
+     밖**이었다. 가로로 밀어야 닿는 손잡이는 없는 것과 같다. */
+  await m.locator('[data-km="intent"]').first().click();
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length > 0, null, { timeout: ms(6000) });
+  await m.waitForTimeout(ms(500));
+  const after = await m.evaluate(() => {
+    const el = document.querySelector('.km-toolbar');
+    return { over: el.scrollWidth - el.clientWidth, need: el.scrollWidth, have: el.clientWidth };
+  });
+  if (after.over > 8) {
+    throw new Error(`판을 깔았더니 폰 툴바가 ${after.over}px 넘친다 (${after.need}px 필요 / ${after.have}px 보임)`);
+  }
   await ph.close();
 });
 await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널은 아래 시트로 뜬다', async () => {
