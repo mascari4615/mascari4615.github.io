@@ -1,100 +1,778 @@
 {
   "id": "net-nat",
-  "minutes": 11,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "집에서 띄운 서버가 밖에서 안 보이는 건 고장이 아니다. **NAT** 가 기본적으로 그렇게 설계돼 있다."
-    },
-    {
-      "type": "h",
-      "text": "1. NAT 가 하는 일"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "여럿이 주소 하나를 나눠 쓴다",
-      "text": "내 노트북 192.168.0.5:51000 ─┐\n내 폰    192.168.0.9:44000 ─┼─▶ 공유기 ─▶ 공인 IP 1.2.3.4:랜덤포트 ─▶ 인터넷\n\n나갈 때 표를 적어 두고, 답이 오면 그 표로 되돌려 준다\n→ 내가 먼저 말 건 대화만 돌아올 수 있다\n→ 밖에서 먼저 말 거는 건 표가 없어 버려진다  ← 「안 보인다」의 정체"
-    },
-    {
-      "type": "h",
-      "text": "2. 여는 방법 세 가지"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "위에서부터 현실적",
-      "text": "1) 터널 (cloudflared, ngrok, tailscale)\n   밖에서 들어오는 게 아니라, 내가 밖으로 연결을 건다\n   → 포트 개방 불필요 · 공유기 설정 불필요 · HTTPS 덤  ★ 대개 정답\n\n2) 포트 포워딩 — 공유기에 \"8080 오면 내 노트북으로\" 규칙 추가\n   → 공인 IP 필요 · 통신사 CGNAT 이면 불가능한 경우도\n\n3) 클라우드에 올린다 — 애초에 NAT 밖에 둔다"
-    },
-    {
-      "type": "h",
-      "text": "3. 방화벽은 별개다"
-    },
-    {
-      "type": "note",
-      "text": "포트 포워딩을 했는데도 안 되면 **OS 방화벽**이 남아 있다. Windows 는 새 프로그램이 포트를 열면 팝업으로 묻고, 「공용 네트워크」에서는 거절되는 경우가 흔하다. 층을 나눠 확인하라 — 공유기 규칙 / OS 방화벽 / 서버 바인딩 주소."
-    },
-    {
-      "type": "h",
-      "text": "4. 확인 순서"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "안쪽부터 밖으로",
-      "text": "1. 서버 자신에서       curl http://127.0.0.1:8080\n2. 같은 와이파이 기기   curl http://192.168.0.5:8080   ← 여기서 막히면 바인딩/방화벽\n3. 밖에서              curl http://<공인IP>:8080       ← 여기서 막히면 NAT/포워딩"
-    },
-    {
-      "type": "h",
-      "text": "5. 열 때의 각오"
-    },
-    {
-      "type": "p",
-      "text": "포트를 열면 **몇 분 안에** 자동 스캐너가 두드린다. 기본 비밀번호 · 관리자 화면 노출 · 오래된 버전은 그대로 사고가 된다. 열 것이 아니라 터널 + 인증을 먼저 생각하라."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "로컬 서버를 터널(cloudflared 또는 ngrok)로 외부에 노출하고 휴대폰 LTE 로 접속하라. 와이파이를 끄고 해야 진짜 시험이다."
-    },
-    {
-      "type": "try",
-      "text": "위 3단계 확인을 순서대로 실행해 어디서 막히는지 기록하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "집 서버가 밖에서 안 보이는 근본 이유는?",
-      "choices": [
-        "NAT 이 밖에서 먼저 오는 연결을 되돌릴 표가 없다",
-        "IP 가 느려서",
-        "DNS 가 없어서"
+      "id": "1",
+      "title": "밖에서 안 보이는 건 고장이 아니다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "집에서 띄운 서버가 밖에서 안 보이는 건 **고장이 아니다.** **NAT**(네트워크 주소 변환)가 기본적으로 그렇게 설계돼 있다 — 안에서 밖으로 나가는 건 되지만, 밖에서 안으로 들어오는 건 막힌다. 「내 PC 는 되는데(net-ip 6장), 인터넷 밖에선 안 됨」의 절반이 이 NAT 다. 그러니 「왜 안 되지」가 아니라 「원래 그렇다, 어떻게 열까」로 접근한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "NAT 방향 — 나가기 vs 들어오기",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .map { margin:8px 0; font:10.5px ui-monospace; }\n  .map .r { display:flex; gap:8px; align-items:center; margin:3px 0; }\n  .map .in { background:#334155; color:#cbd5e1; padding:3px 7px; border-radius:4px; }\n  .map .out { background:#0e7490; color:#fff; padding:3px 7px; border-radius:4px; }\n  .map .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mapView = (rows) => '<div class=\"map\">' + rows.map(([inn, out]) =>\n    '<div class=\"r\"><span class=\"in\">' + esc(inn) + '</span><span class=\"arw\">→ NAT →</span><span class=\"out\">' + esc(out) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const dir = '{{dir}}';\n  const out = dir === 'out';\n  render(out ? '안 → 밖 (나가기)' : '밖 → 안 (들어오기)',\n    (out\n      ? '  내 PC(사설 IP)가 웹사이트에 접속 — NAT 가 알아서 변환\\n' +\n        '  <span class=\\\"ok\\\">잘 된다 — 내가 시작한 연결이라 NAT 가 돌아올 길을 기억한다.</span>'\n      : '  밖에서 내 사설 IP 서버로 접속 시도\\n' +\n        '  <span class=\\\"no\\\">막힌다 — NAT 는 「누구에게 보낼지」 모른다(공유기 뒤 어느 기기?). 원래 그렇다.</span>'),\n    'NAT 는 나가기는 되고 들어오기는 막힌다(기본). 밖에서 안 보이는 건 설계다.',\n    bars(out\n      ? [['나가기(내가 시작)', 90, '됨', '#4ade80']]\n      : [['들어오기(밖에서)', 90, '막힘(기본)', '#fca5a5']]));\n</script>",
+          "controls": [
+            {
+              "id": "dir",
+              "label": "방향",
+              "type": "select",
+              "value": "in",
+              "options": [
+                {
+                  "value": "out",
+                  "label": "안→밖(나가기)"
+                },
+                {
+                  "value": "in",
+                  "label": "밖→안(들어오기)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**NAT 는 비대칭이다 — 나가기는 열리고 들어오기는 닫힌다.** 내가 밖으로 연결을 **시작**하면 NAT 가 「돌아올 길」을 매핑에 기억해 응답을 받아 준다(2장). 하지만 밖에서 먼저 들어오는 연결은, NAT 가 「공유기 뒤 어느 사설 기기로 보낼지」를 몰라 버린다. 그래서 웹 서핑·API 호출(내가 시작)은 되고, 「내 서버를 밖에 공개」(밖에서 시작)는 별도 설정이 필요하다(4장)."
+        },
+        {
+          "type": "p",
+          "text": "**이 비대칭이 부수적 보호가 된다(3장).** 밖에서 함부로 못 들어오니, 사설망의 기기들이 기본적으로 인터넷 공격에서 한 겹 가려진다. 하지만 이건 **의도된 보안이 아니라 부작용**이라, 방화벽을 대신하지 못한다(5장). NAT 를 열면(4장) 그 보호도 사라지니, 열 때는 각오가 필요하다(8장). NAT 의 「막힘」을 이해하면 「어떻게 뚫고, 뚫으면 무엇을 조심할지」가 보인다."
+        },
+        {
+          "type": "try",
+          "text": "로컬 서버를 사설 IP 로 띄우고, 같은 와이파이(됨)와 휴대폰 LTE(안 됨)로 각각 접속해 보라. LTE 로 안 되는 게 NAT 의 기본 동작 — 고장이 아님을 확인하는 것이다."
+        }
       ],
-      "answer": 0,
-      "why": "내가 먼저 건 대화만 되돌아온다."
+      "quiz": [
+        {
+          "q": "집 서버가 밖에서 안 보이는 이유는?",
+          "choices": [
+            "고장",
+            "NAT 가 기본적으로 밖→안 연결을 막음(설계)",
+            "느려서",
+            "DNS"
+          ],
+          "answer": 1,
+          "why": "원래 그렇다."
+        },
+        {
+          "q": "NAT 의 비대칭이란?",
+          "choices": [
+            "둘 다 막힘",
+            "나가기(내가 시작)는 되고 들어오기(밖에서)는 막힘",
+            "둘 다 됨",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "돌아올 길만 기억."
+        },
+        {
+          "q": "NAT 의 「부수적 보호」는?",
+          "choices": [
+            "의도된 방화벽",
+            "부작용일 뿐 — 방화벽을 대신 못함",
+            "완전 보호",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "열면 사라진다."
+        }
+      ]
     },
     {
-      "q": "포트 개방 없이 외부 노출하는 방법은?",
-      "choices": [
-        "내가 밖으로 연결을 거는 터널",
-        "방화벽 끄기",
-        "IP 고정"
+      "id": "2",
+      "title": "NAT 가 하는 일 — 사설을 공인으로",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "NAT 는 여러 사설 IP 기기가 **하나의 공인 IP** 로 인터넷에 나가게 한다. 내 노트북 `192.168.0.5:51000`, 폰 `192.168.0.9:44000` 이 나갈 때, 공유기가 자기 공인 IP + **다른 포트**로 바꿔 보내고, 그 **매핑을 기억**한다. 응답이 오면 매핑을 뒤져 원래 기기로 돌려준다 — 포트가 여러 기기를 구분하는 열쇠다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "NAT 매핑 — 포트로 기기를 구분",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .map { margin:8px 0; font:10.5px ui-monospace; }\n  .map .r { display:flex; gap:8px; align-items:center; margin:3px 0; }\n  .map .in { background:#334155; color:#cbd5e1; padding:3px 7px; border-radius:4px; }\n  .map .out { background:#0e7490; color:#fff; padding:3px 7px; border-radius:4px; }\n  .map .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mapView = (rows) => '<div class=\"map\">' + rows.map(([inn, out]) =>\n    '<div class=\"r\"><span class=\"in\">' + esc(inn) + '</span><span class=\"arw\">→ NAT →</span><span class=\"out\">' + esc(out) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const step = {{step}};\n  const rows = [\n    ['노트북 192.168.0.5:51000', '공인IP:61001'],\n    ['폰 192.168.0.9:44000', '공인IP:61002'],\n  ];\n  const shown = rows.slice(0, step + 1);\n  render('NAT 매핑 테이블 (기기 ' + (step+1) + '개)',\n    '  각 사설 IP:포트 → 공인IP:다른포트 로 바꿔 내보내고 기억\\n\\n' +\n    '  응답이 「공인IP:61001」로 오면 → 매핑을 뒤져 노트북(51000)으로 돌려준다\\n' +\n    '  <span class=\\\"ok\\\">포트가 달라 여러 기기가 한 공인 IP 를 공유한다.</span>',\n    '여러 사설 기기 → 하나의 공인 IP. 포트를 바꿔 구분하고 매핑을 기억한다.',\n    mapView(shown));\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "기기 수",
+              "type": "range",
+              "min": 0,
+              "max": 1,
+              "step": 1,
+              "value": 1
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "NAT 가 하는 일",
+          "text": "내 노트북 192.168.0.5:51000 ─┐\n내 폰    192.168.0.9:44000 ─┼─▶ 공유기(NAT) ─▶ 공인IP:랜덤포트 ─▶ 인터넷\n                             │\n            매핑 기억: 사설IP:포트 ↔ 공인IP:포트\n\n응답: 공인IP:포트 → 매핑 조회 → 원래 사설 기기로 돌려줌\n=> 포트가 여러 기기를 구분하는 열쇠 (PAT, 포트 기반 NAT)"
+        },
+        {
+          "type": "note",
+          "text": "**이것이 net-ip 3장 「사설 IP 는 여러 망에서 겹친다」를 푼다.** 온 세상 집이 `192.168.0.x` 를 써도, 각 집의 NAT 가 자기 공인 IP 뒤에서 매핑하니 인터넷에선 안 겹친다. 정확히는 **PAT**(포트 주소 변환) — 포트까지 바꿔 한 공인 IP 로 수천 연결을 구분한다. 「하나의 공인 IP 로 온 가족이 인터넷」이 이 매핑 덕이다."
+        },
+        {
+          "type": "p",
+          "text": "**매핑엔 수명이 있다(net-dns TTL·api-idempotent 수명과 같은 발상).** NAT 는 연결이 끝나거나 일정 시간 조용하면 매핑을 지운다 — 안 그러면 표가 무한히 쌓인다. 그래서 오래 열어 둬야 하는 연결(웹소켓·게임)은 **주기적 keep-alive** 로 매핑을 살려 둔다. 「가만있으면 연결이 끊기는」 현상의 일부가 이 NAT 매핑 만료다. 매핑은 살아있어야 돌아올 길이 유지된다."
+        },
+        {
+          "type": "try",
+          "text": "공유기 관리 화면에서 NAT/연결 테이블(있다면)을 열어, 여러 기기의 사설 IP 가 하나의 공인 IP 로 나가는 매핑을 보라. 여러 연결이 포트로 구분됨을 확인하라."
+        }
       ],
-      "answer": 0,
-      "why": "나가는 연결이므로 NAT 을 우회한다."
+      "quiz": [
+        {
+          "q": "NAT 가 여러 기기를 하나의 공인 IP 로 구분하는 열쇠는?",
+          "choices": [
+            "이름",
+            "포트(사설IP:포트 ↔ 공인IP:다른포트)",
+            "MAC",
+            "TTL"
+          ],
+          "answer": 1,
+          "why": "PAT."
+        },
+        {
+          "q": "응답이 원래 기기로 돌아가는 방법은?",
+          "choices": [
+            "브로드캐스트",
+            "NAT 가 기억한 매핑을 조회",
+            "DNS",
+            "재전송"
+          ],
+          "answer": 1,
+          "why": "돌아올 길을 기억."
+        },
+        {
+          "q": "NAT 매핑에 수명이 있어 생기는 현상은?",
+          "choices": [
+            "없음",
+            "조용하면 매핑 만료 — keep-alive 로 살려야",
+            "빠름",
+            "암호화"
+          ],
+          "answer": 1,
+          "why": "무한 누적 방지."
+        }
+      ]
     },
     {
-      "q": "같은 와이파이 다른 기기에서도 안 보인다면 우선 볼 곳은?",
-      "choices": [
-        "서버 바인딩 주소와 OS 방화벽",
-        "공유기 포트 포워딩",
-        "도메인 등록"
+      "id": "3",
+      "title": "NAT 는 왜 있나 — 주소 절약",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "NAT 가 생긴 진짜 이유는 **IPv4 주소 부족**이다(net-ip 8장). 43억 개로는 전 세계 기기를 못 감당하니, 한 집·한 회사가 **공인 IP 하나** 뒤에 수많은 사설 기기를 숨겼다. NAT 는 「부족한 공인 주소를 아껴 쓰는」 임시방편이 성공한 것 — 부수적 보호는 덤이지 목적이 아니었다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "NAT 의 효과 — 주소 절약과 부작용",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .map { margin:8px 0; font:10.5px ui-monospace; }\n  .map .r { display:flex; gap:8px; align-items:center; margin:3px 0; }\n  .map .in { background:#334155; color:#cbd5e1; padding:3px 7px; border-radius:4px; }\n  .map .out { background:#0e7490; color:#fff; padding:3px 7px; border-radius:4px; }\n  .map .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mapView = (rows) => '<div class=\"map\">' + rows.map(([inn, out]) =>\n    '<div class=\"r\"><span class=\"in\">' + esc(inn) + '</span><span class=\"arw\">→ NAT →</span><span class=\"out\">' + esc(out) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  const cases = {\n    save:   ['주소 절약(본래 목적)', '집 하나 = 공인 IP 하나로 수십 기기', 'IPv4 고갈을 늦춘 임시방편', 'good'],\n    protect:['부수적 보호(덤)', '밖에서 못 들어와 기기가 한 겹 가려짐', '의도된 보안 아님 — 방화벽 대체 X(5장)', ''],\n    cost:   ['부작용', 'P2P·인바운드 연결이 어려워짐(7장)', '게임·화상통화가 우회 기술 필요', 'bad'],\n    ipv6:   ['IPv6 에선', '주소가 넉넉해 NAT 불필요(기기마다 공인)', 'NAT 없이 직접 연결 — 방화벽이 더 중요', ''],\n  }[view];\n  render('관점: ' + cases[0],\n    '  ' + cases[1] + '\\n  메모: ' + cases[2] + '\\n\\n' +\n    '  NAT 의 목적은 주소 절약. 보호는 덤, 인바운드 곤란은 부작용.',\n    'NAT = IPv4 부족의 임시방편. 보호는 부수효과, P2P 곤란은 부작용.',\n    box(cases[0], cases[1] + '\\n→ ' + cases[2], cases[3]));\n</script>",
+          "controls": [
+            {
+              "id": "view",
+              "label": "관점",
+              "type": "select",
+              "value": "save",
+              "options": [
+                {
+                  "value": "save",
+                  "label": "주소 절약"
+                },
+                {
+                  "value": "protect",
+                  "label": "부수 보호"
+                },
+                {
+                  "value": "cost",
+                  "label": "부작용"
+                },
+                {
+                  "value": "ipv6",
+                  "label": "IPv6 에선"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**NAT 는 「임시방편이 영구가 된」 사례다.** 원래 IPv6 로 넘어가기 전까지의 다리였지만, 너무 잘 작동해 지금도 인터넷의 기본이 됐다. 덕분에 IPv4 가 고갈되고도 인터넷이 돌지만, 대가로 **모든 기기가 직접 주소를 갖는** 원래 인터넷 모델(단대단, end-to-end)이 깨졌다 — P2P·인바운드가 어려워졌다(7장). 편의의 대가를 구조가 치른 것이다."
+        },
+        {
+          "type": "p",
+          "text": "**보호를 NAT 에 기대지 마라(5장 예고).** 「NAT 뒤에 있으니 안전하다」는 흔한 오해다 — NAT 는 주소를 바꿀 뿐, 방화벽처럼 **규칙으로 막는** 게 아니다. 포트포워딩을 열거나(4장) UPnP 로 기기가 스스로 구멍을 뚫으면 보호가 사라진다. 진짜 보안은 방화벽·인증·최소 노출(api-authz·sec)이고, NAT 의 「안 보임」은 그 위의 얇은 덤일 뿐이다."
+        },
+        {
+          "type": "try",
+          "text": "네 공유기에 UPnP 가 켜져 있는지 확인하라 — 켜져 있으면 앱이 스스로 포트를 열 수 있어 NAT 의 「보호」가 자동으로 뚫린다. NAT 를 보안으로 믿지 말아야 하는 이유다."
+        }
       ],
-      "answer": 0,
-      "why": "아직 NAT 을 넘기 전 단계다."
+      "quiz": [
+        {
+          "q": "NAT 가 생긴 진짜 이유는?",
+          "choices": [
+            "보안",
+            "IPv4 주소 부족(공인 하나로 여러 기기)",
+            "속도",
+            "암호화"
+          ],
+          "answer": 1,
+          "why": "부수 보호는 덤."
+        },
+        {
+          "q": "NAT 의 부작용은?",
+          "choices": [
+            "빠름",
+            "P2P·인바운드 연결이 어려워짐(단대단 깨짐)",
+            "안전",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "우회 기술 필요."
+        },
+        {
+          "q": "「NAT 뒤라 안전하다」가 오해인 이유는?",
+          "choices": [
+            "맞음",
+            "NAT 는 주소 변환일 뿐 — 포트포워딩·UPnP 로 뚫림",
+            "느려서",
+            "빠름"
+          ],
+          "answer": 1,
+          "why": "방화벽이 진짜 보안."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "여는 방법 세 가지",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "밖에서 안으로 들어오게 여는 방법 세 가지. **① 터널**(cloudflared·ngrok·tailscale) — 밖에서 들어오는 게 아니라 **내가 밖으로 연결을 시작**해 그 통로로 트래픽을 받는다(NAT 를 안 건드림, 가장 쉽고 안전). **② 포트포워딩** — 공유기에 「이 포트로 오면 내 기기로」 규칙 추가. **③ 클라우드** — 처음부터 공인 IP 가진 서버에 배포."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "여는 방법 — 무엇을 고르나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .map { margin:8px 0; font:10.5px ui-monospace; }\n  .map .r { display:flex; gap:8px; align-items:center; margin:3px 0; }\n  .map .in { background:#334155; color:#cbd5e1; padding:3px 7px; border-radius:4px; }\n  .map .out { background:#0e7490; color:#fff; padding:3px 7px; border-radius:4px; }\n  .map .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mapView = (rows) => '<div class=\"map\">' + rows.map(([inn, out]) =>\n    '<div class=\"r\"><span class=\"in\">' + esc(inn) + '</span><span class=\"arw\">→ NAT →</span><span class=\"out\">' + esc(out) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const way = '{{way}}';\n  const cases = {\n    tunnel:  ['터널(cloudflared/ngrok)', '내가 밖으로 연결 → 그 통로로 받음', 'NAT·공유기 안 건드림 · 가장 쉽고 안전 · 개발·데모에 최적', 'good'],\n    forward: ['포트포워딩', '공유기에 「이 포트 → 내 기기」 규칙', '공유기 설정 필요 · 내 IP 노출 · 사설IP 고정 필요', ''],\n    cloud:   ['클라우드 배포', '처음부터 공인 IP 서버에', '운영 서비스의 정석 · NAT 문제 없음 · 비용', 'good'],\n  }[way];\n  render('방법: ' + cases[0],\n    '  방식: ' + cases[1] + '\\n  특징: ' + cases[2] + '\\n\\n' +\n    (way === 'tunnel' ? '  개발·데모엔 터널이 가장 쉽다 — 밖에서 들어오는 게 아니라 내가 나간다.'\n     : way === 'cloud' ? '  운영 서비스는 클라우드(공인 IP)가 정석.'\n     : '  포트포워딩은 되지만 노출·설정 부담 — 요즘은 터널을 더 쓴다.'),\n    '터널(내가 나감)·포트포워딩(공유기 규칙)·클라우드(공인 IP). 개발엔 터널.',\n    box(cases[0], cases[2], cases[3]));\n</script>",
+          "controls": [
+            {
+              "id": "way",
+              "label": "방법",
+              "type": "select",
+              "value": "tunnel",
+              "options": [
+                {
+                  "value": "tunnel",
+                  "label": "터널"
+                },
+                {
+                  "value": "forward",
+                  "label": "포트포워딩"
+                },
+                {
+                  "value": "cloud",
+                  "label": "클라우드"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "여는 방법 세 가지",
+          "text": "1) 터널 (cloudflared, ngrok, tailscale)\n   밖에서 들어오는 게 아니라, 내가 밖으로 나가서 통로를 만든다\n   → NAT·공유기 안 건드림. 가장 쉽고 안전. 개발·데모에 최적.\n\n2) 포트 포워딩: 공유기에 「외부:8080 → 192.168.0.5:8080」 규칙\n   → 내 공인 IP 노출 · 사설 IP 고정 필요 · 방화벽 별개(5장)\n\n3) 클라우드: 처음부터 공인 IP 서버에 배포 (운영 정석)"
+        },
+        {
+          "type": "note",
+          "text": "**터널이 「NAT 를 안 건드리고」 여는 영리한 방법이다.** NAT 는 나가기가 자유로우니(1장), 터널 클라이언트가 **밖으로** 연결을 시작해 통로를 뚫고, 외부 트래픽을 그 통로로 되받는다 — 밖에서 들어오는 게 아니라 내가 나가서 받는 구조라 NAT·방화벽 설정이 필요 없다. 개발 중 「휴대폰에서 로컬 서버 보기」·「웹훅 받기」에 최적이다(ngrok·cloudflared)."
+        },
+        {
+          "type": "p",
+          "text": "**용도로 고른다: 개발·데모=터널, 운영=클라우드.** 잠깐 외부에 보여줄 것(데모·웹훅 테스트)은 터널이 즉시·안전하다. 상시 운영할 서비스는 처음부터 공인 IP 가진 클라우드(net-ip 3장)에 배포하는 게 정석 — 집 서버 포트포워딩은 IP 변동·전기·보안 부담이 크다. 「이걸 얼마나 오래·공개로 둘 건가」가 방법을 정한다."
+        },
+        {
+          "type": "try",
+          "text": "로컬 서버를 터널(cloudflared 또는 ngrok)로 외부에 노출하고 휴대폰 LTE 로 접속하라. 와이파이를 끈 채로도 되는 걸 확인하면(1장의 「LTE 안 됨」이 해결) 터널의 원리가 체감된다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "개발·데모에 가장 쉬운 외부 노출 방법은?",
+          "choices": [
+            "포트포워딩",
+            "터널(내가 밖으로 나가 통로를 만듦)",
+            "클라우드",
+            "UPnP"
+          ],
+          "answer": 1,
+          "why": "NAT 안 건드림."
+        },
+        {
+          "q": "터널이 NAT 설정 없이 되는 이유는?",
+          "choices": [
+            "암호화",
+            "나가기는 자유로우니 내가 밖으로 연결해 받음",
+            "포트 많음",
+            "빠름"
+          ],
+          "answer": 1,
+          "why": "밖에서 안 들어옴."
+        },
+        {
+          "q": "운영 서비스의 정석은?",
+          "choices": [
+            "집 서버 포트포워딩",
+            "공인 IP 가진 클라우드 배포",
+            "터널 상시",
+            "UPnP"
+          ],
+          "answer": 1,
+          "why": "IP·전기·보안 부담 없음."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "방화벽은 NAT 와 별개다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "포트포워딩을 했는데도 안 되면, **OS 방화벽**이 남아 있다. NAT(공유기)를 뚫어도 그 뒤 **기기 자신의 방화벽**이 또 막는다 — 둘은 다른 층의 다른 관문이다. Windows 는 새 프로그램이 포트를 열면 팝업으로 물어보고, 「거부」를 눌렀거나 못 봤으면 막힌 채다. 「NAT 열었는데 안 됨」의 흔한 범인이 이 방화벽이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "두 관문 — 어디서 막히나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .map { margin:8px 0; font:10.5px ui-monospace; }\n  .map .r { display:flex; gap:8px; align-items:center; margin:3px 0; }\n  .map .in { background:#334155; color:#cbd5e1; padding:3px 7px; border-radius:4px; }\n  .map .out { background:#0e7490; color:#fff; padding:3px 7px; border-radius:4px; }\n  .map .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mapView = (rows) => '<div class=\"map\">' + rows.map(([inn, out]) =>\n    '<div class=\"r\"><span class=\"in\">' + esc(inn) + '</span><span class=\"arw\">→ NAT →</span><span class=\"out\">' + esc(out) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const nat = '{{nat}}' === 'open';\n  const fw = '{{fw}}' === 'allow';\n  const ok = nat && fw;\n  render('NAT ' + (nat?'열림':'막힘') + ' · OS 방화벽 ' + (fw?'허용':'차단'),\n    '  ① 공유기 NAT(포트포워딩): ' + (nat ? '<span class=\\\"ok\\\">통과</span>' : '<span class=\\\"no\\\">막힘</span>') + '\\n' +\n    '  ② 기기 OS 방화벽: ' + (nat ? (fw ? '<span class=\\\"ok\\\">허용</span>' : '<span class=\\\"no\\\">차단(포트포워딩 뚫어도 여기서 막힘!)</span>') : '(NAT 에서 이미 막힘)') + '\\n\\n' +\n    '  → 결과: ' + (ok ? '<span class=\\\"ok\\\">접속 성공</span>' : '<span class=\\\"no\\\">막힘 — 두 관문 다 열어야</span>'),\n    'NAT 와 OS 방화벽은 별개의 관문. 포트포워딩을 뚫어도 기기 방화벽이 또 막는다.',\n    steps([\n      ['① 공유기 NAT / 포트포워딩', nat ? 'good' : 'bad'],\n      ['② 기기 OS 방화벽', !nat ? '' : (fw ? 'good' : 'bad')],\n      ['접속', ok ? 'good' : 'bad']]));\n</script>",
+          "controls": [
+            {
+              "id": "nat",
+              "label": "NAT/포트포워딩",
+              "type": "select",
+              "value": "open",
+              "options": [
+                {
+                  "value": "open",
+                  "label": "열림"
+                },
+                {
+                  "value": "closed",
+                  "label": "막힘"
+                }
+              ]
+            },
+            {
+              "id": "fw",
+              "label": "OS 방화벽",
+              "type": "select",
+              "value": "block",
+              "options": [
+                {
+                  "value": "allow",
+                  "label": "허용"
+                },
+                {
+                  "value": "block",
+                  "label": "차단"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**포트포워딩을 했는데도 안 되면 OS 방화벽이 남아 있다.** NAT(네트워크 경계)와 OS 방화벽(기기 경계)은 **다른 층의 다른 관문**이다(net-layers). 둘 다 열어야 밖에서 닿는다. Windows 는 새 서버가 포트를 열면 「이 앱의 네트워크 접근 허용?」 팝업을 띄우는데, 무심코 거부하거나 놓치면 조용히 막힌다 — 방화벽 규칙에서 해당 포트·앱을 확인한다."
+        },
+        {
+          "type": "p",
+          "text": "**둘 다 「기본 거부」의 안전한 설계다(api-authz 3장 deny by default).** NAT 도 방화벽도 「명시적으로 허용한 것만」 통과시킨다 — 그래서 실수로 열리기보다 실수로 막히는 쪽이다. 이건 안전하지만, 「왜 안 되지」의 원인이 **여러 관문 중 하나**라 헷갈린다. 그래서 확인은 **아래(기기)부터 위(밖)로** 순서대로 한다(6장) — 어느 관문에서 막혔는지 좁힌다."
+        },
+        {
+          "type": "try",
+          "text": "포트포워딩을 했는데 밖에서 안 되면, 서버 기기의 OS 방화벽에서 그 포트·앱이 허용돼 있는지 확인하라. Windows 는 「고급 보안 방화벽」의 인바운드 규칙을 본다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "포트포워딩을 했는데 안 될 때 다음 의심은?",
+          "choices": [
+            "DNS",
+            "기기 OS 방화벽(별개의 관문)",
+            "TLS",
+            "포트 부족"
+          ],
+          "answer": 1,
+          "why": "다른 층의 다른 관문."
+        },
+        {
+          "q": "NAT 와 OS 방화벽의 관계는?",
+          "choices": [
+            "같은 것",
+            "다른 층의 별개 관문 — 둘 다 열어야",
+            "무관",
+            "하나면 됨"
+          ],
+          "answer": 1,
+          "why": "네트워크 vs 기기 경계."
+        },
+        {
+          "q": "둘 다 「기본 거부」라서?",
+          "choices": [
+            "위험",
+            "실수로 막히는 쪽 — 여러 관문 중 어디인지 순서로 좁힘",
+            "빠름",
+            "열림"
+          ],
+          "answer": 1,
+          "why": "아래서 위로 확인."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "확인 순서 — 아래에서 위로",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「밖에서 안 됨」은 **아래(가까운 곳)에서 위(먼 곳)로** 확인한다: ① **서버 자신에서** `curl http://127.0.0.1:포트`(서버가 살아있나) → ② **같은 와이파이 기기**에서 `curl http://사설IP:포트`(바인딩·방화벽) → ③ **밖에서**(터널·공인 IP). 되는 지점 바로 위가 문제다 — net-layers 6장의 「아래에서 위로」가 여기서도 똑같다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "확인 순서 — 어디까지 되나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .map { margin:8px 0; font:10.5px ui-monospace; }\n  .map .r { display:flex; gap:8px; align-items:center; margin:3px 0; }\n  .map .in { background:#334155; color:#cbd5e1; padding:3px 7px; border-radius:4px; }\n  .map .out { background:#0e7490; color:#fff; padding:3px 7px; border-radius:4px; }\n  .map .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mapView = (rows) => '<div class=\"map\">' + rows.map(([inn, out]) =>\n    '<div class=\"r\"><span class=\"in\">' + esc(inn) + '</span><span class=\"arw\">→ NAT →</span><span class=\"out\">' + esc(out) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const reach = {{reach}};               // 0=서버조차 안됨 ~ 3=밖에서 됨\n  const stages = [\n    ['① 서버 자신 (127.0.0.1)', '서버 프로세스가 살아 그 포트를 듣나'],\n    ['② 같은 와이파이 기기 (사설IP)', '0.0.0.0 바인딩·OS 방화벽 통과하나'],\n    ['③ 밖에서 (공인/터널)', 'NAT·포트포워딩·외부 방화벽 통과하나'],\n  ];\n  const rows = stages.map((s, i) => [s[0] + ' — ' + s[1],\n    i < reach ? 'good' : i === reach ? 'bad' : '']);\n  render('되는 지점 = ' + (reach === 0 ? '아무것도 안 됨' : '①~' + ['','①','②','③'][reach] + ' 까지'),\n    '  <span class=\\\"warn\\\">막힌 곳(빨강)이 문제 지점</span> — 그 단계의 원인을 본다:\\n' +\n    (reach === 0 ? '  ① 실패 → 서버가 안 떴거나 그 포트가 아님(먼저 고쳐야)'\n     : reach === 1 ? '  ② 실패 → 127.0.0.1 에만 바인딩(0.0.0.0)·OS 방화벽(net-ip 6장·5장)'\n     : reach === 2 ? '  ③ 실패 → NAT·포트포워딩·외부 방화벽(4·5장)'\n     : '  전부 통과 — 밖에서도 됨!'),\n    '자신→같은망→밖. 되는 지점 바로 위가 문제 — 아래에서 위로 좁힌다.',\n    steps(rows));\n</script>",
+          "controls": [
+            {
+              "id": "reach",
+              "label": "되는 지점",
+              "type": "range",
+              "min": 0,
+              "max": 3,
+              "step": 1,
+              "value": 1
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "확인 순서",
+          "text": "1. 서버 자신에서       curl http://127.0.0.1:8080     # 서버 살아있나\n2. 같은 와이파이 기기   curl http://192.168.0.5:8080   # 바인딩·OS 방화벽\n3. 밖에서             (터널 URL 또는 공인IP:포트)     # NAT·외부 방화벽\n\n되는 지점 바로 위가 문제:\n  1 실패 = 서버·포트   ·  2 실패 = 바인딩/방화벽  ·  3 실패 = NAT/외부"
+        },
+        {
+          "type": "note",
+          "text": "**되는 지점 바로 위가 문제다 — 이게 진단을 좁힌다.** ①까지 되고 ②가 안 되면 「서버는 살아있으나 바인딩(127.0.0.1)이나 OS 방화벽」, ②까지 되고 ③이 안 되면 「NAT·포트포워딩·외부 방화벽」. 한 번에 「밖에서 왜 안 되지」를 헤매지 말고, 가까운 데서부터 확인해 실패 지점을 **한 단계로** 좁힌다(황금의 정신: 피드백 루프). 각 단계가 다른 원인·다른 해결이다."
+        },
+        {
+          "type": "p",
+          "text": "**이 순서가 여러 층·관문을 하나씩 벗긴다.** ①은 앱(서버 프로세스), ②는 바인딩+기기 방화벽, ③은 NAT+외부 방화벽 — 각 단계가 다른 층의 다른 관문이다(net-layers). 이 트랙의 여러 지식(바인딩 net-ip 6장, 방화벽 5장, NAT 1·4장, 터널)이 이 확인 순서에서 하나로 꿰인다. 「밖에서 안 됨」이 「이 단계의 이 관문」으로 정확히 짚인다."
+        },
+        {
+          "type": "try",
+          "text": "위 3단계 확인을 순서대로 실행해 어디서 막히는지 기록하라. 막힌 단계의 원인(서버/바인딩·방화벽/NAT·외부)을 짚어, 「밖에서 안 됨」을 한 단계로 좁히는 연습을 하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "「밖에서 안 됨」의 확인 순서는?",
+          "choices": [
+            "밖에서부터",
+            "서버 자신→같은망→밖(아래에서 위로)",
+            "무작위",
+            "밖만"
+          ],
+          "answer": 1,
+          "why": "되는 지점 바로 위가 문제."
+        },
+        {
+          "q": "①(127.0.0.1)은 되고 ②(사설IP)가 안 되면?",
+          "choices": [
+            "NAT",
+            "바인딩(127.0.0.1)·OS 방화벽",
+            "DNS",
+            "외부 방화벽"
+          ],
+          "answer": 1,
+          "why": "net-ip 6장·5장."
+        },
+        {
+          "q": "②까지 되고 ③(밖)이 안 되면?",
+          "choices": [
+            "서버 죽음",
+            "NAT·포트포워딩·외부 방화벽",
+            "바인딩",
+            "포트"
+          ],
+          "answer": 1,
+          "why": "4·5장 관문."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "NAT 의 어려움 — P2P 와 인바운드",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "NAT 는 **양쪽이 다 NAT 뒤**에 있을 때 특히 어렵다 — 화상통화·게임·파일 공유 같은 P2P. 둘 다 「밖에서 못 들어오는」 상태라 서로 직접 연결을 못 연다. 이걸 뚫는 기술들이 있다: **STUN**(내 공인 주소 알아내기)·**홀 펀칭**(양쪽이 동시에 나가 구멍 맞추기)·**TURN**(안 되면 중계 서버 경유). 실시간 앱이 복잡한 이유의 절반이 NAT 다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "P2P 연결 — NAT 를 어떻게 뚫나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .map { margin:8px 0; font:10.5px ui-monospace; }\n  .map .r { display:flex; gap:8px; align-items:center; margin:3px 0; }\n  .map .in { background:#334155; color:#cbd5e1; padding:3px 7px; border-radius:4px; }\n  .map .out { background:#0e7490; color:#fff; padding:3px 7px; border-radius:4px; }\n  .map .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mapView = (rows) => '<div class=\"map\">' + rows.map(([inn, out]) =>\n    '<div class=\"r\"><span class=\"in\">' + esc(inn) + '</span><span class=\"arw\">→ NAT →</span><span class=\"out\">' + esc(out) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const tech = '{{tech}}';\n  const cases = {\n    stun:  ['STUN', '내 공인 IP:포트가 뭔지 알아낸다(밖에서 보이는 나)', '주소를 알아야 상대에게 알려 줄 수 있다'],\n    hole:  ['홀 펀칭', '양쪽이 동시에 밖으로 나가 매핑을 만들어 구멍을 맞춤', 'NAT 의 「나가기는 됨」을 이용 — 대부분 성공'],\n    turn:  ['TURN(중계)', '직접 안 되면 중계 서버가 트래픽을 전달', '항상 되지만 서버 비용·지연 — 최후 수단'],\n    symmetric:['대칭 NAT', '나갈 때마다 포트가 바뀌어 홀 펀칭 실패', '가장 까다로운 NAT → TURN 으로 폴백'],\n  }[tech];\n  render('P2P 기술: ' + cases[0],\n    '  방식: ' + cases[1] + '\\n  메모: ' + cases[2] + '\\n\\n' +\n    '  NAT 뒤끼리 직접 연결하려는 여러 수 — 대부분 STUN+홀펀칭, 안 되면 TURN.',\n    'STUN(내 주소)·홀펀칭(동시에 나가 구멍)·TURN(중계). NAT 뒤 P2P 의 수단.',\n    box(cases[0], cases[1] + '\\n→ ' + cases[2], tech === 'turn' || tech === 'symmetric' ? 'bad' : 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "tech",
+              "label": "기술",
+              "type": "select",
+              "value": "hole",
+              "options": [
+                {
+                  "value": "stun",
+                  "label": "STUN"
+                },
+                {
+                  "value": "hole",
+                  "label": "홀 펀칭"
+                },
+                {
+                  "value": "turn",
+                  "label": "TURN(중계)"
+                },
+                {
+                  "value": "symmetric",
+                  "label": "대칭 NAT"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**홀 펀칭이 NAT 의 「나가기는 됨」을 영리하게 이용한다.** 양쪽 다 인바운드는 막혔지만 아웃바운드는 자유로우니(1장), **동시에 서로에게 나가면** 각자의 NAT 에 「상대로 나가는 매핑」이 생겨 그 구멍으로 마주친다. 중간의 시그널링 서버가 「지금 동시에 나가라」를 조율한다. WebRTC(화상통화·P2P)가 STUN+홀펀칭+TURN(ICE)으로 이걸 자동화한다 — 그래서 브라우저 화상통화가 대부분 직접 연결된다."
+        },
+        {
+          "type": "p",
+          "text": "**IPv6 가 이 어려움의 상당 부분을 없앤다(net-ip 8장).** 주소가 넉넉해 NAT 가 없으면(기기마다 공인 주소), 인바운드가 방화벽 규칙만 통과하면 직접 연결된다 — 홀 펀칭·TURN 이 필요 없다. 그래서 P2P·IoT 의 미래는 IPv6 에 기댄다. 다만 NAT 의 「부수적 보호」가 없어지니 방화벽이 유일한 관문이 되어 더 중요해진다 — 편의와 책임이 함께 온다."
+        },
+        {
+          "type": "try",
+          "text": "브라우저 화상통화(WebRTC 쓰는 서비스)가 대부분 직접 연결됨을 떠올려라 — 그게 STUN+홀펀칭이 뒤에서 NAT 를 뚫은 결과다. 잘 안 되는 네트워크(엄격한 회사망)는 TURN 으로 중계된다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "양쪽이 NAT 뒤일 때 P2P 가 어려운 이유는?",
+          "choices": [
+            "느려서",
+            "둘 다 인바운드가 막혀 직접 연결을 못 엶",
+            "암호화",
+            "포트 부족"
+          ],
+          "answer": 1,
+          "why": "STUN·홀펀칭·TURN 필요."
+        },
+        {
+          "q": "홀 펀칭의 원리는?",
+          "choices": [
+            "방화벽 끄기",
+            "양쪽이 동시에 밖으로 나가 매핑 구멍을 맞춤",
+            "포트포워딩",
+            "TURN"
+          ],
+          "answer": 1,
+          "why": "나가기는 자유."
+        },
+        {
+          "q": "직접 연결이 안 될 때 최후 수단은?",
+          "choices": [
+            "포기",
+            "TURN(중계 서버 경유) — 항상 되나 비용·지연",
+            "STUN",
+            "홀펀칭"
+          ],
+          "answer": 1,
+          "why": "대칭 NAT 등."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "열 때의 각오",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "포트를 열면 **몇 분 안에** 자동 스캐너가 두드린다 — 인터넷엔 열린 포트를 끊임없이 훑는 봇이 가득하다. **기본 비밀번호 · 관리자 화면 노출 · 오래된 버전**은 그 순간 표적이 된다. NAT 를 열어 밖에 서버를 노출하는 건 「전 세계에 문을 여는」 것이니, 열기 전에 최소한의 방어를 갖춰야 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "포트를 열면 — 얼마나 빨리 두드리나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .map { margin:8px 0; font:10.5px ui-monospace; }\n  .map .r { display:flex; gap:8px; align-items:center; margin:3px 0; }\n  .map .in { background:#334155; color:#cbd5e1; padding:3px 7px; border-radius:4px; }\n  .map .out { background:#0e7490; color:#fff; padding:3px 7px; border-radius:4px; }\n  .map .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mapView = (rows) => '<div class=\"map\">' + rows.map(([inn, out]) =>\n    '<div class=\"r\"><span class=\"in\">' + esc(inn) + '</span><span class=\"arw\">→ NAT →</span><span class=\"out\">' + esc(out) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const min = {{minutes}};               // 노출 후 경과(분)\n  const scans = Math.round(min * 3 + 2);\n  render('포트 노출 후 ' + min + '분 경과',\n    '  자동 스캐너의 접근 시도 ≈ <span class=\\\"' + (scans > 20 ? 'no' : 'warn') + '\\\">' + scans + '회</span>\\n\\n' +\n    '  <span class=\\\"no\\\">몇 분 만에 봇이 두드린다.</span> 표적이 되는 것:\\n' +\n    '  · 기본 비밀번호(admin/admin) · 노출된 관리자 화면 · 오래된 취약 버전\\n\\n' +\n    '  열기 전 최소 방어: 강한 인증 · 최신 버전 · 필요한 포트만 · 관리 화면 비공개.',\n    '포트를 열면 몇 분 내 스캐너가 두드린다 — 기본 비번·관리자 노출·구버전이 표적.',\n    bars([['스캐너 접근 시도', Math.min(100, scans * 3), scans + '회', scans > 20 ? '#fca5a5' : '#fbbf24']]));\n</script>",
+          "controls": [
+            {
+              "id": "minutes",
+              "label": "노출 후 경과(분)",
+              "type": "range",
+              "min": 1,
+              "max": 30,
+              "step": 1,
+              "value": 10
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**포트를 열면 몇 분 안에 자동 스캐너가 두드린다.** 이건 과장이 아니라 관측된 사실 — 인터넷 전체를 훑는 봇이 새로 열린 포트를 금방 찾는다. 그래서 노출 전 체크: ① **기본 비밀번호 변경**(admin/admin 은 즉시 뚫림) ② **최신 버전**(알려진 취약점 패치) ③ **관리 화면 비공개**(공개 인터넷에 대시보드 노출 X) ④ **필요한 포트만**. 하나라도 빠지면 노출 즉시 위험하다(sec 트랙)."
+        },
+        {
+          "type": "p",
+          "text": "**그래서 「터널 + 인증」이 개발엔 더 안전하다.** 포트포워딩으로 상시 노출하는 것보다, 필요할 때만 터널(4장)로 열고 끝나면 닫는 게 노출 창을 줄인다. 상시 운영은 클라우드에서 방화벽·보안 그룹으로 필요한 포트만 열고(api-limit·authz), 관리 화면은 VPN·인증 뒤에 둔다. 「열 수 있다」와 「열어도 된다」는 다르다 — 열기 전에 방어를 먼저 세운다(design-evolve 의 되돌리기 어려운 결정)."
+        },
+        {
+          "type": "try",
+          "text": "혹시 집·회사에서 상시 열어 둔 포트가 있다면, 그 서비스의 비밀번호·버전·관리 화면 노출을 점검하라. 안 쓰면 닫고, 개발용은 상시 포트포워딩 대신 필요 시 터널로 바꿔라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "포트를 열면 얼마나 빨리 스캐너가 두드리나?",
+          "choices": [
+            "며칠",
+            "몇 분 안에(자동 봇)",
+            "안 옴",
+            "몇 달"
+          ],
+          "answer": 1,
+          "why": "관측된 사실."
+        },
+        {
+          "q": "노출 시 표적이 되는 것이 아닌 것은?",
+          "choices": [
+            "기본 비밀번호",
+            "노출된 관리자 화면",
+            "오래된 취약 버전",
+            "강한 인증"
+          ],
+          "answer": 3,
+          "why": "강한 인증은 방어."
+        },
+        {
+          "q": "개발용 외부 노출로 더 안전한 방법은?",
+          "choices": [
+            "상시 포트포워딩",
+            "필요 시 터널로 열고 닫기 + 인증",
+            "UPnP",
+            "방화벽 끄기"
+          ],
+          "answer": 1,
+          "why": "노출 창을 줄인다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — NAT 와 외부 노출",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "서버를 외부에 노출하거나 「밖에서 안 됨」을 진단할 때 이 목록을 확인하라. 핵심은 「NAT 를 이해하고·아래서 위로 확인하고·방화벽을 챙기고·열 땐 각오」다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .map { margin:8px 0; font:10.5px ui-monospace; }\n  .map .r { display:flex; gap:8px; align-items:center; margin:3px 0; }\n  .map .in { background:#334155; color:#cbd5e1; padding:3px 7px; border-radius:4px; }\n  .map .out { background:#0e7490; color:#fff; padding:3px 7px; border-radius:4px; }\n  .map .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const mapView = (rows) => '<div class=\"map\">' + rows.map(([inn, out]) =>\n    '<div class=\"r\"><span class=\"in\">' + esc(inn) + '</span><span class=\"arw\">→ NAT →</span><span class=\"out\">' + esc(out) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '밖에서 안 보이는 건 NAT 의 기본 동작(고장 X)',\n    'NAT = 사설↔공인 매핑(포트로 구분)을 안다',\n    'NAT 는 보안이 아님(방화벽이 진짜 보안)',\n    '여는 법 3가지(터널·포트포워딩·클라우드)',\n    'NAT 와 OS 방화벽은 별개의 관문',\n    '확인은 자신→같은망→밖(아래서 위로)',\n    'P2P 는 STUN·홀펀칭·TURN 으로 뚫는다',\n    '열면 몇 분 내 스캐너 — 인증·최신·최소 노출',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 안 되면 어느 관문인지, 열면 무엇을 조심할지 안다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    'NAT 이해·아래서 위로 확인·방화벽·열 땐 각오. NAT 의 네 축.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 밖에서 안 되는 건 원래 그렇다.** NAT 는 나가기만 열고 들어오기는 막는 게 기본이니(1장), 「왜 안 되지」가 아니라 「어떻게 열까, 어느 관문에서 막혔나」로 접근한다. 아래서 위로 확인해(6장) 실패 지점을 좁히고, 열 땐 방화벽·인증·최소 노출을 먼저 갖춘다(8장). 개발엔 터널이 가장 쉽고 안전하다(4장)."
+        },
+        {
+          "type": "p",
+          "text": "**이 트랙에서의 자리.** NAT 는 net-ip 의 사설↔공인을 잇고(3장), 확인 순서는 net-layers·net-diag 의 「아래서 위로」이며, 방화벽·열 때의 각오는 sec 트랙(최소 노출·인증)과, 터널의 「나가서 받기」는 NAT 의 비대칭(1장)을 영리하게 쓴 것이다. **「밖에서 안 됨」을 관문의 문제로 읽는 감각이 배포·노출의 실전 능력**이다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개 항목으로 점검하라. 「아래서 위로 확인」과 「열 땐 인증부터」 두 가지만 익혀도, 외부 노출의 진단과 안전을 함께 잡는다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "NAT 의 한 줄 요약은?",
+          "choices": [
+            "빠른 회선",
+            "밖에서 안 되는 건 원래 그렇다(나가기만 열림)",
+            "암호화",
+            "포트"
+          ],
+          "answer": 1,
+          "why": "어떻게 열까로 접근."
+        },
+        {
+          "q": "NAT 의 네 축은?",
+          "choices": [
+            "빠름·큼·전역·암호",
+            "NAT 이해·아래서 위로 확인·방화벽·열 땐 각오",
+            "캐시·복제·샤딩·압축",
+            "터널만"
+          ],
+          "answer": 1,
+          "why": "네 축."
+        },
+        {
+          "q": "NAT 가 트랙에서 갖는 자리는?",
+          "choices": [
+            "무관",
+            "ip(사설↔공인)·layers/diag(확인 순서)·sec(노출)와 이어짐",
+            "성능",
+            "문법"
+          ],
+          "answer": 1,
+          "why": "밖에서 안 됨을 관문으로."
+        }
+      ]
     }
   ]
 }
