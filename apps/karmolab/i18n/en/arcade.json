@@ -428,5 +428,6 @@
   "arcade.packs.none": "Make a table and Higher, Twenty Questions and the Bracket all light up",
   "arcade.packs.new": "Make a table",
   "arcade.packs.more": "Make another table",
-  "arcade.packs.well": "Today's table — {table}"
+  "arcade.packs.well": "Today's table — {table}",
+  "arcade.btn.full": "fullscreen"
 }

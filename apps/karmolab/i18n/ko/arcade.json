@@ -428,5 +428,6 @@
   "arcade.packs.none": "표를 만들면 높은 쪽 고르기·스무고개·이상형 월드컵이 한꺼번에 켜진다",
   "arcade.packs.new": "표 만들기",
   "arcade.packs.more": "표 더 만들기",
-  "arcade.packs.well": "오늘의 표 — {table}"
+  "arcade.packs.well": "오늘의 표 — {table}",
+  "arcade.btn.full": "전체 화면"
 }
