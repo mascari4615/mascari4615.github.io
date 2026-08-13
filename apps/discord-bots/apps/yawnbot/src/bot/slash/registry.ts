@@ -77,6 +77,7 @@ import { handleProfile } from './profile';
 import { handleAtkupUnity } from './atkup';
 import { handleWrapped } from './wrapped';
 import { CharacterService } from '../../services/character-service';
+import { buildArcade, handleArcade, arcadeAutocomplete } from './arcade';
 
 /** toJSON() 만 요구하는 구조 타입 — SlashCommandBuilder 및 subcommand/options-only 변종 공통. */
 interface CommandBuilderLike {
@@ -147,6 +148,14 @@ async function characterSlugAutocomplete(ctx: BotContext, interaction: Autocompl
 }
 
 export const SLASH_COMMANDS: SlashCommand[] = [
+  {
+    /* TASK-KL-264 D4 — 놀자는 말을 꺼내는 데 드는 걸음을 넷에서 하나로. */
+    name: '오락실',
+    builder: buildArcade,
+    run: async (_ctx, interaction) => handleArcade(interaction),
+    autocomplete: async (_ctx, interaction) => arcadeAutocomplete(interaction),
+    public: true,
+  },
   {
     name: '관리자',
     builder: adminCommand,

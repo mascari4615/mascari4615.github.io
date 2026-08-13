@@ -1,807 +1,108 @@
 {
   "id": "api-authz",
-  "parts": [
+  "minutes": 12,
+  "blocks": [
     {
-      "id": "1",
-      "title": "가장 흔한 사고 — 남의 id 바꿔보기",
-      "minutes": 8,
-      "blocks": [
-        {
-          "type": "p",
-          "text": "실제로 가장 많이 터지는 API 보안 사고는 정교한 해킹이 아니라 **`/orders/1234` 의 숫자를 바꿔 보는 것**이다. 로그인은 했지만 **그게 내 주문인지 확인하지 않으면**, 1235·1236… 을 넣어 남의 주문을 줄줄이 본다. 이것이 **IDOR**(안전하지 않은 직접 객체 참조), OWASP 1위 취약점이다."
-        },
-        {
-          "type": "demo",
-          "kind": "html",
-          "label": "IDOR — 소유권 확인이 있고 없고",
-          "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.allow { background:#132a1c; color:#4ade80; } .cell.deny { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const check = '{{check}}' === 'on';\n  const myId = 1234, tryId = {{target}};\n  const mine = tryId === myId;\n  const leaked = !check && !mine;\n  render('로그인=사용자A(내 주문 1234) · 요청 GET /orders/' + tryId,\n    '  소유권 확인 = ' + (check ? '있음' : '없음') + '\\n\\n  ' +\n    (check\n      ? (mine ? '<span class=\\\"ok\\\">내 주문 -> 200 반환</span>' : '<span class=\\\"ok\\\">남의 주문 -> 404/403 (막힘)</span>')\n      : (mine ? '내 주문 -> 200' : '<span class=\\\"no\\\">남의 주문인데 -> 200 반환! 데이터 유출(IDOR)</span>')),\n    'id 를 바꿔 남의 자원을 여는 것이 최다 사고. 「내 것인가」를 반드시 확인해야.',\n    box(leaked ? 'IDOR 취약 — 유출' : '안전',\n      'SELECT * FROM orders WHERE id=' + tryId + (check ? ' AND user_id=<나>' : '  // 소유권 조건 없음!') +\n      '\\n=> ' + (leaked ? '남의 주문이 그대로 열림' : (check ? '내 것만 반환/타인 차단' : '내 것')),\n      leaked ? 'bad' : 'good'));\n</script>",
-          "controls": [
-            {
-              "id": "check",
-              "label": "소유권 확인",
-              "type": "toggle",
-              "value": false
-            },
-            {
-              "id": "target",
-              "label": "요청 주문 id",
-              "type": "range",
-              "min": 1230,
-              "max": 1240,
-              "step": 1,
-              "value": 1236
-            }
-          ]
-        },
-        {
-          "type": "note",
-          "text": "**로그인했다고 아무거나 볼 수 있는 게 아니다.** 인증(누구냐)은 통과했어도, 그 자원이 **그 사람 것인지**는 별도로 확인해야 한다. IDOR 은 「인증은 했지만 권한(소유권) 확인을 빠뜨린」 사고다 — 다음 장의 인증/권한 구분이 이 사고의 뿌리다."
-        },
-        {
-          "type": "p",
-          "text": "**추측 가능한 id 가 위험을 키운다.** 순차 정수 id(`1234`→`1235`)는 남의 것을 쉽게 넘본다. UUID 같은 추측 어려운 id 는 **완화**책은 되지만 **해결**은 아니다 — 진짜 해결은 모든 접근에 소유권·권한을 확인하는 것이다(3장). id 를 숨기는 것에 기대지 마라."
-        },
-        {
-          "type": "try",
-          "text": "다른 계정을 만들어 네 자원 id 로 요청해 보라. 열리면 그 자리가 사고 지점이다 — 소유권 확인이 빠진 것이다."
-        }
-      ],
-      "quiz": [
-        {
-          "q": "IDOR 취약점이란?",
-          "choices": [
-            "비밀번호 유출",
-            "인증은 했지만 소유권/권한 확인을 빠뜨려 남의 자원 접근",
-            "SQL 인젝션",
-            "XSS"
-          ],
-          "answer": 1,
-          "why": "id 바꿔보기."
-        },
-        {
-          "q": "순차 정수 id 대신 UUID 를 쓰면?",
-          "choices": [
-            "완전 해결",
-            "완화일 뿐 — 소유권 확인이 진짜 해결",
-            "무의미",
-            "더 위험"
-          ],
-          "answer": 1,
-          "why": "숨김에 기대지 마라."
-        },
-        {
-          "q": "로그인을 통과한 요청에 추가로 확인할 것은?",
-          "choices": [
-            "없음",
-            "그 자원이 그 사람 것/권한이 있는지",
-            "속도",
-            "형식"
-          ],
-          "answer": 1,
-          "why": "인증 ≠ 권한."
-        }
-      ]
+      "type": "p",
+      "text": "실제로 가장 많이 터지는 보안 사고는 해킹이 아니라 **`/orders/1234` 의 숫자를 바꿔 보는 것**이다."
     },
     {
-      "id": "2",
-      "title": "인증과 권한은 다르다",
-      "minutes": 8,
-      "blocks": [
-        {
-          "type": "p",
-          "text": "두 개념을 명확히 나눠라. **인증(authentication)**: 「너는 누구냐」 — 토큰·세션을 검증한다. **권한(authorization)**: 「그걸 할 수 있냐」 — 그 사용자가 이 자원·행위에 접근할 자격이 있는지 확인한다. 인증은 문 앞, 권한은 방마다. 이 둘을 섞으면 IDOR(1장) 같은 사고가 난다."
-        },
-        {
-          "type": "demo",
-          "kind": "html",
-          "label": "두 관문 — 어디서 막히나",
-          "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.allow { background:#132a1c; color:#4ade80; } .cell.deny { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const authed = '{{auth}}' === 'yes';\n  const owns = '{{owns}}' === 'yes';\n  const code = !authed ? 401 : !owns ? 403 : 200;\n  render('요청: PATCH /orders/1235 (남의 주문)',\n    '  ① 인증(누구냐): ' + (authed ? '<span class=\\\"ok\\\">통과 — 토큰 유효</span>' : '<span class=\\\"no\\\">실패 -> 401</span>') + '\\n' +\n    (authed ? '  ② 권한(할 수 있냐): ' + (owns ? '<span class=\\\"ok\\\">통과 — 내 주문</span>' : '<span class=\\\"no\\\">실패 -> 403</span>') : '  ② 권한: (인증 실패로 도달 못함)') +\n    '\\n\\n  결과 = <span class=\\\"' + (code === 200 ? 'ok' : 'no') + '\\\">' + code + '</span>' +\n    (code === 401 ? ' (로그인하라)' : code === 403 ? ' (로그인해도 권한 없음)' : ' (허용)'),\n    '인증=누구냐(401), 권한=할 수 있냐(403). 두 관문을 순서대로 통과해야 한다.',\n    steps([\n      ['① 인증: 토큰 검증', authed ? 'good' : 'bad'],\n      ['② 권한: 소유권·역할 확인', !authed ? '' : (owns ? 'good' : 'bad')],\n      ['처리', code === 200 ? 'good' : 'bad']]));\n</script>",
-          "controls": [
-            {
-              "id": "auth",
-              "label": "인증",
-              "type": "select",
-              "value": "yes",
-              "options": [
-                {
-                  "value": "yes",
-                  "label": "토큰 유효"
-                },
-                {
-                  "value": "no",
-                  "label": "토큰 없음/만료"
-                }
-              ]
-            },
-            {
-              "id": "owns",
-              "label": "권한(소유)",
-              "type": "select",
-              "value": "no",
-              "options": [
-                {
-                  "value": "yes",
-                  "label": "내 자원"
-                },
-                {
-                  "value": "no",
-                  "label": "남의 자원"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "code",
-          "lang": "text",
-          "label": "인증 vs 권한",
-          "text": "인증(authentication)  너는 누구냐        → 토큰/세션 검증 → 실패 401\n권한(authorization)   그걸 할 수 있냐   → 소유권·역할 확인 → 실패 403\n\n401 Unauthorized  = 사실은 '인증 안 됨' (이름이 헷갈리게 지어짐)\n403 Forbidden     = 인증은 됐지만 권한 없음\n\n순서: 인증 먼저(누구인지), 그다음 권한(그 사람이 이걸 해도 되는지)"
-        },
-        {
-          "type": "note",
-          "text": "**401 과 403 을 상황에 맞게(api-error 2장).** 401 은 「누군지 모름 → 로그인/토큰 갱신하라」, 403 은 「누군지는 알지만 권한 없음 → 로그인해도 소용없음」. 클라이언트가 로그인 화면을 띄울지, 권한 안내를 할지가 이걸로 갈린다. 다만 민감한 자원은 **존재 노출을 피해** 403 대신 404 를 쓰기도 한다(8장)."
-        },
-        {
-          "type": "p",
-          "text": "**인증만 하고 권한을 빼먹는 것이 IDOR 의 정체다.** 많은 팀이 「로그인 미들웨어」는 꼼꼼히 걸어 두고, 정작 각 자원의 **소유권 확인**은 빠뜨린다. 인증은 전역으로 한 번, 권한은 **자원마다** 확인해야 하는 것 — 이 비대칭이 사고의 근원이다(3장에서 구조로 해결)."
-        },
-        {
-          "type": "try",
-          "text": "네 엔드포인트에서 인증(로그인)만 확인하고 소유권·역할은 안 보는 곳을 찾아라. 그곳이 IDOR 후보다 — 권한 확인을 추가하라."
-        }
-      ],
-      "quiz": [
-        {
-          "q": "인증과 권한의 차이는?",
-          "choices": [
-            "같다",
-            "인증=누구냐(401), 권한=할 수 있냐(403)",
-            "인증이 더 중요",
-            "권한이 먼저"
-          ],
-          "answer": 1,
-          "why": "문 앞 vs 방마다."
-        },
-        {
-          "q": "401 과 403 의 구분은?",
-          "choices": [
-            "같다",
-            "401=인증 안 됨, 403=인증됐지만 권한 없음",
-            "숫자 순서",
-            "무관"
-          ],
-          "answer": 1,
-          "why": "클라이언트 대응이 다르다."
-        },
-        {
-          "q": "IDOR 의 정체는?",
-          "choices": [
-            "인증 실패",
-            "인증은 했지만 권한(소유권) 확인 누락",
-            "토큰 유출",
-            "약한 비밀번호"
-          ],
-          "answer": 1,
-          "why": "권한을 자원마다 확인해야."
-        }
-      ]
+      "type": "h",
+      "text": "1. 인증과 권한은 다르다"
     },
     {
-      "id": "3",
-      "title": "잊을 수 없는 구조를 만들어라",
-      "minutes": 9,
-      "blocks": [
-        {
-          "type": "p",
-          "text": "「검사를 잊지 말자」는 대책이 아니다 — 사람은 잊는다. 새 엔드포인트를 만들 때마다 소유권 확인을 **기억해서** 넣는 구조는 언젠가 반드시 뚫린다. **잊을 수 없는 구조**를 만들어라: 데이터 접근 자체를 **사용자 범위로 강제**하고, 권한을 **기본 거부**로 둔다."
-        },
-        {
-          "type": "demo",
-          "kind": "html",
-          "label": "범위 강제 — 애초에 남의 것을 못 부른다",
-          "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.allow { background:#132a1c; color:#4ade80; } .cell.deny { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const scoped = mode === 'scoped';\n  render(scoped ? '범위 강제 쿼리(scoped)' : '전역 조회 후 검사(잊기 쉬움)',\n    (scoped\n      ? '  const order = await req.user.orders.find(id);\\n' +\n        '  <span class=\\\"ok\\\">쿼리 자체가 내 것으로 한정 — 남의 id 면 애초에 안 나온다(null).</span>\\n' +\n        '  검사를 「잊을」 자리가 없다. 구조가 강제한다.'\n      : '  const order = await db.order.find(id);   // 전역에서 찾음\\n' +\n        '  if (order.userId !== me) throw 403;      // 이 줄을 빠뜨리면?\\n' +\n        '  <span class=\\\"no\\\">검사 한 줄을 잊으면 그대로 유출 — 사람은 잊는다.</span>'),\n    '「검사를 기억」 대신 「범위 강제」로. 데이터 접근을 사용자 범위에 묶는다.',\n    box(scoped ? '구조가 강제(안전)' : '기억에 의존(위험)',\n      scoped\n        ? 'req.user.orders.find(id)\\n-> WHERE id=? AND user_id=<나>\\n남의 것은 존재하지 않는다'\n        : 'db.order.find(id) + 잊기 쉬운 if 검사\\n한 줄 누락 = IDOR',\n      scoped ? 'good' : 'bad'));\n</script>",
-          "controls": [
-            {
-              "id": "mode",
-              "label": "접근 방식",
-              "type": "select",
-              "value": "global",
-              "options": [
-                {
-                  "value": "global",
-                  "label": "전역 조회 후 검사"
-                },
-                {
-                  "value": "scoped",
-                  "label": "범위 강제"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "note",
-          "text": "**「검사를 잊지 말자」는 대책이 아니다 — 잊을 수 없는 구조를 만들어라.** 데이터 접근 계층에서 **항상 사용자 범위로 한정**(`user.orders` 처럼)하면, 남의 자원은 쿼리 결과에 아예 안 나온다. 검사를 빠뜨릴 자리가 없어진다. 새 엔드포인트가 실수로 안전한 쪽으로 기본 동작하게 만드는 것이 핵심이다."
-        },
-        {
-          "type": "p",
-          "text": "**기본 거부(deny by default).** 권한 미들웨어를 「명시적으로 허용하지 않으면 거부」로 설계하면, 새 엔드포인트는 **아무 설정 없이 자동으로 막힌다**. 개발자가 권한을 깜빡 안 걸어도 열리지 않는다 — 실수의 결과가 「과잉 차단(고치면 됨)」이지 「유출(사고)」이 아니게 만든다. 안전한 실패(fail-safe)다."
-        },
-        {
-          "type": "try",
-          "text": "네 데이터 접근이 전역 조회 후 검사인지, 사용자 범위 강제인지 보라. 전역이면 `user.resources.find(id)` 식으로 범위를 강제하고, 권한 미들웨어를 기본 거부로 바꿔라."
-        }
-      ],
-      "quiz": [
-        {
-          "q": "IDOR 을 구조적으로 막는 방법은?",
-          "choices": [
-            "검사를 잘 기억",
-            "데이터 접근을 사용자 범위로 강제(잊을 자리 제거)",
-            "UUID",
-            "속도 제한"
-          ],
-          "answer": 1,
-          "why": "사람은 잊는다."
-        },
-        {
-          "q": "기본 거부(deny by default)의 이점은?",
-          "choices": [
-            "빠름",
-            "새 엔드포인트가 실수로도 열리지 않음(fail-safe)",
-            "간단",
-            "캐시"
-          ],
-          "answer": 1,
-          "why": "실수 결과가 과잉 차단이지 유출 아님."
-        },
-        {
-          "q": "「검사를 잊지 말자」가 대책이 아닌 이유는?",
-          "choices": [
-            "느려서",
-            "사람은 잊으므로 — 잊을 수 없는 구조가 필요",
-            "코드가 길어서",
-            "표준이라"
-          ],
-          "answer": 1,
-          "why": "구조로 강제."
-        }
-      ]
+      "type": "code",
+      "lang": "text",
+      "label": "두 질문",
+      "text": "인증(authentication)  너는 누구냐        → 토큰 검증\n권한(authorization)  그걸 할 수 있냐    → 소유자·역할 검사\n\n토큰이 유효하다는 것은 \"로그인했다\" 일 뿐\n그 자원이 그 사람 것인지는 별개로 확인해야 한다"
     },
     {
-      "id": "4",
-      "title": "역할과 자원 소유권",
-      "minutes": 9,
-      "blocks": [
-        {
-          "type": "p",
-          "text": "권한을 정하는 두 축: **역할 기반(RBAC)** — `admin`·`editor`·`viewer` 같은 역할로 「무엇을 할 수 있나」, **자원 기반** — 「이 **특정** 자원이 내 것인가」(소유권). 대부분의 앱은 둘을 **함께** 쓴다: 역할로 큰 행위를 가르고, 소유권으로 개별 자원을 지킨다."
-        },
-        {
-          "type": "demo",
-          "kind": "html",
-          "label": "역할 x 행위 — 허용 매트릭스",
-          "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.allow { background:#132a1c; color:#4ade80; } .cell.deny { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const role = '{{role}}';\n  const perms = {\n    admin:  { read: true, edit: true, del: true, editOthers: true },\n    editor: { read: true, edit: true, del: false, editOthers: false },\n    viewer: { read: true, edit: false, del: false, editOthers: false },\n  }[role];\n  const acts = [['read', '읽기'], ['edit', '내 글 수정'], ['del', '삭제'], ['editOthers', '남의 글 수정']];\n  const cells = acts.map(([k, label]) => '<div class=\\\"cell ' + (perms[k] ? 'allow' : 'deny') + '\\\">' +\n    esc(label) + '<br>' + (perms[k] ? '허용' : '거부') + '</div>').join('');\n  render('역할: ' + role,\n    '  역할로 「무엇을 할 수 있나」를 정한다. 개별 자원은 소유권으로 추가 확인.\\n\\n' +\n    '  ' + role + ' = ' + acts.filter(([k]) => perms[k]).map(([, l]) => l).join(', '),\n    '역할(RBAC)로 큰 행위를, 소유권으로 개별 자원을. 둘을 함께 쓴다.',\n    '<div class=\\\"grid\\\" style=\\\"grid-template-columns:repeat(4,1fr)\\\">' + cells + '</div>');\n</script>",
-          "controls": [
-            {
-              "id": "role",
-              "label": "역할",
-              "type": "select",
-              "value": "editor",
-              "options": [
-                {
-                  "value": "admin",
-                  "label": "admin"
-                },
-                {
-                  "value": "editor",
-                  "label": "editor"
-                },
-                {
-                  "value": "viewer",
-                  "label": "viewer"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "code",
-          "lang": "text",
-          "label": "역할 기반과 자원 기반",
-          "text": "역할 기반(RBAC)   admin · editor · viewer   ← 대부분 여기서 충분\n  \"editor 는 글을 수정할 수 있다\"  (행위 단위)\n\n자원 기반         \"이 글이 내 것인가\"        ← 소유권(개별 자원)\n  \"editor 라도 '남의' 글은 못 고친다\"\n\n속성 기반(ABAC)   시간·위치·상태 등 조건    ← 복잡한 규칙 (필요할 때만)\n\n=> 보통: 역할로 큰 문을 가르고, 소유권으로 각 자원을 지킨다"
-        },
-        {
-          "type": "note",
-          "text": "**역할만으로는 부족하다.** 「editor 는 글을 수정할 수 있다」가 통과해도, 그게 **남의** 글이면 막아야 한다. 역할(RBAC)은 「이런 종류의 행위를 할 수 있나」를, 소유권은 「이 **특정** 자원에 대해 되나」를 답한다. 둘 다 확인해야 IDOR(1장)과 권한 상승을 함께 막는다."
-        },
-        {
-          "type": "p",
-          "text": "**과하게 세밀한 권한은 관리 부담이다.** 처음부터 ABAC(속성 기반, 시간·위치·상태 조건)로 정교하게 짜면 규칙이 폭발하고 검증이 어렵다. **대부분의 앱은 RBAC + 소유권으로 충분**하다. 정말 복잡한 규칙(승인 워크플로·조건부 접근)이 필요할 때만 세밀한 모델로 올라간다 — 필요로 고른다(design 트랙)."
-        },
-        {
-          "type": "try",
-          "text": "네 권한을 역할(RBAC)과 소유권으로 나눠 표로 그려라. 역할만 확인하고 소유권을 안 보는 곳, 반대로 불필요하게 복잡한 규칙이 있는 곳을 찾아라."
-        }
-      ],
-      "quiz": [
-        {
-          "q": "RBAC(역할 기반)이 답하는 것은?",
-          "choices": [
-            "이 자원이 내 것인가",
-            "이런 종류의 행위를 할 수 있나",
-            "언제 접근하나",
-            "어디서"
-          ],
-          "answer": 1,
-          "why": "행위 단위."
-        },
-        {
-          "q": "역할만으로 부족한 이유는?",
-          "choices": [
-            "느려서",
-            "editor 라도 남의 자원은 막아야(소유권 필요)",
-            "복잡해서",
-            "표준 아님"
-          ],
-          "answer": 1,
-          "why": "RBAC + 소유권."
-        },
-        {
-          "q": "대부분의 앱에 적절한 권한 모델은?",
-          "choices": [
-            "처음부터 ABAC",
-            "RBAC + 소유권",
-            "권한 없음",
-            "역할만"
-          ],
-          "answer": 1,
-          "why": "필요할 때만 세밀하게."
-        }
-      ]
+      "type": "h",
+      "text": "2. 잊기 쉬운 구조를 없애라"
     },
     {
-      "id": "5",
-      "title": "최소 권한 — 필요한 만큼만",
-      "minutes": 8,
-      "blocks": [
-        {
-          "type": "p",
-          "text": "**최소 권한 원칙**: 각 사용자·토큰·서비스에 **그 일에 필요한 만큼만** 권한을 준다. 관리자 권한을 편의로 남발하거나, 토큰에 모든 스코프를 담으면, 그것이 탈취됐을 때 **피해 범위**가 그만큼 커진다(sec-authn 「권한=피해범위」). 권한은 넉넉히가 아니라 빠듯하게 준다."
-        },
-        {
-          "type": "demo",
-          "kind": "html",
-          "label": "권한 범위 = 탈취 시 피해 범위",
-          "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.allow { background:#132a1c; color:#4ade80; } .cell.deny { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const scope = '{{scope}}';\n  const cases = {\n    minimal: ['읽기 전용, 자기 자원만', 10, '탈취돼도 그 사용자 데이터 읽기까지 — 피해 작다'],\n    broad:   ['읽기+쓰기, 여러 자원', 45, '탈취 시 데이터 변조까지 — 피해 중간'],\n    admin:   ['관리자(전체 권한)', 95, '탈취 = 전체 장악 — 편의로 준 admin 이 재앙이 된다'],\n  }[scope];\n  render('토큰 권한: ' + cases[0],\n    '  이 토큰이 탈취되면 피해 범위 = <span class=\\\"' + (cases[1] < 20 ? 'ok' : cases[1] < 60 ? 'warn' : 'no') + '\\\">' +\n      cases[1] + '% (상대)</span>\\n\\n  ' + cases[2] + '\\n\\n' +\n    '  권한을 넉넉히 주는 편의가, 사고 시 피해로 정확히 돌아온다.',\n    '권한 범위 = 탈취 시 피해 범위. 필요한 만큼만(최소 권한).',\n    bars([['피해 범위', cases[1], cases[1] + '%', cases[1] < 20 ? '#4ade80' : cases[1] < 60 ? '#fbbf24' : '#fca5a5']]));\n</script>",
-          "controls": [
-            {
-              "id": "scope",
-              "label": "토큰 권한",
-              "type": "select",
-              "value": "admin",
-              "options": [
-                {
-                  "value": "minimal",
-                  "label": "최소(읽기·자기 것)"
-                },
-                {
-                  "value": "broad",
-                  "label": "넓음(읽기+쓰기)"
-                },
-                {
-                  "value": "admin",
-                  "label": "관리자(전체)"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "note",
-          "text": "**편의를 위한 과잉 권한이 가장 흔한 실수다.** 「나중에 필요할지 모르니 admin 으로」·「토큰에 모든 스코프를」가 사고를 키운다. 서비스 계정·API 키·토큰은 **그 작업에 딱 필요한 스코프만** 준다. CI 배포 토큰이 읽기만 필요하면 쓰기 권한을 주지 않는다 — 탈취 시 피해를 그만큼 줄인다."
-        },
-        {
-          "type": "p",
-          "text": "**권한은 나눠서 준다.** 하나의 만능 키 대신 역할·스코프를 잘게 나누면, 각 키의 피해 범위가 작아지고 필요 없어진 권한을 회수하기 쉽다. 읽기/쓰기, 자원별, 환경별(스테이징/운영)로 분리하면 「이 키로 뭘 할 수 있나」가 명확해져 감사(8장)도 쉬워진다."
-        },
-        {
-          "type": "try",
-          "text": "네 서비스 계정·API 키·토큰의 권한을 나열하라. 실제 필요보다 넓은 것(특히 admin·전체 스코프)을 찾아 최소로 줄이고, 읽기/쓰기·환경별로 나눠라."
-        }
-      ],
-      "quiz": [
-        {
-          "q": "최소 권한 원칙이란?",
-          "choices": [
-            "최대한 많이",
-            "그 일에 필요한 만큼만 권한을 줌",
-            "권한 없음",
-            "admin 기본"
-          ],
-          "answer": 1,
-          "why": "권한=피해범위."
-        },
-        {
-          "q": "과잉 권한(편의로 admin)의 위험은?",
-          "choices": [
-            "느림",
-            "탈취 시 피해 범위가 그만큼 커짐",
-            "복잡",
-            "없음"
-          ],
-          "answer": 1,
-          "why": "편의가 피해로 돌아온다."
-        },
-        {
-          "q": "권한을 나눠서 주면 좋은 점은?",
-          "choices": [
-            "빠름",
-            "각 키의 피해 범위 축소 + 회수·감사 용이",
-            "저장 절약",
-            "인증 불필요"
-          ],
-          "answer": 1,
-          "why": "만능 키를 피한다."
-        }
-      ]
+      "type": "code",
+      "lang": "js",
+      "label": "조회 시점에 소유자를 박아 넣는다",
+      "text": "// ❌ 검사를 잊으면 남의 주문이 그대로 열린다\nconst order = await db.order.find(id);\nreturn order;\n\n// ✅ 애초에 내 것만 조회되게\nconst order = await db.order.findOne({ id, userId: 나.id });\nif (!order) return 404;      // 존재 여부도 숨긴다\n\n// 더 나은 구조: 데이터 접근 계층에서 항상 사용자 범위를 요구하게 만든다\n//   repo.orders(나).find(id)   ← 사용자 없이는 부를 수 없는 API"
     },
     {
-      "id": "6",
-      "title": "토큰 다루기 — 짧게, 즉시 무효화",
-      "minutes": 9,
-      "blocks": [
-        {
-          "type": "p",
-          "text": "토큰은 「이 사람은 인증됐다」는 증표다. 탈취되면 그 자체로 접근권이니, **짧게 살리고 즉시 무효화**할 수 있어야 한다. **액세스 토큰은 짧게**(분 단위) + **리프레시 토큰으로 갱신**, 그리고 **탈퇴·권한 변경은 즉시 반영**돼야 한다 — 이게 안 되면 해고된 직원의 토큰이 한 시간 더 산다."
-        },
-        {
-          "type": "demo",
-          "kind": "html",
-          "label": "토큰 수명 — 탈취 노출 창",
-          "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.allow { background:#132a1c; color:#4ade80; } .cell.deny { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const min = {{life}};                  // 액세스 토큰 수명(분)\n  render('액세스 토큰 수명 ' + min + '분',\n    '  탈취 시 유효 기간 = <span class=\\\"' + (min <= 15 ? 'ok' : min <= 60 ? 'warn' : 'no') + '\\\">최대 ' + min + '분</span>' +\n      (min > 60 ? ' (너무 김)' : '') + '\\n\\n' +\n    '  · 짧으면: 탈취 노출 창이 작다. 리프레시 토큰으로 조용히 갱신.\\n' +\n    '  · 길면: 편하지만 탈취 시 오래 열려 있고, 무효화가 어렵다.\\n\\n' +\n    '  권한 변경·탈퇴는 즉시 반영돼야 — 무효화 목록(deny list)이나 짧은 수명으로.',\n    '액세스 토큰은 짧게(탈취 창 축소) + 리프레시로 갱신 + 즉시 무효화 수단.',\n    bars([['탈취 노출 창', Math.min(100, min), min + '분', min <= 15 ? '#4ade80' : min <= 60 ? '#fbbf24' : '#fca5a5']]));\n</script>",
-          "controls": [
-            {
-              "id": "life",
-              "label": "액세스 토큰 수명(분)",
-              "type": "range",
-              "min": 5,
-              "max": 240,
-              "step": 5,
-              "value": 120
-            }
-          ]
-        },
-        {
-          "type": "code",
-          "lang": "text",
-          "label": "토큰 다루기",
-          "text": "· 액세스 토큰은 짧게(분 단위) + 리프레시 토큰으로 갱신\n· 권한 변경·탈퇴는 즉시 반영돼야 한다 → 서버 측 무효화 목록\n    (또는 짧은 수명으로 자연 만료 대기)\n· 리프레시 토큰은 저장소에 보관 + 회전(rotation)·탈취 감지\n· 토큰은 HttpOnly 쿠키 또는 안전한 저장소에 (XSS 로 못 훔치게)"
-        },
-        {
-          "type": "note",
-          "text": "**무상태 토큰(JWT)의 함정: 즉시 무효화가 어렵다.** 서버가 검증만 하고 저장 안 하는 JWT 는 **만료 전까지 유효**하다 — 탈퇴·해고·권한 박탈을 즉시 반영 못 한다. 그래서 ① 수명을 짧게 두고 ② 무효화 목록(deny list)을 두거나 ③ 중요한 권한 변경 시 세션을 강제 종료하는 장치가 필요하다. 「짧은 수명」이 가장 단순한 방어다."
-        },
-        {
-          "type": "p",
-          "text": "**토큰을 훔치지 못하게 저장하라.** 토큰이 XSS 로 탈취되면 모든 게 무너진다. 브라우저에선 `HttpOnly` 쿠키(자바스크립트가 못 읽음)나 안전한 저장소를 쓰고, 로그·URL·에러 메시지에 토큰이 새지 않게 한다. 리프레시 토큰은 회전(rotation)시켜, 탈취된 옛 리프레시 토큰의 재사용을 감지한다."
-        },
-        {
-          "type": "try",
-          "text": "네 액세스 토큰 수명과, 탈퇴·권한 변경이 얼마 만에 반영되는지 확인하라. 무상태 JWT 인데 즉시 무효화 수단이 없다면, 수명을 줄이거나 무효화 목록을 도입하라."
-        }
-      ],
-      "quiz": [
-        {
-          "q": "액세스 토큰을 짧게 두는 이유는?",
-          "choices": [
-            "성능",
-            "탈취 시 노출 창을 줄이고 무효화 부담 감소",
-            "저장 절약",
-            "표준"
-          ],
-          "answer": 1,
-          "why": "짧으면 자연 만료."
-        },
-        {
-          "q": "무상태 JWT 의 함정은?",
-          "choices": [
-            "느림",
-            "만료 전까지 유효 — 즉시 무효화(탈퇴·해고)가 어려움",
-            "크기",
-            "인증 불가"
-          ],
-          "answer": 1,
-          "why": "deny list·짧은 수명 필요."
-        },
-        {
-          "q": "토큰을 XSS 탈취로부터 지키는 저장은?",
-          "choices": [
-            "localStorage",
-            "HttpOnly 쿠키(JS가 못 읽음)",
-            "URL 파라미터",
-            "전역 변수"
-          ],
-          "answer": 1,
-          "why": "자바스크립트 접근 차단."
-        }
-      ]
+      "type": "note",
+      "text": "**「검사를 잊지 말자」는 대책이 아니다.** 사람은 잊는다. 잊을 수 없는 구조(범위 강제·기본 거부)를 만들어야 한다. 새 엔드포인트가 추가될 때 자동으로 막히는 게 목표다."
     },
     {
-      "id": "7",
-      "title": "서버가 진실이다 — 클라이언트 숨김은 UX",
-      "minutes": 8,
-      "blocks": [
-        {
-          "type": "p",
-          "text": "「삭제 버튼을 관리자에게만 보여 주니 안전하다」 — **틀렸다.** 클라이언트에서 버튼을 숨기는 것은 **UX**일 뿐, 보안이 아니다. 공격자는 화면을 거치지 않고 API 를 직접 부른다. **모든 권한 검사는 서버에서** 다시 해야 한다. 클라이언트 검사는 편의, 서버 검사는 진실이다."
-        },
-        {
-          "type": "demo",
-          "kind": "html",
-          "label": "클라이언트 숨김 vs 서버 검사",
-          "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.allow { background:#132a1c; color:#4ade80; } .cell.deny { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const attack = '{{attack}}' === 'direct';\n  const serverCheck = '{{server}}' === 'yes';\n  render(attack ? 'API 를 직접 호출(버튼 안 거침)' : '화면의 버튼으로 호출',\n    (attack\n      ? '  공격자: curl -X DELETE /posts/42  (버튼이 숨겨져도 상관없음)\\n' +\n        (serverCheck\n          ? '  <span class=\\\"ok\\\">서버가 권한 재검사 -> 403 차단. 안전.</span>'\n          : '  <span class=\\\"no\\\">서버가 검사 안 함(버튼 숨김만 믿음) -> 삭제됨! 뚫림.</span>')\n      : '  일반 사용자: 버튼이 안 보여 못 누름 (UX 상 정상)'),\n    '클라이언트 숨김은 UX. 공격자는 API 를 직접 부른다 — 서버가 반드시 재검사.',\n    box(attack && !serverCheck ? '뚫림' : '안전',\n      attack\n        ? 'DELETE /posts/42 (직접)\\n서버 검사: ' + (serverCheck ? '있음 -> 403' : '없음 -> 실행됨!')\n        : '버튼 숨김 = 화면 UX 일 뿐',\n      attack && !serverCheck ? 'bad' : 'good'));\n</script>",
-          "controls": [
-            {
-              "id": "attack",
-              "label": "호출 방식",
-              "type": "select",
-              "value": "direct",
-              "options": [
-                {
-                  "value": "ui",
-                  "label": "화면 버튼"
-                },
-                {
-                  "value": "direct",
-                  "label": "API 직접"
-                }
-              ]
-            },
-            {
-              "id": "server",
-              "label": "서버 권한 검사",
-              "type": "select",
-              "value": "no",
-              "options": [
-                {
-                  "value": "yes",
-                  "label": "있음"
-                },
-                {
-                  "value": "no",
-                  "label": "없음(숨김만 믿음)"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "note",
-          "text": "**클라이언트에서 오는 것은 무엇도 믿지 마라.** 숨긴 버튼, 비활성 입력, 검증 로직, 심지어 「역할」 필드까지 — 클라이언트가 보낸 것은 조작될 수 있다. 서버는 요청의 토큰에서 **직접** 사용자·역할을 도출해 검사한다. 클라이언트가 보낸 `role=admin` 을 믿으면 누구나 관리자가 된다."
-        },
-        {
-          "type": "p",
-          "text": "**클라이언트 검사도 여전히 하라 — 다른 목적으로.** 버튼 숨김·즉각 검증은 **UX**(못 할 일을 안 보여 주고, 왕복 없이 피드백)로 가치 있다. 다만 그것을 **보안으로 착각**하지 않는 것이 핵심이다. 클라이언트 = 편의·속도, 서버 = 권위·진실. 둘 다 하되 역할을 혼동하지 않는다."
-        },
-        {
-          "type": "try",
-          "text": "네 앱에서 「화면에서 숨겼으니 안전」이라고 여기는 기능을 찾아, API 를 직접 호출(curl·개발자도구)해 보라. 서버가 막지 않으면 그 자리에 서버 권한 검사를 추가하라."
-        }
-      ],
-      "quiz": [
-        {
-          "q": "클라이언트에서 버튼을 숨기는 것은?",
-          "choices": [
-            "보안",
-            "UX 일 뿐 — 공격자는 API 직접 호출",
-            "충분한 방어",
-            "권한 검사"
-          ],
-          "answer": 1,
-          "why": "서버가 진실."
-        },
-        {
-          "q": "서버가 믿으면 안 되는 것은?",
-          "choices": [
-            "토큰 서명",
-            "클라이언트가 보낸 role·권한 필드",
-            "자신의 DB",
-            "인증 결과"
-          ],
-          "answer": 1,
-          "why": "토큰에서 직접 도출."
-        },
-        {
-          "q": "클라이언트 권한 검사의 올바른 위치는?",
-          "choices": [
-            "유일한 방어",
-            "UX(편의·속도)일 뿐, 서버 검사가 진짜",
-            "불필요",
-            "서버 대체"
-          ],
-          "answer": 1,
-          "why": "역할을 혼동 말 것."
-        }
-      ]
+      "type": "h",
+      "text": "3. 역할과 세밀한 권한"
     },
     {
-      "id": "8",
-      "title": "검사할 것들 — 감사와 노출",
-      "minutes": 8,
-      "blocks": [
-        {
-          "type": "p",
-          "text": "권한 사고는 **빠뜨린 자리**에서 난다. 체계적으로 점검하라: 남의 id 로 조회·수정, 목록이 남의 것을 섞어 주는지, 권한 없는 역할이 관리 기능에 닿는지, 중첩 자원(`/users/A/orders/B`)의 소유권. 그리고 **접근을 로그로 남겨**(감사) 누가 무엇에 접근했는지 추적한다."
-        },
-        {
-          "type": "demo",
-          "kind": "html",
-          "label": "취약 지점 점검 — 어디가 뚫리나",
-          "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.allow { background:#132a1c; color:#4ade80; } .cell.deny { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const spot = '{{spot}}';\n  const cases = {\n    single: ['GET /orders/{남의 id}', '단건 조회 소유권 확인', 'IDOR — 가장 흔함(1장)'],\n    list:   ['GET /orders (목록)', '목록이 내 것만 반환하는지', '목록에 남의 것이 섞이면 대량 유출'],\n    nested: ['GET /users/A/orders/B', '중첩 자원의 소유권 사슬', 'A 는 내가 아닌데 통과되면 유출'],\n    mass:   ['PATCH /users/me {role:admin}', '수정 가능 필드 제한', '권한 상승 — role 을 사용자가 못 바꾸게'],\n    role:   ['DELETE /admin/... (viewer 가)', '역할 확인', '권한 없는 역할이 관리 기능에 닿음'],\n  }[spot];\n  render('점검 지점: ' + cases[0],\n    '  확인할 것: ' + cases[1] + '\\n  위험: <span class=\\\"no\\\">' + cases[2] + '</span>\\n\\n' +\n    '  각 지점에 소유권·역할·필드 제한을 확인하고, 접근을 감사 로그로 남긴다.',\n    '단건·목록·중첩·대량수정·역할 — 다섯 자리를 체계적으로 점검하라.',\n    box('점검', cases[0] + '\\n-> ' + cases[1] + '\\n위험: ' + cases[2], 'bad'));\n</script>",
-          "controls": [
-            {
-              "id": "spot",
-              "label": "점검 지점",
-              "type": "select",
-              "value": "single",
-              "options": [
-                {
-                  "value": "single",
-                  "label": "단건 조회"
-                },
-                {
-                  "value": "list",
-                  "label": "목록"
-                },
-                {
-                  "value": "nested",
-                  "label": "중첩 자원"
-                },
-                {
-                  "value": "mass",
-                  "label": "대량 수정(권한상승)"
-                },
-                {
-                  "value": "role",
-                  "label": "역할 확인"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "note",
-          "text": "**대량 할당(mass assignment)에 주의.** `PATCH /users/me` 에 `{role: \"admin\"}` 을 실어 보내는데 서버가 요청 본문을 통째로 저장하면, 사용자가 스스로 관리자가 된다. **수정 가능한 필드를 화이트리스트**로 제한해, `role`·`isAdmin`·`balance` 같은 권한·민감 필드는 이 경로로 못 바꾸게 한다(api-resource 필드 계약)."
-        },
-        {
-          "type": "p",
-          "text": "**접근을 감사 로그로 남겨라.** 「누가·언제·무엇에·무슨 권한으로」 접근했는지 기록하면, 사고 시 추적하고(traceId, api-error 8장) 이상 접근을 탐지한다. 특히 권한 변경·관리 기능·민감 데이터 접근은 반드시 로그로 남긴다 — 예방이 뚫렸을 때 **탐지와 대응**의 근거가 된다."
-        },
-        {
-          "type": "try",
-          "text": "이 다섯 지점(단건·목록·중첩·대량수정·역할)을 네 API 에 하나씩 대입해 점검하라. 수정 API 가 권한·민감 필드를 화이트리스트로 막는지, 접근이 감사 로그에 남는지 확인하라."
-        }
-      ],
-      "quiz": [
-        {
-          "q": "대량 할당(mass assignment) 사고란?",
-          "choices": [
-            "느린 저장",
-            "요청 본문에 role 등을 실어 권한 상승",
-            "SQL 인젝션",
-            "XSS"
-          ],
-          "answer": 1,
-          "why": "수정 필드 화이트리스트."
-        },
-        {
-          "q": "목록 API 에서 확인할 권한 사항은?",
-          "choices": [
-            "정렬",
-            "내 것만 반환하는지(남의 것 섞임 방지)",
-            "속도",
-            "캐시"
-          ],
-          "answer": 1,
-          "why": "대량 유출 방지."
-        },
-        {
-          "q": "감사 로그의 목적은?",
-          "choices": [
-            "성능",
-            "누가 무엇에 접근했는지 추적·이상 탐지",
-            "캐시",
-            "정렬"
-          ],
-          "answer": 1,
-          "why": "예방이 뚫렸을 때 대응."
-        }
-      ]
+      "type": "code",
+      "lang": "text",
+      "label": "단계",
+      "text": "역할 기반(RBAC)   admin · editor · viewer      ← 대부분 여기서 충분\n자원 기반         \"이 문서의 편집자\"           ← 협업 앱에 필요\n속성 기반(ABAC)   \"같은 부서 + 근무 시간\"       ← 복잡, 정말 필요할 때만\n\n권한 검사는 한 곳에 모아라 — can(user, \"edit\", doc)\n흩어지면 어디가 뚫렸는지 아무도 모른다"
     },
     {
-      "id": "9",
-      "title": "점검표 — 인증과 권한",
-      "minutes": 7,
-      "blocks": [
-        {
-          "type": "p",
-          "text": "API 의 접근 제어를 설계·점검할 때 이 목록을 확인하라. 핵심은 「인증과 권한을 나누고·구조로 강제하고·서버가 진실·최소 권한」이다."
-        },
-        {
-          "type": "demo",
-          "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
-          "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .grid { display:grid; gap:3px; margin:8px 0; font:11px ui-monospace, monospace; }\n  .cell { padding:6px 4px; border-radius:4px; text-align:center; background:#111c33; }\n  .cell.allow { background:#132a1c; color:#4ade80; } .cell.deny { background:#2a1414; color:#fca5a5; }\n  .cell.hd { background:transparent; color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '인증(누구냐)과 권한(할 수 있냐)을 나눈다',\n    '모든 자원 접근에 소유권/역할을 확인한다(IDOR)',\n    '데이터 접근을 사용자 범위로 강제한다',\n    '권한은 기본 거부(새 엔드포인트 자동 차단)',\n    '역할(RBAC) + 소유권을 함께 쓴다',\n    '최소 권한 — 토큰·키에 필요한 스코프만',\n    '토큰은 짧게 + 즉시 무효화 수단',\n    '모든 권한 검사를 서버에서(클라 숨김은 UX)',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — id 를 바꿔 넣어도 남의 것이 안 열린다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '인증/권한 분리·구조로 강제·서버가 진실·최소 권한. 접근 제어의 네 기둥.',\n    '<div>' + rows + '</div>');\n</script>",
-          "controls": [
-            {
-              "id": "n",
-              "label": "확인한 항목",
-              "type": "range",
-              "min": 0,
-              "max": 8,
-              "step": 1,
-              "value": 0
-            }
-          ]
-        },
-        {
-          "type": "note",
-          "text": "**한 줄 요약: id 를 바꿔 넣어 보라.** 가장 흔한 사고(IDOR)를 스스로 재현해 보는 것이 최고의 점검이다. 인증만으로 안심하지 말고, 모든 자원 접근에 소유권·역할을 확인하되(2·4장) **기억이 아니라 구조로**(3장), 서버에서(7장), 최소 권한으로(5장) 한다."
-        },
-        {
-          "type": "p",
-          "text": "**이 트랙의 방패.** 권한은 api-error 의 401/403 으로 표현되고, 토큰·인증은 sec-authn 과, 최소 권한·피해 범위는 sec 트랙 전반과, 대량 할당 방어는 api-resource 의 필드 계약과 이어진다. **「이 요청을 이 사람이 해도 되는가」를 모든 자원에서 묻는 것이 신뢰받는 API 의 방패**다."
-        },
-        {
-          "type": "try",
-          "text": "다른 계정으로 네 자원 id 를 요청하는 테스트를 엔드포인트마다 추가하라. 「새 엔드포인트가 기본 거부로 시작하는가」와 「목록이 남의 것을 안 섞는가」 두 가지부터 확인하면 큰 구멍이 막힌다."
-        }
+      "type": "h",
+      "text": "4. 토큰 다루기"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "실무 기준",
+      "text": "· 액세스 토큰은 짧게(분 단위) + 리프레시 토큰으로 갱신\n· 권한 변경·탈퇴는 즉시 반영돼야 한다 → 서버 측 무효화 목록 필요\n     (JWT 는 스스로 취소되지 않는다 — 이걸 모르면 \"해고했는데 아직 접근됨\")\n· 스코프를 최소로 (읽기 전용 토큰을 따로)\n· 토큰을 URL 에 넣지 마라 — 로그·리퍼러에 남는다"
+    },
+    {
+      "type": "h",
+      "text": "5. 검사할 것들"
+    },
+    {
+      "type": "code",
+      "lang": "text",
+      "label": "테스트로 박아 둬라",
+      "text": "· 남의 id 로 조회/수정 → 404 또는 403 인가\n· 목록 API 가 남의 것을 섞어 주지 않는가\n· 권한 없는 역할이 관리자 기능을 부를 수 있나\n· 하위 자원(/posts/1/comments/9)의 부모 관계를 검사하는가  ← 자주 빠진다\n· 토큰 없이 부르면 401 인가"
+    },
+    {
+      "type": "h",
+      "text": "직접 해보기"
+    },
+    {
+      "type": "try",
+      "text": "다른 계정을 만들어 내 자원 id 로 요청해 보라. 열리면 그 자리가 사고 지점이다."
+    },
+    {
+      "type": "try",
+      "text": "권한 검사 테스트를 엔드포인트마다 하나씩 추가하고, 새 엔드포인트가 기본 거부로 시작하는지 확인하라."
+    }
+  ],
+  "quiz": [
+    {
+      "q": "가장 흔한 실제 API 보안 사고는?",
+      "choices": [
+        "남의 자원 id 로 접근되는 권한 검사 누락",
+        "암호화 부족",
+        "SQL 인젝션"
       ],
-      "quiz": [
-        {
-          "q": "접근 제어 점검의 가장 좋은 방법은?",
-          "choices": [
-            "코드 리뷰만",
-            "다른 계정으로 남의 id 를 넣어 IDOR 재현",
-            "속도 측정",
-            "문서화"
-          ],
-          "answer": 1,
-          "why": "가장 흔한 사고를 재현."
-        },
-        {
-          "q": "접근 제어의 네 기둥은?",
-          "choices": [
-            "빠름·큼·숨김·admin",
-            "인증/권한 분리·구조로 강제·서버가 진실·최소 권한",
-            "캐시·복제·샤딩·압축",
-            "토큰만"
-          ],
-          "answer": 1,
-          "why": "네 축."
-        },
-        {
-          "q": "먼저 잡을 두 가지는?",
-          "choices": [
-            "GraphQL·복제",
-            "기본 거부(새 엔드포인트) + 목록이 남의 것 안 섞기",
-            "URL·헤더",
-            "캐시·압축"
-          ],
-          "answer": 1,
-          "why": "큰 구멍을 막는다."
-        }
-      ]
+      "answer": 0,
+      "why": "OWASP 1위가 접근 통제 실패다."
+    },
+    {
+      "q": "권한 검사를 안전하게 만드는 방법은?",
+      "choices": [
+        "조회 자체를 사용자 범위로 강제한다",
+        "리뷰를 꼼꼼히 한다",
+        "문서에 적는다"
+      ],
+      "answer": 0,
+      "why": "잊을 수 없는 구조가 필요하다."
+    },
+    {
+      "q": "JWT 만 쓰면 생기는 문제는?",
+      "choices": [
+        "만료 전까지 취소가 안 된다",
+        "느리다",
+        "크기가 크다"
+      ],
+      "answer": 0,
+      "why": "무효화 목록이나 짧은 수명이 필요하다."
     }
   ]
 }
