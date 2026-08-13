@@ -77,6 +77,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   function draw(container: HTMLElement): void {
     injectStyles();
     materialShell(container, {
+      id: 'time',
       intake: 'text',
       live: true,
       accept: 'text/*',
@@ -89,6 +90,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       },
       labels: {
         change: t('time.btn.change', undefined, '다시 적기'),
+        recent: t('time.btn.recent', undefined, '방금 하던 것'),
         back: t('time.btn.back', undefined, '할 일 고르기'),
         chain: t('time.btn.chain', undefined, '이 결과로 이어서'),
         fail: t('time.preview.fail', undefined, '언제인지 못 알아들었습니다'),

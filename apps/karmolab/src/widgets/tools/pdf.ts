@@ -88,6 +88,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   function draw(container: HTMLElement): void {
     injectStyles();
     materialShell(container, {
+      id: 'pdf',
       accept: 'application/pdf,.pdf',
       multiple: true,
       groups: GROUPS,
@@ -99,6 +100,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       },
       labels: {
         change: t('pdf.btn.change', undefined, '바꾸기'),
+        recent: t('pdf.btn.recent', undefined, '방금 하던 것'),
         back: t('pdf.btn.back', undefined, '할 일 고르기'),
         chain: t('pdf.btn.chain', undefined, '이 결과로 이어서'),
         more: t('pdf.more', undefined, '{name} 외 {n}개'),
