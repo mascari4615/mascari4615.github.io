@@ -40,6 +40,20 @@ export const 파생물 = [
     why: '로비가 읽는 명패 + 조각 표 — 낡으면 새 게임이 오락실에 안 뜨거나 눌러도 안 열린다'
   },
   {
+    npm: 'gen:og',
+    outputs: ['img/og'],
+    why: '링크를 공유할 때 나가는 그림 — 낡으면 지금과 다른 문구가 붙는다',
+    /* 굽는 데 그림 185장을 그린다(몇 분). 감사기가 매번 굽게 두면 아무도 안 돌린다 —
+       대신 **전용 검사**가 있다: `audit:cards:fresh`(그리지 않고 문구만 견준다). */
+    무거움: 'audit:cards:fresh 가 대신 본다'
+  },
+  {
+    npm: 'gen:llms',
+    outputs: ['../blog/assets/llms.txt', '../blog/assets/llms-full.txt'],
+    why: '크롤러·모델이 읽는 소개 목록 — 낡으면 없는 도구를 알려 준다',
+    무거움: '배포가 매번 다시 굽는다(build:artifacts)'
+  },
+  {
     npm: 'gen:core-tools',
     outputs: ['data/core-tools.json', 'src/core/registry.generated.ts', 'src/core/registry-lazy.generated.ts'],
     why: '묶어 쓰기·MCP 가 부를 수 있는 도구 목록'
