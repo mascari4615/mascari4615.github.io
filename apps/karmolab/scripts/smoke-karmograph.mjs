@@ -60,15 +60,21 @@ const ms = (base) => base * SLOW;
 console.log(`[cal] 위젯 첫 등장 ${readyMs}ms · 기다림 배수 ${SLOW}배`);
 
 /**
- * **지금 이 컴퓨터가 얼마나 바쁜가** — 한 번 왕복해 보고 걸린 시간을 잰다.
- * 세션 여럿이 같은 기계에서 빌드를 돌리는 작업공간이라, 같은 커밋이 판마다 다르게 나온다.
+ * **지금 이 기계가 얼마나 바쁜가** — 브라우저가 아니라 **이 프로세스에서** 잰다.
+ *
+ * 처음엔 창에 rAF 한 번 왕복시켜 쟀는데, 그 값은 **본 창이 한가하면 계속 작다** — 정작 느려지는
+ * 것은 새로 띄운 딴 창과 빌드가 CPU 를 나눠 쓰는 판이라, 바쁜데도 「한가함」으로 읽혔다
+ * (2026-08-13: 그 자로 「기계 탓 아님」이라 적었다가, 한가한 시간대에 세 판 연속 초록이 나와
+ * 자 자체가 틀렸음이 드러났다). 그래서 **정해진 계산 한 뭉치**를 돌려 걸린 시간을 본다 —
+ * 같은 일이므로 기계가 바쁠수록 그대로 길어진다.
  */
-const probe = async () => {
+const probe = () => {
   const t0 = Date.now();
-  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => r(1)))).catch(() => {});
-  return Date.now() - t0;
+  let x = 0;
+  for (let i = 0; i < 4_000_000; i++) x += i % 7;
+  return Math.max(1, Date.now() - t0) + (x & 0);
 };
-const baseBusy = Math.max(8, await probe());
+const baseBusy = Math.max(4, Math.min(probe(), probe()));
 /** 기다리다 못 만난 항목만 해당 — 그때 기계가 놀고 있었으면 **진짜 빨강**이다. */
 const STALL = /Timeout \d+ms exceeded|안 끝났다/;
 const stalled = [];
@@ -129,7 +135,7 @@ const step = async (name, fn) => {
        있다. 둘을 안 가르면 게이트가 「판마다 다른 한 건」이 되어 아무도 안 본다(실측 2026-08-13:
        세 판 연속 1·1·2건, 매번 다른 항목, 혼자 돌리면 20판 중 0건). 그 자리에서 **한 번 더 재
        보고** 바쁘면 ⏸ 로 따로 적는다 — 초록도 빨강도 아니다. 한가했으면 그대로 빨강. */
-    const busy = STALL.test(e.message) ? await probe() : 0;
+    const busy = STALL.test(e.message) ? probe() : 0;
     if (busy > baseBusy * 3) {
       console.log(`  ⏸ 못 쟀다 ${name} — 그때 기계가 바빴다 (왕복 ${baseBusy}ms → ${busy}ms)`);
       stalled.push(`${name}: 기계 바쁨 ${baseBusy}ms → ${busy}ms`);
@@ -1999,7 +2005,22 @@ await step('되돌리기 구멍 감사 — 고친 것마다 Ctrl+Z 로 원래대
     await m.keyboard.press('Escape');
     await m.mouse.click(box.x + box.width * 0.9, box.y + box.height * 0.15);
   }
-  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 2, null, { timeout: ms(6000) });
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 2, null, { timeout: ms(6000) })
+    .catch(async () => {
+      /* 판마다 다른 한 건으로 빨개지던 자리 — 「두 번 눌러 만들기」가 가끔 한 장만 만든다.
+         무엇이 남아 있었는지 그 자리에서 적는다(딴 창이라 바깥 덤프가 못 본다, KL-271). */
+      const d = await m.evaluate(() => ({
+        onScreen: document.querySelectorAll('.ck-node').length,
+        inline: document.querySelectorAll('.km-inline').length,
+        saved: (() => {
+          try {
+            const id = JSON.parse(localStorage.getItem('karmograph.index')).activeId;
+            return JSON.parse(localStorage.getItem(`karmograph.map.${id}`)).nodes.length;
+          } catch { return null; }
+        })(),
+      })).catch(() => null);
+      throw new Error(`두 번 눌러 만든 카드가 둘이 안 됐다 · 상태=${JSON.stringify(d)}`);
+    });
 
   /** 저장본의 알맹이 — 자리·크기·이름만 본다(고른 카드 같은 화면 상태는 되돌리기 대상이 아니다). */
   const shot = () => m.evaluate(() => JSON.stringify(JSON.parse(localStorage.getItem(
