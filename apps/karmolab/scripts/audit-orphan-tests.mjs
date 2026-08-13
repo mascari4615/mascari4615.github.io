@@ -70,7 +70,21 @@ for (const entry of ['build', 'gates', 'verify:prepush', 'verify:quality', 'veri
 }
 
 /* 라이브 목록은 배열이라 이름이 따옴표 안에 있다 */
-const live = fs.readFileSync(path.join(root, 'scripts/live-checks.mjs'), 'utf8');
+/* ★ **볼 것을 한 자리에서 본다** (2026-08-13). 밀 커밋 기준으로 판정할 때 `package.json` 만
+   커밋에서 읽고 라이브 목록·워크플로는 **작업 폴더**에서 읽고 있었다 — 그 어긋남 때문에
+   「이건 이제 묶음에 들었다」고 잘못 읽고 기준선을 줄였다가 CI 를 여러 판 세웠다(오늘 실측).
+   `KL_PUSH_SHA` 가 있으면 셋 다 그 커밋에서 읽는다. 못 읽으면 폴더로 물러선다. */
+const atRef = (relFromApp) => {
+  if (!REF) return null;
+  try {
+    const env = { ...process.env };
+    for (const k of ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_PREFIX']) delete env[k];
+    return execFileSync('git', ['show', `${REF}:./${relFromApp}`], { cwd: root, env, encoding: 'utf8' });
+  } catch {
+    return null;
+  }
+};
+const live = atRef('scripts/live-checks.mjs') || fs.readFileSync(path.join(root, 'scripts/live-checks.mjs'), 'utf8');
 for (const m of live.matchAll(/["'](?:test|smoke|audit):[\w:.-]+["']/g)) {
   const name = m[0].slice(1, -1);
   covered.add(name);
