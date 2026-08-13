@@ -14,6 +14,7 @@
  * exit: 0 = 전부 초록 / 1 = 빨강 있음
  */
 import { spawnSync } from 'node:child_process';
+import { appendFileSync, writeFileSync } from 'node:fs';
 import { CHECKS, PREP } from './live-checks.mjs';
 
 const argv = process.argv.slice(2);
@@ -64,6 +65,17 @@ for (const r of results) {
   console.log(`  ${r.code === 0 ? '✓' : '✘'} ${r.name.padEnd(34, ' ')} ${String(r.sec).padStart(3)}s${r.code ? `  — exit ${r.code}` : ''}`);
 }
 const red = results.filter((r) => r.code !== 0);
+
+/* 빨간 검사의 **이름**을 파일과 실행 요약에 남긴다 (2026-08-13).
+   경보 이슈에 「로그를 보세요」만 328번 쌓여 있었다 — 무엇이 빨간지 안 적혀 있으면
+   경보를 열어도 아무것도 모르고, 그런 경보는 꺼진 경보다. 워크플로가 이 파일을 읽어 적는다. */
+const NL = String.fromCharCode(10);
+writeFileSync('live-check-red.txt', red.map((r) => r.name).join(NL) + (red.length ? NL : ''), 'utf8');
+if (process.env.GITHUB_STEP_SUMMARY) {
+  const lines = results.map((r) => `- ${r.code === 0 ? '✅' : '❌'} ${r.name} (${r.sec}s)`);
+  appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## 라이브 점검 — 빨강 ${red.length} / ${results.length}` + NL + lines.join(NL) + NL, 'utf8');
+}
+
 if (red.length) {
   console.error(`\n[verify:live] 빨강 ${red.length}개 / ${results.length}개 — **한 판에 전부 보인다**:`);
   for (const r of red) console.error(`  - ${r.name}`);

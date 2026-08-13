@@ -121,3 +121,4 @@ apps/karmolab/build.json
 **/.*.tmp.mjs
 apps/karmolab/.kl-*.mjs
 apps/karmolab/*.png
+apps/karmolab/live-check-red.txt
