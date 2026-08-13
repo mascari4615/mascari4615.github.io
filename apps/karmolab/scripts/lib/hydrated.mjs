@@ -29,6 +29,13 @@ export async function waitHydrated(page, selector, opts = {}) {
       (sel) => {
         const el = document.querySelector(sel);
         if (!el) return false;
+        /* ★ **준 그 요소가 단추면 그 단추에게 묻는다** (2026-08-13).
+           예전에는 「같은 화면 안 아무 단추 하나라도 손이 붙었으면」이었다. 그런데 도구 상세
+           화면에는 셸이 만든 단추들이 이미 손을 달고 앉아 있어서, **그 도구 자신은 아직 안
+           그려졌는데** 신호가 참이 됐다. 판본 대조가 그 틈에 걸렸다: 파일 두 개를 미리 그린
+           HTML 쪽 입력칸에 넣고 나면, 곧이어 위젯이 그 자리를 통째로 갈아 끼워 파일이 사라지고
+           「두 판본을 모두 넣어 주세요」로 끝났다(실사이트 실측). 준 요소가 단추면 그 단추다. */
+        if (el.tagName === 'BUTTON') return typeof el.onclick === 'function';
         const page = el.closest('.tool-page') || document.getElementById('tool-pages');
         if (!page) return false;
         const 단추 = [...page.querySelectorAll('button')];

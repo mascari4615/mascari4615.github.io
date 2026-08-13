@@ -133,8 +133,20 @@ if (typeof document !== 'undefined') void loadNamespace('pwa');
     });
   });
 
+  /* ★ **처음 붙는 것은 갈아치우는 것이 아니다** (2026-08-13).
+   *
+   * 일꾼(service worker)이 처음 설치되면 그 자리에서 이 화면을 넘겨받는다(`clients.claim`).
+   * 그때도 `controllerchange` 가 울린다 — 그래서 **첫 방문마다 화면이 한 번 새로고침됐다**
+   * (실사이트 실측: 열고 242ms 뒤). 그 사이에 넣은 것은 전부 사라진다. 판본 대조가 그렇게
+   * 죽어 있었다: 파일 두 개를 넣자마자 새로고침이 들어와 「두 판본을 모두 넣어 주세요」.
+   *
+   * 새로고침이 필요한 경우는 **이미 붙어 있던 일꾼이 새 판으로 바뀐** 때뿐이다. 처음 붙는
+   * 순간에는 낡은 것이 없으므로 버릴 것도 없다. 그래서 열릴 때 붙어 있었는지를 기억해 둔다. */
+  const 열릴때_붙어있었다 = !!navigator.serviceWorker.controller;
+
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (reloading) return;
+    if (!열릴때_붙어있었다) return; // 첫 설치가 넘겨받은 것 — 버릴 낡은 화면이 없다
     reloading = true;
     location.reload();
   });
