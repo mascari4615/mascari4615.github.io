@@ -108,7 +108,7 @@ export const airhockey: GameDef<AirState, AirAction> = {
         ...s,
         score,
         over,
-        puck: { x: W / 2, y: H / 2, vx: (Math.random() - 0.5) * 1.6, vy: Math.random() < 0.5 ? -1.4 : 1.4 }
+        puck: { x: W / 2, y: H / 2, vx: (ctx.rng() - 0.5) * 1.6, vy: ctx.rng() < 0.5 ? -1.4 : 1.4 }
       };
     }
 

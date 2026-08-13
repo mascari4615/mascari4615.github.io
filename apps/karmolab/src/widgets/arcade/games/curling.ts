@@ -196,12 +196,12 @@ export const curling: GameDef<CurlingState, CurlingAction> = {
     };
   },
 
-  bot(s, seat): BotMove<CurlingAction> | null {
+  bot(s, seat, ctx): BotMove<CurlingAction> | null {
     if (s.done || s.moving || s.turn !== seat) return null;
     if ((s.left[seat] ?? 0) <= 0) return null;
     /* 가운데를 노리되 손이 조금 떨린다 — 늘 정확하면 사람이 한 번도 못 이긴다. */
-    const aim = (Math.random() - 0.5) * 0.12;
-    const power = 0.56 + (Math.random() - 0.5) * 0.12;
-    return { action: { aim, power }, delayMs: 700 + Math.random() * 700 };
+    const aim = (ctx.rng() - 0.5) * 0.12;
+    const power = 0.56 + (ctx.rng() - 0.5) * 0.12;
+    return { action: { aim, power }, delayMs: 700 + ctx.rng() * 700 };
   }
 };

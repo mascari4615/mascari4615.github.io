@@ -129,7 +129,7 @@ export const onestroke: GameDef<StrokeState, StrokeAction> = {
     };
   },
 
-  bot(s, seat): BotMove<StrokeAction> | null {
+  bot(s, seat, ctx): BotMove<StrokeAction> | null {
     if (s.over || s.won !== -1) return null;
     const mine = s.drawn[seat] ?? [];
     const here = s.at[seat];
@@ -138,7 +138,7 @@ export const onestroke: GameDef<StrokeState, StrokeAction> = {
       .filter(({ e, i }) => !mine.includes(i) && (here < 0 || e.a === here || e.b === here));
     if (!can.length) return null;
     /* 봇은 앞을 안 읽는다 — 닿는 선 중 아무거나. 사람이 이길 자리가 있어야 한다. */
-    const pick = can[Math.floor(Math.random() * can.length)];
-    return { action: { edge: pick.i }, delayMs: 700 + Math.random() * 700 };
+    const pick = can[Math.floor(ctx.rng() * can.length)];
+    return { action: { edge: pick.i }, delayMs: 700 + ctx.rng() * 700 };
   }
 };

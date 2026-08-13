@@ -129,7 +129,7 @@ export const dominoes: GameDef<DominoesState, DominoesAction> = {
     };
   },
 
-  bot(s, seat): BotMove<DominoesAction> | null {
+  bot(s, seat, ctx): BotMove<DominoesAction> | null {
     if (s.won !== -1 || s.turn !== seat) return null;
     const hand = s.hands[seat] ?? [];
     const moves: Array<{ index: number; side: 'left' | 'right'; weight: number }> = [];
@@ -138,9 +138,9 @@ export const dominoes: GameDef<DominoesState, DominoesAction> = {
         if (canPlace(s.line, t, side)) moves.push({ index, side, weight: t[0] + t[1] });
       }
     });
-    if (!moves.length) return { action: { kind: 'draw' }, delayMs: 600 + Math.random() * 500 };
+    if (!moves.length) return { action: { kind: 'draw' }, delayMs: 600 + ctx.rng() * 500 };
     /* 눈이 큰 것부터 턴다 — 막혔을 때 손에 남은 눈이 적어야 이긴다. */
     const best = moves.reduce((a, b) => (b.weight > a.weight ? b : a), moves[0]);
-    return { action: { index: best.index, side: best.side }, delayMs: 600 + Math.random() * 700 };
+    return { action: { index: best.index, side: best.side }, delayMs: 600 + ctx.rng() * 700 };
   }
 };

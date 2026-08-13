@@ -118,7 +118,7 @@ export const hitblow: GameDef<HitBlowState, HitBlowAction> = {
     };
   },
 
-  bot(s, seat): BotMove<HitBlowAction> | null {
+  bot(s, seat, ctx): BotMove<HitBlowAction> | null {
     if (s.solved !== -1) return null;
     const mine = s.tries[seat] ?? [];
     if (mine.length >= TRIES) return null;
@@ -133,10 +133,10 @@ export const hitblow: GameDef<HitBlowState, HitBlowAction> = {
 
     let pick = '';
     for (let n = 0; n < 400 && !pick; n++) {
-      const c = shuffle(Math.random, ['0','1','2','3','4','5','6','7','8','9']).slice(0, DIGITS).join('');
+      const c = shuffle(ctx.rng, ['0','1','2','3','4','5','6','7','8','9']).slice(0, DIGITS).join('');
       if (new Set(c).size === DIGITS && fits(c)) pick = c;
     }
     if (!pick) return null;
-    return { action: { guess: pick }, delayMs: 1200 + Math.random() * 1400 };
+    return { action: { guess: pick }, delayMs: 1200 + ctx.rng() * 1400 };
   }
 };

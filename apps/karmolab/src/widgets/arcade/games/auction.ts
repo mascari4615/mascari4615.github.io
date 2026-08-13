@@ -119,15 +119,15 @@ export const auction: GameDef<AuctionState, AuctionAction> = {
     };
   },
 
-  bot(s, seat): BotMove<AuctionAction> | null {
+  bot(s, seat, ctx): BotMove<AuctionAction> | null {
     if (s.over || s.phase !== 'bid' || s.bids[seat] !== null) return null;
     const lot = s.lots[s.at];
     const left = s.lots.length - s.at;
     /* 남은 물건 수로 지갑을 나눠 「이번 몫」을 잡고, 값어치에 비례해 늘린다.
        거기에 흔들림을 얹는다 — 봇들이 늘 같은 숫자를 부르면 매번 겹쳐서 아무도 못 산다. */
     const share = s.money[seat] / Math.max(1, left);
-    const want = share * (lot / ((LOW + HIGH) / 2)) * (0.65 + Math.random() * 0.7);
+    const want = share * (lot / ((LOW + HIGH) / 2)) * (0.65 + ctx.rng() * 0.7);
     const bid = Math.max(0, Math.min(s.money[seat], Math.round(want)));
-    return { action: { bid }, delayMs: 900 + Math.random() * 2600 };
+    return { action: { bid }, delayMs: 900 + ctx.rng() * 2600 };
   }
 };

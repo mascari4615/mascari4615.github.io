@@ -123,7 +123,7 @@ export const simon: GameDef<SimonState, SimonAction> = {
     if (at >= s.len) return null;
     /* 길어질수록 더 자주 틀린다 — 사람과 비슷하게. */
     const forget = Math.min(0.45, 0.02 + s.len * 0.035);
-    const pad = Math.random() < forget ? Math.floor(Math.random() * PADS) : s.seq[at];
-    return { action: { pad }, delayMs: 320 + Math.random() * 280 };
+    const pad = ctx.rng() < forget ? Math.floor(ctx.rng() * PADS) : s.seq[at];
+    return { action: { pad }, delayMs: 320 + ctx.rng() * 280 };
   }
 };

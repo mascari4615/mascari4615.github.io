@@ -208,14 +208,14 @@ export const pool: GameDef<PoolState, PoolAction> = {
     };
   },
 
-  bot(s, seat): BotMove<PoolAction> | null {
+  bot(s, seat, ctx): BotMove<PoolAction> | null {
     if (s.won !== -1 || s.moving || s.turn !== seat) return null;
     const cue = s.balls.find((b) => b.cue && !b.in);
     if (!cue) return null;
     const target = s.balls.find((b) => !b.cue && !b.in);
     if (!target) return null;
     /* 제일 가까운 공을 향해 친다. 조준이 살짝 어긋나야 사람도 이긴다. */
-    const ang = Math.atan2(target.x - cue.x, cue.y - target.y) + (Math.random() - 0.5) * 0.14;
-    return { action: { aim: ang, power: 0.5 + Math.random() * 0.4 }, delayMs: 800 + Math.random() * 700 };
+    const ang = Math.atan2(target.x - cue.x, cue.y - target.y) + (ctx.rng() - 0.5) * 0.14;
+    return { action: { aim: ang, power: 0.5 + ctx.rng() * 0.4 }, delayMs: 800 + ctx.rng() * 700 };
   }
 };

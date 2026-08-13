@@ -115,15 +115,15 @@ export const wordchain: GameDef<ChainState, ChainAction> = {
     };
   },
 
-  bot(s, seat): BotMove<ChainAction> | null {
+  bot(s, seat, ctx): BotMove<ChainAction> | null {
     if (!s.alive[seat] || s.turn !== seat || aliveCount(s) <= 1) return null;
     const prev = s.chain[s.chain.length - 1];
     const can = PACK.words.filter((w) => PACK.links(prev, w) && !s.chain.includes(w));
     /* 못 이으면 아무 말도 안 한다 — 시간이 다 되어 스스로 떨어진다(사람과 같은 조건). */
     if (!can.length) return null;
     /* 다섯 번에 한 번쯤은 못 찾은 척 넘긴다. 봇이 사전을 다 알면 사람이 못 이긴다. */
-    if (Math.random() < 0.2) return null;
-    const pick = can[Math.floor(Math.random() * can.length)];
-    return { action: { word: pick }, delayMs: 1500 + Math.random() * 3500 };
+    if (ctx.rng() < 0.2) return null;
+    const pick = can[Math.floor(ctx.rng() * can.length)];
+    return { action: { word: pick }, delayMs: 1500 + ctx.rng() * 3500 };
   }
 };

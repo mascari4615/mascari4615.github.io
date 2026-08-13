@@ -142,7 +142,7 @@ export const liars: GameDef<LiarsState, LiarsAction> = {
     };
   },
 
-  bot(s, seat): BotMove<LiarsAction> | null {
+  bot(s, seat, ctx): BotMove<LiarsAction> | null {
     if (s.showAt !== 0 || !s.alive[seat] || s.turn !== seat || aliveCount(s) <= 1) return null;
     const mine = s.dice[seat] ?? [];
     const total = s.dice.reduce((n, d) => n + d.length, 0);
@@ -153,18 +153,18 @@ export const liars: GameDef<LiarsState, LiarsAction> = {
       for (const d of mine) if (d !== 1) counts[d]++;
       let face = 2;
       for (let f = 2; f <= FACES; f++) if (counts[f] >= counts[face]) face = f;
-      return { action: { kind: 'bid', face, count: Math.max(1, counts[face]) }, delayMs: 800 + Math.random() * 700 };
+      return { action: { kind: 'bid', face, count: Math.max(1, counts[face]) }, delayMs: 800 + ctx.rng() * 700 };
     }
 
     /* 내 손에 있는 것 + 남들에게 기대되는 수(3분의 1쯤)로 어림한다. */
     const mineHas = mine.filter((d) => d === s.bid!.face || d === 1).length;
     const others = total - mine.length;
     const expect = mineHas + others / 3;
-    if (s.bid.count > expect + 1.2) return { action: { kind: 'call' }, delayMs: 800 + Math.random() * 700 };
+    if (s.bid.count > expect + 1.2) return { action: { kind: 'call' }, delayMs: 800 + ctx.rng() * 700 };
 
     return {
       action: { kind: 'bid', face: s.bid.face, count: s.bid.count + 1 },
-      delayMs: 800 + Math.random() * 700
+      delayMs: 800 + ctx.rng() * 700
     };
   }
 };

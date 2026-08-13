@@ -83,14 +83,14 @@ export const dots: GameDef<DotsState, DotsAction> = {
     };
   },
 
-  bot(s, seat): BotMove<DotsAction> | null {
+  bot(s, seat, ctx): BotMove<DotsAction> | null {
     if (s.turn !== seat) return null;
     const free = s.lines.map((v, i) => (v === 0 ? i : -1)).filter((i) => i >= 0);
     if (!free.length) return null;
 
     const move = (line: number): BotMove<DotsAction> => ({
       action: { line },
-      delayMs: 500 + Math.random() * 600
+      delayMs: 500 + ctx.rng() * 600
     });
 
     /* ① 닫을 수 있으면 닫는다 (그리고 한 번 더 둔다). */
@@ -111,6 +111,6 @@ export const dots: GameDef<DotsState, DotsAction> = {
       });
     });
     const pool = safe.length ? safe : free;
-    return move(pool[Math.floor(Math.random() * pool.length)]);
+    return move(pool[Math.floor(ctx.rng() * pool.length)]);
   }
 };

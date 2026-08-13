@@ -116,7 +116,7 @@ export const mancala: GameDef<MancalaState, MancalaAction> = {
     };
   },
 
-  bot(s, seat): BotMove<MancalaAction> | null {
+  bot(s, seat, ctx): BotMove<MancalaAction> | null {
     if (s.over || s.turn !== seat) return null;
     const pits = s.board.map((v, i) => ({ v, i })).filter(({ v, i }) => ownsPit(seat, i) && v > 0);
     if (!pits.length) return null;
@@ -125,9 +125,9 @@ export const mancala: GameDef<MancalaState, MancalaAction> = {
     const value = ({ i }: { i: number }): number => {
       const r = sow(s.board, seat, i);
       const gain = r.board[STORE[seat]] - s.board[STORE[seat]];
-      return (r.again ? 20 : 0) + gain * 2 + Math.random();
+      return (r.again ? 20 : 0) + gain * 2 + ctx.rng();
     };
     const best = pits.reduce((x, y) => (value(y) > value(x) ? y : x), pits[0]);
-    return { action: { pit: best.i }, delayMs: 600 + Math.random() * 600 };
+    return { action: { pit: best.i }, delayMs: 600 + ctx.rng() * 600 };
   }
 };

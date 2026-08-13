@@ -142,7 +142,7 @@ export const lineup: GameDef<LineupState, LineupAction> = {
   bot(s, seat, ctx): BotMove<LineupAction> | null {
     if (s.phase === 'pick') {
       if (s.picks[seat] !== null) return null;
-      return { action: { kind: 'pick', value: Math.floor(Math.random() * 101) }, delayMs: 800 + Math.random() * 900 };
+      return { action: { kind: 'pick', value: Math.floor(ctx.rng() * 101) }, delayMs: 800 + ctx.rng() * 900 };
     }
     if (s.phase === 'order') {
       if (s.guesses[seat] !== null) return null;
@@ -150,10 +150,10 @@ export const lineup: GameDef<LineupState, LineupAction> = {
       const seats = ctx.seats.length;
       const order = Array.from({ length: seats }, (_, i) => i);
       for (let i = order.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(ctx.rng() * (i + 1));
         [order[i], order[j]] = [order[j], order[i]];
       }
-      return { action: { kind: 'order', order }, delayMs: 1000 + Math.random() * 1200 };
+      return { action: { kind: 'order', order }, delayMs: 1000 + ctx.rng() * 1200 };
     }
     return null;
   }

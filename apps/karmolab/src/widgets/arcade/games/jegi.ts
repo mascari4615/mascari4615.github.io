@@ -99,7 +99,7 @@ export const jegi: GameDef<JegiState, JegiAction> = {
     /* 제기가 내려오는 그 시각을 겨눈다. 자리마다 발버릇이 달라 어떤 봇은 살짝 이르고
        어떤 봇은 살짝 늦는다 — 개수가 오르면 틈이 좁아지니 같은 버릇이라도 언젠가 놓친다. */
     const bias = ((seat % 3) - 1) * 20;
-    const shake = (Math.random() - 0.5) * window_(s.count[seat]) * 1.4;
+    const shake = (ctx.rng() - 0.5) * window_(s.count[seat]) * 1.4;
     return { action: { kind: 'kick' }, delayMs: Math.max(0, s.landAt[seat] - ctx.now + bias + shake) };
   }
 };

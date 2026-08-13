@@ -106,7 +106,7 @@ export const ultimate: GameDef<UltimateState, UltimateAction> = {
     };
   },
 
-  bot(s, seat): BotMove<UltimateAction> | null {
+  bot(s, seat, ctx): BotMove<UltimateAction> | null {
     if (s.won !== -1 || s.turn !== seat) return null;
     const me = seat + 1;
     const foe = 2 - seat;
@@ -136,9 +136,9 @@ export const ultimate: GameDef<UltimateState, UltimateAction> = {
     let best = moves[0];
     let bestV = -Infinity;
     for (const c of moves) {
-      const v = value(c) + Math.random();
+      const v = value(c) + ctx.rng();
       if (v > bestV) { bestV = v; best = c; }
     }
-    return { action: { cell: best }, delayMs: 600 + Math.random() * 800 };
+    return { action: { cell: best }, delayMs: 600 + ctx.rng() * 800 };
   }
 };

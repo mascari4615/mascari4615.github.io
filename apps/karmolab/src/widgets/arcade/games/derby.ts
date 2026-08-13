@@ -146,13 +146,13 @@ export const derby: GameDef<DerbyState, DerbyAction> = {
     };
   },
 
-  bot(s, seat): BotMove<DerbyAction> | null {
+  bot(s, seat, ctx): BotMove<DerbyAction> | null {
     if (s.over || s.since !== 0 || s.bet[seat] !== null) return null;
     /* 봇은 배당이 큰 말을 좋아한다 — 사람과 다른 쪽에 걸어야 판이 재밌다. */
     const pick = s.horses
       .map((_, i) => ({ i, o: odds(s.horses, i) }))
-      .sort((a, b) => b.o - a.o)[Math.floor(Math.random() * 2)];
-    const amount = 20 + Math.floor(Math.random() * 40);
-    return { action: { horse: pick.i, amount }, delayMs: 800 + Math.random() * 800 };
+      .sort((a, b) => b.o - a.o)[Math.floor(ctx.rng() * 2)];
+    const amount = 20 + Math.floor(ctx.rng() * 40);
+    return { action: { horse: pick.i, amount }, delayMs: 800 + ctx.rng() * 800 };
   }
 };

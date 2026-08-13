@@ -144,7 +144,7 @@ export const snake: GameDef<SnakeState, SnakeAction> = {
     };
   },
 
-  bot(s, seat): BotMove<SnakeAction> | null {
+  bot(s, seat, ctx): BotMove<SnakeAction> | null {
     if (s.over) return null;
     const me = s.snakes[seat];
     if (!me?.alive) return null;
@@ -159,8 +159,8 @@ export const snake: GameDef<SnakeState, SnakeAction> = {
     if (!safe.length) return null;
 
     /* 안전한 방향 중 먹이에 가까워지는 쪽. 가끔 엉뚱하게 가야 사람이 이긴다. */
-    if (Math.random() < 0.15) {
-      return { action: { dir: safe[Math.floor(Math.random() * safe.length)] }, delayMs: STEP_MS };
+    if (ctx.rng() < 0.15) {
+      return { action: { dir: safe[Math.floor(ctx.rng() * safe.length)] }, delayMs: STEP_MS };
     }
     const target = s.food[0] ?? 0;
     const [fx, fy] = xy(target);

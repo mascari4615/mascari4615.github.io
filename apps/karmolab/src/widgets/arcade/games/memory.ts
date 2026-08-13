@@ -96,7 +96,7 @@ export const memory: GameDef<MemoryState, MemoryAction> = {
     };
   },
 
-  bot(s, seat): BotMove<MemoryAction> | null {
+  bot(s, seat, ctx): BotMove<MemoryAction> | null {
     if (s.hideAt !== 0 || s.turn !== seat || s.up.length >= 2) return null;
 
     const hidden = s.cards.map((_, i) => i).filter((i) => s.taken[i] === 0 && !s.up.includes(i));
@@ -108,12 +108,12 @@ export const memory: GameDef<MemoryState, MemoryAction> = {
       const want = s.cards[s.up[0]];
       const mate = hidden.find((i) => s.cards[i] === want);
       /* 열에 세 번쯤은 「기억해 냈다」. 늘 기억하면 봇이 아니라 벽이다. */
-      if (mate !== undefined && Math.random() < 0.35) {
-        return { action: { cell: mate }, delayMs: 700 + Math.random() * 500 };
+      if (mate !== undefined && ctx.rng() < 0.35) {
+        return { action: { cell: mate }, delayMs: 700 + ctx.rng() * 500 };
       }
     }
 
-    const pick = hidden[Math.floor(Math.random() * hidden.length)];
-    return { action: { cell: pick }, delayMs: 700 + Math.random() * 600 };
+    const pick = hidden[Math.floor(ctx.rng() * hidden.length)];
+    return { action: { cell: pick }, delayMs: 700 + ctx.rng() * 600 };
   }
 };

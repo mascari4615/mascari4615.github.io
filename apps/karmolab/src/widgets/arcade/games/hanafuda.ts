@@ -113,15 +113,15 @@ export const hanafuda: GameDef<HanafudaState, HanafudaAction> = {
     };
   },
 
-  bot(s, seat): BotMove<HanafudaAction> | null {
+  bot(s, seat, ctx): BotMove<HanafudaAction> | null {
     if (s.over || s.turn !== seat) return null;
     const hand = s.hands[seat] ?? [];
     if (!hand.length) return null;
     /* 짝이 있으면 가져간다. 없으면 제일 흔한 달을 버린다(쓸 데가 남아 있을 확률이 낮다). */
     for (let i = 0; i < hand.length; i++) {
       const k = s.floor.indexOf(hand[i]);
-      if (k >= 0) return { action: { hand: i, floor: k }, delayMs: 700 + Math.random() * 600 };
+      if (k >= 0) return { action: { hand: i, floor: k }, delayMs: 700 + ctx.rng() * 600 };
     }
-    return { action: { hand: 0, floor: -1 }, delayMs: 700 + Math.random() * 600 };
+    return { action: { hand: 0, floor: -1 }, delayMs: 700 + ctx.rng() * 600 };
   }
 };

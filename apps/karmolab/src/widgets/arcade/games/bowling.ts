@@ -212,11 +212,11 @@ export const bowling: GameDef<BowlingState, BowlingAction> = {
     };
   },
 
-  bot(s, seat): BotMove<BowlingAction> | null {
+  bot(s, seat, ctx): BotMove<BowlingAction> | null {
     if (s.done || s.moving || s.turn !== seat) return null;
     /* 가운데를 노리되 손이 떨린다 — 늘 스트라이크면 볼 맛이 없다. */
-    const aim = (Math.random() - 0.5) * 0.09;
-    const power = 0.7 + (Math.random() - 0.5) * 0.2;
-    return { action: { aim, power }, delayMs: 800 + Math.random() * 700 };
+    const aim = (ctx.rng() - 0.5) * 0.09;
+    const power = 0.7 + (ctx.rng() - 0.5) * 0.2;
+    return { action: { aim, power }, delayMs: 800 + ctx.rng() * 700 };
   }
 };

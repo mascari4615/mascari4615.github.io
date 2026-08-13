@@ -112,7 +112,7 @@ export const blackjack: GameDef<BlackjackState, BlackjackAction> = {
     };
   },
 
-  bot(s, seat): BotMove<BlackjackAction> | null {
+  bot(s, seat, ctx): BotMove<BlackjackAction> | null {
     if (s.settled || s.stood[seat]) return null;
     const hand = s.hands[seat];
     if (!hand || bust(hand)) return null;
@@ -120,6 +120,6 @@ export const blackjack: GameDef<BlackjackState, BlackjackAction> = {
     const t = total(hand);
     const strong = s.up >= 7 || s.up === 1;
     const hit = t <= 11 || (t <= 16 && strong);
-    return { action: { kind: hit ? 'hit' : 'stand' }, delayMs: 700 + Math.random() * 800 };
+    return { action: { kind: hit ? 'hit' : 'stand' }, delayMs: 700 + ctx.rng() * 800 };
   }
 };

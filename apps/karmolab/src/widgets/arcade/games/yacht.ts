@@ -149,7 +149,7 @@ export const yacht: GameDef<YachtState, YachtAction> = {
     };
   },
 
-  bot(s, seat): BotMove<YachtAction> | null {
+  bot(s, seat, ctx): BotMove<YachtAction> | null {
     if (s.turn !== seat) return null;
     const mine = s.sheet[seat];
     if (!mine) return null;
@@ -162,8 +162,8 @@ export const yacht: GameDef<YachtState, YachtAction> = {
       let best = 1;
       for (let v = 2; v <= 6; v++) if (c[v] >= c[best]) best = v;
       const wrong = s.dice.map((v, i) => ({ v, i })).find(({ v, i }) => (v === best) !== s.keep[i]);
-      if (wrong) return { action: { kind: 'keep', index: wrong.i }, delayMs: 250 + Math.random() * 250 };
-      return { action: { kind: 'roll' }, delayMs: 500 + Math.random() * 400 };
+      if (wrong) return { action: { kind: 'keep', index: wrong.i }, delayMs: 250 + ctx.rng() * 250 };
+      return { action: { kind: 'roll' }, delayMs: 500 + ctx.rng() * 400 };
     }
 
     /* 다 굴렸으면 **제일 값진 칸**에 적는다. 0점만 남으면 위 칸부터 버린다(원래 사람도 그렇게 한다). */
@@ -173,6 +173,6 @@ export const yacht: GameDef<YachtState, YachtAction> = {
       const v = scoreOf(c, s.dice);
       if (v > bestV) { bestV = v; pick = c; }
     }
-    return { action: { kind: 'write', cat: pick }, delayMs: 600 + Math.random() * 500 };
+    return { action: { kind: 'write', cat: pick }, delayMs: 600 + ctx.rng() * 500 };
   }
 };

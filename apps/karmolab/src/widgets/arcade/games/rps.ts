@@ -112,7 +112,7 @@ export const rps: GameDef<RpsState, RpsAction> = {
     };
   },
 
-  bot(s, seat): BotMove<RpsAction> | null {
+  bot(s, seat, ctx): BotMove<RpsAction> | null {
     if (s.over || s.showAt !== 0 || s.picks[seat] !== -1) return null;
     const can = [0, 1, 2].filter((h) => h !== s.locked[seat]);
     /* 상대가 못 내는 손을 안다면 그것을 이기는 손은 안 고른다(헛수). */
@@ -120,8 +120,8 @@ export const rps: GameDef<RpsState, RpsAction> = {
     const smart = can.filter((h) => foeLocked < 0 || !beats(foeLocked, h));
     const pool = smart.length ? smart : can;
     return {
-      action: { hand: pool[Math.floor(Math.random() * pool.length)] },
-      delayMs: 600 + Math.random() * 700
+      action: { hand: pool[Math.floor(ctx.rng() * pool.length)] },
+      delayMs: 600 + ctx.rng() * 700
     };
   }
 };

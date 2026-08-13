@@ -119,7 +119,7 @@ export const darts: GameDef<DartsState, DartsAction> = {
   bot(s, seat, ctx): BotMove<DartsAction> | null {
     if (s.won !== -1 || s.turn !== seat) return null;
     /* 봇도 사람과 같은 조건 — 흔들리는 겨눔을 「지금」으로 끊는다. 좋은 때를 노리되 자주 놓친다. */
-    const wait = 200 + Math.random() * 900;
+    const wait = 200 + ctx.rng() * 900;
     void ctx;
     return { action: { kind: 'throw' }, delayMs: wait };
   }

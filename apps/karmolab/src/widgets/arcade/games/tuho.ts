@@ -123,7 +123,7 @@ export const tuho: GameDef<TuhoState, TuhoAction> = {
     };
   },
 
-  bot(s, seat): BotMove<TuhoAction> | null {
+  bot(s, seat, ctx): BotMove<TuhoAction> | null {
     if (s.over || s.fly || s.turn !== seat || s.left[seat] <= 0) return null;
     /* 항아리로 곧장 가는 값을 거꾸로 풀고, 자리마다 다른 손버릇만큼 흔든다. */
     const want = dist(FROM.x, FROM.y, POT.x, POT.y);
@@ -131,10 +131,10 @@ export const tuho: GameDef<TuhoState, TuhoAction> = {
     const sloppy = 0.05 + (seat % 4) * 0.028;
     return {
       action: {
-        ang: 0.5 + (Math.random() - 0.5) * sloppy,
-        pow: Math.min(1, Math.max(0, pow + (Math.random() - 0.5) * sloppy * 1.7))
+        ang: 0.5 + (ctx.rng() - 0.5) * sloppy,
+        pow: Math.min(1, Math.max(0, pow + (ctx.rng() - 0.5) * sloppy * 1.7))
       },
-      delayMs: 700 + Math.random() * 700
+      delayMs: 700 + ctx.rng() * 700
     };
   }
 };

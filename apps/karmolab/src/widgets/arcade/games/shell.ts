@@ -153,7 +153,7 @@ export const shellgame: GameDef<ShellState, ShellAction> = {
     /* 봇도 눈으로 쫓는 셈 친다 — 판이 빨라질수록 더 자주 놓친다. */
     const right = ballAt(s);
     const keep = Math.max(0.25, 0.9 - s.round * 0.14);
-    const cup = Math.random() < keep ? right : Math.floor(Math.random() * CUPS);
-    return { action: { cup }, delayMs: 500 + Math.random() * 700 };
+    const cup = ctx.rng() < keep ? right : Math.floor(ctx.rng() * CUPS);
+    return { action: { cup }, delayMs: 500 + ctx.rng() * 700 };
   }
 };

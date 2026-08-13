@@ -125,7 +125,7 @@ export const reversi: GameDef<ReversiState, ReversiAction> = {
     };
   },
 
-  bot(s, seat): BotMove<ReversiAction> | null {
+  bot(s, seat, ctx): BotMove<ReversiAction> | null {
     if (s.done || s.turn !== seat) return null;
     const who = seat + 1;
     const moves = legal(s.board, who);
@@ -137,6 +137,6 @@ export const reversi: GameDef<ReversiState, ReversiAction> = {
       const v = WEIGHT[c] * 3 + flips(s.board, c, who).length;
       if (v > bestV) { bestV = v; best = c; }
     }
-    return { action: { cell: best }, delayMs: 600 + Math.random() * 700 };
+    return { action: { cell: best }, delayMs: 600 + ctx.rng() * 700 };
   }
 };

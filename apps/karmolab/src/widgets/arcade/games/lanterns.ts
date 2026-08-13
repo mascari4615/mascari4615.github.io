@@ -238,7 +238,7 @@ export const lanterns: GameDef<LanternsState, LanternsAction> = {
       const mark = mine[i];
       if (!mark?.rank) continue;
       const want = Math.min(...s.piles) + 1;
-      if (hand[i].rank === want) return { action: { kind: 'play', index: i }, delayMs: 700 + Math.random() * 500 };
+      if (hand[i].rank === want) return { action: { kind: 'play', index: i }, delayMs: 700 + ctx.rng() * 500 };
     }
 
     /* ② 힌트가 남았으면 남에게 지금 놓을 수 있는 카드를 알려 준다. */
@@ -248,13 +248,13 @@ export const lanterns: GameDef<LanternsState, LanternsAction> = {
         const oh = s.hands[other] ?? [];
         const k = oh.findIndex((c, j) => s.piles[c.color] === c.rank - 1 && !s.told[other]?.[j]?.rank);
         if (k >= 0) {
-          return { action: { kind: 'hint', seat: other, rank: oh[k].rank }, delayMs: 700 + Math.random() * 500 };
+          return { action: { kind: 'hint', seat: other, rank: oh[k].rank }, delayMs: 700 + ctx.rng() * 500 };
         }
       }
     }
 
     /* ③ 아무것도 없으면 아무것도 안 들은 카드를 버린다. */
     const drop = mine.findIndex((m) => !m.color && !m.rank);
-    return { action: { kind: 'drop', index: drop >= 0 ? drop : 0 }, delayMs: 700 + Math.random() * 500 };
+    return { action: { kind: 'drop', index: drop >= 0 ? drop : 0 }, delayMs: 700 + ctx.rng() * 500 };
   }
 };

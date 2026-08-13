@@ -145,7 +145,7 @@ export const checkers: GameDef<CheckersState, CheckersAction> = {
     };
   },
 
-  bot(s, seat): BotMove<CheckersAction> | null {
+  bot(s, seat, ctx): BotMove<CheckersAction> | null {
     if (s.won !== -1 || s.turn !== seat) return null;
     const moves = s.chain >= 0 ? movesFrom(s.board, s.chain, true) : allMoves(s.board, seat);
     if (!moves.length) return null;
@@ -159,9 +159,9 @@ export const checkers: GameDef<CheckersState, CheckersAction> = {
       /* 가장자리는 안 잡힌다 */
       const [tx] = xy(m.to);
       if (tx === 0 || tx === N - 1) v += 2;
-      return v + Math.random() * 2;
+      return v + ctx.rng() * 2;
     };
     const best = moves.reduce((a, b) => (value(b) > value(a) ? b : a), moves[0]);
-    return { action: best, delayMs: 600 + Math.random() * 700 };
+    return { action: best, delayMs: 600 + ctx.rng() * 700 };
   }
 };
