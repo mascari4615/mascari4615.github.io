@@ -26,5 +26,13 @@
   "pdf.err.mount": "이 할 일을 불러오지 못했습니다",
   "pdf.btn.more": "더 보기 ({n}쪽)",
   "pdf.btn.chain": "이 결과로 이어서",
-  "pdf.chain.ready": "결과 「{name}」"
+  "pdf.chain.ready": "결과 「{name}」",
+  "pdf.thumb.zoom": "크게 보기",
+  "pdf.thumb.rotate": "오른쪽으로 90° 돌리기",
+  "pdf.thumb.drop": "이 쪽 빼기",
+  "pdf.btn.apply": "바뀐 대로 만들기",
+  "pdf.btn.undoAll": "되돌리기",
+  "pdf.edit.count": "돌린 쪽 {turn} · 뺀 쪽 {drop}",
+  "pdf.edit.suffix": "-정리",
+  "pdf.edit.fail": "이 문서는 못 고칩니다"
 }

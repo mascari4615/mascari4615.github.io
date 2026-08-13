@@ -394,6 +394,10 @@ function injectStyles(): void {
 .pf-back{appearance:none;background:transparent;border:0;cursor:pointer;padding:4px 0;
   font-size:13px;opacity:.7;margin-bottom:10px;}
 .pf-back:hover{opacity:1;}
+/* display:flex 는 hidden 속성을 이긴다 — 이 한 줄이 없으면 「이어서」 줄이 결과도 없는데
+   늘 서 있다 (2026-08-13 검사가 잡았다, TASK-KL-282). 숨김이 필요한 칸마다 짝으로 적는다.
+   (여기는 템플릿 문자열 안이라 홑따옴표 기울임표를 쓰면 문자열이 끊긴다.) */
+.pf-chain[hidden]{display:none;}
 .pf-chain{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-size:13px;
   padding:8px 12px;border-radius:10px;border:1px solid rgba(128,200,140,.5);background:rgba(128,200,140,.1);}
 `;

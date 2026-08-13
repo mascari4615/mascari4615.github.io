@@ -106,7 +106,46 @@ const got2 = await page.evaluate(() => {
 });
 check(got2 === '보고서.pdf', `다른 할 일로 옮겨도 파일이 따라간다 (지금 「${got2}」) — 이게 앞 판의 요점`);
 
-/* ⑦ 결과 이어받기 — 할 일이 결과를 내놓으면 그것이 다음 판의 입력이 된다 (KL-260)
+/* ⑦ **쪽 위에서 바로 돌리고 빼기** (TASK-KL-282 — Sejda Organize) */
+/* 앞 판이 이미 할 일 고르는 자리로 돌아와 있다 — 여기서 격자는 왼쪽에 그대로 있다. */
+check(!(await page.locator('#pfEditBar').isVisible()), '아무것도 안 고쳤으면 저장 줄은 안 보인다');
+
+/* 첫 쪽을 돌리면 그 자리에서 돌아 보인다 */
+await page.locator('.pf-thumb[data-page="1"] .pf-act[data-act="rotate"]').click();
+await page.waitForTimeout(200);
+const spun = await page.locator('.pf-thumb[data-page="1"] canvas').evaluate((c) => c.style.transform);
+check(/rotate\(90deg\)/.test(spun), `돌리면 화면에서 곧바로 돈다 (지금 「${spun}」)`);
+check(await page.locator('#pfEditBar').isVisible(), '고친 게 생기면 저장 줄이 뜬다');
+
+/* 둘째 쪽을 빼면 표시만 되고, 한 번 더 누르면 되살아난다 */
+await page.locator('.pf-thumb[data-page="2"] .pf-act[data-act="drop"]').click();
+await page.waitForTimeout(150);
+check(await page.locator('.pf-thumb[data-page="2"].pf-tossed').count() === 1, '뺄 쪽은 표시만 된다(안 사라진다)');
+await page.locator('.pf-thumb[data-page="2"] .pf-act[data-act="drop"]').click();
+await page.waitForTimeout(150);
+check(await page.locator('.pf-thumb[data-page="2"].pf-tossed').count() === 0, '한 번 더 누르면 되살아난다');
+
+/* 되돌리기 */
+await page.click('#pfUndo');
+await page.waitForTimeout(200);
+check(!(await page.locator('#pfEditBar').isVisible()), '되돌리면 저장 줄도 걷힌다');
+
+/* 다시 둘째 쪽을 빼고 만들면 — **한 쪽짜리 문서가 손에 들린다** */
+await page.locator('.pf-thumb[data-page="2"] .pf-act[data-act="drop"]').click();
+await page.waitForTimeout(150);
+await page.click('#pfApply');
+await page.waitForFunction(
+  () => /1/.test(document.querySelector('#pfMeta')?.textContent || '') && document.querySelectorAll('#pfPages .pf-thumb').length === 1,
+  { timeout: 25000 }
+).catch(() => {});
+check(
+  (await page.locator('#pfPages .pf-thumb').count()) === 1,
+  `쪽을 빼고 만들면 한 쪽만 남는다 (지금 ${await page.locator('#pfPages .pf-thumb').count()}쪽)`
+);
+check(/정리/.test(await page.locator('#pfName').innerText()), `만든 것이 **손에 든 파일**이 된다 (지금 「${await page.locator('#pfName').innerText()}」)`);
+
+
+/* ⑧ 결과 이어받기 — 할 일이 결과를 내놓으면 그것이 다음 판의 입력이 된다 (KL-260)
  *    도구가 실제로 결과를 낼 때까지 기다리는 대신, 도구가 부르는 그 신호를 그대로 울려 본다
  *    (도구 쪽 계산은 다른 검사가 본다 — 여기서 볼 것은 **껍데기가 그 결과를 받아 무는가**). */
 await page.evaluate(() => {
