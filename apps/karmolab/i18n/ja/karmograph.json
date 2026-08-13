@@ -668,5 +668,8 @@
   "karmograph.gapField.head": "まだ書かれていない欄",
   "karmograph.gapField.hint": "埋めると絞り込み・色分け・年表にすぐ使えます。",
   "karmograph.gapField.none": "「{field}」はまだ誰も書いていません（{kind} {total}枚）",
-  "karmograph.gapField.some": "{kind} {total}枚のうち {missing}枚が「{field}」を書いていません"
+  "karmograph.gapField.some": "{kind} {total}枚のうち {missing}枚が「{field}」を書いていません",
+  "karmograph.clusters.head": "グループ",
+  "karmograph.clusters.line": "{n}つに分かれます — 最大は {names}（{size}枚）",
+  "karmograph.clusters.hint": "線が内側で密なかたまりごとにまとめたものです。"
 }
