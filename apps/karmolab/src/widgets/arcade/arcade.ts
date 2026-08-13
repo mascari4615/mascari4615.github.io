@@ -536,6 +536,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-overscore{font-variant-numeric:tabular-nums;font-weight:600}',
       '.ac-overnote{font-size:var(--font-size-sm);color:var(--text-secondary);text-align:center}',
       '.ac-find{width:100%;max-width:340px;padding:8px 12px;border:1px solid var(--border-color);border-radius:999px;background:var(--bg-secondary);color:var(--text-color);margin:var(--space-md) 0}',
+      '.ac-best{font-size:var(--font-size-xs);color:var(--accent);align-self:flex-start}',
       '.ac-len{font-size:var(--font-size-xs);color:var(--text-secondary);border:1px solid var(--border-color);border-radius:999px;padding:1px 7px;align-self:flex-start}',
       '.ac-len.ac-short{color:var(--accent);border-color:var(--accent)}',
       '.ac-none{color:var(--text-secondary);font-size:var(--font-size-sm);margin:var(--space-lg) 0}',
@@ -688,6 +689,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         '<small>' + esc(t('arcade.game.' + g.id + '.desc')) + '</small>' +
         '<small>' + esc(t('arcade.seats', { min: String(min), max: String(max) })) + '</small>' +
         /* 길이는 손으로 안 적는다 — 저울이 잰 수에서 나온다(`length.ts`). */
+        (bestOf(g.id) ? '<span class="ac-best">🏅 ' + esc(t('arcade.best.card', { n: String(bestOf(g.id)?.score ?? 0) })) + '</span>' : '') +
         '<span class="ac-len ac-' + lengthOf(g.id) + '" title="' +
         esc(secondsOf(g.id) === null ? '' : t('arcade.len.secs', { n: String(Math.round(secondsOf(g.id) as number)) })) +
         '">' + esc(t('arcade.len.' + lengthOf(g.id))) + '</span>' +
@@ -835,6 +837,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     /* 봇의 손버릇·세기까지 같아야 같은 판이 나온다 — 뜸 들이는 시간이 곧 수의 시각이다. */
     let lastPersonas: Record<number, BotPersona> = {};
     let lastLevel: BotLevel = 'normal';
+    /** 이 판을 시작할 때의 내 최고 기록 — 결과에 「어제 N」으로 적는다. */
+    let lastBest: number | null = null;
     let tape: Tape<unknown> | null = null;
     /** 편을 갈랐으면 자리→편 표. 개인전이면 null. */
     let plan: Plan | null = null;
@@ -923,7 +927,14 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
             '<span class="ac-overscore">' + sq.score + '</span></li>'
         )
         .join('');
-      $<HTMLElement>('#acOverNote').textContent = note;
+      /* 「어제 N」 — 기록이 있고 혼자 논 판일 때만. 남과 논 판의 점수는 내 기록과 견줄 것이 아니다. */
+      const mineNow = v.seats[mySeat]?.score ?? 0;
+      const record = lastBest !== null && !net && !watching
+        ? (mineNow > lastBest
+            ? t('arcade.best.new', { n: String(mineNow), was: String(lastBest) })
+            : t('arcade.best.was', { n: String(lastBest) }))
+        : '';
+      $<HTMLElement>('#acOverNote').textContent = [note, record].filter(Boolean).join(' · ');
       $<HTMLElement>('#acOver').style.display = '';
     }
 
@@ -1123,6 +1134,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
          여기 한 줄이면 끝난다 — 자리도 점수도 결과 화면도 이미 있는 것을 쓴다.
          혼자 놀 때만. 여럿이 있는 방에 내 지난 판을 끼워 넣으면 자리가 하나 줄어든다. */
       const past = !net && !tour ? bestOf(id) : null;
+      /* 끝나면 `noteBest` 가 덮으므로 **시작할 때** 챙겨 둔다 — 결과에 「어제 N」을 적으려면 필요하다. */
+      lastBest = bestOf(id)?.score ?? null;
       let def = withBotLevel(g, levelNow(), personas);
       if (past && withCrew.length > seats.length) {
         const gseat = withCrew.length - 1;
