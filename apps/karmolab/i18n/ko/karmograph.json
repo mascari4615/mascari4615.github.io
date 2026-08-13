@@ -671,5 +671,8 @@
   "karmograph.gapField.some": "{kind} {total}장 가운데 {missing}장은 「{field}」 칸이 비어 있어요",
   "karmograph.clusters.head": "무리",
   "karmograph.clusters.line": "{n}갈래로 나뉘어요 — 가장 큰 무리는 {names} ({size}장)",
-  "karmograph.clusters.hint": "선이 안쪽으로 촘촘한 덩어리끼리 묶어 본 것이에요."
+  "karmograph.clusters.hint": "선이 안쪽으로 촘촘한 덩어리끼리 묶어 본 것이에요.",
+  "karmograph.paste.needCard": "붙일 카드를 먼저 고르세요 — 그림은 고른 카드의 얼굴이 됩니다",
+  "karmograph.paste.done": "얼굴로 붙였어요",
+  "karmograph.paste.act": "얼굴 붙이기"
 }

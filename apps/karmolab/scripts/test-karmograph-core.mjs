@@ -50,6 +50,7 @@ async function loadModules() {
     export * as posterDraw from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster.ts'))};
     export * as fieldGaps from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/field-gaps.ts'))};
     export * as clusters from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/clusters.ts'))};
+    export * as paste from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/paste-intent.ts'))};
     export * as drag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-drag.ts'))};
     export * as guides from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-guides.ts'))};
     export * as minimap from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-minimap.ts'))};
@@ -884,6 +885,20 @@ const M = await loadModules();
   check(!clustersWorthTelling(findClusters(['a', 'b'], [E('a', 'b')])), '다 한 패면 할 말이 없다');
   check(!clustersWorthTelling(findClusters(['a', 'b'], [])), '전부 혼자면 그건 무리 이야기가 아니다');
   check(clustersWorthTelling(cs), '두 패로 갈리면 말할 만하다');
+}
+
+// -- 붙여넣으면 무슨 뜻인가 (TASK-KL-271 X5) -----------------------------------
+{
+  const { pasteIntent } = M.paste;
+  const base = { hasImage: true, selectedId: 'n1', typing: false, visible: true };
+  eq(pasteIntent(base), 'avatar', '카드를 골라 두고 그림을 붙이면 그 카드의 얼굴');
+  eq(pasteIntent({ ...base, selectedId: null }), 'need-card', '고른 카드가 없으면 먼저 고르라고 한다');
+  // 이 한 줄이 이 조각의 존재 이유다 — 이름 칸에 글을 붙이다 얼굴이 바뀌면 「내가 뭘 눌렀지」가 된다.
+  eq(pasteIntent({ ...base, typing: true }), 'ignore', '글을 치는 중이면 절대 안 가로챈다');
+  eq(pasteIntent({ ...base, hasImage: false }), 'ignore', '그림이 아니면 우리 일이 아니다');
+  eq(pasteIntent({ ...base, visible: false }), 'ignore', '다른 도구를 보는 중이면 남의 붙여넣기다');
+  eq(pasteIntent({ hasImage: false, selectedId: null, typing: true, visible: false }), 'ignore',
+    '아무 조건도 안 맞으면 가만히 있는다');
 }
 
 process.stdout.write('\n');
