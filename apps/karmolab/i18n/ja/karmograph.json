@@ -639,5 +639,8 @@
   "karmograph.act.move": "移動",
   "karmograph.act.clear": "全消去",
   "karmograph.act.add": "カード追加",
-  "karmograph.act.rename": "名前変更"
+  "karmograph.act.rename": "名前変更",
+  "karmograph.palette.open": "すべてのコマンド… (Ctrl ⇧ P)",
+  "karmograph.palette.find": "何をしますか — 名前を入力",
+  "karmograph.palette.none": "その名前のコマンドはありません"
 }

@@ -45,6 +45,19 @@ await page.reload({ waitUntil: 'domcontentloaded' });
  * 이 검사가 CI 에서 20분 넘게 한 항목에 매달려 판정 없이 잘린 적이 있다(2026-08-12).
  * 항목마다 시간 상한을 두고, 넘으면 그 이름과 함께 빨강으로 끝낸다.
  */
+/**
+ * 서랍에서 **접힌** 명령을 실행한다 (TASK-KL-271 R3).
+ *
+ * 자주 안 쓰는 명령은 서랍에 안 펴 놓고 이름으로 부른다(Ctrl+Shift+P). 검사는 「그 명령이
+ * 하는 일」을 보는 것이지 「서랍 몇 번째 줄인가」를 보는 게 아니므로, 손잡이를 바로 누른다.
+ * 팔레트로 닿을 수 있는지는 따로 한 항목이 지킨다.
+ */
+const runCmd = (p0, key) => p0.evaluate((k) => {
+  const el = document.querySelector(`[data-km="${k}"]`);
+  if (!el) throw new Error(`그런 명령이 없다: ${k}`);
+  el.click();
+}, key);
+
 const STEP_LIMIT_MS = Number(process.env.STEP_LIMIT_MS || 90_000);
 const withLimit = (name, fn) => Promise.race([
   fn(),
@@ -96,6 +109,31 @@ await step('툴바 버튼 전부 있다', async () => {
   for (const k of ['maps', 'undo', 'redo', 'bg', 'fit', 'story', 'png', 'export', 'import', 'clear']) {
     if (await page.locator(`[data-km="${k}"]`).count() === 0) throw new Error(`없음: ${k}`);
   }
+});
+await step('명령 팔레트 — 이름을 쳐서 접힌 명령까지 닿는다 (Ctrl+Shift+P)', async () => {
+  // 서랍을 스물 몇 줄로 늘리는 대신 자주 쓰는 것만 펴 놓았다 — 나머지에 닿는 길이 살아 있어야 한다.
+  await page.evaluate(() => document.body.focus());
+  await page.keyboard.press('Control+Shift+P');
+  await page.waitForFunction(
+    () => document.querySelector('[data-km="pal"]')?.classList.contains('hidden') === false,
+    null,
+    { timeout: 4000 },
+  );
+  const all = await page.locator('.km-pal-list button').count();
+  if (all <= 1) throw new Error(`팔레트가 명령을 다 안 보여 준다: ${all}개`);
+  await page.fill('[data-km="pal-find"]', '둥글게');
+  await page.waitForFunction(() => document.querySelectorAll('.km-pal-list button').length === 1, null, { timeout: 4000 });
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(
+    () => document.querySelector('[data-km="pal"]')?.classList.contains('hidden') === true,
+    null,
+    { timeout: 4000 },
+  );
+  // 서랍은 자주 쓰는 것만 편다 — 스물 몇 줄이면 찾는 데가 아니라 훑는 데가 된다.
+  await page.click('[data-km="more"]');
+  const shown = await page.locator('.km-drawer button:visible').count();
+  await page.click('[data-km="more"]');
+  if (shown > 9) throw new Error(`서랍에 펴 놓은 단추가 ${shown}개 — 접기가 안 먹었다`);
 });
 await step('툴바가 한두 줄에 들어간다 (캔버스를 밀지 않는다)', async () => {
   // 셸 CSS 가 폼 요소를 통짜 너비로 깔면 항목이 한 줄에 하나씩 쌓여 세로 네 줄을 먹는다
@@ -302,7 +340,7 @@ await step('링크로 내보내고 그 링크로 다시 받는다', async () => 
   page.on('dialog', onDialog);
   await page.click('[data-km="more"]');
   // 이 버튼은 눌리면 서랍을 닫는다 — 보통 click 은 「대상이 사라졌다」로 30초를 기다린다.
-  await page.locator('[data-km="share"]').click();
+  await runCmd(page, 'share');
   await page.waitForTimeout(1200);
   const url = fromDialog || (await page.evaluate(() => navigator.clipboard.readText().catch(() => '')));
   page.off('dialog', onDialog);
@@ -315,7 +353,7 @@ await step('링크로 내보내고 그 링크로 다시 받는다', async () => 
 });
 await step('저장 상태가 크기를 보여 주고 백업 파일을 만든다', async () => {
   await page.click('[data-km="more"]');
-  await page.locator('[data-km="storage"]').click();
+  await runCmd(page, 'storage');
   await page.waitForSelector('[data-km="st-backup"]', { timeout: 4000 });
   const meter = await page.locator('.km-meter-fill').count();
   if (meter === 0) throw new Error('용량 막대가 없다');
@@ -346,7 +384,7 @@ await step('저장 상태가 크기를 보여 주고 백업 파일을 만든다'
     { timeout: 6000 }
   );
   await page.click('[data-km="more"]');
-  await page.locator('[data-km="storage"]').click();
+  await runCmd(page, 'storage');
   await page.waitForSelector('[data-km="st-close"]', { timeout: 4000 });
   await page.click('[data-km="st-close"]');
 });
@@ -648,7 +686,8 @@ await step('빈 캔버스에서 예시를 넣으면 그림이 생긴다', async 
   const dupes = await page.evaluate(() => {
     const key = Object.keys(localStorage).find((k) => k.startsWith('karmograph.map.'));
     const names = JSON.parse(localStorage.getItem(key)).nodes.map((n) => n.label);
-    return names.filter((n, i) => names.indexOf(n) !== i);
+    // 이름을 아직 안 적은 카드(빈 이름)는 「같은 이름」이 아니다.
+    return names.filter((n, i) => n && names.indexOf(n) !== i);
   });
   if (dupes.length > 0) throw new Error(`견본에 같은 이름이 두 장: ${dupes.join(', ')}`);
 });
@@ -970,7 +1009,7 @@ await step('SVG 로 저장하면 글자가 글자로 남는다', async () => {
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
   const [dl] = await Promise.all([
     page.waitForEvent('download', { timeout: 8000 }),
-    page.locator('[data-km="svg"]').click(),
+    runCmd(page, 'svg'),
   ]);
   if (!dl.suggestedFilename().endsWith('.svg')) throw new Error('.svg 가 아니다');
   const text = await readFile(await dl.path(), 'utf8');
@@ -993,7 +1032,7 @@ await step('둥글게 놓기 — 자리가 실제로 바뀌고 아무도 안 사
   const n0 = await countOf();
   await page.click('[data-km="more"]');
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
-  await page.locator('[data-km="lay-circle"]').click();
+  await runCmd(page, 'lay-circle');
   await page.waitForFunction((b) => [...document.querySelectorAll('.ck-node')]
     .map((g) => g.getAttribute('transform') || '').join('|') !== b, before, { timeout: 4000 });
   if (await countOf() !== n0) throw new Error('둥글게 놓았더니 노드 수가 달라졌다');
@@ -1021,7 +1060,7 @@ await step('Mermaid 글로 저장하면 문서에 그대로 붙는 코드블록�
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
   const [dl] = await Promise.all([
     page.waitForEvent('download', { timeout: 8000 }),
-    page.locator('[data-km="mermaid"]').click(),
+    runCmd(page, 'mermaid'),
   ]);
   const text = await readFile(await dl.path(), 'utf8');
   if (!text.startsWith('```mermaid')) throw new Error('코드블록으로 안 감쌌다');
@@ -1048,7 +1087,7 @@ await step('연표로 놓기 — 시점 순서대로 왼쪽에서 오른쪽으�
 
   await page.click('[data-km="more"]');
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
-  await page.locator('[data-km="lay-time"]').click();
+  await runCmd(page, 'lay-time');
   await page.keyboard.press('Escape');
   await page.waitForTimeout(400);
   const xs = await page.evaluate(() => {
@@ -1131,7 +1170,7 @@ await step('JSON Canvas 로 내보내면 남의 도구가 읽을 모양이 나�
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
   const [dl] = await Promise.all([
     page.waitForEvent('download', { timeout: 8000 }),
-    page.locator('[data-km="canvas-out"]').click(),
+    runCmd(page, 'canvas-out'),
   ]);
   if (!dl.suggestedFilename().endsWith('.canvas')) throw new Error('.canvas 가 아니다');
   const path = await dl.path();
@@ -1224,7 +1263,7 @@ await step('발표를 SVG 한 장으로 — 브라우저만 있으면 도는 파
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
   const [dl] = await Promise.all([
     page.waitForEvent('download', { timeout: 8000 }),
-    page.locator('[data-km="svg-story"]').click(),
+    runCmd(page, 'svg-story'),
   ]);
   if (!dl.suggestedFilename().includes('presentation')) throw new Error('발표 파일 이름이 아니다');
   const text = await readFile(await dl.path(), 'utf8');
@@ -1396,7 +1435,7 @@ await step('본 — 한 벌을 떠서 다른 맵에 찍는다', async () => {
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
   await page.click('[data-km="more"]');
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
-  await page.locator('[data-km="stamps"]').click();
+  await runCmd(page, 'stamps');
   await page.waitForSelector('[data-km="stamp-put"]', { timeout: 4000 });
   // 본 이름만 보면 「그래서 뭐가 들었더라」가 남는다 — 든 카드 이름이 함께 보여야 고를 수 있다.
   const stampText = await page.evaluate(() => document.querySelector('.km-side')?.textContent || '');
