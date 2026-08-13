@@ -102,7 +102,7 @@ jobs:
           key: cargo-${{ runner.os }}-${{ hashFiles('apps/karmolab-tauri/src-tauri/Cargo.lock') }}
           restore-keys: cargo-${{ runner.os }}-
 
-      # ★ **짓기 전 채비는 한 곳에서** (2026-08-13). 아래 contrast 잡·배포·라이브 점검이
+      # ★ **짓기 전 채비는 한 곳에서** (2026-08-13). 배포·라이브 점검이
       #   같은 목록을 각자 들고 있다가 갈라졌다(mcp 가 배포에만 빠져 한 달 정체, badapple 이
       #   라이브 점검에만 빠져 25판 연속 빨강). Rust·블로그는 이 잡만 쓰므로 여기 남긴다.
       - uses: ./.github/actions/setup-karmolab
@@ -137,48 +137,22 @@ jobs:
         if: steps.typos1.outcome == 'failure'
         uses: crate-ci/typos@master
 
-  contrast:
-    # 테마별 「글씨가 안 보이는 자리」 전수 검사 (TASK-KL-090).
-    # verify 본체와 분리 — 브라우저 설치가 필요하고, 실패해도 원인이 색 하나로 뚜렷하다.
-    name: contrast (theme readability)
-    runs-on: ubuntu-latest
-    timeout-minutes: 45  # 멈춘 판이 6시간 도는 것을 막는다 (기본값 360분)
-    steps:
-      - uses: actions/checkout@v6
+      # ★ **한 판으로 합쳤다** (2026-08-13). 이 셋은 `contrast` 라는 딴 잡에 있었는데, 그 잡은
+      #   채비도 산출물 짓기도 처음부터 다시 했다 — push 마다 러너 자리를 하나 더 먹었다.
+      #   세션 여섯이 미는 시간대에는 그 한 자리가 실제로 아팠다: 여섯 판이 30분 넘게
+      #   **아무 판정도 못 내고** 줄만 서 있었다(2026-08-13 실측). 이 잡은 이미 브라우저를 깔고
+      #   산출물을 다 지었으므로, 여기서 이어 돌리면 자리를 반으로 줄이고 검사는 그대로다.
+      #   (`contrast (theme readability)` 라는 이름은 사라진다 — 필수 검사 이름은
+      #    `verify (master invariant)` 하나다.)
 
-      # ★ **짓기 전 채비는 한 곳에서** (2026-08-13, `.github/actions/setup-karmolab`).
-      #   같은 목록이 워크플로 넷에 복사돼 있었고, 한쪽만 고친 값이 25판 연속 빨강이었다.
-      - uses: ./.github/actions/setup-karmolab
-        with:
-          node-version: '20'
-          chromium: 'true'
-
-      # ★ 여기서는 **찍어 내기만** 한다 (2026-08-12).
-      #   예전엔 `npm run build` 를 불렀는데, 그 사슬 안에는 게이트 31개가 통째로 들어 있다 —
-      #   바로 옆 verify 잡이 이미 돌리는 그 31개를, 이 잡이 처음부터 한 번 더 돌렸다.
-      #   같은 판정을 두 번 받으려고 5분을 더 쓴 셈이다(실측: 두 잡 모두 「빨강 1개/31」로 같은 줄).
-      #   이 잡에 필요한 것은 **열어 볼 산출물**뿐이므로 배포와 같은 `build:artifacts` 를 쓴다.
-      - name: Build karmolab artifacts (검사는 빌드 결과물을 연다 — 게이트는 verify 잡 몫)
-        run: cd apps/karmolab && npm run build:artifacts
-
-      # 도구가 실제로 그 일을 하는지 재는 시험 22개 (TASK-KL-088).
-      # 브라우저가 있어야 도는 것들이라 `npm run build` 에서 뺐다 — build 는 브라우저 없는
-      # verify 잡에서도 돌아야 한다. 브라우저를 깔아 둔 이 잡이 그 시험들을 맡는다.
+      # 도구가 실제로 그 일을 하는지 재는 시험 22개 (TASK-KL-088). 브라우저가 있어야 돈다.
       - name: Tool behavior tests (browser)
         run: cd apps/karmolab && npm run test:behavior
 
       # 크기·쓰임새 **드리프트** 는 여기서 본다 — 배포 길목이 아니다 (2026-08-09).
-      #
-      # 이것들은 기준선과 견주는 **래칫**이다. 「틀렸다」가 아니라 「기준선과 달라졌다」를
-      # 말한다. 그런데 이 저장소는 여러 세션이 하루에도 수십 번 위젯을 새로 만들고 지운다 —
-      # 정당한 성장에도 빨개진다. 그걸 배포 길목에 두면 **사이트 전체가 남의 정상 작업에
-      # 멈춰 선다**(실제로 오늘 배포가 이걸로 죽었다: 새것 5·사라진 것 10·커진 것 6).
-      #
-      # 드리프트는 봐야 하되 **사람이 보는 자리**에서 봐야 한다. verify 가 빨개도 사이트는
-      # 나간다. 기준선 옮기기 = `npm run audit:bundles -- --update` (커밋에 줄이 남는다).
-      #
-      # 반대로 `audit:boot`(첫 화면 절대 천장)은 배포 길목에 **그대로 둔다** — 그건 기준선이
-      # 아니라 사람이 겪는 한계선이고, 넘으면 실제로 느려진 것이다.
+      # 기준선과 견주는 **래칫**이라 정당한 성장에도 빨개진다. 배포 길목에 두면 사이트가
+      # 남의 정상 작업에 멈춰 선다. verify 가 빨개도 사이트는 나간다.
+      # 기준선 옮기기 = `npm run audit:bundles -- --update` (커밋에 줄이 남는다).
       - name: Size / usage drift (ratchet)
         run: cd apps/karmolab && npm run audit:drift
 
