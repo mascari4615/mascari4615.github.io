@@ -130,6 +130,24 @@ await page.evaluate(() => {
 });
 await page.waitForSelector('#pfChain:visible', { timeout: 10000 }).catch(() => {});
 check(await page.locator('#pfChain').isVisible(), '결과가 나오면 「이어서」 줄이 뜬다');
+
+/* ⑦-나 **전/후 손잡이** (TASK-KL-285 — Squoosh)
+ * 「이어받아도 되나」를 눈으로 재는 자리다. 결과가 나온 순간에만 뜬다. */
+await page.waitForSelector('#imCmp', { timeout: 10000 }).catch(() => {});
+check((await page.locator('#imCmp').count()) === 1, '결과가 나오면 전/후로 겹쳐 보여 준다');
+check((await page.locator('#imCmp img').count()) === 2, '두 장이 겹쳐 있다(전·후)');
+const tags = await page.locator('#imCmp .im-cmp-tag').allInnerTexts();
+check(tags.length === 2 && /전|before/.test(tags[0]), `전·후 표가 붙는다 (지금 ${JSON.stringify(tags)})`);
+
+/* 손잡이를 왼쪽으로 옮기면 잘리는 폭이 실제로 줄어든다 */
+const box = await page.locator('#imCmp').boundingBox();
+await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2);
+await page.waitForTimeout(150);
+const narrow = await page.locator('#imCmpClip').evaluate((e) => e.style.width);
+await page.mouse.move(box.x + box.width * 0.8, box.y + box.height / 2);
+await page.waitForTimeout(150);
+const wide = await page.locator('#imCmpClip').evaluate((e) => e.style.width);
+check(parseFloat(narrow) < parseFloat(wide), `손잡이를 옮기면 겹치는 폭이 바뀐다 (${narrow} → ${wide})`);
 await page.click('#pfChainUse');
 await page.waitForTimeout(500);
 check(

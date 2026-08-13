@@ -108,12 +108,30 @@ import { t, loadNamespace } from '../../lib/i18n';
       },
       preview: drawShot
     });
+
+    /* 결과가 나오면 **전/후로 바꿔 보여 준다** (TASK-KL-285).
+     * 껍데기는 그때 「이 결과로 이어서」 줄을 세운다 — 그 옆에서 눈으로 재고 결정하게 한다. */
+    const onResult = (e: Event): void => {
+      const d = (e as CustomEvent).detail as { type?: string } | undefined;
+      if (!d || !/^image\//i.test(d.type || '') || !held) return;
+      const item = Toolbox.peekResult?.();
+      if (!item || !item.blob) return;
+      const box = container.querySelector<HTMLElement>('#pfPreview');
+      if (!box) return;
+      compare(box, { url: held.url, size: held.file.size }, { url: URL.createObjectURL(item.blob), size: item.blob.size });
+    };
+    window.addEventListener('karmolab-result', onResult);
+    Toolbox.onDispose?.(() => window.removeEventListener('karmolab-result', onResult));
   }
+
+  /** 지금 손에 든 사진 — 결과가 나오면 이것과 견준다 */
+  let held: { file: File; url: string } | null = null;
 
   /** 왼쪽 칸 = 사진 한 장 + 치수. **이 함수만 이미지를 안다.** */
   async function drawShot(file: File, box: HTMLElement, alive: () => boolean): Promise<string> {
     const img = await loadImage(file);
     if (!alive()) return '';
+    held = { file, url: img.src };
     const frame = document.createElement('button');
     frame.type = 'button';
     frame.className = 'im-shot';
@@ -127,6 +145,68 @@ import { t, loadNamespace } from '../../lib/i18n';
       { w: img.naturalWidth, h: img.naturalHeight, size: fileSize(file.size) },
       `${img.naturalWidth}×${img.naturalHeight} · ${fileSize(file.size)}`
     );
+  }
+
+  /**
+   * **전/후 손잡이** (TASK-KL-285 — Squoosh 를 보고).
+   *
+   * Squoosh 의 값어치는 압축 자체가 아니라 **「이만큼 줄였는데 눈에 보이나」를 그 자리에서 판단**하게
+   * 해 주는 데 있다. 가운데 손잡이를 끌어 원본과 결과를 겹쳐 본다. 숫자(용량)도 같이 붙인다 —
+   * 「30% 줄었다」와 「눈에 안 보인다」가 **같은 화면에** 있어야 결정이 선다.
+   *
+   * 결과가 나온 순간에만 뜬다. 우리 껍데기는 그때 「이 결과로 이어서」 줄을 세우는데,
+   * 그 옆에서 **정말 이어받아도 되는지**를 눈으로 재게 해 준다.
+   */
+  function compare(box: HTMLElement, before: { url: string; size: number }, after: { url: string; size: number }): void {
+    box.textContent = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'im-cmp';
+    wrap.id = 'imCmp';
+
+    const a = document.createElement('img');
+    a.src = before.url;
+    a.className = 'im-cmp-a';
+    const bWrap = document.createElement('div');
+    bWrap.className = 'im-cmp-clip';
+    bWrap.id = 'imCmpClip';
+    const b = document.createElement('img');
+    b.src = after.url;
+    b.className = 'im-cmp-b';
+    bWrap.appendChild(b);
+
+    const bar = document.createElement('div');
+    bar.className = 'im-cmp-bar';
+    bar.id = 'imCmpBar';
+
+    const tagA = document.createElement('span');
+    tagA.className = 'im-cmp-tag im-cmp-tag-a';
+    tagA.textContent = t('image.cmp.before', { size: fileSize(before.size) }, `전 ${fileSize(before.size)}`);
+    const tagB = document.createElement('span');
+    tagB.className = 'im-cmp-tag im-cmp-tag-b';
+    const cut = before.size > 0 ? Math.round((1 - after.size / before.size) * 100) : 0;
+    tagB.textContent =
+      t('image.cmp.after', { size: fileSize(after.size) }, `후 ${fileSize(after.size)}`) +
+      (cut > 0 ? ` (−${cut}%)` : cut < 0 ? ` (+${-cut}%)` : '');
+
+    wrap.appendChild(a);
+    wrap.appendChild(bWrap);
+    wrap.appendChild(bar);
+    wrap.appendChild(tagA);
+    wrap.appendChild(tagB);
+    box.appendChild(wrap);
+
+    /* 손잡이는 **끌지 않아도 움직인다** — 위에 손가락을 얹고 지나가기만 해도 따라온다.
+     * 「끌어야 한다」를 모르는 사람이 절반이라, 지나가다 우연히 알게 되는 편이 낫다. */
+    const put = (clientX: number): void => {
+      const r = wrap.getBoundingClientRect();
+      wrap.style.setProperty('--cw', `${r.width}px`);
+      const p = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
+      bWrap.style.width = `${p * 100}%`;
+      bar.style.left = `${p * 100}%`;
+    };
+    wrap.addEventListener('pointermove', (e) => put(e.clientX));
+    wrap.addEventListener('pointerdown', (e) => put(e.clientX));
+    put(wrap.getBoundingClientRect().left + wrap.getBoundingClientRect().width / 2);
   }
 
   /** 눌러서 크게 — 작게만 보면 「이 사진이 맞나」를 확인할 수가 없다. */
@@ -159,6 +239,19 @@ import { t, loadNamespace } from '../../lib/i18n';
   repeating-conic-gradient(rgba(128,128,128,.14) 0% 25%, transparent 0% 50%) 50%/16px 16px;}
 .im-shot:hover{border-color:rgba(128,160,255,.7);}
 .im-shot-img{width:100%;height:auto;max-height:56vh;object-fit:contain;}
+.im-cmp{position:relative;width:100%;overflow:hidden;border-radius:10px;cursor:ew-resize;
+  border:1px solid rgba(128,128,128,.28);line-height:0;background:#111;}
+.im-cmp img{width:100%;height:auto;max-height:56vh;object-fit:contain;display:block;}
+.im-cmp-clip{position:absolute;inset:0;width:50%;overflow:hidden;}
+/* 잘리는 쪽 그림은 **바깥 칸의 너비**를 그대로 써야 두 장이 겹친다 —
+   50% 칸에 넣고 width:100% 를 주면 그림이 반으로 줄어 「전/후」가 아니라 「크고 작고」가 된다. */
+.im-cmp-clip img{width:var(--cw,100%);max-width:none;}
+.im-cmp-b{position:absolute;left:0;top:0;}
+.im-cmp-bar{position:absolute;top:0;bottom:0;left:50%;width:2px;background:#fff;box-shadow:0 0 6px rgba(0,0,0,.6);}
+.im-cmp-tag{position:absolute;bottom:6px;font-size:11px;line-height:1;padding:3px 6px;border-radius:5px;
+  background:rgba(0,0,0,.66);color:#fff;pointer-events:none;}
+.im-cmp-tag-a{right:6px;}
+.im-cmp-tag-b{left:6px;}
 .im-zoom{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.8);cursor:zoom-out;
   display:flex;align-items:center;justify-content:center;padding:16px;}
 .im-zoom-inner{position:relative;max-width:100%;}

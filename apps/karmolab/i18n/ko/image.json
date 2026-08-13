@@ -26,5 +26,7 @@
   "image.part.exifclean": "촬영 정보 지우기",
   "image.part.palette": "색 뽑기",
   "image.part.comparepic": "두 장 비교",
-  "image.part.qrread": "QR 읽기"
+  "image.part.qrread": "QR 읽기",
+  "image.cmp.before": "전 {size}",
+  "image.cmp.after": "후 {size}"
 }
