@@ -1759,6 +1759,38 @@ await step('발표를 SVG 한 장으로 — 브라우저만 있으면 도는 파
   await page.keyboard.press('Escape');
   await page.waitForSelector('[data-km="drawer"].hidden', { state: 'attached', timeout: ms(4000) });
 });
+await step('폰에서도 되물음이 손에 닿는다 — 아래 시트에 안 깔린다 (KL-271)', async () => {
+  /* 실측 2026-08-14: 되물음 상자를 아래 시트와 **같은 층**에 아래쪽으로 두었더니, 폰에서
+     「지울래요」가 화면에 보이는데 손가락은 시트 단추에 닿았다 — 보이는데 못 누른다.
+     그래서 「거기 있나」가 아니라 **「짚으면 그게 잡히나」**를 잰다. */
+  const ph = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const m = await ph.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  const box0 = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(box0.x + box0.width * 0.4, box0.y + box0.height * 0.3);
+  await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await m.keyboard.type('폰에서지울카드');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 1, null, { timeout: ms(4000) });
+
+  await m.locator('[data-km="node-del"]').click();
+  await m.waitForSelector('[data-km="ask-yes"]', { timeout: ms(4000) });
+  const reachable = await m.evaluate(() => {
+    const yes = document.querySelector('[data-km="ask-yes"]');
+    const r = yes.getBoundingClientRect();
+    if (r.width === 0 || r.bottom > innerHeight) return ' 화면 밖';
+    const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return yes === hit || yes.contains(hit) ? '' : ' 덮은 것: ' + (hit?.className || hit?.tagName);
+  });
+  if (reachable) throw new Error('폰에서 「지울래요」가 안 잡힌다 —' + reachable);
+  await m.locator('[data-km="ask-yes"]').click();
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: ms(4000) });
+  await ph.close();
+});
 await step('되돌릴 수 없는 일은 얼리지 않고 되묻는다 — 기본은 「그만」 (KL-271)', async () => {
   /* 되묻는 자리는 대개 되돌릴 수 없는 일 앞이다. 브라우저 confirm 은 판을 얼려 **무엇을
      지우려는지 뒤를 못 보게** 만든다 — 「그게 어느 카드더라」를 확인할 길이 없는 채로 고르게

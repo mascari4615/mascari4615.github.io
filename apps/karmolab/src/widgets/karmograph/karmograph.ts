@@ -149,13 +149,13 @@ import {
     /* 링크 상자 — 클립보드가 막힌 자리(비보안 컨텍스트·앱 안 브라우저)에서 **직접 복사**하는 길.
        예전엔 브라우저 prompt 였다: 판을 통째로 가리고, 긴 주소는 한 줄 창에서 끝이 안 보이고,
        무엇보다 「복사하라는 건지 고치라는 건지」가 안 읽혔다 (KL-271). */
-    .km-linkbox { position:absolute; left:50%; bottom:64px; transform:translateX(-50%); z-index:960;
+    .km-linkbox { position:absolute; left:50%; bottom:64px; transform:translateX(-50%); z-index:970;
       display:flex; gap:6px; align-items:center; max-width:min(560px, 92%); padding:10px 12px;
       border-radius:12px; border:1px solid var(--border-color); background:var(--bg-secondary);
       box-shadow:0 8px 24px rgba(0,0,0,.35); }
     /* 말 상자 — 「안 됐다」는 말은 사라지면 안 된다(토스트는 3초면 없어진다). 그렇다고
        브라우저 alert 처럼 판을 얼려서도 안 된다 — 얼면 뒤에 있는 화면을 못 보고 답한다. */
-    .km-note { position:absolute; left:50%; bottom:64px; transform:translateX(-50%); z-index:960;
+    .km-note { position:absolute; left:50%; bottom:64px; transform:translateX(-50%); z-index:970;
       display:flex; gap:10px; align-items:flex-start; max-width:min(520px, 92%); padding:12px 14px;
       border-radius:12px; border:1px solid var(--border-color); background:var(--bg-secondary);
       box-shadow:0 8px 24px rgba(0,0,0,.35); color:var(--text-primary); font-size:13px;
@@ -486,6 +486,12 @@ import {
         /* 접혔을 때 내다보이는 만큼 = **손잡이 높이 그대로**. 손잡이만 키우면 그 아래가 화면 밖으로 나가 안 눌린다. */
         transform:translateY(calc(100% - 44px)); transition:transform .18s ease; padding-top:44px; }
       .km-root.is-sheet-up .km-side { transform:translateY(0); }
+      /* ★ 말 상자·되물음·링크 상자는 **아래 시트 위쪽 절반**(그림 자리)에 붙인다.
+         예전엔 시트와 같은 층(960)에 아래쪽으로 두어, 폰에서 시트가 상자를 통째로 덮었다 —
+         「지울래요」가 화면에 있는데 눌러지지 않았다(실측 2026-08-14: 손가락이 시트 단추에 닿았다).
+         시점 줄(top:8px) 밑에 놓고, 좁은 화면이니 가로를 다 쓴다. */
+      .km-note, .km-linkbox { left:8px; right:8px; top:56px; bottom:auto; transform:none;
+        max-width:none; flex-wrap:wrap; }
       /* 손잡이 — 폰에서 시트를 올리고 내리는 유일한 자리라 **크게**(44px 규격) 잡는다. */
       /* ★ 손잡이는 **가운데 120px 만** 차지한다. 예전엔 가로 전체를 덮어서, 시트가 올라온 순간
          맨 윗줄 단추들이 손잡이 밑에 깔려 **눌리지 않았다**(실측 2026-08-12: 갈래 고르기 단추가
