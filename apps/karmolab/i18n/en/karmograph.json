@@ -102,7 +102,6 @@
   "karmograph.fit.title": "Fit to the screen",
   "karmograph.story.title": "Presentation — split what to show into scenes and go through them",
   "karmograph.more.title": "More",
-  "karmograph.miniLink.title": "Draw a line from here",
   "karmograph.miniNote.title": "A note stuck to this card",
   "karmograph.miniCopy.title": "Duplicate",
   "karmograph.miniDel.title": "Delete",
@@ -652,5 +651,6 @@
   "karmograph.hideSec.head": "Show less",
   "karmograph.drawer.g.brag": "Show it off as an image",
   "karmograph.drawer.g.open": "Let someone open it",
-  "karmograph.drawer.g.toApp": "Into another app"
+  "karmograph.drawer.g.toApp": "Into another app",
+  "karmograph.linkStart.hint": "With a mouse, drag the dot on the card’s right edge onto another card."
 }

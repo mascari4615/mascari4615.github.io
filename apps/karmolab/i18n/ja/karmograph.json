@@ -102,7 +102,6 @@
   "karmograph.fit.title": "画面に合わせる",
   "karmograph.story.title": "発表モード — 見せるものを何枚かに分けて順に",
   "karmograph.more.title": "もっと見る",
-  "karmograph.miniLink.title": "ここから線をつなぐ",
   "karmograph.miniNote.title": "このカードに付く付箋",
   "karmograph.miniCopy.title": "複製",
   "karmograph.miniDel.title": "消す",
@@ -652,5 +651,6 @@
   "karmograph.hideSec.head": "減らして見る",
   "karmograph.drawer.g.brag": "画像一枚で見せる",
   "karmograph.drawer.g.open": "人に開いてもらう",
-  "karmograph.drawer.g.toApp": "ほかのアプリへ"
+  "karmograph.drawer.g.toApp": "ほかのアプリへ",
+  "karmograph.linkStart.hint": "マウスならカード右端の点を別のカードへドラッグします。"
 }
