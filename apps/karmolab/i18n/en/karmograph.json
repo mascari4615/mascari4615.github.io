@@ -663,5 +663,6 @@
   "karmograph.said.lonely": "<b>{names}</b> and {n} card(s) are linked to nobody.",
   "karmograph.said.bridge": "<b>{name}</b> is the bridge — remove it and the path breaks.",
   "karmograph.said.hub": "<b>{name}</b> has the most links ({n}).",
-  "karmograph.said.dense": "{n} cards are evenly linked — nothing stands out."
+  "karmograph.said.dense": "{n} cards are evenly linked — nothing stands out.",
+  "karmograph.intent.fromText": "Already written it down? Paste your outline and get a map"
 }

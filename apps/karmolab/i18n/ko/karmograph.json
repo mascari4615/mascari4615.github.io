@@ -663,5 +663,6 @@
   "karmograph.said.lonely": "<b>{names}</b> 등 {n}장이 아무와도 안 이어져 있어요.",
   "karmograph.said.bridge": "<b>{name}</b> 이(가) 다리 역할이에요 — 이 카드를 빼면 길이 끊깁니다.",
   "karmograph.said.hub": "<b>{name}</b> 이(가) 가장 많이 이어져 있어요 ({n}갈래).",
-  "karmograph.said.dense": "{n}장이 고르게 이어져 있어요 — 튀는 자리가 없습니다."
+  "karmograph.said.dense": "{n}장이 고르게 이어져 있어요 — 튀는 자리가 없습니다.",
+  "karmograph.intent.fromText": "이미 글로 적어 뒀나요? — 붙여넣으면 판이 됩니다"
 }

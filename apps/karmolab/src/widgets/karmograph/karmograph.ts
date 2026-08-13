@@ -196,6 +196,8 @@ import {
     .km-said { background:var(--bg-tertiary); border-radius:8px; padding:8px 10px; }
     .km-said-line { font-size:12px; color:var(--text-primary); line-height:1.6; }
     .km-said-line + .km-said-line { margin-top:4px; }
+    /* 「글이 있으면 붙여넣기」 — 갈래 카드 밑에 한 줄로. 카드와 같은 무게로 두면 셋이 넷이 된다. */
+    .km-intent-text { width:100%; margin-top:6px; justify-content:center; font-size:12px; }
     .km-side.hidden { display:none; }
     /* 패널 안에서 **성격이 다른 묶음**을 가르는 줄·이름표 (TASK-KL-271 P5). */
     .km-split { border:none; border-top:1px solid var(--border); margin:16px 0 10px; }
@@ -1528,6 +1530,12 @@ import {
                   <span class="km-intent-t">${escapeHtml(it.title)}</span>
                   <span class="km-intent-s">${escapeHtml(it.sub)}</span>
                 </button>`).join('')}</div>
+              <!-- ★ **이미 글로 적어 둔 사람**에게는 갈래 고르기가 한 걸음 돌아가는 길이다
+                   (TASK-KL-271 F5). 메모장의 인물 목록·위키 개요를 그대로 붙여넣으면 판이 된다 —
+                   그 기능은 있었는데 ⋯서랍 깊이 있어 첫 화면에서 안 보였다. 새 길은 안 낸다:
+                   기존 「글로 만들기」 단추를 눌러 준다. -->
+              <button class="btn btn-ghost km-intent-text" data-km="intent-text">${
+                esc(t('karmograph.intent.fromText'))}</button>
             </div>`);
         // 갈래를 고른 **뒤**가 진짜 막히는 자리다 — 견본은 깔렸는데 「이제 뭘 하지?」.
         // 다음 걸음 셋만 짧게 보여 주고, 한 번 닫으면 다시 안 뜬다(맵마다 기억한다).
@@ -1544,6 +1552,12 @@ import {
             spec._meta = { ...spec._meta, tips: 'off' };
             persistStructure();
             renderSide();
+          };
+        }
+        const textBtn = sideEl.querySelector('[data-km="intent-text"]') as HTMLButtonElement | null;
+        if (textBtn) {
+          textBtn.onclick = () => {
+            (root.querySelector('[data-km="from-text"]') as HTMLButtonElement | null)?.click();
           };
         }
         sideEl.querySelectorAll('[data-km="intent"]').forEach((btn) => {

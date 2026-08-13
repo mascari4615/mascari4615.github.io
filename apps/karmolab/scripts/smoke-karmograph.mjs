@@ -655,6 +655,28 @@ await step('관계망 칸이 숫자 앞에 말 한 줄을 준다', async () => {
   if (said.some((x) => x.length < 6)) throw new Error(`빈 말이 섞였다: ${said.join(' / ')}`);
   await openPanel(page, 'node');
 });
+await step('첫 화면에서 글을 붙여넣어 바로 판을 만든다', async () => {
+  // 이미 메모장·위키에 적어 둔 사람에게는 갈래 고르기가 한 걸음 돌아가는 길이다 —
+  // 그 기능은 있었는데 서랍 깊이 있어 첫 화면에서 안 보였다 (TASK-KL-271 F5).
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('[data-km="intent-text"]', { timeout: ms(6000) })
+    .catch(() => { throw new Error('첫 화면에 「글 붙여넣기」 길이 없다') });
+  await m.locator('[data-km="intent-text"]').click();
+  await m.waitForSelector('[data-km="text-src"]', { timeout: ms(4000) });
+  await m.fill('[data-km="text-src"]', ['주인공', '  친구 : 좋아함', '  라이벌 : 라이벌'].join(String.fromCharCode(10)));
+  await m.click('[data-km="text-go"]');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 3, null, { timeout: ms(4000) })
+    .catch(async () => {
+      const n = await m.evaluate(() => document.querySelectorAll('.ck-node').length);
+      throw new Error(`붙여넣은 글로 판이 안 만들어졌다 (카드 ${n}장)`);
+    });
+  await ctx.close();
+});
 await step('도움말이 할 수 있는 일을 다 보여 준다', async () => {
   await openPanel(page, 'help');
   await page.waitForSelector('[data-km="help-close"]', { timeout: ms(4000) });
