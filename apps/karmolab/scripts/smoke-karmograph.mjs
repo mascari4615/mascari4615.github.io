@@ -1889,6 +1889,40 @@ const openedSpec = (page) => page.evaluate(() => {
     .filter((sp) => sp && (sp.nodes || []).length > 0)[0];
 });
 
+await step('폰에서 선 뽑는 점이 손가락 규격이다 (KL-271)', async () => {
+  /* 실측 2026-08-14: 선을 뽑는 점이 **12px** 였다 — 마우스에는 넉넉하지만 손가락에는 없는 과녁이다
+     (손가락 규격 44px). 보이는 점은 그대로 두고 **짚는 자리만** 키운다. */
+  const ph = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const m = await ph.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.evaluate(() => {
+    const spec = {
+      version: 1, _meta: {}, groups: [],
+      nodes: [
+        { id: 'n1', label: '가', kind: 'character', x: 40, y: 40, w: 140, h: 44 },
+        { id: 'n2', label: '나', kind: 'character', x: 40, y: 220, w: 140, h: 44 },
+      ],
+      edges: [], ephemeral_anchors: [], _edge_kinds: {},
+    };
+    localStorage.setItem('karmograph.map.touch', JSON.stringify(spec));
+    localStorage.setItem('karmograph.index', JSON.stringify({ activeId: 'touch', maps: [{ id: 'touch', name: '폰 판' }] }));
+  });
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.ck-node', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(800));
+  const card = await m.locator('.ck-node').first().boundingBox();
+  await m.touchscreen.tap(card.x + card.width / 2, card.y + card.height / 2);
+  await m.waitForTimeout(ms(700));
+  const spot = await m.locator('.ck-link-handle').first().boundingBox();
+  if (!spot) throw new Error('고른 카드에 선 뽑는 점이 없다');
+  if (spot.width < 40 || spot.height < 40) {
+    throw new Error(`손가락에 너무 작다: ${Math.round(spot.width)}x${Math.round(spot.height)} (44 규격)`);
+  }
+  await ph.close();
+});
+
 await step('고른 선도 자판으로 지운다 (KL-271)', async () => {
   /* 실측 2026-08-14: 선을 골라 옆 패널까지 떠 있는데 Delete 를 눌러도 아무 일이 없었다
      (카드만 됐다). 자판만 쓰는 사람에게는 「고를 수는 있는데 못 지운다」가 된다. */
