@@ -1,106 +1,690 @@
 {
   "id": "pay-security",
-  "minutes": 11,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "카드 번호를 **내 서버가 만지는 순간** PCI 부담이 생긴다. 가장 좋은 전략은 아예 안 만지는 것이다."
-    },
-    {
-      "type": "h",
-      "text": "1. 토큰화"
-    },
-    {
-      "type": "note",
-      "text": "PG 가 제공하는 **결제 위젯·SDK** 를 쓰면 카드 정보가 브라우저에서 PG 로 바로 가고, 내 서버는 **토큰**만 받는다. 이러면 PCI 범위가 크게 줄어든다(SAQ A 수준)."
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "내 서버가 보는 것은 토큰뿐",
-      "text": "// 프런트: PG SDK 가 카드 입력을 처리하고 토큰을 준다\nconst { token } = await pg.createToken(cardElement);\nawait fetch('/api/pay', { method: 'POST', body: JSON.stringify({ token, orderId }) });\n// 서버: 카드 번호를 본 적이 없다"
-    },
-    {
-      "type": "h",
-      "text": "2. 절대 하지 말 것"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "사고의 단골",
-      "text": "· 카드 번호·CVC 를 로그에 남기기 (에러 리포트 포함!)\n· 카드 정보를 DB 에 저장 (필요하면 PG 의 「고객 저장」 기능을 쓴다)\n· 결제 폼을 http 로 서빙\n· 프런트에서 금액을 받아 그대로 결제 (조작 가능)"
-    },
-    {
-      "type": "note",
-      "text": "**금액은 서버가 정한다.** 클라이언트가 보낸 가격을 믿으면 100원짜리 결제가 만들어진다."
-    },
-    {
-      "type": "h",
-      "text": "3. 3D Secure 와 인증"
-    },
-    {
-      "type": "p",
-      "text": "지역에 따라 추가 인증이 법적 요구다(유럽 SCA). 인증이 필요한 흐름은 **리다이렉트·팝업이 끼므로** 상태 처리가 복잡해진다 — PG 문서의 권장 흐름을 그대로 따르라."
-    },
-    {
-      "type": "h",
-      "text": "4. 사기 대응"
-    },
-    {
-      "type": "note",
-      "text": "속도 제한(같은 카드·IP 로 반복 시도) · 금액 이상치 · 배송지 불일치. PG 의 사기 탐지 기능을 켜고, **분쟁(chargeback) 발생률**을 지켜보라 — 너무 높으면 계약이 해지된다."
-    },
-    {
-      "type": "h",
-      "text": "5. 권한 분리"
-    },
-    {
-      "type": "p",
-      "text": "환불 권한은 아무나 갖지 않게. 관리자 화면에서의 결제 조작은 **누가 무엇을 했는지 로그**로 남겨라."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "내 로그·에러 리포트에 카드번호 형식(숫자 13~19자리)이 남는지 정규식으로 검색하라."
-    },
-    {
-      "type": "try",
-      "text": "결제 요청에서 금액을 프런트가 보내는지 확인하고, 서버가 주문에서 다시 계산하도록 고쳐라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "PCI 부담을 가장 크게 줄이는 방법은?",
-      "choices": [
-        "토큰화로 카드 정보가 내 서버를 지나지 않게 한다",
-        "암호화해 저장",
-        "접근 제어 강화"
+      "id": "1",
+      "title": "카드를 안 만지는 게 최선",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "카드 번호를 **내 서버가 만지는 순간** PCI DSS(카드 보안 표준) 부담이 생긴다 — 저장·전송·처리하는 모든 시스템이 엄격한 보안 감사·규정 대상이 되고, 유출 시 책임이 크다. 가장 좋은 전략은 **아예 안 만지는 것**이다: PG 의 결제 위젯·SDK 를 써서 카드 정보가 **브라우저에서 PG 로 바로** 가게 하고, 내 서버는 **토큰만** 받는다(2장). 그러면 카드 원본이 내 시스템을 **거치지 않아** PCI 범위(scope)가 극적으로 줄어든다. 「보안의 최선은 위험한 것을 애초에 다루지 않는 것」 — 카드 데이터라는 가장 민감한 것을 내 손에 안 넣는 게 가장 안전하고 부담 없다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "PCI 범위 — 만지면 커지고, 안 만지면 준다",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .m { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n             background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .flow .m.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .flow .m.good { border-left-color:#22c55e; } .flow .m.bad { border-left-color:#ef4444; background:#2a1414; }\n  .flow .m .who { width:64px; color:#7dd3fc; }\n  .scan { background:#0d1526; border:1px solid #1e293b; border-radius:8px; padding:8px 10px; margin:8px 0;\n          font:12px/1.8 ui-monospace, monospace; white-space:pre-wrap; }\n  .scan .hit { background:#7f1d1d; color:#fecaca; border-radius:3px; padding:0 3px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const flow = (rows) => '<div class=\"flow\">' + rows.map(([who, txt, cls]) =>\n    '<div class=\"m ' + (cls||'') + '\"><span class=\"who\">' + esc(who) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  // 카드번호 형식 탐지 (13~19자리 숫자, 구분자 허용) — 로그 스캔용\n  function scanCard(text) {\n    const re = /\\b(?:\\d[ -]?){13,19}\\b/g;\n    return text.replace(re, m => {\n      const digits = m.replace(/[ -]/g, '');\n      if (digits.length >= 13 && digits.length <= 19) return '<span class=\"hit\">' + esc(m) + '</span>';\n      return esc(m);\n    });\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const touch = '{{touch}}';\n  if (touch === 'yes') {\n    render('카드를 내 서버가 만지면 (부담 큼)',\n      '  카드 번호가 내 서버를 거침 → 저장·전송·처리 시스템 전부 PCI 대상\\n\\n' +\n      '  <span class=\\\"no\\\">엄격한 감사·규정 + 유출 시 큰 책임. PCI 범위가 크게 넓어짐.</span>',\n      '카드를 만지면: 관련 시스템 전부 PCI 대상 → 감사·책임 부담 큼.',\n      flow([['브라우저','카드 입력', 'on'],['내 서버','카드 번호 받음(만짐!)', 'bad'],\n            ['PCI','내 서버·DB·로그 전부 범위 안', 'bad'],['책임','유출 시 큰 부담', 'bad']]));\n  } else {\n    render('카드를 안 만지면 (부담 최소)',\n      '  카드가 브라우저 → PG 로 직접 · 내 서버는 토큰만 받음\\n\\n' +\n      '  <span class=\\\"ok\\\">카드 원본이 내 시스템을 안 거침 → PCI 범위 극소화·부담 최소.</span>',\n      '카드를 안 만지면: 브라우저→PG 직접, 서버는 토큰만 → 범위 극소.',\n      flow([['브라우저','카드 입력 → PG SDK', 'on'],['PG','카드를 직접 받음', 'good'],\n            ['내 서버','토큰만 받음(카드 안 만짐)', 'good'],['PCI','범위 극소화', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "touch",
+              "label": "카드를",
+              "type": "select",
+              "value": "yes",
+              "options": [
+                {
+                  "value": "yes",
+                  "label": "내 서버가 만짐"
+                },
+                {
+                  "value": "no",
+                  "label": "안 만짐(토큰만)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**카드 번호를 내 서버가 만지는 순간 PCI 부담이 생기니, 가장 좋은 전략은 아예 안 만지는 것 — 브라우저에서 PG 로 직접 보내고 서버는 토큰만 받는다.** **PCI DSS**(Payment Card Industry Data Security Standard)는 카드 데이터를 다루는 시스템이 지켜야 할 보안 표준이다. 카드 번호(PAN)·CVC 를 **저장·전송·처리**하는 모든 시스템이 PCI **범위(scope)** 안에 들어가 — 엄격한 보안 요구(암호화·접근 제어·감사·정기 점검·취약점 스캔)를 충족해야 하고, 감사를 받아야 하며, 유출 시 큰 책임(벌금·배상·신뢰 상실)을 진다. 카드 데이터가 내 서버·DB·로그·백업 어디든 거치면 그것들이 다 범위에 들어가 부담이 커진다. **가장 좋은 전략은 카드를 아예 안 만지는 것**: PG 가 제공하는 **결제 위젯·SDK**(Stripe Elements·토큰화 폼)를 쓰면, 카드 정보가 **브라우저에서 PG 서버로 직접** 전송되고(내 서버를 안 거침), 내 서버는 카드 대신 **토큰**(카드를 대표하는 안전한 참조)만 받는다(2장). 그러면 카드 원본이 내 시스템을 **전혀 거치지 않아** PCI 범위가 극적으로 줄어든다(가장 가벼운 SAQ A 수준). 이게 「위험한 것을 애초에 다루지 않는」 최선의 보안이다 — 카드 데이터라는 가장 민감하고 규제가 심한 것을 내 손에 안 넣으면, 유출될 것도·지킬 것도·감사받을 것도 없다(sec-secret 5장의 「가장 안전한 비밀은 존재하지 않는 비밀」과 같은 원리). 반대로 「직접 카드를 받아 처리」하면(자체 결제 폼으로 카드를 서버로 보냄) PCI 부담이 막대하고 유출 위험이 크다 — 특별한 이유(대형 사업자·특수 요구) 없이는 안 한다. 그래서 **현대 결제의 기본 = 토큰화**(카드는 PG 가, 나는 토큰만) — 카드를 안 만지는 게 가장 안전하고 실용적이다. 「내가 카드를 만질 필요가 있나?」를 먼저 묻고, 답은 대개 「아니오, PG 에 맡긴다」다."
+        },
+        {
+          "type": "p",
+          "text": "**「위험한 것을 다루지 않기」가 최선의 보안 — 공격 표면을 줄이는 근본 전략.** 카드를 안 만지는 전략의 원리는 보안 일반의 근본이다: **가장 안전한 데이터는 갖지 않는 데이터**다(sec-secret 5장). 민감한 것(카드·비밀·개인정보)을 다루면 지켜야 할 책임·유출 위험·규제 부담이 생기니, **애초에 안 다루거나 최소로 다루는** 게 최선이다 — 공격 표면(attack surface)을 줄이는 것. 이 사고: 필요 없는 데이터는 수집 안 하고(데이터 최소화), 저장 안 하고, 민감한 처리는 전문 서비스(PG·인증 제공자)에 위임하고(내가 카드·비밀번호를 안 다루고 그들이), 권한·접근을 최소로(최소 권한). 「내가 이걸 꼭 다뤄야 하나? 안 다룰 수 있나?」를 물어, 위험을 **소유하지 않는** 쪽을 택한다. 이는 프라이버시(legal-privacy — 안 모으면 유출도 없음)·보안(sec — 공격 표면 최소화)·규정 준수(다루지 않으면 규제도 최소)에 공통이다. 위임의 이점: 전문가(PG 는 카드 보안에, 인증 제공자는 비밀번호에 전문)가 나보다 잘하고, 책임·부담을 그들이 지고, 내 시스템은 단순·안전해진다. 그래서 「직접 다 만들기」의 유혹(통제하고 싶음)을 이기고 「위험한 부분은 전문 서비스에 위임」하는 게 대개 더 안전하다. 카드 토큰화는 그 전형 — 카드 보안이라는 어렵고 위험한 일을 PG 에 맡기고, 나는 토큰만 안전하게 다룬다. 「다루지 않음으로써 안전」이 보안의 가장 강력한 전략이다."
+        },
+        {
+          "type": "try",
+          "text": "네 결제가 카드 번호를 서버로 받는지 확인하라 — 그렇다면 PCI 범위가 크게 넓어진 것. PG 의 토큰화 위젯·SDK(Stripe Elements 등)로 바꿔 카드가 브라우저→PG 로 직접 가고 서버는 토큰만 받게 하라. 「내가 카드를 만질 필요가 정말 있나?」를 묻고, 위험한 카드 데이터를 내 손에서 없애라."
+        }
       ],
-      "answer": 0,
-      "why": "안 만지는 것이 가장 안전하고 싸다."
+      "quiz": [
+        {
+          "q": "카드를 내 서버가 만지면?",
+          "choices": [
+            "안전",
+            "PCI 범위가 넓어짐(관련 시스템 전부 감사·책임 부담)",
+            "빨라짐",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "안 만지는 게 최선."
+        },
+        {
+          "q": "카드를 안 만지는 방법은?",
+          "choices": [
+            "암호화",
+            "PG 위젯·SDK — 카드는 브라우저→PG 직접, 서버는 토큰만",
+            "로그 삭제",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "PCI 범위 극소화."
+        },
+        {
+          "q": "「위험한 것을 안 다루기」의 원리는?",
+          "choices": [
+            "속도",
+            "가장 안전한 데이터는 갖지 않는 데이터 — 공격 표면 최소화·전문 서비스에 위임",
+            "색",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "다루지 않음으로써 안전."
+        }
+      ]
     },
     {
-      "q": "결제 금액은 어디서 정해야 하나?",
-      "choices": [
-        "서버가 주문 정보로 계산",
-        "클라이언트가 전달",
-        "PG 가 결정"
+      "id": "2",
+      "title": "토큰화",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**토큰화(tokenization)**: PG 의 SDK 가 브라우저에서 카드 입력을 받아 PG 로 직접 보내고, 카드를 대표하는 **토큰**(예: `tok_abc` 또는 `pm_xxx`)을 내 프런트에 준다. 내 서버는 그 **토큰만** 받아 결제를 요청한다(`결제(token, 금액)`) — 카드 원본은 절대 안 본다. 토큰은 ① **그 자체론 쓸모없고**(내 계정에서만·PG 통해서만 유효) ② **재사용 가능**(고객 저장 — 다음 결제에 카드 재입력 없이). 그래서 「카드를 안 만지면서 결제한다」가 가능하다. 이게 현대 결제의 기본 구조 — 민감한 카드는 PG 가 금고에 넣고, 나는 그 금고를 여는 **참조(토큰)**만 다룬다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "토큰화 흐름 — 카드는 PG 로, 서버는 토큰",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .m { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n             background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .flow .m.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .flow .m.good { border-left-color:#22c55e; } .flow .m.bad { border-left-color:#ef4444; background:#2a1414; }\n  .flow .m .who { width:64px; color:#7dd3fc; }\n  .scan { background:#0d1526; border:1px solid #1e293b; border-radius:8px; padding:8px 10px; margin:8px 0;\n          font:12px/1.8 ui-monospace, monospace; white-space:pre-wrap; }\n  .scan .hit { background:#7f1d1d; color:#fecaca; border-radius:3px; padding:0 3px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const flow = (rows) => '<div class=\"flow\">' + rows.map(([who, txt, cls]) =>\n    '<div class=\"m ' + (cls||'') + '\"><span class=\"who\">' + esc(who) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  // 카드번호 형식 탐지 (13~19자리 숫자, 구분자 허용) — 로그 스캔용\n  function scanCard(text) {\n    const re = /\\b(?:\\d[ -]?){13,19}\\b/g;\n    return text.replace(re, m => {\n      const digits = m.replace(/[ -]/g, '');\n      if (digits.length >= 13 && digits.length <= 19) return '<span class=\"hit\">' + esc(m) + '</span>';\n      return esc(m);\n    });\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const step = {{step}};\n  const rows = [\n    ['브라우저','PG SDK 가 카드 입력 폼을 그림(내 페이지 안, iframe)', 'on'],\n    ['브라우저→PG','카드 정보를 PG 로 직접 전송(내 서버 안 거침)', 'good'],\n    ['PG→브라우저','토큰(tok_abc) 반환 — 카드를 대표', 'good'],\n    ['브라우저→서버','토큰만 서버로 전송(카드 X)', 'good'],\n    ['서버→PG','결제(토큰, 서버가 정한 금액) 요청', 'good'],\n  ];\n  const n = Math.min(step, 4);\n  render('토큰화 단계 ' + (n+1) + '/5: ' + rows[n][0],\n    '  ' + rows[n][1] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">카드는 브라우저→PG 로만 흐르고, 내 서버는 토큰만 다룬다.</span>',\n    '카드는 브라우저→PG 직접 → 토큰 반환 → 서버는 토큰으로 결제.',\n    flow(rows.map((r,i)=>[r[0], r[1], i <= n ? r[2] : ''])));\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 4,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "토큰화 — 프런트는 토큰, 서버는 결제",
+          "text": "// 프런트: PG SDK 가 카드 입력을 처리하고 토큰을 준다\nconst { token } = await pg.createToken(cardElement);  // 카드는 PG 로 직접\n// 내 서버로는 토큰만 보낸다 (카드 번호는 절대 안 보냄)\nawait fetch('/pay', { method: 'POST', body: JSON.stringify({ token, 주문id }) });\n\n// 서버: 토큰 + '서버가 정한 금액'으로 결제 (금액은 주문에서 다시 계산, 4장)\napp.post('/pay', async (req, res) => {\n  const 금액 = await 주문금액계산(req.body.주문id);   // 클라이언트 금액 X\n  await pg.charge({ source: req.body.token, amount: 금액 });\n  // 카드 원본은 내 서버에 없음 → PCI 범위 밖\n});"
+        },
+        {
+          "type": "note",
+          "text": "**토큰화는 카드를 PG 로 직접 보내 토큰을 받고, 서버는 그 토큰으로 결제하는 구조 — 카드를 안 만지면서 결제·재사용을 가능하게 한다.** 흐름: ① PG 의 **SDK·위젯**(Stripe Elements 등)이 내 결제 페이지 안에 카드 입력 폼을 그린다 — 단, 이 폼은 **PG 가 제어하는 iframe**이라, 카드 입력은 내 페이지 JS 가 아니라 **PG 코드가** 받는다(내 코드는 카드 값을 못 봄). ② 사용자가 카드를 입력하면, PG SDK 가 그 정보를 **PG 서버로 직접** 보낸다(내 서버를 안 거침). ③ PG 가 카드를 안전하게 보관하고, 그것을 대표하는 **토큰**(`tok_abc`·`pm_xxx`)을 브라우저에 반환한다. ④ 내 프런트는 그 **토큰만** 내 서버로 보낸다(카드 번호는 절대 안 보냄). ⑤ 내 서버는 토큰 + **서버가 정한 금액**(4장)으로 PG 에 결제를 요청한다. 이렇게 카드 원본은 **브라우저 → PG** 로만 흐르고, 내 서버·DB·로그는 카드를 **전혀 안 만진다**(PCI 범위 밖, 1장). **토큰의 성질**: ① **그 자체론 쓸모없다** — 토큰은 특정 상황(내 계정·PG 통해)에서만 유효한 참조라, 유출돼도 공격자가 딴 데서 못 쓴다(카드 번호와 달리). ② **재사용 가능** — PG 의 「고객 저장」 기능으로 토큰(또는 저장된 결제 수단)을 보관하면, 다음 결제에 카드 재입력 없이 그 토큰으로 결제한다(구독·원클릭 결제 — pay-sub). 즉 카드를 저장하지 않고도(내 DB 에 카드 X) 저장 결제의 편의를 얻는다 — 카드는 PG 금고에, 나는 「그 카드를 가리키는 토큰」만. 그래서 「카드 정보를 저장하고 싶으면 내 DB 가 아니라 **PG 의 고객 저장 기능**을 쓴다」(3장). 이 토큰화가 현대 결제의 표준 구조다 — 민감한 카드 데이터는 전문가(PG)가 안전하게 다루고, 나는 안전한 참조(토큰)만 다뤄 결제·재사용을 구현한다. 핵심 통찰: **민감한 원본 대신 안전한 참조(토큰)를 다룬다** — 원본의 위험 없이 원본의 기능을 쓴다."
+        },
+        {
+          "type": "p",
+          "text": "**토큰화 = 「민감한 원본을 안전한 참조로 대체」 — 널리 쓰이는 보안 패턴.** 토큰화의 원리는 보안 일반에 통한다: **민감한 데이터를 직접 다루는 대신, 그것을 대표하는 안전한 참조(토큰)로 대체**한다. 토큰은 ① 원본을 대표하되 ② 그 자체론 무의미하거나 제한적으로만 유효해, 유출·오용 위험이 낮다. 이 패턴은 카드 토큰화뿐 아니라: 비밀번호 대신 세션 토큰·API 키, 실제 식별자 대신 불투명 ID(내부 DB id 노출 X), 개인정보 대신 가명화·토큰화(legal-privacy — 분석에 실제 값 대신 토큰), 파일 대신 서명된 URL, OAuth(비밀번호 대신 액세스 토큰). 공통 이점: 민감한 원본을 **한 곳(금고)에 격리**하고, 나머지 시스템은 안전한 참조만 다뤄 위험을 국소화한다(원본을 아는 곳이 적을수록 안전). 그리고 참조는 **폐기·회전 가능**(토큰 무효화)이라 유출 대응이 쉽다(원본 카드는 못 바꿔도 토큰은 무효화). 이는 sec-secret(단명 토큰·최소 노출)·최소 권한과 통한다. 그래서 「민감한 것을 직접 다루지 말고, 안전한 참조로」가 보안 설계의 강력한 도구다 — 원본의 위험을 한 곳에 가두고, 시스템은 참조로 작동. 카드 토큰화는 이 원리를 결제에 적용해, 「카드 없이 결제」라는 안전과 편의를 함께 얻는다. 참조로 다루면 원본이 새어도 참조만 무효화하면 되니, 되돌릴 수 없는 원본 유출(sec-secret 1장)을 되돌릴 수 있는 참조 관리로 바꾼다."
+        },
+        {
+          "type": "try",
+          "text": "네 결제를 토큰화 흐름으로 구현·점검하라 — PG SDK 가 카드를 직접 받아 토큰을 주고, 서버는 토큰으로만 결제하는지. 카드 저장이 필요하면 내 DB 가 아니라 PG 의 고객 저장(customer·payment method) 기능을 쓰라. 「내 코드·서버·DB 어디에도 카드 원본이 없는가」를 확인하라 — 토큰만 흘러야 한다."
+        }
       ],
-      "answer": 0,
-      "why": "클라이언트 값은 조작 가능하다."
+      "quiz": [
+        {
+          "q": "토큰화에서 내 서버가 받는 것은?",
+          "choices": [
+            "카드 번호",
+            "토큰(카드를 대표하는 안전한 참조) — 카드 원본 X",
+            "CVC",
+            "비밀번호"
+          ],
+          "answer": 1,
+          "why": "카드는 브라우저→PG 직접."
+        },
+        {
+          "q": "토큰의 성질은?",
+          "choices": [
+            "카드와 같음",
+            "그 자체론 쓸모없고(유출돼도 딴 데서 못 씀)·재사용 가능",
+            "위험함",
+            "느림"
+          ],
+          "answer": 1,
+          "why": "안전한 참조."
+        },
+        {
+          "q": "토큰화의 일반 원리는?",
+          "choices": [
+            "암호화만",
+            "민감한 원본을 안전한 참조로 대체(원본은 금고에, 시스템은 참조로)",
+            "속도",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "위험을 국소화·참조는 폐기 가능."
+        }
+      ]
     },
     {
-      "q": "분쟁(chargeback) 발생률이 높으면?",
-      "choices": [
-        "PG 계약 해지 위험이 있다",
-        "수수료만 는다",
-        "영향 없다"
+      "id": "3",
+      "title": "절대 하지 말 것",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "결제에서 **절대 하지 말 것**: ① **카드 번호·CVC 를 로그에 남기기**(에러 리포트·디버그 출력 포함! — 무심코 요청 전체를 로그하면 카드가 찍힌다). ② **카드 정보를 내 DB 에 저장**(필요하면 PG 의 「고객 저장」 기능을 쓴다 — 2장). ③ **CVC 저장**(PCI 가 아예 금지 — 어떤 경우도 저장 불가). ④ **클라이언트가 보낸 금액을 믿기**(다음 장 — 100원 결제가 만들어진다). ⑤ **카드를 평문 전송·URL 에 넣기**. 이것들은 「무심코」 하기 쉬운 것들이라(요청 전체 로깅, 편하려고 DB 저장) 특히 주의한다. 카드 데이터는 **로그·DB·URL·에러 리포트 어디에도 원본으로 남기지 않는다** — 남는 순간 유출 경로가 된다(sec-secret 6장)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "카드 로그 스캔 — 무심코 남는다",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .m { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n             background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .flow .m.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .flow .m.good { border-left-color:#22c55e; } .flow .m.bad { border-left-color:#ef4444; background:#2a1414; }\n  .flow .m .who { width:64px; color:#7dd3fc; }\n  .scan { background:#0d1526; border:1px solid #1e293b; border-radius:8px; padding:8px 10px; margin:8px 0;\n          font:12px/1.8 ui-monospace, monospace; white-space:pre-wrap; }\n  .scan .hit { background:#7f1d1d; color:#fecaca; border-radius:3px; padding:0 3px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const flow = (rows) => '<div class=\"flow\">' + rows.map(([who, txt, cls]) =>\n    '<div class=\"m ' + (cls||'') + '\"><span class=\"who\">' + esc(who) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  // 카드번호 형식 탐지 (13~19자리 숫자, 구분자 허용) — 로그 스캔용\n  function scanCard(text) {\n    const re = /\\b(?:\\d[ -]?){13,19}\\b/g;\n    return text.replace(re, m => {\n      const digits = m.replace(/[ -]/g, '');\n      if (digits.length >= 13 && digits.length <= 19) return '<span class=\"hit\">' + esc(m) + '</span>';\n      return esc(m);\n    });\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const source = '{{source}}';\n  const samples = {\n    reqlog:'logger.info(req.body): { card: \\\"4242 4242 4242 4242\\\", cvc: \\\"123\\\", amount: 10000 }',\n    errorreport:'Error 결제실패 — 요청: { number: \\\"5555555555554444\\\", exp: \\\"12/28\\\" }',\n    safe:'logger.info: { token: \\\"tok_abc123\\\", 주문id: \\\"o_99\\\", amount: 10000 }',\n  };\n  const text = samples[source];\n  const scanned = scanCard(text);\n  const found = scanned.includes('hit');\n  render('로그 스캔 — 카드번호 형식(13~19자리) 검색',\n    (found\n      ? '  <span class=\\\"no\\\">✗ 카드 번호가 로그에 남음! (빨강) — 무심코 요청 전체를 로그.\\n' +\n        '  로그를 보는 모두에게 유출 · 에러 리포트에도 새어 나감.</span>'\n      : '  <span class=\\\"ok\\\">✓ 카드 없음 — 토큰만 로그(안전).</span>'),\n    '카드 번호를 로그·에러 리포트에 남기지 마라 — 무심코 남는다.',\n    '<div class=\\\"scan\\\">' + scanned + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "source",
+              "label": "로그 출처",
+              "type": "select",
+              "value": "reqlog",
+              "options": [
+                {
+                  "value": "reqlog",
+                  "label": "요청 전체 로그"
+                },
+                {
+                  "value": "errorreport",
+                  "label": "에러 리포트"
+                },
+                {
+                  "value": "safe",
+                  "label": "토큰만(안전)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "절대 하지 말 것",
+          "text": "· 카드 번호·CVC 를 로그에 남기기 (에러 리포트 포함!)\n    → 요청 전체를 무심코 로그하면 카드가 찍힌다\n· 카드 정보를 DB 에 저장 (필요하면 PG 의 「고객 저장」 기능을 쓴다)\n· CVC 저장 (PCI 가 아예 금지 — 어떤 경우도 불가)\n· 클라이언트가 보낸 금액을 믿기 (4장 — 100원 결제가 만들어진다)\n· 카드를 평문 전송·URL 에 넣기 (로그·히스토리에 남음)\n\n카드 데이터 = 로그·DB·URL·에러 리포트 어디에도 원본으로 남기지 않는다"
+        },
+        {
+          "type": "note",
+          "text": "**결제에서 절대 하지 말 것: 카드·CVC 를 로그·에러 리포트에 남기기, 카드를 내 DB 에 저장, CVC 저장, 클라이언트 금액 믿기, 카드 평문 전송. 「무심코」 하기 쉬우니 특히 주의한다.** ① **카드 번호·CVC 를 로그에** — 가장 흔한 실수는 「요청 전체를 로그」하는 것이다(`logger.info(req.body)`) — 카드가 요청에 있으면 그대로 로그에 찍힌다. 특히 **에러 리포트**(Sentry 등)가 위험 — 결제 실패 시 요청 문맥을 자동으로 보내면 카드가 딸려 간다(sec-secret 6장 — 로그 마스킹). 로그·에러는 오래 저장·널리 공유되니 카드가 새면 큰일. → 카드 필드를 마스킹하거나(토큰화면 애초에 카드가 없음), 요청 전체 로깅을 피한다. ② **카드를 내 DB 에 저장** — 카드를 보관하려는 유혹(재결제 편의)에 DB 에 저장하면 PCI 부담·유출 위험이 막대. → 필요하면 **PG 의 「고객 저장」**(2장 — 토큰·저장된 결제 수단)을 쓴다(카드는 PG 금고에). ③ **CVC 저장** — PCI 가 **어떤 경우에도 저장 금지**(CVC 는 카드 소지 증명용이라 저장 자체가 금지) — 결제 후 즉시 버린다. ④ **클라이언트가 보낸 금액을 믿기** — 프런트가 보낸 가격으로 결제하면 조작으로 100원 결제가 만들어진다(4장 — 금액은 서버가 정한다). ⑤ **카드를 평문 전송·URL 에 넣기** — URL 쿼리(`?card=...`)는 액세스 로그·브라우저 히스토리·리퍼러에 남는다(sec-secret 6장). 카드는 항상 암호화(HTTPS)된 본문으로, 그리고 토큰화로 애초에 카드를 안 보내는 게 최선. 이것들의 공통점은 **「무심코」 하기 쉽다**는 것 — 디버그하려고 요청을 로그하고, 편하려고 카드를 저장하고, 프런트가 계산한 금액을 그냥 쓰고. 그래서 **의식적으로 피하고 자동으로 막는다**(로그 마스킹 설정, 카드 필드 검사, 카드번호 형식을 로그에서 스캔 — 실습). 카드 데이터는 **로그·DB·URL·에러 리포트·백업 어디에도 원본으로 남기지 않는다**(sec-secret 의 「모든 유출 경로」) — 한 곳이라도 남으면 유출 경로가 된다. 토큰화(2장)를 하면 애초에 카드가 내 시스템에 없어 이 실수들이 원천 차단된다 — 그래서 「안 만지기」가 근본 방어다."
+        },
+        {
+          "type": "p",
+          "text": "**민감 데이터는 「모든 흔적」을 막아야 한다 — 한 곳의 누수가 전부를 무너뜨린다.** 「절대 하지 말 것」들의 교훈은 민감 데이터 관리의 철저함이다: 민감한 것(카드·비밀·개인정보)은 **주 저장소만이 아니라 모든 부수적 흔적**(로그·에러 리포트·URL·캐시·백업·임시 파일·디버그 출력)에서 막아야 한다(sec-secret 6장). 아무리 주 경로를 잘 지켜도, **한 곳의 무심한 누수**(요청 전체 로깅 한 줄)가 전부를 무너뜨린다 — 보안은 가장 약한 고리로 정해진다. 특히 위험한 건 **무심코·편의로 인한 누수** — 디버그 로그, 편의 저장, 에러 문맥 — 악의가 아니라 부주의로 새는 것들. 그래서 ① **의식**(어디에 민감 데이터가 흐르나 추적)과 ② **자동 방어**(로그 마스킹·형식 스캔·린트 규칙으로 사람 실수를 기계가 차단, sec-secret 2장)가 함께 필요하다. 그리고 근본 방어는 **애초에 민감 데이터를 안 갖는 것**(토큰화 — 1장) — 카드가 시스템에 없으면 로그·DB·에러 어디에도 샐 카드가 없다(가장 확실). 이는 「공격 표면 최소화 + 심층 방어 + 자동 가드레일」의 종합이다. 민감 데이터를 다룰 땐 「이게 어디어디에 남을 수 있나」를 끝까지 추적하고 모든 경로를 막아야 한다 — 하나라도 놓치면 그 하나로 새니까. 철저함이 곧 안전이다."
+        },
+        {
+          "type": "try",
+          "text": "네 로그·에러 리포트에 카드번호 형식(숫자 13~19자리)이 남는지 정규식으로 검색하라(`\\b(?:\\d[ -]?){13,19}\\b`). 하나라도 나오면 즉시 마스킹하고, 요청 전체 로깅·에러 문맥에 카드가 딸려 가지 않는지 점검하라. CVC 를 어디든 저장하지 않는지, 카드를 DB 에 저장하는 대신 PG 고객 저장을 쓰는지 확인하라 — 근본은 토큰화로 카드를 안 갖는 것."
+        }
       ],
-      "answer": 0,
-      "why": "사기 대응은 사업 지속의 문제다."
+      "quiz": [
+        {
+          "q": "결제에서 절대 하지 말 것이 아닌 것은?",
+          "choices": [
+            "카드를 로그에 남기기",
+            "CVC 저장",
+            "카드를 DB 에 저장",
+            "서버가 금액 계산"
+          ],
+          "answer": 3,
+          "why": "금액은 서버가 정해야 함(4장)."
+        },
+        {
+          "q": "카드가 로그에 새는 가장 흔한 경로는?",
+          "choices": [
+            "일부러",
+            "요청 전체를 무심코 로그(에러 리포트 포함)",
+            "암호화",
+            "토큰"
+          ],
+          "answer": 1,
+          "why": "무심코가 위험."
+        },
+        {
+          "q": "카드 정보 저장이 필요하면?",
+          "choices": [
+            "내 DB 에",
+            "PG 의 「고객 저장」 기능(카드는 PG 금고에, 나는 토큰)",
+            "로그에",
+            "URL 에"
+          ],
+          "answer": 1,
+          "why": "카드를 안 만지기."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "금액은 서버가 정한다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**금액은 서버가 정한다** — 클라이언트가 보낸 가격을 믿으면 **100원짜리 결제가 만들어진다**. 프런트가 `{ 상품: 'X', 금액: 50000 }`을 보낼 때, 공격자가 그 요청을 가로채 `금액: 100`으로 바꾸면(클라이언트는 조작 가능, sec), 서버가 그 금액으로 결제를 만들어 5만원 상품을 100원에 산다. 방어: 서버가 **주문 내용(상품 id·수량)으로 금액을 다시 계산**한다 — 프런트가 보낸 금액은 **무시**하고, 서버의 권위 있는 가격 데이터로 결제 금액을 정한다. 클라이언트는 「무엇을 사는지」(상품·수량)만 보내고, 「얼마인지」는 서버가 결정한다. 「클라이언트가 보낸 것은 무엇이든 조작 가능」이 결제에선 직접 금전 손실로 이어진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "금액 조작 — 클라이언트 vs 서버 계산",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .m { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n             background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .flow .m.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .flow .m.good { border-left-color:#22c55e; } .flow .m.bad { border-left-color:#ef4444; background:#2a1414; }\n  .flow .m .who { width:64px; color:#7dd3fc; }\n  .scan { background:#0d1526; border:1px solid #1e293b; border-radius:8px; padding:8px 10px; margin:8px 0;\n          font:12px/1.8 ui-monospace, monospace; white-space:pre-wrap; }\n  .scan .hit { background:#7f1d1d; color:#fecaca; border-radius:3px; padding:0 3px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const flow = (rows) => '<div class=\"flow\">' + rows.map(([who, txt, cls]) =>\n    '<div class=\"m ' + (cls||'') + '\"><span class=\"who\">' + esc(who) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  // 카드번호 형식 탐지 (13~19자리 숫자, 구분자 허용) — 로그 스캔용\n  function scanCard(text) {\n    const re = /\\b(?:\\d[ -]?){13,19}\\b/g;\n    return text.replace(re, m => {\n      const digits = m.replace(/[ -]/g, '');\n      if (digits.length >= 13 && digits.length <= 19) return '<span class=\"hit\">' + esc(m) + '</span>';\n      return esc(m);\n    });\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const who = '{{who}}';\n  if (who === 'client') {\n    render('클라이언트 금액을 믿으면 (뚫림)',\n      '  프런트: { 상품: \\\"노트북\\\", 금액: 1500000 }\\n' +\n      '  공격자가 가로채 → { 상품: \\\"노트북\\\", 금액: 100 }\\n' +\n      '  서버: 그 금액(100)으로 결제 생성 → 150만원 상품을 100원에!\\n\\n' +\n      '  <span class=\\\"no\\\">클라이언트 금액은 조작 가능 → 직접 금전 손실.</span>',\n      '클라이언트 금액 신뢰: 조작으로 100원 결제 → 손실.',\n      steps([['프런트가 금액 1500000 보냄', 'on'],['공격자가 100 으로 조작', 'bad'],\n             ['서버가 100 으로 결제 생성', 'bad'],['150만원 상품을 100원에 (손실)', 'bad']]));\n  } else {\n    render('서버가 금액을 계산 (안전)',\n      '  프런트: { 상품id: \\\"notepc\\\", 수량: 1 }  (금액 안 보냄)\\n' +\n      '  서버: 상품id 로 DB 에서 가격 조회 → 1500000 계산\\n' +\n      '  → 그 금액으로 결제 (프런트 금액은 무시)\\n\\n' +\n      '  <span class=\\\"ok\\\">서버가 권위 있는 가격으로 계산 → 조작 불가.</span>',\n      '서버 계산: 상품id 로 가격 조회 → 클라이언트 금액 무시.',\n      steps([['프런트가 상품id·수량만 보냄', 'on'],['서버가 DB 에서 가격 조회', 'good'],\n             ['서버가 금액 계산(1500000)', 'good'],['그 금액으로 결제 (조작 불가)', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "who",
+              "label": "금액 결정",
+              "type": "select",
+              "value": "client",
+              "options": [
+                {
+                  "value": "client",
+                  "label": "클라이언트(뚫림)"
+                },
+                {
+                  "value": "server",
+                  "label": "서버(안전)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "금액은 서버가 계산",
+          "text": "// ❌ 클라이언트가 보낸 금액을 믿음 — 조작되면 100원 결제\napp.post('/pay', async (req, res) => {\n  await pg.charge({ amount: req.body.금액, ... });  // 위험! 조작 가능\n});\n\n// ✅ 서버가 주문에서 금액을 다시 계산\napp.post('/pay', async (req, res) => {\n  const 주문 = await db.주문.get(req.body.주문id);\n  let 금액 = 0;\n  for (const item of 주문.항목) {\n    const 상품 = await db.상품.get(item.상품id);      // 권위 있는 가격\n    금액 += 상품.가격 * item.수량;                      // 서버가 계산\n  }\n  await pg.charge({ amount: 금액, ... });  // 클라이언트 금액은 무시\n});"
+        },
+        {
+          "type": "note",
+          "text": "**금액은 반드시 서버가 정한다 — 클라이언트가 보낸 금액을 믿으면 조작으로 100원 결제가 만들어진다. 서버가 주문 내용으로 가격을 다시 계산한다.** 결제 요청에서 프런트가 금액을 보내고(`{ 상품: 'X', 금액: 50000 }`) 서버가 그걸로 결제하면, **공격자가 요청을 조작**해 `금액: 100`으로 바꿔 5만원 상품을 100원에 산다. 클라이언트(브라우저)에서 오는 모든 것은 **조작 가능**하다(개발자 도구·프록시로 요청을 마음대로 바꿈, sec — 클라이언트를 절대 신뢰 X) — 그래서 「클라이언트가 보낸 금액」은 신뢰할 수 없고, 결제에선 이게 **직접 금전 손실**이 된다. 방어: **서버가 금액을 계산한다**. 클라이언트는 「무엇을 사는지」(상품 id·수량·주문 id)만 보내고, 서버가 그 **주문 내용으로 금액을 다시 계산**한다 — 서버의 **권위 있는 가격 데이터**(DB 의 상품 가격)로 `가격 × 수량`을 합산해 결제 금액을 정한다. 프런트가 금액을 보내도 **무시**한다(참고도 안 함 — 표시용으로 프런트가 계산하는 건 UX 지만, 실제 결제 금액은 서버가). 이러면 공격자가 요청을 조작해도 서버가 진짜 가격으로 결제하니 안전하다. 이 원칙은 금액뿐 아니라 **결제 관련 모든 신뢰 결정**에 적용된다: 할인·쿠폰 적용(서버가 검증 — 프런트가 「50% 할인됨」을 보내면 안 됨), 재고·구매 가능 여부(서버가 확인), 사용자 권한(이 사용자가 이걸 살 수 있나 — 서버가), 통화·세금(서버가 계산 — pay-tax). **「클라이언트는 의도를 보내고, 서버가 사실을 결정한다」** — 클라이언트: 「이 상품을 사고 싶다」(무엇을), 서버: 「그럼 얼마다」(금액을 권위 있게). 이건 sec 의 근본 원칙 — **모든 보안·금전 결정은 신뢰할 수 있는 서버에서**, 조작 가능한 클라이언트에서 하지 않는다. 클라이언트의 값은 편의·표시용일 뿐, 진실·결정은 서버가. 결제는 이 원칙을 어기면 즉시 돈을 잃으니(100원 결제) 특히 철저해야 한다. 흔한 실수라(프런트가 이미 금액을 아니 그냥 보내기 편해서) 의식적으로 「서버가 다시 계산」을 지킨다."
+        },
+        {
+          "type": "p",
+          "text": "**「클라이언트는 신뢰 경계 밖」 — 모든 검증·결정은 서버에서.** 금액 조작 방어의 원리는 웹 보안의 근본이다: **클라이언트(브라우저·앱)는 신뢰 경계 밖**이라, 거기서 오는 모든 것(입력·값·상태)은 조작 가능하다고 가정하고 **서버에서 검증·결정**한다. 프런트의 검증(입력 형식·가격 표시)은 **UX 용**(빠른 피드백·편의)이지 **보안이 아니다** — 공격자는 프런트를 우회해 서버로 직접 조작된 요청을 보낼 수 있으니, **서버가 반드시 다시 검증**해야 한다(프런트 검증 + 서버 검증 둘 다 — 프런트는 편의, 서버는 진짜 방어). 이는 금액(서버 계산)뿐 아니라 입력 검증(서버가 다시), 권한 확인(서버가 — 「이 사용자가 이 작업을 할 수 있나」), 비즈니스 규칙(서버가 강제), 상태 전이(서버가 유효성 확인) 전부에 적용된다. 「프런트에서 버튼을 숨겼으니 안전」은 틀림 — 공격자는 그 API 를 직접 부른다(서버가 권한을 확인해야). 핵심: **보안·무결성·금전이 걸린 결정은 신뢰할 수 있는 곳(서버)에서만** 하고, 클라이언트는 「요청·의도」만 보낸다고 본다. 이건 「진실을 권위 있는 소스에서」(pay-webhook 1장)·「입력을 신뢰하지 마라」(sec)와 같은 원리다. 결제는 이 원칙 위반이 즉각 금전 손실이라, 「클라이언트를 절대 믿지 마라」를 가장 뚜렷이 보여 주는 무대다. 프런트는 예쁘게 보여 주고, 서버는 진짜를 결정한다 — 이 분리를 지키는 게 안전한 시스템의 기본이다."
+        },
+        {
+          "type": "try",
+          "text": "네 결제 요청에서 금액을 프런트가 보내는지 확인하라 — 그렇다면 조작으로 100원 결제가 가능하다. 서버가 주문(상품 id·수량)에서 금액을 **다시 계산**하도록 고치고, 프런트가 보낸 금액은 무시하라. 할인·쿠폰·권한도 서버가 검증하는지 점검하라 — 「클라이언트는 무엇을, 서버가 얼마를」의 원칙을 지켜라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "금액을 누가 정해야 하나?",
+          "choices": [
+            "클라이언트",
+            "서버(주문 내용으로 다시 계산) — 클라이언트 금액은 조작 가능",
+            "PG",
+            "사용자"
+          ],
+          "answer": 1,
+          "why": "100원 결제 방지."
+        },
+        {
+          "q": "클라이언트가 보내는 것은?",
+          "choices": [
+            "금액",
+            "무엇을 사는지(상품id·수량) — 얼마인지는 서버가",
+            "할인율",
+            "권한"
+          ],
+          "answer": 1,
+          "why": "의도만, 결정은 서버."
+        },
+        {
+          "q": "프런트 검증의 역할은?",
+          "choices": [
+            "보안",
+            "UX(편의·표시)용 — 진짜 방어는 서버가 다시 검증",
+            "충분함",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "클라이언트는 신뢰 경계 밖."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "3D Secure 와 추가 인증",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "지역·규정에 따라 **추가 인증이 법적 요구**다 — 유럽의 **SCA**(Strong Customer Authentication)는 결제에 **3D Secure**(카드사가 사용자에게 추가 확인 — 문자 OTP·앱 승인·생체)를 요구한다. 이는 사기를 줄이지만, 인증이 필요한 흐름은 **리다이렉트·팝업이 끼어** 상태 처리가 복잡해진다: 결제 요청 → 「추가 인증 필요」 → 사용자가 카드사 페이지로 이동해 인증 → 돌아옴 → 결제 완료. 이 중간 단계(인증 대기·성공·실패·이탈)를 다 처리해야 한다. 실무: **PG 문서의 권장 흐름을 그대로** 따르고(직접 구현 X — 복잡·위험), PG SDK 가 3DS 를 처리하게 한다. 최종 결과는 **웹훅으로** 확정(pay-webhook — 사용자가 인증 중 이탈해도 서버가 앎)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "3D Secure — 추가 인증 흐름",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .m { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n             background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .flow .m.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .flow .m.good { border-left-color:#22c55e; } .flow .m.bad { border-left-color:#ef4444; background:#2a1414; }\n  .flow .m .who { width:64px; color:#7dd3fc; }\n  .scan { background:#0d1526; border:1px solid #1e293b; border-radius:8px; padding:8px 10px; margin:8px 0;\n          font:12px/1.8 ui-monospace, monospace; white-space:pre-wrap; }\n  .scan .hit { background:#7f1d1d; color:#fecaca; border-radius:3px; padding:0 3px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const flow = (rows) => '<div class=\"flow\">' + rows.map(([who, txt, cls]) =>\n    '<div class=\"m ' + (cls||'') + '\"><span class=\"who\">' + esc(who) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  // 카드번호 형식 탐지 (13~19자리 숫자, 구분자 허용) — 로그 스캔용\n  function scanCard(text) {\n    const re = /\\b(?:\\d[ -]?){13,19}\\b/g;\n    return text.replace(re, m => {\n      const digits = m.replace(/[ -]/g, '');\n      if (digits.length >= 13 && digits.length <= 19) return '<span class=\"hit\">' + esc(m) + '</span>';\n      return esc(m);\n    });\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const step = {{step}};\n  const rows = [\n    ['결제 시작','서버가 결제 의도(payment intent) 생성', 'on'],\n    ['인증 필요','PG: 「추가 인증 필요(3DS)」 → 카드사로', 'on'],\n    ['사용자 인증','카드사 페이지: OTP·앱 승인·생체', 'on'],\n    ['돌아옴','인증 성공 → 원래 흐름으로 복귀', 'good'],\n    ['확정','웹훅으로 최종 결과 확정(이탈해도 앎)', 'good'],\n  ];\n  const n = Math.min(step, 4);\n  render('3DS 단계 ' + (n+1) + '/5: ' + rows[n][0],\n    '  ' + rows[n][1] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">리다이렉트·팝업이 끼어 상태 처리 복잡 → PG 권장 흐름을 따르고 웹훅으로 확정.</span>',\n    '3DS: 결제→인증 필요→카드사 인증→복귀→웹훅 확정. 상태 처리 복잡.',\n    flow(rows.map((r,i)=>[r[0], r[1], i <= n ? r[2] : ''])));\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 4,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**지역에 따라 3D Secure 같은 추가 인증이 법적 요구다(유럽 SCA) — 리다이렉트·팝업이 끼어 상태 처리가 복잡하니 PG 권장 흐름을 따르고 결과는 웹훅으로 확정한다.** **3D Secure**(3DS)는 카드 결제에 **추가 인증 단계**를 넣는 것 — 결제 시 카드사가 사용자에게 본인 확인(문자 OTP·은행 앱 승인·생체 인증)을 요구해, 「카드 번호를 아는 사람 = 진짜 소유자」를 한 번 더 검증한다. 이는 도난 카드·사기 결제를 크게 줄이고, **책임 전환**(liability shift — 3DS 인증된 결제의 사기는 카드사가 책임)의 이점도 있다. **법적 요구**: 유럽의 **SCA**(Strong Customer Authentication, PSD2 규정)는 대부분의 온라인 결제에 강한 인증(3DS)을 **의무화**한다 — 유럽 고객을 받으면 3DS 를 지원해야 결제가 승인된다(안 하면 거부). 다른 지역도 유사 규정이 늘고 있다. **복잡성**: 3DS 는 결제 흐름에 **중간 단계**를 넣는다 — 결제 요청 → PG 가 「추가 인증 필요」 응답 → 사용자가 **카드사 인증 페이지로 리다이렉트·팝업** → 인증(OTP 등) → 원래 페이지로 **복귀** → 결제 완료. 이 리다이렉트·팝업이 끼면서 **상태 처리가 복잡**해진다: 인증 대기 중 상태, 인증 성공/실패, 사용자가 인증 중 **이탈**(창 닫음)한 경우, 복귀 시 원래 주문과 연결. 이 모든 상태를 다뤄야 한다. **실무 원칙**: ① **PG 문서의 권장 흐름을 그대로 따른다** — 3DS 를 직접 구현하지 말고(복잡·규정 변화·위험), PG SDK(Stripe Payment Intents 등)가 3DS 를 자동 처리하게 한다(인증 필요 여부 판단·리다이렉트·복귀를 SDK 가). ② **최종 결과는 웹훅으로 확정**(pay-webhook 1장) — 사용자가 인증 중 이탈하거나 리다이렉트가 실패해도, 서버는 웹훅으로 진짜 결과를 안다(클라이언트 흐름에 의존 X). ③ **상태를 명확히 추적** — 결제가 「인증 대기」인지 「완료」인지 「실패」인지를 서버가 관리해, 사용자가 돌아오든 이탈하든 올바르게 처리. 그래서 3DS 는 「보안·규정을 위해 필요하지만 흐름을 복잡하게 하는」 것 — PG 에 최대한 위임하고(권장 흐름·SDK), 웹훅으로 결과를 확정하고, 중간 상태를 잘 관리하는 게 실무 요령이다. 직접 3DS 프로토콜을 구현하는 건 거의 없다(PG 가 다 처리)."
+        },
+        {
+          "type": "p",
+          "text": "**「복잡하고 규정이 얽힌 것은 전문 서비스에 위임」 — 리다이렉트 흐름은 상태를 서버가 붙든다.** 3DS 의 교훈 둘. ① **복잡·규정 의존적인 것은 전문가에게 위임**: 3DS·SCA 는 지역마다 규정이 다르고 자주 바뀌며 카드사마다 구현이 다르다 — 직접 다루면 복잡·오류·규정 위반 위험이 크다. PG 가 이걸 전문으로 처리하니(SDK 가 인증 흐름을·규정 변화를 흡수) **위임**하는 게 안전하고 실용적이다(1장의 「위험·복잡한 것은 전문 서비스에」와 같은 원리). 내가 통제하려는 유혹보다, 전문가에게 맡기고 표준 흐름을 따르는 게 낫다. ② **리다이렉트·비동기 흐름은 서버가 상태를 붙든다**: 사용자가 외부(카드사)로 갔다 오는 흐름은 중간에 끊길 수 있으니(이탈·실패·중복 복귀), **클라이언트 흐름을 진실로 삼지 말고 서버가 상태를 권위 있게 관리**하고 최종 결과를 웹훅 등 서버 경로로 확정한다(pay-webhook 1장 — 클라이언트 못 믿음). 이는 OAuth·소셜 로그인·외부 결제 등 「사용자가 외부로 갔다 오는」 모든 흐름의 패턴 — 상태를 서버가 붙들고, 외부 결과를 서버가 확인. 그래서 3DS 는 pay-webhook(진실은 서버가)·1장(위임)의 원리가 결합된 사례다. 복잡한 것은 위임하고, 끊길 수 있는 흐름은 서버가 상태를 지키는 게 견고한 설계다."
+        },
+        {
+          "type": "try",
+          "text": "네 결제가 유럽 등 3DS/SCA 필요 지역을 지원하는지 확인하라 — 필요하면 PG 의 권장 흐름(Payment Intents 등)을 따라 SDK 가 3DS 를 처리하게 하라(직접 구현 X). 인증 중 이탈·실패·복귀 상태를 서버가 추적하고, 최종 결과를 웹훅으로 확정하는지 점검하라 — 리다이렉트 흐름의 진실은 서버가 붙든다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "3D Secure/SCA 는?",
+          "choices": [
+            "선택",
+            "지역에 따라 법적 요구(유럽 SCA) — 추가 인증(OTP·앱)",
+            "느림",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "사기 감소·책임 전환."
+        },
+        {
+          "q": "3DS 가 흐름을 복잡하게 하는 이유는?",
+          "choices": [
+            "느려서",
+            "리다이렉트·팝업이 끼어 상태 처리(대기·성공·실패·이탈) 복잡",
+            "색",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "PG 권장 흐름·웹훅 확정."
+        },
+        {
+          "q": "3DS 실무 원칙은?",
+          "choices": [
+            "직접 구현",
+            "PG 권장 흐름·SDK 에 위임 + 결과는 웹훅으로 확정",
+            "무시",
+            "클라이언트가 확정"
+          ],
+          "answer": 1,
+          "why": "복잡·규정은 위임."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "사기 대응",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "결제엔 **사기(fraud)**가 따른다 — 도난 카드·자동화 공격·악용. 대응 신호: **속도 제한**(같은 카드·IP·계정으로 짧은 시간 반복 시도 차단 — 카드 도용 테스트·무차별 대입), **금액 이상치**(평소와 다른 큰 금액·비정상 패턴), **배송지 불일치**(청구지와 배송지가 다름), 지역·시간 이상. **PG 의 사기 탐지 기능을 켜고**(PG 는 방대한 데이터로 사기를 잘 잡음 — Radar 등), 위험 점수로 자동 차단·수동 검토. 그리고 **분쟁(chargeback)에 대비**한다 — 사용자가 카드사에 「이 결제 몰라요」 하면 돈이 회수되고 수수료가 붙으니, **증빙(배송 기록·동의·로그)을 남겨** 대응한다. 사기는 완전히 못 막으니, **탐지·차단·증빙**으로 손실을 줄인다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "사기 신호 — 무엇을 의심하나",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .m { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n             background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .flow .m.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .flow .m.good { border-left-color:#22c55e; } .flow .m.bad { border-left-color:#ef4444; background:#2a1414; }\n  .flow .m .who { width:64px; color:#7dd3fc; }\n  .scan { background:#0d1526; border:1px solid #1e293b; border-radius:8px; padding:8px 10px; margin:8px 0;\n          font:12px/1.8 ui-monospace, monospace; white-space:pre-wrap; }\n  .scan .hit { background:#7f1d1d; color:#fecaca; border-radius:3px; padding:0 3px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const flow = (rows) => '<div class=\"flow\">' + rows.map(([who, txt, cls]) =>\n    '<div class=\"m ' + (cls||'') + '\"><span class=\"who\">' + esc(who) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  // 카드번호 형식 탐지 (13~19자리 숫자, 구분자 허용) — 로그 스캔용\n  function scanCard(text) {\n    const re = /\\b(?:\\d[ -]?){13,19}\\b/g;\n    return text.replace(re, m => {\n      const digits = m.replace(/[ -]/g, '');\n      if (digits.length >= 13 && digits.length <= 19) return '<span class=\"hit\">' + esc(m) + '</span>';\n      return esc(m);\n    });\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const signal = '{{signal}}';\n  const rows = {\n    velocity:['속도(velocity)', '같은 카드·IP 로 짧은 시간 반복 시도', '카드 도용 테스트·무차별 대입 → 속도 제한'],\n    amount:['금액 이상치', '평소와 다른 큰 금액·비정상 패턴', '이상 거래 → 추가 검토·차단'],\n    address:['배송지 불일치', '청구지 ≠ 배송지·위험 지역', '도난 카드 의심 → 검토'],\n    pg:['PG 사기 탐지', 'PG 의 방대한 데이터·ML 로 위험 점수', 'PG 기능 켜기(Radar 등) → 자동 차단·검토'],\n    chargeback:['분쟁(chargeback) 대비', '사용자가 「이 결제 몰라요」 → 돈 회수', '증빙(배송·동의·로그) 남겨 대응'],\n  }[signal];\n  render('사기 대응: ' + rows[0],\n    '  신호/상황: ' + rows[1] + '\\n  대응: ' + rows[2] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">완전히 못 막음 → 탐지·차단·증빙으로 손실을 줄인다.</span>',\n    '속도 제한·금액 이상치·배송지·PG 탐지·분쟁 증빙 — 사기 대응.',\n    box(rows[0], rows[1] + '\\n→ ' + rows[2], 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "signal",
+              "label": "사기 대응",
+              "type": "select",
+              "value": "velocity",
+              "options": [
+                {
+                  "value": "velocity",
+                  "label": "속도 제한"
+                },
+                {
+                  "value": "amount",
+                  "label": "금액 이상치"
+                },
+                {
+                  "value": "address",
+                  "label": "배송지 불일치"
+                },
+                {
+                  "value": "pg",
+                  "label": "PG 사기 탐지"
+                },
+                {
+                  "value": "chargeback",
+                  "label": "분쟁 대비"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**결제엔 사기가 따르니 속도 제한·금액 이상치·배송지 불일치 같은 신호로 탐지하고, PG 의 사기 탐지를 켜고, 분쟁에 증빙으로 대비한다 — 완전히 못 막으니 손실을 줄인다.** 결제 사기 유형: 도난 카드 사용, 카드 번호 도용 테스트(훔친 카드가 유효한지 소액으로 확인 — card testing), 자동화 공격(봇으로 대량 시도), 계정 탈취, 친구성 사기(본인이 사고 분쟁 제기). **탐지 신호**: ① **속도 제한(velocity)** — 같은 카드·IP·계정·기기로 **짧은 시간에 반복** 결제 시도를 차단(카드 테스트·무차별 대입의 특징 — 정상 사용자는 그렇게 안 함). 실패한 결제 시도도 제한(sec — rate limiting). ② **금액 이상치** — 평소 패턴과 다른 큰 금액, 비정상적 구매(같은 상품 대량, 고가품 급구매). ③ **배송지 불일치** — 청구지(카드 등록 주소)와 배송지가 다르거나, 위험 지역, 새 계정의 고액 주문. ④ **기타** — 비정상 시간·지역, 여러 카드를 한 계정이, 하나의 카드를 여러 계정이. **PG 의 사기 탐지 기능을 켠다** — PG(Stripe Radar 등)는 **방대한 결제 데이터와 ML** 로 사기를 잘 탐지한다(개별 가맹점보다 훨씬 넓은 시야 — 이 카드가 다른 곳에서 사기였나 등). 위험 점수로 자동 차단하거나 수동 검토 큐로 보낸다. 내가 직접 정교한 사기 탐지를 만들기보다 **PG 기능 활용 + 내 도메인 규칙**(속도·이상치) 조합이 실용적이다. **분쟁(chargeback) 대비**: 사용자가 카드사에 「이 결제 모른다」고 분쟁을 걸면, 돈이 **회수**되고 **수수료**가 붙는다(가맹점 손해). 그래서 **증빙을 남긴다** — 배송 기록(운송장·수령 확인), 사용자 동의(약관 동의·구매 확인), 접속·주문 로그, 3DS 인증 기록(3DS 는 책임 전환). 분쟁 시 이 증빙으로 대응(정당한 거래임을 입증). **핵심 태도**: 사기는 **완전히 못 막는다**(막으려다 정상 고객까지 차단하면 매출 손실 — 균형) — 그래서 목표는 「제로」가 아니라 **탐지·차단·증빙으로 손실을 감당 가능한 수준으로 관리**다. 너무 느슨하면 사기 손실, 너무 빡빡하면 정상 고객 이탈(false positive) — 이 균형을 데이터로 조정한다(사기율 vs 승인율)."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸과 갈래.** 결제 보안(pay-security)은 pay 갈래(결제)의 핵심 — 「돈이 걸린 시스템을 안전하게」. 카드 안 만지기·토큰화(1·2장)는 sec(공격 표면 최소화·위임)·sec-secret(안전한 참조), 절대 하지 말 것(3장)은 sec-secret 6장(로그 마스킹·모든 유출 경로), 금액은 서버가(4장)는 sec(클라이언트 불신)·pay-webhook 1장(진실은 서버), 3DS(5장)는 위임·pay-webhook, 사기 대응(6장)은 sec(속도 제한)·데이터 기반 판단과 통한다. **「카드를 안 만지는 게 최선(토큰화), 금액은 서버가 정하고, 카드는 로그·DB 어디에도 안 남기고, 추가 인증·사기 대응은 PG 에 위임·활용하며, 분쟁에 증빙으로 대비」**가 핵심이다. 결제 보안은 sec 갈래의 원리(클라이언트 불신·최소 노출·위임·심층 방어)가 「돈이 직접 걸린」 무대에서 가장 엄격히 적용되는 곳이다."
+        },
+        {
+          "type": "try",
+          "text": "네 결제에 사기 대응을 점검하라 — 같은 카드·IP 반복 시도에 속도 제한이 있나, PG 의 사기 탐지(Radar 등)를 켰나, 분쟁 대비 증빙(배송·동의·로그)을 남기나. 사기율과 승인율의 균형(너무 빡빡하면 정상 고객 이탈)을 데이터로 보고 조정하라. 완전 차단이 아니라 「손실을 감당 가능하게」가 목표다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "카드 도용 테스트를 막는 신호는?",
+          "choices": [
+            "금액만",
+            "속도 제한(같은 카드·IP 반복 시도 차단)",
+            "색",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "velocity."
+        },
+        {
+          "q": "사기 탐지는 주로 어떻게?",
+          "choices": [
+            "직접 다 구현",
+            "PG 의 사기 탐지 기능(방대한 데이터·ML) + 내 도메인 규칙",
+            "무시",
+            "재시도"
+          ],
+          "answer": 1,
+          "why": "PG 가 넓은 시야."
+        },
+        {
+          "q": "분쟁(chargeback) 대비는?",
+          "choices": [
+            "무시",
+            "증빙(배송·동의·로그·3DS) 남겨 대응 — 돈 회수·수수료 방어",
+            "재시도",
+            "삭제"
+          ],
+          "answer": 1,
+          "why": "완전히 못 막음."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "권한 분리와 감사",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "결제 시스템 내부도 지켜야 한다: **환불 권한은 아무나 갖지 않게** — 환불·결제 취소·금액 조정 같은 민감한 작업은 **권한을 분리**해 승인된 사람만(최소 권한, sec-secret 7장). 그리고 관리자 화면에서의 **결제 조작은 누가 무엇을 했는지 로그**로 남긴다(감사 로그, audit log) — 누가·언제·어떤 결제를·왜 조작했나. 이유: ① **내부자 위험**(직원이 부정 환불로 빼돌리기) ② **실수 추적**(잘못된 환불의 원인) ③ **분쟁·규정 대응**(무슨 일이 있었나 증명). 돈을 다루는 작업은 **누가 할 수 있나(권한)**와 **무엇을 했나(감사)**를 반드시 통제한다 — 신뢰하되 검증하고, 기록으로 책임을 남긴다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "권한 분리·감사 — 누가 무엇을",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .m { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n             background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .flow .m.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .flow .m.good { border-left-color:#22c55e; } .flow .m.bad { border-left-color:#ef4444; background:#2a1414; }\n  .flow .m .who { width:64px; color:#7dd3fc; }\n  .scan { background:#0d1526; border:1px solid #1e293b; border-radius:8px; padding:8px 10px; margin:8px 0;\n          font:12px/1.8 ui-monospace, monospace; white-space:pre-wrap; }\n  .scan .hit { background:#7f1d1d; color:#fecaca; border-radius:3px; padding:0 3px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const flow = (rows) => '<div class=\"flow\">' + rows.map(([who, txt, cls]) =>\n    '<div class=\"m ' + (cls||'') + '\"><span class=\"who\">' + esc(who) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  // 카드번호 형식 탐지 (13~19자리 숫자, 구분자 허용) — 로그 스캔용\n  function scanCard(text) {\n    const re = /\\b(?:\\d[ -]?){13,19}\\b/g;\n    return text.replace(re, m => {\n      const digits = m.replace(/[ -]/g, '');\n      if (digits.length >= 13 && digits.length <= 19) return '<span class=\"hit\">' + esc(m) + '</span>';\n      return esc(m);\n    });\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const aspect = '{{aspect}}';\n  const rows = {\n    permission:['권한 분리', '환불·취소·조정은 승인된 사람만', '일반 직원 ≠ 환불 권한 · 역할별 최소 권한', '내부자 위험·실수 축소'],\n    audit:['감사 로그', '누가·언제·무엇을·왜 했나 기록', '모든 결제 조작을 불변 로그로', '추적·책임·규정 대응'],\n    approval:['이중 승인', '큰 금액 환불은 두 사람 승인', '고액·이상 작업에 추가 확인', '단독 부정·실수 방지'],\n    review:['정기 검토', '감사 로그를 주기적으로 살핌', '이상 패턴(잦은 환불 등) 탐지', '조기 발견'],\n  }[aspect];\n  render('내부 통제: ' + rows[0],\n    '  방법: ' + rows[1] + '\\n  구현: ' + rows[2] + '\\n  이유: ' + rows[3] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">돈 다루는 작업 = 누가 할 수 있나(권한) + 무엇을 했나(감사).</span>',\n    '권한 분리·감사 로그·이중 승인·정기 검토 — 내부 통제.',\n    box(rows[0], rows[2] + '\\n→ ' + rows[3], 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "aspect",
+              "label": "내부 통제",
+              "type": "select",
+              "value": "permission",
+              "options": [
+                {
+                  "value": "permission",
+                  "label": "권한 분리"
+                },
+                {
+                  "value": "audit",
+                  "label": "감사 로그"
+                },
+                {
+                  "value": "approval",
+                  "label": "이중 승인"
+                },
+                {
+                  "value": "review",
+                  "label": "정기 검토"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**결제 시스템 내부도 지킨다 — 환불 등 민감한 작업은 권한을 분리해 승인된 사람만, 모든 결제 조작은 누가·무엇을 했는지 감사 로그로 남긴다.** ① **권한 분리(최소 권한)** — 환불·결제 취소·금액 조정·계정 크레딧 같은 **돈을 움직이는 작업**은 아무나 못 하게, **역할별로 권한을 분리**한다(sec-secret 7장의 최소 권한). 일반 상담원은 조회만, 환불은 승인된 역할만, 대규모 조정은 관리자만. 이유: **내부자 위험**(직원이 자기·공범에게 부정 환불로 돈을 빼돌림)과 실수(권한 없는 사람의 잘못된 조작)를 막는다. ② **감사 로그(audit log)** — 관리자 화면에서의 **모든 결제 조작**(환불·취소·조정·조회)을 **누가·언제·어떤 결제를·왜(사유)** 했는지 기록한다. 이 로그는 **불변**(수정·삭제 불가 — 조작한 사람이 흔적을 못 지우게)이어야 한다. 이유: **추적**(문제 발생 시 무슨 일이 있었나), **책임**(누가 했는지 명확 — 부정·실수의 책임 소재), **규정·분쟁 대응**(감사·법적 요구 시 증명). ③ **이중 승인**(고액·이상 작업) — 큰 금액 환불이나 비정상 조작은 두 사람의 승인을 요구(단독 부정·실수 방지 — 은행의 이중 확인처럼). ④ **정기 검토** — 감사 로그를 주기적으로 살펴 이상 패턴(특정 직원의 잦은 환불, 비정상 조정)을 탐지. **핵심 원칙**: 돈을 다루는 작업은 **「누가 할 수 있나(권한)」와 「무엇을 했나(감사)」를 반드시 통제**한다 — 사기(6장)가 외부 위협이라면, 이건 **내부 위협·실수**에 대한 방어다. 「신뢰하되 검증하라」(trust but verify) — 직원을 신뢰하되, 권한을 제한하고 행동을 기록해 부정·실수를 억제하고 추적 가능하게. 이는 sec(최소 권한·접근 제어)·감사·규정 준수(SOX 등 재무 통제)와 통한다. 결제·금융 시스템은 이 내부 통제가 특히 엄격하다(돈이 직접 걸리니). 외부 방어(토큰화·서명·사기 탐지)만큼 내부 통제(권한·감사)도 결제 보안의 필수 축이다 — 위협은 밖에서도 안에서도 온다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸과 갈래.** 결제 보안(pay-security)은 pay 갈래의 핵심으로, sec 갈래의 원리가 「돈이 직접 걸린」 무대에서 가장 엄격히 적용된다. 카드 안 만지기·토큰화(1·2장)는 sec(공격 표면 최소화·위임)·sec-secret(안전한 참조), 절대 하지 말 것(3장)은 sec-secret 6장(로그 마스킹), 금액은 서버가(4장)는 sec(클라이언트 불신)·pay-webhook(진실은 서버), 3DS(5장)는 위임, 사기 대응(6장)은 속도 제한·데이터 판단, 권한·감사(7장)는 sec-secret 7장(최소 권한)·내부 통제와 통한다. **「카드를 안 만지고(토큰화), 금액은 서버가 정하고, 카드는 어디에도 안 남기고, 인증·사기는 PG 에 위임·활용하고, 내부는 권한 분리·감사로 통제」**가 핵심이다. 결제 보안은 「외부 위협(사기·조작)과 내부 위협(부정·실수) 양쪽으로부터 돈을 지키는」 종합이자, 보안 원리(최소 노출·클라이언트 불신·위임·최소 권한·심층 방어)의 총집합이다."
+        },
+        {
+          "type": "try",
+          "text": "네 결제 관리 기능을 점검하라 — 환불·조정 권한이 아무나에게 있나(최소 권한으로 분리하라), 모든 결제 조작이 누가·무엇을·왜 했는지 감사 로그로 남나(불변 로그로). 고액 환불에 이중 승인을 넣을지, 감사 로그를 정기 검토하는지 보라. 「누가 할 수 있나 + 무엇을 했나」를 돈 다루는 작업마다 통제하라 — 위협은 안에서도 온다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "환불 권한은?",
+          "choices": [
+            "아무나",
+            "승인된 사람만(권한 분리·최소 권한) — 내부자 위험·실수 방지",
+            "클라이언트가",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "돈 움직이는 작업."
+        },
+        {
+          "q": "결제 조작에 감사 로그가 필요한 이유는?",
+          "choices": [
+            "빠르려고",
+            "누가·무엇을 했나 추적·책임·규정 대응(불변 로그)",
+            "예뻐서",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "내부 통제."
+        },
+        {
+          "q": "결제 보안의 두 축은?",
+          "choices": [
+            "속도·색",
+            "외부 위협(사기·조작) + 내부 위협(부정·실수) 방어",
+            "하나만",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "밖에서도 안에서도."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "점검표 — 결제 보안",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "결제 보안을 다룰 때 이 목록을 확인하라. 핵심은 「카드를 안 만지고, 금액은 서버가, 어디에도 안 남기고, 위험은 위임하고, 안팎을 통제」다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .flow { margin:8px 0; }\n  .flow .m { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n             background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .flow .m.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .flow .m.good { border-left-color:#22c55e; } .flow .m.bad { border-left-color:#ef4444; background:#2a1414; }\n  .flow .m .who { width:64px; color:#7dd3fc; }\n  .scan { background:#0d1526; border:1px solid #1e293b; border-radius:8px; padding:8px 10px; margin:8px 0;\n          font:12px/1.8 ui-monospace, monospace; white-space:pre-wrap; }\n  .scan .hit { background:#7f1d1d; color:#fecaca; border-radius:3px; padding:0 3px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const flow = (rows) => '<div class=\"flow\">' + rows.map(([who, txt, cls]) =>\n    '<div class=\"m ' + (cls||'') + '\"><span class=\"who\">' + esc(who) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  // 카드번호 형식 탐지 (13~19자리 숫자, 구분자 허용) — 로그 스캔용\n  function scanCard(text) {\n    const re = /\\b(?:\\d[ -]?){13,19}\\b/g;\n    return text.replace(re, m => {\n      const digits = m.replace(/[ -]/g, '');\n      if (digits.length >= 13 && digits.length <= 19) return '<span class=\"hit\">' + esc(m) + '</span>';\n      return esc(m);\n    });\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '카드를 안 만지는 게 최선(PCI 부담 극소화)',\n    '토큰화 — 카드는 브라우저→PG, 서버는 토큰만',\n    '카드·CVC 를 로그·DB·URL·에러 리포트에 안 남김',\n    '금액은 서버가 정한다(클라이언트 금액 무시 — 100원 결제 방지)',\n    '3DS/SCA 는 PG 권장 흐름에 위임 + 웹훅으로 확정',\n    '사기 대응: 속도 제한·PG 탐지·분쟁 증빙',\n    '권한 분리(환불은 승인된 사람만) + 감사 로그',\n    '외부(사기·조작)·내부(부정·실수) 양쪽 방어',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 돈을 안팎으로 안전하게 지킨다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '카드 안 만지고·금액은 서버가·어디에도 안 남기고·위임하고·안팎 통제.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 카드를 안 만지고(토큰화), 금액은 서버가 정하고, 어디에도 안 남기고, 위험은 PG 에 위임하고, 안팎을 통제한다.** 카드를 안 만지는 게 최선이고(PCI, 1장), 토큰화로 카드는 PG 로 서버는 토큰만(2장), 카드·CVC 를 로그·DB·URL·에러에 안 남기고(3장), 금액은 서버가 다시 계산해 클라이언트를 안 믿고(4장), 3DS/SCA 는 PG 권장 흐름에 위임하고 웹훅으로 확정하고(5장), 사기는 속도 제한·PG 탐지·분쟁 증빙으로 대응하고(6장), 내부는 권한 분리·감사 로그로 통제한다(7장). 「외부(사기·조작)와 내부(부정·실수) 양쪽으로부터 돈을 지키기」가 핵심이다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸과 갈래.** 결제 보안(pay-security)은 pay 갈래(결제)의 핵심이자 sec 갈래(보안)의 원리가 「돈이 직접 걸린」 무대에서 가장 엄격히 적용되는 곳이다. 카드 안 만지기·토큰화는 sec(공격 표면 최소화·위임)·sec-secret(안전한 참조), 카드 안 남기기는 sec-secret 6장(로그 마스킹·모든 유출 경로), 금액은 서버가는 sec(클라이언트 불신)·pay-webhook(진실은 서버), 사기·권한·감사는 sec(속도 제한·최소 권한·내부 통제)와 통한다. **「카드를 안 만지고, 금액은 서버가, 어디에도 안 남기고, 위험은 위임하고, 안팎을 통제」**가 이 칸의 전부다. 결제 보안은 보안 원리(최소 노출·클라이언트 불신·위임·최소 권한·심층 방어)의 총집합이 「돈」이라는 가장 직접적인 위험 위에서 실천되는 곳 — 원리 하나만 어겨도 즉시 금전 손실이라, 결제는 보안을 가장 진지하게 배우는 무대다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개로 네 결제 보안을 점검하라. 「토큰화(카드 안 만지기)」와 「금액은 서버가 계산」 두 가지만 잡아도, PCI 부담과 가장 흔한 조작(100원 결제)을 막는다. 카드가 로그·DB 에 없는지 스캔하고, 금액을 서버가 다시 계산하는지 확인하고, 권한 분리·감사를 갖춰라 — 돈을 안팎으로 안전하게 지켜라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "결제 보안의 한 줄 요약은?",
+          "choices": [
+            "빠르게",
+            "카드 안 만지고·금액은 서버가·어디에도 안 남기고·위임하고·안팎 통제",
+            "클라이언트 믿기",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "돈을 안팎으로."
+        },
+        {
+          "q": "먼저 잡을 두 가지는?",
+          "choices": [
+            "속도·색",
+            "토큰화(카드 안 만지기) + 금액은 서버가 계산",
+            "로그·재시도",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "PCI 부담·100원 결제 방지."
+        },
+        {
+          "q": "결제 보안이 이어지는 주제는?",
+          "choices": [
+            "없음",
+            "sec(클라이언트 불신·최소 권한)·sec-secret(토큰·마스킹)·pay-webhook(진실은 서버)",
+            "속도만",
+            "색"
+          ],
+          "answer": 1,
+          "why": "보안 원리의 총집합."
+        }
+      ]
     }
   ]
 }
