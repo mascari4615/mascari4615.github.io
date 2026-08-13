@@ -47,9 +47,16 @@ async function checkOne(page, id) {
   page.on('console', onConsole);
 
   const missing = [];
+  /* ★ **500 대는 「없다」가 아니라 「지금 잠깐 안 준다」다** (2026-08-13 실측).
+     배포가 갈리는 동안 자산 하나가 503 을 냈고, 그것만으로 「화면이 안 뜬다」 빨강이 났다 —
+     같은 자리를 곧바로 다시 물어보면 200 이었다. 없는 파일(4xx)과 서버 딸꾹질(5xx)은
+     손 갈 데가 다르다. 5xx 는 한 번 더 물어보고, 그때 오면 빨강으로 세지 않는다. */
+  const hiccups = [];
   const onResponse = (r) => {
     if (r.status() >= 400 && !/gc\.zgo\.at|goatcounter/.test(r.url())) {
-      missing.push(`${r.status()} ${r.url().split('/').slice(-2).join('/')}`);
+      const short = `${r.status()} ${r.url().split('/').slice(-2).join('/')}`;
+      if (r.status() >= 500) hiccups.push({ url: r.url(), short });
+      else missing.push(short);
     }
   };
   page.on('response', onResponse);
@@ -209,6 +216,16 @@ async function checkOne(page, id) {
   page.off('pageerror', onError);
   page.off('console', onConsole);
   state.jsError = [...new Set(jsErrors)].slice(0, 2).join(' , ');
+  /* 5xx 였던 자리를 다시 물어본다 — 그때도 안 오면 그건 진짜 빨강이다. */
+  for (const h of hiccups) {
+    try {
+      const again = await page.request.get(h.url, { timeout: 15000 });
+      if (again.ok()) state.hiccup = (state.hiccup ? state.hiccup + ' , ' : '') + h.short;
+      else missing.push(h.short);
+    } catch {
+      missing.push(h.short);
+    }
+  }
   state.missing = [...new Set(missing)].slice(0, 2).join(' , ');
 
   // 요소 하한 8개 — 실제로 재 보니 가장 단출한 도구가 10개다(사업자번호 검사).
@@ -230,7 +247,7 @@ async function checkOne(page, id) {
   const polish = Boolean(state.clipped || state.tiny || state.unreadable || state.zoomy);
 
   const detail =
-    `${id}: http=${res.status()} 화면생성=${state.built} 보임=${state.visible} 요소=${state.nodes} 쓸것있음=${state.usable} 설명닿음=${state.reachable}${state.why ? "(" + state.why + ")" : ""}${state.clipped ? " 잘림=" + state.clipped : ""}${state.tiny ? " 누르기작음=" + state.tiny : ""}${state.unreadable ? " 글씨작음=" + state.unreadable : ""}${state.zoomy ? " 눌러도확대=" + state.zoomy : ""}${state.missing ? " 없는파일=" + state.missing : ""}${state.jsError ? " 오류=" + state.jsError : ""} 위치=${state.here}`
+    `${id}: http=${res.status()} 화면생성=${state.built} 보임=${state.visible} 요소=${state.nodes} 쓸것있음=${state.usable} 설명닿음=${state.reachable}${state.why ? "(" + state.why + ")" : ""}${state.clipped ? " 잘림=" + state.clipped : ""}${state.tiny ? " 누르기작음=" + state.tiny : ""}${state.unreadable ? " 글씨작음=" + state.unreadable : ""}${state.zoomy ? " 눌러도확대=" + state.zoomy : ""}${state.missing ? " 없는파일=" + state.missing : ""}${state.hiccup ? " 잠깐안되던것(다시받으니OK)=" + state.hiccup : ""}${state.jsError ? " 오류=" + state.jsError : ""} 위치=${state.here}`
   ;
   if (broken) {
     failures.push(detail);
