@@ -74,6 +74,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   function draw(container: HTMLElement): void {
     injectStyles();
     materialShell(container, {
+      id: 'sound',
       accept: 'audio/*',
       multiple: true,
       groups: GROUPS,
@@ -85,6 +86,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       },
       labels: {
         change: t('sound.btn.change', undefined, '바꾸기'),
+        recent: t('sound.btn.recent', undefined, '방금 하던 것'),
         back: t('sound.btn.back', undefined, '할 일 고르기'),
         chain: t('sound.btn.chain', undefined, '이 결과로 이어서'),
         more: t('sound.more', undefined, '{name} 외 {n}개'),

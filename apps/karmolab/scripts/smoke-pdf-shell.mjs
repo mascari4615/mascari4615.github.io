@@ -287,6 +287,35 @@ check(
 );
 
 
+/* ⑩ **방금 하던 것** (TASK-KL-300 — iLovePDF 의 「저장한 흐름」을 우리 크기로)
+ * 되풀이가 잦은 판에서는 같은 서너 개를 계속 쓴다. 자동으로 돌리진 않고 **앞에 꺼내 둔다**. */
+await freshOpenPdf();
+/* 앞 판들이 이미 할 일을 여러 번 골랐다 — **처음 온 사람을 만들어서** 재야 한다
+ * (그냥 재면 「처음엔 없다」가 언제나 빨갛다. 검사가 앞 판의 자취를 안 지운 탓이었다). */
+await page.evaluate(() => Toolbox.setPref?.('mat_recent_pdf', ''));
+/* **지워졌는지 확인하고 넘어간다** — 저장이 한 박자 늦으면 옛 기억이 남아, 무엇을 고쳐도
+ * 이 판이 초록으로 나온다(돌연변이를 넣어도 안 빨개져서 잡았다). */
+await page.waitForFunction(() => !(Toolbox.getPref?.('mat_recent_pdf', '') || ''), { timeout: 10000 });
+await freshOpenPdf();
+check(!(await page.locator('#pfRecent').isVisible()), '처음 온 사람에겐 「방금 하던 것」이 없다');
+await page.setInputFiles('#pfFile', { name: '보고서.pdf', mimeType: 'application/pdf', buffer: tinyPdf() });
+await page.waitForSelector('#pfFileBar:visible', { timeout: 15000 });
+await page.locator('#pfJobs .pf-job[data-job="pdfcrop"]').click();
+await page.waitForSelector('#pfMount:visible', { timeout: 15000 });
+await page.click('#pfBack');
+await page.locator('#pfJobs .pf-job[data-job="pdfpagenum"]').click();
+await page.waitForSelector('#pfMount:visible', { timeout: 15000 });
+
+await freshOpenPdf();
+check(await page.locator('#pfRecent').isVisible(), '다시 오면 「방금 하던 것」이 뜬다');
+const recent = await page.locator('#pfRecent .pf-recent-job').evaluateAll((els) => els.map((e) => e.dataset.job));
+check(recent[0] === 'pdfpagenum', `마지막에 쓴 것이 맨 앞이다 (지금 ${recent.join(',')})`);
+check(recent.includes('pdfcrop'), '그전 것도 남아 있다');
+await page.locator('#pfRecent .pf-recent-job').first().click();
+await page.waitForSelector('#pfMount:visible', { timeout: 15000 });
+check(await page.locator('#pfMount').isVisible(), '거기서 눌러도 그 할 일이 열린다');
+
+
 process.stdout.write('\n');
 await browser.close();
 if (frozen) await frozen.close();

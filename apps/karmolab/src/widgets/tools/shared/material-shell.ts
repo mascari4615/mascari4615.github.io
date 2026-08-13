@@ -31,6 +31,8 @@ export interface MaterialShellOpts {
    * 글은 파일로 오지 않는다 — 사람은 글을 복사해서 온다. 그래서 받는 칸이 다르고,
    * 도구에 건네는 자리도 다르다(파일 칸이 아니라 글 칸).
    */
+  /** 이 재료의 이름 — 「방금 하던 것」을 재료별로 따로 기억하려고 쓴다 (TASK-KL-300) */
+  id?: string;
   intake?: 'file' | 'text';
   /**
    * 쓰는 대로 곧바로 (TASK-KL-264). 셈 공책은 **치는 동안** 답이 서야 한다 —
@@ -53,7 +55,7 @@ export interface MaterialShellOpts {
   /** 이어받을 결과의 형식 — 이 재료로 못 받는 결과는 무시한다 */
   accepts: RegExp;
   drop: { title: string; hint: string };
-  labels: { change: string; back: string; chain: string; fail: string; pasted?: string; more?: string };
+  labels: { change: string; back: string; chain: string; fail: string; pasted?: string; more?: string; recent?: string };
   /**
    * 왼쪽 칸을 그린다. **이 함수만 재료를 안다.**
    * @param alive 파일이 그새 바뀌었으면 `false` — 옛 그림을 붙이지 않게 매번 확인한다
@@ -114,6 +116,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
       </div>
       <div class="pf-right">
         <div class="pf-jobs" id="pfJobs">
+          <div class="pf-recent" id="pfRecent" hidden></div>
           <div class="pf-tip" id="pfTip" hidden></div>
           ${o
             .groups()
@@ -312,7 +315,45 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
     }
   }
 
+  /** 방금 하던 것 — 되풀이가 잦은 판(정산·자막·압축)에서는 같은 서너 개를 계속 쓴다.
+   * iLovePDF 의 「저장한 흐름」을 우리 크기로 줄인 것: 자동으로 돌리진 않고 **앞에 꺼내 둔다**. */
+  const RECENT_KEY = `mat_recent_${o.id || 'x'}`;
+  const readRecent = (): string[] =>
+    (Toolbox.getPref?.(RECENT_KEY, '') || '').split(',').filter(Boolean);
+  const noteRecent = (id: string): void => {
+    const list = [id, ...readRecent().filter((x) => x !== id)].slice(0, 3);
+    Toolbox.setPref?.(RECENT_KEY, list.join(','));
+  };
+
+  function paintRecent(): void {
+    const row = $('#pfRecent');
+    const ids = readRecent().filter((id) => container.querySelector(`.pf-job[data-job="${id}"]`));
+    row.textContent = '';
+    if (!ids.length) {
+      row.hidden = true;
+      return;
+    }
+    row.hidden = false;
+    const label = document.createElement('span');
+    label.className = 'pf-recent-label';
+    label.textContent = o.labels.recent || '방금 하던 것';
+    row.appendChild(label);
+    for (const id of ids) {
+      const src = container.querySelector<HTMLElement>(`.pf-job[data-job="${id}"]`);
+      const b = document.createElement('button');
+      b.type = 'button';
+      /* **`pf-job` 을 다시 쓰지 않는다** — 이 자리는 「할 일 목록」이 아니라 **지름길**이다.
+       * 같은 클래스를 쓰면 「할 일이 몇 개인가」를 세는 자리가 전부 흔들린다(검사가 잡았다). */
+      b.className = 'pf-recent-job';
+      b.dataset.job = id;
+      b.textContent = src?.textContent || id;
+      b.onclick = (): void => openJobById(id);
+      row.appendChild(b);
+    }
+  }
+
   function openJobById(id: string): void {
+    noteRecent(id);
     openJob = id;
     $('#pfJobs').hidden = true;
     $('#pfMount').hidden = false;
@@ -330,6 +371,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
   container.querySelectorAll<HTMLButtonElement>('[data-job]').forEach((b) => {
     b.onclick = (): void => openJobById(b.dataset.job as string);
   });
+  paintRecent();
 
   /* ── 찾아온 도구를 연다 (TASK-KL-273) ─────────────────────────────
    *
@@ -417,6 +459,12 @@ function injectStyles(): void {
   border:1px solid rgba(128,128,128,.28);background:transparent;font-size:14px;}
 .pf-job:hover{background:rgba(128,160,255,.12);border-color:rgba(128,160,255,.5);}
 .pf-job.pf-hot{border-color:rgba(120,200,140,.75);background:rgba(120,200,140,.12);font-weight:600;}
+.pf-recent[hidden]{display:none;}
+.pf-recent{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.pf-recent-label{font-size:11px;opacity:.6;margin-right:2px;}
+.pf-recent-job{appearance:none;cursor:pointer;padding:6px 10px;font-size:12px;border-radius:8px;
+  border:1px solid rgba(128,160,255,.5);background:rgba(128,160,255,.1);color:inherit;}
+.pf-recent-job:hover{background:rgba(128,160,255,.2);}
 .pf-tip{font-size:12px;margin-bottom:10px;padding:8px 12px;border-radius:10px;
   border:1px solid rgba(120,200,140,.45);background:rgba(120,200,140,.09);}
 .pf-back{appearance:none;background:transparent;border:0;cursor:pointer;padding:4px 0;
