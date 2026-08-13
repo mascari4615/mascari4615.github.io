@@ -31,9 +31,27 @@ runs:
       shell: bash
       run: cd apps/karmolab && npm ci --no-audit --no-fund
 
+    # ★ **지어 놓은 것을 또 짓지 않는다** (2026-08-13). 이 채비는 한 판에 여러 번 돈다 —
+    #   verify 두 잡 · 배포 · 라이브 점검 세 조각 · 카모그래프. 꾸러미 셋을 매번 새로 지으면
+    #   같은 1분을 예닐곱 번 쓴다. 소스가 그대로면 결과도 그대로이므로 **소스 해시로** 재사용한다.
+    #   (해시가 다르면 캐시는 자동으로 안 맞고 그냥 다시 짓는다 — 낡은 dist 를 쓸 위험이 없다.)
+    - name: 공용 꾸러미 dist 캐시
+      id: pkgcache
+      uses: actions/cache@v4
+      with:
+        path: |
+          packages/karmolab-ai/dist
+          packages/karmolab-ai/node_modules
+          packages/badapple/dist
+          packages/badapple/node_modules
+          packages/karmolab-mcp/dist
+          packages/karmolab-mcp/node_modules
+        key: pkgdist-${{ runner.os }}-node${{ inputs.node-version }}-${{ hashFiles('packages/karmolab-ai/src/**', 'packages/karmolab-ai/package-lock.json', 'packages/badapple/src/**', 'packages/badapple/package-lock.json', 'packages/karmolab-mcp/src/**', 'packages/karmolab-mcp/package-lock.json') }}
+
     # 앱이 타입으로 무는 공용 꾸러미들 — **지어야 형태가 생긴다**. 새 체크아웃엔 dist 가 없어서
     # 안 지으면 typecheck 이 「모듈을 못 찾겠다」로 서고, 그 뒤 검사들은 없는 기준과 대조한다.
     - name: 공용 꾸러미 짓기 (karmolab-ai · badapple)
+      if: steps.pkgcache.outputs.cache-hit != 'true'
       shell: bash
       # 자리를 **또박또박** 적는다 — `cd ../badapple` 처럼 상대로 적으면 사람도 검사도
       # 「어느 꾸러미를 짓는지」를 못 읽는다(실측: 전제 감사가 badapple 을 못 보고 빨강).
@@ -44,6 +62,7 @@ runs:
     # build 사슬 안의 test:mcp 가 이 꾸러미의 의존(pdf-lib)을 여기서 찾는다.
     # 짓기까지 해 둔다 — karmolab build 가 이 dist 를 불러오는 자리가 있다.
     - name: karmolab-mcp 의존 설치·짓기
+      if: steps.pkgcache.outputs.cache-hit != 'true'
       shell: bash
       run: cd packages/karmolab-mcp && npm ci --no-audit --no-fund && npm run build
 
