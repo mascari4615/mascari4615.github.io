@@ -1,133 +1,783 @@
 {
   "id": "api-limit",
-  "minutes": 11,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "속도 제한은 남을 막는 장치가 아니라 **모두를 살리는 장치**다. 한 명의 잘못된 반복문이 전체를 멈추게 둘 수는 없다."
-    },
-    {
-      "type": "h",
-      "text": "1. 무엇을 기준으로 셀까"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "기준을 잘못 잡으면 무력하다",
-      "text": "IP 기준        가장 쉽지만 회사·학교는 IP 를 공유한다 (선의의 피해)\n사용자/키 기준  가장 정확 — 로그인 이후라면 이걸 써라\n둘 다          로그인 전 = IP · 로그인 후 = 사용자\n\n비싼 엔드포인트는 별도 한도 (검색 · 내보내기 · 로그인 시도)"
-    },
-    {
-      "type": "h",
-      "text": "2. 토큰 버킷 — 짧은 폭주를 허용한다"
-    },
-    {
-      "type": "demo",
-      "kind": "js",
-      "label": "누르면 요청 하나 — 통이 비면 429",
-      "height": "220px",
-      "controls": [
+      "id": "1",
+      "title": "왜 제한하나 — 모두를 살린다",
+      "minutes": 8,
+      "blocks": [
         {
-          "id": "rate",
-          "label": "초당 채움",
-          "type": "range",
-          "min": 1,
-          "max": 10,
-          "step": 1,
-          "value": 3
+          "type": "p",
+          "text": "속도 제한은 남을 막는 장치가 아니라 **모두를 살리는 장치**다. 한 명의 잘못된 반복문, 폭주하는 재시도(api-error), 크롤러 하나가 서버를 독점하면 **나머지 모두가 느려지거나 멈춘다.** 제한은 자원을 공평하게 나눠, 한 사용자의 사고가 전체 장애로 번지는 것을 막는다."
         },
         {
-          "id": "burst",
-          "label": "통 크기",
-          "type": "range",
-          "min": 1,
-          "max": 20,
-          "step": 1,
-          "value": 6
+          "type": "demo",
+          "kind": "html",
+          "label": "무제한 vs 제한 — 한 명의 폭주가 미치는 영향",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .toks { display:flex; gap:3px; flex-wrap:wrap; margin:8px 0; }\n  .toks .t { width:20px; height:20px; border-radius:50%; }\n  .toks .t.full { background:#4ade80; } .toks .t.empty { background:#1e293b; border:1px solid #334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const tokens = (full, cap) => { let h=''; for(let i=0;i<cap;i++) h+='<span class=\"t '+(i<full?'full':'empty')+'\"></span>'; return '<div class=\"toks\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const limited = '{{limit}}' === 'on';\n  const abuser = 950;                    // 폭주 사용자 요청/초\n  const others = 50;                     // 정상 사용자 합\n  const cap = 1000;                      // 서버 처리 한계\n  render((limited ? '속도 제한 있음' : '무제한') + ' · 폭주 1명 ' + abuser + ' + 정상 다수 ' + others + ' req/s',\n    (limited\n      ? '  폭주 사용자는 자기 한도(예: 100)까지만 -> 나머지 용량은 정상 사용자 몫.\\n' +\n        '  <span class=\\\"ok\\\">한 명의 사고가 격리됨 — 전체는 정상.</span>'\n      : '  폭주 ' + abuser + ' 가 용량을 삼켜 정상 사용자가 밀린다.\\n' +\n        '  <span class=\\\"no\\\">한 명의 반복문이 전체를 멈춘다.</span>'),\n    '제한은 자원을 공평히 나눠 한 명의 사고가 전체 장애가 되는 걸 막는다.',\n    bars(limited\n      ? [['폭주(제한됨)', 10, '100/s', '#fbbf24'], ['정상 사용자', 90, '여유 확보', '#4ade80']]\n      : [['폭주(독점)', 95, abuser+'/s', '#fca5a5'], ['정상 사용자', 5, '밀림', '#7f1d1d']]));\n</script>",
+          "controls": [
+            {
+              "id": "limit",
+              "label": "속도 제한",
+              "type": "toggle",
+              "value": false
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**속도 제한은 여러 목적을 겸한다.** ① 공정성(한 명이 독점 못 하게) ② 안정성(과부하로부터 서버 보호) ③ 비용 통제(호출당 비용이 드는 API) ④ 남용 방지(무차별 로그인·스크래핑). 하나의 장치가 여러 위협을 함께 막는다 — 그래서 공개 API 엔 사실상 필수다."
+        },
+        {
+          "type": "p",
+          "text": "**제한은 「막기」가 아니라 「고르기」다.** 목표는 요청을 거부하는 게 아니라, **어떤 요청을 언제 처리할지** 조절하는 것이다. 짧은 폭주는 허용하되(3장) 지속적 과다는 늦추고, 우선순위 높은 트래픽(관리자·결제)은 지키고, 남는 용량은 공평히 나눈다. 거절은 그 조절의 마지막 수단이다."
+        },
+        {
+          "type": "try",
+          "text": "네 API 에 속도 제한이 없다면, 한 사용자가 반복문으로 초당 수천 번 부를 때 전체가 어떻게 되는지 상상하라. 그 시나리오가 제한이 필요한 이유다."
         }
       ],
-      "text": "const RATE = {{rate}}, BURST = {{burst}};\nlet tokens = BURST, last = performance.now(), ok = 0, no = 0, flash = 0, flashOk = true;\naddEventListener('click', () => {\n  if (tokens >= 1) { tokens -= 1; ok++; flashOk = true; } else { no++; flashOk = false; }\n  flash = 1;\n});\nfunction frame(now) {\n  tokens = Math.min(BURST, tokens + ((now - last) / 1000) * RATE); last = now;\n  flash *= 0.92;\n  ctx.clearRect(0, 0, W(), H());\n  for (let i = 0; i < BURST; i++) {\n    ctx.fillStyle = i < Math.floor(tokens) ? '#4ade80' : '#374151';\n    ctx.fillRect(16 + i * 26, 60, 20, 34);\n  }\n  ctx.fillStyle = '#eee'; ctx.font = '14px system-ui';\n  ctx.fillText('화면을 눌러 요청 — 통과 ' + ok + ' · 429 ' + no, 16, 30);\n  ctx.globalAlpha = flash;\n  ctx.fillStyle = flashOk ? '#4ade80' : '#f87171';\n  ctx.fillRect(0, H() - 8, W(), 8);\n  ctx.globalAlpha = 1;\n  requestAnimationFrame(frame);\n}\nrequestAnimationFrame(frame);"
+      "quiz": [
+        {
+          "q": "속도 제한의 본질은?",
+          "choices": [
+            "사용자 처벌",
+            "자원을 공평히 나눠 한 명의 사고가 전체 장애가 되는 걸 막음",
+            "속도 향상",
+            "인증"
+          ],
+          "answer": 1,
+          "why": "모두를 살린다."
+        },
+        {
+          "q": "속도 제한이 겸하지 않는 목적은?",
+          "choices": [
+            "공정성",
+            "안정성",
+            "데이터 정렬",
+            "남용 방지"
+          ],
+          "answer": 2,
+          "why": "정렬은 무관."
+        },
+        {
+          "q": "제한의 목표를 한마디로?",
+          "choices": [
+            "막기",
+            "어떤 요청을 언제 처리할지 고르기",
+            "거절",
+            "차단"
+          ],
+          "answer": 1,
+          "why": "거절은 마지막 수단."
+        }
+      ]
     },
     {
-      "type": "code",
-      "lang": "js",
-      "label": "고정 창(fixed window)의 경계 문제를 피한다",
-      "text": "// 초당 채워지는 양(rate)과 최대 저장량(burst)\nfunction 허용(state, now, rate = 5, burst = 20) {\n  const 채움 = (now - state.at) / 1000 * rate;\n  state.tokens = Math.min(burst, state.tokens + 채움);\n  state.at = now;\n  if (state.tokens < 1) return false;\n  state.tokens -= 1;\n  return true;\n}\n// 평소 여유분을 모아 뒀다가 순간 몰림을 흡수한다\n// 고정 창 방식은 창 경계에서 두 배가 통과한다 (59초·61초)"
-    },
-    {
-      "type": "h",
-      "text": "3. 응답으로 알려 줘라"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "헤더가 있으면 클라가 협조한다",
-      "text": "HTTP/1.1 429 Too Many Requests\nRetry-After: 12\nRateLimit-Limit: 100\nRateLimit-Remaining: 0\nRateLimit-Reset: 12\n\n· 남은 몫을 알려 주면 잘 만든 클라이언트는 스스로 속도를 줄인다\n· Retry-After 없이 429 만 주면 대부분 즉시 재시도한다 → 더 나빠진다"
-    },
-    {
-      "type": "note",
-      "text": "**제한에 걸린 요청도 비용이다.** 429 를 돌려주는 것 자체가 서버 일이므로, 악성 트래픽은 가능하면 더 앞단(CDN·게이트웨이)에서 끊어라."
-    },
-    {
-      "type": "h",
-      "text": "4. 사람에게 다르게"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "차등이 필요하다",
-      "text": "무료 사용자 · 유료 · 내부 서비스 · 관리자 → 한도를 다르게\n\n주의\n · 로그인 시도 제한은 계정당 + IP당 둘 다 (계정 잠금 공격 방지)\n · 웹훅 재시도 같은 자동 트래픽에 사람과 같은 한도를 적용하면 배달이 밀린다\n · 한도를 넘겼을 때 무엇을 잃는지 문서에 명시"
-    },
-    {
-      "type": "h",
-      "text": "5. 무엇을 재야 하나"
-    },
-    {
-      "type": "p",
-      "text": "429 비율 · 어떤 키가 걸리는지 상위 목록 · 한도에 근접한 사용자. 갑자기 특정 고객이 한도에 붙는다면 대개 **그쪽 코드에 무한 재시도가 생긴 것**이고, 먼저 알려 주면 사고가 안 된다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "내 API 에 사용자 기준 토큰 버킷 제한을 붙이고, 헤더 세 개를 정확히 채워 돌려주라."
-    },
-    {
-      "type": "try",
-      "text": "429 를 받았을 때 Retry-After 를 지키는 클라이언트 재시도 코드를 작성하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "로그인 이후 속도 제한의 기준으로 가장 정확한 것은?",
-      "choices": [
-        "사용자/키 기준",
-        "IP 기준",
-        "User-Agent 기준"
+      "id": "2",
+      "title": "무엇을 기준으로 셀까",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "제한의 첫 결정: **무엇당** 세느냐. **IP 기준**은 쉽지만 회사·학교·모바일 캐리어는 IP 를 공유해 선의의 피해가 생긴다. **사용자/API 키 기준**은 정확하지만 로그인 이후에만 된다. 대개 **로그인 전엔 IP, 로그인 후엔 사용자/키** 로 조합한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "기준 선택 — 정확성과 적용 범위",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .toks { display:flex; gap:3px; flex-wrap:wrap; margin:8px 0; }\n  .toks .t { width:20px; height:20px; border-radius:50%; }\n  .toks .t.full { background:#4ade80; } .toks .t.empty { background:#1e293b; border:1px solid #334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const tokens = (full, cap) => { let h=''; for(let i=0;i<cap;i++) h+='<span class=\"t '+(i<full?'full':'empty')+'\"></span>'; return '<div class=\"toks\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const key = '{{key}}';\n  const cases = {\n    ip:   ['IP 기준', '로그인 전에도 적용 · 구현 쉬움', '회사·학교·캐리어는 IP 공유 -> 선의의 피해', 'warn'],\n    user: ['사용자/키 기준', '가장 정확 · 개인별 공정', '로그인/키 발급 이후에만 가능', 'good'],\n    both: ['조합(전=IP, 후=사용자)', '전 구간 커버 · 정확', '구현이 조금 복잡', 'good'],\n    ep:   ['엔드포인트별 차등', '무거운/민감 API 를 더 빡세게', '설정 관리 필요', 'good'],\n  }[key];\n  render('기준: ' + cases[0],\n    '  장점: ' + cases[1] + '\\n  주의: <span class=\\\"' + (cases[3] === 'warn' ? 'warn' : 'dim') + '\\\">' + cases[2] + '</span>\\n\\n' +\n    '  보통: 로그인 전엔 IP, 로그인 후엔 사용자/키. 무거운 엔드포인트는 더 낮게.',\n    '무엇당 세느냐가 공정성을 정한다. 공유 IP 함정을 피해 사용자/키를 우선.',\n    box(cases[0], '장점: ' + cases[1] + '\\n주의: ' + cases[2], cases[3] === 'warn' ? 'bad' : 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "key",
+              "label": "제한 기준",
+              "type": "select",
+              "value": "ip",
+              "options": [
+                {
+                  "value": "ip",
+                  "label": "IP 기준"
+                },
+                {
+                  "value": "user",
+                  "label": "사용자/키"
+                },
+                {
+                  "value": "both",
+                  "label": "조합"
+                },
+                {
+                  "value": "ep",
+                  "label": "엔드포인트별"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "무엇을 기준으로 셀까",
+          "text": "IP 기준        가장 쉽지만 회사·학교는 IP 를 공유한다 (선의의 피해)\n사용자/키 기준  가장 정확 — 로그인/키 발급 이후\n조합           로그인 전 = IP, 로그인 후 = 사용자   (전 구간 커버)\n엔드포인트별    무거운 조회·로그인·결제는 더 낮은 한도로 차등\n\n주의: IP 는 위조·공유될 수 있다. 프록시 뒤라면 신뢰할 수 있는\n      X-Forwarded-For 만 사용 (아무 헤더나 믿으면 우회당한다)"
+        },
+        {
+          "type": "note",
+          "text": "**엔드포인트마다 다른 한도가 필요하다.** 가벼운 조회는 넉넉히, **무겁거나 민감한** 것(복잡한 검색·로그인·결제·파일 업로드)은 낮게 건다. 특히 로그인 시도는 무차별 대입 공격 대상이라 훨씬 빡세게 — 「전체 100/분」이 아니라 「이 엔드포인트 5/분」처럼 자원별로 정한다."
+        },
+        {
+          "type": "p",
+          "text": "**IP 를 신뢰할 땐 조심하라.** 프록시·로드밸런서 뒤에서는 실제 IP 가 `X-Forwarded-For` 헤더에 있는데, 이 헤더는 **클라이언트가 위조**할 수 있다. 신뢰할 수 있는 프록시가 설정한 값만 취하고, 아무 헤더나 믿으면 공격자가 매 요청 다른 IP 를 위조해 제한을 우회한다(api-authz 7장: 클라이언트를 믿지 마라)."
+        },
+        {
+          "type": "try",
+          "text": "네 제한이 IP 기준인지 사용자 기준인지 보라. 공유 IP 피해가 있으면 로그인 후 사용자 기준으로 바꾸고, 로그인·결제 엔드포인트에 더 낮은 한도를 따로 걸어라."
+        }
       ],
-      "answer": 0,
-      "why": "IP 는 공유되어 선의의 피해가 난다."
+      "quiz": [
+        {
+          "q": "IP 기준 제한의 함정은?",
+          "choices": [
+            "느림",
+            "회사·학교·캐리어가 IP 를 공유해 선의의 피해",
+            "부정확한 인증",
+            "저장"
+          ],
+          "answer": 1,
+          "why": "사용자/키가 정확."
+        },
+        {
+          "q": "흔히 쓰는 조합 기준은?",
+          "choices": [
+            "항상 IP",
+            "로그인 전 IP, 로그인 후 사용자/키",
+            "항상 사용자",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "전 구간 커버."
+        },
+        {
+          "q": "X-Forwarded-For 로 IP 를 셀 때 주의점은?",
+          "choices": [
+            "느림",
+            "클라이언트가 위조 가능 — 신뢰 프록시 값만",
+            "대소문자",
+            "인코딩"
+          ],
+          "answer": 1,
+          "why": "아무 헤더나 믿으면 우회."
+        }
+      ]
     },
     {
-      "q": "고정 창 방식의 알려진 문제는?",
-      "choices": [
-        "창 경계에서 두 배가 통과한다",
-        "메모리를 많이 쓴다",
-        "정확도가 낮다"
+      "id": "3",
+      "title": "토큰 버킷 — 짧은 폭주를 허용",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "가장 널리 쓰는 알고리즘 **토큰 버킷**: 버킷에 토큰이 **초당 rate 개씩** 채워지고 최대 **burst 개**까지 쌓인다. 요청마다 토큰 1개를 쓰고, 없으면 거절(429). 평소엔 쌓인 토큰으로 **짧은 폭주**를 허용하되, 지속적으로는 rate 로 수렴한다 — 사람의 자연스러운 사용 패턴에 맞는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "토큰 버킷 — 폭주 후 회복",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .toks { display:flex; gap:3px; flex-wrap:wrap; margin:8px 0; }\n  .toks .t { width:20px; height:20px; border-radius:50%; }\n  .toks .t.full { background:#4ade80; } .toks .t.empty { background:#1e293b; border:1px solid #334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const tokens = (full, cap) => { let h=''; for(let i=0;i<cap;i++) h+='<span class=\"t '+(i<full?'full':'empty')+'\"></span>'; return '<div class=\"toks\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const rate = 2, burst = 8;\n  const t = {{time}};                    // 경과 초\n  const spent = {{spent}};               // 그동안 쓴 요청\n  const refilled = Math.min(burst, t * rate);\n  const tokens_ = Math.max(0, Math.min(burst, burst + t * rate - spent));\n  const canGo = tokens_ >= 1;\n  render('rate ' + rate + '/s · burst ' + burst + ' · 경과 ' + t + 's · 사용 ' + spent,\n    '  남은 토큰 = <span class=\\\"' + (canGo ? 'ok' : 'no') + '\\\">' + Math.floor(tokens_) + '/' + burst + '</span>\\n\\n  ' +\n    (canGo\n      ? '요청 허용 — 쌓인 토큰이 짧은 폭주를 흡수한다.'\n      : '토큰 소진 -> 429. 초당 ' + rate + '개씩 다시 차오르길 기다린다.') + '\\n\\n' +\n    '  평소 여유분(burst)으로 몰아 쓰기를 허용하되, 지속 사용은 rate 로 제한된다.',\n    'burst 로 짧은 폭주 허용 + rate 로 지속 제한. 사용자 패턴에 자연스럽다.',\n    tokens(Math.floor(tokens_), burst));\n</script>",
+          "controls": [
+            {
+              "id": "time",
+              "label": "경과 시간(초)",
+              "type": "range",
+              "min": 0,
+              "max": 10,
+              "step": 1,
+              "value": 0
+            },
+            {
+              "id": "spent",
+              "label": "그동안 쓴 요청",
+              "type": "range",
+              "min": 0,
+              "max": 20,
+              "step": 1,
+              "value": 10
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "토큰 버킷",
+          "text": "// 초당 채워지는 양(rate)과 최대 저장량(burst)\nfunction allow(state, now, rate = 5, burst = 10) {\n  const elapsed = (now - state.last) / 1000;\n  state.tokens = Math.min(burst, state.tokens + elapsed * rate); // 채우기\n  state.last = now;\n  if (state.tokens >= 1) { state.tokens -= 1; return true; }     // 쓰기\n  return false;                                                    // 429\n}\n// 상태(tokens, last)는 사용자/키별로 저장 (분산이면 Redis, 7장)"
+        },
+        {
+          "type": "note",
+          "text": "**burst 가 「몰아 쓰기」를 허용한다.** 사람은 균일하게 요청하지 않는다 — 화면을 열 때 여러 요청이 몰리고, 잠잠하다, 또 몰린다. burst 없이 「초당 정확히 N개」만 허용하면 정상 사용도 걸린다. burst 로 여유분을 두면 자연스러운 몰림을 흡수하고, 지속적 남용만 rate 로 막는다."
+        },
+        {
+          "type": "p",
+          "text": "**rate 와 burst 를 용도에 맞게.** rate 는 「지속 허용량」, burst 는 「순간 허용량」이다. 대화형 앱은 burst 를 넉넉히(화면당 몰림 흡수), 배치·크롤러 대상은 burst 를 낮게. 두 값을 분리하면 「평소 넉넉하되 지속 남용은 차단」이라는 미묘한 정책을 표현할 수 있다 — 단일 「초당 N개」로는 못 한다."
+        },
+        {
+          "type": "try",
+          "text": "네 API 에 사용자 기준 토큰 버킷을 붙여라. rate·burst 를 정하고, 화면 로딩처럼 정상적인 몰림이 burst 안에 들어가는지, 지속 폭주가 rate 로 막히는지 확인하라."
+        }
       ],
-      "answer": 0,
-      "why": "토큰 버킷·슬라이딩 창이 대안이다."
+      "quiz": [
+        {
+          "q": "토큰 버킷에서 burst 의 역할은?",
+          "choices": [
+            "지속 제한",
+            "짧은 폭주(몰아 쓰기)를 허용",
+            "인증",
+            "정렬"
+          ],
+          "answer": 1,
+          "why": "자연스러운 몰림 흡수."
+        },
+        {
+          "q": "토큰 버킷에서 지속 사용량을 정하는 것은?",
+          "choices": [
+            "burst",
+            "rate(초당 채우는 양)",
+            "IP",
+            "토큰 크기"
+          ],
+          "answer": 1,
+          "why": "장기적으로 rate 로 수렴."
+        },
+        {
+          "q": "burst 없이 「초당 정확히 N개」만 허용하면?",
+          "choices": [
+            "이상적",
+            "정상적인 몰림도 걸림",
+            "더 안전",
+            "빠름"
+          ],
+          "answer": 1,
+          "why": "사람은 균일하지 않다."
+        }
+      ]
     },
     {
-      "q": "429 에 Retry-After 를 안 주면?",
-      "choices": [
-        "클라이언트가 즉시 재시도해 더 나빠진다",
-        "캐시가 깨진다",
-        "보안 문제"
+      "id": "4",
+      "title": "알고리즘 — 고정창의 경계 문제",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "가장 단순한 **고정 창(fixed window)**: 「1분에 100개」를 분 단위로 센다. 구현은 쉽지만 **창 경계에서 두 배가 샌다** — 12:00:59 에 100개, 12:01:00 에 100개면 **1초 사이 200개**가 통과한다. 이 경계 문제 때문에 슬라이딩 창·토큰 버킷을 쓴다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "고정 창 경계 — 2배가 새는 순간",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .toks { display:flex; gap:3px; flex-wrap:wrap; margin:8px 0; }\n  .toks .t { width:20px; height:20px; border-radius:50%; }\n  .toks .t.full { background:#4ade80; } .toks .t.empty { background:#1e293b; border:1px solid #334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const tokens = (full, cap) => { let h=''; for(let i=0;i<cap;i++) h+='<span class=\"t '+(i<full?'full':'empty')+'\"></span>'; return '<div class=\"toks\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const algo = '{{algo}}';\n  const cases = {\n    fixed:  ['고정 창', '분 단위로 리셋 — 경계에서 2배 샌다(12:00:59 100 + 12:01:00 100)', false],\n    sliding:['슬라이딩 창', '최근 60초를 계속 보므로 경계 문제 없음(계산 조금 더)', true],\n    bucket: ['토큰 버킷', '연속적으로 채워 경계 없음 + burst 허용(3장)', true],\n    leaky:  ['누수 버킷', '일정 속도로 흘려보냄 — 출력이 매끄러움(burst 억제)', true],\n  }[algo];\n  render('알고리즘: ' + cases[0],\n    '  ' + cases[1] + '\\n\\n  경계에서 2배 새나 = ' + (cases[2]\n      ? '<span class=\\\"ok\\\">아니오 — 안전</span>'\n      : '<span class=\\\"no\\\">예 — 순간 2배 초과 가능</span>'),\n    '고정 창은 쉽지만 경계에서 2배가 샌다. 슬라이딩·토큰버킷·누수버킷이 이를 해결.',\n    box(cases[0], cases[1], cases[2] ? 'good' : 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "algo",
+              "label": "알고리즘",
+              "type": "select",
+              "value": "fixed",
+              "options": [
+                {
+                  "value": "fixed",
+                  "label": "고정 창"
+                },
+                {
+                  "value": "sliding",
+                  "label": "슬라이딩 창"
+                },
+                {
+                  "value": "bucket",
+                  "label": "토큰 버킷"
+                },
+                {
+                  "value": "leaky",
+                  "label": "누수 버킷"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**슬라이딩 창은 경계 문제를 없앤다.** 「지난 60초 동안 몇 개」를 계속 계산하면, 고정 창처럼 특정 순간에 리셋되지 않아 경계 폭주가 사라진다. 정확도가 높은 대신 계산·저장이 조금 더 든다(각 요청 시각을 기록하거나 근사). 토큰 버킷도 연속적으로 채우므로 같은 이점을 준다."
+        },
+        {
+          "type": "p",
+          "text": "**누수 버킷은 출력을 매끄럽게 한다.** 토큰 버킷이 「몰아 쓰기 허용」이라면, 누수 버킷은 요청을 큐에 담아 **일정 속도로 흘려보내** 출력 속도를 고르게 만든다(burst 억제). 다운스트림이 균일한 속도를 원할 때(예: 외부 API 호출 조절) 적합하다. 「폭주 허용」이냐 「출력 평탄화」냐로 토큰/누수 버킷을 고른다."
+        },
+        {
+          "type": "try",
+          "text": "네 제한이 고정 창이면, 창 경계 직전·직후에 몰아서 요청해 2배가 새는지 확인하라. 정확성이 중요하면 슬라이딩 창이나 토큰 버킷으로 바꿔라."
+        }
       ],
-      "answer": 0,
-      "why": "언제 다시 올지 알려 줘야 한다."
+      "quiz": [
+        {
+          "q": "고정 창(fixed window)의 문제는?",
+          "choices": [
+            "느림",
+            "창 경계에서 순간 2배가 샘",
+            "부정확한 인증",
+            "저장 큼"
+          ],
+          "answer": 1,
+          "why": "리셋 경계."
+        },
+        {
+          "q": "경계 문제를 없애는 알고리즘은?",
+          "choices": [
+            "고정 창",
+            "슬라이딩 창·토큰 버킷",
+            "없음",
+            "IP 기준"
+          ],
+          "answer": 1,
+          "why": "연속적으로 계산/채움."
+        },
+        {
+          "q": "누수 버킷의 특징은?",
+          "choices": [
+            "폭주 허용",
+            "일정 속도로 흘려보내 출력 평탄화(burst 억제)",
+            "경계 2배",
+            "인증"
+          ],
+          "answer": 1,
+          "why": "다운스트림 균일 속도."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "응답으로 알려 줘라",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "제한에 걸린 클라이언트가 **언제 다시 와야 할지** 모르면, 즉시 재시도해 상황을 악화시킨다. **429 Too Many Requests** + **`Retry-After`**(언제 다시) + **`RateLimit-*` 헤더**(한도·남은 양·리셋 시각)로 알려 주면, 좋은 클라이언트가 **스스로 속도를 맞춘다**(api-error 5장)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "429 응답 — 무엇을 담나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .toks { display:flex; gap:3px; flex-wrap:wrap; margin:8px 0; }\n  .toks .t { width:20px; height:20px; border-radius:50%; }\n  .toks .t.full { background:#4ade80; } .toks .t.empty { background:#1e293b; border:1px solid #334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const tokens = (full, cap) => { let h=''; for(let i=0;i<cap;i++) h+='<span class=\"t '+(i<full?'full':'empty')+'\"></span>'; return '<div class=\"toks\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const full = '{{full}}' === 'yes';\n  render(full ? '풍부한 429 (권장)' : '빈약한 429',\n    (full\n      ? '  Retry-After 로 언제, RateLimit-* 로 한도·남은 양·리셋을 알려 준다.\\n' +\n        '  <span class=\\\"ok\\\">클라이언트가 정확히 그만큼 기다렸다 재시도 — 몰림 없음.</span>'\n      : '  429 만 던진다.\\n' +\n        '  <span class=\\\"no\\\">클라이언트가 언제 올지 몰라 즉시 재시도 -> 상황 악화(몰림).</span>'),\n    '429 + Retry-After + RateLimit-* 로 클라이언트가 스스로 속도를 맞추게 하라.',\n    box(full ? '권장 헤더' : '빈약',\n      full\n        ? 'HTTP/1.1 429 Too Many Requests\\nRetry-After: 12\\nRateLimit-Limit: 100\\nRateLimit-Remaining: 0\\nRateLimit-Reset: 12'\n        : 'HTTP/1.1 429 Too Many Requests\\n(그 외 정보 없음)',\n      full ? 'good' : 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "full",
+              "label": "429 응답",
+              "type": "select",
+              "value": "no",
+              "options": [
+                {
+                  "value": "no",
+                  "label": "빈약(429만)"
+                },
+                {
+                  "value": "yes",
+                  "label": "풍부(헤더 포함)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "제한 응답 헤더",
+          "text": "HTTP/1.1 429 Too Many Requests\nRetry-After: 12               # 12초 뒤 재시도 (초 또는 시각)\nRateLimit-Limit: 100          # 창당 한도\nRateLimit-Remaining: 0        # 남은 허용량\nRateLimit-Reset: 12           # 리셋까지 남은 초\n\n# 성공 응답에도 RateLimit-* 를 실어 주면, 클라이언트가 한도에\n#   가까워지는 걸 미리 알고 스스로 속도를 늦출 수 있다."
+        },
+        {
+          "type": "note",
+          "text": "**제한에 걸린 요청도 비용이다.** 429 를 돌려주는 것 자체가 서버 일이므로, 악성·폭주 트래픽은 가능한 한 **더 앞단**(CDN·게이트웨이, 7장)에서 걸러 앱까지 오지 않게 한다. 앱에서 429 를 만들더라도 처리 비용을 최소화(빠른 거절, DB 조회 없이)해야 제한 자체가 새로운 부하가 되지 않는다."
+        },
+        {
+          "type": "p",
+          "text": "**성공 응답에도 RateLimit 헤더를 실어라.** 429 가 난 뒤에만 알려 주면 이미 늦다. **평소** 응답에 `RateLimit-Remaining` 을 실어 주면, 클라이언트가 한도에 가까워지는 걸 미리 보고 스스로 속도를 늦춘다 — 벽에 부딪히기 전에 감속하게 하는 것이 429 폭탄보다 낫다."
+        },
+        {
+          "type": "try",
+          "text": "네 429 응답에 Retry-After 와 RateLimit-* 헤더가 있는지 확인하라. 없으면 추가하고, 성공 응답에도 RateLimit-Remaining 을 실어 클라이언트가 미리 감속하게 하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "429 응답에 Retry-After 를 넣는 이유는?",
+          "choices": [
+            "미관",
+            "클라이언트가 언제 재시도할지 알아 몰림 방지",
+            "인증",
+            "정렬"
+          ],
+          "answer": 1,
+          "why": "즉시 재시도 악화 방지."
+        },
+        {
+          "q": "제한에 걸린 요청도 비용인 이유는?",
+          "choices": [
+            "없음",
+            "429 를 만드는 것도 서버 일 — 앞단에서 거르는 게 낫다",
+            "빠름",
+            "인증"
+          ],
+          "answer": 1,
+          "why": "제한이 부하가 되지 않게."
+        },
+        {
+          "q": "성공 응답에도 RateLimit-Remaining 을 싣는 이점은?",
+          "choices": [
+            "없음",
+            "클라이언트가 미리 감속(벽에 부딪히기 전)",
+            "속도",
+            "캐시"
+          ],
+          "answer": 1,
+          "why": "429 폭탄보다 낫다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "사람에게 다르게 — 티어와 로그인",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "한도는 **모두 같을 필요가 없다.** 무료 사용자·유료·내부 서비스·관리자에게 다른 한도를 준다(비즈니스 모델과 직결). 그리고 **민감한 행위**엔 특별한 제한을 건다 — 특히 **로그인 시도**는 무차별 대입 공격 대상이라 **계정당 + IP당** 둘 다 제한해야 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "티어별 한도 · 로그인 이중 제한",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .toks { display:flex; gap:3px; flex-wrap:wrap; margin:8px 0; }\n  .toks .t { width:20px; height:20px; border-radius:50%; }\n  .toks .t.full { background:#4ade80; } .toks .t.empty { background:#1e293b; border:1px solid #334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const tokens = (full, cap) => { let h=''; for(let i=0;i<cap;i++) h+='<span class=\"t '+(i<full?'full':'empty')+'\"></span>'; return '<div class=\"toks\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'tier') {\n    render('티어별 한도',\n      '  무료 · 유료 · 내부 · 관리자에게 다른 한도 -> 비즈니스와 자원 보호를 함께.\\n\\n' +\n      '  같은 API 라도 누가 부르느냐로 한도가 갈린다.',\n      '티어별 차등으로 공정성·수익·보호를 함께 잡는다.',\n      bars([['무료', 20, '60/분', '#64748b'], ['유료', 60, '600/분', '#38bdf8'],\n            ['내부 서비스', 90, '높음', '#4ade80'], ['관리자', 95, '최고', '#a78bfa']]));\n  } else {\n    render('로그인 시도 제한 — 계정당 + IP당',\n      '  계정당만: 공격자가 여러 계정을 조금씩 시도(IP 하나로) -> 못 막음\\n' +\n      '  IP당만: 공격자가 IP 를 바꿔가며 한 계정 공격 -> 못 막음\\n' +\n      '  <span class=\\\"ok\\\">둘 다: 어느 축으로도 무차별 대입이 막힌다.</span>',\n      '로그인은 계정당·IP당 둘 다 제한해야 무차별 대입을 양쪽에서 막는다.',\n      box('로그인 이중 제한', '계정당 5회/10분  AND  IP당 20회/10분\\n둘 중 하나만이면 반대 축으로 뚫린다', 'good'));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "view",
+              "label": "관점",
+              "type": "select",
+              "value": "tier",
+              "options": [
+                {
+                  "value": "tier",
+                  "label": "티어별 한도"
+                },
+                {
+                  "value": "login",
+                  "label": "로그인 이중 제한"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**로그인 시도 제한은 계정당 + IP당 둘 다.** 계정당만 걸면 공격자가 한 IP 로 여러 계정을 조금씩 공격하고, IP당만 걸면 IP 를 바꿔가며 한 계정을 노린다. 두 축을 함께 제한해야 무차별 대입(brute force)·크리덴셜 스터핑을 막는다(sec-authn). 실패가 반복되면 지연·캡차·잠금을 단계적으로 올린다."
+        },
+        {
+          "type": "p",
+          "text": "**한도는 정책이자 계약이다.** 유료 티어의 한도는 요금제의 일부이고, API 키의 한도는 개발자와의 약속이다. 그러니 한도를 **문서화**(api-doc)하고, 응답 헤더(5장)로 현재 상태를 투명하게 보여 준다. 한도를 조용히 바꾸면 클라이언트가 예측 못 한 429 에 부딪힌다 — 변경은 버전·공지와 함께(api-version)."
+        },
+        {
+          "type": "try",
+          "text": "네 API 의 티어별 한도를 정하고 문서화하라. 로그인·비밀번호 재설정 같은 민감 엔드포인트에 계정당·IP당 이중 제한을 걸고, 실패 반복 시 단계적 대응(지연·캡차)을 추가하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "로그인 시도 제한을 계정당 + IP당 둘 다 거는 이유는?",
+          "choices": [
+            "빠름",
+            "한 축만이면 반대 축으로 무차별 대입이 뚫림",
+            "저장",
+            "인증"
+          ],
+          "answer": 1,
+          "why": "양쪽에서 막는다."
+        },
+        {
+          "q": "티어별 한도의 목적은?",
+          "choices": [
+            "속도",
+            "비즈니스 모델 + 자원 보호를 함께",
+            "인증",
+            "정렬"
+          ],
+          "answer": 1,
+          "why": "누가 부르냐로 차등."
+        },
+        {
+          "q": "한도를 다룰 때 해야 할 것은?",
+          "choices": [
+            "숨김",
+            "문서화 + 응답 헤더로 투명하게 + 변경은 공지",
+            "조용히 변경",
+            "무제한"
+          ],
+          "answer": 1,
+          "why": "한도는 계약."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "어디서 거르나 — 앞단과 분산",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "제한을 **어느 계층**에서 하느냐가 효과를 정한다. 악성·폭주는 **앞단(CDN·게이트웨이)**에서 걸러 앱 서버까지 오지 않게 하는 게 가장 싸다. 그리고 서버가 여러 대면 **카운터를 공유**해야(분산) 「서버마다 100개 = 실제 N배」가 안 된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "제한 위치 — 앞단 vs 앱",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .toks { display:flex; gap:3px; flex-wrap:wrap; margin:8px 0; }\n  .toks .t { width:20px; height:20px; border-radius:50%; }\n  .toks .t.full { background:#4ade80; } .toks .t.empty { background:#1e293b; border:1px solid #334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const tokens = (full, cap) => { let h=''; for(let i=0;i<cap;i++) h+='<span class=\"t '+(i<full?'full':'empty')+'\"></span>'; return '<div class=\"toks\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const at = '{{at}}';\n  const cases = {\n    edge: ['CDN/엣지에서', '앱 서버에 도달 전 차단 — 가장 싸다. 대량 남용·DDoS 완화', true],\n    gw:   ['API 게이트웨이에서', '인증·라우팅과 함께 일괄 제한. 앱 코드가 깔끔', true],\n    app:  ['앱 서버 안에서', '세밀한 로직 가능하나, 429 도 앱이 처리(비용). 분산 카운터 필요', false],\n  }[at];\n  render('제한 위치: ' + cases[0],\n    '  ' + cases[1] + '\\n\\n  ' + (cases[2]\n      ? '<span class=\\\"ok\\\">앞단일수록 남용 트래픽이 싸게 걸러진다.</span>'\n      : '<span class=\\\"warn\\\">앱 제한은 세밀하지만 비용이 크고, 여러 대면 카운터 공유 필수.</span>'),\n    '앞단(CDN/게이트웨이)에서 거를수록 싸다. 앱 제한은 세밀하되 분산 카운터 필요.',\n    steps([\n      ['① CDN/엣지 — 대량 남용·DDoS', at === 'edge' ? 'on' : 'good'],\n      ['② 게이트웨이 — 인증과 함께 일괄', at === 'gw' ? 'on' : (at === 'app' ? 'good' : '')],\n      ['③ 앱 — 세밀한 비즈니스 규칙', at === 'app' ? 'on' : '']]));\n</script>",
+          "controls": [
+            {
+              "id": "at",
+              "label": "제한 위치",
+              "type": "select",
+              "value": "app",
+              "options": [
+                {
+                  "value": "edge",
+                  "label": "CDN/엣지"
+                },
+                {
+                  "value": "gw",
+                  "label": "게이트웨이"
+                },
+                {
+                  "value": "app",
+                  "label": "앱 서버"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**여러 서버면 카운터를 공유해야 한다.** 서버가 4대인데 각자 「100/분」을 세면 실제 한도는 400/분이 된다. 공유 저장소(대개 **Redis**)에 카운터·토큰을 두고 원자적으로 증감해야(db-lock 의 원자성) 전체 한도가 지켜진다. 로컬 메모리 제한은 단일 서버에서만 정확하다."
+        },
+        {
+          "type": "p",
+          "text": "**계층을 겹쳐 쓴다.** CDN 은 대량 남용·DDoS 를 쳐내고, 게이트웨이는 인증과 함께 티어별 한도를 걸고, 앱은 세밀한 비즈니스 규칙(엔드포인트별·행위별)을 본다. 각 층이 자기 역할을 하면, 값싼 앞단이 대부분을 거르고 비싼 앱 로직은 진짜 필요한 것만 처리한다 — 방어를 겹치는 것이 정석이다."
+        },
+        {
+          "type": "try",
+          "text": "네 제한이 어느 계층에 있는지, 서버가 여러 대면 카운터를 공유하는지 확인하라. 로컬 메모리 제한을 여러 서버에서 쓰고 있다면 공유 저장소(Redis) 기반으로 바꿔라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "폭주·남용 트래픽을 가장 싸게 거르는 위치는?",
+          "choices": [
+            "앱 서버 깊은 곳",
+            "앞단(CDN·게이트웨이)",
+            "DB",
+            "클라이언트"
+          ],
+          "answer": 1,
+          "why": "앱 도달 전 차단."
+        },
+        {
+          "q": "서버가 여러 대일 때 제한 카운터는?",
+          "choices": [
+            "각자 로컬",
+            "공유 저장소(Redis)에서 원자적으로",
+            "무시",
+            "IP별"
+          ],
+          "answer": 1,
+          "why": "로컬은 N배로 샌다."
+        },
+        {
+          "q": "제한 계층 전략은?",
+          "choices": [
+            "한 곳만",
+            "CDN·게이트웨이·앱을 겹쳐 각자 역할",
+            "앱만",
+            "클라이언트만"
+          ],
+          "answer": 1,
+          "why": "방어를 겹친다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "무엇을 재야 하나",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "제한을 걸었으면 **효과와 부작용을 측정**해야 한다. **429 비율**(너무 높으면 한도가 빡세거나 문제), **어떤 키가 걸리는지 상위 목록**, **한도에 근접한 사용자**. 갑자기 특정 고객이 한도에 붙으면 대개 **그쪽 코드의 버그**(무한 재시도·N+1 호출)다 — 제한이 그 사고의 조기 경보가 된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "제한 지표 — 무엇이 보이나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .toks { display:flex; gap:3px; flex-wrap:wrap; margin:8px 0; }\n  .toks .t { width:20px; height:20px; border-radius:50%; }\n  .toks .t.full { background:#4ade80; } .toks .t.empty { background:#1e293b; border:1px solid #334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const tokens = (full, cap) => { let h=''; for(let i=0;i<cap;i++) h+='<span class=\"t '+(i<full?'full':'empty')+'\"></span>'; return '<div class=\"toks\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const m = '{{metric}}';\n  const cases = {\n    ratio:  ['429 비율', '전체 요청 중 429 비율 — 급등 = 한도 문제나 남용/버그', '평소 낮게, 스파이크를 경보로'],\n    top:    ['걸린 키 상위', '누가 자주 걸리나 — 남용자·버그 클라이언트 식별', '상위 1~2개가 대부분이면 그쪽 조사'],\n    near:   ['한도 근접 사용자', '곧 걸릴 사용자 — 티어 상향 안내·선제 연락', '성장하는 고객의 신호일 수도'],\n    spike:  ['특정 고객 급증', '한 고객이 갑자기 한도에 붙음 -> 대개 그쪽 코드 버그', '무한 재시도·N+1 호출 의심'],\n  }[m];\n  render('지표: ' + cases[0],\n    '  보는 것: ' + cases[1] + '\\n  해석: ' + cases[2] + '\\n\\n' +\n    '  제한은 남용·버그·성장을 드러내는 관측 지점이기도 하다.',\n    '429 비율·걸린 키 상위·한도 근접을 재라. 급증은 대개 상대 코드의 버그.',\n    box(cases[0], cases[1] + '\\n=> ' + cases[2], m === 'spike' ? 'bad' : ''));\n</script>",
+          "controls": [
+            {
+              "id": "metric",
+              "label": "지표",
+              "type": "select",
+              "value": "spike",
+              "options": [
+                {
+                  "value": "ratio",
+                  "label": "429 비율"
+                },
+                {
+                  "value": "top",
+                  "label": "걸린 키 상위"
+                },
+                {
+                  "value": "near",
+                  "label": "한도 근접"
+                },
+                {
+                  "value": "spike",
+                  "label": "특정 고객 급증"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**갑자기 한도에 붙는 고객은 대개 버그다.** 정상 사용은 서서히 늘지만, 무한 재시도·잘못된 폴링·API N+1(db-nplus1) 은 갑자기 폭증한다. 제한이 이를 **막아 주는 동시에 드러낸다** — 그 고객에게 연락해 코드를 고치게 하면, 그들의 비용도 우리 서버도 함께 산다."
+        },
+        {
+          "type": "p",
+          "text": "**429 비율이 지속적으로 높으면 한도를 재검토하라.** 정상 사용자가 자주 걸린다면 한도가 너무 빡세거나(rate·burst 조정), 클라이언트가 비효율적으로 호출하는 것(embed 로 왕복 줄이기, api-resource)이다. 제한은 걸어 두고 방치하는 게 아니라, 지표를 보며 **정상 사용과 남용의 경계**를 계속 조율하는 것이다."
+        },
+        {
+          "type": "try",
+          "text": "429 비율, 자주 걸리는 상위 키, 한도 근접 사용자를 지표로 내보내라. 특정 고객이 갑자기 한도에 붙으면 그쪽 코드(재시도·폴링·N+1)를 함께 점검하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "특정 고객이 갑자기 한도에 붙으면 대개?",
+          "choices": [
+            "정상 성장",
+            "그쪽 코드의 버그(무한 재시도·N+1)",
+            "서버 문제",
+            "네트워크"
+          ],
+          "answer": 1,
+          "why": "제한이 사고를 드러낸다."
+        },
+        {
+          "q": "속도 제한의 핵심 지표가 아닌 것은?",
+          "choices": [
+            "429 비율",
+            "걸린 키 상위",
+            "한도 근접 사용자",
+            "인덱스 크기"
+          ],
+          "answer": 3,
+          "why": "인덱스는 무관."
+        },
+        {
+          "q": "429 비율이 지속적으로 높으면?",
+          "choices": [
+            "방치",
+            "한도 재검토·클라이언트 호출 효율 점검",
+            "서버 증설만",
+            "제한 제거"
+          ],
+          "answer": 1,
+          "why": "경계를 조율."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — 속도 제한",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "속도 제한을 설계·운영할 때 이 목록을 확인하라. 핵심은 「공정한 기준·폭주 허용·명확한 응답·앞단·측정」이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .toks { display:flex; gap:3px; flex-wrap:wrap; margin:8px 0; }\n  .toks .t { width:20px; height:20px; border-radius:50%; }\n  .toks .t.full { background:#4ade80; } .toks .t.empty { background:#1e293b; border:1px solid #334155; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const tokens = (full, cap) => { let h=''; for(let i=0;i<cap;i++) h+='<span class=\"t '+(i<full?'full':'empty')+'\"></span>'; return '<div class=\"toks\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '무엇당 세는지 정했다(로그인 전 IP, 후 사용자/키)',\n    '엔드포인트별 차등(로그인·결제는 더 낮게)',\n    '토큰 버킷 등으로 짧은 폭주를 허용한다',\n    '고정 창 경계 2배 문제를 피했다',\n    '429 + Retry-After + RateLimit 헤더를 준다',\n    '티어별 한도 · 로그인은 계정당+IP당',\n    '앞단(CDN/게이트웨이) + 분산 카운터',\n    '429 비율·상위 키·한도 근접을 측정한다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 한 명의 폭주가 전체를 못 세운다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '공정한 기준·폭주 허용·명확한 응답·앞단·측정. 속도 제한의 다섯 축.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 제한은 모두를 지키는 안전벨트다.** 한 명의 폭주·버그·공격이 전체를 세우지 못하게 한다(1장). 공정한 기준으로(2장), 자연스러운 몰림은 허용하되(3·4장), 걸린 쪽에 명확히 알리고(5장), 값싼 앞단에서 거르고(7장), 지표로 조율(8장)한다."
+        },
+        {
+          "type": "p",
+          "text": "**이 트랙의 보호막.** 속도 제한은 api-error 의 429·Retry-After 로 표현되고, page 의 limit 상한과 함께 남용을 막으며, authz 의 로그인 보호·sec 의 무차별 대입 방어와, 분산 카운터는 db-lock(원자성)과 이어진다. **「한 명이 전체를 세우지 못하게」가 공유 서비스의 기본 보호막**이다."
+        },
+        {
+          "type": "try",
+          "text": "네 API 에 이 8개 항목을 채점하라. 「폭주 허용(토큰 버킷)」과 「429 + Retry-After」 두 가지부터 잡으면, 정상 사용은 안 막고 남용만 거르는 제한이 선다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "속도 제한의 한 줄 요약은?",
+          "choices": [
+            "사용자 처벌",
+            "한 명의 폭주가 전체를 못 세우게 하는 안전벨트",
+            "속도 향상",
+            "인증"
+          ],
+          "answer": 1,
+          "why": "모두를 지킨다."
+        },
+        {
+          "q": "속도 제한의 다섯 축은?",
+          "choices": [
+            "빠름·큼·숨김·차단·admin",
+            "공정한 기준·폭주 허용·명확한 응답·앞단·측정",
+            "캐시·복제·샤딩·압축·인덱스",
+            "토큰만"
+          ],
+          "answer": 1,
+          "why": "다섯 축."
+        },
+        {
+          "q": "먼저 잡을 두 가지는?",
+          "choices": [
+            "GraphQL·복제",
+            "토큰 버킷(폭주 허용) + 429·Retry-After",
+            "URL·헤더",
+            "샤딩·캐시"
+          ],
+          "answer": 1,
+          "why": "정상은 안 막고 남용만."
+        }
+      ]
     }
   ]
 }
