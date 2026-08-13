@@ -75,6 +75,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     injectStyles();
     materialShell(container, {
       accept: 'audio/*',
+      multiple: true,
       groups: GROUPS,
       noInputNeeded: NO_SOUND_NEEDED,
       accepts: /^audio\//i,
@@ -86,6 +87,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         change: t('sound.btn.change', undefined, '바꾸기'),
         back: t('sound.btn.back', undefined, '할 일 고르기'),
         chain: t('sound.btn.chain', undefined, '이 결과로 이어서'),
+        more: t('sound.more', undefined, '{name} 외 {n}개'),
         fail: t('sound.preview.fail', undefined, '이 소리는 미리 못 봅니다')
       },
       preview: drawWaveform

@@ -88,6 +88,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     injectStyles();
     materialShell(container, {
       accept: 'application/pdf,.pdf',
+      multiple: true,
       groups: GROUPS,
       noInputNeeded: NO_PDF_NEEDED,
       accepts: /pdf/i,
@@ -99,6 +100,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         change: t('pdf.btn.change', undefined, '바꾸기'),
         back: t('pdf.btn.back', undefined, '할 일 고르기'),
         chain: t('pdf.btn.chain', undefined, '이 결과로 이어서'),
+        more: t('pdf.more', undefined, '{name} 외 {n}개'),
         fail: t('pdf.preview.fail', undefined, '이 문서는 미리 못 봅니다')
       },
       preview: drawGrid

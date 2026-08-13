@@ -28,5 +28,6 @@
   "image.part.comparepic": "Compare two",
   "image.part.qrread": "Read QR",
   "image.cmp.before": "before {size}",
-  "image.cmp.after": "after {size}"
+  "image.cmp.after": "after {size}",
+  "image.more": "{name} and {n} more"
 }

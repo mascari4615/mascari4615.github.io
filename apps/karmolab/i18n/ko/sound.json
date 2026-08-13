@@ -18,5 +18,6 @@
   "sound.meta": "{time} · {ch}채널 · {khz}kHz · {size}",
   "sound.part.video2audio": "영상에서 소리 뽑기",
   "sound.part.soundscape": "환경음",
-  "sound.part.morse": "모스 부호"
+  "sound.part.morse": "모스 부호",
+  "sound.more": "{name} 외 {n}개"
 }

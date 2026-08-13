@@ -18,5 +18,6 @@
   "sound.meta": "{time} · {ch}ch · {khz}kHz · {size}",
   "sound.part.video2audio": "Pull sound from video",
   "sound.part.soundscape": "Ambience",
-  "sound.part.morse": "Morse"
+  "sound.part.morse": "Morse",
+  "sound.more": "{name} and {n} more"
 }
