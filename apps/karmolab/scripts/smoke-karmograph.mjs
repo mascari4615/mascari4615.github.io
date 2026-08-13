@@ -1889,6 +1889,46 @@ const openedSpec = (page) => page.evaluate(() => {
     .filter((sp) => sp && (sp.nodes || []).length > 0)[0];
 });
 
+await step('고른 선도 자판으로 지운다 (KL-271)', async () => {
+  /* 실측 2026-08-14: 선을 골라 옆 패널까지 떠 있는데 Delete 를 눌러도 아무 일이 없었다
+     (카드만 됐다). 자판만 쓰는 사람에게는 「고를 수는 있는데 못 지운다」가 된다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.evaluate(() => {
+    const spec = {
+      version: 1, _meta: {}, groups: [],
+      nodes: [
+        { id: 'n1', label: '가', kind: 'character', x: 100, y: 100, w: 160, h: 44 },
+        { id: 'n2', label: '나', kind: 'character', x: 420, y: 260, w: 160, h: 44 },
+      ],
+      edges: [{ id: 'e1', from: 'n1', to: 'n2', label: '친구', kind: 'default' }],
+      ephemeral_anchors: [], _edge_kinds: {},
+    };
+    localStorage.setItem('karmograph.map.edge', JSON.stringify(spec));
+    localStorage.setItem('karmograph.index', JSON.stringify({ activeId: 'edge', maps: [{ id: 'edge', name: '선 판' }] }));
+  });
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.ck-node', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(800));
+
+  const lab = await m.locator('.ck-edge-label').first().boundingBox();
+  await m.mouse.click(lab.x + lab.width / 2, lab.y + lab.height / 2);
+  await m.waitForSelector('[data-km="ed-del"]', { timeout: ms(4000) });
+  await m.keyboard.press('Delete');
+  await m.waitForFunction(() => {
+    const idx = JSON.parse(localStorage.getItem('karmograph.index'));
+    return JSON.parse(localStorage.getItem('karmograph.map.' + idx.activeId)).edges.length === 0;
+  }, null, { timeout: ms(4000) });
+
+  // 되돌리기로 돌아와야 한다 — 자판으로 지운 것도 자판으로 되돌린다.
+  await m.keyboard.press('Control+z');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-edge-label').length === 1, null, { timeout: ms(4000) });
+  await ctx.close();
+});
+
 await step('큰 판에서도 시점을 옮기는 값이 싸다 (800장, KL-271 X2)', async () => {
   /* 시점 렌즈는 **그릴 때마다** 선의 얼굴을 갈아 끼운다 — 판이 커지면 그 값이 곱절로 뛸 자리다.
      실측(2026-08-14, 이 기계): 800장에서 첫 그림 320~500ms · 시점 전환 42~125ms.
