@@ -134,6 +134,12 @@ export interface GraphEdge {
    */
   viewFrom?: string;
   viewTo?: string;
+  /**
+   * **시점마다 다른 얼굴** (TASK-KL-271 X2). 「1부에서는 소꿉친구, 2부에서는 라이벌」 —
+   * 적어 둔 것이 없는 시점은 원본을 따른다(시점을 안 쓰는 판은 아무것도 안 달라진다).
+   * 규칙 정본 = `widgets/karmograph/times.ts`.
+   */
+  at?: Record<string, { label?: string; kind?: string; gone?: boolean }>;
   tags?: string[];
 }
 
@@ -323,6 +329,8 @@ export interface GraphSpec {
    * 「1부 시점」 「적대 관계만」. 없으면 아직 하나도 저장 안 한 판.
    */
   views?: SavedGraphView[];
+  /** 이 판의 **시점**들 (TASK-KL-271 X2). 순서가 곧 시간 순. 없으면 시점을 안 쓰는 판. */
+  times?: { id: string; name: string }[];
   /** 발표 순서. 없으면 발표 모드 버튼이 「첫 장 담기」로 시작한다. */
   story?: StoryStep[];
 }
