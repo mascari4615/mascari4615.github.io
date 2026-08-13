@@ -176,6 +176,14 @@ import { t, loadNamespace } from '../lib/i18n';
                 id: 'crypto',
                 label: t('crypto.t33', undefined, "암호화 / 복호화"),
                 build(c: HTMLElement) {
+                    /* ★ **말 묶음을 먼저 받는다** (2026-08-13). 이 파일은 `loadNamespace` 를
+                       들여오기만 하고 **한 번도 부르지 않았다**. `t()` 는 묶음이 없고 되받을 글도
+                       없으면 **던진다** — 그래서 화면 짓기가 첫 줄에서 통째로 엎어졌고,
+                       실사이트에서 「암호화」를 눌러도 세 방식 모두 아무 일도 안 일어났다
+                       (오류도 안 떴다 — 던진 자리가 만들기 단계라 조용했다). 실측: 라이브 점검이
+                       `MissingTranslationError: [i18n …]` 로 잡았고, 이 도구는 그 상태로 살아 있었다. */
+                    void loadNamespace('crypto').then(function () {
+
                     Mdd.linePreset('meme_done', { msg: t('crypto.t34') });
 
                     const modeGroup = document.createElement('div');
@@ -287,6 +295,8 @@ import { t, loadNamespace } from '../lib/i18n';
                         window.toggleCryptoFields!();
                         const slider = document.getElementById('cryptoIterSlider') as HTMLInputElement | null;
                         if (slider) slider.oninput = function () { (document.getElementById('cryptoIterVal') as HTMLElement).textContent = Number(slider.value).toLocaleString(); };
+                    });
+
                     });
                 }
             }
