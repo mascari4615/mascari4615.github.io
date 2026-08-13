@@ -37,7 +37,9 @@ const require = createRequire(import.meta.url);
 const ts = require('typescript');
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const widgetsDir = path.join(root, 'src/widgets');
+/* ★ **위젯만 보지 않는다** (2026-08-14). 같은 병은 셸·알맹이 쪽 파일에서도 날 수 있다 —
+   거기서 던지면 화면 하나가 아니라 **앱 전체**가 안 뜬다. 재 보니 지금은 0건이라 빚도 안 는다. */
+const 볼곳 = path.join(root, 'src');
 
 const 파일들 = process.argv.slice(2).filter((a) => !a.startsWith('--')).length
   ? process.argv.slice(2).filter((a) => !a.startsWith('--')).map((p) => path.resolve(p))
@@ -48,7 +50,7 @@ const 파일들 = process.argv.slice(2).filter((a) => !a.startsWith('--')).lengt
         else if (name.endsWith('.ts')) acc.push(p);
       }
       return acc;
-    })(widgetsDir);
+    })(볼곳);
 
 /** 이 함수가 「만들자마자 도는 것」(IIFE)인가 — 그렇다면 그 몸통도 파일 읽는 순간이다. */
 function 즉시도는함수(node) {
@@ -117,7 +119,7 @@ if (UPDATE) {
   process.exit(0);
 }
 const 새것 = 문제.filter((x) => !빚.has(표(x)));
-console.log(`[i18n-eager] 위젯 ${파일들.length}개 · 읽는 순간 말을 읽는 자리 ${문제.length}건 (빚 ${빚.size}건은 봐준다)`);
+console.log(`[i18n-eager] 소스 ${파일들.length}개 · 읽는 순간 말을 읽는 자리 ${문제.length}건 (빚 ${빚.size}건은 봐준다)`);
 
 if (새것.length) {
   console.error(`[i18n-eager] **새로 생긴** 자리 ${새것.length}건 — 그 화면은 통째로 안 올라간다`);
