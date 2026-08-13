@@ -13,16 +13,14 @@ name: "KarmoLab 라이브 점검"
 # 이 점검은 독립적으로 결과를 남기고, 반대로 이 점검이 실패해도 배포를 되돌리지는 않는다.
 
 on:
-  workflow_run:
-    workflows: ["Build and Deploy"]
-    types: [completed]
-  # 배포 결과에만 매달면 **바쁠수록 안 돈다.** 여러 작업이 몰아치면 뒤 push 가 앞 배포를
-  # 취소시키는데, 이 점검은 배포가 「성공」일 때만 돌게 돼 있었다 — 실측 40회 중 성공 5·취소 25.
-  # 최근 20번 중 16번이 그렇게 건너뛰어졌고, 그 사이 실서비스에서 도구 셋이 몇 주간 죽어 있었다.
-  # 이 검사가 재는 것은 「이 배포」가 아니라 **지금 실사이트**다. 배포가 취소돼도 사이트는
-  # 살아 있고 깨져 있을 수 있으므로, 시간으로도 돈다.
+  # ★ **배포 꼬리를 뗐다** (2026-08-13, 게이트 수명 실측). 최근 25판이 **전부 건너뜀/취소**라
+  #   이 검사는 「한 번도 판정된 적이 없다」 — 안 본 것이지 통과가 아니다.
+  #   까닭: 배포가 몰리면 뒤 push 가 앞 배포를 취소시키는데, 이 판은 배포가 「성공」일 때만
+  #   돌게 돼 있어 대부분 건너뛰고, 살아남은 판끼리는 서로를 접었다. 그렇게 슬롯만 태웠다.
+  #   이 검사가 재는 것은 「이 배포」가 아니라 **지금 실사이트**다 — 시계만으로 충분하다.
+  #   대신 간격을 반으로 줄인다(조각 셋으로 나눠 한 판이 6분이라 부담이 안 된다).
   schedule:
-    - cron: "17 * * * *" # 매시 17분 (정시 몰림 피함)
+    - cron: "7,37 * * * *"
   workflow_dispatch:
     inputs:
       tools:
@@ -34,26 +32,19 @@ permissions:
   contents: read
   issues: write # 점검이 실패하면 이슈로 알린다 (아래 마지막 단계)
 
-# ★ **겹쳐 돌지 않는다** (2026-08-12). 이 판은 매시 시계 + 배포마다 두 갈래로 불린다.
-#   한 판이 17분이라 배포가 몰리는 시간대에는 서로 겹쳐, 같은 라이브를 여러 판이 동시에
-#   재고 같은 이슈를 여러 번 연다. 라이브는 하나뿐이므로 **가장 나중 것 하나면 된다**.
-#   ★ **시계로 부른 판은 접지 않는다** (2026-08-12, 붙이자마자 실측으로 교정).
-#   한 그룹에 다 몰아넣었더니 배포가 1분 간격으로 나는 시간대에 **여섯 판 연속 취소**가 났다 —
-#   최신 것만 남기는 규칙이 「끝까지 가는 판이 하나도 없음」이 되는, verify 에서 이미 겪은 그 모양이다.
-#   배포 꼬리로 부른 판은 접어도 되지만(다음 배포가 곧 다시 부른다), 시계 판은 **바닥**이라 접지 않는다.
+# 겹쳐 돌지 않는다 — 라이브는 하나뿐이므로 한 판이면 된다. 다만 **접지는 않는다**:
+# 접힌 판은 판정을 안 남기고, 판정 없는 검사는 없는 검사다(그래서 25판 내리 판정이 0이었다).
 concurrency:
-  group: karmolab-live-check-${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'floor' || 'deploy' }}
-  cancel-in-progress: ${{ github.event_name == 'workflow_run' }}
+  group: karmolab-live-check
+  # 접지 않는다 — 접힌 판은 판정을 안 남기고, 판정 없는 검사는 없는 검사다.
+  cancel-in-progress: false
 
 jobs:
   check:
-    # 배포가 성공했을 때만 의미가 있다. 실패한 배포 뒤에 도는 것은 옛 화면을 재는 셈이다.
-    # 시각으로 부른 것은 배포와 무관하게 「지금 실사이트」를 재는 것이므로 배포 결과를 안 본다
-    # (여기서 막으면 위에 넣은 시계가 무의미해진다).
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.workflow_run.conclusion == 'success' }}
+    # 재는 것은 「어느 배포」가 아니라 **지금 실사이트**다 — 그래서 배포 결과를 안 본다.
     runs-on: ubuntu-latest
     # ★ **셋이 나눠 든다** (2026-08-13). 서른여섯을 한 줄로 돌면 17분이 넘는데, 이 판은
-    #   배포마다 다시 불려 **끝나기 전에 취소됐다** — 실측 40판 중 25판이 판정을 못 냈다.
+    #   한 줄로 돌면 다음 시계 판과 겹칠 만큼 길다 — 실측 40판 중 25판이 판정을 못 냈다.
     #   판정이 안 나오는 검사는 없는 검사다. 나누는 규칙은 러너 안에 있다(`--shard 2/3`).
     #   한 조각이 빨개도 나머지는 끝까지 간다 — 그래야 「무엇이 빨간지」가 한 판에 다 보인다.
     strategy:
@@ -82,7 +73,6 @@ jobs:
       #   이제 여기서도, `npm run verify:live` 에서도 **같은 파일**을 읽는다 — 갈라질 수가 없다.
       - name: 라이브 점검 (목록 = scripts/live-checks.mjs · 로컬은 npm run verify:live)
         env:
-          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
           BASE: https://blog.mascari4615.com
           TRIES: '12'
           WAIT_MS: '20000'
@@ -122,7 +112,7 @@ jobs:
           merge-multiple: true
 
       - name: 바뀐 주소를 검색엔진에 알린다
-        if: ${{ github.event_name == 'workflow_run' && needs.check.result == 'success' }}
+        if: ${{ needs.check.result == 'success' }}
         continue-on-error: true
         run: node scripts/indexnow-submit.mjs
 
