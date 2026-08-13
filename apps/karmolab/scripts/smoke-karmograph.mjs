@@ -2535,8 +2535,6 @@ await step('폰 첫 화면 — 안내가 시트에 안 잘리고, 툴바에 「�
   }
   await ph.close();
 });
-await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널은 아래 시트로 뜬다', async () => {
-  const phone = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 await step('다 이어져 있어도 무리를 갈라 말해 준다', async () => {
   // 학교 무리와 가족 무리가 한 사람으로만 붙어 있어도 눈으로는 경계가 안 보인다(KL-271 L3).
   await page.click('[data-km="map-new"]');
@@ -2626,6 +2624,9 @@ await step('블로그에 넣을 한 줄을 준다', async () => {
   if (!/src="[^"]*#karmograph/.test(code)) throw new Error(`판으로 가는 주소가 아니다: ${code.slice(0, 120)}`);
   if (!/kmv=1/.test(code)) throw new Error('보기 전용(kmv=1)이 아닌 링크를 끼웠다');
 });
+
+await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널은 아래 시트로 뜬다', async () => {
+  const phone = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 
 
   const m = await phone.newPage();
