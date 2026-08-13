@@ -9,6 +9,7 @@
  * 그래서 넣자마자 **글자가 들어 있는 PDF인지 먼저 알려 주고**, 첫 쪽 미리보기로 화질을 눈으로 고르게 한다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 
 import { t, loadNamespace } from '../../lib/i18n';
@@ -115,10 +116,9 @@ import { createPdf, download, loadPdfJs, loadPdfLib as loadPdfLibShared, openFor
           let made: Blob | null = null;
           let hasText = false;
 
-          const say = (m: string, kind = ''): void => {
-            status.textContent = m;
-            status.className = 'tool-status' + (kind ? ' ' + kind : '');
-          };
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          const say = statusLine(status);
           const stat = (l: string, v: string, primary = false): string =>
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 

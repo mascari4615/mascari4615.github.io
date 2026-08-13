@@ -11,6 +11,7 @@
  *  - 종이 크기가 제각각인 문서에서도 여백 비율로 자리를 잡는다.
  */
 import { fileSize as size } from './shared/media';
+import { statusLine } from './shared/say';
 
 import { t, loadNamespace } from '../../lib/i18n';
 import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
@@ -132,10 +133,9 @@ import { spec as pdfPageNumberCoreSpec } from '../../core/pdfpagenum';
           let file: File | null = null;
           let pageCount = 0;
 
-          const say = (m: string, kind = ''): void => {
-            status.textContent = m;
-            status.className = 'tool-status' + (kind ? ' ' + kind : '');
-          };
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          const say = statusLine(status);
           const stat = (l: string, v: string, primary = false): string =>
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 

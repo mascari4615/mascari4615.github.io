@@ -12,6 +12,7 @@
  *    파일을 통째로 거부하는데, 그때 나오는 오류 메시지가 아무 도움이 안 된다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { statusLine } from './shared/say';
 
 (function (): void {
   /** .ics 규칙: 쉼표·세미콜론·역슬래시는 이스케이프, 줄바꿈은 \n 글자로.
@@ -164,10 +165,9 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           // LF 로 바꿔 버려서, 내려받는 .ics 가 규칙(CRLF)에 안 맞게 된다 (시험이 잡았다).
           let built = '';
 
-          const say = (m: string, kind = ''): void => {
-            status.textContent = m;
-            status.className = 'tool-status' + (kind ? ' ' + kind : '');
-          };
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          const say = statusLine(status);
           const stat = (l: string, v: string, primary = false): string =>
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 

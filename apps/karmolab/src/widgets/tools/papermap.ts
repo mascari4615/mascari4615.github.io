@@ -9,6 +9,7 @@
  * 새 그리기 엔진을 만들지 않는다.
  */
 import { buildMap, fetchMany, search, toCanvas, type Paper } from '../../lib/openalex';
+import { statusLine } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -67,10 +68,9 @@ import { t, loadNamespace } from '../../lib/i18n';
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
     const status = $<HTMLElement>('#pmStatus');
-    const say = (m: string, kind = ''): void => {
-      status.textContent = m;
-      status.className = 'tool-status' + (kind ? ' ' + kind : '');
-    };
+    /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+     * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+    const say = statusLine(status);
 
     let lastCanvas: unknown = null;
 

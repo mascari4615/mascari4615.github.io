@@ -14,6 +14,7 @@
  * 대신 기댈 곳이 하나 생긴다: 그 공개 시계가 계속 돌아야 열린다. 그래서 화면에 그 사실을 적는다.
  */
 import { timelockEncrypt, timelockDecrypt, mainnetClient, roundAt, Buffer } from 'tlock-js';
+import { statusLine } from './shared/say';
 
 /* 이 라이브러리는 안쪽에서 Node 의 바이트 상자(Buffer)를 그대로 부른다 — 브라우저엔 없다.
  * 라이브러리가 같이 주는 대체품을 전역에 놓아 준다(없을 때만). */
@@ -130,10 +131,9 @@ import { t, loadNamespace, fmtDate } from '../../lib/i18n';
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const status = $<HTMLElement>('#tcStatus');
           const out = $<HTMLElement>('#tcOut');
-          const say = (m: string, kind = ''): void => {
-            status.textContent = m;
-            status.className = 'tool-status' + (kind ? ' ' + kind : '');
-          };
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          const say = statusLine(status);
 
           let client: ReturnType<typeof mainnetClient> | null = null;
           const 시계 = (): ReturnType<typeof mainnetClient> => {

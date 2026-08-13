@@ -16,6 +16,7 @@
  * P2P 라 마음먹으면 속일 수 있다. 캐주얼 놀이라 감수한다(순위표가 없으니 속일 값도 없다).
  */
 import { openRoom, quickMatch, makeCode, inviteLink, codeFromUrl, type Room } from '../../lib/room';
+import { statusLine } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -231,10 +232,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           const status = $<HTMLElement>('#duStatus');
           const nameInput = $<HTMLInputElement>('#duName');
 
-          const say = (m: string, kind = ''): void => {
-            status.textContent = m;
-            status.className = 'tool-status' + (kind ? ' ' + kind : '');
-          };
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          const say = statusLine(status);
 
           let room: Room | null = null;
           let host = false;

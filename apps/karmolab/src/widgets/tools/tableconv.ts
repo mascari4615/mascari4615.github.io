@@ -8,6 +8,7 @@
  * 마크다운은 세로줄을 폭에 맞춰 정렬해 준다. 안 맞춰도 보이기는 하지만, 원본을 읽을 사람이 있다.
  */
 import { parse, spec, toCsv, toJson, toMarkdown, toTsv, type Rows } from '../../core/tableconv';
+import { statusLine } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -69,10 +70,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           const stats = $<HTMLElement>('#tcStats');
           const status = $<HTMLElement>('#tcStatus');
 
-          const say = (m: string, kind = ''): void => {
-            status.textContent = m;
-            status.className = 'tool-status' + (kind ? ' ' + kind : '');
-          };
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          const say = statusLine(status);
           const stat = (l: string, v: string, primary = false): string =>
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 

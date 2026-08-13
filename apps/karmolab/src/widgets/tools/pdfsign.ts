@@ -11,6 +11,7 @@
  * 옮기고 크기를 조절하며, 화면에서 본 그대로 들어간다(화면 배율을 실제 쪽 크기로 되돌려 얹는다).
  */
 import { acceptPastedFiles } from './shared/paste';
+import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
@@ -108,10 +109,9 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
           // 놓을 자리를 「쪽 크기 대비 비율」로 갖는다 — 미리보기 배율이 바뀌어도 자리가 안 틀어진다
           let spot: { x: number; y: number } | null = null;
 
-          const say = (m: string, kind = ''): void => {
-            status.textContent = m;
-            status.className = 'tool-status' + (kind ? ' ' + kind : '');
-          };
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          const say = statusLine(status);
 
           /* ---- 서명 그리기 ---- */
           const padCtx = pad.getContext('2d');

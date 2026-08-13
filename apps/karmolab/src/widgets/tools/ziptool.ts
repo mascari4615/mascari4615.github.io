@@ -6,6 +6,7 @@
  * 안을 훑어보는 것만으로 끝날 때가 많으므로 **풀기 전에 목록을 먼저 보여준다.**
  */
 import { acceptPastedFiles } from './shared/paste';
+import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 import { spec as zipCoreSpec } from '../../core/ziptool';
@@ -83,10 +84,9 @@ import { spec as zipCoreSpec } from '../../core/ziptool';
           let opened: ZipInstance | null = null;
           let JSZipCtor: (new () => ZipInstance) | null = null;
 
-          const say = (m: string, kind = ''): void => {
-            status.textContent = m;
-            status.className = 'tool-status' + (kind ? ' ' + kind : '');
-          };
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          const say = statusLine(status);
 
           async function loadLib(): Promise<new () => ZipInstance> {
             if (JSZipCtor) return JSZipCtor;

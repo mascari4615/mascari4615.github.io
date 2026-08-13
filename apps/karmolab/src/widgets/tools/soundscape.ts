@@ -10,6 +10,7 @@
  * 여기서는 **사람**이 정한다 — 손잡이를 누가 잡느냐만 다르다.
  */
 import { LAYERS, PRESETS, Soundscape, type LayerId } from '../../lib/soundscape';
+import { statusLine } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -71,10 +72,9 @@ import { t, loadNamespace } from '../../lib/i18n';
     const powerEl = $<HTMLButtonElement>('#ssPower');
     const status = $<HTMLElement>('#ssStatus');
 
-    const say = (m: string, kind = ''): void => {
-      status.textContent = m;
-      status.className = 'tool-status' + (kind ? ' ' + kind : '');
-    };
+    /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+     * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+    const say = statusLine(status);
 
     const scape = new Soundscape();
 

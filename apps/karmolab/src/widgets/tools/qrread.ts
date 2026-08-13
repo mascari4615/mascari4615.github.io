@@ -11,6 +11,7 @@
  * 해독은 브라우저에 그 기능이 있으면 그걸 쓰고(내려받을 것이 없다), 없을 때만 해독기를 받는다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { statusLine } from './shared/say';
 
 (function (): void {
   interface Detector {
@@ -133,10 +134,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           let stream: MediaStream | null = null;
           let scanning = 0;
 
-          const say = (m: string, kind = ''): void => {
-            status.textContent = m;
-            status.className = 'tool-status' + (kind ? ' ' + kind : '');
-          };
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          const say = statusLine(status);
 
           /** 브라우저에 읽는 기능이 있으면 그걸 쓴다 — 그러면 내려받을 것이 없다. */
           async function reader(): Promise<(cv: HTMLCanvasElement) => Promise<string | null>> {

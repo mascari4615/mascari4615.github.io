@@ -11,6 +11,7 @@
  *  - **자동 탐지는 놓칠 수 있다**고 분명히 말한다. 「도구가 다 지워 줬겠지」가 가장 위험하다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { statusLine } from './shared/say';
 
 (function (): void {
   interface Rule {
@@ -142,10 +143,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           const foundEl = $<HTMLElement>('#txFound');
           const status = $<HTMLElement>('#txStatus');
 
-          const say = (m: string, kind = ''): void => {
-            status.textContent = m;
-            status.className = 'tool-status' + (kind ? ' ' + kind : '');
-          };
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          const say = statusLine(status);
           const stat = (l: string, v: string, primary = false): string =>
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
