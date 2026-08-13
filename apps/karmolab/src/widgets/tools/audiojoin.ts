@@ -5,7 +5,7 @@
  * 그대로 이어 붙일 수 없다 — 44.1kHz 와 48kHz 를 섞으면 뒤쪽이 빨라지거나 느려진다.
  * 가장 높은 표본율에 맞추고 채널도 통일한 뒤 잇는다. 사이에 무음을 넣는 선택지도 둔다.
  */
-import { encodeAudio, fileSize as size, mmss, download, audioCtx, loadAudio } from './shared/media';
+import { encodeAudio, fileSize as size, mmss, download, audioCtx, loadAudioInfo } from './shared/media';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -62,7 +62,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           const stats = $<HTMLElement>('#ajStats');
           const status = $<HTMLElement>('#ajStatus');
           const gap = $<HTMLInputElement>('#ajGap');
-          let items: Array<{ name: string; buffer: AudioBuffer }> = [];
+          let items: Array<{ name: string; buffer: AudioBuffer; rate: number }> = [];
 
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
@@ -74,7 +74,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             listEl.innerHTML = items
               .map(
                 (it, i) =>
-                  `<div class="tool-list-row"><span class="tool-list-key">${esc(t('audiojoin.value.nth', { n: i + 1 }))}</span><span class="tool-list-val">${esc(it.name)} <span class="tool-list-dim">${mmss(it.buffer.duration)} · ${(it.buffer.sampleRate / 1000).toFixed(1)}kHz · ${it.buffer.numberOfChannels === 1 ? t('audiojoin.value.mono') : t('audiojoin.value.stereo')}</span></span></div>`
+                  `<div class="tool-list-row"><span class="tool-list-key">${esc(t('audiojoin.value.nth', { n: i + 1 }))}</span><span class="tool-list-val">${esc(it.name)} <span class="tool-list-dim">${mmss(it.buffer.duration)} · ${(it.rate / 1000).toFixed(1)}kHz · ${it.buffer.numberOfChannels === 1 ? t('audiojoin.value.mono') : t('audiojoin.value.stereo')}</span></span></div>`
               )
               .join('');
             if (!items.length) {
@@ -83,7 +83,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             }
             const gapSec = parseInt(gap.value, 10) / 10;
             const total = items.reduce((a, i) => a + i.buffer.duration, 0) + gapSec * Math.max(0, items.length - 1);
-            const rates = [...new Set(items.map((i) => i.buffer.sampleRate))];
+            const rates = [...new Set(items.map((i) => i.rate))];
             stats.innerHTML =
               stat(t('audiojoin.stat.length'), mmss(total), true) +
               stat(t('audiojoin.stat.count'), t('audiojoin.value.count', { n: items.length })) +
@@ -102,7 +102,10 @@ import { t, loadNamespace } from '../../lib/i18n';
             for (const f of Array.from(list)) {
               if (!f.type.startsWith('audio/')) continue;
               try {
-                items.push({ name: f.name, buffer: await loadAudio(f) });
+                /* 표본률은 **파일 머리**에서 읽는다 — 푼 소리의 값은 전부 재생 장치 값이라 다 같아 보인다.
+                 * 그러면 「섞였다」는 알림이 영영 안 뜬다(그게 이 도구가 조심하려던 바로 그 일이다). */
+                const { buffer, rate } = await loadAudioInfo(f);
+                items.push({ name: f.name, buffer, rate });
               } catch {
                 say(t('audiojoin.err.one', { name: f.name }), 'error');
               }

@@ -13,7 +13,7 @@
  * 봉우리를 보면 자를 자리가 한눈에 보인다.
  */
 import { materialShell, type MaterialGroup } from './shared/material-shell';
-import { loadAudio, peaks, drawWave, fileSize, mmss } from './shared/media';
+import { loadAudioInfo, peaks, drawWave, fileSize, mmss } from './shared/media';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -87,6 +87,8 @@ import { t, loadNamespace } from '../../lib/i18n';
       labels: {
         change: t('sound.btn.change', undefined, '바꾸기'),
         recent: t('sound.btn.recent', undefined, '방금 하던 것'),
+
+        notMine: t('sound.err.notMine', undefined, '이 화면이 받는 갈래가 아닙니다'),
         back: t('sound.btn.back', undefined, '할 일 고르기'),
         chain: t('sound.btn.chain', undefined, '이 결과로 이어서'),
         more: t('sound.more', undefined, '{name} 외 {n}개'),
@@ -120,7 +122,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     wrap.appendChild(cursor);
     box.appendChild(wrap);
 
-    const buffer = await loadAudio(file);
+    const { buffer, rate } = await loadAudioInfo(file);
     if (!alive()) return '';
     drawWave(canvas, peaks(buffer, 240));
 
@@ -156,7 +158,8 @@ import { t, loadNamespace } from '../../lib/i18n';
       }
     });
 
-    const kHz = Math.round(buffer.sampleRate / 100) / 10;
+    /* 재생 장치의 값이 아니라 **파일의** 값이다 — 그래야 컴퓨터마다 다른 수가 안 적힌다 */
+    const kHz = Math.round(rate / 100) / 10;
     return t(
       'sound.meta',
       {

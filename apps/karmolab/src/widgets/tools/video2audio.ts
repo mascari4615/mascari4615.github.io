@@ -7,7 +7,7 @@
  * 주의: 브라우저가 해독하지 못하는 코덱이 있다(특히 일부 mkv·avi). 그때는 실패를 숨기지 않고
  * 어떤 파일이 되는지 알려 준다 — 「아무 일도 안 일어남」이 제일 나쁜 결과다.
  */
-import { encodeAudio, fileSize as size, mmss, audioCtx, loadAudio } from './shared/media';
+import { encodeAudio, fileSize as size, mmss, audioCtx, loadAudioInfo } from './shared/media';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { download } from './shared/video';
@@ -62,6 +62,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const status = $<HTMLElement>('#vaStatus');
           let file: File | null = null;
           let buffer: AudioBuffer | null = null;
+          /* 파일이 원래 몇 번 잰 소리인가 — 재생 장치 값(`buffer.sampleRate`)과 다르다 */
+          let rate = 0;
 
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
@@ -75,7 +77,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             stats.innerHTML = '';
             say(t('video2audio.say.looking', { name: f.name, size: size(f.size) }));
             try {
-              buffer = await loadAudio(f);
+              ({ buffer, rate } = await loadAudioInfo(f));
             } catch {
               // 코덱을 브라우저가 모르면 여기로 온다. 무엇이 되는지 알려 줘야 다음 행동이 생긴다.
               say(t('video2audio.err.decode'), 'error');
@@ -83,7 +85,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             }
             stats.innerHTML =
               stat(t('video2audio.stat.length'), mmss(buffer.duration), true) +
-              stat(t('video2audio.stat.rate'), `${(buffer.sampleRate / 1000).toFixed(1)}kHz`) +
+              stat(t('video2audio.stat.rate'), `${(rate / 1000).toFixed(1)}kHz`) +
               stat(t('video2audio.stat.channels'), buffer.numberOfChannels === 1 ? t('video2audio.value.mono') : t('video2audio.value.stereo'));
             say(t('video2audio.say.found'), 'ok');
           }
