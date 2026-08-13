@@ -80,6 +80,7 @@ COSE = "COSE"        # WebAuthn/CBOR 표준 키 형식 이름 (RFC 8152) — pas
 cose = "cose"        # 동일 (소문자 케이스)
 Dota = "Dota"        # 게임 이름 (Dota 2) — steam 연동 시험 데이터
 
+Canva = "Canva"      # 디자인 서비스 이름 (canva.com) — Canvas 오타 아님
 SOOP = "SOOP"        # 한국 OTT 서비스 이름
 soop = "soop"        # 동일 (소문자 케이스)
 INFP = "INFP"        # MBTI 성격 유형
