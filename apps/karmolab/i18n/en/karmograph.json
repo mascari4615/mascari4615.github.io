@@ -694,5 +694,9 @@
   "karmograph.views.hint": "Name the current filters and come back to them in one tap.",
   "karmograph.views.ph": "e.g. Act 1",
   "karmograph.views.save": "Save current",
-  "karmograph.views.del": "Delete this view"
+  "karmograph.views.del": "Delete this view",
+  "karmograph.table.head": "Table",
+  "karmograph.table.name": "Name",
+  "karmograph.table.kind": "Kind",
+  "karmograph.table.hint": "The same cards as a table ({n}) — tap a header to sort, a row to select it on the board."
 }

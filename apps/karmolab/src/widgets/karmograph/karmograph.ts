@@ -29,6 +29,7 @@ import { posterLegend, legendWorthShowing } from './poster-legend';
 import { wrapPoster } from './poster';
 import { pasteIntent } from './paste-intent';
 import { shouldOfferFocus } from './big-board';
+import { tableColumns, tableRows, sortRows, nextSort, type TableSort } from './table-view';
 import { readCardHtml } from './panels/read-panel';
 import { dropFromFront, roughBytes } from './history';
 import { measureStorage, humanBytes, WARN_RATIO } from './storage-health';
@@ -206,6 +207,15 @@ import {
     .km-read-doc { font-size:13px; line-height:1.7; color:var(--text-primary); white-space:pre-wrap; }
     .km-read-row { display:flex; gap:8px; font-size:12.5px; line-height:1.7; }
     .km-read-k { color:var(--text-tertiary); min-width:76px; flex-shrink:0; }
+    /* ▤ 표 (KL-271 L4) — 좁은 패널에서 옆으로 구르고, 머리는 붙어 있는다. */
+    .km-tablewrap { overflow-x:auto; max-height:60vh; overflow-y:auto; }
+    .km-tbl { border-collapse:collapse; width:100%; font-size:12px; }
+    .km-tbl th { position:sticky; top:0; background:var(--bg-secondary); text-align:left; padding:0; }
+    .km-tbl th .btn { padding:4px 6px; font-size:11px; color:var(--text-tertiary); width:100%; justify-content:flex-start; }
+    .km-tbl td { padding:5px 6px; border-top:1px solid var(--border); white-space:nowrap;
+      max-width:140px; overflow:hidden; text-overflow:ellipsis; }
+    .km-tbl tbody tr { cursor:pointer; }
+    .km-tbl tbody tr:hover { background:var(--bg-tertiary); }
     .km-said-line, .km-gap-line, .km-clu-line { font-size:12px; color:var(--text-primary); line-height:1.6; }
     .km-said-line + .km-said-line, .km-gap-line + .km-gap-line, .km-clu-line + .km-clu-line { margin-top:4px; }
     /* 「글이 있으면 붙여넣기」 — 갈래 카드 밑에 한 줄로. 카드와 같은 무게로 두면 셋이 넷이 된다. */
@@ -472,7 +482,7 @@ import {
     /** 연결 모드일 때 출발 노드 id. null 이면 평소 모드. */
     let linkingFrom: string | null = null;
     /** 오른쪽 패널이 무엇을 보여주는가 — 고른 노드냐, 묶음 목록이냐. */
-    type SideMode = 'node' | 'groups' | 'terms' | 'filter' | 'many' | 'text' | 'sna' | 'storage' | 'notes' | 'stamps' | 'edge' | 'help';
+    type SideMode = 'node' | 'groups' | 'terms' | 'filter' | 'many' | 'text' | 'sna' | 'storage' | 'notes' | 'stamps' | 'edge' | 'table' | 'help';
     let sideMode: SideMode = 'node';
     /* 옆 패널의 「더 적기」가 펼쳐져 있나 — 카드마다가 아니라 **판 전체로 하나**다.
        카드를 옮겨 다닐 때마다 다시 펼치게 하면, 자세히 적는 사람에게는 그게 더 큰 짐이다. */
@@ -1507,6 +1517,7 @@ import {
       { id: 'terms', icon: '🏷', title: t('karmograph.byLabel.msg5') },
       { id: 'filter', icon: '🔍', title: t('karmograph.byLabel.msg6') },
       { id: 'sna', icon: '📊', title: t('karmograph.byLabel.msg7') },
+      { id: 'table', icon: '▤', title: t('karmograph.table.head') },
       { id: 'notes', icon: '🔗', title: t('karmograph.byLabel.msg8') },
       { id: 'storage', icon: '💾', title: t('karmograph.byLabel.msg9') },
       { id: 'help', icon: '?', title: t('karmograph.byLabel.msg10') },
@@ -1702,10 +1713,59 @@ import {
       ensureSheetGrip();
     }
 
+    /** 표에서 지금 무엇을 기준으로 줄 세웠나 — 판을 다시 그려도 이어진다. */
+    let tableSort: TableSort = { by: '', dir: 'up' };
+
+    /**
+     * ▤ **같은 자료를 표로** (TASK-KL-271 L4, Notion 뷰 계보).
+     * 판은 「누가 누구와 이어졌나」에 강하고 「빠짐없이 훑기」에 약하다 — 카드가 흩어져 있어
+     * 눈이 순서를 못 잡는다. 판을 대신하려는 게 아니라 **같은 자료의 다른 렌즈**라서,
+     * 줄을 누르면 그 카드가 판에서도 골라진다.
+     */
+    function renderTablePanel(): void {
+      const live = canvas?.getSpec() ?? spec;
+      const cols = tableColumns(live.nodes);
+      const rows = sortRows(tableRows(live.nodes, cols), tableSort, (k) => kindLabel(k));
+      const arrow = (key: string): string => (tableSort.by !== key ? '' : (tableSort.dir === 'up' ? ' ▲' : ' ▼'));
+      const head = [{ key: '', name: t('karmograph.table.name') }, { key: 'kind', name: t('karmograph.table.kind') }]
+        .concat(cols.map((c) => ({ key: c, name: c })));
+      sideEl.classList.remove('hidden');
+      sideEl.innerHTML = `
+        <div class="km-hint">${esc(t('karmograph.table.hint', { n: String(rows.length) }))}</div>
+        <div class="km-tablewrap"><table class="km-tbl">
+          <thead><tr>${head.map((h) => `<th><button class="btn btn-ghost" data-km="tbl-sort"`
+            + ` data-key="${escapeAttr(h.key)}">${esc(h.name)}${arrow(h.key)}</button></th>`).join('')}</tr></thead>
+          <tbody>${rows.map((r) => `<tr data-km="tbl-row" data-key="${escapeAttr(r.id)}">
+            <td>${esc(r.label || t('karmograph.unnamed'))}</td>
+            <td>${esc(kindLabel(r.kind))}</td>
+            ${cols.map((c) => `<td>${esc(r.cells[c])}</td>`).join('')}
+          </tr>`).join('')}</tbody>
+        </table></div>`;
+      sideEl.querySelectorAll('[data-km="tbl-sort"]').forEach((el) => {
+        (el as HTMLButtonElement).onclick = () => {
+          tableSort = nextSort(tableSort, (el as HTMLElement).dataset.key ?? '');
+          renderSide();
+        };
+      });
+      sideEl.querySelectorAll('[data-km="tbl-row"]').forEach((el) => {
+        (el as HTMLElement).onclick = () => {
+          const id = (el as HTMLElement).dataset.key ?? '';
+          selectedId = id;
+          canvas?.setSelectedNode(id);
+          sideMode = 'node';
+          renderSide();
+        };
+      });
+    }
+
     function renderSideBody(): void {
       if (selectedId || selectedEdgeId) raiseSheet();
       if (sideMode === 'groups') {
         renderGroupsPanel(panelCtx);
+        return;
+      }
+      if (sideMode === 'table') {
+        renderTablePanel();
         return;
       }
       if (sideMode === 'terms') {

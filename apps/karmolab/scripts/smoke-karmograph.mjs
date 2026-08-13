@@ -2625,6 +2625,22 @@ await step('블로그에 넣을 한 줄을 준다', async () => {
   if (!/kmv=1/.test(code)) throw new Error('보기 전용(kmv=1)이 아닌 링크를 끼웠다');
 });
 
+await step('같은 자료를 표로도 본다 — 줄을 누르면 판에서 골라진다', async () => {
+  // 판은 「누가 누구와 이어졌나」에 강하고 「빠짐없이 훑기」에 약하다(KL-271 L4 · Notion 뷰 계보).
+  await openPanel(page, 'table');
+  await page.waitForSelector('[data-km="tbl-row"]', { timeout: ms(4000) });
+  const rows = await page.locator('[data-km="tbl-row"]').count();
+  if (rows === 0) throw new Error('표에 줄이 없다');
+  const firstOf = async () => (await page.locator('[data-km="tbl-row"] td').first().textContent()).trim();
+  const before = await firstOf();
+  await page.locator('[data-km="tbl-sort"]').first().click();
+  await page.waitForTimeout(ms(400));
+  if (await firstOf() === before && rows > 1) throw new Error('머리를 눌러도 줄이 안 섰다');
+  await page.locator('[data-km="tbl-row"]').first().click();
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node.is-selected').length === 1,
+    null, { timeout: ms(4000) });
+});
+
 await step('보기를 이름 붙여 재우고 한 번에 되살린다', async () => {
   // 볼 때마다 거르기를 다시 맞추는 건 매번 같은 일을 손으로 하는 것이고, 그러다 결국 아무도
   // 안 거른다(KL-271 O2 · Kumu 계보). 저장하는 것은 「무엇을 보이게 하느냐」뿐이다.

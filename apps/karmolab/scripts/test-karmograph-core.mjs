@@ -46,6 +46,7 @@ async function loadModules() {
     export * as release from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-release.ts'))};
     export * as edgedrag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-edgedrag.ts'))};
     export * as edgeViews from ${JSON.stringify(path.join(root, 'src/lib/graph/edge-views.ts'))};
+    export * as table from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/table-view.ts'))};
     export * as poster from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster-legend.ts'))};
     export * as posterDraw from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster.ts'))};
     export * as fieldGaps from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/field-gaps.ts'))};
@@ -944,6 +945,41 @@ const M = await loadModules();
   eq(same[0].focus, '', '덮어쓴 내용은 새것');
   check(!isNameUsable('   '), '이름이 비면 저장하지 않는다');
   check(isNameUsable('적대만'), '이름이 있으면 저장한다');
+}
+
+// -- 같은 자료를 표로 (TASK-KL-271 L4) -----------------------------------------
+{
+  const { tableColumns, tableRows, sortRows, nextSort } = M.table;
+  const KL = (k) => ({ person: '인물', place: '장소' })[k] ?? k;
+  const ns = [
+    { id: 'n1', label: '나중', kind: 'person', fields: { '출신': '마계', '첫 등장': '' } },
+    { id: 'n2', label: '가운데', kind: 'place', fields: { '출신': '' } },
+    { id: 'n3', label: '가장먼저', kind: 'person', fields: { '출신': '천계', '넓이': '3' } },
+  ];
+  const cols = tableColumns(ns);
+  eq(cols[0], '출신', '많이 쓰인 칸이 앞 열');
+  check(cols.includes('첫 등장'), '아무도 안 적은 칸도 열로 세운다 — 비어 있다는 것이 곧 보여 줄 것이다');
+  eq(tableColumns(ns, 1).length, 1, '열은 상한까지만 — 표가 옆으로 새면 못 읽는다');
+  const rows = tableRows(ns, cols);
+  eq(rows.length, 3, '카드마다 한 줄');
+  eq(rows[0].cells['출신'], '마계', '칸 값을 담는다');
+  const narrow = tableRows(ns, ['출신']);
+  eq(narrow[0].cells['넓이'] ?? 'x', 'x', '열에 없는 칸은 안 담는다 — 표가 옆으로 새는 것을 막는다');
+  const byName = sortRows(rows, { by: '', dir: 'up' }, KL);
+  eq(byName.map((r) => r.label).join(','), '가운데,가장먼저,나중', '이름순');
+  const down = sortRows(rows, { by: '', dir: 'down' }, KL);
+  eq(down[0].label, '나중', '거꾸로도 된다');
+  const byField = sortRows(rows, { by: '출신', dir: 'up' }, KL);
+  eq(byField[byField.length - 1].label, '가운데', '빈 칸은 언제나 뒤 — 오름차순');
+  const byFieldDown = sortRows(rows, { by: '출신', dir: 'down' }, KL);
+  eq(byFieldDown[byFieldDown.length - 1].label, '가운데', '빈 칸은 언제나 뒤 — 내림차순에서도');
+  const byKind = sortRows(rows, { by: 'kind', dir: 'up' }, KL);
+  eq(byKind[0].kind, 'person', '종류는 사람이 읽는 이름으로 줄 세운다');
+  // 같은 판을 두 번 열면 같은 표여야 한다.
+  eq(JSON.stringify(sortRows(rows, { by: '출신', dir: 'up' }, KL)),
+    JSON.stringify(sortRows([...rows].reverse(), { by: '출신', dir: 'up' }, KL)), '들어온 순서와 무관');
+  eq(nextSort({ by: '', dir: 'up' }, '출신').dir, 'up', '다른 열을 누르면 오름차순으로 시작');
+  eq(nextSort({ by: '출신', dir: 'up' }, '출신').dir, 'down', '같은 열을 다시 누르면 뒤집힌다');
 }
 
 process.stdout.write('\n');
