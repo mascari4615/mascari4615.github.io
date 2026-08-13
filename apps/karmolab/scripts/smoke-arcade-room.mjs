@@ -71,8 +71,12 @@ if (!cantRun) {
   await host.click('#acSwap');
   await host.waitForTimeout(800);
   check('방 유지 띠가 로비에 선다', (await host.locator('#acRoom').isVisible()));
-  const told = await guest.locator('#acOverHead').textContent();
-  check('손님에게 「고르는 중」이 뜬다', (told || '').includes('⏳'), told || '(빈칸)');
+  /* 소식은 그물망을 타고 온다 — 한 번 읽고 판단하면 「아직 안 왔다」를 「안 온다」로 적는다. */
+  const told = await guest
+    .waitForFunction(() => (document.querySelector('#acOverHead')?.textContent || '').includes('⏳'), null, { timeout: 20000 })
+    .then(() => true)
+    .catch(() => false);
+  check('손님에게 「고르는 중」이 뜬다', told, await guest.locator('#acOverHead').textContent());
 
   /* 다른 게임을 고른다 — 링크를 다시 안 보냈는데 손님이 따라와야 한다. */
   await host.click('[data-host="nunchi"]');
