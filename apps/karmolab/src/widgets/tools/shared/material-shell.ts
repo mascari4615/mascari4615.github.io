@@ -394,6 +394,16 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
     if (id && jobIds.has(id)) openJobById(id);
   };
   openIfMine(Toolbox.takeBundleRequest?.());
+  /* ★ **도구 한 장짜리 주소로 와도 열어 준다** (2026-08-14 실측).
+     앱 안에서 `#charcount` 로 오면 열리는데, **도구 상세 페이지**(`/karmolab/t/text/#charcount`)
+     로 오면 「할 일 고르기」 목록만 떴다 — 그 자리에는 묶음이 없어 `takeBundleRequest` 가 비기
+     때문이다. 그런데 접은 도구 열여섯의 넘김판이 **바로 그 주소**로 보낸다(언어마다 하나씩,
+     48장). 찾아온 사람이 자기가 부른 도구 대신 목록을 보는 것은 데려다준 게 아니다.
+     묶음이 없으면 주소의 뒷조각을 그대로 본다 — 이 묶음의 할 일 이름일 때만. */
+  if (typeof location !== 'undefined') {
+    const 뒷조각 = (location.hash || '').replace(/^#/, '');
+    openIfMine(뒷조각);
+  }
   const onBundleOpen = (e: Event): void => {
     const d = (e as CustomEvent).detail as { tool?: string } | undefined;
     /* 이미 집어 갔으면 `take` 가 비어 있다 — 그래도 알림에 실린 이름으로 연다 */
