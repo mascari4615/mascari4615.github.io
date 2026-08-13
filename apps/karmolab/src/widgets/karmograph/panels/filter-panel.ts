@@ -32,6 +32,7 @@ export function renderFilterPanel(ctx: PanelCtx): void {
   side.innerHTML = `
     <h4>${esc(t('karmograph.fieldNames.msg'))}</h4>
     <div class="km-hint">${t('karmograph.filterHide', { em: `<b>${esc(t('karmograph.fieldNames.msg2'))}</b>` })}</div>
+    <div class="km-secname">${esc(t('karmograph.hideSec.head'))}</div>
     <!-- ★ 「이웃까지만 보기」는 툴바에 따로 있던 고르개다 (TASK-KL-271 P4).
          찾는 건 툴바에서, **덜 보는 건 전부 여기서** — 세 자리로 흩어져 있던 것을 한 자리로. -->
     <div class="km-field">
@@ -76,6 +77,18 @@ export function renderFilterPanel(ctx: PanelCtx): void {
       <div class="km-hint">${t('karmograph.hint04', { em: `<b>${esc(t('karmograph.fieldNames.msg9'))}</b>` })}</div>
     </div>`}
     <div class="km-field">
+      <label class="km-check"><input type="checkbox" data-km="f-orphan"${st.hideOrphans ? ' checked' : ''} /> ${esc(t('karmograph.fOrphan.label'))}</label>
+      <label>${esc(t('karmograph.fieldNames.msg12'))} <b data-km="f-mindeg-val">${st.minDegree}</b>${esc(t('karmograph.fieldNames.msg13'))}</label>
+      <input type="range" data-km="f-mindeg" min="0" max="6" step="1" value="${st.minDegree}" />
+      <div class="km-hint">${esc(t('karmograph.fieldNames.msg14'))}</div>
+    </div>
+    <!-- ★ 여기서부터는 **거르기가 아니라 꾸미기**다 (TASK-KL-271 P5).
+         색·크기·규칙이 거르기 사이에 섞여 있어서 「거르기」라는 이름과 내용이 안 맞았다 —
+         이름과 안 맞는 칸은 두 번 다시 안 열린다(S4). 줄을 긋고 이름을 붙여 갈라 놓는다. -->
+    <hr class="km-split" />
+    <h4>${esc(t('karmograph.decorate.head'))}</h4>
+    <div class="km-hint">${esc(t('karmograph.decorate.hint'))}</div>
+    <div class="km-field">
       <label class="km-check"><input type="checkbox" data-km="f-degree"${st.sizeByDegree ? ' checked' : ''} /> ${esc(t('karmograph.fDegree.label'))}</label>
       <label class="km-check"><input type="checkbox" data-km="f-colortag"${st.colorByTag ? ' checked' : ''} /> ${esc(t('karmograph.fColortag.label'))}</label>
       ${fieldNames.length === 0 ? '' : `<label>${esc(t('karmograph.fieldNames.msg10'))}</label>
@@ -84,12 +97,6 @@ export function renderFilterPanel(ctx: PanelCtx): void {
         ${fieldNames.map((f) => `<option value="${esc(f)}"${st.colorByField === f ? ' selected' : ''}>${esc(t('karmograph.byField', { field: f }))}</option>`).join('')}
       </select>`}
       <div class="km-hint">${esc(t('karmograph.fieldNames.msg11'))}</div>
-    </div>
-    <div class="km-field">
-      <label class="km-check"><input type="checkbox" data-km="f-orphan"${st.hideOrphans ? ' checked' : ''} /> ${esc(t('karmograph.fOrphan.label'))}</label>
-      <label>${esc(t('karmograph.fieldNames.msg12'))} <b data-km="f-mindeg-val">${st.minDegree}</b>${esc(t('karmograph.fieldNames.msg13'))}</label>
-      <input type="range" data-km="f-mindeg" min="0" max="6" step="1" value="${st.minDegree}" />
-      <div class="km-hint">${esc(t('karmograph.fieldNames.msg14'))}</div>
     </div>
     <div class="km-field">
       <label>${esc(t('karmograph.fieldNames.msg15'))} <span class="km-hint">${esc(t('karmograph.fieldNames.msg16'))}</span></label>
