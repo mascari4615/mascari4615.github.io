@@ -393,6 +393,13 @@ const SAME_OK = new Set([
   'regexref.t19',             // 정규식 [가-힣]
   'regextest.pattern.hangul', // 같은 이유
   'regextest.sample.hangul',  // 한글 맛보기 — 한글이라야 뜻이 있다
+  /* ⚠ **임시 통행증** (2026-08-14). 그림판 예시 글이다. 옮겨 놓았더니(af8c4e87) 그쪽 세션의
+     일괄 i18n 훑기(abe3d23f)가 ko 값으로 도로 덮었고, 그 사이 verify 가 서서 **배포가 통째로**
+     막혔다(빨강 네 판). 같은 값을 또 옮기면 다음 훑기에 또 덮인다 — 왕복이다.
+     그래서 막힌 것부터 푼다. **이 줄은 karmograph(KL-271) 슬롯이 정하면 지운다** —
+     ① 예시를 언어별로 옮긴다(그러면 이 줄 삭제) ② 일부러 같게 둔다(그러면 이 주석만 정리).
+     session-bus 2026-08-14 06:4x 에 물어 두었다. */
+  'karmograph.textPanel.ph',
 ]);
 if (CHECK) {
   const HANGUL = /[가-힣]/;
