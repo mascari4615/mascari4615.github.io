@@ -1759,6 +1759,64 @@ await step('발표를 SVG 한 장으로 — 브라우저만 있으면 도는 파
   await page.keyboard.press('Escape');
   await page.waitForSelector('[data-km="drawer"].hidden', { state: 'attached', timeout: ms(4000) });
 });
+await step('폰에서 서랍이 시트 밑에 깔리지 않는다 — 접은 명령에 다 닿는다 (KL-271)', async () => {
+  /* 실측 2026-08-14: 서랍은 툴바 안에 매달려 있어(z-index 5 짜리 쌓임 맥락) 아래 시트(960)가
+     덮었다 — 28개 중 여덟은 짚으면 시트 단추가 잡히고 셋은 화면 밖이었다. 폰에서 서랍은
+     「툴바가 접은 것들에 닿는 유일한 문」인데 그 문의 절반이 죽어 있었다. */
+  const ph = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const m = await ph.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  const cbox = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(cbox.x + cbox.width * 0.4, cbox.y + cbox.height * 0.25);
+  await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await m.keyboard.type('서랍카드');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 1, null, { timeout: ms(4000) });
+
+  await m.locator('[data-km="more"]').click();
+  await m.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
+  const report = await m.evaluate(() => {
+    const d = document.querySelector('.km-drawer');
+    const r = d.getBoundingClientRect();
+    const bad = [];
+    for (const el of d.querySelectorAll('button')) {
+      const b = el.getBoundingClientRect();
+      // 서랍은 제 안에서 구른다 — 굴러 나간 것은 짚을 수 없는 게 당연하다(스크롤하면 온다).
+      if (b.top < r.top || b.bottom > r.bottom || b.width < 2) continue;
+      const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+      if (hit && !hit.closest('.km-root')) continue;   // 앱 층 띠는 위젯이 못 이긴다
+      if (el !== hit && !el.contains(hit)) bad.push((el.dataset.km || '?') + ' ← ' + (hit?.dataset?.km || hit?.className || hit?.tagName));
+    }
+    return { out: r.bottom > innerHeight + 1 || r.top < -1, bad, scrolls: d.scrollHeight > d.clientHeight + 1 };
+  });
+  if (report.out) throw new Error('서랍이 화면 밖으로 흘러나간다');
+  if (report.bad.length > 0) throw new Error('서랍 명령이 가려져 안 잡힌다: ' + report.bad.join(' · '));
+
+  // 굴러서 끝까지 갈 수 있어야 한다 — 못 구르면 아래쪽 명령은 영영 못 쓴다.
+  if (report.scrolls) {
+    await m.evaluate(() => { const d = document.querySelector('.km-drawer'); d.scrollTop = d.scrollHeight; });
+    await m.waitForTimeout(ms(300));
+    const lastOk = await m.evaluate(() => {
+      const d = document.querySelector('.km-drawer');
+      const r = d.getBoundingClientRect();
+      const items = [...d.querySelectorAll('button')].filter((el) => {
+        const b = el.getBoundingClientRect();
+        return b.top >= r.top && b.bottom <= r.bottom && b.width > 2;
+      });
+      const el = items[items.length - 1];
+      if (!el) return false;
+      const b = el.getBoundingClientRect();
+      const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+      return el === hit || el.contains(hit) || (hit && !hit.closest('.km-root'));
+    });
+    if (!lastOk) throw new Error('끝까지 굴렸는데 마지막 명령이 안 잡힌다');
+  }
+  await ph.close();
+});
 await step('폰에서 확대·축소 단추가 죽어 있지 않다 (아래 시트에 안 깔린다)', async () => {
   /* 실측 2026-08-14: 줌 줄이 화면 맨 아래(bottom:14px)에 있어 **접힌 시트 손잡이 밑에 깔렸다** —
      세 단추가 보이는데 짚으면 시트가 잡혔다. 두 손가락 벌리기는 되지만 그건 아는 사람만 쓴다. */

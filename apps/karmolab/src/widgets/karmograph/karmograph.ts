@@ -346,7 +346,20 @@ import {
       /* ★ 폰에서는 **시점 줄이 판 위**로 간다 (2026-08-14 실측). 아래에 두면 ① 배율과 겹치고
          (390px 폭에 둘을 나란히 못 놓는다) ② 아래 시트가 올라오면 그 뒤에 가려 아예 안 보인다.
          위쪽은 툴바 바로 밑이라 시트와 안 다툰다. */
-      .km-times { top:8px; bottom:auto; left:8px; right:8px; max-width:none; } .km-drawer .km-phone-only { display:flex; } }
+      .km-times { top:8px; bottom:auto; left:8px; right:8px; max-width:none; } .km-drawer .km-phone-only { display:flex; }
+      /* ★ 서랍은 폰에서 **아래 시트보다 위**여야 한다 (실측 2026-08-14: z-index 20 이라 시트(960)가
+         덮었다 — 28개 명령 중 여덟이 짚으면 시트 단추가 잡혔고, 셋은 아예 화면 밖으로 나갔다.
+         서랍은 폰에서 「접은 것들에 닿는 유일한 문」인데 그 문의 절반이 죽어 있었던 셈이다).
+         화면에 맞춰 키를 자르고 제 안에서 구르게 한다 — 밖으로 흘러나가면 못 닿는다. */
+      /* ⚠ 서랍만 z-index 를 올려서는 안 통한다 — 서랍은 툴바 **안**에 살고, 툴바가 제 쌓임
+         맥락(position:relative + z-index:5)을 만들기 때문에 자식은 그 5 를 넘어설 수 없다.
+         그래서 **툴바째** 올린다(툴바는 맨 위에 있어 시트와 겹치지 않는다 — 겹치는 건 서랍뿐). */
+      .km-toolbar { z-index:971; }
+      /* 폰에서 서랍은 **화면에 붙인다**(fixed). 툴바 안에 매달아 두면 ① 툴바의 옆 스크롤
+         (overflow-x:auto)에 잘리고 ② 뜨는 자리에 따라 아래가 화면 밖으로 흘러 못 닿는다
+         (실측 2026-08-14: 다섯 개가 화면 밖, 여덟 개가 시트 밑). 아래에 붙여 손이 닿는 자리로. */
+      .km-drawer { position:fixed; left:8px; right:8px; bottom:8px; top:auto; min-width:0;
+        max-height:70dvh; overflow-y:auto; } }
     /* 자주 안 쓰는 명령은 서랍에서 접는다 — 목록에서 사라지는 게 아니라 이름으로 부른다(Ctrl+K). */
     .km-drawer .km-cmd-rare { display:none; }
     /* ── 명령 팔레트 (TASK-KL-271 R3) ── 화면 한가운데 뜨는 한 칸. 치면 좁혀지고 Enter 로 실행. */
