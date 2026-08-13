@@ -1,102 +1,838 @@
 {
   "id": "shell-fs",
-  "minutes": 11,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "터미널이 무서운 이유의 절반은 **지금 어디에 있는지 모른다**는 것이다. 경로 감각만 잡히면 나머지는 명령 몇 개다."
-    },
-    {
-      "type": "h",
-      "text": "1. 지금 어디, 무엇이"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "이 세 줄이 기본",
-      "text": "pwd                # 지금 폴더\nls -alh            # 숨김 포함 · 자세히 · 사람이 읽는 크기\ncd -               # 직전 폴더로 돌아가기"
-    },
-    {
-      "type": "note",
-      "text": "`/` 로 시작하면 절대 경로, 아니면 지금 폴더 기준 상대 경로다. `~` 는 내 홈, `.` 은 지금, `..` 은 한 칸 위. 스크립트에서는 되도록 절대 경로를 쓰면 「어디서 실행했나」에 안 흔들린다."
-    },
-    {
-      "type": "h",
-      "text": "2. 찾기"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "find 는 조건, grep 은 내용",
-      "text": "find . -name '*.log' -mtime -1        # 하루 안에 바뀐 로그\nfind . -type d -name node_modules -prune -o -name '*.ts' -print\ngrep -rn 'TODO' src/ --include='*.ts'"
-    },
-    {
-      "type": "h",
-      "text": "3. 옮기고 지우기 — 되돌릴 수 없는 것들"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "먼저 보고 실행한다",
-      "text": "cp -r src src.bak            # 복사(백업)\nmv old.txt new.txt           # 이름 바꾸기 = 옮기기\n\nrm -rf build/                # 되돌릴 수 없다 — 경로를 두 번 읽어라\nfind . -name '*.tmp' -print  # 지우기 전에 목록부터"
-    },
-    {
-      "type": "note",
-      "text": "`rm -rf` 앞에 변수를 쓰면(`rm -rf $DIR/`) 변수가 비었을 때 루트를 지운다. 스크립트에서는 `set -u`(빈 변수 금지)와 `${DIR:?}` 같은 방어를 걸어라."
-    },
-    {
-      "type": "h",
-      "text": "4. 용량과 링크"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "어디가 디스크를 먹나",
-      "text": "du -sh * | sort -h | tail    # 이 폴더에서 큰 것 순\ndf -h                        # 디스크 전체\nln -s /real/path link        # 심볼릭 링크(바로가기)"
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "홈 폴더에서 `du -sh * | sort -h | tail` 로 가장 큰 디렉터리 셋을 찾아라. 무엇이 그렇게 크게 자랐는지 확인하라."
-    },
-    {
-      "type": "try",
-      "text": "`find` 로 30일 이상 안 바뀐 `.log` 파일 목록을 뽑고(지우지 말고 출력만), 명령을 파일로 저장해 두라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "스크립트에서 상대 경로 대신 절대 경로를 권하는 이유는?",
-      "choices": [
-        "더 짧아서",
-        "어디서 실행하든 같은 곳을 가리키기 때문",
-        "권한 때문에"
+      "id": "1",
+      "title": "나무는 하나뿐이다 — / 에서 갈라진다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "윈도우는 드라이브마다 나무가 따로다(`C:\\`, `D:\\`). 유닉스 계열은 **나무가 하나**이고, 디스크·USB·네트워크 저장소까지 전부 그 나무의 **어느 가지에 붙여서** 쓴다(마운트). 그래서 「어느 드라이브」라는 질문 자체가 없다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "경로를 밀어 보라 — 어디로 가나",
+          "height": "320px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .hit { color:#4ade80; } .miss { color:#64748b; } .warn { color:#fca5a5; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 예제 트리 — 모든 장이 같은 나무를 쓴다. */\n  const TREE = [\n    '/home/mas/proj/src/app.ts',\n    '/home/mas/proj/src/util.ts',\n    '/home/mas/proj/src/old.js',\n    '/home/mas/proj/test/app.test.ts',\n    '/home/mas/proj/README.md',\n    '/home/mas/proj/.env',\n    '/home/mas/notes.txt',\n    '/etc/hosts',\n    '/usr/bin/node',\n  ];\n  function render(cmd, body, hint) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n  /** 셸처럼 경로를 푼다 — . .. ~ 와 앞 슬래시만 다룬다(핵심은 그것뿐). */\n  function resolvePath(cwd, p) {\n    const steps = [];\n    let base = p.startsWith('/') ? '' : cwd;\n    if (p.startsWith('~')) { base = '/home/mas'; p = p.slice(1); }\n    const parts = (base + '/' + p).split('/').filter(Boolean);\n    const stack = [];\n    for (const seg of parts) {\n      if (seg === '.') { steps.push('. -> 제자리: /' + stack.join('/')); continue; }\n      if (seg === '..') { stack.pop(); steps.push('.. -> 위로: /' + stack.join('/')); continue; }\n      stack.push(seg);\n      steps.push(seg + ' -> /' + stack.join('/'));\n    }\n    return { final: '/' + stack.join('/'), steps };\n  }\n</script>\n<script>\n  const idx = {{idx}};\n  const paths = ['/', '/home', '/home/mas', '/home/mas/proj', '/home/mas/proj/src'];\n  const here = paths[idx];\n  const kids = [...new Set(TREE.filter((p) => p.startsWith(here === '/' ? '/' : here + '/'))\n    .map((p) => p.slice(here === '/' ? 1 : here.length + 1).split('/')[0]))];\n  const lines = kids.map((k) => {\n    const full = (here === '/' ? '' : here) + '/' + k;\n    const isDir = TREE.some((p) => p.startsWith(full + '/'));\n    return (isDir ? '  📁 ' : '  📄 ') + k + (isDir ? '/' : '');\n  });\n  render('cd ' + here + ' && ls',\n    esc(here) + '\\n' + esc(lines.join('\\n')),\n    '깊이 ' + (here.split(\"/\").filter(Boolean).length) + ' — 뿌리(/)에서 여기까지 온 길이 곧 절대 경로다.');\n</script>",
+          "controls": [
+            {
+              "id": "idx",
+              "label": "어디에 있나",
+              "type": "range",
+              "min": 0,
+              "max": 4,
+              "step": 1,
+              "value": 3
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "가지마다 정해진 뜻이 있다 (FHS)",
+          "text": "/          뿌리\n/home/mas  내 것 (설정·문서). ~ 는 이 자리의 줄임\n/etc       설정 파일 (텍스트)\n/usr/bin   설치된 명령들\n/var/log   로그처럼 계속 자라는 것\n/tmp       재부팅하면 사라지는 임시 자리\n/mnt·/media 붙인 디스크"
+        },
+        {
+          "type": "note",
+          "text": "숨김 파일은 속성이 아니라 **이름 규칙**이다 — 점으로 시작하면 `ls` 가 안 보여 준다. `.env`·`.git`·`.bashrc` 가 안 보이는 이유이고, `ls -a` 로 보면 그냥 있다."
+        },
+        {
+          "type": "try",
+          "text": "`ls /` 를 쳐서 뿌리에 무엇이 있는지 보라. 그리고 `df -h` 로 어느 가지에 어떤 디스크가 붙어 있는지 확인하라 — 나무 하나에 여러 디스크가 매달린 것이 보인다."
+        }
       ],
-      "answer": 1,
-      "why": "실행 위치에 따라 동작이 달라지는 스크립트는 언젠가 엉뚱한 곳을 지운다."
+      "quiz": [
+        {
+          "q": "유닉스 계열 파일 시스템의 뿌리는?",
+          "choices": [
+            "드라이브마다 하나씩",
+            "/ 하나",
+            "/home",
+            "사용자마다"
+          ],
+          "answer": 1,
+          "why": "디스크는 나무의 어느 가지에 붙인다(마운트)."
+        },
+        {
+          "q": "`.env` 가 `ls` 에 안 보이는 이유는?",
+          "choices": [
+            "숨김 속성",
+            "점으로 시작하는 이름 규칙",
+            "권한 부족",
+            "임시 파일이라"
+          ],
+          "answer": 1,
+          "why": "ls -a 로 보면 그냥 있다."
+        },
+        {
+          "q": "로그처럼 계속 자라는 파일이 놓이는 자리는?",
+          "choices": [
+            "/etc",
+            "/var",
+            "/usr",
+            "/tmp"
+          ],
+          "answer": 1,
+          "why": "var = variable, 변하는 것."
+        }
+      ]
     },
     {
-      "q": "`rm -rf $DIR/` 이 위험한 이유는?",
-      "choices": [
-        "DIR 이 비면 루트를 지울 수 있어서",
-        "rm 이 느려서",
-        "-r 이 재귀라서"
+      "id": "2",
+      "title": "절대와 상대 — 헷갈리면 모든 명령이 도박이 된다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "규칙은 한 줄이다 — **`/` 로 시작하면 뿌리부터, 아니면 지금 있는 자리부터.** 이 한 줄을 몸에 붙이면 「왜 파일을 못 찾지」의 절반이 사라진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "경로를 골라 보라 — 한 조각씩 풀어 준다",
+          "height": "320px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .hit { color:#4ade80; } .miss { color:#64748b; } .warn { color:#fca5a5; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 예제 트리 — 모든 장이 같은 나무를 쓴다. */\n  const TREE = [\n    '/home/mas/proj/src/app.ts',\n    '/home/mas/proj/src/util.ts',\n    '/home/mas/proj/src/old.js',\n    '/home/mas/proj/test/app.test.ts',\n    '/home/mas/proj/README.md',\n    '/home/mas/proj/.env',\n    '/home/mas/notes.txt',\n    '/etc/hosts',\n    '/usr/bin/node',\n  ];\n  function render(cmd, body, hint) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n  /** 셸처럼 경로를 푼다 — . .. ~ 와 앞 슬래시만 다룬다(핵심은 그것뿐). */\n  function resolvePath(cwd, p) {\n    const steps = [];\n    let base = p.startsWith('/') ? '' : cwd;\n    if (p.startsWith('~')) { base = '/home/mas'; p = p.slice(1); }\n    const parts = (base + '/' + p).split('/').filter(Boolean);\n    const stack = [];\n    for (const seg of parts) {\n      if (seg === '.') { steps.push('. -> 제자리: /' + stack.join('/')); continue; }\n      if (seg === '..') { stack.pop(); steps.push('.. -> 위로: /' + stack.join('/')); continue; }\n      stack.push(seg);\n      steps.push(seg + ' -> /' + stack.join('/'));\n    }\n    return { final: '/' + stack.join('/'), steps };\n  }\n</script>\n<script>\n  const p = '{{path}}';\n  const cwd = '/home/mas/proj/src';\n  const r = resolvePath(cwd, p);\n  const exists = TREE.includes(r.final) || TREE.some((f) => f.startsWith(r.final + '/'));\n  render('cd ' + cwd + ' ; cat ' + p,\n    '지금 자리  ' + esc(cwd) + '\\n' +\n    '적은 경로  ' + esc(p) + '\\n\\n' +\n    r.steps.map((s) => '  ' + esc(s)).join('\\n') + '\\n\\n' +\n    '최종      ' + esc(r.final) + '   ' +\n    (exists ? '<span class=\"hit\">있다</span>' : '<span class=\"warn\">없다 (No such file or directory)</span>'),\n    p.startsWith('/') ? '/ 로 시작 = 지금 자리와 무관하게 뿌리부터.' :\n    p.startsWith('~') ? '~ 는 내 집(/home/mas)으로 펼쳐진다 — 셸이 바꿔 준다.' :\n    '지금 자리에서 출발한다. 그래서 같은 명령이 폴더에 따라 다르게 동작한다.');\n</script>",
+          "controls": [
+            {
+              "id": "path",
+              "label": "적은 경로",
+              "type": "select",
+              "value": "../README.md",
+              "options": [
+                {
+                  "value": "app.ts",
+                  "label": "app.ts"
+                },
+                {
+                  "value": "../README.md",
+                  "label": "../README.md"
+                },
+                {
+                  "value": "./old.js",
+                  "label": "./old.js"
+                },
+                {
+                  "value": "~/notes.txt",
+                  "label": "~/notes.txt"
+                },
+                {
+                  "value": "/etc/hosts",
+                  "label": "/etc/hosts"
+                },
+                {
+                  "value": "../../notes.txt",
+                  "label": "../../notes.txt"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**스크립트 안에서는 상대 경로를 쓰지 마라.** 스크립트는 어디서 실행될지 모른다 — `cd` 한 상태로 부르면 경로가 통째로 어긋난다. 스크립트 기준 경로가 필요하면 자기 위치를 먼저 구하라."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "스크립트가 자기 자리를 아는 법",
+          "text": "# 이 스크립트가 있는 폴더 (심볼릭 링크까지 풀어서)\nSCRIPT_DIR=$(cd \"$(dirname \"${BASH_SOURCE[0]}\")\" && pwd)\n\n# 그 기준으로 적는다\nsource \"$SCRIPT_DIR/lib.sh\"\ncat \"$SCRIPT_DIR/../config/app.yml\"\n\n# 명령이 실제로 무엇을 보고 있는지 확인\npwd            # 지금 자리\nrealpath f     # 최종 절대 경로 (링크·. .. 전부 푼 값)"
+        },
+        {
+          "type": "p",
+          "text": "`.` 은 지금 자리, `..` 은 한 칸 위, `~` 는 내 집이다. `~` 는 파일 시스템의 규칙이 아니라 **셸이 펼쳐 주는 글자**다 — 그래서 따옴표 안에서는 안 펼쳐지고(`'~/x'`), 프로그램에 그대로 넘기면 없는 폴더가 된다."
+        },
+        {
+          "type": "try",
+          "text": "`cd /tmp && ls src` 를 쳐 보라(없다고 나온다). 그다음 `ls ~/proj/src` 로 해 보라. 같은 「src」인데 결과가 다른 이유를 한 문장으로 적어라."
+        }
       ],
-      "answer": 0,
-      "why": "set -u 와 ${DIR:?} 같은 방어가 필요하다."
+      "quiz": [
+        {
+          "q": "`/etc/hosts` 와 `etc/hosts` 의 차이는?",
+          "choices": [
+            "같다",
+            "앞은 뿌리부터, 뒤는 지금 자리부터",
+            "앞이 더 빠르다",
+            "뒤는 오류"
+          ],
+          "answer": 1,
+          "why": "슬래시 하나가 기준을 바꾼다."
+        },
+        {
+          "q": "스크립트에서 상대 경로가 위험한 이유는?",
+          "choices": [
+            "느려서",
+            "어디서 실행되느냐에 따라 기준이 달라져서",
+            "권한 때문",
+            "따옴표 때문"
+          ],
+          "answer": 1,
+          "why": "BASH_SOURCE 로 자기 자리를 구한다."
+        },
+        {
+          "q": "`~` 를 펼치는 주체는?",
+          "choices": [
+            "커널",
+            "셸",
+            "파일 시스템",
+            "프로그램"
+          ],
+          "answer": 1,
+          "why": "따옴표 안에서는 안 펼쳐진다."
+        }
+      ]
     },
     {
-      "q": "지우기 전 권장되는 습관은?",
-      "choices": [
-        "먼저 find 로 목록만 출력해 확인한다",
-        "sudo 를 붙인다",
-        "한 번에 지운다"
+      "id": "3",
+      "title": "ls -la 읽기 — 한 줄에 다 들어 있다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`ls -la` 한 줄에는 **종류·권한·링크 수·소유자·크기·시각·이름**이 들어 있다. 읽는 법을 한 번 익히면 서버에서 남의 파일을 볼 때 물어볼 일이 없어진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "칸을 골라 보라 — 무엇을 말하나",
+          "height": "320px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .hit { color:#4ade80; } .miss { color:#64748b; } .warn { color:#fca5a5; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 예제 트리 — 모든 장이 같은 나무를 쓴다. */\n  const TREE = [\n    '/home/mas/proj/src/app.ts',\n    '/home/mas/proj/src/util.ts',\n    '/home/mas/proj/src/old.js',\n    '/home/mas/proj/test/app.test.ts',\n    '/home/mas/proj/README.md',\n    '/home/mas/proj/.env',\n    '/home/mas/notes.txt',\n    '/etc/hosts',\n    '/usr/bin/node',\n  ];\n  function render(cmd, body, hint) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n  /** 셸처럼 경로를 푼다 — . .. ~ 와 앞 슬래시만 다룬다(핵심은 그것뿐). */\n  function resolvePath(cwd, p) {\n    const steps = [];\n    let base = p.startsWith('/') ? '' : cwd;\n    if (p.startsWith('~')) { base = '/home/mas'; p = p.slice(1); }\n    const parts = (base + '/' + p).split('/').filter(Boolean);\n    const stack = [];\n    for (const seg of parts) {\n      if (seg === '.') { steps.push('. -> 제자리: /' + stack.join('/')); continue; }\n      if (seg === '..') { stack.pop(); steps.push('.. -> 위로: /' + stack.join('/')); continue; }\n      stack.push(seg);\n      steps.push(seg + ' -> /' + stack.join('/'));\n    }\n    return { final: '/' + stack.join('/'), steps };\n  }\n</script>\n<script>\n  const col = '{{col}}';\n  const rows = [\n    ['drwxr-xr-x', '5', 'mas', 'dev', '4096', 'Aug 13 10:22', 'src/'],\n    ['-rw-r--r--', '1', 'mas', 'dev', '1284', 'Aug 13 10:20', 'app.ts'],\n    ['-rwxr-xr-x', '1', 'root', 'root', '92384', 'Jul 01 09:00', 'node'],\n    ['lrwxrwxrwx', '1', 'mas', 'dev', '12', 'Aug 12 22:10', 'latest -> v2.1.0'],\n    ['-rw-------', '1', 'mas', 'dev', '64', 'Aug 13 09:58', '.env'],\n  ];\n  const idx = { type: 0, perm: 0, links: 1, owner: 2, size: 4, time: 5, name: 6 }[col];\n  const body = rows.map((r) => r.map((c, i) => {\n    const cell = (i === 0 ? c : i === 2 ? r[2] + ' ' + r[3] : c);\n    if (i === 3) return null;\n    const hot = (col === 'type' && i === 0) || (col === 'perm' && i === 0) ||\n                (i === idx && col !== 'type' && col !== 'perm');\n    return (hot ? '<span class=\"hit\">' : '<span class=\"miss\">') + esc(cell) + '</span>';\n  }).filter(Boolean).join('  ')).join('\\n');\n  const t = {\n    type: ['맨 앞 한 글자 = 종류', 'd = 폴더 · - = 보통 파일 · l = 심볼릭 링크 · c/b = 장치'],\n    perm: ['나머지 아홉 글자 = 권한', '소유자 rwx · 그룹 rwx · 나머지 rwx 로 세 묶음. 폴더의 x 는 「들어갈 수 있다」는 뜻'],\n    links: ['하드 링크 수', '폴더는 자식 수만큼 늘어난다. 보통 파일이 2 이상이면 하드 링크가 걸려 있다는 뜻'],\n    owner: ['소유자와 그룹', '권한 세 묶음 중 어느 것이 나에게 적용되는지가 여기서 정해진다'],\n    size: ['크기(바이트)', '폴더의 크기는 안에 든 것의 합이 아니라 「목록 자체」의 크기다 — 4096 이 흔하다'],\n    time: ['마지막 수정 시각', 'ls -lt 로 최신순 정렬. --time-style=full-iso 로 초까지'],\n    name: ['이름', 'l 이면 -> 뒤가 가리키는 대상. 폴더는 ls -F 에서 / 가 붙는다'],\n  }[col];\n  render('ls -la', body, t[0] + ' — ' + t[1]);\n</script>",
+          "controls": [
+            {
+              "id": "col",
+              "label": "볼 칸",
+              "type": "select",
+              "value": "type",
+              "options": [
+                {
+                  "value": "type",
+                  "label": "종류(맨 앞 글자)"
+                },
+                {
+                  "value": "perm",
+                  "label": "권한 아홉 글자"
+                },
+                {
+                  "value": "links",
+                  "label": "링크 수"
+                },
+                {
+                  "value": "owner",
+                  "label": "소유자·그룹"
+                },
+                {
+                  "value": "size",
+                  "label": "크기"
+                },
+                {
+                  "value": "time",
+                  "label": "시각"
+                },
+                {
+                  "value": "name",
+                  "label": "이름"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "자주 쓰는 조합",
+          "text": "ls -lah          # 사람이 읽는 크기(K·M·G)까지\nls -lt           # 최근 수정 순\nls -lS           # 큰 것부터\nls -ld dir       # 폴더 자체의 정보 (안을 보지 않고)\nls -1            # 한 줄에 하나 (파이프에 넘길 때)"
+        },
+        {
+          "type": "note",
+          "text": "폴더의 크기 `4096` 은 **안에 든 파일의 합이 아니다.** 그건 목록 자체의 크기다. 실제로 얼마나 차지하는지는 `du -sh dir` 로 봐야 한다 — 7장에서 다시 나온다."
+        },
+        {
+          "type": "try",
+          "text": "`ls -la ~` 를 치고 맨 앞 글자가 `l` 인 줄을 찾아 보라. 없으면 `ln -s /tmp ~/tmplink` 로 하나 만들고 다시 보라(그리고 `rm ~/tmplink` 로 지워라)."
+        }
       ],
-      "answer": 0,
-      "why": "되돌릴 수 없는 명령은 항상 눈으로 먼저 확인한다."
+      "quiz": [
+        {
+          "q": "`ls -l` 맨 앞 글자가 `l` 이면?",
+          "choices": [
+            "잠김",
+            "심볼릭 링크",
+            "로그 파일",
+            "큰 파일"
+          ],
+          "answer": 1,
+          "why": "d = 폴더, - = 보통 파일."
+        },
+        {
+          "q": "폴더의 `x` 권한이 뜻하는 것은?",
+          "choices": [
+            "실행 파일",
+            "그 폴더로 들어갈 수 있다",
+            "지울 수 있다",
+            "숨김"
+          ],
+          "answer": 1,
+          "why": "x 가 없으면 cd 도 안 된다."
+        },
+        {
+          "q": "폴더의 실제 사용 용량을 보려면?",
+          "choices": [
+            "ls -l 의 크기",
+            "du -sh",
+            "wc -c",
+            "stat"
+          ],
+          "answer": 1,
+          "why": "ls 가 보여 주는 것은 목록 자체의 크기."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "글롭 — 별표를 펼치는 것은 셸이다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`rm *.log` 를 쳤을 때 `rm` 이 받는 것은 `*.log` 가 **아니다.** 셸이 먼저 파일 이름 목록으로 펼쳐서 넘긴다. 이 사실 하나가 여러 사고를 설명한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "무늬를 골라 보라 — 무엇이 맞나",
+          "height": "320px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .hit { color:#4ade80; } .miss { color:#64748b; } .warn { color:#fca5a5; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 예제 트리 — 모든 장이 같은 나무를 쓴다. */\n  const TREE = [\n    '/home/mas/proj/src/app.ts',\n    '/home/mas/proj/src/util.ts',\n    '/home/mas/proj/src/old.js',\n    '/home/mas/proj/test/app.test.ts',\n    '/home/mas/proj/README.md',\n    '/home/mas/proj/.env',\n    '/home/mas/notes.txt',\n    '/etc/hosts',\n    '/usr/bin/node',\n  ];\n  function render(cmd, body, hint) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n  /** 셸처럼 경로를 푼다 — . .. ~ 와 앞 슬래시만 다룬다(핵심은 그것뿐). */\n  function resolvePath(cwd, p) {\n    const steps = [];\n    let base = p.startsWith('/') ? '' : cwd;\n    if (p.startsWith('~')) { base = '/home/mas'; p = p.slice(1); }\n    const parts = (base + '/' + p).split('/').filter(Boolean);\n    const stack = [];\n    for (const seg of parts) {\n      if (seg === '.') { steps.push('. -> 제자리: /' + stack.join('/')); continue; }\n      if (seg === '..') { stack.pop(); steps.push('.. -> 위로: /' + stack.join('/')); continue; }\n      stack.push(seg);\n      steps.push(seg + ' -> /' + stack.join('/'));\n    }\n    return { final: '/' + stack.join('/'), steps };\n  }\n</script>\n<script>\n  const pat = '{{pat}}';\n  const files = ['app.ts', 'util.ts', 'old.js', 'app.test.ts', 'README.md', '.env', 'a1.log', 'a2.log'];\n  const rx = new RegExp('^' + pat\n    .replace(/[.+^${}()|\\\\]/g, '\\\\$&')\n    .replace(/\\*/g, '[^/]*')\n    .replace(/\\?/g, '[^/]')\n    .replace(/\\[!/g, '[^') + '$');\n  const hit = files.filter((f) => (f.startsWith('.') ? pat.startsWith('.') : true) && rx.test(f));\n  const body = files.map((f) => (hit.includes(f)\n    ? '<span class=\"hit\">  ● ' + esc(f) + '</span>'\n    : '<span class=\"miss\">  ○ ' + esc(f) + '</span>')).join('\\n');\n  render('echo ' + pat,\n    body + '\\n\\n실제로 넘어가는 것:\\n  ' +\n    (hit.length ? esc(hit.join(' ')) : '<span class=\"warn\">' + esc(pat) + '  (맞는 게 없으면 무늬 그대로 넘어간다)</span>'),\n    '셸이 먼저 펼쳐서 명령에 넘긴다 — 명령은 별표를 본 적이 없다.');\n</script>",
+          "controls": [
+            {
+              "id": "pat",
+              "label": "무늬",
+              "type": "select",
+              "value": "*.ts",
+              "options": [
+                {
+                  "value": "*.ts",
+                  "label": "*.ts"
+                },
+                {
+                  "value": "app*",
+                  "label": "app*"
+                },
+                {
+                  "value": "a?.log",
+                  "label": "a?.log"
+                },
+                {
+                  "value": "*.[jt]s",
+                  "label": "*.[jt]s"
+                },
+                {
+                  "value": ".*",
+                  "label": ".* (숨김)"
+                },
+                {
+                  "value": "*.zip",
+                  "label": "*.zip (맞는 게 없음)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**글롭은 숨김 파일을 안 잡는다.** `*` 는 점으로 시작하는 이름을 건너뛴다 — 그래서 `cp -r src/* dst/` 하면 `.env` 가 안 따라간다. 「분명 복사했는데 설정이 없다」의 범인이 이것이다(`cp -r src/. dst/` 를 써라)."
+        },
+        {
+          "type": "p",
+          "text": "맞는 파일이 하나도 없으면 셸은 **무늬를 글자 그대로** 넘긴다. 그래서 `ls *.zip` 이 `'*.zip': No such file` 이라고 말한다. 이 성질 때문에 스크립트에서 반복문이 한 번 헛돌 수 있다 — `shopt -s nullglob` 으로 「없으면 빈 목록」으로 바꿀 수 있다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "글롭과 정규식은 다른 언어다",
+          "text": "*.ts        글롭: 아무 글자들 + .ts\n.*\\.ts$     정규식: 같은 뜻\n\n# 셸이 펼치지 않게 하려면 따옴표\nfind . -name '*.ts'      # find 가 직접 무늬를 다룬다 (따옴표 필수)\nfind . -name *.ts        # 셸이 먼저 펼쳐 버려 결과가 이상해진다\n\nshopt -s globstar; ls **/*.ts   # ** = 하위 폴더 전부 (bash 4+)\nshopt -s nullglob               # 맞는 게 없으면 빈 목록"
+        },
+        {
+          "type": "try",
+          "text": "빈 폴더에서 `echo *.zip` 을 쳐 보라 — 무늬가 그대로 찍힌다. 그다음 `touch a.zip` 후 다시 쳐 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`rm *.log` 에서 별표를 펼치는 주체는?",
+          "choices": [
+            "rm",
+            "셸",
+            "커널",
+            "파일 시스템"
+          ],
+          "answer": 1,
+          "why": "rm 은 이미 펼쳐진 이름 목록을 받는다."
+        },
+        {
+          "q": "`cp -r src/* dst/` 로 `.env` 가 안 따라가는 이유는?",
+          "choices": [
+            "권한 문제",
+            "글롭이 숨김 파일을 안 잡아서",
+            "크기 때문",
+            "cp 버그"
+          ],
+          "answer": 1,
+          "why": "src/. 를 쓰거나 -a 를 쓴다."
+        },
+        {
+          "q": "`find . -name '*.ts'` 에서 따옴표가 필요한 이유는?",
+          "choices": [
+            "가독성",
+            "셸이 먼저 펼치는 것을 막으려고",
+            "정규식이라서",
+            "필요 없다"
+          ],
+          "answer": 1,
+          "why": "find 가 직접 무늬를 처리해야 한다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "링크 — 이름과 실체는 다르다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "파일의 실체는 **inode**(번호가 붙은 내용 덩어리)이고, 우리가 보는 이름은 그 inode 를 가리키는 **꼬리표**다. 그래서 한 실체에 이름이 여럿 붙을 수 있다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "어떤 링크인지 골라 보라 — 원본을 지우면?",
+          "height": "320px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .hit { color:#4ade80; } .miss { color:#64748b; } .warn { color:#fca5a5; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 예제 트리 — 모든 장이 같은 나무를 쓴다. */\n  const TREE = [\n    '/home/mas/proj/src/app.ts',\n    '/home/mas/proj/src/util.ts',\n    '/home/mas/proj/src/old.js',\n    '/home/mas/proj/test/app.test.ts',\n    '/home/mas/proj/README.md',\n    '/home/mas/proj/.env',\n    '/home/mas/notes.txt',\n    '/etc/hosts',\n    '/usr/bin/node',\n  ];\n  function render(cmd, body, hint) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n  /** 셸처럼 경로를 푼다 — . .. ~ 와 앞 슬래시만 다룬다(핵심은 그것뿐). */\n  function resolvePath(cwd, p) {\n    const steps = [];\n    let base = p.startsWith('/') ? '' : cwd;\n    if (p.startsWith('~')) { base = '/home/mas'; p = p.slice(1); }\n    const parts = (base + '/' + p).split('/').filter(Boolean);\n    const stack = [];\n    for (const seg of parts) {\n      if (seg === '.') { steps.push('. -> 제자리: /' + stack.join('/')); continue; }\n      if (seg === '..') { stack.pop(); steps.push('.. -> 위로: /' + stack.join('/')); continue; }\n      stack.push(seg);\n      steps.push(seg + ' -> /' + stack.join('/'));\n    }\n    return { final: '/' + stack.join('/'), steps };\n  }\n</script>\n<script>\n  const k = '{{kind}}';\n  const t = {\n    hard: ['ln data.txt copy.txt',\n      ['data.txt  ->  inode 4021  (내용)', 'copy.txt  ->  inode 4021  (같은 실체)'],\n      'data.txt 를 지워도 copy.txt 는 멀쩡하다. inode 는 이름이 0개가 될 때 비로소 사라진다.',\n      '같은 디스크 안에서만 가능 · 폴더에는 못 건다'],\n    sym: ['ln -s data.txt link.txt',\n      ['data.txt  ->  inode 4021', 'link.txt  ->  \"data.txt\" 라는 글자를 담은 다른 파일'],\n      'data.txt 를 지우면 link.txt 는 깨진 링크가 된다(가리킬 대상이 없다).',\n      '디스크를 넘어도 되고 폴더도 가리킬 수 있다 — 그래서 실무에서 압도적으로 많이 쓴다'],\n    copy: ['cp data.txt copy.txt',\n      ['data.txt  ->  inode 4021', 'copy.txt  ->  inode 5177  (내용을 베낀 새 실체)'],\n      '완전히 다른 파일이다. 한쪽을 고쳐도 다른 쪽은 그대로.',\n      '용량을 두 배로 쓴다'],\n  }[k];\n  render(t[0], t[1].map((s) => '  ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[2]), t[3]);\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "무엇을 했나",
+              "type": "select",
+              "value": "sym",
+              "options": [
+                {
+                  "value": "hard",
+                  "label": "하드 링크 (ln)"
+                },
+                {
+                  "value": "sym",
+                  "label": "심볼릭 링크 (ln -s)"
+                },
+                {
+                  "value": "copy",
+                  "label": "복사 (cp)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "심볼릭 링크는 **글자를 담은 파일**이다. 그래서 상대 경로로 만들면 링크를 옮겼을 때 깨지고, 절대 경로로 만들면 폴더를 통째로 옮겼을 때 깨진다. 어느 쪽이 나은지는 「무엇이 더 자주 움직이나」로 정한다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "실무에서 쓰는 자리",
+          "text": "ln -s /opt/app/v2.1.0 /opt/app/current   # 무중단 배포: 링크만 바꿔 끼운다\nln -sfn /opt/app/v2.2.0 /opt/app/current # -n 이 없으면 링크 「안」에 만들어 버린다\n\nls -l current      # 무엇을 가리키나\nreadlink -f current # 최종 실체의 절대 경로\nfind . -xtype l    # 깨진 링크 찾기"
+        },
+        {
+          "type": "note",
+          "text": "`ln -sf` 로 폴더 링크를 갈아 끼울 때 **`-n` 을 빠뜨리면** 기존 링크를 따라 들어가 그 안에 새 링크를 만든다(`current/v2.2.0`). 배포 스크립트에서 조용히 이상해지는 대표적인 자리라 `-sfn` 을 통째로 외워 두는 편이 낫다."
+        },
+        {
+          "type": "try",
+          "text": "`ln -s /etc/hosts ~/h && ls -l ~/h && readlink -f ~/h` 를 해 보라. 그리고 `rm ~/h` 로 링크만 지워라 — 원본은 그대로다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "심볼릭 링크의 원본을 지우면?",
+          "choices": [
+            "함께 지워진다",
+            "링크가 깨진다",
+            "내용이 복사된다",
+            "아무 일 없다"
+          ],
+          "answer": 1,
+          "why": "링크는 경로를 담은 글자일 뿐이다."
+        },
+        {
+          "q": "하드 링크의 원본을 지우면?",
+          "choices": [
+            "내용이 사라진다",
+            "다른 이름이 남아 있으면 내용은 산다",
+            "링크가 깨진다",
+            "오류"
+          ],
+          "answer": 1,
+          "why": "이름이 0개가 될 때 inode 가 사라진다."
+        },
+        {
+          "q": "폴더 심볼릭 링크를 갈아 끼울 때 필요한 옵션은?",
+          "choices": [
+            "-sf",
+            "-sfn",
+            "-r",
+            "-a"
+          ],
+          "answer": 1,
+          "why": "-n 이 없으면 링크 안으로 들어간다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "복사·이동·삭제 — 조용히 다른 결과",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`cp`·`mv`·`rm` 은 단순해 보이지만 **슬래시 하나**로 결과가 달라진다. 그리고 대부분 묻지 않고 실행한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "경우를 골라 보라 — 무엇이 어디로 가나",
+          "height": "320px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .hit { color:#4ade80; } .miss { color:#64748b; } .warn { color:#fca5a5; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 예제 트리 — 모든 장이 같은 나무를 쓴다. */\n  const TREE = [\n    '/home/mas/proj/src/app.ts',\n    '/home/mas/proj/src/util.ts',\n    '/home/mas/proj/src/old.js',\n    '/home/mas/proj/test/app.test.ts',\n    '/home/mas/proj/README.md',\n    '/home/mas/proj/.env',\n    '/home/mas/notes.txt',\n    '/etc/hosts',\n    '/usr/bin/node',\n  ];\n  function render(cmd, body, hint) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n  /** 셸처럼 경로를 푼다 — . .. ~ 와 앞 슬래시만 다룬다(핵심은 그것뿐). */\n  function resolvePath(cwd, p) {\n    const steps = [];\n    let base = p.startsWith('/') ? '' : cwd;\n    if (p.startsWith('~')) { base = '/home/mas'; p = p.slice(1); }\n    const parts = (base + '/' + p).split('/').filter(Boolean);\n    const stack = [];\n    for (const seg of parts) {\n      if (seg === '.') { steps.push('. -> 제자리: /' + stack.join('/')); continue; }\n      if (seg === '..') { stack.pop(); steps.push('.. -> 위로: /' + stack.join('/')); continue; }\n      stack.push(seg);\n      steps.push(seg + ' -> /' + stack.join('/'));\n    }\n    return { final: '/' + stack.join('/'), steps };\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    into: ['cp -r src dst', ['dst 가 있으면  ->  dst/src/  (안으로 들어간다)',\n      'dst 가 없으면  ->  dst/       (src 의 내용이 dst 가 된다)'],\n      '같은 명령이 대상 존재 여부에 따라 다르게 동작한다 — 이것 때문에 두 번 실행하면 중첩된다.'],\n    slash: ['rsync -a src/ dst/  vs  rsync -a src dst/',\n      ['src/ (슬래시 있음)  ->  dst/ 안에 src 의 내용',\n       'src  (슬래시 없음)  ->  dst/src/ 로 폴더째'],\n      'rsync 의 뒤 슬래시는 「내용만」이라는 뜻이다. 백업 스크립트가 이상해지는 1순위.'],\n    over: ['mv a.txt b.txt', ['b.txt 가 이미 있어도 묻지 않고 덮어쓴다'],\n      'mv -i 로 묻게 하거나, mv -n 으로 있으면 건너뛰게 한다. 백업은 mv -b.'],\n    rm:   ['rm -rf build', ['확인 없이 통째로 지운다 · 휴지통이 없다'],\n      '먼저 ls 로 대상을 확인하고, 변수를 쓸 때는 비어 있는지 반드시 막아라.'],\n  }[c];\n  render(t[0], t[1].map((s) => '  ' + esc(s)).join('\\n'), t[2]);\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "경우",
+              "type": "select",
+              "value": "into",
+              "options": [
+                {
+                  "value": "into",
+                  "label": "cp -r 의 대상 존재 여부"
+                },
+                {
+                  "value": "slash",
+                  "label": "rsync 뒤 슬래시"
+                },
+                {
+                  "value": "over",
+                  "label": "mv 덮어쓰기"
+                },
+                {
+                  "value": "rm",
+                  "label": "rm -rf"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "안전하게 쓰는 모양",
+          "text": "cp -a src/. dst/          # -a = 권한·시각·링크 보존, src/. = 숨김까지 내용만\nmv -n a.txt dst/          # 있으면 건너뛴다\nrsync -a --dry-run src/ dst/   # 먼저 무엇이 옮겨질지 본다\nrsync -a --delete src/ dst/    # dst 를 src 와 똑같이 (지우기 포함 — 위험)\n\n# 큰 복사는 진행 상황을 보며\nrsync -ah --info=progress2 src/ dst/"
+        },
+        {
+          "type": "note",
+          "text": "`rm` 에는 휴지통이 없다. 실수를 줄이려면 `alias rm='rm -i'` 보다 **`trash-cli` 같은 도구**를 쓰는 편이 낫다 — 별칭에 익숙해지면 별칭이 없는 서버에서 더 위험해진다."
+        },
+        {
+          "type": "p",
+          "text": "이동(`mv`)은 같은 디스크 안에서는 **이름표만 바꾸는** 즉시 작업이고, 디스크를 넘으면 **복사 후 삭제**라 시간이 걸린다. 큰 파일을 옮길 때 갑자기 오래 걸린다면 그 경계를 넘은 것이다."
+        },
+        {
+          "type": "try",
+          "text": "임시 폴더에서 `mkdir -p a/x b && cp -r a b && cp -r a b` 를 두 번 해 보라. `b/a/a` 가 생기는지 확인하라 — 두 번 실행이 왜 위험한지 눈으로 보게 된다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`cp -r src dst` 에서 dst 가 이미 있으면?",
+          "choices": [
+            "덮어쓴다",
+            "dst/src/ 안으로 들어간다",
+            "오류",
+            "묻는다"
+          ],
+          "answer": 1,
+          "why": "두 번 실행하면 중첩된다."
+        },
+        {
+          "q": "`rsync -a src/ dst/` 의 뒤 슬래시 뜻은?",
+          "choices": [
+            "폴더째 복사",
+            "src 의 내용만 dst 안으로",
+            "삭제 포함",
+            "링크 유지"
+          ],
+          "answer": 1,
+          "why": "슬래시가 없으면 폴더째 들어간다."
+        },
+        {
+          "q": "`mv` 가 같은 디스크에서 즉시 끝나는 이유는?",
+          "choices": [
+            "캐시",
+            "이름표만 바꾸면 되기 때문",
+            "압축",
+            "병렬 복사"
+          ],
+          "answer": 1,
+          "why": "디스크를 넘으면 복사+삭제가 된다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "용량 — 지웠는데 왜 안 줄어드나",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "디스크가 찼을 때 물어볼 것은 둘이다 — **어디가 찼나**(`df`), **그 안에서 무엇이 크나**(`du`). 그리고 「지웠는데 안 줄어드는」 유명한 함정이 하나 있다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "상황을 골라 보라 — 어떤 명령이 답하나",
+          "height": "320px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .hit { color:#4ade80; } .miss { color:#64748b; } .warn { color:#fca5a5; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 예제 트리 — 모든 장이 같은 나무를 쓴다. */\n  const TREE = [\n    '/home/mas/proj/src/app.ts',\n    '/home/mas/proj/src/util.ts',\n    '/home/mas/proj/src/old.js',\n    '/home/mas/proj/test/app.test.ts',\n    '/home/mas/proj/README.md',\n    '/home/mas/proj/.env',\n    '/home/mas/notes.txt',\n    '/etc/hosts',\n    '/usr/bin/node',\n  ];\n  function render(cmd, body, hint) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n  /** 셸처럼 경로를 푼다 — . .. ~ 와 앞 슬래시만 다룬다(핵심은 그것뿐). */\n  function resolvePath(cwd, p) {\n    const steps = [];\n    let base = p.startsWith('/') ? '' : cwd;\n    if (p.startsWith('~')) { base = '/home/mas'; p = p.slice(1); }\n    const parts = (base + '/' + p).split('/').filter(Boolean);\n    const stack = [];\n    for (const seg of parts) {\n      if (seg === '.') { steps.push('. -> 제자리: /' + stack.join('/')); continue; }\n      if (seg === '..') { stack.pop(); steps.push('.. -> 위로: /' + stack.join('/')); continue; }\n      stack.push(seg);\n      steps.push(seg + ' -> /' + stack.join('/'));\n    }\n    return { final: '/' + stack.join('/'), steps };\n  }\n</script>\n<script>\n  const q = '{{q}}';\n  const t = {\n    df: ['df -h',\n      ['Filesystem      Size  Used Avail Use% Mounted on',\n       '/dev/sda1       100G   94G  1.2G  99% /',\n       '/dev/sdb1       500G  120G  355G  26% /data'],\n      '어느 파티션이 찼는지 먼저 본다. / 가 찼는데 /data 를 뒤지면 헛수고다.'],\n    du: ['du -sh /var/* | sort -h | tail -5',\n      ['1.2G  /var/cache', '3.4G  /var/lib', '48G   /var/log'],\n      '큰 가지부터 좁혀 들어간다. -h 정렬(sort -h)이 사람이 읽는 단위를 이해한다.'],\n    open: ['lsof +L1   (또는 lsof | grep deleted)',\n      ['node  1234  mas  3w  REG  8,1  42949672960  /var/log/app.log (deleted)'],\n      '지웠는데 안 줄어드는 범인 — 프로세스가 아직 그 파일을 열고 있으면 공간이 안 풀린다.\\n프로세스를 재시작하거나 로그를 truncate 해야 한다.'],\n    inode: ['df -i',\n      ['Filesystem      Inodes  IUsed IFree IUse%', '/dev/sda1       6.5M    6.5M     0  100%'],\n      '용량은 남는데 「No space left」가 뜨면 inode 가 바닥난 것이다 — 작은 파일 수백만 개.'],\n  }[q];\n  render(t[0], t[1].map((s) => '  ' + esc(s)).join('\\n'), t[2]);\n</script>",
+          "controls": [
+            {
+              "id": "q",
+              "label": "무엇을 보나",
+              "type": "select",
+              "value": "df",
+              "options": [
+                {
+                  "value": "df",
+                  "label": "어디가 찼나 (df)"
+                },
+                {
+                  "value": "du",
+                  "label": "무엇이 크나 (du)"
+                },
+                {
+                  "value": "open",
+                  "label": "지웠는데 안 줄어든다"
+                },
+                {
+                  "value": "inode",
+                  "label": "용량은 남는데 못 쓴다"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「지웠는데 안 줄어든다」의 정체** — 파일을 지우는 것은 이름을 떼는 일이다(5장). 프로세스가 그 inode 를 열고 있으면 이름이 0개여도 실체가 안 사라진다. 그래서 로그를 `rm` 하지 말고 `: > app.log`(내용만 비우기)나 logrotate 를 써야 한다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "디스크가 찼을 때 순서",
+          "text": "df -h                          # 1. 어느 파티션인가\ndu -xh / --max-depth=1 | sort -h | tail   # 2. 큰 가지 (-x = 다른 디스크로 안 넘어감)\nlsof +L1                       # 3. 지웠는데 안 풀린 파일\ndf -i                          # 4. inode 고갈은 아닌가\n\n: > /var/log/app.log           # 로그 비우기 (파일은 그대로, 내용만 0)\njournalctl --vacuum-size=200M  # systemd 로그 정리"
+        },
+        {
+          "type": "p",
+          "text": "`du` 와 `df` 의 숫자가 안 맞는 것은 정상이다 — `du` 는 **이름이 붙은 파일**을 세고, `df` 는 **파일 시스템이 쓰는 블록**을 센다. 그 차이가 바로 위의 「지운 채 열려 있는 파일」이다."
+        },
+        {
+          "type": "try",
+          "text": "`df -h` 로 내 디스크에서 가장 찬 파티션을 찾고, 거기서 `du -xh --max-depth=1 | sort -h | tail` 로 큰 가지 세 개를 적어라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "「어느 파티션이 찼나」를 보는 명령은?",
+          "choices": [
+            "du",
+            "df",
+            "ls",
+            "lsof"
+          ],
+          "answer": 1,
+          "why": "du 는 그 안에서 무엇이 큰지를 본다."
+        },
+        {
+          "q": "로그를 지웠는데 용량이 안 줄어든다면?",
+          "choices": [
+            "캐시 때문",
+            "프로세스가 그 파일을 아직 열고 있다",
+            "권한 문제",
+            "파일 시스템 오류"
+          ],
+          "answer": 1,
+          "why": "lsof +L1 로 확인하고 재시작하거나 내용만 비운다."
+        },
+        {
+          "q": "용량이 남는데 「No space left」가 뜨면?",
+          "choices": [
+            "권한",
+            "inode 고갈",
+            "메모리 부족",
+            "마운트 오류"
+          ],
+          "answer": 1,
+          "why": "df -i 로 확인한다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "명령은 어디서 오나 — PATH 와 which",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`node` 를 쳤을 때 셸은 **`PATH` 에 적힌 폴더를 앞에서부터** 뒤져 처음 만난 것을 실행한다. 「버전이 왜 다르지」·「분명 설치했는데 없다」의 답이 전부 여기 있다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "상황을 골라 보라 — 무엇이 실행되나",
+          "height": "320px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .hit { color:#4ade80; } .miss { color:#64748b; } .warn { color:#fca5a5; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 예제 트리 — 모든 장이 같은 나무를 쓴다. */\n  const TREE = [\n    '/home/mas/proj/src/app.ts',\n    '/home/mas/proj/src/util.ts',\n    '/home/mas/proj/src/old.js',\n    '/home/mas/proj/test/app.test.ts',\n    '/home/mas/proj/README.md',\n    '/home/mas/proj/.env',\n    '/home/mas/notes.txt',\n    '/etc/hosts',\n    '/usr/bin/node',\n  ];\n  function render(cmd, body, hint) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n  /** 셸처럼 경로를 푼다 — . .. ~ 와 앞 슬래시만 다룬다(핵심은 그것뿐). */\n  function resolvePath(cwd, p) {\n    const steps = [];\n    let base = p.startsWith('/') ? '' : cwd;\n    if (p.startsWith('~')) { base = '/home/mas'; p = p.slice(1); }\n    const parts = (base + '/' + p).split('/').filter(Boolean);\n    const stack = [];\n    for (const seg of parts) {\n      if (seg === '.') { steps.push('. -> 제자리: /' + stack.join('/')); continue; }\n      if (seg === '..') { stack.pop(); steps.push('.. -> 위로: /' + stack.join('/')); continue; }\n      stack.push(seg);\n      steps.push(seg + ' -> /' + stack.join('/'));\n    }\n    return { final: '/' + stack.join('/'), steps };\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    order: ['echo $PATH',\n      ['/home/mas/.nvm/versions/node/v22/bin  <- 여기가 먼저',\n       '/usr/local/bin', '/usr/bin', '/bin'],\n      '앞에 있는 폴더가 이긴다. nvm·pyenv 가 PATH 앞에 자기 폴더를 끼워 넣는 방식으로 버전을 바꾼다.'],\n    which: ['which -a node',\n      ['/home/mas/.nvm/versions/node/v22/bin/node   <- 실제로 실행되는 것',\n       '/usr/bin/node                               <- 가려져 있는 것'],\n      '-a 는 전부 보여 준다. 버전이 이상하면 이 목록의 순서를 의심하라.'],\n    type:  ['type -a ls',\n      ['ls is aliased to `ls --color=auto`', 'ls is /usr/bin/ls'],\n      'which 는 파일만 본다. 별칭·함수·내장 명령까지 보려면 type 이다.'],\n    hash:  ['hash -r',\n      ['셸이 기억해 둔 명령 위치를 지운다'],\n      '새로 설치했는데 옛 경로가 계속 실행되면 이것 한 줄로 풀린다.'],\n  }[c];\n  render(t[0], t[1].map((s) => '  ' + esc(s)).join('\\n'), t[2]);\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "상황",
+              "type": "select",
+              "value": "order",
+              "options": [
+                {
+                  "value": "order",
+                  "label": "PATH 순서"
+                },
+                {
+                  "value": "which",
+                  "label": "which -a"
+                },
+                {
+                  "value": "type",
+                  "label": "type -a (별칭까지)"
+                },
+                {
+                  "value": "hash",
+                  "label": "옛 경로가 계속 실행"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "PATH 를 다루는 손버릇",
+          "text": "echo $PATH | tr ':' '\\n'      # 한 줄에 하나씩 보기\nwhich -a python3               # 어느 것이 이기나\ntype -a ll                     # 별칭인가 파일인가\n\n# 앞에 붙이면 이긴다 (설정 파일에서)\nexport PATH=\"$HOME/.local/bin:$PATH\"\n\n# 이번 명령에만 다른 값을 쓰고 싶을 때\nPATH=/usr/bin node -v"
+        },
+        {
+          "type": "note",
+          "text": "**`.` 을 PATH 에 넣지 마라.** 지금 폴더의 파일이 명령보다 먼저 실행되면, 남이 만든 `ls` 라는 이름의 스크립트를 무심코 실행하게 된다. 보안 교과서의 고전적인 경고이고, 지금도 유효하다."
+        },
+        {
+          "type": "p",
+          "text": "설정이 어디 적히는지도 자주 헷갈린다 — 로그인 셸은 `~/.bash_profile`(또는 `~/.zprofile`), 새 터미널 창은 `~/.bashrc`(`~/.zshrc`)를 읽는다. 「터미널에서는 되는데 스크립트·cron 에서는 안 되는」 이유가 대개 이 차이다."
+        },
+        {
+          "type": "try",
+          "text": "`which -a node`(또는 python3)를 쳐 보라. 두 개 이상 나오면 어느 것이 실행되는지, 그리고 왜 그런지 PATH 순서로 설명해 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "같은 이름의 명령이 여러 곳에 있으면?",
+          "choices": [
+            "최신 것",
+            "PATH 에서 앞에 있는 폴더의 것",
+            "가장 큰 것",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "그래서 nvm 은 PATH 앞에 끼워 넣는다."
+        },
+        {
+          "q": "별칭인지 파일인지 보려면?",
+          "choices": [
+            "which",
+            "type -a",
+            "ls",
+            "file"
+          ],
+          "answer": 1,
+          "why": "which 는 파일만 본다."
+        },
+        {
+          "q": "cron 에서만 명령을 못 찾는 흔한 이유는?",
+          "choices": [
+            "권한",
+            "PATH 가 로그인 셸과 달라서",
+            "디스크",
+            "네트워크"
+          ],
+          "answer": 1,
+          "why": "설정 파일이 안 읽힌다 — 절대 경로를 쓰거나 PATH 를 명시한다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "파일 시스템에서 막히는 자리는 정해져 있다. 증상별로 갈 곳만 알면 된다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "증상 -> 볼 자리",
+          "text": "「No such file or directory」\n  [ ] 지금 자리가 어디인가 (pwd) · 상대/절대를 착각하지 않았나   (2장)\n  [ ] 스크립트 안이면 기준이 실행 위치다 -> BASH_SOURCE           (2장)\n  [ ] 글롭이 안 맞아 무늬 그대로 넘어간 것은 아닌가              (4장)\n「Permission denied」\n  [ ] 폴더의 x 권한이 있나 (들어갈 수 있어야 읽는다)             (3장)\n복사했는데 뭔가 빠졌다\n  [ ] 숨김 파일 — src/* 대신 src/. 또는 cp -a                   (4장)\n  [ ] 링크가 실체로 바뀌지 않았나 (cp -a 로 보존)                (5·6장)\n두 번 실행하니 중첩됐다\n  [ ] cp -r 의 대상 존재 여부 · rsync 뒤 슬래시                  (6장)\n디스크가 찼다\n  [ ] df -h -> du -xh --max-depth=1 -> lsof +L1 -> df -i        (7장)\n명령 버전이 이상하다\n  [ ] which -a · PATH 순서 · hash -r                             (8장)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 여섯 문항",
+          "height": "290px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre; overflow-x:auto; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .hit { color:#4ade80; } .miss { color:#64748b; } .warn { color:#fca5a5; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  /** 예제 트리 — 모든 장이 같은 나무를 쓴다. */\n  const TREE = [\n    '/home/mas/proj/src/app.ts',\n    '/home/mas/proj/src/util.ts',\n    '/home/mas/proj/src/old.js',\n    '/home/mas/proj/test/app.test.ts',\n    '/home/mas/proj/README.md',\n    '/home/mas/proj/.env',\n    '/home/mas/notes.txt',\n    '/etc/hosts',\n    '/usr/bin/node',\n  ];\n  function render(cmd, body, hint) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n  /** 셸처럼 경로를 푼다 — . .. ~ 와 앞 슬래시만 다룬다(핵심은 그것뿐). */\n  function resolvePath(cwd, p) {\n    const steps = [];\n    let base = p.startsWith('/') ? '' : cwd;\n    if (p.startsWith('~')) { base = '/home/mas'; p = p.slice(1); }\n    const parts = (base + '/' + p).split('/').filter(Boolean);\n    const stack = [];\n    for (const seg of parts) {\n      if (seg === '.') { steps.push('. -> 제자리: /' + stack.join('/')); continue; }\n      if (seg === '..') { stack.pop(); steps.push('.. -> 위로: /' + stack.join('/')); continue; }\n      stack.push(seg);\n      steps.push(seg + ' -> /' + stack.join('/'));\n    }\n    return { final: '/' + stack.join('/'), steps };\n  }\n</script>\n<script>\n  const q = [\n    ['/ 로 시작하면 지금 자리와 무관하다', true],\n    ['글롭 * 는 숨김 파일도 잡는다', false],\n    ['심볼릭 링크의 원본을 지우면 링크가 깨진다', true],\n    ['rm 에는 휴지통이 있다', false],\n    ['지운 파일을 프로세스가 열고 있으면 용량이 안 풀린다', true],\n    ['같은 이름의 명령은 최신 버전이 실행된다', false],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"hit\">  O  ' : '<span class=\"warn\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로 — 2장(경로) 4장(글롭) 5장(링크) 6장(rm) 7장(용량) 8장(PATH)');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸은 권한·소유자다. 여기까지가 「어디에 무엇이 있나」였다면, 다음은 **누가 그것을 만질 수 있나**다 — 「Permission denied」 를 읽는 법."
+        },
+        {
+          "type": "try",
+          "text": "위 표에서 오늘 실제로 겪은 줄에 표시하라. 안 겪어 본 줄 하나를 골라 일부러 재현해 보라 — 예: 빈 폴더에서 `echo *.zip`."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "「No such file」 이 떴을 때 가장 먼저 칠 명령은?",
+          "choices": [
+            "ls -la",
+            "pwd",
+            "df",
+            "which"
+          ],
+          "answer": 1,
+          "why": "상대 경로의 기준부터 확인한다."
+        },
+        {
+          "q": "복사에서 숨김 파일이 빠졌다면?",
+          "choices": [
+            "권한 문제",
+            "글롭이 점 파일을 안 잡은 것",
+            "디스크 부족",
+            "링크 문제"
+          ],
+          "answer": 1,
+          "why": "src/. 또는 cp -a."
+        }
+      ]
     }
   ]
 }
