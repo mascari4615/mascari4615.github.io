@@ -42,5 +42,22 @@ assert.equal(system.search('dlalwl dkqcnr', 1)[0].value.id, 'image', '시스템 
 assert.equal(system.search('dlalwl dkqcnr', 1)[0].reason, 'keyboard', '매칭 사유 제공');
 system.replace([{ ...tools[2], value: tools[2] }]);
 assert.deepEqual(system.search('이미지'), [], '색인 전체 교체');
+const providerSystem = search.createSearchSystem();
+let providerDocuments = [{ ...tools[0], value: tools[0] }];
+const dispose = providerSystem.register({ id: 'tools', documents: () => providerDocuments });
+assert.deepEqual(providerSystem.providerIds(), ['tools'], '공급자 등록');
+assert.equal(providerSystem.search('이미지')[0].providerId, 'tools', '결과 공급자 출처');
+providerDocuments = [{ ...tools[2], value: tools[2] }];
+providerSystem.refresh('tools');
+assert.equal(providerSystem.search('pdf')[0].value.id, 'pdfmerge', '공급자 부분 갱신');
+let secondDocuments = [{ ...tools[1], value: tools[1] }];
+const disposeSecond = providerSystem.register({ id: 'secondary', documents: () => secondDocuments });
+providerDocuments = [{ ...tools[0], value: tools[0] }];
+secondDocuments = [{ ...tools[2], value: tools[2] }];
+providerSystem.refresh();
+assert.equal(providerSystem.search('이미지')[0].value.id, 'image', '공급자 전체 갱신');
+disposeSecond();
+dispose();
+assert.equal(providerSystem.size(), 0, '공급자 해제');
 
-console.log('tool search: 15 assertions passed');
+console.log('tool search: 21 assertions passed');

@@ -191,6 +191,11 @@ function answersFor(q: string): Answer[] {
 const KarmoPalette = (() => {
   let entries: Entry[] = [];
   const searchIndex = createSearchSystem<Entry>();
+  searchIndex.register({
+    id: 'tools',
+    documents: () => entries.map((entry) => ({ value: entry, id: entry.id, title: entry.title,
+      description: entry.desc, aliases: entry.alias, initials: entry.cho })),
+  });
   let aliasMap: Record<string, string> = {};
   let aliasLoaded = false;
   /** 이번 주에 많이 쓴 도구 id — 실측이다. toolbox 가 통계를 받아 넘겨준다 (TASK-KL-136). */
@@ -292,14 +297,7 @@ const KarmoPalette = (() => {
   }
 
   function rebuildSearchIndex(): void {
-    searchIndex.replace(entries.map((entry) => ({
-      value: entry,
-      id: entry.id,
-      title: entry.title,
-      description: entry.desc,
-      aliases: entry.alias,
-      initials: entry.cho,
-    })));
+    searchIndex.refresh('tools');
   }
 
   /** 묶음 소속은 매니페스트가 안다 (toolbox 의 findBundleFor 와 같은 출처). */
