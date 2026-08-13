@@ -274,7 +274,8 @@
     "smoke:live": "node scripts/smoke-materials-live.mjs",
     "test:copyable": "node scripts/test-copyable.mjs",
     "test:chainrec": "node scripts/test-chain-record.mjs",
-    "audit:loose": "node scripts/audit-loose-checks.mjs"
+    "audit:loose": "node scripts/audit-loose-checks.mjs",
+    "test:karmograph:repeat": "node scripts/repeat-karmograph.mjs 3"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
