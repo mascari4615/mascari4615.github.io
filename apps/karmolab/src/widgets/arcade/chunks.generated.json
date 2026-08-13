@@ -1,0 +1,359 @@
+[
+  {
+    "id": "reflex",
+    "chunk": "reflex",
+    "view": "reflex-view",
+    "defVar": "reflex",
+    "viewVar": "reflexView"
+  },
+  {
+    "id": "speed",
+    "chunk": "speed",
+    "view": "speed-view",
+    "defVar": "speed",
+    "viewVar": "speedView"
+  },
+  {
+    "id": "airhockey",
+    "chunk": "airhockey",
+    "view": "airhockey-view",
+    "defVar": "airhockey",
+    "viewVar": "airhockeyView"
+  },
+  {
+    "id": "pong",
+    "chunk": "pong",
+    "view": "pong-view",
+    "defVar": "pong",
+    "viewVar": "pongView"
+  },
+  {
+    "id": "whack",
+    "chunk": "whack",
+    "view": "whack-view",
+    "defVar": "whack",
+    "viewVar": "whackView"
+  },
+  {
+    "id": "tug",
+    "chunk": "tug",
+    "view": "tug-view",
+    "defVar": "tug",
+    "viewVar": "tugView"
+  },
+  {
+    "id": "rps",
+    "chunk": "rps",
+    "view": "rps-view",
+    "defVar": "rps",
+    "viewVar": "rpsView"
+  },
+  {
+    "id": "tuho",
+    "chunk": "tuho",
+    "view": "tuho-view",
+    "defVar": "tuho",
+    "viewVar": "tuhoView"
+  },
+  {
+    "id": "yut",
+    "chunk": "yut",
+    "view": "yut-view",
+    "defVar": "yut",
+    "viewVar": "yutView"
+  },
+  {
+    "id": "fleet",
+    "chunk": "fleet",
+    "view": "fleet-view",
+    "defVar": "fleet",
+    "viewVar": "fleetView"
+  },
+  {
+    "id": "auction",
+    "chunk": "auction",
+    "view": "auction-view",
+    "defVar": "auction",
+    "viewVar": "auctionView"
+  },
+  {
+    "id": "jegi",
+    "chunk": "jegi",
+    "view": "jegi-view",
+    "defVar": "jegi",
+    "viewVar": "jegiView"
+  },
+  {
+    "id": "nunchi",
+    "chunk": "nunchi",
+    "view": "nunchi-view",
+    "defVar": "nunchi",
+    "viewVar": "nunchiView"
+  },
+  {
+    "id": "wordchain",
+    "chunk": "wordchain",
+    "view": "wordchain-view",
+    "defVar": "wordchain",
+    "viewVar": "wordchainView"
+  },
+  {
+    "id": "lineup",
+    "chunk": "lineup",
+    "view": "lineup-view",
+    "defVar": "lineup",
+    "viewVar": "lineupView"
+  },
+  {
+    "id": "twenty",
+    "chunk": "twenty",
+    "view": "twenty-view",
+    "defVar": "twenty",
+    "viewVar": "twentyView"
+  },
+  {
+    "id": "snake",
+    "chunk": "snake",
+    "view": "snake-view",
+    "defVar": "snake",
+    "viewVar": "snakeView"
+  },
+  {
+    "id": "shellgame",
+    "chunk": "shell",
+    "view": "shell-view",
+    "defVar": "shellgame",
+    "viewVar": "shellgameView"
+  },
+  {
+    "id": "gomoku",
+    "chunk": "gomoku",
+    "view": "gomoku-view",
+    "defVar": "gomoku",
+    "viewVar": "gomokuView"
+  },
+  {
+    "id": "four",
+    "chunk": "four",
+    "view": "four-view",
+    "defVar": "four",
+    "viewVar": "fourView"
+  },
+  {
+    "id": "reversi",
+    "chunk": "reversi",
+    "view": "reversi-view",
+    "defVar": "reversi",
+    "viewVar": "reversiView"
+  },
+  {
+    "id": "dots",
+    "chunk": "dots",
+    "view": "dots-view",
+    "defVar": "dots",
+    "viewVar": "dotsView"
+  },
+  {
+    "id": "ultimate",
+    "chunk": "ultimate",
+    "view": "ultimate-view",
+    "defVar": "ultimate",
+    "viewVar": "ultimateView"
+  },
+  {
+    "id": "checkers",
+    "chunk": "checkers",
+    "view": "checkers-view",
+    "defVar": "checkers",
+    "viewVar": "checkersView"
+  },
+  {
+    "id": "nim",
+    "chunk": "nim",
+    "view": "nim-view",
+    "defVar": "nim",
+    "viewVar": "nimView"
+  },
+  {
+    "id": "minishogi",
+    "chunk": "minishogi",
+    "view": "minishogi-view",
+    "defVar": "minishogi",
+    "viewVar": "minishogiView"
+  },
+  {
+    "id": "mancala",
+    "chunk": "mancala",
+    "view": "mancala-view",
+    "defVar": "mancala",
+    "viewVar": "mancalaView"
+  },
+  {
+    "id": "foxhounds",
+    "chunk": "foxhounds",
+    "view": "foxhounds-view",
+    "defVar": "foxhounds",
+    "viewVar": "foxhoundsView"
+  },
+  {
+    "id": "capturego",
+    "chunk": "capturego",
+    "view": "capturego-view",
+    "defVar": "capturego",
+    "viewVar": "capturegoView"
+  },
+  {
+    "id": "blackjack",
+    "chunk": "blackjack",
+    "view": "blackjack-view",
+    "defVar": "blackjack",
+    "viewVar": "blackjackView"
+  },
+  {
+    "id": "president",
+    "chunk": "president",
+    "view": "president-view",
+    "defVar": "president",
+    "viewVar": "presidentView"
+  },
+  {
+    "id": "dominoes",
+    "chunk": "dominoes",
+    "view": "dominoes-view",
+    "defVar": "dominoes",
+    "viewVar": "dominoesView"
+  },
+  {
+    "id": "yacht",
+    "chunk": "yacht",
+    "view": "yacht-view",
+    "defVar": "yacht",
+    "viewVar": "yachtView"
+  },
+  {
+    "id": "highlow",
+    "chunk": "highlow",
+    "view": "highlow-view",
+    "defVar": "highlow",
+    "viewVar": "highlowView"
+  },
+  {
+    "id": "lanterns",
+    "chunk": "lanterns",
+    "view": "lanterns-view",
+    "defVar": "lanterns",
+    "viewVar": "lanternsView"
+  },
+  {
+    "id": "liars",
+    "chunk": "liars",
+    "view": "liars-view",
+    "defVar": "liars",
+    "viewVar": "liarsView"
+  },
+  {
+    "id": "hanafuda",
+    "chunk": "hanafuda",
+    "view": "hanafuda-view",
+    "defVar": "hanafuda",
+    "viewVar": "hanafudaView"
+  },
+  {
+    "id": "derby",
+    "chunk": "derby",
+    "view": "derby-view",
+    "defVar": "derby",
+    "viewVar": "derbyView"
+  },
+  {
+    "id": "curling",
+    "chunk": "curling",
+    "view": "curling-view",
+    "defVar": "curling",
+    "viewVar": "curlingView"
+  },
+  {
+    "id": "bowling",
+    "chunk": "bowling",
+    "view": "bowling-view",
+    "defVar": "bowling",
+    "viewVar": "bowlingView"
+  },
+  {
+    "id": "pool",
+    "chunk": "pool",
+    "view": "pool-view",
+    "defVar": "pool",
+    "viewVar": "poolView"
+  },
+  {
+    "id": "darts",
+    "chunk": "darts",
+    "view": "darts-view",
+    "defVar": "darts",
+    "viewVar": "dartsView"
+  },
+  {
+    "id": "fishing",
+    "chunk": "fishing",
+    "view": "fishing-view",
+    "defVar": "fishing",
+    "viewVar": "fishingView"
+  },
+  {
+    "id": "tanks",
+    "chunk": "tanks",
+    "view": "tanks-view",
+    "defVar": "tanks",
+    "viewVar": "tanksView"
+  },
+  {
+    "id": "memory",
+    "chunk": "memory",
+    "view": "memory-view",
+    "defVar": "memory",
+    "viewVar": "memoryView"
+  },
+  {
+    "id": "hitblow",
+    "chunk": "hitblow",
+    "view": "hitblow-view",
+    "defVar": "hitblow",
+    "viewVar": "hitblowView"
+  },
+  {
+    "id": "slide",
+    "chunk": "slide",
+    "view": "slide-view",
+    "defVar": "slide",
+    "viewVar": "slideView"
+  },
+  {
+    "id": "minesweeper",
+    "chunk": "minesweeper",
+    "view": "minesweeper-view",
+    "defVar": "minesweeper",
+    "viewVar": "minesweeperView"
+  },
+  {
+    "id": "onestroke",
+    "chunk": "onestroke",
+    "view": "onestroke-view",
+    "defVar": "onestroke",
+    "viewVar": "onestrokeView"
+  },
+  {
+    "id": "simon",
+    "chunk": "simon",
+    "view": "simon-view",
+    "defVar": "simon",
+    "viewVar": "simonView"
+  },
+  {
+    "id": "sudoku",
+    "chunk": "sudoku",
+    "view": "sudoku-view",
+    "defVar": "sudoku",
+    "viewVar": "sudokuView"
+  }
+]

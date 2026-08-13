@@ -224,7 +224,6 @@ for (const rel of entryPoints) {
   const coreDir = join(root, 'src/core');
   const skip = new Set(['types.ts', 'registry.generated.ts', 'registry-lazy.generated.ts']);
   /* `run` 을 내놓는 것만 알맹이다 — 표(han-table.generated 같은 자료)는 부를 수 있는 것이 아니다. */
-  console.log('[DEBUG-c3a1] 파일수', readdirSync(coreDir).length, '샘플', readdirSync(coreDir).slice(0,3));
   const coreFiles = existsSync(coreDir)
     ? readdirSync(coreDir)
         .filter((f) => f.endsWith('.ts') && !f.endsWith('.d.ts') && !skip.has(f))
@@ -256,6 +255,48 @@ for (const rel of entryPoints) {
     });
   }
   if (coreFiles.length) console.log(`[build] 알맹이 ${coreFiles.length}개 → core/*.js (묶어 쓰기가 그때 받는다)`);
+}
+
+/*
+ * ★ **오락실 게임은 한 판 한 파일** (TASK-KL-242 쪼개기).
+ *
+ * 로비만 열어도 게임 51개가 통째로 딸려 왔다 — `arcade.js` gzip 94.5KB, 위젯 천장 64KB 의 1.5배.
+ * 알맹이(`core/*.js`) 와 같은 수법을 쓴다: 게임 하나가 파일 하나가 되고, 로비는 명패만 들고
+ * 있다가 **누른 게임 하나만** 그때 받아 붙인다(`Toolbox.ensureScript`).
+ *
+ * 표는 `catalog.ts` 에서 구워 온다(`scripts/gen-arcade-catalog.mjs`) — 이름을 여기 또 적으면
+ * 갈라진다.
+ */
+{
+  const tablePath = join(root, 'src/widgets/arcade/chunks.generated.json');
+  const table = existsSync(tablePath) ? JSON.parse(readFileSync(tablePath, 'utf8')) : [];
+  for (const g of table) {
+    await esbuild.build({
+      stdin: {
+        contents:
+          `import { ${g.defVar} } from './src/widgets/arcade/games/${g.chunk}';
+` +
+          `import { ${g.viewVar} } from './src/widgets/arcade/games/${g.view}';
+` +
+          `const w = window;
+` +
+          `w.__ARCADE_GAMES = w.__ARCADE_GAMES || {};
+` +
+          `w.__ARCADE_GAMES[${JSON.stringify(g.id)}] = { def: ${g.defVar}, view: ${g.viewVar} };
+`,
+        resolveDir: root,
+        loader: 'ts'
+      },
+      outfile: join(root, `arcade/games/${g.chunk}.js`),
+      ...FULL_MINIFY,
+      bundle: true,
+      format: 'iife',
+      platform: 'browser',
+      target: ['es2020'],
+      logLevel: 'silent'
+    });
+  }
+  if (table.length) console.log(`[build] 오락실 게임 ${table.length}판 → arcade/games/*.js (누를 때 하나만 받는다)`);
 }
 
 const worldEntryPoints = [
