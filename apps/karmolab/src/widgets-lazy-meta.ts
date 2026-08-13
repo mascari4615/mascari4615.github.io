@@ -262,6 +262,7 @@ window.KARMOLAB_LAZY_META = [
     category: 'tool',
     get desc() { return t('widgets-desc.comparepic.desc', undefined, "사진 두 장을 겹쳐 밀어 보며 비교 — 파일은 기기 밖으로 나가지 않는다"); },
     layout: 'wide',
+    accepts: ['image/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-299)
     icon: '<path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 4v16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9 12l-2-2 2-2M15 12l2-2-2-2" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     lazyScriptPaths: ['tools/comparepic']
   },
@@ -779,6 +780,8 @@ window.KARMOLAB_LAZY_META = [
     category: 'tool',
     get desc() { return t('widgets-desc.imgbatch.desc', undefined, "사진 여러 장의 크기와 형식을 한 번에 바꿔 ZIP 으로 받습니다"); },
     layout: 'wide',
+    produces: ['image/png', 'image/jpeg', 'image/webp'], // 이 도구가 내놓는 것 (TASK-KL-299)
+    accepts: ['image/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-299)
     icon: '<rect x="3" y="6" width="13" height="11" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 14l3.5-3.5 2.5 2.5 3-3 4 4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M7 3h11a2 2 0 0 1 2 2v11" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.6"/>',
     lazyScriptPaths: ['tools/imgbatch']
   },
@@ -801,6 +804,7 @@ window.KARMOLAB_LAZY_META = [
     category: 'tool',
     get desc() { return t('widgets-desc.pdftool.desc', undefined, "PDF 를 합치고 페이지를 빼내고 돌립니다. 파일이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
+    accepts: ['application/pdf'], // 다른 도구가 만든 것을 받는다 (TASK-KL-299)
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M8 14h8M8 17h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
     produces: ['application/pdf'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/pdftool']
@@ -900,6 +904,7 @@ window.KARMOLAB_LAZY_META = [
     category: 'tool',
     get desc() { return t('widgets-desc.pdf2text.desc', undefined, "PDF 의 글자를 줄·문단을 살려 뽑아냅니다. 파일이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
+    produces: ['text/plain'], // 이 도구가 내놓는 것 (TASK-KL-299)
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8.5 12h7M8.5 15h7M8.5 18h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/pdf2text']
   },
@@ -1073,6 +1078,7 @@ window.KARMOLAB_LAZY_META = [
     category: 'tool',
     get desc() { return t('widgets-desc.video2img.desc', undefined, "영상의 한 장면이나 일정 간격 장면을 원본 화질로 뽑습니다. 영상이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
+    produces: ['image/png', 'image/jpeg'], // 이 도구가 내놓는 것 (TASK-KL-299)
     icon: '<rect x="3" y="5" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M15 9l6-3v9l-6-3z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><rect x="7" y="12" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="var(--bg, #111)"/><path d="M7 18l3-3 2 2 2.5-2.5L19 18" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/video2img']
   },
@@ -1084,6 +1090,7 @@ window.KARMOLAB_LAZY_META = [
     category: 'tool',
     get desc() { return t('widgets-desc.screenrec.desc', undefined, "화면이나 창을 녹화합니다. 소리도 함께 담고, 파일이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
+    produces: ['video/webm'], // 이 도구가 내놓는 것 (TASK-KL-299)
     icon: '<rect x="3" y="4" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 21h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="10.5" r="3" fill="currentColor"/>',
     lazyScriptPaths: ['tools/screenrec']
   },
@@ -1095,6 +1102,7 @@ window.KARMOLAB_LAZY_META = [
     category: 'tool',
     get desc() { return t('widgets-desc.voicerec.desc', undefined, "마이크로 바로 녹음해 WAV 로 받습니다. 소리가 들어오는지 눈으로 보이고, 파일이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
+    produces: ['audio/wav', 'audio/mpeg'], // 이 도구가 내놓는 것 (TASK-KL-299)
     icon: '<rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M12 18v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/voicerec']
   },
@@ -1193,6 +1201,7 @@ window.KARMOLAB_LAZY_META = [
     category: 'tool',
     get desc() { return t('widgets-desc.qrread.desc', undefined, "그림이나 카메라로 QR 을 읽고, 그 안에 무엇이 들었는지 알려 줍니다. 어디에도 올리지 않습니다"); },
     layout: 'wide',
+    accepts: ['image/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-299)
     icon: '<rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z" fill="currentColor"/>',
     lazyScriptPaths: ['tools/qrread']
   },
@@ -1559,6 +1568,8 @@ window.KARMOLAB_LAZY_META = [
     category: 'tool',
     get desc() { return t('widgets-desc.redact.desc', undefined, "캡처에서 계좌번호·이름 같은 것을 지웁니다. 덮는 게 아니라 그 자리를 없앱니다"); },
     layout: 'wide',
+    produces: ['image/png'], // 이 도구가 내놓는 것 (TASK-KL-299)
+    accepts: ['image/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-299)
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="6" y="9" width="7" height="4" rx="1" fill="currentColor"/><path d="M15 15h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/redact']
   },
@@ -1570,6 +1581,7 @@ window.KARMOLAB_LAZY_META = [
     category: 'tool',
     get desc() { return t('widgets-desc.asciiart.desc', undefined, "사진이나 그림을 글자로 그린 아스키 아트로 바꿉니다. 폭·문자 세트·반전 조절"); },
     layout: 'wide',
+    accepts: ['image/*', 'video/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-299)
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 9h3M6 12h6M6 15h4M14 9h4M15 12h3M13 15h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/gifenc', 'tools/asciiart'] // 압축기가 먼저 있어야 GIF 로 뽑는다
   },
@@ -1590,6 +1602,7 @@ window.KARMOLAB_LAZY_META = [
     category: 'tool',
     get desc() { return t('widgets-desc.barcode.desc', undefined, "재고·도서·물품 라벨용 바코드를 만듭니다. 안 읽히는 값은 미리 알려 줍니다"); },
     layout: 'wide',
+    produces: ['image/png'], // 이 도구가 내놓는 것 (TASK-KL-299)
     icon: '<path d="M4 5v14M7 5v14M9.5 5v14M13 5v14M16 5v14M18 5v14M20 5v14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/barcode']
   },
@@ -1608,6 +1621,8 @@ window.KARMOLAB_LAZY_META = [
     category: 'tool',
     get desc() { return t('widgets-desc.subtitle.desc', undefined, "어긋난 자막을 밀거나 늘려 맞춥니다. SRT·VTT 를 서로 바꿉니다"); },
     layout: 'wide',
+    produces: ['text/plain'], // 이 도구가 내놓는 것 (TASK-KL-299)
+    accepts: ['text/plain'], // 다른 도구가 만든 것을 받는다 (TASK-KL-299)
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 14h5M13 14h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/subtitle']
   },
@@ -1650,6 +1665,7 @@ window.KARMOLAB_LAZY_META = [
     category: 'tool',
     get desc() { return t('widgets-desc.palette.desc', undefined, "사진에서 대표 색을 뽑아 HEX·RGB 팔레트로 보여줍니다. CSS 변수로도 한 번에 복사"); },
     layout: 'wide',
+    accepts: ['image/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-299)
     icon: '<path d="M12 3a9 9 0 1 0 0 18h2a3 3 0 0 0 0-6h-1a2 2 0 0 1 0-4h2a5 5 0 0 0-3-8z" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="8" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7" r="1.3" fill="currentColor"/><circle cx="7" cy="14" r="1.3" fill="currentColor"/>',
     lazyScriptPaths: ['tools/palette']
   },
