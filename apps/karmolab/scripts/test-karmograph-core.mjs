@@ -51,6 +51,7 @@ async function loadModules() {
     export * as pick from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-pick.ts'))};
     export * as eph from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-ephemeral.ts'))};
     export * as share from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/share.ts'))};
+    export * as snaWords from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/sna-words.ts'))};
     export * as between from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/between.ts'))};
     export * as history from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/history.ts'))};
     export * as sna from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/sna.ts'))};
@@ -728,6 +729,27 @@ const M = await loadModules();
   eq(M.between.between(E, 'a', 'a').path.join('>'), 'a', '같은 카드 둘이면 제자리');
   eq(M.between.between([{ from: 'p', to: 'q' }, { from: 'q', to: 'p' }], 'p', 'q').path.join('>'), 'p>q',
     '오가는 선이 있어도 고리에 안 빠진다');
+}
+
+// ── 관계망을 말로 (TASK-KL-271 L2) ──────────────────────────────────────────
+// 숫자만 주면 「그래서 뭐?」로 끝난다. 무슨 말을 할지는 여기서 정하고, 여기서 잠근다.
+{
+  const { snaLines, islandCount } = M.snaWords;
+  const kinds = (f) => snaLines(f).map((l) => l.kind).join(',');
+  eq(kinds({ nodes: 0, edges: 0, lonely: [], islands: 0 }), 'empty', '아무것도 없으면 그렇게 말한다');
+  eq(kinds({ nodes: 5, edges: 0, lonely: [], islands: 5 }), 'empty', '선이 없으면 순위 말은 뜻이 없다');
+  eq(kinds({ nodes: 6, edges: 4, lonely: ['가'], islands: 2, hub: { name: 'ㄱ', count: 3 } }),
+    'islands,lonely,hub', '놀라운 것 먼저 — 끊긴 조각 · 혼자 · 중심');
+  eq(kinds({ nodes: 3, edges: 2, lonely: [], islands: 1, bridge: { name: 'ㄴ', score: 0.5 }, hub: { name: 'ㄱ', count: 2 } }),
+    'hub', '셋 이하에서는 누구나 다리라 다리 말을 안 한다');
+  eq(kinds({ nodes: 4, edges: 6, lonely: [], islands: 1, hub: { name: 'ㄱ', count: 1 } }),
+    'dense', '할 말이 없으면 「고르게 이어져 있다」도 말이다');
+  check(snaLines({ nodes: 9, edges: 9, lonely: ['a', 'b'], islands: 3, bridge: { name: 'x', score: 1 }, hub: { name: 'y', count: 4 } }).length <= 3,
+    '말은 많아야 셋 — 넉 줄부터는 아무도 안 읽는다');
+
+  eq(islandCount(['a', 'b', 'c'], [{ from: 'a', to: 'b' }]), 2, '안 이어진 카드는 제 조각이 된다');
+  eq(islandCount(['a', 'b', 'c'], [{ from: 'a', to: 'b' }, { from: 'b', to: 'c' }]), 1, '다 이어지면 한 조각');
+  eq(islandCount([], []), 0, '빈 판은 0 조각');
 }
 
 process.stdout.write('\n');

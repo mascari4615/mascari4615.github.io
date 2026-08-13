@@ -4,6 +4,7 @@
  * 계산은 `sna.ts` 가 이미 따로였고, 남은 건 그리기와 「가기」 버튼뿐이라 옮기기 쉬웠다.
  */
 import { computeSna, topBy, structuralGaps } from '../sna';
+import { snaLines, islandCount } from '../sna-words';
 import type { PanelCtx } from './context';
 import { t, loadNamespace } from '../../../lib/i18n';
 
@@ -32,8 +33,29 @@ export function renderSnaPanel(ctx: PanelCtx): void {
           </div>`).join('')}
     </div>`;
 
+  /* ★ **숫자 앞에 말 한 줄** (TASK-KL-271 L2). 「연결 3.4 · 다리 0.21」은 이미 아는 사람에게만
+     말을 건다 — 처음 보는 사람에게는 「그래서 뭐?」로 끝나 열어 보고 닫는 칸이었다.
+     무슨 말을 할지는 `sna-words` 가 정하고(검사로 잠근다), 여기서는 말만 골라 끼운다. */
+  const topDeg = topBy(sna.degree, 1)[0];
+  const topBtw = topBy(sna.betweenness, 1)[0];
+  const lonely = live.nodes
+    .filter((n) => !live.edges.some((e) => e.from === n.id || e.to === n.id))
+    .map((n) => n.label || t('karmograph.unnamed'));
+  const lines = snaLines({
+    nodes: live.nodes.length,
+    edges: live.edges.length,
+    hub: topDeg ? { name: nameOf(topDeg.id), count: Math.round(topDeg.value) } : undefined,
+    bridge: topBtw ? { name: nameOf(topBtw.id), score: topBtw.value } : undefined,
+    lonely,
+    islands: islandCount(live.nodes.map((n) => n.id), live.edges),
+  });
+  const saidHtml = `<div class="km-field km-said">${lines
+    .map((l) => `<div class="km-said-line">${t(`karmograph.said.${l.kind}`, l.vars as Record<string, string>)}</div>`)
+    .join('')}</div>`;
+
   side.innerHTML = `
     <h4>${esc(t('karmograph.list.msg3'))}</h4>
+    ${saidHtml}
     ${list(t('karmograph.list.msg4'), t('karmograph.list.msg5'), topBy(sna.degree, 5), 0)}
     ${list(t('karmograph.list.msg6'), t('karmograph.list.msg7'), topBy(sna.betweenness, 5), 1)}
     ${list(t('karmograph.list.msg8'), t('karmograph.list.msg9'), topBy(sna.closeness, 5), 3)}

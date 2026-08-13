@@ -644,6 +644,17 @@ await step('두 장을 고르면 「이 둘 사이」를 말해 준다', async (
   });
   await ctx.close();
 });
+await step('관계망 칸이 숫자 앞에 말 한 줄을 준다', async () => {
+  // 「연결 3.4 · 다리 0.21」은 이미 아는 사람에게만 말을 건다 — 처음 보는 사람에게는
+  // 「그래서 뭐?」로 끝나 열어 보고 닫는 칸이었다 (TASK-KL-271 L2).
+  await openPanel(page, 'sna');
+  await page.waitForSelector('.km-said-line', { timeout: ms(4000) })
+    .catch(() => { throw new Error('관계망 칸이 여전히 숫자만 준다'); });
+  const said = await page.$$eval('.km-said-line', (ns) => ns.map((n) => n.textContent.trim()));
+  if (said.length === 0 || said.length > 3) throw new Error(`읽어 주는 줄이 ${said.length}개 — 하나에서 셋 사이여야 한다`);
+  if (said.some((x) => x.length < 6)) throw new Error(`빈 말이 섞였다: ${said.join(' / ')}`);
+  await openPanel(page, 'node');
+});
 await step('도움말이 할 수 있는 일을 다 보여 준다', async () => {
   await openPanel(page, 'help');
   await page.waitForSelector('[data-km="help-close"]', { timeout: ms(4000) });

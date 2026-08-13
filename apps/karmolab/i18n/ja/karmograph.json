@@ -654,5 +654,14 @@
   "karmograph.drawer.g.toApp": "ほかのアプリへ",
   "karmograph.linkStart.hint": "マウスならカード右端の点を別のカードへドラッグします。",
   "karmograph.saveFailed": "保存できませんでした — ブラウザの保存領域がいっぱいです。今の変更はこのタブにしかありません。",
-  "karmograph.saveFailed.out": "今すぐファイルに出す"
+  "karmograph.saveFailed.out": "今すぐファイルに出す",
+  "karmograph.between.label": "この二人の間 (歩数)",
+  "karmograph.between.none": "つながる道がありません",
+  "karmograph.between.shared": "両方とつながるカード:",
+  "karmograph.said.empty": "まだ線がありません — つなぐとここで読み上げます。",
+  "karmograph.said.islands": "この盤は<b>{n}つ</b>に切れています — つながっていない群れがあります。",
+  "karmograph.said.lonely": "<b>{names}</b> など{n}枚が誰ともつながっていません。",
+  "karmograph.said.bridge": "<b>{name}</b> が橋渡しです — 抜けると道が切れます。",
+  "karmograph.said.hub": "<b>{name}</b> が一番多くつながっています（{n}本）。",
+  "karmograph.said.dense": "{n}枚が均等につながっています — 目立つ偏りはありません。"
 }

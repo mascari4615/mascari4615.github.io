@@ -654,5 +654,14 @@
   "karmograph.drawer.g.toApp": "Into another app",
   "karmograph.linkStart.hint": "With a mouse, drag the dot on the card’s right edge onto another card.",
   "karmograph.saveFailed": "Could not save — this browser’s storage is full. Your latest edits live only in this tab.",
-  "karmograph.saveFailed.out": "Save to a file now"
+  "karmograph.saveFailed.out": "Save to a file now",
+  "karmograph.between.label": "Between these two (hops)",
+  "karmograph.between.none": "No path between them",
+  "karmograph.between.shared": "Linked to both:",
+  "karmograph.said.empty": "No links yet — connect cards and this will read the map for you.",
+  "karmograph.said.islands": "This map is in <b>{n} pieces</b> — some groups are not linked to the rest.",
+  "karmograph.said.lonely": "<b>{names}</b> and {n} card(s) are linked to nobody.",
+  "karmograph.said.bridge": "<b>{name}</b> is the bridge — remove it and the path breaks.",
+  "karmograph.said.hub": "<b>{name}</b> has the most links ({n}).",
+  "karmograph.said.dense": "{n} cards are evenly linked — nothing stands out."
 }
