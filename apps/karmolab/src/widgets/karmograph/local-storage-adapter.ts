@@ -120,7 +120,12 @@ export class KarmoGraphLocalStorageAdapter implements GraphPersistAdapter {
   /** 옛 저장본·손으로 고친 JSON 에 필드가 빠져 있어도 캔버스가 안 죽게. */
   private normalize(p: Partial<GraphSpec>): GraphSpec {
     const base = emptyGraphSpec();
+    /* ★ **적어 둔 것을 흘리지 않는다** (TASK-KL-271). 예전엔 아는 칸만 골라 담았는데, 그러면
+       나중에 생긴 칸(저장한 보기·시점·꾸미기 규칙…)이 **다시 열 때 조용히 사라진다** —
+       저장본에는 남아 있으니 아무도 못 알아챈다(실측: 「보기 저장」이 새로고침 한 번에 증발).
+       그래서 **통째로 가져오고**, 없어서는 안 되는 칸만 뒤에서 채운다. */
     return {
+      ...(p as GraphSpec),
       version: p.version ?? base.version,
       _meta: p._meta ?? base._meta,
       groups: p.groups ?? base.groups,

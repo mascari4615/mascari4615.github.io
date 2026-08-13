@@ -32,7 +32,7 @@ import { shouldOfferFocus } from './big-board';
 import { tableColumns, tableRows, sortRows, nextSort, type TableSort } from './table-view';
 import { ripenessOf, worthNudging } from './ripeness';
 import { printSheetHtml, isWide } from './print-sheet';
-import { stepTime, nextTimeName, forgetTime, type TimePoint } from './times';
+import { stepTime, nextTimeName, forgetTime, edgeAt, type TimePoint } from './times';
 import { readCardHtml } from './panels/read-panel';
 import { dropFromFront, roughBytes } from './history';
 import { measureStorage, humanBytes, WARN_RATIO } from './storage-health';
@@ -1758,6 +1758,7 @@ import {
           aria-label="${esc(t('karmograph.time.del'))}">✕</button>`;
       const goTo = (id: string): void => {
         spec._meta = { ...spec._meta, time: id };
+        canvas?.render();     // 렌즈만 바뀌었다 — 자료는 그대로라 다시 그리기만 하면 된다
         persistStructure();
         renderTimes();
       };
@@ -2226,6 +2227,16 @@ import {
 
     /** spec → 캔버스 반영 + 빈 상태 안내 동기화. */
     function applySpec(): void {
+      /* ★ **시점 렌즈** (TASK-KL-271 X2). 그릴 때만 선의 얼굴을 갈아 끼운다 — 자료는 그대로라
+         저장·되돌리기는 원본을 쓴다. 시점을 안 쓰는 판에서는 렌즈가 아무 일도 안 한다. */
+      if (canvas) {
+        canvas.edgeFace = (e) => {
+          const face = edgeAt(e, timeNow());
+          if (!face) return null;
+          return (face.label === (e.label ?? '') && face.kind === e.kind) ? e
+            : { ...e, label: face.label, kind: face.kind };
+        };
+      }
       canvas?.setSpec(spec);
       renderTimes();
       syncEmptyHint();
