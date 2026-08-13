@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
+import { RETIRED_OPERATION_IDS, withoutRetired } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const outDir = path.join(root, 'img/og');
@@ -113,8 +114,10 @@ const styleOf = (id) => (AURORA.has(id) ? 'aurora' : 'lab');
 
 /* 놀이·오늘의 판 카드도 여기 들어와야 그려진다 (TASK-KL-195). 예전에는 `hub` 만 손으로
    적혀 있어서, 새 특별 카드를 표에 넣어도 **아무도 안 그렸다** — 넣은 사람은 넣은 줄 안다. */
-const ids = (argIds.length ? argIds : ['default', ...Object.keys(SPECIAL_CARDS), ...Object.keys(seo)]).filter((id) => {
+const ids = (argIds.length ? argIds : ['default', ...Object.keys(SPECIAL_CARDS), ...withoutRetired(Object.keys(seo))]).filter((id) => {
   if (id === 'default' || SPECIAL_CARDS[id] || (seo[id] && widgetById[id])) return true;
+  /* 작업대로 흡수된 옛 도구는 낱개 위젯이 없다 — 카드도 안 그린다(주소만 원장에 남아 있다) */
+  if (RETIRED_OPERATION_IDS.has(id)) return false;
   console.error(`[gen-og-images] 알 수 없는 도구 id: ${id}`);
   process.exit(1);
 });
