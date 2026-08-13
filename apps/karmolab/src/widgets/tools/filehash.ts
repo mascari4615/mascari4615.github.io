@@ -6,6 +6,7 @@
  * 그래서 기대값을 붙여 넣으면 기계가 맞춰 준다. 파일은 브라우저 밖으로 나가지 않는다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { FILE_ALGOS as ALGOS, hashBytes, size, verify } from '../../core/filehash';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -54,10 +55,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           let hashes: Record<string, string> = {};
           let fileName = '';
 
-          const say = (m: string, kind = ''): void => {
-            status.textContent = m;
-            status.className = 'tool-status' + (kind ? ' ' + kind : '');
-          };
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          const say = statusLine(status);
 
           function render(): void {
             const want = expect.value.trim().toLowerCase().replace(/[^0-9a-f]/g, '');

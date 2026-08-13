@@ -11,6 +11,7 @@
  * 이미 잘 눌린 영상은 오히려 커질 수 있는데, 그때 줄었다고 우기지 않는다.
  */
 import { fileSize as size, mmss, download } from './shared/media';
+import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { acceptPastedFiles } from './shared/paste';
 import { pickRecordType, attachVideo } from './shared/video';
@@ -127,10 +128,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           let made: Blob | null = null;
           let recorder: MediaRecorder | null = null;
 
-          const say = (m: string, kind = ''): void => {
-            status.textContent = m;
-            status.className = 'tool-status' + (kind ? ' ' + kind : '');
-          };
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          const say = statusLine(status);
           const stat = (l: string, v: string, primary = false): string =>
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 

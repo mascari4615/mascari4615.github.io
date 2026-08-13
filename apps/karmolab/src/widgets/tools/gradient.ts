@@ -8,6 +8,7 @@
  * 사람 눈에 맞는 공간에서 섞으면 그 일이 없다 — 그 차이를 나란히 보여 준다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { statusLine } from './shared/say';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -108,10 +109,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           const angleEl = $<HTMLInputElement>('#grAngle');
           const status = $<HTMLElement>('#grStatus');
 
-          const say = (m: string, kind = ''): void => {
-            status.textContent = m;
-            status.className = 'tool-status' + (kind ? ' ' + kind : '');
-          };
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          const say = statusLine(status);
 
           /** 중간 색을 여러 개 끼워 넣는다 — 브라우저 기본 섞기의 탁함을 줄이는 흔한 방법이다. */
           function stops(perceptual: boolean, count: number): string[] {

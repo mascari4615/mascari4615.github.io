@@ -8,6 +8,7 @@
  * 적어 둔다: 믿음이 알맹이인 도구에서 그 근거가 안 보이면 값어치가 없다.
  */
 import { linkFor, open, packFile, parseLink, seal, unpackFile } from '../../lib/burn-note';
+import { statusLine } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -58,7 +59,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         </div>
         <div class="field-group" id="bnResult" style="display:none;">
           <div class="tool-sublabel">${esc(t('burnnote.label.link', undefined, '이 링크를 건네세요'))}</div>
-          <input type="text" id="bnLink" readonly aria-label="${esc(t('burnnote.label.link', undefined, '이 링크를 건네세요'))}" style="width:100%; font-family:var(--font-mono,monospace);">
+          <input type="text" id="bnLink" readonly style="width:100%; font-family:var(--font-mono,monospace);">
           <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
             <button class="btn" id="bnCopy">${esc(t('burnnote.btn.copy', undefined, '복사'))}</button>
           </div>
@@ -71,7 +72,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           <div class="tool-sublabel">${esc(t('burnnote.label.got', undefined, '받은 쪽지'))}</div>
           <p class="bn-warn">${esc(t('burnnote.note.warn', undefined, '지금 열면 사라집니다. 옮겨 적을 준비가 됐을 때 누르세요.'))}</p>
           <button class="btn btn-primary" id="bnOpen">${esc(t('burnnote.btn.open', undefined, '열기 (한 번뿐)'))}</button>
-          <textarea id="bnGot" rows="6" readonly aria-label="${esc(t('burnnote.label.got', undefined, '받은 쪽지'))}" style="width:100%; display:none; margin-top:10px;"></textarea>
+          <textarea id="bnGot" rows="6" readonly style="width:100%; display:none; margin-top:10px;"></textarea>
           <button class="btn btn-primary" id="bnSave" style="display:none; margin-top:10px;">${esc(t('burnnote.btn.save', undefined, '파일 받기'))}</button>
         </div>
       </div>
@@ -82,10 +83,9 @@ import { t, loadNamespace } from '../../lib/i18n';
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
     const status = $<HTMLElement>('#bnStatus');
-    const say = (m: string, kind = ''): void => {
-      status.textContent = m;
-      status.className = 'tool-status' + (kind ? ' ' + kind : '');
-    };
+    /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
+     * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+    const say = statusLine(status);
 
     injectStyles();
 
