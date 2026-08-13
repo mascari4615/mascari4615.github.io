@@ -124,7 +124,7 @@ try {
   await b.fill('#duName', '나');
 
   const joined = await a
-    .waitForFunction(() => /붙었다/.test(document.querySelector('#duStatus')?.textContent || ''), { timeout: CONNECT_MS })
+    .waitForFunction(() => /붙었다/.test(document.querySelector('#duStatus')?.textContent || ''), undefined, { timeout: CONNECT_MS })
     .then(() => true)
     .catch(() => false);
   if (!joined) {
@@ -170,7 +170,7 @@ try {
   const met = await Promise.all(
     [c, d].map((p) =>
       p
-        .waitForFunction(() => document.querySelectorAll('.du-choice').length > 0, { timeout: CONNECT_MS })
+        .waitForFunction(() => document.querySelectorAll('.du-choice').length > 0, undefined, { timeout: CONNECT_MS })
         .then(() => true)
         .catch(() => false)
     )
