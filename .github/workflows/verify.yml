@@ -15,8 +15,6 @@ name: verify
 on:
   push:
     branches: [master, main]
-  pull_request:
-    branches: [master, main]
   # 응급 manual trigger — KL-029 (PAT) 미해결 / Auto Merge 우회 등으로 master push
   # event 미발동 시점에 사용자/자동화가 master 검증 강제 호출 (`gh workflow run verify.yml --ref master`).
   # KL-029 해결 후엔 push trigger 정상 작동 → 본 trigger 는 응급 가치만 남음.
@@ -62,7 +60,7 @@ concurrency:
       || (github.event_name == 'push' && github.ref == 'refs/heads/master') && github.sha
       || github.ref
     }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref != 'refs/heads/master') }}
+  cancel-in-progress: ${{ github.event_name == 'push' && github.ref != 'refs/heads/master' }}
 
 jobs:
   verify:
@@ -131,11 +129,10 @@ jobs:
       - name: Install blog deps
         run: cd apps/blog && npm ci
 
-      # 화면을 실제로 열어 보는 검사들(성능 예산·커버리지·뒷정리·쉬는가)이 build 체인에 있다.
-      # `npm ci` 는 playwright 패키지만 깔고 **브라우저는 안 깐다** — 없으면 그 검사들이
-      # 「못 돌림」으로 빠져서, 조용히 아무것도 안 재는 CI 가 된다 (TASK-KL-201).
-      - name: Build karmolab
-        run: cd apps/karmolab && npm run build
+      # ★ **여기서 짓지 않는다** (2026-08-13). `npm run verify` 안에 `apps/karmolab build` 가
+      #   그대로 들어 있다 — 이 단계를 따로 두면 **같은 빌드를 두 번** 한다(각 8~10분).
+      #   한 판이 그렇게 두 배로 길어졌고, 여섯 판이 겹치면 판정이 아예 안 나왔다.
+      #   브라우저는 채비 action 이 깔아 두므로 verify 안의 화면 검사들도 그대로 돈다.
 
       # ★ **Rust 쪽은 이번 push 가 건드렸을 때만 잰다** (2026-08-13, 실측).
       #   `cargo check` 는 캐시가 차면 20분이 넘고, 45분에 끊긴 판은 **캐시를 저장하지도
