@@ -1,116 +1,764 @@
 {
   "id": "net-ip",
-  "minutes": 11,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "IP 주소는 **어디에 있는지**를 말한다. 그리고 대부분의 연결 사고는 「같은 동네인 줄 알았는데 아니었다」에서 온다."
-    },
-    {
-      "type": "h",
-      "text": "1. 공인과 사설"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "이 대역은 밖에서 안 보인다",
-      "text": "10.0.0.0/8        사설\n172.16.0.0/12     사설\n192.168.0.0/16    사설  ← 집 공유기가 주는 것\n127.0.0.1         나 자신\n169.254.x.x       주소를 못 받았다는 신호 (DHCP 실패)"
-    },
-    {
-      "type": "demo",
-      "kind": "js",
-      "label": "/ 뒤 숫자를 밀어 보라 — 대역이 얼마나 넓어지나",
-      "height": "200px",
-      "controls": [
+      "id": "1",
+      "title": "IP 는 「어디에 있는지」를 말한다",
+      "minutes": 8,
+      "blocks": [
         {
-          "id": "cidr",
-          "label": "접두 길이(/n)",
-          "type": "range",
-          "min": 8,
-          "max": 32,
-          "step": 1,
-          "value": 24
+          "type": "p",
+          "text": "IP 주소는 **어디에 있는지**를 말한다 — 인터넷 상의 위치. 그리고 대부분의 연결 사고는 **「같은 동네인 줄 알았는데 아니었다」**에서 온다. 「내 PC 는 되는데 다른 기기에선 안 됨」, 「사설망에선 되는데 밖에선 안 됨」 — 이런 것들이 다 「어느 대역(동네)에 있나」를 헷갈려 생긴다. IP 를 이해하면 이 사고들이 보인다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "두 기기 — 같은 동네인가",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .bits { display:flex; gap:2px; flex-wrap:wrap; margin:8px 0; font:10px ui-monospace; }\n  .bits .b { width:16px; height:18px; border-radius:3px; display:flex; align-items:center; justify-content:center; }\n  .bits .b.net { background:#0e7490; color:#fff; } .bits .b.host { background:#334155; color:#cbd5e1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const bitsView = (prefix) => { let h=''; for(let i=0;i<32;i++){ h+='<span class=\"b '+(i<prefix?'net':'host')+'\">'+(i<prefix?'N':'H')+'</span>'; if(i%8===7) h+='<span style=\"width:6px\"></span>'; } return '<div class=\"bits\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const same = '{{same}}' === 'yes';\n  render(same ? '같은 대역(동네)' : '다른 대역(동네)',\n    (same\n      ? '  192.168.0.5 와 192.168.0.77 (같은 192.168.0.x)\\n' +\n        '  <span class=\\\"ok\\\">직접 통신 가능 — 같은 네트워크라 바로 닿는다.</span>'\n      : '  192.168.0.5 와 10.0.0.9 (다른 대역)\\n' +\n        '  <span class=\\\"no\\\">직접 못 닿음 — 게이트웨이·라우터를 거쳐야(5장). 「같은 줄 알았는데」 사고.</span>'),\n    'IP = 인터넷 상의 위치. 연결 사고의 대부분은 「같은 동네인 줄 알았는데」.',\n    bars(same\n      ? [['같은 대역', 90, '직접 통신', '#4ade80']]\n      : [['다른 대역', 90, '라우터 필요', '#fca5a5']]));\n</script>",
+          "controls": [
+            {
+              "id": "same",
+              "label": "두 기기",
+              "type": "select",
+              "value": "no",
+              "options": [
+                {
+                  "value": "yes",
+                  "label": "같은 대역"
+                },
+                {
+                  "value": "no",
+                  "label": "다른 대역"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**IP 주소는 「네트워크 부분 + 호스트 부분」으로 나뉜다.** 앞부분은 「어느 동네(네트워크)」, 뒷부분은 「그 동네의 몇 호(호스트)」다. 두 기기의 **네트워크 부분이 같으면** 같은 동네라 직접 통신하고, 다르면 라우터를 거친다. 어디까지가 네트워크 부분인지를 정하는 게 서브넷 마스크·CIDR 이다(2장) — IP 를 읽는 핵심 기술이다."
+        },
+        {
+          "type": "p",
+          "text": "**IP 는 net-layers 의 인터넷 층 주소다(net-layers 3장).** 도메인(앱)→IP(인터넷)→포트(전송)→MAC(링크)의 그 IP — 「인터넷 상의 어느 기계」를 가리키고, 라우팅(경로 찾기)의 목적지다. DNS(net-dns)가 이름을 이 IP 로 바꾸고, 그 IP 로 패킷이 라우터들을 건너간다. 「어디에 있나」를 아는 것이 「어떻게 닿나」(라우팅, 5장)의 출발이다."
+        },
+        {
+          "type": "try",
+          "text": "네 기기의 IP·서브넷·게이트웨이를 확인하라(`ipconfig` / `ip addr`). 같은 와이파이의 다른 기기 IP 와 네트워크 부분이 같은지 보면, 「같은 동네」의 뜻이 잡힌다."
         }
       ],
-      "text": "const CIDR = {{cidr}};\nconst ip = [192, 168, 3, 77];\nconst bits = ip.map((o) => o.toString(2).padStart(8, '0')).join('');\nconst net = bits.slice(0, CIDR).padEnd(32, '0');\nconst bc = bits.slice(0, CIDR).padEnd(32, '1');\nconst toIp = (s) => [0, 1, 2, 3].map((i) => parseInt(s.slice(i * 8, i * 8 + 8), 2)).join('.');\nctx.clearRect(0, 0, W(), H());\nctx.font = '14px ui-monospace, monospace';\nbits.split('').forEach((b, i) => {\n  ctx.fillStyle = i < CIDR ? '#60a5fa' : '#374151';\n  ctx.fillRect(14 + i * 11, 26, 9, 18);\n});\nctx.fillStyle = '#eee'; ctx.font = '14px system-ui';\nctx.fillText('주소 ' + ip.join('.') + '/' + CIDR, 14, 20);\nctx.fillText('네트워크 ' + toIp(net) + '  ~  ' + toIp(bc), 14, 70);\nctx.fillStyle = '#9ca3af'; ctx.font = '13px system-ui';\nctx.fillText('쓸 수 있는 주소 ' + Math.max(0, 2 ** (32 - CIDR) - 2).toLocaleString() + '개 (파랑 = 고정 부분)', 14, 96);"
+      "quiz": [
+        {
+          "q": "IP 주소가 말하는 것은?",
+          "choices": [
+            "속도",
+            "인터넷 상의 위치(어디에 있나)",
+            "암호화",
+            "이름"
+          ],
+          "answer": 1,
+          "why": "연결 사고의 근원."
+        },
+        {
+          "q": "IP 주소의 두 부분은?",
+          "choices": [
+            "앞·뒤",
+            "네트워크 부분(동네) + 호스트 부분(몇 호)",
+            "공인·사설",
+            "IPv4·IPv6"
+          ],
+          "answer": 1,
+          "why": "같은 동네인지 가른다."
+        },
+        {
+          "q": "두 기기가 직접 통신하려면?",
+          "choices": [
+            "같은 포트",
+            "네트워크 부분이 같아야(같은 대역)",
+            "같은 이름",
+            "같은 MAC"
+          ],
+          "answer": 1,
+          "why": "다르면 라우터."
+        }
+      ]
     },
     {
-      "type": "h",
-      "text": "2. CIDR 읽기"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "/24 는 앞 24비트가 고정",
-      "text": "192.168.0.5/24\n  → 네트워크: 192.168.0.0 ~ 192.168.0.255\n  → 같은 대역: 192.168.0.77  ✅\n  → 다른 대역: 192.168.1.77  ❌ (라우터를 거쳐야 함)\n\n/16 = 6.5만 개 · /24 = 254 개 · /32 = 딱 한 대"
-    },
-    {
-      "type": "h",
-      "text": "3. 라우팅 — 모르면 위로 던진다"
-    },
-    {
-      "type": "p",
-      "text": "기기는 목적지가 **내 대역이면 직접**, 아니면 **기본 게이트웨이로** 보낸다. 게이트웨이도 같은 판단을 반복한다. 그래서 인터넷은 「전체 지도를 아는 사람 없이」 돌아간다."
-    },
-    {
-      "type": "h",
-      "text": "4. 자주 나는 사고"
-    },
-    {
-      "type": "note",
-      "text": "**서버가 127.0.0.1 에만 붙어 있다** → 다른 기기에서 안 보인다. `0.0.0.0` 에 바인딩해야 한다. 이게 「내 컴에선 되는데」의 가장 흔한 정체다."
-    },
-    {
-      "type": "h",
-      "text": "5. IPv6 한 줄"
-    },
-    {
-      "type": "p",
-      "text": "주소가 모자라 만든 128비트 주소다. 이미 모바일 회선 상당수가 IPv6 다. 내 서버가 IPv4 만 듣고 있으면 일부 사용자에게만 안 될 수 있다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "내 기기의 IP·서브넷·게이트웨이를 확인하고(`ipconfig` / `ip addr`), 같은 와이파이의 다른 기기와 같은 대역인지 계산하라."
-    },
-    {
-      "type": "try",
-      "text": "로컬 서버를 `0.0.0.0` 으로 띄우고 휴대폰에서 `http://<내IP>:<포트>` 로 접속해 보라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "192.168.0.5/24 와 같은 대역인 주소는?",
-      "choices": [
-        "192.168.0.200",
-        "192.168.1.5",
-        "10.0.0.5"
+      "id": "2",
+      "title": "CIDR 읽기 — 어디까지가 네트워크인가",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**CIDR** 표기(`192.168.0.5/24`)의 `/24` 는 「앞 **24비트**가 네트워크 부분」이란 뜻이다. 나머지(32−24=8비트)가 호스트 부분 — 그 동네에 2⁸=256개 주소. `/24` 는 `192.168.0.0 ~ 192.168.0.255` 가 같은 대역이다. 숫자가 클수록(/25·/26) 동네가 작고, 작을수록(/16·/8) 크다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "CIDR — 네트워크/호스트 경계를 밀어 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .bits { display:flex; gap:2px; flex-wrap:wrap; margin:8px 0; font:10px ui-monospace; }\n  .bits .b { width:16px; height:18px; border-radius:3px; display:flex; align-items:center; justify-content:center; }\n  .bits .b.net { background:#0e7490; color:#fff; } .bits .b.host { background:#334155; color:#cbd5e1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const bitsView = (prefix) => { let h=''; for(let i=0;i<32;i++){ h+='<span class=\"b '+(i<prefix?'net':'host')+'\">'+(i<prefix?'N':'H')+'</span>'; if(i%8===7) h+='<span style=\"width:6px\"></span>'; } return '<div class=\"bits\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const prefix = {{prefix}};\n  const hostBits = 32 - prefix;\n  const size = Math.pow(2, hostBits);\n  render('/' + prefix + '  (네트워크 ' + prefix + '비트 · 호스트 ' + hostBits + '비트)',\n    '  이 대역의 주소 수 = 2^' + hostBits + ' = ' + size.toLocaleString() + '개\\n' +\n    (prefix === 24 ? '  예: 192.168.0.0 ~ 192.168.0.255 (흔한 가정용 대역)\\n'\n     : prefix === 16 ? '  예: 192.168.0.0 ~ 192.168.255.255 (큰 사설망)\\n'\n     : prefix === 32 ? '  예: 딱 한 주소(호스트 하나)\\n'\n     : '  ') + '\\n' +\n    '  파란칸(N)=네트워크, 회색칸(H)=호스트. /' + prefix + ' 면 앞 ' + prefix + '칸이 네트워크.',\n    'CIDR /n = 앞 n비트가 네트워크. 클수록 작은 동네, 작을수록 큰 동네.',\n    bitsView(prefix) + '<div class=\\\"dim\\\" style=\\\"font:11px ui-monospace;margin-top:4px\\\">주소 ' +\n      size.toLocaleString() + '개</div>');\n</script>",
+          "controls": [
+            {
+              "id": "prefix",
+              "label": "CIDR 프리픽스(/n)",
+              "type": "range",
+              "min": 8,
+              "max": 32,
+              "step": 1,
+              "value": 24
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "CIDR 읽기",
+          "text": "192.168.0.5/24\n  → 네트워크: 192.168.0.0 ~ 192.168.0.255  (앞 24비트 고정)\n  → 같은 대역(동네) = 앞 3옥텟(192.168.0)이 같은 것\n\n/24 = 256개 · /16 = 65,536개 · /8 = 1600만개\n/25 = 128개 · /26 = 64개  (숫자↑ = 동네↓)\n\n두 IP 가 같은 대역인가 = 프리픽스 비트가 다 같은가"
+        },
+        {
+          "type": "note",
+          "text": "**서브넷 마스크는 CIDR 의 다른 표기다.** `/24` = `255.255.255.0`(앞 24비트가 1). 마스크와 IP 를 AND 하면 네트워크 주소가 나온다 — 이게 「어느 동네인지」 계산법이다. `ipconfig` 은 마스크로, 라우팅 표는 CIDR 로 보여 주지만 같은 것이다. 둘을 오가며 읽을 수 있으면 「이 두 IP 가 같은 대역인가」를 즉시 판단한다(4장)."
+        },
+        {
+          "type": "p",
+          "text": "**CIDR 은 「필요한 만큼만 나누기」다.** 옛날엔 A·B·C 클래스로 고정 크기였지만, CIDR 은 **임의 비트**로 나눠 낭비를 줄인다 — 30대만 있으면 `/27`(32개), 큰 조직은 `/16`. 클라우드에서 VPC·서브넷을 만들 때, 보안 그룹에서 「이 대역만 허용」할 때 CIDR 로 범위를 지정한다. 「몇 개가 필요한가 → 몇 비트를 호스트로」가 대역 설계다."
+        },
+        {
+          "type": "try",
+          "text": "네 서브넷 마스크를 CIDR 로 바꿔 보라(255.255.255.0 = /24). 같은 와이파이의 다른 기기가 그 대역 안에 드는지(네트워크 부분이 같은지) 계산해 확인하라."
+        }
       ],
-      "answer": 0,
-      "why": "/24 는 앞 세 자리가 같아야 한다."
+      "quiz": [
+        {
+          "q": "`/24` 가 뜻하는 것은?",
+          "choices": [
+            "24개 주소",
+            "앞 24비트가 네트워크 부분(256개 주소)",
+            "24번 포트",
+            "24ms"
+          ],
+          "answer": 1,
+          "why": "나머지 8비트가 호스트."
+        },
+        {
+          "q": "CIDR 숫자가 클수록(/26 vs /16)?",
+          "choices": [
+            "큰 동네",
+            "작은 동네(주소 적음)",
+            "빠름",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "네트워크 비트가 많다."
+        },
+        {
+          "q": "두 IP 가 같은 대역인지 계산하는 것은?",
+          "choices": [
+            "포트",
+            "서브넷 마스크(CIDR)로 네트워크 부분 비교",
+            "이름",
+            "TTL"
+          ],
+          "answer": 1,
+          "why": "프리픽스 비트가 같은가."
+        }
+      ]
     },
     {
-      "q": "다른 기기에서 내 로컬 서버가 안 보이는 흔한 이유는?",
-      "choices": [
-        "127.0.0.1 에만 바인딩했다",
-        "IP 가 짧다",
-        "포트 번호가 크다"
+      "id": "3",
+      "title": "공인과 사설",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "IP 는 **공인**(인터넷에서 유일·라우팅됨)과 **사설**(내부망 전용, 인터넷에 안 나감)로 나뉜다. 사설 대역: `10.0.0.0/8` · `172.16.0.0/12` · `192.168.0.0/16`. 집·회사의 기기는 대개 사설 IP 를 쓰고, 공유기(라우터)가 하나의 공인 IP 뒤에서 **NAT** 로 인터넷에 나간다(net-nat). 「내부에선 되는데 밖에선 안 됨」이 여기서 온다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "이 IP — 공인인가 사설인가",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .bits { display:flex; gap:2px; flex-wrap:wrap; margin:8px 0; font:10px ui-monospace; }\n  .bits .b { width:16px; height:18px; border-radius:3px; display:flex; align-items:center; justify-content:center; }\n  .bits .b.net { background:#0e7490; color:#fff; } .bits .b.host { background:#334155; color:#cbd5e1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const bitsView = (prefix) => { let h=''; for(let i=0;i<32;i++){ h+='<span class=\"b '+(i<prefix?'net':'host')+'\">'+(i<prefix?'N':'H')+'</span>'; if(i%8===7) h+='<span style=\"width:6px\"></span>'; } return '<div class=\"bits\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const ip = '{{ip}}';\n  const cases = {\n    home:    ['192.168.0.77', true, '가정용 사설(192.168.x) — 인터넷에 안 나감'],\n    ten:     ['10.0.3.5', true, '큰 사설망(10.x) — 회사·클라우드 내부'],\n    seven:   ['172.16.5.9', true, '사설(172.16~31.x)'],\n    public:  ['203.0.113.10', false, '공인 — 인터넷에서 라우팅되는 유일 주소'],\n    loopback:['127.0.0.1', 'special', '루프백 — 내 기기 자신(밖으로 안 나감, 7장)'],\n  }[ip];\n  const priv = cases[1] === true;\n  render('IP: ' + cases[0],\n    '  종류 = ' + (priv ? '<span class=\\\"warn\\\">사설(내부망 전용)</span>'\n      : cases[1] === 'special' ? '<span class=\\\"dim\\\">특수(루프백)</span>'\n      : '<span class=\\\"ok\\\">공인(인터넷)</span>') + '\\n\\n  ' + cases[2] + '\\n\\n' +\n    (priv ? '  인터넷에 나가려면 NAT 로 공인 IP 뒤에 숨어야 한다(net-nat).' : ''),\n    '사설(10·172.16·192.168)은 내부 전용, 공인은 인터넷 유일. NAT 가 잇는다.',\n    box(cases[0], cases[2], priv ? 'bad' : cases[1] === 'special' ? '' : 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "ip",
+              "label": "IP",
+              "type": "select",
+              "value": "home",
+              "options": [
+                {
+                  "value": "home",
+                  "label": "192.168.0.77"
+                },
+                {
+                  "value": "ten",
+                  "label": "10.0.3.5"
+                },
+                {
+                  "value": "seven",
+                  "label": "172.16.5.9"
+                },
+                {
+                  "value": "public",
+                  "label": "203.0.113.10"
+                },
+                {
+                  "value": "loopback",
+                  "label": "127.0.0.1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "공인과 사설",
+          "text": "10.0.0.0/8        사설 (큰 내부망 — 클라우드·회사)\n172.16.0.0/12     사설\n192.168.0.0/16    사설 (가정용 흔함)\n\n그 외 대부분      공인 (인터넷에서 유일·라우팅)\n127.0.0.0/8       루프백 (내 기기 자신, 7장)\n\n=> 사설끼리는 여러 망에서 겹친다(집집마다 192.168.0.1). 인터넷엔 NAT 로."
+        },
+        {
+          "type": "note",
+          "text": "**사설 IP 는 여러 망에서 겹친다 — 그래서 인터넷에 못 나간다.** 온 세상 집이 `192.168.0.1` 을 게이트웨이로 쓴다 — 유일하지 않으니 인터넷에서 목적지가 될 수 없다. 사설 기기가 인터넷에 나가려면 라우터가 **NAT** 로 사설 IP 를 공인 IP 로 바꿔 준다(net-nat). 「내 서버의 사설 IP 를 외부에 알려줬는데 안 됨」은 사설이 밖에서 안 보이기 때문이다."
+        },
+        {
+          "type": "p",
+          "text": "**「내부에선 되는데 밖에선 안 됨」의 정체.** 개발 서버를 `192.168.0.5:3000` 으로 띄우면 같은 와이파이(같은 사설망)에선 되지만, 인터넷 밖에선 그 사설 IP 로 못 닿는다 — NAT·포트포워딩·터널(ngrok 등)이 필요하다. 반대로 클라우드 서버는 공인 IP 가 있어 밖에서 닿지만, 보안 그룹(방화벽)이 포트를 막으면 또 안 된다. 공인/사설과 방화벽을 함께 봐야 한다."
+        },
+        {
+          "type": "try",
+          "text": "네 기기 IP 가 사설 대역(10·172.16·192.168)인지 확인하라. 「내 공인 IP」(whatismyip 등)와 비교하면, 사설 IP 뒤에서 공인 IP 로 나가는 구조(NAT)가 보인다."
+        }
       ],
-      "answer": 0,
-      "why": "0.0.0.0 으로 열어야 외부 인터페이스에서 보인다."
+      "quiz": [
+        {
+          "q": "사설 IP 대역이 아닌 것은?",
+          "choices": [
+            "10.0.0.0/8",
+            "192.168.0.0/16",
+            "203.0.113.0/24",
+            "172.16.0.0/12"
+          ],
+          "answer": 2,
+          "why": "203.x 는 공인."
+        },
+        {
+          "q": "사설 IP 가 인터넷에 못 나가는 이유는?",
+          "choices": [
+            "느려서",
+            "여러 망에서 겹쳐 유일하지 않음 — NAT 로 나감",
+            "암호화",
+            "포트"
+          ],
+          "answer": 1,
+          "why": "net-nat."
+        },
+        {
+          "q": "「내부에선 되는데 밖에선 안 됨」의 흔한 원인은?",
+          "choices": [
+            "서버 버그",
+            "사설 IP 는 밖에서 안 보임(NAT·포트포워딩 필요)",
+            "DNS",
+            "TLS"
+          ],
+          "answer": 1,
+          "why": "공인/사설 구분."
+        }
+      ]
     },
     {
-      "q": "169.254.x.x 주소가 잡혔다면?",
-      "choices": [
-        "DHCP 로 주소를 못 받았다는 신호",
-        "공인 IP 를 받았다",
-        "IPv6 로 붙었다"
+      "id": "4",
+      "title": "같은 대역인가 — 판단이 라우팅을 정한다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "기기는 목적지 IP 가 **내 대역(같은 동네)이면 직접**, 아니면 **게이트웨이로** 보낸다. 이 판단은 **서브넷 마스크**로 한다: 내 IP·마스크와 목적지 IP·마스크의 네트워크 부분이 같으면 같은 동네다. 마스크가 틀리면 같은 동네를 다른 동네로 오판해 「바로 옆인데 안 닿는」 사고가 난다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "같은 대역 판단 — 마스크에 달렸다",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .bits { display:flex; gap:2px; flex-wrap:wrap; margin:8px 0; font:10px ui-monospace; }\n  .bits .b { width:16px; height:18px; border-radius:3px; display:flex; align-items:center; justify-content:center; }\n  .bits .b.net { background:#0e7490; color:#fff; } .bits .b.host { background:#334155; color:#cbd5e1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const bitsView = (prefix) => { let h=''; for(let i=0;i<32;i++){ h+='<span class=\"b '+(i<prefix?'net':'host')+'\">'+(i<prefix?'N':'H')+'</span>'; if(i%8===7) h+='<span style=\"width:6px\"></span>'; } return '<div class=\"bits\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mask = {{mask}};                 // 프리픽스\n  const myIp = [192, 168, 1, 10];\n  const target = [192, 168, 2, 20];      // 세 번째 옥텟이 다름\n  // /24 면 다른 대역(1 vs 2), /16 이면 같은 대역\n  const sameNet = mask <= 16;\n  render('내 192.168.1.10/' + mask + ' → 목적지 192.168.2.20',\n    '  같은 대역? = ' + (sameNet\n      ? '<span class=\\\"ok\\\">예 (/' + mask + ' 는 앞 ' + mask + '비트만 보니 192.168 까지 같으면 같은 동네)</span> → 직접 전송'\n      : '<span class=\\\"warn\\\">아니오 (/' + mask + ' 는 192.168.1 vs 192.168.2 가 달라 다른 동네)</span> → 게이트웨이로') + '\\n\\n' +\n    '  같은 IP 쌍이라도 마스크에 따라 판단이 갈린다 — 마스크가 틀리면 오판.',\n    '같은 대역 판단 = 서브넷 마스크. 마스크가 틀리면 옆 기기도 못 닿는다.',\n    steps([\n      ['목적지가 내 대역인가? (마스크로 계산)', 'on'],\n      [sameNet ? '같은 동네 → 직접 전송(ARP 로 MAC 찾아)' : '다른 동네 → 기본 게이트웨이로', sameNet ? 'good' : ''],\n      ['게이트웨이가 또 같은 판단 반복(5장)', sameNet ? '' : 'on']]));\n</script>",
+          "controls": [
+            {
+              "id": "mask",
+              "label": "서브넷 마스크(/n)",
+              "type": "range",
+              "min": 8,
+              "max": 30,
+              "step": 1,
+              "value": 24
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**서브넷 마스크 오설정이 「옆인데 안 닿는」 사고를 만든다.** 같은 스위치에 꽂힌 두 기기라도, 마스크를 틀리게 설정해 서로를 「다른 동네」로 보면 직접 통신 대신 게이트웨이로 보내다 실패한다. 「핑이 안 가는데 케이블은 멀쩡」이면 IP·마스크를 의심한다 — 물리(링크)는 정상인데 논리(IP 대역 판단)가 틀린 것이다(net-layers 의 층 구분)."
+        },
+        {
+          "type": "p",
+          "text": "**직접 전송은 MAC 을 알아야 한다(ARP).** 같은 동네로 판단되면, IP 로 보내기 전에 「그 IP 의 MAC 주소」를 ARP 로 물어본다(net-layers 3장 링크 층 주소). 같은 대역 안에서만 ARP 가 통하니, 대역 판단이 맞아야 MAC 을 찾고 프레임을 보낸다. 「같은 동네 → ARP 로 MAC → 직접」, 「다른 동네 → 게이트웨이 MAC → 위로」의 두 갈래가 IP 통신의 기본 흐름이다."
+        },
+        {
+          "type": "try",
+          "text": "같은 와이파이 두 기기가 서로 핑이 되는지 확인하라. 안 되면 서브넷 마스크가 같은지(같은 대역으로 보는지) 점검하라 — 물리는 같은데 논리가 갈렸을 수 있다."
+        }
       ],
-      "answer": 0,
-      "why": "자동 할당(APIPA) 이며 대개 연결 실패를 뜻한다."
+      "quiz": [
+        {
+          "q": "목적지가 같은 대역인지 판단하는 것은?",
+          "choices": [
+            "포트",
+            "서브넷 마스크(네트워크 부분 비교)",
+            "이름",
+            "TTL"
+          ],
+          "answer": 1,
+          "why": "직접 vs 게이트웨이."
+        },
+        {
+          "q": "서브넷 마스크를 틀리게 설정하면?",
+          "choices": [
+            "빠름",
+            "같은 동네를 다른 동네로 오판 — 옆인데 안 닿음",
+            "안전",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "논리가 틀린다."
+        },
+        {
+          "q": "같은 대역으로 직접 보낼 때 필요한 것은?",
+          "choices": [
+            "DNS",
+            "ARP 로 그 IP 의 MAC 찾기",
+            "게이트웨이",
+            "포트"
+          ],
+          "answer": 1,
+          "why": "링크 층 주소."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "라우팅 — 모르면 위로 던진다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "라우팅의 규칙은 단순하다: **목적지가 내가 아는 대역이면 그쪽으로, 모르면 기본 게이트웨이(default gateway)로 던진다.** 게이트웨이(라우터)도 **같은 판단을 반복** — 자기가 아는 대역이면 그쪽, 모르면 자기 위로. 이렇게 「모르면 위로」가 이어지며 패킷이 인터넷을 건넌다. 아무도 전체 경로를 모르고, 각자 「다음 한 홉」만 안다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "라우팅 — 홉을 따라간다",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .bits { display:flex; gap:2px; flex-wrap:wrap; margin:8px 0; font:10px ui-monospace; }\n  .bits .b { width:16px; height:18px; border-radius:3px; display:flex; align-items:center; justify-content:center; }\n  .bits .b.net { background:#0e7490; color:#fff; } .bits .b.host { background:#334155; color:#cbd5e1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const bitsView = (prefix) => { let h=''; for(let i=0;i<32;i++){ h+='<span class=\"b '+(i<prefix?'net':'host')+'\">'+(i<prefix?'N':'H')+'</span>'; if(i%8===7) h+='<span style=\"width:6px\"></span>'; } return '<div class=\"bits\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = {{step}};\n  const hops = [\n    ['내 PC: 목적지가 내 대역? 아니오 → 게이트웨이로', ''],\n    ['홈 라우터: 내가 아는 대역? 아니오 → ISP 로', ''],\n    ['ISP 라우터: 목적지 방향을 알아 → 그쪽 라우터로', ''],\n    ['... 여러 라우터가 각자 「다음 한 홉」만 결정 ...', ''],\n    ['목적지 대역의 라우터: 이제 내 대역! → 서버로 직접', 'good'],\n  ];\n  const view = hops.map((r, i) => [r[0], i === s ? 'on' : (i < s ? 'good' : (r[1] || ''))]);\n  render('라우팅 — 홉 ' + (s+1) + '/5',\n    '  각 라우터는 <span class=\\\"warn\\\">전체 경로가 아니라 「다음 한 홉」만</span> 안다.\\n' +\n    '  「내가 아는 대역이면 그쪽, 모르면 위로」를 반복 — 그래서 패킷이 인터넷을 건넌다.',\n    '목적지가 내 대역이면 직접, 모르면 게이트웨이로. 각자 다음 한 홉만 안다.',\n    steps(view));\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "홉",
+              "type": "range",
+              "min": 0,
+              "max": 4,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**아무도 전체 경로를 모른다 — 각자 「다음 한 홉」만 안다.** 이 분산 구조가 인터넷 규모를 감당한다(net-dns 의 계층 위임과 같은 발상). 라우터는 라우팅 표에 「이 대역은 저 방향」을 갖고, 모르는 목적지는 기본 경로(위)로 넘긴다. 라우터끼리 경로 정보를 교환해(BGP 등) 표를 채우지만, 개별 라우터는 여전히 국소적 결정만 한다 — 전역 지식 없이 전역 전달이 이뤄진다."
+        },
+        {
+          "type": "p",
+          "text": "**`traceroute`(`tracert`)가 이 홉들을 보여 준다(net-diag).** 목적지까지 거치는 라우터를 하나씩 찍어, 「어디서 느려지거나 막히는지」를 층으로 본다. 「중간 어느 홉부터 응답이 없음」이면 그 지점의 네트워크 문제다. 라우팅을 이해하면 traceroute 출력이 「패킷이 이 경로로 가다 여기서 막혔다」로 읽힌다 — 추상적 라우팅이 구체적 경로가 된다."
+        },
+        {
+          "type": "try",
+          "text": "`tracert google.com`(Windows) / `traceroute google.com` 으로 목적지까지의 홉들을 보라. 내 게이트웨이 → ISP → 그 너머로 이어지는 「다음 한 홉」의 연쇄를 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "라우팅의 기본 규칙은?",
+          "choices": [
+            "전체 경로 계산",
+            "아는 대역이면 그쪽, 모르면 기본 게이트웨이로",
+            "무작위",
+            "가장 빠른 길"
+          ],
+          "answer": 1,
+          "why": "다음 한 홉만."
+        },
+        {
+          "q": "개별 라우터가 아는 것은?",
+          "choices": [
+            "전체 경로",
+            "다음 한 홉(국소적 결정)",
+            "목적지 이름",
+            "포트"
+          ],
+          "answer": 1,
+          "why": "전역 지식 없이 전역 전달."
+        },
+        {
+          "q": "홉들을 눈으로 보는 도구는?",
+          "choices": [
+            "ping",
+            "traceroute/tracert",
+            "dig",
+            "openssl"
+          ],
+          "answer": 1,
+          "why": "어디서 막히는지."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "자주 나는 사고 — 0.0.0.0 바인딩",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "개발에서 가장 흔한 IP 사고: **서버가 `127.0.0.1` 에만 붙어 있다** → 다른 기기에서 안 보인다. `127.0.0.1`(localhost)은 **내 기기 자신**만 가리키니, 같은 기기의 브라우저는 되지만 휴대폰·다른 PC 는 못 닿는다. 모든 인터페이스에서 받으려면 **`0.0.0.0`** 에 바인딩해야 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "바인딩 주소 — 누가 접속 가능한가",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .bits { display:flex; gap:2px; flex-wrap:wrap; margin:8px 0; font:10px ui-monospace; }\n  .bits .b { width:16px; height:18px; border-radius:3px; display:flex; align-items:center; justify-content:center; }\n  .bits .b.net { background:#0e7490; color:#fff; } .bits .b.host { background:#334155; color:#cbd5e1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const bitsView = (prefix) => { let h=''; for(let i=0;i<32;i++){ h+='<span class=\"b '+(i<prefix?'net':'host')+'\">'+(i<prefix?'N':'H')+'</span>'; if(i%8===7) h+='<span style=\"width:6px\"></span>'; } return '<div class=\"bits\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const bind = '{{bind}}';\n  const all = bind === '0.0.0.0';\n  render('서버 바인딩: ' + bind + ':3000',\n    (all\n      ? '  0.0.0.0 = 모든 인터페이스에서 받음\\n' +\n        '  <span class=\\\"ok\\\">내 기기 O · 같은 와이파이 휴대폰 O(http://내IP:3000)</span>\\n' +\n        '  단, 그만큼 노출되니 방화벽·인증 확인.'\n      : '  127.0.0.1 = 내 기기 자신만\\n' +\n        '  <span class=\\\"no\\\">내 기기 O · 다른 기기 X(휴대폰에서 안 보임) — 가장 흔한 「왜 안 보이지」.</span>'),\n    '127.0.0.1 은 내 기기만. 다른 기기에서 받으려면 0.0.0.0 에 바인딩.',\n    steps([\n      ['내 기기 브라우저', 'good'],\n      ['같은 와이파이 다른 기기', all ? 'good' : 'bad'],\n      ['인터넷 밖(공인)', 'bad']]));\n</script>",
+          "controls": [
+            {
+              "id": "bind",
+              "label": "바인딩 주소",
+              "type": "select",
+              "value": "127.0.0.1",
+              "options": [
+                {
+                  "value": "127.0.0.1",
+                  "label": "127.0.0.1(자신만)"
+                },
+                {
+                  "value": "0.0.0.0",
+                  "label": "0.0.0.0(모두)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**서버가 127.0.0.1 에만 붙어 있으면 다른 기기에서 안 보인다 → `0.0.0.0` 에 바인딩해야 한다.** 많은 개발 서버가 기본으로 `localhost`(127.0.0.1)에 붙어, 「내 PC 는 되는데 휴대폰 테스트가 안 되는」 사고를 만든다. `--host 0.0.0.0` 이나 설정으로 모든 인터페이스에서 받게 하면, 같은 네트워크의 다른 기기가 `http://<내 사설IP>:<포트>` 로 접속한다."
+        },
+        {
+          "type": "p",
+          "text": "**0.0.0.0 은 「받는 쪽」의 와일드카드다 — 목적지 주소가 아니다.** `0.0.0.0` 에 바인딩 = 「이 기기의 어느 IP 로 오든 다 받겠다」는 뜻이지, `0.0.0.0` 으로 접속하는 게 아니다. 접속은 실제 IP(사설이면 사설, 공인이면 공인)로 한다. 그리고 0.0.0.0 바인딩은 그만큼 노출되니, 방화벽·인증(api-authz)이 받쳐야 안전하다 — 편의와 노출의 트레이드오프다."
+        },
+        {
+          "type": "try",
+          "text": "로컬 서버를 `0.0.0.0` 으로 띄우고 휴대폰에서 `http://<내 사설IP>:<포트>` 로 접속해 보라. 127.0.0.1 로 띄웠을 때와 비교하면 바인딩 주소의 차이가 체감된다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "서버가 127.0.0.1 에만 붙으면?",
+          "choices": [
+            "모두 접속",
+            "내 기기 자신만 — 다른 기기 안 보임",
+            "인터넷 공개",
+            "빠름"
+          ],
+          "answer": 1,
+          "why": "0.0.0.0 이 필요."
+        },
+        {
+          "q": "다른 기기에서 접속받으려면?",
+          "choices": [
+            "127.0.0.1",
+            "0.0.0.0(모든 인터페이스)에 바인딩",
+            "포트 변경",
+            "DNS"
+          ],
+          "answer": 1,
+          "why": "받는 와일드카드."
+        },
+        {
+          "q": "0.0.0.0 바인딩 시 주의점은?",
+          "choices": [
+            "없음",
+            "노출되니 방화벽·인증으로 받쳐야",
+            "느림",
+            "포트 부족"
+          ],
+          "answer": 1,
+          "why": "편의와 노출 트레이드오프."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "특수 주소 — localhost 와 그 친구들",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "몇몇 IP 는 **특수한 뜻**이다. `127.0.0.1`(localhost)=**내 기기 자신**(밖으로 안 나감) · `0.0.0.0`=바인딩 시 「모든 인터페이스」/경로에선 「기본 경로」 · `255.255.255.255`=브로드캐스트(같은 대역 전체) · `169.254.x.x`=DHCP 실패 시 자동 할당(주소를 못 받았다는 신호). 이 이름들을 알면 증상이 바로 읽힌다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "특수 주소 — 무슨 뜻인가",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .bits { display:flex; gap:2px; flex-wrap:wrap; margin:8px 0; font:10px ui-monospace; }\n  .bits .b { width:16px; height:18px; border-radius:3px; display:flex; align-items:center; justify-content:center; }\n  .bits .b.net { background:#0e7490; color:#fff; } .bits .b.host { background:#334155; color:#cbd5e1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const bitsView = (prefix) => { let h=''; for(let i=0;i<32;i++){ h+='<span class=\"b '+(i<prefix?'net':'host')+'\">'+(i<prefix?'N':'H')+'</span>'; if(i%8===7) h+='<span style=\"width:6px\"></span>'; } return '<div class=\"bits\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const a = '{{addr}}';\n  const cases = {\n    loopback:['127.0.0.1 (localhost)', '내 기기 자신 — 네트워크로 안 나감', '자기 자신과 통신·로컬 테스트'],\n    any:     ['0.0.0.0', '바인딩=모든 인터페이스 / 경로=기본 경로', '서버가 모든 IP 로 받게(6장)'],\n    broadcast:['255.255.255.255', '같은 대역 전체에 뿌림(브로드캐스트)', 'DHCP·발견 프로토콜'],\n    apipa:   ['169.254.x.x', 'DHCP 로 주소를 못 받아 자동 할당', '<span class=\\\"no\\\">이 주소면 = 네트워크 설정 실패 신호!</span>'],\n  }[a];\n  render('특수 주소: ' + cases[0],\n    '  뜻: ' + cases[1] + '\\n  쓰임: ' + cases[2] + '\\n\\n' +\n    (a === 'apipa'\n      ? '  169.254 가 보이면 DHCP 실패 — 케이블·와이파이·DHCP 서버를 확인하라.'\n      : '  이름을 알면 증상이 바로 읽힌다.'),\n    '127.0.0.1=자신·0.0.0.0=모두/기본·255...=브로드캐스트·169.254=DHCP 실패.',\n    box(cases[0], cases[1], a === 'apipa' ? 'bad' : ''));\n</script>",
+          "controls": [
+            {
+              "id": "addr",
+              "label": "특수 주소",
+              "type": "select",
+              "value": "loopback",
+              "options": [
+                {
+                  "value": "loopback",
+                  "label": "127.0.0.1"
+                },
+                {
+                  "value": "any",
+                  "label": "0.0.0.0"
+                },
+                {
+                  "value": "broadcast",
+                  "label": "255.255.255.255"
+                },
+                {
+                  "value": "apipa",
+                  "label": "169.254.x.x"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**169.254.x.x 가 보이면 「주소를 못 받았다」는 확실한 신호다.** 기기는 보통 DHCP 로 IP 를 자동 할당받는데(공유기가 나눠 줌), DHCP 서버에 못 닿으면 스스로 `169.254.x.x`(링크-로컬)를 붙인다 — 「네트워크에 붙긴 했는데 주소를 못 받은」 상태다. 인터넷이 안 되면서 IP 가 169.254 면, 서버·앱이 아니라 **네트워크 연결·DHCP** 문제다(net-layers 의 아래 층)."
+        },
+        {
+          "type": "p",
+          "text": "**`localhost` 는 이름이고 `127.0.0.1` 은 그 주소다.** `localhost` 는 hosts 파일·시스템이 `127.0.0.1`(과 IPv6 `::1`)로 해석하는 이름이다(net-dns). 그래서 `localhost` 가 IPv6 `::1` 로 먼저 풀려서, IPv4 만 듣는 서버에 「연결 거부」가 나기도 한다 — `127.0.0.1` 로 직접 치면 되는데 `localhost` 는 안 되는 미묘한 사고. 이름과 주소, IPv4/IPv6 를 구분하면 풀린다(8장)."
+        },
+        {
+          "type": "try",
+          "text": "네 기기 IP 가 169.254.x.x 인 적이 있었는지, 있었다면 인터넷이 안 됐는지 떠올려라. `127.0.0.1` 과 `localhost` 로 각각 로컬 서버에 접속해 차이(IPv6 해석)가 있는지도 시험하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "127.0.0.1(localhost)의 뜻은?",
+          "choices": [
+            "인터넷",
+            "내 기기 자신(네트워크로 안 나감)",
+            "게이트웨이",
+            "브로드캐스트"
+          ],
+          "answer": 1,
+          "why": "로컬 테스트."
+        },
+        {
+          "q": "169.254.x.x 주소가 뜻하는 것은?",
+          "choices": [
+            "정상",
+            "DHCP 로 주소를 못 받은 실패 신호",
+            "공인 IP",
+            "빠름"
+          ],
+          "answer": 1,
+          "why": "네트워크 문제."
+        },
+        {
+          "q": "`localhost` 는 되는데 `127.0.0.1` 만 되는 미묘한 사고 원인은?",
+          "choices": [
+            "포트",
+            "localhost 가 IPv6(::1)로 풀려 IPv4 서버에 연결 거부",
+            "DNS 만료",
+            "TLS"
+          ],
+          "answer": 1,
+          "why": "이름·주소·IPv4/6 구분."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "IPv6 — 주소가 모자라서",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "IPv4(32비트, 약 43억 개)는 **주소가 모자라** 만든 게 IPv6(**128비트**, 사실상 무한)다. 이미 **모바일 회선 상당수가 IPv6** 다. 내 서버가 IPv4 만 듣고 있으면 IPv6 로 오는 사용자가 못 닿을 수 있다. IPv6 는 `2001:db8::1` 처럼 콜론 표기 — 길지만 「같은 IP, 더 넓은 주소 공간」일 뿐 개념은 같다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "IPv4 vs IPv6 — 무엇이 다른가",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .bits { display:flex; gap:2px; flex-wrap:wrap; margin:8px 0; font:10px ui-monospace; }\n  .bits .b { width:16px; height:18px; border-radius:3px; display:flex; align-items:center; justify-content:center; }\n  .bits .b.net { background:#0e7490; color:#fff; } .bits .b.host { background:#334155; color:#cbd5e1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const bitsView = (prefix) => { let h=''; for(let i=0;i<32;i++){ h+='<span class=\"b '+(i<prefix?'net':'host')+'\">'+(i<prefix?'N':'H')+'</span>'; if(i%8===7) h+='<span style=\"width:6px\"></span>'; } return '<div class=\"bits\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const v = '{{ver}}';\n  const cases = {\n    space:  ['주소 공간', 'IPv4: 43억(고갈) / IPv6: 3.4×10^38(사실상 무한)', 'IPv6 는 고갈 걱정 없음'],\n    notation:['표기', 'IPv4: 192.168.0.1 / IPv6: 2001:db8::1(콜론·16진)', '::는 0 연속 생략'],\n    nat:    ['NAT', 'IPv4: 주소 부족으로 NAT 필수 / IPv6: 넉넉해 NAT 불필요', 'IPv6 는 기기마다 공인 주소 가능'],\n    dual:   ['공존', '둘을 동시에(듀얼 스택) — 대부분 이렇게', 'A(v4)와 AAAA(v6) 둘 다 등록(net-dns)'],\n  }[v];\n  render('IPv6 관점: ' + cases[0],\n    '  ' + cases[1] + '\\n  메모: ' + cases[2] + '\\n\\n' +\n    '  개념은 IPv4 와 같다 — 「어디에 있나」의 주소, 더 넓은 공간.',\n    'IPv6 = 128비트 주소(고갈 해결). 모바일 상당수가 이미 IPv6. 개념은 동일.',\n    box(cases[0], cases[1], v === 'nat' || v === 'dual' ? 'good' : ''));\n</script>",
+          "controls": [
+            {
+              "id": "ver",
+              "label": "관점",
+              "type": "select",
+              "value": "space",
+              "options": [
+                {
+                  "value": "space",
+                  "label": "주소 공간"
+                },
+                {
+                  "value": "notation",
+                  "label": "표기"
+                },
+                {
+                  "value": "nat",
+                  "label": "NAT"
+                },
+                {
+                  "value": "dual",
+                  "label": "공존(듀얼 스택)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**내 서버가 IPv4 만 듣고 있으면 IPv6 사용자가 못 닿을 수 있다.** 모바일·최신 네트워크가 IPv6 를 쓰는데 서버가 IPv4(A 레코드)만 있으면, 그 사용자는 우회(IPv4 로 폴백)하거나 실패한다. 서버를 **듀얼 스택**(IPv4+IPv6 둘 다 듣기)으로 두고 DNS 에 A(v4)·AAAA(v6)를 다 등록하면(net-dns 3장) 양쪽 다 받는다. 대부분의 현대 인프라·CDN 이 이걸 기본 제공한다."
+        },
+        {
+          "type": "p",
+          "text": "**IPv6 는 NAT 를 없앨 수 있다.** IPv4 는 주소 부족 때문에 NAT(사설→공인 변환, net-nat)가 필수였지만, IPv6 는 주소가 넉넉해 **기기마다 공인 주소**를 줄 수 있다 — NAT 없이 직접 연결. 이는 P2P·서버 노출을 단순하게 하지만, 「사설 뒤에 숨는」 기본 보호가 없어져 방화벽이 더 중요해진다(sec). 「주소가 많다」가 구조를 바꾼다."
+        },
+        {
+          "type": "try",
+          "text": "네 서버·도메인이 IPv6(AAAA 레코드)를 지원하는지 `dig AAAA 도메인` 으로 확인하라(net-dns). 없으면 IPv6 사용자가 우회하거나 못 닿을 수 있으니 듀얼 스택을 검토하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "IPv6 를 만든 이유는?",
+          "choices": [
+            "속도",
+            "IPv4 주소 고갈(43억으로 부족)",
+            "암호화",
+            "포트 부족"
+          ],
+          "answer": 1,
+          "why": "128비트 = 사실상 무한."
+        },
+        {
+          "q": "서버가 IPv4 만 들으면?",
+          "choices": [
+            "안전",
+            "IPv6 사용자가 못 닿을 수 있음 — 듀얼 스택 필요",
+            "빠름",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "A·AAAA 둘 다."
+        },
+        {
+          "q": "IPv6 가 NAT 에 주는 변화는?",
+          "choices": [
+            "NAT 강화",
+            "주소가 넉넉해 NAT 불필요(기기마다 공인) — 방화벽 중요",
+            "무관",
+            "포트 증가"
+          ],
+          "answer": 1,
+          "why": "구조가 바뀐다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — IP 주소와 라우팅",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "네트워크를 설정하거나 「안 닿는」 문제를 진단할 때 이 목록을 확인하라. 핵심은 「같은 대역인지·공인/사설·바인딩·라우팅」이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .bits { display:flex; gap:2px; flex-wrap:wrap; margin:8px 0; font:10px ui-monospace; }\n  .bits .b { width:16px; height:18px; border-radius:3px; display:flex; align-items:center; justify-content:center; }\n  .bits .b.net { background:#0e7490; color:#fff; } .bits .b.host { background:#334155; color:#cbd5e1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const bitsView = (prefix) => { let h=''; for(let i=0;i<32;i++){ h+='<span class=\"b '+(i<prefix?'net':'host')+'\">'+(i<prefix?'N':'H')+'</span>'; if(i%8===7) h+='<span style=\"width:6px\"></span>'; } return '<div class=\"bits\">'+h+'</div>'; };\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    'IP = 위치, 사고는 「같은 동네 착각」에서',\n    'CIDR(/n)로 네트워크/호스트 경계를 읽는다',\n    '공인·사설(10·172.16·192.168)을 구분한다',\n    '서브넷 마스크로 같은 대역인지 판단한다',\n    '라우팅: 아는 대역이면 직접, 모르면 게이트웨이',\n    '다른 기기서 받으려면 0.0.0.0 에 바인딩',\n    '특수 주소(127.0.0.1·169.254)를 안다',\n    'IPv6/듀얼 스택(A·AAAA)을 고려한다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 어디에 있고 어떻게 닿는지 안다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '같은 대역인지·공인/사설·바인딩·라우팅. IP 의 네 축.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 「같은 동네인가」를 먼저 물어라.** IP 사고의 대부분은 「같은 대역인 줄 알았는데 아니었다」거나 「사설을 밖에서 찾았다」거나 「127.0.0.1 에만 붙였다」다. CIDR·마스크로 대역을 읽고(2·4장), 공인/사설을 구분하고(3장), 바인딩을 확인하면(6장) 「왜 안 닿지」가 「이 대역·이 바인딩 문제」로 좁혀진다."
+        },
+        {
+          "type": "p",
+          "text": "**이 트랙에서의 자리.** IP 는 net-layers 의 인터넷 층 — DNS(net-dns)가 이름을 IP 로 바꾸고, 사설↔공인은 NAT(net-nat)가 잇고, 라우팅 진단은 traceroute(net-diag)로 본다. 「같은 대역인지」의 판단은 방화벽·보안 그룹(sec)의 대역 규칙과도 이어진다. **「어디에 있고 어떻게 닿나」가 네트워크 연결의 뼈대**다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개 항목으로 네 네트워크 이해를 점검하라. 「공인/사설 구분」과 「0.0.0.0 바인딩」 두 가지만 익혀도, 「내 PC 는 되는데 다른 기기·밖에선 안 됨」 사고를 빠르게 푼다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "IP 의 한 줄 요약은?",
+          "choices": [
+            "빠른 회선",
+            "「같은 동네인가」를 먼저 물어라",
+            "암호화",
+            "포트"
+          ],
+          "answer": 1,
+          "why": "사고의 근원."
+        },
+        {
+          "q": "IP 의 네 축은?",
+          "choices": [
+            "빠름·큼·전역·암호",
+            "같은 대역인지·공인/사설·바인딩·라우팅",
+            "캐시·복제·샤딩·압축",
+            "IPv6만"
+          ],
+          "answer": 1,
+          "why": "네 축."
+        },
+        {
+          "q": "IP 가 트랙에서 갖는 자리는?",
+          "choices": [
+            "무관",
+            "인터넷 층 — dns·nat·diag 와 이어지는 연결의 뼈대",
+            "성능",
+            "문법"
+          ],
+          "answer": 1,
+          "why": "어디에 있고 어떻게 닿나."
+        }
+      ]
     }
   ]
 }
