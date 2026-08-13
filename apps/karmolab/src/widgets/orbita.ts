@@ -30,7 +30,10 @@ import { t, loadNamespace } from '../lib/i18n';
   };
 
   /* ── 음계 ────────────────────────────────────────────────────────────────── */
-  const SCALES: Array<{ id: string; label: string; steps: number[] }> = [
+  /* ★ **말은 묶음이 온 뒤에 읽는다** (2026-08-14, 실서비스 고장 다섯 건).
+     파일이 읽히는 순간 `t()` 를 부르면 아직 `loadNamespace` 전이라 되받을 글 없는 `t()` 가 던지고,
+     그 묶음에 든 위젯이 통째로 안 올라간다(화면엔 오류도 안 뜬다). 부르는 시점을 늦춘다. */
+  const scaleList = (): Array<{ id: string; label: string; steps: number[] }> => [
     { id: 'major', label: t('orbita.t02'), steps: [0, 2, 4, 5, 7, 9, 11] },
     { id: 'minor', label: t('orbita.t03'), steps: [0, 2, 3, 5, 7, 8, 10] },
     { id: 'dorian', label: t('orbita.t04'), steps: [0, 2, 3, 5, 7, 9, 10] },
@@ -40,7 +43,7 @@ import { t, loadNamespace } from '../lib/i18n';
   ];
   const ROOTS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const WAVES: OscillatorType[] = ['triangle', 'sine', 'square', 'sawtooth'];
-  const WAVE_LABEL: Record<string, string> = { triangle: t('orbita.t08'), sine: t('orbita.t09'), square: t('orbita.t10'), sawtooth: t('orbita.t11') };
+  const waveLabel = (): Record<string, string> => ({ triangle: t('orbita.t08'), sine: t('orbita.t09'), square: t('orbita.t10'), sawtooth: t('orbita.t11') });
 
   /* ── 모델 ────────────────────────────────────────────────────────────────── */
   interface Slot {
@@ -200,7 +203,7 @@ import { t, loadNamespace } from '../lib/i18n';
             /* 저장본이 깨졌으면 기본곡으로 간다 — 여기서 멈추면 도구가 안 열린다 */
           }
 
-          let scaleSteps = (SCALES.find((s) => s.id === song.scale) || SCALES[0]).steps;
+          let scaleSteps = (scaleList().find((s) => s.id === song.scale) || scaleList()[0]).steps;
           let brushDeg = 0;
           let brushVel = 0.8;
           let playing = false;
@@ -280,7 +283,7 @@ import { t, loadNamespace } from '../lib/i18n';
           velEl.value = String(Math.round(brushVel * 100));
           rootEl.innerHTML = ROOTS.map((n, i) => `<option value="${i}">${n}</option>`).join('');
           rootEl.value = String(song.root);
-          scaleEl.innerHTML = SCALES.map((s) => `<option value="${s.id}">${s.label}</option>`).join('');
+          scaleEl.innerHTML = scaleList().map((s) => `<option value="${s.id}">${s.label}</option>`).join('');
           scaleEl.value = song.scale;
 
           function renderSwatches(): void {
@@ -316,7 +319,7 @@ import { t, loadNamespace } from '../lib/i18n';
                   </select>
                   <label for="orbitaWave${i}">${esc(t('orbita.label.wavei'))}</label>
                   <select id="orbitaWave${i}" data-ring="${i}" data-k="wave" aria-label="궤도 ${i + 1} 음색">
-                    ${opt(WAVES as unknown as string[], r.wave, (v) => WAVE_LABEL[String(v)] || String(v))}
+                    ${opt(WAVES as unknown as string[], r.wave, (v) => waveLabel()[String(v)] || String(v))}
                   </select>
                   <label for="orbitaCh${i}">CH</label>
                   <select id="orbitaCh${i}" data-ring="${i}" data-k="channel" aria-label="궤도 ${i + 1} MIDI 채널">
@@ -759,7 +762,7 @@ import { t, loadNamespace } from '../lib/i18n';
           };
           scaleEl.onchange = () => {
             song.scale = scaleEl.value;
-            scaleSteps = (SCALES.find((s) => s.id === song.scale) || SCALES[0]).steps;
+            scaleSteps = (scaleList().find((s) => s.id === song.scale) || scaleList()[0]).steps;
             brushDeg = Math.min(brushDeg, scaleSteps.length - 1);
             renderSwatches();
             save();

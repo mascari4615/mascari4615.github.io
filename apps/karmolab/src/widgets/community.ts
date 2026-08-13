@@ -125,20 +125,26 @@ import { t, loadNamespace, locale } from '../lib/i18n';
      * 도구 요청판에서 「열림」은 어색하고, 남이 만든 이슈 갤러리에서 「만들었음」은 안 맞는다.
      * 값은 같고 부르는 말만 다르다 — 저장은 한 벌이다.
      */
-    const STATUS_LABEL_REQUEST: Record<Post['status'], string> = {
+    /* ★ **말은 묶음이 온 뒤에 읽는다** (2026-08-14, 실서비스 고장 다섯 건).
+       파일이 읽히는 순간 `t()` 를 부르면 아직 `loadNamespace` 전이라 되받을 글 없는 `t()` 가 던지고,
+       그 묶음에 든 위젯이 통째로 안 올라간다(화면엔 오류도 안 뜬다). 부르는 시점을 늦춘다. */
+    const statusLabelRequest = (): Record<Post['status'], string> => ({
         open: t('community.t68'),
         planned: t('community.t69'),
         done: t('community.t70'),
         declined: t('community.t71'),
-    };
-    const STATUS_LABEL_ISSUE: Record<Post['status'], string> = {
+    });
+    /* ★ **말은 묶음이 온 뒤에 읽는다** (2026-08-14, 실서비스 고장 다섯 건).
+       파일이 읽히는 순간 `t()` 를 부르면 아직 `loadNamespace` 전이라 되받을 글 없는 `t()` 가 던지고,
+       그 묶음에 든 위젯이 통째로 안 올라간다(화면엔 오류도 안 뜬다). 부르는 시점을 늦춘다. */
+    const statusLabelIssue = (): Record<Post['status'], string> => ({
         open: t('community.t72'),
         planned: t('community.t73'),
         done: t('community.t74'),
         declined: t('community.t75'),
-    };
+    });
     function statusLabels(gallery: { voteStyle: boolean }): Record<Post['status'], string> {
-        return gallery.voteStyle ? STATUS_LABEL_REQUEST : STATUS_LABEL_ISSUE;
+        return gallery.voteStyle ? statusLabelRequest() : statusLabelIssue();
     }
     /** 닫힌 글인가 — 「열림만 보기」의 기준. */
     function isClosed(status: Post['status']): boolean {
