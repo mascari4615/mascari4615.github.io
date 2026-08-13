@@ -18,7 +18,9 @@ const BASE = process.env.BASE || 'https://blog.mascari4615.com';
 const 기다림 = 15000;
 
 /* 갈래를 섞는다 — 계산기·글·그림·파일·놀이. 한 갈래만 보면 그 갈래만 지킨다. */
-const 기본 = ['loan', 'timecapsule', 'charcount', 'qrgen', 'imgresize', 'pdfdiff', 'ghosttype', 'worldclock'];
+/* 표본은 **지금 자기 장이 있는 도구**여야 한다 — `charcount` 는 작업대의 조작이 되어
+   낱개 장이 없다(그 주소는 작업대로 간다). 없는 장을 재면 404 를 「죽어 있다」로 읽는다. */
+const 기본 = ['loan', 'timecapsule', 'text', 'qrgen', 'imgresize', 'pdfdiff', 'ghosttype', 'worldclock'];
 const ids = process.argv.slice(2).length ? process.argv.slice(2) : 기본;
 
 const browser = await chromium.launch();

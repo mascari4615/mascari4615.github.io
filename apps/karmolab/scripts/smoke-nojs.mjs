@@ -18,6 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { RETIRED_OPERATION_IDS as RETIRED, withoutRetired } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
@@ -27,7 +28,11 @@ const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), '
 const wanted = ['loan', 'charcount', 'qrgen', 'base64', 'imageedit', 'pdftool'];
 const ids = process.argv.slice(2).length
   ? process.argv.slice(2)
-  : [...new Set([...wanted.filter((id) => seo[id]), ...Object.keys(seo)])].slice(0, 6);
+  /* 작업대로 흡수된 옛 도구는 낱개 장이 없다(주소는 작업대로 간다) — 여기서 열면 404 다.
+     목록 정본은 `lib/retired-operations.mjs` 하나. */
+  : [...new Set([...wanted.filter((id) => seo[id]), ...withoutRetired(Object.keys(seo))])]
+      .filter((id) => !RETIRED.has(id))
+      .slice(0, 6);
 
 const MIN_TEXT = 300; // 설명·쓰는 법·FAQ 가 살아 있으면 이보다 훨씬 길다
 const MIN_LINKS = 4; // 다른 도구로 건너갈 길
