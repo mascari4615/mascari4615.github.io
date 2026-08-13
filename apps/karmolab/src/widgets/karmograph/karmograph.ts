@@ -99,25 +99,13 @@ import {
     { id: 'photo', label: t('karmograph.shapes.msg5'), icon: '🖼' },
   ];
 
-  /**
-   * 스타일은 **우리가 직접** 넣는다 (TASK-KL-271).
-   *
-   * 전에는 공용 `Mdd.injectCSS` 를 썼는데 그것은 「같은 id 의 `<style>` 이 있으면 **아무것도
-   * 안 한다**」였다. 판에 따라 스타일이 통째로 안 실리는 일이 있었고(실측: `<style>` 어디에도
-   * `km-toolbar` 가 없는데 화면은 그려짐 — 규칙 없는 판), 그 판에서는 방금 넣은 규칙이 「안 먹는」
-   * 것으로 보여 같은 자리를 세 번 고쳤다. 있으면 **덮어쓴다** — 새 판이 옛 판을 이긴다.
-   */
-  const injectKarmoGraphCSS = (css: string): void => {
-    const id = 'km-css-karmograph';
-    const el = (document.getElementById(id) as HTMLStyleElement | null)
-      ?? document.createElement('style');
-    el.id = id;
-    el.textContent = css;
-    if (!el.isConnected) (document.head || document.documentElement).appendChild(el);
-  };
-
-  injectKarmoGraphCSS(
-    `
+  /* 스타일 한 장. 공용 `injectCSS` 는 이제 **있으면 덮어쓴다**(2026-08-13) — 우리만 따로 넣던
+     길은 지웠다. 같은 일에 문이 둘이면 다음에 또 갈라진다. */
+  /* 스타일 한 장 — **위젯을 열 때마다 다시 넣는다**(아래 build 안).
+     셸이 위젯을 닫으며 style 을 걷어 가는 판이 있어, 모듈 첫 로드 때 한 번만 넣으면 다시 열었을 때
+     **스타일 없이** 그려졌다(실측 2026-08-13: `<style>` 넷뿐, km-toolbar 규칙 없음 — 화면은 멀쩡).
+     공용 `injectCSS` 는 이제 있으면 덮어쓰므로 매번 불러도 싸다. */
+  const KARMOGRAPH_CSS = `
     /* ★ 높이를 화면에서 직접 가져온다. height:100% 는 셸 카드가 높이를 안 주면 0 이 되고,
        그때 캔버스는 117px 까지 눌렸다가 다음 실행엔 420px 이 되는 식으로 **들쭉날쭉**했다
        (실측 2026-08-09 — 같은 코드로 두 번 돌려 다른 결과가 났다). 캔버스는 넓이가 곧 쓸모라
@@ -451,8 +439,8 @@ import {
       .km-toolbar .btn, .km-mini .btn, .km-sheet .btn { min-height:44px; min-width:44px; }
       .km-toolbar select, .km-toolbar input[type=text] { min-height:44px; }
     }
-    `
-  );
+    `;
+;
 
   function buildKarmoGraph(container: HTMLElement): void {
     // 맵 여러 장 — 목록은 항상 최소 한 장을 보장한다(격차 H).
@@ -3409,6 +3397,18 @@ import {
         label: 'KarmoGraph',
         /* 도움말 목록(`help.ts`)이 말 묶음에서 오므로 **받고 나서** 그린다. */
         build: (container: HTMLElement): void => {
+          /* ★ 스타일은 **마스코트 스크립트에 기대지 않는다** (TASK-KL-271, 원인 확정).
+             `Mdd` 는 첫 그림에 안 필요해서 나중에 따로 실려 오고, 그때까지의 부름은 **줄을 세웠다가
+             그 스크립트가 오면 흘려보낸다**(index.html 의 stub). 그 스크립트가 안 오는 판에서는
+             줄이 영영 안 흘러 **위젯 스타일이 통째로 안 실렸다** — 화면은 그려지므로 「규칙이 안
+             먹는다」로 보였고, 그 착시로 같은 자리를 세 번 고쳤다(실측: style 넷뿐, km 규칙 0).
+             제 옷은 제가 입는다. 열 때마다 넣고, 있으면 덮어쓴다. */
+          const styleId = 'km-css-karmograph';
+          const styleEl = (document.getElementById(styleId) as HTMLStyleElement | null)
+            ?? document.createElement('style');
+          styleEl.id = styleId;
+          if (styleEl.textContent !== KARMOGRAPH_CSS) styleEl.textContent = KARMOGRAPH_CSS;
+          if (!styleEl.isConnected) (document.head || document.documentElement).appendChild(styleEl);
           void loadNamespace('karmograph').then(() => buildKarmoGraph(container));
         },
       },
