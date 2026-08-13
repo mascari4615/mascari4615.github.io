@@ -2725,6 +2725,40 @@ await step('시점을 만들면 판 아래에서 오간다 (안 쓰는 판에는
   if (saved !== 2) throw new Error(`시점이 저장본에 안 남았다 (${saved})`);
 });
 
+await step('폰에서도 시점 줄이 가려지지 않는다', async () => {
+  /* ★ 폰에서 시점 줄을 아래에 두면 ① 배율과 겹치고(390px 폭에 둘을 나란히 못 놓는다)
+     ② 아래 시트가 올라오면 그 뒤에 가려 아예 안 보인다 — 실측 2026-08-14. 그래서 판 위로 올렸다. */
+  const phone = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 },
+    isMobile: true, hasTouch: true });
+  const m = await phone.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(1200));
+  await m.locator('[data-km="intent"]').first().click();
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 4, null, { timeout: ms(5000) });
+  await m.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await m.waitForTimeout(ms(600));
+  const hit = await m.evaluate(() => {
+    const box = (s) => { const e = document.querySelector(s); return e ? e.getBoundingClientRect() : null; };
+    const t = box('.km-times');
+    const z = box('.km-zoom');
+    if (!t || !z) return { missing: true };
+    const overlap = !(t.right < z.left || z.right < t.left || t.bottom < z.top || z.bottom < t.top);
+    const outside = t.right > innerWidth + 1 || t.bottom > innerHeight + 1 || t.left < -1;
+    // 시점 줄 한가운데를 눌렀을 때 그 줄이 잡히나 — 시트에 덮이면 다른 것이 잡힌다.
+    const top = document.elementFromPoint(t.left + t.width / 2, t.top + t.height / 2);
+    return { overlap, outside, covered: !(top && top.closest('.km-times')) };
+  });
+  if (hit.missing) throw new Error('폰에서 시점 줄이 없다');
+  if (hit.overlap) throw new Error('시점 줄이 배율과 겹친다');
+  if (hit.outside) throw new Error('시점 줄이 화면 밖으로 나갔다');
+  if (hit.covered) throw new Error('시점 줄이 다른 것에 덮여 안 눌린다');
+  await phone.close();
+});
+
 await step('시점을 옮기면 선의 얼굴이 바뀐다 (자료는 그대로)', async () => {
   // 「1부에서는 소꿉친구, 2부에서는 라이벌」 — 판은 하나로 두고 선이 시점마다 다른 얼굴을 갖는다.
   const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
