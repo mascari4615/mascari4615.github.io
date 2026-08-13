@@ -644,5 +644,7 @@
   "karmograph.palette.find": "What do you want to do? Type a name",
   "karmograph.palette.none": "No command by that name",
   "karmograph.panel.here": "Selection",
-  "karmograph.panel.more": "Other lists"
+  "karmograph.panel.more": "Other lists",
+  "karmograph.focus.label": "Show neighbours only",
+  "karmograph.focus.hint": "How many hops stay sharp from what you searched or selected — the rest dims (nothing is deleted)."
 }

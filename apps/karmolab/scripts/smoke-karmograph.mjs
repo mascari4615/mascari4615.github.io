@@ -663,6 +663,8 @@ await step('거르기로 노드 종류를 빼면 화면에서 사라진다', asy
 });
 await step('찾기 → 포커스가 걸린다', async () => {
   // 노드 둘이 서로 이어져 있으므로 「1다리」로 보면 둘 다 포함된다 — 「고른 것만」으로 본다.
+  // 차수 고르개는 툴바에서 **거르기 패널**로 옮겼다 (KL-271 P4) — 「덜 보기」는 한 자리다.
+  await openPanel(page, 'filter');
   await page.selectOption('[data-km="degree"]', '0');
   await page.fill('[data-km="find"]', '욘');
   await page.waitForFunction(() => document.querySelectorAll('.ck-node.is-dimmed').length > 0, null, { timeout: ms(4000) });
@@ -681,6 +683,7 @@ await step('찾기 → 포커스가 걸린다', async () => {
   }, null, { timeout: ms(4000) });
   /* 비우는 순서가 있다 — 「몇 다리까지」가 켜져 있는데 고른 카드가 없으면 그 자리에
      「카드를 하나 고르세요」가 들어앉는다(그것도 이 자리의 일이다). 둘 다 풀어야 사라진다. */
+  await openPanel(page, 'filter');
   await page.selectOption('[data-km="degree"]', '');
   await page.fill('[data-km="find"]', '');
   await page.waitForFunction(() => document.querySelector('[data-km="find-count"]')?.classList.contains('hidden'), null, { timeout: ms(4000) });
