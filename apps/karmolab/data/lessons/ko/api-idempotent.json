@@ -1,106 +1,761 @@
 {
   "id": "api-idempotent",
-  "minutes": 12,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "「결제가 두 번 됐어요」의 대부분은 이렇게 생긴다 — 서버는 처리했는데 **응답이 도중에 끊겼고**, 클라이언트가 다시 보냈다."
-    },
-    {
-      "type": "h",
-      "text": "1. 응답을 못 받은 쪽은 아무것도 모른다"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "두 경우가 구분되지 않는다",
-      "text": "(A) 요청이 서버에 도착하지 못했다        → 다시 보내야 한다\n(B) 처리는 됐는데 응답이 유실됐다        → 다시 보내면 두 번 처리된다\n\n클라이언트는 둘을 구분할 수 없다\n→ 그래서 \"다시 보내도 안전\" 을 서버가 보장해야 한다"
-    },
-    {
-      "type": "h",
-      "text": "2. 원래 안전한 것들"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "메서드의 성질",
-      "text": "GET · HEAD       읽기만 — 안전\nPUT              같은 값으로 덮어씀 — 여러 번 해도 결과 같음 (멱등)\nDELETE           이미 지워졌으면 그대로 — 멱등\nPOST             ❌ 부를 때마다 새로 생긴다  ← 여기가 문제\n\nPATCH 도 내용에 따라 다르다\n  { \"count\": 10 }  멱등  /  { \"countDelta\": +1 }  멱등 아님"
-    },
-    {
-      "type": "h",
-      "text": "3. 멱등 키"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "클라이언트가 요청마다 고유 키를 만든다",
-      "text": "// 클라이언트: 재시도해도 같은 키를 쓴다 (새 시도가 아니라 같은 시도니까)\nfetch('/payments', {\n  method: 'POST',\n  headers: { 'Idempotency-Key': 요청id },   // 예: crypto.randomUUID()\n  body: JSON.stringify(주문),\n});\n\n// 서버\nasync function 결제(key, body) {\n  const 이전 = await store.get(key);\n  if (이전) return 이전.response;             // 그대로 재생 — 다시 처리하지 않는다\n\n  const 잠금 = await store.lock(key);         // 동시에 두 번 와도 하나만\n  if (!잠금) return { status: 409, code: 'IN_PROGRESS' };\n\n  const 결과 = await 실제결제(body);\n  await store.save(key, { response: 결과, body해시: 해시(body) }, { ttl: '24h' });\n  return 결과;\n}"
-    },
-    {
-      "type": "note",
-      "text": "**같은 키에 다른 본문이 오면 거부하라**(422). 안 그러면 클라이언트 버그로 A 결제 키에 B 결제가 실려 와 조용히 잘못 처리된다. 본문 해시를 함께 저장해 비교하면 된다."
-    },
-    {
-      "type": "h",
-      "text": "4. 저장 위치와 수명"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "실무 기준",
-      "text": "· 저장소: DB (재시작에도 남아야 한다). 캐시만 쓰면 재시작 시 중복이 뚫린다\n· 수명: 24시간이면 대부분 충분 (재시도는 그 안에 끝난다)\n· 키 범위: 사용자별로 구분 (남의 키와 충돌 방지)\n· 처리 중 상태도 저장 → 동시 요청은 409 로 되돌려 보낸다"
-    },
-    {
-      "type": "h",
-      "text": "5. 재시도하는 쪽의 예의"
-    },
-    {
-      "type": "p",
-      "text": "지수 백오프 + 흔들기, 재시도 횟수 상한, **그리고 재시도해도 되는 오류인지 확인**(400 은 재시도 무의미). 서버가 `Retry-After` 를 줬다면 그걸 따르라."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "생성 API 하나에 멱등 키를 붙이고, 같은 키로 두 번 호출해 한 번만 처리되는지 확인하라."
-    },
-    {
-      "type": "try",
-      "text": "같은 키에 다른 본문을 보내 거부되는지 시험하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "중복 결제가 생기는 근본 이유는?",
-      "choices": [
-        "응답 유실과 요청 미도달을 클라이언트가 구분할 수 없어서",
-        "서버가 느려서",
-        "결제사 문제"
+      "id": "1",
+      "title": "중복은 응답이 끊길 때 생긴다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「결제가 두 번 됐어요」의 대부분은 이렇게 생긴다 — 서버는 **처리했는데 응답이 도중에 끊겼고**, 클라이언트가 실패인 줄 알고 다시 보냈다. 네트워크는 언제든 끊긴다. 재시도(api-error 6장)는 필수인데, 그 재시도가 쓰기를 **중복 실행**하는 것이 문제의 핵심이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "응답이 어디서 끊겼나 — 클라이언트는 구분 못 한다",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:56px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; } .tl .lost { background:#7f1d1d; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const where = '{{where}}';\n  const lostReply = where === 'reply';\n  render(lostReply ? '(B) 처리됐는데 응답이 유실' : '(A) 요청이 서버에 도착 못함',\n    (lostReply\n      ? '  서버: 결제 처리 완료. 응답을 보냈지만 네트워크에서 사라짐.\\n' +\n        '  클라이언트: 응답 없음 -> 실패로 알고 재시도 -> <span class=\\\"no\\\">두 번 결제!</span>'\n      : '  서버: 요청을 아예 못 받음(처리 안 됨).\\n' +\n        '  클라이언트: 응답 없음 -> 재시도 -> <span class=\\\"ok\\\">이번엔 정상(중복 아님)</span>'),\n    '클라이언트는 (A)요청 유실과 (B)응답 유실을 구분할 수 없다 — 둘 다 「응답 없음」.',\n    timeline(lostReply\n      ? [['클라', [[1,'work','요청'],[2,'warn2','대기...'],[1,'work','재시도']]],\n         ['서버', [[1,'work',''],[1,'bad2','처리O(결제)'],[1,'lost','응답 유실'],[1,'bad2','또 처리(중복)']]]]\n      : [['클라', [[1,'work','요청'],[2,'warn2','대기...'],[1,'work','재시도']]],\n         ['서버', [[1,'lost','요청 유실'],[1,'work',''],[1,'ok2','이제 처리(1회)']]]]));\n</script>",
+          "controls": [
+            {
+              "id": "where",
+              "label": "끊긴 지점",
+              "type": "select",
+              "value": "reply",
+              "options": [
+                {
+                  "value": "request",
+                  "label": "(A) 요청 유실"
+                },
+                {
+                  "value": "reply",
+                  "label": "(B) 응답 유실"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**응답을 못 받은 쪽은 무슨 일이 있었는지 모른다.** (A) 요청이 안 갔으면 재시도가 옳고, (B) 처리됐는데 응답만 유실됐으면 재시도가 중복을 만든다. 클라이언트는 둘을 **구분할 수 없다** — 그래서 「재시도해도 안전한」 서버가 필요하다. 그 성질이 **멱등성**이다."
+        },
+        {
+          "type": "p",
+          "text": "**재시도를 없앨 순 없으니 중복을 막아야 한다.** 「재시도하지 마라」는 답이 아니다 — 네트워크 불안정에서 재시도는 신뢰성의 핵심이다. 대신 서버가 **같은 요청을 여러 번 받아도 한 번만 처리**하게 만든다. 이 성질을 어떻게 얻는가가 이 과정의 주제다."
+        },
+        {
+          "type": "try",
+          "text": "네 결제·주문·생성 API 에서, 클라이언트가 타임아웃 후 재시도하면 중복이 생기는지 점검하라. 생긴다면 멱등성이 없는 것이다."
+        }
       ],
-      "answer": 0,
-      "why": "그래서 서버가 재시도 안전성을 보장해야 한다."
+      "quiz": [
+        {
+          "q": "「결제 두 번」의 흔한 원인은?",
+          "choices": [
+            "서버 버그",
+            "처리됐는데 응답이 유실돼 클라이언트가 재시도",
+            "느린 DB",
+            "잘못된 입력"
+          ],
+          "answer": 1,
+          "why": "응답 유실 + 재시도."
+        },
+        {
+          "q": "클라이언트가 (A)요청 유실과 (B)응답 유실을 구분할 수 있나?",
+          "choices": [
+            "구분 가능",
+            "구분 불가 — 둘 다 「응답 없음」",
+            "헤더로 구분",
+            "시간으로"
+          ],
+          "answer": 1,
+          "why": "그래서 멱등 서버가 필요."
+        },
+        {
+          "q": "중복 문제의 올바른 해법 방향은?",
+          "choices": [
+            "재시도 금지",
+            "재시도해도 한 번만 처리(멱등성)",
+            "타임아웃 늘리기",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "재시도는 신뢰성 핵심."
+        }
+      ]
     },
     {
-      "q": "멱등 키 저장소로 캐시만 쓰면?",
-      "choices": [
-        "재시작 시 기록이 사라져 중복이 통과한다",
-        "느려진다",
-        "용량이 부족하다"
+      "id": "2",
+      "title": "멱등이란 — 여러 번 = 한 번",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**멱등(idempotent)** = 같은 요청을 **여러 번 해도 결과가 한 번 한 것과 같다.** 조명 스위치의 「끔」은 멱등(여러 번 눌러도 꺼짐), 「토글」은 아니다(누를 때마다 바뀜). HTTP 메서드 일부는 본래 멱등이다 — 이 성질을 알면 어디에 멱등 키가 필요한지 보인다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "메서드별 멱등성 — 두 번 하면?",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:56px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; } .tl .lost { background:#7f1d1d; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const m = '{{method}}';\n  const cases = {\n    get:    ['GET /posts/42', true, '읽기만 — 백 번 읽어도 상태 안 변함(안전+멱등)'],\n    put:    ['PUT /posts/42 {title:X}', true, '같은 값으로 덮어씀 — 두 번 해도 결과 같음'],\n    delete: ['DELETE /posts/42', true, '두 번째는 이미 없음 — 최종 상태 동일(멱등)'],\n    post:   ['POST /posts {title:X}', false, '부를 때마다 새로 생성 -> 두 번 = 둘 생성. 멱등 아님!'],\n    incr:   ['POST /counter/increment', false, '누를 때마다 +1 -> 두 번 = +2. 멱등 아님'],\n  }[m];\n  render(cases[0] + '  x2',\n    '  결과 = ' + (cases[1]\n      ? '<span class=\\\"ok\\\">멱등 — 한 번 한 것과 같다</span>'\n      : '<span class=\\\"no\\\">멱등 아님 — 두 번 하면 두 번 반영된다</span>') + '\\n\\n  ' + cases[2] + '\\n\\n' +\n    (cases[1] ? '  -> 재시도해도 안전. 멱등 키 불필요.' : '  -> 재시도가 중복을 만든다. 멱등 키가 필요(3장).'),\n    '읽기·덮어쓰기·삭제는 본래 멱등. 생성·증가는 아니다 — 여기에 멱등 키가 필요.',\n    box(cases[0], cases[2], cases[1] ? 'good' : 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "method",
+              "label": "요청",
+              "type": "select",
+              "value": "post",
+              "options": [
+                {
+                  "value": "get",
+                  "label": "GET(읽기)"
+                },
+                {
+                  "value": "put",
+                  "label": "PUT(덮어쓰기)"
+                },
+                {
+                  "value": "delete",
+                  "label": "DELETE"
+                },
+                {
+                  "value": "post",
+                  "label": "POST(생성)"
+                },
+                {
+                  "value": "incr",
+                  "label": "increment(증가)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "원래 안전한 것들",
+          "text": "GET · HEAD       읽기만 — 안전(safe)하고 멱등\nPUT              같은 값으로 덮어씀 — 여러 번 해도 결과 같음(멱등)\nDELETE           두 번째는 이미 없음 — 최종 상태 동일(멱등)\n\nPOST             부를 때마다 새로 — 멱등 아님 (여기에 멱등 키 필요)\n증가·토글·append  누적됨 — 멱등 아님"
+        },
+        {
+          "type": "note",
+          "text": "**멱등과 안전(safe)은 다르다.** 안전 = 상태를 **안 바꿈**(GET). 멱등 = 여러 번 해도 **결과가 같음**(PUT·DELETE 는 바꾸지만 멱등). 모든 안전한 것은 멱등이지만, 멱등이라고 안전한 건 아니다. 재시도 안전성에 필요한 건 **멱등성**이다 — 상태를 바꿔도 여러 번=한 번이면 된다."
+        },
+        {
+          "type": "p",
+          "text": "**「생성」을 멱등하게 만들 수 있다.** POST 는 본래 멱등이 아니지만, 「이 요청은 그 요청과 같은 것」이라고 식별할 수단을 주면 서버가 중복을 걸러 낼 수 있다. 그 수단이 **멱등 키**(3장)다. 즉 멱등성은 메서드의 고정 속성이 아니라, **설계로 부여**할 수 있는 성질이다."
+        },
+        {
+          "type": "try",
+          "text": "네 쓰기 API 들을 멱등/비멱등으로 분류하라. 비멱등(생성·증가·결제)이면서 재시도되는 것이 멱등 키가 필요한 대상이다."
+        }
       ],
-      "answer": 0,
-      "why": "영속 저장이 필요하다."
+      "quiz": [
+        {
+          "q": "멱등의 정의는?",
+          "choices": [
+            "빠름",
+            "여러 번 해도 결과가 한 번과 같음",
+            "읽기 전용",
+            "안전"
+          ],
+          "answer": 1,
+          "why": "여러 번 = 한 번."
+        },
+        {
+          "q": "본래 멱등이 아닌 메서드는?",
+          "choices": [
+            "GET",
+            "PUT",
+            "POST(생성)",
+            "DELETE"
+          ],
+          "answer": 2,
+          "why": "부를 때마다 새로."
+        },
+        {
+          "q": "안전(safe)과 멱등의 관계는?",
+          "choices": [
+            "같다",
+            "안전은 상태 안 바꿈, 멱등은 여러 번=한 번(PUT/DELETE는 멱등이나 안전 아님)",
+            "무관",
+            "반대"
+          ],
+          "answer": 1,
+          "why": "재시도엔 멱등이 필요."
+        }
+      ]
     },
     {
-      "q": "같은 멱등 키에 다른 본문이 오면?",
-      "choices": [
-        "거부한다",
-        "새로 처리한다",
-        "덮어쓴다"
+      "id": "3",
+      "title": "멱등 키 — 같은 시도를 표시한다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "생성·결제를 재시도 안전하게 만드는 표준: **멱등 키(Idempotency-Key).** 클라이언트가 요청마다 고유 키를 붙이고, **재시도할 땐 같은 키**를 쓴다(새 시도가 아니라 같은 시도니까). 서버는 그 키를 기억해, 같은 키가 또 오면 **처리하지 않고 첫 결과를 그대로** 돌려준다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "멱등 키 — 같은 키 두 번은 한 번만 처리",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:56px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; } .tl .lost { background:#7f1d1d; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const same = '{{same}}' === 'same';\n  render(same ? '재시도: 같은 멱등 키' : '재시도: 새 키(또는 키 없음)',\n    'POST /payments  Idempotency-Key: ' + (same ? 'abc-123 (두 번 다)' : 'abc-123 그리고 def-456') + '\\n\\n' +\n    (same\n      ? '  서버: 첫 요청 처리·결과 저장. 두 번째 같은 키 -> <span class=\\\"ok\\\">처리 안 하고 저장된 결과 반환. 1회 결제.</span>'\n      : '  서버: 다른 키 = 다른 시도로 간주 -> <span class=\\\"no\\\">두 번 처리 = 중복 결제.</span>'),\n    '재시도엔 반드시 같은 키를. 키가 「이건 새 요청이 아니라 그 요청」임을 서버에 알린다.',\n    timeline(same\n      ? [['클라', [[1,'work','key=abc'],[2,'warn2','타임아웃'],[1,'work','재시도 key=abc']]],\n         ['서버', [[1,'bad2','처리+저장 abc'],[1,'lost','응답유실'],[1,'ok2','abc 봄->저장결과 반환']]]]\n      : [['클라', [[1,'work','key=abc'],[2,'warn2','타임아웃'],[1,'work','재시도 key=def']]],\n         ['서버', [[1,'bad2','처리 abc'],[1,'lost','응답유실'],[1,'bad2','def 처리(중복!)']]]]));\n</script>",
+          "controls": [
+            {
+              "id": "same",
+              "label": "재시도 키",
+              "type": "select",
+              "value": "same",
+              "options": [
+                {
+                  "value": "same",
+                  "label": "같은 키(올바름)"
+                },
+                {
+                  "value": "new",
+                  "label": "새 키(중복 발생)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "멱등 키 — 클라이언트와 서버",
+          "text": "// 클라이언트: 재시도해도 같은 키 (한 번 만들어 재시도 내내 유지)\nconst key = crypto.randomUUID();\nasync function pay() {\n  return fetch('/payments', {\n    method: 'POST',\n    headers: { 'Idempotency-Key': key },   // 재시도 시에도 같은 key\n    body: JSON.stringify({ amount: 500 }),\n  });\n}\n// 서버: key 를 보고 이미 처리했으면 저장된 응답을 그대로 반환"
+        },
+        {
+          "type": "note",
+          "text": "**키는 요청 「시도」가 아니라 요청 「의도」당 하나다.** 「이 결제를 하겠다」는 한 의도에 키 하나를 만들고, 그 의도를 위한 모든 재시도가 같은 키를 공유한다. 사용자가 결제 버튼을 **다시** 눌러 새 결제를 의도한 것이라면 그건 새 키다 — 「같은 의도의 재시도」와 「새 의도」를 키로 구분한다."
+        },
+        {
+          "type": "p",
+          "text": "**멱등 키는 결제 게이트웨이의 표준이다.** Stripe 등 결제 API 가 `Idempotency-Key` 헤더를 쓰는 이유가 이것이다. 돈이 오가는 곳에서 중복은 치명적이라, 클라이언트가 키를 붙이고 서버가 중복을 거르는 이 패턴이 사실상 규약이 됐다. 직접 만들 때도 같은 패턴을 따른다."
+        },
+        {
+          "type": "try",
+          "text": "생성·결제 API 하나에 `Idempotency-Key` 헤더를 받도록 하고, 클라이언트가 재시도 시 같은 키를 쓰게 하라. 같은 키로 두 번 호출해 한 번만 처리되는지 확인하라."
+        }
       ],
-      "answer": 0,
-      "why": "본문 해시를 비교해 오용을 막는다."
+      "quiz": [
+        {
+          "q": "멱등 키의 역할은?",
+          "choices": [
+            "인증",
+            "재시도가 「같은 시도」임을 서버에 알려 중복 처리 방지",
+            "속도 제한",
+            "캐시"
+          ],
+          "answer": 1,
+          "why": "같은 키=한 번 처리."
+        },
+        {
+          "q": "재시도할 때 멱등 키는?",
+          "choices": [
+            "매번 새로",
+            "같은 키를 유지",
+            "제거",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "같은 의도의 재시도."
+        },
+        {
+          "q": "멱등 키는 무엇당 하나인가?",
+          "choices": [
+            "재시도마다",
+            "요청 의도당(그 의도의 모든 재시도가 공유)",
+            "초당",
+            "사용자당"
+          ],
+          "answer": 1,
+          "why": "의도 vs 시도."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "서버 구현 — 결과를 저장한다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "서버는 멱등 키를 받으면: ① 이 키를 **처음 보나** 확인 → ② 처음이면 처리하고 **결과(상태 코드·본문)를 키와 함께 저장** → ③ 이미 있으면 처리를 **건너뛰고 저장된 결과를 반환**. 핵심은 「처리」와 「키 기록」이 **하나의 원자적 단위**여야 한다는 것 — 안 그러면 그 틈에 중복이 뚫린다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "서버의 멱등 처리 흐름",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:56px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; } .tl .lost { background:#7f1d1d; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = {{step}};\n  const rows = [\n    ['요청 도착 — Idempotency-Key: abc 읽음', ''],\n    ['이 키를 전에 봤나? DB 조회', ''],\n    ['처음 봄 -> 결제 처리 + 결과를 키와 함께 저장 (한 트랜잭션)', 'good'],\n    ['(재시도) 같은 키 abc 도착 — 저장된 것 발견', ''],\n    ['처리 건너뛰고 저장된 응답 그대로 반환', 'good'],\n  ];\n  const view = rows.map((r, i) => [r[0], i === s ? 'on' : (i < s ? 'good' : (r[1] || ''))]);\n  render('서버 멱등 처리 (단계 ' + (s + 1) + '/5)',\n    '  ' + rows[s][0] + '\\n\\n' +\n    (s === 2 ? '  <span class=\\\"warn\\\">처리와 키 저장을 한 트랜잭션으로 — 이 원자성이 핵심.</span>'\n     : s === 4 ? '  <span class=\\\"ok\\\">재시도가 와도 첫 결과를 재현 — 중복 없음.</span>'\n     : '  키를 축으로 「처음인가/재시도인가」를 가른다.'),\n    '처리 + 키 기록을 하나의 원자적 단위로. 그래야 그 틈으로 중복이 안 샌다.',\n    steps(view));\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 4,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**처리와 키 기록은 원자적이어야 한다.** 「결제하고 → 따로 키 저장」이면, 그 사이에 재시도가 끼어들어 둘 다 처리할 수 있다. 결제(또는 그 참조)와 키 저장을 **한 트랜잭션**(db-lock)에 묶거나, 키에 **유니크 제약**을 걸어 두 번째 삽입이 실패하게 한다(6장). 원자성이 없으면 멱등 키가 뚫린다."
+        },
+        {
+          "type": "p",
+          "text": "**저장하는 것은 「했다」가 아니라 「결과」다.** 두 번째 요청에도 첫 번째와 **똑같은 응답**(상태 코드·본문·생성된 id)을 줘야 한다. 그래야 클라이언트는 재시도가 원래 요청과 구분되지 않는다 — 200 이든 201 이든 첫 응답을 그대로 재현한다. 「이미 처리됨」이라는 다른 응답을 주면 클라이언트 로직이 갈린다."
+        },
+        {
+          "type": "try",
+          "text": "멱등 키 저장소를 만들 때, 처리와 키 기록을 한 트랜잭션에 묶어라. 두 번째 요청에 첫 번째와 동일한 상태 코드·본문을 반환하는지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "서버가 멱등 키로 저장하는 것은?",
+          "choices": [
+            "「처리했음」 표시만",
+            "첫 요청의 결과(상태 코드·본문) 전체",
+            "요청 시각",
+            "사용자 id"
+          ],
+          "answer": 1,
+          "why": "재시도에 같은 응답 재현."
+        },
+        {
+          "q": "멱등 처리에서 원자적이어야 하는 것은?",
+          "choices": [
+            "읽기",
+            "실제 처리 + 키 기록",
+            "응답 전송",
+            "로그"
+          ],
+          "answer": 1,
+          "why": "그 틈으로 중복이 샌다."
+        },
+        {
+          "q": "두 번째 요청에 줄 응답은?",
+          "choices": [
+            "「이미 처리됨」 다른 응답",
+            "첫 번째와 동일한 응답 그대로",
+            "빈 응답",
+            "에러"
+          ],
+          "answer": 1,
+          "why": "재시도가 구분되지 않게."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "같은 키 다른 본문 — 거부하라",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "멱등 키의 함정 하나: **같은 키에 다른 본문**이 오는 경우. 클라이언트 버그로 A 결제의 키에 B 결제 내용이 실려 오면, 서버가 「이미 처리된 키」라며 A 의 결과를 돌려줘 **B 결제가 조용히 사라진다.** 방어: 키에 **요청 내용의 지문**을 함께 저장하고, 다르면 거부(422)한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "같은 키에 다른 본문이 오면",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:56px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; } .tl .lost { background:#7f1d1d; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const body = '{{body}}';\n  const same = body === 'same';\n  render('Idempotency-Key: abc  (이미 A결제로 처리됨) · 새 요청 본문 = ' + (same ? 'A결제(동일)' : 'B결제(다름)'),\n    (same\n      ? '  본문 지문 일치 -> <span class=\\\"ok\\\">정상: 저장된 A 결제 결과를 반환(멱등).</span>'\n      : '  본문 지문 불일치 -> <span class=\\\"no\\\">위험!</span> 그냥 A 결과를 주면 B 결제가 증발.\\n' +\n        '  <span class=\\\"ok\\\">방어: 422 로 거부 — \\'이 키는 다른 요청에 이미 쓰였다\\'</span>'),\n    '키에 본문 지문을 함께 저장. 같은 키 다른 본문 = 클라이언트 버그 -> 422 거부.',\n    box(same ? '지문 일치 — 저장 결과 반환' : '지문 불일치 — 422 거부',\n      'stored: key=abc, fingerprint=hash(A)\\nincoming: key=abc, fingerprint=hash(' + (same ? 'A' : 'B') + ')\\n=> ' +\n        (same ? '일치: 멱등 재현' : '불일치: 422 Unprocessable'),\n      same ? 'good' : 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "body",
+              "label": "재요청 본문",
+              "type": "select",
+              "value": "diff",
+              "options": [
+                {
+                  "value": "same",
+                  "label": "같은 본문"
+                },
+                {
+                  "value": "diff",
+                  "label": "다른 본문"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**같은 키에 다른 본문이 오면 거부하라(422).** 안 그러면 클라이언트 버그로 A 결제 키에 B 결제가 실려 와 조용히 잘못 처리된다. 요청 본문의 해시(지문)를 키와 함께 저장해 두고, 재요청의 지문이 다르면 「이 키는 다른 요청에 쓰였다」고 명확히 거부한다 — 조용한 오류보다 시끄러운 거부가 낫다."
+        },
+        {
+          "type": "p",
+          "text": "**이것은 멱등 키의 무결성 검사다.** 멱등성은 「같은 요청의 재시도」를 전제한다. 키는 같은데 내용이 다르면 그 전제가 깨진 것 — 클라이언트가 키를 잘못 관리했다는 신호다. 거부해서 버그를 **드러내면**, 조용히 잘못된 결과를 주는 것보다 훨씬 빨리 고칠 수 있다(quality: 무음 실패 회피)."
+        },
+        {
+          "type": "try",
+          "text": "멱등 키 저장에 요청 본문의 해시를 함께 넣어라. 같은 키에 다른 본문이 오면 422 로 거부하는지, 같은 본문이면 저장 결과를 재현하는지 시험하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "같은 멱등 키에 다른 본문이 오면?",
+          "choices": [
+            "그냥 저장 결과 반환",
+            "422로 거부(본문 지문 불일치)",
+            "새로 처리",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "조용한 오류 방지."
+        },
+        {
+          "q": "이를 감지하려면 키와 함께 저장할 것은?",
+          "choices": [
+            "시각",
+            "요청 본문의 지문(해시)",
+            "사용자 id",
+            "IP"
+          ],
+          "answer": 1,
+          "why": "지문 비교."
+        },
+        {
+          "q": "거부가 조용한 처리보다 나은 이유는?",
+          "choices": [
+            "빠름",
+            "클라이언트 버그를 드러내 빨리 고침(무음 실패 회피)",
+            "보안",
+            "표준"
+          ],
+          "answer": 1,
+          "why": "시끄러운 거부."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "동시 재시도 — 경합을 막아라",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "까다로운 경우: **같은 키의 두 요청이 거의 동시에** 도착한다(원 요청이 느려서 클라이언트가 재시도했는데, 원 요청도 아직 처리 중). 둘 다 「키를 못 봤다」고 판단하면 **둘 다 처리** — 멱등 키가 뚫린다. 동시성 제어로 「한 번에 하나만」을 보장해야 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "동시 도착 — 보호 있고 없고",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:56px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; } .tl .lost { background:#7f1d1d; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const guard = '{{guard}}' === 'on';\n  render(guard ? '유니크 제약/락으로 보호' : '보호 없음(단순 조회 후 삽입)',\n    (guard\n      ? '  둘이 동시에 도착 -> 키에 유니크 제약: 하나만 삽입 성공, 다른 하나는 실패.\\n' +\n        '  <span class=\\\"ok\\\">진 쪽은 이긴 쪽의 결과를 기다렸다 반환 -> 1회 처리.</span>'\n      : '  둘 다 \\'키 없음\\' 확인 후 각자 처리 -> <span class=\\\"no\\\">경합으로 2회 처리(중복).</span>\\n' +\n        '  단순 「조회 후 삽입」은 그 사이 틈(TOCTOU)이 있다.'),\n    '동시 재시도는 「조회 후 삽입」의 틈을 뚫는다. 유니크 제약·락으로 직렬화하라.',\n    timeline(guard\n      ? [['req1', [[1,'work','키 조회'],[1,'ok2','삽입 성공->처리'],[1,'ok2','결과']]],\n         ['req2', [[1,'work','키 조회'],[1,'bad2','삽입 실패(유니크)'],[1,'warn2','대기->같은 결과']]]]\n      : [['req1', [[1,'work','키 없음'],[1,'bad2','처리(결제)']]],\n         ['req2', [[1,'work','키 없음'],[1,'bad2','처리(중복!)']]]]));\n</script>",
+          "controls": [
+            {
+              "id": "guard",
+              "label": "동시성 보호",
+              "type": "toggle",
+              "value": true
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**유니크 제약이 가장 단순한 보호다.** 멱등 키 컬럼에 유니크 인덱스를 걸면, 동시 두 삽입 중 **하나만 성공**하고 다른 하나는 제약 위반으로 실패한다(db-index). 진 쪽은 이긴 쪽이 처리를 끝낼 때까지 기다렸다 그 결과를 반환한다. DB 가 경합의 심판이 되어 준다."
+        },
+        {
+          "type": "p",
+          "text": "**「조회 후 삽입」의 틈(TOCTOU)을 조심하라.** 「키 있나 조회 → 없으면 처리+삽입」은 조회와 삽입 **사이**에 다른 요청이 끼어들 수 있다(check-to-use 경합, sec 트랙에도 나오는 패턴). 조회로 판단하지 말고, **삽입을 시도해 성공/실패로** 판단하거나 락으로 감싼다 — db-lock 의 동시성 원리가 그대로 적용된다."
+        },
+        {
+          "type": "try",
+          "text": "멱등 키 컬럼에 유니크 제약을 걸어라. 같은 키로 두 요청을 동시에 보내(부하 도구) 한 번만 처리되는지 확인하라. 「조회 후 삽입」 패턴이 있으면 삽입-실패 기반으로 바꿔라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "같은 키의 두 요청이 동시 도착할 때 위험은?",
+          "choices": [
+            "느림",
+            "둘 다 「키 없음」 판단 -> 중복 처리",
+            "락",
+            "정렬"
+          ],
+          "answer": 1,
+          "why": "경합으로 멱등 뚫림."
+        },
+        {
+          "q": "가장 단순한 동시성 보호는?",
+          "choices": [
+            "더 큰 서버",
+            "멱등 키에 유니크 제약(하나만 삽입 성공)",
+            "캐시",
+            "타임아웃"
+          ],
+          "answer": 1,
+          "why": "DB 가 심판."
+        },
+        {
+          "q": "「조회 후 삽입」의 문제는?",
+          "choices": [
+            "느림",
+            "조회와 삽입 사이 틈(TOCTOU) 경합",
+            "메모리",
+            "권한"
+          ],
+          "answer": 1,
+          "why": "삽입-실패 기반으로."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "저장 위치와 수명",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "멱등 키를 **어디에, 얼마나** 저장하느냐가 실효성을 정한다. **저장소**: 재시작에도 남아야 하니 DB(또는 영속 저장소). 캐시만 쓰면 재시작·축출 시 키가 사라져 중복이 뚫린다. **수명**: 재시도가 몰리는 창(대개 수 시간~24시간)만 넘기면 되니, 영원히 둘 필요는 없다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "저장 위치·수명 — 중복이 뚫리나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:56px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; } .tl .lost { background:#7f1d1d; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const store = '{{store}}';\n  const hours = {{ttl}};\n  const durable = store === 'db';\n  const retryWindow = 6;                 // 재시도가 몰리는 시간(시)\n  const ttlOk = hours >= retryWindow;\n  render('저장: ' + (durable ? 'DB(영속)' : '캐시(휘발)') + ' · 수명 ' + hours + '시간',\n    '  재시작 견딤 = ' + (durable ? '<span class=\\\"ok\\\">예</span>' : '<span class=\\\"no\\\">아니오 — 재시작 시 키 소실, 중복 뚫림</span>') + '\\n' +\n    '  수명 vs 재시도 창(~' + retryWindow + '시간) = ' + (ttlOk\n      ? '<span class=\\\"ok\\\">충분 — 재시도가 몰리는 동안 키가 살아 있다</span>'\n      : '<span class=\\\"no\\\">너무 짧다 — 늦은 재시도에 키가 없어 중복 가능</span>') + '\\n\\n' +\n    '  영속 저장 + 재시도 창을 덮는 수명. 이 둘이 맞아야 멱등이 실제로 지켜진다.',\n    '캐시만 쓰면 재시작에 뚫리고, 수명이 너무 짧으면 늦은 재시도에 뚫린다.',\n    bars([['재시도 창', retryWindow * 4, retryWindow + 'h', '#64748b'],\n          ['키 수명', Math.min(100, hours * 4), hours + 'h', ttlOk ? '#4ade80' : '#fca5a5']]));\n</script>",
+          "controls": [
+            {
+              "id": "store",
+              "label": "저장 위치",
+              "type": "select",
+              "value": "cache",
+              "options": [
+                {
+                  "value": "db",
+                  "label": "DB(영속)"
+                },
+                {
+                  "value": "cache",
+                  "label": "캐시(휘발)"
+                }
+              ]
+            },
+            {
+              "id": "ttl",
+              "label": "키 수명(시간)",
+              "type": "range",
+              "min": 1,
+              "max": 48,
+              "step": 1,
+              "value": 24
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**저장소는 DB, 캐시만 쓰면 재시작 시 중복이 뚫린다.** 인메모리 캐시(Redis 포함)만 쓰면 재시작·축출·장애 시 키가 사라져, 그 순간 오는 재시도가 중복 처리된다. 돈이 오가는 곳이면 영속 저장이 필수다. 성능을 위해 캐시를 앞에 둘 순 있지만, **진실의 원천은 영속 저장소**여야 한다."
+        },
+        {
+          "type": "p",
+          "text": "**수명은 24시간이면 대부분 충분하다.** 재시도는 대개 요청 직후 몇 초~몇 분, 길어도 몇 시간 안에 일어난다. 그 창을 넉넉히 덮는 24시간 정도면 되고, 지난 키는 정리해 저장소를 가볍게 유지한다(db-grow). 너무 짧으면 늦은 재시도에 뚫리고, 무한이면 저장소만 부푼다 — 재시도 창에 맞춘다."
+        },
+        {
+          "type": "try",
+          "text": "멱등 키를 영속 저장소(DB)에 두고 있는지 확인하라. 캐시만 쓴다면 재시작 시 중복 위험이 있다. 수명이 재시도 창(수 시간~하루)을 덮는지, 만료 키를 정리하는지 점검하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "멱등 키를 캐시에만 저장하면?",
+          "choices": [
+            "안전",
+            "재시작·축출 시 키 소실 -> 중복 뚫림",
+            "빠르고 안전",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "영속 저장이 진실의 원천."
+        },
+        {
+          "q": "멱등 키 수명의 기준은?",
+          "choices": [
+            "영원히",
+            "재시도가 몰리는 창(수 시간~24시간)을 덮게",
+            "1분",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "짧으면 늦은 재시도에 뚫림."
+        },
+        {
+          "q": "수명을 무한으로 두면?",
+          "choices": [
+            "가장 안전",
+            "저장소만 부풂 — 재시도 창에 맞춰 정리",
+            "빠름",
+            "필수"
+          ],
+          "answer": 1,
+          "why": "db-grow 와 연결."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "재시도하는 쪽의 예의",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "멱등성은 서버의 방어이고, 클라이언트에게도 **예의**가 있다. **지수 백오프+지터**(api-error 6장)로 몰리지 않게, **재시도 상한**으로 무한 재시도를 막고, **재시도해도 되는 오류인지 확인**(400 은 무의미)한다. 그리고 서버의 `Retry-After` 를 존중한다. 좋은 클라이언트와 멱등 서버가 만나야 중복이 사라진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "좋은 재시도 vs 나쁜 재시도",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:56px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; } .tl .lost { background:#7f1d1d; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const good = mode === 'good';\n  render(good ? '예의 있는 재시도' : '무례한 재시도',\n    (good\n      ? '  · 같은 멱등 키 유지 (3장)\\n  · 지수 백오프+지터 (몰림 방지)\\n' +\n        '  · 재시도 가능한 오류(5xx·429)만 · 상한 있음 · Retry-After 존중\\n' +\n        '  <span class=\\\"ok\\\">서버 멱등성과 만나 중복 0, 회복 방해 0.</span>'\n      : '  · 매번 새 키(또는 없음) -> 서버가 중복 거를 수 없음\\n  · 즉시·무한 재시도 -> 쓰러진 서버를 더 밟음\\n' +\n        '  · 400 도 재시도(무의미) -> 서버만 괴롭힘\\n' +\n        '  <span class=\\\"no\\\">멱등 서버라도 새 키 때문에 중복 발생.</span>'),\n    '멱등 서버 + 예의 있는 클라이언트(같은 키·백오프·상한·오류 구분)가 함께 가야 한다.',\n    steps(good\n      ? [['같은 멱등 키', 'good'], ['지수 백오프+지터', 'good'], ['재시도 가능 오류만', 'good'], ['상한·Retry-After 존중', 'good']]\n      : [['새 키/키 없음', 'bad'], ['즉시·무한 재시도', 'bad'], ['400도 재시도', 'bad'], ['Retry-After 무시', 'bad']]));\n</script>",
+          "controls": [
+            {
+              "id": "mode",
+              "label": "재시도 방식",
+              "type": "select",
+              "value": "bad",
+              "options": [
+                {
+                  "value": "good",
+                  "label": "예의 있음"
+                },
+                {
+                  "value": "bad",
+                  "label": "무례함"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**서버가 재시도 가능 여부를 알려 주면 클라이언트가 판단하기 쉽다.** api-error 5장처럼 `Retry-After`·`retriable` 로 서버가 신호를 주면, 클라이언트는 「재시도해도 되는 것만, 알려 준 만큼 기다렸다」 재시도한다. 서버의 에러 설계와 클라이언트의 재시도 예의는 **한 쌍**이다."
+        },
+        {
+          "type": "p",
+          "text": "**멱등성은 클라이언트-서버의 공동 계약이다.** 서버만 멱등 키를 지원해도 클라이언트가 재시도마다 새 키를 만들면 소용없고(3장), 클라이언트가 같은 키를 써도 서버가 중복을 안 거르면 소용없다. 양쪽이 **같은 규약**을 지킬 때만 「재시도해도 안전」이 실현된다 — 문서(api-doc)로 이 계약을 명시한다."
+        },
+        {
+          "type": "try",
+          "text": "네 클라이언트의 재시도가 같은 멱등 키를 유지하는지, 백오프+상한이 있는지, 재시도 가능한 오류만 재시도하는지 점검하라. 서버의 Retry-After 를 존중하는지도 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "예의 있는 재시도의 요소가 아닌 것은?",
+          "choices": [
+            "같은 멱등 키 유지",
+            "지수 백오프+상한",
+            "매번 새 키 생성",
+            "재시도 가능 오류만"
+          ],
+          "answer": 2,
+          "why": "새 키는 중복을 만든다."
+        },
+        {
+          "q": "멱등성은 누구의 책임인가?",
+          "choices": [
+            "서버만",
+            "클라이언트-서버 공동 계약",
+            "클라이언트만",
+            "DB"
+          ],
+          "answer": 1,
+          "why": "양쪽이 규약을 지켜야."
+        },
+        {
+          "q": "서버의 어떤 신호가 클라이언트 재시도를 돕나?",
+          "choices": [
+            "없음",
+            "Retry-After·retriable(api-error 5장)",
+            "느린 응답",
+            "큰 본문"
+          ],
+          "answer": 1,
+          "why": "에러 설계와 한 쌍."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — 멱등성",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "재시도되는 쓰기 API 를 만들 때 이 목록을 확인하라. 핵심은 「재시도를 전제하고·같은 키로·원자적으로·영속적으로」다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:56px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; } .tl .lost { background:#7f1d1d; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '재시도가 중복을 만드는 비멱등 쓰기를 식별했다',\n    '멱등 키(Idempotency-Key)를 받는다',\n    '클라이언트가 재시도 시 같은 키를 유지한다',\n    '처리와 키 기록이 원자적이다(트랜잭션/유니크)',\n    '두 번째 요청에 첫 결과를 그대로 반환한다',\n    '같은 키 다른 본문은 422로 거부한다',\n    '동시 재시도를 유니크 제약/락으로 막는다',\n    '키를 영속 저장 + 재시도 창을 덮는 수명',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 재시도해도 한 번만. 중복 결제·주문이 사라진다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '재시도를 전제하고·같은 키로·원자적으로·영속적으로. 이것이 멱등성.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 네트워크는 끊긴다, 재시도는 온다.** 그러니 쓰기는 「재시도해도 한 번만」으로 설계한다 — 멱등 키를 받고(3장), 처리·기록을 원자적으로(4·6장), 결과를 영속 저장(7장). 비멱등 메서드(POST·증가)에 이 보호가 필요하다(2장)."
+        },
+        {
+          "type": "p",
+          "text": "**이 트랙의 접착제.** 멱등성은 api-error 의 재시도를 안전하게 만들고, 그 구현은 db-lock(원자성)·db-index(유니크 제약)에 기대며, 저장 수명은 db-grow 와, 계약 명시는 api-doc 과 이어진다. **「재시도해도 안전한가」라는 질문이 신뢰할 수 있는 쓰기 API 의 핵심**이다."
+        },
+        {
+          "type": "try",
+          "text": "재시도되는 쓰기 API 에 이 8개 항목을 채점하라. 「멱등 키 수신」과 「원자적 처리·기록」 두 가지부터 잡으면 중복 결제·주문의 대부분이 사라진다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "멱등성의 한 줄 요약은?",
+          "choices": [
+            "재시도 금지",
+            "네트워크는 끊기니 재시도해도 한 번만으로 설계",
+            "타임아웃 늘리기",
+            "캐시"
+          ],
+          "answer": 1,
+          "why": "재시도를 전제."
+        },
+        {
+          "q": "멱등성이 기대는 다른 주제는?",
+          "choices": [
+            "없음",
+            "db-lock(원자성)·db-index(유니크)·api-error(재시도)",
+            "GraphQL",
+            "샤딩"
+          ],
+          "answer": 1,
+          "why": "트랙의 접착제."
+        },
+        {
+          "q": "먼저 잡을 두 가지는?",
+          "choices": [
+            "캐시·압축",
+            "멱등 키 수신 + 원자적 처리·기록",
+            "URL·헤더",
+            "GraphQL·복제"
+          ],
+          "answer": 1,
+          "why": "중복의 대부분을 없앤다."
+        }
+      ]
     }
   ]
 }
