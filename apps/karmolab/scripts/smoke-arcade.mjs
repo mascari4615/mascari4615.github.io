@@ -67,7 +67,11 @@ if (!cantRun) {
   console.log('[arcade-ui] 로비');
   const cards = await page.locator('.ac-card').count();
   check('실험 카드가 뜬다', cards >= 2, `${cards}장`);
-  check('혼자·같이 두 길이 다 있다', (await page.locator('[data-host]').count()) === cards);
+  /* 추천 여섯은 51개와 **다른 표**를 쓴다(`data-pick`) — 「몇 종인가」를 세는 자리가 새지
+     않게. 여기서 보는 것은 종 수가 아니라 「카드마다 두 길이 다 있나」이므로 둘 다 센다. */
+  const soloBtns = await page.locator('[data-solo], [data-pick]').count();
+  const hostBtns = await page.locator('[data-host], [data-pickhost]').count();
+  check('혼자·같이 두 길이 다 있다', soloBtns === cards && hostBtns === cards, `카드 ${cards} · 혼자 ${soloBtns} · 같이 ${hostBtns}`);
 
   /* **모든 게임을 한 번씩 열어 본다.** 51개가 되어도 이 고리가 알아서 늘어난다 —
    * 새 게임을 넣을 때 화면 검사를 새로 짤 필요가 없다는 뜻이다.
