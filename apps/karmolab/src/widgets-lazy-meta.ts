@@ -556,20 +556,14 @@ window.KARMOLAB_LAZY_META = [
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.slug.title', undefined, "슬러그 만들기"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.slug.desc', undefined, "제목을 주소에 쓸 형태로 바꿉니다."); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text']
   },
   {
     id: 'caseconv',
     hidden: true, // 「텍스트 도구」 작업대의 조작으로 합쳐짐 — 검색·북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
-    get title() { return t('widgets.caseconv.title', undefined, "caseconv"); },
+    get title() { return t('widgets.caseconv.title', undefined, "표기법 변환"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.caseconv.desc', undefined, ""); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -578,42 +572,30 @@ window.KARMOLAB_LAZY_META = [
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.linebreak.title', undefined, "줄바꿈 정리"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.linebreak.desc', undefined, "복사해 온 글을 잇거나 읽기 좋은 폭으로 다시 나눕니다."); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text']
   },
   {
     id: 'textclean',
     hidden: true, // 「텍스트 도구」 작업대의 조작으로 합쳐짐 — 검색·북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
-    get title() { return t('widgets.textclean.title', undefined, "글 정리"); },
+    get title() { return t('widgets.textclean.title', undefined, "텍스트 정리"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.textclean.desc', undefined, "여러 줄의 공백·중복·순서·표기를 한 번에 다듬습니다."); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text']
   },
   {
     id: 'hangulkey',
     hidden: true, // 「텍스트 도구」 작업대의 조작으로 합쳐짐 — 검색·북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
-    get title() { return t('widgets.hangulkey.title', undefined, "한영타 되돌리기"); },
+    get title() { return t('widgets.hangulkey.title', undefined, "한영타 변환"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.hangulkey.desc', undefined, "한영키를 안 누르고 친 글을 두벌식 자판 기준으로 되돌립니다."); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text']
   },
   {
     id: 'jamo',
     hidden: true, // 「텍스트 도구」 작업대의 조작으로 합쳐짐 — 검색·북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
-    get title() { return t('widgets.jamo.title', undefined, "한글 자모"); },
+    get title() { return t('widgets.jamo.title', undefined, "한글 자모 분해"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.jamo.desc', undefined, "글자를 자모로 풀거나, 자모를 다시 글자로 합치고 초성만 뽑습니다."); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -622,9 +604,6 @@ window.KARMOLAB_LAZY_META = [
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.replace.title', undefined, "찾아 바꾸기"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.replace.desc', undefined, "찾을 글과 바꿀 글을 정해 본문 전체를 한 번에 바꿉니다."); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -633,86 +612,62 @@ window.KARMOLAB_LAZY_META = [
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.listdiff.title', undefined, "목록 비교"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.listdiff.desc', undefined, "두 목록에서 공통인 것과 한쪽에만 있는 것을 가릅니다."); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text']
   },
   {
     id: 'charcount',
     hidden: true, // 「텍스트 도구」 작업대의 조작으로 합쳐짐 — 검색·북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
-    get title() { return t('widgets.charcount.title', undefined, "글자 수"); },
+    get title() { return t('widgets.charcount.title', undefined, "글자수 세기"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.charcount.desc', undefined, "공백·문장·문단·바이트까지 한 번에 셉니다."); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text']
   },
   {
     id: 'wordfreq',
     hidden: true, // 「텍스트 도구」 작업대의 조작으로 합쳐짐 — 검색·북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
-    get title() { return t('widgets.wordfreq.title', undefined, "단어 빈도"); },
+    get title() { return t('widgets.wordfreq.title', undefined, "단어 빈도 분석"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.wordfreq.desc', undefined, "자주 나온 단어를 빈도순으로 정리합니다."); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text']
   },
   {
     id: 'textdiff',
     hidden: true, // 「텍스트 도구」 작업대의 조작으로 합쳐짐 — 검색·북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
-    get title() { return t('widgets.textdiff.title', undefined, "글 비교"); },
+    get title() { return t('widgets.textdiff.title', undefined, "텍스트 비교"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.textdiff.desc', undefined, "두 글의 달라진 줄을 추가와 삭제로 보여 줍니다."); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text']
   },
   {
     id: 'textredact',
     hidden: true, // 「텍스트 도구」 작업대의 조작으로 합쳐짐 — 검색·북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
-    get title() { return t('widgets.textredact.title', undefined, "글 가리기"); },
+    get title() { return t('widgets.textredact.title', undefined, "글자 가리개"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.textredact.desc', undefined, "문서의 개인 정보와 토큰을 찾아 안전한 표기로 바꿉니다."); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text']
   },
   {
     id: 'text2pdf',
     hidden: true, // 「텍스트 도구」 작업대의 조작으로 합쳐짐 — 검색·북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
-    get title() { return t('widgets.text2pdf.title', undefined, "글을 PDF로"); },
+    get title() { return t('widgets.text2pdf.title', undefined, "글을 PDF 로"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.text2pdf.desc', undefined, "글을 브라우저 안에서 A4 PDF로 만듭니다."); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text']
   },
   {
     id: 'text2img',
     hidden: true, // 「텍스트 도구」 작업대의 조작으로 합쳐짐 — 검색·북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
-    get title() { return t('widgets.text2img.title', undefined, "글 카드"); },
+    get title() { return t('widgets.text2img.title', undefined, "글자를 그림으로"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.text2img.desc', undefined, "글을 PNG 이미지 카드로 만듭니다."); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text']
   },
   {
     id: 'lorem',
     hidden: true, // 「텍스트 도구」 작업대의 조작으로 합쳐짐 — 검색·북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
-    get title() { return t('widgets.lorem.title', undefined, "더미 텍스트"); },
+    get title() { return t('widgets.lorem.title', undefined, "더미 텍스트 생성"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.lorem.desc', undefined, "레이아웃을 확인할 임시 글을 만듭니다."); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -721,9 +676,6 @@ window.KARMOLAB_LAZY_META = [
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.checklist.title', undefined, "체크리스트"); },
     category: 'tool',
-    get desc() { return t('widgets-desc.checklist.desc', undefined, "한 줄씩 쓴 항목을 Markdown 체크리스트로 만듭니다."); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text']
   },
   {
