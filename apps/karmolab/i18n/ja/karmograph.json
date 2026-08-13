@@ -761,7 +761,7 @@
   "karmograph.mapDel.ask": "マップ「{name}」を消しますか？ 元に戻せません。",
   "karmograph.textPanel.title": "📝 文章から作る",
   "karmograph.textPanel.hint": "字下げすると上の行につながります。コロン(:)の後ろは説明です。<b>カード {shape=note group=Guide tags=ai|web} : 短いメモ</b> のように書くとカード型ノードになります。<b>ヨン -&gt; 村 : 守る</b> は横向きの関係です。",
-  "karmograph.textPanel.ph": "프로젝트 입구 {shape=rect group=Guide tags=ai|web}\n  시작 카드 {shape=note} : 무엇부터 볼지\n  파일 카드 {shape=bubble note=widgets-lazy-meta.ts} : 실제 파일\n시작 카드 -> 파일 카드 : 따라가기",
+  "karmograph.textPanel.ph": "プロジェクト入口 {shape=rect group=Guide tags=ai|web}\n  はじめカード {shape=note} : 何から見るか\n  ファイルカード {shape=bubble note=widgets-lazy-meta.ts} : 実際のファイル\nはじめカード -> ファイルカード : たどる",
   "karmograph.textPanel.kind": "新しく作るノードの種類",
   "karmograph.textPanel.go": "この文章から作る",
   "karmograph.textPanel.sample": "例を入れる",
