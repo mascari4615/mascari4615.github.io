@@ -38,7 +38,7 @@ export interface JsonCanvas {
 
 /** 노드 하나를 글 한 덩이로 — 첫 줄이 이름, 그 밑에 한마디·칸·설명. */
 function nodeToText(spec: GraphSpec, n: GraphNode): string {
-  const lines = [`# ${n.label || '(이름 없음)'}`];
+  const lines = [`# ${n.label || t('karmograph.noName')}`];
   if (n.note) lines.push(`_${n.note}_`);
   for (const [k, v] of Object.entries(n.fields ?? {})) lines.push(`- ${k}: ${v}`);
   if ((n.tags ?? []).length > 0) lines.push((n.tags ?? []).map((t) => `#${t}`).join(' '));
@@ -113,7 +113,7 @@ export function fromJsonCanvas(raw: unknown, base: GraphSpec): GraphSpec {
     nodes.push({
       id: cn.id,
       kind: base.nodes[0]?.kind ?? 'person',
-      label: label || '(이름 없음)',
+      label: label || t('karmograph.noName'),
       group: '',
       x: cn.x, y: cn.y, w: cn.width, h: cn.height,
       ports: [],

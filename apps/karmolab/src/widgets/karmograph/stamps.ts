@@ -8,6 +8,7 @@
  * 노트 창고와 같은 규칙: 맵보다 오래 살고, 저장 칸이 차면 조용히 포기한다(맵 저장이 우선).
  */
 import type { GraphSpec, GraphNode, GraphEdge } from '../../lib/graph/spec';
+import { t } from '../../lib/i18n';
 
 const KEY = 'karmograph.stamps';
 
@@ -48,7 +49,7 @@ export function captureStamp(spec: GraphSpec, ids: string[], name: string): Stam
   const inside = new Set(ids);
   const stamp: Stamp = {
     id: `stamp-${Date.now().toString(36)}`,
-    name: name.trim() || `본 ${picked.length}개`,
+    name: name.trim() || t('karmograph.stampDefault', { n: String(picked.length) }),
     at: Date.now(),
     nodes: picked.map((n) => ({ ...JSON.parse(JSON.stringify(n)) as GraphNode, x: n.x - minX, y: n.y - minY })),
     edges: spec.edges
