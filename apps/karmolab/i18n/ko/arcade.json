@@ -411,5 +411,8 @@
   "arcade.letter.wait": "{who} 차례다 — 링크를 기다려라",
   "arcade.letter.over": "판이 끝났다",
   "arcade.letter.toobig": "판이 길어져 링크에 안 담긴다 — 방을 열어 이어라",
-  "arcade.letter.friend": "상대"
+  "arcade.letter.friend": "상대",
+  "arcade.btn.team": "편 갈라",
+  "arcade.team.win": "{who} 편이 이겼다",
+  "arcade.team.draw": "편끼리 비겼다"
 }
