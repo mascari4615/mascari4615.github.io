@@ -682,5 +682,12 @@
   "karmograph.embed.done": "블로그에 붙일 한 줄을 복사했어요",
   "karmograph.crowd.offer": "카드가 {n}장이에요 — 이 카드 둘레만 볼까요?",
   "karmograph.crowd.done": "둘레 두 다리만 보는 중이에요 — 거르기 칸에서 되돌릴 수 있어요",
-  "karmograph.read.links": "이어진 곳"
+  "karmograph.read.links": "이어진 곳",
+  "karmograph.intent.cardgame.title": "카드게임 한 판",
+  "karmograph.intent.cardgame.sub": "턴·효과·조건이 어떻게 이어지는지",
+  "karmograph.intent.idea.title": "구상 굴리기",
+  "karmograph.intent.idea.sub": "떠오른 것들을 늘어놓고 이어 본다",
+  "karmograph.intent.org.title": "우리 팀·길드",
+  "karmograph.intent.org.sub": "누가 무엇을 맡고 누구와 붙어 있나",
+  "karmograph.intent.more": "다른 갈래도 볼까요"
 }

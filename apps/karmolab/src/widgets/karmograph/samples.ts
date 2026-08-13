@@ -51,6 +51,32 @@ export function sampleFor(packId: string): { title: string; outline: string } | 
  * 그래서 이 도구가 실제로 쓰이는 세 자리를 먼저 묻는다 — 고르면 그 갈래의 **견본 + 종류 + 칸 틀**이
  * 한꺼번에 깔린다(갈래는 고정이 아니다. 언제든 다른 종류를 섞어 쓸 수 있다).
  */
+/**
+ * ★ 앞줄 **셋만** 크게 묻는다 (TASK-KL-271 F1·F4). 넷이 되는 순간 고르기가 다시 어려워진다.
+ * 그런데 견본은 여섯 갈래가 이미 있고, 카드게임·구상·조직으로 온 사람에게 「작품 관계도」는
+ * 남의 옷이다 — 그래서 나머지는 **한 줄 뒤에** 둔다(있는 것을 숨기지 않되, 앞줄을 안 늘린다).
+ */
+export const MORE_INTENTS: { packId: string; icon: string; title: string; sub: string }[] = [
+  {
+    packId: 'cardgame',
+    icon: '🃏',
+    get title() { return t('karmograph.intent.cardgame.title'); },
+    get sub() { return t('karmograph.intent.cardgame.sub'); },
+  },
+  {
+    packId: 'idea',
+    icon: '💡',
+    get title() { return t('karmograph.intent.idea.title'); },
+    get sub() { return t('karmograph.intent.idea.sub'); },
+  },
+  {
+    packId: 'org',
+    icon: '🏢',
+    get title() { return t('karmograph.intent.org.title'); },
+    get sub() { return t('karmograph.intent.org.sub'); },
+  },
+];
+
 export const INTENTS: { packId: string; icon: string; title: string; sub: string }[] = [
   {
     packId: 'relation',

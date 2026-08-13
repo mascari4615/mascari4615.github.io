@@ -23,7 +23,7 @@ import { emptyGraphSpec } from '../../lib/graph/spec';
 import { KarmoGraphLocalStorageAdapter } from './local-storage-adapter';
 import { loadTerms, saveTerms, newTermId, type MyTerms } from './terms';
 import { parseOutline, layoutTree } from './from-text';
-import { sampleFor, INTENTS } from './samples';
+import { sampleFor, INTENTS, MORE_INTENTS } from './samples';
 import { COMMAND_GROUPS } from './commands';
 import { posterLegend, legendWorthShowing } from './poster-legend';
 import { wrapPoster } from './poster';
@@ -1568,6 +1568,12 @@ import {
         // 아무것도 안 골랐을 때의 옆 패널은 지금까지 **죽은 자리**였다. 처음 여는 사람에게
         // 가장 필요한 것(무엇을 만들 건가요)을 여기 둔다 — 캔버스 제스처와 안 싸우는 유일한 자리다.
         const intents = INTENTS.filter((it) => sampleFor(it.packId));
+        /* ★ 앞줄은 **셋만** — 넷이 되면 고르기가 다시 어려워진다(F1 에서 배운 것).
+           그런데 견본은 여섯 갈래가 이미 있고, 카드게임·구상·조직으로 온 사람에게 「작품 관계도」는
+           남의 옷이다. 그래서 나머지 셋은 **한 줄 뒤에** 둔다 (TASK-KL-271 F4) — 있는 것을
+           숨기지 않되 앞줄을 안 늘린다. 한 번 편 사람에게는 계속 펴 둔다. */
+        const more = MORE_INTENTS.filter((it) => sampleFor(it.packId));
+        const moreOpen = spec._meta?.moreIntents === 'on';
         // 빈 판에서는 **묻는 말이 맨 위**다. 「고르면 여기서 고칩니다」를 위에 두면 정작 첫 할 일이
         // 그 아래로 밀려 안 보인다(고를 것이 아직 하나도 없는데 고르라는 안내가 먼저 나온다).
         const pickHint = t('karmograph.renderSide.msg');
@@ -1586,6 +1592,14 @@ import {
                   <span class="km-intent-t">${escapeHtml(it.title)}</span>
                   <span class="km-intent-s">${escapeHtml(it.sub)}</span>
                 </button>`).join('')}</div>
+              ${more.length === 0 || moreOpen ? '' : `<button class="btn btn-ghost km-intent-more"
+                data-km="intent-more">${esc(t('karmograph.intent.more'))}</button>`}
+              ${!moreOpen ? '' : `<div class="km-intent">${more.map((it) => `
+                <button data-km="intent" data-key="${it.packId}">
+                  <span class="km-intent-ico">${it.icon}</span>
+                  <span class="km-intent-t">${escapeHtml(it.title)}</span>
+                  <span class="km-intent-s">${escapeHtml(it.sub)}</span>
+                </button>`).join('')}</div>`}
               <!-- ★ **이미 글로 적어 둔 사람**에게는 갈래 고르기가 한 걸음 돌아가는 길이다
                    (TASK-KL-271 F5). 메모장의 인물 목록·위키 개요를 그대로 붙여넣으면 판이 된다 —
                    그 기능은 있었는데 ⋯서랍 깊이 있어 첫 화면에서 안 보였다. 새 길은 안 낸다:
@@ -1632,6 +1646,14 @@ import {
             };
             tips.appendChild(wipe);
           }
+        }
+        const moreBtn = sideEl.querySelector('[data-km="intent-more"]') as HTMLButtonElement | null;
+        if (moreBtn) {
+          moreBtn.onclick = () => {
+            spec._meta = { ...spec._meta, moreIntents: 'on' };
+            persistStructure();
+            renderSide();
+          };
         }
         const textBtn = sideEl.querySelector('[data-km="intent-text"]') as HTMLButtonElement | null;
         if (textBtn) {
