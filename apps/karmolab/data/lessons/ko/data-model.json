@@ -1,98 +1,789 @@
 {
   "id": "data-model",
-  "minutes": 13,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "스키마는 나중에 바꾸기 가장 어려운 결정이다. 여기서 어긋나면 코드가 평생 그 어긋남을 보정한다."
-    },
-    {
-      "type": "h",
-      "text": "1. 정규화 — 사실을 한 곳에만"
-    },
-    {
-      "type": "p",
-      "text": "같은 사실이 두 곳에 있으면 언젠가 서로 달라진다. 사용자 이름을 주문 표에도 복사해 두면, 이름을 바꿨을 때 옛 주문에는 옛 이름이 남는다 — 그게 **틀린 것인지 의도한 것인지**를 먼저 정해야 한다."
-    },
-    {
-      "type": "code",
-      "lang": "sql",
-      "label": "관계로 표현",
-      "text": "CREATE TABLE users  (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL);\nCREATE TABLE orders (\n  id BIGSERIAL PRIMARY KEY,\n  user_id BIGINT NOT NULL REFERENCES users(id),\n  created_at TIMESTAMPTZ NOT NULL DEFAULT now()\n);"
-    },
-    {
-      "type": "note",
-      "text": "**영수증처럼 그 시점을 박제해야 하는 값**(결제 당시 가격·주소)은 일부러 복사해 둔다. 이건 비정규화가 아니라 **다른 사실**이다 — 「지금 가격」과 「그때 가격」은 서로 다른 데이터다."
-    },
-    {
-      "type": "h",
-      "text": "2. 제약은 데이터베이스에 건다"
-    },
-    {
-      "type": "code",
-      "lang": "sql",
-      "label": "앱 코드만 믿지 않는다",
-      "text": "ALTER TABLE orders ADD CONSTRAINT qty_positive CHECK (quantity > 0);\nCREATE UNIQUE INDEX ON users (lower(email));\n-- NOT NULL · FK · UNIQUE · CHECK 은 마지막 방어선이다"
-    },
-    {
-      "type": "h",
-      "text": "3. 이름과 타입"
-    },
-    {
-      "type": "note",
-      "text": "시간은 **타임존 포함**(timestamptz)으로 저장하고 표시할 때 변환한다. 돈은 정수(최소 단위) 또는 decimal — float 금지. 불리언보다 상태 열거형이 나은 경우가 많다(`is_deleted` 보다 `status`)."
-    },
-    {
-      "type": "h",
-      "text": "4. 바꿀 수 있게 만들기"
-    },
-    {
-      "type": "p",
-      "text": "스키마 변경은 **마이그레이션 파일**로 남긴다(손으로 콘솔에서 고치지 않는다). 컬럼 추가는 쉽고, 이름 변경·삭제는 어렵다 — 「추가 → 양쪽 지원 → 정리」 순서로 나눈다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "지금 프로젝트의 표 하나를 골라, 같은 사실이 두 곳에 저장돼 있는지 찾아라. 있다면 의도한 박제인지 실수인지 판단하라."
-    },
-    {
-      "type": "try",
-      "text": "NOT NULL·UNIQUE·CHECK 중 빠진 제약을 하나 추가해 보라. 기존 데이터가 걸리면, 그것이 이미 있던 오염이다."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "주문에 「결제 당시 가격」을 복사해 두는 것은?",
-      "choices": [
-        "비정규화 실수",
-        "지금 가격과 다른 별개의 사실이므로 올바른 설계",
-        "항상 금지"
+      "id": "1",
+      "title": "스키마는 나중에 못 바꾸는 결정",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "데이터 **스키마**(표의 구조)는 나중에 바꾸기 **가장 어려운** 결정이다. 코드는 배포로 언제든 고치지만, 스키마엔 이미 **쌓인 데이터**가 있어 바꾸려면 그 데이터를 전부 옮겨야 한다(마이그레이션). 그래서 여기서 어긋나면 코드가 **평생 그 어긋남을 보정**한다 — 잘못된 구조 위에 방어 코드가 끝없이 쌓인다. 스키마 설계에 시간을 들이는 이유가 이것이다: 초기 결정이 오래, 넓게 영향을 미친다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스키마 vs 코드 — 바꾸기 비용",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.dup { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const what = '{{what}}';\n  if (what === 'code') {\n    render('코드 바꾸기',\n      '  배포하면 끝 — 다음 실행부터 새 코드\\n' +\n      '  <span class=\\\"ok\\\">언제든 고칠 수 있다(롤백도 쉬움).</span>',\n      '코드는 배포로 언제든 바뀐다 — 쌓인 상태가 없다.',\n      box('코드', '배포 → 즉시 반영 · 롤백 가능', 'good'));\n  } else {\n    render('스키마 바꾸기',\n      '  이미 쌓인 수백만 행을 새 구조로 옮겨야(마이그레이션)\\n' +\n      '  <span class=\\\"no\\\">이름 변경·삭제·구조 변경은 어렵고 위험 → 코드가 평생 보정.</span>',\n      '스키마는 쌓인 데이터 때문에 바꾸기 어렵다 — 초기 결정이 오래 간다.',\n      steps([['이미 수백만 행 존재', 'on'],['구조 바꾸면 전부 이전 필요', 'bad'],['안 바꾸면 잘못된 구조 위 방어 코드 누적', 'bad']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "what",
+              "label": "무엇",
+              "type": "select",
+              "value": "code",
+              "options": [
+                {
+                  "value": "code",
+                  "label": "코드"
+                },
+                {
+                  "value": "schema",
+                  "label": "스키마"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**스키마는 「데이터가 쌓이는」 결정이라 코드보다 훨씬 바꾸기 어렵다 — 그래서 초기 설계가 중요하다.** 코드는 상태가 없어 배포로 갈아 끼우면 되지만, 스키마엔 이미 저장된 데이터가 있어 구조를 바꾸려면 그 데이터를 새 구조로 **이전**해야 한다(대용량이면 위험·느림). 그래서 잘못된 스키마는 「고치기」보다 「보정하기」로 이어진다 — 코드 곳곳에 「이 컬럼이 사실은 저 뜻」·「이 경우엔 예외」 같은 방어가 쌓여 영원한 부채가 된다(design 의 「잘못된 구조 위 fix 누적」). 그러니 스키마는 처음에 **사실을 정확히**(2장) 모델링하고, 그래도 바뀔 걸 대비해 **바꿀 수 있게**(8장) 만든다. 데이터 모델링은 데이터 갈래의 뿌리다."
+        },
+        {
+          "type": "p",
+          "text": "**데이터가 코드보다 오래 산다.** 애플리케이션 코드는 몇 년마다 새로 쓰이고 언어·프레임워크가 바뀌지만, 데이터는 그보다 오래 남아 여러 세대의 코드가 같은 데이터를 읽는다 — 그래서 스키마는 여러 코드베이스·팀이 의존하는 **공용 계약**이 된다(design-boundary). 잘 모델링된 데이터는 코드가 바뀌어도 안정적으로 그 위에서 여러 기능이 자라지만, 엉망인 데이터는 모든 코드를 오염시킨다. 「데이터 모델을 먼저, 신중히」가 오래된 지혜인 이유다 — 코드는 데이터를 다루는 도구이고, 데이터가 시스템의 중심이자 가장 오래 사는 자산이다. 이 칸부터 데이터 갈래(SQL·트랜잭션·캐시·큐·포맷)가 그 자산을 다루는 법을 쌓는다."
+        },
+        {
+          "type": "try",
+          "text": "지금 프로젝트에서 「스키마를 바꾸고 싶었지만 데이터가 쌓여 못 바꾼」 경험이나, 잘못된 구조를 코드로 보정하는 곳을 찾아라 — 초기 스키마 결정이 얼마나 오래 영향을 미치는지 확인하라."
+        }
       ],
-      "answer": 1,
-      "why": "시점을 박제해야 하는 값은 복사가 아니라 다른 데이터다."
+      "quiz": [
+        {
+          "q": "스키마가 코드보다 바꾸기 어려운 이유는?",
+          "choices": [
+            "문법이 복잡",
+            "이미 쌓인 데이터를 새 구조로 옮겨야(마이그레이션)",
+            "느려서",
+            "권한"
+          ],
+          "answer": 1,
+          "why": "상태가 쌓임."
+        },
+        {
+          "q": "잘못된 스키마의 결과는?",
+          "choices": [
+            "즉시 롤백",
+            "코드가 평생 그 어긋남을 보정(부채 누적)",
+            "자동 수정",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "보정 코드 누적."
+        },
+        {
+          "q": "데이터와 코드의 수명 관계는?",
+          "choices": [
+            "코드가 오래",
+            "데이터가 코드보다 오래 산다(여러 세대 코드가 의존)",
+            "같음",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "공용 계약."
+        }
+      ]
     },
     {
-      "q": "제약(NOT NULL·FK·CHECK)을 DB 에 거는 이유는?",
-      "choices": [
-        "앱 버그·다른 경로의 쓰기에도 데이터가 지켜지기 때문",
-        "쿼리가 빨라져서",
-        "문서화 때문"
+      "id": "2",
+      "title": "정규화 — 사실을 한 곳에만",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**정규화**의 핵심 한 줄: **같은 사실을 한 곳에만 저장한다.** 같은 사실이 두 곳에 있으면 언젠가 서로 **달라진다** — 사용자 이름을 주문 표에도 복사해 두면, 이름을 바꿨을 때 옛 주문엔 옛 이름이 남아 어긋난다. 대신 사용자는 `users` 표에 한 번만 두고, 주문은 그 사용자를 **참조**(user_id)한다. 그러면 이름은 한 곳에만 있어 항상 일치한다. 「사실의 단일 출처(single source of truth)」가 정규화의 목적이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "중복 저장 vs 참조",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.dup { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'dup') {\n    render('중복 저장 (사용자 이름을 주문에도)',\n      '  이름을 바꾸면 → 옛 주문엔 옛 이름이 남음(어긋남)\\n' +\n      '  <span class=\\\"no\\\">같은 사실이 두 곳 → 언젠가 서로 달라진다(갱신 이상).</span>',\n      '같은 사실을 두 곳에 저장하면 언젠가 어긋난다.',\n      table(['주문','user_name(복사)'], [['#1',['김철수','dup']],['#2',['김철수→이름변경?','dup']],['#3',['철수(옛 이름)','dup']]]));\n  } else {\n    render('참조 (주문 → user_id)',\n      '  이름은 users 에 한 번만 → 바꾸면 모든 주문이 자동 반영\\n' +\n      '  <span class=\\\"ok\\\">사실이 한 곳(단일 출처) → 항상 일치.</span>',\n      '사실은 한 곳에, 나머지는 참조 — 바꾸면 한 번에 반영된다.',\n      table(['주문','user_id →'], [['#1',['u1','ok']],['#2',['u1','ok']],['#3',['u1 (users 에서 이름 조회)','ok']]]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "설계",
+              "type": "select",
+              "value": "dup",
+              "options": [
+                {
+                  "value": "dup",
+                  "label": "중복 저장"
+                },
+                {
+                  "value": "ref",
+                  "label": "참조(정규화)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "sql",
+          "label": "정규화 — 참조로",
+          "text": "CREATE TABLE users\n  (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL);\nCREATE TABLE orders\n  (id BIGSERIAL PRIMARY KEY,\n   user_id BIGINT REFERENCES users(id),   -- 이름 복사 대신 참조\n   ...);\n-- 이름은 users 에 한 번만 → 바꿔도 어긋나지 않음\n-- 주문의 사용자 이름 = JOIN 으로 조회"
+        },
+        {
+          "type": "note",
+          "text": "**같은 사실이 두 곳에 있으면 「갱신 이상」이 생긴다 — 한 곳을 고치고 다른 곳을 놓친다.** 정규화는 이 중복을 없애 각 사실을 **정확히 한 곳**에 둔다: 사용자 이름은 users 에, 주문은 user_id 로 참조. 그러면 이름 변경이 한 번에 반영되고, 「어느 게 진짜지?」 하는 불일치가 사라진다. 정규화가 막는 세 가지 이상: ① **갱신 이상**(한 곳만 바뀜) ② **삽입 이상**(관련 데이터 없이 못 넣음) ③ **삭제 이상**(지우면 딸린 사실도 사라짐). 실무에선 「3정규형(3NF) 정도」가 기본 목표 — 사실을 한 곳에, 참조로 연결. 「이 값이 여러 행에 반복되나?」를 보면 정규화가 필요한 곳이 보인다."
+        },
+        {
+          "type": "p",
+          "text": "**정규화의 대가는 JOIN 이다 — 대개 감당할 만하다.** 사실을 나눠 두면 합쳐 볼 때 JOIN 이 필요하고, 이게 비용처럼 보인다. 하지만 ① 정규화된 데이터는 **정합성**이 보장되고(어긋남 없음) ② JOIN 은 인덱스(data-index)로 대개 빠르며 ③ 무엇보다 **데이터가 틀리는 것보다 조금 느린 게 낫다**. 그래서 기본은 정규화이고, 성능이 정말 문제일 때만 측정 후 선택적으로 **비정규화**(의도적 중복)를 한다(캐시·읽기 최적화, data-cache). 「처음부터 비정규화로 빠르게」는 대개 조기 최적화라 데이터 불일치라는 큰 비용을 부른다. 정규화로 정확성을 확보하고, 필요할 때만 신중히 중복을 더한다 — 다음 장의 「의도적 박제」는 그 신중한 예외다."
+        },
+        {
+          "type": "try",
+          "text": "지금 프로젝트의 표 하나를 골라, 같은 사실이 두 곳에 저장돼 있는지 찾아라 — 있다면 참조로 바꿀 수 있는지, 아니면 의도한 박제(3장)인지 판단하라."
+        }
       ],
-      "answer": 0,
-      "why": "DB 는 마지막 방어선이다."
+      "quiz": [
+        {
+          "q": "정규화의 핵심 한 줄은?",
+          "choices": [
+            "빠르게",
+            "같은 사실을 한 곳에만(단일 출처)",
+            "인덱스 많이",
+            "중복 저장"
+          ],
+          "answer": 1,
+          "why": "어긋남 방지."
+        },
+        {
+          "q": "같은 사실을 두 곳에 두면?",
+          "choices": [
+            "빠름",
+            "언젠가 서로 달라짐(갱신 이상)",
+            "안전",
+            "정규화"
+          ],
+          "answer": 1,
+          "why": "불일치."
+        },
+        {
+          "q": "정규화의 대가와 태도는?",
+          "choices": [
+            "없음",
+            "JOIN 비용 — 대개 감당, 필요할 때만 신중히 비정규화",
+            "항상 비정규화",
+            "느려서 나쁨"
+          ],
+          "answer": 1,
+          "why": "정확성 우선."
+        }
+      ]
     },
     {
-      "q": "시간 컬럼 저장으로 권장되는 것은?",
-      "choices": [
-        "문자열",
-        "타임존 포함 타임스탬프(timestamptz)",
-        "로컬 시간 문자열"
+      "id": "3",
+      "title": "의도적 박제 — 예외",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "정규화의 예외: **영수증처럼 그 시점을 박제해야 하는 값**은 일부러 복사해 둔다. 결제 당시 가격·배송 주소·상품명은 나중에 원본이 바뀌어도 **주문 시점의 값**이어야 한다 — 상품 가격이 오른다고 옛 주문의 결제액이 바뀌면 안 된다. 이건 비정규화가 아니라 **다른 사실**을 저장하는 것이다: 「현재 가격」과 「결제 당시 가격」은 서로 다른 사실이라, 각각 제 자리에 둔다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "현재 값 참조 vs 시점 박제",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.dup { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'wrong') {\n    render('가격을 참조만 (박제 X)',\n      '  주문이 products.price 를 참조 → 상품 가격이 오르면\\n' +\n      '  <span class=\\\"no\\\">옛 주문의 결제액도 바뀜(!) — 영수증이 거짓말.</span>',\n      '변하는 현재 값을 영수증에 참조로 두면 과거 기록이 바뀐다.',\n      table(['주문','결제액'], [['#1 (작년)',['현재가격 참조 → 오늘 가격','dup']],['상품 가격 인상','20000→25000','dup']]));\n  } else {\n    render('결제 당시 가격을 박제',\n      '  주문에 price_at_purchase 를 복사 저장 → 원본이 바뀌어도 그대로\\n' +\n      '  <span class=\\\"ok\\\">「결제 당시 가격」은 「현재 가격」과 다른 사실 — 각자 제 자리.</span>',\n      '시점을 박제해야 하는 값(결제가·주소)은 다른 사실이라 복사한다.',\n      table(['주문','price_at_purchase'], [['#1 (작년)',['20000 (박제)','ok']],['상품 현재가',['25000 (별개)','ok']]]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "설계",
+              "type": "select",
+              "value": "wrong",
+              "options": [
+                {
+                  "value": "wrong",
+                  "label": "현재 값 참조(틀림)"
+                },
+                {
+                  "value": "snapshot",
+                  "label": "시점 박제"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「현재 값」과 「그 시점의 값」은 다른 사실이다 — 박제는 중복이 아니라 별개 사실의 저장이다.** 정규화는 「같은 사실」의 중복을 없애는 것인데, 영수증의 결제액은 상품의 현재 가격과 **같은 사실이 아니다**: 하나는 「이 상품은 지금 얼마」, 다른 하나는 「이 주문은 그때 얼마에 샀나」다. 후자는 과거의 확정된 사실이라 원본이 바뀌어도 불변이어야 한다 — 그래서 주문에 결제 당시 가격·주소·상품명을 **복사해 박제**한다. 이건 정규화 위반이 아니라 올바른 모델링이다. 판단 기준: **「이 값이 나중에 원본이 바뀌면 함께 바뀌어야 하나, 그때 그대로여야 하나?」** — 함께 바뀌면 참조(정규화), 그대로여야 하면 박제(복사). 영수증·계약서·로그·감사 기록이 다 박제 대상이다."
+        },
+        {
+          "type": "p",
+          "text": "**박제와 비정규화(성능용 중복)를 구분하라.** 둘 다 「값을 복사」하지만 목적이 다르다: **박제**는 「그 시점의 사실을 보존」하는 **모델링**(결제가·주소)이고, **비정규화**는 「JOIN 을 줄여 빠르게」의 **성능 최적화**(집계값 캐싱 등)다. 박제한 값은 원본과 **달라도 정상**(과거 값이니까)이지만, 비정규화한 값은 원본과 **같아야 하는데 성능 때문에 복사한** 것이라 동기화 문제가 생긴다(원본 바뀌면 갱신해야 함, data-cache 의 무효화). 그래서 박제는 안전하고(불변 사실), 비정규화는 위험하다(동기화 부채). 값을 복사할 땐 「이게 불변 사실의 박제인가, 성능용 중복인가」를 명확히 해야 나중에 「이 값이 왜 원본과 다르지?」의 답을 안다."
+        },
+        {
+          "type": "try",
+          "text": "네 데이터에서 「그 시점을 박제해야 하는 값」(결제가·주소·상태 스냅샷)과 「현재를 참조해야 하는 값」(사용자 이름 등)을 구분하라. 박제해야 할 값이 현재 값을 참조하고 있다면(영수증이 거짓말할 위험) 복사로 바꿔라."
+        }
       ],
-      "answer": 1,
-      "why": "표시할 때 변환하면 되고, 지역이 섞여도 정확하다."
+      "quiz": [
+        {
+          "q": "결제 당시 가격을 주문에 복사하는 이유는?",
+          "choices": [
+            "빠르려고",
+            "「그때 가격」은 「현재 가격」과 다른 사실 — 박제",
+            "실수",
+            "정규화 위반"
+          ],
+          "answer": 1,
+          "why": "과거 사실 불변."
+        },
+        {
+          "q": "박제할 값인지 판단하는 기준은?",
+          "choices": [
+            "크기",
+            "원본이 바뀌면 함께 바뀌어야 하나 vs 그때 그대로여야 하나",
+            "타입",
+            "인기"
+          ],
+          "answer": 1,
+          "why": "그대로면 박제."
+        },
+        {
+          "q": "박제와 비정규화(성능용 중복)의 차이는?",
+          "choices": [
+            "같음",
+            "박제=불변 사실 보존(안전), 비정규화=성능용(동기화 부채)",
+            "속도만",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "목적이 다름."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "제약은 데이터베이스에 건다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "데이터의 규칙(수량은 양수, 이메일은 유일, 사용자 없이는 주문 없음)은 **애플리케이션이 아니라 데이터베이스에** 건다 — `NOT NULL`·`UNIQUE`·`CHECK`·`FOREIGN KEY`. 애플리케이션 검증은 우회될 수 있지만(다른 코드 경로·직접 SQL·버그), DB 제약은 **어떤 경로로 와도** 강제된다 — 잘못된 데이터가 **애초에 저장될 수 없다**. 「데이터의 규칙은 데이터 곁에」가 lang-oop 의 캡슐화·lang-types 의 「잘못된 상태를 못 만들게」와 같은 원리다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "앱 검증 vs DB 제약",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.dup { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const guard = '{{guard}}';\n  if (guard === 'app') {\n    render('앱에서만 검증',\n      '  코드 A 는 검증 → 하지만 코드 B·배치·직접 SQL 은 우회\\n' +\n      '  <span class=\\\"no\\\">한 경로만 놓쳐도 잘못된 데이터(음수 수량·중복 이메일)가 저장됨.</span>',\n      '앱 검증은 경로마다 반복·우회 가능 — 한 곳만 놓쳐도 오염이 샌다.',\n      steps([['코드 A: 검증 O', 'good'],['코드 B: 검증 깜빡', 'bad'],['배치·직접 SQL: 검증 없음', 'bad'],['→ 잘못된 데이터 저장', 'bad']]));\n  } else {\n    render('DB 제약',\n      '  CHECK(quantity>0)·UNIQUE(email)·FK → 어떤 경로로 와도 강제\\n' +\n      '  <span class=\\\"ok\\\">잘못된 데이터는 애초에 저장 불가 — 마지막 방어선.</span>',\n      'DB 제약은 모든 경로에 강제 — 잘못된 데이터를 애초에 못 넣는다.',\n      steps([['어느 경로로 INSERT 시도', 'on'],['DB 가 제약 검사(CHECK·UNIQUE·FK)', 'on'],['위반 → 거부(저장 안 됨)', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "guard",
+              "label": "규칙 위치",
+              "type": "select",
+              "value": "app",
+              "options": [
+                {
+                  "value": "app",
+                  "label": "앱에서만"
+                },
+                {
+                  "value": "db",
+                  "label": "DB 제약"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "sql",
+          "label": "DB 제약",
+          "text": "-- NOT NULL: 필수 값\nname TEXT NOT NULL\n-- UNIQUE: 중복 금지\nemail TEXT UNIQUE\n-- CHECK: 값의 규칙\nALTER TABLE orders ADD CONSTRAINT qty_positive CHECK (quantity > 0);\n-- FOREIGN KEY: 참조 무결성(없는 사용자를 참조 못 함)\nuser_id BIGINT REFERENCES users(id)\n\n-- 어떤 코드 경로·직접 SQL 로 와도 강제 → 잘못된 데이터 저장 불가"
+        },
+        {
+          "type": "note",
+          "text": "**제약은 DB 에 걸어라 — 애플리케이션 검증은 우회되지만 DB 제약은 최후의 방어선이다.** 앱 검증은 ① 코드 경로가 여럿이라 한 곳을 놓치기 쉽고 ② 배치·마이그레이션·직접 SQL·다른 서비스는 그 검증을 안 거치고 ③ 버그로 뚫린다. DB 제약(NOT NULL·UNIQUE·CHECK·FK)은 **어떤 경로로 와도** 검사되어, 잘못된 데이터가 **저장 자체가 안 된다** — 이게 데이터 정합성의 마지막 보루다. 앱 검증(빠른 피드백·좋은 에러 메시지)과 DB 제약(최후 강제)은 **둘 다** 하되, 진실의 강제는 DB 에 둔다. 특히 **UNIQUE 제약**은 동시 요청의 중복(회원가입·결제 멱등, pay-idem 4장)을 막는 유일한 확실한 방법이라 절대 빠뜨리면 안 된다 — 앱의 「조회 후 없으면 삽입」은 경합에 뚫린다."
+        },
+        {
+          "type": "p",
+          "text": "**외래 키(FK)는 「참조 무결성」을 지킨다 — 없는 것을 가리키지 못하게.** `user_id REFERENCES users(id)` 는 존재하지 않는 사용자를 참조하는 주문을 막고(고아 레코드 방지), 사용자를 지울 때 딸린 주문을 어떻게 할지(막기·함께 삭제 CASCADE·NULL 로) 정의한다. FK 가 없으면 「주문은 있는데 사용자가 없는」 깨진 참조가 쌓여 데이터가 서서히 오염된다. 그래서 정규화(참조로 연결, 2장)는 FK 제약과 짝이다 — 참조로 나눴으면 그 참조가 유효함을 FK 로 보장한다. 「제약을 다 걸면 느리지 않나?」 걱정하지만, 제약 검사 비용보다 **데이터가 틀리는 비용**이 훨씬 크다. 정합성이 성능보다 먼저다(정말 병목이면 측정 후 조정)."
+        },
+        {
+          "type": "try",
+          "text": "네 표에서 NOT NULL·UNIQUE·CHECK·FK 중 빠진 제약을 하나 추가해 보라 — 기존 데이터가 제약에 걸리면, 그것이 이미 있던 데이터 오염이다. 앱에서만 검증하던 규칙을 DB 제약으로 옮겨 우회 경로를 막아라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "데이터 규칙을 DB 제약으로 거는 이유는?",
+          "choices": [
+            "빠름",
+            "어떤 경로로 와도 강제 — 앱 검증은 우회됨",
+            "예뻐서",
+            "메모리"
+          ],
+          "answer": 1,
+          "why": "최후 방어선."
+        },
+        {
+          "q": "동시 요청의 중복을 확실히 막는 것은?",
+          "choices": [
+            "앱 검증",
+            "UNIQUE 제약(DB)",
+            "타임아웃",
+            "캐시"
+          ],
+          "answer": 1,
+          "why": "경합에 안 뚫림."
+        },
+        {
+          "q": "외래 키(FK)가 지키는 것은?",
+          "choices": [
+            "속도",
+            "참조 무결성(없는 것을 가리키지 못하게)",
+            "타입",
+            "정렬"
+          ],
+          "answer": 1,
+          "why": "고아 레코드 방지."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "이름과 타입",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "컬럼의 **타입**이 데이터의 규칙을 절반은 정한다. 핵심 관례: **시간은 타임존 포함**(`timestamptz`)으로 저장하고 표시할 때 변환한다(안 그러면 시차 사고) · **돈은 정수**(최소 단위, 센트·원) **또는 decimal** — float 는 오차가 난다(math-money) · **정해진 값들은 enum·참조 표**로(문자열 자유 입력 X) · **이름은 뜻이 드러나게**(status 보다 order_status). 타입·이름을 대충 정하면 그 컬럼이 평생 헷갈린다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "타입 선택 — 흔한 함정",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.dup { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const t = '{{t}}';\n  const cases = {\n    time:['시간', 'timestamptz (타임존 포함)', 'timestamp(무TZ)·문자열 → 시차 사고. 저장은 UTC, 표시는 변환'],\n    money:['돈', '정수(최소 단위) 또는 decimal', 'float → 0.1+0.2 오차. 금액은 절대 부동소수 X(math-money)'],\n    enum:['정해진 값', 'enum·참조 표(FK)', '자유 문자열 → \"paid\"·\"PAID\"·\"결제완료\" 뒤섞임'],\n    name:['이름', '뜻이 드러나게(order_status)', 'status·flag·data → 무슨 뜻인지 평생 헷갈림'],\n  }[t];\n  render('타입/이름: ' + cases[0],\n    '  권장: <span class=\\\"ok\\\">' + cases[1] + '</span>\\n  함정: <span class=\\\"no\\\">' + cases[2] + '</span>',\n    'timestamptz·돈은 정수/decimal·정해진 값은 enum·이름은 뜻이 드러나게.',\n    box(cases[0], cases[1]));\n</script>",
+          "controls": [
+            {
+              "id": "t",
+              "label": "종류",
+              "type": "select",
+              "value": "time",
+              "options": [
+                {
+                  "value": "time",
+                  "label": "시간"
+                },
+                {
+                  "value": "money",
+                  "label": "돈"
+                },
+                {
+                  "value": "enum",
+                  "label": "정해진 값"
+                },
+                {
+                  "value": "name",
+                  "label": "이름"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**타입이 규칙을 강제한다 — 시간은 타임존 포함, 돈은 정수/decimal, 정해진 값은 enum.** 흔한 데이터 사고의 상당수가 타입 선택에서 온다: **시간을 타임존 없이**(`timestamp`) 저장하면 서버·사용자 시차로 「1시간 틀린」 값이 되고(저장은 UTC=timestamptz, 표시할 때 지역 변환), **돈을 float 로** 저장하면 0.1+0.2≠0.3 오차로 결제액이 어긋나며(정수 최소 단위나 decimal, math-money), **정해진 값을 자유 문자열로** 두면 `paid`·`PAID`·`결제완료`가 뒤섞여 쿼리가 새는(enum·참조 표로 강제). 타입은 lang-types 의 「타입으로 잘못된 상태를 막기」를 DB 에서 하는 것 — 올바른 타입을 고르면 잘못된 값이 애초에 안 들어온다. 「일단 TEXT 로」는 나중에 그 컬럼을 평생 방어하게 만든다."
+        },
+        {
+          "type": "p",
+          "text": "**이름은 미래의 나·동료를 위한 문서다.** `status`·`flag`·`data`·`value` 같은 모호한 이름은 「무슨 status?·무슨 flag?」를 평생 코드·주석·머릿속으로 보정하게 한다 — `order_status`·`is_email_verified`·`payload_json` 처럼 **뜻이 드러나는** 이름을 쓴다. 불리언은 긍정형(`is_active`, `~한지 X → is_disabled` 이중부정 피함), 시각은 `_at`(created_at), 외래 키는 `<대상>_id`(user_id) 같은 관례를 지키면 스키마만 봐도 뜻이 읽힌다. 이름은 스키마의 절반이다 — 잘 지은 이름은 문서·주석 없이 데이터를 설명하고, 나쁜 이름은 모든 쿼리·코드에 혼란을 퍼뜨린다. 스키마는 오래 사니(1장), 이름도 오래 읽힌다. 처음에 뜻이 드러나게 짓는다."
+        },
+        {
+          "type": "try",
+          "text": "네 스키마에서 ① 타임존 없는 시간 ② float 로 저장된 돈 ③ 자유 문자열인 정해진 값 ④ 모호한 이름(status·flag·data) 중 하나를 찾아 고쳐라 — 타입·이름 하나가 평생의 혼란을 줄인다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "시간을 저장하는 올바른 타입은?",
+          "choices": [
+            "문자열",
+            "timestamptz(타임존 포함, 저장 UTC·표시 변환)",
+            "정수 초만",
+            "timestamp(무TZ)"
+          ],
+          "answer": 1,
+          "why": "시차 사고 방지."
+        },
+        {
+          "q": "돈을 float 로 저장하면?",
+          "choices": [
+            "정확",
+            "오차 발생(0.1+0.2≠0.3) — 정수/decimal 써야",
+            "빠름",
+            "안전"
+          ],
+          "answer": 1,
+          "why": "math-money."
+        },
+        {
+          "q": "모호한 이름(status·flag)의 문제는?",
+          "choices": [
+            "느림",
+            "무슨 뜻인지 평생 보정 — 뜻이 드러나는 이름을",
+            "메모리",
+            "타입"
+          ],
+          "answer": 1,
+          "why": "이름은 문서."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "관계 — 1:N, N:M",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "데이터는 서로 **관계**를 맺는다: **1:N**(한 사용자에 여러 주문 — 주문 쪽에 user_id FK) · **N:M**(여러 학생이 여러 강의 — **연결 표**(enrollments)로 풀기) · **1:1**(드묾 — 대개 한 표로 합침). 관계를 올바로 모델링하면 데이터가 자연스럽게 나뉘고 정합성이 지켜진다. 특히 **N:M 은 연결 표**로 푸는 게 핵심 — 양쪽에 배열·중복 컬럼을 두면 정규화가 깨진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "관계 모델링 — 1:N, N:M",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.dup { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const rel = '{{rel}}';\n  if (rel === 'one') {\n    render('1:N — 한 사용자, 여러 주문',\n      '  \"N\" 쪽(orders)에 FK(user_id) 를 둔다\\n' +\n      '  <span class=\\\"ok\\\">주문마다 user_id 하나 → 사용자별 주문 조회 자연스러움.</span>',\n      '1:N 은 N 쪽에 FK. 한 사용자가 여러 주문을 가진다.',\n      table(['orders','user_id(FK)'], [['#1',['u1','ok']],['#2',['u1','ok']],['#3',['u2','ok']]]));\n  } else {\n    render('N:M — 학생 ↔ 강의 (연결 표)',\n      '  중간에 enrollments(student_id, course_id) 표를 둔다\\n' +\n      '  <span class=\\\"ok\\\">양쪽에 배열·중복 없이 — 등록 한 건 = 연결 표 한 행.</span>',\n      'N:M 은 연결 표로 푼다 — 양쪽에 배열/중복을 두면 정규화가 깨진다.',\n      table(['enrollments','student','course'], [['',['s1','ok'],['c1','ok']],['',['s1','ok'],['c2','ok']],['',['s2','ok'],['c1','ok']]]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "rel",
+              "label": "관계",
+              "type": "select",
+              "value": "one",
+              "options": [
+                {
+                  "value": "one",
+                  "label": "1:N"
+                },
+                {
+                  "value": "many",
+                  "label": "N:M(연결 표)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "sql",
+          "label": "N:M — 연결 표",
+          "text": "-- 여러 학생이 여러 강의를 듣는다 (N:M)\nCREATE TABLE enrollments (\n  student_id BIGINT REFERENCES students(id),\n  course_id  BIGINT REFERENCES courses(id),\n  enrolled_at TIMESTAMPTZ DEFAULT now(),\n  PRIMARY KEY (student_id, course_id)   -- 같은 등록 중복 방지\n);\n-- 등록 = 연결 표 한 행. 양쪽(students·courses)엔 배열/중복 없음\n-- 관계에 딸린 데이터(등록 시각)도 연결 표에 자연스럽게"
+        },
+        {
+          "type": "note",
+          "text": "**N:M 은 반드시 연결 표(junction table)로 — 배열 컬럼·중복은 정규화를 깬다.** 「학생이 여러 강의를 듣고 강의에 여러 학생이 있는」 N:M 을 학생 표에 `course_ids` 배열로 두면, ① 중복·불일치가 생기고 ② 「이 강의의 학생들」 조회가 어렵고 ③ 관계에 딸린 데이터(등록 시각·성적)를 둘 곳이 없다. **연결 표**(enrollments) 하나가 이 모두를 푼다 — 관계 한 건이 한 행이고, FK 로 양쪽 정합성이 지켜지고(4장), 복합 PK 로 중복 등록이 막히고, 관계 속성을 그 표에 둔다. 1:N 은 N 쪽에 FK 를 두면 되고(주문에 user_id), N:M 만 연결 표가 필요하다. 「이 관계가 N:M 인가?」를 보면 연결 표가 필요한 곳이 보인다 — 실무 스키마의 상당수가 이 연결 표다."
+        },
+        {
+          "type": "p",
+          "text": "**관계를 잘못 잡으면 쿼리·정합성이 평생 고생한다.** 관계 방향(FK 를 어느 쪽에?)과 종류(1:N 인가 N:M 인가)를 처음에 틀리면, 「사용자의 주문」·「강의의 학생」 같은 기본 조회가 어렵거나 느려지고, 중복·고아 레코드가 쌓인다. 그래서 스키마 설계는 **엔티티(표)를 찾고 그 사이 관계를 그리는** 것부터다(ERD). 「A 하나에 B 가 여럿인가, 서로 여럿인가?」·「이 관계에 딸린 속성이 있나?」를 물어 1:N·N:M·연결 표를 정한다. 관계는 정규화(2장)·FK(4장)와 한 몸 — 사실을 표로 나누고(정규화), 그 사이를 관계로 잇고(FK), 관계가 N:M 이면 연결 표로 푼다. 이 셋이 관계형 모델링의 뼈대다."
+        },
+        {
+          "type": "try",
+          "text": "네 데이터의 관계들을 1:N·N:M 으로 분류하라. N:M 인데 연결 표 없이 배열·중복으로 푼 곳이 있으면 연결 표로 바꾸고, 관계에 딸린 속성(시각·상태)을 그 표에 둘 수 있는지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "1:N 관계에서 FK 는 어디에?",
+          "choices": [
+            "1 쪽",
+            "N 쪽(예: 주문에 user_id)",
+            "양쪽",
+            "연결 표"
+          ],
+          "answer": 1,
+          "why": "N 마다 하나 참조."
+        },
+        {
+          "q": "N:M 관계를 푸는 방법은?",
+          "choices": [
+            "배열 컬럼",
+            "연결 표(junction table)",
+            "중복 저장",
+            "1:1 로"
+          ],
+          "answer": 1,
+          "why": "정규화 유지."
+        },
+        {
+          "q": "연결 표가 추가로 담을 수 있는 것은?",
+          "choices": [
+            "없음",
+            "관계에 딸린 속성(등록 시각·성적 등)",
+            "인덱스만",
+            "캐시"
+          ],
+          "answer": 1,
+          "why": "관계의 자연스러운 자리."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "키 — 무엇으로 행을 식별하나",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "각 행을 **유일하게 식별**하는 것이 **기본 키(PK)**다. 선택: **자연 키**(이메일·주민번호처럼 실제 의미 있는 값) vs **대리 키**(의미 없는 id — 자동 증가 또는 UUID). 대개 **대리 키를 권장**한다 — 자연 키는 바뀔 수 있고(이메일 변경) 노출·길이 문제가 있어서다. 대리 키 안에서도 **자동 증가(BIGSERIAL)** vs **UUID** 선택이 있다 — 각각 정렬·노출·분산에서 다르다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "키 선택 — 자연 vs 대리, serial vs UUID",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.dup { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const k = '{{k}}';\n  const cases = {\n    natural:['자연 키(이메일 등)', 'bad', '의미 있는 값을 PK 로', '바뀔 수 있음(이메일 변경)·노출·길이 → 대개 피함'],\n    serial:['대리 키 — 자동 증가', 'good', 'BIGSERIAL (1,2,3…)', '작고 정렬 순 · 단 개수·순서가 노출됨(추측 가능)'],\n    uuid: ['대리 키 — UUID', 'good', 'gen_random_uuid()', '노출·분산 안전(추측 불가·여러 노드 생성) · 크고 정렬 불규칙'],\n  }[k];\n  render('키: ' + cases[0],\n    '  방식: ' + cases[2] + '\\n  특성: ' + cases[3] + '\\n\\n' +\n    (cases[1]==='good' ? '  <span class=\\\"ok\\\">대리 키 권장 — 의미와 분리된 안정적 식별자.</span>'\n      : '  <span class=\\\"no\\\">자연 키는 바뀌고 노출돼 대개 피한다.</span>'),\n    '대리 키 권장(자연 키는 바뀜). serial=작고 정렬·노출, UUID=안전·큼.',\n    box(cases[0], cases[2] + ' — ' + cases[3], cases[1]==='good'?'good':'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "k",
+              "label": "키",
+              "type": "select",
+              "value": "natural",
+              "options": [
+                {
+                  "value": "natural",
+                  "label": "자연 키"
+                },
+                {
+                  "value": "serial",
+                  "label": "자동 증가"
+                },
+                {
+                  "value": "uuid",
+                  "label": "UUID"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**대리 키(의미 없는 id)를 기본으로 — 자연 키는 바뀌고 노출된다.** 이메일·전화번호 같은 자연 키를 PK 로 쓰면, 그 값이 바뀔 때(이메일 변경) 그것을 참조하는 모든 곳을 함께 바꿔야 하고(FK 연쇄), URL·로그에 노출되며, 길이·형식이 제각각이다. 대리 키(BIGSERIAL·UUID)는 **의미와 분리된 안정적 식별자**라 이 문제가 없다 — 값은 바뀌지 않고, 참조가 안정적이며, 자연 키는 UNIQUE 제약으로 따로 유일성을 지킨다(PK 와 별개). serial vs UUID: **serial**(자동 증가)은 작고 정렬 순서라 인덱스에 유리하지만 **개수·순서가 노출**되고(경쟁사가 가입자 수 추측), 여러 노드에서 생성이 어렵다. **UUID**는 추측 불가·여러 노드에서 독립 생성 가능해 분산·노출에 안전하지만 크고(16바이트) 정렬이 불규칙하다(인덱스 단편화 — UUIDv7 등이 완화). 노출·분산이 중요하면 UUID, 단순·성능이면 serial."
+        },
+        {
+          "type": "p",
+          "text": "**키는 「의미」와 「식별」을 분리하는 결정이다.** 대리 키의 핵심 통찰은 「행을 식별하는 것」과 「그 행의 의미 있는 속성」을 나누는 것이다 — id 는 순수하게 식별만 담당하고(절대 안 바뀜·재사용 안 됨), 이메일·이름 같은 의미는 일반 컬럼으로 둔다(바뀔 수 있음). 이 분리 덕에 데이터가 바뀌어도 참조 관계(FK)가 안정적으로 유지된다. 그래서 「이 값이 유일하니 PK 로 쓰자」(자연 키의 유혹)보다 「식별은 대리 키로, 유일성은 UNIQUE 로」가 안전하다. 다만 **연결 표**(6장)는 두 FK 의 조합을 PK 로 쓰는 게 자연스럽고(복합 키), 정말 안정적인 자연 키(국가 코드 등)는 예외가 될 수 있다. 기본은 대리 키, 예외는 근거를 갖고."
+        },
+        {
+          "type": "try",
+          "text": "네 표들의 PK 가 자연 키인지 대리 키인지 확인하라 — 자연 키(이메일 등)를 PK 로 쓰는 곳이 있으면, 그 값이 바뀔 때 겪을 문제를 생각하고 대리 키+UNIQUE 로 바꿀지 판단하라. serial 과 UUID 중 이 프로젝트에 맞는 것도 정하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "PK 로 대개 권장되는 것은?",
+          "choices": [
+            "자연 키(이메일)",
+            "대리 키(의미 없는 id)",
+            "이름",
+            "타임스탬프"
+          ],
+          "answer": 1,
+          "why": "자연 키는 바뀜."
+        },
+        {
+          "q": "자연 키를 PK 로 쓰면 생기는 문제는?",
+          "choices": [
+            "빠름",
+            "값이 바뀌면 참조를 다 바꿔야·노출·형식 제각각",
+            "안전",
+            "작음"
+          ],
+          "answer": 1,
+          "why": "의미와 식별 분리."
+        },
+        {
+          "q": "UUID 가 serial 보다 나은 상황은?",
+          "choices": [
+            "항상",
+            "노출·분산 안전이 중요할 때(추측 불가·여러 노드 생성)",
+            "정렬 필요",
+            "작아야"
+          ],
+          "answer": 1,
+          "why": "serial 은 순서 노출."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "바꿀 수 있게 만들기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "스키마는 바뀐다 — 문제는 **어떻게** 바꾸나다. **마이그레이션 파일**로 남긴다(손으로 콘솔에서 고치지 않는다) — 변경이 코드처럼 버전 관리·리뷰·재현되고, 모든 환경(개발·스테이징·프로덕션)에 같은 순서로 적용된다. 변경의 난이도: **컬럼 추가**(nullable·기본값)는 쉽고, **이름 변경·삭제·타입 변경**은 어렵다(기존 데이터·코드가 의존). 그래서 파괴적 변경은 **여러 단계**로 안전하게 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "마이그레이션 — 난이도와 안전 변경",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.dup { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const op = '{{op}}';\n  const cases = {\n    add: ['컬럼 추가', 'good', 'ADD COLUMN (nullable 또는 기본값)', '기존 행·코드에 영향 적음 — 쉬움'],\n    rename:['이름 변경', 'bad', '한 번에 RENAME 하면 옛 코드가 깨짐', '단계로: 새 컬럼 추가→양쪽 쓰기→백필→옛 컬럼 제거'],\n    drop: ['컬럼 삭제', 'bad', '바로 DROP 하면 아직 읽는 코드가 깨짐', '먼저 코드에서 안 쓰게→배포→그 뒤 DROP'],\n    type: ['타입 변경', 'bad', '기존 데이터가 새 타입에 안 맞을 수', '새 컬럼+변환+검증 후 교체(단계)'],\n  }[op];\n  render('변경: ' + cases[0],\n    '  ' + cases[2] + '\\n  안전하게: <span class=\\\"' + (cases[1]==='good'?'ok':'warn') + '\\\">' + cases[3] + '</span>',\n    '마이그레이션 파일로 남긴다. 추가는 쉽고, 이름변경·삭제·타입변경은 단계로.',\n    box(cases[0], cases[3], cases[1]==='good'?'good':''));\n</script>",
+          "controls": [
+            {
+              "id": "op",
+              "label": "변경",
+              "type": "select",
+              "value": "add",
+              "options": [
+                {
+                  "value": "add",
+                  "label": "컬럼 추가"
+                },
+                {
+                  "value": "rename",
+                  "label": "이름 변경"
+                },
+                {
+                  "value": "drop",
+                  "label": "삭제"
+                },
+                {
+                  "value": "type",
+                  "label": "타입 변경"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "안전한 이름 변경 (여러 단계)",
+          "text": "한 번에 RENAME 은 옛 코드를 즉시 깨뜨린다. 대신:\n1) 새 컬럼 추가 (ADD COLUMN new_name)\n2) 코드가 양쪽에 쓰게 배포 (old·new 둘 다 갱신)\n3) 기존 데이터를 새 컬럼으로 백필 (UPDATE)\n4) 코드가 새 컬럼만 읽게 배포\n5) 옛 컬럼 제거 (DROP COLUMN old_name)\n\n→ 각 단계가 이전 버전 코드와 호환 = 무중단(expand-contract)"
+        },
+        {
+          "type": "note",
+          "text": "**스키마 변경은 마이그레이션 파일로, 파괴적 변경은 여러 단계로(expand-contract).** 콘솔에서 손으로 고치면 재현·리뷰·롤백이 안 되고 환경마다 달라진다 — 변경을 **마이그레이션 파일**(버전 관리되는 SQL·코드)로 남겨 코드처럼 다룬다. 그리고 컬럼 추가(nullable)는 안전하지만, 이름 변경·삭제·타입 변경은 **배포 중인 옛 코드**가 아직 그 컬럼에 의존하므로 한 번에 하면 깨진다. 그래서 **확장-수축(expand-contract)** 패턴: ① 새 것을 **추가**(expand)하고 ② 코드가 양쪽 호환되게 배포하고 ③ 데이터를 옮기고(백필) ④ 옛 것을 **제거**(contract)한다 — 각 단계가 이전 버전과 호환돼 무중단이다. 이게 「데이터가 쌓인 채로 구조를 바꾸는」(1장) 안전한 방법이다."
+        },
+        {
+          "type": "p",
+          "text": "**대용량 테이블의 마이그레이션은 락·시간을 조심한다.** 수백만~수억 행 테이블에 컬럼 추가·인덱스 생성·데이터 백필을 하면, DB 가 **테이블을 잠가**(락) 그동안 서비스가 멈추거나, 오래 걸려 타임아웃 난다. 그래서 프로덕션 마이그레이션은 ① 락을 짧게 잡는 방식 사용(예: 기본값 없는 nullable 컬럼 추가는 빠름, 인덱스는 `CREATE INDEX CONCURRENTLY`) ② 백필을 **배치로 나눠**(한 번에 다 X, 조금씩) ③ 사용량 적은 시간에 ④ 되돌릴 수 있게(down 마이그레이션) 한다. 「개발에선 즉시였는데 프로덕션에선 서비스가 멈춘」 사고가 대용량 마이그레이션에서 흔하다 — 데이터가 많을수록 변경 비용이 커진다는 게 「스키마는 바꾸기 어렵다」(1장)의 구체적 얼굴이다. 그래서 처음 설계를 신중히, 변경은 단계적·조심스럽게."
+        },
+        {
+          "type": "try",
+          "text": "네 프로젝트가 스키마 변경을 마이그레이션 파일로 남기는지 확인하라(손 수정 X). 컬럼 이름을 바꿔야 한다면 한 번에 RENAME 하지 말고 expand-contract 단계로 계획해 보라 — 각 단계가 배포 중인 코드와 호환되는지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "스키마 변경을 어떻게 남기나?",
+          "choices": [
+            "콘솔에서 손으로",
+            "마이그레이션 파일(버전 관리·리뷰·재현)",
+            "메모",
+            "안 남김"
+          ],
+          "answer": 1,
+          "why": "코드처럼 다룸."
+        },
+        {
+          "q": "컬럼 이름 변경을 안전하게 하려면?",
+          "choices": [
+            "한 번에 RENAME",
+            "expand-contract(새 컬럼 추가→양쪽 쓰기→백필→옛것 제거)",
+            "삭제 후 추가",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "옛 코드와 호환."
+        },
+        {
+          "q": "대용량 테이블 마이그레이션의 위험은?",
+          "choices": [
+            "없음",
+            "락·시간으로 서비스 멈춤 — 배치·CONCURRENTLY·저부하 시간",
+            "빠름",
+            "메모리"
+          ],
+          "answer": 1,
+          "why": "데이터 많을수록 비쌈."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — 데이터 모델링",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "스키마를 설계하거나 데이터 사고를 진단할 때 이 목록을 확인하라. 핵심은 「사실을 한 곳에, 규칙은 DB 에, 바꿀 수 있게」다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.dup { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '스키마는 바꾸기 어려움을 알고 신중히 설계한다',\n    '정규화 — 같은 사실을 한 곳에만(참조로 연결)',\n    '박제할 값(영수증)과 참조할 값을 구분한다',\n    '제약은 DB 에 건다(NOT NULL·UNIQUE·CHECK·FK)',\n    '타입을 바르게(timestamptz·돈은 정수/decimal·enum)',\n    '이름은 뜻이 드러나게(order_status)',\n    '관계를 올바로(1:N=FK, N:M=연결 표)',\n    '대리 키를 기본으로 · 변경은 마이그레이션으로',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 정합성 있고 바꿀 수 있는 데이터 모델을 짤 수 있다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '사실을 한 곳에 · 규칙은 DB 에 · 바꿀 수 있게.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 사실을 한 곳에, 규칙은 DB 에, 바꿀 수 있게.** 스키마는 바꾸기 어려우니 신중히(1장), 정규화로 사실을 한 곳에 두되(2장) 박제할 값은 구분하고(3장), 제약은 DB 에 걸어 정합성을 강제하고(4장), 타입·이름을 바르게(5장), 관계는 1:N·N:M 으로 올바로(6장), 대리 키를 기본으로(7장), 변경은 마이그레이션으로 안전하게(8장). 데이터 모델은 시스템의 가장 오래 사는 자산이라, 여기서의 정확함이 오래 이득이다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸의 연결.** 이 데이터 갈래는 여기서 시작해 SQL(data-sql — 모델을 다루는 법)·트랜잭션(data-tx — 일관성)·캐시(data-cache — 비정규화·무효화)·큐(data-queue)·포맷(data-format)으로 이어진다. 제약·잘못된 상태 차단은 lang-types·lang-oop, 인덱스는 db-index, 참조 무결성·경합은 db-lock·pay-idem, 경계·계약은 design-boundary 와 통한다. **「사실을 한 곳에, 규칙을 DB 에 두는 정합성 감각」이 데이터 갈래 전체의 뿌리이자 신뢰받는 시스템의 바탕**이다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개로 네 스키마를 점검하라. 「정규화(사실을 한 곳에)」와 「제약을 DB 에」 두 가지부터 잡으면, 데이터 불일치와 오염 사고의 상당수가 사라진다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "데이터 모델링 장의 한 줄 요약은?",
+          "choices": [
+            "빠르게",
+            "사실을 한 곳에·규칙은 DB 에·바꿀 수 있게",
+            "인덱스 많이",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "정합성이 핵심."
+        },
+        {
+          "q": "먼저 잡을 두 가지는?",
+          "choices": [
+            "샤딩·캐시",
+            "정규화(사실을 한 곳에) + 제약을 DB 에",
+            "비정규화·자연 키",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "불일치·오염 감소."
+        },
+        {
+          "q": "데이터 모델링이 이어지는 주제는?",
+          "choices": [
+            "없음",
+            "data-sql·data-tx·data-cache·db-index·design-boundary",
+            "문법",
+            "속도"
+          ],
+          "answer": 1,
+          "why": "데이터 갈래의 뿌리."
+        }
+      ]
     }
   ]
 }
