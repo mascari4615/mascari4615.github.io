@@ -46,6 +46,7 @@ async function loadModules() {
     export * as release from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-release.ts'))};
     export * as edgedrag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-edgedrag.ts'))};
     export * as edgeViews from ${JSON.stringify(path.join(root, 'src/lib/graph/edge-views.ts'))};
+    export * as poster from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster-legend.ts'))};
     export * as drag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-drag.ts'))};
     export * as guides from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-guides.ts'))};
     export * as minimap from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-minimap.ts'))};
@@ -772,6 +773,32 @@ const M = await loadModules();
   check(isAsymmetric({ viewFrom: '좋아함', viewTo: '싫어함' }), '서로 다르게 보면 비대칭이다');
   check(!isAsymmetric({ viewFrom: '같음', viewTo: '같음' }), '같은 말이면 비대칭이 아니다');
   check(!isAsymmetric({ viewFrom: '한쪽만' }), '한쪽만 적힌 것은 비대칭이라 못 부른다');
+}
+
+// -- 한 장으로 뽑을 때 붙일 범례 (TASK-KL-271 O1) ------------------------------
+{
+  const { posterLegend, legendWorthShowing } = M.poster;
+  const L = (k) => ({ person: '인물', place: '장소', thing: '물건' })[k] ?? k;
+  const E = (k) => ({ rel: '관련', foe: '적대' })[k] ?? k;
+  const spec = {
+    nodes: [{ kind: 'person' }, { kind: 'person' }, { kind: 'place' }, { kind: 'thing' }],
+    edges: [{ kind: 'rel' }, { kind: 'rel' }, { kind: 'foe' }],
+  };
+  const r = posterLegend(spec, L, E);
+  eq(r.nodes.length, 3, '판에 쓰인 카드 종류만 센다');
+  eq(r.nodes[0].label, '인물', '많이 쓰인 종류가 앞에 선다');
+  eq(r.nodes[0].count, 2, '몇 개인지도 같이 준다');
+  eq(r.nodes[1].label + r.nodes[2].label, '물건장소', '수가 같으면 이름순 — 두 번 뽑아도 같은 그림');
+  eq(r.edges[0].label, '관련', '관계도 같은 규칙');
+  eq(r.edges[0].of, 'edge', '카드 줄과 관계 줄을 나눠 세운다');
+  eq(posterLegend({ nodes: [{ kind: 'x' }], edges: [] }, L, E).edges.length, 0, '없는 것은 안 적는다');
+  const many = { nodes: Array.from({ length: 12 }, (_, n) => ({ kind: `k${n}` })), edges: [] };
+  const cut = posterLegend(many, L, E, 3);
+  eq(cut.nodes.length, 3, '상한을 넘으면 자른다 — 범례가 그림을 잡아먹으면 안 된다');
+  eq(cut.moreNodes, 9, '접힌 가짓수를 알려 준다');
+  check(!legendWorthShowing(posterLegend({ nodes: [{ kind: 'person' }], edges: [] }, L, E)),
+    '종류가 하나뿐이면 범례가 설명할 것이 없다');
+  check(legendWorthShowing(r), '종류가 여럿이면 범례가 쓸모 있다');
 }
 
 process.stdout.write('\n');
