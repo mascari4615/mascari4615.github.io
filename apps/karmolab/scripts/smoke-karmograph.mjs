@@ -1823,6 +1823,32 @@ async function allNamed(page, where) {
   if (bad.length > 0) throw new Error(`${where}: 이름 없는 손잡이 — ${bad.slice(0, 6).join(' · ')}`);
 }
 
+await step('덮개를 닫으면 초점이 제자리로 돌아온다 — 자리를 잃지 않는다 (KL-271)', async () => {
+  /* 실측 2026-08-14: 팔레트를 Esc 로 닫으면 초점이 body 로 떨어졌다 — 자판만 쓰는 사람은
+     그 순간 자리를 잃고, 다음 Tab 이 페이지 맨 위에서 다시 시작한다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(700));
+
+  await m.evaluate(() => document.querySelector('[data-km="more"]').focus());
+  await m.keyboard.press('Enter');
+  await m.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
+  await m.evaluate(() => document.querySelector('[data-km="palette-open"]').click());
+  await m.waitForSelector('[data-km="pal-find"]', { timeout: ms(4000) });
+  const inPal = await m.evaluate(() => Boolean(document.activeElement?.closest?.('.km-pal')));
+  if (!inPal) throw new Error('팔레트를 열었는데 초점이 안 들어간다 — 치려면 마우스를 잡아야 한다');
+  await m.keyboard.press('Escape');
+  await m.waitForSelector('[data-km="pal"].hidden', { state: 'attached', timeout: ms(4000) });
+  const back = await m.evaluate(() => document.activeElement?.dataset?.km
+    || document.activeElement?.tagName);
+  if (back === 'BODY') throw new Error('닫고 나니 초점이 판 밖으로 떨어졌다 — 다음 Tab 이 맨 위에서 다시 시작한다');
+  await ctx.close();
+});
 await step('되물음이 떠 있는 동안 Tab 이 뒤로 새지 않는다 (KL-271)', async () => {
   /* 실측 2026-08-14: 되물음 상자에서 두 번째 Tab 이 옆 패널 칸으로 나갔다 — 눈으로 보는
      사람에게는 상자가 앞을 막고 있는데, 자판만 쓰는 사람에게는 안 막힌 셈이다(답하지 않은
