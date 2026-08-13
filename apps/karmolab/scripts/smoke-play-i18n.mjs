@@ -65,7 +65,13 @@ if (!base) {
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
   base = `http://127.0.0.1:${server.address().port}`;
 }
-const 문 = `${base}/apps/karmolab/index.html`;
+/* 다른 말로 보는 판은 문이 다르다(`/ja/karmolab/`). 통째로 주소를 받는 길을 둔다 —
+   `KL_PAGE=https://…/ja/karmolab/ node scripts/smoke-play-i18n.mjs` */
+/* 다른 말로 보는 판은 문이 다르다(`/ja/karmolab/`). 통째로 주소를 받는 길을 둔다 —
+   `node scripts/smoke-play-i18n.mjs --page https://…/ja/karmolab/` (env `KL_PAGE` 도 된다).
+   창 띄우는 명령에 `VAR=값` 을 앞에 붙이는 방식은 윈도우에서 안 통해서 깃발도 같이 둔다. */
+const 깃발 = process.argv.indexOf('--page');
+const 문 = (깃발 >= 0 ? process.argv[깃발 + 1] : '') || process.env.KL_PAGE || `${base}/apps/karmolab/index.html`;
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });

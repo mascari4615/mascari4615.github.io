@@ -235,6 +235,7 @@
     "test:studymap:lessons": "node scripts/check-studymap-lessons.mjs",
     "test:arcade": "node scripts/test-arcade.mjs",
     "test:play-i18n": "node scripts/smoke-play-i18n.mjs",
+    "test:play-i18n:ja": "node scripts/smoke-play-i18n.mjs --page https://blog.mascari4615.com/ja/karmolab/",
     "test:tour": "node scripts/test-tour.mjs",
     "test:pick6": "node scripts/test-pick6.mjs",
     "test:spectate": "node scripts/test-spectate.mjs",
