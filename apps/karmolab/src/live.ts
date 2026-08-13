@@ -36,8 +36,26 @@ function titleOf(toolId: string): string | null {
     return (meta[toolId] && meta[toolId].title) || null;
 }
 
+/**
+ * 계정 조각이 올 때까지 **기다린다** (2026-08-13).
+ *
+ * 이 줄이 쓰는 주소(`apiBase`)는 `account.js` 가 들고 온다. 그런데 그 조각은 첫 그림 뒤에
+ * 한가할 때 오도록 옮겨졌다(부팅 짐 6.6KB 를 뺐다) — 그러자 이 줄이 **한 번 물어보고 없으면
+ * 포기**하는 바람에 실황이 영영 안 떴다. 없는 것과 아직 안 온 것은 다르다.
+ */
+async function waitForBase(ms = 10000): Promise<string | null> {
+    const at = () => (window as any).KarmoAccount?.apiBase || null;
+    const until = Date.now() + ms;
+    let base = at();
+    while (!base && Date.now() < until) {
+        await new Promise((r) => setTimeout(r, 200));
+        base = at();
+    }
+    return base;
+}
+
 async function fetchLive(): Promise<LiveData | null> {
-    const base = (window as any).KarmoAccount?.apiBase;
+    const base = await waitForBase();
     if (!base) return null;
     try {
         const response = await fetch(base + '/kl/live');
