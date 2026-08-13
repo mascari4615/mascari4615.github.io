@@ -170,6 +170,12 @@ function ensureTauriSidecarPlaceholder() {
    재고, 시계(nightwatch)로 부른 판에서는 **늘** 잰다 — 안 본 채 지나가는 날이 없게. */
 const tauriTouched = (() => {
   if (process.env.VERIFY_TAURI === 'always') return true;
+  /* CI 는 **얕게** 받아 오므로 여기서 `git diff` 를 하면 옛 커밋이 없어 늘 「모른다」가 된다.
+     그래서 판정은 워크플로가 서버에 물어 `skip` 으로 알려 준다(로컬은 아래 git 으로 본다). */
+  if (process.env.VERIFY_TAURI === 'skip') {
+    console.log('[verify] ! apps/karmolab-tauri 는 이번 판이 안 건드렸다 — cargo check 건너뜀 (시계 판이 늘 잰다)');
+    return false;
+  }
   const range = process.env.VERIFY_DIFF_RANGE;
   if (!range) return true; // 모르면 잰다 — 「모름」을 「안 건드림」으로 읽지 않는다
   const r = spawnSync('git', ['diff', '--name-only', range, '--', 'apps/karmolab-tauri'], { encoding: 'utf8' });

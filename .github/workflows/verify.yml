@@ -83,16 +83,34 @@ jobs:
             apps/blog/package-lock.json
             packages/karmolab-mcp/package-lock.json
 
+      # 이번 판이 Rust 쪽을 건드렸나 — **서버에 물어본다**. 체크아웃이 얕아서
+      # `git diff` 로는 옛 커밋이 없어 늘 「모른다」가 된다(그러면 늘 재게 되어 뜻이 없다).
+      - name: Rust 쪽을 건드렸나
+        id: tauri
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event_name }}" != "push" ]; then echo "run=always" >> "$GITHUB_OUTPUT"; exit 0; fi
+          before="${{ github.event.before }}"
+          case "$before" in ''|0000000*) echo "run=always" >> "$GITHUB_OUTPUT"; exit 0;; esac
+          files=$(gh api "repos/${{ github.repository }}/compare/$before...${{ github.sha }}" --jq '.files[].filename' 2>/dev/null) || {
+            echo "물어보지 못했다 — 그냥 잰다"; echo "run=always" >> "$GITHUB_OUTPUT"; exit 0; }
+          if echo "$files" | grep -q '^apps/karmolab-tauri/'; then echo "run=always" >> "$GITHUB_OUTPUT";
+          else echo "이번 판은 Rust 쪽을 안 건드렸다"; echo "run=skip" >> "$GITHUB_OUTPUT"; fi
+
       - name: Setup Rust toolchain
+        if: steps.tauri.outputs.run == 'always'
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install Linux deps (Tauri / WebKit / ALSA)
+        if: steps.tauri.outputs.run == 'always'
         # libasound2-dev: cpal=0.15 → alsa-sys v0.3.1 build 의존 (2026-05-10 부터 verify 16+ 회 fail 원인).
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libasound2-dev
 
       - name: Cache Cargo
+        if: steps.tauri.outputs.run == 'always'
         uses: actions/cache@v4
         with:
           path: |
@@ -126,8 +144,7 @@ jobs:
       #   시계(nightwatch)로 부른 판은 `always` 라 늘 잰다 — 안 본 채 지나가는 날이 없게.
       - name: Run verify (master invariant)
         env:
-          VERIFY_DIFF_RANGE: ${{ github.event_name == 'push' && format('{0}..{1}', github.event.before, github.sha) || '' }}
-          VERIFY_TAURI: ${{ github.event_name != 'push' && 'always' || '' }}
+          VERIFY_TAURI: ${{ steps.tauri.outputs.run }}
         run: npm run verify
 
       # ★ **두 번 시도한다** (2026-08-12). 이 단계는 검사 프로그램을 깃허브 릴리스에서 **내려받아**
