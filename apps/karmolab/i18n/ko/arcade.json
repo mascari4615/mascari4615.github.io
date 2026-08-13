@@ -9,7 +9,7 @@
   "arcade.btn.again": "한 판 더",
   "arcade.seats": "{min}~{max}명",
   "arcade.status.round": "{n} / {of} 판",
-  "arcade.result.win": "{who} 의 판이었다",
+  "arcade.result.win": "{who}의 판이었다",
   "arcade.result.draw": "비겼다",
   "arcade.game.reflex.name": "반응 측정",
   "arcade.game.reflex.desc": "명령 한 줄, 몇 초. 판마다 짧아진다",

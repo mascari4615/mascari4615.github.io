@@ -9,7 +9,7 @@
   "arcade.btn.again": "もう一回",
   "arcade.seats": "{min}〜{max}人",
   "arcade.status.round": "{n} / {of} 回戦",
-  "arcade.result.win": "{who} の勝ち",
+  "arcade.result.win": "{who}の勝ち",
   "arcade.result.draw": "引き分け",
   "arcade.game.reflex.name": "反応測定",
   "arcade.game.reflex.desc": "命令ひとつ、数秒。回ごとに短くなる",
