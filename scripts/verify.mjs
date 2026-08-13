@@ -1,6 +1,12 @@
 #!/usr/bin/env node
 // master invariant 게이트 — 단일 진실.
-// 호출처: `npm run verify` / `.husky/pre-push` / `.github/workflows/verify.yml`.
+// 호출처: `npm run verify` / `.github/workflows/verify.yml`.
+//   ※ 예전엔 여기에 `.husky/pre-push` 도 적혀 있었다. **거짓이었다** — husky 는 설치돼
+//     있지도 않고(`prepare` 스크립트·의존성 없음), 이 저장소의 `core.hooksPath` 는
+//     `memo/dotfiles/git-hooks` 를 가리킨다. `.husky/` 안의 파일은 어떤 기계에서도
+//     한 번도 안 돌았다. 그 폴더는 지웠고, 되살아나면 아래 검사가 막는다.
+//   ※ push 때 실제로 도는 것 = `memo/dotfiles/git-hooks/pre-push`
+//     (그 훅은 `apps/karmolab` 의 `verify:prepush` 를 부른다 — 이 파일 전체가 아니다).
 // 정본: memo/UMBRELLA.md § 자동화 가능 룰은 코드로 — 텍스트 룰은 잊힌다.
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -23,6 +29,30 @@ function requireDeps(sub) {
 }
 
 console.log('[verify] master invariant 게이트 시작');
+
+/* 게이트인 척하는 폴더를 막는다 (2026-08-13 시스템 리뷰).
+
+   `.husky/pre-push` 는 「master 에 타입 오류 직접 push」 사고를 막으려고 만든 것인데,
+   husky 가 설치된 적이 없어 **한 번도 안 돌았다**. 그런데 파일이 거기 있으니 사람도
+   문서도 「게이트가 있다」고 믿었다. 검사기가 게이트에 안 걸려 있으면 없는 것과 같다
+   (memo/rules/quality.md). 없는 것보다 나쁘다 — 있다고 믿게 만드니까.
+
+   그래서 그 폴더를 지웠고, 누가 다시 만들면 여기서 세운다. 훅을 넣고 싶으면
+   진짜 도는 자리(`core.hooksPath` 가 가리키는 곳)에 넣어야 한다. */
+{
+  const active = spawnSync('git config core.hooksPath', { shell: true, encoding: 'utf8' })
+    .stdout?.trim() ?? '';
+  const dead = existsSync('.husky')
+    ? readdirSync('.husky').filter((f) => f !== '_' && f !== '.gitignore')
+    : [];
+  if (dead.length > 0 && !active.endsWith('.husky')) {
+    console.error('[verify] X `.husky/` 에 훅이 있는데 git 은 그걸 안 본다 — 안 도는 게이트다');
+    console.error(`[verify]   있는 파일: ${dead.join(', ')}`);
+    console.error(`[verify]   git 이 실제로 보는 곳: ${active || '(설정 없음 -> .git/hooks)'}`);
+    console.error('[verify]   훅을 넣으려면 그 자리에 넣어라. `.husky/` 는 지워라.');
+    process.exit(1);
+  }
+}
 
 // 0. 링크로 쓰는 꾸러미가 디스크에 있나 (TASK-KL-191).
 //    `npm ci` 가 node_modules 안의 **Junction 을 따라 들어가** packages/ 의 진짜 소스를
