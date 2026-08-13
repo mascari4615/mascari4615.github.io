@@ -1,0 +1,37 @@
+/**
+ * **push 전에 도는 검사 목록 — 한 곳** (2026-08-13)
+ *
+ * 같은 목록이 두 군데 있었다: `package.json` 의 `verify:prepush` 와
+ * `typecheck-pushed.mjs` 의 「소스만 읽는 것들」. 하나에 검사를 더하고 다른 하나를 잊으면
+ * **밀 커밋을 재는 쪽이 조용히 덜 보게 된다** — 이 저장소가 오늘 하루 세 번 당한 그 병이다
+ * (게이트 줄만 올림 · 목록이 워크플로에만 있음 · 라이브 목록 두 벌).
+ *
+ * 그래서 목록은 여기 하나뿐이고 둘 다 이 파일을 읽는다.
+ */
+
+/** push 전 3초 검사 — 내 작업 폴더에서 돈다 */
+export const PREPUSH = [
+  'test:ink',
+  'audit:jpegbg',
+  'audit:hidden',
+  'audit:saylive',
+  'audit:iconbtn',
+  'audit:aliases',
+  'audit:scripts',
+  'test:tools',
+  'test:tool-url',
+  'test:i18n:keys',
+  'test:karmograph',
+  'audit:wf-prereq',
+  'audit:orphans',
+  'audit:i18n-load'
+];
+
+/**
+ * **지어 놓은 것**(`js/`·말 묶음)을 읽는 검사들 — 갓 꺼낸 커밋에는 그게 없다.
+ * 밀 커밋을 재는 자리에서 이것들을 돌리면 「없는 것을 보고 빨강」이 난다(실측 3건).
+ */
+export const NEEDS_BUILD = ['test:tools', 'test:tool-url'];
+
+/** 밀 커밋을 풀어 놓은 자리에서 돌려도 되는 것들 */
+export const SOURCE_ONLY = PREPUSH.filter((g) => !NEEDS_BUILD.includes(g));

@@ -17,26 +17,11 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { SOURCE_ONLY } from './lib/gate-sets.mjs';
 import { fileURLToPath } from 'node:url';
 
 const appRoot = dirname(dirname(fileURLToPath(import.meta.url)));
-/** 갓 꺼낸 커밋에서 **소스만 읽고** 판정할 수 있는 검사들 (지어 놓은 것을 읽는 것은 뺐다).
- *  `test:tools`·`test:tool-url` 은 `js/`·말 묶음 같은 **빌드 산출물**을 읽는데 새 체크아웃엔 없다 —
- *  넣었더니 「없는 것을 보고 빨강」이 셋 났다(2026-08-13). 이 게이트는 push 를 막으므로,
- *  없는 것을 빨강으로 세면 멀쩡한 커밋이 막힌다. 그 둘은 작업 폴더 쪽 게이트와 CI 몫이다. */
-const SOURCE_ONLY_GATES = [
-  'test:ink',
-  'audit:jpegbg',
-  'audit:hidden',
-  'audit:saylive',
-  'audit:iconbtn',
-  'audit:aliases',
-  'audit:scripts',
-  'test:i18n:keys',
-  'test:karmograph',
-  'audit:wf-prereq',
-  'audit:orphans'
-];
+/* 목록은 `lib/gate-sets.mjs` 한 곳 — 여기 또 적으면 언젠가 갈라진다(오늘 하루 세 번 당한 병이다). */
 
 const repoRoot = dirname(dirname(appRoot));
 
@@ -130,7 +115,7 @@ try {
      이 게이트가 막는 게이트라서 **멀쩡한 push 가 막힌다**. 그 둘은 작업 폴더 쪽 게이트와 CI 몫이다. */
   /* 목록을 **여기** 둔다 — 꺼낸 커밋의 `package.json` 에 있는 이름을 부르면, 오늘 그 이름을
      막 만든 판에서는 「그런 스크립트 없다」로 죽는다(닭과 달걀). 게이트는 부르는 쪽이 들고 있는다. */
-  const fast = runIn('node', ['scripts/run-gates.mjs', ...SOURCE_ONLY_GATES]);
+  const fast = runIn('node', ['scripts/run-gates.mjs', ...SOURCE_ONLY]);
   if (fast.status !== 0) failed.push(['빠른 게이트', `${fast.stdout || ''}${fast.stderr || ''}`.trim()]);
 
   if (!failed.length) {
