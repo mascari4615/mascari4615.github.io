@@ -1,102 +1,718 @@
 {
   "id": "pay-flow",
-  "minutes": 12,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "「결제하기」를 누른 뒤 실제로는 **며칠에 걸쳐** 여러 단계가 일어난다. 그 시차를 모르면 상태가 꼬인다."
-    },
-    {
-      "type": "h",
-      "text": "1. 네 단계"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "순서와 의미",
-      "text": "1) 승인(authorization) : 카드사에 「이 금액 쓸 수 있나」 확인 · 한도를 잡아 둔다\n2) 매입/확정(capture)  : 실제로 청구한다 (배송 시점에 하는 서비스도 많다)\n3) 정산(settlement)    : PG·카드사를 거쳐 며칠 뒤 내 계좌로\n4) 취소/환불            : 확정 전이면 승인 취소, 후면 환불 (경로가 다르다)"
-    },
-    {
-      "type": "note",
-      "text": "승인만 하고 확정을 안 하면 사용자 카드에는 **「승인 대기」로 잡혀 있다가 사라진다** — 이것도 문의로 온다. 언제 확정할지 정책을 정하라."
-    },
-    {
-      "type": "h",
-      "text": "2. 상태를 내 DB 에도 둔다"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "주문 상태 기계",
-      "text": "created → pending(결제 시도) → authorized → captured → refunded\n                              ↘ failed        ↘ canceled\n\n각 전이마다 「무엇을 근거로」 바꿨는지 기록(PG 응답·웹훅 id)"
-    },
-    {
-      "type": "h",
-      "text": "3. 화면의 성공은 신호일 뿐"
-    },
-    {
-      "type": "p",
-      "text": "사용자가 결제 창을 닫아도 결제는 성공했을 수 있다. **리다이렉트·웹훅 둘 다** 처리하고, 최종 판단은 서버가 한다. 「성공 페이지에 도달했으니 성공」은 위험하다."
-    },
-    {
-      "type": "h",
-      "text": "4. 시차가 만드는 문제"
-    },
-    {
-      "type": "note",
-      "text": "재고 차감 시점 · 이메일 발송 시점 · 정산 지연으로 인한 회계 불일치. **결제 확정 전에 되돌리기 어려운 일**(배송·라이선스 발급)을 하지 마라."
-    },
-    {
-      "type": "h",
-      "text": "5. 테스트"
-    },
-    {
-      "type": "p",
-      "text": "PG 는 대개 **테스트 카드 번호**를 제공한다(성공·한도초과·분실카드·3D Secure). 실패 경로를 반드시 눌러 보라 — 성공만 테스트한 결제는 언젠가 무너진다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "테스트 환경에서 승인 → 확정 → 부분 환불까지 한 바퀴 돌려라. 각 단계에서 내 DB 상태가 어떻게 바뀌는지 적어라."
-    },
-    {
-      "type": "try",
-      "text": "결제 창을 강제로 닫아 보고, 그 결제가 어떻게 처리되는지 확인하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "승인(authorization)과 확정(capture)의 차이는?",
-      "choices": [
-        "승인은 한도를 잡는 것, 확정이 실제 청구",
-        "같은 말",
-        "확정이 먼저"
+      "id": "1",
+      "title": "결제하기 뒤엔 며칠이 걸린다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「결제하기」를 누른 뒤 실제로는 **며칠에 걸쳐** 여러 단계가 일어난다 — 카드 승인, 실제 매입(확정), 은행 간 정산, 그리고 (있다면) 환불. 화면엔 「결제 완료」가 몇 초 만에 뜨지만, 그 뒤에서 돈이 실제로 이동하고 정산되는 건 며칠이 걸린다. **이 시차를 모르면 상태가 꼬인다**: 승인만 하고 확정 안 한 결제가 「대기」로 남거나, 정산 전에 회계를 맞추려다 안 맞거나, 화면 성공만 믿고 확정 안 된 걸 배송하거나. 그래서 결제를 「한순간의 성공/실패」가 아니라 **「며칠에 걸친 여러 단계의 흐름」**으로 이해하고, 각 단계의 상태를 정확히 관리해야 한다. 이 칸은 그 **전체 흐름**을 조망한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "결제 흐름 — 며칠에 걸친 단계",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tl { margin:8px 0; }\n  .tl .d { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n           background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .tl .d.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .tl .d.good { border-left-color:#22c55e; } .tl .d.bad { border-left-color:#ef4444; }\n  .tl .d .when { width:80px; color:#7dd3fc; }\n  .sm { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace; }\n  .sm .st { padding:4px 8px; border-radius:5px; background:#1e293b; color:#94a3b8; }\n  .sm .st.on { background:#0e2a3a; color:#7dd3fc; border:1px solid #164e63; }\n  .sm .st.good { background:#132a1c; color:#4ade80; } .sm .st.bad { background:#2a1414; color:#f87171; }\n  .sm .arr { color:#475569; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const tl = (rows) => '<div class=\"tl\">' + rows.map(([when, txt, cls]) =>\n    '<div class=\"d ' + (cls||'') + '\"><span class=\"when\">' + esc(when) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  const sm = (states) => '<div class=\"sm\">' + states.map((s, i) =>\n    '<span class=\"st ' + (s[1]||'') + '\">' + esc(s[0]) + '</span>' + (i < states.length-1 ? '<span class=\"arr\">→</span>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'naive') {\n    render('순진한 이해 (한순간)',\n      '  「결제하기」 → 즉시 성공/실패 → 끝?\\n\\n' +\n      '  <span class=\\\"no\\\">화면엔 즉시 뜨지만, 실제 돈의 이동·정산은 며칠. 시차를 놓치면 꼬임.</span>',\n      '순진한 이해: 즉시 끝 — 하지만 실제는 며칠에 걸침.',\n      steps([['「결제하기」 클릭', 'on'],['즉시 성공/실패?', 'bad'],['끝? (아니다)', 'bad']]));\n  } else {\n    render('실제 흐름 (며칠)',\n      '  승인(즉시) → 확정(즉시~며칠 후) → 정산(며칠) → (환불)\\n\\n' +\n      '  <span class=\\\"ok\\\">각 단계가 다른 시점에 — 상태를 정확히 관리해야 안 꼬인다.</span>',\n      '실제 흐름: 승인→확정→정산→환불, 며칠에 걸쳐. 상태 관리 필요.',\n      tl([['0초','승인 — 한도 잡음', 'on'],['즉시~며칠','확정 — 실제 매입', 'good'],\n          ['1~수일','정산 — 은행 간 돈 이동', 'good'],['(필요시)','환불 — 며칠', '']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "view",
+              "label": "이해",
+              "type": "select",
+              "value": "naive",
+              "options": [
+                {
+                  "value": "naive",
+                  "label": "순진한(한순간)"
+                },
+                {
+                  "value": "real",
+                  "label": "실제(며칠 흐름)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「결제하기」 뒤엔 며칠에 걸쳐 여러 단계가 일어난다 — 그 시차를 모르면 상태가 꼬인다. 결제를 「한순간의 성공/실패」가 아니라 「며칠에 걸친 흐름」으로 이해한다.** 사용자에겐 「결제하기 → 몇 초 후 결제 완료」로 즉각적으로 보이지만, 그 뒤에서 실제로는 **여러 단계가 시차를 두고** 일어난다: ① **승인(authorization)** — 카드사에 「이 금액을 쓸 수 있나」 확인하고 한도를 잡아 둔다(즉시, 몇 초). ② **확정/매입(capture)** — 실제로 그 돈을 청구한다(즉시 또는 며칠 후 — 정책에 따라, 2·3장). ③ **정산(settlement)** — 은행 간에 실제 돈이 이동해 내 계좌에 들어온다(보통 며칠 — 영업일 기준). ④ **(환불)** — 되돌리면 또 며칠(pay-refund). 화면의 「결제 완료」는 대개 ①승인(또는 ①+②)까지의 신호일 뿐, 돈이 실제로 내 손에 들어오는(정산) 건 며칠 후다. **이 시차를 모르면 상태가 꼬인다**: 승인만 하고 확정을 안 하면 사용자 카드엔 「승인 대기」로 잡혀 있다가 사라진다(문의 발생, 3장), 정산 전에 회계를 맞추려다 안 맞고(4장 — 매출 인식 시점), 화면 성공만 믿고 확정 안 된 걸 배송한다(5·6장 — 비가역 작업을 확정 전에). 그래서 결제 시스템을 만들 때 「결제 = 즉시 끝나는 하나의 이벤트」로 생각하면 안 되고, **「며칠에 걸친 여러 단계의 흐름」**으로 이해해야 한다 — 각 단계가 언제 일어나는지, 각 단계에서 내 시스템의 상태가 무엇인지(4장), 언제 무엇을 해도 안전한지(6장)를 알아야 한다. 이게 결제 흐름(pay-flow)의 핵심 — 결제의 **시간 축**을 이해하는 것. 이 흐름 이해 위에 다른 결제 주제들(웹훅으로 확정·멱등·환불·구독)이 선다. 「결제하기 눌렀으니 됐겠지」의 순진함이 결제 시스템의 흔한 버그(상태 꼬임·이중 처리·회계 불일치)의 근원이다."
+        },
+        {
+          "type": "p",
+          "text": "**「즉각적으로 보이는 것」과 「실제로 일어나는 것」의 시차를 이해하라 — 비동기·분산 작업의 근본.** 결제 흐름의 교훈은 「보이는 즉시성 vs 실제 비동기성」이다: 많은 작업이 사용자에겐 즉각적으로 보이지만(화면에 「완료」), 실제로는 **여러 단계가 시차를 두고 비동기적으로** 진행된다(주문 이행·배송·외부 처리·정산). 이 시차를 모르고 「즉시 끝났다」고 가정하면, 아직 안 끝난 것을 끝난 것처럼 다뤄 버그가 난다(확정 안 된 결제를 배송, 완료 안 된 작업을 참조). 그래서 비동기·분산 작업을 다룰 땐 **「지금 실제로 어느 단계인가」의 상태를 정확히 추적**하고, 「보이는 완료」와 「실제 완료」를 구분한다(pay-webhook — 화면 성공 ≠ 진실). 이는 분산 시스템의 근본 — 작업은 즉각적이지 않고 단계적이며, 각 단계의 상태를 명시적으로 관리해야 정확하다(상태 기계·이벤트·수렴). 「눌렀으니 됐다」의 순진함 대신 「지금 어느 단계이고, 이 단계에서 무엇을 해도 되나」를 의식하는 게 견고한 시스템의 사고다. 특히 돈·비가역 작업이 걸리면(결제·배송·발송) 이 시차 이해가 결정적이다 — 너무 일찍(확정 전) 비가역 작업을 하면 되돌릴 수 없는 손해가 난다(6장). 그래서 「시간 축을 이해하고, 각 단계의 상태를 관리하고, 단계에 맞게 행동한다」가 결제뿐 아니라 비동기 작업 전반의 핵심 사고다."
+        },
+        {
+          "type": "try",
+          "text": "네 결제가 「승인→확정→정산」의 어느 단계까지를 「결제 완료」로 다루는지 확인하라 — 화면의 성공이 실제 어느 단계인지, 돈이 언제 실제로 들어오는지(정산). 결제를 「즉시 끝나는 이벤트」로 다루고 있으면, 「며칠에 걸친 단계별 흐름」으로 다시 보고 각 단계의 상태를 추적하라."
+        }
       ],
-      "answer": 0,
-      "why": "확정 시점 정책이 사용자 경험을 좌우한다."
+      "quiz": [
+        {
+          "q": "「결제하기」 뒤 실제로는?",
+          "choices": [
+            "즉시 끝",
+            "며칠에 걸쳐 여러 단계(승인·확정·정산·환불)",
+            "실패만",
+            "환불"
+          ],
+          "answer": 1,
+          "why": "시차를 모르면 꼬임."
+        },
+        {
+          "q": "화면의 「결제 완료」는?",
+          "choices": [
+            "정산 완료",
+            "대개 승인(또는 확정)까지의 신호 — 정산은 며칠 후",
+            "환불",
+            "최종"
+          ],
+          "answer": 1,
+          "why": "시간 축 이해."
+        },
+        {
+          "q": "결제 흐름의 일반 교훈은?",
+          "choices": [
+            "즉시성",
+            "보이는 즉시성 vs 실제 비동기성 — 단계별 상태를 관리",
+            "속도",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "비동기·분산의 근본."
+        }
+      ]
     },
     {
-      "q": "결제 성공을 최종 판단하는 근거는?",
-      "choices": [
-        "서버가 받은 웹훅·조회 결과",
-        "성공 페이지 도달",
-        "클라이언트 콜백"
+      "id": "2",
+      "title": "네 단계",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "결제의 네 단계: ① **승인(authorization)** — 카드사에 「이 금액 쓸 수 있나」 확인하고 **한도를 잡아 둔다**(hold). 즉시, 아직 실제 청구는 아님. ② **매입/확정(capture)** — 잡아 둔 것을 **실제로 청구**한다(돈이 이동 시작). 즉시 또는 며칠 후(3장). ③ **정산(settlement)** — 카드사·은행 간 실제 정산으로 돈이 **내 계좌에 들어온다**(보통 며칠, 수수료 제하고). ④ **환불(refund)** — 되돌리기(pay-refund). 핵심 구분: **승인 ≠ 확정 ≠ 정산**. 승인은 「가능 확인 + 예약」, 확정은 「실제 청구」, 정산은 「돈이 실제로 들어옴」. 이 셋이 다른 시점이라, 「승인됐다」와 「돈 받았다」는 며칠 차이다 — 이걸 혼동하면 회계·재고·배송 판단이 틀린다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "네 단계 — 승인·확정·정산·환불",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tl { margin:8px 0; }\n  .tl .d { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n           background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .tl .d.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .tl .d.good { border-left-color:#22c55e; } .tl .d.bad { border-left-color:#ef4444; }\n  .tl .d .when { width:80px; color:#7dd3fc; }\n  .sm { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace; }\n  .sm .st { padding:4px 8px; border-radius:5px; background:#1e293b; color:#94a3b8; }\n  .sm .st.on { background:#0e2a3a; color:#7dd3fc; border:1px solid #164e63; }\n  .sm .st.good { background:#132a1c; color:#4ade80; } .sm .st.bad { background:#2a1414; color:#f87171; }\n  .sm .arr { color:#475569; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const tl = (rows) => '<div class=\"tl\">' + rows.map(([when, txt, cls]) =>\n    '<div class=\"d ' + (cls||'') + '\"><span class=\"when\">' + esc(when) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  const sm = (states) => '<div class=\"sm\">' + states.map((s, i) =>\n    '<span class=\"st ' + (s[1]||'') + '\">' + esc(s[0]) + '</span>' + (i < states.length-1 ? '<span class=\"arr\">→</span>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const stage = '{{stage}}';\n  const rows = {\n    auth:['① 승인(authorization)', '카드사에 「쓸 수 있나」 확인 + 한도 잡음(hold)', '즉시 · 아직 실제 청구 X', '가능 확인 + 예약'],\n    capture:['② 매입/확정(capture)', '잡아 둔 것을 실제로 청구', '즉시 또는 며칠 후 · 돈 이동 시작', '실제 청구'],\n    settle:['③ 정산(settlement)', '은행 간 정산 → 내 계좌에 입금', '보통 며칠 · 수수료 제하고', '돈이 실제로 들어옴'],\n    refund:['④ 환불(refund)', '되돌리기 — 확정된 돈을 돌려줌', '며칠 · pay-refund', '되돌림'],\n  }[stage];\n  render('단계: ' + rows[0],\n    '  하는 일: ' + rows[1] + '\\n  시점: ' + rows[2] + '\\n  뜻: ' + rows[3] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">승인 ≠ 확정 ≠ 정산 — 다른 시점. 「승인」과 「돈 받음」은 며칠 차이.</span>',\n    '승인(예약)·확정(청구)·정산(입금)·환불(되돌림) — 다른 시점.',\n    box(rows[0], rows[1] + '\\n시점: ' + rows[2], stage==='refund'?'':'good'));\n</script>",
+          "controls": [
+            {
+              "id": "stage",
+              "label": "단계",
+              "type": "select",
+              "value": "auth",
+              "options": [
+                {
+                  "value": "auth",
+                  "label": "① 승인"
+                },
+                {
+                  "value": "capture",
+                  "label": "② 확정"
+                },
+                {
+                  "value": "settle",
+                  "label": "③ 정산"
+                },
+                {
+                  "value": "refund",
+                  "label": "④ 환불"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "결제의 네 단계",
+          "text": "1) 승인(authorization) : 카드사에 「이 금액 쓸 수 있나」 확인 · 한도를 잡아 둔다\n2) 매입/확정(capture)  : 실제로 청구 (돈 이동 시작) — 즉시 또는 며칠 후\n3) 정산(settlement)    : 은행 간 정산 → 내 계좌 입금 (며칠, 수수료 제하고)\n4) 환불(refund)        : 되돌리기 (pay-refund)\n\n승인 ≠ 확정 ≠ 정산 (다른 시점)\n· 승인 = 가능 확인 + 예약 (한도 hold)\n· 확정 = 실제 청구\n· 정산 = 돈이 실제로 내 계좌에\n→ 「승인됐다」와 「돈 받았다」는 며칠 차이"
+        },
+        {
+          "type": "note",
+          "text": "**결제는 승인·확정·정산·환불의 네 단계로, 각각 다른 시점이다 — 승인(예약)·확정(청구)·정산(입금)을 혼동하면 회계·재고·배송 판단이 틀린다.** ① **승인(authorization)** — 카드사에 「이 카드로 이 금액을 결제할 수 있나」를 확인하고, 가능하면 그 금액을 **잡아 둔다(hold)** — 사용자의 사용 가능 한도에서 빠지지만 **아직 실제 청구는 아니다**(예약 상태). 즉시(몇 초). 승인이 성공하면 「이 결제는 될 수 있다」가 확인된 것. ② **매입/확정(capture)** — 잡아 둔 승인을 **실제 청구로 전환**한다(돈이 이동하기 시작). **즉시 확정**(승인+확정 동시 — 일반적)하거나 **지연 확정**(승인 후 나중에 — 배송 시점 등, 3장). 확정해야 실제로 돈을 받는 과정이 시작된다. ③ **정산(settlement)** — 카드사·매입사·은행 간의 정산 과정을 거쳐 실제 돈이 **내 계좌(가맹점 계좌)에 입금**된다 — 보통 **며칠**(영업일 기준, PG·계약에 따라 T+2~T+7 등), **수수료를 제하고**. 확정했다고 즉시 돈이 들어오는 게 아니라, 정산 주기를 기다린다. ④ **환불(refund)** — 확정된 결제를 되돌린다(며칠, pay-refund). **핵심 구분**: 이 셋은 **다른 것이고 다른 시점**이다 — **승인 ≠ 확정 ≠ 정산**. 승인은 「가능 확인 + 예약」(돈 안 움직임), 확정은 「실제 청구」(돈 움직이기 시작), 정산은 「돈이 실제로 들어옴」(내 계좌에). 그래서 **「승인됐다」와 「돈을 받았다」는 며칠 차이**다. 이걸 혼동하면 문제가 난다: 「승인 = 결제 완료」로 여겨 재고를 확정 차감하거나 배송하면, 확정을 안 하면 돈을 못 받는다(승인은 만료됨). 「확정 = 돈 받음」으로 여겨 회계를 맞추면, 정산 전이라 실제 입금과 안 맞는다(매출 인식 시점 문제, 4장). 그래서 각 단계를 구분해 「지금 어느 단계인가」를 알고, 그에 맞게 판단해야 한다 — 승인만 됐으면 「예약」, 확정됐으면 「청구됨(곧 입금)」, 정산됐으면 「돈 받음」. PG API 도 authorize·capture·refund 가 별도 호출이고(즉시 결제는 authorize+capture 를 한 번에), 정산은 PG 가 주기적으로 처리해 리포트로 알려 준다. 이 네 단계와 그 시점을 이해하는 게 결제 시스템 설계의 기초다."
+        },
+        {
+          "type": "p",
+          "text": "**「단계를 구분하고 각 단계의 의미를 알라」 — 뭉뚱그리면 잘못된 시점에 잘못된 판단을 한다.** 네 단계의 교훈은 「과정을 단계로 명확히 구분」의 가치다: 하나의 과정(결제)을 「됐다/안 됐다」로 뭉뚱그리지 말고, **명확한 단계로 나누고 각 단계의 의미를 정확히** 안다. 그러면 「지금 어느 단계이고, 이 단계에서 무엇이 참인가」를 알아, 올바른 시점에 올바른 판단을 한다(승인=예약이니 배송 X, 확정=청구니 이행 시작 가능, 정산=입금이니 회계 반영). 단계를 뭉뚱그리면(「결제됨」 하나로) 잘못된 시점에 잘못된 행동을 한다(예약을 완료로 착각). 이는 상태 기계(명확한 상태 구분, 4장), 워크플로(각 단계의 전제·결과), 파이프라인(각 단계의 책임)에 통하는 「단계를 명시적으로」의 원리다. 특히 각 단계의 **의미(무엇이 참이고 무엇을 해도 되나)**를 아는 게 중요하다 — 단순히 순서만이 아니라 「이 단계에선 돈이 아직 안 움직였다」·「이 단계부터 되돌리기 어렵다」 같은 의미. 그래서 결제의 네 단계를 배우는 건 「과정을 의미 있는 단계로 나누고, 각 단계에서 참인 것과 안전한 행동을 안다」는 사고 — 이게 결제뿐 아니라 복잡한 과정(주문·배포·워크플로)을 정확히 다루는 근본이다. 뭉뚱그린 이해는 잘못된 시점의 행동을 낳는다."
+        },
+        {
+          "type": "try",
+          "text": "테스트 환경에서 승인 → 확정 → 정산을 관찰하라 — 승인만 했을 때 카드에 어떻게 잡히는지, 확정 시점, 정산이 며칠 후 되는지. 「승인·확정·정산」을 구분해, 각 단계에서 무엇이 참인지(돈이 움직였나·들어왔나) 적어라. 「승인=결제 완료」로 뭉뚱그리고 있지 않은지 점검하라."
+        }
       ],
-      "answer": 0,
-      "why": "화면은 신호일 뿐이다."
+      "quiz": [
+        {
+          "q": "승인(authorization)이란?",
+          "choices": [
+            "실제 청구",
+            "「쓸 수 있나」 확인 + 한도 잡음(hold) — 아직 청구 X",
+            "입금",
+            "환불"
+          ],
+          "answer": 1,
+          "why": "예약."
+        },
+        {
+          "q": "「승인됐다」와 「돈 받았다」의 관계는?",
+          "choices": [
+            "같음",
+            "며칠 차이(승인=예약, 확정=청구, 정산=입금)",
+            "즉시",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "다른 시점."
+        },
+        {
+          "q": "네 단계를 구분하는 이유는?",
+          "choices": [
+            "속도",
+            "각 단계에서 참인 것·안전한 행동이 달라 — 잘못된 시점 판단 방지",
+            "색",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "단계를 명시적으로."
+        }
+      ]
     },
     {
-      "q": "결제 확정 전에 하면 안 되는 일은?",
-      "choices": [
-        "배송·라이선스 발급처럼 되돌리기 어려운 처리",
-        "주문 기록 저장",
-        "재고 예약"
+      "id": "3",
+      "title": "언제 확정할까 — 정책",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**승인만 하고 확정을 안 하면** 사용자 카드에 「승인 대기」로 잡혀 있다가 사라진다(승인 유효기간 후 자동 해제 — 며칠) — 사용자는 「결제됐는데 왜 취소됐지?」로 **문의**한다. 그래서 **언제 확정할지 정책을 정해야** 한다: ① **즉시 확정**(승인+확정 동시) — 디지털 상품·즉시 제공에 간단·명확(대부분의 경우). ② **지연 확정**(승인 후 나중에) — **배송 시점에 확정**하면(물건 보낼 때 청구) 재고 없어 취소 시 void 로 깔끔(pay-refund 2장), 단 승인 유효기간(며칠~1주) 안에 확정해야 하고 그 사이 관리 필요. 「무엇을 파나(즉시 제공 vs 배송)」에 따라 정하고, 지연 확정이면 유효기간·미확정 승인을 관리한다. 확정 정책을 안 정하면 「대기 중 사라지는 승인」이 문의·혼란을 만든다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "확정 정책 — 즉시 vs 지연",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tl { margin:8px 0; }\n  .tl .d { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n           background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .tl .d.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .tl .d.good { border-left-color:#22c55e; } .tl .d.bad { border-left-color:#ef4444; }\n  .tl .d .when { width:80px; color:#7dd3fc; }\n  .sm { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace; }\n  .sm .st { padding:4px 8px; border-radius:5px; background:#1e293b; color:#94a3b8; }\n  .sm .st.on { background:#0e2a3a; color:#7dd3fc; border:1px solid #164e63; }\n  .sm .st.good { background:#132a1c; color:#4ade80; } .sm .st.bad { background:#2a1414; color:#f87171; }\n  .sm .arr { color:#475569; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const tl = (rows) => '<div class=\"tl\">' + rows.map(([when, txt, cls]) =>\n    '<div class=\"d ' + (cls||'') + '\"><span class=\"when\">' + esc(when) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  const sm = (states) => '<div class=\"sm\">' + states.map((s, i) =>\n    '<span class=\"st ' + (s[1]||'') + '\">' + esc(s[0]) + '</span>' + (i < states.length-1 ? '<span class=\"arr\">→</span>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const policy = '{{policy}}';\n  if (policy === 'immediate') {\n    render('즉시 확정 (승인+확정 동시)',\n      '  결제하기 → 승인 + 확정을 한 번에 → 바로 청구·제공\\n\\n' +\n      '  <span class=\\\"ok\\\">간단·명확 — 디지털 상품·즉시 제공에. 대부분의 경우 기본.</span>',\n      '즉시 확정: 승인+확정 동시 — 간단, 즉시 제공에 맞음.',\n      tl([['결제 시','승인 + 확정 (동시)', 'good'],['즉시','청구 + 상품 제공', 'good'],\n          ['며칠 후','정산 — 입금', 'on']]));\n  } else {\n    render('지연 확정 (배송 시 확정)',\n      '  결제하기 → 승인만(hold) → 배송 시점에 확정 → 청구\\n\\n' +\n      '  <span class=\\\"warn\\\">배송 전 취소는 void 로 깔끔 · 단 승인 유효기간 내 확정 필수(미확정 관리).</span>',\n      '지연 확정: 승인만 하고 배송 시 확정 — 취소 깔끔하나 유효기간 관리.',\n      tl([['결제 시','승인만 (한도 hold)', 'on'],['배송 시','확정 → 청구', 'good'],\n          ['취소 시','void — 깔끔 (확정 전)', 'good'],['유효기간','내에 확정 필수(며칠~1주)', 'bad']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "policy",
+              "label": "확정 정책",
+              "type": "select",
+              "value": "immediate",
+              "options": [
+                {
+                  "value": "immediate",
+                  "label": "즉시 확정"
+                },
+                {
+                  "value": "delayed",
+                  "label": "지연(배송 시)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**승인만 하고 확정을 안 하면 카드에 「승인 대기」로 잡혔다 사라져 문의가 온다 — 언제 확정할지 정책을 정한다. 즉시 확정(간단)과 지연 확정(배송 시, 취소 깔끔) 중 무엇을 파느냐로 고른다.** 승인(authorization)만 하고 확정(capture)을 안 하면, 그 승인은 **유효기간**(며칠~1주, 카드사마다)이 지나면 자동 해제되어 사용자 한도가 풀린다 — 사용자 입장에선 「결제됐다고 떴는데(승인) 며칠 후 카드에서 사라짐」이라 「왜 취소됐지?」 **문의**가 온다(혼란). 그래서 **확정 정책을 명확히** 정해야 한다: ① **즉시 확정**(승인 + 확정을 한 번에) — 결제 시점에 바로 청구한다. **간단·명확**하고, **디지털 상품·즉시 제공** 서비스(구독·다운로드·바로 이용)에 맞다(제공과 청구가 동시). 대부분의 온라인 결제가 이 방식(PG 의 기본 결제 = authorize+capture 동시). ② **지연 확정**(승인 후 나중에 확정) — 승인만 해 두고(한도 hold) 나중에 확정한다. 유용한 경우: **배송 시점에 확정**(물건을 실제 보낼 때 청구) — 그러면 **배송 전 취소·재고 없음은 확정 전이라 void 로 깔끔**하다(pay-refund 2장 — void 는 즉시·흔적 없음, refund 의 며칠·두 줄을 피함). 주문형·재고 확인 필요·맞춤 제작 등에 맞다. 단 주의: **승인 유효기간 안에 확정**해야 한다(유효기간 지나면 승인이 만료돼 재승인 필요 — 그 사이 카드 문제가 생기면 결제 실패), 그래서 **미확정 승인을 관리**해야 한다(언제까지 확정할지, 유효기간 임박 알림). 그래서 「무엇을 파느냐」로 정책을 고른다: **즉시 제공**(디지털·구독) → 즉시 확정(간단), **배송·이행 후 제공**(실물·주문형) → 지연 확정(배송 시, 취소 깔끔하되 유효기간 관리). 그리고 어느 쪽이든 **승인·확정 상태를 정확히 추적**해(4장), 「미확정 승인이 며칠째 방치」되거나 「확정 안 했는데 배송」되지 않게 한다. 확정 정책을 안 정하고 대충 하면(예: 승인만 하고 확정을 잊음) 「대기 중 사라지는 승인」으로 사용자 문의·혼란·매출 손실(확정 안 해 돈 못 받음)이 난다. 확정 시점은 결제 경험(취소 깔끔함)과 운영(재고·이행 연계)을 좌우하는 정책 결정이다."
+        },
+        {
+          "type": "p",
+          "text": "**「언제 확정(커밋)하나」는 되돌리기와 자원 관리의 트레이드오프 — 늦출수록 유연, 관리 부담.** 확정 시점의 교훈은 「커밋 시점」의 일반 트레이드오프다: **확정(비가역 단계)을 늦추면 되돌리기가 쉽지만(pay-refund 2장 — 확정 전 void 는 깔끔), 그동안 예약된 자원(승인 hold)을 관리해야** 한다. 즉시 확정은 간단하지만 되돌리기가 비싸고(refund), 지연 확정은 되돌리기가 싸지만(void) 미확정 상태의 관리 부담(유효기간·자원 hold)이 있다. 이는 「지연 바인딩·늦은 커밋」의 트레이드오프 — 결정을 늦추면 유연하지만(더 많은 정보로 결정, 쉽게 취소) 미결정 상태를 유지하는 비용이 있다. 예약(reservation) 패턴이 이것 — 자원을 잡아 두되(hold) 확정 전엔 취소 가능, 단 잡아 둔 자원을 관리(만료·해제)해야 한다(항공권 좌석 hold, 재고 예약, 분산 트랜잭션의 2단계 커밋). 그래서 「언제 확정하나」는 「되돌리기 쉬움(늦게) vs 관리 단순함(일찍)」의 균형이고, 상황(되돌릴 가능성·자원 비용)에 따라 정한다. 결제에선 「즉시 제공은 즉시 확정(되돌릴 일 적음·간단), 배송은 지연 확정(취소 가능성 있음·void 이득)」으로 이 균형을 맞춘다. 이 사고 — 비가역 단계를 언제 넘을지, 그전까지 예약 자원을 어떻게 관리할지 — 가 예약·트랜잭션·워크플로 설계의 핵심이다."
+        },
+        {
+          "type": "try",
+          "text": "네 결제의 확정 정책을 명확히 정하라 — 즉시 확정(디지털·즉시 제공)인가, 지연 확정(배송 시)인가. 지연 확정이면 승인 유효기간을 알고 그 안에 확정하는지, 미확정 승인을 관리하는지 점검하라. 「승인만 하고 확정을 잊어」 사용자 카드에 대기로 남았다 사라지는 경우가 없는지 확인하라 — 확정 시점을 의도적으로 정하라."
+        }
       ],
-      "answer": 0,
-      "why": "확정되지 않은 돈으로 비가역 행동을 하면 손실이 된다."
+      "quiz": [
+        {
+          "q": "승인만 하고 확정 안 하면?",
+          "choices": [
+            "돈 받음",
+            "카드에 「승인 대기」로 잡혔다 유효기간 후 사라짐 → 문의",
+            "환불",
+            "즉시 정산"
+          ],
+          "answer": 1,
+          "why": "확정 정책 필요."
+        },
+        {
+          "q": "지연 확정(배송 시)의 이점은?",
+          "choices": [
+            "없음",
+            "배송 전 취소는 확정 전이라 void 로 깔끔(단 유효기간 관리)",
+            "빠름",
+            "무료"
+          ],
+          "answer": 1,
+          "why": "취소 깔끔."
+        },
+        {
+          "q": "확정 시점의 트레이드오프는?",
+          "choices": [
+            "없음",
+            "늦출수록 되돌리기 쉬움 vs 예약 자원 관리 부담",
+            "속도",
+            "색"
+          ],
+          "answer": 1,
+          "why": "커밋 시점."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "상태를 내 DB 에도 둔다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "결제 상태를 **PG 에만 두지 말고 내 DB 에도** 둔다: `created → pending(결제 시도) → authorized(승인) → captured(확정) → refunded(환불)` (+ failed). 왜 내 DB 에도: ① **내 주문·비즈니스 로직이 결제 상태를 알아야** 한다(이 주문이 결제됐나 — 배송·제공 판단). ② PG 에 매번 조회하면 느리고 의존적 — 내 DB 가 진실의 사본(웹훅으로 동기화). ③ **상태 전이를 기록**해 추적·감사·디버깅. 핵심: ① 상태를 **웹훅으로 갱신**(pay-webhook — PG 상태 변화를 웹훅으로 받아 내 DB 반영) ② PG 와 내 DB 를 **정합**(불일치 감지·조정 — reconciliation) ③ 각 전이를 **원자적·멱등하게**(pay-idem). 내 DB 의 결제 상태가 주문·이행·회계의 기준이 된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "결제 상태 기계 (내 DB)",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tl { margin:8px 0; }\n  .tl .d { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n           background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .tl .d.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .tl .d.good { border-left-color:#22c55e; } .tl .d.bad { border-left-color:#ef4444; }\n  .tl .d .when { width:80px; color:#7dd3fc; }\n  .sm { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace; }\n  .sm .st { padding:4px 8px; border-radius:5px; background:#1e293b; color:#94a3b8; }\n  .sm .st.on { background:#0e2a3a; color:#7dd3fc; border:1px solid #164e63; }\n  .sm .st.good { background:#132a1c; color:#4ade80; } .sm .st.bad { background:#2a1414; color:#f87171; }\n  .sm .arr { color:#475569; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const tl = (rows) => '<div class=\"tl\">' + rows.map(([when, txt, cls]) =>\n    '<div class=\"d ' + (cls||'') + '\"><span class=\"when\">' + esc(when) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  const sm = (states) => '<div class=\"sm\">' + states.map((s, i) =>\n    '<span class=\"st ' + (s[1]||'') + '\">' + esc(s[0]) + '</span>' + (i < states.length-1 ? '<span class=\"arr\">→</span>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const state = '{{state}}';\n  const states = [['created', state==='created'?'on':''], ['pending', state==='pending'?'on':''],\n    ['authorized', state==='authorized'?'on':''], ['captured', state==='captured'?'good':''],\n    ['refunded', state==='refunded'?'':''], ['failed', state==='failed'?'bad':'']];\n  const desc = {\n    created:['주문 생성', '결제 전 — 주문만 만들어짐'],\n    pending:['결제 시도 중', 'PG 에 결제 요청 — 결과 대기(웹훅으로 확정)'],\n    authorized:['승인됨', '한도 잡힘 — 아직 청구 X(확정 대기, 3장)'],\n    captured:['확정됨', '실제 청구 — 이행 시작 가능(배송·제공)'],\n    refunded:['환불됨', '되돌림 — pay-refund'],\n    failed:['실패', '결제 실패 — 재시도·안내'],\n  }[state];\n  render('내 DB 결제 상태: ' + state,\n    '  ' + desc[0] + '\\n  ' + desc[1] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">내 DB 가 결제 상태의 사본 — 웹훅으로 갱신, 주문·이행의 기준.</span>',\n    'created→pending→authorized→captured→refunded. 웹훅으로 갱신, 내 DB 가 기준.',\n    sm(states));\n</script>",
+          "controls": [
+            {
+              "id": "state",
+              "label": "상태",
+              "type": "select",
+              "value": "created",
+              "options": [
+                {
+                  "value": "created",
+                  "label": "created"
+                },
+                {
+                  "value": "pending",
+                  "label": "pending"
+                },
+                {
+                  "value": "authorized",
+                  "label": "authorized"
+                },
+                {
+                  "value": "captured",
+                  "label": "captured"
+                },
+                {
+                  "value": "refunded",
+                  "label": "refunded"
+                },
+                {
+                  "value": "failed",
+                  "label": "failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "결제 상태 (내 DB)",
+          "text": "created → pending(결제 시도) → authorized → captured → refunded\n                                            ↘ failed\n\n왜 내 DB 에도:\n· 내 주문·비즈니스 로직이 결제 상태를 알아야(배송·제공 판단)\n· PG 조회는 느리고 의존적 — 내 DB 가 진실의 사본(웹훅 동기화)\n· 상태 전이 기록 → 추적·감사·디버깅\n\n핵심: 웹훅으로 갱신 · PG↔내 DB 정합(reconciliation) · 원자적·멱등"
+        },
+        {
+          "type": "note",
+          "text": "**결제 상태를 PG 에만 두지 말고 내 DB 에도 상태 기계로 둔다 — 내 주문·이행·회계가 결제 상태를 알아야 하고, 웹훅으로 갱신하며 PG 와 정합을 맞춘다.** 결제 상태를 PG(Stripe 등)만 아는 게 아니라 **내 DB 에도 명시적으로** 관리한다: `created(주문 생성) → pending(결제 시도 중) → authorized(승인) → captured(확정) → refunded(환불)` (+ failed). **왜 내 DB 에도**: ① **내 비즈니스 로직이 결제 상태에 의존** — 「이 주문이 결제됐나?」로 배송·상품 제공·회계를 판단해야 하는데, 이걸 매번 PG 에 물으면 느리고 PG 의존적이다. 내 DB 에 상태가 있으면 빠르게 판단한다. ② **진실의 사본** — PG 가 결제의 최종 진실이지만(pay-webhook 1장), 내 DB 를 그 **사본**으로 유지해(웹훅으로 동기화) 내 시스템이 자족적으로 동작하게 한다. ③ **상태 전이 기록** — 각 전이(언제 승인·확정·환불됐나)를 기록해 추적·감사(pay-security 7장)·디버깅·회계에 쓴다. **핵심 관리**: ① **웹훅으로 갱신**(pay-webhook) — PG 의 결제 상태 변화(승인·확정·실패·환불)를 **웹훅으로 받아** 내 DB 상태를 갱신한다(클라이언트·응답이 아니라 웹훅이 진실, 순서 무관하게 최신으로 수렴 — pay-webhook 5장). ② **정합(reconciliation)** — 내 DB 와 PG 의 상태가 **불일치**할 수 있으니(웹훅 유실·처리 실패·버그) 주기적으로 **대조·조정**한다(PG 의 결제 목록과 내 DB 를 비교해 어긋난 것 수정) — 돈이 걸린 시스템은 정합이 필수다(회계가 맞아야). ③ **원자적·멱등 전이**(pay-idem·data-tx) — 상태 전이와 관련 작업(재고 차감·이행 트리거)을 원자적으로, 중복 이벤트에 멱등하게. **내 DB 의 결제 상태가 주문·이행·회계의 기준**이 된다 — 「captured 면 이행, refunded 면 회수, failed 면 재시도」처럼 상태로 비즈니스를 구동한다. 상태를 내 DB 에 안 두고 PG 에만 의존하면, 매번 조회로 느리고, PG 장애 시 판단 불가하고, 내 주문과 결제의 연결이 약하고, 회계 정합을 못 맞춘다. 그래서 「PG 는 진실, 내 DB 는 동기화된 사본이자 내 시스템의 기준」의 이중 구조로, 웹훅 동기화 + 정합으로 일관성을 유지한다. 이게 결제 상태 관리의 핵심 패턴이다."
+        },
+        {
+          "type": "p",
+          "text": "**「외부 진실의 로컬 사본을 동기화해 유지」 — 자족성과 일관성의 균형.** 결제 상태를 내 DB 에 두는 것은 분산 시스템의 일반 패턴이다: **외부 시스템(PG)이 진실을 갖더라도, 내 시스템은 그 상태의 로컬 사본을 유지**해 자족적으로 동작한다(매번 외부 조회 없이). 그리고 그 사본을 **동기화**(웹훅·이벤트로 갱신)하고 **정합**(주기적 대조)해 진실과 어긋나지 않게 한다. 이는 캐시(data-cache — 로컬 사본 + 무효화), 복제(replica — 동기화된 사본), 읽기 모델(CQRS — 조회용 로컬 상태), 통합(외부 데이터를 로컬에 미러링)에 통한다. 트레이드오프: 로컬 사본은 **빠르고 자족적**(외부 의존·지연 없음)이지만 **일관성 관리**가 필요하다(동기화 지연·불일치 — 그래서 웹훅 + 정합). 특히 **정합(reconciliation)**이 중요하다 — 동기화는 완벽하지 않으니(이벤트 유실·처리 실패) 주기적으로 진실과 대조해 어긋남을 바로잡는다(돈·중요 상태일수록 필수). 이 「로컬 사본 + 동기화 + 정합」은 외부 시스템과 통합하는 견고한 방법이다 — 외부에 매번 의존하지 않되(자족), 진실과 어긋나지 않게(일관). 결제 상태를 내 DB 에 두는 건 이 패턴을 결제에 적용한 것이고, 「내 시스템이 외부(PG) 없이도 동작하되 정기적으로 진실과 맞춘다」는 자족성·일관성의 균형이다. 외부 시스템을 통합할 때 「매번 물을까(느림·의존) vs 사본을 둘까(빠름·동기화 필요)」의 판단에서, 중요·빈번한 상태는 사본 + 동기화 + 정합이 대개 낫다."
+        },
+        {
+          "type": "try",
+          "text": "테스트 환경에서 승인 → 확정 → 부분 환불까지 한 바퀴 돌리고, 각 단계에서 **내 DB 의 결제 상태**가 어떻게 바뀌는지 적어라(created→pending→authorized→captured→refunded). 상태를 웹훅으로 갱신하는지, PG 와 내 DB 를 정합(대조)하는 장치가 있는지 점검하라. 내 DB 의 결제 상태가 주문·이행 판단의 기준인지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "결제 상태를 내 DB 에도 두는 이유는?",
+          "choices": [
+            "PG 만으로 충분",
+            "내 주문·이행·회계가 상태를 알아야 + 자족성 + 기록",
+            "느려서",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "진실의 사본."
+        },
+        {
+          "q": "내 DB 결제 상태를 어떻게 갱신하나?",
+          "choices": [
+            "매번 PG 조회",
+            "웹훅으로 갱신 + PG 와 정합(reconciliation)",
+            "추측",
+            "클라이언트"
+          ],
+          "answer": 1,
+          "why": "동기화 + 정합."
+        },
+        {
+          "q": "「로컬 사본 + 동기화 + 정합」의 원리는?",
+          "choices": [
+            "속도만",
+            "외부 진실의 사본을 유지해 자족적이되 정기 대조로 일관성",
+            "색",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "자족성·일관성 균형."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "화면의 성공은 신호일 뿐",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "사용자가 결제 창을 닫아도 **결제는 성공했을 수 있다** — 「성공 페이지에 도달했으니 결제됨」은 틀린 판단이다(사용자가 성공 페이지 전에 창을 닫거나, 네트워크가 끊기거나, 리다이렉트가 실패해도 결제는 됐을 수 있고 반대도). 그래서 **리다이렉트와 웹훅 둘 다** 처리하고, **최종 판단은 서버가** 한다(pay-webhook — 진실은 웹훅). ① **리다이렉트**(결제 후 사용자가 돌아옴) — UX 용, 「처리 중/완료된 듯」 표시. ② **웹훅**(PG 가 서버에 직접 알림) — 진실, 주문 확정·이행. 둘 다 처리하되(리다이렉트 놓쳐도 웹훅으로, 반대도), **확정·이행은 웹훅으로만**. 화면 성공은 「아마 됐어요」의 신호일 뿐, 「진짜 됐다」는 서버가 웹훅으로 판단한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "화면 vs 진실 — 창을 닫아도",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tl { margin:8px 0; }\n  .tl .d { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n           background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .tl .d.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .tl .d.good { border-left-color:#22c55e; } .tl .d.bad { border-left-color:#ef4444; }\n  .tl .d .when { width:80px; color:#7dd3fc; }\n  .sm { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace; }\n  .sm .st { padding:4px 8px; border-radius:5px; background:#1e293b; color:#94a3b8; }\n  .sm .st.on { background:#0e2a3a; color:#7dd3fc; border:1px solid #164e63; }\n  .sm .st.good { background:#132a1c; color:#4ade80; } .sm .st.bad { background:#2a1414; color:#f87171; }\n  .sm .arr { color:#475569; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const tl = (rows) => '<div class=\"tl\">' + rows.map(([when, txt, cls]) =>\n    '<div class=\"d ' + (cls||'') + '\"><span class=\"when\">' + esc(when) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  const sm = (states) => '<div class=\"sm\">' + states.map((s, i) =>\n    '<span class=\"st ' + (s[1]||'') + '\">' + esc(s[0]) + '</span>' + (i < states.length-1 ? '<span class=\"arr\">→</span>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const scenario = '{{scenario}}';\n  const rows = {\n    normal:['정상', '결제 → 성공 페이지 도달 + 웹훅 도착', '둘 다 → 확정. 리다이렉트=표시, 웹훅=진실', 'good'],\n    closed:['창 닫음', '결제됐지만 성공 페이지 전에 창 닫음', '리다이렉트 놓침 but 웹훅으로 확정 → 정상 처리', 'good'],\n    netfail:['리다이렉트 실패', '결제됐지만 돌아오는 리다이렉트 실패', '화면엔 실패처럼 but 웹훅으로 진짜 성공 확정', 'good'],\n    fakescreen:['화면만 성공', '성공 페이지엔 왔지만 실제 결제는 지연·실패', '화면만 믿으면 오판 → 웹훅으로 진짜 확인', 'bad'],\n  }[scenario];\n  render('상황: ' + rows[0],\n    '  ' + rows[1] + '\\n  → ' + rows[2] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">리다이렉트·웹훅 둘 다 처리 · 확정·이행은 웹훅으로만(서버가 판단).</span>',\n    '화면 성공은 신호일 뿐 — 창 닫아도 결제될 수 있음. 웹훅이 진실.',\n    box(rows[0], rows[1] + '\\n→ ' + rows[2], rows[3]));\n</script>",
+          "controls": [
+            {
+              "id": "scenario",
+              "label": "상황",
+              "type": "select",
+              "value": "normal",
+              "options": [
+                {
+                  "value": "normal",
+                  "label": "정상"
+                },
+                {
+                  "value": "closed",
+                  "label": "창 닫음"
+                },
+                {
+                  "value": "netfail",
+                  "label": "리다이렉트 실패"
+                },
+                {
+                  "value": "fakescreen",
+                  "label": "화면만 성공"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**사용자가 결제 창을 닫아도 결제는 성공했을 수 있다 — 「성공 페이지 도달 = 결제됨」은 틀리다. 리다이렉트와 웹훅 둘 다 처리하고, 최종 판단은 서버가 웹훅으로 한다.** 결제 후 사용자가 원래 사이트로 **리다이렉트**되어 「성공 페이지」에 도달하는 게 정상 흐름이지만, 이 흐름은 **끊길 수 있다**: 사용자가 결제 직후 **창을 닫거나**, **네트워크가 끊기거나**, 결제 페이지에서 돌아오는 **리다이렉트가 실패**하면 — 결제는 **성공했는데** 사용자가 성공 페이지를 못 본다(반대로 성공 페이지엔 왔지만 실제 승인은 지연·실패일 수도). 그래서 **「성공 페이지에 도달했으니 결제됨」은 틀린 판단**이다(pay-webhook 1장 — 클라이언트·화면은 진실이 아님). 올바른 처리: **리다이렉트와 웹훅을 둘 다** 다룬다. ① **리다이렉트**(사용자가 결제 후 돌아옴) — **UX 용**이다. 「결제 처리 중」·「완료된 것 같습니다」를 사용자에게 보여 주고, 주문 상태 페이지로 안내한다. 하지만 이걸로 **확정·이행을 하지 않는다**(리다이렉트는 놓칠 수 있으니). ② **웹훅**(PG 가 서버에 직접 알림, pay-webhook) — **진실**이다. 서버가 웹훅으로 「이 결제가 성공했다」를 받아 **주문을 확정하고 이행**(배송·제공)한다. 사용자가 창을 닫든 리다이렉트가 실패하든, 웹훅은 서버로 오니 결제를 안 놓친다. **둘 다 처리하는 이유**: 리다이렉트만 처리하면 창 닫힘·실패 시 결제를 놓치고(돈 받았는데 이행 안 함), 웹훅만 처리하면 사용자에게 즉각적 피드백(성공 표시)을 못 준다(웹훅은 서버 대 서버라 사용자 화면과 별개). 그래서 **리다이렉트는 UX(표시), 웹훅은 진실(확정·이행)**로 역할을 나눠 둘 다 처리한다 — 리다이렉트를 놓쳐도 웹훅이 확정하고, 웹훅이 늦어도 리다이렉트가 「처리 중」을 보여 준다. **최종 판단·이행은 항상 웹훅(서버)으로**: 「이 주문을 확정하고 상품을 줄까?」는 화면(클라이언트)이 아니라 서버가 웹훅으로 받은 진실로 판단한다. 이 원칙(pay-webhook 1장 — 진실은 웹훅으로, 화면은 신호일 뿐)이 결제 흐름에서 「돈 받았는데 이행 안 함」·「이행했는데 돈 못 받음」의 불일치를 막는다. 화면의 「결제 완료」는 「아마 됐어요」의 신호이고, 「진짜 됐다」는 서버가 판단한다."
+        },
+        {
+          "type": "p",
+          "text": "**「UX 표시」와 「시스템 진실」을 분리하라 — 사용자에게 보이는 것과 실제 결정은 다르다.** 화면 성공의 교훈은 「표시와 진실의 분리」다: 사용자에게 **보여 주는 것(UX 피드백)**과 시스템이 **판단·행동하는 근거(진실)**를 분리한다. 화면의 「성공」은 사용자를 안심시키는 표시(빠른 피드백)이고, 실제 확정·이행은 신뢰할 수 있는 진실(서버·웹훅)로 한다. 이 둘을 섞으면(화면 성공으로 이행 판단) 화면이 끊기거나 조작될 때 오작동한다(창 닫힘·리다이렉트 실패·위조). 그래서 **「낙관적 UI」**(사용자에겐 즉시 「됐어요」를 보여 주되)와 **「서버 확정」**(실제로는 서버가 진짜 결과로 확정)을 함께 쓴다 — 사용자는 기다리지 않고(좋은 UX), 시스템은 진실로 동작한다(정확). 이는 결제뿐 아니라 낙관적 업데이트(UI 는 즉시 반영, 서버가 진짜 확정 — web-dom·sync), 비동기 작업(「처리 중」 표시 + 완료는 서버가), 진실의 원천(pay-webhook — 권위 있는 소스)에 통한다. 핵심은 **「사용자 경험을 위한 표시」와 「시스템 정확성을 위한 진실」을 각각 최적화**하되 섞지 않는 것 — 표시는 빠르고 낙관적으로, 진실은 신뢰할 수 있는 곳에서. 화면이 끊기거나 틀려도 시스템은 정확해야 하고(진실은 서버), 서버가 느려도 사용자는 기다리지 않아야 한다(표시는 즉시). 이 분리가 좋은 UX와 정확한 시스템을 함께 준다. 「보이는 것을 믿지 말고, 진실은 권위 있는 곳에서 확인하라」가 결제·분산 시스템의 근본이다."
+        },
+        {
+          "type": "try",
+          "text": "결제 창을 강제로 닫아 보고(성공 페이지 전에), 그 결제가 어떻게 처리되는지 확인하라 — 웹훅으로 확정·이행되나, 아니면 놓치나. 리다이렉트(UX 표시)와 웹훅(확정·이행)을 둘 다 처리하는지, 확정·이행을 화면 성공이 아니라 웹훅(서버)으로 판단하는지 점검하라. 「화면 성공 = 결제됨」으로 이행하고 있으면 웹훅 기반으로 바꿔라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "「성공 페이지 도달 = 결제됨」은?",
+          "choices": [
+            "맞음",
+            "틀림 — 창 닫아도 결제될 수 있고 반대도(화면은 신호일 뿐)",
+            "빠름",
+            "안전"
+          ],
+          "answer": 1,
+          "why": "웹훅이 진실."
+        },
+        {
+          "q": "리다이렉트와 웹훅의 역할은?",
+          "choices": [
+            "둘 다 확정",
+            "리다이렉트=UX 표시, 웹훅=진실(확정·이행) — 둘 다 처리",
+            "리다이렉트만",
+            "웹훅만"
+          ],
+          "answer": 1,
+          "why": "역할 분리."
+        },
+        {
+          "q": "화면 성공의 일반 교훈은?",
+          "choices": [
+            "믿어라",
+            "UX 표시와 시스템 진실을 분리 — 표시는 즉시, 진실은 서버가",
+            "속도",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "낙관적 UI + 서버 확정."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "시차가 만드는 문제",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "결제 단계의 시차가 문제를 만든다: ① **재고 차감 시점** — 승인 시 예약 차감? 확정 시 확정 차감? 너무 일찍 차감하면 미확정 결제에 재고를 묶고, 너무 늦으면 초과 판매. ② **이메일·이행 발송 시점** — 확정 전에 「결제 완료」 메일·상품 발송하면, 결제가 최종 실패 시 곤란. ③ **정산 지연으로 인한 회계 불일치** — 확정(매출 인식)과 정산(실제 입금)의 시차로 장부가 며칠 안 맞음. **핵심 원칙: 결제 확정 전에 되돌리기 어려운 일(배송·라이선스 발급·디지털 전달)을 하지 마라** — 확정(captured) 후에 이행한다. 확정 전 이행하면, 결제 실패 시 이미 준 것을 회수 못 해 손해다. 시차를 의식해 「언제 무엇을 안전하게 하나」를 정한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "시차 문제 — 확정 전에 비가역 작업?",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tl { margin:8px 0; }\n  .tl .d { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n           background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .tl .d.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .tl .d.good { border-left-color:#22c55e; } .tl .d.bad { border-left-color:#ef4444; }\n  .tl .d .when { width:80px; color:#7dd3fc; }\n  .sm { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace; }\n  .sm .st { padding:4px 8px; border-radius:5px; background:#1e293b; color:#94a3b8; }\n  .sm .st.on { background:#0e2a3a; color:#7dd3fc; border:1px solid #164e63; }\n  .sm .st.good { background:#132a1c; color:#4ade80; } .sm .st.bad { background:#2a1414; color:#f87171; }\n  .sm .arr { color:#475569; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const tl = (rows) => '<div class=\"tl\">' + rows.map(([when, txt, cls]) =>\n    '<div class=\"d ' + (cls||'') + '\"><span class=\"when\">' + esc(when) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  const sm = (states) => '<div class=\"sm\">' + states.map((s, i) =>\n    '<span class=\"st ' + (s[1]||'') + '\">' + esc(s[0]) + '</span>' + (i < states.length-1 ? '<span class=\"arr\">→</span>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const timing = '{{timing}}';\n  if (timing === 'early') {\n    render('확정 전에 이행 (위험)',\n      '  승인(pending) 단계에서 배송·라이선스 발급·디지털 전달\\n' +\n      '  → 결제가 최종 실패하면? 이미 준 것을 회수 못 함\\n\\n' +\n      '  <span class=\\\"no\\\">확정 전 비가역 작업 → 결제 실패 시 손해(준 것 회수 불가).</span>',\n      '확정 전 이행: 결제 실패 시 이미 준 것을 회수 못 해 손해.',\n      steps([['승인만 된 상태(pending)', 'on'],['성급히 배송·발급·전달', 'bad'],\n             ['결제 최종 실패', 'bad'],['준 것 회수 불가 → 손해', 'bad']]));\n  } else {\n    render('확정 후에 이행 (안전)',\n      '  확정(captured) 확인 후 → 배송·발급·전달\\n' +\n      '  → 재고는 승인 시 예약, 확정 시 확정 차감\\n\\n' +\n      '  <span class=\\\"ok\\\">되돌리기 어려운 일은 확정 후 — 결제 확실할 때만 이행.</span>',\n      '확정 후 이행: 결제 확실할 때만 비가역 작업 — 안전.',\n      steps([['승인 → 재고 예약(임시)', 'on'],['확정(captured) 확인', 'good'],\n             ['재고 확정 차감 + 이행(배송·발급)', 'good'],['결제 확실 → 손해 없음', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "timing",
+              "label": "이행 시점",
+              "type": "select",
+              "value": "early",
+              "options": [
+                {
+                  "value": "early",
+                  "label": "확정 전(위험)"
+                },
+                {
+                  "value": "safe",
+                  "label": "확정 후(안전)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**결제 단계의 시차가 재고·이행·회계 문제를 만든다 — 핵심 원칙은 「확정 전에 되돌리기 어려운 일(배송·발급·전달)을 하지 마라」다.** 시차 문제들: ① **재고 차감 시점** — 재고를 언제 줄이나? **승인 시 예약 차감**(임시로 잡아 둠 — 결제 진행 중 남이 못 사게)하고 **확정 시 확정 차감**(실제 판매 확정)하는 게 흔하다. 너무 일찍(주문 생성 시) 확정 차감하면 결제 안 한 주문에 재고가 묶이고, 너무 늦으면(정산 후) 초과 판매(동시에 여러 명이 마지막 재고를). 예약 + 확정의 2단계로 관리한다. ② **이메일·이행 발송 시점** — 「결제 완료」 이메일이나 상품 발송(디지털 라이선스·다운로드 링크)을 **확정 전에** 하면, 결제가 최종 실패할 때 곤란하다(「결제됐다」고 알렸는데 안 됨, 이미 준 라이선스 회수 불가). 그래서 확정 후에 한다. ③ **정산 지연 회계 불일치** — 확정(captured — 매출로 인식)과 정산(settlement — 실제 입금)의 시차로, 장부상 매출과 실제 통장 잔액이 며칠 안 맞는다(회계상 정상 — 미수금으로 관리, pay-tax·회계). 이걸 모르면 「돈이 왜 안 들어왔지?」 혼란. **핵심 원칙 — 「확정 전에 되돌리기 어려운 일을 하지 마라」**: 배송(물건을 보냄), 디지털 라이선스·다운로드 발급, 서비스 활성화, 접근 권한 부여 같은 **비가역·회수 어려운 작업**은 결제가 **확정(captured)된 후**에 한다. 확정 전(pending·authorized)엔 「결제가 아직 확실치 않다」 — 여기서 이행하면 결제가 최종 실패할 때 이미 준 것을 회수 못 해 **손해**다(특히 디지털 상품은 회수 불가). 그래서: **확정 전엔 되돌릴 수 있는 것만**(재고 예약 — 취소 가능, 주문 기록, 「처리 중」 표시), **확정 후에 비가역 이행**(배송·발급·활성화). 이 「확정 후 이행」 원칙이 결제 실패·시차로 인한 손해를 막는다. 승인만으로 이행하면(3장 — 승인은 예약일 뿐, 확정 안 하면 돈 못 받음) 특히 위험하다. 그래서 결제 흐름에서 「지금 어느 단계인가(4장)」를 알고, 「이 단계에서 무엇을 해도 안전한가」를 판단한다 — 되돌릴 수 있는 일은 일찍, 비가역 일은 확정 후."
+        },
+        {
+          "type": "p",
+          "text": "**「비가역 작업은 확실해진 뒤에」 — 되돌릴 수 없는 것은 마지막에, 확정 후에.** 시차 문제의 교훈은 「비가역 작업의 순서」다: **되돌릴 수 없는 작업(배송·발급·발송·삭제·외부 통보)은 그것을 정당화하는 조건이 확실해진 뒤에** 한다 — 결제에선 「확정된 후」. 불확실한 상태(pending)에서 비가역 작업을 하면, 조건이 어긋날 때(결제 실패) 되돌릴 수 없어 손해다. 그래서 작업을 **되돌릴 수 있는 것(예약·임시)과 되돌릴 수 없는 것(이행·확정)으로 나누고**, 비가역 작업을 **최대한 뒤로**(확실해진 후) 미룬다. 이는 「늦은 커밋」(3장)·「비가역 액션은 확인 후」(외부 발송·삭제 전 확인)·2단계 커밋(준비 후 확정)·사가(saga — 보상 가능한 단계로 분해)에 통한다. 핵심은 **「이 작업이 되돌릴 수 있나?」를 묻고, 되돌릴 수 없으면 그것을 정당화하는 조건이 확실한지 확인한 뒤에** 하는 것. 되돌릴 수 있는 작업은 낙관적으로 일찍 해도(예약·표시 — 틀리면 취소) 되지만, 되돌릴 수 없는 작업은 신중히 확실해진 뒤에. 이 사고 — 가역/비가역을 구분하고, 비가역은 확실해진 후에, 그전엔 가역적으로 진행 — 가 결제뿐 아니라 되돌릴 수 없는 것(돈·물건·발송·삭제)을 다루는 모든 곳의 근본이다. 결제의 「확정 후 이행」은 이 원리의 구체적 실천 — 돈이 확실히 들어오기 전엔(확정) 물건·라이선스를 주지 않는다."
+        },
+        {
+          "type": "try",
+          "text": "네 결제 흐름에서 재고 차감·이메일·배송·라이선스 발급이 **어느 단계에** 일어나는지 점검하라 — 확정(captured) 전에 되돌리기 어려운 일(배송·디지털 발급)을 하고 있으면, 결제 실패 시 손해다. 비가역 이행을 확정 후로 옮기고, 확정 전엔 되돌릴 수 있는 것(재고 예약·주문 기록)만 하라. 「이 작업이 되돌릴 수 있나, 결제가 확실한가」를 각 이행마다 물어라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "결제 흐름의 핵심 원칙은?",
+          "choices": [
+            "빨리 이행",
+            "확정 전에 되돌리기 어려운 일(배송·발급)을 하지 마라 — 확정 후 이행",
+            "승인 시 배송",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "실패 시 손해."
+        },
+        {
+          "q": "재고 차감은 어떻게?",
+          "choices": [
+            "주문 시 확정 차감",
+            "승인 시 예약(임시)·확정 시 확정 차감(2단계)",
+            "안 함",
+            "정산 후"
+          ],
+          "answer": 1,
+          "why": "너무 이르면 묶임·너무 늦으면 초과 판매."
+        },
+        {
+          "q": "비가역 작업의 순서 원리는?",
+          "choices": [
+            "먼저",
+            "되돌릴 수 없는 것은 정당화 조건이 확실해진 뒤에(확정 후)",
+            "무작위",
+            "동시"
+          ],
+          "answer": 1,
+          "why": "가역/비가역 구분."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "실패 경로를 테스트한다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "PG 는 대개 **테스트 카드 번호**를 제공한다 — 성공뿐 아니라 **한도 초과·분실 카드·3D Secure 필요·처리 오류** 같은 **실패 경로**를 만드는 카드들. **실패 경로를 반드시 눌러 보라** — 성공만 테스트한 결제 시스템은 실전에서 실패가 왔을 때 무너진다(실패 처리가 검증 안 됨). 확인할 실패들: 결제 거부(한도·잔액·분실) 시 UX·재시도·안내, 3DS 인증 흐름(pay-security), 네트워크 오류·타임아웃, 웹훅 지연·유실, 결제 창 닫힘(5장), 부분 실패. 결제는 **실패가 정상**(카드 문제는 흔함, pay-sub 2장)이라, 실패 경로가 성공 경로만큼 중요하다 — 「실패했을 때 사용자가 무엇을 보고 어떻게 복구하나」를 테스트로 검증한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "테스트 카드 — 실패 경로",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tl { margin:8px 0; }\n  .tl .d { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n           background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .tl .d.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .tl .d.good { border-left-color:#22c55e; } .tl .d.bad { border-left-color:#ef4444; }\n  .tl .d .when { width:80px; color:#7dd3fc; }\n  .sm { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace; }\n  .sm .st { padding:4px 8px; border-radius:5px; background:#1e293b; color:#94a3b8; }\n  .sm .st.on { background:#0e2a3a; color:#7dd3fc; border:1px solid #164e63; }\n  .sm .st.good { background:#132a1c; color:#4ade80; } .sm .st.bad { background:#2a1414; color:#f87171; }\n  .sm .arr { color:#475569; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const tl = (rows) => '<div class=\"tl\">' + rows.map(([when, txt, cls]) =>\n    '<div class=\"d ' + (cls||'') + '\"><span class=\"when\">' + esc(when) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  const sm = (states) => '<div class=\"sm\">' + states.map((s, i) =>\n    '<span class=\"st ' + (s[1]||'') + '\">' + esc(s[0]) + '</span>' + (i < states.length-1 ? '<span class=\"arr\">→</span>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const card = '{{card}}';\n  const rows = {\n    success:['성공 카드', '정상 승인·확정', '해피 패스 — 기본 확인'],\n    declined:['한도 초과·거부', '결제 거부됨', '거부 UX·재시도·안내(다른 카드) 확인'],\n    lost:['분실 카드', '분실 신고된 카드로 거부', '적절한 거부 메시지(사기 아닌 안내)'],\n    threeds:['3D Secure 필요', '추가 인증 요구', '인증 흐름·리다이렉트·복귀 처리(pay-security)'],\n    error:['처리 오류', 'PG·네트워크 오류', '타임아웃·재시도·상태 불명 처리'],\n  }[card];\n  render('테스트 카드: ' + rows[0],\n    '  결과: ' + rows[1] + '\\n  확인: ' + rows[2] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">실패 경로를 반드시 눌러 보라 — 성공만 테스트하면 실전에서 무너진다.</span>',\n    '테스트 카드로 실패 경로(거부·분실·3DS·오류)를 반드시 확인.',\n    box(rows[0], rows[1] + '\\n→ ' + rows[2], card==='success'?'good':'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "card",
+              "label": "테스트 카드",
+              "type": "select",
+              "value": "success",
+              "options": [
+                {
+                  "value": "success",
+                  "label": "성공"
+                },
+                {
+                  "value": "declined",
+                  "label": "한도 초과"
+                },
+                {
+                  "value": "lost",
+                  "label": "분실 카드"
+                },
+                {
+                  "value": "threeds",
+                  "label": "3D Secure"
+                },
+                {
+                  "value": "error",
+                  "label": "처리 오류"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**PG 의 테스트 카드로 실패 경로(한도 초과·분실·3DS·오류)를 반드시 눌러 본다 — 성공만 테스트한 결제 시스템은 실전에서 실패가 왔을 때 무너진다.** PG(Stripe 등)는 **테스트 카드 번호**를 제공한다 — 특정 번호를 쓰면 특정 결과가 나오게: 성공, **한도 초과·잔액 부족**(거부), **분실·도난 신고 카드**(거부), **3D Secure 인증 필요**(추가 인증 흐름), **처리 오류**(PG 오류), 만료 카드, CVC 불일치 등. 이걸로 **각 실패 경로를 실제로 테스트**한다. **핵심: 실패 경로를 반드시 눌러 보라**. 결제 개발에서 흔한 함정은 **성공 경로만 테스트**하는 것 — 「결제하기 → 성공 페이지」만 확인하고 배포하면, 실전에서 실패(카드 거부·3DS·오류)가 왔을 때 처리가 검증 안 돼 무너진다(거부됐는데 성공 처리, 3DS 흐름 미구현, 오류 시 상태 꼬임). 결제는 **실패가 정상**이다(카드 문제는 흔함 — pay-sub 2장, 갱신 실패는 정상), 그래서 실패 경로가 성공 경로만큼(또는 더) 중요하다. 확인할 실패들: ① **결제 거부**(한도·잔액·분실) — 사용자에게 명확한 안내(무엇이 문제, 다른 카드 시도) + 재시도 경로(pay-sub dunning 과 연결). ② **3D Secure 인증**(pay-security 5장) — 추가 인증 리다이렉트·복귀·이탈 처리. ③ **네트워크 오류·타임아웃** — 응답이 안 오면 상태 불명(결제됐나 안 됐나?) — 웹훅으로 확정하고(5장) 사용자에겐 「확인 중」. ④ **웹훅 지연·유실** — 웹훅이 늦거나 안 오면(pay-webhook 재전송·정합) 결제를 놓치지 않게. ⑤ **결제 창 닫힘**(5장) — 창 닫아도 웹훅으로 처리. ⑥ **부분 실패·이중 제출** — 멱등으로 중복 방지(pay-idem). 이 실패들을 테스트 카드·시뮬레이션으로 **실제로 발생시켜** 「사용자가 무엇을 보고 어떻게 복구하나」·「시스템 상태가 올바른가」를 검증한다(qa — 실패도 테스트, qa-e2e). 「성공만 테스트」는 결제 시스템에서 특히 위험하다 — 실패가 흔하고 돈이 걸려, 실패 처리 버그가 곧 매출 손실·고객 불만이다. 그래서 결제 개발은 **실패 경로 테스트를 필수**로 한다 — 각 실패에서 UX(안내·복구)와 상태(정확)를 확인한다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸과 갈래.** 결제 흐름(pay-flow)은 pay 갈래(결제)의 **전체 조망** — 「결제하기 뒤 며칠에 걸친 단계」를 이해하고, 그 위에 다른 결제 주제가 선다. 네 단계·확정 정책(2·3장), 상태를 내 DB 에(4장)는 상태 기계·정합, 화면 vs 진실(5장)·시차 문제(6장)는 pay-webhook(웹훅이 진실)·비가역 작업 순서, 실패 테스트(7장)는 qa(실패도 검증)·pay-sub(실패는 정상)와 통한다. 그리고 pay-flow 는 pay 갈래 전체를 잇는다: 웹훅으로 확정(pay-webhook), 멱등하게(pay-idem), 되돌리기(pay-refund), 안전하게(pay-security), 반복(pay-sub), 세금(pay-tax). **「결제하기 뒤엔 며칠에 걸쳐 승인·확정·정산이 일어난다 — 상태를 내 DB 에 두고 웹훅으로 확정하고, 화면 성공을 믿지 말고, 확정 전에 비가역 작업을 하지 말고, 실패 경로를 반드시 테스트한다」**가 핵심이다. pay-flow 는 결제의 시간 축과 전체 흐름을 조망해, 결제 시스템의 뼈대를 세운다."
+        },
+        {
+          "type": "try",
+          "text": "PG 의 테스트 카드로 실패 경로를 모두 눌러 보라 — 한도 초과·분실 카드·3D Secure·처리 오류. 각 실패에서 사용자가 무엇을 보고(명확한 안내·재시도), 시스템 상태가 올바른지(거부를 성공으로 처리 안 하나) 확인하라. 네트워크 오류·웹훅 지연·창 닫힘도 시뮬레이션하라. 「성공만 테스트」하고 있으면 실패 경로 테스트를 추가하라 — 결제는 실패가 정상이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "PG 의 테스트 카드로 확인할 것은?",
+          "choices": [
+            "성공만",
+            "실패 경로(한도 초과·분실·3DS·오류)도 반드시",
+            "속도",
+            "색"
+          ],
+          "answer": 1,
+          "why": "성공만 테스트하면 실전서 무너짐."
+        },
+        {
+          "q": "결제에서 실패는?",
+          "choices": [
+            "드묾",
+            "정상 — 카드 문제는 흔하니 실패 경로가 성공만큼 중요",
+            "버그",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "실패도 테스트."
+        },
+        {
+          "q": "실패 경로에서 확인할 것은?",
+          "choices": [
+            "없음",
+            "UX(명확한 안내·복구) + 시스템 상태(정확 — 거부를 성공 처리 X)",
+            "속도",
+            "색"
+          ],
+          "answer": 1,
+          "why": "돈·고객이 걸림."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "점검표 — 결제 흐름",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "결제 흐름을 다룰 때 이 목록을 확인하라. 핵심은 「결제하기 뒤엔 며칠 흐름 — 상태를 내 DB 에·웹훅으로 확정, 화면 믿지 말고, 확정 전 비가역 X, 실패를 테스트」다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tl { margin:8px 0; }\n  .tl .d { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n           background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .tl .d.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .tl .d.good { border-left-color:#22c55e; } .tl .d.bad { border-left-color:#ef4444; }\n  .tl .d .when { width:80px; color:#7dd3fc; }\n  .sm { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace; }\n  .sm .st { padding:4px 8px; border-radius:5px; background:#1e293b; color:#94a3b8; }\n  .sm .st.on { background:#0e2a3a; color:#7dd3fc; border:1px solid #164e63; }\n  .sm .st.good { background:#132a1c; color:#4ade80; } .sm .st.bad { background:#2a1414; color:#f87171; }\n  .sm .arr { color:#475569; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const tl = (rows) => '<div class=\"tl\">' + rows.map(([when, txt, cls]) =>\n    '<div class=\"d ' + (cls||'') + '\"><span class=\"when\">' + esc(when) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  const sm = (states) => '<div class=\"sm\">' + states.map((s, i) =>\n    '<span class=\"st ' + (s[1]||'') + '\">' + esc(s[0]) + '</span>' + (i < states.length-1 ? '<span class=\"arr\">→</span>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '결제하기 뒤엔 며칠에 걸친 흐름(승인·확정·정산·환불)',\n    '승인 ≠ 확정 ≠ 정산 — 다른 시점(「승인」과 「돈 받음」 며칠 차)',\n    '확정 정책을 정한다(즉시 vs 지연/배송 시)',\n    '결제 상태를 내 DB 에도 — 웹훅으로 갱신 + PG 와 정합',\n    '화면 성공은 신호일 뿐 — 리다이렉트+웹훅, 진실은 서버',\n    '확정 전에 되돌리기 어려운 일(배송·발급)을 하지 마라',\n    '실패 경로를 테스트 카드로 반드시 눌러 본다',\n    '멱등·정합으로 이중 처리·불일치 방지(pay 갈래 종합)',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 결제의 시간 축과 전체 흐름을 정확히.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '며칠 흐름 — 상태 내 DB·웹훅 확정·화면 믿지 말고·확정 전 비가역 X·실패 테스트.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 결제하기 뒤엔 며칠에 걸친 흐름 — 상태를 내 DB 에 두고 웹훅으로 확정하고, 화면을 믿지 말고, 확정 전에 비가역 작업을 하지 말고, 실패를 테스트한다.** 결제는 승인·확정·정산·환불의 며칠 흐름이고(1장), 승인≠확정≠정산 다른 시점이며(2장), 확정 정책(즉시 vs 지연)을 정하고(3장), 상태를 내 DB 에 두고 웹훅으로 갱신·정합하고(4장), 화면 성공은 신호일 뿐 진실은 서버가 웹훅으로 판단하고(5장), 확정 전에 되돌리기 어려운 일을 하지 않고(6장), 실패 경로를 테스트 카드로 반드시 확인하고(7장), 멱등·정합으로 이중 처리·불일치를 막는다. 「결제의 시간 축과 전체 흐름을 정확히」가 핵심이다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸과 갈래.** 결제 흐름(pay-flow)은 pay 갈래(결제)의 전체 조망으로, 결제의 시간 축과 단계를 이해해 다른 결제 주제의 바탕이 된다. 네 단계·확정 정책·상태 기계·정합, 화면 vs 진실·시차·비가역 작업 순서는 pay-webhook(진실은 웹훅), 실패 테스트는 qa·pay-sub(실패는 정상)와 통한다. pay-flow 는 pay 갈래를 잇는다 — 웹훅 확정(pay-webhook)·멱등(pay-idem)·환불(pay-refund)·보안(pay-security)·구독(pay-sub)·세금(pay-tax)이 이 흐름 위에 선다. **「결제하기 뒤엔 며칠에 걸쳐 승인·확정·정산이 일어난다 — 상태를 내 DB 에 두고 웹훅으로 확정하고, 화면 성공을 믿지 말고, 확정 전에 비가역 작업을 하지 말고, 실패 경로를 반드시 테스트한다」**가 이 칸의 전부다. 결제 시스템의 뼈대는 「시간 축을 이해하고, 단계별 상태를 관리하고, 진실을 서버(웹훅)로 확정하는」 것이다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개로 네 결제 흐름을 점검하라. 「상태를 내 DB 에 두고 웹훅으로 확정」과 「실패 경로를 테스트」 두 가지만 잡아도, 가장 흔한 버그(화면 성공 오판·실패 처리 누락)를 막는다. 승인→확정→환불을 한 바퀴 돌려 내 DB 상태를 추적하고, 테스트 카드로 실패를 눌러 보고, 확정 전 비가역 작업이 없는지 확인하라 — 결제의 전체 흐름을 정확히 세워라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "결제 흐름 장의 한 줄 요약은?",
+          "choices": [
+            "즉시 끝",
+            "며칠 흐름 — 상태 내 DB·웹훅 확정·화면 믿지 말고·확정 전 비가역 X·실패 테스트",
+            "성공만",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "시간 축과 전체 흐름."
+        },
+        {
+          "q": "먼저 잡을 두 가지는?",
+          "choices": [
+            "속도·색",
+            "상태를 내 DB 에·웹훅으로 확정 + 실패 경로를 테스트",
+            "재시도·로그",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "화면 성공 오판·실패 누락 방지."
+        },
+        {
+          "q": "pay-flow 가 잇는 주제는?",
+          "choices": [
+            "없음",
+            "pay-webhook·pay-idem·pay-refund·pay-security·pay-sub·pay-tax",
+            "속도만",
+            "색"
+          ],
+          "answer": 1,
+          "why": "결제의 전체 조망."
+        }
+      ]
     }
   ]
 }
