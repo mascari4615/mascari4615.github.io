@@ -17,11 +17,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { withoutRetired, RETIRED_OPERATION_IDS } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const read = (p) => JSON.parse(fs.readFileSync(path.join(root, p), 'utf8'));
 
-const tools = Object.keys(read('data/tools-seo.json').tools);
+/* ★ **접은 도구는 이 검사의 대상이 아니다** (2026-08-14). 작업대로 합쳐진 열여섯은 낱개 장이
+   넘김판이라 공유 카드도 자리 높이도 안 만든다 — 그런데 여기서 세고 있었다. 초록이었던 건
+   **옛 카드 파일이 지워지지 않고 남아 있어서**다(사람은 「138개 다 갖췄다」로 읽는다).
+   목록 정본 = `lib/retired-operations.mjs`. */
+const 전체 = Object.keys(read('data/tools-seo.json').tools);
+const tools = withoutRetired(전체);
 const aliases = fs.existsSync(path.join(root, 'data/tool-aliases.json')) ? read('data/tool-aliases.json').aliases || {} : {};
 const heights = fs.existsSync(path.join(root, 'data/tool-heights.json')) ? read('data/tool-heights.json') : {};
 
@@ -45,7 +51,11 @@ const widgetIds = (() => {
   if (!fs.existsSync(metaPath)) return new Set();
   return new Set([...fs.readFileSync(metaPath, 'utf8').matchAll(/id:\s*'([^']+)'/g)].map((m) => m[1]));
 })();
-const known = new Set(tools);
+/* 「이 이름을 아는가」는 **접은 것까지 포함**이다 — 접은 도구도 tools-seo 에 남아 있고
+   (넘김판·건지기 목록이 그걸 쓴다), 알맹이(src/core)도 살아 있다(작업대의 조작이 되었다).
+   여기서 빼면 멀쩡한 알맹이 넷이 「명부에 없다」로 잡힌다.
+   카드·자리 검사만 지금 도구(tools)로 한다. */
+const known = new Set(전체);
 const alive = new Set([...known, ...widgetIds]);
 const stale = [
   ...Object.keys(aliases).filter((id) => !alive.has(id)).map((id) => `이름(${id})`),
@@ -135,8 +145,12 @@ const problems = [];
     } catch {
       problems.push('건지기 목록(tools.json)이 깨졌다 — 없는 주소로 온 사람을 못 건진다');
     }
-    if (rows && rows.length !== tools.length) {
-      problems.push(`건지기 목록에 ${rows.length}개뿐 — 도구는 ${tools.length}개다`);
+    /* 건지기 목록에는 **접은 도구도 남긴다** — 그 주소로 오는 사람에게 이름이라도 찾아 주려고
+       일부러 남긴 것이다(`gen-tool-pages.mjs` 주석). 그러니 여기 수는 「지금 도구 + 접은 것」이다.
+       그걸 모르고 도구 수와만 견주면, 일부러 남긴 것을 「모자란다」고 잡는다. */
+    const 있어야할수 = tools.length + [...RETIRED_OPERATION_IDS].filter((id) => 전체.includes(id)).length;
+    if (rows && rows.length !== 있어야할수) {
+      problems.push(`건지기 목록에 ${rows.length}개뿐 — 도구 ${tools.length} + 접은 것까지 ${있어야할수}개여야 한다`);
     }
   }
 }
