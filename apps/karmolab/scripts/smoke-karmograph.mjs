@@ -1889,6 +1889,58 @@ const openedSpec = (page) => page.evaluate(() => {
     .filter((sp) => sp && (sp.nodes || []).length > 0)[0];
 });
 
+await step('큰 판에서도 시점을 옮기는 값이 싸다 (800장, KL-271 X2)', async () => {
+  /* 시점 렌즈는 **그릴 때마다** 선의 얼굴을 갈아 끼운다 — 판이 커지면 그 값이 곱절로 뛸 자리다.
+     실측(2026-08-14, 이 기계): 800장에서 첫 그림 320~500ms · 시점 전환 42~125ms.
+     천장은 넉넉히 잡는다 — 여기서 잡으려는 건 느려짐이 아니라 **터지는 증가**(O(n²))다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.evaluate(() => {
+    const nodes = [];
+    const edges = [];
+    for (let i = 0; i < 800; i += 1) {
+      nodes.push({ id: 'n' + i, label: '카드' + i, kind: 'character', x: (i % 30) * 180, y: Math.floor(i / 30) * 90, w: 160, h: 44 });
+    }
+    for (let i = 1; i < 800; i += 1) {
+      edges.push({
+        id: 'e' + i, from: 'n' + (i - 1), to: 'n' + i, label: '선', kind: 'default',
+        at: i % 3 === 0 ? { t2: { label: '2부선' } } : undefined,
+      });
+    }
+    const spec = {
+      version: 1, _meta: { time: 't1' }, groups: [], nodes, edges,
+      times: [{ id: 't1', name: '1부' }, { id: 't2', name: '2부' }],
+      ephemeral_anchors: [], _edge_kinds: {},
+    };
+    localStorage.setItem('karmograph.map.big', JSON.stringify(spec));
+    localStorage.setItem('karmograph.index', JSON.stringify({ activeId: 'big', maps: [{ id: 'big', name: '큰 판' }] }));
+  });
+
+  const began = Date.now();
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 800, null, { timeout: ms(30000) });
+  const firstPaint = Date.now() - began;
+  if (firstPaint > ms(9000)) throw new Error(`800장 첫 그림이 너무 느리다: ${firstPaint}ms`);
+
+  await m.waitForSelector('[data-km="time-go"]', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(600));
+  /* ★ **페이지 안에서** 잰다 — 밖에서 재면 브라우저 왕복이 값의 대부분을 차지한다(KL-271에서 한 번 속았다). */
+  const swap = await m.evaluate(() => {
+    const at = performance.now();
+    document.querySelectorAll('[data-km="time-go"]')[1].click();
+    return performance.now() - at;
+  });
+  if (swap > ms(1500)) throw new Error(`800장에서 시점 전환이 너무 비싸다: ${Math.round(swap)}ms`);
+  await m.waitForTimeout(ms(400));
+  const said = await m.evaluate(() => [...document.querySelectorAll('.ck-edge-label text')]
+    .some((x) => (x.textContent || '').includes('2부선')));
+  if (!said) throw new Error('시점을 옮겼는데 선의 얼굴이 안 바뀐다(큰 판)');
+  await ctx.close();
+});
+
 await step('모자란 자료로도 판은 열린다 (KL-271)', async () => {
   /* 「자료가 조금 모자란 것」과 「못 읽는 것」은 다르다. 네모 없는 묶음 하나에 판 전체가
      안 열린 적이 있다(2026-08-14) — 손으로 적은 파일, 옛 판, 남의 도구에서 옮겨 온 것은
