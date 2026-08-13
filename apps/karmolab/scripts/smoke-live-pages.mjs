@@ -12,11 +12,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { withoutRetired } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
 const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools;
-const ids = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(seo);
+/* 작업대로 합친 옛 도구의 자리는 **작업대로 보내는 안내 한 장**이다 — 열면 곧바로 작업대로
+   가므로 「화면이 안 그려졌다」로 읽히고, 마크다운 쌍둥이도 안 찍는다(도구 장이 아니니 맞다).
+   도구가 아닌 것을 도구로 재면 이 검사는 늘 빨갛다. 목록 정본은 lib/retired-operations.mjs. */
+const ids = withoutRetired(process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(seo));
 
 const browser = await chromium.launch();
 const failures = [];
