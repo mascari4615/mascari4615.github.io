@@ -736,5 +736,7 @@
   "karmograph.help.ripe": "このカードに残った欄",
   "karmograph.help.ripeHow": "カードを選ぶ",
   "karmograph.help.face": "画像を貼り付けて顔にする",
-  "karmograph.help.faceHow": "カードを選んで Ctrl+V"
+  "karmograph.help.faceHow": "カードを選んで Ctrl+V",
+  "karmograph.links.count": "つながり {n}件",
+  "karmograph.gap.shared": "共通 {n}"
 }

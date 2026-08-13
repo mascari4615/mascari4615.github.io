@@ -736,5 +736,7 @@
   "karmograph.help.ripe": "Fields left on this card",
   "karmograph.help.ripeHow": "Select a card",
   "karmograph.help.face": "Paste an image as the card face",
-  "karmograph.help.faceHow": "Select a card and press Ctrl+V"
+  "karmograph.help.faceHow": "Select a card and press Ctrl+V",
+  "karmograph.links.count": "{n} connections",
+  "karmograph.gap.shared": "{n} in common"
 }

@@ -1996,7 +1996,7 @@ import {
           ${linkingFrom === node.id ? t('karmograph.labelOf.msg5') : ''}
         </div>
         <div class="km-field">
-          <label>연결 ${related.length}개</label>
+          <label>${esc(t('karmograph.links.count', { n: String(related.length) }))}</label>
           ${
             related.length === 0
               ? t('karmograph.labelOf.msg6')

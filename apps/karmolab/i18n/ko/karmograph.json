@@ -736,5 +736,7 @@
   "karmograph.help.ripe": "이 카드에 남은 칸 수",
   "karmograph.help.ripeHow": "카드를 고르면 이름 밑에",
   "karmograph.help.face": "그림을 붙여넣어 얼굴 넣기",
-  "karmograph.help.faceHow": "카드를 고르고 Ctrl+V"
+  "karmograph.help.faceHow": "카드를 고르고 Ctrl+V",
+  "karmograph.links.count": "연결 {n}개",
+  "karmograph.gap.shared": "겹치는 사이 {n}"
 }
