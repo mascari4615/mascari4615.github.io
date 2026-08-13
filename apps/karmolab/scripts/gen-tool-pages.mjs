@@ -16,6 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 // 셸을 정적 페이지로 만드는 손질은 한 벌뿐이다 (TASK-KL-129) — 목록·봇 소개·프로필도 같은 것을 쓴다.
 import { loadShell, shellCommon, replaceMeta, scriptFile, esc } from './lib/shell-page.mjs';
+import { RETIRED_OPERATION_IDS, withoutRetired } from './lib/retired-operations.mjs';
 
 // 셸(apps/karmolab/index.html)의 제목을 이 장의 제목으로 바꾼다.
 // 예전엔 `'<title>KarmoLab</title>'` 리터럴을 찾아 바꿨는데, 셸 제목에 한 글자만 붙어도
@@ -73,13 +74,11 @@ const BUILD_PRINT = (() => {
 })();
 const widgetById = Object.fromEntries(widgets.map((w) => [w.id, w]));
 
-/* 작업대 operation으로 흡수한 옛 도구는 상세 문서를 찍지 않는다. 앱 메타·SEO 원장에서
- * 같이 지운 뒤 이 목록도 사라진다. 지금은 생성기가 과거 원장을 읽는 동안의 안전한 절단선이다. */
-const RETIRED_OPERATION_IDS = new Set(['slug', 'caseconv', 'linebreak', 'textclean', 'hangulkey', 'jamo', 'replace', 'listdiff', 'charcount', 'wordfreq', 'textdiff', 'textredact', 'text2pdf', 'text2img', 'lorem', 'checklist']);
+/* 흡수한 옛 도구 목록은 `lib/retired-operations.mjs` 한 곳에 있다(두 곳이면 갈라진다 — 실제로 갈라졌다). */
 
 /* ── 교차 검증 (짝 없으면 빌드 실패) ───────────────────── */
 
-const ids = Object.keys(seo).filter((id) => !RETIRED_OPERATION_IDS.has(id));
+const ids = withoutRetired(Object.keys(seo));
 const orphans = ids.filter((id) => !widgetById[id]);
 if (orphans.length) {
   console.error(`[gen-tool-pages] tools-seo.json 에 있으나 위젯 매니페스트에 없는 id: ${orphans.join(', ')}`);
