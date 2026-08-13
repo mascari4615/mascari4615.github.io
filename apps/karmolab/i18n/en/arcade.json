@@ -399,5 +399,7 @@
   "arcade.btn.swap": "another game",
   "arcade.room.kept": "room open · {n} here — pick and everyone starts",
   "arcade.room.close": "close room",
-  "arcade.room.picking": "the host is picking the next game"
+  "arcade.room.picking": "the host is picking the next game",
+  "arcade.watch.now": "watching",
+  "arcade.watch.over": "{n} watching"
 }

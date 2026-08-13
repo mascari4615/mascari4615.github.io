@@ -35,6 +35,7 @@ import { lengthOf, secondsOf } from './length';
 import { readPlays, notePlay } from './plays';
 import { pick6, matches, SLOTS } from './pick6';
 import { ranks } from './rank';
+import { forWatcher } from './spectate';
 import { pickGames, award, isOver, ROUNDS, type TourState } from './tour';
 import { PARTY, partySize } from './seating';
 import type { Render } from './views';
@@ -516,6 +517,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-todaycard span{font-size:20px}',
       '.ac-todaycard.ac-done{opacity:.55;border-color:var(--border-color)}',
       '.ac-tourbtn{align-self:center}',
+      '.ac-seat.ac-watch{border-color:var(--accent);color:var(--accent)}',
       '.ac-room{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;border:1px solid var(--accent);border-radius:10px;background:var(--bg-secondary);margin:var(--space-md) 0;font-size:var(--font-size-sm)}',
       '.ac-over{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:color-mix(in srgb, var(--bg-color) 88%, transparent);backdrop-filter:blur(2px);border-radius:12px;z-index:3;padding:var(--space-lg)}',
       '.ac-overhead{font-size:var(--font-size-xl);font-weight:700;text-align:center}',
@@ -820,6 +822,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       return 'normal';
     };
 
+    /** 자리를 못 받아 **구경만** 하는 중인가 (TASK-KL-264 D2). */
+    let watching = false;
     /** 이번 판의 끝소리를 이미 울렸나 — 매 프레임 울리면 소리가 아니라 경적이 된다. */
     let ended = false;
     /** 마지막으로 소리를 낸 판 번호 */
@@ -839,7 +843,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      */
     function showResult(v: MatchView<unknown>, draw: boolean, top: number, note: string): void {
       const order = ranks(v.seats.map((x) => x.score));
-      const mine = v.seats[mySeat]?.score ?? 0;
+      /* 구경꾼에게는 「내가 이겼다」가 없다. 자리가 -1 이라 점수가 0 인데, 아무도 점수를
+         못 낸 판(0:0)에서는 그 0 이 1등과 같아져 구경꾼이 이긴 것으로 뜬다. */
+      const mine = watching ? NaN : (v.seats[mySeat]?.score ?? 0);
       $<HTMLElement>('#acOverHead').textContent = draw
         ? '🤝 ' + t('arcade.result.draw')
         : mine === top
@@ -872,13 +878,15 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
          새는 자리는 「보낸 값」이라 받은 값을 직접 읽어야 한다. 이 창이 이미 가진 것이므로
          내보낸다고 더 알려지는 것은 없다. */
       (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state, finished: v.finished, tour: tour ? { at: tour.at, games: tour.games, points: tour.points } : null };
-      seatsEl.innerHTML = v.seats
-        .map(
-          (s, i) =>
-            '<span class="ac-seat' + (i === mySeat ? ' ac-me' : '') + '">' +
-            esc(s.name) + (s.bot ? ' 🤖' : '') + ' <b>' + s.score + '</b></span>'
-        )
-        .join('');
+      seatsEl.innerHTML =
+        (watching ? '<span class="ac-seat ac-watch">👀 ' + esc(t('arcade.watch.now')) + '</span>' : '') +
+        v.seats
+          .map(
+            (s, i) =>
+              '<span class="ac-seat' + (i === mySeat ? ' ac-me' : '') + '">' +
+              esc(s.name) + (s.bot ? ' 🤖' : '') + ' <b>' + s.score + '</b></span>'
+          )
+          .join('');
       render?.(v, mySeat, now);
 
       if (v.finished) {
@@ -892,7 +900,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         if (!ended) {
           ended = true;
           const draw = win.length === v.seats.length;
-          const mine = v.seats[mySeat]?.score ?? 0;
+          const mine = watching ? NaN : (v.seats[mySeat]?.score ?? 0);
           say(
             draw ? t('arcade.result.draw') : t('arcade.result.win', { who: win.map((s) => s.name).join(', ') }),
             'ok'
@@ -900,8 +908,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           /* 이긴 판만 세지 않는다 — 이겨야 세면 봇 세기를 순한맛으로 낮추는 놀이가 된다. */
           markPlayed(gameId, picks);
           paintToday();
-          blip(draw ? 'good' : mine === top ? 'win' : 'lose');
-          buzz(draw ? 'tap' : mine === top ? 'win' : 'lose');
+          /* 구경꾼에게는 이기고 지는 소리가 없다 — 남의 승부다. */
+          blip(watching ? 'good' : draw ? 'good' : mine === top ? 'win' : 'lose');
+          buzz(watching ? 'tap' : draw ? 'tap' : mine === top ? 'win' : 'lose');
           let note = '';
           if (tour) {
             tour = award(tour, v.seats.map((x) => x.score));
@@ -961,6 +970,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         const safe = { ...v, state: g.redact(v.state, seat) };
         net.sync({ ...base, v: safe as unknown as Json }, peerId);
       }
+      /* 자리를 못 받은 사람 = 구경꾼. **빼먹으면 빈 화면 앞에 앉아 있게 된다** — 위 고리는
+         자리 있는 사람에게만 보내기 때문이다. 구경꾼 몫은 자리마다 겹쳐 지운 판이다. */
+      const watchers = peers.filter((p) => seatOf[p.id] === undefined);
+      if (!watchers.length) return;
+      const shown = { ...v, state: forWatcher(g, v.state, v.seats.length) };
+      for (const w of watchers) net.sync({ ...base, v: shown as unknown as Json }, w.id);
     }
 
     function mountView(id: string): void {
@@ -970,6 +985,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
 
     function sendAct(a: unknown): void {
+      /* 구경꾼의 손은 여기서 멈춘다. 주인도 자리 없는 사람의 수는 흘리지만, **화면이 반응하면
+         사람은 자기가 두고 있다고 믿는다** — 막는 자리는 손이 나가기 전이어야 한다. */
+      if (watching) return;
       /* 놀이마다 소리를 붙이지 않는다 — **손이 지나가는 자리가 여기 하나**라, 여기서 울리면
          51개가 한꺼번에 소리를 얻는다(게임 파일은 소리를 몰라도 된다). */
       blip('tap');
@@ -985,6 +1003,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (!g) return;
       gameId = id;
       mySeat = 0;
+      watching = false;
       ended = false;
       soundedRound = -1;
       /* 빈 자리를 **이름 있는 사람**으로 채운다 (TASK-KL-264). 커널이 채우면 「봇 1」이 되는데,
@@ -1107,9 +1126,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         '<span class="ac-seat ac-me">' + esc(myName()) + '</span>',
         ...peers.map((p) => '<span class="ac-seat">' + esc(p.name) + '</span>')
       ].join('');
-      $<HTMLElement>('#acWaitStatus').textContent = host
-        ? t('arcade.wait.host', { n: String(peers.length + 1) })
-        : t('arcade.wait.guest');
+      /* 자리가 몇이고 지금 몇이 넘치는지를 **기다리는 동안** 말해 준다 — 시작하고 나서
+         「나는 왜 못 두지」를 겪게 하면 그건 관전이 아니라 고장으로 느껴진다. */
+      const cap = gameById(gameId)?.seats[1] ?? 0;
+      const over = Math.max(0, peers.length + 1 - cap);
+      $<HTMLElement>('#acWaitStatus').textContent =
+        (host ? t('arcade.wait.host', { n: String(peers.length + 1) }) : t('arcade.wait.guest')) +
+        (over > 0 ? ' · ' + t('arcade.watch.over', { n: String(over) }) : '');
       startBtn.style.display = host ? '' : 'none';
       $<HTMLElement>('.ac-share').style.display = host ? '' : 'none';
     }
@@ -1178,7 +1201,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
             loop();
           }
           seatOf = p.seatOf || {};
-          mySeat = seatOf[net?.selfId ?? ''] ?? 0;
+          /* **자리가 없으면 -1.** 0 으로 두면 구경꾼이 제가 1번 자리인 줄 알고 수를 두려 든다
+             (주인이 흘리므로 판은 안 깨지지만, 화면은 내 차례라고 말한다). */
+          mySeat = seatOf[net?.selfId ?? ''] ?? -1;
+          watching = mySeat < 0;
           shadow = { v: p.v, now: p.now, at: performance.now() };
         }
       });
