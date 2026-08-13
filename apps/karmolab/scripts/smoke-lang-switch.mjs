@@ -87,6 +87,21 @@ else {
 }
 
 /* ③ — 기본 언어가 아닌 첫 언어를 고른다. */
+/* ★ **표본 도구를 손으로 박지 않는다** (2026-08-13). 여기 `charcount` 가 박혀 있었는데
+   그 도구가 작업대로 합쳐지자 이 검사가 「이름이 null」로 빨개졌다 — 번역은 멀쩡한데
+   **없어진 도구를 물어본** 것이다. 지금 실제로 있는 도구 중 세 판본에 이름이 다 있는
+   첫째를 표본으로 쓴다(도구가 합쳐지거나 사라져도 검사는 살아 있다). */
+const sample = (() => {
+  const koNames = names.ko || {};
+  for (const key of Object.keys(koNames)) {
+    const m = /^widgets\.([a-z0-9-]+)\.title$/.exec(key);
+    if (!m) continue;
+    const id = m[1];
+    if (expected.every((l) => names[l.code] && names[l.code][`widgets.${id}.title`])) return id;
+  }
+  return 'base64';
+})();
+
 const target = expected.find((l) => l.prefix);
 if (target && (await menu.count())) {
   await page.getByRole('option').filter({ hasText: target.endonym }).click();
@@ -120,19 +135,20 @@ for (const l of expected) {
   await tab.goto(`http://127.0.0.1:${PORT}/apps/blog${l.prefix}/karmolab/index.html`, {
     waitUntil: 'domcontentloaded'
   });
+  await tab.evaluate((id) => { window.__KL_LANG_SAMPLE = id; }, sample);
   const shown = await tab
     .waitForFunction(
       () => {
         const list = window.KARMOLAB_LAZY_META;
         if (!Array.isArray(list) || !list.length) return false;
-        const hit = list.find((w) => w.id === 'charcount');
+        const hit = list.find((w) => w.id === window.__KL_LANG_SAMPLE);
         return hit ? hit.title : false;
       }, undefined,
       { timeout: 5000 }
     )
     .then((h) => h.jsonValue())
     .catch(() => null);
-  const want = names[l.code]['widgets.charcount.title'];
+  const want = names[l.code][`widgets.${sample}.title`];
   if (shown !== want) fail.push(`${l.code} 장의 도구 이름이 안 바뀌었다: ${shown} (기대 ${want})`);
   /* 한국어로 남은 이름 = **번역이 있는데 안 갈아 끼운 것**만 잘못이다. 아직 안 옮긴 도구
      (다른 작업이 방금 새로 만든 위젯 등)까지 세면, 누가 도구를 하나 넣을 때마다 이 검사가
