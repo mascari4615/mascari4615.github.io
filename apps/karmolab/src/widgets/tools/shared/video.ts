@@ -159,3 +159,47 @@ export function downloadUrl(url: string, filename: string): void {
   a.download = filename;
   a.click();
 }
+
+/**
+ * **화면의 `<video>` 에 파일을 물린다** (TASK-KL-281).
+ *
+ * `loadVideo` 는 안 보이는 요소를 새로 만든다. 그런데 도구들은 대개 **화면에 이미 있는** 재생기에
+ * 물려야 한다(사람이 보면서 구간을 잡으니까). 그래서 같은 함정을 여기서도 넘겨야 한다:
+ *
+ * `MediaRecorder` 로 만든 webm(= 우리 「화면 녹화」가 만드는 것)은 길이가 안 적혀 있어
+ * `duration` 이 `Infinity` 로 오는 판이 있다. 끝까지 한 번 밀어 보면 그때 제대로 잡힌다.
+ *
+ * ⚠ **지금 Chromium 에서는 그 일이 안 일어난다** (2026-08-13 실측: 되감기를 빼도 검사가 안 빨개진다).
+ * 그러니 이 되감기는 **고장을 고친 줄이 아니라 다른 판을 위한 울타리**다 — 도구들을 여기로 모은
+ * 값어치는 「같은 배선을 네 곳에 두지 않는다」쪽이다. 과장해서 적지 않는다
+ * (`rules/quality.md § 설명문이 거짓말이면 아무 검사에도 안 걸린다`).
+ */
+export function attachVideo(el: HTMLVideoElement, file: File | Blob, timeoutMs = 8000): Promise<VideoMeta> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    let done = false;
+    const finish = (ok: boolean): void => {
+      if (done) return;
+      done = true;
+      window.clearTimeout(timer);
+      if (ok) resolve(metaOf(el));
+      else {
+        URL.revokeObjectURL(url);
+        reject(new Error('이 영상은 못 읽습니다'));
+      }
+    };
+    const timer = window.setTimeout(() => finish(Number.isFinite(el.duration)), timeoutMs);
+    el.onerror = (): void => finish(false);
+    el.onloadedmetadata = (): void => {
+      if (Number.isFinite(el.duration) && el.duration > 0) return finish(true);
+      /* 길이를 안 적어 둔 판 — 끝까지 밀었다가 돌아오면 그제야 길이가 잡힌다 */
+      el.ontimeupdate = (): void => {
+        el.ontimeupdate = null;
+        el.currentTime = 0;
+        finish(true);
+      };
+      el.currentTime = 1e101;
+    };
+    el.src = url;
+  });
+}

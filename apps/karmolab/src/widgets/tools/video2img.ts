@@ -12,7 +12,7 @@
 import { fileSize as size, mmss, download } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
 
-import { seekTo, downloadUrl } from './shared/video';
+import { seekTo, downloadUrl, attachVideo } from './shared/video';
 import { encode } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -157,8 +157,9 @@ import { t, loadNamespace } from '../../lib/i18n';
             shots.forEach((s) => URL.revokeObjectURL(s.url));
             shots = [];
             render();
-            video.src = URL.createObjectURL(f);
-            video.onloadedmetadata = () => {
+            /* 공용 `attachVideo` 로 (TASK-KL-281) — 녹화한 webm 은 길이가 안 적혀 있어
+             * 그냥 물리면 `duration` 이 NaN/Infinity 로 온다. 그 되감기가 공용 쪽에 있다. */
+            void attachVideo(video, f).then(() => {
               duration = video.duration;
               editor.style.display = '';
               render();
@@ -169,8 +170,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 w: video.videoWidth,
                 h: video.videoHeight
               }), 'ok');
-            };
-            video.onerror = () => say(t('video2img.err.open'), 'error');
+            }).catch(() => say(t('video2img.err.open'), 'error'));
           }
 
           async function grabEvery(): Promise<void> {
