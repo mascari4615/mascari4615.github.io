@@ -150,6 +150,46 @@ check(
 check(/정리/.test(await page.locator('#pfName').innerText()), `만든 것이 **손에 든 파일**이 된다 (지금 「${await page.locator('#pfName').innerText()}」)`);
 
 
+/* ⑦-나 **끌어서 순서 바꾸기** (TASK-KL-284 — Sejda 의 마지막 조각)
+ *
+ * 끌기는 손으로 흉내 내기 어려우니 브라우저의 끌기 사건을 그대로 쏜다. 그리고 **글자로** 확인한다:
+ * 손으로 짠 PDF 의 첫 쪽엔 「PAGE ONE」, 둘째 쪽엔 「PAGE TWO」 가 적혀 있으므로,
+ * 순서를 바꿔 만들면 **첫 쪽에서 뽑히는 글자가 바뀌어야** 한다. 화면 순서만 보면 속을 수 있다. */
+/* 앞 판에서 한 쪽을 빼 두었으니 두 쪽짜리를 **다시 올린다** — 순서 바꾸기는 두 쪽이 있어야 잰다. */
+await page.setInputFiles('#pfFile', { name: '보고서.pdf', mimeType: 'application/pdf', buffer: tinyPdf() });
+await page.waitForFunction(() => document.querySelectorAll('#pfPages .pf-thumb').length === 2, { timeout: 20000 });
+
+await page.evaluate(() => {
+  const cells = [...document.querySelectorAll('#pfPages .pf-thumb')];
+  const from = cells.find((c) => c.dataset.page === '2');
+  const to = cells.find((c) => c.dataset.page === '1');
+  const dt = new DataTransfer();
+  from.dispatchEvent(new DragEvent('dragstart', { bubbles: true, dataTransfer: dt }));
+  to.dispatchEvent(new DragEvent('dragover', { bubbles: true, dataTransfer: dt }));
+  to.dispatchEvent(new DragEvent('drop', { bubbles: true, dataTransfer: dt }));
+  from.dispatchEvent(new DragEvent('dragend', { bubbles: true, dataTransfer: dt }));
+});
+await page.waitForTimeout(250);
+const nowOrder = await page.locator('#pfPages .pf-thumb').evaluateAll((els) => els.map((e) => e.dataset.page));
+check(nowOrder.join(',') === '2,1', `끌어 놓으면 자리가 바뀐다 (지금 ${nowOrder.join(',')})`);
+const nums = await page.locator('#pfPages .pf-no').allInnerTexts();
+check(nums.join(',') === '1,2', `번호는 늘어놓은 자리대로 다시 붙는다 (지금 ${nums.join(',')})`);
+check(await page.locator('#pfEditBar').isVisible(), '순서만 바꿔도 저장 줄이 뜬다');
+
+/* 만들고 나서 **글자로** 확인 — 첫 쪽이 정말 「PAGE TWO」 인가 */
+await page.click('#pfApply');
+await page.waitForFunction(() => /정리/.test(document.querySelector('#pfName')?.textContent || ''), { timeout: 25000 }).catch(() => {});
+const firstText = await page.evaluate(async () => {
+  const input = document.querySelector('#pfFile');
+  const f = input.files[0];
+  const lib = window.pdfjsLib;
+  const doc = await lib.getDocument({ data: (await f.arrayBuffer()).slice(0) }).promise;
+  const page1 = await doc.getPage(1);
+  const tc = await page1.getTextContent();
+  return tc.items.map((i) => i.str).join('').trim();
+});
+check(/TWO/.test(firstText), `순서를 바꿔 만들면 첫 쪽 글자가 바뀐다 (지금 「${firstText}」)`);
+
 /* ⑧ 결과 이어받기 — 할 일이 결과를 내놓으면 그것이 다음 판의 입력이 된다 (KL-260)
  *    도구가 실제로 결과를 낼 때까지 기다리는 대신, 도구가 부르는 그 신호를 그대로 울려 본다
  *    (도구 쪽 계산은 다른 검사가 본다 — 여기서 볼 것은 **껍데기가 그 결과를 받아 무는가**). */

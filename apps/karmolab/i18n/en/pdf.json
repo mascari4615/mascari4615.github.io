@@ -34,5 +34,6 @@
   "pdf.btn.undoAll": "Undo all",
   "pdf.edit.count": "{turn} rotated · {drop} dropped",
   "pdf.edit.suffix": "-tidied",
-  "pdf.edit.fail": "This document can't be edited"
+  "pdf.edit.fail": "This document can't be edited",
+  "pdf.edit.moved": "reordered"
 }

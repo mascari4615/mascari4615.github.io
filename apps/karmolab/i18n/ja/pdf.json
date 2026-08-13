@@ -34,5 +34,6 @@
   "pdf.btn.undoAll": "元に戻す",
   "pdf.edit.count": "回転 {turn} · 除外 {drop}",
   "pdf.edit.suffix": "-整理",
-  "pdf.edit.fail": "この文書は編集できません"
+  "pdf.edit.fail": "この文書は編集できません",
+  "pdf.edit.moved": "順序変更"
 }
