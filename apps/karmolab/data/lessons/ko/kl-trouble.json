@@ -1,74 +1,882 @@
 {
+  "$comment": "project-atlas(TASK-KL-219) 8단원 → 여러 장 과정으로 다시 씀.",
   "id": "kl-trouble",
-  "minutes": 8,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "무엇이 잘못됐는지 모를 때, **증상 → 처음 볼 곳 → 다음 행동** 순서로 좁힌다. 아래는 KarmoLab 에서 실제로 자주 만나는 것들이다."
+      "id": "1",
+      "title": "쓰는 법 — 증상에서 출발한다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "앞 칸(07)이 **방법**이었다면 이 칸은 **사전**이다. 고장을 만났을 때 「어느 창부터 볼지」를 외우는 대신 여기서 찾는다 — 아래 검색창에 증상을 쳐 보라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "진짜 검색창이다 — 증상을 쳐 보라",
+          "height": "470px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n                 border-radius:6px; color:#e2e8f0; font:13px system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; margin:2px; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .card { background:#111c33; border:1px solid #334155; border-radius:8px; padding:9px 11px; margin-top:7px; }\n  .card b { color:#e2e8f0; }\n  .first { color:#4ade80; }\n  .then { color:#7dd3fc; }\n  .why { color:#94a3b8; font-size:11.5px; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:88px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const ENTRIES = [[\"blank\", \"화면이 통째로 비었다\", \"브라우저 Console\", \"첫 오류의 파일·줄로 간다\", \"그리는 코드가 오류로 멈췄다 (02칸 6장)\"], [\"blank\", \"「불러오는 중…」에서 멈춘다\", \"Network 탭\", \"404 면 경로·빌드, 200 이면 Console\", \"lazyScriptPaths 오타 · build.mjs 누락 (05칸 7장)\"], [\"blank\", \"목록에 도구가 안 보인다\", \"widgets-lazy-meta.ts\", \"그 id 가 표에 있나 · hidden 이 아닌가\", \"메타 한 줄을 안 넣었다 (05칸 7장)\"], [\"blank\", \"도구 화면만 비었다 (다른 건 멀쩡)\", \"Console\", \"그 위젯 파일의 build 안을 본다\", \"build 안에서 오류가 났다 (05칸 6장)\"], [\"blank\", \"새로고침하면 잠깐 보였다 사라진다\", \"Console + 나중에 도는 코드\", \"나중 렌더가 덮었나 본다\", \"다시 그리기가 앞의 화면을 갈아 끼웠다 (04칸 5장)\"], [\"blank\", \"아무것도 안 뜨고 페이지가 하얗다\", \"dev 서버 터미널\", \"서버가 살아 있나 · 주소가 맞나\", \"npm run dev 가 꺼졌다 (01칸 2장)\"], [\"click\", \"버튼을 눌러도 아무 일이 없다\", \"Console\", \"오류가 있나 → 없으면 리스너가 붙었나\", \"요소를 찾은 시점이 일러 null 이었다 (04칸 5장)\"], [\"click\", \"한 번 눌렀는데 두 번 실행된다\", \"console.count('handler')\", \"리스너가 몇 개 붙었나 센다\", \"다시 그릴 때마다 addEventListener 를 또 불렀다 (04칸 7장)\"], [\"click\", \"새로 만든 항목만 안 눌린다\", \"리스너를 어디에 붙였나\", \"위임(부모 하나)으로 바꾼다\", \"요소마다 붙이면 나중 요소엔 안 붙는다 (04칸 2장)\"], [\"click\", \"폼을 누르면 화면이 새로고침된다\", \"submit 처리 코드\", \"preventDefault() 가 있나\", \"브라우저 기본 동작을 안 막았다 (04칸 6장)\"], [\"click\", \"바깥을 눌러도 메뉴가 안 닫힌다\", \"stopPropagation 을 쓴 곳\", \"그 호출이 꼭 필요한가 본다\", \"이벤트가 위로 안 올라가 남의 코드가 죽었다 (04칸 6장)\"], [\"click\", \"값을 바꿔도 옛날 값으로 동작한다\", \"핸들러가 값을 언제 읽나\", \"핸들러 안에서 state 를 그때 읽게 고친다\", \"붙일 때의 값을 가둬 뒀다 (04칸 7장)\"], [\"click\", \"빨리 치면 옛 결과가 나중에 덮는다\", \"요청·응답 순서\", \"요청에 번호를 붙여 마지막 것만 반영\", \"늦게 온 응답이 최신을 덮었다 (04칸 7장)\"], [\"style\", \"요소는 있는데 안 보인다\", \"Elements → Styles\", \"display·높이·색·가림을 순서대로\", \"규칙이 졌거나 부모 배치가 다르다 (02칸 3장)\"], [\"style\", \"고친 CSS 가 안 먹는다\", \"Styles 탭의 취소선\", \"우선순위를 세어 본다\", \"다른 규칙이 이기고 있다 (02칸 3장)\"], [\"style\", \"가로 스크롤바가 생겼다\", \"넘치는 요소 찾기 스크립트\", \"그 요소에 min-width:0 · 안에서 스크롤\", \"flex 항목이 안 줄어든다 (03칸 6장)\"], [\"style\", \"긴 제목이 레이아웃을 밀어낸다\", \"그 항목의 min-width\", \"min-width:0 + 줄바꿈/자르기\", \"min-width:auto 가 기본이다 (03칸 6장)\"], [\"style\", \"넓은 화면에서만 레이아웃이 풀린다\", \"탭 컨테이너에 건 스타일\", \"안쪽 wrapper 로 옮긴다\", \"공용 .tab-panel 규칙과 충돌 (03칸 8장)\"], [\"style\", \"모바일에서 화면 높이가 튄다\", \"100vh 를 쓴 곳\", \"100dvh 로 바꾼다\", \"주소창이 접히며 vh 가 변한다 (03칸 8장)\"], [\"style\", \"간격이 두 배로 벌어졌다\", \"gap 과 margin 을 같이 썼나\", \"하나로 통일한다 (gap 권장)\", \"둘이 더해진다 (03칸 5장)\"], [\"text\", \"화면에 열쇠 이름이 그대로 보인다\", \"Console 의 [i18n] 경고\", \"묶음을 받았나 → 열쇠가 맞나 → 세 언어 다 있나\", \"loadNamespace 를 안 기다렸다 (06칸 5장)\"], [\"text\", \"영어 화면에 한국어가 섞여 나온다\", \"i18n/en 의 그 열쇠\", \"en 파일에 그 열쇠를 채운다\", \"번역이 없어 원본 언어로 떨어진 것 (06칸 3장)\"], [\"text\", \"언어를 바꿔도 글자가 그대로다\", \"언어 전환 후 다시 그리나\", \"전환을 듣고 렌더를 다시 부른다\", \"이미 그린 글자는 안 바뀐다 (06칸 5장)\"], [\"text\", \"개수 표시가 어색하다 (1 items)\", \"tn() 을 썼나\", \"열쇠에 .one/.other 를 두고 tn 사용\", \"복수형을 문자열로 이어붙였다 (06칸 4장)\"], [\"text\", \"번역했는데 어순이 이상하다\", \"문장을 조각냈나\", \"한 문장을 열쇠 하나로 합친다\", \"조각 이어붙이기 (06칸 4장)\"], [\"text\", \"test:i18n 계열 검사기가 빨강\", \"그 검사기 메시지\", \"빠진 언어 파일에 열쇠를 채운다\", \"한 언어만 넣었다 (06칸 1장)\"], [\"state\", \"설정이 저절로 바뀐다\", \"localStorage 열쇠 이름\", \"kl:<도구id>: 접두사를 붙인다\", \"다른 도구와 열쇠가 겹쳤다 (06칸 7장)\"], [\"state\", \"배포 사이트엔 내 설정이 없다\", \"출처(origin)\", \"정상이다 — 저장소는 출처별로 갈린다\", \"로컬과 배포는 다른 저장소 (06칸 7장)\"], [\"state\", \"저장된 값 때문에 앱이 죽는다\", \"JSON.parse 하는 곳\", \"try 로 감싸고 기본값을 준다\", \"옛 판·깨진 값이 남아 있다 (06칸 7장)\"], [\"state\", \"두 곳의 표시가 서로 다르다\", \"같은 값을 두 곳에 뒀나\", \"상태 하나만 두고 화면은 거울로\", \"진실이 둘이면 어긋난다 (04칸 4장)\"], [\"state\", \"고쳤는데 화면이 그대로다\", \"dev 서버 터미널 → 어느 파일을 고쳤나\", \"src 를 고쳤나 확인 → 강제 새로고침\", \"결과물(js/)을 고쳤다 (01칸 3장)\"], [\"state\", \"옛 화면이 계속 나온다\", \"Application → 캐시·서비스워커\", \"강제 새로고침 → 캐시 비우기\", \"캐시가 옛 파일을 준다 (02칸 7장)\"], [\"slow\", \"스크롤이 버벅인다\", \"Performance 기록\", \"어디서 시간을 쓰는지 먼저 잰다\", \"매 이벤트마다 전체를 다시 그린다 (04칸 5장)\"], [\"slow\", \"도구를 여러 번 열수록 느려진다\", \"타이머·리스너 정리\", \"dispose 에서 abort/clearInterval\", \"정리를 안 해 쌓였다 (05칸 6장)\"], [\"slow\", \"첫 화면이 늦게 뜬다\", \"Network 에서 받은 양\", \"필요할 때 받게 나눈다\", \"미리 받는 것이 많다 (05칸 1장)\"], [\"slow\", \"행이 많아지면 멈칫한다\", \"다시 그리는 방식\", \"부분 갱신으로 옮긴다 (재 보고)\", \"통째로 다시 만든다 (04칸 5장)\"], [\"red\", \"검사기가 빨강인데 이유를 모르겠다\", \"그 검사기가 스스로 말한 사유\", \"메시지의 파일·줄로 간다\", \"대개 한국어로 적혀 있다 (01칸 6장)\"], [\"red\", \"내 변경과 무관한 검사가 빨강\", \"누구 영역인지\", \"알리고 우회 · 남의 미커밋 변경은 안 건드린다\", \"다른 세션 작업 중 (01칸 4장)\"], [\"red\", \"타입 검사만 빨강\", \"오류 첫 줄과 마지막 줄\", \"그 줄로 가서 타입을 맞춘다\", \"실행 전에 잡힌 것 — 오히려 다행 (02칸 4장)\"], [\"red\", \"로컬은 초록인데 CI 는 빨강\", \"CI 로그의 그 단계\", \"환경 차이(대소문자·시간대·의존성)를 본다\", \"내 컴퓨터에만 있는 조건\"], [\"red\", \"push 가 거부된다\", \"git status · 원격 상태\", \"fetch 후 다시 · 강제 push 금지\", \"그 사이 남이 올렸다 (git-remote 5장)\"], [\"red\", \"배포가 계속 빨강\", \"gh run list · 실패 단계 로그\", \"빨강인 검사 하나를 먼저 고친다\", \"검사 한 개가 전체를 세운다\"]];\n  const FAMILY = {\"blank\": \"안 뜬다 · 빈 화면\", \"click\": \"눌러도 안 된다 · 동작 이상\", \"style\": \"모양 · 레이아웃\", \"text\": \"글자 · 번역\", \"state\": \"값 · 저장 · 캐시\", \"slow\": \"느리다\", \"red\": \"터미널 · 검사기 · 배포 빨강\"};\n\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 증상 하나를 카드로 */\n  function card(e) {\n    return '<div class=\"card\"><b>' + esc(e[1]) + '</b><br>'\n      + '<span class=\"first\">첫 창: ' + esc(e[2]) + '</span><br>'\n      + '<span class=\"then\">그다음: ' + esc(e[3]) + '</span><br>'\n      + '<span class=\"why\">흔한 원인: ' + esc(e[4]) + '</span></div>';\n  }\n  /** 한 가족을 카드 목록으로 */\n  function family(key) {\n    const list = ENTRIES.filter((e) => e[0] === key);\n    stage.innerHTML = '<div class=\"hint\">' + FAMILY[key] + ' — ' + list.length + '건</div>'\n      + list.map(card).join('');\n    return list;\n  }\n</script>\n<script>\n  const preset = '{{q}}';\n  stage.innerHTML = '<input id=\"q\" placeholder=\"증상을 쳐 보라 — 예: 안 눌린다 · 열쇠 · 느리다 · 빨강\">'\n    + '<div id=\"res\"></div>';\n  const q = stage.querySelector('#q');\n  const res = stage.querySelector('#res');\n  function run() {\n    const words = q.value.trim().split(/\\s+/).filter(Boolean);\n    const hits = !words.length ? [] : ENTRIES.filter((e) => {\n      const hay = (e[1] + ' ' + e[2] + ' ' + e[3] + ' ' + e[4] + ' ' + FAMILY[e[0]]);\n      return words.every((w) => hay.includes(w));\n    });\n    res.innerHTML = !words.length\n      ? '<div class=\"hint\" style=\"margin-top:8px\">사전에 증상 ' + ENTRIES.length + '건이 들어 있다. 아무 말이나 쳐 보라.</div>'\n      : hits.length ? hits.slice(0, 6).map(card).join('')\n        + (hits.length > 6 ? '<div class=\"hint\">…외 ' + (hits.length - 6) + '건</div>' : '')\n      : '<div class=\"card\">찾은 것이 없다.<br><span class=\"why\">사전에 없으면 9장의 「없을 때」로 —'\n        + ' 증상을 세 조각(무엇을 했더니·기대·실제)으로 다시 적어 보라.</span></div>';\n    log(words.length ? '「' + q.value.trim() + '」 → ' + hits.length + '건' : '(비움)');\n  }\n  q.addEventListener('input', run);\n  q.value = preset;\n  run();\n  clearLog('검색창에 쳐 보라 — 여러 낱말을 쓰면 모두 포함된 것만 나온다');\n  app.innerHTML = '<div class=\"hint\">증상 ' + ENTRIES.length + '건 · 가족 ' + Object.keys(FAMILY).length + '개</div>';\n  show('사전을 쓰는 순서\\n'\n     + '  1. 증상을 **한 문장**으로 적는다 — 「무엇을 했더니 무엇이 일어났다」\\n'\n     + '  2. 그 문장의 핵심 낱말로 찾는다 (안 눌린다 · 비었다 · 열쇠 · 느리다)\\n'\n     + '  3. **첫 창**으로 간다 — 거기서 갈린다\\n'\n     + '  4. 그다음 행동을 따라간다\\n\\n'\n     + '중요한 것 하나\\n'\n     + '  사전은 **출발점**이지 답이 아니다. 첫 창에서 본 것이 예상과 다르면\\n'\n     + '  07칸의 방법으로 돌아간다 — 재현 · 층 가르기 · 반씩 좁히기.\\n\\n'\n     + '가족 ' + Object.keys(FAMILY).length + '개\\n'\n     + Object.entries(FAMILY).map(([k, v], i) => '  ' + (i + 2) + '장  ' + v).join('\\n'));\n</script>",
+          "controls": [
+            {
+              "id": "q",
+              "label": "미리 넣어 둘 검색어",
+              "type": "select",
+              "value": "",
+              "options": [
+                {
+                  "value": "",
+                  "label": "(비움)"
+                },
+                {
+                  "value": "안 눌린다",
+                  "label": "안 눌린다"
+                },
+                {
+                  "value": "비었다",
+                  "label": "비었다"
+                },
+                {
+                  "value": "열쇠",
+                  "label": "열쇠"
+                },
+                {
+                  "value": "느리다",
+                  "label": "느리다"
+                },
+                {
+                  "value": "빨강",
+                  "label": "빨강"
+                },
+                {
+                  "value": "Console",
+                  "label": "Console"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**사전은 출발점이지 답이 아니다.** 첫 창에서 본 것이 사전의 설명과 다르면 그 자리에서 07칸의 방법으로 갈아탄다 — 재현하고, 층을 가르고, 절반씩 좁힌다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "증상을 적는 한 줄 형식",
+          "text": "[무엇을 했더니] 도구 목록에서 「사라지는 쪽지」를 눌렀더니\n[무엇을 기대했는데] 쪽지 쓰는 화면이 뜨기를 기대했는데\n[무엇이 일어났다] 「불러오는 중…」에서 멈춘다\n[환경] 웹 · Chrome · 한국어 · 창 넓게\n\n→ 이 네 줄이면 사전에서 찾기도, 남에게 묻기도 쉬워진다"
+        },
+        {
+          "type": "p",
+          "text": "**환경을 함께 적는 습관**을 들여라. 06칸에서 본 경계들(웹/데스크톱·언어·저장소)이 다르면 증상도 달라지므로, 이 한 줄이 없으면 재현 자체가 안 되는 경우가 있다."
+        },
+        {
+          "type": "try",
+          "text": "검색창에 지금 겪고 있는(또는 최근에 겪은) 증상의 낱말을 쳐 보라. 없으면 9장의 「사전에 없을 때」를 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "사전을 쓰는 첫 단계는?",
+          "choices": [
+            "코드 열기",
+            "증상을 한 문장으로 적기",
+            "재시작",
+            "검색엔진"
+          ],
+          "answer": 1,
+          "why": "핵심 낱말로 찾는다."
+        },
+        {
+          "q": "첫 창에서 본 것이 사전 설명과 다르면?",
+          "choices": [
+            "사전을 믿는다",
+            "07칸의 방법으로 갈아탄다",
+            "포기",
+            "재설치"
+          ],
+          "answer": 1,
+          "why": "사전은 출발점이다."
+        },
+        {
+          "q": "증상 보고에 함께 적어야 하는 것은?",
+          "choices": [
+            "코드 길이",
+            "환경(웹/데스크톱·언어 등)",
+            "커밋 수",
+            "파일 크기"
+          ],
+          "answer": 1,
+          "why": "경계가 다르면 증상도 다르다."
+        }
+      ]
     },
     {
-      "type": "h",
-      "text": "node/npm 없음"
+      "id": "2",
+      "title": "안 뜬다 · 빈 화면",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "가장 자주 겪고 가장 무섭게 느껴지는 가족이다. 그런데 **Network 와 Console 두 창**이면 대부분 몇 초 만에 갈린다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "증상을 골라 보라 — 이 가족 6건",
+          "height": "470px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n                 border-radius:6px; color:#e2e8f0; font:13px system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; margin:2px; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .card { background:#111c33; border:1px solid #334155; border-radius:8px; padding:9px 11px; margin-top:7px; }\n  .card b { color:#e2e8f0; }\n  .first { color:#4ade80; }\n  .then { color:#7dd3fc; }\n  .why { color:#94a3b8; font-size:11.5px; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:88px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const ENTRIES = [[\"blank\", \"화면이 통째로 비었다\", \"브라우저 Console\", \"첫 오류의 파일·줄로 간다\", \"그리는 코드가 오류로 멈췄다 (02칸 6장)\"], [\"blank\", \"「불러오는 중…」에서 멈춘다\", \"Network 탭\", \"404 면 경로·빌드, 200 이면 Console\", \"lazyScriptPaths 오타 · build.mjs 누락 (05칸 7장)\"], [\"blank\", \"목록에 도구가 안 보인다\", \"widgets-lazy-meta.ts\", \"그 id 가 표에 있나 · hidden 이 아닌가\", \"메타 한 줄을 안 넣었다 (05칸 7장)\"], [\"blank\", \"도구 화면만 비었다 (다른 건 멀쩡)\", \"Console\", \"그 위젯 파일의 build 안을 본다\", \"build 안에서 오류가 났다 (05칸 6장)\"], [\"blank\", \"새로고침하면 잠깐 보였다 사라진다\", \"Console + 나중에 도는 코드\", \"나중 렌더가 덮었나 본다\", \"다시 그리기가 앞의 화면을 갈아 끼웠다 (04칸 5장)\"], [\"blank\", \"아무것도 안 뜨고 페이지가 하얗다\", \"dev 서버 터미널\", \"서버가 살아 있나 · 주소가 맞나\", \"npm run dev 가 꺼졌다 (01칸 2장)\"], [\"click\", \"버튼을 눌러도 아무 일이 없다\", \"Console\", \"오류가 있나 → 없으면 리스너가 붙었나\", \"요소를 찾은 시점이 일러 null 이었다 (04칸 5장)\"], [\"click\", \"한 번 눌렀는데 두 번 실행된다\", \"console.count('handler')\", \"리스너가 몇 개 붙었나 센다\", \"다시 그릴 때마다 addEventListener 를 또 불렀다 (04칸 7장)\"], [\"click\", \"새로 만든 항목만 안 눌린다\", \"리스너를 어디에 붙였나\", \"위임(부모 하나)으로 바꾼다\", \"요소마다 붙이면 나중 요소엔 안 붙는다 (04칸 2장)\"], [\"click\", \"폼을 누르면 화면이 새로고침된다\", \"submit 처리 코드\", \"preventDefault() 가 있나\", \"브라우저 기본 동작을 안 막았다 (04칸 6장)\"], [\"click\", \"바깥을 눌러도 메뉴가 안 닫힌다\", \"stopPropagation 을 쓴 곳\", \"그 호출이 꼭 필요한가 본다\", \"이벤트가 위로 안 올라가 남의 코드가 죽었다 (04칸 6장)\"], [\"click\", \"값을 바꿔도 옛날 값으로 동작한다\", \"핸들러가 값을 언제 읽나\", \"핸들러 안에서 state 를 그때 읽게 고친다\", \"붙일 때의 값을 가둬 뒀다 (04칸 7장)\"], [\"click\", \"빨리 치면 옛 결과가 나중에 덮는다\", \"요청·응답 순서\", \"요청에 번호를 붙여 마지막 것만 반영\", \"늦게 온 응답이 최신을 덮었다 (04칸 7장)\"], [\"style\", \"요소는 있는데 안 보인다\", \"Elements → Styles\", \"display·높이·색·가림을 순서대로\", \"규칙이 졌거나 부모 배치가 다르다 (02칸 3장)\"], [\"style\", \"고친 CSS 가 안 먹는다\", \"Styles 탭의 취소선\", \"우선순위를 세어 본다\", \"다른 규칙이 이기고 있다 (02칸 3장)\"], [\"style\", \"가로 스크롤바가 생겼다\", \"넘치는 요소 찾기 스크립트\", \"그 요소에 min-width:0 · 안에서 스크롤\", \"flex 항목이 안 줄어든다 (03칸 6장)\"], [\"style\", \"긴 제목이 레이아웃을 밀어낸다\", \"그 항목의 min-width\", \"min-width:0 + 줄바꿈/자르기\", \"min-width:auto 가 기본이다 (03칸 6장)\"], [\"style\", \"넓은 화면에서만 레이아웃이 풀린다\", \"탭 컨테이너에 건 스타일\", \"안쪽 wrapper 로 옮긴다\", \"공용 .tab-panel 규칙과 충돌 (03칸 8장)\"], [\"style\", \"모바일에서 화면 높이가 튄다\", \"100vh 를 쓴 곳\", \"100dvh 로 바꾼다\", \"주소창이 접히며 vh 가 변한다 (03칸 8장)\"], [\"style\", \"간격이 두 배로 벌어졌다\", \"gap 과 margin 을 같이 썼나\", \"하나로 통일한다 (gap 권장)\", \"둘이 더해진다 (03칸 5장)\"], [\"text\", \"화면에 열쇠 이름이 그대로 보인다\", \"Console 의 [i18n] 경고\", \"묶음을 받았나 → 열쇠가 맞나 → 세 언어 다 있나\", \"loadNamespace 를 안 기다렸다 (06칸 5장)\"], [\"text\", \"영어 화면에 한국어가 섞여 나온다\", \"i18n/en 의 그 열쇠\", \"en 파일에 그 열쇠를 채운다\", \"번역이 없어 원본 언어로 떨어진 것 (06칸 3장)\"], [\"text\", \"언어를 바꿔도 글자가 그대로다\", \"언어 전환 후 다시 그리나\", \"전환을 듣고 렌더를 다시 부른다\", \"이미 그린 글자는 안 바뀐다 (06칸 5장)\"], [\"text\", \"개수 표시가 어색하다 (1 items)\", \"tn() 을 썼나\", \"열쇠에 .one/.other 를 두고 tn 사용\", \"복수형을 문자열로 이어붙였다 (06칸 4장)\"], [\"text\", \"번역했는데 어순이 이상하다\", \"문장을 조각냈나\", \"한 문장을 열쇠 하나로 합친다\", \"조각 이어붙이기 (06칸 4장)\"], [\"text\", \"test:i18n 계열 검사기가 빨강\", \"그 검사기 메시지\", \"빠진 언어 파일에 열쇠를 채운다\", \"한 언어만 넣었다 (06칸 1장)\"], [\"state\", \"설정이 저절로 바뀐다\", \"localStorage 열쇠 이름\", \"kl:<도구id>: 접두사를 붙인다\", \"다른 도구와 열쇠가 겹쳤다 (06칸 7장)\"], [\"state\", \"배포 사이트엔 내 설정이 없다\", \"출처(origin)\", \"정상이다 — 저장소는 출처별로 갈린다\", \"로컬과 배포는 다른 저장소 (06칸 7장)\"], [\"state\", \"저장된 값 때문에 앱이 죽는다\", \"JSON.parse 하는 곳\", \"try 로 감싸고 기본값을 준다\", \"옛 판·깨진 값이 남아 있다 (06칸 7장)\"], [\"state\", \"두 곳의 표시가 서로 다르다\", \"같은 값을 두 곳에 뒀나\", \"상태 하나만 두고 화면은 거울로\", \"진실이 둘이면 어긋난다 (04칸 4장)\"], [\"state\", \"고쳤는데 화면이 그대로다\", \"dev 서버 터미널 → 어느 파일을 고쳤나\", \"src 를 고쳤나 확인 → 강제 새로고침\", \"결과물(js/)을 고쳤다 (01칸 3장)\"], [\"state\", \"옛 화면이 계속 나온다\", \"Application → 캐시·서비스워커\", \"강제 새로고침 → 캐시 비우기\", \"캐시가 옛 파일을 준다 (02칸 7장)\"], [\"slow\", \"스크롤이 버벅인다\", \"Performance 기록\", \"어디서 시간을 쓰는지 먼저 잰다\", \"매 이벤트마다 전체를 다시 그린다 (04칸 5장)\"], [\"slow\", \"도구를 여러 번 열수록 느려진다\", \"타이머·리스너 정리\", \"dispose 에서 abort/clearInterval\", \"정리를 안 해 쌓였다 (05칸 6장)\"], [\"slow\", \"첫 화면이 늦게 뜬다\", \"Network 에서 받은 양\", \"필요할 때 받게 나눈다\", \"미리 받는 것이 많다 (05칸 1장)\"], [\"slow\", \"행이 많아지면 멈칫한다\", \"다시 그리는 방식\", \"부분 갱신으로 옮긴다 (재 보고)\", \"통째로 다시 만든다 (04칸 5장)\"], [\"red\", \"검사기가 빨강인데 이유를 모르겠다\", \"그 검사기가 스스로 말한 사유\", \"메시지의 파일·줄로 간다\", \"대개 한국어로 적혀 있다 (01칸 6장)\"], [\"red\", \"내 변경과 무관한 검사가 빨강\", \"누구 영역인지\", \"알리고 우회 · 남의 미커밋 변경은 안 건드린다\", \"다른 세션 작업 중 (01칸 4장)\"], [\"red\", \"타입 검사만 빨강\", \"오류 첫 줄과 마지막 줄\", \"그 줄로 가서 타입을 맞춘다\", \"실행 전에 잡힌 것 — 오히려 다행 (02칸 4장)\"], [\"red\", \"로컬은 초록인데 CI 는 빨강\", \"CI 로그의 그 단계\", \"환경 차이(대소문자·시간대·의존성)를 본다\", \"내 컴퓨터에만 있는 조건\"], [\"red\", \"push 가 거부된다\", \"git status · 원격 상태\", \"fetch 후 다시 · 강제 push 금지\", \"그 사이 남이 올렸다 (git-remote 5장)\"], [\"red\", \"배포가 계속 빨강\", \"gh run list · 실패 단계 로그\", \"빨강인 검사 하나를 먼저 고친다\", \"검사 한 개가 전체를 세운다\"]];\n  const FAMILY = {\"blank\": \"안 뜬다 · 빈 화면\", \"click\": \"눌러도 안 된다 · 동작 이상\", \"style\": \"모양 · 레이아웃\", \"text\": \"글자 · 번역\", \"state\": \"값 · 저장 · 캐시\", \"slow\": \"느리다\", \"red\": \"터미널 · 검사기 · 배포 빨강\"};\n\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 증상 하나를 카드로 */\n  function card(e) {\n    return '<div class=\"card\"><b>' + esc(e[1]) + '</b><br>'\n      + '<span class=\"first\">첫 창: ' + esc(e[2]) + '</span><br>'\n      + '<span class=\"then\">그다음: ' + esc(e[3]) + '</span><br>'\n      + '<span class=\"why\">흔한 원인: ' + esc(e[4]) + '</span></div>';\n  }\n  /** 한 가족을 카드 목록으로 */\n  function family(key) {\n    const list = ENTRIES.filter((e) => e[0] === key);\n    stage.innerHTML = '<div class=\"hint\">' + FAMILY[key] + ' — ' + list.length + '건</div>'\n      + list.map(card).join('');\n    return list;\n  }\n</script>\n<script>\n  const list = family('blank');\n  const i = {{pick}};\n  const cards = stage.querySelectorAll('.card');\n  cards.forEach((c, k) => { c.style.borderColor = k === i ? '#22c55e' : '#334155';\n    c.style.background = k === i ? '#14351f' : '#111c33'; });\n  const e = list[i];\n  clearLog('고른 증상: ' + e[1]);\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + esc(e[1]) + '</div>';\n  show('첫 창: ' + e[2] + '\\n'\n     + '그다음: ' + e[3] + '\\n'\n     + '흔한 원인: ' + e[4] + '\\n\\n'\n     + \"이 가족의 공통 순서\\n  ① 목록에 있나 → ② 파일이 왔나 → ③ 등록됐나 → ④ build 가 터졌나\\n  네 지점이 05칸의 네 단계와 그대로 대응된다.\\n\\n페이지가 통째로 하얀 경우만 다르다 — 그건 서버·주소 문제일 확률이 높다(01칸 2장).\");\n\n</script>",
+          "controls": [
+            {
+              "id": "pick",
+              "label": "증상",
+              "type": "select",
+              "value": "0",
+              "options": [
+                {
+                  "value": "0",
+                  "label": "화면이 통째로 비었다"
+                },
+                {
+                  "value": "1",
+                  "label": "「불러오는 중…」에서 멈춘다"
+                },
+                {
+                  "value": "2",
+                  "label": "목록에 도구가 안 보인다"
+                },
+                {
+                  "value": "3",
+                  "label": "도구 화면만 비었다 (다른 건 멀쩡)"
+                },
+                {
+                  "value": "4",
+                  "label": "새로고침하면 잠깐 보였다 사라진다"
+                },
+                {
+                  "value": "5",
+                  "label": "아무것도 안 뜨고 페이지가 하얗다"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**빈 화면 세 갈래를 먼저 가른다** — ① 파일이 안 왔나(Network) ② 코드가 터졌나(Console) ③ 애초에 목록에 없나(메타). 이 셋은 화면에서 똑같아 보이지만 원인이 전혀 다르다."
+        },
+        {
+          "type": "code",
+          "lang": "js",
+          "label": "빈 화면을 가르는 세 줄",
+          "text": "// ① 목록에 있나\nKARMOLAB_LAZY_META_BY_ID['그도구id']\n\n// ② 파일이 왔나 (Network 탭에서 그 이름 검색, 또는)\nperformance.getEntriesByType('resource').filter((r) => r.name.includes('그도구id'))\n\n// ③ 등록까지 됐나\nToolbox.getTools().find((t) => t.id === '그도구id')"
+        },
+        {
+          "type": "try",
+          "text": "지금 도구 하나를 열고 Network 탭에서 그 `.js` 파일이 오는지 확인해 보라. 정상일 때의 모습을 알아 두면 고장일 때 바로 보인다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "「불러오는 중…」에서 멈췄을 때 첫 창은?",
+          "choices": [
+            "Elements",
+            "Network",
+            "Styles",
+            "터미널"
+          ],
+          "answer": 1,
+          "why": "404 인지부터 가른다."
+        },
+        {
+          "q": "도구가 목록에 아예 없으면 볼 곳은?",
+          "choices": [
+            "build.mjs",
+            "widgets-lazy-meta.ts",
+            "Console",
+            "i18n"
+          ],
+          "answer": 1,
+          "why": "존재를 알리는 표다."
+        },
+        {
+          "q": "한 도구만 빈 화면이면 범위는?",
+          "choices": [
+            "앱 전체",
+            "그 위젯 파일",
+            "셸",
+            "CSS"
+          ],
+          "answer": 1,
+          "why": "따로 그려진다."
+        }
+      ]
     },
     {
-      "type": "p",
-      "text": "Node.js 설치 후 VS Code와 터미널을 모두 다시 연다."
+      "id": "3",
+      "title": "눌러도 안 된다 · 동작 이상",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "화면은 멀쩡한데 **반응이 없거나 이상한** 가족이다. 04칸의 이벤트·상태·렌더 셋 중 어디서 끊겼는지를 묻는 것으로 시작한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "증상을 골라 보라 — 이 가족 7건",
+          "height": "470px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n                 border-radius:6px; color:#e2e8f0; font:13px system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; margin:2px; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .card { background:#111c33; border:1px solid #334155; border-radius:8px; padding:9px 11px; margin-top:7px; }\n  .card b { color:#e2e8f0; }\n  .first { color:#4ade80; }\n  .then { color:#7dd3fc; }\n  .why { color:#94a3b8; font-size:11.5px; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:88px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const ENTRIES = [[\"blank\", \"화면이 통째로 비었다\", \"브라우저 Console\", \"첫 오류의 파일·줄로 간다\", \"그리는 코드가 오류로 멈췄다 (02칸 6장)\"], [\"blank\", \"「불러오는 중…」에서 멈춘다\", \"Network 탭\", \"404 면 경로·빌드, 200 이면 Console\", \"lazyScriptPaths 오타 · build.mjs 누락 (05칸 7장)\"], [\"blank\", \"목록에 도구가 안 보인다\", \"widgets-lazy-meta.ts\", \"그 id 가 표에 있나 · hidden 이 아닌가\", \"메타 한 줄을 안 넣었다 (05칸 7장)\"], [\"blank\", \"도구 화면만 비었다 (다른 건 멀쩡)\", \"Console\", \"그 위젯 파일의 build 안을 본다\", \"build 안에서 오류가 났다 (05칸 6장)\"], [\"blank\", \"새로고침하면 잠깐 보였다 사라진다\", \"Console + 나중에 도는 코드\", \"나중 렌더가 덮었나 본다\", \"다시 그리기가 앞의 화면을 갈아 끼웠다 (04칸 5장)\"], [\"blank\", \"아무것도 안 뜨고 페이지가 하얗다\", \"dev 서버 터미널\", \"서버가 살아 있나 · 주소가 맞나\", \"npm run dev 가 꺼졌다 (01칸 2장)\"], [\"click\", \"버튼을 눌러도 아무 일이 없다\", \"Console\", \"오류가 있나 → 없으면 리스너가 붙었나\", \"요소를 찾은 시점이 일러 null 이었다 (04칸 5장)\"], [\"click\", \"한 번 눌렀는데 두 번 실행된다\", \"console.count('handler')\", \"리스너가 몇 개 붙었나 센다\", \"다시 그릴 때마다 addEventListener 를 또 불렀다 (04칸 7장)\"], [\"click\", \"새로 만든 항목만 안 눌린다\", \"리스너를 어디에 붙였나\", \"위임(부모 하나)으로 바꾼다\", \"요소마다 붙이면 나중 요소엔 안 붙는다 (04칸 2장)\"], [\"click\", \"폼을 누르면 화면이 새로고침된다\", \"submit 처리 코드\", \"preventDefault() 가 있나\", \"브라우저 기본 동작을 안 막았다 (04칸 6장)\"], [\"click\", \"바깥을 눌러도 메뉴가 안 닫힌다\", \"stopPropagation 을 쓴 곳\", \"그 호출이 꼭 필요한가 본다\", \"이벤트가 위로 안 올라가 남의 코드가 죽었다 (04칸 6장)\"], [\"click\", \"값을 바꿔도 옛날 값으로 동작한다\", \"핸들러가 값을 언제 읽나\", \"핸들러 안에서 state 를 그때 읽게 고친다\", \"붙일 때의 값을 가둬 뒀다 (04칸 7장)\"], [\"click\", \"빨리 치면 옛 결과가 나중에 덮는다\", \"요청·응답 순서\", \"요청에 번호를 붙여 마지막 것만 반영\", \"늦게 온 응답이 최신을 덮었다 (04칸 7장)\"], [\"style\", \"요소는 있는데 안 보인다\", \"Elements → Styles\", \"display·높이·색·가림을 순서대로\", \"규칙이 졌거나 부모 배치가 다르다 (02칸 3장)\"], [\"style\", \"고친 CSS 가 안 먹는다\", \"Styles 탭의 취소선\", \"우선순위를 세어 본다\", \"다른 규칙이 이기고 있다 (02칸 3장)\"], [\"style\", \"가로 스크롤바가 생겼다\", \"넘치는 요소 찾기 스크립트\", \"그 요소에 min-width:0 · 안에서 스크롤\", \"flex 항목이 안 줄어든다 (03칸 6장)\"], [\"style\", \"긴 제목이 레이아웃을 밀어낸다\", \"그 항목의 min-width\", \"min-width:0 + 줄바꿈/자르기\", \"min-width:auto 가 기본이다 (03칸 6장)\"], [\"style\", \"넓은 화면에서만 레이아웃이 풀린다\", \"탭 컨테이너에 건 스타일\", \"안쪽 wrapper 로 옮긴다\", \"공용 .tab-panel 규칙과 충돌 (03칸 8장)\"], [\"style\", \"모바일에서 화면 높이가 튄다\", \"100vh 를 쓴 곳\", \"100dvh 로 바꾼다\", \"주소창이 접히며 vh 가 변한다 (03칸 8장)\"], [\"style\", \"간격이 두 배로 벌어졌다\", \"gap 과 margin 을 같이 썼나\", \"하나로 통일한다 (gap 권장)\", \"둘이 더해진다 (03칸 5장)\"], [\"text\", \"화면에 열쇠 이름이 그대로 보인다\", \"Console 의 [i18n] 경고\", \"묶음을 받았나 → 열쇠가 맞나 → 세 언어 다 있나\", \"loadNamespace 를 안 기다렸다 (06칸 5장)\"], [\"text\", \"영어 화면에 한국어가 섞여 나온다\", \"i18n/en 의 그 열쇠\", \"en 파일에 그 열쇠를 채운다\", \"번역이 없어 원본 언어로 떨어진 것 (06칸 3장)\"], [\"text\", \"언어를 바꿔도 글자가 그대로다\", \"언어 전환 후 다시 그리나\", \"전환을 듣고 렌더를 다시 부른다\", \"이미 그린 글자는 안 바뀐다 (06칸 5장)\"], [\"text\", \"개수 표시가 어색하다 (1 items)\", \"tn() 을 썼나\", \"열쇠에 .one/.other 를 두고 tn 사용\", \"복수형을 문자열로 이어붙였다 (06칸 4장)\"], [\"text\", \"번역했는데 어순이 이상하다\", \"문장을 조각냈나\", \"한 문장을 열쇠 하나로 합친다\", \"조각 이어붙이기 (06칸 4장)\"], [\"text\", \"test:i18n 계열 검사기가 빨강\", \"그 검사기 메시지\", \"빠진 언어 파일에 열쇠를 채운다\", \"한 언어만 넣었다 (06칸 1장)\"], [\"state\", \"설정이 저절로 바뀐다\", \"localStorage 열쇠 이름\", \"kl:<도구id>: 접두사를 붙인다\", \"다른 도구와 열쇠가 겹쳤다 (06칸 7장)\"], [\"state\", \"배포 사이트엔 내 설정이 없다\", \"출처(origin)\", \"정상이다 — 저장소는 출처별로 갈린다\", \"로컬과 배포는 다른 저장소 (06칸 7장)\"], [\"state\", \"저장된 값 때문에 앱이 죽는다\", \"JSON.parse 하는 곳\", \"try 로 감싸고 기본값을 준다\", \"옛 판·깨진 값이 남아 있다 (06칸 7장)\"], [\"state\", \"두 곳의 표시가 서로 다르다\", \"같은 값을 두 곳에 뒀나\", \"상태 하나만 두고 화면은 거울로\", \"진실이 둘이면 어긋난다 (04칸 4장)\"], [\"state\", \"고쳤는데 화면이 그대로다\", \"dev 서버 터미널 → 어느 파일을 고쳤나\", \"src 를 고쳤나 확인 → 강제 새로고침\", \"결과물(js/)을 고쳤다 (01칸 3장)\"], [\"state\", \"옛 화면이 계속 나온다\", \"Application → 캐시·서비스워커\", \"강제 새로고침 → 캐시 비우기\", \"캐시가 옛 파일을 준다 (02칸 7장)\"], [\"slow\", \"스크롤이 버벅인다\", \"Performance 기록\", \"어디서 시간을 쓰는지 먼저 잰다\", \"매 이벤트마다 전체를 다시 그린다 (04칸 5장)\"], [\"slow\", \"도구를 여러 번 열수록 느려진다\", \"타이머·리스너 정리\", \"dispose 에서 abort/clearInterval\", \"정리를 안 해 쌓였다 (05칸 6장)\"], [\"slow\", \"첫 화면이 늦게 뜬다\", \"Network 에서 받은 양\", \"필요할 때 받게 나눈다\", \"미리 받는 것이 많다 (05칸 1장)\"], [\"slow\", \"행이 많아지면 멈칫한다\", \"다시 그리는 방식\", \"부분 갱신으로 옮긴다 (재 보고)\", \"통째로 다시 만든다 (04칸 5장)\"], [\"red\", \"검사기가 빨강인데 이유를 모르겠다\", \"그 검사기가 스스로 말한 사유\", \"메시지의 파일·줄로 간다\", \"대개 한국어로 적혀 있다 (01칸 6장)\"], [\"red\", \"내 변경과 무관한 검사가 빨강\", \"누구 영역인지\", \"알리고 우회 · 남의 미커밋 변경은 안 건드린다\", \"다른 세션 작업 중 (01칸 4장)\"], [\"red\", \"타입 검사만 빨강\", \"오류 첫 줄과 마지막 줄\", \"그 줄로 가서 타입을 맞춘다\", \"실행 전에 잡힌 것 — 오히려 다행 (02칸 4장)\"], [\"red\", \"로컬은 초록인데 CI 는 빨강\", \"CI 로그의 그 단계\", \"환경 차이(대소문자·시간대·의존성)를 본다\", \"내 컴퓨터에만 있는 조건\"], [\"red\", \"push 가 거부된다\", \"git status · 원격 상태\", \"fetch 후 다시 · 강제 push 금지\", \"그 사이 남이 올렸다 (git-remote 5장)\"], [\"red\", \"배포가 계속 빨강\", \"gh run list · 실패 단계 로그\", \"빨강인 검사 하나를 먼저 고친다\", \"검사 한 개가 전체를 세운다\"]];\n  const FAMILY = {\"blank\": \"안 뜬다 · 빈 화면\", \"click\": \"눌러도 안 된다 · 동작 이상\", \"style\": \"모양 · 레이아웃\", \"text\": \"글자 · 번역\", \"state\": \"값 · 저장 · 캐시\", \"slow\": \"느리다\", \"red\": \"터미널 · 검사기 · 배포 빨강\"};\n\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 증상 하나를 카드로 */\n  function card(e) {\n    return '<div class=\"card\"><b>' + esc(e[1]) + '</b><br>'\n      + '<span class=\"first\">첫 창: ' + esc(e[2]) + '</span><br>'\n      + '<span class=\"then\">그다음: ' + esc(e[3]) + '</span><br>'\n      + '<span class=\"why\">흔한 원인: ' + esc(e[4]) + '</span></div>';\n  }\n  /** 한 가족을 카드 목록으로 */\n  function family(key) {\n    const list = ENTRIES.filter((e) => e[0] === key);\n    stage.innerHTML = '<div class=\"hint\">' + FAMILY[key] + ' — ' + list.length + '건</div>'\n      + list.map(card).join('');\n    return list;\n  }\n</script>\n<script>\n  const list = family('click');\n  const i = {{pick}};\n  const cards = stage.querySelectorAll('.card');\n  cards.forEach((c, k) => { c.style.borderColor = k === i ? '#22c55e' : '#334155';\n    c.style.background = k === i ? '#14351f' : '#111c33'; });\n  const e = list[i];\n  clearLog('고른 증상: ' + e[1]);\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + esc(e[1]) + '</div>';\n  show('첫 창: ' + e[2] + '\\n'\n     + '그다음: ' + e[3] + '\\n'\n     + '흔한 원인: ' + e[4] + '\\n\\n'\n     + \"이 가족을 가르는 세 질문 (04칸 1장)\\n  ① 이벤트가 오나   → 위 확인의 마지막 줄\\n  ② 상태가 바뀌나   → 값을 찍어 본다\\n  ③ 다시 그렸나     → 렌더를 부르긴 했나\\n\\n세 곳 중 어디서 끊겼는지만 알면 고칠 자리는 대개 한 줄이다.\");\n\n</script>",
+          "controls": [
+            {
+              "id": "pick",
+              "label": "증상",
+              "type": "select",
+              "value": "0",
+              "options": [
+                {
+                  "value": "0",
+                  "label": "버튼을 눌러도 아무 일이 없다"
+                },
+                {
+                  "value": "1",
+                  "label": "한 번 눌렀는데 두 번 실행된다"
+                },
+                {
+                  "value": "2",
+                  "label": "새로 만든 항목만 안 눌린다"
+                },
+                {
+                  "value": "3",
+                  "label": "폼을 누르면 화면이 새로고침된다"
+                },
+                {
+                  "value": "4",
+                  "label": "바깥을 눌러도 메뉴가 안 닫힌다"
+                },
+                {
+                  "value": "5",
+                  "label": "값을 바꿔도 옛날 값으로 동작한다"
+                },
+                {
+                  "value": "6",
+                  "label": "빨리 치면 옛 결과가 나중에 덮는다"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「한 번 눌렀는데 두 번 실행된다」는 거의 항상 중복 리스너다.** `console.count()` 한 줄이면 즉시 판정되고, 위임(부모 하나)으로 바꾸면 이 사고 자체가 사라진다."
+        },
+        {
+          "type": "code",
+          "lang": "js",
+          "label": "동작 이상을 가르는 확인들",
+          "text": "// 리스너가 몇 번 도나 (중복 판정)\n// 핸들러 첫 줄에 넣는다\nconsole.count('[DEBUG-a4f2] click');\n\n// 요소를 찾긴 했나 (null 판정)\nconsole.log('[DEBUG-a4f2]', container.querySelector('.target'));\n\n// 이벤트가 오긴 하나 (위임 확인)\ncontainer.addEventListener('click', (e) => console.log('[DEBUG-a4f2]', e.target), true);"
+        },
+        {
+          "type": "try",
+          "text": "지금 만지는 위젯의 클릭 핸들러 첫 줄에 `console.count()` 를 넣고 한 번 눌러 보라. 1이 아니면 중복 리스너다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "한 번 눌렀는데 여러 번 실행되면?",
+          "choices": [
+            "버블 문제",
+            "중복 리스너",
+            "CSS",
+            "캐시"
+          ],
+          "answer": 1,
+          "why": "console.count 로 즉시 판정."
+        },
+        {
+          "q": "새로 만든 항목만 안 눌리면?",
+          "choices": [
+            "위임을 안 썼다",
+            "CSS 문제",
+            "타입 오류",
+            "번역"
+          ],
+          "answer": 0,
+          "why": "나중 요소엔 리스너가 없다."
+        },
+        {
+          "q": "폼 제출이 화면을 새로고침하면?",
+          "choices": [
+            "stopPropagation 누락",
+            "preventDefault 누락",
+            "리스너 중복",
+            "캐시"
+          ],
+          "answer": 1,
+          "why": "브라우저 기본 동작."
+        }
+      ]
     },
     {
-      "type": "h",
-      "text": "package.json 없음"
+      "id": "4",
+      "title": "모양 · 레이아웃",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**요소는 있는데** 자리·크기·보임이 이상한 가족이다. 첫 창은 거의 항상 Elements 탭이고, 답은 대개 Styles 의 취소선이나 부모의 배치에 있다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "증상을 골라 보라 — 이 가족 7건",
+          "height": "470px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n                 border-radius:6px; color:#e2e8f0; font:13px system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; margin:2px; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .card { background:#111c33; border:1px solid #334155; border-radius:8px; padding:9px 11px; margin-top:7px; }\n  .card b { color:#e2e8f0; }\n  .first { color:#4ade80; }\n  .then { color:#7dd3fc; }\n  .why { color:#94a3b8; font-size:11.5px; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:88px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const ENTRIES = [[\"blank\", \"화면이 통째로 비었다\", \"브라우저 Console\", \"첫 오류의 파일·줄로 간다\", \"그리는 코드가 오류로 멈췄다 (02칸 6장)\"], [\"blank\", \"「불러오는 중…」에서 멈춘다\", \"Network 탭\", \"404 면 경로·빌드, 200 이면 Console\", \"lazyScriptPaths 오타 · build.mjs 누락 (05칸 7장)\"], [\"blank\", \"목록에 도구가 안 보인다\", \"widgets-lazy-meta.ts\", \"그 id 가 표에 있나 · hidden 이 아닌가\", \"메타 한 줄을 안 넣었다 (05칸 7장)\"], [\"blank\", \"도구 화면만 비었다 (다른 건 멀쩡)\", \"Console\", \"그 위젯 파일의 build 안을 본다\", \"build 안에서 오류가 났다 (05칸 6장)\"], [\"blank\", \"새로고침하면 잠깐 보였다 사라진다\", \"Console + 나중에 도는 코드\", \"나중 렌더가 덮었나 본다\", \"다시 그리기가 앞의 화면을 갈아 끼웠다 (04칸 5장)\"], [\"blank\", \"아무것도 안 뜨고 페이지가 하얗다\", \"dev 서버 터미널\", \"서버가 살아 있나 · 주소가 맞나\", \"npm run dev 가 꺼졌다 (01칸 2장)\"], [\"click\", \"버튼을 눌러도 아무 일이 없다\", \"Console\", \"오류가 있나 → 없으면 리스너가 붙었나\", \"요소를 찾은 시점이 일러 null 이었다 (04칸 5장)\"], [\"click\", \"한 번 눌렀는데 두 번 실행된다\", \"console.count('handler')\", \"리스너가 몇 개 붙었나 센다\", \"다시 그릴 때마다 addEventListener 를 또 불렀다 (04칸 7장)\"], [\"click\", \"새로 만든 항목만 안 눌린다\", \"리스너를 어디에 붙였나\", \"위임(부모 하나)으로 바꾼다\", \"요소마다 붙이면 나중 요소엔 안 붙는다 (04칸 2장)\"], [\"click\", \"폼을 누르면 화면이 새로고침된다\", \"submit 처리 코드\", \"preventDefault() 가 있나\", \"브라우저 기본 동작을 안 막았다 (04칸 6장)\"], [\"click\", \"바깥을 눌러도 메뉴가 안 닫힌다\", \"stopPropagation 을 쓴 곳\", \"그 호출이 꼭 필요한가 본다\", \"이벤트가 위로 안 올라가 남의 코드가 죽었다 (04칸 6장)\"], [\"click\", \"값을 바꿔도 옛날 값으로 동작한다\", \"핸들러가 값을 언제 읽나\", \"핸들러 안에서 state 를 그때 읽게 고친다\", \"붙일 때의 값을 가둬 뒀다 (04칸 7장)\"], [\"click\", \"빨리 치면 옛 결과가 나중에 덮는다\", \"요청·응답 순서\", \"요청에 번호를 붙여 마지막 것만 반영\", \"늦게 온 응답이 최신을 덮었다 (04칸 7장)\"], [\"style\", \"요소는 있는데 안 보인다\", \"Elements → Styles\", \"display·높이·색·가림을 순서대로\", \"규칙이 졌거나 부모 배치가 다르다 (02칸 3장)\"], [\"style\", \"고친 CSS 가 안 먹는다\", \"Styles 탭의 취소선\", \"우선순위를 세어 본다\", \"다른 규칙이 이기고 있다 (02칸 3장)\"], [\"style\", \"가로 스크롤바가 생겼다\", \"넘치는 요소 찾기 스크립트\", \"그 요소에 min-width:0 · 안에서 스크롤\", \"flex 항목이 안 줄어든다 (03칸 6장)\"], [\"style\", \"긴 제목이 레이아웃을 밀어낸다\", \"그 항목의 min-width\", \"min-width:0 + 줄바꿈/자르기\", \"min-width:auto 가 기본이다 (03칸 6장)\"], [\"style\", \"넓은 화면에서만 레이아웃이 풀린다\", \"탭 컨테이너에 건 스타일\", \"안쪽 wrapper 로 옮긴다\", \"공용 .tab-panel 규칙과 충돌 (03칸 8장)\"], [\"style\", \"모바일에서 화면 높이가 튄다\", \"100vh 를 쓴 곳\", \"100dvh 로 바꾼다\", \"주소창이 접히며 vh 가 변한다 (03칸 8장)\"], [\"style\", \"간격이 두 배로 벌어졌다\", \"gap 과 margin 을 같이 썼나\", \"하나로 통일한다 (gap 권장)\", \"둘이 더해진다 (03칸 5장)\"], [\"text\", \"화면에 열쇠 이름이 그대로 보인다\", \"Console 의 [i18n] 경고\", \"묶음을 받았나 → 열쇠가 맞나 → 세 언어 다 있나\", \"loadNamespace 를 안 기다렸다 (06칸 5장)\"], [\"text\", \"영어 화면에 한국어가 섞여 나온다\", \"i18n/en 의 그 열쇠\", \"en 파일에 그 열쇠를 채운다\", \"번역이 없어 원본 언어로 떨어진 것 (06칸 3장)\"], [\"text\", \"언어를 바꿔도 글자가 그대로다\", \"언어 전환 후 다시 그리나\", \"전환을 듣고 렌더를 다시 부른다\", \"이미 그린 글자는 안 바뀐다 (06칸 5장)\"], [\"text\", \"개수 표시가 어색하다 (1 items)\", \"tn() 을 썼나\", \"열쇠에 .one/.other 를 두고 tn 사용\", \"복수형을 문자열로 이어붙였다 (06칸 4장)\"], [\"text\", \"번역했는데 어순이 이상하다\", \"문장을 조각냈나\", \"한 문장을 열쇠 하나로 합친다\", \"조각 이어붙이기 (06칸 4장)\"], [\"text\", \"test:i18n 계열 검사기가 빨강\", \"그 검사기 메시지\", \"빠진 언어 파일에 열쇠를 채운다\", \"한 언어만 넣었다 (06칸 1장)\"], [\"state\", \"설정이 저절로 바뀐다\", \"localStorage 열쇠 이름\", \"kl:<도구id>: 접두사를 붙인다\", \"다른 도구와 열쇠가 겹쳤다 (06칸 7장)\"], [\"state\", \"배포 사이트엔 내 설정이 없다\", \"출처(origin)\", \"정상이다 — 저장소는 출처별로 갈린다\", \"로컬과 배포는 다른 저장소 (06칸 7장)\"], [\"state\", \"저장된 값 때문에 앱이 죽는다\", \"JSON.parse 하는 곳\", \"try 로 감싸고 기본값을 준다\", \"옛 판·깨진 값이 남아 있다 (06칸 7장)\"], [\"state\", \"두 곳의 표시가 서로 다르다\", \"같은 값을 두 곳에 뒀나\", \"상태 하나만 두고 화면은 거울로\", \"진실이 둘이면 어긋난다 (04칸 4장)\"], [\"state\", \"고쳤는데 화면이 그대로다\", \"dev 서버 터미널 → 어느 파일을 고쳤나\", \"src 를 고쳤나 확인 → 강제 새로고침\", \"결과물(js/)을 고쳤다 (01칸 3장)\"], [\"state\", \"옛 화면이 계속 나온다\", \"Application → 캐시·서비스워커\", \"강제 새로고침 → 캐시 비우기\", \"캐시가 옛 파일을 준다 (02칸 7장)\"], [\"slow\", \"스크롤이 버벅인다\", \"Performance 기록\", \"어디서 시간을 쓰는지 먼저 잰다\", \"매 이벤트마다 전체를 다시 그린다 (04칸 5장)\"], [\"slow\", \"도구를 여러 번 열수록 느려진다\", \"타이머·리스너 정리\", \"dispose 에서 abort/clearInterval\", \"정리를 안 해 쌓였다 (05칸 6장)\"], [\"slow\", \"첫 화면이 늦게 뜬다\", \"Network 에서 받은 양\", \"필요할 때 받게 나눈다\", \"미리 받는 것이 많다 (05칸 1장)\"], [\"slow\", \"행이 많아지면 멈칫한다\", \"다시 그리는 방식\", \"부분 갱신으로 옮긴다 (재 보고)\", \"통째로 다시 만든다 (04칸 5장)\"], [\"red\", \"검사기가 빨강인데 이유를 모르겠다\", \"그 검사기가 스스로 말한 사유\", \"메시지의 파일·줄로 간다\", \"대개 한국어로 적혀 있다 (01칸 6장)\"], [\"red\", \"내 변경과 무관한 검사가 빨강\", \"누구 영역인지\", \"알리고 우회 · 남의 미커밋 변경은 안 건드린다\", \"다른 세션 작업 중 (01칸 4장)\"], [\"red\", \"타입 검사만 빨강\", \"오류 첫 줄과 마지막 줄\", \"그 줄로 가서 타입을 맞춘다\", \"실행 전에 잡힌 것 — 오히려 다행 (02칸 4장)\"], [\"red\", \"로컬은 초록인데 CI 는 빨강\", \"CI 로그의 그 단계\", \"환경 차이(대소문자·시간대·의존성)를 본다\", \"내 컴퓨터에만 있는 조건\"], [\"red\", \"push 가 거부된다\", \"git status · 원격 상태\", \"fetch 후 다시 · 강제 push 금지\", \"그 사이 남이 올렸다 (git-remote 5장)\"], [\"red\", \"배포가 계속 빨강\", \"gh run list · 실패 단계 로그\", \"빨강인 검사 하나를 먼저 고친다\", \"검사 한 개가 전체를 세운다\"]];\n  const FAMILY = {\"blank\": \"안 뜬다 · 빈 화면\", \"click\": \"눌러도 안 된다 · 동작 이상\", \"style\": \"모양 · 레이아웃\", \"text\": \"글자 · 번역\", \"state\": \"값 · 저장 · 캐시\", \"slow\": \"느리다\", \"red\": \"터미널 · 검사기 · 배포 빨강\"};\n\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 증상 하나를 카드로 */\n  function card(e) {\n    return '<div class=\"card\"><b>' + esc(e[1]) + '</b><br>'\n      + '<span class=\"first\">첫 창: ' + esc(e[2]) + '</span><br>'\n      + '<span class=\"then\">그다음: ' + esc(e[3]) + '</span><br>'\n      + '<span class=\"why\">흔한 원인: ' + esc(e[4]) + '</span></div>';\n  }\n  /** 한 가족을 카드 목록으로 */\n  function family(key) {\n    const list = ENTRIES.filter((e) => e[0] === key);\n    stage.innerHTML = '<div class=\"hint\">' + FAMILY[key] + ' — ' + list.length + '건</div>'\n      + list.map(card).join('');\n    return list;\n  }\n</script>\n<script>\n  const list = family('style');\n  const i = {{pick}};\n  const cards = stage.querySelectorAll('.card');\n  cards.forEach((c, k) => { c.style.borderColor = k === i ? '#22c55e' : '#334155';\n    c.style.background = k === i ? '#14351f' : '#111c33'; });\n  const e = list[i];\n  clearLog('고른 증상: ' + e[1]);\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + esc(e[1]) + '</div>';\n  show('첫 창: ' + e[2] + '\\n'\n     + '그다음: ' + e[3] + '\\n'\n     + '흔한 원인: ' + e[4] + '\\n\\n'\n     + \"이 가족의 순서\\n  ① Elements 에서 그 요소를 찾는다 (못 찾으면 이 가족이 아니다 — 2장)\\n  ② Styles 에서 취소선을 본다 → 우선순위 문제\\n  ③ 부모의 display 를 본다 → 배치는 부모가 정한다 (03칸 1장)\\n  ④ 창 폭을 좁게·넓게 흔들어 본다 → 반응형 문제가 드러난다\");\n\n</script>",
+          "controls": [
+            {
+              "id": "pick",
+              "label": "증상",
+              "type": "select",
+              "value": "0",
+              "options": [
+                {
+                  "value": "0",
+                  "label": "요소는 있는데 안 보인다"
+                },
+                {
+                  "value": "1",
+                  "label": "고친 CSS 가 안 먹는다"
+                },
+                {
+                  "value": "2",
+                  "label": "가로 스크롤바가 생겼다"
+                },
+                {
+                  "value": "3",
+                  "label": "긴 제목이 레이아웃을 밀어낸다"
+                },
+                {
+                  "value": "4",
+                  "label": "넓은 화면에서만 레이아웃이 풀린다"
+                },
+                {
+                  "value": "5",
+                  "label": "모바일에서 화면 높이가 튄다"
+                },
+                {
+                  "value": "6",
+                  "label": "간격이 두 배로 벌어졌다"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「넓은 화면에서만 깨진다」는 신호가 뚜렷하다.** 좁을 때는 어차피 한 줄로 쌓이니 안 보이고, 넓어지는 순간 공용 규칙과 충돌이 드러난다 — 탭 컨테이너에 직접 건 스타일을 의심하라(03칸 8장)."
+        },
+        {
+          "type": "code",
+          "lang": "js",
+          "label": "가로 스크롤 범인 찾기 (그대로 붙여넣기)",
+          "text": "[...document.querySelectorAll('*')]\n  .filter((el) => el.getBoundingClientRect().right > document.documentElement.clientWidth + 1)\n  .forEach((el) => console.log(Math.round(el.getBoundingClientRect().right), el));\n\n// 선택한 요소의 최종 값 보기\ngetComputedStyle($0).display\ngetComputedStyle($0).minWidth"
+        },
+        {
+          "type": "try",
+          "text": "지금 페이지에서 가로 스크롤 범인 찾기 스크립트를 Console 에 붙여넣어 보라. 아무것도 안 나오면 그 페이지는 건강한 것이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "모양 문제의 첫 창은?",
+          "choices": [
+            "Console",
+            "Elements",
+            "Network",
+            "터미널"
+          ],
+          "answer": 1,
+          "why": "DOM 과 이긴 CSS 를 함께 본다."
+        },
+        {
+          "q": "「넓은 화면에서만 깨진다」의 흔한 원인은?",
+          "choices": [
+            "캐시",
+            "탭 컨테이너에 직접 건 스타일",
+            "번역",
+            "타입"
+          ],
+          "answer": 1,
+          "why": "공용 규칙과 충돌."
+        },
+        {
+          "q": "긴 제목이 레이아웃을 밀어낼 때 첫 시도는?",
+          "choices": [
+            "width 고정",
+            "min-width: 0",
+            "overflow:hidden 만",
+            "float"
+          ],
+          "answer": 1,
+          "why": "min-width:auto 가 기본."
+        }
+      ]
     },
     {
-      "type": "p",
-      "text": "현재 경로가 apps/karmolab인지 확인한다."
+      "id": "5",
+      "title": "글자 · 번역",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "화면에 **잘못된 글자**가 보이는 가족이다. 열쇠 이름이 튀어나오거나, 언어가 섞이거나, 개수 표시가 어색한 것들 — 대부분 06칸의 규칙 하나로 설명된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "증상을 골라 보라 — 이 가족 6건",
+          "height": "470px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n                 border-radius:6px; color:#e2e8f0; font:13px system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; margin:2px; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .card { background:#111c33; border:1px solid #334155; border-radius:8px; padding:9px 11px; margin-top:7px; }\n  .card b { color:#e2e8f0; }\n  .first { color:#4ade80; }\n  .then { color:#7dd3fc; }\n  .why { color:#94a3b8; font-size:11.5px; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:88px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const ENTRIES = [[\"blank\", \"화면이 통째로 비었다\", \"브라우저 Console\", \"첫 오류의 파일·줄로 간다\", \"그리는 코드가 오류로 멈췄다 (02칸 6장)\"], [\"blank\", \"「불러오는 중…」에서 멈춘다\", \"Network 탭\", \"404 면 경로·빌드, 200 이면 Console\", \"lazyScriptPaths 오타 · build.mjs 누락 (05칸 7장)\"], [\"blank\", \"목록에 도구가 안 보인다\", \"widgets-lazy-meta.ts\", \"그 id 가 표에 있나 · hidden 이 아닌가\", \"메타 한 줄을 안 넣었다 (05칸 7장)\"], [\"blank\", \"도구 화면만 비었다 (다른 건 멀쩡)\", \"Console\", \"그 위젯 파일의 build 안을 본다\", \"build 안에서 오류가 났다 (05칸 6장)\"], [\"blank\", \"새로고침하면 잠깐 보였다 사라진다\", \"Console + 나중에 도는 코드\", \"나중 렌더가 덮었나 본다\", \"다시 그리기가 앞의 화면을 갈아 끼웠다 (04칸 5장)\"], [\"blank\", \"아무것도 안 뜨고 페이지가 하얗다\", \"dev 서버 터미널\", \"서버가 살아 있나 · 주소가 맞나\", \"npm run dev 가 꺼졌다 (01칸 2장)\"], [\"click\", \"버튼을 눌러도 아무 일이 없다\", \"Console\", \"오류가 있나 → 없으면 리스너가 붙었나\", \"요소를 찾은 시점이 일러 null 이었다 (04칸 5장)\"], [\"click\", \"한 번 눌렀는데 두 번 실행된다\", \"console.count('handler')\", \"리스너가 몇 개 붙었나 센다\", \"다시 그릴 때마다 addEventListener 를 또 불렀다 (04칸 7장)\"], [\"click\", \"새로 만든 항목만 안 눌린다\", \"리스너를 어디에 붙였나\", \"위임(부모 하나)으로 바꾼다\", \"요소마다 붙이면 나중 요소엔 안 붙는다 (04칸 2장)\"], [\"click\", \"폼을 누르면 화면이 새로고침된다\", \"submit 처리 코드\", \"preventDefault() 가 있나\", \"브라우저 기본 동작을 안 막았다 (04칸 6장)\"], [\"click\", \"바깥을 눌러도 메뉴가 안 닫힌다\", \"stopPropagation 을 쓴 곳\", \"그 호출이 꼭 필요한가 본다\", \"이벤트가 위로 안 올라가 남의 코드가 죽었다 (04칸 6장)\"], [\"click\", \"값을 바꿔도 옛날 값으로 동작한다\", \"핸들러가 값을 언제 읽나\", \"핸들러 안에서 state 를 그때 읽게 고친다\", \"붙일 때의 값을 가둬 뒀다 (04칸 7장)\"], [\"click\", \"빨리 치면 옛 결과가 나중에 덮는다\", \"요청·응답 순서\", \"요청에 번호를 붙여 마지막 것만 반영\", \"늦게 온 응답이 최신을 덮었다 (04칸 7장)\"], [\"style\", \"요소는 있는데 안 보인다\", \"Elements → Styles\", \"display·높이·색·가림을 순서대로\", \"규칙이 졌거나 부모 배치가 다르다 (02칸 3장)\"], [\"style\", \"고친 CSS 가 안 먹는다\", \"Styles 탭의 취소선\", \"우선순위를 세어 본다\", \"다른 규칙이 이기고 있다 (02칸 3장)\"], [\"style\", \"가로 스크롤바가 생겼다\", \"넘치는 요소 찾기 스크립트\", \"그 요소에 min-width:0 · 안에서 스크롤\", \"flex 항목이 안 줄어든다 (03칸 6장)\"], [\"style\", \"긴 제목이 레이아웃을 밀어낸다\", \"그 항목의 min-width\", \"min-width:0 + 줄바꿈/자르기\", \"min-width:auto 가 기본이다 (03칸 6장)\"], [\"style\", \"넓은 화면에서만 레이아웃이 풀린다\", \"탭 컨테이너에 건 스타일\", \"안쪽 wrapper 로 옮긴다\", \"공용 .tab-panel 규칙과 충돌 (03칸 8장)\"], [\"style\", \"모바일에서 화면 높이가 튄다\", \"100vh 를 쓴 곳\", \"100dvh 로 바꾼다\", \"주소창이 접히며 vh 가 변한다 (03칸 8장)\"], [\"style\", \"간격이 두 배로 벌어졌다\", \"gap 과 margin 을 같이 썼나\", \"하나로 통일한다 (gap 권장)\", \"둘이 더해진다 (03칸 5장)\"], [\"text\", \"화면에 열쇠 이름이 그대로 보인다\", \"Console 의 [i18n] 경고\", \"묶음을 받았나 → 열쇠가 맞나 → 세 언어 다 있나\", \"loadNamespace 를 안 기다렸다 (06칸 5장)\"], [\"text\", \"영어 화면에 한국어가 섞여 나온다\", \"i18n/en 의 그 열쇠\", \"en 파일에 그 열쇠를 채운다\", \"번역이 없어 원본 언어로 떨어진 것 (06칸 3장)\"], [\"text\", \"언어를 바꿔도 글자가 그대로다\", \"언어 전환 후 다시 그리나\", \"전환을 듣고 렌더를 다시 부른다\", \"이미 그린 글자는 안 바뀐다 (06칸 5장)\"], [\"text\", \"개수 표시가 어색하다 (1 items)\", \"tn() 을 썼나\", \"열쇠에 .one/.other 를 두고 tn 사용\", \"복수형을 문자열로 이어붙였다 (06칸 4장)\"], [\"text\", \"번역했는데 어순이 이상하다\", \"문장을 조각냈나\", \"한 문장을 열쇠 하나로 합친다\", \"조각 이어붙이기 (06칸 4장)\"], [\"text\", \"test:i18n 계열 검사기가 빨강\", \"그 검사기 메시지\", \"빠진 언어 파일에 열쇠를 채운다\", \"한 언어만 넣었다 (06칸 1장)\"], [\"state\", \"설정이 저절로 바뀐다\", \"localStorage 열쇠 이름\", \"kl:<도구id>: 접두사를 붙인다\", \"다른 도구와 열쇠가 겹쳤다 (06칸 7장)\"], [\"state\", \"배포 사이트엔 내 설정이 없다\", \"출처(origin)\", \"정상이다 — 저장소는 출처별로 갈린다\", \"로컬과 배포는 다른 저장소 (06칸 7장)\"], [\"state\", \"저장된 값 때문에 앱이 죽는다\", \"JSON.parse 하는 곳\", \"try 로 감싸고 기본값을 준다\", \"옛 판·깨진 값이 남아 있다 (06칸 7장)\"], [\"state\", \"두 곳의 표시가 서로 다르다\", \"같은 값을 두 곳에 뒀나\", \"상태 하나만 두고 화면은 거울로\", \"진실이 둘이면 어긋난다 (04칸 4장)\"], [\"state\", \"고쳤는데 화면이 그대로다\", \"dev 서버 터미널 → 어느 파일을 고쳤나\", \"src 를 고쳤나 확인 → 강제 새로고침\", \"결과물(js/)을 고쳤다 (01칸 3장)\"], [\"state\", \"옛 화면이 계속 나온다\", \"Application → 캐시·서비스워커\", \"강제 새로고침 → 캐시 비우기\", \"캐시가 옛 파일을 준다 (02칸 7장)\"], [\"slow\", \"스크롤이 버벅인다\", \"Performance 기록\", \"어디서 시간을 쓰는지 먼저 잰다\", \"매 이벤트마다 전체를 다시 그린다 (04칸 5장)\"], [\"slow\", \"도구를 여러 번 열수록 느려진다\", \"타이머·리스너 정리\", \"dispose 에서 abort/clearInterval\", \"정리를 안 해 쌓였다 (05칸 6장)\"], [\"slow\", \"첫 화면이 늦게 뜬다\", \"Network 에서 받은 양\", \"필요할 때 받게 나눈다\", \"미리 받는 것이 많다 (05칸 1장)\"], [\"slow\", \"행이 많아지면 멈칫한다\", \"다시 그리는 방식\", \"부분 갱신으로 옮긴다 (재 보고)\", \"통째로 다시 만든다 (04칸 5장)\"], [\"red\", \"검사기가 빨강인데 이유를 모르겠다\", \"그 검사기가 스스로 말한 사유\", \"메시지의 파일·줄로 간다\", \"대개 한국어로 적혀 있다 (01칸 6장)\"], [\"red\", \"내 변경과 무관한 검사가 빨강\", \"누구 영역인지\", \"알리고 우회 · 남의 미커밋 변경은 안 건드린다\", \"다른 세션 작업 중 (01칸 4장)\"], [\"red\", \"타입 검사만 빨강\", \"오류 첫 줄과 마지막 줄\", \"그 줄로 가서 타입을 맞춘다\", \"실행 전에 잡힌 것 — 오히려 다행 (02칸 4장)\"], [\"red\", \"로컬은 초록인데 CI 는 빨강\", \"CI 로그의 그 단계\", \"환경 차이(대소문자·시간대·의존성)를 본다\", \"내 컴퓨터에만 있는 조건\"], [\"red\", \"push 가 거부된다\", \"git status · 원격 상태\", \"fetch 후 다시 · 강제 push 금지\", \"그 사이 남이 올렸다 (git-remote 5장)\"], [\"red\", \"배포가 계속 빨강\", \"gh run list · 실패 단계 로그\", \"빨강인 검사 하나를 먼저 고친다\", \"검사 한 개가 전체를 세운다\"]];\n  const FAMILY = {\"blank\": \"안 뜬다 · 빈 화면\", \"click\": \"눌러도 안 된다 · 동작 이상\", \"style\": \"모양 · 레이아웃\", \"text\": \"글자 · 번역\", \"state\": \"값 · 저장 · 캐시\", \"slow\": \"느리다\", \"red\": \"터미널 · 검사기 · 배포 빨강\"};\n\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 증상 하나를 카드로 */\n  function card(e) {\n    return '<div class=\"card\"><b>' + esc(e[1]) + '</b><br>'\n      + '<span class=\"first\">첫 창: ' + esc(e[2]) + '</span><br>'\n      + '<span class=\"then\">그다음: ' + esc(e[3]) + '</span><br>'\n      + '<span class=\"why\">흔한 원인: ' + esc(e[4]) + '</span></div>';\n  }\n  /** 한 가족을 카드 목록으로 */\n  function family(key) {\n    const list = ENTRIES.filter((e) => e[0] === key);\n    stage.innerHTML = '<div class=\"hint\">' + FAMILY[key] + ' — ' + list.length + '건</div>'\n      + list.map(card).join('');\n    return list;\n  }\n</script>\n<script>\n  const list = family('text');\n  const i = {{pick}};\n  const cards = stage.querySelectorAll('.card');\n  cards.forEach((c, k) => { c.style.borderColor = k === i ? '#22c55e' : '#334155';\n    c.style.background = k === i ? '#14351f' : '#111c33'; });\n  const e = list[i];\n  clearLog('고른 증상: ' + e[1]);\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + esc(e[1]) + '</div>';\n  show('첫 창: ' + e[2] + '\\n'\n     + '그다음: ' + e[3] + '\\n'\n     + '흔한 원인: ' + e[4] + '\\n\\n'\n     + \"가르는 순서\\n  ① Console 에 [i18n] 경고가 있나 → 있으면 그 열쇠가 답\\n  ② 그리기 전에 loadNamespace 를 기다렸나 (06칸 5장)\\n  ③ 세 언어 파일에 다 있나 (검사기가 잡아 준다)\\n  ④ 문장을 조각내지 않았나 · 개수는 tn() 인가 (06칸 4장)\");\n\n</script>",
+          "controls": [
+            {
+              "id": "pick",
+              "label": "증상",
+              "type": "select",
+              "value": "0",
+              "options": [
+                {
+                  "value": "0",
+                  "label": "화면에 열쇠 이름이 그대로 보인다"
+                },
+                {
+                  "value": "1",
+                  "label": "영어 화면에 한국어가 섞여 나온다"
+                },
+                {
+                  "value": "2",
+                  "label": "언어를 바꿔도 글자가 그대로다"
+                },
+                {
+                  "value": "3",
+                  "label": "개수 표시가 어색하다 (1 items)"
+                },
+                {
+                  "value": "4",
+                  "label": "번역했는데 어순이 이상하다"
+                },
+                {
+                  "value": "5",
+                  "label": "test:i18n 계열 검사기가 빨강"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**열쇠 이름이 보이면 Console 에 경고가 함께 떠 있다.** `[i18n] 없는 열쇠: …` 를 찾으면 어느 열쇠인지 바로 나오고, 그다음은 「묶음을 받았나 / 열쇠가 맞나 / 세 언어 다 있나」 세 확인이면 끝난다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "번역 문제를 가르는 확인",
+          "text": "grep -rn 'burnnote.btn.copy' i18n/ko i18n/en i18n/ja   # 세 언어에 다 있나\ngrep -rn \"t('burnnote\" src/                            # 코드가 부르는 열쇠들\n\nnpm run test:i18n:keys      # 짝이 안 맞는 열쇠를 잡아 준다\nnpm run test:studymap:i18n  # 지도 쪽 번역"
+        },
+        {
+          "type": "try",
+          "text": "화면 언어를 영어로 바꿔 보라. 한국어가 섞여 나오는 자리가 있으면 그게 아직 번역 안 된 열쇠다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "화면에 열쇠 이름이 보일 때 볼 곳은?",
+          "choices": [
+            "Elements",
+            "Console 의 [i18n] 경고",
+            "Network",
+            "터미널"
+          ],
+          "answer": 1,
+          "why": "어느 열쇠인지 바로 나온다."
+        },
+        {
+          "q": "영어 화면에 한국어가 섞이면?",
+          "choices": [
+            "버그",
+            "그 열쇠의 en 번역이 없어 원본으로 떨어진 것",
+            "캐시",
+            "폰트"
+          ],
+          "answer": 1,
+          "why": "그물이 동작한 것이다."
+        },
+        {
+          "q": "「1 items」처럼 어색하면?",
+          "choices": [
+            "오타",
+            "tn() 을 안 썼다",
+            "폰트",
+            "번역 품질"
+          ],
+          "answer": 1,
+          "why": "복수형은 Intl 에 맡긴다."
+        }
+      ]
     },
     {
-      "type": "h",
-      "text": "8813 사용 중"
+      "id": "6",
+      "title": "값 · 저장 · 캐시",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**값이 이상한** 가족이다. 저절로 바뀌거나, 안 바뀌거나, 두 곳이 서로 다른 말을 하거나 — 원인은 대개 「진실이 두 곳에 있다」거나 「저장 경계」다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "증상을 골라 보라 — 이 가족 6건",
+          "height": "470px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n                 border-radius:6px; color:#e2e8f0; font:13px system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; margin:2px; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .card { background:#111c33; border:1px solid #334155; border-radius:8px; padding:9px 11px; margin-top:7px; }\n  .card b { color:#e2e8f0; }\n  .first { color:#4ade80; }\n  .then { color:#7dd3fc; }\n  .why { color:#94a3b8; font-size:11.5px; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:88px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const ENTRIES = [[\"blank\", \"화면이 통째로 비었다\", \"브라우저 Console\", \"첫 오류의 파일·줄로 간다\", \"그리는 코드가 오류로 멈췄다 (02칸 6장)\"], [\"blank\", \"「불러오는 중…」에서 멈춘다\", \"Network 탭\", \"404 면 경로·빌드, 200 이면 Console\", \"lazyScriptPaths 오타 · build.mjs 누락 (05칸 7장)\"], [\"blank\", \"목록에 도구가 안 보인다\", \"widgets-lazy-meta.ts\", \"그 id 가 표에 있나 · hidden 이 아닌가\", \"메타 한 줄을 안 넣었다 (05칸 7장)\"], [\"blank\", \"도구 화면만 비었다 (다른 건 멀쩡)\", \"Console\", \"그 위젯 파일의 build 안을 본다\", \"build 안에서 오류가 났다 (05칸 6장)\"], [\"blank\", \"새로고침하면 잠깐 보였다 사라진다\", \"Console + 나중에 도는 코드\", \"나중 렌더가 덮었나 본다\", \"다시 그리기가 앞의 화면을 갈아 끼웠다 (04칸 5장)\"], [\"blank\", \"아무것도 안 뜨고 페이지가 하얗다\", \"dev 서버 터미널\", \"서버가 살아 있나 · 주소가 맞나\", \"npm run dev 가 꺼졌다 (01칸 2장)\"], [\"click\", \"버튼을 눌러도 아무 일이 없다\", \"Console\", \"오류가 있나 → 없으면 리스너가 붙었나\", \"요소를 찾은 시점이 일러 null 이었다 (04칸 5장)\"], [\"click\", \"한 번 눌렀는데 두 번 실행된다\", \"console.count('handler')\", \"리스너가 몇 개 붙었나 센다\", \"다시 그릴 때마다 addEventListener 를 또 불렀다 (04칸 7장)\"], [\"click\", \"새로 만든 항목만 안 눌린다\", \"리스너를 어디에 붙였나\", \"위임(부모 하나)으로 바꾼다\", \"요소마다 붙이면 나중 요소엔 안 붙는다 (04칸 2장)\"], [\"click\", \"폼을 누르면 화면이 새로고침된다\", \"submit 처리 코드\", \"preventDefault() 가 있나\", \"브라우저 기본 동작을 안 막았다 (04칸 6장)\"], [\"click\", \"바깥을 눌러도 메뉴가 안 닫힌다\", \"stopPropagation 을 쓴 곳\", \"그 호출이 꼭 필요한가 본다\", \"이벤트가 위로 안 올라가 남의 코드가 죽었다 (04칸 6장)\"], [\"click\", \"값을 바꿔도 옛날 값으로 동작한다\", \"핸들러가 값을 언제 읽나\", \"핸들러 안에서 state 를 그때 읽게 고친다\", \"붙일 때의 값을 가둬 뒀다 (04칸 7장)\"], [\"click\", \"빨리 치면 옛 결과가 나중에 덮는다\", \"요청·응답 순서\", \"요청에 번호를 붙여 마지막 것만 반영\", \"늦게 온 응답이 최신을 덮었다 (04칸 7장)\"], [\"style\", \"요소는 있는데 안 보인다\", \"Elements → Styles\", \"display·높이·색·가림을 순서대로\", \"규칙이 졌거나 부모 배치가 다르다 (02칸 3장)\"], [\"style\", \"고친 CSS 가 안 먹는다\", \"Styles 탭의 취소선\", \"우선순위를 세어 본다\", \"다른 규칙이 이기고 있다 (02칸 3장)\"], [\"style\", \"가로 스크롤바가 생겼다\", \"넘치는 요소 찾기 스크립트\", \"그 요소에 min-width:0 · 안에서 스크롤\", \"flex 항목이 안 줄어든다 (03칸 6장)\"], [\"style\", \"긴 제목이 레이아웃을 밀어낸다\", \"그 항목의 min-width\", \"min-width:0 + 줄바꿈/자르기\", \"min-width:auto 가 기본이다 (03칸 6장)\"], [\"style\", \"넓은 화면에서만 레이아웃이 풀린다\", \"탭 컨테이너에 건 스타일\", \"안쪽 wrapper 로 옮긴다\", \"공용 .tab-panel 규칙과 충돌 (03칸 8장)\"], [\"style\", \"모바일에서 화면 높이가 튄다\", \"100vh 를 쓴 곳\", \"100dvh 로 바꾼다\", \"주소창이 접히며 vh 가 변한다 (03칸 8장)\"], [\"style\", \"간격이 두 배로 벌어졌다\", \"gap 과 margin 을 같이 썼나\", \"하나로 통일한다 (gap 권장)\", \"둘이 더해진다 (03칸 5장)\"], [\"text\", \"화면에 열쇠 이름이 그대로 보인다\", \"Console 의 [i18n] 경고\", \"묶음을 받았나 → 열쇠가 맞나 → 세 언어 다 있나\", \"loadNamespace 를 안 기다렸다 (06칸 5장)\"], [\"text\", \"영어 화면에 한국어가 섞여 나온다\", \"i18n/en 의 그 열쇠\", \"en 파일에 그 열쇠를 채운다\", \"번역이 없어 원본 언어로 떨어진 것 (06칸 3장)\"], [\"text\", \"언어를 바꿔도 글자가 그대로다\", \"언어 전환 후 다시 그리나\", \"전환을 듣고 렌더를 다시 부른다\", \"이미 그린 글자는 안 바뀐다 (06칸 5장)\"], [\"text\", \"개수 표시가 어색하다 (1 items)\", \"tn() 을 썼나\", \"열쇠에 .one/.other 를 두고 tn 사용\", \"복수형을 문자열로 이어붙였다 (06칸 4장)\"], [\"text\", \"번역했는데 어순이 이상하다\", \"문장을 조각냈나\", \"한 문장을 열쇠 하나로 합친다\", \"조각 이어붙이기 (06칸 4장)\"], [\"text\", \"test:i18n 계열 검사기가 빨강\", \"그 검사기 메시지\", \"빠진 언어 파일에 열쇠를 채운다\", \"한 언어만 넣었다 (06칸 1장)\"], [\"state\", \"설정이 저절로 바뀐다\", \"localStorage 열쇠 이름\", \"kl:<도구id>: 접두사를 붙인다\", \"다른 도구와 열쇠가 겹쳤다 (06칸 7장)\"], [\"state\", \"배포 사이트엔 내 설정이 없다\", \"출처(origin)\", \"정상이다 — 저장소는 출처별로 갈린다\", \"로컬과 배포는 다른 저장소 (06칸 7장)\"], [\"state\", \"저장된 값 때문에 앱이 죽는다\", \"JSON.parse 하는 곳\", \"try 로 감싸고 기본값을 준다\", \"옛 판·깨진 값이 남아 있다 (06칸 7장)\"], [\"state\", \"두 곳의 표시가 서로 다르다\", \"같은 값을 두 곳에 뒀나\", \"상태 하나만 두고 화면은 거울로\", \"진실이 둘이면 어긋난다 (04칸 4장)\"], [\"state\", \"고쳤는데 화면이 그대로다\", \"dev 서버 터미널 → 어느 파일을 고쳤나\", \"src 를 고쳤나 확인 → 강제 새로고침\", \"결과물(js/)을 고쳤다 (01칸 3장)\"], [\"state\", \"옛 화면이 계속 나온다\", \"Application → 캐시·서비스워커\", \"강제 새로고침 → 캐시 비우기\", \"캐시가 옛 파일을 준다 (02칸 7장)\"], [\"slow\", \"스크롤이 버벅인다\", \"Performance 기록\", \"어디서 시간을 쓰는지 먼저 잰다\", \"매 이벤트마다 전체를 다시 그린다 (04칸 5장)\"], [\"slow\", \"도구를 여러 번 열수록 느려진다\", \"타이머·리스너 정리\", \"dispose 에서 abort/clearInterval\", \"정리를 안 해 쌓였다 (05칸 6장)\"], [\"slow\", \"첫 화면이 늦게 뜬다\", \"Network 에서 받은 양\", \"필요할 때 받게 나눈다\", \"미리 받는 것이 많다 (05칸 1장)\"], [\"slow\", \"행이 많아지면 멈칫한다\", \"다시 그리는 방식\", \"부분 갱신으로 옮긴다 (재 보고)\", \"통째로 다시 만든다 (04칸 5장)\"], [\"red\", \"검사기가 빨강인데 이유를 모르겠다\", \"그 검사기가 스스로 말한 사유\", \"메시지의 파일·줄로 간다\", \"대개 한국어로 적혀 있다 (01칸 6장)\"], [\"red\", \"내 변경과 무관한 검사가 빨강\", \"누구 영역인지\", \"알리고 우회 · 남의 미커밋 변경은 안 건드린다\", \"다른 세션 작업 중 (01칸 4장)\"], [\"red\", \"타입 검사만 빨강\", \"오류 첫 줄과 마지막 줄\", \"그 줄로 가서 타입을 맞춘다\", \"실행 전에 잡힌 것 — 오히려 다행 (02칸 4장)\"], [\"red\", \"로컬은 초록인데 CI 는 빨강\", \"CI 로그의 그 단계\", \"환경 차이(대소문자·시간대·의존성)를 본다\", \"내 컴퓨터에만 있는 조건\"], [\"red\", \"push 가 거부된다\", \"git status · 원격 상태\", \"fetch 후 다시 · 강제 push 금지\", \"그 사이 남이 올렸다 (git-remote 5장)\"], [\"red\", \"배포가 계속 빨강\", \"gh run list · 실패 단계 로그\", \"빨강인 검사 하나를 먼저 고친다\", \"검사 한 개가 전체를 세운다\"]];\n  const FAMILY = {\"blank\": \"안 뜬다 · 빈 화면\", \"click\": \"눌러도 안 된다 · 동작 이상\", \"style\": \"모양 · 레이아웃\", \"text\": \"글자 · 번역\", \"state\": \"값 · 저장 · 캐시\", \"slow\": \"느리다\", \"red\": \"터미널 · 검사기 · 배포 빨강\"};\n\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 증상 하나를 카드로 */\n  function card(e) {\n    return '<div class=\"card\"><b>' + esc(e[1]) + '</b><br>'\n      + '<span class=\"first\">첫 창: ' + esc(e[2]) + '</span><br>'\n      + '<span class=\"then\">그다음: ' + esc(e[3]) + '</span><br>'\n      + '<span class=\"why\">흔한 원인: ' + esc(e[4]) + '</span></div>';\n  }\n  /** 한 가족을 카드 목록으로 */\n  function family(key) {\n    const list = ENTRIES.filter((e) => e[0] === key);\n    stage.innerHTML = '<div class=\"hint\">' + FAMILY[key] + ' — ' + list.length + '건</div>'\n      + list.map(card).join('');\n    return list;\n  }\n</script>\n<script>\n  const list = family('state');\n  const i = {{pick}};\n  const cards = stage.querySelectorAll('.card');\n  cards.forEach((c, k) => { c.style.borderColor = k === i ? '#22c55e' : '#334155';\n    c.style.background = k === i ? '#14351f' : '#111c33'; });\n  const e = list[i];\n  clearLog('고른 증상: ' + e[1]);\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + esc(e[1]) + '</div>';\n  show('첫 창: ' + e[2] + '\\n'\n     + '그다음: ' + e[3] + '\\n'\n     + '흔한 원인: ' + e[4] + '\\n\\n'\n     + \"가르는 순서\\n  ① 어느 파일을 고쳤나 (src 인가 js 인가 — 01칸 3장)\\n  ② dev 서버 터미널에 다시 만든 기록이 있나\\n  ③ 강제 새로고침으로 바뀌나 → 캐시\\n  ④ 시크릿 창에서 정상이면 → 저장된 값이 범인\\n\\n④가 가장 빠른 판정이다 — 저장소가 비어 있는 상태로 열어 보는 것.\");\n\n</script>",
+          "controls": [
+            {
+              "id": "pick",
+              "label": "증상",
+              "type": "select",
+              "value": "0",
+              "options": [
+                {
+                  "value": "0",
+                  "label": "설정이 저절로 바뀐다"
+                },
+                {
+                  "value": "1",
+                  "label": "배포 사이트엔 내 설정이 없다"
+                },
+                {
+                  "value": "2",
+                  "label": "저장된 값 때문에 앱이 죽는다"
+                },
+                {
+                  "value": "3",
+                  "label": "두 곳의 표시가 서로 다르다"
+                },
+                {
+                  "value": "4",
+                  "label": "고쳤는데 화면이 그대로다"
+                },
+                {
+                  "value": "5",
+                  "label": "옛 화면이 계속 나온다"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「고쳤는데 화면이 그대로다」는 세 원인이 있다** — ① 결과물(js/)을 고쳤다 ② 다시 만들기가 실패했다(터미널) ③ 브라우저가 옛 파일을 캐시했다. 순서대로 확인하면 1분이면 갈린다."
+        },
+        {
+          "type": "code",
+          "lang": "js",
+          "label": "저장·캐시를 가르는 확인",
+          "text": "// 이 도구가 무엇을 저장해 두었나\nObject.keys(localStorage).filter((k) => k.startsWith('kl:그도구id'))\n\n// 저장된 값이 범인인지 보기 (지우기 전에 복사해 두라)\nconst backup = { ...localStorage };\n\n// 캐시가 범인인가 — 강제 새로고침으로 갈린다\n// (또는 Application → Service Workers → Unregister)"
+        },
+        {
+          "type": "try",
+          "text": "시크릿 창에서 같은 화면을 열어 보라. 거기서 정상이면 저장된 값이나 캐시가 범인이다 — 한 번의 확인으로 절반이 갈린다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "저장된 값이 범인인지 가장 빨리 판정하는 법은?",
+          "choices": [
+            "코드 읽기",
+            "시크릿 창에서 열어 보기",
+            "재부팅",
+            "빌드"
+          ],
+          "answer": 1,
+          "why": "저장소가 빈 상태로 열린다."
+        },
+        {
+          "q": "로컬엔 있는 설정이 배포엔 없는 이유는?",
+          "choices": [
+            "버그",
+            "출처가 달라 저장소가 갈린다",
+            "캐시",
+            "권한"
+          ],
+          "answer": 1,
+          "why": "정상 동작이다."
+        },
+        {
+          "q": "두 곳의 표시가 서로 다르면?",
+          "choices": [
+            "CSS",
+            "같은 값을 두 곳에 뒀다",
+            "번역",
+            "타이밍"
+          ],
+          "answer": 1,
+          "why": "진실은 한 곳에."
+        }
+      ]
     },
     {
-      "type": "p",
-      "text": "기존 개발 서버가 켜졌는지 URL을 먼저 연다."
+      "id": "7",
+      "title": "느리다 · 버벅인다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**느린 것**은 눈으로 원인을 못 찾는다. 이 가족만큼은 추측이 특히 잘 빗나가므로 **재는 것**부터 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "증상을 골라 보라 — 이 가족 4건",
+          "height": "470px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n                 border-radius:6px; color:#e2e8f0; font:13px system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; margin:2px; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .card { background:#111c33; border:1px solid #334155; border-radius:8px; padding:9px 11px; margin-top:7px; }\n  .card b { color:#e2e8f0; }\n  .first { color:#4ade80; }\n  .then { color:#7dd3fc; }\n  .why { color:#94a3b8; font-size:11.5px; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:88px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const ENTRIES = [[\"blank\", \"화면이 통째로 비었다\", \"브라우저 Console\", \"첫 오류의 파일·줄로 간다\", \"그리는 코드가 오류로 멈췄다 (02칸 6장)\"], [\"blank\", \"「불러오는 중…」에서 멈춘다\", \"Network 탭\", \"404 면 경로·빌드, 200 이면 Console\", \"lazyScriptPaths 오타 · build.mjs 누락 (05칸 7장)\"], [\"blank\", \"목록에 도구가 안 보인다\", \"widgets-lazy-meta.ts\", \"그 id 가 표에 있나 · hidden 이 아닌가\", \"메타 한 줄을 안 넣었다 (05칸 7장)\"], [\"blank\", \"도구 화면만 비었다 (다른 건 멀쩡)\", \"Console\", \"그 위젯 파일의 build 안을 본다\", \"build 안에서 오류가 났다 (05칸 6장)\"], [\"blank\", \"새로고침하면 잠깐 보였다 사라진다\", \"Console + 나중에 도는 코드\", \"나중 렌더가 덮었나 본다\", \"다시 그리기가 앞의 화면을 갈아 끼웠다 (04칸 5장)\"], [\"blank\", \"아무것도 안 뜨고 페이지가 하얗다\", \"dev 서버 터미널\", \"서버가 살아 있나 · 주소가 맞나\", \"npm run dev 가 꺼졌다 (01칸 2장)\"], [\"click\", \"버튼을 눌러도 아무 일이 없다\", \"Console\", \"오류가 있나 → 없으면 리스너가 붙었나\", \"요소를 찾은 시점이 일러 null 이었다 (04칸 5장)\"], [\"click\", \"한 번 눌렀는데 두 번 실행된다\", \"console.count('handler')\", \"리스너가 몇 개 붙었나 센다\", \"다시 그릴 때마다 addEventListener 를 또 불렀다 (04칸 7장)\"], [\"click\", \"새로 만든 항목만 안 눌린다\", \"리스너를 어디에 붙였나\", \"위임(부모 하나)으로 바꾼다\", \"요소마다 붙이면 나중 요소엔 안 붙는다 (04칸 2장)\"], [\"click\", \"폼을 누르면 화면이 새로고침된다\", \"submit 처리 코드\", \"preventDefault() 가 있나\", \"브라우저 기본 동작을 안 막았다 (04칸 6장)\"], [\"click\", \"바깥을 눌러도 메뉴가 안 닫힌다\", \"stopPropagation 을 쓴 곳\", \"그 호출이 꼭 필요한가 본다\", \"이벤트가 위로 안 올라가 남의 코드가 죽었다 (04칸 6장)\"], [\"click\", \"값을 바꿔도 옛날 값으로 동작한다\", \"핸들러가 값을 언제 읽나\", \"핸들러 안에서 state 를 그때 읽게 고친다\", \"붙일 때의 값을 가둬 뒀다 (04칸 7장)\"], [\"click\", \"빨리 치면 옛 결과가 나중에 덮는다\", \"요청·응답 순서\", \"요청에 번호를 붙여 마지막 것만 반영\", \"늦게 온 응답이 최신을 덮었다 (04칸 7장)\"], [\"style\", \"요소는 있는데 안 보인다\", \"Elements → Styles\", \"display·높이·색·가림을 순서대로\", \"규칙이 졌거나 부모 배치가 다르다 (02칸 3장)\"], [\"style\", \"고친 CSS 가 안 먹는다\", \"Styles 탭의 취소선\", \"우선순위를 세어 본다\", \"다른 규칙이 이기고 있다 (02칸 3장)\"], [\"style\", \"가로 스크롤바가 생겼다\", \"넘치는 요소 찾기 스크립트\", \"그 요소에 min-width:0 · 안에서 스크롤\", \"flex 항목이 안 줄어든다 (03칸 6장)\"], [\"style\", \"긴 제목이 레이아웃을 밀어낸다\", \"그 항목의 min-width\", \"min-width:0 + 줄바꿈/자르기\", \"min-width:auto 가 기본이다 (03칸 6장)\"], [\"style\", \"넓은 화면에서만 레이아웃이 풀린다\", \"탭 컨테이너에 건 스타일\", \"안쪽 wrapper 로 옮긴다\", \"공용 .tab-panel 규칙과 충돌 (03칸 8장)\"], [\"style\", \"모바일에서 화면 높이가 튄다\", \"100vh 를 쓴 곳\", \"100dvh 로 바꾼다\", \"주소창이 접히며 vh 가 변한다 (03칸 8장)\"], [\"style\", \"간격이 두 배로 벌어졌다\", \"gap 과 margin 을 같이 썼나\", \"하나로 통일한다 (gap 권장)\", \"둘이 더해진다 (03칸 5장)\"], [\"text\", \"화면에 열쇠 이름이 그대로 보인다\", \"Console 의 [i18n] 경고\", \"묶음을 받았나 → 열쇠가 맞나 → 세 언어 다 있나\", \"loadNamespace 를 안 기다렸다 (06칸 5장)\"], [\"text\", \"영어 화면에 한국어가 섞여 나온다\", \"i18n/en 의 그 열쇠\", \"en 파일에 그 열쇠를 채운다\", \"번역이 없어 원본 언어로 떨어진 것 (06칸 3장)\"], [\"text\", \"언어를 바꿔도 글자가 그대로다\", \"언어 전환 후 다시 그리나\", \"전환을 듣고 렌더를 다시 부른다\", \"이미 그린 글자는 안 바뀐다 (06칸 5장)\"], [\"text\", \"개수 표시가 어색하다 (1 items)\", \"tn() 을 썼나\", \"열쇠에 .one/.other 를 두고 tn 사용\", \"복수형을 문자열로 이어붙였다 (06칸 4장)\"], [\"text\", \"번역했는데 어순이 이상하다\", \"문장을 조각냈나\", \"한 문장을 열쇠 하나로 합친다\", \"조각 이어붙이기 (06칸 4장)\"], [\"text\", \"test:i18n 계열 검사기가 빨강\", \"그 검사기 메시지\", \"빠진 언어 파일에 열쇠를 채운다\", \"한 언어만 넣었다 (06칸 1장)\"], [\"state\", \"설정이 저절로 바뀐다\", \"localStorage 열쇠 이름\", \"kl:<도구id>: 접두사를 붙인다\", \"다른 도구와 열쇠가 겹쳤다 (06칸 7장)\"], [\"state\", \"배포 사이트엔 내 설정이 없다\", \"출처(origin)\", \"정상이다 — 저장소는 출처별로 갈린다\", \"로컬과 배포는 다른 저장소 (06칸 7장)\"], [\"state\", \"저장된 값 때문에 앱이 죽는다\", \"JSON.parse 하는 곳\", \"try 로 감싸고 기본값을 준다\", \"옛 판·깨진 값이 남아 있다 (06칸 7장)\"], [\"state\", \"두 곳의 표시가 서로 다르다\", \"같은 값을 두 곳에 뒀나\", \"상태 하나만 두고 화면은 거울로\", \"진실이 둘이면 어긋난다 (04칸 4장)\"], [\"state\", \"고쳤는데 화면이 그대로다\", \"dev 서버 터미널 → 어느 파일을 고쳤나\", \"src 를 고쳤나 확인 → 강제 새로고침\", \"결과물(js/)을 고쳤다 (01칸 3장)\"], [\"state\", \"옛 화면이 계속 나온다\", \"Application → 캐시·서비스워커\", \"강제 새로고침 → 캐시 비우기\", \"캐시가 옛 파일을 준다 (02칸 7장)\"], [\"slow\", \"스크롤이 버벅인다\", \"Performance 기록\", \"어디서 시간을 쓰는지 먼저 잰다\", \"매 이벤트마다 전체를 다시 그린다 (04칸 5장)\"], [\"slow\", \"도구를 여러 번 열수록 느려진다\", \"타이머·리스너 정리\", \"dispose 에서 abort/clearInterval\", \"정리를 안 해 쌓였다 (05칸 6장)\"], [\"slow\", \"첫 화면이 늦게 뜬다\", \"Network 에서 받은 양\", \"필요할 때 받게 나눈다\", \"미리 받는 것이 많다 (05칸 1장)\"], [\"slow\", \"행이 많아지면 멈칫한다\", \"다시 그리는 방식\", \"부분 갱신으로 옮긴다 (재 보고)\", \"통째로 다시 만든다 (04칸 5장)\"], [\"red\", \"검사기가 빨강인데 이유를 모르겠다\", \"그 검사기가 스스로 말한 사유\", \"메시지의 파일·줄로 간다\", \"대개 한국어로 적혀 있다 (01칸 6장)\"], [\"red\", \"내 변경과 무관한 검사가 빨강\", \"누구 영역인지\", \"알리고 우회 · 남의 미커밋 변경은 안 건드린다\", \"다른 세션 작업 중 (01칸 4장)\"], [\"red\", \"타입 검사만 빨강\", \"오류 첫 줄과 마지막 줄\", \"그 줄로 가서 타입을 맞춘다\", \"실행 전에 잡힌 것 — 오히려 다행 (02칸 4장)\"], [\"red\", \"로컬은 초록인데 CI 는 빨강\", \"CI 로그의 그 단계\", \"환경 차이(대소문자·시간대·의존성)를 본다\", \"내 컴퓨터에만 있는 조건\"], [\"red\", \"push 가 거부된다\", \"git status · 원격 상태\", \"fetch 후 다시 · 강제 push 금지\", \"그 사이 남이 올렸다 (git-remote 5장)\"], [\"red\", \"배포가 계속 빨강\", \"gh run list · 실패 단계 로그\", \"빨강인 검사 하나를 먼저 고친다\", \"검사 한 개가 전체를 세운다\"]];\n  const FAMILY = {\"blank\": \"안 뜬다 · 빈 화면\", \"click\": \"눌러도 안 된다 · 동작 이상\", \"style\": \"모양 · 레이아웃\", \"text\": \"글자 · 번역\", \"state\": \"값 · 저장 · 캐시\", \"slow\": \"느리다\", \"red\": \"터미널 · 검사기 · 배포 빨강\"};\n\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 증상 하나를 카드로 */\n  function card(e) {\n    return '<div class=\"card\"><b>' + esc(e[1]) + '</b><br>'\n      + '<span class=\"first\">첫 창: ' + esc(e[2]) + '</span><br>'\n      + '<span class=\"then\">그다음: ' + esc(e[3]) + '</span><br>'\n      + '<span class=\"why\">흔한 원인: ' + esc(e[4]) + '</span></div>';\n  }\n  /** 한 가족을 카드 목록으로 */\n  function family(key) {\n    const list = ENTRIES.filter((e) => e[0] === key);\n    stage.innerHTML = '<div class=\"hint\">' + FAMILY[key] + ' — ' + list.length + '건</div>'\n      + list.map(card).join('');\n    return list;\n  }\n</script>\n<script>\n  const list = family('slow');\n  const i = {{pick}};\n  const cards = stage.querySelectorAll('.card');\n  cards.forEach((c, k) => { c.style.borderColor = k === i ? '#22c55e' : '#334155';\n    c.style.background = k === i ? '#14351f' : '#111c33'; });\n  const e = list[i];\n  clearLog('고른 증상: ' + e[1]);\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + esc(e[1]) + '</div>';\n  show('첫 창: ' + e[2] + '\\n'\n     + '그다음: ' + e[3] + '\\n'\n     + '흔한 원인: ' + e[4] + '\\n\\n'\n     + \"이 가족의 순서\\n  ① 무엇이 느린지 한 문장으로 (첫 화면 · 스크롤 · 특정 동작)\\n  ② 재 본다 — console.time · Performance 기록\\n  ③ 가장 큰 덩어리부터 고친다 (작은 것 열 개보다 큰 것 하나)\\n  ④ 고친 뒤 다시 재서 **숫자로** 확인한다\\n\\n흔한 원인 셋\\n  · 매 이벤트마다 전체를 다시 그린다 (04칸 5장)\\n  · 정리를 안 해 타이머·리스너가 쌓였다 (05칸 6장)\\n  · 미리 받는 것이 많다 (05칸 1장)\");\n\n</script>",
+          "controls": [
+            {
+              "id": "pick",
+              "label": "증상",
+              "type": "select",
+              "value": "0",
+              "options": [
+                {
+                  "value": "0",
+                  "label": "스크롤이 버벅인다"
+                },
+                {
+                  "value": "1",
+                  "label": "도구를 여러 번 열수록 느려진다"
+                },
+                {
+                  "value": "2",
+                  "label": "첫 화면이 늦게 뜬다"
+                },
+                {
+                  "value": "3",
+                  "label": "행이 많아지면 멈칫한다"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**느낌으로 고치면 엉뚱한 곳을 고친다.** Performance 기록을 한 번 뜨면 어디서 시간을 쓰는지가 그림으로 나오는데, 그 그림 없이 최적화한 코드는 복잡해지기만 하고 빨라지지 않는 경우가 많다."
+        },
+        {
+          "type": "code",
+          "lang": "js",
+          "label": "재는 방법들",
+          "text": "console.time('draw'); render(); console.timeEnd('draw');\n\n// 몇 번 불렸나 (과도한 렌더 잡기)\nconsole.count('render');\n\n// 무거운 구간 표시 — Performance 기록에 이름으로 뜬다\nperformance.mark('a'); heavy(); performance.mark('b');\nperformance.measure('heavy', 'a', 'b');\n\n// 요소가 몇 개나 있나 (너무 많이 만들고 있나)\ndocument.querySelectorAll('*').length"
+        },
+        {
+          "type": "try",
+          "text": "느리다고 느끼는 동작 하나를 `console.time`/`timeEnd` 로 감싸 재 보라. 숫자가 나오면 그때부터는 추측이 아니다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "느림 문제의 첫 행동은?",
+          "choices": [
+            "최적화",
+            "재기",
+            "캐시 끄기",
+            "재작성"
+          ],
+          "answer": 1,
+          "why": "느낌은 잘 빗나간다."
+        },
+        {
+          "q": "열수록 느려지는 원인은?",
+          "choices": [
+            "캐시",
+            "정리 안 된 타이머·리스너",
+            "번역",
+            "CSS"
+          ],
+          "answer": 1,
+          "why": "dispose 누락."
+        },
+        {
+          "q": "고친 뒤 확인하는 방법은?",
+          "choices": [
+            "느낌",
+            "다시 재서 숫자로",
+            "리뷰",
+            "배포"
+          ],
+          "answer": 1,
+          "why": "판정 기준이 있어야 한다."
+        }
+      ]
     },
     {
-      "type": "h",
-      "text": "수정 미반영"
+      "id": "8",
+      "title": "터미널 · 검사기 · 배포 빨강",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "화면을 열기도 전에 **터미널에서 잡히는** 가족이다. 좋은 소식은 이쪽이 대개 가장 빨리 끝난다는 것 — 검사기가 사유를 한국어로 적어 준다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "증상을 골라 보라 — 이 가족 6건",
+          "height": "470px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n                 border-radius:6px; color:#e2e8f0; font:13px system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; margin:2px; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .card { background:#111c33; border:1px solid #334155; border-radius:8px; padding:9px 11px; margin-top:7px; }\n  .card b { color:#e2e8f0; }\n  .first { color:#4ade80; }\n  .then { color:#7dd3fc; }\n  .why { color:#94a3b8; font-size:11.5px; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:88px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const ENTRIES = [[\"blank\", \"화면이 통째로 비었다\", \"브라우저 Console\", \"첫 오류의 파일·줄로 간다\", \"그리는 코드가 오류로 멈췄다 (02칸 6장)\"], [\"blank\", \"「불러오는 중…」에서 멈춘다\", \"Network 탭\", \"404 면 경로·빌드, 200 이면 Console\", \"lazyScriptPaths 오타 · build.mjs 누락 (05칸 7장)\"], [\"blank\", \"목록에 도구가 안 보인다\", \"widgets-lazy-meta.ts\", \"그 id 가 표에 있나 · hidden 이 아닌가\", \"메타 한 줄을 안 넣었다 (05칸 7장)\"], [\"blank\", \"도구 화면만 비었다 (다른 건 멀쩡)\", \"Console\", \"그 위젯 파일의 build 안을 본다\", \"build 안에서 오류가 났다 (05칸 6장)\"], [\"blank\", \"새로고침하면 잠깐 보였다 사라진다\", \"Console + 나중에 도는 코드\", \"나중 렌더가 덮었나 본다\", \"다시 그리기가 앞의 화면을 갈아 끼웠다 (04칸 5장)\"], [\"blank\", \"아무것도 안 뜨고 페이지가 하얗다\", \"dev 서버 터미널\", \"서버가 살아 있나 · 주소가 맞나\", \"npm run dev 가 꺼졌다 (01칸 2장)\"], [\"click\", \"버튼을 눌러도 아무 일이 없다\", \"Console\", \"오류가 있나 → 없으면 리스너가 붙었나\", \"요소를 찾은 시점이 일러 null 이었다 (04칸 5장)\"], [\"click\", \"한 번 눌렀는데 두 번 실행된다\", \"console.count('handler')\", \"리스너가 몇 개 붙었나 센다\", \"다시 그릴 때마다 addEventListener 를 또 불렀다 (04칸 7장)\"], [\"click\", \"새로 만든 항목만 안 눌린다\", \"리스너를 어디에 붙였나\", \"위임(부모 하나)으로 바꾼다\", \"요소마다 붙이면 나중 요소엔 안 붙는다 (04칸 2장)\"], [\"click\", \"폼을 누르면 화면이 새로고침된다\", \"submit 처리 코드\", \"preventDefault() 가 있나\", \"브라우저 기본 동작을 안 막았다 (04칸 6장)\"], [\"click\", \"바깥을 눌러도 메뉴가 안 닫힌다\", \"stopPropagation 을 쓴 곳\", \"그 호출이 꼭 필요한가 본다\", \"이벤트가 위로 안 올라가 남의 코드가 죽었다 (04칸 6장)\"], [\"click\", \"값을 바꿔도 옛날 값으로 동작한다\", \"핸들러가 값을 언제 읽나\", \"핸들러 안에서 state 를 그때 읽게 고친다\", \"붙일 때의 값을 가둬 뒀다 (04칸 7장)\"], [\"click\", \"빨리 치면 옛 결과가 나중에 덮는다\", \"요청·응답 순서\", \"요청에 번호를 붙여 마지막 것만 반영\", \"늦게 온 응답이 최신을 덮었다 (04칸 7장)\"], [\"style\", \"요소는 있는데 안 보인다\", \"Elements → Styles\", \"display·높이·색·가림을 순서대로\", \"규칙이 졌거나 부모 배치가 다르다 (02칸 3장)\"], [\"style\", \"고친 CSS 가 안 먹는다\", \"Styles 탭의 취소선\", \"우선순위를 세어 본다\", \"다른 규칙이 이기고 있다 (02칸 3장)\"], [\"style\", \"가로 스크롤바가 생겼다\", \"넘치는 요소 찾기 스크립트\", \"그 요소에 min-width:0 · 안에서 스크롤\", \"flex 항목이 안 줄어든다 (03칸 6장)\"], [\"style\", \"긴 제목이 레이아웃을 밀어낸다\", \"그 항목의 min-width\", \"min-width:0 + 줄바꿈/자르기\", \"min-width:auto 가 기본이다 (03칸 6장)\"], [\"style\", \"넓은 화면에서만 레이아웃이 풀린다\", \"탭 컨테이너에 건 스타일\", \"안쪽 wrapper 로 옮긴다\", \"공용 .tab-panel 규칙과 충돌 (03칸 8장)\"], [\"style\", \"모바일에서 화면 높이가 튄다\", \"100vh 를 쓴 곳\", \"100dvh 로 바꾼다\", \"주소창이 접히며 vh 가 변한다 (03칸 8장)\"], [\"style\", \"간격이 두 배로 벌어졌다\", \"gap 과 margin 을 같이 썼나\", \"하나로 통일한다 (gap 권장)\", \"둘이 더해진다 (03칸 5장)\"], [\"text\", \"화면에 열쇠 이름이 그대로 보인다\", \"Console 의 [i18n] 경고\", \"묶음을 받았나 → 열쇠가 맞나 → 세 언어 다 있나\", \"loadNamespace 를 안 기다렸다 (06칸 5장)\"], [\"text\", \"영어 화면에 한국어가 섞여 나온다\", \"i18n/en 의 그 열쇠\", \"en 파일에 그 열쇠를 채운다\", \"번역이 없어 원본 언어로 떨어진 것 (06칸 3장)\"], [\"text\", \"언어를 바꿔도 글자가 그대로다\", \"언어 전환 후 다시 그리나\", \"전환을 듣고 렌더를 다시 부른다\", \"이미 그린 글자는 안 바뀐다 (06칸 5장)\"], [\"text\", \"개수 표시가 어색하다 (1 items)\", \"tn() 을 썼나\", \"열쇠에 .one/.other 를 두고 tn 사용\", \"복수형을 문자열로 이어붙였다 (06칸 4장)\"], [\"text\", \"번역했는데 어순이 이상하다\", \"문장을 조각냈나\", \"한 문장을 열쇠 하나로 합친다\", \"조각 이어붙이기 (06칸 4장)\"], [\"text\", \"test:i18n 계열 검사기가 빨강\", \"그 검사기 메시지\", \"빠진 언어 파일에 열쇠를 채운다\", \"한 언어만 넣었다 (06칸 1장)\"], [\"state\", \"설정이 저절로 바뀐다\", \"localStorage 열쇠 이름\", \"kl:<도구id>: 접두사를 붙인다\", \"다른 도구와 열쇠가 겹쳤다 (06칸 7장)\"], [\"state\", \"배포 사이트엔 내 설정이 없다\", \"출처(origin)\", \"정상이다 — 저장소는 출처별로 갈린다\", \"로컬과 배포는 다른 저장소 (06칸 7장)\"], [\"state\", \"저장된 값 때문에 앱이 죽는다\", \"JSON.parse 하는 곳\", \"try 로 감싸고 기본값을 준다\", \"옛 판·깨진 값이 남아 있다 (06칸 7장)\"], [\"state\", \"두 곳의 표시가 서로 다르다\", \"같은 값을 두 곳에 뒀나\", \"상태 하나만 두고 화면은 거울로\", \"진실이 둘이면 어긋난다 (04칸 4장)\"], [\"state\", \"고쳤는데 화면이 그대로다\", \"dev 서버 터미널 → 어느 파일을 고쳤나\", \"src 를 고쳤나 확인 → 강제 새로고침\", \"결과물(js/)을 고쳤다 (01칸 3장)\"], [\"state\", \"옛 화면이 계속 나온다\", \"Application → 캐시·서비스워커\", \"강제 새로고침 → 캐시 비우기\", \"캐시가 옛 파일을 준다 (02칸 7장)\"], [\"slow\", \"스크롤이 버벅인다\", \"Performance 기록\", \"어디서 시간을 쓰는지 먼저 잰다\", \"매 이벤트마다 전체를 다시 그린다 (04칸 5장)\"], [\"slow\", \"도구를 여러 번 열수록 느려진다\", \"타이머·리스너 정리\", \"dispose 에서 abort/clearInterval\", \"정리를 안 해 쌓였다 (05칸 6장)\"], [\"slow\", \"첫 화면이 늦게 뜬다\", \"Network 에서 받은 양\", \"필요할 때 받게 나눈다\", \"미리 받는 것이 많다 (05칸 1장)\"], [\"slow\", \"행이 많아지면 멈칫한다\", \"다시 그리는 방식\", \"부분 갱신으로 옮긴다 (재 보고)\", \"통째로 다시 만든다 (04칸 5장)\"], [\"red\", \"검사기가 빨강인데 이유를 모르겠다\", \"그 검사기가 스스로 말한 사유\", \"메시지의 파일·줄로 간다\", \"대개 한국어로 적혀 있다 (01칸 6장)\"], [\"red\", \"내 변경과 무관한 검사가 빨강\", \"누구 영역인지\", \"알리고 우회 · 남의 미커밋 변경은 안 건드린다\", \"다른 세션 작업 중 (01칸 4장)\"], [\"red\", \"타입 검사만 빨강\", \"오류 첫 줄과 마지막 줄\", \"그 줄로 가서 타입을 맞춘다\", \"실행 전에 잡힌 것 — 오히려 다행 (02칸 4장)\"], [\"red\", \"로컬은 초록인데 CI 는 빨강\", \"CI 로그의 그 단계\", \"환경 차이(대소문자·시간대·의존성)를 본다\", \"내 컴퓨터에만 있는 조건\"], [\"red\", \"push 가 거부된다\", \"git status · 원격 상태\", \"fetch 후 다시 · 강제 push 금지\", \"그 사이 남이 올렸다 (git-remote 5장)\"], [\"red\", \"배포가 계속 빨강\", \"gh run list · 실패 단계 로그\", \"빨강인 검사 하나를 먼저 고친다\", \"검사 한 개가 전체를 세운다\"]];\n  const FAMILY = {\"blank\": \"안 뜬다 · 빈 화면\", \"click\": \"눌러도 안 된다 · 동작 이상\", \"style\": \"모양 · 레이아웃\", \"text\": \"글자 · 번역\", \"state\": \"값 · 저장 · 캐시\", \"slow\": \"느리다\", \"red\": \"터미널 · 검사기 · 배포 빨강\"};\n\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 증상 하나를 카드로 */\n  function card(e) {\n    return '<div class=\"card\"><b>' + esc(e[1]) + '</b><br>'\n      + '<span class=\"first\">첫 창: ' + esc(e[2]) + '</span><br>'\n      + '<span class=\"then\">그다음: ' + esc(e[3]) + '</span><br>'\n      + '<span class=\"why\">흔한 원인: ' + esc(e[4]) + '</span></div>';\n  }\n  /** 한 가족을 카드 목록으로 */\n  function family(key) {\n    const list = ENTRIES.filter((e) => e[0] === key);\n    stage.innerHTML = '<div class=\"hint\">' + FAMILY[key] + ' — ' + list.length + '건</div>'\n      + list.map(card).join('');\n    return list;\n  }\n</script>\n<script>\n  const list = family('red');\n  const i = {{pick}};\n  const cards = stage.querySelectorAll('.card');\n  cards.forEach((c, k) => { c.style.borderColor = k === i ? '#22c55e' : '#334155';\n    c.style.background = k === i ? '#14351f' : '#111c33'; });\n  const e = list[i];\n  clearLog('고른 증상: ' + e[1]);\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + esc(e[1]) + '</div>';\n  show('첫 창: ' + e[2] + '\\n'\n     + '그다음: ' + e[3] + '\\n'\n     + '흔한 원인: ' + e[4] + '\\n\\n'\n     + \"가르는 순서\\n  ① 검사기 메시지를 **끝까지** 읽는다 — 파일·줄·이유가 적혀 있다\\n  ② 그 파일이 내가 만진 것인가 (git status -s)\\n  ③ 내 것이면 고친다 · 남의 것이면 알리고 우회한다\\n  ④ 로컬 초록인데 CI 빨강이면 환경 차이를 본다 (대소문자·시간대·의존성)\\n\\n한 가지 더\\n  검사기 여러 개가 한꺼번에 빨강이면 **하나만 고쳐도 나머지가 함께 사라지는** 경우가 많다.\\n  빌드 앞단이 무너지면 뒤 검사가 줄줄이 실패하기 때문이다 — 앞단부터 본다.\");\n\n</script>",
+          "controls": [
+            {
+              "id": "pick",
+              "label": "증상",
+              "type": "select",
+              "value": "0",
+              "options": [
+                {
+                  "value": "0",
+                  "label": "검사기가 빨강인데 이유를 모르겠다"
+                },
+                {
+                  "value": "1",
+                  "label": "내 변경과 무관한 검사가 빨강"
+                },
+                {
+                  "value": "2",
+                  "label": "타입 검사만 빨강"
+                },
+                {
+                  "value": "3",
+                  "label": "로컬은 초록인데 CI 는 빨강"
+                },
+                {
+                  "value": "4",
+                  "label": "push 가 거부된다"
+                },
+                {
+                  "value": "5",
+                  "label": "배포가 계속 빨강"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**내 변경과 무관한 검사가 빨강일 수 있다.** 이 작업 트리는 세션이 여럿 공유하므로 남의 작업 중인 변경이 검사기를 세울 수 있는데, 그때는 고치려 들지 말고 **알리고 우회**한다 — 남의 미커밋 변경은 건드리지 않는다(01칸 4장)."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "빨강을 가르는 순서",
+          "text": "npm run typecheck              # 타입만 먼저 (가장 빠르다)\nnpm run test:그검사            # 내가 만진 영역만\ngit status -s                  # 내 변경이 무엇인가 (남의 것과 갈라 보기)\n\n# 배포 쪽\ngh run list -L 10\ngh run view <id> --log-failed | head -40    # 실패 단계만"
+        },
+        {
+          "type": "try",
+          "text": "지금 `npm run typecheck` 를 돌려 보라. 초록이면 그게 기준선이고, 뭔가 고친 뒤 빨강이 되면 그 변경이 원인이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "검사기 빨강의 첫 행동은?",
+          "choices": [
+            "다시 돌리기",
+            "메시지를 끝까지 읽기",
+            "롤백",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "사유가 적혀 있다."
+        },
+        {
+          "q": "남의 작업 때문에 검사가 빨강이면?",
+          "choices": [
+            "대신 고친다",
+            "알리고 우회한다",
+            "되돌린다",
+            "무시한다"
+          ],
+          "answer": 1,
+          "why": "미커밋 변경은 안 건드린다."
+        },
+        {
+          "q": "검사기 여러 개가 동시에 빨강이면?",
+          "choices": [
+            "전부 따로 고친다",
+            "앞단부터 — 하나로 나머지가 풀릴 수 있다",
+            "롤백",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "빌드가 무너지면 줄줄이 실패."
+        }
+      ]
     },
     {
-      "type": "p",
-      "text": "src 확인 → 저장 → 개발 터미널 첫 오류 → 위젯 재진입 → 새로고침."
-    },
-    {
-      "type": "h",
-      "text": "TS 오류가 김"
-    },
-    {
-      "type": "p",
-      "text": "가장 위 error의 파일·줄·칸부터 읽는다."
-    },
-    {
-      "type": "h",
-      "text": "버튼 무반응"
-    },
-    {
-      "type": "p",
-      "text": "data-* → listener selector → 상태 변경 → render 순서로 본다."
-    },
-    {
-      "type": "h",
-      "text": "목록 비어 있음"
-    },
-    {
-      "type": "p",
-      "text": "Network status/response → JSON shape → empty/error UI 순서."
-    },
-    {
-      "type": "h",
-      "text": "안전한 복구"
-    },
-    {
-      "type": "p",
-      "text": "파일 전체 reset 대신 내가 바꾼 한 줄만 직접 원복한다."
+      "id": "9",
+      "title": "마무리 — 사전에 없을 때",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "사전은 자주 겪는 것을 모아 둔 것이다. **없는 증상**을 만났을 때 무엇을 하는지가 실은 더 중요하다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "증상 사전 점검표",
+          "text": "찾기\n  [ ] 증상을 한 문장으로 적었나 (했더니·기대·실제)                (1장)\n  [ ] 환경을 함께 적었나 (웹/데스크톱·언어·창 크기)                (1장)\n  [ ] 어느 가족인지 골랐나 (안 뜬다/안 눌린다/모양/글자/값/느림/빨강)\n\n가족별 첫 창\n  [ ] 안 뜬다      → Network · Console                             (2장)\n  [ ] 안 눌린다    → Console · console.count                        (3장)\n  [ ] 모양         → Elements · Styles 취소선                       (4장)\n  [ ] 글자         → Console 의 [i18n] 경고                         (5장)\n  [ ] 값·캐시      → 시크릿 창으로 한 번에 판정                     (6장)\n  [ ] 느리다       → 재 본다 (console.time · Performance)           (7장)\n  [ ] 빨강         → 검사기가 스스로 말한 사유                      (8장)\n\n사전에 없을 때\n  [ ] 07칸의 방법으로 — 재현 · 층 가르기 · 반씩 좁히기\n  [ ] 최소 재현으로 깎아 봤나\n  [ ] 되던 시점과의 차이를 봤나 (bisect)\n  [ ] 새로 알아낸 증상을 이 사전에 한 줄 보태 두었나"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "사전 전체 훑어보기 — 가족별 건수",
+          "height": "440px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage input { width:100%; box-sizing:border-box; background:#111c33; border:1px solid #475569;\n                 border-radius:6px; color:#e2e8f0; font:13px system-ui; padding:8px 10px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 10px; cursor:pointer; margin:2px; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  .card { background:#111c33; border:1px solid #334155; border-radius:8px; padding:9px 11px; margin-top:7px; }\n  .card b { color:#e2e8f0; }\n  .first { color:#4ade80; }\n  .then { color:#7dd3fc; }\n  .why { color:#94a3b8; font-size:11.5px; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:88px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const ENTRIES = [[\"blank\", \"화면이 통째로 비었다\", \"브라우저 Console\", \"첫 오류의 파일·줄로 간다\", \"그리는 코드가 오류로 멈췄다 (02칸 6장)\"], [\"blank\", \"「불러오는 중…」에서 멈춘다\", \"Network 탭\", \"404 면 경로·빌드, 200 이면 Console\", \"lazyScriptPaths 오타 · build.mjs 누락 (05칸 7장)\"], [\"blank\", \"목록에 도구가 안 보인다\", \"widgets-lazy-meta.ts\", \"그 id 가 표에 있나 · hidden 이 아닌가\", \"메타 한 줄을 안 넣었다 (05칸 7장)\"], [\"blank\", \"도구 화면만 비었다 (다른 건 멀쩡)\", \"Console\", \"그 위젯 파일의 build 안을 본다\", \"build 안에서 오류가 났다 (05칸 6장)\"], [\"blank\", \"새로고침하면 잠깐 보였다 사라진다\", \"Console + 나중에 도는 코드\", \"나중 렌더가 덮었나 본다\", \"다시 그리기가 앞의 화면을 갈아 끼웠다 (04칸 5장)\"], [\"blank\", \"아무것도 안 뜨고 페이지가 하얗다\", \"dev 서버 터미널\", \"서버가 살아 있나 · 주소가 맞나\", \"npm run dev 가 꺼졌다 (01칸 2장)\"], [\"click\", \"버튼을 눌러도 아무 일이 없다\", \"Console\", \"오류가 있나 → 없으면 리스너가 붙었나\", \"요소를 찾은 시점이 일러 null 이었다 (04칸 5장)\"], [\"click\", \"한 번 눌렀는데 두 번 실행된다\", \"console.count('handler')\", \"리스너가 몇 개 붙었나 센다\", \"다시 그릴 때마다 addEventListener 를 또 불렀다 (04칸 7장)\"], [\"click\", \"새로 만든 항목만 안 눌린다\", \"리스너를 어디에 붙였나\", \"위임(부모 하나)으로 바꾼다\", \"요소마다 붙이면 나중 요소엔 안 붙는다 (04칸 2장)\"], [\"click\", \"폼을 누르면 화면이 새로고침된다\", \"submit 처리 코드\", \"preventDefault() 가 있나\", \"브라우저 기본 동작을 안 막았다 (04칸 6장)\"], [\"click\", \"바깥을 눌러도 메뉴가 안 닫힌다\", \"stopPropagation 을 쓴 곳\", \"그 호출이 꼭 필요한가 본다\", \"이벤트가 위로 안 올라가 남의 코드가 죽었다 (04칸 6장)\"], [\"click\", \"값을 바꿔도 옛날 값으로 동작한다\", \"핸들러가 값을 언제 읽나\", \"핸들러 안에서 state 를 그때 읽게 고친다\", \"붙일 때의 값을 가둬 뒀다 (04칸 7장)\"], [\"click\", \"빨리 치면 옛 결과가 나중에 덮는다\", \"요청·응답 순서\", \"요청에 번호를 붙여 마지막 것만 반영\", \"늦게 온 응답이 최신을 덮었다 (04칸 7장)\"], [\"style\", \"요소는 있는데 안 보인다\", \"Elements → Styles\", \"display·높이·색·가림을 순서대로\", \"규칙이 졌거나 부모 배치가 다르다 (02칸 3장)\"], [\"style\", \"고친 CSS 가 안 먹는다\", \"Styles 탭의 취소선\", \"우선순위를 세어 본다\", \"다른 규칙이 이기고 있다 (02칸 3장)\"], [\"style\", \"가로 스크롤바가 생겼다\", \"넘치는 요소 찾기 스크립트\", \"그 요소에 min-width:0 · 안에서 스크롤\", \"flex 항목이 안 줄어든다 (03칸 6장)\"], [\"style\", \"긴 제목이 레이아웃을 밀어낸다\", \"그 항목의 min-width\", \"min-width:0 + 줄바꿈/자르기\", \"min-width:auto 가 기본이다 (03칸 6장)\"], [\"style\", \"넓은 화면에서만 레이아웃이 풀린다\", \"탭 컨테이너에 건 스타일\", \"안쪽 wrapper 로 옮긴다\", \"공용 .tab-panel 규칙과 충돌 (03칸 8장)\"], [\"style\", \"모바일에서 화면 높이가 튄다\", \"100vh 를 쓴 곳\", \"100dvh 로 바꾼다\", \"주소창이 접히며 vh 가 변한다 (03칸 8장)\"], [\"style\", \"간격이 두 배로 벌어졌다\", \"gap 과 margin 을 같이 썼나\", \"하나로 통일한다 (gap 권장)\", \"둘이 더해진다 (03칸 5장)\"], [\"text\", \"화면에 열쇠 이름이 그대로 보인다\", \"Console 의 [i18n] 경고\", \"묶음을 받았나 → 열쇠가 맞나 → 세 언어 다 있나\", \"loadNamespace 를 안 기다렸다 (06칸 5장)\"], [\"text\", \"영어 화면에 한국어가 섞여 나온다\", \"i18n/en 의 그 열쇠\", \"en 파일에 그 열쇠를 채운다\", \"번역이 없어 원본 언어로 떨어진 것 (06칸 3장)\"], [\"text\", \"언어를 바꿔도 글자가 그대로다\", \"언어 전환 후 다시 그리나\", \"전환을 듣고 렌더를 다시 부른다\", \"이미 그린 글자는 안 바뀐다 (06칸 5장)\"], [\"text\", \"개수 표시가 어색하다 (1 items)\", \"tn() 을 썼나\", \"열쇠에 .one/.other 를 두고 tn 사용\", \"복수형을 문자열로 이어붙였다 (06칸 4장)\"], [\"text\", \"번역했는데 어순이 이상하다\", \"문장을 조각냈나\", \"한 문장을 열쇠 하나로 합친다\", \"조각 이어붙이기 (06칸 4장)\"], [\"text\", \"test:i18n 계열 검사기가 빨강\", \"그 검사기 메시지\", \"빠진 언어 파일에 열쇠를 채운다\", \"한 언어만 넣었다 (06칸 1장)\"], [\"state\", \"설정이 저절로 바뀐다\", \"localStorage 열쇠 이름\", \"kl:<도구id>: 접두사를 붙인다\", \"다른 도구와 열쇠가 겹쳤다 (06칸 7장)\"], [\"state\", \"배포 사이트엔 내 설정이 없다\", \"출처(origin)\", \"정상이다 — 저장소는 출처별로 갈린다\", \"로컬과 배포는 다른 저장소 (06칸 7장)\"], [\"state\", \"저장된 값 때문에 앱이 죽는다\", \"JSON.parse 하는 곳\", \"try 로 감싸고 기본값을 준다\", \"옛 판·깨진 값이 남아 있다 (06칸 7장)\"], [\"state\", \"두 곳의 표시가 서로 다르다\", \"같은 값을 두 곳에 뒀나\", \"상태 하나만 두고 화면은 거울로\", \"진실이 둘이면 어긋난다 (04칸 4장)\"], [\"state\", \"고쳤는데 화면이 그대로다\", \"dev 서버 터미널 → 어느 파일을 고쳤나\", \"src 를 고쳤나 확인 → 강제 새로고침\", \"결과물(js/)을 고쳤다 (01칸 3장)\"], [\"state\", \"옛 화면이 계속 나온다\", \"Application → 캐시·서비스워커\", \"강제 새로고침 → 캐시 비우기\", \"캐시가 옛 파일을 준다 (02칸 7장)\"], [\"slow\", \"스크롤이 버벅인다\", \"Performance 기록\", \"어디서 시간을 쓰는지 먼저 잰다\", \"매 이벤트마다 전체를 다시 그린다 (04칸 5장)\"], [\"slow\", \"도구를 여러 번 열수록 느려진다\", \"타이머·리스너 정리\", \"dispose 에서 abort/clearInterval\", \"정리를 안 해 쌓였다 (05칸 6장)\"], [\"slow\", \"첫 화면이 늦게 뜬다\", \"Network 에서 받은 양\", \"필요할 때 받게 나눈다\", \"미리 받는 것이 많다 (05칸 1장)\"], [\"slow\", \"행이 많아지면 멈칫한다\", \"다시 그리는 방식\", \"부분 갱신으로 옮긴다 (재 보고)\", \"통째로 다시 만든다 (04칸 5장)\"], [\"red\", \"검사기가 빨강인데 이유를 모르겠다\", \"그 검사기가 스스로 말한 사유\", \"메시지의 파일·줄로 간다\", \"대개 한국어로 적혀 있다 (01칸 6장)\"], [\"red\", \"내 변경과 무관한 검사가 빨강\", \"누구 영역인지\", \"알리고 우회 · 남의 미커밋 변경은 안 건드린다\", \"다른 세션 작업 중 (01칸 4장)\"], [\"red\", \"타입 검사만 빨강\", \"오류 첫 줄과 마지막 줄\", \"그 줄로 가서 타입을 맞춘다\", \"실행 전에 잡힌 것 — 오히려 다행 (02칸 4장)\"], [\"red\", \"로컬은 초록인데 CI 는 빨강\", \"CI 로그의 그 단계\", \"환경 차이(대소문자·시간대·의존성)를 본다\", \"내 컴퓨터에만 있는 조건\"], [\"red\", \"push 가 거부된다\", \"git status · 원격 상태\", \"fetch 후 다시 · 강제 push 금지\", \"그 사이 남이 올렸다 (git-remote 5장)\"], [\"red\", \"배포가 계속 빨강\", \"gh run list · 실패 단계 로그\", \"빨강인 검사 하나를 먼저 고친다\", \"검사 한 개가 전체를 세운다\"]];\n  const FAMILY = {\"blank\": \"안 뜬다 · 빈 화면\", \"click\": \"눌러도 안 된다 · 동작 이상\", \"style\": \"모양 · 레이아웃\", \"text\": \"글자 · 번역\", \"state\": \"값 · 저장 · 캐시\", \"slow\": \"느리다\", \"red\": \"터미널 · 검사기 · 배포 빨강\"};\n\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-6).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 증상 하나를 카드로 */\n  function card(e) {\n    return '<div class=\"card\"><b>' + esc(e[1]) + '</b><br>'\n      + '<span class=\"first\">첫 창: ' + esc(e[2]) + '</span><br>'\n      + '<span class=\"then\">그다음: ' + esc(e[3]) + '</span><br>'\n      + '<span class=\"why\">흔한 원인: ' + esc(e[4]) + '</span></div>';\n  }\n  /** 한 가족을 카드 목록으로 */\n  function family(key) {\n    const list = ENTRIES.filter((e) => e[0] === key);\n    stage.innerHTML = '<div class=\"hint\">' + FAMILY[key] + ' — ' + list.length + '건</div>'\n      + list.map(card).join('');\n    return list;\n  }\n</script>\n<script>\n  const counts = Object.keys(FAMILY).map((k) => [k, FAMILY[k], ENTRIES.filter((e) => e[0] === k).length]);\n  const max = Math.max(...counts.map((c) => c[2]));\n  stage.innerHTML = '<div class=\"hint\">증상 ' + ENTRIES.length + '건 · 가족 ' + counts.length + '개</div>'\n    + counts.map(([k, name, n], i) =>\n      '<div style=\"margin:7px 0\"><button data-k=\"' + k + '\">' + (i + 2) + '장 ' + name + ' (' + n + ')</button>'\n      + '<div style=\"height:8px;background:#334155;border-radius:4px;margin-top:4px\">'\n      + '<div style=\"height:100%;width:' + (n / max * 100) + '%;background:#60a5fa;border-radius:4px\"></div></div></div>').join('')\n    + '<div id=\"res\"></div>';\n  stage.addEventListener('click', (e) => {\n    const b = e.target.closest('button[data-k]');\n    if (!b) return;\n    stage.querySelectorAll('button[data-k]').forEach((x) => { x.dataset.on = x === b ? '1' : '0'; });\n    const list = ENTRIES.filter((x) => x[0] === b.dataset.k);\n    stage.querySelector('#res').innerHTML = list.map(card).join('');\n    log(FAMILY[b.dataset.k] + ' — ' + list.length + '건을 펼쳤다');\n  });\n  clearLog('가족을 눌러 그 안의 증상을 펼쳐 보라');\n  app.innerHTML = '';\n  show('사전에 없는 증상을 만났다면\\n'\n     + '  1. 07칸으로 — 재현부터 세운다\\n'\n     + '  2. 층을 가른다 (어느 창에 처음 보이나)\\n'\n     + '  3. 반씩 좁힌다 · 최소 재현으로 깎는다\\n'\n     + '  4. 되던 시점과의 차이를 본다 (bisect)\\n\\n'\n     + '그리고 마지막 한 걸음\\n'\n     + '  알아낸 증상을 **한 줄로 남긴다** — 증상 · 첫 창 · 원인.\\n'\n     + '  다음에 같은 것을 만나는 사람(대개 반년 뒤의 나)이 3분 만에 끝낸다.');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "**사전은 자라야 값이 된다.** 새로 알아낸 증상 한 줄이 다음 사람의 30분을 아껴 주므로, 고친 직후 — 기억이 선명할 때 — 남기는 것이 가장 싸다(07칸 8장)."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **증상 하나가 여러 가족에 걸칠 수 있다.** 「안 눌린다」가 실은 CSS 가 덮고 있어서일 수도 있는데, 그럴 때는 4장(모양)의 확인을 한 번 해 보면 된다 — 가족은 칸막이가 아니라 출발점이다."
+        },
+        {
+          "type": "try",
+          "text": "이번 주에 겪은 고장 하나를 골라 이 사전 형식(증상 · 첫 창 · 그다음 · 흔한 원인)으로 한 줄 적어 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "사전에 없는 증상을 만나면?",
+          "choices": [
+            "포기",
+            "07칸의 방법으로 — 재현부터",
+            "검색만",
+            "재설치"
+          ],
+          "answer": 1,
+          "why": "사전은 지름길일 뿐이다."
+        },
+        {
+          "q": "새로 알아낸 증상을 남기기 가장 좋은 때는?",
+          "choices": [
+            "다음 분기",
+            "고친 직후",
+            "리뷰 때",
+            "배포 후"
+          ],
+          "answer": 1,
+          "why": "기억이 선명할 때가 가장 싸다."
+        }
+      ]
     }
   ]
 }
