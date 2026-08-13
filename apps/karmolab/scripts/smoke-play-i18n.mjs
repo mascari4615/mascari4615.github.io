@@ -84,8 +84,18 @@ await ctx.addInitScript(() => {
 });
 const 빨강 = [];
 const 건너뜀 = [];
+/* ★ **끝나는 시각을 정해 둔다** (2026-08-14 실측). 화면 57개를 하나씩 여는데 한 장에 40초를
+   기다릴 수 있어, 사이트가 느린 판에서는 **50분을 넘긴다** — 실제로 라이브 점검 조각 하나가
+   그렇게 멈춰 서서 판정이 아예 안 나왔다(빨강보다 나쁘다: 아무 말도 없다).
+   시간이 다 되면 남은 것을 못 잰 것으로 세고 나간다. */
+const 마감 = Date.now() + Number(process.env.PLAY_I18N_BUDGET_SEC || 600) * 1000;
+const 못잼 = [];
 
 for (const id of ids) {
+  if (Date.now() > 마감) {
+    못잼.push(id);
+    continue;
+  }
   const page = await ctx.newPage();
   const 오류 = [];
   page.on('pageerror', (e) => 오류.push(String(e.message).slice(0, 120)));
@@ -93,7 +103,7 @@ for (const id of ids) {
     if (m.type() === 'error') 오류.push(m.text().slice(0, 120));
   });
   try {
-    await page.goto(문, { waitUntil: 'load', timeout: 40000 });
+    await page.goto(문, { waitUntil: 'load', timeout: 25000 });
     await page.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
     await page.evaluate((x) => Toolbox.switchPage(x), id);
     /* ★ **판이 뜰 때까지 기다린다 — 정해진 초를 세지 않는다** (2026-08-14).
@@ -109,11 +119,17 @@ for (const id of ids) {
          ① 애초에 위젯이 아닌 이름(말 묶음만 있는 것) ② 숨긴 위젯(다른 화면의 탭으로 합쳐진 것)
          ③ **보이는 위젯인데 안 열린다** — 이건 고장이다. */
       const meta = (window.KARMOLAB_LAZY_META || []).find((m) => m && m.id === x);
+      /* ★ **글자로 「멎었다」를 판정하지 않는다** (2026-08-14 실측). 「불러오는 중」은 화면마다
+         뜻이 다르다 — 남의 서버에서 목록을 받아 오는 화면(만든 도구)은 정상인데도 그 글자가
+         남아 있어 거짓 빨강이 났다. 진짜 죽음은 하나뿐이다: **위젯이 끝내 등록 안 됨.**
+         셸도 그때 「이 화면을 못 열었어요」로 바꾼다. 그 사실만 본다. */
+      const 못올라옴 = !!document.querySelector('[data-kl-load-failed="' + x + '"]');
       return {
         있나: !!el,
         글: (el?.textContent || '').trim(),
         위젯: !!meta,
-        숨김: !!(meta && meta.hidden)
+        숨김: !!(meta && meta.hidden),
+        못올라옴
       };
     }, id);
     const 말오류 = 오류.filter((t) => /\[i18n\]|MissingTranslation|CatalogLoad/.test(t));
@@ -129,11 +145,11 @@ for (const id of ids) {
         건너뜀.push(`${id}(${판.위젯 ? '숨김' : '위젯 아님'})`);
         process.stdout.write('-');
       }
-    } else if (!판.글 || (판.글.length < 60 && /꺼내는 중|불러오는 중|Loading/.test(판.글))) {
+    } else if (판.못올라옴 || !판.글) {
       /* 「불러오는 중」이 **화면의 전부**일 때만 멎은 것으로 본다. 다 지어진 화면 안에도
          그런 글자가 한 조각 있을 수 있다 — 서버 모니터가 그랬다(브라우저에서는 제 서버에
          못 닿아 한 칸이 「불러오는 중」이다. 그건 고장이 아니라 그 화면의 정상이다). */
-      빨강.push(`${id}: 판이 안 지어졌다 — 화면에 「${판.글.slice(0, 24)}」만 있다`);
+      빨강.push(`${id}: 판이 안 지어졌다 — ${판.못올라옴 ? "셸이 「못 열었어요」로 바꿨다" : "화면이 비어 있다"}`);
     } else {
       process.stdout.write('.');
     }
@@ -146,6 +162,16 @@ process.stdout.write(String.fromCharCode(10));
 await browser.close().catch(() => {});
 if (server) server.close();
 
+if (못잼.length) {
+  console.error(`[play-i18n] 시간이 다 돼 못 잰 화면 ${못잼.length}개: ${못잼.slice(0, 10).join(', ')}`);
+  console.error('  못 잰 것은 초록이 아니다 — 판정하지 않는다 (PLAY_I18N_BUDGET_SEC 로 늘릴 수 있다).');
+  if (빨강.length) {
+    console.error(`[play-i18n] 그 전에 잡힌 빨강 ${빨강.length}개:`);
+    빨강.forEach((r) => console.error('  - ' + r));
+    process.exit(1);
+  }
+  process.exit(2);
+}
 if (건너뜀.length) console.log(`[play-i18n] 앱 안 화면이 아니라 건너뛴 것 ${건너뜀.length}개: ${건너뜀.join(', ')}`);
 /* 다 건너뛰었으면 본 것이 없다 — 초록으로 적으면 거짓이다. */
 if (건너뜀.length === ids.length) {
