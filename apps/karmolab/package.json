@@ -15,6 +15,7 @@
     "verify:live": "node scripts/run-live-checks.mjs",
     "verify:karmograph": "node scripts/run-karmograph-live.mjs",
     "verify:prepush": "node scripts/run-prepush.mjs",
+    "verify:deploy": "node scripts/run-gates.mjs gen:tool-pages gen:tool-pages-locale test:i18n:pages prerender",
     "build:wiki": "node scripts/sync-wiki.mjs",
     "build:devlog": "node scripts/build-devlog.mjs",
     "build:wm-tasks": "node scripts/build-wm-tasks.mjs",
