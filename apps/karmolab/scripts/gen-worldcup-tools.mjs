@@ -13,6 +13,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { withoutRetired } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = 'https://blog.mascari4615.com';
@@ -38,7 +39,9 @@ for (const m of metaSrc.matchAll(/id:\s*"([a-z0-9-]+)"[\s\S]{0,400}?title:\s*"([
 const KIND = { tool: '도구', play: '놀이', desktop: '데스크톱', dev: '개발' };
 
 const items = [];
-for (const id of Object.keys(seo)) {
+/* 작업대로 합친 옛 도구는 후보에서 뺀다 — 골라도 「작업대로 보냅니다」 안내 한 장이라
+   대결의 한쪽이 빈 자리가 된다(목록 정본은 lib/retired-operations.mjs). */
+for (const id of withoutRetired(Object.keys(seo))) {
   const img = path.join(root, 'img/og', `${id}.jpg`);
   if (!fs.existsSync(img)) continue; // 그림 없는 도구는 월드컵에 못 나온다
   const w = widgets.get(id);
