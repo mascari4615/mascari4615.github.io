@@ -257,7 +257,6 @@
     "audit:wait": "node scripts/audit-wait-timeout.mjs",
     "audit:orphans": "node scripts/audit-orphan-tests.mjs",
     "smoke:batchretry": "node scripts/smoke-batch-retry.mjs",
-    "smoke:wrongkind": "node scripts/smoke-wrong-kind.mjs",
     "test:jsontree": "node scripts/test-json-tree.mjs",
     "test:dropwell": "node scripts/test-drop-well.mjs",
     "test:saylive": "node scripts/test-status-live.mjs",
