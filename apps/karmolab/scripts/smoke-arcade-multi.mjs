@@ -26,9 +26,17 @@
  * 통과도 실패도 아니다. 둘을 같은 글자로 적으면 게이트가 죽은 것을 아무도 모른다.
  */
 import { chromium } from 'playwright';
+import { serveRepo } from './lib/serve-static.mjs';
 import { waitHydrated } from './lib/hydrated.mjs';
 
-const BASE = process.env.ARCADE_BASE || 'http://127.0.0.1:8813';
+/* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14). 사람이 켜는 `npm run dev`(8813)만 보다가
+   CI 에서는 늘 「못 돌림」이었다 — 그 서버를 CI 는 한 번도 안 켠다. 못 도는 검사는 없는 검사다. */
+let 내서버 = null;
+let BASE = process.env.ARCADE_BASE || 'http://127.0.0.1:8813';
+if (!(await fetch(`${BASE}/apps/karmolab/index.html`).then((r) => r.ok).catch(() => false))) {
+  내서버 = await serveRepo();
+  BASE = 내서버.base;
+}
 const PAGE = `${BASE}/apps/karmolab/index.html`;
 const CONNECT_MS = 60000;
 
@@ -192,6 +200,7 @@ if (!cantRun) {
 }
 
 await browser.close();
+if (내서버) await 내서버.close();
 
 if (cantRun) {
   console.log(`[arcade-multi] 못 돌았다 — ${cantRun} (통과 아님)`);
