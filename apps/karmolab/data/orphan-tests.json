@@ -34,6 +34,7 @@
     "test:heung",
     "test:idle",
     "test:inbox",
+    "test:karmograph:repeat",
     "test:offline",
     "test:orbita",
     "test:perf:budget:regress",
@@ -85,6 +86,7 @@
     "test:timecapsule": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다",
     "test:usertool": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다",
     "test:workshop": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다",
-    "test:worldcup": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다"
+    "test:worldcup": "화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다",
+    "test:karmograph:repeat": "진단 도구 — 카모그래프 검사를 여러 판 돌려 흔들림(재현율)을 재는 것이라 게이트가 아니다(한 판 3분 반, 지금은 SHAKY 로 끝난다)"
   }
 }
