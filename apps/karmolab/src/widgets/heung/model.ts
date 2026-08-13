@@ -6,6 +6,7 @@ export interface StudioNote {
   duration: number;
   pitch: number;
   velocity: number;
+  muted?: boolean;
 }
 
 export interface StudioClip {
