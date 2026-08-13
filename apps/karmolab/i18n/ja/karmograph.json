@@ -679,5 +679,7 @@
   "karmograph.sample.wipeAct": "見本を消す",
   "karmograph.sample.wipeDone": "空の板です — 何もない所をダブルクリックで開始",
   "karmograph.embed.label": "ブログに貼るコード",
-  "karmograph.embed.done": "ブログに貼る一行をコピーしました"
+  "karmograph.embed.done": "ブログに貼る一行をコピーしました",
+  "karmograph.crowd.offer": "カードが{n}枚 — このカードの周りだけ見ますか？",
+  "karmograph.crowd.done": "周り2ステップだけ表示中 — 絞り込み欄で戻せます"
 }
