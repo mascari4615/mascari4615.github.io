@@ -88,7 +88,9 @@ if (!baseline) {
 /* 위젯당 한계를 넘은 채 **이름이 적힌** 것들 — 조용한 면제가 아니라 갚을 빚으로 둔다.
  * 여기 없는 위젯이 한계를 넘으면 그 즉시 빨개진다(새 빚 유입 차단). 쪼개고 나면 줄을 지운다. */
 const OVER_LIMIT_DEBT = {
-  'tools/chain.js': 'TASK-KL-205 — 도구 사슬. 단계별 조각으로 쪼갤 것',
+  /* 도구 사슬은 갚았다 (87.7KB → 4.7KB, 2026-08-13) — 알맹이 122개를 묶음에 다 넣고 있었고,
+     이제 고른 것만 따로 받아 온다. **갚은 빚은 지운다**: 면제가 남아 있으면 그 위젯이 다시
+     천장을 넘어도 아무 말도 안 나온다(면제는 조용히 영원해지는 쪽이 기본값이다). */
   'karmograph/karmograph.js': 'TASK-KL-202 — 캔버스. 그리기/편집 조각 분리할 것',
   /* 오락실은 놀이를 계속 더하는 중이라 천장을 넘겼다(65.3KB, 2026-08-12). 놀이별로 늦게
      받도록 쪼개는 것이 답이고 그건 만드는 사람 몫이라, 그때까지 **빚으로 적어 둔다** —
@@ -132,8 +134,14 @@ function sourceTouchedSince(baseCommit, name) {
     const out = execFileSync('git', ['diff', '--name-only', `${baseCommit}..HEAD`, '--', ...globs],
       { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
     return out.trim().length > 0;
-  } catch {
-    return false;
+  } catch (e) {
+    /* ★ **여기도 「모름」이다** (2026-08-13). 바로 위에서 「못 물어보면 막지 않는다」로 고쳐 놓고
+       이 자리만 옛날 그대로였다 — 물어보다 던지면 `false`, 즉 **「아무도 안 건드렸다」**가 되어
+       정당한 성장이 곧바로 빨강이 된다. 던지는 경우는 실제로 있다: 기준선을 박은 커밋이 이
+       체크아웃에 없을 때(얕게 받았거나 force-push 로 사라졌을 때) `git diff` 가 그대로 죽는다.
+       못 물어본 것은 「아니오」가 아니다. 알리기만 하고 통과시킨다. */
+    console.warn(`[bundle] ${name} — 누가 건드렸는지 물어보지 못했다(${e.code || 'git 실패'}) · 모름은 막지 않는다`);
+    return true;
   }
 }
 
