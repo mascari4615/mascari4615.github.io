@@ -642,5 +642,7 @@
   "karmograph.act.rename": "rename",
   "karmograph.palette.open": "All commands… (Ctrl ⇧ P)",
   "karmograph.palette.find": "What do you want to do? Type a name",
-  "karmograph.palette.none": "No command by that name"
+  "karmograph.palette.none": "No command by that name",
+  "karmograph.panel.here": "Selection",
+  "karmograph.panel.more": "Other lists"
 }

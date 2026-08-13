@@ -168,6 +168,16 @@ import {
     /* 아이콘 옆 이름 — 폰에서는 줄이 옆으로 밀리므로 그대로 두고(밀어 쓰면 된다), 아주 좁을 때만 접는다. */
     .km-btn-name { margin-left:5px; font-size:11px; vertical-align:middle; }
     @media (max-width: 420px) { .km-btn-name { display:none; } }
+    .km-tabs { align-items:center; position:relative; }
+    .km-tabs-now { flex:1; min-width:0; font-size:12px; font-weight:600; color:var(--text-primary);
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:2px 2px 2px 4px; }
+    .km-tabs-more { padding:2px 8px; font-size:13px; }
+    /* 다른 목록은 **접어 둔다** — 늘 펴 두면 어쩌다 쓰는 여덟이 늘 쓰는 하나만큼 자리를 먹는다. */
+    .km-tabs-menu { position:absolute; right:0; top:calc(100% + 4px); z-index:6; display:flex;
+      flex-direction:column; gap:2px; padding:6px; min-width:150px; border:1px solid var(--border);
+      border-radius:10px; background:var(--bg-secondary); box-shadow:0 10px 26px rgba(0,0,0,.4); }
+    .km-tabs-menu.hidden { display:none; }
+    .km-tabs-menu .km-tab { justify-content:flex-start; text-align:left; opacity:.9; }
     .km-tab { padding:4px 7px; font-size:13px; opacity:.55; }
     .km-tab.is-on { opacity:1; background:var(--bg-tertiary); }
     .km-tab-name { margin-left:4px; font-size:11px; max-width:96px; overflow:hidden;
@@ -1376,19 +1386,33 @@ import {
       { id: 'help', icon: '?', title: t('karmograph.byLabel.msg10') },
     ];
 
-    /** 패널 내용을 그린 뒤 맨 앞에 탭을 얹는다 — 각 패널이 innerHTML 을 통째로 쓰기 때문. */
+    /**
+     * 패널 머리 — **지금 무엇을 보고 있나** 한 줄 + 다른 목록으로 가는 접힌 문 (TASK-KL-271 R2).
+     *
+     * 전에는 그림 여덟 개가 늘 떠 있었다. 1440px 에서도 **두 줄로 접혔고**(실측), 정작 아홉 중
+     * 여덟은 어쩌다 한 번 쓰는 것인데 「고른 것」과 같은 크기를 먹었다. 이제 화면은 **고른 것이
+     * 정한다** — 카드를 고르면 카드 패널, 선이면 선 패널, 여럿이면 자리 패널, 아무것도 없으면
+     * 판 패널. 나머지는 오른쪽 「⌄」 안에 접어 둔다(단추는 DOM 에 그대로 남아 손잡이가 산다).
+     */
     function prependTabs(): void {
+      const now = SIDE_TABS.find((x) => x.id === sideMode);
       const bar = document.createElement('div');
       bar.className = 'km-tabs';
-      /* ★ **지금 보고 있는 탭만 이름을 편다.** 그림 여덟 개만 늘어놓으면 「내가 어디에 있나」가
-         안 읽힌다 — 그렇다고 여덟 개 다 이름을 달면 좁은 패널에서 두 줄로 접힌다.
-         고른 것 하나만 펴는 방식은 폰 탭바에서 오래 쓰인 손이다. */
-      bar.innerHTML = SIDE_TABS.map(
+      const rows = SIDE_TABS.map(
         (tb0) => `<button class="btn btn-ghost km-tab${sideMode === tb0.id ? ' is-on' : ''}"
           data-km="tab" data-key="${tb0.id}" title="${tb0.title}" aria-label="${tb0.title}"
           >${tb0.icon}<span class="km-tab-name">${tb0.title}</span></button>`
       ).join('');
+      bar.innerHTML = `<span class="km-tabs-now">${esc(now ? `${now.icon} ${now.title}` : t('karmograph.panel.here'))}</span>`
+        + `<button class="btn btn-ghost km-tabs-more" data-km="panel-more"`
+        + ` title="${esc(t('karmograph.panel.more'))}" aria-label="${esc(t('karmograph.panel.more'))}">⌄</button>`
+        + `<div class="km-tabs-menu hidden" data-km="panel-menu">${rows}</div>`;
       sideEl.insertBefore(bar, sideEl.firstChild);
+      const menu = bar.querySelector('[data-km="panel-menu"]') as HTMLElement;
+      (bar.querySelector('[data-km="panel-more"]') as HTMLButtonElement).onclick = (ev) => {
+        ev.stopPropagation();
+        menu.classList.toggle('hidden');
+      };
       bar.querySelectorAll('[data-km="tab"]').forEach((el) => {
         (el as HTMLButtonElement).onclick = () => {
           sideMode = ((el as HTMLElement).dataset.key ?? 'node') as SideMode;
