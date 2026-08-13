@@ -29,9 +29,9 @@
   ],
   "shortcuts": [
     {
-      "name": "글자수 세기",
-      "short_name": "글자수",
-      "url": "/karmolab/t/charcount/",
+      "name": "텍스트 도구",
+      "short_name": "텍스트",
+      "url": "/karmolab/t/text/",
       "icons": [
         {
           "src": "/apps/karmolab/img/icon-192.png",
