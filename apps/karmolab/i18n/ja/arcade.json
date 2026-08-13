@@ -399,5 +399,7 @@
   "arcade.btn.swap": "ほかのゲーム",
   "arcade.room.kept": "部屋そのまま · {n}人 — 選べば一緒に始まる",
   "arcade.room.close": "部屋を閉じる",
-  "arcade.room.picking": "ホストが次のゲームを選んでいる"
+  "arcade.room.picking": "ホストが次のゲームを選んでいる",
+  "arcade.watch.now": "観戦中",
+  "arcade.watch.over": "{n}人は観戦"
 }

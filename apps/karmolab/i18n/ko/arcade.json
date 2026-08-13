@@ -399,5 +399,7 @@
   "arcade.btn.swap": "다른 게임",
   "arcade.room.kept": "방 유지 중 · {n}명 — 고르면 다 같이 시작",
   "arcade.room.close": "방 닫기",
-  "arcade.room.picking": "주인이 다음 판을 고르는 중"
+  "arcade.room.picking": "주인이 다음 판을 고르는 중",
+  "arcade.watch.now": "구경 중",
+  "arcade.watch.over": "{n}명은 구경"
 }
