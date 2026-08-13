@@ -27,6 +27,11 @@ import { widgetCatalog } from './lib/widgets-meta.mjs';
 
 const CHECK = process.argv.includes('--check');
 const SEAL = process.argv.includes('--seal');
+/* ★ **남는 열쇠를 손으로 지우지 않는다** (TASK-KAR-212).
+ *   원본에서 사라진 열쇠의 번역은 파일에 그대로 남는다 — 검사는 매번 「남음 18」로 알려 주는데
+ *   지우는 일은 사람 몫이라, 그 숫자가 상수처럼 굳어 아무도 안 읽게 된다. 지우는 것은 기계 일이다.
+ *   기본이 아니라 **부를 때만** 지운다: 원본 쪽이 작업 중이면(개명 도중) 번역을 먼저 버릴 수 있다. */
+const PRUNE = process.argv.includes('--prune');
 const I18N_DIR = path.join(APP_ROOT, 'i18n');
 const OUT_DIR = path.join(APP_ROOT, 'js/i18n');
 const LOCK_PATH = path.join(I18N_DIR, '.lock.json');
@@ -286,6 +291,18 @@ for (const l of LOCALES) {
   }
   for (const [ns, cat] of Object.entries(mine)) {
     for (const k of Object.keys(cat)) if (source[ns]?.[k] == null) extra.push(k);
+  }
+  if (PRUNE && extra.length) {
+    /* 남는 열쇠를 파일에서 실제로 덜어 낸다 — 빈 묶음이 되면 그 파일도 지운다. */
+    for (const [ns, cat] of Object.entries(mine)) {
+      const 지울것 = Object.keys(cat).filter((k) => source[ns]?.[k] == null);
+      if (지울것.length === 0) continue;
+      for (const k of 지울것) delete cat[k];
+      const p = path.join(I18N_DIR, l.code, ns + '.json');
+      if (Object.keys(cat).length === 0) fs.rmSync(p, { force: true });
+      else fs.writeFileSync(p, JSON.stringify(cat, null, 2) + String.fromCharCode(10), 'utf8');
+    }
+    console.log(`[i18n] ${l.code}: 남는 열쇠 ${extra.length}개를 지웠다 (--prune)`);
   }
   const total = Object.values(source).reduce((n, c) => n + Object.keys(c).length, 0);
   const done = total - missing.length;
