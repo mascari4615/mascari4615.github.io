@@ -761,7 +761,7 @@
   "karmograph.mapDel.ask": "Delete the map \"{name}\"? This cannot be undone.",
   "karmograph.textPanel.title": "📝 Build from text",
   "karmograph.textPanel.hint": "Indent to attach to the line above. Text after a colon (:) is the note. <b>Card {shape=note group=Guide tags=ai|web} : short memo</b> draws a note-shaped node. <b>Yon -&gt; Village : protects</b> is a sideways relation.",
-  "karmograph.textPanel.ph": "프로젝트 입구 {shape=rect group=Guide tags=ai|web}\n  시작 카드 {shape=note} : 무엇부터 볼지\n  파일 카드 {shape=bubble note=widgets-lazy-meta.ts} : 실제 파일\n시작 카드 -> 파일 카드 : 따라가기",
+  "karmograph.textPanel.ph": "Project entry {shape=rect group=Guide tags=ai|web}\n  Start card {shape=note} : where to look first\n  File card {shape=bubble note=widgets-lazy-meta.ts} : the actual file\nStart card -> File card : follow",
   "karmograph.textPanel.kind": "Kind for new nodes",
   "karmograph.textPanel.go": "Build from this text",
   "karmograph.textPanel.sample": "Insert an example",
