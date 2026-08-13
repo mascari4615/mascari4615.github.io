@@ -751,5 +751,7 @@
   "karmograph.linkBox.copy": "복사",
   "karmograph.linkBox.close": "닫기",
   "karmograph.ask.ok": "그럴래요",
-  "karmograph.ask.del": "지울래요"
+  "karmograph.ask.del": "지울래요",
+  "karmograph.fldName.aria": "칸 이름: {name}",
+  "karmograph.fldValue.aria": "{name} 값"
 }

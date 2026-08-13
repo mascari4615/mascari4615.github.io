@@ -751,5 +751,7 @@
   "karmograph.linkBox.copy": "Copy",
   "karmograph.linkBox.close": "Close",
   "karmograph.ask.ok": "Yes",
-  "karmograph.ask.del": "Delete"
+  "karmograph.ask.del": "Delete",
+  "karmograph.fldName.aria": "Field name: {name}",
+  "karmograph.fldValue.aria": "Value of {name}"
 }

@@ -1797,6 +1797,64 @@ async function noCovered(page, where) {
   if (bad.length > 0) throw new Error(`${where}: 보이는데 못 누른다 — ${bad.slice(0, 6).join(' · ')}`);
 }
 
+/**
+ * **이름 없는 손잡이 전수 검사** (KL-271, 2026-08-14).
+ *
+ * 화면 읽어 주는 도구에는 「글자 칸」 「단추」라고만 들리는 자리가 있으면, 눈으로 안 보는 사람에게
+ * 그 자리는 **없는 것**이다. 실측으로 잡힌 것: 카드 이름 칸(이 판에서 가장 많이 쓰는 칸)과 칸 이름
+ * 칸들 — 이름표가 곁에 **있었지만 묶여 있지 않았다**(for 없이 나란히 놓기만 했다).
+ */
+async function allNamed(page, where) {
+  const bad = await page.evaluate(() => {
+    const root = document.querySelector('.km-root');
+    const out = [];
+    for (const el of root.querySelectorAll('button, select, input:not([type=file]), textarea')) {
+      const r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) continue;
+      const forLab = el.id ? document.querySelector(`label[for="${el.id}"]`) : null;
+      const lab = el.closest('label') || forLab;
+      const labText = lab ? lab.textContent.replace(el.value || '', '').trim() : '';
+      const name = (el.getAttribute('aria-label') || el.getAttribute('title')
+        || el.getAttribute('placeholder') || labText || el.textContent || '').trim();
+      if (!name) out.push((el.dataset.km || el.className || el.tagName));
+    }
+    return out;
+  });
+  if (bad.length > 0) throw new Error(`${where}: 이름 없는 손잡이 — ${bad.slice(0, 6).join(' · ')}`);
+}
+
+await step('이름 없는 손잡이가 없다 — 눈으로 안 보는 사람에게도 있는 자리다', async () => {
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(900));
+  await allNamed(m, '첫 화면');
+
+  const cbox = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(cbox.x + cbox.width * 0.35, cbox.y + cbox.height * 0.3);
+  await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await m.keyboard.type('이름있나');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 1, null, { timeout: ms(4000) });
+  await allNamed(m, '카드 패널');
+
+  // 칸을 하나 만들면 칸 이름·값 칸이 새로 생긴다 — 거기가 비어 있었다.
+  await m.waitForSelector('[data-km="fld-new"]', { timeout: ms(4000) });
+  await m.fill('[data-km="fld-new"]', '고향');
+  await m.locator('[data-km="fld-add"]').click();
+  await m.waitForSelector('[data-km="fld-name"]', { timeout: ms(4000) });
+  await allNamed(m, '칸을 만든 뒤');
+
+  await m.locator('[data-km="more"]').click();
+  await m.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
+  await allNamed(m, '서랍');
+  await ctx.close();
+});
+
 await step('폰: 보이는데 못 누르는 손잡이가 하나도 없다 (덮임 전수 검사)', async () => {
   const ph = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const m = await ph.newPage();

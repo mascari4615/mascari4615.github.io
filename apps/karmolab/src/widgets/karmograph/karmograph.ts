@@ -2067,8 +2067,10 @@ import {
           n: String(spec.nodes.length),
         }))}</button>`}
         <div class="km-field">
-          <label>${esc(t('karmograph.labelOf.msg'))}</label>
-          <input type="text" data-km="edit-label" value="${escapeAttr(node.label)}" />
+          <!-- ★ 이름표는 for 속성으로 칸에 **묶여 있어야** 한다. 나란히 놓기만 하면 화면 읽어 주는
+               도구에는 「글자 칸」이라고만 들린다 — 이 판에서 가장 많이 쓰는 칸인데도 (실측 2026-08-14). -->
+          <label for="km-edit-label">${esc(t('karmograph.labelOf.msg'))}</label>
+          <input type="text" id="km-edit-label" data-km="edit-label" value="${escapeAttr(node.label)}" />
         </div>
         <div class="km-field">
           <div class="km-kindrow">

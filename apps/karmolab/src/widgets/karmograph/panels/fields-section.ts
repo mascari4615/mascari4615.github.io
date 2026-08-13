@@ -45,8 +45,10 @@ export function fieldsSectionHtml(ctx: PanelCtx, node: GraphNode): string {
     <div class="km-field">
       <label>${esc(t('karmograph.hit.msg'))} <span class="km-hint">이 ${esc(ctx.kindLabel(node.kind))}에 대해 적어 두는 것</span></label>
       ${rows.map(([name, value], i) => `<div class="km-link-row">
-        <input type="text" class="km-field-name" data-km="fld-name" data-key="${esc(name)}" value="${esc(name)}" />
-        <input type="text" data-km="fld-value" data-key="${esc(name)}" value="${esc(value)}" placeholder="${esc(t('karmograph.fldValue.ph'))}" />
+        <input type="text" class="km-field-name" data-km="fld-name" data-key="${esc(name)}" value="${esc(name)}"
+          aria-label="${esc(t('karmograph.fldName.aria', { name }))}" />
+        <input type="text" data-km="fld-value" data-key="${esc(name)}" value="${esc(value)}"
+          aria-label="${esc(t('karmograph.fldValue.aria', { name }))}" placeholder="${esc(t('karmograph.fldValue.ph'))}" />
         <button class="btn btn-ghost" data-km="fld-del" data-key="${esc(name)}" title="${esc(t('karmograph.fldDel.title'))}">×</button>
       </div>${i === rows.length - 1 ? '' : ''}`).join('')}
       ${promotable.length === 0 ? '' : `<div class="km-hint">${t('karmograph.fieldPromote', { em: `<b>${esc(t('karmograph.hit.msg2'))}</b>` })}</div>

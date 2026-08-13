@@ -751,5 +751,7 @@
   "karmograph.linkBox.copy": "コピー",
   "karmograph.linkBox.close": "閉じる",
   "karmograph.ask.ok": "はい",
-  "karmograph.ask.del": "削除する"
+  "karmograph.ask.del": "削除する",
+  "karmograph.fldName.aria": "項目名: {name}",
+  "karmograph.fldValue.aria": "{name} の値"
 }
