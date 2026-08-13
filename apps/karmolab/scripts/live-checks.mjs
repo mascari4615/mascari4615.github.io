@@ -67,6 +67,12 @@ function baseKindOf(cmd) {
   } catch {
     return null;
   }
+  /* ★ **볼 곳을 helper 로 옮긴 검사도 실주소다** (2026-08-14 자기 회귀 잡기).
+     오늘 검사 열여섯의 「볼 곳」을 `lib/live-url.mjs`(`livePage()`)로 모았는데, 여기 규칙은
+     `process.env.BASE || 'http…'` 글자만 찾는다 — 그래서 그 열여섯이 갑자기 「아무 데도 안 연다」로
+     분류됐고, 러너가 **「배포에 밟혔으면 다시」 껍데기를 안 씌우게** 됐다(배포 중이면 거짓 빨강).
+     helper 를 쓰는 것도 실주소로 친다. */
+  if (src.includes('livePage(') || src.includes('liveBase(')) return 'live';
   const m = src.match(/process\.env\.BASE\s*\|\|\s*['"](https?:[^'"]*)['"]/);
   if (!m) return 'none';
   return /127\.0\.0\.1|localhost/.test(m[1]) ? 'local' : 'live';
