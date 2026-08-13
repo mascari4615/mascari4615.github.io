@@ -68,7 +68,12 @@ const wfCalled = fs.existsSync(wfPath)
     const out = execFileSync('git', ['ls-tree', '-r', '--name-only', 'HEAD', 'scripts', 'img', 'data'], { cwd: root, encoding: 'utf8' });
     tracked = new Set(out.split('\n').map((s) => s.trim()).filter(Boolean));
   } catch {
-    problems.push('커밋에 들어 있는지 확인할 수 없다 (git 을 못 불렀다)');
+    /* ★ **못 물어본 것은 빨강이 아니다** (2026-08-13). 이 검사는 저장소 밖(밀 커밋을 풀어 놓은
+       자리 등)에서도 불린다 — 거기서 git 을 못 부른다고 「없는 파일을 부른다」로 세면,
+       고칠 것이 없는 커밋이 빨강이 된다. 못 잰 것은 못 쟀다고 말하고 2로 끝낸다
+       (묶음 러너가 그 값을 「통과도 실패도 아님」으로 읽는다). */
+    console.log('[audit-scripts] CANNOT-RUN — 커밋에 들어 있는지 못 물어봤다 (git 을 못 불렀다)');
+    process.exit(2);
   }
   if (tracked.size) {
     /* 아무 스크립트나 보지 않는다 — **실제로 도는 사슬**에서 닿는 것만 본다.
