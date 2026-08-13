@@ -145,6 +145,52 @@ if (fs.existsSync(metaPath)) {
   }
 }
 
+/* ④ **`package.json` 이 부르는 검사 파일**도 그 커밋에 있어야 한다 (2026-08-13).
+ *   `audit:scripts` 가 같은 것을 보지만 **내 작업 폴더**를 본다 — 내 기계엔 파일이 있으니 초록,
+ *   그런데 그 파일을 같이 안 올리면 CI 는 「Cannot find module」로 죽는다.
+ *   실측: `smoke:wrongkind` 가 게이트 줄에만 올라가 그 뒤 판이 전부 빨강이 됐다(run 31687274295).
+ *   여기는 **밀려는 커밋**을 보므로 그 상태를 push 전에 잡는다. */
+{
+  let scriptsAtRef = null;
+  try {
+    scriptsAtRef = new Set(
+      git(['ls-tree', '-r', '--name-only', REF, 'scripts'])
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean)
+    );
+  } catch { /* 못 물어보면 넘어간다 — 모르는 것을 빨강으로 만들지 않는다 */ }
+  let pkgAtRef = null;
+  try {
+    pkgAtRef = JSON.parse(git(['show', `${REF}:./package.json`]));
+  } catch { /* 위와 같다 */ }
+  /** origin 에서 이미 없던 것들 — 내 잘못이 아닌 것을 가려내려고 미리 센다 */
+  const brokenAtOrigin = new Set();
+  try {
+    const at = new Set(
+      git(['ls-tree', '-r', '--name-only', 'origin/master', 'scripts']).split('\n').map((l) => l.trim()).filter(Boolean)
+    );
+    const pkg = JSON.parse(git(['show', 'origin/master:./package.json']));
+    for (const line of Object.values(pkg.scripts || {}))
+      for (const m of String(line).matchAll(/node\s+(scripts\/[\w.-]+\.(?:mjs|js))/g))
+        if (at.size > 20 && !at.has(m[1])) brokenAtOrigin.add(m[1]);
+  } catch { /* origin 을 모르면 아무것도 봐주지 않는다(그때는 전부 내 책임으로 본다) */ }
+  if (scriptsAtRef && scriptsAtRef.size > 20 && pkgAtRef && pkgAtRef.scripts) {
+    for (const [name, line] of Object.entries(pkgAtRef.scripts)) {
+      for (const m of String(line).matchAll(/node\s+(scripts\/[\w.-]+\.(?:mjs|js))/g)) {
+        if (scriptsAtRef.has(m[1])) continue;
+        /* **이미 origin 에서 깨져 있던 것은 내 push 를 막지 않는다** — 남이 올린 빠뜨림 하나가
+           다른 세션 전부의 push 를 잠그면, 고치러 가는 길까지 같이 막힌다. 대신 크게 알린다. */
+        if (brokenAtOrigin.has(m[1])) {
+          console.warn(`[entry-sources] ⚠ 이미 origin 에도 없다: ${m[1]} (「${name}」) — 올린 세션이 마저 올려야 한다`);
+          continue;
+        }
+        missing.push(`${m[1]} (package.json 의 「${name}」 이 부른다)`);
+      }
+    }
+  }
+}
+
 if (missing.length) {
   console.error('[entry-sources] 부르는데 **저장소에 없는** 소스:');
   for (const line of [...new Set(missing)]) console.error(`  - ${line}`);
