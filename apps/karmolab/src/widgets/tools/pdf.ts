@@ -15,7 +15,7 @@
  * 「1 / 12 ◀ ▶」 로 한 장씩 넘기는 건 문서를 **모르는 채로** 다루게 한다. 어디를 자를지,
  * 어느 쪽에 서명할지는 전 쪽이 한눈에 보일 때 정해진다.
  */
-import { openForRead, openForEdit, loadPdfLib, pdfBlob, renderPage, suffixName } from './shared/pdf';
+import { openForRead, openForEdit, createPdf, loadPdfLib, pdfBlob, renderPage, suffixName } from './shared/pdf';
 import { fileSize } from './shared/media';
 import { materialShell, type MaterialGroup } from './shared/material-shell';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -113,19 +113,53 @@ import { t, loadNamespace } from '../../lib/i18n';
    */
   let turns = new Map<number, number>();
   let tossed = new Set<number>();
+  /** 지금 늘어놓은 순서 (원래 쪽 번호로 적는다). 끌어 옮기면 이 줄만 바뀐다. */
+  let order: number[] = [];
   let editBar: HTMLElement | null = null;
+  /** 지금 끌고 있는 쪽 (없으면 null) */
+  let dragging: number | null = null;
+
+  /** `from` 을 `to` **앞자리**로 옮긴다. 화면과 `order` 를 같이 옮긴다. */
+  function moveTo(from: number, to: number, pages: HTMLElement): void {
+    const a = order.indexOf(from);
+    const b = order.indexOf(to);
+    if (a < 0 || b < 0) return;
+    order.splice(b, 0, ...order.splice(a, 1));
+    /* 화면도 같은 순서로 — 다시 그리지 않고 **자리만 옮긴다**(다시 그리면 스크롤이 튄다). */
+    const cells = new Map<number, HTMLElement>();
+    pages.querySelectorAll<HTMLElement>('.pf-thumb').forEach((c) => cells.set(Number(c.dataset.page), c));
+    order.forEach((n) => {
+      const c = cells.get(n);
+      if (c) pages.appendChild(c);
+    });
+    renumber(pages);
+    refreshEditBar();
+  }
+
+  /** 늘어놓은 자리대로 번호를 다시 붙인다 — 원래 번호를 그대로 두면 「3 1 2」 가 되어 헷갈린다. */
+  function renumber(pages: HTMLElement): void {
+    let i = 0;
+    order.forEach((n) => {
+      const c = pages.querySelector<HTMLElement>(`.pf-thumb[data-page="${n}"]`);
+      if (!c) return;
+      if (!tossed.has(n)) i += 1;
+      const tag = c.querySelector('.pf-no');
+      if (tag) tag.textContent = tossed.has(n) ? '—' : String(i);
+    });
+  }
 
   function refreshEditBar(): void {
     if (!editBar) return;
-    const n = turns.size + tossed.size;
+    const moved = order.some((n, i) => n !== i + 1);
+    const n = turns.size + tossed.size + (moved ? 1 : 0);
     editBar.hidden = n === 0;
     const label = editBar.querySelector('span');
     if (label) {
-      label.textContent = t(
-        'pdf.edit.count',
-        { turn: turns.size, drop: tossed.size },
-        `돌린 쪽 ${turns.size} · 뺀 쪽 ${tossed.size}`
-      );
+      /* 말 묶음은 단순 치환이라 「있으면 덧붙이는 말」을 한 문장에 못 넣는다 — 따로 이어 붙인다.
+       * (한 문장에 넣으면 한국어 판에서 그 조각이 조용히 사라진다 — 실제로 그랬다.) */
+      label.textContent =
+        t('pdf.edit.count', { turn: turns.size, drop: tossed.size }, `돌린 쪽 ${turns.size} · 뺀 쪽 ${tossed.size}`) +
+        (moved ? ' · ' + t('pdf.edit.moved', undefined, '순서 바뀜') : '');
     }
   }
 
@@ -145,6 +179,8 @@ import { t, loadNamespace } from '../../lib/i18n';
     if (tossed.has(n)) tossed.delete(n);
     else tossed.add(n);
     cell.classList.toggle('pf-tossed', tossed.has(n));
+    const pages = cell.parentElement;
+    if (pages) renumber(pages);
     refreshEditBar();
   }
 
@@ -154,17 +190,18 @@ import { t, loadNamespace } from '../../lib/i18n';
     if (bar) bar.disabled = true;
     try {
       const lib = await loadPdfLib();
-      const doc = await openForEdit(file);
-      /* 뒤에서부터 빼야 한다 — 앞에서 빼면 뒤쪽 번호가 밀려 엉뚱한 쪽이 빠진다. */
-      const drop = [...tossed].sort((a, b) => b - a);
-      const list = doc.getPages();
-      for (const [n, deg] of turns) {
-        if (tossed.has(n)) continue; // 뺄 쪽은 돌릴 필요가 없다
-        const page = list[n - 1];
-        if (!page) continue;
-        page.setRotation(lib.degrees(((page.getRotation().angle || 0) + deg) % 360));
-      }
-      for (const n of drop) doc.removePage(n - 1);
+      const src = await openForEdit(file);
+      /* **늘어놓은 순서대로 새 문서에 옮겨 담는다.**
+       * 원본에서 빼고 돌리는 방식은 순서 바꾸기를 못 담는다(그리고 뒤에서부터 빼야 하는 함정도 있다).
+       * 새로 담으면 빼기·돌리기·순서가 **한 규칙**으로 끝난다 — 담을 것만 담고, 담을 때 돌린다. */
+      const keep = order.filter((n) => !tossed.has(n));
+      const doc = await createPdf();
+      const copied = (await doc.copyPages(src, keep.map((n) => n - 1))) as unknown[];
+      copied.forEach((pg, i) => {
+        const added = doc.addPage(pg);
+        const deg = turns.get(keep[i]) || 0;
+        if (deg) added.setRotation(lib.degrees(((added.getRotation().angle || 0) + deg) % 360));
+      });
       const bytes = await doc.save();
       const blob = pdfBlob(bytes);
       const name = suffixName(file.name, t('pdf.edit.suffix', undefined, '-정리'));
@@ -224,6 +261,12 @@ import { t, loadNamespace } from '../../lib/i18n';
     undo.onclick = (): void => {
       turns.clear();
       tossed.clear();
+      order = order.slice().sort((a, b) => a - b);
+      order.forEach((n) => {
+        const c = pages.querySelector<HTMLElement>(`.pf-thumb[data-page="${n}"]`);
+        if (c) pages.appendChild(c);
+      });
+      renumber(pages);
       pages.querySelectorAll<HTMLElement>('.pf-thumb').forEach((c) => {
         c.classList.remove('pf-tossed');
         const cv = c.querySelector<HTMLElement>('canvas');
@@ -248,6 +291,31 @@ import { t, loadNamespace } from '../../lib/i18n';
           const cell = document.createElement('div');
           cell.className = 'pf-thumb';
           cell.dataset.page = String(n);
+          /* **끌어서 순서 바꾸기** (TASK-KL-284 — Sejda Organize 의 마지막 조각).
+           * 쪽을 옮기려고 「합치기·나누기」로 가서 번호를 손으로 적는 일이 없어진다. */
+          cell.draggable = true;
+          cell.addEventListener('dragstart', (e) => {
+            dragging = n;
+            cell.classList.add('pf-dragging');
+            e.dataTransfer?.setData('text/plain', String(n));
+          });
+          cell.addEventListener('dragend', () => {
+            dragging = null;
+            cell.classList.remove('pf-dragging');
+            pages.querySelectorAll('.pf-drop-at').forEach((x) => x.classList.remove('pf-drop-at'));
+          });
+          cell.addEventListener('dragover', (e) => {
+            if (dragging === null || dragging === n) return;
+            e.preventDefault();
+            cell.classList.add('pf-drop-at');
+          });
+          cell.addEventListener('dragleave', () => cell.classList.remove('pf-drop-at'));
+          cell.addEventListener('drop', (e) => {
+            e.preventDefault();
+            cell.classList.remove('pf-drop-at');
+            if (dragging === null || dragging === n) return;
+            moveTo(dragging, n, pages);
+          });
           canvas.style.width = '100%';
           canvas.style.height = 'auto';
           const see = document.createElement('button');
@@ -295,6 +363,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     }
     more.onclick = (): void => void drawMore();
     await drawMore();
+    order = Array.from({ length: doc.numPages }, (_, i) => i + 1);
 
     return t('pdf.meta', { n: doc.numPages, size: fileSize(file.size) }, `${doc.numPages}쪽 · ${fileSize(file.size)}`);
   }
@@ -343,6 +412,9 @@ import { t, loadNamespace } from '../../lib/i18n';
 .pf-act{appearance:none;border:0;cursor:pointer;font-size:11px;line-height:1;padding:3px 5px;border-radius:5px;
   background:rgba(0,0,0,.62);color:#fff;}
 .pf-act:hover{background:rgba(0,0,0,.85);}
+.pf-thumb{cursor:grab;}
+.pf-dragging{opacity:.45;}
+.pf-drop-at{outline:2px solid rgba(128,160,255,.9);outline-offset:2px;}
 .pf-tossed{opacity:.32;}
 .pf-tossed .pf-see{filter:grayscale(1);}
 .pf-tossed::after{content:'';position:absolute;left:8%;right:8%;top:50%;height:2px;background:rgba(220,90,90,.9);}

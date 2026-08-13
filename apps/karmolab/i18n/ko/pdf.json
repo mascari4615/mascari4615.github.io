@@ -34,5 +34,6 @@
   "pdf.btn.undoAll": "되돌리기",
   "pdf.edit.count": "돌린 쪽 {turn} · 뺀 쪽 {drop}",
   "pdf.edit.suffix": "-정리",
-  "pdf.edit.fail": "이 문서는 못 고칩니다"
+  "pdf.edit.fail": "이 문서는 못 고칩니다",
+  "pdf.edit.moved": "순서 바뀜"
 }
