@@ -30,5 +30,6 @@
   "text.n.lines": "줄",
   "text.part.textredact": "가리개",
   "text.part.text2pdf": "글 → PDF",
-  "text.part.text2img": "글자 카드"
+  "text.part.text2img": "글자 카드",
+  "text.btn.recent": "방금 하던 것"
 }

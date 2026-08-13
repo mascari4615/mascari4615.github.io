@@ -20,5 +20,6 @@
   "sound.part.soundscape": "환경음",
   "sound.part.morse": "모스 부호",
   "sound.more": "{name} 외 {n}개",
-  "sound.wave.aria": "소리 그림 — 화살표로 옮겨 가고 스페이스로 듣습니다"
+  "sound.wave.aria": "소리 그림 — 화살표로 옮겨 가고 스페이스로 듣습니다",
+  "sound.btn.recent": "방금 하던 것"
 }

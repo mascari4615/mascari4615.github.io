@@ -30,5 +30,6 @@
   "image.cmp.before": "before {size}",
   "image.cmp.after": "after {size}",
   "image.more": "{name} and {n} more",
-  "image.cmp.aria": "Before/after compare — use arrow keys"
+  "image.cmp.aria": "Before/after compare — use arrow keys",
+  "image.btn.recent": "Recent"
 }

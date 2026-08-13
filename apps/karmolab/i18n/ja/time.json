@@ -28,5 +28,6 @@
   "time.part.icsmake": "予定ファイル",
   "time.grid.ok": "緑 = みんな勤務中",
   "time.grid.meh": "全員に良い時間はありません — 印の時間が無難です",
-  "time.grid.least": "全員が起きている時間はありません — 印の時間が一番マシです"
+  "time.grid.least": "全員が起きている時間はありません — 印の時間が一番マシです",
+  "time.btn.recent": "さっきの作業"
 }

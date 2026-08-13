@@ -39,5 +39,6 @@
   "pdf.more": "{name} and {n} more",
   "pdf.thumb.rotateAria": " — rotate page 90° right",
   "pdf.thumb.dropAria": " — drop page",
-  "pdf.grid.aria": "Page list — arrow keys to move focus, Ctrl+arrow to reorder"
+  "pdf.grid.aria": "Page list — arrow keys to move focus, Ctrl+arrow to reorder",
+  "pdf.btn.recent": "Recent"
 }

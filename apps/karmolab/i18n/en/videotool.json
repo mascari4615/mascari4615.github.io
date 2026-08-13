@@ -17,5 +17,6 @@
   "videotool.btn.chain": "Continue with this result",
   "videotool.preview.fail": "This video can't be previewed",
   "videotool.meta": "{time} · {w}×{h} · {size}",
-  "videotool.part.subtitle": "Subtitles"
+  "videotool.part.subtitle": "Subtitles",
+  "videotool.btn.recent": "Recent"
 }

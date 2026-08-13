@@ -30,5 +30,6 @@
   "text.n.lines": "lines",
   "text.part.textredact": "Redact",
   "text.part.text2pdf": "Text → PDF",
-  "text.part.text2img": "Text card"
+  "text.part.text2img": "Text card",
+  "text.btn.recent": "Recent"
 }

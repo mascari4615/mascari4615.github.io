@@ -28,5 +28,6 @@
   "time.part.icsmake": "Calendar file",
   "time.grid.ok": "Green = everyone at work",
   "time.grid.meh": "No perfect slot — the marked hours are the workable ones",
-  "time.grid.least": "No slot where everyone is awake — the marked hours hurt least"
+  "time.grid.least": "No slot where everyone is awake — the marked hours hurt least",
+  "time.btn.recent": "Recent"
 }
