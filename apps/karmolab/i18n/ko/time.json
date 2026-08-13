@@ -25,5 +25,8 @@
   "time.part.countdown": "카운트다운",
   "time.part.stopwatch": "스톱워치",
   "time.part.cron": "크론",
-  "time.part.icsmake": "일정 파일"
+  "time.part.icsmake": "일정 파일",
+  "time.grid.ok": "초록 칸 = 다들 일하는 때",
+  "time.grid.meh": "다 편한 때는 없습니다 — 짚은 칸이 그나마 무난합니다",
+  "time.grid.least": "다 깨어 있는 때가 없습니다 — 짚은 칸이 가장 덜 힘듭니다"
 }

@@ -25,5 +25,8 @@
   "time.part.countdown": "カウントダウン",
   "time.part.stopwatch": "ストップウォッチ",
   "time.part.cron": "クーロン",
-  "time.part.icsmake": "予定ファイル"
+  "time.part.icsmake": "予定ファイル",
+  "time.grid.ok": "緑 = みんな勤務中",
+  "time.grid.meh": "全員に良い時間はありません — 印の時間が無難です",
+  "time.grid.least": "全員が起きている時間はありません — 印の時間が一番マシです"
 }
