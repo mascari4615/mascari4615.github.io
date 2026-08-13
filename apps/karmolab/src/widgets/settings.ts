@@ -196,7 +196,10 @@ import { t, loadNamespace } from '../lib/i18n';
     /* ===== 이 브라우저에 저장된 것 ===== */
 
     /** 키별 용도 설명 (Toolbox 관련) */
-    const STORAGE_DESC: Record<string, string> = {
+    /* ★ **말은 묶음이 온 뒤에 읽는다** (2026-08-14, 실서비스 고장 다섯 건).
+       파일이 읽히는 순간 `t()` 를 부르면 아직 `loadNamespace` 전이라 되받을 글 없는 `t()` 가 던지고,
+       그 묶음에 든 위젯이 통째로 안 올라간다(화면엔 오류도 안 뜬다). 부르는 시점을 늦춘다. */
+    const storageDesc = (): Record<string, string> => ({
         'toolbox_theme': t('settings.t27'),
         'toolbox_nav_layout': t('settings.t28'),
         'toolbox_sidebar_groups': t('settings.t29'),
@@ -216,7 +219,7 @@ import { t, loadNamespace } from '../lib/i18n';
         'karmolab_chatbot_characters_v1': t('settings.t43'),
         'mdd_affection': t('settings.t44'),
         'mdd_story_progress': t('settings.t45'),
-    };
+    });
 
     function getStorageStats(storage: Storage): { totalBytes: number; items: StorageItemStat[] } {
         let totalBytes = 0;
@@ -252,7 +255,7 @@ import { t, loadNamespace } from '../lib/i18n';
         const totalBytes = ls.totalBytes + ss.totalBytes;
 
         function getDesc(key: string): string {
-            if (STORAGE_DESC[key]) return STORAGE_DESC[key] ?? '';
+            if (storageDesc()[key]) return storageDesc()[key] ?? '';
             if (key.startsWith('toolbox_chatbot_session')) return t('settings.t47');
             if (key.startsWith('toolbox_')) return 'KarmoLab';
             if (key.startsWith('mdd_')) return t('settings.t48');

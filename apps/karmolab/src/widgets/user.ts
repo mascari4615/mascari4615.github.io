@@ -906,7 +906,10 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     }
 
     /** 보안 기록 (TASK-KL-152 C7) — 남이 내 계정에 들어와도 알 방법이 지금까지 없었다. */
-    const EVENT_LABELS: Record<string, string> = {
+    /* ★ **말은 묶음이 온 뒤에 읽는다** (2026-08-14, 실서비스 고장 다섯 건).
+       파일이 읽히는 순간 `t()` 를 부르면 아직 `loadNamespace` 전이라 되받을 글 없는 `t()` 가 던지고,
+       그 묶음에 든 위젯이 통째로 안 올라간다(화면엔 오류도 안 뜬다). 부르는 시점을 늦춘다. */
+    const eventLabels = (): Record<string, string> => ({
         login: t('user.t126'),
         logout: t('user.btn.userSignOutBtn'),
         'recovery-used': t('user.t127'),
@@ -914,7 +917,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         'name-changed': t('user.t129'),
         'visibility-changed': t('user.t130'),
         'sessions-revoked': t('user.t131'),
-    };
+    });
 
     async function renderSecurity(slot: HTMLElement | null, base: string): Promise<void> {
         if (!slot) return;
@@ -937,7 +940,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             .map(
                 (event) => `
                 <div class="fp-event">
-                    <span class="fp-event-kind">${escapeHtml(EVENT_LABELS[event.kind] ?? event.kind)}</span>
+                    <span class="fp-event-kind">${escapeHtml(eventLabels()[event.kind] ?? event.kind)}</span>
                     <span class="fp-event-meta">${escapeHtml([event.device, event.detail].filter(Boolean).join(' · '))}</span>
                     <span class="fp-event-when">${escapeHtml(whenText(event.at))}</span>
                 </div>`,

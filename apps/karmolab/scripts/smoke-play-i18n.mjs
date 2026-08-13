@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * **놀이 열 개가 실제로 지어지나** (2026-08-14, 실서비스 고장에서 나옴)
+ * **앱 안 화면이 실제로 지어지나** (2026-08-14, 실서비스 고장 일곱 건에서 나옴)
  *
  * 왜 있나: 「높은 쪽 고르기」가 실서비스에서 **죽어 있었다** — 열면 「장비 꺼내는 중이에요…」
  * 에서 영영 안 넘어갔다. 까닭은 한 줄이었다: 게임 표를 파일 맨 위에서
@@ -32,7 +32,18 @@ import { chromium } from 'playwright';
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(appRoot));
 const games = JSON.parse(fs.readFileSync(path.join(appRoot, '../play/games.json'), 'utf8'));
-const ids = (Array.isArray(games) ? games : games.games || []).map((g) => g.id);
+const 놀이 = (Array.isArray(games) ? games : games.games || []).map((g) => g.id);
+/* ★ **놀이만이 아니었다** (2026-08-14, 같은 날 다섯 건 더). 같은 병으로 「반려동물·활동·광장·
+   내 정보·상태」가 실서비스에서 죽어 있었다 — 전부 **도구 장이 없는 앱 안 화면**이라
+   `test:i18n:runtime`(도구 장만 연다)도 놀이 검사도 안 보던 자리다.
+   그래서 대상 = 놀이 ∪ **제 말 묶음을 가진 위젯 전부**. 묶음이 있다는 건 `t()` 를 쓴다는 뜻이고,
+   `t()` 를 이르게 부르면 그 화면은 통째로 안 올라간다. */
+const 묶음있는위젯 = fs
+  .readdirSync(path.join(appRoot, 'i18n/ko'))
+  .filter((f) => f.endsWith('.json'))
+  .map((f) => f.replace(/\.json$/, ''))
+  .filter((id) => fs.existsSync(path.join(appRoot, `src/widgets/${id}.ts`)));
+const ids = [...new Set([...놀이, ...묶음있는위젯])];
 
 if (!ids.length) {
   console.log('[play-i18n] CANNOT-RUN — 놀이 목록(apps/play/games.json)이 비었다');
@@ -99,16 +110,16 @@ process.stdout.write(String.fromCharCode(10));
 await browser.close().catch(() => {});
 if (server) server.close();
 
-if (건너뜀.length) console.log(`[play-i18n] 앱 안 화면이 아니라 건너뛴 놀이 ${건너뜀.length}개: ${건너뜀.join(', ')}`);
+if (건너뜀.length) console.log(`[play-i18n] 앱 안 화면이 아니라 건너뛴 것 ${건너뜀.length}개: ${건너뜀.join(', ')}`);
 /* 다 건너뛰었으면 본 것이 없다 — 초록으로 적으면 거짓이다. */
 if (건너뜀.length === ids.length) {
-  console.error('[play-i18n] CANNOT-RUN — 놀이를 하나도 못 봤다 (전부 앱 밖 주소였다)');
+  console.error('[play-i18n] CANNOT-RUN — 화면을 하나도 못 봤다 (전부 앱 밖 주소였다)');
   process.exit(2);
 }
 
 if (빨강.length) {
-  console.error(`[play-i18n] 놀이 ${ids.length}개 중 ${빨강.length}개가 안 지어진다`);
+  console.error(`[play-i18n] 화면 ${ids.length}개 중 ${빨강.length}개가 안 지어진다`);
   빨강.forEach((r) => console.error('  - ' + r));
   process.exit(1);
 }
-console.log(`[play-i18n] 놀이 ${ids.length - 건너뜀.length}개 모두 지어진다 — 말 묶음 오류 0 (건너뜀 ${건너뜀.length})`);
+console.log(`[play-i18n] 화면 ${ids.length - 건너뜀.length}개 모두 지어진다 — 말 묶음 오류 0 (건너뜀 ${건너뜀.length})`);

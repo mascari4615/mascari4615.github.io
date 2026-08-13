@@ -80,6 +80,9 @@ import { t, loadNamespace } from '../lib/i18n';
 
   Toolbox.register({
     ...(Toolbox.getLazyWidgetPublicMeta?.('postgraph') ?? {}),
-    tabs: [{ id: 'graph', label: t('postgraph.t03'), build: PostGraph.build }]
+    /* ★ **등록 때 읽는 말은 되받을 글을 반드시 준다** (2026-08-14). 이 자리는 파일이 읽히는
+       순간이라 아직 묶음이 없다 — 되받을 글 없는 `t()` 는 던지고, 그러면 이 위젯만이 아니라
+       **같은 묶음에 실린 화면들이 통째로** 안 올라간다(서버 모니터가 그렇게 죽어 있었다). */
+    tabs: [{ id: 'graph', label: t('postgraph.t03', undefined, '그래프'), build: PostGraph.build }]
   });
 })();
