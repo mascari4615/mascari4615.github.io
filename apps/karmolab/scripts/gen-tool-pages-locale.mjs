@@ -30,6 +30,7 @@ import {
 } from './lib/locales.mjs';
 import { toLocalePage, addAlternatesToSource } from './lib/locale-page.mjs';
 import { toLocaleHub } from './lib/locale-hub.mjs';
+import { withoutRetired } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = 'https://blog.mascari4615.com';
@@ -64,10 +65,15 @@ if (!fs.existsSync(srcDir)) {
   process.exit(0);
 }
 
-const ids = fs
-  .readdirSync(srcDir, { withFileTypes: true })
-  .filter((e) => e.isDirectory() && fs.existsSync(path.join(srcDir, e.name, 'index.html')))
-  .map((e) => e.name);
+/* 작업대로 합친 옛 도구의 자리는 **한 장짜리 안내**다(도구 장이 아니다) — 언어 판을 만들
+   틀(`.sidebar-lang-links` 같은 칸)이 없어서 여기서 죽는다. 실제로 배포가 그 이유로 섰다
+   (2026-08-13). 그 자리는 언어와 무관하게 작업대로 보내면 된다. */
+const ids = withoutRetired(
+  fs
+    .readdirSync(srcDir, { withFileTypes: true })
+    .filter((e) => e.isDirectory() && fs.existsSync(path.join(srcDir, e.name, 'index.html')))
+    .map((e) => e.name)
+);
 
 const L = makeLocalizer(ids);
 
