@@ -21,11 +21,12 @@
  * (번개 대결에서 겪었다). 판정은 한 곳에서만.
  */
 import { t, loadNamespace } from '../../lib/i18n';
-import { GAMES, gameById } from './index';
+import { CARDS, cardById } from './catalog-meta.generated';
+import { ensureGame, gameById } from './loader';
 import { Match, type MatchView, type SeatSpec } from './kernel';
 import { seedFrom } from './rng';
 import { iconOf, kindOf, KINDS, type Kind } from './meta';
-import { viewById } from './view-registry';
+import { viewById } from './loader';
 import { makeCode, inviteLink } from '../../lib/room';
 import { blip, soundOn, setSoundOn } from '../../lib/blip';
 import { buzz } from '../../lib/haptic';
@@ -568,10 +569,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        * 정사각 판의 칸이 22px(손가락 최소권장의 절반)이 된다 — 재 보고 정했다.
        * 대신 WM 웹판과 같은 원리를 쓴다: **화면을 다 쓰고 콘텐츠가 비율을 흡수한다.**
        */
-      '.ac-stage{position:relative;width:100%;max-width:var(--ac-stage);margin:0 auto;min-height:min(62vh,var(--ac-stage));display:grid;place-items:center}',
+      /* `place-items:center` 를 쓰면 안 된다 — 자식이 shrink-to-fit 이 되어 `width:100%` 인 판이
+         **폭 0 으로 무너진다**(실측: 오목 칸이 2px 이 됐다. 51종 화면검사는 「떴다」만 보므로
+         초록이었다 — 크기를 안 재는 검사는 이런 것을 못 잡는다). 세로만 가운데, 가로는 채운다. */
+      '.ac-stage{position:relative;width:100%;max-width:var(--ac-stage);margin:0 auto;min-height:min(62vh,var(--ac-stage));display:grid;align-items:center;justify-items:stretch}',
       /* 풀스크린이면 무대가 화면이 된다 — 안에 있는 51개가 그대로 커진다. */
       '.ac-stage:fullscreen{max-width:none;width:100vw;height:100vh;min-height:0;background:var(--bg-color);padding:var(--space-lg)}',
-      '.ac-stage:fullscreen #acView{width:100%;max-width:min(96vmin,900px)}',
+      '.ac-stage:fullscreen #acView{width:100%;max-width:min(96vmin,900px);margin:0 auto}',
       '.ac-fl{max-width:100%;margin:0 auto}',
       '.ac-flmsg{text-align:center;font-size:var(--font-size-sm);min-height:22px}',
       '.ac-flgrids{display:flex;flex-wrap:wrap;gap:var(--space-lg);justify-content:center}',
@@ -714,7 +718,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      * 같은 표를 쓰면 「게임 몇 종인가」를 세는 자리가 여섯만큼 샌다(오늘의 셋에서 이미 겪었다:
      * 51종이 54종이 됐다). 세는 자리는 하나여야 한다.
      */
-    const cardOf = (g: (typeof GAMES)[number], pick = false): string => {
+    const cardOf = (g: (typeof CARDS)[number], pick = false): string => {
       const solo = pick ? 'data-pick' : 'data-solo';
       const host = pick ? 'data-pickhost' : 'data-host';
       const [min, max] = g.seats;
@@ -745,7 +749,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     };
 
     /* 오늘의 세 판 — 51개 앞에서 「뭘 하지」를 대신 정해 준다 (TASK-KL-264). */
-    const picks = todayPicks(GAMES.map((g) => ({ id: g.id, kind: kindOf(g.id) })));
+    const picks = todayPicks(CARDS.map((g) => ({ id: g.id, kind: kindOf(g.id) })));
     const paintToday = (): void => {
       const st = dailyState();
       $<HTMLElement>('#acToday').innerHTML =
@@ -822,13 +826,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const box = $<HTMLElement>('#acPicks');
       if (findEl.value.trim()) { box.innerHTML = ''; return; }
       const ids = pick6(
-        GAMES.map((g) => ({ id: g.id, kind: kindOf(g.id), length: lengthOf(g.id) })),
+        CARDS.map((g) => ({ id: g.id, kind: kindOf(g.id), length: lengthOf(g.id) })),
         readPlays()
       );
       box.innerHTML =
         '<h3 class="ac-kind">' + esc(t('arcade.pick.title')) + ' <i>' + SLOTS + '</i></h3>' +
         '<div class="ac-grid">' +
-        ids.map((id) => cardOf(GAMES.find((g) => g.id === id)!, true)).join('') +
+        ids.map((id) => cardOf(CARDS.find((g) => g.id === id)!, true)).join('') +
         '</div>';
       wireCards();
     };
@@ -837,13 +841,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const q = findEl.value;
       const box = $<HTMLElement>('#acGames');
       if (q.trim()) {
-        const mine = GAMES.filter((g) => matches(hayOf(g.id), q));
+        const mine = CARDS.filter((g) => matches(hayOf(g.id), q));
         box.innerHTML = mine.length
           ? '<div class="ac-grid">' + mine.map((g) => cardOf(g)).join('') + '</div>'
           : '<p class="ac-none">' + esc(t('arcade.find.none')) + '</p>';
       } else {
         box.innerHTML = KINDS.map((kind: Kind) => {
-          const mine = GAMES.filter((g) => kindOf(g.id) === kind);
+          const mine = CARDS.filter((g) => kindOf(g.id) === kind);
           if (!mine.length) return '';
           return (
             '<h3 class="ac-kind">' + esc(t('arcade.kind.' + kind)) + ' <i>' + mine.length + '</i></h3>' +
@@ -1222,6 +1226,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const gv = viewById(id);
       viewEl.innerHTML = '';
       render = gv ? (gv.mount(viewEl, (a: unknown) => sendAct(a)) as Render<unknown>) : null;
+      /* 조각이 아직 안 왔으면 받아서 **그때 다시 붙인다** (TASK-KL-242 쪼개기).
+         그 사이 `render` 는 null 이고 `paint` 는 그걸 이미 견딘다 — 판은 커널이 들고 있어서
+         화면이 늦게 와도 놓치는 수가 없다. 그 사이 딴 게임으로 넘어갔으면 안 붙인다. */
+      if (!gv) void ensureGame(id).then(() => { if (gameId === id && !render) mountView(id); });
     }
 
     function sendAct(a: unknown): void {
@@ -1252,7 +1260,14 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     function beginMatch(id: string, seats: SeatSpec[], seed: number, want?: number): void {
       const g = gameById(id);
-      if (!g) return;
+      /* 조각이 아직이면 **받아서 다시 들어온다** (TASK-KL-242 쪼개기). 부르는 자리가 예닐곱인데
+         저마다 기다리게 하면 언젠가 한 곳을 빠뜨린다 — 문을 하나로 두고 여기서만 기다린다. */
+      if (!g) {
+        void ensureGame(id).then(() => {
+          if (gameById(id)) beginMatch(id, seats, seed, want);
+        });
+        return;
+      }
       gameId = id;
       mySeat = 0;
       watching = false;
@@ -1318,6 +1333,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     let dropIntro: (() => void) | null = null;
 
     function withIntro(id: string, go: () => void): void {
+      /* **세는 동안 받는다** (TASK-KL-242 쪼개기). 「셋·둘·하나」 3초가 그대로 조각 받는 시간이
+         되어, 사람 눈에는 기다림이 하나도 안 는다. 못 받아도 `beginMatch` 가 한 번 더 기다린다. */
+      void ensureGame(id);
       const introEl = $<HTMLElement>('#acIntro');
       const numEl = $<HTMLElement>('#acIntroNum');
       $<HTMLElement>('#acIntroIcon').textContent = iconOf(id);
@@ -1369,7 +1387,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       net?.leave();
       net = null;
       tour = {
-        games: pickGames(GAMES.map((g) => ({ id: g.id, kind: kindOf(g.id), seats: g.seats }))),
+        games: pickGames(CARDS.map((g) => ({ id: g.id, kind: kindOf(g.id), seats: g.seats }))),
         at: 0,
         points: new Array(PARTY).fill(0) as number[],
         crew: pickBots(PARTY - 1)
@@ -1412,7 +1430,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     /** 링크로 들어왔다 — 적힌 수를 다 두고, 다음 차례면 내가 둘 수 있게 연다. */
     function openLetter(post: Letter): void {
       const g = gameById(post.game);
-      if (!g) return;
+      if (!g) {
+        void ensureGame(post.game).then(() => {
+          if (gameById(post.game)) openLetter(post);
+        });
+        return;
+      }
       net?.leave();
       net = null;
       tour = null;
@@ -1436,8 +1459,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     /** 편지 판을 새로 시작한다 — 아직 아무도 안 둔 판. */
     function startLetter(id: string): void {
-      const g = gameById(id);
-      if (!g) return;
+      /* 조각은 아직 없어도 된다 — 새 편지 판은 이름과 씨앗만 있으면 접힌다.
+         받아 오는 것은 `openLetter` 한 곳에서만 기다린다(문을 둘로 만들지 않는다). */
+      if (!cardById(id)) return;
       openLetter({ game: id, seed: seedFrom(id + String(Date.now())), who: [myName(), t('arcade.letter.friend')], moves: [] });
     }
 
@@ -1448,12 +1472,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      * 그래서 게임 파일은 편이 있다는 것을 모르고, 같은 규칙이 「우리가 잘하기」로 달리 놀린다.
      */
     function startTeam(id: string): void {
-      const g = gameById(id);
-      if (!g) return;
+      const card = cardById(id);
+      if (!card) return;
       net?.leave();
       net = null;
       letter = null;
-      const n = Math.min(4, g.seats[1]);
+      const n = Math.min(4, card.seats[1]);
       plan = split(n);
       show('play');
       withIntro(id, () =>
@@ -1478,7 +1502,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       ].join('');
       /* 자리가 몇이고 지금 몇이 넘치는지를 **기다리는 동안** 말해 준다 — 시작하고 나서
          「나는 왜 못 두지」를 겪게 하면 그건 관전이 아니라 고장으로 느껴진다. */
-      const cap = gameById(gameId)?.seats[1] ?? 0;
+      const cap = cardById(gameId)?.seats[1] ?? 0;
       const over = Math.max(0, peers.length + 1 - cap);
       $<HTMLElement>('#acWaitStatus').textContent =
         (host ? t('arcade.wait.host', { n: String(peers.length + 1) }) : t('arcade.wait.guest')) +
@@ -1571,10 +1595,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      */
     function startTogether(id?: string): void {
       if (id) gameId = id;
-      const g = gameById(gameId);
-      if (!g) return;
+      const card = cardById(gameId);
+      if (!card) return;
       /* 자리를 정하는 것은 주인 하나다. 0 번은 주인, 그다음은 들어온 차례대로. */
-      const take = peers.slice(0, g.seats[1] - 1);
+      const take = peers.slice(0, card.seats[1] - 1);
       seatOf = {};
       take.forEach((p, i) => {
         seatOf[p.id] = i + 1;
