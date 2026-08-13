@@ -2625,6 +2625,32 @@ await step('블로그에 넣을 한 줄을 준다', async () => {
   if (!/kmv=1/.test(code)) throw new Error('보기 전용(kmv=1)이 아닌 링크를 끼웠다');
 });
 
+await step('폰에서도 할 수 있는 일이 다 닿는다 — 등록부 ⟷ 팔레트', async () => {
+  /* ★ 「모바일이라고 축소판을 주지 않는다」(Kinopio 원칙 4 · KL-271 M3). 폰에서는 서랍이 좁아
+     자주 쓰는 것만 펴 두는데, 그러면 나머지가 **닿을 수 없게** 되기 쉽다 — 그 구멍을 여기서 잰다.
+     기준은 눈이 아니라 등록부다: commands.ts 에 적힌 것이 전부 팔레트에 뜨고 손가락 크기여야 한다. */
+  // ※ 이 파일에서 `URL` 은 **판 주소**로 쓰이는 이름이라 가려져 있다 — 전역 것을 직접 부른다.
+  const registered = (await readFile(
+    new globalThis.URL('../src/widgets/karmograph/commands.ts', import.meta.url), 'utf8'))
+    .match(/key: '[\w-]+'/g).length;
+  const small = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const s = await small.newPage();
+  await s.goto(URL, { waitUntil: 'domcontentloaded' });
+  await s.waitForSelector('.km-root', { timeout: ms(8000) });
+  await s.waitForTimeout(ms(600));
+  await s.evaluate(() => document.querySelector('[data-km="more"]').click());
+  await s.evaluate(() => document.querySelector('[data-km="palette-open"]').click());
+  await s.waitForSelector('.km-pal:not(.hidden)', { timeout: ms(4000) });
+  const listed = await s.locator('.km-pal-list button').count();
+  if (listed !== registered) {
+    throw new Error(`폰에서 못 닿는 명령이 있다 — 등록 ${registered}개 / 팔레트 ${listed}개`);
+  }
+  const tooSmall = await s.evaluate(() => [...document.querySelectorAll('.km-pal-list button')]
+    .filter((b) => b.getBoundingClientRect().height < 32).length);
+  if (tooSmall > 0) throw new Error(`손가락으로 누르기엔 작은 줄 ${tooSmall}개`);
+  await small.close();
+});
+
 await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널은 아래 시트로 뜬다', async () => {
   const phone = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 
