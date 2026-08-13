@@ -3,6 +3,7 @@
  * qrcode-generator 를 번들해 오프라인에서도 동작 (외부 API 호출 0 = 입력 데이터가 밖으로 안 나감).
  */
 import qrcode from 'qrcode-generator';
+import { markLive } from './shared/say';
 import { escapeWifi, type Level, makeGrid, spec, toSvg } from '../../core/qrgen';
 import { readInvocation } from '../../lib/tool-url';
 
@@ -149,6 +150,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const kind = $<HTMLSelectElement>('#qrKind');
           const preview = $<HTMLElement>('#qrPreview');
           const status = $<HTMLElement>('#qrStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
           const sizeInput = $<HTMLInputElement>('#qrSize');
           const sizeVal = $<HTMLElement>('#qrSizeVal');
 

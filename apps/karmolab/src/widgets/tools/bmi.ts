@@ -6,6 +6,7 @@
  * 근육량·체지방을 구분하지 못한다는 한계도 화면에 적는다. 숫자만 주면 오해가 남는다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 import { region, isMetric } from '../../lib/region';
 
 (function (): void {
@@ -120,6 +121,8 @@ import { region, isMetric } from '../../lib/region';
           const stats = $<HTMLElement>('#bmStats');
           const detail = $<HTMLElement>('#bmDetail');
           const status = $<HTMLElement>('#bmStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
 
           const stat = (label: string, v: string, primary = false): string =>
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${label}</div><div class="cc-stat-value">${v}</div></div>`;

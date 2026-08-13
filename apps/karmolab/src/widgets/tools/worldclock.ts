@@ -6,6 +6,7 @@
  * 그래서 상수를 쓰지 않고 브라우저의 IANA 시간대 데이터에 매번 물어본다 — 서머타임이 자동 반영된다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 import { offsetMinutes, spec, wallToInstant as wallToInstantCore } from '../../core/worldclock';
 import { readInvocation } from '../../lib/tool-url';
@@ -133,6 +134,8 @@ import { readInvocation } from '../../lib/tool-url';
           const search = $<HTMLInputElement>('#wcSearch');
           const list = $<HTMLElement>('#wcList');
           const status = $<HTMLElement>('#wcStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
 
           baseSel.innerHTML = ZONES.map(
             ([z, key, region]) => `<option value="${z}">${esc(cityName(key))} · ${esc(regionName(region))}</option>`

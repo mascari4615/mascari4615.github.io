@@ -3,6 +3,7 @@
  * 제외수·고정수·홀짝 균형 조건을 만족할 때까지 재추첨 (최대 시도 후 조건 완화 안내).
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -102,6 +103,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const countVal = $<HTMLElement>('#ltCountVal');
           const result = $<HTMLElement>('#ltResult');
           const status = $<HTMLElement>('#ltStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
 
           countInput.addEventListener('input', () => {
             countVal.textContent = countInput.value + t('lotto.unit.games');

@@ -6,6 +6,7 @@
  * **순서를 무시하고 집합으로** 봐야 하기 때문. 그래서 별도로 둔다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -67,6 +68,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const outEl = $<HTMLTextAreaElement>('#ldOut');
           const stats = $<HTMLElement>('#ldStats');
           const status = $<HTMLElement>('#ldStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
           let pick = 'both';
 
           const stat = (l: string, v: string, primary = false): string =>

@@ -7,6 +7,7 @@
  * 흔한 조사를 떼는 선택지를 둔다 (형태소 분석은 아니지만 체감은 크게 달라진다).
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 import { spec, STOP, stripParticle } from '../../core/wordfreq';
 import { readInvocation } from '../../lib/tool-url';
@@ -67,6 +68,9 @@ import { readInvocation } from '../../lib/tool-url';
           const stats = $<HTMLElement>('#wfStats');
           const out = $<HTMLElement>('#wfOut');
           const status = $<HTMLElement>('#wfStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          markLive(status);
           let rows: Array<[string, number]> = [];
 
           const stat = (l: string, v: string, primary = false): string =>

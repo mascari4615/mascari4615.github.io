@@ -6,6 +6,7 @@
  * 자모 단위로 찍는다)도 넣는다. 소리·불빛 재생은 그대로 살린다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   const EN: Record<string, string> = {
@@ -275,6 +276,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const codeEl = $<HTMLTextAreaElement>('#msCode');
           const led = $<HTMLElement>('#msLed');
           const status = $<HTMLElement>('#msStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
           let korean = false;
           let syncing = false;
 

@@ -16,14 +16,24 @@
 export type SayKind = '' | 'ok' | 'error' | 'warn';
 
 /**
+ * **이 자리는 읽어 달라**고 표시만 한다.
+ *
+ * 상태 줄에 직접 글을 쓰는 도구(`status.textContent = …`)가 아직 많다. 그런 곳까지 손잡이를
+ * 바꾸게 하면 판이 커져서 안 하게 된다 — 표시만 붙이는 한 줄이면 **그 자리도 읽힌다**.
+ */
+export function markLive(el: HTMLElement): void {
+  if (!el.getAttribute('role')) el.setAttribute('role', 'status');
+  if (!el.getAttribute('aria-live')) el.setAttribute('aria-live', 'polite');
+}
+
+/**
  * 그 자리를 상태 줄로 삼고, 말하는 손잡이를 돌려준다.
  *
  * `role="status"` + `aria-live="polite"` 를 붙인다 — 「지금 하던 일을 끊지 말고, 틈이 나면
  * 읽어 달라」는 뜻이다. `assertive` 는 타이핑을 끊어서 오히려 방해가 된다.
  */
 export function statusLine(el: HTMLElement): (msg: string, kind?: SayKind) => void {
-  if (!el.getAttribute('role')) el.setAttribute('role', 'status');
-  if (!el.getAttribute('aria-live')) el.setAttribute('aria-live', 'polite');
+  markLive(el);
   return (msg: string, kind: SayKind = ''): void => {
     el.textContent = msg;
     el.className = 'tool-status' + (kind ? ' ' + kind : '');

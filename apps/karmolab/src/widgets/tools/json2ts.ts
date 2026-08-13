@@ -6,6 +6,7 @@
  * 그래서 배열은 **모든 원소를 합쳐** 보고, 일부에만 있는 필드는 옵셔널로 표시한다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -116,6 +117,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           const input = $<HTMLTextAreaElement>('#jtIn');
           const out = $<HTMLTextAreaElement>('#jtOut');
           const status = $<HTMLElement>('#jtStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          markLive(status);
 
           function run(): void {
             let data: unknown;

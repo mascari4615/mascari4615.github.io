@@ -6,6 +6,7 @@
  * 나머지를 채워 주고, 흔한 화면비(16:9 등)로 맞출 때 필요한 여백도 함께 낸다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -85,6 +86,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           const nh = $<HTMLInputElement>('#asNewH');
           const out = $<HTMLElement>('#asOut');
           const status = $<HTMLElement>('#asStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          markLive(status);
           let lastEdited: 'w' | 'h' = 'w';
 
           const row = (k: string, v: string): string =>

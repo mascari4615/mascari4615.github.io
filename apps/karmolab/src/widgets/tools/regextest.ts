@@ -3,6 +3,7 @@
  * 하이라이트는 exec 루프로 만들되, 빈 매치(`a*` 류)에서 lastIndex 를 강제로 밀어 무한루프를 막는다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -76,6 +77,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const highlight = $<HTMLElement>('#rxHighlight');
           const replaced = $<HTMLElement>('#rxReplaced');
           const status = $<HTMLElement>('#rxStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
           const matchesEl = $<HTMLElement>('#rxMatches');
 
           function run(): void {

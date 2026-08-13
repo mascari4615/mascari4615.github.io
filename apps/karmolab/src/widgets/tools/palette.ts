@@ -7,6 +7,7 @@
  * 이미지는 브라우저 안에서만 읽고 어디로도 보내지 않는다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { markLive } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { loadImage } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -110,6 +111,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const previewWrap = $<HTMLElement>('#plPreviewWrap');
           const swatches = $<HTMLElement>('#plSwatches');
           const status = $<HTMLElement>('#plStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
 
           let current: RGB[] = [];
           let lastImage: HTMLImageElement | null = null;

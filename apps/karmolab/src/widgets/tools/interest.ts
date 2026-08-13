@@ -6,6 +6,7 @@
  * 그래서 세전·세후를 나란히 보여주고, 대출은 원리금균등 상환표까지 펼친다.
  */
 import { annuityPayment, depositInterest, savingInterest, spec, TAX_RATE } from '../../core/interest';
+import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace, locale } from '../../lib/i18n';
 
@@ -77,6 +78,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const stats = $<HTMLElement>('#itStats');
           const detail = $<HTMLElement>('#itDetail');
           const status = $<HTMLElement>('#itStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
           const amountLabel = $<HTMLElement>('#itAmountLabel');
           let mode = 'saving';
 

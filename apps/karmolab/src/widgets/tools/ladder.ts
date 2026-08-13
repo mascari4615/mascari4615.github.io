@@ -6,6 +6,7 @@
  * 가로줄은 같은 높이에서 겹치지 않게 놓는다 (겹치면 경로가 정의되지 않는다).
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -107,6 +108,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const svg = container.querySelector('#ldSvg') as SVGSVGElement;
           const resultEl = $<HTMLElement>('#ldResult');
           const status = $<HTMLElement>('#ldStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
 
           let ladder: Ladder | null = null;
           let names: string[] = [];

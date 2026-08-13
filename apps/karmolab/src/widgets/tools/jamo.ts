@@ -6,6 +6,7 @@
  * 윈도우에서 「ㄱ ㅏ ㅁ」 처럼 풀려 보이는 게 대표적이다(자모가 따로 저장된 표기).
  */
 import { compose, decompose, initials, spec, split } from '../../core/jamo';
+import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -59,6 +60,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           const all = $<HTMLInputElement>('#jaAll');
           const out = $<HTMLElement>('#jaOut');
           const status = $<HTMLElement>('#jaStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          markLive(status);
 
           function run(): void {
             /* 쪼개는 계산은 `src/core/jamo.ts` 가 한다 — 겹받침·「종성이냐 다음 초성이냐」 판단이

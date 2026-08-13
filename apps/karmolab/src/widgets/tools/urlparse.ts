@@ -5,6 +5,7 @@
  * 사실 같은 도구가 필요하다 — 주소를 **조각으로 펼쳐** 보는 것. 인코딩 변환과 분해를 한 화면에 둔다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -48,6 +49,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const input = $<HTMLTextAreaElement>('#upIn');
           const parts = $<HTMLElement>('#upParts');
           const status = $<HTMLElement>('#upStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
           const row = (k: string, v: string, dim = false): string =>
             `<div class="tool-list-row"><span class="tool-list-key">${esc(k)}</span><span class="tool-list-val${dim ? ' tool-list-dim' : ''}">${esc(v)}</span></div>`;
 

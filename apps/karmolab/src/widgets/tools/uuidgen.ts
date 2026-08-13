@@ -3,6 +3,7 @@
  * 난수는 crypto.getRandomValues 만 쓴다 (Math.random 은 예측 가능해 ID 용도로 부적격).
  */
 import { nanoId, password, spec, ulid, uuidV4, uuidV7 } from '../../core/uuidgen';
+import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -71,6 +72,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const count = $<HTMLInputElement>('#uuCount');
           const len = $<HTMLInputElement>('#uuLen');
           const out = $<HTMLTextAreaElement>('#uuOut');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(out);
 
           function render(): void {
             $<HTMLElement>('#uuCountVal').textContent = count.value + t('uuidgen.unit.count');

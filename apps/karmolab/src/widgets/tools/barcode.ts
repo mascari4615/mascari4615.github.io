@@ -12,6 +12,7 @@
  *    바코드가 안 읽히는 가장 흔한 이유다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -136,6 +137,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const canvas = $<HTMLCanvasElement>('#bcCanvas');
           const status = $<HTMLElement>('#bcStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
           const stats = $<HTMLElement>('#bcStats');
           let kind = 'code128';
 

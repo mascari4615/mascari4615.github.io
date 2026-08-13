@@ -6,6 +6,7 @@
  * 색을 바꿔 보여주는 데 그치지 않고, **어떤 유형에서 두 색이 구분되지 않는지** 판정한다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -88,6 +89,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           const bEl = $<HTMLInputElement>('#cbB');
           const out = $<HTMLElement>('#cbOut');
           const status = $<HTMLElement>('#cbStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          markLive(status);
 
           function run(): void {
             const a = parse(aEl.value);

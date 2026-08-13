@@ -7,6 +7,7 @@
  * 서명 검증은 비밀키가 필요해 브라우저에서 하지 않는다 (키를 웹에 붙여 넣게 하면 안 된다).
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   /** JWT 는 URL-safe base64 라 표준 base64 로 되돌린 뒤 디코딩한다. */
@@ -85,6 +86,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const input = $<HTMLTextAreaElement>('#jwIn');
           const status = $<HTMLElement>('#jwStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
 
           function row(k: string, v: string, note = ''): string {
             return `<div class="tool-list-row"><span class="tool-list-key">${esc(k)}${

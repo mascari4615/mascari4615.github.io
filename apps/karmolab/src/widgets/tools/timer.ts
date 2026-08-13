@@ -4,6 +4,7 @@
  * - 알림음 = WebAudio 합성 (외부 파일 0). 탭 제목에도 남은 시간을 띄워 백그라운드에서 보이게.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   function fmt(ms: number, withMs: boolean): string {
@@ -114,6 +115,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const display = $<HTMLElement>('#tmDisplay');
           const status = $<HTMLElement>('#tmStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
           let totalMs = 0;
           let endAt = 0;
           let remaining = 0;

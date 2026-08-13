@@ -19,6 +19,7 @@
  * (값 = ㄱ+ㅏ+ㅄ = 4타). 글자 수로 세면 실제보다 절반 아래로 나와 다른 데서 잰 값과 안 맞는다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   /** 처음 온 사람에게 보여 줄 글. 겨룰 **글 자체가 내용**이라 언어마다 다시 썼다 —
@@ -222,6 +223,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const textEl = $<HTMLElement>('#gtText');
           const input = $<HTMLTextAreaElement>('#gtInput');
           const status = $<HTMLElement>('#gtStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
           const result = $<HTMLElement>('#gtResult');
           const meRunner = $<HTMLElement>('#gtMe');
           const ghostRunner = $<HTMLElement>('#gtGhost');

@@ -5,6 +5,7 @@
  * 주소로 부른 경우(`?op=encode&text=…`)도 여기서 받아 칸을 채운다 — 규약은 `lib/tool-url.ts`.
  */
 import { byteLength, decode, encode, spec } from '../../core/base64';
+import { markLive } from './shared/say';
 import { buildToolUrl, readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -57,6 +58,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const code = $<HTMLTextAreaElement>('#b6Code');
           const urlSafe = $<HTMLInputElement>('#b6Url');
           const status = $<HTMLElement>('#b6Status');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
           let syncing = false;
 
           function say(msg: string, kind = ''): void {
