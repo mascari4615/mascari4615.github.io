@@ -700,5 +700,7 @@
   "karmograph.table.kind": "Kind",
   "karmograph.table.hint": "The same cards as a table ({n}) — tap a header to sort, a row to select it on the board.",
   "karmograph.ripe.seed": "🌱 No fields written yet ({total})",
-  "karmograph.ripe.growing": "🌿 {filled} of {total} fields written — {left} left"
+  "karmograph.ripe.growing": "🌿 {filled} of {total} fields written — {left} left",
+  "karmograph.print.label": "Print on paper (A4)",
+  "karmograph.print.blocked": "A new window was blocked — allow pop-ups for this site"
 }

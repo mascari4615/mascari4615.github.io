@@ -48,6 +48,7 @@ async function loadModules() {
     export * as edgeViews from ${JSON.stringify(path.join(root, 'src/lib/graph/edge-views.ts'))};
     export * as table from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/table-view.ts'))};
     export * as ripe from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/ripeness.ts'))};
+    export * as printSheet from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/print-sheet.ts'))};
     export * as poster from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster-legend.ts'))};
     export * as posterDraw from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster.ts'))};
     export * as fieldGaps from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/field-gaps.ts'))};
@@ -995,6 +996,26 @@ const M = await loadModules();
   check(worthNudging(ripenessOf({ fields: { a: '' } })), '남은 것이 있으면 말을 건다');
   check(!worthNudging(ripenessOf({ fields: { a: '값' } })), '다 적은 카드에 잔소리하지 않는다');
   check(!worthNudging(ripenessOf({})), '칸 없는 카드에도 말 안 건다');
+}
+
+// -- 종이 한 장으로 (TASK-KL-271 O7) -------------------------------------------
+{
+  const { printSheetHtml, isWide } = M.printSheet;
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="400"><g/></svg>';
+  const tall = '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="900"><g/></svg>';
+  check(isWide(svg), '가로로 길면 눕혀 찍는다');
+  check(!isWide(tall), '세로로 길면 세워 찍는다');
+  check(!isWide('<div/>'), '그림이 아니면 세워 찍는다(모르면 안전한 쪽)');
+  const html = printSheetHtml({ title: '나의 세계관', svg, landscape: isWide(svg) });
+  check(html.includes('@page { size: A4 landscape'), 'A4 로 눕혀 찍는다');
+  check(html.includes('<title>나의 세계관</title>'), '창 이름 = PDF 파일 이름');
+  check(html.includes(svg), '뽑을 그림이 그대로 실린다');
+  check(/background:#fff/.test(html), '종이는 흰 바탕 — 어두운 판 색을 실으면 잉크를 다 먹는다');
+  check(/max-width:100%/.test(html), '넘치면 줄인다 — 자르면 오른쪽 인물이 통째로 사라진다');
+  check(!/print\(\)/.test(html), '인쇄창을 여기서 띄우지 않는다(부르는 쪽 일)');
+  const risky = printSheetHtml({ title: '<b>&', svg });
+  check(risky.includes('&lt;b&gt;&amp;'), '제목에 꺾쇠가 있어도 문서가 안 깨진다');
+  check(risky.includes('@page { size: A4 portrait'), '기본은 세워 찍기');
 }
 
 process.stdout.write('\n');

@@ -2641,6 +2641,25 @@ await step('고른 카드에 남은 칸 수를 말해 준다 (다 적으면 조�
   if (await page.locator('.km-ripe').count() !== 0) throw new Error('다 적었는데도 남은 칸을 말한다');
 });
 
+await step('종이 한 장으로 뽑는다 — A4 에 맞춘 새 창', async () => {
+  // 탁자에 펼쳐 놓고 여럿이 보는 자리가 있다(TRPG·회의·수업). 브라우저 인쇄를 그냥 쓰면
+  // 도구의 손잡이·패널까지 찍히고 판이 잘린다(KL-271 O7).
+  await page.evaluate(() => {
+    window.__km_print = '';
+    window.open = () => ({
+      document: { write: (h) => { window.__km_print += h; }, close: () => {} },
+      addEventListener: () => {},
+      print: () => {},
+    });
+  });
+  await page.evaluate(() => document.querySelector('[data-km="print"]').click());
+  await page.waitForFunction(() => (window.__km_print || '').includes('@page'), null, { timeout: ms(6000) });
+  const html = await page.evaluate(() => window.__km_print);
+  if (!/size: A4/.test(html)) throw new Error('A4 로 안 맞춘다');
+  if (!/<svg/.test(html)) throw new Error('종이에 그림이 안 실렸다');
+  if (!/background:#fff/.test(html)) throw new Error('종이가 흰 바탕이 아니다 — 잉크를 다 먹는다');
+});
+
 await step('같은 자료를 표로도 본다 — 줄을 누르면 판에서 골라진다', async () => {
   // 판은 「누가 누구와 이어졌나」에 강하고 「빠짐없이 훑기」에 약하다(KL-271 L4 · Notion 뷰 계보).
   await openPanel(page, 'table');
