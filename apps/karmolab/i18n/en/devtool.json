@@ -23,5 +23,9 @@
   "devtool.part.radix": "Number base",
   "devtool.part.codeshot": "Code shot",
   "devtool.part.epoch": "Unix time",
-  "devtool.part.colorconv": "Color convert"
+  "devtool.part.colorconv": "Color convert",
+  "devtool.tree.sum": "{rows} rows · deepest {deep}",
+  "devtool.tree.root": "root",
+  "devtool.tree.cut": "Too big — expanded this far only",
+  "devtool.tree.copied": "Path copied: {path}"
 }

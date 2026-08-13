@@ -41,6 +41,29 @@ check(hot.includes('jsonfmt'), `JSON 이면 「JSON」 이 짚혀야 한다 (지
 check(!hot.includes('jwt'), 'JSON 인데 JWT 가 짚히면 안 된다');
 check(await page.locator('#pfTip').isVisible(), '왜 짚었는지 한 줄이 뜬다');
 
+/* ①-나 **구조 보기** (TASK-KL-286 — JSON Crack·JSON Hero)
+ * 사람이 JSON 을 여는 이유의 태반은 「여기 뭐가 들어 있나」다. 글자 대신 나무가 서야 한다. */
+await page.waitForSelector('#dvTree', { timeout: 10000 }).catch(() => {});
+check((await page.locator('#dvTree').count()) === 1, 'JSON 이면 글자 대신 나무가 선다');
+check((await page.locator('#dvHead').count()) === 0, 'JSON 일 땐 글자 덩어리는 안 보여 준다');
+const rows0 = await page.locator('#dvRows .dv-row, #dvTree .dv-row').count();
+check(rows0 >= 4, `줄이 펴져 있다 (지금 ${rows0}줄)`);
+check(/깊|deep|層/.test(await page.locator('#dvSum').innerText()), '얼마나 깊은지 한 줄로 말해 준다');
+
+/* 가지를 누르면 접힌다 */
+const before = await page.locator('#dvTree .dv-row').count();
+await page.locator('#dvTree .dv-row').first().click();
+await page.waitForTimeout(200);
+const after = await page.locator('#dvTree .dv-row').count();
+check(after < before, `가지를 누르면 접힌다 (${before} → ${after}줄)`);
+
+/* 깨진 JSON 은 나무 대신 글자로 — 그때가 「보기 좋게」가 가장 필요한 순간이다 */
+await page.fill('#pfText', '{"a":1,');
+await page.waitForFunction(() => !!document.querySelector('#dvHead'), { timeout: 10000 }).catch(() => {});
+check((await page.locator('#dvHead').count()) === 1, '깨진 JSON 은 글자로 보여 준다');
+await page.fill('#pfText', '{"name":"karmo","tags":[1,2,3]}');
+await page.waitForSelector('#dvTree', { timeout: 10000 }).catch(() => {});
+
 /* ② 다른 것을 붙여넣으면 **짚는 것이 갈아 끼워진다** — 옛것이 남으면 거짓말이 된다 */
 await page.fill('#pfText', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dBjftJeZ4CVPmB92K27uhbUJU1p1r_wW1gFWFOEjXk');
 await page.waitForFunction(
