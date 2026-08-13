@@ -1787,8 +1787,21 @@ const Toolbox = (() => {
         return tools.some((t) => t.id === bundleId) ? bundleId : null;
     }
 
+    /**
+     * 옮겨 간 도구 — 옛 이름으로 오면 새 자리로 (TASK-KL-313)
+     *
+     * 도구를 합치면 그 이름을 부르던 링크·북마크·즐겨찾기가 **조용히 첫 화면으로 떨어진다**.
+     * 「없는 도구」와 「옮겨 간 도구」는 다르다 — 옮겨 갔으면 데려다줘야 한다.
+     * 한 줄이 곧 「이 이름은 이제 저기다」는 선언이고, 지우는 대신 여기 남긴다.
+     */
+    const MOVED = {
+        // 놀이터 → 오락실 (놀이로 들어가는 문을 하나로)
+        play: 'arcade'
+    };
+
     function switchPage(pageId, opts = {}) {
         closeAllHeaderNav();
+        if (MOVED[pageId]) pageId = MOVED[pageId];
         /* 화면이 바뀌는 순간 = 부팅 지표의 끝 (TASK-KL-201). 여기를 안 알려 주면 「제일 큰 그림」이
            방금 연 위젯 쪽으로 밀려서, 부팅이 아니라 그 위젯 크기를 재게 된다(실측 192ms → 2960ms). */
         (window.KLPerf?.mark ?? window.__klMark)?.('page:' + pageId);
