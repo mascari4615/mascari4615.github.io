@@ -395,5 +395,9 @@
   "arcade.len.mid": "ふつう",
   "arcade.len.long": "ながい",
   "arcade.len.secs": "ボット同士で約{n}秒",
-  "arcade.over.mine": "勝った"
+  "arcade.over.mine": "勝った",
+  "arcade.btn.swap": "ほかのゲーム",
+  "arcade.room.kept": "部屋そのまま · {n}人 — 選べば一緒に始まる",
+  "arcade.room.close": "部屋を閉じる",
+  "arcade.room.picking": "ホストが次のゲームを選んでいる"
 }

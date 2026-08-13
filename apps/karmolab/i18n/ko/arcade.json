@@ -395,5 +395,9 @@
   "arcade.len.mid": "보통",
   "arcade.len.long": "길다",
   "arcade.len.secs": "봇끼리 재니 약 {n}초",
-  "arcade.over.mine": "내가 이겼다"
+  "arcade.over.mine": "내가 이겼다",
+  "arcade.btn.swap": "다른 게임",
+  "arcade.room.kept": "방 유지 중 · {n}명 — 고르면 다 같이 시작",
+  "arcade.room.close": "방 닫기",
+  "arcade.room.picking": "주인이 다음 판을 고르는 중"
 }
