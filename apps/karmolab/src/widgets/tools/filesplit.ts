@@ -9,6 +9,7 @@
  * 그래서 합친 결과는 원본과 완전히 같다(검사값으로 확인시켜 준다).
  */
 import { fileSize as size } from './shared/media';
+import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -242,20 +243,9 @@ import { t, loadNamespace } from '../../lib/i18n';
             render();
           }
 
-          drop.onclick = () => fileInput.click();
-          fileInput.onchange = () => {
-            if (fileInput.files) take(fileInput.files);
-          };
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
-          drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-          drop.addEventListener('drop', (e) => {
-            e.preventDefault();
-            drop.classList.remove('over');
-            if (e.dataTransfer?.files) take(e.dataTransfer.files);
-          });
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 붙여넣기가 같이 딸려 온다.
+           * 이 도구는 **여러 개**를 받는다(조각을 다시 잇는 쪽). */
+          wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => take(files) });
           $<HTMLElement>('#fsModeSplit').onclick = () => setMode('split');
           $<HTMLElement>('#fsModeJoin').onclick = () => setMode('join');
           $<HTMLSelectElement>('#fsSize').addEventListener('change', render);

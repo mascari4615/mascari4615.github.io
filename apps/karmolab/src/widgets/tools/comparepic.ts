@@ -12,6 +12,7 @@
  * ③ 지금 보이는 그대로 PNG 로 저장 — 자랑하려면 그림 한 장이 있어야 한다
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { acceptPastedFiles } from './shared/paste';
 import { download, loadImage } from './shared/image';
 
 (function (): void {
@@ -128,6 +129,16 @@ import { download, loadImage } from './shared/image';
             const f = (e.target as HTMLInputElement).files?.[0];
             if (f) void load(f, 'right');
           };
+
+          /* **붙여넣기** (TASK-KL-290). 이 도구는 파일 칸이 **둘**이라 공용 `wireDrop` 틀에 안 맞는다 —
+           * 「어느 쪽에 넣나」를 틀이 모르기 때문이다. 억지로 끼우지 않고 그 판단만 여기 둔다:
+           * **비어 있는 쪽**에 넣고, 둘 다 비었으면 왼쪽부터. 둘 다 찼으면 오른쪽을 갈아 끼운다
+           * (전/후 비교에서 새로 온 것은 대개 「후」다). */
+          acceptPastedFiles(container, (files) => {
+            const f = files[0];
+            if (!f) return;
+            void load(f, left === null ? 'left' : right === null ? 'right' : 'right');
+          });
 
           /* 손가락·마우스 한 벌로 (pointer). 마우스만 받으면 폰에서는 없는 기능이 된다. */
           const moveTo = (clientX: number): void => {

@@ -11,6 +11,7 @@
  *    막을 방법이 없으므로 **일어났으면 알려 준다.** 모르고 받아 가는 게 제일 나쁘다.
  */
 import { pickRecordType, download } from './shared/video';
+import { wireDrop } from './shared/drop-well';
 import { fileSize as size, mmss } from './shared/media';
 
 import { t, loadNamespace } from '../../lib/i18n';
@@ -233,27 +234,14 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           const drop = $<HTMLElement>('#vrDrop');
           const fileInput = $<HTMLInputElement>('#vrFile');
-          drop.onclick = () => fileInput.click();
-          fileInput.onchange = () => {
-            if (fileInput.files?.[0]) load(fileInput.files[0]);
-          };
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
            * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('videorotate', (f: File) => load(f));
           }
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
-          drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-          drop.addEventListener('drop', (e) => {
-            e.preventDefault();
-            drop.classList.remove('over');
-            const f = e.dataTransfer?.files?.[0];
-            if (f) load(f);
-          });
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 붙여넣기가 같이 딸려 온다. */
+          wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
 
           container.querySelectorAll('#vrTurns .tool-chip').forEach((chip) => {
             (chip as HTMLButtonElement).onclick = () => {

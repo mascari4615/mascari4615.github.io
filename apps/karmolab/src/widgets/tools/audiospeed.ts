@@ -10,6 +10,7 @@
  * 「그냥 빠르게」도 남겨 뒀다 — 효과음이나 배속 감상용으로 일부러 쓰는 사람이 있다.
  */
 import { encodeAudio, fileSize as size, mmss, download, audioCtx, loadAudio } from './shared/media';
+import { wireDrop } from './shared/drop-well';
 
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -215,27 +216,14 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           const drop = $<HTMLElement>('#asDrop');
           const fileInput = $<HTMLInputElement>('#asFile');
-          drop.onclick = () => fileInput.click();
-          fileInput.onchange = () => {
-            if (fileInput.files?.[0]) void load(fileInput.files[0]);
-          };
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
            * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('audiospeed', (f: File) => void load(f));
           }
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
-          drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-          drop.addEventListener('drop', (e) => {
-            e.preventDefault();
-            drop.classList.remove('over');
-            const f = e.dataTransfer?.files?.[0];
-            if (f) void load(f);
-          });
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 붙여넣기가 같이 딸려 온다. */
+          wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
 
           rateEl.addEventListener('input', () => {
             $<HTMLElement>('#asRateVal').textContent = t('audiospeed.value.rate', {
