@@ -401,5 +401,7 @@
   "arcade.room.close": "部屋を閉じる",
   "arcade.room.picking": "ホストが次のゲームを選んでいる",
   "arcade.watch.now": "観戦中",
-  "arcade.watch.over": "{n}人は観戦"
+  "arcade.watch.over": "{n}人は観戦",
+  "arcade.btn.replay": "もう一度見る",
+  "arcade.replay.now": "再生中"
 }
