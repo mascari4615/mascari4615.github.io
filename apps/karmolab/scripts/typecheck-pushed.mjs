@@ -14,7 +14,7 @@
  * exit: 0 = 초록 / 1 = 그 커밋이 타입검사에서 선다 / 2 = 못 돌림(빨강 아님)
  */
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -88,19 +88,28 @@ for (const pkg of ['karmolab-ai', 'badapple']) {
 
 const tmp = mkdtempSync(join(tmpdir(), 'kl-tc-'));
 const work = join(tmp, 'w');
-let added = false;
 try {
-  /* 통째로 꺼내면 느리다 — 이 앱만 꺼낸다 */
-  git(['worktree', 'add', '--no-checkout', '--detach', work, sha]);
-  added = true;
-  /* `.github` 도 꺼낸다 — 빠른 게이트 하나가 워크플로 전제를 읽는다(없으면 못 돈다고 한다) */
-  git(['sparse-checkout', 'set', '--cone', 'apps/karmolab', '.github', 'packages'], work);
-  git(['checkout'], work);
+  /* ★ **딴 작업폴더(worktree) 대신 「그 커밋을 그냥 풀어 놓는다」** (2026-08-13 교정).
+     처음엔 `git worktree add` + `sparse-checkout` 을 썼는데, 그 명령은 저장소 **공용 설정**에
+     `extensions.worktreeConfig` 를 켠다 — 여러 세션이 한 나무를 쓰는 이곳에서 남의 자리에
+     영향이 갈 수 있는 자국이다(실제로 `packages/` 가 두 번 사라진 뒤 이 자국을 발견했다).
+     `git archive` 는 아무 설정도 안 건드리고 **읽기만** 한다. 값도 더 싸다. */
+  mkdirSync(work, { recursive: true });
+  const tar = spawnSync('tar', ['-x', '-C', work], {
+    input: execFileSync('git', ['archive', sha, 'apps/karmolab', 'packages', '.github'], {
+      cwd: repoRoot,
+      env,
+      maxBuffer: 512 * 1024 * 1024,
+      encoding: 'buffer'
+    }),
+    env,
+    encoding: 'buffer'
+  });
+  if (tar.status !== 0) cannotRun('그 커밋을 풀어 놓지 못했다 (tar)');
 
   const app = join(work, 'apps/karmolab');
   if (!existsSync(join(app, 'tsconfig.json'))) cannotRun('꺼낸 커밋에 apps/karmolab/tsconfig.json 이 없다');
-  /* 의존은 원래 자리를 가리킨다 — 커밋이 바꾸는 것은 소스지 의존이 아니다.
-     (`npm ci` 를 여기서 또 하면 1분이 아니라 5분짜리 게이트가 된다.) */
+  /* 의존은 원래 자리를 가리킨다 — 커밋이 바꾸는 것은 소스지 의존이 아니다. */
   symlinkSync(nodeModules, join(app, 'node_modules'), 'junction');
 
   const win = process.platform === 'win32';
@@ -135,12 +144,7 @@ try {
   console.error('  내 폴더에서는 초록일 수 있다 — 남이 아직 안 올린 파일에 기대고 있으면 그렇다.');
   process.exit(1);
 } finally {
-  if (added) {
-    try {
-      git(['worktree', 'remove', '--force', work]);
-    } catch { /* 남아도 tmp 다 */ }
-  }
   try {
     rmSync(tmp, { recursive: true, force: true });
-  } catch { /* 지워지면 좋고 */ }
+  } catch { /* 지워지면 좋고 — tmp 다 */ }
 }
