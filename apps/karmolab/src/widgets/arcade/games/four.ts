@@ -84,7 +84,7 @@ export const four: GameDef<FourState, FourAction> = {
     };
   },
 
-  bot(s, seat): BotMove<FourAction> | null {
+  bot(s, seat, ctx): BotMove<FourAction> | null {
     if (s.won !== -1 || s.turn !== seat) return null;
     const me = seat + 1;
     const foe = 2 - seat;
@@ -94,7 +94,7 @@ export const four: GameDef<FourState, FourAction> = {
 
     const move = (col: number): BotMove<FourAction> => ({
       action: { col },
-      delayMs: 600 + Math.random() * 700
+      delayMs: 600 + ctx.rng() * 700
     });
 
     /* ① 이길 수 있으면 이긴다 ② 못 이기면 상대의 넷을 막는다 — 이 둘만 해도 사람이 진다. */

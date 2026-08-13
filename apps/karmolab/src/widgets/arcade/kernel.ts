@@ -34,6 +34,20 @@ export interface MatchView<S> {
 /** 판 사이 쉬는 시간 — 결과를 읽을 틈이 없으면 이긴 줄도 모른다. */
 const BREAK_MS = 900;
 
+/**
+ * 커널의 한 칸. 실시간 놀이의 숫자들이 **초당 60칸**을 전제로 맞춰져 있다 — 그 전제를
+ * 이제 커널이 지킨다(전에는 화면 주사율이 정했다).
+ */
+const TICK = 16;
+
+/**
+ * `step` 한 번에 따라잡을 칸 수(= 4초어치).
+ *
+ * 창을 한참 뒤에 뒀다 돌아오면 수만 칸이 밀려 있는데 그걸 다 돌면 창이 굳는다. 반대로 너무
+ * 조이면 판 사이 쉬는 시간(0.9초)조차 한 번에 못 넘어가 검사가 멈춘다(실제로 그렇게 빨갰다).
+ */
+const MAX_CATCHUP = 240;
+
 export class Match<S, A> {
   readonly seats: Seat[];
   private readonly game: GameDef<S, A>;
@@ -49,11 +63,22 @@ export class Match<S, A> {
   private listeners: Array<(v: MatchView<S>) => void> = [];
   /** 이번 판의 난수. 판이 바뀔 때만 새로 만든다 */
   private rand: () => number;
+  /**
+   * **봇만 쓰는 난수** — 판의 난수와 갈라 둔다.
+   *
+   * 봇이 판의 난수를 뽑으면 「봇에게 몇 번 물어봤나」가 판 전개를 바꾼다. 그런데 그 횟수는
+   * 자리가 몇이고 화면이 몇 번 돌았나에 따라 달라진다 — 같은 씨앗이 같은 판을 안 만든다.
+   * 그래서 흐름을 둘로 나눈다. 게임 파일은 이 사실을 몰라도 된다: `bot()` 안에서도 그냥
+   * `ctx.rng` 를 부르면 되고, 커널이 그때만 이쪽 흐름을 건네준다.
+   */
+  private botRand: () => number;
 
   constructor(game: GameDef<S, A>, seed: number, seats: SeatSpec[]) {
     this.game = game;
     this.seed = seed;
     this.rand = mulberry32(seed);
+    /* 씨앗을 비틀어 나눈다 — 같은 씨앗에서 두 흐름이 같은 값을 내면 나눈 뜻이 없다. */
+    this.botRand = mulberry32((seed ^ 0x5bf03635) >>> 0);
     const [min, max] = game.seats;
     const filled = seats.slice(0, max);
     /* 사람이 모자란 자리는 봇이 앉는다 — 이 한 줄이 「싱글 모드」를 없앤다. */
@@ -71,6 +96,11 @@ export class Match<S, A> {
    */
   private ctx(): GameCtx {
     return { seats: this.seats, rng: this.rand, now: this.now, round: this.round };
+  }
+
+  /** 봇에게 줄 자리 — 난수만 다르다. */
+  private botCtx(): GameCtx {
+    return { seats: this.seats, rng: this.botRand, now: this.now, round: this.round };
   }
 
   view(): MatchView<S> {
@@ -115,31 +145,46 @@ export class Match<S, A> {
   }
 
   /**
-   * 시계를 여기까지 밀었다. 실시간 게임의 `tick`, 봇의 예약, 판 사이 쉬는 시간이 전부 여기서 돈다.
-   * 밀린 시간이 얼마든 한 번에 처리한다 — 창을 뒤에 뒀다 돌아와도 판이 어긋나지 않는다.
+   * 시계를 여기까지 밀었다.
+   *
+   * **밖에서 준 시각을 그대로 안 쓴다.** 커널은 제 시계를 `TICK` 칸으로만 옮기고, 그 칸마다
+   * 한 번씩 `tick` 을 돌린다. 이유는 하나다 — 실시간 놀이 29개 중 여럿(탁구·에어하키·포탄)이
+   * **한 프레임에 고정 거리**를 움직인다. 시각을 그대로 받으면 144Hz 화면이 60Hz 화면보다
+   * 공을 2.4배 빠르게 굴린다. 같은 놀이가 기계마다 다른 놀이가 된다.
+   *
+   * 덤으로 **판이 재생 가능해진다**: 무엇을 언제 눌렀나만 적어 두면 화면 주사율과 상관없이
+   * 같은 판이 다시 나온다(그리기 고리가 언제 불렀는지는 이제 판에 안 남는다).
+   *
+   * 한 번에 따라잡는 칸 수는 막아 둔다. 창을 한참 뒤에 뒀다 돌아오면 수만 칸이 밀려 있는데
+   * 그걸 다 돌면 창이 굳는다 — 시계가 조금 늦어지는 편이 굳는 것보다 낫다.
    */
   step(now: number): void {
     if (this.finished) return;
-    this.now = now;
+    let budget = MAX_CATCHUP;
+    while (!this.finished && this.now + TICK <= now && budget-- > 0) {
+      this.now += TICK;
+      if (this.frame()) break;
+    }
+    /* 아직 한 칸도 안 찼으면 아무 일도 안 일어난다 — 그래도 화면은 지금 것을 그려야 한다. */
+    this.emit();
+  }
 
+  /** 한 칸. 판이 끝나 더 돌 것이 없으면 true. */
+  private frame(): boolean {
     if (this.roundOverAt !== null) {
-      if (now >= this.roundOverAt) this.nextRound();
-      this.emit();
-      return;
+      if (this.now >= this.roundOverAt) this.nextRound();
+      return this.finished;
     }
 
     if (this.game.realtime && this.game.tick) {
       this.state = this.game.tick(this.state, this.ctx());
-      if (this.settle()) {
-        this.emit();
-        return;
-      }
+      if (this.settle()) return false;
     }
 
     /* 예약된 봇의 수를 때가 된 것만 둔다. */
-    const due = this.pending.filter((p) => p.at <= now);
+    const due = this.pending.filter((p) => p.at <= this.now);
     if (due.length) {
-      this.pending = this.pending.filter((p) => p.at > now);
+      this.pending = this.pending.filter((p) => p.at > this.now);
       for (const p of due) {
         if (this.roundOverAt !== null) break;
         if (this.game.canAct && !this.game.canAct(this.state, p.seat)) continue;
@@ -149,7 +194,7 @@ export class Match<S, A> {
     }
 
     this.scheduleBots();
-    this.emit();
+    return false;
   }
 
   private scheduleBots(): void {
@@ -158,7 +203,7 @@ export class Match<S, A> {
       if (!s.bot) continue;
       if (this.pending.some((p) => p.seat === s.index)) continue;
       if (this.game.canAct && !this.game.canAct(this.state, s.index)) continue;
-      const mv = this.game.bot(this.state, s.index, this.ctx());
+      const mv = this.game.bot(this.state, s.index, this.botCtx());
       if (!mv) continue;
       this.pending.push({ seat: s.index, action: mv.action, at: this.now + (mv.delayMs ?? 0) });
     }
@@ -184,6 +229,7 @@ export class Match<S, A> {
       return;
     }
     this.rand = mulberry32(this.seed + this.round * 0x9e3779b9);
+    this.botRand = mulberry32(((this.seed ^ 0x5bf03635) + this.round * 0x85ebca6b) >>> 0);
     this.state = this.game.init(this.ctx());
     this.scheduleBots();
   }

@@ -121,7 +121,7 @@ export const fleet: GameDef<FleetState, FleetAction> = {
     };
   },
 
-  bot(s, seat): BotMove<FleetAction> | null {
+  bot(s, seat, ctx): BotMove<FleetAction> | null {
     if (s.over || s.turn !== seat || !s.alive[seat]) return null;
     const foes = s.alive.map((v, i) => (v && i !== seat ? i : -1)).filter((i) => i >= 0);
     if (!foes.length) return null;
@@ -140,8 +140,8 @@ export const fleet: GameDef<FleetState, FleetAction> = {
           .filter((k) => m[k] === 0);
         if (around.length) {
           return {
-            action: { at, cell: around[Math.floor(Math.random() * around.length)] },
-            delayMs: 450 + Math.random() * 450
+            action: { at, cell: around[Math.floor(ctx.rng() * around.length)] },
+            delayMs: 450 + ctx.rng() * 450
           };
         }
       }
@@ -149,7 +149,7 @@ export const fleet: GameDef<FleetState, FleetAction> = {
 
     /* 아니면 아무 데나 — 단 제일 짧은 배가 두 칸이라 **한 칸 건너**로만 찍는다.
        그래도 못 찾고 지나치는 배는 없고, 헛방이 절반으로 준다. */
-    const at = foes[Math.floor(Math.random() * foes.length)];
+    const at = foes[Math.floor(ctx.rng() * foes.length)];
     const m = s.mark[at];
     const free: number[] = [];
     const sparse: number[] = [];
@@ -161,6 +161,6 @@ export const fleet: GameDef<FleetState, FleetAction> = {
     }
     const pool = sparse.length ? sparse : free;
     if (!pool.length) return null;
-    return { action: { at, cell: pool[Math.floor(Math.random() * pool.length)] }, delayMs: 600 + Math.random() * 700 };
+    return { action: { at, cell: pool[Math.floor(ctx.rng() * pool.length)] }, delayMs: 600 + ctx.rng() * 700 };
   }
 };

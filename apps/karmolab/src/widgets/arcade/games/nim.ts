@@ -67,24 +67,24 @@ export const nim: GameDef<NimState, NimAction> = {
     };
   },
 
-  bot(s, seat): BotMove<NimAction> | null {
+  bot(s, seat, ctx): BotMove<NimAction> | null {
     if (s.lost !== -1 || s.turn !== seat) return null;
     const rows = s.rows;
     const any = rows.map((n, i) => ({ n, i })).filter((r) => r.n > 0);
     if (!any.length) return null;
 
-    const slip = Math.random() < 0.2;
+    const slip = ctx.rng() < 0.2;
     const random = (): NimAction => {
-      const r = any[Math.floor(Math.random() * any.length)];
-      return { row: r.i, take: 1 + Math.floor(Math.random() * r.n) };
+      const r = any[Math.floor(ctx.rng() * any.length)];
+      return { row: r.i, take: 1 + Math.floor(ctx.rng() * r.n) };
     };
-    if (slip) return { action: random(), delayMs: 600 + Math.random() * 600 };
+    if (slip) return { action: random(), delayMs: 600 + ctx.rng() * 600 };
 
     /* 끝판(두 개 이상 남은 줄이 없다) — 미제르에서는 **홀수 개의 줄을 남기는** 쪽이 이긴다. */
     if (bigRows(rows) === 0) {
       /* 남는 줄이 홀수가 되게 하나 가져간다 — 미제르에서는 그쪽이 이긴다. */
       const r = any[0];
-      return { action: { row: r.i, take: 1 }, delayMs: 600 + Math.random() * 500 };
+      return { action: { row: r.i, take: 1 }, delayMs: 600 + ctx.rng() * 500 };
     }
 
     /* 보통 판 — 님-합을 0 으로 만드는 수를 찾는다. 없으면 아무거나(이미 진 자리다). */
@@ -92,9 +92,9 @@ export const nim: GameDef<NimState, NimAction> = {
     if (target !== 0) {
       for (const { n, i } of any) {
         const want = n ^ target;
-        if (want < n) return { action: { row: i, take: n - want }, delayMs: 700 + Math.random() * 500 };
+        if (want < n) return { action: { row: i, take: n - want }, delayMs: 700 + ctx.rng() * 500 };
       }
     }
-    return { action: random(), delayMs: 700 + Math.random() * 500 };
+    return { action: random(), delayMs: 700 + ctx.rng() * 500 };
   }
 };

@@ -146,9 +146,9 @@ export const yut: GameDef<YutState, YutAction> = {
     };
   },
 
-  bot(s, seat): BotMove<YutAction> | null {
+  bot(s, seat, ctx): BotMove<YutAction> | null {
     if (s.won !== -1 || s.turn !== seat) return null;
-    if (s.phase === 'throw') return { action: { kind: 'throw' }, delayMs: 500 + Math.random() * 400 };
+    if (s.phase === 'throw') return { action: { kind: 'throw' }, delayMs: 500 + ctx.rng() * 400 };
     const use = s.pending[0];
     if (use === undefined) return null;
 
@@ -166,6 +166,6 @@ export const yut: GameDef<YutState, YutAction> = {
       if (score > bestScore) { bestScore = score; best = p; }
     }
     if (best < 0) return null;
-    return { action: { kind: 'move', piece: best }, delayMs: 500 + Math.random() * 500 };
+    return { action: { kind: 'move', piece: best }, delayMs: 500 + ctx.rng() * 500 };
   }
 };

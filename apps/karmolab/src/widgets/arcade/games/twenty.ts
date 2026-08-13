@@ -142,26 +142,26 @@ export const twenty: GameDef<TwentyState, TwentyAction> = {
     };
   },
 
-  bot(s, seat): BotMove<TwentyAction> | null {
+  bot(s, seat, ctx): BotMove<TwentyAction> | null {
     if (s.won !== -1) return null;
 
     if (s.pending >= 0) {
       if (seat !== s.keeper) return null;
       /* 봇이 답을 쥐었다 — **사실표대로** 답한다. 지어내면 좁혀 갈 수가 없어 놀이가 안 된다. */
       const yes = factOf(s.answer, s.pending);
-      return { action: { kind: 'answer', yes }, delayMs: 700 + Math.random() * 500 };
+      return { action: { kind: 'answer', yes }, delayMs: 700 + ctx.rng() * 500 };
     }
 
     if (seat === s.keeper) return null;
 
     /* 아직 안 물은 것 중 하나. 열 번쯤 물었으면 찍어 본다. */
-    if (s.log.length >= 8 && Math.random() < 0.4) {
-      return { action: { kind: 'guess', pick: Math.floor(Math.random() * s.pool) }, delayMs: 900 };
+    if (s.log.length >= 8 && ctx.rng() < 0.4) {
+      return { action: { kind: 'guess', pick: Math.floor(ctx.rng() * s.pool) }, delayMs: 900 };
     }
     const asked = new Set(s.log.map((l) => l.q));
     for (let q = 0; q < QUESTIONS; q++) {
-      if (!asked.has(q)) return { action: { kind: 'ask', q }, delayMs: 800 + Math.random() * 600 };
+      if (!asked.has(q)) return { action: { kind: 'ask', q }, delayMs: 800 + ctx.rng() * 600 };
     }
-    return { action: { kind: 'guess', pick: Math.floor(Math.random() * s.pool) }, delayMs: 900 };
+    return { action: { kind: 'guess', pick: Math.floor(ctx.rng() * s.pool) }, delayMs: 900 };
   }
 };

@@ -142,7 +142,7 @@ export const slide: GameDef<SlideState, SlideAction> = {
    * 혼자 열면 이 함수는 한 번도 안 불린다(자리 최소가 1이라 봇이 안 앉는다).
    * 여럿일 때만 빈 자리를 메우는데, **푸는 척만 한다** — 최단 경로로 밀면 사람이 한 번도 못 이긴다.
    */
-  bot(s, seat): BotMove<SlideAction> | null {
+  bot(s, seat, ctx): BotMove<SlideAction> | null {
     if (s.won !== -1 || s.timeUp) return null;
     const b = s.boards[seat];
     if (!b) return null;
@@ -151,7 +151,7 @@ export const slide: GameDef<SlideState, SlideAction> = {
     if (!near.length) return null;
     /* 제자리에 없는 조각을 살짝 더 자주 고른다 — 아주 느리게, 그러나 나아지긴 한다. */
     const wrong = near.filter((i) => b[i] !== i + 1);
-    const pool = wrong.length && Math.random() < 0.7 ? wrong : near;
-    return { action: { cell: pool[Math.floor(Math.random() * pool.length)] }, delayMs: 900 + Math.random() * 900 };
+    const pool = wrong.length && ctx.rng() < 0.7 ? wrong : near;
+    return { action: { cell: pool[Math.floor(ctx.rng() * pool.length)] }, delayMs: 900 + ctx.rng() * 900 };
   }
 };

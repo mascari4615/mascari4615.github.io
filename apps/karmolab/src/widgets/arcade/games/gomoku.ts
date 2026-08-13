@@ -99,7 +99,7 @@ export const gomoku: GameDef<GomokuState, GomokuAction> = {
     };
   },
 
-  bot(s, seat): BotMove<GomokuAction> | null {
+  bot(s, seat, ctx): BotMove<GomokuAction> | null {
     if (s.won !== -1 || s.turn !== seat) return null;
     const who = seat + 1;
     let best = -1;
@@ -111,6 +111,6 @@ export const gomoku: GameDef<GomokuState, GomokuAction> = {
     }
     if (best < 0) return null;
     /* 생각하는 척 — 즉답하면 사람이 아니라 벽에 두는 느낌이 든다. */
-    return { action: { cell: best }, delayMs: 600 + Math.random() * 700 };
+    return { action: { cell: best }, delayMs: 600 + ctx.rng() * 700 };
   }
 };

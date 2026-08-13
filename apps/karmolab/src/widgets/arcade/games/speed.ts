@@ -123,14 +123,14 @@ export const speed: GameDef<SpeedState, SpeedAction> = {
     };
   },
 
-  bot(s, seat): BotMove<SpeedAction> | null {
+  bot(s, seat, ctx): BotMove<SpeedAction> | null {
     if (s.won !== -1) return null;
     const hand = s.hands[seat] ?? [];
     for (let i = 0; i < hand.length; i++) {
       for (let p = 0; p < 2; p++) {
         if (near(hand[i], s.center[p])) {
           /* 사람이 손을 뻗을 틈은 준다 — 즉시 내면 사람은 한 장도 못 낸다. */
-          return { action: { card: i, pile: p }, delayMs: 700 + Math.random() * 900 };
+          return { action: { card: i, pile: p }, delayMs: 700 + ctx.rng() * 900 };
         }
       }
     }

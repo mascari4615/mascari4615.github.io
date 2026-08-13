@@ -125,12 +125,12 @@ export const reflex: GameDef<ReflexState, ReflexAction> = {
     };
   },
 
-  bot(s, seat): BotMove<ReflexAction> | null {
+  bot(s, seat, ctx): BotMove<ReflexAction> | null {
     if (s.picks[seat]) return null;
     const limit = s.endsAt - s.startedAt;
     /* 사람처럼 — 가끔 틀리고 가끔 늦는다. 늘 맞히면 이길 수 없고 늘 틀리면 이길 이유가 없다. */
-    const right = Math.random() < 0.72;
-    const choice = right ? s.answer : (s.answer + 1 + Math.floor(Math.random() * 3)) % s.choices.length;
-    return { action: { choice }, delayMs: 500 + Math.random() * Math.max(400, limit - 900) };
+    const right = ctx.rng() < 0.72;
+    const choice = right ? s.answer : (s.answer + 1 + Math.floor(ctx.rng() * 3)) % s.choices.length;
+    return { action: { choice }, delayMs: 500 + ctx.rng() * Math.max(400, limit - 900) };
   }
 };

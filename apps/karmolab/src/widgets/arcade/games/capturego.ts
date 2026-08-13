@@ -145,7 +145,7 @@ export const capturego: GameDef<GoState, GoAction> = {
     };
   },
 
-  bot(s, seat): BotMove<GoAction> | null {
+  bot(s, seat, ctx): BotMove<GoAction> | null {
     if (s.won !== -1 || s.turn !== seat) return null;
     const me = seat + 1;
     const foe = 2 - seat;
@@ -166,10 +166,10 @@ export const capturego: GameDef<GoState, GoAction> = {
       const x = c % N;
       const y = Math.floor(c / N);
       v += Math.min(x, N - 1 - x, y, N - 1 - y);
-      v += Math.random();
+      v += ctx.rng();
       if (v > bestV) { bestV = v; best = c; }
     }
     if (best < 0) return { action: { kind: 'pass' }, delayMs: 600 };
-    return { action: { cell: best }, delayMs: 600 + Math.random() * 700 };
+    return { action: { cell: best }, delayMs: 600 + ctx.rng() * 700 };
   }
 };

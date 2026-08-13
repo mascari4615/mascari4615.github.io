@@ -85,9 +85,9 @@ export const tug: GameDef<TugState, TugAction> = {
     };
   },
 
-  bot(s, seat): BotMove<TugAction> | null {
+  bot(s, seat, ctx): BotMove<TugAction> | null {
     if (s.over) return null;
     /* 봇은 박자를 거의 지킨다 — 다만 사람보다 살짝 늦다(사람이 이길 자리가 있어야 한다). */
-    return { action: { kind: 'pull' }, delayMs: BEST_MS + 20 + Math.random() * 90 };
+    return { action: { kind: 'pull' }, delayMs: BEST_MS + 20 + ctx.rng() * 90 };
   }
 };

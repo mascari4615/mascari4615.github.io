@@ -135,7 +135,7 @@ export const whack: GameDef<WhackState, WhackAction> = {
     if (!up.length) return null;
     const pick = up[0];
     /* 때리면 안 되는 것도 가끔 친다. 늘 알아보면 사람이 못 이긴다. */
-    if (s.moles[pick].bad && Math.random() < 0.75) return null;
-    return { action: { hole: s.moles[pick].hole }, delayMs: 220 + Math.random() * 380 };
+    if (s.moles[pick].bad && ctx.rng() < 0.75) return null;
+    return { action: { hole: s.moles[pick].hole }, delayMs: 220 + ctx.rng() * 380 };
   }
 };

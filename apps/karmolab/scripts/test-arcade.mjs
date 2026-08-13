@@ -119,6 +119,27 @@ for (const g of GAMES) {
   try { junk.step(50); junk.step(100); } catch (e) { threw = `step → ${e.message}`; }
   ok(!threw, `${g.id}: 이상한 수에도 안 죽는다`, threw);
 
+  /* ③-0 같은 씨앗이면 **판 전체**가 같다 — 첫 판만 보면 거의 아무것도 안 본 것이다.
+   *
+   * 전에는 첫 상태만 비교했다. 그 사이 게임 49개의 `bot()` 이 `Math.random` 을 부르고 있었고,
+   * 검사는 내내 초록이었다. 그래서 봇끼리 돌릴 때마다 다른 판이 나왔고 판을 되살릴 수도 없었다.
+   * 끝까지 두 번 굴려 **끝 상태·점수·걸린 칸 수**가 같은지 본다. */
+  {
+    const seatsA = Array.from({ length: partySize(g) }, (_, i) => ({ name: `b${i}`, bot: true }));
+    const runTwice = () => {
+      const mm = new Match(g, 777, seatsA);
+      let now = 0;
+      for (; now <= 400000; now += 50) {
+        mm.step(now);
+        if (mm.view().finished) break;
+      }
+      const vv = mm.view();
+      return JSON.stringify({ now, scores: vv.seats.map((x) => x.score), state: vv.state });
+    };
+    const first = runTwice();
+    ok(first === runTwice(), `${g.id}: 같은 씨앗이면 판 전체가 같다`);
+  }
+
   /* ③ 같은 씨앗 + 같은 수 = 같은 판. 아니면 여럿이 서로 다른 판을 본다. */
   const a1 = new Match(g, 999, seats);
   const a2 = new Match(g, 999, seats);

@@ -166,7 +166,7 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
     };
   },
 
-  bot(s, seat): BotMove<SweepAction> | null {
+  bot(s, seat, ctx): BotMove<SweepAction> | null {
     if (s.over || s.dead[seat]) return null;
     const mine = s.seen[seat];
     if (!mine) return null;
@@ -179,9 +179,9 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
       const n = s.nums[c];
       if (n !== 0) continue;
       const shut = nbrs(c).filter((k) => mine[k] === 0);
-      if (shut.length) return { action: { cell: shut[0] }, delayMs: 400 + Math.random() * 400 };
+      if (shut.length) return { action: { cell: shut[0] }, delayMs: 400 + ctx.rng() * 400 };
     }
-    const pick = closed[Math.floor(Math.random() * closed.length)];
-    return { action: { cell: pick }, delayMs: 500 + Math.random() * 600 };
+    const pick = closed[Math.floor(ctx.rng() * closed.length)];
+    return { action: { cell: pick }, delayMs: 500 + ctx.rng() * 600 };
   }
 };

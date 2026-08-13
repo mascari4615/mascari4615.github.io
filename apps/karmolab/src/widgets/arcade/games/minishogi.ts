@@ -154,7 +154,7 @@ export const minishogi: GameDef<ShogiState, ShogiAction> = {
     };
   },
 
-  bot(s, seat): BotMove<ShogiAction> | null {
+  bot(s, seat, ctx): BotMove<ShogiAction> | null {
     if (s.won !== -1 || s.turn !== seat) return null;
     const moves: Array<{ a: ShogiAction; v: number }> = [];
 
@@ -164,7 +164,7 @@ export const minishogi: GameDef<ShogiState, ShogiAction> = {
         const taken = s.board[to];
         /* 왕을 잡을 수 있으면 그게 최고. 그다음은 값나가는 말. */
         const v = kindOf(taken) === KING ? 1000 : kindOf(taken) ? 10 + kindOf(taken) : 1;
-        moves.push({ a: { kind: 'move', from, to }, v: v + Math.random() });
+        moves.push({ a: { kind: 'move', from, to }, v: v + ctx.rng() });
       }
     });
     /* 손에 든 말은 빈 칸 아무 데나 — 앞쪽에 두는 것을 조금 좋아한다. */
@@ -173,12 +173,12 @@ export const minishogi: GameDef<ShogiState, ShogiAction> = {
         if (p !== 0) return;
         const [, y] = xy(to);
         const fwd = seat === 0 ? N - 1 - y : y;
-        moves.push({ a: { kind: 'drop', piece, to }, v: 3 + fwd * 0.5 + Math.random() });
+        moves.push({ a: { kind: 'drop', piece, to }, v: 3 + fwd * 0.5 + ctx.rng() });
       });
     });
 
     if (!moves.length) return null;
     const best = moves.reduce((x, y2) => (y2.v > x.v ? y2 : x), moves[0]);
-    return { action: best.a, delayMs: 600 + Math.random() * 700 };
+    return { action: best.a, delayMs: 600 + ctx.rng() * 700 };
   }
 };

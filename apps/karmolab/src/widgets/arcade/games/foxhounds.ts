@@ -96,7 +96,7 @@ export const foxhounds: GameDef<FoxState, FoxAction> = {
     };
   },
 
-  bot(s, seat): BotMove<FoxAction> | null {
+  bot(s, seat, ctx): BotMove<FoxAction> | null {
     if (s.won !== -1 || s.turn !== seat) return null;
 
     if (seat === 0) {
@@ -104,7 +104,7 @@ export const foxhounds: GameDef<FoxState, FoxAction> = {
       if (!can.length) return null;
       /* 여우는 아래로 파고든다. 막히면 옆으로. */
       const best = can.reduce((a, b) => (Math.floor(b / N) > Math.floor(a / N) ? b : a), can[0]);
-      return { action: { from: s.fox, to: best }, delayMs: 600 + Math.random() * 600 };
+      return { action: { from: s.fox, to: best }, delayMs: 600 + ctx.rng() * 600 };
     }
 
     /* 개는 줄을 흐트러뜨리지 않으면서 앞으로 — 한 마리만 튀어나가면 여우가 그 옆으로 샌다. */
@@ -118,11 +118,11 @@ export const foxhounds: GameDef<FoxState, FoxAction> = {
         void hy;
         /* 여우에 가까워지되 줄이 벌어지는 수는 덜 좋아한다. */
         const near = -Math.abs(Math.floor(s.fox / N) - ty);
-        all.push({ from: h, to, v: near * 2 - spread + Math.random() });
+        all.push({ from: h, to, v: near * 2 - spread + ctx.rng() });
       }
     }
     if (!all.length) return null;
     const best = all.reduce((a, b) => (b.v > a.v ? b : a), all[0]);
-    return { action: { from: best.from, to: best.to }, delayMs: 600 + Math.random() * 600 };
+    return { action: { from: best.from, to: best.to }, delayMs: 600 + ctx.rng() * 600 };
   }
 };

@@ -100,12 +100,12 @@ export const pong: GameDef<PongState, PongAction> = {
     if (b.y > H) {
       score = [s.score[0], s.score[1] + 1];
       const over = score[1] >= TARGET;
-      return { ...s, score, over, ball: serve(-1, Math.random) };
+      return { ...s, score, over, ball: serve(-1, ctx.rng) };
     }
     if (b.y < 0) {
       score = [s.score[0] + 1, s.score[1]];
       const over = score[0] >= TARGET;
-      return { ...s, score, over, ball: serve(1, Math.random) };
+      return { ...s, score, over, ball: serve(1, ctx.rng) };
     }
 
     return { ...s, ball: b };
@@ -131,10 +131,10 @@ export const pong: GameDef<PongState, PongAction> = {
     };
   },
 
-  bot(s, seat): BotMove<PongAction> | null {
+  bot(s, seat, ctx): BotMove<PongAction> | null {
     if (s.over) return null;
     /* 공을 따라가되 조금 늦다. 딱 붙어 다니면 사람이 한 점도 못 낸다. */
-    const target = s.ball.x + (Math.random() - 0.5) * 6;
+    const target = s.ball.x + (ctx.rng() - 0.5) * 6;
     const x = s.pad[seat] + (target - s.pad[seat]) * 0.32;
     return { action: { x }, delayMs: 60 };
   }

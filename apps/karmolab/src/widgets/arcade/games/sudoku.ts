@@ -131,14 +131,14 @@ export const sudoku: GameDef<SudokuState, SudokuAction> = {
     };
   },
 
-  bot(s, seat): BotMove<SudokuAction> | null {
+  bot(s, seat, ctx): BotMove<SudokuAction> | null {
     if (s.over || s.won !== -1) return null;
     const mine = s.filled[seat] ?? [];
     const empty = mine.map((v, i) => (v === 0 ? i : -1)).filter((i) => i >= 0);
     if (!empty.length) return null;
     /* 봇은 정답을 안 본다 — 그 칸에 들어갈 수 있는 수가 하나뿐일 때만 확신하고,
        아니면 그중 아무거나 넣는다(사람처럼 틀리기도 한다). */
-    const cell = empty[Math.floor(Math.random() * empty.length)];
+    const cell = empty[Math.floor(ctx.rng() * empty.length)];
     const used = new Set<number>();
     for (let i = 0; i < N * N; i++) {
       if (mine[i] === 0) continue;
@@ -147,8 +147,8 @@ export const sudoku: GameDef<SudokuState, SudokuAction> = {
     const can = [1, 2, 3, 4, 5, 6].filter((v) => !used.has(v));
     if (!can.length) return null;
     return {
-      action: { cell, value: can[Math.floor(Math.random() * can.length)] },
-      delayMs: 700 + Math.random() * 900
+      action: { cell, value: can[Math.floor(ctx.rng() * can.length)] },
+      delayMs: 700 + ctx.rng() * 900
     };
   }
 };

@@ -143,13 +143,13 @@ export const fishing: GameDef<FishState, FishAction> = {
 
   bot(s, seat, ctx): BotMove<FishAction> | null {
     if (s.over || (s.left[seat] ?? 0) <= 0) return null;
-    if (s.biteAt[seat] === 0) return { action: { kind: 'cast' }, delayMs: 600 + Math.random() * 600 };
+    if (s.biteAt[seat] === 0) return { action: { kind: 'cast' }, delayMs: 600 + ctx.rng() * 600 };
     /* 입질까지 기다렸다가 당긴다. 사람처럼 조금 늦고, 가끔 너무 이르다. */
     const wait = Math.max(0, s.biteAt[seat] - ctx.now);
-    const early = Math.random() < 0.18;
+    const early = ctx.rng() < 0.18;
     return {
       action: { kind: 'pull' },
-      delayMs: early ? Math.max(0, wait - 500 - Math.random() * 600) : wait + 150 + Math.random() * 500
+      delayMs: early ? Math.max(0, wait - 500 - ctx.rng() * 600) : wait + 150 + ctx.rng() * 500
     };
   }
 };

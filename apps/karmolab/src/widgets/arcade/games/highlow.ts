@@ -101,12 +101,12 @@ export const highlow: GameDef<HighLowState, HighLowAction> = {
     };
   },
 
-  bot(s, seat): BotMove<HighLowAction> | null {
+  bot(s, seat, ctx): BotMove<HighLowAction> | null {
     if (s.turn !== seat || (s.left[seat] ?? 0) <= 0) return null;
     /* 쌓인 게 커지면 챙긴다 — 사람도 대개 그렇게 한다. */
-    if (s.pot >= 8) return { action: { kind: 'bank' }, delayMs: 700 + Math.random() * 500 };
+    if (s.pot >= 8) return { action: { kind: 'bank' }, delayMs: 700 + ctx.rng() * 500 };
     /* 7 보다 낮으면 위, 높으면 아래. 반반이면 아무거나. */
-    const kind = s.card < 7 ? 'high' : s.card > 7 ? 'low' : Math.random() < 0.5 ? 'high' : 'low';
-    return { action: { kind }, delayMs: 600 + Math.random() * 600 };
+    const kind = s.card < 7 ? 'high' : s.card > 7 ? 'low' : ctx.rng() < 0.5 ? 'high' : 'low';
+    return { action: { kind }, delayMs: 600 + ctx.rng() * 600 };
   }
 };

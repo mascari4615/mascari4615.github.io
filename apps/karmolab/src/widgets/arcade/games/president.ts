@@ -133,10 +133,10 @@ export const president: GameDef<PresidentState, PresidentAction> = {
     };
   },
 
-  bot(s, seat): BotMove<PresidentAction> | null {
+  bot(s, seat, ctx): BotMove<PresidentAction> | null {
     if (s.out.length > 0 || s.turn !== seat) return null;
     const opts = options(s, seat);
-    if (!opts.length) return { action: { kind: 'pass' }, delayMs: 700 + Math.random() * 600 };
+    if (!opts.length) return { action: { kind: 'pass' }, delayMs: 700 + ctx.rng() * 600 };
 
     /* 제일 약한 것부터 턴다. 세게 나가면 당장은 이기지만 마지막에 쓸 카드가 없다. */
     const best = opts.reduce((a, b) => {
@@ -144,6 +144,6 @@ export const president: GameDef<PresidentState, PresidentAction> = {
       const bv = power(b.rank) * 10 - b.count;
       return bv < av ? b : a;
     }, opts[0]);
-    return { action: { kind: 'play', ...best }, delayMs: 700 + Math.random() * 700 };
+    return { action: { kind: 'play', ...best }, delayMs: 700 + ctx.rng() * 700 };
   }
 };

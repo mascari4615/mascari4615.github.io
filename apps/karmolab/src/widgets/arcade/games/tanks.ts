@@ -158,14 +158,14 @@ export const tanks: GameDef<TanksState, TanksAction> = {
     };
   },
 
-  bot(s, seat): BotMove<TanksAction> | null {
+  bot(s, seat, ctx): BotMove<TanksAction> | null {
     if (s.over || s.shell || s.turn !== seat) return null;
     /* 거리에 맞춰 어림잡고 손이 떨린다 — 맞히는 데 두세 발 걸린다(사람과 비슷하게). */
     /* 45도 사거리 = v²/g 이므로 필요한 v 는 √(거리×g). 거기서 세기를 거꾸로 푼다. */
     const dist = Math.abs(s.tank[1 - seat] - s.tank[seat]);
     const want = Math.sqrt(dist * 0.16);
-    const power = Math.max(0.2, Math.min(1, (want - 1.6) / 2.8 + (Math.random() - 0.5) * 0.16));
-    const angle = 45 + (Math.random() - 0.5) * 22;
-    return { action: { angle, power }, delayMs: 900 + Math.random() * 700 };
+    const power = Math.max(0.2, Math.min(1, (want - 1.6) / 2.8 + (ctx.rng() - 0.5) * 0.16));
+    const angle = 45 + (ctx.rng() - 0.5) * 22;
+    return { action: { angle, power }, delayMs: 900 + ctx.rng() * 700 };
   }
 };
