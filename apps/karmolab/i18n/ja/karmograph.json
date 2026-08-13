@@ -749,5 +749,7 @@
   "karmograph.stageForm.cancel": "やめる",
   "karmograph.time.renameHint": "ダブルクリックで名前を変える",
   "karmograph.linkBox.copy": "コピー",
-  "karmograph.linkBox.close": "閉じる"
+  "karmograph.linkBox.close": "閉じる",
+  "karmograph.ask.ok": "はい",
+  "karmograph.ask.del": "削除する"
 }
