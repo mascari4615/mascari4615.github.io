@@ -38,8 +38,11 @@ jobs:
           node-version: '20'
 
       # 이 앱은 의존성 0 이다. 브라우저만 있으면 된다.
-      - name: 브라우저 설치
-        run: npx --yes playwright@1.62.1 install --with-deps chromium
+      # ★ **브라우저 판 번호는 `.github/actions/daily-playwright` 한 곳에** (2026-08-13).
+      #   받는 줄과 무는 줄이 워크플로 세 곳에 여섯 번 적혀 있었다 — 갈리면 검사가
+      #   「없는 브라우저」를 열다 죽는다(KarmoLab 이 같은 모양으로 25판 연속 죽었다).
+      - uses: ./.github/actions/daily-playwright
+
 
       - name: 규칙 시험 + 페이지 생성
         working-directory: apps/daily
@@ -52,7 +55,6 @@ jobs:
         env:
           DAILY_PLAYWRIGHT: node_modules/playwright/index.js
         run: |
-          npm i --no-save playwright@1.62.1
           node scripts/smoke.mjs
 
       - name: 깨진 화면 남기기

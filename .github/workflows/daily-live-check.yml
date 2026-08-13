@@ -37,8 +37,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: 브라우저 설치
-        run: npx --yes playwright@1.62.1 install --with-deps chromium
+      # ★ **브라우저 판 번호는 `.github/actions/daily-playwright` 한 곳에** (2026-08-13).
+      #   받는 줄과 무는 줄이 워크플로 세 곳에 여섯 번 적혀 있었다 — 갈리면 검사가
+      #   「없는 브라우저」를 열다 죽는다(KarmoLab 이 같은 모양으로 25판 연속 죽었다).
+      - uses: ./.github/actions/daily-playwright
+
 
       - name: 실주소에서 한 판씩 둔다
         working-directory: apps/daily
@@ -47,7 +50,6 @@ jobs:
         # 배포가 막 나가는 중이면 한 번은 헛나갈 수 있다 — 한 번 더 보고 판정한다.
         # 두 번 다 빨간 것만 진짜다.
         run: |
-          npm i --no-save playwright@1.62.1
           BASE="${{ inputs.base }}"
           if node scripts/smoke-live.mjs $BASE; then exit 0; fi
           echo '--- 한 번 헛나갔다. 40초 뒤 다시 본다 ---'
