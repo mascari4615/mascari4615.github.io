@@ -1,96 +1,787 @@
 {
   "id": "design-record",
-  "minutes": 10,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "왜 그렇게 했는지가 사라지면, 다음 사람은 **되돌리거나 흉내만** 낸다. ADR 은 그 「왜」를 한 장으로 남기는 습관이다."
-    },
-    {
-      "type": "h",
-      "text": "1. 한 장 양식"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "docs/adr/0007-use-postgres.md",
-      "text": "# 7. 저장소로 PostgreSQL 을 쓴다\n\n상태: 승인 (2026-08-12)\n\n## 맥락\n주문·정산에서 트랜잭션이 필요하고, 팀에 SQL 경험이 있다. 예상 데이터는 3년 내 100GB 이하.\n\n## 결정\nPostgreSQL 을 주 저장소로 쓴다. 검색은 당분간 LIKE + 인덱스로 버티고, 필요해지면 별도 검색 엔진을 검토한다.\n\n## 대안\n- MongoDB: 스키마 유연하지만 트랜잭션 요구와 맞지 않음\n- MySQL: 가능하나 팀 경험·확장 기능에서 Postgres 우위\n\n## 대가\n- 스키마 변경에 마이그레이션 절차가 필요하다\n- 전문 검색은 나중에 별도 도구가 필요할 수 있다"
-    },
-    {
-      "type": "h",
-      "text": "2. 언제 쓰나"
-    },
-    {
-      "type": "note",
-      "text": "**되돌리기 비싼 결정**에만. 저장소·언어·인증 방식·배포 구조·외부 의존 도입. 버튼 색깔에는 쓰지 않는다. 한 달에 한두 장이면 충분하다."
-    },
-    {
-      "type": "h",
-      "text": "3. 바뀌면 새로 쓴다"
-    },
-    {
-      "type": "p",
-      "text": "기존 ADR 을 고치지 말고 **새 번호로 쓰고 「0007 을 대체함」**이라고 적어라. 그러면 결정의 역사가 남아, 나중에 「왜 바꿨나」까지 읽힌다."
-    },
-    {
-      "type": "h",
-      "text": "4. 어디에 두나"
-    },
-    {
-      "type": "note",
-      "text": "코드 저장소 안(`docs/adr/`). 위키에 두면 코드와 함께 안 움직인다. PR 에서 같이 리뷰하면 결정 과정 자체가 기록된다."
-    },
-    {
-      "type": "h",
-      "text": "5. 효과"
-    },
-    {
-      "type": "p",
-      "text": "새 팀원의 「왜 이렇게 되어 있죠?」가 줄고, **같은 논쟁을 반복하지 않게** 된다. 무엇보다 쓰는 과정에서 대안을 진지하게 비교하게 된다 — 그것만으로도 값어치가 있다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "최근의 큰 결정 하나를 위 양식으로 적어라. 「대가」 칸을 채우다 보면 놓친 것이 보인다."
-    },
-    {
-      "type": "try",
-      "text": "과거에 바꾼 결정이 있다면 「대체함」 관계로 두 장을 만들어 보라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "ADR 을 쓰기 적절한 대상은?",
-      "choices": [
-        "되돌리기 비싼 결정(저장소·언어·인증 방식 등)",
-        "모든 코드 변경",
-        "UI 문구 변경"
+      "id": "1",
+      "title": "왜가 사라지면 흉내만 남는다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "결정의 결과(코드)는 남지만 **왜 그렇게 했는지**는 사라진다. 그러면 다음 사람은 두 가지를 한다 — **되돌리거나**(「이거 왜 이래? 바꾸자」 하다 원래 이유였던 문제를 다시 밟거나), **흉내만**(「이유는 모르지만 다들 이렇게 하니」 맹목적으로 따라). **ADR**(아키텍처 결정 기록)은 그 「왜」를 **한 장**으로 남기는 습관이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "왜가 있고 없고 — 다음 사람의 행동",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const has = '{{record}}' === 'yes';\n  render(has ? '결정 기록(왜)이 있다' : '코드만 있고 왜는 사라졌다',\n    (has\n      ? '  다음 사람: 기록을 읽고 「아, 이 문제 때문이었구나」 이해\\n' +\n        '  <span class=\\\"ok\\\">근거 위에서 판단 — 여전히 유효하면 유지, 바뀌었으면 새로 결정.</span>'\n      : '  다음 사람: 「왜 이러지?」\\n' +\n        '  · <span class=\\\"no\\\">되돌리기 → 원래 이유였던 문제를 다시 밟는다</span>\\n' +\n        '  · <span class=\\\"no\\\">흉내만 → 이유 모른 채 맹목적으로 따라 한다</span>'),\n    '왜가 사라지면 다음 사람은 되돌리거나 흉내만 낸다. ADR 이 그 왜를 남긴다.',\n    fan(has\n      ? [['ok', '기록(왜)'], '->', ['ok', '이해 후 판단']]\n      : [['hit', '코드만'], '->', ['hit', '되돌림/흉내']]));\n</script>",
+          "controls": [
+            {
+              "id": "record",
+              "label": "결정 기록",
+              "type": "select",
+              "value": "no",
+              "options": [
+                {
+                  "value": "no",
+                  "label": "없음(코드만)"
+                },
+                {
+                  "value": "yes",
+                  "label": "있음(왜 기록)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「체스터턴의 울타리」 — 왜 세워졌는지 모르는 울타리를 함부로 치우지 마라.** 이유를 모른 채 되돌린 결정은 대개 그 이유였던 문제를 다시 불러온다. 기록이 있으면 「이 근거가 지금도 유효한가?」를 물어 **의식적으로** 유지·변경한다. 기록이 없으면 그 판단 자체가 불가능하다 — 되돌리기가 도박이 된다."
+        },
+        {
+          "type": "p",
+          "text": "**커밋 메시지·코드 주석과는 다른 층이다.** 커밋은 「무엇을 바꿨나」, 주석은 「이 코드가 무엇을 하나」를 말하지만, ADR 은 「이 **결정**을 왜 했고, 무엇을 **안** 골랐고, 어떤 **대가**를 감수했나」를 말한다. 특히 「안 고른 대안」과 「그 대가」는 코드 어디에도 안 남는다 — 그것이 ADR 이 채우는 빈자리다(4장)."
+        },
+        {
+          "type": "try",
+          "text": "네 코드베이스에서 「왜 이렇게 되어 있지?」 싶은 구조를 하나 떠올려라. 그 이유를 아는 사람이 팀에 몇 명인지 세어 보면, 기록이 없을 때의 위험이 실감 난다."
+        }
       ],
-      "answer": 0,
-      "why": "결정 하나에 한 장, 한 달에 한두 장이면 충분하다."
+      "quiz": [
+        {
+          "q": "결정의 「왜」가 사라지면 다음 사람은?",
+          "choices": [
+            "정확히 이해",
+            "되돌리거나 흉내만 낸다",
+            "빨라짐",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "근거 없이 판단 불가."
+        },
+        {
+          "q": "ADR 이 커밋·주석과 다른 점은?",
+          "choices": [
+            "같다",
+            "안 고른 대안과 그 대가(왜)를 남긴다",
+            "더 짧다",
+            "코드다"
+          ],
+          "answer": 1,
+          "why": "코드에 안 남는 빈자리."
+        },
+        {
+          "q": "「체스터턴의 울타리」 교훈은?",
+          "choices": [
+            "다 치워라",
+            "왜 세워졌는지 모르면 함부로 치우지 마라",
+            "무시",
+            "복제"
+          ],
+          "answer": 1,
+          "why": "이유였던 문제를 다시 밟는다."
+        }
+      ]
     },
     {
-      "q": "결정이 바뀌었을 때 권장되는 처리는?",
-      "choices": [
-        "새 번호로 쓰고 이전 것을 대체한다고 명시",
-        "기존 문서를 수정",
-        "문서를 삭제"
+      "id": "2",
+      "title": "한 장 양식 — 맥락·결정·대가",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "ADR 은 **한 장**이면 된다 — 길면 안 쓴다. 핵심 칸: **제목/상태**, **맥락**(어떤 문제·제약이 있었나), **결정**(무엇으로 정했나), **대안**(무엇을 검토했나), **대가**(무엇을 얻고 잃나). 이 다섯 칸이 「왜」를 담는다. 형식보다 **채워지는 것**이 중요하다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "ADR 칸 — 각각 무엇을 담나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const f = '{{field}}';\n  const cases = {\n    status:  ['제목 / 상태', '# 7. 저장소로 PostgreSQL · 상태: 승인(2026-08-12)', '번호·제목·상태(제안/승인/대체됨)'],\n    context: ['맥락', '주문·정산에 트랜잭션·조인이 필요. 팀은 SQL 에 익숙. 규모는 수백만 행 예상.', '결정을 부른 문제·제약·전제'],\n    decision:['결정', 'PostgreSQL 을 주 저장소로 쓴다.', '무엇으로 정했나 — 한 문장'],\n    options: ['대안', 'MongoDB(스키마 유연) · MySQL(익숙) · DynamoDB(관리형)', '검토한 다른 선택지들(4장)'],\n    cost:    ['대가', '얻음: 트랜잭션·조인·성숙한 도구 / 잃음: 수평 확장은 나중 과제', '트레이드오프 — 얻은 것과 잃은 것'],\n  }[f];\n  render('ADR 칸: ' + cases[0],\n    '  담는 것: ' + cases[2] + '\\n\\n  예: ' + cases[1] + '\\n\\n' +\n    '  다섯 칸이 「왜」를 담는다 — 특히 대안·대가가 핵심.',\n    '맥락·결정·대안·대가·상태. 한 장에 왜를 담되 형식보다 채워짐이 중요.',\n    box(cases[0], cases[1], f === 'cost' || f === 'options' ? 'good' : ''));\n</script>",
+          "controls": [
+            {
+              "id": "field",
+              "label": "칸",
+              "type": "select",
+              "value": "context",
+              "options": [
+                {
+                  "value": "status",
+                  "label": "제목/상태"
+                },
+                {
+                  "value": "context",
+                  "label": "맥락"
+                },
+                {
+                  "value": "decision",
+                  "label": "결정"
+                },
+                {
+                  "value": "options",
+                  "label": "대안"
+                },
+                {
+                  "value": "cost",
+                  "label": "대가"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "markdown",
+          "label": "ADR 한 장 양식",
+          "text": "# 7. 저장소로 PostgreSQL 을 쓴다\n\n상태: 승인 (2026-08-12)\n\n## 맥락\n주문·정산에서 트랜잭션·조인이 필요. 팀은 SQL 에 익숙. 수백만 행 예상.\n\n## 결정\nPostgreSQL 을 주 저장소로 쓴다.\n\n## 대안\n- MongoDB: 스키마 유연하나 트랜잭션·조인이 약함\n- DynamoDB: 관리형이나 조인 불가·잠금(lock-in)\n\n## 대가\n얻음: 트랜잭션·조인·성숙한 도구.  잃음: 수평 확장은 나중 과제(db-grow)."
+        },
+        {
+          "type": "note",
+          "text": "**형식은 가볍게, 채움은 성실히.** ADR 은 마크다운 한 장이면 충분하다 — 무거운 템플릿·승인 절차를 붙이면 아무도 안 쓴다(design-boundary 의 「경계는 비용」과 같다). 대신 **대안과 대가** 칸은 성실히 채운다. 그 두 칸을 채우다 보면 결정이 더 좋아진다(7장) — 형식이 아니라 **생각을 강제하는 것**이 값어치다."
+        },
+        {
+          "type": "p",
+          "text": "**상태 필드가 ADR 을 살아있게 한다.** `제안 → 승인 → 대체됨(superseded)` 의 상태를 두면, 이 결정이 지금 유효한지·옛것인지 한눈에 안다(5장). 날짜와 함께 두면 「언제의 판단인가」도 드러난다 — 3년 전 맥락에서 옳았던 결정이 지금도 옳은지 물을 수 있다(memory: 기록은 쓰인 시점의 진실)."
+        },
+        {
+          "type": "try",
+          "text": "최근의 큰 결정 하나를 이 다섯 칸으로 적어라. 특히 「대가」 칸을 채우다 보면 놓친 것(감수하기로 한 단점)이 보인다."
+        }
       ],
-      "answer": 0,
-      "why": "역사가 남아야 「왜 바꿨나」가 읽힌다."
+      "quiz": [
+        {
+          "q": "ADR 의 핵심 다섯 칸이 아닌 것은?",
+          "choices": [
+            "맥락",
+            "결정",
+            "대가",
+            "구현 코드 전체"
+          ],
+          "answer": 3,
+          "why": "코드가 아니라 왜."
+        },
+        {
+          "q": "ADR 에서 가장 성실히 채울 칸은?",
+          "choices": [
+            "제목",
+            "대안과 대가(트레이드오프)",
+            "날짜",
+            "번호"
+          ],
+          "answer": 1,
+          "why": "생각을 강제한다."
+        },
+        {
+          "q": "상태 필드(제안/승인/대체됨)의 역할은?",
+          "choices": [
+            "장식",
+            "이 결정이 지금 유효한지 한눈에",
+            "속도",
+            "번호"
+          ],
+          "answer": 1,
+          "why": "ADR 을 살아있게."
+        }
+      ]
     },
     {
-      "q": "ADR 을 코드 저장소에 두는 이유는?",
-      "choices": [
-        "코드와 함께 버전이 움직이고 PR 에서 리뷰되기 때문",
-        "검색이 빨라서",
-        "용량 때문"
+      "id": "3",
+      "title": "언제 쓰나 — 되돌리기 비싼 결정만",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "ADR 은 **되돌리기 비싼 결정**에만 쓴다 — 저장소·언어·인증 방식·배포 구조·외부 의존 도입처럼 나중에 바꾸기 어렵고 파급이 큰 것. **버튼 색깔·변수 이름**에는 안 쓴다. 한 달에 한두 장이면 충분하다. 모든 결정을 기록하려 하면 아무것도 안 기록하게 된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "이 결정 — ADR 감인가",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const d = '{{decision}}';\n  const cases = {\n    db:    ['주 저장소 선택(PostgreSQL)', true, '되돌리기 매우 비쌈 · 파급 큼 — ADR 감'],\n    auth:  ['인증 방식(세션 vs JWT)', true, '보안·전 서비스에 영향 · 바꾸기 어려움 — ADR 감'],\n    deploy:['배포 구조(모놀리스 vs 서비스)', true, '되돌리기 큰 공사 — ADR 감'],\n    lib:   ['외부 결제 SDK 도입', true, '락인·의존 · 교체 비쌈 — ADR 감'],\n    color: ['버튼 색깔', false, '언제든 바꿈 · 파급 없음 — ADR 아님'],\n    name:  ['변수 이름', false, '리팩터링으로 즉시 바꿈 — ADR 아님'],\n  }[d];\n  render('결정: ' + cases[0],\n    '  ADR 감? = ' + (cases[1]\n      ? '<span class=\\\"ok\\\">예 — 되돌리기 비싸고 파급 큼</span>'\n      : '<span class=\\\"no\\\">아니오 — 언제든 값싸게 바꿈</span>') + '\\n\\n  ' + cases[2] + '\\n\\n' +\n    '  되돌리기 비용 × 파급이 크면 기록, 작으면 그냥 코드로.',\n    'ADR 은 되돌리기 비싼 결정에만. 저장소·인증·배포·외부의존 O, 색깔·이름 X.',\n    box(cases[0], cases[2], cases[1] ? 'good' : 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "decision",
+              "label": "결정",
+              "type": "select",
+              "value": "db",
+              "options": [
+                {
+                  "value": "db",
+                  "label": "저장소 선택"
+                },
+                {
+                  "value": "auth",
+                  "label": "인증 방식"
+                },
+                {
+                  "value": "deploy",
+                  "label": "배포 구조"
+                },
+                {
+                  "value": "lib",
+                  "label": "외부 SDK"
+                },
+                {
+                  "value": "color",
+                  "label": "버튼 색깔"
+                },
+                {
+                  "value": "name",
+                  "label": "변수 이름"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**되돌리기 비싼 결정에만 — 이것이 남용을 막는다.** 되돌리기 비용 × 파급이 큰 결정(저장소·언어·인증·배포·외부 의존)은 기록의 값어치가 크다. 반대로 값싸게 바꿀 수 있는 것(색·이름·내부 구현)은 코드가 곧 문서다. ADR 은 「한 방향 문(one-way door) 결정」 — 지나면 되돌리기 어려운 문 — 앞에서 잠깐 멈춰 적는 것이다."
+        },
+        {
+          "type": "p",
+          "text": "**한 방향 문 vs 양방향 문.** 되돌리기 쉬운 결정(양방향 문)은 빠르게 하고 아니면 되돌린다 — 기록도 신중함도 과하다. 되돌리기 어려운 결정(한 방향 문)은 천천히·신중히 하고 **기록**한다. 대부분의 결정은 양방향 문이니 대부분 ADR 이 필요 없다 — 그래서 「한 달에 한두 장」이면 충분한 것이다."
+        },
+        {
+          "type": "try",
+          "text": "지난 분기의 큰 결정들을 「되돌리기 비용」으로 줄 세워라. 상위 몇 개(한 방향 문)만 ADR 감이다 — 나머지는 코드가 문서다."
+        }
       ],
-      "answer": 0,
-      "why": "위키에 두면 코드와 따로 논다."
+      "quiz": [
+        {
+          "q": "ADR 을 써야 할 결정은?",
+          "choices": [
+            "버튼 색깔",
+            "되돌리기 비싼 결정(저장소·인증·배포)",
+            "변수 이름",
+            "모든 결정"
+          ],
+          "answer": 1,
+          "why": "한 방향 문."
+        },
+        {
+          "q": "모든 결정을 기록하려 하면?",
+          "choices": [
+            "완벽",
+            "부담이 커 아무것도 안 기록하게 됨",
+            "빠름",
+            "안전"
+          ],
+          "answer": 1,
+          "why": "비싼 것만."
+        },
+        {
+          "q": "「한 방향 문」 결정이란?",
+          "choices": [
+            "쉽게 되돌림",
+            "지나면 되돌리기 어려운 결정",
+            "빠른 결정",
+            "작은 결정"
+          ],
+          "answer": 1,
+          "why": "신중히·기록."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "대안과 대가를 적는다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "ADR 의 심장은 **대안(안 고른 것)**과 **대가(감수한 것)**다. 「A 로 정했다」만 있으면 절반이다 — 「B·C 도 검토했고, B 는 이래서 뺐고, A 를 고르며 이 단점을 감수했다」가 있어야 다음 사람이 **같은 판단**을 재현하거나 **뒤집을** 수 있다. 이 두 칸이 코드 어디에도 안 남는 것이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "대안·대가 유무 — 나중에 판단 가능한가",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const full = '{{full}}' === 'yes';\n  render(full ? '대안·대가까지 기록' : '결정만 기록',\n    (full\n      ? '  「MongoDB 는 트랜잭션 약해서 뺐다 · Postgres 를 골라 수평확장을 나중 과제로 감수」\\n' +\n        '  <span class=\\\"ok\\\">나중에: 「수평확장이 급해졌다 → 그때 감수한 대가가 이거다」 근거 위에서 재결정.</span>'\n      : '  「Postgres 를 쓴다」 (끝)\\n' +\n        '  <span class=\\\"no\\\">나중에: 왜 Mongo 아닌지 모름 → 같은 대안 검토를 처음부터 반복하거나 맹목 유지.</span>'),\n    '대안(안 고른 것)과 대가(감수한 것)가 있어야 다음 사람이 재현·재결정한다.',\n    steps(full\n      ? [['결정: Postgres', 'good'], ['대안: Mongo(트랜잭션 약)·Dynamo(락인)', 'good'], ['대가: 수평확장 나중', 'good']]\n      : [['결정: Postgres', 'good'], ['대안: (없음)', 'bad'], ['대가: (없음)', 'bad']]));\n</script>",
+          "controls": [
+            {
+              "id": "full",
+              "label": "기록 범위",
+              "type": "select",
+              "value": "no",
+              "options": [
+                {
+                  "value": "no",
+                  "label": "결정만"
+                },
+                {
+                  "value": "yes",
+                  "label": "대안·대가까지"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**대가를 적으면 결정이 정직해진다.** 「이걸 골라 무엇을 잃나」를 억지로 쓰다 보면, 미처 못 본 단점·리스크가 드러난다(design-coupling 8장의 「대가 칸을 채우다 놓친 게 보인다」). 대가를 못 적겠다면 그 결정을 충분히 이해 못 한 것이다 — 공짜 점심은 없으니, 대가가 없어 보이면 아직 안 보이는 것이다."
+        },
+        {
+          "type": "p",
+          "text": "**안 고른 이유가 다음 사람을 지킨다.** 「MongoDB 는 왜 안 썼지?」를 모르면, 다음 사람이 「Mongo 로 바꾸자」 했다가 원래 뺀 이유(트랜잭션 약함)를 다시 밟는다(1장 체스터턴의 울타리). 대안과 그 탈락 이유를 적으면, 나중에 상황이 바뀌었을 때 「그 이유가 지금도 유효한가?」를 정확히 물을 수 있다 — 재검토가 도박이 아니라 판단이 된다."
+        },
+        {
+          "type": "try",
+          "text": "기존 결정 하나에 대안·대가를 뒤늦게라도 적어 보라. 「왜 다른 걸 안 골랐지?」와 「이걸 골라 뭘 잃었지?」 두 질문에 답하다 보면, 그 결정의 진짜 근거가 드러난다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "ADR 의 심장 두 칸은?",
+          "choices": [
+            "제목·날짜",
+            "대안(안 고른 것)·대가(감수한 것)",
+            "코드·테스트",
+            "번호·상태"
+          ],
+          "answer": 1,
+          "why": "코드에 안 남는 것."
+        },
+        {
+          "q": "대가를 적으면 좋은 점은?",
+          "choices": [
+            "짧아짐",
+            "결정이 정직해지고 못 본 단점이 드러남",
+            "빠름",
+            "장식"
+          ],
+          "answer": 1,
+          "why": "공짜 점심은 없다."
+        },
+        {
+          "q": "안 고른 이유를 적으면?",
+          "choices": [
+            "무의미",
+            "나중에 재검토가 도박이 아니라 판단이 됨",
+            "느림",
+            "복잡"
+          ],
+          "answer": 1,
+          "why": "체스터턴의 울타리."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "바뀌면 새로 쓴다 — 대체 관계",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "결정이 바뀌면 **기존 ADR 을 고치지 마라.** 새 번호로 쓰고 「0007 을 대체함(supersedes)」이라 적는다. 그리고 옛 ADR 은 「0012 로 대체됨(superseded by)」으로 상태를 바꾼다. 그러면 **결정의 역사**가 남아, 나중에 「왜 Postgres 에서 다른 걸로 갔지?」의 흐름을 따라갈 수 있다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "결정 변경 — 고치기 vs 대체 관계",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const supersede = mode === 'supersede';\n  render(supersede ? '새 ADR 로 대체(역사 보존)' : '기존 ADR 을 덮어 고침',\n    (supersede\n      ? '  ADR-0007(Postgres, 상태: 대체됨) ← ADR-0012(다른 저장소, 대체함)\\n' +\n        '  <span class=\\\"ok\\\">두 장이 다 남아 「왜 바꿨나」의 흐름이 보인다 — 결정의 역사.</span>'\n      : '  ADR-0007 을 새 내용으로 덮어씀\\n' +\n        '  <span class=\\\"no\\\">옛 결정과 그 이유가 사라진다 — 「전엔 왜 Postgres 였지?」를 알 수 없다.</span>'),\n    '기존 ADR 은 고치지 말고 새 번호로 「대체함」. 역사가 남아 흐름을 따라간다.',\n    fan(supersede\n      ? [['n', 'ADR-0007(대체됨)'], '->', ['ok', 'ADR-0012(대체함)']]\n      : [['hit', 'ADR-0007(덮어써 옛것 소실)']]));\n</script>",
+          "controls": [
+            {
+              "id": "mode",
+              "label": "변경 방식",
+              "type": "select",
+              "value": "overwrite",
+              "options": [
+                {
+                  "value": "overwrite",
+                  "label": "덮어 고침"
+                },
+                {
+                  "value": "supersede",
+                  "label": "대체 관계"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**ADR 은 append-only — 지우지 않고 더한다(api-version·db-migrate 의 「삭제는 나중」과 같은 정신).** 결정을 덮어쓰면 「그때는 왜 그랬나」가 사라져, 지금 결정이 옳은지 판단할 비교 기준이 없어진다. 대체 관계로 두면 「0007 의 맥락 → 0012 로 바뀐 이유」가 이어져, 결정의 진화를 읽을 수 있다. 역사가 곧 판단의 근거다."
+        },
+        {
+          "type": "p",
+          "text": "**옛 ADR 이 「틀렸던」 것도 값어치다.** 대체된 결정이 「그때는 옳았으나 상황이 바뀌어 대체됨」이라면, 그 자체가 배움이다 — 어떤 전제가 바뀌면 결정이 뒤집히는지 보여 준다. 옛 결정을 부끄러워 지우지 말고, 「이 전제(수백만 행 예상)가 이렇게(수십억으로) 바뀌어 대체됐다」를 남기면 팀의 판단력이 는다."
+        },
+        {
+          "type": "try",
+          "text": "과거에 바꾼 결정이 있다면 「대체함/대체됨」 관계로 두 장을 만들어 보라. 옛 장을 지우지 말고 상태만 바꿔, 왜 바뀌었는지의 흐름을 남겨라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "결정이 바뀌면 ADR 을?",
+          "choices": [
+            "덮어 고침",
+            "새 번호로 쓰고 「대체함」, 옛것은 「대체됨」",
+            "삭제",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "역사를 보존."
+        },
+        {
+          "q": "ADR 을 append-only 로 두는 이유는?",
+          "choices": [
+            "빠름",
+            "역사가 남아 「왜 바꿨나」의 흐름·판단 기준이 됨",
+            "저장",
+            "규칙"
+          ],
+          "answer": 1,
+          "why": "삭제는 근거를 없앤다."
+        },
+        {
+          "q": "대체된(옛) ADR 의 값어치는?",
+          "choices": [
+            "없음",
+            "어떤 전제가 바뀌면 결정이 뒤집히는지 보여 줌",
+            "부끄러움",
+            "삭제 대상"
+          ],
+          "answer": 1,
+          "why": "팀의 판단력."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "어디에 두나 — 코드와 함께",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "ADR 은 **코드 저장소 안**에 둔다(`docs/adr/`). 위키·노션에 두면 코드와 함께 안 움직여 — 코드는 바뀌는데 문서는 뒤처지고, 결국 안 읽힌다(design-doc 의 drift). 코드 옆에 두고 **PR 에서 같이 리뷰**하면, 결정 과정 자체가 팀의 기록이 되고 문서가 코드와 함께 산다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "위치 — 코드 옆 vs 위키",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const loc = '{{loc}}';\n  const inRepo = loc === 'repo';\n  render(inRepo ? 'docs/adr/ (코드 저장소 안)' : '위키/노션(코드 밖)',\n    (inRepo\n      ? '  코드와 함께 버전 관리 · PR 에서 결정을 코드와 같이 리뷰\\n' +\n        '  <span class=\\\"ok\\\">문서가 코드와 함께 움직인다 — 결정 과정이 곧 기록.</span>'\n      : '  코드는 git, 문서는 위키 → 따로 논다\\n' +\n        '  <span class=\\\"no\\\">코드가 바뀌어도 위키는 뒤처지고 결국 아무도 안 본다(drift).</span>'),\n    'ADR 은 코드 저장소 안(docs/adr/). PR 에서 같이 리뷰하면 결정이 곧 기록.',\n    fan(inRepo\n      ? [['ok', 'docs/adr/'], '->', ['ok', 'PR 리뷰'], '->', ['ok', '코드와 함께']]\n      : [['hit', '위키(코드 밖)'], '->', ['hit', 'drift → 안 읽힘']]));\n</script>",
+          "controls": [
+            {
+              "id": "loc",
+              "label": "위치",
+              "type": "select",
+              "value": "wiki",
+              "options": [
+                {
+                  "value": "wiki",
+                  "label": "위키/노션"
+                },
+                {
+                  "value": "repo",
+                  "label": "코드 저장소"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**PR 리뷰가 ADR 을 살아있는 대화로 만든다.** 큰 결정을 코드 변경과 함께(또는 앞서) ADR 로 PR 에 올리면, 팀이 **결정 자체를 리뷰**한다 — 「이 대안은 검토했나?」, 「이 대가는 감수할 만한가?」. 결정이 코드로 굳기 전에 논의되고, 그 논의가 ADR 과 PR 히스토리에 남는다. 문서 쓰기가 아니라 **의사결정 과정**이 된다."
+        },
+        {
+          "type": "p",
+          "text": "**번호와 인덱스로 찾을 수 있게 한다.** `0001-`, `0002-` 로 번호를 매기고 `docs/adr/README.md` 에 목록(제목·상태)을 두면, 「저장소 결정이 어디 있지?」를 30초에 찾는다(design-doc 의 발견성). 결정이 쌓여도 인덱스가 지도가 되어, 새 팀원이 「이 시스템의 큰 결정들」을 한눈에 훑을 수 있다."
+        },
+        {
+          "type": "try",
+          "text": "네 프로젝트에 `docs/adr/` 를 만들고 결정을 코드 저장소에 두어라. 다음 큰 결정은 ADR 을 PR 에 함께 올려, 팀이 결정 자체를 리뷰하게 하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "ADR 을 어디에 두나?",
+          "choices": [
+            "위키/노션",
+            "코드 저장소 안(docs/adr/)",
+            "이메일",
+            "채팅"
+          ],
+          "answer": 1,
+          "why": "코드와 함께 움직인다."
+        },
+        {
+          "q": "위키에 두면 생기는 문제는?",
+          "choices": [
+            "빠름",
+            "코드와 따로 놀아 뒤처지고 안 읽힘(drift)",
+            "안전",
+            "검색 쉬움"
+          ],
+          "answer": 1,
+          "why": "코드 옆에 둔다."
+        },
+        {
+          "q": "PR 에서 ADR 을 리뷰하면?",
+          "choices": [
+            "느려짐",
+            "결정 자체가 논의되고 기록됨(의사결정 과정)",
+            "무의미",
+            "중복"
+          ],
+          "answer": 1,
+          "why": "살아있는 대화."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "쓰는 과정 자체가 효과다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "ADR 의 가장 큰 효과는 **읽힐 때**가 아니라 **쓸 때** 나온다. 대안과 대가를 적으려면 **대안을 진지하게 검토**하게 되고, 막연했던 결정이 또렷해진다. 「왜 이걸로?」를 글로 설명하려다 보면 **놓친 것이 보이고**, 근거가 약한 결정은 쓰다가 스스로 무너진다. 기록은 부산물이고, **생각을 강제하는 것**이 본질이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "ADR 을 쓰기 전후 — 결정의 질",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const wrote = '{{wrote}}' === 'yes';\n  render(wrote ? 'ADR 을 쓰며 결정' : '머릿속으로만 결정',\n    (wrote\n      ? '  대안 칸을 채우려 다른 선택지를 진지하게 검토\\n' +\n        '  대가 칸을 채우다 못 본 단점 발견 → 결정 수정 또는 보완\\n' +\n        '  <span class=\\\"ok\\\">쓰는 과정에서 결정이 좋아진다 — 기록은 부산물.</span>'\n      : '  「Postgres 가 낫겠지」 (막연)\\n' +\n        '  <span class=\\\"no\\\">대안을 대충 넘기고 대가를 안 봄 → 나중에 놀란다.</span>'),\n    'ADR 의 효과는 쓸 때 나온다 — 대안·대가를 적다 보면 결정이 또렷해진다.',\n    bars(wrote\n      ? [['결정의 검토 깊이', 85, '대안·대가 검토', '#4ade80'], ['나중의 후회', 15, '적다', '#4ade80']]\n      : [['결정의 검토 깊이', 25, '막연', '#fca5a5'], ['나중의 후회', 75, '많다', '#fca5a5']]));\n</script>",
+          "controls": [
+            {
+              "id": "wrote",
+              "label": "ADR 작성",
+              "type": "select",
+              "value": "no",
+              "options": [
+                {
+                  "value": "no",
+                  "label": "안 씀(머릿속)"
+                },
+                {
+                  "value": "yes",
+                  "label": "씀(대안·대가)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**새 팀원의 「왜 이렇게 되어 있죠?」가 줄고, 같은 논쟁을 반복하지 않게 된다.** 3개월마다 「저장소를 바꿀까」 논쟁이 돈다면, ADR 하나가 그 반복을 끝낸다 — 「0007 에 검토돼 있다, 그 근거가 아직 유효한가만 보자」. 결정을 다시 여는 것도 값싸진다: 처음부터가 아니라 **기록된 근거 위에서** 시작한다."
+        },
+        {
+          "type": "p",
+          "text": "**황금의 정신과 통한다 — 가설을 글로 박으면 검증된다.** 「이게 맞다」는 느낌을 대안·대가로 글로 옮기는 순간, 근거가 falsifiable 해진다. 약한 결정은 쓰다가 「어? 이 대가를 감당 못 하는데」로 스스로 드러난다. ADR 은 **결정에 대한 리뷰를 결정 시점에** 강제하는 장치다 — 나중에 후회로 배우는 대신, 쓰면서 미리 배운다."
+        },
+        {
+          "type": "try",
+          "text": "지금 고민 중인 결정을 ADR 초안으로 써 보라. 결정을 안 내렸어도 대안·대가를 적다 보면 어느 쪽이 나은지 드러나는 경우가 많다 — 쓰기가 곧 사고 도구다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "ADR 의 가장 큰 효과가 나오는 때는?",
+          "choices": [
+            "읽힐 때",
+            "쓸 때(대안·대가를 적으며 결정이 또렷해짐)",
+            "삭제할 때",
+            "승인될 때"
+          ],
+          "answer": 1,
+          "why": "생각을 강제한다."
+        },
+        {
+          "q": "ADR 이 팀에 주는 효과는?",
+          "choices": [
+            "느려짐",
+            "「왜 이렇죠?」 감소 + 같은 논쟁 반복 안 함",
+            "코드 축소",
+            "속도"
+          ],
+          "answer": 1,
+          "why": "근거 위에서 재논의."
+        },
+        {
+          "q": "ADR 이 황금의 정신과 통하는 점은?",
+          "choices": [
+            "무관",
+            "가설을 글로 박으면 근거가 검증되고 약한 결정이 드러남",
+            "속도",
+            "문법"
+          ],
+          "answer": 1,
+          "why": "결정 시점에 리뷰 강제."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "ADR 을 살아있게 유지한다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "ADR 도 방치되면 죽는다 — 아무도 안 쓰고, 상태가 안 갱신되고, 낡은 결정이 유효한 척 남는다. 살아있게 하려면: **가볍게 유지**(한 장·무거운 절차 X), **상태를 갱신**(대체되면 표시), **실제로 참조**(리뷰·논쟁에서 인용), **인덱스로 발견 가능**하게. 「쓰기」보다 「계속 쓰이게」가 어렵다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "ADR 이 살아있나 — 신호",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const state = '{{state}}';\n  const cases = {\n    alive:   ['살아있음', true, '가볍고 · 상태 갱신되고 · 리뷰에서 인용되고 · 인덱스로 찾힌다'],\n    heavy:   ['무거운 절차', false, '승인 단계·긴 템플릿 → 아무도 안 쓴다(경계는 비용)'],\n    stale:   ['상태 방치', false, '대체됐는데 「승인」인 채 → 낡은 결정이 유효한 척'],\n    unread:  ['안 읽힘', false, '쓰고 잊음 → 같은 논쟁 반복 · 결정 무시'],\n  }[state];\n  render('ADR 상태: ' + cases[0],\n    '  ' + (cases[1]\n      ? '<span class=\\\"ok\\\">살아있는 ADR</span>'\n      : '<span class=\\\"no\\\">죽어가는 ADR</span>') + '\\n\\n  ' + cases[2] + '\\n\\n' +\n    '  가볍게 · 상태 갱신 · 실제 참조 · 발견 가능 — 네 조건이 ADR 을 살린다.',\n    '쓰기보다 계속 쓰이게가 어렵다 — 가볍게·상태 갱신·인용·인덱스.',\n    box(cases[0], cases[2], cases[1] ? 'good' : 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "state",
+              "label": "상태",
+              "type": "select",
+              "value": "stale",
+              "options": [
+                {
+                  "value": "alive",
+                  "label": "살아있음"
+                },
+                {
+                  "value": "heavy",
+                  "label": "무거운 절차"
+                },
+                {
+                  "value": "stale",
+                  "label": "상태 방치"
+                },
+                {
+                  "value": "unread",
+                  "label": "안 읽힘"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**무거우면 죽는다 — 가벼움이 생존 조건이다.** 승인 워크플로·긴 템플릿·필수 항목을 붙이면, ADR 쓰기가 부담이 되어 아무도 안 쓴다(design-boundary 7장 「경계는 비용」). 마크다운 한 장, PR 로 리뷰, 이게 전부여야 한다. 「완벽한 ADR 열 장」보다 「대충이라도 살아있는 ADR 문화」가 낫다."
+        },
+        {
+          "type": "p",
+          "text": "**참조되지 않는 기록은 죽은 기록이다.** ADR 이 진짜 살아있는지는 「논쟁·리뷰에서 인용되는가」로 안다. 「그건 ADR-0007 에 있어요」가 오가면 살아있는 것이고, 아무도 안 들먹이면 죽은 것이다. 새 결정 시 관련 ADR 을 찾아보는 습관, 낡은 것을 발견하면 상태를 갱신하는 습관 — 이 작은 참조·갱신이 기록을 살려 둔다."
+        },
+        {
+          "type": "try",
+          "text": "기존 ADR 들의 상태가 최신인지 점검하라(대체됐는데 승인인 채 남은 것). 다음 관련 논쟁에서 해당 ADR 을 인용해 보라 — 참조되기 시작하면 살아난다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "ADR 을 죽이는 것은?",
+          "choices": [
+            "가벼움",
+            "무거운 절차·긴 템플릿(부담이 되어 안 씀)",
+            "짧음",
+            "PR 리뷰"
+          ],
+          "answer": 1,
+          "why": "가벼움이 생존 조건."
+        },
+        {
+          "q": "ADR 이 살아있는지 아는 신호는?",
+          "choices": [
+            "개수",
+            "논쟁·리뷰에서 인용되는가",
+            "길이",
+            "승인 도장"
+          ],
+          "answer": 1,
+          "why": "참조되지 않으면 죽은 기록."
+        },
+        {
+          "q": "낡은 ADR 을 다루는 법은?",
+          "choices": [
+            "삭제",
+            "상태를 갱신(대체됨 표시)",
+            "숨김",
+            "방치"
+          ],
+          "answer": 1,
+          "why": "유효한 척 남지 않게."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — 결정 기록",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "큰 결정을 내리거나 결정 기록 문화를 세울 때 이 목록을 확인하라. 핵심은 「비싼 결정만·왜를 담고·역사를 남기고·살아있게」다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '되돌리기 비싼 결정에만 쓴다(색·이름 제외)',\n    '한 장 양식(맥락·결정·대안·대가·상태)',\n    '대안(안 고른 것)과 대가(감수한 것)를 적는다',\n    '바뀌면 새 번호로 「대체함」(역사 보존)',\n    '코드 저장소 안(docs/adr/)에 둔다',\n    'PR 에서 결정 자체를 리뷰한다',\n    '가볍게 유지(무거운 절차 X)',\n    '상태를 갱신하고 인덱스로 찾을 수 있다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 왜가 남아 되돌리기가 도박이 아니다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '비싼 결정만·왜를 담고·역사를 남기고·살아있게. 결정 기록의 네 축.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 왜를 한 장으로 남겨라.** 되돌리기 비싼 결정(3장)의 대안·대가(4장)를 한 장에 적고, 바뀌면 대체 관계로 역사를 남기고(5장), 코드 옆에 두어 살아있게(6·8장) 한다. 가장 큰 효과는 쓰는 과정에서 결정이 좋아지는 것이다(7장) — 기록은 부산물, 사고가 본질."
+        },
+        {
+          "type": "p",
+          "text": "**이 트랙에서의 자리.** 결정 기록은 design-coupling·boundary·pattern 의 **결정에 근거를 붙이는** 층이다 — 「왜 이 경계를, 왜 이 패턴을」을 남긴다. 그리고 design-evolve(변화를 다루기)의 재료가 된다: 옛 결정의 근거를 알아야 안전하게 진화시킨다. **「왜」를 남기는 습관이 오래가는 시스템을 만든다** — 코드는 무엇을, 기록은 왜를 말한다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개 항목으로 팀의 결정 기록 문화를 점검하라. 「되돌리기 비싼 결정에만」과 「대안·대가를 적는다」 두 가지부터 시작하면, 부담 없이 「왜」가 쌓이기 시작한다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "결정 기록의 한 줄 요약은?",
+          "choices": [
+            "모든 결정 기록",
+            "왜를 한 장으로 남겨라(비싼 결정만)",
+            "코드만 남겨라",
+            "위키에 쓰라"
+          ],
+          "answer": 1,
+          "why": "부산물은 기록, 본질은 사고."
+        },
+        {
+          "q": "결정 기록의 네 축은?",
+          "choices": [
+            "빠름·큼·전역·많이",
+            "비싼 결정만·왜를 담고·역사를 남기고·살아있게",
+            "캐시·복제·샤딩·압축",
+            "코드만"
+          ],
+          "answer": 1,
+          "why": "네 축."
+        },
+        {
+          "q": "결정 기록이 트랙에서 갖는 자리는?",
+          "choices": [
+            "무관",
+            "coupling·boundary·pattern 의 결정에 근거를 붙이고 evolve 의 재료",
+            "성능",
+            "문법"
+          ],
+          "answer": 1,
+          "why": "코드는 무엇을, 기록은 왜를."
+        }
+      ]
     }
   ]
 }
