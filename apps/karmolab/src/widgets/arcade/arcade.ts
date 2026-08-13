@@ -108,8 +108,20 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-card .ac-go{display:flex;gap:6px;margin-top:4px}',
       '.ac-card .ac-go button{flex:1;padding:6px 4px;font-size:var(--font-size-xs);border-radius:8px;border:1px solid var(--border);background:none;color:inherit;cursor:pointer}',
       '.ac-card .ac-go button:hover{border-color:var(--accent)}',
-      /* 무대 크기 — 이 한 줄이 51개 화면의 크기를 정한다 (TASK-KL-314). */
-      ':root{--ac-stage:min(94vw,460px)}',
+      /**
+       * 무대 크기 — **이 한 줄이 51개 화면의 크기를 정한다** (TASK-KL-314).
+       *
+       * 셋 중 제일 작은 값을 쓴다: 가로 여유 · **세로 여유** · 상한.
+       * 세로를 안 넣었더니 노트북·와이드에서 무대가 폰에서 온 460px 에 갇혀 세로의 절반만
+       * 쓰고 있었다(실측 — 1920 화면에서도 오목 칸이 폰과 같은 49px). 큰 화면에서 판이
+       * 작은 것은 「화면이 남는다」가 아니라 그냥 안 보이는 것이다.
+       *
+       * 세로 몫이 58vh 인 이유: 72vh 로 뒀더니 노트북(1280×900)에서 **「나가기」 단추가 화면
+       * 밖으로 밀렸다**(단추 끝 977 > 900). 판이 큰 대가로 판을 못 나가는 것은 남는 장사가
+       * 아니다. 58vh 면 41px 여유로 들어가고 칸은 49px → 56px 로 는다(실측).
+       * 더 키우고 싶으면 풀스크린이 그 자리다 — 거기서는 단추가 아예 없다.
+       */
+      ':root{--ac-stage:min(94vw,58vh,640px)}',
       '.ac-stage{text-align:center;padding:var(--space-lg) 0}',
       '.ac-order{font-size:clamp(22px,5vw,34px);font-weight:700;min-height:1.4em}',
       '.ac-choices{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-width:100%;margin:var(--space-lg) auto 0}',
