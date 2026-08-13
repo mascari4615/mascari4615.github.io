@@ -144,7 +144,7 @@ if (fs.existsSync(path.join(repoRoot, wdPage))) {
     /* 「두 날짜 사이」로 바꾸고 그 나라 공휴일이 든 주를 넣는다. 값을 넣는 것으로는 도구가
        안 움직이므로(사람이 친 것만 듣는다) 바뀌었다고 알려 준다. */
     const ok = await tab
-      .waitForFunction(() => !!document.querySelector('#wdModeBetween'), { timeout: 8000 })
+      .waitForFunction(() => !!document.querySelector('#wdModeBetween'), undefined, { timeout: 8000 })
       .then(() => true)
       .catch(() => false);
     if (!ok) {
@@ -205,7 +205,7 @@ if (fs.existsSync(path.join(repoRoot, bmiPage))) {
       .waitForFunction(() => {
         const el = document.querySelector('#tool-pages .tool-sublabel');
         return el && el.textContent ? el.textContent : false;
-      }, { timeout: 8000 })
+      }, undefined, { timeout: 8000 })
       .then((h) => h.jsonValue())
       .catch(() => '');
     const all = await tab.evaluate(
@@ -243,7 +243,7 @@ if (fs.existsSync(path.join(repoRoot, ucPage))) {
           const from = document.querySelector('#ucFrom');
           const to = document.querySelector('#ucTo');
           return from && to && from.value ? { from: from.value, to: to.value } : false;
-        },
+        }, undefined,
         { timeout: 8000 }
       )
       .then((h) => h.jsonValue())
@@ -277,7 +277,7 @@ if (fs.existsSync(path.join(repoRoot, pacePage))) {
       .waitForFunction(() => {
         const el = document.querySelector('#tool-pages .tool-sublabel');
         return el && el.textContent && el.textContent.includes('/') ? el.textContent : false;
-      }, { timeout: 8000 })
+      }, undefined, { timeout: 8000 })
       .then((h) => h.jsonValue())
       .catch(() => '');
     if (!String(label).includes(c.want)) {

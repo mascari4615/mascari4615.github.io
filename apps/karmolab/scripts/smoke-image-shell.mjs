@@ -79,7 +79,7 @@ check(groups === 5, `갈래는 다섯 (지금 ${groups})`);
 await page.setInputFiles('#pfFile', { name: '사진.png', mimeType: 'image/png', buffer: png });
 await page.waitForSelector('#pfFileBar:visible', { timeout: 15000 });
 check((await page.locator('#pfName').innerText()) === '사진.png', '사진 이름이 위에 뜬다');
-await page.waitForFunction(() => !!document.querySelector('#imShot img'), { timeout: 15000 }).catch(() => {});
+await page.waitForFunction(() => !!document.querySelector('#imShot img'), undefined, { timeout: 15000 }).catch(() => {});
 check((await page.locator('#imShot img').count()) === 1, '사진이 그려진다');
 const meta = await page.locator('#pfMeta').innerText();
 check(/3×2/.test(meta), `치수를 읽어야 한다 — 이미지 판단의 기준 (지금 「${meta}」)`);

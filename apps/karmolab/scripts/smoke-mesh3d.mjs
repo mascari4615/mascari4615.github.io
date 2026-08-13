@@ -134,7 +134,7 @@ if (mount.missing === true) {
         const el = window.__host.querySelector('#m3Info');
         const txt = el?.textContent ?? '';
         return txt.includes('삼각형') || txt.includes('없습니다') ? txt : false;
-      },
+      }, undefined,
       { timeout: 8000 }
     )
     .then((h) => h.jsonValue())

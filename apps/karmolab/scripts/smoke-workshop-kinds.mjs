@@ -35,7 +35,7 @@ await context.route('**/kl/uploads', async (route) => {
 });
 
 await page.goto(BASE, { waitUntil: 'networkidle', timeout: 30000 });
-await page.waitForFunction(() => typeof Toolbox !== 'undefined' && typeof Toolbox.offerNext === 'function', {
+await page.waitForFunction(() => typeof Toolbox !== 'undefined' && typeof Toolbox.offerNext === 'function', undefined, {
   timeout: 20000,
 });
 

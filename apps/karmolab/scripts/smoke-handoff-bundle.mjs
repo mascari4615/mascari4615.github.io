@@ -31,7 +31,7 @@ const check = (ok, why) => {
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
 await page.goto(`${BASE}#home`, { waitUntil: 'domcontentloaded' });
-await page.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.offerResult, { timeout: 20000 });
+await page.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.offerResult, undefined, { timeout: 20000 });
 
 /* 진짜 JPG 를 하나 만든다 — 받는 쪽이 형식을 본다 */
 const madeJpeg = await page.evaluate(async () => {
@@ -62,7 +62,7 @@ const got = await page
     () => {
       const el = document.querySelector('#exEditor');
       return !!el && el.style.display !== 'none';
-    },
+    }, undefined,
     { timeout: 20000 }
   )
   .then(() => true)
@@ -113,7 +113,7 @@ const soundGot = await page
        * (게이트를 일부러 망가뜨려 보고 잡았다 — `rules/quality.md § 설명문이 거짓말이면`). */
       const panel = document.querySelector('#acPanel');
       return !!panel && panel.style.display !== 'none';
-    },
+    }, undefined,
     { timeout: 20000 }
   )
   .then(() => true)

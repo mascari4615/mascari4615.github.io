@@ -42,7 +42,7 @@ const errors = [];
 page.on('pageerror', (error) => errors.push(String(error)));
 
 await page.goto(`${base}/apps/karmolab/`);
-await page.waitForFunction(() => typeof Toolbox !== 'undefined' && typeof Toolbox.switchPage === 'function', {
+await page.waitForFunction(() => typeof Toolbox !== 'undefined' && typeof Toolbox.switchPage === 'function', undefined, {
   timeout: 15000,
 });
 // 도구는 부를 때 비로소 받아진다 — 받아진 뒤 다시 불러야 열린다.
@@ -52,7 +52,7 @@ await page.waitForFunction(
     if (document.getElementById('cmpDot')) return true;
     Toolbox.switchPage('companion');
     return false;
-  },
+  }, undefined,
   { timeout: 20000, polling: 500 }
 );
 
@@ -60,7 +60,7 @@ await page.waitForFunction(
 //    안 켜지면 **화면이 스스로 적어 둔 이유**를 그대로 보여 준다. 「시간 초과」만 남으면
 //    붙는 자리가 틀린 건지(포트·CORS) 봇이 죽은 건지 못 가른다 — 실제로 한 번 그랬다.
 try {
-  await page.waitForFunction(() => document.getElementById('cmpDot')?.classList.contains('on') === true, {
+  await page.waitForFunction(() => document.getElementById('cmpDot')?.classList.contains('on') === true, undefined, {
     timeout: 15000,
   });
 } catch {
@@ -84,7 +84,7 @@ const 상태 = await page.evaluate(() => ({
 // ②-0 창·몸·목소리가 화면에 뜨나 — 오늘 사고 셋이 전부 「조용히 빠짐」이었다.
 // 칸은 상태를 읽어 온 뒤에 그려진다 — 곧바로 읽으면 비어 있다(실제로 한 번 비었다).
 await page
-  .waitForFunction(() => document.querySelectorAll('#cmpBits .cmp-bit').length > 0, { timeout: 10000 })
+  .waitForFunction(() => document.querySelectorAll('#cmpBits .cmp-bit').length > 0, undefined, { timeout: 10000 })
   .catch(() => {});
 const 칸 = await page.evaluate(() =>
   [...document.querySelectorAll('#cmpBits .cmp-bit')].map((el) => el.textContent ?? ''),

@@ -74,10 +74,10 @@ check(groups === 4, `갈래는 넷 (지금 ${groups})`);
 await page.setInputFiles('#pfFile', { name: '보고서.pdf', mimeType: 'application/pdf', buffer: tinyPdf() });
 await page.waitForSelector('#pfFileBar:visible', { timeout: 15000 });
 check((await page.locator('#pfName').innerText()) === '보고서.pdf', '파일 이름이 위에 뜬다');
-await page.waitForFunction(() => /2/.test(document.querySelector('#pfMeta')?.textContent || ''), { timeout: 15000 }).catch(() => {});
+await page.waitForFunction(() => /2/.test(document.querySelector('#pfMeta')?.textContent || ''), undefined, { timeout: 15000 }).catch(() => {});
 const meta = await page.locator('#pfMeta').innerText();
 check(/2/.test(meta), `쪽 수를 읽어야 한다 (지금 「${meta}」)`);
-await page.waitForFunction(() => document.querySelectorAll('#pfPages .pf-thumb').length >= 2, { timeout: 20000 }).catch(() => {});
+await page.waitForFunction(() => document.querySelectorAll('#pfPages .pf-thumb').length >= 2, undefined, { timeout: 20000 }).catch(() => {});
 const thumbs = await page.locator('#pfPages .pf-thumb').count();
 check(thumbs === 2, `쪽 격자에 두 쪽이 다 보인다 (지금 ${thumbs})`);
 check((await page.locator('#pfPages .pf-thumb canvas').count()) === 2, '썸네일이 실제로 그려진다');
@@ -146,7 +146,7 @@ await page.locator('.pf-thumb[data-page="2"] .pf-act[data-act="drop"]').click();
 await page.waitForTimeout(150);
 await page.click('#pfApply');
 await page.waitForFunction(
-  () => /1/.test(document.querySelector('#pfMeta')?.textContent || '') && document.querySelectorAll('#pfPages .pf-thumb').length === 1,
+  () => /1/.test(document.querySelector('#pfMeta')?.textContent || '') && document.querySelectorAll('#pfPages .pf-thumb').length === 1, undefined,
   { timeout: 25000 }
 ).catch(() => {});
 check(
@@ -163,7 +163,7 @@ check(/정리/.test(await page.locator('#pfName').innerText()), `만든 것이 *
  * 순서를 바꿔 만들면 **첫 쪽에서 뽑히는 글자가 바뀌어야** 한다. 화면 순서만 보면 속을 수 있다. */
 /* 앞 판에서 한 쪽을 빼 두었으니 두 쪽짜리를 **다시 올린다** — 순서 바꾸기는 두 쪽이 있어야 잰다. */
 await page.setInputFiles('#pfFile', { name: '보고서.pdf', mimeType: 'application/pdf', buffer: tinyPdf() });
-await page.waitForFunction(() => document.querySelectorAll('#pfPages .pf-thumb').length === 2, { timeout: 20000 });
+await page.waitForFunction(() => document.querySelectorAll('#pfPages .pf-thumb').length === 2, undefined, { timeout: 20000 });
 
 await page.evaluate(() => {
   const cells = [...document.querySelectorAll('#pfPages .pf-thumb')];
@@ -184,7 +184,7 @@ check(await page.locator('#pfEditBar').isVisible(), '순서만 바꿔도 저장 
 
 /* 만들고 나서 **글자로** 확인 — 첫 쪽이 정말 「PAGE TWO」 인가 */
 await page.click('#pfApply');
-await page.waitForFunction(() => /정리/.test(document.querySelector('#pfName')?.textContent || ''), { timeout: 25000 }).catch(() => {});
+await page.waitForFunction(() => /정리/.test(document.querySelector('#pfName')?.textContent || ''), undefined, { timeout: 25000 }).catch(() => {});
 const firstText = await page.evaluate(async () => {
   const input = document.querySelector('#pfFile');
   const f = input.files[0];
@@ -235,7 +235,7 @@ await page.waitForFunction(
   () => {
     const el = document.querySelector('#pfHost input[type=file]');
     return !!el && el.files && el.files.length >= 2;
-  },
+  }, undefined,
   { timeout: 20000 }
 ).catch(() => {});
 const gotMany = await page.evaluate(() => {
@@ -253,7 +253,7 @@ await page.waitForFunction(
   () => {
     const el = document.querySelector('#pfHost input[type=file]');
     return !!el && el.files && el.files.length > 0;
-  },
+  }, undefined,
   { timeout: 20000 }
 ).catch(() => {});
 const gotOne = await page.evaluate(() => {
@@ -267,7 +267,7 @@ check(gotOne.length === 1 && gotOne[0] === '앞.pdf', `한 장만 받는 도구�
  * 끌어 놓기는 마우스가 있어야 하는 조작이다. 그것만 두면 순서 바꾸기가 통째로 막힌다. */
 await freshOpenPdf();
 await page.setInputFiles('#pfFile', { name: '보고서.pdf', mimeType: 'application/pdf', buffer: tinyPdf() });
-await page.waitForFunction(() => document.querySelectorAll('#pfPages .pf-thumb').length === 2, { timeout: 20000 });
+await page.waitForFunction(() => document.querySelectorAll('#pfPages .pf-thumb').length === 2, undefined, { timeout: 20000 });
 await page.locator('.pf-thumb[data-page="1"]').focus();
 check(
   await page.evaluate(() => document.activeElement?.dataset?.page === '1'),
@@ -295,7 +295,7 @@ await freshOpenPdf();
 await page.evaluate(() => Toolbox.setPref?.('mat_recent_pdf', ''));
 /* **지워졌는지 확인하고 넘어간다** — 저장이 한 박자 늦으면 옛 기억이 남아, 무엇을 고쳐도
  * 이 판이 초록으로 나온다(돌연변이를 넣어도 안 빨개져서 잡았다). */
-await page.waitForFunction(() => !(Toolbox.getPref?.('mat_recent_pdf', '') || ''), { timeout: 10000 });
+await page.waitForFunction(() => !(Toolbox.getPref?.('mat_recent_pdf', '') || ''), undefined, { timeout: 10000 });
 await freshOpenPdf();
 check(!(await page.locator('#pfRecent').isVisible()), '처음 온 사람에겐 「방금 하던 것」이 없다');
 await page.setInputFiles('#pfFile', { name: '보고서.pdf', mimeType: 'application/pdf', buffer: tinyPdf() });

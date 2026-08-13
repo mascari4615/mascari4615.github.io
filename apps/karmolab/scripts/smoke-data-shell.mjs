@@ -35,7 +35,7 @@ check(!(await page.locator('#pfTip').isVisible()), '아직 아무것도 안 붙�
 await page.fill('#pfText', '{"name":"karmo","tags":[1,2,3]}');
 await page.waitForSelector('#dvWhat', { timeout: 15000 });
 check((await page.locator('#dvWhat').innerText()).includes('JSON'), '무엇인지 왼쪽에 말해 준다');
-await page.waitForFunction(() => document.querySelectorAll('.pf-job.pf-hot').length > 0, { timeout: 10000 }).catch(() => {});
+await page.waitForFunction(() => document.querySelectorAll('.pf-job.pf-hot').length > 0, undefined, { timeout: 10000 }).catch(() => {});
 const hot = await page.locator('.pf-job.pf-hot').evaluateAll((els) => els.map((e) => e.dataset.job));
 check(hot.includes('jsonfmt'), `JSON 이면 「JSON」 이 짚혀야 한다 (지금 ${JSON.stringify(hot)})`);
 check(!hot.includes('jwt'), 'JSON 인데 JWT 가 짚히면 안 된다');
@@ -59,7 +59,7 @@ check(after < before, `가지를 누르면 접힌다 (${before} → ${after}줄)
 
 /* 깨진 JSON 은 나무 대신 글자로 — 그때가 「보기 좋게」가 가장 필요한 순간이다 */
 await page.fill('#pfText', '{"a":1,');
-await page.waitForFunction(() => !!document.querySelector('#dvHead'), { timeout: 10000 }).catch(() => {});
+await page.waitForFunction(() => !!document.querySelector('#dvHead'), undefined, { timeout: 10000 }).catch(() => {});
 check((await page.locator('#dvHead').count()) === 1, '깨진 JSON 은 글자로 보여 준다');
 await page.fill('#pfText', '{"name":"karmo","tags":[1,2,3]}');
 await page.waitForSelector('#dvTree', { timeout: 10000 }).catch(() => {});
@@ -70,7 +70,7 @@ await page.waitForFunction(
   () => {
     const on = [...document.querySelectorAll('.pf-job.pf-hot')].map((e) => e.dataset.job);
     return on.length === 1 && on[0] === 'jwt';
-  },
+  }, undefined,
   { timeout: 10000 }
 ).catch(() => {});
 const hot2 = await page.locator('.pf-job.pf-hot').evaluateAll((els) => els.map((e) => e.dataset.job));
@@ -79,7 +79,7 @@ check((await page.locator('#dvWhat').innerText()).includes('JWT'), '왼쪽 말�
 
 /* ③ 그냥 글이면 아무것도 안 짚는다 — 억지로 짚으면 틀린 길로 민다 */
 await page.fill('#pfText', '오늘 점심 뭐 먹지, 라고 적어 둔 메모입니다.');
-await page.waitForFunction(() => document.querySelectorAll('.pf-job.pf-hot').length === 0, { timeout: 10000 }).catch(() => {});
+await page.waitForFunction(() => document.querySelectorAll('.pf-job.pf-hot').length === 0, undefined, { timeout: 10000 }).catch(() => {});
 check((await page.locator('.pf-job.pf-hot').count()) === 0, '그냥 글이면 아무것도 안 짚는다');
 check(!(await page.locator('#pfTip').isVisible()), '짚을 게 없으면 안내줄도 걷는다');
 
@@ -91,7 +91,7 @@ await page.waitForFunction(
   () => {
     const el = document.querySelector('#pfHost textarea');
     return !!el && el.value.includes('점심');
-  },
+  }, undefined,
   { timeout: 15000 }
 ).catch(() => {});
 const got = await page.evaluate(() => {

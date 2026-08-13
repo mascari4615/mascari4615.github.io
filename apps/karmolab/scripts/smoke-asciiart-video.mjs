@@ -43,7 +43,7 @@ const errors = [];
 page.on('pageerror', (error) => errors.push(String(error)));
 
 await page.goto(`${base}/apps/karmolab/`);
-await page.waitForFunction(() => typeof Toolbox !== 'undefined' && typeof Toolbox.switchPage === 'function', {
+await page.waitForFunction(() => typeof Toolbox !== 'undefined' && typeof Toolbox.switchPage === 'function', undefined, {
   timeout: 20000
 });
 /* ★ **합쳐진 도구는 묶음 안의 탭으로 연다** (2026-08-12).

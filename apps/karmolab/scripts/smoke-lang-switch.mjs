@@ -54,7 +54,7 @@ page.on('console', (m) => {
 const fail = [];
 const base = `http://127.0.0.1:${PORT}/apps/karmolab/index.html`;
 await page.goto(base, { waitUntil: 'domcontentloaded' });
-await page.waitForFunction(() => !!document.getElementById('langBtn'), { timeout: 5000 });
+await page.waitForFunction(() => !!document.getElementById('langBtn'), undefined, { timeout: 5000 });
 
 /* 이 장이 가진 언어 = 짝 표시. 생성기·검사와 같은 규칙이다. */
 const tags = await page.$$eval('link[rel="alternate"][hreflang]', (els) =>
@@ -127,7 +127,7 @@ for (const l of expected) {
         if (!Array.isArray(list) || !list.length) return false;
         const hit = list.find((w) => w.id === 'charcount');
         return hit ? hit.title : false;
-      },
+      }, undefined,
       { timeout: 5000 }
     )
     .then((h) => h.jsonValue())

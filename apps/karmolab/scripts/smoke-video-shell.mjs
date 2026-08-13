@@ -73,7 +73,7 @@ await page.waitForSelector('#vdPlayer', { timeout: 20000 });
 check((await page.locator('#vdPlayer').count()) === 1, '재생기가 뜬다');
 
 /* ③ 필름 스트립 — 여덟 장이 **다 뽑히고**, 시각 표가 0초에 뭉쳐 있지 않다 */
-await page.waitForFunction(() => document.querySelectorAll('#vdStrip .vd-frame').length >= 8, { timeout: 30000 }).catch(() => {});
+await page.waitForFunction(() => document.querySelectorAll('#vdStrip .vd-frame').length >= 8, undefined, { timeout: 30000 }).catch(() => {});
 const frames = await page.locator('#vdStrip .vd-frame').count();
 check(frames === 8, `필름 스트립 여덟 장 (지금 ${frames})`);
 const ats = await page.locator('#vdStrip .vd-frame').evaluateAll((els) => els.map((e) => Number(e.dataset.at)));
@@ -105,7 +105,7 @@ await page.waitForFunction(
   () => {
     const el = document.querySelector('#pfHost input[type=file]');
     return !!el && el.files && el.files.length > 0;
-  },
+  }, undefined,
   { timeout: 20000 }
 ).catch(() => {});
 const got = await page.evaluate(() => {

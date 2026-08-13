@@ -18,7 +18,11 @@
 /**
  * @param {import('playwright').Page} page
  * @param {string} selector 그 도구 화면 안의 아무 요소 (예: '#tcSeal')
- * @param {{ timeout?: number }} [opts]
+ * @param {{ timeout?: number, require?: boolean }} [opts]
+ *   `require: true` 면 **손이 안 붙었을 때 던진다**. 안 그러면 못 기다린 것을 그대로 안고
+ *   내려가서, 미리 그린 HTML 에 값을 넣고 「값을 넣어 주세요」로 끝난다 — 화면은 멀쩡한데
+ *   검사만 이상한 말을 하는 자리가 된다(판본 대조가 그렇게 며칠 빨갛게 방치됐다,
+ *   [[TASK-KL-301]]). 실서비스를 겨누는 검사는 켜 두는 편이 낫다.
  */
 export async function waitHydrated(page, selector, opts = {}) {
   const timeout = opts.timeout ?? 30000;
@@ -51,5 +55,13 @@ export async function waitHydrated(page, selector, opts = {}) {
   /* 단추가 없어 신호를 못 본 화면(그리고 시간이 다 된 경우)은 가라앉기만 기다린다.
      못 기다린 것을 「기다렸다」로 삼키지 않으려고 결과를 돌려준다. */
   if (손붙음 !== true) await page.waitForTimeout(500);
+  /* `'no-button'` 은 **기다릴 신호가 없는 화면**이지 못 뜬 화면이 아니다 — 여기서 던지면
+     단추 없는 도구를 통째로 못 재게 된다. 던지는 건 시간이 다 된 `false` 뿐이다. */
+  if (손붙음 === false && opts.require) {
+    throw new Error(
+      `화면이 안 떴다 — \`${selector}\` 에 손이 안 붙었다 (${timeout}ms). ` +
+        '도구가 고장 난 것이 아니라 **판이 아직 안 나갔거나 사이트가 느린 것**일 수 있다 — 배포가 끝난 뒤 다시 보라.'
+    );
+  }
   return 손붙음 === true;
 }
