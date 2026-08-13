@@ -2609,6 +2609,22 @@ await step('손 안 댄 견본은 한 단추로 지우고 내 것으로 시작�
   if (await page.locator('[data-km="sample-wipe"]').count() !== 0) throw new Error('손댄 뒤에도 견본 지우기가 남아 있다');
 });
 
+await step('블로그에 넣을 한 줄을 준다', async () => {
+  // 관계도를 남에게 보이는 가장 흔한 자리는 글 안이다 — 거기서는 링크가 아니라 판이 떠 있어야
+  // 읽힌다(KL-271 O6). 이미 만들 줄 아는 보기 전용 링크를 iframe 한 줄에 끼운다.
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length > 0, null, { timeout: 5000 });
+  await page.evaluate(() => { window.__km_copied = ''; });
+  await page.evaluate(() => {
+    navigator.clipboard.writeText = async (s) => { window.__km_copied = s; };
+  });
+  await page.evaluate(() => document.querySelector('[data-km="embed"]').click());
+  await page.waitForFunction(() => (window.__km_copied || '').startsWith('<iframe'), null, { timeout: 6000 });
+  const code = await page.evaluate(() => window.__km_copied);
+  if (!/src="[^"]*#karmograph/.test(code)) throw new Error(`판으로 가는 주소가 아니다: ${code.slice(0, 120)}`);
+  if (!/kmv=1/.test(code)) throw new Error('보기 전용(kmv=1)이 아닌 링크를 끼웠다');
+});
+
+
   const m = await phone.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
