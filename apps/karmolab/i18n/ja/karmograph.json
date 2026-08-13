@@ -674,5 +674,8 @@
   "karmograph.clusters.hint": "線が内側で密なかたまりごとにまとめたものです。",
   "karmograph.paste.needCard": "先にカードを選んでください — 画像はそのカードの顔になります",
   "karmograph.paste.done": "顔にしました",
-  "karmograph.paste.act": "顔をつける"
+  "karmograph.paste.act": "顔をつける",
+  "karmograph.sample.wipe": "見本を消して自分のものから始める",
+  "karmograph.sample.wipeAct": "見本を消す",
+  "karmograph.sample.wipeDone": "空の板です — 何もない所をダブルクリックで開始"
 }

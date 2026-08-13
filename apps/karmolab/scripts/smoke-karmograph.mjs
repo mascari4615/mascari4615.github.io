@@ -2585,6 +2585,30 @@ await step('그림을 붙여넣으면 고른 카드의 얼굴이 된다', async 
   const after = await page.evaluate(() => document.querySelectorAll('image').length);
   if (after !== now) throw new Error('글 칸에 붙였는데 얼굴이 바뀌었다');
 });
+
+await step('손 안 댄 견본은 한 단추로 지우고 내 것으로 시작한다', async () => {
+  // 견본을 깔아 주는 것까지는 했는데, 「이걸 지우고 내 걸로」 가는 길이 서랍 맨 밑 빨간 단추뿐이었다
+  // — 처음 온 사람이 누르기엔 무서운 자리다(KL-271 F6).
+  await page.click('[data-km="map-new"]');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
+  await page.locator('[data-km="intent"]').first().click();
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 4, null, { timeout: 5000 });
+  await page.locator('[data-km="sample-wipe"]').click();
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
+  if (await page.locator('[data-km="sample-wipe"]').count() !== 0) throw new Error('빈 판인데 견본 지우기가 남아 있다');
+  // 한 장이라도 손대면 사라진다 — 남의 작업을 지울 위험이 없어야 한다.
+  await page.locator('[data-km="intent"]').first().click();
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 4, null, { timeout: 5000 });
+  const box = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.dblclick(box.x + 160, box.y + box.height - 90);
+  await page.keyboard.type('내카드');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 5, null, { timeout: 4000 });
+  await page.evaluate(() => document.querySelector('.km-canvas').click());
+  await page.waitForTimeout(400);
+  if (await page.locator('[data-km="sample-wipe"]').count() !== 0) throw new Error('손댄 뒤에도 견본 지우기가 남아 있다');
+});
+
   const m = await phone.newPage();
   await m.goto(URL, { waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
