@@ -162,6 +162,28 @@ if (added.length) {
   console.log('  넣을 자리: package.json 의 `gates` (빠른 것) · `live-checks.mjs` (실주소를 보는 것)');
   process.exit(1);
 }
+/** 작업 폴더의 `package.json` 이 origin 과 다르면 — 남의 미커밋이 섞였을 수 있다 */
+function worktreeDiffersFromOrigin() {
+  try {
+    const env = { ...process.env };
+    for (const k of ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_PREFIX']) delete env[k];
+    const out = execFileSync('git', ['diff', '--name-only', 'origin/master', '--', 'package.json'], {
+      cwd: root, env, encoding: 'utf8'
+    });
+    return out.trim().length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/* ★ **여기서 갈리는 이유를 적어 준다** (2026-08-13). 이 감사는 작업 폴더를 읽는데, 이 저장소는
+   세션 여럿이 한 폴더를 쓴다 — 남의 **미커밋** 게이트 줄 때문에 「이제 묶음에 들었다」가 뜨고,
+   그 말을 믿고 기준선을 줄이면 CI 가 커밋 기준으로 다시 빨개진다(오늘 실측, 여러 판). */
+if (!REF && (added.length || fixed.length) && worktreeDiffersFromOrigin()) {
+  console.log('[audit-orphan-tests] ⚠ 작업 폴더의 package.json 이 origin 과 다르다 — 남의 미커밋이 섞였을 수 있다.');
+  console.log('  커밋 기준으로 보려면: KL_PUSH_SHA=origin/master npm run audit:orphans');
+}
+
 if (fixed.length) {
   console.log(`[audit-orphan-tests] 이제 묶음에 든 것이 기준선에 남아 있다 ${fixed.length}개: ${fixed.join(', ')}`);
   console.log('  `npm run audit:orphans -- --update` 로 기준선을 줄여라 (톱니는 되감기지 않는다)');
