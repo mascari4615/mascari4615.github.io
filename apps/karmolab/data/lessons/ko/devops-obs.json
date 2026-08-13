@@ -1,98 +1,838 @@
 {
   "id": "devops-obs",
-  "minutes": 13,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "장애를 **사용자보다 늦게 아는 것**이 제일 나쁘다. 관측은 「로그를 많이 남기기」가 아니라, 이상을 자동으로 알아채는 구조를 만드는 일이다."
-    },
-    {
-      "type": "h",
-      "text": "1. 세 가지 신호"
-    },
-    {
-      "type": "note",
-      "text": "**지표**(숫자·추세: 요청 수·에러율·지연) · **로그**(사건의 기록) · **추적**(요청 하나가 서비스들을 지나간 경로). 지표로 알아채고, 추적으로 좁히고, 로그로 확인한다."
-    },
-    {
-      "type": "h",
-      "text": "2. 로그는 기계가 읽게"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "문장 대신 구조",
-      "text": "// 나쁨: 나중에 못 센다\nconsole.log(`주문 ${id} 실패: ${err.message}`);\n\n// 좋음: 검색·집계가 된다\nlogger.error({ event: 'order_failed', orderId: id, reason: err.code, userId, traceId });"
-    },
-    {
-      "type": "note",
-      "text": "**요청 하나에 id 하나**(traceId)를 붙여 전 구간에 실어라. 「이 사용자의 그 요청」을 서비스 여러 개에 걸쳐 따라갈 수 있는지가 관측 수준을 가른다."
-    },
-    {
-      "type": "h",
-      "text": "3. 무엇에 경보를 걸까"
-    },
-    {
-      "type": "p",
-      "text": "CPU 90% 는 사용자가 안 아플 수도 있다. **사용자가 아픈 것**에 걸어라 — 에러율, p95 지연, 핵심 흐름의 성공률. 경보가 잦으면 사람이 무시하기 시작하므로, **행동할 수 있는 것**만 남긴다."
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "목표를 숫자로 (SLO)",
-      "text": "주문 API 성공률 99.9% / 30일\n→ 허용 실패 예산: 약 43분\n→ 예산을 빠르게 태우면 경보"
-    },
-    {
-      "type": "h",
-      "text": "4. 대시보드는 질문에 답해야 한다"
-    },
-    {
-      "type": "p",
-      "text": "그래프를 많이 놓지 말고 「지금 정상인가?」 「무엇이 나빠졌나?」 두 질문에 답하는 화면을 먼저 만들어라. 화면이 예뻐도 답을 못 주면 안 본다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "내 서비스에 traceId 를 하나 심고, 요청 하나를 로그에서 처음부터 끝까지 따라가 보라."
-    },
-    {
-      "type": "try",
-      "text": "핵심 흐름 하나에 SLO 를 정하고(예: 99.9%), 그 흐름의 에러율에 경보를 걸어라. 그리고 **일부러 실패를 내서** 경보가 오는지 확인하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "로그를 구조화(JSON 필드)하는 이유는?",
-      "choices": [
-        "보기 좋아서",
-        "검색·집계·경보가 가능해지기 때문",
-        "용량이 줄어서"
+      "id": "1",
+      "title": "세 가지 신호 — 무엇을 언제 보나",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「서비스가 이상해요」에 답하려면 **밖에서 안을 볼 수 있어야** 한다. 그 창이 셋이다 — **지표**(무슨 일이 일어나고 있나), **추적**(어디서 느린가), **로그**(정확히 무엇이 일어났나)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "질문을 골라 보라 — 어느 신호가 답하나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .spans { margin:8px 0; }\n  .span { display:flex; align-items:center; gap:8px; margin-bottom:3px; font:11.5px ui-monospace, monospace; }\n  .span .nm { width:170px; flex:none; color:#cbd5e1; }\n  .span .b { height:14px; border-radius:3px; background:#2563eb; }\n  .span.slow .b { background:#ef4444; }\n  .span .ms { color:#94a3b8; font-size:11px; }\n  .bars { display:flex; align-items:flex-end; gap:3px; height:90px; margin:8px 0; }\n  .bars i { flex:1; background:#2563eb; border-radius:2px 2px 0 0; }\n  .bars i.hot { background:#ef4444; }\n  pre { margin:8px 0 0; font:11.5px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const spans = (list) => {\n    const max = Math.max(...list.map(([, , ms]) => ms), 1);\n    return '<div class=\"spans\">' + list.map(([nm, indent, ms, slow]) =>\n      '<div class=\"span ' + (slow ? 'slow' : '') + '\"><span class=\"nm\">' +\n      '&nbsp;'.repeat(indent * 2) + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(3, (ms / max) * 200) + 'px\"></span>' +\n      '<span class=\"ms\">' + ms + 'ms</span></div>').join('') + '</div>';\n  };\n  const hist = (vals, hotFrom) => '<div class=\"bars\">' + vals.map((v, i) =>\n    '<i style=\"height:' + Math.max(4, v) + '%\" class=\"' + (hotFrom != null && i >= hotFrom ? 'hot' : '') + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = '{{q}}';\n  const t = {\n    now:  ['지금 서비스가 정상인가?', '지표(metrics)',\n      ['오류율 · 지연 · 처리량을 몇 초 간격으로', '숫자라 가볍고 오래 보관할 수 있다'],\n      '가장 먼저 보는 창. 「무언가 이상하다」까지만 알려 준다.'],\n    where:['어느 단계에서 느린가?', '추적(traces)',\n      ['요청 하나가 서비스들을 지나간 경로와 각 구간 시간'],\n      '「이상하다」 다음의 「어디서」에 답한다. 마이크로서비스면 거의 필수.'],\n    what: ['그 요청에 정확히 무슨 일이?', '로그(logs)',\n      ['그 순간의 값·스택 트레이스·분기'],\n      '가장 자세하고 가장 비싸다. 좁힌 뒤에 보는 창.'],\n    why:  ['왜 어제보다 느려졌나?', '지표 + 추적',\n      ['지표로 추세를 보고, 추적으로 변한 구간을 찾는다'],\n      '한 신호로는 못 푼다 — 세 창을 이어 보는 것이 관측 가능성이다.'],\n  }[q];\n  render('', '  ' + esc(t[0]) + '\\n\\n  <span class=\"ok\">' + esc(t[1]) + '</span>\\n\\n' +\n    t[2].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[3]),\n    '순서는 대개 지표 -> 추적 -> 로그. 넓게 보고 좁혀 들어간다.',\n    q === 'where' ? spans([['GET /order', 0, 420], ['auth', 1, 20], ['db.query', 1, 350, true], ['render', 1, 40]])\n      : hist([30, 35, 32, 40, 38, 45, 42, 60, 85, 92], q === 'now' ? 8 : null));\n</script>",
+          "controls": [
+            {
+              "id": "q",
+              "label": "질문",
+              "type": "select",
+              "value": "now",
+              "options": [
+                {
+                  "value": "now",
+                  "label": "지금 정상인가"
+                },
+                {
+                  "value": "where",
+                  "label": "어디서 느린가"
+                },
+                {
+                  "value": "what",
+                  "label": "무슨 일이 있었나"
+                },
+                {
+                  "value": "why",
+                  "label": "왜 느려졌나"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "**모니터링과 관측 가능성**은 조금 다르다. 모니터링은 「미리 정해 둔 것을 지켜보는」 일이고, 관측 가능성은 **미리 예상 못 한 질문에도 답할 수 있는** 성질이다. 새 장애는 늘 예상 밖이라 후자가 필요하다."
+        },
+        {
+          "type": "note",
+          "text": "**셋 다 갖추는 것이 목표가 아니다.** 작은 서비스라면 좋은 로그와 기본 지표만으로 충분하고, 추적은 서비스가 여러 개로 갈라진 뒤에 값을 한다. 「도구를 깔았나」가 아니라 **「장애 때 답을 얻나」**가 기준이다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "세 신호의 성질",
+          "text": "           크기   보관     답하는 질문\n지표      작다   길게     무슨 일이 일어나고 있나 (추세·비율)\n추적      중간   짧게     어느 구간에서 시간을 쓰나\n로그      크다   짧게     정확히 무엇이 있었나 (그 한 건)"
+        },
+        {
+          "type": "try",
+          "text": "최근 장애(또는 이상)를 하나 떠올려, 그때 답을 어디서 얻었는지 적어 보라. 「서버에 들어가 로그를 grep 했다」면 지표·추적이 비어 있다는 뜻이다."
+        }
       ],
-      "answer": 1,
-      "why": "문장 로그는 세거나 걸러낼 수 없다."
+      "quiz": [
+        {
+          "q": "「지금 정상인가」에 가장 먼저 답하는 신호는?",
+          "choices": [
+            "로그",
+            "지표",
+            "추적",
+            "알림"
+          ],
+          "answer": 1,
+          "why": "가볍고 추세를 본다."
+        },
+        {
+          "q": "「어느 단계에서 느린가」에 답하는 것은?",
+          "choices": [
+            "지표",
+            "추적",
+            "로그",
+            "덤프"
+          ],
+          "answer": 1,
+          "why": "요청이 지나간 구간별 시간."
+        },
+        {
+          "q": "관측 가능성이 모니터링과 다른 점은?",
+          "choices": [
+            "도구가 많다",
+            "예상 못 한 질문에도 답할 수 있다",
+            "실시간이다",
+            "비싸다"
+          ],
+          "answer": 1,
+          "why": "새 장애는 늘 예상 밖이다."
+        }
+      ]
     },
     {
-      "q": "경보를 거는 기준으로 가장 좋은 것은?",
-      "choices": [
-        "CPU 사용률",
-        "사용자가 아픈 지표(에러율·지연·성공률)",
-        "디스크 여유 공간"
+      "id": "2",
+      "title": "로그 — 사람이 읽는 글에서 기계가 읽는 자료로",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "로그는 가장 익숙하고 가장 자주 잘못 쓰인다. `console.log('여기 왔음')` 는 내 화면에서는 쓸모 있지만, **서버 백 대의 로그**에서는 아무것도 알려 주지 않는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "형식을 골라 보라 — 무엇을 할 수 있나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .spans { margin:8px 0; }\n  .span { display:flex; align-items:center; gap:8px; margin-bottom:3px; font:11.5px ui-monospace, monospace; }\n  .span .nm { width:170px; flex:none; color:#cbd5e1; }\n  .span .b { height:14px; border-radius:3px; background:#2563eb; }\n  .span.slow .b { background:#ef4444; }\n  .span .ms { color:#94a3b8; font-size:11px; }\n  .bars { display:flex; align-items:flex-end; gap:3px; height:90px; margin:8px 0; }\n  .bars i { flex:1; background:#2563eb; border-radius:2px 2px 0 0; }\n  .bars i.hot { background:#ef4444; }\n  pre { margin:8px 0 0; font:11.5px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const spans = (list) => {\n    const max = Math.max(...list.map(([, , ms]) => ms), 1);\n    return '<div class=\"spans\">' + list.map(([nm, indent, ms, slow]) =>\n      '<div class=\"span ' + (slow ? 'slow' : '') + '\"><span class=\"nm\">' +\n      '&nbsp;'.repeat(indent * 2) + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(3, (ms / max) * 200) + 'px\"></span>' +\n      '<span class=\"ms\">' + ms + 'ms</span></div>').join('') + '</div>';\n  };\n  const hist = (vals, hotFrom) => '<div class=\"bars\">' + vals.map((v, i) =>\n    '<i style=\"height:' + Math.max(4, v) + '%\" class=\"' + (hotFrom != null && i >= hotFrom ? 'hot' : '') + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{kind}}';\n  const t = {\n    plain: ['2026-08-13 10:02:04 주문 처리 실패',\n      ['<span class=\"no\">누구의 주문인지 · 어느 요청인지 알 수 없다</span>',\n       'grep 은 되지만 집계·필터가 안 된다'],\n      '사람이 읽는 문장은 서버 한 대까지만 쓸모 있다.'],\n    struct:['{\"level\":\"error\",\"msg\":\"order failed\",\"orderId\":\"A-1\",\"userId\":42,\"err\":\"timeout\"}',\n      ['<span class=\"ok\">필드로 검색·집계·알림이 된다</span>',\n       'level=error AND err=timeout 을 세는 것이 한 줄'],\n      '구조화 로그(JSON) — 오늘날의 기본값.'],\n    trace: ['{... ,\"traceId\":\"7f3a…\",\"spanId\":\"b2\"}',\n      ['<span class=\"ok\">한 요청이 지나간 모든 서비스의 로그를 한 번에 모은다</span>'],\n      '상관관계 ID 가 없으면 마이크로서비스 로그는 조각난 채로 남는다.'],\n    ctx:   ['{... ,\"userId\":42,\"path\":\"/order\",\"durationMs\":812}',\n      ['<span class=\"ok\">맥락을 함께 실으면 재현이 쉬워진다</span>',\n       '<span class=\"warn\">단, 개인정보·비밀은 빼거나 가린다</span>'],\n      '무엇을 실을지는 「이 로그만 보고 재현할 수 있나」로 정한다.'],\n  }[c];\n  render('tail -f app.log',\n    '  ' + esc(t[0]) + '\\n\\n' + t[1].map((s) => '  · ' + s).join('\\n') + '\\n\\n  ' + esc(t[2]),\n    '규칙: 사람이 아니라 기계가 읽는다고 생각하고 적어라.');\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "형식",
+              "type": "select",
+              "value": "plain",
+              "options": [
+                {
+                  "value": "plain",
+                  "label": "평범한 문장"
+                },
+                {
+                  "value": "struct",
+                  "label": "구조화(JSON)"
+                },
+                {
+                  "value": "trace",
+                  "label": "+ traceId"
+                },
+                {
+                  "value": "ctx",
+                  "label": "+ 맥락"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "요청마다 맥락을 자동으로 붙이기",
+          "text": "import { AsyncLocalStorage } from 'node:async_hooks';\nconst ctx = new AsyncLocalStorage();\n\napp.use((req, res, next) => {\n  const traceId = req.header('traceparent')?.split('-')[1] ?? crypto.randomUUID();\n  ctx.run({ traceId, path: req.path, userId: req.user?.id }, next);\n});\n\nfunction log(level, msg, extra = {}) {\n  console.log(JSON.stringify({ level, msg, ...ctx.getStore(), ...extra, time: Date.now() }));\n}\n// 이제 어디서 찍든 traceId 가 자동으로 붙는다"
+        },
+        {
+          "type": "note",
+          "text": "**로그 레벨을 정직하게 쓰라.** `error` 는 사람이 봐야 하는 것, `warn` 은 이상하지만 처리된 것, `info` 는 흐름, `debug` 는 조사용. 정상 흐름을 `error` 로 찍는 코드가 하나 있으면, 그 서비스의 오류 알림은 곧 무시된다."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **로그를 파일에 쓰지 마라**(컨테이너 칸 5장). `stdout` 으로 내보내면 수집기가 가져간다. 파일에 쓰면 로테이션·권한·디스크 관리가 앱의 일이 되고, 컨테이너가 죽으면 함께 사라진다."
+        },
+        {
+          "type": "try",
+          "text": "내 서비스 로그 한 줄을 골라, 그것만 보고 「어느 사용자의 어떤 요청이었나」를 알 수 있는지 확인하라. 모르면 오늘 고칠 자리다."
+        }
       ],
-      "answer": 1,
-      "why": "자원 지표는 증상이지 사용자 영향이 아니다."
+      "quiz": [
+        {
+          "q": "구조화 로그(JSON)의 이점은?",
+          "choices": [
+            "용량이 작다",
+            "필드로 검색·집계·알림이 된다",
+            "읽기 쉽다",
+            "빠르다"
+          ],
+          "answer": 1,
+          "why": "기계가 읽는 자료가 된다."
+        },
+        {
+          "q": "여러 서비스의 로그를 한 요청으로 묶는 것은?",
+          "choices": [
+            "타임스탬프",
+            "traceId(상관관계 ID)",
+            "userId",
+            "hostname"
+          ],
+          "answer": 1,
+          "why": "없으면 조각난 채로 남는다."
+        },
+        {
+          "q": "정상 흐름을 error 레벨로 찍으면?",
+          "choices": [
+            "안전하다",
+            "오류 알림이 곧 무시된다",
+            "성능 저하",
+            "문제없다"
+          ],
+          "answer": 1,
+          "why": "레벨은 정직하게."
+        }
+      ]
     },
     {
-      "q": "traceId 를 요청 전 구간에 실어 보내는 이유는?",
-      "choices": [
-        "보안",
-        "서비스 여러 개를 지나는 한 요청을 이어서 추적하려고",
-        "캐시 키로 쓰려고"
+      "id": "3",
+      "title": "지표 — 평균은 거짓말을 한다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "지표는 **숫자를 시간에 따라 쌓은 것**이다. 종류는 셋뿐이다 — 계속 느는 **카운터**(요청 수), 오르내리는 **게이지**(메모리), 분포를 담는 **히스토그램**(응답 시간)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "통계를 골라 보라 — 같은 자료가 다르게 보인다",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .spans { margin:8px 0; }\n  .span { display:flex; align-items:center; gap:8px; margin-bottom:3px; font:11.5px ui-monospace, monospace; }\n  .span .nm { width:170px; flex:none; color:#cbd5e1; }\n  .span .b { height:14px; border-radius:3px; background:#2563eb; }\n  .span.slow .b { background:#ef4444; }\n  .span .ms { color:#94a3b8; font-size:11px; }\n  .bars { display:flex; align-items:flex-end; gap:3px; height:90px; margin:8px 0; }\n  .bars i { flex:1; background:#2563eb; border-radius:2px 2px 0 0; }\n  .bars i.hot { background:#ef4444; }\n  pre { margin:8px 0 0; font:11.5px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const spans = (list) => {\n    const max = Math.max(...list.map(([, , ms]) => ms), 1);\n    return '<div class=\"spans\">' + list.map(([nm, indent, ms, slow]) =>\n      '<div class=\"span ' + (slow ? 'slow' : '') + '\"><span class=\"nm\">' +\n      '&nbsp;'.repeat(indent * 2) + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(3, (ms / max) * 200) + 'px\"></span>' +\n      '<span class=\"ms\">' + ms + 'ms</span></div>').join('') + '</div>';\n  };\n  const hist = (vals, hotFrom) => '<div class=\"bars\">' + vals.map((v, i) =>\n    '<i style=\"height:' + Math.max(4, v) + '%\" class=\"' + (hotFrom != null && i >= hotFrom ? 'hot' : '') + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = '{{stat}}';\n  /* 100건 중 95건은 50ms, 5건은 2000ms */\n  const fast = 95, slow = 5;\n  const vals = [50, 50, 50, 50, 50, 50, 55, 60, 80, 2000];\n  const d = {\n    avg:  ['평균 (mean)', Math.round((fast * 50 + slow * 2000) / 100),\n      '<span class=\"no\">모두 괜찮아 보인다</span> — 느린 5건이 평균에 묻힌다.'],\n    p50:  ['중앙값 (p50)', 50, '절반은 이보다 빠르다. 「보통 사용자」의 경험.'],\n    p95:  ['p95', 2000, '<span class=\"warn\">20명 중 1명은 2초를 기다린다</span> — 여기서 문제가 드러난다.'],\n    p99:  ['p99', 2000, '100명 중 1명. 트래픽이 크면 이 1%도 하루 수천 명이다.'],\n    max:  ['최댓값', 2000, '한 건만 튀어도 최대는 튄다 — 경보 기준으로는 너무 예민하다.'],\n  }[s];\n  render('http_request_duration_seconds',\n    '  95건은 50ms · 5건은 2000ms 일 때\\n\\n' +\n    '  <span class=\"ok\">' + esc(d[0]) + ' = ' + d[1] + 'ms</span>\\n\\n  ' + d[2],\n    '지연은 평균이 아니라 백분위로 봐라 — 사용자는 평균을 겪지 않는다.',\n    hist(vals.map((v) => Math.min(100, v / 20)), 9));\n</script>",
+          "controls": [
+            {
+              "id": "stat",
+              "label": "통계",
+              "type": "select",
+              "value": "avg",
+              "options": [
+                {
+                  "value": "avg",
+                  "label": "평균"
+                },
+                {
+                  "value": "p50",
+                  "label": "중앙값 p50"
+                },
+                {
+                  "value": "p95",
+                  "label": "p95"
+                },
+                {
+                  "value": "p99",
+                  "label": "p99"
+                },
+                {
+                  "value": "max",
+                  "label": "최댓값"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**평균 응답 시간은 거의 쓸모가 없다.** 느린 소수가 묻히기 때문이다. p95·p99 를 보면 「누군가는 이만큼 기다린다」가 보인다 — 그리고 그 누군가는 대개 자료가 많은 헤비 유저다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "무엇을 재나 — RED 와 USE",
+          "text": "// RED — 요청을 처리하는 서비스\n//   Rate      초당 요청 수\n//   Errors    오류 비율\n//   Duration  응답 시간 분포 (p50·p95·p99)\n\n// USE — 자원(CPU·디스크·큐)\n//   Utilization  사용률\n//   Saturation   대기열 길이\n//   Errors       오류 수\n\nhttpDuration.observe({ route: '/order', status: 200 }, 0.042);\nqueueDepth.set(128);"
+        },
+        {
+          "type": "p",
+          "text": "**서비스는 RED, 자원은 USE** — 이 두 묶음만 갖춰도 대시보드의 뼈대가 선다. 지표를 뭐부터 넣을지 모르겠으면 여기서 시작하라. 사업 지표(가입·결제)를 하나 얹으면 더 좋다."
+        },
+        {
+          "type": "try",
+          "text": "내 서비스의 응답 시간을 평균과 p95 로 각각 보라. 두 숫자의 차이가 크면, 지금까지 평균만 보고 있었다는 뜻이다."
+        }
       ],
-      "answer": 1,
-      "why": "분산 환경에서 원인 구간을 좁히는 가장 빠른 길이다."
+      "quiz": [
+        {
+          "q": "지연을 볼 때 평균 대신 쓰는 것은?",
+          "choices": [
+            "최솟값",
+            "백분위(p95·p99)",
+            "합계",
+            "개수"
+          ],
+          "answer": 1,
+          "why": "느린 소수가 평균에 묻힌다."
+        },
+        {
+          "q": "요청 처리 서비스에 쓰는 지표 묶음은?",
+          "choices": [
+            "USE",
+            "RED (Rate·Errors·Duration)",
+            "CPU·메모리",
+            "로그 수"
+          ],
+          "answer": 1,
+          "why": "자원은 USE."
+        },
+        {
+          "q": "카운터와 게이지의 차이는?",
+          "choices": [
+            "단위",
+            "카운터는 계속 늘고 게이지는 오르내린다",
+            "정확도",
+            "보관 기간"
+          ],
+          "answer": 1,
+          "why": "요청 수 vs 메모리 사용량."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "추적 — 요청 하나의 여행",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "서비스가 여럿이면 「느리다」의 원인이 어디인지 로그만으로는 못 찾는다. **추적**은 요청 하나에 ID 를 붙여 지나간 구간(**스팬**)의 시간을 이어 붙인다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "경우를 골라 보라 — 어디서 시간을 쓰나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .spans { margin:8px 0; }\n  .span { display:flex; align-items:center; gap:8px; margin-bottom:3px; font:11.5px ui-monospace, monospace; }\n  .span .nm { width:170px; flex:none; color:#cbd5e1; }\n  .span .b { height:14px; border-radius:3px; background:#2563eb; }\n  .span.slow .b { background:#ef4444; }\n  .span .ms { color:#94a3b8; font-size:11px; }\n  .bars { display:flex; align-items:flex-end; gap:3px; height:90px; margin:8px 0; }\n  .bars i { flex:1; background:#2563eb; border-radius:2px 2px 0 0; }\n  .bars i.hot { background:#ef4444; }\n  pre { margin:8px 0 0; font:11.5px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const spans = (list) => {\n    const max = Math.max(...list.map(([, , ms]) => ms), 1);\n    return '<div class=\"spans\">' + list.map(([nm, indent, ms, slow]) =>\n      '<div class=\"span ' + (slow ? 'slow' : '') + '\"><span class=\"nm\">' +\n      '&nbsp;'.repeat(indent * 2) + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(3, (ms / max) * 200) + 'px\"></span>' +\n      '<span class=\"ms\">' + ms + 'ms</span></div>').join('') + '</div>';\n  };\n  const hist = (vals, hotFrom) => '<div class=\"bars\">' + vals.map((v, i) =>\n    '<i style=\"height:' + Math.max(4, v) + '%\" class=\"' + (hotFrom != null && i >= hotFrom ? 'hot' : '') + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    db:   [[['GET /order', 0, 480], ['auth.verify', 1, 15], ['db.findOrder', 1, 420, true], ['render', 1, 30]],\n      'DB 질의 하나가 전체의 87%', '인덱스·N+1·잠금을 의심 — 그 질의만 보면 된다.'],\n    nplus:[[['GET /orders', 0, 620], ['db.list', 1, 40], ['db.user #1', 1, 55, true], ['db.user #2', 1, 55, true],\n            ['db.user #3', 1, 55, true], ['… x20', 1, 400, true]],\n      '같은 모양의 질의가 반복 = N+1', '한 번에 가져오도록 고친다 — 추적이 없으면 안 보이는 문제.'],\n    ext:  [[['POST /pay', 0, 3200], ['validate', 1, 20], ['external.stripe', 1, 3100, true], ['db.save', 1, 60]],\n      '외부 API 가 느리다', '내 코드는 멀쩡하다 — 타임아웃·재시도·회로 차단기를 볼 자리.'],\n    ser:  [[['GET /page', 0, 900], ['svc.user', 1, 300], ['svc.order', 1, 300], ['svc.rec', 1, 300]],\n      '순차로 부르고 있다', '서로 의존이 없으면 동시에 — 900ms 가 300ms 로(JS 칸 6장).'],\n  }[c];\n  render('trace 7f3a2b…', '  <span class=\"ok\">' + esc(t[1]) + '</span>\\n\\n  ' + esc(t[2]),\n    '스팬 하나 = 한 구간. 들여쓰기가 부모-자식 관계다.', spans(t[0]));\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "경우",
+              "type": "select",
+              "value": "db",
+              "options": [
+                {
+                  "value": "db",
+                  "label": "DB 가 느리다"
+                },
+                {
+                  "value": "nplus",
+                  "label": "N+1"
+                },
+                {
+                  "value": "ext",
+                  "label": "외부 API"
+                },
+                {
+                  "value": "ser",
+                  "label": "순차 호출"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "직접 스팬을 만드는 일은 드물다",
+          "text": "// 대부분 자동 계측이 붙는다 (HTTP·DB·큐)\n// 필요한 곳만 손으로\nconst tracer = trace.getTracer('app');\n\nawait tracer.startActiveSpan('order.calculate', async (span) => {\n  span.setAttribute('order.items', items.length);\n  try {\n    return await calculate(items);\n  } catch (e) {\n    span.recordException(e);\n    span.setStatus({ code: SpanStatusCode.ERROR });\n    throw e;\n  } finally {\n    span.end();\n  }\n});"
+        },
+        {
+          "type": "note",
+          "text": "**전부 수집하면 비싸다.** 그래서 샘플링을 한다 — 대개 「정상 요청은 1%, 오류·느린 요청은 100%」처럼 **꼬리 기반**으로. 「느린 것만 남기기」가 실제로 필요한 것을 남긴다."
+        },
+        {
+          "type": "p",
+          "text": "추적의 진짜 값은 **N+1 처럼 로그로는 안 보이는 문제**를 드러내는 데 있다. 같은 모양의 스팬이 수십 개 늘어선 그림을 한 번 보면, 코드의 어느 반복문인지 바로 짚인다."
+        },
+        {
+          "type": "try",
+          "text": "서비스가 하나뿐이라도 DB 질의에 스팬을 붙여 보라. 요청 하나가 질의를 몇 번 하는지 보면 대개 놀란다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "추적에서 스팬(span)이란?",
+          "choices": [
+            "로그 한 줄",
+            "요청이 지난 한 구간과 그 시간",
+            "지표 한 점",
+            "서비스 이름"
+          ],
+          "answer": 1,
+          "why": "부모-자식으로 이어 붙인다."
+        },
+        {
+          "q": "N+1 문제를 가장 잘 드러내는 신호는?",
+          "choices": [
+            "지표",
+            "추적(같은 스팬이 반복)",
+            "로그",
+            "알림"
+          ],
+          "answer": 1,
+          "why": "그림으로 바로 보인다."
+        },
+        {
+          "q": "추적 샘플링에서 권하는 방식은?",
+          "choices": [
+            "전부 수집",
+            "정상은 조금·오류와 느린 것은 전부",
+            "무작위 50%",
+            "수집 안 함"
+          ],
+          "answer": 1,
+          "why": "필요한 것을 남긴다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "알림 — 사람을 깨울 것과 아닌 것",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "알림의 목적은 「알려 주는 것」이 아니라 **「사람이 지금 행동해야 하는 상황을 알리는 것」**이다. 이 구분이 없으면 알림은 곧 배경 소음이 되고, 진짜 장애 때 아무도 안 본다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "알림을 골라 보라 — 깨울 만한가",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .spans { margin:8px 0; }\n  .span { display:flex; align-items:center; gap:8px; margin-bottom:3px; font:11.5px ui-monospace, monospace; }\n  .span .nm { width:170px; flex:none; color:#cbd5e1; }\n  .span .b { height:14px; border-radius:3px; background:#2563eb; }\n  .span.slow .b { background:#ef4444; }\n  .span .ms { color:#94a3b8; font-size:11px; }\n  .bars { display:flex; align-items:flex-end; gap:3px; height:90px; margin:8px 0; }\n  .bars i { flex:1; background:#2563eb; border-radius:2px 2px 0 0; }\n  .bars i.hot { background:#ef4444; }\n  pre { margin:8px 0 0; font:11.5px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const spans = (list) => {\n    const max = Math.max(...list.map(([, , ms]) => ms), 1);\n    return '<div class=\"spans\">' + list.map(([nm, indent, ms, slow]) =>\n      '<div class=\"span ' + (slow ? 'slow' : '') + '\"><span class=\"nm\">' +\n      '&nbsp;'.repeat(indent * 2) + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(3, (ms / max) * 200) + 'px\"></span>' +\n      '<span class=\"ms\">' + ms + 'ms</span></div>').join('') + '</div>';\n  };\n  const hist = (vals, hotFrom) => '<div class=\"bars\">' + vals.map((v, i) =>\n    '<i style=\"height:' + Math.max(4, v) + '%\" class=\"' + (hotFrom != null && i >= hotFrom ? 'hot' : '') + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{alert}}';\n  const t = {\n    cpu:  ['CPU 80% 초과', 'no', '깨우지 마라',\n      ['CPU 가 높은 것 자체는 문제가 아니다 — 잘 쓰고 있는 것일 수도',\n       '사용자가 아무 영향을 안 받는다면 알림이 아니다'],\n      '증상(사용자 영향)으로 알림을 걸고, 원인(CPU)은 대시보드에서 본다.'],\n    err:  ['오류율 5분간 5% 초과', 'ok', '깨울 만하다',\n      ['사용자가 실제로 실패를 겪고 있다', '행동이 분명하다 — 되돌리거나 원인을 찾는다'],\n      '증상 기반 알림의 대표. 임계값은 평소 값을 보고 정한다.'],\n    lat:  ['p95 지연 2초 초과 (10분)', 'ok', '깨울 만하다',\n      ['느림도 장애다', '짧은 튐에 안 울리게 지속 시간을 함께 건다'],\n      '「5분간」·「10분간」 같은 지속 조건이 오탐을 크게 줄인다.'],\n    disk: ['디스크 4시간 내 가득 참 예상', 'ok', '깨울 만하다(예측형)',\n      ['아직 장애는 아니지만 곧 된다', '대응할 시간이 있다'],\n      '「지금 90%」보다 「이 속도면 4시간 뒤 가득」이 훨씬 유용하다.'],\n    job:  ['야간 배치가 실패했다', 'warn', '아침에 알려도 된다',\n      ['지금 고칠 필요가 없다면 깨우지 마라'],\n      '긴급도에 따라 채널을 나눠라 — 호출기 · 채널 알림 · 티켓.'],\n  }[c];\n  render('', '  ' + esc(t[0]) + '\\n\\n  <span class=\"' + t[1] + '\">' + esc(t[2]) + '</span>\\n\\n' +\n    t[3].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[4]),\n    '기준 두 개: 사용자가 영향을 받나 · 사람이 지금 할 행동이 있나.',\n    hist([20, 22, 21, 25, 24, 23, 26, 30, 70, 88], c === 'err' || c === 'lat' ? 8 : null));\n</script>",
+          "controls": [
+            {
+              "id": "alert",
+              "label": "알림",
+              "type": "select",
+              "value": "cpu",
+              "options": [
+                {
+                  "value": "cpu",
+                  "label": "CPU 80%"
+                },
+                {
+                  "value": "err",
+                  "label": "오류율 5%"
+                },
+                {
+                  "value": "lat",
+                  "label": "p95 2초"
+                },
+                {
+                  "value": "disk",
+                  "label": "디스크 예측"
+                },
+                {
+                  "value": "job",
+                  "label": "야간 배치 실패"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "**SLO 로 알림을 거는 방식**도 있다. 「한 달간 성공률 99.9%」를 목표로 두면, 남은 **오류 예산**이 빠르게 줄어들 때만 알린다 — 임계값을 손으로 고르는 대신 「목표를 못 지킬 위험」을 기준으로 삼는 것이다."
+        },
+        {
+          "type": "note",
+          "text": "**알림마다 「무엇을 할지」가 있어야 한다.** 대응 방법을 적을 수 없는 알림은 알림이 아니라 정보다 — 대시보드로 옮겨라. 알림에는 링크 하나(런북·대시보드)를 붙여 두면 새벽에 받는 사람이 훨씬 빠르게 움직인다."
+        },
+        {
+          "type": "code",
+          "lang": "yaml",
+          "label": "알림 규칙의 모양",
+          "text": "- alert: HighErrorRate\n  expr: |\n    sum(rate(http_requests_total{status=~\"5..\"}[5m]))\n      / sum(rate(http_requests_total[5m])) > 0.05\n  for: 5m                      # 지속 조건 — 짧은 튐 무시\n  labels: { severity: page }   # page(깨움) / ticket(나중) 구분\n  annotations:\n    summary: '오류율 5% 초과'\n    runbook: 'https://wiki/…/high-error-rate'"
+        },
+        {
+          "type": "try",
+          "text": "지금 걸린 알림 목록을 열어, 각각에 「받으면 무엇을 하나」를 한 줄로 적어 보라. 못 적는 것이 있으면 그것이 소음이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "알림을 거는 좋은 기준은?",
+          "choices": [
+            "자원 사용량(CPU·메모리)",
+            "사용자 영향(증상)",
+            "로그 양",
+            "배포 횟수"
+          ],
+          "answer": 1,
+          "why": "원인은 대시보드에서 본다."
+        },
+        {
+          "q": "짧은 튐에 안 울리게 하는 방법은?",
+          "choices": [
+            "임계값 올리기",
+            "지속 시간 조건(for) 걸기",
+            "알림 끄기",
+            "샘플링"
+          ],
+          "answer": 1,
+          "why": "5분간 지속될 때만."
+        },
+        {
+          "q": "대응 방법을 적을 수 없는 알림은?",
+          "choices": [
+            "그대로 둔다",
+            "알림이 아니라 정보 — 대시보드로",
+            "심각도를 올린다",
+            "삭제한다"
+          ],
+          "answer": 1,
+          "why": "소음이 되면 진짜 알림도 묻힌다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "카디널리티 — 관측 비용이 폭발하는 자리",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "관측 도구 요금이 갑자기 몇 배가 되는 일이 흔하다. 원인은 대개 하나 — **라벨에 값이 너무 많은 것**(고카디널리티)이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "라벨을 골라 보라 — 시계열이 몇 개가 되나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .spans { margin:8px 0; }\n  .span { display:flex; align-items:center; gap:8px; margin-bottom:3px; font:11.5px ui-monospace, monospace; }\n  .span .nm { width:170px; flex:none; color:#cbd5e1; }\n  .span .b { height:14px; border-radius:3px; background:#2563eb; }\n  .span.slow .b { background:#ef4444; }\n  .span .ms { color:#94a3b8; font-size:11px; }\n  .bars { display:flex; align-items:flex-end; gap:3px; height:90px; margin:8px 0; }\n  .bars i { flex:1; background:#2563eb; border-radius:2px 2px 0 0; }\n  .bars i.hot { background:#ef4444; }\n  pre { margin:8px 0 0; font:11.5px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const spans = (list) => {\n    const max = Math.max(...list.map(([, , ms]) => ms), 1);\n    return '<div class=\"spans\">' + list.map(([nm, indent, ms, slow]) =>\n      '<div class=\"span ' + (slow ? 'slow' : '') + '\"><span class=\"nm\">' +\n      '&nbsp;'.repeat(indent * 2) + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(3, (ms / max) * 200) + 'px\"></span>' +\n      '<span class=\"ms\">' + ms + 'ms</span></div>').join('') + '</div>';\n  };\n  const hist = (vals, hotFrom) => '<div class=\"bars\">' + vals.map((v, i) =>\n    '<i style=\"height:' + Math.max(4, v) + '%\" class=\"' + (hotFrom != null && i >= hotFrom ? 'hot' : '') + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{label}}';\n  const d = {\n    route: { n: 20, t: 'route (경로 20개)', ok: true, say: '경로 수만큼 — 안전하다.' },\n    status:{ n: 5, t: 'status (200·400·404·500·503)', ok: true, say: '값이 몇 개뿐 — 이상적인 라벨.' },\n    user:  { n: 500000, t: 'userId (사용자 50만)', ok: false, say: '<span class=\"no\">시계열 50만 개</span> — 요금과 쿼리 시간이 폭발한다.' },\n    url:   { n: 2000000, t: '전체 URL (쿼리스트링 포함)', ok: false, say: '<span class=\"no\">사실상 무한</span> — 가장 흔한 사고.' },\n    combo: { n: 100 * 5 * 20, t: 'route x status x version', ok: true, say: '곱해진다 — 조합이 만 개를 넘으면 다시 생각하라.' },\n  }[c];\n  render('http_requests_total{...}',\n    '  라벨: ' + esc(d.t) + '\\n' +\n    '  만들어지는 시계열: <span class=\"' + (d.ok ? 'ok' : 'no') + '\">' + d.n.toLocaleString() + '개</span>\\n\\n  ' + d.say + '\\n\\n' +\n    '  <span class=\"dim\">규칙: 값의 가짓수가 정해져 있고 적은 것만 라벨로. 나머지는 로그·추적에.</span>',\n    hist([5, 6, 8, 10, 14, 20, 30, 50, 75, 100], d.ok ? null : 6));\n</script>",
+          "controls": [
+            {
+              "id": "label",
+              "label": "라벨",
+              "type": "select",
+              "value": "route",
+              "options": [
+                {
+                  "value": "route",
+                  "label": "route"
+                },
+                {
+                  "value": "status",
+                  "label": "status"
+                },
+                {
+                  "value": "user",
+                  "label": "userId (위험)"
+                },
+                {
+                  "value": "url",
+                  "label": "전체 URL (위험)"
+                },
+                {
+                  "value": "combo",
+                  "label": "조합"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「사용자별로 보고 싶다」는 지표가 아니라 로그·추적의 일**이다. 지표는 「전체 경향」, 로그는 「그 한 건」 — 이 경계를 지키면 비용도 성능도 안정된다. `/users/123` 같은 경로는 `/users/:id` 로 묶어서 라벨에 넣어라."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "경로를 묶어서 라벨로",
+          "text": "// 나쁨: URL 을 그대로\nhttpTotal.inc({ path: req.url });            // /users/123?tab=1 … 무한\n\n// 좋음: 라우트 패턴으로\nhttpTotal.inc({ route: req.route?.path ?? 'unknown' });   // /users/:id\n\n// 자세한 것은 로그·추적에\nlog('info', 'request', { userId: req.user.id, url: req.url });"
+        },
+        {
+          "type": "p",
+          "text": "보관 기간도 비용을 정한다. 초 단위 원본을 1년 보관할 필요는 거의 없다 — 최근 며칠은 촘촘하게, 오래된 것은 **요약해서** 오래. 대부분의 도구가 이 다운샘플링을 지원한다."
+        },
+        {
+          "type": "try",
+          "text": "내 지표 중 라벨 가짓수가 가장 많은 것을 찾아 보라(도구의 cardinality 화면). 만 개가 넘는 것이 있으면 그것이 요금의 대부분일 가능성이 높다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "지표 라벨로 쓰면 안 되는 것은?",
+          "choices": [
+            "HTTP 상태",
+            "라우트 패턴",
+            "userId·전체 URL",
+            "서비스 이름"
+          ],
+          "answer": 2,
+          "why": "시계열이 폭발한다."
+        },
+        {
+          "q": "「사용자별로 보고 싶다」는 어디의 일인가?",
+          "choices": [
+            "지표",
+            "로그·추적",
+            "알림",
+            "대시보드"
+          ],
+          "answer": 1,
+          "why": "지표는 전체 경향."
+        },
+        {
+          "q": "여러 라벨을 붙이면 시계열 수는?",
+          "choices": [
+            "더해진다",
+            "조합만큼 곱해진다",
+            "일정하다",
+            "줄어든다"
+          ],
+          "answer": 1,
+          "why": "조합 폭발을 조심한다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "사고 때 실제로 하는 순서",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "장애 한가운데서는 판단력이 떨어진다. 그래서 **순서를 미리 정해 두는 것**이 도구를 늘리는 것보다 값을 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "단계를 밀어 보라 — 무엇을 먼저",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .spans { margin:8px 0; }\n  .span { display:flex; align-items:center; gap:8px; margin-bottom:3px; font:11.5px ui-monospace, monospace; }\n  .span .nm { width:170px; flex:none; color:#cbd5e1; }\n  .span .b { height:14px; border-radius:3px; background:#2563eb; }\n  .span.slow .b { background:#ef4444; }\n  .span .ms { color:#94a3b8; font-size:11px; }\n  .bars { display:flex; align-items:flex-end; gap:3px; height:90px; margin:8px 0; }\n  .bars i { flex:1; background:#2563eb; border-radius:2px 2px 0 0; }\n  .bars i.hot { background:#ef4444; }\n  pre { margin:8px 0 0; font:11.5px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const spans = (list) => {\n    const max = Math.max(...list.map(([, , ms]) => ms), 1);\n    return '<div class=\"spans\">' + list.map(([nm, indent, ms, slow]) =>\n      '<div class=\"span ' + (slow ? 'slow' : '') + '\"><span class=\"nm\">' +\n      '&nbsp;'.repeat(indent * 2) + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(3, (ms / max) * 200) + 'px\"></span>' +\n      '<span class=\"ms\">' + ms + 'ms</span></div>').join('') + '</div>';\n  };\n  const hist = (vals, hotFrom) => '<div class=\"bars\">' + vals.map((v, i) =>\n    '<i style=\"height:' + Math.max(4, v) + '%\" class=\"' + (hotFrom != null && i >= hotFrom ? 'hot' : '') + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = {{step}};\n  const steps = [\n    ['① 영향 확인 — 누가 얼마나 겪고 있나',\n     '오류율·성공률 대시보드. 「전부인가 일부인가」를 먼저 안다.',\n     '여기서 심각도가 정해지고, 알릴 범위가 정해진다.'],\n    ['② 최근 변경 확인 — 무엇이 바뀌었나',\n     '배포·설정 변경·기능 플래그·외부 공지. 대시보드의 배포 표시(CD 칸 7장).',\n     '원인의 대부분은 「방금 바뀐 것」이다. 여기서 끝나는 경우가 절반이 넘는다.'],\n    ['③ 되돌릴 수 있으면 먼저 되돌린다',\n     '원인을 다 몰라도 된다 — 사용자 영향을 먼저 멈춘다.',\n     '조사는 그다음. 「고치기」보다 「되돌리기」가 언제나 빠르다(CD 칸 2장).'],\n    ['④ 좁히기 — 지표에서 추적으로',\n     '어느 경로·어느 의존성인가. 느린 스팬을 찾는다.',\n     '이 단계에서 추적이 없으면 서버에 들어가 로그를 뒤지게 된다.'],\n    ['⑤ 확정 — 그 한 건의 로그',\n     'traceId 로 그 요청의 로그 전부를 모아 본다.',\n     '여기까지 오면 대개 원인이 보인다.'],\n    ['⑥ 기록 — 타임라인을 남긴다',\n     '언제 무엇을 했고 무엇을 봤나. 회고의 재료가 된다.',\n     '기억은 왜곡된다. 사고 중에 채널에 적어 두면 그것이 곧 타임라인이다.'],\n  ];\n  render('', '  <span class=\"ok\">' + esc(steps[s][0]) + '</span>\\n\\n  ' + esc(steps[s][1]) + '\\n\\n  ' + esc(steps[s][2]),\n    '①②③ 이 앞에 있는 것이 핵심 — 원인 규명보다 영향 차단이 먼저다.',\n    spans(steps.map(([t], i) => [t.slice(0, 22), 0, i <= s ? 60 : 12, i === s])));\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 5,
+              "step": 1,
+              "value": 1
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**원인을 다 알기 전에 되돌려도 된다.** 「왜인지 모르고 되돌리는 건 찜찜하다」는 마음이 장애를 길게 만든다 — 사용자 영향을 멈춘 뒤 차분히 조사하는 편이 언제나 낫다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "런북에 적어 둘 것",
+          "text": "서비스: order-api\n대시보드: https://…/order-api\n최근 배포: https://…/deployments\n\n증상별 첫 대응\n  오류율 급증  -> 최근 배포 확인 -> 되돌리기 (deploy.sh --rollback)\n  지연 급증    -> DB 커넥션·외부 API 상태 확인\n  전부 500     -> 설정·비밀 만료 확인 (인증서·토큰)\n\n에스컬레이션: #oncall-payments · @db-team"
+        },
+        {
+          "type": "p",
+          "text": "그리고 **관측은 사고 전에 준비하는 것**이다. 장애가 나서야 「지표를 붙이자」고 하면 이미 늦다. 최소한 RED 지표 · 구조화 로그 · 배포 표시 · 런북 링크 — 이 넷은 평상시에 갖춰 두어야 한다."
+        },
+        {
+          "type": "try",
+          "text": "내 서비스의 런북이 있는지 확인하라. 없으면 위 형식으로 열 줄짜리라도 만들어라 — 새벽에 그 열 줄이 한 시간을 아낀다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "사고 대응에서 ① 단계는?",
+          "choices": [
+            "원인 규명",
+            "영향 확인(누가 얼마나)",
+            "로그 수집",
+            "회고"
+          ],
+          "answer": 1,
+          "why": "심각도와 알릴 범위가 정해진다."
+        },
+        {
+          "q": "원인을 모른 채 되돌려도 되나?",
+          "choices": [
+            "안 된다",
+            "된다 — 영향 차단이 먼저다",
+            "절반만",
+            "관리자 승인 필요"
+          ],
+          "answer": 1,
+          "why": "조사는 그다음."
+        },
+        {
+          "q": "장애 타임라인을 남기는 가장 쉬운 방법은?",
+          "choices": [
+            "나중에 기억으로",
+            "대응 중 채널에 적어 두기",
+            "로그로 재구성",
+            "녹화"
+          ],
+          "answer": 1,
+          "why": "기억은 왜곡된다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "무엇부터 붙일까 — 적은 비용으로 큰 값",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "관측 도구는 끝없이 늘릴 수 있다. 그런데 **가장 큰 값은 초반 몇 개**에서 나온다 — 나머지는 필요해질 때 붙이면 된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "단계를 골라 보라 — 지금 어디에 있나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .spans { margin:8px 0; }\n  .span { display:flex; align-items:center; gap:8px; margin-bottom:3px; font:11.5px ui-monospace, monospace; }\n  .span .nm { width:170px; flex:none; color:#cbd5e1; }\n  .span .b { height:14px; border-radius:3px; background:#2563eb; }\n  .span.slow .b { background:#ef4444; }\n  .span .ms { color:#94a3b8; font-size:11px; }\n  .bars { display:flex; align-items:flex-end; gap:3px; height:90px; margin:8px 0; }\n  .bars i { flex:1; background:#2563eb; border-radius:2px 2px 0 0; }\n  .bars i.hot { background:#ef4444; }\n  pre { margin:8px 0 0; font:11.5px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const spans = (list) => {\n    const max = Math.max(...list.map(([, , ms]) => ms), 1);\n    return '<div class=\"spans\">' + list.map(([nm, indent, ms, slow]) =>\n      '<div class=\"span ' + (slow ? 'slow' : '') + '\"><span class=\"nm\">' +\n      '&nbsp;'.repeat(indent * 2) + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(3, (ms / max) * 200) + 'px\"></span>' +\n      '<span class=\"ms\">' + ms + 'ms</span></div>').join('') + '</div>';\n  };\n  const hist = (vals, hotFrom) => '<div class=\"bars\">' + vals.map((v, i) =>\n    '<i style=\"height:' + Math.max(4, v) + '%\" class=\"' + (hotFrom != null && i >= hotFrom ? 'hot' : '') + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{stage}}';\n  const t = {\n    zero: ['아무것도 없다', 'no',\n      ['서버에 들어가 로그를 grep 한다', '사용자가 먼저 알려 준다'],\n      '다음 한 걸음: <span class=\"ok\">구조화 로그 + 수집</span>. 가장 싸고 가장 크게 달라진다.'],\n    logs: ['로그는 모인다', 'warn',\n      ['검색은 되지만 「지금 정상인가」를 모른다'],\n      '다음 한 걸음: <span class=\"ok\">RED 지표 + 대시보드 하나</span>.'],\n    red:  ['지표와 대시보드가 있다', 'warn',\n      ['이상을 알 수 있지만 아무도 안 본다'],\n      '다음 한 걸음: <span class=\"ok\">증상 기반 알림 두세 개</span>(오류율·지연).'],\n    alert:['알림이 온다', 'ok',\n      ['깨어나서 무엇을 볼지는 안다', '원인 좁히기가 여전히 느리다'],\n      '다음 한 걸음: <span class=\"ok\">추적</span> — 서비스가 여러 개면 여기서 큰 값이 난다.'],\n    slo:  ['SLO 와 오류 예산까지', 'ok',\n      ['「얼마나 안정적이어야 하나」를 숫자로 합의했다'],\n      '여기까지 오면 개선과 신규 개발의 우선순위를 숫자로 정할 수 있다.'],\n  }[c];\n  render('', '  <span class=\"' + t[1] + '\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[2].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + t[3],\n    '순서를 지키면 각 단계가 다음 단계의 필요를 스스로 드러낸다.',\n    hist([10, 25, 45, 70, 90, 95, 97, 98, 99, 100],\n      { zero: 1, logs: 3, red: 5, alert: 7, slo: 9 }[c]));\n</script>",
+          "controls": [
+            {
+              "id": "stage",
+              "label": "지금 단계",
+              "type": "select",
+              "value": "zero",
+              "options": [
+                {
+                  "value": "zero",
+                  "label": "아무것도 없다"
+                },
+                {
+                  "value": "logs",
+                  "label": "로그만"
+                },
+                {
+                  "value": "red",
+                  "label": "지표·대시보드"
+                },
+                {
+                  "value": "alert",
+                  "label": "알림까지"
+                },
+                {
+                  "value": "slo",
+                  "label": "SLO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "가장 값싼 넷 (하루면 붙인다)",
+          "text": "1. 구조화 로그 (JSON) + traceId          — 코드 20줄\n2. RED 지표 4개 + 대시보드 한 장          — 라이브러리 기본 제공\n3. 알림 둘: 오류율 · p95 지연             — 지속 조건 포함\n4. 배포 표시 + 헬스 응답에 버전            — CD 칸 7장\n\n그다음이 추적 · SLO · 프로파일링"
+        },
+        {
+          "type": "note",
+          "text": "**도구를 고르는 것보다 붙이는 것이 중요하다.** 어느 벤더든 위 넷은 다 된다. 「무엇을 쓸까」로 몇 주를 쓰는 것보다, 기본 제공 도구로 오늘 붙이고 나중에 옮기는 편이 거의 언제나 낫다(OpenTelemetry 로 계측하면 이전 비용도 준다)."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **관측 코드도 코드다.** 계측이 앱 코드를 어지럽히면 아무도 유지하지 않는다 — 미들웨어·데코레이터로 한곳에 모으고, 자동 계측을 최대한 쓰고, 손으로 붙이는 것은 정말 필요한 곳만."
+        },
+        {
+          "type": "try",
+          "text": "위 넷 중 내 서비스에 없는 것을 하나 골라 오늘 붙여라. 대개 「배포 표시」나 「알림 둘」이 30분이면 끝난다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "가장 먼저 붙일 것은?",
+          "choices": [
+            "추적",
+            "구조화 로그 + 수집",
+            "SLO",
+            "프로파일러"
+          ],
+          "answer": 1,
+          "why": "가장 싸고 가장 크게 달라진다."
+        },
+        {
+          "q": "추적이 큰 값을 내는 시점은?",
+          "choices": [
+            "처음부터",
+            "서비스가 여러 개로 갈라진 뒤",
+            "트래픽이 클 때",
+            "팀이 클 때"
+          ],
+          "answer": 1,
+          "why": "구간을 가로질러 봐야 할 때."
+        },
+        {
+          "q": "도구 선택에 대해 옳은 것은?",
+          "choices": [
+            "오래 비교하고 정한다",
+            "기본 도구로 오늘 붙이고 나중에 옮긴다",
+            "직접 만든다",
+            "여러 개를 함께"
+          ],
+          "answer": 1,
+          "why": "OpenTelemetry 로 이전 비용을 줄인다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "관측은 「도구를 깔았나」가 아니라 **「장애 때 답을 얻나」**로 판단한다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "관측 점검표",
+          "text": "로그\n  [ ] 구조화(JSON)인가 · stdout 으로 나가나                     (2장)\n  [ ] traceId 로 한 요청의 로그가 모이나                        (2장)\n  [ ] 레벨이 정직한가 (정상 흐름에 error 없음)                  (2장)\n  [ ] 개인정보·비밀이 마스킹되나                                (2장)\n지표\n  [ ] RED (요청·오류·지연) 가 있나                              (3장)\n  [ ] 지연을 p95·p99 로 보나 (평균 아님)                        (3장)\n  [ ] 라벨 카디널리티가 안전한가 (userId·URL 금지)              (6장)\n알림\n  [ ] 증상(사용자 영향) 기반인가                                (5장)\n  [ ] 지속 조건(for)이 걸려 있나                                (5장)\n  [ ] 알림마다 「무엇을 할지」와 링크가 있나                     (5·7장)\n  [ ] 최근 한 달 오탐 비율이 낮나                               (5장)\n사고 대비\n  [ ] 대시보드에 배포 표시가 있나                               (7장)\n  [ ] 런북이 있나 (증상별 첫 대응)                              (7장)\n  [ ] 되돌리는 방법이 런북 맨 위에 있나                         (7장)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 여섯 문항",
+          "height": "290px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .spans { margin:8px 0; }\n  .span { display:flex; align-items:center; gap:8px; margin-bottom:3px; font:11.5px ui-monospace, monospace; }\n  .span .nm { width:170px; flex:none; color:#cbd5e1; }\n  .span .b { height:14px; border-radius:3px; background:#2563eb; }\n  .span.slow .b { background:#ef4444; }\n  .span .ms { color:#94a3b8; font-size:11px; }\n  .bars { display:flex; align-items:flex-end; gap:3px; height:90px; margin:8px 0; }\n  .bars i { flex:1; background:#2563eb; border-radius:2px 2px 0 0; }\n  .bars i.hot { background:#ef4444; }\n  pre { margin:8px 0 0; font:11.5px/1.6 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const spans = (list) => {\n    const max = Math.max(...list.map(([, , ms]) => ms), 1);\n    return '<div class=\"spans\">' + list.map(([nm, indent, ms, slow]) =>\n      '<div class=\"span ' + (slow ? 'slow' : '') + '\"><span class=\"nm\">' +\n      '&nbsp;'.repeat(indent * 2) + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(3, (ms / max) * 200) + 'px\"></span>' +\n      '<span class=\"ms\">' + ms + 'ms</span></div>').join('') + '</div>';\n  };\n  const hist = (vals, hotFrom) => '<div class=\"bars\">' + vals.map((v, i) =>\n    '<i style=\"height:' + Math.max(4, v) + '%\" class=\"' + (hotFrom != null && i >= hotFrom ? 'hot' : '') + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['평균 응답 시간은 느린 소수를 감춘다', true],\n    ['CPU 80% 는 좋은 알림 조건이다', false],\n    ['userId 를 지표 라벨로 쓰면 좋다', false],\n    ['원인을 모르면 되돌리면 안 된다', false],\n    ['traceId 가 있어야 여러 서비스 로그가 모인다', true],\n    ['추적은 N+1 문제를 드러내는 데 강하다', true],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로 — 3장(백분위) 5장(알림) 6장(카디널리티) 7장(되돌리기) 2·4장');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸은 장애 대응·회고다. 여기까지가 「무슨 일이 일어나는지 아는 법」이었다면, 다음은 **그것을 겪은 뒤 팀이 배우는 법**이다 — 같은 장애를 두 번 겪지 않으려면."
+        },
+        {
+          "type": "try",
+          "text": "위 목록으로 훑고, 「알림마다 무엇을 할지」 줄에서 걸리면 그것부터 처리하라 — 소음 알림 하나를 줄이는 것이 새 지표 열 개보다 값질 때가 많다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "관측을 판단하는 기준은?",
+          "choices": [
+            "도구 개수",
+            "장애 때 답을 얻는가",
+            "지표 수",
+            "보관 기간"
+          ],
+          "answer": 1,
+          "why": "깔았나가 아니라 쓰이나."
+        },
+        {
+          "q": "가장 값싼 개선은?",
+          "choices": [
+            "새 도구 도입",
+            "소음 알림 정리와 런북 한 장",
+            "지표 추가",
+            "보관 연장"
+          ],
+          "answer": 1,
+          "why": "진짜 알림이 묻히지 않게 한다."
+        }
+      ]
     }
   ]
 }
