@@ -66,7 +66,7 @@ await context.route('**/kl/me', async (route) => {
 });
 
 await page.goto(BASE, { waitUntil: 'networkidle', timeout: 30000 });
-await page.waitForFunction(() => document.querySelector('#klBell') !== null, { timeout: 20000 }).catch(() => {
+await page.waitForFunction(() => document.querySelector('#klBell') !== null, undefined, { timeout: 20000 }).catch(() => {
   problems.push('종 단추가 안 그려졌다 (로그인 상태를 못 만들었다)');
 });
 
@@ -86,13 +86,13 @@ if (!problems.length) {
 
   // ③ 더 보기 → 앞의 것도 보인다
   await page.click('#klBellMore');
-  await page.waitForFunction(() => document.querySelectorAll('.kl-bell-item').length > 30, { timeout: 5000 })
+  await page.waitForFunction(() => document.querySelectorAll('.kl-bell-item').length > 30, undefined, { timeout: 5000 })
     .catch(() => problems.push('「더 보기」를 눌러도 안 늘었다'));
   if (asked.at(-1)?.limit !== 100) problems.push(`더 보기가 서버에 ${asked.at(-1)?.limit} 를 물었다`);
 
   // ④ 갈래를 고르면 그 갈래만 — 그리고 개수는 처음으로 되돌아간다
   await page.locator('.kl-bell-tab[data-bucket="follow"]').click();
-  await page.waitForFunction(() => document.querySelectorAll('.kl-bell-item').length === 5, { timeout: 5000 })
+  await page.waitForFunction(() => document.querySelectorAll('.kl-bell-item').length === 5, undefined, { timeout: 5000 })
     .catch(() => problems.push('팔로우 갈래를 골랐는데 목록이 안 바뀌었다'));
   const last = asked.at(-1);
   if (last?.bucket !== 'follow') problems.push(`서버에 갈래를 안 물었다: ${JSON.stringify(last)}`);

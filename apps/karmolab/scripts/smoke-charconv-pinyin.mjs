@@ -102,7 +102,7 @@ if (seen === null) {
     await btn.click();
 
     const marked = await page
-      .waitForFunction(() => document.querySelector('#ccOut')?.value.trim() !== '', { timeout: 15000 })
+      .waitForFunction(() => document.querySelector('#ccOut')?.value.trim() !== '', undefined, { timeout: 15000 })
       .then(() => page.inputValue('#ccOut'))
       .catch(() => null);
 
@@ -120,7 +120,7 @@ if (seen === null) {
 
     await page.selectOption('#ccTone', 'number');
     const numbered = await page
-      .waitForFunction(() => (document.querySelector('#ccOut')?.value ?? '').includes('4'), { timeout: 5000 })
+      .waitForFunction(() => (document.querySelector('#ccOut')?.value ?? '').includes('4'), undefined, { timeout: 5000 })
       .then(() => page.inputValue('#ccOut'))
       .catch(() => null);
     if (numbered === null || numbered.trim() !== 'han4 zi4') {

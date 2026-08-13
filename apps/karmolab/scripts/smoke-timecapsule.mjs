@@ -66,7 +66,7 @@ try {
   await page.goto('about:blank');
   await page.goto(TOOL + hash, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#tcStatus', { timeout: 30000 });
-  await page.waitForFunction(() => !/여는 중/.test(document.querySelector('#tcStatus')?.textContent || ''), {
+  await page.waitForFunction(() => !/여는 중/.test(document.querySelector('#tcStatus')?.textContent || ''), undefined, {
     timeout: 60000
   });
   const 잠긴화면 = await page.evaluate(() => ({
@@ -95,7 +95,7 @@ try {
   }`);
   await 앞선.goto(TOOL + hash, { waitUntil: 'domcontentloaded' });
   await 앞선.waitForSelector('#tcStatus', { timeout: 30000 });
-  await 앞선.waitForFunction(() => !/여는 중/.test(document.querySelector('#tcStatus')?.textContent || ''), {
+  await 앞선.waitForFunction(() => !/여는 중/.test(document.querySelector('#tcStatus')?.textContent || ''), undefined, {
     timeout: 60000
   });
   const 속임 = await 앞선.evaluate(() => ({
@@ -117,7 +117,7 @@ try {
     await page.goto('about:blank');
     await page.goto(TOOL + hash, { waitUntil: 'domcontentloaded' });
     await page
-      .waitForFunction(() => !/여는 중/.test(document.querySelector('#tcStatus')?.textContent || ''), { timeout: 60000 })
+      .waitForFunction(() => !/여는 중/.test(document.querySelector('#tcStatus')?.textContent || ''), undefined, { timeout: 60000 })
       .catch(() => {});
     열린글 = await page.evaluate(() => document.querySelector('.tc-letter')?.textContent || '');
   }

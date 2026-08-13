@@ -35,7 +35,10 @@ async function compare(a, b, mode) {
   // 아직 안 올라간 것과 망가진 것은 고칠 곳이 다르다 — 섞어 적으면 없는 버그를 쫓게 된다.
   if (res && res.status() === 404) throw new Error(`페이지가 아직 없다 (${BASE} 에 배포되기 전) — 배포 후 다시 보라`);
   // 보인다고 손이 달린 것은 아니다 — 미리 그린 그림과 진짜 화면 사이 틈 (TASK-KL-135)
-  await waitHydrated(page, '#pdRun');
+  /* 못 뜬 채로 내려가면 안 된다 — 미리 그린 HTML 쪽 입력칸에 파일을 넣게 되고, 곧바로 위젯이
+     그 자리를 갈아 끼워 파일이 사라진다. 그러면 「두 판본을 모두 넣어 주세요」로 끝나는데,
+     그건 **도구가 틀린 말**처럼 보인다. 못 떴으면 못 떴다고 말한다 (TASK-KL-301). */
+  await waitHydrated(page, '#pdRun', { require: true });
   await page.setInputFiles('#pdFileA', a);
   await page.setInputFiles('#pdFileB', b);
   await page.selectOption('#pdMode', mode);
@@ -45,7 +48,7 @@ async function compare(a, b, mode) {
     () => {
       const s = document.querySelector('#pdStatus');
       return !!s && /같습니다|달라졌습니다|못했어요|넣어 주세요/.test(s.textContent || '');
-    },
+    }, undefined,
     { timeout: 90000 }
   );
   return page.evaluate(() => ({

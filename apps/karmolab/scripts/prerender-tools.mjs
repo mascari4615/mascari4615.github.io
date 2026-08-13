@@ -99,7 +99,7 @@ async function drawOne(id) {
         /* 첫 화면(랜딩)이 떠 있는 것을 도구로 착각하면 **엉뚱한 화면을 박는다** —
            실제로 한 도구가 그렇게 첫 화면 카드들을 품고 나갔다(TASK-KL-135). */
         return !!active && active.id !== 'page-home' && active.textContent.trim().length > 20;
-      },
+      }, undefined,
       { timeout: 30000 }
     );
     await page.waitForTimeout(500);

@@ -57,7 +57,7 @@ await page
     if (!navigator.serviceWorker?.controller) return false;
     const cache = await caches.open((await caches.keys()).find((k) => k.startsWith('karmolab-')) ?? 'x');
     return Boolean(await cache.match('/karmolab/'));
-  }, { timeout: 30000 })
+  }, undefined, { timeout: 30000 })
   .catch(() => problems.push('서비스 워커가 껍데기를 안 담았다 — 이 검사는 여기서부터 의미가 없다'));
 
 if (!problems.length) {
@@ -85,7 +85,7 @@ if (!problems.length) {
      * 그러니 「그 도구인가」가 아니라 **「홈으로 떨어지지 않았나」**를 본다 —
      * 오프라인 껍데기가 하는 일은 「가려던 곳으로 데려다주는 것」이다. */
     const active = await page
-      .waitForFunction(() => document.querySelector('.tool-page.active')?.id ?? null, { timeout: 15000 })
+      .waitForFunction(() => document.querySelector('.tool-page.active')?.id ?? null, undefined, { timeout: 15000 })
       .then((h) => h.jsonValue())
       .catch(() => null);
     if (!active) problems.push('도구 주소로 들어왔는데 아무 화면도 안 열렸다');

@@ -72,7 +72,7 @@ await page.evaluate(async () => {
   input.dispatchEvent(new Event('change', { bubbles: true }));
 });
 
-await page.waitForFunction(() => document.getElementById('baStatus').textContent.includes('재생 중'), { timeout: 60000 });
+await page.waitForFunction(() => document.getElementById('baStatus').textContent.includes('재생 중'), undefined, { timeout: 60000 });
 
 // 한 순간만 집으면 안 된다 — 영상 첫 장이 비어 있는 건 정상이고(녹화 시작 직후 검은 화면),
 // 그걸 「안 그려졌다」로 읽으면 멀쩡한 걸 빨강이라 우긴다. 한 바퀴 도는 동안 훑어서

@@ -104,7 +104,7 @@ check(await radioChip.count(), '겹 단추 목록에 「라디오」가 있어�
 const canvas = page.locator('.bm-canvas');
 const before = await canvas.screenshot();
 await radioChip.click({ force: true });
-await page.waitForFunction(() => /방송 중|못 받았/.test(document.querySelector('.bm-line')?.textContent || ''), {
+await page.waitForFunction(() => /방송 중|못 받았/.test(document.querySelector('.bm-line')?.textContent || ''), undefined, {
   timeout: 15000
 });
 const said = await page.locator('.bm-line').textContent();
@@ -117,7 +117,7 @@ check(Buffer.compare(before, after) !== 0, '겹을 켜면 지구본 그림이 �
 
 /* ③-b 켜자마자 한 곳이 저절로 울려야 한다 — 「켜 놓고 이제 뭘 하지」가 되면 없는 기능이다 */
 await page.waitForFunction(
-  () => [...document.querySelectorAll('audio')].some((a) => !a.paused && a.currentTime > 0),
+  () => [...document.querySelectorAll('audio')].some((a) => !a.paused && a.currentTime > 0), undefined,
   { timeout: 12000 }
 ).catch(() => {});
 /* 「울렸다」의 증거는 `paused` 가 아니라 **바늘이 움직였다**는 것이다 — 짧은 소리는 끝나면

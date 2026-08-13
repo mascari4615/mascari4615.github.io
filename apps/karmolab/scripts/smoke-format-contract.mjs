@@ -24,7 +24,7 @@ page.on('pageerror', (e) => problems.push(`페이지 스크립트가 죽었다: 
 const res = await page.goto(URL_TARGET, { waitUntil: 'networkidle', timeout: 30000 });
 if (!res || res.status() !== 200) problems.push(`안 열린다 (http ${res && res.status()})`);
 /* `Toolbox` 는 창(window)에 안 얹힌다 — 전역 이름으로만 산다. 이름으로 직접 부른다. */
-await page.waitForFunction(() => typeof Toolbox !== 'undefined' && typeof Toolbox.declaredAccepts === 'function', {
+await page.waitForFunction(() => typeof Toolbox !== 'undefined' && typeof Toolbox.declaredAccepts === 'function', undefined, {
   timeout: 20000,
 });
 

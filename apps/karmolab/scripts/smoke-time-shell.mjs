@@ -39,7 +39,7 @@ check((await page.locator('#tmCities .tm-city').count()) === 5, '도시 다섯�
 /* ② 못 박은 날짜를 넣고 값이 맞는지 */
 await page.fill('#pfText', '2026-09-01 오후 3시');
 await page.waitForFunction(
-  () => /2026-09-01/.test(document.querySelector('.tm-face[data-face="날짜"] strong')?.textContent || ''),
+  () => /2026-09-01/.test(document.querySelector('.tm-face[data-face="날짜"] strong')?.textContent || ''), undefined,
   { timeout: 10000 }
 ).catch(() => {});
 const face = (k) => page.locator(`.tm-face[data-face="${k}"] strong`).innerText();
@@ -56,7 +56,7 @@ check(/tm-bad|tm-meh/.test(ny), `같은 순간에 뉴욕은 편한 때가 아니
 
 /* ④ 못 알아들으면 **엉뚱한 날짜를 내밀지 않는다** */
 await page.fill('#pfText', '안녕하세요 반갑습니다');
-await page.waitForFunction(() => !!document.querySelector('#tmNone'), { timeout: 10000 }).catch(() => {});
+await page.waitForFunction(() => !!document.querySelector('#tmNone'), undefined, { timeout: 10000 }).catch(() => {});
 check((await page.locator('#tmNone').count()) === 1, '못 알아들으면 그렇다고 말한다');
 check((await page.locator('#tmFaces').count()) === 0, '못 알아들었으면 얼굴을 안 그린다');
 
@@ -90,7 +90,7 @@ check(seoulEases.length >= 2, `한 도시 안에서도 편한 때·자는 때가
 /* 칸을 누르면 **그 시각으로 옮겨 간다** */
 await page.locator('#tmGrid .tm-grid-row').nth(1).locator('.tm-cell[data-hour="10"]').click();
 await page.waitForFunction(
-  () => /10:00/.test(document.querySelector('.tm-face[data-face="시각"] strong')?.textContent || ''),
+  () => /10:00/.test(document.querySelector('.tm-face[data-face="시각"] strong')?.textContent || ''), undefined,
   { timeout: 10000 }
 ).catch(() => {});
 const picked = await page.locator('.tm-face[data-face="시각"] strong').innerText();

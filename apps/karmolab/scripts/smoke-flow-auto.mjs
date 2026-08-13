@@ -20,7 +20,7 @@ const page = await (await browser.newContext({ viewport: { width: 1280, height: 
 page.on('pageerror', (e) => problems.push(`페이지 스크립트가 죽었다: ${e.message}`));
 
 await page.goto(`${BASE}#flow`, { waitUntil: 'networkidle', timeout: 30000 });
-await page.waitForFunction(() => typeof Toolbox !== 'undefined' && typeof Toolbox.switchPage === 'function', {
+await page.waitForFunction(() => typeof Toolbox !== 'undefined' && typeof Toolbox.switchPage === 'function', undefined, {
   timeout: 20000,
 });
 // 흐름 위젯은 그 화면을 열어야 비로소 받아진다 — 받아진 뒤에야 결과 신호를 듣는다.
@@ -67,7 +67,7 @@ await page.waitForSelector('.flow-bar-auto', { timeout: 5000 });
 const countdownText = await page.locator('.flow-bar-auto').first().textContent();
 if (!/\d초 뒤/.test(countdownText ?? '')) problems.push(`남은 초가 안 보인다: ${countdownText}`);
 
-await page.waitForFunction(() => JSON.parse(sessionStorage.getItem('karmolab_flow_run') || '{}').at === 1, {
+await page.waitForFunction(() => JSON.parse(sessionStorage.getItem('karmolab_flow_run') || '{}').at === 1, undefined, {
   timeout: 12000,
 }).catch(() => problems.push('자동을 켰는데 다음 단계로 안 갔다'));
 /* 화면이 실제로 옮겨 갔나. 주소는 **묶음 이름**이 된다 — pdfcompress 는 「PDF 도구」 탭이라

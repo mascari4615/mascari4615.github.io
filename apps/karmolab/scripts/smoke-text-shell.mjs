@@ -41,7 +41,7 @@ check((await page.locator('#pfText').count()) === 1, '글은 **붙여넣는 칸*
 /* ② 붙여넣으면 세 숫자와 앞머리가 뜬다 */
 await page.fill('#pfText', SAMPLE);
 await page.waitForSelector('#pfFileBar:visible', { timeout: 15000 });
-await page.waitForFunction(() => !!document.querySelector('#txNums'), { timeout: 10000 }).catch(() => {});
+await page.waitForFunction(() => !!document.querySelector('#txNums'), undefined, { timeout: 10000 }).catch(() => {});
 const nums = await page.locator('#txNums .tx-num strong').allInnerTexts();
 check(nums.length === 3, '글자·낱말·줄 세 숫자가 뜬다');
 /* 숫자만 뽑아서 한 번만 견준다 — 「또는」으로 두 갈래를 두면 느슨한 쪽이 늘 이긴다 (KL-278). */
@@ -60,7 +60,7 @@ await page.waitForFunction(
   () => {
     const el = document.querySelector('#pfHost textarea');
     return !!el && el.value.includes('끝줄');
-  },
+  }, undefined,
   { timeout: 15000 }
 ).catch(() => {});
 const got = await page.evaluate(() => {
@@ -78,7 +78,7 @@ await page.waitForFunction(
   () => {
     const el = document.querySelector('#pfHost textarea');
     return !!el && el.value.includes('끝줄');
-  },
+  }, undefined,
   { timeout: 15000 }
 ).catch(() => {});
 const got2 = await page.evaluate(() => {
@@ -100,7 +100,7 @@ await page.evaluate(() => {
 await page.waitForSelector('#pfChain:visible', { timeout: 10000 }).catch(() => {});
 check(await page.locator('#pfChain').isVisible(), '결과가 나오면 「이어서」 줄이 뜬다');
 await page.click('#pfChainUse');
-await page.waitForFunction(() => /정리된 글/.test(document.querySelector('#txHead')?.textContent || ''), { timeout: 10000 }).catch(() => {});
+await page.waitForFunction(() => /정리된 글/.test(document.querySelector('#txHead')?.textContent || ''), undefined, { timeout: 10000 }).catch(() => {});
 check(
   /정리된 글/.test(await page.locator('#txHead').innerText()),
   '누르면 **그 결과가 손에 든 글이 된다** — 다시 안 붙여넣는다'

@@ -41,7 +41,7 @@ ctx.on('page', (p) => p.on('pageerror', (e) => errors.push(String(e))));
 
 const studio = await ctx.newPage();
 await studio.goto(`${base}/apps/karmolab/badapple/`);
-await studio.waitForFunction(() => Boolean(document.getElementById('baStatus')), { timeout: 20000 });
+await studio.waitForFunction(() => Boolean(document.getElementById('baStatus')), undefined, { timeout: 20000 });
 
 // 영상은 저장소에 안 둔다 — 그 자리에서 만든다.
 const baked = await studio.evaluate(async () => {
@@ -96,7 +96,7 @@ const baked = await studio.evaluate(async () => {
 // 홈을 **새 탭**에서 연다 — 같은 창의 변수를 물려받지 않으므로, 담긴 것을 진짜로 다시 읽어야 한다.
 const home = await ctx.newPage();
 await home.goto(`${base}/apps/karmolab/?badapple`);
-await home.waitForFunction(() => Boolean(window.KarmoLabBadApple), { timeout: 20000 });
+await home.waitForFunction(() => Boolean(window.KarmoLabBadApple), undefined, { timeout: 20000 });
 const picked = await home.evaluate(async () => {
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const seen = [];

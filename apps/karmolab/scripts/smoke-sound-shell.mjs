@@ -109,7 +109,7 @@ const shape = await page.waitForFunction(
     const quiet = measure(Math.floor(c.width * 0.2));
     const loud = measure(Math.floor(c.width * 0.8));
     return loud > 4 ? { quiet, loud } : null;
-  },
+  }, undefined,
   { timeout: 20000 }
 ).then((h) => h.jsonValue()).catch(() => null);
 check(!!shape, '파형이 실제로 그려진다');
@@ -149,7 +149,7 @@ await page.waitForFunction(
   () => {
     const el = document.querySelector('#pfHost input[type=file]');
     return !!el && el.files && el.files.length > 0;
-  },
+  }, undefined,
   { timeout: 20000 }
 ).catch(() => {});
 const got = await page.evaluate(() => {

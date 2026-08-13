@@ -70,7 +70,7 @@ try {
     () => {
       const el = document.getElementById('page-home');
       return !!el && el.textContent.trim().length > 40;
-    },
+    }, undefined,
     { timeout: 30000 }
   );
   markup = await page.evaluate((live) => {

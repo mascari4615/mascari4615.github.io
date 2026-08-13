@@ -46,7 +46,7 @@ await page.evaluate(() => {
 
 await page.click('#blStart');
 // 한 조각이 220ms — 24조각쯤 모으려면 6초 남짓. 실루엣이 오르내리는 구간이 들어갈 만큼은 된다.
-await page.waitForFunction(() => true, { timeout: 1000 }).catch(() => {});
+await page.waitForFunction(() => true, undefined, { timeout: 1000 }).catch(() => {});
 await new Promise((resolve) => setTimeout(resolve, 8000));
 await page.click('#blStop');
 

@@ -48,7 +48,7 @@ check(await page.locator('#pfText').isVisible(), '**쓰는 칸이 계속 보인�
 /* ④ 고쳐 쓰면 곧바로 다시 센다 */
 await page.fill('#pfText', '100 + 200\n3km in mi\n25% of 400');
 await page.waitForFunction(
-  () => document.querySelectorAll('#caSheet .ca-row').length === 3,
+  () => document.querySelectorAll('#caSheet .ca-row').length === 3, undefined,
   { timeout: 10000 }
 ).catch(() => {});
 const a2 = await page.locator('#caSheet .ca-ans').allInnerTexts();
@@ -60,7 +60,7 @@ check(a2[2].replace(/[^\d]/g, '') === '100', `400 의 25% (지금 ${a2[2]})`);
 /* ⑤ 못 센 줄은 표시되되 나머지는 산다 */
 await page.fill('#pfText', '1000\n이건 글이라 못 셈\n2000\n합계');
 await page.waitForFunction(
-  () => document.querySelectorAll('#caSheet .ca-row').length === 4,
+  () => document.querySelectorAll('#caSheet .ca-row').length === 4, undefined,
   { timeout: 10000 }
 ).catch(() => {});
 check((await page.locator('#caSheet .ca-bad').count()) === 1, '못 센 줄 하나가 표시된다');
@@ -71,12 +71,12 @@ check(a3[3].replace(/[^\d]/g, '') === '3000', `못 센 줄이 있어도 합계�
  * 정산은 한 번에 안 끝난다. 창을 닫았다 와도 어제 적던 줄이 그대로 있어야 공책이다. */
 await page.fill('#pfText', ['월세 = 550000', '관리비 = 70000', '월세 + 관리비'].join('\n'));
 await page.waitForFunction(
-  () => (document.querySelectorAll('#caSheet .ca-row').length === 3),
+  () => (document.querySelectorAll('#caSheet .ca-row').length === 3), undefined,
   { timeout: 10000 }
 ).catch(() => {});
 await page.reload({ waitUntil: 'domcontentloaded' });
 await page.waitForSelector('#pfText', { timeout: 20000 });
-await page.waitForFunction(() => /월세/.test(document.querySelector('#pfText')?.value || ''), { timeout: 15000 }).catch(() => {});
+await page.waitForFunction(() => /월세/.test(document.querySelector('#pfText')?.value || ''), undefined, { timeout: 15000 }).catch(() => {});
 const kept = await page.inputValue('#pfText');
 check(/월세 = 550000/.test(kept), `창을 다시 열어도 적던 줄이 남는다 (지금 「${kept.slice(0, 18)}」)`);
 await page.waitForSelector('#caSheet', { timeout: 15000 });
@@ -91,7 +91,7 @@ await page.fill('#pfText', '1 + 1');
 await page.waitForTimeout(400);
 await page.reload({ waitUntil: 'domcontentloaded' });
 await page.waitForSelector('#pfText', { timeout: 20000 });
-await page.waitForFunction(() => !/월세/.test(document.querySelector('#pfText')?.value || ''), { timeout: 15000 }).catch(() => {});
+await page.waitForFunction(() => !/월세/.test(document.querySelector('#pfText')?.value || ''), undefined, { timeout: 15000 }).catch(() => {});
 check(!/월세/.test(await page.inputValue('#pfText')), '지운 줄은 다시 안 나온다');
 
 
