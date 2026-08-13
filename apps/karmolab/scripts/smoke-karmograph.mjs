@@ -969,6 +969,32 @@ async function addScene(page, title = '', note = '') {
   await page.locator('[data-km="stage-save"]').click();
   await page.waitForSelector('[data-km="stage-form"]', { state: 'hidden', timeout: ms(4000) });
 }
+
+/**
+ * 링크를 받아 온다 — 클립보드가 되면 거기서, 막히면 **판 위 링크 상자**에서 (KL-271).
+ * 예전엔 브라우저 prompt 였고 검사는 대화상자를 가로챘다. 이제 상자는 그냥 화면의 일부다.
+ */
+async function grabLink(page, open) {
+  /* 클립보드 **읽기**는 권한이 걸려 헛도는 자리가 많다 — 그래서 「무엇을 복사했는지」를
+     복사하는 순간 곁에서 받아 둔다(제품 동작은 그대로 흘려보낸다). */
+  await page.evaluate(() => {
+    const cb = navigator.clipboard;
+    if (!cb || cb.__watched) return;
+    const orig = cb.writeText?.bind(cb);
+    Object.defineProperty(cb, '__watched', { value: true });
+    cb.writeText = (text) => { window.__lastCopy = text; return orig ? orig(text) : Promise.resolve(); };
+  }).catch(() => {});
+  await open();
+  const box = page.locator('[data-km="link-out"]');
+  try {
+    await box.waitFor({ timeout: ms(3000) });
+    const got = await box.inputValue();
+    await page.locator('[data-km="link-close"]').click();
+    return got;
+  } catch {
+    return page.evaluate(() => window.__lastCopy || '').catch(() => '');
+  }
+}
 /* ★ 발표 줄 단추는 **진짜 클릭**으로 누른다(`dispatchEvent` X).
    `dispatchEvent` 는 「그 자리에 뭐가 덮여 있나」를 안 본다 — 그래서 캔버스 svg 가 발표 줄을
    통째로 덮고 있는데도 이 검사는 오래 초록이었다(실측 2026-08-12). 사람이 누를 수 있는지를
@@ -1733,16 +1759,55 @@ await step('발표를 SVG 한 장으로 — 브라우저만 있으면 도는 파
   await page.keyboard.press('Escape');
   await page.waitForSelector('[data-km="drawer"].hidden', { state: 'attached', timeout: ms(4000) });
 });
+await step('복사가 막혀도 링크를 직접 가져간다 — 판 위 상자에 이미 골라져 뜬다 (KL-271)', async () => {
+  /* 예전엔 브라우저 prompt 였다: 판을 통째로 가리고, 긴 주소는 한 줄 창에서 끝이 안 보이고,
+     「고치라는 건지 복사하라는 건지」가 안 읽혔다. 여기서는 **클립보드를 일부러 막고**
+     (앱 안 브라우저·비보안 자리에서 실제로 그렇다) 그 길이 살아 있는지 본다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.addInitScript(() => {
+    // 클립보드가 막힌 자리 흉내 — 여기서 조용히 실패하면 사람은 링크를 영영 못 가져간다.
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: () => Promise.reject(new Error('막힘')), readText: () => Promise.resolve('') },
+      configurable: true,
+    });
+  });
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  const box = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(box.x + box.width * 0.4, box.y + box.height * 0.35);
+  await m.waitForSelector('.km-inline', { timeout: ms(4000) });
+  await m.keyboard.type('링크카드');
+  await m.keyboard.press('Enter');
+
+  await m.click('[data-km="more"]');
+  await m.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
+  await runCmd(m, 'share');
+  await m.waitForSelector('[data-km="link-out"]', { timeout: ms(6000) });
+  const got = await m.inputValue('[data-km="link-out"]');
+  if (!/km=/.test(got)) throw new Error('상자에 링크가 안 들어 있다: ' + got.slice(0, 60));
+  // 이미 골라져 있어야 한다 — 사람이 할 일은 Ctrl+C 하나여야 하니까.
+  const chosen = await m.evaluate(() => {
+    const el = document.querySelector('[data-km="link-out"]');
+    return document.activeElement === el && el.selectionEnd - el.selectionStart === el.value.length;
+  });
+  if (!chosen) throw new Error('링크가 골라진 채로 안 뜬다 — 사람이 직접 끌어 골라야 한다');
+  // 이 칸에서 친 글쇠가 판의 카드를 건드리면 안 된다(예전에 Delete 로 카드가 지워졌다).
+  await m.keyboard.press('Delete');
+  if (await m.locator('.ck-node').count() !== 1) throw new Error('링크 상자에서 친 글쇠가 판을 건드렸다');
+  await m.keyboard.press('Escape');
+  await m.waitForSelector('[data-km="link-out"]', { state: 'detached', timeout: ms(4000) });
+  await ctx.close();
+});
 await step('보기 전용 링크 — 손잡이가 사라지고, 「내 것으로 복제」로 풀린다', async () => {
   // 남에게 보여 줄 때 대부분은 읽히기만 하면 된다. 편집 손잡이가 남아 있으면 받는 쪽이
   // 「고쳐도 되나」부터 헷갈리고, 고쳐 놓고 원본이 바뀐 줄 안다(사실은 자기 브라우저에만 남는다).
   await page.click('[data-km="more"]');
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
-  let link = '';
-  page.once('dialog', (d) => { link = d.message() || ''; d.accept().catch(() => {}); });
-  await page.locator('[data-km="share-view"]').click();
-  await page.waitForTimeout(ms(900));
-  if (!link) link = await page.evaluate(() => navigator.clipboard?.readText?.() ?? '').catch(() => '');
+  const link = await grabLink(page, () => page.locator('[data-km="share-view"]').click());
   if (!link || !link.includes('kmv=1')) throw new Error('보기 전용 표시가 링크에 없다: ' + String(link).slice(0, 80));
 
   await page.goto(link.replace(/#.*$/, '') + '#karmograph', { waitUntil: 'domcontentloaded' });
@@ -1798,14 +1863,9 @@ await step('보기 전용 — 시점은 오갈 수 있고, 시점을 고치는 �
   await m.reload({ waitUntil: 'domcontentloaded' });
   await m.waitForSelector('[data-km="time-go"]', { timeout: ms(8000) });
 
-  let link = '';
-  // 복사가 막힌 자리에서는 prompt 로 링크를 보여 준다 — 링크는 **기본값** 칸에 들어 있다.
-  m.once('dialog', (d) => { link = d.defaultValue() || d.message() || ''; d.accept().catch(() => {}); });
   await m.click('[data-km="more"]');
   await m.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
-  await m.locator('[data-km="share-view"]').click();
-  await m.waitForTimeout(ms(900));
-  if (!link) link = await m.evaluate(() => navigator.clipboard?.readText?.() ?? '').catch(() => '');
+  const link = await grabLink(m, () => m.locator('[data-km="share-view"]').click());
   if (!link || !link.includes('kmv=1')) throw new Error('보기 전용 링크가 안 나왔다: ' + String(link).slice(0, 80));
 
   await m.goto(link.replace(/#.*$/, '') + '#karmograph', { waitUntil: 'domcontentloaded' });
@@ -1998,11 +2058,7 @@ await step('「이 카드로 오는 링크」로 열면 그 카드가 골라져 
   // 링크는 **만들자마자 골라져 있는 그 카드**로 뽑는다 — 다시 고르러 가면 「어느 카드가 골렸나」에
   // 기대게 되고, 그 기대가 틀리면 검사가 엉뚱한 카드를 가리킨다(실제로 그렇게 한 번 틀렸다).
   await page.waitForSelector('[data-km="node-link"]', { timeout: ms(4000) });
-  let link = '';
-  page.once('dialog', (d) => { link = d.message() || ''; d.accept().catch(() => {}); });
-  await page.locator('[data-km="node-link"]').click();
-  await page.waitForTimeout(ms(900));
-  if (!link) link = await page.evaluate(() => navigator.clipboard?.readText?.() ?? '').catch(() => '');
+  const link = await grabLink(page, () => page.locator('[data-km="node-link"]').click());
   if (!link.includes('kmnode=')) throw new Error('링크에 카드 표시가 없다: ' + String(link).slice(0, 60));
 
   await page.goto(link.replace(/#.*$/, '') + '#karmograph', { waitUntil: 'domcontentloaded' });
