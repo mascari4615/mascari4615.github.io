@@ -101,7 +101,7 @@ import { readInvocation } from '../../lib/tool-url';
               </div>
             </div>
             <div class="tool-list" id="loTable"></div>
-            <div class="tool-status" id="loStatus">${esc(t('loan.status.idle'))}</div>
+            <div class="tool-status" role="status" aria-live="polite" id="loStatus">${esc(t('loan.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;

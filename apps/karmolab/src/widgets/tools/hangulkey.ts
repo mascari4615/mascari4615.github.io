@@ -47,7 +47,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               </div>
               <textarea id="hkOutput" aria-label="${esc(t('hangulkey.aria.out'))}" readonly style="min-height:120px;"></textarea>
             </div>
-            <div class="tool-status" id="hkNote">${esc(t('hangulkey.note'))}</div>
+            <div class="tool-status" role="status" aria-live="polite" id="hkNote">${esc(t('hangulkey.note'))}</div>
           `;
 
           const input = container.querySelector('#hkInput') as HTMLTextAreaElement;

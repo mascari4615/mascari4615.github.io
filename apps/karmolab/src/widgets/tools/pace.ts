@@ -98,7 +98,7 @@ import { isMetric } from '../../lib/region';
               </div>
             </div>
             <div class="tool-list" id="paNeed"></div>
-            <div class="tool-status" id="paStatus">${esc(t('pace.status.note'))}</div>
+            <div class="tool-status" role="status" aria-live="polite" id="paStatus">${esc(t('pace.status.note'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;

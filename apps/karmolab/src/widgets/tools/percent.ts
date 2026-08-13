@@ -97,7 +97,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
 
           container.innerHTML = `
             <div id="pcRows"></div>
-            <div class="tool-status">${esc(t('percent.status.idle'))}</div>
+            <div class="tool-status" role="status" aria-live="polite">${esc(t('percent.status.idle'))}</div>
           `;
           const rowsEl = container.querySelector('#pcRows') as HTMLElement;
 

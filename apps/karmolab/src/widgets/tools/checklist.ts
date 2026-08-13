@@ -66,7 +66,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               <button class="btn btn-primary" id="clShare">${esc(t('checklist.btn.share'))}</button>
               <button class="btn btn-ghost" id="clReset">${esc(t('checklist.btn.reset'))}</button>
             </div>
-            <div class="tool-status" id="clStatus">${esc(t('checklist.status.idle'))}</div>
+            <div class="tool-status" role="status" aria-live="polite" id="clStatus">${esc(t('checklist.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;

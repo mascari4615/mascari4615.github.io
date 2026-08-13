@@ -67,7 +67,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       <div id="exDanger"></div>
       <div id="exOut"></div>
 
-      <div class="tool-status" id="exStatus">${esc(t('explainshell.status.local', undefined, '붙여넣은 줄은 이 브라우저를 벗어나지 않습니다'))}</div>
+      <div class="tool-status" role="status" aria-live="polite" id="exStatus">${esc(t('explainshell.status.local', undefined, '붙여넣은 줄은 이 브라우저를 벗어나지 않습니다'))}</div>
     `;
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
