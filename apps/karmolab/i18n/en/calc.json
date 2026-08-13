@@ -25,5 +25,7 @@
   "calc.pasted": "Notepad",
   "calc.meta": "{n} lines · last {last}",
   "calc.sum": "sum",
-  "calc.part.pace": "Running pace"
+  "calc.part.pace": "Running pace",
+  "calc.copy.hint": "Click to copy the answer",
+  "calc.copy.done": "Copied: {v}"
 }
