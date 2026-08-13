@@ -25,5 +25,9 @@
   "imgbatch.say.done": "{n}枚 · {before} → {after}（{verdict}）。行を押すとその1枚だけダウンロードします。",
   "imgbatch.say.zipped": "{n}枚を ZIP でダウンロードしました。",
   "imgbatch.say.picked": "{n}枚 · 合計 {total}",
-  "imgbatch.row.meta": "{w}×{h} · {from} から {verdict} · 押すとダウンロード"
+  "imgbatch.row.meta": "{w}×{h} · {from} から {verdict} · 押すとダウンロード",
+  "imgbatch.say.one": "{i}/{total} — {name}",
+  "imgbatch.say.partly": "{ok}枚が完了、{bad}枚は失敗: {names}",
+  "imgbatch.btn.retry": "失敗した分だけ再実行",
+  "imgbatch.err.unknown": "理由が分かりません"
 }

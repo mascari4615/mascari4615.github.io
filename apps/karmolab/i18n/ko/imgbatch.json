@@ -25,5 +25,9 @@
   "imgbatch.say.done": "{n}장 · {before} → {after} ({verdict}). 줄을 누르면 그 장만 받습니다.",
   "imgbatch.say.zipped": "{n}장을 ZIP 으로 내려받았어요.",
   "imgbatch.say.picked": "{n}장 · 총 {total}",
-  "imgbatch.row.meta": "{w}×{h} · {from}에서 {verdict} · 눌러서 받기"
+  "imgbatch.row.meta": "{w}×{h} · {from}에서 {verdict} · 눌러서 받기",
+  "imgbatch.say.one": "{i}/{total} — {name}",
+  "imgbatch.say.partly": "{ok}장 됐고, {bad}장은 안 됩니다: {names}",
+  "imgbatch.btn.retry": "안 된 것만 다시",
+  "imgbatch.err.unknown": "왜인지 모르겠습니다"
 }

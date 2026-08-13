@@ -25,5 +25,9 @@
   "imgbatch.say.done": "{n} photos · {before} → {after} ({verdict}). Click a row to download just that one.",
   "imgbatch.say.zipped": "Downloaded {n} photos as a ZIP.",
   "imgbatch.say.picked": "{n} photos · {total} in total",
-  "imgbatch.row.meta": "{w}×{h} · from {from}, {verdict} · click to download"
+  "imgbatch.row.meta": "{w}×{h} · from {from}, {verdict} · click to download",
+  "imgbatch.say.one": "{i}/{total} — {name}",
+  "imgbatch.say.partly": "{ok} done, {bad} failed: {names}",
+  "imgbatch.btn.retry": "Retry failed only",
+  "imgbatch.err.unknown": "Reason unknown"
 }

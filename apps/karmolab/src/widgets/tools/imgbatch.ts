@@ -6,6 +6,7 @@
  * 원본보다 커지는 경우가 있어(작은 PNG 를 JPG 로 바꿀 때) 전후 용량을 나란히 보여준다.
  */
 import { statusLine } from './shared/say';
+import { runBatch, retryBar, type BatchFail } from './shared/batch';
 import { wireDrop } from './shared/drop-well';
 import { loadImage, toCanvas, encode, download } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -72,6 +73,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               <button class="btn btn-ghost" id="ibClear">${esc(t('imgbatch.btn.clear'))}</button>
             </div>
 
+            <div class="kl-batch" id="ibFails" hidden></div>
             <div class="tool-list" id="ibList"></div>
             <div class="tool-status" id="ibStatus">${esc(t('imgbatch.status.idle'))}</div>
           `;
@@ -85,6 +87,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           const qualityEl = $<HTMLInputElement>('#ibQuality');
           let files: File[] = [];
           let results: Result[] = [];
+          let lastFails: BatchFail[] = [];
 
           /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
            * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
@@ -148,21 +151,32 @@ import { t, loadNamespace } from '../../lib/i18n';
             };
           }
 
-          async function run(): Promise<void> {
-            if (!files.length) {
+          async function run(only?: File[]): Promise<void> {
+            const todo = only && only.length ? only : files;
+            if (!todo.length) {
               say(t('imgbatch.err.noFile'), 'error');
               return;
             }
             results = [];
-            say(t('imgbatch.say.working', { n: files.length }));
-            for (const f of files) {
-              try {
-                results.push(await convert(f));
-              } catch {
-                say(t('imgbatch.err.one', { name: f.name }), 'error');
-              }
-            }
+            /* 도는 자리는 **공용 하나**를 쓴다 (TASK-KL-302) — 몇째인지 말하는 것과
+             * 실패를 남기는 것이 여기 붙어 있다. 전에는 한 장이 깨지면 그 말이 끝말에
+             * 덮여서, 스무 장 중 둘이 빠져도 사람은 숫자 하나만 봤다. */
+            const batch = await runBatch(todo, (f) => convert(f), {
+              say,
+              progress: (i, total, f) => t('imgbatch.say.one', { i, total, name: f.name }, `${i}/${total} — ${f.name}`),
+              done: () => '',
+              partly: (ok, bad) =>
+                t(
+                  'imgbatch.say.partly',
+                  { ok, bad: bad.length, names: bad.map((b) => b.file.name).join(', ') },
+                  `${ok}장 됐고, ${bad.length}장은 안 됩니다: ${bad.map((b) => b.file.name).join(', ')}`
+                )
+            });
+            results = batch.done;
+            lastFails = batch.failed;
+            paintFails();
             render();
+            if (batch.failed.length) return;
             const before = files.reduce((a, f) => a + f.size, 0);
             const after = results.reduce((a, r) => a + r.blob.size, 0);
             // 작은 PNG 를 JPG 로 바꾸면 오히려 커진다 — 「-559% 줄었어요」 같은 말이 나오면 안 된다
@@ -217,6 +231,19 @@ import { t, loadNamespace } from '../../lib/i18n';
               );
           }
 
+          /** 실패한 것만 다시 — 스무 장을 통째로 다시 넣게 하지 않는다. */
+          function paintFails(): void {
+            retryBar(
+              $<HTMLElement>('#ibFails'),
+              lastFails,
+              {
+                retry: t('imgbatch.btn.retry', undefined, '안 된 것만 다시'),
+                why: t('imgbatch.err.unknown', undefined, '왜인지 모르겠습니다')
+              },
+              (again) => void run(again)
+            );
+          }
+
           /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void add(files) });
           // 화면 캡처를 바로 붙여넣는 것이 가장 잦은 쓰임이다
@@ -231,6 +258,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           $<HTMLButtonElement>('#ibClear').onclick = () => {
             files = [];
             results = [];
+            lastFails = [];
+            paintFails();
             render();
             say(t('imgbatch.say.cleared'));
           };
