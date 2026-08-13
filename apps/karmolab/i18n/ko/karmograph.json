@@ -649,5 +649,8 @@
   "karmograph.focus.hint": "찾거나 고른 카드에서 몇 다리까지 또렷하게 볼지 — 나머지는 흐려집니다(지우는 게 아닙니다).",
   "karmograph.decorate.head": "꾸미기 — 자료로 색·크기",
   "karmograph.decorate.hint": "여기서부터는 거르는 게 아니라 「보이는 모양」이 바뀝니다. 카드는 그대로 다 있습니다.",
-  "karmograph.hideSec.head": "덜 보기"
+  "karmograph.hideSec.head": "덜 보기",
+  "karmograph.drawer.g.brag": "그림 한 장으로 자랑",
+  "karmograph.drawer.g.open": "남이 열어보게",
+  "karmograph.drawer.g.toApp": "다른 앱으로"
 }

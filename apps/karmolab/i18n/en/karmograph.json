@@ -649,5 +649,8 @@
   "karmograph.focus.hint": "How many hops stay sharp from what you searched or selected — the rest dims (nothing is deleted).",
   "karmograph.decorate.head": "Style — colour & size from data",
   "karmograph.decorate.hint": "From here on nothing is hidden — only how things look changes. Every card is still there.",
-  "karmograph.hideSec.head": "Show less"
+  "karmograph.hideSec.head": "Show less",
+  "karmograph.drawer.g.brag": "Show it off as an image",
+  "karmograph.drawer.g.open": "Let someone open it",
+  "karmograph.drawer.g.toApp": "Into another app"
 }
