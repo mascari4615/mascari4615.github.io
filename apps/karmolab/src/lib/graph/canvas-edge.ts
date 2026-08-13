@@ -62,11 +62,13 @@ export function buildEdgeLabel(
   edgeId: string,
   text: string,
   g: { p1: Pt; c1: Pt; c2: Pt; p2: Pt },
-  opts: { at?: number; color: string; plateFill: string; textColor: string; draggable: boolean },
+  opts: { at?: number; dy?: number; color: string; plateFill: string; textColor: string; draggable: boolean },
 ): SVGGElement | null {
   const label = text.trim();
   if (!label) return null;
-  const at = pointOnCubic(g, Math.min(1, Math.max(0, opts.at ?? 0.5)));
+  const on = pointOnCubic(g, Math.min(1, Math.max(0, opts.at ?? 0.5)));
+  // 세로로 비켜 앉기 — 짧은 선에서는 이름표와 마음이 같은 자리를 두고 다툰다(KL-271 X1).
+  const at = { x: on.x, y: on.y + (opts.dy ?? 0) };
   const w = label.length * 8 + 14;
   const h = 19;
 

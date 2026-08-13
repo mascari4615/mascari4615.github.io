@@ -954,6 +954,22 @@ await step('빈 캔버스에서 예시를 넣으면 그림이 생긴다', async 
   });
   if (dupes.length > 0) throw new Error(`견본에 같은 이름이 두 장: ${dupes.join(', ')}`);
 });
+await step('양쪽이 서로를 어떻게 보는지가 **선 위에** 보인다', async () => {
+  // 적는 칸은 진작 있었는데 그린 적이 없었다 — 선을 골라 패널을 열어야만 보였다(KL-271 X1).
+  // 적어 둔 사람만 아는 이야기는 판에 없는 것과 같다.
+  await page.locator('.ck-edge-hit').first().click({ force: true });
+  await page.waitForSelector('[data-km="ed-view-from"]', { timeout: 4000 });
+  await page.fill('[data-km="ed-view-from"]', '동생처럼 여김');
+  await page.fill('[data-km="ed-view-to"]', '원망함');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-edge-view').length === 2, null, { timeout: 4000 });
+  const sides = await page.$$eval('.ck-edge-view', (els) => els.map((e) => e.dataset.viewSide));
+  if (sides.join(',') !== 'from,to') throw new Error(`마음이 제 쪽에 안 앉았다: ${sides.join(',')}`);
+  // 한쪽을 지우면 그 조각만 사라진다 — 빈 마음이 자리만 잡고 있으면 안 적은 것이 적은 것처럼 보인다.
+  await page.fill('[data-km="ed-view-to"]', '');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-edge-view').length === 1, null, { timeout: 4000 });
+  await page.fill('[data-km="ed-view-from"]', '');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-edge-view').length === 0, null, { timeout: 4000 });
+});
 await step('공용 글 — 승격하면 목록에 뜨고, 둘째 자리에 붙이면 2곳이 된다', async () => {
   // 글이 노드 안에 갇혀 있으면 같은 설정을 둘에게 붙일 수 없다. 승격 → 불러 쓰기까지가 한 몸이라
   // 검사도 한 몸으로 한다 — 승격만 되고 불러 쓰기가 안 되면 기능이 반쪽이다.
