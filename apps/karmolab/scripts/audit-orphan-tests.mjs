@@ -70,8 +70,36 @@ if (fs.existsSync(wfDir)) {
   }
 }
 
+/** 갈래로 안 잡히는 것은 손으로 적는다 — 실측해 보고 안 것들. */
+const 사유메모 = {
+  'test:garden': '알맹이지만 19초 걸린다 — 게이트 한 판이 그만큼 길어진다 (실측 2026-08-13)',
+  'test:studymap': '알맹이지만 24초 걸린다 (실측 2026-08-13)',
+  'test:heung': '60초를 넘겨도 안 끝난다 — 멈추는 자리가 있다 (실측 2026-08-13, 그 슬롯 몫)'
+};
+
 const all = Object.keys(scripts).filter(isCheck);
 const orphans = all.filter((k) => !covered.has(k)).sort();
+
+/**
+ * 왜 못 묶는지를 **기준선이 스스로 적게** 한다 — 이름만 늘어놓은 목록은 반년 뒤 아무도 못 읽는다.
+ * 갈래는 검사 파일을 읽어 가른다(브라우저를 쓰나 · 실주소를 보나 · 다른 검사를 부르나).
+ */
+function 갈래(name) {
+  const file = (scripts[name].match(/scripts\/[\w.-]+\.mjs/) || [])[0];
+  let src = '';
+  try {
+    src = fs.readFileSync(path.join(root, file), 'utf8');
+  } catch {
+    return '알 수 없음 (검사 파일을 못 찾았다)';
+  }
+  const 브라우저 = /from ['"]playwright['"]/.test(src);
+  const 실주소 = /blog\.mascari4615\.com|mascari4615\.github\.io|process\.env\.(URL|BASE)/.test(src);
+  if (/child_process/.test(src) && /npm/.test(src)) return '묶음 — 다른 검사들을 불러 모으는 것이라 게이트에 또 넣으면 겹친다';
+  if (브라우저 && 실주소) return '화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다';
+  if (브라우저) return '화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)';
+  if (실주소) return '실주소 — 배포 상태에 달렸다';
+  return '알맹이인데 아직 안 묶었다 — 빠르면 그냥 gates 에 넣어라';
+}
 
 if (process.argv.includes('--update')) {
   fs.writeFileSync(
@@ -80,7 +108,8 @@ if (process.argv.includes('--update')) {
       {
         설명: '아무 묶음에도 없는 검사 — 줄기만 한다. 늘리려면 왜 못 묶는지 적어라 (audit-orphan-tests.mjs)',
         갱신: new Date().toISOString().slice(0, 10),
-        목록: orphans
+        목록: orphans,
+        사유: Object.fromEntries(orphans.map((n) => [n, 사유메모[n] || 갈래(n)]))
       },
       null,
       2
