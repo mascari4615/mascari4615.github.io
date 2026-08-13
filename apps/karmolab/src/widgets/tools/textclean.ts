@@ -6,6 +6,7 @@
  * 원본을 건드리지 않으므로 옵션을 껐다 켜며 결과를 바로 비교할 수 있다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   /** 처리 순서 고정 — 공백 정리 → 빈 줄 → 중복 → 정렬 → 대소문자 → 접두/접미 → 번호. */
@@ -188,6 +189,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const input = $<HTMLTextAreaElement>('#tcIn');
           const output = $<HTMLTextAreaElement>('#tcOut');
           const status = $<HTMLElement>('#tcStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
 
           function run(): void {
             const src = input.value;

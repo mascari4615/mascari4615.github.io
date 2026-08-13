@@ -6,6 +6,7 @@
  * 사람의 해석이 아니라 기계의 답으로 확인되는 형태.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   /** 남은 시간의 단위는 **Intl 이 그 언어로 적어 준다** — 분/시간/일을 언어마다 적을 필요가 없다. */
@@ -130,6 +131,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const text = $<HTMLElement>('#crText');
           const next = $<HTMLElement>('#crNext');
           const status = $<HTMLElement>('#crStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
 
           function run(): void {
             const typed = input.value.trim();

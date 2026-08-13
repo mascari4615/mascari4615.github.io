@@ -6,6 +6,7 @@
  * 여기서는 파일이 브라우저 밖으로 나가지 않는다. 무거운 라이브러리는 이 탭을 처음 열 때만 받는다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { markLive } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
@@ -125,6 +126,8 @@ import { parsePages } from '../../core/pdftool';
           const fileInput = $<HTMLInputElement>('#pdFile');
           const filesEl = $<HTMLElement>('#pdFiles');
           const status = $<HTMLElement>('#pdStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
           let files: Array<{ file: File; pages: number }> = [];
           let mode = 'merge';
           let lib: PDFLib | null = null;

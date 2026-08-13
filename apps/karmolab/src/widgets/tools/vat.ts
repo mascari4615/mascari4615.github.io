@@ -6,6 +6,7 @@
  * 이걸 방향별로 갈라 놓고, 세금계산서에 그대로 옮길 세 줄(공급가·세액·합계)을 낸다.
  */
 import { spec, vatAdd, vatExtract,  type Rounding } from '../../core/vat';
+import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace, locale } from '../../lib/i18n';
 
@@ -71,6 +72,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const label = $<HTMLElement>('#vaLabel');
           const stats = $<HTMLElement>('#vaStats');
           const out = $<HTMLElement>('#vaOut');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(out);
           let mode = 'add';
           let last = { supply: 0, tax: 0, total: 0 };
 

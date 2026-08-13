@@ -3,6 +3,7 @@
  * 온도만 비선형이라 factor 대신 to/from 함수 쌍으로 둔다 — 나머지는 기준단위 배수 하나로 끝난다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { markLive } from './shared/say';
 import { inRegion, region } from '../../lib/region';
 
 import { FACTORS as F, spec } from '../../core/unitconv';
@@ -306,6 +307,8 @@ import { readInvocation } from '../../lib/tool-url';
             wrap.style.display = forKorea && cat.id === 'area' ? '' : 'none';
             if (!forKorea || cat.id !== 'area') return;
             const out = $<HTMLElement>('#ucPriceOut');
+            /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+            markLive(out);
             const 만원 = parseFloat(($<HTMLInputElement>('#ucPrice').value || '').replace(/,/g, ''));
             if (!isFinite(만원) || 만원 <= 0 || !isFinite(baseSquareMeters) || baseSquareMeters <= 0) {
               out.textContent = '총액을 넣으면 평당·㎡당 가격이 나옵니다.';

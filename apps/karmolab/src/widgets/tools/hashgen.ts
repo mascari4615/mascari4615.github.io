@@ -8,6 +8,7 @@
  * **손**만 빌려 준다 — Node 쪽은 같은 알맹이에 `node:crypto` 를 준다 (`src/core/README.md`).
  */
 import { type Algo, bufToHex, FILE_ALGOS, findMatch, hashAll, type HashBackend, spec } from '../../core/hashgen';
+import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -82,6 +83,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const input = $<HTMLTextAreaElement>('#hgInput');
           const out = $<HTMLElement>('#hgOut');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(out);
           const upper = $<HTMLInputElement>('#hgUpper');
 
           function render(): void {

@@ -5,6 +5,7 @@
  * 진법 사이를 오가며 확인하는 실제 쓰임에 맞는다. 큰 수는 BigInt 라 자릿수 손실이 없다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -115,6 +116,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const binGroup = $<HTMLElement>('#rxBinGroup');
           const facts = $<HTMLElement>('#rxFacts');
           const status = $<HTMLElement>('#rxStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
           const customInput = inputs[inputs.length - 1];
 
           function baseOf(el: HTMLInputElement): number {

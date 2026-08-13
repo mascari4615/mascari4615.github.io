@@ -6,6 +6,7 @@
  * 다만 계산이 맞아도 실제로 등록된 번호인지는 알 수 없다. 그 경계를 화면에 분명히 적는다.
  */
 import { checkBiz, checkCorp, formatBiz, formatCorp, kindKeyOf, onlyDigits, spec } from '../../core/bizno';
+import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -54,6 +55,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           const mark = $<HTMLElement>('#bzMark');
           const out = $<HTMLElement>('#bzOut');
           const status = $<HTMLElement>('#bzStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          markLive(status);
           const row = (k: string, v: string): string =>
             `<div class="tool-list-row"><span class="tool-list-key">${k}</span><span class="tool-list-val">${v}</span></div>`;
 

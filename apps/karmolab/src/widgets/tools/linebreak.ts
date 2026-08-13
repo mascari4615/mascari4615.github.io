@@ -6,6 +6,7 @@
  * 「문단은 남기고 문단 안의 줄만 잇는」 처리가 필요하다 — 그게 이 도구의 핵심이다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -107,6 +108,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           const out = $<HTMLTextAreaElement>('#lbOut');
           const width = $<HTMLInputElement>('#lbWidth');
           const status = $<HTMLElement>('#lbStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          markLive(status);
           let mode = 'unwrap';
 
           function run(): void {

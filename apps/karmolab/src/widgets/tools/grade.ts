@@ -6,6 +6,7 @@
  * 목표 학점을 채우려면 남은 학기에 얼마가 필요한지도 함께 낸다 — 그게 실제 질문이다.
  */
 import { maxOf, neededAverage, parseCourses, scaleOf, spec } from '../../core/grade';
+import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -66,6 +67,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           const out = $<HTMLElement>('#grOut');
           const need = $<HTMLElement>('#grNeed');
           const status = $<HTMLElement>('#grStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          markLive(status);
           let scale = scaleOf('45');
           let max = maxOf(scale);
 

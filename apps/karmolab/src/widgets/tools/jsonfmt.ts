@@ -3,6 +3,7 @@
  * 라이브러리 없이 JSON.parse 의 message 에서 위치를 역산 (브라우저별 문구 차이 흡수).
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   function errorPosition(msg: string, src: string): { line: number; col: number; pos: number } | null {
@@ -203,6 +204,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const input = container.querySelector('#jfInput') as HTMLTextAreaElement;
           const output = container.querySelector('#jfOutput') as HTMLTextAreaElement;
           const status = container.querySelector('#jfStatus') as HTMLElement;
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
           const indentSel = container.querySelector('#jfIndent') as HTMLSelectElement;
           const treeWrap = container.querySelector('#jfTreeWrap') as HTMLElement;
           const tree = container.querySelector('#jfTree') as HTMLElement;

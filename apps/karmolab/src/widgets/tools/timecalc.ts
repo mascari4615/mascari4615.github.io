@@ -6,6 +6,7 @@
  * 시각 더하기와 시간 합계를 나눠 두 가지 실수 모두 막는다.
  */
 import { clock, dayShift as shiftOf, spec, sumTimes, toMinutes } from '../../core/timecalc';
+import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace, locale } from '../../lib/i18n';
 
@@ -74,6 +75,9 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const list = $<HTMLTextAreaElement>('#tcList');
           const sum = $<HTMLElement>('#tcSum');
           const status = $<HTMLElement>('#tcStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          markLive(status);
           let op = 'add';
 
           const row = (k: string, v: string): string =>

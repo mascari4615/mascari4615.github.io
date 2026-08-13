@@ -8,6 +8,7 @@
  * 비교 함수가 일관되지 않아 자리마다 확률이 치우친다 — 공정함이 이 도구의 존재 이유라 안 쓴다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -72,6 +73,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const countLabel = $<HTMLElement>('#pkCountLabel');
           const result = $<HTMLElement>('#pkResult');
           const status = $<HTMLElement>('#pkStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
           let mode = 'one';
 
           const names = (): string[] => listEl.value.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);

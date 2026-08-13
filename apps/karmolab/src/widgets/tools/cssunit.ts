@@ -6,6 +6,7 @@
  * 이 둘을 나란히 놓지 않으면 계속 헷갈린다. 기준값을 눈에 보이게 두고 함께 계산한다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -69,6 +70,8 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const out = $<HTMLElement>('#cuOut');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(out);
           const scaleEl = $<HTMLElement>('#cuScale');
           const row = (k: string, v: string): string =>
             `<div class="tool-list-row"><span class="tool-list-key">${k}</span><span class="tool-list-val">${v}</span></div>`;

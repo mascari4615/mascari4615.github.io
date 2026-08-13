@@ -3,6 +3,7 @@
  * O(n·m) DP 라 아주 큰 입력에서는 잘라낸다 (브라우저가 얼어붙는 편보다 잘린 결과가 낫다).
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   const MAX_LINES = 2000;
@@ -166,6 +167,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const A = $<HTMLTextAreaElement>('#tdA');
           const B = $<HTMLTextAreaElement>('#tdB');
           const out = $<HTMLElement>('#tdOut');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(out);
           const summary = $<HTMLElement>('#tdSummary');
 
           function norm(lines: string[]): string[] {

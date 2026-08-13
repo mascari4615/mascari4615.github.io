@@ -14,6 +14,7 @@
  * 색이 이어지는 동안 붓을 안 바꾸므로 실제로 색이 몇 개 안 되는 아스키 그림에 잘 맞는다.
  */
 import { AsciiSurface, decode, encode, Player, sampleVideo, type AsciiFrame } from 'badapple';
+import { markLive } from './shared/say';
 import { download, downloadUrl } from './shared/image';
 
 import { acceptPastedFiles } from './shared/paste';
@@ -234,6 +235,9 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const nameEl = $<HTMLElement>('#aaName');
           const out = $<HTMLElement>('#aaOut');
           const status = $<HTMLElement>('#aaStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          markLive(status);
           const widthInput = $<HTMLInputElement>('#aaWidth');
           const stageCanvas = $<HTMLCanvasElement>('#aaCanvas');
           const videoBox = $<HTMLElement>('#aaVideoBox');

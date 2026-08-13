@@ -6,6 +6,7 @@
  * 되돌릴 수 없는 편집을 실행하기 전에 확인하는 자리.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { markLive } from './shared/say';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -71,6 +72,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const to = $<HTMLInputElement>('#rpTo');
           const preview = $<HTMLElement>('#rpPreview');
           const status = $<HTMLElement>('#rpStatus');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(status);
           let previous: string | null = null;
 
           function buildRegex(): RegExp | null {

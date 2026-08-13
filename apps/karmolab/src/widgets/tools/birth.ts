@@ -9,6 +9,7 @@
  * 통용되는 것은 양력 1월 1일 기준이고, 별자리는 날짜 구간이 달마다 다르다. 구간을 표로 박는다.
  */
 import { birthInfo, spec } from '../../core/birth';
+import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace, locale, fmtDate } from '../../lib/i18n';
 import { inRegion } from '../../lib/region';
@@ -54,6 +55,8 @@ import { inRegion } from '../../lib/region';
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const dateEl = $<HTMLInputElement>('#biDate');
           const out = $<HTMLElement>('#biOut');
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          markLive(out);
           const row = (k: string, v: string): string =>
             `<div class="tool-list-row"><span class="tool-list-key">${k}</span><span class="tool-list-val">${v}</span></div>`;
 
