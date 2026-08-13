@@ -29,7 +29,11 @@ const WHERE = {
   '/karmolab/#twenty': path.join(apps, 'karmolab/js/widgets/twenty.js'),
   '/karmolab/#worldcup': path.join(apps, 'karmolab/js/widgets/worldcup.js'),
   '/karmolab/#reaction': path.join(apps, 'karmolab/js/widgets/reaction.js'),
-  '/karmolab/#speed': path.join(apps, 'karmolab/js/widgets/speed.js')
+  '/karmolab/#speed': path.join(apps, 'karmolab/js/widgets/speed.js'),
+  /* 오늘의 놀이 둘은 해시가 아니라 **제 도구 장**으로 간다 — 검색으로 바로 들어올 수 있게.
+     장은 배포 때 찍히므로, 있는지 물을 대상은 장이 아니라 그 장을 채우는 위젯 묶음이다. */
+  '/karmolab/t/dailytype/': path.join(apps, 'karmolab/js/widgets/tools/dailytype.js'),
+  '/karmolab/t/dailycho/': path.join(apps, 'karmolab/js/widgets/tools/dailycho.js')
 };
 
 for (const g of list) {
@@ -106,6 +110,7 @@ ${STRIP_CSS}</style>
   <div class="play-grid">
 ${cards}
   </div>
+  <p class="lead"><a href="/karmolab/#arcade">오락실에서 전부 보기 →</a> — 여럿이 하는 판 51개도 같은 자리에 있습니다.</p>
   <footer>도구가 필요하면 — <a href="/karmolab/t/">도구 전체 목록</a> · <a href="/karmolab/">KarmoLab</a></footer>
 <script>
 (function () {
@@ -172,7 +177,8 @@ if (problems.length) {
 
 fs.writeFileSync(path.join(here, 'index.html'), html, 'utf8');
 
-/* 앱 안의 놀이터 화면(`/karmolab/#play`)도 같은 목록을 본다 — 여기서 실어 준다.
+/* 앱 안의 오락실(`/karmolab/#arcade`)도 같은 목록을 본다 — 여기서 실어 준다 (TASK-KL-313:
+ * 놀이터 화면은 오락실로 합쳐졌고, 명부는 여전히 이 파일 하나가 정본이다).
  * 앱 쪽에 한 벌 더 적어 두면 그날부터 관문과 앱이 서로 다른 놀이를 말한다. */
 fs.writeFileSync(
   path.join(apps, 'karmolab/data/games.json'),
