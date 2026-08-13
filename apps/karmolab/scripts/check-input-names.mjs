@@ -24,10 +24,45 @@ const dir = path.join(root, 'src/widgets/tools');
 const NEEDS_NAME = /<(input|select|textarea)\b[^>]*>/g;
 const SKIP_TYPES = /type="(hidden|checkbox|radio|file|button|submit)"/;
 
+/* ★ **밀어 올린 그 커밋을 본다 — 디스크가 아니라** (2026-08-13).
+ *
+ * 이 나무는 세션 여섯이 함께 쓴다. 디스크를 읽으면 **남이 아직 커밋도 안 한 편집**이 내 push 를
+ * 막는다 (실측: 이웃의 burnnote 작업 때문에 내 무관한 push 가 계속 빨갰다). 반대로 남의
+ * 미커밋 상태 덕에 통과해 버리는 일도 있었다 — 이 파일 아래 주석의 그 사고다.
+ * 판정 대상은 **올라가는 커밋**이다. 못 물어보면(git 없음·얕은 사본) 그때만 디스크로 내려간다. */
+const REF = process.env.KL_PUSH_SHA || 'HEAD';
+const gitEnv = { ...process.env };
+delete gitEnv.GIT_DIR;
+delete gitEnv.GIT_WORK_TREE;
+delete gitEnv.GIT_INDEX_FILE;
+delete gitEnv.GIT_PREFIX;
+const git = (args) =>
+  execFileSync('git', args, { cwd: root, env: gitEnv, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
+
+/** `[{ name, src }]` — 커밋에서 읽는다. 못 읽으면 `null`(모름) 이고 그때만 디스크를 본다. */
+function toolsAtRef() {
+  try {
+    const relDir = path.relative(root, dir).split(path.sep).join('/');
+    const names = git(['ls-tree', '-r', '--name-only', REF, '--', relDir])
+      .split(String.fromCharCode(10))
+      .map((l) => l.trim())
+      .filter((l) => l.endsWith('.ts'));
+    if (!names.length) return null; // 하나도 못 봤다 = 못 물어본 것에 가깝다
+    return names.map((full) => ({ name: full.split('/').pop(), src: git(['show', `${REF}:${full}`]) }));
+  } catch {
+    return null;
+  }
+}
+
+const files =
+  toolsAtRef() ||
+  fs
+    .readdirSync(dir)
+    .filter((n) => n.endsWith('.ts'))
+    .map((n) => ({ name: n, src: fs.readFileSync(path.join(dir, n), 'utf8') }));
+
 const offenders = [];
-for (const name of fs.readdirSync(dir)) {
-  if (!name.endsWith('.ts')) continue;
-  const src = fs.readFileSync(path.join(dir, name), 'utf8');
+for (const { name, src } of files) {
   for (const m of src.matchAll(NEEDS_NAME)) {
     const tag = m[0];
     if (SKIP_TYPES.test(tag)) continue;
