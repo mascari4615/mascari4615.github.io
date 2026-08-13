@@ -35,6 +35,23 @@ for (let i = 0; i < runs; i += 1) {
   await once();
 }
 
+/* ★ **한 번 빨간 것은 아직 진단이 아니다** (2026-08-14 실측). 이 작업공간은 세션 여럿이 같은
+   기계에서 빌드·설치를 돌려, 4초 문턱짜리 기다림이 부하 때문에 한 판씩 넘칠 때가 있다 —
+   같은 판에서 매번 다른 항목이 하나씩 빨개졌고 다시 돌리면 초록이었다. 그래서 「한 번만
+   빨간 것들」은 한 판 더 돌려 되풀이되는지 본다. 되풀이되면 제품, 아니면 그 판의 부하다. */
+if (reds.size > 0 && [...reds.values()].every((n) => n === 1)) {
+  console.log('한 번씩만 빨갰다 — 부하인지 제품인지 가리려고 한 판 더 돈다 …');
+  const suspects = new Set(reds.keys());
+  reds.clear();
+  await once();
+  const again = [...reds.keys()].filter((name) => suspects.has(name));
+  if (again.length === 0) {
+    console.log('RESULT: STABLE — 되풀이되지 않았다 (그 판의 부하로 본다)');
+    process.exit(0);
+  }
+  reds.clear();
+  for (const name of again) reds.set(name, 2);
+}
 console.log(`\n초록 ${greens}/${runs} 판`);
 if (reds.size === 0) {
   console.log('RESULT: STABLE — 한 항목도 안 흔들렸다');

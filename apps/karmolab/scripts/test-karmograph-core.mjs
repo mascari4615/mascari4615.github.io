@@ -1117,6 +1117,9 @@ const M = await loadModules();
     .filter(([k]) => k.startsWith('karmograph.help.'))
     .map(([, v]) => String(v)).join(' ');
   const must = ['시점', '저장한 보기', '인쇄', '블로그', '두 사람 사이', '안 적은 칸', 'Ctrl+V'];
+  /* ★ **자리를 가리키는 말은 화면 크기에 따라 거짓이 된다** (2026-08-14): 「판 아래에서 오갑니다」가
+     폰에서는 틀린 말이 됐다(거기서는 판 위에 있다). 자리 대신 **이름**으로 가리킨다. */
+  check(!said.includes('판 아래'), '도움말이 「판 아래」처럼 자리로 가리킨다 — 폰에서는 거짓이 된다');
   for (const word of must) {
     check(said.includes(word), `도움말에 「${word}」 이야기가 없다 — 넣고 안 적으면 숨은 기능이다`);
   }
