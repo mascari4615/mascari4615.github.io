@@ -55,8 +55,40 @@ jobs:
             echo "밀린 판이라 비켰습니다. 최신 판($tip)이 배포합니다." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-  deploy-yawnbot:
+  # === TASK-YB-045: 시험이 배포를 **막는다** ===
+  #
+  # 유닛 시험 1014개가 있었는데 이 워크플로가 한 번도 안 불렀다. 그래서 그중 4개가
+  # 몇 달 동안 빨강인 채로 계속 배포가 나갔다 — 검사기가 게이트에 안 걸려 있으면
+  # 없는 것과 같다 (`memo/rules/quality.md`).
+  #
+  # **왜 노트북이 아니라 ubuntu 인가**: 아래 배포 job 은 npm install 전에 봇을 세운다.
+  # 시험을 거기서 돌리면 빨강일 때 **봇이 멈춘 채로** 남는다(KL-190 이 고쳤던 바로 그 사고).
+  # 여기서 먼저 걸러 내면 빨강은 prod 를 아예 건드리지 않는다.
+  test-yawnbot:
     needs: tip
+    if: needs.tip.outputs.current == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: npm install (workspace)
+        working-directory: apps/discord-bots
+        run: npm install --prefer-offline --no-audit --no-fund
+      # 시험 두 개(`agent-daemon` `discovery-nonagentic`)가 `karmolab-ai` 를 **지어진 모양**
+      # (`dist/`)으로 가져온다. 새 체크아웃엔 그게 없으니 먼저 짓는다. 덤으로 타입 오류도
+      # 여기서 걸린다 — prod 를 짓기 전에.
+      - name: npm run build:yawnbot
+        working-directory: apps/discord-bots
+        run: npm run build:yawnbot
+      - name: npm test
+        working-directory: apps/discord-bots
+        run: npm test
+
+  deploy-yawnbot:
+    needs: [tip, test-yawnbot]
     if: needs.tip.outputs.current == 'true'
     runs-on: [self-hosted, windows, laptop, yawnbot]
     timeout-minutes: 15
