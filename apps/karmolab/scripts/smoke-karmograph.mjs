@@ -1889,6 +1889,58 @@ const openedSpec = (page) => page.evaluate(() => {
     .filter((sp) => sp && (sp.nodes || []).length > 0)[0];
 });
 
+await step('모자란 자료로도 판은 열린다 (KL-271)', async () => {
+  /* 「자료가 조금 모자란 것」과 「못 읽는 것」은 다르다. 네모 없는 묶음 하나에 판 전체가
+     안 열린 적이 있다(2026-08-14) — 손으로 적은 파일, 옛 판, 남의 도구에서 옮겨 온 것은
+     늘 어딘가 모자라다. **모자란 채로도 열리는가**를 갈래별로 한 번에 잰다. */
+  const base = {
+    version: 1, _meta: {}, groups: [],
+    nodes: [{ id: 'n1', label: '가', kind: 'character', x: 10, y: 10, w: 160, h: 44 }],
+    edges: [], ephemeral_anchors: [], _edge_kinds: {},
+  };
+  const rough = {
+    '크기 없는 카드': { ...base, nodes: [{ id: 'n1', label: '가', kind: 'character', x: 0, y: 0 }] },
+    '없는 카드를 잇는 선': { ...base, edges: [{ id: 'e1', from: 'n1', to: '없음', label: '?', kind: 'default' }] },
+    '네모도 멤버도 없는 묶음': { ...base, groups: [{ id: 'g1', label: '무리', color: '#ff0000' }] },
+    '없는 시점을 보는 판': { ...base, _meta: { time: '없는시점' }, times: [] },
+    '없는 카드를 담은 장': { ...base, story: [{ id: 's1', title: '장', nodeIds: ['없음'] }] },
+    '없는 시점을 담은 보기': {
+      ...base,
+      views: [{
+        id: 'v1', name: '보기', offNodeKinds: [], offEdgeKinds: [], offTags: [],
+        hideOrphans: false, minDegree: 0, fieldName: '', fieldValue: '', focus: '', time: '없음',
+      }],
+    },
+    '칸이 null': { ...base, nodes: [{ id: 'n1', label: '가', kind: 'character', x: 0, y: 0, w: 160, h: 44, fields: null }] },
+    '종류가 없는 카드': { ...base, nodes: [{ id: 'n1', label: '가', x: 0, y: 0, w: 160, h: 44 }] },
+    '없는 글을 가리키는 카드': { ...base, nodes: [{ id: 'n1', label: '가', kind: 'character', x: 0, y: 0, w: 160, h: 44, docRef: '없음' }] },
+    '자기를 잇는 선': { ...base, edges: [{ id: 'e1', from: 'n1', to: 'n1', label: '혼잣말', kind: 'default' }] },
+  };
+
+  const broke = [];
+  for (const [name, spec] of Object.entries(rough)) {
+    const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+    const m = await ctx.newPage();
+    const bad = [];
+    m.on('pageerror', (e) => bad.push(String(e).slice(0, 80)));
+    await m.goto(URL, { waitUntil: 'domcontentloaded' });
+    await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+    await m.evaluate(() => localStorage.clear());
+    await m.evaluate((sp) => {
+      localStorage.setItem('karmograph.map.rough', JSON.stringify(sp));
+      localStorage.setItem('karmograph.index', JSON.stringify({ activeId: 'rough', maps: [{ id: 'rough', name: '거친 판' }] }));
+    }, spec);
+    await m.reload({ waitUntil: 'domcontentloaded' });
+    try {
+      await m.waitForSelector('.ck-node', { timeout: ms(6000) });
+    } catch {
+      broke.push(`${name}${bad.length > 0 ? ` (${bad[0]})` : ''}`);
+    }
+    await ctx.close();
+  }
+  if (broke.length > 0) throw new Error('모자란 자료에 판이 안 열린다: ' + broke.join(' · '));
+});
+
 await step('파일로 뽑고 다시 불러도 **아무것도 안 빠진다** (KL-271)', async () => {
   /* 세 번째 길 — 파일. 백업(판 여럿)·링크(주소 한 줄)와 달리 **판 하나를 통째로** 주고받는
      자리다(다른 도구로 옮기거나 손으로 고칠 때 쓴다). 여기서도 새 칸이 조용히 빠지면
