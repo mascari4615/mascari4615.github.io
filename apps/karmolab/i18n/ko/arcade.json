@@ -358,7 +358,7 @@
   "arcade.jegi.hint": "제기가 아래 띠에 들어오면 차라",
   "arcade.jegi.win": "{who} · {n}번",
   "arcade.game.auction.name": "경매",
-  "arcade.game.auction.desc": "값어치는 다 보이고 부른 값은 아무도 못 본다 · 겹치면 아무도 못 가져간다",
+  "arcade.game.auction.desc": "값어치는 다 보이고 부른 값은 못 본다 · 겹치면 무효",
   "arcade.auction.lot": "물건 {i}/{n} · 값어치",
   "arcade.auction.send": "이 값으로 부르기",
   "arcade.auction.sent": "불렀다",

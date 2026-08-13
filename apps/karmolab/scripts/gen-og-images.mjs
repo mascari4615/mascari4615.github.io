@@ -16,6 +16,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import os from 'node:os';
+import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -62,6 +64,39 @@ for (const game of games) {
 }
 
 /**
+ * 오락실 51장 (TASK-KL-264 D1).
+ *
+ * 방 링크를 디스코드·카카오에 붙였을 때 **무슨 놀이인지가 그림으로** 보여야 한다. 「7CCMN」만
+ * 뜨는 링크는 아무도 안 누른다. 방 코드는 판마다 달라 미리 못 찍지만 **놀이는 51개로 정해져
+ * 있으므로** 여기서 찍어 두고, 방 코드는 카드의 *글자*(제목)에 얹는다 — 그림 51장으로 끝난다.
+ *
+ * 목록을 손으로 안 적는다. 이름은 말 묶음(`i18n/ko/arcade.json`), 그림은 명부(`catalog.ts`)가
+ * 정본이다. 게임을 하나 넣으면 카드도 저절로 하나 는다.
+ */
+const arcadeIds = [];
+{
+  /* **명부를 글자로 긁지 않는다.** 처음엔 `catalog.ts` 를 정규식으로 훑어 그림을 순서대로
+     가져왔는데, 말 묶음의 열쇠 순서와 명부 순서가 달라 아이콘이 통째로 어긋났다.
+     명부를 그대로 불러 쓰면 그런 어긋남이 아예 없다 — 다른 검사들이 하는 방식과 같다. */
+  const { build } = await import('esbuild');
+  const tmp = path.join(os.tmpdir(), `og-arcade-${process.pid}.mjs`);
+  await build({ entryPoints: ['src/widgets/arcade/index.ts'], bundle: true, format: 'esm', platform: 'node', outfile: tmp, logLevel: 'silent' });
+  const { META } = await import(pathToFileURL(tmp).href);
+  const words = JSON.parse(fs.readFileSync(path.join(root, 'i18n/ko/arcade.json'), 'utf8'));
+  for (const m of META) {
+    const cardId = `arcade-${m.id}`;
+    SPECIAL_CARDS[cardId] = {
+      title: words[`arcade.game.${m.id}.name`],
+      lead: words[`arcade.game.${m.id}.desc`],
+      emoji: m.icon
+    };
+    arcadeIds.push(cardId);
+  }
+  fs.rmSync(tmp, { force: true });
+}
+
+
+/**
  * 화풍은 **무엇의 카드인가**로 갈린다 (TASK-KL-195, 사용자 선택 = 셋 다 쓰기).
  *
  * - `lab` (어두운 판 + 계측 격자) = 도구. 「믿고 쓸 것」 쪽 얼굴.
@@ -72,7 +107,7 @@ for (const game of games) {
  * 도구 카드를 오로라로 찍지 않는 이유: 도구 133장이 전부 같은 번짐을 쓰면 피드에서 서로
  * 구분이 안 된다. 놀이는 여덟 장뿐이라 같은 얼굴이어도 「그 세계」로 읽힌다.
  */
-const AURORA = new Set(['default', 'play', 'today', ...games.map((g) => g.id)]);
+const AURORA = new Set(['default', 'play', 'today', ...games.map((g) => g.id), ...arcadeIds]);
 const styleOf = (id) => (AURORA.has(id) ? 'aurora' : 'lab');
 
 
