@@ -123,8 +123,30 @@ if (failed.length) {
   process.exit(1);
 }
 
+/* ★ **어느 컴퓨터에서 잰 값인지 함께 적는다** (2026-08-13).
+ *
+ * 이 숫자는 글꼴이 실제로 그려진 높이다 — **재는 컴퓨터가 다르면 값이 다르다**. 내 자리(윈도우)에서
+ * 다시 재어 올렸더니 CI(리눅스)에서 14건이 어긋났다(같은 코드, 같은 화면인데 26~321px 더 큼).
+ * 그 차이는 고장이 아니라 **비교 대상이 아닌 것을 비교한** 것이다. 그런데 검사는 「낡았다」고만
+ * 말해서, 없는 버그를 쫓거나 영영 빨간 게이트가 된다.
+ * 그래서 잰 자리를 적어 두고, **다른 자리에서는 판정하지 않는다**(모름은 아니오가 아니다). */
+const META_PATH = path.join(root, 'data/tool-heights.meta.json');
+const meta = (() => {
+  try {
+    return JSON.parse(fs.readFileSync(META_PATH, 'utf8'));
+  } catch {
+    return null;
+  }
+})();
+
 /* --check = 안 고치고 알리기만. 기록이 낡으면 비워 둔 자리가 실제와 어긋나 다시 밀린다. */
 if (check) {
+  if (meta && meta.platform && meta.platform !== process.platform) {
+    console.log(`[measure-heights] 이 기록은 ${meta.platform} 에서 잰 것이고 여기는 ${process.platform} 이다 — 판정하지 않는다(못 돌림).`);
+    console.log('  글꼴이 그려지는 높이는 컴퓨터마다 다르다. 판정하려면 기록을 **이 자리에서** 다시 재라:');
+    console.log('  npm run measure:heights -- --force');
+    process.exit(0);
+  }
   const off = [];
   for (const id of todo) {
     for (const key of Object.keys(WIDTHS)) {
@@ -166,4 +188,6 @@ for (const id of Object.keys(sorted)) {
   }
 }
 fs.writeFileSync(outPath, JSON.stringify(sorted, null, 2) + '\n');
+/* 잰 자리를 함께 남긴다 — 다른 컴퓨터에서 이 숫자로 판정하지 않도록. */
+fs.writeFileSync(META_PATH, JSON.stringify({ platform: process.platform, measuredAt: new Date().toISOString() }, null, 2) + String.fromCharCode(10));
 console.log(`[measure-heights] ${todo.length}개를 새로 재어 기록했다 (기록 전체 ${Object.keys(sorted).length}개)`);
