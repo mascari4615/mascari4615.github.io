@@ -14,6 +14,8 @@
 import { materialShell, type MaterialGroup } from './shared/material-shell';
 import { countText, head as clip } from './shared/text';
 import { t, loadNamespace } from '../../lib/i18n';
+import { TEXT_OPERATIONS } from './text-operations';
+import { mountTextOperation } from './shared/text-operation';
 
 (function (): void {
   const GROUPS = (): MaterialGroup[] => [
@@ -29,7 +31,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     {
       label: t('text.group.shape', undefined, '표기 바꾸기'),
       jobs: [
-        ['caseconv', t('text.part.caseconv', undefined, '표기법')],
+        ['case', t('text.part.caseconv', undefined, '표기법')],
         ['slug', t('text.part.slug', undefined, '슬러그')],
         ['hangulkey', t('text.part.hangulkey', undefined, '한영타')],
         ['jamo', t('text.part.jamo', undefined, '자모 분해')]
@@ -104,6 +106,12 @@ import { t, loadNamespace } from '../../lib/i18n';
         pasted: t('text.pasted', undefined, '붙여넣은 글')
       },
       preview: drawStats
+      ,mountOperation: (id, host, input): boolean => {
+        const operation = TEXT_OPERATIONS.find((candidate) => candidate.id === id);
+        if (!operation) return false;
+        mountTextOperation(host, operation, input);
+        return true;
+      }
     });
   }
 

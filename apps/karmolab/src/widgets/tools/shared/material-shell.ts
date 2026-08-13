@@ -69,6 +69,8 @@ export interface MaterialShellOpts {
    * 열여섯 개를 다 읽게 하지 말고 **맞는 것을 앞에 띄운다**. 짚는 것뿐이라 나머지도 그대로 눌린다.
    */
   suggest?: (file: File) => Promise<{ ids: string[]; why: string }>;
+  /** 작업대가 직접 그리는 선언형 operation. 기존 Tool 등록을 거치지 않는다. */
+  mountOperation?: (id: string, host: HTMLElement, input: string) => boolean;
 }
 
 /** 「{name} 외 {n}개」 같은 한 줄 — 말 묶음은 껍데기 밖에서 준다(재료마다 말이 다르다). */
@@ -359,6 +361,14 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
     $('#pfMount').hidden = false;
     $('#pfChain').hidden = true;
     host.textContent = '';
+    if (o.mountOperation && asText) {
+      void (file ? file.text() : Promise.resolve('')).then((text) => {
+        if (o.mountOperation?.(id, host, text)) return;
+        const ok = Toolbox.mountTool?.(id, host);
+        if (ok) setTimeout(() => handOver(), 60);
+      });
+      return;
+    }
     const ok = Toolbox.mountTool?.(id, host);
     if (!ok) {
       host.innerHTML = `<div class="tool-status error">${esc(o.labels.fail)}</div>`;

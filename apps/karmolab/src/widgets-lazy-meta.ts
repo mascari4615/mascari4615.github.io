@@ -400,7 +400,7 @@ window.KARMOLAB_LAZY_META = [
     /* 이 묶음이 내놓는 것 (TASK-KL-183 A) — 흐름을 만들 때 「이어지는 도구」를 위로 올리는 근거.
        숨긴 도구(imagegen 등)에 적어 봐야 목록에 안 뜨므로, **보이는 대표**에 적는다. */
     produces: ['image/*'],
-    lazyScriptPaths: ['root/gemini', 'ref/reftable', 'imageconvert/imageconvert', 'imageedit', 'meok/meok', 'tools/text2img', 'tools/imgresize', 'tools/redact', 'tools/gifenc', 'tools/asciiart', 'world/world', 'world/parse-md', 'world/load-characters-from-wiki', 'imagegen/presets', 'imagegen/config', 'imagegen/styles', 'imagegen/core', 'imagegen/imagegen', 'imagelib', 'tools/image']
+    lazyScriptPaths: ['root/gemini', 'ref/reftable', 'imageconvert/imageconvert', 'imageedit', 'meok/meok', 'tools/imgresize', 'tools/redact', 'tools/gifenc', 'tools/asciiart', 'world/world', 'world/parse-md', 'world/load-characters-from-wiki', 'imagegen/presets', 'imagegen/config', 'imagegen/styles', 'imagegen/core', 'imagegen/imagegen', 'imagelib', 'tools/image']
   },
   {
     id: 'imageedit',
@@ -552,95 +552,7 @@ window.KARMOLAB_LAZY_META = [
     get desc() { return t('widgets-desc.text.desc', undefined, "글자수 세기·줄 정리·두 글 비교·표기법 변환·한영타 되돌리기를 한 곳에서"); },
     layout: 'wide',
     icon: '<path d="M4 5h16M4 5v2M20 5v2M12 5v14M9 19h6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M4 12h4M4 16h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.6"/>',
-    lazyScriptPaths: ['tools/charcount', 'tools/textclean', 'tools/textdiff', 'tools/caseconv', 'tools/hangulkey', 'tools/lorem', 'tools/replace', 'tools/slug', 'tools/listdiff', 'tools/jamo', 'tools/wordfreq', 'tools/linebreak', 'tools/checklist', 'tools/text']
-  },
-  {
-    id: 'lorem',
-    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    get title() { return t('widgets.lorem.title', undefined, "더미 텍스트 생성"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.lorem.desc', undefined, "화면 시안용 임시 글을 만듭니다. 한글 더미와 로렘 입숨, 문단·문장·단어 단위"); },
-    layout: 'form',
-    icon: '<path d="M4 6h16M4 10h16M4 14h12M4 18h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/lorem']
-  },
-  {
-    id: 'replace',
-    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    get title() { return t('widgets.replace.title', undefined, "찾아 바꾸기"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.replace.desc', undefined, "텍스트에서 찾아 바꿉니다. 바꾸기 전에 걸린 곳을 미리 보여줍니다"); },
-    layout: 'wide',
-    icon: '<circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14.5 14.5 20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 10h6M10 7v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>',
-    lazyScriptPaths: ['tools/replace']
-  },
-  {
-    id: 'slug',
-    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    get title() { return t('widgets.slug.title', undefined, "슬러그 만들기"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.slug.desc', undefined, "제목을 주소에 쓸 형태로 바꿉니다. 한글은 로마자로 옮겨 적습니다"); },
-    layout: 'form',
-    icon: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/slug']
-  },
-  {
-    id: 'listdiff',
-    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    get title() { return t('widgets.listdiff.title', undefined, "목록 비교"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.listdiff.desc', undefined, "두 명단에서 공통·한쪽에만 있는 항목을 가려냅니다. 순서와 무관"); },
-    layout: 'wide',
-    icon: '<circle cx="9" cy="12" r="6" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="15" cy="12" r="6" stroke="currentColor" stroke-width="1.6" fill="none"/>',
-    lazyScriptPaths: ['tools/listdiff']
-  },
-  {
-    id: 'jamo',
-    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    get title() { return t('widgets.jamo.title', undefined, "한글 자모 분해"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.jamo.desc', undefined, "글자를 초성·중성·종성으로 쪼개고 자모를 글자로 되돌립니다. 초성 추출 포함"); },
-    layout: 'wide',
-    icon: '<path d="M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 13h6v6h-6z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-    lazyScriptPaths: ['tools/jamo']
-  },
-  {
-    id: 'wordfreq',
-    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    get title() { return t('widgets.wordfreq.title', undefined, "단어 빈도 분석"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.wordfreq.desc', undefined, "글에서 자주 쓴 낱말을 세어 보여줍니다. 한국어 조사 떼기 지원"); },
-    layout: 'wide',
-    icon: '<path d="M4 20V10M10 20V4M16 20v-7M22 20v-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/wordfreq']
-  },
-  {
-    id: 'linebreak',
-    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    get title() { return t('widgets.linebreak.title', undefined, "줄바꿈 정리"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.linebreak.desc', undefined, "PDF·웹에서 복사한 글의 끊긴 줄을 잇거나 원하는 길이로 다시 나눕니다"); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 12h10a3 3 0 0 1 0 6h-3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M13 15l-2 3 2 3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 18h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/linebreak']
-  },
-  {
-    id: 'checklist',
-    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    get title() { return t('widgets.checklist.title', undefined, "체크리스트"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.checklist.desc', undefined, "할 일 목록을 만들고 주소 하나로 공유합니다. 계정도 서버도 없이"); },
-    layout: 'form',
-    icon: '<path d="M4 7l2 2 4-4M4 14l2 2 4-4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 7h7M13 16h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/checklist']
+    lazyScriptPaths: ['tools/text']
   },
   {
     // 「진짜로 못 여는」 편지 — 목록에서 바로 보여야 한다 (TASK-KL-134).
@@ -847,18 +759,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/imgmerge']
   },
   {
-    id: 'text2pdf',
-    hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    get title() { return t('widgets.text2pdf.title', undefined, "글을 PDF 로"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.text2pdf.desc', undefined, "적은 글을 A4 PDF 로 만듭니다. 한글도 깨지지 않고, 글이 브라우저를 벗어나지 않습니다"); },
-    layout: 'wide',
-    icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8.5 12h7M8.5 15h7M8.5 18h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
-    produces: ['application/pdf'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
-    lazyScriptPaths: ['tools/text2pdf']
-  },
-  {
     id: 'pdfsign',
     accepts: ['application/pdf'], // 다른 도구가 만든 PDF 를 받는다 (TASK-KL-133)
     hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
@@ -983,7 +883,7 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     lazyTabs: true, // 처리기가 무겁다 — 연 탭만 만든다
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8.5 13h7M8.5 16.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/pdftool', 'tools/pdfcrop', 'tools/pdfpagenum', 'tools/pdfredact', 'tools/pdfcompress', 'tools/pdfsign', 'tools/pdfwatermark', 'tools/pdf2text', 'tools/text2pdf', 'tools/pdf2img', 'tools/img2pdf', 'tools/pdf']
+    lazyScriptPaths: ['tools/pdftool', 'tools/pdfcrop', 'tools/pdfpagenum', 'tools/pdfredact', 'tools/pdfcompress', 'tools/pdfsign', 'tools/pdfwatermark', 'tools/pdf2text', 'tools/pdf2img', 'tools/img2pdf', 'tools/pdf']
   },
   {
     id: 'sound',
@@ -1117,17 +1017,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/gifenc', 'tools/video2gif', 'tools/videotrim', 'tools/videorotate', 'tools/videocompress', 'tools/video2img', 'tools/video2audio', 'tools/screenrec', 'tools/videotool']
   },
   {
-    id: 'charcount',
-    hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    get title() { return t('widgets.charcount.title', undefined, "글자수 세기"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.charcount.desc', undefined, "공백 포함·제외 글자수, 바이트, 단어·문장·원고지 매수를 실시간으로 셉니다"); },
-    layout: 'form',
-    icon: '<path d="M4 7V5h16v2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M12 5v14M9 19h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/charcount']
-  },
-  {
     id: 'csvjson',
     hidden: true, // 「devtool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -1170,17 +1059,6 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     icon: '<path d="M9 4H7a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h2M15 4h2a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2 2 2 0 0 0-2 2v3a2 2 0 0 1-2 2h-2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     lazyScriptPaths: ['tools/jsonfmt']
-  },
-  {
-    id: 'hangulkey',
-    hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    get title() { return t('widgets.hangulkey.title', undefined, "한영타 변환"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.hangulkey.desc', undefined, "한영키를 안 누르고 친 글자를 되돌립니다. dkssudgktpdy ↔ 안녕하세요 (두벌식)"); },
-    layout: 'form',
-    icon: '<rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 10h2M11 10h2M16 10h2M7 14h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/hangulkey']
   },
   {
     id: 'qrgen',
@@ -1414,17 +1292,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/uuidgen']
   },
   {
-    id: 'textdiff',
-    hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    get title() { return t('widgets.textdiff.title', undefined, "텍스트 비교"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.textdiff.desc', undefined, "두 텍스트·코드의 달라진 줄을 찾아 색으로 표시합니다 (추가 / 삭제 / 동일)"); },
-    layout: 'wide',
-    icon: '<path d="M4 4h7v16H4zM13 4h7v16h-7z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 9h3M6 13h3M15 11h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/textdiff']
-  },
-  {
     id: 'regextest',
     hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -1536,18 +1403,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/codeshot']
   },
   {
-    id: 'text2img',
-    hidden: true, // 「이미지 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    get title() { return t('widgets.text2img.title', undefined, "글자를 그림으로"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.text2img.desc', undefined, "인용구나 공지를 이미지 카드로 만듭니다. 긴 글도 잘리지 않게 크기를 맞춰 줍니다"); },
-    layout: 'wide',
-    icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 10h10M7 13h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-    produces: ['image/*'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
-    lazyScriptPaths: ['tools/text2img']
-  },
-  {
     id: 'imgresize',
     accepts: ['image/*'], // 다른 도구가 만든 그림을 받는다 (TASK-KL-133)
     hidden: true, // 「이미지 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
@@ -1625,26 +1480,6 @@ window.KARMOLAB_LAZY_META = [
     accepts: ['text/plain'], // 다른 도구가 만든 것을 받는다 (TASK-KL-299)
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 14h5M13 14h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/subtitle']
-  },
-  {
-    id: 'textredact',
-    get title() { return t('widgets.textredact.title', undefined, "글자 가리개"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.textredact.desc', undefined, "로그·문서에서 주민번호·전화·카드번호를 찾아 지웁니다. 무엇을 찾았는지 보여 줍니다"); },
-    layout: 'wide',
-    icon: '<path d="M4 5h16M4 9h16M4 13h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="14" y="15" width="7" height="4" rx="1" fill="currentColor"/>',
-    lazyScriptPaths: ['tools/textredact']
-  },
-  {
-    id: 'textclean',
-    hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    get title() { return t('widgets.textclean.title', undefined, "텍스트 정리"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.textclean.desc', undefined, "여러 줄 텍스트를 정렬·중복 제거·공백 정리·번호 매기기로 한 번에 다듬습니다"); },
-    layout: 'wide',
-    icon: '<path d="M4 6h16M4 11h11M4 16h14M4 21h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M17 18l2 2 4-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/textclean']
   },
   {
     id: 'ladder',
@@ -1798,17 +1633,6 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     icon: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/urlparse']
-  },
-  {
-    id: 'caseconv',
-    hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    get title() { return t('widgets.caseconv.title', undefined, "표기법 변환"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.caseconv.desc', undefined, "camelCase·snake_case·kebab-case·PascalCase 를 서로 바꿉니다. 여러 줄 한 번에"); },
-    layout: 'form',
-    icon: '<path d="M4 17 8 7l4 10M5.5 14h5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 11a3 3 0 1 0 0 4v1m0-6.5V17" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/caseconv']
   },
   {
     id: 'jwt',
