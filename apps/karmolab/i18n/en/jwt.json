@@ -26,5 +26,6 @@
   "jwt.exp.left": " · {d} left",
   "jwt.exp.gone": " · expired {d} ago",
   "jwt.time.after": " · in {d}",
-  "jwt.time.before": " · {d} ago"
+  "jwt.time.before": " · {d} ago",
+  "jwt.copy.raw": "Copy decoded"
 }

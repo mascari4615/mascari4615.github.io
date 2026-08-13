@@ -19,5 +19,6 @@
   "timecalc.value.dayBefore": " ({n}일 전)",
   "timecalc.value.min": "{n}분",
   "timecalc.value.hour": "{n}시간",
-  "timecalc.value.lines": "{n}줄"
+  "timecalc.value.lines": "{n}줄",
+  "timecalc.copy": "결과 복사"
 }

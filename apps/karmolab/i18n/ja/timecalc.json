@@ -19,5 +19,6 @@
   "timecalc.value.dayBefore": "（{n}日前）",
   "timecalc.value.min": "{n}分",
   "timecalc.value.hour": "{n}時間",
-  "timecalc.value.lines": "{n}行"
+  "timecalc.value.lines": "{n}行",
+  "timecalc.copy": "結果をコピー"
 }

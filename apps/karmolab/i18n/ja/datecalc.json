@@ -57,5 +57,6 @@
   "datecalc.week.4": "木",
   "datecalc.week.5": "金",
   "datecalc.week.6": "土",
-  "datecalc.quick.add": "+{n}日"
+  "datecalc.quick.add": "+{n}日",
+  "datecalc.copy": "結果をコピー"
 }
