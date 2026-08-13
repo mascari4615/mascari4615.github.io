@@ -1,98 +1,779 @@
 {
   "id": "data-format",
-  "minutes": 11,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "연동 사고의 대부분은 알고리즘이 아니라 **「모양이 다름」**이다. 보내는 쪽과 받는 쪽이 서로 다른 그림을 상상하고 있었을 뿐."
-    },
-    {
-      "type": "h",
-      "text": "1. JSON — 편하지만 함정도 있다"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "자주 물리는 자리",
-      "text": "JSON.parse('{\"id\": 9007199254740993}');   // 정밀도 손실 — 큰 정수는 문자열로 주고받아라\nJSON.stringify({ d: new Date() });        // 문자열이 된다 (파싱하면 Date 가 아니다)\nJSON.stringify({ a: undefined });         // 키가 사라진다 ({} 가 된다)"
-    },
-    {
-      "type": "note",
-      "text": "숫자·날짜·큰 정수·undefined 는 특히 조심. 날짜는 **ISO 8601 문자열**(`2026-08-12T09:30:00+09:00`)로, 돈은 최소 단위 정수 또는 문자열로 주고받는 것이 안전하다."
-    },
-    {
-      "type": "h",
-      "text": "2. CSV — 단순해 보여서 위험하다"
-    },
-    {
-      "type": "p",
-      "text": "쉼표·따옴표·줄바꿈이 값 안에 들어가는 순간 손으로 쪼개면 깨진다. **반드시 파서를 쓴다.** 인코딩(UTF-8 vs EUC-KR)과 BOM 도 한국어에서 자주 문제를 만든다."
-    },
-    {
-      "type": "h",
-      "text": "3. 스키마로 못 박기"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "받는 쪽에서 검증한다",
-      "text": "import { z } from 'zod';\nconst Item = z.object({\n  id: z.string(),\n  price: z.number().int().nonnegative(),\n  createdAt: z.string().datetime(),\n});\nconst parsed = Item.array().parse(await res.json());   // 틀리면 여기서 즉시 실패"
-    },
-    {
-      "type": "note",
-      "text": "「나중에 터지는 것」보다 **경계에서 즉시 실패**하는 편이 훨씬 싸다. 그리고 스키마가 곧 문서가 된다."
-    },
-    {
-      "type": "h",
-      "text": "4. 버전과 호환"
-    },
-    {
-      "type": "p",
-      "text": "필드 **추가는 안전**, 삭제·이름 변경·의미 변경은 깨뜨린다. 바꿔야 하면 새 필드를 더하고 한동안 둘 다 채운 뒤 옛 필드를 지운다 — 배포 순서가 다른 클라이언트가 있기 때문이다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "남에게 주는 API 응답 하나의 스키마를 적어 저장소에 넣어라. 그리고 받는 쪽에 검증을 붙여 일부러 틀린 값을 보내 보라."
-    },
-    {
-      "type": "try",
-      "text": "KarmoLab 의 **CSV ↔ JSON 변환기**(칸의 ▶ 단추)에 따옴표·줄바꿈이 든 값을 넣어 어떻게 이스케이프되는지 확인하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "큰 정수 ID 를 JSON 으로 주고받을 때 안전한 방법은?",
-      "choices": [
-        "문자열로 주고받는다",
-        "number 로 그대로",
-        "실수로 변환"
+      "id": "1",
+      "title": "연동 사고는 「모양이 다름」이다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "시스템 연동 사고의 대부분은 알고리즘이 아니라 **「모양이 다름」**이다 — 보내는 쪽과 받는 쪽이 서로 다른 그림을 상상하고 있었을 뿐. 「이 필드가 문자열인 줄 알았는데 숫자였다」·「날짜 형식이 달랐다」·「이 필드가 없을 수 있는 줄 몰랐다」·「큰 정수가 잘렸다」. 코드는 각자 맞는데, 두 쪽의 **데이터 모양(스키마)에 대한 가정**이 어긋나 터진다. 그래서 연동에선 **모양을 명시적으로 합의**(스키마·계약)하는 게 핵심이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "모양 불일치 — 각자 다른 상상",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.no { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const agree = '{{agree}}' === 'yes';\n  if (!agree) {\n    render('모양을 안 맞추면',\n      '  보내는 쪽: price 는 숫자 20000\\n  받는 쪽: price 는 문자열 \"20000\" 이라 가정\\n\\n' +\n      '  <span class=\\\"no\\\">각자 코드는 맞는데 가정이 어긋나 런타임에 터짐(모양이 다름).</span>',\n      '두 쪽이 데이터 모양을 다르게 상상하면, 코드가 맞아도 연동이 깨진다.',\n      cmp('보내는 쪽', '{ price: 20000 }\\n// 숫자', '받는 쪽', 'price.toFixed(2)\\n// 문자열 가정\\n→ 터짐'));\n  } else {\n    render('모양을 명시적으로 합의',\n      '  스키마로 못 박음: price = 정수(최소 단위), 필수\\n\\n' +\n      '  <span class=\\\"ok\\\">두 쪽이 같은 모양을 공유 + 경계에서 검증 → 어긋나면 즉시 잡힘.</span>',\n      '모양을 스키마로 합의하고 경계에서 검증하면 불일치가 즉시 드러난다.',\n      cmp('공유 스키마', 'price: integer\\n(최소 단위, 필수)', '양쪽', '같은 계약 준수\\n+ 경계 검증\\n→ 안전'));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "agree",
+              "label": "모양 합의",
+              "type": "select",
+              "value": "no",
+              "options": [
+                {
+                  "value": "no",
+                  "label": "안 맞춤(어긋남)"
+                },
+                {
+                  "value": "yes",
+                  "label": "스키마로 합의"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**연동의 핵심은 데이터 「모양」을 명시적으로 합의하는 것 — 코드가 아니라 가정이 어긋나 터진다.** 두 시스템이 데이터를 주고받을 때, 각자의 코드는 완벽해도 「이 데이터가 어떻게 생겼나」에 대한 가정이 다르면 연동이 깨진다: 타입(숫자 vs 문자열), 형식(날짜 표현), 존재성(이 필드가 없을 수 있나), 크기(큰 정수). 이 「모양」이 곧 **스키마/계약**이다. 그래서 연동을 안정적으로 하려면 ① 모양을 **명시적으로** 정하고(스키마, 4장) ② 그걸 **양쪽이 공유**하고(계약, 8장) ③ **경계에서 검증**해(들어오는 데이터가 그 모양인지, 4장) 어긋나면 즉시 잡는다. 「그냥 JSON 주고받으면 되겠지」로 시작해 모양을 안 합의하면, 나중에 「이 필드가 왜 이래?」로 디버깅한다. 이 칸은 그 모양을 다루는 법 — 형식(JSON·CSV·바이너리), 그 함정, 스키마, 버전 호환, 인코딩이다."
+        },
+        {
+          "type": "p",
+          "text": "**데이터 형식은 「경계」의 언어다.** 시스템 안에서는 언어의 타입(lang-types)이 모양을 지키지만, 시스템 **경계**(API·파일·메시지)를 넘을 때는 데이터가 언어 중립적 형식(JSON·CSV·바이너리)으로 **직렬화**된다 — 그리고 받는 쪽이 다시 **역직렬화**해 자기 타입으로 만든다. 이 직렬화-역직렬화 사이에서 모양이 어긋나면 사고다(lang-types 3장의 「경계에서 검증」과 정확히 같은 지점). 그래서 데이터 형식을 이해하는 건 「경계를 넘는 데이터의 모양을 통제하는」 것이고, 이건 API(api-resource·api-doc)·큐(data-queue)·파일·연동 전부에 적용된다. 「우리 시스템 안」과 「경계 밖」의 데이터를 구분하고, 경계에서 모양을 명시·검증하는 게 이 칸의 관통 주제다."
+        },
+        {
+          "type": "try",
+          "text": "네가 겪은 연동 사고를 떠올려 「모양이 달라서」인 경우를 찾아라 — 타입·날짜 형식·필드 존재·큰 정수 중 무엇이 어긋났나. 그 모양이 명시적으로 합의(스키마)돼 있었는지 확인하라."
+        }
       ],
-      "answer": 0,
-      "why": "JS 의 number 는 2^53 을 넘으면 정밀도를 잃는다."
+      "quiz": [
+        {
+          "q": "연동 사고의 대부분 원인은?",
+          "choices": [
+            "느린 알고리즘",
+            "「모양이 다름」 — 두 쪽의 데이터 가정 불일치",
+            "메모리",
+            "CPU"
+          ],
+          "answer": 1,
+          "why": "스키마 합의로 방지."
+        },
+        {
+          "q": "데이터 형식이 중요한 지점은?",
+          "choices": [
+            "시스템 안",
+            "경계(직렬화-역직렬화) — 모양이 어긋나는 곳",
+            "CPU",
+            "메모리"
+          ],
+          "answer": 1,
+          "why": "경계의 언어."
+        },
+        {
+          "q": "모양 불일치를 막는 방법은?",
+          "choices": [
+            "코드 최적화",
+            "모양을 스키마로 합의·공유하고 경계에서 검증",
+            "캐시",
+            "재시도"
+          ],
+          "answer": 1,
+          "why": "가정을 명시."
+        }
+      ]
     },
     {
-      "q": "CSV 를 다룰 때 반드시 지킬 것은?",
-      "choices": [
-        "split(\",\") 로 직접 쪼갠다",
-        "파서를 쓰고 인코딩을 명시한다",
-        "엑셀로만 연다"
+      "id": "2",
+      "title": "JSON — 편하지만 함정이 있다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**JSON** 은 웹의 기본 형식 — 사람이 읽기 쉽고 어디서나 지원된다. 하지만 함정이 있다: **큰 정수**(9007199254740993 같은)는 JS 의 숫자 정밀도를 넘어 **손실**된다(문자열로 주고받아라) · **날짜 타입이 없다**(ISO 8601 문자열로, `2026-08-12T09:30:00+09:00`) · **undefined·함수·특수 숫자**(NaN·Infinity)는 표현 못 함 · **소수**는 부동소수라 금액엔 부적합(문자열·정수). 「편하다」에 기대 이 함정을 모르면 숫자·날짜·큰 정수에서 조용히 틀어진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "JSON 함정 — 무엇을 조심하나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.no { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const trap = '{{trap}}';\n  const cases = {\n    bigint:['큰 정수', 'JSON.parse(\\'{\"id\": 9007199254740993}\\') → 992(손실!)', '큰 정수는 문자열로 주고받아라 (id·금액)'],\n    date: ['날짜', 'JSON 에 날짜 타입 없음 → 제각각 형식으로 어긋남', 'ISO 8601 문자열: 2026-08-12T09:30:00+09:00'],\n    undef:['undefined·특수값', 'undefined·함수·NaN·Infinity 는 표현 못 함(빠지거나 null)', '이런 값을 넣지 말고 명시적으로(null·0)'],\n    float:['소수(금액)', '0.1+0.2 오차 → 금액에 부동소수 위험', '금액은 정수(최소 단위)나 문자열(math-money·data-model)'],\n  }[trap];\n  render('JSON 함정: ' + cases[0],\n    '  문제: <span class=\\\"no\\\">' + cases[1] + '</span>\\n  대처: <span class=\\\"ok\\\">' + cases[2] + '</span>',\n    '큰 정수·날짜·undefined·소수 — JSON 의 함정. 조용히 틀어진다.',\n    box(cases[0], cases[2]));\n</script>",
+          "controls": [
+            {
+              "id": "trap",
+              "label": "함정",
+              "type": "select",
+              "value": "bigint",
+              "options": [
+                {
+                  "value": "bigint",
+                  "label": "큰 정수"
+                },
+                {
+                  "value": "date",
+                  "label": "날짜"
+                },
+                {
+                  "value": "undef",
+                  "label": "undefined·특수값"
+                },
+                {
+                  "value": "float",
+                  "label": "소수(금액)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "JSON 함정",
+          "text": "JSON.parse('{\"id\": 9007199254740993}');  // → 9007199254740992 (정밀도 손실!)\n//   큰 정수(64bit id·금액)는 문자열로: {\"id\": \"9007199254740993\"}\n\nJSON.stringify({ a: undefined, b: () => {} });  // → \"{}\" (사라짐)\n//   undefined·함수·NaN·Infinity 는 표현 못 함\n\n// 날짜: JSON 에 타입 없음 → ISO 8601 문자열로\n{ \"createdAt\": \"2026-08-12T09:30:00+09:00\" }\n// 금액: 부동소수 대신 정수(최소 단위)나 문자열"
+        },
+        {
+          "type": "note",
+          "text": "**JSON 의 함정은 숫자·날짜·큰 정수·undefined 에 몰려 있다 — 조용히 틀어지니 특히 조심하라.** JSON 은 편하지만 표현력에 한계가 있다: ① **큰 정수** — JS 의 number 는 2^53 까지만 정확해, 64bit id·큰 금액은 파싱 시 **손실**된다(문자열로 주고받아 해결) ② **날짜 타입 없음** — JSON 엔 날짜가 없어 제각각 형식(타임스탬프·`MM/DD/YYYY`·`YYYY-MM-DD`)으로 어긋난다(**ISO 8601 문자열** `2026-08-12T09:30:00+09:00` 로 통일, 타임존 포함) ③ **undefined·함수·특수 숫자**(NaN·Infinity)는 표현 못 해 사라지거나 null 이 된다 ④ **소수** — 부동소수라 금액에 부적합(정수 최소 단위·문자열, math-money·data-model 5장). 이 함정들은 에러 없이 **조용히** 틀어져(9007199254740993 이 992 가 됨) 나중에 발견되니, 「JSON 이니 아무거나 넣으면 되겠지」가 위험하다. 특히 **id·금액·날짜**는 형식을 명시적으로 정한다."
+        },
+        {
+          "type": "p",
+          "text": "**그래도 JSON 이 기본인 이유 — 사람이 읽고 어디서나 통한다.** 함정에도 불구하고 JSON 이 웹의 표준인 건 ① **가독성**(사람이 열어 보고 디버깅) ② **범용성**(모든 언어·도구가 지원) ③ **유연성**(스키마 없이 시작 가능) 때문이다. 그래서 대부분의 웹 API·설정·로그에 JSON 을 쓰되, 그 함정을 아는 채로 쓴다: id·금액은 문자열, 날짜는 ISO 8601, 스키마로 검증(4장). 성능·크기가 중요하거나(바이너리, 6장) 엄격한 스키마가 필요하면(Protobuf) 다른 형식을 고르지만, 기본은 JSON 이고 그 함정만 피하면 대부분 충분하다. 「편해서 아무렇게나」가 아니라 「편하니 쓰되 함정을 안다」가 JSON 을 다루는 태도다."
+        },
+        {
+          "type": "try",
+          "text": "큰 정수(2^53 초과)를 JSON 으로 주고받아 손실되는지 확인하고, 문자열로 바꿔 해결하라. 날짜를 ISO 8601 로 통일하고, 금액에 부동소수를 쓰지 않는지 점검하라."
+        }
       ],
-      "answer": 1,
-      "why": "값 안의 쉼표·따옴표·줄바꿈 때문에 수동 분리는 깨진다."
+      "quiz": [
+        {
+          "q": "JSON 에서 큰 정수(64bit id)를 다루는 법은?",
+          "choices": [
+            "그냥 숫자로",
+            "문자열로 주고받기(정밀도 손실 방지)",
+            "무시",
+            "반올림"
+          ],
+          "answer": 1,
+          "why": "2^53 넘으면 손실."
+        },
+        {
+          "q": "JSON 에서 날짜를 표현하는 권장 방법은?",
+          "choices": [
+            "타임스탬프 숫자만",
+            "ISO 8601 문자열(타임존 포함)",
+            "MM/DD/YYYY",
+            "제각각"
+          ],
+          "answer": 1,
+          "why": "타입이 없음."
+        },
+        {
+          "q": "JSON 함정의 공통점은?",
+          "choices": [
+            "에러가 크게 남",
+            "조용히 틀어짐(숫자·날짜·큰 정수) — 명시적 형식 필요",
+            "느림",
+            "메모리"
+          ],
+          "answer": 1,
+          "why": "편하다에 기대면 위험."
+        }
+      ]
     },
     {
-      "q": "API 응답에 호환성을 유지하며 변경하는 방법은?",
-      "choices": [
-        "필드를 추가하고 한동안 둘 다 채운 뒤 옛 것을 제거",
-        "이름을 바로 바꾼다",
-        "필드를 즉시 삭제"
+      "id": "3",
+      "title": "CSV — 단순해 보여서 위험하다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**CSV**(쉼표로 구분된 값)는 단순해 보여서 위험하다. **쉼표·따옴표·줄바꿈이 값 안에** 들어가는 순간, 손으로 `split(',')` 하면 깨진다 — `\"서울, 강남\"` 은 한 값인데 쉼표로 쪼개면 둘이 된다. **반드시 파서를 쓴다**(따옴표·이스케이프를 올바로 처리). 또 **인코딩**(UTF-8 vs EUC-KR)과 **BOM**(파일 앞의 보이지 않는 바이트)이 깨짐의 흔한 원인이다. 「CSV 는 쉬우니 직접 쪼개자」가 가장 흔한 CSV 사고다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "CSV — 손 파싱의 함정",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.no { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'split') {\n    render('손으로 split(,) — 깨짐',\n      '  값에 쉼표: \"서울, 강남\",김철수 → split(,) → [\"서울, 강남 → 3조각(틀림)\\n' +\n      '  <span class=\\\"no\\\">따옴표 안 쉼표·줄바꿈을 처리 못 함 → 열이 밀림.</span>',\n      '값 안의 쉼표·따옴표·줄바꿈을 손으로 쪼개면 깨진다.',\n      table(['원본 CSV', 'split(,) 결과'], [['\"서울, 강남\",김철수',['[\"서울, 강남, 김철수] 밀림!','no']]]));\n  } else {\n    render('파서 사용 — 안전',\n      '  파서가 따옴표·이스케이프·줄바꿈을 올바로 처리\\n' +\n      '  <span class=\\\"ok\\\">\"서울, 강남\" = 한 값. + 인코딩·BOM 도 파서가 다룸.</span>',\n      '반드시 파서를 쓴다 — 따옴표·이스케이프·인코딩을 올바로.',\n      table(['원본 CSV', '파서 결과'], [['\"서울, 강남\",김철수',['[\"서울, 강남\", \"김철수\"] 정확','ok']]]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "방식",
+              "type": "select",
+              "value": "split",
+              "options": [
+                {
+                  "value": "split",
+                  "label": "손 split(깨짐)"
+                },
+                {
+                  "value": "parser",
+                  "label": "파서(안전)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**CSV 는 반드시 파서를 써라 — 값 안의 쉼표·따옴표·줄바꿈이 손 파싱을 깨뜨린다.** CSV 가 「쉼표로 나누면 되지」처럼 단순해 보이지만, 실제 규칙(RFC 4180)은 복잡하다: 값에 쉼표가 있으면 따옴표로 감싸고(`\"서울, 강남\"`), 값 안의 따옴표는 두 개로 이스케이프(`\"\"`), 값 안에 줄바꿈도 가능하다. 이걸 `split(',')`·`split('\\n')` 으로 손 처리하면 따옴표 안의 쉼표·줄바꿈에서 열·행이 밀려 데이터가 통째로 어긋난다. **검증된 CSV 파서**(각 언어의 표준 라이브러리)를 쓰면 이 규칙을 올바로 처리한다. 추가 함정: ① **인코딩** — 한글이 UTF-8 인지 EUC-KR 인지 안 맞으면 깨짐(엑셀은 지역별로 다름) ② **BOM** — 파일 앞의 보이지 않는 바이트가 첫 열 이름을 오염(`\\ufeff이름`) ③ **엑셀 자동 변환**(전화번호 앞 0 삭제·큰 수 지수 표기·날짜 오인식). 「CSV 는 쉬우니 직접」이 가장 흔한 사고다."
+        },
+        {
+          "type": "p",
+          "text": "**CSV 는 사람·엑셀 교환용, 시스템 연동엔 JSON·구조화 형식이 낫다.** CSV 의 장점은 엑셀·스프레드시트로 열리고 사람이 편집하기 쉬운 것 — 그래서 리포트 내보내기·업로드에 흔하다. 하지만 CSV 는 ① **타입이 없다**(전부 문자열 — 숫자·날짜·불리언이 문자열로, 파싱 시 해석 필요) ② **중첩·구조를 표현 못 한다**(평면 테이블만 — 객체·배열은 억지로) ③ 방언이 많다(구분자·인코딩·따옴표 규칙이 제각각). 그래서 시스템 간 연동엔 타입·구조가 있는 JSON(또는 스키마 있는 형식, 6장)이 낫고, CSV 는 「사람·엑셀과 주고받는 경계」에 쓴다. CSV 를 쓸 땐 파서 + 인코딩(UTF-8) 명시 + 스키마 검증(4장)으로 함정을 막는다. KarmoLab 의 CSV↔JSON 변환기가 이 이스케이프·인코딩을 올바로 처리하는 예다."
+        },
+        {
+          "type": "try",
+          "text": "KarmoLab 의 CSV↔JSON 변환기에 따옴표·쉼표·줄바꿈이 든 값을 넣어 어떻게 이스케이프되는지 확인하라. 손으로 split(',') 했을 때 깨지는 것과, 파서가 올바로 처리하는 것을 비교하라. 인코딩(UTF-8)·BOM 도 점검하라."
+        }
       ],
-      "answer": 0,
-      "why": "배포 시점이 다른 클라이언트가 함께 돌기 때문이다."
+      "quiz": [
+        {
+          "q": "CSV 를 다룰 때 반드시 해야 할 것은?",
+          "choices": [
+            "split(,) 로 직접",
+            "검증된 파서 사용(따옴표·이스케이프·줄바꿈)",
+            "무시",
+            "정규식"
+          ],
+          "answer": 1,
+          "why": "손 파싱은 깨짐."
+        },
+        {
+          "q": "CSV 깨짐의 흔한 원인이 아닌 것은?",
+          "choices": [
+            "값 안의 쉼표·줄바꿈",
+            "인코딩(UTF-8 vs EUC-KR)·BOM",
+            "엑셀 자동 변환",
+            "빠른 CPU"
+          ],
+          "answer": 3,
+          "why": "형식·인코딩 문제."
+        },
+        {
+          "q": "CSV 가 시스템 연동에 부적합한 이유는?",
+          "choices": [
+            "느림",
+            "타입 없음·중첩 표현 못 함·방언 많음",
+            "크기",
+            "보안"
+          ],
+          "answer": 1,
+          "why": "사람·엑셀 교환용."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "스키마로 못 박기",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "데이터 모양을 **스키마**로 못 박아 양쪽이 공유하고, **경계에서 검증**한다 — 들어오는 데이터가 그 스키마인지 확인해 아니면 **즉시 실패**시킨다(zod·JSON Schema·Protobuf). 「나중에 (엉뚱한 곳에서) 터지는 것」보다 **경계에서 즉시 실패**하는 편이 훨씬 싸다 — 어느 필드가 왜 틀렸는지 그 자리에서 안다(lang-types 3장). 그리고 **스키마가 곧 문서**가 된다 — 「이 API 가 무엇을 주고받나」를 스키마가 정확히 말한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스키마 검증 — 경계에서 즉시 실패",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.no { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'none') {\n    render('스키마 검증 없이',\n      '  틀린 모양(price 가 문자열)을 그냥 받음 → 안쪽 깊이 흘러감\\n' +\n      '  <span class=\\\"no\\\">한참 뒤 엉뚱한 곳(price.toFixed)에서 터짐 → 원인 추적 어려움.</span>',\n      '검증 없이 받으면 틀린 데이터가 안쪽에서 늦게 터져 추적이 어렵다.',\n      steps([['경계: 무검증 통과', 'bad'],['안쪽으로 흘러감', 'bad'],['한참 뒤 엉뚱한 곳에서 터짐', 'bad']]));\n  } else {\n    render('경계에서 스키마 검증',\n      '  Item.parse(입력) → 모양 다르면 그 자리에서 실패(어느 필드가 왜)\\n' +\n      '  <span class=\\\"ok\\\">경계에서 즉시 잡힘 + 스키마가 곧 문서.</span>',\n      '경계에서 스키마로 검증하면 어긋남이 즉시·명확히 잡히고, 스키마가 문서가 된다.',\n      steps([['경계: Item.parse(입력)', 'on'],['모양 다르면 즉시 실패(필드·이유)', 'good'],['통과한 것만 안으로(안쪽은 신뢰)', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "검증",
+              "type": "select",
+              "value": "none",
+              "options": [
+                {
+                  "value": "none",
+                  "label": "없음(늦게 터짐)"
+                },
+                {
+                  "value": "schema",
+                  "label": "스키마(즉시)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "스키마로 못 박기",
+          "text": "import { z } from 'zod';\nconst Item = z.object({\n  id: z.string(),\n  price: z.number().int().nonnegative(),\n  createdAt: z.string().datetime(),   // ISO 8601\n});\ntype Item = z.infer<typeof Item>;     // 스키마에서 타입 자동 도출\n\nconst item = Item.parse(input);       // 모양 다르면 여기서 즉시 실패\n// 「나중에 터지는 것」보다 경계에서 즉시 실패가 훨씬 싸다\n// 스키마 = 검증 + 타입 + 문서 (한 소스)"
+        },
+        {
+          "type": "note",
+          "text": "**모양을 스키마로 못 박고 경계에서 검증하라 — 경계에서 즉시 실패가 나중에 터지는 것보다 싸다.** 데이터 형식의 함정(2·3장)을 근본적으로 막는 건 스키마다: 「id 는 문자열, price 는 음수 아닌 정수, createdAt 은 ISO 8601」처럼 모양을 명시하고, 경계에서 들어오는 데이터를 그 스키마로 **검증**한다(zod·JSON Schema·Protobuf). 통과 못 하면 **경계에서 즉시**(어느 필드가 왜 틀렸는지 명확히) 실패한다 — 검증 없이 통과시켜 안쪽 깊숙이 흘러가 엉뚱한 곳에서 터지는 것보다(원인 추적 지옥) 훨씬 싸다(lang-types 3장의 「경계에서 검증」). 게다가 스키마는 **세 가지를 한 소스로** 준다: 검증(런타임) + 타입(코드) + 문서(사람) — 스키마 하나가 어긋나지 않는 세 역할을 한다. 「이 API 가 무엇을 주고받나」를 말로 설명하는 대신 스키마로 못 박으면, 그게 곧 계약이자 문서이자 검증이다."
+        },
+        {
+          "type": "p",
+          "text": "**스키마는 양쪽이 공유하는 「계약」이다 — 1장의 「모양 합의」를 코드로 만든 것.** 스키마의 진짜 가치는 보내는 쪽과 받는 쪽이 **같은 스키마**를 공유할 때 나온다 — 그러면 두 쪽의 「모양에 대한 가정」이 어긋날 수 없다(1장). 그래서 스키마를 한곳(공유 파일·스키마 레지스트리·OpenAPI, 8장)에 두고 양쪽이 참조하거나, 스키마에서 양쪽의 타입·검증 코드를 **생성**한다. 이러면 스키마가 바뀌면 양쪽이 함께 바뀌어 드리프트가 없다. 「우리 API 스펙 문서」가 코드와 따로 놀며 낡는 문제(api-doc)도 스키마를 단일 소스로 하면 사라진다 — 문서·타입·검증이 스키마에서 파생되니 항상 일치한다. 데이터 형식의 안정성은 결국 「모양을 스키마로 명시하고, 양쪽이 공유하고, 경계에서 검증」의 삼박자다."
+        },
+        {
+          "type": "try",
+          "text": "남에게 주는 API 응답 하나의 스키마를 적어 저장소에 넣어라. 받는 쪽에 검증(zod·JSON Schema)을 붙이고 일부러 틀린 값(문자열 price·빠진 필드)을 보내, 경계에서 즉시·명확히 실패하는지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "데이터 모양을 스키마로 못 박는 이유는?",
+          "choices": [
+            "빠름",
+            "경계에서 즉시 검증·실패 + 스키마가 문서·타입",
+            "메모리",
+            "압축"
+          ],
+          "answer": 1,
+          "why": "나중에 터지는 것보다 싸다."
+        },
+        {
+          "q": "스키마 하나가 주는 세 가지는?",
+          "choices": [
+            "속도·크기·보안",
+            "검증(런타임) + 타입(코드) + 문서(사람)",
+            "읽기·쓰기·삭제",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "한 소스."
+        },
+        {
+          "q": "스키마를 양쪽이 공유하면?",
+          "choices": [
+            "느려짐",
+            "모양 가정이 어긋날 수 없음(드리프트 없는 계약)",
+            "메모리",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "1장의 모양 합의."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "버전과 호환",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "데이터 형식은 **진화한다** — 문제는 옛 버전과 새 버전이 **공존**한다는 것이다(옛 클라이언트가 아직 옛 모양을 보냄/기대함). 규칙: **필드 추가는 안전**(옛 쪽은 새 필드를 무시), **삭제·이름 변경·의미 변경은 깨뜨린다**(옛 쪽이 그 필드에 의존). 바꿔야 하면 **새 필드를 더하고 한동안 둘 다 채운 뒤 옛 필드를 지운다**(expand-contract, data-model 8장) — 배포 순서를 지켜 옛·새 버전이 공존하는 동안 둘 다 동작하게 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "변경 — 안전한 것과 깨뜨리는 것",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.no { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const change = '{{change}}';\n  const cases = {\n    add: ['필드 추가', 'good', '옛 클라이언트는 새 필드를 무시 → 안 깨짐(하위 호환)'],\n    remove:['필드 삭제', 'bad', '옛 클라이언트가 그 필드에 의존 → 깨짐'],\n    rename:['이름 변경', 'bad', '옛 쪽이 옛 이름을 찾음 → 못 찾아 깨짐(삭제+추가와 같음)'],\n    meaning:['의미 변경', 'bad', '같은 필드인데 뜻이 바뀜(초→밀리초) → 조용히 틀어짐(최악)'],\n  }[change];\n  render('변경: ' + cases[0],\n    (cases[1]==='good'\n      ? '  <span class=\\\"ok\\\">' + cases[2] + '</span>'\n      : '  <span class=\\\"no\\\">' + cases[2] + '</span>'),\n    '필드 추가는 안전, 삭제·이름·의미 변경은 깨뜨린다. 바꾸려면 expand-contract.',\n    box(cases[0], cases[2], cases[1]==='good'?'good':'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "change",
+              "label": "변경",
+              "type": "select",
+              "value": "add",
+              "options": [
+                {
+                  "value": "add",
+                  "label": "필드 추가"
+                },
+                {
+                  "value": "remove",
+                  "label": "삭제"
+                },
+                {
+                  "value": "rename",
+                  "label": "이름 변경"
+                },
+                {
+                  "value": "meaning",
+                  "label": "의미 변경"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "안전한 스키마 변경 (expand-contract)",
+          "text": "필드 추가          안전 (옛 쪽은 무시)\n필드 삭제·이름 변경  깨짐 (옛 쪽이 의존)\n필드 의미 변경      최악 (조용히 틀어짐 — 초→밀리초 등)\n\n바꿔야 하면 (예: oldName → newName):\n1) newName 추가 (둘 다 존재)\n2) 한동안 둘 다 채움 (옛·새 클라이언트 모두 동작)\n3) 모든 클라이언트가 newName 쓰게 이행\n4) oldName 제거\n→ 옛·새 버전 공존 기간에 둘 다 동작 (배포 순서 지킴)"
+        },
+        {
+          "type": "note",
+          "text": "**필드 추가는 안전(하위 호환), 삭제·이름·의미 변경은 깨뜨린다 — 바꾸려면 expand-contract 로 공존시켜라.** 데이터 형식이 바뀔 때 핵심은 **옛 버전과 새 버전이 공존**한다는 것 — 옛 클라이언트·옛 데이터가 아직 돌고 있다. **필드 추가**는 안전하다(옛 쪽은 모르는 필드를 무시하니까, forward compatibility). 하지만 **삭제·이름 변경**은 그 필드에 의존하던 옛 쪽을 깨뜨리고, 가장 위험한 건 **의미 변경**(같은 필드 이름인데 뜻이 바뀜 — 초를 밀리초로, 다른 단위로) — 이건 에러 없이 **조용히** 틀어져 최악이다. 그래서 파괴적 변경은 **expand-contract**(data-model 8장): ① 새 것을 추가하고 ② 한동안 둘 다 채워 옛·새 클라이언트 모두 동작하게 하고 ③ 모두 이행한 뒤 ④ 옛 것을 제거한다. 배포 순서를 지켜(보내는 쪽·받는 쪽) 공존 기간에 항상 둘 다 동작하게 한다. 「모양은 바꾸기 어렵다」(data-model 1장)가 형식에도 적용된다 — 공개된 형식일수록 신중히."
+        },
+        {
+          "type": "p",
+          "text": "**관대하게 받고 엄격하게 보내라(로버스트니스 원칙) — 단, 검증과 균형을 잡는다.** 형식 진화를 견디는 오랜 지혜: **받을 때는 관대하게**(모르는 필드는 무시하고, 없어도 되는 필드는 기본값으로 — 그래야 새 필드가 추가돼도 안 깨짐), **보낼 때는 엄격하게**(스펙을 정확히 지켜 상대가 예측 가능하게). 이게 「필드 추가가 안전한」 이유이자, 관대한 파싱이 호환성을 돕는 원리다. 단 주의: **관대함이 검증을 포기하는 건 아니다**(4장) — 「모르는 필드 무시」는 괜찮지만 「필수 필드 없어도 통과」는 위험하다. 그래서 「알려진 필드는 엄격히 검증, 모르는 필드는 관대히 무시」가 균형이다. 그리고 너무 관대하면 상대의 실수를 숨겨 나중에 문제를 키우니(모호함 전파), 명백한 오류는 경계에서 잡는다. 「추가에 열려 있되(관대), 계약은 지키게(엄격)」가 형식 호환성의 태도다."
+        },
+        {
+          "type": "try",
+          "text": "네 API·데이터 형식에 필드를 추가해 옛 클라이언트가 안 깨지는지(무시하는지) 확인하라. 필드를 바꿔야 한다면 한 번에 이름 변경 대신 expand-contract(새 필드 추가→둘 다 채움→이행→옛것 제거)로 계획하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "데이터 형식에서 안전한 변경은?",
+          "choices": [
+            "필드 삭제",
+            "필드 추가(옛 쪽은 무시)",
+            "이름 변경",
+            "의미 변경"
+          ],
+          "answer": 1,
+          "why": "하위 호환."
+        },
+        {
+          "q": "가장 위험한(조용히 틀어지는) 변경은?",
+          "choices": [
+            "필드 추가",
+            "의미 변경(같은 이름, 다른 뜻 — 초→밀리초)",
+            "주석 추가",
+            "포맷팅"
+          ],
+          "answer": 1,
+          "why": "에러 없이 틀림."
+        },
+        {
+          "q": "필드를 바꿔야 할 때는?",
+          "choices": [
+            "한 번에 rename",
+            "expand-contract(추가→둘 다→이행→제거)",
+            "삭제 후 추가",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "공존 기간 둘 다 동작."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "텍스트 vs 바이너리",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "형식은 크게 **텍스트**(JSON·XML·YAML — 사람이 읽음)와 **바이너리**(Protobuf·MessagePack·Avro — 기계가 읽음)로 나뉜다. 텍스트는 **가독성·범용성**이 강점, 바이너리는 **크기·속도·엄격한 스키마**가 강점이다. 대부분의 웹 API 는 JSON(텍스트)으로 충분하고, **성능·크기가 중요한 내부 통신**(마이크로서비스 간·대용량)에 바이너리를 쓴다. 「사람이 봐야 하나, 기계 성능이 중요한가」로 고른다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "텍스트 vs 바이너리",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.no { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'text') {\n    render('텍스트 (JSON·XML·YAML)',\n      '  {\"id\": \"42\", \"price\": 20000}  — 사람이 읽고 디버깅\\n' +\n      '  <span class=\\\"ok\\\">가독성·범용성·유연성.</span> <span class=\\\"dim\\\">단 크고 느림(파싱·전송).</span>',\n      '텍스트: 사람이 읽기 쉽고 어디서나. 크기·속도는 약점.',\n      box('텍스트', '가독성·범용·유연 / 크다·느리다\\n웹 API·설정·로그', 'good'));\n  } else {\n    render('바이너리 (Protobuf·MessagePack·Avro)',\n      '  스키마 기반 압축 인코딩 — 작고 빠름\\n' +\n      '  <span class=\\\"ok\\\">작다·빠르다·엄격한 스키마.</span> <span class=\\\"dim\\\">단 사람이 못 읽음·도구 필요.</span>',\n      '바이너리: 작고 빠르고 스키마 엄격. 사람이 못 읽음(도구 필요).',\n      box('바이너리', '작다·빠르다·스키마 엄격 / 사람이 못 읽음\\n내부 통신·대용량·성능 임계', 'good'));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "형식",
+              "type": "select",
+              "value": "text",
+              "options": [
+                {
+                  "value": "text",
+                  "label": "텍스트(JSON)"
+                },
+                {
+                  "value": "binary",
+                  "label": "바이너리(Protobuf)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**텍스트는 가독성·범용성, 바이너리는 크기·속도·스키마 엄격성 — 「사람이 봐야 하나, 성능이 중요한가」로 고른다.** JSON·XML·YAML 같은 **텍스트** 형식은 사람이 열어 보고 디버깅하기 쉽고 모든 언어가 지원해 웹 API·설정·로그의 기본이다 — 대신 크고(필드 이름이 매번 반복) 파싱이 상대적으로 느리다. Protobuf·MessagePack·Avro 같은 **바이너리** 형식은 스키마 기반으로 압축돼 **작고 빠르며**(필드를 번호로, 값만 촘촘히), 스키마가 강제라 모양 안정성도 높다 — 대신 사람이 못 읽어 도구가 필요하고 스키마를 미리 정의해야 한다. 그래서 **웹 API·외부 연동은 JSON**(범용·가독), **마이크로서비스 간 내부 통신·대용량·성능 임계 경로는 바이너리**(gRPC=Protobuf)가 흔한 조합이다. 「사람이 이 데이터를 직접 봐야 하나?(텍스트) 아니면 기계 성능·크기가 중요한가?(바이너리)」로 고르고, 대부분의 경우 JSON 으로 시작해 성능이 문제될 때 바이너리를 고려한다."
+        },
+        {
+          "type": "p",
+          "text": "**바이너리 스키마 형식은 버전 호환을 스키마로 관리한다(5장과 연결).** Protobuf·Avro 같은 형식은 필드에 **번호**를 붙여(이름 대신), 이름을 바꿔도 번호가 같으면 호환되고, 필드 추가는 새 번호로 안전하다 — 5장의 「추가는 안전, 이름 변경 주의」가 번호 기반으로 더 견고해진다. 그리고 스키마가 **명시적 파일**(`.proto`)이라 양쪽이 공유하고 코드를 생성한다(8장) — 모양 합의(1·4장)가 형식에 내장돼 있다. 그래서 엄격한 계약·성능·진화가 중요한 시스템(대규모 마이크로서비스)에서 바이너리 스키마 형식이 강하다. 반면 「빠르게 시작·사람이 디버깅·유연성」이 중요하면 JSON 이 낫다. 정리: **JSON = 유연·가독의 기본, 바이너리 스키마 = 성능·엄격·진화가 중요할 때**. 둘 다 「모양을 다루는」 도구이고, 프로젝트 요구로 고른다 — 대부분은 JSON 으로 충분하고, 필요가 명확할 때 바이너리로 간다."
+        },
+        {
+          "type": "try",
+          "text": "네 시스템의 데이터 교환이 텍스트(JSON)인지 바이너리인지 확인하고, 각 경계에서 그 선택이 맞는지 판단하라 — 외부·디버깅 필요는 JSON, 내부 고성능·대용량은 바이너리가 나을지. 같은 데이터의 JSON 크기와 바이너리(MessagePack 등) 크기를 비교해 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "텍스트 형식(JSON)의 강점은?",
+          "choices": [
+            "작음·빠름",
+            "가독성·범용성·유연성",
+            "스키마 엄격",
+            "압축"
+          ],
+          "answer": 1,
+          "why": "사람이 읽음."
+        },
+        {
+          "q": "바이너리 형식(Protobuf)의 강점은?",
+          "choices": [
+            "가독성",
+            "작고 빠르고 스키마 엄격",
+            "유연성",
+            "범용"
+          ],
+          "answer": 1,
+          "why": "성능·엄격."
+        },
+        {
+          "q": "형식 선택 기준은?",
+          "choices": [
+            "항상 바이너리",
+            "사람이 봐야 하나(텍스트) vs 성능·크기 중요(바이너리)",
+            "항상 JSON",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "요구로 고름."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "인코딩과 문자",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "텍스트 데이터가 깨지는 근본 원인은 **인코딩** 불일치다 — 바이트를 문자로 해석하는 규칙(UTF-8·EUC-KR·Latin-1)이 보내는 쪽과 받는 쪽이 다르면 한글·이모지가 `???`·`ï¿½`(모지바케)로 깨진다. 원칙: **어디서나 UTF-8** 을 쓰고, 파일·HTTP 에 인코딩을 **명시**한다(`charset=utf-8`). 추가 함정: **BOM**(파일 앞 보이지 않는 바이트), **정규화**(같은 글자의 다른 표현 — 한글 조합/완성형), **이스케이프**(HTML·URL·JSON 에서 특수 문자)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "인코딩 — 깨짐과 UTF-8",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.no { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'mismatch') {\n    render('인코딩 불일치 — 모지바케',\n      '  UTF-8 로 쓴 「안녕」을 EUC-KR 로 읽음 → ï¿½ï¿½ 깨짐\\n' +\n      '  <span class=\\\"no\\\">바이트 해석 규칙이 다르면 한글·이모지가 깨진다(mojibake).</span>',\n      '보내는 쪽·받는 쪽 인코딩이 다르면 글자가 깨진다.',\n      table(['원본(UTF-8)', 'EUC-KR 로 읽음'], [['안녕 😀',['ï¿½ï¿½ ??? (깨짐)','no']]]));\n  } else {\n    render('UTF-8 통일 + 명시',\n      '  양쪽 UTF-8 + charset=utf-8 명시 → 한글·이모지 정상\\n' +\n      '  <span class=\\\"ok\\\">어디서나 UTF-8, 인코딩을 명시. BOM·정규화도 주의.</span>',\n      '어디서나 UTF-8 을 쓰고 인코딩을 명시하면 깨지지 않는다.',\n      table(['원본(UTF-8)', 'UTF-8 로 읽음'], [['안녕 😀',['안녕 😀 (정상)','ok']]]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "인코딩",
+              "type": "select",
+              "value": "mismatch",
+              "options": [
+                {
+                  "value": "mismatch",
+                  "label": "불일치(깨짐)"
+                },
+                {
+                  "value": "utf8",
+                  "label": "UTF-8 통일"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**어디서나 UTF-8 을 쓰고 인코딩을 명시하라 — 인코딩 불일치가 텍스트 깨짐의 근본 원인이다.** 컴퓨터는 텍스트를 바이트로 저장하고, **인코딩**이 그 바이트를 문자로 해석하는 규칙이다 — 보내는 쪽이 UTF-8 로 인코딩한 걸 받는 쪽이 EUC-KR·Latin-1 로 디코딩하면 한글·이모지가 깨진다(모지바케). 해법은 **UTF-8 로 통일**(전 세계 문자·이모지를 다 표현, 사실상 표준)하고, 파일·HTTP·DB 에 인코딩을 **명시**(`Content-Type: ...; charset=utf-8`, DB 컬럼 UTF-8)하는 것이다. 추가 함정: ① **BOM**(파일 앞의 보이지 않는 바이트 — CSV 첫 열 오염, 3장) ② **유니코드 정규화**(같은 글자의 다른 바이트 표현 — 한글 조합형 vs 완성형, `café` 의 é 를 한 글자 vs e+악센트 — 비교·검색 시 안 맞음, NFC 로 정규화) ③ **이스케이프**(HTML·URL·JSON·SQL 에서 특수 문자를 안전하게 — 안 하면 깨지거나 인젝션). 「글자가 깨진다」·「검색이 안 맞는다」는 대개 인코딩·정규화 문제다."
+        },
+        {
+          "type": "p",
+          "text": "**이스케이프 — 특수 문자를 「데이터」로 안전하게 전달한다.** 데이터 안의 특수 문자(`<`·`\"`·`&`·개행·따옴표)가 그 형식의 **문법**과 충돌하면 깨지거나 위험하다: HTML 에서 `<script>` 는 코드로 실행되고(XSS, sec), SQL 에서 `'` 는 쿼리를 깨고(SQL 인젝션 — 파라미터 바인딩으로 해결), CSV 에서 쉼표는 열을 나눈다(3장), JSON 에서 따옴표는 문자열을 끝낸다. 그래서 각 형식은 **이스케이프 규칙**을 갖는다(HTML `&lt;`, URL `%20`, JSON `\\\"`, CSV `\"\"`) — 특수 문자를 「문법이 아니라 데이터」로 표시하는 것이다. 핵심: **직접 문자열을 이어 붙이지 말고**(인젝션·깨짐 위험), 그 형식의 **라이브러리·이스케이프 함수**를 쓴다(JSON.stringify·URL 인코더·SQL 파라미터·CSV 파서). 「데이터를 형식에 안전하게 넣는」 게 이스케이프이고, 이걸 손으로 하면 데이터 깨짐과 보안 취약점(sec 트랙)이 함께 온다. 형식마다 그 도구를 쓰는 게 규율이다."
+        },
+        {
+          "type": "try",
+          "text": "한글·이모지가 든 데이터를 다른 인코딩으로 읽어 깨지는(모지바케) 걸 재현하고, UTF-8 통일로 고쳐라. 특수 문자(`<`·따옴표·개행)가 든 값을 각 형식(HTML·JSON·CSV·URL)에 넣어 이스케이프가 올바른지, 라이브러리를 쓰는지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "텍스트 깨짐(모지바케)의 근본 원인은?",
+          "choices": [
+            "느림",
+            "인코딩 불일치(바이트 해석 규칙이 다름)",
+            "메모리",
+            "CPU"
+          ],
+          "answer": 1,
+          "why": "UTF-8 통일."
+        },
+        {
+          "q": "권장 인코딩은?",
+          "choices": [
+            "EUC-KR",
+            "UTF-8(어디서나, 명시)",
+            "Latin-1",
+            "제각각"
+          ],
+          "answer": 1,
+          "why": "전 세계 문자·이모지."
+        },
+        {
+          "q": "특수 문자를 형식에 안전하게 넣는 것은?",
+          "choices": [
+            "직접 이어붙이기",
+            "이스케이프(형식의 라이브러리·함수 사용)",
+            "무시",
+            "삭제"
+          ],
+          "answer": 1,
+          "why": "깨짐·인젝션 방지."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "계약을 공유하기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "모양을 스키마로 못 박았으면(4장), 그 스키마를 **양쪽이 공유**해야 진짜 계약이 된다. 방법: **OpenAPI/JSON Schema**(API 스펙을 기계가 읽는 형식으로) · **스키마 레지스트리**(Protobuf·Avro 스키마 중앙 관리) · **타입/클라이언트 생성**(스키마에서 양쪽 코드를 자동 생성 — 드리프트 0). 핵심은 스키마를 **단일 소스**로 두고 문서·타입·검증·클라이언트를 거기서 파생하는 것 — 「스펙 문서 따로, 코드 따로」면 곧 어긋난다(api-doc)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "계약 공유 — 단일 소스",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.no { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'separate') {\n    render('스펙 문서 따로, 코드 따로',\n      '  위키에 API 스펙 · 코드는 별도로 진화 → 곧 어긋남\\n' +\n      '  <span class=\\\"no\\\">문서가 낡아 실제와 다름 → 받는 쪽이 옛 문서 보고 틀리게 연동.</span>',\n      '스펙과 코드가 따로 놀면 문서가 낡아 실제와 어긋난다.',\n      steps([['위키 스펙(수동)', 'bad'],['코드는 따로 진화', 'bad'],['문서 낡음 → 연동 사고', 'bad']]));\n  } else {\n    render('스키마 = 단일 소스',\n      '  스키마(OpenAPI·.proto)에서 문서·타입·검증·클라이언트 생성\\n' +\n      '  <span class=\\\"ok\\\">스키마가 바뀌면 전부 함께 바뀜 → 드리프트 0.</span>',\n      '스키마를 단일 소스로 → 문서·타입·검증·클라이언트가 거기서 파생.',\n      steps([['스키마(단일 소스): OpenAPI·.proto', 'on'],['→ 문서 생성', 'good'],['→ 양쪽 타입·클라이언트 생성', 'good'],['→ 검증 생성 · 스키마 바뀌면 전부 갱신', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "방식",
+              "type": "select",
+              "value": "separate",
+              "options": [
+                {
+                  "value": "separate",
+                  "label": "따로(어긋남)"
+                },
+                {
+                  "value": "single",
+                  "label": "단일 소스"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**스키마를 단일 소스로 두고 문서·타입·검증·클라이언트를 파생하라 — 「스펙 따로, 코드 따로」는 곧 어긋난다.** 모양을 합의(1장)하고 스키마로 못 박았어도(4장), 그 스키마가 한곳에 없고 「위키의 API 문서」와 「실제 코드」가 따로 진화하면 곧 드리프트가 생긴다 — 문서가 낡아 받는 쪽이 옛 스펙대로 연동하다 깨진다(api-doc 의 문제). 해법은 스키마를 **기계가 읽는 단일 소스**로 두는 것: **OpenAPI**(REST API 스펙)·**JSON Schema**·**.proto**(Protobuf)·**GraphQL 스키마**. 그러면 그 스키마에서 ① **문서**(자동 생성 API 문서) ② **타입·클라이언트 코드**(양쪽 언어로 생성 — 손으로 안 짜니 어긋날 수 없음) ③ **검증**(경계 검증 코드)을 **파생**한다. 스키마가 바뀌면 이 전부가 함께 바뀌어 드리프트가 0 이다. 「계약을 코드로, 한곳에」가 핵심 — 이게 1장의 「모양 합의」를 조직·도구 차원에서 실현하는 것이다."
+        },
+        {
+          "type": "p",
+          "text": "**계약 테스트로 「양쪽이 진짜 같은 모양인가」를 검증한다.** 스키마를 공유해도, 보내는 쪽이 실제로 그 스키마대로 보내는지·받는 쪽이 그 스키마를 제대로 소비하는지는 별개다. **계약 테스트**(contract testing, 예: Pact)는 이를 자동으로 확인한다 — 소비자가 「이런 모양을 기대한다」는 계약을 정의하면, 제공자의 CI 가 「내가 그 계약을 지키나」를 테스트한다. 그래서 제공자가 모양을 바꿔 소비자를 깨뜨리면 **배포 전에** CI 가 잡는다(5장의 호환성 파괴를 자동 감지). 이건 quality 트랙의 회귀 테스트를 「시스템 간 계약」에 적용한 것 — 스키마(정적 계약) + 계약 테스트(동작 검증)로 연동의 「모양 어긋남」(1장)을 배포 전에 막는다. 마이크로서비스처럼 여러 시스템이 연동하는 환경에서 특히 중요하다. 「스키마 공유 + 경계 검증 + 계약 테스트」가 연동 안정성의 삼중 방어다."
+        },
+        {
+          "type": "try",
+          "text": "네 API 를 OpenAPI·JSON Schema 같은 기계가 읽는 스키마로 정의하고, 거기서 문서·타입·검증을 생성해 보라 — 「위키 문서」와 코드가 따로 노는 것과 비교하라. 여력이 되면 계약 테스트로 제공자가 소비자를 안 깨는지 CI 에서 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "스키마를 단일 소스로 두면?",
+          "choices": [
+            "느려짐",
+            "문서·타입·검증·클라이언트가 파생 — 드리프트 0",
+            "메모리",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "스펙·코드 일치."
+        },
+        {
+          "q": "「스펙 문서 따로, 코드 따로」의 문제는?",
+          "choices": [
+            "빠름",
+            "문서가 낡아 실제와 어긋남 → 연동 사고",
+            "안전",
+            "정확"
+          ],
+          "answer": 1,
+          "why": "단일 소스 필요."
+        },
+        {
+          "q": "계약 테스트(contract testing)가 하는 일은?",
+          "choices": [
+            "속도 측정",
+            "제공자가 소비자 계약을 지키는지 배포 전 검증",
+            "캐시",
+            "압축"
+          ],
+          "answer": 1,
+          "why": "모양 어긋남 자동 감지."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — 데이터 형식",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "데이터를 주고받거나 연동 사고를 진단할 때 이 목록을 확인하라. 핵심은 「모양을 스키마로 합의하고, 경계에서 검증하고, 함정(숫자·인코딩·버전)을 피하라」다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  table.t { border-collapse:collapse; margin:8px 0; font:10.5px ui-monospace, monospace; }\n  table.t th, table.t td { border:1px solid #334155; padding:3px 7px; text-align:left; }\n  table.t th { background:#14263a; color:#7dd3fc; }\n  table.t td { color:#cbd5e1; }\n  table.t td.no { background:#2a1414; color:#fca5a5; } table.t td.ok { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const table = (headers, rows) => '<table class=\"t\"><tr>' + headers.map(h=>'<th>'+esc(h)+'</th>').join('') + '</tr>' +\n    rows.map(r => '<tr>' + r.map(c => '<td class=\"' + (c[1]||'') + '\">' + esc(c[0]) + '</td>').join('') + '</tr>').join('') + '</table>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '연동 사고는 「모양이 다름」 — 모양을 명시 합의',\n    'JSON 함정(큰 정수·날짜·undefined·소수)을 안다',\n    'CSV 는 파서 사용 + 인코딩·BOM 주의',\n    '모양을 스키마로 못 박고 경계에서 검증',\n    '필드 추가는 안전·삭제/의미변경은 expand-contract',\n    '텍스트 vs 바이너리를 요구에 맞게 고른다',\n    '어디서나 UTF-8 + 이스케이프는 라이브러리로',\n    '스키마를 단일 소스로(문서·타입·검증 파생)',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 모양을 합의·검증해 연동 사고를 막을 수 있다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '모양을 스키마로 합의 · 경계에서 검증 · 함정(숫자·인코딩·버전)을 피하라.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 모양을 스키마로 합의하고, 경계에서 검증하고, 함정을 피하라.** 연동 사고는 「모양이 다름」이니(1장) 모양을 스키마로 못 박아 양쪽이 공유하고(4·8장) 경계에서 검증한다(4장). 형식의 함정을 안다: JSON 의 큰 정수·날짜·소수(2장), CSV 의 파서·인코딩(3장), 인코딩·이스케이프(7장). 형식을 바꿀 땐 추가는 안전·파괴적 변경은 expand-contract(5장), 텍스트/바이너리는 요구로 고른다(6장). 「그냥 JSON 주고받으면 되겠지」가 아니라 「모양을 명시하고 검증」이 연동 안정성의 핵심이다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸과 갈래의 마무리.** 데이터 형식은 data-model(타입·모양)을 경계로 내보내는 것이고, 경계 검증은 lang-types 3장·api-error(422), 버전 호환은 data-model 8장·api-version, 스키마 공유·계약은 api-doc·design-boundary, 인코딩·이스케이프는 sec(인젝션)·web-http, 바이너리·성능은 sync·scale 로 이어진다. **「경계를 넘는 데이터의 모양을 명시·검증하는 감각」이 안정적 연동의 바탕**이자, data(데이터) 갈래 — 모델링·SQL·트랜잭션·캐시·큐·형식 — 전체의 마무리다. 데이터를 저장하고(모델·SQL·트랜잭션), 빠르게 하고(캐시·큐), 주고받는(형식) 전 과정을 이 갈래가 다뤘다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개로 네 연동을 점검하라. 「모양을 스키마로 못 박고 경계에서 검증」과 「JSON·인코딩 함정 피하기」 두 가지만 잡아도, 「모양이 달라서」 나는 연동 사고의 대부분이 사라진다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "데이터 형식 장의 한 줄 요약은?",
+          "choices": [
+            "JSON 만 쓰면 됨",
+            "모양을 스키마로 합의·경계에서 검증·함정을 피하라",
+            "빠르게",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "모양이 다름을 막음."
+        },
+        {
+          "q": "먼저 잡을 두 가지는?",
+          "choices": [
+            "바이너리·압축",
+            "모양을 스키마로 못 박고 경계 검증 + JSON·인코딩 함정 피하기",
+            "CSV 직접 파싱·EUC-KR",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "연동 사고 감소."
+        },
+        {
+          "q": "데이터 형식이 이어지는 주제는?",
+          "choices": [
+            "없음",
+            "data-model·lang-types·api-doc·api-version·sec",
+            "문법",
+            "속도"
+          ],
+          "answer": 1,
+          "why": "연동의 바탕."
+        }
+      ]
     }
   ]
 }
