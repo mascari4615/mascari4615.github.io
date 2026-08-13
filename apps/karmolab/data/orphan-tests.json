@@ -5,7 +5,6 @@
     "audit:all",
     "audit:deploy",
     "audit:pages",
-    "smoke:arcadeletter",
     "smoke:arcadereplay",
     "smoke:arcaderoom",
     "smoke:bm",
