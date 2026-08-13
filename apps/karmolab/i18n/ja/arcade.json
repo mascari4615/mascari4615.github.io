@@ -394,5 +394,6 @@
   "arcade.len.short": "みじかい",
   "arcade.len.mid": "ふつう",
   "arcade.len.long": "ながい",
-  "arcade.len.secs": "ボット同士で約{n}秒"
+  "arcade.len.secs": "ボット同士で約{n}秒",
+  "arcade.over.mine": "勝った"
 }

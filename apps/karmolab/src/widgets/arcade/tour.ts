@@ -14,6 +14,7 @@
 import type { Kind } from './meta';
 import type { BotPersona } from './bots';
 import { PARTY } from './seating';
+import { ranks } from './rank';
 
 export { PARTY };
 
@@ -60,14 +61,13 @@ export function pickGames(
  * 판마다 점수의 뜻이 달라서 raw 점수를 더하면 제기 한 판이 대회 전체를 정해 버린다.
  */
 export function award(state: TourState, scores: number[]): TourState {
+  /* 등수 셈은 `rank.ts` 한 곳 — 결과 화면과 여기가 갈리면 화면엔 2등인데 점수는 0인 판이 난다. */
+  const order = ranks(scores);
   const points = state.points.map((p, i) => {
     /* 그 판에 안 앉은 자리는 **0점도 아니고 등수도 없다.** 없는 점수를 0으로 치면
        「안 나온 사람이 꼴찌」가 되는데, 그건 셈이 아니라 사고다. */
     if (i >= scores.length) return p;
-    /* 나보다 **높은 점수가 몇이나 있나** = 내 등수. 둘이 1등이면 다음은 3등이다 —
-       올림픽과 같은 셈. 서로 다른 점수를 세면 공동 1등 뒤가 2등이 되어 점수가 샌다. */
-    const rank = scores.filter((x) => x > scores[i]).length;
-    return p + (PRIZE[rank] ?? 0);
+    return p + (PRIZE[order[i]] ?? 0);
   });
   return { ...state, points, at: state.at + 1 };
 }
