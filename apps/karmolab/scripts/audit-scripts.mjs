@@ -149,6 +149,29 @@ if (fs.existsSync(wf)) {
   }
 }
 
+/* ★ **없어진 위젯 꾸러미를 부르는 검사** (2026-08-13). 도구를 작업대로 합치면 그 낱개
+   꾸러미(`js/widgets/tools/<id>.js`)가 안 지어진다. 그런데 화면 검사들이 그 파일을 직접
+   열어 재고 있어서, 합친 다음 판마다 「그 파일을 못 연다」로 CI 가 죽었다 — 오늘 charcount ·
+   textredact 로 두 번, 그때마다 밀고 10분을 기다려서야 알았다. 여기서 3초에 잡는다. */
+{
+  const retired = new Set();
+  try {
+    const src = fs.readFileSync(path.join(root, 'scripts/lib/retired-operations.mjs'), 'utf8');
+    for (const m of src.matchAll(/'([a-z0-9-]+)'/g)) retired.add(m[1]);
+  } catch { /* 목록이 없으면 볼 것도 없다 */ }
+  if (retired.size) {
+    for (const file of fs.readdirSync(path.join(root, 'scripts'))) {
+      if (!file.endsWith('.mjs')) continue;
+      const src = fs.readFileSync(path.join(root, 'scripts', file), 'utf8');
+      for (const m of src.matchAll(/js\/widgets\/(?:tools\/)?([a-z0-9-]+)\.js/g)) {
+        if (retired.has(m[1])) {
+          problems.push(`scripts/${file} 가 없어진 꾸러미를 연다 — js/widgets/…/${m[1]}.js (작업대로 합쳐졌다)`);
+        }
+      }
+    }
+  }
+}
+
 if (problems.length) {
   console.error(`[audit-scripts] 부르는 이름이 없는 자리 ${problems.length}건 — 그 검사는 안 돈다`);
   problems.forEach((p) => console.error('  - ' + p));
