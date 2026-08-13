@@ -403,5 +403,13 @@
   "arcade.watch.now": "観戦中",
   "arcade.watch.over": "{n}人は観戦",
   "arcade.btn.replay": "もう一度見る",
-  "arcade.replay.now": "再生中"
+  "arcade.replay.now": "再生中",
+  "arcade.letter.link": "手紙リンク",
+  "arcade.btn.letter": "リンクで指す",
+  "arcade.letter.your": "一手指すとリンクが出る — 相手に送れ",
+  "arcade.letter.sent": "このリンクを送る · 相手が指すと返ってくる",
+  "arcade.letter.wait": "{who}の番 — リンクを待て",
+  "arcade.letter.over": "終わった",
+  "arcade.letter.toobig": "長すぎてリンクに入らない — 部屋を開け",
+  "arcade.letter.friend": "相手"
 }

@@ -403,5 +403,13 @@
   "arcade.watch.now": "watching",
   "arcade.watch.over": "{n} watching",
   "arcade.btn.replay": "watch again",
-  "arcade.replay.now": "replaying"
+  "arcade.replay.now": "replaying",
+  "arcade.letter.link": "letter link",
+  "arcade.btn.letter": "play by link",
+  "arcade.letter.your": "make a move and you get a link — send it over",
+  "arcade.letter.sent": "send this link · it comes back after their move",
+  "arcade.letter.wait": "{who}'s turn — wait for the link",
+  "arcade.letter.over": "the game is over",
+  "arcade.letter.toobig": "too long for a link — open a room instead",
+  "arcade.letter.friend": "friend"
 }

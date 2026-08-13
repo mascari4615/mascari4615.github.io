@@ -101,7 +101,7 @@
     "devtool": "developer tools 개발자",
     "reference": "reference cheatsheet 치트시트",
     "color": "color picker converter 색상 색깔 색 컬러 팔레트 색조합",
-    "text": "text editor utility 텍스트 슬러그 만들기 slug permalink url 주소 표기법 변환 case camel snake kebab pascal 케이스 줄바꿈 정리 line break newline clean trim 공백 한영타 hangul keyboard typo 한영 한글 자모 분해 jamo decompose 찾아 바꾸기 find replace sed 치환 목록 비교 diff compare 글자수 세기 character word count 글자 단어 카운트 빈도 분석 frequency 差 가리개 redact mask 가리기 개인정보 글을 PDF 로 to pdf convert 글자를 그림으로 image png 이미지 더미 생성 lorem ipsum dummy 체크리스트 checklist todo 할일",
+    "text": "text editor utility 텍스트",
     "time": "time date clock 시간",
     "filetool": "file utility converter 파일",
     "videotool": "video utility converter 영상",

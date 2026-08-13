@@ -34,6 +34,7 @@ import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
 import { lengthOf, secondsOf } from './length';
 import { readPlays, notePlay, noteBest, bestOf } from './plays';
 import { withGhost, GHOST_NAME } from './ghost';
+import { fold, deal, turnOf, letterLink, letterFromUrl, type Letter } from './mail';
 import { pick6, matches, SLOTS } from './pick6';
 import { ranks } from './rank';
 import { record, type Tape } from './replay';
@@ -520,6 +521,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-todaycard.ac-done{opacity:.55;border-color:var(--border-color)}',
       '.ac-tourbtn{align-self:center}',
       '.ac-seat.ac-watch{border-color:var(--accent);color:var(--accent)}',
+      '.ac-letter{margin-top:var(--space-md);padding:10px 12px;border:1px solid var(--accent);border-radius:10px;background:var(--bg-secondary);font-size:var(--font-size-sm)}',
       '.ac-room{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;border:1px solid var(--accent);border-radius:10px;background:var(--bg-secondary);margin:var(--space-md) 0;font-size:var(--font-size-sm)}',
       '.ac-over{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:color-mix(in srgb, var(--bg-color) 88%, transparent);backdrop-filter:blur(2px);border-radius:12px;z-index:3;padding:var(--space-lg)}',
       '.ac-overhead{font-size:var(--font-size-xl);font-weight:700;text-align:center}',
@@ -624,6 +626,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<div class="ac-overnote" id="acOverNote"></div>' +
       '</div>' +
       '</div>' +
+      '<div class="ac-letter" id="acLetter" style="display:none">' +
+      '<div id="acLetterSay"></div>' +
+      '<div style="display:flex;gap:6px;margin-top:6px">' +
+      '<input type="text" id="acLetterUrl" readonly aria-label="' + esc(t('arcade.letter.link')) + '" style="flex:1;min-width:0">' +
+      '<button class="btn btn-primary" id="acLetterCopy">' + esc(t('arcade.btn.copy')) + '</button>' +
+      '</div></div>' +
       '<div class="tool-status" id="acStatus"></div>' +
       '<div style="display:flex;gap:6px;margin-top:var(--space-lg)">' +
       '<button class="btn btn-ghost" id="acQuit">' + esc(t('arcade.btn.quit')) + '</button>' +
@@ -683,6 +691,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         '<span class="ac-go">' +
         '<button ' + solo + '="' + g.id + '">' + esc(t('arcade.btn.solo')) + '</button>' +
         '<button ' + host + '="' + g.id + '">' + esc(t('arcade.btn.together')) + '</button>' +
+        /* **차례 놀이만** 편지로 둘 수 있다. 실시간 놀이를 편지로 두면 상대가 링크를 여는
+           순간에 이미 판이 끝나 있다 — 그건 놀이가 아니라 결과 통보다. */
+        (!g.realtime && g.seats[0] === 2
+          ? '<button ' + (pick ? 'data-pickletter' : 'data-letter') + '="' + g.id + '">' + esc(t('arcade.btn.letter')) + '</button>'
+          : '') +
         '</span></div>'
       );
     };
@@ -746,6 +759,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       on('data-pick', 'pick', startSolo);
       on('data-host', 'host', openRoom);
       on('data-pickhost', 'pickhost', openRoom);
+      on('data-letter', 'letter', startLetter);
+      on('data-pickletter', 'pickletter', startLetter);
     }
 
     /** 이 게임이 검색어에 걸리나 — 이름·설명·갈래·길이 어디든. */
@@ -1027,6 +1042,18 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 구경꾼의 손은 여기서 멈춘다. 주인도 자리 없는 사람의 수는 흘리지만, **화면이 반응하면
          사람은 자기가 두고 있다고 믿는다** — 막는 자리는 손이 나가기 전이어야 한다. */
       if (watching || replaying) return;
+      /* 편지 판이면 **내 차례에 한 수만** 둔다 — 두고 나면 링크가 새로 나온다. */
+      if (letter) {
+        if (turnOf(letter) !== mySeat || match?.view().finished) return;
+        const before = JSON.stringify(match?.view().state);
+        match?.dispatch(mySeat, a);
+        if (JSON.stringify(match?.view().state) === before) return; /* 못 두는 수는 안 적는다 */
+        letter = { ...letter, moves: [...letter.moves, a] };
+        blip('tap');
+        buzz('tap');
+        paintLetter();
+        return;
+      }
       /* 놀이마다 소리를 붙이지 않는다 — **손이 지나가는 자리가 여기 하나**라, 여기서 울리면
          51개가 한꺼번에 소리를 얻는다(게임 파일은 소리를 몰라도 된다). */
       blip('tap');
@@ -1169,6 +1196,62 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         beginMatch(id, [{ name: myName(), bot: false }], seedFrom(id + String(Date.now()))));
     }
 
+    /* ── 편지로 두기 (TASK-KL-264 D5) ─────────────────────────────
+     *
+     * 방을 안 연다. 판 전체가 링크 안에 있고, **한 수 두면 새 링크가 나온다.**
+     * 그래서 이 자리에는 그물망도 봇도 없다 — 사람 둘이 번갈아 둘 뿐이다.
+     */
+    let letter: Letter | null = null;
+
+    function paintLetter(): void {
+      const box = $<HTMLElement>('#acLetter');
+      if (!letter) { box.style.display = 'none'; return; }
+      box.style.display = '';
+      const mine = turnOf(letter) === mySeat;
+      const done = match?.view().finished;
+      const packed = fold(letter);
+      $<HTMLInputElement>('#acLetterUrl').value = packed ? letterLink('arcade', packed) : '';
+      $<HTMLElement>('#acLetterSay').textContent = done
+        ? t('arcade.letter.over')
+        : !packed
+          ? t('arcade.letter.toobig')
+          : mine
+            ? t('arcade.letter.your')
+            : t('arcade.letter.sent');
+    }
+
+    /** 링크로 들어왔다 — 적힌 수를 다 두고, 다음 차례면 내가 둘 수 있게 연다. */
+    function openLetter(post: Letter): void {
+      const g = gameById(post.game);
+      if (!g) return;
+      net?.leave();
+      net = null;
+      tour = null;
+      letter = post;
+      gameId = post.game;
+      /* **내 자리는 「다음에 둘 자리」다.** 링크를 받은 사람이 지금 둘 사람이므로. */
+      mySeat = turnOf(post);
+      watching = false;
+      replaying = false;
+      ended = false;
+      soundedRound = -1;
+      match = deal(g, post) as Match<unknown, unknown>;
+      shadow = null;
+      mountView(post.game);
+      show('play');
+      t0 = performance.now() - match.clock();
+      cancelAnimationFrame(raf);
+      loop();
+      paintLetter();
+    }
+
+    /** 편지 판을 새로 시작한다 — 아직 아무도 안 둔 판. */
+    function startLetter(id: string): void {
+      const g = gameById(id);
+      if (!g) return;
+      openLetter({ game: id, seed: seedFrom(id + String(Date.now())), who: [myName(), t('arcade.letter.friend')], moves: [] });
+    }
+
     /** 혼자 — 그물망 없이 커널만. 빈 자리는 봇이 앉는다. */
     function startSolo(id: string): void {
       net?.leave();
@@ -1306,6 +1389,14 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     const joined = location.search.match(/[?&]r=([A-Za-z0-9]{4,12})/);
     if (joined) joinRoomAs(joined[1]);
 
+    /* 편지가 실려 있으면 그 판을 편다 — 방과 다른 자리(`?m=`)를 쓴다 (TASK-KL-264 D5). */
+    const posted = letterFromUrl();
+    if (posted) openLetter(posted);
+
+    $<HTMLButtonElement>('#acLetterCopy').onclick = (): void => {
+      void Toolbox.copyText?.($<HTMLInputElement>('#acLetterUrl').value, { message: t('arcade.copy.done') });
+    };
+
     $<HTMLButtonElement>('#acCopy').onclick = (): void => {
       void Toolbox.copyText?.($<HTMLInputElement>('#acUrl').value, { message: t('arcade.copy.done') });
     };
@@ -1372,6 +1463,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       swapBtn.style.display = 'none';
       replayBtn.style.display = 'none';
       replaying = false;
+      letter = null;
+      $<HTMLElement>('#acLetter').style.display = 'none';
       hideResult();
       paintRoom();
       paintPicks();
