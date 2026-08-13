@@ -102,7 +102,7 @@ export function renderSnaPanel(ctx: PanelCtx): void {
       <div class="km-hint">${esc(t('karmograph.list.msg11'))}</div>
       ${gaps.slice(0, 5).map((g0) => `<div class="km-link-row">
         <span class="km-link-name">${esc(nameOf(g0.a))} ↔ ${esc(nameOf(g0.b))}</span>
-        <span class="km-group-count">겹치는 사이 ${g0.shared}</span>
+        <span class="km-group-count">${esc(t('karmograph.gap.shared', { n: String(g0.shared) }))}</span>
         <button class="btn btn-ghost" data-km="gap-link" data-key="${esc(g0.a)}" data-to="${esc(g0.b)}">${esc(t('karmograph.gapLink.label'))}</button>
       </div>`).join('')}
     </div>`}
