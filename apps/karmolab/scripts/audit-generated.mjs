@@ -101,6 +101,12 @@ if (낡음.length) {
     console.error(`    → npm run ${x.npm}   후 커밋`);
   }
   console.error('  ※ 한 번에: npm run audit:generated -- --update');
+  /* ★ **굽는 자리를 고르라** (2026-08-13 실측). 이 작업 폴더는 세션 여럿이 함께 쓴다 —
+     여기서 구우면 남의 **미커밋** 소스가 섞여 들어간다. 실제로 월드컵 표를 여기서 굽자
+     멀쩡한 도구 일곱(JSON 포맷터·QR 생성 등)이 표에서 빠졌다. 커밋본이 곧 서비스본인
+     파생물은 그렇게 담기면 사람이 쓰는 화면이 조용히 줄어든다. */
+  console.error('  ※ 남이 함께 쓰는 폴더라면 **깨끗한 사본**에서 구워라 —');
+  console.error('     git clone --depth 5 <repo> tmp && cd tmp/apps/karmolab && npm ci && npm run build:artifacts && npm run <생성기>');
   process.exit(1);
 }
 
