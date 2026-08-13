@@ -21,7 +21,13 @@ import type { Application, Request, Response } from 'express';
 import { PKG_ROOT } from '../paths';
 
 const SITE = 'https://blog.mascari4615.com';
+/**
+ * **화면 주소와 그림 주소가 다르다.** 화면은 `/karmolab/…`(젠킬이 찍어 내는 쪽), 그림은
+ * `/apps/karmolab/…`(앱 폴더가 그대로 실리는 쪽)이다. 둘을 같은 뿌리로 적었다가 카드 그림이
+ * 전부 404 였다 — 실주소를 찔러 보고서야 알았다(문패는 200 이라 화면상 아무 표도 안 났다).
+ */
 const ARCADE = `${SITE}/karmolab/t/arcade/`;
+const ASSETS = `${SITE}/apps/karmolab`;
 
 const esc = (value: unknown): string =>
   String(value == null ? '' : value)
@@ -67,7 +73,7 @@ export function registerArcadeRoomCard(app: Application): void {
 
     const title = name ? `${name} · 방 ${code}` : `오락실 · 방 ${code}`;
     /* 그림이 없는 놀이(또는 id 를 안 준 링크)는 오락실 카드로 — 얼굴 없는 카드보다 낫다. */
-    const image = `${SITE}/karmolab/img/og/${known ? `arcade-${id}` : 'arcade'}.jpg`;
+    const image = `${ASSETS}/img/og/${known ? `arcade-${id}` : 'arcade'}.jpg`;
     const go = `${ARCADE}?r=${encodeURIComponent(code)}`;
 
     res.setHeader('Cache-Control', 'public, max-age=300');
