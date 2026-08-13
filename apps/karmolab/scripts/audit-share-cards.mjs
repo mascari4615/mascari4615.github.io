@@ -9,6 +9,9 @@
  * 배포를 막지는 않는다. 카드를 못 만드는 곳에서 실패시키면 손쓸 방법이 없기 때문이다 —
  * 대신 어떤 도구가 빠졌는지 이름으로 알려 준다.
  *
+ * [빨강-확인] 2026-08-14 — 안 서 있는 주소(`BASE=http://127.0.0.1:1`)로 돌려 보니 예전에는
+ *   `0개 도구가 저마다 공유 카드를 갖고 있다` 며 **초록**이었다. 지금은 CANNOT-RUN(2) 로 끝난다.
+ *
  * 사용: node scripts/audit-share-cards.mjs
  *       BASE=http://127.0.0.1:8797/apps/blog node scripts/audit-share-cards.mjs
  */
@@ -49,10 +52,22 @@ if (unreachable.length) {
   console.log(`[audit-share-cards] 아직 못 여는 페이지 ${unreachable.length}개 — 다음 배포 대기로 봅니다: ${unreachable.slice(0, 10).join(', ')}`);
 }
 
+/* ★ **못 연 것이 많으면 판정하지 않는다** (2026-08-14 red-walk).
+   「아직 배포 안 된 새 도구」는 한둘이다. 그런데 이 검사는 **몇 개든** 그렇게 봐줘서,
+   안 서 있는 주소로 돌리면 122개를 전부 「다음 배포 대기」로 넘기고
+   `0개 도구가 저마다 공유 카드를 갖고 있다` 며 **초록**으로 끝났다.
+   못 연 것은 「카드가 있다」가 아니다 — 열에 하나를 넘으면 CANNOT-RUN(2). */
+const 문턱 = Math.max(5, Math.ceil(ids.length * 0.1));
+if (unreachable.length >= 문턱) {
+  console.error(`[audit-share-cards] CANNOT-RUN — ${ids.length}개 중 ${unreachable.length}개를 못 열었다 (문턱 ${문턱}).`);
+  console.error('  못 연 것은 「카드가 있다」가 아니다 — 판정하지 않고 지나간다. 주소가 맞는지, 사이트가 서 있는지 보라.');
+  process.exit(2);
+}
+
 if (fallback.length) {
   console.error(`[audit-share-cards] 자기 카드가 없어 공용 카드로 나가는 도구 ${fallback.length}개: ${fallback.join(', ')}`);
   console.error('  → 개발 머신에서 `npm run gen:og` 후 img/og/ 를 커밋하세요.');
   process.exit(1);
 }
 
-console.log(`[audit-share-cards] ${ids.length - unreachable.length}개 도구가 저마다 공유 카드를 갖고 있다`);
+console.log(`[audit-share-cards] ${ids.length - unreachable.length}개 도구가 저마다 공유 카드를 갖고 있다 (전체 ${ids.length}개)`);

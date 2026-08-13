@@ -17,8 +17,11 @@
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
 
 if (!BASE.startsWith('https://')) {
-  console.log(`[audit-live-essentials] 건너뜀 — 실제 사이트가 아니다 (BASE=${BASE}). 이 검사는 배포된 주소에서만 뜻이 있다.`);
-  process.exit(0);
+  /* ★ **건너뛴 것은 초록이 아니다** (2026-08-14). 0 으로 끝내면 게이트 화면에 ✓ 로 찍혀
+     「실사이트 필수 요소가 다 있다」로 읽힌다 — 실제로는 **한 번도 안 봤다**.
+     이 저장소는 2 를 「못 돌림」으로 읽는다(`run-gates.mjs`). 그렇게 말한다. */
+  console.log(`[audit-live-essentials] CANNOT-RUN — 실제 사이트가 아니다 (BASE=${BASE}). 이 검사는 배포된 주소에서만 뜻이 있다.`);
+  process.exit(2);
 }
 
 const problems = [];
