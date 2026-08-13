@@ -3192,7 +3192,15 @@ import {
       palList.querySelector('.is-on')?.scrollIntoView({ block: 'nearest' });
     }
 
+    /**
+     * 팔레트를 닫고 **원래 있던 자리로 초점을 돌려준다** (KL-271).
+     *
+     * 실측 2026-08-14: 닫으면 초점이 body 로 떨어졌다 — 자판만 쓰는 사람은 그 순간 **자리를 잃고**
+     * 다음 Tab 이 페이지 맨 위에서 다시 시작한다. 어디서 왔는지 기억해 두었다가 돌려놓는다.
+     */
+    let palCameFrom: HTMLElement | null = null;
     function palOpen(): void {
+      palCameFrom = document.activeElement as HTMLElement | null;
       closeDrawer();
       palPick = 0;
       palFind.value = '';
@@ -3200,7 +3208,13 @@ import {
       palRender();
       palFind.focus();
     }
-    function palClose(): void { palEl.classList.add('hidden'); }
+    function palClose(): void {
+      palEl.classList.add('hidden');
+      // 부른 자리가 그 사이 사라졌으면(서랍 안 단추였다면) 판으로 돌려보낸다.
+      const back = palCameFrom && palCameFrom.isConnected ? palCameFrom : q<HTMLElement>('more');
+      palCameFrom = null;
+      back?.focus?.();
+    }
     /** 고른 명령은 **그 단추를 눌러** 실행한다 — 일하는 길은 하나로 남는다. */
     function palRun(i: number): void {
       const hit = palHits[i];
@@ -3531,9 +3545,10 @@ import {
       box.innerHTML = `<span data-km="note-msg"></span>`
         + `<button class="btn btn-ghost" data-km="note-close" aria-label="${esc(t('karmograph.linkBox.close'))}">✕</button>`;
       (box.querySelector('[data-km="note-msg"]') as HTMLElement).textContent = msg;
+      const back = focusKeeper();
       canvasEl.appendChild(box);
       trapTab(box);
-      const close = (): void => box.remove();
+      const close = (): void => { box.remove(); back(); };
       (box.querySelector('[data-km="note-close"]') as HTMLButtonElement).onclick = close;
       (box.querySelector('[data-km="note-close"]') as HTMLButtonElement).focus();
       box.onkeydown = (ev) => {
@@ -3549,6 +3564,15 @@ import {
      * 눈으로 보는 사람에게는 상자가 앞을 막고 있는데 자판만 쓰는 사람에게는 안 막힌 셈이다
      * (실측 2026-08-14: 되물음에서 두 번째 Tab 이 옆 패널 칸으로 나갔다).
      */
+    /** 상자를 열기 전 초점을 기억했다가 닫을 때 돌려준다 — 자리를 잃지 않게. */
+    function focusKeeper(): () => void {
+      const from = document.activeElement as HTMLElement | null;
+      return () => {
+        const back = from && from.isConnected ? from : null;
+        back?.focus?.();
+      };
+    }
+
     function trapTab(box: HTMLElement): void {
       box.addEventListener('keydown', (ev: KeyboardEvent) => {
         if (ev.key !== 'Tab') return;
@@ -3583,9 +3607,10 @@ import {
           + `<button class="btn" data-km="ask-yes"></button>`;
         (box.querySelector('[data-km="ask-msg"]') as HTMLElement).textContent = msg;
         (box.querySelector('[data-km="ask-yes"]') as HTMLElement).textContent = okLabel;
+        const back = focusKeeper();
         canvasEl.appendChild(box);
         trapTab(box);
-        const done = (yes: boolean): void => { box.remove(); resolve(yes); };
+        const done = (yes: boolean): void => { box.remove(); back(); resolve(yes); };
         (box.querySelector('[data-km="ask-yes"]') as HTMLButtonElement).onclick = () => done(true);
         (box.querySelector('[data-km="ask-no"]') as HTMLButtonElement).onclick = () => done(false);
         (box.querySelector('[data-km="ask-no"]') as HTMLButtonElement).focus();
