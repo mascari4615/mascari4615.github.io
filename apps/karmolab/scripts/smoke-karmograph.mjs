@@ -2992,6 +2992,39 @@ await step('첫 카드·첫 선까지 드는 손 (처음 연 사람 기준)', as
   await ctx.close();
 });
 
+await step('마우스 없이도 선을 잇는다 (자판·화면낭독기 길)', async () => {
+  /* ★ 선을 잇는 손은 **점을 끄는 것** 하나로 모았지만(KL-271 R1), 끄는 동작은 마우스에만 있다.
+     옆 패널의 「연결 시작」은 중복이 아니라 **자판·화면낭독기로 가는 유일한 길**이다 —
+     지우면 마우스를 못 쓰는 사람에게는 이 도구에 선이 없어진다. 그래서 여기서 지킨다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(600));
+  const box = await m.locator('.km-canvas').boundingBox();
+  const make = async (fx, fy, name) => {
+    await m.mouse.dblclick(box.x + box.width * fx, box.y + box.height * fy);
+    await m.waitForSelector('.km-inline', { timeout: ms(4000) });
+    await m.keyboard.type(name);
+    await m.keyboard.press('Enter');
+    await m.waitForTimeout(ms(300));
+  };
+  await make(0.25, 0.3, '가');
+  await make(0.62, 0.6, '나');
+  await m.locator('.ck-node').first().click({ force: true });
+  await m.waitForSelector('[data-km="link-start"]', { timeout: ms(4000) })
+    .catch(() => { throw new Error('자판으로 선을 잇는 길이 사라졌다 — 마우스 없는 사람에겐 선이 없어진다'); });
+  await m.locator('[data-km="link-start"]').click();
+  await m.locator('.ck-node').nth(1).click({ force: true });
+  await m.waitForFunction(
+    () => document.querySelectorAll('.ck-edge:not(.ck-link-temp)').length >= 1, null, { timeout: ms(4000) },
+  ).catch(() => { throw new Error('「연결 시작」 뒤에 다른 카드를 눌렀는데 선이 안 생겼다'); });
+  await ctx.close();
+});
+
 
 await step('같은 자료를 표로도 본다 — 줄을 누르면 판에서 골라진다', async () => {
   // 판은 「누가 누구와 이어졌나」에 강하고 「빠짐없이 훑기」에 약하다(KL-271 L4 · Notion 뷰 계보).
