@@ -1651,6 +1651,67 @@ await step('보기 전용 링크 — 손잡이가 사라지고, 「내 것으로
   await page.locator('[data-km="fork"]').click();
   await page.waitForSelector('.km-root:not(.is-readonly)', { timeout: ms(4000) });
 });
+await step('보기 전용 — 시점은 오갈 수 있고, 시점을 고치는 단추는 없다 (KL-271 X2)', async () => {
+  /* 남의 판을 받은 사람에게 시점 오가기는 **읽는 일**이다(1부→2부를 봐야 이야기가 보인다).
+     그런데 이름 바꾸기·지우기는 고치는 손이다 — 보이면 「고쳐도 되나」부터 헷갈리고,
+     눌리면 받은 판이 말없이 달라진다(원본이 바뀐 줄 안다). 오가기만 남긴다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => {
+    const nodes = [
+      { id: 'r1', label: '가', kind: 'character', x: 120, y: 120, w: 160, h: 44 },
+      { id: 'r2', label: '나', kind: 'character', x: 380, y: 260, w: 160, h: 44 },
+    ];
+    const spec = {
+      version: 1, _meta: { time: 't1' }, groups: [], nodes,
+      edges: [{ id: 'e1', from: 'r1', to: 'r2', label: '소꿉친구', kind: 'default',
+        at: { t2: { label: '라이벌' } } }],
+      times: [{ id: 't1', name: '1부' }, { id: 't2', name: '2부' }],
+      ephemeral_anchors: [], _edge_kinds: {},
+    };
+    const idx = JSON.parse(localStorage.getItem('karmograph.index') || 'null');
+    const id = idx?.activeId || 'roview';
+    localStorage.setItem('karmograph.map.' + id, JSON.stringify(spec));
+    if (!idx) localStorage.setItem('karmograph.index', JSON.stringify({ activeId: id, maps: [{ id, name: '시점 판' }] }));
+  });
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('[data-km="time-go"]', { timeout: ms(8000) });
+
+  let link = '';
+  // 복사가 막힌 자리에서는 prompt 로 링크를 보여 준다 — 링크는 **기본값** 칸에 들어 있다.
+  m.once('dialog', (d) => { link = d.defaultValue() || d.message() || ''; d.accept().catch(() => {}); });
+  await m.click('[data-km="more"]');
+  await m.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
+  await m.locator('[data-km="share-view"]').click();
+  await m.waitForTimeout(ms(900));
+  if (!link) link = await m.evaluate(() => navigator.clipboard?.readText?.() ?? '').catch(() => '');
+  if (!link || !link.includes('kmv=1')) throw new Error('보기 전용 링크가 안 나왔다: ' + String(link).slice(0, 80));
+
+  await m.goto(link.replace(/#.*$/, '') + '#karmograph', { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-root.is-readonly', { timeout: ms(8000) });
+  await m.waitForSelector('[data-km="time-go"]', { timeout: ms(8000) });
+  if (await m.locator('[data-km="time-go"]').count() !== 2) throw new Error('받은 쪽에 시점이 안 실렸다');
+  if (await m.locator('[data-km="time-rename"]').count() > 0) throw new Error('보기 전용인데 시점 이름 바꾸기가 있다');
+  if (await m.locator('[data-km="time-del"]').count() > 0) throw new Error('보기 전용인데 시점 지우기가 있다');
+
+  // 오가기는 살아 있어야 한다 — 2부를 누르면 선의 얼굴이 바뀐다.
+  await m.locator('[data-km="time-go"]').nth(1).click();
+  await m.waitForTimeout(ms(500));
+  const said = await m.evaluate(() => [...document.querySelectorAll('.ck-edge-label text')]
+    .map((x) => x.textContent || '').join(' '));
+  if (!said.includes('라이벌')) throw new Error('보기 전용에서 시점을 옮겼는데 선이 안 바뀐다: ' + said);
+
+  // 내 것으로 복제하면 고치는 단추가 돌아온다 — 잠금이 한쪽으로만 걸리면 그건 막다른 길이다.
+  await m.locator('[data-km="fork"]').click();
+  await m.waitForSelector('.km-root:not(.is-readonly)', { timeout: ms(4000) });
+  await m.waitForSelector('[data-km="time-rename"]', { timeout: ms(4000) });
+  await ctx.close();
+});
 await step('꾸미기 규칙 — 「이 칸이 이 값이면 이 색」이 실제로 먹는다', async () => {
   // 규칙을 적어 놓기만 하고 색이 안 바뀌면 그건 메모지 규칙이 아니다.
   // 새 맵에서 — 앞 검사가 깔아 둔 판 위에 찍으면 새 카드가 아니라 남의 카드를 고치게 된다
