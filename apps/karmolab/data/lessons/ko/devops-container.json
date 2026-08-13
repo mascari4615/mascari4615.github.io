@@ -1,106 +1,849 @@
 {
   "id": "devops-container",
-  "minutes": 13,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "컨테이너는 가상 머신이 아니다. **같은 커널 위에서 격리된 프로세스**일 뿐이라 가볍고 빠르다. 그리고 「제 컴퓨터에선 됩니다」를 끝낸다 — 환경이 코드가 되니까."
-    },
-    {
-      "type": "h",
-      "text": "1. 이미지와 컨테이너"
-    },
-    {
-      "type": "p",
-      "text": "이미지는 **설계도**(읽기 전용 층들의 쌓임), 컨테이너는 그 설계도로 띄운 **실행 중인 것**. 이미지를 고치는 게 아니라 새로 굽는다."
-    },
-    {
-      "type": "code",
-      "lang": "dockerfile",
-      "label": "층 순서가 곧 빌드 속도",
-      "text": "FROM node:20-slim\nWORKDIR /app\n\n# 의존성 층 — package.json 이 안 바뀌면 이 층은 캐시된다\nCOPY package*.json ./\nRUN npm ci --omit=dev\n\n# 소스 층 — 자주 바뀌므로 뒤에\nCOPY . .\nCMD [\"node\", \"server.js\"]"
-    },
-    {
-      "type": "note",
-      "text": "`COPY . .` 를 맨 앞에 두면 파일 하나만 바뀌어도 `npm ci` 부터 다시 돈다. **덜 바뀌는 것부터 위로** — 이 한 가지가 빌드 시간을 몇 배로 가른다."
-    },
-    {
-      "type": "h",
-      "text": "2. 작게 굽기"
-    },
-    {
-      "type": "code",
-      "lang": "dockerfile",
-      "label": "멀티 스테이지 — 빌드 도구는 남기지 않는다",
-      "text": "FROM node:20 AS build\nWORKDIR /app\nCOPY . .\nRUN npm ci && npm run build\n\nFROM nginx:alpine\nCOPY --from=build /app/dist /usr/share/nginx/html"
-    },
-    {
-      "type": "h",
-      "text": "3. 밖과 잇는 두 가지"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "포트와 볼륨",
-      "text": "docker run -p 8080:80 myapp          # 내 8080 → 컨테이너 80\ndocker run -v \"$PWD/data:/data\" myapp # 폴더 연결(컨테이너는 지워도 데이터는 남는다)\ndocker run --env-file .env myapp      # 설정은 밖에서 주입"
-    },
-    {
-      "type": "note",
-      "text": "컨테이너 안에 데이터를 쌓으면 **컨테이너를 지우는 순간 함께 사라진다**. 남아야 하는 것은 볼륨이나 외부 저장소로 뺀다."
-    },
-    {
-      "type": "h",
-      "text": "4. 디버깅"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "안에서 무슨 일이",
-      "text": "docker ps\ndocker logs -f <컨테이너>\ndocker exec -it <컨테이너> sh     # 안으로 들어가기\ndocker image ls                  # 크기 확인"
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "내 앱을 이미지로 굽고 다른 기계(또는 지운 뒤 다시 받은 상태)에서 그대로 돌려라. 소스 한 줄만 바꿔 다시 굽고 **캐시 덕에 얼마나 빨라지는지** 재라."
-    },
-    {
-      "type": "try",
-      "text": "멀티 스테이지로 바꿔 이미지 크기가 얼마나 줄었는지 `docker image ls` 로 비교하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "Dockerfile 에서 `COPY package*.json` → `RUN npm ci` 를 소스 복사보다 앞에 두는 이유는?",
-      "choices": [
-        "의존성 층을 캐시해 소스만 바뀔 때 재설치를 피하려고",
-        "문법상 필수라서",
-        "보안 때문에"
+      "id": "1",
+      "title": "컨테이너는 가벼운 가상 머신이 아니다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "컨테이너를 「작은 가상 머신」으로 배우면 나중에 전부 어긋난다. **컨테이너는 그냥 프로세스다** — 커널은 호스트 것을 그대로 쓰고, 다만 「보이는 것」이 격리돼 있을 뿐이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "무엇이 나뉘고 무엇이 공유되나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layer { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:6px; margin-bottom:3px;\n           font:12px ui-monospace, monospace; background:#111c33; }\n  .layer .sz { margin-left:auto; color:#94a3b8; font-size:11px; }\n  .layer.hit { background:#14351f; }\n  .layer.miss { background:#3b1d1d; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([txt, size, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(txt) +\n    '<span class=\"sz\">' + esc(size) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const v = '{{view}}';\n  const rows = v === 'vm'\n    ? [['앱', '', ''], ['라이브러리', '', ''], ['게스트 OS 커널', '수백 MB', 'miss'],\n       ['하이퍼바이저', '', ''], ['호스트 커널', '', 'hit'], ['하드웨어', '', '']]\n    : [['앱', '', ''], ['라이브러리', '수십 MB', ''],\n       ['<격리: 네임스페이스 · cgroup>', '0', 'hit'],\n       ['호스트 커널  (그대로 쓴다)', '', 'hit'], ['하드웨어', '', '']];\n  render(v === 'vm' ? '가상 머신' : 'docker run',\n    v === 'vm'\n      ? '  <span class=\"no\">게스트 OS 커널을 통째로 올린다</span> — 부팅에 수십 초, 이미지 수 GB.\\n' +\n        '  대신 커널까지 완전히 다른 OS 를 돌릴 수 있다(리눅스 위에 윈도우).'\n      : '  <span class=\"ok\">커널은 호스트 것을 그대로 쓴다</span> — 시작이 밀리초, 이미지 수십 MB.\\n' +\n        '  대신 <span class=\"warn\">호스트와 같은 커널만</span> 돌릴 수 있다(맥·윈도우에서는 안에 리눅스 VM 이 하나 돈다).',\n    '격리는 커널 기능 둘로 만든다 — 네임스페이스(무엇이 보이나)와 cgroup(얼마나 쓰나).',\n    layers(rows));\n</script>",
+          "controls": [
+            {
+              "id": "view",
+              "label": "무엇을 볼까",
+              "type": "select",
+              "value": "container",
+              "options": [
+                {
+                  "value": "container",
+                  "label": "컨테이너"
+                },
+                {
+                  "value": "vm",
+                  "label": "가상 머신"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "격리를 만드는 커널 기능은 둘이다 — **네임스페이스**가 「무엇이 보이나」를 나누고(프로세스 목록·네트워크·파일 시스템·호스트 이름), **cgroup** 이 「얼마나 쓸 수 있나」를 정한다(CPU·메모리). 앞 칸(운영체제)의 프로세스·자원 이야기가 여기서 다시 쓰인다."
+        },
+        {
+          "type": "note",
+          "text": "「내 노트북에서는 되는데」를 컨테이너가 없애 주는 이유는 **의존성까지 통째로 이미지에 넣기** 때문이다. 다만 **커널은 안 들어간다** — 그래서 커널 버전에 민감한 것(특정 syscall·드라이버)은 여전히 환경을 탄다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "정말 프로세스인지 확인해 보기",
+          "text": "docker run -d --name web nginx\ndocker exec web ps aux          # 컨테이너 안: PID 1 이 nginx\nps aux | grep nginx             # 호스트: 그냥 프로세스로 보인다\n\ndocker exec web hostname        # 호스트 이름이 다르다 (네임스페이스)\ndocker stats --no-stream        # cgroup 이 재는 사용량"
+        },
+        {
+          "type": "try",
+          "text": "`docker run -d --name t nginx && ps aux | grep nginx` 를 호스트에서 쳐 보라. 컨테이너 프로세스가 호스트 프로세스 목록에 그대로 보이는 것을 확인하라(리눅스 기준)."
+        }
       ],
-      "answer": 0,
-      "why": "덜 바뀌는 것을 위층에 두면 캐시가 오래 산다."
+      "quiz": [
+        {
+          "q": "컨테이너와 VM 의 가장 큰 차이는?",
+          "choices": [
+            "속도만",
+            "컨테이너는 호스트 커널을 그대로 쓴다",
+            "보안 수준",
+            "이미지 형식"
+          ],
+          "answer": 1,
+          "why": "그래서 가볍고, 그래서 커널을 못 바꾼다."
+        },
+        {
+          "q": "격리를 만드는 커널 기능은?",
+          "choices": [
+            "하이퍼바이저",
+            "네임스페이스와 cgroup",
+            "chroot 만",
+            "SELinux"
+          ],
+          "answer": 1,
+          "why": "무엇이 보이나 + 얼마나 쓰나."
+        },
+        {
+          "q": "컨테이너 이미지에 들어가지 **않는** 것은?",
+          "choices": [
+            "앱",
+            "라이브러리",
+            "커널",
+            "설정 파일"
+          ],
+          "answer": 2,
+          "why": "커널은 호스트 것을 쓴다."
+        }
+      ]
     },
     {
-      "q": "컨테이너를 지워도 남아야 하는 데이터는?",
-      "choices": [
-        "컨테이너 안에 저장한다",
-        "볼륨이나 외부 저장소에 둔다",
-        "이미지에 굽는다"
+      "id": "2",
+      "title": "이미지는 층이다 — 그리고 층이 캐시다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "이미지는 **읽기 전용 층을 쌓은 것**이다. Dockerfile 의 줄 하나가 층 하나가 되고, 같은 층은 **다시 만들지 않고 재사용**된다. 빌드가 느린 이유의 90%가 이 규칙을 몰라서다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "무엇을 고쳤는지 골라 보라 — 어디부터 다시 만드나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layer { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:6px; margin-bottom:3px;\n           font:12px ui-monospace, monospace; background:#111c33; }\n  .layer .sz { margin-left:auto; color:#94a3b8; font-size:11px; }\n  .layer.hit { background:#14351f; }\n  .layer.miss { background:#3b1d1d; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([txt, size, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(txt) +\n    '<span class=\"sz\">' + esc(size) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{change}}';\n  const steps = [\n    ['FROM node:20-alpine', '120MB'],\n    ['WORKDIR /app', '0'],\n    ['COPY package*.json ./', '4KB'],\n    ['RUN npm ci', '180MB'],\n    ['COPY . .', '2MB'],\n    ['CMD [\\\"node\\\", \\\"server.js\\\"]', '0'],\n  ];\n  const firstMiss = { none: 99, src: 4, deps: 2, base: 0 }[c];\n  const rows = steps.map(([t, s], i) => [t, s, i < firstMiss ? 'hit' : 'miss']);\n  const t = {\n    none: ['아무것도 안 고쳤다', '전부 캐시 적중 — 빌드가 몇 초 만에 끝난다.'],\n    src:  ['소스 코드 한 줄 고쳤다', 'COPY . . 부터 다시. npm ci 는 캐시 적중 — 이게 순서를 나눈 이유다.'],\n    deps: ['package.json 을 고쳤다', 'COPY package*.json 부터 다시. 의존성이 바뀌었으니 당연하다.'],\n    base: ['FROM 의 태그를 바꿨다', '전부 다시. 베이스가 바뀌면 그 위는 전부 무효.'],\n  }[c];\n  render('docker build .',\n    '  ' + esc(t[0]) + '\\n\\n  <span class=\"ok\">초록 = 캐시 적중</span> · <span class=\"no\">빨강 = 다시 만든다</span>\\n\\n  ' + esc(t[1]),\n    '한 층이 깨지면 그 아래는 전부 깨진다 — 그래서 「잘 안 바뀌는 것을 위에」 둔다.',\n    layers(rows));\n</script>",
+          "controls": [
+            {
+              "id": "change",
+              "label": "무엇을 고쳤나",
+              "type": "select",
+              "value": "src",
+              "options": [
+                {
+                  "value": "none",
+                  "label": "아무것도"
+                },
+                {
+                  "value": "src",
+                  "label": "소스 코드"
+                },
+                {
+                  "value": "deps",
+                  "label": "package.json"
+                },
+                {
+                  "value": "base",
+                  "label": "베이스 이미지"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "docker",
+          "label": "이 순서가 전부다",
+          "text": "FROM node:20-alpine\nWORKDIR /app\n\n# 1) 의존성 목록만 먼저 복사  <- 잘 안 바뀐다\nCOPY package*.json ./\nRUN npm ci --omit=dev\n\n# 2) 소스는 그다음  <- 자주 바뀐다\nCOPY . .\n\nCMD [\"node\", \"server.js\"]"
+        },
+        {
+          "type": "note",
+          "text": "**`COPY . .` 을 위에 두면 캐시가 매번 깨진다.** 소스 한 글자만 고쳐도 `npm ci` 를 다시 돌린다 — 빌드가 3초에서 3분이 되는 순간이다. Dockerfile 을 읽을 때 이 순서부터 보라."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **층은 지워도 안 줄어든다.** `RUN apt-get install …` 다음 줄에서 `RUN rm -rf /var/lib/apt/lists/*` 를 해도 앞 층에 이미 들어 있어서 이미지 크기는 그대로다. 지우려면 **같은 `RUN` 안에서** 해야 한다."
+        },
+        {
+          "type": "try",
+          "text": "내 Dockerfile 에서 `COPY . .` 의 위치를 확인하라. 의존성 설치보다 위에 있으면 순서를 바꾸고 빌드 시간을 재 보라 — 대개 몇 배 차이가 난다."
+        }
       ],
-      "answer": 1,
-      "why": "컨테이너 파일 시스템은 임시로 봐야 한다."
+      "quiz": [
+        {
+          "q": "Dockerfile 에서 의존성 설치를 소스 복사보다 위에 두는 이유는?",
+          "choices": [
+            "보안",
+            "소스가 바뀌어도 설치 층 캐시를 살리려고",
+            "크기 때문",
+            "문법 규칙"
+          ],
+          "answer": 1,
+          "why": "한 층이 깨지면 아래는 전부 깨진다."
+        },
+        {
+          "q": "다음 줄에서 파일을 지우면 이미지 크기는?",
+          "choices": [
+            "줄어든다",
+            "그대로 — 앞 층에 이미 들어 있다",
+            "두 배",
+            "알 수 없다"
+          ],
+          "answer": 1,
+          "why": "같은 RUN 안에서 지워야 한다."
+        },
+        {
+          "q": "`FROM` 태그를 바꾸면?",
+          "choices": [
+            "아무 영향 없음",
+            "그 아래 층이 전부 다시 만들어진다",
+            "캐시가 유지된다",
+            "빌드가 실패한다"
+          ],
+          "answer": 1,
+          "why": "베이스가 바뀌면 위가 전부 무효."
+        }
+      ]
     },
     {
-      "q": "멀티 스테이지 빌드의 목적은?",
-      "choices": [
-        "빌드 도구를 최종 이미지에서 빼 크기·공격면을 줄인다",
-        "병렬 빌드",
-        "캐시 비활성화"
+      "id": "3",
+      "title": "작게 만들기 — 멀티 스테이지",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "빌드에 필요한 것(컴파일러·개발 의존성)과 **돌리는 데 필요한 것**은 다르다. 멀티 스테이지 빌드는 앞 단계에서 만들고 **결과물만** 뒤 단계로 옮긴다 — 이미지가 몇 배 작아진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "방식을 골라 보라 — 최종 이미지에 무엇이 남나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layer { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:6px; margin-bottom:3px;\n           font:12px ui-monospace, monospace; background:#111c33; }\n  .layer .sz { margin-left:auto; color:#94a3b8; font-size:11px; }\n  .layer.hit { background:#14351f; }\n  .layer.miss { background:#3b1d1d; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([txt, size, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(txt) +\n    '<span class=\"sz\">' + esc(size) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{kind}}';\n  const d = {\n    single: { rows: [['node:20 (전체)', '1.1GB', 'miss'], ['개발 의존성 · 빌드 도구', '400MB', 'miss'],\n                     ['소스 전부', '20MB', 'miss'], ['빌드 결과물', '8MB', 'hit']],\n              total: '약 1.5GB', say: '빌드에만 쓰인 것들이 전부 남아 있다 — 배포·저장·시작이 다 느려진다.' },\n    slim:   { rows: [['node:20-alpine', '120MB', 'hit'], ['운영 의존성만', '80MB', 'hit'],\n                     ['빌드 결과물', '8MB', 'hit']],\n              total: '약 210MB', say: '베이스를 줄이고 --omit=dev 로 개발 의존성을 뺐다. 여기까지가 절반.' },\n    multi:  { rows: [['(builder 단계는 버려진다)', '—', 'dim'], ['node:20-alpine', '120MB', 'hit'],\n                     ['운영 의존성', '80MB', 'hit'], ['빌드 결과물만 복사', '8MB', 'hit']],\n              total: '약 210MB · 빌드 도구 0', say: '빌드 단계는 통째로 버린다 — 컴파일러·소스·캐시가 최종 이미지에 안 남는다(보안에도 좋다).' },\n    distro: { rows: [['gcr.io/distroless/nodejs20', '55MB', 'hit'], ['앱 + 운영 의존성', '88MB', 'hit']],\n              total: '약 143MB', say: '셸도 패키지 관리자도 없는 베이스 — 공격면이 크게 준다. 대신 docker exec 로 들어가 디버깅을 못 한다.' },\n  }[c];\n  render('docker images',\n    '  최종 크기: <span class=\"ok\">' + esc(d.total) + '</span>\\n\\n  ' + esc(d.say),\n    '작을수록 좋은 이유: 받는 시간 · 저장 비용 · 시작 속도 · 취약점 표면.',\n    layers(d.rows));\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "방식",
+              "type": "select",
+              "value": "single",
+              "options": [
+                {
+                  "value": "single",
+                  "label": "한 단계 · 전체 베이스"
+                },
+                {
+                  "value": "slim",
+                  "label": "alpine + 운영 의존성만"
+                },
+                {
+                  "value": "multi",
+                  "label": "멀티 스테이지"
+                },
+                {
+                  "value": "distro",
+                  "label": "distroless"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "docker",
+          "label": "멀티 스테이지의 기본형",
+          "text": "# 1단계: 만든다\nFROM node:20 AS builder\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci                 # 개발 의존성까지 전부\nCOPY . .\nRUN npm run build\n\n# 2단계: 돌린다 (여기가 최종 이미지)\nFROM node:20-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci --omit=dev\nCOPY --from=builder /app/dist ./dist    # 결과물만 가져온다\nUSER node                                # root 로 돌리지 않는다\nCMD [\"node\", \"dist/server.js\"]"
+        },
+        {
+          "type": "note",
+          "text": "**`.dockerignore` 를 잊지 마라.** 없으면 `node_modules`·`.git`·로그까지 빌드 컨텍스트로 전송된다 — 빌드가 느려지고, `COPY . .` 로 들어가 이미지가 커지고, `.env` 가 딸려 들어가는 사고까지 난다."
+        },
+        {
+          "type": "p",
+          "text": "베이스 고르기도 저울이 있다. `alpine` 은 작지만 musl libc 라 네이티브 모듈에서 문제가 생길 수 있고, `slim` 은 조금 크지만 안전하다. **처음에는 `-slim`, 크기가 진짜 문제일 때 `alpine`** 이 무난한 순서다."
+        },
+        {
+          "type": "try",
+          "text": "`docker images` 로 내 이미지 크기를 보라. 500MB 를 넘으면 멀티 스테이지로 바꿀 여지가 크다. `docker history 이미지` 로 어느 층이 큰지도 확인하라."
+        }
       ],
-      "answer": 0,
-      "why": "결과물만 실행 이미지로 옮긴다."
+      "quiz": [
+        {
+          "q": "멀티 스테이지의 핵심은?",
+          "choices": [
+            "병렬 빌드",
+            "빌드 단계를 버리고 결과물만 최종 이미지로",
+            "캐시 강화",
+            "여러 아키텍처"
+          ],
+          "answer": 1,
+          "why": "컴파일러·소스가 안 남는다."
+        },
+        {
+          "q": "`.dockerignore` 가 없으면?",
+          "choices": [
+            "빌드가 실패한다",
+            "node_modules·.git·.env 까지 컨텍스트에 들어간다",
+            "캐시가 는다",
+            "영향 없다"
+          ],
+          "answer": 1,
+          "why": "느려지고 커지고 위험해진다."
+        },
+        {
+          "q": "distroless 베이스의 단점은?",
+          "choices": [
+            "크다",
+            "셸이 없어 docker exec 디버깅이 안 된다",
+            "느리다",
+            "호환성"
+          ],
+          "answer": 1,
+          "why": "공격면이 작아지는 대가."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "안과 밖 — 포트 · 볼륨 · 환경 변수",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "컨테이너는 격리돼 있으므로, **바깥과 연결할 자리를 명시**해야 한다. 셋뿐이다 — 포트(네트워크), 볼륨(파일), 환경 변수(설정)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "무엇을 연결할지 골라 보라",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layer { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:6px; margin-bottom:3px;\n           font:12px ui-monospace, monospace; background:#111c33; }\n  .layer .sz { margin-left:auto; color:#94a3b8; font-size:11px; }\n  .layer.hit { background:#14351f; }\n  .layer.miss { background:#3b1d1d; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([txt, size, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(txt) +\n    '<span class=\"sz\">' + esc(size) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{kind}}';\n  const t = {\n    port: ['docker run -p 8080:3000 app',\n      ['호스트 8080  ->  컨테이너 3000', '왼쪽이 바깥, 오른쪽이 안 — 순서를 헷갈리면 안 붙는다'],\n      '앱이 127.0.0.1 로 듣고 있으면 -p 를 해도 안 붙는다 — 0.0.0.0 으로 들어야 한다(셸 칸 3장).'],\n    vol: ['docker run -v $(pwd)/data:/app/data app',\n      ['호스트 폴더를 컨테이너 안에 붙인다(bind mount)', '컨테이너가 죽어도 자료는 호스트에 남는다'],\n      '컨테이너 안에 쓴 파일은 컨테이너와 함께 사라진다 — 남아야 할 것은 반드시 볼륨으로.'],\n    named: ['docker volume create appdata && docker run -v appdata:/var/lib/db db',\n      ['도커가 관리하는 이름 붙은 볼륨', '호스트 경로를 몰라도 되고, 백업·이동이 쉽다'],\n      'DB 같은 상태 저장에는 bind 보다 named volume 이 낫다.'],\n    env: ['docker run -e NODE_ENV=production --env-file .env app',\n      ['설정은 이미지에 굽지 말고 실행할 때 준다', '같은 이미지를 dev·staging·prod 에 그대로 쓴다'],\n      '비밀값은 -e 로도 남는다(docker inspect 에 보인다) — 진짜 비밀은 secret 관리로(다음 칸).'],\n    net: ['docker network create appnet && docker run --network appnet --name db postgres',\n      ['같은 네트워크의 컨테이너끼리는 이름으로 붙는다', 'app 에서 postgres://db:5432 로 접속'],\n      'localhost 는 「그 컨테이너 자신」이다 — 다른 컨테이너를 localhost 로 부르면 안 붙는다.'],\n  }[c];\n  render(t[0], t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>', '');\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "무엇을",
+              "type": "select",
+              "value": "port",
+              "options": [
+                {
+                  "value": "port",
+                  "label": "포트 (-p)"
+                },
+                {
+                  "value": "vol",
+                  "label": "폴더 붙이기 (-v)"
+                },
+                {
+                  "value": "named",
+                  "label": "이름 붙은 볼륨"
+                },
+                {
+                  "value": "env",
+                  "label": "환경 변수 (-e)"
+                },
+                {
+                  "value": "net",
+                  "label": "컨테이너끼리 (network)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**`localhost` 함정이 가장 자주 문다.** 컨테이너 안의 `localhost` 는 그 컨테이너 자신이다. DB 컨테이너에 붙으려면 `localhost` 가 아니라 **서비스 이름**(`db`)을 써야 하고, 호스트에 붙으려면 `host.docker.internal` 을 쓴다."
+        },
+        {
+          "type": "code",
+          "lang": "yaml",
+          "label": "compose 로 적으면 한눈에 보인다",
+          "text": "services:\n  app:\n    build: .\n    ports: ['8080:3000']\n    environment:\n      DATABASE_URL: postgres://db:5432/app   # localhost 가 아니라 db\n    depends_on: [db]\n  db:\n    image: postgres:16\n    volumes: ['pgdata:/var/lib/postgresql/data']\n    environment:\n      POSTGRES_PASSWORD_FILE: /run/secrets/pg\n\nvolumes:\n  pgdata:"
+        },
+        {
+          "type": "p",
+          "text": "**컨테이너는 언제든 지워질 수 있다**고 가정하고 짜야 한다. 로그를 파일에 쓰지 말고 stdout 으로(수집기가 가져간다), 업로드 파일을 로컬에 쌓지 말고 객체 저장소로. 「지워도 되는 상태」가 컨테이너의 전제다."
+        },
+        {
+          "type": "try",
+          "text": "`docker run -p 8080:80 -d nginx` 후 `curl localhost:8080` 을 해 보라. 그다음 `-p` 없이 띄워 안 붙는 것도 확인하라 — 격리가 기본값임을 눈으로 보게 된다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`-p 8080:3000` 에서 8080 은?",
+          "choices": [
+            "컨테이너 포트",
+            "호스트 포트",
+            "둘 다",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "왼쪽이 바깥, 오른쪽이 안."
+        },
+        {
+          "q": "컨테이너 안에서 다른 컨테이너의 DB 에 붙을 때 호스트 이름은?",
+          "choices": [
+            "localhost",
+            "서비스(컨테이너) 이름",
+            "127.0.0.1",
+            "호스트 IP"
+          ],
+          "answer": 1,
+          "why": "localhost 는 자기 자신이다."
+        },
+        {
+          "q": "컨테이너가 지워져도 남아야 할 자료는?",
+          "choices": [
+            "이미지에 굽는다",
+            "볼륨으로 뺀다",
+            "로그로 남긴다",
+            "환경 변수에"
+          ],
+          "answer": 1,
+          "why": "컨테이너 안 파일은 함께 사라진다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "돌리기 — 로그 · 재시작 · 자원 한도",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "컨테이너를 띄운 뒤 하는 일은 앞 칸(프로세스)에서 배운 것과 같다 — **무엇이 돌고 있나, 로그는 어디 있나, 죽으면 어떻게 되나.** 명령 이름만 다르다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "상황을 골라 보라 — 어떤 명령이 답하나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layer { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:6px; margin-bottom:3px;\n           font:12px ui-monospace, monospace; background:#111c33; }\n  .layer .sz { margin-left:auto; color:#94a3b8; font-size:11px; }\n  .layer.hit { background:#14351f; }\n  .layer.miss { background:#3b1d1d; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([txt, size, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(txt) +\n    '<span class=\"sz\">' + esc(size) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    ps: ['docker ps -a',\n      ['CONTAINER  IMAGE   STATUS                    PORTS',\n       'a1b2       app     Up 3 hours                0.0.0.0:8080->3000/tcp',\n       'c3d4       db      Exited (137) 2 hours ago'],\n      'Exited(137) = 128+9 = SIGKILL — 대개 메모리 한도 초과(OOM). 코드를 읽는 것이 진단의 시작.'],\n    logs: ['docker logs -f --tail 100 app',\n      ['컨테이너의 stdout·stderr 를 그대로 보여 준다'],\n      '그래서 앱은 파일이 아니라 stdout 으로 로그를 내야 한다 — 12-factor 의 그 규칙.'],\n    exec: ['docker exec -it app sh',\n      ['도는 컨테이너 안으로 들어간다', 'distroless·scratch 이미지에는 셸이 없어 못 들어간다'],\n      '디버깅용. 여기서 고친 것은 컨테이너가 지워지면 사라진다 — 이미지를 고쳐야 한다.'],\n    restart: ['docker run --restart unless-stopped app',\n      ['죽으면 자동으로 다시 띄운다', 'no · on-failure · always · unless-stopped'],\n      '재시작이 답이 아닌 경우도 많다 — 계속 죽으면 로그를 보라(재시작 폭주).'],\n    limit: ['docker run --memory 512m --cpus 1.5 app',\n      ['cgroup 한도 — 넘으면 OOM 으로 죽는다', 'docker stats 로 실제 사용량 확인'],\n      '한도를 안 주면 컨테이너 하나가 호스트를 다 먹을 수 있다. 운영에서는 반드시 준다.'],\n  }[c];\n  render(t[0], t[1].map((s) => '  ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>', '');\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "상황",
+              "type": "select",
+              "value": "ps",
+              "options": [
+                {
+                  "value": "ps",
+                  "label": "무엇이 도나"
+                },
+                {
+                  "value": "logs",
+                  "label": "로그 보기"
+                },
+                {
+                  "value": "exec",
+                  "label": "안으로 들어가기"
+                },
+                {
+                  "value": "restart",
+                  "label": "죽으면 다시"
+                },
+                {
+                  "value": "limit",
+                  "label": "자원 한도"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**종료 코드를 읽어라.** `Exited (0)` 은 정상 종료, `(137)` 은 SIGKILL(대개 OOM), `(143)` 은 SIGTERM(정상 종료 요청), `(1)` 은 앱이 오류로 끝난 것. 앞 칸(운영체제 8장)의 신호 번호가 그대로 쓰인다 — 128 + 신호번호."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "진단 순서",
+          "text": "docker ps -a                 # 상태와 종료 코드\ndocker logs --tail 200 app   # 왜 죽었나\ndocker stats --no-stream     # 지금 얼마나 쓰나\ndocker inspect app | jq '.[0].State'   # 자세한 상태(OOMKilled 여부)\ndocker exec -it app sh       # 안에서 확인 (셸이 있다면)\n\ndocker system df             # 디스크를 무엇이 먹고 있나\ndocker system prune -a       # 안 쓰는 이미지·캐시 정리 (조심)"
+        },
+        {
+          "type": "p",
+          "text": "**PID 1 문제**도 알아 두면 좋다. 컨테이너 안의 첫 프로세스는 PID 1 이 되는데, PID 1 은 신호 기본 동작이 다르고 좀비를 거둬야 한다. 셸 스크립트로 앱을 감싸면 `SIGTERM` 이 앱에 안 전달돼 **정상 종료가 안 되는** 일이 생긴다 — `exec` 로 넘기거나 `--init` 을 쓴다."
+        },
+        {
+          "type": "try",
+          "text": "`docker run --memory 20m --rm alpine sh -c 'yes | head -c 100M > /dev/null'` 같은 식으로 한도를 넘겨 보라. `docker ps -a` 에서 137 코드를 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`Exited (137)` 이 뜻하는 것은?",
+          "choices": [
+            "정상 종료",
+            "SIGKILL — 대개 메모리 한도 초과",
+            "앱 오류",
+            "재시작 중"
+          ],
+          "answer": 1,
+          "why": "128 + 9 = 137."
+        },
+        {
+          "q": "컨테이너 앱이 로그를 남길 곳은?",
+          "choices": [
+            "파일",
+            "stdout·stderr",
+            "볼륨",
+            "DB"
+          ],
+          "answer": 1,
+          "why": "docker logs 와 수집기가 가져간다."
+        },
+        {
+          "q": "셸 스크립트로 앱을 감쌌더니 정상 종료가 안 된다면?",
+          "choices": [
+            "재시작 정책",
+            "PID 1 문제 — exec 로 넘기거나 --init",
+            "메모리 한도",
+            "네트워크"
+          ],
+          "answer": 1,
+          "why": "SIGTERM 이 앱까지 전달돼야 한다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "안전하게 — root 로 돌리지 않기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "컨테이너는 격리돼 있지만 **VM 만큼 튼튼하지는 않다** — 커널을 공유하기 때문이다. 그래서 「뚫려도 피해가 적게」 만드는 기본 수칙이 있다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "설정을 골라 보라 — 무엇이 위험한가",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layer { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:6px; margin-bottom:3px;\n           font:12px ui-monospace, monospace; background:#111c33; }\n  .layer .sz { margin-left:auto; color:#94a3b8; font-size:11px; }\n  .layer.hit { background:#14351f; }\n  .layer.miss { background:#3b1d1d; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([txt, size, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(txt) +\n    '<span class=\"sz\">' + esc(size) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    root: ['(기본) 컨테이너가 root 로 돈다',\n      ['이미지에 USER 를 안 적으면 root 다', '볼륨으로 붙인 호스트 폴더에 root 로 쓰게 된다'],\n      'USER node · USER 1000 을 Dockerfile 에 적어라. 대부분의 공식 이미지가 비-root 사용자를 제공한다.', 'no'],\n    privileged: ['docker run --privileged',\n      ['거의 모든 커널 권한을 준다 — 사실상 격리 해제', '호스트 장치를 직접 만질 수 있다'],\n      '필요한 capability 만 주라: --cap-add SYS_TIME 처럼. --privileged 는 최후의 수단.', 'no'],\n    sock: ['-v /var/run/docker.sock:/var/run/docker.sock',\n      ['컨테이너가 도커 데몬을 조종할 수 있다', '= 호스트 root 권한과 사실상 같다'],\n      'CI 도구 설정에 흔히 보이지만, 그 컨테이너가 뚫리면 호스트가 넘어간다. 대안: rootless·kaniko·buildkit.', 'no'],\n    ro: ['--read-only --tmpfs /tmp',\n      ['파일 시스템을 읽기 전용으로', '쓸 자리는 tmpfs 나 볼륨으로만'],\n      '앱이 자기 파일을 못 고치게 한다 — 침입자가 웹셸을 심기 어려워진다.', 'ok'],\n    scan: ['docker scout cves app:latest   (또는 trivy image app)',\n      ['베이스 이미지의 알려진 취약점을 훑는다', 'CI 에 걸어 두면 새 CVE 가 나올 때 알 수 있다'],\n      '이미지는 만든 순간부터 낡는다 — 정기적으로 다시 빌드하는 것도 보안 작업이다.', 'ok'],\n  }[c];\n  render(t[0], t[1].map((s) => '  · ' + esc(s)).join('\\n') +\n    '\\n\\n  <span class=\"' + t[3] + '\">' + esc(t[2]) + '</span>', '');\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "설정",
+              "type": "select",
+              "value": "root",
+              "options": [
+                {
+                  "value": "root",
+                  "label": "root 로 돈다"
+                },
+                {
+                  "value": "privileged",
+                  "label": "--privileged"
+                },
+                {
+                  "value": "sock",
+                  "label": "docker.sock 마운트"
+                },
+                {
+                  "value": "ro",
+                  "label": "읽기 전용 (권장)"
+                },
+                {
+                  "value": "scan",
+                  "label": "취약점 스캔 (권장)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "docker",
+          "label": "운영 이미지의 기본 자세",
+          "text": "FROM node:20-alpine\nWORKDIR /app\nCOPY --chown=node:node . .\nRUN npm ci --omit=dev\nUSER node                     # root 로 돌지 않는다\nEXPOSE 3000\nHEALTHCHECK --interval=30s CMD wget -qO- localhost:3000/health || exit 1\nCMD [\"node\", \"server.js\"]     # exec 형식 (셸을 안 거친다 = 신호가 그대로 간다)"
+        },
+        {
+          "type": "note",
+          "text": "`CMD [\"node\", \"x.js\"]`(exec 형식)와 `CMD node x.js`(셸 형식)는 다르다. 후자는 셸이 PID 1 이 되어 **SIGTERM 이 앱에 안 전달된다** — 5장의 PID 1 문제가 여기서 생긴다. 대괄호 형식을 기본으로 삼아라."
+        },
+        {
+          "type": "p",
+          "text": "비밀값도 조심할 자리다. `ARG`·`ENV` 로 넣은 값은 **이미지 층에 남아** `docker history` 로 보인다. 빌드 때 필요한 비밀은 BuildKit 의 `--mount=type=secret` 을 쓰고, 실행 때 비밀은 오케스트레이터의 secret 기능을 쓴다(다음 칸)."
+        },
+        {
+          "type": "try",
+          "text": "`docker inspect 내이미지 | jq '.[0].Config.User'` 로 어떤 사용자로 도는지 확인하라. 비어 있으면 root 다 — `USER` 를 추가할 자리다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "Dockerfile 에 `USER` 를 안 적으면?",
+          "choices": [
+            "실행이 안 된다",
+            "root 로 돈다",
+            "무작위 사용자",
+            "호스트 사용자"
+          ],
+          "answer": 1,
+          "why": "뚫렸을 때 피해가 커진다."
+        },
+        {
+          "q": "`docker.sock` 을 컨테이너에 붙이면?",
+          "choices": [
+            "안전하다",
+            "사실상 호스트 root 권한을 주는 것",
+            "성능이 는다",
+            "로그만 보인다"
+          ],
+          "answer": 1,
+          "why": "도커 데몬을 조종할 수 있다."
+        },
+        {
+          "q": "`CMD node x.js`(셸 형식)의 문제는?",
+          "choices": [
+            "느리다",
+            "셸이 PID 1 이 되어 SIGTERM 이 앱에 안 간다",
+            "경로 문제",
+            "없다"
+          ],
+          "answer": 1,
+          "why": "exec 형식(대괄호)을 쓴다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "compose — 여러 개를 한 번에",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "앱 하나만 도는 경우는 드물다 — DB·캐시·큐가 따라온다. `docker compose` 는 **여러 컨테이너와 그 연결을 파일 하나에** 적고 한 명령으로 띄운다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "명령을 골라 보라 — 무엇을 하나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layer { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:6px; margin-bottom:3px;\n           font:12px ui-monospace, monospace; background:#111c33; }\n  .layer .sz { margin-left:auto; color:#94a3b8; font-size:11px; }\n  .layer.hit { background:#14351f; }\n  .layer.miss { background:#3b1d1d; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([txt, size, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(txt) +\n    '<span class=\"sz\">' + esc(size) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{cmd}}';\n  const t = {\n    up: ['docker compose up -d', ['필요한 이미지를 받거나 빌드하고 전부 띄운다',\n      '-d = 백그라운드 · 처음이면 네트워크·볼륨도 만든다'],\n      '개발 환경을 한 명령으로 세우는 것이 compose 의 가장 큰 값이다.'],\n    logs: ['docker compose logs -f app', ['서비스별 로그 · 이름으로 고른다'],\n      '전부 보려면 이름을 빼라. 색으로 구분돼 나온다.'],\n    down: ['docker compose down', ['컨테이너·네트워크를 지운다',\n      '<span class=\"warn\">-v 를 붙이면 볼륨(=자료)까지 지운다</span>'],\n      'down -v 는 DB 를 날린다 — 개발 초기화용이지 습관이 되면 안 된다.'],\n    build: ['docker compose up --build', ['Dockerfile 이 바뀌었을 때 다시 빌드하며 띄운다'],\n      '「고쳤는데 반영이 안 된다」의 답이 대개 이것이다 — compose 는 기본적으로 기존 이미지를 쓴다.'],\n    watch: ['docker compose watch   (또는 -v 로 소스 마운트)',\n      ['소스를 고치면 자동으로 동기화·재시작'],\n      '개발에서는 소스를 볼륨으로 붙여 다시 빌드 없이 돌리는 방식이 흔하다.'],\n  }[c];\n  render(t[0], t[1].map((s) => '  · ' + s).join('\\n') + '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>', '');\n</script>",
+          "controls": [
+            {
+              "id": "cmd",
+              "label": "명령",
+              "type": "select",
+              "value": "up",
+              "options": [
+                {
+                  "value": "up",
+                  "label": "up -d (띄우기)"
+                },
+                {
+                  "value": "logs",
+                  "label": "logs (로그)"
+                },
+                {
+                  "value": "down",
+                  "label": "down (정리)"
+                },
+                {
+                  "value": "build",
+                  "label": "--build (다시 빌드)"
+                },
+                {
+                  "value": "watch",
+                  "label": "개발 중 자동 반영"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "yaml",
+          "label": "개발용 compose 한 벌",
+          "text": "services:\n  app:\n    build: .\n    ports: ['3000:3000']\n    volumes: ['.:/app', '/app/node_modules']   # 소스는 붙이되 node_modules 는 컨테이너 것 유지\n    environment:\n      DATABASE_URL: postgres://postgres:dev@db:5432/app\n    depends_on:\n      db: { condition: service_healthy }\n  db:\n    image: postgres:16-alpine\n    environment: { POSTGRES_PASSWORD: dev }\n    volumes: ['pgdata:/var/lib/postgresql/data']\n    healthcheck:\n      test: ['CMD-SHELL', 'pg_isready -U postgres']\n      interval: 5s\nvolumes: { pgdata: }"
+        },
+        {
+          "type": "note",
+          "text": "`depends_on` 만으로는 **「떴다」가 아니라 「시작됐다」**만 보장한다. DB 가 아직 접속을 못 받는데 앱이 붙으려다 죽는 일이 흔하다 — `condition: service_healthy` 와 `healthcheck` 를 함께 써야 진짜로 기다린다."
+        },
+        {
+          "type": "p",
+          "text": "compose 는 **개발·소규모 운영**에 맞다. 여러 대에 나눠 돌리거나 자동 확장·무중단 배포가 필요해지면 그때가 쿠버네티스·ECS 같은 오케스트레이터를 볼 자리다 — 처음부터 그쪽으로 가면 배보다 배꼽이 커진다."
+        },
+        {
+          "type": "try",
+          "text": "내 프로젝트에 `compose.yaml` 이 있으면 `docker compose config` 로 최종 해석 결과를 보라. 없으면 DB 하나만 띄우는 최소 파일을 만들어 `up -d` 해 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`docker compose down -v` 가 지우는 것은?",
+          "choices": [
+            "컨테이너만",
+            "컨테이너·네트워크·볼륨(자료까지)",
+            "이미지",
+            "로그"
+          ],
+          "answer": 1,
+          "why": "DB 자료가 날아간다."
+        },
+        {
+          "q": "Dockerfile 을 고쳤는데 반영이 안 되면?",
+          "choices": [
+            "restart",
+            "up --build",
+            "down",
+            "prune"
+          ],
+          "answer": 1,
+          "why": "compose 는 기존 이미지를 재사용한다."
+        },
+        {
+          "q": "`depends_on` 만으로 부족한 이유는?",
+          "choices": [
+            "순서를 안 지켜서",
+            "「시작됨」만 보장하고 「받을 준비됨」은 아니라서",
+            "느려서",
+            "네트워크 때문"
+          ],
+          "answer": 1,
+          "why": "healthcheck + condition 이 필요하다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "실전에서 자주 막히는 자리",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "컨테이너에서 나는 문제는 놀랄 만큼 반복된다. 다섯 개만 알아 두면 대부분 그 자리에서 풀린다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "증상을 골라 보라 — 원인과 처방",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layer { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:6px; margin-bottom:3px;\n           font:12px ui-monospace, monospace; background:#111c33; }\n  .layer .sz { margin-left:auto; color:#94a3b8; font-size:11px; }\n  .layer.hit { background:#14351f; }\n  .layer.miss { background:#3b1d1d; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([txt, size, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(txt) +\n    '<span class=\"sz\">' + esc(size) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    conn: ['앱이 DB 에 못 붙는다 (ECONNREFUSED)',\n      ['DATABASE_URL 에 localhost 를 썼다', 'DB 가 아직 안 떴는데 붙으려 했다'],\n      'localhost -> 서비스 이름(db) · healthcheck + condition · 재시도 로직'],\n    slow: ['빌드가 매번 몇 분씩 걸린다',\n      ['COPY . . 가 의존성 설치보다 위에 있다', '.dockerignore 가 없어 컨텍스트가 크다'],\n      '2장 순서로 고치고 .dockerignore 를 만든다 — 대개 몇 배 빨라진다'],\n    perm: ['볼륨에 쓸 때 Permission denied',\n      ['컨테이너 사용자(uid)와 호스트 폴더 소유자가 다르다'],\n      'USER 의 uid 를 호스트와 맞추거나(--user $(id -u):$(id -g)), 폴더 소유자를 바꾼다'],\n    disk:  ['디스크가 꽉 찼다',\n      ['안 쓰는 이미지·빌드 캐시·죽은 컨테이너가 쌓인다', 'docker system df 로 확인'],\n      'docker system prune -a --volumes 는 볼륨까지 지운다 — 무엇이 지워지는지 보고 하라'],\n    arch:  ['exec format error / 이미지가 안 돈다',\n      ['맥(arm64)에서 만든 이미지를 서버(amd64)에 올렸다'],\n      'docker buildx build --platform linux/amd64 로 빌드하거나 멀티 플랫폼 이미지로'],\n  }[c];\n  render('', '  <span class=\"no\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">-> ' + esc(t[2]) + '</span>', '');\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "증상",
+              "type": "select",
+              "value": "conn",
+              "options": [
+                {
+                  "value": "conn",
+                  "label": "DB 에 못 붙는다"
+                },
+                {
+                  "value": "slow",
+                  "label": "빌드가 느리다"
+                },
+                {
+                  "value": "perm",
+                  "label": "볼륨 권한 오류"
+                },
+                {
+                  "value": "disk",
+                  "label": "디스크가 찼다"
+                },
+                {
+                  "value": "arch",
+                  "label": "exec format error"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "정리와 확인",
+          "text": "docker system df                    # 무엇이 얼마나 먹고 있나\ndocker image prune                   # 태그 없는 이미지만 (안전)\ndocker builder prune                 # 빌드 캐시\ndocker system prune -a --volumes     # 전부 (볼륨=자료까지! 확인하고)\n\ndocker buildx build --platform linux/amd64,linux/arm64 -t app --push .   # 멀티 플랫폼"
+        },
+        {
+          "type": "note",
+          "text": "**아키텍처 문제는 애플 실리콘 이후로 흔해졌다.** 맥에서 빌드한 arm64 이미지를 amd64 서버에 올리면 안 돈다. CI 에서 빌드하게 만드는 것이 가장 확실한 해법이고, 로컬에서 만들어야 하면 `--platform` 을 명시하라."
+        },
+        {
+          "type": "p",
+          "text": "그리고 「컨테이너 안에서 고쳤는데 사라졌다」는 사고가 반복된다면, 그것은 **이미지를 고쳐야 할 일을 컨테이너에서 하고 있다**는 신호다. `docker exec` 로 한 변경은 임시다 — 고칠 곳은 Dockerfile 이다."
+        },
+        {
+          "type": "try",
+          "text": "`docker system df` 를 쳐서 이미지·캐시가 얼마나 쌓였는지 보라. 몇 GB 면 `docker image prune` 부터 돌려라(태그 없는 것만 지운다)."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "컨테이너에서 `localhost:5432` 로 DB 에 못 붙는 이유는?",
+          "choices": [
+            "포트 문제",
+            "localhost 는 그 컨테이너 자신이라서",
+            "방화벽",
+            "권한"
+          ],
+          "answer": 1,
+          "why": "서비스 이름으로 부른다."
+        },
+        {
+          "q": "`exec format error` 의 흔한 원인은?",
+          "choices": [
+            "권한",
+            "CPU 아키텍처 불일치(arm64 vs amd64)",
+            "메모리",
+            "손상된 이미지"
+          ],
+          "answer": 1,
+          "why": "--platform 을 명시하거나 CI 에서 빌드."
+        },
+        {
+          "q": "`docker exec` 로 컨테이너 안을 고치면?",
+          "choices": [
+            "영구 반영",
+            "컨테이너가 지워지면 사라진다 — Dockerfile 을 고쳐야",
+            "이미지에 저장",
+            "볼륨에 저장"
+          ],
+          "answer": 1,
+          "why": "임시 변경이다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "Dockerfile 하나를 쓸 때, 그리고 컨테이너가 이상할 때 훑을 목록이다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "Dockerfile · 운영 점검표",
+          "text": "Dockerfile\n  [ ] 의존성 설치를 소스 복사보다 위에                    (2장)\n  [ ] .dockerignore 가 있다 (.git · node_modules · .env)  (3장)\n  [ ] 멀티 스테이지로 빌드 도구를 최종 이미지에서 뺐다     (3장)\n  [ ] USER 로 비-root 사용자 지정                          (6장)\n  [ ] CMD 는 대괄호(exec) 형식                             (6장)\n  [ ] 같은 RUN 안에서 캐시·임시 파일 정리                  (2장)\n실행\n  [ ] 설정은 환경 변수로, 비밀은 secret 으로               (4장)\n  [ ] 남아야 할 자료는 볼륨으로                            (4장)\n  [ ] 로그는 stdout 으로                                    (5장)\n  [ ] 메모리·CPU 한도를 준다                               (5장)\n  [ ] healthcheck 가 있다                                   (6·7장)\n막혔을 때\n  [ ] docker ps -a 의 종료 코드 (137=OOM · 143=TERM)       (5장)\n  [ ] docker logs --tail 200                                (5장)\n  [ ] 다른 컨테이너는 서비스 이름으로 부르나                (4·8장)\n  [ ] 아키텍처가 맞나 (arm64 vs amd64)                      (8장)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 여섯 문항",
+          "height": "290px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layer { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:6px; margin-bottom:3px;\n           font:12px ui-monospace, monospace; background:#111c33; }\n  .layer .sz { margin-left:auto; color:#94a3b8; font-size:11px; }\n  .layer.hit { background:#14351f; }\n  .layer.miss { background:#3b1d1d; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([txt, size, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(txt) +\n    '<span class=\"sz\">' + esc(size) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['컨테이너는 호스트 커널을 그대로 쓴다', true],\n    ['다음 RUN 에서 파일을 지우면 이미지가 작아진다', false],\n    ['컨테이너 안 localhost 는 호스트를 가리킨다', false],\n    ['Exited(137) 은 대개 메모리 한도 초과다', true],\n    ['USER 를 안 적으면 root 로 돈다', true],\n    ['docker exec 로 고친 것은 이미지에 남는다', false],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로 — 1장(커널) 2장(층) 4장(localhost) 5장(코드) 6장(USER) 8장(exec)');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸은 설정·비밀값이다. 여기까지가 「어떻게 담아 돌리나」였다면, 다음은 **그 안에 무엇을 넣어 주나** — 환경별 설정과, 이미지에 절대 굽지 말아야 할 비밀들이다."
+        },
+        {
+          "type": "try",
+          "text": "내 Dockerfile 을 위 여섯 줄로 훑어라. 두 줄 이상 걸리면 오늘 고칠 값이 있다 — 특히 캐시 순서와 USER."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "빌드가 느릴 때 가장 먼저 볼 곳은?",
+          "choices": [
+            "베이스 이미지",
+            "COPY 순서와 .dockerignore",
+            "네트워크",
+            "CPU"
+          ],
+          "answer": 1,
+          "why": "캐시가 매번 깨지고 있다."
+        },
+        {
+          "q": "운영 컨테이너에 반드시 있어야 할 것은?",
+          "choices": [
+            "셸",
+            "자원 한도와 비-root 사용자",
+            "SSH",
+            "편집기"
+          ],
+          "answer": 1,
+          "why": "뚫려도·폭주해도 피해를 묶는다."
+        }
+      ]
     }
   ]
 }
