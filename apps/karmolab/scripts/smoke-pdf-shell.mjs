@@ -263,6 +263,30 @@ const gotOne = await page.evaluate(() => {
 check(gotOne.length === 1 && gotOne[0] === '앞.pdf', `한 장만 받는 도구엔 한 장만 (지금 ${JSON.stringify(gotOne)})`);
 
 
+/* ⑦-다 **자판으로도 순서를 바꾼다** (TASK-KL-293)
+ * 끌어 놓기는 마우스가 있어야 하는 조작이다. 그것만 두면 순서 바꾸기가 통째로 막힌다. */
+await freshOpenPdf();
+await page.setInputFiles('#pfFile', { name: '보고서.pdf', mimeType: 'application/pdf', buffer: tinyPdf() });
+await page.waitForFunction(() => document.querySelectorAll('#pfPages .pf-thumb').length === 2, { timeout: 20000 });
+await page.locator('.pf-thumb[data-page="1"]').focus();
+check(
+  await page.evaluate(() => document.activeElement?.dataset?.page === '1'),
+  '쪽에 초점을 줄 수 있다(자판으로 닿는다)'
+);
+await page.keyboard.press('Control+ArrowRight');
+await page.waitForTimeout(250);
+const kbOrder = await page.locator('#pfPages .pf-thumb').evaluateAll((els) => els.map((e) => e.dataset.page));
+check(kbOrder.join(',') === '2,1', `Ctrl+화살표로 순서가 바뀐다 (지금 ${kbOrder.join(',')})`);
+check(
+  await page.evaluate(() => document.activeElement?.dataset?.page === '1'),
+  '옮긴 뒤에도 그 쪽에 초점이 남는다(이어서 또 옮길 수 있게)'
+);
+check(
+  (await page.locator('#pfEditBar').getAttribute('aria-live')) === 'polite',
+  '몇 쪽을 바꿨는지 읽히는 자리다'
+);
+
+
 process.stdout.write('\n');
 await browser.close();
 if (frozen) await frozen.close();

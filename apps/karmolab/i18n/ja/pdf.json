@@ -38,5 +38,6 @@
   "pdf.edit.moved": "順序変更",
   "pdf.more": "{name} 他{n}件",
   "pdf.thumb.rotateAria": "ページを右に90°回す",
-  "pdf.thumb.dropAria": "ページを外す"
+  "pdf.thumb.dropAria": "ページを外す",
+  "pdf.grid.aria": "ページ一覧 — 矢印で移動、Ctrl+矢印で並べ替え"
 }

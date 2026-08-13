@@ -18,6 +18,7 @@
 import { openForRead, openForEdit, createPdf, loadPdfLib, pdfBlob, renderPage, suffixName } from './shared/pdf';
 import { fileSize } from './shared/media';
 import { materialShell, type MaterialGroup } from './shared/material-shell';
+import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -233,6 +234,8 @@ import { t, loadNamespace } from '../../lib/i18n';
     const pages = document.createElement('div');
     pages.className = 'pf-pages';
     pages.id = 'pfPages';
+    pages.setAttribute('role', 'list');
+    pages.setAttribute('aria-label', t('pdf.grid.aria', undefined, '쪽 목록 — 화살표로 옮겨 다니고 Ctrl+화살표로 순서를 바꿉니다'));
     const more = document.createElement('button');
     more.type = 'button';
     more.className = 'btn pf-more';
@@ -248,6 +251,8 @@ import { t, loadNamespace } from '../../lib/i18n';
     editBar = document.createElement('div');
     editBar.className = 'pf-editbar';
     editBar.id = 'pfEditBar';
+    /* 몇 쪽을 돌리고 뺐는지는 **읽혀야** 한다 — 화면만 바뀌면 낭독기 쓰는 사람은 모른다 */
+    markLive(editBar);
     editBar.hidden = true;
     const apply = document.createElement('button');
     apply.type = 'button';
@@ -296,6 +301,28 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* **끌어서 순서 바꾸기** (TASK-KL-284 — Sejda Organize 의 마지막 조각).
            * 쪽을 옮기려고 「합치기·나누기」로 가서 번호를 손으로 적는 일이 없어진다. */
           cell.draggable = true;
+          /* **끌기만 되면 키보드로는 못 옮긴다** (TASK-KL-293). 끌어 놓기는 마우스가 있어야 하는
+           * 조작이라, 그것만 두면 순서 바꾸기가 통째로 막힌다(내가 [[TASK-KL-284]] 에서 낸 구멍).
+           * 그래서 같은 일을 자판으로도 연다: 화살표로 옮겨 다니고, Ctrl 을 누른 채면 **옮긴다**. */
+          cell.tabIndex = 0;
+          cell.setAttribute('role', 'listitem');
+          cell.addEventListener('keydown', (e) => {
+            const k = (e as KeyboardEvent).key;
+            const step = k === 'ArrowRight' ? 1 : k === 'ArrowLeft' ? -1 : 0;
+            if (!step) return;
+            e.preventDefault();
+            const list = order.filter((x) => pages.querySelector(`.pf-thumb[data-page="${x}"]`));
+            const at = list.indexOf(n);
+            const to = list[at + step];
+            if (to === undefined) return;
+            if ((e as KeyboardEvent).ctrlKey || (e as KeyboardEvent).metaKey) {
+              /* 옮긴 뒤에도 **그 쪽에 초점이 남아야** 이어서 또 옮길 수 있다 */
+              moveTo(n, to, pages);
+              pages.querySelector<HTMLElement>(`.pf-thumb[data-page="${n}"]`)?.focus();
+            } else {
+              pages.querySelector<HTMLElement>(`.pf-thumb[data-page="${to}"]`)?.focus();
+            }
+          });
           cell.addEventListener('dragstart', (e) => {
             dragging = n;
             cell.classList.add('pf-dragging');
