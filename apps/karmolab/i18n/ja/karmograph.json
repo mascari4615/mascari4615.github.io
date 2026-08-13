@@ -746,5 +746,6 @@
   "karmograph.stageForm.title": "シーンの題名",
   "karmograph.stageForm.note": "説明 (任意)",
   "karmograph.stageForm.save": "入れる",
-  "karmograph.stageForm.cancel": "やめる"
+  "karmograph.stageForm.cancel": "やめる",
+  "karmograph.time.renameHint": "ダブルクリックで名前を変える"
 }
