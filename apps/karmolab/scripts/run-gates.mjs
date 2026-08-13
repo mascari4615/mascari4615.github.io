@@ -22,6 +22,7 @@
  * 사용: node scripts/run-gates.mjs <npm-script> [<npm-script> …]
  */
 import { spawnSync } from 'node:child_process';
+import { appendFileSync } from 'node:fs';
 
 const gates = process.argv.slice(2);
 if (!gates.length) {
@@ -56,6 +57,21 @@ for (const r of results) {
 }
 if (cantRun.length) {
   console.log(`[gates] 못 돌린 검사 ${cantRun.length}개 — ${cantRun.map((r) => r.gate).join(', ')} (통과도 실패도 아니다)`);
+}
+
+/* ★ **판 요약에도 남긴다** (2026-08-13). 빨간 검사 이름을 보려고 매번 로그를 통째로
+   내려받아 훑고 있었다(오늘만 여남은 번). 실행 요약에 적어 두면 판 화면에서 바로 보인다.
+   라이브 점검은 이미 그렇게 하고 있었다 — 같은 것을 여기도 둔다. */
+if (process.env.GITHUB_STEP_SUMMARY) {
+  const NL = String.fromCharCode(10);
+  const lines = results.map((r) => `- ${r.cantRun ? '⚪' : r.how ? '❌' : '✅'} ${r.gate} (${r.sec}s)${r.how ? ' — ' + r.how : ''}`);
+  try {
+    appendFileSync(
+      process.env.GITHUB_STEP_SUMMARY,
+      `## 검사 — 빨강 ${bad.length} / ${results.length}${cantRun.length ? ` · 못 돌림 ${cantRun.length}` : ''}` + NL + lines.join(NL) + NL,
+      'utf8'
+    );
+  } catch { /* 요약을 못 적는 것이 판을 세울 이유는 아니다 */ }
 }
 
 if (!bad.length) {
