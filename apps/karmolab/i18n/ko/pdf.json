@@ -36,5 +36,7 @@
   "pdf.edit.suffix": "-정리",
   "pdf.edit.fail": "이 문서는 못 고칩니다",
   "pdf.edit.moved": "순서 바뀜",
-  "pdf.more": "{name} 외 {n}개"
+  "pdf.more": "{name} 외 {n}개",
+  "pdf.thumb.rotateAria": "쪽 오른쪽으로 90° 돌리기",
+  "pdf.thumb.dropAria": "쪽 빼기"
 }

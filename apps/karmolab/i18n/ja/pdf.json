@@ -36,5 +36,7 @@
   "pdf.edit.suffix": "-整理",
   "pdf.edit.fail": "この文書は編集できません",
   "pdf.edit.moved": "順序変更",
-  "pdf.more": "{name} 他{n}件"
+  "pdf.more": "{name} 他{n}件",
+  "pdf.thumb.rotateAria": "ページを右に90°回す",
+  "pdf.thumb.dropAria": "ページを外す"
 }

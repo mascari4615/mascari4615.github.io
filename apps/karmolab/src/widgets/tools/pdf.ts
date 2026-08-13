@@ -341,7 +341,10 @@ import { t, loadNamespace } from '../../lib/i18n';
           spin.type = 'button';
           spin.className = 'pf-act';
           spin.dataset.act = 'rotate';
+          /* 그림만 있는 단추는 **이름을 따로 준다** (TASK-KL-292) — `title` 은 마우스를 올려야
+           * 뜨는 것이고, 화면낭독기에는 「단추」로만 읽히는 판이 있다. `aria-label` 이 이름이다. */
           spin.title = t('pdf.thumb.rotate', undefined, '오른쪽으로 90° 돌리기');
+          spin.setAttribute('aria-label', `${n}${t('pdf.thumb.rotateAria', undefined, '쪽 오른쪽으로 90° 돌리기')}`);
           spin.textContent = '⟳';
           spin.onclick = (): void => turn(n, cell, canvas);
           const kill = document.createElement('button');
@@ -349,6 +352,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           kill.className = 'pf-act';
           kill.dataset.act = 'drop';
           kill.title = t('pdf.thumb.drop', undefined, '이 쪽 빼기');
+          kill.setAttribute('aria-label', `${n}${t('pdf.thumb.dropAria', undefined, '쪽 빼기')}`);
           kill.textContent = '✕';
           kill.onclick = (): void => toss(n, cell);
           bar.appendChild(spin);
