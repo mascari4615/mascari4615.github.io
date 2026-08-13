@@ -1,102 +1,759 @@
 {
   "id": "design-model",
-  "minutes": 12,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "기획이 쓰는 말과 코드의 이름이 다르면 **회의마다 번역 비용**이 든다. 그리고 번역은 언제나 조금씩 틀린다."
-    },
-    {
-      "type": "h",
-      "text": "1. 같은 말을 쓴다"
-    },
-    {
-      "type": "note",
-      "text": "「주문」·「예약」·「정산」을 코드에서도 `Order`·`Reservation`·`Settlement` 로 쓴다. 이것이 **유비쿼터스 언어**다. 회의에서 나온 단어가 코드에 없으면, 그 개념이 아직 모델에 없다는 신호다."
-    },
-    {
-      "type": "h",
-      "text": "2. 개념에 이름을 준다"
-    },
-    {
-      "type": "code",
-      "lang": "ts",
-      "label": "원시 타입에 숨은 개념 꺼내기",
-      "text": "// 전: 무엇이든 들어간다\nfunction charge(amount: number, currency: string) {}\n\n// 후: 규칙이 타입 안으로 들어온다\nclass Money {\n  private constructor(readonly amount: number, readonly currency: Currency) {}\n  static won(v: number) {\n    if (!Number.isInteger(v)) throw new Error('원 단위는 정수');\n    return new Money(v, 'KRW');\n  }\n  plus(o: Money) { assertSame(this.currency, o.currency); return new Money(this.amount + o.amount, this.currency); }\n}"
-    },
-    {
-      "type": "h",
-      "text": "3. 값과 엔티티"
-    },
-    {
-      "type": "p",
-      "text": "**값 객체**는 값이 같으면 같은 것(돈·주소·기간) — 불변으로 만든다. **엔티티**는 id 로 구분되고 상태가 변한다(주문·사용자). 이 구분만 잡아도 코드가 정리된다."
-    },
-    {
-      "type": "h",
-      "text": "4. 규칙이 사는 곳"
-    },
-    {
-      "type": "note",
-      "text": "「배송 시작 후에는 취소 불가」 같은 규칙이 화면·API·배치에 흩어져 있으면 언젠가 한 곳이 빠진다. **규칙은 모델 안에** 두고, 밖에서는 그 메서드를 부른다."
-    },
-    {
-      "type": "code",
-      "lang": "ts",
-      "label": "규칙을 안으로",
-      "text": "class Order {\n  cancel(now: Date) {\n    if (this.status === 'shipped') throw new DomainError('배송 시작 후에는 취소할 수 없습니다');\n    this.status = 'canceled';\n  }\n}"
-    },
-    {
-      "type": "h",
-      "text": "5. 경계마다 다른 모델"
-    },
-    {
-      "type": "p",
-      "text": "같은 「상품」도 판매·물류·정산에서 필요한 속성이 다르다. 하나의 거대 모델로 만들려 하지 말고 **맥락(bounded context)마다** 알맞은 모델을 두는 편이 낫다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "최근 기획 문서에서 명사 10개를 뽑아 코드에서 같은 이름을 찾아라. 없는 것이 곧 빠진 개념이다."
-    },
-    {
-      "type": "try",
-      "text": "`number` 나 `string` 으로 다루던 개념 하나(돈·이메일·기간)를 값 객체로 만들어 규칙을 안으로 넣어라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "유비쿼터스 언어의 목적은?",
-      "choices": [
-        "기획·대화·코드가 같은 단어를 써 번역 비용을 없앤다",
-        "영어 통일",
-        "문서 표준화"
+      "id": "1",
+      "title": "같은 말을 쓴다 — 유비쿼터스 언어",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "기획이 쓰는 말과 코드의 이름이 다르면 **회의마다 번역 비용**이 든다 — 「예약」이 코드에선 `booking` 인지 `reservation` 인지 `slot` 인지 매번 통역한다. 그리고 번역은 언제나 조금씩 **틀린다.** 기획·대화·코드가 **같은 단어**를 쓰면 그 비용과 오해가 사라진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "번역 비용 — 말이 갈릴수록",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    (x === '->' || x === '<-') ? '<span class=\"arw\">' + (x === '->' ? '→' : '←') + '</span>'\n      : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const gap = {{gap}};                   // 기획어-코드어 불일치 정도\n  const cost = Math.min(100, gap * 14);\n  render('기획 용어와 코드 이름의 불일치 = ' + gap + '/7',\n    '  번역·오해 비용 = <span class=\\\"' + (cost < 25 ? 'ok' : cost < 60 ? 'warn' : 'no') + '\\\">' +\n      cost + '/100</span>\\n\\n' +\n    (gap <= 1\n      ? '  <span class=\\\"ok\\\">같은 말을 쓴다 — 기획·대화·코드가 바로 통한다. 오해가 적다.</span>'\n      : '  <span class=\\\"no\\\">「예약」↔booking↔slot 처럼 갈려 매번 통역 — 번역마다 조금씩 틀린다.</span>'),\n    '기획·대화·코드가 같은 단어를 쓰면(유비쿼터스 언어) 번역 비용·오해가 사라진다.',\n    fan(gap <= 1\n      ? [['ok', '기획: 예약'], '->', ['ok', '코드: Reservation']]\n      : [['hit', '기획: 예약'], '->', ['hit', 'booking?'], '->', ['hit', 'slot?']]));\n</script>",
+          "controls": [
+            {
+              "id": "gap",
+              "label": "용어 불일치",
+              "type": "range",
+              "min": 0,
+              "max": 7,
+              "step": 1,
+              "value": 4
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「주문」·「예약」·「정산」을 코드에서도 `Order`·`Reservation`·`Settlement` 로 쓴다 — 이것이 유비쿼터스 언어다.** 도메인 전문가·기획·개발자가 하나의 용어집을 공유하고, 그 단어가 대화·문서·코드·DB 에 **똑같이** 나타난다. 새 팀원도 코드를 읽으면 업무를 이해하고, 회의의 말이 그대로 클래스 이름이 된다."
+        },
+        {
+          "type": "p",
+          "text": "**말이 정확해지면 모델이 정확해진다.** 「이건 예약이야, 주문이야?」를 두고 대화하다 보면 개념의 경계가 또렷해진다 — 언어를 다듬는 것이 곧 모델을 다듬는 것이다. 반대로 `data`·`info`·`manager` 같은 **뜻 없는 이름**이 많다면, 아직 도메인을 이해 못 했다는 신호다(2장)."
+        },
+        {
+          "type": "try",
+          "text": "최근 기획 문서에서 명사 10개를 뽑아 코드에서 같은 이름을 찾아라. 없는 것이 곧 빠진(또는 다른 이름으로 숨은) 개념이다. 이름이 다르면 하나로 맞춰라."
+        }
       ],
-      "answer": 0,
-      "why": "번역이 있으면 조금씩 어긋난다."
+      "quiz": [
+        {
+          "q": "유비쿼터스 언어란?",
+          "choices": [
+            "영어 강제",
+            "기획·대화·코드가 같은 도메인 용어를 씀",
+            "짧은 이름",
+            "약어"
+          ],
+          "answer": 1,
+          "why": "번역 비용·오해 제거."
+        },
+        {
+          "q": "용어가 갈리면 생기는 문제는?",
+          "choices": [
+            "빠름",
+            "회의마다 번역 비용 + 번역이 조금씩 틀림",
+            "안전",
+            "간결"
+          ],
+          "answer": 1,
+          "why": "같은 말을 써라."
+        },
+        {
+          "q": "`data`·`manager` 같은 뜻 없는 이름이 많으면?",
+          "choices": [
+            "좋은 추상화",
+            "도메인을 아직 이해 못 한 신호",
+            "빠름",
+            "표준"
+          ],
+          "answer": 1,
+          "why": "언어가 모델을 드러낸다."
+        }
+      ]
     },
     {
-      "q": "값 객체의 특징은?",
-      "choices": [
-        "값이 같으면 동일하며 보통 불변",
-        "id 로 구분된다",
-        "항상 DB 테이블이 된다"
+      "id": "2",
+      "title": "개념에 이름을 준다 — 원시 강박 벗기",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "돈·이메일·기간을 `number`·`string` 으로만 다루면 개념이 코드에 안 보인다 — 이것이 **원시 강박(primitive obsession)**이다. `charge(amount: number, currency: string)` 는 통화 없는 금액, 음수, 뒤바뀐 인자를 다 허용한다. 개념에 **이름(타입)**을 주면 — `Money` — 규칙이 그 안에 살고 실수가 컴파일 타임에 막힌다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "원시 타입 vs 개념 타입",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    (x === '->' || x === '<-') ? '<span class=\"arw\">' + (x === '->' ? '→' : '←') + '</span>'\n      : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const typed = '{{typed}}' === 'yes';\n  render(typed ? 'Money 타입' : 'number + string',\n    (typed\n      ? '  charge(amount: Money)\\n' +\n        '  Money 안에: 통화 필수 · 음수 금지 · 통화 다른 금액 덧셈 금지\\n' +\n        '  <span class=\\\"ok\\\">잘못된 돈을 만들 수 없다 — 규칙이 타입에 산다. 실수는 컴파일 에러.</span>'\n      : '  charge(amount: number, currency: string)\\n' +\n        '  <span class=\\\"no\\\">음수·통화 누락·인자 뒤바뀜(amount↔currency)을 다 허용 — 런타임에야 터진다.</span>'),\n    '개념(돈·이메일·기간)에 이름을 주면 규칙이 타입에 살고 실수가 막힌다.',\n    box(typed ? 'Money (개념 타입)' : '원시 타입',\n      typed\n        ? 'class Money { amount; currency;\\n  constructor 검증: 통화 필수·음수 금지 }\\n=> 잘못된 값 생성 불가'\n        : 'number, string\\n=> 음수·통화 없음·뒤바뀜 다 통과',\n      typed ? 'good' : 'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "typed",
+              "label": "표현",
+              "type": "select",
+              "value": "no",
+              "options": [
+                {
+                  "value": "no",
+                  "label": "원시(number+string)"
+                },
+                {
+                  "value": "yes",
+                  "label": "개념 타입(Money)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "typescript",
+          "label": "개념에 이름을 준다",
+          "text": "// 전: 무엇이든 들어간다\nfunction charge(amount: number, currency: string) {}\ncharge(-100, 'KRW');       // 음수 통과\ncharge('KRW', -100 as any); // 인자 뒤바뀜도 통과\n\n// 후: 개념을 타입으로 (규칙을 생성자에 넣는다 — 3장)\nclass Money {\n  private constructor(readonly amount: number, readonly currency: string) {}\n  static of(amount: number, currency: string): Money {\n    if (amount < 0) throw new Error('음수 금액');   // 잘못된 값은 생성 불가\n    return new Money(amount, currency);\n  }\n}\nfunction charge(m: Money) {}   // 타입이 계약"
+        },
+        {
+          "type": "note",
+          "text": "**「항상 함께 다니는 값」은 한 개념이다.** `amount` 와 `currency` 는 늘 함께 다닌다 — 둘을 따로 넘기면 뒤바뀌고 짝이 어긋난다. 함께 다니는 값을 하나의 타입(`Money`)으로 묶으면(design-coupling 의 응집), 짝이 보장되고 규칙(음수 금지·통화 일치)을 한곳에 둘 수 있다. 「이 값들이 늘 같이 다니나?」가 개념 발견의 신호다."
+        },
+        {
+          "type": "p",
+          "text": "**원시 강박의 대가는 흩어진 검증이다.** `string` 이메일을 여기저기서 쓰면, 형식 검증이 화면·API·저장 곳곳에 복붙된다(그리고 한 곳은 빠진다). `Email` 타입을 만들어 **생성 시 한 번** 검증하면, 이후엔 「이미 유효한 이메일」임이 타입으로 보장된다 — 검증을 반복하지 않는다. 이것이 「잘못된 상태를 표현 불가능하게」의 시작이다(5장)."
+        },
+        {
+          "type": "try",
+          "text": "`number`·`string` 으로 다루던 개념 하나(돈·이메일·기간·전화번호)를 값 객체로 만들어, 검증 규칙을 생성 지점에 넣어라. 이후 코드가 「이미 유효한 값」을 전제할 수 있는지 확인하라."
+        }
       ],
-      "answer": 0,
-      "why": "돈·주소·기간이 대표적이다."
+      "quiz": [
+        {
+          "q": "원시 강박(primitive obsession)이란?",
+          "choices": [
+            "빠른 타입",
+            "돈·이메일 같은 개념을 number/string 으로만 다룸",
+            "큰 객체",
+            "전역"
+          ],
+          "answer": 1,
+          "why": "개념이 안 보인다."
+        },
+        {
+          "q": "개념을 타입으로 만들면?",
+          "choices": [
+            "느려짐",
+            "규칙이 타입에 살고 실수가 컴파일 타임에 막힘",
+            "복잡",
+            "무의미"
+          ],
+          "answer": 1,
+          "why": "잘못된 값 생성 불가."
+        },
+        {
+          "q": "개념 발견의 신호는?",
+          "choices": [
+            "큰 함수",
+            "항상 함께 다니는 값들(amount+currency)",
+            "긴 이름",
+            "많은 파일"
+          ],
+          "answer": 1,
+          "why": "함께 다니면 한 개념."
+        }
+      ]
     },
     {
-      "q": "「배송 후 취소 불가」 같은 규칙을 두기 좋은 곳은?",
-      "choices": [
-        "도메인 모델 안",
-        "화면 코드",
-        "API 게이트웨이"
+      "id": "3",
+      "title": "값 객체 — 같으면 같은 것",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**값 객체**는 **값이 같으면 같은 것**이다 — 돈 500원은 어느 500원이든 같고, 주소·기간·좌표도 그렇다. id 가 없고, **불변**으로 만든다(바꾸려면 새것을 만든다). 불변이라 공유·복사·비교가 안전하고, 규칙을 생성 시 한 번만 지키면 그 뒤론 늘 유효하다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "값 객체 — 동등성과 불변",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    (x === '->' || x === '<-') ? '<span class=\"arw\">' + (x === '->' ? '→' : '←') + '</span>'\n      : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const prop = '{{prop}}';\n  const cases = {\n    equal:  ['값 동등성', 'Money(500,KRW) === Money(500,KRW) → 같다', 'id 가 아니라 값으로 비교. 500원은 어느 500원이든 같다'],\n    immut:  ['불변', 'add() 는 새 Money 를 반환(원본 안 바꿈)', '공유해도 안전 — 남이 바꿀 걱정 없다'],\n    valid:  ['생성 시 검증', 'Money.of() 가 음수·통화 없음을 거부', '한 번 만들어지면 늘 유효 — 이후 검증 불필요'],\n    behav:  ['행동을 담음', 'money.add(other) · period.overlaps(p2)', '데이터만이 아니라 그 값의 규칙·연산도 안에'],\n  }[prop];\n  render('값 객체 특성: ' + cases[0],\n    '  ' + cases[1] + '\\n\\n  ' + cases[2] + '\\n\\n' +\n    '  값이 같으면 같은 것 · 불변 · 생성 시 검증 · 자기 규칙을 안에 담는다.',\n    '값 객체 = 값으로 동등 · 불변 · 검증된 채 태어남 · 행동을 담음.',\n    box(cases[0], cases[1] + '\\n=> ' + cases[2], 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "prop",
+              "label": "특성",
+              "type": "select",
+              "value": "equal",
+              "options": [
+                {
+                  "value": "equal",
+                  "label": "값 동등성"
+                },
+                {
+                  "value": "immut",
+                  "label": "불변"
+                },
+                {
+                  "value": "valid",
+                  "label": "생성 시 검증"
+                },
+                {
+                  "value": "behav",
+                  "label": "행동을 담음"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**불변이 값 객체를 안전하게 만든다.** `money.currency = 'USD'` 로 남의 돈을 바꿀 수 있으면, 그 객체를 공유한 모든 곳이 영향받는다(공통 결합). 불변으로 만들면 「바꾸기」가 「새것 만들기」가 되어, 공유·캐시·비교가 걱정 없다. 날짜·좌표·돈 같은 값은 불변이 자연스럽다 — 5분 전의 500원과 지금 500원은 같은 값이니까."
+        },
+        {
+          "type": "p",
+          "text": "**값 객체는 데이터가 아니라 개념이다 — 행동을 담는다.** `Money` 는 숫자 두 개가 아니라 `add`·`multiply`·`isNegative` 를 아는 개념이고, `Period` 는 `overlaps`·`contains` 를 안다. 그 값에 관한 규칙·연산을 값 객체 안에 두면, 흩어진 계산 로직이 개념 안으로 모인다(높은 응집). 「이 값으로 무엇을 하나」가 값 객체의 메서드가 된다."
+        },
+        {
+          "type": "try",
+          "text": "네 코드에서 값으로 비교·계산하는 개념(돈·기간·좌표·수량)을 찾아, 불변 값 객체로 만들어라. 그 값에 관한 연산(더하기·겹침 판정)을 밖이 아니라 값 객체 안에 넣어라."
+        }
       ],
-      "answer": 0,
-      "why": "밖에 흩어지면 언젠가 한 곳이 빠진다."
+      "quiz": [
+        {
+          "q": "값 객체의 동등성 기준은?",
+          "choices": [
+            "id",
+            "값이 같으면 같은 것",
+            "생성 시각",
+            "메모리 주소"
+          ],
+          "answer": 1,
+          "why": "500원은 어느 500원이든 같다."
+        },
+        {
+          "q": "값 객체를 불변으로 만드는 이유는?",
+          "choices": [
+            "빠름",
+            "공유·복사·비교가 안전(남이 못 바꿈)",
+            "저장 절약",
+            "표준"
+          ],
+          "answer": 1,
+          "why": "바꾸기 = 새것 만들기."
+        },
+        {
+          "q": "값 객체가 담는 것은?",
+          "choices": [
+            "데이터만",
+            "그 값의 규칙·연산(행동)도",
+            "id",
+            "상태 변화"
+          ],
+          "answer": 1,
+          "why": "개념이지 데이터가 아니다."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "엔티티 — id 로 구분되고 변한다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**엔티티**는 **id 로 구분**되고 **상태가 변한다.** 사용자·주문·계좌는 이름·잔액이 바뀌어도 **같은 것**이다 — 같음의 기준이 값이 아니라 정체성(id)이다. 값 객체(같으면 같은 것)와 반대다. 「이것이 바뀌어도 같은 것으로 추적해야 하나?」가 엔티티/값을 가르는 질문이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "엔티티 vs 값 객체 — 무엇으로 같음을 판단하나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    (x === '->' || x === '<-') ? '<span class=\"arw\">' + (x === '->' ? '→' : '←') + '</span>'\n      : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const k = '{{kind}}';\n  const entity = k === 'entity';\n  render(entity ? '엔티티 (User)' : '값 객체 (Money)',\n    (entity\n      ? '  User#42 는 이름·이메일이 바뀌어도 같은 사용자\\n' +\n        '  같음 = id(42) · 상태 변화 · 생애주기 추적\\n' +\n        '  <span class=\\\"ok\\\">「바뀌어도 같은 것으로 추적」이 필요하면 엔티티.</span>'\n      : '  Money(500,KRW) 는 값이 같으면 그냥 같은 것\\n' +\n        '  같음 = 값 · 불변 · 추적할 정체성 없음\\n' +\n        '  <span class=\\\"ok\\\">「값이 같으면 같은 것」이면 값 객체.</span>'),\n    '엔티티=id 로 구분·상태 변화. 값 객체=값으로 동등·불변. 추적 필요성이 가른다.',\n    box(entity ? '엔티티' : '값 객체',\n      entity ? '같음 = id\\n상태 변함\\n생애주기 추적' : '같음 = 값\\n불변\\n추적 없음',\n      'good'));\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "종류",
+              "type": "select",
+              "value": "entity",
+              "options": [
+                {
+                  "value": "entity",
+                  "label": "엔티티(User)"
+                },
+                {
+                  "value": "value",
+                  "label": "값 객체(Money)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**같은 개념도 맥락에 따라 엔티티일 수도 값일 수도 있다.** 「주소」는 보통 값 객체(같은 주소면 같음)지만, 배송 회사에겐 각 배송지가 추적 대상인 엔티티일 수 있다. 「좌석」은 영화표 예매에선 엔티티(그 좌석을 추적)지만 좌석 등급 계산에선 값이다. 정답은 도메인이 정한다 — 「이걸 개별로 추적해야 하나?」를 묻는다."
+        },
+        {
+          "type": "p",
+          "text": "**엔티티는 자기 상태 변화의 규칙을 지킨다.** 상태가 변하니 「어떻게 변할 수 있나」의 규칙이 중요하다 — 「배송 시작 후 취소 불가」, 「잔액은 음수 불가」. 이 규칙을 엔티티 안에 두어(5장), 엔티티가 **항상 유효한 상태**만 유지하게 한다. 값 객체가 「유효한 값」을 보장하듯, 엔티티는 「유효한 상태 전이」를 보장한다."
+        },
+        {
+          "type": "try",
+          "text": "네 도메인의 개념들을 엔티티/값으로 분류하라 — 「바뀌어도 같은 것으로 추적해야 하나?」로 판단. id 로 다루면서 실은 값인 것(불변으로 만들 수 있는 것)이 있는지도 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "엔티티의 같음 기준은?",
+          "choices": [
+            "값",
+            "id(정체성) — 상태가 변해도 같은 것",
+            "생성 시각",
+            "타입"
+          ],
+          "answer": 1,
+          "why": "추적할 정체성."
+        },
+        {
+          "q": "엔티티/값을 가르는 질문은?",
+          "choices": [
+            "크기",
+            "「바뀌어도 같은 것으로 추적해야 하나?」",
+            "속도",
+            "이름"
+          ],
+          "answer": 1,
+          "why": "추적 필요성."
+        },
+        {
+          "q": "엔티티가 보장하는 것은?",
+          "choices": [
+            "유효한 값",
+            "유효한 상태 전이(규칙을 안에서 지킴)",
+            "불변",
+            "id 없음"
+          ],
+          "answer": 1,
+          "why": "항상 유효한 상태."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "규칙은 모델 안에 산다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「배송 시작 후에는 취소 불가」 같은 규칙이 화면·API·배치에 **흩어져 있으면** 언젠가 한 곳이 빠진다 — 그 경로로 잘못된 상태가 만들어진다. **규칙은 모델(엔티티) 안에** 둔다. `order.cancel()` 이 스스로 규칙을 검사하면, 어디서 부르든 규칙이 지켜진다 — 「잘못된 상태를 표현 불가능하게」."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "규칙 위치 — 흩어짐 vs 모델 안",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    (x === '->' || x === '<-') ? '<span class=\"arw\">' + (x === '->' ? '→' : '←') + '</span>'\n      : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const where = '{{where}}';\n  const inModel = where === 'model';\n  render(inModel ? '규칙이 모델 안에' : '규칙이 여기저기 흩어짐',\n    (inModel\n      ? '  order.cancel(now) 이 스스로 「배송 후 취소 불가」를 검사\\n' +\n        '  화면·API·배치 어디서 불러도 규칙이 지켜진다\\n' +\n        '  <span class=\\\"ok\\\">규칙이 한곳 — 빠질 자리가 없다. 항상 유효한 상태.</span>'\n      : '  화면·API·배치가 각자 status 를 검사하고 바꿈\\n' +\n        '  <span class=\\\"no\\\">세 곳 중 한 곳이 검사를 빠뜨리면 그 경로로 잘못된 취소가 뚫린다.</span>'),\n    '규칙을 모델 안에 두면 어디서 부르든 지켜진다 — 잘못된 상태를 표현 불가능하게.',\n    fan(inModel\n      ? [['n', '화면'], ['n', 'API'], ['n', '배치'], '->', ['ok', 'order.cancel()(규칙)']]\n      : [['hit', '화면(검사?)'], ['hit', 'API(검사?)'], ['hit', '배치(빠뜨림!)']]));\n</script>",
+          "controls": [
+            {
+              "id": "where",
+              "label": "규칙 위치",
+              "type": "select",
+              "value": "scattered",
+              "options": [
+                {
+                  "value": "scattered",
+                  "label": "흩어짐"
+                },
+                {
+                  "value": "model",
+                  "label": "모델 안"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "typescript",
+          "label": "규칙을 엔티티 안에",
+          "text": "class Order {\n  private status: 'placed' | 'shipped' | 'cancelled';\n  cancel(now: Date) {\n    if (this.status === 'shipped')\n      throw new DomainError('배송 시작 후에는 취소할 수 없습니다');\n    this.status = 'cancelled';\n  }\n}\n// 화면·API·배치 어디서든 order.cancel() 만 부른다\n// 규칙이 한곳에 있어 빠질 수 없다 — 항상 유효한 상태 유지"
+        },
+        {
+          "type": "note",
+          "text": "**「잘못된 상태를 표현 불가능하게」가 목표다.** 검증을 곳곳에서 「하도록」 기대하지 말고(design-seam 의 「검사를 잊지 말자는 대책이 아니다」), 모델이 **구조적으로** 잘못된 상태를 못 만들게 한다. 생성자·메서드가 규칙을 지키면, 그 규칙을 우회할 방법이 없다 — 잘못된 주문·음수 잔액이 애초에 만들어지지 않는다."
+        },
+        {
+          "type": "p",
+          "text": "**빈혈 모델(anemic model)을 피하라.** 데이터만 든 엔티티(getter/setter 뿐)와 규칙을 다 가진 서비스로 나누면, 규칙이 모델 밖으로 새어 흩어진다 — 결국 규칙 없는 데이터 덩어리에 아무나 접근한다. 데이터와 그것을 지배하는 규칙을 **함께** 두는 것(높은 응집)이 도메인 모델의 핵심이다. 「이 데이터를 바꾸는 규칙」이 그 데이터 옆에 있어야 한다."
+        },
+        {
+          "type": "try",
+          "text": "여러 곳에서 같은 상태 검사(`if status ==`)를 반복하는 규칙을 찾아, 엔티티의 메서드(`order.cancel()`)로 옮겨라. 이후 그 상태를 밖에서 직접 바꾸는 길을 막아, 규칙을 우회할 수 없게 하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "도메인 규칙을 어디에 둬야 하나?",
+          "choices": [
+            "화면·API·배치에 각각",
+            "모델(엔티티) 안에 — 어디서 부르든 지켜지게",
+            "전역 설정",
+            "DB 트리거만"
+          ],
+          "answer": 1,
+          "why": "빠질 자리를 없앤다."
+        },
+        {
+          "q": "「잘못된 상태를 표현 불가능하게」란?",
+          "choices": [
+            "검증을 잘 기억",
+            "모델이 구조적으로 잘못된 상태를 못 만들게 함",
+            "로그 남기기",
+            "테스트"
+          ],
+          "answer": 1,
+          "why": "우회할 방법이 없다."
+        },
+        {
+          "q": "빈혈 모델(anemic model)의 문제는?",
+          "choices": [
+            "빠름",
+            "데이터와 규칙이 분리돼 규칙이 흩어짐",
+            "안전",
+            "응집↑"
+          ],
+          "answer": 1,
+          "why": "데이터+규칙을 함께."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "애그리게잇 — 일관성의 경계",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "여러 객체가 **함께 유효해야** 할 때, 그것들을 하나의 **애그리게잇**으로 묶고 **루트**를 통해서만 바꾼다. 「주문」과 그 「주문 항목」은 함께 일관돼야 한다(합계 = 항목들의 합) — 외부는 `Order`(루트)만 만지고, 항목은 그 안에서 규칙에 맞게 바뀐다. 애그리게잇 = **한 번에 일관되게 지킬 단위**(트랜잭션 경계)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "애그리게잇 — 루트를 통해서만",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    (x === '->' || x === '<-') ? '<span class=\"arw\">' + (x === '->' ? '→' : '←') + '</span>'\n      : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const via = '{{via}}';\n  const root = via === 'root';\n  render(root ? '루트(Order)를 통해서만 변경' : '내부 항목을 직접 변경',\n    (root\n      ? '  order.addItem(item) → 루트가 합계·수량 규칙을 지키며 항목 추가\\n' +\n        '  <span class=\\\"ok\\\">항상 「합계 = 항목 합」이 유지된다 — 애그리게잇이 일관성을 보장.</span>'\n      : '  order.items.push(item) → 항목만 직접 추가, 합계는 안 바뀜\\n' +\n        '  <span class=\\\"no\\\">합계와 항목이 어긋난 「깨진 주문」이 만들어진다 — 불변식 위반.</span>'),\n    '애그리게잇 = 함께 유효해야 할 것들의 묶음. 루트를 통해서만 바꿔 일관성 유지.',\n    fan(root\n      ? [['ok', 'Order(루트)'], '->', ['n', 'Item'], ['n', 'Item'], '->', ['ok', '합계 일관']]\n      : [['hit', 'items.push (직접)'], '->', ['hit', '합계 어긋남']]));\n</script>",
+          "controls": [
+            {
+              "id": "via",
+              "label": "변경 경로",
+              "type": "select",
+              "value": "direct",
+              "options": [
+                {
+                  "value": "direct",
+                  "label": "내부 직접"
+                },
+                {
+                  "value": "root",
+                  "label": "루트를 통해"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**애그리게잇은 트랜잭션·일관성의 단위다(db-lock 과 이어진다).** 한 애그리게잇 안은 **한 트랜잭션에서 한꺼번에** 일관되게 유지하고, 애그리게잇 **사이**는 대개 나중에 맞추는(eventual) 관계로 둔다. 애그리게잇을 크게 잡으면 락 경합이 커지고, 작게 잡으면 일관성 규칙이 걸친다 — 「함께 즉시 일관돼야 하는 최소 묶음」으로 정한다."
+        },
+        {
+          "type": "p",
+          "text": "**애그리게잇 사이는 id 로 참조한다.** `Order` 가 `Customer` 객체를 통째로 안고 있으면 두 애그리게잇이 한 덩어리로 커진다. 대신 `customerId` 로 참조하면 각자 독립적으로 로드·변경·일관성 유지가 된다(db-nplus1·db-grow 의 경계와도 닿는다). 「이건 내 애그리게잇 안인가, 다른 애그리게잇인가」가 통째 참조/id 참조를 가른다."
+        },
+        {
+          "type": "try",
+          "text": "함께 유효해야 하는 객체 묶음(주문+항목, 게시글+댓글 수)을 찾아 애그리게잇 루트를 정하고, 내부를 루트 메서드로만 바꾸게 하라. 다른 애그리게잇은 객체가 아니라 id 로 참조하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "애그리게잇이란?",
+          "choices": [
+            "큰 클래스",
+            "함께 유효해야 할 객체 묶음(루트로만 변경)",
+            "DB 테이블",
+            "캐시"
+          ],
+          "answer": 1,
+          "why": "일관성의 단위."
+        },
+        {
+          "q": "애그리게잇 내부를 직접 바꾸면?",
+          "choices": [
+            "빠름",
+            "불변식(합계=항목합)이 깨진 상태가 만들어짐",
+            "안전",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "루트를 통해서만."
+        },
+        {
+          "q": "애그리게잇 사이는 어떻게 참조하나?",
+          "choices": [
+            "객체 통째로",
+            "id 로(독립적 로드·일관성)",
+            "전역",
+            "복사"
+          ],
+          "answer": 1,
+          "why": "덩어리가 커지지 않게."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "경계마다 다른 모델 — bounded context",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "같은 「상품」도 **판매·물류·정산**에서 필요한 속성이 다르다 — 판매는 가격·설명, 물류는 무게·부피, 정산은 원가·수수료. 하나의 거대 모델로 모든 걸 담으려 하지 말고, **맥락(bounded context)마다 그 맥락에 맞는 모델**을 둔다. 같은 단어라도 맥락이 다르면 다른 모델이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "한 「상품」, 맥락마다 다른 모델",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    (x === '->' || x === '<-') ? '<span class=\"arw\">' + (x === '->' ? '→' : '←') + '</span>'\n      : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const ctx = '{{ctx}}';\n  const cases = {\n    sales:   ['판매 맥락', 'name · price · description · images', '고객에게 보이는 것'],\n    logistics:['물류 맥락', 'sku · weight · dimensions · stock', '옮기고 보관하는 것'],\n    finance: ['정산 맥락', 'cost · margin · taxCategory', '돈을 계산하는 것'],\n    mega:    ['거대 단일 모델', 'name+price+weight+cost+... 전부', '모두를 담아 아무에게도 안 맞음'],\n  }[ctx];\n  render('상품 모델 — ' + cases[0],\n    '  필드: ' + cases[1] + '\\n  관점: ' + cases[2] + '\\n\\n' +\n    (ctx === 'mega'\n      ? '  <span class=\\\"no\\\">모든 맥락의 필드를 한 클래스에 — 거대하고, 각 팀에겐 태반이 잡음.</span>'\n      : '  <span class=\\\"ok\\\">이 맥락에 필요한 것만 — 작고 명확. 다른 맥락과 독립적으로 진화.</span>'),\n    '같은 단어라도 맥락이 다르면 다른 모델. 맥락마다 그 맥락의 모델을 둔다.',\n    box(cases[0], cases[1] + '\\n관점: ' + cases[2], ctx === 'mega' ? 'bad' : 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "ctx",
+              "label": "맥락",
+              "type": "select",
+              "value": "mega",
+              "options": [
+                {
+                  "value": "sales",
+                  "label": "판매"
+                },
+                {
+                  "value": "logistics",
+                  "label": "물류"
+                },
+                {
+                  "value": "finance",
+                  "label": "정산"
+                },
+                {
+                  "value": "mega",
+                  "label": "거대 단일 모델"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**거대 단일 모델은 아무에게도 안 맞는다.** 모든 맥락의 필드·규칙을 한 `Product` 클래스에 담으면, 판매 팀은 원가·무게가 잡음이고 물류 팀은 설명·이미지가 잡음이다. 게다가 한 맥락의 변경이 온 클래스를 흔든다(design-coupling). 맥락별로 나누면 각 모델이 작고 명확하며, 다른 맥락과 **독립적으로** 진화한다."
+        },
+        {
+          "type": "p",
+          "text": "**맥락 사이는 번역한다(context mapping).** 판매의 `Product` 와 물류의 `Product` 는 다른 것이니, 경계에서 서로의 언어로 **변환**한다(design-boundary 의 새어 나옴 방지). 한쪽 모델이 다른 쪽으로 그대로 흘러들면 맥락이 뒤섞여 다시 거대 모델이 된다. 「같은 id 를 가리키되 각 맥락의 모델은 독립」 — 이것이 큰 시스템을 나누는 방식이다."
+        },
+        {
+          "type": "try",
+          "text": "네 시스템에서 여러 팀·기능이 다른 관점으로 쓰는 개념(상품·사용자·주문)을 찾아라. 하나의 거대 모델이라면 맥락별로 나누는 것을, 이미 나뉘었다면 경계에서 번역되는지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "bounded context(맥락 경계)의 발상은?",
+          "choices": [
+            "하나의 거대 모델",
+            "맥락마다 그 맥락에 맞는 모델을 둠",
+            "모델 없음",
+            "전역 공유"
+          ],
+          "answer": 1,
+          "why": "같은 단어도 맥락 따라 다르다."
+        },
+        {
+          "q": "거대 단일 모델의 문제는?",
+          "choices": [
+            "빠름",
+            "모두를 담아 아무에게도 안 맞고 변경이 온 클래스를 흔듦",
+            "안전",
+            "작음"
+          ],
+          "answer": 1,
+          "why": "맥락별로 나눈다."
+        },
+        {
+          "q": "맥락 사이는 어떻게 잇나?",
+          "choices": [
+            "모델 그대로 공유",
+            "경계에서 번역(context mapping)",
+            "전역",
+            "복사"
+          ],
+          "answer": 1,
+          "why": "맥락이 뒤섞이지 않게."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "모델을 진화시킨다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "모델은 한 번 만들고 끝이 아니다 — 도메인 이해가 깊어지면 **언어가 바뀌고, 언어가 바뀌면 코드도 바뀌어야** 한다. 「예약」과 「대기」가 실은 다른 개념임을 알게 되면, 코드에서도 나눈다. 모델을 안 고치고 두면 코드와 현실이 벌어져(모델 부패) 다시 번역 비용이 돌아온다(1장)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "이해가 깊어지면 — 개념을 쪼갠다",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    (x === '->' || x === '<-') ? '<span class=\"arw\">' + (x === '->' ? '→' : '←') + '</span>'\n      : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = {{step}};\n  const rows = [\n    ['처음: 「예약」 하나로 다 처리(Reservation)', ''],\n    ['발견: 확정 예약과 대기(waitlist)는 규칙이 다르다', 'good'],\n    ['언어를 나눔: Reservation vs Waitlist (대화·문서에서 먼저)', 'good'],\n    ['코드를 따라 나눔: 두 개념·다른 규칙으로 분리', 'good'],\n    ['모델이 현실과 다시 일치 — 번역 비용 0', 'good'],\n  ];\n  const view = rows.map((r, i) => [r[0], i === s ? 'on' : (i < s ? 'good' : (r[1] || ''))]);\n  render('모델 진화 (단계 ' + (s + 1) + '/5)',\n    '  ' + rows[s][0] + '\\n\\n' +\n    (s === 0 ? '  처음엔 하나로 충분해 보였다 — 아직 차이가 안 드러남.'\n     : s >= 3 ? '  언어가 바뀌면 코드도 바뀐다 — 모델을 현실에 맞춰 유지한다.'\n     : '  이해가 깊어지며 개념이 갈라진다 — 언어를 먼저 나누고 코드가 따른다.'),\n    '이해가 깊어지면 언어가 바뀌고, 언어가 바뀌면 코드도 바뀐다. 모델은 살아 있다.',\n    steps(view));\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 4,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**리팩터링은 「깊은 이해를 향한」 것이다.** 코드 정리만이 아니라, 도메인의 진짜 구조가 드러나면 그에 맞게 모델을 다시 빚는 것이 리팩터링의 핵심이다(design-evolve). 「이 두 개념은 사실 다른 것이었다」, 「이 규칙은 저 개념에 속한다」 같은 통찰이 올 때, 코드를 그 통찰에 맞춰 바꾸면 모델이 점점 현실에 근접한다."
+        },
+        {
+          "type": "p",
+          "text": "**모델 부패(model rot)를 경계하라.** 언어는 바뀌었는데 코드가 옛 이름·옛 구조를 유지하면, 「코드의 Order 는 사실 지금의 예약+주문 둘 다」 같은 부채가 쌓인다. 새 개념을 옛 클래스에 억지로 끼우지 말고(if 플래그로 분기, design-coupling 의 제어 결합), 개념이 갈라졌으면 코드도 갈라 유비쿼터스 언어를 다시 정렬한다(1장)."
+        },
+        {
+          "type": "try",
+          "text": "코드의 한 개념이 실은 두 가지 다른 것을 담고 있는지 보라(플래그·조건으로 두 동작을 가르는 클래스). 도메인에서 다른 개념이면, 이름을 나누고 코드도 나눠 모델을 현실에 맞춰라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "모델을 진화시켜야 하는 이유는?",
+          "choices": [
+            "유행",
+            "이해가 깊어져 언어가 바뀌면 코드도 맞춰야(안 그러면 부패)",
+            "속도",
+            "규칙"
+          ],
+          "answer": 1,
+          "why": "코드와 현실이 벌어진다."
+        },
+        {
+          "q": "「깊은 이해를 향한 리팩터링」이란?",
+          "choices": [
+            "코드 정리만",
+            "도메인의 진짜 구조가 드러나면 모델을 다시 빚음",
+            "이름 축약",
+            "삭제"
+          ],
+          "answer": 1,
+          "why": "모델이 현실에 근접."
+        },
+        {
+          "q": "모델 부패를 부르는 것은?",
+          "choices": [
+            "이름 갱신",
+            "새 개념을 옛 클래스에 플래그로 억지로 끼움",
+            "개념 분리",
+            "언어 정렬"
+          ],
+          "answer": 1,
+          "why": "개념이 갈라졌으면 코드도."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — 도메인 모델링",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "도메인을 코드로 옮길 때 이 목록을 확인하라. 핵심은 「같은 말·개념에 이름·규칙을 안에·맥락마다 모델」이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    (x === '->' || x === '<-') ? '<span class=\"arw\">' + (x === '->' ? '→' : '←') + '</span>'\n      : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '기획·대화·코드가 같은 용어를 쓴다(유비쿼터스 언어)',\n    '개념을 원시 타입 대신 이름 있는 타입으로',\n    '값 객체는 불변 · 값으로 동등 · 생성 시 검증',\n    '엔티티는 id 로 구분 · 상태 규칙을 안에서',\n    '도메인 규칙이 모델 안에 산다(흩어지지 않음)',\n    '함께 유효할 것은 애그리게잇 루트로만 변경',\n    '맥락마다 다른 모델(거대 단일 모델 회피)',\n    '이해가 깊어지면 언어와 코드를 함께 고친다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 코드가 도메인을 그대로 말한다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '같은 말·개념에 이름·규칙을 안에·맥락마다 모델. 도메인 모델링의 네 축.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 코드가 도메인을 말하게 하라.** 같은 언어를 쓰고(1장), 개념에 이름을 주고(2장), 규칙을 그 개념 안에 두면(5장), 코드를 읽는 것이 업무를 이해하는 것이 된다. 값/엔티티를 구분하고(3·4장), 일관성 단위(6장)와 맥락(7장)을 나누면, 큰 도메인도 다룰 수 있는 조각이 된다."
+        },
+        {
+          "type": "p",
+          "text": "**이 트랙에서의 자리.** 모델링은 design-coupling(개념의 응집)·boundary(맥락 경계)·seam(규칙을 순수하게 떼기)을 도메인 관점에서 통합하고, api-resource(자원=개념)·db-index(엔티티=테이블)의 결정을 이끈다. **「이 개념이 무엇이고 어떤 규칙을 갖나」를 코드로 정확히 말하는 것이 설계의 심장**이다."
+        },
+        {
+          "type": "try",
+          "text": "핵심 도메인 하나에 이 8개 항목을 채점하라. 「같은 용어 쓰기」와 「규칙을 모델 안에」 두 가지부터 잡으면, 코드가 도메인을 말하기 시작한다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "도메인 모델링의 한 줄 요약은?",
+          "choices": [
+            "빠르게 짜라",
+            "코드가 도메인을 말하게 하라",
+            "다 나눠라",
+            "타입을 줄여라"
+          ],
+          "answer": 1,
+          "why": "같은 언어·개념·규칙."
+        },
+        {
+          "q": "도메인 모델링의 네 축은?",
+          "choices": [
+            "빠름·큼·전역·원시",
+            "같은 말·개념에 이름·규칙을 안에·맥락마다 모델",
+            "캐시·복제·샤딩·압축",
+            "id만"
+          ],
+          "answer": 1,
+          "why": "네 축."
+        },
+        {
+          "q": "모델링이 이끄는 다른 결정은?",
+          "choices": [
+            "없음",
+            "api-resource(자원=개념)·db(엔티티=테이블)",
+            "속도",
+            "문법"
+          ],
+          "answer": 1,
+          "why": "설계의 심장."
+        }
+      ]
     }
   ]
 }
