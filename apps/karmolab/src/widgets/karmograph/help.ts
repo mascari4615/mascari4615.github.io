@@ -97,6 +97,22 @@ export const help = (): HelpSection[] => [
       { what: t('karmograph.help.txt82'), how: t('karmograph.help.txt83') },
       { what: t('karmograph.help.txt84'), how: '⋯ → ✒ / 🗂 / 📄' },
       { what: t('karmograph.help.txt85'), how: t('karmograph.help.txt86') },
+      /* 이번 작업(KL-271)에 는 것들 — **못 찾는 기능은 없는 것과 같다**.
+         새 기능을 넣고 여기 한 줄 안 늘면 그 기능은 숨은 것이다(그래서 검사가 이 짝을 지킨다). */
+      { what: t('karmograph.help.print'), how: t('karmograph.help.printHow') },
+      { what: t('karmograph.help.embed'), how: t('karmograph.help.embedHow') },
+    ],
+  },
+  {
+    title: t('karmograph.help.sec.lens'),
+    items: [
+      { what: t('karmograph.help.view'), how: t('karmograph.help.viewHow') },
+      { what: t('karmograph.help.time'), how: t('karmograph.help.timeHow') },
+      { what: t('karmograph.help.timeEdge'), how: t('karmograph.help.timeEdgeHow') },
+      { what: t('karmograph.help.between'), how: t('karmograph.help.betweenHow') },
+      { what: t('karmograph.help.gapField'), how: t('karmograph.help.gapFieldHow') },
+      { what: t('karmograph.help.ripe'), how: t('karmograph.help.ripeHow') },
+      { what: t('karmograph.help.face'), how: t('karmograph.help.faceHow') },
     ],
   },
 ];

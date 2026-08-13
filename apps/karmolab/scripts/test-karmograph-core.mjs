@@ -1107,6 +1107,22 @@ const M = await loadModules();
   eq(target.minDegree, 0, '옛 저장본도 탈 없이 되살아난다');
 }
 
+// -- 새로 넣은 기능이 도움말에도 있나 (TASK-KL-271 C5) --------------------------
+// 「못 찾는 기능은 없는 것과 같다」 — 사람 규율 대신 짝을 기계가 지킨다.
+{
+  const help = fs.readFileSync(path.join(root, 'src/widgets/karmograph/help.ts'), 'utf8');
+  const ko = JSON.parse(fs.readFileSync(path.join(root, 'i18n/ko/karmograph.json'), 'utf8'));
+  const said = Object.entries(ko)
+    .filter(([k]) => k.startsWith('karmograph.help.'))
+    .map(([, v]) => String(v)).join(' ');
+  const must = ['시점', '저장한 보기', '인쇄', '블로그', '두 사람 사이', '안 적은 칸', 'Ctrl+V'];
+  for (const word of must) {
+    check(said.includes(word), `도움말에 「${word}」 이야기가 없다 — 넣고 안 적으면 숨은 기능이다`);
+  }
+  const items = (help.match(/what:/g) ?? []).length;
+  check(items >= 55, `도움말 항목이 ${items}개 — 55개 밑으로 줄었다(기능은 느는데 도움말이 낡는 중)`);
+}
+
 process.stdout.write('\n');
 if (failures.length > 0) {
   console.error(`\nRESULT: FAIL (${failures.length})\n - ` + failures.join('\n - '));
