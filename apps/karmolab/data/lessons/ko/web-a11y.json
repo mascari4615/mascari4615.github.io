@@ -1,110 +1,850 @@
 {
   "id": "web-a11y",
-  "minutes": 13,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "접근성은 「장애인용 기능」이 아니라 **화면이 제대로 만들어졌는지의 검사**다. 키보드로 못 쓰는 화면은 대개 구조도 없다."
-    },
-    {
-      "type": "h",
-      "text": "1. 키보드 — 가장 빠른 자가 진단"
-    },
-    {
-      "type": "code",
-      "lang": "css",
-      "label": "포커스 표시를 지우지 마라",
-      "text": "/* 이런 코드를 본 적 있다면 지금 지워라 */\n*:focus { outline: none; }\n\n/* 대신 보기 좋게 */\n:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }"
-    },
-    {
-      "type": "p",
-      "text": "Tab 으로 지나갈 수 없거나, 지금 어디인지 안 보이면 그 화면은 절반이 안 만들어진 것이다. div 로 만든 단추는 Tab 순서에 아예 없다."
-    },
-    {
-      "type": "h",
-      "text": "2. 이름 — 스크린리더가 읽을 것"
-    },
-    {
-      "type": "code",
-      "lang": "html",
-      "label": "아이콘 단추에 이름 주기",
-      "text": "<!-- 나쁨: \"버튼\" 이라고만 읽힌다 -->\n<button><svg>…</svg></button>\n\n<!-- 좋음 -->\n<button aria-label=\"닫기\"><svg aria-hidden=\"true\">…</svg></button>\n\n<!-- 입력은 label 이 정답 -->\n<label for=\"q\">검색어</label>\n<input id=\"q\" name=\"q\">"
-    },
-    {
-      "type": "h",
-      "text": "3. 시맨틱 먼저, ARIA 는 최후"
-    },
-    {
-      "type": "note",
-      "text": "**ARIA 제1규칙: 안 쓰는 게 낫다.** `role=\"button\"` 을 붙인 div 보다 `<button>` 이 언제나 낫다 — 키보드·포커스·엔터키가 공짜로 따라온다. ARIA 는 표준 요소로 표현할 수 없을 때만 쓴다."
-    },
-    {
-      "type": "h",
-      "text": "4. 상태 알리기"
-    },
-    {
-      "type": "code",
-      "lang": "html",
-      "label": "변한 것을 소리로도",
-      "text": "<div aria-live=\"polite\" id=\"status\"></div>\n<!-- 저장 완료 · 검색 결과 3건 같은 알림을 여기에 넣으면 읽어 준다 -->\n\n<button aria-pressed=\"true\">굵게</button>\n<nav><a href=\"/docs\" aria-current=\"page\">문서</a></nav>"
-    },
-    {
-      "type": "h",
-      "text": "5. 색과 움직임"
-    },
-    {
-      "type": "code",
-      "lang": "css",
-      "label": "움직임을 줄여 달라는 요청 존중",
-      "text": "@media (prefers-reduced-motion: reduce) {\n  * { animation: none !important; transition: none !important; }\n}"
-    },
-    {
-      "type": "p",
-      "text": "본문 대비는 4.5:1 이상. 색만으로 상태를 표시하면(빨강=오류) 색각 이상인 사람에게는 아무 정보가 아니다 — 아이콘이나 글자를 함께 둔다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "마우스를 뽑고 내 화면을 처음부터 끝까지 Tab 만으로 써 봐라. 못 가는 곳·안 보이는 포커스를 목록으로 적어라."
-    },
-    {
-      "type": "try",
-      "text": "개발자도구의 Accessibility(접근성 트리) 패널에서 아이콘 단추 하나를 골라 **이름과 역할**을 확인하라. 이름이 비어 있으면 aria-label 을 붙여라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "`*:focus { outline: none }` 가 문제인 이유는?",
-      "choices": [
-        "성능이 나빠서",
-        "키보드 사용자가 지금 어디에 있는지 알 수 없게 되어서",
-        "스타일 우선순위 때문"
+      "id": "1",
+      "title": "누구를 위한 것인가 — 그리고 무엇이 자동으로 잡히나",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "접근성을 「소수를 위한 배려」로 이해하면 우선순위에서 늘 밀린다. 실제로는 **모두가 때때로 겪는 상황**을 다루는 일이다 — 한 손에 짐을 들었을 때, 밝은 햇빛 아래에서, 소리를 못 켜는 지하철에서, 마우스가 고장 났을 때."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "무엇이 자동으로 잡히나 — 도구의 한계를 먼저 알자",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button, input, select { font: inherit; }\n  button { padding:6px 12px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:focus-visible { outline:3px solid #f59e0b; outline-offset:2px; }\n  input { padding:6px 10px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; }\n  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** WCAG 대비비 — 두 색의 상대 휘도로 계산한다. */\n  function contrast(rgb1, rgb2) {\n    const lum = (c) => {\n      const v = c.map((x) => {\n        const s = x / 255;\n        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);\n      });\n      return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];\n    };\n    const a = lum(rgb1) + 0.05, b = lum(rgb2) + 0.05;\n    return Math.max(a, b) / Math.min(a, b);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const AUTO = {{auto}};\n  ctx.clearRect(0, 0, 440, 180);\n  const total = 100;\n  ctx.fillStyle = '#334155'; ctx.fillRect(14, 30, 410, 30);\n  ctx.fillStyle = '#22c55e'; ctx.fillRect(14, 30, 410 * (AUTO / total), 30);\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('자동 검사가 잡는 몫 ' + AUTO + '%', 20, 50);\n  const items = [['alt 없는 이미지', 1], ['라벨 없는 입력칸', 1], ['대비 부족', 1],\n                 ['제목 단계 건너뜀', 1], ['링크 글이 「여기」', 0], ['키보드로 못 가는 조작', 0],\n                 ['초점 순서가 화면과 다름', 0], ['alt 가 내용을 안 담음', 0], ['모달에서 초점이 샘', 0]];\n  ctx.font = '10.5px system-ui';\n  items.forEach(([t, auto], i) => {\n    ctx.fillStyle = auto ? '#22c55e' : '#f59e0b';\n    ctx.fillText((auto ? '[기계] ' : '[사람] ') + t, 14 + (i % 2) * 210, 84 + Math.floor(i / 2) * 19);\n  });\n  app.innerHTML = '';\n  show('연구·업계 경험칙: 자동 검사로 잡히는 접근성 문제는 대략 **30~40%** 다.\\n'\n     + '(도구가 나빠서가 아니라, 나머지가 「뜻이 맞나」를 묻는 문제이기 때문)\\n\\n'\n     + '기계가 잡는 것 : 있고 없고 (alt·label·대비·구조)\\n'\n     + '사람이 봐야 하는 것: 그것이 **말이 되나** (alt 내용·링크 글·초점 순서·흐름)\\n\\n'\n     + '그래서 순서는 이렇다\\n'\n     + '  1. 자동 검사를 CI 에 건다 (싼 30%를 공짜로)\\n'\n     + '  2. 키보드로 한 번 지나간다 (3장) — 가장 값싼 사람 검사\\n'\n     + '  3. 스크린리더로 핵심 흐름 하나를 들어 본다 (4장)');\n</script>",
+          "controls": [
+            {
+              "id": "auto",
+              "label": "자동 검사가 잡는 비율(%)",
+              "type": "range",
+              "min": 0,
+              "max": 100,
+              "step": 5,
+              "value": 35
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**접근성의 절반은 이미 배운 것들이다.** 알맞은 태그를 쓰고(HTML 1장), 제목 단계를 지키고(3장), 라벨을 붙이고(8장), 초점을 관리하면(9장) 대부분이 해결된다. 새로 배울 것은 생각보다 적다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "자동 검사를 붙이는 두 줄",
+          "text": "npm i -D @axe-core/cli\nnpx axe http://localhost:3000\n\n# 테스트에 넣기 (jest-axe · vitest-axe)\nconst results = await axe(container);\nexpect(results).toHaveNoViolations();\n\n# 브라우저 확장: axe DevTools · WAVE · Lighthouse 의 Accessibility 항목"
+        },
+        {
+          "type": "p",
+          "text": "법적 기준도 있다 — 한국은 「장애인차별금지법」과 KWCAG, 국제적으로는 WCAG 2.2 의 **A / AA / AAA** 등급이 기준이다. 실무의 목표선은 대개 **AA** 이고, 이 칸에서 다루는 것도 그 수준이다."
+        },
+        {
+          "type": "try",
+          "text": "지금 만드는 화면에 `npx axe <주소>` 를 한 번 돌려 보라. 나온 항목 수를 적어 두면, 이 칸을 마칠 때 비교할 기준선이 된다."
+        }
       ],
-      "answer": 1,
-      "why": "포커스 표시는 키보드 사용자의 커서다. 없애려면 대체 표시를 반드시 줘야 한다."
+      "quiz": [
+        {
+          "q": "자동 검사가 잡는 접근성 문제의 대략적 비율은?",
+          "choices": [
+            "90% 이상",
+            "30~40%",
+            "10% 미만",
+            "100%"
+          ],
+          "answer": 1,
+          "why": "나머지는 「말이 되나」를 묻는 문제다."
+        },
+        {
+          "q": "가장 값싼 사람 검사는?",
+          "choices": [
+            "스크린리더 정독",
+            "키보드로 한 번 지나가기",
+            "코드 리뷰",
+            "사용자 인터뷰"
+          ],
+          "answer": 1,
+          "why": "몇 분이면 큰 문제를 잡는다."
+        },
+        {
+          "q": "실무의 일반적인 목표 등급은?",
+          "choices": [
+            "A",
+            "AA",
+            "AAA",
+            "등급 없음"
+          ],
+          "answer": 1,
+          "why": "AAA 는 특정 항목에서만 현실적이다."
+        }
+      ]
     },
     {
-      "q": "아이콘만 있는 단추에 필요한 것은?",
-      "choices": [
-        "aria-label 같은 접근 가능한 이름",
-        "title 속성만",
-        "z-index"
+      "id": "2",
+      "title": "대비 — 눈에 보이는가",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "가장 흔하고 가장 쉽게 고칠 수 있는 문제가 **대비**다. 디자인 시안에서 예뻐 보이던 연회색 글씨가, 밝은 곳의 노트북 화면에서는 아예 안 보인다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "색을 밀어 보라 — 대비비가 실제로 계산된다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button, input, select { font: inherit; }\n  button { padding:6px 12px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:focus-visible { outline:3px solid #f59e0b; outline-offset:2px; }\n  input { padding:6px 10px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; }\n  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** WCAG 대비비 — 두 색의 상대 휘도로 계산한다. */\n  function contrast(rgb1, rgb2) {\n    const lum = (c) => {\n      const v = c.map((x) => {\n        const s = x / 255;\n        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);\n      });\n      return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];\n    };\n    const a = lum(rgb1) + 0.05, b = lum(rgb2) + 0.05;\n    return Math.max(a, b) / Math.min(a, b);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const FG = {{fg}}, BG = {{bg}}, BIG = {{big}};\n  const fg = [FG, FG, FG], bg = [BG, BG, BG];\n  const ratio = contrast(fg, bg);\n  const needAA = BIG ? 3 : 4.5, needAAA = BIG ? 4.5 : 7;\n  const rgb = (c) => 'rgb(' + c.join(',') + ')';\n  app.innerHTML = '<div style=\"background:' + rgb(bg) + ';color:' + rgb(fg) + ';padding:14px;border-radius:8px\">' +\n    '<div style=\"font-size:' + (BIG ? 24 : 15) + 'px;font-weight:' + (BIG ? 700 : 400) + '\">이 글이 편하게 읽히나요?</div>' +\n    '<div style=\"font-size:12px;opacity:.9;margin-top:4px\">대비 ' + ratio.toFixed(2) + ':1</div></div>';\n  ctx.clearRect(0, 0, 440, 180);\n  ctx.fillStyle = '#334155'; ctx.fillRect(14, 24, 410, 26);\n  const w = Math.min(1, ratio / 21) * 410;\n  ctx.fillStyle = ratio >= needAAA ? '#22c55e' : ratio >= needAA ? '#f59e0b' : '#ef4444';\n  ctx.fillRect(14, 24, w, 26);\n  [[needAA, 'AA ' + needAA], [needAAA, 'AAA ' + needAAA]].forEach(([v, label]) => {\n    const x = 14 + (v / 21) * 410;\n    ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.moveTo(x, 18); ctx.lineTo(x, 56); ctx.stroke();\n    ctx.fillStyle = '#94a3b8'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText(label, x + 3, 68);\n  });\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '13px system-ui';\n  ctx.fillText('대비 ' + ratio.toFixed(2) + ':1  ->  ' + (ratio >= needAAA ? 'AAA 통과' : ratio >= needAA ? 'AA 통과' : '기준 미달'), 14, 96);\n  show('기준 (WCAG 2.2)\\n'\n     + '  본문 글자      AA 4.5:1   AAA 7:1\\n'\n     + '  큰 글자(18.66px+ 또는 14px+ 굵게)  AA 3:1   AAA 4.5:1\\n'\n     + '  UI 요소·그래프 경계             3:1\\n\\n'\n     + '지금: ' + (BIG ? '큰 글자' : '본문 글자') + ' 기준 ' + needAA + ':1 필요 -> ' + ratio.toFixed(2) + ':1\\n\\n'\n     + '자주 놓치는 자리\\n'\n     + '  · placeholder · 비활성 단추 · 도움말 글씨 (일부러 흐리게 만든 것들)\\n'\n     + '  · 이미지 위의 흰 글자 (배경이 밝은 부분과 겹치면 사라진다)\\n'\n     + '  · 초점 표시 자체의 대비 (3:1 이상이어야 보인다)');\n</script>",
+          "controls": [
+            {
+              "id": "fg",
+              "label": "글자 밝기",
+              "type": "range",
+              "min": 0,
+              "max": 255,
+              "step": 5,
+              "value": 150
+            },
+            {
+              "id": "bg",
+              "label": "배경 밝기",
+              "type": "range",
+              "min": 0,
+              "max": 255,
+              "step": 5,
+              "value": 255
+            },
+            {
+              "id": "big",
+              "label": "큰 글자",
+              "type": "toggle",
+              "value": false
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**색만으로 정보를 전달하지 마라.** 「빨간 글씨가 오류입니다」는 색각 이상이 있는 사람에게 아무 정보가 아니다. 아이콘·글자·모양을 함께 써라 — 그리고 이것은 흑백 인쇄나 햇빛 아래에서도 도움이 된다."
+        },
+        {
+          "type": "code",
+          "lang": "css",
+          "label": "대비를 지키면서 흐리게 보이기",
+          "text": "/* 나쁨: 흐리게 만들려고 대비를 깎는다 */\n.help { color: #bbb; }              /* 흰 배경에서 2.1:1 — 미달 */\n\n/* 좋음: 대비는 지키고 위계는 크기·굵기·여백으로 */\n.help { color: #6b7280; font-size: 0.875rem; }   /* 4.8:1 */\n\n/* 비활성 상태도 읽을 수는 있어야 한다 */\n.btn:disabled { opacity: 1; color: #6b7280; background: #f3f4f6; cursor: not-allowed; }"
+        },
+        {
+          "type": "p",
+          "text": "**어두운 화면(다크 모드)에서 특히 새로 확인해야 한다.** 같은 회색이 흰 배경에서는 통과하고 검은 배경에서는 미달인 경우가 흔하다. 두 테마를 각각 재라."
+        },
+        {
+          "type": "try",
+          "text": "내 화면에서 가장 흐린 글자를 찾아 개발자도구로 색을 확인하고, 위 데모에 그 밝기를 넣어 보라. 4.5 미만이면 오늘 고칠 자리다."
+        }
       ],
-      "answer": 0,
-      "why": "이름이 없으면 스크린리더는 \"버튼\" 이라고만 읽는다."
+      "quiz": [
+        {
+          "q": "본문 글자의 AA 기준 대비는?",
+          "choices": [
+            "3:1",
+            "4.5:1",
+            "7:1",
+            "21:1"
+          ],
+          "answer": 1,
+          "why": "큰 글자는 3:1."
+        },
+        {
+          "q": "「빨간 글씨로 오류 표시」의 문제는?",
+          "choices": [
+            "느리다",
+            "색만으로 정보를 전달한다",
+            "대비가 높다",
+            "폰트 문제"
+          ],
+          "answer": 1,
+          "why": "아이콘·글자를 함께 쓴다."
+        },
+        {
+          "q": "위계를 만들면서 대비를 지키는 방법은?",
+          "choices": [
+            "색을 더 흐리게",
+            "크기·굵기·여백으로 위계를 만든다",
+            "opacity 사용",
+            "배경색 변경"
+          ],
+          "answer": 1,
+          "why": "대비를 깎지 않는다."
+        }
+      ]
     },
     {
-      "q": "ARIA 의 제1규칙은?",
-      "choices": [
-        "가능하면 표준 HTML 요소를 쓰고 ARIA 는 쓰지 않는다",
-        "모든 요소에 role 을 붙인다",
-        "aria-hidden 을 기본으로 쓴다"
+      "id": "3",
+      "title": "키보드 — 마우스 없이 지나가기",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "가장 값싼 접근성 검사는 **Tab 키를 끝까지 눌러 보는 것**이다. 몇 분이면 되고, 큰 문제의 상당수가 여기서 드러난다 — 못 가는 곳, 안 보이는 초점, 뒤죽박죽인 순서, 빠져나올 수 없는 함정."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "직접 Tab 을 눌러 보라 — 세 가지 문제를 겪는다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button, input, select { font: inherit; }\n  button { padding:6px 12px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:focus-visible { outline:3px solid #f59e0b; outline-offset:2px; }\n  input { padding:6px 10px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; }\n  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** WCAG 대비비 — 두 색의 상대 휘도로 계산한다. */\n  function contrast(rgb1, rgb2) {\n    const lum = (c) => {\n      const v = c.map((x) => {\n        const s = x / 255;\n        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);\n      });\n      return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];\n    };\n    const a = lum(rgb1) + 0.05, b = lum(rgb2) + 0.05;\n    return Math.max(a, b) / Math.min(a, b);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const CASE = '{{case}}';\n  const styles = {\n    ok: '',\n    nooutline: '#zone button:focus-visible, #zone [tabindex]:focus-visible { outline: none !important; }',\n    order: '#zone { display:flex; flex-direction: row-reverse; }',\n    trap: '',\n  }[CASE];\n  app.innerHTML = '<style>' + styles + '</style>' +\n    '<div class=\"hint\">이 칸을 한 번 클릭한 뒤 Tab 을 눌러 보라</div>' +\n    '<div id=\"zone\" class=\"row\" style=\"margin-top:8px\">' +\n    '<button>첫째</button><button>둘째</button><button>셋째</button>' +\n    (CASE === 'trap' ? '<div tabindex=\"0\" id=\"trap\" style=\"padding:6px 12px;border:1px dashed #ef4444;border-radius:8px\">함정</div>' : '') +\n    '</div><div id=\"log\" class=\"hint\" style=\"margin-top:8px\"></div>';\n  const log = document.getElementById('log');\n  document.addEventListener('focusin', (e) => {\n    log.textContent = '지금 초점: ' + (e.target.textContent || e.target.tagName);\n  });\n  if (CASE === 'trap') {\n    document.getElementById('trap').addEventListener('keydown', (e) => {\n      if (e.key === 'Tab') { e.preventDefault(); log.textContent = '초점이 갇혔다 — Tab 이 막혔다'; }\n    });\n  }\n  show({ ok: '정상: 초점이 보이고, 화면 순서대로 이동하고, 빠져나갈 수 있다.',\n         nooutline: 'outline: none — 초점이 어디 있는지 알 수 없다.\\n'\n           + '가장 흔한 접근성 사고. 지우려면 반드시 다른 표시를 넣어라.',\n         order: 'CSS 로 시각 순서를 뒤집었다(row-reverse).\\n'\n           + '눈에는 셋째-둘째-첫째로 보이는데 Tab 은 여전히 문서 순서로 간다 — 어긋난다.',\n         trap: '초점 함정: Tab 을 눌러도 빠져나갈 수 없다.\\n'\n           + '직접 만든 모달·드롭다운에서 흔하다. 키보드 사용자는 여기서 갇힌다.' }[CASE] + '\\n\\n'\n     + '점검 세 가지\\n'\n     + '  ① 지금 초점이 어디인지 늘 보이나\\n'\n     + '  ② 눈에 보이는 순서대로 이동하나\\n'\n     + '  ③ 들어간 곳에서 빠져나올 수 있나 (Esc · Tab)');\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "상황",
+              "type": "select",
+              "value": "ok",
+              "options": [
+                {
+                  "value": "ok",
+                  "label": "정상"
+                },
+                {
+                  "value": "nooutline",
+                  "label": "초점 표시 제거"
+                },
+                {
+                  "value": "order",
+                  "label": "시각 순서 뒤집힘"
+                },
+                {
+                  "value": "trap",
+                  "label": "초점 함정"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**`:focus-visible` 을 쓰면 마우스 클릭 때는 테두리가 안 뜨고 키보드로 왔을 때만 뜬다.** 「디자인상 outline 이 싫다」는 요구의 대부분은 이것으로 해결된다 — 지우는 대신 조건을 붙여라."
+        },
+        {
+          "type": "code",
+          "lang": "css",
+          "label": "초점 표시의 기본형",
+          "text": ":focus-visible {\n  outline: 3px solid #2563eb;\n  outline-offset: 2px;      /* 요소에 딱 붙지 않게 — 훨씬 잘 보인다 */\n  border-radius: 4px;\n}\n\n/* 어두운 배경 위에서도 보이게 두 겹으로 */\n.dark :focus-visible {\n  outline: 3px solid #fff;\n  box-shadow: 0 0 0 6px #2563eb;\n}"
+        },
+        {
+          "type": "p",
+          "text": "**초점을 가둬야 할 때도 있다** — 모달이 열렸을 때다. 이때는 모달 안에서만 Tab 이 돌게 하고, Esc 로 닫히게 하고, 닫으면 열었던 단추로 초점을 돌려준다. `<dialog>` 요소를 쓰면 이 셋이 브라우저 몫이 된다."
+        },
+        {
+          "type": "try",
+          "text": "내 화면에서 Tab 을 끝까지 눌러 보라. ① 초점이 늘 보이나 ② 순서가 화면과 같나 ③ 못 가는 조작 요소가 있나 — 세 가지를 종이에 적어라."
+        }
       ],
-      "answer": 0,
-      "why": "표준 요소는 키보드·포커스·의미를 이미 갖고 있다. 잘못 쓴 ARIA 는 없느니만 못하다."
+      "quiz": [
+        {
+          "q": "`outline: none` 만 적었을 때의 문제는?",
+          "choices": [
+            "느려진다",
+            "키보드 사용자가 현재 위치를 알 수 없다",
+            "마우스가 안 먹는다",
+            "레이아웃이 깨진다"
+          ],
+          "answer": 1,
+          "why": ":focus-visible 로 조건을 붙여라."
+        },
+        {
+          "q": "Tab 순서를 정하는 것은?",
+          "choices": [
+            "CSS 배치",
+            "HTML 문서 순서",
+            "z-index",
+            "화면 좌표"
+          ],
+          "answer": 1,
+          "why": "CSS 로 뒤집으면 어긋난다."
+        },
+        {
+          "q": "모달에서 초점을 가둘 때 함께 필요한 것은?",
+          "choices": [
+            "Esc 로 닫기와 닫은 뒤 초점 반환",
+            "애니메이션",
+            "배경 흐리게",
+            "자동 저장"
+          ],
+          "answer": 0,
+          "why": "<dialog> 는 이것을 대신해 준다."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "스크린리더가 읽는 것 — 이름 · 역할 · 상태",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "스크린리더는 화면을 읽지 않는다. **접근성 트리**를 읽는다 — 브라우저가 DOM 에서 만들어 내는, 「이것은 무엇이고(역할), 뭐라고 불리며(이름), 지금 어떤 상태인가」의 목록이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "요소를 골라 보라 — 무엇으로 읽히나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button, input, select { font: inherit; }\n  button { padding:6px 12px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:focus-visible { outline:3px solid #f59e0b; outline-offset:2px; }\n  input { padding:6px 10px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; }\n  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** WCAG 대비비 — 두 색의 상대 휘도로 계산한다. */\n  function contrast(rgb1, rgb2) {\n    const lum = (c) => {\n      const v = c.map((x) => {\n        const s = x / 255;\n        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);\n      });\n      return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];\n    };\n    const a = lum(rgb1) + 0.05, b = lum(rgb2) + 0.05;\n    return Math.max(a, b) / Math.min(a, b);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{el}}';\n  const t = {\n    div: ['<div onclick>지우기</div>', '(없음)', '(없음 — 일반 텍스트)', '없음',\n      '스크린리더는 그냥 글자로 읽는다. 「단추」라는 것도, 누를 수 있다는 것도 모른다.'],\n    button: ['<button>지우기</button>', '지우기', '단추', '없음',\n      '「지우기, 단추」라고 읽는다. 역할과 조작 방법이 함께 전달된다.'],\n    icon: ['<button><svg…/></button>', '(없음)', '단추', '없음',\n      '아이콘만 있으면 이름이 없다 — 「단추」라고만 읽힌다. 무슨 단추인지 알 수 없다.'],\n    iconlabel: ['<button aria-label=\"지우기\"><svg…/></button>', '지우기', '단추', '없음',\n      'aria-label 로 이름을 준다. 아이콘 단추에 반드시 필요한 것.'],\n    toggle: ['<button aria-pressed=\"true\">알림</button>', '알림', '단추', '눌림',\n      '상태까지 전달된다 — 「알림, 단추, 눌림」. 켜짐/꺼짐을 색으로만 표시하면 안 되는 이유.'],\n    input: ['<label for=\"q\">검색</label><input id=\"q\" required>', '검색', '입력칸', '필수',\n      '라벨이 이름이 된다. required 는 상태로 전달된다.'],\n  }[k];\n  app.innerHTML = '<div style=\"font:12.5px ui-monospace,monospace;color:#7dd3fc\">' +\n    t[0].replace(/</g, '&lt;') + '</div>';\n  show('접근성 트리에 이렇게 올라간다\\n'\n     + '  이름(name)   ' + t[1] + '\\n'\n     + '  역할(role)   ' + t[2] + '\\n'\n     + '  상태(state)  ' + t[3] + '\\n\\n'\n     + t[4] + '\\n\\n'\n     + '이름이 정해지는 순서(대략)\\n'\n     + '  aria-labelledby > aria-label > <label> > 요소 안의 글자 > title\\n\\n'\n     + '확인하는 법: 개발자도구 Elements > Accessibility 패널에서 이름·역할·상태를 그대로 볼 수 있다.');\n</script>",
+          "controls": [
+            {
+              "id": "el",
+              "label": "요소",
+              "type": "select",
+              "value": "div",
+              "options": [
+                {
+                  "value": "div",
+                  "label": "div onclick"
+                },
+                {
+                  "value": "button",
+                  "label": "button"
+                },
+                {
+                  "value": "icon",
+                  "label": "아이콘만 있는 단추"
+                },
+                {
+                  "value": "iconlabel",
+                  "label": "aria-label 붙인 아이콘"
+                },
+                {
+                  "value": "toggle",
+                  "label": "aria-pressed 토글"
+                },
+                {
+                  "value": "input",
+                  "label": "label + input"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**이름이 없는 조작 요소**가 가장 흔한 심각 문제다. 아이콘 단추(×, 햄버거, 하트), 이미지 링크, 아이콘만 있는 탭 — 전부 이름을 따로 줘야 한다. `aria-label` 이나 화면에서 감춘 글자(`.sr-only`)를 쓴다."
+        },
+        {
+          "type": "code",
+          "lang": "html",
+          "label": "이름을 주는 세 가지 방법",
+          "text": "<!-- ① aria-label — 짧고 확실 -->\n<button aria-label=\"닫기\">×</button>\n\n<!-- ② 화면에서만 감춘 글자 — 번역·복사에 유리 -->\n<button><svg aria-hidden=\"true\">…</svg><span class=\"sr-only\">닫기</span></button>\n\n<!-- ③ 이미 있는 글자를 가리키기 -->\n<h2 id=\"cart-title\">장바구니</h2>\n<section aria-labelledby=\"cart-title\">…</section>"
+        },
+        {
+          "type": "code",
+          "lang": "css",
+          "label": ".sr-only — 화면에서만 감춘다",
+          "text": ".sr-only {\n  position: absolute; width: 1px; height: 1px;\n  padding: 0; margin: -1px; overflow: hidden;\n  clip-path: inset(50%); white-space: nowrap; border: 0;\n}\n\n/* display:none 이나 visibility:hidden 은 스크린리더에서도 사라진다 — 쓰면 안 된다 */"
+        },
+        {
+          "type": "try",
+          "text": "개발자도구 Elements 에서 아이콘 단추 하나를 골라 Accessibility 패널의 「Name」을 보라. 비어 있으면 그 단추는 「단추」라고만 읽힌다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "스크린리더가 실제로 읽는 것은?",
+          "choices": [
+            "화면 픽셀",
+            "접근성 트리(이름·역할·상태)",
+            "CSS",
+            "HTML 원문"
+          ],
+          "answer": 1,
+          "why": "DOM 에서 파생된다."
+        },
+        {
+          "q": "아이콘만 있는 단추에 필요한 것은?",
+          "choices": [
+            "title",
+            "이름(aria-label 또는 감춘 글자)",
+            "큰 크기",
+            "색 대비"
+          ],
+          "answer": 1,
+          "why": "이름이 없으면 「단추」로만 읽힌다."
+        },
+        {
+          "q": "화면에서만 감추고 스크린리더에는 남기는 방법은?",
+          "choices": [
+            "display:none",
+            "visibility:hidden",
+            ".sr-only (clip-path 기법)",
+            "opacity:0"
+          ],
+          "answer": 2,
+          "why": "앞의 둘은 보조기기에서도 사라진다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "ARIA — 첫 번째 규칙은 「쓰지 마라」",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "ARIA 는 HTML 로 표현할 수 없는 것을 보조기기에 알려 주는 속성 묶음이다. 그런데 **잘못 쓴 ARIA 는 없는 것보다 나쁘다** — 틀린 정보를 확신에 차서 전달하기 때문이다. 그래서 공식 문서의 첫 규칙이 「가능하면 쓰지 말고 알맞은 HTML 을 써라」다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "코드를 골라 보라 — 어느 쪽이 나은가",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button, input, select { font: inherit; }\n  button { padding:6px 12px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:focus-visible { outline:3px solid #f59e0b; outline-offset:2px; }\n  input { padding:6px 10px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; }\n  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** WCAG 대비비 — 두 색의 상대 휘도로 계산한다. */\n  function contrast(rgb1, rgb2) {\n    const lum = (c) => {\n      const v = c.map((x) => {\n        const s = x / 255;\n        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);\n      });\n      return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];\n    };\n    const a = lum(rgb1) + 0.05, b = lum(rgb2) + 0.05;\n    return Math.max(a, b) / Math.min(a, b);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{case}}';\n  const t = {\n    rolebutton: ['<div role=\"button\" tabindex=\"0\" onclick=…>보내기</div>', '<button>보내기</button>',\n      'role 을 줘도 **키보드 동작은 안 따라온다**. Enter·Space 처리, 비활성 상태, 폼 전송을 전부 손으로 만들어야 한다.'],\n    ariahidden: ['<button aria-hidden=\"true\">저장</button>', '<button>저장</button>',\n      '조작할 수 있는 요소에 aria-hidden 을 붙이면 「보이지만 읽히지 않는」 유령이 된다 — 키보드로는 갈 수 있는데 이름이 없다.'],\n    label: ['<input aria-label=\"이름\">', '<label for=\"n\">이름</label><input id=\"n\">', \n      '눈으로 보는 사람에게도 라벨이 필요하다. aria-label 은 화면에 안 보인다 — 보이는 라벨이 있으면 그것을 쓰라.'],\n    required: ['<input aria-required=\"true\">', '<input required>', \n      'HTML 속성이 있으면 그것을 써라 — 브라우저 검증까지 함께 온다. ARIA 는 알리기만 한다.'],\n    live: ['(아무것도 없음)', '<div role=\"status\" aria-live=\"polite\">저장됨</div>',\n      '이건 ARIA 가 진짜 필요한 자리 — JS 로 바뀐 내용을 알리는 방법이 HTML 에는 없다.'],\n  }[k];\n  const good = k === 'live';\n  app.innerHTML = '<div class=\"hint\">' + (good ? 'ARIA 가 필요한 자리' : 'ARIA 대신 HTML') + '</div>' +\n    '<div style=\"font:12px ui-monospace,monospace;color:#fca5a5;margin-top:6px\">' + t[0].replace(/</g, '&lt;') + '</div>' +\n    '<div style=\"font:12px ui-monospace,monospace;color:#4ade80;margin-top:4px\">' + t[1].replace(/</g, '&lt;') + '</div>';\n  show(t[2] + '\\n\\n'\n     + 'ARIA 다섯 규칙 요약\\n'\n     + '  1. 알맞은 HTML 이 있으면 그것을 쓴다\\n'\n     + '  2. 기본 의미를 바꾸지 않는다 (h1 에 role=button 같은 것)\\n'\n     + '  3. 모든 조작 요소는 키보드로 쓸 수 있어야 한다\\n'\n     + '  4. 초점 가능한 요소에 aria-hidden 을 붙이지 않는다\\n'\n     + '  5. 모든 조작 요소에 이름이 있어야 한다');\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "사례",
+              "type": "select",
+              "value": "rolebutton",
+              "options": [
+                {
+                  "value": "rolebutton",
+                  "label": "role=button"
+                },
+                {
+                  "value": "ariahidden",
+                  "label": "aria-hidden 오용"
+                },
+                {
+                  "value": "label",
+                  "label": "aria-label vs label"
+                },
+                {
+                  "value": "required",
+                  "label": "aria-required vs required"
+                },
+                {
+                  "value": "live",
+                  "label": "aria-live (필요한 자리)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**ARIA 는 동작을 만들지 않는다.** `role=\"button\"` 은 「이건 단추입니다」라고 **말할 뿐**, Enter 키로 눌리게 하지 않는다. 그래서 직접 만든 위젯은 키보드 처리·상태 관리를 전부 손으로 해야 하고, 그래서 대개 손해다."
+        },
+        {
+          "type": "p",
+          "text": "그럼에도 ARIA 가 필요한 자리는 분명히 있다 — **HTML 에 대응하는 것이 없을 때**다. 탭 위젯, 콤보박스, 트리, 라이브 영역, 진행 상태. 이때는 [ARIA Authoring Practices](https://www.w3.org/WAI/ARIA/apg/) 의 패턴을 그대로 따르는 것이 안전하다."
+        },
+        {
+          "type": "code",
+          "lang": "html",
+          "label": "자주 쓰는 것 몇 개",
+          "text": "<button aria-expanded=\"false\" aria-controls=\"menu\">메뉴</button>\n<ul id=\"menu\" hidden>…</ul>\n\n<div role=\"status\" aria-live=\"polite\">3개 항목이 저장되었습니다</div>\n<div role=\"alert\">저장에 실패했습니다</div>          <!-- 즉시 끊고 알림 -->\n\n<input aria-describedby=\"pw-help\">\n<p id=\"pw-help\">8자 이상, 숫자를 포함하세요</p>"
+        },
+        {
+          "type": "try",
+          "text": "내 코드에서 `role=` 을 검색해 보라. `role=\"button\"`·`role=\"link\"` 가 있으면, 그 자리를 진짜 `<button>`·`<a>` 로 바꿀 수 있는지 검토하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "ARIA 의 첫 번째 규칙은?",
+          "choices": [
+            "항상 role 을 붙여라",
+            "알맞은 HTML 이 있으면 ARIA 를 쓰지 마라",
+            "label 을 붙여라",
+            "tabindex 를 써라"
+          ],
+          "answer": 1,
+          "why": "잘못 쓴 ARIA 는 없는 것보다 나쁘다."
+        },
+        {
+          "q": "`role=\"button\"` 이 해 주지 **않는** 것은?",
+          "choices": [
+            "역할 알리기",
+            "키보드 동작(Enter/Space)",
+            "이름 전달",
+            "상태 전달"
+          ],
+          "answer": 1,
+          "why": "동작은 직접 만들어야 한다."
+        },
+        {
+          "q": "ARIA 가 진짜 필요한 대표 자리는?",
+          "choices": [
+            "단추 만들기",
+            "JS 로 바뀐 내용을 알리기(aria-live)",
+            "링크 만들기",
+            "입력칸 필수 표시"
+          ],
+          "answer": 1,
+          "why": "HTML 에 대응물이 없다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "폼 — 접근성이 가장 크게 드러나는 자리",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "폼은 사용자가 **실제로 무언가를 하는** 자리라, 접근성 문제가 곧바로 「못 쓴다」로 이어진다. 그리고 고칠 것도 분명하다 — 라벨, 오류, 그룹, 도움말."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "설정을 바꿔 보라 — 직접 써 보면 차이가 느껴진다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button, input, select { font: inherit; }\n  button { padding:6px 12px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:focus-visible { outline:3px solid #f59e0b; outline-offset:2px; }\n  input { padding:6px 10px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; }\n  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** WCAG 대비비 — 두 색의 상대 휘도로 계산한다. */\n  function contrast(rgb1, rgb2) {\n    const lum = (c) => {\n      const v = c.map((x) => {\n        const s = x / 255;\n        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);\n      });\n      return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];\n    };\n    const a = lum(rgb1) + 0.05, b = lum(rgb2) + 0.05;\n    return Math.max(a, b) / Math.min(a, b);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const LABEL = {{label}}, ERR = '{{err}}';\n  app.innerHTML =\n    '<form id=\"f\" novalidate>' +\n    (LABEL ? '<label for=\"email\" style=\"display:block;margin-bottom:4px\">메일 주소</label>' : '') +\n    '<input id=\"email\" name=\"email\" type=\"email\" ' +\n      (LABEL ? '' : 'placeholder=\"메일 주소\" ') +\n      (ERR === 'aria' ? 'aria-describedby=\"email-err\" aria-invalid=\"true\" ' : '') +\n      'style=\"width:100%\">' +\n    (ERR === 'none' ? '' :\n      ERR === 'color' ? '<div style=\"color:#ef4444;margin-top:4px\">●</div>' :\n      '<div id=\"email-err\" style=\"color:#fca5a5;margin-top:4px;font-size:12.5px\">⚠ 메일 형식이 아닙니다 — 예: name@example.com</div>') +\n    '<div style=\"margin-top:10px\"><button>보내기</button></div></form>';\n  const input = document.getElementById('email');\n  const name = input.labels && input.labels.length ? input.labels[0].textContent\n              : input.getAttribute('aria-label') || input.placeholder || '(이름 없음)';\n  show('접근성 트리에 올라가는 이름: ' + (input.labels && input.labels.length ? name : '(placeholder 는 이름이 아니다)') + '\\n\\n'\n     + (LABEL ? '라벨 O — 글자를 눌러도 칸이 잡히고, 스크린리더가 이름을 읽는다.'\n              : '라벨 X — placeholder 뿐이다. 글자를 입력하면 설명이 사라지고,\\n'\n                + '  대비도 낮고, 보조기기가 이름으로 읽어 주지 않는다.') + '\\n\\n'\n     + { none: '오류 표시 없음 — 무엇이 잘못됐는지 알 수 없다.',\n         color: '색(빨간 점)만으로 표시 — 색각 이상·흑백에서 아무 정보가 아니다.',\n         text: '글로 설명 O — 무엇이 왜 잘못됐고 어떻게 고치는지 적혀 있다.',\n         aria: '글 설명 + aria-describedby + aria-invalid\\n'\n           + '  -> 스크린리더가 칸에 들어갈 때 오류 내용까지 함께 읽어 준다. 이것이 완성형.' }[ERR] + '\\n\\n'\n     + '폼 점검 다섯\\n'\n     + '  ① 모든 칸에 보이는 라벨  ② name 속성  ③ 오류를 글로 설명\\n'\n     + '  ④ 오류를 칸과 연결(aria-describedby)  ⑤ 오류 요약으로 초점 이동');\n</script>",
+          "controls": [
+            {
+              "id": "label",
+              "label": "보이는 라벨",
+              "type": "toggle",
+              "value": false
+            },
+            {
+              "id": "err",
+              "label": "오류 표시",
+              "type": "select",
+              "value": "none",
+              "options": [
+                {
+                  "value": "none",
+                  "label": "없음"
+                },
+                {
+                  "value": "color",
+                  "label": "색만"
+                },
+                {
+                  "value": "text",
+                  "label": "글로 설명"
+                },
+                {
+                  "value": "aria",
+                  "label": "글 + aria 연결"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "html",
+          "label": "완성형 폼 필드",
+          "text": "<label for=\"email\">메일 주소</label>\n<input id=\"email\" name=\"email\" type=\"email\" required\n       autocomplete=\"email\"\n       aria-describedby=\"email-help email-err\"\n       aria-invalid=\"true\">\n<p id=\"email-help\">알림을 받을 주소입니다</p>\n<p id=\"email-err\">⚠ 메일 형식이 아닙니다 — 예: name@example.com</p>\n\n<!-- 여러 칸을 묶을 때 -->\n<fieldset>\n  <legend>배송 방법</legend>\n  <label><input type=\"radio\" name=\"ship\" value=\"fast\"> 빠른 배송</label>\n</fieldset>"
+        },
+        {
+          "type": "note",
+          "text": "**오류 메시지는 「무엇이·왜·어떻게」를 담아야 한다.** 「올바른 값을 입력하세요」는 아무 정보가 아니다. 그리고 제출 시 오류가 여러 개면 **맨 위에 요약을 두고 그곳으로 초점을 옮겨라** — 스크린리더 사용자가 오류를 발견하는 유일한 방법인 경우가 많다."
+        },
+        {
+          "type": "p",
+          "text": "`autocomplete` 속성은 접근성 항목이기도 하다(WCAG 1.3.5). 인지·운동 장애가 있는 사용자에게 자동 채움은 큰 차이를 만들고, 모두에게도 편하다 — `name`·`email`·`tel`·`street-address`·`one-time-code` 등 표준 값을 쓰라."
+        },
+        {
+          "type": "try",
+          "text": "내 폼을 **마우스 없이** 끝까지 채워 제출해 보라. 그리고 일부러 오류를 내 보라 — 오류가 났다는 것을 키보드만으로 알 수 있나?"
+        }
+      ],
+      "quiz": [
+        {
+          "q": "placeholder 가 라벨을 대신할 수 없는 이유는?",
+          "choices": [
+            "색이 흐려서만",
+            "입력하면 사라지고 보조기기가 이름으로 읽지 않아서",
+            "번역이 안 돼서",
+            "길이 제한"
+          ],
+          "answer": 1,
+          "why": "라벨은 늘 보여야 한다."
+        },
+        {
+          "q": "오류를 칸과 연결하는 속성은?",
+          "choices": [
+            "aria-label",
+            "aria-describedby + aria-invalid",
+            "title",
+            "role"
+          ],
+          "answer": 1,
+          "why": "칸에 들어갈 때 함께 읽힌다."
+        },
+        {
+          "q": "제출 시 오류가 여러 개일 때 권장되는 것은?",
+          "choices": [
+            "첫 칸으로 이동",
+            "맨 위 오류 요약으로 초점 이동",
+            "알림창",
+            "색으로 표시"
+          ],
+          "answer": 1,
+          "why": "전체를 파악할 수 있어야 한다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "움직임 · 시간 · 감각 — 배려가 필요한 나머지",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "시각 말고도 고려할 것이 있다. **움직임**(전정 장애가 있으면 큰 애니메이션이 어지럼증을 일으킨다), **시간 제한**(읽는 속도가 다르다), **소리**(자막), **색 이외의 단서**."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "설정을 골라 보라 — 무엇을 어떻게 다루나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button, input, select { font: inherit; }\n  button { padding:6px 12px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:focus-visible { outline:3px solid #f59e0b; outline-offset:2px; }\n  input { padding:6px 10px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; }\n  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** WCAG 대비비 — 두 색의 상대 휘도로 계산한다. */\n  function contrast(rgb1, rgb2) {\n    const lum = (c) => {\n      const v = c.map((x) => {\n        const s = x / 255;\n        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);\n      });\n      return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];\n    };\n    const a = lum(rgb1) + 0.05, b = lum(rgb2) + 0.05;\n    return Math.max(a, b) / Math.min(a, b);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const k = '{{topic}}';\n  hideCanvas();\n  const t = {\n    motion: ['움직임 줄이기', 'prefers-reduced-motion',\n      '운영체제에 「동작 줄이기」를 켠 사용자가 있다. 큰 시차·확대·회전은 어지럼증을 유발한다.',\n      '@media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important;\\n'\n      + '  transition-duration: .01ms !important; } }\\n'\n      + '완전히 없애기보다 「페이드 정도로 줄이기」가 대개 낫다.'],\n    autoplay: ['자동 재생·자동 넘김', '멈출 수 있어야 한다',\n      '5초 넘게 자동으로 움직이는 것은 멈추거나 숨길 수단을 줘야 한다(WCAG 2.2.2).',\n      '캐러셀·마퀴·자동 재생 영상 — 정지 단추를 붙이거나 hover/focus 시 멈춘다.'],\n    timeout: ['시간 제한', '연장할 수 있어야 한다',\n      '세션 만료·폼 제한 시간은 읽기·입력이 느린 사용자에게 장벽이 된다.',\n      '만료 전에 알리고 연장 수단을 준다. 보안상 필요한 경우가 아니면 아예 두지 않는다.'],\n    caption: ['소리 — 자막과 대본', '영상·오디오',\n      '자막은 청각 장애만을 위한 것이 아니다 — 지하철·사무실·시끄러운 곳에서 모두가 쓴다.',\n      '<track kind=\"captions\" srclang=\"ko\" src=\"ko.vtt\" default> · 대본도 함께 제공하면 검색도 된다.'],\n    target: ['누를 수 있는 크기', '최소 24x24 (WCAG 2.2)',\n      '작은 아이콘 단추는 손이 떨리거나 화면이 작을 때 못 누른다.',\n      '실제 크기가 작다면 padding 이나 ::after 로 누르는 영역만 넓힐 수 있다.'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n' + t[3]);\n</script>",
+          "controls": [
+            {
+              "id": "topic",
+              "label": "주제",
+              "type": "select",
+              "value": "motion",
+              "options": [
+                {
+                  "value": "motion",
+                  "label": "움직임 줄이기"
+                },
+                {
+                  "value": "autoplay",
+                  "label": "자동 재생"
+                },
+                {
+                  "value": "timeout",
+                  "label": "시간 제한"
+                },
+                {
+                  "value": "caption",
+                  "label": "자막"
+                },
+                {
+                  "value": "target",
+                  "label": "누를 수 있는 크기"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "css",
+          "label": "동작 줄이기 — 기본으로 넣어 둘 것",
+          "text": "@media (prefers-reduced-motion: reduce) {\n  *, *::before, *::after {\n    animation-duration: 0.01ms !important;\n    animation-iteration-count: 1 !important;\n    transition-duration: 0.01ms !important;\n    scroll-behavior: auto !important;\n  }\n}\n\n/* 또는 애니메이션을 조건부로 설계 */\n@media (prefers-reduced-motion: no-preference) {\n  .card { transition: transform .3s; }\n}"
+        },
+        {
+          "type": "note",
+          "text": "**확대에도 견뎌야 한다.** 브라우저 확대 200%(또는 폭 320px 상당)에서 가로 스크롤 없이 읽히는 것이 WCAG 기준이다. 고정 `width`·`px` 로 박은 레이아웃이 여기서 깨진다 — 앞 칸(CSS 7·8장)의 `rem`·`clamp`·반응형이 그대로 접근성 항목이 된다."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **`lang` 속성**을 잊지 마라. 문서 전체에 `lang=\"ko\"`, 다른 언어가 섞인 부분에 `lang=\"en\"` 을 붙이면 스크린리더가 알맞은 발음으로 읽는다 — 한국어 문서에서 영어 문장을 한국어 발음으로 읽는 소리를 들어 보면 왜 중요한지 바로 안다."
+        },
+        {
+          "type": "try",
+          "text": "운영체제 설정에서 「동작 줄이기」를 켜고 내 화면을 열어 보라. 애니메이션이 그대로면 위 CSS 를 오늘 넣어라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`prefers-reduced-motion` 이 알려 주는 것은?",
+          "choices": [
+            "저사양 기기",
+            "사용자가 동작 줄이기를 켰다는 것",
+            "배터리 부족",
+            "느린 네트워크"
+          ],
+          "answer": 1,
+          "why": "어지럼증을 유발하는 큰 움직임을 줄인다."
+        },
+        {
+          "q": "자막이 청각 장애 외에도 유용한 이유는?",
+          "choices": [
+            "번역 때문",
+            "소리를 못 켜는 상황에서 모두가 쓴다",
+            "SEO 만",
+            "용량 절감"
+          ],
+          "answer": 1,
+          "why": "상황적 제약도 접근성의 일부다."
+        },
+        {
+          "q": "브라우저 확대 200%에서 깨지는 흔한 원인은?",
+          "choices": [
+            "폰트",
+            "고정 px 폭 레이아웃",
+            "이미지",
+            "색상"
+          ],
+          "answer": 1,
+          "why": "rem·clamp·반응형이 해법이다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "동적 화면 — SPA 에서 특히 어려운 것들",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "화면이 통째로 바뀌지 않고 **일부만 바뀌는** 앱에서는 새 문제가 생긴다. 스크린리더 사용자는 「무언가 바뀌었다」는 것을 모르고, 키보드 사용자는 초점을 잃는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "상황을 골라 보라 — 무엇을 해 줘야 하나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button, input, select { font: inherit; }\n  button { padding:6px 12px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:focus-visible { outline:3px solid #f59e0b; outline-offset:2px; }\n  input { padding:6px 10px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; }\n  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** WCAG 대비비 — 두 색의 상대 휘도로 계산한다. */\n  function contrast(rgb1, rgb2) {\n    const lum = (c) => {\n      const v = c.map((x) => {\n        const s = x / 255;\n        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);\n      });\n      return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];\n    };\n    const a = lum(rgb1) + 0.05, b = lum(rgb2) + 0.05;\n    return Math.max(a, b) / Math.min(a, b);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{case}}';\n  const t = {\n    route: ['화면 이동 (라우팅)', '제목을 바꾸고 초점을 옮긴다',\n      '새로고침이 없으니 스크린리더는 화면이 바뀐 줄 모른다.',\n      'document.title 갱신 + 주요 영역(h1 또는 main)에 focus() + 라이브 영역으로 알림'],\n    modal: ['모달 열기/닫기', '초점을 가두고 되돌려 준다',\n      '초점이 뒤 화면으로 새면 키보드 사용자는 보이지 않는 곳을 만지게 된다.',\n      '<dialog showModal()> 이면 대부분 공짜. 직접 만들면: 초점 이동 + Tab 가두기 + Esc + inert'],\n    toast: ['알림 띄우기', '라이브 영역으로 알린다',\n      '화면 구석에 뜬 토스트는 눈에만 보인다.',\n      'role=\"status\" aria-live=\"polite\" (일반) · role=\"alert\" (급한 오류)\\n'\n      + '주의: 영역은 **미리 DOM 에 있어야** 한다. 나중에 통째로 추가하면 안 읽힐 수 있다.'],\n    list: ['목록 갱신 (필터·검색)', '결과 수를 알린다',\n      '「3개 찾음」이 화면에만 표시되면 소리로는 아무 일도 안 일어난 것.',\n      '<div role=\"status\">검색 결과 3개</div> — 디바운스와 함께 쓰면 너무 자주 읽히지 않는다'],\n    infinite: ['무한 스크롤', '끝에 도달할 수단을 준다',\n      '푸터에 절대 닿을 수 없고, 키보드로 새 항목까지 가기 어렵다.',\n      '「더 보기」 단추를 함께 두거나 페이지네이션을 제공한다'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n해야 할 것\\n  ' + t[3] + '\\n\\n'\n     + '공통 원칙: **눈에 보이는 변화는 소리로도 들려야 하고, 초점은 늘 뜻이 있는 자리에 있어야 한다.**');\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "상황",
+              "type": "select",
+              "value": "route",
+              "options": [
+                {
+                  "value": "route",
+                  "label": "화면 이동"
+                },
+                {
+                  "value": "modal",
+                  "label": "모달"
+                },
+                {
+                  "value": "toast",
+                  "label": "알림 토스트"
+                },
+                {
+                  "value": "list",
+                  "label": "목록 갱신"
+                },
+                {
+                  "value": "infinite",
+                  "label": "무한 스크롤"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "라우팅 시 해 줄 세 가지",
+          "text": "function onRouteChange(page) {\n  document.title = `${page.title} — 내 서비스`;      // ① 제목\n  const main = document.querySelector('main');\n  main.setAttribute('tabindex', '-1');\n  main.focus();                                       // ② 초점을 본문으로\n  announce(`${page.title} 화면으로 이동했습니다`);     // ③ 라이브 영역으로 알림\n}\n\n// 라이브 영역은 미리 만들어 두고 글자만 갈아 끼운다\nfunction announce(msg) {\n  document.getElementById('live-region').textContent = msg;\n}"
+        },
+        {
+          "type": "note",
+          "text": "**`inert` 속성**을 기억하라. 모달 뒤의 화면에 `inert` 를 붙이면 그 안의 모든 것이 초점·클릭·보조기기에서 사라진다. 직접 만든 모달의 「초점이 새는」 문제를 한 줄로 푼다."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **로딩 상태**도 알려야 한다. 스피너가 도는 것은 눈에만 보인다 — `aria-busy=\"true\"` 나 라이브 영역의 「불러오는 중」이 있어야 소리로도 전달된다. 다 불러오면 결과를 알리는 것도 잊지 마라."
+        },
+        {
+          "type": "try",
+          "text": "내 SPA 에서 화면을 이동해 보고 `document.title` 이 바뀌는지 확인하라. 안 바뀌면 탭 제목·즐겨찾기·뒤로가기 목록이 전부 같은 이름으로 남는다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "SPA 라우팅 후 해야 할 일이 아닌 것은?",
+          "choices": [
+            "document.title 갱신",
+            "본문으로 초점 이동",
+            "변경을 알리기",
+            "페이지 새로고침"
+          ],
+          "answer": 3,
+          "why": "새로고침 없이 같은 효과를 만들어야 한다."
+        },
+        {
+          "q": "라이브 영역을 미리 DOM 에 두는 이유는?",
+          "choices": [
+            "성능",
+            "나중에 통째로 추가하면 안 읽힐 수 있어서",
+            "CSS 때문",
+            "SEO"
+          ],
+          "answer": 1,
+          "why": "글자만 갈아 끼운다."
+        },
+        {
+          "q": "모달 뒤 화면을 조작 불가로 만드는 속성은?",
+          "choices": [
+            "hidden",
+            "inert",
+            "disabled",
+            "aria-hidden 만"
+          ],
+          "answer": 1,
+          "why": "초점·클릭·보조기기 접근을 함께 막는다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "접근성은 「전부 완벽하게」가 아니라 **막히는 곳을 없애는** 일이다. 아래 순서로 훑으면 대부분의 막힘이 드러난다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "화면 하나 점검하기 (10분)",
+          "text": "1. 자동 검사 (1분)\n  [ ] npx axe <주소> 또는 Lighthouse Accessibility            (1장)\n\n2. 키보드만으로 (3분)\n  [ ] Tab 으로 끝까지 갈 수 있나                              (3장)\n  [ ] 초점이 늘 보이나 (:focus-visible)                       (3장)\n  [ ] 순서가 화면과 같나                                      (3장)\n  [ ] 모달·드롭다운에서 빠져나올 수 있나 (Esc)                (3·8장)\n\n3. 눈으로 (2분)\n  [ ] 흐린 글자의 대비가 4.5:1 이상인가                       (2장)\n  [ ] 색만으로 정보를 주는 곳이 없나                          (2장)\n  [ ] 200% 확대에서 가로 스크롤 없이 읽히나                   (7장)\n\n4. 구조 (2분)\n  [ ] 제목 단계가 목차처럼 읽히나 (h1 하나, 건너뛰지 않음)\n  [ ] 아이콘 단추에 이름이 있나                               (4장)\n  [ ] 모든 입력칸에 보이는 라벨이 있나                        (6장)\n\n5. 동적 (2분)\n  [ ] 바뀐 내용을 aria-live 로 알리나                         (8장)\n  [ ] 화면 이동 시 제목·초점을 옮기나                         (8장)\n  [ ] prefers-reduced-motion 을 존중하나                      (7장)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 이 화면을 실제로 검사한다",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button, input, select { font: inherit; }\n  button { padding:6px 12px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:focus-visible { outline:3px solid #f59e0b; outline-offset:2px; }\n  input { padding:6px 10px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; }\n  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** WCAG 대비비 — 두 색의 상대 휘도로 계산한다. */\n  function contrast(rgb1, rgb2) {\n    const lum = (c) => {\n      const v = c.map((x) => {\n        const s = x / 255;\n        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);\n      });\n      return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];\n    };\n    const a = lum(rgb1) + 0.05, b = lum(rgb2) + 0.05;\n    return Math.max(a, b) / Math.min(a, b);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  app.innerHTML =\n    '<div class=\"row\">' +\n    '<button>이름 있는 단추</button>' +\n    '<button aria-label=\"\">이름 없는 단추</button>' +\n    '<div role=\"button\" tabindex=\"0\">role=button</div>' +\n    '<input placeholder=\"라벨 없는 칸\">' +\n    '<span style=\"color:#8a8a8a;background:#fff;padding:4px\">흐린 글자</span>' +\n    '</div>';\n  const findings = [];\n  document.querySelectorAll('button, [role=button], input').forEach((el) => {\n    const name = el.getAttribute('aria-label') || (el.labels && el.labels.length ? el.labels[0].textContent : '') || el.textContent.trim();\n    if (!name) findings.push('이름 없는 조작 요소: <' + el.tagName.toLowerCase() + (el.getAttribute('role') ? ' role=' + el.getAttribute('role') : '') + '>');\n    if (el.tagName === 'INPUT' && !(el.labels && el.labels.length)) findings.push('라벨 없는 입력칸 (placeholder 는 라벨이 아니다)');\n    if (el.getAttribute('role') === 'button' && el.tagName !== 'BUTTON') findings.push('role=button — 진짜 <button> 으로 바꿀 수 있나?');\n  });\n  const c = contrast([138, 138, 138], [255, 255, 255]);\n  if (c < 4.5) findings.push('대비 부족: ' + c.toFixed(2) + ':1 (본문 기준 4.5 필요)');\n  show('이 데모 화면을 방금 검사한 결과\\n\\n'\n     + findings.map((f) => '  ⚠ ' + f).join('\\n') + '\\n\\n'\n     + '모두 이 칸에서 다룬 항목이다 —\\n'\n     + '  이름 없는 단추(4장) · 라벨 없는 칸(6장) · role 오용(5장) · 대비(2장)\\n\\n'\n     + '같은 검사를 내 화면에 돌리면 axe 가 이런 목록을 만들어 준다.');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸은 개발자도구다. 이 칸에서 「Accessibility 패널을 보라」고 여러 번 말했는데, 다음 칸에서 그 도구들을 제대로 쓰는 법을 다룬다."
+        },
+        {
+          "type": "try",
+          "text": "위 10분 점검을 내 화면 하나에 실제로 돌려라. 걸린 항목 수를 적고, 그중 **키보드 항목부터** 고쳐라 — 가장 크게 막히는 자리다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "가장 값싸고 효과 큰 사람 검사는?",
+          "choices": [
+            "스크린리더 정독",
+            "Tab 키로 끝까지 지나가기",
+            "코드 리뷰",
+            "색 대비 계산"
+          ],
+          "answer": 1,
+          "why": "몇 분에 큰 막힘이 드러난다."
+        },
+        {
+          "q": "접근성 작업의 목표는?",
+          "choices": [
+            "완벽한 점수",
+            "막히는 곳을 없애는 것",
+            "법규 회피",
+            "도구 통과"
+          ],
+          "answer": 1,
+          "why": "점수가 아니라 사용 가능성이다."
+        }
+      ]
     }
   ]
 }
