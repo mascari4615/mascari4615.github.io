@@ -13,14 +13,13 @@
  */
 import type { Kind } from './meta';
 import type { BotPersona } from './bots';
+import { PARTY } from './seating';
+
+export { PARTY };
 
 export const ROUNDS = 5;
-/**
- * 대회는 **몇 명이 하는가**. 셋으로 못 박는다 — 대회의 알맹이는 「같은 사람들과 다섯 판」이라
- * 판마다 인원이 바뀌면 점수표가 성립하지 않는다(2인 판에서 깜냥이 빠지면 그 판은 깜냥에게
- * 유리한 0점이다). 그래서 뽑을 때 **셋이 앉을 수 있는 판만** 고른다.
- */
-export const PARTY = 3;
+/* 대회 인원 = 오락실 인원. 정본은 `seating.ts` — 대회만의 수가 아니다(로비에서 혼자 열어도
+   같은 수로 앉는다). 판마다 인원이 바뀌면 점수표가 성립하지 않으므로 셋이 앉는 판만 고른다. */
 /** 등수 점수 — 1등 3, 2등 1, 나머지 0. */
 const PRIZE = [3, 1];
 

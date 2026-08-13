@@ -41,7 +41,11 @@ const page = await browser.newPage();
 page.on('pageerror', (e) => failures.push(`창에서 터졌다 — ${e.message}`));
 
 try {
-  const res = await page.goto(PAGE, { waitUntil: 'domcontentloaded', timeout: 20000 });
+  const res =
+  /* 옆 세션이 파일을 고치면 이 창이 새로고침되어 판이 로비로 돌아간다 — 그건 오락실의
+     결함이 아니라 검사의 결함이다(실측: play:"none", status:""). 갈아 끼우기 통로를 막는다. */
+  await page.route('**/__dev', (r) => r.abort());
+ await page.goto(PAGE, { waitUntil: 'domcontentloaded', timeout: 20000 });
   if (!res || !res.ok()) cantRun = `dev 서버가 안 뜬다 (${PAGE})`;
 } catch (e) {
   cantRun = `dev 서버에 못 닿았다 — ${e.message}`;
@@ -103,7 +107,9 @@ if (!cantRun) {
   await page.click('[data-solo="reflex"]');
   await page.waitForSelector('.ac-choice', { timeout: 10000 });
   const seats = await page.locator('.ac-seat').allTextContents();
-  check('자리가 둘이다 (나 + 봇)', seats.length === 2, seats.join(' / '));
+  /* 셋이다 — 인원은 판이 아니라 오락실이 정한다(`seating.ts`). 전에는 최솟값이라 「1명부터」인
+     판이 혼자 돌았다. 그 수를 여기 상수로 또 적으면 두 곳이 갈리므로 셋을 못 박아 둔다. */
+  check('자리가 셋이다 (나 + 봇 둘)', seats.length === 3, seats.join(' / '));
   check('빈 자리에 봇이 앉았다', seats.some((s) => s.includes('🤖')), seats.join(' / '));
 
   /* 아무도 안 눌러도 제한시간이 지나면 판이 넘어가야 한다 — 그게 시계가 도는 증거다. */
