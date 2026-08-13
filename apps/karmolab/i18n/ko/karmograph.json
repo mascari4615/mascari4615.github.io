@@ -102,7 +102,6 @@
   "karmograph.fit.title": "화면 맞춤",
   "karmograph.story.title": "발표 모드 — 볼 것을 몇 장으로 나눠 차례로",
   "karmograph.more.title": "더 보기",
-  "karmograph.miniLink.title": "여기서 선 잇기",
   "karmograph.miniNote.title": "이 카드에 붙는 쪽지",
   "karmograph.miniCopy.title": "복제",
   "karmograph.miniDel.title": "지우기",
@@ -652,5 +651,6 @@
   "karmograph.hideSec.head": "덜 보기",
   "karmograph.drawer.g.brag": "그림 한 장으로 자랑",
   "karmograph.drawer.g.open": "남이 열어보게",
-  "karmograph.drawer.g.toApp": "다른 앱으로"
+  "karmograph.drawer.g.toApp": "다른 앱으로",
+  "karmograph.linkStart.hint": "손으로는 카드 오른쪽 점을 다른 카드로 끌면 됩니다."
 }

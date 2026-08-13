@@ -586,7 +586,6 @@ import {
         <div class="km-body">
           <div class="km-canvas" data-km="canvas">
             <div class="km-mini hidden" data-km="mini">
-              <button class="btn btn-ghost" data-km="mini-link" title="${esc(t('karmograph.miniLink.title'))}">↝</button>
               <button class="btn btn-ghost" data-km="mini-note" title="${esc(t('karmograph.miniNote.title'))}">🗒</button>
               <button class="btn btn-ghost" data-km="mini-copy" title="${esc(t('karmograph.miniCopy.title'))}">⧉</button>
               <button class="btn btn-ghost" data-km="mini-del" title="${esc(t('karmograph.miniDel.title'))}">🗑</button>
@@ -1623,7 +1622,10 @@ import {
         <div class="km-field">
           <label>${esc(t('karmograph.labelOf.msg4'))}</label>
           <select data-km="link-kind">${edgeKindOptions()}</select>
+          <!-- 손으로는 카드 오른쪽 점을 끌면 된다 — 이 단추는 **자판·화면낭독기로 쓰는 길**이다
+               (KL-271 R1: 같은 일을 하던 카드 위 ↝ 는 지웠다). -->
           <button class="btn btn-ghost" data-km="link-start">${linkingFrom === node.id ? t('karmograph.linkStart.label') : t('karmograph.linkStart.label2')}</button>
+          <div class="km-hint">${esc(t('karmograph.linkStart.hint'))}</div>
           ${linkingFrom === node.id ? t('karmograph.labelOf.msg5') : ''}
         </div>
         <div class="km-field">
@@ -1942,11 +1944,11 @@ import {
     themeWatch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     Toolbox.onDispose?.(() => themeWatch.disconnect());
 
-    q<HTMLButtonElement>('mini-link').onclick = () => {
-      if (!selectedId) return;
-      linkingFrom = selectedId;
-      canvasEl.classList.add('km-linking');
-    };
+    /* ★ 카드 위 작은 도구줄의 「↝ 선 잇기」를 걷어냈다 (TASK-KL-271 R1).
+       선을 잇는 길이 셋이었다 — ① 카드 오른쪽 점 끌기 ② 이 ↝ ③ 옆 패널 「연결 시작」.
+       ②③ 은 **같은 것**이다(다음 클릭이 연결되는 모드로 들어간다) — 같은 일에 문이 둘이라
+       둘 다 반쯤 배우게 된다. 손으로 끄는 길(①)이 가장 빠르고, 자판·화면낭독기로 쓰는 사람에게는
+       옆 패널의 단추(③)가 남는다. 그림 하나짜리 ↝ 는 아무도 뜻을 못 맞히던 자리라 그것을 지웠다. */
     q<HTMLButtonElement>('mini-copy').onclick = () => {
       const node = spec.nodes.find((n) => n.id === selectedId);
       if (!node) return;
