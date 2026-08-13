@@ -7,6 +7,7 @@
  * 이미지는 브라우저 안에서만 읽고 어디로도 보내지 않는다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { wireDrop } from './shared/drop-well';
 import { loadImage } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -185,14 +186,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           });
           countVal.textContent = t('palette.value.colors', { n: Math.pow(2, parseInt(countEl.value, 10)) });
 
-          drop.onclick = () => file.click();
-          file.onchange = () => {
-            if (file.files && file.files[0]) void load(file.files[0]);
-          };
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 키보드로 열기·붙여넣기가 딸려 온다. */
+          wireDrop({ drop, input: file, scope: container, onFiles: (files) => void load(files[0]) });
           drop.addEventListener('dragleave', () => drop.classList.remove('over'));
           drop.addEventListener('drop', (e) => {
             e.preventDefault();

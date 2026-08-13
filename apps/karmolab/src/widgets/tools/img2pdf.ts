@@ -6,6 +6,7 @@
  * 가운데 맞춰 넣고, 원본 크기를 그대로 쓰고 싶으면 그 선택지도 둔다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
 import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
@@ -163,26 +164,14 @@ import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
             say(t('img2pdf.say.picked', { n: files.length }), 'ok');
           }
 
-          drop.onclick = () => fileInput.click();
-          fileInput.onchange = () => {
-            if (fileInput.files) add(fileInput.files);
-          };
 
           /* 옆 도구가 방금 만든 그림이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
            * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('img2pdf', (f: File) => add([f]));
           }
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
-          drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-          drop.addEventListener('drop', (e) => {
-            e.preventDefault();
-            drop.classList.remove('over');
-            if (e.dataTransfer?.files) add(e.dataTransfer.files);
-          });
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
+          wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void add(files) });
           // 캡처나 파일을 바로 붙여넣는 것이 잦다
           acceptPastedFiles(container, (files) => { add(files); }, (f: File) => f.type.startsWith('image/'));
           margin.addEventListener('input', () => {

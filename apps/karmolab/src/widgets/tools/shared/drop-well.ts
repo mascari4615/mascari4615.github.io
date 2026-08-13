@@ -53,6 +53,17 @@ export function wireDrop(o: DropWell): void {
   };
 
   o.drop.addEventListener('click', () => o.input.click());
+  /* **키보드로도 열린다** (TASK-KL-290). 파일 칸을 감춰 두고 상자를 누르게 해 놓으면
+   * 마우스가 없는 사람에게는 길이 막힌다. 이 배선은 여태 **두 도구에만** 있었다
+   * (`audiocut`·`filehash`) — 공용으로 올리니 서른둘이 같이 얻는다. */
+  if (!o.drop.hasAttribute('tabindex')) o.drop.tabIndex = 0;
+  if (!o.drop.getAttribute('role')) o.drop.setAttribute('role', 'button');
+  o.drop.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      o.input.click();
+    }
+  });
   o.input.addEventListener('change', () => hand(o.input.files));
 
   o.drop.addEventListener('dragover', (e) => {

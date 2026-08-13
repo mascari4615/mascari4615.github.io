@@ -6,6 +6,7 @@
  * 여기서는 파일이 브라우저 밖으로 나가지 않는다. 무거운 라이브러리는 이 탭을 처음 열 때만 받는다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
 import { parsePages } from '../../core/pdftool';
@@ -236,20 +237,8 @@ import { parsePages } from '../../core/pdftool';
             }
           }
 
-          drop.onclick = () => fileInput.click();
-          fileInput.onchange = () => {
-            if (fileInput.files) void addFiles(fileInput.files);
-          };
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
-          drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-          drop.addEventListener('drop', (e) => {
-            e.preventDefault();
-            drop.classList.remove('over');
-            if (e.dataTransfer?.files) void addFiles(e.dataTransfer.files);
-          });
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
+          wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void addFiles(files) });
           // 파일을 바로 붙여넣는 것이 잦다
           acceptPastedFiles(container, (files) => { void addFiles(files); }, (f) => f.type === 'application/pdf');
 

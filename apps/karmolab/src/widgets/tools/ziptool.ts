@@ -6,6 +6,7 @@
  * 안을 훑어보는 것만으로 끝날 때가 많으므로 **풀기 전에 목록을 먼저 보여준다.**
  */
 import { acceptPastedFiles } from './shared/paste';
+import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 import { spec as zipCoreSpec } from '../../core/ziptool';
 
@@ -209,20 +210,8 @@ import { spec as zipCoreSpec } from '../../core/ziptool';
             }
           }
 
-          drop.onclick = () => fileInput.click();
-          fileInput.onchange = () => {
-            if (fileInput.files) accept(fileInput.files);
-          };
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
-          drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-          drop.addEventListener('drop', (e) => {
-            e.preventDefault();
-            drop.classList.remove('over');
-            if (e.dataTransfer?.files) accept(e.dataTransfer.files);
-          });
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
+          wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void accept(files) });
           // 파일을 바로 붙여넣는 것이 잦다
           acceptPastedFiles(container, (files) => { accept(files); }, () => true);
           container.querySelectorAll('#zpMode .tool-chip').forEach((chip) => {

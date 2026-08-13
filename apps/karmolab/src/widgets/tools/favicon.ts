@@ -10,6 +10,7 @@
  * 그리고 **붙일 코드까지 준다**. 파일만 받아서는 어디에 어떻게 넣는지가 또 막힌다.
  */
 import { fileSize as size } from './shared/media';
+import { wireDrop } from './shared/drop-well';
 import { download, loadImage } from './shared/image';
 import { acceptPastedFiles } from './shared/paste';
 
@@ -231,21 +232,8 @@ import { t, loadNamespace } from '../../lib/i18n';
             }
           }
 
-          drop.onclick = () => fileInput.click();
-          fileInput.onchange = () => {
-            if (fileInput.files?.[0]) void load(fileInput.files[0]);
-          };
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
-          drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-          drop.addEventListener('drop', (e) => {
-            e.preventDefault();
-            drop.classList.remove('over');
-            const f = e.dataTransfer?.files?.[0];
-            if (f) void load(f);
-          });
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
+          wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
           // 화면 캡처를 바로 붙여넣는 것이 가장 잦은 쓰임이다
           acceptPastedFiles(container, (files) => { void load(files[0]); });
           [padEl, $<HTMLSelectElement>('#fvBg'), $<HTMLInputElement>('#fvRound')].forEach((el) =>

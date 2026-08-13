@@ -8,6 +8,7 @@
  * 나머지를 맞추고, 남는 자리는 배경색으로 채운다. 순서는 넣은 순서대로 두되 끌어서 바꿀 수 있다.
  */
 import { fileSize as size } from './shared/media';
+import { wireDrop } from './shared/drop-well';
 import { download, loadImage } from './shared/image';
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -208,26 +209,14 @@ import { t, loadNamespace } from '../../lib/i18n';
             if (shots.length) say(t('imgmerge.say.picked', { n: shots.length }), 'ok');
           }
 
-          drop.onclick = () => fileInput.click();
-          fileInput.onchange = () => {
-            if (fileInput.files) void add(fileInput.files);
-          };
 
           /* 옆 도구가 방금 만든 그림이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
            * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('imgmerge', (f: File) => void add([f]));
           }
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
-          drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-          drop.addEventListener('drop', (e) => {
-            e.preventDefault();
-            drop.classList.remove('over');
-            if (e.dataTransfer?.files) void add(e.dataTransfer.files);
-          });
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
+          wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void add(files) });
           // 화면 캡처를 바로 붙여넣는 것이 가장 잦은 쓰임이다
           acceptPastedFiles(container, (files) => { void add(files); });
           ['#imDir', '#imFit', '#imBg'].forEach((s) => $<HTMLElement>(s).addEventListener('change', render));

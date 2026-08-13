@@ -6,6 +6,7 @@
  * 그래서 기대값을 붙여 넣으면 기계가 맞춰 준다. 파일은 브라우저 밖으로 나가지 않는다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { wireDrop } from './shared/drop-well';
 import { FILE_ALGOS as ALGOS, hashBytes, size, verify } from '../../core/filehash';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -103,22 +104,8 @@ import { t, loadNamespace } from '../../lib/i18n';
             Toolbox.trackUse?.('hash');
           }
 
-          drop.onclick = () => fileInput.click();
-          // 파일 고르는 칸은 감춰 두고 이 상자를 누르게 되어 있다. 마우스가 없으면 길이 막히므로
-          // 키보드에서도 열리게 한다 (TASK-KL-089).
-          drop.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              fileInput.click();
-            }
-          });
-          fileInput.onchange = () => {
-            if (fileInput.files?.[0]) void run(fileInput.files[0]);
-          };
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 키보드로 열기·붙여넣기가 딸려 온다. */
+          wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void run(files[0]) });
           drop.addEventListener('dragleave', () => drop.classList.remove('over'));
           drop.addEventListener('drop', (e) => {
             e.preventDefault();
