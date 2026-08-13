@@ -32,6 +32,7 @@ import { shouldOfferFocus } from './big-board';
 import { tableColumns, tableRows, sortRows, nextSort, type TableSort } from './table-view';
 import { ripenessOf, worthNudging } from './ripeness';
 import { printSheetHtml, isWide } from './print-sheet';
+import { stepTime, nextTimeName, forgetTime, type TimePoint } from './times';
 import { readCardHtml } from './panels/read-panel';
 import { dropFromFront, roughBytes } from './history';
 import { measureStorage, humanBytes, WARN_RATIO } from './storage-health';
@@ -162,6 +163,16 @@ import {
     /* 배율 줄 — 판 오른쪽 아래, 작은 판(미니맵) 바로 밑. 캔버스 도구들이 다 그렇듯
        **판 위에 얹힌 물건**으로 보이게 작은 판과 같은 결을 준다.
        ★ 왼쪽 아래에 두면 안 된다 — 그 자리는 앱의 채팅 알약이 덮는다(실측 2026-08-12). */
+    /* 시점 줄 (KL-271 X2) — 판 아래 왼쪽. 배율(오른쪽)과 안 겹친다. */
+    /* ★ 왼쪽 아래 구석은 **셸의 채팅 방울**이 쓴다 — 거기 두면 「‹」가 눌리지 않는다(실측:
+       elementFromPoint 가 klchat-dot 을 준다). 그 위로 올린다. */
+    .km-times { position:absolute; left:16px; bottom:58px; z-index:16; display:flex; align-items:center;
+      gap:4px; padding:3px 6px; border-radius:999px; background:var(--glass-strong);
+      border:1px solid var(--border); max-width:min(60%, 520px); overflow-x:auto; }
+    .km-times.hidden { display:none; }
+    .km-times .btn { padding:3px 9px; font-size:12px; border-radius:999px; white-space:nowrap; }
+    .km-times .btn.is-on { background:var(--bg-tertiary); color:var(--text-primary); font-weight:600; }
+    .km-root.is-presenting .km-times { display:none; }
     .km-zoom { position:absolute; right:16px; bottom:14px; z-index:16; display:flex; align-items:center; gap:2px;
       padding:2px; border-radius:999px; background:var(--glass-strong); border:1px solid var(--border);
       box-shadow:0 8px 24px rgba(0,0,0,.32); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
@@ -659,6 +670,11 @@ import {
               <button class="btn btn-ghost" data-km="mini-copy" title="${esc(t('karmograph.miniCopy.title'))}">⧉</button>
               <button class="btn btn-ghost" data-km="mini-del" title="${esc(t('karmograph.miniDel.title'))}">🗑</button>
             </div>
+            <!-- ★ **시점 줄** (TASK-KL-271 X2). 시점을 안 쓰는 판에는 **아예 안 뜬다** —
+                 안 쓰는 사람에게 자리를 뺏는 순간 이 도구가 없애려던 그것이 된다. -->
+            <div class="km-times hidden" data-km="times"></div>
+            <!-- 시점 만들기는 **명령 팔레트·서랍**에서 부른다(툴바에 문을 또 내지 않는다). -->
+            <button class="btn btn-ghost hidden" data-km="time-add" aria-hidden="true" tabindex="-1"></button>
             <div class="km-zoom" data-km="zoom">
               <button class="btn btn-ghost" data-km="zoom-out" title="${esc(t('karmograph.zoom.out'))}">−</button>
               <button class="btn btn-ghost km-zoom-val" data-km="zoom-val" title="${esc(t('karmograph.zoom.reset'))}">100%</button>
@@ -1717,6 +1733,64 @@ import {
       ensureSheetGrip();
     }
 
+    /**
+     * **시점 줄** (TASK-KL-271 X2) — 판 아래 왼쪽. 시점이 없으면 아예 안 그린다.
+     * 「1부에서는 소꿉친구, 2부에서는 라이벌」을 담으려면 먼저 **시점이 있어야** 한다.
+     */
+    function timesNow(): TimePoint[] { return (spec.times ?? []) as TimePoint[]; }
+    function timeNow(): string { return spec._meta?.time ?? ''; }
+
+    function renderTimes(): void {
+      const bar = q<HTMLElement>('times');
+      const list = timesNow();
+      if (list.length === 0) { bar.classList.add('hidden'); bar.innerHTML = ''; return; }
+      const now = timeNow() || list[0].id;
+      bar.classList.remove('hidden');
+      bar.innerHTML = `<button class="btn btn-ghost" data-km="time-prev" title="${esc(t('karmograph.time.prev'))}"
+          aria-label="${esc(t('karmograph.time.prev'))}">‹</button>`
+        + list.map((tp) => `<button class="btn btn-ghost${tp.id === now ? ' is-on' : ''}"
+            data-km="time-go" data-key="${escapeAttr(tp.id)}">${esc(tp.name)}</button>`).join('')
+        + `<button class="btn btn-ghost" data-km="time-next" title="${esc(t('karmograph.time.next'))}"
+          aria-label="${esc(t('karmograph.time.next'))}">›</button>`
+        + `<button class="btn btn-ghost" data-km="time-rename" title="${esc(t('karmograph.time.rename'))}"
+          aria-label="${esc(t('karmograph.time.rename'))}">✎</button>`
+        + `<button class="btn btn-ghost" data-km="time-del" title="${esc(t('karmograph.time.del'))}"
+          aria-label="${esc(t('karmograph.time.del'))}">✕</button>`;
+      const goTo = (id: string): void => {
+        spec._meta = { ...spec._meta, time: id };
+        persistStructure();
+        renderTimes();
+      };
+      bar.querySelectorAll('[data-km="time-go"]').forEach((el) => {
+        (el as HTMLButtonElement).onclick = () => goTo((el as HTMLElement).dataset.key ?? '');
+      });
+      (bar.querySelector('[data-km="time-prev"]') as HTMLButtonElement).onclick =
+        () => goTo(stepTime(list, now, -1));
+      (bar.querySelector('[data-km="time-next"]') as HTMLButtonElement).onclick =
+        () => goTo(stepTime(list, now, 1));
+      (bar.querySelector('[data-km="time-rename"]') as HTMLButtonElement).onclick = () => {
+        const at = list.find((x) => x.id === now);
+        if (!at) return;
+        const name = prompt(t('karmograph.time.renameAsk'), at.name);
+        if (name === null || !name.trim()) return;
+        spec.times = list.map((x) => (x.id === now ? { ...x, name: name.trim() } : x));
+        persistStructure();
+        renderTimes();
+      };
+      (bar.querySelector('[data-km="time-del"]') as HTMLButtonElement).onclick = () => {
+        const at = list.find((x) => x.id === now);
+        if (!at || !confirm(t('karmograph.time.delAsk', { name: at.name }))) return;
+        lastAction = t('karmograph.time.delAct');
+        // 시점을 지우면 **그 시점에 적어 둔 얼굴도 함께** 지운다 — 안 지우면 아무도 못 보는 자료가 남는다.
+        spec.edges = forgetTime(spec.edges, now) as typeof spec.edges;
+        spec.times = list.filter((x) => x.id !== now);
+        spec._meta = { ...spec._meta, time: spec.times[0]?.id ?? '' };
+        applySpec();
+        persistStructure();
+        renderTimes();
+      };
+    }
+
     /** 표에서 지금 무엇을 기준으로 줄 세웠나 — 판을 다시 그려도 이어진다. */
     let tableSort: TableSort = { by: '', dir: 'up' };
 
@@ -2153,6 +2227,7 @@ import {
     /** spec → 캔버스 반영 + 빈 상태 안내 동기화. */
     function applySpec(): void {
       canvas?.setSpec(spec);
+      renderTimes();
       syncEmptyHint();
       syncNextHint();
     }
@@ -3308,6 +3383,16 @@ import {
       im.src = src;
     }
 
+    q<HTMLButtonElement>('time-add').onclick = () => {
+      const list = timesNow();
+      const id = `time-${Date.now().toString(36)}`;
+      lastAction = t('karmograph.time.addAct');
+      spec.times = [...list, { id, name: nextTimeName(list, (n) => t('karmograph.time.nth', { n: String(n) })) }];
+      spec._meta = { ...spec._meta, time: id };
+      persistStructure();
+      renderTimes();
+      Toolbox.showToast?.(t('karmograph.time.added'), undefined, undefined);
+    };
     q<HTMLButtonElement>('png').onclick = () => exportImage(2);
     /**
      * **종이 한 장으로** (TASK-KL-271 O7). 탁자에 펼쳐 놓고 여럿이 보는 자리가 있다 —
