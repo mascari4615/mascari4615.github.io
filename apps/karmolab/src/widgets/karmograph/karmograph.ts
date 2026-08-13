@@ -146,6 +146,16 @@ import {
     /* ★ 이 위젯에는 **공통 .hidden 규칙이 없다** — 숨길 것마다 제 규칙을 갖는다.
        (없는 줄 모르고 hidden 클래스만 붙였다가 고르개가 그대로 보였다, 2026-08-14) */
     .km-toolbar select[data-km="maps"].hidden { display:none; }
+    /* 링크 상자 — 클립보드가 막힌 자리(비보안 컨텍스트·앱 안 브라우저)에서 **직접 복사**하는 길.
+       예전엔 브라우저 prompt 였다: 판을 통째로 가리고, 긴 주소는 한 줄 창에서 끝이 안 보이고,
+       무엇보다 「복사하라는 건지 고치라는 건지」가 안 읽혔다 (KL-271). */
+    .km-linkbox { position:absolute; left:50%; bottom:64px; transform:translateX(-50%); z-index:960;
+      display:flex; gap:6px; align-items:center; max-width:min(560px, 92%); padding:10px 12px;
+      border-radius:12px; border:1px solid var(--border-color); background:var(--bg-secondary);
+      box-shadow:0 8px 24px rgba(0,0,0,.35); }
+    .km-linkbox input { flex:1 1 auto; min-width:180px; padding:6px 10px; border-radius:8px;
+      border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary);
+      font-size:12px; }
     .km-toolbar input[type=text] { min-width:132px; max-width:176px; }
     .km-toolbar input[data-km="find"] { min-width:118px; }
     .km-sep { width:1px; align-self:stretch; background:var(--border); margin:0 2px; }
@@ -2179,7 +2189,7 @@ import {
             await navigator.clipboard.writeText(url);
             Toolbox.showToast?.(t('karmograph.nodeLink.label3'), undefined, undefined);
           } catch {
-            prompt(t('karmograph.nodeLink.label4'), url);
+            showLinkBox(url);
           }
         });
       };
@@ -2984,7 +2994,7 @@ import {
             asEmbed ? t('karmograph.embed.done') : t('karmograph.live.msg2'), undefined, undefined);
         } catch {
           // 클립보드가 막힌 자리(비보안 컨텍스트 등)에서도 사람이 직접 복사할 수 있게 보여 준다.
-          prompt(t('karmograph.nodeLink.label4'), out);
+          showLinkBox(out);
         }
       });
     }
@@ -3448,6 +3458,41 @@ import {
       a.download = name;
       a.click();
       URL.revokeObjectURL(url);
+    }
+
+    /**
+     * 🔗 **직접 복사하는 길** — 클립보드가 막힌 자리에서 링크를 보여 준다 (KL-271).
+     *
+     * 예전엔 `prompt()` 였다. 판이 통째로 가려지고, 긴 주소는 한 줄짜리 시스템 창에서 끝이 안
+     * 보이며, 「고치라는 건지 복사하라는 건지」가 안 읽혔다. 여기서는 **글자가 이미 골라진 채**로
+     * 판 위에 뜬다 — 사람이 할 일은 Ctrl+C 하나다(단추도 함께 준다).
+     */
+    function showLinkBox(url: string): void {
+      root.querySelector('.km-linkbox')?.remove();
+      const box = document.createElement('div');
+      box.className = 'km-linkbox';
+      box.innerHTML = `<input data-km="link-out" readonly aria-label="${esc(t('karmograph.nodeLink.label4'))}" />`
+        + `<button class="btn btn-ghost" data-km="link-copy">${esc(t('karmograph.linkBox.copy'))}</button>`
+        + `<button class="btn btn-ghost" data-km="link-close" aria-label="${esc(t('karmograph.linkBox.close'))}">✕</button>`;
+      canvasEl.appendChild(box);
+      const field = box.querySelector('[data-km="link-out"]') as HTMLInputElement;
+      field.value = url;
+      field.focus();
+      field.select();
+      // 판의 자판 손잡이가 이 칸의 글쇠를 훔쳐 가지 않게 막는다(Delete 로 카드가 지워졌다).
+      field.onkeydown = (ev) => {
+        ev.stopPropagation();
+        if (ev.key === 'Escape') box.remove();
+      };
+      (box.querySelector('[data-km="link-copy"]') as HTMLButtonElement).onclick = () => {
+        field.select();
+        // 여기까지 온 것은 클립보드가 막혔다는 뜻이라 한 번 더 시도하되, 안 되면 고르기까지가 몫이다.
+        void navigator.clipboard?.writeText?.(url).then(
+          () => { Toolbox.showToast?.(t('karmograph.nodeLink.label3'), undefined, undefined); box.remove(); },
+          () => {},
+        );
+      };
+      (box.querySelector('[data-km="link-close"]') as HTMLButtonElement).onclick = () => box.remove();
     }
 
     /** 화면 테마의 실제 배경색 — 투명 PNG 로 뽑으면 흰 배경 뷰어에서 글씨가 안 보인다. */

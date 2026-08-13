@@ -747,5 +747,7 @@
   "karmograph.stageForm.note": "説明 (任意)",
   "karmograph.stageForm.save": "入れる",
   "karmograph.stageForm.cancel": "やめる",
-  "karmograph.time.renameHint": "ダブルクリックで名前を変える"
+  "karmograph.time.renameHint": "ダブルクリックで名前を変える",
+  "karmograph.linkBox.copy": "コピー",
+  "karmograph.linkBox.close": "閉じる"
 }

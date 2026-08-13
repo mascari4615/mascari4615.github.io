@@ -747,5 +747,7 @@
   "karmograph.stageForm.note": "설명 (없어도 됩니다)",
   "karmograph.stageForm.save": "담기",
   "karmograph.stageForm.cancel": "그만",
-  "karmograph.time.renameHint": "두 번 누르면 이름을 고칩니다"
+  "karmograph.time.renameHint": "두 번 누르면 이름을 고칩니다",
+  "karmograph.linkBox.copy": "복사",
+  "karmograph.linkBox.close": "닫기"
 }
