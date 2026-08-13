@@ -222,6 +222,7 @@
     "test:chain": "node scripts/smoke-chain.mjs",
     "gen:core-tools": "node scripts/gen-core-tools.mjs",
     "gen:arcade-catalog": "node scripts/gen-arcade-catalog.mjs",
+    "bake:clean": "node scripts/bake-clean.mjs",
     "audit:ctl": "node scripts/audit-control-chars.mjs",
     "test:ai": "node scripts/smoke-ai-import.mjs",
     "test:mesh3d": "node scripts/smoke-mesh3d.mjs",
