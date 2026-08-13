@@ -1317,17 +1317,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['twenty']
   },
   {
-    id: 'play',
-    get title() { return t('widgets.play.title', undefined, "놀이터"); },
-    category: 'tool',
-    get desc() { return t('widgets-desc.play.desc', undefined, "하루 한 판씩 — 하나 맞히기 · 높은 쪽 고르기 · 오늘의 문제"); },
-    layout: 'wide',
-    noHero: true,
-    icon:
-      '<rect x="3" y="7" width="18" height="11" rx="4" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M7.5 11v3M6 12.5h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="16" cy="12" r="1.1" fill="currentColor"/><circle cx="18" cy="14.5" r="1.1" fill="currentColor"/>',
-    lazyScriptPaths: ['play']
-  },
-  {
     id: 'higher',
     get title() { return t('widgets.higher.title', undefined, "높은 쪽 고르기"); },
     category: 'tool',
