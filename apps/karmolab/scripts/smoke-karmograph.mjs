@@ -556,6 +556,22 @@ await step('카드를 고르면 판이 안 튄다 — 누르려던 손잡이가 
   const dx = Math.abs(later[0] - first[0]);
   const dy = Math.abs(later[1] - first[1]);
   if (dx > 2 || dy > 2) throw new Error(`고른 뒤 손잡이가 움직였다 (${Math.round(dx)},${Math.round(dy)}px)`);
+  /* ★ 재는 것은 「몇 px 움직였나」가 아니라 **「그 자리를 눌러도 여전히 손잡이인가」**다.
+     px 문턱은 내가 고른 숫자라 3px 흔들림에 판마다 빨개졌다(실측 1/3). 진짜 지켜야 할 것은
+     「재고 나서 누르면 빗나가지 않는다」이고, 그건 손잡이 제 크기로 재면 된다. */
+  const box0 = await m.locator('.ck-link-handle').first().boundingBox();
+  const aim = { x: box0.x + box0.width / 2, y: box0.y + box0.height / 2 };
+  await m.waitForTimeout(ms(500));
+  const stillMine = await m.evaluate((at) => {
+    const el = document.elementFromPoint(at.x, at.y);
+    return Boolean(el && el.closest('.ck-link-handle'));
+  }, aim);
+  if (!stillMine) {
+    const box1 = await m.locator('.ck-link-handle').first().boundingBox();
+    const dx = Math.round(Math.abs(box1.x - box0.x));
+    const dy = Math.round(Math.abs(box1.y - box0.y));
+    throw new Error(`고른 뒤 손잡이가 도망갔다 — 재 둔 자리를 누르면 빗나간다 (${dx},${dy}px)`);
+  }
   await ctx.close();
 });
 
@@ -2687,6 +2703,33 @@ await step('종이 한 장으로 뽑는다 — A4 에 맞춘 새 창', async () 
   if (!/size: A4/.test(html)) throw new Error('A4 로 안 맞춘다');
   if (!/<svg/.test(html)) throw new Error('종이에 그림이 안 실렸다');
   if (!/background:#fff/.test(html)) throw new Error('종이가 흰 바탕이 아니다 — 잉크를 다 먹는다');
+});
+
+await step('시점을 만들면 판 아래에서 오간다 (안 쓰는 판에는 안 뜬다)', async () => {
+  // 「1부에서는 소꿉친구, 2부에서는 라이벌」을 담으려면 먼저 시점이 있어야 한다(KL-271 X2).
+  if (await page.locator('.km-times:not(.hidden)').count() !== 0) {
+    throw new Error('시점을 안 쓰는 판인데 시점 줄이 떠 있다');
+  }
+  await page.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await page.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await page.waitForFunction(() => document.querySelectorAll('[data-km="time-go"]').length === 2,
+    null, { timeout: ms(4000) });
+  const on = async () => (await page.locator('[data-km="time-go"].is-on').textContent()).trim();
+  const second = await on();
+  // ★ 왼쪽 아래 구석은 셸의 채팅 방울이 쓴다 — 거기 겹치면 「‹」가 눌리지 않는다(실측).
+  const covered = await page.evaluate(() => {
+    const b = document.querySelector('[data-km="time-prev"]');
+    const r = b.getBoundingClientRect();
+    const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+    return !(top === b || b.contains(top));
+  });
+  if (covered) throw new Error('시점 줄이 다른 것에 덮여 안 눌린다');
+  await page.locator('[data-km="time-prev"]').click();
+  await page.waitForTimeout(ms(400));
+  if (await on() === second) throw new Error('앞 시점으로 안 간다');
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem(
+    'karmograph.map.' + JSON.parse(localStorage.getItem('karmograph.index')).activeId)).times.length);
+  if (saved !== 2) throw new Error(`시점이 저장본에 안 남았다 (${saved})`);
 });
 
 await step('같은 자료를 표로도 본다 — 줄을 누르면 판에서 골라진다', async () => {

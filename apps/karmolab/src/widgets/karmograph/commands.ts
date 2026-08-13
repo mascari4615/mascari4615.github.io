@@ -60,6 +60,7 @@ export const COMMAND_GROUPS: CommandGroup[] = [
     items: [
       { hot: true, key: 'from-text', label: () => t('karmograph.fromText.label') },
       { key: 'stamps', label: () => t('karmograph.stamps.label') },
+      { key: 'time-add', label: () => t('karmograph.time.add') },
     ],
   },
   {
