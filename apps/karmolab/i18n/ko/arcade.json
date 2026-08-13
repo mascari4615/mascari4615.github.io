@@ -387,5 +387,12 @@
   "arcade.tour.start": "대회 — {n}판 이어서",
   "arcade.tour.next": "다음 판",
   "arcade.tour.done": "대회 끝",
-  "arcade.tour.standing": "{n}/{of}판 · {board}"
+  "arcade.tour.standing": "{n}/{of}판 · {board}",
+  "arcade.find.hint": "게임 찾기 — 이름·갈래·길이",
+  "arcade.find.none": "걸린 게 없다",
+  "arcade.pick.title": "이건 어때",
+  "arcade.len.short": "짧다",
+  "arcade.len.mid": "보통",
+  "arcade.len.long": "길다",
+  "arcade.len.secs": "봇끼리 재니 약 {n}초"
 }

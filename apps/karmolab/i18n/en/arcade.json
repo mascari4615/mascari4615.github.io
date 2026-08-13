@@ -387,5 +387,12 @@
   "arcade.tour.start": "Cup — {n} games",
   "arcade.tour.next": "next game",
   "arcade.tour.done": "cup over",
-  "arcade.tour.standing": "{n}/{of} · {board}"
+  "arcade.tour.standing": "{n}/{of} · {board}",
+  "arcade.find.hint": "find a game — name, kind, length",
+  "arcade.find.none": "nothing matched",
+  "arcade.pick.title": "how about these",
+  "arcade.len.short": "short",
+  "arcade.len.mid": "medium",
+  "arcade.len.long": "long",
+  "arcade.len.secs": "about {n}s, bots vs bots"
 }

@@ -41,11 +41,10 @@ const page = await browser.newPage();
 page.on('pageerror', (e) => failures.push(`창에서 터졌다 — ${e.message}`));
 
 try {
-  const res =
   /* 옆 세션이 파일을 고치면 이 창이 새로고침되어 판이 로비로 돌아간다 — 그건 오락실의
      결함이 아니라 검사의 결함이다(실측: play:"none", status:""). 갈아 끼우기 통로를 막는다. */
   await page.route('**/__dev', (r) => r.abort());
- await page.goto(PAGE, { waitUntil: 'domcontentloaded', timeout: 20000 });
+  const res = await page.goto(PAGE, { waitUntil: 'domcontentloaded', timeout: 20000 });
   if (!res || !res.ok()) cantRun = `dev 서버가 안 뜬다 (${PAGE})`;
 } catch (e) {
   cantRun = `dev 서버에 못 닿았다 — ${e.message}`;
