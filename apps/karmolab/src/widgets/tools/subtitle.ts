@@ -234,8 +234,11 @@ import { download } from './shared/video';
               return;
             }
             const blob = new Blob([out.value], { type: 'text/plain;charset=utf-8' });
-            download(blob, `${baseName}.${outFmt}`);
-            say(t('subtitle.say.saved', { name: `${baseName}.${outFmt}` }), 'ok');
+            const name = `${baseName}.${outFmt}`;
+            download(blob, name);
+            say(t('subtitle.say.saved', { name }), 'ok');
+            /* 만든 자막은 글 도구로 이어질 수 있다 (TASK-KL-298). */
+            Toolbox.offerNext?.(status, { blob, name, from: 'subtitle' });
           };
           run();
   }

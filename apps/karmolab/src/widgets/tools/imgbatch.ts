@@ -8,7 +8,7 @@
 import { acceptPastedFiles } from './shared/paste';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
-import { loadImage, toCanvas, encode } from './shared/image';
+import { loadImage, toCanvas, encode, download } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -114,11 +114,9 @@ import { t, loadNamespace } from '../../lib/i18n';
               listEl.querySelectorAll('[data-name]').forEach((el, i) => {
                 (el as HTMLElement).onclick = () => {
                   const r = results[i];
-                  const a = document.createElement('a');
-                  a.href = URL.createObjectURL(r.blob);
-                  a.download = r.name;
-                  a.click();
-                  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+                  download(r.blob, r.name);
+                  /* 바꾼 그림은 대개 **또 손본다**(크기·가리개·PDF 로) — 이어서 쓰게 내놓는다 (TASK-KL-298). */
+                  Toolbox.offerNext?.(status, { blob: r.blob, name: r.name, from: 'imgbatch' });
                 };
               });
               return;

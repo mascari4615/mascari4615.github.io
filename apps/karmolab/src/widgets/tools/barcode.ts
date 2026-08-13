@@ -12,6 +12,7 @@
  *    바코드가 안 읽히는 가장 흔한 이유다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { download } from './shared/image';
 import { markLive } from './shared/say';
 
 (function (): void {
@@ -234,11 +235,10 @@ import { markLive } from './shared/say';
             }
             canvas.toBlob((blob) => {
               if (!blob) return;
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download = t('barcode.file.name');
-              a.click();
-              setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+              const name = t('barcode.file.name');
+              download(blob, name);
+              /* 만든 그림은 크기 맞추기·PDF 로 이어질 수 있다 (TASK-KL-298). */
+              Toolbox.offerNext?.(status, { blob, name, from: 'barcode' });
               say(t('barcode.say.saved'), 'ok');
             }, 'image/png');
           };

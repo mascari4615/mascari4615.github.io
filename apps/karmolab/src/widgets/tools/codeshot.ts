@@ -10,6 +10,7 @@
  * 정렬이 안 무너진다(한글 등폭 글꼴은 우리에게 없다).
  */
 import { FRAMES } from './shared/code-frames';
+import { download } from './shared/image';
 import { statusLine } from './shared/say';
 import { flatten, paint, toLines, type Seg } from './shared/code-shot';
 import { fileSize } from './shared/media';
@@ -231,12 +232,11 @@ import { t, loadNamespace } from '../../lib/i18n';
     $('#csSave').onclick = (): void => {
       canvas.toBlob((blob) => {
         if (!blob) return;
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = (fileEl.value.trim().replace(/\W+/g, '-') || 'code') + '.png';
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        const name = (fileEl.value.trim().replace(/\W+/g, '-') || 'code') + '.png';
+        download(blob, name);
         say(t('codeshot.status.saved', undefined, '저장했습니다') + ` (${fileSize(blob.size)})`, 'ok');
+        /* 만든 사진은 크기 맞추기·PDF 로 이어질 수 있다 (TASK-KL-298). */
+        Toolbox.offerNext?.(status, { blob, name, from: 'codeshot' });
       }, 'image/png');
     };
 
