@@ -121,6 +121,17 @@ const soundGot = await page
 check(soundGot, '넘긴 소리를 **묶음 안 도구가 실제로 받았다**');
 
 
+/* ⑦ **밝힌 대로 목적지가 뜨는가** (TASK-KL-299)
+ * 「받는다」고 밝히지 않은 도구는 받을 수 있어도 목록에 안 뜬다 = 사람 눈엔 없는 기능이다.
+ * 그림 하나를 내놨을 때, 이번에 채운 도구들이 실제로 갈 곳으로 잡히는지 본다. */
+const dests = await page.evaluate(() => (Toolbox.toolsAccepting('image/png', 'barcode') || []).map((t) => t.id));
+for (const id of ['imgbatch', 'redact', 'palette', 'qrread']) {
+  check(dests.includes(id), `그림을 내놓으면 「${id}」 가 갈 곳으로 뜬다 (지금 ${dests.length}곳)`);
+}
+const pdfDests = await page.evaluate(() => (Toolbox.toolsAccepting('application/pdf', 'pdf') || []).map((t) => t.id));
+check(pdfDests.includes('pdftool'), `PDF 를 내놓으면 「합치기·나누기」가 갈 곳으로 뜬다 (지금 ${pdfDests.length}곳)`);
+
+
 process.stdout.write('\n');
 await browser.close();
 if (frozen) await frozen.close();
