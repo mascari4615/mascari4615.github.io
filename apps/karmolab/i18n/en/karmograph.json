@@ -677,5 +677,7 @@
   "karmograph.paste.act": "set face",
   "karmograph.sample.wipe": "Clear the sample and start mine",
   "karmograph.sample.wipeAct": "clear sample",
-  "karmograph.sample.wipeDone": "Empty board — double-click anywhere to start"
+  "karmograph.sample.wipeDone": "Empty board — double-click anywhere to start",
+  "karmograph.embed.label": "Embed code for a blog",
+  "karmograph.embed.done": "Copied a one-liner to paste into your blog"
 }
