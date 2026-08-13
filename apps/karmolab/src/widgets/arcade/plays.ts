@@ -64,6 +64,9 @@ export function notePlay(id: string, now = Date.now()): Plays {
 export function noteBest<A>(id: string, score: number, moves: Array<{ at: number; action: A }>): boolean {
   const all = readPlays();
   const was = all[id];
+  /* **0점은 기록이 아니다.** 한 판 열었다 아무것도 못 하고 나온 것까지 「🏅 최고 0」으로
+     붙이면, 기록이 자랑이 아니라 잡음이 된다(실측 — 첫 판에서 그렇게 붙었다). */
+  if (score <= 0) return false;
   if (was?.best && was.best.score >= score) return false;
   all[id] = {
     n: was?.n ?? 0,

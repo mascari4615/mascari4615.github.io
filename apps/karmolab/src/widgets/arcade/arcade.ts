@@ -1552,8 +1552,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       swapBtn.style.display = 'none';
       hideResult();
       paintRoom();
-      /* 방금 논 것이 추천에 바로 반영돼야 한다 — 안 그러면 나갔다 온 사람에게 같은 여섯이 뜬다. */
+      /* 방금 논 것이 **로비 전체**에 바로 반영돼야 한다 — 추천 여섯의 차례뿐 아니라
+         카드의 「🏅 최고 N」도 그렇다. 추천만 다시 그렸더니 기록을 세우고 나와도 뱃지가
+         안 붙어 있었다(실측). 로비를 반만 갱신하면 반은 옛 화면이다. */
       paintPicks();
+      paintGames();
       show('lobby');
     };
     $<HTMLButtonElement>('#acQuit').onclick = quit;
