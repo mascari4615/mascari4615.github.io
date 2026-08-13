@@ -1,102 +1,747 @@
 {
   "id": "design-boundary",
-  "minutes": 12,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "모듈의 값어치는 담은 것이 아니라 **감춘 것**에서 나온다. 무엇을 안 보이게 할지가 설계의 본체다."
-    },
-    {
-      "type": "h",
-      "text": "1. 감추는 것 = 바꿀 수 있는 것"
-    },
-    {
-      "type": "note",
-      "text": "Parnas(1972): 모듈은 「**바뀔 가능성이 있는 결정**」을 하나씩 감싸야 한다. 저장소를 파일에서 DB 로 바꾸는 결정, 정렬 알고리즘, 외부 API 의 응답 모양 — 감춰져 있으면 바꿔도 밖이 안 깨진다."
-    },
-    {
-      "type": "h",
-      "text": "2. 얇은 인터페이스, 두꺼운 구현"
-    },
-    {
-      "type": "code",
-      "lang": "ts",
-      "label": "밖에 보이는 것은 적을수록 좋다",
-      "text": "// 좋음: 부르는 쪽이 알아야 할 것이 적다\ninterface Storage {\n  save(note: Note): Promise<void>;\n  load(id: string): Promise<Note | null>;\n}\n\n// 나쁨: 내부 사정이 새어 나온다\ninterface Storage {\n  openConnection(): Promise<Conn>;\n  beginTx(c: Conn): Promise<Tx>;\n  insertRow(tx: Tx, table: string, row: object): Promise<void>;\n}"
-    },
-    {
-      "type": "p",
-      "text": "「깊은 모듈」(A Philosophy of Software Design)이 좋은 모듈이다 — 인터페이스는 작고, 그 뒤에 많은 일이 숨어 있다."
-    },
-    {
-      "type": "h",
-      "text": "3. 새어 나옴"
-    },
-    {
-      "type": "note",
-      "text": "반환 타입에 ORM 엔티티·HTTP 응답 객체·DB 컬럼명이 그대로 나오면 그 경계는 이미 뚫렸다. **경계에서 내 도메인 타입으로 변환**하라 — 외부가 바뀌어도 한 곳만 고친다."
-    },
-    {
-      "type": "h",
-      "text": "4. 의존 방향"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "안쪽이 바깥을 모르게",
-      "text": "도메인(규칙) ← 응용 ← 어댑터(DB·HTTP·UI)\n\n· 도메인은 DB 를 모른다 (인터페이스만 정의)\n· 구현은 바깥에서 주입한다 (의존성 역전)\n· 그래서 도메인 테스트에 DB 가 필요 없다"
-    },
-    {
-      "type": "h",
-      "text": "5. 경계는 비용이다"
-    },
-    {
-      "type": "note",
-      "text": "경계를 너무 많이 그으면 코드를 따라가기 어려워진다. **바뀔 것 같은 곳·테스트가 필요한 곳**에만 긋고, 나머지는 단순하게 둬라."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "내 모듈 하나를 골라 「이것이 감추는 결정」을 한 문장으로 적어라. 못 적으면 그 모듈은 아직 경계가 아니다."
-    },
-    {
-      "type": "try",
-      "text": "외부 API 응답 타입이 화면 코드까지 그대로 들어가는 곳을 찾아, 경계에서 내 타입으로 변환하도록 바꿔라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "좋은 모듈의 특징은?",
-      "choices": [
-        "인터페이스는 작고 그 뒤에 많은 것이 숨어 있다",
-        "인터페이스가 풍부하다",
-        "내부 구조를 문서로 공개한다"
+      "id": "1",
+      "title": "값어치는 감춘 것에서 나온다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "모듈의 값어치는 담은 것이 아니라 **감춘 것**에서 나온다. 쓰는 쪽이 **몰라도 되는 것**을 뒤로 숨기면, 그만큼 쓰기 쉬워지고, 그만큼 내부를 자유롭게 바꿀 수 있다. 무엇을 **안 보이게** 할지 — 정보 은닉 — 가 설계의 본체다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "드러낸 만큼 결합된다 — 감출수록 자유롭다",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  .mod { display:flex; align-items:stretch; margin:8px 0; border-radius:8px; overflow:hidden; }\n  .mod .iface { background:#0e7490; color:#fff; padding:8px; font:11px ui-monospace; display:flex; align-items:center; }\n  .mod .impl { background:#111c33; color:#94a3b8; padding:8px; font:10.5px ui-monospace; flex:1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  const moduleView = (ifaceW, implLines) => '<div class=\"mod\"><div class=\"iface\" style=\"width:' + ifaceW + 'px\">' +\n    'interface</div><div class=\"impl\">' + implLines.map(esc).join('<br>') + '</div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const exposed = {{exposed}};           // 드러낸 내부 세부 수\n  const freedom = Math.max(0, 100 - exposed * 12);\n  render('모듈이 드러낸 내부 세부 = ' + exposed + '가지',\n    '  내부를 바꿀 자유 = <span class=\\\"' + (freedom > 60 ? 'ok' : freedom > 30 ? 'warn' : 'no') + '\\\">' +\n      freedom + '%</span>\\n\\n' +\n    (exposed <= 2\n      ? '  <span class=\\\"ok\\\">적게 드러냄 — 쓰는 쪽이 세부를 모르니 내부를 자유롭게 바꾼다.</span>'\n      : '  <span class=\\\"no\\\">많이 드러냄 — 쓰는 쪽이 세부에 의존해, 그걸 바꾸면 다 깨진다.</span>') + '\\n\\n' +\n    '  드러낸 모든 것이 약속이 된다 — 감출수록 바꿀 자유가 는다.',\n    '모듈의 값어치 = 감춘 것. 드러낸 만큼 약속이 되어 바꿀 자유가 준다.',\n    bars([['드러낸 세부', Math.min(100, exposed * 12), exposed + '가지', exposed <= 2 ? '#4ade80' : '#fca5a5'],\n          ['바꿀 자유', freedom, freedom + '%', freedom > 60 ? '#4ade80' : freedom > 30 ? '#fbbf24' : '#fca5a5']]));\n</script>",
+          "controls": [
+            {
+              "id": "exposed",
+              "label": "드러낸 내부 세부 수",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 5
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**드러낸 모든 것이 「약속」이 된다.** 인터페이스에 노출한 필드·메서드·타입은 누군가 의존하는 순간 바꾸기 어려워진다(api-version 의 계약과 같다). 그래서 「일단 public 으로」는 위험하다 — 나중에 감추기는 어렵지만, 나중에 드러내기는 쉽다. **기본은 감춤(private), 필요할 때만 드러냄**이 안전하다."
+        },
+        {
+          "type": "p",
+          "text": "**경계는 「무엇을 몰라도 되는가」의 선이다.** 좋은 경계는 쓰는 쪽에게 「이것만 알면 된다」를 주고 나머지를 다 감춘다. 그 뒤에서 알고리즘·자료구조·저장 방식을 바꿔도 쓰는 쪽은 모른다. 이 과정 전체가 「무엇을 감추고 무엇을 드러낼지」 — 경계를 어디에 어떻게 그을지 — 를 다룬다."
+        },
+        {
+          "type": "try",
+          "text": "네 모듈 하나의 public 표면(노출된 것)을 세어라. 쓰는 쪽이 정말 다 알아야 하는지, 감출 수 있는 세부가 있는지 보라. 드러낸 것이 많을수록 바꾸기 어려운 모듈이다."
+        }
       ],
-      "answer": 0,
-      "why": "깊은 모듈이 인지 부하를 줄인다."
+      "quiz": [
+        {
+          "q": "모듈의 값어치는 어디서 나오나?",
+          "choices": [
+            "담은 것",
+            "감춘 것(쓰는 쪽이 몰라도 되는 것)",
+            "크기",
+            "속도"
+          ],
+          "answer": 1,
+          "why": "정보 은닉."
+        },
+        {
+          "q": "드러낸 것이 위험한 이유는?",
+          "choices": [
+            "느려서",
+            "약속이 되어 바꾸기 어려워짐",
+            "길어서",
+            "메모리"
+          ],
+          "answer": 1,
+          "why": "누군가 의존한다."
+        },
+        {
+          "q": "안전한 기본값은?",
+          "choices": [
+            "일단 public",
+            "기본은 감춤(private), 필요할 때만 드러냄",
+            "다 드러냄",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "감추기보다 드러내기가 쉽다."
+        }
+      ]
     },
     {
-      "q": "ORM 엔티티를 화면까지 그대로 넘기면?",
-      "choices": [
-        "외부·저장소 변경이 화면까지 번진다",
-        "성능이 좋아진다",
-        "타입이 안전해진다"
+      "id": "2",
+      "title": "감추는 것 = 바뀔 수 있는 것",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "무엇을 감출까? **바뀔 가능성이 있는 결정**을 하나씩 감싼다(Parnas, 1972). 저장소를 파일에서 DB 로 바꿀지 모른다면, 그 **저장 방식**을 모듈 뒤에 감춘다. 그러면 바뀔 때 그 모듈 안만 고치면 되고, 쓰는 쪽은 그대로다. 경계는 **변화의 축**을 따라 긋는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "바뀔 결정을 감쌌나 — 변경이 번지나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  .mod { display:flex; align-items:stretch; margin:8px 0; border-radius:8px; overflow:hidden; }\n  .mod .iface { background:#0e7490; color:#fff; padding:8px; font:11px ui-monospace; display:flex; align-items:center; }\n  .mod .impl { background:#111c33; color:#94a3b8; padding:8px; font:10.5px ui-monospace; flex:1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  const moduleView = (ifaceW, implLines) => '<div class=\"mod\"><div class=\"iface\" style=\"width:' + ifaceW + 'px\">' +\n    'interface</div><div class=\"impl\">' + implLines.map(esc).join('<br>') + '</div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const hidden = '{{hidden}}' === 'yes';\n  render(hidden ? '저장 방식을 모듈 뒤에 감춤' : '저장 방식이 여기저기 노출',\n    '  요구: 파일 저장 → DB 저장으로 변경\\n\\n' +\n    (hidden\n      ? '  Storage 모듈 안만 파일→DB 로 교체. 쓰는 쪽은 save/load 그대로.\\n' +\n        '  <span class=\\\"ok\\\">변경이 한 모듈에 갇힌다 — 경계가 변화를 흡수.</span>'\n      : '  파일 경로·포맷을 아는 코드가 앱 곳곳에 흩어져 있어 전부 고쳐야.\\n' +\n        '  <span class=\\\"no\\\">바뀔 결정이 노출돼 변경이 사방으로 번진다.</span>'),\n    '바뀔 가능성이 있는 결정을 하나씩 감싼다 — 경계는 변화의 축을 따라.',\n    fan(hidden\n      ? [['src', '저장 변경'], '->', ['ok', 'Storage 모듈 안만']]\n      : [['src', '저장 변경'], '->', ['hit', '앱 A'], '->', ['hit', '앱 B'], '->', ['hit', '앱 C']]));\n</script>",
+          "controls": [
+            {
+              "id": "hidden",
+              "label": "감쌌나",
+              "type": "select",
+              "value": "no",
+              "options": [
+                {
+                  "value": "no",
+                  "label": "노출(흩어짐)"
+                },
+                {
+                  "value": "yes",
+                  "label": "감쌈(모듈 뒤)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「이 모듈이 감추는 결정」을 한 문장으로 말할 수 있어야 한다.** 「이 모듈은 **저장 방식**을 감춘다」, 「이 모듈은 **가격 계산 규칙**을 감춘다」처럼. 못 말한다면 그것은 아직 경계가 아니라 잡동사니 모음이다(design-coupling 의 낮은 응집). 경계는 「하나의 바뀔 결정」을 중심으로 선다."
+        },
+        {
+          "type": "p",
+          "text": "**변화의 축을 예측하되 과신하지 마라.** 「이건 바뀔 것」을 잘 고르면 경계가 값어치를 하지만, 안 바뀔 것에 경계를 두르면 헛수고다(7장). 그래서 **자주 바뀌는 것·외부에 의존하는 것·불확실한 것**(저장·외부 API·UI·정책) 위주로 감싸고, 안정된 핵심 규칙은 굳이 겹겹이 싸지 않는다. 「무엇이 바뀔까」의 판단이 경계 설계다."
+        },
+        {
+          "type": "try",
+          "text": "네 모듈 하나를 골라 「이것이 감추는 (바뀔) 결정」을 한 문장으로 적어라. 못 적으면 그 모듈은 아직 경계가 아니다 — 여러 결정이 뒤섞였거나 아무것도 안 감춘 것이다."
+        }
       ],
-      "answer": 0,
-      "why": "경계에서 도메인 타입으로 변환한다."
+      "quiz": [
+        {
+          "q": "경계로 감쌀 것은?",
+          "choices": [
+            "안 바뀌는 것",
+            "바뀔 가능성이 있는 결정(저장·API·정책)",
+            "짧은 것",
+            "빠른 것"
+          ],
+          "answer": 1,
+          "why": "변화의 축을 따라."
+        },
+        {
+          "q": "좋은 모듈이 갖춘 것은?",
+          "choices": [
+            "많은 public",
+            "「감추는 결정」을 한 문장으로 말할 수 있음",
+            "큰 크기",
+            "빠른 속도"
+          ],
+          "answer": 1,
+          "why": "하나의 바뀔 결정 중심."
+        },
+        {
+          "q": "안 바뀔 것에 경계를 두르면?",
+          "choices": [
+            "안전",
+            "헛수고(간접층만 늘어남)",
+            "빠름",
+            "필수"
+          ],
+          "answer": 1,
+          "why": "자주 바뀌는 것 위주로."
+        }
+      ]
     },
     {
-      "q": "의존성 역전의 목적은?",
-      "choices": [
-        "도메인이 인프라를 모르게 해 테스트·교체를 쉽게",
-        "성능 향상",
-        "코드 줄 수 감소"
+      "id": "3",
+      "title": "얇은 인터페이스, 두꺼운 구현",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "좋은 모듈은 **깊다**(A Philosophy of Software Design) — **인터페이스는 작고, 그 뒤에 많은 것을 감춘다.** 쓰는 쪽이 알아야 할 것(인터페이스)은 적은데, 그 아래 복잡함을 대신 처리한다. 반대로 **얕은 모듈**은 인터페이스가 감추는 것만큼 크거나 더 커서, 있으나 마나 하다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "깊은 모듈 vs 얕은 모듈",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  .mod { display:flex; align-items:stretch; margin:8px 0; border-radius:8px; overflow:hidden; }\n  .mod .iface { background:#0e7490; color:#fff; padding:8px; font:11px ui-monospace; display:flex; align-items:center; }\n  .mod .impl { background:#111c33; color:#94a3b8; padding:8px; font:10.5px ui-monospace; flex:1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  const moduleView = (ifaceW, implLines) => '<div class=\"mod\"><div class=\"iface\" style=\"width:' + ifaceW + 'px\">' +\n    'interface</div><div class=\"impl\">' + implLines.map(esc).join('<br>') + '</div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const depth = '{{depth}}';\n  const deep = depth === 'deep';\n  render(deep ? '깊은 모듈 (얇은 인터페이스)' : '얕은 모듈 (인터페이스=구현)',\n    (deep\n      ? '  save(note) 하나로 — 검증·직렬화·재시도·캐시를 안에서 다 처리.\\n' +\n        '  <span class=\\\"ok\\\">쓰는 쪽은 save 만 알면 됨. 복잡함이 감춰져 값어치가 크다.</span>'\n      : '  openFile·write·flush·close 를 쓰는 쪽이 순서대로 다 불러야.\\n' +\n        '  <span class=\\\"no\\\">감추는 게 없다 — 인터페이스가 구현만큼 커서 있으나 마나.</span>'),\n    '인터페이스는 작게, 그 뒤에 많이 감춰라 — 깊은 모듈이 값어치가 크다.',\n    deep\n      ? moduleView(60, ['검증', '직렬화', '재시도', '캐시', '저장 (모두 감춤)'])\n      : moduleView(180, ['(감추는 게 거의 없음)']));\n</script>",
+          "controls": [
+            {
+              "id": "depth",
+              "label": "모듈 깊이",
+              "type": "select",
+              "value": "shallow",
+              "options": [
+                {
+                  "value": "shallow",
+                  "label": "얕음(인터페이스=구현)"
+                },
+                {
+                  "value": "deep",
+                  "label": "깊음(얇은 인터페이스)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "typescript",
+          "label": "얇은 인터페이스, 두꺼운 구현",
+          "text": "// 좋음: 부르는 쪽이 알아야 할 것이 적다 (얇은 인터페이스)\ninterface Storage {\n  save(note: Note): Promise<void>;\n  load(id: string): Promise<Note | null>;\n}\n// 그 뒤(구현)에는 많은 것이 감춰진다:\n//   직렬화 · 검증 · 재시도 · 캐시 · 파일/DB/네트워크 세부\n// 쓰는 쪽은 save/load 두 개만 안다 → 깊은 모듈"
+        },
+        {
+          "type": "note",
+          "text": "**얕은 모듈은 추상화의 세금만 물린다.** 인터페이스가 구현만큼 복잡하면(예: 파일 API 를 얇게 감싸 openFile·write·flush·close 를 그대로 노출), 감추는 게 없어 배우는 부담만 늘고 이득이 없다. 「이 모듈을 쓰려고 알아야 할 것」이 「이 모듈이 대신 해 주는 것」보다 많으면, 그 경계는 값어치가 마이너스다."
+        },
+        {
+          "type": "p",
+          "text": "**좋은 이름 하나가 깊이의 신호다.** 깊은 모듈은 「무엇을 하는가」를 짧은 이름으로 말할 수 있다 — `save`, `render`, `authenticate`. 그 한 단어 뒤에 많은 복잡함이 접혀 있다. 이름이 길고 조건이 많으면(`saveNoteToFileWithRetryIfEnabled`) 감춤이 부족하다는 신호다. **이름이 짧고 인터페이스가 작을수록** 대개 더 깊다."
+        },
+        {
+          "type": "try",
+          "text": "네 모듈들을 「인터페이스 크기 대비 감추는 것의 양」으로 평가하라. 인터페이스가 구현만큼 큰 얕은 모듈(특히 얇은 래퍼)을 찾아, 없애거나 더 깊게 만들 수 있는지 보라."
+        }
       ],
-      "answer": 0,
-      "why": "안쪽이 바깥을 모르게 만드는 것이 핵심이다."
+      "quiz": [
+        {
+          "q": "깊은 모듈이란?",
+          "choices": [
+            "인터페이스가 큰",
+            "인터페이스는 작고 그 뒤에 많이 감춘",
+            "코드가 긴",
+            "빠른"
+          ],
+          "answer": 1,
+          "why": "감추는 게 많다."
+        },
+        {
+          "q": "얕은 모듈의 문제는?",
+          "choices": [
+            "빠름",
+            "감추는 게 없어 추상화 세금만 물림",
+            "안전",
+            "깊음"
+          ],
+          "answer": 1,
+          "why": "인터페이스=구현."
+        },
+        {
+          "q": "깊이의 신호가 아닌 것은?",
+          "choices": [
+            "짧은 이름",
+            "작은 인터페이스",
+            "긴 조건부 이름",
+            "많은 감춤"
+          ],
+          "answer": 2,
+          "why": "긴 이름은 감춤 부족 신호."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "새어 나옴 — 경계에서 변환하라",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "경계가 뚫리는 흔한 방식: **내부 표현이 밖으로 새어 나온다.** 반환 타입에 ORM 엔티티·HTTP 응답 객체·DB 컬럼명이 그대로 나오면, 쓰는 쪽이 그 세부에 묶여 **경계가 무의미**해진다. 경계에서 **내 도메인 타입으로 변환**해야, 안쪽 세부를 바꿔도 밖이 안 흔들린다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "타입 새어 나옴 — 경계에서 변환 유무",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  .mod { display:flex; align-items:stretch; margin:8px 0; border-radius:8px; overflow:hidden; }\n  .mod .iface { background:#0e7490; color:#fff; padding:8px; font:11px ui-monospace; display:flex; align-items:center; }\n  .mod .impl { background:#111c33; color:#94a3b8; padding:8px; font:10.5px ui-monospace; flex:1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  const moduleView = (ifaceW, implLines) => '<div class=\"mod\"><div class=\"iface\" style=\"width:' + ifaceW + 'px\">' +\n    'interface</div><div class=\"impl\">' + implLines.map(esc).join('<br>') + '</div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const convert = '{{convert}}' === 'yes';\n  render(convert ? '경계에서 도메인 타입으로 변환' : 'ORM/HTTP 타입이 그대로 노출',\n    (convert\n      ? '  repo.find() → 내부 UserRow 를 도메인 User 로 변환해 반환\\n' +\n        '  <span class=\\\"ok\\\">화면·로직은 도메인 User 만 안다. DB 스키마 바뀌어도 경계 안만 수정.</span>'\n      : '  repo.find() 가 ORM UserEntity(또는 DB row)를 그대로 반환\\n' +\n        '  <span class=\\\"no\\\">화면 코드가 user.user_name·user.created_ts 같은 DB 세부에 묶임 — 경계 뚫림.</span>'),\n    '내부 표현(ORM·HTTP·DB 컬럼)이 밖으로 새면 경계가 무의미. 경계에서 변환하라.',\n    fan(convert\n      ? [['n', 'DB row'], '->', ['ok', '경계: 변환'], '->', ['ok', '도메인 User']]\n      : [['hit', 'DB row(그대로)'], '->', ['hit', '화면까지 새어 나감']]));\n</script>",
+          "controls": [
+            {
+              "id": "convert",
+              "label": "경계 변환",
+              "type": "select",
+              "value": "no",
+              "options": [
+                {
+                  "value": "no",
+                  "label": "노출(그대로)"
+                },
+                {
+                  "value": "yes",
+                  "label": "변환(도메인 타입)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**반환 타입에 ORM 엔티티·HTTP 응답·DB 컬럼명이 나오면 경계는 이미 뚫렸다.** 경계에서 내 도메인 타입으로 변환하는 얇은 층(mapper/DTO)을 두면, 안쪽 표현(DB 스키마·외부 API 모양)이 바뀌어도 그 변환 층만 고치면 된다. api-resource 의 「내부 컬럼명을 그대로 노출하지 마라」가 여기서도 같은 원리로 작동한다."
+        },
+        {
+          "type": "p",
+          "text": "**변환은 비용이지만 값어치가 크다.** 「그냥 DB row 를 쓰면 되는데 왜 변환하나」 싶지만, 그 변환이 없으면 **DB 스키마 하나 바꿀 때 화면까지 다 고쳐야** 한다(design-coupling 의 파급). 특히 외부 API·DB 처럼 **내가 통제 못 하는 것**의 타입은 반드시 경계에서 막는다 — 그들의 변경이 내 코어로 번지지 않게."
+        },
+        {
+          "type": "try",
+          "text": "외부 API 응답 타입이나 ORM 엔티티가 화면·로직 코드까지 그대로 들어가는 곳을 찾아, 경계에서 내 도메인 타입으로 변환하도록 바꿔라. 특히 통제 못 하는 외부 타입을 먼저."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "경계가 「새어 나온다」는 것은?",
+          "choices": [
+            "느려짐",
+            "ORM/HTTP/DB 내부 표현이 밖으로 노출돼 쓰는 쪽이 묶임",
+            "메모리 누수",
+            "보안"
+          ],
+          "answer": 1,
+          "why": "경계가 무의미해진다."
+        },
+        {
+          "q": "새어 나옴을 막는 방법은?",
+          "choices": [
+            "더 노출",
+            "경계에서 내 도메인 타입으로 변환(mapper/DTO)",
+            "전역",
+            "캐시"
+          ],
+          "answer": 1,
+          "why": "안쪽 표현을 감춘다."
+        },
+        {
+          "q": "특히 경계에서 막아야 할 타입은?",
+          "choices": [
+            "내 순수 계산",
+            "통제 못 하는 외부(API·DB) 타입",
+            "상수",
+            "로컬 변수"
+          ],
+          "answer": 1,
+          "why": "그들 변경이 코어로 번지지 않게."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "의존 방향 — 안쪽은 바깥을 모른다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "경계의 핵심 규칙: **의존은 안쪽(안정)으로 향한다.** 도메인(규칙) ← 응용 ← 어댑터(DB·HTTP·UI). 도메인은 DB 를 **모르고**(인터페이스만 정의), 구현이 그 인터페이스를 채운다. 그러면 바깥(DB·UI·프레임워크)이 바뀌어도 안쪽 규칙은 안 흔들린다 — 가장 소중한 것을 가장 덜 의존시킨다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "의존 방향 — 무엇이 무엇을 아나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  .mod { display:flex; align-items:stretch; margin:8px 0; border-radius:8px; overflow:hidden; }\n  .mod .iface { background:#0e7490; color:#fff; padding:8px; font:11px ui-monospace; display:flex; align-items:center; }\n  .mod .impl { background:#111c33; color:#94a3b8; padding:8px; font:10.5px ui-monospace; flex:1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  const moduleView = (ifaceW, implLines) => '<div class=\"mod\"><div class=\"iface\" style=\"width:' + ifaceW + 'px\">' +\n    'interface</div><div class=\"impl\">' + implLines.map(esc).join('<br>') + '</div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const dir = '{{dir}}';\n  const inward = dir === 'inward';\n  render(inward ? '안쪽으로 (도메인 ← 어댑터)' : '바깥으로 (도메인 → DB)',\n    (inward\n      ? '  도메인은 Storage 인터페이스만 정의. 어댑터(DB)가 그것을 구현.\\n' +\n        '  <span class=\\\"ok\\\">DB·프레임워크를 바꿔도 도메인 규칙은 그대로 — 안쪽이 가장 안정.</span>'\n      : '  도메인 규칙이 DB·ORM 을 직접 import.\\n' +\n        '  <span class=\\\"no\\\">DB 를 바꾸면 규칙까지 흔들린다 — 가장 소중한 것이 가장 불안정.</span>'),\n    '의존은 안쪽(안정)으로. 도메인은 DB를 모르고 인터페이스만 정의한다.',\n    fan(inward\n      ? [['ok', '도메인(규칙)'], '<-', ['n', '응용'], '<-', ['n', '어댑터(DB·UI)']]\n      : [['hit', '도메인'], '->', ['hit', 'DB·ORM(직접 의존)']]));\n</script>",
+          "controls": [
+            {
+              "id": "dir",
+              "label": "의존 방향",
+              "type": "select",
+              "value": "outward",
+              "options": [
+                {
+                  "value": "outward",
+                  "label": "바깥으로(도메인→DB)"
+                },
+                {
+                  "value": "inward",
+                  "label": "안쪽으로(도메인←어댑터)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "의존 방향",
+          "text": "도메인(규칙) ← 응용 ← 어댑터(DB · HTTP · UI)\n\n· 도메인은 DB 를 모른다 (Storage 인터페이스만 정의)\n· 구현(어댑터)은 그 인터페이스를 채운다 (의존성 역전)\n· 바깥(프레임워크·DB·UI)이 바뀌어도 안쪽 규칙은 안 흔들림\n\n=> 가장 소중하고 안정된 것(비즈니스 규칙)을 가장 덜 의존시킨다"
+        },
+        {
+          "type": "note",
+          "text": "**의존성 역전으로 방향을 뒤집는다(design-coupling 7장).** 자연스러운 흐름(도메인이 DB 를 부름)을 그대로 두면 도메인이 DB 에 묶인다. 도메인이 **인터페이스를 정의**하고 DB 어댑터가 그것을 **구현**하게 하면, 코드 실행은 도메인→DB 로 흐르지만 **의존(컴파일타임)은 DB→도메인**으로 뒤집힌다. 이 역전이 안쪽을 지킨다."
+        },
+        {
+          "type": "p",
+          "text": "**안정된 것에 의존하고, 불안정한 것을 의존시켜라.** 비즈니스 규칙은 오래가고(안정), UI·DB·프레임워크는 자주 바뀐다(불안정). 안정된 규칙이 불안정한 세부에 의존하면 세부가 바뀔 때마다 규칙이 흔들린다. 방향을 뒤집어 **불안정한 것이 안정된 것에 의존**하게 하면, 변화가 안쪽으로 못 들어온다(헥사고날·클린 아키텍처의 핵심)."
+        },
+        {
+          "type": "try",
+          "text": "네 비즈니스 규칙 코드가 DB·ORM·프레임워크를 직접 import 하는지 보라. 그렇다면 도메인에 인터페이스를 두고 어댑터가 구현하도록 의존을 뒤집어, 규칙이 세부를 모르게 하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "경계의 의존 방향 규칙은?",
+          "choices": [
+            "바깥으로",
+            "안쪽(안정)으로 — 도메인 ← 어댑터",
+            "무작위",
+            "양방향"
+          ],
+          "answer": 1,
+          "why": "소중한 것을 덜 의존시킴."
+        },
+        {
+          "q": "의존성 역전이 하는 일은?",
+          "choices": [
+            "속도",
+            "도메인이 인터페이스 정의·어댑터가 구현 — 의존을 뒤집음",
+            "코드 축소",
+            "캐시"
+          ],
+          "answer": 1,
+          "why": "안쪽을 지킨다."
+        },
+        {
+          "q": "안정된 규칙이 불안정한 DB 에 의존하면?",
+          "choices": [
+            "안전",
+            "DB 가 바뀔 때마다 규칙이 흔들림",
+            "빠름",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "방향을 뒤집어야."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "경계의 종류 — 비용의 위계",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "경계에도 **무게**가 있다. 가벼운 것부터: **함수·모듈 경계**(같은 프로세스, 거의 공짜) → **프로세스 경계**(같은 기계, 직렬화·IPC) → **네트워크 경계**(다른 기계, 지연·실패·부분 장애). 무거운 경계일수록 유연하지만 비용·복잡도가 크다 — **필요한 만큼만** 무겁게 긋는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "경계 무게 — 유연성과 비용",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  .mod { display:flex; align-items:stretch; margin:8px 0; border-radius:8px; overflow:hidden; }\n  .mod .iface { background:#0e7490; color:#fff; padding:8px; font:11px ui-monospace; display:flex; align-items:center; }\n  .mod .impl { background:#111c33; color:#94a3b8; padding:8px; font:10.5px ui-monospace; flex:1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  const moduleView = (ifaceW, implLines) => '<div class=\"mod\"><div class=\"iface\" style=\"width:' + ifaceW + 'px\">' +\n    'interface</div><div class=\"impl\">' + implLines.map(esc).join('<br>') + '</div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const k = '{{kind}}';\n  const cases = {\n    module:  ['모듈 경계', 10, '같은 프로세스 · 함수 호출 · 거의 공짜', '대부분 여기서 충분'],\n    process: ['프로세스 경계', 45, '직렬화·IPC · 독립 배포 가능', '언어·수명주기가 다를 때'],\n    network: ['네트워크 경계(서비스)', 90, '지연·실패·부분 장애 · 완전 독립', '팀·확장이 갈릴 때만'],\n  }[k];\n  render('경계 종류: ' + cases[0],\n    '  비용·복잡도 = <span class=\\\"' + (cases[1] < 25 ? 'ok' : cases[1] < 70 ? 'warn' : 'no') + '\\\">' +\n      cases[1] + '/100</span>\\n  성격: ' + cases[2] + '\\n  적합: ' + cases[3] + '\\n\\n' +\n    (k === 'network'\n      ? '  <span class=\\\"no\\\">네트워크 경계는 분산의 모든 문제를 떠안는다 — 정말 필요할 때만.</span>'\n      : '  가벼운 경계로 될 일에 무거운 경계를 쓰지 마라.'),\n    '모듈<프로세스<네트워크. 무거울수록 유연하나 비용 크다 — 필요한 만큼만.',\n    bars([['비용·복잡도', cases[1], cases[1] + '/100', cases[1] < 25 ? '#4ade80' : cases[1] < 70 ? '#fbbf24' : '#fca5a5']]));\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "경계 종류",
+              "type": "select",
+              "value": "network",
+              "options": [
+                {
+                  "value": "module",
+                  "label": "모듈 경계"
+                },
+                {
+                  "value": "process",
+                  "label": "프로세스 경계"
+                },
+                {
+                  "value": "network",
+                  "label": "네트워크 경계"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**모듈 경계로 먼저, 네트워크 경계는 나중에.** 「나중에 마이크로서비스로 쪼갤 수 있게」 처음부터 네트워크로 나누면, 아직 필요 없는 분산의 비용(지연·부분 장애·분산 트랜잭션)을 미리 다 치른다. **깔끔한 모듈 경계**를 먼저 두면, 정말 필요해질 때 그 선을 따라 프로세스·서비스로 승격할 수 있다 — 경계는 코드 안에서 먼저 긋는다."
+        },
+        {
+          "type": "p",
+          "text": "**네트워크 경계는 「분산 시스템」을 부른다.** 함수 호출은 즉시·확실하지만, 네트워크 호출은 느리고·실패하고·부분적으로 성공한다(api-error·idempotent 의 재시도·멱등이 여기서 필요해진다). 팀이 갈리거나 독립 확장·독립 배포가 **실제로** 필요할 때만 이 비용을 치른다. 「멋있어서」가 아니라 「필요해서」 나눈다."
+        },
+        {
+          "type": "try",
+          "text": "네 시스템의 경계들이 적절한 무게인지 보라. 모듈 경계로 충분한데 네트워크로 나눈 곳(과한 분산), 반대로 팀·확장이 갈리는데 한 덩어리인 곳이 있는지 점검하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "가장 가벼운 경계는?",
+          "choices": [
+            "네트워크",
+            "모듈·함수 경계(같은 프로세스)",
+            "프로세스",
+            "서비스"
+          ],
+          "answer": 1,
+          "why": "거의 공짜."
+        },
+        {
+          "q": "네트워크 경계가 부르는 것은?",
+          "choices": [
+            "단순함",
+            "분산 시스템의 문제(지연·실패·부분 장애)",
+            "속도",
+            "안전"
+          ],
+          "answer": 1,
+          "why": "정말 필요할 때만."
+        },
+        {
+          "q": "경계 전략의 순서는?",
+          "choices": [
+            "처음부터 네트워크",
+            "모듈 경계 먼저, 필요 시 프로세스·서비스로 승격",
+            "항상 서비스",
+            "경계 없음"
+          ],
+          "answer": 1,
+          "why": "코드 안에서 먼저 긋는다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "경계는 비용이다 — 남발 금지",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "경계는 공짜가 아니다. **너무 많이 그으면** 간접층이 늘어 코드를 따라가기 어렵고, 한 변경이 여러 경계를 넘나든다. **바뀔 것 같은 곳·테스트가 필요한 곳·팀이 갈리는 곳**에만 긋고, 나머지는 단순하게 직접 연결한다. 「모든 것에 인터페이스」는 유연성이 아니라 미로를 만든다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "경계 수 — 유연성과 따라가기 어려움",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  .mod { display:flex; align-items:stretch; margin:8px 0; border-radius:8px; overflow:hidden; }\n  .mod .iface { background:#0e7490; color:#fff; padding:8px; font:11px ui-monospace; display:flex; align-items:center; }\n  .mod .impl { background:#111c33; color:#94a3b8; padding:8px; font:10.5px ui-monospace; flex:1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  const moduleView = (ifaceW, implLines) => '<div class=\"mod\"><div class=\"iface\" style=\"width:' + ifaceW + 'px\">' +\n    'interface</div><div class=\"impl\">' + implLines.map(esc).join('<br>') + '</div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{boundaries}};              // 경계 수\n  const trace = Math.min(100, n * 14);   // 따라가기 어려움\n  render('한 흐름이 넘나드는 경계 수 = ' + n,\n    '  코드 따라가기 어려움 = <span class=\\\"' + (trace < 30 ? 'ok' : trace < 65 ? 'warn' : 'no') + '\\\">' +\n      trace + '/100</span>\\n\\n' +\n    (n <= 2\n      ? '  <span class=\\\"ok\\\">적당 — 필요한 곳에만 경계. 흐름을 따라가기 쉽다.</span>'\n      : n <= 4 ? '  경계가 값어치를 하는지 각각 확인 — 바뀔 곳인가?'\n      : '  <span class=\\\"no\\\">과한 경계 — 간단한 변경이 여러 간접층을 넘나든다. 미로.</span>') + '\\n\\n' +\n    '  경계마다 값어치(바뀔 곳인가·테스트 필요한가)를 따져 긋는다.',\n    '경계는 비용. 바뀔 곳·테스트 필요·팀 경계에만 긋고 나머지는 직접.',\n    bars([['따라가기 어려움', trace, trace + '/100', trace < 30 ? '#4ade80' : trace < 65 ? '#fbbf24' : '#fca5a5']]));\n</script>",
+          "controls": [
+            {
+              "id": "boundaries",
+              "label": "흐름이 넘는 경계 수",
+              "type": "range",
+              "min": 0,
+              "max": 7,
+              "step": 1,
+              "value": 5
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**추측성 유연성(speculative generality)을 경계하라.** 「언젠가 여러 구현이 필요할지도」로 인터페이스를 두르면, 대개 그 「언젠가」는 안 오고 간접층만 남는다. 구현이 **하나뿐인 인터페이스**, 호출자가 하나뿐인 추상화는 값어치를 의심하라(design-coupling 6장: 성급한 추상화). 필요가 실제로 드러난 뒤 긋는 게 낫다(8장)."
+        },
+        {
+          "type": "p",
+          "text": "**경계의 값어치 = 감추는 것 × 바뀔 확률.** 많이 감추고(깊은 모듈, 3장) 자주 바뀌는 것(2장)을 감싸는 경계는 값어치가 크다. 반대로 감추는 게 적거나(얕은 래퍼) 안 바뀌는 것을 감싸는 경계는 비용만 남는다. 모든 경계에 「이게 정말 값어치가 있나」를 물어, 없으면 걷어낸다 — 경계를 없애는 것도 설계다."
+        },
+        {
+          "type": "try",
+          "text": "네 코드에서 구현이 하나뿐인 인터페이스, 호출자가 하나뿐인 추상화를 찾아라. 바뀔 전망도 테스트 필요도 없다면, 걷어내고 직접 연결해 흐름을 단순하게 하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "경계를 남발하면?",
+          "choices": [
+            "유연",
+            "간접층이 늘어 따라가기 어렵고 변경이 여러 경계를 넘나듦",
+            "빠름",
+            "안전"
+          ],
+          "answer": 1,
+          "why": "미로가 된다."
+        },
+        {
+          "q": "값어치를 의심할 경계는?",
+          "choices": [
+            "많이 감추는",
+            "구현이 하나뿐·호출자가 하나뿐인 추상화",
+            "자주 바뀌는 것",
+            "깊은 모듈"
+          ],
+          "answer": 1,
+          "why": "추측성 유연성."
+        },
+        {
+          "q": "경계의 값어치를 정하는 것은?",
+          "choices": [
+            "크기",
+            "감추는 것 × 바뀔 확률",
+            "속도",
+            "이름 길이"
+          ],
+          "answer": 1,
+          "why": "많이 감추고 자주 바뀔수록."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "경계를 언제 긋나 — 늦게",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "경계는 **일찍 긋기보다 늦게 긋는** 게 대개 낫다. 처음엔 변화의 축이 안 보인다 — 무엇이 바뀔지 모른 채 그은 경계는 엉뚱한 곳을 가른다. **함께 두고 시작해**, 실제로 바뀌는 축이 드러나면 그 선을 따라 나눈다. 「나중에 나누기」가 「잘못 나눈 것 합치기」보다 쉽다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "일찍 긋기 vs 축이 드러난 뒤",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  .mod { display:flex; align-items:stretch; margin:8px 0; border-radius:8px; overflow:hidden; }\n  .mod .iface { background:#0e7490; color:#fff; padding:8px; font:11px ui-monospace; display:flex; align-items:center; }\n  .mod .impl { background:#111c33; color:#94a3b8; padding:8px; font:10.5px ui-monospace; flex:1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  const moduleView = (ifaceW, implLines) => '<div class=\"mod\"><div class=\"iface\" style=\"width:' + ifaceW + 'px\">' +\n    'interface</div><div class=\"impl\">' + implLines.map(esc).join('<br>') + '</div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const when = '{{when}}';\n  const late = when === 'late';\n  render(late ? '축이 드러난 뒤 긋기' : '처음부터 추측으로 긋기',\n    (late\n      ? '  함께 두고 시작 → 실제 변경 패턴 관찰(git, coupling 8장) → 바뀌는 축으로 분리\\n' +\n        '  <span class=\\\"ok\\\">경계가 진짜 변화의 축과 맞아 값어치를 한다.</span>'\n      : '  「이렇게 바뀔 것」이라 추측해 미리 분리\\n' +\n        '  <span class=\\\"no\\\">추측이 틀리면 엉뚱한 곳이 갈려, 변경이 경계를 계속 넘나든다.</span>'),\n    '경계는 늦게 — 함께 두고 시작해 변화의 축이 드러나면 그 선을 따라 나눈다.',\n    steps(late\n      ? [['함께 두고 시작', 'good'], ['변경 패턴 관찰', 'good'], ['드러난 축으로 분리', 'good']]\n      : [['추측으로 미리 분리', 'bad'], ['추측이 빗나감', 'bad'], ['변경이 경계를 넘나듦', 'bad']]));\n</script>",
+          "controls": [
+            {
+              "id": "when",
+              "label": "긋는 시점",
+              "type": "select",
+              "value": "early",
+              "options": [
+                {
+                  "value": "early",
+                  "label": "일찍(추측)"
+                },
+                {
+                  "value": "late",
+                  "label": "늦게(축 드러난 뒤)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「합치기 쉽게, 나누기 쉽게」 — 하지만 방향은 나누기 쪽으로 열어 둔다.** 잘못 합쳐진 것을 나누는 건 어렵지 않지만, 잘못 나뉜 것(성급한 경계)을 합치는 건 여러 곳에 퍼진 인터페이스를 걷어야 해 힘들다. 그래서 확신 없으면 **함께 두는** 쪽이 안전하다 — 응집을 유지하다가, 찢어지는 지점이 분명해지면 나눈다."
+        },
+        {
+          "type": "p",
+          "text": "**단, 통제 못 하는 외부 경계는 처음부터 긋는다.** 내부 모듈 경계는 늦춰도 되지만, 외부 API·DB·프레임워크처럼 **내가 통제 못 하고 반드시 바뀔** 것과의 경계(4·5장)는 처음부터 둔다. 그들의 변경·불안정이 코어로 새는 걸 막아야 하니까. 「내부는 늦게, 외부는 처음부터」가 실무의 균형이다."
+        },
+        {
+          "type": "try",
+          "text": "성급하게 나눈 내부 경계(추측으로 만든, 아직 값어치 없는)가 있으면 합쳐 단순하게 하라. 반대로 외부 API·DB 와의 경계가 없어 그 타입이 새고 있으면 지금 그어라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "내부 경계를 늦게 긋는 게 나은 이유는?",
+          "choices": [
+            "게을러서",
+            "처음엔 변화의 축이 안 보여 엉뚱하게 가를 수 있으므로",
+            "빠름",
+            "규칙"
+          ],
+          "answer": 1,
+          "why": "축이 드러난 뒤."
+        },
+        {
+          "q": "성급한 경계와 성급한 통합 중 고치기 어려운 것은?",
+          "choices": [
+            "통합(합쳐진 것 나누기)",
+            "성급한 경계(퍼진 인터페이스 걷기)",
+            "둘 다 쉬움",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "확신 없으면 함께 둔다."
+        },
+        {
+          "q": "처음부터 그어야 할 경계는?",
+          "choices": [
+            "내부 모듈",
+            "통제 못 하는 외부(API·DB) 경계",
+            "순수 계산",
+            "상수"
+          ],
+          "answer": 1,
+          "why": "외부 변경이 새지 않게."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — 경계와 정보 은닉",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "모듈·경계를 설계할 때 이 목록을 확인하라. 핵심은 「바뀔 것을 감추고·얇은 인터페이스·안쪽으로 의존·필요한 만큼만」이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .fan { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; align-items:center; }\n  .fan .n { padding:6px 10px; border-radius:6px; background:#1e293b; font:11px ui-monospace; color:#cbd5e1; }\n  .fan .n.src { background:#0e7490; color:#fff; } .fan .n.hit { background:#7f1d1d; color:#fca5a5; }\n  .fan .n.ok { background:#132a1c; color:#4ade80; } .fan .arw { color:#64748b; }\n  .mod { display:flex; align-items:stretch; margin:8px 0; border-radius:8px; overflow:hidden; }\n  .mod .iface { background:#0e7490; color:#fff; padding:8px; font:11px ui-monospace; display:flex; align-items:center; }\n  .mod .impl { background:#111c33; color:#94a3b8; padding:8px; font:10.5px ui-monospace; flex:1; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const fan = (nodes) => '<div class=\"fan\">' + nodes.map((x) =>\n    x === '->' ? '<span class=\"arw\">→</span>' : '<span class=\"n ' + x[0] + '\">' + esc(x[1]) + '</span>').join('') + '</div>';\n  const moduleView = (ifaceW, implLines) => '<div class=\"mod\"><div class=\"iface\" style=\"width:' + ifaceW + 'px\">' +\n    'interface</div><div class=\"impl\">' + implLines.map(esc).join('<br>') + '</div></div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '이 모듈이 감추는 (바뀔) 결정을 한 문장으로 말한다',\n    '기본은 감춤 — 드러낸 것이 최소다',\n    '얇은 인터페이스, 두꺼운 구현(깊은 모듈)',\n    '내부 표현(ORM·HTTP)이 안 새게 경계에서 변환',\n    '의존은 안쪽으로 — 도메인이 DB·UI를 모른다',\n    '경계 무게가 적절(모듈 먼저, 네트워크는 필요 시)',\n    '값어치 없는 경계(단일 구현)를 걷어냈다',\n    '내부 경계는 늦게, 외부 경계는 처음부터',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 안쪽을 지키며 바깥은 자유롭게 바꾼다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '바뀔 것을 감추고·얇은 인터페이스·안쪽으로 의존·필요한 만큼만. 경계의 네 축.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 무엇을 감출지가 설계다.** 바뀔 결정을 감싸고(2장), 인터페이스를 얇게(3장), 내부 표현이 안 새게 변환하고(4장), 의존을 안쪽으로 향하게(5장) 하면, 바깥(DB·UI·프레임워크)이 바뀌어도 안쪽 규칙이 안전하다. 단 경계는 비용이니 필요한 만큼만(7·8장)."
+        },
+        {
+          "type": "p",
+          "text": "**이 트랙에서의 자리.** 경계는 design-coupling(무엇을 모으고 떼나)의 「어디에 선을 긋나」이고, seam(갈아 끼울 자리)이 그 선을 테스트·유연성으로 실현하며, pattern(어댑터·퍼사드)이 경계를 만드는 반복 해법이다. 그리고 api(자원·버전)·db(스키마 경계)의 결정이 모두 경계 문제다. **「무엇을 감출까」를 묻는 감각이 변화에 강한 구조를 만든다**."
+        },
+        {
+          "type": "try",
+          "text": "핵심 모듈에 이 8개 항목을 채점하라. 「감추는 결정을 한 문장으로」와 「의존을 안쪽으로」 두 가지부터 잡으면, 바깥 변화가 코어로 새는 것이 크게 준다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "경계 설계의 한 줄 요약은?",
+          "choices": [
+            "다 드러내라",
+            "무엇을 감출지가 설계다(바뀔 것을 감싼다)",
+            "다 나눠라",
+            "속도"
+          ],
+          "answer": 1,
+          "why": "정보 은닉이 본체."
+        },
+        {
+          "q": "경계의 네 축은?",
+          "choices": [
+            "빠름·큼·전역·서비스",
+            "바뀔 것 감춤·얇은 인터페이스·안쪽 의존·필요한 만큼만",
+            "캐시·복제·샤딩·압축",
+            "인터페이스만"
+          ],
+          "answer": 1,
+          "why": "네 축."
+        },
+        {
+          "q": "경계가 트랙에서 갖는 자리는?",
+          "choices": [
+            "무관",
+            "coupling 의 「어디에 선을 긋나」·seam·pattern 과 이어짐",
+            "성능",
+            "문법"
+          ],
+          "answer": 1,
+          "why": "변화에 강한 구조."
+        }
+      ]
     }
   ]
 }
