@@ -12,6 +12,7 @@
  *  - SRT 와 VTT 를 오간다. 웹 플레이어는 VTT 만 받고, 대부분의 자막은 SRT 로 돌아다닌다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
+import { wireDrop } from './shared/drop-well';
 import { download } from './shared/video';
 
 (function (): void {
@@ -205,21 +206,8 @@ import { download } from './shared/video';
               run();
             });
           };
-          drop.onclick = () => fileInput.click();
-          fileInput.onchange = () => {
-            if (fileInput.files?.[0]) readFile(fileInput.files[0]);
-          };
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
-          drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-          drop.addEventListener('drop', (e) => {
-            e.preventDefault();
-            drop.classList.remove('over');
-            const f = e.dataTransfer?.files?.[0];
-            if (f) readFile(f);
-          });
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 붙여넣기가 같이 딸려 온다. */
+          wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void readFile(files[0]) });
 
           input.addEventListener('input', run);
           $<HTMLInputElement>('#sbShift').addEventListener('input', () => {
