@@ -33,7 +33,9 @@ const outDir = path.resolve(root, '../blog/karmolab/tmd');
 const SITE = 'https://blog.mascari4615.com';
 
 const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools;
-const ids = Object.keys(seo);
+/* operation으로 흡수한 옛 도구는 독립 검색 문서를 만들지 않는다. */
+const RETIRED_OPERATION_IDS = new Set(['slug', 'caseconv', 'linebreak', 'textclean', 'hangulkey', 'jamo', 'replace', 'listdiff', 'charcount', 'wordfreq', 'textdiff', 'textredact', 'text2pdf', 'text2img', 'lorem', 'checklist']);
+const ids = Object.keys(seo).filter((id) => !RETIRED_OPERATION_IDS.has(id));
 
 /**
  * 도구 이름의 단일 정본 = 위젯 매니페스트의 `title` (`gen-tool-pages.mjs` 와 같은 자리를 본다).
@@ -77,6 +79,11 @@ if (Object.keys(titleById).length === 0) {
 }
 
 let n = 0;
+for (const id of RETIRED_OPERATION_IDS) {
+  /* 페이지 생성기는 이 txt를 .md로 옮긴다. 남겨 두면 URL을 없앴어도 AI/검색용 쌍둥이가
+   * 혼자 살아남아 다시 배포된다. operation 이행과 같은 회차에 없앤다. */
+  fs.rmSync(path.join(outDir, `${id}.txt`), { force: true });
+}
 for (const id of ids) {
   const t = seo[id];
   const title = titleById[id] ?? id;

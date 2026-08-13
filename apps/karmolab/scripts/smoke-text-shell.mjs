@@ -49,7 +49,42 @@ check(Number(nums[0].replace(/,/g, '')) === CHARS, `글자 수가 맞다 (기대
 check(Number(nums[2].replace(/,/g, '')) === 3, `줄 수가 맞다 (기대 3, 지금 ${nums[2]})`);
 check(/끝줄/.test(await page.locator('#txHead').innerText()), '앞머리에 실제 글이 보인다');
 
-/* ③ 할 일을 고르면 그 자리에서 열린다 — 글은 안 사라진다 */
+/* ③ 새 operation은 독립 위젯을 다시 부르지 않는다 — 글 작업대의 공용 surface에서 돈다. */
+await page.locator('.pf-job[data-job="slug"]').click();
+await page.waitForSelector('[data-operation="slug"]', { timeout: 15000 });
+check((await page.locator('[data-operation="slug"]').count()) === 1, '슬러그는 독립 위젯이 아니라 operation surface에 선다');
+check(/ganada/.test(await page.locator('#opResult').inputValue()), '한글 제목을 로마자 슬러그로 바꾼다');
+await page.click('#pfBack');
+await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+await page.locator('.pf-job[data-job="hangulkey"]').click();
+await page.waitForSelector('[data-operation="hangulkey"]', { timeout: 15000 });
+await page.fill('#opInput', 'dkssud gktpdy');
+check((await page.locator('#opResult').inputValue()) === '안녕 하세요', '한영타 operation은 영문과 한글 조각을 자동으로 따로 되돌린다');
+await page.click('#pfBack');
+await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+await page.locator('.pf-job[data-job="textclean"]').click();
+await page.waitForSelector('[data-operation="textclean"]', { timeout: 15000 });
+await page.fill('#opInput', '  같은 줄  \n같은 줄\n\n  다음 줄');
+await page.check('[data-control="dedupe"]');
+await page.check('[data-control="squeeze"]');
+check((await page.locator('#opResult').inputValue()) === '같은 줄\n다음 줄', '글 정리는 공용 operation에서 공백·중복·빈 줄을 같은 순서로 처리한다');
+await page.click('#pfBack');
+await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+await page.locator('.pf-job[data-job="case"]').click();
+await page.waitForSelector('[data-operation="case"]', { timeout: 15000 });
+await page.fill('#opInput', 'XMLHttpRequest');
+await page.selectOption('[data-control="style"]', 'snake');
+check((await page.locator('#opResult').inputValue()) === 'xml_http_request', '표기법 변환은 공용 surface에서 같은 결과를 낸다');
+await page.click('#pfBack');
+await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+await page.locator('.pf-job[data-job="linebreak"]').click();
+await page.waitForSelector('[data-operation="linebreak"]', { timeout: 15000 });
+await page.fill('#opInput', 'first line\nsecond line\n\nnew paragraph');
+check((await page.locator('#opResult').inputValue()) === 'first line second line\n\nnew paragraph', '줄바꿈 operation은 문단을 남기고 줄을 잇는다');
+await page.click('#pfBack');
+await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+
+/* ④ 남은 기존 할 일을 고르면 그 자리에서 열린다 — 글은 안 사라진다 */
 await page.locator('.pf-job[data-job="textclean"]').click();
 await page.waitForSelector('#pfMount:visible', { timeout: 15000 });
 check(!(await page.locator('#pfJobs').isVisible()), '고르면 격자는 접힌다');
