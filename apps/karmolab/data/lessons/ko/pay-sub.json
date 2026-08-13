@@ -1,98 +1,687 @@
 {
   "id": "pay-sub",
-  "minutes": 11,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "구독은 한 번 팔고 끝이 아니라 **매달 다시 결제**하는 시스템이다. 그래서 실패 복구가 매출의 큰 부분이 된다."
-    },
-    {
-      "type": "h",
-      "text": "1. 갱신 실패는 정상이다"
-    },
-    {
-      "type": "note",
-      "text": "카드 만료·한도 초과·분실 신고. **자연 이탈의 상당 부분이 진짜 해지가 아니라 결제 실패**다(involuntary churn). 재시도와 안내만 잘해도 회복되는 비율이 높다."
-    },
-    {
-      "type": "h",
-      "text": "2. dunning — 실패 복구"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "표준 흐름",
-      "text": "1일차 실패 → 즉시 이메일 안내 + 카드 갱신 링크\n3·5·7일 재시도 (간격을 넓히며)\n마지막 시도 전 마지막 안내\n실패 시 유예 기간(grace) 후 다운그레이드 — 데이터는 바로 지우지 않는다"
-    },
-    {
-      "type": "h",
-      "text": "3. 요금제 변경"
-    },
-    {
-      "type": "p",
-      "text": "업그레이드는 즉시 + 일할 청구, 다운그레이드는 **다음 주기부터**가 흔한 규칙이다. 어느 쪽이든 「지금 얼마가 청구되는지」를 **변경 전에 보여 줘라**."
-    },
-    {
-      "type": "h",
-      "text": "4. 사용량 기반"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "미터링의 함정",
-      "text": "· 사용량 집계 시점과 청구 시점의 시차\n· 중복 집계(재시도로 이벤트가 두 번)\n· 상한 없는 요금 → 사용자에게 충격 (알림·상한 설정 제공)\n· 무료 한도 초과 시점의 안내"
-    },
-    {
-      "type": "h",
-      "text": "5. 해지"
-    },
-    {
-      "type": "note",
-      "text": "**해지를 어렵게 만들지 마라** — 지역에 따라 법적 문제이기도 하고, 나쁜 평판은 오래 간다. 대신 해지 사유를 물어 데이터로 남기고, 일시 정지(pause) 같은 대안을 제시하라."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "테스트 카드로 갱신 실패를 만들고, 재시도·안내가 자동으로 도는지 확인하라."
-    },
-    {
-      "type": "try",
-      "text": "요금제 변경 화면에 「지금 청구될 금액」을 계산해 보여 주는 기능을 넣어라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "구독 이탈에서 큰 비중을 차지하는 것은?",
-      "choices": [
-        "결제 실패로 인한 비자발적 이탈",
-        "경쟁사 이동",
-        "가격 인상"
+      "id": "1",
+      "title": "구독 = 매달 다시 결제",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "구독은 한 번 팔고 끝이 아니라 **매달 다시 결제**하는 시스템이다 — 그래서 「결제 한 번」이 아니라 **반복되는 결제·갱신·실패·복구**의 흐름을 다뤄야 한다. 핵심 통찰: **갱신 실패 복구가 매출의 큰 부분**이 된다. 매달 수천·수만 건의 자동 갱신 중 상당수가 카드 만료·한도 등으로 실패하는데(2장), 이걸 잘 복구하면(dunning, 3장) 그만큼이 유지되는 매출이다. 그래서 구독 시스템은 「파는 것」보다 **「유지하는 것」**(갱신·실패 복구·요금제 변경·해지 관리)이 더 큰 비중이다. 일회성 결제(pay-flow)와 달리, 구독은 **시간에 걸친 관계**를 관리한다 — 상태·수명주기·반복 청구가 중심이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "구독 매출 — 갱신이 쌓인다",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tl { margin:8px 0; }\n  .tl .d { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n           background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .tl .d.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .tl .d.good { border-left-color:#22c55e; } .tl .d.bad { border-left-color:#ef4444; }\n  .tl .d .day { width:60px; color:#7dd3fc; }\n  .bill { margin:8px 0; font:11.5px ui-monospace, monospace; }\n  .bill .r { display:flex; justify-content:space-between; padding:3px 9px; border-bottom:1px solid #1e293b; }\n  .bill .r .lab { color:#94a3b8; } .bill .r .val { color:#cbd5e1; }\n  .bill .r.total { border-top:2px solid #334155; border-bottom:none; margin-top:3px; font-weight:700; }\n  .bill .r.total .val { color:#4ade80; }\n  .bars .bar { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace; }\n  .bars .fill { height:16px; border-radius:3px; }\n  .sm { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace; }\n  .sm .st { padding:4px 8px; border-radius:5px; background:#1e293b; color:#94a3b8; }\n  .sm .st.on { background:#0e2a3a; color:#7dd3fc; border:1px solid #164e63; }\n  .sm .st.good { background:#132a1c; color:#4ade80; } .sm .st.bad { background:#2a1414; color:#f87171; }\n  .sm .arr { color:#475569; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const won = (n) => Number(n).toLocaleString('ko-KR') + '원';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bill = (rows) => '<div class=\"bill\">' + rows.map(([lab, val, cls]) =>\n    '<div class=\"r ' + (cls||'') + '\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const tl = (rows) => '<div class=\"tl\">' + rows.map(([day, txt, cls]) =>\n    '<div class=\"d ' + (cls||'') + '\"><span class=\"day\">' + esc(day) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, v, max, col]) =>\n    '<div class=\"bar\"><span style=\"width:120px;color:#94a3b8\">' + esc(lab) + '</span>' +\n    '<span class=\"fill\" style=\"width:' + Math.round(v/max*150) + 'px;background:' + (col||'#22d3ee') + '\"></span>' +\n    '<span class=\"dim\">' + v + '</span></div>').join('') + '</div>';\n  const sm = (states) => '<div class=\"sm\">' + states.map((s, i) =>\n    '<span class=\"st ' + (s[1]||'') + '\">' + esc(s[0]) + '</span>' + (i < states.length-1 ? '<span class=\"arr\">→</span>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const recovery = '{{recovery}}';\n  const base = 100;  // 매달 신규 100명 가정, 각 월 10000원\n  const failRate = 0.1;  // 10% 갱신 실패\n  const recoverRate = recovery === 'yes' ? 0.7 : 0;\n  let active = 0; const rows = [];\n  for (let m = 1; m <= 4; m++) {\n    const renewFail = Math.round(active * failRate);\n    const recovered = Math.round(renewFail * recoverRate);\n    const lost = renewFail - recovered;\n    active = active - lost + base;\n    rows.push([active, m]);\n  }\n  const finalRev = active * 10000;\n  render(recovery === 'yes' ? '실패 복구 있음' : '실패 복구 없음',\n    '  매달 신규 100명 · 갱신 실패 10% · 복구 ' + (recovery==='yes'?'70%':'0%') + '\\n' +\n    '  4개월 후 활성: ' + active + '명 · 월 매출 ' + won(finalRev) + '\\n\\n' +\n    (recovery === 'yes'\n      ? '  <span class=\\\"ok\\\">실패를 복구하니 이탈이 줄어 활성·매출이 더 쌓인다.</span>'\n      : '  <span class=\\\"no\\\">실패를 방치하니 매달 이탈 → 매출이 덜 쌓인다.</span>'),\n    '구독은 갱신이 쌓이는 매출 — 실패 복구가 매출의 큰 부분.',\n    bars(rows.map(r=>['월 '+r[1], r[0], 400])));\n</script>",
+          "controls": [
+            {
+              "id": "recovery",
+              "label": "실패 복구",
+              "type": "select",
+              "value": "no",
+              "options": [
+                {
+                  "value": "no",
+                  "label": "없음"
+                },
+                {
+                  "value": "yes",
+                  "label": "있음(dunning)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**구독은 매달 다시 결제하는 시스템이라, 갱신 실패 복구가 매출의 큰 부분이 된다 — 「파는 것」보다 「유지하는 것」이 중심이다.** 일회성 결제(pay-flow)는 「이 결제를 성공시킨다」 하나지만, 구독은 **시간에 걸친 반복**이다: 가입 → 매주기(월·연) 자동 갱신 → 요금제 변경·일시정지·해지. 이 반복에서 핵심 통찰은 **갱신 실패가 매출에 큰 영향**을 준다는 것. 활성 구독자가 많아질수록 매주기 자동 갱신 건수가 늘고, 그중 상당수가 **카드 만료·한도 초과·분실 신고**로 실패한다(2장 — involuntary churn). 이 실패를 방치하면 그만큼 매출이 줄지만(구독자가 조용히 이탈), **잘 복구하면**(재시도·안내 — dunning, 3장) 그 대부분을 되살려 매출을 유지한다. 그래서 성숙한 구독 사업은 **실패 복구(dunning)에 크게 투자**한다 — 신규 획득만큼(또는 그 이상) 기존 유지가 매출을 좌우하니까(기존 유지가 신규 획득보다 싸다). 이 관점 전환이 중요하다: 구독 시스템은 「결제를 받는」 것보다 **「관계를 유지하는」** 것 — 갱신을 성사시키고, 실패를 복구하고, 요금제 변경을 매끄럽게 하고, 해지를 줄이고 잘 처리하는 것이 중심이다. 그래서 구독 시스템의 설계는 **상태·수명주기**(가입·활성·연체·해지 등 상태를 정확히, 7장)와 **반복 청구·실패 복구**(dunning)를 핵심으로 다룬다 — 단발 결제와 근본적으로 다른 복잡성이다. 「매달 다시 결제」라는 성질이 구독의 모든 특징(갱신 실패·요금제 변경·일할 계산·해지 관리·구독 지표)을 낳는다. 이걸 「결제를 반복하는 것」으로만 보면 실패 복구·상태 관리를 놓쳐 매출이 샌다 — 「시간에 걸친 관계를 관리하는 시스템」으로 봐야 한다."
+        },
+        {
+          "type": "p",
+          "text": "**「반복되는 관계」는 「일회성 거래」와 다른 사고를 요구한다 — 유지가 획득만큼 중요하다.** 구독의 교훈은 반복·관계형 비즈니스 일반에 통한다: **일회성 거래는 「성사」가 목표지만, 반복 관계는 「유지」가 핵심**이다. 구독·멤버십·리텐션 기반 서비스에서는 한 번 파는 것보다 **오래 유지하는 것**(생애 가치 LTV)이 매출을 좌우한다 — 그래서 이탈(churn)을 줄이고, 실패를 복구하고, 관계를 관리하는 데 투자한다. 이는 「깔때기 상단(획득)」만이 아니라 「깔때기 유지(리텐션)」를 봐야 함을 뜻한다(product·analytics). 특히 **비자발적 이탈**(involuntary churn — 결제 실패 등 고객 의사 아닌 이탈)은 기술적으로 복구 가능한데(2·3장), 이걸 놓치면 「원치 않는 이탈」로 매출이 샌다 — 자발적 이탈(고객이 정말 떠남)과 달리 순수 손실이라 복구 가치가 크다. 그래서 「매출이 어디서 새나」를 볼 때, 반복 관계에서는 **유지·복구**가 큰 레버리지다(신규 획득보다 싸고 확실). 이 사고 — 관계를 시간에 걸쳐 관리하고, 유지·복구에 투자하고, 이탈의 종류를 구분(자발/비자발) — 가 구독·SaaS·멤버십 비즈니스의 근본이다. 구독 결제 시스템을 만드는 건 단지 「반복 결제」가 아니라 **「관계를 유지하는 인프라」**를 만드는 것이다."
+        },
+        {
+          "type": "try",
+          "text": "네 구독의 갱신 실패율과 그중 복구율을 측정하라 — 매주기 갱신 중 몇 %가 실패하고, 그중 몇 %를 되살리나. 복구가 없거나 낮으면 그만큼 매출이 새는 것(비자발적 이탈). 「파는 것」만큼 「유지·복구」에 투자하고 있는지, 구독 시스템을 「반복 결제」가 아니라 「관계 유지 인프라」로 보고 있는지 점검하라."
+        }
       ],
-      "answer": 0,
-      "why": "dunning 으로 상당 부분 회복된다."
+      "quiz": [
+        {
+          "q": "구독 시스템의 핵심은?",
+          "choices": [
+            "한 번 팔기",
+            "매달 다시 결제 — 갱신 실패 복구가 매출의 큰 부분",
+            "빠른 결제",
+            "색"
+          ],
+          "answer": 1,
+          "why": "유지가 중심."
+        },
+        {
+          "q": "구독이 일회성 결제와 다른 점은?",
+          "choices": [
+            "없음",
+            "시간에 걸친 관계 관리(상태·수명주기·반복 청구·실패 복구)",
+            "빠름",
+            "느림"
+          ],
+          "answer": 1,
+          "why": "관계형."
+        },
+        {
+          "q": "반복 관계 비즈니스의 사고는?",
+          "choices": [
+            "획득만",
+            "유지가 획득만큼 중요 — 이탈(특히 비자발) 줄이고 복구",
+            "일회성",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "유지·복구가 레버리지."
+        }
+      ]
     },
     {
-      "q": "결제 실패 복구의 표준 방식은?",
-      "choices": [
-        "간격을 넓히며 재시도 + 안내 + 유예 기간",
-        "즉시 계정 삭제",
-        "한 번만 재시도"
+      "id": "2",
+      "title": "갱신 실패는 정상이다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "갱신 실패는 **비정상이 아니라 정상**이다 — 활성 구독자의 카드는 시간이 지나며 **만료**되고(대부분 유효기간 3~5년), 한도 초과·잔액 부족·분실 신고·은행 정책으로 결제가 거부된다. 매주기 갱신의 몇 %는 필연적으로 실패한다. 핵심 통찰: **자연 이탈의 상당 부분이 진짜 해지가 아니라 결제 실패**다 — 이를 **비자발적 이탈(involuntary churn)**이라 한다. 고객은 계속 쓰고 싶은데(해지 의사 없음) 카드 문제로 결제가 안 돼서 이탈하는 것. 이건 **재시도와 안내(dunning, 3장)로 상당수 복구 가능**하다 — 자발적 이탈(고객이 정말 떠남)과 달리 기술적으로 되살릴 수 있어, 복구 가치가 크다. 그래서 「갱신 실패 = 정상, 복구 대상」으로 다룬다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "이탈 구성 — 자발 vs 비자발",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tl { margin:8px 0; }\n  .tl .d { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n           background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .tl .d.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .tl .d.good { border-left-color:#22c55e; } .tl .d.bad { border-left-color:#ef4444; }\n  .tl .d .day { width:60px; color:#7dd3fc; }\n  .bill { margin:8px 0; font:11.5px ui-monospace, monospace; }\n  .bill .r { display:flex; justify-content:space-between; padding:3px 9px; border-bottom:1px solid #1e293b; }\n  .bill .r .lab { color:#94a3b8; } .bill .r .val { color:#cbd5e1; }\n  .bill .r.total { border-top:2px solid #334155; border-bottom:none; margin-top:3px; font-weight:700; }\n  .bill .r.total .val { color:#4ade80; }\n  .bars .bar { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace; }\n  .bars .fill { height:16px; border-radius:3px; }\n  .sm { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace; }\n  .sm .st { padding:4px 8px; border-radius:5px; background:#1e293b; color:#94a3b8; }\n  .sm .st.on { background:#0e2a3a; color:#7dd3fc; border:1px solid #164e63; }\n  .sm .st.good { background:#132a1c; color:#4ade80; } .sm .st.bad { background:#2a1414; color:#f87171; }\n  .sm .arr { color:#475569; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const won = (n) => Number(n).toLocaleString('ko-KR') + '원';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bill = (rows) => '<div class=\"bill\">' + rows.map(([lab, val, cls]) =>\n    '<div class=\"r ' + (cls||'') + '\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const tl = (rows) => '<div class=\"tl\">' + rows.map(([day, txt, cls]) =>\n    '<div class=\"d ' + (cls||'') + '\"><span class=\"day\">' + esc(day) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, v, max, col]) =>\n    '<div class=\"bar\"><span style=\"width:120px;color:#94a3b8\">' + esc(lab) + '</span>' +\n    '<span class=\"fill\" style=\"width:' + Math.round(v/max*150) + 'px;background:' + (col||'#22d3ee') + '\"></span>' +\n    '<span class=\"dim\">' + v + '</span></div>').join('') + '</div>';\n  const sm = (states) => '<div class=\"sm\">' + states.map((s, i) =>\n    '<span class=\"st ' + (s[1]||'') + '\">' + esc(s[0]) + '</span>' + (i < states.length-1 ? '<span class=\"arr\">→</span>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  // 월 이탈 100명 중: 자발 40, 비자발(결제 실패) 60\n  const voluntary = 40, involuntary = 60;\n  const recoverable = Math.round(involuntary * 0.7);  // 비자발의 70% 복구 가능\n  if (view === 'breakdown') {\n    render('이탈 100명의 구성',\n      '  자발적 이탈(정말 떠남): ' + voluntary + '명\\n' +\n      '  비자발적 이탈(결제 실패): ' + involuntary + '명 ← 상당 부분!\\n\\n' +\n      '  <span class=\\\"warn\\\">「자연 이탈」의 상당 부분이 진짜 해지가 아니라 결제 실패다.</span>',\n      '이탈의 상당 부분이 결제 실패(비자발) — 진짜 해지가 아니다.',\n      bars([['자발(정말 떠남)', voluntary, 100, '#94a3b8'], ['비자발(결제 실패)', involuntary, 100, '#f59e0b']]));\n  } else {\n    render('비자발 이탈은 복구 가능',\n      '  비자발 ' + involuntary + '명 중 dunning(재시도·안내)으로 ' + recoverable + '명 복구\\n' +\n      '  → 이탈 100명이 실질 ' + (100 - recoverable) + '명으로 감소\\n\\n' +\n      '  <span class=\\\"ok\\\">고객은 쓰고 싶은데 카드 문제 → 재시도·안내로 되살림.</span>',\n      '비자발 이탈은 재시도·안내로 상당수 복구 — 순수 매출 회수.',\n      bars([['비자발 전체', involuntary, 100, '#f59e0b'], ['복구됨', recoverable, 100, '#22c55e'],\n            ['남은 이탈', involuntary - recoverable, 100, '#ef4444']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "view",
+              "label": "관점",
+              "type": "select",
+              "value": "breakdown",
+              "options": [
+                {
+                  "value": "breakdown",
+                  "label": "이탈 구성"
+                },
+                {
+                  "value": "recover",
+                  "label": "복구 가능성"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**갱신 실패는 정상이다 — 카드 만료·한도 초과·분실 신고로 매주기 일부가 필연적으로 실패한다. 자연 이탈의 상당 부분이 진짜 해지가 아니라 결제 실패(비자발적 이탈)이고, 재시도·안내로 복구 가능하다.** 활성 구독자의 결제 수단은 시간이 지나며 문제가 생긴다: **카드 만료**(유효기간이 지나 갱신 실패 — 가장 흔함, 카드는 3~5년마다 만료되니 장기 구독자는 반드시 겪음), **한도 초과·잔액 부족**(일시적), **분실·도난 신고로 재발급**(번호가 바뀜), **은행의 이상거래 차단**(정기 결제를 의심), 카드 정지. 그래서 매주기 자동 갱신의 몇 %(서비스마다 다르지만 상당수)는 **필연적으로 실패**한다 — 이건 시스템 버그가 아니라 **정상적인 현상**이라, 「실패를 없애려」 하기보다 **「실패를 복구하는」** 데 집중한다. 핵심 개념 — **비자발적 이탈(involuntary churn)**: 이탈(구독 종료)에는 두 종류가 있다. **자발적 이탈(voluntary)** — 고객이 정말 해지 버튼을 눌러 떠남(불만·불필요·경쟁사). **비자발적 이탈(involuntary)** — 고객은 계속 쓰고 싶은데(해지 의사 없음) **결제가 실패해서** 구독이 끊김. 놀랍게도 **자연 이탈의 상당 부분(때로 절반 이상)이 비자발적**이다 — 고객이 떠나려는 게 아니라 카드 문제로 결제가 안 된 것. 이게 중요한 이유: **비자발적 이탈은 기술적으로 복구 가능**하다(자발적 이탈은 고객 마음을 돌려야 하지만). 재시도(카드가 일시적 문제면 나중에 성공)와 안내(카드 갱신 링크를 보내 고객이 새 카드 등록)로 상당수를 **되살린다**(dunning, 3장) — 고객은 원래 계속 쓰고 싶었으니 카드만 고치면 유지된다. 그래서 비자발적 이탈 복구는 **순수 매출 회수**(원치 않던 손실을 되찾음)라 가치가 크고, 상대적으로 쉽다(고객 설득 불필요, 결제만 성사시키면 됨). 결론: 갱신 실패를 「정상적이고 복구 대상인 것」으로 다루고, 이탈을 자발/비자발로 **구분해 측정**한다(비자발이 크면 dunning 개선으로 크게 회수 가능). 「왜 구독자가 줄지?」의 답이 「해지」가 아니라 「결제 실패」인 경우가 많고, 후자는 고칠 수 있다."
+        },
+        {
+          "type": "p",
+          "text": "**「실패를 없애기」보다 「실패를 복구하기」 — 필연적 실패엔 복구 설계로 대응한다.** 갱신 실패의 교훈은 「필연적 실패에 대한 태도」다: 어떤 실패는 **없앨 수 없다**(카드는 반드시 만료되고, 외부 시스템은 반드시 가끔 실패한다) — 이런 필연적 실패엔 「예방」이 아니라 **「우아한 복구」**로 대응한다(scale-fail — 실패를 전제로 설계). 갱신 실패를 0 으로 만들 순 없으니, **실패를 정상으로 받아들이고 복구 메커니즘(재시도·안내·유예)을 갖춘다**(3장). 이는 분산 시스템의 「실패는 정상, 복구가 설계」(pay-webhook 재전송·qa-flaky 재현·scale-fail)와 통한다. 그리고 「실패의 종류를 구분」이 중요하다 — 비자발적(복구 가능)과 자발적(복구 어려움)을 나눠, 복구 가능한 것에 집중한다(측정·분류가 대응을 정한다). 이는 「모든 이탈을 뭉뚱그리지 말고, 원인별로 나눠 대응」의 사고 — 결제 실패는 기술로, 불만은 제품으로, 불필요는 가치 전달로. 그래서 「자연 이탈」이라는 뭉뚱그린 숫자를 **구성으로 분해**하면(자발/비자발, 원인별), 어디에 손대야 매출이 유지되는지 보인다(analytics — 지표를 분해). 필연적 실패를 복구로 다루고, 실패·이탈을 원인별로 분해해 대응하는 게 성숙한 구독 운영이다. 「실패를 없애려는」 헛된 노력 대신 「실패를 잘 복구하는」 데 투자한다."
+        },
+        {
+          "type": "try",
+          "text": "네 구독 이탈을 자발적(해지 버튼)과 비자발적(결제 실패)으로 나눠 측정하라 — 비자발적 비중이 크면 복구 여지가 크다. 갱신 실패의 원인(카드 만료·한도·차단)을 분류하고, 「실패를 없애기」가 아니라 「실패를 복구하기」(dunning, 3장)에 투자하고 있는지 점검하라. 필연적 실패를 정상으로 받아들이고 복구를 설계하라."
+        }
       ],
-      "answer": 0,
-      "why": "데이터를 바로 지우면 회복이 불가능해진다."
+      "quiz": [
+        {
+          "q": "갱신 실패는?",
+          "choices": [
+            "시스템 버그",
+            "정상 — 카드 만료·한도 등으로 필연적으로 일부 실패",
+            "드묾",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "복구가 핵심."
+        },
+        {
+          "q": "비자발적 이탈(involuntary churn)이란?",
+          "choices": [
+            "해지 버튼",
+            "고객은 쓰고 싶은데 결제 실패로 끊김 — 복구 가능",
+            "환불",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "순수 매출 회수."
+        },
+        {
+          "q": "필연적 실패에 대한 태도는?",
+          "choices": [
+            "없애기",
+            "복구하기 — 실패를 정상으로 받아들이고 복구 설계",
+            "무시",
+            "재작성"
+          ],
+          "answer": 1,
+          "why": "실패는 정상, 복구가 설계."
+        }
+      ]
     },
     {
-      "q": "해지 흐름 설계에서 옳은 것은?",
-      "choices": [
-        "쉽게 만들고 사유를 데이터로 남긴다",
-        "전화로만 가능하게",
-        "단계를 늘려 이탈을 막는다"
+      "id": "3",
+      "title": "dunning — 실패 복구",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**dunning**(청구 독촉·실패 복구)은 갱신 실패를 되살리는 자동 흐름이다: **1일차 실패 → 즉시 이메일 안내 + 카드 갱신 링크**(고객이 새 카드 등록하게), **3·5·7일 재시도**(간격을 넓히며 — 일시적 문제면 나중에 성공), **마지막 시도 전 마지막 안내**(「곧 구독이 중단됩니다」), 실패 지속 시 **유예 기간(grace period)** 후 중단. 핵심: ① **재시도 타이밍**(즉시 다시 하면 또 실패 — 간격을 두고, 급여일·월초 노려) ② **명확한 안내**(무엇이 문제고 어떻게 고치나 — 카드 갱신 링크) ③ **유예 기간**(바로 끊지 말고 며칠 여유 — 그동안 서비스 유지해 복구 기회). PG(Stripe 등)가 dunning 을 기본 제공하니 **설정·커스터마이즈**해 쓴다. dunning 품질이 비자발적 이탈 복구율을 좌우한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "dunning 타임라인 — 재시도와 안내",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tl { margin:8px 0; }\n  .tl .d { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n           background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .tl .d.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .tl .d.good { border-left-color:#22c55e; } .tl .d.bad { border-left-color:#ef4444; }\n  .tl .d .day { width:60px; color:#7dd3fc; }\n  .bill { margin:8px 0; font:11.5px ui-monospace, monospace; }\n  .bill .r { display:flex; justify-content:space-between; padding:3px 9px; border-bottom:1px solid #1e293b; }\n  .bill .r .lab { color:#94a3b8; } .bill .r .val { color:#cbd5e1; }\n  .bill .r.total { border-top:2px solid #334155; border-bottom:none; margin-top:3px; font-weight:700; }\n  .bill .r.total .val { color:#4ade80; }\n  .bars .bar { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace; }\n  .bars .fill { height:16px; border-radius:3px; }\n  .sm { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace; }\n  .sm .st { padding:4px 8px; border-radius:5px; background:#1e293b; color:#94a3b8; }\n  .sm .st.on { background:#0e2a3a; color:#7dd3fc; border:1px solid #164e63; }\n  .sm .st.good { background:#132a1c; color:#4ade80; } .sm .st.bad { background:#2a1414; color:#f87171; }\n  .sm .arr { color:#475569; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const won = (n) => Number(n).toLocaleString('ko-KR') + '원';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bill = (rows) => '<div class=\"bill\">' + rows.map(([lab, val, cls]) =>\n    '<div class=\"r ' + (cls||'') + '\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const tl = (rows) => '<div class=\"tl\">' + rows.map(([day, txt, cls]) =>\n    '<div class=\"d ' + (cls||'') + '\"><span class=\"day\">' + esc(day) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, v, max, col]) =>\n    '<div class=\"bar\"><span style=\"width:120px;color:#94a3b8\">' + esc(lab) + '</span>' +\n    '<span class=\"fill\" style=\"width:' + Math.round(v/max*150) + 'px;background:' + (col||'#22d3ee') + '\"></span>' +\n    '<span class=\"dim\">' + v + '</span></div>').join('') + '</div>';\n  const sm = (states) => '<div class=\"sm\">' + states.map((s, i) =>\n    '<span class=\"st ' + (s[1]||'') + '\">' + esc(s[0]) + '</span>' + (i < states.length-1 ? '<span class=\"arr\">→</span>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const day = {{day}};\n  const events = [\n    ['1일차', '갱신 실패 → 즉시 이메일 + 카드 갱신 링크', 'bad'],\n    ['3일차', '재시도 #1 (실패 시 안내 반복)', 'on'],\n    ['5일차', '재시도 #2 (간격 넓힘)', 'on'],\n    ['7일차', '재시도 #3 + 마지막 안내(곧 중단)', 'on'],\n    ['10일차', '유예 기간 종료 → 복구 실패 시 중단', 'bad'],\n  ];\n  const n = Math.min(day, 4);\n  render('dunning ' + events[n][0],\n    '  ' + events[n][1] + '\\n\\n' +\n    (n === 0\n      ? '  <span class=\\\"warn\\\">실패 즉시 안내 — 카드 갱신 링크로 고객이 스스로 고치게.</span>'\n      : n < 4\n        ? '  <span class=\\\"ok\\\">간격을 넓히며 재시도 — 일시적 문제면 나중에 성공. 안내 반복.</span>'\n        : '  <span class=\\\"no\\\">유예 기간 후에도 실패 → 중단. 그 전까지 서비스 유지·복구 기회.</span>'),\n    'dunning: 실패→즉시 안내→간격 넓히며 재시도→유예 후 중단.',\n    tl(events.map((e,i)=>[e[0], e[1], i <= n ? e[2] : ''])));\n</script>",
+          "controls": [
+            {
+              "id": "day",
+              "label": "경과",
+              "type": "range",
+              "min": 0,
+              "max": 4,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "dunning 흐름",
+          "text": "1일차 실패 → 즉시 이메일 안내 + 카드 갱신 링크\n3·5·7일 재시도 (간격을 넓히며 — 일시적 문제면 나중에 성공)\n마지막 시도 전 마지막 안내 (「곧 구독이 중단됩니다」)\n실패 시 유예 기간(grace period) 후 중단\n\n· 재시도 타이밍: 즉시 X (또 실패) — 간격 두고, 급여일·월초 노려\n· 명확한 안내: 무엇이 문제·어떻게 고치나 (카드 갱신 링크)\n· 유예 기간: 바로 끊지 말고 며칠 — 서비스 유지하며 복구 기회\n· PG 가 기본 제공 → 설정·커스터마이즈해 쓴다"
+        },
+        {
+          "type": "note",
+          "text": "**dunning 은 갱신 실패를 되살리는 자동 흐름 — 즉시 안내 + 간격을 넓히며 재시도 + 유예 기간 후 중단. 재시도 타이밍·명확한 안내·유예 기간이 복구율을 좌우한다.** **dunning**(원래 「빚 독촉」에서 유래, 구독에선 「결제 실패 복구 흐름」)의 표준 패턴: ① **1일차 실패 → 즉시 이메일 안내 + 카드 갱신 링크** — 실패하자마자 고객에게 「결제가 실패했으니 카드를 확인·갱신해 주세요」를 명확히 알리고, **카드 갱신 링크**(고객이 새 카드를 쉽게 등록)를 준다. 많은 복구가 여기서 일어난다(고객이 몰랐던 카드 만료를 알고 갱신). ② **3·5·7일 재시도**(간격을 넓히며) — 결제를 자동 재시도한다. **간격이 중요**: 즉시 다시 하면 같은 이유로 또 실패하니(한도 초과가 안 풀림), **간격을 두고**(며칠) 재시도하고, 점점 넓힌다(3·5·7일). 스마트 재시도는 **급여일·월초**(잔액이 채워질 때)를 노리기도 한다(PG 의 지능형 재시도). ③ **마지막 시도 전 마지막 안내** — 「곧 구독이 중단됩니다」로 긴박감을 줘 마지막 복구 기회. ④ **유예 기간(grace period) 후 중단** — 바로 끊지 말고 며칠 여유를 둔다(그동안 서비스를 유지해 고객이 카드를 고칠 시간을 줌 — 급히 끊으면 복구 기회를 잃고 고객 경험도 나쁨). 유예 후에도 실패하면 구독을 중단(또는 일시정지)한다. **핵심 요소**: ⓐ **재시도 타이밍**(즉시 X, 간격 두고 넓히며, 좋은 시점 노려), ⓑ **명확한 안내**(무엇이 문제인지·어떻게 고치는지 — 카드 갱신 링크, plt-error·pay-refund 의 「다음 행동」), ⓒ **유예 기간**(복구 기회 + 좋은 경험). 이 셋의 품질이 비자발적 이탈(2장) 복구율을 크게 좌우한다 — 좋은 dunning 은 실패의 절반 이상을 복구하기도 한다. **PG(Stripe 등)가 dunning 을 기본 제공**한다(Smart Retries·자동 이메일·카드 자동 업데이트 — 카드사가 새 카드 번호를 PG 에 알려 주는 기능까지) — 그래서 직접 만들기보다 **PG 기능을 설정·커스터마이즈**해 쓴다(위임, pay-security 원리). dunning 은 「구독 매출을 지키는」 핵심 기능이라, 이걸 잘 갖추면 큰 매출 회수 효과가 있다(2장 — 비자발적 이탈이 크니까)."
+        },
+        {
+          "type": "p",
+          "text": "**재시도·복구 흐름의 설계 원리 — 백오프·안내·유예는 dunning 을 넘어 통한다.** dunning 의 원리는 실패 복구 일반에 통한다: ① **백오프(backoff)** — 재시도 간격을 넓히는 것(즉시 X, 점점 길게)은 재시도 일반의 원칙이다(pay-webhook 재전송·네트워크 재시도·scale-fail). 즉시 재시도는 같은 실패를 반복하고 부하만 주니, 간격을 두고(가능하면 좋은 시점 노려) 재시도한다. ② **명확한 안내 + 자가 복구 경로** — 실패 시 「무엇이·어떻게」를 알리고 **고객이 스스로 고칠 길**(카드 갱신 링크)을 주는 것은 좋은 오류 처리(plt-error·qa-gate — 다음 행동)와 같다. 사용자가 스스로 복구하게 하는 게 최선(CS 부담 없이). ③ **유예 기간(grace)** — 실패 즉시 단호히 끊지 말고 여유를 두는 것은 「관대한 실패 처리」다(급히 벌하지 말고 복구 기회를 줌 — 좋은 UX + 매출 유지). ④ **위임** — PG 의 dunning 을 쓰는 건 「복잡·전문적인 것은 전문 서비스에」(pay-security 1장). 그래서 dunning 은 「재시도(백오프) + 안내(자가 복구) + 유예(관대함) + 위임」의 종합이고, 이 요소들은 결제뿐 아니라 재시도가 필요한 모든 곳(네트워크·작업 큐·외부 연동)에 통한다. 「실패를 어떻게 우아하게 복구하나」의 설계 — 간격을 두고 재시도하고, 사용자에게 명확히 알리고 자가 복구를 주고, 급히 벌하지 않고 유예를 주는 것 — 가 견고하고 사용자 친화적인 시스템의 특징이다. dunning 은 그 원리를 구독 매출 복구에 적용한 정교한 사례다."
+        },
+        {
+          "type": "try",
+          "text": "테스트 카드로 갱신 실패를 만들고, 재시도·안내가 자동으로 도는지 확인하라(PG 의 dunning 설정). 재시도 간격(즉시 X, 넓히며), 실패 즉시 카드 갱신 링크 안내, 유예 기간(바로 안 끊음)이 있는지 점검하라. PG 의 Smart Retries·카드 자동 업데이트를 켰는지 보고, dunning 복구율을 측정해 개선하라 — 비자발적 이탈 복구가 매출을 지킨다."
+        }
       ],
-      "answer": 0,
-      "why": "법적 문제이자 평판 문제다."
+      "quiz": [
+        {
+          "q": "dunning 이란?",
+          "choices": [
+            "해지",
+            "갱신 실패 복구 흐름 — 안내+재시도+유예",
+            "환불",
+            "결제"
+          ],
+          "answer": 1,
+          "why": "매출을 지킴."
+        },
+        {
+          "q": "재시도 간격은?",
+          "choices": [
+            "즉시 반복",
+            "간격을 두고 넓히며(즉시는 또 실패) — 좋은 시점 노려",
+            "안 함",
+            "무한"
+          ],
+          "answer": 1,
+          "why": "백오프."
+        },
+        {
+          "q": "유예 기간(grace period)의 목적은?",
+          "choices": [
+            "빠른 중단",
+            "바로 끊지 말고 여유 — 복구 기회 + 좋은 경험",
+            "벌",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "관대한 실패 처리."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "요금제 변경",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "요금제 변경(업/다운그레이드)의 흔한 규칙: **업그레이드는 즉시 + 일할 청구**(더 비싼 플랜으로 지금 바꾸고, 남은 기간의 차액을 일할 계산해 청구), **다운그레이드는 다음 주기부터**(이번 주기는 이미 냈으니 끝까지 쓰고, 다음 갱신부터 싼 플랜). 어느 쪽이든 핵심은 **「지금 얼마가 청구되는지」를 변경 전에 미리 보여 주는** 것 — 일할 계산은 복잡해서 고객이 예상 못 하면(「왜 이 금액이 청구됐지?」) 분쟁·불만이 난다. 변경 확인 화면에 「지금 X원이 청구됩니다」(또는 「다음 주기부터 Y원」)를 명확히 표시한다. 일할 계산 자체는 PG 구독 기능이 처리(proration)하니, 그 결과를 **미리 계산해 보여 주는** 게 실무의 핵심이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "요금제 변경 — 일할 청구 미리보기",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tl { margin:8px 0; }\n  .tl .d { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n           background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .tl .d.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .tl .d.good { border-left-color:#22c55e; } .tl .d.bad { border-left-color:#ef4444; }\n  .tl .d .day { width:60px; color:#7dd3fc; }\n  .bill { margin:8px 0; font:11.5px ui-monospace, monospace; }\n  .bill .r { display:flex; justify-content:space-between; padding:3px 9px; border-bottom:1px solid #1e293b; }\n  .bill .r .lab { color:#94a3b8; } .bill .r .val { color:#cbd5e1; }\n  .bill .r.total { border-top:2px solid #334155; border-bottom:none; margin-top:3px; font-weight:700; }\n  .bill .r.total .val { color:#4ade80; }\n  .bars .bar { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace; }\n  .bars .fill { height:16px; border-radius:3px; }\n  .sm { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace; }\n  .sm .st { padding:4px 8px; border-radius:5px; background:#1e293b; color:#94a3b8; }\n  .sm .st.on { background:#0e2a3a; color:#7dd3fc; border:1px solid #164e63; }\n  .sm .st.good { background:#132a1c; color:#4ade80; } .sm .st.bad { background:#2a1414; color:#f87171; }\n  .sm .arr { color:#475569; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const won = (n) => Number(n).toLocaleString('ko-KR') + '원';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bill = (rows) => '<div class=\"bill\">' + rows.map(([lab, val, cls]) =>\n    '<div class=\"r ' + (cls||'') + '\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const tl = (rows) => '<div class=\"tl\">' + rows.map(([day, txt, cls]) =>\n    '<div class=\"d ' + (cls||'') + '\"><span class=\"day\">' + esc(day) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, v, max, col]) =>\n    '<div class=\"bar\"><span style=\"width:120px;color:#94a3b8\">' + esc(lab) + '</span>' +\n    '<span class=\"fill\" style=\"width:' + Math.round(v/max*150) + 'px;background:' + (col||'#22d3ee') + '\"></span>' +\n    '<span class=\"dim\">' + v + '</span></div>').join('') + '</div>';\n  const sm = (states) => '<div class=\"sm\">' + states.map((s, i) =>\n    '<span class=\"st ' + (s[1]||'') + '\">' + esc(s[0]) + '</span>' + (i < states.length-1 ? '<span class=\"arr\">→</span>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const change = '{{change}}';\n  // 현재 베이직 10000원, 15일 사용(15일 남음) · 프로 30000원\n  const basic = 10000, pro = 30000, leftDays = 15, cycle = 30;\n  if (change === 'upgrade') {\n    const proRated = Math.round((pro - basic) * leftDays/cycle);  // 차액 일할\n    render('업그레이드 (베이직→프로): 즉시 + 일할',\n      '  지금 프로로 전환 · 남은 ' + leftDays + '일의 차액을 일할 청구\\n\\n' +\n      '  <span class=\\\"ok\\\">변경 전에 「지금 ' + won(proRated) + ' 청구」를 미리 보여 준다.</span>',\n      '업그레이드: 즉시 전환 + 남은 기간 차액 일할 청구 — 미리 보여줌.',\n      bill([['프로 월 요금', won(pro)], ['베이직 월 요금', won(basic)], ['차액', won(pro-basic)],\n            ['남은 기간', leftDays+'/'+cycle+'일'], ['지금 청구(일할)', won(proRated), 'total']]));\n  } else {\n    render('다운그레이드 (프로→베이직): 다음 주기부터',\n      '  이번 주기는 프로로 끝까지 사용(이미 냄) · 다음 갱신부터 베이직\\n\\n' +\n      '  <span class=\\\"ok\\\">지금 청구 없음 · 다음 주기부터 ' + won(basic) + ' — 미리 안내.</span>',\n      '다운그레이드: 이번 주기 끝까지 쓰고 다음 갱신부터 싼 플랜 — 미리 안내.',\n      bill([['현재 프로', '이번 주기 끝까지 사용'], ['지금 청구', '없음'],\n            ['다음 주기부터', won(basic)+' (베이직)', 'total']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "change",
+              "label": "변경",
+              "type": "select",
+              "value": "upgrade",
+              "options": [
+                {
+                  "value": "upgrade",
+                  "label": "업그레이드"
+                },
+                {
+                  "value": "downgrade",
+                  "label": "다운그레이드"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**요금제 변경: 업그레이드는 즉시 + 일할 청구, 다운그레이드는 다음 주기부터가 흔한 규칙 — 어느 쪽이든 「지금 얼마가 청구되는지」를 변경 전에 미리 보여 준다.** 흔한 규칙: ① **업그레이드**(싼 → 비싼 플랜) — **즉시 전환 + 일할 청구**. 고객이 더 나은 플랜을 원하니 바로 바꿔 주고(즉시 혜택), 남은 기간에 대한 **차액을 일할 계산**해 지금 청구한다(예: 베이직 10000 을 15일 쓰고 프로 30000 으로 업그레이드 → 남은 15일의 차액 (30000-10000)×15/30 = 10000 을 지금 청구). 이러면 이번 주기 남은 기간을 프로로 쓰고, 다음 주기부터 정상 프로 요금. ② **다운그레이드**(비싼 → 싼 플랜) — **다음 주기부터**. 이번 주기는 이미 비싼 플랜 요금을 냈으니 **끝까지 그대로 쓰고**(환불 없이 — pay-refund 4장의 「기간 종료까지」와 같은 원리), **다음 갱신부터** 싼 플랜으로 바꾼다. 지금 청구는 없다. (다운그레이드에 즉시+차액 환불을 주는 정책도 있지만, 「다음 주기부터」가 단순·분쟁 적어 흔하다.) **핵심 — 「지금 얼마가 청구되는지」를 변경 전에 미리 보여 준다**: 일할 계산은 복잡해서(차액 × 남은 비율), 고객이 결과를 예상 못 하면 「왜 이 금액이 갑자기 청구됐지?」로 놀라고 분쟁·불만이 난다(pay-refund 분쟁·pay-webhook 명확한 청구). 그래서 변경 **확인 화면에 「지금 X원이 청구됩니다」**(업그레이드) 또는 **「다음 주기(날짜)부터 Y원」**(다운그레이드)을 명확히 표시해, 고객이 **알고 동의**하게 한다. 이 미리보기가 없으면 좋은 기능(요금제 변경)이 분쟁의 원천이 된다. **일할 계산 자체**(proration)는 복잡하고 규칙이 많아(변경 시점·남은 기간·기존 청구·세금) 직접 계산하면 오류가 나기 쉬우니, **PG 의 구독 기능이 처리**한다(Stripe 의 proration — 변경 시 자동 계산). 그래서 실무 핵심은 「일할 계산을 직접 하기」가 아니라 **「PG 가 계산할 금액을 미리 조회해(preview API) 고객에게 보여 주기」**다 — PG 에 「이 변경을 하면 얼마가 청구되나」를 미리 물어(대부분 preview·upcoming invoice API 제공) 그 결과를 확인 화면에 표시한다. 「명확한 기대」(pay-refund 4장)가 요금제 변경에서도 핵심 — 고객이 청구 금액을 미리 알고 동의하면 분쟁이 없다."
+        },
+        {
+          "type": "p",
+          "text": "**「변경의 결과를 미리 보여 주기」 — 투명성이 신뢰를 만든다.** 요금제 변경의 교훈은 「미리보기·투명성」의 가치다: **되돌리기 어렵거나 돈이 걸린 변경은, 실행 전에 결과를 미리 보여 줘 고객이 알고 동의하게** 한다. 일할 청구처럼 복잡·예상 어려운 결과는 특히 — 미리 안 보여 주면 「예상 밖 청구」로 놀라고 불신·분쟁이 생기지만, 「지금 X원 청구됩니다」를 미리 보여 주면 고객이 이해하고 동의해 분쟁이 없다. 이는 「명확한 기대」(pay-refund 4장 구독 해지)·「다음 행동 안내」(plt-error·qa-gate)와 통하는 **투명성의 원리** — 시스템이 무엇을 할지(특히 돈·되돌리기 어려운 것)를 실행 전에 명확히 보여 주면 신뢰가 생긴다. 이는 결제(청구 금액 미리보기)·삭제(무엇이 지워지는지 확인)·배포(무엇이 바뀌는지 diff/dry-run)·마이그레이션(영향 미리보기)에 통한다. 「미리보기·확인」이 「실행 후 놀람」보다 훨씬 낫다 — 사용자가 통제감을 갖고, 실수를 미리 잡고, 결과에 동의하니까. 그래서 중요한 액션(특히 금전·비가역)엔 **미리보기(preview)·확인(confirmation)·명확한 결과 표시**를 넣는다. 요금제 변경의 「지금 청구될 금액 미리보기」는 이 투명성의 실천 — 복잡한 일할 계산의 결과를 고객이 미리 알고 동의하게 해, 좋은 기능을 분쟁 없이 제공한다. 투명성은 신뢰의 기반이고, 신뢰는 좋은 관계(구독의 핵심, 1장)의 기반이다."
+        },
+        {
+          "type": "try",
+          "text": "네 구독의 요금제 변경 화면에 「지금 청구될 금액」(업그레이드 일할) 또는 「다음 주기부터 얼마」(다운그레이드)를 계산해 미리 보여 주는 기능을 넣어라. 일할 계산은 PG 의 preview·upcoming invoice API 로 조회해 표시하라(직접 계산 X). 고객이 변경 전에 청구 금액을 알고 동의하는지 확인하라 — 미리보기가 분쟁을 막는다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "업그레이드의 흔한 규칙은?",
+          "choices": [
+            "다음 주기부터",
+            "즉시 전환 + 남은 기간 차액 일할 청구",
+            "무료",
+            "환불"
+          ],
+          "answer": 1,
+          "why": "즉시 혜택."
+        },
+        {
+          "q": "요금제 변경에서 가장 중요한 것은?",
+          "choices": [
+            "빠른 처리",
+            "「지금 얼마 청구되는지」를 변경 전에 미리 보여 주기",
+            "색",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "명확한 기대·분쟁 방지."
+        },
+        {
+          "q": "일할 계산(proration)은 누가?",
+          "choices": [
+            "직접 계산",
+            "PG 구독 기능이 처리 — preview API 로 미리 조회해 표시",
+            "고객이",
+            "안 함"
+          ],
+          "answer": 1,
+          "why": "복잡·오류 위험."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "사용량 기반",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "정액제가 아니라 **사용량 기반**(쓴 만큼 청구 — API 호출·저장 용량·전송량)이면 함정이 있다: ① **집계 시점과 청구 시점의 시차**(사용은 실시간, 청구는 월말 — 그 사이 데이터 정합성) ② **중복 집계**(재시도로 같은 사용 이벤트가 두 번 세어짐 — pay-idem·pay-webhook 의 멱등 필요) ③ **상한 없는 요금 → 사용자에게 충격**(예상 못 한 큰 청구 — 「이번 달 5만원인 줄 알았는데 500만원」). 대응: **알림**(사용량이 임계 넘으면 미리 경고)·**상한 설정 제공**(사용자가 최대 지출을 정하게)·**정확한 멱등 집계**(중복 없이)·**실시간 사용량 표시**(고객이 현재 소비를 보게). 사용량 기반은 유연하지만 「정확한 집계」와 「예측 가능성(충격 방지)」이 핵심이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "사용량 기반 — 함정과 대응",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tl { margin:8px 0; }\n  .tl .d { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n           background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .tl .d.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .tl .d.good { border-left-color:#22c55e; } .tl .d.bad { border-left-color:#ef4444; }\n  .tl .d .day { width:60px; color:#7dd3fc; }\n  .bill { margin:8px 0; font:11.5px ui-monospace, monospace; }\n  .bill .r { display:flex; justify-content:space-between; padding:3px 9px; border-bottom:1px solid #1e293b; }\n  .bill .r .lab { color:#94a3b8; } .bill .r .val { color:#cbd5e1; }\n  .bill .r.total { border-top:2px solid #334155; border-bottom:none; margin-top:3px; font-weight:700; }\n  .bill .r.total .val { color:#4ade80; }\n  .bars .bar { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace; }\n  .bars .fill { height:16px; border-radius:3px; }\n  .sm { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace; }\n  .sm .st { padding:4px 8px; border-radius:5px; background:#1e293b; color:#94a3b8; }\n  .sm .st.on { background:#0e2a3a; color:#7dd3fc; border:1px solid #164e63; }\n  .sm .st.good { background:#132a1c; color:#4ade80; } .sm .st.bad { background:#2a1414; color:#f87171; }\n  .sm .arr { color:#475569; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const won = (n) => Number(n).toLocaleString('ko-KR') + '원';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bill = (rows) => '<div class=\"bill\">' + rows.map(([lab, val, cls]) =>\n    '<div class=\"r ' + (cls||'') + '\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const tl = (rows) => '<div class=\"tl\">' + rows.map(([day, txt, cls]) =>\n    '<div class=\"d ' + (cls||'') + '\"><span class=\"day\">' + esc(day) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, v, max, col]) =>\n    '<div class=\"bar\"><span style=\"width:120px;color:#94a3b8\">' + esc(lab) + '</span>' +\n    '<span class=\"fill\" style=\"width:' + Math.round(v/max*150) + 'px;background:' + (col||'#22d3ee') + '\"></span>' +\n    '<span class=\"dim\">' + v + '</span></div>').join('') + '</div>';\n  const sm = (states) => '<div class=\"sm\">' + states.map((s, i) =>\n    '<span class=\"st ' + (s[1]||'') + '\">' + esc(s[0]) + '</span>' + (i < states.length-1 ? '<span class=\"arr\">→</span>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const issue = '{{issue}}';\n  const rows = {\n    timing:['집계·청구 시차', '사용은 실시간, 청구는 월말', '그 사이 정합성 관리 — 집계를 정확·일관되게'],\n    dup:['중복 집계', '재시도로 같은 이벤트가 두 번 세어짐', '멱등 집계(이벤트 id)로 중복 제거 — pay-idem'],\n    shock:['상한 없는 청구 충격', '예상 못 한 큰 금액(5만→500만)', '알림·상한 설정·실시간 표시로 예측 가능하게'],\n    control:['사용자 통제', '고객이 지출을 통제 못 함', '상한(cap) 설정·알림·현재 사용량 표시 제공'],\n  }[issue];\n  render('사용량 기반: ' + rows[0],\n    '  함정/필요: ' + rows[1] + '\\n  대응: ' + rows[2] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">정확한 집계(멱등) + 예측 가능성(알림·상한)이 핵심.</span>',\n    '집계 시차·중복(멱등)·청구 충격(알림·상한) — 사용량 기반의 함정.',\n    box(rows[0], rows[1] + '\\n→ ' + rows[2], issue==='shock'?'bad':'good'));\n</script>",
+          "controls": [
+            {
+              "id": "issue",
+              "label": "함정",
+              "type": "select",
+              "value": "timing",
+              "options": [
+                {
+                  "value": "timing",
+                  "label": "집계·청구 시차"
+                },
+                {
+                  "value": "dup",
+                  "label": "중복 집계"
+                },
+                {
+                  "value": "shock",
+                  "label": "청구 충격"
+                },
+                {
+                  "value": "control",
+                  "label": "사용자 통제"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "사용량 기반 청구의 함정",
+          "text": "· 사용량 집계 시점과 청구 시점의 시차\n    (사용은 실시간, 청구는 월말 → 그 사이 정합성)\n· 중복 집계 (재시도로 이벤트가 두 번)\n    → 멱등 집계: 이벤트 id 로 중복 제거 (pay-idem)\n· 상한 없는 요금 → 사용자에게 충격\n    (예상 못 한 큰 청구 — 5만원인 줄 알았는데 500만원)\n    → 알림(임계 넘으면 경고) · 상한 설정 제공 · 실시간 사용량 표시"
+        },
+        {
+          "type": "note",
+          "text": "**사용량 기반 청구는 유연하나 함정이 있다 — 집계·청구 시차, 중복 집계(멱등 필요), 상한 없는 청구 충격. 정확한 집계와 예측 가능성(알림·상한)이 핵심이다.** 정액제(월 고정)와 달리 **사용량 기반**(usage-based·metered — API 호출 수·저장 용량·데이터 전송량·처리 건수에 따라 청구)은 「쓴 만큼 낸다」로 공정·유연하지만 복잡하다. 함정들: ① **집계 시점과 청구 시점의 시차** — 사용은 **실시간**으로 일어나고(초당 API 호출) 청구는 **월말**에 한 번 하니, 그 사이의 사용량을 **정확히 집계·누적**해야 한다. 집계가 부정확하거나(이벤트 유실·중복) 시점이 애매하면(월 경계의 사용을 어느 달에) 청구가 틀린다. 대량 이벤트를 정확·효율적으로 집계하는 인프라(data-queue·집계 파이프라인)가 필요하다. ② **중복 집계** — 사용 이벤트가 **재시도로 두 번 세어질** 수 있다(네트워크 재시도·이벤트 재전송 — pay-webhook·at-least-once). 그러면 고객이 안 쓴 만큼 청구된다. 그래서 집계도 **멱등**해야 한다(pay-idem) — 각 사용 이벤트에 고유 id 를 주고, 이미 집계한 id 는 중복 제거. ③ **상한 없는 요금 → 사용자에게 충격** — 사용량 기반의 가장 위험한 문제. 사용량이 예상외로 폭증하면(버그로 API 를 무한 호출, 공격, 예상 못 한 부하) 청구가 **폭발**한다 — 「월 5만원인 줄 알았는데 500만원 청구」. 이런 충격(bill shock)은 고객에게 재앙이고 신뢰를 파괴한다(클라우드 비용 폭탄 사례가 유명). 대응: ⓐ **알림** — 사용량이 임계(예산의 50%·80%)를 넘으면 미리 경고(고객이 조치할 시간), ⓑ **상한(cap) 설정 제공** — 고객이 「최대 이만큼만 지출」을 정하게(넘으면 중단·제한 — 예측 가능성·안전장치), ⓒ **실시간 사용량 표시** — 고객이 현재 소비·예상 청구를 대시보드로 보게(투명성), ⓓ 이상 사용 자동 탐지·차단(급증 시 알림·일시 제한). 그래서 사용량 기반의 핵심 두 축: **정확한 집계**(멱등·시차 관리 — 청구가 맞아야)와 **예측 가능성**(알림·상한·실시간 표시 — 고객이 충격받지 않게). 유연함(쓴 만큼)의 대가로 이 복잡성을 감당해야 한다. PG 도 usage-based billing 기능을 제공하지만(사용량 기록·집계·청구), 집계 정확성과 고객 보호(알림·상한)는 신경 써서 설계해야 한다. 「고객이 예상 못 한 큰 청구를 받는」 일은 반드시 막아야 한다 — 한 번의 청구 충격이 신뢰를 영구히 깬다."
+        },
+        {
+          "type": "p",
+          "text": "**「정확한 측정 + 예측 가능성」 — 변동 비용은 투명성과 안전장치를 요구한다.** 사용량 기반의 교훈은 「변동 비용을 다루는」 원리다: **비용이 사용에 따라 변하면, 정확한 측정과 함께 예측 가능성·안전장치가 필수**다. 변동 비용(사용량 기반 청구·클라우드 비용·종량제)은 유연하지만, 통제 없이는 폭발 위험이 있다 — 그래서 ① **정확한 측정**(멱등 집계 — 무엇을 얼마나 썼는지 정확히), ② **투명성**(실시간 표시 — 지금 얼마나 쓰고 있나), ③ **예측·알림**(임계 경고 — 넘기 전에), ④ **안전장치**(상한·차단 — 폭발 방지)를 갖춘다. 이 사고는 클라우드 비용 관리(dataeng-cost·비용 알림·예산 상한), API 요율 관리, 종량제 서비스에 두루 통한다 — 「쓴 만큼」의 유연함은 「통제 없으면 폭발」의 위험과 짝이라, 측정·투명성·안전장치로 관리한다. 특히 **안전장치(상한·차단)**가 중요하다 — 버그·공격·실수로 사용이 폭증할 수 있으니, 「무한히 청구되는」 상황을 구조적으로 막는다(상한 없는 종량제는 재앙의 씨앗). 그리고 **투명성**(실시간 사용량 표시)이 신뢰를 준다 — 고객이 자기 소비를 보고 통제할 수 있으면 변동 비용을 안심하고 쓴다. 그래서 사용량 기반 청구는 「정확히 재고, 투명하게 보여 주고, 미리 알리고, 상한으로 지킨다」의 종합 — 변동 비용의 유연함을 안전하게 제공하는 설계다. 측정만 정확하고 예측 가능성·안전장치가 없으면, 정확히 재서 정확히 폭탄을 안긴다."
+        },
+        {
+          "type": "try",
+          "text": "네 사용량 기반 청구(있다면)를 점검하라 — 집계가 멱등한가(중복 이벤트 제거), 집계·청구 시점의 정합성이 맞나, 고객에게 실시간 사용량·예상 청구를 보여 주나, 사용량 알림과 상한(cap) 설정을 제공하나. 「고객이 예상 못 한 큰 청구를 받는」 시나리오(버그·급증)를 상상해, 알림·상한으로 막을 수 있는지 확인하라 — 청구 충격은 신뢰를 영구히 깬다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "사용량 기반에서 중복 집계를 막으려면?",
+          "choices": [
+            "재시도 끄기",
+            "멱등 집계(이벤트 id 로 중복 제거) — pay-idem",
+            "무시",
+            "정액제"
+          ],
+          "answer": 1,
+          "why": "재시도로 두 번 세어짐."
+        },
+        {
+          "q": "상한 없는 사용량 요금의 위험은?",
+          "choices": [
+            "없음",
+            "예상 못 한 큰 청구 충격(bill shock) — 신뢰 파괴",
+            "느림",
+            "안전"
+          ],
+          "answer": 1,
+          "why": "알림·상한 필요."
+        },
+        {
+          "q": "사용량 기반의 두 핵심 축은?",
+          "choices": [
+            "속도·색",
+            "정확한 집계(멱등) + 예측 가능성(알림·상한·실시간 표시)",
+            "많이·빠르게",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "변동 비용은 안전장치 필요."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "해지",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**해지를 어렵게 만들지 마라** — 숨긴 해지 버튼·복잡한 절차·전화만 가능 같은 「해지 방해」는 ① 지역에 따라 **법적 문제**(미국 FTC·유럽 등이 「가입만큼 쉬운 해지」를 요구)이고 ② **나쁜 평판은 오래 간다**(억지로 붙잡은 고객은 분노하고, 소문이 퍼진다). 대신: **해지 사유를 물어 데이터로 남기고**(왜 떠나나 — 제품 개선의 귀중한 신호), **일시정지(pause) 옵션 제공**(완전 해지 대신 잠깐 멈춤 — 나중에 돌아올 여지), **다운그레이드 제안**(비싸서 떠나면 싼 플랜), 필요하면 **되돌리기 쉽게**(마음 바뀌면 재구독 간단). 핵심: 해지를 **존중하되 이해하고 여지를 남긴다** — 억지로 막지 말고, 이유를 배우고, 돌아올 문을 열어 둔다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "해지 — 어렵게 X, 이해하고 여지",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tl { margin:8px 0; }\n  .tl .d { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n           background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .tl .d.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .tl .d.good { border-left-color:#22c55e; } .tl .d.bad { border-left-color:#ef4444; }\n  .tl .d .day { width:60px; color:#7dd3fc; }\n  .bill { margin:8px 0; font:11.5px ui-monospace, monospace; }\n  .bill .r { display:flex; justify-content:space-between; padding:3px 9px; border-bottom:1px solid #1e293b; }\n  .bill .r .lab { color:#94a3b8; } .bill .r .val { color:#cbd5e1; }\n  .bill .r.total { border-top:2px solid #334155; border-bottom:none; margin-top:3px; font-weight:700; }\n  .bill .r.total .val { color:#4ade80; }\n  .bars .bar { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace; }\n  .bars .fill { height:16px; border-radius:3px; }\n  .sm { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace; }\n  .sm .st { padding:4px 8px; border-radius:5px; background:#1e293b; color:#94a3b8; }\n  .sm .st.on { background:#0e2a3a; color:#7dd3fc; border:1px solid #164e63; }\n  .sm .st.good { background:#132a1c; color:#4ade80; } .sm .st.bad { background:#2a1414; color:#f87171; }\n  .sm .arr { color:#475569; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const won = (n) => Number(n).toLocaleString('ko-KR') + '원';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bill = (rows) => '<div class=\"bill\">' + rows.map(([lab, val, cls]) =>\n    '<div class=\"r ' + (cls||'') + '\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const tl = (rows) => '<div class=\"tl\">' + rows.map(([day, txt, cls]) =>\n    '<div class=\"d ' + (cls||'') + '\"><span class=\"day\">' + esc(day) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, v, max, col]) =>\n    '<div class=\"bar\"><span style=\"width:120px;color:#94a3b8\">' + esc(lab) + '</span>' +\n    '<span class=\"fill\" style=\"width:' + Math.round(v/max*150) + 'px;background:' + (col||'#22d3ee') + '\"></span>' +\n    '<span class=\"dim\">' + v + '</span></div>').join('') + '</div>';\n  const sm = (states) => '<div class=\"sm\">' + states.map((s, i) =>\n    '<span class=\"st ' + (s[1]||'') + '\">' + esc(s[0]) + '</span>' + (i < states.length-1 ? '<span class=\"arr\">→</span>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const approach = '{{approach}}';\n  if (approach === 'dark') {\n    render('해지 방해 (나쁨)',\n      '  해지 버튼 숨김 · 복잡한 절차 · 전화만 가능 · 붙잡기\\n\\n' +\n      '  <span class=\\\"no\\\">법적 문제(가입만큼 쉬운 해지 요구) + 나쁜 평판 오래 감 + 분노한 고객.</span>',\n      '해지 방해: 법적 문제 + 나쁜 평판 + 분노 — 하지 마라.',\n      steps([['해지 버튼 숨김·복잡한 절차', 'bad'],['억지로 붙잡기', 'bad'],\n             ['법적 문제(FTC 등)', 'bad'],['나쁜 평판·분노한 고객', 'bad']]));\n  } else {\n    render('존중하되 이해하고 여지 (좋음)',\n      '  쉬운 해지 + 사유 묻기(데이터) + 일시정지/다운그레이드 제안\\n\\n' +\n      '  <span class=\\\"ok\\\">존중(쉬운 해지)·이해(사유 데이터)·여지(일시정지·재구독 쉽게).</span>',\n      '좋은 해지: 쉽게 + 사유 물어 배우고 + 일시정지·재구독 여지.',\n      steps([['해지를 쉽게(가입만큼)', 'good'],['해지 사유 묻기 → 제품 개선 신호', 'good'],\n             ['일시정지·다운그레이드 제안', 'good'],['재구독 쉽게 — 돌아올 문', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "approach",
+              "label": "해지 방식",
+              "type": "select",
+              "value": "dark",
+              "options": [
+                {
+                  "value": "dark",
+                  "label": "해지 방해(나쁨)"
+                },
+                {
+                  "value": "good",
+                  "label": "존중·이해·여지"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**해지를 어렵게 만들지 마라 — 법적 문제이자 나쁜 평판이 오래 간다. 대신 해지를 쉽게 하되 사유를 묻고, 일시정지·재구독의 여지를 남긴다.** **해지 방해(dark pattern)** — 해지 버튼을 숨기고, 여러 단계를 거치게 하고, 전화로만 가능하게 하고, 「정말요? 이 혜택을 잃어요」로 반복 붙잡는 것 — 은 나쁘다: ① **법적 문제** — 여러 지역이 「**가입만큼 쉬운 해지**」를 법으로 요구한다(미국 FTC 의 click-to-cancel, 유럽·한국 등). 해지를 어렵게 하면 규제 위반·벌금·소송 위험. ② **나쁜 평판은 오래 간다** — 억지로 붙잡힌 고객은 **분노**하고(강제로 남겨도 곧 떠나고 악감정만), 그 경험을 **소문**낸다(리뷰·SNS — 「해지가 지옥」). 단기 유지(억지로 한 주기 더)의 이득보다 평판 손실이 크다. 그래서 **해지는 쉽게** 만든다(가입만큼 — 명확한 해지 버튼, 간단한 절차). 대신 해지를 **더 나은 것으로 활용**한다: ① **해지 사유를 묻는다**(선택적으로) — 「왜 떠나시나요?」(비쌈·안 씀·불만·경쟁사·일시적)의 답은 **제품 개선의 귀중한 데이터**다(무엇을 고쳐야 이탈이 주나 — analytics·product). 억지로 막는 대신 **배운다**. ② **일시정지(pause) 옵션** — 완전 해지 대신 「잠깐 멈춤」(1~3개월)을 제안한다. 일시적 이유(돈·바쁨)로 떠나는 고객이 완전 해지 대신 정지를 택하면, 나중에 자연히 돌아온다(관계 유지). ③ **다운그레이드 제안** — 「비싸서」 떠나면 싼 플랜을 제안(완전 이탈 대신 저가 유지). ④ **재구독을 쉽게** — 마음이 바뀌면 쉽게 돌아오게(데이터 보존·원클릭 재구독 — 돌아올 문을 열어 둠). 핵심 태도: **해지를 존중하되(막지 말고) 이해하고(사유 배우고) 여지를 남긴다(정지·재구독)**. 억지로 막는 건 손해(법적·평판·분노)고, 잘 처리하면 이득이다(개선 데이터·나중 복귀·좋은 평판 — 「해지도 깔끔한 서비스」는 신뢰를 준다, 다시 쓸 마음이 든다). 「떠나는 고객을 붙잡으려」 하지 말고, 「왜 떠나나 배우고, 돌아올 수 있게」 하는 게 장기적으로 낫다. 좋은 해지 경험이 역설적으로 재구독·추천을 만든다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸과 갈래.** 구독(pay-sub)은 pay 갈래(결제)의 「반복되는 관계」 — 시간에 걸친 결제·유지를 다룬다. 갱신 실패·dunning(2·3장)은 「필연적 실패엔 복구」(scale-fail·pay-webhook 재시도), 요금제 변경·일할(4장)은 「미리보기·투명성」(pay-refund 4장), 사용량 기반(5장)은 멱등(pay-idem)·「변동 비용의 안전장치」(dataeng-cost), 해지(6장)는 「존중·이해·여지」·UX 윤리(dark pattern 회피)·제품 데이터(analytics)와 통한다. **「구독은 매달 다시 결제 — 갱신 실패는 정상이니 dunning 으로 복구하고, 요금제 변경은 미리 보여 주고, 사용량은 정확·안전하게, 해지는 어렵게 만들지 말고 배우고 여지를 남긴다」**가 핵심이다. 구독은 「관계를 시간에 걸쳐 유지하는」 시스템이라, 실패 복구·투명성·고객 존중이 매출과 신뢰를 함께 지킨다."
+        },
+        {
+          "type": "try",
+          "text": "네 구독의 해지 경험을 점검하라 — 해지가 가입만큼 쉬운가(법적 요구), 해지 방해(숨긴 버튼·복잡한 절차)가 없나. 해지 사유를 물어 데이터로 남기나(제품 개선), 일시정지·다운그레이드·쉬운 재구독을 제공하나. 「억지로 붙잡기」 대신 「쉽게 보내되 배우고 돌아올 문을 열기」로 바꿔라 — 좋은 해지 경험이 평판·재구독을 만든다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "해지를 어렵게 만들면?",
+          "choices": [
+            "매출 유지",
+            "법적 문제 + 나쁜 평판이 오래 감 + 분노한 고객",
+            "좋음",
+            "안전"
+          ],
+          "answer": 1,
+          "why": "가입만큼 쉬운 해지 요구."
+        },
+        {
+          "q": "해지를 잘 활용하는 법은?",
+          "choices": [
+            "막기",
+            "사유 묻기(개선 데이터) + 일시정지·다운그레이드·쉬운 재구독",
+            "무시",
+            "벌"
+          ],
+          "answer": 1,
+          "why": "존중·이해·여지."
+        },
+        {
+          "q": "좋은 해지 경험의 효과는?",
+          "choices": [
+            "없음",
+            "평판·재구독·추천 — 깔끔한 해지가 역설적으로 신뢰를 줌",
+            "손해만",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "돌아올 문."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "상태와 수명주기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "구독은 **상태 기계**로 관리한다: `trialing(체험) → active(활성) → past_due(연체 — 갱신 실패 후 dunning 중) → canceled(해지)` + `paused(일시정지)`. 각 구독이 지금 어느 상태인지 정확히 추적하고, **상태에 따라 서비스 접근을 제어**한다(active·trialing·past_due 는 접근 허용, canceled 는 차단 — 단 past_due 는 유예 기간이라 아직 접근 허용이 흔함, 3장). 핵심: ① **상태 전이를 웹훅으로 확정**(pay-webhook — PG 의 구독 상태 변화를 웹훅으로 받아 내 상태 갱신) ② **상태와 접근 권한을 일관되게**(구독 상태 = 서비스 접근 여부의 진실) ③ **경계 시점 처리**(체험 종료·갱신·유예 만료). 구독 상태를 정확히 관리해야 「돈 낸 사람만 서비스 받고·연체는 유예 후 차단·해지는 정리」가 올바르게 된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "구독 상태 기계",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tl { margin:8px 0; }\n  .tl .d { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n           background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .tl .d.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .tl .d.good { border-left-color:#22c55e; } .tl .d.bad { border-left-color:#ef4444; }\n  .tl .d .day { width:60px; color:#7dd3fc; }\n  .bill { margin:8px 0; font:11.5px ui-monospace, monospace; }\n  .bill .r { display:flex; justify-content:space-between; padding:3px 9px; border-bottom:1px solid #1e293b; }\n  .bill .r .lab { color:#94a3b8; } .bill .r .val { color:#cbd5e1; }\n  .bill .r.total { border-top:2px solid #334155; border-bottom:none; margin-top:3px; font-weight:700; }\n  .bill .r.total .val { color:#4ade80; }\n  .bars .bar { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace; }\n  .bars .fill { height:16px; border-radius:3px; }\n  .sm { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace; }\n  .sm .st { padding:4px 8px; border-radius:5px; background:#1e293b; color:#94a3b8; }\n  .sm .st.on { background:#0e2a3a; color:#7dd3fc; border:1px solid #164e63; }\n  .sm .st.good { background:#132a1c; color:#4ade80; } .sm .st.bad { background:#2a1414; color:#f87171; }\n  .sm .arr { color:#475569; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const won = (n) => Number(n).toLocaleString('ko-KR') + '원';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bill = (rows) => '<div class=\"bill\">' + rows.map(([lab, val, cls]) =>\n    '<div class=\"r ' + (cls||'') + '\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const tl = (rows) => '<div class=\"tl\">' + rows.map(([day, txt, cls]) =>\n    '<div class=\"d ' + (cls||'') + '\"><span class=\"day\">' + esc(day) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, v, max, col]) =>\n    '<div class=\"bar\"><span style=\"width:120px;color:#94a3b8\">' + esc(lab) + '</span>' +\n    '<span class=\"fill\" style=\"width:' + Math.round(v/max*150) + 'px;background:' + (col||'#22d3ee') + '\"></span>' +\n    '<span class=\"dim\">' + v + '</span></div>').join('') + '</div>';\n  const sm = (states) => '<div class=\"sm\">' + states.map((s, i) =>\n    '<span class=\"st ' + (s[1]||'') + '\">' + esc(s[0]) + '</span>' + (i < states.length-1 ? '<span class=\"arr\">→</span>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const state = '{{state}}';\n  const states = [['trialing', state==='trialing'?'on':''], ['active', state==='active'?'good':''],\n    ['past_due', state==='past_due'?'bad':''], ['canceled', state==='canceled'?'bad':''], ['paused', state==='paused'?'on':'']];\n  const desc = {\n    trialing:['체험 중', '무료 체험 — 접근 허용, 체험 종료 시 첫 결제', true],\n    active:['활성', '정상 구독 — 접근 허용, 매주기 갱신', true],\n    past_due:['연체', '갱신 실패 후 dunning 중 — 유예 기간엔 접근 허용(복구 기회)', true],\n    canceled:['해지', '구독 종료 — 서비스 접근 차단(기간 종료 후)', false],\n    paused:['일시정지', '잠깐 멈춤 — 접근 제한, 청구 중단, 나중에 재개', false],\n  }[state];\n  render('구독 상태: ' + state,\n    '  ' + desc[0] + '\\n  ' + desc[1] + '\\n  서비스 접근: ' + (desc[2] ? '허용' : '제한/차단') + '\\n\\n' +\n    '  <span class=\\\"ok\\\">상태를 웹훅으로 확정하고, 상태=서비스 접근의 진실로 일관되게.</span>',\n    'trialing→active→past_due→canceled(+paused). 상태=접근 권한, 웹훅으로 확정.',\n    sm(states));\n</script>",
+          "controls": [
+            {
+              "id": "state",
+              "label": "상태",
+              "type": "select",
+              "value": "trialing",
+              "options": [
+                {
+                  "value": "trialing",
+                  "label": "trialing"
+                },
+                {
+                  "value": "active",
+                  "label": "active"
+                },
+                {
+                  "value": "past_due",
+                  "label": "past_due"
+                },
+                {
+                  "value": "canceled",
+                  "label": "canceled"
+                },
+                {
+                  "value": "paused",
+                  "label": "paused"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**구독은 상태 기계(trialing→active→past_due→canceled, +paused)로 관리하고, 상태에 따라 서비스 접근을 제어한다 — 상태 전이를 웹훅으로 확정하고, 상태를 서비스 접근의 진실로 일관되게 다룬다.** 구독의 상태들: **trialing**(무료 체험 중 — 접근 허용, 체험 종료 시 첫 결제로 active 전환 또는 미결제 시 종료), **active**(정상 구독 — 접근 허용, 매주기 자동 갱신), **past_due**(연체 — 갱신 결제가 실패해 dunning 진행 중, 3장 — 유예 기간엔 대개 **접근 허용**해 복구 기회를 줌), **canceled**(해지 — 구독 종료, 기간 종료 후 접근 차단), **paused**(일시정지 — 잠깐 멈춤, 청구 중단, 접근 제한, 나중에 재개, 6장). 각 구독이 지금 **어느 상태인지 정확히 추적**하고, **상태에 따라 서비스 접근을 제어**한다 — 「이 사용자가 지금 서비스를 받을 자격이 있나?」의 답이 구독 상태다. 핵심 원칙: ① **상태 전이를 웹훅으로 확정**(pay-webhook 1장) — 구독 상태는 PG 가 관리하고(갱신 성공/실패·해지·체험 종료), 그 변화를 **웹훅으로** 내 서버에 알린다(`customer.subscription.updated` 등). 내 서버는 웹훅으로 받은 상태로 내 DB 를 갱신한다(PG 응답·클라이언트가 아니라 웹훅이 진실). 순서 무관하게 최신 상태로 수렴(pay-webhook 5장). ② **상태와 접근 권한을 일관되게** — 구독 상태가 **서비스 접근 여부의 단일 진실**이어야 한다. 「구독은 canceled 인데 서비스는 계속 됨」이나 「active 인데 접근 차단」 같은 불일치가 없게, 접근 제어를 항상 구독 상태로 판단한다(상태와 권한이 갈라지면 무료 이용·부당 차단 발생). ③ **경계 시점 처리** — 체험 종료(첫 결제 시도), 주기 갱신(결제·연장), 유예 만료(past_due → canceled), 해지 예약(기간 끝에 canceled) 같은 **시점 이벤트**를 정확히 처리한다. 이 상태 관리가 구독의 「누가 언제 서비스를 받나」를 올바르게 만든다 — 돈 낸 사람(active·trialing)은 받고, 연체(past_due)는 유예 후 차단, 해지(canceled)는 정리, 정지(paused)는 멈춤. 상태를 뭉뚱그리거나(그냥 「구독 중/아님」) 웹훅으로 확정 안 하면, 접근 제어가 틀려(무료 이용·부당 차단) 매출 손실·고객 불만이 난다. 구독 상태 기계가 구독 시스템의 뼈대다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸과 갈래.** 구독(pay-sub)은 pay 갈래(결제)의 「시간에 걸친 관계」다. 매달 다시 결제·유지 중심(1장), 갱신 실패는 정상·비자발적 이탈(2장), dunning 복구(3장)는 scale-fail·pay-webhook(재시도·백오프), 요금제 변경(4장)은 pay-refund(일할·미리보기·투명성), 사용량 기반(5장)은 pay-idem(멱등 집계)·dataeng-cost(안전장치), 해지(6장)는 UX 윤리·analytics(사유 데이터), 상태 기계(7장)는 pay-webhook(웹훅 확정)·상태=접근 진실과 통한다. **「구독은 매달 다시 결제 — 갱신 실패는 정상이니 dunning 으로 복구하고, 요금제 변경은 미리 보여 주고, 사용량은 정확·안전하게, 해지는 어렵게 만들지 말고, 상태를 웹훅으로 확정해 접근을 일관되게」**가 핵심이다. 구독은 「관계를 시간에 걸쳐 유지하는」 시스템이라, 상태 관리·실패 복구·투명성·고객 존중이 매출과 신뢰를 지탱한다 — 결제(pay-flow)·웹훅(pay-webhook)·멱등(pay-idem)·환불(pay-refund)·보안(pay-security)의 원리가 「반복 관계」 위에서 종합되는 곳이다."
+        },
+        {
+          "type": "try",
+          "text": "네 구독의 상태 기계(trialing·active·past_due·canceled·paused)를 정의하고, 각 상태에서 서비스 접근을 어떻게 제어하는지 점검하라. 상태 전이를 PG 웹훅으로 확정하는지(클라이언트·응답 아니라), 접근 제어가 항상 구독 상태를 진실로 삼는지(불일치 없게) 확인하라. 「구독 상태 = 서비스 접근 자격」을 일관되게 지켜, 무료 이용·부당 차단을 막아라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "구독 상태 전이를 어떻게 확정하나?",
+          "choices": [
+            "클라이언트",
+            "웹훅으로(PG 의 구독 상태 변화를 받아 내 상태 갱신)",
+            "추측",
+            "이메일"
+          ],
+          "answer": 1,
+          "why": "pay-webhook."
+        },
+        {
+          "q": "past_due(연체) 상태에서 서비스 접근은?",
+          "choices": [
+            "즉시 차단",
+            "유예 기간엔 대개 허용(복구 기회, dunning 중)",
+            "영구 차단",
+            "무료"
+          ],
+          "answer": 1,
+          "why": "복구 기회."
+        },
+        {
+          "q": "구독 상태와 서비스 접근의 관계는?",
+          "choices": [
+            "무관",
+            "상태가 접근 자격의 단일 진실 — 일관되게(불일치 없게)",
+            "반대",
+            "따로"
+          ],
+          "answer": 1,
+          "why": "무료 이용·부당 차단 방지."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "점검표 — 구독",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "구독 결제를 다룰 때 이 목록을 확인하라. 핵심은 「매달 다시 결제 — 실패는 dunning 으로 복구하고, 변경은 미리 보여 주고, 상태를 웹훅으로 확정하고, 해지는 존중한다」다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .tl { margin:8px 0; }\n  .tl .d { display:flex; align-items:center; gap:8px; padding:4px 9px; margin:2px 0; border-radius:5px;\n           background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .tl .d.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .tl .d.good { border-left-color:#22c55e; } .tl .d.bad { border-left-color:#ef4444; }\n  .tl .d .day { width:60px; color:#7dd3fc; }\n  .bill { margin:8px 0; font:11.5px ui-monospace, monospace; }\n  .bill .r { display:flex; justify-content:space-between; padding:3px 9px; border-bottom:1px solid #1e293b; }\n  .bill .r .lab { color:#94a3b8; } .bill .r .val { color:#cbd5e1; }\n  .bill .r.total { border-top:2px solid #334155; border-bottom:none; margin-top:3px; font-weight:700; }\n  .bill .r.total .val { color:#4ade80; }\n  .bars .bar { display:flex; align-items:center; gap:8px; margin:3px 0; font:11px ui-monospace; }\n  .bars .fill { height:16px; border-radius:3px; }\n  .sm { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace; }\n  .sm .st { padding:4px 8px; border-radius:5px; background:#1e293b; color:#94a3b8; }\n  .sm .st.on { background:#0e2a3a; color:#7dd3fc; border:1px solid #164e63; }\n  .sm .st.good { background:#132a1c; color:#4ade80; } .sm .st.bad { background:#2a1414; color:#f87171; }\n  .sm .arr { color:#475569; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const won = (n) => Number(n).toLocaleString('ko-KR') + '원';\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const bill = (rows) => '<div class=\"bill\">' + rows.map(([lab, val, cls]) =>\n    '<div class=\"r ' + (cls||'') + '\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const tl = (rows) => '<div class=\"tl\">' + rows.map(([day, txt, cls]) =>\n    '<div class=\"d ' + (cls||'') + '\"><span class=\"day\">' + esc(day) + '</span><span>' + esc(txt) + '</span></div>').join('') + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, v, max, col]) =>\n    '<div class=\"bar\"><span style=\"width:120px;color:#94a3b8\">' + esc(lab) + '</span>' +\n    '<span class=\"fill\" style=\"width:' + Math.round(v/max*150) + 'px;background:' + (col||'#22d3ee') + '\"></span>' +\n    '<span class=\"dim\">' + v + '</span></div>').join('') + '</div>';\n  const sm = (states) => '<div class=\"sm\">' + states.map((s, i) =>\n    '<span class=\"st ' + (s[1]||'') + '\">' + esc(s[0]) + '</span>' + (i < states.length-1 ? '<span class=\"arr\">→</span>' : '')).join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '구독=매달 다시 결제 — 갱신 실패 복구가 매출의 큰 부분',\n    '갱신 실패는 정상(비자발적 이탈) — 복구 가능',\n    'dunning: 즉시 안내+카드 링크·간격 넓히며 재시도·유예 기간',\n    '요금제 변경: 「지금 청구될 금액」을 미리 보여 준다',\n    '사용량 기반: 멱등 집계 + 알림·상한(충격 방지)',\n    '해지를 어렵게 X — 쉽게 하되 사유 묻고 여지 남김',\n    '상태 기계(trialing·active·past_due·canceled·paused)',\n    '상태를 웹훅으로 확정 + 상태=서비스 접근의 진실',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 시간에 걸친 관계를 유지·복구·존중한다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '매달 다시 결제 — 실패는 dunning 복구·변경은 미리·상태는 웹훅·해지는 존중.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 구독은 매달 다시 결제 — 실패는 dunning 으로 복구하고, 변경은 미리 보여 주고, 상태를 웹훅으로 확정하고, 해지는 존중한다.** 구독은 갱신이 쌓이는 매출이라 실패 복구가 큰 부분이고(1장), 갱신 실패는 정상(비자발적 이탈, 복구 가능, 2장), dunning 으로 즉시 안내+재시도+유예로 복구하고(3장), 요금제 변경은 「지금 청구될 금액」을 미리 보여 주고(4장), 사용량 기반은 멱등 집계 + 알림·상한으로 충격을 막고(5장), 해지는 어렵게 만들지 말고 사유를 묻고 여지를 남기고(6장), 상태 기계로 관리하며 웹훅으로 확정하고 상태를 서비스 접근의 진실로 삼는다(7장). 「시간에 걸친 관계를 유지·복구·존중」이 핵심이다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸과 갈래.** 구독(pay-sub)은 pay 갈래(결제)의 「반복되는 관계」로, 시간에 걸친 결제·유지를 다룬다. 매달 다시 결제·유지 중심, 갱신 실패는 정상(비자발적 이탈), dunning 복구(scale-fail·pay-webhook 재시도·백오프), 요금제 변경(pay-refund 일할·미리보기·투명성), 사용량 기반(pay-idem 멱등·dataeng-cost 안전장치), 해지(UX 윤리·analytics), 상태 기계(pay-webhook 웹훅 확정)와 통한다. **「구독은 매달 다시 결제 — 갱신 실패는 dunning 으로 복구하고, 변경은 미리 보여 주고, 사용량은 정확·안전하게, 해지는 존중하고, 상태를 웹훅으로 확정해 접근을 일관되게」**가 이 칸의 전부다. 구독은 결제·웹훅·멱등·환불·보안의 원리가 「관계를 시간에 걸쳐 유지하는」 시스템 위에서 종합되는 곳 — 유지·복구·투명성·고객 존중이 매출과 신뢰를 함께 지탱한다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개로 네 구독 시스템을 점검하라. 「dunning(갱신 실패 복구)」과 「요금제 변경 시 금액 미리보기」 두 가지만 잡아도, 매출 누수(비자발적 이탈)와 분쟁(예상 밖 청구)을 크게 줄인다. dunning 복구율을 측정하고, 요금제 변경에 금액 미리보기를 넣고, 상태를 웹훅으로 확정하고, 해지를 쉽게 만들어라 — 관계를 유지·복구·존중하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "구독 장의 한 줄 요약은?",
+          "choices": [
+            "빠르게",
+            "매달 다시 결제 — 실패는 dunning 복구·변경은 미리·상태는 웹훅·해지는 존중",
+            "한 번 팔기",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "관계를 유지·복구·존중."
+        },
+        {
+          "q": "먼저 잡을 두 가지는?",
+          "choices": [
+            "속도·색",
+            "dunning(실패 복구) + 요금제 변경 시 금액 미리보기",
+            "재시도·로그",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "매출 누수·분쟁 감소."
+        },
+        {
+          "q": "구독이 이어지는 주제는?",
+          "choices": [
+            "없음",
+            "pay-webhook(상태 확정)·pay-idem(멱등 집계)·pay-refund(일할)·scale-fail(재시도)",
+            "속도만",
+            "색"
+          ],
+          "answer": 1,
+          "why": "반복 관계 위의 종합."
+        }
+      ]
     }
   ]
 }
