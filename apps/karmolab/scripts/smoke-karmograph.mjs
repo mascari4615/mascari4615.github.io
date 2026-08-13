@@ -1823,6 +1823,100 @@ async function allNamed(page, where) {
   if (bad.length > 0) throw new Error(`${where}: 이름 없는 손잡이 — ${bad.slice(0, 6).join(' · ')}`);
 }
 
+/** 원본의 값이 하나도 안 빠졌나 — 되살린 쪽에 기본값이 더 붙는 건 봐준다. */
+function whatIsMissing(was, now, at = '') {
+  const gone = [];
+  const walk = (a, b, where) => {
+    if (Array.isArray(a)) {
+      if (!Array.isArray(b) || b.length !== a.length) { gone.push(where); return; }
+      a.forEach((v, i) => walk(v, b[i], `${where}[${i}]`));
+      return;
+    }
+    if (a && typeof a === 'object') {
+      if (!b || typeof b !== 'object') { gone.push(where); return; }
+      for (const k of Object.keys(a)) walk(a[k], b[k], where ? `${where}.${k}` : k);
+      return;
+    }
+    if (a !== b) gone.push(`${where} (${JSON.stringify(a)} → ${JSON.stringify(b)})`);
+  };
+  walk(was, now, at);
+  return gone;
+}
+
+/** 검사에 쓰는 **꽉 찬 판** — 새 칸이 생기면 여기 한 줄만 늘리면 모든 무손실 검사가 함께 는다. */
+const RICH_SPEC = {
+  version: 1,
+  _meta: { time: 't2' },
+  groups: [{ id: 'g1', label: '무리', color: '#ff0000' }],
+  nodes: [
+    { id: 'n1', label: '가', kind: 'character', x: 10, y: 10, w: 160, h: 44, fields: { 고향: '북' } },
+    { id: 'n2', label: '나', kind: 'character', x: 200, y: 120, w: 160, h: 44 },
+  ],
+  edges: [{
+    id: 'e1', from: 'n1', to: 'n2', label: '친구', kind: 'default',
+    at: { t2: { label: '라이벌' } }, viewFrom: '믿음',
+  }],
+  times: [{ id: 't1', name: '1부' }, { id: 't2', name: '2부' }],
+  views: [{
+    id: 'v1', name: '인물만', offNodeKinds: [], offEdgeKinds: [], offTags: [],
+    hideOrphans: false, minDegree: 0, fieldName: '', fieldValue: '', focus: '', time: 't1',
+  }],
+  story: [{ id: 's1', title: '첫 장', nodeIds: ['n1'], note: '설명' }],
+  notes: [{ id: 'note1', title: '공용 글', text: '본문' }],
+  stamps: [{ id: 'st1', name: '본 2개', at: 1, nodes: [], edges: [] }],
+  ephemeral_anchors: [],
+  _edge_kinds: {},
+};
+
+/** 판을 통째로 심고 다시 연다 — 손으로 만들면 이 만큼을 못 채운다. */
+async function plantRich(page, spec = RICH_SPEC, name = '꽉 찬 판') {
+  await page.evaluate(([sp, nm]) => {
+    const idx = JSON.parse(localStorage.getItem('karmograph.index') || 'null');
+    const id = idx?.activeId || 'rich';
+    localStorage.setItem('karmograph.map.' + id, JSON.stringify(sp));
+    if (!idx) localStorage.setItem('karmograph.index', JSON.stringify({ activeId: id, maps: [{ id, name: nm }] }));
+  }, [spec, name]);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await page.waitForTimeout(ms(900));
+}
+
+/** 지금 열려 있는(카드가 있는) 판의 자료. */
+const openedSpec = (page) => page.evaluate(() => {
+  const idx = JSON.parse(localStorage.getItem('karmograph.index'));
+  return idx.maps
+    .map((mm) => JSON.parse(localStorage.getItem('karmograph.map.' + mm.id) || 'null'))
+    .filter((sp) => sp && (sp.nodes || []).length > 0)[0];
+});
+
+await step('공유 링크로 보내도 **아무것도 안 빠진다** (KL-271)', async () => {
+  /* 링크는 백업보다 훨씬 자주 쓴다(받는 쪽은 대개 그 링크가 전부다). 그런데 링크는 눌러 담아
+     주소 한 줄에 넣으므로, 새 칸이 생겼을 때 **조용히 빠질** 자리가 백업보다 많다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await plantRich(m);
+
+  const link = await grabLink(m, () => m.evaluate(() => document.querySelector('[data-km="share"]').click()));
+  if (!link || !link.includes('km=')) throw new Error('링크가 안 나왔다: ' + String(link).slice(0, 60));
+
+  const ctx2 = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const q = await ctx2.newPage();
+  await q.goto(link.replace(/#.*$/, '') + '#karmograph', { waitUntil: 'domcontentloaded' });
+  await q.waitForSelector('.km-canvas', { timeout: ms(12000) });
+  await q.waitForTimeout(ms(1800));
+  const got = await openedSpec(q);
+  if (!got) throw new Error('링크로 열었는데 판이 없다');
+  const gone = whatIsMissing(RICH_SPEC, got);
+  if (gone.length > 0) throw new Error('링크에서 빠진 것: ' + gone.slice(0, 5).join(' · '));
+  await ctx.close();
+  await ctx2.close();
+});
+
 await step('백업 → 복원에서 **아무것도 안 빠진다** (KL-271)', async () => {
   /* 자료를 잃는 것이 가장 나쁜 고장이다. 판에 새 칸이 붙을 때마다(시점·보기·장·공용 글·도장…)
      백업이 그걸 담는지 사람이 일일이 기억할 수 없으므로, **원본의 모든 값이 복원본에 그대로
