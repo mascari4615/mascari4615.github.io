@@ -1,104 +1,827 @@
 {
   "id": "git-hooks",
-  "minutes": 10,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "규칙은 사람이 아니라 **기계가 지켜야** 남는다. 훅은 그 규칙을 손 옆에 두는 가장 싼 방법이다."
-    },
-    {
-      "type": "h",
-      "text": "1. 어디에 무엇을"
-    },
-    {
-      "type": "note",
-      "text": "**pre-commit**: 빠른 것만(포맷·린트·비밀값 검사, 5초 안쪽). **pre-push**: 타입 검사·단위 테스트(30초 안쪽). **무거운 것은 CI**. 훅이 느리면 사람들이 `--no-verify` 를 배우고, 그 순간 방어가 사라진다."
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": ".husky/pre-commit",
-      "text": "npx lint-staged            # 담긴 파일만 검사한다 (전체 X)\nnpx gitleaks protect --staged --redact"
-    },
-    {
-      "type": "h",
-      "text": "2. 담긴 것만 본다"
-    },
-    {
-      "type": "code",
-      "lang": "json",
-      "label": "lint-staged 설정",
-      "text": "{\n  \"lint-staged\": {\n    \"*.{ts,tsx}\": [\"eslint --fix\", \"prettier --write\"],\n    \"*.{json,md}\": [\"prettier --write\"]\n  }\n}"
-    },
-    {
-      "type": "h",
-      "text": "3. 공유하는 법"
-    },
-    {
-      "type": "p",
-      "text": "`.git/hooks` 는 저장소에 안 들어간다. 그래서 husky·lefthook 처럼 **설치 스크립트로 배포**하거나 `core.hooksPath` 를 설정한다. 새 팀원이 clone 만 해도 켜져야 의미가 있다."
-    },
-    {
-      "type": "h",
-      "text": "4. 서버 쪽 훅"
-    },
-    {
-      "type": "note",
-      "text": "로컬 훅은 우회 가능하다. 진짜 강제는 **CI 와 브랜치 보호 규칙**(필수 검사 통과·리뷰 승인)에서 한다. 로컬 훅은 「빨리 알려 주는 친절」, 서버는 「막는 문」."
-    },
-    {
-      "type": "h",
-      "text": "5. 무엇을 넣을까"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "효과 큰 순서",
-      "text": "1) 비밀값 검사 (되돌릴 수 없는 사고를 막는다)\n2) 포매터 (리뷰에서 형식 논쟁이 사라진다)\n3) 커밋 메시지 형식 (commit-msg 훅)\n4) 타입 검사 (pre-push)"
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "husky + lint-staged 를 붙이고, 일부러 형식이 틀린 파일을 커밋해 자동 수정되는지 확인하라."
-    },
-    {
-      "type": "try",
-      "text": "훅 실행 시간을 재라. 5초를 넘으면 무엇을 CI 로 옮길지 정하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "pre-commit 훅에 무거운 테스트를 넣으면 생기는 문제는?",
-      "choices": [
-        "느려서 --no-verify 로 우회하게 된다",
-        "커밋이 실패한다",
-        "저장소가 커진다"
+      "id": "1",
+      "title": "훅이란 — 정해진 순간에 끼어드는 스크립트",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "git 은 커밋·푸시 같은 일을 하기 전후에 **정해진 이름의 스크립트가 있으면 실행한다.** 그 스크립트가 훅이다. 특별한 문법은 없다 — 실행 권한이 있는 파일이면 되고, **종료 코드 0 이 아니면 그 동작이 취소된다.**"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "어느 순간에 무엇이 불리나 — 단계를 밀어 보라",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 9, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((line, i) => ctx.fillText(line, x + 9, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const step = {{step}};\n  const steps = [\n    ['git commit 을 친다', '', ''],\n    ['pre-commit', '커밋을 만들기 직전', '여기서 실패하면 커밋 자체가 안 만들어진다. 포매터·린터 자리.'],\n    ['prepare-commit-msg', '편집기가 열리기 직전', '메시지 틀을 미리 채워 넣을 때(이슈 번호 자동 삽입 등).'],\n    ['commit-msg', '메시지를 다 쓴 뒤', '메시지 형식 검사. 관례적 커밋 규칙을 여기서 강제한다.'],\n    ['post-commit', '커밋이 만들어진 뒤', '실패해도 커밋은 이미 됐다 — 알림 같은 부수 작업용.'],\n    ['pre-push', 'git push 직전', '조금 무거운 검사(테스트)를 걸 수 있는 마지막 로컬 자리.'],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  steps.forEach(([name], i) => {\n    const on = i <= step;\n    const x = 12 + i * 71;\n    box(x, 60, 66, 46, '', '', on ? '#14351f' : '#111c33', i === step ? '#f59e0b' : on ? '#22c55e' : '#334155');\n    ctx.save();\n    ctx.translate(x + 33, 83); ctx.rotate(-Math.PI / 2);\n    ctx.textAlign = 'center'; ctx.fillStyle = on ? '#e2e8f0' : '#475569'; ctx.font = '10px ui-monospace, monospace';\n    ctx.fillText(name.length > 12 ? name.slice(0, 12) : name, 0, 3);\n    ctx.restore();\n    if (i < steps.length - 1) arrow(x + 66, 83, x + 71, 83, on ? '#22c55e' : '#334155');\n  });\n  app.innerHTML = '';\n  show(steps[step][0] + (steps[step][1] ? '  —  ' + steps[step][1] : '') + '\\n\\n' + (steps[step][2] || '') + '\\n\\n'\n     + '규칙 하나: **종료 코드 0 이 아니면 그 동작이 취소된다.**\\n'\n     + '(post-* 계열은 예외 — 이미 끝난 뒤라 막을 것이 없다)');\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 5,
+              "step": 1,
+              "value": 1
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "가장 단순한 훅 — 파일 하나",
+          "text": ".git/hooks/pre-commit          # 확장자 없음, 실행 권한 필요\n\n#!/usr/bin/env bash\nnpx prettier --check $(git diff --cached --name-only --diff-filter=ACM) || exit 1\n\nchmod +x .git/hooks/pre-commit"
+        },
+        {
+          "type": "note",
+          "text": "**`.git/hooks/` 는 커밋되지 않는다.** 그래서 손으로 넣은 훅은 나만 갖게 되고, 새로 clone 한 사람에게는 없다. 팀이 함께 쓰려면 도구가 필요하다(4장) — 이것이 훅의 첫 번째 함정이다."
+        },
+        {
+          "type": "p",
+          "text": "훅은 **로컬에서만 도는 검사**다. 서버는 훅이 돌았는지 알지 못한다. 그래서 훅은 「빨리 알려 주는 장치」이지 **게이트가 아니다** — 진짜 게이트는 CI 와 브랜치 보호다(5장)."
+        },
+        {
+          "type": "try",
+          "text": "`ls .git/hooks/` 를 쳐 보라. `.sample` 이 붙은 예제들이 있다. 하나를 열어 어떤 인자를 받는지 읽어 보라."
+        }
       ],
-      "answer": 0,
-      "why": "빠른 것만 손 옆에, 무거운 것은 CI 로."
+      "quiz": [
+        {
+          "q": "훅이 동작을 막는 조건은?",
+          "choices": [
+            "출력에 error 가 있으면",
+            "종료 코드가 0 이 아니면",
+            "1초 이상 걸리면",
+            "파일을 고치면"
+          ],
+          "answer": 1,
+          "why": "종료 코드가 전부다."
+        },
+        {
+          "q": "`.git/hooks/` 의 내용은?",
+          "choices": [
+            "커밋된다",
+            "커밋되지 않는다 — 나만 갖는다",
+            "원격에 올라간다",
+            "자동 공유"
+          ],
+          "answer": 1,
+          "why": "팀이 쓰려면 도구가 필요하다."
+        },
+        {
+          "q": "훅이 게이트가 될 수 없는 이유는?",
+          "choices": [
+            "느려서",
+            "로컬에서만 돌고 우회할 수 있어서",
+            "권한 때문",
+            "형식 때문"
+          ],
+          "answer": 1,
+          "why": "진짜 게이트는 CI·브랜치 보호."
+        }
+      ]
     },
     {
-      "q": "로컬 훅만으로 규칙을 강제할 수 없는 이유는?",
-      "choices": [
-        "우회할 수 있으므로 CI·브랜치 보호가 필요하다",
-        "설치가 어려워서",
-        "속도 때문"
+      "id": "2",
+      "title": "무엇을 훅에 걸 것인가",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "훅의 값은 **되돌리기가 싼 시점에 알려 주는 것**이다. 커밋 직전에 잡히면 5초, PR 에서 잡히면 5분, 배포 후에 잡히면 몇 시간이 든다. 그러니 **싸고 확실한 검사**를 앞으로 당겨라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "검사를 골라 보라 — 훅에 맞나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 9, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((line, i) => ctx.fillText(line, x + 9, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{check}}';\n  const t = {\n    format: ['포매터 (prettier · gofmt)', '0.3초', '훅에 최적',\n      '결과가 확정적이고 빠르다. 게다가 자동으로 고칠 수 있어 사람 손이 안 든다.'],\n    lintstaged: ['린터 (바뀐 파일만)', '1~3초', '훅에 적합',\n      '전체가 아니라 staged 파일만 검사하면 시간이 일정하게 유지된다.'],\n    msg: ['커밋 메시지 형식', '0.05초', '훅에 최적',\n      'commit-msg 훅. 나중에 고치려면 rebase 를 해야 하므로 그 자리에서 막는 것이 싸다.'],\n    secret: ['비밀 스캔 (토큰·키)', '0.5초', '훅에 필수',\n      '한 번 올라가면 유출이다(git-remote 8장). 커밋 전이 유일하게 싼 시점.'],\n    unit: ['단위 테스트 전체', '30초~5분', 'pre-push 또는 CI',\n      'pre-commit 에 걸면 커밋이 고통스러워진다. 바뀐 부분만 돌리거나 push 로 미룬다.'],\n    build: ['빌드 · 타입 검사 전체', '1~10분', 'CI 전용',\n      '로컬 훅에 걸면 사람들이 --no-verify 를 쓰기 시작한다(3장).'],\n    e2e: ['E2E · 통합 테스트', '5~30분', 'CI 전용',\n      '느리고 깜빡이기 쉽다. 로컬에서 강제하면 개발이 멈춘다.'],\n  }[k];\n  const color = t[2].includes('CI') ? '#f59e0b' : '#4ade80';\n  app.innerHTML = '<div class=\"hint\">' + t[0] + ' · 대략 ' + t[1] + '</div>' +\n    '<div style=\"font-size:17px;margin-top:6px;color:' + color + '\">' + t[2] + '</div>';\n  show(t[3] + '\\n\\n'\n     + '판단 기준 셋\\n'\n     + '  1. 빠른가 (커밋 전 검사는 합쳐서 5초 안)\\n'\n     + '  2. 확정적인가 (같은 입력에 같은 결과 — 깜빡이면 안 된다)\\n'\n     + '  3. 늦게 잡으면 비싼가 (비밀·커밋 메시지는 늦으면 훨씬 비싸다)');\n</script>",
+          "controls": [
+            {
+              "id": "check",
+              "label": "검사",
+              "type": "select",
+              "value": "format",
+              "options": [
+                {
+                  "value": "format",
+                  "label": "포매터"
+                },
+                {
+                  "value": "lintstaged",
+                  "label": "린터(바뀐 파일)"
+                },
+                {
+                  "value": "msg",
+                  "label": "커밋 메시지 형식"
+                },
+                {
+                  "value": "secret",
+                  "label": "비밀 스캔"
+                },
+                {
+                  "value": "unit",
+                  "label": "단위 테스트 전체"
+                },
+                {
+                  "value": "build",
+                  "label": "빌드·타입 검사"
+                },
+                {
+                  "value": "e2e",
+                  "label": "E2E 테스트"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**바뀐 파일만 검사하라.** 전체를 돌리면 시간이 저장소 크기에 비례해 늘어나고, 결국 훅이 버려진다. `git diff --cached --name-only` 로 staged 파일만 넘기는 것이 기본이다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "staged 파일만 넘기기",
+          "text": "#!/usr/bin/env bash\nfiles=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\\.(ts|tsx|js)$')\n[ -z \"$files\" ] && exit 0            # 검사할 게 없으면 즉시 통과\n\nnpx prettier --write $files\nnpx eslint --fix $files || exit 1\ngit add $files                        # 고친 결과를 다시 담는다"
+        },
+        {
+          "type": "p",
+          "text": "그리고 **커밋 메시지 검사는 값이 특히 크다.** 나중에 고치려면 `rebase -i` 가 필요하고, 이미 push 했으면 사실상 못 고친다. 0.05초짜리 검사가 나중의 30분을 막는다."
+        },
+        {
+          "type": "try",
+          "text": "내 저장소에서 pre-commit 이 몇 초 걸리는지 재 보라(`time git commit --allow-empty -m test`). 5초를 넘으면 줄일 자리를 찾아라."
+        }
       ],
-      "answer": 0,
-      "why": "훅은 친절, 서버 검사가 문이다."
+      "quiz": [
+        {
+          "q": "훅에 넣기 좋은 검사의 조건은?",
+          "choices": [
+            "중요할 것",
+            "빠르고 확정적일 것",
+            "테스트를 포함할 것",
+            "전체를 볼 것"
+          ],
+          "answer": 1,
+          "why": "느리거나 깜빡이면 버려진다."
+        },
+        {
+          "q": "훅에서 전체 대신 staged 파일만 검사하는 이유는?",
+          "choices": [
+            "정확도",
+            "시간이 저장소 크기와 무관하게 유지된다",
+            "권한",
+            "충돌 방지"
+          ],
+          "answer": 1,
+          "why": "안 그러면 결국 꺼진다."
+        },
+        {
+          "q": "커밋 메시지 형식 검사를 훅에 두는 이유는?",
+          "choices": [
+            "빨라서만",
+            "나중에 고치려면 rebase 가 필요해 훨씬 비싸서",
+            "CI 가 못 해서",
+            "관례라서"
+          ],
+          "answer": 1,
+          "why": "push 후에는 사실상 못 고친다."
+        }
+      ]
     },
     {
-      "q": "훅을 팀에 공유하는 방법은?",
-      "choices": [
-        "husky 등 설치 스크립트나 core.hooksPath 설정",
-        ".git/hooks 를 커밋",
-        "문서로 안내만"
+      "id": "3",
+      "title": "훅의 함정 — 사람들이 끄기 시작하는 지점",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "훅이 실패하는 방식은 거의 항상 같다 — **느려져서 사람들이 우회한다.** `--no-verify` 한 번이 습관이 되면 그 훅은 없는 것과 같아진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "훅 시간을 늘려 보라 — 언제부터 우회가 시작되나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 9, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((line, i) => ctx.fillText(line, x + 9, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const SEC = {{secs}}, COMMITS = 25;\n  /* 경험칙: 훅이 길어질수록 --no-verify 비율이 급격히 는다 */\n  const bypass = Math.min(95, Math.max(0, (SEC - 2) * 14));\n  const lost = SEC * COMMITS;\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('하루 커밋 ' + COMMITS + '회 · 훅 ' + SEC + '초', 14, 18);\n  ctx.fillStyle = '#334155'; ctx.fillRect(14, 26, 410, 22);\n  ctx.fillStyle = bypass > 50 ? '#ef4444' : bypass > 20 ? '#f59e0b' : '#22c55e';\n  ctx.fillRect(14, 26, 410 * (bypass / 100), 22);\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n  ctx.fillText('--no-verify 로 우회하는 비율(추정) ' + bypass.toFixed(0) + '%', 20, 42);\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui';\n  ctx.fillText('하루에 훅에 쓰는 시간 ' + (lost >= 60 ? (lost / 60).toFixed(1) + '분' : lost + '초'), 14, 74);\n  ctx.fillStyle = '#334155'; ctx.fillRect(14, 84, 410, 22);\n  ctx.fillStyle = '#60a5fa'; ctx.fillRect(14, 84, Math.min(410, lost * 1.4), 22);\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n  ctx.fillText(SEC <= 2 ? '체감되지 않는다 — 훅이 살아남는다'\n             : SEC <= 5 ? '슬슬 거슬린다 — 줄일 자리를 찾아라'\n             : '커밋이 고통스럽다 — 곧 아무도 안 쓴다', 14, 130);\n  app.innerHTML = '';\n  show('훅 ' + SEC + '초 · 우회 비율(추정) ' + bypass.toFixed(0) + '%\\n\\n'\n     + '훅이 죽는 경로\\n'\n     + '  느려진다 -> 한 명이 --no-verify 를 쓴다 -> 다들 쓴다 -> 훅이 죽는다\\n'\n     + '  -> 그런데 아무도 「훅이 죽었다」고 말하지 않는다 (조용한 실패)\\n\\n'\n     + '살리는 법\\n'\n     + '  · 바뀐 파일만 검사 (2장)\\n'\n     + '  · 무거운 것은 pre-push 나 CI 로 옮긴다\\n'\n     + '  · 검사 대신 자동 수정으로 (7장) — 사람을 멈추지 않는다\\n'\n     + '  · 진짜 막아야 하는 것은 CI·브랜치 보호로 (5장)');\n</script>",
+          "controls": [
+            {
+              "id": "secs",
+              "label": "훅에 걸리는 시간(초)",
+              "type": "range",
+              "min": 1,
+              "max": 30,
+              "step": 1,
+              "value": 3
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**`--no-verify` 를 막을 수는 없다.** 로컬 훅은 사용자의 기계에서 도는 스크립트일 뿐이다. 그래서 「훅으로 강제한다」는 생각 자체가 틀렸다 — 훅은 **도와주는 장치**이고, 강제는 서버가 한다."
+        },
+        {
+          "type": "p",
+          "text": "다른 함정도 있다. 훅이 **환경에 의존**하면(특정 node 버전, 전역 설치 도구) 어떤 사람에게는 늘 실패한다. 그리고 **에디터에서 커밋할 때** PATH 가 달라 훅이 안 돌거나 이상하게 도는 것도 흔하다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "훅을 튼튼하게",
+          "text": "#!/usr/bin/env bash\nset -euo pipefail\n\n# 검사할 게 없으면 즉시 통과 (가장 흔한 경우를 가장 빠르게)\nfiles=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\\.(ts|js)$' || true)\n[ -z \"$files\" ] && exit 0\n\n# 도구가 없으면 막지 말고 알린다 (환경 차이로 사람을 멈추지 않는다)\nif ! command -v npx >/dev/null; then\n  echo 'npx 가 없어 검사를 건너뜁니다' >&2\n  exit 0\nfi"
+        },
+        {
+          "type": "try",
+          "text": "팀에 「최근 `--no-verify` 를 써 본 사람?」이라고 물어보라. 손이 여러 개 올라오면 훅이 이미 죽어 있다는 뜻이다."
+        }
       ],
-      "answer": 0,
-      "why": ".git/hooks 는 저장소에 포함되지 않는다."
+      "quiz": [
+        {
+          "q": "훅이 죽는 가장 흔한 경로는?",
+          "choices": [
+            "버그",
+            "느려져서 --no-verify 로 우회",
+            "권한 문제",
+            "OS 차이"
+          ],
+          "answer": 1,
+          "why": "그리고 아무도 말하지 않는다."
+        },
+        {
+          "q": "`--no-verify` 를 막을 수 있나?",
+          "choices": [
+            "설정으로 막는다",
+            "막을 수 없다 — 로컬 스크립트일 뿐이다",
+            "서버 훅으로 막는다",
+            "권한으로 막는다"
+          ],
+          "answer": 1,
+          "why": "강제는 서버가 한다."
+        },
+        {
+          "q": "훅이 도구를 못 찾을 때 바람직한 동작은?",
+          "choices": [
+            "실패시킨다",
+            "알리고 통과시킨다",
+            "설치한다",
+            "무시하고 커밋"
+          ],
+          "answer": 1,
+          "why": "환경 차이로 사람을 멈추지 않는다."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "팀이 함께 쓰기 — 훅을 저장소에 담는다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`.git/hooks/` 는 커밋되지 않으므로, 팀이 함께 쓰려면 **저장소 안에 훅을 두고 git 이 그 폴더를 보게** 해야 한다. 방법은 둘 — git 설정 하나로 끝내거나, 도구를 쓰거나."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "방법을 골라 보라 — 무엇을 얻고 무엇을 감수하나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 9, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((line, i) => ctx.fillText(line, x + 9, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const m = '{{way}}';\n  const t = {\n    core: ['core.hooksPath (git 기본 기능)', 'git config core.hooksPath .githooks',\n      ['+ 의존성이 하나도 없다 — 셸 스크립트만 있으면 된다', '+ 어떤 언어의 프로젝트에도 쓴다'],\n      ['- 각자 한 번은 설정 명령을 쳐야 한다(설치 스크립트로 자동화 가능)']],\n    husky: ['husky (JS 생태계)', 'npx husky init',\n      ['+ npm install 때 자동으로 설정된다(prepare 스크립트)', '+ lint-staged 와 조합이 흔하다'],\n      ['- node 프로젝트 전제', '- 의존성이 하나 는다']],\n    lefthook: ['lefthook / pre-commit (언어 중립)', 'lefthook install',\n      ['+ YAML 한 장으로 훅을 선언한다', '+ 병렬 실행·파일 필터가 내장', '+ 여러 언어 프로젝트에 적합'],\n      ['- 도구를 각자 설치해야 한다']],\n  }[m];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div style=\"font:12.5px ui-monospace,monospace;color:#7dd3fc;margin-top:6px\">' + t[1] + '</div>';\n  show(t[2].join('\\n') + '\\n\\n' + t[3].join('\\n') + '\\n\\n'\n     + '어느 쪽이든 공통 규칙\\n'\n     + '  · 훅 스크립트는 저장소 안에 (리뷰 대상이 된다)\\n'\n     + '  · 설치를 자동화한다 (사람이 잊는 단계를 없앤다)\\n'\n     + '  · 훅이 하는 일과 같은 검사를 CI 에도 둔다 (훅은 우회 가능하므로)');\n</script>",
+          "controls": [
+            {
+              "id": "way",
+              "label": "방법",
+              "type": "select",
+              "value": "core",
+              "options": [
+                {
+                  "value": "core",
+                  "label": "core.hooksPath"
+                },
+                {
+                  "value": "husky",
+                  "label": "husky"
+                },
+                {
+                  "value": "lefthook",
+                  "label": "lefthook / pre-commit"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "yaml",
+          "label": "선언형으로 적는 예 (lefthook)",
+          "text": "pre-commit:\n  parallel: true\n  commands:\n    format:\n      glob: '*.{ts,tsx,js,json,md}'\n      run: npx prettier --write {staged_files} && git add {staged_files}\n    lint:\n      glob: '*.{ts,tsx}'\n      run: npx eslint --fix {staged_files} && git add {staged_files}\n    secrets:\n      run: npx secretlint {staged_files}\n\ncommit-msg:\n  commands:\n    conventional:\n      run: npx commitlint --edit {1}"
+        },
+        {
+          "type": "note",
+          "text": "**staged 파일만 넘기고, 고쳤으면 다시 add 하라.** 포매터가 파일을 고쳤는데 `git add` 를 안 하면 **고치기 전 내용이 커밋된다** — 사람들이 「훅이 이상하다」고 느끼는 대표 원인이다."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **부분 스테이징**(파일의 일부만 add)일 때 특히 조심해야 한다. 포매터가 파일 전체를 고치면 add 하지 않은 부분까지 커밋에 섞인다. lint-staged·lefthook 같은 도구는 이 경우를 stash 로 처리해 주므로, 손수 짠 훅보다 안전하다."
+        },
+        {
+          "type": "try",
+          "text": "내 저장소의 훅이 어디에 있는지 확인하라 — `git config core.hooksPath` 와 `ls .git/hooks`. 팀원에게 「clone 하고 나서 훅이 도나요?」를 물어보면 답이 나온다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "저장소 안의 훅을 git 이 보게 하는 기본 설정은?",
+          "choices": [
+            "core.hooksPath",
+            "hooks.dir",
+            "git.hooks",
+            "core.hooks"
+          ],
+          "answer": 0,
+          "why": "도구 없이도 팀 공유가 된다."
+        },
+        {
+          "q": "포매터가 파일을 고친 뒤 해야 할 일은?",
+          "choices": [
+            "아무것도",
+            "고친 결과를 다시 git add",
+            "커밋 취소",
+            "stash"
+          ],
+          "answer": 1,
+          "why": "안 하면 고치기 전 내용이 커밋된다."
+        },
+        {
+          "q": "부분 스테이징에서 손수 짠 훅이 위험한 이유는?",
+          "choices": [
+            "느려서",
+            "add 하지 않은 부분까지 커밋에 섞일 수 있어서",
+            "권한 때문",
+            "충돌 때문"
+          ],
+          "answer": 1,
+          "why": "도구는 stash 로 이 경우를 처리한다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "진짜 게이트는 서버에 있다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "로컬 훅은 우회할 수 있다. 그래서 **반드시 지켜야 하는 것**은 서버에서 막아야 한다 — CI 필수 검사(git-pr 7장)와 브랜치 보호(git-flow 8장)가 그 자리다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "어디에 걸었는지 골라 보라 — 실제로 막히나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 9, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((line, i) => ctx.fillText(line, x + 9, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const w = '{{where}}';\n  const t = {\n    hook: ['로컬 훅만', '우회 가능 (--no-verify · 훅 미설치 · 다른 도구로 커밋)',\n      '막히는 비율: 낮음 (선의에 의존)',\n      '값: 빠른 피드백. 하지만 「강제」로 믿으면 안 된다.'],\n    ci: ['CI 필수 검사', '우회 어려움 (합치기 전 초록이어야 한다)',\n      '막히는 비율: 높음',\n      '값: 진짜 게이트. 다만 피드백이 몇 분 뒤라 느리다.'],\n    both: ['훅 + CI 둘 다', '훅이 먼저 알려 주고, CI 가 최종적으로 막는다',\n      '막히는 비율: 높음 + 빠른 피드백',\n      '값: 같은 검사를 두 곳에 두는 것이 정석이다. 다만 **한 소스에서** 돌게 하라.'],\n    server: ['서버 훅 (pre-receive)', '우회 불가 (서버가 거부)',\n      '막히는 비율: 100%',\n      '값: 자체 호스팅 git 에서만 가능. GitHub 은 규칙·앱으로 대신한다.'],\n  }[w];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n' + t[3] + '\\n\\n'\n     + '배치 원칙\\n'\n     + '  훅  = 빠른 피드백 (초 단위, 우회 가능)\\n'\n     + '  CI  = 진짜 게이트 (분 단위, 우회 어려움)\\n'\n     + '  규칙= 사람 절차 강제 (승인·force push 금지)\\n\\n'\n     + '같은 검사를 두 곳에 둘 때는 **명령을 하나로** 유지하라 —\\n'\n     + '  훅도 CI 도 `npm run lint` 를 부르게. 두 벌로 적으면 곧 어긋난다.');\n</script>",
+          "controls": [
+            {
+              "id": "where",
+              "label": "어디에 걸었나",
+              "type": "select",
+              "value": "hook",
+              "options": [
+                {
+                  "value": "hook",
+                  "label": "로컬 훅만"
+                },
+                {
+                  "value": "ci",
+                  "label": "CI 필수 검사"
+                },
+                {
+                  "value": "both",
+                  "label": "훅 + CI"
+                },
+                {
+                  "value": "server",
+                  "label": "서버 훅"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "json",
+          "label": "명령을 한 곳에 — 훅도 CI 도 같은 것을 부른다",
+          "text": "{\n  \"scripts\": {\n    \"lint\": \"eslint .\",\n    \"format:check\": \"prettier --check .\",\n    \"typecheck\": \"tsc --noEmit\",\n    \"verify\": \"npm run format:check && npm run lint && npm run typecheck\"\n  }\n}\n\n// 훅: 바뀐 파일에만  ·  CI: npm run verify (전체)\n// 규칙은 한 곳(package.json)에만 적혀 있다"
+        },
+        {
+          "type": "note",
+          "text": "**로컬과 CI 의 결과가 다르면 신뢰가 무너진다.** 「로컬에서는 통과했는데 CI 는 빨강」이 반복되면 사람들이 CI 를 무시하기 시작한다. 도구 버전을 고정하고(`package-lock`·`.tool-versions`), 같은 명령을 부르게 하라."
+        },
+        {
+          "type": "p",
+          "text": "GitHub 같은 호스팅에서는 `pre-receive` 훅을 직접 못 넣는 대신 **규칙(rulesets)·필수 검사·앱**이 그 역할을 한다. 「푸시 자체를 막아야 하는 것」(비밀 스캔·큰 파일)은 그 기능으로 켜라 — 8장에서 다룬다."
+        },
+        {
+          "type": "try",
+          "text": "우리 저장소에서 훅과 CI 가 **같은 명령**을 부르는지 확인하라. 다르게 적혀 있으면 언젠가 어긋나고, 그때 사람들이 CI 를 의심하기 시작한다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "반드시 지켜야 할 검사를 두는 곳은?",
+          "choices": [
+            "로컬 훅",
+            "CI 필수 검사·브랜치 보호",
+            "에디터 설정",
+            "문서"
+          ],
+          "answer": 1,
+          "why": "훅은 우회할 수 있다."
+        },
+        {
+          "q": "훅과 CI 에 같은 검사를 둘 때 주의할 점은?",
+          "choices": [
+            "다르게 적는다",
+            "같은 명령을 부르게 한다",
+            "훅을 더 엄격하게",
+            "CI 만 둔다"
+          ],
+          "answer": 1,
+          "why": "두 벌로 적으면 어긋난다."
+        },
+        {
+          "q": "로컬은 초록인데 CI 가 빨강인 일이 반복되면?",
+          "choices": [
+            "CI 를 끈다",
+            "사람들이 CI 를 무시하게 된다 — 버전·명령을 맞춰라",
+            "정상이다",
+            "훅을 늘린다"
+          ],
+          "answer": 1,
+          "why": "신뢰가 무너진다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "막지 말고 고쳐라 — 자동 수정의 힘",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "검사에는 두 가지 결말이 있다 — **실패시키기**와 **고쳐 주기**. 기계가 확실하게 고칠 수 있는 것은 실패시킬 이유가 없다. 사람을 멈추는 대신 조용히 고치면 마찰이 사라진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "정책을 골라 보라 — 하루에 몇 번 멈추나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 9, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((line, i) => ctx.fillText(line, x + 9, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const FIXABLE = {{fixable}}, MODE = '{{mode}}';\n  const COMMITS = 25;\n  const stops = MODE === 'fail' ? Math.round(COMMITS * FIXABLE / 100)\n              : MODE === 'fix' ? 0\n              : Math.round(COMMITS * FIXABLE / 100 * 0.2);\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('하루 커밋 ' + COMMITS + '회 중 검사에 걸리는 비율 ' + FIXABLE + '%', 14, 18);\n  for (let i = 0; i < COMMITS; i++) {\n    const stopped = i < stops;\n    ctx.fillStyle = stopped ? '#ef4444' : '#22c55e';\n    ctx.fillRect(14 + (i % 13) * 32, 32 + Math.floor(i / 13) * 30, 28, 24);\n  }\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '13px system-ui';\n  ctx.fillText('사람이 멈춘 횟수 ' + stops + ' / ' + COMMITS, 14, 118);\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui';\n  ctx.fillText({ fail: '전부 실패시킨다 — 고칠 수 있는 것까지 사람을 부른다',\n                 fix: '고칠 수 있는 것은 고친다 — 사람은 안 멈춘다',\n                 mixed: '고칠 수 있는 것은 고치고, 못 고치는 것만 실패' }[MODE], 14, 140);\n  app.innerHTML = '';\n  show({ fail: '정책: 검사만 하고 실패시킨다 (--check)',\n         fix: '정책: 전부 자동 수정 (--write / --fix)',\n         mixed: '정책: 자동 수정 + 못 고치는 것만 실패 (권장)' }[MODE] + '\\n\\n'\n     + '멈춘 횟수 ' + stops + ' / ' + COMMITS + '\\n\\n'\n     + '무엇을 고쳐도 되나\\n'\n     + '  고쳐도 됨 : 포매팅 · import 정렬 · 안 쓰는 import 제거 · 줄바꿈\\n'\n     + '  고치면 안 됨: 로직을 바꾸는 규칙 · 타입 오류 · 테스트 실패\\n\\n'\n     + '주의: 자동 수정은 diff 를 늘린다 — 리뷰어가 볼 것이 는다.\\n'\n     + '그래서 포매팅은 **한 번에 전부 적용**하고 그 커밋을 blame 에서 무시하게 만든다(git-pr 2장).');\n</script>",
+          "controls": [
+            {
+              "id": "mode",
+              "label": "정책",
+              "type": "select",
+              "value": "fail",
+              "options": [
+                {
+                  "value": "fail",
+                  "label": "검사만 (실패)"
+                },
+                {
+                  "value": "fix",
+                  "label": "전부 자동 수정"
+                },
+                {
+                  "value": "mixed",
+                  "label": "수정 + 못 고치면 실패"
+                }
+              ]
+            },
+            {
+              "id": "fixable",
+              "label": "걸리는 비율(%)",
+              "type": "range",
+              "min": 0,
+              "max": 60,
+              "step": 5,
+              "value": 30
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**CI 에서는 자동 수정을 하지 마라.** CI 가 코드를 고쳐 커밋하면 「내가 안 쓴 커밋」이 생기고, 무한 루프(수정 커밋 → CI → 수정 커밋)에 빠지기도 한다. CI 는 `--check` 로 검사만 하고, 수정은 로컬 훅·에디터에서 한다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "같은 도구, 다른 모드",
+          "text": "에디터   : 저장할 때 자동 수정 (가장 빠른 피드백)\n훅       : staged 파일 자동 수정 + 다시 add\nCI       : --check 로 검사만 (수정하지 않는다)\n\n결과: 사람은 거의 멈추지 않고, main 은 늘 정돈돼 있다"
+        },
+        {
+          "type": "p",
+          "text": "가장 좋은 자리는 사실 **에디터**다. 저장할 때마다 고쳐지면 훅이 할 일이 거의 없어진다. 그래서 저장소에 에디터 설정(`.editorconfig`·`.vscode/settings.json`)을 함께 두는 것이 실질적인 자동화다."
+        },
+        {
+          "type": "try",
+          "text": "에디터의 「저장할 때 포맷」을 켜고 하루 써 보라. 훅에서 걸리는 횟수가 얼마나 줄어드는지 세어 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "기계가 확실히 고칠 수 있는 것은?",
+          "choices": [
+            "실패시킨다",
+            "고쳐 준다",
+            "무시한다",
+            "경고만"
+          ],
+          "answer": 1,
+          "why": "사람을 멈출 이유가 없다."
+        },
+        {
+          "q": "CI 에서 자동 수정을 피하는 이유는?",
+          "choices": [
+            "느려서",
+            "내가 안 쓴 커밋이 생기고 루프에 빠질 수 있어서",
+            "권한 때문",
+            "정확도"
+          ],
+          "answer": 1,
+          "why": "CI 는 --check 만."
+        },
+        {
+          "q": "가장 빠른 피드백 자리는?",
+          "choices": [
+            "CI",
+            "훅",
+            "에디터(저장 시 자동 수정)",
+            "리뷰"
+          ],
+          "answer": 2,
+          "why": "훅이 할 일이 줄어든다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "정말로 막아야 하는 것들",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "대부분의 검사는 「없으면 불편」이지만, **한 번 통과하면 되돌릴 수 없는 것**들이 있다. 비밀·큰 파일·잘못된 저장소로의 push — 이것들은 값이 다르므로 다르게 다뤄야 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "사고를 골라 보라 — 어디서 막아야 하나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 9, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((line, i) => ctx.fillText(line, x + 9, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{risk}}';\n  const t = {\n    secret: ['API 키·토큰을 커밋', '되돌릴 수 없다 — push 순간 유출로 간주',\n      '훅(로컬) + 서버 push 보호 + 저장소 스캔, 셋 다',\n      '탐지되면: 즉시 키 폐기·재발급이 1번(git-remote 8장). 역사 정리는 그다음.'],\n    bigfile: ['100MB 짜리 파일을 커밋', '역사에서 지우려면 전 역사 다시 쓰기',\n      '훅에서 크기 검사 + 서버 제한',\n      '대안: Git LFS 또는 아예 저장소 밖(오브젝트 스토리지).'],\n    wrongrepo: ['사내 코드를 공개 저장소로 push', '되돌릴 수 없다',\n      'pre-push 훅에서 원격 주소 확인 + 조직 정책',\n      '원격 이름·URL 을 확인하는 세 줄이 회사를 구한다.'],\n    forcemain: ['main 에 force push', '남의 커밋이 사라진다',\n      '브랜치 보호 규칙 (로컬 훅으로는 못 막는다)',\n      'git-flow 8장. 서버에서 거부하는 것이 유일한 확실한 방법.'],\n    largehistory: ['node_modules 를 커밋', '저장소가 영구히 무거워진다',\n      '.gitignore + 훅에서 경로 검사',\n      '이미 들어갔다면 filter-repo 로 정리 — 팀 전체가 다시 clone 해야 한다.'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:15px;color:#f87171\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show('막는 자리: ' + t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '공통 원칙\\n'\n     + '  · 되돌릴 수 없는 것은 **여러 겹**으로 막는다 (훅 + 서버 + 스캔)\\n'\n     + '  · 사람의 주의력에 의존하지 않는다\\n'\n     + '  · 뚫렸을 때의 절차를 미리 적어 둔다');\n</script>",
+          "controls": [
+            {
+              "id": "risk",
+              "label": "사고",
+              "type": "select",
+              "value": "secret",
+              "options": [
+                {
+                  "value": "secret",
+                  "label": "비밀 커밋"
+                },
+                {
+                  "value": "bigfile",
+                  "label": "큰 파일"
+                },
+                {
+                  "value": "wrongrepo",
+                  "label": "잘못된 저장소로 push"
+                },
+                {
+                  "value": "forcemain",
+                  "label": "main 에 force push"
+                },
+                {
+                  "value": "largehistory",
+                  "label": "node_modules 커밋"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "pre-push 세 줄이 막는 사고",
+          "text": "#!/usr/bin/env bash\n# .githooks/pre-push  —  인자로 원격 이름과 URL 이 들어온다\nremote_url=\"$2\"\ncase \"$remote_url\" in\n  *github.com/our-org/*) ;;                     # 허용\n  *) echo \"낯선 원격입니다: $remote_url\" >&2; exit 1 ;;\nesac\n\n# 큰 파일 막기 (pre-commit)\nfor f in $(git diff --cached --name-only); do\n  [ -f \"$f\" ] || continue\n  size=$(wc -c < \"$f\")\n  [ \"$size\" -gt 5000000 ] && { echo \"$f 가 5MB 를 넘습니다\" >&2; exit 1; }\ndone"
+        },
+        {
+          "type": "note",
+          "text": "**비밀은 세 겹으로 막아라** — 로컬 훅(secretlint·gitleaks), 서버의 push 보호, 그리고 저장소 전체 주기 스캔. 어느 한 겹만으로는 새는 경로가 남는다. 그리고 애초에 `.env` 를 `.gitignore` 에 넣는 것이 0번째 겹이다."
+        },
+        {
+          "type": "p",
+          "text": "이런 검사는 **거짓 양성**이 나오기 쉽다(예제 키, 테스트 픽스처). 막는 것이 옳지만, 우회 경로와 허용 목록을 함께 준비하라 — 아니면 사람들이 검사 자체를 끄게 된다(3장의 그 경로다)."
+        },
+        {
+          "type": "try",
+          "text": "`git log --all --stat | grep -iE '\\.env|\\.pem|id_rsa'` 로 우리 역사에 비밀 파일이 들어간 적이 있는지 훑어라. 나오면 오늘의 1순위 작업이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "비밀 커밋을 막는 올바른 방식은?",
+          "choices": [
+            "훅 하나로 충분",
+            "훅 + 서버 보호 + 주기 스캔, 여러 겹",
+            "리뷰로 잡는다",
+            "문서화"
+          ],
+          "answer": 1,
+          "why": "되돌릴 수 없는 것은 겹으로 막는다."
+        },
+        {
+          "q": "main 에 force push 를 막을 수 있는 곳은?",
+          "choices": [
+            "로컬 훅",
+            "브랜치 보호 규칙(서버)",
+            ".gitignore",
+            "CI"
+          ],
+          "answer": 1,
+          "why": "로컬 훅은 우회된다."
+        },
+        {
+          "q": "거짓 양성이 잦은 검사에 필요한 것은?",
+          "choices": [
+            "끄기",
+            "허용 목록과 우회 경로를 함께 준비",
+            "무시",
+            "더 엄격하게"
+          ],
+          "answer": 1,
+          "why": "안 그러면 검사 자체가 꺼진다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "훅이 만들어 내는 문화",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "자동 검사는 기술이면서 **팀의 약속**이다. 잘 놓으면 「말로 하던 지적」이 사라지고, 잘못 놓으면 「도구와 싸우는 시간」이 늘어난다. 배치의 원칙은 하나 — **사람의 판단이 필요한 것만 사람에게.**"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "검사를 어디에 배치할지 정해 보라",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 9, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((line, i) => ctx.fillText(line, x + 9, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const A = {{editor}}, B = {{hook}}, C = {{ci}};\n  ctx.clearRect(0, 0, 440, 190);\n  const cols = [['에디터', A, '즉시', '#22c55e'], ['훅', B, '초', '#60a5fa'], ['CI', C, '분', '#f59e0b']];\n  cols.forEach(([name, n, speed, color], i) => {\n    const x = 14 + i * 140;\n    box(x, 16, 128, 40, name, '피드백: ' + speed, '#111c33', color);\n    for (let k = 0; k < n; k++) {\n      ctx.fillStyle = color;\n      ctx.fillRect(x + 6, 66 + k * 22, 116, 18);\n      ctx.fillStyle = '#0b1220'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';\n      ctx.fillText(['포맷', '린트', '타입', '테스트', '보안'][k] || '', x + 64, 79 + k * 22);\n    }\n  });\n  const late = C, early = A + B;\n  app.innerHTML = '<div class=\"hint\">에디터 ' + A + ' · 훅 ' + B + ' · CI ' + C + ' 개의 검사</div>';\n  show('일찍 잡는 검사 ' + early + '개 · CI 에서만 잡는 것 ' + late + '개\\n\\n'\n     + (early >= 3\n        ? '좋다 — 대부분이 초 단위로 잡힌다. CI 는 최종 확인 역할.'\n        : 'CI 에 몰려 있다 — 피드백이 분 단위라 왕복이 잦아진다.\\n'\n          + '싸고 확정적인 검사를 앞으로 당겨라(2장).') + '\\n\\n'\n     + '배치 원칙\\n'\n     + '  즉시 알 수 있는 것 -> 에디터\\n'\n     + '  빠르고 확정적인 것 -> 훅 (바뀐 파일만)\\n'\n     + '  느리거나 전체가 필요한 것 -> CI (필수 검사로)\\n'\n     + '  판단이 필요한 것 -> 사람 (리뷰)');\n</script>",
+          "controls": [
+            {
+              "id": "editor",
+              "label": "에디터",
+              "type": "range",
+              "min": 0,
+              "max": 3,
+              "step": 1,
+              "value": 1
+            },
+            {
+              "id": "hook",
+              "label": "훅",
+              "type": "range",
+              "min": 0,
+              "max": 3,
+              "step": 1,
+              "value": 1
+            },
+            {
+              "id": "ci",
+              "label": "CI",
+              "type": "range",
+              "min": 0,
+              "max": 5,
+              "step": 1,
+              "value": 4
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**검사를 새로 추가할 때는 기존 코드를 먼저 통과시켜라.** 이미 수천 개의 경고가 나는 규칙을 켜면 아무도 안 본다. 새 코드에만 적용하거나(`--since`·변경 파일만), 일괄 수정 커밋을 먼저 넣고 켜라."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **검사는 늘 그 이유를 말해야 한다.** 「eslint 오류」만 뜨고 왜 안 되는지 모르면 사람들은 규칙을 끄거나 우회한다. 오류 메시지에 근거와 고치는 법을 한 줄 넣는 것만으로 수용도가 달라진다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "친절한 실패 메시지",
+          "text": "#!/usr/bin/env bash\nif ! npx commitlint --edit \"$1\"; then\n  cat >&2 <<'MSG'\n\n커밋 메시지 형식이 맞지 않습니다.\n  형식: <타입>(<범위>): <설명>\n  예시: fix(cart): 합계 반올림 오류\n  타입: feat fix docs refactor test chore\n  규칙 문서: docs/commit-convention.md\nMSG\n  exit 1\nfi"
+        },
+        {
+          "type": "try",
+          "text": "우리 저장소에서 가장 자주 실패하는 검사를 하나 골라, 그 실패 메시지가 「무엇을 어떻게 고치라」고 말해 주는지 확인하라. 아니면 그 메시지를 오늘 고쳐라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "검사 배치의 원칙은?",
+          "choices": [
+            "전부 CI 에",
+            "판단이 필요한 것만 사람에게, 나머지는 가장 이른 자리에",
+            "전부 훅에",
+            "전부 리뷰로"
+          ],
+          "answer": 1,
+          "why": "피드백이 이를수록 싸다."
+        },
+        {
+          "q": "새 검사를 켤 때 먼저 할 일은?",
+          "choices": [
+            "바로 켠다",
+            "기존 코드를 통과시키거나 변경분에만 적용",
+            "경고로만 둔다",
+            "문서화"
+          ],
+          "answer": 1,
+          "why": "수천 개 경고는 아무도 안 본다."
+        },
+        {
+          "q": "실패 메시지에 있어야 할 것은?",
+          "choices": [
+            "규칙 이름만",
+            "무엇이 왜 안 되고 어떻게 고치는지",
+            "스택 트레이스",
+            "담당자"
+          ],
+          "answer": 1,
+          "why": "수용도가 달라진다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "훅은 **빠른 피드백**, CI 는 **진짜 게이트**, 규칙은 **절차 강제**. 이 셋을 헷갈리지 않으면 자동 검사 설계는 거의 끝난다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "자동 검사 점검표",
+          "text": "훅 (초 단위 · 우회 가능)\n  [ ] 전체가 아니라 바뀐 파일만 검사하나                   (2장)\n  [ ] 합쳐서 5초 안에 끝나나                                (3장)\n  [ ] 고칠 수 있는 것은 고치고 다시 add 하나                (4·6장)\n  [ ] 도구가 없을 때 막지 않고 알리나                       (3장)\n  [ ] 저장소 안에 있고 설치가 자동인가                      (4장)\n\nCI (분 단위 · 진짜 게이트)\n  [ ] 훅과 같은 명령을 부르나 (규칙이 한 곳에)              (5장)\n  [ ] 필수 검사로 지정돼 있나                               (5장)\n  [ ] 자동 수정을 하지 않나 (--check 만)                    (6장)\n\n되돌릴 수 없는 것 (여러 겹)\n  [ ] 비밀 스캔: .gitignore + 훅 + 서버 보호 + 주기 스캔    (7장)\n  [ ] 큰 파일 차단 · LFS                                    (7장)\n  [ ] main force push 금지 (서버 규칙)                      (7장)\n\n문화\n  [ ] 실패 메시지가 고치는 법을 알려 주나                   (8장)\n  [ ] 최근 --no-verify 를 쓴 사람이 있나 (있으면 훅이 무겁다)(3장)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 여섯 문항",
+          "height": "290px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 9, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((line, i) => ctx.fillText(line, x + 9, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const q = [\n    ['훅은 종료 코드가 0 이 아니면 동작을 막는다', true],\n    ['.git/hooks 는 커밋되어 팀에 공유된다', false],\n    ['--no-verify 는 설정으로 막을 수 있다', false],\n    ['포매터가 고친 파일은 다시 add 해야 한다', true],\n    ['CI 에서 자동 수정 커밋을 만드는 것이 좋다', false],\n    ['main force push 는 브랜치 보호로 막는다', true],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.textAlign = 'left'; ctx.font = '12px system-ui';\n  q.forEach(([t, a], i) => {\n    const y = 18 + i * 28;\n    ctx.fillStyle = a ? '#22c55e' : '#ef4444';\n    ctx.fillText(a ? 'O' : 'X', 16, y + 4);\n    ctx.fillStyle = '#cbd5e1';\n    ctx.fillText(t, 36, y + 4);\n  });\n  app.innerHTML = '';\n  show('틀린 것이 있으면 그 장으로 — 1장(종료 코드) 3장(우회) 4장(다시 add) 5장(게이트) 6장(자동 수정)');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "이것으로 git 갈래를 전부 지났다 — 모형·주고받기·PR·팀의 리듬·회귀 추적·작업 공간·자동 검사. 도구가 아니라 **무엇을 어디서 지킬 것인가**의 이야기였다."
+        },
+        {
+          "type": "try",
+          "text": "오늘 저장소에 훅을 하나만 붙인다면 무엇을 고를지 정하라. 대개는 「포매터 자동 수정」 또는 「비밀 스캔」이 첫 번째 자리다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "훅·CI·규칙의 역할 구분으로 맞는 것은?",
+          "choices": [
+            "훅=게이트, CI=참고",
+            "훅=빠른 피드백, CI=게이트, 규칙=절차 강제",
+            "셋 다 같다",
+            "규칙=피드백"
+          ],
+          "answer": 1,
+          "why": "헷갈리면 잘못된 곳에 기대게 된다."
+        },
+        {
+          "q": "저장소에 훅을 하나만 붙인다면 우선순위가 높은 것은?",
+          "choices": [
+            "E2E 테스트",
+            "포매터 자동 수정 또는 비밀 스캔",
+            "빌드",
+            "커버리지"
+          ],
+          "answer": 1,
+          "why": "싸고 확실하며 늦으면 비싸다."
+        }
+      ]
     }
   ]
 }
