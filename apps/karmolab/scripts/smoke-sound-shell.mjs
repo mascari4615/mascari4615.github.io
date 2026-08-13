@@ -123,6 +123,24 @@ await page.waitForTimeout(400);
 const at = await page.evaluate(() => document.querySelector('#sdPlayer').currentTime);
 check(at > 1.5, `파형을 누른 자리로 옮겨 간다 (지금 ${at.toFixed(2)}초)`);
 
+/* ④-나 **파형을 자판으로도** (TASK-KL-294) — 누르는 건 마우스가 있어야 하는 조작이다 */
+await page.locator('#sdWave').focus();
+const t0 = await page.evaluate(() => document.querySelector('#sdPlayer').currentTime);
+/* 앞 판에서 눌러 **재생 중**이다 — 스페이스로 멈추고 재야 「0 으로 갔나」를 볼 수 있다
+ * (안 멈추면 Home 직후에도 시간이 흘러 0.1초쯤으로 읽힌다 — 첫 판에 그래서 빨갰다). */
+await page.keyboard.press('Space');
+await page.waitForTimeout(150);
+await page.keyboard.press('Home');
+await page.waitForTimeout(150);
+check((await page.evaluate(() => document.querySelector('#sdPlayer').currentTime)) === 0, 'Home 으로 처음으로 간다');
+await page.keyboard.press('ArrowRight');
+await page.waitForTimeout(150);
+const t2 = await page.evaluate(() => document.querySelector('#sdPlayer').currentTime);
+check(t2 > 0, `화살표로 앞으로 간다 (지금 ${t2.toFixed(1)}초)`);
+check((await page.locator('#sdWave').getAttribute('role')) === 'slider', '무엇을 미는 자리인지 밝힌다');
+check(!!(await page.locator('#sdWave').getAttribute('aria-label')), '이름이 있다');
+
+
 /* ⑤ 할 일을 고르면 소리가 따라간다 */
 await page.locator('.pf-job[data-job="audiocut"]').click();
 await page.waitForSelector('#pfMount:visible', { timeout: 20000 });

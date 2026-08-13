@@ -19,5 +19,6 @@
   "sound.part.video2audio": "動画から音を取り出す",
   "sound.part.soundscape": "環境音",
   "sound.part.morse": "モールス",
-  "sound.more": "{name} 他{n}件"
+  "sound.more": "{name} 他{n}件",
+  "sound.wave.aria": "波形 — 矢印で移動、スペースで再生"
 }

@@ -19,5 +19,6 @@
   "sound.part.video2audio": "Pull sound from video",
   "sound.part.soundscape": "Ambience",
   "sound.part.morse": "Morse",
-  "sound.more": "{name} and {n} more"
+  "sound.more": "{name} and {n} more",
+  "sound.wave.aria": "Waveform — arrows to seek, space to play"
 }

@@ -148,6 +148,31 @@ await page.mouse.move(box.x + box.width * 0.8, box.y + box.height / 2);
 await page.waitForTimeout(150);
 const wide = await page.locator('#imCmpClip').evaluate((e) => e.style.width);
 check(parseFloat(narrow) < parseFloat(wide), `손잡이를 옮기면 겹치는 폭이 바뀐다 (${narrow} → ${wide})`);
+
+/* ⑧ **전/후 손잡이를 자판으로도** (TASK-KL-294) */
+await page.locator('#imCmp').focus();
+const before = await page.locator('#imCmpClip').evaluate((e) => parseFloat(e.style.width));
+await page.keyboard.press('ArrowLeft');
+await page.keyboard.press('ArrowLeft');
+await page.waitForTimeout(150);
+const after = await page.locator('#imCmpClip').evaluate((e) => parseFloat(e.style.width));
+check(after < before, `화살표로 손잡이가 밀린다 (${before}% → ${after}%)`);
+await page.keyboard.press('End');
+await page.waitForTimeout(150);
+check(
+  (await page.locator('#imCmpClip').evaluate((e) => parseFloat(e.style.width))) === 100,
+  'End 로 끝까지 간다'
+);
+check(
+  (await page.locator('#imCmp').getAttribute('role')) === 'slider',
+  '무엇을 미는 자리인지 밝힌다'
+);
+check(
+  !!(await page.locator('#imCmp').getAttribute('aria-valuenow')),
+  '지금 얼마나 밀렸는지 읽힌다'
+);
+
+
 await page.click('#pfChainUse');
 await page.waitForTimeout(500);
 check(

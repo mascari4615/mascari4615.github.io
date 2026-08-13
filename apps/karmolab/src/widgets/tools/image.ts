@@ -205,9 +205,39 @@ import { t, loadNamespace } from '../../lib/i18n';
       const p = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
       bWrap.style.width = `${p * 100}%`;
       bar.style.left = `${p * 100}%`;
+      wrap.setAttribute('aria-valuenow', String(Math.round(p * 100)));
     };
     wrap.addEventListener('pointermove', (e) => put(e.clientX));
     wrap.addEventListener('pointerdown', (e) => put(e.clientX));
+
+    /* **자판으로도 민다** (TASK-KL-294). 손잡이를 끌거나 위에 손가락을 얹는 건 마우스·터치가
+     * 있어야 하는 조작이다 — 그것만 두면 「얼마나 달라졌나」를 볼 길이 통째로 막힌다.
+     * 화살표로 5%씩, Home/End 로 끝까지. 슬라이더라고 밝혀 두면 낭독기가 값도 읽어 준다. */
+    let pos = 50;
+    const setPct = (p: number): void => {
+      pos = Math.min(100, Math.max(0, p));
+      bWrap.style.width = `${pos}%`;
+      bar.style.left = `${pos}%`;
+      wrap.setAttribute('aria-valuenow', String(Math.round(pos)));
+    };
+    wrap.tabIndex = 0;
+    wrap.setAttribute('role', 'slider');
+    wrap.setAttribute('aria-valuemin', '0');
+    wrap.setAttribute('aria-valuemax', '100');
+    wrap.setAttribute('aria-label', t('image.cmp.aria', undefined, '전/후 견주기 — 화살표로 밀어 보세요'));
+    wrap.addEventListener('keydown', (e) => {
+      const k = e.key;
+      const step = k === 'ArrowRight' ? 5 : k === 'ArrowLeft' ? -5 : 0;
+      if (step) {
+        e.preventDefault();
+        setPct(pos + step);
+        return;
+      }
+      if (k === 'Home' || k === 'End') {
+        e.preventDefault();
+        setPct(k === 'Home' ? 0 : 100);
+      }
+    });
     put(wrap.getBoundingClientRect().left + wrap.getBoundingClientRect().width / 2);
   }
 
