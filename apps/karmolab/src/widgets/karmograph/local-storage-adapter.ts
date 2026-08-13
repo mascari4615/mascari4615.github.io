@@ -18,6 +18,14 @@ const DEFAULT_KEY = 'karmograph.graph';
 export class KarmoGraphLocalStorageAdapter implements GraphPersistAdapter {
   private key: string;
 
+  /**
+   * 저장이 **실패했을 때** 부를 자리 (TASK-KL-271).
+   * 예전에는 여기서 곧장 `alert()` 를 띄웠는데, ① 문구가 한국어로 박혀 있어 다른 말 쓰는 사람은
+   * 못 읽었고 ② 닫으면 흔적이 없어 「저장된 줄 알고」 계속 고치다 통째로 잃었다.
+   * 어댑터는 **알리기만** 하고, 무엇을 보여 줄지는 화면을 아는 쪽이 정한다.
+   */
+  onWriteError?: (err: unknown) => void;
+
   constructor(key: string = DEFAULT_KEY) {
     this.key = key;
   }
@@ -100,10 +108,12 @@ export class KarmoGraphLocalStorageAdapter implements GraphPersistAdapter {
         try { localStorage.setItem(this.prevKey(), before); } catch { /* 칸이 좁으면 포기 */ }
       }
     } catch (e) {
-      // 용량 초과(QuotaExceeded)가 대표 케이스 — 조용히 삼키면 사용자가
-      // 저장된 줄 알고 작업을 계속하다 통째로 잃는다. 그래서 알린다.
+      // 용량 초과(QuotaExceeded)가 대표 케이스 — 조용히 삼키면 사용자가 저장된 줄 알고 작업을
+      // 계속하다 통째로 잃는다. 그래서 알린다. 다만 **여기서 창을 띄우지는 않는다**:
+      // 문구가 한국어로 박혀 있어 다른 말 쓰는 사람은 못 읽었고, 닫으면 흔적이 없었다.
+      // 무엇을 보여 줄지는 화면을 아는 쪽이 정한다(`onWriteError`).
       console.error(t('karmograph.before.msg2'), e);
-      alert('KarmoGraph 저장에 실패했습니다. 브라우저 저장 공간을 확인해 주세요.\n(JSON 내보내기로 먼저 백업하시길 권합니다)');
+      this.onWriteError?.(e);
     }
   }
 

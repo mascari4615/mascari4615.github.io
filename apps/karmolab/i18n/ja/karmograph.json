@@ -652,5 +652,7 @@
   "karmograph.drawer.g.brag": "画像一枚で見せる",
   "karmograph.drawer.g.open": "人に開いてもらう",
   "karmograph.drawer.g.toApp": "ほかのアプリへ",
-  "karmograph.linkStart.hint": "マウスならカード右端の点を別のカードへドラッグします。"
+  "karmograph.linkStart.hint": "マウスならカード右端の点を別のカードへドラッグします。",
+  "karmograph.saveFailed": "保存できませんでした — ブラウザの保存領域がいっぱいです。今の変更はこのタブにしかありません。",
+  "karmograph.saveFailed.out": "今すぐファイルに出す"
 }
