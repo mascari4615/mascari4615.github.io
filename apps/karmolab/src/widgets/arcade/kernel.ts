@@ -60,6 +60,13 @@ export class Match<S, A> {
   private now = 0;
   /** 봇이 두기로 예약해 둔 수 */
   private pending: Array<{ seat: number; action: A; at: number }> = [];
+  /**
+   * **사람이 누른 것만** 적어 둔다 (TASK-KL-264 재생).
+   *
+   * 봇의 수는 안 적는다 — 씨앗이 같으면 커널이 똑같이 다시 만들어 내기 때문이다. 시각도
+   * 칸 단위라 화면 주사율이 안 남는다. 그래서 한 판이 **씨앗 하나 + 누른 것 몇 줄**로 줄어든다.
+   */
+  readonly tape: Array<{ at: number; seat: number; action: A }> = [];
   private listeners: Array<(v: MatchView<S>) => void> = [];
   /** 이번 판의 난수. 판이 바뀔 때만 새로 만든다 */
   private rand: () => number;
@@ -103,6 +110,11 @@ export class Match<S, A> {
     return { seats: this.seats, rng: this.botRand, now: this.now, round: this.round };
   }
 
+  /** 커널의 시계. 밖에서 준 시각이 아니라 **칸으로 옮긴** 값이다. */
+  clock(): number {
+    return this.now;
+  }
+
   view(): MatchView<S> {
     return {
       round: this.round,
@@ -136,6 +148,9 @@ export class Match<S, A> {
    */
   dispatch(seat: number, action: A): void {
     if (action === null || action === undefined) return;
+    /* 못 두는 수도 적는다 — 되살릴 때 커널이 똑같이 흘리므로 결과가 같고,
+       「그때 이걸 눌렀는데 안 먹었다」가 그대로 남는다(버그 재현에 필요한 것이 그것이다). */
+    this.tape.push({ at: this.now, seat, action });
     if (this.finished || this.roundOverAt !== null) return;
     if (seat < 0 || seat >= this.seats.length) return;
     if (this.game.canAct && !this.game.canAct(this.state, seat)) return;
