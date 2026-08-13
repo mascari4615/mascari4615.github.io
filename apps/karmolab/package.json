@@ -107,6 +107,8 @@
     "measure:heights": "node scripts/measure-tool-heights.mjs",
     "audit:heights": "node scripts/measure-tool-heights.mjs --check",
     "audit:scripts": "node scripts/audit-scripts.mjs",
+    "audit:generated": "node scripts/audit-generated.mjs",
+    "ratchet:tighten": "node scripts/ratchet-tighten.mjs",
     "audit:cache": "node scripts/audit-cache-busting.mjs",
     "audit:data": "node scripts/audit-tool-data.mjs",
     "test:redact": "node scripts/test-redact.mjs",
