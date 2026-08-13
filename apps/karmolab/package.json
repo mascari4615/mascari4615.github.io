@@ -233,6 +233,7 @@
     "test:spectate": "node scripts/test-spectate.mjs",
     "test:replay": "node scripts/test-replay.mjs",
     "smoke:arcaderoom": "node scripts/smoke-arcade-room.mjs",
+    "smoke:arcadereplay": "node scripts/smoke-arcade-replay.mjs",
     "smoke:tour": "node scripts/smoke-tour.mjs",
     "bench:arcade": "node scripts/bench-arcade.mjs",
     "test:arcade:ui": "node scripts/smoke-arcade.mjs",
