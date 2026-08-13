@@ -1,98 +1,831 @@
 {
   "id": "devops-iac",
-  "minutes": 12,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "클릭으로 만든 인프라는 아무도 재현할 수 없다. 그리고 만든 사람이 없어지면 **왜 그렇게 되어 있는지**도 사라진다."
-    },
-    {
-      "type": "h",
-      "text": "1. 선언형 — 「이렇게 되어 있어라」"
-    },
-    {
-      "type": "code",
-      "lang": "hcl",
-      "label": "Terraform 예시",
-      "text": "resource \"aws_s3_bucket\" \"assets\" {\n  bucket = \"karmolab-assets\"\n}\n\nresource \"aws_s3_bucket_public_access_block\" \"assets\" {\n  bucket                  = aws_s3_bucket.assets.id\n  block_public_acls       = true\n  restrict_public_buckets = true\n}"
-    },
-    {
-      "type": "p",
-      "text": "명령형(만들어라)이 아니라 **원하는 상태**를 적는다. 도구가 현재 상태와 비교해 차이만 적용한다."
-    },
-    {
-      "type": "h",
-      "text": "2. plan 을 읽는 습관"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "적용 전에 반드시",
-      "text": "terraform plan     # + 생성 · ~ 수정 · - 삭제\n# 「- destroy」 가 예상보다 많으면 그 자리에서 멈춰라\nterraform apply"
-    },
-    {
-      "type": "note",
-      "text": "이름이나 키 속성을 바꾸면 도구가 **지우고 새로 만든다**. 데이터베이스에 이런 변경을 무심코 적용하면 데이터가 사라진다 — plan 의 `destroy` 줄이 그래서 중요하다."
-    },
-    {
-      "type": "h",
-      "text": "3. 상태 파일"
-    },
-    {
-      "type": "note",
-      "text": "Terraform 은 「무엇을 만들었는지」를 상태 파일에 적어 둔다. 여럿이 쓰면 **원격 상태 + 잠금**이 필수다 — 두 사람이 동시에 apply 하면 서로의 자원을 지운다. 그리고 상태 파일에는 비밀이 담기므로 저장소에 커밋하지 않는다."
-    },
-    {
-      "type": "h",
-      "text": "4. 손으로 고치면 어긋난다(drift)"
-    },
-    {
-      "type": "p",
-      "text": "콘솔에서 급히 손을 대면 코드와 실제가 달라진다. 그러면 다음 apply 가 그 변경을 되돌린다. 급하게 고쳤다면 **반드시 코드에 반영**하라 — 아니면 다음 사람이 원인 모를 장애를 만난다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "작은 자원 하나(버킷·정적 사이트)를 코드로 만들고 지워 보라. 그 다음 콘솔에서 설정을 손으로 바꾸고 `plan` 을 돌려 drift 가 어떻게 보이는지 확인하라."
-    },
-    {
-      "type": "try",
-      "text": "기존 인프라 중 하나를 골라 「이걸 코드로 옮기면 무엇이 필요한가」를 목록으로 적어라. 옮기지 않아도 목록 자체가 문서가 된다."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "선언형 IaC 의 특징은?",
-      "choices": [
-        "원하는 상태를 적으면 도구가 차이만 적용한다",
-        "순서대로 명령을 실행한다",
-        "GUI 를 자동화한다"
+      "id": "1",
+      "title": "손으로 클릭한 것은 재현되지 않는다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "콘솔에서 클릭 몇 번으로 서버를 만드는 것은 빠르다. 문제는 **6개월 뒤**다 — 왜 그 설정인지 아무도 모르고, 똑같은 것을 하나 더 만들 수 없고, 지워지면 복구할 방법이 기억밖에 없다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "상황을 골라 보라 — 클릭과 코드가 어떻게 갈리나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .cols { display:flex; gap:8px; margin:8px 0; }\n  .col { flex:1; background:#111c33; border-radius:8px; padding:8px 10px; }\n  .col h4 { margin:0 0 6px; font-size:11px; color:#94a3b8; font-weight:600; }\n  .col .it { font:11.5px/1.9 ui-monospace, monospace; color:#cbd5e1; }\n  .col .it.add { color:#4ade80; } .col .it.del { color:#fca5a5; }\n  .col .it.chg { color:#fbbf24; } .col .it.dim { color:#475569; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const cols = (list) => '<div class=\"cols\">' + list.map(([title, items]) =>\n    '<div class=\"col\"><h4>' + esc(title) + '</h4>' +\n    items.map(([t, cls]) => '<div class=\"it ' + (cls || '') + '\">' + esc(t) + '</div>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    same:  ['staging 을 prod 와 똑같이 만들어라',\n      [['콘솔 클릭', '기억을 더듬어 다시 클릭 · 어딘가 다르다'], ['코드', 'terraform apply -var env=staging']],\n      '「거의 같은 환경」은 검증에 쓸모가 없다(설정 칸 6장). 재현 가능해야 staging 이 의미를 갖는다.'],\n    why:   ['왜 이 보안 그룹이 열려 있나',\n      [['콘솔 클릭', '누가 왜 열었는지 알 수 없다'], ['코드', 'git blame — 커밋·PR·리뷰가 남아 있다']],\n      '인프라도 코드가 되면 역사·리뷰·되돌리기가 공짜로 따라온다.'],\n    review:['방화벽 규칙 하나를 바꾸려 한다',\n      [['콘솔 클릭', '누르는 순간 반영 — 검토 기회 없음'], ['코드', 'PR 로 diff 를 보고 승인 후 apply']],\n      '가장 큰 이득이 여기 있다 — <span class=\"ok\">바뀌기 전에 볼 수 있다</span>.'],\n    dr:    ['리전 하나가 통째로 날아갔다',\n      [['콘솔 클릭', '며칠. 무엇이 있었는지부터 복원'], ['코드', '다른 리전에 apply — 분 단위']],\n      '재해 복구 계획의 실체는 「인프라가 코드로 있나」다.'],\n  }[c];\n  render('', '  ' + esc(t[0]) + '\\n\\n  ' + t[2],\n    'IaC 가 파는 것: 재현성 · 리뷰 · 역사 · 되돌리기. 자동화는 그다음이다.',\n    cols(t[1].map(([h, v]) => [h, [[v, h === '코드' ? 'add' : 'del']]])));\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "상황",
+              "type": "select",
+              "value": "same",
+              "options": [
+                {
+                  "value": "same",
+                  "label": "같은 환경 하나 더"
+                },
+                {
+                  "value": "why",
+                  "label": "왜 이렇게 돼 있나"
+                },
+                {
+                  "value": "review",
+                  "label": "바꾸기 전 검토"
+                },
+                {
+                  "value": "dr",
+                  "label": "재해 복구"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**IaC 의 첫 이득은 자동화가 아니라 「보이게 하는 것」**이다. 인프라가 파일로 있으면 diff 를 볼 수 있고, 리뷰할 수 있고, 되돌릴 수 있다 — 클릭으로는 그중 아무것도 못 한다."
+        },
+        {
+          "type": "code",
+          "lang": "hcl",
+          "label": "같은 것을 코드로 적으면",
+          "text": "resource \"aws_s3_bucket\" \"assets\" {\n  bucket = \"myapp-${var.env}-assets\"\n}\n\nresource \"aws_s3_bucket_public_access_block\" \"assets\" {\n  bucket                  = aws_s3_bucket.assets.id\n  block_public_acls       = true      # 왜 막는지 주석·PR 에 남는다\n  block_public_policy     = true\n  ignore_public_acls      = true\n  restrict_public_buckets = true\n}"
+        },
+        {
+          "type": "try",
+          "text": "지금 쓰는 클라우드 자원 중 **손으로 만든 것**을 하나 골라, 그것을 코드로 적으면 몇 줄인지 세어 보라. 대개 생각보다 짧다."
+        }
       ],
-      "answer": 0,
-      "why": "현재 상태와 목표 상태의 차이를 계산하는 것이 핵심이다."
+      "quiz": [
+        {
+          "q": "IaC 의 가장 큰 첫 이득은?",
+          "choices": [
+            "자동화 속도",
+            "바뀌기 전에 볼 수 있다(diff·리뷰)",
+            "비용 절감",
+            "보안"
+          ],
+          "answer": 1,
+          "why": "재현·역사·되돌리기가 따라온다."
+        },
+        {
+          "q": "「왜 이 설정이 이런가」에 답할 수 있게 하는 것은?",
+          "choices": [
+            "콘솔 기록",
+            "git 이력과 PR 리뷰",
+            "티켓",
+            "기억"
+          ],
+          "answer": 1,
+          "why": "코드가 되면 blame 이 가능하다."
+        },
+        {
+          "q": "재해 복구 계획의 실체는?",
+          "choices": [
+            "백업 주기",
+            "인프라가 코드로 있는가",
+            "다중 리전",
+            "문서"
+          ],
+          "answer": 1,
+          "why": "무엇이 있었는지부터 알아야 복구한다."
+        }
+      ]
     },
     {
-      "q": "`terraform plan` 에서 특히 주의 깊게 볼 줄은?",
-      "choices": [
-        "+ 생성",
-        "- destroy(삭제·재생성)",
-        "변수 목록"
+      "id": "2",
+      "title": "선언형 — 「무엇을」 적고 「어떻게」는 맡긴다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "IaC 도구는 대개 **선언형**이다. 「서버를 만들어라」가 아니라 **「서버가 두 대 있어야 한다」**를 적는다. 그러면 도구가 지금 상태와 비교해 **차이만큼만** 실행한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "실행 횟수를 밀어 보라 — 결과가 같은가",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .cols { display:flex; gap:8px; margin:8px 0; }\n  .col { flex:1; background:#111c33; border-radius:8px; padding:8px 10px; }\n  .col h4 { margin:0 0 6px; font-size:11px; color:#94a3b8; font-weight:600; }\n  .col .it { font:11.5px/1.9 ui-monospace, monospace; color:#cbd5e1; }\n  .col .it.add { color:#4ade80; } .col .it.del { color:#fca5a5; }\n  .col .it.chg { color:#fbbf24; } .col .it.dim { color:#475569; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const cols = (list) => '<div class=\"cols\">' + list.map(([title, items]) =>\n    '<div class=\"col\"><h4>' + esc(title) + '</h4>' +\n    items.map(([t, cls]) => '<div class=\"it ' + (cls || '') + '\">' + esc(t) + '</div>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{runs}};\n  const style = '{{style}}';\n  const made = style === 'imperative' ? n : Math.min(n, 1);\n  const items = Array.from({ length: Math.max(made, 1) }, (_, i) =>\n    [made === 0 ? '(없음)' : 'server-' + (i + 1), made === 0 ? 'dim' : (i === 0 ? 'add' : 'chg')]);\n  render(style === 'imperative' ? '# 명령형: aws ec2 run-instances  (x' + n + '번)'\n                                : '# 선언형: terraform apply  (x' + n + '번)',\n    '  ' + n + '번 실행한 결과: 서버 <span class=\"' + (made > 1 ? 'no' : 'ok') + '\">' + made + '대</span>\\n\\n' +\n    (style === 'imperative'\n      ? '  <span class=\"no\">명령형은 「하라」를 적는다</span> — 부를 때마다 또 만든다.\\n' +\n        '  같은 스크립트를 두 번 돌리면 자원이 두 배가 된다.'\n      : '  <span class=\"ok\">선언형은 「있어야 한다」를 적는다</span> — 이미 있으면 아무것도 안 한다.\\n' +\n        '  이 성질이 멱등성(idempotent)이다. 몇 번을 돌려도 결과가 같다.'),\n    '멱등성 덕분에 「일단 다시 돌려 보기」가 안전해진다 — 자동화의 전제 조건.',\n    cols([['지금 있는 것', items]]));\n</script>",
+          "controls": [
+            {
+              "id": "style",
+              "label": "방식",
+              "type": "select",
+              "value": "imperative",
+              "options": [
+                {
+                  "value": "imperative",
+                  "label": "명령형 (스크립트)"
+                },
+                {
+                  "value": "declarative",
+                  "label": "선언형 (IaC)"
+                }
+              ]
+            },
+            {
+              "id": "runs",
+              "label": "실행 횟수",
+              "type": "range",
+              "min": 1,
+              "max": 4,
+              "step": 1,
+              "value": 3
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "선언형이 되려면 도구가 **지금 상태를 알아야** 한다. 그래서 IaC 는 「내가 만든 것」의 목록을 어딘가에 적어 둔다 — 그것이 3장의 **상태(state)** 다. 상태가 IaC 의 심장인 이유가 여기 있다."
+        },
+        {
+          "type": "note",
+          "text": "**멱등성**은 자동화의 전제다. 재시도해도 안전하고, 중간에 끊겨도 다시 돌리면 되고, 매일 돌려 「원래 상태로 되돌리는」 것도 가능해진다. 명령형 스크립트로는 이 셋 중 아무것도 안전하지 않다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "같은 일을 두 방식으로",
+          "text": "# 명령형 — 두 번 돌리면 두 개가 생긴다\naws ec2 run-instances --image-id ami-123 --count 1\n\n# 선언형 — 몇 번 돌려도 두 대\nresource \"aws_instance\" \"web\" {\n  count         = 2\n  ami           = \"ami-123\"\n  instance_type = \"t3.micro\"\n}"
+        },
+        {
+          "type": "try",
+          "text": "내가 쓰는 배포·프로비저닝 스크립트가 **두 번 돌려도 안전한지** 확인하라. 안전하지 않으면 그것이 선언형으로 옮길 첫 후보다."
+        }
       ],
-      "answer": 1,
-      "why": "이름·키 변경은 삭제 후 재생성으로 이어져 데이터가 사라질 수 있다."
+      "quiz": [
+        {
+          "q": "선언형 IaC 가 적는 것은?",
+          "choices": [
+            "실행할 명령의 순서",
+            "있어야 할 최종 상태",
+            "롤백 절차",
+            "테스트"
+          ],
+          "answer": 1,
+          "why": "차이만큼만 실행한다."
+        },
+        {
+          "q": "멱등성이란?",
+          "choices": [
+            "빠르다",
+            "몇 번 실행해도 결과가 같다",
+            "병렬 실행",
+            "되돌릴 수 있다"
+          ],
+          "answer": 1,
+          "why": "재시도·자동화의 전제."
+        },
+        {
+          "q": "선언형 도구가 상태를 저장하는 이유는?",
+          "choices": [
+            "속도",
+            "지금 무엇이 있는지 알아야 차이를 계산하니까",
+            "보안",
+            "로그"
+          ],
+          "answer": 1,
+          "why": "그래서 state 가 심장이다."
+        }
+      ]
     },
     {
-      "q": "여러 사람이 쓰는 환경에서 상태 파일은?",
-      "choices": [
-        "각자 로컬에 둔다",
-        "원격 저장소에 두고 잠금을 건다",
-        "git 에 커밋한다"
+      "id": "3",
+      "title": "상태 파일 — IaC 의 심장",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**상태(state)** 는 「코드에 적힌 자원이 실제로 어느 것인가」를 이어 주는 장부다. 이것이 없으면 도구는 `aws_instance.web` 이 실제 어느 인스턴스인지 모른다 — 그래서 상태를 잃으면 큰일이 난다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "상황을 골라 보라 — 상태가 무엇을 하나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .cols { display:flex; gap:8px; margin:8px 0; }\n  .col { flex:1; background:#111c33; border-radius:8px; padding:8px 10px; }\n  .col h4 { margin:0 0 6px; font-size:11px; color:#94a3b8; font-weight:600; }\n  .col .it { font:11.5px/1.9 ui-monospace, monospace; color:#cbd5e1; }\n  .col .it.add { color:#4ade80; } .col .it.del { color:#fca5a5; }\n  .col .it.chg { color:#fbbf24; } .col .it.dim { color:#475569; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const cols = (list) => '<div class=\"cols\">' + list.map(([title, items]) =>\n    '<div class=\"col\"><h4>' + esc(title) + '</h4>' +\n    items.map(([t, cls]) => '<div class=\"it ' + (cls || '') + '\">' + esc(t) + '</div>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    normal: ['정상',\n      [['코드', [['aws_instance.web', ''], ['aws_s3_bucket.assets', '']]],\n       ['상태(state)', [['web -> i-0abc', 'add'], ['assets -> myapp-assets', 'add']]],\n       ['실제 클라우드', [['i-0abc', ''], ['myapp-assets', '']]]],\n      '셋이 맞아 있으면 plan 이 「변경 없음」을 낸다.'],\n    lost:   ['상태 파일을 잃었다',\n      [['코드', [['aws_instance.web', ''], ['aws_s3_bucket.assets', '']]],\n       ['상태(state)', [['(비어 있음)', 'del']]],\n       ['실제 클라우드', [['i-0abc', ''], ['myapp-assets', '']]]],\n      '<span class=\"no\">도구는 아무것도 없다고 판단해 전부 새로 만들려 한다.</span> 기존 자원은 고아가 된다.\\n  복구: terraform import 로 하나씩 다시 이어 붙인다(고통스럽다).'],\n    manual: ['콘솔에서 손으로 지웠다',\n      [['코드', [['aws_instance.web', '']]],\n       ['상태(state)', [['web -> i-0abc', 'chg']]],\n       ['실제 클라우드', [['(없음)', 'del']]]],\n      '상태에는 있는데 실제로는 없다 -> plan 이 「다시 만들겠다」고 낸다. 이것이 6장의 드리프트.'],\n    secret: ['상태 안에 비밀이 들어 있다',\n      [['상태(state)', [['db_password = \\\"hunter2\\\"', 'del'], ['평문으로 저장된다', 'del']]]],\n      '<span class=\"warn\">상태 파일은 비밀 취급을 해야 한다</span> — 원격 백엔드 + 암호화 + 접근 제한.'],\n  }[c];\n  render('terraform state list', '  ' + esc(t[0]) + '\\n\\n  ' + t[2], '', cols(t[1]));\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "상황",
+              "type": "select",
+              "value": "normal",
+              "options": [
+                {
+                  "value": "normal",
+                  "label": "정상"
+                },
+                {
+                  "value": "lost",
+                  "label": "상태를 잃었다"
+                },
+                {
+                  "value": "manual",
+                  "label": "손으로 지웠다"
+                },
+                {
+                  "value": "secret",
+                  "label": "상태 속 비밀"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**상태 파일을 로컬에 두지 마라.** 노트북이 죽으면 인프라를 잃는 것과 비슷해지고, 팀원끼리 상태가 갈린다. 원격 백엔드(S3+DynamoDB 잠금, Terraform Cloud, GCS)를 처음부터 쓰는 것이 정석이다."
+        },
+        {
+          "type": "code",
+          "lang": "hcl",
+          "label": "원격 상태 + 잠금",
+          "text": "terraform {\n  backend \"s3\" {\n    bucket         = \"myorg-tfstate\"\n    key            = \"prod/app.tfstate\"\n    region         = \"ap-northeast-2\"\n    encrypt        = true          # 상태에 비밀이 들어간다\n    dynamodb_table = \"tf-locks\"    # 두 사람이 동시에 apply 하는 것을 막는다\n  }\n}"
+        },
+        {
+          "type": "p",
+          "text": "**잠금**도 상태만큼 중요하다. 두 사람이 동시에 `apply` 하면 상태가 뒤엉켜 실제 자원과 어긋난다 — 앞 칸(동시성)의 경쟁 조건이 인프라에서 벌어지는 것이다. 원격 백엔드가 잠금을 제공한다."
+        },
+        {
+          "type": "try",
+          "text": "내 IaC 상태가 어디 있는지 확인하라. 로컬 파일이면 원격 백엔드로 옮기는 것이 가장 먼저 할 일이다."
+        }
       ],
-      "answer": 1,
-      "why": "동시 apply 를 막고 비밀 노출도 피한다."
+      "quiz": [
+        {
+          "q": "상태 파일이 하는 일은?",
+          "choices": [
+            "설정 저장",
+            "코드의 자원과 실제 자원을 이어 준다",
+            "로그",
+            "백업"
+          ],
+          "answer": 1,
+          "why": "없으면 무엇이 무엇인지 모른다."
+        },
+        {
+          "q": "상태 파일을 잃으면?",
+          "choices": [
+            "자동 복구",
+            "도구가 전부 새로 만들려 하고 기존 자원은 고아가 된다",
+            "영향 없음",
+            "롤백된다"
+          ],
+          "answer": 1,
+          "why": "import 로 하나씩 이어 붙여야 한다."
+        },
+        {
+          "q": "두 사람이 동시에 apply 하는 것을 막는 것은?",
+          "choices": [
+            "리뷰",
+            "상태 잠금(lock)",
+            "브랜치",
+            "권한"
+          ],
+          "answer": 1,
+          "why": "원격 백엔드가 제공한다."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "plan 을 읽는 법 — 적용 전에 보는 것",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`plan` 은 **바꾸기 전에 무엇이 바뀔지** 보여 준다. IaC 에서 가장 중요한 습관 하나를 꼽으면 「plan 을 눈으로 읽는 것」이다 — 특히 **재생성(replace)** 과 **삭제(destroy)** 표시."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "변경을 골라 보라 — 무슨 뜻인가",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .cols { display:flex; gap:8px; margin:8px 0; }\n  .col { flex:1; background:#111c33; border-radius:8px; padding:8px 10px; }\n  .col h4 { margin:0 0 6px; font-size:11px; color:#94a3b8; font-weight:600; }\n  .col .it { font:11.5px/1.9 ui-monospace, monospace; color:#cbd5e1; }\n  .col .it.add { color:#4ade80; } .col .it.del { color:#fca5a5; }\n  .col .it.chg { color:#fbbf24; } .col .it.dim { color:#475569; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const cols = (list) => '<div class=\"cols\">' + list.map(([title, items]) =>\n    '<div class=\"col\"><h4>' + esc(title) + '</h4>' +\n    items.map(([t, cls]) => '<div class=\"it ' + (cls || '') + '\">' + esc(t) + '</div>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{kind}}';\n  const t = {\n    create: ['+ create', 'add', '새로 만든다', ['안전하다 — 기존 것은 안 건드린다', '비용은 는다'],\n      '개수를 확인하라. 의도보다 많으면 for_each·count 를 잘못 쓴 것.'],\n    update: ['~ update in-place', 'chg', '그 자리에서 고친다', ['자원은 유지되고 속성만 바뀐다', '대개 안전'],\n      '다만 어떤 속성은 중단을 유발한다 — 로드밸런서 리스너·보안 그룹은 순간 끊길 수 있다.'],\n    replace:['-/+ destroy and then create', 'del', '<span class=\"no\">지우고 다시 만든다</span>',\n      ['DB·볼륨이면 자료가 사라진다', 'IP·엔드포인트가 바뀐다'],\n      '<span class=\"warn\">plan 에서 이 표시를 보면 멈춰라.</span> 왜 재생성인지(force replacement 사유) 반드시 읽어라.'],\n    destroy:['- destroy', 'del', '지운다', ['코드에서 리소스를 뺐거나 조건이 꺼졌다'],\n      '의도한 삭제인지 확인. prevent_destroy 로 중요한 자원은 아예 못 지우게 막을 수 있다.'],\n    known:  ['(known after apply)', 'dim', '지금은 알 수 없는 값', ['ID·ARN 처럼 만들어야 정해지는 값'],\n      '정상이다. 다만 이 값에 의존하는 것들도 함께 「알 수 없음」이 되어 diff 가 커 보인다.'],\n  }[c];\n  const items = [['+ aws_s3_bucket.logs', c === 'create' ? 'add' : 'dim'],\n                 ['~ aws_instance.web (tags)', c === 'update' ? 'chg' : 'dim'],\n                 ['-/+ aws_db_instance.main', c === 'replace' ? 'del' : 'dim'],\n                 ['- aws_security_group.old', c === 'destroy' ? 'del' : 'dim'],\n                 ['id = (known after apply)', c === 'known' ? '' : 'dim']];\n  render('terraform plan',\n    '  <span class=\"' + t[1] + '\">' + esc(t[0]) + '</span>  —  ' + t[2] + '\\n\\n' +\n    t[3].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + t[4],\n    'Plan: 1 to add, 1 to change, 1 to destroy — 이 요약 줄을 늘 소리 내어 읽어라.',\n    cols([['plan 출력', items]]));\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "표시",
+              "type": "select",
+              "value": "replace",
+              "options": [
+                {
+                  "value": "create",
+                  "label": "+ create"
+                },
+                {
+                  "value": "update",
+                  "label": "~ update"
+                },
+                {
+                  "value": "replace",
+                  "label": "-/+ replace"
+                },
+                {
+                  "value": "destroy",
+                  "label": "- destroy"
+                },
+                {
+                  "value": "known",
+                  "label": "known after apply"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "plan 을 저장해서 그대로 적용한다",
+          "text": "terraform plan -out=tfplan          # 계획을 파일로\nterraform show tfplan               # 사람이 읽기\nterraform apply tfplan              # 「그때 본 그 계획」을 적용 (사이에 바뀐 것 반영 안 됨)\n\n# 중요한 자원은 못 지우게\nresource \"aws_db_instance\" \"main\" {\n  lifecycle { prevent_destroy = true }\n}"
+        },
+        {
+          "type": "note",
+          "text": "**`plan` 없이 `apply` 하지 마라.** 그리고 CI 에서는 PR 에 plan 결과를 코멘트로 붙이는 것이 표준이다 — 리뷰어가 「무엇이 바뀌는지」를 코드가 아니라 **결과**로 볼 수 있다."
+        },
+        {
+          "type": "p",
+          "text": "재생성(`-/+`)이 나오는 흔한 이유는 **바꿀 수 없는 속성**을 건드렸을 때다(인스턴스 타입 중 일부, 이름, AZ). plan 이 그 이유를 `# forces replacement` 로 알려 주므로, 그 줄을 찾아 읽는 습관이 사고를 막는다."
+        },
+        {
+          "type": "try",
+          "text": "내 IaC 저장소에서 `terraform plan` 을 돌리고 요약 줄을 읽어라. `destroy` 가 0 이 아니면 왜인지 설명할 수 있어야 한다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "plan 에서 가장 조심해야 할 표시는?",
+          "choices": [
+            "+ create",
+            "~ update",
+            "-/+ replace",
+            "known after apply"
+          ],
+          "answer": 2,
+          "why": "지우고 다시 만든다 — 자료가 사라질 수 있다."
+        },
+        {
+          "q": "`plan -out` 을 쓰는 이유는?",
+          "choices": [
+            "빠르다",
+            "본 그대로 적용하려고 (사이 변경 반영 안 됨)",
+            "로그",
+            "백업"
+          ],
+          "answer": 1,
+          "why": "리뷰한 것과 적용한 것이 같아진다."
+        },
+        {
+          "q": "중요한 자원을 실수로 못 지우게 하려면?",
+          "choices": [
+            "주석",
+            "lifecycle prevent_destroy",
+            "권한",
+            "백업"
+          ],
+          "answer": 1,
+          "why": "코드로 가드를 건다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "드리프트 — 손으로 고친 것",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "장애 한가운데서 콘솔로 규칙 하나를 열어 급한 불을 껐다. 그 순간 **코드와 실제가 어긋난다** — 이것이 드리프트다. 다음 `apply` 가 그 변경을 조용히 되돌리면 장애가 재발한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "대응을 골라 보라 — 무엇이 옳은가",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .cols { display:flex; gap:8px; margin:8px 0; }\n  .col { flex:1; background:#111c33; border-radius:8px; padding:8px 10px; }\n  .col h4 { margin:0 0 6px; font-size:11px; color:#94a3b8; font-weight:600; }\n  .col .it { font:11.5px/1.9 ui-monospace, monospace; color:#cbd5e1; }\n  .col .it.add { color:#4ade80; } .col .it.del { color:#fca5a5; }\n  .col .it.chg { color:#fbbf24; } .col .it.dim { color:#475569; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const cols = (list) => '<div class=\"cols\">' + list.map(([title, items]) =>\n    '<div class=\"col\"><h4>' + esc(title) + '</h4>' +\n    items.map(([t, cls]) => '<div class=\"it ' + (cls || '') + '\">' + esc(t) + '</div>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{how}}';\n  const t = {\n    detect: ['먼저 감지한다', 'ok',\n      ['terraform plan 을 정기적으로 (변경 없어야 정상)', 'CI 로 매일 돌려 diff 가 나오면 알림'],\n      '드리프트는 「있나 없나」가 아니라 「언제 아느냐」의 문제다.'],\n    codify: ['코드에 반영한다', 'ok',\n      ['급히 한 변경이 옳았다면 코드로 옮긴다', 'PR 로 리뷰까지 거치면 이유도 남는다'],\n      '가장 흔하고 옳은 결말. 장애 대응 직후 할 일 목록에 넣어라.'],\n    revert: ['apply 로 되돌린다', 'warn',\n      ['코드가 정본이라면 실제를 코드에 맞춘다'],\n      '단, 그 변경이 왜 있었는지 확인하고 나서. 모르고 되돌리면 장애가 재발한다.'],\n    import: ['손으로 만든 자원을 가져온다', 'ok',\n      ['terraform import (또는 import 블록)', '기존 자원을 상태에 이어 붙인다'],\n      '「이미 있는 인프라를 코드로 옮기기」의 표준 경로. 한 번에 하지 말고 조금씩.'],\n    ignore: ['모른 척한다', 'no',\n      ['코드와 실제가 계속 벌어진다', '어느 날 apply 가 예상 못 한 것을 지운다'],\n      '가장 비싼 선택 — plan 을 아무도 못 믿게 된다.'],\n  }[c];\n  render('terraform plan   # 정기 실행',\n    '  <span class=\"' + t[1] + '\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[2].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[3]),\n    '「코드가 정본」이 지켜지려면, 손으로 고친 것을 반드시 코드로 되돌려 놓아야 한다.',\n    cols([['코드', [['ingress 22 from office', '']]],\n          ['실제', [['ingress 22 from office', ''], ['ingress 22 from 0.0.0.0/0', 'chg']]]]));\n</script>",
+          "controls": [
+            {
+              "id": "how",
+              "label": "대응",
+              "type": "select",
+              "value": "detect",
+              "options": [
+                {
+                  "value": "detect",
+                  "label": "감지한다"
+                },
+                {
+                  "value": "codify",
+                  "label": "코드에 반영"
+                },
+                {
+                  "value": "revert",
+                  "label": "apply 로 되돌림"
+                },
+                {
+                  "value": "import",
+                  "label": "기존 자원 가져오기"
+                },
+                {
+                  "value": "ignore",
+                  "label": "모른 척 (나쁨)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "드리프트 감지를 자동으로",
+          "text": "# CI 에서 매일 — 변경이 있으면 종료 코드 2\nterraform plan -detailed-exitcode\n#   0 = 변경 없음 · 1 = 오류 · 2 = 변경 있음\n\n# 손으로 만든 자원을 코드로 가져오기 (최신 문법)\nimport {\n  to = aws_s3_bucket.legacy\n  id = \"my-old-bucket\"\n}"
+        },
+        {
+          "type": "note",
+          "text": "**콘솔 접근을 아예 읽기 전용으로** 만드는 팀도 많다. 급한 변경이 필요하면 「비상용 권한」을 시간 제한으로 받고, 그 기록이 남는다 — 드리프트를 막는 가장 확실한 방법은 손으로 고칠 수 없게 하는 것이다."
+        },
+        {
+          "type": "p",
+          "text": "다만 **일부 속성은 드리프트가 정상**이다 — 오토스케일링이 바꾸는 인스턴스 수, 외부 시스템이 붙이는 태그. 이런 것은 `lifecycle { ignore_changes = [...] }` 로 명시해 두면 plan 이 조용해진다."
+        },
+        {
+          "type": "try",
+          "text": "지금 `terraform plan` 을 돌려 보라. 「변경 없음」이 아니면 그 차이가 드리프트다 — 각각이 왜 생겼는지 설명할 수 있는지 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "드리프트란?",
+          "choices": [
+            "코드 오류",
+            "코드와 실제 인프라가 어긋난 상태",
+            "상태 파일 손상",
+            "버전 차이"
+          ],
+          "answer": 1,
+          "why": "대개 콘솔에서 손으로 고쳐 생긴다."
+        },
+        {
+          "q": "장애 중 콘솔로 급히 고쳤다면 다음에 할 일은?",
+          "choices": [
+            "잊는다",
+            "코드에 반영하고 PR 로 남긴다",
+            "상태 삭제",
+            "재배포"
+          ],
+          "answer": 1,
+          "why": "안 하면 다음 apply 가 되돌린다."
+        },
+        {
+          "q": "오토스케일링이 바꾸는 값처럼 정상적인 차이는?",
+          "choices": [
+            "무시할 수 없다",
+            "lifecycle ignore_changes 로 명시",
+            "코드에서 삭제",
+            "매번 apply"
+          ],
+          "answer": 1,
+          "why": "plan 을 조용하게 유지한다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "모듈과 변수 — 같은 것을 여러 번",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "환경이 셋이면 인프라 코드도 세 벌이 되기 쉽다. **모듈**은 그 공통 부분을 한 번 적고 값만 바꿔 쓰게 한다 — 함수와 같은 발상이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "구성을 골라 보라 — 무엇이 문제인가",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .cols { display:flex; gap:8px; margin:8px 0; }\n  .col { flex:1; background:#111c33; border-radius:8px; padding:8px 10px; }\n  .col h4 { margin:0 0 6px; font-size:11px; color:#94a3b8; font-weight:600; }\n  .col .it { font:11.5px/1.9 ui-monospace, monospace; color:#cbd5e1; }\n  .col .it.add { color:#4ade80; } .col .it.del { color:#fca5a5; }\n  .col .it.chg { color:#fbbf24; } .col .it.dim { color:#475569; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const cols = (list) => '<div class=\"cols\">' + list.map(([title, items]) =>\n    '<div class=\"col\"><h4>' + esc(title) + '</h4>' +\n    items.map(([t, cls]) => '<div class=\"it ' + (cls || '') + '\">' + esc(t) + '</div>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{how}}';\n  const t = {\n    copy:  ['환경마다 복사-붙여넣기', 'no',\n      [['dev/main.tf', [['VPC · RDS · ECS (200줄)', 'chg']]],\n       ['prod/main.tf', [['VPC · RDS · ECS (203줄)', 'del']]]],\n      '<span class=\"no\">세 줄이 다르다</span> — 어디가 왜 다른지 아무도 모른다. staging 이 prod 와 달라진다.'],\n    module:['모듈 하나 + 변수', 'ok',\n      [['modules/app/', [['VPC · RDS · ECS (200줄)', 'add']]],\n       ['envs/dev · envs/prod', [['module \"app\" { env = ... }', 'add'], ['(각 10줄)', '']]]],\n      '차이가 변수로만 드러난다 — diff 를 보면 무엇이 다른지 한눈에.'],\n    work:  ['워크스페이스로 분리', 'warn',\n      [['같은 코드', [['workspace: dev / prod', 'chg']]]],\n      '간단하지만 환경 차이가 조건문으로 흩어지기 쉽다. 규모가 커지면 디렉터리 분리가 낫다.'],\n    mono:  ['하나의 거대한 상태', 'no',\n      [['모든 환경 · 모든 자원', [['한 state', 'del']]]],\n      'plan 이 몇 분씩 걸리고, 작은 변경에도 전체가 잠긴다. 폭발 반경도 커진다 — 상태를 쪼개라.'],\n  }[c];\n  render('', '  <span class=\"' + t[1] + '\">' + esc(t[0]) + '</span>\\n\\n  ' + t[3],\n    '경계 나누기: 자주 바뀌는 것과 안 바뀌는 것 · 폭발 반경이 다른 것은 상태를 나눠라.', cols(t[2]));\n</script>",
+          "controls": [
+            {
+              "id": "how",
+              "label": "구성",
+              "type": "select",
+              "value": "copy",
+              "options": [
+                {
+                  "value": "copy",
+                  "label": "복사-붙여넣기"
+                },
+                {
+                  "value": "module",
+                  "label": "모듈 + 변수"
+                },
+                {
+                  "value": "work",
+                  "label": "워크스페이스"
+                },
+                {
+                  "value": "mono",
+                  "label": "하나의 큰 상태"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "hcl",
+          "label": "모듈로 쓰기",
+          "text": "# envs/prod/main.tf\nmodule \"app\" {\n  source = \"../../modules/app\"\n\n  env            = \"prod\"\n  instance_count = 6            # 환경 차이는 값으로만\n  instance_type  = \"t3.large\"\n  db_multi_az    = true\n}\n\n# modules/app/variables.tf — 기본값과 설명을 함께\nvariable \"instance_count\" {\n  type        = number\n  default     = 2\n  description = \"앱 인스턴스 수\"\n  validation {\n    condition     = var.instance_count >= 1\n    error_message = \"최소 1대는 있어야 합니다.\"\n  }\n}"
+        },
+        {
+          "type": "note",
+          "text": "**상태를 쪼개는 기준**은 「함께 바뀌는가」와 「폭발 반경」이다. 네트워크(거의 안 바뀜)와 앱(자주 바뀜)을 한 상태에 두면 앱 배포 때마다 네트워크까지 잠긴다. 반대로 너무 잘게 쪼개면 참조가 복잡해진다."
+        },
+        {
+          "type": "p",
+          "text": "**모듈을 처음부터 만들지 마라.** 두 번째로 같은 것을 만들 때 공통점이 보인다. 한 번 쓰는 것을 미리 모듈로 만들면, 실제로는 쓸 일 없는 변수만 늘어난다 — 코드와 같은 규칙이다."
+        },
+        {
+          "type": "try",
+          "text": "내 IaC 에서 환경별로 복사된 부분을 찾아라. 세 벌 이상 같은 것이 있으면 모듈로 뽑을 시점이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "환경별 복사-붙여넣기의 문제는?",
+          "choices": [
+            "느리다",
+            "조금씩 달라져 staging 이 prod 를 못 대변한다",
+            "비용",
+            "권한"
+          ],
+          "answer": 1,
+          "why": "차이가 변수로만 드러나야 한다."
+        },
+        {
+          "q": "상태를 쪼개는 기준은?",
+          "choices": [
+            "파일 크기",
+            "함께 바뀌는가와 폭발 반경",
+            "팀 수",
+            "리전"
+          ],
+          "answer": 1,
+          "why": "네트워크와 앱은 주기가 다르다."
+        },
+        {
+          "q": "모듈을 만들 시점은?",
+          "choices": [
+            "처음부터",
+            "같은 것을 두세 번째 만들 때",
+            "코드가 길 때",
+            "팀이 클 때"
+          ],
+          "answer": 1,
+          "why": "미리 만들면 쓸모없는 변수만 는다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "안전하게 — 권한 · 비밀 · 폭발 반경",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "IaC 는 **클라우드를 통째로 바꿀 수 있는 권한**으로 돈다. 그래서 실수도 사고도 크다 — 「한 줄 고쳤는데 DB 가 재생성」이 실제로 일어난다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "위험을 골라 보라 — 어떻게 줄이나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .cols { display:flex; gap:8px; margin:8px 0; }\n  .col { flex:1; background:#111c33; border-radius:8px; padding:8px 10px; }\n  .col h4 { margin:0 0 6px; font-size:11px; color:#94a3b8; font-weight:600; }\n  .col .it { font:11.5px/1.9 ui-monospace, monospace; color:#cbd5e1; }\n  .col .it.add { color:#4ade80; } .col .it.del { color:#fca5a5; }\n  .col .it.chg { color:#fbbf24; } .col .it.dim { color:#475569; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const cols = (list) => '<div class=\"cols\">' + list.map(([title, items]) =>\n    '<div class=\"col\"><h4>' + esc(title) + '</h4>' +\n    items.map(([t, cls]) => '<div class=\"it ' + (cls || '') + '\">' + esc(t) + '</div>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{risk}}';\n  const t = {\n    admin: ['CI 가 관리자 권한으로 돈다',\n      ['워크플로를 고칠 수 있는 사람 = 클라우드 관리자', '실수 한 줄이 전체에 닿는다'],\n      '환경별로 역할을 나누고 최소 권한으로 · OIDC 로 장기 키 없이 (설정 칸 8장)'],\n    secret:['비밀이 코드·상태에 평문으로',\n      ['tfvars 를 커밋했다', '상태 파일에 비밀번호가 그대로 들어간다'],\n      '비밀 관리 서비스에서 참조 · 상태는 암호화 백엔드 · tfvars 는 gitignore'],\n    blast: ['하나의 상태에 전부',\n      ['잘못된 apply 하나가 모든 환경에 닿는다', '동시에 작업할 수 없다(잠금)'],\n      '환경·도메인별로 상태를 나눠 폭발 반경을 줄인다'],\n    apply: ['사람이 로컬에서 apply',\n      ['각자 다른 버전의 도구·자격 증명', '무엇이 언제 적용됐는지 기록이 없다'],\n      'CI 에서만 apply · 로컬은 plan 까지 (권한도 그렇게 나눈다)'],\n    delete:['실수로 지워지는 것',\n      ['이름을 바꿨더니 replace 로 판정', '조건을 잘못 써서 destroy'],\n      'prevent_destroy · 삭제 보호 · plan 필수 리뷰 · 상태 백업(버저닝)'],\n  }[c];\n  render('', '  <span class=\"no\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">-> ' + esc(t[2]) + '</span>', '');\n</script>",
+          "controls": [
+            {
+              "id": "risk",
+              "label": "위험",
+              "type": "select",
+              "value": "admin",
+              "options": [
+                {
+                  "value": "admin",
+                  "label": "과한 권한"
+                },
+                {
+                  "value": "secret",
+                  "label": "비밀 노출"
+                },
+                {
+                  "value": "blast",
+                  "label": "폭발 반경"
+                },
+                {
+                  "value": "apply",
+                  "label": "로컬 apply"
+                },
+                {
+                  "value": "delete",
+                  "label": "실수 삭제"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "hcl",
+          "label": "비밀은 참조로",
+          "text": "# 값을 코드에 안 적고 참조만\ndata \"aws_secretsmanager_secret_version\" \"db\" {\n  secret_id = \"prod/db/password\"\n}\n\nresource \"aws_db_instance\" \"main\" {\n  password = data.aws_secretsmanager_secret_version.db.secret_string\n  # 주의: 그래도 상태 파일에는 값이 들어간다 -> 백엔드 암호화 필수\n  lifecycle { prevent_destroy = true }\n}"
+        },
+        {
+          "type": "note",
+          "text": "**상태 파일에는 결국 비밀이 들어간다.** 참조로 적어도 적용 결과가 상태에 기록되기 때문이다. 그래서 상태는 암호화된 원격 백엔드 + 접근 제한 + 버저닝이 기본이다 — 상태 파일 자체를 비밀로 취급하라."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **정책을 코드로 검사**하는 도구도 있다(OPA·Sentinel·tfsec·checkov). 「공개 S3 버킷 금지」·「암호화 없는 볼륨 금지」 같은 규칙을 CI 에서 plan 에 걸면, 리뷰어가 못 본 것도 기계가 잡는다."
+        },
+        {
+          "type": "try",
+          "text": "내 IaC 에 `tfsec` 이나 `checkov` 를 한 번 돌려 보라. 처음 돌리면 대개 놀랄 만큼 많이 나온다 — 심각도 높은 것부터 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "IaC 를 로컬에서 apply 하는 것의 문제는?",
+          "choices": [
+            "느리다",
+            "도구·자격 증명이 제각각이고 기록이 없다",
+            "비용",
+            "권한 부족"
+          ],
+          "answer": 1,
+          "why": "CI 에서만 apply 하는 편이 낫다."
+        },
+        {
+          "q": "비밀을 참조로 적어도 남는 곳은?",
+          "choices": [
+            "로그",
+            "상태 파일",
+            "코드",
+            "없다"
+          ],
+          "answer": 1,
+          "why": "상태는 암호화·접근 제한이 필수."
+        },
+        {
+          "q": "폭발 반경을 줄이는 방법은?",
+          "choices": [
+            "코드 줄이기",
+            "환경·도메인별로 상태 분리",
+            "권한 확대",
+            "리뷰"
+          ],
+          "answer": 1,
+          "why": "한 apply 가 닿는 범위를 좁힌다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "이미 있는 인프라를 코드로 옮기기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "현실은 대개 **이미 손으로 만든 인프라**가 있는 상태에서 시작한다. 전부 지우고 다시 만들 수는 없으니, **조금씩 가져오는** 방법이 필요하다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "단계를 밀어 보라 — 어떻게 옮기나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .cols { display:flex; gap:8px; margin:8px 0; }\n  .col { flex:1; background:#111c33; border-radius:8px; padding:8px 10px; }\n  .col h4 { margin:0 0 6px; font-size:11px; color:#94a3b8; font-weight:600; }\n  .col .it { font:11.5px/1.9 ui-monospace, monospace; color:#cbd5e1; }\n  .col .it.add { color:#4ade80; } .col .it.del { color:#fca5a5; }\n  .col .it.chg { color:#fbbf24; } .col .it.dim { color:#475569; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const cols = (list) => '<div class=\"cols\">' + list.map(([title, items]) =>\n    '<div class=\"col\"><h4>' + esc(title) + '</h4>' +\n    items.map(([t, cls]) => '<div class=\"it ' + (cls || '') + '\">' + esc(t) + '</div>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = {{step}};\n  const steps = [\n    ['① 새로 만드는 것부터 코드로',\n     '기존 것은 그대로 두고, 지금부터 만드는 것만 IaC 로. 가장 부담이 적다.'],\n    ['② 잘 안 바뀌는 것부터 가져오기',\n     'VPC·서브넷처럼 안정된 것부터. import 후 plan 이 「변경 없음」이 될 때까지 코드를 맞춘다.'],\n    ['③ 자주 바뀌는 것 가져오기',\n     '보안 그룹·태스크 정의처럼 손이 자주 가는 것. 여기서 IaC 의 이득이 가장 크다.'],\n    ['④ 콘솔 쓰기 권한 회수',\n     '코드가 정본이 되려면 손으로 못 고치게 해야 한다(5장). 비상용 권한만 시간 제한으로.'],\n  ];\n  const items = steps.map(([t], i) => [t, i < s ? 'dim' : i === s ? 'add' : '']);\n  render('terraform import / import 블록',\n    '  <span class=\"ok\">' + esc(steps[s][0]) + '</span>\\n\\n  ' + esc(steps[s][1]) + '\\n\\n' +\n    '  <span class=\"dim\">요령: 한 번에 하나씩 · 매번 plan 이 「변경 없음」인지 확인 · 되돌릴 수 있는 것부터</span>',\n    '전부 옮기는 것이 목표가 아니다 — 자주 바뀌는 것이 코드에 있으면 이미 대부분의 값을 얻는다.',\n    cols([['옮기는 순서', items]]));\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 3,
+              "step": 1,
+              "value": 1
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "가져오기 절차",
+          "text": "# 1) 코드를 먼저 대충 적는다\nresource \"aws_s3_bucket\" \"legacy\" { bucket = \"my-old-bucket\" }\n\n# 2) 상태에 이어 붙인다\nterraform import aws_s3_bucket.legacy my-old-bucket\n\n# 3) plan 이 「변경 없음」이 될 때까지 코드를 실제에 맞춘다  <- 핵심\nterraform plan     # 차이가 나오면 코드를 고친다 (실제를 고치는 게 아니라)\n\n# 도구가 코드를 뽑아 주기도 한다\nterraformer import aws --resources=s3,ec2"
+        },
+        {
+          "type": "note",
+          "text": "**import 후 첫 plan 이 「변경 없음」이 되는 것이 목표**다. 여기서 성급하게 apply 하면 실제 설정이 코드 쪽으로 덮여 사고가 난다 — 이 단계에서는 **코드를 실제에 맞추는** 방향이지 그 반대가 아니다."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **전부 옮길 필요는 없다.** 자주 바뀌는 자원이 코드에 있으면 이미 대부분의 값(리뷰·역사·재현)을 얻는다. 한 번 만들고 5년간 안 건드리는 것까지 옮기느라 몇 달을 쓰는 것은 대개 손해다."
+        },
+        {
+          "type": "try",
+          "text": "손으로 만든 자원 중 **가장 자주 바뀌는 것** 하나를 골라 import 해 보라. plan 이 조용해질 때까지 코드를 맞추는 연습이 이 장의 전부다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "import 후 목표 상태는?",
+          "choices": [
+            "apply 성공",
+            "plan 이 「변경 없음」",
+            "리소스 재생성",
+            "상태 초기화"
+          ],
+          "answer": 1,
+          "why": "코드를 실제에 맞춘다."
+        },
+        {
+          "q": "옮기는 순서로 좋은 것은?",
+          "choices": [
+            "중요한 것부터",
+            "잘 안 바뀌는 것 → 자주 바뀌는 것",
+            "큰 것부터",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "위험이 낮은 것부터 익힌다."
+        },
+        {
+          "q": "「코드가 정본」을 실제로 만드는 마지막 단계는?",
+          "choices": [
+            "문서화",
+            "콘솔 쓰기 권한 회수",
+            "테스트",
+            "모듈화"
+          ],
+          "answer": 1,
+          "why": "손으로 고칠 수 있으면 드리프트가 계속 난다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "IaC 는 도구를 배우는 일이 아니라 **인프라를 코드처럼 다루는 규율**을 세우는 일이다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "IaC 점검표",
+          "text": "상태\n  [ ] 상태가 원격 백엔드에 있나 (로컬 X)                        (3장)\n  [ ] 암호화 · 버저닝 · 접근 제한이 걸려 있나                    (3·7장)\n  [ ] 잠금이 있나 (동시 apply 방지)                              (3장)\n  [ ] 환경·도메인별로 상태가 나뉘어 있나                         (6·7장)\n변경 절차\n  [ ] plan 없이 apply 하지 않는다                                (4장)\n  [ ] PR 에 plan 결과가 붙나                                     (4장)\n  [ ] -/+ replace 와 destroy 를 눈으로 확인하나                  (4장)\n  [ ] 중요한 자원에 prevent_destroy 가 있나                      (4·7장)\n  [ ] apply 는 CI 에서만 (로컬은 plan 까지)                      (7장)\n드리프트\n  [ ] plan 을 정기적으로 돌려 감지하나                           (5장)\n  [ ] 손으로 고친 것을 코드로 되돌려 놓나                        (5장)\n  [ ] 정상적인 차이는 ignore_changes 로 명시했나                 (5장)\n구조\n  [ ] 환경 차이가 변수로만 드러나나 (복사본 X)                   (6장)\n  [ ] 비밀이 코드·tfvars 에 평문으로 없나                        (7장)\n  [ ] 정책 검사(tfsec·checkov)가 CI 에 있나                      (7장)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 여섯 문항",
+          "height": "290px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .cols { display:flex; gap:8px; margin:8px 0; }\n  .col { flex:1; background:#111c33; border-radius:8px; padding:8px 10px; }\n  .col h4 { margin:0 0 6px; font-size:11px; color:#94a3b8; font-weight:600; }\n  .col .it { font:11.5px/1.9 ui-monospace, monospace; color:#cbd5e1; }\n  .col .it.add { color:#4ade80; } .col .it.del { color:#fca5a5; }\n  .col .it.chg { color:#fbbf24; } .col .it.dim { color:#475569; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const cols = (list) => '<div class=\"cols\">' + list.map(([title, items]) =>\n    '<div class=\"col\"><h4>' + esc(title) + '</h4>' +\n    items.map(([t, cls]) => '<div class=\"it ' + (cls || '') + '\">' + esc(t) + '</div>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['선언형 IaC 는 여러 번 돌려도 결과가 같다', true],\n    ['상태 파일을 잃어도 자동으로 복구된다', false],\n    ['plan 의 -/+ 는 지우고 다시 만든다는 뜻이다', true],\n    ['콘솔에서 급히 고친 것은 그냥 두면 된다', false],\n    ['비밀을 참조로 적으면 상태 파일에도 안 남는다', false],\n    ['import 후에는 plan 이 「변경 없음」이어야 한다', true],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로 — 2장(멱등) 3장(상태) 4장(plan) 5장(드리프트) 7장(비밀) 8장(import)');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸은 로그·지표·추적이다. 여기까지가 「환경을 만들고 앱을 내보내는 법」이었다면, 다음은 **그것이 지금 잘 돌고 있는지 아는 법**이다 — 모르면 고칠 수도 없다."
+        },
+        {
+          "type": "try",
+          "text": "위 목록에서 「상태」 네 줄부터 확인하라. 로컬 상태·잠금 없음이면 그것이 오늘의 가장 큰 위험이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "IaC 에서 가장 먼저 갖춰야 할 것은?",
+          "choices": [
+            "모듈화",
+            "원격 상태 + 잠금 + 암호화",
+            "정책 검사",
+            "자동 apply"
+          ],
+          "answer": 1,
+          "why": "상태를 잃으면 나머지가 무의미하다."
+        },
+        {
+          "q": "「코드가 정본」이 지켜지려면?",
+          "choices": [
+            "문서화",
+            "드리프트 감지 + 손 변경을 코드로 되돌리기",
+            "권한 확대",
+            "잦은 apply"
+          ],
+          "answer": 1,
+          "why": "안 그러면 plan 을 아무도 못 믿는다."
+        }
+      ]
     }
   ]
 }
