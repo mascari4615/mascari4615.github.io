@@ -99,8 +99,24 @@ import {
     { id: 'photo', label: t('karmograph.shapes.msg5'), icon: '🖼' },
   ];
 
-  Mdd.injectCSS(
-    'karmograph',
+  /**
+   * 스타일은 **우리가 직접** 넣는다 (TASK-KL-271).
+   *
+   * 전에는 공용 `Mdd.injectCSS` 를 썼는데 그것은 「같은 id 의 `<style>` 이 있으면 **아무것도
+   * 안 한다**」였다. 판에 따라 스타일이 통째로 안 실리는 일이 있었고(실측: `<style>` 어디에도
+   * `km-toolbar` 가 없는데 화면은 그려짐 — 규칙 없는 판), 그 판에서는 방금 넣은 규칙이 「안 먹는」
+   * 것으로 보여 같은 자리를 세 번 고쳤다. 있으면 **덮어쓴다** — 새 판이 옛 판을 이긴다.
+   */
+  const injectKarmoGraphCSS = (css: string): void => {
+    const id = 'km-css-karmograph';
+    const el = (document.getElementById(id) as HTMLStyleElement | null)
+      ?? document.createElement('style');
+    el.id = id;
+    el.textContent = css;
+    if (!el.isConnected) (document.head || document.documentElement).appendChild(el);
+  };
+
+  injectKarmoGraphCSS(
     `
     /* ★ 높이를 화면에서 직접 가져온다. height:100% 는 셸 카드가 높이를 안 주면 0 이 되고,
        그때 캔버스는 117px 까지 눌렸다가 다음 실행엔 420px 이 되는 식으로 **들쭉날쭉**했다
