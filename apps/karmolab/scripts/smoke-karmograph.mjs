@@ -1759,6 +1759,61 @@ await step('발표를 SVG 한 장으로 — 브라우저만 있으면 도는 파
   await page.keyboard.press('Escape');
   await page.waitForSelector('[data-km="drawer"].hidden', { state: 'attached', timeout: ms(4000) });
 });
+await step('폰에서 확대·축소 단추가 죽어 있지 않다 (아래 시트에 안 깔린다)', async () => {
+  /* 실측 2026-08-14: 줌 줄이 화면 맨 아래(bottom:14px)에 있어 **접힌 시트 손잡이 밑에 깔렸다** —
+     세 단추가 보이는데 짚으면 시트가 잡혔다. 두 손가락 벌리기는 되지만 그건 아는 사람만 쓴다. */
+  const ph = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const m = await ph.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(900));
+  // 빈 판에서는 시트가 올라와 있다(갈래 고르기) — 카드를 하나 놓고 시트를 접은 자리에서 잰다.
+  const cbox = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(cbox.x + cbox.width * 0.4, cbox.y + cbox.height * 0.25);
+  await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await m.keyboard.type('줌카드');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 1, null, { timeout: ms(4000) });
+  await m.evaluate(() => document.querySelector('.km-root')?.classList.remove('is-sheet-up'));
+  await m.waitForTimeout(ms(400));
+  const stuck = await m.evaluate(() => {
+    const bad = [];
+    for (const key of ['zoom-out', 'zoom-val', 'zoom-in']) {
+      const el = document.querySelector(`[data-km="${key}"]`);
+      if (!el) { bad.push(key + ' 없음'); continue; }
+      const r = el.getBoundingClientRect();
+      if (r.bottom > innerHeight || r.width < 2) { bad.push(key + ' 화면 밖'); continue; }
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      /* ⓘ 앱(페이지) 층에 떠 있는 띠들 — 채팅 알약·오프라인 안내 — 은 위젯이 z-index 로 못 이긴다
+         (이미 배운 것: 2026-08-12 시트, 2026-08-14 오프라인 안내가 검사 자리에서 줌을 덮었다).
+         여기서 지키는 것은 **위젯이 제 것을 제 손으로 덮지 않는가**다. */
+      if (hit && !hit.closest('.km-root')) continue;
+      if (el !== hit && !el.contains(hit)) bad.push(key + ' ← ' + (hit?.dataset?.km || hit?.className || hit?.tagName));
+    }
+    return bad;
+  });
+  if (stuck.length > 0) throw new Error('폰에서 줌 단추가 안 잡힌다: ' + stuck.join(' · '));
+
+  // 실제로 먹는지까지 — 눌러서 배율이 바뀐다.
+  const before = await m.locator('[data-km="zoom-val"]').textContent();
+  // 앱 층의 띠가 손을 가로챌 수 있는 자리라 여기서는 단추 자체를 부른다(위젯 동작을 본다).
+  await m.evaluate(() => document.querySelector('[data-km="zoom-in"]').click());
+  await m.waitForFunction((was) => document.querySelector('[data-km="zoom-val"]').textContent !== was,
+    before, { timeout: ms(4000) });
+
+  // 시트를 올리면 화면의 주인은 시트다 — 그때는 가려진 채 살아 있는 척하지 않고 아예 없다.
+  await m.evaluate(() => document.querySelector('.km-root')?.classList.add('is-sheet-up'));
+  await m.waitForTimeout(ms(400));
+  const shown = await m.evaluate(() => {
+    const el = document.querySelector('[data-km="zoom"]');
+    return el ? getComputedStyle(el).display !== 'none' : false;
+  });
+  if (shown) throw new Error('시트가 올라왔는데 줌 줄이 그 밑에 남아 있다');
+  await ph.close();
+});
 await step('폰에서도 되물음이 손에 닿는다 — 아래 시트에 안 깔린다 (KL-271)', async () => {
   /* 실측 2026-08-14: 되물음 상자를 아래 시트와 **같은 층**에 아래쪽으로 두었더니, 폰에서
      「지울래요」가 화면에 보이는데 손가락은 시트 단추에 닿았다 — 보이는데 못 누른다.
