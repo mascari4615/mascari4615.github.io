@@ -119,7 +119,15 @@ jobs:
       - name: Build karmolab
         run: cd apps/karmolab && npm run build
 
+      # ★ **Rust 쪽은 이번 push 가 건드렸을 때만 잰다** (2026-08-13, 실측).
+      #   `cargo check` 는 캐시가 차면 20분이 넘고, 45분에 끊긴 판은 **캐시를 저장하지도
+      #   못한다** — 다음 판도 차갑다. 그렇게 여섯 판이 나란히 돌며 서로 CPU 를 빼앗아
+      #   오전 내내 **아무 판정도 안 나왔다**. Rust 는 며칠에 한 번 바뀌는데 값은 매 push 다.
+      #   시계(nightwatch)로 부른 판은 `always` 라 늘 잰다 — 안 본 채 지나가는 날이 없게.
       - name: Run verify (master invariant)
+        env:
+          VERIFY_DIFF_RANGE: ${{ github.event_name == 'push' && format('{0}..{1}', github.event.before, github.sha) || '' }}
+          VERIFY_TAURI: ${{ github.event_name != 'push' && 'always' || '' }}
         run: npm run verify
 
       # ★ **두 번 시도한다** (2026-08-12). 이 단계는 검사 프로그램을 깃허브 릴리스에서 **내려받아**

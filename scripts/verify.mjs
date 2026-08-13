@@ -163,7 +163,23 @@ function ensureTauriSidecarPlaceholder() {
 // 3. apps/karmolab-tauri — cargo check. 이전 karmolab-tauri.yml 흡수.
 //    PR #15 의 DOMAIN_DIRS private E0603 같은 사고 방지.
 //    rustc 부재 env (봇 prod 노트북 등) = graceful skip + CI 가 정본 게이트.
-if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
+/* ★ **안 건드린 판에서는 건너뛴다** (2026-08-13, 실측). `cargo check` 는 캐시가 차면 20분이
+   넘고, 그 판이 45분에 끊기면 **캐시를 저장하지도 못한다** — 다음 판도 차갑다. 그렇게 여섯
+   판이 나란히 돌며 서로 CPU 를 빼앗아 **아무 판정도 안 나왔다**(오늘 오전 내내 판정 0).
+   Rust 쪽은 며칠에 한 번 바뀌는데 값은 매 push 다. 그래서 그 자리가 이번 push 에 담겼을 때만
+   재고, 시계(nightwatch)로 부른 판에서는 **늘** 잰다 — 안 본 채 지나가는 날이 없게. */
+const tauriTouched = (() => {
+  if (process.env.VERIFY_TAURI === 'always') return true;
+  const range = process.env.VERIFY_DIFF_RANGE;
+  if (!range) return true; // 모르면 잰다 — 「모름」을 「안 건드림」으로 읽지 않는다
+  const r = spawnSync('git', ['diff', '--name-only', range, '--', 'apps/karmolab-tauri'], { encoding: 'utf8' });
+  if (r.status !== 0) return true;
+  const touched = r.stdout.trim().length > 0;
+  if (!touched) console.log('[verify] ! apps/karmolab-tauri 는 이번 판이 안 건드렸다 — cargo check 건너뜀 (시계 판이 늘 잰다)');
+  return touched;
+})();
+
+if (tauriTouched && existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
   const placeholder = ensureTauriSidecarPlaceholder();
   if (placeholder.skipped) {
     console.log(`[verify] ! apps/karmolab-tauri cargo check skip — ${placeholder.reason}. CI 가 정본 게이트.`);
