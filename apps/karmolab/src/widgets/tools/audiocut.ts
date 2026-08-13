@@ -6,6 +6,7 @@
  * 내보내기는 MP3(작아서 보내기 좋음)와 WAV(손실 없음) 중 고른다. MP3 압축기는 그때만 받아 온다.
  */
 import { encodeAudio, fileSize as size, mmss, download, audioCtx, loadAudio } from './shared/media';
+import { wireDrop } from './shared/drop-well';
 import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -182,28 +183,14 @@ import { t, loadNamespace } from '../../lib/i18n';
             return out;
           }
 
-          drop.onclick = () => fileInput.click();
-          // 파일 고르는 칸은 감춰 두고 이 상자를 누르게 되어 있다. 마우스가 없으면 길이 막히므로
-          // 키보드에서도 열리게 한다 (TASK-KL-089).
-          drop.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              fileInput.click();
-            }
-          });
-          fileInput.onchange = () => {
-            if (fileInput.files?.[0]) void load(fileInput.files[0]);
-          };
-
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다.
+           * (2026-08-13: 파일 자리를 공용으로 옮기다 이 덩이를 같이 지웠다가 게이트가 잡았다.) */
           {
-              Toolbox.onHandoff?.('audiocut', (f: File) => void load(f));
+            Toolbox.onHandoff?.('audiocut', (f: File) => void load(f));
           }
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 키보드로 열기·붙여넣기가 딸려 온다. */
+          wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
           drop.addEventListener('dragleave', () => drop.classList.remove('over'));
           drop.addEventListener('drop', (e) => {
             e.preventDefault();

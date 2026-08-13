@@ -7,6 +7,7 @@
  * 한글은 PDF 기본 글꼴에 없어 그대로 그리면 오류가 난다. 글자를 그림으로 그려 얹는 방식을 쓴다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 import { download, openForEdit, pdfBlob, loadPdfLib, suffixName, type PDFLib } from './shared/pdf';
 
@@ -164,27 +165,14 @@ import { download, openForEdit, pdfBlob, loadPdfLib, suffixName, type PDFLib } f
             say(t('pdfwatermark.say.loaded', { name: f.name }), 'ok');
           }
 
-          drop.onclick = () => fileInput.click();
-          fileInput.onchange = () => {
-            if (fileInput.files?.[0]) pick(fileInput.files[0]);
-          };
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
            * 한 번만 집어 간다 — 두 번 집으면 같은 파일이 다시 들어와 방금 한 일을 덮는다. */
           {
             Toolbox.onHandoff?.('pdfwatermark', (f: File) => pick(f));
           }
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
-          drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-          drop.addEventListener('drop', (e) => {
-            e.preventDefault();
-            drop.classList.remove('over');
-            const f = e.dataTransfer?.files?.[0];
-            if (f) pick(f);
-          });
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
+          wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void pick(files[0]) });
           // 파일을 바로 붙여넣는 것이 잦다
           acceptPastedFiles(container, (files) => { pick(files[0]); }, (f: File) => f.type === 'application/pdf');
           $<HTMLInputElement>('#pwOpacity').addEventListener('input', (e) => {

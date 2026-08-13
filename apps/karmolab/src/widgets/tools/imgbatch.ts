@@ -6,6 +6,7 @@
  * 원본보다 커지는 경우가 있어(작은 PNG 를 JPG 로 바꿀 때) 전후 용량을 나란히 보여준다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { wireDrop } from './shared/drop-well';
 import { loadImage, toCanvas, encode } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -219,20 +220,8 @@ import { t, loadNamespace } from '../../lib/i18n';
               );
           }
 
-          drop.onclick = () => fileInput.click();
-          fileInput.onchange = () => {
-            if (fileInput.files) add(fileInput.files);
-          };
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
-          drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-          drop.addEventListener('drop', (e) => {
-            e.preventDefault();
-            drop.classList.remove('over');
-            if (e.dataTransfer?.files) add(e.dataTransfer.files);
-          });
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
+          wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void add(files) });
           // 화면 캡처를 바로 붙여넣는 것이 가장 잦은 쓰임이다
           acceptPastedFiles(container, (files) => { add(files); });
           maxEl.addEventListener('input', () => {

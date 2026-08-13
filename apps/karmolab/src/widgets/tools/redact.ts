@@ -11,6 +11,7 @@
  *    고르면 그 사실을 말해 준다. 「가린 줄 알았는데 아니었다」가 이 도구에서 가장 나쁜 결과다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { wireDrop } from './shared/drop-well';
 import { download, loadImage } from './shared/image';
 import { fileSize as size } from './shared/media';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -250,21 +251,8 @@ import { t, loadNamespace } from '../../lib/i18n';
             say(t('redact.say.added', { n: boxes.length }), 'ok');
           });
 
-          drop.onclick = () => fileInput.click();
-          fileInput.onchange = () => {
-            if (fileInput.files?.[0]) void load(fileInput.files[0]);
-          };
-          drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('over');
-          });
-          drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-          drop.addEventListener('drop', (e) => {
-            e.preventDefault();
-            drop.classList.remove('over');
-            const f = e.dataTransfer?.files?.[0];
-            if (f) void load(f);
-          });
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
+          wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
           // 캡처는 대개 클립보드에 있다 — 붙여넣기가 가장 빠른 길이다
           acceptPastedFiles(container, (files) => {
             if (files[0]) void load(files[0]);
