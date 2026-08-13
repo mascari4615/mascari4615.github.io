@@ -51,6 +51,7 @@ async function loadModules() {
     export * as pick from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-pick.ts'))};
     export * as eph from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-ephemeral.ts'))};
     export * as share from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/share.ts'))};
+    export * as between from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/between.ts'))};
     export * as history from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/history.ts'))};
     export * as sna from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/sna.ts'))};
   `);
@@ -708,6 +709,25 @@ const M = await loadModules();
     else seen.set(t, k);
   }
   check(dups.length === 0, `같은 말이 두 열쇠에 있다(문 둘이 될 자리): ${dups.join(' · ')}`);
+}
+
+// ── 두 카드 사이 (TASK-KL-271 X6) ───────────────────────────────────────────
+// 관계도 앞에서 가장 자주 나오는 질문. 길찾기는 눈으로 못 보는 셈법이라(고리·끊긴 그래프) 여기서 잠근다.
+{
+  const E = [
+    { from: 'a', to: 'b' }, { from: 'b', to: 'c' }, { from: 'c', to: 'd' },
+    { from: 'a', to: 'x' }, { from: 'x', to: 'c' },
+    { from: 'lone', to: 'lone' },
+  ];
+  const ad = M.between.between(E, 'a', 'd').path;
+  eq(ad.length, 4, '가장 짧은 길의 길이(둘 다 3다리라 어느 쪽이든 4장)');
+  eq(`${ad[0]}>${ad[ad.length - 1]}`, 'a>d', '길은 고른 두 장에서 시작해 끝난다');
+  eq(M.between.between(E, 'a', 'd').path.join('>'), ad.join('>'), '같은 판에서 두 번 물으면 같은 답');
+  eq(M.between.between(E, 'a', 'c').shared.join(','), 'b,x', '둘 다와 이어진 카드를 이름순으로');
+  eq(M.between.between(E, 'a', 'zz').path.length, 0, '길이 없으면 빈 길');
+  eq(M.between.between(E, 'a', 'a').path.join('>'), 'a', '같은 카드 둘이면 제자리');
+  eq(M.between.between([{ from: 'p', to: 'q' }, { from: 'q', to: 'p' }], 'p', 'q').path.join('>'), 'p>q',
+    '오가는 선이 있어도 고리에 안 빠진다');
 }
 
 process.stdout.write('\n');
