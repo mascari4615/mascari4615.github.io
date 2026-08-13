@@ -1601,7 +1601,10 @@ await step('보기 전용 링크 — 손잡이가 사라지고, 「내 것으로
   await page.locator('.ck-node').first().click();
   await page.waitForSelector('[data-km="cmt-new"]', { timeout: ms(4000) });
   if (await page.locator('[data-km="cmt-new"]').isDisabled()) throw new Error('보기 전용에서 코멘트까지 잠겼다');
-  if (!(await page.locator('[data-km="edit-label"]').isDisabled())) throw new Error('보기 전용인데 이름 칸이 안 잠겼다');
+  // 보기 전용은 이제 **읽는 화면**이다(KL-271 O3) — 회색으로 잠긴 입력칸을 보여 주는 대신
+  // 아예 안 그린다. 「잠겼나」가 아니라 「없나」를 본다.
+  if (await page.locator('[data-km="edit-label"]').count() > 0) throw new Error('보기 전용인데 고치는 칸이 남아 있다');
+  if (await page.locator('.km-side h4').count() === 0) throw new Error('읽는 화면에 카드 이름이 없다');
   await page.fill('[data-km="cmt-new"]', '받은 사람이 남기는 말');
   await page.locator('[data-km="cmt-add"]').click();
   await page.waitForSelector('[data-km="cmt-del"]', { timeout: ms(4000) });
