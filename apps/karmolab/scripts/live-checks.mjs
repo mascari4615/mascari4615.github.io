@@ -24,7 +24,66 @@ export const PREP = [
   { name: '놀이 페이지 찍기', cmd: ['npm', 'run', 'gen:play-pages'] },
 ];
 
-export const CHECKS = [
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const here = dirname(fileURLToPath(import.meta.url));
+const appRoot = dirname(here);
+
+/* ★ **「실주소를 보는 검사」를 손으로 표시하지 않는다** (2026-08-13).
+ *
+ * 여기 `live: true` 를 사람이 붙이고 있었는데, 실제로 실주소를 여는 검사는 **훨씬 많았다** —
+ * 판본 대조·도구 목록·설치 정보·타자·값 넣기·이름 잇기 … 열두 개가 표시 없이 실사이트를 열고
+ * 있었다. 표시가 빠지면 두 가지가 조용히 깨진다:
+ *   ① 배포가 도중에 갈아치워도 「다시 한 판」 껍데기가 안 씌워져 **가짜 빨강**이 난다.
+ *   ② 내 컴퓨터에서 고친 것을 확인하려 돌려도 **실사이트를 재고 있다** — 안 고쳤는데 초록,
+ *      고쳤는데 빨강. 로컬 재현이라는 말 자체가 거짓이 된다.
+ *
+ * 그래서 표시를 **검사 파일에게 물어본다**: 그 스크립트의 `BASE` 기본값이 바깥 주소면 실주소다.
+ * 목록과 사실이 갈라질 자리를 없앤다. 줄에 `live` 를 적으면 그 값이 이긴다(예외용).
+ */
+function scriptFileOf(cmd) {
+  if (cmd[0] === 'node') return join(appRoot, cmd[1]);
+  if (cmd[0] === 'npm' && cmd[1] === 'run') {
+    const pkg = JSON.parse(readFileSync(join(appRoot, 'package.json'), 'utf8'));
+    const line = pkg.scripts?.[cmd[2]];
+    const m = line && line.match(/node\s+(\S+\.mjs)/);
+    return m ? join(appRoot, m[1]) : null;
+  }
+  return null;
+}
+
+/** 바깥 주소를 기본값으로 들고 있나 — 못 읽으면 `null`(모름)이고, 모름은 실주소로 친다. */
+function opensLiveSite(cmd) {
+  const file = scriptFileOf(cmd);
+  if (!file) return null;
+  let src;
+  try {
+    src = readFileSync(file, 'utf8');
+  } catch {
+    return null;
+  }
+  const m = src.match(/process\.env\.BASE\s*\|\|\s*['"](https?:[^'"]*)['"]/);
+  if (!m) return false;
+  return !/127\.0\.0\.1|localhost/.test(m[1]);
+}
+
+/** 목록에 적힌 줄들에 `live` 를 채워 넣는다 — 손으로 적은 값이 있으면 그것이 이긴다. */
+function withLive(list) {
+  return list.map((c) => {
+    if (typeof c.live === 'boolean') return c;
+    const guess = opensLiveSite(c.cmd);
+    if (guess === null) {
+      /* 못 물어본 것은 「아니오」가 아니다 — 실주소로 치고 껍데기를 씌운다(씌워서 손해가 없다). */
+      console.warn(`[live-checks] ${c.name} — 어느 파일인지 못 물어봤다 · 실주소로 친다`);
+      return { ...c, live: true };
+    }
+    return { ...c, live: guess };
+  });
+}
+
+const RAW_CHECKS = [
   { name: '올린 판이 실제로 서빙되는지', cmd: ['node', 'scripts/check-live-version.mjs'], live: true },
   { name: '부르는 이름이 실제로 있는지', cmd: ['npm', 'run', 'audit:scripts'] },
   { name: 'WM 페이지 배선이 이어져 있는지', cmd: ['npm', 'run', 'audit:wm'] },
@@ -62,3 +121,5 @@ export const CHECKS = [
   { name: '후원 자리가 규칙대로 뜨는지', cmd: ['npm', 'run', 'audit:sponsor'] },
   { name: '공유 카드가 지금 문구와 맞는지', cmd: ['npm', 'run', 'audit:cards:fresh'] },
 ];
+
+export const CHECKS = withLive(RAW_CHECKS);
