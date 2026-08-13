@@ -46,6 +46,18 @@ export interface PianoViewInput {
   expanded: boolean;
   pxPerBeat: number;
   viewportWidth: number;
+  playheadBeat?: number;
+  playing?: boolean;
+  metronome?: boolean;
+  listenMode?: 'clip' | 'song';
+  loopStartBeat?: number;
+  loopEndBeat?: number;
+  rowHeight?: number;
+  rangeStartBeat?: number | null;
+  rangeEndBeat?: number | null;
+  gridBeat?: number;
+  manualScale?: boolean;
+  overlapMode?: 'merge' | 'replace' | 'allow';
   /** 음이 지금 골라져 있나 — 묶음이든 focus 든 본체가 판단한다. */
   isSelected: (noteId: string) => boolean;
   esc: (value: unknown) => string;
@@ -60,14 +72,15 @@ export interface PianoView {
 export function buildPianoView(input: PianoViewInput): PianoView {
   const { clip, beatsPerBar, expanded, isSelected, esc } = input;
   const step = input.step === true;
-  const { high, low, row, keyWidth, rulerHeight } = PIANO_GEOMETRY;
-  const pianoPxPerBeat = pianoScale(clip, input.pxPerBeat, expanded, input.viewportWidth);
+  const { high, low, keyWidth, rulerHeight } = PIANO_GEOMETRY;
+  const row = input.rowHeight ?? PIANO_GEOMETRY.row;
+  const pianoPxPerBeat = input.manualScale ? Math.max(24, Math.min(260, input.pxPerBeat)) : pianoScale(clip, input.pxPerBeat, expanded, input.viewportWidth);
   const width = Math.max(640, clip.duration * pianoPxPerBeat);
 
   let keys = '';
   for (let pitch = high; pitch >= low; pitch--) {
     const black = [1, 3, 6, 8, 10].includes(pitch % 12);
-    keys += `<span class="hu-key${black ? ' is-black' : ''}" style="top:${rulerHeight + (high - pitch) * row}px">${noteName(pitch)}</span>`;
+    keys += `<button type="button" class="hu-key${black ? ' is-black' : ''}" data-key-pitch="${pitch}" aria-label="${noteName(pitch)} 소리 듣기" style="top:${rulerHeight + (high - pitch) * row}px">${noteName(pitch)}</button>`;
   }
 
   let bars = '';
@@ -75,7 +88,8 @@ export function buildPianoView(input: PianoViewInput): PianoView {
     bars += `<span class="hu-piano-bar" style="left:${beat * pianoPxPerBeat}px">${beat / beatsPerBar + 1}</span>`;
   }
 
-  const notes = clip.notes.map((note) => `<i class="hu-note${isSelected(note.id) ? ' is-selected' : ''}" title="${noteName(note.pitch)} · velocity ${Math.round(note.velocity * 127)}" data-note="${note.id}" style="left:${keyWidth + note.beat * pianoPxPerBeat}px;top:${rulerHeight + (high - note.pitch) * row + Math.max(1, Math.round((1 - note.velocity) * 5))}px;width:${note.duration * pianoPxPerBeat}px;height:${Math.round(7 + note.velocity * 7)}px;opacity:${0.5 + note.velocity * 0.5}"><b class="hu-note-handle" data-note-resize="1"></b></i>`).join('');
+  const overlaps = new Set(clip.notes.filter((note,index)=>clip.notes.some((other,otherIndex)=>otherIndex!==index&&other.pitch===note.pitch&&other.beat<note.beat+note.duration&&note.beat<other.beat+other.duration)).map((note)=>note.id));
+  const notes = clip.notes.map((note) => `<i class="hu-note${isSelected(note.id) ? ' is-selected' : ''}${note.muted ? ' is-muted' : ''}${overlaps.has(note.id) ? ' is-overlap' : ''}" title="${noteName(note.pitch)} · velocity ${Math.round(note.velocity * 127)}${note.muted?' · 소리 꺼짐':''}${overlaps.has(note.id)?' · 겹침':''}" data-note="${note.id}" style="left:${keyWidth + note.beat * pianoPxPerBeat}px;top:${rulerHeight + (high - note.pitch) * row + Math.max(1, Math.round((1 - note.velocity) * 5))}px;width:${note.duration * pianoPxPerBeat}px;height:${Math.round(7 + note.velocity * 7)}px;opacity:${0.5 + note.velocity * 0.5}"><b class="hu-note-handle" data-note-resize="1"></b></i>`).join('');
 
   const velocityBars = clip.notes.map((note) => `<i class="hu-vel${isSelected(note.id) ? ' is-selected' : ''}" data-vel="${note.id}" title="velocity ${Math.round(note.velocity * 127)}" style="left:${keyWidth + note.beat * pianoPxPerBeat}px;width:${Math.max(4, Math.min(10, note.duration * pianoPxPerBeat))}px;height:${Math.max(3, Math.round(note.velocity * 50))}px"></i>`).join('');
 
@@ -86,6 +100,8 @@ export function buildPianoView(input: PianoViewInput): PianoView {
         <button class="hu-btn" data-note-act="legato" title="앞 음의 끝을 다음 음 시작까지 늘린다">LEGATO</button>
         <button class="hu-btn${step ? ' is-on' : ''}" data-note-act="step" title="자판을 건반으로 — Z~M 아랫줄, Q~I 윗줄. 켜면 도구 단축키는 쉰다">⌨ STEP</button>
         <button class="hu-btn${input.midi ? ' is-on' : ''}" data-note-act="midi" title="${esc(input.midiLabel || 'MIDI 건반 연결')}">🎹 MIDI</button>
+        <button class="hu-btn" data-note-act="mute" title="고른 음의 소리를 끄거나 켠다">음 끄기</button><label>겹친 음 <select class="hu-number" data-overlap-mode><option value="merge"${input.overlapMode==='merge'?' selected':''}>합치기</option><option value="replace"${input.overlapMode==='replace'?' selected':''}>교체</option><option value="allow"${input.overlapMode==='allow'?' selected':''}>허용</option></select></label>
+        ${expanded ? `<span class="hu-tool-separator"></span><button class="hu-btn" data-editor-edit="zoom-time-out" aria-label="시간 축소">시간 −</button><button class="hu-btn" data-editor-edit="zoom-time-in" aria-label="시간 확대">시간 +</button><button class="hu-btn" data-editor-edit="zoom-pitch-out" aria-label="음높이 행 축소">음높이 −</button><button class="hu-btn" data-editor-edit="zoom-pitch-in" aria-label="음높이 행 확대">음높이 +</button><button class="hu-btn" data-editor-edit="fit-clip">클립 전체</button><button class="hu-btn" data-editor-edit="fit-selection">선택 보기</button><span class="hu-grid-label">격자 ${input.gridBeat ?? 1}박 · Alt=자유</span>` : ''}
         <span class="hu-spacer"></span>
         <button class="hu-btn" data-note-act="octave-down" title="한 옥타브 내림">−12</button>
         <button class="hu-btn" data-note-act="down" title="반음 내림">−1</button>
@@ -94,7 +110,18 @@ export function buildPianoView(input: PianoViewInput): PianoView {
         <label>VELOCITY <input class="hu-number" type="range" min="0.05" max="1" step="0.01" value="${velocitySeed}" data-note-velocity aria-label="선택한 음의 세기"></label>
       </div>`;
 
-  const html = `<div class="hu-editor-head"><strong>PIANO ROLL · ${esc(clip.name)}</strong><span>세로=음높이 · 가로=시간 · 밝기=세기</span><span class="hu-spacer"></span><span>단축키는 ? 로</span><button class="hu-btn" data-act="toggle-editor">${expanded ? '작게' : '크게 열기'}</button></div>${tools}<div class="hu-piano" data-piano="1"><div style="position:relative;width:${keyWidth + width}px;height:${rulerHeight + (high - low + 1) * row}px"><div class="hu-piano-ruler" style="width:${width}px">${bars}</div>${keys}${notes}<div class="hu-band" data-role="piano-band" hidden></div></div></div><div class="hu-velocity" data-velocity><div style="position:relative;width:${keyWidth + width}px;height:100%">${velocityBars}</div><div class="hu-velocity-scale">VEL</div></div>`;
+  const relativePlayhead = Math.max(0, Math.min(clip.duration, input.playheadBeat ?? 0));
+  const activeWidth = clip.duration * pianoPxPerBeat;
+  const listenMode = input.listenMode ?? 'clip';
+  const loopStart = Math.max(0, Math.min(clip.duration, input.loopStartBeat ?? 0));
+  const loopEnd = Math.max(loopStart, Math.min(clip.duration, input.loopEndBeat ?? clip.duration));
+  const loopBrace = expanded ? `<div class="hu-editor-loop" data-editor-loop style="left:${keyWidth + loopStart * pianoPxPerBeat}px;width:${Math.max(2, (loopEnd - loopStart) * pianoPxPerBeat)}px" aria-label="클립 반복 구간"><button type="button" data-editor-loop-edge="start" aria-label="반복 시작점"></button><span>${Math.floor(loopStart / beatsPerBar) + 1}마디 → ${Math.floor(Math.max(loopStart, loopEnd - 0.001) / beatsPerBar) + 1}마디</span><button type="button" data-editor-loop-edge="end" aria-label="반복 끝점"></button></div>` : '';
+  const rangeStart = input.rangeStartBeat ?? null;
+  const rangeEnd = input.rangeEndBeat ?? null;
+  const timeRange = expanded && rangeStart !== null && rangeEnd !== null && rangeEnd > rangeStart ? `<div class="hu-time-range" data-time-range style="left:${keyWidth + rangeStart * pianoPxPerBeat}px;width:${(rangeEnd - rangeStart) * pianoPxPerBeat}px"><span>${rangeStart.toFixed(2)} → ${rangeEnd.toFixed(2)}박</span></div>` : '';
+  const rangeTools = expanded && rangeStart !== null && rangeEnd !== null ? `<div class="hu-range-tools" aria-label="시간 범위 편집"><button class="hu-btn" data-editor-edit="range-loop">범위 반복</button><button class="hu-btn" data-editor-edit="range-copy">범위 복사</button><button class="hu-btn" data-editor-edit="range-left">← 범위 이동</button><button class="hu-btn" data-editor-edit="range-right">범위 이동 →</button><button class="hu-btn" data-editor-edit="range-delete">음 삭제</button><button class="hu-btn" data-editor-edit="time-insert">시간 삽입</button><button class="hu-btn" data-editor-edit="time-delete">시간 당겨 삭제</button><button class="hu-btn" data-editor-edit="loop-half">루프 ½</button><button class="hu-btn" data-editor-edit="loop-double">루프 ×2</button><button class="hu-btn" data-editor-edit="loop-duplicate">루프 복제</button></div>` : '';
+  const transport = expanded ? `<div class="hu-editor-transport" aria-label="피아노롤 재생"><button class="hu-btn${listenMode === 'clip' ? ' is-on' : ''}" data-editor-mode="clip">클립 듣기</button><button class="hu-btn${listenMode === 'song' ? ' is-on' : ''}" data-editor-mode="song">곡 전체</button><button class="hu-btn" data-editor-act="back" aria-label="클립 처음으로">|◀</button><button class="hu-btn${input.playing ? ' is-on' : ''}" data-editor-act="play" aria-label="재생 또는 일시정지">${input.playing ? 'Ⅱ' : '▶'}</button><button class="hu-btn" data-editor-act="stop" aria-label="정지하고 클립 처음으로">■</button><button class="hu-btn${input.metronome ? ' is-on' : ''}" data-editor-act="metronome">박자 소리</button><span data-piano-time>${Math.floor(relativePlayhead / beatsPerBar) + 1}마디</span></div>` : '';
+  const html = `<div class="hu-editor-head"><strong>피아노롤 · ${esc(clip.name)}</strong><span>${clip.duration / beatsPerBar}마디 · 건반=듣기 · 빈칸=음 찍기</span><span class="hu-spacer"></span>${transport}<button class="hu-btn" data-act="toggle-editor">${expanded ? '작게' : '크게 열기'}</button></div>${tools}${rangeTools}<div class="hu-piano" data-piano="1" style="--hu-piano-grid:${Math.max(4, (input.gridBeat ?? 1) * pianoPxPerBeat)}px;--hu-piano-row:${row}px"><div style="position:relative;width:${keyWidth + width}px;height:${rulerHeight + (high - low + 1) * row}px"><div class="hu-piano-ruler" data-piano-ruler style="width:${activeWidth}px">${bars}</div>${loopBrace}${timeRange}<div class="hu-after-end" style="left:${keyWidth + activeWidth}px;width:${Math.max(0, width - activeWidth)}px" aria-hidden="true"><span>클립 끝</span></div><i class="hu-clip-end" style="left:${keyWidth + activeWidth}px"></i>${keys}${notes}<i class="hu-piano-playhead" data-piano-playhead style="left:${keyWidth + relativePlayhead * pianoPxPerBeat}px"></i><div class="hu-band" data-role="piano-band" hidden></div></div></div><div class="hu-velocity" data-velocity><div style="position:relative;width:${keyWidth + width}px;height:100%">${velocityBars}</div><div class="hu-velocity-scale">세기</div></div>`;
 
   return { html, pianoPxPerBeat };
 }
