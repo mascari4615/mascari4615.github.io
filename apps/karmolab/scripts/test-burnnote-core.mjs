@@ -87,7 +87,12 @@ const B = await load();
 {
   /* 한 글자만 바꿔도 열리면 안 된다 — 그건 자물쇠가 아니라 장식이다. */
   const { body, key } = await B.seal('건드리지 마시오');
-  const tampered = body.slice(0, -1) + (body.slice(-1) === 'A' ? 'B' : 'A');
+  /* **마지막 글자를 건드리면 안 된다** (2026-08-13, CI 가 잡은 깜빡이).
+     base64 의 끝 글자는 남는 비트 자리라, 값에 따라 두세 비트가 **아무 뜻도 없다** —
+     그 자리를 바꾸면 바이트는 그대로여서 쪽지가 멀쩡히 열리고, 이 검사만 스무 판에 한 번쯤
+     빨개졌다(실측 run 31690994661). 가운데 글자는 여섯 비트가 다 쓰이므로 반드시 달라진다. */
+  const at = Math.floor(body.length / 2);
+  const tampered = body.slice(0, at) + (body[at] === 'A' ? 'B' : 'A') + body.slice(at + 1);
   let threw = false;
   try {
     await B.open(tampered, key);
