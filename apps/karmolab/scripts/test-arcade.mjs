@@ -72,6 +72,32 @@ ok(new Set(GAMES.map((g) => g.id)).size === GAMES.length, 'id 가 겹치지 않�
   ok(missing.length === 0, '모든 게임이 저울에 재여 있다 (npm run bench:arcade)', missing.join(', '));
 }
 
+/* **자리 번호로 봇의 버릇·실력을 정하지 마라** (TASK-KL-264 G2 실측).
+ *
+ * 제기·눈치·투호가 그렇게 짜여 있었다: `((seat % 3) - 1) * 20`, `260 + seat * 190`,
+ * `0.05 + (seat % 4) * 0.028`. 「봇마다 성격을 준다」는 뜻이었는데 성격이 **자리에 붙는 바람에**
+ * 0번 자리가 제기에서 97% 이겼다. 뒷자리에 앉은 사람은 이유도 모르고 진다.
+ *
+ * `seat + 1`(돌 색 같은 것)과 `s.x[seat]`(자기 몫 읽기)은 정상이다 — 여기서 잡는 것은
+ * **자리 번호로 셈을 하는 것**뿐이다. 흩고 싶으면 `ctx.rng` 를 써라(그건 자리에 안 붙는다). */
+{
+  const rulesDir = 'src/widgets/arcade/games';
+  const bad = [];
+  for (const file of readdirSync(rulesDir).filter((f) => f.endsWith('.ts') && !f.endsWith('-view.ts'))) {
+    const src = readFileSync(`${rulesDir}/${file}`, 'utf8');
+    const at = src.search(/^  bot\(/m);
+    if (at < 0) continue;
+    const end = src.slice(at + 1).search(/^  \}/m);
+    const body = end < 0 ? src.slice(at) : src.slice(at, at + 1 + end);
+    /* 주석은 뺀다 — 「전에는 이랬다」고 적어 둔 설명까지 잡으면 고친 자리가 되레 빨개진다. */
+    const code = body.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    for (const m of code.matchAll(/seat\s*[%*]\s*\d|\d\s*\*\s*seat|seat\s*\*\s*\d/g)) {
+      bad.push(`${file.replace('.ts', '')}: ${m[0]}`);
+    }
+  }
+  ok(bad.length === 0, '자리 번호로 봇의 버릇을 정하지 않는다', bad.join(' · '));
+}
+
 console.log('[arcade] 계약 — 모든 게임 공통');
 /* **몇 명으로 보는가** = 오락실이 실제로 앉히는 수(`seating.ts` 정본). 최소 인원으로만 보면
    「1명부터」인 판 17개가 아무와도 안 겨루는 채로 통과한다. */

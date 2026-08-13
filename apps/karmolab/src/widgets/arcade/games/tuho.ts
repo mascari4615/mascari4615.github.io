@@ -125,10 +125,14 @@ export const tuho: GameDef<TuhoState, TuhoAction> = {
 
   bot(s, seat, ctx): BotMove<TuhoAction> | null {
     if (s.over || s.fly || s.turn !== seat || s.left[seat] <= 0) return null;
-    /* 항아리로 곧장 가는 값을 거꾸로 풀고, 자리마다 다른 손버릇만큼 흔든다. */
+    /* 항아리로 곧장 가는 값을 거꾸로 풀고, 손버릇만큼 흔든다.
+     *
+     * **자리 번호로 손버릇을 가르지 않는다** — 전에는 `0.05 + (seat % 4) * 0.028` 이라
+     * 0번이 늘 제일 정확했다. 자리가 실력을 정하면 뒷자리에 앉은 사람은 이유도 모르고 진다
+     * (제기에서 같은 병을 97% 승률로 실측했다). 흔들림 폭은 판마다 뽑는다. */
     const want = dist(FROM.x, FROM.y, POT.x, POT.y);
     const pow = (want - 46) / 76;
-    const sloppy = 0.05 + (seat % 4) * 0.028;
+    const sloppy = 0.05 + ctx.rng() * 0.084;
     return {
       action: {
         ang: 0.5 + (ctx.rng() - 0.5) * sloppy,
