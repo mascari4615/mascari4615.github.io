@@ -753,5 +753,10 @@
   "karmograph.ask.ok": "はい",
   "karmograph.ask.del": "削除する",
   "karmograph.fldName.aria": "項目名: {name}",
-  "karmograph.fldValue.aria": "{name} の値"
+  "karmograph.fldValue.aria": "{name} の値",
+  "karmograph.restored.n": "マップ {n} 件を戻しました",
+  "karmograph.placed.n": "{n} 件を{how}置きました — Ctrl+Z で戻せます",
+  "karmograph.pushed.n": "重なっていた {n} 件をずらしました",
+  "karmograph.mapDel.last": "「{name}」の中身をすべて消しますか？（最後の一枚なのでマップ自体は残ります）",
+  "karmograph.mapDel.ask": "マップ「{name}」を消しますか？ 元に戻せません。"
 }

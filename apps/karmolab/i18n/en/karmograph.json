@@ -753,5 +753,10 @@
   "karmograph.ask.ok": "Yes",
   "karmograph.ask.del": "Delete",
   "karmograph.fldName.aria": "Field name: {name}",
-  "karmograph.fldValue.aria": "Value of {name}"
+  "karmograph.fldValue.aria": "Value of {name}",
+  "karmograph.restored.n": "Restored {n} maps",
+  "karmograph.placed.n": "Placed {n} {how} — Ctrl+Z to undo",
+  "karmograph.pushed.n": "Pushed {n} overlapping cards apart",
+  "karmograph.mapDel.last": "Clear everything in \"{name}\"? (It is the last map, so the map itself stays)",
+  "karmograph.mapDel.ask": "Delete the map \"{name}\"? This cannot be undone."
 }

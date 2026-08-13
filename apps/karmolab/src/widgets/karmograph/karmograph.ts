@@ -965,7 +965,7 @@ import {
         for (const m of parsed.maps) {
           const spec0 = m.spec as Partial<GraphSpec> | null;
           if (!spec0 || !Array.isArray(spec0.nodes)) continue;
-          const base = (m.name ?? t('karmograph.file.msg3')).trim() || '맵';
+          const base = (m.name ?? t('karmograph.file.msg3')).trim() || t('karmograph.file.msg3');
           const name = used.has(base) ? t('karmograph.restoredName', { base }) : base;
           used.add(name);
           const res = addMap(library, name, JSON.stringify(spec0));
@@ -975,7 +975,7 @@ import {
         renderMapList();
         openActiveMap();
         Toolbox.showToast?.(
-          added === 0 ? t('karmograph.file.msg4') : `맵 ${added}개를 되돌렸습니다`,
+          added === 0 ? t('karmograph.file.msg4') : t('karmograph.restored.n', { n: String(added) }),
           undefined, undefined
         );
       });
@@ -3074,7 +3074,10 @@ import {
       applySpec();
       persistStructure();
       canvas?.fitView();
-      Toolbox.showToast?.(`${placed.size}개를 ${kind === 'circle' ? t('karmograph.placed.msg') : t('karmograph.placed.msg2')} 놓았습니다 — Ctrl+Z 로 되돌립니다`, undefined, undefined);
+      Toolbox.showToast?.(t('karmograph.placed.n', {
+        n: String(placed.size),
+        how: kind === 'circle' ? t('karmograph.placed.msg') : t('karmograph.placed.msg2'),
+      }), undefined, undefined);
     }
     // 연표 — 「언제」가 적힌 칸을 시간축으로 삼는다. 어느 칸인지는 **숫자가 가장 많이 든 칸**으로 고른다
     // (사람에게 「날짜 칸을 먼저 정하라」고 시키면 아무도 안 쓴다).
@@ -3131,7 +3134,7 @@ import {
       persistStructure();
       const n = pushed.size;
       Toolbox.showToast?.(
-        n === 0 ? t('karmograph.n.msg') : `겹친 ${n}개를 밀었습니다`,
+        n === 0 ? t('karmograph.n.msg') : t('karmograph.pushed.n', { n: String(n) }),
         undefined, undefined
       );
     };
@@ -4185,9 +4188,9 @@ import {
     q<HTMLButtonElement>('map-del').onclick = async () => {
       const cur = library.maps.find((m) => m.id === library.activeId);
       const last = library.maps.length <= 1;
-      const msg = last
-        ? `"${cur?.name ?? t('karmograph.file.msg3')}" 의 내용을 모두 지울까요? (마지막 한 장이라 맵 자체는 남습니다)`
-        : `"${cur?.name ?? t('karmograph.file.msg3')}" 맵을 지울까요? 되돌릴 수 없습니다.`;
+      // 지우는 말은 **판 이름을 넣어** 묻는다 — 「어느 판이더라」를 되묻게 하지 않으려고.
+      const name = cur?.name ?? t('karmograph.file.msg3');
+      const msg = last ? t('karmograph.mapDel.last', { name }) : t('karmograph.mapDel.ask', { name });
       if (!await askNote(msg, t('karmograph.ask.del'))) return;
       library = removeMap(library, library.activeId);
       renderMapList();
