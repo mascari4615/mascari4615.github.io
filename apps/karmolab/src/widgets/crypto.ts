@@ -75,7 +75,14 @@ import { t, loadNamespace } from '../lib/i18n';
         const pass = (document.getElementById('cryptoPass') as HTMLInputElement).value;
         const iterSlider = document.getElementById('cryptoIterSlider') as HTMLInputElement | null;
         const iterations = parseInt(iterSlider?.value || '10000', 10);
-        if (!pass) { Toolbox.showToast!(t('crypto.t15'), 'error'); return; }
+        /* ★ **왜 아무 일도 안 났는지 화면에 남긴다** (2026-08-13). 비밀번호가 비면 잠깐 뜨는
+           알림만 띄우고 끝냈다 — 알림은 사라지고, 사람 눈에는 「눌렀는데 아무 반응이 없다」로
+           남는다(라이브 검사도 그렇게 읽었다). 결과 자리에 이유를 적어 둔다. */
+        if (!pass) {
+          Toolbox.displayResult!('crypto', t('crypto.t11'), t('crypto.t15'), null, true);
+          Toolbox.showToast!(t('crypto.t15'), 'error');
+          return;
+        }
 
         const t0 = performance.now();
         try {
@@ -122,7 +129,12 @@ import { t, loadNamespace } from '../lib/i18n';
 
         if (!CryptoJS) { Toolbox.showToast!(t('crypto.t14'), 'error'); return; }
         const pass = (document.getElementById('cryptoPass') as HTMLInputElement).value;
-        if (!pass) { Toolbox.showToast!(t('crypto.t15'), 'error'); return; }
+        /* 푸는 쪽도 같다 — 알림만 띄우고 끝내면 「눌러도 아무 반응 없음」으로 남는다. */
+        if (!pass) {
+          Toolbox.displayResult!('crypto', t('crypto.t11'), t('crypto.t15'), null, true);
+          Toolbox.showToast!(t('crypto.t15'), 'error');
+          return;
+        }
 
         const t0 = performance.now();
         try {
