@@ -56,6 +56,9 @@ import { t, loadNamespace } from '../../lib/i18n';
    * 넘기는 시늉을 하면 엉뚱한 칸에 들어간다 — 아예 안 넘긴다. */
   const NO_INPUT_NEEDED = new Set(GROUPS().flatMap((g) => g.jobs.map(([id]) => id)));
 
+  /** 적어 둔 공책을 두는 자리 */
+  const KEEP = 'calc_sheet';
+
   const SAMPLE = ['밥값 = 32000', '술값 = 18000', '밥값 + 술값', '앞 + 10%', '앞 / 4'].join('\n');
 
   Toolbox.register({
@@ -105,12 +108,19 @@ import { t, loadNamespace } from '../../lib/i18n';
       preview: drawSheet
     });
 
-    /* 빈 화면에 「무엇을 쓰라는 건지」를 글로 설명하면 아무도 안 읽는다 — **한 판 적어 둔다.**
-     * 사람이 지우고 자기 것을 쓰면 그만이다. */
+    /* **공책은 남는다** (TASK-KL-288 — Soulver 의 「시트」를 우리 크기로 줄인 것).
+     * 정산은 한 번에 안 끝난다 — 창을 닫았다 와도 어제 적던 줄이 그대로 있어야 공책이다.
+     * 처음 오는 사람에게는 예시를 적어 둔다(빈 칸에 「무엇을 쓰는 곳인지」를 글로 설명하면 안 읽는다). */
     const box = container.querySelector<HTMLTextAreaElement>('#pfText');
     if (box && !box.value) {
-      box.value = SAMPLE;
+      box.value = Toolbox.getPref?.(KEEP, '') || SAMPLE;
       box.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    if (box) {
+      box.addEventListener('input', () => {
+        /* 지우고 새로 쓸 때 빈 칸도 그대로 기억한다 — 「지웠는데 또 나온다」가 제일 나쁘다 */
+        Toolbox.setPref?.(KEEP, box.value);
+      });
     }
   }
 
@@ -136,6 +146,15 @@ import { t, loadNamespace } from '../../lib/i18n';
       ans.className = 'ca-ans';
       ans.textContent = l.text || (l.error ? '?' : '');
       if (l.error) ans.title = l.error;
+      /* 답은 **눌러서 복사**된다 — 셈한 값을 다른 데 옮겨 적으려고 보는 것이다.
+       * (Soulver 도 답 쪽을 따로 집게 해 둔다. 줄 전체를 복사하면 식까지 딸려 간다.) */
+      if (l.value !== null) {
+        ans.classList.add('ca-copy');
+        ans.title = t('calc.copy.hint', undefined, '눌러서 답 복사');
+        ans.onclick = (): void => {
+          void Toolbox.copyText?.(String(l.value), { message: t('calc.copy.done', { v: l.text }, `복사: ${l.text}`) });
+        };
+      }
       row.appendChild(src);
       row.appendChild(ans);
       sheet.appendChild(row);
@@ -167,6 +186,8 @@ import { t, loadNamespace } from '../../lib/i18n';
   border-bottom:1px solid rgba(128,128,128,.12);}
 .ca-row:last-child{border-bottom:0;}
 .ca-src{flex:1;min-width:0;white-space:pre-wrap;word-break:break-all;opacity:.75;}
+.ca-copy{cursor:copy;}
+.ca-copy:hover{text-decoration:underline;}
 .ca-ans{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--accent,#6aa9ff);}
 .ca-bad .ca-ans{color:rgba(220,120,120,.9);font-weight:500;cursor:help;}
 `;

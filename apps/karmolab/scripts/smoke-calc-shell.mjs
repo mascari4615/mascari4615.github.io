@@ -67,6 +67,34 @@ check((await page.locator('#caSheet .ca-bad').count()) === 1, '못 센 줄 하�
 const a3 = await page.locator('#caSheet .ca-ans').allInnerTexts();
 check(a3[3].replace(/[^\d]/g, '') === '3000', `못 센 줄이 있어도 합계는 3,000 (지금 ${a3[3]})`);
 
+/* ⑥ **공책이 남는다** (TASK-KL-288 — Soulver 의 시트를 우리 크기로)
+ * 정산은 한 번에 안 끝난다. 창을 닫았다 와도 어제 적던 줄이 그대로 있어야 공책이다. */
+await page.fill('#pfText', ['월세 = 550000', '관리비 = 70000', '월세 + 관리비'].join('\n'));
+await page.waitForFunction(
+  () => (document.querySelectorAll('#caSheet .ca-row').length === 3),
+  { timeout: 10000 }
+).catch(() => {});
+await page.reload({ waitUntil: 'domcontentloaded' });
+await page.waitForSelector('#pfText', { timeout: 20000 });
+await page.waitForFunction(() => /월세/.test(document.querySelector('#pfText')?.value || ''), { timeout: 15000 }).catch(() => {});
+const kept = await page.inputValue('#pfText');
+check(/월세 = 550000/.test(kept), `창을 다시 열어도 적던 줄이 남는다 (지금 「${kept.slice(0, 18)}」)`);
+await page.waitForSelector('#caSheet', { timeout: 15000 });
+const keptAns = await page.locator('#caSheet .ca-ans').allInnerTexts();
+check(keptAns[2].replace(/[^\d]/g, '') === '620000', `남은 공책이 그대로 셈된다 (지금 ${keptAns[2]})`);
+
+/* 답은 눌러서 복사되는 자리다 — 셈한 값을 옮겨 적으려고 보는 것 */
+check((await page.locator('#caSheet .ca-ans.ca-copy').count()) === 3, '셈된 답은 복사할 수 있게 표시된다');
+
+/* 지운 것도 기억한다 — 「지웠는데 또 나온다」가 제일 나쁘다 */
+await page.fill('#pfText', '1 + 1');
+await page.waitForTimeout(400);
+await page.reload({ waitUntil: 'domcontentloaded' });
+await page.waitForSelector('#pfText', { timeout: 20000 });
+await page.waitForFunction(() => !/월세/.test(document.querySelector('#pfText')?.value || ''), { timeout: 15000 }).catch(() => {});
+check(!/월세/.test(await page.inputValue('#pfText')), '지운 줄은 다시 안 나온다');
+
+
 process.stdout.write('\n');
 await browser.close();
 if (frozen) await frozen.close();

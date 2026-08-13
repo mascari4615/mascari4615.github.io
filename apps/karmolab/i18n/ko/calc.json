@@ -25,5 +25,7 @@
   "calc.pasted": "셈 공책",
   "calc.meta": "{n}줄 셈 · 마지막 {last}",
   "calc.sum": "합",
-  "calc.part.pace": "달리기 페이스"
+  "calc.part.pace": "달리기 페이스",
+  "calc.copy.hint": "눌러서 답 복사",
+  "calc.copy.done": "복사: {v}"
 }
