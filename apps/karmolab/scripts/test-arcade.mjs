@@ -23,7 +23,7 @@ await build({
   entryPoints: ['src/widgets/arcade/index.ts'],
   bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent'
 });
-const { Match, GAMES, gameById, seedFrom, META, CATALOG } = await import(pathToFileURL(out).href);
+const { Match, GAMES, gameById, seedFrom, META, CATALOG, partySize } = await import(pathToFileURL(out).href);
 const VIEWS = CATALOG.map((e) => e.view);
 
 let fails = 0;
@@ -63,15 +63,28 @@ ok(new Set(GAMES.map((g) => g.id)).size === GAMES.length, 'id 가 겹치지 않�
  * 새 게임을 넣을 때 검사를 새로 짤 필요가 없다는 뜻이고, 그게 51개가 가능한 이유다.
  */
 console.log('[arcade] 계약 — 모든 게임 공통');
+/* **몇 명으로 보는가** = 오락실이 실제로 앉히는 수(`seating.ts` 정본). 최소 인원으로만 보면
+   「1명부터」인 판 17개가 아무와도 안 겨루는 채로 통과한다. */
+
 for (const g of GAMES) {
-  const seats = Array.from({ length: g.seats[0] }, (_, i) => ({ name: `b${i}`, bot: true }));
+  const seats = Array.from({ length: partySize(g) }, (_, i) => ({ name: `b${i}`, bot: true }));
 
   /* ① 봇만으로 반드시 끝난다 — 안 끝나면 혼자 하는 사람이 영영 갇힌다.
    *
    * 안 끝났을 때 **판이 그때 어떤 모양이었는지**를 같이 적는다. 이 검사에 네 번 걸렸는데
    * (조각 맞추기·체커·당구·볼링) 매번 「안 끝난다」만 보고 원인을 손으로 파야 했다.
-   * 마지막 상태를 보면 대개 한눈에 보인다 — 칠 공이 없다거나, 아무도 못 두는 자리라거나. */
-  const m = run(g, 12345, seats, null, 400000);
+   * 마지막 상태를 보면 대개 한눈에 보인다 — 칠 공이 없다거나, 아무도 못 두는 자리라거나.
+   *
+   * **씨앗 하나로 보면 안 된다.** 등불과 기억순서는 이 검사가 초록인 채로 200판 중 115판·47판이
+   * 멈춰 있었다(TASK-KL-264 F1 실측). 씨앗 하나가 운 좋게 끝났을 뿐이었다. 그리고 **최소
+   * 인원이 아니라 실제로 앉는 인원**으로 본다 — 「1명부터」인 판을 1명으로 돌리면 아무도
+   * 서로를 막지 않아 멈출 일 자체가 없다. 멈춤은 늘 자리가 여럿일 때 생긴다. */
+  let unfinished = null;
+  for (const seed of [12345, 1000, 8919, 16838, 24757, 32676, 40595, 48514]) {
+    const t = run(g, seed, seats, null, 400000);
+    if (!t.view().finished) { unfinished = { m: t, seed }; break; }
+  }
+  const m = unfinished ? unfinished.m : run(g, 12345, seats, null, 400000);
   const dump = () => {
     const v = m.view();
     const st = v.state ?? {};
@@ -83,7 +96,7 @@ for (const g of GAMES) {
     );
     return `판 ${v.round + 1}/${v.rounds} · ${JSON.stringify(brief)}`;
   };
-  ok(m.view().finished, `${g.id}: 봇만으로 끝까지 간다`, m.view().finished ? '' : dump());
+  ok(!unfinished, `${g.id}: 봇만으로 끝까지 간다 (씨앗 8개)`, unfinished ? `씨앗 ${unfinished.seed} · ${dump()}` : '');
 
   /* ② 쓰레기 수를 던져도 안 죽는다 — 남의 창에서 오는 수는 못 믿는다. */
   const junk = new Match(g, 7, seats);

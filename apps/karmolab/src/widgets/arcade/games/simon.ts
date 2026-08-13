@@ -43,6 +43,20 @@ export function showing(s: SimonState, now: number): number {
   return i < s.len ? i : -1;
 }
 
+/**
+ * 한 칸 더 보여 줄 때가 됐나 본다.
+ *
+ * **탈락도 「다 쳤다」를 만든다.** 남들이 틀려 빠졌는데 나는 이미 다 쳐 놓은 상태면 그 판은
+ * 아무도 움직일 수 없다 — 나는 칠 것이 없고 남은 죽었다. 원래는 「친 사람」만 이 자리를
+ * 지나가서 봇끼리 200판 중 47판이 그렇게 멈췄다(TASK-KL-264 F1 실측).
+ */
+function advance(s: SimonState, ctx: GameCtx): SimonState {
+  if (s.over) return s;
+  if (!s.alive.every((ok, i) => !ok || s.typed[i] >= s.len)) return s;
+  if (s.len >= MAX_LEN) return { ...s, over: true };
+  return { ...s, typed: s.typed.map(() => 0), len: s.len + 1, since: ctx.now + 600 };
+}
+
 export const simon: GameDef<SimonState, SimonAction> = {
   id: 'simon',
   seats: [1, 4],
@@ -77,21 +91,11 @@ export const simon: GameDef<SimonState, SimonAction> = {
     /* 틀리면 그 사람만 빠진다 — 나머지 판은 그대로 간다. */
     if (s.seq[at] !== pad) {
       const alive = s.alive.map((v, i) => (i === seat ? false : v));
-      return { ...s, alive, over: alive.every((v) => !v) };
+      return advance({ ...s, alive, over: alive.every((v) => !v) }, ctx);
     }
 
-    const typed = s.typed.map((v, i) => (i === seat ? v + 1 : v));
     /* 살아 있는 사람이 모두 다 쳤으면 한 칸 늘려 다시 보여 준다. */
-    const doneAll = s.alive.every((ok, i) => !ok || typed[i] >= s.len);
-    if (!doneAll) return { ...s, typed };
-
-    if (s.len >= MAX_LEN) return { ...s, typed, over: true };
-    return {
-      ...s,
-      typed: s.typed.map(() => 0),
-      len: s.len + 1,
-      since: ctx.now + 600
-    };
+    return advance({ ...s, typed: s.typed.map((v, i) => (i === seat ? v + 1 : v)) }, ctx);
   },
 
   tick(s) {
