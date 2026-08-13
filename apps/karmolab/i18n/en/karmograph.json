@@ -679,5 +679,7 @@
   "karmograph.sample.wipeAct": "clear sample",
   "karmograph.sample.wipeDone": "Empty board — double-click anywhere to start",
   "karmograph.embed.label": "Embed code for a blog",
-  "karmograph.embed.done": "Copied a one-liner to paste into your blog"
+  "karmograph.embed.done": "Copied a one-liner to paste into your blog",
+  "karmograph.crowd.offer": "{n} cards — show only what is near this one?",
+  "karmograph.crowd.done": "Showing two steps around it — undo this in the filter panel"
 }

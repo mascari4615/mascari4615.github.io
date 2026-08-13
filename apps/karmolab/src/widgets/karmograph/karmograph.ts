@@ -28,6 +28,7 @@ import { COMMAND_GROUPS } from './commands';
 import { posterLegend, legendWorthShowing } from './poster-legend';
 import { wrapPoster } from './poster';
 import { pasteIntent } from './paste-intent';
+import { shouldOfferFocus } from './big-board';
 import { dropFromFront, roughBytes } from './history';
 import { measureStorage, humanBytes, WARN_RATIO } from './storage-health';
 import { help } from './help';
@@ -1740,6 +1741,12 @@ import {
         <!-- 머리에는 **이 카드가 무엇인지**를 적는다. 「노드」는 프로그램 말이지 사람 말이 아니고,
              바로 위 탭이 이미 「고른 것」이라 같은 말이 두 번 나오기도 했다. -->
         <h4>${kindIcon(node.kind)} ${esc(kindLabel(node.kind))}</h4>
+        ${!shouldOfferFocus(spec.nodes.length, Boolean(focusDegree), true) ? '' : `
+        <!-- ★ 판이 커지면 전체 그림은 아무 말도 안 한다(KL-271 L1). 그렇다고 말없이 감추지는
+             않는다 — 적어 둔 카드가 소리 없이 사라지면 「내 것이 없어졌다」가 된다. 권하기만 한다. -->
+        <button class="btn btn-ghost km-offer" data-km="focus-offer">${esc(t('karmograph.crowd.offer', {
+          n: String(spec.nodes.length),
+        }))}</button>`}
         <div class="km-field">
           <label>${esc(t('karmograph.labelOf.msg'))}</label>
           <input type="text" data-km="edit-label" value="${escapeAttr(node.label)}" />
