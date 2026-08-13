@@ -639,5 +639,8 @@
   "karmograph.act.move": "옮기기",
   "karmograph.act.clear": "전체 삭제",
   "karmograph.act.add": "카드 만들기",
-  "karmograph.act.rename": "이름 바꾸기"
+  "karmograph.act.rename": "이름 바꾸기",
+  "karmograph.palette.open": "모든 명령… (Ctrl ⇧ P)",
+  "karmograph.palette.find": "무엇을 할까요 — 이름을 치세요",
+  "karmograph.palette.none": "그런 이름의 명령이 없어요"
 }

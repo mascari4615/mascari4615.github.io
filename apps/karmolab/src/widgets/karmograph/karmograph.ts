@@ -240,6 +240,23 @@ import {
       border-radius:10px; background:var(--bg-secondary); box-shadow:0 12px 32px rgba(0,0,0,.4);
       max-height:calc(100dvh - 170px); overflow-y:auto; overscroll-behavior:contain; }
     .km-drawer.hidden { display:none; }
+    /* 자주 안 쓰는 명령은 서랍에서 접는다 — 목록에서 사라지는 게 아니라 이름으로 부른다(Ctrl+K). */
+    .km-drawer .km-cmd-rare { display:none; }
+    /* ── 명령 팔레트 (TASK-KL-271 R3) ── 화면 한가운데 뜨는 한 칸. 치면 좁혀지고 Enter 로 실행. */
+    .km-pal { position:absolute; inset:0; z-index:40; display:flex; justify-content:center;
+      align-items:flex-start; padding-top:12vh; background:rgba(0,0,0,.45); }
+    .km-pal.hidden { display:none; }
+    .km-pal-box { width:min(420px, 92%); max-height:60vh; display:flex; flex-direction:column;
+      background:var(--bg-secondary); border:1px solid var(--border); border-radius:12px;
+      box-shadow:0 18px 48px rgba(0,0,0,.5); overflow:hidden; }
+    .km-pal-box input { border:none; border-bottom:1px solid var(--border); border-radius:0;
+      padding:12px 14px; font-size:14px; background:transparent; }
+    .km-pal-list { overflow-y:auto; padding:6px; display:flex; flex-direction:column; gap:2px; }
+    .km-pal-list button { text-align:left; justify-content:flex-start; padding:7px 10px; }
+    .km-pal-list button.is-on { background:var(--bg-tertiary); }
+    .km-pal-g { font-size:10px; letter-spacing:.06em; color:var(--text-tertiary);
+      text-transform:uppercase; margin:6px 2px 1px; }
+    .km-pal-none { padding:14px; color:var(--text-tertiary); font-size:12px; }
     /* ★ 구를 수 있다는 **표시**가 없었다 (TASK-KL-271). 972px 중 728px 만 보이는데 손잡이가
        안 보여서, 잘려 있는 줄 알고 아래쪽 항목을 아예 없는 것으로 여긴다 — 실측 후 확인. */
     .km-drawer { scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
@@ -454,12 +471,16 @@ import {
      * 손으로 적은 HTML 이던 시절엔 「새 자리를 만들고 옛 자리를 안 지우는」 일이 조용히 생겼다.
      */
     function drawerHtml(): string {
-      return COMMAND_GROUPS.map((g) => {
-        const head = `<div class="km-drawer-h">${esc(g.title())}</div>`;
-        const rows = g.items.map((c) => `<button class="btn ${c.danger ? 'btn-danger' : 'btn-ghost'}"`
-          + ` data-km="${c.key}">${esc(c.label())}</button>`).join('');
-        return head + rows;
+      /* ★ 접히는 것도 **DOM 에는 남는다** — 손잡이(onclick)가 그대로 살아 있어야 팔레트가
+         그 단추를 눌러 일을 시킬 수 있다. 팔레트는 새 길을 내지 않는다(문이 또 늘면 그게 중복이다). */
+      const body = COMMAND_GROUPS.map((g) => {
+        const rows = g.items.map((c) => `<button class="btn ${c.danger ? 'btn-danger' : 'btn-ghost'}`
+          + `${c.hot ? '' : ' km-cmd-rare'}" data-km="${c.key}">${esc(c.label())}</button>`).join('');
+        const anyHot = g.items.some((c) => c.hot);
+        return (anyHot ? `<div class="km-drawer-h">${esc(g.title())}</div>` : '') + rows;
       }).join('');
+      return `${body}<hr /><button class="btn btn-ghost" data-km="palette-open">`
+        + `${esc(t('karmograph.palette.open'))}</button>`;
     }
 
     function nodeKindOptions(selected?: string): string {
@@ -591,6 +612,13 @@ import {
             </div>
           </div>
           <div class="km-side hidden" data-km="side"></div>
+          <div class="km-pal hidden" data-km="pal">
+            <div class="km-pal-box">
+              <input type="text" data-km="pal-find" aria-label="${esc(t('karmograph.palette.find'))}"
+                placeholder="${esc(t('karmograph.palette.find'))}" />
+              <div class="km-pal-list" data-km="pal-list" role="listbox"></div>
+            </div>
+          </div>
         </div>
       </div>`;
 
@@ -2496,6 +2524,83 @@ import {
     function closeDrawer(): void { drawerEl.classList.add('hidden'); }
     document.addEventListener('click', closeDrawer);
     Toolbox.onDispose?.(() => document.removeEventListener('click', closeDrawer));
+
+    /* ── 명령 팔레트 (TASK-KL-271 R3) ─────────────────────────────────────────
+       서랍이 스물 몇 줄이 되면 **찾는 데가 아니라 훑는 데**가 된다. 자주 쓰는 여섯만 펴 두고,
+       나머지는 **이름을 쳐서** 부른다. 새 길은 안 낸다 — 고른 것은 결국 그 단추를 눌러 준다.
+       그래야 손잡이가 한 곳에 남고(문이 또 늘면 그게 중복이다), 검사도 그대로 산다. */
+    const palEl = q<HTMLElement>('pal');
+    const palFind = q<HTMLInputElement>('pal-find');
+    const palList = q<HTMLElement>('pal-list');
+    let palPick = 0;
+    let palHits: { key: string; label: string; group: string }[] = [];
+
+    function palRender(): void {
+      const q0 = palFind.value.trim().toLowerCase();
+      palHits = COMMAND_GROUPS.flatMap((g) => g.items.map((c) => ({
+        key: c.key, label: c.label(), group: g.title(),
+      }))).filter((c) => !q0 || c.label.toLowerCase().includes(q0));
+      if (palPick >= palHits.length) palPick = Math.max(0, palHits.length - 1);
+      if (palHits.length === 0) {
+        palList.innerHTML = `<div class="km-pal-none">${esc(t('karmograph.palette.none'))}</div>`;
+        return;
+      }
+      let lastGroup = '';
+      palList.innerHTML = palHits.map((c, i) => {
+        const head = c.group === lastGroup ? '' : `<div class="km-pal-g">${esc(c.group)}</div>`;
+        lastGroup = c.group;
+        return `${head}<button class="btn btn-ghost${i === palPick ? ' is-on' : ''}" role="option"`
+          + ` data-i="${i}">${esc(c.label)}</button>`;
+      }).join('');
+      palList.querySelector('.is-on')?.scrollIntoView({ block: 'nearest' });
+    }
+
+    function palOpen(): void {
+      closeDrawer();
+      palPick = 0;
+      palFind.value = '';
+      palEl.classList.remove('hidden');
+      palRender();
+      palFind.focus();
+    }
+    function palClose(): void { palEl.classList.add('hidden'); }
+    /** 고른 명령은 **그 단추를 눌러** 실행한다 — 일하는 길은 하나로 남는다. */
+    function palRun(i: number): void {
+      const hit = palHits[i];
+      if (!hit) return;
+      palClose();
+      (root.querySelector(`[data-km="${hit.key}"]`) as HTMLButtonElement | null)?.click();
+    }
+
+    q<HTMLButtonElement>('palette-open').onclick = (ev) => { ev.stopPropagation(); palOpen(); };
+    palFind.oninput = () => { palPick = 0; palRender(); };
+    palFind.onkeydown = (ev) => {
+      if (ev.key === 'ArrowDown') { ev.preventDefault(); palPick = Math.min(palPick + 1, palHits.length - 1); palRender(); }
+      else if (ev.key === 'ArrowUp') { ev.preventDefault(); palPick = Math.max(palPick - 1, 0); palRender(); }
+      else if (ev.key === 'Enter') { ev.preventDefault(); palRun(palPick); }
+      else if (ev.key === 'Escape') { ev.preventDefault(); palClose(); }
+    };
+    palList.onclick = (ev) => {
+      const btn = (ev.target as HTMLElement).closest('button');
+      if (btn) palRun(Number((btn as HTMLElement).dataset.i));
+    };
+    // 바깥(어두운 자리)을 누르면 닫는다 — 갇힌 느낌을 안 준다.
+    palEl.onclick = (ev) => { if (ev.target === palEl) palClose(); };
+
+    /**
+     * **Ctrl+⇧+P / ⌘⇧P** — Ctrl+K 와 `/` 는 이미 KarmoLab 전체의 「어느 도구로 갈까」 팔레트가
+     * 쓰고 있다(실측: Ctrl+K 를 누르면 그쪽이 뜬다). 같은 자판에 문을 하나 더 내면 그게 바로
+     * 이 작업이 없애려는 중복이다 — 그래서 편집기들이 「명령」에 쓰는 자판을 따로 쓴다.
+     * 이 위젯이 화면에 있을 때만 받는다.
+     */
+    const palHotkey = (ev: KeyboardEvent): void => {
+      if (!(ev.ctrlKey || ev.metaKey) || !ev.shiftKey || ev.key.toLowerCase() !== 'p') return;
+      if (!root.isConnected || root.offsetParent === null) return;
+      ev.preventDefault();
+      if (palEl.classList.contains('hidden')) palOpen(); else palClose();
+    };
+    document.addEventListener('keydown', palHotkey);
+    Toolbox.onDispose?.(() => document.removeEventListener('keydown', palHotkey));
 
     undoEl.onclick = () => restoreTo(histIndex - 1);
     redoEl.onclick = () => restoreTo(histIndex + 1);

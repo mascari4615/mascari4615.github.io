@@ -20,6 +20,12 @@ export interface Command {
   label: () => string;
   /** 되돌릴 수 없는 일(전부 지우기 등)은 빨간 단추로. */
   danger?: boolean;
+  /**
+   * ⋯서랍에 **바로 보일** 것인가 (TASK-KL-271 R3).
+   * 스물 몇 개를 한 줄기로 늘어놓으면 찾는 데가 아니라 훑는 데가 된다 — 자주 쓰는 것만 펴 놓고,
+   * 나머지는 이름을 쳐서 부른다(Ctrl+K). 목록은 그대로다 — 접힐 뿐 사라지지 않는다.
+   */
+  hot?: boolean;
 }
 
 export interface CommandGroup {
@@ -38,7 +44,7 @@ export const COMMAND_GROUPS: CommandGroup[] = [
   {
     title: () => t('karmograph.drawer.g.tidy'),
     items: [
-      { key: 'tidy', label: () => t('karmograph.tidy.label') },
+      { hot: true, key: 'tidy', label: () => t('karmograph.tidy.label') },
       { key: 'lay-circle', label: () => t('karmograph.layCircle.label') },
       { key: 'lay-tree', label: () => t('karmograph.layTree.label') },
       { key: 'lay-time', label: () => t('karmograph.layTime.label') },
@@ -47,17 +53,17 @@ export const COMMAND_GROUPS: CommandGroup[] = [
   {
     title: () => t('karmograph.drawer.g.make'),
     items: [
-      { key: 'from-text', label: () => t('karmograph.fromText.label') },
+      { hot: true, key: 'from-text', label: () => t('karmograph.fromText.label') },
       { key: 'stamps', label: () => t('karmograph.stamps.label') },
     ],
   },
   {
     title: () => t('karmograph.drawer.g.out'),
     items: [
-      { key: 'png', label: () => t('karmograph.png.label') },
+      { hot: true, key: 'png', label: () => t('karmograph.png.label') },
       { key: 'svg', label: () => t('karmograph.svg.label') },
       { key: 'svg-story', label: () => t('karmograph.svgStory.label') },
-      { key: 'export', label: () => t('karmograph.export.label') },
+      { hot: true, key: 'export', label: () => t('karmograph.export.label') },
       { key: 'import', label: () => t('karmograph.import.label') },
       { key: 'canvas-out', label: () => t('karmograph.canvasOut.label') },
       { key: 'mermaid', label: () => t('karmograph.mermaid.label') },
@@ -67,14 +73,14 @@ export const COMMAND_GROUPS: CommandGroup[] = [
     title: () => t('karmograph.drawer.g.share'),
     items: [
       { key: 'share', label: () => t('karmograph.share.label') },
-      { key: 'share-view', label: () => t('karmograph.shareView.label') },
+      { hot: true, key: 'share-view', label: () => t('karmograph.shareView.label') },
       { key: 'storage', label: () => t('karmograph.storage.label') },
     ],
   },
   {
     title: () => t('karmograph.drawer.g.map'),
     items: [
-      { key: 'map-copy', label: () => t('karmograph.mapCopy.label') },
+      { hot: true, key: 'map-copy', label: () => t('karmograph.mapCopy.label') },
       { key: 'map-del', label: () => t('karmograph.mapDel.label') },
       { key: 'clear', label: () => t('karmograph.clear.label'), danger: true },
     ],
