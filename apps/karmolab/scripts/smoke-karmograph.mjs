@@ -1759,6 +1759,90 @@ await step('발표를 SVG 한 장으로 — 브라우저만 있으면 도는 파
   await page.keyboard.press('Escape');
   await page.waitForSelector('[data-km="drawer"].hidden', { state: 'attached', timeout: ms(4000) });
 });
+/**
+ * **덮임 전수 검사** (KL-271, 2026-08-14) — 「보이는데 못 누른다」를 한 항목으로 잡는다.
+ *
+ * 사흘 내리 같은 종류의 사고가 났다: 되물음 상자·줌 줄·서랍·팔레트가 차례로 아래 시트 밑에
+ * 깔렸다. 하나씩 잡는 대신 **규칙**을 잰다 — 위젯이 제 손잡이를 제 것으로 덮지 않는가.
+ *
+ * 규칙: 덮개(서랍·팔레트·말 상자·링크 상자)가 떠 있으면 **그 안의 것만** 검사한다(그때 뒤가
+ * 가려지는 것은 옳다). 앱(페이지) 층의 띠는 위젯이 z-index 로 못 이기므로 셈에서 뺀다.
+ */
+async function noCovered(page, where) {
+  const bad = await page.evaluate(() => {
+    const root = document.querySelector('.km-root');
+    if (!root) return ['판이 없다'];
+    const veils = ['.km-pal:not(.hidden)', '.km-drawer:not(.hidden)', '.km-note', '.km-linkbox']
+      .map((sel) => root.querySelector(sel)).filter(Boolean);
+    const scope = veils.length > 0 ? veils[veils.length - 1] : root;
+    const out = [];
+    for (const el of scope.querySelectorAll('button, select, input:not([type=file]), textarea')) {
+      const r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) continue;
+      if (r.bottom > innerHeight || r.top < 0 || r.right > innerWidth || r.left < 0) continue;
+      // 제 스크롤 상자 밖으로 굴러 나간 것은 짚을 수 없는 게 당연하다.
+      const clip = el.closest('.km-drawer, .km-pal-list, .km-side');
+      if (clip) {
+        const c = clip.getBoundingClientRect();
+        if (r.top < c.top || r.bottom > c.bottom) continue;
+      }
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      if (hit && !hit.closest('.km-root')) continue;   // 앱 층 띠 — 위젯 밖의 일
+      if (el !== hit && !el.contains(hit) && !hit?.contains(el)) {
+        out.push((el.dataset.km || el.className || el.tagName) + ' ← ' + (hit?.dataset?.km || hit?.className || hit?.tagName));
+      }
+    }
+    return out;
+  });
+  if (bad.length > 0) throw new Error(`${where}: 보이는데 못 누른다 — ${bad.slice(0, 6).join(' · ')}`);
+}
+
+await step('폰: 보이는데 못 누르는 손잡이가 하나도 없다 (덮임 전수 검사)', async () => {
+  const ph = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const m = await ph.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(900));
+  await noCovered(m, '첫 화면');
+
+  const cbox = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(cbox.x + cbox.width * 0.4, cbox.y + cbox.height * 0.22);
+  await m.waitForSelector('.km-inline', { timeout: ms(5000) });
+  await m.keyboard.type('훑을카드');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 1, null, { timeout: ms(4000) });
+  await noCovered(m, '카드 하나');
+
+  await m.evaluate(() => document.querySelector('.km-root')?.classList.remove('is-sheet-up'));
+  await m.waitForTimeout(ms(400));
+  await noCovered(m, '시트 접음');
+
+  await m.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await m.waitForSelector('[data-km="time-go"]', { timeout: ms(4000) });
+  await noCovered(m, '시점 줄');
+
+  await m.locator('[data-km="more"]').click();
+  await m.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
+  await noCovered(m, '서랍');
+
+  await m.locator('[data-km="palette-open"]').click();
+  await m.waitForSelector('[data-km="pal-find"]', { timeout: ms(4000) });
+  await noCovered(m, '팔레트');
+  await m.keyboard.press('Escape');
+  await m.waitForTimeout(ms(300));
+
+  await m.locator('.ck-node').first().click();
+  await m.waitForSelector('[data-km="node-del"]', { timeout: ms(4000) });
+  await m.locator('[data-km="node-del"]').click();
+  await m.waitForSelector('[data-km="ask-yes"]', { timeout: ms(4000) });
+  await noCovered(m, '되물음');
+  await m.locator('[data-km="ask-no"]').click();
+  await ph.close();
+});
+
 await step('폰에서 명령 팔레트 결과를 눌러서 고를 수 있다 (KL-271)', async () => {
   /* 실측 2026-08-14: 팔레트가 z-index 40 이라 아래 시트(960)가 결과 목록을 덮었다 — 칸에 글자는
      쳐지는데 **고를 수가 없었다**(보이는 아홉 중 여섯이 시트 단추에 잡혔다). 자판 Enter 를 아는
