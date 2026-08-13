@@ -205,12 +205,19 @@
     "image": [
       "이미지 도구",
       "사진 편집",
+      "이미지 압축",
+      "사진 용량 줄이기",
+      "사진 형식 바꾸기",
+      "이미지 크기 줄이기",
       "형식 변환",
       "아스키 아트",
       "그림 만들기",
       "image tools",
       "photo editor",
-      "convert image"
+      "convert image",
+      "compress image",
+      "reduce photo size",
+      "jpg jpeg png webp 변환"
     ],
     "quest": [
       "오늘의 문제",
