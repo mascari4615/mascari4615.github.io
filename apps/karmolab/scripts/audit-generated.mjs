@@ -19,41 +19,22 @@
  *     사람에게 나가는 것은 새로 구운 쪽이다.
  *
  * 사용: node scripts/audit-generated.mjs [--update]
+ *
+ * [빨강-확인] 2026-08-14 — 표에 없는 굽는 명령(`gen:없는이름`)을 넣어 보고 빨개지는 것을 봤다.
+ *   같은 표를 새벽 워크플로가 읽으므로, 새 `nightly: true` 한 줄이 워크플로 단계와 커밋 목록에
+ *   자동으로 뜨는 것도 확인했다(가짜 항목 한 줄 → 양쪽 출력에 나타남).
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+/* 표는 `lib/generated-artifacts.mjs` 한 곳 — 새벽 워크플로도 같은 표를 읽는다.
+   여기 또 적으면 「밤에 굽는다」는 약속만 있고 굽는 놈은 없는 자리가 생긴다. */
+import { 파생물 } from './lib/generated-artifacts.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const UPDATE = process.argv.includes('--update');
 
-/**
- * 「커밋본이 곧 서비스본」인 파생물만. 새로 생기면 여기 한 줄 —
- * 산출 경로를 적어 두면 되돌리기까지 이 검사가 알아서 한다.
- */
-const 파생물 = [
-  {
-    npm: 'gen:worldcup-tools',
-    outputs: ['data/worldcup-tools.json'],
-    why: '봇이 뜰 때 씨앗 표로 심는다 — 낡으면 새 도구가 월드컵에 안 나온다',
-    /* ★ **막지 않는다** (2026-08-13). 이 표는 **도구가 하나 늘 때마다** 낡는다 — 이 저장소는
-       세션 여럿이 하루에도 여러 개를 만든다. 막는 게이트로 두면 도구를 만든 사람이 아니라
-       그 뒤에 미는 **모든 세션**이 빨강을 맞고, 굽자면 빌드까지 새로 해야 한다(깨끗한 사본에서).
-       매일 새벽 `refresh-generated.yml` 이 스스로 굽는다 — 그 사이에는 말만 하고 지나간다. */
-    nightly: true
-  },
-  {
-    npm: 'gen:arcade-catalog',
-    outputs: ['src/widgets/arcade/catalog-meta.generated.ts', 'src/widgets/arcade/chunks.generated.json'],
-    why: '로비가 읽는 명패 + 조각 표 — 낡으면 새 게임이 오락실에 안 뜨거나 눌러도 안 열린다'
-  },
-  {
-    npm: 'gen:core-tools',
-    outputs: ['data/core-tools.json', 'src/core/registry.generated.ts', 'src/core/registry-lazy.generated.ts'],
-    why: '묶어 쓰기·MCP 가 부를 수 있는 도구 목록'
-  }
-];
 
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const read = (rel) => {
@@ -61,10 +42,29 @@ const read = (rel) => {
   return fs.existsSync(p) ? fs.readFileSync(p) : null;
 };
 
+/* ★ **표에 적힌 굽는 명령이 진짜 있나** (2026-08-14). 표는 이제 새벽 워크플로도 읽는다 —
+   여기 없는 이름을 적어 두면 그 파일은 「밤에 굽는다」는 약속만 남고 새벽 3시에 조용히 죽는다.
+   (사람은 새벽 로그를 안 본다. 그러니 낮에, 미는 자리에서 잡는다.) */
+{
+  const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const 없는이름 = 파생물.map((x) => x.npm).filter((n) => !pkg.scripts?.[n]);
+  if (없는이름.length) {
+    console.error('[audit-generated] 표에 적힌 굽는 명령이 package.json 에 없다: ' + 없는이름.join(', '));
+    console.error('  → scripts/lib/generated-artifacts.mjs 와 package.json 중 한쪽이 낡았다.');
+    process.exit(1);
+  }
+}
+
 const 낡음 = [];
 const 죽음 = [];
 
 for (const item of 파생물) {
+  /* **잴 수 없는 것은 안 잰다** — 다시 구우면 늘 다른 것(시각·최근 N일)을 게이트에 걸면
+     영원히 빨갛다. 그건 밤이 굽는다. 그래도 한 줄 남긴다 — 「안 본다」가 보여야 한다. */
+  if (item.못잼) {
+    console.log(`[audit-generated] ${item.outputs.join(', ')} — 못 잰다(${item.못잼}) · 새벽 refresh-generated 가 굽는다`);
+    continue;
+  }
   /* 되돌릴 수 있게 먼저 담아 둔다 — git 에 기대지 않는다(이 트리는 여러 세션이 함께 쓴다). */
   const before = new Map(item.outputs.map((rel) => [rel, read(rel)]));
 
@@ -129,4 +129,4 @@ if (진짜낡음.length) {
 }
 
 /* 초록도 한 줄 남긴다 — 「아무 말 없음」이 정상인지 안 돈 것인지 구분되게. */
-console.log(`[audit-generated] 파생물 ${파생물.length}종이 지금 소스와 같다${UPDATE ? ' (--update)' : ''}`);
+console.log(`[audit-generated] 파생물 ${파생물.filter((x) => !x.못잼).length}종이 지금 소스와 같다${UPDATE ? ' (--update)' : ''}`);
