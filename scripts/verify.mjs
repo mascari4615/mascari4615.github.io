@@ -15,6 +15,14 @@ import { spawnSync } from 'node:child_process';
 function run(label, cwd, command) {
   console.log(`\n[verify] ${label}: ${command} (cwd: ${cwd})`);
   const r = spawnSync(command, { cwd, stdio: 'inherit', shell: true });
+  /* ★ **2 = 「못 돌렸다」(CANNOT-RUN)** — 이 저장소의 규약이다(`run-gates.mjs`·`run-live-checks.mjs`
+     도 그렇게 읽는다). 잴 것이 아직 없거나(봇이 안 떠 있다·장이 안 찍혔다) 이 기계에 없는 것은
+     **실패가 아니다.** 여기만 「0이 아니면 실패」로 두었더니, 검사가 정직하게 「못 돌렸다」고
+     말한 순간 master 가 빨개졌다(2026-08-14, `smoke-companion`). 못 돈 것은 못 돌았다고 적고 지나간다. */
+  if (r.status === 2) {
+    console.log(`[verify] · ${label} — 못 돌림 (빨강 아님)`);
+    return;
+  }
   if (r.status !== 0) {
     console.error(`[verify] X ${label} 실패 (exit ${r.status ?? '?'})`);
     process.exit(r.status ?? 1);
