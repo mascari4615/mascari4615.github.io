@@ -530,6 +530,35 @@ await step('점을 빈 곳으로 끌면 새 카드가 생기며 이어진다', a
     .catch(() => { throw new Error('새 카드가 생겼는데 이름칸이 안 떴다 — 손이 한 번 더 가야 한다'); });
   await ctx.close();
 });
+await step('카드를 고르면 판이 안 튄다 — 누르려던 손잡이가 도망가지 않는다', async () => {
+  /* 고르면 옆 패널이 열리며 판이 좁아지는데, 그때 화면을 다시 맞추면 손잡이가 옮겨 간다.
+     실측(2026-08-13): 고른 직후 150ms 안에 245px 옮겨 갔고, 그 틈에 누른 판이 여덟 번에 한 번
+     헛손질로 끝났다 — 화면검사 간헐 빨강의 정체였다 (KL-271). */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  const box = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(box.x + box.width * 0.25, box.y + box.height * 0.3);
+  await m.waitForSelector('.km-inline', { timeout: ms(4000) });
+  await m.keyboard.type('주인공');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => !document.querySelector('.km-inline'), null, { timeout: ms(4000) });
+  await m.locator('.ck-node').first().click();
+  await m.waitForSelector('.ck-link-handle', { timeout: ms(4000) });
+  const at = async () => { const r = await m.locator('.ck-link-handle').first().boundingBox(); return [r.x, r.y]; };
+  const first = await at();
+  await m.waitForTimeout(ms(500));
+  const later = await at();
+  const dx = Math.abs(later[0] - first[0]);
+  const dy = Math.abs(later[1] - first[1]);
+  if (dx > 2 || dy > 2) throw new Error(`고른 뒤 손잡이가 움직였다 (${Math.round(dx)},${Math.round(dy)}px)`);
+  await ctx.close();
+});
+
 await step('빈 판에서는 툴바가 접힌다 (카드가 생기면 돌아온다)', async () => {
   // 카드가 0장인데 「전체 보기 · 발표 · 찾기」가 다 켜져 있었다 — 할 수 있는 게 하나뿐인 순간에
   // 선택지를 열 개 보여 주면 그 하나가 어느 것인지 안 보인다 (TASK-KL-271 F2 / S2).

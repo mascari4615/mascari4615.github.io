@@ -3203,6 +3203,11 @@ import {
       if (!moved && lastFitW > 0) return;
       lastFitW = w;
       lastFitH = h;
+      /* ★ **뭔가 고른 채면 다시 맞추지 않는다.** 카드를 고르면 옆 패널이 열리며 판이 좁아지는데,
+         그때 다시 맞추면 **누르려던 손잡이가 도망간다** — 실측: 고른 직후 150ms 안에 손잡이가
+         245px 옮겨 갔고, 그 틈에 누른 판이 여덟 번에 한 번 헛손질로 끝났다(화면검사 간헐 빨강의
+         정체). 크기 기록은 위에서 이미 갱신했으므로, 판을 놓고 창을 바꾸면 그때 맞춘다. */
+      if (selectedId || selectedEdgeId) return;
       canvas.fitView();
       showZoom();
     };
