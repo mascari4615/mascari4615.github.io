@@ -2625,6 +2625,22 @@ await step('블로그에 넣을 한 줄을 준다', async () => {
   if (!/kmv=1/.test(code)) throw new Error('보기 전용(kmv=1)이 아닌 링크를 끼웠다');
 });
 
+await step('고른 카드에 남은 칸 수를 말해 준다 (다 적으면 조용해진다)', async () => {
+  // 관계망 칸의 「아직 안 적은 칸」이 판 전체를 말한다면, 이건 이 카드 한 장이다(KL-271 L5).
+  await page.locator('.ck-node').first().click({ force: true });
+  await page.waitForSelector('[data-km="edit-label"]', { timeout: ms(4000) });
+  const said = await page.locator('.km-ripe').count();
+  if (said === 0) throw new Error('칸이 비었는데 아무 말도 안 한다');
+  // 칸을 다 채우면 말이 사라진다 — 다 적은 카드에 잔소리하지 않는다.
+  const boxes = page.locator('[data-km="fld-value"]');
+  const n = await boxes.count();
+  for (let i = 0; i < n; i += 1) await boxes.nth(i).fill('채움');
+  await page.waitForTimeout(ms(500));
+  await page.locator('.ck-node').first().click({ force: true });
+  await page.waitForTimeout(ms(500));
+  if (await page.locator('.km-ripe').count() !== 0) throw new Error('다 적었는데도 남은 칸을 말한다');
+});
+
 await step('같은 자료를 표로도 본다 — 줄을 누르면 판에서 골라진다', async () => {
   // 판은 「누가 누구와 이어졌나」에 강하고 「빠짐없이 훑기」에 약하다(KL-271 L4 · Notion 뷰 계보).
   await openPanel(page, 'table');

@@ -47,6 +47,7 @@ async function loadModules() {
     export * as edgedrag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-edgedrag.ts'))};
     export * as edgeViews from ${JSON.stringify(path.join(root, 'src/lib/graph/edge-views.ts'))};
     export * as table from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/table-view.ts'))};
+    export * as ripe from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/ripeness.ts'))};
     export * as poster from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster-legend.ts'))};
     export * as posterDraw from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster.ts'))};
     export * as fieldGaps from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/field-gaps.ts'))};
@@ -980,6 +981,20 @@ const M = await loadModules();
     JSON.stringify(sortRows([...rows].reverse(), { by: '출신', dir: 'up' }, KL)), '들어온 순서와 무관');
   eq(nextSort({ by: '', dir: 'up' }, '출신').dir, 'up', '다른 열을 누르면 오름차순으로 시작');
   eq(nextSort({ by: '출신', dir: 'up' }, '출신').dir, 'down', '같은 열을 다시 누르면 뒤집힌다');
+}
+
+// -- 이 카드가 얼마나 익었나 (TASK-KL-271 L5) ----------------------------------
+{
+  const { ripenessOf, worthNudging } = M.ripe;
+  eq(ripenessOf({}).ripe, 'none', '칸이 없는 카드는 말할 것이 없다');
+  eq(ripenessOf({ fields: { a: '', b: '' } }).ripe, 'seed', '칸은 있는데 하나도 안 적으면 씨앗');
+  eq(ripenessOf({ fields: { a: '값', b: '' } }).ripe, 'growing', '얼마쯤 적으면 자라는 중');
+  eq(ripenessOf({ fields: { a: '값' } }).ripe, 'firm', '있는 칸을 다 적으면 굳음');
+  eq(ripenessOf({ fields: { a: '  ', b: '값' } }).filled, 1, '공백만 적은 것은 안 적은 것이다');
+  eq(ripenessOf({ fields: { a: '값', b: '' } }).total, 2, '이 카드가 가진 칸 수도 함께');
+  check(worthNudging(ripenessOf({ fields: { a: '' } })), '남은 것이 있으면 말을 건다');
+  check(!worthNudging(ripenessOf({ fields: { a: '값' } })), '다 적은 카드에 잔소리하지 않는다');
+  check(!worthNudging(ripenessOf({})), '칸 없는 카드에도 말 안 건다');
 }
 
 process.stdout.write('\n');
