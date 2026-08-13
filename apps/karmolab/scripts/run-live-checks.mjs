@@ -53,6 +53,7 @@ if (!todo.length) {
    「비워 둔 자리가 실제와 맞는지」는 `127.0.0.1:8801` 을 재는데 아무도 그 서버를 안 띄웠고,
    검사는 「연결 실패」를 그대로 **빨강**으로 냈다 — 못 돈 것이 틀린 것으로 읽히던 자리다. */
 let server = null;
+let serverDead = false;
 if (todo.some((c) => c.needsServer)) {
   console.log(String.fromCharCode(10) + '──── 준비: 재는 상대가 될 서버 띄우기 (127.0.0.1:8801) ────');
   server = spawn(npm, ['run', 'serve:gzip'], { stdio: 'ignore', shell: process.platform === 'win32' });
@@ -67,7 +68,10 @@ if (todo.some((c) => c.needsServer)) {
     return false;
   })();
   if (!ready) {
-    console.error('[verify:live] 30초 안에 서버가 안 떴다 — 그 검사는 못 돈다(빨강 아님).');
+    /* 말만 「빨강 아님」이라 해 놓고 그대로 돌리면 결과는 빨강이다 — 그게 바로 이 검사가
+       여태 서 있던 이유였다. 못 돌 것은 **돌리지 않고 못 돌았다고 적는다**. */
+    console.error('[verify:live] 30초 안에 서버가 안 떴다 — 그 검사는 못 돈다(빨강 아님, 건너뛴다).');
+    serverDead = true;
   } else {
     console.log('[verify:live] 서버 준비됨');
   }
@@ -76,7 +80,13 @@ const stopServer = () => { if (server) { try { server.kill(); } catch { /* 이�
 process.on('exit', stopServer);
 
 const results = [];
+const skipped = [];
 for (const check of todo) {
+  if (check.needsServer && serverDead) {
+    console.log(`──── ${check.name} — 건너뜀 (재는 상대가 될 서버가 안 떴다) ────`);
+    skipped.push(check.name);
+    continue;
+  }
   const started = Date.now();
   console.log(`\n──── ${check.name}${check.live ? ' (실주소)' : ''} ────`);
   /* 실주소를 보는 검사만 「배포에 밟혔으면 다시」 껍데기를 씌운다 — 근거 있을 때만 재시도한다
@@ -87,6 +97,7 @@ for (const check of todo) {
 }
 
 console.log('\n════ 라이브 점검 결과 ════');
+for (const name of skipped) console.log(`  · ${name.padEnd(34, ' ')}   못 돌림 (건너뜀)`);
 for (const r of results) {
   console.log(`  ${r.code === 0 ? '✓' : '✘'} ${r.name.padEnd(34, ' ')} ${String(r.sec).padStart(3)}s${r.code ? `  — exit ${r.code}` : ''}`);
 }
