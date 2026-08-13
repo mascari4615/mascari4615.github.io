@@ -175,7 +175,20 @@ async function checkOne(page, id) {
     return { type: inp.type || 'text', hasButton: !!btn };
   }, id);
   if (!target) {
-    failures.push(`${id}: 글자를 넣을 칸이 없다 — 화면이 안 그려졌을 수 있다`);
+    /* 「안 그려졌을 수 있다」로만 적으면 제품 고장인지 이 판이 막힌 것인지 못 가른다 —
+       CI 에서만 나는 빨강을 몇 번이나 그렇게 쫓았다. 무엇이 보였는지 함께 적는다. */
+    const seen = await page
+      .evaluate((toolId) => {
+        const el = document.getElementById('page-' + toolId);
+        return {
+          text: ((el && el.innerText) || document.body.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 120),
+          nodes: el ? el.querySelectorAll('*').length : -1,
+        };
+      }, id)
+      .catch(() => ({ text: '?', nodes: -1 }));
+    failures.push(
+      `${id}: 글자를 넣을 칸이 없다 — 화면에 뜬 글 「${seen.text}」 · 마디 ${seen.nodes}개`,
+    );
     process.stdout.write('x');
     return;
   }
