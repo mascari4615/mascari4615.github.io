@@ -663,6 +663,18 @@ const M = await loadModules();
   check(/\$\{drawerHtml\(\)\}/.test(wid), '서랍이 등록부에서 안 그려진다(손으로 적은 HTML 로 되돌아갔다)');
 }
 
+// ── 손잡이를 놓은 자리 (TASK-KL-271 R1) ──────────────────────────────────────
+// 「빈 곳에 놓으면 새 카드」가 붙으면서 규칙이 셋이 됐다 — 규칙이 느는 자리는 눈으로 볼 수 있는
+// 순수 함수여야 검사로 잠근다(캔버스 본체 안 if 세 겹이면 손으로 끌어 보는 수밖에 없다).
+{
+  const fake = (id) => ({ closest: () => (id ? { dataset: { id } } : null) });
+  eq(JSON.stringify(M.edgedrag.linkDropTarget(fake('node-2'), 'node-1')), '{"toId":"node-2"}',
+    '다른 카드 위에 놓으면 그 카드로 잇는다');
+  eq(M.edgedrag.linkDropTarget(fake(''), 'node-1'), 'empty', '빈 곳에 놓으면 새 카드 자리다');
+  eq(M.edgedrag.linkDropTarget(null, 'node-1'), 'empty', '아무것도 없는 자리도 빈 곳이다');
+  eq(M.edgedrag.linkDropTarget(fake('node-1'), 'node-1'), null, '자기 자신 위에 놓으면 아무 일도 없다');
+}
+
 process.stdout.write('\n');
 if (failures.length > 0) {
   console.error(`\nRESULT: FAIL (${failures.length})\n - ` + failures.join('\n - '));

@@ -2068,6 +2068,34 @@ import {
         sideMode = ids.length > 1 ? 'many' : 'node';
         renderSide();
       },
+      /**
+       * 손잡이를 **빈 곳**에 놓았다 — 거기에 새 카드를 세우고 곧바로 잇는다 (TASK-KL-271 R1).
+       * 관계도에서 가장 흔한 동작은 「이 사람에게서 뻗어 나가는 또 한 사람」인데, 전에는
+       * 「빈 곳 두 번 클릭 → 이름 → 다시 점 끌기」 세 걸음이었다. 이제 한 번 끄는 것으로 끝난다.
+       */
+      onConnectToEmpty: (fromId, world) => {
+        const before = new Set(spec.nodes.map((n) => n.id));
+        spawnNodeAt(world.x, world.y, '');
+        const made = spec.nodes.find((n) => !before.has(n.id));
+        if (!made) return;
+        createEdge(fromId, made.id);
+        selectedId = made.id;
+        renderSide();
+        /* 선을 그리면 판을 다시 그리므로 **막 열린 이름칸이 함께 지워진다**(실측: 카드와 선은
+           생겼는데 이름칸만 없었다). 다 그린 뒤에 한 번 더 연다 — 끌던 손이 그대로 타자로 이어진다. */
+        /* 이름칸은 **자리를 잴 수 있게 된 뒤에** 연다. 선을 그리면 판을 다시 그리는데, 그 그림이
+           끝나기 전에는 새 카드의 자리를 못 재서(`nodeScreenRect` 가 빈손) 조용히 안 열린다
+           (실측: 카드와 선은 생겼는데 이름칸만 없었다). 그림 수를 세어 맞히면 바쁜 기계에서 또
+           어긋나므로, **될 때까지** 몇 그림 기다린다. 옆 패널 이름 칸이 포커스를 잡아도 닫히므로
+           먼저 놓는다. */
+        let tries = 12;
+        const openWhenReady = (): void => {
+          (document.activeElement as HTMLElement | null)?.blur?.();
+          if (canvas?.nodeScreenRect(made.id)) { openInline(made.id); return; }
+          if ((tries -= 1) > 0) requestAnimationFrame(openWhenReady);
+        };
+        requestAnimationFrame(openWhenReady);
+      },
       onConnect: (fromId, toId) => {
         selectedId = fromId;
         createEdge(fromId, toId);
