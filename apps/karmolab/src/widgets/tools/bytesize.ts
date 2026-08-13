@@ -50,7 +50,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             <div class="tool-list" id="bsBin"></div>
 
             <div class="tool-list" id="bsNote" style="margin-top:14px;"></div>
-            <div class="tool-status" id="bsStatus">${esc(t('bytesize.status.idle'))}</div>
+            <div class="tool-status" role="status" aria-live="polite" id="bsStatus">${esc(t('bytesize.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
