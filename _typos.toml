@@ -60,6 +60,11 @@ criticals = "criticals" # agent-team 코드: critical 항목 배열 식별자
 seeked = "seeked"    # HTML 미디어 이벤트 이름(video.addEventListener('seeked')) — 웹 표준 식별자라 고칠 수 없다.
                      # 2026-08-07: 이것 때문에 master 게이트가 연속으로 빨갰다(고칠 수 없는 단어를 오타로 셌다).
 
+# vim 이 `.swp` 를 발견했을 때 내놓는 물음의 선택지 표기 — `(D)elete`, `(R)ecover` …
+# 강의 본문이 그 화면을 그대로 인용한다(shell-editor 강의). 괄호가 낱말을 갈라 놓은 것이라
+# 오타가 아니다 — 2026-08-13 에 이것 하나로 master 가 빨갰다.
+elete = "elete"
+
 # === WM 코드 식별자가 devlog 포스트에 인용 (역사적, 변경 불가, TASK-KAR-073) ===
 # apps/blog/_posts/.../wm-devlog-*.md 가 WM C#(Data.Criterias / RuntimeCriteria)
 # 와 rename 이력("Criterias => Criteria")을 인용 — 블로그 컨텐츠 false-positive.
