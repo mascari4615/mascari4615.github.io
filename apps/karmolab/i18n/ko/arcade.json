@@ -403,5 +403,13 @@
   "arcade.watch.now": "구경 중",
   "arcade.watch.over": "{n}명은 구경",
   "arcade.btn.replay": "다시 보기",
-  "arcade.replay.now": "다시 보는 중"
+  "arcade.replay.now": "다시 보는 중",
+  "arcade.letter.link": "편지 링크",
+  "arcade.btn.letter": "편지로 두기",
+  "arcade.letter.your": "한 수 두면 링크가 나온다 — 그걸 상대에게 보내라",
+  "arcade.letter.sent": "이 링크를 상대에게 보내라 · 상대가 두면 링크가 돌아온다",
+  "arcade.letter.wait": "{who} 차례다 — 링크를 기다려라",
+  "arcade.letter.over": "판이 끝났다",
+  "arcade.letter.toobig": "판이 길어져 링크에 안 담긴다 — 방을 열어 이어라",
+  "arcade.letter.friend": "상대"
 }

@@ -1205,12 +1205,7 @@ fs.writeFileSync(path.join(outDir, 'index.html'), buildHub(), 'utf8');
 fs.writeFileSync(
   path.join(outDir, 'tools.json'),
   `---\nlayout: none\npermalink: ${BASE_PATH}/tools.json\n---\n` +
-    /* 흡수된 옛 도구도 **건지기 목록에는 남긴다** (2026-08-13). 그 주소로 오는 사람이
-       실제로 있고(검색·북마크), 이제 그 이름을 부르면 작업대의 그 조작으로 간다.
-       목록에서 빼면 「없는 쪽」에서 이름조차 못 찾아 준다 — 건지려고 만든 목록이 안 건진다. */
-    JSON.stringify(
-      [...ids, ...[...RETIRED_OPERATION_IDS].filter((id) => seo[id])].map((id) => [id, heading(id), ALIASES[id] || ''])
-    ),
+    JSON.stringify(ids.map((id) => [id, heading(id), ALIASES[id] || ''])),
   'utf8'
 );
 
