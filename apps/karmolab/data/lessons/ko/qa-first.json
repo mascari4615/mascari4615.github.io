@@ -1,100 +1,819 @@
 {
   "id": "qa-first",
-  "minutes": 11,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "**빨강을 본 적 없는 초록은 못 믿는다.** 테스트가 진짜로 무언가를 잡는지 증명하는 방법은 하나뿐 — 먼저 실패시키는 것."
-    },
-    {
-      "type": "h",
-      "text": "1. 실제로 있는 일"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "아무것도 안 잡는 테스트",
-      "text": "test('할인 계산', () => {\n  const r = 할인(1000, 0.1);\n  expect(r).toBeDefined();       // ← 뭘 반환하든 통과한다\n});\n\n// 함수 본문을 return 0 으로 바꿔도 초록\n// 먼저 실패시켜 봤다면 즉시 들켰을 것"
-    },
-    {
-      "type": "h",
-      "text": "2. 빨강 → 초록 → 정리"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "한 바퀴",
-      "text": "1) 원하는 동작을 테스트로 쓴다        → 실패(빨강) 확인  ★ 건너뛰면 의미 없음\n2) 통과할 만큼만 코드를 쓴다          → 초록\n3) 초록을 유지하며 구조를 다듬는다    → 정리\n\n한 바퀴를 작게. 30분짜리 바퀴는 이미 너무 크다"
-    },
-    {
-      "type": "h",
-      "text": "3. 버그 고칠 때가 최적의 연습"
-    },
-    {
-      "type": "note",
-      "text": "신규 기능보다 **버그 재현 테스트**가 쉽고 값어치도 크다. ① 버그를 재현하는 테스트를 쓴다(빨강) ② 고친다(초록) ③ 그 테스트는 영원히 재발을 막는다. 이 순서를 지키면 「고쳤는데 사실 안 고쳐진」 경우가 사라진다."
-    },
-    {
-      "type": "h",
-      "text": "4. 무엇을 단언할 것인가"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "느슨한 단언 → 정확한 단언",
-      "text": "expect(r).toBeTruthy();          // ❌ 거의 다 통과\nexpect(r).toBe(900);             // ✅ 규칙을 박아 둔다\n\nexpect(list.length).toBe(3);     // △ 개수만\nexpect(list.map(x => x.id)).toEqual(['a','b','c']);   // ✅ 순서와 내용까지"
-    },
-    {
-      "type": "h",
-      "text": "5. 안 맞는 경우도 있다"
-    },
-    {
-      "type": "p",
-      "text": "무엇을 만들지 모를 때(탐색·프로토타입)는 먼저 쓰기가 방해가 된다. 그때는 **손으로 실험 → 모양이 잡히면 테스트로 고정**이 낫다. 규율은 도구지 종교가 아니다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "최근 고친 버그 하나를 되살려(코드를 잠깐 되돌려) 재현 테스트를 쓰고 빨강을 확인한 뒤 다시 고쳐라."
-    },
-    {
-      "type": "try",
-      "text": "기존 테스트 하나를 골라 대상 함수를 일부러 망가뜨려 보라. 초록이면 그 테스트는 아무것도 안 지키고 있다."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "테스트를 먼저 실패시켜 봐야 하는 이유는?",
-      "choices": [
-        "그 테스트가 실제로 무언가를 잡는지 증명된다",
-        "문법을 확인하려고",
-        "속도 측정을 위해"
+      "id": "1",
+      "title": "빨강을 본 적 없는 초록",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "테스트가 초록이라는 말은 **「이 테스트가 통과했다」**는 뜻이지 「코드가 맞다」는 뜻이 아니다. 그 둘 사이의 틈으로 사고가 들어온다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "고장 난 테스트를 골라 보라 — 전부 초록이다",
+          "height": "460px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left;\n                         vertical-align:top; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:100px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 아주 작은 러너 — 이 칸의 모든 데모가 이걸로 실제 실행한다 */\n  function run(cases) {\n    return cases.map(([name, fn]) => {\n      try { const r = fn(); return [name, r === undefined ? true : !!r, '']; }\n      catch (e) { return [name, false, String(e.message || e).slice(0, 70)]; }\n    });\n  }\n  function table(rows) {\n    return '<table>' + rows.map(([n, ok, msg]) =>\n      '<tr><td style=\"width:52px\">' + (ok ? '<span class=\"ok\">PASS</span>' : '<span class=\"no\">FAIL</span>')\n      + '</td><td>' + esc(n) + '</td><td class=\"hint\">' + esc(msg) + '</td></tr>').join('') + '</table>';\n  }\n  function eq(actual, want) {\n    if (actual !== want) throw new Error('기대 ' + JSON.stringify(want) + ' · 실제 ' + JSON.stringify(actual));\n    return true;\n  }\n</script>\n<script>\n  const k = '{{broken}}';\n  /* 시험 대상: 일부러 틀리게 만든다 (n 을 안 곱한다) */\n  const total = (items) => items.reduce((s, i) => s + i.price, 0);\n  const suites = {\n    typeonly: ['타입만 본다',\n      [['숫자를 돌려준다', () => typeof total([{ price: 100, n: 3 }]) === 'number'],\n       ['빈 목록도 숫자', () => typeof total([]) === 'number']]],\n    truthy: ['참인지만 본다',\n      [['값이 있다', () => !!total([{ price: 100, n: 3 }])],\n       ['0 이상', () => total([{ price: 100, n: 3 }]) >= 0]]],\n    selfref: ['코드를 그대로 베꼈다',\n      [['합계가 맞다', () => eq(total([{ price: 100, n: 3 }]),\n          [{ price: 100, n: 3 }].reduce((s, i) => s + i.price, 0))]]],\n    nocall: ['부르지 않는다',\n      [['함수가 있다', () => typeof total === 'function']]],\n    real: ['값을 본다 ★',\n      [['3개면 300', () => eq(total([{ price: 100, n: 3 }]), 300)],\n       ['빈 목록은 0', () => eq(total([]), 0)],\n       ['두 항목 합', () => eq(total([{ price: 50, n: 2 }, { price: 30, n: 1 }]), 130)]]],\n  }[k];\n  const rows = run(suites[1]);\n  const pass = rows.filter((r) => r[1]).length;\n  const allGreen = pass === rows.length;\n  stage.innerHTML = '<div class=\"panel\">' + table(rows)\n    + '<div style=\"margin-top:6px\">' + pass + ' / ' + rows.length + ' 통과 — '\n    + (allGreen ? '<b class=\"no\">코드는 틀렸는데 전부 초록이다 ⚠</b>'\n                : '<b class=\"ok\">틀린 것을 잡았다</b>') + '</div></div>';\n  clearLog('종류를 바꿔 가며 — 코드는 계속 틀린 상태다');\n  app.innerHTML = '<div class=\"hint\">시험 대상 코드는 <b>틀려 있다</b> (개수를 안 곱한다). '\n    + '테스트만 바꿔 가며 본다.</div>';\n  const notes = {\n    typeonly: '타입만 보는 테스트\\n'\n      + '  「숫자가 나오나」는 거의 항상 참이다. 값이 틀려도 숫자는 숫자다.',\n    truthy: '참인지만 보는 테스트\\n'\n      + '  0 이 아니기만 하면 통과한다 — 100이든 300이든 3000이든.',\n    selfref: '코드를 그대로 베낀 테스트 ★ 가장 위험하다\\n'\n      + '  기대값을 **같은 계산으로** 만들면 코드가 틀려도 항상 맞는다.\\n'\n      + '  실제로 자주 나온다 — 기대값을 손으로 적기 귀찮아서.',\n    nocall: '대상을 부르지도 않는 테스트\\n'\n      + '  극단적으로 보이지만, 준비 코드만 있고 확인이 빠진 테스트가 실제로 있다.',\n    real: '값을 확인하는 테스트\\n'\n      + '  기대값을 **손으로 적었다** — 100×3=300. 그래서 틀린 코드를 잡는다.',\n  }[k];\n  show(notes + '\\n\\n'\n     + '핵심\\n'\n     + '  · 위 네 종류는 **아무것도 안 지키면서 초록**이다\\n'\n     + '  · 그런데 초록이라 「테스트가 있으니 괜찮겠지」를 만든다 — 없느니만 못하다\\n'\n     + '  · 구분하는 유일한 방법: **빨강이 되는 것을 한 번 본다**\\n\\n'\n     + '기대값은 손으로 적어라\\n'\n     + '  ✗ expect(total(items)).toBe(items.reduce(같은 계산))\\n'\n     + '  ✓ expect(total(items)).toBe(300)     // 100 × 3\\n'\n     + '  손으로 적는 순간 「내가 기대하는 값이 뭐지?」를 실제로 생각하게 된다.');\n</script>",
+          "controls": [
+            {
+              "id": "broken",
+              "label": "테스트 종류",
+              "type": "select",
+              "value": "typeonly",
+              "options": [
+                {
+                  "value": "typeonly",
+                  "label": "타입만 본다"
+                },
+                {
+                  "value": "truthy",
+                  "label": "참인지만 본다"
+                },
+                {
+                  "value": "selfref",
+                  "label": "코드를 베꼈다"
+                },
+                {
+                  "value": "nocall",
+                  "label": "부르지 않는다"
+                },
+                {
+                  "value": "real",
+                  "label": "값을 본다 ★"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**기대값을 손으로 적어라.** `expect(total(items)).toBe(items.reduce(같은 계산))` 은 코드가 틀려도 영원히 초록이다 — 손으로 `300` 이라고 적는 순간 「내가 기대하는 값이 뭐지?」를 실제로 생각하게 된다."
+        },
+        {
+          "type": "code",
+          "lang": "js",
+          "label": "항상 초록인 테스트들",
+          "text": "// ✗ 타입만\nexpect(typeof total(items)).toBe('number');\n\n// ✗ 참거짓만\nexpect(total(items)).toBeTruthy();\n\n// ✗ 기대값을 같은 계산으로 만든다 (가장 흔하다)\nexpect(total(items)).toBe(items.reduce((s, i) => s + i.price * i.n, 0));\n\n// ✗ 확인이 없다 — 준비만 하고 끝\nconst r = total(items);\n\n// ✓ 손으로 적은 기대값\nexpect(total([{ price: 100, n: 3 }])).toBe(300);"
+        },
+        {
+          "type": "p",
+          "text": "**이 넷은 실제로 자주 쓰인다.** 급하게 커버리지를 채우거나, 기대값을 계산하기 귀찮거나, 「일단 돌아가는지만」 확인할 때 — 그리고 그렇게 만들어진 초록이 나중에 사고를 통과시킨다."
+        },
+        {
+          "type": "try",
+          "text": "다섯 종류를 다 눌러 보라. 마지막 「값을 본다」만 빨강이 된다 — 나머지 넷은 틀린 코드를 지키고 있지 않다."
+        }
       ],
-      "answer": 0,
-      "why": "빨강 없는 초록은 신뢰할 수 없다."
+      "quiz": [
+        {
+          "q": "초록이 뜻하는 것은?",
+          "choices": [
+            "코드가 맞다",
+            "이 테스트가 통과했다",
+            "버그가 없다",
+            "배포해도 된다"
+          ],
+          "answer": 1,
+          "why": "그 틈으로 사고가 들어온다."
+        },
+        {
+          "q": "가장 흔하면서 위험한 가짜 테스트는?",
+          "choices": [
+            "타입만 본다",
+            "기대값을 같은 계산으로 만든다",
+            "참거짓만",
+            "부르지 않는다"
+          ],
+          "answer": 1,
+          "why": "귀찮아서 자주 나온다."
+        },
+        {
+          "q": "가짜 테스트를 구분하는 유일한 방법은?",
+          "choices": [
+            "리뷰",
+            "빨강이 되는 것을 본다",
+            "커버리지",
+            "개수"
+          ],
+          "answer": 1,
+          "why": "빨강을 본 적 없는 초록은 못 믿는다."
+        }
+      ]
     },
     {
-      "q": "버그 수정에서 권장 순서는?",
-      "choices": [
-        "재현 테스트(빨강) → 수정(초록)",
-        "수정 → 나중에 테스트",
-        "수정만"
+      "id": "2",
+      "title": "빨강 → 초록 한 바퀴",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "그래서 순서를 뒤집는다 — **테스트를 먼저 쓰고 빨강을 본 다음** 고친다. 한 바퀴를 실제로 밟아 보자."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "단계를 밀어 보라 — 진짜로 실행된다",
+          "height": "460px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left;\n                         vertical-align:top; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:100px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 아주 작은 러너 — 이 칸의 모든 데모가 이걸로 실제 실행한다 */\n  function run(cases) {\n    return cases.map(([name, fn]) => {\n      try { const r = fn(); return [name, r === undefined ? true : !!r, '']; }\n      catch (e) { return [name, false, String(e.message || e).slice(0, 70)]; }\n    });\n  }\n  function table(rows) {\n    return '<table>' + rows.map(([n, ok, msg]) =>\n      '<tr><td style=\"width:52px\">' + (ok ? '<span class=\"ok\">PASS</span>' : '<span class=\"no\">FAIL</span>')\n      + '</td><td>' + esc(n) + '</td><td class=\"hint\">' + esc(msg) + '</td></tr>').join('') + '</table>';\n  }\n  function eq(actual, want) {\n    if (actual !== want) throw new Error('기대 ' + JSON.stringify(want) + ' · 실제 ' + JSON.stringify(actual));\n    return true;\n  }\n</script>\n<script>\n  const s = {{step}};\n  /* 단계마다 코드와 테스트가 실제로 바뀐다 */\n  const impl = [\n    null,                                                  /* 0: 아직 없다 */\n    null,                                                  /* 1: 테스트만 있다 */\n    (p, pct) => p - pct,                                   /* 2: 대충 구현 (틀림) */\n    (p, pct) => Math.round(p * (100 - pct) / 100),         /* 3: 제대로 */\n    (p, pct) => {                                          /* 4: 정리 + 방어 */\n      if (typeof p !== 'number' || p < 0) throw new Error('price 가 이상하다');\n      if (pct < 0 || pct > 100) throw new Error('pct 범위를 벗어났다');\n      return Math.round(p * (100 - pct) / 100);\n    },\n  ][s];\n  const cases = s === 0 ? [] : [\n    ['10% 할인은 900', () => eq(impl(1000, 10), 900)],\n    ['0% 는 그대로', () => eq(impl(1000, 0), 1000)],\n    ['100% 는 0', () => eq(impl(1000, 100), 0)],\n  ].concat(s >= 4 ? [['음수 가격은 거부', () => { let t = false;\n      try { impl(-1, 10); } catch (e) { t = true; } return eq(t, true); }]] : []);\n  const rows = s === 0 ? [] : (s === 1\n    ? cases.map(([n]) => [n, false, 'discount is not a function — 아직 안 만들었다'])\n    : run(cases));\n  const pass = rows.filter((r) => r[1]).length;\n  const titles = ['① 아직 아무것도 없다', '② 테스트를 먼저 쓴다 → 빨강',\n                  '③ 대충 구현 → 아직 빨강', '④ 제대로 고친다 → 초록', '⑤ 정리하고 경계도 추가'];\n  stage.innerHTML = '<div class=\"panel\"><b>' + titles[s] + '</b>'\n    + (rows.length ? table(rows) + '<div style=\"margin-top:6px\">' + pass + ' / ' + rows.length + ' 통과</div>'\n       : '<div class=\"hint\" style=\"margin-top:6px\">테스트도 코드도 없다</div>') + '</div>';\n  clearLog('단계를 밀어 보라 — 각 단계의 결과는 실제 실행값이다');\n  app.innerHTML = '<div class=\"hint\">' + ['', '테스트만 있고 함수가 없다',\n    '함수는 있는데 계산이 틀렸다', '계산이 맞다', '방어 코드와 경계 테스트를 더했다'][s] + '</div>';\n  show([\n    '시작 — 무엇을 만들지부터 정한다.\\n  「가격과 할인율을 주면 할인가를 돌려준다」',\n    '테스트를 먼저 쓴다 → **빨강**\\n'\n      + '  이 빨강이 중요하다. 「테스트가 실제로 실행되고 있다」는 증거다.\\n'\n      + '  여기서 초록이 뜨면 뭔가 잘못된 것이다 (1장의 가짜 테스트일 수 있다).',\n    '대충 구현 → 여전히 빨강\\n'\n      + '  1000 - 10 = 990. 기대는 900.\\n'\n      + '  **실패 메시지가 무엇이 틀렸는지 말해 준다** (5장).',\n    '제대로 고친다 → **초록**\\n'\n      + '  빨강이었던 것이 초록이 됐다 — 이 초록은 의미가 있다.\\n'\n      + '  1장의 가짜 초록과 결정적으로 다른 점이다.',\n    '정리한다 (리팩터)\\n'\n      + '  초록을 유지한 채 안을 다듬는다 — 테스트가 안전망이 되어 준다.\\n'\n      + '  경계(음수 가격)도 테스트로 못 박았다.',\n  ][s] + '\\n\\n'\n     + '한 바퀴: 빨강 → 초록 → 정리\\n'\n     + '  · 빨강: 테스트가 진짜로 무언가를 확인하고 있다는 증거\\n'\n     + '  · 초록: 방금 그것을 해결했다는 증거\\n'\n     + '  · 정리: 초록을 유지한 채 구조를 다듬는다\\n\\n'\n     + '작게 돈다\\n'\n     + '  한 바퀴가 몇 분이어야 한다. 크게 잡으면 빨강이 오래 가고, 그러면 순서가 의미를 잃는다.');\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 4,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**②에서 초록이 뜨면 그게 오히려 문제다.** 구현이 없는데 통과했다면 테스트가 대상을 안 부르고 있거나(1장), 다른 것을 확인하고 있다는 뜻이다 — 빨강을 확인하는 것은 테스트 자체를 시험하는 절차다."
+        },
+        {
+          "type": "code",
+          "lang": "js",
+          "label": "한 바퀴의 모양",
+          "text": "// ② 먼저 (빨강)\nit('10% 할인은 900', () => {\n  expect(discount(1000, 10)).toBe(900);\n});\n// → ReferenceError: discount is not defined  ← 이 빨강을 본다\n\n// ④ 그다음 (초록)\nfunction discount(price, pct) {\n  return Math.round(price * (100 - pct) / 100);\n}\n\n// ⑤ 정리 — 초록을 유지한 채"
+        },
+        {
+          "type": "p",
+          "text": "**한 바퀴는 몇 분이어야 한다.** 크게 잡으면 빨강 상태가 길어지고, 그동안 여러 가지를 동시에 바꾸게 되어 「무엇이 고쳤는지」를 다시 알 수 없게 된다 — 07칸의 「한 번에 하나만」과 같은 이야기다."
+        },
+        {
+          "type": "try",
+          "text": "단계를 0→4 로 밀며 표를 보라. ②의 빨강과 ④의 초록 사이에 무엇이 바뀌었는지가 이 장의 전부다."
+        }
       ],
-      "answer": 0,
-      "why": "재발 방지와 수정 검증이 동시에 된다."
+      "quiz": [
+        {
+          "q": "테스트를 먼저 쓰고 빨강을 확인하는 이유는?",
+          "choices": [
+            "관습",
+            "테스트가 실제로 확인하고 있다는 증거",
+            "속도",
+            "커버리지"
+          ],
+          "answer": 1,
+          "why": "테스트 자체를 시험하는 절차다."
+        },
+        {
+          "q": "구현 전에 테스트가 초록이면?",
+          "choices": [
+            "잘된 것",
+            "테스트가 대상을 확인하지 않는다는 신호",
+            "우연",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "가짜 테스트일 수 있다."
+        },
+        {
+          "q": "한 바퀴를 작게 도는 이유는?",
+          "choices": [
+            "빠르니까",
+            "무엇이 고쳤는지 알 수 있어서",
+            "커버리지",
+            "리뷰"
+          ],
+          "answer": 1,
+          "why": "한 번에 하나만 바꾼다."
+        }
+      ]
     },
     {
-      "q": "나쁜 단언의 예는?",
-      "choices": [
-        "toBeDefined 로만 확인",
-        "정확한 값 비교",
-        "배열 내용과 순서 비교"
+      "id": "3",
+      "title": "버그를 고칠 때",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "새 기능보다 **버그 고칠 때** 이 순서가 더 값지다. 재현을 테스트로 옮기면 **판정 수단과 재발 방지**를 한 번에 얻는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "순서를 골라 보라 — 무엇이 남나",
+          "height": "460px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left;\n                         vertical-align:top; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:100px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 아주 작은 러너 — 이 칸의 모든 데모가 이걸로 실제 실행한다 */\n  function run(cases) {\n    return cases.map(([name, fn]) => {\n      try { const r = fn(); return [name, r === undefined ? true : !!r, '']; }\n      catch (e) { return [name, false, String(e.message || e).slice(0, 70)]; }\n    });\n  }\n  function table(rows) {\n    return '<table>' + rows.map(([n, ok, msg]) =>\n      '<tr><td style=\"width:52px\">' + (ok ? '<span class=\"ok\">PASS</span>' : '<span class=\"no\">FAIL</span>')\n      + '</td><td>' + esc(n) + '</td><td class=\"hint\">' + esc(msg) + '</td></tr>').join('') + '</table>';\n  }\n  function eq(actual, want) {\n    if (actual !== want) throw new Error('기대 ' + JSON.stringify(want) + ' · 실제 ' + JSON.stringify(actual));\n    return true;\n  }\n</script>\n<script>\n  const k = '{{order}}';\n  /* 실제로 두 방식의 결과를 만들어 본다 */\n  const buggy = (s) => s.split(',').map((x) => x.trim()).filter(Boolean);\n  const fixed = (s) => (s || '').split(/[,\\n]/).map((x) => x.trim()).filter(Boolean);\n  const cases = (fn) => [\n    ['쉼표로 나눈다', () => eq(fn('가, 나, 다').length, 3)],\n    ['줄바꿈으로도 나눈다 ← 버그 신고', () => eq(fn('가\\n나').length, 2)],\n    ['빈 문자열은 0개', () => eq(fn('').length, 0)],\n  ];\n  const before = run(cases(buggy));\n  const after = run(cases(fixed));\n  const t = {\n    fixfirst: ['고치고 나서 테스트를 쓴다', after, after,\n      '고친 뒤에 쓴 테스트는 **처음부터 초록**이다.\\n'\n      + '  · 그 테스트가 그 버그를 잡는지 확인한 적이 없다\\n'\n      + '  · 「고쳤으니 통과하겠지」로 쓰면 엉뚱한 것을 확인할 수 있다\\n'\n      + '  · 재발 방지 효과도 검증되지 않았다'],\n    testfirst: ['재현을 테스트로 먼저 옮긴다 ★', before, after,\n      '먼저 쓰면 **빨강을 본다** — 그 테스트가 그 버그를 정확히 잡는다는 증거다.\\n'\n      + '  · 고친 뒤 초록이 되면 「이게 원인이었다」가 확인된다\\n'\n      + '  · 그 테스트가 그대로 재발 방지 장치가 된다\\n'\n      + '  · 재현 방법을 이미 손에 쥐고 있으니 추가 비용이 거의 없다 (07칸 2장)'],\n  }[k];\n  const fmt = (rows, label) => '<div style=\"margin-top:6px\"><span class=\"hint\">' + label + '</span>'\n    + table(rows) + '</div>';\n  stage.innerHTML = '<div class=\"panel\">' + (k === 'testfirst'\n    ? fmt(t[1], '① 고치기 전 — 신고된 버그가 빨강으로 잡힌다')\n      + fmt(t[2], '② 고친 뒤 — 초록이 된다')\n    : fmt(t[2], '고친 뒤에 테스트를 썼다 — 처음부터 전부 초록 (빨강을 본 적이 없다)'))\n    + '</div>';\n  clearLog('두 순서를 비교하라');\n  app.innerHTML = '<div style=\"font-size:15px;color:' + (k === 'testfirst' ? '#4ade80' : '#fca5a5')\n    + '\">' + t[0] + '</div>';\n  show(t[3] + '\\n\\n'\n     + '버그 고칠 때의 순서 (07칸 8장과 같다)\\n'\n     + '  1. 재현한다 — 언제 나는지 손에 쥔다\\n'\n     + '  2. **그 재현을 테스트로 옮긴다** → 빨강을 본다   ★\\n'\n     + '  3. 고친다 → 초록\\n'\n     + '  4. 되돌려 본다 → 다시 빨강이면 인과가 확실하다\\n'\n     + '  5. 정리하고 커밋 (테스트도 함께)\\n\\n'\n     + '왜 버그에서 특히 값진가\\n'\n     + '  · 재현 방법이 **이미 있다** — 테스트로 옮기는 비용이 거의 0\\n'\n     + '  · 그 버그는 한 번 났으므로 다시 날 확률이 높다\\n'\n     + '  · 「무엇을 확인할지」를 고민할 필요가 없다 — 신고 내용이 곧 테스트다');\n</script>",
+          "controls": [
+            {
+              "id": "order",
+              "label": "순서",
+              "type": "select",
+              "value": "fixfirst",
+              "options": [
+                {
+                  "value": "fixfirst",
+                  "label": "고치고 나서 테스트"
+                },
+                {
+                  "value": "testfirst",
+                  "label": "테스트를 먼저 ★"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**고친 뒤에 쓴 테스트는 「빨강을 본 적 없는 초록」이다.** 그 테스트가 그 버그를 실제로 잡는지 아무도 확인하지 않았고, 확인하려면 결국 고친 것을 되돌려 봐야 한다 — 그럴 바에는 먼저 쓰는 편이 싸다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "버그 신고를 테스트로 옮기기",
+          "text": "신고: 「목록을 줄바꿈으로 넣으면 한 줄로 인식돼요」\n\n① 재현: parseItems('가\\n나') → ['가\\n나']   (1개)\n② 테스트로:\n     it('줄바꿈으로도 나눈다', () => expect(parseItems('가\\n나')).toHaveLength(2));\n   → 빨강 확인 ★\n③ 고친다: split(/[,\\n]/)\n   → 초록\n④ 되돌려 본다 → 다시 빨강 → 인과 확실\n⑤ 커밋에 테스트를 함께 담는다"
+        },
+        {
+          "type": "p",
+          "text": "그리고 **테스트를 커밋에 함께 담아라.** 「고쳤다」만 있는 커밋은 다음 사람이 그 자리를 다시 건드릴 때 아무 경고도 주지 않지만, 테스트가 함께 있으면 같은 실수가 즉시 빨강이 된다."
+        },
+        {
+          "type": "try",
+          "text": "두 순서를 비교하라. 「테스트를 먼저」에서만 ①빨강이 보인다 — 그 빨강 한 번이 테스트의 값을 보증한다."
+        }
       ],
-      "answer": 0,
-      "why": "무엇을 반환해도 통과한다."
+      "quiz": [
+        {
+          "q": "버그 고칠 때 테스트를 먼저 쓰면 얻는 것 둘은?",
+          "choices": [
+            "속도·문서",
+            "판정 수단·재발 방지",
+            "커버리지·리뷰",
+            "리팩터링·성능"
+          ],
+          "answer": 1,
+          "why": "같은 노력으로 두 개."
+        },
+        {
+          "q": "고친 뒤에 쓴 테스트의 문제는?",
+          "choices": [
+            "느리다",
+            "빨강을 본 적이 없다",
+            "길다",
+            "중복"
+          ],
+          "answer": 1,
+          "why": "그 버그를 잡는지 미확인."
+        },
+        {
+          "q": "버그에서 테스트 쓰는 비용이 낮은 이유는?",
+          "choices": [
+            "코드가 짧아서",
+            "재현 방법이 이미 있어서",
+            "도구가 좋아서",
+            "리뷰가 없어서"
+          ],
+          "answer": 1,
+          "why": "신고 내용이 곧 테스트다."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "새 기능에서 — 약속을 먼저 적는다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "새로 만들 때 테스트를 먼저 쓰면 **「이 함수는 무엇을 약속하나」를 코드보다 먼저 정하게** 된다. 설계가 앞서고 구현이 따라온다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "무엇을 먼저 적을지 골라 보라",
+          "height": "460px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left;\n                         vertical-align:top; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:100px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 아주 작은 러너 — 이 칸의 모든 데모가 이걸로 실제 실행한다 */\n  function run(cases) {\n    return cases.map(([name, fn]) => {\n      try { const r = fn(); return [name, r === undefined ? true : !!r, '']; }\n      catch (e) { return [name, false, String(e.message || e).slice(0, 70)]; }\n    });\n  }\n  function table(rows) {\n    return '<table>' + rows.map(([n, ok, msg]) =>\n      '<tr><td style=\"width:52px\">' + (ok ? '<span class=\"ok\">PASS</span>' : '<span class=\"no\">FAIL</span>')\n      + '</td><td>' + esc(n) + '</td><td class=\"hint\">' + esc(msg) + '</td></tr>').join('') + '</table>';\n  }\n  function eq(actual, want) {\n    if (actual !== want) throw new Error('기대 ' + JSON.stringify(want) + ' · 실제 ' + JSON.stringify(actual));\n    return true;\n  }\n</script>\n<script>\n  const k = '{{what}}';\n  /* 실제 구현 — 아래 테스트들이 이걸 대상으로 돈다 */\n  function slug(title) {\n    if (typeof title !== 'string') throw new Error('문자열이 아니다');\n    return title.trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-')\n      .replace(/^-+|-+$/g, '').slice(0, 40);\n  }\n  const sets = {\n    happy: ['평범한 경우부터',\n      [['공백을 하이픈으로', () => eq(slug('Hello World'), 'hello-world')],\n       ['한글도 남는다', () => eq(slug('안녕 세계'), '안녕-세계')]]],\n    edge: ['경계부터',\n      [['빈 문자열', () => eq(slug(''), '')],\n       ['앞뒤 하이픈 제거', () => eq(slug('  --Hi--  '), 'hi')],\n       ['특수문자만이면 빈 값', () => eq(slug('!!!'), '')],\n       ['40자에서 자른다', () => eq(slug('a'.repeat(60)).length, 40)]]],\n    error: ['오류 경로부터',\n      [['숫자를 주면 던진다', () => { let t = false;\n          try { slug(123); } catch (e) { t = true; } return eq(t, true); }],\n       ['null 도 던진다', () => { let t = false;\n          try { slug(null); } catch (e) { t = true; } return eq(t, true); }]]],\n    all: ['셋 다 (실제로 쓰는 모양)',\n      [['평범', () => eq(slug('Hello World'), 'hello-world')],\n       ['빈 값', () => eq(slug(''), '')],\n       ['길이 제한', () => eq(slug('a'.repeat(60)).length, 40)],\n       ['잘못된 타입', () => { let t = false;\n          try { slug(123); } catch (e) { t = true; } return eq(t, true); }]]],\n  }[k];\n  const rows = run(sets[1]);\n  stage.innerHTML = '<div class=\"panel\">' + table(rows)\n    + '<div style=\"margin-top:6px\">' + rows.filter((r) => r[1]).length + ' / ' + rows.length\n    + ' 통과 <span class=\"hint\">(실제 구현을 대상으로 지금 실행한 결과)</span></div></div>';\n  clearLog('무엇을 먼저 적을지 바꿔 보라');\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + sets[0] + '</div>';\n  show({\n    happy: '평범한 경우부터\\n'\n      + '  가장 자연스럽다. 다만 여기서 멈추면 경계에서 터진다.',\n    edge: '경계부터 ★\\n'\n      + '  빈 값 · 최대 길이 · 특수문자만 — **이걸 먼저 적으면 설계가 정해진다**.\\n'\n      + '  「빈 문자열이면 뭘 돌려주지?」에 답하지 않고는 테스트를 쓸 수 없다.',\n    error: '오류 경로부터\\n'\n      + '  「잘못된 입력에 어떻게 반응하나」를 먼저 정한다.\\n'\n      + '  던질지 · 기본값을 줄지 — 이건 설계 결정이지 구현 세부가 아니다.',\n    all: '실제로 쓰는 모양\\n'\n      + '  평범 하나 · 경계 두셋 · 오류 하나 정도면 충분한 경우가 많다.\\n'\n      + '  개수보다 **서로 다른 것을 확인하는지**가 중요하다.',\n  }[k] + '\\n\\n'\n     + '테스트를 먼저 쓰면 생기는 일\\n'\n     + '  · **이름과 인자를 먼저 정하게 된다** — 쓰는 쪽 입장에서 보게 된다\\n'\n     + '  · 「빈 값이면?」·「너무 길면?」에 코드 쓰기 전에 답한다\\n'\n     + '  · 답하기 어려우면 **설계가 덜 된 것** — 좋은 신호다\\n\\n'\n     + '주의\\n'\n     + '  · 아직 모양이 흔들리는 탐색 단계에는 오히려 방해가 된다 (8장)\\n'\n     + '  · 그때는 대충 만들어 보고, 모양이 잡히면 테스트로 못 박는 편이 낫다');\n</script>",
+          "controls": [
+            {
+              "id": "what",
+              "label": "무엇부터",
+              "type": "select",
+              "value": "happy",
+              "options": [
+                {
+                  "value": "happy",
+                  "label": "평범한 경우"
+                },
+                {
+                  "value": "edge",
+                  "label": "경계 ★"
+                },
+                {
+                  "value": "error",
+                  "label": "오류 경로"
+                },
+                {
+                  "value": "all",
+                  "label": "셋 다"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**테스트를 쓸 수 없으면 설계가 덜 된 것이다.** 「빈 문자열이면 뭘 돌려주지?」에 답하지 못하면 테스트를 못 쓰는데, 그건 테스트의 문제가 아니라 아직 정하지 않은 것이 있다는 신호다 — 좋은 신호다."
+        },
+        {
+          "type": "code",
+          "lang": "js",
+          "label": "약속을 먼저 적는 모양",
+          "text": "// 아직 slug() 는 없다. 무엇을 약속할지부터 적는다.\nit('공백을 하이픈으로', () => expect(slug('Hello World')).toBe('hello-world'));\nit('빈 문자열은 빈 값', () => expect(slug('')).toBe(''));\nit('40자에서 자른다', () => expect(slug('a'.repeat(60))).toHaveLength(40));\nit('문자열이 아니면 던진다', () => expect(() => slug(123)).toThrow());\n\n// ← 이 네 줄이 이미 설계 문서다. 구현은 이걸 만족시키면 된다."
+        },
+        {
+          "type": "p",
+          "text": "**테스트가 곧 사용 예시**가 된다는 점도 크다. 이 함수를 처음 쓰는 사람이 테스트 파일만 봐도 「이렇게 부르고 이런 게 나오는구나」를 안다 — 주석보다 정확하다(안 맞으면 빨강이 뜨니까)."
+        },
+        {
+          "type": "try",
+          "text": "「경계부터」를 눌러 보라. 빈 값·길이 제한·특수문자 — 이 셋에 답하는 순간 함수의 모양이 거의 정해진다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "테스트를 먼저 쓰면 정하게 되는 것은?",
+          "choices": [
+            "성능",
+            "이름·인자·경계 동작(=약속)",
+            "파일 위치",
+            "도구"
+          ],
+          "answer": 1,
+          "why": "설계가 앞선다."
+        },
+        {
+          "q": "테스트를 못 쓰겠다는 것은 무슨 신호인가?",
+          "choices": [
+            "도구 문제",
+            "설계가 덜 됐다",
+            "실력 부족",
+            "무시해도 됨"
+          ],
+          "answer": 1,
+          "why": "좋은 신호다."
+        },
+        {
+          "q": "테스트가 주석보다 정확한 이유는?",
+          "choices": [
+            "짧아서",
+            "안 맞으면 빨강이 뜨니까",
+            "문법",
+            "위치"
+          ],
+          "answer": 1,
+          "why": "실행되는 문서다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "실패 메시지가 곧 진단서",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "빨강을 볼 때 **무엇이 보이는지**가 중요하다. 좋은 실패 메시지는 그 자리에서 원인을 알려 주고, 나쁜 메시지는 디버깅을 처음부터 시작하게 만든다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "메시지 방식을 골라 보라 — 실제 실패 메시지를 본다",
+          "height": "460px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left;\n                         vertical-align:top; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:100px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 아주 작은 러너 — 이 칸의 모든 데모가 이걸로 실제 실행한다 */\n  function run(cases) {\n    return cases.map(([name, fn]) => {\n      try { const r = fn(); return [name, r === undefined ? true : !!r, '']; }\n      catch (e) { return [name, false, String(e.message || e).slice(0, 70)]; }\n    });\n  }\n  function table(rows) {\n    return '<table>' + rows.map(([n, ok, msg]) =>\n      '<tr><td style=\"width:52px\">' + (ok ? '<span class=\"ok\">PASS</span>' : '<span class=\"no\">FAIL</span>')\n      + '</td><td>' + esc(n) + '</td><td class=\"hint\">' + esc(msg) + '</td></tr>').join('') + '</table>';\n  }\n  function eq(actual, want) {\n    if (actual !== want) throw new Error('기대 ' + JSON.stringify(want) + ' · 실제 ' + JSON.stringify(actual));\n    return true;\n  }\n</script>\n<script>\n  const k = '{{style}}';\n  const total = (items) => items.reduce((s, i) => s + i.price, 0);   /* 틀린 구현 */\n  const items = [{ price: 100, n: 3 }, { price: 50, n: 2 }];\n  const cases = {\n    bool: [['합계가 맞다', () => { if (total(items) !== 400) throw new Error('실패'); return true; }]],\n    value: [['합계가 맞다', () => eq(total(items), 400)]],\n    context: [['합계가 맞다', () => {\n        const got = total(items);\n        if (got !== 400) throw new Error('입력 ' + JSON.stringify(items)\n          + ' → 기대 400 · 실제 ' + got);\n        return true; }]],\n    named: [['개수를 곱해 합계를 낸다 (100×3 + 50×2 = 400)', () => eq(total(items), 400)]],\n  }[k];\n  const rows = run(cases);\n  stage.innerHTML = '<div class=\"panel\">' + table(rows)\n    + '<div class=\"hint\" style=\"margin-top:6px\">코드는 틀려 있다 — 개수를 안 곱한다</div></div>';\n  clearLog('방식을 바꿔 가며 실패 메시지를 비교하라');\n  app.innerHTML = '';\n  show({\n    bool: '✗ 「실패」만 던진다\\n'\n      + '  무엇이 왜 틀렸는지 하나도 안 알려 준다.\\n'\n      + '  결국 코드를 열고 console.log 를 심게 된다 — 테스트의 값이 반쯤 사라진다.',\n    value: '△ 기대와 실제를 보여 준다\\n'\n      + '  「기대 400 · 실제 250」 — 최소한 얼마나 어긋났는지 안다.\\n'\n      + '  대부분의 단언 라이브러리가 이 정도는 해 준다.',\n    context: '★ 입력까지 보여 준다\\n'\n      + '  어떤 입력에서 났는지가 있으면 재현이 바로 된다.\\n'\n      + '  여러 경우를 도는 테스트에서 특히 중요하다 (어느 경우인지 모르면 곤란하다).',\n    named: '★ 이름이 기대를 설명한다\\n'\n      + '  「개수를 곱해 합계를 낸다 (100×3 + 50×2 = 400)」\\n'\n      + '  이름만 읽어도 무엇이 깨졌는지 안다 — CI 로그에서는 이름만 보이는 경우가 많다.',\n  }[k] + '\\n\\n'\n     + '좋은 실패 메시지의 조건\\n'\n     + '  1. **무엇을** 기대했나 (테스트 이름)\\n'\n     + '  2. **얼마나** 어긋났나 (기대 vs 실제)\\n'\n     + '  3. **어떤 입력**에서 났나 (여러 경우를 돌 때 필수)\\n\\n'\n     + '테스트 이름 쓰는 법\\n'\n     + '  ✗ \\'test1\\' · \\'total works\\' · \\'정상 동작\\'\\n'\n     + '  ✓ \\'빈 목록이면 0 을 준다\\' · \\'개수를 곱해 합계를 낸다\\'\\n'\n     + '  → **무엇을 약속하는지**를 문장으로 쓴다 (4장의 「약속」과 같다)');\n</script>",
+          "controls": [
+            {
+              "id": "style",
+              "label": "메시지 방식",
+              "type": "select",
+              "value": "bool",
+              "options": [
+                {
+                  "value": "bool",
+                  "label": "「실패」만"
+                },
+                {
+                  "value": "value",
+                  "label": "기대 vs 실제"
+                },
+                {
+                  "value": "context",
+                  "label": "입력까지 ★"
+                },
+                {
+                  "value": "named",
+                  "label": "이름이 설명 ★"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**CI 로그에서는 테스트 이름만 보이는 경우가 많다.** 그래서 이름이 「무엇을 약속하는지」를 문장으로 말하면, 로그 한 줄만 보고도 무엇이 깨졌는지 안다 — `test1` 은 아무것도 못 알려 준다."
+        },
+        {
+          "type": "code",
+          "lang": "js",
+          "label": "여러 경우를 돌 때는 입력을 꼭 넣는다",
+          "text": "const cases = [\n  ['빈 목록', [], 0],\n  ['한 항목', [{ price: 100, n: 2 }], 200],\n  ['두 항목', [{ price: 100, n: 2 }, { price: 50, n: 1 }], 250],\n];\n\nfor (const [name, input, want] of cases) {\n  it(`합계 — ${name}`, () => {\n    expect(total(input)).toBe(want);      // 실패 시 어느 경우인지 이름에 있다\n  });\n}\n\n// ✗ 반대로: 한 테스트 안에서 10가지를 돌면\n//   첫 실패에서 멈춰 나머지는 확인도 못 하고, 어느 경우인지도 흐릿하다"
+        },
+        {
+          "type": "p",
+          "text": "**여러 경우를 한 테스트에 몰아넣지 마라.** 첫 실패에서 멈추므로 나머지는 확인조차 안 되고, 실패 메시지도 흐릿해진다 — 경우마다 이름이 붙으면 로그가 곧 진단서가 된다."
+        },
+        {
+          "type": "try",
+          "text": "네 방식의 실패 줄을 비교하라. 「입력까지」와 「이름이 설명」이 합쳐지면 로그만 보고 원인을 짚을 수 있다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "CI 로그에서 주로 보이는 것은?",
+          "choices": [
+            "코드",
+            "테스트 이름",
+            "커버리지",
+            "실행 시간"
+          ],
+          "answer": 1,
+          "why": "이름이 약속을 말해야 한다."
+        },
+        {
+          "q": "여러 경우를 한 테스트에 몰면?",
+          "choices": [
+            "빠르다",
+            "첫 실패에서 멈춰 나머지를 못 본다",
+            "안전하다",
+            "권장"
+          ],
+          "answer": 1,
+          "why": "경우마다 이름을 붙인다."
+        },
+        {
+          "q": "좋은 실패 메시지의 3요소가 아닌 것은?",
+          "choices": [
+            "무엇을 기대했나",
+            "얼마나 어긋났나",
+            "어떤 입력인가",
+            "누가 썼나"
+          ],
+          "answer": 3,
+          "why": "진단에 필요한 것만."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "테스트를 시험하는 법 — 돌연변이",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「내 테스트가 진짜로 잡나?」를 **체계적으로** 확인하는 방법이 있다 — 코드를 일부러 조금씩 망가뜨려 보고, 테스트가 몇 개를 잡는지 세는 것이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "눌러 보라 — 돌연변이를 심고 실제로 잡히는지 센다",
+          "height": "460px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left;\n                         vertical-align:top; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:100px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 아주 작은 러너 — 이 칸의 모든 데모가 이걸로 실제 실행한다 */\n  function run(cases) {\n    return cases.map(([name, fn]) => {\n      try { const r = fn(); return [name, r === undefined ? true : !!r, '']; }\n      catch (e) { return [name, false, String(e.message || e).slice(0, 70)]; }\n    });\n  }\n  function table(rows) {\n    return '<table>' + rows.map(([n, ok, msg]) =>\n      '<tr><td style=\"width:52px\">' + (ok ? '<span class=\"ok\">PASS</span>' : '<span class=\"no\">FAIL</span>')\n      + '</td><td>' + esc(n) + '</td><td class=\"hint\">' + esc(msg) + '</td></tr>').join('') + '</table>';\n  }\n  function eq(actual, want) {\n    if (actual !== want) throw new Error('기대 ' + JSON.stringify(want) + ' · 실제 ' + JSON.stringify(actual));\n    return true;\n  }\n</script>\n<script>\n  const strict = {{strict}};\n  /* 원본과 돌연변이들 — 각각 진짜로 실행해 본다 */\n  const muts = [\n    ['원본', (p, c) => Math.round(p * (100 - c) / 100)],\n    ['− 를 + 로', (p, c) => Math.round(p * (100 + c) / 100)],\n    ['100 을 10 으로', (p, c) => Math.round(p * (10 - c) / 10)],\n    ['round 를 floor 로', (p, c) => Math.floor(p * (100 - c) / 100)],\n    ['그냥 p 를 준다', (p) => p],\n    ['항상 0', () => 0],\n    ['c 를 무시', (p) => Math.round(p)],\n  ];\n  const cases = (f) => strict\n    ? [['10%', () => eq(f(1000, 10), 900)],\n       ['0%', () => eq(f(1000, 0), 1000)],\n       ['100%', () => eq(f(1000, 100), 0)],\n       ['반올림 (895.5 → 896)', () => eq(f(995, 10), 896)]]\n    : [['10%', () => eq(f(1000, 10), 900)],\n       ['0%', () => eq(f(1000, 0), 1000)]];\n  const rows = muts.map(([name, f]) => {\n    const rs = run(cases(f));\n    const failed = rs.filter((r) => !r[1]).length;\n    return [name, failed, rs.length];\n  });\n  const mutants = rows.slice(1);\n  const killed = mutants.filter((r) => r[1] > 0).length;\n  const rate = killed / mutants.length * 100;\n  stage.innerHTML = '<div class=\"panel\"><table>'\n    + '<tr><th>코드 상태</th><th>결과</th></tr>'\n    + rows.map(([name, failed, n], i) => '<tr><td>' + esc(name) + '</td><td>'\n        + (i === 0\n          ? (failed === 0 ? '<span class=\"ok\">전부 통과 (정상)</span>'\n                          : '<span class=\"no\">원본이 실패한다 — 테스트가 틀렸다</span>')\n          : (failed > 0 ? '<span class=\"ok\">잡았다 (' + failed + '/' + n + ' 빨강)</span>'\n                        : '<span class=\"no\">놓쳤다 — 망가졌는데 전부 초록 ⚠</span>'))\n        + '</td></tr>').join('')\n    + '</table><div style=\"margin-top:8px;font-size:15px;color:'\n    + (rate > 80 ? '#4ade80' : rate > 50 ? '#f59e0b' : '#fca5a5') + '\">'\n    + '잡은 비율 ' + killed + '/' + mutants.length + ' = ' + rate.toFixed(0) + '%</div></div>';\n  clearLog('테스트를 촘촘하게/느슨하게 바꿔 잡는 비율을 비교하라');\n  app.innerHTML = '<div class=\"hint\">테스트 ' + cases(muts[0][1]).length + '개 · 돌연변이 '\n    + mutants.length + '개 — 지금 실제로 전부 실행했다</div>';\n  show('돌연변이 테스트(mutation testing) 란\\n'\n     + '  코드를 조금씩 망가뜨린 판(돌연변이)을 만들고, 테스트가 그걸 **빨갛게 만드는지** 센다.\\n'\n     + '  잡으면 「죽였다(killed)」 · 못 잡으면 「살아남았다(survived)」.\\n\\n'\n     + '커버리지와 다른 점\\n'\n     + '  · 커버리지: 그 줄을 **지나갔나** — 지나가기만 해도 100%가 된다\\n'\n     + '  · 돌연변이: 그 줄이 **틀리면 빨강이 되나** — 진짜로 지키는지 본다\\n'\n     + '  · 1장의 가짜 테스트들은 커버리지 100%인데 돌연변이를 하나도 못 죽인다\\n\\n'\n     + '살아남은 돌연변이가 알려 주는 것\\n'\n     + '  · 그 자리에 테스트가 없거나 느슨하다 → 경우를 하나 더 추가할 자리\\n'\n     + '  · 또는 그 코드가 애초에 필요 없다 (망가뜨려도 아무도 신경 안 쓴다면)\\n\\n'\n     + '실무에서는\\n'\n     + '  전체에 돌리면 느리다 — 핵심 모듈에만 가끔 돌려 보는 정도로 충분하다.\\n'\n     + '  도구 없이도 **손으로 한 번**: 「이 줄을 반대로 바꾸면 빨강이 되나?」');\n</script>",
+          "controls": [
+            {
+              "id": "strict",
+              "label": "테스트를 촘촘하게",
+              "type": "toggle",
+              "value": false
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**커버리지 100%와 돌연변이를 못 죽이는 것은 함께 일어난다.** 커버리지는 「그 줄을 지나갔나」만 보므로, 1장의 가짜 테스트들도 100%를 만들 수 있다 — 지나가는 것과 지키는 것은 다르다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "손으로 하는 돌연변이 검사 (도구 없이)",
+          "text": "그 코드의 한 줄을 골라 이렇게 바꿔 본다:\n\n  · 비교를 뒤집는다        <  →  <=  ·  ===  →  !==\n  · 연산을 바꾼다          +  →  -   ·  *   →  /\n  · 상수를 바꾼다          0  →  1   ·  100 →  10\n  · 조건을 지운다          if (x) 를 통째로 제거\n  · 반환을 고정한다        return 0 / return null\n\n빨강이 안 되면 → 그 줄은 아무도 안 지키고 있다.\n한 번만 해 봐도 테스트의 빈 곳이 드러난다."
+        },
+        {
+          "type": "p",
+          "text": "**도구 없이 한 번만 해 봐도 값이 있다.** 핵심 함수 하나를 골라 `>` 를 `>=` 로 바꿔 보라 — 빨강이 안 뜨면 그 경계는 아무도 지키지 않고 있는 것이고, 그 자리가 곧 다음 테스트다."
+        },
+        {
+          "type": "try",
+          "text": "손잡이를 켜고 꺼 가며 잡는 비율을 비교하라. 테스트 두 개일 때 살아남는 돌연변이가 무엇인지 보면, 어떤 경우를 추가해야 하는지가 그대로 나온다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "돌연변이 테스트가 세는 것은?",
+          "choices": [
+            "줄을 지나갔나",
+            "코드를 망가뜨리면 빨강이 되나",
+            "실행 시간",
+            "테스트 개수"
+          ],
+          "answer": 1,
+          "why": "진짜로 지키는지 본다."
+        },
+        {
+          "q": "커버리지 100%인데 돌연변이를 못 죽이면?",
+          "choices": [
+            "정상",
+            "지나가기만 하고 확인은 안 한다",
+            "도구 오류",
+            "좋은 상태"
+          ],
+          "answer": 1,
+          "why": "가짜 테스트의 전형."
+        },
+        {
+          "q": "살아남은 돌연변이가 알려 주는 것은?",
+          "choices": [
+            "코드가 좋다",
+            "그 자리에 테스트가 없거나 느슨하다",
+            "성능 문제",
+            "타입 오류"
+          ],
+          "answer": 1,
+          "why": "다음 테스트의 자리다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "흔한 함정",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「먼저 쓰기」를 하다 보면 빠지기 쉬운 함정이 몇 가지 있다. 이름을 알아 두면 그 자리에서 알아챌 수 있다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "함정을 골라 보라 — 무엇이 잘못됐나",
+          "height": "460px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left;\n                         vertical-align:top; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:100px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 아주 작은 러너 — 이 칸의 모든 데모가 이걸로 실제 실행한다 */\n  function run(cases) {\n    return cases.map(([name, fn]) => {\n      try { const r = fn(); return [name, r === undefined ? true : !!r, '']; }\n      catch (e) { return [name, false, String(e.message || e).slice(0, 70)]; }\n    });\n  }\n  function table(rows) {\n    return '<table>' + rows.map(([n, ok, msg]) =>\n      '<tr><td style=\"width:52px\">' + (ok ? '<span class=\"ok\">PASS</span>' : '<span class=\"no\">FAIL</span>')\n      + '</td><td>' + esc(n) + '</td><td class=\"hint\">' + esc(msg) + '</td></tr>').join('') + '</table>';\n  }\n  function eq(actual, want) {\n    if (actual !== want) throw new Error('기대 ' + JSON.stringify(want) + ' · 실제 ' + JSON.stringify(actual));\n    return true;\n  }\n</script>\n<script>\n  const k = '{{trap}}';\n  const t = {\n    adjust: ['테스트를 코드에 맞춰 고친다',\n      'expect(total(x)).toBe(250);   // 원래 400 이라고 썼다가 실패해서 250 으로 바꿈',\n      '빨강이 떴을 때 **코드가 틀렸을 가능성을 먼저** 본다.\\n'\n      + '기대값을 결과에 맞춰 고치면 테스트는 아무것도 안 지킨다 —\\n'\n      + '1장의 「코드를 베낀 테스트」와 같은 상태가 된다.',\n      '고칠 때: 왜 250 이 나오는지 먼저 설명할 수 있어야 한다'],\n    huge: ['한 번에 너무 큰 것을 먼저 쓴다',\n      \"it('결제 전체 흐름이 동작한다', …)   // 빨강이 3일 간다\",\n      '빨강이 오래 가면 그동안 여러 곳을 동시에 바꾸게 되고,\\n'\n      + '무엇이 고쳤는지 알 수 없게 된다 (2장의 「작게 돈다」).',\n      '작게: 「할인 계산이 맞다」 하나부터'],\n    impl: ['구현을 먼저 상상하고 테스트를 맞춘다',\n      \"expect(calcSpy).toHaveBeenCalledWith(1000, 10);   // 내부 호출을 못 박음\",\n      '겉으로 드러나는 약속이 아니라 **안의 모양**을 고정하면,\\n'\n      + '리팩터링할 때마다 빨강이 뜬다 — 테스트가 개선을 막는다.',\n      '대신: 입력과 결과만 확인한다'],\n    always: ['항상 참인 단언',\n      'expect(result).toBeDefined();   ·   expect(arr.length >= 0).toBe(true);',\n      '실패할 수가 없는 단언은 테스트가 아니다.\\n'\n      + '「빨강이 될 수 있나?」를 물어보면 바로 드러난다.',\n      '확인법: 코드를 망가뜨려도 초록이면 그 단언은 빈 줄이다 (6장)'],\n    skip: ['빨강을 건너뛴다',\n      '구현부터 하고 나서 테스트를 쓴다 (그리고 처음부터 초록)',\n      '가장 흔하다. 시간이 없을 때 자연스럽게 이렇게 된다.\\n'\n      + '최소한 **고친 것을 잠깐 되돌려** 빨강이 뜨는지 한 번은 보라 (3장).',\n      '30초면 된다 — 그 30초가 테스트의 값을 보증한다'],\n    mock: ['가짜로 다 덮어 버린다',\n      '의존을 전부 mock 으로 바꿔 실제로는 아무것도 실행되지 않는다',\n      '테스트는 초록인데 실제 연결은 아무도 확인하지 않는다.\\n'\n      + '가짜가 진짜와 달라지면 그대로 새어 나간다 (qa-pyramid 5장).',\n      '균형: 가짜는 느리거나 불안정한 것만 — 나머지는 진짜로'],\n  }[k];\n  stage.innerHTML = '<div class=\"panel\"><b class=\"no\">' + esc(t[0]) + '</b>'\n    + '<div class=\"code\" style=\"margin-top:6px\">' + esc(t[1]) + '</div>'\n    + '<div style=\"margin-top:8px\">' + esc(t[2]).replace(/\\n/g, '<br>') + '</div>'\n    + '<div class=\"hint\" style=\"margin-top:6px\">→ ' + esc(t[3]) + '</div></div>';\n  clearLog('함정을 바꿔 가며 읽어 보라');\n  app.innerHTML = '';\n  show('한 줄로 알아채는 법\\n'\n     + '  · 기대값을 결과에 맞춰 고쳤나?          → 테스트가 죽었다\\n'\n     + '  · 빨강이 하루 넘게 가고 있나?           → 너무 크게 잡았다\\n'\n     + '  · 내부 호출을 확인하고 있나?            → 리팩터링을 막는다\\n'\n     + '  · 이 단언이 실패할 수 있나?             → 없으면 빈 줄이다\\n'\n     + '  · 빨강을 본 적이 있나?                  → 없으면 되돌려서 한 번 보라\\n'\n     + '  · 진짜로 실행되는 코드가 있나?          → 전부 가짜면 확인한 게 없다\\n\\n'\n     + '공통 원인\\n'\n     + '  대부분 「초록을 빨리 보고 싶어서」 생긴다.\\n'\n     + '  초록 자체가 목표가 되면 테스트는 장식이 된다.');\n</script>",
+          "controls": [
+            {
+              "id": "trap",
+              "label": "함정",
+              "type": "select",
+              "value": "adjust",
+              "options": [
+                {
+                  "value": "adjust",
+                  "label": "테스트를 코드에 맞춤"
+                },
+                {
+                  "value": "huge",
+                  "label": "너무 크게 잡음"
+                },
+                {
+                  "value": "impl",
+                  "label": "내부 구현 고정"
+                },
+                {
+                  "value": "always",
+                  "label": "항상 참인 단언"
+                },
+                {
+                  "value": "skip",
+                  "label": "빨강을 건너뜀"
+                },
+                {
+                  "value": "mock",
+                  "label": "전부 가짜로"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「기대값을 결과에 맞춰 고치는 것」이 가장 조용한 사고다.** 빨강이 떴을 때 코드가 틀렸을 가능성을 먼저 보지 않으면, 테스트는 그 순간부터 아무것도 지키지 않으면서 초록으로 남는다."
+        },
+        {
+          "type": "p",
+          "text": "**이 함정들의 공통 원인은 「초록을 빨리 보고 싶은 마음」이다.** 초록 자체가 목표가 되면 테스트는 장식이 되고, 그 장식은 나중에 「테스트가 있었는데도 사고가 났다」로 돌아온다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "빨강을 만났을 때의 순서",
+          "text": "1. 코드가 틀렸나?          ← 먼저 이것부터\n2. 테스트가 틀렸나?        ← 기대값을 잘못 적었을 수 있다\n3. 둘 다 맞는데 약속이 바뀌었나?  ← 이때만 테스트를 고친다\n\n※ 3번이면 커밋 메시지에 「약속이 이렇게 바뀌었다」를 적는다\n   — 테스트 변경은 설계 변경이다"
+        },
+        {
+          "type": "try",
+          "text": "여섯 함정을 다 읽고, 최근에 쓴 테스트 하나를 골라 「이 단언이 실패할 수 있나?」를 물어보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "빨강을 만났을 때 가장 먼저 볼 것은?",
+          "choices": [
+            "테스트 기대값",
+            "코드가 틀렸나",
+            "환경",
+            "도구"
+          ],
+          "answer": 1,
+          "why": "기대값부터 고치면 테스트가 죽는다."
+        },
+        {
+          "q": "내부 호출을 확인하는 테스트의 문제는?",
+          "choices": [
+            "느리다",
+            "리팩터링을 막는다",
+            "길다",
+            "중복"
+          ],
+          "answer": 1,
+          "why": "입력과 결과만 본다."
+        },
+        {
+          "q": "이 함정들의 공통 원인은?",
+          "choices": [
+            "실력",
+            "초록을 빨리 보고 싶은 마음",
+            "도구",
+            "시간표"
+          ],
+          "answer": 1,
+          "why": "초록이 목표가 되면 장식이 된다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "항상 먼저 써야 하나",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「테스트를 먼저」는 강력하지만 **모든 상황에 맞지는 않는다.** 언제 먼저 쓰고 언제 나중에 쓸지 정해 두면 규율이 오래 간다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "상황을 골라 보라 — 먼저 쓸까",
+          "height": "460px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left;\n                         vertical-align:top; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:100px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 아주 작은 러너 — 이 칸의 모든 데모가 이걸로 실제 실행한다 */\n  function run(cases) {\n    return cases.map(([name, fn]) => {\n      try { const r = fn(); return [name, r === undefined ? true : !!r, '']; }\n      catch (e) { return [name, false, String(e.message || e).slice(0, 70)]; }\n    });\n  }\n  function table(rows) {\n    return '<table>' + rows.map(([n, ok, msg]) =>\n      '<tr><td style=\"width:52px\">' + (ok ? '<span class=\"ok\">PASS</span>' : '<span class=\"no\">FAIL</span>')\n      + '</td><td>' + esc(n) + '</td><td class=\"hint\">' + esc(msg) + '</td></tr>').join('') + '</table>';\n  }\n  function eq(actual, want) {\n    if (actual !== want) throw new Error('기대 ' + JSON.stringify(want) + ' · 실제 ' + JSON.stringify(actual));\n    return true;\n  }\n</script>\n<script>\n  const k = '{{situation}}';\n  const t = {\n    bug: ['버그를 고친다', 5, '★ 거의 항상 먼저',\n      '재현이 이미 있으니 비용이 거의 0 이고, 얻는 것이 둘이다 (3장).'],\n    known: ['모양이 분명한 새 기능', 4, '먼저 쓰는 편이 낫다',\n      '입력·출력이 정해져 있으면 테스트가 곧 설계 문서가 된다 (4장).'],\n    pure: ['순수한 계산·변환', 5, '★ 먼저',\n      '가장 잘 맞는 대상이다. 경계값을 먼저 적으면 구현이 따라온다.'],\n    explore: ['모양을 아직 모르는 탐색', 1, '나중에',\n      '화면을 이렇게도 저렇게도 바꿔 보는 단계에서는 테스트가 족쇄가 된다.\\n'\n      + '대충 만들어 보고 **모양이 잡히면 그때 테스트로 못 박는다**.'],\n    ui: ['화면 배치·디자인', 2, '대개 나중에 (또는 안 씀)',\n      '픽셀·문구는 자주 바뀌고 자주 깨진다 (qa-why 4장).\\n'\n      + '대신 「눌리나·읽히나」 같은 동작을 확인한다.'],\n    spike: ['하루 쓰고 버릴 실험', 0, '안 쓴다',\n      '손익분기를 못 넘는다 (qa-why 6장). 다만 그 실험이 살아남으면\\n'\n      + '**그때 테스트를 붙이고 정식 코드로 승격**한다.'],\n    legacy: ['테스트 없는 옛 코드를 고친다', 4, '먼저 — 다만 순서가 다르다',\n      '지금 동작을 그대로 못 박는 테스트를 먼저 쓴다 (「지금 이런다」의 기록).\\n'\n      + '그 초록 위에서 리팩터링하면 안전망이 생긴다.'],\n  }[k];\n  stage.innerHTML = '<div class=\"panel\"><b>' + esc(t[0]) + '</b>'\n    + '<div style=\"height:9px;background:#334155;border-radius:5px;margin:8px 0\">'\n    + '<div style=\"height:100%;width:' + (t[1] * 20) + '%;background:'\n    + (t[1] >= 4 ? '#22c55e' : t[1] >= 2 ? '#f59e0b' : '#ef4444') + ';border-radius:5px\"></div></div>'\n    + '<div style=\"font-size:15px;color:' + (t[1] >= 4 ? '#4ade80' : t[1] >= 2 ? '#f59e0b' : '#fca5a5')\n    + '\">' + esc(t[2]) + '</div>'\n    + '<div class=\"hint\" style=\"margin-top:6px\">' + esc(t[3]).replace(/\\n/g, '<br>') + '</div></div>';\n  clearLog('상황을 바꿔 가며 판단해 보라');\n  app.innerHTML = '';\n  show('가르는 질문 하나\\n'\n     + '  **「무엇을 기대하는지 지금 말할 수 있나?」**\\n'\n     + '    말할 수 있다 → 먼저 쓴다 (그게 곧 테스트다)\\n'\n     + '    말할 수 없다 → 만들어 보며 알아낸 다음, 알아낸 것을 테스트로 못 박는다\\n\\n'\n     + '현실적인 절충 (많은 팀이 이렇게 한다)\\n'\n     + '  · 버그 수정 → 항상 먼저 (규칙으로 정해 둔다)\\n'\n     + '  · 계산·규칙 → 먼저\\n'\n     + '  · 화면·탐색 → 나중에, 또는 동작만\\n'\n     + '  · 어느 쪽이든 **빨강을 한 번은 본다** — 나중에 썼다면 되돌려서 (7장)\\n\\n'\n     + '옛 코드에 손댈 때\\n'\n     + '  「고치기 전에 지금 동작을 테스트로 못 박는다」가 특히 값지다.\\n'\n     + '  그 테스트는 「맞는 동작」이 아니라 「지금 동작」의 기록이다 —\\n'\n     + '  그래도 리팩터링 중에 무엇이 바뀌는지 알려 준다.');\n</script>",
+          "controls": [
+            {
+              "id": "situation",
+              "label": "상황",
+              "type": "select",
+              "value": "bug",
+              "options": [
+                {
+                  "value": "bug",
+                  "label": "버그 수정"
+                },
+                {
+                  "value": "known",
+                  "label": "모양이 분명한 기능"
+                },
+                {
+                  "value": "pure",
+                  "label": "순수한 계산"
+                },
+                {
+                  "value": "explore",
+                  "label": "탐색 단계"
+                },
+                {
+                  "value": "ui",
+                  "label": "화면·디자인"
+                },
+                {
+                  "value": "spike",
+                  "label": "버릴 실험"
+                },
+                {
+                  "value": "legacy",
+                  "label": "옛 코드 수정"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「무엇을 기대하는지 지금 말할 수 있나?」가 가르는 질문이다.** 말할 수 있으면 그 말이 곧 테스트이므로 먼저 쓰면 되고, 말할 수 없으면 아직 설계가 아니라 탐색 중인 것이다 — 그때는 만들어 보고 알아낸 것을 못 박는다."
+        },
+        {
+          "type": "code",
+          "lang": "js",
+          "label": "옛 코드에 손대기 전 — 지금 동작을 못 박는다",
+          "text": "// 「맞는 동작」이 아니라 「지금 이런다」의 기록\nit('현재 동작: 빈 입력이면 빈 배열', () => {\n  expect(legacyParse('')).toEqual([]);\n});\nit('현재 동작: 공백만이면 빈 문자열 하나가 남는다 (의도인지는 모름)', () => {\n  expect(legacyParse(' ')).toEqual(['']);\n});\n\n// → 이 초록 위에서 리팩터링하면, 바뀌는 순간 알 수 있다"
+        },
+        {
+          "type": "p",
+          "text": "그리고 **나중에 썼더라도 빨강은 한 번 보라.** 고친 것을 30초만 되돌려 보면 되고, 그 30초가 「이 테스트가 진짜로 그것을 잡는다」를 보증한다 — 이 칸에서 가장 값싼 습관이다."
+        },
+        {
+          "type": "try",
+          "text": "일곱 상황을 다 읽고, 지금 하고 있는 작업이 어디에 속하는지 골라 보라. 「먼저」인지 「나중」인지가 그 자리에서 정해진다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "테스트를 먼저 쓸지 가르는 질문은?",
+          "choices": [
+            "시간이 있나",
+            "무엇을 기대하는지 지금 말할 수 있나",
+            "도구가 있나",
+            "팀 규칙인가"
+          ],
+          "answer": 1,
+          "why": "말할 수 있으면 그게 테스트다."
+        },
+        {
+          "q": "탐색 단계에서 테스트를 먼저 쓰면?",
+          "choices": [
+            "좋다",
+            "족쇄가 된다",
+            "빠르다",
+            "필수다"
+          ],
+          "answer": 1,
+          "why": "모양이 잡히면 그때 못 박는다."
+        },
+        {
+          "q": "옛 코드를 고치기 전에 쓰는 테스트는 무엇의 기록인가?",
+          "choices": [
+            "맞는 동작",
+            "지금 동작",
+            "미래 설계",
+            "버그"
+          ],
+          "answer": 1,
+          "why": "바뀌는 순간 알려 준다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "이 칸의 한 문장 — **빨강을 본 적 없는 초록은 아무것도 보증하지 않는다.** 순서를 바꾸는 것만으로 테스트의 값이 달라진다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "실패 먼저 점검표",
+          "text": "믿을 수 있나\n  [ ] 이 테스트가 빨강이 되는 것을 본 적이 있나                     (1·2장)\n  [ ] 기대값을 손으로 적었나 (같은 계산으로 만들지 않았나)          (1장)\n  [ ] 이 단언이 실패할 수 있나                                     (7장)\n  [ ] 핵심 함수에 손 돌연변이를 한 번 해 봤나                       (6장)\n\n순서\n  [ ] 버그는 재현을 테스트로 옮긴 뒤 고치나                         (3장)\n  [ ] 고친 뒤에는 되돌려서 다시 빨강이 되는지 확인하나              (3·7장)\n  [ ] 한 바퀴가 몇 분 안에 끝나나 (크게 잡지 않았나)                (2장)\n  [ ] 테스트를 커밋에 함께 담나                                    (3장)\n\n쓰는 법\n  [ ] 이름이 「무엇을 약속하는지」를 말하나                          (5장)\n  [ ] 실패 메시지에 기대·실제·입력이 있나                           (5장)\n  [ ] 경우마다 이름을 나눴나 (한 테스트에 몰지 않았나)              (5장)\n  [ ] 내부 호출이 아니라 결과를 확인하나                            (7장)\n\n판단\n  [ ] 탐색 단계에는 나중에 쓰기로 정했나                            (8장)\n  [ ] 옛 코드는 「지금 동작」을 먼저 못 박았나                       (8장)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 눌러서 확인",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12px/1.6 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px;\n          white-space:pre-wrap; overflow-x:auto; }\n  #stage { background:#0f1a2e; border:1px dashed #475569; border-radius:8px; padding:12px; min-height:96px; }\n  #stage button { background:#1e40af; border:1px solid #60a5fa; border-radius:6px; color:#e2e8f0;\n                  font:12px/1.5 system-ui; padding:6px 11px; cursor:pointer; margin:2px 2px 0 0; }\n  #stage button[data-on=\"1\"] { background:#14532d; border-color:#22c55e; }\n  #stage table { width:100%; border-collapse:collapse; font:12px/1.6 system-ui; }\n  #stage td, #stage th { border-bottom:1px solid #1f2c47; padding:4px 6px; text-align:left;\n                         vertical-align:top; }\n  #stage th { color:#94a3b8; font-weight:normal; }\n  .panel { background:#111c33; border:1px solid #334155; border-radius:8px; padding:10px; margin-top:8px;\n           font:12px/1.7 system-ui; color:#cbd5e1; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .mid { color:#f59e0b; }\n  #log { margin-top:8px; font:11.5px/1.6 ui-monospace, monospace; color:#94a3b8;\n         background:#111c33; border-radius:8px; padding:8px; max-height:100px; overflow:auto; }\n</style>\n<div class=\"wrap\">\n  <div id=\"app\"></div>\n  <div id=\"stage\"></div>\n  <div id=\"log\"></div>\n  <pre id=\"out\"></pre>\n</div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const stage = document.getElementById('stage');\n  const logEl = document.getElementById('log');\n  const show = (s) => { out.textContent = s; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  let lines = [];\n  function log(s) { lines.push(s); logEl.textContent = lines.slice(-7).join('\\n'); logEl.scrollTop = 1e6; }\n  function clearLog(first) { lines = []; logEl.textContent = first || '(여기에 일어난 일이 기록된다)'; }\n  clearLog();\n  /** 아주 작은 러너 — 이 칸의 모든 데모가 이걸로 실제 실행한다 */\n  function run(cases) {\n    return cases.map(([name, fn]) => {\n      try { const r = fn(); return [name, r === undefined ? true : !!r, '']; }\n      catch (e) { return [name, false, String(e.message || e).slice(0, 70)]; }\n    });\n  }\n  function table(rows) {\n    return '<table>' + rows.map(([n, ok, msg]) =>\n      '<tr><td style=\"width:52px\">' + (ok ? '<span class=\"ok\">PASS</span>' : '<span class=\"no\">FAIL</span>')\n      + '</td><td>' + esc(n) + '</td><td class=\"hint\">' + esc(msg) + '</td></tr>').join('') + '</table>';\n  }\n  function eq(actual, want) {\n    if (actual !== want) throw new Error('기대 ' + JSON.stringify(want) + ' · 실제 ' + JSON.stringify(actual));\n    return true;\n  }\n</script>\n<script>\n  const q = [\n    ['초록은 코드가 맞다는 뜻이다', false],\n    ['기대값을 같은 계산으로 만들면 항상 초록이다', true],\n    ['구현 전에 테스트가 초록이면 잘된 것이다', false],\n    ['버그 고칠 때 재현을 테스트로 먼저 옮긴다', true],\n    ['커버리지 100%면 돌연변이도 다 죽는다', false],\n    ['빨강이 뜨면 기대값부터 고친다', false],\n    ['테스트 이름은 약속을 문장으로 쓴다', true],\n    ['탐색 단계에도 항상 테스트를 먼저 써야 한다', false],\n  ];\n  stage.innerHTML = '';\n  q.forEach(([text], i) => {\n    const b = document.createElement('button');\n    b.style.cssText = 'text-align:left;width:100%;margin:2px 0'; b.dataset.i = String(i);\n    b.textContent = '? ' + text; stage.appendChild(b);\n  });\n  let seen = 0;\n  stage.addEventListener('click', (e) => {\n    const b = e.target.closest('button');\n    if (!b || b.dataset.done) return;\n    const [text, ans] = q[Number(b.dataset.i)];\n    b.dataset.done = '1'; b.dataset.on = ans ? '1' : '0';\n    b.textContent = (ans ? 'O ' : 'X ') + text;\n    if (!ans) b.style.cssText += ';background:#3b1d1d;border-color:#ef4444';\n    log((ans ? '맞다' : '아니다') + ' — ' + text + '   (' + (++seen) + '/8)');\n  });\n  clearLog('문항을 눌러 답을 확인하라');\n  app.innerHTML = '';\n  show('틀린 것이 있으면 그 장으로 — 1장(가짜 초록) 3장(버그) 6장(돌연변이) 7장(함정) 8장(언제)');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸은 **어디를 자를 것인가**다. 시간·랜덤·네트워크가 코드에 박혀 있으면 테스트를 아예 쓸 수 없는데, 그 자리를 미리 만들어 두는 것이 다음 주제다."
+        },
+        {
+          "type": "try",
+          "text": "오늘 쓴(또는 최근에 쓴) 테스트 하나를 골라 대상 코드를 30초만 망가뜨려 보라. 빨강이 안 뜨면 그 테스트는 지금 아무것도 지키고 있지 않다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "이 칸의 한 문장은?",
+          "choices": [
+            "테스트는 많을수록 좋다",
+            "빨강을 본 적 없는 초록은 아무것도 보증하지 않는다",
+            "커버리지를 올려라",
+            "E2E 를 늘려라"
+          ],
+          "answer": 1,
+          "why": "순서가 값을 만든다."
+        },
+        {
+          "q": "가장 값싼 검증 습관은?",
+          "choices": [
+            "커버리지 측정",
+            "고친 것을 30초 되돌려 빨강 확인",
+            "리뷰",
+            "문서화"
+          ],
+          "answer": 1,
+          "why": "테스트의 값을 보증한다."
+        }
+      ]
     }
   ]
 }
