@@ -125,6 +125,14 @@ export function bindFieldsSection(ctx: PanelCtx, node: GraphNode, touch: (redraw
     if (!name) return;
     fields()[name] = fields()[name] ?? '';
     touch(true);
+    /* ★ 칸을 만들면 **그 칸에 커서를 준다** (TASK-KL-271 R7 / C3).
+       패널은 통째로 다시 그려지므로 「칸 추가」를 누른 순간 커서가 판 밖으로 떨어졌다(실측:
+       누른 뒤 포커스가 BODY). 칸 이름을 적는 사람은 곧바로 **값**을 적으려는 것인데, 손이
+       한 번 더 가야 했다. 다시 그린 뒤에 그 칸을 찾아 커서를 놓는다. */
+    requestAnimationFrame(() => {
+      const made = side.querySelector(`[data-km="fld-value"][data-key="${CSS.escape(name)}"]`);
+      (made as HTMLInputElement | null)?.focus();
+    });
   };
   (side.querySelector('[data-km="fld-add"]') as HTMLButtonElement).onclick = add;
   (side.querySelector('[data-km="fld-new"]') as HTMLInputElement).onkeydown = (ev) => {
