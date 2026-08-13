@@ -31,7 +31,7 @@ const missing = NEEDED.filter((rel) => fs.existsSync(path.join(appRoot, rel)) ==
 if (missing.length > 0) {
   console.log(`[charconv-pinyin] CANNOT-RUN(건너뜀) — 아직 없다: ${missing.join(' · ')}`);
   console.log('  `node build.mjs` 뒤에 돌려라.');
-  process.exit(0);
+  process.exit(2);
 }
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };

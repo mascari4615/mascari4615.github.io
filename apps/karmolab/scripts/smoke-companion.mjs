@@ -23,7 +23,7 @@ try {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 } catch (e) {
   console.log(`[smoke-companion] 건너뜀 — 봇이 ${봇} 에 안 떠 있다 (${e.message})`);
-  process.exit(0);
+  process.exit(2);
 }
 
 const server = http.createServer((req, res) => {

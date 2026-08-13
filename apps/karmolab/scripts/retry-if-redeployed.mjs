@@ -56,7 +56,8 @@ function run() {
 
 const before = await servedCommit();
 let code = run();
-if (code !== 0) {
+/* 2 = 「못 돌렸다」(CANNOT-RUN). 다시 재도 같은 답이고, 「진짜 빨강이다」로 적으면 거짓이다. */
+if (code !== 0 && code !== 2) {
   const after = await servedCommit();
   if (before && after && before !== after) {
     console.log(`[retry-if-redeployed] 재는 동안 판이 바뀌었다 (${before.slice(0, 8)} → ${after.slice(0, 8)}) — 잠잠해진 뒤 한 번만 다시 잰다`);

@@ -47,7 +47,7 @@ const missing = NEEDED.filter((rel) => fs.existsSync(path.join(root, rel)) === f
 if (missing.length > 0) {
   console.log(`[smoke-core-parity] CANNOT-RUN(건너뜀) — 볼 번들이 아직 없다: ${missing.join(' · ')}`);
   console.log('  `node build.mjs` 뒤에 돌려라 (build 사슬에서는 자동으로 그 순서다).');
-  process.exit(0);
+  process.exit(2);
 }
 
 let browser;

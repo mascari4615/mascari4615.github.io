@@ -151,10 +151,18 @@ for (const check of todo) {
 
 console.log('\n════ 라이브 점검 결과 ════');
 for (const name of skipped) console.log(`  · ${name.padEnd(34, ' ')}   못 돌림 (건너뜀)`);
+/* ★ **2 = 못 돌림은 빨강이 아니다** (2026-08-14). 게이트 러너(`run-gates.mjs`)는 이미 그렇게
+   읽는데 여기만 「0이 아니면 빨강」이었다 — 같은 검사가 부르는 자리에 따라 다른 판정을 받았다.
+   그래서 검사들이 「못 돌렸다」고 말하면서도 **0으로 끝내** 초록으로 세어지고 있었다
+   (안 본 것을 봤다고 적는 자리다). 이제 여기서도 갈라 적는다. */
 for (const r of results) {
-  console.log(`  ${r.code === 0 ? '✓' : '✘'} ${r.name.padEnd(34, ' ')} ${String(r.sec).padStart(3)}s${r.code ? `  — exit ${r.code}` : ''}`);
+  const 표 = r.code === 0 ? '✓' : r.code === 2 ? '·' : '✘';
+  const 꼬리 = r.code === 2 ? '  — 못 돌림 (빨강 아님)' : r.code ? `  — exit ${r.code}` : '';
+  console.log(`  ${표} ${r.name.padEnd(34, ' ')} ${String(r.sec).padStart(3)}s${꼬리}`);
 }
-const red = results.filter((r) => r.code !== 0);
+const red = results.filter((r) => r.code !== 0 && r.code !== 2);
+const 못돌림 = results.filter((r) => r.code === 2);
+if (못돌림.length) console.log(`  ※ 못 돌린 검사 ${못돌림.length}개 — 초록으로 세지 않는다: ${못돌림.map((r) => r.name).join(', ')}`);
 
 /* 빨간 검사의 **이름**을 파일과 실행 요약에 남긴다 (2026-08-13).
    경보 이슈에 「로그를 보세요」만 328번 쌓여 있었다 — 무엇이 빨간지 안 적혀 있으면
