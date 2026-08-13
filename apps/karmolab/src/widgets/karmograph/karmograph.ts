@@ -25,6 +25,7 @@ import { loadTerms, saveTerms, newTermId, type MyTerms } from './terms';
 import { parseOutline, layoutTree } from './from-text';
 import { sampleFor, INTENTS } from './samples';
 import { COMMAND_GROUPS } from './commands';
+import { dropFromFront, roughBytes } from './history';
 import { measureStorage, humanBytes, WARN_RATIO } from './storage-health';
 import { help } from './help';
 import type { PanelCtx } from './panels/context';
@@ -866,7 +867,7 @@ import {
     // 스냅샷 방식. 관계도는 노드 수십 개 규모라 JSON 통째로 떠도 싸고, 델타 방식과 달리
     // 「어떤 편집이든 되돌아간다」가 코드 한 줄로 보장된다 — 새 편집 기능을 붙일 때마다
     // undo 를 따로 안 짜도 된다. 그 대신 스냅샷 상한을 둬서 메모리를 묶는다.
-    const HISTORY_MAX = 60;
+    /** 되돌리기 더미 — **판 수가 아니라 무게로** 자른다 (규칙은 `history.ts`, TASK-KL-271 M4). */
     const history: string[] = [];
     /** 다음 저장이 「무엇을 한 것」인지 — 저장 직전에 아는 자리에서 적어 둔다. */
     let lastAction = '';
@@ -884,7 +885,10 @@ import {
       histLabels.splice(histIndex + 1);
       history.push(json);
       histLabels.push(what);           // 「무엇을 한 판」인지 — 되돌리기 단추가 이걸 말한다
-      if (history.length > HISTORY_MAX) { history.shift(); histLabels.shift(); }
+      // 사진이 붙은 판은 하나가 수 MB 다 — 예순 판을 그대로 들면 탭이 죽는다(죽으면 되돌리기가
+      // 아니라 작업 전체를 잃는다). 가벼우면 예순 판, 무거우면 몇 판 — 더미 전체는 상한 아래.
+      const drop = dropFromFront(history.map(roughBytes));
+      if (drop > 0) { history.splice(0, drop); histLabels.splice(0, drop); }
       histIndex = history.length - 1;
       syncHistoryButtons();
     }
