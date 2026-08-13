@@ -1,110 +1,797 @@
 {
   "id": "qa-gate",
-  "minutes": 11,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "게이트는 **틀린 것을 못 올라가게** 막는 장치다. 문제는 대개 「무엇을 막을까」가 아니라 **막는 것이 얼마나 오래 살아남는가**다."
-    },
-    {
-      "type": "h",
-      "text": "1. 커버리지의 함정"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "커버리지 100%, 지키는 것 0",
-      "text": "test('돌아가긴 한다', () => {\n  결제(1000);          // 실행은 됐다 → 커버리지 초록\n  // 단언이 없다       ← 아무것도 검사하지 않았다\n});"
-    },
-    {
-      "type": "p",
-      "text": "커버리지는 **실행된 줄의 비율**이지 검증된 동작의 비율이 아니다. 쓸 만한 용도는 하나 — **0% 인 곳을 찾는 지도**. 목표 숫자로 삼는 순간 사람들은 숫자를 채우는 법을 배운다."
-    },
-    {
-      "type": "h",
-      "text": "2. 게이트는 빨리, CI 는 늦다"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "같은 검사도 자리에 따라 값어치가 다르다",
-      "text": "편집기       즉시    타입·린트          ← 제일 싸다\n저장 시      1초     포맷·빠른 단위\n커밋 전      10초    관련 테스트\npush 전      1분     전체 단위 + 빌드\nCI          5분     E2E · 통합 · 배포     ← 여기서만 잡으면 이미 늦다\n\n늦게 잡을수록 되돌리는 비용이 커진다"
-    },
-    {
-      "type": "h",
-      "text": "3. 좋은 게이트의 조건"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "이 셋이 없으면 곧 꺼진다",
-      "text": "· 빠르다        — 느리면 사람이 건너뛴다\n· 안 깜빡인다   — 거짓 빨강 한 번이 신뢰를 깎는다\n· 고칠 방법을 알려 준다 — \"실패\" 말고 \"이 파일 이 줄, 이렇게 고쳐라\""
-    },
-    {
-      "type": "note",
-      "text": "실패 메시지에 **다음 행동**을 적어라. `[gate] i18n 키 누락: home.title — i18n/ko/home.json 에 추가하라` 처럼. 이 한 줄이 게이트의 수명을 몇 배로 늘린다."
-    },
-    {
-      "type": "h",
-      "text": "4. 우회 통로를 설계해 둔다"
-    },
-    {
-      "type": "p",
-      "text": "긴급 상황에 못 넘어가는 게이트는 결국 **통째로 삭제**된다. `SKIP=1` 같은 명시적 우회를 두되 **기록에 남게** 하라. 우회가 잦으면 그 게이트가 잘못된 것이다."
-    },
-    {
-      "type": "h",
-      "text": "5. 게이트의 건강을 재라"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "분기마다 볼 숫자",
-      "text": "· 빨강 중 진짜 잡은 비율 (거짓 빨강이 절반이면 폐기 검토)\n· 평균 실행 시간 추이\n· 우회 사용 횟수\n· 마지막으로 무언가를 실제로 막은 날짜  ← 아무것도 안 막은 지 오래면 지워라"
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "내 프로젝트에 커밋 전 게이트 하나를 세우고, 실패 메시지에 「다음 행동」을 넣어라."
-    },
-    {
-      "type": "try",
-      "text": "기존 게이트 하나를 골라 최근 실패 기록을 훑고 거짓 빨강 비율을 계산하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "커버리지 수치의 한계는?",
-      "choices": [
-        "실행된 줄의 비율일 뿐 검증 여부가 아니다",
-        "측정이 느리다",
-        "언어마다 다르다"
+      "id": "1",
+      "title": "게이트는 막는 장치 — 문제는 수명",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "품질 게이트(quality gate)는 **틀린 것을 못 올라가게** 막는 장치다 — 타입 오류·린트·테스트 실패·보안 문제가 있으면 병합·배포를 막는다. 문제는 대개 「무엇을 막을까」가 아니라 **막는 것이 얼마나 오래 살아남는가**다. 느리거나·자주 거짓 빨강을 내거나·고칠 방법을 안 알려 주는 게이트는, 사람들이 **건너뛰거나 통째로 삭제**한다(긴급할 때 특히). 그러면 게이트가 있으나 마나다. 그래서 좋은 게이트는 「엄격함」만이 아니라 **빠르고·믿을 만하고·친절해서 사람들이 계속 쓰게** 만드는 것이다 — 살아남는 게이트가 지키는 게이트다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "게이트의 수명 — 살아남아야 지킨다",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .ladder { margin:8px 0; }\n  .ladder .rung { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n                  background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .ladder .rung.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .ladder .rung .stage { width:70px; color:#7dd3fc; } .ladder .rung .cost { width:52px; color:#fbbf24; text-align:right; }\n  .ladder .rung .what { color:#94a3b8; margin-left:8px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .gauge { display:flex; align-items:center; gap:8px; margin:4px 0; font:11.5px ui-monospace; }\n  .gauge .lab { width:150px; color:#94a3b8; } .gauge .track { flex:1; height:14px; background:#1e293b; border-radius:7px; overflow:hidden; }\n  .gauge .fill { height:100%; border-radius:7px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const gauge = (rows) => rows.map(([lab, pct, col]) =>\n    '<div class=\"gauge\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"track\"><span class=\"fill\" style=\"width:' +\n    pct + '%;background:' + col + '\"></span></span><span class=\"dim\">' + pct + '%</span></div>').join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'bad') {\n    render('나쁜 게이트 (곧 죽는다)',\n      '  느림 · 자주 거짓 빨강 · 고칠 방법 안 알려 줌\\n\\n' +\n      '  <span class=\\\"no\\\">사람들이 건너뛰거나 삭제 → 있으나 마나 → 틀린 게 올라감.</span>',\n      '나쁜 게이트: 느리고·깜빡이고·불친절 → 건너뛰거나 삭제됨.',\n      steps([['느려서 답답', 'bad'],['거짓 빨강 잦음 → 신뢰 하락', 'bad'],\n             ['긴급할 때 SKIP·삭제', 'bad'],['게이트 없어짐 → 틀린 게 통과', 'bad']]));\n  } else {\n    render('좋은 게이트 (오래 산다)',\n      '  빠름 · 안 깜빡임 · 고칠 방법 안내 · 우회는 기록\\n\\n' +\n      '  <span class=\\\"ok\\\">사람들이 계속 씀 → 틀린 것을 꾸준히 막음.</span>',\n      '좋은 게이트: 빠르고·믿을 만하고·친절 → 계속 쓰여 지킴.',\n      steps([['빠름 → 안 답답', 'good'],['안 깜빡임 → 빨강이 진짜 신호', 'good'],\n             ['고칠 방법 안내 → 바로 수정', 'good'],['계속 쓰임 → 틀린 것을 막음', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "게이트",
+              "type": "select",
+              "value": "bad",
+              "options": [
+                {
+                  "value": "bad",
+                  "label": "나쁜 게이트"
+                },
+                {
+                  "value": "good",
+                  "label": "좋은 게이트"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**게이트는 틀린 것을 못 올라가게 막는 장치지만, 진짜 문제는 「무엇을 막을까」가 아니라 「막는 것이 얼마나 오래 살아남는가」다.** 품질 게이트 = 코드가 다음 단계(병합·배포)로 가기 전에 통과해야 하는 자동 검사 — 타입 체크, 린트, 테스트, 빌드, 보안 스캔(sec-secret), 커버리지, i18n 키 검사 등. 「틀린 것을 막는다」는 목적은 분명하다. 하지만 실무에서 게이트가 실패하는 방식은 대개 **「무엇을 막을지 잘못 골라서」가 아니라 「게이트가 사람들에게 버림받아서」**다: ① **느리면** — 게이트가 몇 분씩 걸리면 사람들이 답답해하고, 로컬에선 건너뛰고(--no-verify), 결국 우회가 습관이 된다. ② **자주 거짓 빨강(false positive)을 내면** — 진짜 문제가 아닌데 빨강이 뜨면(깜빡임·과민한 규칙), 사람들이 빨강을 안 믿게 되고(qa-flaky 1장 — 신뢰 붕괴) 무시한다. ③ **고칠 방법을 안 알려 주면** — 「실패」만 뜨고 무엇을·어떻게 고칠지 모르면, 좌절해서 우회한다. 이런 게이트는 **긴급 상황에 통째로 삭제**되거나(못 넘어가니까) 늘 SKIP 된다 — 그러면 있으나 마나, 틀린 게 그대로 올라간다. 그래서 좋은 게이트의 핵심은 **엄격함만이 아니라 「사람들이 계속 쓰게」 만드는 것** — 빠르고(건너뛸 이유 없게), 믿을 만하고(빨강이 진짜 신호), 친절하고(고칠 방법 안내), 우회는 명시적·기록되게(긴급 시 삭제 대신 기록된 우회). 「살아남는 게이트가 지키는 게이트」다 — 아무리 엄격해도 버림받으면 0을 지킨다. 이 관점(게이트를 「제품」처럼 — 사용자가 계속 쓰게 설계)이 이 칸의 핵심이다: 게이트의 성공은 「얼마나 엄격한가」가 아니라 「얼마나 오래·꾸준히 실제로 막는가」로 잰다."
+        },
+        {
+          "type": "p",
+          "text": "**규칙·프로세스는 「지켜질 때만」 가치가 있다 — 준수 가능성이 엄격함만큼 중요하다.** 게이트의 교훈은 규칙·프로세스 전반에 통한다: **아무리 좋은 규칙도 지켜지지 않으면 0이다** — 그래서 「올바름」만큼 「지켜질 수 있음」(준수 가능성)이 중요하다. 너무 엄격·느리·불편한 규칙은 우회되거나 폐기되어(shadow process — 몰래 우회하는 관행) 오히려 무질서를 낳는다. 반대로 「올바른 길이 가장 쉬운 길」이면(pit of success — sec-secret 8장) 자연히 지켜진다. 그래서 게이트·정책·프로세스를 설계할 때 **「사람들이 실제로 따를까」를 「올바른가」만큼** 생각해야 한다 — 마찰을 줄이고(빠르게·자동으로), 신뢰를 주고(거짓 경보 없이), 도와주고(다음 행동 안내), 예외를 인정하되 기록한다(우회 통로). 이는 team(팀 관행)·quality(지속 가능한 품질)·보안(지켜지는 정책)과 통한다. 「엄격하게 만들면 품질이 오른다」는 순진하다 — 지켜지지 않는 엄격함은 품질을 못 지킨다. 성숙한 접근은 **「지켜지는 적정선」**을 찾는 것 — 엄격함과 준수 가능성의 균형. 게이트를 「제품」으로 보고 「사용자(개발자)가 계속 쓰게」 설계하는 게, 게이트가 오래 살아 실제로 품질을 지키는 길이다. 규칙의 성공은 종이 위 엄격함이 아니라 현실의 준수로 잰다."
+        },
+        {
+          "type": "try",
+          "text": "네 프로젝트의 게이트들을 「살아남고 있나」로 점검하라 — 자주 건너뛰거나(--no-verify) SKIP 되는 게이트가 있나? 있다면 왜인지(느림·거짓 빨강·불친절) 진단하라. 게이트를 「엄격함」이 아니라 「계속 쓰이는가」로 평가하는 관점으로 바꿔, 버림받는 게이트를 고쳐라."
+        }
       ],
-      "answer": 0,
-      "why": "단언 없는 테스트도 커버리지를 올린다."
+      "quiz": [
+        {
+          "q": "게이트의 진짜 문제는 대개?",
+          "choices": [
+            "무엇을 막을까",
+            "막는 것이 얼마나 오래 살아남는가(버림받으면 0)",
+            "속도만",
+            "색"
+          ],
+          "answer": 1,
+          "why": "살아남는 게이트가 지킴."
+        },
+        {
+          "q": "게이트가 버림받는 이유가 아닌 것은?",
+          "choices": [
+            "느림",
+            "자주 거짓 빨강",
+            "고칠 방법 안 알려 줌",
+            "빨강이 진짜 신호"
+          ],
+          "answer": 3,
+          "why": "그건 좋은 게이트."
+        },
+        {
+          "q": "게이트 설계의 관점은?",
+          "choices": [
+            "최대한 엄격",
+            "제품처럼 — 사람들이 계속 쓰게(빠름·신뢰·친절)",
+            "느리게",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "준수 가능성."
+        }
+      ]
     },
     {
-      "q": "같은 검사를 CI 에서만 돌리면 생기는 문제는?",
-      "choices": [
-        "늦게 잡혀 되돌리는 비용이 커진다",
-        "실행이 느리다",
-        "설정이 복잡하다"
+      "id": "2",
+      "title": "커버리지의 함정",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "가장 흔한 게이트 착각: **커버리지 숫자를 목표로 삼기**. 커버리지는 **실행된 줄의 비율**이지 **검증된 동작의 비율**이 아니다. 단언(assert)이 **하나도 없는** 테스트도 코드를 실행만 하면 커버리지가 초록이 된다 — 「돌아가긴 한다」만 확인하고 「올바른가」는 안 본다. 그래서 커버리지 90% 가 「90% 검증됨」이 아니다(실행만 됐을 수도). 커버리지의 **쓸 만한 용도는 하나** — **0% 인 곳을 찾는 지도**(아예 안 건드린 코드). 목표 숫자(「80% 넘겨라」)로 삼으면 단언 없는 가짜 테스트를 양산하게 된다 — 숫자는 오르고 품질은 그대로."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "커버리지 함정 — 실행 ≠ 검증",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .ladder { margin:8px 0; }\n  .ladder .rung { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n                  background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .ladder .rung.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .ladder .rung .stage { width:70px; color:#7dd3fc; } .ladder .rung .cost { width:52px; color:#fbbf24; text-align:right; }\n  .ladder .rung .what { color:#94a3b8; margin-left:8px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .gauge { display:flex; align-items:center; gap:8px; margin:4px 0; font:11.5px ui-monospace; }\n  .gauge .lab { width:150px; color:#94a3b8; } .gauge .track { flex:1; height:14px; background:#1e293b; border-radius:7px; overflow:hidden; }\n  .gauge .fill { height:100%; border-radius:7px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const gauge = (rows) => rows.map(([lab, pct, col]) =>\n    '<div class=\"gauge\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"track\"><span class=\"fill\" style=\"width:' +\n    pct + '%;background:' + col + '\"></span></span><span class=\"dim\">' + pct + '%</span></div>').join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'noassert') {\n    render('단언 없는 테스트 (가짜 초록)',\n      '  test(\\\"돌아가긴 한다\\\", () => {\\n' +\n      '    결제(1000);   // 실행됨 → 커버리지 초록\\n' +\n      '    // 단언이 없다 — 결과를 확인 안 함\\n' +\n      '  });\\n\\n' +\n      '  <span class=\\\"no\\\">커버리지 100% 지만 버그(결제가 0원이어도) 통과. 실행≠검증.</span>',\n      '단언 없는 테스트: 실행만 됨 → 커버리지 초록, 버그는 통과.',\n      box('coverage 100% · 검증 0%', '결제(1000) 실행됨\\n결과 확인 없음 → 틀려도 통과', 'bad'));\n  } else {\n    render('단언 있는 테스트 (진짜 검증)',\n      '  test(\\\"1000원 결제는 잔액 1000 감소\\\", () => {\\n' +\n      '    const before = 잔액();\\n' +\n      '    결제(1000);\\n' +\n      '    expect(잔액()).toBe(before - 1000);  // 결과 검증!\\n' +\n      '  });\\n\\n' +\n      '  <span class=\\\"ok\\\">동작을 검증 → 결제가 틀리면 빨강. 이게 진짜 테스트.</span>',\n      '단언 있는 테스트: 동작을 검증 → 틀리면 빨강. 실행+검증.',\n      box('coverage 100% · 검증 O', '결제(1000) → 잔액 -1000 확인\\n틀리면 빨강', 'good'));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "테스트",
+              "type": "select",
+              "value": "noassert",
+              "options": [
+                {
+                  "value": "noassert",
+                  "label": "단언 없음(가짜)"
+                },
+                {
+                  "value": "assert",
+                  "label": "단언 있음(진짜)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**커버리지는 실행된 줄의 비율이지 검증된 동작의 비율이 아니다 — 단언 없는 테스트도 커버리지를 채운다. 쓸 용도는 「0% 인 곳을 찾는 지도」 하나뿐이다.** 커버리지(code coverage)는 「테스트가 코드의 어느 줄·분기를 **실행**했나」의 비율이다. 함정: **실행 ≠ 검증**. 단언(assert/expect)이 **하나도 없는** 테스트도 함수를 호출만 하면 그 줄이 「실행됨」으로 집계돼 커버리지가 오른다 — 하지만 결과를 **확인 안 하니** 그 함수가 틀린 값을 내도(결제가 0원이어도) 통과한다. 즉 커버리지 100% 여도 검증은 0% 일 수 있다. 그래서 「커버리지 90%」는 「90% 가 올바르게 검증됨」이 **아니다** — 90% 가 실행됐을 뿐(단언이 있었는지·의미 있었는지는 별개). **커버리지를 목표 숫자로 삼으면**(「80% 넘겨라」를 게이트로) 나쁜 유인이 생긴다 — 개발자가 숫자를 채우려고 **단언 없는·의미 없는 가짜 테스트**를 양산한다(실행만 하는 테스트, 자명한 것만 확인하는 테스트). 숫자는 오르지만 실제 품질(버그를 잡는 능력)은 그대로거나 나빠진다(가짜 테스트 유지 비용만 늘어남). 이건 굿하트의 법칙(측정을 목표로 삼으면 측정이 망가진다)의 전형이다. **커버리지의 유일하게 쓸 만한 용도**: **0% 인 곳을 찾는 지도** — 「아예 테스트가 안 닿은 코드」를 발견하는 것. 커버리지 리포트에서 빨간(0%) 영역은 「여긴 완전히 무방비」라는 유용한 정보다(특히 중요한 로직이 0% 면 위험 신호). 하지만 「높은 커버리지 = 좋음」이 아니라 「0% = 확실히 나쁨」의 비대칭으로만 쓴다. 그래서 커버리지는 **목표가 아니라 진단 도구** — 「어디가 안 되어 있나」를 보되, 「몇 %냐」를 게이트로 삼지 않는다. 진짜 게이트는 「의미 있는 단언이 있는 테스트가 통과하나」지 「몇 줄이 실행됐나」가 아니다. 커버리지 게이트를 둔다면 「신규 코드가 0% 는 아닌지」 정도의 하한으로, 목표 숫자로는 삼지 않는다."
+        },
+        {
+          "type": "p",
+          "text": "**측정을 목표로 삼으면 측정이 망가진다(굿하트의 법칙) — 대리 지표의 함정.** 커버리지의 교훈은 지표 전반에 통한다: **대리 지표(proxy metric)를 목표로 삼으면, 진짜 목적 대신 그 지표만 최적화되어 지표가 망가진다**(굿하트의 법칙 — 「측정이 목표가 되면 좋은 측정이 아니게 된다」). 커버리지(대리)를 목표로 하면 가짜 테스트로 숫자만 오르고 진짜 목적(버그 예방)은 안 는다. 같은 함정: 코드 줄 수(생산성 대리 → 장황한 코드), 커밋 수, 티켓 개수, 테스트 개수(품질 대리 → 의미 없는 테스트), 성능 벤치 하나(→ 그것만 튜닝). 그래서 지표는 **진짜 목적을 대신하는 대리임을 알고**, ① 목표가 아니라 **진단**으로 쓰고(방향 파악용), ② 여러 지표를 함께 보고(하나만 최적화 못 하게), ③ 지표가 목적과 어긋나는 조작을 경계한다. 커버리지는 「0% 지도」로만 쓰는 게 이 지혜 — 「높이면 좋음」(목표)이 아니라 「0 은 나쁨」(진단)의 비대칭. 이 사고는 product(허영 지표 경계)·analytics·team(성과 측정)과 통한다. 「무엇을 재느냐」보다 「그 숫자를 목표로 삼을 때 어떤 행동이 유발되나」를 봐야 한다 — 좋은 지표도 목표가 되면 왜곡된다. 게이트로 삼을 지표는 특히 조심 — 게이트는 강한 유인이라 대리 지표를 게이트로 하면 왜곡이 크다."
+        },
+        {
+          "type": "try",
+          "text": "네 테스트 중 단언(assert)이 없거나 자명한 것만 확인하는 「가짜 테스트」가 있는지 찾아라 — 커버리지는 채우지만 버그를 못 잡는다. 커버리지 리포트를 「0% 인 곳을 찾는 지도」로만 쓰고(중요 로직이 0% 면 위험), 목표 숫자(「80% 넘겨」)를 게이트로 삼고 있다면 재고하라 — 가짜 테스트를 유발한다."
+        }
       ],
-      "answer": 0,
-      "why": "가능한 앞단으로 당기는 것이 값어치가 크다."
+      "quiz": [
+        {
+          "q": "커버리지가 재는 것은?",
+          "choices": [
+            "검증된 동작 비율",
+            "실행된 줄의 비율(실행≠검증)",
+            "버그 수",
+            "속도"
+          ],
+          "answer": 1,
+          "why": "단언 없어도 오름."
+        },
+        {
+          "q": "커버리지의 쓸 만한 용도는?",
+          "choices": [
+            "목표 숫자",
+            "0% 인 곳을 찾는 지도(아예 무방비한 코드)",
+            "성과 평가",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "진단이지 목표가 아님."
+        },
+        {
+          "q": "커버리지를 목표로 삼으면?",
+          "choices": [
+            "품질 향상",
+            "단언 없는 가짜 테스트 양산(굿하트의 법칙)",
+            "빨라짐",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "측정이 목표가 되면 망가짐."
+        }
+      ]
     },
     {
-      "q": "게이트 수명을 늘리는 실질적 방법은?",
-      "choices": [
-        "실패 메시지에 다음 행동을 적는다",
-        "더 많은 검사를 넣는다",
-        "경고를 늘린다"
+      "id": "3",
+      "title": "게이트는 빨리, CI 는 늦다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "게이트를 **어디에 두느냐**가 비용을 정한다. 같은 검사도 **빨리(편집기·저장 시) 잡을수록 싸고**, 늦게(CI·배포 후) 잡을수록 비싸다: **편집기**(즉시 — 타입·린트, 제일 쌈) → **저장 시**(1초 — 포맷·빠른 단위) → **커밋 전**(10초 — 관련 테스트·비밀 스캔) → **CI/PR**(분 — 전체 테스트·통합·빌드) → **배포 후**(시간~ — 모니터링·스모크). 원칙: **싼 검사는 최대한 앞으로**(shift left) — 편집기·커밋 전에 즉시 피드백, CI 엔 느리지만 포괄적인 것만. 그래야 개발자가 문제를 **만든 순간** 알고(맥락이 살아 있을 때) 싸게 고친다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "게이트 사다리 — 빠를수록 싸다",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .ladder { margin:8px 0; }\n  .ladder .rung { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n                  background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .ladder .rung.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .ladder .rung .stage { width:70px; color:#7dd3fc; } .ladder .rung .cost { width:52px; color:#fbbf24; text-align:right; }\n  .ladder .rung .what { color:#94a3b8; margin-left:8px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .gauge { display:flex; align-items:center; gap:8px; margin:4px 0; font:11.5px ui-monospace; }\n  .gauge .lab { width:150px; color:#94a3b8; } .gauge .track { flex:1; height:14px; background:#1e293b; border-radius:7px; overflow:hidden; }\n  .gauge .fill { height:100%; border-radius:7px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const gauge = (rows) => rows.map(([lab, pct, col]) =>\n    '<div class=\"gauge\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"track\"><span class=\"fill\" style=\"width:' +\n    pct + '%;background:' + col + '\"></span></span><span class=\"dim\">' + pct + '%</span></div>').join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const stage = '{{stage}}';\n  const rungs = [\n    ['편집기', '즉시', '타입·린트', 'editor'],\n    ['저장 시', '1초', '포맷·빠른 단위 테스트', 'save'],\n    ['커밋 전', '10초', '관련 테스트·비밀 스캔', 'commit'],\n    ['CI/PR', '분', '전체 테스트·통합·빌드', 'ci'],\n    ['배포 후', '시간~', '모니터링·스모크·롤백', 'deploy'],\n  ];\n  const idx = rungs.findIndex(r => r[3] === stage);\n  let h = '<div class=\\\"ladder\\\">';\n  rungs.forEach((r,i)=>{ h += '<div class=\\\"rung '+(i===idx?'on':'')+'\\\"><span class=\\\"stage\\\">'+r[0]+\n    '</span><span class=\\\"cost\\\">'+r[1]+'</span><span class=\\\"what\\\">'+r[2]+'</span></div>'; });\n  h += '</div>';\n  render('단계: ' + rungs[idx][0] + ' (' + rungs[idx][1] + ')',\n    '  검사: ' + rungs[idx][2] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">' + (idx <= 2\n      ? '빨리 잡음 — 싸고 맥락이 살아 있어 바로 고침(shift left).'\n      : '늦게 잡음 — 포괄적이나 비쌈. 여기엔 느린·전체 검사만.') + '</span>',\n    '편집기→저장→커밋→CI→배포: 빨리 잡을수록 싸다. 싼 검사는 앞으로.', h);\n</script>",
+          "controls": [
+            {
+              "id": "stage",
+              "label": "단계",
+              "type": "select",
+              "value": "editor",
+              "options": [
+                {
+                  "value": "editor",
+                  "label": "편집기(즉시)"
+                },
+                {
+                  "value": "save",
+                  "label": "저장 시"
+                },
+                {
+                  "value": "commit",
+                  "label": "커밋 전"
+                },
+                {
+                  "value": "ci",
+                  "label": "CI/PR"
+                },
+                {
+                  "value": "deploy",
+                  "label": "배포 후"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "게이트 사다리 — 빠를수록 싸다",
+          "text": "편집기       즉시    타입·린트              ← 제일 싸다 (만들며 바로 앎)\n저장 시      1초     포맷·빠른 단위\n커밋 전      10초    관련 테스트·비밀 스캔    ← 로컬 마지막 방어\nCI/PR        분      전체 테스트·통합·빌드   ← 강제·포괄 (우회 불가)\n배포 후      시간~   모니터링·스모크·롤백    ← 최후 안전망\n\n· 싼 검사(타입·린트·포맷)는 최대한 앞으로 (shift left)\n· 느리지만 포괄적인 것(전체 통합·E2E)만 CI 에\n· 같은 검사를 늦게 잡을수록 비싸다 (맥락 잃고, 되돌리기 어렵고)"
+        },
+        {
+          "type": "note",
+          "text": "**같은 검사도 빨리(편집기·저장·커밋) 잡을수록 싸고 늦게(CI·배포 후) 잡을수록 비싸다 — 싼 검사는 최대한 앞으로(shift left), CI 엔 느리지만 포괄적인 것만.** 게이트를 두는 단계의 사다리(빠르고 싼 것 → 느리고 비싼 것): ① **편집기**(즉시) — 타입 체크·린트가 타이핑하는 동안 바로 뜬다(plt-lsp). 가장 싸다 — 문제를 **만드는 순간** 알고, 맥락(무엇을 하려던 참인지)이 생생해 즉시 고친다. ② **저장 시**(~1초) — 포맷터·빠른 단위 테스트가 저장 때 돈다. ③ **커밋 전**(~10초, pre-commit 훅) — 변경과 관련된 테스트·비밀 스캔(sec-secret)·빠른 검사. 로컬의 마지막 방어선. ④ **CI/PR**(분 단위) — 전체 테스트·통합 테스트·E2E·빌드·전체 린트. 느리지만 **포괄적**이고 **강제**(우회 불가 — 서버에서 도니 --no-verify 로 못 넘김). ⑤ **배포 후**(시간~) — 모니터링·스모크 테스트·점진 배포·롤백. 최후 안전망(scale-fail). **원칙 = shift left(왼쪽으로 당기기)**: 싸고 빠른 검사(타입·린트·포맷·빠른 단위)는 **최대한 앞단계**(편집기·저장·커밋)에 둬서 즉시 피드백을 준다 — 개발자가 문제를 만든 순간 알고 싸게 고친다(맥락 살아 있고, 다른 코드에 안 묻히고, 되돌리기 쉬움). 반대로 **늦게 잡으면 비싸다**: CI 에서야 타입 오류를 알면 커밋·푸시·CI 대기 후에야 알고(맥락 잃음), 배포 후 알면 사용자 영향·롤백까지(가장 비쌈). 그래서 「같은 검사를 얼마나 빨리 잡느냐」가 비용을 좌우한다 — 버그 수정 비용은 발견이 늦을수록 지수적으로 는다(shift left 의 근거). 다만 **모든 걸 앞단계에 못 둔다** — 느린 검사(전체 E2E·통합)를 편집기·커밋에 두면 답답해서 건너뛴다(1장). 그래서 **빠른 것은 앞으로, 느리지만 포괄적인 것은 CI 로** 나눈다 — 앞단계는 빠른 피드백(자주·즉시), CI 는 강제·포괄(우회 불가·전체). 이 계층 배치가 「빠른 피드백」과 「강제된 포괄 검증」을 둘 다 얻는 방법이다."
+        },
+        {
+          "type": "p",
+          "text": "**빠른 피드백은 개발의 최고 레버리지 — 문제와 발견 사이가 짧을수록 싸다.** 게이트 사다리의 핵심은 **피드백 루프를 짧게**다(황금의 정신 — 피드백 루프 먼저). 문제 발생과 발견 사이가 짧을수록(편집기 즉시 vs 배포 후) 고치기 싸다 — 맥락이 살아 있고(방금 뭘 했는지 앎), 변경이 작고(한 가지만 바꿨을 때), 되돌리기 쉽다(안 퍼졌을 때). 이건 개발 전반의 최고 레버리지다: 짧은 컴파일·테스트 루프, 핫 리로드, REPL(plt-interp), 로컬에서 빠른 검증(배포 전에), 관측성(문제를 빨리 발견). 반대로 긴 피드백 루프(느린 빌드·늦은 검사·프로덕션에서야 발견)는 비용을 키운다. 그래서 「검사를 빨리·앞에서」는 「피드백을 빨리」의 한 사례 — 게이트를 shift left 하는 건 개발자에게 빠른 피드백을 주는 것이다. 그리고 이 원리는 도구 투자의 방향을 정한다: 피드백 루프를 짧게 하는 투자(빠른 테스트·즉시 린트·로컬 검증)가 가장 높은 레버리지다(sys-profile·quality). 「빨리 알수록 싸게 고친다」가 게이트 배치·개발 도구·품질 전략의 공통 지침이다. 게이트를 「어디에 둘까」는 결국 「개발자가 이 문제를 얼마나 빨리 알게 할까」의 문제고, 빠를수록 좋다(느려서 건너뛰지 않는 선에서)."
+        },
+        {
+          "type": "try",
+          "text": "네 프로젝트의 검사들이 어느 단계에 있는지 그려 보라 — 타입·린트가 편집기에서 즉시 뜨나, CI 에서야 뜨나? 싼 검사(타입·린트·포맷·빠른 단위)를 앞단계(편집기·저장·커밋 전)로 당기고(shift left), 느린 것(전체 E2E)만 CI 에 남겨라. 커밋 전 게이트 하나를 세워 빠른 피드백을 만들어라."
+        }
       ],
-      "answer": 0,
-      "why": "고칠 방법을 모르면 사람이 게이트를 꺼 버린다."
+      "quiz": [
+        {
+          "q": "같은 검사를 빨리(편집기) 잡으면?",
+          "choices": [
+            "더 비쌈",
+            "더 쌈 — 맥락 살아 있고 되돌리기 쉬움(shift left)",
+            "무관",
+            "느림"
+          ],
+          "answer": 1,
+          "why": "늦을수록 비쌈."
+        },
+        {
+          "q": "CI 에 두기 알맞은 검사는?",
+          "choices": [
+            "타입·린트",
+            "느리지만 포괄적인 것(전체 테스트·통합·E2E) + 강제(우회 불가)",
+            "포맷만",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "빠른 건 앞으로."
+        },
+        {
+          "q": "게이트 사다리의 근본 원리는?",
+          "choices": [
+            "엄격함",
+            "빠른 피드백 — 문제와 발견 사이가 짧을수록 싸다",
+            "느림",
+            "색"
+          ],
+          "answer": 1,
+          "why": "최고 레버리지."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "좋은 게이트의 조건",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "좋은 게이트의 세 조건: ① **빠르다** — 느리면 사람이 건너뛴다(그럼 없는 것). ② **안 깜빡인다** — 거짓 빨강 한 번이 신뢰를 깎는다(qa-flaky — 늑대 소년). ③ **고칠 방법을 알려 준다** — 「실패」만이 아니라 **무엇이·왜·어떻게 고치나**(plt-error 의 좋은 오류처럼). 이 셋이 게이트의 **수명**(1장)을 정한다 — 빠르면 안 건너뛰고, 안 깜빡이면 믿고, 친절하면 안 좌절한다. 반대(느림·깜빡임·불친절)면 버림받는다. 게이트도 「사용자(개발자)가 계속 쓰는 제품」이라, 이 셋이 사용성이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "좋은 게이트의 세 조건",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .ladder { margin:8px 0; }\n  .ladder .rung { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n                  background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .ladder .rung.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .ladder .rung .stage { width:70px; color:#7dd3fc; } .ladder .rung .cost { width:52px; color:#fbbf24; text-align:right; }\n  .ladder .rung .what { color:#94a3b8; margin-left:8px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .gauge { display:flex; align-items:center; gap:8px; margin:4px 0; font:11.5px ui-monospace; }\n  .gauge .lab { width:150px; color:#94a3b8; } .gauge .track { flex:1; height:14px; background:#1e293b; border-radius:7px; overflow:hidden; }\n  .gauge .fill { height:100%; border-radius:7px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const gauge = (rows) => rows.map(([lab, pct, col]) =>\n    '<div class=\"gauge\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"track\"><span class=\"fill\" style=\"width:' +\n    pct + '%;background:' + col + '\"></span></span><span class=\"dim\">' + pct + '%</span></div>').join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const cond = '{{cond}}';\n  const rows = {\n    fast:['빠르다', '느리면 사람이 건너뜀', '캐시·증분·병렬·관련된 것만', '빠름 → 안 건너뜀'],\n    stable:['안 깜빡인다', '거짓 빨강 한 번이 신뢰를 깎음', '깜빡임 제거(qa-flaky)·확정적', '안정 → 빨강이 진짜 신호'],\n    actionable:['고칠 방법 안내', '「실패」만이면 좌절해 우회', '무엇이·왜·어떻게 고치나(다음 행동)', '친절 → 바로 수정'],\n  }[cond];\n  render('조건: ' + rows[0],\n    '  안 지키면: ' + rows[1] + '\\n  방법: ' + rows[2] + '\\n  효과: ' + rows[3] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">세 조건이 게이트의 수명을 정한다 — 계속 쓰이게.</span>',\n    '빠름·안 깜빡임·고칠 방법 안내 — 게이트가 살아남는 세 조건.',\n    box(rows[0], '안 지키면: ' + rows[1] + '\\n→ ' + rows[2], 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "cond",
+              "label": "조건",
+              "type": "select",
+              "value": "fast",
+              "options": [
+                {
+                  "value": "fast",
+                  "label": "빠르다"
+                },
+                {
+                  "value": "stable",
+                  "label": "안 깜빡인다"
+                },
+                {
+                  "value": "actionable",
+                  "label": "고칠 방법"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "좋은 게이트의 조건",
+          "text": "· 빠르다        — 느리면 사람이 건너뛴다\n· 안 깜빡인다   — 거짓 빨강 한 번이 신뢰를 깎는다\n· 고칠 방법을 알려 준다 — \"실패\"만이 아니라 다음 행동을\n\n// ❌ 나쁜 실패 메시지\n[gate] FAILED (exit 1)\n\n// ✅ 좋은 실패 메시지 (무엇이·왜·어떻게)\n[gate] i18n 키 누락: home.title\n  → i18n/ko/home.json 에 \"home.title\" 을 추가하라\n  → 참고: 최근 커밋에서 <h1>{t('home.title')}</h1> 추가됨"
+        },
+        {
+          "type": "note",
+          "text": "**좋은 게이트의 세 조건 — 빠르다·안 깜빡인다·고칠 방법을 알려 준다. 이 셋이 게이트의 수명(1장)을 정한다.** ① **빠르다** — 게이트가 느리면(커밋마다 몇 분) 개발자가 답답해 건너뛰고(--no-verify), 결국 우회가 습관이 된다(느린 게이트 = 죽은 게이트). 빠르게 하는 법: 캐시(안 바뀐 건 재검사 X), 증분(바뀐 부분만), 병렬 실행, 관련된 것만(변경과 무관한 전체 테스트를 커밋 전에 X — 그건 CI 로). 앞단계 게이트(편집기·커밋 전)는 특히 빨라야 한다(3장). ② **안 깜빡인다** — 거짓 빨강(false positive — 진짜 문제 아닌데 실패)이 잦으면, 개발자가 빨강을 안 믿게 되고(qa-flaky 1장 — 늑대 소년), 무시하거나 우회한다. **거짓 빨강 한 번이 신뢰를 크게 깎는다** — 게이트는 「빨강 = 진짜 문제」여야 반응을 얻는다. 그래서 게이트 자체가 확정적(deterministic)이고 깜빡이지 않아야 한다(게이트에 flaky 테스트를 넣으면 게이트 전체가 못 믿을 것이 됨). ③ **고칠 방법을 알려 준다** — 「FAILED」만 뜨고 무엇이·왜·어떻게 고칠지 모르면, 개발자가 좌절해 우회한다. 좋은 게이트는 **다음 행동**을 알려 준다(plt-error 의 좋은 오류처럼 — 무엇이 문제인지, 왜인지, 어떻게 고치는지). 예: 「i18n 키 `home.title` 누락 → `i18n/ko/home.json`에 추가하라」처럼 구체적 위치·방법을. 이러면 개발자가 즉시 고친다(좌절 없이). 이 세 조건이 1장의 「수명」을 결정한다: 빠르면 안 건너뛰고, 안 깜빡이면 믿고, 친절하면 안 좌절한다 → 계속 쓰인다(살아남는다). 반대(느림·깜빡임·불친절)면 버림받는다(SKIP·삭제). 그래서 게이트를 **「제품」으로** 봐야 한다 — 사용자(개발자)가 계속 쓰게 만드는 사용성(빠름·신뢰·친절)이 게이트의 성패다. 엄격함만 있고 사용성이 없으면 버림받아 0을 지킨다."
+        },
+        {
+          "type": "p",
+          "text": "**게이트의 실패 메시지 = 게이트의 UX — plt-error 의 「좋은 오류」가 여기에 적용된다.** 게이트가 실패할 때 보여 주는 메시지가 게이트의 사용자 경험을 정한다 — 이건 plt-error(좋은 오류 메시지)와 정확히 같은 원리다: 사용자(개발자)는 게이트가 **막을 때**(실패할 때) 게이트와 대면하니, 그때 메시지가 「무엇이·어디서·왜·어떻게 고치나」(plt-error 2장의 네 조각)를 주면 스스로 즉시 고치고, 「실패」만 주면 좌절해 우회한다. 좋은 게이트 메시지: **무엇이** 문제인지 구체적으로(「i18n 키 `home.title` 누락」 — 모호한 「검증 실패」 X), **어디서**(어느 파일·어느 줄), **왜**(무엇을 기대했는지), **어떻게 고치나**(다음 행동 — 「이 파일에 추가하라」). 가능하면 **자동 수정**까지(린터의 --fix, 포매터 — 게이트가 고쳐 주면 최선). 이건 「도구는 막을 뿐 아니라 도와야 한다」는 원리 — 게이트·린터·컴파일러·타입 체커가 다 「실패 = 좌절」이 아니라 「실패 = 안내」가 되게 설계한다. 그래서 게이트를 만들 때 **실패 메시지에 다음 행동을 넣는 것**(5장)이 게이트를 살리는 핵심이다 — 엄격한 검사 + 친절한 안내 = 개발자가 「고마운 도구」로 여기고 계속 쓰는 게이트. plt-error 에서 배운 「실패의 순간을 사용자가 이해하도록 정성껏」이 게이트에도 그대로 적용된다. 막는 것과 돕는 것은 함께 가야 한다."
+        },
+        {
+          "type": "try",
+          "text": "네 게이트들을 세 조건(빠름·안 깜빡임·고칠 방법 안내)으로 점검하라 — 느린 게이트는 캐시·증분·관련된 것만으로 빠르게, 깜빡이는 게이트는 원인 제거(qa-flaky), 불친절한 게이트는 실패 메시지에 「다음 행동」을 넣어라. 가장 자주 건너뛰는 게이트의 어느 조건이 부족한지 찾아 고쳐라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "좋은 게이트의 세 조건은?",
+          "choices": [
+            "느림·엄격·복잡",
+            "빠르다·안 깜빡인다·고칠 방법을 알려 준다",
+            "색·크기·소리",
+            "많다"
+          ],
+          "answer": 1,
+          "why": "게이트의 수명을 정함."
+        },
+        {
+          "q": "거짓 빨강이 나쁜 이유는?",
+          "choices": [
+            "느려서",
+            "한 번이 신뢰를 깎음 → 빨강을 무시하게 됨(늑대 소년)",
+            "메모리",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "빨강이 진짜 신호여야."
+        },
+        {
+          "q": "게이트 실패 메시지에 담을 것은?",
+          "choices": [
+            "FAILED 만",
+            "무엇이·왜·어떻게 고치나(다음 행동) — plt-error 처럼",
+            "색",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "친절해야 안 우회."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "우회 통로를 설계해 둔다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "긴급 상황(핫픽스·장애 대응)에 **못 넘어가는 게이트는 결국 통째로 삭제**된다 — 한 번 막히면 「이 게이트 때문에」 하고 아예 없앤다. 그래서 **명시적 우회**(`SKIP=1`·라벨·승인)를 두되 **기록에 남게** 하라: 누가·언제·왜 우회했나. 우회 통로가 있으면 긴급 시 게이트를 삭제 않고 넘어가고(게이트는 살아남음), 기록이 있으면 우회가 남용되는지 보인다. **우회가 잦으면** 그 게이트가 과하거나(너무 엄격) 느리거나 깜빡이는 신호다(고칠 대상). 우회는 「탈출구」이자 「진단 신호」 — 없으면 게이트가 죽고, 기록 없으면 남용을 못 본다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "우회 통로 — 탈출구 + 기록",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .ladder { margin:8px 0; }\n  .ladder .rung { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n                  background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .ladder .rung.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .ladder .rung .stage { width:70px; color:#7dd3fc; } .ladder .rung .cost { width:52px; color:#fbbf24; text-align:right; }\n  .ladder .rung .what { color:#94a3b8; margin-left:8px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .gauge { display:flex; align-items:center; gap:8px; margin:4px 0; font:11.5px ui-monospace; }\n  .gauge .lab { width:150px; color:#94a3b8; } .gauge .track { flex:1; height:14px; background:#1e293b; border-radius:7px; overflow:hidden; }\n  .gauge .fill { height:100%; border-radius:7px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const gauge = (rows) => rows.map(([lab, pct, col]) =>\n    '<div class=\"gauge\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"track\"><span class=\"fill\" style=\"width:' +\n    pct + '%;background:' + col + '\"></span></span><span class=\"dim\">' + pct + '%</span></div>').join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'none') {\n    render('우회 없음 (게이트가 죽는다)',\n      '  긴급 핫픽스인데 게이트가 막음 → 못 넘어감\\n' +\n      '  → 「이 게이트 때문에」 → 통째로 삭제\\n\\n' +\n      '  <span class=\\\"no\\\">탈출구 없는 게이트는 긴급 시 삭제되어 영영 사라진다.</span>',\n      '우회 없으면: 긴급 시 못 넘어감 → 게이트 통째로 삭제.',\n      steps([['긴급 핫픽스', 'on'],['게이트가 막음 (탈출구 없음)', 'bad'],\n             ['「이것 때문에」 → 삭제', 'bad'],['게이트 영영 사라짐', 'bad']]));\n  } else {\n    render('명시적 우회 + 기록',\n      '  SKIP=1 로 넘어감 → 기록: 「누가·언제·왜」\\n' +\n      '  [bypass] 2026-08-13 alice: 장애 핫픽스, 티켓 #123\\n\\n' +\n      '  <span class=\\\"ok\\\">긴급 시 삭제 대신 우회 → 게이트 살아남음. 기록으로 남용 감시.</span>',\n      '명시적 우회+기록: 긴급 시 넘어가되 게이트는 살고, 남용은 보임.',\n      steps([['긴급 핫픽스', 'on'],['SKIP=1 명시적 우회', 'good'],\n             ['기록: 누가·언제·왜', 'good'],['게이트 살아남음 + 우회 감시', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "우회",
+              "type": "select",
+              "value": "none",
+              "options": [
+                {
+                  "value": "none",
+                  "label": "우회 없음"
+                },
+                {
+                  "value": "logged",
+                  "label": "명시적 우회+기록"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "명시적 우회 — 기록에 남게",
+          "text": "# 우회 통로: SKIP 하되 반드시 기록\nif [ \"$SKIP_GATE\" = \"1\" ]; then\n  echo \"[bypass] $(date) $USER: 게이트 우회\" >> .gate-bypass.log\n  echo \"[bypass] 사유: ${BYPASS_REASON:?사유를 BYPASS_REASON 에 적어라}\"\n  exit 0   # 넘어가되 기록됨\nfi\n\n# 우회 기록을 주기적으로 검토:\n#   - 우회가 잦은 게이트 = 과하거나 느리거나 깜빡임 (고칠 대상)\n#   - 특정 사람·시간에 몰림 = 패턴 조사\n# 우회는 「탈출구」이자 「이 게이트에 문제 있다」는 진단 신호"
+        },
+        {
+          "type": "note",
+          "text": "**긴급 시 못 넘어가는 게이트는 통째로 삭제되니, 명시적 우회(SKIP)를 두되 기록에 남긴다 — 우회는 탈출구이자 「게이트에 문제 있다」는 진단 신호다.** 문제: 게이트가 **탈출구가 없으면**, 긴급 상황(프로덕션 장애 핫픽스·마감)에서 게이트가 막을 때 개발자는 「이 게이트 때문에 급한 걸 못 한다」며 **게이트를 통째로 삭제·비활성화**한다 — 그리고 대개 다시 안 켠다(게이트 영영 사라짐). 즉 탈출구 없는 엄격함이 오히려 게이트를 죽인다. 해법: **명시적 우회 통로**를 설계한다 — `SKIP=1` 환경변수·특별 라벨(PR 에 `emergency`)·승인자 오버라이드 등으로 「의도적으로 넘어가는」 길을 둔다. 단 반드시 **기록에 남게**: 누가·언제·왜(사유) 우회했나(로그·감사). 이 둘(우회 + 기록)의 효과: ⓐ 긴급 시 게이트를 **삭제하지 않고 넘어간다**(게이트는 살아남아 평소엔 계속 지킴). ⓑ 기록이 있어 **우회가 남용되는지 보인다**(투명성 — 우회가 흔적 없이 되면 조용히 상시 우회됨). ⓒ **우회 빈도가 진단 신호**다 — 특정 게이트가 자주 우회되면, 그 게이트가 **과하거나(너무 엄격·오탐), 느리거나, 깜빡이는** 신호다(4장 조건 위반). 즉 우회 기록은 「어느 게이트를 고쳐야 하나」를 알려 준다(7장 건강 지표의 하나). 그래서 우회는 **탈출구이자 피드백 채널**이다 — 없으면 게이트가 긴급 시 죽고, 기록 없으면 남용·문제를 못 본다. 설계 원칙: **엄격하되 탈출구를 두고, 탈출구는 기록되게**. 이건 「예외를 인정하되 투명하게」의 사례 — 현실엔 긴급 예외가 있으니(무시하면 규칙이 통째로 버려짐), 예외를 **명시적·기록된 경로**로 흡수해 규칙을 살린다. 우회를 아예 막으면(예외 불가) 규칙이 통째로 폐기되고, 우회를 몰래 하게 두면(기록 없음) 규칙이 유명무실해진다 — 명시적·기록된 우회가 규칙을 살리며 현실을 수용한다."
+        },
+        {
+          "type": "p",
+          "text": "**「예외를 인정하되 투명하게」 — 경직된 규칙은 우회되고, 탈출구 있는 규칙은 살아남는다.** 우회 통로의 교훈은 규칙·프로세스 전반에 통한다: **현실엔 예외가 있으니, 예외를 부정하면(경직) 규칙 전체가 버려지고, 예외를 명시적·기록된 경로로 흡수하면 규칙이 살아남는다**. 완벽히 경직된 규칙(예외 불가)은 긴급·특수 상황에서 통째로 무시되거나 폐기된다 — 반면 「예외는 이 절차로, 기록과 함께」를 두면 규칙이 현실을 수용하며 유지된다. 핵심은 **투명성** — 예외를 몰래 하게 두지 말고(그럼 규칙이 유명무실) 명시적·기록되게 해서, ① 예외가 정당한지 사후 검토 가능하고 ② 예외 빈도로 규칙 자체의 문제를 진단한다(자주 예외 = 규칙이 부적절). 이는 보안(긴급 접근을 막지 말고 기록된 break-glass 절차로), 프로세스(승인 우회를 기록되게), 정책 전반에 통한다(team). 그리고 「예외 빈도 = 규칙 진단」은 중요한 피드백 — 규칙을 자주 어겨야 일이 된다면 규칙이 틀린 것이다(현실과 안 맞음). 그래서 성숙한 규칙 설계는 **탈출구를 두고, 탈출구 사용을 기록·감시**한다 — 경직도 방임도 아닌, 「예외를 투명하게 수용」. 게이트의 우회 통로는 이 지혜의 구체적 형태다: 게이트를 살리려면 역설적으로 「넘어갈 길」을 줘야 한다 — 단 그 길이 보이게."
+        },
+        {
+          "type": "try",
+          "text": "네 게이트에 명시적 우회 통로(SKIP=1 + 사유 필수 + 로그 기록)를 설계하라 — 긴급 시 삭제 대신 기록된 우회로 넘어가게. 그리고 우회 로그를 주기적으로 검토해, 자주 우회되는 게이트(과함·느림·깜빡임 신호)를 찾아 고쳐라. 탈출구 없는 게이트가 있으면(긴급 시 삭제 위험) 우회를 추가하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "탈출구 없는 게이트가 긴급 시 겪는 일은?",
+          "choices": [
+            "잘 작동",
+            "통째로 삭제됨(「이것 때문에」) → 영영 사라짐",
+            "빨라짐",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "명시적 우회 필요."
+        },
+        {
+          "q": "우회를 기록에 남기는 이유는?",
+          "choices": [
+            "느리게",
+            "남용 감시 + 우회 빈도가 게이트 문제의 진단 신호",
+            "색",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "탈출구이자 피드백."
+        },
+        {
+          "q": "우회 통로의 일반 원리는?",
+          "choices": [
+            "예외 금지",
+            "예외를 인정하되 투명하게(명시적·기록) — 규칙을 살림",
+            "몰래 우회",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "경직도 방임도 아닌."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "게이트의 건강을 재라",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "게이트도 **측정·관리 대상**이다 — 세워 놓고 방치하면 썩는다. 잴 것: ① **빨강 중 진짜 잡은 비율**(거짓 빨강이 절반이면 폐기·수정 검토) ② **평균 실행 시간 추이**(느려지면 건너뛰기 시작) ③ **우회 사용 횟수**(잦으면 과함·문제 신호, 5장) ④ **마지막으로 무언가를 실제로 막은 때**(오래 아무것도 안 막았으면 무의미하거나 이미 예방됨). 이 지표로 게이트를 **고치거나·조이거나·폐기**한다. 「막은 적 없는 게이트」와 「거짓 빨강만 내는 게이트」는 신뢰만 깎으니 정리한다. 게이트는 자산이자 부채 — 건강을 재야 자산으로 유지된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "게이트 건강 지표 — 자산인가 부채인가",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .ladder { margin:8px 0; }\n  .ladder .rung { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n                  background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .ladder .rung.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .ladder .rung .stage { width:70px; color:#7dd3fc; } .ladder .rung .cost { width:52px; color:#fbbf24; text-align:right; }\n  .ladder .rung .what { color:#94a3b8; margin-left:8px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .gauge { display:flex; align-items:center; gap:8px; margin:4px 0; font:11.5px ui-monospace; }\n  .gauge .lab { width:150px; color:#94a3b8; } .gauge .track { flex:1; height:14px; background:#1e293b; border-radius:7px; overflow:hidden; }\n  .gauge .fill { height:100%; border-radius:7px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const gauge = (rows) => rows.map(([lab, pct, col]) =>\n    '<div class=\"gauge\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"track\"><span class=\"fill\" style=\"width:' +\n    pct + '%;background:' + col + '\"></span></span><span class=\"dim\">' + pct + '%</span></div>').join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const metric = '{{metric}}';\n  const rows = {\n    truerate:['진짜 잡은 비율', '빨강 중 진짜 문제였던 %', '낮으면(거짓 빨강 많음) 신뢰 깎음 → 수정·폐기', 30, '#ef4444'],\n    time:['평균 실행 시간', '느려지는 추이', '느려지면 건너뛰기 시작 → 빠르게', 70, '#fbbf24'],\n    bypass:['우회 횟수', '얼마나 자주 SKIP 되나', '잦으면 과함·느림·깜빡임 신호(5장)', 40, '#f59e0b'],\n    lastcatch:['마지막으로 막은 때', '실제로 뭔가 막은 지 얼마', '오래됐으면 무의미하거나 이미 예방됨', 85, '#22c55e'],\n  }[metric];\n  render('지표: ' + rows[0],\n    '  재는 것: ' + rows[1] + '\\n  해석: ' + rows[2] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">지표로 게이트를 고치거나·조이거나·폐기한다.</span>',\n    '진짜 잡은 비율·실행 시간·우회 횟수·마지막 막은 때 — 게이트 건강.',\n    '<div style=\\\"margin:8px 0\\\">' + gauge([[rows[0], rows[3], rows[4]]]) + '</div>' +\n    box(rows[0], rows[2]));\n</script>",
+          "controls": [
+            {
+              "id": "metric",
+              "label": "지표",
+              "type": "select",
+              "value": "truerate",
+              "options": [
+                {
+                  "value": "truerate",
+                  "label": "진짜 잡은 비율"
+                },
+                {
+                  "value": "time",
+                  "label": "실행 시간"
+                },
+                {
+                  "value": "bypass",
+                  "label": "우회 횟수"
+                },
+                {
+                  "value": "lastcatch",
+                  "label": "마지막 막은 때"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "게이트 건강 지표",
+          "text": "· 빨강 중 진짜 잡은 비율 (거짓 빨강이 절반이면 폐기 검토)\n· 평균 실행 시간 추이 (느려지면 건너뛰기 시작)\n· 우회 사용 횟수 (잦으면 과함·느림·깜빡임 신호)\n· 마지막으로 무언가를 실제로 막은 때 (오래됐으면 무의미?)\n\n판단:\n  거짓 빨강 많음 → 규칙을 조이거나(오탐 제거) 폐기\n  느려짐        → 캐시·증분·앞단계로 이동\n  우회 잦음      → 게이트가 과하거나 문제 있음 → 고침\n  오래 안 막음    → 이미 예방됐거나(좋음) 무의미(폐기 검토)"
+        },
+        {
+          "type": "note",
+          "text": "**게이트도 측정·관리해야 썩지 않는다 — 진짜 잡은 비율·실행 시간·우회 횟수·마지막 막은 때를 재서 고치거나·조이거나·폐기한다.** 게이트를 세워 놓고 방치하면 부채가 된다(느려지고·오탐 늘고·무의미해짐). 그래서 게이트의 **건강 지표**를 잰다: ① **빨강 중 진짜 잡은 비율**(true positive rate) — 게이트가 낸 빨강 중 실제로 진짜 문제였던 비율. 거짓 빨강(false positive)이 많으면(절반이 오탐이면) 신뢰를 깎으니(4장·qa-flaky), 규칙을 조이거나(오탐 원인 제거) 폐기를 검토한다. ② **평균 실행 시간 추이** — 게이트가 점점 느려지는지(테스트 늘며 자연히). 느려지면 사람이 건너뛰기 시작하니(1·4장), 캐시·증분·병렬로 빠르게 하거나 앞단계로 재배치(3장). ③ **우회 사용 횟수**(5장) — 얼마나 자주 SKIP 되나. 잦으면 그 게이트가 과하거나(너무 엄격) 느리거나 깜빡이는 신호 → 고칠 대상. ④ **마지막으로 무언가를 실제로 막은 때** — 이 게이트가 진짜 문제를 마지막으로 잡은 게 언제인가. 아주 오래됐으면 둘 중 하나: ⓐ 이미 그 문제가 예방되어(다른 방법으로) 게이트가 불필요해졌거나(좋은 신호 — 폐기 가능) ⓑ 애초에 잡을 게 없는 무의미한 게이트(폐기). 반대로 자주 막으면 가치 있는 게이트(유지). 이 지표들로 게이트를 **능동 관리**한다 — 고치거나(느림·오탐 수정), 조이거나(놓치는 게 있으면 강화), 폐기한다(무의미·과부담). 특히 **정리**가 중요하다: 「막은 적 없는 게이트」·「거짓 빨강만 내는 게이트」·「늘 우회되는 게이트」는 가치 없이 **신뢰만 깎고 시간만 먹으니** 폐기한다(게이트가 많다고 좋은 게 아님 — 지켜지는 소수가 낫다). 게이트는 **자산이자 부채** — 잘 관리하면 품질을 지키는 자산, 방치하면 느리고 못 믿을 부채. 건강을 재야 자산으로 유지된다. 이건 「검증 도구도 유지보수 대상」이라는 것 — 코드처럼 게이트도 리팩터링·정리가 필요하다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸과 갈래.** 게이트(qa-gate)는 qa 갈래(품질)의 핵심 — 「틀린 것을 막는 자동 장치」를 **살아남게** 설계·관리한다. 게이트의 수명(1장)·건강(6장)은 「검증이 진짜 신호여야」(quality)와, 커버리지 함정(2장)은 굿하트의 법칙(측정≠목표)과, 게이트 사다리·shift left(3장)는 빠른 피드백(황금의 정신)과, 좋은 실패 메시지(4·5장)는 plt-error(좋은 오류)와, 안 깜빡임(4장)은 qa-flaky 와, 우회 통로(5장)는 「예외를 투명하게」(team)와, 비밀 스캔 게이트는 sec-secret 과 통한다. **「게이트는 엄격함이 아니라 수명 — 빠르고·믿을 만하고·친절해서 계속 쓰이고, 건강을 재서 관리해야 실제로 막는다」**가 핵심이다. 게이트를 「제품」으로 보는 관점(사용자가 계속 쓰게)이 품질 자동화의 근본이다."
+        },
+        {
+          "type": "try",
+          "text": "네 게이트 하나를 골라 최근 실패 기록을 훑고 **거짓 빨강 비율**을 계산하라 — 절반이 오탐이면 신뢰를 깎는 것(수정·폐기 검토). 실행 시간 추이·우회 횟수·마지막으로 진짜 막은 때도 살펴, 고칠지·조일지·폐기할지 정하라. 「막은 적 없고 오탐만 내는」 게이트가 있으면 정리하라 — 게이트도 유지보수 대상이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "게이트의 건강 지표가 아닌 것은?",
+          "choices": [
+            "진짜 잡은 비율",
+            "평균 실행 시간·우회 횟수",
+            "마지막으로 막은 때",
+            "코드 줄 수"
+          ],
+          "answer": 3,
+          "why": "게이트 관리 지표."
+        },
+        {
+          "q": "거짓 빨강 비율이 높은 게이트는?",
+          "choices": [
+            "유지",
+            "신뢰를 깎음 → 규칙 조이거나 폐기 검토",
+            "빠름",
+            "좋음"
+          ],
+          "answer": 1,
+          "why": "오탐이 신뢰 깎음."
+        },
+        {
+          "q": "게이트를 방치하면?",
+          "choices": [
+            "좋아짐",
+            "부채가 됨(느려지고·오탐 늘고·무의미) — 재서 관리해야 자산",
+            "빨라짐",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "자산이자 부채."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "무엇을 게이트로 삼을까",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "모든 걸 게이트로 막을 순 없다(너무 많으면 느리고 우회됨). **막을 가치가 높은 것**부터: ① **되돌리기 어렵거나 피해 큰 것**(보안·비밀 유출 sec-secret·데이터 손상·빌드 깨짐) — 반드시 막는다. ② **객관적·확정적인 것**(타입 오류·문법·테스트 실패·포맷) — 게이트가 판단하기 명확. ③ **자주 실수하는 것**(흔한 버그 패턴·회귀). 반대로 **주관적·맥락 의존**(설계 취향·네이밍 논쟁)은 게이트보다 **코드 리뷰**(사람)로. 그리고 **막기(blocking) vs 경고(warning)**를 구분한다 — 확실한 문제는 막고, 참고 사항은 경고로(막으면 우회 유발). 「무엇을 막고 무엇을 경고할지」가 게이트 전략이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "무엇을 게이트로 — 막기 vs 경고 vs 리뷰",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .ladder { margin:8px 0; }\n  .ladder .rung { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n                  background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .ladder .rung.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .ladder .rung .stage { width:70px; color:#7dd3fc; } .ladder .rung .cost { width:52px; color:#fbbf24; text-align:right; }\n  .ladder .rung .what { color:#94a3b8; margin-left:8px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .gauge { display:flex; align-items:center; gap:8px; margin:4px 0; font:11.5px ui-monospace; }\n  .gauge .lab { width:150px; color:#94a3b8; } .gauge .track { flex:1; height:14px; background:#1e293b; border-radius:7px; overflow:hidden; }\n  .gauge .fill { height:100%; border-radius:7px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const gauge = (rows) => rows.map(([lab, pct, col]) =>\n    '<div class=\"gauge\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"track\"><span class=\"fill\" style=\"width:' +\n    pct + '%;background:' + col + '\"></span></span><span class=\"dim\">' + pct + '%</span></div>').join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  const rows = {\n    block:['막는다(blocking)', '되돌리기 어렵고·객관적·피해 큼', '비밀 유출·빌드 깨짐·타입 오류·테스트 실패', '통과 못 하면 병합 X'],\n    warn:['경고(warning)', '참고 사항·점진 개선·주관 여지', '커버리지 하락·복잡도·TODO·사용 중단 예정', '알리되 막지 않음'],\n    review:['코드 리뷰(사람)', '주관적·맥락 의존·설계 판단', '네이밍·구조·추상화·가독성·설계 취향', '사람이 논의·판단'],\n  }[kind];\n  render('처리: ' + rows[0],\n    '  대상: ' + rows[1] + '\\n  예: ' + rows[2] + '\\n  방식: ' + rows[3] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">확실·객관·피해 큼=막기 · 참고=경고 · 주관·맥락=사람 리뷰.</span>',\n    '막기(확실·피해 큼)·경고(참고)·리뷰(주관·맥락) — 알맞게 나눈다.',\n    box(rows[0], rows[1] + '\\n예: ' + rows[2], kind==='block'?'bad':kind==='warn'?'':'good'));\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "처리 방식",
+              "type": "select",
+              "value": "block",
+              "options": [
+                {
+                  "value": "block",
+                  "label": "막기"
+                },
+                {
+                  "value": "warn",
+                  "label": "경고"
+                },
+                {
+                  "value": "review",
+                  "label": "사람 리뷰"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**막을 가치가 높은 것(되돌리기 어렵고·객관적·피해 큰 것)을 게이트로 막고, 참고 사항은 경고로, 주관적·맥락 의존은 사람 리뷰로 나눈다.** 모든 걸 막으면 게이트가 너무 많아 느리고 우회되니(1장), **무엇을 막을지 골라야** 한다. **막기(blocking — 통과 못 하면 병합·배포 차단)에 적합**: ① **되돌리기 어렵거나 피해 큰 것** — 비밀 유출(sec-secret — 되돌릴 수 없음), 빌드 깨짐(다른 사람 다 막음), 데이터 손상, 보안 취약점. 이런 건 새어 나가면 비싸니 반드시 막는다. ② **객관적·확정적인 것** — 타입 오류·문법 오류·테스트 실패·포맷·필수 필드 누락. 게이트가 「맞다/틀리다」를 명확히 판단할 수 있는 것(주관 여지 없음)이라 거짓 빨강이 없다(4장). ③ **자주 실수하는 흔한 것** — 알려진 버그 패턴·회귀·i18n 키 누락. **경고(warning — 알리되 막지 않음)에 적합**: 점진 개선 대상(커버리지 하락·복잡도 증가·사용 중단 예정 API·TODO). 확실한 문제는 아니고 참고·개선 방향이라, 막으면 과하고(우회 유발) 경고로 알린다(개발자가 판단). **사람 코드 리뷰에 적합**: 주관적·맥락 의존적인 것 — 네이밍·구조·추상화 수준·가독성·설계 취향. 이건 게이트(기계)가 판단하기 어렵고(정답이 하나 아님), 사람이 맥락을 보고 논의해야 한다. 게이트로 강제하면 거짓 빨강·논쟁만 는다. **핵심 구분 = 막기 vs 경고 vs 리뷰**: 확실·객관·피해 큼 → 막기(기계), 참고·점진 → 경고(기계, 안 막음), 주관·맥락 → 리뷰(사람). 이 배분이 게이트 전략이다 — 막을 것만 막으면 게이트가 빠르고 믿을 만하고(오탐 적고), 경고·리뷰가 나머지를 맡는다. **흔한 실수**: 주관적인 걸 게이트로 막기(설계 취향을 강제 → 거짓 빨강·좌절), 또는 확실한 걸 경고로만 두기(비밀 유출을 경고로 → 무시됨). 「무엇을 어느 층위로」가 게이트 설계의 핵심 판단이다."
+        },
+        {
+          "type": "p",
+          "text": "**「기계가 판단할 것 vs 사람이 판단할 것」의 구분 — 자동화의 경계.** 게이트 대상 선정의 교훈은 자동화 전반에 통한다: **객관적·확정적·반복적인 것은 기계(게이트)에, 주관적·맥락 의존적·판단이 필요한 것은 사람에게** 맡긴다. 기계는 명확한 규칙(타입·문법·테스트 통과)을 빠르고 일관되게 검사하는 데 강하고(지치지 않고·공정하게), 사람은 맥락·의도·트레이드오프를 판단하는 데 강하다(설계가 적절한가·이 추상화가 맞나). 이 둘을 섞으면 나쁘다 — 주관적인 걸 기계로 강제하면 거짓 빨강·좌절, 객관적인 걸 사람이 매번 확인하면 낭비·누락. 그래서 좋은 프로세스는 **기계가 잘하는 건 기계에(자동 게이트), 사람이 잘하는 건 사람에(코드 리뷰)** 배분하고, 사람이 기계적 검사(포맷·린트)에 시간을 안 쓰게 한다(그건 게이트가 이미 통과시킴 → 리뷰어는 설계·로직에 집중). 이는 「자동화의 경계」 — 무엇을 자동화하고 무엇을 사람에게 남길지. 포매터가 스타일 논쟁을 없애 리뷰가 내용에 집중하게 하듯(craft), 게이트가 객관적 검사를 맡아 사람이 판단에 집중하게 한다. 이 분업이 team(효율적 협업)·craft(도구로 반복 제거)와 통한다. 「기계에 맡길 것과 사람이 볼 것」을 잘 나누는 게 생산적인 품질 프로세스의 핵심 — 게이트는 그중 「기계가 확실히 판단할 수 있는 것」을 맡는다."
+        },
+        {
+          "type": "try",
+          "text": "네 프로젝트의 품질 검사들을 막기·경고·사람 리뷰로 분류하라 — 되돌리기 어렵고 객관적인 것(비밀·빌드·타입·테스트)은 막기, 참고·점진(커버리지·복잡도)은 경고, 주관·맥락(설계·네이밍)은 리뷰. 주관적인 걸 게이트로 막고 있거나(거짓 빨강 유발) 확실한 걸 경고로만 두고 있으면(무시됨) 재배치하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "막기(blocking) 게이트에 적합한 것은?",
+          "choices": [
+            "설계 취향",
+            "되돌리기 어렵고·객관적·피해 큰 것(비밀·빌드·타입·테스트)",
+            "네이밍",
+            "가독성"
+          ],
+          "answer": 1,
+          "why": "확실·객관·피해 큼."
+        },
+        {
+          "q": "주관적·맥락 의존(설계·네이밍)은 무엇으로?",
+          "choices": [
+            "막기 게이트",
+            "사람 코드 리뷰(기계는 판단 어려움)",
+            "경고도 X",
+            "삭제"
+          ],
+          "answer": 1,
+          "why": "게이트는 거짓 빨강·논쟁만."
+        },
+        {
+          "q": "게이트 대상 선정의 원리는?",
+          "choices": [
+            "다 막기",
+            "객관·확정=기계(게이트), 주관·맥락=사람(리뷰)",
+            "다 경고",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "자동화의 경계."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "예방이 게이트보다 낫다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "게이트는 「틀린 것을 **잡는**」 것이지만, 더 좋은 건 「틀린 것을 **애초에 못 만들게**」 하는 예방이다. 게이트가 자주 잡는 문제가 있다면, 그건 **설계·도구로 없앨 수 있다는 신호**다: 타입 시스템(타입 오류를 컴파일에 불가능하게), 포매터(스타일 논쟁을 자동 정리), 안전한 기본값·API(잘못 쓰기 어렵게 — 「나락의 구덩이」가 아니라 「성공의 구덩이」), 린트 자동 수정(--fix). 게이트가 「반복해서 같은 걸 잡으면」 그 문제를 **구조적으로 제거**할 수 있는지 물어라 — 「잡기」보다 「못 만들게」가 근본이다. 좋은 게이트는 결국 「막을 게 줄어드는」 방향으로 자기를 불필요하게 만든다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "잡기 vs 못 만들게 — 게이트 vs 예방",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .ladder { margin:8px 0; }\n  .ladder .rung { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n                  background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .ladder .rung.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .ladder .rung .stage { width:70px; color:#7dd3fc; } .ladder .rung .cost { width:52px; color:#fbbf24; text-align:right; }\n  .ladder .rung .what { color:#94a3b8; margin-left:8px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .gauge { display:flex; align-items:center; gap:8px; margin:4px 0; font:11.5px ui-monospace; }\n  .gauge .lab { width:150px; color:#94a3b8; } .gauge .track { flex:1; height:14px; background:#1e293b; border-radius:7px; overflow:hidden; }\n  .gauge .fill { height:100%; border-radius:7px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const gauge = (rows) => rows.map(([lab, pct, col]) =>\n    '<div class=\"gauge\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"track\"><span class=\"fill\" style=\"width:' +\n    pct + '%;background:' + col + '\"></span></span><span class=\"dim\">' + pct + '%</span></div>').join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'catch') {\n    render('게이트로 잡기',\n      '  틀린 걸 만든 뒤 → 게이트가 잡음 → 되돌려 고침\\n\\n' +\n      '  <span class=\\\"warn\\\">잡긴 하나 매번 만들고·잡고·고치는 반복. 사후.</span>',\n      '게이트: 틀린 것을 만든 뒤 잡음 — 매번 반복.',\n      steps([['틀린 코드 작성', 'bad'],['게이트가 잡음(빨강)', 'on'],['되돌려 고침', ''],['다음에 또 만들 수 있음', 'warn']]));\n  } else {\n    render('설계로 못 만들게',\n      '  타입·안전한 API·자동 포맷 → 틀린 걸 애초에 못 만듦\\n\\n' +\n      '  <span class=\\\"ok\\\">예방 — 잘못 쓰기 어려운 구조. 게이트가 잡을 게 줄어듦.</span>',\n      '예방: 설계·도구로 틀린 것을 애초에 못 만들게 — 근본.',\n      steps([['타입·안전한 API 설계', 'good'],['틀린 코드는 컴파일 안 됨', 'good'],\n             ['포매터가 스타일 자동 정리', 'good'],['게이트가 잡을 게 줄어듦', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "접근",
+              "type": "select",
+              "value": "catch",
+              "options": [
+                {
+                  "value": "catch",
+                  "label": "게이트로 잡기"
+                },
+                {
+                  "value": "prevent",
+                  "label": "설계로 못 만들게"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**게이트로 「잡기」보다 설계·도구로 「애초에 못 만들게」 하는 예방이 근본이다 — 게이트가 자주 잡는 문제는 구조적으로 제거할 수 있다는 신호다.** 게이트는 「틀린 것을 만든 뒤 잡는」 사후 장치다 — 필요하지만, 매번 「만들고·잡히고·고치는」 반복이 든다. 더 근본적인 건 「틀린 것을 **애초에 못 만들게**」 하는 예방: ① **타입 시스템** — 타입 오류를 컴파일 단계에서 불가능하게(잘못된 타입은 코드가 안 됨, lang-types). 「테스트로 잡을」 부류의 버그를 「존재 불가능」하게 만든다. ② **포매터** — 스타일을 자동 정리(prettier·gofmt)해 스타일 게이트·논쟁 자체를 없앤다(craft). ③ **안전한 기본값·API** — 잘못 쓰기 어렵게 설계(위험한 걸 기본으로 안 되게, 잘못된 상태를 표현 불가능하게 — make illegal states unrepresentable). 「나락의 구덩이(pit of failure — 쉽게 틀림)」가 아니라 「성공의 구덩이(pit of success — 올바른 게 자연스러움)」로. ④ **린트 자동 수정**(--fix) — 잡을 뿐 아니라 고쳐 줌. ⑤ **좋은 추상화** — 위험한 저수준을 안전한 고수준으로 감싸 실수 여지 제거. 핵심 신호: **게이트가 반복해서 같은 문제를 잡는다면**, 그건 「이 문제를 구조적으로 없앨 수 있다」는 신호다 — 「더 잘 잡기」보다 「못 만들게」를 물어라. 예: SQL 인젝션을 게이트로 잡기보다 파라미터 바인딩 API 로 불가능하게, 널 오류를 잡기보다 옵셔널 타입으로 강제, 포맷 위반을 잡기보다 자동 포맷. 그래서 **좋은 게이트는 자기를 불필요하게 만드는 방향**으로 간다 — 게이트가 자주 잡던 문제를 예방으로 없애면 그 게이트는 「잡을 게 없어져」(6장의 「오래 안 막음」) 폐기 가능(좋은 신호). 게이트는 「아직 예방 못 한 것의 안전망」이고, 이상은 예방으로 안전망이 점점 덜 필요해지는 것이다. 물론 모든 걸 예방 못 하니(현실적 한계) 게이트는 계속 필요하지만, **「잡기」를 볼 때마다 「못 만들게 할 수 있나」를 묻는** 태도가 근본이다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸과 갈래.** 게이트(qa-gate)는 qa 갈래의 핵심으로 「틀린 것을 막는 자동 장치」를 살아남게 설계·관리한다. 수명·건강(1·6장)은 quality(검증이 진짜 신호), 커버리지 함정(2장)은 굿하트의 법칙, shift left·사다리(3장)는 빠른 피드백(황금의 정신), 좋은 메시지(4·5장)는 plt-error, 안 깜빡임(4장)은 qa-flaky, 우회 통로(5장)는 「예외를 투명하게」(team), 예방>게이트(8장)는 타입(lang-types)·안전한 설계와 통한다. **「게이트는 엄격함이 아니라 수명 — 빠르고·믿을 만하고·친절해서 계속 쓰이고, 건강을 재서 관리하고, 궁극엔 예방으로 잡을 게 줄어들게」**가 핵심이다. 게이트를 「제품」(사용자가 계속 쓰게)이자 「임시 안전망」(예방으로 대체)으로 보는 관점이 품질 자동화의 근본이다."
+        },
+        {
+          "type": "try",
+          "text": "네 게이트가 자주 잡는 문제를 하나 골라, 「이걸 설계·도구로 애초에 못 만들게 할 수 있나」를 물어라 — 타입으로, 안전한 API 로, 자동 포맷·자동 수정으로. 잡기보다 예방으로 옮길 수 있는 것을 하나 찾아 구조적으로 제거하라. 게이트는 「아직 예방 못 한 것의 안전망」임을 기억하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "게이트로 잡기보다 근본적인 것은?",
+          "choices": [
+            "더 많은 게이트",
+            "설계·도구로 애초에 못 만들게(예방) — 타입·안전한 API·자동 포맷",
+            "재시도",
+            "삭제"
+          ],
+          "answer": 1,
+          "why": "잡기는 사후."
+        },
+        {
+          "q": "게이트가 반복해서 같은 걸 잡으면?",
+          "choices": [
+            "잘 작동",
+            "구조적으로 제거할 수 있다는 신호 — 예방으로 옮겨라",
+            "그대로 두기",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "못 만들게가 근본."
+        },
+        {
+          "q": "좋은 게이트가 향하는 방향은?",
+          "choices": [
+            "더 엄격",
+            "예방으로 잡을 게 줄어 자기를 불필요하게(안전망)",
+            "더 많이",
+            "느리게"
+          ],
+          "answer": 1,
+          "why": "예방이 안전망을 줄임."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — 품질 게이트",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "품질 게이트를 세우고 관리할 때 이 목록을 확인하라. 핵심은 「게이트는 엄격함이 아니라 수명 — 빠르고·믿을 만하고·친절해서 계속 쓰이게, 건강을 재서 관리」다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "380px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .ladder { margin:8px 0; }\n  .ladder .rung { display:flex; align-items:center; gap:8px; padding:5px 9px; margin:2px 0; border-radius:5px;\n                  background:#111c33; font:11.5px ui-monospace, monospace; border-left:3px solid #334155; }\n  .ladder .rung.on { border-left-color:#22d3ee; background:#0e2a3a; }\n  .ladder .rung .stage { width:70px; color:#7dd3fc; } .ladder .rung .cost { width:52px; color:#fbbf24; text-align:right; }\n  .ladder .rung .what { color:#94a3b8; margin-left:8px; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; } .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .gauge { display:flex; align-items:center; gap:8px; margin:4px 0; font:11.5px ui-monospace; }\n  .gauge .lab { width:150px; color:#94a3b8; } .gauge .track { flex:1; height:14px; background:#1e293b; border-radius:7px; overflow:hidden; }\n  .gauge .fill { height:100%; border-radius:7px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const gauge = (rows) => rows.map(([lab, pct, col]) =>\n    '<div class=\"gauge\"><span class=\"lab\">' + esc(lab) + '</span><span class=\"track\"><span class=\"fill\" style=\"width:' +\n    pct + '%;background:' + col + '\"></span></span><span class=\"dim\">' + pct + '%</span></div>').join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '게이트의 문제는 「무엇을 막을까」보다 「얼마나 오래 살아남나」',\n    '커버리지는 실행≠검증 — 0% 지도로만(목표 숫자 X)',\n    '싼 검사는 앞으로(shift left), 느린 것만 CI 로',\n    '좋은 게이트: 빠름·안 깜빡임·고칠 방법 안내',\n    '실패 메시지에 다음 행동을(plt-error 처럼)',\n    '명시적 우회 통로 + 기록(긴급 삭제 방지·남용 감시)',\n    '건강을 재라(진짜 잡은 비율·시간·우회·마지막 막은 때)',\n    '막을 것만 막고(객관·피해 큼), 예방으로 잡을 걸 줄여라',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 살아남아 실제로 막는 게이트를 만든다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '게이트는 수명 — 빠르고·믿을 만하고·친절하게, 건강을 재서 관리.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 게이트는 엄격함이 아니라 수명 — 빠르고·믿을 만하고·친절해서 계속 쓰이게, 건강을 재서 관리한다.** 게이트의 진짜 문제는 「무엇을 막을까」보다 「얼마나 오래 살아남나」이고(1장), 커버리지는 실행≠검증이라 0% 지도로만 쓰고(2장), 싼 검사는 앞으로(shift left) 느린 것만 CI 로(3장), 좋은 게이트는 빠름·안 깜빡임·고칠 방법 안내이고(4장), 실패 메시지에 다음 행동을 담고(5장), 명시적 우회 통로+기록을 두고(6장은 건강, 5장은 우회 — 정정: 5장 우회·6장 건강·7장 대상·8장 예방), 건강을 재서 관리하고(6장), 막을 것만 막고(객관·피해 큼, 7장) 예방으로 잡을 걸 줄인다(8장). 「살아남아 실제로 막는 게이트」가 핵심이다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸과 갈래.** 게이트(qa-gate)는 qa 갈래(품질·테스트)의 핵심으로, 「틀린 것을 막는 자동 장치」를 살아남게 설계·관리한다. 수명·건강은 quality(검증이 진짜 신호여야), 커버리지 함정은 굿하트의 법칙(측정≠목표), shift left 는 빠른 피드백(황금의 정신), 좋은 실패 메시지는 plt-error, 안 깜빡임은 qa-flaky, 우회 통로는 team(예외를 투명하게), 예방>게이트는 lang-types·안전한 설계와 통한다. **「게이트는 엄격함이 아니라 수명 — 빠르고 믿을 만하고 친절해서 계속 쓰이고, 건강을 재서 관리하고, 궁극엔 예방으로 잡을 게 줄어들게」**가 이 칸의 전부다. 게이트를 「제품」(개발자가 계속 쓰게)이자 「임시 안전망」(예방으로 대체)으로 보는 관점이 품질 자동화의 근본이다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개로 네 게이트들을 점검하라. 「실패 메시지에 다음 행동 넣기」와 「거짓 빨강 비율 재기」 두 가지만 잡아도, 게이트가 버림받지 않고 살아남는다. 커밋 전 게이트 하나를 세워 다음 행동을 담고, 기존 게이트의 거짓 빨강 비율을 계산해 고칠지 폐기할지 정하라 — 살아남아 실제로 막는 게이트로."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "게이트 장의 한 줄 요약은?",
+          "choices": [
+            "최대한 엄격",
+            "게이트는 수명 — 빠르고·믿을 만하고·친절하게, 건강을 재서 관리",
+            "느리게",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "살아남아 막음."
+        },
+        {
+          "q": "먼저 잡을 두 가지는?",
+          "choices": [
+            "엄격·많이",
+            "실패 메시지에 다음 행동 + 거짓 빨강 비율 재기",
+            "느림·색",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "버림받지 않게."
+        },
+        {
+          "q": "게이트가 이어지는 주제는?",
+          "choices": [
+            "없음",
+            "quality·qa-flaky·plt-error·굿하트·lang-types(예방)",
+            "속도만",
+            "색"
+          ],
+          "answer": 1,
+          "why": "품질 자동화의 근본."
+        }
+      ]
     }
   ]
 }
