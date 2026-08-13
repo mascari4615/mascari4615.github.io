@@ -746,5 +746,6 @@
   "karmograph.stageForm.title": "Scene title",
   "karmograph.stageForm.note": "Note (optional)",
   "karmograph.stageForm.save": "Save",
-  "karmograph.stageForm.cancel": "Cancel"
+  "karmograph.stageForm.cancel": "Cancel",
+  "karmograph.time.renameHint": "Double-click to rename"
 }

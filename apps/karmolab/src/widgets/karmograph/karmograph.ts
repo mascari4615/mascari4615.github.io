@@ -174,6 +174,10 @@ import {
     .km-times.hidden { display:none; }
     .km-times .btn { padding:3px 9px; font-size:12px; border-radius:999px; white-space:nowrap; }
     .km-times .btn.is-on { background:var(--bg-tertiary); color:var(--text-primary); font-weight:600; }
+    /* 이름은 **그 자리에서** 고친다 (KL-271) — 브라우저 prompt 는 판을 가리고,
+       고치는 동안 「어느 시점을 고치는 중인가」가 화면에서 사라진다. */
+    .km-times input { padding:3px 9px; font-size:12px; border-radius:999px; min-width:72px; max-width:140px;
+      border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary); }
     .km-root.is-presenting .km-times { display:none; }
     .km-zoom { position:absolute; right:16px; bottom:14px; z-index:16; display:flex; align-items:center; gap:2px;
       padding:2px; border-radius:999px; background:var(--glass-strong); border:1px solid var(--border);
@@ -1761,6 +1765,8 @@ import {
      * **시점 줄** (TASK-KL-271 X2) — 넓은 화면은 판 아래, 폰은 판 위. 시점이 없으면 아예 안 그린다.
      * 「1부에서는 소꿉친구, 2부에서는 라이벌」을 담으려면 먼저 **시점이 있어야** 한다.
      */
+    /** 지금 **이름을 고치고 있는** 시점 id — 비면 아무것도 안 고치는 중. */
+    let renamingTime: string | null = null;
     function timesNow(): TimePoint[] { return (spec.times ?? []) as TimePoint[]; }
     function timeNow(): string { return spec._meta?.time ?? ''; }
 
@@ -1772,8 +1778,12 @@ import {
       bar.classList.remove('hidden');
       bar.innerHTML = `<button class="btn btn-ghost" data-km="time-prev" title="${esc(t('karmograph.time.prev'))}"
           aria-label="${esc(t('karmograph.time.prev'))}">‹</button>`
-        + list.map((tp) => `<button class="btn btn-ghost${tp.id === now ? ' is-on' : ''}"
-            data-km="time-go" data-key="${escapeAttr(tp.id)}">${esc(tp.name)}</button>`).join('')
+        + list.map((tp) => (tp.id === renamingTime
+          ? `<input data-km="time-name" value="${escapeAttr(tp.name)}"
+              aria-label="${esc(t('karmograph.time.rename'))}" />`
+          : `<button class="btn btn-ghost${tp.id === now ? ' is-on' : ''}"
+            data-km="time-go" data-key="${escapeAttr(tp.id)}"
+            title="${esc(t('karmograph.time.renameHint'))}">${esc(tp.name)}</button>`)).join('')
         + `<button class="btn btn-ghost" data-km="time-next" title="${esc(t('karmograph.time.next'))}"
           aria-label="${esc(t('karmograph.time.next'))}">›</button>`
         // ★ 남의 판을 보는 중(보기 전용)에는 **오가는 것만** 준다 — 이름 바꾸기·지우기는 고치는 손이다.
@@ -1799,14 +1809,39 @@ import {
       const delBtn = bar.querySelector('[data-km="time-del"]') as HTMLButtonElement | null;
       if (!renameBtn || !delBtn) return;   // 보기 전용 — 고치는 단추가 아예 없다
       renameBtn.onclick = () => {
-        const at = list.find((x) => x.id === now);
-        if (!at) return;
-        const name = prompt(t('karmograph.time.renameAsk'), at.name);
-        if (name === null || !name.trim()) return;
-        spec.times = list.map((x) => (x.id === now ? { ...x, name: name.trim() } : x));
-        persistStructure();
+        renamingTime = now;
         renderTimes();
       };
+      // 칩을 두 번 누르는 것도 같은 길 — 이름을 고치려는 손은 대개 이름을 먼저 누른다.
+      bar.querySelectorAll('[data-km="time-go"]').forEach((el) => {
+        (el as HTMLElement).ondblclick = () => {
+          renamingTime = (el as HTMLElement).dataset.key ?? '';
+          renderTimes();
+        };
+      });
+      const nameEl = bar.querySelector('[data-km="time-name"]') as HTMLInputElement | null;
+      if (nameEl) {
+        nameEl.focus();
+        nameEl.select();
+        const keep = (): void => {
+          const at2 = timesNow().find((x) => x.id === renamingTime);
+          const name = nameEl.value.trim();
+          // 이름을 통째로 지우면 **원래 이름**을 둔다 — 이름 없는 시점은 고를 수가 없다.
+          if (at2 && name) {
+            spec.times = timesNow().map((x) => (x.id === renamingTime ? { ...x, name } : x));
+            persistStructure();
+          }
+          renamingTime = null;
+          renderTimes();
+        };
+        nameEl.onkeydown = (ev) => {
+          ev.stopPropagation();   // 안 막으면 Delete·화살표가 판의 카드를 건드린다
+          if (ev.key === 'Enter') { ev.preventDefault(); keep(); }
+          if (ev.key === 'Escape') { ev.preventDefault(); renamingTime = null; renderTimes(); }
+        };
+        // 다른 데를 누르면 적은 대로 둔다(적어 놓고 딴 데를 눌렀다고 지우면 화가 난다).
+        nameEl.onblur = () => { if (renamingTime) keep(); };
+      }
       delBtn.onclick = () => {
         const at = list.find((x) => x.id === now);
         if (!at || !confirm(t('karmograph.time.delAsk', { name: at.name }))) return;

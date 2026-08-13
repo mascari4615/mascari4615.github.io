@@ -2839,6 +2839,56 @@ await step('종이 한 장으로 뽑는다 — A4 에 맞춘 새 창', async () 
   if (!/background:#fff/.test(html)) throw new Error('종이가 흰 바탕이 아니다 — 잉크를 다 먹는다');
 });
 
+await step('시점 이름은 그 자리에서 고친다 (Esc 는 되돌리고, 딴 데를 눌러도 남는다)', async () => {
+  /* 예전엔 브라우저 prompt 였다 — 판을 가리고, 고치는 동안 「어느 시점을 고치는 중인가」가
+     화면에서 사라진다. 이제 칩이 그대로 입력칸이 된다(두 번 누르기도 같은 길). */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => document.querySelector('[data-km="time-add"]').click());
+  await m.waitForSelector('[data-km="time-go"]', { timeout: ms(8000) });
+
+  // ① Esc 로 그만두면 옛 이름 그대로
+  const was = (await m.locator('[data-km="time-go"]').first().textContent()).trim();
+  await m.locator('[data-km="time-rename"]').click();
+  await m.waitForSelector('[data-km="time-name"]', { timeout: ms(4000) });
+  await m.fill('[data-km="time-name"]', '버릴 이름');
+  await m.keyboard.press('Escape');
+  await m.waitForSelector('[data-km="time-go"]', { timeout: ms(4000) });
+  if ((await m.locator('[data-km="time-go"]').first().textContent()).trim() !== was) {
+    throw new Error('그만뒀는데 이름이 바뀌었다');
+  }
+
+  // ② 두 번 눌러 고치고 Enter — 새로고침해도 남는다
+  await m.locator('[data-km="time-go"]').first().dblclick();
+  await m.waitForSelector('[data-km="time-name"]', { timeout: ms(4000) });
+  await m.fill('[data-km="time-name"]', '어린 시절');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(
+    () => (document.querySelector('[data-km="time-go"]')?.textContent || '').includes('어린 시절'),
+    null, { timeout: ms(4000) },
+  );
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('[data-km="time-go"]', { timeout: ms(8000) });
+  if (!(await m.locator('[data-km="time-go"]').first().textContent()).includes('어린 시절')) {
+    throw new Error('고친 이름이 안 남는다');
+  }
+
+  // ③ 적어 놓고 딴 데를 눌러도 적은 대로 남는다 (지우면 화가 난다)
+  await m.locator('[data-km="time-rename"]').click();
+  await m.waitForSelector('[data-km="time-name"]', { timeout: ms(4000) });
+  await m.fill('[data-km="time-name"]', '떠난 뒤');
+  await m.locator('.km-canvas').click({ position: { x: 40, y: 40 } });
+  await m.waitForFunction(
+    () => (document.querySelector('[data-km="time-go"]')?.textContent || '').includes('떠난 뒤'),
+    null, { timeout: ms(4000) },
+  );
+  await ctx.close();
+});
 await step('시점을 만들면 판 아래에서 오간다 (안 쓰는 판에는 안 뜬다)', async () => {
   // 「1부에서는 소꿉친구, 2부에서는 라이벌」을 담으려면 먼저 시점이 있어야 한다(KL-271 X2).
   if (await page.locator('.km-times:not(.hidden)').count() !== 0) {
