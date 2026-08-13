@@ -100,6 +100,17 @@ if (todo.some((c) => c.needsServer)) {
 const stopServer = () => { if (server) { try { server.kill(); } catch { /* 이미 죽음 */ } server = null; } };
 process.on('exit', stopServer);
 
+/* ★ **판이 잠잠해질 때까지 기다린 뒤 시작한다** (2026-08-13, 조각내기 부작용 교정).
+   「올린 판이 실제로 서빙되는지」 검사가 그 기다림을 품고 있었는데, 목록을 셋으로 나누면서
+   그 검사는 **1번 조각에만** 들어갔다 — 2·3번 조각은 배포가 갈리는 중에 그대로 들어가
+   반쯤 바뀐 화면을 재고 가짜 빨강을 냈다(실측: charmap·crypto, build.json 이 그 1분 전 것).
+   조각마다 앞에서 한 번 재우면 값이 싸고(대개 몇 초) 거짓 빨강이 사라진다. */
+if (todo.some((c) => c.live)) {
+  console.log(String.fromCharCode(10) + '──── 준비: 실사이트가 잠잠해질 때까지 ────');
+  const code = run(['node', 'scripts/check-live-version.mjs']);
+  if (code === 2) console.log('[verify:live] 판이 계속 갈리는 중이다 — 그래도 진행한다(이 판의 빨강은 의심하라).');
+}
+
 const results = [];
 const skipped = [];
 for (const check of todo) {
