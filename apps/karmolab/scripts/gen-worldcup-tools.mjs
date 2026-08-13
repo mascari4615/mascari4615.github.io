@@ -13,7 +13,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { withoutRetired } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = 'https://blog.mascari4615.com';
@@ -39,9 +38,11 @@ for (const m of metaSrc.matchAll(/id:\s*"([a-z0-9-]+)"[\s\S]{0,400}?title:\s*"([
 const KIND = { tool: '도구', play: '놀이', desktop: '데스크톱', dev: '개발' };
 
 const items = [];
-/* 작업대로 합친 옛 도구는 후보에서 뺀다 — 골라도 「작업대로 보냅니다」 안내 한 장이라
-   대결의 한쪽이 빈 자리가 된다(목록 정본은 lib/retired-operations.mjs). */
-for (const id of withoutRetired(Object.keys(seo))) {
+/* 후보에서 빼는 일은 **표를 다시 구워 커밋**해야 성립한다 — 생성기만 바꾸면 커밋된 표와
+   갈라져 `audit:generated` 가 선다(2026-08-13 실측). 표를 구우려면 빌드 산출물이 필요한데
+   그건 깨끗한 자리에서 해야 남의 미완성이 안 섞인다. 그때까지 옛 도구도 후보에 남는다 —
+   눌러도 작업대로 가므로 길이 끊기지는 않는다. */
+for (const id of Object.keys(seo)) {
   const img = path.join(root, 'img/og', `${id}.jpg`);
   if (!fs.existsSync(img)) continue; // 그림 없는 도구는 월드컵에 못 나온다
   const w = widgets.get(id);
