@@ -1759,6 +1759,53 @@ await step('발표를 SVG 한 장으로 — 브라우저만 있으면 도는 파
   await page.keyboard.press('Escape');
   await page.waitForSelector('[data-km="drawer"].hidden', { state: 'attached', timeout: ms(4000) });
 });
+await step('되돌릴 수 없는 일은 얼리지 않고 되묻는다 — 기본은 「그만」 (KL-271)', async () => {
+  /* 되묻는 자리는 대개 되돌릴 수 없는 일 앞이다. 브라우저 confirm 은 판을 얼려 **무엇을
+     지우려는지 뒤를 못 보게** 만든다 — 「그게 어느 카드더라」를 확인할 길이 없는 채로 고르게
+     하는 셈이다. 그리고 되돌릴 수 없는 쪽이 기본 손가락이면 언젠가 사고가 난다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const m = await ctx.newPage();
+  let dialogs = 0;
+  m.on('dialog', (d) => { dialogs += 1; d.accept().catch(() => {}); });
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  const box0 = await m.locator('.km-canvas').boundingBox();
+  await m.mouse.dblclick(box0.x + box0.width * 0.4, box0.y + box0.height * 0.35);
+  await m.waitForSelector('.km-inline', { timeout: ms(4000) });
+  await m.keyboard.type('지울까말까');
+  await m.keyboard.press('Enter');
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 1, null, { timeout: ms(4000) });
+
+  // ① 되물음이 뜨고, 브라우저 창은 안 뜬다. 손가락은 「그만」에 놓여 있다.
+  await m.locator('[data-km="node-del"]').click();
+  await m.waitForSelector('[data-km="ask-yes"]', { timeout: ms(4000) });
+  if (dialogs > 0) throw new Error('아직 브라우저 확인창이 뜬다 — 판이 언다');
+  const onCancel = await m.evaluate(() =>
+    document.activeElement === document.querySelector('[data-km="ask-no"]'));
+  if (!onCancel) throw new Error('기본 손가락이 「그만」에 없다 — 되돌릴 수 없는 쪽이 기본이면 사고가 난다');
+
+  // ② Esc 는 그만 — 카드는 그대로다
+  await m.keyboard.press('Escape');
+  await m.waitForSelector('[data-km="ask-yes"]', { state: 'detached', timeout: ms(4000) });
+  if (await m.locator('.ck-node').count() !== 1) throw new Error('그만 뒀는데 카드가 지워졌다');
+
+  // ③ 「그만」 단추로도 안 지워진다
+  await m.locator('[data-km="node-del"]').click();
+  await m.waitForSelector('[data-km="ask-no"]', { timeout: ms(4000) });
+  await m.locator('[data-km="ask-no"]').click();
+  if (await m.locator('.ck-node').count() !== 1) throw new Error('「그만」을 눌렀는데 지워졌다');
+
+  // ④ 「지울래요」를 눌러야 지워진다
+  await m.locator('[data-km="node-del"]').click();
+  await m.waitForSelector('[data-km="ask-yes"]', { timeout: ms(4000) });
+  await m.locator('[data-km="ask-yes"]').click();
+  await m.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: ms(4000) });
+  if (dialogs > 0) throw new Error('브라우저 확인창이 끼어들었다');
+  await ctx.close();
+});
 await step('안 된 일은 판을 얼리지 않고 말한다 — 읽는 동안 화면이 살아 있다 (KL-271)', async () => {
   /* 예전엔 브라우저 alert 이었다: 판이 통째로 얼어 **무엇이 잘못됐는지 뒤를 못 보고** 답해야
      했고, 폰에서는 주소창 이름이 함께 떠 「사이트가 하는 말」처럼 읽혔다. 여기서는 판 위 말

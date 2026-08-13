@@ -1563,13 +1563,13 @@ import {
         );
         Toolbox.showToast?.(t('karmograph.mapsBundled', { n: all.length }), undefined, undefined);
       },
-      restorePrevRevision: () => {
+      restorePrevRevision: async () => {
         const prev = store.loadPrev();
         if (!prev) {
           Toolbox.showToast?.(t('karmograph.byLabel.msg'), undefined, undefined);
           return;
         }
-        if (!confirm(t('karmograph.confirmRestore', { n: prev.nodes.length }))) return;
+        if (!await askNote(t('karmograph.confirmRestore', { n: prev.nodes.length }), t('karmograph.ask.ok'))) return;
         spec = prev;
         applySpec();
         persistStructure();
@@ -1869,9 +1869,9 @@ import {
         // 다른 데를 누르면 적은 대로 둔다(적어 놓고 딴 데를 눌렀다고 지우면 화가 난다).
         nameEl.onblur = () => { if (renamingTime) keep(); };
       }
-      delBtn.onclick = () => {
+      delBtn.onclick = async () => {
         const at = list.find((x) => x.id === now);
-        if (!at || !confirm(t('karmograph.time.delAsk', { name: at.name }))) return;
+        if (!at || !await askNote(t('karmograph.time.delAsk', { name: at.name }), t('karmograph.ask.del'))) return;
         lastAction = t('karmograph.time.delAct');
         // 시점을 지우면 **그 시점에 적어 둔 얼굴도 함께** 지운다 — 안 지우면 아무도 못 보는 자료가 남는다.
         spec.edges = forgetTime(spec.edges, now) as typeof spec.edges;
@@ -2296,8 +2296,8 @@ import {
 
       bindLinkSections(panelCtx, selectedId);
 
-      (sideEl.querySelector('[data-km="node-del"]') as HTMLButtonElement).onclick = () => {
-        if (!confirm(t('karmograph.confirmDeleteEdges', { name: node.label }))) return;
+      (sideEl.querySelector('[data-km="node-del"]') as HTMLButtonElement).onclick = async () => {
+        if (!await askNote(t('karmograph.confirmDeleteEdges', { name: node.label }), t('karmograph.ask.del'))) return;
         const goneEdges = new Set(
           spec.edges.filter((e) => e.from === node.id || e.to === node.id).map((e) => e.id)
         );
@@ -2446,10 +2446,10 @@ import {
       renderSide();
       (sideEl.querySelector('[data-km="edit-doc"]') as HTMLTextAreaElement | null)?.focus();
     };
-    q<HTMLButtonElement>('mini-del').onclick = () => {
+    q<HTMLButtonElement>('mini-del').onclick = async () => {
       const node = spec.nodes.find((n) => n.id === selectedId);
       if (!node) return;
-      if (!confirm(t('karmograph.confirmDeleteEdges', { name: node.label }))) return;
+      if (!await askNote(t('karmograph.confirmDeleteEdges', { name: node.label }), t('karmograph.ask.del'))) return;
       spec.nodes = spec.nodes.filter((n) => n.id !== node.id);
       spec.edges = spec.edges.filter((e) => e.from !== node.id && e.to !== node.id);
       for (const n of spec.nodes) if (n.attachedTo === node.id) n.attachedTo = undefined;
@@ -2984,7 +2984,7 @@ import {
             ? buildShareUrl(new URL(location.href), await encodeShare(lean.spec), readOnly)
             : url;
           if (lean.removed > 0 && leanUrl.length <= SHARE_URL_LIMIT
-            && confirm(t('karmograph.confirmLeanShare', { n: lean.removed }))) {
+            && await askNote(t('karmograph.confirmLeanShare', { n: lean.removed }), t('karmograph.ask.ok'))) {
             url = leanUrl;
           } else {
             showNote(
@@ -3261,8 +3261,9 @@ import {
         }
         if ((ev.key === 'Delete' || ev.key === 'Backspace') && selectedId) {
           const node = spec.nodes.find((n) => n.id === selectedId);
-          if (node && confirm(t('karmograph.confirmDeleteNode', { name: node.label }))) {
+          if (node) {
             ev.preventDefault();
+            // 지울지 되묻는 일은 **옆 패널 단추 한 곳**에만 둔다 — 여기서도 물으면 두 번 묻는다.
             (sideEl.querySelector('[data-km="node-del"]') as HTMLButtonElement | null)?.click();
           }
           return;
@@ -3491,6 +3492,38 @@ import {
         ev.stopPropagation();
         if (ev.key === 'Escape' || ev.key === 'Enter') close();
       };
+    }
+
+    /**
+     * ❓ **판을 얼리지 않는 되물음** (KL-271) — 브라우저 confirm 을 대신한다.
+     *
+     * 되묻는 자리는 대개 **되돌릴 수 없는 일**(판 지우기·선 전부 끊기) 앞이다. 그런데 브라우저
+     * confirm 은 판을 얼려 **무엇을 지우려는지 뒤를 못 보게** 만든다 — 「그 판이 어느 판이더라」를
+     * 확인할 방법이 없는 채로 예/아니오를 고르게 하는 셈이다. 여기서는 화면을 살려 둔 채 묻는다.
+     *
+     * 기본 손가락은 **그만**에 둔다(Esc 도 그만) — 되돌릴 수 없는 쪽이 기본이면 언젠가 사고가 난다.
+     */
+    function askNote(msg: string, okLabel: string): Promise<boolean> {
+      root.querySelector('.km-note')?.remove();
+      return new Promise((resolve) => {
+        const box = document.createElement('div');
+        box.className = 'km-note';
+        box.setAttribute('role', 'alertdialog');
+        box.innerHTML = `<span data-km="ask-msg"></span>`
+          + `<button class="btn btn-ghost" data-km="ask-no">${esc(t('karmograph.stageForm.cancel'))}</button>`
+          + `<button class="btn" data-km="ask-yes"></button>`;
+        (box.querySelector('[data-km="ask-msg"]') as HTMLElement).textContent = msg;
+        (box.querySelector('[data-km="ask-yes"]') as HTMLElement).textContent = okLabel;
+        canvasEl.appendChild(box);
+        const done = (yes: boolean): void => { box.remove(); resolve(yes); };
+        (box.querySelector('[data-km="ask-yes"]') as HTMLButtonElement).onclick = () => done(true);
+        (box.querySelector('[data-km="ask-no"]') as HTMLButtonElement).onclick = () => done(false);
+        (box.querySelector('[data-km="ask-no"]') as HTMLButtonElement).focus();
+        box.onkeydown = (ev) => {
+          ev.stopPropagation();
+          if (ev.key === 'Escape') done(false);
+        };
+      });
     }
 
     /**
@@ -3873,8 +3906,8 @@ import {
         });
     };
 
-    q<HTMLButtonElement>('clear').onclick = () => {
-      if (!confirm(t('karmograph.file.msg7'))) return;
+    q<HTMLButtonElement>('clear').onclick = async () => {
+      if (!await askNote(t('karmograph.file.msg7'), t('karmograph.ask.del'))) return;
       spec = emptyGraphSpec();
       spec._edge_kinds = { ...edgeDefsNow() };
       spec._meta = { pack: pack.id };
@@ -4053,13 +4086,13 @@ import {
     // 판 이름은 **이름 옆 ✎** 하나로만 바꾼다 — 서랍 안 같은 단추는 걷어냈다 (KL-271 P3).
     q<HTMLButtonElement>('map-rename2').onclick = renameActiveMap;
 
-    q<HTMLButtonElement>('map-del').onclick = () => {
+    q<HTMLButtonElement>('map-del').onclick = async () => {
       const cur = library.maps.find((m) => m.id === library.activeId);
       const last = library.maps.length <= 1;
       const msg = last
         ? `"${cur?.name ?? t('karmograph.file.msg3')}" 의 내용을 모두 지울까요? (마지막 한 장이라 맵 자체는 남습니다)`
         : `"${cur?.name ?? t('karmograph.file.msg3')}" 맵을 지울까요? 되돌릴 수 없습니다.`;
-      if (!confirm(msg)) return;
+      if (!await askNote(msg, t('karmograph.ask.del'))) return;
       library = removeMap(library, library.activeId);
       renderMapList();
       openActiveMap();

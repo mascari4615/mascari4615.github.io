@@ -749,5 +749,7 @@
   "karmograph.stageForm.cancel": "Cancel",
   "karmograph.time.renameHint": "Double-click to rename",
   "karmograph.linkBox.copy": "Copy",
-  "karmograph.linkBox.close": "Close"
+  "karmograph.linkBox.close": "Close",
+  "karmograph.ask.ok": "Yes",
+  "karmograph.ask.del": "Delete"
 }

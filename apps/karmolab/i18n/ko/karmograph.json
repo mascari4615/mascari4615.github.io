@@ -749,5 +749,7 @@
   "karmograph.stageForm.cancel": "그만",
   "karmograph.time.renameHint": "두 번 누르면 이름을 고칩니다",
   "karmograph.linkBox.copy": "복사",
-  "karmograph.linkBox.close": "닫기"
+  "karmograph.linkBox.close": "닫기",
+  "karmograph.ask.ok": "그럴래요",
+  "karmograph.ask.del": "지울래요"
 }
