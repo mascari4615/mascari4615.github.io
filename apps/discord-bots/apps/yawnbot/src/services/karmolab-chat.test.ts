@@ -6,7 +6,7 @@
  *  ② **도배가 실제로 막힌다** — 상한을 적어 두기만 하고 안 걸리는 일이 흔하다.
  *  ③ **다시 켜도 방이 남는다** — 배포가 하루에 몇 번씩 서비스를 재시작한다.
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -19,11 +19,24 @@ function makeStore(): KarmolabChatStore {
     return new KarmolabChatStore(statePath);
 }
 
+/**
+ * 이 시험들이 서 있는 **오늘**. 여기 적힌 날짜를 지나면 줄의 수명(하루)이 끝나므로,
+ * 시계를 이 순간에 못 박아 둔다. 안 그러면 시험은 **쓴 날에만 초록**이고 며칠 뒤 저절로
+ * 빨강이 된다 — 실제로 그렇게 4건이 몇 달 동안 조용히 빨강이었다 (TASK-YB-045).
+ *
+ * `Date` 만 가짜로 바꾼다. `setTimeout` 은 진짜여야 한다 — 접속 유예(`hereCount`) 시험이
+ * 실제 타이머로 기다린다.
+ */
+const 오늘 = new Date('2026-08-08T12:00:00Z');
+
 beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(오늘);
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kl-chat-'));
     statePath = path.join(dir, 'chat-state.json');
 });
 afterEach(() => {
+    vi.useRealTimers();
     fs.rmSync(dir, { recursive: true, force: true });
 });
 
