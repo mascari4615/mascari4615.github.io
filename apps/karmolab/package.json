@@ -254,7 +254,8 @@
     "test:dropwell": "node scripts/test-drop-well.mjs",
     "test:saylive": "node scripts/test-status-live.mjs",
     "audit:saylive": "node scripts/audit-status-live.mjs",
-    "audit:iconbtn": "node scripts/audit-icon-buttons.mjs"
+    "audit:iconbtn": "node scripts/audit-icon-buttons.mjs",
+    "smoke:live": "node scripts/smoke-materials-live.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
