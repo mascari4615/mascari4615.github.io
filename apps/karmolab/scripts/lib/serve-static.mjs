@@ -91,6 +91,31 @@ export async function serveRepo(options = {}) {
    * 그래서 한 번 읽은 파일은 그 판 내내 **그때 읽은 것**을 내준다. 도중에 바뀐 파일은
    * `drift()` 로 이름을 남겨, 「왜 이상하지」가 아니라 「옆에서 바꿨다」로 읽히게 한다.
    */
+  /**
+   * ❄ 얼리기 **전에**, 그 파일이 다 쓰였는지 확인한다 (2026-08-13, TASK-KL-271).
+   *
+   * 얼리는 것 자체는 옳았는데 **무엇을 얼리느냐**가 문제였다: 빌드가 도는 중에 첫 요청이 오면
+   * 반쯤 쓰인 묶음을 얼려 **판 내내 그것을 내준다**. 겉보기 증상은 「방금 넣은 규칙이 안 먹는다」
+   * 라서, 규칙을 세 번 고치고서야 묶음이 옛것임을 알았다(계기를 붙여 잡았다: `규칙실림=false`).
+   *
+   * 읽기 전후로 크기·수정시각을 재서 **그 사이에 안 바뀐 것만** 얼린다. 바뀌었으면 잠깐 쉬고
+   * 다시 읽는다 — 다 쓰이길 기다리는 것이지, 내용을 고치는 것이 아니다.
+   */
+  const napper = new Int32Array(new SharedArrayBuffer(4));
+  const napMs = (msec) => { Atomics.wait(napper, 0, 0, msec); };
+  function readStable(file, tries = 6) {
+    let last = null;
+    for (let i = 0; i < tries; i += 1) {
+      const a = fs.statSync(file);
+      const body = fs.readFileSync(file);
+      const b = fs.statSync(file);
+      if (a.size === b.size && a.mtimeMs === b.mtimeMs && b.size === body.length) return body;
+      last = body;
+      napMs(60);   // 쓰는 쪽이 끝낼 틈
+    }
+    return last ?? fs.readFileSync(file);
+  }
+
   const frozen = new Map();
   const drifted = new Set();
   const server = http.createServer((req, res) => {
@@ -106,7 +131,7 @@ export async function serveRepo(options = {}) {
         res.writeHead(404).end('not found');
         return;
       }
-      let body = fs.readFileSync(file);
+      let body = readStable(file);
       const ext = path.extname(file);
       if (ext === '.html') body = Buffer.from(stripJekyll(String(body)), 'utf8');
       frozen.set(file, { body, type: MIME[ext] || 'application/octet-stream', mtime: fs.statSync(file).mtimeMs });
