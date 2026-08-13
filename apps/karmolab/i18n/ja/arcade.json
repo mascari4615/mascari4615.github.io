@@ -387,5 +387,12 @@
   "arcade.tour.start": "大会 — {n}番勝負",
   "arcade.tour.next": "次の番",
   "arcade.tour.done": "大会おわり",
-  "arcade.tour.standing": "{n}/{of} · {board}"
+  "arcade.tour.standing": "{n}/{of} · {board}",
+  "arcade.find.hint": "ゲームを探す — 名前・種類・長さ",
+  "arcade.find.none": "見つからない",
+  "arcade.pick.title": "これはどう",
+  "arcade.len.short": "みじかい",
+  "arcade.len.mid": "ふつう",
+  "arcade.len.long": "ながい",
+  "arcade.len.secs": "ボット同士で約{n}秒"
 }

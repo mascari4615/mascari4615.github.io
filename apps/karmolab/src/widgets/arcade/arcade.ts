@@ -30,6 +30,9 @@ import { makeCode, inviteLink } from '../../lib/room';
 import { blip, soundOn, setSoundOn } from '../../lib/blip';
 import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
+import { lengthOf, secondsOf } from './length';
+import { readPlays, notePlay } from './plays';
+import { pick6, matches, SLOTS } from './pick6';
 import { pickGames, award, isOver, ROUNDS, type TourState } from './tour';
 import { PARTY, partySize } from './seating';
 import type { Render } from './views';
@@ -511,6 +514,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-todaycard span{font-size:20px}',
       '.ac-todaycard.ac-done{opacity:.55;border-color:var(--border-color)}',
       '.ac-tourbtn{align-self:center}',
+      '.ac-find{width:100%;max-width:340px;padding:8px 12px;border:1px solid var(--border-color);border-radius:999px;background:var(--bg-secondary);color:var(--text-color);margin:var(--space-md) 0}',
+      '.ac-len{font-size:var(--font-size-xs);color:var(--text-secondary);border:1px solid var(--border-color);border-radius:999px;padding:1px 7px;align-self:flex-start}',
+      '.ac-len.ac-short{color:var(--accent);border-color:var(--accent)}',
+      '.ac-none{color:var(--text-secondary);font-size:var(--font-size-sm);margin:var(--space-lg) 0}',
       '.ac-streak{margin-left:8px;font-size:var(--font-size-xs);color:var(--accent)}',
       '.ac-level{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:var(--space-md) 0}',
       '.ac-level button{padding:4px 10px;font-size:var(--font-size-xs);border:1px solid var(--border-color);border-radius:999px;background:var(--bg-secondary)}',
@@ -558,7 +565,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     container.innerHTML =
       '<div id="acLobby">' +
       '<p class="tool-status">' + esc(t('arcade.lobby.hint')) + '</p>' +
+      '<input type="search" id="acFind" class="ac-find" placeholder="' + esc(t('arcade.find.hint')) +
+      '" aria-label="' + esc(t('arcade.find.hint')) + '">' +
       '<div class="ac-today" id="acToday"></div>' +
+      '<div id="acPicks"></div>' +
       '<div class="ac-level" id="acLevel" role="group" aria-label="' + esc(t('arcade.level.aria')) + '">' +
       ['mild', 'normal', 'spicy']
         .map((v) => '<button data-level="' + v + '">' + esc(t('arcade.level.' + v)) + '</button>')
@@ -626,16 +636,27 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      *
      * **갈래로 묶어 보여 준다.** 스물이 넘으면 나열은 목록이 아니라 벽이 된다.
      * 갈래가 비어 있으면 제목 자체를 안 그린다 — 「없음」이 적힌 칸은 자리만 먹는다. */
-    const cardOf = (g: (typeof GAMES)[number]): string => {
+    /**
+     * 카드 하나. `pick` 이면 **다른 표를 쓴다** — 추천 여섯은 아래 51개와 같은 카드라
+     * 같은 표를 쓰면 「게임 몇 종인가」를 세는 자리가 여섯만큼 샌다(오늘의 셋에서 이미 겪었다:
+     * 51종이 54종이 됐다). 세는 자리는 하나여야 한다.
+     */
+    const cardOf = (g: (typeof GAMES)[number], pick = false): string => {
+      const solo = pick ? 'data-pick' : 'data-solo';
+      const host = pick ? 'data-pickhost' : 'data-host';
       const [min, max] = g.seats;
       return (
         '<div class="ac-card"><span class="ac-emoji">' + iconOf(g.id) + '</span>' +
         '<b>' + esc(t('arcade.game.' + g.id + '.name')) + '</b>' +
         '<small>' + esc(t('arcade.game.' + g.id + '.desc')) + '</small>' +
         '<small>' + esc(t('arcade.seats', { min: String(min), max: String(max) })) + '</small>' +
+        /* 길이는 손으로 안 적는다 — 저울이 잰 수에서 나온다(`length.ts`). */
+        '<span class="ac-len ac-' + lengthOf(g.id) + '" title="' +
+        esc(secondsOf(g.id) === null ? '' : t('arcade.len.secs', { n: String(Math.round(secondsOf(g.id) as number)) })) +
+        '">' + esc(t('arcade.len.' + lengthOf(g.id))) + '</span>' +
         '<span class="ac-go">' +
-        '<button data-solo="' + g.id + '">' + esc(t('arcade.btn.solo')) + '</button>' +
-        '<button data-host="' + g.id + '">' + esc(t('arcade.btn.together')) + '</button>' +
+        '<button ' + solo + '="' + g.id + '">' + esc(t('arcade.btn.solo')) + '</button>' +
+        '<button ' + host + '="' + g.id + '">' + esc(t('arcade.btn.together')) + '</button>' +
         '</span></div>'
       );
     };
@@ -670,34 +691,91 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     };
     paintToday();
 
-    $<HTMLElement>('#acGames').innerHTML = KINDS.map((kind: Kind) => {
-      const mine = GAMES.filter((g) => kindOf(g.id) === kind);
-      if (!mine.length) return '';
-      return (
-        '<h3 class="ac-kind">' + esc(t('arcade.kind.' + kind)) + ' <i>' + mine.length + '</i></h3>' +
-        '<div class="ac-grid">' + mine.map(cardOf).join('') + '</div>'
-      );
-    }).join('');
+    /* ── 추천 여섯 칸 + 찾기 (TASK-KL-264 F4) ──────────────────────
+     *
+     * 51개를 갈래로 묶어 늘어놓는 것만으로는 부족했다 — 묶어도 51개는 51개다. 그래서 위에
+     * **여섯 칸**을 두고(내가 안 해 본 것 먼저), 그래도 특정 판을 찾는 사람을 위해 **찾기**를 둔다.
+     * 찾는 중에는 갈래 제목도 추천도 걷어 낸다 — 찾는 사람에게 그건 전부 방해다. */
+    const findEl = $<HTMLInputElement>('#acFind');
 
-    const remember = (): void => {
+    function remember(): void {
       try {
         localStorage.setItem('karmolab.arcade.name', nameInput.value.trim());
       } catch {
         /* 못 적어도 그만 */
       }
+    }
+
+    /** 카드는 찾을 때마다 다시 그려지므로 배선도 그때마다 다시 한다. */
+    function wireCards(): void {
+      const on = (attr: string, key: string, go: (id: string) => void): void => {
+        container.querySelectorAll<HTMLButtonElement>('[' + attr + ']').forEach((b) => {
+          b.onclick = (): void => {
+            remember();
+            go(String(b.dataset[key]));
+          };
+        });
+      };
+      on('data-solo', 'solo', startSolo);
+      on('data-pick', 'pick', startSolo);
+      on('data-host', 'host', openRoom);
+      on('data-pickhost', 'pickhost', openRoom);
+    }
+
+    /** 이 게임이 검색어에 걸리나 — 이름·설명·갈래·길이 어디든. */
+    const hayOf = (id: string): string[] => [
+      id,
+      t('arcade.game.' + id + '.name'),
+      t('arcade.game.' + id + '.desc'),
+      t('arcade.kind.' + kindOf(id)),
+      t('arcade.len.' + lengthOf(id))
+    ];
+
+    const paintPicks = (): void => {
+      const box = $<HTMLElement>('#acPicks');
+      if (findEl.value.trim()) { box.innerHTML = ''; return; }
+      const ids = pick6(
+        GAMES.map((g) => ({ id: g.id, kind: kindOf(g.id), length: lengthOf(g.id) })),
+        readPlays()
+      );
+      box.innerHTML =
+        '<h3 class="ac-kind">' + esc(t('arcade.pick.title')) + ' <i>' + SLOTS + '</i></h3>' +
+        '<div class="ac-grid">' +
+        ids.map((id) => cardOf(GAMES.find((g) => g.id === id)!, true)).join('') +
+        '</div>';
+      wireCards();
     };
-    container.querySelectorAll<HTMLButtonElement>('[data-solo]').forEach((b) => {
-      b.onclick = (): void => {
-        remember();
-        startSolo(String(b.dataset.solo));
-      };
-    });
-    container.querySelectorAll<HTMLButtonElement>('[data-host]').forEach((b) => {
-      b.onclick = (): void => {
-        remember();
-        openRoom(String(b.dataset.host));
-      };
-    });
+
+    const paintGames = (): void => {
+      const q = findEl.value;
+      const box = $<HTMLElement>('#acGames');
+      if (q.trim()) {
+        const mine = GAMES.filter((g) => matches(hayOf(g.id), q));
+        box.innerHTML = mine.length
+          ? '<div class="ac-grid">' + mine.map((g) => cardOf(g)).join('') + '</div>'
+          : '<p class="ac-none">' + esc(t('arcade.find.none')) + '</p>';
+      } else {
+        box.innerHTML = KINDS.map((kind: Kind) => {
+          const mine = GAMES.filter((g) => kindOf(g.id) === kind);
+          if (!mine.length) return '';
+          return (
+            '<h3 class="ac-kind">' + esc(t('arcade.kind.' + kind)) + ' <i>' + mine.length + '</i></h3>' +
+            '<div class="ac-grid">' + mine.map((g) => cardOf(g)).join('') + '</div>'
+          );
+        }).join('');
+      }
+      wireCards();
+    };
+
+    paintPicks();
+    paintGames();
+
+    /* 찾는 중에는 오늘의 셋도 접는다 — 찾는 사람은 이미 무엇을 할지 정했다. */
+    findEl.oninput = (): void => {
+      $<HTMLElement>('#acToday').style.display = findEl.value.trim() ? 'none' : '';
+      paintPicks();
+      paintGames();
+    };
 
     /* ── 판 ──────────────────────────────────────────────────────── */
     let match: Match<unknown, unknown> | null = null;
@@ -871,6 +949,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       cancelAnimationFrame(raf);
       loop();
       Toolbox.trackUse?.(id);
+      /* 「안 해 본 것 먼저」가 성립하려면 해 본 것을 적어야 한다 (`plays.ts`). */
+      notePlay(id);
     }
 
     /**

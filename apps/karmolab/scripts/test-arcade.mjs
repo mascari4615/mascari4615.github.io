@@ -62,6 +62,16 @@ ok(new Set(GAMES.map((g) => g.id)).size === GAMES.length, 'id 가 겹치지 않�
  * **모든 게임이 지켜야 하는 것.** 게임을 51개까지 늘려도 여기에 자동으로 걸린다 —
  * 새 게임을 넣을 때 검사를 새로 짤 필요가 없다는 뜻이고, 그게 51개가 가능한 이유다.
  */
+/* 로비의 「길이」 태그는 저울(`bench:arcade`)이 잰 수에서 나온다. 새 게임을 넣고 저울을 안
+   돌리면 그 게임만 조용히 「보통」이 된다 — 틀린 태그는 없는 태그보다 나쁘다. */
+{
+  const measured = new Set(
+    JSON.parse(readFileSync('data/arcade-balance.json', 'utf8')).게임.map((r) => r.id)
+  );
+  const missing = GAMES.map((g) => g.id).filter((id) => !measured.has(id));
+  ok(missing.length === 0, '모든 게임이 저울에 재여 있다 (npm run bench:arcade)', missing.join(', '));
+}
+
 console.log('[arcade] 계약 — 모든 게임 공통');
 /* **몇 명으로 보는가** = 오락실이 실제로 앉히는 수(`seating.ts` 정본). 최소 인원으로만 보면
    「1명부터」인 판 17개가 아무와도 안 겨루는 채로 통과한다. */
