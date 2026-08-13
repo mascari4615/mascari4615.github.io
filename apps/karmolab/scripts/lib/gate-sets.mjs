@@ -24,7 +24,11 @@ export const PREPUSH = [
   'test:karmograph',
   'audit:wf-prereq',
   'audit:orphans',
-  'audit:i18n-load'
+  'audit:i18n-load',
+  /* ★ 0.7초짜리인데 **배포를 네 판 세운** 병을 잡는다 (2026-08-14): 「옮겼다더니 값이 한국어
+     그대로」. 그 한 열쇠 때문에 verify 가 서고 배포가 통째로 막혔고, 미는 자리에서는 아무도
+     안 보고 있었다. 값싸고 잡는 게 크면 앞으로 당긴다. */
+  'test:i18n'
 ];
 
 /**
