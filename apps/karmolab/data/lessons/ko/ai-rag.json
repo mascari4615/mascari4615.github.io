@@ -1,106 +1,861 @@
 {
   "id": "ai-rag",
-  "minutes": 14,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "모델에 없는 우리 데이터를 넣는 가장 흔한 방법이 검색 붙이기다. 이름은 거창해도 구조는 단순하다 — **찾아서 문맥에 넣는다**."
-    },
-    {
-      "type": "h",
-      "text": "1. 전체 흐름"
-    },
-    {
-      "type": "p",
-      "text": "문서를 조각내기(chunk) → 각 조각을 벡터로 변환(임베딩) → 저장 → 질문도 벡터로 → 가까운 조각 찾기 → 그 조각을 프롬프트에 넣어 답하게."
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "뼈대",
-      "text": "const chunks = split(doc, { size: 800, overlap: 100 });\nconst vectors = await embed(chunks);\nawait store.upsert(chunks.map((c, i) => ({ id: i, text: c, vector: vectors[i] })));\n\nconst hits = await store.search(await embedOne(question), { k: 5 });\nconst answer = await llm(`아래 발췌만 근거로 답하라:\\n${hits.map((h) => h.text).join('\\n---\\n')}\\n\\n질문: ${question}`);"
-    },
-    {
-      "type": "h",
-      "text": "2. 조각내기가 품질의 절반"
-    },
-    {
-      "type": "note",
-      "text": "너무 잘게 자르면 문맥이 끊기고, 너무 크면 관련 없는 내용이 섞여 정확도가 떨어진다. **문단·제목 경계**를 존중해 자르고, 조각마다 제목·출처를 함께 저장하라 — 답변에 출처를 붙일 수 있다."
-    },
-    {
-      "type": "h",
-      "text": "3. 벡터만으로는 부족하다"
-    },
-    {
-      "type": "p",
-      "text": "고유명사·코드·오탈자는 벡터 검색이 약하다. **키워드 검색(BM25)과 섞고(hybrid)**, 상위 후보를 재정렬(rerank)하면 눈에 띄게 좋아진다."
-    },
-    {
-      "type": "h",
-      "text": "4. 평가 없이는 개선도 없다"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "최소 평가 세트",
-      "text": "질문 30개 · 각 질문의 정답 근거 문단 id\n측정: 상위 5개 안에 정답 근거가 들어왔나(recall@5) · 답변이 근거를 벗어났나"
-    },
-    {
-      "type": "note",
-      "text": "「검색이 문제인가, 생성이 문제인가」를 나눠 재라. 근거가 안 찾히면 검색 문제, 근거는 맞는데 답이 틀리면 프롬프트 문제다. 섞어서 재면 영원히 못 고친다."
-    },
-    {
-      "type": "h",
-      "text": "5. 자주 겪는 함정"
-    },
-    {
-      "type": "note",
-      "text": "문서가 바뀌었는데 색인을 안 고침 · 접근 권한을 무시하고 남의 문서를 검색해 줌 · 조각에 출처가 없어 검증 불가 · 너무 많은 조각을 넣어 값만 늘고 정확도는 안 오름."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "내 문서 20개로 최소 RAG 를 만들어 질문 10개를 던져라. 상위 5개 안에 근거가 들어오는 비율(recall@5)을 재라."
-    },
-    {
-      "type": "try",
-      "text": "조각 크기를 400 / 800 / 1600 으로 바꿔 같은 질문 세트를 돌리고 점수를 비교하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "RAG 에서 조각(chunk)을 문단 경계에 맞춰 자르는 이유는?",
-      "choices": [
-        "문맥이 끊기지 않아 검색·답변 정확도가 올라가기 때문",
-        "용량 때문",
-        "임베딩이 빨라져서"
+      "id": "1",
+      "title": "모델의 기억을 밖에 두기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "앞 칸에서 봤다 — 모델은 최신 정보를 모르고(지식 컷오프), 구체적 사실을 지어낸다(환각). RAG 는 그 둘을 한 번에 푼다: **답에 필요한 자료를 그때그때 찾아 문맥에 넣고, 그것에 근거해 답하게** 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "방식을 골라 보라 — 무엇이 달라지나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .row { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:11.5px ui-monospace, monospace; }\n  .row .nm { width:190px; flex:none; color:#cbd5e1; }\n  .row .b { height:14px; border-radius:3px; }\n  .row .sc { color:#94a3b8; font-size:11px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const rows = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 0.01);\n    return list.map(([nm, score, hot]) =>\n      '<div class=\"row\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(4, (score / max) * 180) + 'px;background:' +\n      (hot ? '#22c55e' : '#334155') + '\"></span>' +\n      '<span class=\"sc\">' + score.toFixed(3) + '</span></div>').join('');\n  };\n  /** 아주 단순한 단어-빈도 벡터 + 코사인 유사도 — 진짜 임베딩은 아니지만 「의미 근접」 감각을 보여 준다. */\n  function vec(s) {\n    const m = {};\n    (s.toLowerCase().match(/[a-z가-힣]+/g) || []).forEach((w) => (m[w] = (m[w] || 0) + 1));\n    return m;\n  }\n  function cosine(a, b) {\n    let dot = 0, na = 0, nb = 0;\n    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);\n    for (const k of keys) { dot += (a[k] || 0) * (b[k] || 0); }\n    for (const k in a) na += a[k] * a[k];\n    for (const k in b) nb += b[k] * b[k];\n    return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{mode}}';\n  const t = {\n    memory:['기억에서만', 'bad',\n      ['모른다·낡았다·지어낸다', '우리 회사 문서·최신 사건을 알 리 없다'],\n      '모델을 「다 아는 존재」로 쓰는 순간 환각과 최신성 문제가 함께 온다.'],\n    finetune:['파인튜닝', 'warn',\n      ['지식을 모델에 새겨 넣는다', '비싸고 느리고, 자주 바뀌는 정보엔 안 맞는다'],\n      '말투·형식을 바꾸는 데는 좋지만, 「최신 지식 주입」 용도로는 대개 RAG 가 낫다.'],\n    rag:  ['RAG (검색 증강)', 'good',\n      ['질문마다 관련 자료를 찾아 문맥에 넣는다', '근거로만 답하게 (환각 칸 3장)'],\n      '<span class=\"ok\">자료를 바꾸면 즉시 반영</span> · 출처를 붙일 수 있다 · 재학습 불필요.'],\n    long: ['긴 문맥에 통째로', 'warn',\n      ['문서 전부를 매번 넣는다', '비싸고 · 가운데를 놓친다(토큰 칸 2장)'],\n      '문서가 작으면 이게 간단하다. 커지면 RAG 로 필요한 부분만.'],\n  }[c];\n  render('', '  <span class=\"' + (t[1]==='good'?'ok':t[1]==='warn'?'warn':'no') + '\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[2].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[3]),\n    'RAG = 「모델이 다 안다」를 「필요한 것을 찾아 준다」로 바꾸는 것.');\n</script>",
+          "controls": [
+            {
+              "id": "mode",
+              "label": "방식",
+              "type": "select",
+              "value": "memory",
+              "options": [
+                {
+                  "value": "memory",
+                  "label": "기억에서만"
+                },
+                {
+                  "value": "finetune",
+                  "label": "파인튜닝"
+                },
+                {
+                  "value": "rag",
+                  "label": "RAG"
+                },
+                {
+                  "value": "long",
+                  "label": "긴 문맥에 통째로"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**파인튜닝 vs RAG** 를 헷갈리지 마라 — 파인튜닝은 **행동·말투·형식**을 바꾸는 데 강하고, RAG 는 **지식을 주입**하는 데 강하다. 「우리 문서 내용을 알게 하고 싶다」면 대개 RAG 다. 자주 바뀌는 지식을 모델에 새기는 것은 비싸고 금방 낡는다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "RAG 파이프라인 (전체 그림)",
+          "text": "준비 (한 번)\n  문서 -> 청킹(조각내기, 2장) -> 임베딩(벡터로, 3장) -> 벡터 DB 저장\n\n질의 (매번)\n  질문 -> 임베딩 -> 유사 조각 검색(4장) -> 재순위(5장)\n       -> 프롬프트에 넣기(6장) -> 근거로 답 + 출처(환각 칸 3장)"
+        },
+        {
+          "type": "p",
+          "text": "이 칸은 그 파이프라인을 한 장씩 본다 — **청킹 → 임베딩 → 검색 → 재순위 → 조립 → 평가**. 각 단계가 검색 품질을 정하고, 검색 품질이 답의 품질을 정한다. **RAG 의 8할은 「좋은 조각을 찾는 것」**이다."
+        },
+        {
+          "type": "try",
+          "text": "내 서비스에서 「모델이 몰라서 못 하는」 질문을 떠올려 보라 — 사내 문서, 최신 정보, 특정 사용자 데이터. 그것들이 RAG 로 풀 수 있는 자리다."
+        }
       ],
-      "answer": 0,
-      "why": "의미 단위로 잘라야 찾은 조각이 실제로 답을 담는다."
+      "quiz": [
+        {
+          "q": "RAG 가 한 번에 푸는 두 문제는?",
+          "choices": [
+            "속도와 비용",
+            "지식 컷오프(최신성)와 환각",
+            "형식과 톤",
+            "길이와 정확도"
+          ],
+          "answer": 1,
+          "why": "필요한 자료를 찾아 넣는다."
+        },
+        {
+          "q": "「우리 문서 내용을 알게 하고 싶다」에 맞는 것은?",
+          "choices": [
+            "파인튜닝",
+            "RAG",
+            "큰 모델",
+            "온도 조절"
+          ],
+          "answer": 1,
+          "why": "파인튜닝은 행동·말투에 강하다."
+        },
+        {
+          "q": "RAG 품질의 8할을 정하는 것은?",
+          "choices": [
+            "모델 크기",
+            "좋은 조각을 찾는 검색 품질",
+            "프롬프트 길이",
+            "온도"
+          ],
+          "answer": 1,
+          "why": "검색이 답을 정한다."
+        }
+      ]
     },
     {
-      "q": "고유명사·코드 검색이 약할 때 흔한 보완책은?",
-      "choices": [
-        "키워드 검색과 결합(hybrid)하고 재정렬한다",
-        "조각을 더 잘게 자른다",
-        "모델을 더 크게 쓴다"
+      "id": "2",
+      "title": "청킹 — 문서를 조각내기",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "문서를 통째로 검색·주입할 수는 없다. **의미 있는 조각**으로 나눠야 한다 — 너무 크면 관련 없는 내용이 섞이고, 너무 작으면 맥락이 끊긴다. 이 조각내기(청킹)가 검색 품질의 첫 단추다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "방식을 골라 보라 — 조각이 어떻게 나뉘나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .row { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:11.5px ui-monospace, monospace; }\n  .row .nm { width:190px; flex:none; color:#cbd5e1; }\n  .row .b { height:14px; border-radius:3px; }\n  .row .sc { color:#94a3b8; font-size:11px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const rows = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 0.01);\n    return list.map(([nm, score, hot]) =>\n      '<div class=\"row\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(4, (score / max) * 180) + 'px;background:' +\n      (hot ? '#22c55e' : '#334155') + '\"></span>' +\n      '<span class=\"sc\">' + score.toFixed(3) + '</span></div>').join('');\n  };\n  /** 아주 단순한 단어-빈도 벡터 + 코사인 유사도 — 진짜 임베딩은 아니지만 「의미 근접」 감각을 보여 준다. */\n  function vec(s) {\n    const m = {};\n    (s.toLowerCase().match(/[a-z가-힣]+/g) || []).forEach((w) => (m[w] = (m[w] || 0) + 1));\n    return m;\n  }\n  function cosine(a, b) {\n    let dot = 0, na = 0, nb = 0;\n    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);\n    for (const k of keys) { dot += (a[k] || 0) * (b[k] || 0); }\n    for (const k in a) na += a[k] * a[k];\n    for (const k in b) nb += b[k] * b[k];\n    return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{how}}';\n  const t = {\n    fixed: ['고정 길이 (예: 500자)', 'warn',\n      '문장·문단 중간에서 잘린다 — 「환불은 7일 이내」가 「환불은」 / 「7일 이내」로',\n      '간단하지만 의미가 끊긴다. 겹침(overlap)으로 완화한다.'],\n    overlap:['겹치는 고정 길이', 'good',\n      '조각 끝 100자를 다음 조각 앞에 겹쳐 넣는다',\n      '경계에 걸친 정보를 양쪽 조각이 다 갖게 된다 — 실용적인 기본값.'],\n    struct:['구조 단위 (문단·제목·섹션)', 'good',\n      '마크다운 제목·문단·리스트 경계로 나눈다',\n      '의미 단위를 지킨다 — 문서에 구조가 있으면 가장 좋다.'],\n    semantic:['의미 기반', 'good',\n      '문장 임베딩이 크게 바뀌는 지점에서 나눈다',\n      '주제가 바뀌는 곳을 찾는다 — 정교하지만 비용이 든다.'],\n    code: ['코드·표는 따로', 'warn',\n      '함수·클래스·표는 통째로 유지',\n      '반으로 자르면 쓸모없어진다 — 자료 종류에 맞춰 규칙을 바꾼다.'],\n  }[c];\n  render('chunk(document)',\n    '  <span class=\"' + (t[1]==='good'?'ok':'warn') + '\">' + esc(t[0]) + '</span>\\n\\n  · ' + esc(t[2]) + '\\n\\n  ' + esc(t[3]),\n    '기준: 「이 조각 하나만 봐도 말이 되나」 · 「검색된 이 조각이 질문에 답하기 충분한가」.',\n    box('예: 「환불 정책」 문서', c==='fixed'\n      ? '조각1: ...제품 하자 시 환불은\\n조각2: 7일 이내 신청하세요. 배송비는...'\n      : '조각1: [환불] 제품 하자 시 환불은 7일 이내 신청하세요.\\n조각2: [배송] 배송비는...',\n      c==='fixed'?'bad':'good'));\n</script>",
+          "controls": [
+            {
+              "id": "how",
+              "label": "청킹 방식",
+              "type": "select",
+              "value": "fixed",
+              "options": [
+                {
+                  "value": "fixed",
+                  "label": "고정 길이"
+                },
+                {
+                  "value": "overlap",
+                  "label": "겹치는 고정"
+                },
+                {
+                  "value": "struct",
+                  "label": "구조 단위"
+                },
+                {
+                  "value": "semantic",
+                  "label": "의미 기반"
+                },
+                {
+                  "value": "code",
+                  "label": "코드·표"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**청크 크기는 저울이다.** 크면 검색이 뭉툭해지고(관련 없는 내용이 섞임) 문맥을 많이 먹는다. 작으면 정밀하지만 맥락이 끊긴다 — 대개 몇백~천 토큰 + 겹침으로 시작해, 실제 검색 품질을 보며 조정한다(평가, 8장)."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "조각에 메타데이터를 붙인다",
+          "text": "각 조각에 함께 저장:\n  · 원본 출처 (문서 제목·URL·페이지)   -> 답에 출처를 붙이려면 필수\n  · 섹션·제목 경로                     -> 「어디의 내용인지」 문맥\n  · 날짜·버전                          -> 최신순 필터링\n  · 권한·범위                          -> 사용자가 봐도 되는 것만 검색\n\n메타데이터로 필터링하면 검색 정확도와 안전이 함께 오른다."
+        },
+        {
+          "type": "p",
+          "text": "**조각에 「어디서 왔는지」를 반드시 붙여라.** 출처·섹션·날짜·권한을 메타데이터로 저장하면, 답에 출처를 달 수 있고(환각 칸), 최신순으로 거르고, **사용자가 봐도 되는 것만** 검색하게 할 수 있다(권한 — 보안 칸)."
+        },
+        {
+          "type": "try",
+          "text": "내 문서 하나를 고정 500자와 문단 단위로 각각 잘라 비교하라. 고정 길이가 문장을 어떻게 끊는지 보면 청킹의 중요성이 눈에 들어온다."
+        }
       ],
-      "answer": 0,
-      "why": "벡터 검색의 약점을 어휘 검색이 메운다."
+      "quiz": [
+        {
+          "q": "고정 길이 청킹의 문제는?",
+          "choices": [
+            "느림",
+            "문장·의미 중간에서 잘린다",
+            "비쌈",
+            "용량"
+          ],
+          "answer": 1,
+          "why": "겹침·구조 단위로 완화."
+        },
+        {
+          "q": "조각에 메타데이터(출처·권한)를 붙이는 이유는?",
+          "choices": [
+            "용량",
+            "출처 표기·필터링·권한 제어",
+            "속도",
+            "압축"
+          ],
+          "answer": 1,
+          "why": "정확도와 안전이 함께 오른다."
+        },
+        {
+          "q": "청크 크기의 저울은?",
+          "choices": [
+            "항상 크게",
+            "크면 뭉툭·많은 문맥 / 작으면 정밀·맥락 끊김",
+            "항상 작게",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "검색 품질을 보며 조정."
+        }
+      ]
     },
     {
-      "q": "RAG 품질을 개선하려면 무엇을 먼저 나눠 측정해야 하나?",
-      "choices": [
-        "검색 문제인지 생성 문제인지",
-        "서버 비용",
-        "토큰 수"
+      "id": "3",
+      "title": "임베딩 — 의미를 좌표로",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "검색의 핵심은 **의미가 비슷한 것을 찾는 것**이다. 임베딩은 글을 **숫자 벡터(좌표)**로 바꾸는데, 뜻이 비슷한 글은 좌표도 가깝다 — 「환불」과 「반품」이 「날씨」보다 서로 가깝게."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "질문을 골라 보라 — 어느 조각이 가까운가",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .row { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:11.5px ui-monospace, monospace; }\n  .row .nm { width:190px; flex:none; color:#cbd5e1; }\n  .row .b { height:14px; border-radius:3px; }\n  .row .sc { color:#94a3b8; font-size:11px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const rows = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 0.01);\n    return list.map(([nm, score, hot]) =>\n      '<div class=\"row\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(4, (score / max) * 180) + 'px;background:' +\n      (hot ? '#22c55e' : '#334155') + '\"></span>' +\n      '<span class=\"sc\">' + score.toFixed(3) + '</span></div>').join('');\n  };\n  /** 아주 단순한 단어-빈도 벡터 + 코사인 유사도 — 진짜 임베딩은 아니지만 「의미 근접」 감각을 보여 준다. */\n  function vec(s) {\n    const m = {};\n    (s.toLowerCase().match(/[a-z가-힣]+/g) || []).forEach((w) => (m[w] = (m[w] || 0) + 1));\n    return m;\n  }\n  function cosine(a, b) {\n    let dot = 0, na = 0, nb = 0;\n    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);\n    for (const k of keys) { dot += (a[k] || 0) * (b[k] || 0); }\n    for (const k in a) na += a[k] * a[k];\n    for (const k in b) nb += b[k] * b[k];\n    return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = '{{query}}';\n  const queries = {\n    refund: '환불 어떻게 받나요',\n    ship:   '배송 얼마나 걸려요',\n    login:  '로그인이 안 돼요',\n  };\n  const docs = [\n    '제품 하자 시 환불은 7일 이내 신청 반품 가능합니다',\n    '배송은 주문 후 2에서 3일 걸리며 배송비는 무료입니다',\n    '비밀번호를 잊으면 재설정 링크로 로그인 복구가 됩니다',\n    '고객센터 운영 시간은 평일 오전 9시부터 6시까지입니다',\n  ];\n  const qv = vec(queries[q]);\n  const scored = docs.map((d) => [d.slice(0, 26) + '…', cosine(qv, vec(d))]);\n  const max = Math.max(...scored.map((s) => s[1]));\n  render('embed(query) 와 조각들의 유사도',\n    '  질문: ' + esc(queries[q]) + '\\n\\n  가장 가까운 조각이 검색된다 (초록).' +\n    '\\n\\n  <span class=\"dim\">주의: 이 데모는 단어 겹침 근사다. 진짜 임베딩은 「환불」과 「반품」처럼\\n  단어가 겹치지 않아도 의미가 가까우면 높은 점수를 준다.</span>',\n    '임베딩은 「단어 일치」가 아니라 「의미 근접」을 잰다 — 키워드 검색과의 결정적 차이.',\n    rows(scored.map(([n, s]) => [n, s, s === max])));\n</script>",
+          "controls": [
+            {
+              "id": "query",
+              "label": "질문",
+              "type": "select",
+              "value": "refund",
+              "options": [
+                {
+                  "value": "refund",
+                  "label": "환불 어떻게"
+                },
+                {
+                  "value": "ship",
+                  "label": "배송 얼마나"
+                },
+                {
+                  "value": "login",
+                  "label": "로그인 안 됨"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**임베딩의 힘은 「단어가 달라도 뜻이 같으면」 찾는다는 것**이다 — 키워드 검색은 「환불」로 검색하면 「반품」이 든 문서를 못 찾지만, 임베딩은 둘의 좌표가 가까워 찾는다. 이 데모는 단어 겹침 근사라 그 부분을 완전히는 못 보여 주지만, 「가까움을 잰다」는 감각은 같다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "임베딩을 만들고 비교한다",
+          "text": "// 글 -> 벡터 (수백~수천 차원)\nconst { embedding } = await embed('환불 어떻게 받나요');\n// [0.021, -0.13, 0.08, ...]  ← 의미가 담긴 좌표\n\n// 유사도 = 코사인 (방향이 얼마나 같나, -1~1)\nfunction cosine(a, b) {\n  const dot = a.reduce((s, x, i) => s + x * b[i], 0);\n  const na = Math.hypot(...a), nb = Math.hypot(...b);\n  return dot / (na * nb);\n}\n// 질문 벡터와 모든 조각 벡터의 유사도 -> 높은 순 정렬"
+        },
+        {
+          "type": "p",
+          "text": "**주의할 점** — 임베딩 모델은 질의와 문서를 **같은 모델**로 만들어야 비교가 된다. 그리고 임베딩도 만료된다(모델을 바꾸면 전부 다시 만들어야 한다). 다국어·도메인 특화가 필요하면 그에 맞는 임베딩 모델을 고른다."
+        },
+        {
+          "type": "try",
+          "text": "임베딩 API 로 「강아지」·「개」·「고양이」·「자동차」의 벡터를 만들어 서로 유사도를 재 보라. 「강아지-개」가 가장 높고 「강아지-자동차」가 낮으면 의미가 좌표에 담긴 것이다."
+        }
       ],
-      "answer": 0,
-      "why": "근거가 안 찾히는 것과 근거를 두고 틀리는 것은 처방이 다르다."
+      "quiz": [
+        {
+          "q": "임베딩이 하는 일은?",
+          "choices": [
+            "글을 압축",
+            "글을 의미가 담긴 벡터(좌표)로",
+            "글을 번역",
+            "글을 요약"
+          ],
+          "answer": 1,
+          "why": "뜻이 비슷하면 좌표가 가깝다."
+        },
+        {
+          "q": "임베딩 검색과 키워드 검색의 차이는?",
+          "choices": [
+            "속도",
+            "단어가 달라도 뜻이 같으면 찾는다",
+            "정확도만",
+            "비용"
+          ],
+          "answer": 1,
+          "why": "「환불」로 「반품」을 찾는다."
+        },
+        {
+          "q": "질의와 문서 임베딩은?",
+          "choices": [
+            "다른 모델로",
+            "같은 모델로 만들어야 비교된다",
+            "무관",
+            "키워드로"
+          ],
+          "answer": 1,
+          "why": "모델을 바꾸면 다시 만든다."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "벡터 검색 — 가까운 것을 빨리 찾기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "질문 벡터와 **모든 조각**을 일일이 비교하면 느리다. 수백만 개면 불가능하다 — 그래서 **벡터 데이터베이스**가 「가까운 것」을 빠르게 찾아 준다(근사 최근접 탐색, ANN)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "상황을 골라 보라 — 무엇을 고려하나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .row { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:11.5px ui-monospace, monospace; }\n  .row .nm { width:190px; flex:none; color:#cbd5e1; }\n  .row .b { height:14px; border-radius:3px; }\n  .row .sc { color:#94a3b8; font-size:11px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const rows = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 0.01);\n    return list.map(([nm, score, hot]) =>\n      '<div class=\"row\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(4, (score / max) * 180) + 'px;background:' +\n      (hot ? '#22c55e' : '#334155') + '\"></span>' +\n      '<span class=\"sc\">' + score.toFixed(3) + '</span></div>').join('');\n  };\n  /** 아주 단순한 단어-빈도 벡터 + 코사인 유사도 — 진짜 임베딩은 아니지만 「의미 근접」 감각을 보여 준다. */\n  function vec(s) {\n    const m = {};\n    (s.toLowerCase().match(/[a-z가-힣]+/g) || []).forEach((w) => (m[w] = (m[w] || 0) + 1));\n    return m;\n  }\n  function cosine(a, b) {\n    let dot = 0, na = 0, nb = 0;\n    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);\n    for (const k of keys) { dot += (a[k] || 0) * (b[k] || 0); }\n    for (const k in a) na += a[k] * a[k];\n    for (const k in b) nb += b[k] * b[k];\n    return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{aspect}}';\n  const t = {\n    exact: ['정확 검색 (완전 비교)', ['모든 벡터와 비교 -> 정확하지만 O(n)'],\n      '조각이 수천 개면 괜찮다. 그 이상이면 느려서 못 쓴다.'],\n    ann:   ['근사 검색 (ANN)', ['조금의 정확도를 내주고 훨씬 빠르게 (HNSW 등)'],\n      '벡터 DB 의 핵심 — 수백만 개도 밀리초에. 「거의 가장 가까운」을 찾는다.'],\n    filter:['메타데이터 필터', ['날짜·권한·출처로 먼저 좁힌다'],\n      '「이 사용자가 볼 수 있는 · 최근 · 이 카테고리」 안에서만 검색 — 정확도와 안전(2장).'],\n    hybrid:['하이브리드 (벡터 + 키워드)', ['의미 검색 + 정확한 단어 일치를 합친다'],\n      '고유명사·코드·ID 는 키워드가 강하다 — 둘을 합치면 서로의 약점을 메운다.'],\n    topk:  ['몇 개를 가져오나 (top-k)', ['너무 적으면 놓치고 · 많으면 잡음이 섞인다'],\n      '보통 5~20 개를 가져와 재순위(5장)로 좁힌다.'],\n  }[c];\n  render('search(queryVec, k)',\n    '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[2]),\n    '검색은 「빠르게 + 좁혀서 + 안전하게」 — 세 축을 함께 본다.');\n</script>",
+          "controls": [
+            {
+              "id": "aspect",
+              "label": "고려할 것",
+              "type": "select",
+              "value": "ann",
+              "options": [
+                {
+                  "value": "exact",
+                  "label": "정확 검색"
+                },
+                {
+                  "value": "ann",
+                  "label": "근사 검색(ANN)"
+                },
+                {
+                  "value": "filter",
+                  "label": "메타데이터 필터"
+                },
+                {
+                  "value": "hybrid",
+                  "label": "하이브리드"
+                },
+                {
+                  "value": "topk",
+                  "label": "top-k"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**하이브리드 검색**이 실전에서 강하다 — 임베딩은 의미를 잘 잡지만 **고유명사·제품코드·오탈자·ID** 같은 정확한 일치에는 약하다. 키워드 검색(BM25)과 합치면 서로의 약점을 메운다. 「semantic 만」보다 「semantic + keyword」가 대개 낫다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "필터 + 검색",
+          "text": "const results = await vectorDB.search({\n  vector: queryEmbedding,\n  topK: 20,\n  filter: {                         // 먼저 좁힌다\n    userId: req.user.id,            // 이 사용자가 볼 수 있는 것만 (보안!)\n    date: { gte: '2026-01-01' },    // 최신만\n    type: 'policy',\n  },\n});\n// 20개를 가져와 -> 재순위(5장) -> 상위 3~5개를 프롬프트에"
+        },
+        {
+          "type": "p",
+          "text": "**메타데이터 필터가 권한을 지킨다.** 벡터 검색에 사용자 권한 필터를 안 걸면, 남의 문서 조각이 답에 섞여 나온다 — 보안 칸(접근 통제)의 IDOR 이 RAG 에서 재현되는 것이다. 검색 단계에서 「이 사용자가 볼 수 있는 것만」을 반드시 건다."
+        },
+        {
+          "type": "try",
+          "text": "벡터 DB(Chroma·Qdrant·pgvector 등) 하나로 조각 열 개를 넣고 검색해 보라. 필터를 걸었을 때와 안 걸었을 때 결과가 어떻게 다른지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "수백만 벡터를 빠르게 검색하는 것은?",
+          "choices": [
+            "완전 비교",
+            "근사 최근접 탐색(ANN)",
+            "키워드만",
+            "정렬"
+          ],
+          "answer": 1,
+          "why": "조금의 정확도로 큰 속도."
+        },
+        {
+          "q": "임베딩이 약한 자리를 메우는 것은?",
+          "choices": [
+            "더 큰 모델",
+            "키워드 검색(하이브리드)",
+            "필터",
+            "top-k"
+          ],
+          "answer": 1,
+          "why": "고유명사·코드·ID."
+        },
+        {
+          "q": "검색에 권한 필터를 안 걸면?",
+          "choices": [
+            "빠르다",
+            "남의 문서가 답에 섞인다(IDOR)",
+            "정확하다",
+            "문제없다"
+          ],
+          "answer": 1,
+          "why": "검색 단계에서 권한을 건다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "재순위와 좁히기 — 잡음 걷어내기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "벡터 검색은 「대충 가까운」 20개를 빠르게 준다. 그중 **정말 관련 있는 몇 개**로 좁혀야 한다 — 관련 없는 조각을 문맥에 넣으면 모델이 헷갈리고, 비용도 는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "단계를 골라 보라 — 어떻게 좁히나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .row { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:11.5px ui-monospace, monospace; }\n  .row .nm { width:190px; flex:none; color:#cbd5e1; }\n  .row .b { height:14px; border-radius:3px; }\n  .row .sc { color:#94a3b8; font-size:11px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const rows = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 0.01);\n    return list.map(([nm, score, hot]) =>\n      '<div class=\"row\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(4, (score / max) * 180) + 'px;background:' +\n      (hot ? '#22c55e' : '#334155') + '\"></span>' +\n      '<span class=\"sc\">' + score.toFixed(3) + '</span></div>').join('');\n  };\n  /** 아주 단순한 단어-빈도 벡터 + 코사인 유사도 — 진짜 임베딩은 아니지만 「의미 근접」 감각을 보여 준다. */\n  function vec(s) {\n    const m = {};\n    (s.toLowerCase().match(/[a-z가-힣]+/g) || []).forEach((w) => (m[w] = (m[w] || 0) + 1));\n    return m;\n  }\n  function cosine(a, b) {\n    let dot = 0, na = 0, nb = 0;\n    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);\n    for (const k of keys) { dot += (a[k] || 0) * (b[k] || 0); }\n    for (const k in a) na += a[k] * a[k];\n    for (const k in b) nb += b[k] * b[k];\n    return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{step}}';\n  const t = {\n    rerank:['재순위(reranker)', ['질문-조각 쌍을 정밀하게 다시 채점',\n      '벡터 검색보다 정확하지만 느리다 — 20개 -> 상위 3~5개'],\n      '검색은 빠르게 많이, 재순위는 정밀하게 조금. 품질이 크게 오른다.'],\n    dedup: ['중복 제거', ['비슷한 조각이 여러 개 걸린다'],\n      '같은 내용의 조각을 여러 개 넣으면 문맥만 먹는다 — 다양성 확보.'],\n    thresh:['관련도 문턱', ['점수가 낮으면 아예 안 넣는다'],\n      '억지로 top-k 를 채우지 말고, 관련 없으면 「자료 없음」으로(환각 칸 4장).'],\n    context:['문맥 확장', ['찾은 조각의 앞뒤를 함께 가져온다'],\n      '조각이 짧아 맥락이 끊겼을 때, 원문의 인접 부분을 붙여 준다.'],\n    budget:['문맥 예산 맞추기', ['넣을 수 있는 토큰 안에서 고른다'],\n      '상위 조각을 우선 · 문맥창을 넘지 않게(토큰 칸).'],\n  }[c];\n  render('20개 -> 상위 몇 개로',\n    '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[2]),\n    '더 많이 넣는 게 더 좋은 게 아니다 — 관련 없는 조각은 잡음이다.',\n    rows([['조각 A (딱 맞음)', 0.92, true], ['조각 B (관련)', 0.71, true],\n          ['조각 C (약간)', 0.44, false], ['조각 D (무관)', 0.21, false]]));\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "select",
+              "value": "rerank",
+              "options": [
+                {
+                  "value": "rerank",
+                  "label": "재순위"
+                },
+                {
+                  "value": "dedup",
+                  "label": "중복 제거"
+                },
+                {
+                  "value": "thresh",
+                  "label": "관련도 문턱"
+                },
+                {
+                  "value": "context",
+                  "label": "문맥 확장"
+                },
+                {
+                  "value": "budget",
+                  "label": "문맥 예산"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**더 많이 넣는 것이 더 좋은 것이 아니다.** 관련 없는 조각을 문맥에 넣으면 모델이 그것에 이끌려 엉뚱한 답을 한다(잡음). 그리고 가운데를 놓친다(토큰 칸). **적고 정확한** 조각 몇 개가 많고 뭉툭한 것보다 낫다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "검색 → 재순위 → 조립 순서",
+          "text": "1. 벡터 검색     -> 후보 20개 (빠르게, 넓게)\n2. 재순위        -> 정밀 채점 후 상위 5개\n3. 문턱 적용     -> 점수 낮은 것 제거 (없으면 「자료 없음」)\n4. 중복 제거     -> 비슷한 조각 정리\n5. 예산 안에서   -> 문맥창에 맞게 상위부터\n6. 프롬프트 조립 -> 출처와 함께 (6장)"
+        },
+        {
+          "type": "p",
+          "text": "**관련도 문턱**이 환각 방어와 이어진다 — 검색 점수가 다 낮으면, 억지로 조각을 채우지 말고 「자료에 없다」고 답하게 한다(환각 칸 4장). 관련 없는 조각으로 억지 답을 만드는 것이 RAG 의 흔한 실패다."
+        },
+        {
+          "type": "try",
+          "text": "검색 결과 20개에 재순위를 붙였을 때와 아닐 때 답의 품질을 비교하라. 재순위가 잡음을 얼마나 걷어내는지 보인다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "재순위(reranker)가 하는 일은?",
+          "choices": [
+            "더 많이 검색",
+            "후보를 정밀하게 다시 채점해 좁힘",
+            "빠르게",
+            "압축"
+          ],
+          "answer": 1,
+          "why": "검색은 넓게, 재순위는 정밀."
+        },
+        {
+          "q": "관련 없는 조각을 문맥에 넣으면?",
+          "choices": [
+            "더 정확",
+            "모델이 잡음에 이끌려 틀린다",
+            "빠르다",
+            "저렴"
+          ],
+          "answer": 1,
+          "why": "적고 정확한 게 낫다."
+        },
+        {
+          "q": "검색 점수가 다 낮을 때는?",
+          "choices": [
+            "억지로 채운다",
+            "「자료에 없다」고 답하게",
+            "top-k 늘림",
+            "재검색"
+          ],
+          "answer": 1,
+          "why": "환각 방어와 이어진다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "조립 — 프롬프트에 넣기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "찾은 조각을 **프롬프트에 넣는 방식**이 답의 신뢰도를 정한다. 앞 칸(프롬프트·환각)의 규칙이 여기서 합쳐진다 — 자료를 구분하고, 근거로만 답하게 하고, 출처를 붙인다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "요소를 골라 보라 — 무엇을 넣나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .row { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:11.5px ui-monospace, monospace; }\n  .row .nm { width:190px; flex:none; color:#cbd5e1; }\n  .row .b { height:14px; border-radius:3px; }\n  .row .sc { color:#94a3b8; font-size:11px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const rows = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 0.01);\n    return list.map(([nm, score, hot]) =>\n      '<div class=\"row\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(4, (score / max) * 180) + 'px;background:' +\n      (hot ? '#22c55e' : '#334155') + '\"></span>' +\n      '<span class=\"sc\">' + score.toFixed(3) + '</span></div>').join('');\n  };\n  /** 아주 단순한 단어-빈도 벡터 + 코사인 유사도 — 진짜 임베딩은 아니지만 「의미 근접」 감각을 보여 준다. */\n  function vec(s) {\n    const m = {};\n    (s.toLowerCase().match(/[a-z가-힣]+/g) || []).forEach((w) => (m[w] = (m[w] || 0) + 1));\n    return m;\n  }\n  function cosine(a, b) {\n    let dot = 0, na = 0, nb = 0;\n    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);\n    for (const k of keys) { dot += (a[k] || 0) * (b[k] || 0); }\n    for (const k in a) na += a[k] * a[k];\n    for (const k in b) nb += b[k] * b[k];\n    return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{elem}}';\n  const t = {\n    sep:   ['자료 구분', '검색 조각을 <자료> 태그로 감싼다',\n      '지시와 자료를 구분 — 조각 안의 문장이 지시로 해석되지 않게(주입, 보안·프롬프트 칸).'],\n    ground:['근거로만 지시', '「제공된 자료에 근거해서만, 없으면 모른다고」',\n      '환각을 막는 핵심 지시(환각 칸 3장).'],\n    cite:  ['출처 표기', '각 조각에 [1][2] 번호 · 답에 인용',\n      '사용자가 근거를 확인할 수 있게 · 지어낸 인용을 대조로 잡는다.'],\n    order: ['조각 순서', '관련도 높은 것을 앞뒤에',\n      '가운데를 놓치는 것 보완(토큰 칸) · 가장 관련 있는 조각을 눈에 띄는 자리에.'],\n    meta:  ['메타데이터 함께', '조각마다 출처·날짜를 붙여서',\n      '모델이 「어느 문서의 언제 내용인지」를 알고 답한다 — 충돌 시 최신 우선 판단.'],\n  }[c];\n  render('buildPrompt(question, chunks)',\n    '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n  · ' + esc(t[1]) + '\\n\\n  ' + esc(t[2]),\n    'RAG 프롬프트 = 자료 구분 + 근거 지시 + 출처. 앞 칸들의 규칙이 여기서 합쳐진다.',\n    box('조립된 프롬프트', '아래 <자료> 에 근거해서만 답하고, [번호]로 출처를 밝혀라.\\n' +\n        '자료에 없으면 \"자료에 없음\"이라고 하라.\\n\\n' +\n        '<자료>\\n[1] (환불정책.md) 하자 시 7일 이내 환불...\\n[2] (배송.md) 배송 2~3일...\\n</자료>\\n\\n' +\n        '질문: 환불 며칠 안에 신청하나요?', 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "elem",
+              "label": "요소",
+              "type": "select",
+              "value": "sep",
+              "options": [
+                {
+                  "value": "sep",
+                  "label": "자료 구분"
+                },
+                {
+                  "value": "ground",
+                  "label": "근거 지시"
+                },
+                {
+                  "value": "cite",
+                  "label": "출처 표기"
+                },
+                {
+                  "value": "order",
+                  "label": "조각 순서"
+                },
+                {
+                  "value": "meta",
+                  "label": "메타데이터"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**검색된 조각도 신뢰할 수 없는 입력이다.** 조각 안에 「이전 지시를 무시하라」가 들어 있으면(간접 프롬프트 주입, 보안 칸), 모델이 따를 수 있다 — 특히 외부·사용자 문서를 인덱싱했다면. 자료를 태그로 명확히 구분하는 것이 그 첫 방어다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "출처를 답에 흐르게 한다",
+          "text": "답: 제품 하자 시 환불은 7일 이내에 신청하셔야 합니다 [1].\n\n출처\n  [1] 환불정책.md (2026-08 개정)\n\n-> UI 에서 [1] 을 클릭하면 원문으로\n-> 사용자가 근거를 직접 확인 = 맹신 방지(환각 칸 5장)\n-> 지어낸 인용은 원문에 없으므로 걸린다"
+        },
+        {
+          "type": "p",
+          "text": "**출처를 UI 까지 흐르게** 하는 것이 RAG 제품의 완성이다 — 답에 근거 링크가 붙으면, 사용자가 확인할 수 있고, 틀렸을 때 어느 문서 탓인지 알 수 있고, 지어낸 인용이 드러난다. 「그럴듯한 답」과 「확인 가능한 답」의 차이다."
+        },
+        {
+          "type": "try",
+          "text": "검색 조각을 프롬프트에 넣을 때 태그 구분·근거 지시·출처 번호 세 가지를 넣어 답에 인용이 붙는지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "RAG 프롬프트의 핵심 세 요소는?",
+          "choices": [
+            "길이·톤·형식",
+            "자료 구분 + 근거 지시 + 출처",
+            "역할·예시·온도",
+            "속도·비용·품질"
+          ],
+          "answer": 1,
+          "why": "앞 칸들의 규칙이 합쳐진다."
+        },
+        {
+          "q": "검색된 조각을 다뤄야 하는 방식은?",
+          "choices": [
+            "신뢰",
+            "신뢰할 수 없는 입력(간접 주입 대비)",
+            "무시",
+            "요약"
+          ],
+          "answer": 1,
+          "why": "문서 속 지시가 실행될 수 있다."
+        },
+        {
+          "q": "출처를 답에 붙이면?",
+          "choices": [
+            "느려짐",
+            "확인 가능·맹신 방지·지어낸 인용 검출",
+            "비쌈",
+            "길어짐"
+          ],
+          "answer": 1,
+          "why": "확인 가능한 답이 된다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "RAG 가 실패하는 자리",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "RAG 는 「검색이 되면」 강하다. 그래서 실패는 대부분 **검색 단계**에서 난다 — 좋은 조각이 있어도 못 찾거나, 애초에 자료에 답이 없거나."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "실패를 골라 보라 — 어디서 무너지나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .row { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:11.5px ui-monospace, monospace; }\n  .row .nm { width:190px; flex:none; color:#cbd5e1; }\n  .row .b { height:14px; border-radius:3px; }\n  .row .sc { color:#94a3b8; font-size:11px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const rows = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 0.01);\n    return list.map(([nm, score, hot]) =>\n      '<div class=\"row\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(4, (score / max) * 180) + 'px;background:' +\n      (hot ? '#22c55e' : '#334155') + '\"></span>' +\n      '<span class=\"sc\">' + score.toFixed(3) + '</span></div>').join('');\n  };\n  /** 아주 단순한 단어-빈도 벡터 + 코사인 유사도 — 진짜 임베딩은 아니지만 「의미 근접」 감각을 보여 준다. */\n  function vec(s) {\n    const m = {};\n    (s.toLowerCase().match(/[a-z가-힣]+/g) || []).forEach((w) => (m[w] = (m[w] || 0) + 1));\n    return m;\n  }\n  function cosine(a, b) {\n    let dot = 0, na = 0, nb = 0;\n    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);\n    for (const k of keys) { dot += (a[k] || 0) * (b[k] || 0); }\n    for (const k in a) na += a[k] * a[k];\n    for (const k in b) nb += b[k] * b[k];\n    return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{fail}}';\n  const t = {\n    notfound:['답이 자료에 없다', ['질문에 답할 문서가 인덱스에 없다'],\n      '모델은 검색된 무관한 조각으로 지어낸다 -> 문턱 + 「없으면 없다고」(5·환각 칸).'],\n    badquery:['질문이 검색에 안 맞다', ['「그거 어떻게 해?」처럼 모호 · 대화 맥락 필요'],\n      '질문을 다시 쓰기(query rewriting) · 대화 히스토리로 질문 보강.'],\n    chunk:  ['조각이 나빠서 못 찾음', ['답이 두 조각에 걸쳐 잘림 · 청킹 실패(2장)'],\n      '청킹·겹침을 조정 · 재인덱싱.'],\n    stale:  ['자료가 낡음', ['문서는 바뀌었는데 인덱스는 옛것'],\n      '문서 변경 시 재임베딩 파이프라인 · 날짜 필터.'],\n    multi:  ['여러 문서를 종합해야', ['한 조각에 답이 없고 여러 곳을 합쳐야'],\n      '단순 RAG 의 약점 — 다단계 검색·에이전트(다음 칸)로.'],\n    conflict:['자료끼리 충돌', ['옛 정책과 새 정책이 둘 다 검색됨'],\n      '날짜·버전 메타데이터로 최신 우선 · 모델에게 충돌을 알리기.'],\n  }[c];\n  render('', '  <span class=\"no\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">-> ' + esc(t[2]) + '</span>',\n    '진단 순서: 검색이 좋은 조각을 찾았나? -> 아니면 검색/청킹 문제 · 맞으면 프롬프트 문제.');\n</script>",
+          "controls": [
+            {
+              "id": "fail",
+              "label": "실패",
+              "type": "select",
+              "value": "notfound",
+              "options": [
+                {
+                  "value": "notfound",
+                  "label": "답이 자료에 없음"
+                },
+                {
+                  "value": "badquery",
+                  "label": "질문이 안 맞음"
+                },
+                {
+                  "value": "chunk",
+                  "label": "조각이 나쁨"
+                },
+                {
+                  "value": "stale",
+                  "label": "자료가 낡음"
+                },
+                {
+                  "value": "multi",
+                  "label": "여러 문서 종합"
+                },
+                {
+                  "value": "conflict",
+                  "label": "자료 충돌"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**RAG 를 디버깅할 때는 검색과 생성을 분리하라.** 먼저 「검색이 좋은 조각을 찾았나」를 본다 — 못 찾았으면 청킹·임베딩·질문 문제이고, 잘 찾았는데 답이 틀렸으면 프롬프트·조립 문제다. 이 분리가 없으면 엉뚱한 곳을 고친다(황금의 정신)."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "RAG 진단 순서",
+          "text": "1. 검색된 조각을 눈으로 본다\n     좋은 조각이 있나? \n       없다 -> 청킹 · 임베딩 · 질문 재작성 · 자료 자체가 없나\n       있다 -> 2번으로\n2. 그 조각으로 사람이 답할 수 있나?\n     있는데 모델이 틀렸다 -> 프롬프트 · 조립 · 근거 지시\n3. 여러 문서 종합·다단계가 필요한가 -> 에이전트 (다음 칸)"
+        },
+        {
+          "type": "p",
+          "text": "그리고 **단순 RAG 의 한계**를 알아 두라 — 한 번 검색으로 답이 나오는 질문에는 강하지만, 「여러 문서를 종합」·「단계적으로 찾아 들어가기」에는 약하다. 그때가 검색을 **도구로** 주고 모델이 여러 번 찾게 하는 에이전트(다음 칸)의 자리다."
+        },
+        {
+          "type": "try",
+          "text": "내 RAG 가 틀린 답을 낸 사례에서 검색된 조각을 직접 확인하라. 조각에 답이 있었는지 없었는지가 고칠 곳을 정한다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "RAG 실패의 대부분이 나는 단계는?",
+          "choices": [
+            "생성",
+            "검색",
+            "출력",
+            "임베딩 저장"
+          ],
+          "answer": 1,
+          "why": "좋은 조각을 못 찾으면 답도 나쁘다."
+        },
+        {
+          "q": "RAG 디버깅의 첫걸음은?",
+          "choices": [
+            "프롬프트 수정",
+            "검색된 조각을 눈으로 확인",
+            "모델 교체",
+            "온도 조절"
+          ],
+          "answer": 1,
+          "why": "검색과 생성을 분리한다."
+        },
+        {
+          "q": "「여러 문서를 종합」이 필요할 때는?",
+          "choices": [
+            "단순 RAG 로 충분",
+            "다단계 검색·에이전트",
+            "큰 모델",
+            "온도 높이기"
+          ],
+          "answer": 1,
+          "why": "단순 RAG 의 약점."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "평가 — 검색과 답을 따로 잰다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "RAG 를 개선하려면 **재야** 한다(황금의 정신). 그리고 검색과 생성을 **따로** 재야 어디를 고칠지 안다 — 「답이 나쁘다」만으로는 검색 탓인지 프롬프트 탓인지 모른다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "지표를 골라 보라 — 무엇을 재나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .row { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:11.5px ui-monospace, monospace; }\n  .row .nm { width:190px; flex:none; color:#cbd5e1; }\n  .row .b { height:14px; border-radius:3px; }\n  .row .sc { color:#94a3b8; font-size:11px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const rows = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 0.01);\n    return list.map(([nm, score, hot]) =>\n      '<div class=\"row\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(4, (score / max) * 180) + 'px;background:' +\n      (hot ? '#22c55e' : '#334155') + '\"></span>' +\n      '<span class=\"sc\">' + score.toFixed(3) + '</span></div>').join('');\n  };\n  /** 아주 단순한 단어-빈도 벡터 + 코사인 유사도 — 진짜 임베딩은 아니지만 「의미 근접」 감각을 보여 준다. */\n  function vec(s) {\n    const m = {};\n    (s.toLowerCase().match(/[a-z가-힣]+/g) || []).forEach((w) => (m[w] = (m[w] || 0) + 1));\n    return m;\n  }\n  function cosine(a, b) {\n    let dot = 0, na = 0, nb = 0;\n    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);\n    for (const k of keys) { dot += (a[k] || 0) * (b[k] || 0); }\n    for (const k in a) na += a[k] * a[k];\n    for (const k in b) nb += b[k] * b[k];\n    return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{metric}}';\n  const t = {\n    recall:['검색: 재현율', '정답 조각이 검색 결과에 있었나',\n      '검색 품질의 핵심 — 정답 조각을 못 가져오면 생성이 아무리 좋아도 소용없다.'],\n    precision:['검색: 정밀도', '검색 결과 중 관련 있는 비율',\n      '잡음이 얼마나 섞였나 — 재순위(5장)로 올린다.'],\n    faithful:['생성: 충실성', '답이 검색된 자료에 근거하나 (지어냈나)',\n      '조각에 없는 말을 했으면 환각 — 근거 지시·인용으로 잡는다.'],\n    answer:['생성: 정답성', '답이 질문에 실제로 맞나',\n      '충실해도 질문에 안 맞을 수 있다 — 둘은 다른 지표.'],\n    set:   ['평가 세트 만들기', '질문-정답 조각-기대 답 묶음',\n      '실패 사례를 모아 고정 세트로 — 바꿀 때마다 회귀 확인(테스트·평가 칸).'],\n  }[c];\n  render('RAG 평가',\n    '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n  · ' + esc(t[1]) + '\\n\\n  ' + esc(t[2]),\n    '검색(재현율·정밀도)과 생성(충실성·정답성)을 나눠 재야 어디를 고칠지 안다.');\n</script>",
+          "controls": [
+            {
+              "id": "metric",
+              "label": "지표",
+              "type": "select",
+              "value": "recall",
+              "options": [
+                {
+                  "value": "recall",
+                  "label": "검색 재현율"
+                },
+                {
+                  "value": "precision",
+                  "label": "검색 정밀도"
+                },
+                {
+                  "value": "faithful",
+                  "label": "생성 충실성"
+                },
+                {
+                  "value": "answer",
+                  "label": "생성 정답성"
+                },
+                {
+                  "value": "set",
+                  "label": "평가 세트"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**검색 재현율이 상한을 정한다.** 정답 조각을 검색이 못 가져오면, 생성 프롬프트를 아무리 다듬어도 답이 안 나온다 — 그래서 검색을 먼저 재고 고친 뒤 생성을 손본다. 순서를 바꾸면 프롬프트만 붙들고 헛수고한다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "고정 평가 세트로 회귀 확인",
+          "text": "평가 세트 (질문 · 정답 조각 · 기대 답)\n  Q: 환불 며칠?      정답조각: [환불정책 3번]   기대: 7일\n  Q: 배송비?         정답조각: [배송 1번]       기대: 무료\n  Q: 없는 질문       정답조각: (없음)           기대: \"자료에 없음\"\n\n청킹·임베딩·프롬프트를 바꿀 때마다 이 세트를 돌린다\n  -> 검색 재현율 · 충실성 · 정답성이 오르는지 내리는지 숫자로"
+        },
+        {
+          "type": "p",
+          "text": "이것이 **다음 칸(평가)으로 이어진다** — LLM 시스템은 「좋아진 것 같다」는 착각에 빠지기 쉬워서, 고정 세트로 재지 않으면 개선을 확신할 수 없다. RAG 도 프롬프트도 코드처럼 회귀 테스트가 필요하다."
+        },
+        {
+          "type": "try",
+          "text": "내 RAG 에 질문 10개 + 정답 조각 + 기대 답으로 작은 평가 세트를 만들어, 지금의 검색 재현율을 재 보라. 그것이 개선의 출발점이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "RAG 를 평가할 때 나눠 재는 두 축은?",
+          "choices": [
+            "속도와 비용",
+            "검색(재현율·정밀도)과 생성(충실성·정답성)",
+            "길이와 톤",
+            "온도와 top-k"
+          ],
+          "answer": 1,
+          "why": "어디를 고칠지 안다."
+        },
+        {
+          "q": "생성보다 먼저 고쳐야 하는 것은?",
+          "choices": [
+            "프롬프트",
+            "검색 재현율(정답 조각을 가져오나)",
+            "온도",
+            "모델"
+          ],
+          "answer": 1,
+          "why": "검색이 상한을 정한다."
+        },
+        {
+          "q": "「충실성」과 「정답성」의 차이는?",
+          "choices": [
+            "같다",
+            "근거에 맞나 vs 질문에 맞나",
+            "속도 차이",
+            "길이 차이"
+          ],
+          "answer": 1,
+          "why": "충실해도 질문에 안 맞을 수 있다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "RAG 는 「모델이 다 안다」를 「필요한 것을 찾아 준다」로 바꾸는 것이고, 품질의 8할은 검색에서 정해진다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "RAG 점검표",
+          "text": "준비\n  [ ] 청킹이 의미를 지키나 (겹침·구조 단위)                      (2장)\n  [ ] 조각에 출처·날짜·권한 메타데이터가 있나                    (2·4장)\n  [ ] 질의와 문서를 같은 임베딩 모델로                           (3장)\n검색\n  [ ] 권한 필터를 거나 (남의 자료 안 섞이게)                     (4장)\n  [ ] 하이브리드(벡터+키워드)를 고려했나                         (4장)\n  [ ] 재순위로 상위 몇 개로 좁히나                               (5장)\n  [ ] 관련도 문턱 — 낮으면 「자료 없음」                         (5장)\n조립\n  [ ] 자료를 태그로 구분하나 (간접 주입 방어)                    (6장)\n  [ ] 근거로만 답하게 + 출처를 붙이나                            (6장)\n  [ ] 출처가 UI 까지 흐르나                                      (6장)\n개선\n  [ ] 실패 시 검색과 생성을 분리해 진단하나                      (7장)\n  [ ] 고정 평가 세트로 검색·생성을 따로 재나                     (8장)\n  [ ] 여러 문서 종합이 필요하면 에이전트를 고려                  (7장)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 여섯 문항",
+          "height": "290px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .row { display:flex; align-items:center; gap:8px; margin-bottom:4px; font:11.5px ui-monospace, monospace; }\n  .row .nm { width:190px; flex:none; color:#cbd5e1; }\n  .row .b { height:14px; border-radius:3px; }\n  .row .sc { color:#94a3b8; font-size:11px; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const rows = (list) => {\n    const max = Math.max(...list.map(([, s]) => s), 0.01);\n    return list.map(([nm, score, hot]) =>\n      '<div class=\"row\"><span class=\"nm\">' + esc(nm) + '</span>' +\n      '<span class=\"b\" style=\"width:' + Math.max(4, (score / max) * 180) + 'px;background:' +\n      (hot ? '#22c55e' : '#334155') + '\"></span>' +\n      '<span class=\"sc\">' + score.toFixed(3) + '</span></div>').join('');\n  };\n  /** 아주 단순한 단어-빈도 벡터 + 코사인 유사도 — 진짜 임베딩은 아니지만 「의미 근접」 감각을 보여 준다. */\n  function vec(s) {\n    const m = {};\n    (s.toLowerCase().match(/[a-z가-힣]+/g) || []).forEach((w) => (m[w] = (m[w] || 0) + 1));\n    return m;\n  }\n  function cosine(a, b) {\n    let dot = 0, na = 0, nb = 0;\n    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);\n    for (const k of keys) { dot += (a[k] || 0) * (b[k] || 0); }\n    for (const k in a) na += a[k] * a[k];\n    for (const k in b) nb += b[k] * b[k];\n    return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);\n  }\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['RAG 는 지식 컷오프와 환각을 함께 줄인다', true],\n    ['임베딩은 단어가 달라도 뜻이 같으면 찾는다', true],\n    ['조각을 많이 넣을수록 답이 좋아진다', false],\n    ['검색에 권한 필터를 안 걸어도 안전하다', false],\n    ['RAG 실패의 대부분은 검색 단계에서 난다', true],\n    ['검색과 생성을 따로 평가해야 어디를 고칠지 안다', true],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로 — 1장(RAG) 3장(임베딩) 5장(좁히기) 4장(권한) 7장(실패) 8장(평가)');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸은 도구 호출·에이전트다. RAG 는 「검색해서 답한다」 한 번인데, 검색을 **도구로** 주면 모델이 스스로 여러 번 찾고 계산하고 행동할 수 있다 — 7장에서 본 「여러 문서 종합·다단계」가 그 자리다."
+        },
+        {
+          "type": "try",
+          "text": "위 점검표의 「검색」 네 줄부터 확인하라. 권한 필터·재순위·관련도 문턱 중 빠진 것이 있으면, 그것이 RAG 품질과 안전의 구멍이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "RAG 품질을 가장 크게 정하는 단계는?",
+          "choices": [
+            "생성",
+            "검색",
+            "출력",
+            "임베딩 저장"
+          ],
+          "answer": 1,
+          "why": "좋은 조각이 있어야 좋은 답."
+        },
+        {
+          "q": "검색 안전의 핵심은?",
+          "choices": [
+            "빠른 검색",
+            "권한 필터로 볼 수 있는 것만",
+            "큰 top-k",
+            "하이브리드"
+          ],
+          "answer": 1,
+          "why": "IDOR 이 RAG 에서 재현된다."
+        }
+      ]
     }
   ]
 }

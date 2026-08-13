@@ -1,100 +1,858 @@
 {
   "id": "ai-tools",
-  "minutes": 13,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "모델이 말만 하지 않고 **무언가를 하게** 되는 지점. 여기서부터는 언어 문제가 아니라 시스템 설계 문제다."
-    },
-    {
-      "type": "h",
-      "text": "1. 도구 = 함수 선언 + 실행"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "모델에게 알려 주는 것은 이름·설명·인자",
-      "text": "const tools = [{\n  name: 'get_order',\n  description: '주문 번호로 주문 상태를 조회한다. 사용자 본인의 주문만 조회할 수 있다.',\n  input_schema: { type: 'object', properties: { orderId: { type: 'string' } }, required: ['orderId'] },\n}];\n\n// 모델이 도구를 부르면 우리가 실행하고 결과를 돌려준다\nif (res.stop_reason === 'tool_use') {\n  const result = await getOrder(res.input.orderId, currentUser);   // 권한은 우리가 건다\n  // 결과를 다시 모델에 넣어 최종 답을 만들게 한다\n}"
-    },
-    {
-      "type": "note",
-      "text": "**설명이 곧 사양서**다. 언제 쓰는지·쓰면 안 되는 경우를 설명에 적으면 오용이 크게 줍는다. 인자 스키마는 좁게(열거형·형식·범위) 두라."
-    },
-    {
-      "type": "h",
-      "text": "2. 권한은 모델이 아니라 코드가 건다"
-    },
-    {
-      "type": "p",
-      "text": "모델이 `orderId` 를 만들어 낼 수 있다는 것을 전제로 짜라. **현재 사용자 기준의 권한 검사**는 도구 구현 안에서 반드시 한다. 도구 목록 자체도 사용자 권한에 따라 다르게 준다."
-    },
-    {
-      "type": "h",
-      "text": "3. 실패와 반복"
-    },
-    {
-      "type": "note",
-      "text": "도구가 실패하면 오류 문구를 모델에게 돌려주고 다시 시도하게 할 수 있다 — 다만 **최대 반복 횟수**를 반드시 둔다. 무한 루프는 요금과 지연으로 돌아온다."
-    },
-    {
-      "type": "h",
-      "text": "4. 에이전트로 넘어갈 때"
-    },
-    {
-      "type": "p",
-      "text": "여러 도구를 스스로 골라 쓰게 하면 편하지만, 그만큼 **되돌릴 수 없는 행동**의 위험이 커진다. 규칙: 읽기 도구는 자유롭게, **쓰기·삭제·결제·외부 발송은 확인 단계**를 둔다."
-    },
-    {
-      "type": "h",
-      "text": "5. 기록"
-    },
-    {
-      "type": "note",
-      "text": "어떤 도구를 어떤 인자로 불렀고 결과가 무엇이었는지 전부 로그로 남겨라. 사고가 났을 때 재구성할 수 없으면 원인을 못 찾는다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "읽기 전용 도구 하나(예: 날씨·주문 조회)를 붙이고, 일부러 **없는 id** 를 만들게 유도해 실패 경로가 잘 도는지 보라."
-    },
-    {
-      "type": "try",
-      "text": "쓰기 도구를 하나 추가하되 실행 전 사용자 확인을 넣어라. 확인 단계 유무로 흐름이 어떻게 달라지는지 비교하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "도구 호출에서 권한 검사는 어디서 하나?",
-      "choices": [
-        "도구 구현(서버 코드) 안에서 현재 사용자 기준으로",
-        "프롬프트에 적어 모델이 지키게",
-        "클라이언트에서"
+      "id": "1",
+      "title": "모델에게 손발을 달아 주기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "지금까지 모델은 **말만** 했다. 도구 호출은 모델이 **행동**하게 한다 — 검색하고, 계산하고, API 를 부르고, 코드를 돌린다. 「모델이 다 안다」에서 「모델이 필요한 걸 스스로 한다」로 바뀌는 지점이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "무엇을 도구로 주나 — 왜 필요한가",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .loop { margin:8px 0; }\n  .loop .st { font:11.5px/1.8 ui-monospace, monospace; color:#64748b; }\n  .loop .st.on { color:#e2e8f0; } .loop .st b { color:#7dd3fc; }\n  .loop .st.tool b { color:#f59e0b; } .loop .st.done b { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const loop = (steps, on) => '<div class=\"loop\">' + steps.map(([txt, cls], i) =>\n    '<div class=\"st ' + (i <= on ? 'on ' : '') + (cls || '') + '\">' + (i + 1) + '. ' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{tool}}';\n  const t = {\n    calc:  ['계산기', '모델은 산수를 틀린다(환각 칸) — 계산은 코드에 맡긴다',\n      '결정적으로 맞아야 하는 것은 도구로.'],\n    search:['검색', 'RAG 를 도구로 주면 모델이 스스로 여러 번 찾는다(RAG 칸 7장)',\n      '최신 정보·여러 문서 종합 — 한 번 검색을 넘어선다.'],\n    api:   ['외부 API', '날씨·주가·재고 조회 · 이메일 발송',\n      '실시간 데이터와 실제 행동 — 모델의 지식 밖 세상에 닿는다.'],\n    db:    ['데이터베이스 조회', '사용자 데이터·주문·기록',\n      '「내 주문 상태는?」 -> 모델이 DB 를 조회해 답한다.'],\n    code:  ['코드 실행', '데이터 분석·변환·검증',\n      '샌드박스에서 코드를 짜 돌린다 — 계산·시각화·파일 처리.'],\n  }[c];\n  render('tools: [...]',\n    '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n  · ' + esc(t[1]) + '\\n\\n  ' + esc(t[2]),\n    '핵심: 모델이 못하거나 틀리는 것(계산·최신·실제 행동)을 도구가 대신한다.');\n</script>",
+          "controls": [
+            {
+              "id": "tool",
+              "label": "도구",
+              "type": "select",
+              "value": "calc",
+              "options": [
+                {
+                  "value": "calc",
+                  "label": "계산기"
+                },
+                {
+                  "value": "search",
+                  "label": "검색"
+                },
+                {
+                  "value": "api",
+                  "label": "외부 API"
+                },
+                {
+                  "value": "db",
+                  "label": "DB 조회"
+                },
+                {
+                  "value": "code",
+                  "label": "코드 실행"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**도구는 모델의 약점을 메운다.** 계산·최신 정보·정확한 조회·실제 행동 — 모델이 못하거나 틀리는 것을 결정적인 코드에 맡긴다. 앞 칸들의 결론이 여기서 합쳐진다: 「모델에게 묻지 말고 확인하라」(환각 칸)가 「모델이 도구로 확인하게 하라」가 된다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "도구를 정의한다 (구조화 출력의 확장)",
+          "text": "const tools = [{\n  name: 'get_weather',\n  description: '도시의 현재 날씨를 조회한다',\n  input_schema: {\n    type: 'object',\n    properties: { city: { type: 'string', description: '도시 이름' } },\n    required: ['city'],\n  },\n}];\n// 모델은 도구를 「부를지」 정하고, 스키마에 맞는 인자를 만든다\n// 실제 실행은 우리 코드가 한다 (프롬프트 칸 7장의 구조화 출력)"
+        },
+        {
+          "type": "p",
+          "text": "**모델은 도구를 직접 실행하지 않는다.** 「이 도구를 이 인자로 부르고 싶다」는 **요청**을 낼 뿐이고, 실행은 우리 코드가 한다 — 그래서 우리가 무엇을 허용할지, 어떻게 검증할지 통제할 수 있다. 이 통제점이 안전의 핵심이다(6장)."
+        },
+        {
+          "type": "try",
+          "text": "내 서비스에서 모델이 「몰라서·틀려서·못 해서」 막히는 자리를 찾아, 그것을 도구로 주면 되는지 생각하라 — 계산·조회·검색·행동 중 무엇인가."
+        }
       ],
-      "answer": 0,
-      "why": "모델은 인자를 지어낼 수 있다. 검사는 코드가 한다."
+      "quiz": [
+        {
+          "q": "도구 호출이 모델에게 주는 것은?",
+          "choices": [
+            "더 많은 지식",
+            "행동 능력(계산·조회·API·실행)",
+            "속도",
+            "긴 문맥"
+          ],
+          "answer": 1,
+          "why": "말에서 행동으로."
+        },
+        {
+          "q": "도구를 실제로 실행하는 주체는?",
+          "choices": [
+            "모델",
+            "우리 코드",
+            "API 제공자",
+            "사용자"
+          ],
+          "answer": 1,
+          "why": "모델은 호출을 요청할 뿐."
+        },
+        {
+          "q": "계산을 도구로 주는 이유는?",
+          "choices": [
+            "빠르다",
+            "모델은 산수를 틀리므로 결정적 코드에",
+            "저렴",
+            "표준"
+          ],
+          "answer": 1,
+          "why": "확인 가능한 것은 도구로."
+        }
+      ]
     },
     {
-      "q": "도구 설명(description)이 중요한 이유는?",
-      "choices": [
-        "모델이 언제 쓸지 판단하는 기준이 되기 때문",
-        "요금이 줄어서",
-        "스키마를 대체하기 때문"
+      "id": "2",
+      "title": "호출 루프 — 관찰하고 다시 생각하기",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "도구 호출은 **한 번**이 아니다. 모델이 도구를 부르면, 우리가 실행해 **결과를 다시 모델에게** 준다. 모델은 그 결과를 보고 다음을 정한다 — 이 루프가 에이전트의 심장이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "단계를 밀어 보라 — 루프가 어떻게 도나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .loop { margin:8px 0; }\n  .loop .st { font:11.5px/1.8 ui-monospace, monospace; color:#64748b; }\n  .loop .st.on { color:#e2e8f0; } .loop .st b { color:#7dd3fc; }\n  .loop .st.tool b { color:#f59e0b; } .loop .st.done b { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const loop = (steps, on) => '<div class=\"loop\">' + steps.map(([txt, cls], i) =>\n    '<div class=\"st ' + (i <= on ? 'on ' : '') + (cls || '') + '\">' + (i + 1) + '. ' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = {{step}};\n  const steps = [\n    ['사용자: 「서울과 부산 중 더 따뜻한 곳은?」', ''],\n    ['모델: get_weather(\\'서울\\') 을 부르겠다', 'tool'],\n    ['코드: 실행 -> 「서울 12도」를 모델에 반환', 'tool'],\n    ['모델: get_weather(\\'부산\\') 을 부르겠다', 'tool'],\n    ['코드: 실행 -> 「부산 16도」를 모델에 반환', 'tool'],\n    ['모델: 「부산이 4도 더 따뜻합니다」 (도구 없이 최종 답)', 'done'],\n  ];\n  render('agent loop',\n    '  ' + (s < 5 ? '루프 진행 중 — 모델이 도구 결과를 보고 다음을 정한다.'\n                  : '<span class=\"ok\">도구를 더 안 부르고 최종 답을 냈다 -> 루프 종료.</span>') +\n    '\\n\\n  <span class=\"dim\">각 도구 결과가 다음 문맥에 쌓인다 — 대화가 길어지고 비싸진다(토큰 칸).</span>',\n    '루프: 생각 -> 도구 호출 -> 실행 -> 결과 관찰 -> 반복 -> 도구 없이 답하면 끝.',\n    loop(steps, s));\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 5,
+              "step": 1,
+              "value": 2
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "루프를 코드로",
+          "text": "let messages = [{ role: 'user', content: question }];\nfor (let turn = 0; turn < MAX_TURNS; turn++) {          // 상한 필수!\n  const res = await client.create({ model, tools, messages });\n  if (res.stop_reason !== 'tool_use') return res;       // 도구 안 부르면 끝\n  messages.push(res.message);\n  for (const call of res.toolCalls) {\n    const result = await runTool(call.name, call.input); // 우리가 실행\n    messages.push({ role: 'tool', tool_call_id: call.id, content: result });\n  }\n}\nthrow new Error('최대 반복 초과');                        // 폴백 (5장)"
+        },
+        {
+          "type": "note",
+          "text": "**반복 상한(MAX_TURNS)이 반드시 필요하다.** 모델이 도구를 계속 부르며 끝내지 못하는 루프에 빠질 수 있다 — 상한 없이 돌리면 비용이 폭주하고 멈추지 않는다(토큰 칸의 그 사고). 상한에 닿으면 폴백한다."
+        },
+        {
+          "type": "p",
+          "text": "**도구 결과가 문맥에 계속 쌓인다.** 루프가 길어지면 대화가 커지고, 비싸지고, 문맥창을 넘는다(토큰 칸). 그래서 긴 에이전트는 오래된 도구 결과를 요약하거나, 필요한 것만 남기는 문맥 관리가 필요하다."
+        },
+        {
+          "type": "try",
+          "text": "간단한 도구 하나(계산기)를 주고, 두 단계가 필요한 질문(「3의 5제곱에 10을 더하면?」)을 시켜 보라. 모델이 도구를 몇 번 부르는지 로그로 관찰하라."
+        }
       ],
-      "answer": 0,
-      "why": "설명이 곧 사양이다. 쓰면 안 되는 경우까지 적는다."
+      "quiz": [
+        {
+          "q": "도구 호출 루프의 종료 조건은?",
+          "choices": [
+            "시간 초과",
+            "모델이 도구를 안 부르고 최종 답을 낼 때",
+            "한 번 호출 후",
+            "사용자 중단"
+          ],
+          "answer": 1,
+          "why": "결과를 보고 더 필요 없으면 답한다."
+        },
+        {
+          "q": "루프에 반드시 필요한 것은?",
+          "choices": [
+            "큰 모델",
+            "반복 상한(MAX_TURNS)",
+            "스트리밍",
+            "캐싱"
+          ],
+          "answer": 1,
+          "why": "무한 루프·비용 폭주 방지."
+        },
+        {
+          "q": "루프가 길어질 때의 문제는?",
+          "choices": [
+            "정확도만",
+            "도구 결과가 쌓여 문맥·비용 증가",
+            "속도만",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "문맥 관리가 필요하다."
+        }
+      ]
     },
     {
-      "q": "에이전트에 되돌릴 수 없는 행동을 맡길 때 필요한 것은?",
-      "choices": [
-        "확인 단계와 반복 횟수 제한",
-        "더 큰 모델",
-        "더 긴 프롬프트"
+      "id": "3",
+      "title": "좋은 도구 만들기 — 모델이 잘 쓰게",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "도구가 있다고 모델이 잘 쓰는 것은 아니다. **설명·이름·인자·결과**를 모델이 이해하기 좋게 만들어야 한다 — API 를 사람이 아니라 모델을 위해 설계하는 감각이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "요소를 골라 보라 — 무엇을 챙기나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .loop { margin:8px 0; }\n  .loop .st { font:11.5px/1.8 ui-monospace, monospace; color:#64748b; }\n  .loop .st.on { color:#e2e8f0; } .loop .st b { color:#7dd3fc; }\n  .loop .st.tool b { color:#f59e0b; } .loop .st.done b { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const loop = (steps, on) => '<div class=\"loop\">' + steps.map(([txt, cls], i) =>\n    '<div class=\"st ' + (i <= on ? 'on ' : '') + (cls || '') + '\">' + (i + 1) + '. ' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{elem}}';\n  const t = {\n    desc:  ['설명(description)', '언제 쓰는지·무엇을 하는지 명확히',\n      '모델은 설명을 읽고 「이 도구를 부를까」를 정한다 — 애매하면 안 부르거나 잘못 부른다.'],\n    name:  ['이름과 인자', 'get_order_status(order_id) 처럼 뜻이 드러나게',\n      '스키마에 각 인자의 설명·타입·필수 여부 — 구조화 출력의 규칙(프롬프트 칸 7장).'],\n    result:['결과 형식', '모델이 읽기 좋은 구조 · 오류도 명확히',\n      '「404」보다 「주문 1042 를 찾을 수 없음」 — 모델이 다음을 정할 수 있게.'],\n    fewer: ['도구 수 줄이기', '너무 많으면 모델이 헷갈린다',\n      '비슷한 도구 열 개보다 잘 설계된 세 개 — 선택이 어려워지면 실수가 는다.'],\n    error: ['오류를 답으로', '실패를 예외가 아니라 결과로 돌려준다',\n      '「그 도시는 없습니다」를 결과로 주면 모델이 되묻거나 다른 방법을 시도한다.'],\n  }[c];\n  render('', '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n  · ' + esc(t[1]) + '\\n\\n  ' + esc(t[2]),\n    '도구 설계 = 모델을 위한 API 설계. 설명이 곧 프롬프트다.',\n    box('좋은 도구 정의', 'name: get_order_status\\n' +\n        'description: 주문 번호로 배송 상태를 조회한다. 주문이 없으면 not_found 를 반환.\\n' +\n        'input: { order_id: string (필수, 예: \"A-1042\") }\\n' +\n        'output: { status, eta } 또는 { error: \"not_found\" }', 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "elem",
+              "label": "요소",
+              "type": "select",
+              "value": "desc",
+              "options": [
+                {
+                  "value": "desc",
+                  "label": "설명"
+                },
+                {
+                  "value": "name",
+                  "label": "이름·인자"
+                },
+                {
+                  "value": "result",
+                  "label": "결과 형식"
+                },
+                {
+                  "value": "fewer",
+                  "label": "도구 수"
+                },
+                {
+                  "value": "error",
+                  "label": "오류를 답으로"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**도구 설명이 곧 프롬프트다.** 모델은 설명을 읽고 도구를 고르므로, 「언제 쓰고 언제 쓰지 않는지」를 명확히 적어야 한다. 애매하면 부를 상황에 안 부르거나, 엉뚱한 데 부른다 — 프롬프트를 다듬듯 도구 설명을 다듬어라."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "오류를 결과로 돌려준다",
+          "text": "async function runTool(name, input) {\n  try {\n    const order = await db.findOrder(input.order_id, currentUser.id);\n    if (!order) return { error: 'not_found', message: `주문 ${input.order_id} 없음` };\n    return { status: order.status, eta: order.eta };\n  } catch (e) {\n    return { error: 'internal', message: '조회 실패, 잠시 후 재시도' };\n    // 예외를 던지면 루프가 깨진다 — 결과로 주면 모델이 대처한다\n  }\n}"
+        },
+        {
+          "type": "p",
+          "text": "**오류를 예외가 아니라 결과로** 돌려주는 것이 요령이다. 도구가 던진 예외로 루프가 깨지는 대신, 「그 주문은 없습니다」를 결과로 주면 모델이 되묻거나 다른 방법을 시도한다 — 에이전트가 실패에서 회복하는 능력이 여기서 나온다."
+        },
+        {
+          "type": "try",
+          "text": "내 도구 하나의 설명을 「모델이 언제 부를지」가 분명하게 다시 써 보라. 그리고 실패 케이스를 예외 대신 결과로 바꿔라."
+        }
       ],
-      "answer": 0,
-      "why": "자율성이 커질수록 안전장치가 필요하다."
+      "quiz": [
+        {
+          "q": "도구 설명이 중요한 이유는?",
+          "choices": [
+            "문서화",
+            "모델이 그것을 읽고 도구를 고른다",
+            "속도",
+            "타입 검사"
+          ],
+          "answer": 1,
+          "why": "설명이 곧 프롬프트다."
+        },
+        {
+          "q": "도구가 너무 많으면?",
+          "choices": [
+            "더 강력",
+            "선택이 어려워져 실수가 는다",
+            "빠르다",
+            "안전"
+          ],
+          "answer": 1,
+          "why": "잘 설계된 소수가 낫다."
+        },
+        {
+          "q": "도구 오류를 다루는 좋은 방법은?",
+          "choices": [
+            "예외를 던진다",
+            "결과로 돌려줘 모델이 대처하게",
+            "무시",
+            "재시작"
+          ],
+          "answer": 1,
+          "why": "실패에서 회복한다."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "계획과 분해 — 큰 일을 나누기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「이 데이터를 분석해 보고서를 만들어」 같은 큰 일은 한 번에 안 된다. 에이전트는 **계획을 세우고 단계로 나눠** 실행한다 — 사람이 프로젝트를 쪼개는 것과 같다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "방식을 골라 보라 — 어떻게 큰 일을 다루나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .loop { margin:8px 0; }\n  .loop .st { font:11.5px/1.8 ui-monospace, monospace; color:#64748b; }\n  .loop .st.on { color:#e2e8f0; } .loop .st b { color:#7dd3fc; }\n  .loop .st.tool b { color:#f59e0b; } .loop .st.done b { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const loop = (steps, on) => '<div class=\"loop\">' + steps.map(([txt, cls], i) =>\n    '<div class=\"st ' + (i <= on ? 'on ' : '') + (cls || '') + '\">' + (i + 1) + '. ' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{how}}';\n  const t = {\n    react: ['생각-행동 반복(ReAct)', ['생각 -> 도구 -> 관찰 -> 다시 생각',\n      '한 번에 한 걸음씩 · 결과를 보고 다음을 정한다(2장의 루프)'],\n      '가장 기본. 유연하지만 길을 잃거나 반복할 수 있다.'],\n    plan:  ['먼저 계획, 그다음 실행', ['① 할 일 목록을 먼저 만든다 ② 하나씩 처리',\n      '큰 그림을 먼저 잡아 빠뜨림·헤맴이 준다'],\n      '복잡한 작업에 좋다 — 다만 계획이 틀리면 재계획이 필요.'],\n    decomp:['하위 작업으로 분해', ['큰 목표 -> 작은 목표들 -> 각각 처리 -> 합치기'],\n      '각 하위 작업이 독립적이면 병렬로도 — 하지만 조율이 복잡해진다.'],\n    subagent:['하위 에이전트에 위임', ['전문 에이전트에게 부분을 맡긴다'],\n      '「검색 담당」·「코드 담당」으로 나눔 — 강력하지만 조율·비용이 는다.'],\n    reflect:['스스로 점검(reflection)', ['한 결과를 스스로 비판하고 고친다'],\n      '품질이 오르지만 비용이 배로 — 중요한 산출물에만.'],\n  }[c];\n  render('', '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[2]),\n    '규칙: 단순한 일은 ReAct 로 · 복잡할수록 계획·분해 · 항상 상한과 종료 조건.');\n</script>",
+          "controls": [
+            {
+              "id": "how",
+              "label": "방식",
+              "type": "select",
+              "value": "react",
+              "options": [
+                {
+                  "value": "react",
+                  "label": "생각-행동(ReAct)"
+                },
+                {
+                  "value": "plan",
+                  "label": "계획 후 실행"
+                },
+                {
+                  "value": "decomp",
+                  "label": "하위 작업 분해"
+                },
+                {
+                  "value": "subagent",
+                  "label": "하위 에이전트"
+                },
+                {
+                  "value": "reflect",
+                  "label": "스스로 점검"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**복잡할수록 위험도 는다.** 에이전트가 자유롭게 여러 단계를 돌수록, 길을 잃고·반복하고·비용이 폭주할 여지가 커진다. 그래서 「가장 단순한 구조로 시작」이 원칙이다 — 한 번의 도구 호출로 되면 에이전트를 안 쓴다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "복잡도의 사다리 — 낮은 것부터",
+          "text": "1. 단일 LLM 호출           — 대부분의 작업 (프롬프트 칸)\n2. LLM + 검색 (RAG)        — 지식이 필요할 때 (RAG 칸)\n3. 도구 호출 한두 번        — 계산·조회가 필요할 때 (2장)\n4. ReAct 루프              — 여러 단계 · 결과에 따라 분기\n5. 계획·분해·하위 에이전트  — 정말 복잡할 때만\n\n※ 위로 갈수록 강력하지만 비싸고·느리고·예측 어렵다\n※ 「이거 진짜 에이전트가 필요한가?」를 먼저 물어라"
+        },
+        {
+          "type": "p",
+          "text": "**「에이전트가 필요한가」를 먼저 물어라.** 많은 문제가 단일 호출이나 정해진 파이프라인으로 풀린다 — 그게 더 싸고 빠르고 예측 가능하다. 에이전트는 「단계가 미리 정해지지 않고, 결과에 따라 달라지는」 문제에만 값을 한다."
+        },
+        {
+          "type": "try",
+          "text": "내가 에이전트로 만들려는(또는 만든) 기능이 정말 「결과에 따라 단계가 달라지는」 문제인지 확인하라. 정해진 순서면 파이프라인이 낫다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "에이전트 설계의 원칙은?",
+          "choices": [
+            "항상 복잡하게",
+            "가장 단순한 구조로 시작",
+            "하위 에이전트 우선",
+            "많은 도구"
+          ],
+          "answer": 1,
+          "why": "복잡할수록 위험도 는다."
+        },
+        {
+          "q": "에이전트가 값을 하는 문제는?",
+          "choices": [
+            "정해진 순서",
+            "결과에 따라 단계가 달라지는 문제",
+            "단순 변환",
+            "분류"
+          ],
+          "answer": 1,
+          "why": "정해진 순서면 파이프라인."
+        },
+        {
+          "q": "스스로 점검(reflection)의 대가는?",
+          "choices": [
+            "없음",
+            "비용이 배로 — 중요한 것에만",
+            "느려짐만",
+            "부정확"
+          ],
+          "answer": 1,
+          "why": "품질과 비용의 저울."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "실패와 회복 — 에이전트는 자주 헤맨다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "에이전트는 사람처럼 **길을 잃는다** — 같은 도구를 반복하거나, 틀린 방향으로 파고들거나, 끝내지 못한다. 「틀림을 전제한 설계」(환각 칸)가 여기서 특히 중요하다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "실패를 골라 보라 — 어떻게 막나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .loop { margin:8px 0; }\n  .loop .st { font:11.5px/1.8 ui-monospace, monospace; color:#64748b; }\n  .loop .st.on { color:#e2e8f0; } .loop .st b { color:#7dd3fc; }\n  .loop .st.tool b { color:#f59e0b; } .loop .st.done b { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const loop = (steps, on) => '<div class=\"loop\">' + steps.map(([txt, cls], i) =>\n    '<div class=\"st ' + (i <= on ? 'on ' : '') + (cls || '') + '\">' + (i + 1) + '. ' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{fail}}';\n  const t = {\n    loop:  ['무한 루프', ['같은 도구를 계속 부르며 못 끝낸다'],\n      '반복 상한 · 같은 호출 감지 · 진전 없으면 중단(2장).'],\n    lost:  ['길을 잃음', ['목표에서 벗어나 엉뚱한 데로'],\n      '주기적으로 목표를 상기 · 계획을 점검 · 사람 확인 지점.'],\n    toolerr:['도구가 실패', ['API 오류·타임아웃·잘못된 인자'],\n      '오류를 결과로 돌려주기(3장) · 재시도 · 대체 도구.'],\n    cost:  ['비용 폭주', ['긴 루프 · 큰 문맥 · 많은 호출'],\n      '반복 상한 · 토큰 예산 · 문맥 요약(토큰 칸).'],\n    wrong: ['틀린 결과를 자신 있게', ['잘못된 답을 최종 결과로'],\n      '검증 단계(환각 칸 6장) · 스스로 점검 · 사람 검토.'],\n    stuck: ['막혀서 못 함', ['정보 부족 · 권한 없음'],\n      '「할 수 없음」을 유효한 결과로 · 사람에게 넘기기(환각 칸 4·7장).'],\n  }[c];\n  render('', '  <span class=\"no\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">-> ' + esc(t[2]) + '</span>',\n    '에이전트는 자주 실패한다 — 감지·상한·회복·사람을 설계에 넣는다.',\n    loop([['목표 확인', ''], ['도구 A', 'tool'], ['도구 A (또)', 'tool'],\n          ['도구 A (또)…', c==='loop'?'tool':''], ['상한 도달 -> 중단·폴백', 'done']],\n         c==='loop'?4:1));\n</script>",
+          "controls": [
+            {
+              "id": "fail",
+              "label": "실패",
+              "type": "select",
+              "value": "loop",
+              "options": [
+                {
+                  "value": "loop",
+                  "label": "무한 루프"
+                },
+                {
+                  "value": "lost",
+                  "label": "길을 잃음"
+                },
+                {
+                  "value": "toolerr",
+                  "label": "도구 실패"
+                },
+                {
+                  "value": "cost",
+                  "label": "비용 폭주"
+                },
+                {
+                  "value": "wrong",
+                  "label": "틀린 결과"
+                },
+                {
+                  "value": "stuck",
+                  "label": "막힘"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**진전이 없으면 멈춰라.** 같은 도구를 같은 인자로 반복하거나, 여러 턴 동안 목표에 가까워지지 않으면 — 루프를 끊고 폴백한다. 「몇 번 더 하면 되겠지」로 두면 비용만 쌓인다. 진전 감지가 반복 상한만큼 중요하다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "안전장치를 겹으로",
+          "text": "const limits = {\n  maxTurns: 10,             // 반복 상한\n  maxTokens: 50000,        // 예산\n  maxSameCall: 2,          // 같은 호출 반복 감지\n  timeout: 60000,          // 전체 시간\n};\n// 각 턴마다 검사 -> 초과하면 중단하고 폴백\n// 파괴적 도구는 사람 승인 게이트 (6장)\n// 최종 결과는 검증 후 반환 (환각 칸 6장)"
+        },
+        {
+          "type": "p",
+          "text": "그리고 **에이전트를 임계 경로에 홀로 두지 마라.** 에이전트가 실패하거나 헤맬 때 우회로(단순 응답·사람·폴백)가 있어야 한다 — 이것은 토큰 칸(폴백)과 환각 칸(회복 경로)에서 반복된 그 원칙이다. 강력할수록 실패 대비가 더 중요하다."
+        },
+        {
+          "type": "try",
+          "text": "내 에이전트에 반복 상한·토큰 예산·같은 호출 감지가 있는지 확인하라. 하나라도 없으면 비용 폭주의 문이 열려 있는 것이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "에이전트 무한 루프를 막는 것은?",
+          "choices": [
+            "큰 모델",
+            "반복 상한 + 진전 감지",
+            "스트리밍",
+            "캐싱"
+          ],
+          "answer": 1,
+          "why": "몇 번 더로 두면 비용만 쌓인다."
+        },
+        {
+          "q": "도구가 실패했을 때 좋은 처리는?",
+          "choices": [
+            "예외로 중단",
+            "결과로 돌려주고 재시도·대체",
+            "무시",
+            "재시작"
+          ],
+          "answer": 1,
+          "why": "실패에서 회복한다."
+        },
+        {
+          "q": "에이전트를 임계 경로에 둘 때 필요한 것은?",
+          "choices": [
+            "더 많은 도구",
+            "우회로(폴백·사람)",
+            "큰 문맥",
+            "온도 0"
+          ],
+          "answer": 1,
+          "why": "강력할수록 실패 대비가 중요."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "안전 — 손발이 달렸으니 위험도 크다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "말만 하던 모델이 **행동**하게 되면, 잘못된 행동의 결과도 실제가 된다 — 데이터 삭제, 잘못된 이메일, 결제. 그리고 프롬프트 주입(보안 칸)이 여기서 **가장 위험**해진다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "위험을 골라 보라 — 어떻게 막나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .loop { margin:8px 0; }\n  .loop .st { font:11.5px/1.8 ui-monospace, monospace; color:#64748b; }\n  .loop .st.on { color:#e2e8f0; } .loop .st b { color:#7dd3fc; }\n  .loop .st.tool b { color:#f59e0b; } .loop .st.done b { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const loop = (steps, on) => '<div class=\"loop\">' + steps.map(([txt, cls], i) =>\n    '<div class=\"st ' + (i <= on ? 'on ' : '') + (cls || '') + '\">' + (i + 1) + '. ' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{risk}}';\n  const t = {\n    destructive:['파괴적 행동', ['삭제·결제·전송·배포 — 되돌릴 수 없다'],\n      '<span class=\"no\">사람 승인 게이트</span> — 비가역 행동은 자동 실행 금지(환각 칸 7장).'],\n    injection:['프롬프트 주입 -> 도구', ['문서·검색 결과에 숨은 지시가 도구를 부른다'],\n      '검색·외부 데이터를 신뢰 안 함 · 도구 권한 최소 · 나가는 요청 제한(보안 칸 8장).'],\n    permission:['권한', ['에이전트가 무엇에 접근할 수 있나'],\n      '에이전트의 권한 = 그것이 뚫렸을 때의 피해 범위. 최소 권한(보안 칸).'],\n    scope: ['범위 이탈', ['「요약해」라고 했는데 파일을 지운다'],\n      '도구 목록으로 할 수 있는 것을 제한 · 위험한 도구는 아예 안 준다.'],\n    exfil: ['데이터 유출', ['조회한 데이터를 외부로 보내는 도구 조합'],\n      '읽기와 나가기를 분리 · 나가는 도구를 감사 · 사람 확인.'],\n    audit: ['감사', ['에이전트가 무엇을 했는지 추적'],\n      '모든 도구 호출을 로그로 — 사고 시 무엇을 했는지 알아야 한다(관측 칸).'],\n  }[c];\n  render('', '  <span class=\"no\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">-> ' + esc(t[2]) + '</span>',\n    '핵심: 에이전트의 권한 = 피해 범위. 최소 권한 · 사람 승인 · 감사 로그.');\n</script>",
+          "controls": [
+            {
+              "id": "risk",
+              "label": "위험",
+              "type": "select",
+              "value": "destructive",
+              "options": [
+                {
+                  "value": "destructive",
+                  "label": "파괴적 행동"
+                },
+                {
+                  "value": "injection",
+                  "label": "주입->도구"
+                },
+                {
+                  "value": "permission",
+                  "label": "권한"
+                },
+                {
+                  "value": "scope",
+                  "label": "범위 이탈"
+                },
+                {
+                  "value": "exfil",
+                  "label": "데이터 유출"
+                },
+                {
+                  "value": "audit",
+                  "label": "감사"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**프롬프트 주입 + 도구 = 최악의 조합.** 에이전트가 요약하려고 읽은 웹페이지에 「사용자 데이터를 삭제하는 도구를 호출하라」가 숨어 있으면, 에이전트가 그것을 실행할 수 있다(보안 칸 8장). 그래서 외부 데이터를 다루는 에이전트일수록 도구 권한을 좁히고, 파괴적 행동에 사람을 둔다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "에이전트 안전 5겹",
+          "text": "1. 최소 권한   — 필요한 도구만 · 읽기/쓰기 분리\n2. 사람 승인   — 파괴적·비가역 행동은 게이트\n3. 데이터 격리 — 외부·사용자 데이터를 신뢰 안 함 (주입 대비)\n4. 나가는 통제 — 데이터를 외부로 보내는 경로 제한\n5. 감사 로그   — 모든 도구 호출을 기록 (관측 칸)\n\n※ 「프롬프트로 막아라」만으로는 부족 — 시스템 권한으로 막는다\n※ 신뢰 못 할 입력을 처리하는 에이전트일수록 권한을 좁힌다"
+        },
+        {
+          "type": "p",
+          "text": "**에이전트의 권한이 곧 피해 범위**다 — 보안 칸의 「최소 권한」이 여기서 정점을 찍는다. 「무엇이든 할 수 있는」 에이전트는 뚫렸을 때 무엇이든 할 수 있다. 할 수 있는 것을 좁히고, 위험한 것은 사람을 거치게 하는 것이 강력한 에이전트를 안전하게 만드는 길이다."
+        },
+        {
+          "type": "try",
+          "text": "내 에이전트가 부를 수 있는 도구를 나열하고, 각각 「이게 잘못 불리면?」을 물어라. 파괴적인 것에 사람 승인이 없으면 오늘 붙일 자리다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "에이전트에서 가장 위험한 조합은?",
+          "choices": [
+            "긴 문맥 + 큰 모델",
+            "프롬프트 주입 + 도구 실행",
+            "스트리밍 + 캐싱",
+            "많은 예시"
+          ],
+          "answer": 1,
+          "why": "숨은 지시가 실제 행동이 된다."
+        },
+        {
+          "q": "파괴적·비가역 행동에 대한 규칙은?",
+          "choices": [
+            "자동 실행",
+            "사람 승인 게이트",
+            "재시도",
+            "로그만"
+          ],
+          "answer": 1,
+          "why": "되돌릴 수 없다."
+        },
+        {
+          "q": "에이전트의 권한이 뜻하는 것은?",
+          "choices": [
+            "속도",
+            "뚫렸을 때의 피해 범위",
+            "정확도",
+            "비용"
+          ],
+          "answer": 1,
+          "why": "최소 권한이 핵심."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "MCP 와 표준 — 도구를 이어 붙이기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "도구를 하나씩 손으로 붙이면 금방 복잡해진다. **MCP(Model Context Protocol)** 같은 표준은 도구·데이터 소스를 **한 규격으로** 이어 붙이게 한다 — USB 처럼, 한 번 만든 도구를 여러 모델·앱에 꽂는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "개념을 골라 보라 — 무엇을 표준화하나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .loop { margin:8px 0; }\n  .loop .st { font:11.5px/1.8 ui-monospace, monospace; color:#64748b; }\n  .loop .st.on { color:#e2e8f0; } .loop .st b { color:#7dd3fc; }\n  .loop .st.tool b { color:#f59e0b; } .loop .st.done b { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const loop = (steps, on) => '<div class=\"loop\">' + steps.map(([txt, cls], i) =>\n    '<div class=\"st ' + (i <= on ? 'on ' : '') + (cls || '') + '\">' + (i + 1) + '. ' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{concept}}';\n  const t = {\n    problem:['표준이 없으면', ['모델·앱마다 도구를 다시 붙인다', 'N개 앱 x M개 도구 = N*M 개 연결'],\n      '조합 폭발 — 새 도구·새 모델마다 통합 작업.'],\n    mcp:   ['MCP 로', ['도구를 MCP 서버로 한 번 만든다', '어느 클라이언트(앱·모델)든 같은 규격으로 연결'],\n      'N + M 으로 준다 — 한 번 만든 도구를 여러 곳에서 재사용.'],\n    server:['MCP 서버', ['도구·리소스·프롬프트를 제공하는 쪽'],\n      'DB 조회·파일·API 를 표준 규격으로 노출한다.'],\n    client:['MCP 클라이언트', ['모델을 쓰는 앱(에디터·챗봇)이 서버에 연결'],\n      '연결된 서버들의 도구를 모델이 쓸 수 있게 된다.'],\n    security:['그래도 안전은 내 몫', ['표준이 권한·주입까지 막아 주진 않는다'],\n      '연결한 서버를 신뢰할 수 있나 · 도구 권한은 여전히 최소로(6장).'],\n  }[c];\n  render('MCP (Model Context Protocol)',\n    '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[2]),\n    'MCP = 도구/데이터를 모델에 붙이는 공통 규격. 재사용은 늘지만 안전은 여전히 내 몫.');\n</script>",
+          "controls": [
+            {
+              "id": "concept",
+              "label": "개념",
+              "type": "select",
+              "value": "problem",
+              "options": [
+                {
+                  "value": "problem",
+                  "label": "표준이 없으면"
+                },
+                {
+                  "value": "mcp",
+                  "label": "MCP 로"
+                },
+                {
+                  "value": "server",
+                  "label": "MCP 서버"
+                },
+                {
+                  "value": "client",
+                  "label": "MCP 클라이언트"
+                },
+                {
+                  "value": "security",
+                  "label": "안전은 내 몫"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**표준이 재사용을 주지만 안전을 주진 않는다.** MCP 서버를 연결하는 것은 「그 서버의 도구를 모델이 쓸 수 있게」 하는 것이고 — 그 서버를 신뢰할 수 있나, 도구 권한은 최소인가, 파괴적 행동에 승인이 있나는 여전히 내가 챙겨야 한다(6장). 편해질수록 이 점검을 잊기 쉽다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "MCP 가 제공하는 세 가지",
+          "text": "Tools     — 모델이 부를 수 있는 함수 (이 칸의 도구)\nResources — 모델이 읽을 수 있는 데이터 (파일·DB — RAG 와 이어짐)\nPrompts   — 재사용 가능한 프롬프트 템플릿\n\n한 번 MCP 서버로 만들면:\n  · Claude Desktop · 에디터 · 커스텀 앱 어디서든 연결\n  · 새 모델이 나와도 도구는 그대로\n※ 이 스터디맵을 만드는 도구(Claude Code)도 MCP 로 도구를 붙인다"
+        },
+        {
+          "type": "p",
+          "text": "이것이 **생태계 관점**이다 — 앞 칸들(RAG·도구)의 조각을 표준으로 이어 붙이면, 모델은 여러 데이터 소스와 도구를 한 규격으로 다룰 수 있다. 다만 표준은 배관일 뿐, **무엇을 연결하고 무엇을 허용할지**의 판단은 여전히 사람의 몫이다."
+        },
+        {
+          "type": "try",
+          "text": "MCP 서버 하나를 붙여 보라(파일 시스템·간단한 API). 모델이 그 도구를 쓰는 것을 보고, 그 서버가 무엇을 할 수 있는지(권한) 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "MCP 같은 표준의 이점은?",
+          "choices": [
+            "더 똑똑한 모델",
+            "도구를 한 번 만들어 여러 곳에서 재사용",
+            "속도",
+            "저렴"
+          ],
+          "answer": 1,
+          "why": "N*M 을 N+M 으로."
+        },
+        {
+          "q": "표준이 해결해 주지 **않는** 것은?",
+          "choices": [
+            "연결 규격",
+            "권한·주입 등 안전",
+            "재사용",
+            "호환성"
+          ],
+          "answer": 1,
+          "why": "안전은 여전히 내 몫."
+        },
+        {
+          "q": "MCP 서버가 제공하는 것이 아닌 것은?",
+          "choices": [
+            "Tools",
+            "Resources",
+            "Prompts",
+            "GPU"
+          ],
+          "answer": 3,
+          "why": "도구·데이터·프롬프트 규격."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "언제 에이전트를 쓰나 — 그리고 안 쓰나",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "에이전트는 강력하지만 **비싸고·느리고·예측하기 어렵다.** 그래서 「쓸 수 있다」와 「써야 한다」는 다르다 — 대부분의 문제는 더 단순한 것으로 풀린다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "작업을 골라 보라 — 에이전트가 맞나",
+          "height": "340px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .loop { margin:8px 0; }\n  .loop .st { font:11.5px/1.8 ui-monospace, monospace; color:#64748b; }\n  .loop .st.on { color:#e2e8f0; } .loop .st b { color:#7dd3fc; }\n  .loop .st.tool b { color:#f59e0b; } .loop .st.done b { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const loop = (steps, on) => '<div class=\"loop\">' + steps.map(([txt, cls], i) =>\n    '<div class=\"st ' + (i <= on ? 'on ' : '') + (cls || '') + '\">' + (i + 1) + '. ' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{task}}';\n  const t = {\n    fixed: ['단계가 정해진 작업', 'no', '파이프라인',\n      '「번역 -> 요약 -> 저장」처럼 순서가 고정이면 코드로 이어라. 에이전트는 과잉.'],\n    simple:['한 번에 답할 수 있는 것', 'no', '단일 LLM 호출',\n      '분류·추출·생성은 프롬프트 하나면 된다(프롬프트 칸).'],\n    knowledge:['지식이 필요한 질답', 'warn', 'RAG',\n      '검색 한 번으로 되면 RAG(RAG 칸) · 여러 번 찾아야 하면 에이전트.'],\n    dynamic:['결과에 따라 단계가 달라짐', 'ok', '에이전트',\n      '「이걸 조사해서 상황에 맞게 처리해」 — 미리 순서를 못 정할 때 값을 한다.'],\n    explore:['탐색·조사·다단계', 'ok', '에이전트',\n      '여러 도구를 상황에 따라 · 코드 짜고 돌려 고치기 — 에이전트의 본령.'],\n  }[c];\n  render('', '  ' + esc(t[0]) + '  ->  <span class=\"' + (t[1]==='ok'?'ok':t[1]==='warn'?'warn':'no') + '\">' + esc(t[2]) + '</span>\\n\\n  ' + esc(t[3]),\n    '기준: 단계가 미리 정해지나? -> 정해지면 파이프라인 · 결과에 따라 달라지면 에이전트.');\n</script>",
+          "controls": [
+            {
+              "id": "task",
+              "label": "작업",
+              "type": "select",
+              "value": "fixed",
+              "options": [
+                {
+                  "value": "fixed",
+                  "label": "정해진 단계"
+                },
+                {
+                  "value": "simple",
+                  "label": "한 번에 답"
+                },
+                {
+                  "value": "knowledge",
+                  "label": "지식 질답"
+                },
+                {
+                  "value": "dynamic",
+                  "label": "동적 단계"
+                },
+                {
+                  "value": "explore",
+                  "label": "탐색·조사"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「단계가 미리 정해지나?」가 핵심 질문이다.** 정해지면 코드 파이프라인(각 단계에 LLM 호출)이 더 싸고·빠르고·예측 가능하다. 결과에 따라 다음이 달라져 미리 못 정할 때만 에이전트가 값을 한다 — 그 판단을 자율에 맡기는 대가로 비용·불확실성을 치른다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "고르는 순서 (싼 것부터)",
+          "text": "1. 규칙·코드로 되나?        -> LLM 없이\n2. 단일 LLM 호출로 되나?     -> 프롬프트 (프롬프트 칸)\n3. 지식만 더하면 되나?       -> RAG (RAG 칸)\n4. 정해진 단계인가?          -> LLM 파이프라인 (각 단계에 호출)\n5. 결과에 따라 달라지나?     -> 에이전트 (이 칸)\n\n※ 위에서 되면 아래로 안 간다 — 단순할수록 좋다\n※ 에이전트로 만들고 싶은 유혹을 경계하라 (멋있어 보인다)"
+        },
+        {
+          "type": "p",
+          "text": "**에이전트는 멋있어 보여서 과용된다.** 하지만 「자율적으로 알아서」는 「예측할 수 없이」의 다른 말이기도 하다 — 제품에서는 예측 가능성이 대개 더 중요하다. 정말 동적인 문제에만 에이전트를 쓰고, 나머지는 통제된 파이프라인으로 두는 것이 성숙한 선택이다."
+        },
+        {
+          "type": "try",
+          "text": "내가 에이전트로 만들(었)려는 기능을 위 사다리에 대입하라. 4번(정해진 파이프라인)으로 내려올 수 있으면, 대개 그게 더 낫다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "에이전트를 쓸지 정하는 핵심 질문은?",
+          "choices": [
+            "얼마나 멋있나",
+            "단계가 미리 정해지나",
+            "모델이 큰가",
+            "예산"
+          ],
+          "answer": 1,
+          "why": "정해지면 파이프라인."
+        },
+        {
+          "q": "정해진 순서의 작업에 맞는 것은?",
+          "choices": [
+            "에이전트",
+            "코드 파이프라인(각 단계 LLM)",
+            "하위 에이전트",
+            "reflection"
+          ],
+          "answer": 1,
+          "why": "싸고 예측 가능."
+        },
+        {
+          "q": "에이전트가 과용되는 이유는?",
+          "choices": [
+            "항상 최선이라",
+            "멋있어 보여서",
+            "가장 싸서",
+            "가장 빨라서"
+          ],
+          "answer": 1,
+          "why": "자율=예측 불가이기도 하다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "도구·에이전트는 모델에 손발을 다는 것이고, 손발이 달린 만큼 통제가 중요하다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "도구·에이전트 점검표",
+          "text": "필요성\n  [ ] 정말 에이전트가 필요한가 (사다리를 내려와 봤나)            (8장)\n  [ ] 단계가 정해지면 파이프라인으로                             (8장)\n도구\n  [ ] 도구 설명이 「언제 쓰는지」 명확한가                        (3장)\n  [ ] 오류를 예외 아닌 결과로 돌려주나                           (3장)\n  [ ] 도구 수가 과하지 않나                                      (3장)\n루프\n  [ ] 반복 상한(MAX_TURNS)이 있나                                (2·5장)\n  [ ] 토큰 예산·시간 상한이 있나                                 (5장)\n  [ ] 같은 호출 반복·진전 없음을 감지하나                        (5장)\n  [ ] 긴 루프의 문맥을 관리하나                                  (2장)\n안전\n  [ ] 파괴적 행동에 사람 승인이 있나                             (6장)\n  [ ] 도구 권한이 최소인가                                       (6장)\n  [ ] 외부·검색 데이터를 신뢰 안 하나 (주입 대비)                (6장)\n  [ ] 모든 도구 호출을 로그로 남기나                             (6장)\n  [ ] 최종 결과를 검증하나 · 폴백이 있나                         (5·환각 칸)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 여섯 문항",
+          "height": "290px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .loop { margin:8px 0; }\n  .loop .st { font:11.5px/1.8 ui-monospace, monospace; color:#64748b; }\n  .loop .st.on { color:#e2e8f0; } .loop .st b { color:#7dd3fc; }\n  .loop .st.tool b { color:#f59e0b; } .loop .st.done b { color:#4ade80; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const loop = (steps, on) => '<div class=\"loop\">' + steps.map(([txt, cls], i) =>\n    '<div class=\"st ' + (i <= on ? 'on ' : '') + (cls || '') + '\">' + (i + 1) + '. ' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['모델이 도구를 직접 실행한다', false],\n    ['도구 호출 루프에는 반복 상한이 필요하다', true],\n    ['도구 오류는 결과로 돌려주는 게 좋다', true],\n    ['프롬프트 주입 + 도구는 특히 위험하다', true],\n    ['단계가 정해진 작업도 에이전트가 낫다', false],\n    ['에이전트의 권한이 곧 피해 범위다', true],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로 — 1장(실행) 2장(상한) 3장(오류) 6장(주입·권한) 8장(필요성)');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸은 평가(LLM)다. 도구·에이전트·RAG·프롬프트를 다 붙였는데 — **「좋아졌나」를 어떻게 아나?** LLM 시스템은 「좋아진 것 같다」는 착각에 빠지기 쉬워서, 재는 법이 마지막 조각이다. 이 갈래의 모든 칸이 거기서 만난다."
+        },
+        {
+          "type": "try",
+          "text": "위 점검표의 「루프」·「안전」 줄부터 확인하라. 반복 상한·사람 승인·감사 로그 중 빠진 것이 있으면, 그것이 비용 폭주나 사고의 문이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "도구·에이전트의 통제에서 가장 기본은?",
+          "choices": [
+            "큰 모델",
+            "반복 상한·최소 권한·사람 승인",
+            "긴 프롬프트",
+            "많은 도구"
+          ],
+          "answer": 1,
+          "why": "손발이 달린 만큼 통제."
+        },
+        {
+          "q": "에이전트를 붙이기 전 첫 질문은?",
+          "choices": [
+            "어떤 모델",
+            "정말 필요한가(더 단순한 걸로 되나)",
+            "얼마나 빠른가",
+            "몇 개 도구"
+          ],
+          "answer": 1,
+          "why": "단순할수록 좋다."
+        }
+      ]
     }
   ]
 }
