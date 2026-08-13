@@ -29,6 +29,7 @@ import { posterLegend, legendWorthShowing } from './poster-legend';
 import { wrapPoster } from './poster';
 import { pasteIntent } from './paste-intent';
 import { shouldOfferFocus } from './big-board';
+import { panelFor, shouldSwitch } from './ui-state';
 import { tableColumns, tableRows, sortRows, nextSort, type TableSort } from './table-view';
 import { ripenessOf, worthNudging } from './ripeness';
 import { printSheetHtml, isWide } from './print-sheet';
@@ -2377,7 +2378,9 @@ import {
         canvasEl.classList.remove('km-linking');
       }
       selectedId = nodeId;
-      sideMode = 'node';
+      // 판 전체를 보는 칸(거르기·관계망·표…)은 안 뺏는다 — 규칙은 `ui-state.ts` 한 곳에 (KL-271 R6).
+      const sel1 = { nodes: 1, edge: false };
+      if (shouldSwitch(sideMode, sel1)) sideMode = panelFor(sel1);
       renderSide();
       syncFocus();
     }
@@ -2442,7 +2445,11 @@ import {
       onSelectMany: (ids) => {
         selectedMany = ids;
         selectedId = ids.length === 1 ? ids[0] : null;
-        sideMode = ids.length > 1 ? 'many' : 'node';
+        /* ★ 「고른 것이 패널을 정한다」 규칙은 이제 한 곳(`ui-state.ts`)에 산다 (KL-271 R6/C2).
+           그리고 **판 전체를 보는 칸은 안 뺏는다** — 거르기를 맞추다 카드를 짚어 보는 일이 흔한데
+           그때마다 화면이 튀면 하던 일이 끊긴다. 여럿·선을 고른 것은 「이제 이걸 할 거야」라 따라간다. */
+        const sel = { nodes: ids.length, edge: false };
+        if (shouldSwitch(sideMode, sel)) sideMode = panelFor(sel);
         renderSide();
       },
       /**

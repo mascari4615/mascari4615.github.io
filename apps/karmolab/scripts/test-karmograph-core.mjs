@@ -56,6 +56,7 @@ async function loadModules() {
     export * as clusters from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/clusters.ts'))};
     export * as paste from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/paste-intent.ts'))};
     export * as bigBoard from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/big-board.ts'))};
+    export * as ui from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/ui-state.ts'))};
     export * as views from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/views.ts'))};
     export * as drag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-drag.ts'))};
     export * as guides from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-guides.ts'))};
@@ -1121,6 +1122,23 @@ const M = await loadModules();
   }
   const items = (help.match(/what:/g) ?? []).length;
   check(items >= 55, `도움말 항목이 ${items}개 — 55개 밑으로 줄었다(기능은 느는데 도움말이 낡는 중)`);
+}
+
+// -- 고른 것이 패널을 정한다 (TASK-KL-271 R2/R6) --------------------------------
+{
+  const { panelFor, shouldSwitch } = M.ui;
+  eq(panelFor({ nodes: 0, edge: false }), 'node', '아무것도 안 골랐으면 카드 칸(거기에 시작 갈래가 산다)');
+  eq(panelFor({ nodes: 1, edge: false }), 'node', '한 장이면 카드 칸');
+  eq(panelFor({ nodes: 3, edge: false }), 'many', '여럿이면 자리 칸 — 그때 할 일은 낱장 고치기가 아니다');
+  eq(panelFor({ nodes: 0, edge: true }), 'edge', '선을 골랐으면 선 칸');
+  eq(panelFor({ nodes: 5, edge: true }), 'many', '여럿이 선보다 세다');
+  // 지금 규칙 = 고른 것이 언제나 이긴다(그 자리에서 바로 고치려는 손). 취향 문제라 여기서 안 정한다.
+  check(shouldSwitch('filter', { nodes: 1, edge: false }), '거르기를 보다 한 장 고르면 카드 칸으로 간다');
+  check(shouldSwitch('sna', { nodes: 3, edge: false }), '여럿이면 자리 칸으로');
+  check(shouldSwitch('table', { nodes: 0, edge: true }), '선을 고르면 선 칸으로');
+  check(!shouldSwitch('node', { nodes: 1, edge: false }), '이미 그 칸이면 안 바꾼다');
+  check(shouldSwitch('many', { nodes: 1, edge: false }), '여럿에서 한 장으로 줄면 카드 칸으로');
+  check(shouldSwitch('edge', { nodes: 1, edge: false }), '선에서 카드로 옮겨 가면 카드 칸으로');
 }
 
 process.stdout.write('\n');

@@ -549,13 +549,6 @@ await step('카드를 고르면 판이 안 튄다 — 누르려던 손잡이가 
   await m.waitForFunction(() => !document.querySelector('.km-inline'), null, { timeout: ms(4000) });
   await m.locator('.ck-node').first().click();
   await m.waitForSelector('.ck-link-handle', { timeout: ms(4000) });
-  const at = async () => { const r = await m.locator('.ck-link-handle').first().boundingBox(); return [r.x, r.y]; };
-  const first = await at();
-  await m.waitForTimeout(ms(500));
-  const later = await at();
-  const dx = Math.abs(later[0] - first[0]);
-  const dy = Math.abs(later[1] - first[1]);
-  if (dx > 2 || dy > 2) throw new Error(`고른 뒤 손잡이가 움직였다 (${Math.round(dx)},${Math.round(dy)}px)`);
   /* ★ 재는 것은 「몇 px 움직였나」가 아니라 **「그 자리를 눌러도 여전히 손잡이인가」**다.
      px 문턱은 내가 고른 숫자라 3px 흔들림에 판마다 빨개졌다(실측 1/3). 진짜 지켜야 할 것은
      「재고 나서 누르면 빗나가지 않는다」이고, 그건 손잡이 제 크기로 재면 된다. */
@@ -2998,6 +2991,7 @@ await step('첫 카드·첫 선까지 드는 손 (처음 연 사람 기준)', as
   if (acts > 3) throw new Error(`첫 선까지 ${acts} 동작 — 세 동작을 넘었다`);
   await ctx.close();
 });
+
 
 await step('같은 자료를 표로도 본다 — 줄을 누르면 판에서 골라진다', async () => {
   // 판은 「누가 누구와 이어졌나」에 강하고 「빠짐없이 훑기」에 약하다(KL-271 L4 · Notion 뷰 계보).
