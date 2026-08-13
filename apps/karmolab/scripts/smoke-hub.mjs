@@ -22,11 +22,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { withoutRetired } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
 const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools;
-const expected = Object.keys(seo);
+/* 작업대로 흡수된 옛 도구는 목록에 카드가 없다 — 주소만 살아 있고(숨은 별칭) 누르면
+   작업대의 그 조작으로 간다. 목록에서 찾으면 「빠졌다」로 열여섯 건이 뜬다(2026-08-13).
+   목록 정본은 `lib/retired-operations.mjs` 하나다. */
+const expected = withoutRetired(Object.keys(seo));
 
 const browser = await chromium.launch();
 const page = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
@@ -74,7 +78,10 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     else if (narrowed.shown >= narrowed.total) problems.push('걸러 찾기가 아무것도 걸러 내지 못한다');
 
     // 영문 이름으로도 찾힌다 — 「regex」 로 치는 사람이 「정규식」 으로 치는 사람만큼 많다.
-    for (const [q, least] of [['regex', 2], ['hash', 2], ['timer', 1], ['diff', 2]]) {
+    /* 「diff」 는 예전에 글 비교·목록 비교가 낱개 카드라 둘이었다. 열여섯이 「텍스트 도구」
+       작업대로 합쳐지면서 카드가 하나로 줄었다 — 수를 못 채우는 게 정상이다(2026-08-13).
+       세는 것은 「영문으로도 찾히나」이지 「카드가 몇 장이냐」가 아니다. */
+    for (const [q, least] of [['regex', 2], ['hash', 2], ['timer', 1], ['diff', 1]]) {
       await find.fill(q);
       await page.waitForTimeout(350);
       const n = await page.evaluate(
@@ -119,15 +126,16 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     if (tocState.dead) problems.push(`걸러낸 뒤 목차에 갈 곳 없는 링크 ${tocState.dead}개`);
     if (!tocState.visible) problems.push('걸러낸 뒤 목차가 통째로 사라진다');
 
-    // 초성으로도 찾힌다 — 「ㄱㅈㅅ」 로 글자수 세기를 부르는 식이다.
-    await find.fill('ㄱㅈㅅ');
+    /* 초성으로도 찾힌다. 표본은 **지금 카드가 있는 도구**여야 한다 — 예전 표본(글자수 세기)은
+       작업대의 조작이 되어 낱개 카드가 없다(그 이름으로는 작업대가 걸린다). */
+    await find.fill('ㅌㅅㅌ');
     await page.waitForTimeout(400);
     const byCho = await page.evaluate(() =>
       [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')]
         .filter((c) => c.getBoundingClientRect().height > 0)
         .map((c) => c.querySelector('strong')?.textContent || '')
     );
-    if (!byCho.some((n) => n.includes('글자수'))) problems.push('초성으로 찾기가 안 된다 (ㄱㅈㅅ → 글자수 세기)');
+    if (!byCho.some((n) => n.includes('텍스트'))) problems.push('초성으로 찾기가 안 된다 (ㅌㅅㅌ → 텍스트 도구)');
 
     // 걸러 놓고 엔터를 누르면 맨 앞 도구로 간다.
     await find.fill('글자수');
