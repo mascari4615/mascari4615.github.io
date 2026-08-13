@@ -28,9 +28,22 @@ export function renderFilterPanel(ctx: PanelCtx): void {
   // 이 맵에서 실제로 쓰인 칸 이름들 — 안 쓴 칸을 늘어놓으면 고를 게 없는 목록이 된다.
   const fieldNames = [...new Set(spec.nodes.flatMap((n) => Object.keys(n.fields ?? {})))].sort();
 
+  const deg = ctx.focusDegree();
   side.innerHTML = `
     <h4>${esc(t('karmograph.fieldNames.msg'))}</h4>
     <div class="km-hint">${t('karmograph.filterHide', { em: `<b>${esc(t('karmograph.fieldNames.msg2'))}</b>` })}</div>
+    <!-- ★ 「이웃까지만 보기」는 툴바에 따로 있던 고르개다 (TASK-KL-271 P4).
+         찾는 건 툴바에서, **덜 보는 건 전부 여기서** — 세 자리로 흩어져 있던 것을 한 자리로. -->
+    <div class="km-field">
+      <label for="km-f-degree">${esc(t('karmograph.focus.label'))}</label>
+      <select id="km-f-degree" data-km="degree">
+        <option value=""${deg === '' ? ' selected' : ''}>${esc(t('karmograph.parts.msg'))}</option>
+        <option value="0"${deg === '0' ? ' selected' : ''}>${esc(t('karmograph.opt.0'))}</option>
+        <option value="1"${deg === '1' ? ' selected' : ''}>${esc(t('karmograph.opt.1'))}</option>
+        <option value="2"${deg === '2' ? ' selected' : ''}>${esc(t('karmograph.opt.2'))}</option>
+      </select>
+      <div class="km-hint">${esc(t('karmograph.focus.hint'))}</div>
+    </div>
     <div class="km-field">
       <label>${esc(t('karmograph.fieldNames.msg3'))}</label>
       ${nodeRows.map((k) => `<label class="km-check"><input type="checkbox" data-km="f-node" value="${esc(k.id)}"${
@@ -136,6 +149,9 @@ export function renderFilterPanel(ctx: PanelCtx): void {
       ctx.applyFilter();
     };
   }
+  (side.querySelector('[data-km="degree"]') as HTMLSelectElement).onchange = (ev) => {
+    ctx.setFocusDegree((ev.target as HTMLSelectElement).value);
+  };
   (side.querySelector('[data-km="f-degree"]') as HTMLInputElement).onchange = (ev) => {
     st.sizeByDegree = (ev.target as HTMLInputElement).checked;
     ctx.applyDecorate();

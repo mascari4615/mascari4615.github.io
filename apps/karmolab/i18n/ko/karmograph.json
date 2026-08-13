@@ -644,5 +644,7 @@
   "karmograph.palette.find": "무엇을 할까요 — 이름을 치세요",
   "karmograph.palette.none": "그런 이름의 명령이 없어요",
   "karmograph.panel.here": "고른 것",
-  "karmograph.panel.more": "다른 목록"
+  "karmograph.panel.more": "다른 목록",
+  "karmograph.focus.label": "이웃까지만 보기",
+  "karmograph.focus.hint": "찾거나 고른 카드에서 몇 다리까지 또렷하게 볼지 — 나머지는 흐려집니다(지우는 게 아닙니다)."
 }

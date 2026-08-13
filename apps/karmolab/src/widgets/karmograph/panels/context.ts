@@ -60,6 +60,12 @@ export interface PanelCtx {
   };
   /** 거르기 값을 캔버스에 반영. */
   applyFilter: () => void;
+  /**
+   * 이웃 몇 다리까지 볼 것인가 (`''` = 이웃 전체 · `'0'|'1'|'2'`) — TASK-KL-271 P4.
+   * 툴바에 있던 고르개를 여기로 들였다: 「덜 보기」가 세 자리로 흩어져 있었다.
+   */
+  focusDegree: () => string;
+  setFocusDegree: (v: string) => void;
   /** 꾸미기 규칙을 캔버스에 반영. */
   applyDecorate: () => void;
   /** 지금 팩 + 내 용어의 종류 목록. */

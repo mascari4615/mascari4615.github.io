@@ -644,5 +644,7 @@
   "karmograph.palette.find": "何をしますか — 名前を入力",
   "karmograph.palette.none": "その名前のコマンドはありません",
   "karmograph.panel.here": "選んだもの",
-  "karmograph.panel.more": "ほかの一覧"
+  "karmograph.panel.more": "ほかの一覧",
+  "karmograph.focus.label": "隣までを見る",
+  "karmograph.focus.hint": "探した・選んだカードから何歩までをはっきり見せるか — 残りは薄くなります(消えません)。"
 }

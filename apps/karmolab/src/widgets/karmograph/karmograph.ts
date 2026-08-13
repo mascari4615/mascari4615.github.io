@@ -123,7 +123,6 @@ import {
     .km-toolbar > * { flex:0 0 auto; width:auto; max-width:100%; }
     /* 폭을 못 박아 한 줄에 더 많이 들어가게 — 툴바가 세로로 자랄수록 그림이 밀린다. */
     .km-toolbar select[data-km="maps"] { max-width:138px; }
-    .km-toolbar select[data-km="degree"] { max-width:102px; }
     .km-toolbar input[type=text] { min-width:132px; max-width:176px; }
     .km-toolbar input[data-km="find"] { min-width:118px; }
     .km-sep { width:1px; align-self:stretch; background:var(--border); margin:0 2px; }
@@ -550,12 +549,6 @@ import {
           <span class="km-sep"></span>
           <input type="text" data-km="find" placeholder="${esc(t('karmograph.find.ph'))}" />
           <span class="km-findcount hidden" data-km="find-count" title="${esc(t('karmograph.find.countTitle'))}"></span>
-          <select data-km="degree" title="${esc(t('karmograph.degree.title'))}">
-            <option value="">${esc(t('karmograph.parts.msg'))}</option>
-            <option value="0">${esc(t('karmograph.opt.0'))}</option>
-            <option value="1">${esc(t('karmograph.opt.1'))}</option>
-            <option value="2">${esc(t('karmograph.opt.2'))}</option>
-          </select>
           <button class="btn btn-ghost" data-km="undo" title="${esc(t('karmograph.undo.title'))}" disabled>↶</button>
           <button class="btn btn-ghost" data-km="redo" title="${esc(t('karmograph.redo.title'))}" disabled>↷</button>
           <!-- ★ 이 둘은 **이 도구에만 있는 기능**이라 그림만으로는 아무도 못 맞힌다
@@ -1321,6 +1314,8 @@ import {
       },
       filterState,
       applyFilter: () => applyFilter(),
+      focusDegree: () => focusDegree,
+      setFocusDegree: (v) => { focusDegree = v; syncFocus(); },
       applyDecorate: () => {
         canvas?.setDecorate({
           sizeByDegree: filterState.sizeByDegree,
@@ -2148,7 +2143,12 @@ import {
 
     // ── 포커스 (격차 M) — 볼 것만 또렷하게 ──────────────────────────────────
     const findEl = q<HTMLInputElement>('find');
-    const degreeEl = q<HTMLSelectElement>('degree');
+    /**
+     * 이웃 몇 다리까지 볼 것인가 — **거르기 패널이 들고 있다** (TASK-KL-271 P4).
+     * 전에는 툴바에 고르개가 따로 있어서 「덜 보기」가 툴바 찾기 · 툴바 차수 · 거르기 패널
+     * **세 자리**로 흩어져 있었다(D4). 찾는 건 툴바에서, 거르는 건 거르기에서 — 한 자리씩.
+     */
+    let focusDegree = '';
 
     /** 시작점에서 n 다리까지 퍼진 노드 id 들. */
     function spread(startIds: string[], degree: number): Set<string> {
@@ -2194,7 +2194,7 @@ import {
      */
     function syncFocus(): void {
       const q0 = findEl.value.trim().toLowerCase();
-      const degRaw = degreeEl.value;
+      const degRaw = focusDegree;
       let starts: string[] = [];
       if (q0) {
         starts = spec.nodes
@@ -2221,7 +2221,7 @@ import {
     }
 
     findEl.oninput = syncFocus;
-    degreeEl.onchange = syncFocus;
+
 
     // ── 발표 모드 (격차 M-2) ────────────────────────────────────────────────
     // 남에게 *설명*할 때는 전체를 한 번에 펼치면 아무도 못 읽는다. 볼 것을 몇 장으로
@@ -2363,7 +2363,7 @@ import {
     /** 지금 또렷하게 보이는 노드 id 들 — 발표 장을 담을 때 그대로 쓴다. */
     function currentFocusIds(): string[] {
       const q0 = findEl.value.trim().toLowerCase();
-      const degRaw = degreeEl.value;
+      const degRaw = focusDegree;
       if (q0) {
         const starts = spec.nodes
           .filter((n) => n.label.toLowerCase().includes(q0) || (n.note ?? '').toLowerCase().includes(q0))
