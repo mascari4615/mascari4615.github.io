@@ -27,5 +27,6 @@
   "calc.sum": "合計",
   "calc.part.pace": "ランニングペース",
   "calc.copy.hint": "押して答えをコピー",
-  "calc.copy.done": "コピー: {v}"
+  "calc.copy.done": "コピー: {v}",
+  "calc.btn.recent": "さっきの作業"
 }

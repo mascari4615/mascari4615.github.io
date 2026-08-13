@@ -30,5 +30,6 @@
   "text.n.lines": "行",
   "text.part.textredact": "伏せ字",
   "text.part.text2pdf": "テキスト → PDF",
-  "text.part.text2img": "文字カード"
+  "text.part.text2img": "文字カード",
+  "text.btn.recent": "さっきの作業"
 }

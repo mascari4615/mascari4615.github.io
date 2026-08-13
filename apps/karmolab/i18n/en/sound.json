@@ -20,5 +20,6 @@
   "sound.part.soundscape": "Ambience",
   "sound.part.morse": "Morse",
   "sound.more": "{name} and {n} more",
-  "sound.wave.aria": "Waveform — arrows to seek, space to play"
+  "sound.wave.aria": "Waveform — arrows to seek, space to play",
+  "sound.btn.recent": "Recent"
 }

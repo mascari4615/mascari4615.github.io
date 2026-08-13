@@ -27,5 +27,6 @@
   "devtool.tree.sum": "{rows}行 · 最も深い所 {deep}層",
   "devtool.tree.root": "ルート",
   "devtool.tree.cut": "大きすぎるのでここまで展開しました",
-  "devtool.tree.copied": "パスをコピー: {path}"
+  "devtool.tree.copied": "パスをコピー: {path}",
+  "devtool.btn.recent": "さっきの作業"
 }

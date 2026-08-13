@@ -27,5 +27,6 @@
   "calc.sum": "sum",
   "calc.part.pace": "Running pace",
   "calc.copy.hint": "Click to copy the answer",
-  "calc.copy.done": "Copied: {v}"
+  "calc.copy.done": "Copied: {v}",
+  "calc.btn.recent": "Recent"
 }

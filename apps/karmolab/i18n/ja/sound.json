@@ -20,5 +20,6 @@
   "sound.part.soundscape": "環境音",
   "sound.part.morse": "モールス",
   "sound.more": "{name} 他{n}件",
-  "sound.wave.aria": "波形 — 矢印で移動、スペースで再生"
+  "sound.wave.aria": "波形 — 矢印で移動、スペースで再生",
+  "sound.btn.recent": "さっきの作業"
 }

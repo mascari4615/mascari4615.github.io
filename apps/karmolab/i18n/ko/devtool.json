@@ -27,5 +27,6 @@
   "devtool.tree.sum": "{rows}줄 · 가장 깊은 곳 {deep}겹",
   "devtool.tree.root": "뿌리",
   "devtool.tree.cut": "너무 커서 여기까지만 폈습니다",
-  "devtool.tree.copied": "길 복사: {path}"
+  "devtool.tree.copied": "길 복사: {path}",
+  "devtool.btn.recent": "방금 하던 것"
 }
