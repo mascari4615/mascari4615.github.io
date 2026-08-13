@@ -6,7 +6,6 @@
  * 넓은 배경 하나가 결과를 독식하지 않고 사진 안의 서로 다른 색이 골고루 남는다.
  * 이미지는 브라우저 안에서만 읽고 어디로도 보내지 않는다.
  */
-import { acceptPastedFiles } from './shared/paste';
 import { markLive } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { loadImage } from './shared/image';
@@ -199,7 +198,6 @@ import { t, loadNamespace } from '../../lib/i18n';
             if (f) void load(f);
           });
           // 파일을 바로 붙여넣는 것이 잦다
-          acceptPastedFiles(container, (files) => { void load(files[0]); }, (f) => f.type.startsWith('image/'));
           // 스크린샷을 바로 붙여 넣는 흐름이 실제로 제일 많다.
           container.addEventListener('paste', (e) => {
             const items = (e as ClipboardEvent).clipboardData?.items;

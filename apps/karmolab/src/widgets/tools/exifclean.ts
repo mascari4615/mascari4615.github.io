@@ -9,7 +9,6 @@
  *
  * 무엇이 들어 있었는지 먼저 보여 준다. 「지웠다」는 말만으로는 사람이 안심하지 못한다.
  */
-import { acceptPastedFiles } from './shared/paste';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { download } from './shared/image';
@@ -277,7 +276,6 @@ import { t, loadNamespace } from '../../lib/i18n';
           /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
           // 화면 캡처를 바로 붙여넣는 것이 가장 잦은 쓰임이다
-          acceptPastedFiles(container, (files) => { void load(files[0]); });
 
           $<HTMLButtonElement>('#exRun').onclick = () => {
             if (!raw) return;

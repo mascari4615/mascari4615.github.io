@@ -8,7 +8,6 @@
 import { encodeAudio, fileSize as size, mmss, download, audioCtx, loadAudio } from './shared/media';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
-import { acceptPastedFiles } from './shared/paste';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
@@ -199,7 +198,6 @@ import { t, loadNamespace } from '../../lib/i18n';
             if (f) void load(f);
           });
           // 캡처나 파일을 바로 붙여넣는 것이 잦다
-          acceptPastedFiles(container, (files) => { void load(files[0]); }, (f: File) => f.type.startsWith('audio/'));
           [startEl, endEl].forEach((el) => el.addEventListener('input', refresh));
 
           $<HTMLButtonElement>('#acPreview').onclick = () => {

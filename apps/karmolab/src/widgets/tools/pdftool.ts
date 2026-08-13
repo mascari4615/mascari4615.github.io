@@ -5,7 +5,6 @@
  * 계약서·이력서처럼 올리면 안 되는 것이 대부분이다.
  * 여기서는 파일이 브라우저 밖으로 나가지 않는다. 무거운 라이브러리는 이 탭을 처음 열 때만 받는다.
  */
-import { acceptPastedFiles } from './shared/paste';
 import { markLive } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
@@ -243,7 +242,6 @@ import { parsePages } from '../../core/pdftool';
           /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void addFiles(files) });
           // 파일을 바로 붙여넣는 것이 잦다
-          acceptPastedFiles(container, (files) => { void addFiles(files); }, (f) => f.type === 'application/pdf');
 
           container.querySelectorAll('#pdMode .tool-chip').forEach((chip) => {
             (chip as HTMLButtonElement).onclick = () => {

@@ -8,7 +8,6 @@
  * 숨기지 않는다 — 글자를 더는 선택·검색할 수 없다. 대신 스캔 문서(원래 그림)에는 손해가 거의 없다.
  * 그래서 넣자마자 **글자가 들어 있는 PDF인지 먼저 알려 주고**, 첫 쪽 미리보기로 화질을 눈으로 고르게 한다.
  */
-import { acceptPastedFiles } from './shared/paste';
 import { statusLine } from './shared/say';
 import { wireDrop } from './shared/drop-well';
 
@@ -256,7 +255,6 @@ import { createPdf, download, loadPdfJs, loadPdfLib as loadPdfLibShared, openFor
           /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
           // 캡처나 파일을 바로 붙여넣는 것이 잦다
-          acceptPastedFiles(container, (files) => { void load(files[0]); }, (f: File) => f.type === 'application/pdf');
           [qualityEl, scaleEl].forEach((el) => el.addEventListener('input', refreshLabels));
           refreshLabels();
 
