@@ -1,106 +1,831 @@
 {
   "id": "cs-db",
-  "minutes": 15,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "느린 쿼리 하나가 서비스 전체를 세운다. 인덱스는 마법이 아니라 **정렬된 사본**이고, 그래서 규칙이 있다."
-    },
-    {
-      "type": "h",
-      "text": "1. 인덱스 = 책 뒤의 색인"
-    },
-    {
-      "type": "p",
-      "text": "색인은 정렬돼 있어 원하는 항목으로 바로 간다. 대신 **본문이 바뀔 때마다 색인도 고쳐야** 한다 — 인덱스가 많으면 쓰기가 느려지는 이유다."
-    },
-    {
-      "type": "code",
-      "lang": "sql",
-      "label": "가장 자주 하는 실수",
-      "text": "-- 인덱스를 못 쓴다: 열에 함수를 씌우면 정렬 순서가 깨진다\nWHERE DATE(created_at) = '2026-08-12'\n\n-- 쓸 수 있다: 범위로 바꾼다\nWHERE created_at >= '2026-08-12' AND created_at < '2026-08-13'"
-    },
-    {
-      "type": "h",
-      "text": "2. 복합 인덱스는 순서가 전부"
-    },
-    {
-      "type": "code",
-      "lang": "sql",
-      "label": "왼쪽부터 이어져야 쓴다",
-      "text": "CREATE INDEX idx ON orders (user_id, created_at);\n\nWHERE user_id = 7                        -- 사용 O\nWHERE user_id = 7 AND created_at > ?     -- 사용 O (정렬까지 공짜)\nWHERE created_at > ?                     -- 사용 X (왼쪽이 빠졌다)"
-    },
-    {
-      "type": "h",
-      "text": "3. 실행 계획을 읽는다"
-    },
-    {
-      "type": "code",
-      "lang": "sql",
-      "label": "짐작하지 말고 물어본다",
-      "text": "EXPLAIN ANALYZE SELECT * FROM orders WHERE user_id = 7 ORDER BY created_at DESC LIMIT 20;\n-- Seq Scan / Full Table Scan 이 보이면 인덱스를 못 쓰고 있다\n-- rows 추정치와 실제가 크게 다르면 통계가 낡았다"
-    },
-    {
-      "type": "h",
-      "text": "4. N+1 — 앱에서 만드는 느림"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "반복문 안의 쿼리",
-      "text": "// 나쁨: 주문 100개면 쿼리 101번\nfor (const o of orders) o.user = await db.user(o.userId);\n\n// 좋음: 한 번에\nconst users = await db.usersByIds([...new Set(orders.map((o) => o.userId))]);"
-    },
-    {
-      "type": "h",
-      "text": "5. 트랜잭션 — 전부 되거나 전부 안 되거나"
-    },
-    {
-      "type": "note",
-      "text": "돈·재고처럼 **여러 표를 함께 바꿔야** 하는 일은 트랜잭션으로 묶는다. 격리 수준이 낮으면 중간 상태가 남에게 보일 수 있다(더티 리드·팬텀 리드). 기본값이 무엇인지 알고 쓰는 것이 시작이다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "느린 쿼리 하나에 `EXPLAIN ANALYZE` 를 돌리고, 인덱스를 추가한 뒤 다시 돌려 실행 시간과 계획이 어떻게 바뀌는지 적어라."
-    },
-    {
-      "type": "try",
-      "text": "코드에서 반복문 안의 쿼리를 하나 찾아 한 번의 IN 쿼리로 바꾸고, 쿼리 수를 로그로 세어 비교하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "`WHERE DATE(created_at) = ?` 가 인덱스를 못 쓰는 이유는?",
-      "choices": [
-        "열에 함수를 적용하면 인덱스의 정렬 순서를 쓸 수 없기 때문",
-        "날짜 타입이라서",
-        "LIMIT 이 없어서"
+      "id": "1",
+      "title": "표를 나누는 이유 — 같은 사실을 두 곳에 적지 않기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "정규화를 규칙으로 외우면 안 는다. 목적은 하나다 — **같은 사실을 한 곳에만 적는다.** 두 곳에 적히는 순간, 언젠가 둘이 달라지고 어느 쪽이 진짜인지 아무도 모르게 된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "한 표에 다 넣으면 무슨 일이 생기나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const s = '{{shape}}';\n  const flat = [\n    ['1', '김철수', '02-111', '사료', '32000'],\n    ['2', '김철수', '02-111', '모래', '12000'],\n    ['3', '이영희', '02-222', '간식', '4000'],\n  ];\n  if (s === 'flat') {\n    app.innerHTML = '<div class=\"hint\">주문 표 하나에 손님 정보까지</div>';\n    show('주문id  손님   전화     상품   금액\\n'\n       + flat.map((r) => '  ' + r.join('    ')).join('\\n') + '\\n\\n'\n       + '문제 셋\\n'\n       + '  갱신 이상: 김철수 전화가 바뀌면 두 줄을 모두 고쳐야 한다(하나 놓치면 끝)\\n'\n       + '  삽입 이상: 아직 주문 안 한 손님은 등록할 자리가 없다\\n'\n       + '  삭제 이상: 주문을 지우면 그 손님 정보까지 사라진다');\n  } else if (s === 'normal') {\n    app.innerHTML = '<div class=\"hint\">손님과 주문을 나눴다 (관계로 잇는다)</div>';\n    show('customers\\n  id  이름     전화\\n  1   김철수   02-111\\n  2   이영희   02-222\\n\\n'\n       + 'orders\\n  id  customer_id  상품   금액\\n  1   1            사료   32000\\n  2   1            모래   12000\\n  3   2            간식   4000\\n\\n'\n       + '전화번호는 한 곳에만 있다 — 고칠 곳도 한 곳.\\n'\n       + '외래 키(customer_id)가 「없는 손님의 주문」을 데이터베이스가 막아 준다.');\n  } else {\n    app.innerHTML = '<div class=\"hint\">일부러 다시 합치기(비정규화)</div>';\n    show('orders\\n  id  customer_id  손님이름   상품   금액\\n  1   1            김철수     사료   32000\\n\\n'\n       + '읽기가 잦고 조인이 부담될 때, **일부러** 복사해 둔다.\\n'\n       + '대신 「이름이 바뀌면 여기도 고친다」는 책임이 생긴다 — 코드나 트리거가 맡아야 한다.\\n\\n'\n       + '순서가 중요하다: 먼저 정규화하고, 재 본 뒤 필요한 곳만 되돌린다.');\n  }\n</script>",
+          "controls": [
+            {
+              "id": "shape",
+              "label": "설계",
+              "type": "select",
+              "value": "flat",
+              "options": [
+                {
+                  "value": "flat",
+                  "label": "한 표에 다 넣기"
+                },
+                {
+                  "value": "normal",
+                  "label": "나누기(정규화)"
+                },
+                {
+                  "value": "denorm",
+                  "label": "일부러 합치기"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "sql",
+          "label": "관계는 제약으로 지킨다",
+          "text": "CREATE TABLE customers (\n  id   BIGSERIAL PRIMARY KEY,\n  name TEXT NOT NULL,\n  email TEXT UNIQUE\n);\n\nCREATE TABLE orders (\n  id BIGSERIAL PRIMARY KEY,\n  customer_id BIGINT NOT NULL REFERENCES customers(id),   -- 없는 손님이면 거부\n  amount INT NOT NULL CHECK (amount >= 0),                 -- 음수 금액 거부\n  created_at TIMESTAMPTZ NOT NULL DEFAULT now()\n);"
+        },
+        {
+          "type": "note",
+          "text": "**제약은 코드보다 강하다.** 애플리케이션 검증은 새 코드 경로·수동 수정·다른 서비스가 우회할 수 있지만, `NOT NULL`·`UNIQUE`·`REFERENCES`·`CHECK` 는 아무도 못 피한다. 「데이터가 이상해요」의 절반은 제약을 안 걸어서 생긴다."
+        },
+        {
+          "type": "p",
+          "text": "그리고 시각은 반드시 **시간대를 포함해** 저장하라(`TIMESTAMPTZ`·UTC). 시간대 없는 시각은 나중에 무엇을 뜻하는지 아무도 복원할 수 없다 — 서버를 옮기는 순간 통째로 어긋난다."
+        },
+        {
+          "type": "try",
+          "text": "내 스키마에서 「같은 사실이 두 표에 적힌」 자리를 찾아라. 있다면 그것이 의도한 비정규화인지, 아니면 그냥 새고 있는 것인지 물어보라."
+        }
       ],
-      "answer": 0,
-      "why": "범위 조건으로 바꾸거나 함수 인덱스를 따로 만들어야 한다."
+      "quiz": [
+        {
+          "q": "정규화의 목적은?",
+          "choices": [
+            "저장 공간 절약",
+            "같은 사실을 한 곳에만 적기",
+            "속도 향상",
+            "표 개수 줄이기"
+          ],
+          "answer": 1,
+          "why": "중복이 있으면 언젠가 둘이 달라진다."
+        },
+        {
+          "q": "애플리케이션 검증보다 제약이 강한 이유는?",
+          "choices": [
+            "빨라서",
+            "수동 수정·다른 서비스도 못 피하기 때문",
+            "코드가 짧아서",
+            "타입 검사라서"
+          ],
+          "answer": 1,
+          "why": "우회 경로가 없다."
+        },
+        {
+          "q": "비정규화를 하는 올바른 순서는?",
+          "choices": [
+            "처음부터 합쳐서 설계",
+            "정규화 후 재 보고 필요한 곳만",
+            "항상 피한다",
+            "무작위"
+          ],
+          "answer": 1,
+          "why": "책임(동기화)이 생기므로 근거가 있어야 한다."
+        }
+      ]
     },
     {
-      "q": "복합 인덱스 (a, b) 가 있을 때 인덱스를 못 쓰는 조건은?",
-      "choices": [
-        "WHERE a = ?",
-        "WHERE a = ? AND b > ?",
-        "WHERE b > ?"
+      "id": "2",
+      "title": "인덱스 — 책 뒤의 찾아보기",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "인덱스는 **정렬된 사본**이다. 앞 칸(자료구조)의 B-트리가 바로 이것이고, 디스크 사정에 맞춰 한 노드에 값을 수백 개씩 담는다. 그래서 100만 행에서도 서너 번 읽으면 닿는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "질의를 골라 보라 — 인덱스를 탈 수 있나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const q = '{{query}}';\n  const t = {\n    eq:     ['WHERE email = ?', true, 'Index Scan', '정확히 일치 — 인덱스가 가장 잘하는 일.'],\n    range:  ['WHERE created_at BETWEEN ? AND ?', true, 'Index Range Scan', '정렬돼 있으니 구간을 그대로 훑는다.'],\n    prefix: [\"WHERE name LIKE 'kim%'\", true, 'Index Range Scan', '앞이 고정이면 범위로 바뀐다.'],\n    suffix: [\"WHERE name LIKE '%kim'\", false, 'Seq Scan', '앞이 열려 있으면 정렬 순서를 쓸 수 없다 — 전부 훑는다.'],\n    func:   ['WHERE lower(email) = ?', false, 'Seq Scan', '열을 함수로 감싸면 인덱스가 안 잡힌다. 표현식 인덱스를 따로 만들어야 한다.'],\n    order:  ['ORDER BY created_at DESC LIMIT 20', true, 'Index Scan Backward', '정렬을 인덱스로 대신한다 — 정렬 비용이 사라진다.'],\n    lowsel: ['WHERE is_active = true  (90% 가 true)', false, 'Seq Scan', '대부분이 해당하면 인덱스로 골라 내는 게 더 비싸다 — 선택도가 낮다.'],\n    multi:  ['WHERE tenant_id = ? AND created_at > ?', true, 'Index Scan (복합)', '복합 인덱스 (tenant_id, created_at) 이면 한 번에 탄다. 순서가 중요하다.'],\n  }[q];\n  app.innerHTML = '<div style=\"font:13px ui-monospace,monospace;color:#7dd3fc\">' + t[0] + '</div>' +\n    '<div style=\"font-size:18px;margin-top:6px;color:' + (t[1] ? '#4ade80' : '#f87171') + '\">' + t[2] + '</div>';\n  show((t[1] ? '인덱스를 탄다' : '인덱스를 못 탄다 (전체 훑기)') + '\\n\\n' + t[3] + '\\n\\n'\n     + '규칙 요약\\n'\n     + '  탄다   : = · 범위 · 앞부분 LIKE · ORDER BY · 복합 인덱스의 앞쪽 열부터\\n'\n     + '  못 탄다 : 앞이 열린 LIKE · 열을 함수로 감싼 조건 · 선택도가 낮은 조건\\n'\n     + '  확인   : EXPLAIN ANALYZE 로 실제 계획과 실제 행 수를 본다');\n</script>",
+          "controls": [
+            {
+              "id": "query",
+              "label": "질의",
+              "type": "select",
+              "value": "eq",
+              "options": [
+                {
+                  "value": "eq",
+                  "label": "= 로 찾기"
+                },
+                {
+                  "value": "range",
+                  "label": "범위(BETWEEN)"
+                },
+                {
+                  "value": "prefix",
+                  "label": "LIKE 'kim%'"
+                },
+                {
+                  "value": "suffix",
+                  "label": "LIKE '%kim'"
+                },
+                {
+                  "value": "func",
+                  "label": "lower(열) = ?"
+                },
+                {
+                  "value": "order",
+                  "label": "ORDER BY + LIMIT"
+                },
+                {
+                  "value": "lowsel",
+                  "label": "선택도 낮은 조건"
+                },
+                {
+                  "value": "multi",
+                  "label": "복합 인덱스"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "복합 인덱스는 **왼쪽부터** 쓸 수 있다. `(a, b, c)` 인덱스는 `a`, `a+b`, `a+b+c` 조건에 쓰이지만 `b` 만으로는 못 쓴다 — 전화번호부가 「성, 이름」 순으로 정렬돼 있으면 이름만으로는 못 찾는 것과 같다."
+        },
+        {
+          "type": "note",
+          "text": "인덱스는 **공짜가 아니다.** 쓰기마다 인덱스도 함께 갱신되고, 저장 공간을 먹는다. 「일단 다 걸어 두자」는 쓰기가 잦은 표에서 성능을 깎는다. **쓰지 않는 인덱스는 지워라** — 통계 뷰로 사용 횟수를 볼 수 있다."
+        },
+        {
+          "type": "code",
+          "lang": "sql",
+          "label": "계획을 직접 읽기",
+          "text": "EXPLAIN ANALYZE\nSELECT * FROM orders WHERE customer_id = 42 ORDER BY created_at DESC LIMIT 20;\n\n-- 볼 것\n--   Seq Scan  vs  Index Scan     (전체 훑기인가)\n--   rows=예상 vs actual rows=실제 (통계가 틀렸으면 계획도 틀린다 → ANALYZE)\n--   Filter 로 버려지는 행이 많은가 (인덱스가 덜 좁혔다)\n\nCREATE INDEX ON orders (customer_id, created_at DESC);"
+        },
+        {
+          "type": "try",
+          "text": "내 서비스에서 제일 느린 질의에 `EXPLAIN ANALYZE` 를 돌려라. `Seq Scan` 이 보이고 행 수가 크면 그것이 오늘 만들 인덱스다."
+        }
       ],
-      "answer": 2,
-      "why": "왼쪽 열부터 이어져야 한다. b 만으로는 정렬 순서를 이용할 수 없다."
+      "quiz": [
+        {
+          "q": "`WHERE lower(email) = ?` 가 인덱스를 못 타는 이유는?",
+          "choices": [
+            "소문자라서",
+            "열을 함수로 감싸 정렬 순서를 못 쓰기 때문",
+            "문자열이라서",
+            "= 라서"
+          ],
+          "answer": 1,
+          "why": "표현식 인덱스를 따로 만들면 탄다."
+        },
+        {
+          "q": "복합 인덱스 `(a, b)` 로 못 쓰는 조건은?",
+          "choices": [
+            "a = ?",
+            "a = ? AND b = ?",
+            "b = ? 만",
+            "a > ?"
+          ],
+          "answer": 2,
+          "why": "왼쪽부터 써야 한다."
+        },
+        {
+          "q": "인덱스를 많이 걸면?",
+          "choices": [
+            "항상 좋다",
+            "쓰기가 느려지고 공간을 먹는다",
+            "읽기만 좋아진다",
+            "영향 없다"
+          ],
+          "answer": 1,
+          "why": "안 쓰는 인덱스는 지운다."
+        }
+      ]
     },
     {
-      "q": "N+1 문제의 전형적인 모습은?",
-      "choices": [
-        "반복문 안에서 매번 쿼리를 날린다",
-        "인덱스가 너무 많다",
-        "트랜잭션이 길다"
+      "id": "3",
+      "title": "조인 — 어떻게 붙이나",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "조인의 종류(INNER·LEFT)는 **무엇을 남길지**를 정하고, 조인 알고리즘(중첩 루프·해시·병합)은 **어떻게 붙일지**를 정한다. 느릴 때 봐야 하는 것은 후자다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "행 수를 바꿔 보라 — 계획이 갈린다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const LEFT = {{left}}, RIGHT = {{right}}, IDX = {{idx}};\n  let plan, why, cost;\n  if (IDX && LEFT <= 2000) {\n    plan = 'Nested Loop (인덱스 있음)';\n    cost = LEFT * Math.log2(RIGHT);\n    why = '왼쪽 행마다 오른쪽을 인덱스로 찾는다. 왼쪽이 작을 때 최고.';\n  } else if (LEFT > 2000 || RIGHT > 20000) {\n    plan = 'Hash Join';\n    cost = LEFT + RIGHT;\n    why = '작은 쪽으로 해시 표를 만들고 큰 쪽을 한 번 훑는다. 큰 자료의 기본 선택.';\n  } else {\n    plan = 'Nested Loop (인덱스 없음)';\n    cost = LEFT * RIGHT;\n    why = '왼쪽 행마다 오른쪽을 전부 훑는다 — O(n*m). 여기가 지옥의 입구다.';\n  }\n  app.innerHTML = '<div class=\"hint\">왼쪽 ' + LEFT.toLocaleString() + '행 · 오른쪽 ' + RIGHT.toLocaleString() + '행 · 인덱스 ' + (IDX ? '있음' : '없음') + '</div>' +\n    '<div style=\"font-size:17px;margin-top:6px;color:#4ade80\">' + plan + '</div>';\n  show('대략적인 비교 횟수  ' + Math.round(cost).toLocaleString() + '\\n\\n' + why + '\\n\\n'\n     + '세 가지 알고리즘\\n'\n     + '  Nested Loop : 왼쪽 행마다 오른쪽을 찾는다. 왼쪽이 작고 오른쪽에 인덱스가 있을 때 최고.\\n'\n     + '  Hash Join   : 작은 쪽을 해시로 올리고 큰 쪽을 한 번 훑는다. 등가 조인 전용.\\n'\n     + '  Merge Join  : 양쪽이 이미 정렬돼 있을 때 지퍼처럼 맞춘다.\\n\\n'\n     + '고르는 것은 옵티마이저다 — 우리가 할 일은 인덱스와 통계를 맞춰 두는 것.');\n</script>",
+          "controls": [
+            {
+              "id": "left",
+              "label": "왼쪽 행 수",
+              "type": "range",
+              "min": 10,
+              "max": 100000,
+              "step": 10,
+              "value": 100
+            },
+            {
+              "id": "right",
+              "label": "오른쪽 행 수",
+              "type": "range",
+              "min": 100,
+              "max": 500000,
+              "step": 100,
+              "value": 10000
+            },
+            {
+              "id": "idx",
+              "label": "조인 열에 인덱스",
+              "type": "toggle",
+              "value": true
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "sql",
+          "label": "INNER 와 LEFT 를 헷갈리면 조용히 행이 사라진다",
+          "text": "-- 주문이 없는 손님은 결과에서 빠진다\nSELECT c.name, o.amount FROM customers c JOIN orders o ON o.customer_id = c.id;\n\n-- 주문이 없어도 손님은 남는다 (amount 는 NULL)\nSELECT c.name, o.amount FROM customers c LEFT JOIN orders o ON o.customer_id = c.id;\n\n-- 함정: LEFT JOIN 인데 WHERE 에 오른쪽 조건을 걸면 INNER 가 된다\n... LEFT JOIN orders o ON o.customer_id = c.id WHERE o.amount > 0;   -- NULL 이 걸러진다\n... LEFT JOIN orders o ON o.customer_id = c.id AND o.amount > 0;     -- 의도대로"
+        },
+        {
+          "type": "note",
+          "text": "「행이 갑자기 늘었다」면 조인 조건이 **1:N** 이라 곱해진 것이다. 손님 1명에 주문 3건이면 결과는 3행이고, 여기서 `SUM(amount)` 을 하면 다른 합계도 세 배가 된다. 집계 전에 **어느 단위의 행인지** 확인하라."
+        },
+        {
+          "type": "try",
+          "text": "인덱스 손잡이를 끄고 양쪽 행 수를 올려 보라. 비교 횟수가 곱셈으로 뛰는 지점을 보고, 다시 켜서 회복되는 것을 확인하라."
+        }
       ],
-      "answer": 0,
-      "why": "한 번의 IN 쿼리나 조인으로 묶으면 사라진다."
+      "quiz": [
+        {
+          "q": "왼쪽이 작고 오른쪽에 인덱스가 있을 때 좋은 조인은?",
+          "choices": [
+            "Hash Join",
+            "Nested Loop",
+            "Merge Join",
+            "Cross Join"
+          ],
+          "answer": 1,
+          "why": "행마다 인덱스로 바로 찾는다."
+        },
+        {
+          "q": "LEFT JOIN 인데 WHERE 에 오른쪽 열 조건을 걸면?",
+          "choices": [
+            "그대로다",
+            "사실상 INNER JOIN 이 된다",
+            "오류",
+            "더 빨라진다"
+          ],
+          "answer": 1,
+          "why": "NULL 행이 걸러진다. 조건은 ON 절로."
+        },
+        {
+          "q": "조인 후 합계가 부풀었다면?",
+          "choices": [
+            "인덱스 문제",
+            "1:N 조인으로 행이 곱해졌다",
+            "타입 문제",
+            "정렬 문제"
+          ],
+          "answer": 1,
+          "why": "집계 단위를 확인해야 한다."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "트랜잭션 — 전부 되거나 전부 안 되거나",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "계좌에서 돈을 빼고 다른 계좌에 넣는 두 문장 사이에서 서버가 죽으면? 돈이 사라진다. 그래서 **묶어서 전부 되거나 전부 안 되게** 하는 장치가 트랜잭션이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "어느 성질이 깨지면 무슨 일이 생기나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const a = '{{acid}}';\n  const t = {\n    A: ['Atomicity — 원자성', '전부 되거나 전부 안 되거나',\n        '깨지면: 돈은 빠졌는데 안 들어간다. 중간 상태가 남는다.',\n        'COMMIT 전에 죽으면 자동 ROLLBACK 된다.'],\n    C: ['Consistency — 일관성', '규칙(제약)을 어기는 상태로 끝나지 않는다',\n        '깨지면: 잔액이 음수가 되거나, 없는 손님의 주문이 생긴다.',\n        'CHECK · FOREIGN KEY · UNIQUE 가 이것을 지킨다.'],\n    I: ['Isolation — 격리', '동시에 도는 트랜잭션이 서로를 방해하지 않는다',\n        '깨지면: 커밋 안 된 값을 읽거나, 읽은 값이 도중에 바뀐다.',\n        '수준을 고를 수 있다 — 다음 장의 주제.'],\n    D: ['Durability — 지속성', '커밋했다고 답했으면 정전에도 남는다',\n        '깨지면: 성공이라고 했는데 재시작하니 없다.',\n        '먼저 로그에 적고(WAL) 나중에 데이터 파일에 반영한다.'],\n  }[a];\n  app.innerHTML = '<div style=\"font-size:17px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n어떻게 지키나\\n  ' + t[3] + '\\n\\n'\n     + '실무 규칙\\n'\n     + '  트랜잭션은 짧게 — 그 안에서 외부 API 를 부르지 마라(잠금을 쥔 채 기다린다)\\n'\n     + '  경계를 분명히 — 어디서 BEGIN 하고 어디서 COMMIT 하는지 코드에서 보여야 한다\\n'\n     + '  실패 경로를 시험 — 롤백이 실제로 도는지 일부러 터뜨려 확인');\n</script>",
+          "controls": [
+            {
+              "id": "acid",
+              "label": "성질",
+              "type": "select",
+              "value": "A",
+              "options": [
+                {
+                  "value": "A",
+                  "label": "A 원자성"
+                },
+                {
+                  "value": "C",
+                  "label": "C 일관성"
+                },
+                {
+                  "value": "I",
+                  "label": "I 격리"
+                },
+                {
+                  "value": "D",
+                  "label": "D 지속성"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "sql",
+          "label": "돈을 옮기는 표준형",
+          "text": "BEGIN;\n  UPDATE accounts SET balance = balance - 100 WHERE id = 1;\n  UPDATE accounts SET balance = balance + 100 WHERE id = 2;\n  -- 잔액이 음수가 되면 CHECK 제약이 여기서 막는다\nCOMMIT;\n\n-- 읽고-계산하고-쓰기는 위험하다(경쟁). 한 문장으로 표현할 수 있으면 그렇게 하라\nUPDATE accounts SET balance = balance - 100 WHERE id = 1 AND balance >= 100;"
+        },
+        {
+          "type": "note",
+          "text": "**트랜잭션 안에서 외부 호출(HTTP·메일)을 하지 마라.** 그 사이 잠금이 유지되고, 외부가 느리면 데이터베이스 전체가 밀린다. 게다가 롤백해도 이미 보낸 메일은 못 되돌린다 — 커밋 뒤에 하거나, 아웃박스 표에 적어 두고 따로 보내라."
+        },
+        {
+          "type": "p",
+          "text": "지속성은 **먼저 로그에 적는 것**(WAL)으로 구현된다. 데이터 파일을 여기저기 고치는 것보다 로그를 끝에 덧붙이는 것이 훨씬 빠르고, 죽어도 로그를 다시 재생하면 복구된다. 앞 칸에서 본 「순차 쓰기가 빠르다」가 여기서도 쓰인다."
+        },
+        {
+          "type": "try",
+          "text": "내 코드의 트랜잭션 안에 외부 API 호출이나 오래 걸리는 계산이 있는지 찾아라. 있으면 그것이 커넥션 고갈·타임아웃의 후보다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "커밋 전에 서버가 죽으면?",
+          "choices": [
+            "절반만 반영된다",
+            "자동으로 롤백된다",
+            "복구 불가",
+            "그대로 유지"
+          ],
+          "answer": 1,
+          "why": "원자성이 보장하는 것."
+        },
+        {
+          "q": "트랜잭션 안에서 하면 안 되는 것은?",
+          "choices": [
+            "UPDATE",
+            "외부 API 호출",
+            "SELECT",
+            "INSERT"
+          ],
+          "answer": 1,
+          "why": "잠금을 쥔 채 기다리게 된다."
+        },
+        {
+          "q": "지속성을 만드는 대표 기법은?",
+          "choices": [
+            "인덱스",
+            "먼저 로그에 적기(WAL)",
+            "복제",
+            "캐시"
+          ],
+          "answer": 1,
+          "why": "순차 쓰기가 빠르고 재생으로 복구된다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "격리 수준 — 무엇을 허용할 것인가",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "격리를 완벽하게 하면 느리다. 그래서 데이터베이스는 **어떤 이상 현상을 허용할지**를 고르게 한다. 이름을 외우는 대신, **어떤 이상이 내 도메인에서 문제가 되는지**를 물어라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "수준을 골라 보라 — 무엇이 일어날 수 있나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const lv = '{{level}}';\n  const rows = [\n    ['더티 리드', '커밋 안 된 값을 읽는다', { ru: 1, rc: 0, rr: 0, ser: 0 }],\n    ['반복 불가 읽기', '같은 행을 두 번 읽었는데 값이 다르다', { ru: 1, rc: 1, rr: 0, ser: 0 }],\n    ['팬텀 읽기', '같은 조건으로 두 번 셌는데 행 수가 다르다', { ru: 1, rc: 1, rr: 1, ser: 0 }],\n    ['쓰기 왜곡', '각자 조건을 확인하고 썼는데 합쳐 보면 규칙 위반', { ru: 1, rc: 1, rr: 1, ser: 0 }],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  rows.forEach(([name, desc, m], i) => {\n    const bad = m[lv] === 1;\n    box(14, 8 + i * 45, 412, 38, name + (bad ? '  — 일어날 수 있다' : '  — 막힌다'), desc,\n        bad ? '#3b1d1d' : '#14351f', bad ? '#ef4444' : '#22c55e');\n  });\n  const names = { ru: 'READ UNCOMMITTED', rc: 'READ COMMITTED (대부분의 기본값)', rr: 'REPEATABLE READ', ser: 'SERIALIZABLE' };\n  app.innerHTML = '<div class=\"hint\">' + names[lv] + '</div>';\n  show({ ru: '거의 쓰지 않는다. PostgreSQL 은 아예 READ COMMITTED 로 올려 버린다.',\n         rc: '가장 흔한 기본값. 문장 하나 안에서는 일관되게 보이지만, 다음 문장에서는 달라질 수 있다.',\n         rr: '트랜잭션 내내 같은 스냅샷을 본다. MySQL 의 기본값.',\n         ser: '동시에 돌아도 순서대로 한 것과 같은 결과를 보장한다. 대신 충돌 시 실패 -> 재시도 코드가 필요.' }[lv] + '\\n\\n'\n     + '고르는 법: 기본값(READ COMMITTED)으로 두고, 문제가 되는 곳만 올리거나\\n'\n     + '그 자리에서 명시적으로 잠근다(SELECT ... FOR UPDATE) — 6장.');\n</script>",
+          "controls": [
+            {
+              "id": "level",
+              "label": "격리 수준",
+              "type": "select",
+              "value": "rc",
+              "options": [
+                {
+                  "value": "ru",
+                  "label": "READ UNCOMMITTED"
+                },
+                {
+                  "value": "rc",
+                  "label": "READ COMMITTED"
+                },
+                {
+                  "value": "rr",
+                  "label": "REPEATABLE READ"
+                },
+                {
+                  "value": "ser",
+                  "label": "SERIALIZABLE"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "가장 자주 무는 것이 **쓰기 왜곡**이다. 「의사가 최소 한 명은 당직이어야 한다」에서 두 의사가 동시에 「나 말고 또 있네」를 확인하고 둘 다 빠지면, 각자는 규칙을 지켰는데 결과는 위반이다. 이건 SERIALIZABLE 이나 명시적 잠금으로만 막힌다."
+        },
+        {
+          "type": "code",
+          "lang": "sql",
+          "label": "그 자리만 강하게",
+          "text": "BEGIN;\n  SELECT balance FROM accounts WHERE id = 1 FOR UPDATE;   -- 이 행을 잠근다\n  -- 계산…\n  UPDATE accounts SET balance = ... WHERE id = 1;\nCOMMIT;\n\n-- 또는 아예 잠그지 않고 「버전이 그대로면 쓰기」 (낙관적)\nUPDATE docs SET body = ?, version = version + 1\n WHERE id = ? AND version = ?;      -- 0행이 바뀌면 남이 먼저 고친 것 → 409"
+        },
+        {
+          "type": "note",
+          "text": "SERIALIZABLE 은 **실패를 준다**. 충돌하면 한쪽 트랜잭션이 오류로 끝나고, 애플리케이션이 재시도해야 한다 — 앞 칸(동시성 6장)의 멱등한 재시도가 여기서 필요해진다. 「강한 격리」는 공짜가 아니라 **재시도 코드와 맞바꾸는 것**이다."
+        },
+        {
+          "type": "try",
+          "text": "터미널 두 개로 같은 DB 에 붙어 트랜잭션을 동시에 열고, 한쪽에서 UPDATE 후 커밋하지 않은 채 다른 쪽에서 읽어 보라. 기본 격리 수준에서 무엇이 보이는지 직접 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "대부분의 DB 기본 격리 수준은?",
+          "choices": [
+            "READ UNCOMMITTED",
+            "READ COMMITTED",
+            "REPEATABLE READ",
+            "SERIALIZABLE"
+          ],
+          "answer": 1,
+          "why": "MySQL 은 REPEATABLE READ 로 예외."
+        },
+        {
+          "q": "쓰기 왜곡을 막는 방법은?",
+          "choices": [
+            "READ COMMITTED",
+            "SERIALIZABLE 또는 명시적 잠금",
+            "인덱스",
+            "트랜잭션 분리"
+          ],
+          "answer": 1,
+          "why": "각자는 규칙을 지켰는데 합치면 위반이다."
+        },
+        {
+          "q": "SERIALIZABLE 을 쓸 때 반드시 필요한 것은?",
+          "choices": [
+            "더 큰 서버",
+            "충돌 시 재시도 코드",
+            "인덱스",
+            "복제"
+          ],
+          "answer": 1,
+          "why": "충돌은 오류로 돌아온다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "N+1 — 가장 흔한 느림",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "목록을 그리면서 **행마다 질의를 한 번 더** 보내는 패턴이다. 개발 중에는 10건이라 안 보이고, 운영에서 1000건이 되면 1001번의 왕복이 된다. ORM 을 쓰면 특히 조용히 생긴다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "행 수를 늘려 보라 — 왕복이 어떻게 쌓이나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const N = {{n}}, FIX = '{{fix}}', RTT = 1.2;\n  const queries = FIX === 'n1' ? N + 1 : FIX === 'in' ? 2 : 1;\n  const ms = queries * RTT + N * 0.02;\n  ctx.clearRect(0, 0, 440, 190);\n  const show_n = Math.min(queries, 60);\n  for (let i = 0; i < show_n; i++) {\n    ctx.fillStyle = i === 0 ? '#22c55e' : '#f59e0b';\n    ctx.fillRect(14 + (i % 20) * 21, 30 + Math.floor(i / 20) * 26, 18, 20);\n  }\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('네모 하나 = 질의 한 번' + (queries > 60 ? '  (60개까지만 그림)' : ''), 14, 120);\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '14px system-ui';\n  ctx.fillText('질의 ' + queries.toLocaleString() + '번 · 약 ' + ms.toFixed(0) + 'ms', 14, 150);\n  app.innerHTML = '<div class=\"hint\">글 ' + N + '건 목록에 지은이 이름을 붙인다</div>';\n  show({ n1: ['글 목록 1번 + 지은이 ' + N + '번 = N+1',\n              'posts.forEach(p => db.query(\"SELECT * FROM users WHERE id = ?\", p.user_id))'],\n         in: ['글 목록 1번 + 지은이 한꺼번에 1번 = 2번',\n              'db.query(\"SELECT * FROM users WHERE id IN (?)\", ids)   // 모아서 한 번'],\n         join: ['조인으로 한 번',\n              'SELECT p.*, u.name FROM posts p JOIN users u ON u.id = p.user_id'] }[FIX][0] + '\\n\\n'\n     + '  ' + { n1: 'posts.forEach(p => query(users where id = p.user_id))',\n               in: 'query(users where id IN (...ids))  — 한 번에 모아서',\n               join: 'JOIN 으로 한 번에' }[FIX] + '\\n\\n'\n     + '왕복 하나가 1.2ms 라고 가정. N 이 커질수록 차이가 선형으로 벌어진다.\\n'\n     + '찾는 법: 느린 질의 로그에 「같은 모양의 질의가 수백 번」 찍히면 그것이다.');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "행 수",
+              "type": "range",
+              "min": 10,
+              "max": 1000,
+              "step": 10,
+              "value": 200
+            },
+            {
+              "id": "fix",
+              "label": "방식",
+              "type": "select",
+              "value": "n1",
+              "options": [
+                {
+                  "value": "n1",
+                  "label": "N+1 (행마다 질의)"
+                },
+                {
+                  "value": "in",
+                  "label": "IN 으로 모아서"
+                },
+                {
+                  "value": "join",
+                  "label": "조인 한 번"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "조인이 늘 정답은 아니다. 1:N 을 조인하면 **행이 곱해져** 전송량이 커진다(글 100건에 태그 5개면 500행). 그럴 때는 두 번 질의해서 코드에서 붙이는 편이 낫다 — 「질의 수」와 「전송량」 사이의 저울이다."
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "모아서 한 번 — 데이터로더 패턴",
+          "text": "// 나쁨\nconst rows = await db.posts();\nfor (const p of rows) p.author = await db.user(p.user_id);   // N+1\n\n// 좋음\nconst rows = await db.posts();\nconst ids = [...new Set(rows.map((p) => p.user_id))];\nconst users = await db.usersByIds(ids);                      // 한 번\nconst byId = new Map(users.map((u) => [u.id, u]));\nfor (const p of rows) p.author = byId.get(p.user_id);        // 앞 칸의 Map"
+        },
+        {
+          "type": "p",
+          "text": "그리고 **필요한 열만** 가져와라. `SELECT *` 는 쓰지 않는 큰 열(본문·JSON·바이너리)까지 실어 나른다. 인덱스만으로 답할 수 있는 질의(커버링 인덱스)는 테이블을 아예 안 읽는다 — 열을 줄이는 것이 그 조건이다."
+        },
+        {
+          "type": "try",
+          "text": "느린 질의 로그를 켜고 화면 하나를 열어 보라. 같은 모양의 질의가 반복해서 찍히면 N+1 이다. IN 이나 조인으로 바꾸고 다시 세어라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "N+1 문제란?",
+          "choices": [
+            "인덱스가 하나 부족",
+            "목록 1번 + 행마다 1번씩 질의",
+            "조인이 하나 많다",
+            "트랜잭션 중첩"
+          ],
+          "answer": 1,
+          "why": "행 수만큼 왕복이 쌓인다."
+        },
+        {
+          "q": "1:N 을 조인으로 붙일 때의 대가는?",
+          "choices": [
+            "인덱스 무효",
+            "행이 곱해져 전송량이 커진다",
+            "정확도 하락",
+            "잠금 증가"
+          ],
+          "answer": 1,
+          "why": "두 번 질의해 코드에서 붙이는 게 나을 수 있다."
+        },
+        {
+          "q": "`SELECT *` 를 피하는 이유는?",
+          "choices": [
+            "문법 문제",
+            "안 쓰는 큰 열까지 실어 나르고 커버링 인덱스를 막는다",
+            "느린 정렬",
+            "보안만"
+          ],
+          "answer": 1,
+          "why": "열을 줄이면 인덱스만으로 답할 수 있다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "커지면 — 복제 · 샤딩 · 그리고 포기해야 하는 것",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "한 대로 안 될 때 늘리는 방향은 둘이다 — **읽기를 나누거나**(복제), **자료를 쪼개거나**(샤딩). 그리고 나누는 순간 **일관성**과 관련해 무언가를 포기해야 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "전략을 골라 보라 — 무엇을 얻고 무엇을 잃나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const s = '{{strategy}}';\n  ctx.clearRect(0, 0, 440, 190);\n  if (s === 'single') {\n    box(160, 60, 120, 60, 'DB 한 대', '읽기·쓰기 전부', '#14351f', '#22c55e');\n  } else if (s === 'replica') {\n    box(20, 60, 110, 54, '주(쓰기)', 'primary', '#14351f', '#22c55e');\n    box(170, 20, 110, 46, '복제본 1', '읽기 전용', '#111c33', '#60a5fa');\n    box(170, 100, 110, 46, '복제본 2', '읽기 전용', '#111c33', '#60a5fa');\n    arrow(130, 78, 170, 44); arrow(130, 92, 170, 122);\n    ctx.fillStyle = '#f59e0b'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText('복제 지연 (수 ms ~ 수 초)', 300, 84);\n  } else {\n    ['A~F', 'G~M', 'N~Z'].forEach((r, i) => box(20 + i * 140, 60, 120, 60, '샤드 ' + (i + 1), r, '#111c33', '#a78bfa'));\n  }\n  const t = { single: ['한 대', '가장 단순하다 — 트랜잭션도 조인도 그냥 된다.',\n                       '한계: 쓰기와 저장 용량이 한 대에 묶인다. 대부분의 서비스는 여기서 충분하다.'],\n              replica: ['복제 (읽기 확장)', '읽기를 여러 대로 나눈다. 장애 대비도 된다.',\n                       '대가: 복제 지연. 방금 쓴 것을 바로 읽으면 없을 수 있다(read-your-writes 문제).'],\n              shard: ['샤딩 (쓰기·용량 확장)', '자료 자체를 키로 나눠 여러 대에 담는다.',\n                       '대가: 샤드를 넘는 조인·트랜잭션이 어렵거나 불가능. 키 고르기를 잘못하면 한쪽만 뜨거워진다.'] }[s];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>';\n  show(t[1] + '\\n\\n' + t[2] + '\\n\\n'\n     + '순서: 인덱스·질의 튜닝 -> 캐시 -> 복제 -> (정말 필요하면) 샤딩\\n'\n     + '샤딩은 되돌리기 가장 어려운 결정이다. 그전에 할 수 있는 것을 다 해라.');\n</script>",
+          "controls": [
+            {
+              "id": "strategy",
+              "label": "구성",
+              "type": "select",
+              "value": "single",
+              "options": [
+                {
+                  "value": "single",
+                  "label": "한 대"
+                },
+                {
+                  "value": "replica",
+                  "label": "복제"
+                },
+                {
+                  "value": "shard",
+                  "label": "샤딩"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "**CAP** 은 「셋 중 둘」이라기보다, **네트워크가 끊겼을 때(P는 늘 일어난다) 일관성과 가용성 중 무엇을 고를 것인가**로 읽는 편이 실용적이다. 결제는 일관성, 좋아요 수는 가용성 — 도메인마다 답이 다르다."
+        },
+        {
+          "type": "note",
+          "text": "복제 지연은 **화면에서 바로 드러난다.** 글을 쓰고 목록으로 돌아갔는데 없는 그 현상이다. 처방은 「방금 쓴 사용자만 잠시 주 노드에서 읽기」이거나, 응답으로 받은 값을 화면에 먼저 반영하는 것(낙관적 갱신)이다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "캐시를 넣기 전에 정하고 시작하라",
+          "text": "무효화 전략이 없는 캐시는 버그다.\n  [ ] 언제 지우나 — 쓰기 시점? TTL? 둘 다?\n  [ ] 캐시가 없을 때 몰리면? (캐시 스탬피드 → 잠금·조기 갱신)\n  [ ] 없는 값을 캐시하나? (없는 키로 계속 DB 를 때리는 공격 방지)\n  [ ] 사용자별 자료를 공용 캐시에 넣지 않았나? (심각한 사고)"
+        },
+        {
+          "type": "try",
+          "text": "내 서비스가 지금 어느 단계인지 적어 보라. 인덱스·N+1 을 다 잡았는가? 대부분은 아직 「한 대」로 충분하고, 문제는 질의에 있다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "복제의 대표적인 대가는?",
+          "choices": [
+            "쓰기 성능",
+            "복제 지연 — 방금 쓴 것이 안 보일 수 있다",
+            "저장 공간",
+            "인덱스 무효"
+          ],
+          "answer": 1,
+          "why": "read-your-writes 문제."
+        },
+        {
+          "q": "샤딩이 어려운 이유는?",
+          "choices": [
+            "설치가 어렵다",
+            "샤드를 넘는 조인·트랜잭션이 어렵고 되돌리기 힘들다",
+            "느리다",
+            "비싸다"
+          ],
+          "answer": 1,
+          "why": "마지막 수단으로 둔다."
+        },
+        {
+          "q": "확장의 올바른 순서는?",
+          "choices": [
+            "샤딩 → 복제 → 튜닝",
+            "질의·인덱스 튜닝 → 캐시 → 복제 → 샤딩",
+            "캐시 → 샤딩",
+            "서버 증설만"
+          ],
+          "answer": 1,
+          "why": "대개 질의에서 끝난다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "마이그레이션 — 살아 있는 채로 바꾸기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "스키마를 바꾸는 일은 **배포와 동시에 일어난다.** 옛 코드와 새 코드가 잠시 함께 도는 그 순간에도 서비스가 살아 있어야 한다 — 그래서 「한 번에 바꾸기」가 아니라 **여러 단계로 나눠** 바꾼다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "단계를 밀어 보라 — 열 이름 하나 바꾸는 데 네 단계",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const step = {{step}};\n  const steps = [\n    ['1. 새 열을 추가한다 (nullable)', 'ALTER TABLE users ADD COLUMN full_name TEXT;', '옛 코드는 이 열을 모른다 — 아무 영향 없다.'],\n    ['2. 두 곳에 함께 쓴다', '코드: name 과 full_name 둘 다 write', '새 코드가 배포돼도 옛 코드가 읽는 열이 살아 있다.'],\n    ['3. 과거 자료를 채운다', 'UPDATE … SET full_name = name WHERE full_name IS NULL  (조금씩 나눠서)', '한 번에 수백만 행을 UPDATE 하면 잠금·복제 지연이 터진다.'],\n    ['4. 읽기를 옮기고 옛 열을 지운다', '코드를 새 열만 읽게 → 배포 확인 → ALTER TABLE … DROP COLUMN name;', '되돌릴 수 없는 단계는 마지막에, 충분히 기다린 뒤.'],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  steps.forEach(([t], i) => {\n    const on = i <= step;\n    box(14, 8 + i * 45, 412, 38, t, i === step ? '<- 지금' : '', on ? '#14351f' : '#111c33', on ? '#22c55e' : '#334155');\n  });\n  app.innerHTML = '';\n  show(steps[step][0] + '\\n  ' + steps[step][1] + '\\n\\n' + steps[step][2] + '\\n\\n'\n     + '원칙: 어느 단계에서 멈춰도 서비스가 돌아야 한다(확장 → 이전 → 축소).\\n'\n     + '되돌리기 어려운 것(DROP·타입 변경·NOT NULL 추가)은 마지막으로 미룬다.');\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 3,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**잠금을 오래 잡는 DDL** 을 조심하라. 큰 표에 `NOT NULL` 열을 기본값과 함께 추가하거나 인덱스를 그냥 만들면 표 전체가 잠겨 서비스가 멈춘다. PostgreSQL 은 `CREATE INDEX CONCURRENTLY`, MySQL 은 온라인 DDL 옵션이 있다 — **운영 표에는 반드시 확인하고 실행하라.**"
+        },
+        {
+          "type": "code",
+          "lang": "sql",
+          "label": "안전하게 바꾸는 손버릇",
+          "text": "-- 잠금을 오래 잡지 않게\nCREATE INDEX CONCURRENTLY idx_orders_created ON orders (created_at);\n\n-- 큰 UPDATE 는 나눠서\nUPDATE orders SET full_name = name WHERE id BETWEEN 1 AND 10000;\n\n-- 실행 전 항상: 이 문장이 무엇을 얼마나 잠그나?\n--   운영 크기의 사본에서 먼저 돌려 보고 시간을 잰다"
+        },
+        {
+          "type": "p",
+          "text": "그리고 **백업과 복구는 다르다.** 백업이 있다고 복구되는 게 아니다 — 실제로 복구해 보지 않은 백업은 없는 것과 같다. 정기적으로 **복구 훈련**을 하고, 걸리는 시간(RTO)과 잃는 자료의 범위(RPO)를 숫자로 알고 있어야 한다."
+        },
+        {
+          "type": "try",
+          "text": "내 프로젝트의 마지막 마이그레이션을 열어, 그것이 「어느 단계에서 멈춰도 서비스가 도는」 형태였는지 확인하라. 아니라면 다음부터 네 단계로 쪼개라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "무중단 스키마 변경의 원칙은?",
+          "choices": [
+            "한 번에 바꾸기",
+            "확장 → 이전 → 축소로 나누기",
+            "새벽에 하기",
+            "백업 후 강행"
+          ],
+          "answer": 1,
+          "why": "옛 코드와 새 코드가 함께 도는 구간이 있다."
+        },
+        {
+          "q": "큰 표에 인덱스를 그냥 만들면?",
+          "choices": [
+            "문제 없다",
+            "표가 잠겨 서비스가 멈출 수 있다",
+            "느려지기만 한다",
+            "자동으로 나눠 실행된다"
+          ],
+          "answer": 1,
+          "why": "CONCURRENTLY·온라인 DDL 을 쓴다."
+        },
+        {
+          "q": "쓸모 있는 백업의 조건은?",
+          "choices": [
+            "매일 뜬다",
+            "실제로 복구해 본 적이 있다",
+            "여러 벌 있다",
+            "암호화돼 있다"
+          ],
+          "answer": 1,
+          "why": "복구 훈련이 없으면 없는 것과 같다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "데이터베이스 문제는 대개 **질의**에서 시작한다. 서버를 키우기 전에 이 순서로 훑어라."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "느릴 때 · 이상할 때",
+          "text": "느리다\n  [ ] 같은 모양 질의가 수백 번 찍히나       -> N+1 (6장)\n  [ ] EXPLAIN 에 Seq Scan + 큰 행 수        -> 인덱스 (2장)\n  [ ] 조건이 함수로 감싸여 있나              -> 표현식 인덱스 (2장)\n  [ ] SELECT * 로 큰 열까지 끌고 오나        -> 필요한 열만 (6장)\n  [ ] 조인 후 행이 곱해져 있나               -> 집계 단위 확인 (3장)\n  [ ] 트랜잭션 안에서 외부 호출·긴 작업       -> 밖으로 빼기 (4장)\n자료가 이상하다\n  [ ] 같은 사실이 두 곳에 있나               -> 정규화·동기화 책임 (1장)\n  [ ] 제약(NOT NULL·FK·UNIQUE)이 있나        -> 코드 검증만으로는 샌다 (1장)\n  [ ] 동시 갱신이 덮어쓰나                   -> FOR UPDATE · 버전 열 (5장)\n  [ ] 방금 쓴 게 안 보이나                   -> 복제 지연 (7장)\n바꿔야 한다\n  [ ] 마이그레이션이 단계로 나뉘어 있나       -> 확장/이전/축소 (8장)\n  [ ] 복구를 실제로 해 봤나                  -> 훈련 (8장)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 여덟 문항",
+          "height": "300px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#f59e0b'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 7 * Math.cos(a - 0.4), y2 - 7 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 7 * Math.cos(a + 0.4), y2 - 7 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#f59e0b'; ctx.fill();\n  }\n</script>\n<script>\n  const q = [\n    ['정규화의 목적은 저장 공간 절약이다', false],\n    [\"LIKE '%kim' 은 인덱스를 탄다\", false],\n    ['복합 인덱스 (a,b) 는 b 조건만으로도 탄다', false],\n    ['LEFT JOIN + WHERE 오른쪽 조건 = 사실상 INNER', true],\n    ['트랜잭션 안에서 외부 API 를 불러도 된다', false],\n    ['SERIALIZABLE 은 재시도 코드가 필요하다', true],\n    ['N+1 은 행 수만큼 왕복이 쌓인다', true],\n    ['복구해 본 적 없는 백업도 백업이다', false],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.textAlign = 'left'; ctx.font = '12px system-ui';\n  q.forEach(([t, a], i) => {\n    const y = 16 + i * 22;\n    ctx.fillStyle = a ? '#22c55e' : '#ef4444';\n    ctx.fillText(a ? 'O' : 'X', 16, y + 4);\n    ctx.fillStyle = '#cbd5e1';\n    ctx.fillText(t, 36, y + 4);\n  });\n  app.innerHTML = '';\n  show('틀린 것이 있으면 그 장으로 — 1장(정규화) 2장(인덱스) 3장(조인) 4장(트랜잭션) 6장(N+1) 8장(백업)');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸은 「언어가 도는 방식」이다. 여기까지가 「자료를 어디에 두나」였다면, 다음은 **우리가 쓴 글자가 어떻게 실행되나**다 — 파싱, 컴파일, 가상 머신."
+        },
+        {
+          "type": "try",
+          "text": "내 서비스에서 가장 느린 질의 하나를 골라 위 목록을 순서대로 대 보라. 대부분 첫 두 줄(N+1·인덱스)에서 끝난다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "DB 가 느릴 때 서버 증설보다 먼저 볼 것은?",
+          "choices": [
+            "N+1 과 인덱스",
+            "복제",
+            "샤딩",
+            "캐시 서버"
+          ],
+          "answer": 0,
+          "why": "대개 질의에서 끝난다."
+        },
+        {
+          "q": "「방금 쓴 게 안 보인다」의 원인은?",
+          "choices": [
+            "인덱스",
+            "복제 지연",
+            "트랜잭션 롤백",
+            "캐시 없음"
+          ],
+          "answer": 1,
+          "why": "읽기를 복제본에서 하고 있다."
+        }
+      ]
     }
   ]
 }
