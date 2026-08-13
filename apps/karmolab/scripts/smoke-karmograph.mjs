@@ -1889,6 +1889,44 @@ const openedSpec = (page) => page.evaluate(() => {
     .filter((sp) => sp && (sp.nodes || []).length > 0)[0];
 });
 
+await step('파일로 뽑고 다시 불러도 **아무것도 안 빠진다** (KL-271)', async () => {
+  /* 세 번째 길 — 파일. 백업(판 여럿)·링크(주소 한 줄)와 달리 **판 하나를 통째로** 주고받는
+     자리다(다른 도구로 옮기거나 손으로 고칠 때 쓴다). 여기서도 새 칸이 조용히 빠지면
+     사람은 「분명 적어 뒀는데」로 만난다. */
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 }, acceptDownloads: true });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await plantRich(m);
+
+  const [dl] = await Promise.all([
+    m.waitForEvent('download', { timeout: ms(15000) }),
+    runCmd(m, 'export'),
+  ]);
+  const text = await readFile(await dl.path(), 'utf8');
+
+  const ctx2 = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const q = await ctx2.newPage();
+  await q.goto(URL, { waitUntil: 'domcontentloaded' });
+  await q.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await q.evaluate(() => localStorage.clear());
+  await q.reload({ waitUntil: 'domcontentloaded' });
+  await q.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await q.setInputFiles('[data-km="file"]', {
+    name: 'karmograph.json', mimeType: 'application/json', buffer: Buffer.from(text),
+  });
+  await q.waitForTimeout(ms(1500));
+  const got = await openedSpec(q);
+  if (!got) throw new Error('불러왔는데 판이 없다');
+  const gone = whatIsMissing(RICH_SPEC, got);
+  if (gone.length > 0) throw new Error('파일에서 빠진 것: ' + gone.slice(0, 5).join(' · '));
+  await ctx.close();
+  await ctx2.close();
+});
+
 await step('공유 링크로 보내도 **아무것도 안 빠진다** (KL-271)', async () => {
   /* 링크는 백업보다 훨씬 자주 쓴다(받는 쪽은 대개 그 링크가 전부다). 그런데 링크는 눌러 담아
      주소 한 줄에 넣으므로, 새 칸이 생겼을 때 **조용히 빠질** 자리가 백업보다 많다. */

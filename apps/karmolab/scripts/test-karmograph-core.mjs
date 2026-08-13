@@ -48,6 +48,7 @@ async function loadModules() {
     export * as edgeViews from ${JSON.stringify(path.join(root, 'src/lib/graph/edge-views.ts'))};
     export * as table from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/table-view.ts'))};
     export * as ripe from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/ripeness.ts'))};
+    export * as groupBox from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-group.ts'))};
     export * as film from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/film.ts'))};
     export * as printSheet from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/print-sheet.ts'))};
     export * as times from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/times.ts'))};
@@ -1283,6 +1284,31 @@ const M = await loadModules();
     if (hangul.test(line)) leaks.push(`${where}: ${line.trim().slice(0, 50)}`);
   });
   eq(leaks.length, 0, '코드에 박힌 한국어 글: ' + leaks.slice(0, 4).join(' | '));
+}
+
+{
+  /* 묶음 상자 — **자료가 조금 모자란 것과 못 읽는 것은 다르다** (KL-271, 2026-08-14).
+     네모(bbox)가 없는 묶음 하나 때문에 판 **전체 불러오기**가 「JSON 을 읽지 못했습니다」로
+     끝났다(카드도 선도 멀쩡했는데). 모자라면 있는 것으로 짓는다. */
+  const { computeGroupBox } = M.groupBox;
+  const box = { x: 10, y: 20, w: 100, h: 50 };
+  const same = computeGroupBox({ id: 'g', label: '', color: '#fff', bbox: box }, []);
+  eq(same.x, 10, '든 것이 없으면 적어 둔 네모 그대로');
+  eq(same.w, 100, '너비도 그대로');
+
+  const grown = computeGroupBox({ id: 'g', label: '', color: '#fff', bbox: box }, [
+    { x: 200, y: 20, w: 40, h: 40 },
+  ]);
+  check(grown.w > 100, '든 카드가 밖에 있으면 상자가 따라 커진다');
+
+  const noBox = computeGroupBox({ id: 'g', label: '', color: '#fff' }, [{ x: 0, y: 0, w: 40, h: 40 }]);
+  eq(noBox.w, 40 + 24, '네모가 없으면 든 것으로 짓는다(여백 12씩)');
+  eq(noBox.x, -12, '왼쪽 여백도 붙는다');
+
+  const nothing = computeGroupBox({ id: 'g', label: '', color: '#fff' }, []);
+  eq(nothing.w, 0, '네모도 없고 든 것도 없으면 0 — 그리는 쪽이 건너뛴다');
+  eq(nothing.h, 0, '높이도 0');
+  check(Number.isFinite(nothing.x), '0 자리라도 숫자여야 한다(NaN 이면 SVG 가 통째로 깨진다)');
 }
 
 process.stdout.write('\n');

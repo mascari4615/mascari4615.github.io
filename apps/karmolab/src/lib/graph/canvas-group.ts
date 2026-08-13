@@ -15,16 +15,26 @@ export function computeGroupBox(
   memberBoxes: { x: number; y: number; w: number; h: number }[],
   pad = 12,
 ): { x: number; y: number; w: number; h: number } {
-  let minX = group.bbox.x;
-  let minY = group.bbox.y;
-  let maxX = group.bbox.x + group.bbox.w;
-  let maxY = group.bbox.y + group.bbox.h;
+  /**
+   * ★ **네모가 없는 묶음도 있다** — 손으로 적은 파일, 옛 판, 남의 도구에서 옮겨 온 것.
+   *
+   * 없는 채로 `bbox.x` 를 읽다가 판 **전체 불러오기가 통째로 실패**했다: 카드도 선도 멀쩡한데
+   * 「JSON 을 읽지 못했습니다」 한 줄만 뜨고 아무것도 안 열렸다(실측 2026-08-14, 묶음 하나짜리
+   * 파일). 자료가 조금 모자란 것과 **못 읽는 것**은 다르다 — 모자라면 있는 것으로 짓는다.
+   */
+  const box = group.bbox;
+  let minX = box ? box.x : Infinity;
+  let minY = box ? box.y : Infinity;
+  let maxX = box ? box.x + box.w : -Infinity;
+  let maxY = box ? box.y + box.h : -Infinity;
   for (const b of memberBoxes) {
     minX = Math.min(minX, b.x - pad);
     minY = Math.min(minY, b.y - pad);
     maxX = Math.max(maxX, b.x + b.w + pad);
     maxY = Math.max(maxY, b.y + b.h + pad);
   }
+  // 네모도 없고 든 것도 없으면 **그릴 것이 없다** — 0 짜리 자리를 돌려주고, 그리는 쪽이 건너뛴다.
+  if (!Number.isFinite(minX) || !Number.isFinite(minY)) return { x: 0, y: 0, w: 0, h: 0 };
   return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
 
@@ -55,6 +65,9 @@ export function renderGroups(groups: GroupDef[], ctx: GroupRenderCtx): void {
   const boxes = groups
     .filter((g) => !g.hidden)
     .map((g) => ({ g, box: ctx.boxOf(g) }))
+    // 자리가 0 인 묶음(네모도 없고 든 것도 없다)은 **그리지 않는다** — 0×0 상자를 그리면
+    // 화면 왼쪽 위에 정체 모를 점 하나가 남는다.
+    .filter(({ box }) => box.w > 0 && box.h > 0)
     .sort((a, b) => b.box.w * b.box.h - a.box.w * a.box.h);
 
   // 이름표가 서로 겹치면 아래로 한 칸씩 내린다 — 겹친 묶음들의 머리는 같은 높이에 몰린다.
