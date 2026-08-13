@@ -398,6 +398,8 @@ if (targets.length) {
     });
     if (next === html) continue;
     if (CHECK) {
+      /* 이 줄이 무더기로 뜨면 대개 **차례를 건너뛴 것**이다 — 한국어 장을 다시 찍은 뒤
+         이 생성기를 안 돌리면 짝 표시가 없다. 사람이 그걸 모르면 123줄을 읽고도 뭘 할지 모른다. */
       missing.push(`${id || '목록'} (원본 장에 짝 표시 없음)`);
       continue;
     }
@@ -408,6 +410,9 @@ if (targets.length) {
 if (CHECK) {
   if (missing.length) {
     console.error(`[tool-pages-locale] 안 찍힌 장 ${missing.length}개: ${missing.slice(0, 5).join(', ')}…`);
+if (missing.length > 20 && missing.every((m) => m.includes('짝 표시 없음'))) {
+  console.error('  → 한국어 장을 다시 찍은 뒤 이 생성기를 안 돌린 것이다: `npm run gen:tool-pages-locale`');
+}
     process.exit(1);
   }
   console.log(`[tool-pages-locale] 언어 장 ${made.length}개 확인 (${targets.join(', ') || '없음'})`);
