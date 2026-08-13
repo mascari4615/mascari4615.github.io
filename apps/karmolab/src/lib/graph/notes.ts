@@ -94,7 +94,7 @@ const EMBED_RE = /\{\{note:([^}]+)\}\}/g;
  * 글 안의 **덩이 표식** — 줄 끝에 `^이름` (Obsidian 블록 참조와 같은 문법).
  * 「이 글 전체」가 아니라 「이 글의 그 대목」만 실어야 할 때가 많다 — 세계관 규칙 열 줄 중 한 줄처럼.
  */
-const BLOCK_MARK = /\s*\^([\w가-힣-]+)\s*$/;
+const BLOCK_MARK = /\s*\^([\w가-힣-]+)\s*$/;   // i18n-ok: 한글 **글자 범위**를 받는 자리(사람이 읽는 글 X)
 
 export interface NoteBlock {
   id: string;

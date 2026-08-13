@@ -782,5 +782,22 @@
   "karmograph.stampDefault": "본 {n}개",
   "karmograph.note.loop": "(고리)",
   "karmograph.note.missing": "(없는 글)",
-  "karmograph.note.missingBlock": "(없는 대목)"
+  "karmograph.note.missingBlock": "(없는 대목)",
+  "karmograph.fields.about": "이 {kind}에 대해 적어 두는 것",
+  "karmograph.comments.label": "코멘트",
+  "karmograph.doc.usedHere": "이 글을 쓰는 {n}곳 보기",
+  "karmograph.count.places": "{n}곳",
+  "karmograph.count.items": "{n}개",
+  "karmograph.groups.title": "🫧 묶음",
+  "karmograph.groups.hint": "카드를 고른 뒤 「묶음」에서 넣으세요. 묶음 머리를 끌면 안에 든 카드가 같이 움직입니다.",
+  "karmograph.groups.add": "+ 새 묶음",
+  "karmograph.help.title": "? 무엇을 할 수 있나",
+  "karmograph.links.out": "가리키는 것 {n}",
+  "karmograph.links.back": "나를 가리키는 것 {n}",
+  "karmograph.links.loose": "이름만 나온 곳 {n}",
+  "karmograph.many.title": "◫ {n}개 골랐음",
+  "karmograph.many.delAll": "{n}개 모두 삭제",
+  "karmograph.storage.used": "{used} / 약 {all} ({pct}%)",
+  "karmograph.terms.nodeKinds": "내 노드 종류 {n}개",
+  "karmograph.terms.edgeKinds": "내 관계 종류 {n}개"
 }

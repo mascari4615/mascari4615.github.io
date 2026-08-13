@@ -62,7 +62,7 @@ function sharedUsersHtml(ctx: PanelCtx, noteId: string, key: string): string {
   ];
   if (rows.length <= 1) return '';
   return `<details class="km-field" data-km="${key}-users">
-    <summary class="km-hint">이 글을 쓰는 ${rows.length}곳 보기</summary>
+    <summary class="km-hint">${ctx.esc(t('karmograph.doc.usedHere', { n: String(rows.length) }))}</summary>
     ${rows.map((r) => `<div class="km-link-row">
       <span class="km-link-name">${esc(r.name)}</span>
       ${r.kind === 'node'
@@ -102,7 +102,7 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
         <div class="km-hint">${t('karmograph.docShared', { em: `<b>${esc(t('karmograph.embedded.msg4'))}</b>` })}</div>
         ${embedded.map((n) => `<div>
           <div class="km-link-row"><span class="km-link-name">${esc(n.title || t('karmograph.noteLabel'))}</span>
-            <span class="km-group-count">${noteUsers(spec, n.id)}곳</span></div>
+            <span class="km-group-count">${t('karmograph.count.places', { n: String(noteUsers(spec, n.id)) })}</span></div>
           <textarea class="km-textarea" rows="3" data-km="${skin.key}-embedded" data-key="${esc(n.id)}">${esc(n.text)}</textarea>
         </div>`).join('')}
       </div>`}

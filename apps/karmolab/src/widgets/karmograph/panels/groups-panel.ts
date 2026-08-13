@@ -13,8 +13,8 @@ export function renderGroupsPanel(ctx: PanelCtx): void {
   side.classList.remove('hidden');
   ctx.canvas()?.setSelectedNode(null);
   side.innerHTML = `
-    <h4>🫧 묶음</h4>
-    <div class="km-hint">카드를 고른 뒤 「묶음」에서 넣으세요. 묶음 머리를 끌면 안에 든 카드가 같이 움직입니다.</div>
+    <h4>${esc(t('karmograph.groups.title'))}</h4>
+    <div class="km-hint">${esc(t('karmograph.groups.hint'))}</div>
     <div class="km-field">
       ${
         ctx.spec().groups.length === 0
@@ -35,8 +35,8 @@ export function renderGroupsPanel(ctx: PanelCtx): void {
               .join('')
       }
     </div>
-    <button class="btn btn-primary" data-km="group-add">+ 새 묶음</button>
-    <button class="btn btn-ghost" data-km="group-close">닫기</button>`;
+    <button class="btn btn-primary" data-km="group-add">${esc(t('karmograph.groups.add'))}</button>
+    <button class="btn btn-ghost" data-km="group-close">${esc(t('karmograph.textPanel.close'))}</button>`;
 
   (side.querySelector('[data-km="group-add"]') as HTMLButtonElement).onclick = () => {
     ctx.createGroup();

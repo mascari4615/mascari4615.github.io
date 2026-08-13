@@ -43,7 +43,9 @@ export function fieldsSectionHtml(ctx: PanelCtx, node: GraphNode): string {
     .filter((x): x is { field: string; id: string; label: string } => Boolean(x));
   return `
     <div class="km-field">
-      <label>${esc(t('karmograph.hit.msg'))} <span class="km-hint">이 ${esc(ctx.kindLabel(node.kind))}에 대해 적어 두는 것</span></label>
+      <label>${esc(t('karmograph.hit.msg'))} <span class="km-hint">${esc(t('karmograph.fields.about', {
+        kind: ctx.kindLabel(node.kind),
+      }))}</span></label>
       ${rows.map(([name, value], i) => `<div class="km-link-row">
         <input type="text" class="km-field-name" data-km="fld-name" data-key="${esc(name)}" value="${esc(name)}"
           aria-label="${esc(t('karmograph.fldName.aria', { name }))}" />
