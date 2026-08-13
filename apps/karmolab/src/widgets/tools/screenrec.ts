@@ -8,7 +8,7 @@
  *
  * 소리는 두 갈래다: 화면 소리(탭·시스템)와 마이크. 둘 다 켜면 섞어야 하므로 오디오를 합친다.
  */
-import { pickRecordType } from './shared/video';
+import { pickRecordType, download } from './shared/video';
 import { statusLine } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -191,13 +191,14 @@ import { t, loadNamespace } from '../../lib/i18n';
           stopBtn.onclick = stop;
           saveBtn.onclick = () => {
             if (!made) return;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(made);
             const stamp = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
-            a.download = `${t('screenrec.file.name')}-${stamp}.webm`;
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            const name = `${t('screenrec.file.name')}-${stamp}.webm`;
+            download(made, name);
             say(t('screenrec.say.saved'), 'ok');
+            /* **녹화한 것을 이어서 쓰게 내놓는다** (TASK-KL-298).
+             * 화면을 찍고 나서 하는 일은 거의 늘 「구간 자르기」나 「GIF 로」다 —
+             * 여태는 방금 받은 파일을 다시 올려야 했다. */
+            Toolbox.offerNext?.(status, { blob: made, name, from: 'screenrec' });
           };
                   });
         }
