@@ -58,6 +58,19 @@ const runCmd = (p0, key) => p0.evaluate((k) => {
   el.click();
 }, key);
 
+/**
+ * 옆 패널을 **다른 목록으로** 바꾼다 (TASK-KL-271 R2).
+ *
+ * 화면은 이제 **고른 것이 정한다** — 늘 떠 있던 탭 여덟은 「⌄ 다른 목록」 안으로 접혔다.
+ * 검사가 보는 건 「그 목록이 무엇을 하나」이지 「탭이 몇 번째 줄에 있나」가 아니므로 손잡이를
+ * 바로 누른다. 접힌 문으로 실제로 닿을 수 있는지는 따로 한 항목이 지킨다.
+ */
+const openPanel = (p0, key) => p0.evaluate((k) => {
+  const el = document.querySelector(`[data-km="tab"][data-key="${k}"]`);
+  if (!el) throw new Error(`그런 목록이 없다: ${k}`);
+  el.click();
+}, key);
+
 const STEP_LIMIT_MS = Number(process.env.STEP_LIMIT_MS || 90_000);
 const withLimit = (name, fn) => Promise.race([
   fn(),
@@ -237,7 +250,7 @@ await step('종류 목록에 모든 갈래가 함께 보인다', async () => {
   if (opts < 20) throw new Error('종류가 ' + opts + '개뿐이다');
 });
 await step('묶음 패널이 열리고 묶음이 생긴다', async () => {
-  await page.click('[data-km="tab"][data-key="groups"]');
+  await openPanel(page, 'groups');
   await page.click('[data-km="group-add"]');
   await page.waitForSelector('.ck-group', { timeout: 4000 });
   await page.click('[data-km="group-close"]');
@@ -269,7 +282,7 @@ await step('묶음에 노드를 넣으면 감싸는 윤곽이 그려진다', asy
   );
 });
 await step('묶음을 잠그면 끌어도 안 움직인다', async () => {
-  await page.click('[data-km="tab"][data-key="groups"]');
+  await openPanel(page, 'groups');
   const lock = page.locator('[data-km="group-lock"]').first();
   await lock.waitFor({ timeout: 4000 });
   await lock.click();
@@ -279,10 +292,10 @@ await step('묶음을 잠그면 끌어도 안 움직인다', async () => {
     { timeout: 4000 }
   );
   await lock.click();
-  await page.click('[data-km="tab"][data-key="node"]');
+  await openPanel(page, 'node');
 });
 await step('내 용어 패널에서 관계 종류 추가', async () => {
-  await page.click('[data-km="tab"][data-key="terms"]');
+  await openPanel(page, 'terms');
   await page.click('[data-km="t-add-edge"]');
   await page.waitForSelector('[data-term-edge]', { timeout: 4000 });
   await page.click('[data-km="t-close"]');
@@ -318,7 +331,7 @@ await step('「많이 이어진 것을 크게」가 실제로 크게 만든다',
     return Math.round(el.getBoundingClientRect().width);
   });
   const before = await widthOf();
-  await page.click('[data-km="tab"][data-key="filter"]');
+  await openPanel(page, 'filter');
   await page.locator('[data-km="f-degree"]').check();
   await page.waitForFunction(
     (w) => {
@@ -411,26 +424,33 @@ await step('키보드로 고르고 옮긴다', async () => {
   if (Math.round(after.x - before.x) < 40) throw new Error('방향키로 안 움직였다: ' + Math.round(after.x - before.x));
   await page.keyboard.press('Escape');
 });
-await step('옆 패널 탭으로 아홉 패널을 오간다', async () => {
+await step('옆 패널 — 접힌 「다른 목록」으로 아홉 패널을 오간다', async () => {
+  // 늘 떠 있던 탭 여덟은 1440px 에서도 두 줄로 접혔다(KL-271 S1). 이제 머리는 한 줄이고
+  // 나머지는 「⌄」 안에 접혀 있다 — **접힌 문으로 실제로 닿는지**가 이 항목의 주제다.
   await page.waitForSelector('.km-tabs', { timeout: 4000 });
+  const rows = await page.evaluate(() => document.querySelectorAll('.km-tabs .km-tab').length);
+  if (rows < 8) throw new Error(`다른 목록이 ${rows}개뿐이다`);
+  const headH = await page.evaluate(() => Math.round(document.querySelector('.km-tabs').getBoundingClientRect().height));
+  if (headH > 44) throw new Error(`패널 머리가 ${headH}px — 한 줄로 안 접혔다`);
   for (const key of ['groups', 'terms', 'filter', 'sna', 'storage', 'help', 'node']) {
-    await page.locator('[data-km="tab"][data-key="' + key + '"]').click();
+    await page.click('[data-km="panel-more"]');
+    await page.click(`[data-km="tab"][data-key="${key}"]`);
     await page.waitForFunction(
-      (k) => document.querySelector('[data-km="tab"][data-key="' + k + '"]')?.classList.contains('is-on') === true,
+      (k) => document.querySelector(`[data-km="tab"][data-key="${k}"]`)?.classList.contains('is-on') === true,
       key,
-      { timeout: 4000 }
+      { timeout: 4000 },
     );
   }
 });
 await step('도움말이 할 수 있는 일을 다 보여 준다', async () => {
-  await page.click('[data-km="tab"][data-key="help"]');
+  await openPanel(page, 'help');
   await page.waitForSelector('[data-km="help-close"]', { timeout: 4000 });
   const rows = await page.locator('.km-help-row').count();
   if (rows < 20) throw new Error(`도움말 줄이 ${rows}개뿐이다`);
   await page.click('[data-km="help-close"]');
 });
 await step('관계망 읽기가 순위를 낸다', async () => {
-  await page.click('[data-km="tab"][data-key="sna"]');
+  await openPanel(page, 'sna');
   await page.waitForSelector('[data-km="sna-focus"]', { timeout: 4000 });
   const rows = await page.locator('[data-km="go-link"]').count();
   if (rows === 0) throw new Error('순위가 하나도 안 나왔다');
@@ -470,7 +490,7 @@ await step('꼬리표를 붙이고 그 꼬리표로 거른다', async () => {
   await page.fill('[data-km="edit-tags"]', '중요, 나중에');
   await page.locator('[data-km="edit-tags"]').blur();
   const before = await page.locator('.ck-node').count();
-  await page.click('[data-km="tab"][data-key="filter"]');
+  await openPanel(page, 'filter');
   const tagBox = page.locator('[data-km="f-tag"]').first();
   await tagBox.waitFor({ timeout: 4000 });
   await tagBox.uncheck();
@@ -504,7 +524,7 @@ await step('꼬리표를 타이핑하면 제안이 좁아지고 Enter 로 붙는
 await step('꼬리표로 색 입히기가 실제로 색을 바꾼다', async () => {
   const strokeOf = () => page.evaluate(() => document.querySelector('.ck-node .ck-node-bg')?.getAttribute('stroke') || '');
   const before = await strokeOf();
-  await page.click('[data-km="tab"][data-key="filter"]');
+  await openPanel(page, 'filter');
   await page.locator('[data-km="f-colortag"]').check();
   await page.waitForFunction((b) => {
     const v = document.querySelector('.ck-node .ck-node-bg')?.getAttribute('stroke') || '';
@@ -565,7 +585,7 @@ await step('Shift+드래그로 여럿 고르고 함께 옮긴다', async () => {
 });
 await step('선이 N개 이상인 것만 남기기', async () => {
   const before = await page.locator('.ck-node').count();
-  await page.click('[data-km="tab"][data-key="filter"]');
+  await openPanel(page, 'filter');
   const sld = page.locator('[data-km="f-mindeg"]');
   await sld.waitFor({ timeout: 4000 });
   await sld.fill('3');
@@ -576,7 +596,7 @@ await step('선이 N개 이상인 것만 남기기', async () => {
 });
 await step('거르기로 노드 종류를 빼면 화면에서 사라진다', async () => {
   const before = await page.locator('.ck-node').count();
-  await page.click('[data-km="tab"][data-key="filter"]');
+  await openPanel(page, 'filter');
   const boxes = page.locator('[data-km="f-node"]');
   const n = await boxes.count();
   for (let i = 0; i < n; i += 1) await boxes.nth(i).uncheck();
@@ -677,7 +697,7 @@ await step('빈 캔버스에서 예시를 넣으면 그림이 생긴다', async 
   await page.click('[data-km="map-new"]');
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
   // 견본은 이제 **옆 패널의 갈래 카드**로 깐다 — 캔버스 위 큰 버튼은 「빈 곳 두 번 클릭」을 잡아먹는다.
-  await page.click('[data-km="tab"][data-key="node"]');
+  await openPanel(page, 'node');
   await page.waitForSelector('[data-km="intent"]', { timeout: 4000 });
   await page.locator('[data-km="intent"]').first().click();
   // 견본은 **이름이 같으면 한 장**이다(KL-271 P8) — 예전엔 「소꿉친구」·「라이벌」이 두 장씩이라 6장이었다.
@@ -711,14 +731,14 @@ await step('공용 글 — 승격하면 목록에 뜨고, 둘째 자리에 붙�
   await page.locator('[data-km="edit-doc-share"]').click();
   await page.waitForSelector('[data-km="edit-doc-unlink"]', { timeout: 4000 });
 
-  await page.click('[data-km="tab"][data-key="notes"]');
+  await openPanel(page, 'notes');
   await page.waitForSelector('[data-km="note-title"]', { timeout: 4000 });
   // 방금 만든 글은 목록 **맨 끝**이다(뒤에 붙인다). 첫 줄을 보면 앞 회차 글을 볼 수 있다.
   const one = await page.locator('.km-group-count').last().textContent();
   if (!(one || '').includes('1곳')) throw new Error('승격한 글을 쓰는 곳이 1곳이 아니다: ' + one);
 
   // 둘째 노드에 같은 글을 붙인다.
-  await page.click('[data-km="tab"][data-key="node"]');
+  await openPanel(page, 'node');
   await page.locator('.ck-node').nth(1).click();
   await page.waitForSelector('[data-km="edit-doc"]', { timeout: 4000 });
   await detachIfShared();
@@ -729,7 +749,7 @@ await step('공용 글 — 승격하면 목록에 뜨고, 둘째 자리에 붙�
   const shownText = await page.inputValue('[data-km="edit-doc"]');
   if (!shownText.trim()) throw new Error('불러 쓴 글이 안 보인다');
 
-  await page.click('[data-km="tab"][data-key="notes"]');
+  await openPanel(page, 'notes');
   await page.waitForSelector('[data-km="note-title"]', { timeout: 4000 });
   const counts = await page.locator('.km-group-count').allTextContents();
   if (!counts.some((c) => c.includes('2곳'))) throw new Error('둘째 자리를 붙였는데 2곳짜리 글이 없다: ' + counts.join('/'));
@@ -741,12 +761,12 @@ await step('공용 글 — 승격하면 목록에 뜨고, 둘째 자리에 붙�
     { timeout: 4000 }
   );
   // 노드 패널 안에서 **바로** 쓰는 자리들이 펼쳐져야 한다 — 목록 패널까지 가야 하면 아무도 안 간다.
-  await page.click('[data-km="tab"][data-key="node"]');
+  await openPanel(page, 'node');
   await page.waitForSelector('[data-km="edit-doc-users"]', { timeout: 4000 });
   await page.locator('[data-km="edit-doc-users"] summary').click();
   const userRows = await page.locator('[data-km="edit-doc-users"] .km-link-row').count();
   if (userRows < 2) throw new Error('쓰는 자리 목록이 2줄 미만: ' + userRows);
-  await page.click('[data-km="tab"][data-key="notes"]');
+  await openPanel(page, 'notes');
   await page.waitForSelector('[data-km="note-title"]', { timeout: 4000 });
 
   // 쓰는 자리를 한 화면에 모아 준다(둘 이상일 때만 눌린다).
@@ -761,11 +781,11 @@ await step('공용 글 — 승격하면 목록에 뜨고, 둘째 자리에 붙�
     null,
     { timeout: 4000 }
   );
-  await page.click('[data-km="tab"][data-key="node"]');
+  await openPanel(page, 'node');
 });
 await step('공용 글을 캔버스에 쪽지로 놓으면 글이 그대로 보인다', async () => {
   // 쪽지는 사본이 아니라 창이다 — 놓자마자 카드 안에 글자가 있어야 하고, 쓰는 곳 수가 하나 는다.
-  await page.click('[data-km="tab"][data-key="notes"]');
+  await openPanel(page, 'notes');
   await page.waitForSelector('[data-km="note-card"]', { timeout: 4000 });
   const beforeNodes = await page.locator('.ck-node').count();
   await page.locator('[data-km="note-card"]').last().click();
@@ -775,14 +795,14 @@ await step('공용 글을 캔버스에 쪽지로 놓으면 글이 그대로 보�
     null,
     { timeout: 4000 }
   );
-  await page.click('[data-km="tab"][data-key="notes"]');
+  await openPanel(page, 'notes');
   const counts = await page.locator('.km-group-count').allTextContents();
   if (!counts.some((c) => c.includes('3곳'))) throw new Error('쪽지를 놓았는데 쓰는 곳이 안 늘었다: ' + counts.join('/'));
-  await page.click('[data-km="tab"][data-key="node"]');
+  await openPanel(page, 'node');
 });
 await step('글 안에 다른 공용 글 끼워 넣기 — 쪽지에 원본 글자가 실린다', async () => {
   // 끼운 자리는 사본이 아니라 창이다. 표(`{{note:…}}`)가 그대로 보이면 실패 — 풀린 글자가 보여야 한다.
-  await page.click('[data-km="tab"][data-key="node"]');
+  await openPanel(page, 'node');
   // 앞 검사에서 공용 글을 **쓰고 있는** 노드를 고르면 끼울 후보가 자기 자신뿐이라 목록이 빈다
   // (자기를 자기 안에 끼우는 것은 고리다). 앞 검사들이 어느 노드에 무엇을 붙였는지에 기대지 말고
   // **빈 곳에 새 노드를 하나 만들어** 거기서 끼운다 — 자료 의존이 없으면 헛 실패도 없다.
@@ -871,7 +891,7 @@ await step('노드에 칸을 만들면 같은 종류의 다른 노드가 그 칸
 });
 await step('칸으로 좁히면 그 칸을 적은 것만 남는다', async () => {
   // 앞 검사가 「출신: 마계」를 적어 뒀다. 좁히면 **적지 않은 노드들이 화면에서 빠져야** 한다.
-  await page.click('[data-km="tab"][data-key="filter"]');
+  await openPanel(page, 'filter');
   await page.waitForSelector('[data-km="f-field"]', { timeout: 4000 });
   const before = await page.locator('.ck-node').count();
   await page.selectOption('[data-km="f-field"]', '출신');
@@ -892,7 +912,7 @@ await step('칸으로 좁히면 그 칸을 적은 것만 남는다', async () =>
 
   await page.locator('[data-km="f-reset"]').click();
   await page.waitForFunction((n) => document.querySelectorAll('.ck-node').length === n, before, { timeout: 4000 });
-  await page.click('[data-km="tab"][data-key="node"]');
+  await openPanel(page, 'node');
 });
 await step('고른 노드 옆 작은 도구 줄에서 쪽지를 바로 붙인다', async () => {
   // 옆 패널까지 가는 왕복이 리듬을 끊는다 — 고른 것 옆에서 바로 눌리는지, 그리고 **실제로 늘어나는지** 본다.
@@ -1116,7 +1136,7 @@ await step('새 카드는 그 종류의 칸 이름을 이미 갖고 태어난다
 });
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
-  await page.click('[data-km="tab"][data-key="notes"]');
+  await openPanel(page, 'notes');
   await page.waitForSelector('[data-km="note-split"]', { timeout: 4000 });
   const before = await page.locator('[data-km="note-title"]').count();
   await page.locator('[data-km="note-split"]').last().click();
@@ -1125,7 +1145,7 @@ await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본
     before,
     { timeout: 4000 }
   );
-  await page.click('[data-km="tab"][data-key="node"]');
+  await openPanel(page, 'node');
   await page.locator('.ck-node').nth(1).click();
   await page.waitForSelector('[data-km="edit-doc"]', { timeout: 4000 });
   const kept = await page.inputValue('[data-km="edit-doc"]');
@@ -1187,7 +1207,7 @@ await step('첫 화면이 「무엇을 만들 건가요」 세 갈래를 크게 
   // 카드는 **옆 패널**에 있다(캔버스에 얹으면 두 번 클릭 제스처와 싸운다). 판을 채우므로 맨 뒤에서 한다.
   await page.click('[data-km="map-new"]');
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
-  await page.click('[data-km="tab"][data-key="node"]');
+  await openPanel(page, 'node');
   const cards = page.locator('[data-km="intent"]');
   if (await cards.count() < 3) throw new Error('갈래 카드가 셋보다 적다');
   // 빈 판에서는 **묻는 말이 맨 위**여야 한다. 「고르면 여기서 고칩니다」가 먼저 오면
@@ -1213,7 +1233,7 @@ await step('첫 화면이 「무엇을 만들 건가요」 세 갈래를 크게 
 
   // 갈래를 고른 **뒤**가 진짜 막히는 자리 — 다음 걸음 안내가 떠야 하고, 한 번 닫으면 안 떠야 한다.
   await page.locator('.ck-node').first().click();
-  await page.click('[data-km="tab"][data-key="node"]');
+  await openPanel(page, 'node');
   await page.locator('.km-canvas').click({ position: { x: 8, y: 8 } });
   await page.waitForTimeout(400);
   const tips = page.locator('[data-km="tips-off"]');
@@ -1310,7 +1330,7 @@ await step('꾸미기 규칙 — 「이 칸이 이 값이면 이 색」이 실�
   // (툴바 높이가 바뀌면 같은 비율이 딴 자리를 가리키기도 한다).
   await page.click('[data-km="map-new"]');
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
-  await page.click('[data-km="tab"][data-key="node"]');
+  await openPanel(page, 'node');
   const rbox = await page.locator('.km-canvas').boundingBox();
   await page.mouse.dblclick(rbox.x + rbox.width * 0.75, rbox.y + rbox.height * 0.35);
   await page.waitForSelector('[data-km="fld-new"]', { timeout: 4000 });
@@ -1332,7 +1352,7 @@ await step('꾸미기 규칙 — 「이 칸이 이 값이면 이 색」이 실�
   });
   const before = await strokeOf();
 
-  await page.click('[data-km="tab"][data-key="filter"]');
+  await openPanel(page, 'filter');
   await page.waitForSelector('[data-km="rule-add"]', { timeout: 4000 });
   await page.selectOption('[data-km="rule-on"]', 'field');
   await page.fill('[data-km="rule-key"]', '진영');
@@ -1350,7 +1370,7 @@ await step('꾸미기 규칙 — 「이 칸이 이 값이면 이 색」이 실�
   // 규칙을 지우면 원래대로 — 못 지우는 규칙은 사람이 안 만든다.
   await page.locator('[data-km="rule-del"]').first().click();
   await page.waitForTimeout(400);
-  await page.click('[data-km="tab"][data-key="node"]');
+  await openPanel(page, 'node');
 });
 await step('카드를 다른 카드 위에 떨어뜨리면 이어진다', async () => {
   // 선 도구를 따로 찾게 하면 처음 쓰는 사람은 관계를 못 만든다 — 겹쳐 놓기만 해도 이어져야 한다.

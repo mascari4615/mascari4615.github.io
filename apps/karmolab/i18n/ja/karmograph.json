@@ -642,5 +642,7 @@
   "karmograph.act.rename": "名前変更",
   "karmograph.palette.open": "すべてのコマンド… (Ctrl ⇧ P)",
   "karmograph.palette.find": "何をしますか — 名前を入力",
-  "karmograph.palette.none": "その名前のコマンドはありません"
+  "karmograph.palette.none": "その名前のコマンドはありません",
+  "karmograph.panel.here": "選んだもの",
+  "karmograph.panel.more": "ほかの一覧"
 }
