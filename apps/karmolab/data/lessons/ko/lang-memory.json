@@ -1,108 +1,803 @@
 {
   "id": "lang-memory",
-  "minutes": 12,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "언어를 고르는 진짜 기준 중 하나 — **멈춤(GC)을 감당할 수 있는가**. 메모리 모델이 그 언어의 성격을 정한다."
-    },
-    {
-      "type": "h",
-      "text": "1. 세 가지 방식"
-    },
-    {
-      "type": "note",
-      "text": "**수동**(C/C++: malloc/free — 빠르지만 누수·이중 해제) · **GC**(Java·Go·JS·C#: 편하지만 멈춤·메모리 여유 필요) · **소유권**(Rust: 컴파일 때 검사 — 런타임 비용 0, 대신 배우기 어렵다)."
-    },
-    {
-      "type": "h",
-      "text": "2. GC 를 이해하기"
-    },
-    {
-      "type": "p",
-      "text": "「아무도 안 가리키는 것」을 치운다. 세대별 GC 는 **대부분의 객체가 금방 죽는다**는 관찰을 이용해 신세대를 자주, 구세대를 가끔 청소한다. 그래서 짧게 사는 임시 객체는 생각보다 싸다."
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "멈춤이 문제가 되는 곳",
-      "text": "· 게임 프레임(16ms 예산에 GC 5ms 가 끼면 끊긴다)\n· 실시간 거래·오디오 처리\n· 지연 p99 가 중요한 API\n\n처방: 할당을 줄인다(객체 풀·재사용) · 큰 배열은 미리 잡는다 · GC 튜닝"
-    },
-    {
-      "type": "h",
-      "text": "3. 소유권 한 문장"
-    },
-    {
-      "type": "code",
-      "lang": "rust",
-      "label": "Rust: 값의 주인은 하나",
-      "text": "let a = String::from(\"hi\");\nlet b = a;              // 소유권이 b 로 이동 — a 는 더 못 쓴다\n// println!(\"{}\", a);   // 컴파일 오류\n\nlet c = &b;             // 빌리기(참조) — 여러 개 읽기 가능, 쓰기는 하나만"
-    },
-    {
-      "type": "note",
-      "text": "「빌린 것이 원본보다 오래 살 수 없다」는 규칙 덕분에 **댕글링 포인터가 컴파일 때 막힌다**. 대가는 학습 곡선과 컴파일러와의 씨름이다."
-    },
-    {
-      "type": "h",
-      "text": "4. 어느 쪽을 고르나"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "판단 기준",
-      "text": "지연 예측이 중요 · 자원 제약이 큼        → 소유권/수동 (Rust · C++)\n생산성·생태계가 중요 · 멈춤 감당 가능    → GC (Go · JVM · C# · JS)\n대부분의 웹 서비스는 GC 로 충분하다 — 그전에 쿼리·캐시부터 고쳐라"
-    },
-    {
-      "type": "h",
-      "text": "5. 어느 언어든 통하는 습관"
-    },
-    {
-      "type": "note",
-      "text": "큰 객체를 반복 생성하지 않기 · 리스너·타이머 정리하기 · 캐시에 상한 두기 · 프로파일러로 실제 할당을 보기. 언어가 무엇이든 누수의 정체는 「누가 아직 붙잡고 있음」이다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "내 언어의 프로파일러로 할당이 가장 많은 지점을 찾아라. 반복문 안의 임시 객체를 줄여 보고 차이를 재라."
-    },
-    {
-      "type": "try",
-      "text": "Rust 튜토리얼의 소유권 장을 따라 하며 컴파일 오류를 일부러 내 보라. 오류 메시지가 무엇을 가르치는지 읽어라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "GC 언어에서 멈춤이 특히 문제가 되는 곳은?",
-      "choices": [
-        "게임 프레임·실시간 처리·p99 지연",
-        "배치 작업",
-        "정적 사이트"
+      "id": "1",
+      "title": "메모리 모델이 언어의 성격을 정한다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "언어를 고르는 진짜 기준 중 하나는 **「멈춤(GC)을 감당할 수 있는가」**다. 메모리를 누가·언제 정리하느냐 — 이 **메모리 모델**이 그 언어의 성격을 정한다. GC 언어(Java·Go·JS·C#)는 편하지만 가끔 **멈춘다**(GC pause), 수동(C/C++)은 빠르고 통제되지만 **누수·이중 해제** 위험, 소유권(Rust)은 컴파일러가 안전을 강제하지만 **학습 곡선**이 있다. 「무엇을 만드나」에 따라 이 트레이드오프의 답이 갈린다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "메모리 모델 = 언어 성격",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .frames { display:flex; gap:2px; margin:8px 0; align-items:flex-end; height:60px; }\n  .frames .f { flex:1; border-radius:2px 2px 0 0; background:#38bdf8; display:flex; align-items:flex-end; justify-content:center; font-size:9px; color:#0b1220; }\n  .frames .f.gc { background:#ef4444; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.7) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const frames = (list) => '<div class=\"frames\">' + list.map(([h, gc, lab]) =>\n    '<div class=\"f ' + (gc?'gc':'') + '\" style=\"height:' + h + '%\">' + esc(lab||'') + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const model = '{{model}}';\n  const cases = {\n    gc:  ['GC (Java·Go·JS·C#)', '런타임이 자동 정리 — 편함', '가끔 멈춤(pause)·메모리 여유 필요', '생산성·생태계 중요, 멈춤 감당 가능할 때'],\n    manual:['수동 (C·C++)', 'malloc/free — 빠르고 완전 통제', '누수·이중 해제·댕글링 위험(사람 실수)', '최고 성능·자원 제약, 통제가 필요할 때'],\n    own: ['소유권 (Rust)', '컴파일러가 정리 시점을 강제 — GC 없이 안전', '학습 곡선·컴파일러와 씨름', '지연 예측 + 안전 둘 다 필요할 때'],\n  }[model];\n  render('메모리 모델: ' + cases[0],\n    '  정리: ' + cases[1] + '\\n  대가: ' + cases[2] + '\\n  언제: ' + cases[3],\n    '누가·언제 메모리를 정리하나 = 언어의 성격. 만들 것에 따라 고른다.',\n    box(cases[0], cases[1] + '\\n대가: ' + cases[2]));\n</script>",
+          "controls": [
+            {
+              "id": "model",
+              "label": "모델",
+              "type": "select",
+              "value": "gc",
+              "options": [
+                {
+                  "value": "gc",
+                  "label": "GC"
+                },
+                {
+                  "value": "manual",
+                  "label": "수동"
+                },
+                {
+                  "value": "own",
+                  "label": "소유권"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**메모리 모델은 「누가 언제 정리하나」의 선택이고, 그게 언어의 성격·용도를 정한다.** GC 는 정리를 런타임에 맡겨 생산성이 높지만 정리 시점을 통제 못 해 멈춤이 생기고, 수동은 개발자가 완전히 통제하지만 실수가 곧 버그(누수·이중 해제·댕글링)이며, 소유권은 컴파일러가 규칙으로 정리 시점을 정해 GC 없이도 안전하다. 그래서 게임 엔진·OS·임베디드는 수동/소유권(멈춤·통제 때문), 웹 서버·앱은 GC(생산성 때문)가 주류다 — 언어 선택이 곧 메모리 모델 선택이고, 「멈춤을 감당할 수 있나」가 그 갈림길의 핵심 질문이다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸은 「언어 고르기」의 관점 — 실행 진단은 sys-mem 이다.** sys-mem 이 「메모리가 실제로 어떻게 동작하나(가상 메모리·RSS·OOM·누수 관측)」를 다뤘다면, 이 칸은 「언어가 메모리를 **어떤 모델로** 다루나, 그게 언어 선택에 어떤 의미인가」를 다룬다 — 같은 메모리를 언어 설계 관점에서 본다(lang-second 의 「메모리 축」). GC 의 멈춤(4장), 수동의 위험(5장), 소유권의 안전(6장)이 각각 어떤 프로젝트에 맞는지 알면, 「이 일에 어떤 언어가 맞나」의 큰 판단이 선다. 두 칸은 짝 — 하나는 실행의 실체, 하나는 언어의 선택이다."
+        },
+        {
+          "type": "try",
+          "text": "네가 쓰는 언어의 메모리 모델(GC·수동·소유권)이 무엇인지, 그것의 대가(멈춤·실수 위험·학습 곡선)를 네 프로젝트에서 실제로 느낀 적 있는지 적어라. 「멈춤을 감당할 수 있나」가 네 도메인에서 어떤 답인지 생각해 보라."
+        }
       ],
-      "answer": 0,
-      "why": "예측 가능한 지연이 필요한 곳이다."
+      "quiz": [
+        {
+          "q": "언어를 고르는 메모리 관련 핵심 질문은?",
+          "choices": [
+            "문법이 예쁜가",
+            "멈춤(GC)을 감당할 수 있는가",
+            "짧은가",
+            "인기 있는가"
+          ],
+          "answer": 1,
+          "why": "모델이 성격을 정함."
+        },
+        {
+          "q": "메모리 모델이 정하는 것은?",
+          "choices": [
+            "속도만",
+            "누가·언제 정리하나 → 언어의 성격·용도",
+            "문법",
+            "이름"
+          ],
+          "answer": 1,
+          "why": "언어 선택=모델 선택."
+        },
+        {
+          "q": "이 칸과 sys-mem 의 관계는?",
+          "choices": [
+            "같음",
+            "이 칸=언어 선택 관점, sys-mem=실행 진단",
+            "무관",
+            "반대"
+          ],
+          "answer": 1,
+          "why": "짝."
+        }
+      ]
     },
     {
-      "q": "Rust 소유권의 핵심 규칙은?",
-      "choices": [
-        "값의 주인은 하나이고, 빌린 것은 원본보다 오래 살 수 없다",
-        "모든 값은 복사된다",
-        "GC 가 백그라운드로 돈다"
+      "id": "2",
+      "title": "세 가지 방식",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "메모리 정리 방식은 크게 셋이다: **수동**(C/C++ — `malloc`/`free` 를 손으로, 빠르지만 누수·이중 해제·댕글링 위험) · **GC**(Java·Go·JS·C# — 런타임이 자동 정리, 편하지만 멈춤·메모리 여유 필요) · **소유권**(Rust — 컴파일러가 소유·수명 규칙으로 정리 시점을 정함, GC 없이 안전하지만 학습 곡선). 각 방식은 「통제 ↔ 편의 ↔ 안전」의 다른 균형점이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "세 방식 — 통제·편의·안전의 균형",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .frames { display:flex; gap:2px; margin:8px 0; align-items:flex-end; height:60px; }\n  .frames .f { flex:1; border-radius:2px 2px 0 0; background:#38bdf8; display:flex; align-items:flex-end; justify-content:center; font-size:9px; color:#0b1220; }\n  .frames .f.gc { background:#ef4444; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.7) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const frames = (list) => '<div class=\"frames\">' + list.map(([h, gc, lab]) =>\n    '<div class=\"f ' + (gc?'gc':'') + '\" style=\"height:' + h + '%\">' + esc(lab||'') + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const m = '{{m}}';\n  const cases = {\n    manual:['수동 (malloc/free)', 90, 30, 30, '통제·속도 최고 / 안전은 사람에게 달림(실수=버그)'],\n    gc:  ['GC (자동)', 40, 95, 85, '편의 최고 / 멈춤·메모리 여유 대가'],\n    own: ['소유권 (컴파일러)', 85, 55, 95, '통제+안전 / 학습 곡선 대가'],\n  }[m];\n  render('방식: ' + cases[0],\n    '  ' + cases[4],\n    '수동=통제, GC=편의, 소유권=안전+통제. 각 방식은 다른 균형점.',\n    bars([['통제·속도', cases[1], cases[1]+'', '#38bdf8'],['편의', cases[2], cases[2]+'', '#4ade80'],['안전(기계보장)', cases[3], cases[3]+'', '#a78bfa']]));\n</script>",
+          "controls": [
+            {
+              "id": "m",
+              "label": "방식",
+              "type": "select",
+              "value": "manual",
+              "options": [
+                {
+                  "value": "manual",
+                  "label": "수동"
+                },
+                {
+                  "value": "gc",
+                  "label": "GC"
+                },
+                {
+                  "value": "own",
+                  "label": "소유권"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "세 가지 방식",
+          "text": "수동   C/C++: malloc/free 를 손으로\n       빠르고 완전 통제 / 누수·이중 해제·댕글링 (사람 실수)\nGC     Java·Go·JS·C#: 런타임이 자동 정리\n       편함 / 가끔 멈춤(pause)·메모리 여유 필요\n소유권  Rust: 컴파일러가 소유·수명으로 정리 시점 결정\n       GC 없이 안전 / 학습 곡선·컴파일러와 씨름\n\n통제 ↔ 편의 ↔ 안전 — 세 방식은 다른 균형점"
+        },
+        {
+          "type": "note",
+          "text": "**세 방식은 「안전을 누가 보장하나」가 다르다 — 사람·런타임·컴파일러.** 수동은 안전을 **사람**이 보장해야 해(free 를 정확히 한 번, 쓴 뒤에 안 씀) 실수가 곧 버그다. GC 는 안전을 **런타임**이 보장하지만(자동 회수) 그 대가로 멈춤·메모리 오버헤드가 있다. 소유권은 안전을 **컴파일러**가 보장한다 — 소유·수명 규칙을 어기면 컴파일 에러라, 런타임 비용(GC) 없이 안전하다. 그래서 「빠르고 안전」을 동시에 원하면 소유권(Rust), 「편하고 안전」이면 GC, 「최고 통제」면 수동이다. 각 방식은 이 트레이드오프의 다른 답이고, 하나가 절대 우월하지 않다."
+        },
+        {
+          "type": "p",
+          "text": "**참조 카운팅은 GC 와 수동의 중간이다.** 스위프트·파이썬(일부)·C++ 의 `shared_ptr` 은 **참조 카운팅**(RC)을 쓴다 — 객체를 가리키는 참조 수를 세다 0 이 되면 즉시 해제한다. GC 처럼 자동이지만 정리가 **즉각적**(멈춤 적음)이고, 수동보다 안전하다. 단 **순환 참조**(A→B→A)는 카운트가 0 이 안 돼 못 치우니(누수), 약한 참조(weak)로 끊어야 한다. 그래서 「자동 정리」에도 여러 방식(추적 GC·참조 카운팅·소유권)이 있고, 각각 멈춤·즉시성·순환 처리에서 다르다. 「GC 냐 아니냐」의 이분법보다, 「어떤 자동화 방식이고 그 특성이 뭔가」로 보면 언어의 메모리 동작이 이해된다."
+        },
+        {
+          "type": "try",
+          "text": "네가 아는 언어들을 세 방식(수동·GC·소유권, +참조 카운팅)으로 분류하라. 각 언어에서 「메모리를 잘못 다루면 무엇이 나나」(누수·멈춤·컴파일 에러)를 짝지어, 방식별 대가를 정리하라."
+        }
       ],
-      "answer": 0,
-      "why": "컴파일 시점에 메모리 안전을 보장한다."
+      "quiz": [
+        {
+          "q": "메모리 정리 세 방식은?",
+          "choices": [
+            "빠름·느림·중간",
+            "수동·GC·소유권",
+            "정적·동적·혼합",
+            "스택·힙·레지스터"
+          ],
+          "answer": 1,
+          "why": "안전을 누가 보장하나."
+        },
+        {
+          "q": "소유권(Rust)이 안전을 보장하는 주체는?",
+          "choices": [
+            "사람",
+            "컴파일러(소유·수명 규칙)",
+            "런타임 GC",
+            "OS"
+          ],
+          "answer": 1,
+          "why": "GC 없이 안전."
+        },
+        {
+          "q": "참조 카운팅의 약점은?",
+          "choices": [
+            "느림",
+            "순환 참조를 못 치움(weak 로 끊어야)",
+            "멈춤 큼",
+            "타입"
+          ],
+          "answer": 1,
+          "why": "GC↔수동 중간."
+        }
+      ]
     },
     {
-      "q": "언어와 무관하게 누수의 정체는?",
-      "choices": [
-        "안 쓰는데 누군가 참조를 붙잡고 있는 것",
-        "GC 버그",
-        "메모리 부족"
+      "id": "3",
+      "title": "GC 를 이해하기",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**가비지 컬렉터(GC)**는 「아무도 안 가리키는 것」을 치운다 — 루트(전역·스택)에서 도달 불가능한 객체가 쓰레기다(참조가 있으면 안 치움, sys-mem 7장의 「참조 안 끊김=누수」). **세대별 GC**는 「**대부분의 객체가 금방 죽는다**」는 관찰(세대 가설)을 이용한다: 새 객체는 **신세대**에 두고 자주·빠르게 청소하고, 오래 살아남은 것만 **구세대**로 옮겨 가끔 청소한다. 이 덕에 전체를 매번 훑지 않아 효율적이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "세대별 GC — 금방 죽는 것을 자주",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .frames { display:flex; gap:2px; margin:8px 0; align-items:flex-end; height:60px; }\n  .frames .f { flex:1; border-radius:2px 2px 0 0; background:#38bdf8; display:flex; align-items:flex-end; justify-content:center; font-size:9px; color:#0b1220; }\n  .frames .f.gc { background:#ef4444; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.7) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const frames = (list) => '<div class=\"frames\">' + list.map(([h, gc, lab]) =>\n    '<div class=\"f ' + (gc?'gc':'') + '\" style=\"height:' + h + '%\">' + esc(lab||'') + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const gen = '{{gen}}';\n  if (gen === 'young') {\n    render('신세대 (young) — 자주·빠르게',\n      '  새 객체 대부분은 금방 죽는다(임시 변수·중간 결과)\\n' +\n      '  <span class=\\\"ok\\\">작은 영역을 자주 청소 → 빠름. 대부분 여기서 회수.</span>',\n      '세대 가설: 대부분 객체가 금방 죽는다 → 신세대를 자주 청소.',\n      steps([['새 객체 → 신세대', 'on'],['대부분 곧 도달 불가(죽음)', 'good'],['신세대만 자주 청소 → 빠름', 'good'],['살아남은 것만 승격', 'on']]));\n  } else {\n    render('구세대 (old) — 가끔·크게',\n      '  신세대에서 여러 번 살아남은 것 → 구세대로 승격\\n' +\n      '  <span class=\\\"warn\\\">오래 사는 것들. 가끔 청소(full GC)는 크고 느릴 수 있음.</span>',\n      '오래 살아남은 것만 구세대로 — 가끔 청소(멈춤이 클 수 있음, 4장).',\n      steps([['여러 번 생존 → 구세대 승격', 'on'],['오래 사는 캐시·상태', 'on'],['가끔 full GC (크고 느림)', 'bad']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "gen",
+              "label": "세대",
+              "type": "select",
+              "value": "young",
+              "options": [
+                {
+                  "value": "young",
+                  "label": "신세대"
+                },
+                {
+                  "value": "old",
+                  "label": "구세대"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**GC 는 「도달 가능성」으로 판단한다 — 참조가 있으면 안 치운다.** GC 는 루트(전역·현재 스택)에서 참조를 따라가 **도달 가능한** 객체를 산 것으로, 나머지를 쓰레기로 본다. 그래서 「안 쓰는데 어딘가가 참조를 붙잡고 있으면」 영원히 안 치워진다 — 이게 관리 언어의 메모리 누수(sys-mem 7장: 캐시·리스너·전역 배열이 참조를 쥠). **세대 가설**(대부분 금방 죽음)은 GC 를 효율화한다: 금방 죽을 신세대를 자주 청소하면 적은 비용으로 대부분을 회수하고, 오래 사는 것만 구세대로 모아 가끔 처리한다. 「왜 임시 객체를 많이 만들어도 대체로 괜찮은지」·「왜 오래 사는 캐시가 full GC 를 유발하는지」가 이 세대 구조로 설명된다."
+        },
+        {
+          "type": "p",
+          "text": "**GC 종류마다 「멈춤 vs 처리량」 균형이 다르다.** GC 는 회수를 위해 프로그램을 잠깐 멈추는데(stop-the-world), 이 멈춤을 줄이려 여러 전략이 있다 — 처리량 우선(멈춤은 길어도 총량 효율), 지연 우선(멈춤을 잘게·동시 수집: Go 의 GC, 자바의 G1·ZGC·Shenandoah). 그래서 같은 언어라도 GC 를 튜닝하거나(힙 크기·세대 비율) 저지연 GC 를 골라 p99 를 개선한다(4장). 「GC 언어는 다 똑같이 멈춘다」가 아니라, 어떤 GC 를 어떻게 설정했나에 따라 크게 다르다 — 지연이 중요한 서비스는 이 선택·튜닝이 성능 작업의 일부다(sys-profile·scale)."
+        },
+        {
+          "type": "try",
+          "text": "네 GC 언어의 GC 로그를 켜서(예: Java `-verbose:gc`, Node `--trace-gc`) 신세대·구세대 수집이 얼마나 자주·오래 도는지 관찰하라. 임시 객체를 많이 만드는 코드가 신세대 GC 빈도를 어떻게 바꾸는지도 보라."
+        }
       ],
-      "answer": 0,
-      "why": "리스너·캐시·타이머가 단골 범인이다."
+      "quiz": [
+        {
+          "q": "GC 가 치우는 대상은?",
+          "choices": [
+            "오래된 것",
+            "루트에서 도달 불가능한(아무도 안 가리키는) 것",
+            "큰 것",
+            "느린 것"
+          ],
+          "answer": 1,
+          "why": "참조 있으면 안 치움."
+        },
+        {
+          "q": "세대별 GC 가 이용하는 관찰은?",
+          "choices": [
+            "객체는 크다",
+            "대부분 객체가 금방 죽는다(세대 가설)",
+            "메모리는 무한",
+            "순환뿐"
+          ],
+          "answer": 1,
+          "why": "신세대 자주 청소."
+        },
+        {
+          "q": "관리 언어 누수의 정체는?",
+          "choices": [
+            "free 누락",
+            "안 쓰는데 참조가 붙잡혀 도달 가능(GC 가 못 치움)",
+            "GC 버그",
+            "OOM"
+          ],
+          "answer": 1,
+          "why": "참조를 끊어야."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "GC 멈춤이 문제인 곳",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "GC 의 대가는 **멈춤(pause)**이다 — 회수하는 동안 프로그램이 잠깐 멈춘다. 대부분의 앱엔 무해하지만, **지연 예측이 중요한** 곳에선 치명적이다: **게임 프레임**(16ms 예산에 GC 5ms 가 끼면 끊긴다) · **실시간 거래·오디오 처리**(정해진 시각을 놓치면 실패) · **지연 p99 가 중요한 API**(평균은 빨라도 가끔 GC 로 느림). 이런 곳에선 GC 언어를 피하거나, 할당을 줄이고 GC 를 튜닝한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "GC 멈춤 — 프레임에 끼면",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .frames { display:flex; gap:2px; margin:8px 0; align-items:flex-end; height:60px; }\n  .frames .f { flex:1; border-radius:2px 2px 0 0; background:#38bdf8; display:flex; align-items:flex-end; justify-content:center; font-size:9px; color:#0b1220; }\n  .frames .f.gc { background:#ef4444; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.7) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const frames = (list) => '<div class=\"frames\">' + list.map(([h, gc, lab]) =>\n    '<div class=\"f ' + (gc?'gc':'') + '\" style=\"height:' + h + '%\">' + esc(lab||'') + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const load = '{{load}}';\n  const gcMs = load === 'high' ? 6 : load === 'mid' ? 3 : 1;\n  const budget = 16;\n  const work = 10;\n  const over = (work + gcMs) > budget;\n  render('프레임 예산 ' + budget + 'ms · GC ' + gcMs + 'ms',\n    '  작업 ' + work + 'ms + GC ' + gcMs + 'ms = ' + (work+gcMs) + 'ms\\n\\n' +\n    (over\n      ? '  <span class=\\\"no\\\">예산 초과 → 프레임 드롭(끊김). 게임·오디오에선 체감 렉.</span>'\n      : '  <span class=\\\"ok\\\">예산 안 → 부드러움. 하지만 할당 많아지면 GC 가 커진다.</span>'),\n    '16ms 예산에 GC 가 끼면 프레임이 끊긴다. 지연 예측이 중요한 곳의 문제.',\n    frames([[60,false,''],[62,false,''],[over?100:65,over,over?'GC!':''],[60,false,''],[63,false,''],[over?100:64,over,over?'GC!':'']]));\n</script>",
+          "controls": [
+            {
+              "id": "load",
+              "label": "할당 부하",
+              "type": "select",
+              "value": "low",
+              "options": [
+                {
+                  "value": "low",
+                  "label": "낮음(GC 1ms)"
+                },
+                {
+                  "value": "mid",
+                  "label": "중간(3ms)"
+                },
+                {
+                  "value": "high",
+                  "label": "높음(6ms)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "GC 멈춤이 아픈 곳 · 처방",
+          "text": "GC 멈춤이 치명적인 곳:\n· 게임 프레임 (16ms 예산에 GC 5ms 끼면 끊긴다)\n· 실시간 거래·오디오 처리 (정해진 시각을 놓치면 실패)\n· 지연 p99 가 중요한 API (평균 빠른데 가끔 GC 로 튐)\n\n처방:\n· 할당을 줄인다 (객체 풀·재사용·값 타입·버퍼 재사용)\n· 저지연 GC 선택·튜닝 (ZGC·Shenandoah·Go GC)\n· 정말 중요하면 소유권/수동 언어로 (Rust·C++)"
+        },
+        {
+          "type": "note",
+          "text": "**GC 멈춤은 「평균」이 아니라 「꼬리(p99)」를 망친다 — 지연이 중요한 곳의 함정이다.** GC 언어의 평균 지연은 좋아도, GC 가 도는 순간의 요청·프레임은 크게 느려진다(sys-profile 6장의 「평균 vs 꼬리」와 정확히 같은 문제). 그래서 게임(매 프레임 16ms 안에)·실시간·저지연 API 처럼 **최악을 보장해야** 하는 곳에서 GC 는 위험하다. 처방은 ① **할당을 줄여** GC 빈도·크기를 낮추기(객체 풀·재사용·값 타입, 8장) ② **저지연 GC** 선택·튜닝 ③ 정말 중요하면 **멈춤 없는 모델**(소유권·수동)로 가기다. 「멈춤을 감당할 수 있나」(1장)가 여기서 구체적 질문이 된다 — 네 도메인의 지연 요구가 GC 를 견디는가."
+        },
+        {
+          "type": "p",
+          "text": "**대부분의 앱은 GC 멈춤을 감당할 수 있다 — 그래서 GC 언어가 주류다.** 웹 서버·CRUD 앱·배치·CLI 대부분은 수 ms 의 GC 멈춤이 문제가 안 되고, 그 대가로 얻는 생산성·안전·생태계가 훨씬 크다(1장). 그래서 「GC 는 나쁘다」가 아니라 「내 도메인이 GC 멈춤을 감당하나」를 묻는 것이다 — 감당되면 GC 언어의 편의를 취하고, 안 되면(게임·실시간) 소유권/수동을 고른다. 게다가 GC 언어 안에서도 뜨거운 경로만 할당을 줄이거나(핫패스 최적화) 저지연 GC 로 상당 부분 완화된다. 「멈춤 감당 여부」가 언어 선택의 큰 갈림길이지, GC 자체가 결격 사유는 아니다."
+        },
+        {
+          "type": "try",
+          "text": "네 서비스의 지연 요구(평균으로 충분한가, p99·최악을 보장해야 하나)를 적고, GC 멈춤을 감당할 수 있는지 판단하라. GC 언어라면 GC 로그로 멈춤 시간을 재고, 할당을 줄였을 때 멈춤이 주는지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "GC 멈춤이 특히 치명적인 곳이 아닌 것은?",
+          "choices": [
+            "게임 프레임",
+            "실시간·오디오",
+            "지연 p99 중요 API",
+            "야간 배치 작업"
+          ],
+          "answer": 3,
+          "why": "배치는 감당 가능."
+        },
+        {
+          "q": "GC 멈춤이 망치는 것은?",
+          "choices": [
+            "평균만",
+            "꼬리(p99)·최악 지연",
+            "메모리 총량",
+            "처리량만"
+          ],
+          "answer": 1,
+          "why": "가끔 크게 느림."
+        },
+        {
+          "q": "GC 멈춤 처방이 아닌 것은?",
+          "choices": [
+            "할당 줄이기(풀·재사용)",
+            "저지연 GC 튜닝",
+            "중요하면 소유권/수동",
+            "GC 끄기"
+          ],
+          "answer": 3,
+          "why": "완화·모델 전환."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "수동 관리 — 통제와 위험",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**수동 관리**(C/C++)는 `malloc`/`free` 로 개발자가 직접 할당·해제한다 — 가장 빠르고 완전히 통제되지만, 실수가 곧 심각한 버그다: **누수**(free 안 함) · **이중 해제**(두 번 free) · **댕글링 포인터**(해제한 걸 다시 씀) · **버퍼 오버런**. 이 위험을 줄이려 C++ 은 **RAII**(자원을 객체 수명에 묶어 자동 해제)와 스마트 포인터(`unique_ptr`·`shared_ptr`)를 쓴다 — 「해제를 잊지 않게」 구조로 강제한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "수동 관리 — 위험과 RAII",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .frames { display:flex; gap:2px; margin:8px 0; align-items:flex-end; height:60px; }\n  .frames .f { flex:1; border-radius:2px 2px 0 0; background:#38bdf8; display:flex; align-items:flex-end; justify-content:center; font-size:9px; color:#0b1220; }\n  .frames .f.gc { background:#ef4444; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.7) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const frames = (list) => '<div class=\"frames\">' + list.map(([h, gc, lab]) =>\n    '<div class=\"f ' + (gc?'gc':'') + '\" style=\"height:' + h + '%\">' + esc(lab||'') + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'raw') {\n    render('생 포인터 (malloc/free)',\n      'char* p = malloc(n);\\n... use(p) ...\\nfree(p);   // 잊으면 누수, 두 번이면 이중 해제\\nuse(p);    // 해제 후 사용 = 댕글링!',\n      '수동은 빠르고 통제되나 실수(누수·이중해제·댕글링)가 심각한 버그.',\n      steps([['malloc → 할당', 'on'],['free 잊음 → 누수', 'bad'],['free 두 번 → 이중 해제(크래시)', 'bad'],['free 후 use → 댕글링(보안 취약)', 'bad']]));\n  } else {\n    render('RAII / 스마트 포인터',\n      'auto p = make_unique<T>();\\n// 스코프 벗어나면 자동 해제(소멸자)\\n// 잊을 수도, 두 번 할 수도 없다',\n      'RAII: 자원을 객체 수명에 묶어 자동 해제 — 실수를 구조로 막는다.',\n      steps([['unique_ptr 할당', 'on'],['스코프 끝 → 소멸자가 자동 해제', 'good'],['잊음·이중 해제 불가', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "방식",
+              "type": "select",
+              "value": "raw",
+              "options": [
+                {
+                  "value": "raw",
+                  "label": "생 포인터"
+                },
+                {
+                  "value": "raii",
+                  "label": "RAII/스마트 포인터"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**수동 관리의 위험 4종 — 누수·이중 해제·댕글링·오버런 — 은 심각하고 잡기 어렵다.** free 를 잊으면 누수, 두 번 하면 이중 해제(크래시·힙 오염), 해제한 메모리를 다시 쓰면 댕글링(use-after-free, **보안 취약점의 주범**), 경계를 넘어 쓰면 버퍼 오버런이다 — 이들은 즉시 안 터지고 나중에 엉뚱한 곳에서 터져(메모리 오염) 디버깅이 어렵다. C++ 은 **RAII**(Resource Acquisition Is Initialization)로 이를 완화한다: 자원을 **객체의 수명에 묶어**, 스코프를 벗어나면 소멸자가 자동 해제한다 — 「해제를 잊거나 두 번 하는」 실수를 구조적으로 막는다. `unique_ptr`(단독 소유)·`shared_ptr`(공유·참조 카운팅)가 그 도구다. 그래도 개발자 규율에 의존하는 부분이 남아, Rust 는 이걸 컴파일러 강제로 밀어붙였다(6장)."
+        },
+        {
+          "type": "p",
+          "text": "**메모리 안전 버그가 보안 취약점의 큰 몫이다.** 마이크로소프트·구글의 분석에서 심각한 보안 취약점의 ~70%가 메모리 안전 문제(use-after-free·버퍼 오버런 등)로 밝혀졌다 — 그래서 수동 메모리 언어의 「통제」는 「위험」과 동전의 양면이다. 이 때문에 새 시스템 코드에 **Rust 같은 메모리 안전 언어**를 도입하는 흐름이 크다(정부·기업 권고). 수동 언어를 써야 하면 RAII·스마트 포인터·정적 분석기(ASan·Valgrind)·경계 검사로 위험을 줄이지만, 근본적으로는 **컴파일러가 안전을 보장하는** 소유권 모델(6장)이 「빠르면서 안전」의 답으로 부상했다. 「빠름 vs 안전」의 오랜 대립을 소유권이 상당 부분 해소한 것이다."
+        },
+        {
+          "type": "try",
+          "text": "C/C++ 코드가 있다면 생 포인터를 스마트 포인터(unique_ptr·shared_ptr)로 바꿔 자동 해제되게 하라. Valgrind·AddressSanitizer 로 누수·use-after-free 를 검출해, 수동 관리의 위험이 실제로 잡히는지 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "수동 메모리 관리의 위험이 아닌 것은?",
+          "choices": [
+            "누수",
+            "이중 해제·댕글링",
+            "버퍼 오버런",
+            "GC 멈춤"
+          ],
+          "answer": 3,
+          "why": "멈춤은 GC 문제."
+        },
+        {
+          "q": "RAII 가 하는 일은?",
+          "choices": [
+            "GC",
+            "자원을 객체 수명에 묶어 자동 해제(실수를 구조로 막음)",
+            "느리게",
+            "타입"
+          ],
+          "answer": 1,
+          "why": "잊기·이중해제 방지."
+        },
+        {
+          "q": "심각한 보안 취약점의 큰 몫을 차지하는 것은?",
+          "choices": [
+            "느린 코드",
+            "메모리 안전 버그(use-after-free 등)",
+            "오타",
+            "GC"
+          ],
+          "answer": 1,
+          "why": "메모리 안전 언어 흐름."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "소유권 — GC 없이 안전하게",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**소유권**(Rust)은 「각 값에는 소유자가 하나」이고, 소유자가 스코프를 벗어나면 값이 **자동 해제**된다 — GC 없이, 수동 free 없이, **컴파일러가** 정리 시점을 안다. 값을 다른 곳에 넘기면 소유권이 **이동**(move)해 원래 변수는 못 쓰고, 잠깐 쓰려면 **빌림**(borrow, 참조)한다. 핵심 규칙: **「빌린 것은 원본보다 오래 살 수 없다」** — 이 규칙 덕에 **댕글링 포인터가 컴파일 때 막힌다**. 대가는 학습 곡선과 컴파일러와의 씨름이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "소유권 — 이동·빌림·수명",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .frames { display:flex; gap:2px; margin:8px 0; align-items:flex-end; height:60px; }\n  .frames .f { flex:1; border-radius:2px 2px 0 0; background:#38bdf8; display:flex; align-items:flex-end; justify-content:center; font-size:9px; color:#0b1220; }\n  .frames .f.gc { background:#ef4444; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.7) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const frames = (list) => '<div class=\"frames\">' + list.map(([h, gc, lab]) =>\n    '<div class=\"f ' + (gc?'gc':'') + '\" style=\"height:' + h + '%\">' + esc(lab||'') + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{c}}';\n  const cases = {\n    move: ['이동 (move)', 'let a = String::from(\"hi\"); let b = a;', 'a 의 소유권이 b 로 이동 → a 는 더 못 씀(이중 해제 원천 차단)'],\n    borrow:['빌림 (borrow)', 'fn len(s: &String) -> usize', '소유권 안 넘기고 참조만 — 원본은 그대로'],\n    lifetime:['수명 (lifetime)', '빌린 참조 < 원본 수명', '「빌린 것이 원본보다 오래 살 수 없다」 → 댕글링 컴파일 차단'],\n    drop: ['자동 해제 (drop)', '소유자가 스코프 벗어나면 자동 해제', 'GC 없이·free 없이 컴파일러가 시점을 앎'],\n  }[c];\n  render('소유권: ' + cases[0],\n    '  ' + cases[1] + '\\n  → ' + cases[2],\n    '소유자 하나 · 넘기면 이동 · 빌림은 원본보다 짧게 → 댕글링 컴파일 차단.',\n    box(cases[0], cases[2], 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "c",
+              "label": "개념",
+              "type": "select",
+              "value": "move",
+              "options": [
+                {
+                  "value": "move",
+                  "label": "이동"
+                },
+                {
+                  "value": "borrow",
+                  "label": "빌림"
+                },
+                {
+                  "value": "lifetime",
+                  "label": "수명"
+                },
+                {
+                  "value": "drop",
+                  "label": "자동 해제"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "rust",
+          "label": "소유권 한 문장",
+          "text": "let a = String::from(\"hi\");\nlet b = a;              // 소유권이 b 로 이동 — a 는 더 못 쓴다\n// println!(\"{}\", a);   // ✗ 컴파일 에러: a 는 이동됨\n\nfn len(s: &String) -> usize { s.len() }  // 빌림(참조): 소유권 안 넘김\nlen(&b);  // b 는 여전히 유효\n\n// 규칙: 빌린 참조는 원본보다 오래 살 수 없다\n//   → 해제된 것을 가리키는 댕글링 포인터가 컴파일 때 막힌다"
+        },
+        {
+          "type": "note",
+          "text": "**소유권: 소유자 하나 + 넘기면 이동 + 빌림은 원본보다 짧게 → 컴파일러가 안전을 보장한다.** 각 값의 소유자가 하나뿐이라 「누가 해제할지」가 명확하고(이중 해제 불가), 소유권을 넘기면(move) 원래 변수를 못 써 use-after-move 가 막히고, 잠깐 쓰려 **빌린 참조**는 원본보다 오래 못 살아(수명 규칙) **댕글링이 컴파일 때** 막힌다. 게다가 「가변 참조는 한 번에 하나만」이라는 빌림 규칙이 **데이터 경합(race)까지 컴파일 때** 막는다(sys-process·lang-concurrency). 이 모든 걸 **런타임 비용 없이**(GC 없이) 컴파일러가 정적으로 검사한다 — 「빠르면서 안전」이 소유권의 약속이다. 대가는 이 규칙을 만족시키느라 컴파일러와 씨름하는 학습 곡선이다."
+        },
+        {
+          "type": "p",
+          "text": "**빌림 규칙이 어렵지만, 익히면 컴파일러가 도우미가 된다(lang-second 6장).** 소유권·수명은 처음엔 borrow checker 와의 씨름으로 느껴지지만, 그 규칙들은 사실 **좋은 데이터 흐름 설계**를 강제하는 것이다 — 「누가 이 데이터를 소유하고, 누가 언제까지 빌리나」를 명확히 하면 코드가 오히려 명료해진다. 그리고 그렇게 익힌 **소유권 사고**는 GC 언어에도 전이된다(lang-second 3·7장): JS·자바에서도 「이 객체를 누가 들고 있나, 언제 놓아야 하나」를 의식해 누수를 줄인다. 그래서 Rust 를 배우는 가치는 「Rust 를 쓰는 것」을 넘어, **자원 수명을 의식하는 사고**를 어느 언어에서든 갖는 데 있다. 소유권은 메모리 모델이자 사고방식이다."
+        },
+        {
+          "type": "try",
+          "text": "Rust 튜토리얼의 소유권 장을 따라 하며 컴파일 오류(이동 후 사용·댕글링·이중 가변 빌림)를 일부러 내 보라 — 오류 메시지가 무엇을(어떤 안전 규칙을) 가르치는지 읽어라. 그 사고를 네 GC 언어 코드의 「누가 이걸 들고 있나」에 적용해 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "소유권 모델의 핵심 규칙은?",
+          "choices": [
+            "소유자 여럿",
+            "값마다 소유자 하나, 넘기면 이동, 빌림은 원본보다 짧게",
+            "GC 로 정리",
+            "free 수동"
+          ],
+          "answer": 1,
+          "why": "컴파일러가 안전 보장."
+        },
+        {
+          "q": "「빌린 것은 원본보다 오래 못 산다」가 막는 것은?",
+          "choices": [
+            "누수",
+            "댕글링 포인터(해제된 것 참조) — 컴파일 때",
+            "느림",
+            "멈춤"
+          ],
+          "answer": 1,
+          "why": "정적 검사."
+        },
+        {
+          "q": "소유권이 GC·수동보다 나은 점은?",
+          "choices": [
+            "문법이 쉬움",
+            "런타임 비용(GC) 없이 컴파일러가 안전 보장(빠름+안전)",
+            "느림",
+            "동적"
+          ],
+          "answer": 1,
+          "why": "대가는 학습 곡선."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "어느 쪽을 고르나",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "메모리 모델(=언어) 선택의 지침: **지연 예측이 중요하거나 자원 제약이 크면** → 소유권/수동(Rust·C++ — 멈춤 없음·통제) · **생산성·생태계가 중요하고 멈춤을 감당할 수 있으면** → GC(Java·Go·JS·C# — 편의·속도). 대부분의 웹·앱·서비스는 GC 로 충분하고, 게임·OS·임베디드·저지연은 소유권/수동이 맞다. 「멈춤을 감당할 수 있나」(1장)가 핵심 질문이고, 답은 **도메인**이 정한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "선택 — 도메인이 정한다",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .frames { display:flex; gap:2px; margin:8px 0; align-items:flex-end; height:60px; }\n  .frames .f { flex:1; border-radius:2px 2px 0 0; background:#38bdf8; display:flex; align-items:flex-end; justify-content:center; font-size:9px; color:#0b1220; }\n  .frames .f.gc { background:#ef4444; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.7) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const frames = (list) => '<div class=\"frames\">' + list.map(([h, gc, lab]) =>\n    '<div class=\"f ' + (gc?'gc':'') + '\" style=\"height:' + h + '%\">' + esc(lab||'') + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const domain = '{{domain}}';\n  const cases = {\n    web:  ['웹 서버·CRUD·앱', 'GC (Go·Java·JS·C#)', '수 ms 멈춤 감당 가능 · 생산성·생태계 이득 큼'],\n    game: ['게임 엔진·실시간', '소유권/수동 (Rust·C++)', '프레임 예산·멈춤 없음이 필수(4장)'],\n    sys:  ['OS·임베디드·드라이버', '소유권/수동 (Rust·C)', '자원 제약·하드웨어 통제·예측 가능성'],\n    cli:  ['CLI·스크립트·배치', 'GC 또는 아무거나', '멈춤 무관 · 생산성 우선(Python·Go)'],\n    lowlat:['저지연 거래·오디오', '소유권/수동 (Rust·C++)', 'p99·최악 지연 보장 필요 — GC 위험'],\n  }[domain];\n  render('도메인: ' + cases[0],\n    '  권장: ' + cases[1] + '\\n  이유: ' + cases[2],\n    '지연 예측·자원 제약 → 소유권/수동. 생산성·멈춤 감당 → GC. 도메인이 정한다.',\n    box(cases[0], cases[1] + '\\n→ ' + cases[2]));\n</script>",
+          "controls": [
+            {
+              "id": "domain",
+              "label": "도메인",
+              "type": "select",
+              "value": "web",
+              "options": [
+                {
+                  "value": "web",
+                  "label": "웹·앱"
+                },
+                {
+                  "value": "game",
+                  "label": "게임·실시간"
+                },
+                {
+                  "value": "sys",
+                  "label": "OS·임베디드"
+                },
+                {
+                  "value": "cli",
+                  "label": "CLI·배치"
+                },
+                {
+                  "value": "lowlat",
+                  "label": "저지연"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**「지연 예측·자원 제약이 중요한가」 vs 「생산성·멈춤 감당 가능한가」로 갈린다.** 두 축이 선택을 정한다: ① **지연/자원** — 프레임 예산·p99 보장·메모리 제약이 있으면(게임·실시간·임베디드·OS) 멈춤 없는 소유권/수동이 필요하다 ② **생산성/생태계** — 빠른 개발·풍부한 라이브러리·팀 확보가 중요하고 수 ms 멈춤이 괜찮으면(웹·앱·대부분의 서비스) GC 가 이득이다. 대부분의 소프트웨어는 후자라 GC 언어가 주류이고, 특수한 요구(저지연·시스템)에서 소유권/수동을 고른다. Rust 는 「지연 예측 + 안전 + 생산성」을 어느 정도 다 주려 해 이 경계를 흔드는 중이다 — 예전엔 저지연=위험(C++)이었지만 이제 저지연=안전(Rust)의 선택지가 생겼다."
+        },
+        {
+          "type": "p",
+          "text": "**한 시스템 안에서 섞어 쓰기도 한다.** 큰 시스템은 대부분을 생산성 좋은 GC 언어로 짓고, **지연이 중요한 핵심 부분만** 소유권/수동 언어로 짜 붙인다 — 파이썬·자바 서비스의 뜨거운 연산을 Rust·C++ 확장으로 빼거나(FFI), 게임의 스크립트는 GC 언어·엔진 코어는 C++ 로. 「전부 한 언어」가 아니라 부분마다 맞는 메모리 모델을 고르는 것이다(lang-second 8장의 멀티패러다임과 같은 발상). 그래서 「어느 쪽을 고르나」는 프로젝트 전체가 아니라 **컴포넌트별**로도 물을 수 있다 — 지연 임계 경로는 멈춤 없는 모델, 나머지는 편한 GC. 언어 선택도 설계 결정이라, 요구가 다른 부분에 다른 도구를 쓴다."
+        },
+        {
+          "type": "try",
+          "text": "네 프로젝트(또는 관심 도메인)의 지연 요구·자원 제약과 생산성 요구를 저울질해, 어느 메모리 모델이 맞는지 정하라. 한 시스템 안에서 「지연 임계 부분만 다른 언어로」 뺄 여지가 있는지도 생각해 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "소유권/수동 언어가 맞는 경우는?",
+          "choices": [
+            "웹 CRUD",
+            "지연 예측·자원 제약이 중요(게임·실시간·임베디드)",
+            "간단한 스크립트",
+            "프로토타입"
+          ],
+          "answer": 1,
+          "why": "멈춤 없음·통제."
+        },
+        {
+          "q": "GC 언어가 주류인 이유는?",
+          "choices": [
+            "항상 빠름",
+            "대부분 도메인이 멈춤 감당 가능 + 생산성·생태계 이득",
+            "안전해서만",
+            "무료"
+          ],
+          "answer": 1,
+          "why": "도메인이 정함."
+        },
+        {
+          "q": "메모리 모델 선택은 어느 단위로도 물을 수 있나?",
+          "choices": [
+            "전체만",
+            "컴포넌트별(지연 임계 부분만 다른 언어)",
+            "불가",
+            "OS 만"
+          ],
+          "answer": 1,
+          "why": "섞어 쓰기."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "어느 언어든 통하는 습관",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "메모리 모델이 무엇이든 통하는 습관이 있다: **큰 객체를 반복 생성하지 않기**(재사용·풀) · **리스너·타이머 정리하기**(안 떼면 참조가 남아 누수) · **캐시에 상한 두기**(무한히 자라지 않게, LRU·만료) · **프로파일러로 실제 할당을 보기**(추측 말고 측정, sys-profile). 누수의 정체는 언어와 무관하게 대개 **「놓지 않은 참조」**다 — GC 든 수동이든, 안 쓰는데 붙잡고 있으면 새고, 놓으면 정리된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "어느 언어든 통하는 습관",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .frames { display:flex; gap:2px; margin:8px 0; align-items:flex-end; height:60px; }\n  .frames .f { flex:1; border-radius:2px 2px 0 0; background:#38bdf8; display:flex; align-items:flex-end; justify-content:center; font-size:9px; color:#0b1220; }\n  .frames .f.gc { background:#ef4444; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.7) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const frames = (list) => '<div class=\"frames\">' + list.map(([h, gc, lab]) =>\n    '<div class=\"f ' + (gc?'gc':'') + '\" style=\"height:' + h + '%\">' + esc(lab||'') + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const habit = '{{habit}}';\n  const cases = {\n    reuse:['큰 객체 반복 생성 X', '반복문·핫패스에서 매번 새 큰 배열·버퍼 생성', '재사용·객체 풀·버퍼 재사용 → 할당·GC 압박 감소'],\n    cleanup:['리스너·타이머 정리', 'addEventListener·setInterval 을 안 뗌', 'off·clearInterval → 참조가 안 남아 누수 방지'],\n    cap:  ['캐시에 상한', '무한히 자라는 캐시·맵·배열', 'LRU·만료·최대 크기 → 메모리 폭증·누수 방지'],\n    profile:['프로파일러로 측정', '추측으로 최적화', '할당 프로파일로 실제 뜨거운 지점 확인(sys-profile)'],\n  }[habit];\n  render('습관: ' + cases[0],\n    '  피할 것: ' + cases[1] + '\\n  대신: <span class=\\\"ok\\\">' + cases[2] + '</span>',\n    '큰 객체 재사용·리스너 정리·캐시 상한·프로파일 — 언어 무관 습관.',\n    box(cases[0], cases[2], 'good'));\n</script>",
+          "controls": [
+            {
+              "id": "habit",
+              "label": "습관",
+              "type": "select",
+              "value": "reuse",
+              "options": [
+                {
+                  "value": "reuse",
+                  "label": "객체 재사용"
+                },
+                {
+                  "value": "cleanup",
+                  "label": "리스너 정리"
+                },
+                {
+                  "value": "cap",
+                  "label": "캐시 상한"
+                },
+                {
+                  "value": "profile",
+                  "label": "프로파일"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**누수의 정체는 언어와 무관하게 「놓지 않은 참조」다.** GC 언어에선 안 쓰는데 참조가 남아(전역·캐시·리스너·클로저) GC 가 못 치우고(sys-mem 7장), 수동 언어에선 free 를 안 해 새고, 소유권 언어조차 순환 참조(Rc)나 의도적으로 안 놓으면 샌다 — 뿌리는 같다: **필요 없어진 것을 놓지 않음**. 그래서 습관도 언어를 넘어 통한다: 큰 객체를 반복 생성 말고 재사용(할당·GC 압박↓), 리스너·타이머·구독을 반드시 정리(안 떼면 참조가 남음), 캐시에 상한·만료를 둬 무한 성장 막기, 그리고 **프로파일러로 실제 할당·누수를 측정**(추측 금지). 「메모리를 잘 다룬다」는 결국 「필요할 때 잡고 필요 없어지면 놓는」 규율이다."
+        },
+        {
+          "type": "p",
+          "text": "**할당 자체를 줄이는 게 가장 근본적이다 — GC 든 수동이든.** 「빨리 해제하기」보다 「애초에 덜 할당하기」가 낫다: 뜨거운 루프에서 매번 새 객체·문자열·배열을 만들면 GC 언어는 GC 압박이, 수동 언어는 malloc/free 비용이 커진다. 그래서 ① 반복되는 큰 버퍼는 **재사용**(풀) ② 불필요한 중간 객체·복사 줄이기(스트리밍·제자리 연산) ③ 값 타입·스택 할당 활용(가능한 언어에서)으로 **할당량 자체**를 낮춘다. 이건 lang-fp 8장(뜨거운 루프의 국소 가변)·sys-profile(측정 후 최적화)과 통한다 — 프로파일러로 할당이 많은 지점을 찾아 그곳만 줄이는 게 실전이다. 「덜 만들면 덜 치운다」가 메모리 성능의 기본이다."
+        },
+        {
+          "type": "try",
+          "text": "네 언어의 프로파일러로 할당이 가장 많은 지점을 찾아, 반복문 안의 임시 객체·큰 버퍼를 재사용으로 줄이고 차이를 재라. 안 뗀 리스너·타이머, 상한 없는 캐시가 있는지도 점검해 정리·상한을 붙여라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "누수의 언어 무관한 정체는?",
+          "choices": [
+            "GC 버그",
+            "필요 없어진 것을 놓지 않은 참조",
+            "느린 CPU",
+            "작은 메모리"
+          ],
+          "answer": 1,
+          "why": "잡고 놓는 규율."
+        },
+        {
+          "q": "메모리 성능의 가장 근본적 접근은?",
+          "choices": [
+            "빨리 해제",
+            "애초에 덜 할당(재사용·중간 객체↓)",
+            "GC 끄기",
+            "메모리 늘리기"
+          ],
+          "answer": 1,
+          "why": "덜 만들면 덜 치움."
+        },
+        {
+          "q": "안 뗀 리스너·상한 없는 캐시의 문제는?",
+          "choices": [
+            "느림",
+            "참조가 남아·무한 성장 → 누수",
+            "보안",
+            "타입"
+          ],
+          "answer": 1,
+          "why": "정리·상한 필요."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — 메모리 모델",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "언어를 고르거나 메모리를 다룰 때 이 목록을 확인하라. 핵심은 「멈춤을 감당할 수 있나로 모델을 고르고, 어느 언어든 필요 없어진 것을 놓아라」다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:120px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .frames { display:flex; gap:2px; margin:8px 0; align-items:flex-end; height:60px; }\n  .frames .f { flex:1; border-radius:2px 2px 0 0; background:#38bdf8; display:flex; align-items:flex-end; justify-content:center; font-size:9px; color:#0b1220; }\n  .frames .f.gc { background:#ef4444; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.7) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const frames = (list) => '<div class=\"frames\">' + list.map(([h, gc, lab]) =>\n    '<div class=\"f ' + (gc?'gc':'') + '\" style=\"height:' + h + '%\">' + esc(lab||'') + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '메모리 모델이 언어 성격을 정함을 안다(멈춤 감당?)',\n    '세 방식(수동·GC·소유권)의 트레이드오프를 안다',\n    'GC = 도달 불가능한 것 회수, 세대별로 효율화',\n    'GC 멈춤은 꼬리(p99)·프레임을 망침을 안다',\n    '수동의 위험(누수·이중해제·댕글링)과 RAII',\n    '소유권 = 이동·빌림·수명(댕글링 컴파일 차단)',\n    '도메인으로 모델을 고른다(지연 예측 vs 생산성)',\n    '어느 언어든 필요 없어진 참조를 놓는다(할당↓)',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 메모리 모델을 이해하고 언어를 고르고 누수를 막는다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '멈춤 감당 여부로 모델을 고르고 · 어느 언어든 필요 없는 참조를 놓아라.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 멈춤을 감당할 수 있나로 모델을 고르고, 어느 언어든 필요 없어진 것을 놓아라.** 메모리 모델이 언어 성격을 정하고(1장), 수동·GC·소유권은 통제·편의·안전의 다른 균형(2장)이며, GC 는 도달 불가능한 것을 세대별로 회수하되 멈춤이 꼬리를 망치고(3·4장), 수동은 위험하지만 RAII 로 완화되고(5장), 소유권은 GC 없이 컴파일러가 안전을 보장한다(6장). 도메인으로 모델을 고르고(7장), 어느 언어든 참조를 놓고 할당을 줄이는 습관을 지킨다(8장)."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸의 연결.** 실행 진단은 sys-mem(가상 메모리·OOM·누수 관측), 소유권 사고는 lang-second(메모리 축)·lang-concurrency(경합 방지), GC 멈춤·꼬리 지연은 sys-profile·scale, 할당 줄이기는 lang-fp 8장, 언어 선택은 lang-pick 로 이어진다. **「멈춤을 감당할 수 있나로 언어를 고르고, 필요 없어진 것을 놓는 감각」이 메모리 모델 이해의 핵심**이다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개로 네 언어 선택과 메모리 습관을 점검하라. 「도메인으로 모델 판단(멈춤 감당?)」과 「리스너 정리·캐시 상한·할당 줄이기」 두 가지만 지켜도, 잘못된 언어 선택과 누수의 상당수가 사라진다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "메모리 모델 장의 한 줄 요약은?",
+          "choices": [
+            "GC 가 최고",
+            "멈춤 감당 여부로 모델 고르고 필요 없는 참조를 놓아라",
+            "수동이 최고",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "도메인이 정함."
+        },
+        {
+          "q": "먼저 지킬 두 가지는?",
+          "choices": [
+            "GC 끄기·수동 전환",
+            "도메인으로 모델 판단 + 리스너 정리·캐시 상한·할당 줄이기",
+            "무한 캐시·전역",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "선택·누수 방지."
+        },
+        {
+          "q": "메모리 모델이 이어지는 주제는?",
+          "choices": [
+            "없음",
+            "sys-mem·lang-second·lang-concurrency·sys-profile",
+            "문법",
+            "속도"
+          ],
+          "answer": 1,
+          "why": "핵심 감각."
+        }
+      ]
     }
   ]
 }
