@@ -46,6 +46,7 @@ import { mirrorToLibrary, refreshFromLibrary, foreignNotes, adoptNote } from './
 import { toJsonCanvas, fromJsonCanvas } from './json-canvas';
 import { toMermaidBlock } from './mermaid';
 import { withPresentation } from './presentation-svg';
+import { filmPlan, frameAt, fitRect, filmFileName, type FilmScene } from './film';
 import { loadStamps, captureStamp, applyStamp, deleteStamp } from './stamps';
 import { renderNotesPanel } from './panels/notes-panel';
 import { renderStampsPanel } from './panels/stamps-panel';
@@ -680,6 +681,8 @@ import {
             <div class="km-times hidden" data-km="times"></div>
             <!-- 시점 만들기는 **명령 팔레트·서랍**에서 부른다(툴바에 문을 또 내지 않는다). -->
             <button class="btn btn-ghost hidden" data-km="time-add" aria-hidden="true" tabindex="-1"></button>
+            <!-- 영상 굽기도 마찬가지 — 자주 쓰는 일이 아니라 툴바에 자리를 안 준다. -->
+            <button class="btn btn-ghost hidden" data-km="film" aria-hidden="true" tabindex="-1"></button>
             <div class="km-zoom" data-km="zoom">
               <button class="btn btn-ghost" data-km="zoom-out" title="${esc(t('karmograph.zoom.out'))}">−</button>
               <button class="btn btn-ghost km-zoom-val" data-km="zoom-val" title="${esc(t('karmograph.zoom.reset'))}">100%</button>
@@ -3483,17 +3486,14 @@ import {
       );
     };
 
-    // 발표는 대개 **남의 기계**에서 열린다 — 결과물이 브라우저만 있으면 도는 한 장이어야 한다.
-    q<HTMLButtonElement>('svg-story').onclick = () => {
+    /**
+     * 장들을 **자리와 말**로 바꾼다 — 발표 SVG 도 영상도 같은 것을 필요로 한다.
+     * (한 자리에 두 번 적어 두면 한쪽만 고쳐져 「SVG 는 맞는데 영상은 딴 데를 비춘다」가 된다.)
+     */
+    function storyScenes(): FilmScene[] {
       const live = canvas?.getSpec() ?? spec;
       const story = live.story ?? [];
-      if (story.length === 0) {
-        Toolbox.showToast?.(t('karmograph.story.msg'), undefined, undefined);
-        return;
-      }
-      const svgText = canvas?.exportSVGString({ background: canvasBackground() });
-      if (!svgText) return;
-      const scenes = story.map((st) => {
+      return story.map((st) => {
         const ids = st.rect ? (canvas?.nodesInWorldRect(st.rect) ?? []) : st.nodeIds;
         const boxes = ids.map((id) => live.nodes.find((n) => n.id === id)).filter(Boolean) as GraphNode[];
         // 틀로 담은 장은 그 틀을, 노드로 담은 장은 그 노드들을 감싼 자리를 쓴다(여백 조금).
@@ -3508,6 +3508,130 @@ import {
           : { x: 0, y: 0, w: 1000, h: 700 });
         return { title: st.title, note: st.note, rect };
       });
+    }
+
+    /**
+     * 굽는 그릇 고르기 — 브라우저마다 아는 코덱이 다르다. 아는 것 중 **먼저 오는 것**을 쓰고,
+     * 하나도 모르면 그릇을 안 정한다(브라우저 기본값에 맡긴다 — 안 정하면 대개 돌아간다).
+     */
+    function pickFilmType(): MediaRecorderOptions | undefined {
+      const want = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
+      const can = (window as unknown as { MediaRecorder?: typeof MediaRecorder }).MediaRecorder;
+      const ok = want.find((m) => can?.isTypeSupported?.(m));
+      return ok ? { mimeType: ok } : undefined;
+    }
+
+    /**
+     * 🎬 **발표를 영상 한 편으로** (TASK-KL-271 O5).
+     *
+     * SVG 한 장도 결국 **눌러야** 돌아간다. 그런데 자랑하는 자리는 대개 못 누르는 곳이다 —
+     * 디스코드, X, 유튜브. 거기선 영상만 저절로 재생된다. 각본(몇 초·어디서 어디로)은 `film.ts`
+     * 가 정하고, 여기서는 **굽는 일**만 한다: 그림을 한 번 크게 굽고, 그 위를 카메라가 훑는다.
+     *
+     * 왜 한 번만 굽나 — 장마다 다시 그리면 40장짜리는 40번 굽는다. 그림은 안 변하고 **보는
+     * 자리만** 변하므로, 큰 그림 하나를 잘라 비추면 된다(그래서 굽는 시간이 장 수와 무관하다).
+     */
+    q<HTMLButtonElement>('film').onclick = async () => {
+      const scenes = storyScenes();
+      if (scenes.length === 0) {
+        Toolbox.showToast?.(t('karmograph.story.msg'), undefined, undefined);
+        return;
+      }
+      const Rec = (window as unknown as { MediaRecorder?: typeof MediaRecorder }).MediaRecorder;
+      const out = document.createElement('canvas');
+      // 굽는 길이 없는 브라우저가 있다(사파리 옛 판·앱 안 브라우저) — 조용히 실패하는 대신 말한다.
+      if (!Rec || typeof out.captureStream !== 'function') {
+        Toolbox.showToast?.(t('karmograph.film.cant'), undefined, undefined);
+        return;
+      }
+      const svgText = canvas?.exportSVGString({ background: canvasBackground() });
+      if (!svgText) return;
+      const vb = /viewBox="([-\d.]+)\s+([-\d.]+)\s+([\d.]+)\s+([\d.]+)"/.exec(svgText);
+      if (!vb) return;
+      const [vx, vy] = [Number(vb[1]), Number(vb[2])];
+
+      const plan = filmPlan(scenes);
+      const W = 1280;
+      const H = 720;
+      out.width = W;
+      out.height = H;
+      const ctx = out.getContext('2d');
+      if (!ctx) return;
+
+      // 그림은 **두 배로** 굽는다 — 한 장에 바싹 다가가는 컷에서 원본 크기로 구우면 뭉갠다.
+      const SHARP = 2;
+      const big = svgText.replace(/(<svg[^>]*?)width="(\d+)"\s+height="(\d+)"/,
+        (_m, head: string, w: string, h: string) =>
+          `${head}width="${Number(w) * SHARP}" height="${Number(h) * SHARP}"`);
+      const img = new Image();
+      img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(big)}`;
+      try {
+        await img.decode();
+      } catch {
+        Toolbox.showToast?.(t('karmograph.film.cant'), undefined, undefined);
+        return;
+      }
+
+      const bg = canvasBackground();
+      const draw = (ms: number): void => {
+        const f = frameAt(plan, scenes, ms);
+        if (!f) return;
+        const box = fitRect(f.rect, W, H);
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, W, H);
+        ctx.drawImage(img,
+          (box.x - vx) * SHARP, (box.y - vy) * SHARP, box.w * SHARP, box.h * SHARP,
+          0, 0, W, H);
+        // 말은 **아래에 얇게** 깐다 — 가운데를 가리면 정작 보여 주려던 그림이 안 보인다.
+        const barH = f.note ? 96 : 64;
+        ctx.fillStyle = 'rgba(0,0,0,0.62)';
+        ctx.fillRect(0, H - barH, W, barH);
+        ctx.fillStyle = '#fff';
+        ctx.font = '600 34px system-ui, sans-serif';
+        ctx.fillText(f.title, 36, H - barH + 44, W - 72);
+        if (f.note) {
+          ctx.fillStyle = 'rgba(255,255,255,0.78)';
+          ctx.font = '24px system-ui, sans-serif';
+          ctx.fillText(f.note, 36, H - barH + 80, W - 72);
+        }
+      };
+
+      draw(0);   // 첫 프레임을 미리 그려 둔다 — 첫 0.1초가 빈 화면이면 썸네일이 검게 잡힌다
+      const chunks: Blob[] = [];
+      const rec = new Rec(out.captureStream(30), pickFilmType());
+      rec.ondataavailable = (ev: BlobEvent) => { if (ev.data.size > 0) chunks.push(ev.data); };
+      const done = new Promise<void>((resolve) => { rec.onstop = () => resolve(); });
+      rec.start();
+      Toolbox.showToast?.(
+        t('karmograph.film.making', { sec: String(Math.ceil(plan.totalMs / 1000)) }), undefined, undefined);
+
+      const t0 = performance.now();
+      await new Promise<void>((resolve) => {
+        const tick = (): void => {
+          const ms = performance.now() - t0;
+          draw(ms);
+          if (ms >= plan.totalMs) { resolve(); return; }
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+      rec.stop();
+      await done;
+      const blob = new Blob(chunks, { type: chunks[0]?.type || 'video/webm' });
+      downloadBlob(blob, filmFileName(activeMapName()));
+      Toolbox.showToast?.(t('karmograph.film.done', { sec: String(Math.ceil(plan.totalMs / 1000)) }),
+        undefined, undefined);
+    };
+
+    // 발표는 대개 **남의 기계**에서 열린다 — 결과물이 브라우저만 있으면 도는 한 장이어야 한다.
+    q<HTMLButtonElement>('svg-story').onclick = () => {
+      const scenes = storyScenes();
+      if (scenes.length === 0) {
+        Toolbox.showToast?.(t('karmograph.story.msg'), undefined, undefined);
+        return;
+      }
+      const svgText = canvas?.exportSVGString({ background: canvasBackground() });
+      if (!svgText) return;
       downloadBlob(
         new Blob([withPresentation(svgText, scenes)], { type: 'image/svg+xml;charset=utf-8' }),
         'karmograph-presentation.svg',

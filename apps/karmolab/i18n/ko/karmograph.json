@@ -738,5 +738,9 @@
   "karmograph.help.face": "그림을 붙여넣어 얼굴 넣기",
   "karmograph.help.faceHow": "카드를 고르고 Ctrl+V",
   "karmograph.links.count": "연결 {n}개",
-  "karmograph.gap.shared": "겹치는 사이 {n}"
+  "karmograph.gap.shared": "겹치는 사이 {n}",
+  "karmograph.film.label": "🎬 발표를 영상으로 (webm)",
+  "karmograph.film.making": "영상을 굽는 중… {{sec}}초",
+  "karmograph.film.done": "영상이 나왔습니다 ({{sec}}초)",
+  "karmograph.film.cant": "이 브라우저는 영상 굽기를 못 합니다 — SVG 한 장으로 뽑아 보세요"
 }

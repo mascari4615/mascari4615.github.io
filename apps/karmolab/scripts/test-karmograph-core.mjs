@@ -48,6 +48,7 @@ async function loadModules() {
     export * as edgeViews from ${JSON.stringify(path.join(root, 'src/lib/graph/edge-views.ts'))};
     export * as table from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/table-view.ts'))};
     export * as ripe from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/ripeness.ts'))};
+    export * as film from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/film.ts'))};
     export * as printSheet from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/print-sheet.ts'))};
     export * as times from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/times.ts'))};
     export * as poster from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster-legend.ts'))};
@@ -1142,6 +1143,69 @@ const M = await loadModules();
   check(!shouldSwitch('node', { nodes: 1, edge: false }), '이미 그 칸이면 안 바꾼다');
   check(shouldSwitch('many', { nodes: 1, edge: false }), '여럿에서 한 장으로 줄면 카드 칸으로');
   check(shouldSwitch('edge', { nodes: 1, edge: false }), '선에서 카드로 옮겨 가면 카드 칸으로');
+}
+
+{
+  /* 영상 각본 (KL-271 O5) — 초는 눈으로만 보이는 값이라 글자로 잠근다. */
+  const { filmPlan, holdFor, frameAt, lerpRect, fitRect, filmFileName, ease } = M.film;
+  const scene = (title, note, rect) => ({ title, note, rect });
+  const r = (x, y, w, h) => ({ x, y, w, h });
+
+  eq(filmPlan([]).shots.length, 0, '장이 없으면 각본도 없다 — 검은 화면 영상을 굽지 않는다');
+  eq(filmPlan([]).totalMs, 0, '빈 각본의 길이는 0');
+
+  const short = scene('가', '', r(0, 0, 100, 100));
+  const long = scene('아주 긴 제목입니다', '설명이 길면 읽을 시간이 더 든다 그래서 오래 머문다', r(0, 0, 100, 100));
+  check(holdFor(long, 1400, 6000) > holdFor(short, 1400, 6000), '글이 많은 장에 더 오래 머문다');
+  eq(holdFor(short, 3000, 6000), 3000, '아무리 짧아도 최소 머무름 아래로는 안 간다');
+  eq(holdFor(long, 1400, 1800), 1800, '아무리 길어도 최대 머무름 위로는 안 간다');
+
+  const plan = filmPlan([short, long, short], { moveMs: 800 });
+  eq(plan.shots.length, 3, '장 수만큼 컷');
+  eq(plan.shots[0].moveMs, 0, '첫 장은 건너올 데가 없다');
+  eq(plan.shots[1].moveMs, 800, '둘째부터는 건너는 시간이 붙는다');
+  eq(plan.shots[1].startMs, plan.shots[0].holdMs, '다음 컷은 앞 컷이 끝난 자리에서 시작한다');
+  eq(plan.totalMs, plan.shots[2].startMs + plan.shots[2].moveMs + plan.shots[2].holdMs, '총 길이 = 마지막 컷의 끝');
+
+  const many = Array.from({ length: 40 }, () => long);
+  const capped = filmPlan(many, { maxMs: 30000, moveMs: 600, minHoldMs: 300 });
+  check(capped.totalMs < filmPlan(many, { moveMs: 600 }).totalMs, '천장이 있으면 고르게 줄인다');
+  // 장이 아주 많으면 **천장을 못 지킨다** — 최소 머무름 아래로 내리는 순간 아무도 못 읽는 영상이 된다.
+  // 그때는 줄이는 시늉 대신 길어진 채로 두고, 부르는 쪽이 「몇 초짜리가 됩니다」라고 말한다.
+  check(capped.totalMs > 30000, '못 지킬 때는 읽히는 쪽을 고른다(부르는 쪽이 길이를 알린다)');
+  const fits = filmPlan([long, long, long], { maxMs: 30000, moveMs: 600 });
+  check(fits.totalMs <= 30000, '지킬 수 있으면 천장을 지킨다: ' + fits.totalMs);
+  eq(capped.shots.length, 40, '줄일 때 뒷장을 잘라 내지 않는다 — 이야기가 끝을 잃는다');
+  check(capped.shots.every((s) => s.holdMs >= 300), '최소 머무름 아래로는 안 내려간다');
+
+  eq(ease(0), 0, '시작은 0');
+  eq(ease(1), 1, '끝은 1');
+  check(Math.abs(ease(0.5) - 0.5) < 1e-9, '한가운데는 반');
+  eq(lerpRect(r(0, 0, 10, 10), r(100, 0, 10, 10), 0).x, 0, '건너기 시작은 앞 장 자리');
+  eq(lerpRect(r(0, 0, 10, 10), r(100, 0, 10, 10), 1).x, 100, '건너기 끝은 다음 장 자리');
+
+  const a = scene('첫', '', r(0, 0, 100, 100));
+  const bb = scene('둘', '', r(500, 0, 100, 100));
+  const p2 = filmPlan([a, bb], { moveMs: 1000, minHoldMs: 1000, maxHoldMs: 1000 });
+  eq(frameAt(p2, [a, bb], 0).title, '첫', '0초에는 첫 장');
+  eq(frameAt(p2, [a, bb], 0).rect.x, 0, '첫 장은 제자리에서 시작한다');
+  const mid = frameAt(p2, [a, bb], p2.shots[1].startMs + 500);
+  check(mid.rect.x > 0 && mid.rect.x < 500, '건너는 중에는 두 자리 사이에 있다: ' + mid.rect.x);
+  eq(mid.title, '둘', '건너는 동안 이미 다음 장의 말을 얹는다');
+  eq(frameAt(p2, [a, bb], 999999).scene, 1, '끝을 넘어도 마지막 장에 멈춘다 — 검은 화면으로 안 끝난다');
+  eq(frameAt({ shots: [], totalMs: 0 }, [], 0), null, '각본이 비면 그릴 것도 없다');
+
+  const wide = fitRect(r(0, 0, 1600, 400), 1280, 720);
+  check(Math.abs(wide.w / wide.h - 1280 / 720) < 1e-6, '가로로 긴 자리는 위아래를 넓혀 비율을 맞춘다');
+  eq(wide.w, 1600, '넓히기만 하고 그림을 잘라 내지 않는다');
+  check(wide.y < 0, '넓힌 만큼 가운데를 유지한다');
+  const tall = fitRect(r(0, 0, 200, 900), 1280, 720);
+  check(Math.abs(tall.w / tall.h - 1280 / 720) < 1e-6, '세로로 긴 자리는 좌우를 넓힌다');
+  eq(tall.h, 900, '세로는 그대로');
+
+  eq(filmFileName('나의 세계관'), '나의 세계관.webm', '판 이름이 곧 파일 이름');
+  eq(filmFileName('a/b:c*?'), 'abc.webm', '파일로 못 쓰는 글자는 걷어낸다');
+  eq(filmFileName('   '), 'karmograph.webm', '이름이 비면 기본 이름');
 }
 
 process.stdout.write('\n');
