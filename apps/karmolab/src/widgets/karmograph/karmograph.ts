@@ -182,6 +182,10 @@ import {
     .km-tab-name { margin-left:4px; font-size:11px; max-width:96px; overflow:hidden;
       text-overflow:ellipsis; white-space:nowrap; vertical-align:middle; }
     .km-side.hidden { display:none; }
+    /* 패널 안에서 **성격이 다른 묶음**을 가르는 줄·이름표 (TASK-KL-271 P5). */
+    .km-split { border:none; border-top:1px solid var(--border); margin:16px 0 10px; }
+    .km-secname { font-size:10px; letter-spacing:.06em; text-transform:uppercase;
+      color:var(--text-tertiary); margin:2px 0 6px; }
     .km-side h4 { margin:0 0 8px; font-size:var(--font-size-sm); color:var(--text-primary); }
     .km-field { margin-bottom:10px; display:flex; flex-direction:column; gap:4px; }
     .km-field label { color:var(--text-secondary); font-size:11px; }
@@ -1403,6 +1407,14 @@ import {
         + ` title="${esc(t('karmograph.panel.more'))}" aria-label="${esc(t('karmograph.panel.more'))}">⌄</button>`
         + `<div class="km-tabs-menu hidden" data-km="panel-menu">${rows}</div>`;
       sideEl.insertBefore(bar, sideEl.firstChild);
+      /* ★ 머리가 이름을 말하는데 **바로 밑 제목이 같은 말을 또** 한다 — 목록형 패널이 다 그렇다
+         (「🔍 거르기」 / 「🔍 거르기」). 머리를 새로 얹으면서 생긴 겹말이라 여기서 함께 지운다
+         (패널 여덟 곳을 각각 고치면 다음에 또 어긋난다). 글자만 비교하고 그림·기호는 뺀다. */
+      const plain = (x: string): string => x.replace(/[^\p{L}\p{N}]/gu, '');
+      const firstH4 = bar.nextElementSibling;
+      if (firstH4?.tagName === 'H4' && now && plain(firstH4.textContent ?? '') === plain(now.title)) {
+        firstH4.remove();
+      }
       const menu = bar.querySelector('[data-km="panel-menu"]') as HTMLElement;
       (bar.querySelector('[data-km="panel-more"]') as HTMLButtonElement).onclick = (ev) => {
         ev.stopPropagation();

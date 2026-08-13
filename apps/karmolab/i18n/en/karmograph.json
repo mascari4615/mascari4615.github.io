@@ -646,5 +646,8 @@
   "karmograph.panel.here": "Selection",
   "karmograph.panel.more": "Other lists",
   "karmograph.focus.label": "Show neighbours only",
-  "karmograph.focus.hint": "How many hops stay sharp from what you searched or selected — the rest dims (nothing is deleted)."
+  "karmograph.focus.hint": "How many hops stay sharp from what you searched or selected — the rest dims (nothing is deleted).",
+  "karmograph.decorate.head": "Style — colour & size from data",
+  "karmograph.decorate.hint": "From here on nothing is hidden — only how things look changes. Every card is still there.",
+  "karmograph.hideSec.head": "Show less"
 }

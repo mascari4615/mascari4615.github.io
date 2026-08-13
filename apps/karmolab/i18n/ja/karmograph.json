@@ -646,5 +646,8 @@
   "karmograph.panel.here": "選んだもの",
   "karmograph.panel.more": "ほかの一覧",
   "karmograph.focus.label": "隣までを見る",
-  "karmograph.focus.hint": "探した・選んだカードから何歩までをはっきり見せるか — 残りは薄くなります(消えません)。"
+  "karmograph.focus.hint": "探した・選んだカードから何歩までをはっきり見せるか — 残りは薄くなります(消えません)。",
+  "karmograph.decorate.head": "見た目 — データで色・大きさ",
+  "karmograph.decorate.hint": "ここからは絞り込みではなく「見え方」が変わります。カードはすべて残ります。",
+  "karmograph.hideSec.head": "減らして見る"
 }
