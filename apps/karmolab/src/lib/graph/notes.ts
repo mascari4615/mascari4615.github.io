@@ -54,10 +54,10 @@ const newId = (): string => `note-${Date.now().toString(36)}-${Math.random().toS
  * 제자리 글을 **공용 글로 승격**한다. 이 자리에는 참조만 남는다.
  * 제목이 비면 글 첫 줄을 잘라 쓴다 — 목록에서 고를 때 필요한 것은 제목이지 본문이 아니다.
  */
-export function shareDoc(spec: GraphSpec, h: DocHolder, title?: string): string {
+export function shareDoc(spec: GraphSpec, h: DocHolder, title?: string, fallback = 'note'): string {
   if (h.docRef) return h.docRef;
   const text = (h.doc ?? '').trim();
-  const head = (title ?? text.split('\n')[0] ?? '').trim().slice(0, 40) || '메모';
+  const head = (title ?? text.split(String.fromCharCode(10))[0] ?? '').trim().slice(0, 40) || fallback;
   const note: GraphNote = { id: newId(), title: head, text };
   notesOf(spec).push(note);
   h.doc = undefined;
@@ -123,28 +123,58 @@ export function stripBlockMarks(text: string): string {
   return text.split(LINE_SPLIT).map((line) => line.replace(BLOCK_MARK, '')).join(String.fromCharCode(10));
 }
 
-export function expandNoteText(spec: GraphSpec, text: string, seen: Set<string> = new Set()): string {
+/**
+ * 끼워 넣기가 막힌 자리에 **대신 놓는 말** — 부르는 쪽(화면)이 제 나라 말로 준다.
+ *
+ * 이 층(`lib/graph`)은 일부러 **말 묶음을 안 쓴다**(순수한 자료 층이라 어느 화면에서든 돈다).
+ * 그래서 예전엔 한국어가 그대로 박혀 있었고, 영어·일본어로 쓰는 사람의 글 속에 「(없는 글)」이
+ * 튀어나왔다 (실측 2026-08-14). 기본값은 중립적인 영어로 두고, 화면이 제 말을 얹는다.
+ */
+export interface NoteWords {
+  /** 글이 자기를 다시 부르는 고리. */
+  loop: string;
+  /** 가리킨 글이 없다. */
+  missing: string;
+  /** 가리킨 대목이 없다. */
+  missingBlock: string;
+}
+
+export const DEFAULT_NOTE_WORDS: NoteWords = {
+  loop: '(loop)', missing: '(missing note)', missingBlock: '(missing part)',
+};
+
+/**
+ * 지금 쓸 말 — 화면이 뜰 때 **한 번** 얹는다(`setNoteWords`). 자료 층은 말 묶음을 안 부르고,
+ * 화면 층은 제 나라 말을 안다: 둘 사이의 다리를 여기 하나만 둔다.
+ */
+let noteWords: NoteWords = DEFAULT_NOTE_WORDS;
+export function setNoteWords(w: NoteWords): void { noteWords = w; }
+
+export function expandNoteText(
+  spec: GraphSpec, text: string, seen: Set<string> = new Set(),
+  words: NoteWords = noteWords,
+): string {
   return text.replace(EMBED_RE, (_m, rawRef: string) => {
     // `{{note:<글id>#<덩이>}}` — `#` 뒤가 있으면 **그 대목만** 싣는다.
     const [rawId, block] = rawRef.trim().split('#');
     const id = rawId.trim();
     const key = block ? `${id}#${block}` : id;
-    if (seen.has(key) || seen.has(id)) return '(고리)';
+    if (seen.has(key) || seen.has(id)) return words.loop;
     const note = notesOf(spec).find((n) => n.id === id);
-    if (!note) return '(없는 글)';
+    if (!note) return words.missing;
     if (block) {
       const hit = noteBlocks(note.text).find((b) => b.id === block.trim());
-      if (!hit) return '(없는 대목)';
-      return expandNoteText(spec, hit.text, new Set([...seen, key]));
+      if (!hit) return words.missingBlock;
+      return expandNoteText(spec, hit.text, new Set([...seen, key]), words);
     }
-    return stripBlockMarks(expandNoteText(spec, note.text, new Set([...seen, id])));
+    return stripBlockMarks(expandNoteText(spec, note.text, new Set([...seen, id]), words));
   });
 }
 
 /** 화면에 보일 글 — 참조를 풀고, 그 안에 끼워 넣은 글까지 편다. */
-export function displayDoc(spec: GraphSpec, h: DocHolder): string {
+export function displayDoc(spec: GraphSpec, h: DocHolder, words: NoteWords = noteWords): string {
   const own = h.docRef ? new Set([h.docRef]) : new Set<string>();
-  return expandNoteText(spec, resolveDoc(spec, h), own);
+  return expandNoteText(spec, resolveDoc(spec, h), own, words);
 }
 
 /** 이 공용 글을 몇 자리가 가리키나 (노드 + 선). */

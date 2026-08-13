@@ -779,5 +779,8 @@
   "karmograph.group.eye": "상자 보이기/숨기기",
   "karmograph.group.del": "묶음 삭제",
   "karmograph.noName": "(이름 없음)",
-  "karmograph.stampDefault": "본 {n}개"
+  "karmograph.stampDefault": "본 {n}개",
+  "karmograph.note.loop": "(고리)",
+  "karmograph.note.missing": "(없는 글)",
+  "karmograph.note.missingBlock": "(없는 대목)"
 }

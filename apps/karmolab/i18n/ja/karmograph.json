@@ -779,5 +779,8 @@
   "karmograph.group.eye": "箱の表示/非表示",
   "karmograph.group.del": "グループを消す",
   "karmograph.noName": "(名前なし)",
-  "karmograph.stampDefault": "{n} 件"
+  "karmograph.stampDefault": "{n} 件",
+  "karmograph.note.loop": "(循環)",
+  "karmograph.note.missing": "(ない文)",
+  "karmograph.note.missingBlock": "(ない部分)"
 }

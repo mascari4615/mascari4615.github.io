@@ -121,8 +121,11 @@ const M = await loadModules();
     { id: 'loop', title: '고리', text: '나: {{note:loop}}' },
   ];
   eq(M.notes.expandNoteText(spec, '{{note:n2}}'), '앞: 대가를 치른다', '끼운 글이 두 겹까지 펴진다');
-  check(notes.expandNoteText(spec, '{{note:loop}}').includes('(고리)'), '자기를 부르는 고리는 끊긴다');
-  check(notes.expandNoteText(spec, '{{note:없음}}').includes('(없는 글)'), '없는 글은 그렇게 적힌다');
+  // 말은 화면이 얹는다(setNoteWords) — 자료 층의 기본값은 중립적인 영어다.
+  check(notes.expandNoteText(spec, '{{note:loop}}').includes(notes.DEFAULT_NOTE_WORDS.loop),
+    '자기를 부르는 고리는 끊긴다');
+  check(notes.expandNoteText(spec, '{{note:없음}}').includes(notes.DEFAULT_NOTE_WORDS.missing),
+    '없는 글은 그렇게 적힌다');
 }
 
 // ── 글의 **한 대목만** 참조 (Obsidian 블록) ─────────────────────────────────
@@ -134,7 +137,12 @@ const M = await loadModules();
   eq(blocks.length, 2, '표식이 붙은 덩이만 잡힌다');
   eq(blocks[0].id, '대가', '표식 이름이 곧 덩이 id');
   eq(notes.expandNoteText(spec, '{{note:rule#이름}}'), '이름을 잃는다', '그 대목만 실린다');
-  check(notes.expandNoteText(spec, '{{note:rule#없음}}').includes('(없는 대목)'), '없는 대목은 그렇게 적힌다');
+  check(notes.expandNoteText(spec, '{{note:rule#없음}}').includes(notes.DEFAULT_NOTE_WORDS.missingBlock),
+    '없는 대목은 그렇게 적힌다');
+  // 화면이 제 말을 얹으면 그 말이 나온다 — 다리가 실제로 이어졌나.
+  notes.setNoteWords({ loop: '[L]', missing: '[M]', missingBlock: '[B]' });
+  check(notes.expandNoteText(spec, '{{note:없음}}').includes('[M]'), '화면이 얹은 말이 실제로 쓰인다');
+  notes.setNoteWords(notes.DEFAULT_NOTE_WORDS);
   check(!notes.expandNoteText(spec, '{{note:rule}}').includes('^'), '글 전체를 실을 땐 표식을 걷어 낸다');
 }
 
@@ -1217,10 +1225,14 @@ const M = await loadModules();
   /* 위젯 본체만 보다가 **패널 여덟 곳**에 스물아홉 줄이 남아 있는 걸 놓쳤다 (2026-08-14).
      한 폴더를 통째로 본다 — 새 조각이 늘어도 저절로 걸린다. */
   const dir = path.join(root, 'src/widgets/karmograph');
+  /* 판을 그리는 자료 층(`lib/graph`)도 함께 본다 — 거기 박힌 「(없는 글)」이 남의 글 속에
+     그대로 튀어나왔다 (2026-08-14). 그 층은 말 묶음을 안 쓰므로 **부르는 쪽이 말을 얹는다**. */
+  const libDir = path.join(root, 'src/lib/graph');
   const kmFiles = [
     ...fs.readdirSync(dir).filter((f) => f.endsWith('.ts')).map((f) => path.join(dir, f)),
     ...fs.readdirSync(path.join(dir, 'panels')).filter((f) => f.endsWith('.ts'))
       .map((f) => path.join(dir, 'panels', f)),
+    ...fs.readdirSync(libDir).filter((f) => f.endsWith('.ts')).map((f) => path.join(libDir, f)),
   ];
   const src = kmFiles.map((f) => fs.readFileSync(f, 'utf8')
     .split(String.fromCharCode(10))
