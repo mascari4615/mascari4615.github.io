@@ -38,5 +38,6 @@
   "pdf.edit.moved": "순서 바뀜",
   "pdf.more": "{name} 외 {n}개",
   "pdf.thumb.rotateAria": "쪽 오른쪽으로 90° 돌리기",
-  "pdf.thumb.dropAria": "쪽 빼기"
+  "pdf.thumb.dropAria": "쪽 빼기",
+  "pdf.grid.aria": "쪽 목록 — 화살표로 옮겨 다니고 Ctrl+화살표로 순서를 바꿉니다"
 }
