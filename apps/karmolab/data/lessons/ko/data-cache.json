@@ -1,94 +1,795 @@
 {
   "id": "data-cache",
-  "minutes": 12,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "캐시를 넣는 것은 쉽다. 어려운 것은 **언제 버릴지** 정하는 일이고, 못 정하면 틀린 값을 아주 빠르게 보여 주게 된다."
-    },
-    {
-      "type": "h",
-      "text": "1. 넣기 전에 정할 세 가지"
-    },
-    {
-      "type": "note",
-      "text": "① **열쇠**(무엇 단위로 캐시하나 — 사용자별? 언어별? 권한별?) ② **수명**(TTL) ③ **무효화**(무엇이 바뀌면 지우나). 이 셋을 못 적으면 아직 캐시를 넣을 때가 아니다."
-    },
-    {
-      "type": "h",
-      "text": "2. 전형적인 패턴"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "cache-aside — 가장 흔하다",
-      "text": "async function getUser(id) {\n  const hit = await cache.get(`user:${id}`);\n  if (hit) return JSON.parse(hit);\n  const user = await db.user(id);\n  await cache.set(`user:${id}`, JSON.stringify(user), { ex: 300 });   // 5분\n  return user;\n}\n\n// 갱신 시\nasync function updateUser(id, patch) {\n  await db.update(id, patch);\n  await cache.del(`user:${id}`);      // 지운다(갱신보다 지우기가 안전하다)\n}"
-    },
-    {
-      "type": "h",
-      "text": "3. 자주 밟는 함정"
-    },
-    {
-      "type": "note",
-      "text": "**권한이 다른 사용자에게 같은 캐시**를 주는 것(가장 위험) · 열쇠에 언어·지역이 빠져 다른 언어 화면이 나가는 것 · 캐시 폭주(같은 열쇠가 동시에 만료돼 DB 로 몰림) · 캐시에 남은 낡은 값이 「왜 안 바뀌지」의 원인."
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "동시 만료 완화",
-      "text": "const ttl = 300 + Math.floor(Math.random() * 60);   // 만료 시각을 흩뜨린다"
-    },
-    {
-      "type": "h",
-      "text": "4. 어디에 두나"
-    },
-    {
-      "type": "p",
-      "text": "브라우저 캐시(HTTP 헤더) · CDN · 애플리케이션 메모리 · 공용 캐시(Redis). **가장 바깥에서 막을수록 싸다** — 서버까지 오지 않는 요청이 가장 빠르다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "느린 조회 하나에 cache-aside 를 붙이되, 붙이기 전에 열쇠·TTL·무효화 세 줄을 먼저 적어라."
-    },
-    {
-      "type": "try",
-      "text": "일부러 데이터를 바꾸고 화면이 언제 갱신되는지 재라. 기대한 TTL 과 맞는지 확인하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "캐시를 넣기 전에 반드시 정해야 하는 것은?",
-      "choices": [
-        "열쇠·수명·무효화 조건",
-        "캐시 서버 위치",
-        "압축 방식"
+      "id": "1",
+      "title": "캐시는 쉽고, 무효화가 어렵다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "캐시를 **넣는 것은 쉽다** — 조회 결과를 저장했다 다음엔 그대로 준다. 어려운 것은 **언제 버릴지**(무효화) 정하는 일이고, 못 정하면 **틀린 값을 아주 빠르게** 보여 주게 된다. 「캐시된 값이 실제와 달라졌는데 계속 옛 값을 준다」 — 이 stale(오래된) 데이터가 캐시의 진짜 어려움이다. 그래서 「캐시 무효화는 컴퓨터 과학의 두 어려운 문제 중 하나」라는 농담이 있다. 캐시를 넣기 전에 무효화부터 설계한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "빠르지만 틀린 값",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layers .ly { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; display:flex; justify-content:space-between; }\n  .layers .near { background:#132a1c; color:#86efac; } .layers .far { background:#3a2a14; color:#fcd34d; } .layers .db { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"ly ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const fresh = '{{fresh}}' === 'yes';\n  if (!fresh) {\n    render('무효화를 안 정하면',\n      '  가격을 20000→25000 으로 바꿨는데 캐시엔 옛 20000\\n' +\n      '  <span class=\\\"no\\\">캐시가 옛 값을 빠르게 계속 보여 줌 → 틀린 값을 빠르게.</span>',\n      '무효화를 안 정하면 캐시가 옛(틀린) 값을 아주 빠르게 보여 준다.',\n      steps([['DB 가격 25000 으로 변경', 'on'],['캐시엔 여전히 20000', 'bad'],['사용자에게 20000 표시(틀림)', 'bad']]));\n  } else {\n    render('무효화를 정하면',\n      '  가격 변경 시 캐시 삭제(또는 TTL 만료) → 다음 조회에 새 값\\n' +\n      '  <span class=\\\"ok\\\">빠르면서 정확 — 무효화가 캐시의 핵심.</span>',\n      '무효화(삭제·TTL)를 정하면 빠르면서 정확하다.',\n      steps([['DB 가격 25000 으로 변경', 'on'],['그 캐시 열쇠 삭제(무효화)', 'good'],['다음 조회 → DB 에서 25000 채움', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "fresh",
+              "label": "무효화",
+              "type": "select",
+              "value": "no",
+              "options": [
+                {
+                  "value": "no",
+                  "label": "안 정함(틀린 값)"
+                },
+                {
+                  "value": "yes",
+                  "label": "정함(정확)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**캐시의 어려움은 「넣기」가 아니라 「언제 버리나(무효화)」다 — 못 정하면 틀린 값을 빠르게 준다.** 캐시는 원본(DB)의 사본이라, 원본이 바뀌면 사본이 낡는다(stale). 이걸 관리 안 하면 사용자는 옛 가격·옛 재고·옛 프로필을 본다 — 그것도 아주 빠르게(캐시라서). 그래서 「캐시가 느린 걸 빠르게 해 준다」는 이득만 보고 넣으면, 「정확성」이라는 큰 비용을 놓친다. 캐시를 넣기 전에 **① 무엇을 열쇠로 ② 얼마나 살릴지(TTL) ③ 무엇이 바뀌면 버릴지(무효화)** 를 먼저 정한다(2장). 「이 데이터가 얼마나 stale 해도 괜찮은가?」를 물어, 그 답에 맞춰 캐시를 설계한다. 무효화 없는 캐시는 「빠른 버그」다."
+        },
+        {
+          "type": "p",
+          "text": "**캐시는 정확성과 속도를 맞바꾸는 것 — 얼마나 낡아도 되는지가 설계의 축이다.** 모든 데이터가 같은 신선도를 요구하지 않는다: 실시간 잔액·재고는 낡으면 안 되지만(캐시 짧게/안 함), 상품 설명·블로그 글은 몇 분 낡아도 괜찮다(캐시 길게). 그래서 캐시 설계의 핵심 질문은 「이 데이터가 **몇 초/분 낡아도 사용자가 괜찮은가**」다 — 이 「허용 stale 시간」이 TTL 과 무효화 전략을 정한다. 「빠르게」만 좇아 전부 오래 캐시하면 틀린 값이 새고, 「정확하게」만 좇아 캐시를 안 하면 느리다. 데이터마다 이 균형점을 정하는 게 캐시의 실전이다. 그리고 정확성이 절대적인 곳(돈·재고)은 캐시 대신 원자적 연산(data-tx)으로 다룬다 — 캐시는 「좀 낡아도 되는」 읽기에 쓴다."
+        },
+        {
+          "type": "try",
+          "text": "네 앱에서 자주 조회되지만 자주 안 바뀌는 데이터(캐시 후보)를 찾고, 「이게 몇 초/분 낡아도 사용자가 괜찮은가」를 정하라 — 그 답이 TTL·무효화의 기준이다. 절대 낡으면 안 되는 데이터(잔액 등)는 캐시 대상에서 빼라."
+        }
       ],
-      "answer": 0,
-      "why": "무효화 규칙 없는 캐시는 틀린 값을 빠르게 제공한다."
+      "quiz": [
+        {
+          "q": "캐시의 진짜 어려움은?",
+          "choices": [
+            "넣기",
+            "언제 버릴지(무효화) — 못 정하면 틀린 값을 빠르게",
+            "속도",
+            "메모리"
+          ],
+          "answer": 1,
+          "why": "stale 데이터."
+        },
+        {
+          "q": "캐시 설계의 핵심 질문은?",
+          "choices": [
+            "얼마나 빠른가",
+            "이 데이터가 몇 초/분 낡아도 괜찮은가(허용 stale)",
+            "크기",
+            "언어"
+          ],
+          "answer": 1,
+          "why": "TTL·무효화 기준."
+        },
+        {
+          "q": "정확성이 절대적인 데이터(잔액·재고)는?",
+          "choices": [
+            "오래 캐시",
+            "캐시 대신 원자적 연산(data-tx)으로 — 캐시는 낡아도 되는 읽기에",
+            "무한 캐시",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "빠른 버그 방지."
+        }
+      ]
     },
     {
-      "q": "데이터 갱신 시 캐시 처리로 더 안전한 쪽은?",
-      "choices": [
-        "캐시를 지운다(다음 조회에서 다시 채움)",
-        "캐시를 새 값으로 덮어쓴다",
-        "아무것도 안 한다"
+      "id": "2",
+      "title": "넣기 전에 정할 세 가지",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "캐시를 넣기 전에 **세 가지**를 먼저 정한다(코드보다 먼저 세 줄로): ① **열쇠**(무엇 단위로 캐시하나 — 사용자별? 언어별? 권한별?) ② **수명(TTL)**(얼마나 살리나 — 허용 stale 시간, 1장) ③ **무효화**(무엇이 바뀌면 지우나). 이 셋을 안 정하고 캐시를 넣으면, 권한 유출(다른 사용자에게 남의 캐시)·언어 뒤섞임·오래된 값 같은 사고가 난다. 「캐시를 붙이자」 전에 이 세 줄을 적는 습관이 캐시 사고를 막는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "세 가지 — 열쇠·TTL·무효화",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layers .ly { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; display:flex; justify-content:space-between; }\n  .layers .near { background:#132a1c; color:#86efac; } .layers .far { background:#3a2a14; color:#fcd34d; } .layers .db { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"ly ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const which = '{{which}}';\n  const cases = {\n    key: ['① 열쇠', '무엇 단위로 캐시하나', 'user:123:ko:admin — 사용자·언어·권한이 다르면 열쇠도 달라야(안 그러면 유출)'],\n    ttl: ['② 수명(TTL)', '얼마나 살리나(허용 stale)', '300초 — 데이터가 얼마나 낡아도 되나로 정함(1장)'],\n    inval:['③ 무효화', '무엇이 바뀌면 지우나', '가격 변경 시 그 상품 캐시 삭제 — TTL 만으론 그 사이 stale'],\n  }[which];\n  render('정할 것: ' + cases[0],\n    '  묻는 것: ' + cases[1] + '\\n  예: ' + cases[2],\n    '캐시 전에 세 줄: 열쇠(무엇 단위)·TTL(얼마나)·무효화(언제 지우나).',\n    box(cases[0], cases[2]));\n</script>",
+          "controls": [
+            {
+              "id": "which",
+              "label": "정할 것",
+              "type": "select",
+              "value": "key",
+              "options": [
+                {
+                  "value": "key",
+                  "label": "① 열쇠"
+                },
+                {
+                  "value": "ttl",
+                  "label": "② TTL"
+                },
+                {
+                  "value": "inval",
+                  "label": "③ 무효화"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "캐시 전 세 줄",
+          "text": "// 캐시를 붙이기 전, 코드보다 먼저 이 세 줄을 적는다:\n① 열쇠   무엇 단위로?  예: product:{id}:{lang}  (권한 다르면 권한도)\n② 수명   TTL 얼마나?   예: 300초 (이 데이터는 5분 낡아도 OK)\n③ 무효화 언제 지우나?  예: 상품 수정 시 product:{id}:* 삭제\n\n// 이 셋을 못 적으면 캐시를 넣을 준비가 안 된 것"
+        },
+        {
+          "type": "note",
+          "text": "**열쇠·TTL·무효화 세 줄을 먼저 적어라 — 못 적으면 캐시를 넣을 준비가 안 된 것이다.** 각각이 특정 사고를 막는다: **열쇠**를 잘못 잡으면(사용자·언어·권한을 안 넣으면) 남의 데이터·다른 언어 화면이 새고(5·6장), **TTL** 을 안 정하면 영원히 stale 하거나 무한히 쌓이고, **무효화**를 안 정하면 원본이 바뀌어도 TTL 만료까지 옛 값을 준다. 이 셋은 코드를 짜기 전에 **설계**로 정해야 한다 — 캐시 라이브러리 붙이기는 5분이지만, 이 셋을 안 정하면 나중에 「왜 남의 정보가 보이지?」·「왜 안 갱신되지?」로 디버깅한다. 「이 캐시의 열쇠는 무엇이고, 얼마나 살고, 언제 죽나?」에 답할 수 없으면 아직 캐시를 넣지 않는다. 세 줄이 캐시의 설계도다."
+        },
+        {
+          "type": "p",
+          "text": "**TTL 과 무효화는 둘 다 필요하다 — 서로 보완한다.** **TTL**(수명)은 「최대 이만큼은 낡을 수 있다」는 상한이자 안전망이다 — 무효화를 깜빡해도 결국 만료돼 갱신되니, 무효화 버그의 피해를 시간으로 제한한다. **명시적 무효화**(원본 변경 시 캐시 삭제)는 「바뀌면 즉시 반영」이라 stale 시간을 줄인다. 둘을 함께 쓰면: 원본이 바뀌면 무효화로 즉시 갱신하고, 무효화를 놓친 경우도 TTL 로 결국 갱신된다. TTL 만 쓰면 그 시간만큼 stale 하고, 무효화만 쓰면 한 곳이라도 놓치면 영원히 stale 하다. 그래서 견고한 캐시는 **짧은~중간 TTL + 명시적 무효화**를 겹친다(pay-idem 의 겹겹 방어와 같은 발상). 데이터의 신선도 요구에 따라 이 둘의 비중을 정한다."
+        },
+        {
+          "type": "try",
+          "text": "캐시를 붙일 데이터 하나에 대해 코드보다 먼저 세 줄(열쇠·TTL·무효화)을 적어라 — 열쇠에 사용자·언어·권한이 필요한지, TTL 은 얼마인지, 무엇이 바뀌면 지울지. 세 줄을 못 적으면 아직 캐시를 넣지 마라."
+        }
       ],
-      "answer": 0,
-      "why": "덮어쓰기는 경합 시 낡은 값이 남을 수 있다."
+      "quiz": [
+        {
+          "q": "캐시 전에 정할 세 가지는?",
+          "choices": [
+            "크기·위치·언어",
+            "열쇠·수명(TTL)·무효화",
+            "속도·메모리·CPU",
+            "이름·타입·값"
+          ],
+          "answer": 1,
+          "why": "캐시의 설계도."
+        },
+        {
+          "q": "TTL 과 명시적 무효화의 관계는?",
+          "choices": [
+            "택일",
+            "보완 — TTL 은 안전망, 무효화는 즉시 반영(겹쳐 씀)",
+            "같음",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "겹겹 방어."
+        },
+        {
+          "q": "열쇠에 사용자·권한을 안 넣으면?",
+          "choices": [
+            "빠름",
+            "남의 데이터·다른 권한 화면이 샘(유출)",
+            "안전",
+            "정확"
+          ],
+          "answer": 1,
+          "why": "가장 위험."
+        }
+      ]
     },
     {
-      "q": "사용자별 권한이 다른 데이터를 캐시할 때 가장 중요한 것은?",
-      "choices": [
-        "열쇠에 사용자·권한 구분을 포함한다",
-        "TTL 을 늘린다",
-        "압축한다"
+      "id": "3",
+      "title": "cache-aside 패턴",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "가장 흔한 캐시 패턴 **cache-aside**(lazy loading): ① 캐시를 **먼저 조회** ② 있으면(hit) 그대로 반환 ③ 없으면(miss) **원본(DB)에서 읽어** 캐시에 채우고 반환. 애플리케이션이 캐시를 **옆에 두고**(aside) 직접 관리한다 — 캐시에 없는 것만 DB 에서 가져와 채우니, 자주 조회되는 것만 자연스럽게 캐시된다. 무효화는 원본을 쓸 때 그 캐시 열쇠를 **삭제**한다(다음 조회에 새로 채워짐)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "cache-aside — hit/miss",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layers .ly { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; display:flex; justify-content:space-between; }\n  .layers .near { background:#132a1c; color:#86efac; } .layers .far { background:#3a2a14; color:#fcd34d; } .layers .db { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"ly ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const state = '{{state}}';\n  if (state === 'miss') {\n    render('miss — 캐시에 없음',\n      '  캐시 조회 → 없음 → DB 에서 읽음 → 캐시에 채움 → 반환\\n' +\n      '  <span class=\\\"warn\\\">첫 조회는 DB 까지(느림). 채워 두면 다음부터 빠름.</span>',\n      'miss: 캐시에 없으면 DB 에서 읽어 캐시에 채우고 반환.',\n      steps([['캐시 조회 → 없음(miss)', 'on'],['DB 에서 읽기(느림)', 'bad'],['캐시에 채움(TTL 설정)', 'good'],['반환', 'on']]));\n  } else if (state === 'hit') {\n    render('hit — 캐시에 있음',\n      '  캐시 조회 → 있음 → 그대로 반환(DB 안 감)\\n' +\n      '  <span class=\\\"ok\\\">빠름 — DB 부하도 줄어든다.</span>',\n      'hit: 캐시에 있으면 그대로 반환 — DB 를 안 친다.',\n      steps([['캐시 조회 → 있음(hit)', 'good'],['그대로 반환(DB 안 감)', 'good']]));\n  } else {\n    render('write — 원본 변경 시 무효화',\n      '  DB 업데이트 → 그 캐시 열쇠 삭제(무효화)\\n' +\n      '  <span class=\\\"ok\\\">다음 조회는 miss → DB 에서 새 값을 채움.</span>',\n      '원본을 쓸 때 캐시를 삭제 → 다음 조회에 새 값으로 채워진다.',\n      steps([['DB UPDATE', 'on'],['cache.del(열쇠) — 무효화', 'good'],['다음 조회: miss → 새 값 채움', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "state",
+              "label": "상황",
+              "type": "select",
+              "value": "miss",
+              "options": [
+                {
+                  "value": "miss",
+                  "label": "miss(없음)"
+                },
+                {
+                  "value": "hit",
+                  "label": "hit(있음)"
+                },
+                {
+                  "value": "write",
+                  "label": "write(무효화)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "cache-aside",
+          "text": "async function getUser(id) {\n  const hit = await cache.get(`user:${id}`);\n  if (hit) return JSON.parse(hit);           // hit: 그대로\n  const user = await db.getUser(id);          // miss: DB 에서\n  await cache.set(`user:${id}`, JSON.stringify(user), 'EX', 300);  // 채움(TTL)\n  return user;\n}\nasync function updateUser(id, data) {\n  await db.updateUser(id, data);\n  await cache.del(`user:${id}`);              // 무효화(삭제 → 다음 조회에 새로)\n}"
+        },
+        {
+          "type": "note",
+          "text": "**cache-aside: 캐시를 먼저 보고, 없으면 DB 에서 읽어 채우고, 쓸 때는 캐시를 지운다.** 이 패턴이 가장 흔한 이유: ① **필요한 것만** 캐시된다(조회된 적 있는 것만 채워짐, lazy) ② 캐시가 죽어도 DB 에서 읽어 동작한다(캐시는 최적화일 뿐, 필수 아님) ③ 애플리케이션이 캐시를 직접 관리해 이해·디버깅이 쉽다. 무효화는 「원본을 쓸 때 그 캐시를 **삭제**」로 한다(갱신보다 삭제가 단순·안전 — 다음 조회에 최신으로 채워지니까). 주의점: ① miss 시 「DB 읽기 → 캐시 쓰기」 사이에 다른 요청이 또 miss 나면 여러 번 DB 를 친다(스탬피드, 7장) ② 쓰기 후 캐시 삭제를 **빠뜨리면** stale ③ DB 쓰기와 캐시 삭제 사이 경합(삭제 먼저 vs 쓰기 먼저)에 옛 값이 다시 캐시될 수 있다. 그래도 단순함과 견고함 덕에 기본 선택이다."
+        },
+        {
+          "type": "p",
+          "text": "**다른 패턴들 — write-through·write-behind — 은 쓰기 방식이 다르다.** cache-aside 는 쓸 때 캐시를 **지우지만**, **write-through** 는 쓸 때 DB 와 캐시를 **함께 갱신**한다(항상 최신 캐시, 대신 쓰기가 느림). **write-behind**(write-back)는 캐시에 먼저 쓰고 DB 는 나중에 비동기로(빠른 쓰기, 대신 캐시 유실 시 데이터 손실 위험). **read-through** 는 캐시가 miss 시 스스로 DB 에서 읽어 채운다(cache-aside 를 캐시 계층이 대신). 대부분의 웹 앱은 **cache-aside** 로 충분하고, 특수한 요구(쓰기 후 즉시 캐시 최신, 초고속 쓰기)에서 다른 패턴을 고른다. 핵심은 「읽기 경로에서 캐시를 먼저 보고, 쓰기 경로에서 캐시를 어떻게 처리하나(삭제·갱신)」다 — 이 두 경로를 명확히 하면 어떤 패턴이든 이해된다."
+        },
+        {
+          "type": "try",
+          "text": "느린 조회 하나에 cache-aside 를 붙이되, 붙이기 전에 열쇠·TTL·무효화 세 줄을 먼저 적어라(2장). 읽기(hit/miss)와 쓰기(무효화) 두 경로를 구현하고, 쓰기 후 캐시를 지우는 걸 빠뜨리지 않았는지 확인하라."
+        }
       ],
-      "answer": 0,
-      "why": "열쇠가 겹치면 남의 데이터가 노출된다."
+      "quiz": [
+        {
+          "q": "cache-aside 패턴의 흐름은?",
+          "choices": [
+            "항상 DB",
+            "캐시 먼저 → 없으면 DB 읽어 채움 → 쓸 때 캐시 삭제",
+            "캐시만",
+            "DB 만"
+          ],
+          "answer": 1,
+          "why": "필요한 것만 캐시."
+        },
+        {
+          "q": "cache-aside 에서 무효화 방법은?",
+          "choices": [
+            "갱신",
+            "원본 쓸 때 그 캐시 열쇠 삭제(다음 조회에 새로)",
+            "TTL 만",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "삭제가 단순·안전."
+        },
+        {
+          "q": "write-through 가 cache-aside 와 다른 점은?",
+          "choices": [
+            "읽기",
+            "쓸 때 DB+캐시 함께 갱신(항상 최신, 쓰기 느림)",
+            "TTL 없음",
+            "같음"
+          ],
+          "answer": 1,
+          "why": "쓰기 경로 차이."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "캐시 열쇠 — 무엇 단위로",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**캐시 열쇠**는 「무엇 단위로 캐시하나」를 정한다 — 이걸 잘못 잡으면 가장 위험한 사고가 난다. 열쇠에 반드시 넣어야 할 것: **권한/사용자**(다른 권한 사용자에게 같은 캐시를 주면 남의 데이터 유출!) · **언어/지역**(빠지면 다른 언어 화면이 나감) · **관련 파라미터**(필터·정렬 등 응답을 바꾸는 모든 것). 「이 응답을 다르게 만드는 요소가 전부 열쇠에 있나?」를 확인한다 — 하나라도 빠지면 다른 요청이 같은 캐시를 공유해 틀린 값을 받는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "열쇠 — 무엇을 넣나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layers .ly { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; display:flex; justify-content:space-between; }\n  .layers .near { background:#132a1c; color:#86efac; } .layers .far { background:#3a2a14; color:#fcd34d; } .layers .db { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"ly ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const key = '{{key}}';\n  const cases = {\n    bad: ['product (id 만)', 'bad', '언어·권한 무시 → 영어 사용자가 한국어 캐시 받음·비회원이 회원가 봄'],\n    lang:['product:{id}:{lang}', 'warn', '언어는 구분 → 하지만 권한(회원/비회원 가격)은 아직 안 나뉨'],\n    full:['product:{id}:{lang}:{role}', 'good', '응답을 바꾸는 요소(언어·권한) 다 포함 → 안전'],\n  }[key];\n  render('열쇠: ' + cases[0],\n    (cases[1]==='good'\n      ? '  <span class=\\\"ok\\\">' + cases[2] + '</span>'\n      : '  <span class=\\\"no\\\">' + cases[2] + '</span>'),\n    '응답을 다르게 만드는 요소(권한·언어·필터)가 전부 열쇠에 있어야 한다.',\n    box(cases[0], cases[2], cases[1]==='good'?'good':'bad'));\n</script>",
+          "controls": [
+            {
+              "id": "key",
+              "label": "열쇠",
+              "type": "select",
+              "value": "bad",
+              "options": [
+                {
+                  "value": "bad",
+                  "label": "id 만(위험)"
+                },
+                {
+                  "value": "lang",
+                  "label": "+언어"
+                },
+                {
+                  "value": "full",
+                  "label": "+언어+권한"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**열쇠에 「응답을 다르게 만드는 모든 요소」를 넣어라 — 특히 권한·언어. 하나라도 빠지면 다른 요청이 같은 캐시를 공유한다.** 캐시 열쇠는 「이 열쇠가 같으면 응답이 같다」는 계약이다 — 그래서 응답을 바꾸는 요소(사용자 권한·언어·지역·필터·정렬·페이지)가 **전부** 열쇠에 있어야 한다. 가장 위험한 건 **권한** — 관리자용 응답과 일반 사용자용 응답이 같은 열쇠면, 한쪽이 다른 쪽 데이터를 받는다(정보 유출, 심각한 보안 사고). 다음은 **언어/지역** — 빠지면 영어 사용자가 한국어 화면을, 미국 사용자가 한국 가격을 본다. 「이 응답이 무엇에 따라 달라지나?」를 나열해 그 전부를 열쇠에 반영한다. 반대로 응답과 무관한 것(요청 시각 등)은 열쇠에서 빼야 캐시가 재사용된다. 열쇠 설계가 캐시 정확성의 절반이다."
+        },
+        {
+          "type": "p",
+          "text": "**HTTP 캐시의 `Vary` 헤더가 같은 문제를 표준으로 다룬다.** 브라우저·CDN 캐시(8장)에서 `Vary: Accept-Language, Authorization` 은 「이 헤더들이 다르면 다른 캐시로 취급하라」는 뜻 — 캐시 열쇠에 그 헤더를 포함시키는 것이다. 이걸 빠뜨리면 CDN 이 한 언어 응답을 모두에게 주거나, 인증된 응답을 캐시해 다른 사용자에게 준다(CDN 레벨의 유출 — 대형 사고 사례가 많다). 그래서 **인증이 필요한(사용자별) 응답은 대개 공유 캐시(CDN)에 캐시하지 않거나**(`Cache-Control: private`), Vary 로 정확히 구분한다. 애플리케이션 캐시의 열쇠 설계와 HTTP 캐시의 Vary·private/public 은 같은 원리 — 「무엇이 응답을 다르게 하나」를 캐시 키에 반영하는 것이다. 어느 계층이든 이 원리를 놓치면 유출이 난다."
+        },
+        {
+          "type": "try",
+          "text": "네 캐시 열쇠들을 점검하라 — 각 응답이 무엇에 따라 달라지는지(권한·언어·필터) 나열하고, 그 전부가 열쇠에 있는지 확인하라. 빠진 게 있으면(특히 권한·언어) 추가하고, HTTP 캐시라면 Vary·private 설정도 점검하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "캐시 열쇠에 반드시 넣어야 하는 것은?",
+          "choices": [
+            "요청 시각",
+            "응답을 다르게 만드는 요소(권한·언어·필터)",
+            "서버 이름",
+            "아무것도"
+          ],
+          "answer": 1,
+          "why": "빠지면 공유 유출."
+        },
+        {
+          "q": "가장 위험한 열쇠 누락은?",
+          "choices": [
+            "정렬",
+            "권한/사용자 — 남의 데이터 유출",
+            "페이지",
+            "시각"
+          ],
+          "answer": 1,
+          "why": "보안 사고."
+        },
+        {
+          "q": "HTTP 캐시에서 「이 헤더가 다르면 다른 캐시」를 뜻하는 것은?",
+          "choices": [
+            "Cache-Control",
+            "Vary 헤더",
+            "ETag",
+            "Age"
+          ],
+          "answer": 1,
+          "why": "열쇠에 헤더 포함."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "자주 밟는 함정",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "캐시의 흔한 함정들: **① 권한이 다른 사용자에게 같은 캐시**(가장 위험 — 남의 데이터 유출, 4장) · **② 열쇠에 언어·지역이 빠져** 다른 언어 화면이 나감 · **③ 캐시 스탬피드/폭주**(같은 열쇠가 동시에 만료돼 수많은 요청이 한꺼번에 DB 를 침, 7장) · **④ 무효화 누락**(쓰기 후 캐시 삭제를 빠뜨려 stale) · **⑤ 캐시에 절대 낡으면 안 되는 것을 넣기**(잔액·재고). 이 함정들은 「빠르게」의 이면이라, 캐시를 넣을 때마다 의식해야 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "함정 — 무엇을 조심하나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layers .ly { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; display:flex; justify-content:space-between; }\n  .layers .near { background:#132a1c; color:#86efac; } .layers .far { background:#3a2a14; color:#fcd34d; } .layers .db { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"ly ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const trap = '{{trap}}';\n  const cases = {\n    auth:['권한 유출', '다른 권한 사용자에게 같은 캐시 → 남의 데이터 노출', '열쇠에 사용자·권한 포함(4장) · private'],\n    lang:['언어 뒤섞임', '열쇠에 언어 빠짐 → 영어 사용자가 한국어 화면', '열쇠에 언어·지역 포함'],\n    stampede:['캐시 폭주', '같은 열쇠 동시 만료 → 수많은 요청이 한꺼번에 DB', 'TTL 지터·락·stale-while-revalidate(7장)'],\n    inval:['무효화 누락', '쓰기 후 캐시 삭제 깜빡 → stale', '쓰기 경로마다 무효화 · TTL 안전망'],\n    fresh:['낡으면 안 되는 것', '잔액·재고를 캐시 → 틀린 값을 빠르게', '캐시 대상에서 제외 · 원자적 연산(data-tx)'],\n  }[trap];\n  render('함정: ' + cases[0],\n    '  증상: <span class=\\\"no\\\">' + cases[1] + '</span>\\n  대처: <span class=\\\"ok\\\">' + cases[2] + '</span>',\n    '권한 유출·언어 뒤섞임·폭주·무효화 누락·낡으면 안 되는 것 — 캐시 5대 함정.',\n    box(cases[0], cases[2]));\n</script>",
+          "controls": [
+            {
+              "id": "trap",
+              "label": "함정",
+              "type": "select",
+              "value": "auth",
+              "options": [
+                {
+                  "value": "auth",
+                  "label": "권한 유출"
+                },
+                {
+                  "value": "lang",
+                  "label": "언어 뒤섞임"
+                },
+                {
+                  "value": "stampede",
+                  "label": "캐시 폭주"
+                },
+                {
+                  "value": "inval",
+                  "label": "무효화 누락"
+                },
+                {
+                  "value": "fresh",
+                  "label": "낡으면 안 됨"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**권한 유출이 가장 위험하다 — 캐시가 남의 데이터를 다른 사용자에게 준다.** 캐시 함정 중 보안 사고로 이어지는 건 권한/사용자를 열쇠에 안 넣은 것이다: 사용자 A 의 개인 데이터가 캐시되고, 열쇠가 사용자를 구분 안 하면 사용자 B 가 그 캐시를 받는다 — 프로필·주문·결제 정보 유출이다. 특히 **CDN·공유 캐시**에서 인증된 응답을 캐시하면 대규모 유출이 된다(실제 대형 사고 다수). 그래서 규칙: **사용자별·권한별 응답은 열쇠에 사용자/권한을 넣거나, 공유 캐시에 안 넣는다**(`Cache-Control: private`, 4장). 「이 응답에 특정 사용자의 정보가 있나? 있다면 열쇠가 그 사용자를 구분하나?」를 반드시 확인한다. 「빠르게 하려다 남의 정보를 노출」하는 게 캐시의 가장 아픈 사고다."
+        },
+        {
+          "type": "p",
+          "text": "**함정들의 공통점: 캐시는 「조용히」 틀린다.** 캐시 사고는 대부분 에러 없이 조용히 일어난다 — stale 값도, 유출된 데이터도, 뒤섞인 언어도 「정상 응답」처럼 빠르게 나가서 한동안 안 들킨다(무음 실패, quality). 그래서 캐시는 ① **넣기 전 세 줄**(열쇠·TTL·무효화, 2장)로 예방하고 ② 넣은 뒤 **검증**한다: 일부러 데이터를 바꾸고 화면이 언제 갱신되는지 재고(기대 TTL 과 맞나), 다른 사용자·언어로 접속해 캐시가 안 섞이는지 확인하고, 부하를 줘 스탬피드가 나는지 본다. 캐시는 「성능 최적화」라 없어도 동작하니(cache-aside 는 캐시 죽어도 DB 로 폴백, 3장), **의심되면 캐시를 꺼서** 문제가 캐시 때문인지 격리할 수도 있다. 「빠른데 뭔가 이상하다」면 캐시를 첫 용의자로 본다."
+        },
+        {
+          "type": "try",
+          "text": "네 캐시를 5대 함정으로 점검하라 — 특히 ① 사용자별 응답의 열쇠에 사용자·권한이 있나(유출) ② 낡으면 안 되는 데이터를 캐시하고 있나. 일부러 데이터를 바꿔 화면 갱신 시점을 재고, 다른 사용자로 접속해 캐시가 안 섞이는지 확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "캐시의 가장 위험한 함정은?",
+          "choices": [
+            "느림",
+            "권한/사용자를 열쇠에 안 넣어 남의 데이터 유출",
+            "메모리",
+            "TTL 김"
+          ],
+          "answer": 1,
+          "why": "보안 사고."
+        },
+        {
+          "q": "낡으면 안 되는 데이터(잔액·재고)는?",
+          "choices": [
+            "오래 캐시",
+            "캐시 대상에서 제외·원자적 연산(data-tx)",
+            "무한 캐시",
+            "TTL 길게"
+          ],
+          "answer": 1,
+          "why": "빠른 버그."
+        },
+        {
+          "q": "캐시 사고의 공통점은?",
+          "choices": [
+            "에러가 크게 남",
+            "조용히 틀림(무음) — 넣기 전 설계 + 넣은 뒤 검증",
+            "느려짐",
+            "즉시 크래시"
+          ],
+          "answer": 1,
+          "why": "정상처럼 보임."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "캐시 스탬피드 — 폭주",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "**캐시 스탬피드**(thundering herd): 인기 있는 캐시 열쇠가 **동시에 만료**되면, 그 순간 수많은 요청이 한꺼번에 miss 나서 **모두 DB 를 친다** — DB 가 폭주로 쓰러질 수 있다. 특히 여러 열쇠의 TTL 이 같아 한꺼번에 만료되면 심하다. 대처: ① **TTL 지터**(만료 시각을 흩뜨림) ② **락**(하나만 DB 를 치고 나머지는 그 결과를 기다림) ③ **stale-while-revalidate**(만료돼도 옛 값을 주면서 뒤에서 갱신)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스탬피드 — 지터로 흩뜨리기",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layers .ly { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; display:flex; justify-content:space-between; }\n  .layers .near { background:#132a1c; color:#86efac; } .layers .far { background:#3a2a14; color:#fcd34d; } .layers .db { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"ly ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const jitter = '{{jitter}}' === 'yes';\n  if (!jitter) {\n    render('같은 TTL — 동시 만료',\n      '  1000개 캐시가 정확히 300초에 다 만료 → 그 순간 1000 요청이 DB 로\\n' +\n      '  <span class=\\\"no\\\">DB 에 스파이크 → 폭주로 느려지거나 쓰러짐.</span>',\n      '같은 TTL 은 동시에 만료돼 한꺼번에 DB 를 친다(스탬피드).',\n      bars([['DB 부하(만료 순간)', 95, '스파이크!', '#ef4444']]));\n  } else {\n    render('TTL 지터 — 만료 흩뜨림',\n      '  ttl = 300 + random(0~60) → 만료 시각이 60초에 걸쳐 분산\\n' +\n      '  <span class=\\\"ok\\\">DB 요청이 시간에 퍼짐 → 스파이크 없음. + 락/SWR 병행.</span>',\n      'TTL 에 랜덤을 더해 만료를 흩뜨리면 DB 부하가 시간에 퍼진다.',\n      bars([['DB 부하(분산)', 25, '완만', '#4ade80']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "jitter",
+              "label": "TTL 지터",
+              "type": "select",
+              "value": "no",
+              "options": [
+                {
+                  "value": "no",
+                  "label": "없음(동시 만료)"
+                },
+                {
+                  "value": "yes",
+                  "label": "지터(분산)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "스탬피드 대처",
+          "text": "// ① TTL 지터: 만료 시각을 흩뜨린다\nconst ttl = 300 + Math.floor(Math.random() * 60);\n\n// ② 락: 하나만 DB 를 채우고 나머지는 기다림(single-flight)\n//    miss 시 락 획득한 하나만 DB 조회, 나머지는 그 결과 대기\n\n// ③ stale-while-revalidate: 만료돼도 옛 값 주면서 뒤에서 갱신\n//    사용자는 즉시 (약간 낡은) 응답, 백그라운드로 새로 채움"
+        },
+        {
+          "type": "note",
+          "text": "**인기 열쇠의 동시 만료가 DB 스파이크를 만든다 — 지터·락·SWR 로 흩뜨리거나 하나만 치게 한다.** 캐시가 잘 될수록(hit 율 높을수록) 그 열쇠가 만료되는 순간의 충격이 크다 — 평소 DB 를 거의 안 치다가, 만료 순간 그 열쇠를 원하던 모든 요청이 동시에 miss 나 DB 로 몰린다(thundering herd). 세 대처: ① **TTL 지터** — 만료 시각에 랜덤을 더해(300±60초) 여러 열쇠·인스턴스가 한꺼번에 안 만료되게 흩뜨린다(가장 간단) ② **락/single-flight** — miss 시 하나의 요청만 DB 를 채우고 나머지는 그 결과를 기다린다(중복 DB 조회 제거) ③ **stale-while-revalidate** — 만료돼도 옛 값을 즉시 주면서 백그라운드로 갱신한다(사용자는 항상 빠른 응답, 약간 stale 감수). 트래픽이 큰 인기 데이터일수록 이 대처가 중요하다 — 캐시가 오히려 DB 폭주의 방아쇠가 되지 않게."
+        },
+        {
+          "type": "p",
+          "text": "**빈 값(miss)도 캐시하라 — 캐시 관통(penetration) 방지.** 존재하지 않는 데이터를 계속 조회하면(잘못된 id·공격), 매번 miss → DB 조회 → 여전히 없음 → 캐시 안 됨의 반복으로 DB 를 계속 친다(캐시 관통). 대처: **「없음」도 짧게 캐시**한다(빈 결과에 짧은 TTL) — 그러면 없는 것을 반복 조회해도 캐시가 막는다. 관련해서 **캐시 붕괴(avalanche)**는 캐시 서버 자체가 죽어 모든 요청이 DB 로 가는 것 — 이건 캐시를 여러 노드로 분산하거나, DB 앞에 서킷 브레이커·레이트 리밋을 둬 완화한다(scale·api-limit). 정리하면 캐시가 DB 를 지키는 방패인데, 그 방패가 뚫리는(스탬피드·관통·붕괴) 상황을 각각 지터·빈값캐시·분산으로 막는다. 「캐시가 없거나 만료된 순간 DB 가 견디나?」를 늘 생각한다 — 캐시는 있을 때뿐 아니라 없을 때도 설계 대상이다."
+        },
+        {
+          "type": "try",
+          "text": "인기 있는 캐시의 TTL 에 지터(±랜덤)를 더해 동시 만료를 흩뜨려라. 부하 도구로 한 열쇠를 동시에 많이 조회해 스탬피드를 재현하고, 락(single-flight)이나 SWR 로 DB 조회가 하나로 줄어드는지 확인하라. 없는 데이터 반복 조회(관통)도 빈 값 캐시로 막아 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "캐시 스탬피드(thundering herd)란?",
+          "choices": [
+            "느린 캐시",
+            "인기 열쇠 동시 만료 → 수많은 요청이 한꺼번에 DB",
+            "메모리 부족",
+            "유출"
+          ],
+          "answer": 1,
+          "why": "DB 스파이크."
+        },
+        {
+          "q": "스탬피드 대처가 아닌 것은?",
+          "choices": [
+            "TTL 지터",
+            "락(single-flight)",
+            "stale-while-revalidate",
+            "TTL 을 모두 동일하게"
+          ],
+          "answer": 3,
+          "why": "동일 TTL 이 원인."
+        },
+        {
+          "q": "없는 데이터 반복 조회(캐시 관통)의 대처는?",
+          "choices": [
+            "무시",
+            "「없음」도 짧게 캐시",
+            "TTL 무한",
+            "캐시 제거"
+          ],
+          "answer": 1,
+          "why": "빈 값 캐시."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "어디에 두나 — 캐시 계층",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "캐시는 여러 계층에 둘 수 있다: **브라우저 캐시**(HTTP 헤더로 사용자 기기에) · **CDN**(전 세계 엣지에, 정적·공용 콘텐츠) · **애플리케이션 메모리**(그 서버 안, 가장 빠르나 서버마다 따로) · **공용 캐시(Redis)**(여러 서버가 공유). 원칙: **가장 바깥에서 막을수록 싸다** — 서버까지 오기 전에(브라우저·CDN) 막으면 네트워크·서버 부하가 전부 절약된다. 반대로 안쪽(Redis·DB) 캐시는 공유·정확성이 좋지만 요청이 거기까지 와야 한다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "캐시 계층 — 바깥일수록 싸다",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layers .ly { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; display:flex; justify-content:space-between; }\n  .layers .near { background:#132a1c; color:#86efac; } .layers .far { background:#3a2a14; color:#fcd34d; } .layers .db { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"ly ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const layer = '{{layer}}';\n  const cases = {\n    browser:['브라우저(HTTP 헤더)', 0, '사용자 기기 — 서버까지 아예 안 옴(가장 쌈)', '정적 자원·개인 응답'],\n    cdn:  ['CDN(엣지)', 20, '전 세계 엣지 — 서버 근처 안 옴', '정적·공용 콘텐츠(이미지·JS·공개 API)'],\n    app:  ['앱 메모리', 60, '그 서버 안 — 가장 빠르나 서버마다 따로(불일치 주의)', '작고 자주 쓰는 것'],\n    redis:['공용 캐시(Redis)', 80, '여러 서버 공유 — 일관되나 요청이 여기까지', '세션·공유 데이터'],\n  }[layer];\n  render('계층: ' + cases[0],\n    '  특성: ' + cases[2] + '\\n  용도: ' + cases[3] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">가장 바깥에서 막을수록 싸다 — 서버까지 오기 전에 막아라.</span>',\n    '브라우저→CDN→앱메모리→Redis→DB. 바깥에서 막을수록 부하 절약.',\n    layers([\n      ['브라우저 캐시 (가장 바깥·쌈)', layer==='browser'?'◀':'', 'near'],\n      ['CDN (엣지)', layer==='cdn'?'◀':'', 'near'],\n      ['앱 메모리', layer==='app'?'◀':'', 'far'],\n      ['공용 캐시 Redis', layer==='redis'?'◀':'', 'far'],\n      ['DB (최후·가장 비쌈)', '', 'db']]));\n</script>",
+          "controls": [
+            {
+              "id": "layer",
+              "label": "계층",
+              "type": "select",
+              "value": "browser",
+              "options": [
+                {
+                  "value": "browser",
+                  "label": "브라우저"
+                },
+                {
+                  "value": "cdn",
+                  "label": "CDN"
+                },
+                {
+                  "value": "app",
+                  "label": "앱 메모리"
+                },
+                {
+                  "value": "redis",
+                  "label": "Redis"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**가장 바깥에서 막을수록 싸다 — 브라우저·CDN 에서 막으면 서버가 아예 일을 안 한다.** 요청이 DB 까지 오는 여정(브라우저→CDN→서버→앱캐시→DB)에서, 바깥 계층이 응답하면 그 안쪽 전부의 부하가 절약된다: 브라우저 캐시(HTTP `Cache-Control`)가 막으면 네트워크 요청 자체가 없고, CDN 이 막으면 서버까지 안 오고, 앱 메모리가 막으면 DB 를 안 친다. 그래서 캐시 가능한 것은 **되도록 바깥에서** 캐시한다 — 특히 정적 자원(이미지·CSS·JS)은 CDN+긴 브라우저 캐시로 서버 부담을 거의 0 으로 만든다. 다만 바깥일수록 **무효화가 어렵고**(브라우저 캐시는 사용자 기기라 못 지움 — 그래서 파일명에 해시를 넣어 새 버전은 새 URL), 사용자별·동적 데이터는 바깥 공유 캐시에 못 둔다(유출, 4장). 「이 데이터를 얼마나 바깥에서 캐시할 수 있나(공유 가능·무효화 가능한가)」로 계층을 고른다."
+        },
+        {
+          "type": "p",
+          "text": "**앱 메모리 vs 공용 캐시(Redis)의 트레이드오프.** **앱 메모리 캐시**(프로세스 안 변수·LRU)는 가장 빠르지만(네트워크 없음) 서버마다 따로라 ① 여러 서버 간 **불일치**(한 서버는 갱신, 다른 서버는 옛 값) ② 서버 재시작 시 사라짐 ③ 메모리 제한(sys-mem — 상한·LRU 필요). **공용 캐시(Redis)**는 여러 서버가 공유해 일관되고 크지만, 네트워크 왕복이 있고 별도 인프라다. 그래서 흔한 조합은 **다층 캐시**: 자주 쓰는 작은 것은 앱 메모리(초고속), 공유·큰 것은 Redis, 정적은 CDN — 각 계층이 그 아래를 보호한다. 단 다층일수록 무효화가 복잡해진다(여러 계층을 다 지워야). 「이 캐시가 서버 간 일관돼야 하나(Redis), 아니면 서버별로 빨라도 되나(앱 메모리)?」와 「무효화를 몇 계층에 전파해야 하나」를 함께 본다. 계층이 늘수록 빠르지만 정합성 관리가 어려워진다 — 캐시의 근본 트레이드오프(1장)가 계층에서도 되풀이된다."
+        },
+        {
+          "type": "try",
+          "text": "네 시스템의 캐시가 어느 계층에 있는지 그려라(브라우저·CDN·앱·Redis). 정적 자원이 CDN+브라우저 캐시로 서버를 안 거치는지 확인하고, 앱 메모리 캐시가 여러 서버 간 불일치를 일으킬 여지가 있는지 점검하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "캐시 계층의 원칙은?",
+          "choices": [
+            "안쪽일수록 좋음",
+            "가장 바깥에서 막을수록 싸다(서버까지 안 옴)",
+            "많을수록 좋음",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "부하 절약."
+        },
+        {
+          "q": "앱 메모리 캐시의 단점은?",
+          "choices": [
+            "느림",
+            "서버마다 따로 → 불일치·재시작 시 소멸",
+            "공유됨",
+            "정확"
+          ],
+          "answer": 1,
+          "why": "Redis 는 공유."
+        },
+        {
+          "q": "바깥 캐시(브라우저·CDN)의 어려움은?",
+          "choices": [
+            "느림",
+            "무효화가 어렵고 사용자별·동적 데이터는 못 둠(유출)",
+            "메모리",
+            "없음"
+          ],
+          "answer": 1,
+          "why": "공유·무효화 제약."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "언제 캐시하지 말아야 하나",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "캐시가 항상 답은 아니다. **캐시하지 말아야 할 때**: ① **낡으면 안 되는 데이터**(잔액·재고·실시간, 1·5장) ② **자주 바뀌는데 hit 율 낮은 것**(캐시해도 금방 만료·무효화라 이득 없이 복잡도만) ③ **먼저 근본 원인을 고칠 수 있을 때**(느린 쿼리는 인덱스·N+1 수정이 캐시보다 나음). 캐시는 **복잡도(무효화·일관성·계층)를 더한다** — 그 복잡도가 이득을 넘는지 본다. 「캐시로 덮기 전에, 왜 느린지부터」가 순서다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "캐시 전에 — 근본 원인?",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layers .ly { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; display:flex; justify-content:space-between; }\n  .layers .near { background:#132a1c; color:#86efac; } .layers .far { background:#3a2a14; color:#fcd34d; } .layers .db { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"ly ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'cover') {\n    render('느린 쿼리를 캐시로 덮기',\n      '  N+1·인덱스 없음으로 느린 쿼리 → 캐시로 가림\\n' +\n      '  <span class=\\\"no\\\">근본은 그대로 + 무효화 복잡도 추가. miss·만료 시 여전히 느림.</span>',\n      '느린 원인을 안 고치고 캐시로 덮으면 복잡도만 늘고 근본은 남는다.',\n      steps([['느린 쿼리(N+1·인덱스 없음)', 'bad'],['캐시로 가림(근본 그대로)', 'bad'],['miss·만료 시 여전히 느림 + 무효화 부채', 'bad']]));\n  } else {\n    render('근본 먼저, 그다음 필요하면 캐시',\n      '  인덱스·N+1 수정으로 쿼리 자체를 빠르게 → 그래도 느리면 캐시\\n' +\n      '  <span class=\\\"ok\\\">근본이 빨라지면 캐시 없이도 OK. 캐시는 그 위 최적화.</span>',\n      '먼저 근본(인덱스·N+1)을 고치고, 그래도 느리면 캐시를 더한다.',\n      steps([['왜 느린지 측정(sys-profile·EXPLAIN)', 'on'],['근본 수정(인덱스·N+1·쿼리)', 'good'],['그래도 느리면 캐시(복잡도 감수)', 'good']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "kind",
+              "label": "접근",
+              "type": "select",
+              "value": "cover",
+              "options": [
+                {
+                  "value": "cover",
+                  "label": "캐시로 덮기"
+                },
+                {
+                  "value": "root",
+                  "label": "근본 먼저"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**캐시로 덮기 전에 왜 느린지부터 고쳐라 — 캐시는 복잡도를 더하는 최적화지 근본 수정이 아니다.** 느린 쿼리를 만나면 캐시가 유혹적이지만, 근본 원인(인덱스 없음·N+1·비효율 쿼리)을 안 고치고 캐시로 가리면: ① 근본은 그대로라 캐시 miss·만료 시 여전히 느리고 ② 무효화·일관성이라는 새 복잡도가 생기고 ③ 「캐시 때문에 stale·유출」이라는 새 버그 종류가 는다. 그래서 순서는 **① 측정(왜 느린가, sys-profile·EXPLAIN) ② 근본 수정(인덱스 db-index·N+1 제거 db-nplus1·쿼리 개선) ③ 그래도 느리면 캐시**다. 근본을 고치면 캐시 없이 충분한 경우가 많고, 캐시가 필요해도 그 위의 최적화로 깔끔하다. 「캐시를 넣자」가 첫 반응이면, 「왜 느린지 먼저 봤나?」를 자문한다. 캐시는 마지막 수단에 가깝지 첫 수단이 아니다 — 황금의 정신(근본 먼저)이 캐시에도 적용된다."
+        },
+        {
+          "type": "p",
+          "text": "**캐시가 정당한 때 — 근본을 고쳐도 남는 비용, 또는 근본 수정이 불가능할 때.** 캐시가 옳은 경우도 분명하다: ① 근본을 다 고쳐도 여전히 무거운 연산(복잡한 집계·외부 API 호출 결과·렌더링된 페이지) ② 같은 것을 아주 자주 조회(hit 율 높음) ③ 원본이 느리거나 비싼데 자주 안 바뀜(외부 API·리포트) ④ 근본을 당장 못 고칠 때의 임시 완화(단, 부채로 기록). 이럴 때 캐시는 큰 이득이다 — 핵심은 「이 데이터가 **자주 조회되고, 잘 안 바뀌고, 좀 낡아도 되나**」의 세 조건이 맞을 때 캐시가 빛난다는 것. 반대로 자주 바뀌거나(무효화 부담), 낡으면 안 되거나(잔액), 조회가 드물면(hit 율 낮음) 캐시는 이득보다 복잡도가 크다. 「측정 → 근본 → (남으면) 캐시」의 순서와 「자주 조회·안 바뀜·낡아도 됨」의 조건, 이 둘로 캐시 여부를 판단한다."
+        },
+        {
+          "type": "try",
+          "text": "캐시를 넣으려는 느린 부분에 대해, 먼저 왜 느린지 측정(EXPLAIN·프로파일)하고 근본(인덱스·N+1)을 고칠 수 있는지 보라. 근본을 고쳐도 남는 비용이 있고 「자주 조회·안 바뀜·낡아도 됨」이 맞을 때만 캐시를 더하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "캐시로 덮기 전에 할 일은?",
+          "choices": [
+            "바로 캐시",
+            "왜 느린지 측정하고 근본(인덱스·N+1) 먼저 고치기",
+            "TTL 늘리기",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "캐시는 복잡도 추가."
+        },
+        {
+          "q": "캐시가 빛나는 데이터의 조건은?",
+          "choices": [
+            "자주 바뀜",
+            "자주 조회·잘 안 바뀜·좀 낡아도 됨",
+            "낡으면 안 됨",
+            "조회 드묾"
+          ],
+          "answer": 1,
+          "why": "세 조건."
+        },
+        {
+          "q": "캐시하지 말아야 할 때는?",
+          "choices": [
+            "자주 조회",
+            "낡으면 안 되거나·자주 바뀌거나·hit 율 낮을 때",
+            "안 바뀜",
+            "느린 외부 API"
+          ],
+          "answer": 1,
+          "why": "복잡도 > 이득."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — 캐시",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "캐시를 넣거나 stale·유출 사고를 진단할 때 이 목록을 확인하라. 핵심은 「넣기 전 세 줄(열쇠·TTL·무효화), 근본을 먼저, 조용한 오류를 검증」이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:130px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .layers { margin:8px 0; }\n  .layers .ly { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; display:flex; justify-content:space-between; }\n  .layers .near { background:#132a1c; color:#86efac; } .layers .far { background:#3a2a14; color:#fcd34d; } .layers .db { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.6) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const layers = (rows) => '<div class=\"layers\">' + rows.map(([lab, tag, cls]) =>\n    '<div class=\"ly ' + cls + '\"><span>' + esc(lab) + '</span><span>' + esc(tag) + '</span></div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '무효화를 설계했다(못 정하면 틀린 값을 빠르게)',\n    '넣기 전 세 줄: 열쇠·TTL·무효화',\n    'cache-aside(먼저 조회·없으면 채움·쓸 때 삭제)',\n    '열쇠에 권한·언어 등 응답을 바꾸는 요소 포함',\n    '권한 유출·언어 뒤섞임 등 함정을 안다',\n    '스탬피드 대처(TTL 지터·락·SWR)',\n    '계층 활용(바깥에서 막을수록 싸다)',\n    '캐시 전에 근본(인덱스·N+1)을 먼저 고친다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 빠르면서 정확한 캐시를 안전하게 넣을 수 있다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '넣기 전 세 줄 · 근본을 먼저 · 조용한 오류를 검증.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 캐시를 넣기 전에 열쇠·TTL·무효화 세 줄을 적고, 근본을 먼저 고쳐라.** 무효화가 캐시의 진짜 어려움이니(1장) 넣기 전 세 줄을 정하고(2장), cache-aside 로 읽기·쓰기 경로를 명확히(3장), 열쇠에 권한·언어를 넣어 유출을 막고(4·5장), 스탬피드를 지터·락·SWR 로 흩뜨리고(6장), 바깥 계층에서 막고(7장), 캐시로 덮기 전에 근본(인덱스·N+1)을 먼저 고친다(8장). 캐시 사고는 조용히 나니, 넣은 뒤 반드시 검증한다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸의 연결.** 캐시의 비정규화는 data-model(의도적 박제·성능용 중복), 근본 수정은 db-index·db-nplus1·data-sql(N+1), 낡으면 안 되는 데이터는 data-tx(원자적 연산), HTTP 캐시·Vary 는 web-http·net, 계층·스탬피드·붕괴는 scale, 무음 오류 검증은 quality 로 이어진다. **「무효화를 먼저 설계하고, 근본을 고친 위에 캐시를 얹는 감각」이 빠르면서 정확한 시스템의 바탕**이다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개로 네 캐시를 점검하라. 「넣기 전 세 줄(열쇠·TTL·무효화)」과 「캐시 전에 근본 먼저」 두 가지만 지켜도, stale·유출·복잡도 사고의 상당수가 사라진다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "캐시 장의 한 줄 요약은?",
+          "choices": [
+            "다 캐시하라",
+            "넣기 전 세 줄(열쇠·TTL·무효화)·근본을 먼저",
+            "빠르게",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "무효화가 핵심."
+        },
+        {
+          "q": "먼저 지킬 두 가지는?",
+          "choices": [
+            "TTL 무한·다층",
+            "넣기 전 세 줄 + 캐시 전에 근본(인덱스·N+1) 먼저",
+            "전부 캐시·권한 무시",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "stale·유출·복잡도 감소."
+        },
+        {
+          "q": "캐시가 이어지는 주제는?",
+          "choices": [
+            "없음",
+            "data-model·db-index·data-tx·web-http·scale",
+            "문법",
+            "속도"
+          ],
+          "answer": 1,
+          "why": "빠르고 정확한 바탕."
+        }
+      ]
     }
   ]
 }
