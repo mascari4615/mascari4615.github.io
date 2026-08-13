@@ -221,7 +221,11 @@ export function deferShellExtras(html) {
      ⚠ 여기 이름은 **셸에 실제로 있는 태그**여야 한다. 한동안 `widgets-lazy-meta.js` 라고 적혀
      있었는데 셸이 그 사이 `widgets-index.js` 로 바뀌어, 도구 페이지 129장이 통째로 안 찍히고
      배포가 섰다(2026-08-12). 못 찾으면 조용히 넘기지 말고 여기서 던지는 이유가 그것이다. */
-  for (const f of ['home-page.js', 'palette.js', 'widgets-index.js', 'account.js']) {
+  /* `account.js` 는 이제 셸에서도 **첫 그림 뒤에** 들어온다(2026-08-13, 부팅 짐 6.6KB).
+     태그가 없으니 뗄 것도 없고, 대신 그 자리의 인라인 블록을 뗀다 — 도구 화면은 아래 shim 이
+     같은 일을 하므로 두 번 부르지 않게 한다. */
+  html = html.replace(/\s*<!-- account-late:begin[\s\S]*?account-late:end -->/, '');
+  for (const f of ['home-page.js', 'palette.js', 'widgets-index.js']) {
     if (!html.includes(tag(f))) throw new Error(`셸에서 ${f} 자리를 못 찾음 — index.html 확인`);
     html = html.replace(tag(f) + '\n', '').replace(tag(f), '');
   }

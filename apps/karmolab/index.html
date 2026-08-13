@@ -417,7 +417,21 @@ permalink: /karmolab/
     <script defer fetchpriority="low" src="/apps/karmolab/js/analytics.js"></script>
     <!-- 계정 (TASK-KL-098) — 도전과제·연속기록이 이 브라우저 밖에도 남게 하고, 헤더의 로그인
          자리를 채운다. 서버(yawnbot)가 죽어 있으면 아무 일도 안 하고 지금까지와 똑같이 동작한다. -->
-    <script defer fetchpriority="low" src="/apps/karmolab/js/account.js"></script>
+    <!-- ★ **첫 그림 뒤로 옮긴다** (2026-08-13). 이 한 줄이 부팅 짐의 6.6KB 였고, 그 때문에
+         첫 화면 천장(41KB)을 넘겨 모든 세션의 verify 가 섰다. 헤더의 로그인 자리는 서버 응답이
+         와야 채워지므로 **어차피 첫 그림에는 못 맞춘다** — 토글도 `window.KarmoAccount?.` 로
+         없을 때를 이미 견딘다. 같이 쓰기(copresence)를 옮긴 그 방식 그대로. -->
+    <!-- account-late:begin (도구 화면은 자기 shim 이 같은 일을 한다 — 생성기가 이 블록을 뗀다) -->
+    <script>
+      addEventListener('load', function () {
+        (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(function () {
+          var s = document.createElement('script');
+          s.src = '/apps/karmolab/js/account.js';
+          document.head.appendChild(s);
+        });
+      });
+    </script>
+    <!-- account-late:end -->
     <!-- 같이 쓰기 (TASK-KL-180) — 같은 화면을 열고 있는 사람들의 커서가 서로 보인다.
          급하지 않다: 도구가 먼저 뜨고 그 다음에 사람이 보이는 순서가 맞다. -->
     <!-- 같이 쓰기도 첫 그림 뒤로 (TASK-KL-201). 위 주석이 이미 「급하지 않다: 도구가 먼저 뜨고
