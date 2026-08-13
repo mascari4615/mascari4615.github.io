@@ -44,6 +44,11 @@ const 파생물 = [
     nightly: true
   },
   {
+    npm: 'gen:arcade-catalog',
+    outputs: ['src/widgets/arcade/catalog-meta.generated.ts', 'src/widgets/arcade/chunks.generated.json'],
+    why: '로비가 읽는 명패 + 조각 표 — 낡으면 새 게임이 오락실에 안 뜨거나 눌러도 안 열린다'
+  },
+  {
     npm: 'gen:core-tools',
     outputs: ['data/core-tools.json', 'src/core/registry.generated.ts', 'src/core/registry-lazy.generated.ts'],
     why: '묶어 쓰기·MCP 가 부를 수 있는 도구 목록'

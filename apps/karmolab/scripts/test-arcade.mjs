@@ -12,7 +12,8 @@
  * `npm run test:arcade`
  */
 import { build } from 'esbuild';
-import { mkdtempSync, rmSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync, readdirSync, readFileSync } from 'node:fs';
+import { createContext, runInContext } from 'node:vm';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -373,6 +374,65 @@ console.log('[arcade] 오목 — 차례·보드');
     const missing = GAMES.flatMap((g) =>
       [`arcade.game.${g.id}.name`, `arcade.game.${g.id}.desc`].filter((k) => !dict[k]));
     ok(missing.length === 0, `${loc}: 모든 게임에 이름과 설명이 있다`, missing.join(', '));
+  }
+}
+
+/*
+ * 쪼갠 조각이 **진짜 그 게임을 등록하나** (TASK-KL-242 쪼개기).
+ *
+ * 로비는 이제 게임 코드를 안 들고 있다 — 누르면 `arcade/games/<조각>.js` 를 받아 붙인다.
+ * 그 조각이 없거나 딴 이름으로 등록하면 **누르기 전까지 아무 검사도 안 잡는다**(로비는 멀쩡히
+ * 51칸을 그린다). 그래서 여기서 조각을 진짜 돌려 보고 등록되는 이름까지 맞춰 본다.
+ *
+ * [빨강-확인] 2026-08-14 — 세 항목을 다 빨개지는 것을 보고 남겼다:
+ *   · `arcade/games/pong.js` 를 치웠다 → 「게임마다 조각 파일이 하나씩 있다 — pong」
+ *   · 그 파일의 `pong` 을 `pongX` 로 바꿨다 → 「자기 이름으로 … 등록한다 — pong」
+ *   · 파일 앞에 `throw` 를 넣었다 → 「받자마자 터지지 않는다 — pong: 일부러」
+ */
+{
+  const cards = JSON.parse(readFileSync('src/widgets/arcade/chunks.generated.json', 'utf8'));
+  ok(cards.length === GAMES.length, '조각 표가 카탈로그와 같은 수다', `${cards.length}/${GAMES.length}`);
+  const 어긋남 = cards.filter((c, i) => c.id !== GAMES[i]?.id).map((c) => c.id);
+  ok(어긋남.length === 0, '조각 표의 이름이 카탈로그 차례와 같다', 어긋남.join(', '));
+
+  const builtDir = 'arcade/games';
+  const built = existsSync(builtDir) ? readdirSync(builtDir).filter((f) => f.endsWith('.js')) : [];
+  if (!built.length) {
+    /* 아직 안 구웠으면 **모른다** — 없는 것을 빨강으로 세면 짓기 전 검사가 늘 빨갛다. */
+    console.log('  [-] 조각을 아직 안 구웠다 — 이 항목은 못 쟀다 (npm run build 뒤에 잰다)');
+  } else {
+    const 없는것 = cards.filter((c) => !built.includes(c.chunk + '.js')).map((c) => c.id);
+    ok(없는것.length === 0, '게임마다 조각 파일이 하나씩 있다', 없는것.join(', '));
+
+    /* 돌려 본다. 조각은 창에서 도는 물건이라 창 흉내를 조금 내 준다 — 게임 규칙은 창을
+       안 쓰지만 화면 파일은 붙을 자리를 물어볼 수 있다. */
+    const 살아있음 = { __ARCADE_GAMES: {} };
+    const 흉내 = {
+      createElement: () => ({ style: {}, dataset: {}, appendChild() {}, addEventListener() {}, setAttribute() {}, classList: { add() {}, remove() {}, toggle() {} } }),
+      addEventListener() {},
+      head: { appendChild() {} },
+      body: { appendChild() {} }
+    };
+    const ctx = createContext({ window: 살아있음, document: 흉내, navigator: { userAgent: '' }, performance: { now: () => 0 }, requestAnimationFrame: () => 0, setTimeout, clearTimeout, console });
+    살아있음.document = 흉내;
+    const 터진것 = [];
+    for (const c of cards) {
+      if (!built.includes(c.chunk + '.js')) continue;
+      try {
+        runInContext(readFileSync(`${builtDir}/${c.chunk}.js`, 'utf8'), ctx, { filename: c.chunk + '.js' });
+      } catch (e) {
+        터진것.push(`${c.id}: ${String(e.message).split(String.fromCharCode(10))[0]}`);
+      }
+    }
+    ok(터진것.length === 0, '조각이 받자마자 터지지 않는다', 터진것.slice(0, 3).join(' · '));
+    const 안붙음 = cards
+      .filter((c) => built.includes(c.chunk + '.js'))
+      .filter((c) => {
+        const slot = 살아있음.__ARCADE_GAMES[c.id];
+        return !slot || slot.def?.id !== c.id || slot.view?.id !== c.id;
+      })
+      .map((c) => c.id);
+    ok(안붙음.length === 0, '조각이 자기 이름으로 규칙과 화면을 등록한다', 안붙음.slice(0, 5).join(', '));
   }
 }
 
