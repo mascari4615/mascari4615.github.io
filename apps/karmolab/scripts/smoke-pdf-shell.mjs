@@ -47,6 +47,12 @@ function tinyPdf() {
 }
 
 const browser = await chromium.launch();
+/** 앞 판의 상태가 남지 않게 새로 연다 — 이 검사는 「처음 올릴 때」를 재기 때문이다. */
+async function freshOpenPdf() {
+  await page.goto('about:blank');
+  await page.goto(`${BASE}#pdf`, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('#pfDrop', { timeout: 20000 });
+}
 const page = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
 await page.goto(`${BASE}#pdf`, { waitUntil: 'domcontentloaded' });
 await page.waitForSelector('#pfDrop', { timeout: 20000 });
@@ -209,6 +215,53 @@ check(
   '누르면 **그 결과가 손에 든 파일이 된다** — 다시 안 올린다 (이 판의 요점)'
 );
 check(await page.locator('#pfJobs').isVisible(), '이어서 다음 할 일을 고르는 자리로 돌아온다');
+
+/* ⑨ **여러 개 한 번에** (TASK-KL-289 — Stirling 의 파일 관리자를 우리 크기로)
+ * 합치기·잇기는 원래 여러 개가 필요하다. 하나만 들 수 있으면 그 도구들은 재료 화면을 지나쳐
+ * 자기 화면에서 다시 올려야 했다 — 껍데기를 만든 이유가 없어진다. */
+await freshOpenPdf();
+await page.setInputFiles('#pfFile', [
+  { name: '앞.pdf', mimeType: 'application/pdf', buffer: tinyPdf() },
+  { name: '뒤.pdf', mimeType: 'application/pdf', buffer: tinyPdf() }
+]);
+await page.waitForSelector('#pfFileBar:visible', { timeout: 15000 });
+const manyName = await page.locator('#pfName').innerText();
+check(/앞\.pdf/.test(manyName) && /1/.test(manyName), `여러 개면 「외 N개」로 말해 준다 (지금 「${manyName}」)`);
+
+/* 합치기는 **여러 개를 받는** 도구다 — 통째로 넘어가야 한다 */
+await page.locator('.pf-job[data-job="pdftool"]').click();
+await page.waitForSelector('#pfMount:visible', { timeout: 20000 });
+await page.waitForFunction(
+  () => {
+    const el = document.querySelector('#pfHost input[type=file]');
+    return !!el && el.files && el.files.length >= 2;
+  },
+  { timeout: 20000 }
+).catch(() => {});
+const gotMany = await page.evaluate(() => {
+  const el = document.querySelector('#pfHost input[type=file]');
+  return el && el.files ? [...el.files].map((f) => f.name) : [];
+});
+check(gotMany.length === 2, `합치기에는 둘 다 넘어간다 (지금 ${JSON.stringify(gotMany)})`);
+
+/* 하나만 받는 도구에는 **고른 한 장만** — 통째로 밀어 넣으면 엉뚱한 것이 처리된다 */
+await page.click('#pfBack');
+await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+await page.locator('.pf-job[data-job="pdfcrop"]').click();
+await page.waitForSelector('#pfMount:visible', { timeout: 20000 });
+await page.waitForFunction(
+  () => {
+    const el = document.querySelector('#pfHost input[type=file]');
+    return !!el && el.files && el.files.length > 0;
+  },
+  { timeout: 20000 }
+).catch(() => {});
+const gotOne = await page.evaluate(() => {
+  const el = document.querySelector('#pfHost input[type=file]');
+  return el && el.files ? [...el.files].map((f) => f.name) : [];
+});
+check(gotOne.length === 1 && gotOne[0] === '앞.pdf', `한 장만 받는 도구엔 한 장만 (지금 ${JSON.stringify(gotOne)})`);
+
 
 process.stdout.write('\n');
 await browser.close();

@@ -93,6 +93,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     injectStyles();
     materialShell(container, {
       accept: 'image/*',
+      multiple: true,
       groups: GROUPS,
       noInputNeeded: NO_IMAGE_NEEDED,
       accepts: /^image\//i,
@@ -104,6 +105,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         change: t('image.btn.change', undefined, '바꾸기'),
         back: t('image.btn.back', undefined, '할 일 고르기'),
         chain: t('image.btn.chain', undefined, '이 결과로 이어서'),
+        more: t('image.more', undefined, '{name} 외 {n}개'),
         fail: t('image.preview.fail', undefined, '이 그림은 미리 못 봅니다')
       },
       preview: drawShot

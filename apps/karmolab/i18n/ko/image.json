@@ -28,5 +28,6 @@
   "image.part.comparepic": "두 장 비교",
   "image.part.qrread": "QR 읽기",
   "image.cmp.before": "전 {size}",
-  "image.cmp.after": "후 {size}"
+  "image.cmp.after": "후 {size}",
+  "image.more": "{name} 외 {n}개"
 }

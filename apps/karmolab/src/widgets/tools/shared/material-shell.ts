@@ -39,6 +39,13 @@ export interface MaterialShellOpts {
   live?: boolean;
   /** `<input accept>` — 무엇을 받나 (`intake: 'file'` 일 때) */
   accept: string;
+  /**
+   * 여러 개를 한 번에 받나 (TASK-KL-289 — Stirling 의 파일 관리자를 우리 크기로).
+   *
+   * 합치기·잇기는 **원래 여러 개가 필요하다**. 하나만 들 수 있으면 그 도구들은 재료 화면을
+   * 지나쳐 자기 화면에서 다시 올려야 한다 — 껍데기를 만든 이유가 없어진다.
+   */
+  multiple?: boolean;
   /** 할 일 — 갈래별로 묶어 격자에 놓는다 */
   groups: () => MaterialGroup[];
   /** 파일을 안 들고 와도 되는 할 일(다른 것에서 이 재료를 **만드는** 쪽) */
@@ -46,7 +53,7 @@ export interface MaterialShellOpts {
   /** 이어받을 결과의 형식 — 이 재료로 못 받는 결과는 무시한다 */
   accepts: RegExp;
   drop: { title: string; hint: string };
-  labels: { change: string; back: string; chain: string; fail: string; pasted?: string };
+  labels: { change: string; back: string; chain: string; fail: string; pasted?: string; more?: string };
   /**
    * 왼쪽 칸을 그린다. **이 함수만 재료를 안다.**
    * @param alive 파일이 그새 바뀌었으면 `false` — 옛 그림을 붙이지 않게 매번 확인한다
@@ -60,6 +67,12 @@ export interface MaterialShellOpts {
    * 열여섯 개를 다 읽게 하지 말고 **맞는 것을 앞에 띄운다**. 짚는 것뿐이라 나머지도 그대로 눌린다.
    */
   suggest?: (file: File) => Promise<{ ids: string[]; why: string }>;
+}
+
+/** 「{name} 외 {n}개」 같은 한 줄 — 말 묶음은 껍데기 밖에서 준다(재료마다 말이 다르다). */
+function t2(tpl: string | undefined, vars: Record<string, string | number>): string {
+  const base = tpl || '{name} 외 {n}개';
+  return base.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''));
 }
 
 /** 도구의 글 칸 — 읽기 전용(결과 칸)은 건너뛴다. 첫 칸이 늘 입력이다. */
@@ -85,7 +98,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
           : `<div class="pf-drop" id="pfDrop">
                <strong>${esc(o.drop.title)}</strong>
                <span>${esc(o.drop.hint)}</span>
-               <input type="file" id="pfFile" accept="${esc(o.accept)}" hidden>
+       <input type="file" id="pfFile" accept="${esc(o.accept)}"${o.multiple ? ' multiple' : ''} hidden>
              </div>`
       }
       <div class="pf-file" id="pfFileBar" hidden>
@@ -139,6 +152,8 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
   const host = $<HTMLElement>('#pfHost');
 
   let file: File | null = null;
+  /** 같이 들고 있는 나머지 — 합치기 같은 할 일에 통째로 넘긴다 */
+  let bag: File[] = [];
   /** 이 파일을 그리는 중이라는 표 — 파일이 바뀌면 앞의 그리기는 버린다 */
   let token = 0;
   let openJob: string | null = null;
@@ -148,7 +163,11 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
     /* 셈 공책은 쓰는 칸이 **계속 보여야** 한다 — 한 줄 치고 칸이 사라지면 이어 쓸 수가 없다 */
     $('#pfDrop').hidden = !o.live;
     $('#pfFileBar').hidden = false;
-    $('#pfName').textContent = asText ? o.labels.pasted || f.name : f.name;
+    $('#pfName').textContent = asText
+      ? o.labels.pasted || f.name
+      : bag.length > 1
+        ? t2(o.labels.more, { name: f.name, n: bag.length - 1 })
+        : f.name;
     const mine = ++token;
     preview.textContent = '';
     try {
@@ -199,8 +218,10 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
     };
   } else {
     fileInput.onchange = (): void => {
-      const f = fileInput.files?.[0];
-      if (f) void setFile(f);
+      const list = Array.from(fileInput.files || []);
+      if (!list.length) return;
+      bag = list;
+      void setFile(list[0]);
     };
     $('#pfDrop').onclick = (): void => fileInput.click();
     $('#pfChange').onclick = (): void => fileInput.click();
@@ -215,8 +236,10 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
   head.addEventListener('drop', (e) => {
     e.preventDefault();
     head.classList.remove('pf-over');
-    const f = (e as DragEvent).dataTransfer?.files?.[0];
-    if (f) void setFile(f);
+    const list = Array.from((e as DragEvent).dataTransfer?.files || []);
+    if (!list.length) return;
+    bag = list;
+    void setFile(list[0]);
   });
   /* 글 모드에서 파일을 떨어뜨렸으면 **읽어서 칸에 넣는다** — 글은 파일로도 온다(로그·csv) */
   if (asText) {
@@ -278,7 +301,10 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
     }
     try {
       const dt = new DataTransfer();
-      dt.items.add(file);
+      /* **받는 쪽이 여러 개를 받으면 통째로 넘긴다** (TASK-KL-289).
+       * 합치기·잇기는 원래 여러 개가 필요한데, 하나만 넘기면 그 도구에서 다시 올려야 했다. */
+      if (input.multiple && bag.length > 1) bag.forEach((x) => dt.items.add(x));
+      else dt.items.add(file);
       input.files = dt.files;
       input.dispatchEvent(new Event('change', { bubbles: true }));
     } catch {
@@ -351,6 +377,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
   $('#pfChainUse').onclick = (): void => {
     const item = Toolbox.peekResult?.();
     if (!item || !item.blob) return;
+    bag = [];
     void setFile(new File([item.blob], item.name || 'result', { type: item.blob.type }));
     /* 이어서 **다른** 할 일을 고르러 간다 — 방금 한 일을 또 하려고 여기 온 게 아니다 */
     backToJobs();

@@ -18,5 +18,6 @@
   "sound.meta": "{time} · {ch}ch · {khz}kHz · {size}",
   "sound.part.video2audio": "動画から音を取り出す",
   "sound.part.soundscape": "環境音",
-  "sound.part.morse": "モールス"
+  "sound.part.morse": "モールス",
+  "sound.more": "{name} 他{n}件"
 }
