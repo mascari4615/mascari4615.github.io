@@ -1,4 +1,5 @@
 import { t, loadNamespace } from '../../lib/i18n';
+import { inkOn } from '../../lib/ink-on';
 
 /**
  * 랜덤 생성기 — 창작용 키워드·주제 뽑기
@@ -394,12 +395,6 @@ import { t, loadNamespace } from '../../lib/i18n';
                     lastBatchResults = allResults.slice();
 
                     function isHexColor(s: string): boolean { return /^#[0-9a-fA-F]{6}$/.test(String(s)); }
-                    function hexLuminance(hex: string): number {
-                        var m = hex.match(/^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/);
-                        if (!m) return 0;
-                        var r = parseInt(m[1], 16) / 255, g = parseInt(m[2], 16) / 255, b = parseInt(m[3], 16) / 255;
-                        return 0.299 * r + 0.587 * g + 0.114 * b;
-                    }
                     const colorNameToHex: Record<string, string> = { [t('randomgen.t30')]:'#dc2626',[t('randomgen.t31')]:'#ea580c',[t('randomgen.t32')]:'#eab308',[t('randomgen.t33')]:'#22c55e',[t('randomgen.t34')]:'#3b82f6',[t('randomgen.t35')]:'#1e40af',[t('randomgen.t36')]:'#8b5cf6',[t('randomgen.t37')]:'#ec4899',[t('randomgen.t38')]:'#f8fafc',[t('randomgen.t39')]:'#1e293b',[t('randomgen.t40')]:'#64748b',[t('randomgen.t41')]:'#d4a574',[t('randomgen.t42')]:'#eab308',[t('randomgen.t43')]:'#94a3b8',[t('randomgen.t44')]:'#14b8a6',[t('randomgen.t45')]:'#881337' };
                     function getCardBgColor(result: GenResult): string | null {
                         if (isHexColor(result.name)) return result.name;
@@ -422,7 +417,13 @@ import { t, loadNamespace } from '../../lib/i18n';
                         var titleClass = 'randomgen-ccg-title';
                         if (isColor) {
                             frameStyle = ' style="background:' + bgHex + '!important;border-color:' + bgHex + ';"';
-                            if (hexLuminance(bgHex!) > 0.6) titleClass += ' randomgen-ccg-title-dark';
+                            /* 검정 글자가 나은 바탕인지 한 번만 정하고 **카드에** 표시한다 —
+                               예전엔 제목만 뒤집고 아래 줄(무엇의 색인지)은 늘 검정이라, 어두운
+                               색이 뽑히면 그 줄이 검정 위 검정이었다(실측 대비 1.79 = 안 보임). */
+                            if (inkOn(bgHex!).kind === 'dark') {
+                                titleClass += ' randomgen-ccg-title-dark';
+                                card.classList.add('randomgen-ccg-on-light');
+                            }
                         }
                         card.innerHTML = '<div class="randomgen-card-inner"><div class="randomgen-card-back"><span class="randomgen-card-question">?</span></div><div class="randomgen-card-front"><div class="randomgen-ccg-frame"' + frameStyle + '><div class="randomgen-ccg-title-area"><div class="' + titleClass + '">' + nameEsc + '</div></div><div class="randomgen-ccg-type">' + subEsc + '</div></div></div></div>';
                         resultsEl.appendChild(card);
