@@ -38,6 +38,11 @@ export interface LanternsState {
   turn: number;
   /** 자리별·자리내 카드별로 「색을 들었다 / 숫자를 들었다」 */
   told: Array<Array<{ color: boolean; rank: boolean }>>;
+  /**
+   * 산이 마른 뒤 **남은 차례 수**. -1 = 아직 산이 있다.
+   * 원래 놀이의 규칙이고, 동시에 이 판이 멈추지 않는 이유다(아래 `advance` 참고).
+   */
+  finalLeft: number;
   /** 끝났나 */
   over: boolean;
   /** 마지막에 무슨 일이 있었나 — 화면이 한 줄로 말해 준다 */
@@ -61,6 +66,31 @@ function freshDeck(rng: () => number): Card[] {
   return shuffle(rng, cards);
 }
 
+/**
+ * 차례를 넘기고 **끝을 여기서 정한다**.
+ *
+ * 원래 놀이의 규칙: 산이 마르면 각자 한 번씩만 더 두고 끝난다. 그 규칙이 없었더니 산도
+ * 마르고 손도 거의 빈 판에서 차례가 **빈손에게** 돌아가 영영 멈췄다 — 봇끼리 200판 중
+ * 115판(TASK-KL-264 F1 실측). 씨앗 하나로 「끝난다」를 봤던 계약 검사는 이걸 못 봤다.
+ *
+ * 빈손은 낼 것도 버릴 것도 없으니 건너뛴다. 건너뛸 자리가 하나도 없으면 그것이 판의 끝이다.
+ */
+function advance(
+  seat: number,
+  seats: number,
+  hands: Card[][],
+  deckLeft: number,
+  finalLeft: number
+): { turn: number; finalLeft: number; over: boolean } {
+  const next = finalLeft >= 0 ? finalLeft - 1 : deckLeft === 0 ? seats : -1;
+  if (next === 0) return { turn: seat, finalLeft: 0, over: true };
+  for (let k = 1; k <= seats; k++) {
+    const cand = (seat + k) % seats;
+    if (hands[cand]?.length) return { turn: cand, finalLeft: next, over: false };
+  }
+  return { turn: seat, finalLeft: next, over: true };
+}
+
 export const lanterns: GameDef<LanternsState, LanternsAction> = {
   id: 'lanterns',
   seats: [2, 3],
@@ -77,6 +107,7 @@ export const lanterns: GameDef<LanternsState, LanternsAction> = {
       fuses: FUSES,
       turn: 0,
       told: hands.map((h) => h.map(() => ({ color: false, rank: false }))),
+      finalLeft: -1,
       over: false,
       last: null
     };
@@ -94,7 +125,6 @@ export const lanterns: GameDef<LanternsState, LanternsAction> = {
   reduce(s, a, seat, ctx) {
     if (s.over || s.turn !== seat) return s;
     const seats = ctx.seats.length;
-    const nextTurn = (seat + 1) % seats;
     const hand = s.hands[seat];
     if (!hand) return s;
 
@@ -116,11 +146,14 @@ export const lanterns: GameDef<LanternsState, LanternsAction> = {
               return mark;
             })
       );
+      const step = advance(seat, seats, s.hands, s.deck.length, s.finalLeft);
       return {
         ...s,
         hints: s.hints - 1,
         told,
-        turn: nextTurn,
+        turn: step.turn,
+        finalLeft: step.finalLeft,
+        over: step.over,
         last: { kind: 'hint', who: seat, text: hasColor ? `c${a.color}` : `r${a.rank}` }
       };
     }
@@ -142,13 +175,16 @@ export const lanterns: GameDef<LanternsState, LanternsAction> = {
 
     if (a.kind === 'drop') {
       /* 버리면 힌트가 하나 돌아온다 — 못 쓰는 카드를 버리는 것도 수다. */
+      const step = advance(seat, seats, hands, deck.length, s.finalLeft);
       return {
         ...s,
         hands,
         told,
         deck,
         hints: Math.min(HINTS, s.hints + 1),
-        turn: nextTurn,
+        turn: step.turn,
+        finalLeft: step.finalLeft,
+        over: step.over,
         last: { kind: 'drop', who: seat, text: '' }
       };
     }
@@ -161,7 +197,7 @@ export const lanterns: GameDef<LanternsState, LanternsAction> = {
     /* 5 를 놓으면 힌트가 하나 돌아온다(원래 규칙). */
     const hints = fits && card.rank === RANKS ? Math.min(HINTS, s.hints + 1) : s.hints;
     const done = piles.every((v) => v === RANKS);
-    const over = done || fuses <= 0 || (deck.length === 0 && hands.every((h) => h.length === 0));
+    const step = advance(seat, seats, hands, deck.length, s.finalLeft);
 
     return {
       ...s,
@@ -171,8 +207,9 @@ export const lanterns: GameDef<LanternsState, LanternsAction> = {
       piles,
       fuses,
       hints,
-      over,
-      turn: nextTurn,
+      over: done || fuses <= 0 || step.over,
+      turn: step.turn,
+      finalLeft: step.finalLeft,
       last: { kind: fits ? 'play' : 'fail', who: seat, text: `${card.color}:${card.rank}` }
     };
   },
