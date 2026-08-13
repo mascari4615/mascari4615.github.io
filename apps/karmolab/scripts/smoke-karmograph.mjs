@@ -1823,6 +1823,100 @@ async function allNamed(page, where) {
   if (bad.length > 0) throw new Error(`${where}: 이름 없는 손잡이 — ${bad.slice(0, 6).join(' · ')}`);
 }
 
+await step('백업 → 복원에서 **아무것도 안 빠진다** (KL-271)', async () => {
+  /* 자료를 잃는 것이 가장 나쁜 고장이다. 판에 새 칸이 붙을 때마다(시점·보기·장·공용 글·도장…)
+     백업이 그걸 담는지 사람이 일일이 기억할 수 없으므로, **원본의 모든 값이 복원본에 그대로
+     있는지**를 통째로 견준다 — 새 칸이 생겨도 이 검사는 저절로 따라온다. */
+  const rich = {
+    version: 1,
+    _meta: { time: 't2' },
+    groups: [{ id: 'g1', label: '무리', color: '#ff0000' }],
+    nodes: [
+      { id: 'n1', label: '가', kind: 'character', x: 10, y: 10, w: 160, h: 44, fields: { 고향: '북' } },
+      { id: 'n2', label: '나', kind: 'character', x: 200, y: 120, w: 160, h: 44 },
+    ],
+    edges: [{ id: 'e1', from: 'n1', to: 'n2', label: '친구', kind: 'default', at: { t2: { label: '라이벌' } } }],
+    times: [{ id: 't1', name: '1부' }, { id: 't2', name: '2부' }],
+    views: [{
+      id: 'v1', name: '인물만', offNodeKinds: [], offEdgeKinds: [], offTags: [],
+      hideOrphans: false, minDegree: 0, fieldName: '', fieldValue: '', focus: '', time: 't1',
+    }],
+    story: [{ id: 's1', title: '첫 장', nodeIds: ['n1'], note: '설명' }],
+    notes: [{ id: 'note1', title: '공용 글', text: '본문' }],
+    stamps: [{ id: 'st1', name: '본 2개', at: 1, nodes: [], edges: [] }],
+    ephemeral_anchors: [],
+    _edge_kinds: {},
+  };
+
+  const ctx = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 }, acceptDownloads: true });
+  const m = await ctx.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate(() => localStorage.clear());
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.evaluate((spec) => {
+    const idx = JSON.parse(localStorage.getItem('karmograph.index') || 'null');
+    const id = idx?.activeId || 'bk';
+    localStorage.setItem('karmograph.map.' + id, JSON.stringify(spec));
+    localStorage.setItem('karmograph.index', JSON.stringify({ activeId: id, maps: [{ id, name: '백업판' }] }));
+  }, rich);
+  await m.reload({ waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await m.waitForTimeout(ms(900));
+
+  const [dl] = await Promise.all([
+    m.waitForEvent('download', { timeout: ms(15000) }),
+    (async () => {
+      await m.evaluate(() => document.querySelector('[data-km="storage"]')?.click());
+      await m.waitForSelector('[data-km="st-backup"]', { timeout: ms(8000) });
+      await m.evaluate(() => document.querySelector('[data-km="st-backup"]').click());
+    })(),
+  ]);
+  const text = await readFile(await dl.path(), 'utf8');
+
+  // 다른 브라우저에서 받은 것처럼 — 깨끗한 자리에 되살린다.
+  const ctx2 = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1400, height: 900 } });
+  const q = await ctx2.newPage();
+  await q.goto(URL, { waitUntil: 'domcontentloaded' });
+  await q.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await q.evaluate(() => localStorage.clear());
+  await q.reload({ waitUntil: 'domcontentloaded' });
+  await q.waitForSelector('.km-canvas', { timeout: ms(8000) });
+  await q.setInputFiles('[data-km="restore-file"]', {
+    name: 'karmograph-backup.json', mimeType: 'application/json', buffer: Buffer.from(text),
+  });
+  await q.waitForTimeout(ms(1500));
+  const back = await q.evaluate(() => {
+    const idx = JSON.parse(localStorage.getItem('karmograph.index'));
+    const withNodes = idx.maps
+      .map((mm) => JSON.parse(localStorage.getItem('karmograph.map.' + mm.id) || 'null'))
+      .filter((sp) => sp && (sp.nodes || []).length > 0);
+    return withNodes[0];
+  });
+  if (!back) throw new Error('복원된 판이 없다');
+
+  /** 원본의 값이 **하나도 안 빠졌나** — 되살린 쪽에 더 붙은 것은 봐준다(기본값). */
+  const missing = [];
+  const walk = (was, now, at) => {
+    if (Array.isArray(was)) {
+      if (!Array.isArray(now) || now.length !== was.length) { missing.push(at); return; }
+      was.forEach((v, i) => walk(v, now[i], `${at}[${i}]`));
+      return;
+    }
+    if (was && typeof was === 'object') {
+      if (!now || typeof now !== 'object') { missing.push(at); return; }
+      for (const k of Object.keys(was)) walk(was[k], now[k], at ? `${at}.${k}` : k);
+      return;
+    }
+    if (was !== now) missing.push(`${at} (${JSON.stringify(was)} → ${JSON.stringify(now)})`);
+  };
+  walk(rich, back, '');
+  if (missing.length > 0) throw new Error('백업·복원에서 빠진 것: ' + missing.slice(0, 5).join(' · '));
+  await ctx.close();
+  await ctx2.close();
+});
+
 await step('영어·일본어 화면에 한국어가 안 남는다 (KL-271)', async () => {
   /* 코드 검사(알맹이)는 **글이 코드에 박혀 있나**를 본다. 그런데 화면에는 다른 길로도 글이 온다 —
      기본값·다른 말 묶음·붙여 만든 문장. 실제로 띄워 보니 「이 Person에 대해 적어 두는 것」이
