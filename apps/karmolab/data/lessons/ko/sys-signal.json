@@ -1,106 +1,837 @@
 {
   "id": "sys-signal",
-  "minutes": 11,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "배포할 때마다 요청 몇 개가 사라진다면 코드 버그가 아니다 — **죽으라는 신호를 받고 곱게 죽는 법**을 안 짠 것이다."
-    },
-    {
-      "type": "h",
-      "text": "1. 알아야 할 신호 넷"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "이게 사실상 전부",
-      "text": "SIGTERM (15)  \"정리하고 끝내라\"   ← 배포·컨테이너 중지가 먼저 보낸다. 잡을 수 있다\nSIGINT  (2)   Ctrl+C              잡을 수 있다\nSIGKILL (9)   즉사                 ★ 잡을 수 없다. 정리 기회 없음\nSIGHUP  (1)   터미널이 끊김 / 설정 다시 읽기 관습"
-    },
-    {
-      "type": "h",
-      "text": "2. 실제 종료 순서"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "유예 시간이 있다",
-      "text": "docker stop / kubernetes 종료\n  1) SIGTERM 발송\n  2) 기다린다 (기본 10초 · 30초)\n  3) 아직 살아 있으면 SIGKILL\n\n→ 유예 안에 못 끝내면 진행 중 요청이 잘린다\n→ 유예보다 긴 작업이 있다면 유예 시간을 늘려야 한다"
-    },
-    {
-      "type": "h",
-      "text": "3. 곱게 죽는 코드"
-    },
-    {
-      "type": "code",
-      "lang": "js",
-      "label": "순서가 중요하다",
-      "text": "let 종료중 = false;\n\nasync function shutdown(sig) {\n  if (종료중) return;                 // 두 번 눌러도 한 번만\n  종료중 = true;\n  console.log(`${sig} 받음 — 정리 시작`);\n\n  server.close();                     // 1) 새 요청 그만 받기\n  await 진행중요청끝나기(5000);        // 2) 하던 것 마무리 (상한 필수)\n  await db.end();                     // 3) 연결 정리\n  process.exit(0);\n}\n\nprocess.on('SIGTERM', () => shutdown('SIGTERM'));\nprocess.on('SIGINT', () => shutdown('SIGINT'));"
-    },
-    {
-      "type": "note",
-      "text": "**1번(새 요청 차단)을 먼저** 하지 않으면 정리하는 동안 계속 새 일이 들어와 끝나지 않는다. 그리고 상한 없는 대기는 결국 SIGKILL 로 끝난다 — 스스로 시간을 정해라."
-    },
-    {
-      "type": "h",
-      "text": "4. 컨테이너의 함정 — 1번 프로세스"
-    },
-    {
-      "type": "code",
-      "lang": "text",
-      "label": "신호가 내 앱까지 안 온다",
-      "text": "CMD [\"sh\", \"-c\", \"node app.js\"]     ← sh 가 1번, node 는 자식\n  → SIGTERM 은 sh 가 받고 node 는 못 받는다 → 항상 강제 종료됨\n\nCMD [\"node\", \"app.js\"]              ← ✅ node 가 직접 1번\n또는 --init 옵션으로 신호를 전달하는 최소 init 사용"
-    },
-    {
-      "type": "h",
-      "text": "5. 확인하는 법"
-    },
-    {
-      "type": "p",
-      "text": "「짰다」와 「된다」는 다르다. 로컬에서 프로세스에 직접 종료 신호를 보내 **정리 로그가 순서대로 찍히는지** 눈으로 확인하라. 이걸 안 하면 배포 날 처음 알게 된다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "내 서버에 종료 처리를 붙이고, 요청을 보내는 중에 종료 신호를 보내 그 요청이 끝까지 응답되는지 확인하라."
-    },
-    {
-      "type": "try",
-      "text": "Dockerfile 의 CMD 형식을 확인하고, 신호가 앱까지 도달하는지 시험하라."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "잡을 수 없는 신호는?",
-      "choices": [
-        "SIGKILL",
-        "SIGTERM",
-        "SIGINT"
+      "id": "1",
+      "title": "신호 = 프로세스에 보내는 짧은 메시지",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "배포할 때마다 요청 몇 개가 사라진다면 코드 버그가 아니라 **죽으라는 신호를 받고 곱게 죽는 법**을 안 짠 것이다. **신호(signal)**는 OS(또는 다른 프로세스)가 프로세스에 보내는 **짧은 비동기 메시지**다 — 「끝내라(SIGTERM)」·「멈춰라(SIGSTOP)」·「자식이 끝났다(SIGCHLD)」 같은 딱 정해진 번호의 알림. 프로세스는 대부분의 신호에 대해 **핸들러를 등록해** 반응할 수 있다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "신호 = 짧은 비동기 알림",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:60px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px; color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; } .tl .warn2 { background:#f59e0b; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  const tree = (html) => '<div class=\"tree\">' + html + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'nohandle') {\n    render('신호를 처리 안 하면',\n      '  SIGTERM(끝내라) 도착 → 기본 동작 = 즉시 종료\\n' +\n      '  <span class=\\\"no\\\">처리 중이던 요청·정리 없이 그냥 죽는다 → 배포마다 요청 유실.</span>',\n      '신호는 짧은 비동기 알림. 처리 안 하면 기본 동작(대개 종료)이 일어난다.',\n      box('SIGTERM 무처리', '도착 → 기본 동작(즉시 종료) → 정리 없음', 'bad'));\n  } else {\n    render('신호에 핸들러를 등록하면',\n      '  SIGTERM 도착 → 내 핸들러 실행 → 정리(연결 닫기·저장) 후 종료\\n' +\n      '  <span class=\\\"ok\\\">죽으라는 신호를 받고 곱게 죽는다.</span>',\n      '핸들러를 등록하면 신호에 원하는 대로 반응할 수 있다(대부분의 신호).',\n      box('SIGTERM 핸들러', '도착 → 정리(새 요청 차단·진행 요청 완료·자원 해제) → 종료', 'good'));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "view",
+              "label": "핸들러",
+              "type": "select",
+              "value": "nohandle",
+              "options": [
+                {
+                  "value": "nohandle",
+                  "label": "없음(기본 종료)"
+                },
+                {
+                  "value": "handle",
+                  "label": "등록(곱게 죽기)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**신호는 「비동기 인터럽트」다 — 언제든 코드 흐름을 끊고 들어온다.** 프로세스가 무슨 일을 하든, 신호가 오면 OS 가 실행을 잠깐 멈추고 핸들러를 호출한다. 그래서 핸들러 안에서는 **아주 조심**해야 한다(재진입·비동기 안전) — 하지만 Node·파이썬 같은 고수준 런타임은 신호를 안전한 시점에 이벤트로 바꿔 주므로, 보통은 「신호 이름에 콜백을 등록」하는 식으로 다룬다. 핵심은 「신호 = 내 프로그램에 온 짧은 알림, 반응은 내가 정한다」."
+        },
+        {
+          "type": "p",
+          "text": "**신호마다 「기본 동작」이 있다.** 핸들러를 등록하지 않으면 OS 의 기본 동작이 일어난다 — SIGTERM·SIGINT 는 종료, SIGSEGV 는 종료+코어 덤프, SIGCHLD 는 무시, SIGSTOP 은 일시정지. 그래서 「아무것도 안 짰는데 Ctrl+C 로 죽는」 건 SIGINT 의 기본 동작이 종료라서다. 우리가 핸들러를 등록하는 건 이 기본 동작을 **가로채** 정리하거나 다르게 반응하기 위해서다(단, 못 가로채는 신호도 있다 — 3장)."
+        },
+        {
+          "type": "try",
+          "text": "작은 프로그램에 SIGTERM(또는 SIGINT) 핸들러를 등록해 「신호 받음」을 출력하게 하고, 밖에서 `kill <pid>` 로 보내 핸들러가 도는지 확인하라. 핸들러 없는 버전과 비교해 기본 동작(즉시 종료)의 차이를 보라."
+        }
       ],
-      "answer": 0,
-      "why": "정리 기회 없이 즉시 종료된다."
+      "quiz": [
+        {
+          "q": "신호(signal)란?",
+          "choices": [
+            "로그 파일",
+            "OS/프로세스가 보내는 짧은 비동기 메시지",
+            "환경변수",
+            "스레드"
+          ],
+          "answer": 1,
+          "why": "정해진 번호의 알림."
+        },
+        {
+          "q": "신호 핸들러를 등록하지 않으면?",
+          "choices": [
+            "에러",
+            "그 신호의 기본 동작(대개 종료)이 일어남",
+            "무시됨",
+            "재시작"
+          ],
+          "answer": 1,
+          "why": "기본 동작을 가로채려 등록."
+        },
+        {
+          "q": "배포마다 요청이 사라지는 흔한 원인은?",
+          "choices": [
+            "느린 DB",
+            "종료 신호를 받고 곱게 죽는 처리를 안 짬",
+            "메모리",
+            "CPU"
+          ],
+          "answer": 1,
+          "why": "graceful shutdown 부재."
+        }
+      ]
     },
     {
-      "q": "종료 처리에서 가장 먼저 할 일은?",
-      "choices": [
-        "새 요청 받기를 멈춘다",
-        "DB 를 닫는다",
-        "로그를 남긴다"
+      "id": "2",
+      "title": "알아야 할 신호들",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "수십 개 신호 중 실무에서 꼭 아는 것들: **SIGTERM(15)** 정리하고 끝내라(배포·중지가 먼저 보냄, 잡을 수 있음) · **SIGINT(2)** Ctrl+C · **SIGKILL(9)** 강제 종료(못 잡음) · **SIGHUP(1)** 터미널 끊김/설정 재로드 관례 · **SIGCHLD** 자식이 끝남(거두라) · **SIGSTOP/SIGCONT** 일시정지/재개 · **SIGUSR1/USR2** 앱이 마음대로 쓰는 신호. 이 이름들을 알면 프로세스 제어가 읽힌다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "신호 사전 — 무엇이고 언제",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:60px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px; color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; } .tl .warn2 { background:#f59e0b; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  const tree = (html) => '<div class=\"tree\">' + html + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = '{{sig}}';\n  const cases = {\n    term:['SIGTERM (15)', '정리하고 끝내라. 잡을 수 있음', '배포·docker stop·k8s 가 먼저 보냄. graceful shutdown 의 신호'],\n    int: ['SIGINT (2)', 'Ctrl+C. 잡을 수 있음', '개발 중 중단. 앱이 받아 정리 가능'],\n    kill:['SIGKILL (9)', '강제 종료. 못 잡음·못 막음', '최후 수단. 정리 코드 안 돎(sys-process 5장)'],\n    hup: ['SIGHUP (1)', '터미널 끊김. 관례상 \"설정 재로드\"', 'nginx -s reload 등이 이걸로 무중단 재로드(7장)'],\n    chld:['SIGCHLD', '자식이 끝났다(거두라)', 'wait 로 좀비 방지(sys-process 3장). 기본 무시'],\n    stop:['SIGSTOP / SIGCONT', '일시정지 / 재개', 'Ctrl+Z=TSTP. STOP 은 못 잡음(3장)'],\n    usr: ['SIGUSR1 / USR2', '앱 정의 신호(뜻 없음)', '로그 회전·상태 덤프·리로드 트리거로 앱이 씀(7장)'],\n  }[s];\n  render(cases[0],\n    '  뜻: ' + cases[1] + '\\n  언제: ' + cases[2],\n    'TERM=정리 종료, KILL=강제, HUP=재로드, CHLD=자식종료, USR=앱 마음대로.',\n    box(cases[0], cases[1] + '\\n→ ' + cases[2]));\n</script>",
+          "controls": [
+            {
+              "id": "sig",
+              "label": "신호",
+              "type": "select",
+              "value": "term",
+              "options": [
+                {
+                  "value": "term",
+                  "label": "TERM 15"
+                },
+                {
+                  "value": "int",
+                  "label": "INT 2"
+                },
+                {
+                  "value": "kill",
+                  "label": "KILL 9"
+                },
+                {
+                  "value": "hup",
+                  "label": "HUP 1"
+                },
+                {
+                  "value": "chld",
+                  "label": "CHLD"
+                },
+                {
+                  "value": "stop",
+                  "label": "STOP/CONT"
+                },
+                {
+                  "value": "usr",
+                  "label": "USR1/2"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "꼭 아는 신호",
+          "text": "kill -TERM <pid>   # 15 정리하고 끝내라 (기본 kill 이 보내는 것)\nkill -INT  <pid>   # 2  Ctrl+C 와 같음\nkill -KILL <pid>   # 9  강제 종료 — 못 잡고 못 막음 (kill -9)\nkill -HUP  <pid>   # 1  설정 재로드 관례 (nginx·많은 데몬)\nkill -USR1 <pid>   # 앱이 정한 동작 (로그 회전·상태 덤프 등)\nkill -l            # 신호 번호↔이름 목록"
+        },
+        {
+          "type": "note",
+          "text": "**`kill` 은 「죽이기」가 아니라 「신호 보내기」다.** 명령 이름 때문에 오해하기 쉽지만 `kill` 은 임의의 신호를 보내는 도구다 — `kill -STOP` 은 멈추고, `kill -CONT` 는 재개하고, `kill -USR1` 은 앱이 정한 동작을 시킨다. 인자 없는 `kill <pid>` 의 기본이 SIGTERM(15)이라 대개 종료로 이어질 뿐이다. 「신호를 보내는 범용 도구」로 이해하면, 프로세스를 죽이지 않고 **조종**하는 법(7장)이 보인다."
+        },
+        {
+          "type": "p",
+          "text": "**SIGUSR1/USR2 는 「뜻이 없어서」 유용하다.** OS 는 이 둘에 특정 의미를 안 정해 두어, **앱이 마음대로** 뜻을 붙일 수 있다 — 흔히 「로그 파일 다시 열기(로테이션)」·「현재 상태 덤프」·「설정 리로드」에 쓴다. 그래서 데몬 문서에 「USR1 을 보내면 로그를 회전한다」 같은 규약이 있다. 프로세스를 재시작하지 않고 특정 동작만 시키는 **가벼운 제어 채널**이 신호다(7장)."
+        },
+        {
+          "type": "try",
+          "text": "`kill -l` 로 신호 목록을 보고 TERM·INT·KILL·HUP·USR1 의 번호를 확인하라. 프로그램에 USR1 핸들러를 붙여 「상태 출력」 같은 동작을 시키고 `kill -USR1 <pid>` 로 눌러 보라(재시작 없이 동작)."
+        }
       ],
-      "answer": 0,
-      "why": "안 그러면 정리 중에 일이 계속 들어온다."
+      "quiz": [
+        {
+          "q": "배포·docker stop 이 먼저 보내는 신호는?",
+          "choices": [
+            "SIGKILL",
+            "SIGTERM(정리하고 끝내라)",
+            "SIGUSR1",
+            "SIGSTOP"
+          ],
+          "answer": 1,
+          "why": "잡을 수 있음."
+        },
+        {
+          "q": "`kill` 명령의 본질은?",
+          "choices": [
+            "항상 강제 종료",
+            "임의의 신호를 보내는 도구(기본 TERM)",
+            "프로세스 목록",
+            "파일 삭제"
+          ],
+          "answer": 1,
+          "why": "STOP·CONT·USR 도 보냄."
+        },
+        {
+          "q": "SIGUSR1/USR2 의 특징은?",
+          "choices": [
+            "종료 전용",
+            "OS 가 뜻을 안 정해 앱이 마음대로 씀",
+            "못 잡음",
+            "자식 종료"
+          ],
+          "answer": 1,
+          "why": "가벼운 제어."
+        }
+      ]
     },
     {
-      "q": "CMD 를 sh -c 로 감싸면 생기는 문제는?",
-      "choices": [
-        "종료 신호가 앱까지 전달되지 않는다",
-        "빌드가 느려진다",
-        "환경변수가 사라진다"
+      "id": "3",
+      "title": "잡을 수 있는 신호와 못 잡는 신호",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "대부분의 신호는 **핸들러로 잡거나(catch) 무시할 수 있다** — SIGTERM·SIGINT·SIGHUP·SIGUSR 등. 하지만 **SIGKILL(9)** 과 **SIGSTOP** 두 개는 **잡을 수도 무시할 수도 없다**. SIGKILL 은 커널이 즉시 죽이고, SIGSTOP 은 즉시 멈춘다 — 프로세스가 개입할 틈이 없다. 이 구분이 「왜 kill -9 는 정리 없이 죽고, 왜 최후에만 쓰나」의 답이다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "잡을 수 있나 — 신호별",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:60px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px; color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; } .tl .warn2 { background:#f59e0b; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  const tree = (html) => '<div class=\"tree\">' + html + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = '{{sig}}';\n  const cases = {\n    term:['SIGTERM', true, '잡아서 정리 후 종료 가능 → graceful shutdown'],\n    int: ['SIGINT', true, '잡아서 정리 가능(Ctrl+C 확인 프롬프트 등)'],\n    hup: ['SIGHUP', true, '잡아서 설정 재로드로 재해석'],\n    kill:['SIGKILL (9)', false, '못 잡음 — 커널이 즉시 죽임. 정리 코드 안 돎'],\n    stop:['SIGSTOP', false, '못 잡음 — 즉시 멈춤(CONT 로만 재개)'],\n  }[s];\n  const can = cases[1];\n  render(cases[0] + ' — ' + (can ? '잡을 수 있음' : '못 잡음'),\n    '  ' + cases[2] + '\\n\\n' +\n    (can\n      ? '  <span class=\\\"ok\\\">핸들러 등록 → 원하는 대로 반응. 무시도 가능.</span>'\n      : '  <span class=\\\"no\\\">핸들러 무의미 — 개입 불가. 그래서 KILL 은 최후, STOP 은 강제 일시정지.</span>'),\n    'SIGKILL·SIGSTOP 둘만 못 잡는다. 나머지는 잡거나 무시 가능.',\n    steps([\n      ['SIGTERM / INT / HUP / USR — 잡을 수 있음', can?'good':''],\n      ['SIGKILL(9) — 못 잡음(즉시 종료)', s==='kill'?'bad':''],\n      ['SIGSTOP — 못 잡음(즉시 정지)', s==='stop'?'bad':'']]));\n</script>",
+          "controls": [
+            {
+              "id": "sig",
+              "label": "신호",
+              "type": "select",
+              "value": "term",
+              "options": [
+                {
+                  "value": "term",
+                  "label": "TERM"
+                },
+                {
+                  "value": "int",
+                  "label": "INT"
+                },
+                {
+                  "value": "hup",
+                  "label": "HUP"
+                },
+                {
+                  "value": "kill",
+                  "label": "KILL 9"
+                },
+                {
+                  "value": "stop",
+                  "label": "STOP"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**SIGKILL(9)과 SIGSTOP 만 못 잡는다 — 이건 OS 의 안전장치다.** 만약 모든 신호를 프로그램이 가로챌 수 있다면, 버그나 악성 프로세스를 **끝낼 방법이 없어진다**. 그래서 커널은 「무슨 일이 있어도 통하는」 두 신호를 남겨 둔다: KILL(무조건 종료)과 STOP(무조건 정지). 덕분에 아무리 꼬인 프로세스도 `kill -9` 로는 반드시 죽는다. 대신 정리할 틈이 없으니, **먼저 SIGTERM 으로 곱게, 안 되면 SIGKILL 로 강제**가 원칙이다(4장)."
+        },
+        {
+          "type": "p",
+          "text": "**「무시」와 「잡기」는 다르다.** 신호에 대해 프로세스는 ① 기본 동작 ② 무시(SIG_IGN) ③ 핸들러로 잡기(catch) 중 하나를 고른다. 예컨대 SIGPIPE(파이프가 닫힌 쪽에 쓰기)를 **무시**로 두면 write 가 죽는 대신 에러(EPIPE)를 반환해 코드로 처리할 수 있다(sys-fd 파이프). 반대로 SIGTERM 을 **잡아** 정리한다. 「이 신호를 무시할까, 잡을까, 기본대로 둘까」를 정하는 게 신호 처리 설계다 — 단 KILL·STOP 은 그 선택지가 없다."
+        },
+        {
+          "type": "try",
+          "text": "프로그램에서 SIGTERM 을 잡아 「정리 중」을 출력하게 하고, `kill -TERM` 과 `kill -KILL(-9)` 을 각각 보내 비교하라 — TERM 은 핸들러가 돌고, KILL 은 즉시 죽어 아무 로그도 안 남는다."
+        }
       ],
-      "answer": 0,
-      "why": "sh 가 1번 프로세스가 되어 신호를 삼킨다."
+      "quiz": [
+        {
+          "q": "잡을 수도 무시할 수도 없는 신호는?",
+          "choices": [
+            "SIGTERM/SIGINT",
+            "SIGKILL/SIGSTOP",
+            "SIGHUP/SIGUSR1",
+            "SIGCHLD"
+          ],
+          "answer": 1,
+          "why": "OS 안전장치."
+        },
+        {
+          "q": "SIGKILL·SIGSTOP 을 못 잡게 한 이유는?",
+          "choices": [
+            "빠르라고",
+            "버그·악성 프로세스를 반드시 끝낼 수단 보장",
+            "메모리 절약",
+            "관례"
+          ],
+          "answer": 1,
+          "why": "최후의 통제."
+        },
+        {
+          "q": "SIGPIPE 를 무시로 두면?",
+          "choices": [
+            "프로세스 종료",
+            "write 가 EPIPE 에러 반환 → 코드로 처리",
+            "재시작",
+            "멈춤"
+          ],
+          "answer": 1,
+          "why": "무시 vs 잡기."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "실제 종료 순서 — TERM 먼저, KILL 나중",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "`docker stop`·쿠버네티스 종료·systemd stop 은 모두 같은 **2단계**로 죽인다: ① **SIGTERM** 을 보내 「정리하고 끝내라」 → ② **유예 시간**(기본 10초·30초) 기다림 → ③ 그래도 살아 있으면 **SIGKILL** 로 강제. 그래서 앱이 SIGTERM 을 받아 유예 안에 정리하고 스스로 끝나면 곱게, 무시하거나 너무 오래 걸리면 강제로 잘린다. 이 순서를 알면 배포 시 요청 유실이 설명된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "종료 순서 — 유예 안에 끝나나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:60px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px; color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; } .tl .warn2 { background:#f59e0b; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  const tree = (html) => '<div class=\"tree\">' + html + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const handle = '{{handle}}';\n  const grace = 10;\n  if (handle === 'graceful') {\n    render('SIGTERM 잡고 유예 안에 정리',\n      '  TERM 도착 → 새 요청 차단 → 진행 요청 완료 → 종료(유예 내)\\n' +\n      '  <span class=\\\"ok\\\">SIGKILL 까지 안 감. 요청 유실 0.</span>',\n      'TERM → (유예) → 앱이 스스로 종료. KILL 이 필요 없다.',\n      timeline([['오케'.padEnd(2), [[1,'work','SIGTERM'],[3,'warn2','유예 대기(≤10s)']]],\n        ['앱', [[1,'work','정리 시작'],[2,'ok2','완료·종료']]]]));\n  } else if (handle === 'ignore') {\n    render('SIGTERM 무시(또는 처리 안 함)',\n      '  TERM 도착 → 앱이 안 죽음 → 유예 끝 → <span class=\\\"no\\\">SIGKILL 로 강제 종료</span>\\n' +\n      '  진행 중 요청이 잘리고 정리 안 됨 → 배포마다 유실.',\n      'TERM 무시 → 유예 후 KILL. 진행 요청이 잘린다.',\n      timeline([['오케'.padEnd(2), [[1,'work','SIGTERM'],[3,'warn2','유예(무응답)'],[1,'bad2','SIGKILL']]],\n        ['앱', [[1,'work','무시'],[3,'work','계속 처리'],[1,'bad2','강제 종료(잘림)']]]]));\n  } else {\n    render('정리에 유예보다 오래 걸림',\n      '  TERM 잡고 정리 시작했지만 유예(10s) 초과 → <span class=\\\"no\\\">SIGKILL</span>\\n' +\n      '  느린 정리·긴 요청 → 유예를 늘리거나 정리를 빠르게.',\n      '정리가 유예보다 길면 KILL. 유예 조정 또는 정리 단축 필요.',\n      timeline([['오케'.padEnd(2), [[1,'work','SIGTERM'],[3,'warn2','유예(10s)'],[1,'bad2','KILL']]],\n        ['앱', [[1,'work','정리…'],[3,'work','아직 정리 중'],[1,'bad2','잘림']]]]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "handle",
+              "label": "앱 반응",
+              "type": "select",
+              "value": "ignore",
+              "options": [
+                {
+                  "value": "graceful",
+                  "label": "유예 내 정리"
+                },
+                {
+                  "value": "ignore",
+                  "label": "무시(→KILL)"
+                },
+                {
+                  "value": "slow",
+                  "label": "정리가 느림(→KILL)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "죽이는 2단계",
+          "text": "docker stop / kubernetes 종료 / systemd stop\n  1) SIGTERM 발송        \"정리하고 끝내라\"\n  2) 유예 시간 대기       기본 10초(docker) · 30초(k8s)\n  3) 아직 살아 있으면 SIGKILL   강제 (정리 못 함)\n\n앱이 할 일: TERM 을 잡아 유예 안에 정리하고 스스로 exit\n  → KILL 단계까지 가지 않게 (유예보다 정리를 빠르게)"
+        },
+        {
+          "type": "note",
+          "text": "**유예 시간을 알고 그 안에 끝내라 — 넘으면 강제로 잘린다.** docker 는 기본 10초, 쿠버네티스는 `terminationGracePeriodSeconds` 기본 30초를 준다. 앱의 정리(진행 요청 완료·연결 닫기)가 이 시간을 넘으면 SIGKILL 로 잘려 요청이 유실된다. 그러니 ① 정리를 유예보다 빠르게 하거나 ② 긴 요청이 정상이면 유예를 늘린다. 「배포하면 몇 개씩 실패」의 튜닝 지점이 바로 이 유예와 정리 시간의 관계다."
+        },
+        {
+          "type": "p",
+          "text": "**로드밸런서에서 빠지는 시간도 계산에 넣어라.** SIGTERM 을 받자마자 서버를 닫으면, 로드밸런서가 아직 이 인스턴스로 **새 요청을 보내는 중**이라 그 요청이 거절된다(연결 드레이닝 문제, scale 트랙). 그래서 견고한 종료는 ① TERM 수신 → ② 헬스체크를 실패로 바꿔 LB 가 트래픽을 뺄 시간을 벌고 → ③ 진행 요청 마무리 → ④ 종료 순으로 한다. 신호 처리는 앱 혼자가 아니라 **앞단(LB)과의 협조**까지 포함하는 설계다."
+        },
+        {
+          "type": "try",
+          "text": "서버에 요청을 보내는 중에 `kill -TERM <pid>` 를 보내, 그 요청이 끝까지 응답되는지(graceful) 확인하라. 그다음 유예보다 긴 요청을 만들어 SIGKILL 로 잘리는지 관찰하고, 유예·정리 시간을 조정해 보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "docker stop/k8s 의 종료 순서는?",
+          "choices": [
+            "바로 SIGKILL",
+            "SIGTERM → 유예 대기 → 아직 살면 SIGKILL",
+            "SIGSTOP",
+            "SIGINT만"
+          ],
+          "answer": 1,
+          "why": "2단계."
+        },
+        {
+          "q": "정리가 유예 시간을 넘으면?",
+          "choices": [
+            "기다려 줌",
+            "SIGKILL 로 강제 종료(잘림)",
+            "재시작",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "유예·정리 시간 조정."
+        },
+        {
+          "q": "TERM 받자마자 서버를 닫으면 생기는 문제는?",
+          "choices": [
+            "없음",
+            "LB 가 아직 보내는 새 요청이 거절됨(드레이닝)",
+            "빠름",
+            "메모리"
+          ],
+          "answer": 1,
+          "why": "앞단과 협조."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "곱게 죽는 코드",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "graceful shutdown 의 표준 순서: ① **새 요청 차단**(서버 close·헬스체크 실패) → ② **진행 중 요청 완료 대기** → ③ **자원 해제**(DB·큐 연결 닫기) → ④ **종료(exit 0)**. 그리고 **중복 신호 방어**(종료 중 또 TERM 이 와도 한 번만)와 **상한 대기**(정해진 시간 넘으면 스스로 강제 종료)를 둔다. ①을 먼저 안 하면 정리하는 동안 새 일이 계속 들어와 끝나지 않는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "곱게 죽기 — 순서가 핵심",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:60px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px; color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; } .tl .warn2 { background:#f59e0b; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  const tree = (html) => '<div class=\"tree\">' + html + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const order = '{{order}}';\n  if (order === 'right') {\n    render('올바른 순서',\n      '  ① 새 요청 차단 → ② 진행 요청 완료 → ③ 자원 해제 → ④ exit',\n      '새 요청 차단을 먼저 — 그래야 정리가 끝난다.',\n      steps([['① 새 요청 차단(server.close)', 'good'],['② 진행 중 요청 완료 대기', 'good'],['③ DB·큐 연결 해제', 'good'],['④ exit(0)', 'good']]));\n  } else {\n    render('틀린 순서(차단을 안 먼저)',\n      '  정리를 시작했는데 새 요청이 계속 들어옴 → 진행 요청이 안 줄어듦\\n' +\n      '  <span class=\\\"no\\\">끝나지 않다가 유예 초과 → SIGKILL.</span>',\n      '차단을 먼저 안 하면 새 일이 계속 들어와 정리가 안 끝난다.',\n      steps([['정리 시작(연결 닫기 시도)', 'on'],['새 요청 계속 유입', 'bad'],['진행 요청 안 줄어듦 → 유예 초과', 'bad'],['SIGKILL', 'bad']]));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "order",
+              "label": "순서",
+              "type": "select",
+              "value": "wrong",
+              "options": [
+                {
+                  "value": "wrong",
+                  "label": "차단 안 먼저(실패)"
+                },
+                {
+                  "value": "right",
+                  "label": "차단 먼저(성공)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "javascript",
+          "label": "graceful shutdown",
+          "text": "let 종료중 = false;\nasync function shutdown(sig) {\n  if (종료중) return;            // 중복 신호 방어(TERM 두 번 와도 한 번만)\n  종료중 = true;\n  server.close();               // ① 새 요청 차단\n  const 타임아웃 = setTimeout(() => process.exit(1), 10000); // 상한 대기\n  await 진행중요청_완료();        // ② 진행 요청 끝나길 대기\n  await db.end(); await queue.close();  // ③ 자원 해제\n  clearTimeout(타임아웃);\n  process.exit(0);              // ④ 깨끗이 종료\n}\nprocess.on('SIGTERM', () => shutdown('SIGTERM'));\nprocess.on('SIGINT',  () => shutdown('SIGINT'));"
+        },
+        {
+          "type": "note",
+          "text": "**새 요청 차단을 먼저 — 그리고 상한 없는 대기는 금물이다.** ①(차단)을 안 하면 정리 중에도 요청이 밀려들어 「진행 중 요청」이 줄지 않아 영영 안 끝난다. 그리고 「진행 요청 완료 대기」에 **상한(타임아웃)**을 안 두면, 멈춘 요청 하나 때문에 종료가 매달려 결국 SIGKILL 을 당한다. 그래서 표준은 「차단 먼저 + 상한 대기」다 — 유예 안에 스스로 끝내되, 정 안 되면 내가 먼저 exit 한다. 중복 신호 방어(플래그)도 필수다."
+        },
+        {
+          "type": "p",
+          "text": "**멱등하고 짧게 — 핸들러 안에서 큰일을 벌이지 마라.** 종료 핸들러는 여러 번 호출될 수 있으니(TERM 뒤 또 INT) **중복 방어 플래그**로 한 번만 돌게 하고, 유예가 짧으니 정리는 **핵심만 빠르게**(연결 닫기·flush) 한다. 오래 걸리는 마무리(대용량 파일 처리 등)는 애초에 종료 시점에 몰지 말고, 체크포인트를 남겨 재시작 후 이어서 하도록 설계한다. 「종료는 빠르고 안전하게, 무거운 건 재시작에 맡긴다」가 견고한 패턴이다."
+        },
+        {
+          "type": "try",
+          "text": "네 서버에 위 순서(차단→완료 대기→해제→exit)로 종료 처리를 붙이고, 요청 처리 중 TERM 을 보내 그 요청이 끝까지 응답되는지 확인하라. 상한 타임아웃을 걸어 멈춘 요청이 있어도 종료가 매달리지 않는지도 시험하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "graceful shutdown 에서 가장 먼저 할 일은?",
+          "choices": [
+            "DB 닫기",
+            "새 요청 차단(server.close)",
+            "exit",
+            "로그 저장"
+          ],
+          "answer": 1,
+          "why": "안 그러면 안 끝남."
+        },
+        {
+          "q": "진행 요청 완료 대기에 상한(타임아웃)을 안 두면?",
+          "choices": [
+            "안전",
+            "멈춘 요청에 종료가 매달려 SIGKILL 당함",
+            "빠름",
+            "무관"
+          ],
+          "answer": 1,
+          "why": "상한 대기 필수."
+        },
+        {
+          "q": "종료 핸들러에 중복 방어 플래그가 필요한 이유는?",
+          "choices": [
+            "속도",
+            "TERM·INT 등 신호가 여러 번 올 수 있어 한 번만 실행",
+            "메모리",
+            "보안"
+          ],
+          "answer": 1,
+          "why": "멱등."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "컨테이너의 함정 — 1번 프로세스",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "컨테이너에서 신호 처리가 자주 깨지는 이유는 **PID 1** 때문이다. `CMD [\"sh\", \"-c\", \"node app.js\"]` 처럼 쓰면 **sh 가 PID 1**, node 는 그 자식이 된다 — docker 가 보낸 SIGTERM 은 **sh 가 받고**, 많은 sh 는 그걸 자식에게 전달하지 않아 node 는 신호를 **못 받는다**. 그 결과 유예가 지나 SIGKILL 로 잘리고, 애써 짠 graceful shutdown 이 안 돈다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "PID 1 함정 — 신호가 앱까지 가나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:60px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px; color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; } .tl .warn2 { background:#f59e0b; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  const tree = (html) => '<div class=\"tree\">' + html + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const form = '{{form}}';\n  if (form === 'shell') {\n    render('shell form: CMD node app.js (sh -c 로 감쌈)',\n      '  sh 가 PID 1, node 는 자식\\n' +\n      '  docker stop → SIGTERM → <span class=\\\"no\\\">sh 가 받고 node 에 전달 안 함</span>\\n' +\n      '  → node 는 신호 못 받음 → 유예 후 SIGKILL(잘림)',\n      'shell form 은 sh 가 PID1 — 신호가 앱에 안 간다.',\n      tree('<span class=\\\"n\\\">PID1 = sh</span> ← SIGTERM (여기서 멈춤)<br>&nbsp;&nbsp;└ <span class=\\\"n d\\\">node(신호 못 받음)</span>'));\n  } else if (form === 'exec') {\n    render('exec form: CMD [\"node\",\"app.js\"]',\n      '  node 가 직접 PID 1\\n' +\n      '  docker stop → SIGTERM → <span class=\\\"ok\\\">node 가 직접 받음 → graceful shutdown 동작</span>',\n      'exec form 이면 앱이 PID1 — 신호를 직접 받는다.',\n      tree('<span class=\\\"n o\\\">PID1 = node</span> ← SIGTERM (직접 수신 → 정리)'));\n  } else {\n    render('--init (tini 를 PID 1 로)',\n      '  가벼운 init 이 PID1 → 신호를 앱에 전달 + 좀비 수거\\n' +\n      '  <span class=\\\"ok\\\">앱이 PID1 이 아니어도 신호 전달·reaping 보장.</span>',\n      'docker run --init: tini 가 PID1 로 신호 전달·좀비 수거를 맡는다.',\n      tree('<span class=\\\"n o\\\">PID1 = tini</span> ← SIGTERM → 전달<br>&nbsp;&nbsp;└ <span class=\\\"n\\\">node(정리)</span>'));\n  }\n</script>",
+          "controls": [
+            {
+              "id": "form",
+              "label": "실행 형식",
+              "type": "select",
+              "value": "shell",
+              "options": [
+                {
+                  "value": "shell",
+                  "label": "shell form(함정)"
+                },
+                {
+                  "value": "exec",
+                  "label": "exec form"
+                },
+                {
+                  "value": "init",
+                  "label": "--init/tini"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "docker",
+          "label": "신호가 앱까지 가게",
+          "text": "# ✗ shell form — sh 가 PID1, node 는 신호 못 받기 쉬움\nCMD node app.js\nCMD [\"sh\", \"-c\", \"node app.js\"]\n\n# ✓ exec form — node 가 직접 PID1, SIGTERM 을 직접 받음\nCMD [\"node\", \"app.js\"]\n\n# ✓ 또는 가벼운 init 을 PID1 로 (신호 전달 + 좀비 수거)\n#   docker run --init ...   또는 ENTRYPOINT [\"tini\", \"--\"]"
+        },
+        {
+          "type": "note",
+          "text": "**exec form 을 쓰거나 --init 을 둬라 — 안 그러면 graceful shutdown 이 무의미하다.** 아무리 SIGTERM 핸들러를 잘 짜도, 신호가 앱까지 도달하지 않으면 안 돈다. `CMD [\"node\",\"app.js\"]`(exec form)이면 node 가 PID 1 이 되어 신호를 직접 받는다. 셸이 꼭 필요하거나 여러 프로세스를 돌린다면 `--init`(tini)을 PID 1 로 두어 신호 전달과 좀비 수거(sys-process 3장)를 맡긴다. 「배포 시 앱이 SIGKILL 로만 죽는다」면 십중팔구 이 PID 1 문제다."
+        },
+        {
+          "type": "p",
+          "text": "**PID 1 은 특별한 책임을 진다.** 컨테이너의 PID 1 은 일반 프로세스와 달리 ① 자식(고아) 수거(reaping)와 ② 신호 전달의 책임이 있는데, 앱 런타임은 대개 이 역할을 안 한다 — 그래서 좀비가 쌓이거나 신호가 안 퍼진다. tini 같은 **1KB짜리 init** 이 이 두 가지만 대신 해 준다. 「내 앱을 PID 1 로 둘까, init 을 앞에 둘까」는 컨테이너 신호·프로세스 위생의 기본 결정이다(sys-container 로 이어짐)."
+        },
+        {
+          "type": "try",
+          "text": "Dockerfile 의 CMD 가 shell form 인지 exec form 인지 확인하고, 컨테이너에 `docker stop` 을 보내 앱이 SIGTERM 을 받는지(graceful 로그가 찍히는지) 시험하라. 안 받으면 exec form 이나 `--init` 으로 바꿔 재확인하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`CMD [\"sh\",\"-c\",\"node app.js\"]` 의 문제는?",
+          "choices": [
+            "느림",
+            "sh 가 PID1 — SIGTERM 이 node 에 전달 안 될 수 있음",
+            "메모리",
+            "보안"
+          ],
+          "answer": 1,
+          "why": "신호 미도달."
+        },
+        {
+          "q": "앱이 신호를 직접 받게 하는 형식은?",
+          "choices": [
+            "shell form",
+            "exec form: CMD [\"node\",\"app.js\"]",
+            "RUN",
+            "ENV"
+          ],
+          "answer": 1,
+          "why": "node 가 PID1."
+        },
+        {
+          "q": "--init(tini)이 PID1 로 하는 일은?",
+          "choices": [
+            "로그",
+            "신호 전달 + 좀비 수거",
+            "빌드",
+            "네트워크"
+          ],
+          "answer": 1,
+          "why": "PID1 책임."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "신호로 조종한다 — 재시작 없이",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "신호는 종료만이 아니라 **재시작 없이 프로세스를 조종**하는 채널이다. 관례: **SIGHUP** = 설정 다시 읽기(무중단 리로드) · **SIGUSR1/USR2** = 앱이 정한 동작(로그 파일 다시 열기=로테이션·상태 덤프·워커 교체) · **SIGSTOP/SIGCONT** = 일시정지/재개. nginx `-s reload`, 로그 로테이션 후 `USR1` 같은 게 다 이 방식이다 — 프로세스를 죽이지 않고 원하는 동작만 시킨다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "신호로 조종 — 무엇을 시키나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:60px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px; color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; } .tl .warn2 { background:#f59e0b; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  const tree = (html) => '<div class=\"tree\">' + html + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = '{{sig}}';\n  const cases = {\n    hup: ['SIGHUP → 설정 재로드', '재시작 없이 새 설정 적용(무중단). nginx -s reload 등', '연결 유지한 채 워커만 새 설정으로 교체'],\n    usr1:['SIGUSR1 → 로그 파일 다시 열기', 'logrotate 가 파일 옮긴 뒤 USR1 → 앱이 새 파일 염', '재시작 없이 로그 로테이션'],\n    usr2:['SIGUSR2 → 상태 덤프/워커 교체', '앱이 정한 동작(힙 덤프·무중단 바이너리 교체 등)', '운영 중 진단·업그레이드'],\n    cont:['SIGSTOP/CONT → 정지/재개', '프로세스를 얼렸다 녹인다(디버깅·자원 양보)', '상태 보존한 채 일시정지'],\n  }[s];\n  render(cases[0],\n    '  쓰임: ' + cases[1] + '\\n  효과: ' + cases[2] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">프로세스를 죽이지 않고 동작만 시킨다.</span>',\n    'HUP=재로드, USR1=로그 재개방, USR2=앱 정의, STOP/CONT=정지/재개.',\n    box(cases[0], cases[1]));\n</script>",
+          "controls": [
+            {
+              "id": "sig",
+              "label": "신호",
+              "type": "select",
+              "value": "hup",
+              "options": [
+                {
+                  "value": "hup",
+                  "label": "HUP 재로드"
+                },
+                {
+                  "value": "usr1",
+                  "label": "USR1 로그"
+                },
+                {
+                  "value": "usr2",
+                  "label": "USR2 앱정의"
+                },
+                {
+                  "value": "cont",
+                  "label": "STOP/CONT"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "재시작 없이 조종",
+          "text": "kill -HUP  <pid>   # 설정 다시 읽기 (nginx·haproxy·많은 데몬 관례)\nkill -USR1 <pid>   # 로그 파일 다시 열기 (logrotate 연계) 등 앱 정의\nkill -STOP <pid>   # 일시정지 (상태 보존한 채 얼림)\nkill -CONT <pid>   # 재개\n\n# logrotate 예: 로그를 옮긴 뒤 앱에 USR1 → 앱이 새 파일을 연다\n#   → 재시작 없이 로그 순환(연결·상태 유지)"
+        },
+        {
+          "type": "note",
+          "text": "**신호는 데몬의 가벼운 제어 API 다.** 재시작은 연결을 끊고 캐시를 날리니 비싸다 — 그래서 오래 사는 서버는 자주 바뀌는 것(설정·로그 파일)을 **신호로 갱신**하게 만든다. SIGHUP 으로 설정을 다시 읽어 무중단 리로드하고, SIGUSR1 로 로그 파일을 다시 열어 로테이션한다. 「이 데몬은 어떤 신호에 무엇을 하나」가 그 프로그램의 운영 인터페이스라, man 페이지·문서에 신호 규약이 적혀 있다. 죽이기 전에 조종을 떠올려라."
+        },
+        {
+          "type": "p",
+          "text": "**로그 로테이션이 신호를 쓰는 이유가 좋은 예다.** 로그 파일이 커지면 logrotate 가 `app.log` 를 `app.log.1` 로 옮기는데, 앱은 여전히 **옛 파일 핸들(fd)**에 쓰고 있어 새 `app.log` 에 안 쓴다(sys-fd — fd 는 이름이 아니라 열린 대상을 가리킴). 그래서 옮긴 뒤 앱에 **SIGUSR1(또는 HUP)**을 보내 「로그 파일을 다시 열라」고 알리면, 앱이 새 `app.log` 를 연다. 재시작 없이 로그를 순환하는 이 협업이 신호의 전형적 쓰임이다."
+        },
+        {
+          "type": "try",
+          "text": "프로그램에 SIGHUP(설정 재로드)이나 SIGUSR1(상태 출력) 핸들러를 붙이고, `kill -HUP`/`kill -USR1` 로 눌러 재시작 없이 동작하는지 확인하라. 실제 데몬(nginx 등)의 문서에서 신호 규약도 찾아보라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "많은 데몬에서 SIGHUP 의 관례적 의미는?",
+          "choices": [
+            "강제 종료",
+            "설정 다시 읽기(무중단 리로드)",
+            "일시정지",
+            "로그 삭제"
+          ],
+          "answer": 1,
+          "why": "재시작 없이."
+        },
+        {
+          "q": "로그 로테이션이 USR1/HUP 을 보내는 이유는?",
+          "choices": [
+            "삭제하려고",
+            "앱이 옛 fd 를 놓고 새 로그 파일을 열게 하려고",
+            "빠르라고",
+            "보안"
+          ],
+          "answer": 1,
+          "why": "fd 는 열린 대상을 가리킴."
+        },
+        {
+          "q": "SIGSTOP/SIGCONT 의 효과는?",
+          "choices": [
+            "종료/재시작",
+            "일시정지/재개(상태 보존)",
+            "재로드",
+            "덤프"
+          ],
+          "answer": 1,
+          "why": "얼렸다 녹임."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "확인한다 — 짰다 ≠ 된다",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「종료 처리를 짰다」와 「실제로 곱게 죽는다」는 다르다. 신호 처리는 **직접 신호를 보내 눈으로 확인**해야 한다 — 로컬에서 프로세스에 `kill -TERM` 을 보내 **정리 로그가 순서대로 찍히는지**, 처리 중이던 요청이 끝까지 응답되는지, 컨테이너면 신호가 앱까지 도달하는지. 이 확인을 안 하면 배포 사고로 뒤늦게 안다(황금의 정신: 피드백 루프 먼저)."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "확인 체크 — 무엇을 눈으로 보나",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:60px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px; color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; } .tl .warn2 { background:#f59e0b; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  const tree = (html) => '<div class=\"tree\">' + html + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{check}}';\n  const cases = {\n    log: ['정리 로그가 순서대로 찍히나', 'kill -TERM <pid> 후 로그 확인', '\"새 요청 차단→요청 완료→연결 해제→종료\" 순서가 보여야'],\n    req: ['진행 요청이 끝까지 응답되나', '요청 보내는 중 kill -TERM', '그 요청이 502 없이 정상 응답으로 끝나야'],\n    reach:['신호가 앱까지 도달하나(컨테이너)', 'docker stop 후 앱 로그 확인', 'graceful 로그가 찍혀야(안 찍히면 PID1 함정 6장)'],\n    kill:['상한 대기가 도나', '멈춘 요청 만들고 kill -TERM', '유예 내 스스로 exit — 매달리지 않아야'],\n  }[c];\n  render('확인: ' + cases[0],\n    '  방법: ' + cases[1] + '\\n  기대: ' + cases[2],\n    '직접 신호 보내 정리 로그·요청 응답·도달·상한을 눈으로 확인한다.',\n    box(cases[1], cases[2]));\n</script>",
+          "controls": [
+            {
+              "id": "check",
+              "label": "확인 항목",
+              "type": "select",
+              "value": "log",
+              "options": [
+                {
+                  "value": "log",
+                  "label": "정리 로그"
+                },
+                {
+                  "value": "req",
+                  "label": "요청 응답"
+                },
+                {
+                  "value": "reach",
+                  "label": "신호 도달"
+                },
+                {
+                  "value": "kill",
+                  "label": "상한 대기"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "종료 처리 확인",
+          "text": "node app.js &        # 로컬 실행\ncurl localhost:3000/slow &   # 처리 중인 요청 하나\nkill -TERM %1        # 종료 신호 → 로그에 정리 순서가 찍히나?\n#  기대: \"새 요청 차단 → 진행 요청 완료 → 연결 해제 → exit 0\"\n#  그 curl 이 502 없이 끝까지 응답되나?\n\ndocker stop <c>      # 컨테이너: 앱 로그에 graceful 이 찍히나?\n#  안 찍히면 신호가 앱까지 안 감(PID1/shell form) → 6장"
+        },
+        {
+          "type": "note",
+          "text": "**피드백 루프를 먼저 세워라 — 신호 처리는 특히 「돌려 봐야」 안다.** 종료·리로드 처리는 정상 흐름에선 안 타는 코드라, 짜 놓고 방치하면 배포 때 처음으로(그것도 실패로) 실행된다. 그래서 로컬에서 `kill -TERM`·`docker stop` 으로 **의도적으로 신호를 보내** 로그와 요청 응답을 확인하는 걸 개발 루프에 넣는다. 「배포해서 유실이 나는지 본다」는 가장 느리고 비싼 루프다 — 신호를 직접 보내는 1초짜리 루프로 당긴다."
+        },
+        {
+          "type": "p",
+          "text": "**엣지도 함께 확인하라: 두 번 신호, 멈춘 요청, KILL.** ① TERM 을 **두 번** 보내 중복 방어가 되는지(한 번만 정리), ② **멈춘 요청**이 있을 때 상한 대기로 스스로 exit 하는지, ③ **SIGKILL** 을 보내면 정리 없이 즉시 죽는지(그게 정상 — KILL 은 못 잡음, 3장)를 본다. 정상 경로만 확인하면 「대부분 되는데 가끔 매달린다」를 놓친다. 신호 처리의 견고함은 이 엣지에서 갈린다."
+        },
+        {
+          "type": "try",
+          "text": "로컬에서 요청을 보내는 중 `kill -TERM` 을 보내 ① 정리 로그 순서 ② 그 요청의 정상 응답을 확인하라. 이어서 TERM 두 번·멈춘 요청·`kill -9` 로 엣지도 확인해, 짠 대로 실제로 동작하는지 눈으로 검증하라."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "종료 처리를 확인하는 올바른 방법은?",
+          "choices": [
+            "코드만 읽기",
+            "직접 kill -TERM 보내 로그·요청 응답을 눈으로 확인",
+            "배포해서 관찰",
+            "추측"
+          ],
+          "answer": 1,
+          "why": "짰다≠된다."
+        },
+        {
+          "q": "컨테이너에서 graceful 로그가 안 찍히면?",
+          "choices": [
+            "정상",
+            "신호가 앱까지 안 감(PID1/shell form)",
+            "빠름",
+            "메모리"
+          ],
+          "answer": 1,
+          "why": "6장 함정."
+        },
+        {
+          "q": "확인해야 할 엣지가 아닌 것은?",
+          "choices": [
+            "TERM 두 번(중복 방어)",
+            "멈춘 요청(상한 대기)",
+            "kill -9(즉시 종료)",
+            "CPU 사용률"
+          ],
+          "answer": 3,
+          "why": "신호 엣지 검증."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "점검표 — 신호와 종료",
+      "minutes": 7,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "신호를 다루거나 배포 시 요청 유실을 진단할 때 이 목록을 확인하라. 핵심은 「SIGTERM 을 잡아 곱게 죽고, 신호가 앱까지 닿게 하고, 직접 보내 확인하라」다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "점검표 — 하나씩 켜 보라",
+          "height": "360px",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:60px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px; color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; } .tl .warn2 { background:#f59e0b; }\n  .tree { margin:8px 0; font:11.5px/1.6 ui-monospace, monospace; }\n  .tree .n { padding:2px 8px; margin:2px 0; border-radius:4px; background:#111c33; display:inline-block; }\n  .tree .n.z { background:#3a2a14; color:#fcd34d; } .tree .n.o { background:#14263a; color:#7dd3fc; }\n  .tree .n.d { background:#2a1414; color:#fca5a5; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 22) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  const tree = (html) => '<div class=\"tree\">' + html + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '신호 = 짧은 비동기 알림, 반응은 핸들러로 정한다',\n    'TERM/INT/KILL/HUP/USR 의 뜻을 안다',\n    'SIGKILL·SIGSTOP 은 못 잡음을 안다(먼저 TERM)',\n    '종료는 TERM→유예→KILL 2단계임을 안다',\n    'graceful shutdown: 차단→완료 대기→해제→exit',\n    '중복 신호 방어 + 상한 대기를 둔다',\n    '컨테이너는 exec form/--init 로 신호를 앱에 전달',\n    '직접 신호 보내 정리 로그·요청 응답을 확인한다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 배포·중지 때 곱게 죽고 요청을 안 잃는다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    'TERM 잡아 곱게 죽기 · 신호가 앱까지 닿기 · 직접 보내 확인.',\n    '<div>' + rows + '</div>');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "확인한 항목",
+              "type": "range",
+              "min": 0,
+              "max": 8,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**한 줄 요약: 죽으라는 신호를 받고 곱게 죽어라.** SIGTERM 을 잡아 새 요청을 막고 진행 요청을 끝낸 뒤 종료하고(4·5장), SIGKILL·SIGSTOP 은 못 잡으니 먼저 TERM 으로 곱게(3장), 컨테이너는 신호가 앱까지 닿게 하고(6장), 짠 걸 직접 신호로 확인한다(8장). 「배포마다 몇 개씩 실패」는 버그가 아니라 이 처리를 안 짠 것이다."
+        },
+        {
+          "type": "p",
+          "text": "**이 칸의 연결.** 신호로 죽는 종료 코드(128+N)는 sys-process 4·5장, 자식 수거(SIGCHLD)는 sys-process 3장, 신호를 거는 syscall(kill/sigaction)은 sys-syscall, 파이프의 SIGPIPE·로그 fd 재개방은 sys-fd, 연결 드레이닝·무중단 배포는 scale 로 이어진다. **「신호를 받고 곱게 죽고, 신호로 조종하는」 능력이 프로덕션 프로세스 운영의 핵심**이다."
+        },
+        {
+          "type": "try",
+          "text": "이 8개로 네 서비스를 점검하라. 「TERM 잡아 graceful shutdown」과 「컨테이너 신호 도달(exec form/--init)」 두 가지부터 잡으면, 배포 시 요청 유실의 대부분이 사라진다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "신호 장의 한 줄 요약은?",
+          "choices": [
+            "kill -9 를 쓰라",
+            "죽으라는 신호를 받고 곱게 죽어라(TERM 처리)",
+            "빠르게",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "graceful."
+        },
+        {
+          "q": "먼저 잡을 두 가지는?",
+          "choices": [
+            "캐시·압축",
+            "TERM graceful shutdown + 컨테이너 신호 도달",
+            "샤딩·GraphQL",
+            "무시"
+          ],
+          "answer": 1,
+          "why": "요청 유실 감소."
+        },
+        {
+          "q": "신호가 이어지는 주제는?",
+          "choices": [
+            "없음",
+            "sys-process·sys-syscall·sys-fd·scale",
+            "문법",
+            "속도"
+          ],
+          "answer": 1,
+          "why": "운영의 핵심."
+        }
+      ]
     }
   ]
 }
