@@ -111,11 +111,6 @@ jobs:
           path: reds
           merge-multiple: true
 
-      - name: 바뀐 주소를 검색엔진에 알린다
-        if: ${{ needs.check.result == 'success' }}
-        continue-on-error: true
-        run: node scripts/indexnow-submit.mjs
-
       # 배포 자체가 사람에게 닿고 있나 (TASK-KL-160).
       #
       # 위 검사들은 전부 「지금 실사이트가 성한가」를 본다 — 그런데 **올린 것이 실사이트까지
