@@ -92,11 +92,18 @@ else {
    **없어진 도구를 물어본** 것이다. 지금 실제로 있는 도구 중 세 판본에 이름이 다 있는
    첫째를 표본으로 쓴다(도구가 합쳐지거나 사라져도 검사는 살아 있다). */
 const sample = (() => {
+  /* ★ **「있는 도구」는 말 묶음이 아니라 장(page)이 있는 도구다** (2026-08-14).
+     여기서는 세 판본에 이름이 있는 첫 도구를 표본으로 골랐는데, 그 조건을 통과하고도
+     **도구 장이 없는** 것이 있다(`life` — 말 묶음엔 이름이 있지만 `tools-seo.json` 에 없다).
+     그러면 화면에 그 이름이 안 뜨고, 이 검사는 「이름이 안 바뀌었다: null」로 빨개진다 —
+     언어 전환은 멀쩡한데. 장이 있는 것만 표본으로 쓴다. */
+  const 장있는것 = JSON.parse(fs.readFileSync(path.join(appRoot, 'data/tools-seo.json'), 'utf8')).tools;
   const koNames = names.ko || {};
   for (const key of Object.keys(koNames)) {
     const m = /^widgets\.([a-z0-9-]+)\.title$/.exec(key);
     if (!m) continue;
     const id = m[1];
+    if (!장있는것[id]) continue;
     if (expected.every((l) => names[l.code] && names[l.code][`widgets.${id}.title`])) return id;
   }
   return 'base64';
