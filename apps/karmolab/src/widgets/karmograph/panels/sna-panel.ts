@@ -6,6 +6,7 @@
 import { computeSna, topBy, structuralGaps } from '../sna';
 import { snaLines, islandCount } from '../sna-words';
 import { fieldGaps } from '../field-gaps';
+import { resolveEdges } from '../times';
 import { findClusters, clustersWorthTelling } from '../clusters';
 import type { PanelCtx } from './context';
 import { t, loadNamespace } from '../../../lib/i18n';
@@ -15,7 +16,10 @@ export function renderSnaPanel(ctx: PanelCtx): void {
   side.classList.remove('hidden');
   ctx.canvas()?.setSelectedNode(null);
 
-  const live = ctx.canvas()?.getSpec() ?? ctx.spec();
+  const raw = ctx.canvas()?.getSpec() ?? ctx.spec();
+  /* 판을 **읽어 세는 곳**도 시점을 따른다 (KL-271 X2) — 화면과 설명이 어긋나면 둘 중 하나가
+     틀린 것보다 나쁘다. 「2부를 보는데 관계망은 1부 것」이 그 꼴이었다. */
+  const live = { ...raw, edges: resolveEdges(raw.edges, raw._meta?.time ?? '') };
   const sna = computeSna({ nodes: live.nodes, edges: live.edges });
   const nameOf = (id: string): string => live.nodes.find((n) => n.id === id)?.label || t('karmograph.unnamed');
 

@@ -1075,6 +1075,24 @@ const M = await loadModules();
   eq(Object.keys(setFace(two, 't1', {}).at).length, 1, '한 시점만 지워도 나머지는 남는다');
 }
 
+// -- 지금 시점의 선들 (TASK-KL-271 X2 — 읽어 세는 곳도 시점을 따른다) -----------
+{
+  const { resolveEdges } = M.times;
+  const es = [
+    { id: 'e1', label: '소꿉친구', kind: 'rel', at: { t2: { label: '라이벌', kind: 'foe' } } },
+    { id: 'e2', label: '연인', kind: 'rel', at: { t2: { gone: true } } },
+    { id: 'e3', label: '이웃', kind: 'rel' },
+  ];
+  eq(resolveEdges(es, '').length, 3, '시점을 안 쓰면 원본 그대로');
+  eq(resolveEdges(es, 't1').map((e) => e.label).join(','), '소꿉친구,연인,이웃', '적어 둔 것 없는 시점도 원본');
+  const t2 = resolveEdges(es, 't2');
+  eq(t2.length, 2, '이 시점에 없는 선은 빠진다');
+  eq(t2[0].label, '라이벌', '이름이 그 시점 것으로 바뀐다');
+  eq(t2[0].kind, 'foe', '색도');
+  eq(es[0].label, '소꿉친구', '원본은 안 건드린다(사본을 준다)');
+  check(t2[1] === es[2], '안 바뀐 선은 사본을 안 만든다(쓸데없이 새 물건을 찍지 않는다)');
+}
+
 process.stdout.write('\n');
 if (failures.length > 0) {
   console.error(`\nRESULT: FAIL (${failures.length})\n - ` + failures.join('\n - '));
