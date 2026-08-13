@@ -14,6 +14,7 @@ export const gameById = (id: string): GameDef<any, any> | undefined => GAMES.fin
 
 export { CATALOG } from './catalog';
 export { META, KINDS, iconOf, kindOf } from './meta';
+export { PARTY, partySize } from './seating';
 export { Match } from './kernel';
 export { seedFrom, mulberry32 } from './rng';
 export type { GameDef, GameCtx, Seat, Outcome, BotMove, Note } from './types';

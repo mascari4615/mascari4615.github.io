@@ -30,7 +30,8 @@ import { makeCode, inviteLink } from '../../lib/room';
 import { blip, soundOn, setSoundOn } from '../../lib/blip';
 import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
-import { pickGames, award, isOver, ROUNDS, PARTY, type TourState } from './tour';
+import { pickGames, award, isOver, ROUNDS, type TourState } from './tour';
+import { PARTY, partySize } from './seating';
 import type { Render } from './views';
 import { connect, type Net, type Peer, type Json } from './net';
 
@@ -851,10 +852,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       soundedRound = -1;
       /* 빈 자리를 **이름 있는 사람**으로 채운다 (TASK-KL-264). 커널이 채우면 「봇 1」이 되는데,
          그건 자리를 채운 것이지 같이 논 것이 아니다. 손버릇도 여기서 정해 판 내내 지킨다. */
-      /* 대회 중이면 인원을 **판이 아니라 대회가** 정한다 — 판마다 인원이 바뀌면 점수표가
-         성립하지 않는다. 뽑을 때 셋이 앉는 판만 골랐으므로 여기서 넘칠 일은 없다. */
-      const want = tour ? PARTY : g.seats[0];
-      const need = Math.max(0, Math.min(want, g.seats[1]) - seats.length);
+      /* 인원은 **판이 아니라 오락실이** 정한다 (`seating.ts`). 최솟값으로 채우면 「1명부터」인
+         판 17개가 혼자 열었을 때 봇 없이 혼자 돈다 — 경주에 상대가 없었다(F1 실측). */
+      const need = Math.max(0, partySize(g) - seats.length);
       /* 대회 중이면 다섯 판 내내 **같은 사람들**과 논다 — 또 깜냥한테 졌다가 되려면 그래야 한다. */
       const crew = tour ? tour.crew.slice(0, need) : pickBots(need);
       const personas: Record<number, BotPersona> = {};

@@ -231,6 +231,7 @@
     "test:arcade": "node scripts/test-arcade.mjs",
     "test:tour": "node scripts/test-tour.mjs",
     "smoke:tour": "node scripts/smoke-tour.mjs",
+    "bench:arcade": "node scripts/bench-arcade.mjs",
     "test:arcade:ui": "node scripts/smoke-arcade.mjs",
     "test:arcade:multi": "node scripts/smoke-arcade-multi.mjs",
     "build:artifacts": "npm run build:i18n && npm run gen:locale-pages && node build.mjs && npm run gen:changelog && npm run gen:feeds && npm run gen:llms && npm run build:wiki && npm run build:worldbook && npm run build:wm-tasks && npm run gen:core-tools && npm run gen:tool-md",
