@@ -51,6 +51,15 @@ async function check(width, height, label) {
 
   for (const screen of SCREENS) {
     errors.length = 0;
+    /* ★ **안 그려졌을 때 「무엇이 보였는지」를 남긴다** (2026-08-13).
+     *   CI 에서 다섯 화면이 **전부** 안 그려졌다고 나오는데 내 자리에서는 같은 실주소가 초록이다.
+     *   그러면 「제품이 고장」과 「이 판이 막혔다(429·차단·로그인 요구)」를 가를 수가 없어서
+     *   없는 버그를 쫓게 된다. 실패한 판에서만 응답 코드와 화면에 뜬 글을 적어 둔다. */
+    const badResponses = [];
+    const onResponse = (r) => {
+      if (r.status() >= 400) badResponses.push(`${r.status()} ${r.url().slice(0, 90)}`);
+    };
+    page.on('response', onResponse);
     await page.goto(`${BASE}#${screen.hash}`, { waitUntil: 'domcontentloaded' });
 
     let drew = true;
@@ -66,7 +75,21 @@ async function check(width, height, label) {
       () => document.documentElement.scrollWidth - window.innerWidth,
     );
 
-    if (!drew) failures.push(`${label} ${screen.name}: 알맹이가 안 그려졌다 (${screen.need})`);
+    page.off('response', onResponse);
+    if (!drew) {
+      const seen = await page
+        .evaluate(() => ({
+          title: document.title,
+          text: (document.body.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 160),
+          nodes: document.querySelectorAll('#tool-pages *, main *').length,
+        }))
+        .catch(() => ({ title: '?', text: '?', nodes: -1 }));
+      failures.push(
+        `${label} ${screen.name}: 알맹이가 안 그려졌다 (${screen.need})` +
+          ` · 화면에 뜬 글 「${seen.text}」 · 마디 ${seen.nodes}개` +
+          (badResponses.length ? ` · 막힌 응답 ${badResponses.slice(0, 3).join(' / ')}` : ' · 막힌 응답 없음'),
+      );
+    }
     if (errors.length) failures.push(`${label} ${screen.name}: 스크립트 오류 — ${errors[0]}`);
     // 장식은 화면 밖으로 나가도 되지만 **문서**가 넘치면 손가락으로 옆으로 밀린다.
     if (overflow > 2) failures.push(`${label} ${screen.name}: 옆으로 ${overflow}px 넘침`);
