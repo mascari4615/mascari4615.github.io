@@ -1,96 +1,747 @@
 {
   "id": "git-bisect",
-  "minutes": 10,
-  "blocks": [
+  "parts": [
     {
-      "type": "p",
-      "text": "「언제부터 깨졌지?」를 눈으로 찾지 마라. 커밋이 200개여도 **8번**이면 범인을 찾는다 — 이분 탐색이니까."
-    },
-    {
-      "type": "h",
-      "text": "1. 기본 흐름"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "좋은 지점과 나쁜 지점만 알려 주면 된다",
-      "text": "git bisect start\ngit bisect bad                  # 지금(깨짐)\ngit bisect good v1.3.0          # 이때는 됐다\n\n# Git 이 가운데 커밋으로 옮겨 준다. 확인 후\ngit bisect good     # 또는 git bisect bad\n# … 반복 …\n# 마지막에 「<sha> is the first bad commit」\n\ngit bisect reset                # 원래 자리로"
-    },
-    {
-      "type": "h",
-      "text": "2. 자동으로 돌리기"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "재현 스크립트를 붙이면 손이 필요 없다",
-      "text": "git bisect start HEAD v1.3.0\ngit bisect run npm test -- path/to/failing.test.ts\n# 종료 코드 0 = good, 1~124 = bad"
-    },
-    {
-      "type": "note",
-      "text": "재현 스크립트는 **빠르고 확실해야** 한다. 가끔 실패하는 테스트로 bisect 를 돌리면 엉뚱한 커밋을 범인으로 지목한다."
-    },
-    {
-      "type": "h",
-      "text": "3. 못 도는 커밋 건너뛰기"
-    },
-    {
-      "type": "code",
-      "lang": "bash",
-      "label": "빌드가 아예 안 되는 지점",
-      "text": "git bisect skip        # 판단 불가 → 다른 후보로"
-    },
-    {
-      "type": "h",
-      "text": "4. 찾은 다음"
-    },
-    {
-      "type": "p",
-      "text": "범인을 찾으면 그 커밋의 diff 를 읽고 **왜 그때는 문제가 안 보였는지**를 본다. 대개 테스트가 그 경로를 안 지나가고 있었다는 뜻이므로, 고치면서 회귀 테스트를 함께 넣는다."
-    },
-    {
-      "type": "h",
-      "text": "직접 해보기"
-    },
-    {
-      "type": "try",
-      "text": "연습 저장소에서 커밋 10개를 만들고 중간 하나에 버그를 심어라. `git bisect run` 으로 몇 번 만에 찾는지 세어 봐라."
-    },
-    {
-      "type": "try",
-      "text": "실제 프로젝트에서 「예전엔 됐는데」 싶은 동작을 하나 골라 bisect 를 걸어 보라. 없으면 성능(느려짐)으로도 할 수 있다 — 스크립트가 시간 임계값을 판정하면 된다."
-    }
-  ],
-  "quiz": [
-    {
-      "q": "bisect 가 빠른 이유는?",
-      "choices": [
-        "커밋을 병렬로 검사해서",
-        "이분 탐색이라 후보가 매번 절반으로 줄어서",
-        "캐시를 써서"
+      "id": "1",
+      "title": "언제 bisect 를 꺼내나",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "「전에는 됐는데 지금은 안 된다」 — 이 문장이 나오면 그 자리에서 bisect 다. 코드를 읽으며 원인을 추측하는 대신, **언제부터 깨졌는지를 기계가 찾게** 한다."
+        },
+        {
+          "type": "p",
+          "text": "bisect 가 하는 일은 앞 칸(cs-algo 2장)의 **이진 탐색** 그대로다. 커밋 목록에서 반씩 버리며 「좋음과 나쁨의 경계」를 찾는다. 커밋 1000개면 **10번**이면 닿는다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "커밋 수를 밀어 보라 — 몇 번 만에 찾나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 커밋 줄 — 좋음(초록)·나쁨(빨강)·모름(회색)·지금 보는 것(노랑) */\n  function commitStrip(n, state, y) {\n    const w = Math.max(4, Math.min(20, 410 / n - 1.5));\n    for (let i = 0; i < n; i++) {\n      const s = state(i);\n      ctx.fillStyle = s === 'good' ? '#22c55e' : s === 'bad' ? '#ef4444' : s === 'now' ? '#f59e0b' : '#334155';\n      ctx.fillRect(14 + i * (w + 1.5), y, w, 22);\n    }\n  }\n</script>\n<script>\n  const N = {{n}};\n  const steps = Math.ceil(Math.log2(N));\n  const linear = Math.round(N / 2);\n  ctx.clearRect(0, 0, 440, 190);\n  const badAt = Math.floor(N * 0.62);\n  commitStrip(N, (i) => (i < badAt ? 'good' : 'bad'), 30);\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('초록 = 되던 시절 · 빨강 = 깨진 뒤. 경계 하나를 찾는 문제다.', 14, 22);\n  /* 이진 탐색이 좁혀 가는 모습 */\n  let lo = 0, hi = N - 1, row = 0;\n  while (lo < hi && row < 5) {\n    const mid = (lo + hi) >> 1;\n    commitStrip(N, (i) => (i < lo || i > hi ? 'unknown' : i === mid ? 'now' : i < badAt ? 'good' : 'bad'), 66 + row * 24);\n    if (mid >= badAt) hi = mid; else lo = mid + 1;\n    row++;\n  }\n  app.innerHTML = '<div class=\"hint\">커밋 ' + N + '개 · 노랑 = 그 판에 확인해 보는 커밋</div>';\n  show('커밋 ' + N + '개\\n'\n     + '  하나씩 거슬러 확인  평균 ' + linear + '번\\n'\n     + '  bisect             ' + steps + '번\\n\\n'\n     + '커밋을 두 배로 늘려도 확인 횟수는 딱 한 번 는다 — log2 의 힘이다.\\n'\n     + '그래서 bisect 는 「역사가 길수록」 더 크게 이긴다.');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "커밋 수",
+              "type": "range",
+              "min": 8,
+              "max": 2000,
+              "step": 8,
+              "value": 256
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "**전제가 하나 있다** — 어느 시점에는 됐다는 것. 「원래부터 안 됐다」면 bisect 할 것이 없다. 그래서 먼저 「확실히 되던 커밋」을 하나 찾아라. 대개 지난 릴리스 태그가 그 자리다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "시작하는 세 줄",
+          "text": "git bisect start\ngit bisect bad                 # 지금(HEAD)은 깨져 있다\ngit bisect good v1.4.0         # 이 시점에는 됐다\n\n# git 이 가운데 커밋으로 옮겨 준다. 확인하고 답한다:\ngit bisect good     # 또는  git bisect bad\n\ngit bisect reset               # 끝나면 원래 자리로"
+        },
+        {
+          "type": "try",
+          "text": "아무 저장소에서 `git log --oneline | wc -l` 로 커밋 수를 세고, log2 를 계산해 보라. 그 숫자가 「최악의 경우 몇 번 확인하면 되는지」다."
+        }
       ],
-      "answer": 1,
-      "why": "200개도 약 8번이면 좁혀진다."
+      "quiz": [
+        {
+          "q": "bisect 가 쓰는 알고리즘은?",
+          "choices": [
+            "선형 탐색",
+            "이진 탐색",
+            "해시",
+            "정렬"
+          ],
+          "answer": 1,
+          "why": "반씩 버리며 경계를 찾는다."
+        },
+        {
+          "q": "커밋 1000개에서 bisect 확인 횟수는 대략?",
+          "choices": [
+            "500번",
+            "100번",
+            "10번",
+            "1번"
+          ],
+          "answer": 2,
+          "why": "log2(1000) ≈ 10."
+        },
+        {
+          "q": "bisect 의 전제는?",
+          "choices": [
+            "테스트가 있어야 한다",
+            "어느 시점에는 됐어야 한다",
+            "커밋이 작아야 한다",
+            "브랜치가 하나여야 한다"
+          ],
+          "answer": 1,
+          "why": "「좋음」 지점이 없으면 경계도 없다."
+        }
+      ]
     },
     {
-      "q": "`git bisect run` 에 넘기는 스크립트의 조건은?",
-      "choices": [
-        "종료 코드로 good/bad 를 알려 주고, 빠르고 확실해야 한다",
-        "반드시 npm 명령이어야 한다",
-        "항상 성공해야 한다"
+      "id": "2",
+      "title": "판정 기준을 먼저 정한다",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "bisect 에서 실패하는 가장 흔한 이유는 알고리즘이 아니라 **판정이 흔들려서**다. 「좋다/나쁘다」를 매번 다르게 판단하면 이진 탐색은 엉뚱한 곳을 가리킨다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "판정이 흔들리면 어떻게 되나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 커밋 줄 — 좋음(초록)·나쁨(빨강)·모름(회색)·지금 보는 것(노랑) */\n  function commitStrip(n, state, y) {\n    const w = Math.max(4, Math.min(20, 410 / n - 1.5));\n    for (let i = 0; i < n; i++) {\n      const s = state(i);\n      ctx.fillStyle = s === 'good' ? '#22c55e' : s === 'bad' ? '#ef4444' : s === 'now' ? '#f59e0b' : '#334155';\n      ctx.fillRect(14 + i * (w + 1.5), y, w, 22);\n    }\n  }\n</script>\n<script>\n  const FLAKY = {{flaky}}, N = 64;\n  const badAt = 41;\n  ctx.clearRect(0, 0, 440, 190);\n  let lo = 0, hi = N - 1, row = 0, wrong = 0;\n  const judge = (i) => {\n    const truth = i >= badAt;\n    if (Math.random() * 100 < FLAKY) { wrong++; return !truth; }   /* 깜빡임 */\n    return truth;\n  };\n  while (lo < hi && row < 6) {\n    const mid = (lo + hi) >> 1;\n    commitStrip(N, (i) => (i < lo || i > hi ? 'unknown' : i === mid ? 'now' : i < badAt ? 'good' : 'bad'), 16 + row * 27);\n    if (judge(mid)) hi = mid; else lo = mid + 1;\n    row++;\n  }\n  const found = lo;\n  ctx.fillStyle = found === badAt ? '#22c55e' : '#ef4444';\n  ctx.font = '12px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText(found === badAt ? '정답을 찾았다 (' + found + '번 커밋)' : '엉뚱한 곳을 가리킨다 (' + found + ' / 진짜 ' + badAt + ')', 14, 182);\n  app.innerHTML = '<div class=\"hint\">판정이 ' + FLAKY + '% 확률로 흔들린다</div>';\n  show('잘못 판정한 횟수 ' + wrong + '\\n'\n     + 'bisect 결론 ' + found + '번 커밋 (진짜 원인은 ' + badAt + '번)\\n\\n'\n     + (FLAKY === 0\n        ? '판정이 일정하면 반드시 정확히 찾는다.'\n        : '한 번만 잘못 판정해도 절반이 통째로 잘못 잘린다 — 되돌릴 방법이 없다.\\n'\n          + '그래서 시작 전에 「무엇을 보고 좋다/나쁘다를 정할지」를 못 박아야 한다.') + '\\n\\n'\n     + '좋은 판정 기준의 조건\\n'\n     + '  · 자동이다 (사람 눈이 아니라 명령의 종료 코드)\\n'\n     + '  · 빠르다 (한 번에 수십 초 안)\\n'\n     + '  · 재현율 100% 다 (깜빡이면 먼저 그것부터 잡는다)');\n</script>",
+          "controls": [
+            {
+              "id": "flaky",
+              "label": "판정이 흔들릴 확률(%)",
+              "type": "range",
+              "min": 0,
+              "max": 40,
+              "step": 5,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "깜빡이는 현상이라면 **재현율부터 올려라** — 반복 실행, 조건 좁히기, 지연 주입(cs-concurrency 8장). 재현율이 100%가 아니면 bisect 는 도박이 된다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "판정을 스크립트로 못 박는다",
+          "text": "# check.sh — 종료 코드 0 = 좋음, 1 = 나쁨\n#!/usr/bin/env bash\nset -e\nnpm ci --silent\nnpm run build --silent\nnode scripts/repro.mjs        # 문제를 재현하는 최소 스크립트\n\n# 이 파일은 저장소 밖(또는 커밋 안 한 곳)에 두라 —\n# bisect 가 체크아웃할 때마다 사라지면 안 된다"
+        },
+        {
+          "type": "p",
+          "text": "재현 스크립트를 만드는 것 자체가 이 장의 절반이다. **「사람이 브라우저에서 눌러 본다」는 판정으로는 10번을 못 버틴다.** 실패하는 테스트 하나로 줄일 수 있으면 그것이 최고의 판정 기준이다."
+        },
+        {
+          "type": "try",
+          "text": "지금 쫓는 버그를 「종료 코드로 답하는 스크립트」로 만들 수 있는지 해 보라. 만들 수 있으면 bisect 는 그다음 한 줄이다."
+        }
       ],
-      "answer": 0,
-      "why": "결과가 흔들리면 엉뚱한 커밋이 범인으로 지목된다."
+      "quiz": [
+        {
+          "q": "bisect 에서 판정이 한 번 틀리면?",
+          "choices": [
+            "다시 확인한다",
+            "절반이 통째로 잘못 잘려 엉뚱한 답이 나온다",
+            "자동 보정된다",
+            "영향 없다"
+          ],
+          "answer": 1,
+          "why": "이진 탐색은 되돌아가지 않는다."
+        },
+        {
+          "q": "가장 좋은 판정 기준은?",
+          "choices": [
+            "사람이 화면을 본다",
+            "종료 코드로 답하는 빠른 스크립트",
+            "로그를 읽는다",
+            "동료에게 묻는다"
+          ],
+          "answer": 1,
+          "why": "자동·빠름·100% 재현."
+        },
+        {
+          "q": "깜빡이는 버그를 만나면 먼저 할 일은?",
+          "choices": [
+            "bisect 시작",
+            "재현율을 100%로 올리기",
+            "커밋 되돌리기",
+            "로그 추가"
+          ],
+          "answer": 1,
+          "why": "안 그러면 bisect 가 도박이 된다."
+        }
+      ]
     },
     {
-      "q": "빌드가 아예 안 되는 커밋을 만났을 때는?",
-      "choices": [
-        "git bisect skip",
-        "git bisect reset",
-        "강제로 good 이라고 한다"
+      "id": "3",
+      "title": "자동 bisect — 손을 떼는 한 줄",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "판정 스크립트가 있으면 **전 과정을 자동으로** 돌릴 수 있다. `git bisect run <명령>` 한 줄이면 git 이 체크아웃하고, 스크립트를 돌리고, 종료 코드를 읽어 다음 커밋으로 넘어간다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "자동으로 돌려 보라 — 각 판의 판정이 찍힌다",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 커밋 줄 — 좋음(초록)·나쁨(빨강)·모름(회색)·지금 보는 것(노랑) */\n  function commitStrip(n, state, y) {\n    const w = Math.max(4, Math.min(20, 410 / n - 1.5));\n    for (let i = 0; i < n; i++) {\n      const s = state(i);\n      ctx.fillStyle = s === 'good' ? '#22c55e' : s === 'bad' ? '#ef4444' : s === 'now' ? '#f59e0b' : '#334155';\n      ctx.fillRect(14 + i * (w + 1.5), y, w, 22);\n    }\n  }\n</script>\n<script>\n  const N = {{n}}, SPEED = {{secs}};\n  const badAt = Math.floor(N * 0.7);\n  const log = [];\n  let lo = 0, hi = N - 1, tries = 0;\n  ctx.clearRect(0, 0, 440, 190);\n  let row = 0;\n  while (lo < hi) {\n    const mid = (lo + hi) >> 1;\n    const bad = mid >= badAt;\n    tries++;\n    if (row < 6) commitStrip(N, (i) => (i < lo || i > hi ? 'unknown' : i === mid ? 'now' : i < badAt ? 'good' : 'bad'), 12 + row * 27);\n    log.push('  ' + String(tries).padStart(2) + '판  커밋 ' + String(mid).padStart(4) + '  ->  ' + (bad ? 'bad (종료 코드 1)' : 'good (종료 코드 0)'));\n    if (bad) hi = mid; else lo = mid + 1;\n    row++;\n  }\n  const total = tries * SPEED;\n  app.innerHTML = '<div class=\"hint\">커밋 ' + N + '개 · 한 판에 ' + SPEED + '초</div>';\n  show('git bisect run ./check.sh\\n\\n' + log.slice(0, 8).join('\\n') + (log.length > 8 ? '\\n  …' : '') + '\\n\\n'\n     + '판정 ' + tries + '번 · 걸린 시간 약 ' + (total >= 60 ? (total / 60).toFixed(1) + '분' : total + '초') + '\\n'\n     + '결론: ' + lo + '번 커밋이 처음으로 깨진 커밋\\n\\n'\n     + '한 판을 1초 줄이면 전체가 ' + tries + '초 줄어든다 — 스크립트를 빠르게 만드는 것이 그대로 이득.');\n</script>",
+          "controls": [
+            {
+              "id": "n",
+              "label": "커밋 수",
+              "type": "range",
+              "min": 16,
+              "max": 4000,
+              "step": 16,
+              "value": 512
+            },
+            {
+              "id": "secs",
+              "label": "한 판에 걸리는 시간(초)",
+              "type": "range",
+              "min": 2,
+              "max": 120,
+              "step": 2,
+              "value": 30
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "한 줄로 끝내기",
+          "text": "git bisect start HEAD v1.4.0        # bad good 을 한 번에\ngit bisect run ./check.sh           # 끝날 때까지 자동\n\n# 테스트 하나로 판정할 수 있으면 스크립트도 필요 없다\ngit bisect run npx vitest run src/cart.test.ts\n\n# 결과\n#   abc1234 is the first bad commit\ngit bisect reset"
+        },
+        {
+          "type": "note",
+          "text": "**종료 코드 규약을 지켜라** — 0 은 좋음, 1~124 는 나쁨, **125 는 「판정 불가」**(그 커밋은 건너뛴다), 그 이상은 중단. 빌드가 아예 안 되는 커밋에서 `exit 125` 를 돌려주면 bisect 가 알아서 넘어간다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "빌드가 깨진 커밋을 건너뛰게",
+          "text": "#!/usr/bin/env bash\nnpm ci --silent || exit 125          # 설치 실패 = 판정 불가\nnpm run build --silent || exit 125   # 빌드 실패 = 판정 불가\nnode scripts/repro.mjs               # 여기서만 0/1 로 답한다"
+        },
+        {
+          "type": "try",
+          "text": "실패하는 테스트가 하나라도 있으면 `git bisect run` 뒤에 그 테스트 명령을 붙여 돌려 보라. 커피 한 잔 사이에 범인이 나온다."
+        }
       ],
-      "answer": 0,
-      "why": "skip 은 판단 불가로 표시하고 다른 후보로 넘어간다."
+      "quiz": [
+        {
+          "q": "`git bisect run` 이 판정에 쓰는 것은?",
+          "choices": [
+            "표준 출력",
+            "명령의 종료 코드",
+            "로그 파일",
+            "사람의 입력"
+          ],
+          "answer": 1,
+          "why": "0=좋음, 1~124=나쁨."
+        },
+        {
+          "q": "빌드가 안 되는 커밋에서 돌려줘야 할 종료 코드는?",
+          "choices": [
+            "0",
+            "1",
+            "125",
+            "255"
+          ],
+          "answer": 2,
+          "why": "판정 불가 — 건너뛴다."
+        },
+        {
+          "q": "판정 스크립트를 빠르게 만들면?",
+          "choices": [
+            "정확도가 는다",
+            "전체 시간이 판정 횟수만큼 줄어든다",
+            "커밋 수가 준다",
+            "영향 없다"
+          ],
+          "answer": 1,
+          "why": "10번 돌면 10배로 돌아온다."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "건너뛰기와 좁히기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "실제 역사에는 **판정할 수 없는 커밋**이 섞여 있다 — 빌드가 깨진 중간 커밋, 의존성이 안 맞는 시점, 병합 커밋. 이럴 때 쓰는 것이 `skip` 이고, 범위를 미리 좁히는 방법도 있다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "건너뛸 커밋이 많으면 어떻게 되나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 커밋 줄 — 좋음(초록)·나쁨(빨강)·모름(회색)·지금 보는 것(노랑) */\n  function commitStrip(n, state, y) {\n    const w = Math.max(4, Math.min(20, 410 / n - 1.5));\n    for (let i = 0; i < n; i++) {\n      const s = state(i);\n      ctx.fillStyle = s === 'good' ? '#22c55e' : s === 'bad' ? '#ef4444' : s === 'now' ? '#f59e0b' : '#334155';\n      ctx.fillRect(14 + i * (w + 1.5), y, w, 22);\n    }\n  }\n</script>\n<script>\n  const SKIP = {{skip}}, N = 128;\n  const badAt = 83;\n  const broken = (i) => (i * 37) % 100 < SKIP;   /* 판정 불가 커밋 분포 */\n  ctx.clearRect(0, 0, 440, 190);\n  let lo = 0, hi = N - 1, tries = 0, skipped = 0, row = 0;\n  while (lo < hi && tries < 20) {\n    let mid = (lo + hi) >> 1;\n    let off = 0;\n    while (broken(mid + off) && Math.abs(off) < 6) off = off > 0 ? -off : -off + 1;   /* 옆으로 비켜 간다 */\n    mid = Math.min(hi, Math.max(lo, mid + off));\n    if (off !== 0) skipped++;\n    tries++;\n    if (row < 5) commitStrip(N, (i) => (broken(i) && i >= lo && i <= hi ? 'unknown' : i < lo || i > hi ? 'unknown' : i === mid ? 'now' : i < badAt ? 'good' : 'bad'), 16 + row * 27);\n    row++;\n    if (mid >= badAt) hi = mid; else lo = mid + 1;\n  }\n  app.innerHTML = '<div class=\"hint\">판정 불가 커밋 비율 ' + SKIP + '%</div>';\n  show('판정 ' + tries + '번 · 옆으로 비켜 간 횟수 ' + skipped + '\\n'\n     + '결론 ' + lo + '번 (진짜 ' + badAt + '번)\\n\\n'\n     + (SKIP === 0\n        ? '판정 불가가 없으면 깔끔하게 log2 번이면 끝난다.'\n        : 'skip 이 많아지면 경계가 「구간」으로만 좁혀진다 — git 도 「이 중 하나」라고 답한다.\\n'\n          + '그때는 그 구간의 커밋을 손으로 읽는 편이 빠르다.') + '\\n\\n'\n     + 'git bisect skip           # 지금 커밋은 판정 불가\\n'\n     + 'git bisect skip v1.5..v1.6  # 구간 통째로 제외');\n</script>",
+          "controls": [
+            {
+              "id": "skip",
+              "label": "판정 불가 비율(%)",
+              "type": "range",
+              "min": 0,
+              "max": 60,
+              "step": 10,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "p",
+          "text": "범위를 미리 좁히는 것도 큰 도움이 된다. 문제가 특정 폴더에서만 난다면 **그 경로를 건드린 커밋만** 후보로 두면 된다 — `git bisect start HEAD v1.4 -- src/cart` 처럼 경로를 붙인다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "범위 좁히기 세 가지",
+          "text": "git bisect start HEAD v1.4.0 -- src/cart      # 그 경로를 건드린 커밋만\n\ngit log --oneline -S'calculateTotal' -- src   # 그 문자열이 등장/사라진 커밋\ngit log --oneline -L 42,60:src/cart.ts        # 그 줄 범위의 변경 이력\n\ngit bisect log > bisect.log                    # 지금까지의 판정 기록\ngit bisect replay bisect.log                   # 다시 재생 (실수했을 때 유용)"
+        },
+        {
+          "type": "note",
+          "text": "**판정을 잘못했다는 것을 깨달았다면** `git bisect log` 로 기록을 뽑고, 그 파일에서 잘못된 줄을 지운 뒤 `git bisect replay` 로 다시 돌리면 된다. 처음부터 다시 할 필요가 없다."
+        },
+        {
+          "type": "try",
+          "text": "`git log -S'어떤함수이름'` 을 돌려 보라. 그 함수가 언제 생기고 언제 바뀌었는지가 커밋 몇 개로 줄어든다 — bisect 를 안 해도 될 때가 많다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "`git bisect skip` 을 쓰는 때는?",
+          "choices": [
+            "판정이 애매할 때",
+            "그 커밋을 판정할 수 없을 때(빌드 깨짐 등)",
+            "커밋이 클 때",
+            "병합 커밋일 때만"
+          ],
+          "answer": 1,
+          "why": "판정 불가를 알린다."
+        },
+        {
+          "q": "특정 폴더에서만 나는 문제의 범위를 좁히려면?",
+          "choices": [
+            "--depth",
+            "bisect start 뒤에 경로 지정",
+            "--skip",
+            "log --graph"
+          ],
+          "answer": 1,
+          "why": "그 경로를 건드린 커밋만 후보가 된다."
+        },
+        {
+          "q": "판정을 잘못했을 때 복구 방법은?",
+          "choices": [
+            "처음부터 다시",
+            "bisect log 를 고쳐 replay",
+            "reset 후 포기",
+            "skip"
+          ],
+          "answer": 1,
+          "why": "기록을 재생할 수 있다."
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "찾은 다음 — 커밋이 크면 반쯤 온 것",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "bisect 는 **깨진 커밋**을 알려 주지 원인 줄을 알려 주지 않는다. 그 커밋이 20줄이면 거의 끝난 것이고, 2000줄이면 이제 그 안에서 다시 찾아야 한다 — 여기서 「작은 커밋」의 값이 드러난다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "커밋 크기를 밀어 보라 — 남은 일이 얼마나 되나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 커밋 줄 — 좋음(초록)·나쁨(빨강)·모름(회색)·지금 보는 것(노랑) */\n  function commitStrip(n, state, y) {\n    const w = Math.max(4, Math.min(20, 410 / n - 1.5));\n    for (let i = 0; i < n; i++) {\n      const s = state(i);\n      ctx.fillStyle = s === 'good' ? '#22c55e' : s === 'bad' ? '#ef4444' : s === 'now' ? '#f59e0b' : '#334155';\n      ctx.fillRect(14 + i * (w + 1.5), y, w, 22);\n    }\n  }\n</script>\n<script>\n  const L = {{lines}};\n  const remain = Math.max(1, Math.round(Math.log2(Math.max(2, L / 10))));\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('bisect 가 찾아 준 커밋의 크기', 14, 20);\n  ctx.fillStyle = '#334155'; ctx.fillRect(14, 28, 410, 26);\n  ctx.fillStyle = L <= 50 ? '#22c55e' : L <= 300 ? '#f59e0b' : '#ef4444';\n  ctx.fillRect(14, 28, 410 * Math.min(1, L / 1000), 26);\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n  ctx.fillText(L + '줄', 20, 46);\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui';\n  ctx.fillText(L <= 50 ? '읽으면 원인이 보인다 — 사실상 끝'\n             : L <= 300 ? '읽을 수는 있다. 의심 가는 부분을 되돌려 확인하라'\n             : '이 안에서 다시 이진 탐색해야 한다 (되돌리기·주석 처리)', 14, 78);\n  app.innerHTML = '';\n  show('찾은 커밋 ' + L + '줄\\n'\n     + '남은 확인 횟수(추정) ' + remain + '번\\n\\n'\n     + '다음 단계\\n'\n     + '  1. git show <커밋> 으로 diff 를 읽는다\\n'\n     + '  2. 의심 부분만 되돌려 다시 재현 스크립트를 돌린다\\n'\n     + '  3. 원인 줄을 찾았으면 **회귀 테스트를 먼저 쓴다** (같은 버그가 두 번 오지 않게)\\n'\n     + '  4. 그다음 고친다\\n\\n'\n     + '커밋이 작을수록 1번에서 끝난다 — bisect 의 값은 커밋 습관에 달려 있다.');\n</script>",
+          "controls": [
+            {
+              "id": "lines",
+              "label": "찾은 커밋의 줄 수",
+              "type": "range",
+              "min": 10,
+              "max": 1000,
+              "step": 10,
+              "value": 400
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "원인을 찾았으면 **고치기 전에 실패하는 테스트를 먼저** 써라. 그 테스트가 빨간 것을 확인하고 고쳐서 초록이 되면, 「고쳤다」가 증거로 남는다. 이 순서를 뒤집으면 「고쳤는데 사실 다른 이유로 지나간」 경우를 못 걸러 낸다."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "찾은 뒤에 하는 일",
+          "text": "git show <bad-commit> --stat        # 무엇이 바뀌었나\ngit show <bad-commit> -- src/cart.ts  # 의심 파일만\n\n# 그 커밋만 되돌려 확인 (원인 확정)\ngit revert --no-commit <bad-commit> && ./check.sh; git revert --abort\n\n# 원인이 확정되면: 회귀 테스트 -> 수정 -> 테스트 초록 -> 커밋"
+        },
+        {
+          "type": "p",
+          "text": "그리고 **범인을 찾는 것이 목적이 아니다.** bisect 결과를 사람 탓으로 쓰는 순간 팀은 커밋을 크게 뭉치기 시작하고, 그러면 다음 bisect 가 쓸모없어진다. 찾는 것은 커밋이지 사람이 아니다."
+        },
+        {
+          "type": "try",
+          "text": "최근 고친 버그 하나를 골라, 그때 회귀 테스트를 남겼는지 확인하라. 안 남겼다면 지금 쓰는 것이 다음 bisect 를 아예 없애 준다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "bisect 가 알려 주는 것은?",
+          "choices": [
+            "원인 줄",
+            "처음으로 깨진 커밋",
+            "고치는 방법",
+            "담당자"
+          ],
+          "answer": 1,
+          "why": "그 안에서 다시 좁혀야 할 수도 있다."
+        },
+        {
+          "q": "원인을 찾은 뒤 순서로 맞는 것은?",
+          "choices": [
+            "고치고 테스트",
+            "실패하는 회귀 테스트를 먼저 쓰고 고친다",
+            "바로 배포",
+            "revert 만"
+          ],
+          "answer": 1,
+          "why": "고쳤다는 증거가 남는다."
+        },
+        {
+          "q": "커밋을 작게 유지하면 bisect 에 무엇이 좋은가?",
+          "choices": [
+            "더 빨리 돈다",
+            "찾은 커밋을 읽는 것만으로 원인이 보인다",
+            "판정이 정확해진다",
+            "skip 이 준다"
+          ],
+          "answer": 1,
+          "why": "2단계가 사라진다."
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "bisect 를 안 써도 되는 길",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "bisect 는 강력하지만 시간이 든다. **더 싼 도구로 끝나는 경우**가 많으므로, 꺼내기 전에 30초만 다른 것을 시도해 보라."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "상황을 골라 보라 — 무엇이 가장 싼가",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 커밋 줄 — 좋음(초록)·나쁨(빨강)·모름(회색)·지금 보는 것(노랑) */\n  function commitStrip(n, state, y) {\n    const w = Math.max(4, Math.min(20, 410 / n - 1.5));\n    for (let i = 0; i < n; i++) {\n      const s = state(i);\n      ctx.fillStyle = s === 'good' ? '#22c55e' : s === 'bad' ? '#ef4444' : s === 'now' ? '#f59e0b' : '#334155';\n      ctx.fillRect(14 + i * (w + 1.5), y, w, 22);\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const c = '{{case}}';\n  const t = {\n    blame: ['이 줄이 언제 이렇게 됐지?', 'git blame -L 40,60 src/cart.ts',\n      '그 줄을 마지막으로 바꾼 커밋이 바로 나온다. 원인 줄을 이미 아는 경우 최고.',\n      '한 번 더: git log -p -L 40,60:src/cart.ts 로 그 줄의 역사를 전부 본다'],\n    pickaxe: ['이 문자열이 언제 사라졌지?', \"git log -S'calculateTotal' --oneline\",\n      '그 문자열이 추가되거나 삭제된 커밋만 뽑는다. 함수·설정 값 추적에 강하다.',\n      '정규식으로 찾으려면 -G 를 쓴다'],\n    reflog: ['방금 전까지 됐는데?', 'git reflog',\n      '내 HEAD 가 거쳐 간 자리들. 방금 한 reset·rebase·checkout 이 원인이면 여기서 끝난다.',\n      'git-model 8장의 그 그물이다'],\n    diff: ['배포 사이에 무엇이 바뀌었지?', 'git log --oneline v1.5.0..v1.5.1',\n      '두 배포 사이의 커밋 목록. 5~20개면 읽는 게 bisect 보다 빠르다.',\n      '--stat 을 붙이면 어느 파일이 바뀌었는지까지'],\n    bisect: ['범위가 넓고 원인을 전혀 모르겠다', 'git bisect run ./check.sh',\n      '커밋이 수백 개 이상이고 의심 가는 곳이 없을 때 — 이때가 bisect 의 자리다.',\n      '판정 스크립트만 있으면 손을 떼도 된다'],\n  }[c];\n  app.innerHTML = '<div class=\"hint\">' + t[0] + '</div>' +\n    '<div style=\"font:12.5px ui-monospace,monospace;color:#7dd3fc;margin-top:6px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '순서: blame/pickaxe (초) -> 배포 사이 diff (분) -> bisect (수십 분)\\n'\n     + '싼 것부터 시도하고, 안 되면 내려가라.');\n</script>",
+          "controls": [
+            {
+              "id": "case",
+              "label": "상황",
+              "type": "select",
+              "value": "blame",
+              "options": [
+                {
+                  "value": "blame",
+                  "label": "이 줄이 언제 바뀌었나"
+                },
+                {
+                  "value": "pickaxe",
+                  "label": "이 문자열이 언제 사라졌나"
+                },
+                {
+                  "value": "reflog",
+                  "label": "방금 전까지 됐다"
+                },
+                {
+                  "value": "diff",
+                  "label": "배포 사이 변경"
+                },
+                {
+                  "value": "bisect",
+                  "label": "전혀 모르겠다"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "`git blame` 이 포매팅 커밋만 가리킬 때는 **`.git-blame-ignore-revs`** 를 쓴다. 대량 포매팅 커밋의 해시를 그 파일에 적어 두면 blame 이 그 커밋을 건너뛰고 진짜 변경을 보여 준다(git-pr 2장)."
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "설정해 두면 평생 쓰는 것들",
+          "text": "# 포매팅 커밋을 blame 에서 무시\ngit config blame.ignoreRevsFile .git-blame-ignore-revs\n\n# 이동·복사된 코드까지 추적하는 blame\ngit blame -w -C -C -L 40,60 src/cart.ts\n\n# 두 배포 사이의 변경 요약\ngit log --oneline --stat v1.5.0..v1.5.1"
+        },
+        {
+          "type": "p",
+          "text": "그리고 가장 싼 길은 **좋은 로그와 관측**이다. 언제부터 오류율이 올랐는지 그래프로 보이면, 그 시각의 배포 하나로 범위가 곧바로 좁혀진다 — bisect 를 꺼낼 일이 아예 없어진다."
+        },
+        {
+          "type": "try",
+          "text": "다음에 회귀를 만나면 시계를 재라. blame·log -S 로 3분 안에 끝나는지, 아니면 bisect 가 필요한지 — 그 감각이 도구 선택을 빠르게 만든다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "원인 줄을 이미 알 때 가장 싼 도구는?",
+          "choices": [
+            "bisect",
+            "git blame",
+            "reflog",
+            "log --graph"
+          ],
+          "answer": 1,
+          "why": "그 줄을 바꾼 커밋이 바로 나온다."
+        },
+        {
+          "q": "특정 함수 이름이 언제 사라졌는지 찾는 옵션은?",
+          "choices": [
+            "-S (pickaxe)",
+            "--stat",
+            "--graph",
+            "-n"
+          ],
+          "answer": 0,
+          "why": "문자열의 추가·삭제 커밋만 뽑는다."
+        },
+        {
+          "q": "blame 이 포매팅 커밋만 가리킬 때는?",
+          "choices": [
+            "포기한다",
+            ".git-blame-ignore-revs 에 그 커밋을 적는다",
+            "-w 만 쓴다",
+            "bisect 로 간다"
+          ],
+          "answer": 1,
+          "why": "그 커밋을 건너뛴다."
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "예방 — bisect 가 잘 듣는 저장소 만들기",
+      "minutes": 8,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "bisect 의 성능은 **역사의 품질**에 달려 있다. 커밋이 크고, 중간에 빌드가 깨져 있고, 테스트가 없으면 bisect 는 거의 못 쓴다. 반대로 습관 몇 개만 지키면 회귀 추적이 몇 분짜리 일이 된다."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "습관을 켜 보라 — 추적 시간이 어떻게 줄어드나",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 커밋 줄 — 좋음(초록)·나쁨(빨강)·모름(회색)·지금 보는 것(노랑) */\n  function commitStrip(n, state, y) {\n    const w = Math.max(4, Math.min(20, 410 / n - 1.5));\n    for (let i = 0; i < n; i++) {\n      const s = state(i);\n      ctx.fillStyle = s === 'good' ? '#22c55e' : s === 'bad' ? '#ef4444' : s === 'now' ? '#f59e0b' : '#334155';\n      ctx.fillRect(14 + i * (w + 1.5), y, w, 22);\n    }\n  }\n</script>\n<script>\n  const n = {{habits}};\n  const habits = [\n    ['커밋을 작게 (한 주제)', 45],\n    ['main 을 늘 초록으로 (CI 필수)', 25],\n    ['회귀 테스트를 남긴다', 20],\n    ['커밋 메시지에 왜를 적는다', 10],\n    ['배포마다 태그를 남긴다', 15],\n  ];\n  let mins = 180;\n  habits.slice(0, n).forEach(([, cut]) => { mins = mins * (1 - cut / 100); });\n  ctx.clearRect(0, 0, 440, 190);\n  habits.forEach(([name], i) => {\n    const on = i < n;\n    ctx.fillStyle = on ? '#14351f' : '#111c33';\n    ctx.strokeStyle = on ? '#22c55e' : '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(14, 8 + i * 30, 412, 26, 6); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = on ? '#e2e8f0' : '#475569'; ctx.font = '12px system-ui';\n    ctx.fillText((on ? 'O  ' : '   ') + name, 24, 25 + i * 30);\n  });\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '13px system-ui';\n  ctx.fillText('회귀 하나를 추적하는 시간(추정) ' + Math.round(mins) + '분', 14, 178);\n  app.innerHTML = '<div class=\"hint\">습관 ' + n + ' / 5</div>';\n  show('추적 시간(추정) ' + Math.round(mins) + '분\\n\\n'\n     + '왜 이렇게 줄어드나\\n'\n     + '  작은 커밋   -> 찾은 커밋을 읽는 것만으로 끝난다 (5장)\\n'\n     + '  초록 main   -> skip 이 없어 log2 번이면 닿는다 (4장)\\n'\n     + '  회귀 테스트 -> 판정 스크립트가 이미 있다 (2·3장)\\n'\n     + '  왜가 적힌 메시지 -> 그 커밋이 무엇을 하려 했는지 바로 안다 (git-pr 2장)\\n'\n     + '  태그        -> 「됐던 시점」을 바로 집을 수 있다 (git-flow 3장)');\n</script>",
+          "controls": [
+            {
+              "id": "habits",
+              "label": "지키는 습관 수",
+              "type": "range",
+              "min": 0,
+              "max": 5,
+              "step": 1,
+              "value": 2
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "text": "특히 **main 을 늘 초록으로 유지하는 것**이 결정적이다. 깨진 커밋이 섞여 있으면 bisect 가 `skip` 을 반복하다 「이 구간 중 하나」라는 흐린 답을 내놓는다 — 브랜치 보호의 「검사 통과 요구」가 그대로 추적 능력이 된다."
+        },
+        {
+          "type": "p",
+          "text": "그리고 **되돌리기 쉬운 커밋**을 만들어라. 포매팅과 로직을 섞지 않고, 마이그레이션과 코드 변경을 나누면, 원인을 찾은 뒤 「일단 되돌리고 천천히 고치기」가 가능해진다."
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "저장소 건강 체크",
+          "text": "[ ] 최근 100커밋의 평균 크기가 200줄 이하인가\n[ ] 무작위로 고른 옛 커밋에서 빌드가 되나 (bisect 가능성)\n[ ] 배포마다 태그가 있나\n[ ] 최근 고친 버그에 회귀 테스트가 붙었나\n[ ] main 에 빨간 커밋이 들어간 적이 최근에 있나"
+        },
+        {
+          "type": "try",
+          "text": "`git log --oneline -100 --shortstat` 로 최근 커밋 크기를 훑어라. 1000줄 넘는 커밋이 자주 보이면, 그것이 다음 회귀에서 치를 비용이다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "bisect 성능을 가장 크게 좌우하는 것은?",
+          "choices": [
+            "git 버전",
+            "역사의 품질(작은 커밋·초록 main)",
+            "저장소 크기",
+            "브랜치 수"
+          ],
+          "answer": 1,
+          "why": "도구가 아니라 습관이다."
+        },
+        {
+          "q": "main 에 깨진 커밋이 섞이면?",
+          "choices": [
+            "영향 없다",
+            "skip 이 반복돼 흐린 답이 나온다",
+            "더 빨라진다",
+            "판정이 정확해진다"
+          ],
+          "answer": 1,
+          "why": "구간으로만 좁혀진다."
+        },
+        {
+          "q": "회귀 테스트를 남기면 bisect 에 무엇이 좋은가?",
+          "choices": [
+            "커밋이 준다",
+            "판정 스크립트가 이미 있는 셈이 된다",
+            "태그가 는다",
+            "역사가 짧아진다"
+          ],
+          "answer": 1,
+          "why": "다음 추적이 한 줄로 끝난다."
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "실전 — 처음부터 끝까지 한 판",
+      "minutes": 9,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "지금까지의 조각을 한 번에 이어 본다. 상황: **어제까지 되던 장바구니 합계가 오늘부터 틀리다.** 마지막 릴리스는 `v1.4.0`, 그 뒤 커밋 300개."
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "단계를 밀어 보라 — 실제 순서 그대로",
+          "height": "330px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 커밋 줄 — 좋음(초록)·나쁨(빨강)·모름(회색)·지금 보는 것(노랑) */\n  function commitStrip(n, state, y) {\n    const w = Math.max(4, Math.min(20, 410 / n - 1.5));\n    for (let i = 0; i < n; i++) {\n      const s = state(i);\n      ctx.fillStyle = s === 'good' ? '#22c55e' : s === 'bad' ? '#ef4444' : s === 'now' ? '#f59e0b' : '#334155';\n      ctx.fillRect(14 + i * (w + 1.5), y, w, 22);\n    }\n  }\n</script>\n<script>\n  const step = {{step}};\n  const steps = [\n    ['0. 싼 것부터', \"git log --oneline v1.4.0..HEAD -- src/cart | head\",\n     '먼저 범위를 본다. 20개 이하면 읽는 게 빠르다. 여기서는 80개 — bisect 로 간다.'],\n    ['1. 재현을 스크립트로', 'node scripts/repro.mjs   # 합계가 틀리면 exit 1',\n     '사람 눈이 아니라 종료 코드로 답하게 만든다. 이게 이 판의 절반이다.'],\n    ['2. 범위를 연다', 'git bisect start HEAD v1.4.0 -- src/cart',\n     'bad=HEAD, good=v1.4.0. 경로를 붙여 후보를 줄인다.'],\n    ['3. 자동으로 돌린다', 'git bisect run ./check.sh',\n     '판정 7~8번. 그동안 다른 일을 해도 된다.'],\n    ['4. 결과를 읽는다', 'abc1234 is the first bad commit  ->  git show abc1234',\n     '커밋이 작으면 diff 에서 원인이 바로 보인다.'],\n    ['5. 회귀 테스트 -> 수정', '실패하는 테스트를 먼저 쓰고, 고쳐서 초록으로',\n     '고쳤다는 증거를 남긴다. 같은 버그가 두 번 오지 않게.'],\n    ['6. 정리', 'git bisect reset',\n     '원래 브랜치로 돌아온다. 이걸 잊으면 「내 브랜치 어디 갔지」가 된다.'],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  steps.forEach(([t], i) => {\n    const on = i <= step;\n    ctx.fillStyle = on ? '#14351f' : '#111c33';\n    ctx.strokeStyle = i === step ? '#f59e0b' : on ? '#22c55e' : '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(14, 4 + i * 26, 412, 22, 5); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = on ? '#e2e8f0' : '#475569'; ctx.font = '11.5px system-ui';\n    ctx.fillText(t, 24, 19 + i * 26);\n  });\n  app.innerHTML = '';\n  show(steps[step][0] + '\\n\\n  ' + steps[step][1] + '\\n\\n' + steps[step][2]);\n</script>",
+          "controls": [
+            {
+              "id": "step",
+              "label": "단계",
+              "type": "range",
+              "min": 0,
+              "max": 6,
+              "step": 1,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "lang": "bash",
+          "label": "한 판 전체",
+          "text": "# 0) 범위 확인\ngit log --oneline v1.4.0..HEAD -- src/cart | wc -l\n\n# 1) 판정 스크립트 (저장소 밖에 두거나 커밋하지 않는다)\ncat > /tmp/check.sh <<'EOF'\n#!/usr/bin/env bash\nnpm ci --silent || exit 125\nnpx vitest run src/cart.test.ts --silent\nEOF\nchmod +x /tmp/check.sh\n\n# 2~3) 자동 bisect\ngit bisect start HEAD v1.4.0 -- src/cart\ngit bisect run /tmp/check.sh\n\n# 4~6)\ngit show <first-bad>\ngit bisect reset"
+        },
+        {
+          "type": "note",
+          "text": "판정 스크립트를 **저장소 안에 커밋하지 마라.** bisect 는 매번 옛 커밋을 체크아웃하므로, 저장소 안에 있으면 그 파일이 사라지거나 옛 버전으로 바뀐다. `/tmp` 나 저장소 밖 경로에 두는 것이 정석이다."
+        },
+        {
+          "type": "p",
+          "text": "그리고 bisect 중에는 **작업 트리가 계속 바뀐다.** 커밋 안 한 변경이 있으면 방해가 되므로, 시작 전에 `git stash` 하거나 worktree 를 따로 파서 거기서 돌려라 — 다음 칸(worktree)의 쓸모가 정확히 여기다."
+        },
+        {
+          "type": "try",
+          "text": "우리 저장소에서 실패하는 테스트 하나를 골라 `git bisect start HEAD <옛 태그>` + `git bisect run` 을 한 번 돌려 보라. 연습 한 번이 실제 장애 때의 속도를 만든다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "판정 스크립트를 저장소 밖에 두는 이유는?",
+          "choices": [
+            "보안",
+            "체크아웃할 때마다 파일이 바뀌거나 사라져서",
+            "속도",
+            "권한"
+          ],
+          "answer": 1,
+          "why": "옛 커밋에는 그 파일이 없다."
+        },
+        {
+          "q": "bisect 를 끝낸 뒤 반드시 할 일은?",
+          "choices": [
+            "git bisect reset",
+            "git push",
+            "git commit",
+            "git clean"
+          ],
+          "answer": 0,
+          "why": "원래 브랜치로 돌아온다."
+        },
+        {
+          "q": "bisect 중 커밋 안 한 변경이 있으면?",
+          "choices": [
+            "자동 보관된다",
+            "방해가 된다 — stash 하거나 worktree 를 쓴다",
+            "무시된다",
+            "커밋된다"
+          ],
+          "answer": 1,
+          "why": "작업 트리가 계속 바뀐다."
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "마무리 — 손으로 훑는 점검표",
+      "minutes": 6,
+      "blocks": [
+        {
+          "type": "p",
+          "text": "회귀를 만났을 때의 순서는 짧다. **싼 도구부터, 판정을 자동으로, 찾으면 테스트부터.**"
+        },
+        {
+          "type": "code",
+          "lang": "text",
+          "label": "회귀 추적 점검표",
+          "text": "시작 전\n  [ ] 정말 「전에는 됐던」 것이 맞나 (좋은 시점을 하나 집었나)      (1장)\n  [ ] 재현율이 100% 인가 (깜빡이면 그것부터)                        (2장)\n  [ ] 종료 코드로 답하는 판정 스크립트를 만들 수 있나               (2장)\n\n싼 것부터\n  [ ] git blame / log -S / 배포 사이 diff 로 3분 안에 끝나나        (6장)\n\nbisect\n  [ ] 경로를 붙여 범위를 좁혔나                                     (4장)\n  [ ] 빌드 실패에 exit 125 를 돌려주나                              (3장)\n  [ ] bisect run 으로 자동화했나                                    (3장)\n\n찾은 뒤\n  [ ] 회귀 테스트를 먼저 썼나                                       (5장)\n  [ ] git bisect reset 했나                                         (8장)\n  [ ] 왜 못 잡혔는지 — 게이트를 하나 더 걸 자리가 있나              (7장)"
+        },
+        {
+          "type": "demo",
+          "kind": "html",
+          "label": "스스로 채점 — 여섯 문항",
+          "height": "290px",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 커밋 줄 — 좋음(초록)·나쁨(빨강)·모름(회색)·지금 보는 것(노랑) */\n  function commitStrip(n, state, y) {\n    const w = Math.max(4, Math.min(20, 410 / n - 1.5));\n    for (let i = 0; i < n; i++) {\n      const s = state(i);\n      ctx.fillStyle = s === 'good' ? '#22c55e' : s === 'bad' ? '#ef4444' : s === 'now' ? '#f59e0b' : '#334155';\n      ctx.fillRect(14 + i * (w + 1.5), y, w, 22);\n    }\n  }\n</script>\n<script>\n  const q = [\n    ['bisect 는 이진 탐색이다', true],\n    ['판정이 한 번 틀려도 알아서 보정된다', false],\n    ['빌드 실패 커밋에는 exit 125 를 돌려준다', true],\n    ['bisect 는 원인 「줄」을 알려 준다', false],\n    ['판정 스크립트는 저장소에 커밋해 두는 게 좋다', false],\n    ['main 을 초록으로 유지하면 bisect 가 잘 듣는다', true],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.textAlign = 'left'; ctx.font = '12px system-ui';\n  q.forEach(([t, a], i) => {\n    const y = 18 + i * 28;\n    ctx.fillStyle = a ? '#22c55e' : '#ef4444';\n    ctx.fillText(a ? 'O' : 'X', 16, y + 4);\n    ctx.fillStyle = '#cbd5e1';\n    ctx.fillText(t, 36, y + 4);\n  });\n  app.innerHTML = '';\n  show('틀린 것이 있으면 그 장으로 — 2장(판정) 3장(자동) 5장(찾은 뒤) 7장(예방) 8장(실전)');\n</script>"
+        },
+        {
+          "type": "note",
+          "text": "다음 칸은 worktree·stash 다. bisect 중에 작업 트리가 계속 바뀌는 문제를 봤는데, 그것을 **여러 작업 공간**으로 푸는 도구다."
+        },
+        {
+          "type": "try",
+          "text": "위 점검표를 다음 회귀 때 실제로 순서대로 밟아 보라. 특히 「싼 것부터」 줄에서 끝나는 경우가 얼마나 많은지 세어 두면 감각이 생긴다."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "회귀를 만났을 때 순서로 맞는 것은?",
+          "choices": [
+            "바로 bisect",
+            "싼 도구(blame·log -S) → 안 되면 bisect",
+            "코드 정독",
+            "롤백만"
+          ],
+          "answer": 1,
+          "why": "3분 안에 끝나는 경우가 많다."
+        },
+        {
+          "q": "bisect 로 원인을 찾은 뒤 먼저 할 일은?",
+          "choices": [
+            "배포",
+            "실패하는 회귀 테스트 작성",
+            "커밋 revert",
+            "리팩터링"
+          ],
+          "answer": 1,
+          "why": "고쳤다는 증거를 남긴다."
+        }
+      ]
     }
   ]
 }
