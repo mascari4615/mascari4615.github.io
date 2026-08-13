@@ -791,6 +791,11 @@ await step('빈 캔버스에서 예시를 넣으면 그림이 생긴다', async 
   await openPanel(page, 'node');
   await page.waitForSelector('[data-km="intent"]', { timeout: ms(4000) });
   await page.locator('[data-km="intent"]').first().click();
+  // 판을 깔았으면 **묻기를 그만둔다**(KL-271 F1) — 예전엔 카드가 깔린 뒤에도 「무엇을 만들
+  // 건가요?」 세 갈래가 그대로 떠 있어, 이미 한 일을 계속 묻는 화면이었다.
+  await page.waitForFunction(() => document.querySelectorAll('[data-km="intent"]').length === 0,
+    null, { timeout: ms(4000) })
+    .catch(() => { throw new Error('판을 깔았는데 갈래 고르개가 안 사라졌다'); });
   // 견본은 **이름이 같으면 한 장**이다(KL-271 P8) — 예전엔 「소꿉친구」·「라이벌」이 두 장씩이라 6장이었다.
   await page.waitForFunction(() => document.querySelectorAll('.ck-node').length >= 4, null, { timeout: ms(5000) });
   if (await page.locator('.ck-edge').count() === 0) throw new Error('선이 하나도 안 생겼다');

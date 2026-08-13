@@ -1490,6 +1490,11 @@ import {
             void before;
             applySpec();
             persistStructure();
+            /* ★ 판을 깔았으면 **묻기를 그만둔다** (TASK-KL-271 F1 / D6).
+               여기서 옆 패널을 다시 그리지 않아서, 견본 네 장이 깔린 뒤에도 「무엇을 만들
+               건가요?」 카드 셋이 그대로 떠 있었다 — 이미 한 일을 계속 묻는 화면이었다
+               (실측: 카드 4장인데 갈래 고르개 3개 그대로). 고르개는 빈 판일 때만 나온다. */
+            renderSide();
             Toolbox.showToast?.(t('karmograph.renderSide.msg9'), undefined, undefined);
           };
         });
