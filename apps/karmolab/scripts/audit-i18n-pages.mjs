@@ -18,6 +18,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LOCALES, DEFAULT_LOCALE, localizedPath, pageAvailable, coverage } from './lib/locales.mjs';
 import { LOCALE_PAGES } from './lib/locale-page.mjs';
+import { RETIRED_OPERATION_IDS } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = 'https://blog.mascari4615.com';
@@ -78,6 +79,10 @@ if (fs.existsSync(toolsDir) && codes.length > 1) {
   const wrong = [];
   const bare = [];
   for (const id of fs.readdirSync(toolsDir)) {
+    /* 작업대로 합친 옛 도구의 자리는 도구 장이 아니라 **작업대로 보내는 안내 한 장**이다
+       (canonical 은 작업대, noindex). 언어 판을 만들지 않으므로 짝 표시도 없는 게 맞다 —
+       여기서 세면 배포가 선다(2026-08-13 실측: 그 이유로 배포 두 판 실패). */
+    if (RETIRED_OPERATION_IDS.has(id)) continue;
     const f = path.join(toolsDir, id, 'index.html');
     if (!fs.existsSync(f)) continue;
     const got = links(fs.readFileSync(f, 'utf8'));
