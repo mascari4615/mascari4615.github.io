@@ -20,13 +20,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { withoutRetired } from './lib/retired-operations.mjs';
 
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
 const AT_ONCE = Number(process.env.AT_ONCE || 8);
 
 const seo = JSON.parse(fs.readFileSync(path.join(appRoot, 'data/tools-seo.json'), 'utf8'));
-const all = Object.keys(seo.tools ?? seo);
+/* 작업대로 합친 옛 도구의 자리는 도구 장이 아니라 **작업대로 보내는 안내 한 장**이다 —
+   「장은 있는데 그 도구의 장이 아니다」로 읽히는 게 당연하다(2026-08-13 실측 4건).
+   목록 정본은 lib/retired-operations.mjs. */
+const all = withoutRetired(Object.keys(seo.tools ?? seo));
 const only = (process.env.ONLY || '')
   .split(',')
   .map((s) => s.trim())
