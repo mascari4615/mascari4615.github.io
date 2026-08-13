@@ -674,5 +674,8 @@
   "karmograph.clusters.hint": "선이 안쪽으로 촘촘한 덩어리끼리 묶어 본 것이에요.",
   "karmograph.paste.needCard": "붙일 카드를 먼저 고르세요 — 그림은 고른 카드의 얼굴이 됩니다",
   "karmograph.paste.done": "얼굴로 붙였어요",
-  "karmograph.paste.act": "얼굴 붙이기"
+  "karmograph.paste.act": "얼굴 붙이기",
+  "karmograph.sample.wipe": "견본 지우고 내 것으로 시작",
+  "karmograph.sample.wipeAct": "견본 지우기",
+  "karmograph.sample.wipeDone": "빈 판이에요 — 빈 곳을 두 번 눌러 시작하세요"
 }

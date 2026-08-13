@@ -1600,6 +1600,29 @@ import {
             persistStructure();
             renderSide();
           };
+          /* ★ **견본을 지우는 길** (TASK-KL-271 F6). 견본을 깔아 주는 것까지는 했는데, 「이제 이걸
+             지우고 내 걸로 시작하고 싶다」는 길이 ⋯서랍 맨 밑 빨간 단추뿐이었다 — 처음 온 사람이
+             누르기엔 무서운 자리다. 아직 **손대지 않은 견본일 때만** 여기 한 줄로 내놓는다
+             (한 장이라도 고치면 자국과 안 맞아 저절로 사라진다 — 남의 작업을 지울 위험이 없다). */
+          if (spec._meta?.sampleFp === `${spec.nodes.length}:${spec.edges.length}`) {
+            const wipe = document.createElement('button');
+            wipe.className = 'btn btn-ghost km-wipe';
+            wipe.dataset.km = 'sample-wipe';
+            wipe.textContent = t('karmograph.sample.wipe');
+            wipe.onclick = () => {
+              lastAction = t('karmograph.sample.wipeAct');
+              spec.nodes = [];
+              spec.edges = [];
+              const meta = { ...spec._meta };
+              delete meta.sampleFp;   // 자국을 지운다 — 빈 판에 「견본 지우기」가 또 뜨면 안 된다
+              spec._meta = meta;
+              applySpec();
+              persistStructure();
+              renderSide();
+              Toolbox.showToast?.(t('karmograph.sample.wipeDone'), undefined, undefined);
+            };
+            tips.appendChild(wipe);
+          }
         }
         const textBtn = sideEl.querySelector('[data-km="intent-text"]') as HTMLButtonElement | null;
         if (textBtn) {
@@ -1617,6 +1640,9 @@ import {
             const before = spec.nodes.length;
             const kind0 = packById(packId).nodeKinds[0];
             buildFromOutline(s1.outline, kind0.id);
+            // 「이건 아직 손 안 댄 견본이다」 자국 (TASK-KL-271 F6). 한 장이라도 늘거나 줄면
+            // 자국과 안 맞아 「견본 지우기」가 저절로 사라진다 — 남의 작업을 지울 위험이 없다.
+            spec._meta = { ...spec._meta, sampleFp: `${spec.nodes.length}:${spec.edges.length}` };
             // 칸 틀은 이제 카드가 태어날 때 함께 심긴다(seedFields) — 견본도 같은 길을 탄다.
             void before;
             applySpec();

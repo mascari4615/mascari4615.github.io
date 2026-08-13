@@ -674,5 +674,8 @@
   "karmograph.clusters.hint": "Grouped by where the links cluster densely.",
   "karmograph.paste.needCard": "Pick a card first — the image becomes that card face",
   "karmograph.paste.done": "Set as the card face",
-  "karmograph.paste.act": "set face"
+  "karmograph.paste.act": "set face",
+  "karmograph.sample.wipe": "Clear the sample and start mine",
+  "karmograph.sample.wipeAct": "clear sample",
+  "karmograph.sample.wipeDone": "Empty board — double-click anywhere to start"
 }
