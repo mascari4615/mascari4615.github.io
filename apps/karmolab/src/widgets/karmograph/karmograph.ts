@@ -143,7 +143,11 @@ import {
     .km-toolbar input[data-km="map-name"] { max-width:138px; padding:4px 8px; border-radius:8px;
       border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary); }
     .km-toolbar input[data-km="map-name"].hidden { display:none; }
-    /* ★ 이 위젯에는 **공통 .hidden 규칙이 없다** — 숨길 것마다 제 규칙을 갖는다.
+    /* ★ 단추의 hidden 클래스만은 **한 줄로** 못 박는다. 없던 동안 「접었다」고 표시한 단추가 그대로
+       보였다 — 툴바의 「↑ 위로」가 68×30 으로 살아 있었고(접기의 뜻이 사라진다), 서랍·팔레트가
+       부르라고 둔 대리 단추 둘이 22×10 조각으로 툴바에 끼어 있었다 (실측 2026-08-14). */
+    .km-root button.hidden { display:none !important; }
+    /* ★ 그 밖에는 공통 .hidden 규칙이 없다 — 숨길 것마다 제 규칙을 갖는다.
        (없는 줄 모르고 hidden 클래스만 붙였다가 고르개가 그대로 보였다, 2026-08-14) */
     .km-toolbar select[data-km="maps"].hidden { display:none; }
     /* 링크 상자 — 클립보드가 막힌 자리(비보안 컨텍스트·앱 안 브라우저)에서 **직접 복사**하는 길.
