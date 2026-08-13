@@ -65,7 +65,11 @@ import { t, loadNamespace } from '../lib/i18n';
     rank: 0.15
   };
 
-  const TOPICS: Array<{ id: string; title: string; emoji: string }> = [
+  /* ★ **말은 묶음이 온 뒤에 읽는다** (2026-08-14, 실서비스 고장 — `higher.ts` 와 같은 병).
+     여기서 `t()` 를 바로 부르면 파일이 읽히는 순간 부른 것이 되고, 그때는 아직
+     `loadNamespace('twenty')` 전이라 되받을 글 없는 `t()` 가 던진다 → 위젯이 통째로 안 올라간다.
+     실측: 「유령 타자」 화면이 `[i18n] Missing translation: ko/twenty.t09` 로 죽어 있었다. */
+  const topicList = (): Array<{ id: string; title: string; emoji: string }> => [
     { id: 'pokemon', title: t('twenty.t09'), emoji: '🔴' },
     { id: 'lol', title: t('twenty.t10'), emoji: '⚔️' },
     { id: 'genshin', title: t('twenty.t11'), emoji: '🌠' }
@@ -127,7 +131,7 @@ import { t, loadNamespace } from '../lib/i18n';
 
           const $ = (id: string) => container.querySelector<HTMLElement>('#' + id)!;
           let topic: Topic | null = null;
-          let topicId = TOPICS[0].id;
+          let topicId = topicList()[0].id;
           let pool: Item[] = [];
           let asked = 0;
           let cur: Ask | null = null;
@@ -432,7 +436,7 @@ import { t, loadNamespace } from '../lib/i18n';
 
           function paintChips(active: string): void {
             // 이 브라우저 표가 먼저, 남의 표는 도착하는 대로 뒤에 붙는다.
-            chips = TOPICS.concat(localChoices('number').map((c) => ({ id: c.id, title: c.title, emoji: c.emoji })));
+            chips = topicList().concat(localChoices('number').map((c) => ({ id: c.id, title: c.title, emoji: c.emoji })));
             drawChips(active);
             void sharedChoices('number').then((rows) => {
               if (!container.isConnected || !rows.length) return;
@@ -449,8 +453,8 @@ import { t, loadNamespace } from '../lib/i18n';
             if (id !== fallback || !topic) start(id);
           }
 
-          onPageActive(container, () => useHandoff(topicId || TOPICS[0].id));
-          useHandoff(TOPICS[0].id);
+          onPageActive(container, () => useHandoff(topicId || topicList()[0].id));
+          useHandoff(topicList()[0].id);
                   });
         }
       }

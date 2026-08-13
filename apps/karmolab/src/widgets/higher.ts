@@ -39,7 +39,12 @@ import { t, loadNamespace } from '../lib/i18n';
     items: Item[];
   }
 
-  const BOARDS: Array<{ id: string; title: string; emoji: string }> = [
+  /* ★ **말은 묶음이 온 뒤에 읽는다** (2026-08-14, 실서비스 고장).
+     여기서 `t()` 를 바로 부르면 **파일이 읽히는 순간** 부른 것이 된다 — 그때는 아직
+     `loadNamespace('higher')` 전이라 `t()` 가 던지고, 위젯이 통째로 안 올라간다.
+     실서비스에서 이 놀이는 「장비 꺼내는 중이에요…」에서 영영 안 넘어갔다
+     (`[i18n] Missing translation: ko/higher.t04`). 부르는 시점을 늦춘다. */
+  const boardList = (): Array<{ id: string; title: string; emoji: string }> => [
     { id: 'pokemon', title: t('higher.t04'), emoji: '🔴' },
     { id: 'lol', title: t('higher.t05'), emoji: '⚔️' },
     { id: 'genshin', title: t('higher.t06'), emoji: '🌠' }
@@ -368,7 +373,7 @@ import { t, loadNamespace } from '../lib/i18n';
 
           function paintBoards(active: string): void {
             // 이 브라우저 표를 **먼저** 그린다 — 서버를 기다리는 동안 목록이 비면 안 된다.
-            boards = BOARDS.concat(localChoices('number').map((c) => ({ id: c.id, title: c.title, emoji: c.emoji })));
+            boards = boardList().concat(localChoices('number').map((c) => ({ id: c.id, title: c.title, emoji: c.emoji })));
             drawChips(active);
             void sharedChoices('number').then((rows) => {
               if (!container.isConnected || !rows.length) return;
@@ -443,8 +448,8 @@ import { t, loadNamespace } from '../lib/i18n';
             });
           });
 
-          onPageActive(container, () => useHandoff(boardId || BOARDS[0].id));
-          useHandoff(BOARDS[0].id);
+          onPageActive(container, () => useHandoff(boardId || boardList()[0].id));
+          useHandoff(boardList()[0].id);
                   });
         }
       }

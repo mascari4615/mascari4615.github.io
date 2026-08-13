@@ -112,6 +112,9 @@ const RAW_CHECKS = [
   { name: '미리 그린 화면에 손이 달리는지', cmd: ['npm', 'run', 'test:hydration'] },
   { name: '실제 사이트에 있어야 하는 것이 있는지', cmd: ['npm', 'run', 'audit:live'], live: true },
   { name: '놀이 셋이 성한지', cmd: ['node', '../play/scripts/smoke.mjs'] },
+  /* 놀이 열 판이 **지어지기는 하나** — 말 묶음을 이르게 부르면 위젯이 통째로 안 올라간다.
+     도구 장이 없는 놀이는 `test:i18n:runtime` 이 안 보고 있었다 (2026-08-14 실서비스 고장). */
+  { name: '놀이가 실제로 지어지는지', cmd: ['npm', 'run', 'test:play-i18n'], live: true },
   { name: '검색엔진이 읽는 머리가 성한지', cmd: ['npm', 'run', 'audit:seo'], live: true },
   { name: '비워 둔 자리가 실제와 맞는지', cmd: ['npm', 'run', 'audit:heights'] },
   { name: '설치 정보가 성한지', cmd: ['npm', 'run', 'test:pwa'] },
