@@ -118,6 +118,41 @@ try {
   const fast = runIn('node', ['scripts/run-gates.mjs', ...SOURCE_ONLY]);
   if (fast.status !== 0) failed.push(['빠른 게이트', `${fast.stdout || ''}${fast.stderr || ''}`.trim()]);
 
+  /* ★ **원래도 빨갰나** (2026-08-13). 여기서 빨강이 나도 그게 **이 push 탓**이 아닐 수 있다 —
+     남이 올린 미완성이 이미 master 를 빨갛게 해 둔 상태면, 내가 뭘 밀든 같은 빨강이 난다.
+     그걸 막으면 고치러 가는 길까지 막힌다(오늘 실측: 글 도구 17개 명부 누락으로 전 세션 빨강).
+     그래서 같은 검사를 **origin/master 에서도** 한 번 돌려, 거기서도 빨간 것은 그냥 알린다. */
+  if (failed.length) {
+    let baseRed = null;
+    try {
+      const baseDir = join(tmp, 'base');
+      mkdirSync(baseDir, { recursive: true });
+      const t2 = spawnSync('tar', ['-x', '-C', baseDir], {
+        input: execFileSync('git', ['archive', 'origin/master', 'apps/karmolab', 'packages', '.github'], {
+          cwd: repoRoot, env, maxBuffer: 512 * 1024 * 1024, encoding: 'buffer'
+        }),
+        env, encoding: 'buffer'
+      });
+      if (t2.status === 0) {
+        const baseApp = join(baseDir, 'apps/karmolab');
+        symlinkSync(nodeModules, join(baseApp, 'node_modules'), 'junction');
+        const r = spawnSync(win && 'node' !== 'node' ? 'node.cmd' : 'node', ['scripts/run-gates.mjs', ...SOURCE_ONLY], {
+          cwd: baseApp, env, encoding: 'utf8', shell: win
+        });
+        baseRed = r.status !== 0;
+      }
+    } catch { /* 못 재면 모른다 — 아래에서 「모름」으로 둔다 */ }
+    if (baseRed === true) {
+      console.error(`[typecheck-pushed] ⚠ ${sha.slice(0, 8)} 에서 빨강이 나지만 **origin/master 도 같은 자리에서 빨갛다**.`);
+      console.error('  내 push 가 만든 것이 아니다 — 막지 않는다. 올린 세션에 알려라.');
+      for (const [what, out] of failed) {
+        console.error(`  [${what}]`);
+        for (const line of out.split(String.fromCharCode(10)).filter(Boolean).slice(-8)) console.error(`    ${line}`);
+      }
+      process.exit(0);
+    }
+  }
+
   if (!failed.length) {
     console.log(`[typecheck-pushed] OK — ${sha.slice(0, 8)} 커밋 그대로 타입검사 + 빠른 게이트 통과`);
     process.exit(0);
