@@ -1987,6 +1987,25 @@ await step('모자란 자료로도 판은 열린다 (KL-271)', async () => {
     await m2.waitForTimeout(ms(900));
     if (bad2.length > 0) throw new Error(`거친 판에서 「${key}」 가 터진다: ${bad2[0]}`);
   }
+
+  /* 마지막은 **고치기** — 여는 것도 뽑는 것도 됐는데 손대면 터지면 아무 쓸모가 없다.
+     (자리를 다시 잡는 손들은 카드 크기를 셈에 쓰므로 크기 없는 카드에 가장 약하다.) */
+  await m2.evaluate(() => {
+    const n = document.querySelector('.ck-node');
+    n?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    n?.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+  });
+  await m2.waitForTimeout(ms(500));
+  await m2.fill('[data-km="edit-label"]', '고친 이름').catch(() => {});
+  await m2.waitForTimeout(ms(500));
+  for (const key of ['tidy', 'lay-circle', 'lay-tree', 'lay-time', 'fit']) {
+    await m2.evaluate((k) => document.querySelector(`[data-km="${k}"]`)?.click(), key);
+    await m2.waitForTimeout(ms(800));
+    if (bad2.length > 0) throw new Error(`거친 판에서 「${key}」 로 자리를 잡다 터진다: ${bad2[0]}`);
+  }
+  await m2.keyboard.press('Control+z');
+  await m2.waitForTimeout(ms(600));
+  if (bad2.length > 0) throw new Error('거친 판에서 되돌리다 터진다: ' + bad2[0]);
   await ctx2.close();
 });
 
