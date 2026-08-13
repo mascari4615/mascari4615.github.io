@@ -1195,6 +1195,38 @@ for (const id of ids) {
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, 'index.html'), buildToolPage(id), 'utf8');
 }
+
+/* ★ **합쳐진 옛 도구 주소는 404 가 아니라 「그 자리로 보낸다」** (2026-08-13).
+   열여섯을 작업대의 조작으로 합치면서 그 장들이 안 찍히게 됐고, 실사이트에서 그대로
+   404 가 났다(라이브 검사가 text2img·text2pdf·textredact·textdiff·lorem 에서 잡았다).
+   검색 결과·북마크·남의 블로그 링크가 그 주소를 가리킨다 — 없애면 그 사람들이 길을 잃는다.
+   한 장짜리 안내를 찍어 작업대의 그 조작으로 보낸다(느린 연결에서도 링크가 보인다). */
+for (const id of RETIRED_OPERATION_IDS) {
+  if (!seo[id]) continue;
+  const dir = path.join(outDir, id);
+  fs.mkdirSync(dir, { recursive: true });
+  const target = `${BASE_PATH}/text/#${id}`;
+  const name = esc(heading(id));
+  fs.writeFileSync(
+    path.join(dir, 'index.html'),
+    `---
+layout: none
+permalink: ${BASE_PATH}/${id}/
+---
+` +
+      `<!doctype html><html lang="ko"><head><meta charset="utf-8">` +
+      `<meta name="viewport" content="width=device-width,initial-scale=1">` +
+      `<title>${name} — 텍스트 도구로 옮겼습니다 · KarmoLab</title>` +
+      `<link rel="canonical" href="${SITE}${BASE_PATH}/text/">` +
+      `<meta name="robots" content="noindex,follow">` +
+      `<meta http-equiv="refresh" content="0; url=${target}">` +
+      `<style>body{font:16px/1.7 system-ui,sans-serif;margin:0;display:grid;place-items:center;min-height:100vh;padding:24px}` +
+      `a{color:#2563eb}</style></head><body><main>` +
+      `<h1>${name}</h1><p>이 도구는 <strong>텍스트 도구</strong> 안의 할 일로 들어갔습니다.</p>` +
+      `<p><a href="${target}">${name} 열기</a></p></main></body></html>`,
+    'utf8'
+  );
+}
 fs.writeFileSync(path.join(outDir, 'index.html'), buildHub(), 'utf8');
 
 /* 도구 이름만 담은 작은 목록 (TASK-KL-089).
@@ -1205,7 +1237,12 @@ fs.writeFileSync(path.join(outDir, 'index.html'), buildHub(), 'utf8');
 fs.writeFileSync(
   path.join(outDir, 'tools.json'),
   `---\nlayout: none\npermalink: ${BASE_PATH}/tools.json\n---\n` +
-    JSON.stringify(ids.map((id) => [id, heading(id), ALIASES[id] || ''])),
+    /* 흡수된 옛 도구도 **건지기 목록에는 남긴다** (2026-08-13). 그 주소로 오는 사람이
+       실제로 있고(검색·북마크), 이제 그 이름을 부르면 작업대의 그 조작으로 간다.
+       목록에서 빼면 「없는 쪽」에서 이름조차 못 찾아 준다 — 건지려고 만든 목록이 안 건진다. */
+    JSON.stringify(
+      [...ids, ...[...RETIRED_OPERATION_IDS].filter((id) => seo[id])].map((id) => [id, heading(id), ALIASES[id] || ''])
+    ),
   'utf8'
 );
 
