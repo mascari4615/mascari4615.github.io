@@ -7,6 +7,7 @@
 import type { PanelCtx } from './context';
 import { alignBoxes, spreadBoxes, type AlignHow, type Boxish } from '../tidy';
 import { between } from '../between';
+import { resolveEdges } from '../times';
 import { t, loadNamespace } from '../../../lib/i18n';
 
 /**
@@ -18,7 +19,10 @@ function betweenHtml(ctx: PanelCtx): string {
   if (ids.length !== 2) return '';
   const spec = ctx.spec();
   const name = (id: string): string => spec.nodes.find((n) => n.id === id)?.label ?? id;
-  const { path, shared } = between(spec.edges, ids[0], ids[1]);
+  /* 길찾기도 **지금 시점**의 선으로 한다 (KL-271 X2) — 2부에는 없는 선을 밟고 「세 다리」라고
+     하면, 화면에는 그 길이 안 보인다(사람은 도구가 틀렸다고 읽는다). */
+  const { path, shared } = between(
+    resolveEdges(spec.edges, spec._meta?.time ?? ''), ids[0], ids[1]);
   const esc = ctx.esc;
   const line = path.length === 0
     ? `<b>${esc(t('karmograph.between.none'))}</b>`

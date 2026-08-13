@@ -2573,9 +2573,12 @@ import {
     function spread(startIds: string[], degree: number): Set<string> {
       const seen = new Set(startIds);
       let frontier = startIds;
+      // 「둘레 N다리」도 지금 시점의 선을 타고 번진다 (KL-271 X2) — 2부엔 없는 선으로 이웃이
+      // 딸려 오면, 화면에 선이 없는데 카드만 또렷해진다.
+      const live = resolveEdges(spec.edges, timeNow());
       for (let d = 0; d < degree; d += 1) {
         const next: string[] = [];
-        for (const e of spec.edges) {
+        for (const e of live) {
           if (frontier.includes(e.from) && !seen.has(e.to)) { seen.add(e.to); next.push(e.to); }
           if (frontier.includes(e.to) && !seen.has(e.from)) { seen.add(e.from); next.push(e.from); }
         }
