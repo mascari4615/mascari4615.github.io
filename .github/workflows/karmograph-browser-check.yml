@@ -60,35 +60,15 @@ jobs:
         with:
           chromium: 'true'
 
-      - name: 말 묶음 짓기
-        run: npm run build:i18n
-
-      # ★ **먼저 짓고, 그 다음에 띄운다.** 예전에는 개발 서버(뜰 때 스스로 짓는다)에 맡겼는데,
-      #   그 서버는 **짓는 도중에도 index.html 을 200 으로 준다** — 2초 만에 「준비됨」이 뜨고,
-      #   검사는 아직 만들어지지 않은 위젯 묶음을 열다가 항목이 줄줄이 빨갛게 났다
-      #   (실측 2026-08-12: 판정이 처음 나온 판이 통째로 그 이유였다). 짓기가 깨지면 여기서 선다.
-      - name: 앱 짓기
-        run: node build.mjs
-
-      - name: 서버 띄우기
-        run: |
-          node scripts/dev.mjs 8813 > /tmp/dev.log 2>&1 &
-          # index.html 이 아니라 **위젯 묶음**이 나올 때까지 본다 — 그게 검사가 실제로 여는 것이다.
-          for i in $(seq 1 120); do
-            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8813/apps/karmolab/js/widgets/karmograph/karmograph.js || true)
-            if [ "$code" = "200" ]; then echo "위젯 묶음까지 준비됨 (${i}초)"; exit 0; fi
-            sleep 1
-          done
-          echo "120초 안에 위젯 묶음이 안 나왔다"; cat /tmp/dev.log; exit 1
-
-      # ★ 이 단계에 **따로 상한**을 둔다. 판정 없이 잘린 판이 있었다(2026-08-12: 한 항목에
-      #   20분 넘게 매달려 있다가 job 째로 끊겼고, 로그는 단계가 끝나야 나와서 아무것도 못 봤다).
-      #   검사 안에도 항목별 상한이 있으니(STEP_LIMIT_MS) 보통은 그쪽이 먼저 말해 준다.
-      - name: 캔버스를 실제로 띄워서 만져 본다
-        timeout-minutes: 12
-        env:
-          URL: http://127.0.0.1:8813/apps/karmolab/index.html
-        run: node scripts/smoke-karmograph.mjs
+      # ★ **여는 절차는 `scripts/run-karmograph-live.mjs` 하나뿐이다** (2026-08-13).
+      #   예전에는 이 자리에 「말 묶음 짓기 → 앱 짓기 → 서버 띄우기 → 묶음이 200 될 때까지
+      #   기다리기 → 검사」가 손으로 적혀 있었다. 그래서 **내 컴퓨터에서 같은 것을 돌릴 방법이
+      #   없었고**, 빨강 하나 볼 때마다 밀고 20분을 기다렸다. 이제 로컬도 여기도 같은 파일이다:
+      #     cd apps/karmolab && npm run verify:karmograph
+      #   (단계별 상한이 필요한 이유는 그대로다 — 검사 안 STEP_LIMIT_MS 와 아래 timeout 이 그 몫.)
+      - name: 캔버스를 실제로 띄워서 만져 본다 (로컬 = npm run verify:karmograph)
+        timeout-minutes: 15
+        run: npm run verify:karmograph
 
       - name: 깨진 화면 남기기
         if: failure()
