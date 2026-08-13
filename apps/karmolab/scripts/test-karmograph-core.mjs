@@ -51,6 +51,7 @@ async function loadModules() {
     export * as fieldGaps from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/field-gaps.ts'))};
     export * as clusters from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/clusters.ts'))};
     export * as paste from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/paste-intent.ts'))};
+    export * as bigBoard from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/big-board.ts'))};
     export * as drag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-drag.ts'))};
     export * as guides from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-guides.ts'))};
     export * as minimap from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-minimap.ts'))};
@@ -899,6 +900,16 @@ const M = await loadModules();
   eq(pasteIntent({ ...base, visible: false }), 'ignore', '다른 도구를 보는 중이면 남의 붙여넣기다');
   eq(pasteIntent({ hasImage: false, selectedId: null, typing: true, visible: false }), 'ignore',
     '아무 조건도 안 맞으면 가만히 있는다');
+}
+
+// -- 판이 커지면 둘레만 보자고 권한다 (TASK-KL-271 L1) --------------------------
+{
+  const { shouldOfferFocus, CROWD_AT } = M.bigBoard;
+  check(!shouldOfferFocus(10, false, true), '작은 판에서는 안 권한다 — 다 보이는데 덜 보라는 건 잔소리');
+  check(shouldOfferFocus(CROWD_AT + 1, false, true), '넘으면 권한다');
+  check(!shouldOfferFocus(CROWD_AT, false, true), '경계값에서는 아직 안 권한다');
+  check(!shouldOfferFocus(999, true, true), '이미 둘레만 보는 중이면 또 안 권한다');
+  check(!shouldOfferFocus(999, false, false), '고른 카드가 없으면 「무엇의 둘레」인지가 없다');
 }
 
 process.stdout.write('\n');
