@@ -19,12 +19,31 @@
  * 사용: node scripts/audit-orphan-tests.mjs [--update]
  */
 import fs from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BASELINE = path.join(root, 'data/orphan-tests.json');
-const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+/* ★ **push 전에 부를 때는 「올라갈 커밋」의 package.json 을 읽는다** (2026-08-13).
+ *   이 나무는 세션 여럿이 함께 쓴다 — 작업 폴더의 `package.json` 에는 남이 만들다 만 검사
+ *   이름이 늘 몇 개 들어 있다. 그걸 읽으면 내 push 마다 남의 미완성으로 빨개져, 곧 아무도
+ *   안 보는 경고가 된다. 반대로 **내가 올리는 커밋**만 보면 오늘 실제로 났던 사고
+ *   (게이트 줄에서만 뺀 이름이 고아로 남아 verify 가 섰다)를 3초에 잡는다.
+ *   `KL_PUSH_SHA` 가 없으면 예전대로 작업 폴더를 본다(CI 는 체크아웃이 곧 커밋이다). */
+const REF = process.env.KL_PUSH_SHA || '';
+const pkgText = (() => {
+  if (!REF) return fs.readFileSync(path.join(root, 'package.json'), 'utf8');
+  try {
+    const env = { ...process.env };
+    for (const k of ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_PREFIX']) delete env[k];
+    return execFileSync('git', ['show', `${REF}:./package.json`], { cwd: root, env, encoding: 'utf8' });
+  } catch {
+    /* 못 물어보면 「모른다」다 — 작업 폴더로 물러선다(모름을 빨강으로 만들지 않는다) */
+    return fs.readFileSync(path.join(root, 'package.json'), 'utf8');
+  }
+})();
+const pkg = JSON.parse(pkgText);
 const scripts = pkg.scripts || {};
 const isCheck = (name) => /^(test|smoke|audit):/.test(name);
 
