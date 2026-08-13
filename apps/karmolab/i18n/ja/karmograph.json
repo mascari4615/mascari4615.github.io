@@ -742,5 +742,9 @@
   "karmograph.film.label": "🎬 発表を動画に (webm)",
   "karmograph.film.making": "録画中… {{sec}}秒",
   "karmograph.film.done": "動画ができました ({{sec}}秒)",
-  "karmograph.film.cant": "このブラウザは録画できません — SVG 一枚で書き出してください"
+  "karmograph.film.cant": "このブラウザは録画できません — SVG 一枚で書き出してください",
+  "karmograph.stageForm.title": "シーンの題名",
+  "karmograph.stageForm.note": "説明 (任意)",
+  "karmograph.stageForm.save": "入れる",
+  "karmograph.stageForm.cancel": "やめる"
 }

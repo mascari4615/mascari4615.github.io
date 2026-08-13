@@ -742,5 +742,9 @@
   "karmograph.film.label": "🎬 발표를 영상으로 (webm)",
   "karmograph.film.making": "영상을 굽는 중… {{sec}}초",
   "karmograph.film.done": "영상이 나왔습니다 ({{sec}}초)",
-  "karmograph.film.cant": "이 브라우저는 영상 굽기를 못 합니다 — SVG 한 장으로 뽑아 보세요"
+  "karmograph.film.cant": "이 브라우저는 영상 굽기를 못 합니다 — SVG 한 장으로 뽑아 보세요",
+  "karmograph.stageForm.title": "장 제목",
+  "karmograph.stageForm.note": "설명 (없어도 됩니다)",
+  "karmograph.stageForm.save": "담기",
+  "karmograph.stageForm.cancel": "그만"
 }

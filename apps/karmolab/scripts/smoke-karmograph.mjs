@@ -909,19 +909,39 @@ await step('찾기 → 포커스가 걸린다', async () => {
   await page.fill('[data-km="find"]', '');
   await page.waitForFunction(() => document.querySelector('[data-km="find-count"]')?.classList.contains('hidden'), null, { timeout: ms(4000) });
 });
+
+/**
+ * 발표 장 하나 담기 — 이제 **판 위 작은 폼**이다(브라우저 prompt 두 번 X, KL-271).
+ * 검사들이 저마다 대화상자를 받아 넘기던 자리를 한 함수로 모은다.
+ */
+async function addScene(page, title = '', note = '') {
+  await page.locator('[data-km="stage-add"]').click();
+  try {
+    await page.waitForSelector('[data-km="stage-form"]:not(.hidden)', { timeout: ms(4000) });
+  } catch (e) {
+    const why = await page.evaluate(() => ({
+      form: document.querySelector('[data-km="stage-form"]')?.className ?? '없음',
+      forms: document.querySelectorAll('[data-km="stage-form"]').length,
+      adds: document.querySelectorAll('[data-km="stage-add"]').length,
+      roots: document.querySelectorAll('.km-root').length,
+      presenting: document.querySelectorAll('.km-root.is-presenting').length,
+    }));
+    throw new Error('장 담기 폼이 안 열린다 — ' + JSON.stringify(why));
+  }
+  if (title) await page.fill('[data-km="stage-f-title"]', title);
+  if (note) await page.fill('[data-km="stage-f-note"]', note);
+  await page.locator('[data-km="stage-save"]').click();
+  await page.waitForSelector('[data-km="stage-form"]', { state: 'hidden', timeout: ms(4000) });
+}
 /* ★ 발표 줄 단추는 **진짜 클릭**으로 누른다(`dispatchEvent` X).
    `dispatchEvent` 는 「그 자리에 뭐가 덮여 있나」를 안 본다 — 그래서 캔버스 svg 가 발표 줄을
    통째로 덮고 있는데도 이 검사는 오래 초록이었다(실측 2026-08-12). 사람이 누를 수 있는지를
    재려면 사람이 누르는 길로 눌러야 한다. */
 await step('발표 장을 담고 순서를 바꾼다', async () => {
-  // prompt 가 두 번 뜬다(제목·설명) — 상시 핸들러로 받아 넘긴다. once 로 걸면 클릭이 대화상자에 물려 멈춘다.
-  let n = 0;
-  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '장 ' + n : '').catch(() => {}); };
-  page.on('dialog', onDlg);
   await page.locator('[data-km="story"]').click();
   await page.waitForSelector('.km-root.is-presenting', { timeout: ms(4000) });
-  await page.locator('[data-km="stage-add"]').click();
-  await page.locator('[data-km="stage-add"]').click();
+  await addScene(page, '장 1');
+  await addScene(page, '장 2');
   await page.waitForFunction(() => document.querySelectorAll('[data-km="stage-go"]').length >= 2, null, { timeout: ms(5000) });
   const firstBefore = await page.locator('[data-km="stage-go"]').first().textContent();
   await page.locator('[data-km="stage-back"]').click();
@@ -931,7 +951,6 @@ await step('발표 장을 담고 순서를 바꾼다', async () => {
   }, firstBefore, { timeout: ms(4000) });
   await page.locator('[data-km="stage-exit"]').click();
   await page.waitForSelector('.km-root:not(.is-presenting)', { timeout: ms(4000) });
-  page.off('dialog', onDlg);
 });
 await step('발표 모드 진입 / 나가기', async () => {
   // 이 버튼은 눌리는 순간 툴바를 통째로 숨긴다 — 보통 click 은 「대상이 사라졌다」로 보고
@@ -1276,12 +1295,9 @@ await step('카드 모서리를 끌면 크기가 바뀌고, 이름을 고쳐도 
 });
 await step('틀로 담은 장은 나중에 놓은 인물도 함께 데려간다', async () => {
   // 장면을 노드 목록으로 굳히면 새 인물이 영영 안 낀다 — 그래서 **담은 뒤에** 하나 더 놓고 센다.
-  let n = 0;
-  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '틀 장' : '').catch(() => {}); };
-  page.on('dialog', onDlg);
   await page.locator('[data-km="story"]').click();
   await page.waitForSelector('.km-root.is-presenting', { timeout: ms(4000) });
-  await page.locator('[data-km="stage-add"]').click();
+  await addScene(page, '틀 장');
   await page.waitForFunction(() => document.querySelectorAll('[data-km="stage-go"]').length >= 1, null, { timeout: ms(5000) });
   const dimmedBefore = await page.locator('.ck-node.is-dimmed').count();
   await page.locator('[data-km="stage-exit"]').click();
@@ -1301,7 +1317,6 @@ await step('틀로 담은 장은 나중에 놓은 인물도 함께 데려간다'
   if (stillDim) throw new Error('나중에 놓은 인물이 그 장에 안 꼈다');
   await page.locator('[data-km="stage-exit"]').click();
   await page.waitForSelector('.km-root:not(.is-presenting)', { timeout: ms(4000) });
-  page.off('dialog', onDlg);
   if (dimmedBefore < 0) throw new Error('불가능');
 });
 await step('장을 넘기면 화면이 끊기지 않고 미끄러진다', async () => {
@@ -1316,12 +1331,9 @@ await step('장을 넘기면 화면이 끊기지 않고 미끄러진다', async 
     if (!t) throw new Error('세계 레이어 transform 을 못 찾았다');
     return t;
   };
-  let n = 0;
-  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '미끄럼 ' + n : '').catch(() => {}); };
-  page.on('dialog', onDlg);
   await page.locator('[data-km="story"]').click();
   await page.waitForSelector('.km-root.is-presenting', { timeout: ms(4000) });
-  await page.locator('[data-km="stage-add"]').click();
+  await addScene(page, '미끄럼 1');
   await page.waitForTimeout(ms(500));
   // 두 장이 **같은 자리**면 「화면이 그대로」가 당연하다 — 사이에 화면을 옮겨 서로 다른 장으로 만든다.
   const pbox = await page.locator('.km-canvas').boundingBox();
@@ -1330,7 +1342,7 @@ await step('장을 넘기면 화면이 끊기지 않고 미끄러진다', async 
   await page.mouse.move(pbox.x + pbox.width * 0.3, pbox.y + pbox.height * 0.35, { steps: 8 });
   await page.mouse.up();
   await page.waitForTimeout(ms(300));
-  await page.locator('[data-km="stage-add"]').click();
+  await addScene(page, '미끄럼 2');
   await page.waitForFunction(() => document.querySelectorAll('[data-km="stage-go"]').length >= 2, null, { timeout: ms(5000) });
 
   await page.locator('[data-km="stage-go"]').first().click();
@@ -1341,7 +1353,6 @@ await step('장을 넘기면 화면이 끊기지 않고 미끄러진다', async 
   const mid = await viewOf();
   await page.waitForTimeout(ms(700));
   const settled1 = await viewOf();
-  page.off('dialog', onDlg);
   await page.locator('[data-km="stage-exit"]').click();
   await page.waitForSelector('.km-root:not(.is-presenting)', { timeout: ms(4000) });
   if (settled0 === settled1) throw new Error('장이 바뀌었는데 화면이 그대로다');
@@ -1590,20 +1601,66 @@ await step('코멘트는 여러 개 쌓이고 카드에 개수가 뜬다', async
     { timeout: ms(4000) }
   );
 });
+await step('장 담기는 판 위 폼에서 — 취소하면 안 담기고, Esc 가 발표를 안 닫는다', async () => {
+  /* 예전에는 브라우저 prompt 가 두 번 떴다: 제목 → 설명. 첫 칸에서 취소하면 아무 말 없이
+     사라지고, 폰에서는 시스템 대화상자가 발표 화면을 통째로 덮었다(발표 중에 도구가 화면을
+     뺏는 것은 그 자체로 사고다). 이제 제목·설명을 **한 자리에서 함께** 적는다. */
+  await page.locator('[data-km="story"]').click();
+  await page.waitForSelector('.km-root.is-presenting', { timeout: ms(4000) });
+  const before = await page.locator('[data-km="stage-go"]').count();
+
+  // ① 그만 두면 안 담긴다
+  await page.locator('[data-km="stage-add"]').click();
+  await page.waitForSelector('[data-km="stage-form"]:not(.hidden)', { timeout: ms(4000) });
+  await page.locator('[data-km="stage-cancel"]').click();
+  await page.waitForSelector('[data-km="stage-form"]', { state: 'hidden', timeout: ms(4000) });
+  if (await page.locator('[data-km="stage-go"]').count() !== before) throw new Error('그만 뒀는데 장이 담겼다');
+
+  // ② 적다 말고 Esc — 폼만 닫히고 발표는 그대로여야 한다
+  await page.locator('[data-km="stage-add"]').click();
+  await page.waitForSelector('[data-km="stage-form"]:not(.hidden)', { timeout: ms(4000) });
+  await page.fill('[data-km="stage-f-title"]', '적다 만 장');
+  await page.keyboard.press('Escape');
+  await page.waitForSelector('[data-km="stage-form"]', { state: 'hidden', timeout: ms(4000) });
+  if (await page.locator('.km-root.is-presenting').count() === 0) throw new Error('Esc 가 발표까지 닫았다');
+
+  // ③ Enter 로 담기고, 제목·설명이 그대로 들어간다
+  await page.locator('[data-km="stage-add"]').click();
+  await page.waitForSelector('[data-km="stage-form"]:not(.hidden)', { timeout: ms(4000) });
+  await page.fill('[data-km="stage-f-title"]', '첫 만남');
+  await page.fill('[data-km="stage-f-note"]', '둘이 처음 마주친 자리');
+  await page.keyboard.press('Enter');
+  await page.waitForSelector('[data-km="stage-form"]', { state: 'hidden', timeout: ms(4000) });
+  if (await page.locator('[data-km="stage-go"]').count() !== before + 1) throw new Error('Enter 로 안 담긴다');
+  const said = await page.locator('[data-km="stage-note"]').textContent();
+  if (!(said || '').includes('둘이 처음')) throw new Error('설명이 안 실렸다: ' + said);
+
+  // ④ 고치기도 같은 폼 — 설명까지 고쳐진다(예전엔 제목뿐이었다)
+  await page.locator('[data-km="stage-rename"]').click();
+  await page.waitForSelector('[data-km="stage-form"]:not(.hidden)', { timeout: ms(4000) });
+  if (await page.inputValue('[data-km="stage-f-note"]') !== '둘이 처음 마주친 자리') {
+    throw new Error('고칠 때 적어 둔 설명이 안 실려 온다');
+  }
+  await page.fill('[data-km="stage-f-note"]', '다시 적은 설명');
+  await page.locator('[data-km="stage-save"]').click();
+  await page.waitForFunction(
+    () => (document.querySelector('[data-km="stage-note"]')?.textContent || '').includes('다시 적은'),
+    null, { timeout: ms(4000) }
+  );
+
+  await page.locator('[data-km="stage-exit"]').click();
+  await page.waitForSelector('.km-root:not(.is-presenting)', { timeout: ms(4000) });
+});
 await step('발표를 영상으로 — 저절로 재생되는 파일이 나온다 (KL-271 O5)', async () => {
   /* SVG 한 장도 결국 **눌러야** 돈다. 자랑하는 자리(디스코드·X·유튜브)는 못 누르는 곳이라
      영상만 저절로 재생된다. 여기서 지키는 것: ① 장이 있으면 실제로 **파일이 나온다**
      ② 이름이 판 이름 + .webm ③ 빈 파일이 아니다(굽는 길이 막히면 0바이트가 조용히 나간다). */
-  let n = 0;
-  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '영상 장 ' + n : '').catch(() => {}); };
-  page.on('dialog', onDlg);
   await page.locator('[data-km="story"]').click();
   await page.waitForSelector('.km-root.is-presenting', { timeout: ms(4000) });
-  await page.locator('[data-km="stage-add"]').click();
+  await addScene(page, '틀 장');
   await page.waitForFunction(() => document.querySelectorAll('[data-km="stage-go"]').length >= 1, null, { timeout: ms(5000) });
   await page.locator('[data-km="stage-exit"]').click();
   await page.waitForSelector('.km-root:not(.is-presenting)', { timeout: ms(4000) });
-  page.off('dialog', onDlg);
 
   await page.click('[data-km="more"]');
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
@@ -1619,16 +1676,12 @@ await step('발표를 영상으로 — 저절로 재생되는 파일이 나온�
 });
 await step('발표를 SVG 한 장으로 — 브라우저만 있으면 도는 파일이 나온다', async () => {
   // 발표는 대개 남의 기계에서 열린다. 파일 이름이 아니라 **속**을 본다: 장면 목록·조작 스크립트.
-  let n = 0;
-  const onDlg = (d) => { n += 1; d.accept(n % 2 === 1 ? '한 장 ' + n : '').catch(() => {}); };
-  page.on('dialog', onDlg);
   await page.locator('[data-km="story"]').click();
   await page.waitForSelector('.km-root.is-presenting', { timeout: ms(4000) });
-  await page.locator('[data-km="stage-add"]').click();
+  await addScene(page, '틀 장');
   await page.waitForFunction(() => document.querySelectorAll('[data-km="stage-go"]').length >= 1, null, { timeout: ms(5000) });
   await page.locator('[data-km="stage-exit"]').click();
   await page.waitForSelector('.km-root:not(.is-presenting)', { timeout: ms(4000) });
-  page.off('dialog', onDlg);
 
   await page.click('[data-km="more"]');
   await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: ms(4000) });
@@ -3052,7 +3105,7 @@ await step('「이 둘 사이」와 둘레 보기도 시점을 따른다', async
   });
   await m.reload({ waitUntil: 'domcontentloaded' });
   await m.waitForSelector('.km-root', { timeout: ms(8000) });
-  await m.waitForTimeout(ms(1200));
+  await m.waitForSelector('[data-km="time-go"].is-on', { timeout: ms(8000) });
   const bothAndRead = async () => {
     const box = await m.locator('.km-canvas').boundingBox();
     await m.keyboard.down('Shift');
@@ -3067,10 +3120,18 @@ await step('「이 둘 사이」와 둘레 보기도 시점을 따른다', async
   const later = await bothAndRead();
   if (!/이 둘 사이/.test(later)) throw new Error('두 장을 골랐는데 「이 둘 사이」가 없다');
   if (!/없|안 이어/.test(later)) throw new Error('2부에는 없는 선인데 길이 있다고 한다');
+  /* ★ 「눌렀으니 됐겠지」로 시간만 세면 부하가 걸린 판에서 **아직 2부인 화면**을 읽는다
+     (실측 2026-08-14: 그래서 이 검사가 두 판 내리 빨갰다). 시점이 실제로 바뀐 것을 보고 간다. */
+  const nowTime = () => m.evaluate(() =>
+    document.querySelector('[data-km="time-go"].is-on')?.textContent?.trim() ?? '');
+  const wasTime = await nowTime();
   await m.evaluate(() => document.querySelector('[data-km="time-prev"]').click());
-  await m.waitForTimeout(ms(600));
+  await m.waitForFunction(
+    (was) => (document.querySelector('[data-km="time-go"].is-on')?.textContent?.trim() ?? '') !== was,
+    wasTime, { timeout: ms(4000) },
+  );
   const first = await bothAndRead();
-  if (/없|안 이어/.test(first)) throw new Error('1부에는 이어져 있는데 길이 없다고 한다');
+  if (/없|안 이어/.test(first)) throw new Error('1부에는 이어져 있는데 길이 없다고 한다: ' + first.slice(0, 160));
   await ctx.close();
 });
 

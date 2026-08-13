@@ -742,5 +742,9 @@
   "karmograph.film.label": "🎬 The presentation as a video (webm)",
   "karmograph.film.making": "Filming… {{sec}}s",
   "karmograph.film.done": "Video saved ({{sec}}s)",
-  "karmograph.film.cant": "This browser cannot record video — try the single-SVG export"
+  "karmograph.film.cant": "This browser cannot record video — try the single-SVG export",
+  "karmograph.stageForm.title": "Scene title",
+  "karmograph.stageForm.note": "Note (optional)",
+  "karmograph.stageForm.save": "Save",
+  "karmograph.stageForm.cancel": "Cancel"
 }

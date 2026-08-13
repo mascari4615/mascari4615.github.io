@@ -424,6 +424,15 @@ import {
     .km-stage-bar { display:flex; gap:6px; align-items:center; justify-content:flex-end;
       margin-top:4px; pointer-events:auto; flex-wrap:wrap; }
     .km-stage-bar span { color:rgba(255,255,255,.7); font-size:var(--font-size-xs); min-width:48px; text-align:center; }
+    /* 장을 담을 때 쓰는 **판 위 작은 폼** (TASK-KL-271 O5·후속). 예전엔 브라우저 prompt 를
+       두 번 띄웠는데, 첫 칸에서 취소하면 아무 말 없이 사라지고 폰에서는 시스템 대화상자가
+       화면을 통째로 덮었다 — 발표 중에 도구가 화면을 뺏는 것은 그 자체로 사고다. */
+    .km-stage-form { display:flex; gap:6px; align-items:center; pointer-events:auto; flex-wrap:wrap;
+      margin-top:4px; }
+    .km-stage-form.hidden { display:none; }
+    .km-stage-form input { flex:1 1 180px; min-width:120px; padding:6px 10px; border-radius:8px;
+      border:1px solid rgba(255,255,255,.24); background:rgba(0,0,0,.45); color:#fff; }
+    .km-stage-form input::placeholder { color:rgba(255,255,255,.45); }
     .km-root.is-presenting .km-toolbar,
     .km-root.is-presenting .km-side { display:none; }
     /* 좁은 화면 — 옆에 붙던 편집 패널을 아래로 내린다. 레퍼런스들은 여기서 기능을 지웠지만
@@ -696,6 +705,12 @@ import {
               <div class="km-stage-strip" data-km="stage-strip"></div>
               <div class="km-stage-title" data-km="stage-title"></div>
               <div class="km-stage-note" data-km="stage-note"></div>
+              <div class="km-stage-form hidden" data-km="stage-form">
+                <input data-km="stage-f-title" placeholder="${esc(t('karmograph.stageForm.title'))}" />
+                <input data-km="stage-f-note" placeholder="${esc(t('karmograph.stageForm.note'))}" />
+                <button class="btn btn-ghost" data-km="stage-save">${esc(t('karmograph.stageForm.save'))}</button>
+                <button class="btn btn-ghost" data-km="stage-cancel">${esc(t('karmograph.stageForm.cancel'))}</button>
+              </div>
               <div class="km-stage-bar">
                 <button class="btn btn-ghost" data-km="stage-prev">◀</button>
                 <span data-km="stage-count"></span>
@@ -2713,6 +2728,7 @@ import {
         showStep();
       } else {
         stopAuto();
+        closeStageForm();
         canvas?.setFocus(null);
         syncFocus();
       }
@@ -2749,26 +2765,72 @@ import {
       stepIndex = Math.min(Math.max(0, steps().length - 1), stepIndex + 1);
       showStep();
     };
-    q<HTMLButtonElement>('stage-add').onclick = () => {
-      // 지금 또렷한 것들을 그대로 한 장으로 굳힌다. 포커스가 없으면 전체 장.
-      const focused = currentFocusIds();
-      const title = prompt(t('karmograph.title.msg'), `${steps().length + 1}장`)?.trim();
-      if (title === undefined) return;
-      const note = prompt(t('karmograph.note.msg'))?.trim();
-      steps().splice(stepIndex + (steps().length ? 1 : 0), 0, {
-        id: `step-${Date.now().toString(36)}`,
-        title: title || t('karmograph.sceneNth', { n: steps().length + 1 }),
-        nodeIds: focused,
-        note: note || undefined,
-        camera: canvas?.viewRectWorld(),
-        // 또렷하게 고른 것이 없으면 「지금 보이는 자리」를 **틀**로 굳힌다. 그러면 나중에 그 자리에
-        // 새 인물을 놓아도 이 장에 저절로 낀다(노드 목록이면 영영 안 낀다).
-        rect: focused.length === 0 ? canvas?.viewRectWorld() : undefined,
-      });
-      stepIndex = Math.min(steps().length - 1, stepIndex + (steps().length > 1 ? 1 : 0));
+    /**
+     * 장을 담고 고치는 **판 위 작은 폼**. 예전엔 `prompt()` 를 연달아 두 번 띄웠다 —
+     * 첫 칸에서 취소하면 아무 말 없이 사라지고, 폰에서는 시스템 대화상자가 발표 화면을 덮었다.
+     * 이제 제목·설명을 **한 자리에서 함께** 적는다(Enter 담기 · Esc 그만).
+     */
+    let stageFormMode: 'add' | 'edit' | null = null;
+    function openStageForm(mode: 'add' | 'edit'): void {
+      const step = steps()[stepIndex];
+      if (mode === 'edit' && !step) return;
+      stageFormMode = mode;
+      const form = q<HTMLElement>('stage-form');
+      const titleEl = q<HTMLInputElement>('stage-f-title');
+      const noteEl = q<HTMLInputElement>('stage-f-note');
+      titleEl.value = mode === 'edit'
+        ? step.title
+        : t('karmograph.sceneNth', { n: String(steps().length + 1) });
+      noteEl.value = mode === 'edit' ? (step.note ?? '') : '';
+      form.classList.remove('hidden');
+      titleEl.focus();
+      titleEl.select();
+    }
+    function closeStageForm(): void {
+      stageFormMode = null;
+      q<HTMLElement>('stage-form').classList.add('hidden');
+    }
+    function saveStageForm(): void {
+      if (!stageFormMode) return;
+      const title = q<HTMLInputElement>('stage-f-title').value.trim();
+      const note = q<HTMLInputElement>('stage-f-note').value.trim();
+      const name = title || t('karmograph.sceneNth', { n: String(steps().length + 1) });
+      if (stageFormMode === 'edit') {
+        const step = steps()[stepIndex];
+        if (step) {
+          step.title = name;
+          step.note = note || undefined;
+        }
+      } else {
+        // 지금 또렷한 것들을 그대로 한 장으로 굳힌다. 포커스가 없으면 전체 장.
+        const focused = currentFocusIds();
+        steps().splice(stepIndex + (steps().length ? 1 : 0), 0, {
+          id: `step-${Date.now().toString(36)}`,
+          title: name,
+          nodeIds: focused,
+          note: note || undefined,
+          camera: canvas?.viewRectWorld(),
+          // 또렷하게 고른 것이 없으면 「지금 보이는 자리」를 **틀**로 굳힌다. 그러면 나중에 그 자리에
+          // 새 인물을 놓아도 이 장에 저절로 낀다(노드 목록이면 영영 안 낀다).
+          rect: focused.length === 0 ? canvas?.viewRectWorld() : undefined,
+        });
+        stepIndex = Math.min(steps().length - 1, stepIndex + (steps().length > 1 ? 1 : 0));
+      }
+      closeStageForm();
       persistStructure();
       showStep();
-    };
+    }
+    q<HTMLButtonElement>('stage-add').onclick = () => openStageForm('add');
+    q<HTMLButtonElement>('stage-save').onclick = () => saveStageForm();
+    q<HTMLButtonElement>('stage-cancel').onclick = () => closeStageForm();
+    for (const key of ['stage-f-title', 'stage-f-note']) {
+      q<HTMLInputElement>(key).onkeydown = (ev: KeyboardEvent) => {
+        // 여기서 막지 않으면 Esc 가 발표 자체를 닫는다 — 글을 적다 말고 화면이 사라진다.
+        ev.stopPropagation();
+        if (ev.key === 'Enter') { ev.preventDefault(); saveStageForm(); }
+        if (ev.key === 'Escape') { ev.preventDefault(); closeStageForm(); }
+      };
+    }
     /** 이 장을 한 칸 옮긴다. 끌어 옮기기는 아직 — 버튼이 작고 확실하다. */
     function moveStep(delta: -1 | 1): void {
       const list = steps();
@@ -2782,15 +2844,8 @@ import {
     }
     q<HTMLButtonElement>('stage-back').onclick = () => moveStep(-1);
     q<HTMLButtonElement>('stage-fwd').onclick = () => moveStep(1);
-    q<HTMLButtonElement>('stage-rename').onclick = () => {
-      const step = steps()[stepIndex];
-      if (!step) return;
-      const title = prompt(t('karmograph.title.msg'), step.title)?.trim();
-      if (!title) return;
-      step.title = title;
-      persistStructure();
-      showStep();
-    };
+    // 고치는 것도 같은 폼이다 — 제목만이 아니라 **설명까지** 여기서 고친다(예전엔 제목뿐이었다).
+    q<HTMLButtonElement>('stage-rename').onclick = () => openStageForm('edit');
 
     q<HTMLButtonElement>('stage-del').onclick = () => {
       const list = steps();
