@@ -139,6 +139,13 @@ import {
     .km-toolbar > * { flex:0 0 auto; width:auto; max-width:100%; }
     /* 폭을 못 박아 한 줄에 더 많이 들어가게 — 툴바가 세로로 자랄수록 그림이 밀린다. */
     .km-toolbar select[data-km="maps"] { max-width:138px; }
+    /* 이름을 고치는 동안 고르개 자리를 그대로 쓴다 — 자리가 움직이면 옆 단추가 손 밑에서 밀린다. */
+    .km-toolbar input[data-km="map-name"] { max-width:138px; padding:4px 8px; border-radius:8px;
+      border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary); }
+    .km-toolbar input[data-km="map-name"].hidden { display:none; }
+    /* ★ 이 위젯에는 **공통 .hidden 규칙이 없다** — 숨길 것마다 제 규칙을 갖는다.
+       (없는 줄 모르고 hidden 클래스만 붙였다가 고르개가 그대로 보였다, 2026-08-14) */
+    .km-toolbar select[data-km="maps"].hidden { display:none; }
     .km-toolbar input[type=text] { min-width:132px; max-width:176px; }
     .km-toolbar input[data-km="find"] { min-width:118px; }
     .km-sep { width:1px; align-self:stretch; background:var(--border); margin:0 2px; }
@@ -640,6 +647,9 @@ import {
       <div class="km-root">
         <div class="km-toolbar">
           <select data-km="maps" title="${esc(t('karmograph.maps.title'))}"></select>
+          <!-- 이름은 **그 자리에서** 고친다 (KL-271) — 고르개가 잠깐 입력칸이 된다.
+               브라우저 prompt 는 판을 통째로 가리고, 폰에서는 화면을 덮는다. -->
+          <input class="hidden" data-km="map-name" aria-label="${esc(t('karmograph.mapRename2.title'))}" />
           <!-- 판 이름을 바꾸는 자리가 ⋯ 서랍 안에만 있었다 — **이름 옆**이 그 자리다 (2026-08-12 검토). -->
           <button class="btn btn-ghost" data-km="map-rename2" title="${esc(t('karmograph.mapRename2.title'))}"
             aria-label="${esc(t('karmograph.mapRename2.title'))}">✎</button>
@@ -3934,10 +3944,33 @@ import {
     // 이름 옆 ✎ 와 서랍의 「이름 바꾸기」는 **같은 길**을 쓴다 — 두 길이 생기면 언젠가 갈라진다.
     const renameActiveMap = (): void => {
       const cur = library.maps.find((m) => m.id === library.activeId);
-      const name = prompt(t('karmograph.name.msg'), cur?.name ?? '')?.trim();
-      if (!name) return;
-      library = renameMap(library, library.activeId, name);
-      renderMapList();
+      const sel = q<HTMLSelectElement>('maps');
+      const box = q<HTMLInputElement>('map-name');
+      box.value = cur?.name ?? '';
+      sel.classList.add('hidden');
+      box.classList.remove('hidden');
+      box.focus();
+      box.select();
+      let closed = false;
+      const close = (keep: boolean): void => {
+        if (closed) return;
+        closed = true;
+        const name = box.value.trim();
+        box.classList.add('hidden');
+        sel.classList.remove('hidden');
+        // 이름을 통째로 비우면 옛 이름을 둔다 — 이름 없는 판은 고르개에서 못 고른다.
+        if (keep && name && name !== cur?.name) {
+          library = renameMap(library, library.activeId, name);
+        }
+        renderMapList();
+      };
+      box.onkeydown = (ev) => {
+        ev.stopPropagation();   // 안 막으면 Delete·화살표가 판의 카드를 건드린다
+        if (ev.key === 'Enter') { ev.preventDefault(); close(true); }
+        if (ev.key === 'Escape') { ev.preventDefault(); close(false); }
+      };
+      // 적어 놓고 딴 데를 눌렀다고 지우면 화가 난다 — 적은 대로 둔다.
+      box.onblur = () => close(true);
     };
     // 판 이름은 **이름 옆 ✎** 하나로만 바꾼다 — 서랍 안 같은 단추는 걷어냈다 (KL-271 P3).
     q<HTMLButtonElement>('map-rename2').onclick = renameActiveMap;
