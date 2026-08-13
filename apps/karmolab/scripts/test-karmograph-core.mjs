@@ -47,6 +47,7 @@ async function loadModules() {
     export * as edgedrag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-edgedrag.ts'))};
     export * as edgeViews from ${JSON.stringify(path.join(root, 'src/lib/graph/edge-views.ts'))};
     export * as poster from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster-legend.ts'))};
+    export * as posterDraw from ${JSON.stringify(path.join(root, 'src/widgets/karmograph/poster.ts'))};
     export * as drag from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-drag.ts'))};
     export * as guides from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-guides.ts'))};
     export * as minimap from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-minimap.ts'))};
@@ -799,6 +800,32 @@ const M = await loadModules();
   check(!legendWorthShowing(posterLegend({ nodes: [{ kind: 'person' }], edges: [] }, L, E)),
     '종류가 하나뿐이면 범례가 설명할 것이 없다');
   check(legendWorthShowing(r), '종류가 여럿이면 범례가 쓸모 있다');
+}
+
+// -- 자랑할 한 장 (TASK-KL-271 O1) --------------------------------------------
+{
+  const { wrapPoster, readSize, legendRows, HEAD_H } = M.posterDraw;
+  const skin = { bg: '#111', text: '#fff', dim: '#aaa', line: '#333' };
+  const art = '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><g/></svg>';
+  eq(readSize(art).w, 400, '그림 크기를 읽는다');
+  eq(readSize('<div/>'), null, '그림이 아니면 크기가 없다');
+  const L = [{ kind: 'person', label: '인물', count: 12, of: 'node' }];
+  const out = wrapPoster(art, { title: '나의 세계관', stamp: '2026', legend: L, skin });
+  check(out.includes('나의 세계관'), '제목이 그림에 박힌다');
+  check(out.includes('2026'), '날짜도 박힌다');
+  check(out.includes('인물 12'), '범례가 몇 개인지까지 적는다');
+  const h = Number(/height="(\d+)"/.exec(out)[1]);
+  check(h > 300 + HEAD_H, '제목줄과 범례줄만큼 세로가 는다');
+  check(out.includes(`<svg x="0" y="${HEAD_H}"`), '그림은 그대로 안쪽에 앉는다(안 건드린다)');
+  eq(wrapPoster('<div/>', { title: 'x', legend: [], skin }), '<div/>',
+    '크기를 못 읽으면 틀을 안 씌운다 — 잘못 씌우느니 안 씌운다');
+  const bare = wrapPoster(art, { title: 'x', legend: [], skin });
+  eq(Number(/height="(\d+)"/.exec(bare)[1]), 300 + HEAD_H, '범례가 없으면 아래 틀도 없다');
+  const many = Array.from({ length: 9 }, (_, n) => ({ kind: `k${n}`, label: `종류${n}`, count: 1, of: 'node' }));
+  check(legendRows(many, 400, false).length > 1, '폭을 넘으면 다음 줄로 접는다');
+  eq(legendRows(many, 4000, false).length, 1, '넓으면 한 줄로 선다');
+  check(wrapPoster(art, { title: '<b>&', legend: [], skin }).includes('&lt;b&gt;&amp;'),
+    '제목에 꺾쇠가 있어도 그림이 안 깨진다');
 }
 
 process.stdout.write('\n');

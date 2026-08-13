@@ -25,6 +25,8 @@ import { loadTerms, saveTerms, newTermId, type MyTerms } from './terms';
 import { parseOutline, layoutTree } from './from-text';
 import { sampleFor, INTENTS } from './samples';
 import { COMMAND_GROUPS } from './commands';
+import { posterLegend, legendWorthShowing } from './poster-legend';
+import { wrapPoster } from './poster';
 import { dropFromFront, roughBytes } from './history';
 import { measureStorage, humanBytes, WARN_RATIO } from './storage-health';
 import { help } from './help';
@@ -3025,12 +3027,42 @@ import {
       return probe && probe !== 'rgba(0, 0, 0, 0)' ? probe : '#111318';
     }
 
+    /**
+     * 자랑할 **한 장** (TASK-KL-271 O1) — 그림 위에 판 이름, 아래에 범례를 두른 SVG.
+     * 「그림으로 저장」과 「SVG 로 저장」이 같은 자리를 쓴다 — 갈리면 한쪽만 틀을 입는다.
+     */
+    function posterSvgString(): string | null {
+      const art = canvas?.exportSVGString({ background: canvasBackground() });
+      if (!art) return null;
+      const leg = posterLegend(spec, (k) => kindLabel(k), (k) => edgeLabel(k));
+      const items = legendWorthShowing(leg) ? [...leg.nodes, ...leg.edges] : [];
+      const colors = kindColorsNow();
+      const edgeColor = (id: string): string | undefined => spec._edge_kinds?.[id]?.color
+        ?? edgeKindsNow().find((k) => k.id === id)?.color;
+      const cs = getComputedStyle(root);
+      const pick = (name: string, fallback: string): string => cs.getPropertyValue(name).trim() || fallback;
+      return wrapPoster(art, {
+        title: activeMapName(),
+        stamp: new Date().toLocaleDateString('sv-SE'),   // 2026-08-13 — 어느 나라 사람이 봐도 같은 순서
+        legend: items,
+        more: leg.moreNodes + leg.moreEdges,
+        skin: {
+          bg: canvasBackground(),
+          text: pick('--text-primary', '#e2e8f0'),
+          dim: pick('--text-secondary', '#94a3b8'),
+          line: pick('--border', '#334155'),
+        },
+        iconOf: (it) => (it.of === 'node' ? kindIcon(it.kind) : ''),
+        colorOf: (it) => (it.of === 'edge' ? edgeColor(it.kind) : colors[it.kind]),
+      });
+    }
+
     function exportImage(scale: number): void {
       if (spec.nodes.length === 0) {
         Toolbox.showToast?.(t('karmograph.exportImage.msg'), undefined, undefined);
         return;
       }
-      const svgText = canvas?.exportSVGString({ background: canvasBackground() });
+      const svgText = posterSvgString();
       if (!svgText) return;
       // data URI 로 넘긴다 — SVG 를 http URL 로 물리면 브라우저가 캔버스를 오염시켜
       // toBlob 이 통째로 막힌다(내보내기가 「아무 일도 안 일어남」이 된다).
@@ -3071,7 +3103,7 @@ import {
         Toolbox.showToast?.(t('karmograph.exportImage.msg'), undefined, undefined);
         return;
       }
-      const svgText = canvas?.exportSVGString({ background: canvasBackground() });
+      const svgText = posterSvgString();
       if (!svgText) return;
       downloadBlob(new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' }), 'karmograph.svg');
     };
