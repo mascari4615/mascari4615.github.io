@@ -383,5 +383,9 @@
   "arcade.level.note": "how fast the bots move",
   "arcade.level.aria": "bot strength",
   "arcade.today.title": "Today's three",
-  "arcade.today.streak": "{n} days"
+  "arcade.today.streak": "{n} days",
+  "arcade.tour.start": "Cup — {n} games",
+  "arcade.tour.next": "next game",
+  "arcade.tour.done": "cup over",
+  "arcade.tour.standing": "{n}/{of} · {board}"
 }

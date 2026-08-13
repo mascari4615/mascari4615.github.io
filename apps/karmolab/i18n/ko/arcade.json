@@ -383,5 +383,9 @@
   "arcade.level.note": "봇이 손을 내는 빠르기",
   "arcade.level.aria": "봇 세기",
   "arcade.today.title": "오늘의 세 판",
-  "arcade.today.streak": "{n}일째"
+  "arcade.today.streak": "{n}일째",
+  "arcade.tour.start": "대회 — {n}판 이어서",
+  "arcade.tour.next": "다음 판",
+  "arcade.tour.done": "대회 끝",
+  "arcade.tour.standing": "{n}/{of}판 · {board}"
 }

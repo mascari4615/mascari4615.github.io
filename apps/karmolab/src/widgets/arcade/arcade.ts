@@ -30,6 +30,7 @@ import { makeCode, inviteLink } from '../../lib/room';
 import { blip, soundOn, setSoundOn } from '../../lib/blip';
 import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
+import { pickGames, award, isOver, ROUNDS, PARTY, type TourState } from './tour';
 import type { Render } from './views';
 import { connect, type Net, type Peer, type Json } from './net';
 
@@ -508,6 +509,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-todaycard{display:flex;align-items:center;gap:6px;padding:10px 14px;border:1px solid var(--accent);border-radius:10px;background:var(--bg-secondary);font-size:var(--font-size-sm)}',
       '.ac-todaycard span{font-size:20px}',
       '.ac-todaycard.ac-done{opacity:.55;border-color:var(--border-color)}',
+      '.ac-tourbtn{align-self:center}',
       '.ac-streak{margin-left:8px;font-size:var(--font-size-xs);color:var(--accent)}',
       '.ac-level{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:var(--space-md) 0}',
       '.ac-level button{padding:4px 10px;font-size:var(--font-size-xs);border:1px solid var(--border-color);border-radius:999px;background:var(--bg-secondary)}',
@@ -654,6 +656,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
             '<span>' + iconOf(id) + '</span>' + esc(t('arcade.game.' + id + '.name')) +
             (st.done.includes(id) ? ' ✓' : '') + '</button>')
           .join('') +
+        '<button class="btn btn-primary ac-tourbtn" id="acTour">' + esc(t('arcade.tour.start', { n: String(ROUNDS) })) + '</button>' +
         '</div>';
       container.querySelectorAll<HTMLButtonElement>('.ac-todaycard').forEach((b) => {
         b.onclick = (): void => {
@@ -661,6 +664,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           startSolo(String(b.dataset.today));
         };
       });
+      const tourBtn = container.querySelector<HTMLButtonElement>('#acTour');
+      if (tourBtn) tourBtn.onclick = startTour;
     };
     paintToday();
 
@@ -730,7 +735,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
          새어도 그림은 똑같다(일부러 새게 해 보고 검사가 안 빨개지는 것을 확인했다).
          새는 자리는 「보낸 값」이라 받은 값을 직접 읽어야 한다. 이 창이 이미 가진 것이므로
          내보낸다고 더 알려지는 것은 없다. */
-      (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state };
+      (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state, finished: v.finished, tour: tour ? { at: tour.at, games: tour.games, points: tour.points } : null };
       seatsEl.innerHTML = v.seats
         .map(
           (s, i) =>
@@ -743,20 +748,36 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (v.finished) {
         const top = Math.max(...v.seats.map((s) => s.score));
         const win = v.seats.filter((s) => s.score === top);
-        say(
-          win.length === v.seats.length
-            ? t('arcade.result.draw')
-            : t('arcade.result.win', { who: win.map((s) => s.name).join(', ') }),
-          'ok'
-        );
         againBtn.style.display = net && !net.host ? 'none' : '';
+        /* 끝난 판의 말은 **한 번만** 적는다. 매 프레임 다시 적으면 대회 점수판을 적어 놔도
+           다음 프레임에 이겼다/졌다로 덮인다(실측 — 점수판이 안 보였다). */
         if (!ended) {
           ended = true;
+          say(
+            win.length === v.seats.length
+              ? t('arcade.result.draw')
+              : t('arcade.result.win', { who: win.map((s) => s.name).join(', ') }),
+            'ok'
+          );
           /* 이긴 판만 세지 않는다 — 이겨야 세면 봇 세기를 순한맛으로 낮추는 놀이가 된다. */
           markPlayed(gameId, picks);
           paintToday();
           const mine = v.seats[mySeat]?.score ?? 0;
           blip(win.length === v.seats.length ? 'good' : mine === top ? 'win' : 'lose');
+          if (tour) {
+            tour = award(tour, v.seats.map((x) => x.score));
+            const board = v.seats.map((x, i) => x.name + ' ' + (tour?.points[i] ?? 0)).join(' · ');
+            say(
+              t('arcade.tour.standing', {
+                n: String(Math.min(tour.at, ROUNDS)),
+                of: String(tour.games.length),
+                board
+              }),
+              'ok'
+            );
+            againBtn.textContent = isOver(tour) ? t('arcade.tour.done') : t('arcade.tour.next');
+            againBtn.style.display = '';
+          }
         }
       } else if (v.note) {
         say(t(v.note.key, v.note.params));
@@ -818,6 +839,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       else net?.act({ a: a as Json });
     }
 
+    /** 대회가 돌고 있으면 여기 있다 (혼자 하는 대회 — 여럿 대회는 다음 걸음). */
+    let tour: TourState | null = null;
+
     function beginMatch(id: string, seats: SeatSpec[], seed: number): void {
       const g = gameById(id);
       if (!g) return;
@@ -827,8 +851,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       soundedRound = -1;
       /* 빈 자리를 **이름 있는 사람**으로 채운다 (TASK-KL-264). 커널이 채우면 「봇 1」이 되는데,
          그건 자리를 채운 것이지 같이 논 것이 아니다. 손버릇도 여기서 정해 판 내내 지킨다. */
-      const need = Math.max(0, g.seats[0] - seats.length);
-      const crew = pickBots(need);
+      /* 대회 중이면 인원을 **판이 아니라 대회가** 정한다 — 판마다 인원이 바뀌면 점수표가
+         성립하지 않는다. 뽑을 때 셋이 앉는 판만 골랐으므로 여기서 넘칠 일은 없다. */
+      const want = tour ? PARTY : g.seats[0];
+      const need = Math.max(0, Math.min(want, g.seats[1]) - seats.length);
+      /* 대회 중이면 다섯 판 내내 **같은 사람들**과 논다 — 또 깜냥한테 졌다가 되려면 그래야 한다. */
+      const crew = tour ? tour.crew.slice(0, need) : pickBots(need);
       const personas: Record<number, BotPersona> = {};
       crew.forEach((b, i) => {
         personas[seats.length + i] = b;
@@ -865,6 +893,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       $<HTMLElement>('#acIntroName').textContent = t('arcade.game.' + id + '.name');
       $<HTMLElement>('#acIntroDesc').textContent = t('arcade.game.' + id + '.desc');
       introEl.style.display = '';
+      /* 지난 판의 결과와 「한 판 더」를 치운다 — 안 치우면 다음 판을 세는 동안 지난 판이
+         아직 안 끝난 것처럼 보인다(대회에서 다음 판이 안 넘어가는 것처럼 보였다). */
+      againBtn.style.display = 'none';
+      say('');
       $<HTMLElement>('#acIntroSkip').textContent = t('arcade.intro.skip');
       let left = 3;
       let done = false;
@@ -896,6 +928,27 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         finish();
       }, 900);
       Toolbox.onDispose?.(() => window.clearInterval(tick));
+    }
+
+    /** 대회 — 다섯 판을 이어서. 점수는 판마다 등수로 매긴다(점수의 뜻이 판마다 달라서다). */
+    function startTour(): void {
+      net?.leave();
+      net = null;
+      tour = {
+        games: pickGames(GAMES.map((g) => ({ id: g.id, kind: kindOf(g.id), seats: g.seats }))),
+        at: 0,
+        points: new Array(PARTY).fill(0) as number[],
+        crew: pickBots(PARTY - 1)
+      };
+      nextTourGame();
+    }
+
+    function nextTourGame(): void {
+      if (!tour || isOver(tour)) return;
+      const id = tour.games[tour.at];
+      show('play');
+      withIntro(id, () =>
+        beginMatch(id, [{ name: myName(), bot: false }], seedFrom(id + String(Date.now()))));
     }
 
     /** 혼자 — 그물망 없이 커널만. 빈 자리는 봇이 앉는다. */
@@ -1054,6 +1107,17 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     $<HTMLButtonElement>('#acWaitQuit').onclick = quit;
 
     againBtn.onclick = (): void => {
+      if (tour) {
+        /* 대회 중이면 「한 판 더」가 「다음 판」이 된다. 다 돌았으면 대회를 닫고 로비로. */
+        if (isOver(tour)) {
+          tour = null;
+          againBtn.textContent = t('arcade.btn.again');
+          quit();
+          return;
+        }
+        nextTourGame();
+        return;
+      }
       if (!gameId) return;
       if (net?.host) startTogether();
       else startSolo(gameId);

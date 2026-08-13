@@ -383,5 +383,9 @@
   "arcade.level.note": "ボットの手の速さ",
   "arcade.level.aria": "ボットの強さ",
   "arcade.today.title": "今日の三番",
-  "arcade.today.streak": "{n}日連続"
+  "arcade.today.streak": "{n}日連続",
+  "arcade.tour.start": "大会 — {n}番勝負",
+  "arcade.tour.next": "次の番",
+  "arcade.tour.done": "大会おわり",
+  "arcade.tour.standing": "{n}/{of} · {board}"
 }
