@@ -254,7 +254,8 @@ export function renderFilterPanel(ctx: PanelCtx): void {
     const box = side.querySelector('[data-km="view-name"]') as HTMLInputElement;
     if (!isNameUsable(box.value)) { box.focus(); return; }
     const id = `view-${Date.now().toString(36)}`;
-    spec.views = upsertView(spec.views ?? [], captureView(box.value, st, ctx.focusDegree(), id));
+    spec.views = upsertView(spec.views ?? [], captureView(
+      box.value, st, ctx.focusDegree(), id, spec._meta?.time ?? ''));
     ctx.persist();
     ctx.refresh();
   };
@@ -263,6 +264,13 @@ export function renderFilterPanel(ctx: PanelCtx): void {
       const hit = (spec.views ?? []).find((v) => v.id === (el as HTMLElement).dataset.key);
       if (!hit) return;
       ctx.setFocusDegree(applyView(hit, st));
+      // 「1부 시점 + 인물만」처럼 **언제를 보고 있었나**까지 되살린다 (KL-271 X2).
+      if (hit.time && (spec.times ?? []).some((x) => x.id === hit.time)) {
+        spec._meta = { ...spec._meta, time: hit.time };
+        ctx.canvas()?.render();
+        ctx.timesChanged();   // 판 아래 줄도 따라와야 한다 — 안 그러면 화면이 서로 다른 말을 한다
+        ctx.persist();        // 되살린 자리는 다시 열어도 그대로여야 한다
+      }
       ctx.applyFilter();
       ctx.refresh();
     };

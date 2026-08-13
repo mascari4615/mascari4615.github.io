@@ -1477,6 +1477,7 @@ import {
       applyFilter: () => applyFilter(),
       focusDegree: () => focusDegree,
       setFocusDegree: (v) => { focusDegree = v; syncFocus(); },
+      timesChanged: () => renderTimes(),
       applyDecorate: () => {
         canvas?.setDecorate({
           sizeByDegree: filterState.sizeByDegree,
@@ -3453,7 +3454,9 @@ import {
         Toolbox.showToast?.(t('karmograph.exportImage.msg'), undefined, undefined);
         return;
       }
-      const text = toMermaidBlock(live);
+      /* 글로 옮기는 것도 **지금 보고 있는 판**이다 (KL-271 X2) — 2부를 보며 뽑았는데 1부가
+         나오면 「내가 본 것과 다른 것」이 문서에 박힌다. */
+      const text = toMermaidBlock({ ...live, edges: resolveEdges(live.edges, timeNow()) });
       downloadBlob(new Blob([text], { type: 'text/markdown;charset=utf-8' }), 'karmograph.mermaid.md');
       void navigator.clipboard?.writeText(text).then(
         () => Toolbox.showToast?.(t('karmograph.text.msg'), undefined, undefined),
@@ -3506,7 +3509,10 @@ import {
     };
 
     q<HTMLButtonElement>('canvas-out').onclick = () => {
-      const data = JSON.stringify(toJsonCanvas(canvas?.getSpec() ?? spec), null, 2);
+      const src0 = canvas?.getSpec() ?? spec;
+      // JSON Canvas 도 그림을 옮기는 것이라 지금 시점을 따른다(자료 통째 백업은 「JSON 내보내기」다).
+      const data = JSON.stringify(
+        toJsonCanvas({ ...src0, edges: resolveEdges(src0.edges, timeNow()) }), null, 2);
       downloadBlob(new Blob([data], { type: 'application/json' }), 'karmograph.canvas');
     };
 

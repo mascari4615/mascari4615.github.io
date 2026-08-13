@@ -1093,6 +1093,20 @@ const M = await loadModules();
   check(t2[1] === es[2], '안 바뀐 선은 사본을 안 만든다(쓸데없이 새 물건을 찍지 않는다)');
 }
 
+// -- 보기에 「언제를 보고 있었나」까지 (TASK-KL-271 X2) -------------------------
+{
+  const { captureView, applyView } = M.views;
+  const live = { nodeKinds: new Set(), edgeKinds: new Set(), tags: new Set(),
+    hideOrphans: false, minDegree: 0, fieldName: '', fieldValue: '' };
+  eq(captureView('1부만', live, '', 'v1', 't2').time, 't2', '보고 있던 시점도 담는다');
+  eq(captureView('지금', live, '', 'v2').time, '', '시점을 안 쓰는 판이면 빈 값');
+  // 옛 저장본(시점이 없던 시절)을 되살려도 아무 일도 안 일어나야 한다.
+  const target = { nodeKinds: new Set(), edgeKinds: new Set(), tags: new Set(),
+    hideOrphans: true, minDegree: 3, fieldName: 'x', fieldValue: 'y' };
+  applyView({ id: 'old', name: '옛것', focus: '' }, target);
+  eq(target.minDegree, 0, '옛 저장본도 탈 없이 되살아난다');
+}
+
 process.stdout.write('\n');
 if (failures.length > 0) {
   console.error(`\nRESULT: FAIL (${failures.length})\n - ` + failures.join('\n - '));
