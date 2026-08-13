@@ -28,11 +28,11 @@ const missing = NEEDED.filter((rel) => fs.existsSync(path.join(appRoot, rel)) ==
 if (missing.length > 0) {
   console.log(`[daily-smoke] CANNOT-RUN(건너뜀) — 번들이 아직 없다: ${missing.join(' · ')}`);
   console.log('  `node build.mjs` 뒤에 돌려라.');
-  process.exit(0);
+  process.exit(2);
 }
 if (fs.existsSync(path.join(distDir, 'dailycho.mjs')) === false) {
   console.log('[daily-smoke] CANNOT-RUN(건너뜀) — 알맹이 dist 가 없다. `npm run test:mcp` 뒤에 돌려라.');
-  process.exit(0);
+  process.exit(2);
 }
 
 /* 오늘 답은 **알맹이에게 따로 물어** 둔다 — 화면에서 캐낼 수 있으면 그게 곧 실패다. */

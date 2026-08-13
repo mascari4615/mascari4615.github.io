@@ -35,7 +35,7 @@ const repoRoot = path.dirname(path.dirname(root));
 /* 볼 대상이 없으면 「못 돌린다」고 말한다 — 없는 것을 두고 「통과」도 「실패」도 거짓말이다. */
 if (!fs.existsSync(path.join(root, 'js/toolbox.js'))) {
   console.log('[smoke-perf] 못 돌림 — js/toolbox.js 가 없다 (`node build.mjs` 먼저)');
-  process.exit(0);
+  process.exit(2);
 }
 
 /* 서버는 **공용 한 곳**을 쓴다 (`lib/serve-static.mjs`, TASK-KL-201).
@@ -82,7 +82,7 @@ try {
   const why = String(error && error.message ? error.message : error);
   if (/Executable doesn't exist|playwright install/i.test(why)) {
     console.log('[smoke-perf] 못 돌림 — 이 기계에 브라우저가 없다 (`npx playwright install chromium`)');
-    process.exit(0);
+    process.exit(2);
   }
   throw error;
 }

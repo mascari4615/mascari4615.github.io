@@ -59,7 +59,7 @@ const toolPagesDir = path.join(repoRoot, 'apps', 'blog', 'karmolab', 't');
  * 여기 걸린다는 건 「아직 안 찍었다」뿐이다. */
 if (!fs.existsSync(toolPagesDir) || fs.readdirSync(toolPagesDir).length === 0) {
   console.log('[smoke-navigation] CANNOT-RUN(건너뜀) — 도구 페이지가 아직 없다. `npm run gen:tool-pages` 뒤에 돌려라.');
-  process.exit(0);
+  process.exit(2);
 }
 
 /* 도구 화면·목록은 **배포 때 찍는 생성물**이라 저장소에 안 담긴다(gitignore).
@@ -70,7 +70,7 @@ if (!fs.existsSync(toolPagesDir) || fs.readdirSync(toolPagesDir).length === 0) {
 const HUB = path.join(repoRoot, 'apps/blog/karmolab/t/index.html');
 if (!fs.existsSync(HUB)) {
   console.log('[smoke-navigation] 건너뜀 — 찍힌 도구 화면이 없다 (`npm run gen:tool-pages` 뒤에 돌려라)');
-  process.exit(0);
+  process.exit(2);
 }
 
 await new Promise((r) => server.listen(0, '127.0.0.1', r));

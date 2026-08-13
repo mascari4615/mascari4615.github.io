@@ -44,7 +44,7 @@ const REGRESS = process.argv.includes('--regress');
 /* 볼 대상이 없으면 「못 돌린다」고 말한다 — 없는 것을 두고 「통과」도 「실패」도 거짓말이다. */
 if (!fs.existsSync(path.join(root, 'js/perf.js')) || !fs.existsSync(path.join(root, 'js/toolbox.js'))) {
   console.log('[perf-budget] 못 돌림 — js/perf.js 또는 js/toolbox.js 가 없다 (`node build.mjs` 먼저)');
-  process.exit(0);
+  process.exit(2);
 }
 
 /**

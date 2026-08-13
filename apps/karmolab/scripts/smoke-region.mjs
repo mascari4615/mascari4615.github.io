@@ -35,7 +35,7 @@ const missing = CASES.filter((c) => !fs.existsSync(path.join(repoRoot, c.page)))
 if (missing.length) {
   /* 장이 아직 안 찍혔다 = 이 검사의 **대상이 없다**. 「못 돈다」와 「실패」는 다르다. */
   console.log(`[region] 도구 장이 아직 없다 (${missing[0].page}) — 건너뜀`);
-  process.exit(0);
+  process.exit(2);
 }
 
 const server = http.createServer((req, res) => {
