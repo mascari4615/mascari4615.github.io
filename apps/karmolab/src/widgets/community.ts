@@ -558,7 +558,9 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     }
 
     /** 무엇이 · 왜 · 이제 무엇을. 종류마다 다르게 말한다 — 「안 돼요」 하나로 뭉치지 않는다. */
-    const FAILURE_TEXT: Record<Failure['kind'], { title: string; why: string; todo: string }> = {
+    /* ★ 위와 같은 이유로 **부를 때 만든다** — 파일 읽는 순간 `t()` 를 부르면 던진다
+       (실측: 동무·소라고둥 화면이 `community.t78` 로 죽어 있었다). */
+    const failureText = (): Record<Failure['kind'], { title: string; why: string; todo: string }> => ({
         offline: {
             title: t('widgets.community-main.title', undefined, "인터넷이 끊겨 있어요"),
             why: t('community.t78'),
@@ -594,7 +596,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             why: t('community.t96'),
             todo: t('community.t97'),
         },
-    };
+    });
 
     /** 오류 화면 — 다시 시도 단추가 있고, 기술 정보는 접어 두되 버리지 않는다. */
     function failureHtml(fallbackTitle: string): string {
@@ -606,7 +608,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             path: '-',
             at: new Date().toISOString(),
         };
-        const text = FAILURE_TEXT[failure.kind];
+        const text = failureText()[failure.kind];
         const stamp = new Intl.DateTimeFormat(locale(), {
             timeZone: 'Asia/Seoul',
             dateStyle: 'short',
@@ -651,7 +653,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     /** 짧은 알림에도 까닭을 한 마디 붙인다 — 「안 돼요」만으로는 다시 눌러야 할지도 모른다. */
     function toastFor(prefix: string): string {
         if (!lastFailure) return t('community.fail.retry', { prefix });
-        const text = FAILURE_TEXT[lastFailure.kind];
+        const text = failureText()[lastFailure.kind];
         return `${prefix} — ${text.todo} (${lastFailure.code}·${lastFailure.requestId})`;
     }
 
