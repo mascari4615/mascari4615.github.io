@@ -257,7 +257,8 @@ const BUILTIN = [
               if (!container.isConnected || !got) return;
               const mineShared = new Set(choices.map((c) => c.sharedId).filter(Boolean));
               const extra = got.packs
-                .filter((r: SharedPackSummary) => !mineShared.has(r.id))
+                /* 붙박이 판의 봇 사본(`siteBoard`)은 뺀다 — 위 `builtins` 로 이미 서 있다. */
+                .filter((r: SharedPackSummary) => !r.siteBoard && !mineShared.has(r.id))
                 .map((r: SharedPackSummary) => ({
                   key: `shared:${r.id}`,
                   title: r.title,

@@ -56,6 +56,14 @@ export interface SharedPack {
   opens: number;
   /** 어느 표에서 갈라져 나왔나. 남의 표를 이어받아 고치면 여기 남는다. */
   forkOf: string | null;
+  /**
+   * 사이트에 **이미 붙박이로 있는** 판을 그대로 옮겨 심은 표면, 그 판 이름(`pokemon`/`lol`/`genshin`).
+   *
+   * 왜 필요한가: 씨앗 표는 디스코드 쪽 원장을 살리려고 심는 것이지 **사이트 목록을 늘리려는 게
+   * 아니다.** 표시가 없으면 사이트가 붙박이 3판 + 같은 표의 봇 사본 3개를 나란히 그려
+   * 「포켓몬」이 두 번 선다(실제로 그렇게 보였다). 사이트는 이 표시가 붙은 표를 목록에서 뺀다.
+   */
+  siteBoard?: string | null;
 }
 
 /** 목록에 실어 보내는 요약 — 표 전체(수백 KB)를 목록마다 실어 보내지 않는다. */
@@ -74,6 +82,8 @@ export interface PackSummary {
   createdAt: string;
   updatedAt: string;
   forkOf: string | null;
+  /** 사이트 붙박이 판의 사본인가 — 사이트 목록은 이걸 뺀다(중복 방지). 아니면 null. */
+  siteBoard: string | null;
 }
 
 interface PacksState {
@@ -231,6 +241,7 @@ export function summarize(pack: SharedPack): PackSummary {
     createdAt: pack.createdAt,
     updatedAt: pack.updatedAt,
     forkOf: pack.forkOf,
+    siteBoard: pack.siteBoard ?? null,
   };
 }
 
@@ -262,12 +273,13 @@ export function isValidPackId(raw: unknown): raw is string {
  */
 export const SEED_OWNER = 'karmolab';
 
-const SEED_TABLES = [
-  { file: 'higher-pokemon.json', fallbackTitle: '포켓몬', emoji: '🔴' },
-  { file: 'higher-lol.json', fallbackTitle: '롤 챔피언', emoji: '⚔️' },
-  { file: 'higher-genshin.json', fallbackTitle: '원신 캐릭터', emoji: '🌠' },
+const SEED_TABLES: Array<{ file: string; fallbackTitle: string; emoji: string; siteBoard: string | null }> = [
+  /* 앞 셋은 사이트에 **붙박이로도** 있는 판이다 — `siteBoard` 로 표시해 사이트 목록에서 빠지게 한다. */
+  { file: 'higher-pokemon.json', fallbackTitle: '포켓몬', emoji: '🔴', siteBoard: 'pokemon' },
+  { file: 'higher-lol.json', fallbackTitle: '롤 챔피언', emoji: '⚔️', siteBoard: 'lol' },
+  { file: 'higher-genshin.json', fallbackTitle: '원신 캐릭터', emoji: '🌠', siteBoard: 'genshin' },
   // 남의 그림을 퍼다 심을 수는 없다 — 이건 **우리가 구운** 도구 공유 카드로 만든 표다.
-  { file: 'worldcup-tools.json', fallbackTitle: 'KarmoLab 도구 월드컵', emoji: '🧰' },
+  { file: 'worldcup-tools.json', fallbackTitle: 'KarmoLab 도구 월드컵', emoji: '🧰', siteBoard: null },
 ];
 
 /** 사이트 표(`{n,i,v}`)를 우리 표 모양(`{name,img,...}`)으로. 모양이 다르면 새로 만들지 않는다. */
@@ -325,6 +337,18 @@ export class KarmolabPackStore {
     this.seed();
   }
 
+  /** 씨앗 파일이 실제로 쓰는 제목. 못 읽으면 null (표시 채우기는 fallback 제목으로 맞춘다). */
+  private seedTitle(table: (typeof SEED_TABLES)[number]): string | null {
+    try {
+      const file = path.join(this.seedDir, table.file);
+      if (!fs.existsSync(file)) return null;
+      const shaped = fromSiteTable(JSON.parse(fs.readFileSync(file, 'utf-8')));
+      return shaped?.title || null;
+    } catch {
+      return null;
+    }
+  }
+
   /**
    * 처음부터 있는 표를 한 번만 심는다.
    *
@@ -337,6 +361,22 @@ export class KarmolabPackStore {
       this.state.seededFiles = this.state.seeded ? SEED_TABLES.slice(0, 3).map((t) => t.file) : [];
     }
     const already = new Set(this.state.seededFiles);
+
+    /* 이미 심어 둔 씨앗에 `siteBoard` 표시를 뒤늦게 채운다 (KL 중복 판 고침).
+       표시가 붙기 전에 심은 원장이 이미 돌고 있으므로, 다시 심는 게 아니라 **표시만** 붙인다 —
+       그래야 사이트 목록에서 붙박이와 겹친 3판이 그날로 사라진다. */
+    let marked = 0;
+    for (const table of SEED_TABLES) {
+      if (!table.siteBoard) continue;
+      const titles = new Set([table.fallbackTitle, this.seedTitle(table)].filter(Boolean) as string[]);
+      for (const pack of this.state.packs) {
+        if (pack.ownerHandle !== SEED_OWNER || pack.siteBoard) continue;
+        if (!titles.has(pack.title)) continue;
+        pack.siteBoard = table.siteBoard;
+        marked += 1;
+      }
+    }
+    if (marked) this.save();
 
     let planted = 0;
     for (const table of SEED_TABLES) {
@@ -361,6 +401,7 @@ export class KarmolabPackStore {
           updatedAt: now,
           opens: 0,
           forkOf: null,
+          siteBoard: table.siteBoard,
         });
         planted += 1;
       } catch (error) {
